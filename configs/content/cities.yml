@@ -1,0 +1,58 @@
+# Cities.
+#
+# This file is the authoring source for the world's cities. It is validated and
+# loaded into the database by `admin content load`; the database is what every
+# running service reads. Editing this file alone changes nothing until it is
+# loaded. See docs/adr/0004-content-system.md.
+#
+# Adding a city needs no code change and no restart: add an entry, run the
+# loader, and every service picks it up.
+#
+# Fields
+#   code             stable identifier. NEVER change one after it ships: routes,
+#                    saved player locations and past events all reference it.
+#   name             display name.
+#   tax_rate_bps     tax in basis points. 10000 = 100%. Integer only.
+#   cost_of_living   baseline living cost, in minor currency units.
+#
+# Tax and cost are deliberately decorrelated. A city that is cheap to live in is
+# not automatically a cheap place to trade, which gives location more than one
+# economic dimension to reason about.
+
+version: 1
+
+cities:
+  - code: ostmarch
+    name: Ostmarch
+    tax_rate_bps: 120
+    cost_of_living: 980
+
+  - code: fenwick_span
+    name: Fenwick Span
+    tax_rate_bps: 640
+    cost_of_living: 1540
+
+  - code: aldrin_hollow
+    name: Aldrin Hollow
+    tax_rate_bps: 720
+    cost_of_living: 2450
+
+  - code: brennhaven
+    name: Brennhaven
+    tax_rate_bps: 310
+    cost_of_living: 2600
+
+  - code: kessmoor
+    name: Kessmoor
+    tax_rate_bps: 980
+    cost_of_living: 3100
+
+  - code: calderis
+    name: Calderis
+    tax_rate_bps: 450
+    cost_of_living: 3780
+
+  - code: vantor_reach
+    name: Vantor Reach
+    tax_rate_bps: 1450
+    cost_of_living: 4200

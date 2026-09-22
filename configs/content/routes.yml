@@ -1,0 +1,39 @@
+# Routes between cities.
+#
+# The travel RULE lives in internal/domain/travel: how a distance and a chosen
+# speed become a duration and a cost. This file holds only the DATA that rule
+# operates on — which cities connect, and how far apart they are.
+#
+# See docs/adr/0004-content-system.md for that split.
+#
+# Fields
+#   from, to        city codes. Both must exist in cities.yml or the load fails.
+#   distance        abstract distance units, must be positive.
+#   bidirectional   when true (the default) the reverse route is implied.
+#                   Set false for a one-way route.
+#
+# The loader rejects: an unknown city code, a distance of zero or less, a
+# duplicate edge, and a route from a city to itself. It also reports any city
+# that no route reaches, because an unreachable city is almost always a typo
+# rather than a design choice.
+
+version: 1
+
+routes:
+  # The Ostmarch corridor: cheap, well connected, where new players start.
+  - {from: ostmarch, to: fenwick_span, distance: 120}
+  - {from: ostmarch, to: brennhaven, distance: 260}
+  - {from: fenwick_span, to: aldrin_hollow, distance: 180}
+  - {from: fenwick_span, to: brennhaven, distance: 210}
+
+  # Inland industry.
+  - {from: brennhaven, to: kessmoor, distance: 340}
+  - {from: aldrin_hollow, to: kessmoor, distance: 290}
+
+  # The coast. Calderis is expensive to reach, which is part of why it is
+  # expensive to live in.
+  - {from: kessmoor, to: calderis, distance: 520}
+  - {from: aldrin_hollow, to: calderis, distance: 610}
+
+  # Vantor Reach sits at the far end: one way in, high tax, high cost.
+  - {from: calderis, to: vantor_reach, distance: 480}
