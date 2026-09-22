@@ -1,0 +1,32 @@
+# secrets
+.env
+*.env
+!.env.example
+
+# build output
+bin/
+dist/
+*.exe
+
+# go
+vendor/
+*.test
+*.out
+coverage.*
+
+# runtime data
+telegram-bot-api-data/
+*.log
+
+# editor / os
+.DS_Store
+.idea/
+.vscode/
+/plans/
+/docs/
+*.md
+
+/.agents/
+/tests/
+# local tooling, not project source
+.agents/
