@@ -1,0 +1,193 @@
+# Operational configuration for every service in this project.
+#
+# This file is committed and is the same in every environment. Anything that
+# differs per environment is set with a TORN_<SECTION>_<FIELD> environment
+# variable, which overrides the value here; see configs/README.md.
+#
+# No secret ever goes in this file. See docs/adr/0002-secret-management.md.
+#
+# Durations are written the way Go writes them: 250ms, 30s, 2m, 24h. There is
+# no day unit, so thirty days is 720h.
+
+# The Telegram gateway: the polling loop, and the drain when it stops.
+gateway:
+  # The long-poll window handed to getUpdates. Long polling means an idle bot
+  # costs one held-open connection instead of a request every second.
+  # Lowering it multiplies request volume for no benefit; raising it above
+  # telegram.max_poll_timeout is rejected, because the client refuses such a
+  # poll and every bot would fail to receive updates from the first attempt.
+  poll_timeout: 30s
+
+  # How long to wait after a failed getUpdates before trying again. It is what
+  # stops a Telegram outage from turning into a request flood. Lowering it
+  # towards zero turns a failing poll into a hot loop against an endpoint that
+  # is already unhappy.
+  poll_error_backoff: 2s
+
+  # The budget for the whole gateway drain: in-flight updates, in-flight sends,
+  # lease release and connection close. Shortening it makes a deploy faster and
+  # makes it likelier that an update in flight is dropped rather than finished.
+  shutdown_timeout: 20s
+
+  # How many times one outbound Bot API call is tried. The second attempt
+  # exists for exactly one case: a flood wait, where the limiter has already
+  # been told to park the bot and the retry lands on the far side of the pause.
+  # Raising it makes the gateway retry errors that will not improve on a
+  # retry; setting it to 1 removes the flood-wait recovery.
+  send_attempts: 2
+
+# The per-bot lease: which gateway instance has the exclusive right to poll a
+# given bot. Two instances polling one bot lose updates rather than duplicating
+# them, because each getUpdates acknowledges the other's.
+lease:
+  # How long a claim survives without a renewal. It is the upper bound on how
+  # long a crashed gateway's bots stay dark, so it is short. Raising it leaves
+  # bots unattended for longer after a crash; lowering it makes a brief Redis
+  # hiccup enough to lose a lease that is working fine.
+  ttl: 30s
+
+  # The renewal interval is ttl divided by this. Three means three attempts
+  # inside one TTL, so two consecutive failures (a Redis failover, a GC pause)
+  # are survivable. It must be at least 2: at 1 the renewal is due only once
+  # the lease has already expired, and the bot flaps between instances.
+  renew_divisor: 3
+
+  # Bounds the release that runs after the keeper's context is already
+  # cancelled, so shutdown cannot hang on it. If the release fails, the TTL
+  # above is the fallback and the bot is claimable again once it expires.
+  release_timeout: 5s
+
+# Outbound pacing towards the Bot API, one independent gate per bot, so a
+# flood wait on one bot never stalls the rest of the fleet.
+ratelimit:
+  # The per-bot allowance in messages per second for a bot with no rate of its
+  # own in the registry. It sits below Telegram's documented "about 30 per
+  # second" on purpose: that figure is not a contract, and our clock, the
+  # network and the local Bot API server each add jitter in the wrong
+  # direction. Raising it to the documented ceiling earns 429s.
+  default_rate: 25
+
+  # How many messages may go out back to back after an idle period. One means
+  # strictly paced output. Raising it lets a quiet bot fire a burst, which
+  # Telegram answers with 429 often enough that spending the allowance evenly
+  # is the safer default.
+  default_burst: 1
+
+# The Bot API client itself.
+telegram:
+  # Bounds an ordinary, non-polling call. It is never applied to getUpdates.
+  # It must stay below max_poll_timeout + poll_timeout_grace, and loading the
+  # config fails if it does not.
+  request_timeout: 30s
+
+  # The largest long-poll window the client will accept. It exists so the
+  # polling HTTP client can be given a transport timeout that is provably
+  # larger than any poll it will be asked to make.
+  max_poll_timeout: 120s
+
+  # Added on top of max_poll_timeout to get the polling client's transport
+  # timeout. Without the grace the classic bug appears: an HTTP timeout equal
+  # to the long-poll timeout aborts every poll just before the server answers,
+  # and the bot looks dead while every request reports success.
+  poll_timeout_grace: 15s
+
+  # Used when the server answers 429 with no usable retry_after. Deliberately
+  # conservative: waiting a few seconds too long costs little, retrying too
+  # early risks a longer ban.
+  default_flood_wait: 5s
+
+# Suppression of Telegram updates that arrive more than once.
+dedup:
+  # How long an update id is remembered. Telegram redelivers an update until
+  # it is confirmed by offset, so after a long outage a replayed update must
+  # still be recognised. Shortening this to minutes would let such a replay be
+  # processed a second time, charging a player twice for one command.
+  # Lengthening it only costs memory for keys nobody reads again.
+  ttl: 24h
+
+# JetStream stream retention and redelivery.
+nats:
+  # How long an unconsumed command is kept. Commands are perishable in a way
+  # events are not: replaying a three-day-old "travel to this city" after an
+  # outage is worse than dropping it, because the player gave up long ago.
+  command_max_age: 24h
+
+  # How long events are kept: 720h is thirty days. Events are history, read by
+  # projections, notifications and analytics, so they are retained far longer
+  # than commands. Shortening it shortens how far a projection can be rebuilt.
+  event_max_age: 720h
+
+  # How long the server remembers a Nats-Msg-Id and drops a republication of
+  # it. Two minutes covers the realistic case: an outbox row re-claimed after
+  # a publisher crashed between publishing and marking the row published. It
+  # is a first line of defence only; the inbox table is what actually
+  # guarantees effectively-once processing.
+  duplicate_window: 2m
+
+  # How long the server waits for an acknowledgement before assuming the
+  # handler died. It must exceed the slowest legitimate handler: set it too
+  # low and a still-running handler's message is redelivered and the work is
+  # done twice.
+  ack_wait: 30s
+
+  # How many times JetStream offers one message before giving up on it. The
+  # transient failures clear inside the backoff schedule below; the ones that
+  # do not are deterministic, and retrying those forever just parks one
+  # message at the head of a work queue starving everything behind it. After
+  # the last attempt the message goes to the dead-letter advisory path.
+  max_deliver: 5
+
+  # The delay requested when a handler returns an error. A plain immediate
+  # nak against a dependency that is down becomes a hot loop that burns the
+  # whole delivery budget in milliseconds, before the dependency has had any
+  # chance to recover.
+  nak_delay: 5s
+
+  # The wait before each redelivery, one entry per redelivery. It is graduated
+  # because the first retry asks "was that a blip" and wants to be quick,
+  # while the fourth asks "has the dependency come back" and a tight loop
+  # there only adds load. Entries must strictly increase; JetStream reuses the
+  # last one if it ever needs more.
+  backoff:
+    - 1s
+    - 5s
+    - 15s
+    - 60s
+
+# The outbox worker, which turns committed database rows into published events.
+worker:
+  # How often an idle outbox is checked. It is the floor on end-to-end event
+  # latency, so it is short; the partial index on pending rows makes an empty
+  # poll almost free. Raising it delays every event by up to that much.
+  poll_interval: 250ms
+
+  # How many rows one claim takes. Large enough that a burst drains in a few
+  # polls, small enough that a worker crash re-publishes little. Raising it
+  # increases how much work a crash repeats.
+  batch_size: 100
+
+  # Bounds the final drain when the worker stops.
+  shutdown_timeout: 15s
+
+  # The attempt count at which a row stops being a normal retry and starts
+  # being a problem worth an operator's attention. The row is still not
+  # touched; only the reporting changes.
+  noisy_attempts: 5
+
+# The command-side game service.
+game:
+  # Bounds the drain of in-flight messages when the service stops.
+  shutdown_timeout: 20s
+
+  # How long a command's idempotency key blocks a replay. It must comfortably
+  # outlast the broker's redelivery schedule above, and loading the config
+  # fails if it does not: a redelivery arriving after the key expired is
+  # executed a second time.
+  idempotency_ttl: 24h
+
+# Player-facing defaults.
+player:
+  # The language a player gets when Telegram tells us nothing usable about
+  # theirs. The game ships Persian first, so an unknown locale falls back to
+  # it rather than to English. It is a primary subtag only: "fa", not "fa-IR".
+  default_language: "fa"

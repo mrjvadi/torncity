@@ -2,13 +2,36 @@ package handlers
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
+
+// localesDir is the real locale directory, relative to this package. The
+// handler tests resolve against the text that actually ships, so a key
+// renamed in one place and not the other fails here.
+const localesDir = "../../../configs/locales"
+
+// messages loads the shipped catalogue. A failure here is a failure of the
+// locale files, which is worth stopping the test run for.
+func messages(t *testing.T) *i18n.Catalog {
+	t.Helper()
+	c, err := i18n.Load(localesDir)
+	if err != nil {
+		t.Fatalf("load locales from %s: %v", localesDir, err)
+	}
+	return c
+}
+
+// testDefaultLanguage is what a player record gets when the request carries
+// no language. Tests fix it so an assertion never depends on the shipped
+// configuration.
+const testDefaultLanguage = "fa"
 
 // --- fakes -------------------------------------------------------------
 
@@ -91,7 +114,8 @@ func (s *seqIDs) NewID() string {
 	return "player-" + string(rune('0'+s.n))
 }
 
-func newHarness() (*ProfileHandler, *fakeUOW) {
+func newHarness(t *testing.T) (*ProfileHandler, *fakeUOW) {
+	t.Helper()
 	tx := &fakeTx{
 		players: &fakePlayers{byTelegramID: map[int64]*application.Player{}},
 		outbox:  &fakeOutbox{},
@@ -99,7 +123,7 @@ func newHarness() (*ProfileHandler, *fakeUOW) {
 	}
 	uow := &fakeUOW{tx: tx}
 	fixed := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
-	return NewProfileHandler(uow, &seqIDs{}, func() time.Time { return fixed }), uow
+	return NewProfileHandler(uow, &seqIDs{}, messages(t), testDefaultLanguage, func() time.Time { return fixed }), uow
 }
 
 func meta(botID string, telegramUserID int64, requestID string) envelope.Metadata {
@@ -122,7 +146,7 @@ func meta(botID string, telegramUserID int64, requestID string) envelope.Metadat
 // --- tests -------------------------------------------------------------
 
 func TestFirstContactCreatesPlayerAndEvent(t *testing.T) {
-	h, uow := newHarness()
+	h, uow := newHarness(t)
 
 	resp, err := h.Handle(context.Background(), meta("bot01", 123, "req-1"))
 	if err != nil {
@@ -130,6 +154,12 @@ func TestFirstContactCreatesPlayerAndEvent(t *testing.T) {
 	}
 	if resp.Type != presenter.ActionSendMessage {
 		t.Errorf("got action %q, want send_message", resp.Type)
+	}
+	// The body must be resolved text, not the key. Asserting on the key
+	// rather than on the Persian wording is deliberate: a translator
+	// rewording the profile screen is not a broken handler.
+	if resp.Text == "profile.body" || resp.Text == "" {
+		t.Errorf("profile body did not resolve from the catalogue: %q", resp.Text)
 	}
 	if uow.tx.players.created != 1 {
 		t.Errorf("created %d players, want 1", uow.tx.players.created)
@@ -145,7 +175,7 @@ func TestFirstContactCreatesPlayerAndEvent(t *testing.T) {
 // The core promise of the fleet: the same person on two different bots is one
 // player in one world. If this ever fails, bot01 and bot07 are separate games.
 func TestSameTelegramUserAcrossBotsIsOnePlayer(t *testing.T) {
-	h, uow := newHarness()
+	h, uow := newHarness(t)
 	ctx := context.Background()
 
 	if _, err := h.Handle(ctx, meta("bot01", 555, "req-1")); err != nil {
@@ -176,7 +206,7 @@ func TestSameTelegramUserAcrossBotsIsOnePlayer(t *testing.T) {
 // At-least-once delivery means the same command can arrive twice. The second
 // arrival must not produce a second side effect.
 func TestReplayOfSameRequestIsSuppressed(t *testing.T) {
-	h, uow := newHarness()
+	h, uow := newHarness(t)
 	ctx := context.Background()
 	m := meta("bot01", 777, "req-replay")
 
@@ -201,7 +231,7 @@ func TestReplayOfSameRequestIsSuppressed(t *testing.T) {
 }
 
 func TestDifferentRequestIDsAreNotSuppressed(t *testing.T) {
-	h, uow := newHarness()
+	h, uow := newHarness(t)
 	ctx := context.Background()
 
 	if _, err := h.Handle(ctx, meta("bot01", 888, "req-a")); err != nil {
@@ -216,7 +246,7 @@ func TestDifferentRequestIDsAreNotSuppressed(t *testing.T) {
 }
 
 func TestRejectsMalformedContext(t *testing.T) {
-	h, _ := newHarness()
+	h, _ := newHarness(t)
 	tests := []struct {
 		name   string
 		mutate func(*envelope.Metadata)
@@ -234,5 +264,125 @@ func TestRejectsMalformedContext(t *testing.T) {
 				t.Error("expected an error, got nil")
 			}
 		})
+	}
+}
+
+// The handler must render from the injected catalogue, for whatever language
+// the request carried. The assertions are about keys resolving and values
+// landing, never about the wording, so a copy change cannot fail this test.
+func TestProfileTextComesFromTheCatalogue(t *testing.T) {
+	cat := messages(t)
+
+	tests := []struct {
+		name string
+		lang string
+	}{
+		{"default language", "fa"},
+		{"second language", "en"},
+		{"unknown language falls back", "de"},
+		{"no language falls back", ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h, uow := newHarness(t)
+			m := meta("bot01", 4242, "req-"+tt.name)
+			m.Language = tt.lang
+
+			resp, err := h.Handle(context.Background(), m)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			for _, key := range []string{"profile.body", "profile.unavailable", "button.refresh"} {
+				if resp.Text == key {
+					t.Errorf("%s rendered as its key", key)
+				}
+			}
+			if resp.Text == "" {
+				t.Fatal("empty profile body")
+			}
+
+			// The placeholders must have been filled with this
+			// player's own values.
+			p := uow.tx.players.byTelegramID[4242]
+			for _, want := range []string{p.ID, p.Language, p.Status} {
+				if !strings.Contains(resp.Text, want) {
+					t.Errorf("profile body %q is missing %q", resp.Text, want)
+				}
+			}
+			if strings.Contains(resp.Text, "{") {
+				t.Errorf("profile body has an unfilled placeholder: %q", resp.Text)
+			}
+
+			if resp.Keyboard == nil || len(resp.Keyboard.Rows) != 1 || len(resp.Keyboard.Rows[0]) != 1 {
+				t.Fatalf("expected one refresh button, got %+v", resp.Keyboard)
+			}
+			btn := resp.Keyboard.Rows[0][0]
+			if btn.Text == "button.refresh" || btn.Text == "" {
+				t.Errorf("button label did not resolve: %q", btn.Text)
+			}
+			if want := cat.T(tt.lang, "button.refresh", nil); btn.Text != want {
+				t.Errorf("button label %q does not match the catalogue's %q", btn.Text, want)
+			}
+			if btn.CallbackData != "player:profile.get" {
+				t.Errorf("callback data %q changed", btn.CallbackData)
+			}
+		})
+	}
+}
+
+// recordingTranslator proves the catalogue is injected rather than reached
+// for: a handler built with this one must use it and nothing else.
+type recordingTranslator struct{ keys []string }
+
+func (r *recordingTranslator) T(_, key string, _ map[string]any) string {
+	r.keys = append(r.keys, key)
+	return "<" + key + ">"
+}
+
+func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
+	tx := &fakeTx{
+		players: &fakePlayers{byTelegramID: map[int64]*application.Player{}},
+		outbox:  &fakeOutbox{},
+		idem:    &fakeIdem{seen: map[string]bool{}},
+	}
+	spy := &recordingTranslator{}
+	h := NewProfileHandler(&fakeUOW{tx: tx}, &seqIDs{}, spy, testDefaultLanguage, nil)
+
+	resp, err := h.Handle(context.Background(), meta("bot01", 7, "req-spy"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp.Text != "<profile.body>" {
+		t.Errorf("handler ignored the injected catalogue, got %q", resp.Text)
+	}
+	want := []string{"profile.body", "button.refresh"}
+	if len(spy.keys) != len(want) {
+		t.Fatalf("looked up %v, want %v", spy.keys, want)
+	}
+	for i, key := range want {
+		if spy.keys[i] != key {
+			t.Errorf("lookup %d was %q, want %q", i, spy.keys[i], key)
+		}
+	}
+}
+
+// A handler wired without a catalogue must show keys, not panic. A missing
+// catalogue is a deployment mistake; taking down every request for it would
+// turn a wrong word into an outage.
+func TestNilCatalogueRendersKeys(t *testing.T) {
+	tx := &fakeTx{
+		players: &fakePlayers{byTelegramID: map[int64]*application.Player{}},
+		outbox:  &fakeOutbox{},
+		idem:    &fakeIdem{seen: map[string]bool{}},
+	}
+	h := NewProfileHandler(&fakeUOW{tx: tx}, &seqIDs{}, nil, testDefaultLanguage, nil)
+
+	resp, err := h.Handle(context.Background(), meta("bot01", 8, "req-nil"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp.Text != "profile.body" {
+		t.Errorf("got %q, want the key", resp.Text)
 	}
 }

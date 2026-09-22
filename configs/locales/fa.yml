@@ -1,0 +1,44 @@
+# Persian messages. This is the default locale: it is the one language that
+# must be complete, because every other language falls back to it.
+#
+# Nothing here is compiled into the binary. Change the wording, restart, done.
+#
+# Placeholders are written {name} and are substituted literally. Keep every
+# placeholder that the other locales use — a line that drops {amount} is not a
+# shorter sentence, it is a wrong one, and Validate() fails the build for it.
+#
+# Quote any message that STARTS with a placeholder: bare {name} at the start of
+# a value is a YAML mapping, not text. Mid-sentence placeholders need nothing.
+
+profile:
+  title: پروفایل
+
+  # |- keeps the newlines and drops the trailing one, so the message ends
+  # where the text ends.
+  body: |-
+    پروفایل
+
+    شناسه: {id}
+    زبان: {language}
+    وضعیت: {status}
+
+  unavailable: پروفایل در دسترس نیست.
+
+  id_label: شناسه
+  language_label: زبان
+  status_label: وضعیت
+  level_label: سطح
+  energy_label: انرژی
+  health_label: سلامتی
+
+button:
+  refresh: بروزرسانی
+  back: بازگشت
+  next: بعدی
+  previous: قبلی
+
+error:
+  unknown_command: این دستور را نمی‌شناسم.
+  not_enough_energy: انرژی کافی نداری. {needed} انرژی لازم است و {current} انرژی داری.
+  cooldown: باید {seconds} ثانیه دیگر صبر کنی.
+  internal: خطایی رخ داد. لطفاً دوباره تلاش کن.

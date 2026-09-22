@@ -1,0 +1,41 @@
+# English messages.
+#
+# The key set here must match every other locale exactly, including the
+# placeholders each message uses. Validate() reports any key that exists in
+# one locale and not another, and any message whose placeholders differ.
+#
+# Quote any message that STARTS with a placeholder: bare {name} at the start of
+# a value is a YAML mapping, not text. Mid-sentence placeholders need nothing.
+
+profile:
+  title: Profile
+
+  # |- keeps the newlines and drops the trailing one, so the message ends
+  # where the text ends.
+  body: |-
+    Profile
+
+    ID: {id}
+    Language: {language}
+    Status: {status}
+
+  unavailable: Your profile is not available.
+
+  id_label: ID
+  language_label: Language
+  status_label: Status
+  level_label: Level
+  energy_label: Energy
+  health_label: Health
+
+button:
+  refresh: Refresh
+  back: Back
+  next: Next
+  previous: Previous
+
+error:
+  unknown_command: I do not know that command.
+  not_enough_energy: Not enough energy. You need {needed} and have {current}.
+  cooldown: Wait {seconds} more seconds.
+  internal: Something went wrong. Please try again.

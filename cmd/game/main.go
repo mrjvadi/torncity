@@ -30,6 +30,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
+	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 )
 
 const (
@@ -46,6 +47,15 @@ const (
 
 	// shutdownTimeout bounds the drain of in-flight messages.
 	shutdownTimeout = 20 * time.Second
+
+	// defaultLocalesDir is where player-visible text is read from.
+	//
+	// This one path comes from the environment rather than from the config
+	// file, for the same reason DATABASE_URL does: something has to say
+	// where the content lives before any content has been read. Everything
+	// else about messages — the text, the languages, the keys — is in the
+	// files this points at, and none of it is in this binary.
+	defaultLocalesDir = "configs/locales"
 )
 
 func main() {
@@ -71,6 +81,7 @@ type config struct {
 	databaseURL string
 	natsURL     string
 	logLevel    string
+	localesDir  string
 }
 
 func loadConfig() (config, error) {
@@ -78,6 +89,10 @@ func loadConfig() (config, error) {
 		databaseURL: os.Getenv("DATABASE_URL"),
 		natsURL:     os.Getenv("NATS_URL"),
 		logLevel:    os.Getenv("LOG_LEVEL"),
+		localesDir:  os.Getenv("TORN_LOCALES_DIR"),
+	}
+	if cfg.localesDir == "" {
+		cfg.localesDir = defaultLocalesDir
 	}
 
 	var missing []string
@@ -131,10 +146,19 @@ func run(ctx context.Context, cfg config, logger *slog.Logger) error {
 		return err
 	}
 
+	messages, err := loadMessages(cfg.localesDir, logger)
+	if err != nil {
+		return err
+	}
+
 	svc := &service{
-		logger:  logger,
-		inbox:   postgres.NewInboxStore(pool),
-		profile: handlers.NewProfileHandler(postgres.NewUnitOfWork(pool), uuidGenerator{}, nil),
+		logger: logger,
+		inbox:  postgres.NewInboxStore(pool),
+		// The handler is given the store, not the catalogue it currently
+		// holds: reloading the text then becomes a pointer swap inside
+		// the store, with no change here and no change in the handler.
+		// Do not "simplify" this to *i18n.Catalog.
+		profile: handlers.NewProfileHandler(postgres.NewUnitOfWork(pool), uuidGenerator{}, messages, defaultPlayerLanguage, nil),
 		conn:    conn.Raw(),
 	}
 
@@ -164,6 +188,35 @@ func run(ctx context.Context, cfg config, logger *slog.Logger) error {
 	}
 
 	return nil
+}
+
+// loadMessages builds the message catalogue.
+//
+// The two failures are treated differently on purpose.
+//
+// A catalogue that will not load is fatal: every string on every screen would
+// render as its raw key, so the process is not usable and should say so at
+// startup instead of serving nonsense to players.
+//
+// A catalogue that loads but does not validate is logged and started anyway.
+// A missing or mismatched key is a content defect, not a broken process, and
+// the fallback chain already makes it visibly wrong on screen rather than
+// silently blank. Refusing to start the game over one missing button label
+// would be the larger outage.
+func loadMessages(dir string, logger *slog.Logger) (*i18n.Store, error) {
+	catalog, err := i18n.Load(dir)
+	if err != nil {
+		return nil, fmt.Errorf("load messages from %s: %w", dir, err)
+	}
+	if err := catalog.Validate(); err != nil {
+		logger.Error("the message catalogue has content defects; affected keys will render as keys",
+			slog.String("locales_dir", dir),
+			slog.String("error", err.Error()))
+	}
+	logger.Info("messages loaded",
+		slog.String("locales_dir", dir),
+		slog.Any("languages", catalog.Languages()))
+	return i18n.NewStore(catalog), nil
 }
 
 // service is one command consumer.

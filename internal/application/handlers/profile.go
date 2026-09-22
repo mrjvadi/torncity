@@ -10,6 +10,7 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"strconv"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -32,6 +33,16 @@ type IDGenerator interface {
 	NewID() string
 }
 
+// Translator resolves a message key for a language.
+//
+// It is declared here, at the point of use, so the handler depends on the
+// one method it needs rather than on a concrete catalogue. Both a loaded
+// catalogue and a hot-reloadable store satisfy it, which is what lets the
+// text change under a running process without this package knowing.
+type Translator interface {
+	T(lang, key string, args map[string]any) string
+}
+
 // ProfileHandler serves player.profile.get, the phase 0 command.
 //
 // It also performs first contact: a Telegram user who has never played gets a
@@ -39,19 +50,46 @@ type IDGenerator interface {
 // same person reaching the game through any bot in the fleet is the same
 // player. See docs/adr/0001-telegram-bot-fleet.md.
 type ProfileHandler struct {
-	uow application.UnitOfWork
-	ids IDGenerator
-	now func() time.Time
+	uow      application.UnitOfWork
+	ids      IDGenerator
+	msgs     Translator
+	defaultL string
+	now      func() time.Time
 }
 
-// NewProfileHandler wires the handler. now may be nil, in which case UTC wall
-// clock is used; tests inject a fixed clock.
-func NewProfileHandler(uow application.UnitOfWork, ids IDGenerator, now func() time.Time) *ProfileHandler {
+// NewProfileHandler wires the handler.
+//
+// msgs is injected rather than read from a package global so that a test, a
+// second deployment or a future per-bot catalogue can supply its own text.
+// It may be nil, in which case messages resolve to their keys: an unwired
+// catalogue then shows "profile.title" in the chat, which is wrong in an
+// obvious way instead of crashing a player's session.
+//
+// now may be nil, in which case UTC wall clock is used; tests inject a fixed
+// clock.
+// defaultLanguage is the language stamped on a player record when Telegram
+// told us nothing. It is injected rather than fixed here because it is a
+// product setting, and because a player's stored language is not the same
+// thing as the message catalogue's fallback: the catalogue falls back so a
+// screen still renders, while this decides what a new account IS. An empty
+// value is rejected, so a caller cannot forget to make the choice.
+func NewProfileHandler(uow application.UnitOfWork, ids IDGenerator, msgs Translator, defaultLanguage string, now func() time.Time) *ProfileHandler {
+	if defaultLanguage == "" {
+		panic("handlers: NewProfileHandler requires a default language")
+	}
 	if now == nil {
 		now = func() time.Time { return time.Now().UTC() }
 	}
-	return &ProfileHandler{uow: uow, ids: ids, now: now}
+	if msgs == nil {
+		msgs = keyTranslator{}
+	}
+	return &ProfileHandler{uow: uow, ids: ids, msgs: msgs, defaultL: defaultLanguage, now: now}
 }
+
+// keyTranslator is the no-catalogue fallback described on NewProfileHandler.
+type keyTranslator struct{}
+
+func (keyTranslator) T(_, key string, _ map[string]any) string { return key }
 
 // Handle processes one player.profile.get command.
 func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
@@ -94,7 +132,7 @@ func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*p
 		return nil, err
 	}
 
-	return renderProfile(player), nil
+	return h.renderProfile(meta.Language, player), nil
 }
 
 // ensurePlayer loads the player, creating one on first contact and emitting
@@ -110,7 +148,7 @@ func (h *ProfileHandler) ensurePlayer(ctx context.Context, tx application.Tx, me
 
 	lang := meta.Language
 	if lang == "" {
-		lang = "fa"
+		lang = h.defaultL
 	}
 	p = &application.Player{
 		ID:             h.ids.NewID(),
@@ -143,23 +181,38 @@ func (h *ProfileHandler) ensurePlayer(ctx context.Context, tx application.Tx, me
 	return p, nil
 }
 
+// displayName is the name written on a record this handler creates.
+//
+// The request envelope carries no Telegram first or last name, so there is
+// nothing better available here. In practice the gateway resolves identity
+// before publishing and creates the player with the real name, which makes
+// this the fallback for a command that somehow reached the core first.
+//
+// It deliberately does NOT return a constant like "player": every such record
+// would then be indistinguishable in an admin screen or a support request. The
+// Telegram user id is the one identifying fact on hand, so the name is derived
+// from it and is at least unique and traceable back to the account.
 func displayName(meta envelope.Metadata) string {
-	if meta.Command != "" && meta.TelegramUserID != 0 {
-		// A display name is cosmetic; the identity that matters is the
-		// Telegram user id. Anything better arrives with a later command.
-		return "player"
-	}
-	return "player"
+	return "player-" + strconv.FormatInt(meta.TelegramUserID, 10)
 }
 
-func renderProfile(p *application.Player) *presenter.Response {
+// renderProfile builds the reply. Every word of it comes from the catalogue:
+// the layout below decides what the screen contains, never what it says.
+//
+// lang is the player's language as it arrived on the request. An empty lang
+// is fine — the catalogue falls back to the default locale.
+func (h *ProfileHandler) renderProfile(lang string, p *application.Player) *presenter.Response {
 	if p == nil {
-		return presenter.Message("پروفایل در دسترس نیست.", nil)
+		return presenter.Message(h.msgs.T(lang, "profile.unavailable", nil), nil)
 	}
 	return presenter.Message(
-		"پروفایل\n\nشناسه: "+p.ID+"\nزبان: "+p.Language+"\nوضعیت: "+p.Status,
+		h.msgs.T(lang, "profile.body", map[string]any{
+			"id":       p.ID,
+			"language": p.Language,
+			"status":   p.Status,
+		}),
 		&presenter.Keyboard{Rows: [][]presenter.Button{{
-			{Text: "بروزرسانی", CallbackData: "player:profile.get"},
+			{Text: h.msgs.T(lang, "button.refresh", nil), CallbackData: "player:profile.get"},
 		}}},
 	)
 }
