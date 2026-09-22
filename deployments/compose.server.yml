@@ -1,0 +1,31 @@
+# Server override: run alongside an existing stack on a shared host.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f deployments/compose.server.yml up -d
+#
+# Three differences from the local stack:
+#
+#  1. No telegram-bot-api service. The host already runs one in --local mode;
+#     starting a second would mean a second api_id/api_hash and a second copy
+#     of every bot's state on disk for no benefit.
+#  2. Host port mappings stay as the base file defines them: loopback only, on
+#     non-default ports (55432/56379/54222), which are free on this host.
+#  3. The gateway joins the external network the bot api server lives on, so it
+#     can reach it by container name.
+services:
+  telegram-bot-api:
+    # Disabled here: the host's existing server is used instead. Compose has no
+    # "remove a service" directive, so it is reduced to a no-op that exits 0 and
+    # is never started (it is not a dependency of anything).
+    image: alpine:3.20
+    command: ["true"]
+    restart: "no"
+    profiles: ["unused"]
+
+  gateway:
+    networks: [default, botapi]
+
+networks:
+  botapi:
+    external: true
+    name: antispam_default

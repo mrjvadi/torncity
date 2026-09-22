@@ -1,14 +1,24 @@
+# Every service carries an explicit memory and cpu cap.
+#
+# This stack is not the only thing on its host: without caps one runaway
+# process starves everything else on the box, and the failure looks like an
+# unrelated service dying. Totals here are roughly 2.4 GB and 2.9 cpu.
+#
 services:
   postgres:
+    mem_limit: 512m
+    cpus: "0.50"
+    memswap_limit: 512m
     image: postgres:17-alpine
     environment:
       POSTGRES_USER: torn
       POSTGRES_PASSWORD: torn
       POSTGRES_DB: torn
-    # Host 5432 is already taken by a non-Docker PostgreSQL on this machine,
-    # so the stack publishes on 55432. Services reach each other by service
-    # name on the compose network and are unaffected by this mapping.
-    ports: ["55432:5432"]
+    # Bound to loopback only, and on a non-default port. These services are
+    # reached by service name from inside the compose network; the host
+    # mapping exists for local tooling, not for anything remote. A database
+    # published on 0.0.0.0 is how a shared host becomes somebody else's.
+    ports: ["127.0.0.1:55432:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U torn -d torn"]
@@ -17,9 +27,12 @@ services:
       retries: 10
 
   redis:
+    mem_limit: 256m
+    cpus: "0.25"
+    memswap_limit: 256m
     image: redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
-    ports: ["56379:6379"]
+    ports: ["127.0.0.1:56379:6379"]
     volumes: ["redisdata:/data"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -28,9 +41,12 @@ services:
       retries: 10
 
   nats:
+    mem_limit: 256m
+    cpus: "0.25"
+    memswap_limit: 256m
     image: nats:2-alpine
     command: ["-js", "-sd", "/data", "-m", "8222"]
-    ports: ["54222:4222", "58222:8222"]
+    ports: ["127.0.0.1:54222:4222", "127.0.0.1:58222:8222"]
     volumes: ["natsdata:/data"]
     healthcheck:
       test: ["CMD", "wget", "-q", "-O-", "http://localhost:8222/healthz"]
@@ -41,6 +57,9 @@ services:
   # Local Bot API server — ADR 0003.
   # Never expose this port to the public internet: the server speaks plain HTTP.
   telegram-bot-api:
+    mem_limit: 512m
+    cpus: "0.50"
+    memswap_limit: 512m
     image: aiogram/telegram-bot-api:latest
     environment:
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
@@ -55,6 +74,9 @@ services:
       retries: 5
 
   gateway:
+    mem_limit: 256m
+    cpus: "0.50"
+    memswap_limit: 256m
     build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: gateway}}
     env_file: [.env]
     depends_on:
@@ -64,6 +86,9 @@ services:
     restart: unless-stopped
 
   game:
+    mem_limit: 256m
+    cpus: "0.50"
+    memswap_limit: 256m
     build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: game}}
     env_file: [.env]
     depends_on:
@@ -77,6 +102,9 @@ services:
   # process nothing ever moves them to NATS, so player.created and every
   # event after it stay in the database forever.
   worker:
+    mem_limit: 192m
+    cpus: "0.25"
+    memswap_limit: 192m
     build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: worker}}
     env_file: [.env]
     depends_on:
@@ -88,6 +116,9 @@ services:
   # signal. It is here so the process list matches the architecture from the
   # start rather than appearing later as a surprise.
   scheduler:
+    mem_limit: 128m
+    cpus: "0.15"
+    memswap_limit: 128m
     build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: scheduler}}
     env_file: [.env]
     depends_on:
