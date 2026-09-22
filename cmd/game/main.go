@@ -56,6 +56,17 @@ const (
 	// else about messages — the text, the languages, the keys — is in the
 	// files this points at, and none of it is in this binary.
 	defaultLocalesDir = "configs/locales"
+
+	// defaultPlayerLanguage is stamped on a player record when Telegram sends
+	// no language code.
+	//
+	// It is NOT the message catalogue's fallback, which decides how a screen
+	// renders when a translation is missing. This decides what a new account
+	// IS. They happen to share a value today and will not necessarily always.
+	//
+	// It moves to config.yml in the wiring pass; it is named here rather than
+	// written inline so there is one place to change.
+	defaultPlayerLanguage = "fa"
 )
 
 func main() {
