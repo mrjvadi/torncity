@@ -14,13 +14,33 @@ import (
 // PlayerRepository is the players and player_bot_links adapter.
 type PlayerRepository struct {
 	q querier
+
+	// defaultLanguage is what an insert writes when the caller supplied no
+	// language. It is injected (player.default_language) rather than written
+	// here, because this used to be the third independent copy of the same
+	// literal and nothing kept the three in step.
+	defaultLanguage string
 }
 
 var _ application.PlayerRepository = (*PlayerRepository)(nil)
 
 // NewPlayerRepository returns a repository using the pool directly, for reads
 // that do not belong to a unit of work.
-func NewPlayerRepository(p *Pool) *PlayerRepository { return &PlayerRepository{q: p.Raw()} }
+//
+// defaultLanguage is player.default_language from the configuration. A caller
+// that passes nothing gets defaultPlayerLanguage, which is the column default
+// in migrations/0001_init.up.sql: the row has to carry something, and a NULL
+// or empty language would break every screen that renders for that player.
+func NewPlayerRepository(p *Pool, defaultLanguage string) *PlayerRepository {
+	return &PlayerRepository{q: p.Raw(), defaultLanguage: defaultLanguage}
+}
+
+// defaultPlayerLanguage is the LAST-RESORT fallback, used only when no
+// language was configured and none was supplied. It is deliberately the same
+// string as the players.language column default in
+// migrations/0001_init.up.sql, so a row written without a language and a row
+// written by the database's own default agree.
+const defaultPlayerLanguage = "fa"
 
 const selectPlayerByTelegramUserID = `
 SELECT id, telegram_user_id, username, display_name, language, city_id, status, created_at
@@ -139,8 +159,10 @@ func (r *PlayerRepository) Create(ctx context.Context, p *application.Player) er
 
 	language := p.Language
 	if language == "" {
-		// Matches the column default in migrations/0001_init.up.sql.
-		language = "fa"
+		language = r.defaultLanguage
+	}
+	if language == "" {
+		language = defaultPlayerLanguage
 	}
 
 	if err := r.q.QueryRow(ctx, insertPlayer,

@@ -11,6 +11,11 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 )
 
+// testDefaultLanguage is the fallback these tests inject. It is fixed here
+// rather than read from the shipped configuration so an assertion cannot
+// start failing because an operator changed player.default_language.
+const testDefaultLanguage = "fa"
+
 // fakeStore is the infrastructure this package refuses to contain. It keys
 // players on telegramUserID alone, which is what the real upsert must do, and
 // it records every bot id it was called with so a test can prove the resolver
@@ -90,7 +95,7 @@ func messageFrom(userID int64, text string) client.Update {
 // written as a test. If this ever fails, the shared world has split in two.
 func TestOnePersonIsOnePlayerAcrossBots(t *testing.T) {
 	store := newFakeStore()
-	resolver, err := NewResolver(store)
+	resolver, err := NewResolver(store, testDefaultLanguage)
 	if err != nil {
 		t.Fatalf("NewResolver: %v", err)
 	}
@@ -182,7 +187,7 @@ func TestFromUpdate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := FromUpdate(tt.update, tt.botID)
+			got, err := FromUpdate(tt.update, tt.botID, testDefaultLanguage)
 			if err != tt.wantErr {
 				t.Fatalf("FromUpdate error = %v, want %v", err, tt.wantErr)
 			}
@@ -203,7 +208,7 @@ func TestFirstNameOnlyUser(t *testing.T) {
 	update.Message.From.LastName = ""
 	update.Message.From.Username = ""
 
-	id, err := FromUpdate(update, "bot01")
+	id, err := FromUpdate(update, "bot01", testDefaultLanguage)
 	if err != nil {
 		t.Fatalf("FromUpdate: %v", err)
 	}
@@ -213,7 +218,7 @@ func TestFirstNameOnlyUser(t *testing.T) {
 }
 
 func TestResolveRejectsBadInput(t *testing.T) {
-	resolver, err := NewResolver(newFakeStore())
+	resolver, err := NewResolver(newFakeStore(), testDefaultLanguage)
 	if err != nil {
 		t.Fatalf("NewResolver: %v", err)
 	}
@@ -224,8 +229,8 @@ func TestResolveRejectsBadInput(t *testing.T) {
 	if _, err := resolver.Resolve(context.Background(), Identity{TelegramUserID: 1}); err != ErrNoBotID {
 		t.Errorf("Resolve without a bot id: %v, want %v", err, ErrNoBotID)
 	}
-	if _, err := NewResolver(nil); err != ErrNoStore {
-		t.Errorf("NewResolver(nil): %v, want %v", err, ErrNoStore)
+	if _, err := NewResolver(nil, testDefaultLanguage); err != ErrNoStore {
+		t.Errorf("NewResolver(nil, testDefaultLanguage): %v, want %v", err, ErrNoStore)
 	}
 }
 
@@ -234,7 +239,7 @@ func TestResolveRejectsBadInput(t *testing.T) {
 // something.
 func TestResolveDefaultsTheLanguage(t *testing.T) {
 	store := newFakeStore()
-	resolver, _ := NewResolver(store)
+	resolver, _ := NewResolver(store, testDefaultLanguage)
 
 	if _, err := resolver.Resolve(context.Background(), Identity{TelegramUserID: 7, BotID: "bot01"}); err != nil {
 		t.Fatalf("Resolve: %v", err)
@@ -248,7 +253,7 @@ func TestResolvePropagatesStoreFailures(t *testing.T) {
 	dbDown := errors.New("pgx: connection refused")
 	store := newFakeStore()
 	store.err = dbDown
-	resolver, _ := NewResolver(store)
+	resolver, _ := NewResolver(store, testDefaultLanguage)
 
 	_, err := resolver.Resolve(context.Background(), Identity{TelegramUserID: 7, BotID: "bot01"})
 	if !errors.Is(err, dbDown) {

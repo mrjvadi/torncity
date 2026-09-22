@@ -26,6 +26,7 @@ import (
 	natsgo "github.com/nats-io/nats.go"
 
 	"github.com/mrjvadi/torncity/internal/application/handlers"
+	"github.com/mrjvadi/torncity/internal/config"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -45,9 +46,6 @@ const (
 	commandDomain = "player"
 	commandAction = "profile.get"
 
-	// shutdownTimeout bounds the drain of in-flight messages.
-	shutdownTimeout = 20 * time.Second
-
 	// defaultLocalesDir is where player-visible text is read from.
 	//
 	// This one path comes from the environment rather than from the config
@@ -57,67 +55,80 @@ const (
 	// files this points at, and none of it is in this binary.
 	defaultLocalesDir = "configs/locales"
 
-	// defaultPlayerLanguage is stamped on a player record when Telegram sends
-	// no language code.
-	//
-	// It is NOT the message catalogue's fallback, which decides how a screen
-	// renders when a translation is missing. This decides what a new account
-	// IS. They happen to share a value today and will not necessarily always.
-	//
-	// It moves to config.yml in the wiring pass; it is named here rather than
-	// written inline so there is one place to change.
-	defaultPlayerLanguage = "fa"
+	// defaultConfigPath is where the operational configuration is read from
+	// when TORN_CONFIG does not say otherwise. Bootstrap, exactly as above:
+	// something has to name the file before the file can be read. The drain
+	// budget, the idempotency TTL and the language a new account gets are all
+	// inside it, not in this binary.
+	defaultConfigPath = config.DefaultPath
 )
 
 func main() {
-	cfg, err := loadConfig()
+	env, err := loadEnv()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "game: %v\n", err)
 		os.Exit(2)
 	}
 
-	logger := newLogger(cfg.logLevel)
+	// Fatal on purpose. A process that cannot read its configuration would
+	// otherwise run with whatever this binary was compiled with, which is the
+	// one state nobody can diagnose from the outside.
+	cfg, err := config.Load(env.configPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "game: %v\n", err)
+		os.Exit(2)
+	}
+
+	logger := newLogger(env.logLevel)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	if err := run(ctx, cfg, logger); err != nil {
+	if err := run(ctx, env, cfg, logger); err != nil {
 		logger.Error("game stopped with an error", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 	logger.Info("game stopped cleanly")
 }
 
-type config struct {
+// env is the bootstrap: what must be known before the configuration file can
+// be read. Addresses and credentials stay here (ADR 0002); every operational
+// value lives in that file.
+type env struct {
 	databaseURL string
 	natsURL     string
 	logLevel    string
 	localesDir  string
+	configPath  string
 }
 
-func loadConfig() (config, error) {
-	cfg := config{
+func loadEnv() (env, error) {
+	e := env{
 		databaseURL: os.Getenv("DATABASE_URL"),
 		natsURL:     os.Getenv("NATS_URL"),
 		logLevel:    os.Getenv("LOG_LEVEL"),
 		localesDir:  os.Getenv("TORN_LOCALES_DIR"),
+		configPath:  os.Getenv("TORN_CONFIG"),
 	}
-	if cfg.localesDir == "" {
-		cfg.localesDir = defaultLocalesDir
+	if e.localesDir == "" {
+		e.localesDir = defaultLocalesDir
+	}
+	if e.configPath == "" {
+		e.configPath = defaultConfigPath
 	}
 
 	var missing []string
-	if cfg.databaseURL == "" {
+	if e.databaseURL == "" {
 		missing = append(missing, "DATABASE_URL")
 	}
-	if cfg.natsURL == "" {
+	if e.natsURL == "" {
 		missing = append(missing, "NATS_URL")
 	}
 	if len(missing) > 0 {
-		return config{}, fmt.Errorf("missing required environment variables: %s", strings.Join(missing, ", "))
+		return env{}, fmt.Errorf("missing required environment variables: %s", strings.Join(missing, ", "))
 	}
 
-	return cfg, nil
+	return e, nil
 }
 
 func newLogger(level string) *slog.Logger {
@@ -137,27 +148,35 @@ func metaAttrs(meta envelope.Metadata) []any {
 	}
 }
 
-func run(ctx context.Context, cfg config, logger *slog.Logger) error {
+func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) error {
 	logger = logger.With(slog.String("service", "game"), slog.String("consumer", consumerName))
-	logger.Info("game starting")
+	logger.Info("game starting",
+		slog.String("config", e.configPath),
+		slog.Duration("shutdown_timeout", cfg.Game.ShutdownTimeout),
+		slog.Duration("idempotency_ttl", cfg.Game.IdempotencyTTL),
+		slog.String("default_language", cfg.Player.DefaultLanguage))
 
-	pool, err := postgres.New(ctx, cfg.databaseURL)
+	pool, err := postgres.New(ctx, e.databaseURL)
 	if err != nil {
 		return err
 	}
 	defer pool.Close()
 
-	conn, err := infranats.New(ctx, cfg.natsURL)
+	conn, err := infranats.New(ctx, e.natsURL)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = conn.Close() }()
 
-	if err := infranats.EnsureStreams(ctx, conn); err != nil {
+	if err := infranats.EnsureStreams(ctx, conn, infranats.StreamOptions{
+		CommandMaxAge:   cfg.NATS.CommandMaxAge,
+		EventMaxAge:     cfg.NATS.EventMaxAge,
+		DuplicateWindow: cfg.NATS.DuplicateWindow,
+	}); err != nil {
 		return err
 	}
 
-	messages, err := loadMessages(cfg.localesDir, logger)
+	messages, err := loadMessages(e.localesDir, logger)
 	if err != nil {
 		return err
 	}
@@ -169,12 +188,28 @@ func run(ctx context.Context, cfg config, logger *slog.Logger) error {
 		// holds: reloading the text then becomes a pointer swap inside
 		// the store, with no change here and no change in the handler.
 		// Do not "simplify" this to *i18n.Catalog.
-		profile: handlers.NewProfileHandler(postgres.NewUnitOfWork(pool), uuidGenerator{}, messages, defaultPlayerLanguage, nil),
-		conn:    conn.Raw(),
+		profile: handlers.NewProfileHandler(
+			postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage),
+			uuidGenerator{},
+			messages,
+			// The language a new account IS, not the catalogue's rendering
+			// fallback. Both read "fa" today and need not always.
+			cfg.Player.DefaultLanguage,
+			cfg.Game.IdempotencyTTL,
+			nil,
+		),
+		conn: conn.Raw(),
 	}
 
+	consumer := infranats.NewConsumer(conn, infranats.ConsumerOptions{
+		AckWait:    cfg.NATS.AckWait,
+		MaxDeliver: cfg.NATS.MaxDeliver,
+		NakDelay:   cfg.NATS.NakDelay,
+		Backoff:    cfg.NATS.Backoff,
+	})
+
 	subject := subjects.Command(commandDomain, commandAction)
-	if err := infranats.NewConsumer(conn).Subscribe(ctx, subject, consumerName, svc.handle); err != nil {
+	if err := consumer.Subscribe(ctx, subject, consumerName, svc.handle); err != nil {
 		return err
 	}
 	logger.Info("consuming", slog.String("subject", subject))
@@ -194,8 +229,8 @@ func run(ctx context.Context, cfg config, logger *slog.Logger) error {
 	select {
 	case <-done:
 		logger.Info("drained")
-	case <-time.After(shutdownTimeout):
-		logger.Warn("drain timed out, closing anyway", slog.Duration("timeout", shutdownTimeout))
+	case <-time.After(cfg.Game.ShutdownTimeout):
+		logger.Warn("drain timed out, closing anyway", slog.Duration("timeout", cfg.Game.ShutdownTimeout))
 	}
 
 	return nil

@@ -78,6 +78,12 @@ var (
 	// It is required for the bot link, not for the identity.
 	ErrNoBotID = errors.New("identity: bot id is required")
 
+	// ErrNoDefaultLanguage means the caller did not say what language a
+	// player gets when Telegram sends none. It comes from
+	// player.default_language and is required rather than defaulted, so this
+	// package cannot become a second place the value is written down.
+	ErrNoDefaultLanguage = errors.New("identity: default language is required")
+
 	// ErrUnsupportedUpdate means the update is of a type this package does
 	// not read a user from.
 	ErrUnsupportedUpdate = errors.New("identity: update carries neither a message nor a callback query")
@@ -105,10 +111,16 @@ type Identity struct {
 }
 
 // FromUpdate reads the identity out of a message or a callback query.
-func FromUpdate(update client.Update, botID string) (Identity, error) {
+//
+// defaultLanguage is what Identity.Language becomes when Telegram sent no
+// usable language_code; it is player.default_language from the configuration.
+func FromUpdate(update client.Update, botID, defaultLanguage string) (Identity, error) {
 	botID = strings.TrimSpace(botID)
 	if botID == "" {
 		return Identity{}, ErrNoBotID
+	}
+	if strings.TrimSpace(defaultLanguage) == "" {
+		return Identity{}, ErrNoDefaultLanguage
 	}
 
 	var (
@@ -139,7 +151,7 @@ func FromUpdate(update client.Update, botID string) (Identity, error) {
 		TelegramUserID: from.ID,
 		Username:       from.Username,
 		DisplayName:    displayName(from),
-		Language:       gwcontext.NormalizeLanguage(from.LanguageCode),
+		Language:       gwcontext.NormalizeLanguage(from.LanguageCode, defaultLanguage),
 		BotID:          botID,
 		ChatID:         chatID,
 	}, nil
@@ -153,15 +165,23 @@ func displayName(u *client.User) string {
 
 // Resolver turns an Identity into the global player.
 type Resolver struct {
-	store PlayerStore
+	store           PlayerStore
+	defaultLanguage string
 }
 
 // NewResolver builds a Resolver.
-func NewResolver(store PlayerStore) (*Resolver, error) {
+//
+// defaultLanguage is player.default_language from the configuration: the
+// language stamped on a player record created for someone whose Telegram
+// client told us nothing usable.
+func NewResolver(store PlayerStore, defaultLanguage string) (*Resolver, error) {
 	if store == nil {
 		return nil, ErrNoStore
 	}
-	return &Resolver{store: store}, nil
+	if strings.TrimSpace(defaultLanguage) == "" {
+		return nil, ErrNoDefaultLanguage
+	}
+	return &Resolver{store: store, defaultLanguage: defaultLanguage}, nil
 }
 
 // Resolve returns the player for this Telegram user, creating them on first
@@ -178,7 +198,7 @@ func (r *Resolver) Resolve(ctx context.Context, id Identity) (*application.Playe
 		return nil, ErrNoBotID
 	}
 	if id.Language == "" {
-		id.Language = gwcontext.DefaultLanguage
+		id.Language = r.defaultLanguage
 	}
 
 	player, err := r.store.EnsurePlayer(
@@ -202,7 +222,7 @@ func (r *Resolver) Resolve(ctx context.Context, id Identity) (*application.Playe
 // ResolveUpdate is FromUpdate followed by Resolve, which is what the update
 // pipeline does on every inbound message.
 func (r *Resolver) ResolveUpdate(ctx context.Context, update client.Update, botID string) (*application.Player, error) {
-	id, err := FromUpdate(update, botID)
+	id, err := FromUpdate(update, botID, r.defaultLanguage)
 	if err != nil {
 		return nil, err
 	}

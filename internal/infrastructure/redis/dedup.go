@@ -8,7 +8,11 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 )
 
-// DedupTTL is how long an update id is remembered.
+// DedupTTL is the DEFAULT retention for an update id.
+//
+// The value a deployment runs is dedup.ttl in configs/config.yml, injected
+// through NewDeduplicator. This constant is what a caller gets if it passes
+// nothing usable, and it is what config.Defaults() mirrors.
 //
 // Twenty-four hours is chosen against Telegram's own behaviour: getUpdates
 // redelivers an update until it is confirmed by offset, and after a gateway
@@ -26,15 +30,18 @@ type Deduplicator struct {
 
 var _ application.Deduplicator = (*Deduplicator)(nil)
 
-// NewDeduplicator returns a deduplicator using DedupTTL.
-func NewDeduplicator(c *Client) *Deduplicator {
-	return &Deduplicator{client: c, ttl: DedupTTL}
-}
-
-// NewDeduplicatorWithTTL returns a deduplicator with an explicit retention,
-// which exists for operators tuning memory, not for callers picking a value
-// per update.
-func NewDeduplicatorWithTTL(c *Client, ttl time.Duration) *Deduplicator {
+// NewDeduplicator returns a deduplicator that remembers an update id for ttl.
+//
+// The retention is a parameter and not a package decision: it is an
+// operational value an operator tunes against memory and against how long a
+// Telegram backlog may be replayed, and it is declared once in
+// configs/config.yml. A non-positive ttl falls back to DedupTTL rather than
+// writing keys that never expire, which would slowly consume the instance.
+//
+// There is deliberately no constructor that picks the TTL for the caller: one
+// existed, every caller used it, and the configured value was therefore never
+// reaching Redis.
+func NewDeduplicator(c *Client, ttl time.Duration) *Deduplicator {
 	if ttl <= 0 {
 		ttl = DedupTTL
 	}

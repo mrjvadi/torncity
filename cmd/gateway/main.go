@@ -30,6 +30,7 @@ import (
 	natsgo "github.com/nats-io/nats.go"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/config"
 	gwcontext "github.com/mrjvadi/torncity/internal/gateway/context"
 	"github.com/mrjvadi/torncity/internal/gateway/dedup"
 	"github.com/mrjvadi/torncity/internal/gateway/identity"
@@ -49,84 +50,91 @@ import (
 )
 
 const (
-	// pollTimeoutSeconds is the long-poll window handed to getUpdates. Long
-	// polling means an idle bot costs one open connection rather than a
-	// request every second, and a shorter window buys nothing.
-	pollTimeoutSeconds = 30
-
-	// pollErrorBackoff paces retries after a failed getUpdates so a Telegram
-	// outage does not turn into a request flood.
-	pollErrorBackoff = 2 * time.Second
-
-	// shutdownTimeout bounds the whole drain: in-flight updates, in-flight
-	// sends, lease release and connection close.
-	shutdownTimeout = 20 * time.Second
-
-	// sendAttempts is how many times one outbound Bot API call is tried. The
-	// second attempt exists for exactly one case: a flood wait, where the
-	// limiter has now been told to park the bot and the retry happens on the
-	// far side of that pause.
-	sendAttempts = 2
-
 	// responseQueue is the NATS queue group every gateway instance joins for
 	// command responses. Responses carry the bot id and chat id they belong
 	// to, so any instance can render any response — the queue group is what
 	// stops all of them rendering the same one.
 	responseQueue = "gateway-response-renderers"
+
+	// defaultConfigPath is where the operational configuration is read from
+	// when TORN_CONFIG does not say otherwise.
+	//
+	// This one path comes from the environment rather than from the
+	// configuration file, for the same reason DATABASE_URL and
+	// TORN_LOCALES_DIR do: something has to say where the configuration lives
+	// before any configuration has been read. The poll window, the backoffs,
+	// the drain budget, the lease timings and the rate limits are all inside
+	// the file this points at, and none of them is in this binary.
+	defaultConfigPath = config.DefaultPath
 )
 
 func main() {
-	cfg, err := loadConfig()
+	env, err := loadEnv()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "gateway: %v\n", err)
 		os.Exit(2)
 	}
 
-	logger := newLogger(cfg.logLevel)
+	// Fatal on purpose. This process cannot poll a bot correctly without the
+	// telegram timings, and guessing them is the failure that looks like a
+	// healthy gateway receiving no updates.
+	cfg, err := config.Load(env.configPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "gateway: %v\n", err)
+		os.Exit(2)
+	}
+
+	logger := newLogger(env.logLevel)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	if err := run(ctx, cfg, logger); err != nil {
+	if err := run(ctx, env, cfg, logger); err != nil {
 		logger.Error("gateway stopped with an error", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 	logger.Info("gateway stopped cleanly")
 }
 
-// config is the process configuration. Every field comes from the environment
-// so a container needs no file, and none of them is a secret: bot tokens are
-// named by telegram_bots.token_secret_ref and resolved at the edge (ADR 0002).
-type config struct {
+// env is the bootstrap: addresses, identity and the path to the configuration
+// file. None of them is a secret — bot tokens are named by
+// telegram_bots.token_secret_ref and resolved at the edge (ADR 0002) — and
+// none of them is an operational value, which all live in configs/config.yml.
+type env struct {
 	databaseURL        string
 	redisURL           string
 	natsURL            string
 	telegramAPIBaseURL string
 	gatewayInstanceID  string
 	logLevel           string
+	configPath         string
 }
 
-func loadConfig() (config, error) {
-	cfg := config{
+func loadEnv() (env, error) {
+	e := env{
 		databaseURL:        os.Getenv("DATABASE_URL"),
 		redisURL:           os.Getenv("REDIS_URL"),
 		natsURL:            os.Getenv("NATS_URL"),
 		telegramAPIBaseURL: os.Getenv("TELEGRAM_API_BASE_URL"),
 		gatewayInstanceID:  os.Getenv("GATEWAY_INSTANCE_ID"),
 		logLevel:           os.Getenv("LOG_LEVEL"),
+		configPath:         os.Getenv("TORN_CONFIG"),
+	}
+	if e.configPath == "" {
+		e.configPath = defaultConfigPath
 	}
 
 	var missing []string
-	if cfg.databaseURL == "" {
+	if e.databaseURL == "" {
 		missing = append(missing, "DATABASE_URL")
 	}
-	if cfg.redisURL == "" {
+	if e.redisURL == "" {
 		missing = append(missing, "REDIS_URL")
 	}
-	if cfg.natsURL == "" {
+	if e.natsURL == "" {
 		missing = append(missing, "NATS_URL")
 	}
-	if cfg.gatewayInstanceID == "" {
+	if e.gatewayInstanceID == "" {
 		// Not defaulted on purpose. The instance id is the fencing token on
 		// the bot lease: two instances sharing it would each believe they
 		// hold every bot, and Telegram would split each conversation between
@@ -134,10 +142,10 @@ func loadConfig() (config, error) {
 		missing = append(missing, "GATEWAY_INSTANCE_ID")
 	}
 	if len(missing) > 0 {
-		return config{}, fmt.Errorf("missing required environment variables: %s", strings.Join(missing, ", "))
+		return env{}, fmt.Errorf("missing required environment variables: %s", strings.Join(missing, ", "))
 	}
 
-	return cfg, nil
+	return e, nil
 }
 
 // newLogger builds the structured JSON logger every line in this process goes
@@ -163,40 +171,58 @@ func metaAttrs(meta envelope.Metadata) []any {
 	}
 }
 
-func run(ctx context.Context, cfg config, logger *slog.Logger) error {
-	logger = logger.With(slog.String("service", "gateway"), slog.String("gateway_instance_id", cfg.gatewayInstanceID))
-	logger.Info("gateway starting")
+func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) error {
+	logger = logger.With(slog.String("service", "gateway"), slog.String("gateway_instance_id", e.gatewayInstanceID))
+	logger.Info("gateway starting",
+		slog.String("config", e.configPath),
+		slog.Duration("poll_timeout", cfg.Gateway.PollTimeout),
+		slog.Duration("lease_ttl", cfg.Lease.TTL),
+		slog.Duration("lease_renew_every", cfg.Lease.RenewEvery()),
+		slog.Int("send_attempts", cfg.Gateway.SendAttempts))
 
 	// --- infrastructure -----------------------------------------------------
 
-	pool, err := postgres.New(ctx, cfg.databaseURL)
+	pool, err := postgres.New(ctx, e.databaseURL)
 	if err != nil {
 		return err
 	}
 	defer pool.Close()
 
-	rdb, err := infraredis.New(ctx, cfg.redisURL)
+	rdb, err := infraredis.New(ctx, e.redisURL)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = rdb.Close() }()
 
-	conn, err := infranats.New(ctx, cfg.natsURL)
+	conn, err := infranats.New(ctx, e.natsURL)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = conn.Close() }()
 
-	if err := infranats.EnsureStreams(ctx, conn); err != nil {
+	if err := infranats.EnsureStreams(ctx, conn, infranats.StreamOptions{
+		CommandMaxAge:   cfg.NATS.CommandMaxAge,
+		EventMaxAge:     cfg.NATS.EventMaxAge,
+		DuplicateWindow: cfg.NATS.DuplicateWindow,
+	}); err != nil {
 		return err
 	}
 
 	// --- gateway components -------------------------------------------------
 
 	fleet, err := registry.New(registry.Config{
-		Source:  postgres.NewBotRegistry(pool),
-		Secrets: storage.NewEnvSecretResolver(),
-		BaseURL: cfg.telegramAPIBaseURL,
+		Source:         postgres.NewBotRegistry(pool),
+		Secrets:        storage.NewEnvSecretResolver(),
+		BaseURL:        e.telegramAPIBaseURL,
+		RequestTimeout: cfg.Telegram.RequestTimeout,
+		MaxPollTimeout: cfg.Telegram.MaxPollTimeout,
+		// PollHTTPTimeout is deliberately the helper and not RequestTimeout:
+		// handing the polling transport the ordinary request timeout aborts
+		// every getUpdates just before Telegram answers, and the bot stops
+		// receiving updates while every request reports success.
+		PollTimeoutGrace: cfg.Telegram.PollTimeoutGrace,
+		PollHTTPTimeout:  cfg.Telegram.PollHTTPTimeout(),
+		DefaultFloodWait: cfg.Telegram.DefaultFloodWait,
 	})
 	if err != nil {
 		return err
@@ -206,17 +232,23 @@ func run(ctx context.Context, cfg config, logger *slog.Logger) error {
 	}
 	logger.Info("bot fleet loaded", slog.Int("bots", fleet.Len()))
 
-	resolver, err := identity.NewResolver(&playerStore{uow: postgres.NewUnitOfWork(pool)})
+	resolver, err := identity.NewResolver(
+		&playerStore{uow: postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage)},
+		cfg.Player.DefaultLanguage,
+	)
 	if err != nil {
 		return err
 	}
 
-	filter, err := dedup.New(infraredis.NewDeduplicator(rdb))
+	filter, err := dedup.New(infraredis.NewDeduplicator(rdb, cfg.Dedup.TTL))
 	if err != nil {
 		return err
 	}
 
-	limiter := ratelimit.New(ratelimit.Config{})
+	limiter := ratelimit.New(ratelimit.Config{
+		Rate:  cfg.RateLimit.DefaultRate,
+		Burst: cfg.RateLimit.DefaultBurst,
+	})
 	for _, bot := range fleet.All() {
 		// telegram_bots.rate_limit is per bot (MASTER_PROMPT section 4), so
 		// the registry row, not a constant, decides each bot's pace.
@@ -224,6 +256,7 @@ func run(ctx context.Context, cfg config, logger *slog.Logger) error {
 	}
 
 	gw := &gateway{
+		env:       e,
 		cfg:       cfg,
 		logger:    logger,
 		fleet:     fleet,
@@ -289,8 +322,8 @@ func run(ctx context.Context, cfg config, logger *slog.Logger) error {
 	select {
 	case <-done:
 		logger.Info("drained")
-	case <-time.After(shutdownTimeout):
-		logger.Warn("drain timed out, closing anyway", slog.Duration("timeout", shutdownTimeout))
+	case <-time.After(cfg.Gateway.ShutdownTimeout):
+		logger.Warn("drain timed out, closing anyway", slog.Duration("timeout", cfg.Gateway.ShutdownTimeout))
 	}
 
 	return nil
@@ -298,7 +331,12 @@ func run(ctx context.Context, cfg config, logger *slog.Logger) error {
 
 // gateway holds what every bot loop and every response needs.
 type gateway struct {
-	cfg    config
+	// env is the bootstrap (addresses, instance id); cfg is every
+	// operational value, loaded once in main and read from here. Neither is
+	// ever handed to a package below: those receive the individual values
+	// they need.
+	env    env
+	cfg    *config.Config
 	logger *slog.Logger
 
 	fleet    *registry.Registry
@@ -334,7 +372,13 @@ func (g *gateway) serveBot(ctx context.Context, bot application.Bot) {
 	keeper, err := lease.NewKeeper(lease.KeeperConfig{
 		Lease:   gate,
 		BotKey:  bot.BotKey,
-		OwnerID: g.cfg.gatewayInstanceID,
+		OwnerID: g.env.gatewayInstanceID,
+		TTL:     g.cfg.Lease.TTL,
+		// RenewEvery is derived from the TTL and the divisor rather than
+		// configured on its own, so the two cannot be set to contradict one
+		// another and let the lease expire between renewals.
+		RenewEvery:     g.cfg.Lease.RenewEvery(),
+		ReleaseTimeout: g.cfg.Lease.ReleaseTimeout,
 	})
 	if err != nil {
 		log.Error("cannot build the lease keeper", slog.String("error", err.Error()))
@@ -400,6 +444,14 @@ func (g *gateway) poll(ctx context.Context, bot application.Bot, log *slog.Logge
 		return
 	}
 
+	// GetUpdates takes whole seconds, because that is the unit the Bot API's
+	// `timeout` parameter is defined in; the configuration states it as a
+	// duration so it reads like every other timeout and so it can be checked
+	// against telegram.max_poll_timeout, which is also a duration. The
+	// conversion belongs here, at the boundary, rather than in the config
+	// package, where an int of unstated units would be the thing that drifts.
+	pollTimeoutSeconds := int(g.cfg.Gateway.PollTimeout.Seconds())
+
 	var offset int64
 	for {
 		if ctx.Err() != nil {
@@ -422,7 +474,7 @@ func (g *gateway) poll(ctx context.Context, bot application.Bot, log *slog.Logge
 				continue
 			}
 			log.Error("getUpdates failed", slog.String("error", err.Error()))
-			sleep(ctx, pollErrorBackoff)
+			sleep(ctx, g.cfg.Gateway.PollErrorBackoff)
 			continue
 		}
 
@@ -466,7 +518,7 @@ func (g *gateway) handleUpdate(ctx context.Context, bot application.Bot, update 
 		return
 	}
 
-	meta, err := gwcontext.Build(update, bot.ID, g.cfg.gatewayInstanceID, time.Now())
+	meta, err := gwcontext.Build(update, bot.ID, g.env.gatewayInstanceID, g.cfg.Player.DefaultLanguage, time.Now())
 	if err != nil {
 		log.Debug("update carries no usable request context",
 			slog.Int64("update_id", update.UpdateID), slog.String("error", err.Error()))
@@ -567,7 +619,10 @@ func (g *gateway) onResponse(msg *natsgo.Msg) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	// The drain budget doubles as the ceiling on one response: a send that
+	// outlasts the whole shutdown window would be abandoned by the drain
+	// anyway, so there is nothing to gain by letting it run longer.
+	ctx, cancel := context.WithTimeout(context.Background(), g.cfg.Gateway.ShutdownTimeout)
 	defer cancel()
 
 	if err := g.send(ctx, api, botKey, meta, &resp, log); err != nil {
@@ -593,7 +648,7 @@ func (g *gateway) send(
 ) error {
 	var lastErr error
 
-	for attempt := 1; attempt <= sendAttempts; attempt++ {
+	for attempt := 1; attempt <= g.cfg.Gateway.SendAttempts; attempt++ {
 		if err := g.limiter.Wait(ctx, botKey); err != nil {
 			return err
 		}

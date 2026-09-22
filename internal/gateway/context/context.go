@@ -43,10 +43,12 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 )
 
-// DefaultLanguage is what a player gets when Telegram tells us nothing usable
-// about their language. The game ships Persian first (MASTER_PROMPT section
-// 54), so an unknown locale falls back to it rather than to English.
-const DefaultLanguage = "fa"
+// The language a player gets when Telegram tells us nothing usable about
+// theirs is NOT declared here. It is player.default_language in
+// configs/config.yml, loaded by internal/config and passed in by the caller,
+// because it is a product setting an operator changes without a deploy and
+// because the same value was previously written out independently in three
+// packages, where nothing kept the three copies in step.
 
 // Identifier format.
 //
@@ -103,6 +105,12 @@ var (
 	// unsatisfiable without them.
 	ErrNoBotID             = errors.New("gateway/context: bot id is required")
 	ErrNoGatewayInstanceID = errors.New("gateway/context: gateway instance id is required")
+
+	// ErrNoDefaultLanguage means the caller did not say what an unknown
+	// locale falls back to. It is required rather than defaulted: a fallback
+	// chosen here would be a fourth copy of a value that has one home in
+	// configs/config.yml, and the copies would drift.
+	ErrNoDefaultLanguage = errors.New("gateway/context: default language is required")
 )
 
 // Build turns one Telegram update into the request context that travels with
@@ -117,7 +125,11 @@ var (
 // process that polled it. Neither is a secret, and neither is ever combined
 // with the player's identity: per ADR 0001 constraint 1 a player is global,
 // and bot_id is transport metadata only.
-func Build(update client.Update, botID, gatewayInstanceID string, now time.Time) (envelope.Metadata, error) {
+//
+// defaultLanguage is what Metadata.Language becomes when Telegram sent no
+// usable language_code. It is a parameter because it is configuration
+// (player.default_language), not a property of this package.
+func Build(update client.Update, botID, gatewayInstanceID, defaultLanguage string, now time.Time) (envelope.Metadata, error) {
 	botID = strings.TrimSpace(botID)
 	if botID == "" {
 		return envelope.Metadata{}, ErrNoBotID
@@ -125,6 +137,10 @@ func Build(update client.Update, botID, gatewayInstanceID string, now time.Time)
 	gatewayInstanceID = strings.TrimSpace(gatewayInstanceID)
 	if gatewayInstanceID == "" {
 		return envelope.Metadata{}, ErrNoGatewayInstanceID
+	}
+	defaultLanguage = strings.TrimSpace(defaultLanguage)
+	if defaultLanguage == "" {
+		return envelope.Metadata{}, ErrNoDefaultLanguage
 	}
 
 	meta := envelope.Metadata{
@@ -139,15 +155,15 @@ func Build(update client.Update, botID, gatewayInstanceID string, now time.Time)
 	// that is about to be edited, not a new message from the player.
 	switch {
 	case update.CallbackQuery != nil:
-		if err := fillFromCallback(&meta, update.CallbackQuery); err != nil {
+		if err := fillFromCallback(&meta, update.CallbackQuery, defaultLanguage); err != nil {
 			return envelope.Metadata{}, err
 		}
 	case update.Message != nil:
-		if err := fillFromMessage(&meta, update.Message, UpdateTypeMessage); err != nil {
+		if err := fillFromMessage(&meta, update.Message, UpdateTypeMessage, defaultLanguage); err != nil {
 			return envelope.Metadata{}, err
 		}
 	case update.EditedMessage != nil:
-		if err := fillFromMessage(&meta, update.EditedMessage, UpdateTypeEditedMessage); err != nil {
+		if err := fillFromMessage(&meta, update.EditedMessage, UpdateTypeEditedMessage, defaultLanguage); err != nil {
 			return envelope.Metadata{}, err
 		}
 	default:
@@ -174,7 +190,7 @@ func Build(update client.Update, botID, gatewayInstanceID string, now time.Time)
 }
 
 // fillFromMessage copies the chat context of a plain or edited message.
-func fillFromMessage(meta *envelope.Metadata, msg *client.Message, updateType string) error {
+func fillFromMessage(meta *envelope.Metadata, msg *client.Message, updateType, defaultLanguage string) error {
 	if msg.From == nil {
 		return ErrNoSender
 	}
@@ -183,7 +199,7 @@ func fillFromMessage(meta *envelope.Metadata, msg *client.Message, updateType st
 	meta.TelegramChatID = msg.Chat.ID
 	meta.TelegramMessageID = msg.MessageID
 	meta.ChatType = msg.Chat.Type
-	meta.Language = NormalizeLanguage(msg.From.LanguageCode)
+	meta.Language = NormalizeLanguage(msg.From.LanguageCode, defaultLanguage)
 
 	// TelegramThreadID and ReplyToMessageID stay nil on purpose. The Bot API
 	// carries both, but client.Message does not model them yet (see the note
@@ -194,7 +210,7 @@ func fillFromMessage(meta *envelope.Metadata, msg *client.Message, updateType st
 }
 
 // fillFromCallback copies the chat context of an inline-keyboard press.
-func fillFromCallback(meta *envelope.Metadata, cq *client.CallbackQuery) error {
+func fillFromCallback(meta *envelope.Metadata, cq *client.CallbackQuery, defaultLanguage string) error {
 	if cq.Message == nil {
 		return ErrNoChat
 	}
@@ -207,7 +223,7 @@ func fillFromCallback(meta *envelope.Metadata, cq *client.CallbackQuery) error {
 	// the presenter needs on the way back.
 	meta.TelegramMessageID = cq.Message.MessageID
 	meta.ChatType = cq.Message.Chat.Type
-	meta.Language = NormalizeLanguage(cq.From.LanguageCode)
+	meta.Language = NormalizeLanguage(cq.From.LanguageCode, defaultLanguage)
 
 	// Copied into a local so the pointer cannot alias the caller's update.
 	id := cq.ID
@@ -241,21 +257,25 @@ func newID(prefix string) (string, error) {
 // Only the primary subtag is kept, because the game translates per language,
 // not per region, and a table keyed by "en-GB" would silently miss "en-US".
 // Anything unusable (empty, or not two or three letters) becomes
-// DefaultLanguage, so no code path downstream has to handle an empty language.
-func NormalizeLanguage(code string) string {
+// defaultLanguage, so no code path downstream has to handle an empty language.
+//
+// defaultLanguage is player.default_language from the configuration. It is a
+// parameter rather than a constant here so the one configured value is the
+// one every caller falls back to.
+func NormalizeLanguage(code, defaultLanguage string) string {
 	code = strings.TrimSpace(strings.ToLower(code))
 	if code == "" {
-		return DefaultLanguage
+		return defaultLanguage
 	}
 	if i := strings.IndexAny(code, "-_"); i >= 0 {
 		code = code[:i]
 	}
 	if len(code) < 2 || len(code) > 3 {
-		return DefaultLanguage
+		return defaultLanguage
 	}
 	for i := 0; i < len(code); i++ {
 		if code[i] < 'a' || code[i] > 'z' {
-			return DefaultLanguage
+			return defaultLanguage
 		}
 	}
 	return code

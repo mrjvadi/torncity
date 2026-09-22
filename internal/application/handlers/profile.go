@@ -22,11 +22,11 @@ import (
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
-// IdempotencyTTL is how long a command key blocks a replay.
-//
-// It must comfortably exceed the broker's maximum redelivery window: a
-// redelivery arriving after the key expired would be processed twice.
-const IdempotencyTTL = 24 * time.Hour
+// How long a command key blocks a replay is NOT declared here any more. It is
+// game.idempotency_ttl in configs/config.yml, injected through
+// NewProfileHandler, and internal/config refuses to load a value that does not
+// outlast the broker's redelivery schedule — a check this package could not
+// make, because it cannot see the broker's settings.
 
 // IDGenerator produces identifiers. It is a port so tests get deterministic ids.
 type IDGenerator interface {
@@ -50,11 +50,12 @@ type Translator interface {
 // same person reaching the game through any bot in the fleet is the same
 // player. See docs/adr/0001-telegram-bot-fleet.md.
 type ProfileHandler struct {
-	uow      application.UnitOfWork
-	ids      IDGenerator
-	msgs     Translator
-	defaultL string
-	now      func() time.Time
+	uow            application.UnitOfWork
+	ids            IDGenerator
+	msgs           Translator
+	defaultL       string
+	idempotencyTTL time.Duration
+	now            func() time.Time
 }
 
 // NewProfileHandler wires the handler.
@@ -73,9 +74,26 @@ type ProfileHandler struct {
 // thing as the message catalogue's fallback: the catalogue falls back so a
 // screen still renders, while this decides what a new account IS. An empty
 // value is rejected, so a caller cannot forget to make the choice.
-func NewProfileHandler(uow application.UnitOfWork, ids IDGenerator, msgs Translator, defaultLanguage string, now func() time.Time) *ProfileHandler {
+//
+// idempotencyTTL is how long a reserved key blocks a replay. It is injected
+// for the same reason and rejected at zero for a sharper one: a zero TTL is
+// read by the idempotency store as an expiry that has already passed, so every
+// redelivery would be executed as if it were new and a player would be charged
+// twice. It must outlast the broker's redelivery schedule, which
+// internal/config validates.
+func NewProfileHandler(
+	uow application.UnitOfWork,
+	ids IDGenerator,
+	msgs Translator,
+	defaultLanguage string,
+	idempotencyTTL time.Duration,
+	now func() time.Time,
+) *ProfileHandler {
 	if defaultLanguage == "" {
 		panic("handlers: NewProfileHandler requires a default language")
+	}
+	if idempotencyTTL <= 0 {
+		panic("handlers: NewProfileHandler requires a positive idempotency ttl")
 	}
 	if now == nil {
 		now = func() time.Time { return time.Now().UTC() }
@@ -83,7 +101,14 @@ func NewProfileHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 	if msgs == nil {
 		msgs = keyTranslator{}
 	}
-	return &ProfileHandler{uow: uow, ids: ids, msgs: msgs, defaultL: defaultLanguage, now: now}
+	return &ProfileHandler{
+		uow:            uow,
+		ids:            ids,
+		msgs:           msgs,
+		defaultL:       defaultLanguage,
+		idempotencyTTL: idempotencyTTL,
+		now:            now,
+	}
 }
 
 // keyTranslator is the no-catalogue fallback described on NewProfileHandler.
@@ -113,7 +138,7 @@ func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*p
 		// player id. A replay of the same request finds the key taken and
 		// skips the side effect, but still returns the profile below.
 		key := idempotency.Derive(p.ID, meta.RequestID, meta.IdempotencyKey)
-		fresh, err := tx.Idempotency().Reserve(ctx, string(key), p.ID, meta.RequestID, meta.Command, IdempotencyTTL)
+		fresh, err := tx.Idempotency().Reserve(ctx, string(key), p.ID, meta.RequestID, meta.Command, h.idempotencyTTL)
 		if err != nil {
 			return err
 		}

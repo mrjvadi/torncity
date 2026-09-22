@@ -33,6 +33,11 @@ func messages(t *testing.T) *i18n.Catalog {
 // configuration.
 const testDefaultLanguage = "fa"
 
+// testIdempotencyTTL is the replay window these tests inject. Fixed here for
+// the same reason: the handler now takes it as a parameter, and an assertion
+// must not move when game.idempotency_ttl does.
+const testIdempotencyTTL = 24 * time.Hour
+
 // --- fakes -------------------------------------------------------------
 
 type fakePlayers struct {
@@ -123,7 +128,7 @@ func newHarness(t *testing.T) (*ProfileHandler, *fakeUOW) {
 	}
 	uow := &fakeUOW{tx: tx}
 	fixed := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
-	return NewProfileHandler(uow, &seqIDs{}, messages(t), testDefaultLanguage, func() time.Time { return fixed }), uow
+	return NewProfileHandler(uow, &seqIDs{}, messages(t), testDefaultLanguage, testIdempotencyTTL, func() time.Time { return fixed }), uow
 }
 
 func meta(botID string, telegramUserID int64, requestID string) envelope.Metadata {
@@ -347,7 +352,7 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 		idem:    &fakeIdem{seen: map[string]bool{}},
 	}
 	spy := &recordingTranslator{}
-	h := NewProfileHandler(&fakeUOW{tx: tx}, &seqIDs{}, spy, testDefaultLanguage, nil)
+	h := NewProfileHandler(&fakeUOW{tx: tx}, &seqIDs{}, spy, testDefaultLanguage, testIdempotencyTTL, nil)
 
 	resp, err := h.Handle(context.Background(), meta("bot01", 7, "req-spy"))
 	if err != nil {
@@ -376,7 +381,7 @@ func TestNilCatalogueRendersKeys(t *testing.T) {
 		outbox:  &fakeOutbox{},
 		idem:    &fakeIdem{seen: map[string]bool{}},
 	}
-	h := NewProfileHandler(&fakeUOW{tx: tx}, &seqIDs{}, nil, testDefaultLanguage, nil)
+	h := NewProfileHandler(&fakeUOW{tx: tx}, &seqIDs{}, nil, testDefaultLanguage, testIdempotencyTTL, nil)
 
 	resp, err := h.Handle(context.Background(), meta("bot01", 8, "req-nil"))
 	if err != nil {

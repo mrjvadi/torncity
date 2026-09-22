@@ -18,12 +18,22 @@ import (
 // commit or neither does.
 type UnitOfWork struct {
 	pool *pgxpool.Pool
+
+	// defaultLanguage is handed to every player repository this unit of work
+	// builds; see NewPlayerRepository.
+	defaultLanguage string
 }
 
 var _ application.UnitOfWork = (*UnitOfWork)(nil)
 
 // NewUnitOfWork returns a unit of work over p.
-func NewUnitOfWork(p *Pool) *UnitOfWork { return &UnitOfWork{pool: p.Raw()} }
+//
+// defaultLanguage is player.default_language from the configuration. It is
+// carried here because the repositories are built per transaction, so there
+// is no other place to hand it to them.
+func NewUnitOfWork(p *Pool, defaultLanguage string) *UnitOfWork {
+	return &UnitOfWork{pool: p.Raw(), defaultLanguage: defaultLanguage}
+}
 
 // Do begins a transaction, runs fn against it and commits when fn succeeds.
 //
@@ -52,7 +62,7 @@ func (u *UnitOfWork) Do(ctx context.Context, fn func(ctx context.Context, tx app
 		}
 	}()
 
-	if err := fn(ctx, &tx{q: pgtx}); err != nil {
+	if err := fn(ctx, &tx{q: pgtx, defaultLanguage: u.defaultLanguage}); err != nil {
 		// context.WithoutCancel: when fn failed because ctx was cancelled, a
 		// rollback on that same context would fail too and the transaction
 		// would be left for the server to clean up on connection close.
@@ -79,13 +89,16 @@ func (u *UnitOfWork) Do(ctx context.Context, fn func(ctx context.Context, tx app
 // holding only a querier, so constructing one is free, and a cached instance
 // would have to be reset between transactions.
 type tx struct {
-	q querier
+	q               querier
+	defaultLanguage string
 }
 
 var _ application.Tx = (*tx)(nil)
 
 // Players returns the player repository bound to this transaction.
-func (t *tx) Players() application.PlayerRepository { return &PlayerRepository{q: t.q} }
+func (t *tx) Players() application.PlayerRepository {
+	return &PlayerRepository{q: t.q, defaultLanguage: t.defaultLanguage}
+}
 
 // Outbox returns the outbox repository bound to this transaction.
 func (t *tx) Outbox() application.OutboxRepository { return &OutboxRepository{q: t.q} }

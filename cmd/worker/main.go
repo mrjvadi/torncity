@@ -34,98 +34,89 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/config"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 )
 
-const (
-	// defaultPollInterval is how often an idle outbox is checked. It is the
-	// floor on end-to-end event latency, so it is short; the partial index on
-	// pending rows makes an empty poll almost free.
-	defaultPollInterval = 250 * time.Millisecond
-
-	// defaultBatchSize bounds one claim. Large enough that a burst drains in
-	// a few polls, small enough that a worker crash re-publishes little.
-	defaultBatchSize = 100
-
-	// shutdownTimeout bounds the final drain.
-	shutdownTimeout = 15 * time.Second
-
-	// noisyAttempts is where a row stops being a retry and starts being a
-	// problem worth an operator's attention. The row is still not touched.
-	noisyAttempts = 5
-)
+// defaultConfigPath is where this process looks for its configuration when
+// TORN_CONFIG does not say otherwise.
+//
+// This one path comes from the environment rather than from the configuration
+// file, for the same reason DATABASE_URL and TORN_LOCALES_DIR do: something
+// has to say where the configuration lives before any configuration has been
+// read. Everything else — poll interval, batch size, shutdown budget, the
+// attempt count that turns a retry into an alarm — is in the file this points
+// at, and none of it is in this binary.
+const defaultConfigPath = config.DefaultPath
 
 func main() {
-	cfg, err := loadConfig()
+	env, err := loadEnv()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "worker: %v\n", err)
 		os.Exit(2)
 	}
 
-	logger := newLogger(cfg.logLevel)
+	// A process that cannot read its configuration must not guess: every
+	// value below — how often to poll, how much to claim, how long to drain —
+	// would otherwise silently become whatever this binary was built with.
+	cfg, err := config.Load(env.configPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "worker: %v\n", err)
+		os.Exit(2)
+	}
+
+	logger := newLogger(env.logLevel)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	if err := run(ctx, cfg, logger); err != nil {
+	if err := run(ctx, env, cfg, logger); err != nil {
 		logger.Error("worker stopped with an error", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 	logger.Info("worker stopped cleanly")
 }
 
-type config struct {
-	databaseURL  string
-	natsURL      string
-	logLevel     string
-	pollInterval time.Duration
-	batchSize    int
+// env is the bootstrap: the handful of facts that must be known before the
+// configuration file can be read. Addresses and credentials stay here (ADR
+// 0002); every operational value lives in that file.
+type env struct {
+	databaseURL string
+	natsURL     string
+	logLevel    string
+	configPath  string
 }
 
-func loadConfig() (config, error) {
-	cfg := config{
-		databaseURL:  os.Getenv("DATABASE_URL"),
-		natsURL:      os.Getenv("NATS_URL"),
-		logLevel:     os.Getenv("LOG_LEVEL"),
-		pollInterval: defaultPollInterval,
-		batchSize:    defaultBatchSize,
+func loadEnv() (env, error) {
+	e := env{
+		databaseURL: os.Getenv("DATABASE_URL"),
+		natsURL:     os.Getenv("NATS_URL"),
+		logLevel:    os.Getenv("LOG_LEVEL"),
+		configPath:  os.Getenv("TORN_CONFIG"),
+	}
+	if e.configPath == "" {
+		e.configPath = defaultConfigPath
 	}
 
 	var missing []string
-	if cfg.databaseURL == "" {
+	if e.databaseURL == "" {
 		missing = append(missing, "DATABASE_URL")
 	}
-	if cfg.natsURL == "" {
+	if e.natsURL == "" {
 		missing = append(missing, "NATS_URL")
 	}
 	if len(missing) > 0 {
-		return config{}, fmt.Errorf("missing required environment variables: %s", strings.Join(missing, ", "))
+		return env{}, fmt.Errorf("missing required environment variables: %s", strings.Join(missing, ", "))
 	}
 
-	if raw := os.Getenv("OUTBOX_POLL_INTERVAL"); raw != "" {
-		d, err := time.ParseDuration(raw)
-		if err != nil || d <= 0 {
-			return config{}, fmt.Errorf("OUTBOX_POLL_INTERVAL must be a positive duration, got %q", raw)
-		}
-		cfg.pollInterval = d
-	}
-	if raw := os.Getenv("OUTBOX_BATCH_SIZE"); raw != "" {
-		n, err := strconv.Atoi(raw)
-		if err != nil || n <= 0 {
-			return config{}, fmt.Errorf("OUTBOX_BATCH_SIZE must be a positive integer, got %q", raw)
-		}
-		cfg.batchSize = n
-	}
-
-	return cfg, nil
+	return e, nil
 }
 
 func newLogger(level string) *slog.Logger {
@@ -145,36 +136,48 @@ func metaAttrs(meta envelope.Metadata) []any {
 	}
 }
 
-func run(ctx context.Context, cfg config, logger *slog.Logger) error {
+func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) error {
 	logger = logger.With(slog.String("service", "worker"))
-	logger.Info("outbox publisher starting",
-		slog.Duration("poll_interval", cfg.pollInterval),
-		slog.Int("batch_size", cfg.batchSize))
 
-	pool, err := postgres.New(ctx, cfg.databaseURL)
+	// This line is the proof that the file on disk is what the process runs.
+	// It names the file it came from, so "what is this environment actually
+	// configured with" is answerable from the logs alone.
+	logger.Info("outbox publisher starting",
+		slog.String("config", e.configPath),
+		slog.Duration("poll_interval", cfg.Worker.PollInterval),
+		slog.Int("batch_size", cfg.Worker.BatchSize),
+		slog.Duration("shutdown_timeout", cfg.Worker.ShutdownTimeout),
+		slog.Int("noisy_attempts", cfg.Worker.NoisyAttempts))
+
+	pool, err := postgres.New(ctx, e.databaseURL)
 	if err != nil {
 		return err
 	}
 	defer pool.Close()
 
-	conn, err := infranats.New(ctx, cfg.natsURL)
+	conn, err := infranats.New(ctx, e.natsURL)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = conn.Close() }()
 
-	if err := infranats.EnsureStreams(ctx, conn); err != nil {
+	if err := infranats.EnsureStreams(ctx, conn, infranats.StreamOptions{
+		CommandMaxAge:   cfg.NATS.CommandMaxAge,
+		EventMaxAge:     cfg.NATS.EventMaxAge,
+		DuplicateWindow: cfg.NATS.DuplicateWindow,
+	}); err != nil {
 		return err
 	}
 
 	p := &publisher{
-		logger: logger,
-		store:  postgres.NewOutboxStore(pool),
-		out:    infranats.NewPublisher(conn),
-		batch:  cfg.batchSize,
+		logger:        logger,
+		store:         postgres.NewOutboxStore(pool),
+		out:           infranats.NewPublisher(conn),
+		batch:         cfg.Worker.BatchSize,
+		noisyAttempts: cfg.Worker.NoisyAttempts,
 	}
 
-	ticker := time.NewTicker(cfg.pollInterval)
+	ticker := time.NewTicker(cfg.Worker.PollInterval)
 	defer ticker.Stop()
 
 	for {
@@ -185,7 +188,7 @@ func run(ctx context.Context, cfg config, logger *slog.Logger) error {
 			// One last pass on a context of its own: the loop's context is
 			// already cancelled, and rows claimed a moment ago would
 			// otherwise wait for the next process to notice them.
-			drainCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), shutdownTimeout)
+			drainCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), cfg.Worker.ShutdownTimeout)
 			published, err := p.publishBatch(drainCtx)
 			cancel()
 			if err != nil {
@@ -219,6 +222,11 @@ type publisher struct {
 	store  *postgres.OutboxStore
 	out    Publisher
 	batch  int
+
+	// noisyAttempts is the attempt count at which a row stops being a normal
+	// retry and starts being a problem worth an operator's attention. The row
+	// is still not touched; only the log level changes.
+	noisyAttempts int
 }
 
 // publishBatch claims one batch, publishes what it can, and marks those rows
@@ -251,7 +259,7 @@ func (p *publisher) publishBatch(ctx context.Context) (int, error) {
 				firstErr = err
 			}
 			level := slog.LevelWarn
-			if ev.Attempts >= noisyAttempts {
+			if ev.Attempts >= p.noisyAttempts {
 				// Still not touched: the status stays pending on purpose.
 				// This only raises the volume so a row that cannot be
 				// published is noticed rather than retried in silence.

@@ -13,6 +13,11 @@ import (
 // can prove Build normalises it instead of passing the caller's zone through.
 var receivedAt = time.Date(2026, 9, 22, 12, 0, 0, 0, time.FixedZone("Tehran", 3*3600+1800))
 
+// testDefaultLanguage is the fallback these tests inject. It is fixed here
+// rather than read from the shipped configuration so an assertion cannot
+// start failing because an operator changed player.default_language.
+const testDefaultLanguage = "fa"
+
 func messageUpdate() client.Update {
 	return client.Update{
 		UpdateID: 4711,
@@ -50,7 +55,7 @@ func callbackUpdate() client.Update {
 // TestBuildMessageUpdate checks every field section 6 asks for on the most
 // common update there is.
 func TestBuildMessageUpdate(t *testing.T) {
-	meta, err := Build(messageUpdate(), "bot07", "gateway-02", receivedAt)
+	meta, err := Build(messageUpdate(), "bot07", "gateway-02", testDefaultLanguage, receivedAt)
 	if err != nil {
 		t.Fatalf("Build returned an error: %v", err)
 	}
@@ -103,7 +108,7 @@ func TestBuildMessageUpdate(t *testing.T) {
 
 // TestBuildCallbackUpdate covers the other half of phase 0's traffic.
 func TestBuildCallbackUpdate(t *testing.T) {
-	meta, err := Build(callbackUpdate(), "bot01", "gateway-01", receivedAt)
+	meta, err := Build(callbackUpdate(), "bot01", "gateway-01", testDefaultLanguage, receivedAt)
 	if err != nil {
 		t.Fatalf("Build returned an error: %v", err)
 	}
@@ -132,11 +137,11 @@ func TestBuildCallbackUpdate(t *testing.T) {
 // TestRequestIDsDiffer is the point of minting the identifiers with
 // crypto/rand: two updates, even identical ones, are two requests.
 func TestRequestIDsDiffer(t *testing.T) {
-	first, err := Build(messageUpdate(), "bot07", "gateway-02", receivedAt)
+	first, err := Build(messageUpdate(), "bot07", "gateway-02", testDefaultLanguage, receivedAt)
 	if err != nil {
 		t.Fatalf("first Build: %v", err)
 	}
-	second, err := Build(messageUpdate(), "bot07", "gateway-02", receivedAt)
+	second, err := Build(messageUpdate(), "bot07", "gateway-02", testDefaultLanguage, receivedAt)
 	if err != nil {
 		t.Fatalf("second Build: %v", err)
 	}
@@ -188,7 +193,7 @@ func TestBuildRejects(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			meta, err := Build(tt.update, tt.botID, tt.gatewayID, receivedAt)
+			meta, err := Build(tt.update, tt.botID, tt.gatewayID, testDefaultLanguage, receivedAt)
 			if err != tt.want {
 				t.Fatalf("Build error = %v, want %v", err, tt.want)
 			}
@@ -206,7 +211,7 @@ func TestBuildEditedMessage(t *testing.T) {
 	update.EditedMessage = update.Message
 	update.Message = nil
 
-	meta, err := Build(update, "bot01", "gateway-01", receivedAt)
+	meta, err := Build(update, "bot01", "gateway-01", testDefaultLanguage, receivedAt)
 	if err != nil {
 		t.Fatalf("Build returned an error: %v", err)
 	}
@@ -227,17 +232,30 @@ func TestNormalizeLanguage(t *testing.T) {
 		{"upper case", "EN", "en"},
 		{"padded", "  en-GB  ", "en"},
 		{"three letter tag", "ckb", "ckb"},
-		{"empty falls back", "", DefaultLanguage},
-		{"single letter is not a tag", "f", DefaultLanguage},
-		{"digits are not a tag", "12", DefaultLanguage},
-		{"too long", "farsi", DefaultLanguage},
+		{"empty falls back", "", testDefaultLanguage},
+		{"single letter is not a tag", "f", testDefaultLanguage},
+		{"digits are not a tag", "12", testDefaultLanguage},
+		{"too long", "farsi", testDefaultLanguage},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NormalizeLanguage(tt.code); got != tt.want {
+			if got := NormalizeLanguage(tt.code, testDefaultLanguage); got != tt.want {
 				t.Errorf("NormalizeLanguage(%q) = %q, want %q", tt.code, got, tt.want)
 			}
 		})
+	}
+}
+
+// TestBuildRequiresDefaultLanguage records that the fallback is the caller's
+// to supply. Defaulting it here would make this package a second home for a
+// value that belongs to configs/config.yml, and the two copies would drift.
+func TestBuildRequiresDefaultLanguage(t *testing.T) {
+	meta, err := Build(messageUpdate(), "bot01", "gateway-01", "  ", receivedAt)
+	if err != ErrNoDefaultLanguage {
+		t.Fatalf("Build error = %v, want %v", err, ErrNoDefaultLanguage)
+	}
+	if meta != (envelope.Metadata{}) {
+		t.Errorf("Build returned %+v alongside an error, want the zero value", meta)
 	}
 }

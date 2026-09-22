@@ -67,6 +67,16 @@ type Config struct {
 	// own default.
 	RequestTimeout time.Duration
 
+	// MaxPollTimeout, PollTimeoutGrace, PollHTTPTimeout and DefaultFloodWait
+	// are handed straight to every bot's client; see that package's Config
+	// for what each one bounds. They are carried through here rather than
+	// left to the client's defaults so one configuration file governs the
+	// whole fleet. Zero on any of them keeps the client's own default.
+	MaxPollTimeout   time.Duration
+	PollTimeoutGrace time.Duration
+	PollHTTPTimeout  time.Duration
+	DefaultFloodWait time.Duration
+
 	// HTTPClient, when set, is the transport template handed to every bot's
 	// client. Sharing one transport across the fleet is the point: connection
 	// pooling to a single local Bot API server.
@@ -81,9 +91,13 @@ type Registry struct {
 	source  application.BotRegistry
 	secrets application.SecretResolver
 
-	baseURL        string
-	requestTimeout time.Duration
-	httpClient     *http.Client
+	baseURL          string
+	requestTimeout   time.Duration
+	maxPollTimeout   time.Duration
+	pollTimeoutGrace time.Duration
+	pollHTTPTimeout  time.Duration
+	defaultFloodWait time.Duration
+	httpClient       *http.Client
 
 	mu    sync.RWMutex
 	byKey map[string]entry
@@ -107,12 +121,16 @@ func New(cfg Config) (*Registry, error) {
 	}
 
 	return &Registry{
-		source:         cfg.Source,
-		secrets:        cfg.Secrets,
-		baseURL:        cfg.BaseURL,
-		requestTimeout: cfg.RequestTimeout,
-		httpClient:     cfg.HTTPClient,
-		byKey:          make(map[string]entry),
+		source:           cfg.Source,
+		secrets:          cfg.Secrets,
+		baseURL:          cfg.BaseURL,
+		requestTimeout:   cfg.RequestTimeout,
+		maxPollTimeout:   cfg.MaxPollTimeout,
+		pollTimeoutGrace: cfg.PollTimeoutGrace,
+		pollHTTPTimeout:  cfg.PollHTTPTimeout,
+		defaultFloodWait: cfg.DefaultFloodWait,
+		httpClient:       cfg.HTTPClient,
+		byKey:            make(map[string]entry),
 	}, nil
 }
 
@@ -157,10 +175,14 @@ func (r *Registry) Refresh(ctx context.Context) error {
 		}
 
 		api, err := client.New(client.Config{
-			BaseURL:        r.baseURL,
-			Token:          token,
-			RequestTimeout: r.requestTimeout,
-			HTTPClient:     r.httpClient,
+			BaseURL:          r.baseURL,
+			Token:            token,
+			RequestTimeout:   r.requestTimeout,
+			MaxPollTimeout:   r.maxPollTimeout,
+			PollTimeoutGrace: r.pollTimeoutGrace,
+			PollHTTPTimeout:  r.pollHTTPTimeout,
+			DefaultFloodWait: r.defaultFloodWait,
+			HTTPClient:       r.httpClient,
 		})
 		if err != nil {
 			return fmt.Errorf("registry: building the API client for bot %q: %w", bot.BotKey, err)

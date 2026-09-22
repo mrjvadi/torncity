@@ -55,7 +55,7 @@ func (c *Client) GetUpdates(ctx context.Context, offset int64, timeoutSeconds in
 		return nil, ErrNegativePollTimeout
 	}
 	poll := time.Duration(timeoutSeconds) * time.Second
-	if poll > MaxPollTimeout {
+	if poll > c.maxPollTimeout {
 		return nil, ErrPollTimeoutTooLong
 	}
 
@@ -65,7 +65,7 @@ func (c *Client) GetUpdates(ctx context.Context, offset int64, timeoutSeconds in
 
 	// The deadline is the poll itself plus grace, so the server always gets
 	// the chance to answer on its own terms.
-	ctx, cancel := context.WithTimeout(ctx, poll+PollTimeoutGrace)
+	ctx, cancel := context.WithTimeout(ctx, poll+c.pollTimeoutGrace)
 	defer cancel()
 
 	var updates []Update

@@ -12,6 +12,13 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 )
 
+// The four values below are the DEFAULTS a Consumer falls back to when a
+// ConsumerOptions field is left at zero. The values a deployment actually runs
+// are declared in configs/config.yml under `nats:` and injected through
+// ConsumerOptions; these exist so a caller that supplies nothing still gets
+// the redelivery policy this package shipped with, and so config.Defaults()
+// has something to mirror.
+
 // MaxDeliver is how many times JetStream will offer one message before giving
 // up on it.
 //
@@ -69,14 +76,62 @@ const nakDelay = 5 * time.Second
 // four more times on its way to the dead-letter path.
 type Handler func(ctx context.Context, env *envelope.Envelope) error
 
+// ConsumerOptions is the redelivery policy every durable consumer this type
+// creates is given.
+//
+// It is four values rather than the whole configuration tree: this package
+// needs the ack wait, the delivery budget and the two delays, and handing it
+// everything would make every future field of the config a dependency of the
+// broker adapter.
+type ConsumerOptions struct {
+	// AckWait is how long the server waits for an acknowledgement before
+	// assuming the handler died. Zero means ackWait.
+	AckWait time.Duration
+
+	// MaxDeliver is how many times one message is offered. Zero or less means
+	// MaxDeliver.
+	MaxDeliver int
+
+	// NakDelay is the delay requested when a handler returns an error. Zero
+	// means nakDelay.
+	NakDelay time.Duration
+
+	// Backoff is the wait before each redelivery. Empty means
+	// deliveryBackOff.
+	Backoff []time.Duration
+}
+
+// withDefaults fills every unset field. A zero AckWait or NakDelay would be
+// read by JetStream as "no wait at all", which turns a struggling dependency
+// into a hot redelivery loop, so none of them is allowed through as zero.
+func (o ConsumerOptions) withDefaults() ConsumerOptions {
+	if o.AckWait <= 0 {
+		o.AckWait = ackWait
+	}
+	if o.MaxDeliver <= 0 {
+		o.MaxDeliver = MaxDeliver
+	}
+	if o.NakDelay <= 0 {
+		o.NakDelay = nakDelay
+	}
+	if len(o.Backoff) == 0 {
+		o.Backoff = deliveryBackOff
+	}
+	return o
+}
+
 // Consumer subscribes to a subject with a durable, explicitly acknowledged
 // JetStream consumer.
 type Consumer struct {
-	js jetstream.JetStream
+	js   jetstream.JetStream
+	opts ConsumerOptions
 }
 
-// NewConsumer returns a consumer over c.
-func NewConsumer(c *Conn) *Consumer { return &Consumer{js: c.JetStream()} }
+// NewConsumer returns a consumer over c, running the redelivery policy in
+// opts. A zero ConsumerOptions selects this package's defaults.
+func NewConsumer(c *Conn, opts ConsumerOptions) *Consumer {
+	return &Consumer{js: c.JetStream(), opts: opts.withDefaults()}
+}
 
 // streamForSubject maps a subject to the stream that carries it.
 //
@@ -133,9 +188,9 @@ func (c *Consumer) Subscribe(ctx context.Context, subject, durable string, handl
 		Durable:       durable,
 		FilterSubject: subject,
 		AckPolicy:     jetstream.AckExplicitPolicy,
-		AckWait:       ackWait,
-		MaxDeliver:    MaxDeliver,
-		BackOff:       deliveryBackOff,
+		AckWait:       c.opts.AckWait,
+		MaxDeliver:    c.opts.MaxDeliver,
+		BackOff:       c.opts.Backoff,
 		DeliverPolicy: jetstream.DeliverAllPolicy,
 	})
 	if err != nil {
@@ -186,7 +241,7 @@ func (c *Consumer) deliver(ctx context.Context, msg jetstream.Msg, handler Handl
 	}
 
 	if err := handler(ctx, &env); err != nil {
-		_ = msg.NakWithDelay(nakDelay)
+		_ = msg.NakWithDelay(c.opts.NakDelay)
 		return
 	}
 

@@ -47,6 +47,12 @@ import (
 // deployment sets Config.BaseURL to the local server (ADR 0003, decision 1).
 const DefaultBaseURL = "https://api.telegram.org"
 
+// The operational values below are the DEFAULTS this package falls back to
+// when Config leaves the matching field at zero. They are not the values a
+// deployment runs: configs/config.yml declares those under `telegram:` and
+// internal/config injects them through Config. They are kept here so a caller
+// that supplies nothing still gets the behaviour this package shipped with,
+// and so config.Defaults() has something to mirror.
 const (
 	// DefaultRequestTimeout bounds an ordinary (non-polling) call.
 	DefaultRequestTimeout = 30 * time.Second
@@ -87,6 +93,14 @@ var (
 
 	// ErrNegativePollTimeout rejects a nonsensical long-poll timeout.
 	ErrNegativePollTimeout = errors.New("telegram: poll timeout must not be negative")
+
+	// ErrPollHTTPTimeoutTooShort rejects a polling transport timeout that does
+	// not outlast the longest poll the client would accept. It exists because
+	// the one way to misconfigure this client that produces no error, no log
+	// line and no failed metric is to hand the polling transport the ordinary
+	// request timeout: every getUpdates is then aborted just before Telegram
+	// answers, and the bot stops receiving updates while looking healthy.
+	ErrPollHTTPTimeoutTooShort = errors.New("telegram: poll_http_timeout must exceed max_poll_timeout")
 )
 
 // Config is everything the client needs. BaseURL is the field that matters:
@@ -102,8 +116,31 @@ type Config struct {
 	Token string
 
 	// RequestTimeout bounds ordinary calls. Zero means DefaultRequestTimeout.
-	// It is NOT applied to GetUpdates; see PollTimeoutGrace.
+	// It is NOT applied to GetUpdates; see PollHTTPTimeout.
 	RequestTimeout time.Duration
+
+	// MaxPollTimeout is the largest long-poll window GetUpdates will accept.
+	// Zero means the MaxPollTimeout default.
+	MaxPollTimeout time.Duration
+
+	// PollTimeoutGrace is how much longer than the requested poll window one
+	// getUpdates call is allowed to run. Zero means the PollTimeoutGrace
+	// default.
+	PollTimeoutGrace time.Duration
+
+	// PollHTTPTimeout is the transport timeout of the polling HTTP client.
+	//
+	// It is a field of its own, and not derived quietly from the two above,
+	// because this is the value that decides whether long polling works at
+	// all. Zero means MaxPollTimeout + PollTimeoutGrace, which is what
+	// config.Telegram.PollHTTPTimeout() returns; anything at or below
+	// MaxPollTimeout is rejected with ErrPollHTTPTimeoutTooShort rather than
+	// accepted into a bot that silently stops receiving updates.
+	PollHTTPTimeout time.Duration
+
+	// DefaultFloodWait is the pause used when a 429 carries no usable
+	// retry_after. Zero means the DefaultFloodWait default.
+	DefaultFloodWait time.Duration
 
 	// HTTPClient, when set, is used as the template for both the ordinary and
 	// the polling HTTP client, so callers can inject a transport. Its Timeout
@@ -118,6 +155,12 @@ type Config struct {
 type Client struct {
 	baseURL string
 	token   string
+
+	// The operational values this client runs with, resolved once in New so
+	// no method has to re-apply a fallback.
+	maxPollTimeout   time.Duration
+	pollTimeoutGrace time.Duration
+	defaultFloodWait time.Duration
 
 	httpClient *http.Client
 	pollClient *http.Client
@@ -145,6 +188,28 @@ func New(cfg Config) (*Client, error) {
 	if requestTimeout <= 0 {
 		requestTimeout = DefaultRequestTimeout
 	}
+	maxPollTimeout := cfg.MaxPollTimeout
+	if maxPollTimeout <= 0 {
+		maxPollTimeout = MaxPollTimeout
+	}
+	pollTimeoutGrace := cfg.PollTimeoutGrace
+	if pollTimeoutGrace <= 0 {
+		pollTimeoutGrace = PollTimeoutGrace
+	}
+	floodWait := cfg.DefaultFloodWait
+	if floodWait <= 0 {
+		floodWait = DefaultFloodWait
+	}
+
+	pollHTTPTimeout := cfg.PollHTTPTimeout
+	if pollHTTPTimeout <= 0 {
+		pollHTTPTimeout = maxPollTimeout + pollTimeoutGrace
+	}
+	if pollHTTPTimeout <= maxPollTimeout {
+		// Refused rather than tolerated: see ErrPollHTTPTimeoutTooShort.
+		return nil, fmt.Errorf("%w: poll_http_timeout is %s, max_poll_timeout is %s",
+			ErrPollHTTPTimeoutTooShort, pollHTTPTimeout, maxPollTimeout)
+	}
 
 	ordinary := cloneHTTPClient(cfg.HTTPClient)
 	ordinary.Timeout = requestTimeout
@@ -153,13 +218,16 @@ func New(cfg Config) (*Client, error) {
 	// larger than any poll GetUpdates will accept. Sharing `ordinary` here is
 	// the bug this split exists to prevent.
 	polling := cloneHTTPClient(cfg.HTTPClient)
-	polling.Timeout = MaxPollTimeout + PollTimeoutGrace
+	polling.Timeout = pollHTTPTimeout
 
 	return &Client{
-		baseURL:    base,
-		token:      token,
-		httpClient: ordinary,
-		pollClient: polling,
+		baseURL:          base,
+		token:            token,
+		maxPollTimeout:   maxPollTimeout,
+		pollTimeoutGrace: pollTimeoutGrace,
+		defaultFloodWait: floodWait,
+		httpClient:       ordinary,
+		pollClient:       polling,
 	}, nil
 }
 
@@ -288,7 +356,7 @@ func (c *Client) interpret(method string, resp *http.Response, payload []byte, r
 	if resp.StatusCode == http.StatusTooManyRequests || env.ErrorCode == http.StatusTooManyRequests {
 		wait, ok := retryAfter(env, resp.Header)
 		if !ok {
-			wait = DefaultFloodWait
+			wait = c.defaultFloodWait
 		}
 		return &FloodWaitError{
 			Method:      method,

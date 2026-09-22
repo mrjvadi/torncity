@@ -98,9 +98,9 @@ func TestDedupTTLDefault(t *testing.T) {
 	}
 }
 
-// NewDeduplicatorWithTTL falls back rather than writing keys that never
-// expire, which would slowly consume the whole instance.
-func TestNewDeduplicatorWithTTLRejectsNonPositive(t *testing.T) {
+// NewDeduplicator falls back rather than writing keys that never expire,
+// which would slowly consume the whole instance.
+func TestNewDeduplicatorRejectsNonPositiveTTL(t *testing.T) {
 	tests := []struct {
 		name string
 		ttl  time.Duration
@@ -113,7 +113,7 @@ func TestNewDeduplicatorWithTTLRejectsNonPositive(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			d := NewDeduplicatorWithTTL(nil, tc.ttl)
+			d := NewDeduplicator(nil, tc.ttl)
 			if d.ttl != tc.want {
 				t.Errorf("ttl = %s, want %s", d.ttl, tc.want)
 			}
