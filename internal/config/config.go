@@ -140,6 +140,7 @@ type Config struct {
 	Dedup     Dedup
 	NATS      NATS
 	Worker    Worker
+	Scheduler Scheduler
 	Game      Game
 	Player    Player
 }
@@ -237,6 +238,20 @@ type Worker struct {
 	NoisyAttempts   int           // worker.noisy_attempts
 }
 
+// Scheduler turns the durable schedule into published commands.
+//
+// It is a separate section from Worker even though the four values line up,
+// because the two processes are paced by different things. The outbox worker
+// is bounded by how fast a committed event should reach the broker; the
+// scheduler is bounded by how late a player may notice their travel landing.
+// One number serving both would be tuned for whichever incident happened last.
+type Scheduler struct {
+	TickInterval    time.Duration // scheduler.tick_interval
+	BatchSize       int           // scheduler.batch_size
+	ShutdownTimeout time.Duration // scheduler.shutdown_timeout
+	NoisyAttempts   int           // scheduler.noisy_attempts
+}
+
 // Game is the command-side service.
 type Game struct {
 	ShutdownTimeout time.Duration // game.shutdown_timeout
@@ -296,6 +311,12 @@ func Defaults() *Config {
 		},
 		Worker: Worker{
 			PollInterval:    250 * time.Millisecond,
+			BatchSize:       100,
+			ShutdownTimeout: 15 * time.Second,
+			NoisyAttempts:   5,
+		},
+		Scheduler: Scheduler{
+			TickInterval:    1 * time.Second,
 			BatchSize:       100,
 			ShutdownTimeout: 15 * time.Second,
 			NoisyAttempts:   5,

@@ -20,6 +20,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
+	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // How long a command key blocks a replay is NOT declared here any more. It is
@@ -53,6 +54,8 @@ type ProfileHandler struct {
 	uow            application.UnitOfWork
 	ids            IDGenerator
 	msgs           Translator
+	stats          application.StatsRepository
+	cities         application.CityRepository
 	defaultL       string
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -81,10 +84,16 @@ type ProfileHandler struct {
 // redelivery would be executed as if it were new and a player would be charged
 // twice. It must outlast the broker's redelivery schedule, which
 // internal/config validates.
+//
+// stats and cities are the phase 1 repositories the profile reads. See the
+// note at the top of phase1.go for why they are injected here rather than
+// reached through the unit of work.
 func NewProfileHandler(
 	uow application.UnitOfWork,
 	ids IDGenerator,
 	msgs Translator,
+	stats application.StatsRepository,
+	cities application.CityRepository,
 	defaultLanguage string,
 	idempotencyTTL time.Duration,
 	now func() time.Time,
@@ -105,6 +114,8 @@ func NewProfileHandler(
 		uow:            uow,
 		ids:            ids,
 		msgs:           msgs,
+		stats:          stats,
+		cities:         cities,
 		defaultL:       defaultLanguage,
 		idempotencyTTL: idempotencyTTL,
 		now:            now,
@@ -125,14 +136,17 @@ func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*p
 		return nil, errors.InvalidInput("request carries no telegram user")
 	}
 
-	var player *application.Player
+	var (
+		record *application.Player
+		view   screens.ProfileView
+	)
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.ensurePlayer(ctx, tx, meta)
 		if err != nil {
 			return err
 		}
-		player = p
+		record = p
 
 		// Reserve after the player exists, because the key is scoped to the
 		// player id. A replay of the same request finds the key taken and
@@ -142,22 +156,87 @@ func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*p
 		if err != nil {
 			return err
 		}
-		if !fresh {
-			return nil
+		if fresh {
+			if err := tx.Players().LinkBot(ctx, application.BotLink{
+				PlayerID:       p.ID,
+				BotID:          meta.BotID,
+				TelegramChatID: meta.TelegramChatID,
+				IsReachable:    true,
+			}); err != nil {
+				return err
+			}
 		}
 
-		return tx.Players().LinkBot(ctx, application.BotLink{
-			PlayerID:       p.ID,
-			BotID:          meta.BotID,
-			TelegramChatID: meta.TelegramChatID,
-			IsReachable:    true,
-		})
+		// The condition is read on EVERY delivery, replay or not. It is a
+		// read, so repeating it changes nothing, and suppressing it would
+		// answer a redelivered request with a blank profile.
+		view, err = h.condition(ctx, p)
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return h.renderProfile(meta.Language, player), nil
+	return h.renderProfile(meta, record, view), nil
+}
+
+// condition loads the player's live state, catching their energy up to now.
+//
+// # Reading your profile is how energy catches up
+//
+// There is no ticker anywhere that tops players up. Energy accrues as a pure
+// function of elapsed time (player.RegenerateEnergy), and the elapsed time is
+// measured from the row's own updated_at, so the amount a player has is fully
+// determined by when they last looked — not by whether a background job was
+// running, whether the process restarted, or how many players exist. A
+// hundred thousand idle accounts cost nothing, because nobody pays to
+// regenerate energy for a player who is not there to spend it.
+//
+// The price is that a read WRITES. That is deliberate and it is the whole
+// mechanism: if the caught-up value were not persisted, the next read would
+// measure from the same old timestamp and regenerate the same energy again,
+// and a player refreshing the screen would watch their bar refill for free.
+func (h *ProfileHandler) condition(ctx context.Context, p *application.Player) (screens.ProfileView, error) {
+	view := screens.ProfileView{
+		ID:       p.ID,
+		Language: p.Language,
+		Status:   p.Status,
+	}
+
+	row, err := h.stats.EnsureDefaults(ctx, p.ID, defaultStats(p.ID, h.now()))
+	if err != nil {
+		return view, err
+	}
+
+	regenerated, changed := regenerateEnergy(*row, h.now())
+	if changed {
+		if err := h.stats.Save(ctx, regenerated); err != nil {
+			return view, err
+		}
+	}
+
+	view.Level = regenerated.Level
+	view.XP = regenerated.XP
+	view.Energy = regenerated.Energy
+	view.MaxEnergy = regenerated.MaxEnergy
+	view.Health = regenerated.Health
+	view.MaxHealth = regenerated.MaxHealth
+
+	if p.CityID != nil && *p.CityID != "" {
+		city, err := h.cities.ByID(ctx, *p.CityID)
+		if err != nil {
+			// A player whose city has gone missing from content still has a
+			// profile. The screen shows that they are nowhere, which is
+			// visibly odd and therefore gets noticed, instead of failing the
+			// one screen a player opens to find out what is wrong.
+			if !isSentinel(err, application.ErrCityNotFound) {
+				return view, err
+			}
+		} else {
+			view.City = city.Name
+		}
+	}
+	return view, nil
 }
 
 // ensurePlayer loads the player, creating one on first contact and emitting
@@ -221,23 +300,15 @@ func displayName(meta envelope.Metadata) string {
 	return "player-" + strconv.FormatInt(meta.TelegramUserID, 10)
 }
 
-// renderProfile builds the reply. Every word of it comes from the catalogue:
-// the layout below decides what the screen contains, never what it says.
+// renderProfile hands the view to the screen that lays it out.
 //
-// lang is the player's language as it arrived on the request. An empty lang
-// is fine — the catalogue falls back to the default locale.
-func (h *ProfileHandler) renderProfile(lang string, p *application.Player) *presenter.Response {
+// The layout lives in internal/telegram/screens, not here: a use case decides
+// what is true and a screen decides what it looks like. Every word of it
+// still comes from the catalogue.
+func (h *ProfileHandler) renderProfile(meta envelope.Metadata, p *application.Player, view screens.ProfileView) *presenter.Response {
+	c := screens.Context{Msgs: h.msgs, Lang: meta.Language, MessageID: editableMessageID(meta)}
 	if p == nil {
-		return presenter.Message(h.msgs.T(lang, "profile.unavailable", nil), nil)
+		return presenter.Message(c.T("profile.unavailable", nil), nil)
 	}
-	return presenter.Message(
-		h.msgs.T(lang, "profile.body", map[string]any{
-			"id":       p.ID,
-			"language": p.Language,
-			"status":   p.Status,
-		}),
-		&presenter.Keyboard{Rows: [][]presenter.Button{{
-			{Text: h.msgs.T(lang, "button.refresh", nil), CallbackData: "player:profile.get"},
-		}}},
-	)
+	return screens.Profile(c, view)
 }

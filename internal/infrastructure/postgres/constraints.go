@@ -23,8 +23,8 @@ import (
 // code is therefore the only stable option, and matching on the message text
 // would be a bug waiting for a server upgrade or a locale change.
 const (
-	sqlstateUniqueViolation          = "23505"
-	sqlstateCheckViolation           = "23514"
+	sqlstateUniqueViolation           = "23505"
+	sqlstateCheckViolation            = "23514"
 	sqlstateInvalidTextRepresentation = "22P02"
 )
 

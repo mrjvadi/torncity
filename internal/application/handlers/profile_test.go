@@ -128,7 +128,8 @@ func newHarness(t *testing.T) (*ProfileHandler, *fakeUOW) {
 	}
 	uow := &fakeUOW{tx: tx}
 	fixed := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
-	return NewProfileHandler(uow, &seqIDs{}, messages(t), testDefaultLanguage, testIdempotencyTTL, func() time.Time { return fixed }), uow
+	return NewProfileHandler(uow, &seqIDs{}, messages(t), newFakeStats(), newFakeCities(),
+		testDefaultLanguage, testIdempotencyTTL, func() time.Time { return fixed }), uow
 }
 
 func meta(botID string, telegramUserID int64, requestID string) envelope.Metadata {
@@ -319,10 +320,16 @@ func TestProfileTextComesFromTheCatalogue(t *testing.T) {
 				t.Errorf("profile body has an unfilled placeholder: %q", resp.Text)
 			}
 
-			if resp.Keyboard == nil || len(resp.Keyboard.Rows) != 1 || len(resp.Keyboard.Rows[0]) != 1 {
-				t.Fatalf("expected one refresh button, got %+v", resp.Keyboard)
+			// The last row is the navigation block every screen carries:
+			// back, then refresh.
+			if resp.Keyboard == nil || len(resp.Keyboard.Rows) < 1 {
+				t.Fatalf("expected a keyboard, got %+v", resp.Keyboard)
 			}
-			btn := resp.Keyboard.Rows[0][0]
+			nav := resp.Keyboard.Rows[len(resp.Keyboard.Rows)-1]
+			if len(nav) != 2 {
+				t.Fatalf("expected a back and a refresh button, got %+v", nav)
+			}
+			btn := nav[1]
 			if btn.Text == "button.refresh" || btn.Text == "" {
 				t.Errorf("button label did not resolve: %q", btn.Text)
 			}
@@ -331,6 +338,11 @@ func TestProfileTextComesFromTheCatalogue(t *testing.T) {
 			}
 			if btn.CallbackData != "player:profile.get" {
 				t.Errorf("callback data %q changed", btn.CallbackData)
+			}
+			for _, b := range nav {
+				if len(b.CallbackData) > 64 {
+					t.Errorf("callback data %q exceeds the 64-byte budget", b.CallbackData)
+				}
 			}
 		})
 	}
@@ -352,16 +364,32 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 		idem:    &fakeIdem{seen: map[string]bool{}},
 	}
 	spy := &recordingTranslator{}
-	h := NewProfileHandler(&fakeUOW{tx: tx}, &seqIDs{}, spy, testDefaultLanguage, testIdempotencyTTL, nil)
+	h := NewProfileHandler(&fakeUOW{tx: tx}, &seqIDs{}, spy, newFakeStats(), newFakeCities(),
+		testDefaultLanguage, testIdempotencyTTL, nil)
 
 	resp, err := h.Handle(context.Background(), meta("bot01", 7, "req-spy"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if resp.Text != "<profile.body>" {
+	if !strings.Contains(resp.Text, "<profile.body>") {
 		t.Errorf("handler ignored the injected catalogue, got %q", resp.Text)
 	}
-	want := []string{"profile.body", "button.refresh"}
+	// The full sequence the profile screen looks up, in order. The player
+	// this test creates has no city yet, which is why the screen asks for
+	// the "nowhere" label before it renders the body. The navigation keys
+	// at the end are the back, refresh and pagination labels
+	// 17_TELEGRAM_UX.md requires every screen to carry.
+	want := []string{
+		"profile.city_unknown",
+		"profile.body",
+		"profile.condition",
+		"button.skills",
+		"button.map",
+		"button.previous",
+		"button.next",
+		"button.back",
+		"button.refresh",
+	}
 	if len(spy.keys) != len(want) {
 		t.Fatalf("looked up %v, want %v", spy.keys, want)
 	}
@@ -381,13 +409,14 @@ func TestNilCatalogueRendersKeys(t *testing.T) {
 		outbox:  &fakeOutbox{},
 		idem:    &fakeIdem{seen: map[string]bool{}},
 	}
-	h := NewProfileHandler(&fakeUOW{tx: tx}, &seqIDs{}, nil, testDefaultLanguage, testIdempotencyTTL, nil)
+	h := NewProfileHandler(&fakeUOW{tx: tx}, &seqIDs{}, nil, newFakeStats(), newFakeCities(),
+		testDefaultLanguage, testIdempotencyTTL, nil)
 
 	resp, err := h.Handle(context.Background(), meta("bot01", 8, "req-nil"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if resp.Text != "profile.body" {
+	if !strings.Contains(resp.Text, "profile.body") {
 		t.Errorf("got %q, want the key", resp.Text)
 	}
 }

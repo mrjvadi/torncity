@@ -266,6 +266,11 @@ worker:
   batch_size: 101
   shutdown_timeout: 16s
   noisy_attempts: 6
+scheduler:
+  tick_interval: 2s
+  batch_size: 102
+  shutdown_timeout: 17s
+  noisy_attempts: 7
 game:
   shutdown_timeout: 22s
   idempotency_ttl: 23h
@@ -304,10 +309,14 @@ var envOverrides = map[string]string{
 	"TORN_NATS_NAK_DELAY":        "7s",
 	"TORN_NATS_BACKOFF":          "3s,7s,17s",
 
-	"TORN_WORKER_POLL_INTERVAL":    "400ms",
-	"TORN_WORKER_BATCH_SIZE":       "102",
-	"TORN_WORKER_SHUTDOWN_TIMEOUT": "17s",
-	"TORN_WORKER_NOISY_ATTEMPTS":   "7",
+	"TORN_WORKER_POLL_INTERVAL":       "400ms",
+	"TORN_WORKER_BATCH_SIZE":          "102",
+	"TORN_WORKER_SHUTDOWN_TIMEOUT":    "17s",
+	"TORN_WORKER_NOISY_ATTEMPTS":      "7",
+	"TORN_SCHEDULER_TICK_INTERVAL":    "3s",
+	"TORN_SCHEDULER_BATCH_SIZE":       "103",
+	"TORN_SCHEDULER_SHUTDOWN_TIMEOUT": "37s",
+	"TORN_SCHEDULER_NOISY_ATTEMPTS":   "9",
 
 	"TORN_GAME_SHUTDOWN_TIMEOUT": "24s",
 	"TORN_GAME_IDEMPOTENCY_TTL":  "22h",

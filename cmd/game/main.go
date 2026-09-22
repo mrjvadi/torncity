@@ -192,6 +192,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage),
 			uuidGenerator{},
 			messages,
+			postgres.NewStatsRepository(pool),
+			postgres.NewCityRepository(pool),
 			// The language a new account IS, not the catalogue's rendering
 			// fallback. Both read "fa" today and need not always.
 			cfg.Player.DefaultLanguage,

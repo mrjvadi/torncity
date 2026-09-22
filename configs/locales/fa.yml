@@ -22,7 +22,17 @@ profile:
     زبان: {language}
     وضعیت: {status}
 
+  # The condition block is a separate message from the identity block above:
+  # it changes on every read as energy accrues, and keeping the two apart
+  # keeps each placeholder set small enough to check by eye.
+  condition: |-
+    شهر: {city}
+    سطح: {level} ({xp} تجربه)
+    انرژی: {energy}/{max_energy}
+    سلامتی: {health}/{max_health}
+
   unavailable: پروفایل در دسترس نیست.
+  city_unknown: هنوز هیچ‌جا
 
   id_label: شناسه
   language_label: زبان
@@ -31,14 +41,104 @@ profile:
   energy_label: انرژی
   health_label: سلامتی
 
+dashboard:
+  title: خانه
+  body: |-
+    {name}
+
+    شهر: {city}
+    سطح: {level}
+    انرژی: {energy}/{max_energy}
+
+map:
+  title: نقشهٔ جهان
+  origin: "در {city} هستی."
+  empty: هنوز هیچ شهری بارگذاری نشده است.
+  depart: "سفر به {city}"
+  city:
+    current: "{city} — همین‌جایی · مالیات {tax}٪ · هزینهٔ زندگی {cost}"
+    reachable: "{city} — {distance} کیلومتر · مالیات {tax}٪ · هزینهٔ زندگی {cost}"
+    unreachable: "{city} — از اینجا مسیری نیست · مالیات {tax}٪ · هزینهٔ زندگی {cost}"
+
+travel:
+  title: سفر
+  started: "از {from} به {to} راه افتادی. {duration} دیگر می‌رسی. انرژی مصرف‌شده: {energy}."
+  status: "{from} به {to}. {remaining} باقی مانده."
+  none: الان در سفر نیستی.
+  arrived: "به {city} رسیدی. {xp} تجربه گرفتی."
+  same_city: همین حالا در همان شهر هستی.
+  no_route: از اینجا مسیری به آن شهر نیست.
+  unknown_speed: این گزینهٔ سفر در دسترس نیست.
+
+skills:
+  title: مهارت‌ها
+  empty: هنوز هیچ مهارتی را تمرین نکرده‌ای.
+  line: "{skill} — سطح {level} · {xp}/{next} تجربه ({percent}٪)"
+  line_untrained: "{skill} — تمرین‌نشده · {xp}/{next} تجربه ({percent}٪) · سطح {level}"
+
+skill:
+  programming: برنامه‌نویسی
+  mechanics: مکانیک
+  medicine: پزشکی
+  management: مدیریت
+  finance: مالی
+  engineering: مهندسی
+  cooking: آشپزی
+  logistics: لجستیک
+  driving: رانندگی
+
+social:
+  unknown_player: بازیکن بی‌نام
+  search:
+    title: "نتیجهٔ جست‌وجو برای {query}"
+    empty: کسی با این جست‌وجو پیدا نشد.
+    line: "{index}. {player}"
+  friends:
+    title: دوستان
+    empty: هنوز دوستی نداری.
+    line: "{player} — {status}"
+  friend:
+    requested: "درخواست دوستی برای {player} فرستاده شد."
+    accepted: "حالا تو و {player} دوست هستید."
+  status:
+    pending: در انتظار
+    accepted: دوست
+    blocked: مسدود
+
+page:
+  indicator: "صفحهٔ {page} از {pages}"
+
+format:
+  duration: "{hours} ساعت و {minutes} دقیقه"
+
 button:
   refresh: بروزرسانی
   back: بازگشت
   next: بعدی
   previous: قبلی
+  profile: پروفایل
+  dashboard: خانه
+  map: نقشه
+  travel: سفر
+  journey: سفر من
+  skills: مهارت‌ها
+  social: دوستان
+  add_friend: "افزودن {player}"
+  accept: "پذیرفتن {player}"
 
 error:
   unknown_command: این دستور را نمی‌شناسم.
   not_enough_energy: انرژی کافی نداری. {needed} انرژی لازم است و {current} انرژی داری.
   cooldown: باید {seconds} ثانیه دیگر صبر کنی.
   internal: خطایی رخ داد. لطفاً دوباره تلاش کن.
+  not_found: آن را پیدا نکردم.
+  invalid_input: این درخواست را متوجه نشدم.
+  conflict: الان نمی‌شود این کار را کرد.
+  rate_limited: خیلی سریع داری این کار را می‌کنی. کمی آرام‌تر.
+  unauthorized: اجازهٔ این کار را نداری.
+  city_not_found: این شهر را نمی‌شناسم.
+  already_travelling: همین حالا در سفر هستی.
+  skill_not_found: این مهارت را نمی‌شناسم.
+  not_friends: با این بازیکن دوست نیستی.
+  already_friends: از قبل با این بازیکن دوست هستی.
+  player_not_found: هنوز این بازیکن را نمی‌شناسم.

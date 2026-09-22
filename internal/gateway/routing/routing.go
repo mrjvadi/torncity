@@ -139,6 +139,31 @@ var aliases = map[string]string{
 var argNames = map[string][]string{
 	"job.apply":  {"role"},
 	"market.buy": {"id"},
+
+	// Phase 1: the player, the world and the social graph.
+	//
+	// travel.start names its destination by city CODE rather than by database
+	// id, because a code is the stable authored key a content file, a button
+	// and a typed command all agree on, and it is short enough to leave room
+	// inside the 64-byte callback budget. The second argument is the travel
+	// speed, which is optional: "/travel start berlin" is the standard way to
+	// get there and "/travel start berlin express" is the fast one.
+	"travel.start": {"city", "speed"},
+	// travel.status takes nothing. It is listed anyway so that this table
+	// reads as the set of commands phase 1 speaks rather than as the subset
+	// of them that happens to have arguments.
+	"travel.status": {},
+	"skills.list":   {"page"},
+	// social.search names the query first and the page second, so a typed
+	// "/social search ali" works and a pressed next button appends the page.
+	"social.search":     {"query", "page"},
+	"social.friend.add": {"player"},
+	// social.friend.list and social.friend.accept complete the pair; both
+	// route through SplitCommand as domain "social" with the two-token
+	// action "friend.accept".
+	"social.friend.accept": {"player"},
+	"social.friend.list":   {"page"},
+	"map.list":             {"page"},
 }
 
 // Parse extracts the command and payload from one update.

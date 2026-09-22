@@ -64,6 +64,15 @@ type Error struct {
 	Message string
 	Details map[string]any
 
+	// id distinguishes one named sentinel from another of the same code.
+	//
+	// Without it, Is matched on Code alone, which made every Conflict equal to
+	// every other Conflict: a handler branching on "already travelling" also
+	// caught "already friends" and took the wrong branch. Class sentinels
+	// leave it empty on purpose so they keep matching a whole class; named
+	// sentinels set it and match only themselves.
+	id string
+
 	cause error
 }
 
@@ -90,7 +99,13 @@ func (e *Error) Unwrap() error { return e.cause }
 // player-facing wording differs.
 func (e *Error) Is(target error) bool {
 	t, ok := target.(*Error)
-	return ok && t.Code == e.Code
+	if !ok || t.Code != e.Code {
+		return false
+	}
+	// An unnamed target asks the broad question ("is this a conflict?"); a
+	// named one asks the narrow ("is this THIS conflict?"). The target decides
+	// how precise the question is.
+	return t.id == "" || t.id == e.id
 }
 
 // PlayerMessage returns text that is safe to send to a user.
@@ -108,22 +123,31 @@ func (e *Error) PlayerMessage() string {
 	return e.Message
 }
 
-// WithCause attaches the operator-facing reason and returns the same error so
-// it can be chained onto a constructor.
+// WithCause attaches the operator-facing reason and returns a COPY.
+//
+// Copying is not an optimisation detail, it is the point. Sentinels are
+// package-level variables shared by every goroutine in the process; mutating
+// one in place would corrupt it for everyone and race while doing it. The
+// copy keeps the id, so the result still matches the sentinel it came from.
 func (e *Error) WithCause(cause error) *Error {
-	e.cause = cause
-	return e
+	c := *e
+	c.cause = cause
+	return &c
 }
 
 // WithDetail adds one structured field for logs and for machine-readable API
 // responses. Details are metadata, not prose: they must not be pasted into a
 // player-facing message.
 func (e *Error) WithDetail(key string, value any) *Error {
-	if e.Details == nil {
-		e.Details = make(map[string]any, 1)
+	// Copy for the same reason as WithCause, and copy the map too: sharing it
+	// would let two callers write the same sentinel's details concurrently.
+	c := *e
+	c.Details = make(map[string]any, len(e.Details)+1)
+	for k, v := range e.Details {
+		c.Details[k] = v
 	}
-	e.Details[key] = value
-	return e
+	c.Details[key] = value
+	return &c
 }
 
 // defaultMessage is the fallback wording per class, used when a caller builds
@@ -150,6 +174,23 @@ func defaultMessage(c Code) string {
 
 // New builds an error with an explicit code and player-facing message.
 func New(code Code, msg string) *Error { return &Error{Code: code, Message: msg} }
+
+// Sentinel builds a named error that errors.Is can tell apart from others of
+// the same code.
+//
+// id must be unique across the program; the package prefix plus the variable
+// name is the convention, for example "application.ErrAlreadyTravelling". Two
+// sentinels sharing an id become interchangeable, which is the exact bug this
+// exists to prevent, so keep it specific.
+//
+// Use this for any sentinel a caller will branch on; use New or the per-code
+// helpers for an error that is only reported.
+func Sentinel(code Code, id, msg string) *Error {
+	return &Error{Code: code, id: id, Message: msg}
+}
+
+// ID reports the sentinel identity, empty for an unnamed error.
+func (e *Error) ID() string { return e.id }
 
 // NotFound reports that an addressed entity does not exist.
 func NotFound(msg string) *Error { return New(CodeNotFound, msg) }

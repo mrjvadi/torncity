@@ -167,6 +167,16 @@ WHERE a.id = c.id
 RETURNING a.id, a.action_type, a.actor_type, a.actor_id, a.reference_type, a.reference_id,
           a.payload, a.status, a.retry_count, a.started_at, a.finish_at, a.completed_at`
 
+// DueClaimStatement returns the exact statement Due sends.
+//
+// It exists for the integration suite, which asks the server to EXPLAIN the
+// claim and assert that it is answered by game_actions_due_idx rather than by
+// a sequential scan. That assertion is only worth anything if the server is
+// planning the statement this repository actually runs: a copy pasted into a
+// test would keep reporting a healthy index scan long after the original had
+// drifted into something that reads the whole table.
+func DueClaimStatement() string { return claimDueSQL }
+
 // Due claims up to limit actions whose finish_at has passed, oldest first.
 //
 // started_at is deliberately not touched by the claim. It records when the

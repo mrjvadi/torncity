@@ -33,6 +33,7 @@ type fileConfig struct {
 	Dedup     dedupSettings     `yaml:"dedup"`
 	NATS      natsSettings      `yaml:"nats"`
 	Worker    workerSettings    `yaml:"worker"`
+	Scheduler schedulerSettings `yaml:"scheduler"`
 	Game      gameSettings      `yaml:"game"`
 	Player    playerSettings    `yaml:"player"`
 }
@@ -78,6 +79,13 @@ type natsSettings struct {
 
 type workerSettings struct {
 	PollInterval    *string `yaml:"poll_interval"`
+	BatchSize       *int    `yaml:"batch_size"`
+	ShutdownTimeout *string `yaml:"shutdown_timeout"`
+	NoisyAttempts   *int    `yaml:"noisy_attempts"`
+}
+
+type schedulerSettings struct {
+	TickInterval    *string `yaml:"tick_interval"`
 	BatchSize       *int    `yaml:"batch_size"`
 	ShutdownTimeout *string `yaml:"shutdown_timeout"`
 	NoisyAttempts   *int    `yaml:"noisy_attempts"`
@@ -338,6 +346,19 @@ var settings = []setting{
 	limitSetting("worker", "noisy_attempts",
 		func(c *Config) *int { return &c.Worker.NoisyAttempts },
 		func(f *fileConfig) *int { return f.Worker.NoisyAttempts }),
+
+	durationSetting("scheduler", "tick_interval",
+		func(c *Config) *time.Duration { return &c.Scheduler.TickInterval },
+		func(f *fileConfig) *string { return f.Scheduler.TickInterval }),
+	limitSetting("scheduler", "batch_size",
+		func(c *Config) *int { return &c.Scheduler.BatchSize },
+		func(f *fileConfig) *int { return f.Scheduler.BatchSize }),
+	durationSetting("scheduler", "shutdown_timeout",
+		func(c *Config) *time.Duration { return &c.Scheduler.ShutdownTimeout },
+		func(f *fileConfig) *string { return f.Scheduler.ShutdownTimeout }),
+	limitSetting("scheduler", "noisy_attempts",
+		func(c *Config) *int { return &c.Scheduler.NoisyAttempts },
+		func(f *fileConfig) *int { return f.Scheduler.NoisyAttempts }),
 
 	durationSetting("game", "shutdown_timeout",
 		func(c *Config) *time.Duration { return &c.Game.ShutdownTimeout },

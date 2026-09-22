@@ -140,12 +140,18 @@ func TestDetailsAreOptional(t *testing.T) {
 	if err.Details != nil {
 		t.Error("Details should stay nil until something is added")
 	}
-	err.WithDetail("retry_after_seconds", 30).WithDetail("action", "crime")
-	if len(err.Details) != 2 {
-		t.Fatalf("Details has %d entries, want 2", len(err.Details))
+	// WithDetail returns a copy, so the result is what carries the details.
+	// The original must be untouched: sentinels are shared globals and
+	// mutating one in place would corrupt it for every other caller.
+	got := err.WithDetail("retry_after_seconds", 30).WithDetail("action", "crime")
+	if len(got.Details) != 2 {
+		t.Fatalf("Details has %d entries, want 2", len(got.Details))
 	}
-	if err.Details["retry_after_seconds"] != 30 {
-		t.Errorf("Details lost a value: %v", err.Details)
+	if got.Details["retry_after_seconds"] != 30 {
+		t.Errorf("Details lost a value: %v", got.Details)
+	}
+	if err.Details != nil {
+		t.Errorf("the original was mutated: %v", err.Details)
 	}
 	// Details are for logs, so they must not silently appear to the player.
 	if strings.Contains(err.PlayerMessage(), "crime") {

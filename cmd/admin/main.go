@@ -40,6 +40,8 @@ func main() {
 		err = migrate(ctx, direction("down"))
 	case "status":
 		err = status(ctx)
+	case "content":
+		err = contentCommand(ctx, os.Args[2:])
 	default:
 		usage()
 		os.Exit(2)
@@ -57,8 +59,10 @@ func usage() {
   migrate       apply every pending up migration
   migrate-down  roll back the most recently applied migration
   status        list applied and pending migrations
+  content       validate or load the game content (see: admin content)
 
-DATABASE_URL must be set.
+DATABASE_URL must be set, except for `+"`admin content validate`"+`, which
+reads files only.
 `)
 }
 

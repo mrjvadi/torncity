@@ -175,6 +175,33 @@ worker:
   noisy_attempts: 5
 
 # The command-side game service.
+# The scheduler turns the durable schedule into published commands. It owns
+# WHEN work happens, never WHAT happens: a due travel becomes a published
+# command that the game service handles.
+#
+# Separate from worker even though the four values line up, because the two
+# are paced by different things. The outbox worker is bounded by how fast a
+# committed event should reach the broker; the scheduler by how late a player
+# may notice their travel landing. One number serving both would be tuned for
+# whichever incident happened last.
+scheduler:
+  # How often to look for work that has come due. Lower means players see
+  # their travel land sooner; it also means more queries against an index
+  # that is usually empty, which is cheap but not free.
+  tick_interval: 1s
+
+  # How many due actions to claim per tick. Too high and one slow batch
+  # delays everything behind it; too low and a backlog never drains.
+  batch_size: 100
+
+  # How long to let the in-flight batch finish on shutdown before giving up.
+  # Work that does not finish stays claimed and is retried on the next boot.
+  shutdown_timeout: 15s
+
+  # After this many failed attempts an action is logged at error rather than
+  # warn. It changes log volume only; it never drops the action.
+  noisy_attempts: 5
+
 game:
   # Bounds the drain of in-flight messages when the service stops.
   shutdown_timeout: 20s

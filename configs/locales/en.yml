@@ -19,7 +19,17 @@ profile:
     Language: {language}
     Status: {status}
 
+  # The condition block is a separate message from the identity block above:
+  # it changes on every read as energy accrues, and keeping the two apart
+  # keeps each placeholder set small enough to check by eye.
+  condition: |-
+    City: {city}
+    Level: {level} ({xp} XP)
+    Energy: {energy}/{max_energy}
+    Health: {health}/{max_health}
+
   unavailable: Your profile is not available.
+  city_unknown: nowhere yet
 
   id_label: ID
   language_label: Language
@@ -28,14 +38,104 @@ profile:
   energy_label: Energy
   health_label: Health
 
+dashboard:
+  title: Home
+  body: |-
+    {name}
+
+    City: {city}
+    Level: {level}
+    Energy: {energy}/{max_energy}
+
+map:
+  title: World map
+  origin: "You are in {city}."
+  empty: No cities have been loaded yet.
+  depart: "Travel to {city}"
+  city:
+    current: "{city} — you are here · tax {tax}% · living {cost}"
+    reachable: "{city} — {distance} km · tax {tax}% · living {cost}"
+    unreachable: "{city} — no route from here · tax {tax}% · living {cost}"
+
+travel:
+  title: Travel
+  started: "Leaving {from} for {to}. Arriving in {duration}. Energy spent: {energy}."
+  status: "{from} to {to}. {remaining} remaining."
+  none: You are not travelling right now.
+  arrived: "You have arrived in {city}. You earned {xp} XP."
+  same_city: You are already in that city.
+  no_route: There is no route to that city from here.
+  unknown_speed: That travel option is not available.
+
+skills:
+  title: Skills
+  empty: You have not trained any skill yet.
+  line: "{skill} — level {level} · {xp}/{next} XP ({percent}%)"
+  line_untrained: "{skill} — untrained · {xp}/{next} XP ({percent}%) · level {level}"
+
+skill:
+  programming: Programming
+  mechanics: Mechanics
+  medicine: Medicine
+  management: Management
+  finance: Finance
+  engineering: Engineering
+  cooking: Cooking
+  logistics: Logistics
+  driving: Driving
+
+social:
+  unknown_player: an unnamed player
+  search:
+    title: "Search results for {query}"
+    empty: Nobody matched that search.
+    line: "{index}. {player}"
+  friends:
+    title: Friends
+    empty: You have no friends yet.
+    line: "{player} — {status}"
+  friend:
+    requested: "Friend request sent to {player}."
+    accepted: "You and {player} are now friends."
+  status:
+    pending: pending
+    accepted: friends
+    blocked: blocked
+
+page:
+  indicator: "Page {page} of {pages}"
+
+format:
+  duration: "{hours}h {minutes}m"
+
 button:
   refresh: Refresh
   back: Back
   next: Next
   previous: Previous
+  profile: Profile
+  dashboard: Home
+  map: Map
+  travel: Travel
+  journey: My journey
+  skills: Skills
+  social: Friends
+  add_friend: "Add {player}"
+  accept: "Accept {player}"
 
 error:
   unknown_command: I do not know that command.
   not_enough_energy: Not enough energy. You need {needed} and have {current}.
   cooldown: Wait {seconds} more seconds.
   internal: Something went wrong. Please try again.
+  not_found: I could not find that.
+  invalid_input: I could not understand that request.
+  conflict: That cannot be done right now.
+  rate_limited: You are doing that too quickly. Please slow down.
+  unauthorized: You are not allowed to do that.
+  city_not_found: I do not know that city.
+  already_travelling: You are already on a journey.
+  skill_not_found: I do not know that skill.
+  not_friends: You are not friends with that player.
+  already_friends: You are already friends with that player.
+  player_not_found: I do not know that player yet.
