@@ -38,6 +38,21 @@ func NewPublisher(c *Conn) *Publisher { return &Publisher{js: c.JetStream()} }
 // actually accepted it. An async publish would let the worker record a
 // success the broker never granted, and the event would be lost.
 func (p *Publisher) Publish(ctx context.Context, subject string, env *envelope.Envelope) error {
+	return p.PublishWithID(ctx, subject, env, "")
+}
+
+// PublishWithID publishes with an explicit broker deduplication id.
+//
+// The plain Publish falls back to the request id, which identifies the command
+// that produced the message. That is the right identity for a command, but the
+// wrong one for an event: a single command may append several outbox rows, and
+// they would then share one deduplication id. JetStream would silently discard
+// every event after the first inside its duplicate window, and the loss would
+// be invisible — no error, no dead letter, just a missing event.
+//
+// The outbox worker therefore passes outbox.event_id, which is unique per row.
+// Pass an empty dedupID to keep the request-id behaviour.
+func (p *Publisher) PublishWithID(ctx context.Context, subject string, env *envelope.Envelope, dedupID string) error {
 	if env == nil {
 		return fmt.Errorf("nats: publish to %s: nil envelope", subject)
 	}
@@ -58,7 +73,10 @@ func (p *Publisher) Publish(ctx context.Context, subject string, env *envelope.E
 		Data:    data,
 		Header:  nats.Header{},
 	}
-	msg.Header.Set(jetstream.MsgIDHeader, env.Metadata.RequestID)
+	if dedupID == "" {
+		dedupID = env.Metadata.RequestID
+	}
+	msg.Header.Set(jetstream.MsgIDHeader, dedupID)
 
 	if _, err := p.js.PublishMsg(ctx, msg); err != nil {
 		return fmt.Errorf("nats: publishing to %s: %w", subject, err)

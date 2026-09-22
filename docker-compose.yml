@@ -72,6 +72,28 @@ services:
       nats: {condition: service_healthy}
     restart: unless-stopped
 
+  # The outbox worker is not optional. Domain events are written to the
+  # outbox table inside the transaction that changed state; without this
+  # process nothing ever moves them to NATS, so player.created and every
+  # event after it stay in the database forever.
+  worker:
+    build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: worker}}
+    env_file: [.env]
+    depends_on:
+      postgres: {condition: service_healthy}
+      nats: {condition: service_healthy}
+    restart: unless-stopped
+
+  # Phase 0 stub: it starts, logs that it is not implemented and waits for a
+  # signal. It is here so the process list matches the architecture from the
+  # start rather than appearing later as a surprise.
+  scheduler:
+    build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: scheduler}}
+    env_file: [.env]
+    depends_on:
+      postgres: {condition: service_healthy}
+    restart: unless-stopped
+
 volumes:
   pgdata:
   redisdata:

@@ -136,3 +136,15 @@ type PlayerLocker interface {
 type Publisher interface {
 	Publish(ctx context.Context, subject string, env *envelope.Envelope) error
 }
+
+// EventPublisher publishes with an explicit broker deduplication id.
+//
+// Plain Publish identifies a message by its request id, which is correct for a
+// command: one command, one message. It is wrong for events, because one
+// command may append several outbox rows and they would then share a single
+// deduplication id — the broker would drop all but the first, silently. The
+// outbox worker passes the outbox event id instead, which is unique per row.
+type EventPublisher interface {
+	Publisher
+	PublishWithID(ctx context.Context, subject string, env *envelope.Envelope, dedupID string) error
+}
