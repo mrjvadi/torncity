@@ -1,0 +1,162 @@
+package application
+
+import (
+	"context"
+	"time"
+)
+
+// This file holds the ports phase 1 adds: the world a player moves through,
+// their stats and skills, the durable schedule, and the social graph.
+//
+// Same rule as ports.go: every dependency is an interface declared here, and
+// infrastructure implements it. A use case must compile without a driver.
+
+// City is a place in the world. It mirrors the cities row, and the domain's
+// world.City is built from it.
+type City struct {
+	ID           string
+	Code         string
+	Name         string
+	TaxRateBPS   int
+	CostOfLiving int64
+	Population   int
+}
+
+// Stats is a player's live condition.
+type Stats struct {
+	PlayerID   string
+	Level      int
+	XP         int64
+	Health     int
+	MaxHealth  int
+	Energy     int
+	MaxEnergy  int
+	Happiness  int
+	Stamina    int
+	Reputation int
+	UpdatedAt  time.Time
+}
+
+// Skill is one trained ability.
+type Skill struct {
+	PlayerID  string
+	Code      string
+	Level     int
+	XP        int64
+	UpdatedAt time.Time
+}
+
+// Travel is a journey in progress or finished.
+type Travel struct {
+	ID           string
+	PlayerID     string
+	FromCityID   string
+	ToCityID     string
+	Cost         int64
+	GameActionID string
+	Status       string
+	DepartedAt   time.Time
+	ArrivesAt    time.Time
+}
+
+// GameAction is a unit of work due at a point in time.
+//
+// This is the durable schedule. Redis may accelerate lookups but this row is
+// the source of truth: a service that restarts mid-travel must still land the
+// player, and it can only do that if the work outlived the process.
+type GameAction struct {
+	ID            string
+	ActionType    string
+	ActorType     string
+	ActorID       string
+	ReferenceType string
+	ReferenceID   string
+	Payload       []byte
+	Status        string
+	RetryCount    int
+	StartedAt     time.Time
+	FinishAt      time.Time
+	CompletedAt   *time.Time
+}
+
+// Friendship is one direction of a social edge.
+type Friendship struct {
+	ID             string
+	PlayerID       string
+	FriendPlayerID string
+	Status         string
+	CreatedAt      time.Time
+}
+
+// CityRepository reads the world's places.
+//
+// Cities are content: they arrive through the content loader, not through
+// gameplay, so there is no Create here on purpose.
+type CityRepository interface {
+	List(ctx context.Context) ([]City, error)
+	ByID(ctx context.Context, id string) (*City, error)
+	ByCode(ctx context.Context, code string) (*City, error)
+}
+
+// StatsRepository persists a player's condition.
+type StatsRepository interface {
+	Get(ctx context.Context, playerID string) (*Stats, error)
+	// EnsureDefaults creates the row on first contact and returns it. It must
+	// be safe under a race, like PlayerRepository.Create.
+	EnsureDefaults(ctx context.Context, playerID string, s Stats) (*Stats, error)
+	Save(ctx context.Context, s Stats) error
+}
+
+// SkillRepository persists trained abilities.
+type SkillRepository interface {
+	List(ctx context.Context, playerID string) ([]Skill, error)
+	Get(ctx context.Context, playerID, code string) (*Skill, error)
+	// Upsert adds or updates one skill. Keyed on (player_id, skill_code).
+	Upsert(ctx context.Context, s Skill) error
+}
+
+// TravelRepository persists journeys.
+type TravelRepository interface {
+	// Active returns the player's journey in progress, or ErrNoActiveTravel.
+	Active(ctx context.Context, playerID string) (*Travel, error)
+	// Start inserts a journey. The schema carries a partial unique index that
+	// refuses a second in-transit row for one player; this must surface that
+	// as ErrAlreadyTravelling rather than a raw driver error, because a player
+	// pressing a button twice is ordinary, not exceptional.
+	Start(ctx context.Context, t Travel) error
+	// Complete marks the journey arrived and moves the player's city in the
+	// same transaction. Doing those separately can strand a player between
+	// two cities if the process dies in between.
+	Complete(ctx context.Context, travelID string) error
+	Cancel(ctx context.Context, travelID string) error
+}
+
+// GameActionRepository is the durable schedule.
+type GameActionRepository interface {
+	Schedule(ctx context.Context, a GameAction) error
+	// Due claims up to limit actions whose finish_at has passed, oldest
+	// first. It MUST NOT return the same row to two workers: fold the
+	// locking select into the claiming update, as OutboxStore.FetchPending
+	// already does. A standalone FOR UPDATE SKIP LOCKED releases its locks
+	// the moment the statement commits and claims nothing.
+	Due(ctx context.Context, now time.Time, limit int) ([]GameAction, error)
+	Complete(ctx context.Context, id string) error
+	Fail(ctx context.Context, id string, reason string) error
+}
+
+// FriendshipRepository persists the social graph.
+//
+// An edge is directed: a mutual friendship is two rows, and A blocking B does
+// not imply B blocking A.
+type FriendshipRepository interface {
+	List(ctx context.Context, playerID string) ([]Friendship, error)
+	Request(ctx context.Context, playerID, friendPlayerID string) error
+	Accept(ctx context.Context, playerID, friendPlayerID string) error
+	Block(ctx context.Context, playerID, friendPlayerID string) error
+	Remove(ctx context.Context, playerID, friendPlayerID string) error
+}
+
+// PlayerSearch finds other players by display name, for the social screens.
+type PlayerSearch interface {
+	Search(ctx context.Context, query string, limit, offset int) ([]Player, error)
+}
