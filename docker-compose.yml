@@ -1,3 +1,13 @@
+# Every backing service also carries a globally-unique network alias
+# (tc-postgres, tc-redis, tc-nats) and the connection strings use those, not
+# the bare service name.
+#
+# This is not cosmetic. When a service joins a second network to reach
+# something outside this stack, a bare name like "postgres" can resolve to
+# another project's container on that network. The failure is silent if the
+# credentials happen to match, and it points your writes at somebody else's
+# database.
+#
 # Every service carries an explicit memory and cpu cap.
 #
 # This stack is not the only thing on its host: without caps one runaway
@@ -20,6 +30,9 @@ services:
     # published on 0.0.0.0 is how a shared host becomes somebody else's.
     ports: ["127.0.0.1:55432:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
+    networks:
+      default:
+        aliases: ["tc-postgres"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U torn -d torn"]
       interval: 5s
@@ -34,6 +47,9 @@ services:
     command: ["redis-server", "--appendonly", "yes"]
     ports: ["127.0.0.1:56379:6379"]
     volumes: ["redisdata:/data"]
+    networks:
+      default:
+        aliases: ["tc-redis"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -48,6 +64,9 @@ services:
     command: ["-js", "-sd", "/data", "-m", "8222"]
     ports: ["127.0.0.1:54222:4222", "127.0.0.1:58222:8222"]
     volumes: ["natsdata:/data"]
+    networks:
+      default:
+        aliases: ["tc-nats"]
     healthcheck:
       test: ["CMD", "wget", "-q", "-O-", "http://localhost:8222/healthz"]
       interval: 5s
