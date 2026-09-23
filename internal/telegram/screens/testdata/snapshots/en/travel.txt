@@ -1,0 +1,160 @@
+━━━ Map · destinations from here (page 1 of 2) ━━━
+(edits message 42)
+🗺 Map
+
+📍 You are in Ostmarch.
+
+From here you can travel to:
+• Fenwick Span · 120 km
+• Aldrin Hollow · 340 km
+• Brennhaven · 1,260 km
+
+Page 1 of 2
+  ───
+  [🧭 Fenwick Span] → travel:options:fenwick_span
+  [🧭 Aldrin Hollow] → travel:options:aldrin_hollow
+  [🧭 Brennhaven] → travel:options:brennhaven
+  [🏛 Offices and policies] → gov:city
+  [Next ➡️] → map:list:2
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list:1
+
+━━━ Map · no routes from here ━━━
+(edits message 42)
+🗺 Map
+
+📍 You are in Vantor Reach.
+
+There is no route from here to another city yet. Check again later with “Refresh”.
+  ───
+  [🏛 Offices and policies] → gov:city
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list:1
+
+━━━ Map · not in any city ━━━
+(edits message 42)
+🗺 Map
+
+You have not settled in a city yet. Once you do, your travel destinations appear here.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ Map · while travelling ━━━
+(edits message 42)
+🗺 Map
+
+🧭 You are on the way to Brennhaven. You can start a new journey once you arrive.
+  ───
+  [🧭 My journey] → travel:status
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ Travel options ━━━
+(edits message 42)
+🧭 Travel to Brennhaven
+📍 From: Ostmarch
+
+How would you like to travel?
+• Bus · Free · 13m on the way · 8 energy
+• Car · 6,300 Nil · 7m on the way · 14 energy
+• Train · 7,720 Nil (busy route) · 4m on the way · 6 energy
+• Flight · 10,480 Nil · 2m on the way · 4 energy
+
+💵 Your cash: 5,000 Nil
+  ───
+  [Bus · Free] → travel:start:brennhaven:bus:0
+  [Car · 6,300 Nil] → travel:start:brennhaven:car:6300
+  [Train · 7,720 Nil] → travel:start:brennhaven:train:7720
+  [Flight · 10,480 Nil] → travel:start:brennhaven:flight:10480
+  [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:brennhaven
+
+━━━ Travel options · the fare changed before departure ━━━
+(edits message 42)
+🧭 Travel to Brennhaven
+📍 From: Ostmarch
+
+⚠️ The fare has changed since you looked. Nothing was charged — here are the current prices.
+
+How would you like to travel?
+• Train · 8,490 Nil (busy route) · 4m on the way · 6 energy
+
+💵 Your cash: 5,000 Nil
+  ───
+  [Train · 8,490 Nil] → travel:start:brennhaven:train:8490
+  [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:brennhaven
+
+━━━ Travel · cannot afford the fare ━━━
+(edits message 42) (private in groups)
+💵 Not enough cash to travel by Flight.
+Fare: 10,480 Nil · Your cash: 3,200 Nil
+Nothing was charged; a cheaper way to travel may still be in reach.
+  ───
+  [🧭 Ways to travel] → travel:options:brennhaven
+  [🔙 Back] → map:list
+
+━━━ Travel · departed, paid fare ━━━
+(edits message 42)
+🧭 Your journey to Brennhaven by Train has begun
+You left Ostmarch and will arrive in 4m.
+⚡ 6 energy used.
+💵 Fare paid: 7,720 Nil
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
+
+━━━ Travel · departed, free ━━━
+(edits message 42)
+🧭 Your journey to Fenwick Span by Bus has begun
+You left Ostmarch and will arrive in 1h 35m.
+⚡ 8 energy used.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
+
+━━━ Travel · on the way ━━━
+(edits message 42)
+🧭 On the way to Brennhaven
+📍 From: Ostmarch
+⏳ Arriving in 2h 15m
+Travelling by: Train
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
+
+━━━ Travel · departed, with the arrival time ━━━
+(edits message 42)
+🧭 Your journey to Brennhaven by Train has begun
+You left Ostmarch and will arrive in 4m.
+⚡ 6 energy used.
+🕒 Arrives at 14:39
+💵 Fare paid: 7,720 Nil
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
+
+━━━ Travel · on the way, with the arrival time ━━━
+(edits message 42)
+🧭 On the way to Brennhaven
+📍 From: Ostmarch
+⏳ Arriving in 2h 15m
+🕒 Arrives at 16:50
+Travelling by: Train
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
+
+━━━ Travel · arriving any moment ━━━
+(edits message 42)
+🧭 On the way to Brennhaven
+📍 From: Ostmarch
+⏳ Arriving any moment now.
+Travelling by: Bus
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
+
+━━━ Travel · arrived (reply) ━━━
+(sends)
+📍 You have arrived in Brennhaven.
+⭐ You earned 25 XP.
+  ───
+  [👤 Profile] → player:profile.get   │   [🗺 Map] → map:list
+
+━━━ Notice · arrived and levelled up ━━━
+(sends)
+📍 You have arrived in Brennhaven.
+⭐ You earned 1,250 XP.
+⭐ Congratulations — you reached level 5.
+  ───
+  [👤 Profile] → player:profile.get   │   [🗺 Map] → map:list

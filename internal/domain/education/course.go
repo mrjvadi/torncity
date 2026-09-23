@@ -93,7 +93,8 @@ type Course struct {
 	// Cost is the fee in minor units. Charging it is the ledger's job, done
 	// in the same transaction as recording the enrolment.
 	Cost money.Amount
-	// Duration is how long the course runs. It is fixed onto an enrolment at
+	// Duration is how long the course runs, in GAME time; the real wait is
+	// gametime.Scale.RealWait of it. It is fixed onto an enrolment at
 	// the moment of enrolling (see Enroll), so re-authoring it later never
 	// moves the finish line under a student already enrolled.
 	Duration time.Duration

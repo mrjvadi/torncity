@@ -23,9 +23,9 @@ func workPack() *Pack {
 	p.Careers = []CareerDef{{
 		Code: "courier", Name: "Courier", Category: "transport", Cities: []string{"alpha"},
 		Tiers: []TierDef{
-			{Rank: "entry", Title: "Courier", MinLevel: 1, BaseSalary: 100, EnergyCost: 10, XPPerShift: 5,
+			{Rank: "entry", Title: "Courier", MinLevel: 1, BaseSalary: 100, EnergyCost: 10, ShiftDuration: "4h", XPPerShift: 5,
 				Promotion: PromotionDef{MinPerformance: 55, MinTimeInTier: "24h", MinShifts: 5}},
-			{Rank: "skilled", Title: "Driver", MinLevel: 2, BaseSalary: 150, EnergyCost: 10,
+			{Rank: "skilled", Title: "Driver", MinLevel: 2, BaseSalary: 150, EnergyCost: 10, ShiftDuration: "6h",
 				RequiredSkills:         []SkillLevelDef{{Skill: "driving", Level: 2}},
 				RequiredCertifications: []string{"licence"}},
 		},
@@ -51,6 +51,8 @@ func TestValidateRejectsBrokenWorkContent(t *testing.T) {
 		{"negative salary", func(p *Pack) { p.Careers[0].Tiers[0].BaseSalary = -1 }, ErrInvalidCareerContent},
 		{"unknown skill", func(p *Pack) { p.Careers[0].Tiers[1].RequiredSkills[0].Skill = "juggling" }, ErrInvalidCareerContent},
 		{"bad promotion time", func(p *Pack) { p.Careers[0].Tiers[0].Promotion.MinTimeInTier = "soon" }, ErrInvalidDuration},
+		{"bad shift duration", func(p *Pack) { p.Careers[0].Tiers[0].ShiftDuration = "a while" }, ErrInvalidDuration},
+		{"shift of no length", func(p *Pack) { p.Careers[0].Tiers[0].ShiftDuration = "" }, ErrInvalidCareerContent},
 		{"certificate nobody issues", func(p *Pack) { p.Careers[0].Tiers[1].RequiredCertifications = []string{"phd"} }, ErrUnknownCertification},
 		{"certificate from a course that does not certify", func(p *Pack) { p.Courses[0].Certifies = false }, ErrUnknownCertification},
 		{"career in an unknown city", func(p *Pack) { p.Careers[0].Cities = []string{"atlantis"} }, ErrUnknownCareerCity},
@@ -92,6 +94,9 @@ func TestCareerConverts(t *testing.T) {
 	}
 	if career.Tiers[0].Promotion.MinTimeInTier != 24*time.Hour {
 		t.Errorf("promotion time = %s", career.Tiers[0].Promotion.MinTimeInTier)
+	}
+	if career.Tiers[0].ShiftDuration != 4*time.Hour || career.Tiers[1].ShiftDuration != 6*time.Hour {
+		t.Errorf("shift durations = %s, %s", career.Tiers[0].ShiftDuration, career.Tiers[1].ShiftDuration)
 	}
 	if got := career.Tiers[1].BaseSalary.Minor(); got != 150 {
 		t.Errorf("salary = %d", got)

@@ -1,0 +1,82 @@
+━━━ /social ━━━
+(sends)
+👥 Friends
+
+You have no friends yet.
+To find a player, send their Telegram username or player code, for example /social @username
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list:1
+
+━━━ /find ━━━
+(sends)
+🔎 Find a player
+Search by one of these:
+• Telegram username: /social @username
+• Player code: /social K7Q2M9A
+• Telegram ID: /social 123456789
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ /find B3C4D5F ━━━
+(sends)
+🔎 Search result
+
+👤 Kaveh
+🆔 Player code: B3C4D5F
+  ───
+  [➕ Add Kaveh] → social:friend.add:7a2e9b4c-1d53-4f8a-a6e2-3c9b8d7e6f22
+  [💸 Pay Kaveh] → bank:pay:B3C4D5F
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Add friend ━━━
+(edits message 42)
+✅ Friend request sent to Kaveh. They will appear in your friends list once they accept.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ The friend's list ━━━
+(sends)
+👥 Friends
+
+• Sara · waiting for a reply
+  ───
+  [✅ Accept Sara] → social:friend.accept:5f1d7c2e-8a41-4c6b-9e3d-2b7a1f0c9d11
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list:1
+
+━━━ The friend accepts ━━━
+(edits message 42)
+✅ You and Sara are now friends.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Friends ━━━
+(edits message 42)
+👥 Friends
+
+• Kaveh
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list:1
+
+━━━ /find K7Q2M9A (yourself) ━━━
+(sends)
+🔎 Search result
+
+👤 Sara
+🆔 Player code: K7Q2M9A
+
+This is you. Share your player code so friends can find you.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ /find ZZZZZZZ ━━━
+(sends)
+No player has the code ZZZZZZZ. Check the code; to search by username, put @ in front of it.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Add them again ━━━
+(sends)
+You are already friends with this player. You will find them under “Friends”.
+  ───
+  [👥 Friends] → social:friend.list
+  [🔙 Back] → player:profile.get

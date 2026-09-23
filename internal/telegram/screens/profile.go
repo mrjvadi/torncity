@@ -45,8 +45,8 @@ type ProfileView struct {
 	MaxHealth    int
 
 	// Cash is the money the player carries and Bank their bank balance,
-	// both in minor units. Money is a player's own business: in a group
-	// chat this screen is shown to its owner only.
+	// both in minor units. Money is a player's own business: a shared
+	// profile (Context.Shared, a group) leaves both out.
 	Cash int64
 	Bank int64
 
@@ -57,11 +57,52 @@ type ProfileView struct {
 	TravelToCode    string
 	TravelTo        string
 	TravelRemaining time.Duration
+
+	// Work is the player's job and studies. Nil means the caller did not
+	// look, and the profile says nothing about work either way; a non-nil
+	// Work with no Job says the player has none, and the profile says so
+	// and points at the openings.
+	Work *ProfileWork
+}
+
+// ProfileWork is what the profile shows of a player's job and studies: the
+// two things a player checks most after their money.
+type ProfileWork struct {
+	// Job is the player's position, nil when they have none.
+	Job *ProfileJob
+	// Course is the course in progress, nil when not studying.
+	Course *ProfileCourse
+	// Certificates is how many certificates the player holds.
+	Certificates int
+}
+
+// ProfileJob is the player's position as the profile shows it.
+type ProfileJob struct {
+	Job JobRef
+	// CityCode and City are where the job is.
+	CityCode string
+	City     string
+	// Pay is what a full-output shift pays now, minimum wage applied.
+	Pay int64
+	// ShiftEndsIn is how long the shift in progress has to run; zero when
+	// no shift is running, and any positive value under a minute once its
+	// time is up and the pay is on its way.
+	ShiftEndsIn time.Duration
+}
+
+// ProfileCourse is the course in progress as the profile shows it.
+type ProfileCourse struct {
+	Course CourseRef
+	// Remaining is how long until it finishes.
+	Remaining time.Duration
 }
 
 // isNewPlayer reports whether this is someone who has not done anything yet,
 // the one moment the welcome line earns its space.
 func (v ProfileView) isNewPlayer() bool {
+	if w := v.Work; w != nil && (w.Job != nil || w.Course != nil || w.Certificates > 0) {
+		return false
+	}
 	return v.XP == 0 && v.Level <= 1 && !v.Travelling
 }
 
@@ -92,35 +133,82 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 		name = c.T("profile.name", map[string]any{"name": v.Name})
 	}
 
+	// The code is always there; how a friend uses it is explained once, to
+	// the new player, and not on every visit after.
 	var code string
 	if v.Code != "" {
-		code = body(
-			c.T("profile.code", map[string]any{"code": v.Code}),
-			c.T("profile.code_hint", map[string]any{"code": v.Code}),
-		)
+		code = c.T("profile.code", map[string]any{"code": v.Code})
+		if v.isNewPlayer() {
+			code = body(code, c.T("profile.code_hint", map[string]any{"code": v.Code}))
+		}
 	}
 
 	text := paragraphs(
 		welcome,
 		body(name, where),
-		code,
 		body(
 			levelLine(c, v.Level, v.XP, v.NextLevelXP),
 			energyLine(c, v.Energy, v.MaxEnergy, v.EnergyFullIn),
 			c.T("profile.health", map[string]any{
-				"health":     FormatNumber(int64(v.Health)),
-				"max_health": FormatNumber(int64(v.MaxHealth)),
+				"health":     FormatNumber(c, int64(v.Health)),
+				"max_health": FormatNumber(c, int64(v.MaxHealth)),
 			}),
 		),
+		workLines(c, v.Work),
 		moneyLines(c, v.Cash, v.Bank),
+		code,
 	)
 
-	return c.respond(text, hubKeyboard(c, city != "", v.Travelling).Build())
+	return c.respond(text, hubKeyboard(c, city != "", v.Travelling, v.Work).Build())
+}
+
+// workLines shows the player's job and studies: the position, where and for
+// what pay, a shift in progress, the course in progress and the certificates
+// earned. A player with no job is told so, because the home screen is where
+// a new player learns that work exists.
+func workLines(c Context, w *ProfileWork) string {
+	if w == nil {
+		return ""
+	}
+	var lines []string
+	if j := w.Job; j != nil {
+		lines = append(lines, c.T("profile.job", map[string]any{
+			"title": c.jobTitle(j.Job),
+			"city":  c.CityName(j.CityCode, j.City),
+			"pay":   FormatMoney(c, j.Pay),
+		}))
+		switch {
+		case j.ShiftEndsIn >= arrivingThreshold:
+			lines = append(lines, c.T("profile.shift_running", map[string]any{"remaining": FormatDuration(c, j.ShiftEndsIn)}))
+		case j.ShiftEndsIn > 0:
+			// Its time is up and the pay is on its way: a countdown stuck
+			// at one second would look broken.
+			lines = append(lines, c.T("profile.shift_ending", nil))
+		}
+	} else {
+		lines = append(lines, c.T("profile.job_none", nil))
+	}
+	if cr := w.Course; cr != nil {
+		key, args := "profile.course", map[string]any{"course": c.course(cr.Course)}
+		if cr.Remaining < arrivingThreshold {
+			key = "profile.course_finishing"
+		} else {
+			args["remaining"] = FormatDuration(c, cr.Remaining)
+		}
+		lines = append(lines, c.T(key, args))
+	}
+	if w.Certificates > 0 {
+		lines = append(lines, c.T("profile.certificates", map[string]any{"count": w.Certificates}))
+	}
+	return body(lines...)
 }
 
 // moneyLines shows the two places a player's money lives: the cash they
-// carry and their bank balance.
+// carry and their bank balance. A shared screen (a group) shows neither.
 func moneyLines(c Context, cash, bank int64) string {
+	if c.Shared {
+		return ""
+	}
 	return body(
 		c.T("profile.cash", map[string]any{"cash": FormatMoney(c, cash)}),
 		c.T("profile.bank", map[string]any{"bank": FormatMoney(c, bank)}),
@@ -138,7 +226,7 @@ func levelLine(c Context, level int, xp, nextLevelXP int64) string {
 	}
 	return c.T("profile.level", map[string]any{
 		"level":      level,
-		"xp_to_next": FormatNumber(nextLevelXP - xp),
+		"xp_to_next": FormatNumber(c, nextLevelXP-xp),
 		"next_level": level + 1,
 	})
 }
@@ -147,8 +235,8 @@ func levelLine(c Context, level int, xp, nextLevelXP int64) string {
 // which is the one thing a player short of energy wants to know.
 func energyLine(c Context, energy, maxEnergy int, fullIn time.Duration) string {
 	args := map[string]any{
-		"energy":     FormatNumber(int64(energy)),
-		"max_energy": FormatNumber(int64(maxEnergy)),
+		"energy":     FormatNumber(c, int64(energy)),
+		"max_energy": FormatNumber(c, int64(maxEnergy)),
 	}
 	if energy < maxEnergy && fullIn > 0 {
 		args["duration"] = FormatDuration(c, fullIn)
@@ -161,36 +249,46 @@ func energyLine(c Context, energy, maxEnergy int, fullIn time.Duration) string {
 //
 // It offers only what the player can do right now: the journey instead of
 // the map while travelling, and no map at all for a player who is not in a
-// city yet, because every departure would be refused. It has no back button,
-// because it is the screen every back button leads to.
-func hubKeyboard(c Context, hasCity, travelling bool) *keyboards.Builder {
+// city yet, because every departure would be refused. A player with no job
+// is sent straight to the openings rather than to an empty job screen. It
+// has no back button, because it is the screen every back button leads to.
+//
+// The order is the order of use: going somewhere and working first, then
+// study and money, then skills and friends, then the city, then settings.
+func hubKeyboard(c Context, hasCity, travelling bool, work *ProfileWork) *keyboards.Builder {
 	kb := keyboards.New()
-	skills, _ := keyboards.Button(c.T("button.skills", nil), AddrSkills)
+
+	var place presenter.Button
 	switch {
 	case travelling:
-		journey, _ := keyboards.Button(c.T("button.journey", nil), AddrTravelStatus)
-		kb.Row(skills, journey)
+		place, _ = keyboards.Button(c.T("button.journey", nil), AddrTravelStatus)
 	case hasCity:
-		worldMap, _ := keyboards.Button(c.T("button.map", nil), AddrMap)
-		kb.Row(skills, worldMap)
-	default:
-		kb.Row(skills)
+		place, _ = keyboards.Button(c.T("button.map", nil), AddrMap)
+	}
+	job, _ := keyboards.Button(c.T("job.button.my_job", nil), AddrJobStatus)
+	if work != nil && work.Job == nil {
+		job, _ = keyboards.Button(c.T("job.button.openings", nil), AddrJobList)
+	}
+	if place.Text != "" {
+		kb.Row(place, job)
+	} else {
+		kb.Row(job)
 	}
 
-	social, _ := keyboards.Button(c.T("button.social", nil), AddrFriendList)
-	bank, _ := keyboards.Button(c.T("button.bank", nil), AddrBank)
-	kb.Row(social, bank)
-
-	// Work and study: the job screen offers the openings to a player
-	// without one, so one button serves both.
-	work, _ := keyboards.Button(c.T("job.button.my_job", nil), AddrJobStatus)
 	study, _ := keyboards.Button(c.T("education.button.open", nil), AddrEducation)
-	kb.Row(work, study)
+	bank, _ := keyboards.Button(c.T("button.bank", nil), AddrBank)
+	kb.Row(study, bank)
+
+	skills, _ := keyboards.Button(c.T("button.skills", nil), AddrSkills)
+	social, _ := keyboards.Button(c.T("button.social", nil), AddrFriendList)
+	kb.Row(skills, social)
+
+	if hasCity && !travelling {
+		kb.Add(c.T("gov.button.city", nil), AddrGovCity)
+	}
 
 	settings, _ := keyboards.Button(c.T("button.settings", nil), AddrSettings)
-	kb.Row(settings)
-
 	refresh, _ := keyboards.Button(c.T("button.refresh", nil), AddrProfile)
-	kb.Row(refresh)
+	kb.Row(settings, refresh)
 	return kb
 }

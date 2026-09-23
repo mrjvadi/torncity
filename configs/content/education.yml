@@ -19,7 +19,10 @@
 #   city            city code where it is taught; omitted means it can be
 #                   taken from anywhere.
 #   cost            the fee, minor units, charged when enrolling.
-#   duration        how long it runs, e.g. 6h. Fixed at enrolment.
+#   duration        how long it runs, in GAME time, e.g. 6h. The player
+#                   waits it through the game clock (config.yml
+#                   game.time_scale): at 60 a 24h course is 24 real minutes.
+#                   The real finish is fixed at enrolment.
 #   capacity        seats; omitted or 0 means unlimited.
 #   min_level       character level needed to enrol.
 #   prerequisites   course codes whose certificate must be held first.

@@ -70,7 +70,9 @@ func readLabourPolicy(ctx context.Context, policy application.PolicyReader, city
 	}
 	return labourPolicy{
 		Policy: job.Policy{
-			MinimumWage:       money.FromMinor(wage),
+			MinimumWage: money.FromMinor(wage),
+			// GAME hours: the domain maps the window through the game clock,
+			// like the shifts it counts (docs/adr/0018-game-clock.md).
 			FatigueWindow:     time.Duration(window) * time.Hour,
 			FatigueFreeShifts: int(free),
 		},

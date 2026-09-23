@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/commands"
 	"github.com/mrjvadi/torncity/internal/gateway/telegram/client"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -22,19 +23,16 @@ type call struct {
 	markup    any
 	opts      client.SendOptions
 	messageID int64
-	receiver  int64
-	ephemeral int64
 	answer    client.CallbackAnswer
 }
 
-// fakeAPI records every Bot API call. Each hook, when set, decides one
-// method's answer; nil answers as a Bot API 10.3 server would.
+// fakeAPI records every Bot API call. onSend, when set, decides sendMessage's
+// answer.
 type fakeAPI struct {
 	mu    sync.Mutex
 	calls []call
 
-	onSend          func(chatID int64, opts client.SendOptions) (*client.Message, error)
-	onEditEphemeral func() error
+	onSend func(chatID int64) (*client.Message, error)
 }
 
 func (f *fakeAPI) record(c call) {
@@ -46,29 +44,13 @@ func (f *fakeAPI) record(c call) {
 func (f *fakeAPI) SendMessageWith(_ context.Context, chatID int64, text string, markup any, opts client.SendOptions) (*client.Message, error) {
 	f.record(call{method: "sendMessage", chatID: chatID, text: text, markup: markup, opts: opts})
 	if f.onSend != nil {
-		return f.onSend(chatID, opts)
-	}
-	if opts.Ephemeral != nil {
-		return &client.Message{MessageID: 0, EphemeralMessageID: 9, Chat: client.Chat{ID: chatID}}, nil
+		return f.onSend(chatID)
 	}
 	return &client.Message{MessageID: 100, Chat: client.Chat{ID: chatID}}, nil
 }
 
 func (f *fakeAPI) EditMessageText(_ context.Context, chatID, messageID int64, text string, markup any) error {
 	f.record(call{method: "editMessageText", chatID: chatID, messageID: messageID, text: text, markup: markup})
-	return nil
-}
-
-func (f *fakeAPI) EditEphemeralMessageText(_ context.Context, chatID, receiver, ephemeralID int64, text string, markup any) error {
-	f.record(call{method: "editEphemeralMessageText", chatID: chatID, receiver: receiver, ephemeral: ephemeralID, text: text, markup: markup})
-	if f.onEditEphemeral != nil {
-		return f.onEditEphemeral()
-	}
-	return nil
-}
-
-func (f *fakeAPI) DeleteMessage(_ context.Context, chatID, messageID int64) error {
-	f.record(call{method: "deleteMessage", chatID: chatID, messageID: messageID})
 	return nil
 }
 
@@ -94,30 +76,26 @@ func (keysAsText) T(_, key string, _ map[string]any) string { return key }
 const (
 	groupChat  = int64(-1001234)
 	player     = int64(5551)
-	stranger   = int64(7772)
 	secretText = "Balance: 1,234,567 — Bank: 9,999"
 )
 
 var (
-	epoch = time.Date(2026, 9, 1, 12, 0, 0, 0, time.UTC)
-	bot   = Bot{Key: "bot01", Username: "torn_bot"}
-	set   = Settings{EphemeralReplyWindow: 12 * time.Second, EphemeralRefusalTTL: 10 * time.Minute, CallbackAlertMaxRunes: 200}
+	bot = Bot{Username: "torn_bot"}
+	set = Settings{CallbackAlertMaxRunes: 200}
 )
 
-func newRenderer(now *time.Time) *Renderer {
-	return NewRenderer(keysAsText{}, set, func() time.Time { return *now })
-}
+func newRenderer() *Renderer { return NewRenderer(keysAsText{}, set) }
 
-func groupMeta(update string) envelope.Metadata {
+func groupMeta(command string) envelope.Metadata {
 	return envelope.Metadata{
 		TelegramUserID:    player,
 		TelegramChatID:    groupChat,
 		TelegramMessageID: 40,
 		ChatType:          "supergroup",
-		UpdateType:        update,
-		Command:           "skills.list",
+		UpdateType:        "message",
+		Command:           command,
 		Language:          "en",
-		ReceivedAt:        epoch,
+		ReceivedAt:        time.Now(),
 	}
 }
 
@@ -128,168 +106,98 @@ func withCallback(m envelope.Metadata) envelope.Metadata {
 	return m
 }
 
-func privateScreen() *presenter.Response {
-	kb := &presenter.Keyboard{Rows: [][]presenter.Button{{{Text: "Refresh", CallbackData: "skills:list"}}}}
-	return presenter.Message(secretText, kb)
+func screenWithButton(text string) *presenter.Response {
+	kb := &presenter.Keyboard{Rows: [][]presenter.Button{{{Text: "Refresh", CallbackData: "bank:show"}}}}
+	return presenter.Message(text, kb)
 }
 
-// assertNothingPrivateInGroup is the property the whole package exists for:
-// no call puts the private text on the group's timeline.
+// assertNothingPrivateInGroup is the property the package exists for: no
+// call puts the private text on the group's timeline.
 func assertNothingPrivateInGroup(t *testing.T, calls []call) {
 	t.Helper()
 	for _, c := range calls {
-		switch c.method {
-		case "sendMessage":
-			if c.chatID == groupChat && c.opts.Ephemeral == nil && strings.Contains(c.text, secretText) {
-				t.Fatalf("private screen posted on the group timeline: %+v", c)
-			}
-		case "editMessageText":
-			if c.chatID == groupChat && strings.Contains(c.text, secretText) {
-				t.Fatalf("group message edited into a private screen: %+v", c)
-			}
+		if (c.method == "sendMessage" || c.method == "editMessageText") &&
+			c.chatID == groupChat && strings.Contains(c.text, secretText) {
+			t.Fatalf("private screen posted on the group timeline: %+v", c)
 		}
 	}
 }
 
 // --- tests ------------------------------------------------------------------
 
-// A press on a public group message, answered with a private screen within
-// the window: an ephemeral message citing the press, in place of the pressed
-// message for this player only, its buttons bound to the player.
-func TestPrivateScreenAfterAPressIsEphemeral(t *testing.T) {
-	now := epoch.Add(2 * time.Second)
-	r := newRenderer(&now)
+// The game is played in the group: an ordinary screen is a group message,
+// its buttons bound to the player who asked.
+func TestOrdinaryScreenIsAGroupMessage(t *testing.T) {
 	api := &fakeAPI{}
-
-	resp := privateScreen()
-	resp.Type = presenter.ActionEditMessage
-	out, err := r.Render(context.Background(), api, bot, withCallback(groupMeta("")), resp)
+	resp := presenter.Message("The world map", &presenter.Keyboard{Rows: [][]presenter.Button{{{Text: "Map", CallbackData: "map:list"}}}})
+	out, err := newRenderer().Render(context.Background(), api, bot, groupMeta("map.list"), resp)
 	if err != nil {
-		t.Fatal(err)
-	}
-	calls := api.recorded()
-	assertNothingPrivateInGroup(t, calls)
-	if out.Route != RouteEphemeral || len(calls) != 1 {
-		t.Fatalf("route %q with %d calls, want one ephemeral send: %+v", out.Route, len(calls), calls)
-	}
-	e := calls[0].opts.Ephemeral
-	if e == nil || e.ReceiverUserID != player || e.CallbackQueryID != "cbq-1" || !e.ReplaceCallbackQueryMessage {
-		t.Fatalf("ephemeral parameters = %+v", e)
-	}
-	if data := callbackData(t, calls[0].markup); data[0] != "-"+formatID(player)+":skills:list" {
-		t.Errorf("button not bound to its owner: %q", data)
-	}
-}
-
-// An ephemeral command is answered with an ephemeral reply to it.
-func TestPrivateScreenAfterAnEphemeralCommandRepliesEphemerally(t *testing.T) {
-	now := epoch.Add(time.Second)
-	r := newRenderer(&now)
-	api := &fakeAPI{}
-
-	meta := groupMeta("message")
-	meta.TelegramMessageID = 0
-	meta.TelegramEphemeralMessageID = 31
-	if _, err := r.Render(context.Background(), api, bot, meta, privateScreen()); err != nil {
-		t.Fatal(err)
-	}
-	calls := api.recorded()
-	assertNothingPrivateInGroup(t, calls)
-	if len(calls) != 1 || calls[0].opts.ReplyParameters == nil || calls[0].opts.ReplyParameters.EphemeralMessageID != 31 {
-		t.Fatalf("not an ephemeral reply to the command: %+v", calls)
-	}
-	if calls[0].opts.Ephemeral.CallbackQueryID != "" || calls[0].opts.Ephemeral.ReplaceCallbackQueryMessage {
-		t.Errorf("a command reply cited a callback: %+v", calls[0].opts.Ephemeral)
-	}
-}
-
-// Even a PUBLIC screen answers an ephemeral command ephemerally: nobody saw
-// the question, so nobody is shown the answer.
-func TestPublicScreenForAnEphemeralCommandStaysEphemeral(t *testing.T) {
-	now := epoch
-	r := newRenderer(&now)
-	api := &fakeAPI{}
-	meta := groupMeta("message")
-	meta.TelegramEphemeralMessageID = 31
-	if _, err := r.Render(context.Background(), api, bot, meta, presenter.Message("help", nil).MarkPublic()); err != nil {
-		t.Fatal(err)
-	}
-	if c := api.recorded(); len(c) != 1 || c[0].opts.Ephemeral == nil {
-		t.Fatalf("public answer to an ephemeral command was not ephemeral: %+v", c)
-	}
-}
-
-// A button on an ephemeral screen edits that screen in place.
-func TestNavigationInsideAnEphemeralScreenEditsIt(t *testing.T) {
-	now := epoch
-	r := newRenderer(&now)
-	api := &fakeAPI{}
-	meta := withCallback(groupMeta(""))
-	meta.TelegramMessageID = 0
-	meta.TelegramEphemeralMessageID = 12
-	resp := privateScreen()
-	resp.Type = presenter.ActionEditMessage
-
-	if _, err := r.Render(context.Background(), api, bot, meta, resp); err != nil {
 		t.Fatal(err)
 	}
 	c := api.recorded()
-	if len(c) != 1 || c[0].method != "editEphemeralMessageText" || c[0].ephemeral != 12 || c[0].receiver != player {
-		t.Fatalf("calls = %+v, want one editEphemeralMessageText of 12", c)
+	if out.Route != RoutePublic || len(c) != 1 || c[0].chatID != groupChat {
+		t.Fatalf("route %q, calls %+v", out.Route, c)
+	}
+	owner, rest, bound := SplitOwner(callbackData(t, c[0].markup)[0])
+	if !bound || owner != player || rest != "map:list" {
+		t.Errorf("group button = owner %d rest %q bound %v", owner, rest, bound)
 	}
 }
 
-// A typed (not ephemeral) command in a group where the bot is not an
-// administrator: the ephemeral message is refused, the screen goes to the
-// private chat, and the group sees one neutral line with a link.
-func TestPrivateScreenFallsBackToThePrivateChat(t *testing.T) {
-	now := epoch
-	r := newRenderer(&now)
-	api := &fakeAPI{onSend: func(chatID int64, opts client.SendOptions) (*client.Message, error) {
-		if opts.Ephemeral != nil {
-			return nil, &client.APIError{Method: "sendMessage", Code: 400, Description: "Bad Request: not enough rights"}
-		}
-		return &client.Message{MessageID: 7, Chat: client.Chat{ID: chatID}}, nil
-	}}
+// A press on a group screen edits that screen in the group.
+func TestOrdinaryPressEditsTheGroupMessage(t *testing.T) {
+	api := &fakeAPI{}
+	resp := presenter.Edit(0, "Page 2", nil)
+	if _, err := newRenderer().Render(context.Background(), api, bot, withCallback(groupMeta("map.list")), resp); err != nil {
+		t.Fatal(err)
+	}
+	c := api.recorded()
+	if len(c) != 1 || c[0].method != "editMessageText" || c[0].chatID != groupChat || c[0].messageID != 40 {
+		t.Fatalf("calls = %+v", c)
+	}
+}
 
-	out, err := r.Render(context.Background(), api, bot, groupMeta("message"), privateScreen())
+// A private command's screen — the bank — goes to the player's private chat,
+// and the group sees one neutral line with a link to the bot.
+func TestPrivateCommandGoesToThePrivateChat(t *testing.T) {
+	api := &fakeAPI{}
+	out, err := newRenderer().Render(context.Background(), api, bot, groupMeta("bank.show"), screenWithButton(secretText))
 	if err != nil {
 		t.Fatal(err)
 	}
 	calls := api.recorded()
 	assertNothingPrivateInGroup(t, calls)
-	if out.Route != RouteDirect || len(calls) != 3 {
+	if out.Route != RouteDirect || len(calls) != 2 {
 		t.Fatalf("route %q, calls %+v", out.Route, calls)
 	}
-	if calls[1].chatID != player || calls[1].text != secretText {
-		t.Errorf("screen not sent to the private chat: %+v", calls[1])
+	if calls[0].chatID != player || calls[0].text != secretText {
+		t.Errorf("screen not sent to the private chat: %+v", calls[0])
 	}
-	if calls[1].markup == nil || callbackData(t, calls[1].markup)[0] != "skills:list" {
-		t.Errorf("a private-chat keyboard was bound or lost: %+v", calls[1].markup)
+	if data := callbackData(t, calls[0].markup); data[0] != "bank:show" {
+		t.Errorf("a private-chat button was bound: %q", data)
 	}
-	line := calls[2]
-	if line.chatID != groupChat || line.text != KeySentPrivately || line.opts.ReplyParameters == nil || line.opts.ReplyParameters.MessageID != 40 {
+	line := calls[1]
+	if line.chatID != groupChat || line.text != KeySentPrivately ||
+		line.opts.ReplyParameters == nil || line.opts.ReplyParameters.MessageID != 40 {
 		t.Errorf("group line = %+v", line)
 	}
-	if url := buttonURL(t, line.markup); url != "https://t.me/torn_bot?start=run-skills-list" {
+	if url := buttonURL(t, line.markup); url != "https://t.me/torn_bot?start=run-bank-show" {
 		t.Errorf("group line link = %q", url)
 	}
+}
 
-	// The refusal is remembered: the next uncited reply in that group goes
-	// straight to the private chat.
-	api.calls = nil
-	if _, err := r.Render(context.Background(), api, bot, groupMeta("message"), privateScreen()); err != nil {
+// A screen that marks itself private goes the same way, whatever its
+// command.
+func TestPrivateScreenGoesToThePrivateChat(t *testing.T) {
+	api := &fakeAPI{}
+	resp := presenter.Message(secretText, nil).MarkPrivate()
+	out, err := newRenderer().Render(context.Background(), api, bot, groupMeta("travel.start"), resp)
+	if err != nil {
 		t.Fatal(err)
 	}
-	if c := api.recorded(); len(c) != 2 || c[0].opts.Ephemeral != nil {
-		t.Fatalf("refused group was asked again: %+v", c)
-	}
-	// Until the refusal expires.
-	now = now.Add(set.EphemeralRefusalTTL + time.Second)
-	api.calls = nil
-	_, _ = r.Render(context.Background(), api, bot, groupMeta("message"), privateScreen())
-	if c := api.recorded(); c[0].opts.Ephemeral == nil {
-		t.Fatalf("expired refusal still skipped the ephemeral attempt: %+v", c)
+	assertNothingPrivateInGroup(t, api.recorded())
+	if out.Route != RouteDirect {
+		t.Fatalf("route %q", out.Route)
 	}
 }
 
@@ -297,19 +205,13 @@ func TestPrivateScreenFallsBackToThePrivateChat(t *testing.T) {
 // the group line asks them to open the bot, with a link that replays the
 // command there.
 func TestNeverStartedTheBot(t *testing.T) {
-	now := epoch
-	r := newRenderer(&now)
-	api := &fakeAPI{onSend: func(chatID int64, opts client.SendOptions) (*client.Message, error) {
-		switch {
-		case opts.Ephemeral != nil:
-			return nil, &client.APIError{Code: 400, Description: "Bad Request: not enough rights"}
-		case chatID == player:
+	api := &fakeAPI{onSend: func(chatID int64) (*client.Message, error) {
+		if chatID == player {
 			return nil, &client.APIError{Code: 403, Description: "Forbidden: bot can't initiate conversation with a user"}
 		}
 		return &client.Message{MessageID: 8}, nil
 	}}
-
-	out, err := r.Render(context.Background(), api, bot, groupMeta("message"), privateScreen())
+	out, err := newRenderer().Render(context.Background(), api, bot, groupMeta("bank.show"), screenWithButton(secretText))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -319,17 +221,15 @@ func TestNeverStartedTheBot(t *testing.T) {
 	if out.Route != RouteDeepLink || line.chatID != groupChat || line.text != KeyStartBotFirst {
 		t.Fatalf("route %q, last call %+v", out.Route, line)
 	}
-	if url := buttonURL(t, line.markup); url != "https://t.me/torn_bot?start=run-skills-list" {
+	if url := buttonURL(t, line.markup); url != "https://t.me/torn_bot?start=run-bank-show" {
 		t.Errorf("deep link = %q", url)
 	}
 }
 
-// A press whose window has passed cannot cite the press. Without the rights
-// to send uncited, the screen goes privately and the presser is told in a
-// popup, not in the group; if they never started the bot, the popup's link
-// opens it.
-func TestLatePressFallsBackToAPopup(t *testing.T) {
-	now := epoch.Add(time.Minute)
+// A press on a group screen that opens a private one (the bank button on the
+// profile): the screen goes privately and the presser is told in a popup,
+// not in the group; if they never started the bot, the popup opens it.
+func TestPressForAPrivateScreenAnswersWithAPopup(t *testing.T) {
 	for _, tc := range []struct {
 		name      string
 		dmErr     error
@@ -339,114 +239,58 @@ func TestLatePressFallsBackToAPopup(t *testing.T) {
 		{"never started", &client.APIError{Code: 403, Description: "Forbidden: bot was blocked by the user"}, RouteDeepLink},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			r := newRenderer(&now)
-			api := &fakeAPI{onSend: func(chatID int64, opts client.SendOptions) (*client.Message, error) {
-				if opts.Ephemeral != nil {
-					if opts.Ephemeral.CallbackQueryID != "" {
-						t.Errorf("a late reply cited the press")
-					}
-					return nil, &client.APIError{Code: 400, Description: "Bad Request: not enough rights"}
-				}
+			api := &fakeAPI{onSend: func(chatID int64) (*client.Message, error) {
 				if chatID == player && tc.dmErr != nil {
 					return nil, tc.dmErr
 				}
 				return &client.Message{MessageID: 3}, nil
 			}}
-			out, err := r.Render(context.Background(), api, bot, withCallback(groupMeta("")), privateScreen())
+			resp := screenWithButton(secretText)
+			resp.Type = presenter.ActionEditMessage
+			out, err := newRenderer().Render(context.Background(), api, bot, withCallback(groupMeta("bank.show")), resp)
 			if err != nil {
 				t.Fatal(err)
 			}
 			calls := api.recorded()
 			assertNothingPrivateInGroup(t, calls)
+			for _, c := range calls {
+				if c.chatID == groupChat {
+					t.Errorf("a button press put something in the group: %+v", c)
+				}
+			}
 			last := calls[len(calls)-1]
 			if out.Route != tc.wantRoute || !out.CallbackAnswered || last.method != "answerCallbackQuery" {
 				t.Fatalf("route %q answered %v, last %+v", out.Route, out.CallbackAnswered, last)
 			}
-			for _, c := range calls {
-				if c.method == "sendMessage" && c.chatID == groupChat && c.opts.Ephemeral == nil {
-					t.Errorf("a button press put a line in the group: %+v", c)
-				}
-			}
-			if tc.wantRoute == RouteDeepLink && last.answer.URL != "https://t.me/torn_bot?start=run-skills-list" {
+			if tc.wantRoute == RouteDeepLink && last.answer.URL != "https://t.me/torn_bot?start=run-bank-show" {
 				t.Errorf("popup does not open the bot: %+v", last.answer)
+			}
+			if tc.wantRoute == RouteDirect && last.answer.Text != KeySentPrivately {
+				t.Errorf("popup = %+v", last.answer)
 			}
 		})
 	}
 }
 
-// A server that does not understand ephemeral parameters posts the message
-// publicly. It is deleted at once, the bot stops trying, and the screen goes
-// to the private chat.
-func TestServerWithoutEphemeralSupportIsCaught(t *testing.T) {
-	now := epoch
-	r := newRenderer(&now)
-	api := &fakeAPI{onSend: func(chatID int64, _ client.SendOptions) (*client.Message, error) {
-		return &client.Message{MessageID: 77, Chat: client.Chat{ID: chatID}}, nil
-	}}
-	out, err := r.Render(context.Background(), api, bot, withCallback(groupMeta("")), privateScreen())
-	if err != nil {
-		t.Fatal(err)
-	}
-	calls := api.recorded()
-	if calls[1].method != "deleteMessage" || calls[1].messageID != 77 || calls[1].chatID != groupChat {
-		t.Fatalf("leaked message not deleted: %+v", calls)
-	}
-	if out.Route != RouteDirect || calls[2].chatID != player {
-		t.Fatalf("route %q, calls %+v", out.Route, calls)
-	}
-
-	api.calls = nil
-	_, _ = r.Render(context.Background(), api, bot, withCallback(groupMeta("")), privateScreen())
-	for _, c := range api.recorded() {
-		if c.opts.Ephemeral != nil {
-			t.Fatalf("ephemeral tried again through a bot whose server lacks it")
-		}
-	}
-}
-
-// A flood wait on the ephemeral send is the send loop's to retry; nothing
-// else is attempted in the meantime.
-func TestFloodWaitIsReturnedNotFallenBackFrom(t *testing.T) {
-	now := epoch
-	r := newRenderer(&now)
-	api := &fakeAPI{onSend: func(int64, client.SendOptions) (*client.Message, error) {
+// A flood wait on the private chat is the send loop's to retry; nothing is
+// said in the group in the meantime.
+func TestFloodWaitIsReturned(t *testing.T) {
+	api := &fakeAPI{onSend: func(int64) (*client.Message, error) {
 		return nil, &client.FloodWaitError{RetryAfter: time.Second}
 	}}
-	_, err := r.Render(context.Background(), api, bot, withCallback(groupMeta("")), privateScreen())
+	_, err := newRenderer().Render(context.Background(), api, bot, groupMeta("bank.show"), screenWithButton(secretText))
 	var flood *client.FloodWaitError
 	if !errors.As(err, &flood) || len(api.recorded()) != 1 {
 		t.Fatalf("err %v after %d calls", err, len(api.recorded()))
 	}
 }
 
-// A public screen is posted in the group, its buttons bound to the player.
-func TestPublicScreenIsPostedWithBoundButtons(t *testing.T) {
-	now := epoch
-	r := newRenderer(&now)
-	api := &fakeAPI{}
-	resp := presenter.Message("help", &presenter.Keyboard{Rows: [][]presenter.Button{{{Text: "Map", CallbackData: "map:list"}}}}).MarkPublic()
-	out, err := r.Render(context.Background(), api, bot, groupMeta("message"), resp)
-	if err != nil {
-		t.Fatal(err)
-	}
-	c := api.recorded()
-	if out.Route != RoutePublic || len(c) != 1 || c[0].chatID != groupChat || c[0].opts.Ephemeral != nil {
-		t.Fatalf("route %q, calls %+v", out.Route, c)
-	}
-	owner, rest, bound := SplitOwner(callbackData(t, c[0].markup)[0])
-	if !bound || owner != player || rest != "map:list" {
-		t.Errorf("public button = owner %d rest %q bound %v", owner, rest, bound)
-	}
-}
-
 // A private screen with no user to deliver to is an error, never a post.
 func TestPrivateScreenWithNoReceiverIsNotPosted(t *testing.T) {
-	now := epoch
-	r := newRenderer(&now)
 	api := &fakeAPI{}
-	meta := groupMeta("message")
+	meta := groupMeta("bank.show")
 	meta.TelegramUserID = 0
-	if _, err := r.Render(context.Background(), api, bot, meta, privateScreen()); !errors.Is(err, ErrNoReceiver) {
+	if _, err := newRenderer().Render(context.Background(), api, bot, meta, screenWithButton(secretText)); !errors.Is(err, ErrNoReceiver) {
 		t.Fatalf("err = %v", err)
 	}
 	if c := api.recorded(); len(c) != 0 {
@@ -454,12 +298,38 @@ func TestPrivateScreenWithNoReceiverIsNotPosted(t *testing.T) {
 	}
 }
 
+// What is private: the bank and payments, settings; every other command the
+// game serves plays in the group unless its screen says otherwise.
+func TestPrivacyClassification(t *testing.T) {
+	private := map[string]bool{
+		"bank.show": true, "bank.deposit": true, "bank.withdraw": true, "bank.pay": true, "bank.pay.send": true,
+		"player.settings": true, "player.language.set": true,
+	}
+	seen := 0
+	for _, s := range commands.All() {
+		c := s.Command()
+		if got := IsPrivate(c, presenter.Message("x", nil)); got != private[c] {
+			t.Errorf("IsPrivate(%s) = %v, want %v", c, got, private[c])
+		}
+		if !IsPrivate(c, presenter.Message("x", nil).MarkPrivate()) {
+			t.Errorf("%s ignores a screen marked private", c)
+		}
+		if private[c] {
+			seen++
+		}
+	}
+	if seen != len(private) {
+		t.Errorf("only %d of the %d private commands are served; the table is stale", seen, len(private))
+	}
+	if IsPrivate("bankruptcy.file", nil) || IsPrivate("", nil) {
+		t.Error("an unlisted command is private")
+	}
+}
+
 func TestAnswerIsTruncatedAndCanAlert(t *testing.T) {
-	now := epoch
-	r := NewRenderer(keysAsText{}, Settings{CallbackAlertMaxRunes: 10}, func() time.Time { return now })
+	r := NewRenderer(keysAsText{}, Settings{CallbackAlertMaxRunes: 10})
 	api := &fakeAPI{}
-	meta := withCallback(groupMeta(""))
-	if err := r.Answer(context.Background(), api, meta, presenter.Callback(strings.Repeat("ش", 30), true)); err != nil {
+	if err := r.Answer(context.Background(), api, withCallback(groupMeta("x.y")), presenter.Callback(strings.Repeat("ش", 30), true)); err != nil {
 		t.Fatal(err)
 	}
 	a := api.recorded()[0].answer
@@ -469,10 +339,8 @@ func TestAnswerIsTruncatedAndCanAlert(t *testing.T) {
 }
 
 func TestRefuseForeignIsAnAlert(t *testing.T) {
-	now := epoch
-	r := newRenderer(&now)
 	api := &fakeAPI{}
-	if err := r.RefuseForeign(context.Background(), api, "cbq-9", "en"); err != nil {
+	if err := newRenderer().RefuseForeign(context.Background(), api, "cbq-9", "en"); err != nil {
 		t.Fatal(err)
 	}
 	a := api.recorded()[0].answer
@@ -482,12 +350,6 @@ func TestRefuseForeignIsAnAlert(t *testing.T) {
 }
 
 // --- helpers ------------------------------------------------------------------
-
-func formatID(id int64) string {
-	bound, _ := BindOwner("x", id)
-	owner, _, _ := strings.Cut(strings.TrimPrefix(bound, ownerMark), ":")
-	return owner
-}
 
 type markupButton struct {
 	Text         string `json:"text"`

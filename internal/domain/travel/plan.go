@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/world"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 )
@@ -67,8 +68,8 @@ const (
 	MaxDemandWindow = 7 * 24 * time.Hour
 
 	// MaxTimeScale caps the game-to-real time scale at one game day per real
-	// second.
-	MaxTimeScale = 86_400
+	// second: the game clock's own bound.
+	MaxTimeScale = gametime.MaxScale
 
 	// MaxPlannableDistanceKM caps the route a journey may cover. It is far
 	// beyond any sane world and exists only so that a mistaken route network
@@ -196,25 +197,21 @@ func (m Mode) TravelTime(distanceKM int) time.Duration {
 		time.Duration(rest)*time.Hour/time.Duration(m.KMPerHour)
 }
 
-// RealWait maps game time to the wall-clock wait:
+// RealWait maps game time to the wall-clock wait through the game's one
+// clock, gametime.Scale.RealWait:
 //
 //	wait = ceil(gameTime / timeScale), in whole seconds, at least one second
 //
 // Rounded UP to the second so a countdown never promises an arrival that
 // lands after it, and never zero, because a journey that arrives the instant
-// it leaves is not a journey.
+// it leaves is not a journey. It exists so a journey's planning refuses an
+// invalid scale by its own sentinel; the arithmetic is gametime's.
 func RealWait(gameTime time.Duration, timeScale int) (time.Duration, error) {
-	if timeScale < 1 || timeScale > MaxTimeScale {
+	scale := gametime.Scale(timeScale)
+	if err := scale.Validate(); err != nil {
 		return 0, fmt.Errorf("%w: %d is outside 1..%d", ErrInvalidTimeScale, timeScale, MaxTimeScale)
 	}
-	scale := time.Duration(timeScale)
-	wait := gameTime / scale
-	if gameTime%scale != 0 {
-		wait++
-	}
-	if wait%time.Second != 0 {
-		wait = wait - wait%time.Second + time.Second
-	}
+	wait := scale.RealWait(gameTime)
 	if wait < time.Second {
 		wait = time.Second
 	}

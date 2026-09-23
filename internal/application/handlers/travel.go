@@ -133,7 +133,8 @@ type TravelHandler struct {
 
 // NewTravelHandler wires the handler.
 //
-// timeScale maps game time to the wall clock (config travel.time_scale) and
+// timeScale is the game clock (config game.time_scale) mapping game time to
+// the wall clock, and
 // arrivalXP is what landing awards. Both are tuning, injected rather than
 // written here; both are rejected below one, because a journey that never
 // scales down and an arrival worth nothing are wiring mistakes that look like
@@ -198,7 +199,7 @@ func NewTravelHandler(
 // screen builds the rendering context for a player's request, in lang (see
 // RenderLanguage).
 func (h *TravelHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta)}
+	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
 }
 
 // quotedOption is one priced way to make a journey.
@@ -232,6 +233,13 @@ func (h *TravelHandler) planTrip(ctx context.Context, tx application.Tx, p *appl
 	if _, err := tx.Travels().Active(ctx, p.ID); err == nil {
 		return t, application.ErrAlreadyTravelling
 	} else if !isSentinel(err, application.ErrNoActiveTravel) {
+		return t, err
+	}
+	if err := refuseAtWork(ctx, tx, p.ID); err != nil {
+		return t, err
+	}
+	// Jail and a timed crime keep a player in town (docs/adr/0019).
+	if err := RefuseDetained(ctx, tx, p.ID, now); err != nil {
 		return t, err
 	}
 
@@ -465,6 +473,15 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		if err != nil {
 			return err
 		}
+		// Asked again now that the stats row is locked: a shift starting
+		// takes the same lock, so whichever of the two came first is seen
+		// here and a player never leaves town in the middle of a shift.
+		if err := refuseAtWork(ctx, tx, p.ID); err != nil {
+			return err
+		}
+		if err := RefuseDetained(ctx, tx, p.ID, now); err != nil {
+			return err
+		}
 		// Regenerate before charging. A player who has been away has the
 		// energy the clock owes them, and charging them before paying it out
 		// would refuse a departure they can afford.
@@ -583,15 +600,16 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		}
 
 		started = screens.TravelStartedView{
-			FromCode: t.from.Code,
-			From:     t.from.Name,
-			ToCode:   t.to.Code,
-			To:       t.to.Name,
-			ModeCode: q.Mode,
-			ModeName: chosen.name,
-			Duration: journey.Duration(),
-			Energy:   q.Energy,
-			Fare:     q.Fare.Minor(),
+			FromCode:  t.from.Code,
+			From:      t.from.Name,
+			ToCode:    t.to.Code,
+			To:        t.to.Name,
+			ModeCode:  q.Mode,
+			ModeName:  chosen.name,
+			Duration:  journey.Duration(),
+			ArrivesAt: journey.ArrivesAt,
+			Energy:    q.Energy,
+			Fare:      q.Fare.Minor(),
 		}
 		return nil
 	})
@@ -923,4 +941,18 @@ func levelNumbers(ups []player.LevelUp) []int {
 		out = append(out, up.Level)
 	}
 	return out
+}
+
+// refuseAtWork refuses a departure while the player is working a shift
+// (docs/adr/0018-game-clock.md): they are busy at the workplace until it
+// ends.
+func refuseAtWork(ctx context.Context, tx application.Tx, playerID string) error {
+	shift, err := activeShift(ctx, tx, playerID)
+	if err != nil {
+		return err
+	}
+	if shift != nil {
+		return application.ErrShiftInProgress
+	}
+	return nil
 }

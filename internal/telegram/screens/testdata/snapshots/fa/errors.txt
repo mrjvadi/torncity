@@ -1,0 +1,129 @@
+━━━ Error · not enough energy ━━━
+(edits message 42)
+⚡ انرژی کافی ندارید.
+این کار ۱۰ انرژی می‌خواهد و شما ۳ دارید. انرژی کم‌کم پر می‌شود و حداکثر ۳۰ دقیقه دیگر کافی است.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · not enough energy, numbers unknown ━━━
+(edits message 42)
+⚡ انرژی کافی ندارید. انرژی کم‌کم پر می‌شود؛ کمی بعد دوباره امتحان کنید.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · already travelling ━━━
+(edits message 42)
+همین حالا در سفر هستید. وضعیت سفر را در «سفر من» ببینید.
+  ───
+  [🧭 سفر من] → travel:status
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · not travelling ━━━
+(edits message 42)
+الان در سفر نیستید. برای سفر، «نقشه» را باز کنید.
+  ───
+  [🗺 نقشه] → map:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · same city ━━━
+(edits message 42)
+همین حالا در این شهر هستید. مقصد دیگری را از «نقشه» انتخاب کنید.
+  ───
+  [🗺 نقشه] → map:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · no route ━━━
+(edits message 42)
+این شهر پیدا نشد. یکی از مقصدهای «نقشه» را انتخاب کنید.
+  ───
+  [🗺 نقشه] → map:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · mode unavailable ━━━
+(edits message 42)
+این وسیله در این مسیر رفت‌وآمد نمی‌کند. مقصد را دوباره از «نقشه» بزنید تا وسیله‌های همین مسیر را ببینید.
+  ───
+  [🗺 نقشه] → map:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · skill not found ━━━
+(edits message 42)
+این مهارت پیدا نشد. مهارت‌هایتان را در «مهارت‌ها» ببینید.
+  ───
+  [🛠 مهارت‌ها] → skills:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · not friends ━━━
+(edits message 42)
+با این بازیکن دوست نیستید و درخواستی از او در انتظار شما نیست. دوستان و درخواست‌ها را در «دوستان» ببینید.
+  ───
+  [👥 دوستان] → social:friend.list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · already friends ━━━
+(edits message 42)
+شما از قبل با این بازیکن دوست هستید. او را در «دوستان» پیدا می‌کنید.
+  ───
+  [👥 دوستان] → social:friend.list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · player not found ━━━
+(edits message 42)
+بازیکن پیدا نشد. اگر هنوز بازی را شروع نکرده‌اید، /start را بفرستید.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · unsupported language ━━━
+(edits message 42)
+این زبان در بازی نیست. یکی از زبان‌های موجود را در «تنظیمات» انتخاب کنید.
+  ───
+  [⚙️ تنظیمات] → player:settings
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · cooldown ━━━
+(edits message 42)
+⏳ کمی صبر کنید؛ ۲ دقیقه دیگر می‌توانید دوباره این کار را انجام دهید.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · rate limited ━━━
+(edits message 42)
+در زمان کوتاهی درخواست‌های زیادی فرستادید. چند ثانیه صبر کنید و دوباره امتحان کنید.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · not found ━━━
+(edits message 42)
+آنچه دنبالش بودید پیدا نشد. به پروفایل برگردید و دوباره امتحان کنید.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · invalid input ━━━
+(edits message 42)
+این درخواست را متوجه نشدم. لطفاً از دکمه‌ها استفاده کنید.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · conflict ━━━
+(edits message 42)
+این کار همین حالا ممکن نیست. چند لحظهٔ دیگر دوباره امتحان کنید.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · unauthorized ━━━
+(edits message 42)
+اجازهٔ این کار را ندارید. با «بازگشت» به پروفایل برگردید.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · internal ━━━
+(edits message 42)
+مشکلی پیش آمد. چند لحظهٔ دیگر دوباره امتحان کنید.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Error · no error at all ━━━
+(edits message 42)
+مشکلی پیش آمد. چند لحظهٔ دیگر دوباره امتحان کنید.
+  ───
+  [🔙 بازگشت] → player:profile.get

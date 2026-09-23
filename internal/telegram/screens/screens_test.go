@@ -497,7 +497,7 @@ func TestProfileShowsOnlyWhatThePlayerHasReached(t *testing.T) {
 	c := ctx(t, "en", 0)
 	resp := Profile(c, ProfileView{Name: "Ada", City: "Ostmarch", Level: 3, XP: 180, NextLevelXP: 450,
 		Energy: 75, MaxEnergy: 100, Health: 100, MaxHealth: 100})
-	for _, want := range []string{"Ada", "Ostmarch", "3", "270", "75/100", "100/100"} {
+	for _, want := range []string{"Ada", "Ostmarch", "3", "270", "75 of 100", "100 of 100"} {
 		if !strings.Contains(resp.Text, want) {
 			t.Errorf("the profile is missing %q: %q", want, resp.Text)
 		}
@@ -515,14 +515,23 @@ func TestProfileShowsOnlyWhatThePlayerHasReached(t *testing.T) {
 
 func TestFormatNumber(t *testing.T) {
 	for _, tt := range []struct {
+		lang string
 		n    int64
 		want string
 	}{
-		{0, "0"}, {7, "7"}, {999, "999"}, {1000, "1,000"}, {12500, "12,500"},
-		{1234567, "1,234,567"}, {-4200, "-4,200"},
+		{"en", 0, "0"}, {"en", 7, "7"}, {"en", 999, "999"}, {"en", 1000, "1,000"}, {"en", 12500, "12,500"},
+		{"en", 1234567, "1,234,567"}, {"en", -4200, "-4,200"},
+		// Persian digits and the Persian thousands separator, from fa.yml.
+		{"fa", 0, "۰"}, {"fa", 12500, "۱۲٬۵۰۰"}, {"fa", 1234567, "۱٬۲۳۴٬۵۶۷"},
+		// No catalogue: ASCII, never a key.
+		{"", 12500, "12,500"},
 	} {
-		if got := FormatNumber(tt.n); got != tt.want {
-			t.Errorf("FormatNumber(%d) = %q, want %q", tt.n, got, tt.want)
+		c := ctx(t, tt.lang, 0)
+		if tt.lang == "" {
+			c = Context{}
+		}
+		if got := FormatNumber(c, tt.n); got != tt.want {
+			t.Errorf("%s: FormatNumber(%d) = %q, want %q", tt.lang, tt.n, got, tt.want)
 		}
 	}
 }
@@ -697,21 +706,24 @@ func (e stderror) Error() string { return string(e) }
 
 func TestPercentFromBPS(t *testing.T) {
 	tests := []struct {
+		lang string
 		bps  int
 		want string
 	}{
-		{0, "0"},
-		{500, "5"},
-		{750, "7.5"},
-		{1000, "10"},
-		{1234, "12.34"},
-		{1205, "12.05"},
-		{10000, "100"},
-		{-5, "0"},
+		{"en", 0, "0"},
+		{"en", 500, "5"},
+		{"en", 750, "7.5"},
+		{"en", 1000, "10"},
+		{"en", 1234, "12.34"},
+		{"en", 1205, "12.05"},
+		{"en", 10000, "100"},
+		{"en", -5, "0"},
+		{"fa", 750, "۷٫۵"},
+		{"fa", 1205, "۱۲٫۰۵"},
 	}
 	for _, tt := range tests {
-		if got := PercentFromBPS(tt.bps); got != tt.want {
-			t.Errorf("PercentFromBPS(%d) = %q, want %q", tt.bps, got, tt.want)
+		if got := PercentFromBPS(ctx(t, tt.lang, 0), tt.bps); got != tt.want {
+			t.Errorf("%s: PercentFromBPS(%d) = %q, want %q", tt.lang, tt.bps, got, tt.want)
 		}
 	}
 }
@@ -731,9 +743,9 @@ func TestFormatDuration(t *testing.T) {
 		// Zero or less still reads as some time to come, never as nothing.
 		{"en", 0, "1s"},
 		{"en", -time.Hour, "1s"},
-		{"fa", 135 * time.Minute, "2 ساعت و 15 دقیقه"},
-		{"fa", 2 * time.Hour, "2 ساعت"},
-		{"fa", 35 * time.Minute, "35 دقیقه"},
+		{"fa", 135 * time.Minute, "۲ ساعت و ۱۵ دقیقه"},
+		{"fa", 2 * time.Hour, "۲ ساعت"},
+		{"fa", 35 * time.Minute, "۳۵ دقیقه"},
 	} {
 		if got := FormatDuration(ctx(t, tt.lang, 0), tt.d); got != tt.want {
 			t.Errorf("%s: FormatDuration(%s) = %q, want %q", tt.lang, tt.d, got, tt.want)

@@ -338,6 +338,7 @@ func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, r
 		return nil, errors.InvalidInput("social.friend.add names no player")
 	}
 	lang := meta.Language
+	var name string
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		self, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -347,6 +348,9 @@ func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, r
 		lang = RenderLanguage(meta, self)
 		if self.ID == req.Player {
 			return errors.InvalidInput("a player cannot befriend themselves")
+		}
+		if name, err = h.nameOf(ctx, tx, req.Player); err != nil {
+			return err
 		}
 
 		key := idempotency.Derive(self.ID, meta.RequestID, meta.IdempotencyKey)
@@ -401,10 +405,9 @@ func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, r
 		return nil, err
 	}
 
-	// The other player's NAME is not resolvable here: no port maps a player
-	// id back to a record. The screen says so in the player's language
-	// rather than printing an identifier at them.
-	return screens.FriendRequested(h.screen(meta, lang), ""), nil
+	// The other player is named by their display name; one with no name
+	// worth showing is "a player", never an identifier.
+	return screens.FriendRequested(h.screen(meta, lang), name), nil
 }
 
 // FriendAccept handles social.friend.accept.
@@ -419,6 +422,7 @@ func (h *SocialHandler) FriendAccept(ctx context.Context, meta envelope.Metadata
 		return nil, errors.InvalidInput("social.friend.accept names no player")
 	}
 	lang := meta.Language
+	var name string
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		self, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -428,6 +432,9 @@ func (h *SocialHandler) FriendAccept(ctx context.Context, meta envelope.Metadata
 		lang = RenderLanguage(meta, self)
 		if self.ID == req.Player {
 			return errors.InvalidInput("a player cannot befriend themselves")
+		}
+		if name, err = h.nameOf(ctx, tx, req.Player); err != nil {
+			return err
 		}
 
 		key := idempotency.Derive(self.ID, meta.RequestID, meta.IdempotencyKey)
@@ -461,7 +468,21 @@ func (h *SocialHandler) FriendAccept(ctx context.Context, meta envelope.Metadata
 		return nil, err
 	}
 
-	return screens.FriendAccepted(h.screen(meta, lang), ""), nil
+	return screens.FriendAccepted(h.screen(meta, lang), name), nil
+}
+
+// nameOf is the display name of another player, or "" when they have none
+// worth showing or no longer exist: the screen then says "a player", never
+// an identifier.
+func (h *SocialHandler) nameOf(ctx context.Context, tx application.Tx, playerID string) (string, error) {
+	p, err := tx.Players().GetByID(ctx, playerID)
+	if isSentinel(err, application.ErrPlayerNotFound) {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return shownName(p), nil
 }
 
 // FriendList handles social.friend.list.
@@ -496,8 +517,13 @@ func (h *SocialHandler) FriendList(ctx context.Context, meta envelope.Metadata, 
 		start, end, pages := pageWindow(len(edges), page, h.pageSize)
 		lines := make([]screens.FriendLine, 0, end-start)
 		for _, e := range edges[start:end] {
+			name, err := h.nameOf(ctx, tx, e.FriendPlayerID)
+			if err != nil {
+				return err
+			}
 			lines = append(lines, screens.FriendLine{
 				ID:     e.FriendPlayerID,
+				Name:   name,
 				Status: e.Status,
 				// A pending edge gets the accept button. The port gives one
 				// direction of the graph, so it cannot say whether this

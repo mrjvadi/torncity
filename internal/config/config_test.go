@@ -249,10 +249,9 @@ telegram:
   poll_timeout_grace: 16s
   default_flood_wait: 6s
 groups:
-  ephemeral_reply_window: 11s
-  ephemeral_refusal_ttl: 11m
   callback_alert_max_runes: 150
-  menu: [profile, map]
+menu:
+  commands: [profile, map]
 dedup:
   ttl: 25h
 nats:
@@ -286,11 +285,12 @@ game:
   shutdown_timeout: 22s
   idempotency_ttl: 23h
   content_reload_interval: 31s
+  time_scale: 61
 travel:
   arrival_xp: 26
-  time_scale: 61
 player:
   default_language: "en"
+  default_timezone: "Europe/Berlin"
 economy:
   starting_cash: 5001
   bank_min_amount: 2
@@ -298,6 +298,25 @@ economy:
 governance:
   fine_step_divisor: 101
   coarse_step_divisor: 11
+crime:
+  nerve_max: 21
+  nerve_regen_amount: 2
+  nerve_regen_interval: 6m
+  heat_max: 101
+  heat_decay_per_hour: 5
+  protect_min_level: 4
+  protect_min_age: 73h
+  active_window: 31m
+  arrival_linger: 21m
+  victim_cooldown: 7h
+  thief_cooldown: 25h
+  report_window: 25h
+  investigation_duration: 7h
+  investigation_base_bps: 2501
+  investigation_per_heat_bps: 41
+  investigation_witness_bonus_bps: 3501
+  investigation_effort_weight_bps: 3001
+  npc_daily_cap: 500001
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -321,10 +340,8 @@ var envOverrides = map[string]string{
 	"TORN_TELEGRAM_POLL_TIMEOUT_GRACE": "17s",
 	"TORN_TELEGRAM_DEFAULT_FLOOD_WAIT": "7s",
 
-	"TORN_GROUPS_EPHEMERAL_REPLY_WINDOW":   "10s",
-	"TORN_GROUPS_EPHEMERAL_REFUSAL_TTL":    "12m",
 	"TORN_GROUPS_CALLBACK_ALERT_MAX_RUNES": "160",
-	"TORN_GROUPS_MENU":                     "profile, skills",
+	"TORN_MENU_COMMANDS":                   "profile, skills",
 
 	"TORN_DEDUP_TTL": "26h",
 
@@ -356,9 +373,12 @@ var envOverrides = map[string]string{
 	"TORN_GAME_CONTENT_RELOAD_INTERVAL": "32s",
 
 	"TORN_TRAVEL_ARRIVAL_XP": "27",
+	// The legacy spelling of the game clock; TORN_GAME_TIME_SCALE wins.
 	"TORN_TRAVEL_TIME_SCALE": "62",
+	"TORN_GAME_TIME_SCALE":   "63",
 
 	"TORN_PLAYER_DEFAULT_LANGUAGE": "de",
+	"TORN_PLAYER_DEFAULT_TIMEZONE": "Asia/Tokyo",
 
 	"TORN_ECONOMY_STARTING_CASH":   "5002",
 	"TORN_ECONOMY_BANK_MIN_AMOUNT": "3",
@@ -366,6 +386,25 @@ var envOverrides = map[string]string{
 
 	"TORN_GOVERNANCE_FINE_STEP_DIVISOR":   "102",
 	"TORN_GOVERNANCE_COARSE_STEP_DIVISOR": "12",
+
+	"TORN_CRIME_NERVE_MAX":                       "22",
+	"TORN_CRIME_NERVE_REGEN_AMOUNT":              "3",
+	"TORN_CRIME_NERVE_REGEN_INTERVAL":            "7m",
+	"TORN_CRIME_HEAT_MAX":                        "102",
+	"TORN_CRIME_HEAT_DECAY_PER_HOUR":             "6",
+	"TORN_CRIME_PROTECT_MIN_LEVEL":               "5",
+	"TORN_CRIME_PROTECT_MIN_AGE":                 "74h",
+	"TORN_CRIME_ACTIVE_WINDOW":                   "32m",
+	"TORN_CRIME_ARRIVAL_LINGER":                  "22m",
+	"TORN_CRIME_VICTIM_COOLDOWN":                 "8h",
+	"TORN_CRIME_THIEF_COOLDOWN":                  "26h",
+	"TORN_CRIME_REPORT_WINDOW":                   "26h",
+	"TORN_CRIME_INVESTIGATION_DURATION":          "8h",
+	"TORN_CRIME_INVESTIGATION_BASE_BPS":          "2502",
+	"TORN_CRIME_INVESTIGATION_PER_HEAT_BPS":      "42",
+	"TORN_CRIME_INVESTIGATION_WITNESS_BONUS_BPS": "3502",
+	"TORN_CRIME_INVESTIGATION_EFFORT_WEIGHT_BPS": "3002",
+	"TORN_CRIME_NPC_DAILY_CAP":                   "500002",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,
@@ -686,9 +725,24 @@ func TestValidate(t *testing.T) {
 			want:   ErrNotPositive,
 		},
 		{
-			name:   "a journey time that never scales",
-			break_: func(c *Config) { c.Travel.TimeScale = 0 },
+			name:   "a game clock that never scales",
+			break_: func(c *Config) { c.Game.TimeScale = 0 },
 			want:   ErrNotPositive,
+		},
+		{
+			name:   "a game clock faster than a day a second",
+			break_: func(c *Config) { c.Game.TimeScale = 86_401 },
+			want:   ErrInvalidTimeScale,
+		},
+		{
+			name:   "a time zone nobody knows",
+			break_: func(c *Config) { c.Player.DefaultTimezone = "Mars/Olympus" },
+			want:   ErrUnknownTimezone,
+		},
+		{
+			name:   "no time zone",
+			break_: func(c *Config) { c.Player.DefaultTimezone = " " },
+			want:   ErrEmpty,
 		},
 	}
 
@@ -819,5 +873,42 @@ worker:
 	}
 	if cfg.Worker.BatchSize != 42 {
 		t.Errorf("BatchSize = %d, want 42", cfg.Worker.BatchSize)
+	}
+}
+
+// The game clock moved from travel.time_scale to game.time_scale. A file or
+// an environment that still writes the old key keeps working; where both are
+// written the current key wins.
+func TestLegacyTimeScaleKey(t *testing.T) {
+	clearEnv(t)
+	cfg := mustLoad(t, "travel:\n  time_scale: 30\n")
+	if cfg.Game.TimeScale != 30 {
+		t.Errorf("legacy key: TimeScale = %d, want 30", cfg.Game.TimeScale)
+	}
+	cfg = mustLoad(t, "game:\n  time_scale: 45\ntravel:\n  time_scale: 30\n")
+	if cfg.Game.TimeScale != 45 {
+		t.Errorf("both keys: TimeScale = %d, want game.time_scale's 45", cfg.Game.TimeScale)
+	}
+	t.Setenv("TORN_TRAVEL_TIME_SCALE", "20")
+	cfg, err := Load(repoConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Game.TimeScale != 20 {
+		t.Errorf("legacy variable: TimeScale = %d, want 20", cfg.Game.TimeScale)
+	}
+}
+
+// The committed default zone is Tehran, and it resolves from the embedded
+// zone database whatever the host has installed.
+func TestDefaultTimezone(t *testing.T) {
+	cfg := Defaults()
+	loc := cfg.Player.Location()
+	if loc.String() != "Asia/Tehran" {
+		t.Fatalf("Location() = %s, want Asia/Tehran", loc)
+	}
+	at := time.Date(2026, 9, 23, 10, 0, 0, 0, time.UTC).In(loc)
+	if at.Hour() != 13 || at.Minute() != 30 {
+		t.Errorf("10:00 UTC in Tehran = %s, want 13:30", at.Format("15:04"))
 	}
 }

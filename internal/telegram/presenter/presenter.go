@@ -45,22 +45,21 @@ type Response struct {
 	MessageID int64      `json:"message_id,omitempty"`
 	Alert     bool       `json:"alert,omitempty"`
 
-	// Public says the screen may be seen by everyone in a group. The zero
-	// value is private, on purpose: a screen that forgets to declare itself
-	// is kept to the player who asked for it rather than shown to the room.
-	// In a group the gateway delivers a private screen as an ephemeral
-	// message, or failing that in the player's private chat, and never on the
-	// group's timeline (internal/gateway/groups). In a private chat the flag
-	// changes nothing. Only neutral text with nothing personal in it — help,
-	// a short confirmation — is marked public.
-	Public bool `json:"public,omitempty"`
+	// Private says the screen is the player's own business — their exact
+	// money, their bank, their settings — and must not be shown to a group.
+	// The game is played in groups, so the zero value is public: a screen is
+	// an ordinary group message unless it says otherwise. In a group the
+	// gateway sends a private screen to the player's private chat with the
+	// bot and leaves one neutral line in the group (internal/gateway/groups).
+	// In a private chat the flag changes nothing.
+	Private bool `json:"private,omitempty"`
 }
 
-// MarkPublic declares the response safe for everyone in a group to see, and
-// returns it so a constructor can be wrapped: presenter.Message(t, kb).MarkPublic().
-func (r *Response) MarkPublic() *Response {
+// MarkPrivate declares the response the player's own business, and returns
+// it so a constructor can be wrapped: presenter.Message(t, kb).MarkPrivate().
+func (r *Response) MarkPrivate() *Response {
 	if r != nil {
-		r.Public = true
+		r.Private = true
 	}
 	return r
 }

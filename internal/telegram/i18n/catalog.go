@@ -371,9 +371,25 @@ func sorted(set map[string]bool) []string {
 
 // format renders an argument. A string is used as it stands; anything else
 // goes through the standard formatter.
+//
+// A missing value — nil, or a nil pointer — renders as nothing rather than as
+// Go's "<nil>". That word means something to a programmer and nothing to a
+// player, and a screen that would print it has a caller bug that the screen
+// snapshot tests (internal/telegram/screens/screentest) catch as a blank
+// value; the player never sees the Go spelling of "nothing".
 func format(v any) string {
 	if s, ok := v.(string); ok {
 		return s
 	}
-	return fmt.Sprint(v)
+	if v == nil {
+		return ""
+	}
+	if out := fmt.Sprint(v); out != nilText {
+		return out
+	}
+	return ""
 }
+
+// nilText is how the standard formatter prints a nil pointer, map, slice or
+// interface.
+const nilText = "<nil>"

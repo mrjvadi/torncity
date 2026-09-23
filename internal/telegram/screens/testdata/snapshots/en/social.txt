@@ -1,0 +1,108 @@
+━━━ Search · found by username ━━━
+(edits message 42)
+🔎 Search result
+
+👤 Kaveh
+🆔 Player code: B3C4D5F
+  ───
+  [➕ Add Kaveh] → social:friend.add:cfaebd97-b816-43a8-aff9-3798555dd818
+  [💸 Pay Kaveh] → bank:pay:B3C4D5F
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Search · found a player with no name ━━━
+(edits message 42)
+🔎 Search result
+
+👤 A player
+🆔 Player code: B3C4D5F
+  ───
+  [➕ Add A player] → social:friend.add:cfaebd97-b816-43a8-aff9-3798555dd818
+  [💸 Pay A player] → bank:pay:B3C4D5F
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Search · found yourself ━━━
+(edits message 42)
+🔎 Search result
+
+👤 Sara
+🆔 Player code: K7Q2M9A
+
+This is you. Share your player code so friends can find you.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Search · username not found ━━━
+(edits message 42)
+No player has the username @kaveh. They may have changed it or not started the game yet — ask them for their player code.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Search · code not found ━━━
+(edits message 42)
+No player has the code B3C4D5F. Check the code; to search by username, put @ in front of it.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Search · Telegram id not found ━━━
+(edits message 42)
+No player has this Telegram ID. They may not have started the game yet.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Search · how to search ━━━
+(edits message 42)
+🔎 Find a player
+Search by one of these:
+• Telegram username: /social @username
+• Player code: /social K7Q2M9A
+• Telegram ID: /social 123456789
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Friends (page 1 of 2) ━━━
+(edits message 42)
+👥 Friends
+
+• Kaveh
+• Nilou · waiting for a reply
+• A player · waiting for a reply
+• Kaveh · blocked
+
+Page 1 of 2
+  ───
+  [✅ Accept Nilou] → social:friend.accept:cfaebd97-b816-43a8-aff9-3798555dd818
+  [Next ➡️] → social:friend.list:2
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list:1
+
+━━━ Friends · none yet ━━━
+(edits message 42)
+👥 Friends
+
+You have no friends yet.
+To find a player, send their Telegram username or player code, for example /social @username
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list:1
+
+━━━ Friend request sent ━━━
+(edits message 42)
+✅ Friend request sent to Kaveh. They will appear in your friends list once they accept.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Friend request sent · nameless ━━━
+(edits message 42)
+✅ Friend request sent. The player will appear in your friends list once they accept.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Friend request accepted ━━━
+(edits message 42)
+✅ You and Nilou are now friends.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Friend request accepted · nameless ━━━
+(edits message 42)
+✅ Friend request accepted. This player is now in your friends list.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list

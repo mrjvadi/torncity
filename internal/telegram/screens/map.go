@@ -72,7 +72,7 @@ func Map(c Context, v MapView) *presenter.Response {
 			name := c.CityName(city.Code, city.Name)
 			lines = append(lines, c.T("map.destination", map[string]any{
 				"city":     name,
-				"distance": FormatNumber(int64(city.DistanceKM)),
+				"distance": FormatNumber(c, int64(city.DistanceKM)),
 			}))
 			// The city CODE is the address: it is authored content, it is
 			// stable, and it is short enough to leave room inside the 64-byte

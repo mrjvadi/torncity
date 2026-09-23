@@ -1,0 +1,175 @@
+━━━ /study ━━━
+(sends)
+🎓 Education
+
+Courses you can take here:
+• First Aid · 600 Nil · 2m
+• Driving Licence · 900 Nil · 3m
+• Bookkeeping · 1,200 Nil · 4m
+• Programming Fundamentals · 2,000 Nil · 6m
+🔒 Retail Management · 2,800 Nil · 8m · from level 4
+
+Page 1 of 2
+  ───
+  [📖 First Aid] → education:view:first_aid
+  [📖 Driving Licence] → education:view:driving_licence
+  [📖 Bookkeeping] → education:view:bookkeeping
+  [📖 Programming Fundamentals] → education:view:programming_fundamentals
+  [📖 Retail Management] → education:view:retail_management
+  [Next ➡️] → education:list:2
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
+
+━━━ First Aid ━━━
+(edits message 42)
+🎓 First Aid
+
+🏛 Training centre
+💰 Fee: 600 Nil
+⏳ Duration: 2m
+
+On completion:
+🛠 Medicine: +150 XP
+📜 The First Aid certificate
+  ───
+  [✅ Enrol · 600 Nil] → education:enroll:first_aid
+  [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:first_aid
+
+━━━ Enrol ━━━
+(edits message 42)
+✅ You have enrolled in First Aid
+💰 Fee paid: 600 Nil
+⏳ Duration: 2m
+The course finishes on its own, and you will be notified.
+🕒 Course ends at 12:02
+  ───
+  [🎓 Education] → education:list
+  [🔙 Back] → player:profile.get
+
+━━━ Studying ━━━
+(edits message 42)
+🎓 Education
+
+📖 Studying: First Aid
+⏳ Finishing any moment now.
+
+Courses you can take here:
+• First Aid · 600 Nil · 2m
+• Driving Licence · 900 Nil · 3m
+• Bookkeeping · 1,200 Nil · 4m
+• Programming Fundamentals · 2,000 Nil · 6m
+🔒 Retail Management · 2,800 Nil · 8m · from level 4
+
+Page 1 of 2
+  ───
+  [📖 First Aid] → education:view:first_aid
+  [📖 Driving Licence] → education:view:driving_licence
+  [📖 Bookkeeping] → education:view:bookkeeping
+  [📖 Programming Fundamentals] → education:view:programming_fundamentals
+  [📖 Retail Management] → education:view:retail_management
+  [Next ➡️] → education:list:2
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
+
+━━━ Profile while studying ━━━
+(edits message 42)
+👤 Sara
+📍 Ostmarch
+
+⭐ Level 1 · 50 XP to level 2
+⚡ Energy: 100 of 100
+❤️ Health: 100 of 100
+
+💼 No job yet
+📖 First Aid · finishing any moment
+
+💵 Cash: 4,400 Nil
+🏦 Bank balance: 0 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list   │   [💼 Job openings] → job:list
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Enrol in a second course ━━━
+(edits message 42)
+You cannot enrol in this course yet:
+❌ You are already studying First Aid. You can take one course at a time.
+  ───
+  [🎓 Education] → education:list
+  [🔙 Back] → player:profile.get
+
+━━━ A course taught elsewhere ━━━
+(edits message 42)
+That course is not on offer here. See “Education” for the courses you can take.
+  ───
+  [🎓 Education] → education:list
+  [🔙 Back] → player:profile.get
+
+━━━ Course finished (scheduler) ━━━
+(sends)
+🎓 You have completed First Aid.
+📜 Certificate earned: First Aid
+🛠 Medicine: +150 XP
+🛠 Medicine reached level 1.
+  ───
+  [🎓 Education] → education:list   │   [💼 Job openings] → job:list
+
+━━━ Study after the course ━━━
+(edits message 42)
+🎓 Education
+
+📜 Certificates: First Aid
+
+Courses you can take here:
+• Driving Licence · 900 Nil · 3m
+• Bookkeeping · 1,200 Nil · 4m
+• Programming Fundamentals · 2,000 Nil · 6m
+🔒 Retail Management · 2,800 Nil · 8m · from level 4
+• Evening Class in Accounting · 400 Nil · 2m
+  ───
+  [📖 Driving Licence] → education:view:driving_licence
+  [📖 Bookkeeping] → education:view:bookkeeping
+  [📖 Programming Fundamentals] → education:view:programming_fundamentals
+  [📖 Retail Management] → education:view:retail_management
+  [📖 Evening Class in Accounting] → education:view:evening_accounting
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
+
+━━━ Profile after the course ━━━
+(edits message 42)
+👤 Sara
+📍 Ostmarch
+
+⭐ Level 1 · 50 XP to level 2
+⚡ Energy: 100 of 100
+❤️ Health: 100 of 100
+
+💼 No job yet
+📜 1 certificates
+
+💵 Cash: 4,400 Nil
+🏦 Bank balance: 0 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list   │   [💼 Job openings] → job:list
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Enrol without the fee ━━━
+(edits message 42) (private in groups)
+💵 Not enough cash for this course.
+Fee: 1,200 Nil · Your cash: 100 Nil
+  ───
+  [🎓 Education] → education:list
+  [🔙 Back] → player:profile.get
+
+━━━ A course that does not exist ━━━
+(edits message 42)
+That course is not on offer here. See “Education” for the courses you can take.
+  ───
+  [🎓 Education] → education:list
+  [🔙 Back] → player:profile.get

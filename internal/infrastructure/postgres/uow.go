@@ -172,3 +172,7 @@ func (t *tx) Employment() application.EmploymentRepository { return &EmploymentR
 // Education returns the study repository bound to this transaction, so an
 // enrolment commits with its fee and its scheduled completion.
 func (t *tx) Education() application.EducationRepository { return &EducationRepository{q: t.q} }
+
+// Crime returns the crime repository bound to this transaction, so an
+// attempt commits with its nerve, its money and its sentence.
+func (t *tx) Crime() application.CrimeRepository { return &CrimeRepository{q: t.q} }

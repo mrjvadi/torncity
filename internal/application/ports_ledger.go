@@ -123,6 +123,32 @@ const ReasonTransitFare Reason = "transit_fare"
 // its own reason; this leg only moves part of it on.
 const ReasonIncomeTax Reason = "income_tax"
 
+// Crime (docs/adr/0019-crime-engine.md). One faucet and five transfers.
+//
+// An NPC crime's take is a FAUCET: the city's NPC economy — a shop, a parked
+// car, a passer-by — is outside the ledger, so its money enters from
+// system_source, capped per crime by the content's max_cash and across the
+// economy by config crime.npc_daily_cap. Everything else moves money that
+// already exists between owned accounts.
+const (
+	// ReasonCrimeProceeds pays an NPC crime's take into the thief's cash.
+	ReasonCrimeProceeds Reason = "crime_proceeds"
+	// ReasonTheft moves cash from a player victim's cash to the thief's.
+	ReasonTheft Reason = "theft"
+	// ReasonRestitution returns stolen money from a convicted thief's cash
+	// and bank to the victim's cash.
+	ReasonRestitution Reason = "restitution"
+	// ReasonCrimeFine pays a fine from the offender's cash and bank into the
+	// treasury of the city where the crime was committed.
+	ReasonCrimeFine Reason = "crime_fine"
+	// ReasonReportFee pays a victim's report fee into the treasury of the
+	// city where the theft happened.
+	ReasonReportFee Reason = "report_fee"
+	// ReasonBail pays bail from a prisoner's cash and bank into the treasury
+	// of the city that jailed them.
+	ReasonBail Reason = "bail"
+)
+
 // knownReasons is the closed set. Adding a code means adding it here AND to
 // the table in ADR 0009, in the same change.
 var knownReasons = map[Reason]struct{}{
@@ -140,6 +166,10 @@ var knownReasons = map[Reason]struct{}{
 	ReasonTransitFare: {},
 
 	ReasonIncomeTax: {},
+
+	ReasonCrimeProceeds: {},
+
+	ReasonTheft: {}, ReasonRestitution: {}, ReasonCrimeFine: {}, ReasonReportFee: {}, ReasonBail: {},
 }
 
 // Known reports whether r is in the closed set.

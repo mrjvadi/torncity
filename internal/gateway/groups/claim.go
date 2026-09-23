@@ -16,8 +16,7 @@ import (
 // bot is polled independently, possibly by different gateway instances, so
 // the choice cannot be made locally: the first bot to claim the message in
 // the shared store answers and the rest stay silent. A command addressed to
-// one bot ("/map@that_bot") and an ephemeral command need no claim, since
-// only the bot they name receives them.
+// one bot ("/map@that_bot") needs no claim: only the bot it names answers it.
 //
 // The claim rides on the same Redis set-if-absent store that suppresses
 // duplicate updates (application.Deduplicator), under its own key space and

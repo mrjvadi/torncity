@@ -115,6 +115,10 @@ type Tx interface {
 	// ports_jobs.go.
 	Employment() EmploymentRepository
 	Education() EducationRepository
+
+	// Crime holds the crime engine's state, so an attempt commits with its
+	// nerve, its money and its sentence; see ports_crime.go.
+	Crime() CrimeRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	stderrors "errors"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/job"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -33,12 +35,13 @@ type QuitRequest struct {
 }
 
 // JobsHandler serves work: the player's job, the openings in their city,
-// applying, working a shift, promotion and leaving.
+// applying, starting a shift and settling it when its time is up, promotion
+// and leaving.
 //
 // # Who pays
 //
 // Every employer today is a city's base (NPC) employer. It pays each shift
-// as it is worked, from system_source under ReasonBaseEmployerSalary — the
+// when it ends, from system_source under ReasonBaseEmployerSalary — the
 // faucet ADR 0009 lists for exactly this. When player companies arrive, a
 // job at a company is paid from that company's treasury instead, as a
 // transfer, in payWage; nothing else here changes.
@@ -56,6 +59,10 @@ type JobsHandler struct {
 	content ContentSource
 	cities  application.CityRepository
 	policy  application.PolicyReader
+	// scale is the game clock: a tier's shift duration, the time-in-tier bar
+	// and the fatigue window are game time, and the player waits them
+	// through it (config game.time_scale).
+	scale gametime.Scale
 
 	pageSize       int
 	idempotencyTTL time.Duration
@@ -63,7 +70,9 @@ type JobsHandler struct {
 }
 
 // NewJobsHandler wires the handler. idempotencyTTL is rejected at zero for
-// the reason NewTravelHandler gives.
+// the reason NewTravelHandler gives, and a game clock outside
+// 1..gametime.MaxScale is refused for the same reason: it is a wiring
+// mistake that looks like a design decision once it is live.
 func NewJobsHandler(
 	uow application.UnitOfWork,
 	ids IDGenerator,
@@ -71,6 +80,7 @@ func NewJobsHandler(
 	source ContentSource,
 	cities application.CityRepository,
 	policy application.PolicyReader,
+	scale gametime.Scale,
 	pageSize int,
 	idempotencyTTL time.Duration,
 	now func() time.Time,
@@ -80,6 +90,9 @@ func NewJobsHandler(
 	}
 	if idempotencyTTL <= 0 {
 		panic("handlers: NewJobsHandler requires a positive idempotency ttl")
+	}
+	if scale.Validate() != nil {
+		panic("handlers: NewJobsHandler requires a game clock within 1..gametime.MaxScale")
 	}
 	if pageSize < 1 {
 		pageSize = DefaultPageSize
@@ -91,7 +104,7 @@ func NewJobsHandler(
 		msgs = keyTranslator{}
 	}
 	return &JobsHandler{
-		uow: uow, ids: ids, msgs: msgs, content: source, cities: cities, policy: policy,
+		uow: uow, ids: ids, msgs: msgs, content: source, cities: cities, policy: policy, scale: scale,
 		pageSize: pageSize, idempotencyTTL: idempotencyTTL, now: now,
 	}
 }
@@ -168,7 +181,12 @@ func (h *JobsHandler) statusView(ctx context.Context, tx application.Tx, snap *c
 	if err != nil {
 		return screens.JobStatusView{}, err
 	}
-	s, err := loadStanding(ctx, tx, p, h.now())
+	now := h.now()
+	s, err := loadStanding(ctx, tx, p, now)
+	if err != nil {
+		return screens.JobStatusView{}, err
+	}
+	shift, err := activeShift(ctx, tx, p.ID)
 	if err != nil {
 		return screens.JobStatusView{}, err
 	}
@@ -187,10 +205,17 @@ func (h *JobsHandler) statusView(ctx context.Context, tx application.Tx, snap *c
 		TotalEarned:  emp.TotalEarned,
 		AtWorkplace:  !s.travelling && s.here() == emp.CityID,
 		TopTier:      emp.Tier == len(career.Tiers)-1,
+		ShiftLength:  h.scale.RealWait(tier.ShiftDuration),
+	}
+	if shift != nil {
+		view.Shift = &screens.ShiftProgress{
+			Remaining: domainActivity(*shift).Remaining(now),
+			EndsAt:    shift.EndsAt,
+		}
 	}
 	if !view.TopTier {
 		view.Next = jobRef(def, emp.Tier+1)
-		ok, reason := job.Promotion(career, domainEmployment(*emp), s.candidate(emp.CityID), h.now())
+		ok, reason := job.Promotion(career, domainEmployment(*emp), s.candidate(emp.CityID), now, h.scale)
 		switch {
 		case ok:
 			view.PromotionReady = true
@@ -450,13 +475,20 @@ func (h *JobsHandler) Apply(ctx context.Context, meta envelope.Metadata, req Job
 	return screens.JobHired(h.screen(meta, lang), view), nil
 }
 
-// Work handles job.work: one shift.
+// Work handles job.work: STARTING one shift.
 //
-// Everything a shift changes commits together or not at all: the energy it
-// cost and the XP it earned, the skill XP, the job's performance, counters
-// and fatigue history, the payroll row, the wage, the income tax and the
-// event. A shift the player cannot afford is refused before anything is
+// A shift takes time (docs/adr/0018-game-clock.md). Starting it commits, in
+// one unit of work: the energy it costs, the shift_sessions row that makes
+// the player busy at work, its end on the schedule, and the event. Nothing is
+// paid here; FinishShift settles the shift when the scheduler says its time
+// is up. A shift the player cannot afford, one started while another runs,
+// while travelling or away from the job is refused before anything is
 // written.
+//
+// A double press cannot start two shifts. The job row is locked first, so a
+// second start waits and then finds the first one working; and should two
+// starts ever reach the insert together, the partial unique index on
+// shift_sessions refuses the second.
 func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
@@ -464,7 +496,7 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 	snap := h.content.Current()
 	lang := meta.Language
 	replayed := false
-	var view screens.ShiftWorkedView
+	var view screens.ShiftStartedView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -481,8 +513,8 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 			return nil
 		}
 
-		// Locks the job: a second shift of this player waits here and then
-		// sees what the first one left.
+		// Locks the job: a second start of this player waits here and then
+		// sees the shift the first one began.
 		emp, err := tx.Employment().Current(ctx, p.ID)
 		if isSentinel(err, application.ErrNotEmployed) {
 			return refuse(screens.RefusalNotEmployed, nil)
@@ -490,7 +522,19 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 		if err != nil {
 			return err
 		}
-		_, career, err := careerOf(snap, emp.CareerCode)
+		now := h.now()
+		current, err := activeShift(ctx, tx, p.ID)
+		if err != nil {
+			return err
+		}
+		if current != nil {
+			return shiftRefusal(*current, now)
+		}
+		// No shift from a cell or in the middle of a crime (docs/adr/0019).
+		if err := RefuseDetained(ctx, tx, p.ID, now); err != nil {
+			return err
+		}
+		def, career, err := careerOf(snap, emp.CareerCode)
 		if err != nil {
 			return err
 		}
@@ -498,7 +542,8 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 		if err != nil {
 			return err
 		}
-		now := h.now()
+		// Locks the player's stats row, the one every departure also
+		// locks: from here a journey and a shift cannot both begin.
 		s, err := loadStanding(ctx, tx, p, now)
 		if err != nil {
 			return err
@@ -513,19 +558,226 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 			return err
 		}
 
-		res, err := job.Work(job.Shift{
+		tier := career.Tiers[emp.Tier]
+		started, err := job.StartShift(job.Shift{
 			Career:     career,
 			Employment: domainEmployment(*emp),
 			Stats:      domainStats(s.stats),
 			Skills:     domainSkills(s.skills),
 			Policy:     pol.Policy,
 			Now:        now,
+			Clock:      h.scale,
 		})
 		if err != nil {
 			if stderrors.Is(err, player.ErrNotEnoughEnergy) {
-				return energyRefusal(err, career.Tiers[emp.Tier].EnergyCost, s.stats.Energy)
+				return energyRefusal(err, tier.EnergyCost, s.stats.Energy)
 			}
 			return errors.Internal(err)
+		}
+
+		stats := storedStats(s.stats, started.Stats)
+		stats.UpdatedAt = s.stats.UpdatedAt
+		if err := tx.Stats().Save(ctx, stats); err != nil {
+			return err
+		}
+
+		sessionID := h.ids.NewID()
+		actionID := h.ids.NewID()
+		payload, err := json.Marshal(ShiftActionPayload{SessionID: sessionID, PlayerID: p.ID, EmploymentID: emp.ID})
+		if err != nil {
+			return err
+		}
+		a := started.Activity
+		// The schedule row first: the session points at it, and it is what
+		// ends the shift even if every process restarts meanwhile.
+		if err := tx.GameActions().Schedule(ctx, application.GameAction{
+			ID:            actionID,
+			ActionType:    application.ShiftActionType,
+			ActorType:     "player",
+			ActorID:       p.ID,
+			ReferenceType: "shift_sessions",
+			ReferenceID:   sessionID,
+			Payload:       payload,
+			StartedAt:     a.StartedAt,
+			FinishAt:      a.EndsAt,
+		}); err != nil {
+			return err
+		}
+		if err := tx.Employment().StartShift(ctx, application.ShiftSession{
+			ID:           sessionID,
+			EmploymentID: emp.ID,
+			PlayerID:     p.ID,
+			Tier:         a.Tier,
+			GameActionID: actionID,
+			Status:       application.ShiftWorking,
+			FatigueBPS:   a.FatigueBPS,
+			EnergyCost:   tier.EnergyCost,
+			StartedAt:    a.StartedAt,
+			EndsAt:       a.EndsAt,
+		}); err != nil {
+			if isSentinel(err, application.ErrShiftInProgress) {
+				return refuse(screens.RefusalShiftInProgress, nil)
+			}
+			return err
+		}
+		if err := appendJobEvent(ctx, tx, meta, "shift_started", emp.ID, map[string]any{
+			"employment_id":   emp.ID,
+			"session_id":      sessionID,
+			"player_id":       p.ID,
+			"career":          emp.CareerCode,
+			"tier":            a.Tier,
+			"energy":          tier.EnergyCost,
+			"fatigue_bps":     a.FatigueBPS,
+			"ends_at":         a.EndsAt,
+			"content_version": snap.Version(),
+		}); err != nil {
+			return err
+		}
+		view = screens.ShiftStartedView{
+			Job:        jobRef(def, emp.Tier),
+			Duration:   a.EndsAt.Sub(a.StartedAt),
+			EndsAt:     a.EndsAt,
+			FatigueBPS: a.FatigueBPS,
+			Energy:     stats.Energy,
+			MaxEnergy:  stats.MaxEnergy,
+		}
+		return nil
+	})
+	resp, err := h.finish(meta, lang, nil, err)
+	if err != nil || resp != nil {
+		return resp, err
+	}
+	if replayed {
+		return h.Status(ctx, meta)
+	}
+	return screens.ShiftStarted(h.screen(meta, lang), view), nil
+}
+
+// ShiftActionPayload is the jsonb a started shift writes onto its
+// game_actions row, and the shape read back when it comes due. It repeats
+// the row's columns for the reason TravelActionPayload gives.
+type ShiftActionPayload struct {
+	SessionID    string `json:"session_id"`
+	PlayerID     string `json:"player_id"`
+	EmploymentID string `json:"employment_id"`
+}
+
+// FinishShiftRequest is job.finish_shift, published by the scheduler when a
+// shift's time is up. It mirrors CompleteCourseRequest.
+type FinishShiftRequest struct {
+	ActionID      string          `json:"action_id"`
+	ActorID       string          `json:"actor_id"`
+	ReferenceType string          `json:"reference_type"`
+	ReferenceID   string          `json:"reference_id"`
+	Payload       json.RawMessage `json:"payload"`
+}
+
+// FinishShift settles a shift whose time is up. It arrives from the
+// SCHEDULER, like travel.arrive and education.complete, and pays exactly once
+// the same three ways: the idempotency key is derived from the session, a
+// second delivery finds the session no longer working (the job row is locked
+// first, so two deliveries run in turn), and the payroll row takes the
+// session's id as its primary key.
+//
+// Everything a shift earns commits together or not at all: the XP, the skill
+// XP, the job's performance, counters and fatigue history, the payroll row,
+// the wage, the income tax and the job.shift_worked event the notifier turns
+// into the player's notice.
+func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, req FinishShiftRequest) (*presenter.Response, error) {
+	if err := meta.Validate(); err != nil {
+		return nil, errors.InvalidInput("malformed request context").WithCause(err)
+	}
+	playerID, sessionID := req.ActorID, req.ReferenceID
+	if playerID == "" || sessionID == "" {
+		var inner ShiftActionPayload
+		if len(req.Payload) > 0 {
+			if err := json.Unmarshal(req.Payload, &inner); err != nil {
+				return nil, errors.InvalidInput("shift end payload is unreadable").WithCause(err)
+			}
+		}
+		if playerID == "" {
+			playerID = inner.PlayerID
+		}
+		if sessionID == "" {
+			sessionID = inner.SessionID
+		}
+	}
+	if playerID == "" || sessionID == "" {
+		return nil, errors.InvalidInput("shift end names no shift")
+	}
+
+	snap := h.content.Current()
+	var (
+		view     screens.ShiftWorkedView
+		done     bool
+		language = meta.Language
+	)
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		key := idempotency.Derive(playerID, meta.Command, sessionID)
+		fresh, err := tx.Idempotency().Reserve(ctx, string(key), playerID, meta.RequestID, meta.Command, h.idempotencyTTL)
+		if err != nil || !fresh {
+			return err
+		}
+		// The job row first, as every other shift command takes it.
+		emp, err := tx.Employment().Current(ctx, playerID)
+		if err != nil && !isSentinel(err, application.ErrNotEmployed) {
+			return err
+		}
+		session, err := activeShift(ctx, tx, playerID)
+		if err != nil || session == nil || session.ID != sessionID {
+			// Already settled, or the row that came due is not the shift
+			// this player is working: nothing to do.
+			return err
+		}
+		now := h.now()
+		if emp == nil || emp.ID != session.EmploymentID {
+			// The job ended under a running shift. Quitting refuses that, so
+			// this is a job ended some other way; the shift ends unpaid.
+			err := tx.Employment().EndShift(ctx, session.ID, application.ShiftAbandoned, now)
+			if isSentinel(err, application.ErrNoShiftInProgress) {
+				return nil // a concurrent delivery ended it first
+			}
+			return err
+		}
+		def, career, err := careerOf(snap, emp.CareerCode)
+		if err != nil {
+			return err
+		}
+		city, err := h.cities.ByID(ctx, emp.CityID)
+		if err != nil {
+			return err
+		}
+		p, err := tx.Players().GetByID(ctx, playerID)
+		if err != nil {
+			return err
+		}
+		language = RenderLanguage(meta, p)
+		s, err := loadStanding(ctx, tx, p, now)
+		if err != nil {
+			return err
+		}
+		pol, err := readLabourPolicy(ctx, h.policy, *city)
+		if err != nil {
+			return err
+		}
+
+		res, err := job.FinishShift(job.Finish{
+			Career:     career,
+			Employment: domainEmployment(*emp),
+			Stats:      domainStats(s.stats),
+			Skills:     domainSkills(s.skills),
+			Policy:     pol.Policy,
+			Activity:   domainActivity(*session),
+			Now:        now,
+			Clock:      h.scale,
+		})
+		if err != nil {
+			// Early by a clock step, or anything else: a fault worth a retry,
+			// which the broker's backoff turns into "later".
+			return errors.Internal(err)
+		}
+		if err := tx.Employment().EndShift(ctx, session.ID, application.ShiftCompleted, now); err != nil {
+			return err
 		}
 
 		stats := storedStats(s.stats, res.Stats)
@@ -533,13 +785,13 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 		if err := tx.Stats().Save(ctx, stats); err != nil {
 			return err
 		}
-		gains, err := awardSkillXP(ctx, tx, p.ID, s.skills, skillXPFromJob(res.SkillXP), now)
+		gains, err := awardSkillXP(ctx, tx, playerID, s.skills, skillXPFromJob(res.SkillXP), now)
 		if err != nil {
 			return err
 		}
-
-		shiftID := h.ids.NewID()
-		pay, err := h.payWage(ctx, tx, p.ID, s.residence, emp.CityID, shiftID, res.Pay, pol)
+		// The payroll row and both ledger transactions carry the session's
+		// id: one shift, one payment, whatever is delivered twice.
+		pay, err := h.payWage(ctx, tx, playerID, s.residence, emp.CityID, session.ID, res.Pay, pol)
 		if err != nil {
 			return err
 		}
@@ -555,10 +807,10 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 			return err
 		}
 		if err := tx.Employment().RecordShift(ctx, application.WorkShift{
-			ID:                  shiftID,
+			ID:                  session.ID,
 			EmploymentID:        emp.ID,
-			PlayerID:            p.ID,
-			Tier:                emp.Tier,
+			PlayerID:            playerID,
+			Tier:                session.Tier,
 			WorkedAt:            now,
 			Gross:               pay.Gross.Minor(),
 			Tax:                 pay.Tax.Minor(),
@@ -570,29 +822,43 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 		}); err != nil {
 			return err
 		}
-		if err := appendJobEvent(ctx, tx, meta, "shift_worked", emp.ID, map[string]any{
-			"employment_id":     emp.ID,
-			"shift_id":          shiftID,
-			"player_id":         p.ID,
-			"career":            emp.CareerCode,
-			"tier":              emp.Tier,
-			"gross":             pay.Gross.Minor(),
-			"tax":               pay.Tax.Minor(),
-			"net":               pay.Net.Minor(),
-			"xp":                res.XP,
-			"performance":       res.Employment.Performance,
-			"performance_delta": res.PerformanceDelta,
-			"fatigue_bps":       res.FatigueBPS,
-			"levels":            levelNumbers(res.LevelUps),
-			"content_version":   snap.Version(),
-		}); err != nil {
-			return err
-		}
 
 		top := 0
 		for _, up := range res.LevelUps {
 			top = max(top, up.Level)
 		}
+		skills := make([]CourseSkillGain, 0, len(gains))
+		for _, g := range gains {
+			skills = append(skills, CourseSkillGain{Skill: g.Skill, XP: g.XP, Level: g.Level})
+		}
+		ref := jobRef(def, session.Tier)
+		if err := appendJobEvent(ctx, tx, meta, "shift_worked", emp.ID, map[string]any{
+			"employment_id":     emp.ID,
+			"shift_id":          session.ID,
+			"player_id":         playerID,
+			"career":            emp.CareerCode,
+			"career_name":       ref.CareerName,
+			"rank":              ref.Rank,
+			"title":             ref.Title,
+			"tier":              session.Tier,
+			"gross":             pay.Gross.Minor(),
+			"tax":               pay.Tax.Minor(),
+			"net":               pay.Net.Minor(),
+			"xp":                res.XP,
+			"skills":            skills,
+			"performance":       res.Employment.Performance,
+			"performance_delta": res.Employment.Performance - clampPercent(emp.Performance),
+			"fatigue_bps":       res.FatigueBPS,
+			"level":             top,
+			"levels":            levelNumbers(res.LevelUps),
+			"energy":            stats.Energy,
+			"max_energy":        stats.MaxEnergy,
+			"content_version":   snap.Version(),
+		}); err != nil {
+			return err
+		}
+
+		done = true
 		view = screens.ShiftWorkedView{
 			Gross:            pay.Gross.Minor(),
 			Tax:              pay.Tax.Minor(),
@@ -608,14 +874,32 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 		}
 		return nil
 	})
-	resp, err := h.finish(meta, lang, nil, err)
-	if err != nil || resp != nil {
-		return resp, err
+	if err != nil || !done {
+		return nil, err
 	}
-	if replayed {
-		return h.Status(ctx, meta)
+	return screens.ShiftWorked(screens.Context{Msgs: h.msgs, Lang: language}, view), nil
+}
+
+// activeShift returns the shift the player is working, or nil.
+func activeShift(ctx context.Context, tx application.Tx, playerID string) (*application.ShiftSession, error) {
+	s, err := tx.Employment().ActiveShift(ctx, playerID)
+	if isSentinel(err, application.ErrNoShiftInProgress) {
+		return nil, nil
 	}
-	return screens.ShiftWorked(h.screen(meta, lang), view), nil
+	return s, err
+}
+
+// domainActivity lifts a stored shift into the domain's value.
+func domainActivity(s application.ShiftSession) job.Activity {
+	return job.Activity{Tier: s.Tier, StartedAt: s.StartedAt, EndsAt: s.EndsAt, FatigueBPS: s.FatigueBPS}
+}
+
+// shiftRefusal is "you are at work", with the time the shift has left.
+func shiftRefusal(s application.ShiftSession, now time.Time) error {
+	r := refuse(screens.RefusalShiftInProgress, nil).(*refusal)
+	r.view.Wait = domainActivity(s).Remaining(now)
+	r.view.EndsAt = s.EndsAt
+	return r
 }
 
 // wage is one shift's pay after withholding.
@@ -755,11 +1039,18 @@ func (h *JobsHandler) Promote(ctx context.Context, meta envelope.Metadata) (*pre
 			return err
 		}
 		now := h.now()
+		if shift, err := activeShift(ctx, tx, p.ID); err != nil {
+			return err
+		} else if shift != nil {
+			// The shift running is paid at the tier it started in; a
+			// promotion waits until it is over.
+			return shiftRefusal(*shift, now)
+		}
 		s, err := loadStanding(ctx, tx, p, now)
 		if err != nil {
 			return err
 		}
-		promoted, err := job.Promote(career, domainEmployment(*emp), s.candidate(emp.CityID), now)
+		promoted, err := job.Promote(career, domainEmployment(*emp), s.candidate(emp.CityID), now, h.scale)
 		if err != nil {
 			if missing, ok := shortfalls(snap, err, *city); ok {
 				return refuse(screens.RefusalPromotion, missing)
@@ -844,10 +1135,17 @@ func (h *JobsHandler) Quit(ctx context.Context, meta envelope.Metadata, req Quit
 		if def, ok := snap.CareerDef(emp.CareerCode); ok {
 			ref = jobRef(def, emp.Tier)
 		}
+		now := h.now()
+		if shift, err := activeShift(ctx, tx, p.ID); err != nil {
+			return err
+		} else if shift != nil {
+			// Walking out mid-shift would leave a shift nobody pays; the
+			// player finishes it first.
+			return shiftRefusal(*shift, now)
+		}
 		if !confirmed {
 			return nil
 		}
-		now := h.now()
 		if err := tx.Employment().End(ctx, emp.ID, application.EndResigned, now); err != nil {
 			return err
 		}

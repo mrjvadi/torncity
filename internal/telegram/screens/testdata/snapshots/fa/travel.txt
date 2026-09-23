@@ -1,0 +1,160 @@
+━━━ Map · destinations from here (page 1 of 2) ━━━
+(edits message 42)
+🗺 نقشه
+
+📍 شما در استمارچ هستید.
+
+از اینجا به این شهرها می‌توانید سفر کنید:
+• فنویک اسپن · ۱۲۰ کیلومتر
+• آلدرین هالو · ۳۴۰ کیلومتر
+• برنهاون · ۱٬۲۶۰ کیلومتر
+
+صفحهٔ ۱ از ۲
+  ───
+  [🧭 فنویک اسپن] → travel:options:fenwick_span
+  [🧭 آلدرین هالو] → travel:options:aldrin_hollow
+  [🧭 برنهاون] → travel:options:brennhaven
+  [🏛 مناصب و سیاست‌ها] → gov:city
+  [بعدی ⬅️] → map:list:2
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → map:list:1
+
+━━━ Map · no routes from here ━━━
+(edits message 42)
+🗺 نقشه
+
+📍 شما در ونتور ریچ هستید.
+
+فعلاً از اینجا راهی به شهر دیگری نیست. کمی بعد با «به‌روزرسانی» دوباره نگاه کنید.
+  ───
+  [🏛 مناصب و سیاست‌ها] → gov:city
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → map:list:1
+
+━━━ Map · not in any city ━━━
+(edits message 42)
+🗺 نقشه
+
+هنوز در هیچ شهری مستقر نشده‌اید. پس از استقرار، مقصدهای سفر همین‌جا نمایش داده می‌شوند.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → map:list
+
+━━━ Map · while travelling ━━━
+(edits message 42)
+🗺 نقشه
+
+🧭 در راه برنهاون هستید. پس از رسیدن می‌توانید سفر تازه‌ای را آغاز کنید.
+  ───
+  [🧭 سفر من] → travel:status
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → map:list
+
+━━━ Travel options ━━━
+(edits message 42)
+🧭 سفر به برنهاون
+📍 مبدأ: استمارچ
+
+با چه وسیله‌ای می‌روید؟
+• اتوبوس · رایگان · ۱۳ دقیقه در راه · ۸ انرژی
+• خودرو · ۶٬۳۰۰ نیل · ۷ دقیقه در راه · ۱۴ انرژی
+• قطار · ۷٬۷۲۰ نیل (مسیر شلوغ) · ۴ دقیقه در راه · ۶ انرژی
+• هواپیما · ۱۰٬۴۸۰ نیل · ۲ دقیقه در راه · ۴ انرژی
+
+💵 پول نقد شما: ۵٬۰۰۰ نیل
+  ───
+  [اتوبوس · رایگان] → travel:start:brennhaven:bus:0
+  [خودرو · ۶٬۳۰۰ نیل] → travel:start:brennhaven:car:6300
+  [قطار · ۷٬۷۲۰ نیل] → travel:start:brennhaven:train:7720
+  [هواپیما · ۱۰٬۴۸۰ نیل] → travel:start:brennhaven:flight:10480
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → travel:options:brennhaven
+
+━━━ Travel options · the fare changed before departure ━━━
+(edits message 42)
+🧭 سفر به برنهاون
+📍 مبدأ: استمارچ
+
+⚠️ کرایه از وقتی که قیمت‌ها را دیدید تغییر کرده است. پولی کسر نشد؛ قیمت‌های تازه را ببینید و دوباره انتخاب کنید.
+
+با چه وسیله‌ای می‌روید؟
+• قطار · ۸٬۴۹۰ نیل (مسیر شلوغ) · ۴ دقیقه در راه · ۶ انرژی
+
+💵 پول نقد شما: ۵٬۰۰۰ نیل
+  ───
+  [قطار · ۸٬۴۹۰ نیل] → travel:start:brennhaven:train:8490
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → travel:options:brennhaven
+
+━━━ Travel · cannot afford the fare ━━━
+(edits message 42) (private in groups)
+💵 پول نقدتان برای سفر با هواپیما کافی نیست.
+کرایه: ۱۰٬۴۸۰ نیل · پول نقد شما: ۳٬۲۰۰ نیل
+پولی کسر نشد؛ شاید وسیلهٔ ارزان‌تری در دسترس باشد.
+  ───
+  [🧭 وسیله‌های سفر] → travel:options:brennhaven
+  [🔙 بازگشت] → map:list
+
+━━━ Travel · departed, paid fare ━━━
+(edits message 42)
+🧭 سفر با قطار به سوی برنهاون آغاز شد
+استمارچ را ترک کردید و ۴ دقیقه دیگر می‌رسید.
+⚡ ۶ انرژی مصرف شد.
+💵 کرایهٔ پرداخت‌شده: ۷٬۷۲۰ نیل
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → travel:status
+
+━━━ Travel · departed, free ━━━
+(edits message 42)
+🧭 سفر با اتوبوس به سوی فنویک اسپن آغاز شد
+استمارچ را ترک کردید و ۱ ساعت و ۳۵ دقیقه دیگر می‌رسید.
+⚡ ۸ انرژی مصرف شد.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → travel:status
+
+━━━ Travel · on the way ━━━
+(edits message 42)
+🧭 در راه برنهاون
+📍 مبدأ: استمارچ
+⏳ ۲ ساعت و ۱۵ دقیقه تا رسیدن
+وسیلهٔ سفر: قطار
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → travel:status
+
+━━━ Travel · departed, with the arrival time ━━━
+(edits message 42)
+🧭 سفر با قطار به سوی برنهاون آغاز شد
+استمارچ را ترک کردید و ۴ دقیقه دیگر می‌رسید.
+⚡ ۶ انرژی مصرف شد.
+🕒 ساعت رسیدن: ۱۴:۳۹
+💵 کرایهٔ پرداخت‌شده: ۷٬۷۲۰ نیل
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → travel:status
+
+━━━ Travel · on the way, with the arrival time ━━━
+(edits message 42)
+🧭 در راه برنهاون
+📍 مبدأ: استمارچ
+⏳ ۲ ساعت و ۱۵ دقیقه تا رسیدن
+🕒 ساعت رسیدن: ۱۶:۵۰
+وسیلهٔ سفر: قطار
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → travel:status
+
+━━━ Travel · arriving any moment ━━━
+(edits message 42)
+🧭 در راه برنهاون
+📍 مبدأ: استمارچ
+⏳ چند لحظهٔ دیگر می‌رسید.
+وسیلهٔ سفر: اتوبوس
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → travel:status
+
+━━━ Travel · arrived (reply) ━━━
+(sends)
+📍 به برنهاون رسیدید.
+⭐ ۲۵ امتیاز تجربه گرفتید.
+  ───
+  [👤 پروفایل] → player:profile.get   │   [🗺 نقشه] → map:list
+
+━━━ Notice · arrived and levelled up ━━━
+(sends)
+📍 به برنهاون رسیدید.
+⭐ ۱٬۲۵۰ امتیاز تجربه گرفتید.
+⭐ تبریک؛ به سطح ۵ رسیدید.
+  ───
+  [👤 پروفایل] → player:profile.get   │   [🗺 نقشه] → map:list

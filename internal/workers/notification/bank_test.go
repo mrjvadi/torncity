@@ -58,7 +58,8 @@ func TestPaymentNoticeGoesToThePayee(t *testing.T) {
 				t.Fatalf("sent %d notices, want 1", len(r.sender.sent))
 			}
 			text := r.sender.sent[0].notice.Response.Text
-			for _, want := range []string{"Ada", "12,500", "B3C4D5F"} {
+			amount := map[string]string{"fa": "۱۲٬۵۰۰", "en": "12,500"}[lang]
+			for _, want := range []string{"Ada", amount, "B3C4D5F"} {
 				if !strings.Contains(text, want) {
 					t.Errorf("notice lacks %q:\n%s", want, text)
 				}

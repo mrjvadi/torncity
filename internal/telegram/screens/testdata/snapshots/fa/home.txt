@@ -1,0 +1,192 @@
+━━━ Profile · a brand-new player (/start) ━━━
+(sends)
+👋 به بازی خوش آمدید!
+اینجا خانهٔ شماست: وضعیت، پول و کارتان را همین‌جا می‌بینید. با دکمه‌های پایین به هر جای بازی بروید.
+
+📍 استمارچ
+
+⭐ سطح ۱ · ۵۰ امتیاز تجربه تا سطح ۲
+⚡ انرژی: ۱۰۰ از ۱۰۰
+❤️ سلامت: ۱۰۰ از ۱۰۰
+
+💼 هنوز شغلی ندارید
+
+💵 پول نقد: ۵٬۰۰۰ نیل
+🏦 موجودی بانک: ۰ نیل
+
+🆔 کد بازیکن: K7Q2M9A
+دوستانتان با فرستادن /social K7Q2M9A شما را پیدا می‌کنند.
+  ───
+  [🗺 نقشه] → map:list   │   [💼 فرصت‌های شغلی] → job:list
+  [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
+  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [🏛 مناصب و سیاست‌ها] → gov:city
+  [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
+
+━━━ Profile · an established player with a job and a course ━━━
+(edits message 42)
+👤 سارا
+📍 برنهاون
+
+⭐ سطح ۷ · ۴۶۰ امتیاز تجربه تا سطح ۸
+⚡ انرژی: ۶۴ از ۱۰۰ · ۵۴ دقیقه تا پر شدن
+❤️ سلامت: ۹۲ از ۱۰۰
+
+💼 فروشنده در برنهاون · ۱۹۰ نیل برای هر شیفت
+📖 دفترداری · ۱ ساعت و ۳۵ دقیقه مانده
+📜 ۲ مدرک
+
+💵 پول نقد: ۱۲٬۸۵۰ نیل
+🏦 موجودی بانک: ۲۴۰٬۰۰۰ نیل
+
+🆔 کد بازیکن: K7Q2M9A
+  ───
+  [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
+  [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
+  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [🏛 مناصب و سیاست‌ها] → gov:city
+  [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
+
+━━━ Profile · on a shift ━━━
+(edits message 42)
+👤 سارا
+📍 برنهاون
+
+⭐ سطح ۷ · ۴۶۰ امتیاز تجربه تا سطح ۸
+⚡ انرژی: ۴۹ از ۱۰۰ · ۱ ساعت و ۳۰ دقیقه تا پر شدن
+❤️ سلامت: ۹۲ از ۱۰۰
+
+💼 فروشنده در برنهاون · ۱۹۰ نیل برای هر شیفت
+⏳ در حال شیفت · ۲۵ دقیقه مانده
+
+💵 پول نقد: ۱۲٬۸۵۰ نیل
+🏦 موجودی بانک: ۲۴۰٬۰۰۰ نیل
+
+🆔 کد بازیکن: K7Q2M9A
+  ───
+  [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
+  [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
+  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [🏛 مناصب و سیاست‌ها] → gov:city
+  [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
+
+━━━ Profile · travelling ━━━
+(edits message 42)
+👤 سارا
+🧭 در راه برنهاون · ۲ ساعت و ۱۵ دقیقه مانده
+
+⭐ سطح ۲ · ۹۰ امتیاز تجربه تا سطح ۳
+⚡ انرژی: ۸۲ از ۱۰۰ · ۱۸ دقیقه تا پر شدن
+❤️ سلامت: ۱۰۰ از ۱۰۰
+
+💼 پیک در استمارچ · ۱۳۰ نیل برای هر شیفت
+
+💵 پول نقد: ۴٬۴۴۰ نیل
+🏦 موجودی بانک: ۰ نیل
+
+🆔 کد بازیکن: K7Q2M9A
+  ───
+  [🧭 سفر من] → travel:status   │   [💼 شغل من] → job:status
+  [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
+  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
+
+━━━ Profile · not in any city yet ━━━
+(edits message 42)
+👋 به بازی خوش آمدید!
+اینجا خانهٔ شماست: وضعیت، پول و کارتان را همین‌جا می‌بینید. با دکمه‌های پایین به هر جای بازی بروید.
+
+👤 سارا
+
+⭐ سطح ۱ · ۵۰ امتیاز تجربه تا سطح ۲
+⚡ انرژی: ۱۰۰ از ۱۰۰
+❤️ سلامت: ۱۰۰ از ۱۰۰
+
+💵 پول نقد: ۰ نیل
+🏦 موجودی بانک: ۰ نیل
+  ───
+  [💼 شغل من] → job:status
+  [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
+  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
+
+━━━ Profile · top level ━━━
+(edits message 42)
+👤 سارا
+📍 کالدریس
+
+⭐ سطح ۱۰۰ · بالاترین سطح بازی
+⚡ انرژی: ۱۰۰ از ۱۰۰
+❤️ سلامت: ۱۰۰ از ۱۰۰
+
+💵 پول نقد: ۱٬۲۵۰٬۰۰۰ نیل
+🏦 موجودی بانک: ۹۸٬۴۰۰٬۰۰۰ نیل
+
+🆔 کد بازیکن: K7Q2M9A
+  ───
+  [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
+  [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
+  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [🏛 مناصب و سیاست‌ها] → gov:city
+  [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
+
+━━━ Dashboard ━━━
+(edits message 42)
+👤 سارا
+📍 استمارچ
+
+⭐ سطح ۳
+⚡ انرژی: ۴۰ از ۱۰۰
+
+💵 پول نقد: ۵٬۰۰۰ نیل
+🏦 موجودی بانک: ۱۲٬۰۰۰ نیل
+  ───
+  [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
+  [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
+  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [🏛 مناصب و سیاست‌ها] → gov:city
+  [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
+
+━━━ Help · an unknown command ━━━
+(sends)
+این پیام را متوجه نشدم.
+
+بازی با دکمه‌ها پیش می‌رود. این دستورها را هم می‌توانید بفرستید:
+/profile — پروفایل و خانه
+/map — نقشه و سفر
+/job — شغل من
+/jobs — فرصت‌های شغلی
+/study — آموزش و دوره‌ها
+/bank — بانک، واریز و برداشت
+/pay — پرداخت به بازیکن دیگر
+/skills — مهارت‌ها
+/social — دوستان
+/find — پیدا کردن بازیکن
+/city — مناصب و سیاست‌های شهر
+/office — منصب من
+/settings — تنظیمات
+  ───
+  [👤 پروفایل] → player:profile.get   │   [🗺 نقشه] → map:list
+  [💼 شغل من] → job:status   │   [🎓 آموزش] → education:list
+  [🏦 بانک] → bank:show   │   [🛠 مهارت‌ها] → skills:list
+  [👥 دوستان] → social:friend.list   │   [⚙️ تنظیمات] → player:settings
+
+━━━ Settings ━━━
+(edits message 42)
+⚙️ تنظیمات
+
+🌐 زبان بازی: فارسی
+  ───
+  [🌐 تغییر زبان به English] → player:language.set:en
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → player:settings
+
+━━━ Settings · just changed the language ━━━
+(edits message 42)
+⚙️ تنظیمات
+
+✅ زبان بازی به فارسی تغییر کرد.
+
+🌐 زبان بازی: فارسی
+  ───
+  [🌐 تغییر زبان به English] → player:language.set:en
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → player:settings

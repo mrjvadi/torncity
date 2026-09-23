@@ -86,7 +86,7 @@ func Bank(c Context, v BankView) *presenter.Response {
 		city := c.CityName(v.CityCode, v.City)
 		where = c.T("bank.branch", map[string]any{"city": city})
 		if v.WithdrawalFeeBPS > 0 {
-			terms = c.T("bank.withdrawal_fee", map[string]any{"percent": PercentFromBPS(int(v.WithdrawalFeeBPS))})
+			terms = c.T("bank.withdrawal_fee", map[string]any{"percent": PercentFromBPS(c, int(v.WithdrawalFeeBPS))})
 		} else {
 			terms = c.T("bank.withdrawal_free", nil)
 		}
@@ -208,7 +208,7 @@ func Pay(c Context, v PayView) *presenter.Response {
 	case v.CardFeeBPS > 0:
 		terms = c.T("pay.card_fee", map[string]any{
 			"city":    payerCity,
-			"percent": PercentFromBPS(int(v.CardFeeBPS)),
+			"percent": PercentFromBPS(c, int(v.CardFeeBPS)),
 		})
 	default:
 		terms = c.T("pay.card_free", map[string]any{"city": payerCity})

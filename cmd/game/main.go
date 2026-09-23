@@ -29,11 +29,13 @@ import (
 
 	natsgo "github.com/nats-io/nats.go"
 
+	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/commands"
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/bank"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -164,8 +166,12 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		slog.Duration("shutdown_timeout", cfg.Game.ShutdownTimeout),
 		slog.Duration("idempotency_ttl", cfg.Game.IdempotencyTTL),
 		slog.String("default_language", cfg.Player.DefaultLanguage),
-		slog.Int("travel_time_scale", cfg.Travel.TimeScale),
+		slog.Int("game_time_scale", cfg.Game.TimeScale),
+		slog.String("default_timezone", cfg.Player.DefaultTimezone),
 		slog.Int("travel_arrival_xp", cfg.Travel.ArrivalXP))
+
+	// Every clock time a screen shows is in the players' zone, never UTC.
+	screens.SetDefaultZone(cfg.Player.Location())
 
 	// The bank's limits, validated once here: a pair that would refuse
 	// every amount stops the service at startup, not at a player's press.
@@ -229,7 +235,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			cfg.Player.DefaultLanguage,
 			cfg.Game.IdempotencyTTL,
 			nil,
-		),
+		).WithWork(registry, postgres.NewPolicyReader(pool, nil)),
 		travel: handlers.NewTravelHandler(
 			uow,
 			uuidGenerator{},
@@ -240,7 +246,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			// read only through the resolver (ADR 0015).
 			liveTransport{registry: registry},
 			postgres.NewPolicyReader(pool, nil),
-			cfg.Travel.TimeScale,
+			cfg.Game.TimeScale,
 			int64(cfg.Travel.ArrivalXP),
 			cfg.Game.IdempotencyTTL,
 			nil,
@@ -293,7 +299,12 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// Work and study read careers and courses from the live registry and a
 	// city's labour law only through the resolver (ADR 0015).
 	h.jobs, h.education = newWorkHandlers(uow, messages, registry, cities,
-		postgres.NewPolicyReader(pool, nil), cfg.Game.IdempotencyTTL)
+		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL)
+
+	// Crime reads crimes from the live registry and a city's justice levers
+	// only through the resolver (ADR 0015), on the game clock.
+	h.crime = newCrimeHandler(uow, messages, registry, cities,
+		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.Crime, cfg.Game.IdempotencyTTL)
 
 	subs := commands.All()
 	bound, err := bindAll(subs, h.bind())
@@ -307,6 +318,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		messages: messages,
 		conn:     conn.Raw(),
 		players:  postgres.NewPlayerRepository(pool, cfg.Player.DefaultLanguage),
+		// A stamp per player at most once in a thirtieth of the window that
+		// decides who is "nearby" a crime, so a burst of presses writes once
+		// and the window stays accurate to within a few percent.
+		activity: postgres.NewActivityRecorder(pool, cfg.Crime.ActiveWindow/activityStampsPerWindow),
 	}
 
 	consumer := infranats.NewConsumer(conn, infranats.ConsumerOptions{
@@ -417,6 +432,9 @@ type service struct {
 	// players reads the stored language a refusal is written in; see
 	// refusalLanguage.
 	players playerReader
+	// activity stamps when a player last did anything, so a crime lands
+	// only on someone playing (docs/adr/0019-crime-engine.md).
+	activity application.ActivityRecorder
 
 	inflight sync.WaitGroup
 }
@@ -476,6 +494,13 @@ func (s *service) handle(ctx context.Context, sub commands.Subscription, run com
 	// consumer idempotent — and the inbox is a record of completion, not a
 	// lock taken in advance.
 	resp, err := run(ctx, env)
+	if sub.Origin == commands.FromPlayer && meta.PlayerID != "" && s.activity != nil {
+		// Best effort and outside the command's transaction: a lost stamp
+		// costs a moment of invisibility, never a command.
+		if terr := s.activity.Touch(context.WithoutCancel(ctx), meta.PlayerID, time.Now().UTC()); terr != nil {
+			log.Warn("cannot stamp player activity", slog.String("error", terr.Error()))
+		}
+	}
 	if err != nil {
 		if apperrors.CodeOf(err) == apperrors.CodeInternal {
 			log.Error("command failed", slog.String("command", meta.Command), slog.String("error", err.Error()))
@@ -588,3 +613,7 @@ func (uuidGenerator) NewID() string {
 	hex.Encode(buf[24:36], b[10:16])
 	return string(buf[:])
 }
+
+// activityStampsPerWindow is how many activity stamps fit in the crime
+// engine's active window: the resolution of "recently active".
+const activityStampsPerWindow = 30

@@ -36,6 +36,17 @@ const (
 	SkillDriving     SkillCode = "driving"
 )
 
+// The criminal skills, which the crime engine (internal/domain/crime) reads:
+// Stealth moves unseen, Lockpicking opens what is locked, Deception talks a
+// mark out of their money, and Streetwise knows the city's underside — and,
+// on a victim, is how alert they are.
+const (
+	SkillStealth     SkillCode = "stealth"
+	SkillLockpicking SkillCode = "lockpicking"
+	SkillDeception   SkillCode = "deception"
+	SkillStreetwise  SkillCode = "streetwise"
+)
+
 // ErrUnknownSkill means a skill code is not one of the codes above. Callers
 // compare with errors.Is; the wrapped text names the offending code for logs.
 var ErrUnknownSkill = errors.New("player: unknown skill code")
@@ -45,7 +56,7 @@ var ErrUnknownSkill = errors.New("player: unknown skill code")
 const MaxSkillLevel = 100
 
 // skillCodes is the closed set, in the order 02_PLAYER.md lists them with
-// Driving last. Kept unexported so no caller can append to the game's skill
+// Driving after them and the criminal skills last. Kept unexported so no caller can append to the game's skill
 // list by mutating a shared slice.
 var skillCodes = []SkillCode{
 	SkillProgramming,
@@ -57,6 +68,10 @@ var skillCodes = []SkillCode{
 	SkillCooking,
 	SkillLogistics,
 	SkillDriving,
+	SkillStealth,
+	SkillLockpicking,
+	SkillDeception,
+	SkillStreetwise,
 }
 
 // SkillCodes returns every valid skill code. The slice is a copy.
@@ -69,7 +84,7 @@ func SkillCodes() []SkillCode {
 // Validate rejects a code that is not part of the closed set, including the
 // empty string.
 //
-// A linear scan over nine entries is not worth a map: it is faster than
+// A linear scan over thirteen entries is not worth a map: it is faster than
 // hashing at this size, and it keeps the set readable as one list above.
 func Validate(code SkillCode) error {
 	for _, known := range skillCodes {

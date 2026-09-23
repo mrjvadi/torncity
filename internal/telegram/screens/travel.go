@@ -80,11 +80,16 @@ func TravelOptions(c Context, v TravelOptionsView) *presenter.Response {
 			key = "travel.option_busy"
 		}
 		fare := FormatMoney(c, o.Fare)
+		if o.Fare == 0 {
+			// A journey that costs nothing says so, rather than quoting a
+			// price of zero.
+			fare = c.T("travel.free", nil)
+		}
 		lines = append(lines, c.T(key, map[string]any{
 			"mode":   mode,
 			"fare":   fare,
 			"wait":   FormatDuration(c, o.Wait),
-			"energy": FormatNumber(int64(o.Energy)),
+			"energy": FormatNumber(c, int64(o.Energy)),
 		}))
 		kb.Add(c.T("button.travel_by", map[string]any{"mode": mode, "fare": fare}),
 			AddrTravelStart, v.ToCode, o.ModeCode, strconv.FormatInt(o.Fare, 10))
@@ -94,11 +99,20 @@ func TravelOptions(c Context, v TravelOptionsView) *presenter.Response {
 		c.T("travel.options_title", map[string]any{"to": to, "from": c.CityName(v.FromCode, v.From)}),
 		requoteNotice(c, v.Requoted),
 		body(lines...),
-		c.T("travel.cash", map[string]any{"cash": FormatMoney(c, v.Cash)}),
+		cashLine(c, v.Cash),
 	)
 
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap, RefreshData: keyboards.Data(AddrTravelOptions, v.ToCode)}))
 	return c.respond(text, kb.Build())
+}
+
+// cashLine is what the player has to pay a fare with. A shared screen (a
+// group) leaves it out: the fares are for everyone, the purse is not.
+func cashLine(c Context, cash int64) string {
+	if c.Shared {
+		return ""
+	}
+	return c.T("travel.cash", map[string]any{"cash": FormatMoney(c, cash)})
 }
 
 func requoteNotice(c Context, requoted bool) string {
@@ -119,7 +133,8 @@ type TravelFundsView struct {
 
 // TravelNoFunds renders a departure the player cannot pay for. Nothing was
 // charged and nothing started; the way back is the choice of transport, where
-// a cheaper mode may still be in reach.
+// a cheaper mode may still be in reach. It states the player's cash, so it is
+// private: in a group it goes to the player's private chat.
 func TravelNoFunds(c Context, v TravelFundsView) *presenter.Response {
 	text := c.T("travel.insufficient_funds", map[string]any{
 		"mode": c.ModeName(v.ModeCode, v.ModeName),
@@ -131,7 +146,7 @@ func TravelNoFunds(c Context, v TravelFundsView) *presenter.Response {
 		kb.Row(btn)
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap}))
-	return c.respond(text, kb.Build())
+	return c.respond(text, kb.Build()).MarkPrivate()
 }
 
 // TravelStartedView is the confirmation a departure produces.
@@ -147,6 +162,8 @@ type TravelStartedView struct {
 	ModeName string
 	// Duration is the real wait until arrival.
 	Duration time.Duration
+	// ArrivesAt is when the journey lands; zero shows no clock line.
+	ArrivesAt time.Time
 	// Energy is what the departure actually cost, as the domain charged it,
 	// not what the screen thinks it should have cost.
 	Energy int
@@ -168,8 +185,8 @@ func TravelStarted(c Context, v TravelStartedView) *presenter.Response {
 		"to":       c.CityName(v.ToCode, v.To),
 		"mode":     c.ModeName(v.ModeCode, v.ModeName),
 		"duration": FormatDuration(c, v.Duration),
-		"energy":   FormatNumber(int64(v.Energy)),
-	}), fare)
+		"energy":   FormatNumber(c, int64(v.Energy)),
+	}), clockLine(c, "travel.arrives_at", v.ArrivesAt), fare)
 
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrTravelStatus}))
@@ -209,9 +226,11 @@ func TravelStatus(c Context, v TravelStatusView) *presenter.Response {
 		"to":   c.CityName(v.ToCode, v.To),
 	}
 	key := "travel.status_arriving"
+	var arrives string
 	if v.Remaining >= arrivingThreshold {
 		key = "travel.status"
 		args["remaining"] = FormatDuration(c, v.Remaining)
+		arrives = clockLine(c, "travel.arrives_at", v.ArrivesAt)
 	}
 	var mode string
 	if v.ModeCode != "" || v.ModeName != "" {
@@ -221,7 +240,7 @@ func TravelStatus(c Context, v TravelStatusView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrTravelStatus}))
 
-	return c.respond(body(c.T(key, args), mode), kb.Build())
+	return c.respond(body(c.T(key, args), arrives, mode), kb.Build())
 }
 
 // TravelArrivedView is the notification a landed journey produces.
@@ -242,7 +261,7 @@ type TravelArrivedView struct {
 func TravelArrived(c Context, v TravelArrivedView) *presenter.Response {
 	var xp string
 	if v.XP > 0 {
-		xp = c.T("travel.arrived_xp", map[string]any{"xp": FormatNumber(v.XP)})
+		xp = c.T("travel.arrived_xp", map[string]any{"xp": FormatNumber(c, v.XP)})
 	}
 	text := body(c.T("travel.arrived", map[string]any{"city": c.CityName(v.CityCode, v.City)}), xp)
 

@@ -1,0 +1,175 @@
+━━━ /study ━━━
+(sends)
+🎓 آموزش
+
+دوره‌هایی که اینجا می‌توانید بگذرانید:
+• کمک‌های اولیه · ۶۰۰ نیل · ۲ دقیقه
+• گواهینامهٔ رانندگی · ۹۰۰ نیل · ۳ دقیقه
+• دفترداری · ۱٬۲۰۰ نیل · ۴ دقیقه
+• مبانی برنامه‌نویسی · ۲٬۰۰۰ نیل · ۶ دقیقه
+🔒 مدیریت فروشگاه · ۲٬۸۰۰ نیل · ۸ دقیقه · از سطح ۴
+
+صفحهٔ ۱ از ۲
+  ───
+  [📖 کمک‌های اولیه] → education:view:first_aid
+  [📖 گواهینامهٔ رانندگی] → education:view:driving_licence
+  [📖 دفترداری] → education:view:bookkeeping
+  [📖 مبانی برنامه‌نویسی] → education:view:programming_fundamentals
+  [📖 مدیریت فروشگاه] → education:view:retail_management
+  [بعدی ⬅️] → education:list:2
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:list:1
+
+━━━ First Aid ━━━
+(edits message 42)
+🎓 کمک‌های اولیه
+
+🏛 آموزشگاه
+💰 شهریه: ۶۰۰ نیل
+⏳ مدت: ۲ دقیقه
+
+پس از پایان دوره:
+🛠 پزشکی: ۱۵۰+ امتیاز تجربه
+📜 مدرک کمک‌های اولیه
+  ───
+  [✅ ثبت‌نام · ۶۰۰ نیل] → education:enroll:first_aid
+  [🔙 بازگشت] → education:list   │   [🔄 به‌روزرسانی] → education:view:first_aid
+
+━━━ Enrol ━━━
+(edits message 42)
+✅ در دورهٔ کمک‌های اولیه ثبت‌نام کردید
+💰 شهریهٔ پرداخت‌شده: ۶۰۰ نیل
+⏳ مدت دوره: ۲ دقیقه
+دوره خودبه‌خود تمام می‌شود و خبرش را به شما می‌دهیم.
+🕒 پایان دوره: ساعت ۱۲:۰۲
+  ───
+  [🎓 آموزش] → education:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Studying ━━━
+(edits message 42)
+🎓 آموزش
+
+📖 در حال گذراندن: کمک‌های اولیه
+⏳ چند لحظهٔ دیگر تمام می‌شود.
+
+دوره‌هایی که اینجا می‌توانید بگذرانید:
+• کمک‌های اولیه · ۶۰۰ نیل · ۲ دقیقه
+• گواهینامهٔ رانندگی · ۹۰۰ نیل · ۳ دقیقه
+• دفترداری · ۱٬۲۰۰ نیل · ۴ دقیقه
+• مبانی برنامه‌نویسی · ۲٬۰۰۰ نیل · ۶ دقیقه
+🔒 مدیریت فروشگاه · ۲٬۸۰۰ نیل · ۸ دقیقه · از سطح ۴
+
+صفحهٔ ۱ از ۲
+  ───
+  [📖 کمک‌های اولیه] → education:view:first_aid
+  [📖 گواهینامهٔ رانندگی] → education:view:driving_licence
+  [📖 دفترداری] → education:view:bookkeeping
+  [📖 مبانی برنامه‌نویسی] → education:view:programming_fundamentals
+  [📖 مدیریت فروشگاه] → education:view:retail_management
+  [بعدی ⬅️] → education:list:2
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:list:1
+
+━━━ Profile while studying ━━━
+(edits message 42)
+👤 سارا
+📍 استمارچ
+
+⭐ سطح ۱ · ۵۰ امتیاز تجربه تا سطح ۲
+⚡ انرژی: ۱۰۰ از ۱۰۰
+❤️ سلامت: ۱۰۰ از ۱۰۰
+
+💼 هنوز شغلی ندارید
+📖 کمک‌های اولیه · چند لحظهٔ دیگر تمام می‌شود
+
+💵 پول نقد: ۴٬۴۰۰ نیل
+🏦 موجودی بانک: ۰ نیل
+
+🆔 کد بازیکن: K7Q2M9A
+  ───
+  [🗺 نقشه] → map:list   │   [💼 فرصت‌های شغلی] → job:list
+  [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
+  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [🏛 مناصب و سیاست‌ها] → gov:city
+  [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
+
+━━━ Enrol in a second course ━━━
+(edits message 42)
+هنوز نمی‌توانید در این دوره ثبت‌نام کنید:
+❌ همین حالا دورهٔ کمک‌های اولیه را می‌گذرانید؛ هر بار یک دوره.
+  ───
+  [🎓 آموزش] → education:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ A course taught elsewhere ━━━
+(edits message 42)
+این دوره اینجا ارائه نمی‌شود. دوره‌های موجود را در «آموزش» ببینید.
+  ───
+  [🎓 آموزش] → education:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Course finished (scheduler) ━━━
+(sends)
+🎓 دورهٔ کمک‌های اولیه را به پایان رساندید.
+📜 مدرک کمک‌های اولیه به نام شما صادر شد.
+🛠 پزشکی: ۱۵۰+ امتیاز تجربه
+🛠 مهارت پزشکی به سطح ۱ رسید.
+  ───
+  [🎓 آموزش] → education:list   │   [💼 فرصت‌های شغلی] → job:list
+
+━━━ Study after the course ━━━
+(edits message 42)
+🎓 آموزش
+
+📜 مدرک‌ها: کمک‌های اولیه
+
+دوره‌هایی که اینجا می‌توانید بگذرانید:
+• گواهینامهٔ رانندگی · ۹۰۰ نیل · ۳ دقیقه
+• دفترداری · ۱٬۲۰۰ نیل · ۴ دقیقه
+• مبانی برنامه‌نویسی · ۲٬۰۰۰ نیل · ۶ دقیقه
+🔒 مدیریت فروشگاه · ۲٬۸۰۰ نیل · ۸ دقیقه · از سطح ۴
+• کلاس شبانهٔ حسابداری · ۴۰۰ نیل · ۲ دقیقه
+  ───
+  [📖 گواهینامهٔ رانندگی] → education:view:driving_licence
+  [📖 دفترداری] → education:view:bookkeeping
+  [📖 مبانی برنامه‌نویسی] → education:view:programming_fundamentals
+  [📖 مدیریت فروشگاه] → education:view:retail_management
+  [📖 کلاس شبانهٔ حسابداری] → education:view:evening_accounting
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:list:1
+
+━━━ Profile after the course ━━━
+(edits message 42)
+👤 سارا
+📍 استمارچ
+
+⭐ سطح ۱ · ۵۰ امتیاز تجربه تا سطح ۲
+⚡ انرژی: ۱۰۰ از ۱۰۰
+❤️ سلامت: ۱۰۰ از ۱۰۰
+
+💼 هنوز شغلی ندارید
+📜 ۱ مدرک
+
+💵 پول نقد: ۴٬۴۰۰ نیل
+🏦 موجودی بانک: ۰ نیل
+
+🆔 کد بازیکن: K7Q2M9A
+  ───
+  [🗺 نقشه] → map:list   │   [💼 فرصت‌های شغلی] → job:list
+  [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
+  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [🏛 مناصب و سیاست‌ها] → gov:city
+  [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
+
+━━━ Enrol without the fee ━━━
+(edits message 42) (private in groups)
+💵 پول نقدتان برای این دوره کافی نیست.
+شهریه: ۱٬۲۰۰ نیل · پول نقد شما: ۱۰۰ نیل
+  ───
+  [🎓 آموزش] → education:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ A course that does not exist ━━━
+(edits message 42)
+این دوره اینجا ارائه نمی‌شود. دوره‌های موجود را در «آموزش» ببینید.
+  ───
+  [🎓 آموزش] → education:list
+  [🔙 بازگشت] → player:profile.get

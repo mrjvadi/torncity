@@ -1,0 +1,108 @@
+━━━ Search · found by username ━━━
+(edits message 42)
+🔎 نتیجهٔ جست‌وجو
+
+👤 کاوه
+🆔 کد بازیکن: B3C4D5F
+  ───
+  [➕ افزودن کاوه] → social:friend.add:cfaebd97-b816-43a8-aff9-3798555dd818
+  [💸 پرداخت به کاوه] → bank:pay:B3C4D5F
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Search · found a player with no name ━━━
+(edits message 42)
+🔎 نتیجهٔ جست‌وجو
+
+👤 یک بازیکن
+🆔 کد بازیکن: B3C4D5F
+  ───
+  [➕ افزودن یک بازیکن] → social:friend.add:cfaebd97-b816-43a8-aff9-3798555dd818
+  [💸 پرداخت به یک بازیکن] → bank:pay:B3C4D5F
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Search · found yourself ━━━
+(edits message 42)
+🔎 نتیجهٔ جست‌وجو
+
+👤 سارا
+🆔 کد بازیکن: K7Q2M9A
+
+این خودتان هستید. کد بازیکنتان را به دوستانتان بدهید تا پیدایتان کنند.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Search · username not found ━━━
+(edits message 42)
+بازیکنی با نام کاربری @kaveh پیدا نشد. شاید نام کاربری‌اش را عوض کرده یا هنوز بازی را شروع نکرده است؛ کد بازیکنش را از خودش بپرسید.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Search · code not found ━━━
+(edits message 42)
+بازیکنی با کد B3C4D5F پیدا نشد. کد را دوباره بررسی کنید؛ برای جست‌وجوی نام کاربری، @ را اول آن بگذارید.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Search · Telegram id not found ━━━
+(edits message 42)
+بازیکنی با این شناسهٔ تلگرام پیدا نشد. شاید هنوز بازی را شروع نکرده است.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Search · how to search ━━━
+(edits message 42)
+🔎 پیدا کردن بازیکن
+بازیکن را با یکی از این‌ها پیدا کنید:
+• نام کاربری تلگرام: /social @username
+• کد بازیکن: /social K7Q2M9A
+• شناسهٔ عددی تلگرام: /social 123456789
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Friends (page 1 of 2) ━━━
+(edits message 42)
+👥 دوستان
+
+• کاوه
+• نیلوفر · در انتظار پاسخ
+• یک بازیکن · در انتظار پاسخ
+• کاوه · مسدود
+
+صفحهٔ ۱ از ۲
+  ───
+  [✅ پذیرفتن نیلوفر] → social:friend.accept:cfaebd97-b816-43a8-aff9-3798555dd818
+  [بعدی ⬅️] → social:friend.list:2
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list:1
+
+━━━ Friends · none yet ━━━
+(edits message 42)
+👥 دوستان
+
+هنوز دوستی ندارید.
+برای پیدا کردن بازیکن، نام کاربری یا کد بازیکنش را بفرستید؛ مثلاً /social @username
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list:1
+
+━━━ Friend request sent ━━━
+(edits message 42)
+✅ درخواست دوستی برای کاوه فرستاده شد. پس از پذیرفتن، در فهرست دوستانتان می‌آید.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Friend request sent · nameless ━━━
+(edits message 42)
+✅ درخواست دوستی فرستاده شد. پس از پذیرفتن، در فهرست دوستانتان می‌آید.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Friend request accepted ━━━
+(edits message 42)
+✅ شما و نیلوفر از این پس دوست هستید.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Friend request accepted · nameless ━━━
+(edits message 42)
+✅ درخواست دوستی را پذیرفتید. این بازیکن حالا در فهرست دوستان شماست.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list

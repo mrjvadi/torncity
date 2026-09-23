@@ -231,6 +231,9 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 	if err := applyTransport(ctx, tx, p, versionID, cityIDs); err != nil {
 		return Applied{}, err
 	}
+	if err := insertCrimes(ctx, tx, p, versionID); err != nil {
+		return Applied{}, err
+	}
 	governance, err := applyGovernance(ctx, tx, p, versionID, cityIDs, time.Now().UTC())
 	if err != nil {
 		return Applied{}, err
@@ -575,6 +578,9 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 		return nil, err
 	}
 	if err := loadTransport(ctx, tx, versionID, pack); err != nil {
+		return nil, err
+	}
+	if err := loadCrimes(ctx, tx, versionID, pack); err != nil {
 		return nil, err
 	}
 
@@ -948,6 +954,8 @@ func appendContentAudit(ctx context.Context, tx pgx.Tx, a contentAudit) error {
 		"careers":         len(a.pack.Careers),
 		"courses":         len(a.pack.Courses),
 		"transport_modes": len(a.pack.TransportModes),
+		"crimes":          len(a.pack.Crimes),
+		"venues":          len(a.pack.Venues),
 	})
 	if err != nil {
 		return fmt.Errorf("postgres: content apply: encoding audit value: %w", err)
@@ -1048,5 +1056,6 @@ func Checksum(p *content.Pack) string {
 	}
 	checksumJobs(h, p)
 	checksumTransport(h, p)
+	checksumCrimes(h, p)
 	return hex.EncodeToString(h.Sum(nil))
 }

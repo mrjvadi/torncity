@@ -6,6 +6,7 @@ import (
 	"math/bits"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 )
@@ -186,12 +187,18 @@ func CanEnroll(course Course, a Applicant, seatsTaken int) error {
 // from CanEnroll. It returns the enrolment to record and the fee to charge;
 // both belong in one transaction.
 //
-// CompletesAt is fixed here from the course's duration: the duration is data
-// on the enrolment from this moment on, so progress and completion depend
-// only on the enrolment and the clock.
-func Enroll(course Course, a Applicant, seatsTaken int, now time.Time) (Enrollment, money.Amount, error) {
+// CompletesAt is fixed here from the course's duration, which is GAME time,
+// mapped to the real wait by the game's one clock (clock.RealWait): a "24h"
+// course at a scale of 60 runs 24 real minutes. From this moment the real
+// period is data on the enrolment, so progress and completion depend only on
+// the enrolment and the wall clock, and a later change of scale or content
+// never moves the finish line under a student already enrolled.
+func Enroll(course Course, a Applicant, seatsTaken int, now time.Time, clock gametime.Scale) (Enrollment, money.Amount, error) {
 	if now.IsZero() {
 		return Enrollment{}, money.Amount{}, ErrInvalidTime
+	}
+	if err := clock.Validate(); err != nil {
+		return Enrollment{}, money.Amount{}, err
 	}
 	if err := CanEnroll(course, a, seatsTaken); err != nil {
 		return Enrollment{}, money.Amount{}, err
@@ -200,7 +207,7 @@ func Enroll(course Course, a Applicant, seatsTaken int, now time.Time) (Enrollme
 		CourseCode:  course.Code,
 		Status:      StatusInProgress,
 		StartedAt:   now,
-		CompletesAt: now.Add(course.Duration),
+		CompletesAt: now.Add(clock.RealWait(course.Duration)),
 	}, course.Cost, nil
 }
 

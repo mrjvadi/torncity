@@ -7,5 +7,5 @@ package screens
 // Every amount a player reads — a balance, a fee, a payment — goes through
 // it, so a sum reads the same on every screen.
 func FormatMoney(c Context, minor int64) string {
-	return c.T("format.money", map[string]any{"amount": FormatNumber(minor)})
+	return c.T("format.money", map[string]any{"amount": FormatNumber(c, minor)})
 }

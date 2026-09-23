@@ -200,7 +200,6 @@ func fillFromMessage(meta *envelope.Metadata, msg *client.Message, updateType, d
 	meta.TelegramMessageID = msg.MessageID
 	meta.ChatType = msg.Chat.Type
 	meta.Language = NormalizeLanguage(msg.From.LanguageCode, defaultLanguage)
-	meta.TelegramEphemeralMessageID = msg.EphemeralMessageID
 
 	// TelegramThreadID stays nil on purpose: client.Message does not model
 	// message_thread_id yet (a field is added when a feature needs it).
@@ -233,9 +232,6 @@ func fillFromCallback(meta *envelope.Metadata, cq *client.CallbackQuery, default
 	// edits one message in place instead of appending, so this is the handle
 	// the presenter needs on the way back.
 	meta.TelegramMessageID = cq.Message.MessageID
-	// A button on an ephemeral message: MessageID is 0 and this is the
-	// handle the screen is edited by.
-	meta.TelegramEphemeralMessageID = cq.Message.EphemeralMessageID
 	meta.ChatType = cq.Message.Chat.Type
 	meta.Language = NormalizeLanguage(cq.From.LanguageCode, defaultLanguage)
 

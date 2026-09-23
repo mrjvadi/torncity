@@ -216,7 +216,7 @@ func TestTravelStatusShowsTheJourney(t *testing.T) {
 	}
 	assertResolved(t, resp.Text)
 	// Two hours and ten minutes left of a four-hour-ten journey.
-	if !strings.Contains(resp.Text, "2") {
+	if !strings.Contains(resp.Text, faDigits("2")) {
 		t.Errorf("status %q does not show the hours remaining", resp.Text)
 	}
 }

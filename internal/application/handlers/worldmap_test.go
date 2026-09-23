@@ -30,7 +30,7 @@ func TestMapListsReachableDestinationsNearestFirst(t *testing.T) {
 	if tehran > tokyo {
 		t.Errorf("Tokyo (900 km) is listed before Tehran (400 km): %q", resp.Text)
 	}
-	if !strings.Contains(resp.Text, "400") || !strings.Contains(resp.Text, "900") {
+	if !strings.Contains(resp.Text, faDigits("400")) || !strings.Contains(resp.Text, faDigits("900")) {
 		t.Errorf("the distances are missing: %q", resp.Text)
 	}
 	if strings.Contains(resp.Text, "Lima") {
@@ -57,7 +57,7 @@ func TestMapMarksWhatIsReachableFromHere(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	// From Tehran the only destination is Berlin, 400 km away.
-	if !strings.Contains(resp.Text, "400") {
+	if !strings.Contains(resp.Text, faDigits("400")) {
 		t.Errorf("the distance to Berlin is missing: %q", resp.Text)
 	}
 

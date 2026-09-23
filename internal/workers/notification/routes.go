@@ -70,6 +70,16 @@ func Routes() []Route {
 		{Domain: "travel", Event: "completed", Render: renderTravelCompleted},
 		{Domain: "bank", Event: "payment_received", Render: renderPaymentReceived},
 		{Domain: "education", Event: "completed", Render: renderCourseCompleted},
+		{Domain: "job", Event: "shift_worked", Render: renderShiftWorked},
+
+		// Crime (docs/adr/0019-crime-engine.md): see crime.go.
+		{Domain: "crime", Event: "victimised", Render: renderVictimised},
+		{Domain: "crime", Event: "take", Render: renderCrimeResult},
+		{Domain: "crime", Event: "resolved", Render: renderCrimeResult},
+		{Domain: "crime", Event: "released", Render: renderReleased},
+		{Domain: "crime", Event: "case_solved", Render: renderCaseSolved},
+		{Domain: "crime", Event: "case_closed", Render: renderCaseClosed},
+		{Domain: "crime", Event: "convicted", Render: renderConvicted},
 	}
 }
 

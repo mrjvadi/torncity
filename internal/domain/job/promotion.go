@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 )
 
 // Sentinel errors for a promotion that is not yet earned. Like the
@@ -35,8 +37,8 @@ func (e PerformanceShortfall) Error() string {
 // Unwrap lets errors.Is match ErrPerformanceTooLow.
 func (e PerformanceShortfall) Unwrap() error { return ErrPerformanceTooLow }
 
-// TimeShortfall details ErrTooSoon. Remaining is how long until the time
-// requirement is met, so the UI can say "eligible in 3 days".
+// TimeShortfall details ErrTooSoon. Remaining is the REAL time until the
+// requirement is met, so the UI can say "eligible in 3 minutes".
 type TimeShortfall struct{ Remaining time.Duration }
 
 func (e TimeShortfall) Error() string {
@@ -73,9 +75,12 @@ func (e ShiftShortfall) Unwrap() error { return ErrNotEnoughShifts }
 // requirement (see Eligibility for why all of them), bar first, then entry.
 // A broken question — invalid career, wrong career, unknown tier, zero time —
 // returns false with that error alone.
-func Promotion(career Career, e Employment, c Candidate, now time.Time) (eligible bool, reason error) {
+func Promotion(career Career, e Employment, c Candidate, now time.Time, clock gametime.Scale) (eligible bool, reason error) {
 	if now.IsZero() {
 		return false, ErrInvalidTime
+	}
+	if err := clock.Validate(); err != nil {
+		return false, err
 	}
 	if err := career.Validate(); err != nil {
 		return false, err
@@ -97,9 +102,10 @@ func Promotion(career Career, e Employment, c Candidate, now time.Time) (eligibl
 	if perf := clampPerformance(e.Performance); perf < bar.MinPerformance {
 		errs = append(errs, PerformanceShortfall{Need: bar.MinPerformance, Have: perf})
 	}
-	// A TierSince in the future (a clock correction) is simply "not yet".
-	if held := now.Sub(e.TierSince); held < bar.MinTimeInTier {
-		errs = append(errs, TimeShortfall{Remaining: bar.MinTimeInTier - held})
+	// The bar is game time; the tier clock is the wall clock. A TierSince in
+	// the future (a clock correction) is simply "not yet".
+	if need, held := clock.RealWait(bar.MinTimeInTier), now.Sub(e.TierSince); held < need {
+		errs = append(errs, TimeShortfall{Remaining: need - held})
 	}
 	if e.ShiftsInTier < bar.MinShifts {
 		errs = append(errs, ShiftShortfall{Need: bar.MinShifts, Have: e.ShiftsInTier})
@@ -120,8 +126,8 @@ func Promotion(career Career, e Employment, c Candidate, now time.Time) (eligibl
 // a record of how this person works rather than of one position, and so does
 // the fatigue history, because the same body works the next shift. The tier
 // clock and shift count restart.
-func Promote(career Career, e Employment, c Candidate, now time.Time) (Employment, error) {
-	ok, reason := Promotion(career, e, c, now)
+func Promote(career Career, e Employment, c Candidate, now time.Time, clock gametime.Scale) (Employment, error) {
+	ok, reason := Promotion(career, e, c, now, clock)
 	if !ok {
 		return Employment{}, reason
 	}

@@ -96,35 +96,30 @@ telegram:
   # early risks a longer ban.
   default_flood_wait: 5s
 
-# Playing in Telegram groups. A screen with a player's own business in it
-# (profile, balances, skills, travel, offices, settings, search results) is
-# seen only by that player: it goes out as an ephemeral message — one only the
-# player and the bot can see — or, failing that, in the player's private chat
-# with the bot. See internal/gateway/groups.
+# Playing in Telegram groups. The game is played in groups: screens are
+# ordinary group messages, except the player's own business (bank balances,
+# payments, settings), which goes to their private chat with the bot with one
+# neutral line left in the group. See internal/gateway/groups.
 groups:
-  # How long after a button press or an ephemeral command the reply may still
-  # cite it. The Bot API allows an ephemeral reply within 15 seconds of the
-  # action; this leaves a margin for the send itself. Past it, only a bot
-  # that is an administrator of the group can reply ephemerally, and every
-  # other reply goes to the private chat.
-  ephemeral_reply_window: 12s
-
-  # A group that refused an uncited ephemeral message (the bot is not an
-  # administrator there) is not asked again for this long; replies go
-  # straight to the private chat. Promoting the bot takes effect after it.
-  ephemeral_refusal_ttl: 10m
-
   # The longest popup a button press may answer with. Telegram accepts at
   # most 200 characters; longer text is cut with an ellipsis.
   callback_alert_max_runes: 200
 
-  # The group command menu. Each command is registered as ephemeral, so a
-  # player's use of it is seen by nobody but the bot, and each needs a
-  # description at group.menu.<command> in every locale.
-  menu:
+# The bot's command menu (the "/" button). It is registered for private chats
+# only, and the default and group menus are cleared at every gateway start, so
+# a group shows no command menu at all: in the Bot API a group falls back to
+# the default scope's menu when it has none of its own. Each command needs a
+# description at command_menu.<command> in every locale.
+menu:
+  commands:
     - profile
-    - skills
     - map
+    - job
+    - study
+    - bank
+    - city
+    - crime
+    - skills
     - social
     - find
     - settings
@@ -295,6 +290,20 @@ game:
   # cost of one tiny query per interval.
   content_reload_interval: 30s
 
+  # The game clock (docs/adr/0018-game-clock.md): how many seconds of game
+  # time pass in one real second. Every gameplay duration the content writes
+  # is GAME time — a journey, a course, a shift, a promotion's time in tier,
+  # the fatigue window — and the player waits it divided by this. At 60 a
+  # game hour is a real minute: a 3-hour bus ride is a 3-minute wait, a 24h
+  # course takes 24 minutes, an 8h shift 8 minutes. Every screen shows the
+  # real wait. What is NOT game time: a policy's notice and cooldown, an
+  # office term, energy regeneration, a mode's demand window and every
+  # operational timeout in this file. It must be between 1 and 86400.
+  # Changing it changes every activity still to start, never one already
+  # under way: its real end was fixed when it began. (It used to be
+  # travel.time_scale, which is still read if present; this key wins.)
+  time_scale: 60
+
 # The tuning of a journey that is not content. The RULES — how a distance and
 # a transport mode become a duration and a fare — live in
 # internal/domain/travel. The modes themselves (bus, train, flight…: speed,
@@ -306,14 +315,7 @@ travel:
   # XP a player earns on landing.
   arrival_xp: 25
 
-  # How many seconds of game time pass in one real second of a journey. The
-  # content speaks in game time (a bus does 60 distance units an hour); the
-  # player waits game time divided by this. At 60, a 3-hour bus ride is a
-  # 3-minute wait, which is what keeps travel a short pause rather than an
-  # evening away. The wait the player is shown is always the real one. It
-  # must be at least 1; raising it shortens every journey still to start,
-  # never one already under way.
-  time_scale: 60
+  # How long a journey takes is the game clock's business: game.time_scale.
 
 # Player-facing defaults.
 player:
@@ -321,6 +323,12 @@ player:
   # theirs. The game ships Persian first, so an unknown locale falls back to
   # it rather than to English. It is a primary subtag only: "fa", not "fa-IR".
   default_language: "fa"
+
+  # The time zone a clock time is shown in ("arrives at 14:32", "the shift
+  # ends at 09:05") — an IANA zone name. Players are never shown UTC. The
+  # zone database is built into the binaries, so any IANA name works in any
+  # image.
+  default_timezone: "Asia/Tehran"
 
 # The money core (docs/adr/0009-economic-control.md). Every amount is a whole
 # number of minor currency units; there are no fractions anywhere in the
@@ -353,3 +361,66 @@ governance:
   # the screen slower to cross the range; both must be at least 1.
   fine_step_divisor: 100
   coarse_step_divisor: 10
+
+# The crime engine's tuning (docs/adr/0019-crime-engine.md). Which crimes
+# exist and what each asks, risks and pays are content (crimes.yml); what a
+# city's police charge and hand down is its police chief's policy
+# (governance.yml). What is here is how the engine itself paces and protects.
+crime:
+  # NERVE is what an attempt costs: its own resource, so crime never competes
+  # with work for energy, and the engine's rate limit. It refills by
+  # nerve_regen_amount every nerve_regen_interval of REAL time, up to
+  # nerve_max, like energy. Raising the max lets a thief binge; shortening the
+  # interval makes crime the fastest money in the game.
+  nerve_max: 20
+  nerve_regen_amount: 1
+  nerve_regen_interval: 5m
+
+  # HEAT is how much the police are looking for a player: every crime adds
+  # some (crimes.yml), it lowers their odds and raises the chance a report
+  # against them is solved, and it cools off by heat_decay_per_hour each REAL
+  # hour. heat_max is the top of the wanted scale.
+  heat_max: 100
+  heat_decay_per_hour: 4
+
+  # Newcomer protection: a player below protect_min_level, or whose account
+  # is younger than protect_min_age, is never a crime's victim. Someone who
+  # has not had time to earn anything is not a mark.
+  protect_min_level: 3
+  protect_min_age: 72h
+
+  # Who is "nearby". A crime that can hit a player lands on one standing in
+  # the same city and venue who has done something in the game within
+  # active_window — a mark must be someone playing, who can notice and
+  # answer. A player who arrived by bus, train or plane stays at that
+  # terminal's venue for arrival_linger after arriving.
+  active_window: 30m
+  arrival_linger: 20m
+
+  # Farming protection. A player robbed by anyone is not robbed again for
+  # victim_cooldown, so one active player is not drained by every thief in
+  # town; a thief does not land on the same player again for thief_cooldown.
+  victim_cooldown: 6h
+  thief_cooldown: 24h
+
+  # How long after a theft its victim may still report it to the police.
+  # REAL time: it is a promise to the player.
+  report_window: 24h
+
+  # A report is investigated for investigation_duration of GAME time, waited
+  # through the game clock (game.time_scale). Its solve chance, in basis
+  # points (10000 = 100%), is investigation_base_bps + the suspect's heat x
+  # investigation_per_heat_bps + investigation_witness_bonus_bps when the
+  # theft was seen + the city's investigation effort x
+  # investigation_effort_weight_bps / 10000, clamped to 1%..95%.
+  investigation_duration: 6h
+  investigation_base_bps: 2500
+  investigation_per_heat_bps: 40
+  investigation_witness_bonus_bps: 3500
+  investigation_effort_weight_bps: 3000
+
+  # The most NPC crime may pay into the economy per UTC day, across every
+  # player and city, in minor units. It is the global cap on the one faucet
+  # crime opens (crime_proceeds, ADR 0009); each crime's own max_cash caps a
+  # single take. Once reached, an NPC crime still succeeds and pays nothing.
+  npc_daily_cap: 500000

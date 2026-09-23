@@ -1,0 +1,51 @@
+━━━ group.welcome ━━━
+Hello everyone! You can now play the game right here in this group; send /start to begin.
+Your money, your bank and your settings stay private: those screens are sent to your private chat with the bot.
+
+━━━ group.not_yours ━━━
+This button belongs to another player. Send the command yourself to open your own screen.
+
+━━━ group.sent_privately ━━━
+Your reply was sent to your private chat with the bot.
+
+━━━ group.start_bot_first ━━━
+This screen is for you only. Open the bot in a private chat and press Start first, and it will be shown there.
+
+━━━ group.open_bot ━━━
+Open the bot
+
+━━━ menu /profile ━━━
+/profile — Your profile
+
+━━━ menu /map ━━━
+/map — The world map
+
+━━━ menu /job ━━━
+/job — Your job
+
+━━━ menu /study ━━━
+/study — Education and courses
+
+━━━ menu /bank ━━━
+/bank — The bank and your money
+
+━━━ menu /city ━━━
+/city — Offices and policies of your city
+
+━━━ menu /crime ━━━
+/crime — The underworld: crime, jail and your cases
+
+━━━ menu /skills ━━━
+/skills — Your skills
+
+━━━ menu /social ━━━
+/social — Your friends
+
+━━━ menu /find ━━━
+/find — Find a player by player code
+
+━━━ menu /settings ━━━
+/settings — Settings
+
+━━━ menu /help ━━━
+/help — Help

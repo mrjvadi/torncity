@@ -195,6 +195,13 @@ type Pack struct {
 	Facilities     []string
 	TransportModes []TransportModeDef
 
+	// Crime (crimes.yml): the criminal experience tiers, the venues inside
+	// a city, the crime categories and the crimes. See crime.go.
+	CrimeTiers      []CrimeTierDef
+	Venues          []VenueDef
+	CrimeCategories []CrimeCategoryDef
+	Crimes          []CrimeDef
+
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"
 	// It is empty for a pack that was assembled in code rather than read from

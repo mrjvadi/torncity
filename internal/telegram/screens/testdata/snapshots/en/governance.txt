@@ -1,0 +1,275 @@
+━━━ City hall ━━━
+(edits message 42)
+🏛 Offices and policies — Ostmarch
+
+📍 Ostmarch
+Offices:
+• Mayor: Sara (K7Q2M9A)
+• Deputy mayor: vacant
+• City council: 2 of 5 seats held · Kaveh (B3C4D5F), Nilou (N1L0F4R)
+Policies:
+• Tax rate: 4.5% · set by Sara (K7Q2M9A)
+  ⏳ Changes to 8% in 23h
+• Immigration fee: 1,500 Nil · default
+• Minimum wage: 100 Nil · default
+• Working-hours window (game hours): 24 · default
+
+📍 The Commonwealth
+Offices:
+• President: vacant
+Policies:
+• Border tariff: 0% · default
+  ───
+  [📜 Policy history] → gov:history:ostmarch
+  [🏛 My office] → gov:office
+  [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
+
+━━━ City hall · a deputy is acting ━━━
+(edits message 42)
+🏛 Offices and policies — Ostmarch
+
+📍 Ostmarch
+Offices:
+• Mayor: vacant · acting: Deputy mayor Kaveh (B3C4D5F)
+  ───
+  [📜 Policy history] → gov:history:ostmarch
+  [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
+
+━━━ City hall · not in any city ━━━
+(edits message 42)
+🏛 Offices and policies
+
+You have not settled in a city yet. Once you do, its offices and policies appear here.
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → map:list
+
+━━━ My office ━━━
+(edits message 42)
+🏛 My office
+
+📍 Deputy mayor of Ostmarch
+You are acting for the vacant office of Mayor.
+• Tax rate: 4.5%
+• Immigration fee: 1,500 Nil
+
+📍 President of The Commonwealth
+• Border tariff: 0% · decided by a vote, which is not available yet
+
+📍 City council of Ostmarch
+This office has no policy you can change right now.
+  ───
+  [✏️ Tax rate — Ostmarch] → gov:lever:city.tax_rate:ostmarch
+  [✏️ Immigration fee — Ostmarch] → gov:lever:city.immigration_fee:ostmarch
+  [🔙 Back] → gov:city   │   [🔄 Refresh] → gov:office
+
+━━━ My office · none ━━━
+(edits message 42)
+🏛 My office
+
+You do not hold any office. For now, office holders are appointed by the game's administrators; elections will come later.
+  ───
+  [🔙 Back] → gov:city   │   [🔄 Refresh] → gov:office
+
+━━━ Change a policy · percentage ━━━
+(edits message 42)
+🏛 Tax rate — Ostmarch
+• Tax rate: 4.5% · set by Sara (K7Q2M9A)
+  ⏳ Changes to 8% in 23h
+
+Allowed range: 0% to 25%
+Default: 4.5%
+A change takes effect 24h after it is announced.
+After a change, the next one can be made 3d later.
+
+New value: 8%
+Adjust it with the buttons, then tap “Review change”.
+  ───
+  [➖ 2.5%] → gov:lever:city.tax_rate:ostmarch:550   │   [➖ 0.25%] → gov:lever:city.tax_rate:ostmarch:775   │   [➕ 0.25%] → gov:lever:city.tax_rate:ostmarch:825   │   [➕ 2.5%] → gov:lever:city.tax_rate:ostmarch:1050
+  [Minimum (0%)] → gov:lever:city.tax_rate:ostmarch:0   │   [Default (4.5%)] → gov:lever:city.tax_rate:ostmarch:450   │   [Maximum (25%)] → gov:lever:city.tax_rate:ostmarch:2500
+  [📝 Review change] → gov:confirm:city.tax_rate:ostmarch:800
+  [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Change a policy · money ━━━
+(edits message 42)
+🏛 Immigration fee — Ostmarch
+• Immigration fee: 1,500 Nil · default
+
+Allowed range: 0 Nil to 100,000 Nil
+Default: 0 Nil
+A change takes effect 24h after it is announced.
+After a change, the next one can be made 3d later.
+
+New value: 1,500 Nil
+Adjust it with the buttons, then tap “Review change”.
+  ───
+  [➖ 10,000 Nil] → gov:lever:city.immigration_fee:ostmarch:0   │   [➖ 1,000 Nil] → gov:lever:city.immigration_fee:ostmarch:500   │   [➕ 1,000 Nil] → gov:lever:city.immigration_fee:ostmarch:2500   │   [➕ 10,000 Nil] → gov:lever:city.immigration_fee:ostmarch:11500
+  [Minimum (0 Nil)] → gov:lever:city.immigration_fee:ostmarch:0   │   [Default (0 Nil)] → gov:lever:city.immigration_fee:ostmarch:0   │   [Maximum (100,000 Nil)] → gov:lever:city.immigration_fee:ostmarch:100000
+  [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:city.immigration_fee:ostmarch
+
+━━━ Change a policy · waiting for the cooldown ━━━
+(edits message 42)
+🏛 Tax rate — Ostmarch
+• Tax rate: 4.5% · set by Sara (K7Q2M9A)
+  ⏳ Changes to 8% in 23h
+
+Allowed range: 0% to 25%
+Default: 4.5%
+A change takes effect 24h after it is announced.
+After a change, the next one can be made 3d later.
+
+⏳ You can change this policy again in 2d 2h.
+  ───
+  [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Change a policy · confirm ━━━
+(edits message 42)
+📝 Confirm the change
+
+Tax rate in Ostmarch: from 4.5% to 8.25%
+It will be announced now and take effect in 24h.
+You will not be able to change this policy again for 3d.
+  ───
+  [✅ Confirm] → gov:set:city.tax_rate:ostmarch:825   │   [✖️ Cancel] → gov:lever:city.tax_rate:ostmarch:825
+
+━━━ Change a policy · announced ━━━
+(edits message 42)
+📢 Change announced
+
+Tax rate in Ostmarch will change from 4.5% to 8.25% in 24h. The change is recorded in the public history.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Policy history (page 1 of 2) ━━━
+(edits message 42)
+📜 Policy history — Ostmarch
+
+• Tax rate (Ostmarch): 4.5% → 8%
+  Announced by Mayor Sara (K7Q2M9A) · 3h ago
+  ⏳ Takes effect in 21h
+
+• Minimum wage (Ostmarch): 100 Nil → 150 Nil
+  Announced by Mayor Sara (K7Q2M9A) · 2d 2h ago
+  In force for 26h
+
+• Border tariff (The Commonwealth): 0% → 2.5%
+  Announced by President A player · 3d 8h ago
+  In force for 8h
+
+Page 1 of 2
+  ───
+  [Next ➡️] → gov:history:ostmarch:2
+  [🔙 Back] → gov:city:ostmarch   │   [🔄 Refresh] → gov:history:ostmarch:1
+
+━━━ Policy history · empty ━━━
+(edits message 42)
+📜 Policy history — Ostmarch
+
+No policy has been changed here yet.
+  ───
+  [🔙 Back] → gov:city:ostmarch   │   [🔄 Refresh] → gov:history:ostmarch:1
+
+━━━ Refusal · not the holder ━━━
+(edits message 42)
+Only the Mayor can change this policy. If you held that office, you may have been replaced.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · decided by a vote ━━━
+(edits message 42)
+This policy is decided by a vote of the City council, and voting is not available yet.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · out of range ━━━
+(edits message 42)
+That value is outside the allowed range of 0% to 25%. Choose a value within it.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · cooldown ━━━
+(edits message 42)
+This policy was changed recently. You can change it again in 30h.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · cooldown, time unknown ━━━
+(edits message 42)
+This policy was changed recently. Please try again later.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · unsupported ━━━
+(edits message 42)
+This kind of policy cannot be changed yet.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · unknown policy ━━━
+(edits message 42)
+This policy no longer exists. Open “My office” to see the policies you can change.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · unknown place ━━━
+(edits message 42)
+This place could not be found. Open the “Map” and try again.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · wrong place ━━━
+(edits message 42)
+This policy does not apply to this place.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · office not found ━━━
+(edits message 42)
+This office does not exist here.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · office occupied ━━━
+(edits message 42)
+Someone already holds this office.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · office vacant ━━━
+(edits message 42)
+This office is already vacant.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · already holds it ━━━
+(edits message 42)
+You already hold this office.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · incompatible offices ━━━
+(edits message 42)
+This office cannot be held together with an office you already hold.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · out of range, lever unknown ━━━
+(edits message 42)
+That value is outside the allowed range. Choose a value within it.
+  ───
+  [🔙 Back] → gov:office

@@ -1,0 +1,180 @@
+━━━ /city ━━━
+(sends)
+🏛 Offices and policies — Ostmarch
+
+📍 Ostmarch
+Offices:
+• Mayor: Sara (K7Q2M9A)
+• Deputy mayor: vacant
+• City council: vacant
+Policies:
+• Immigration fee: 0 Nil · default
+• Tax rate: 4.5% · default
+• Minimum wage: 100 Nil · default
+• Income tax: 5% · default
+• Working-hours window (game hours): 24 · default
+• Shifts before fatigue: 4 · default
+• Bank withdrawal fee: 1.5% · default
+• Card transfer fee: 1% · default
+• Public transport fare: 100% · default
+
+📍 The Commonwealth
+Offices:
+• President: vacant
+Policies:
+• Border tariff: 0% · default
+  ───
+  [📜 Policy history] → gov:history:ostmarch
+  [🏛 My office] → gov:office
+  [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
+
+━━━ My office ━━━
+(edits message 42)
+🏛 My office
+
+📍 Mayor of Ostmarch
+• Immigration fee: 0 Nil
+• Tax rate: 4.5%
+• Minimum wage: 100 Nil
+• Income tax: 5%
+• Working-hours window (game hours): 24
+• Shifts before fatigue: 4
+• Bank withdrawal fee: 1.5%
+• Card transfer fee: 1%
+• Public transport fare: 100%
+  ───
+  [✏️ Immigration fee — Ostmarch] → gov:lever:city.immigration_fee:ostmarch
+  [✏️ Tax rate — Ostmarch] → gov:lever:city.tax_rate:ostmarch
+  [✏️ Minimum wage — Ostmarch] → gov:lever:city.minimum_wage:ostmarch
+  [✏️ Income tax — Ostmarch] → gov:lever:city.income_tax:ostmarch
+  [✏️ Working-hours window (game hours) — Ostmarch] → gov:lever:city.shift_window_hours:ostmarch
+  [✏️ Shifts before fatigue — Ostmarch] → gov:lever:city.shifts_before_fatigue:ostmarch
+  [✏️ Bank withdrawal fee — Ostmarch] → gov:lever:city.bank_withdrawal_fee:ostmarch
+  [✏️ Card transfer fee — Ostmarch] → gov:lever:city.card_transfer_fee:ostmarch
+  [✏️ Public transport fare — Ostmarch] → gov:lever:city.transit_fare:ostmarch
+  [🔙 Back] → gov:city   │   [🔄 Refresh] → gov:office
+
+━━━ Tax rate ━━━
+(edits message 42)
+🏛 Tax rate — Ostmarch
+• Tax rate: 4.5% · default
+
+Allowed range: 0% to 25%
+Default: 4.5%
+A change takes effect 24h after it is announced.
+After a change, the next one can be made 3d later.
+
+New value: 4.5%
+Adjust it with the buttons, then tap “Review change”.
+  ───
+  [➖ 2.5%] → gov:lever:city.tax_rate:ostmarch:200   │   [➖ 0.25%] → gov:lever:city.tax_rate:ostmarch:425   │   [➕ 0.25%] → gov:lever:city.tax_rate:ostmarch:475   │   [➕ 2.5%] → gov:lever:city.tax_rate:ostmarch:700
+  [Minimum (0%)] → gov:lever:city.tax_rate:ostmarch:0   │   [Maximum (25%)] → gov:lever:city.tax_rate:ostmarch:2500
+  [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Lower it ━━━
+(edits message 42)
+🏛 Tax rate — Ostmarch
+• Tax rate: 4.5% · default
+
+Allowed range: 0% to 25%
+Default: 4.5%
+A change takes effect 24h after it is announced.
+After a change, the next one can be made 3d later.
+
+New value: 2%
+Adjust it with the buttons, then tap “Review change”.
+  ───
+  [➖ 2.5%] → gov:lever:city.tax_rate:ostmarch:0   │   [➖ 0.25%] → gov:lever:city.tax_rate:ostmarch:175   │   [➕ 0.25%] → gov:lever:city.tax_rate:ostmarch:225   │   [➕ 2.5%] → gov:lever:city.tax_rate:ostmarch:450
+  [Minimum (0%)] → gov:lever:city.tax_rate:ostmarch:0   │   [Default (4.5%)] → gov:lever:city.tax_rate:ostmarch:450   │   [Maximum (25%)] → gov:lever:city.tax_rate:ostmarch:2500
+  [📝 Review change] → gov:confirm:city.tax_rate:ostmarch:200
+  [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Review ━━━
+(edits message 42)
+📝 Confirm the change
+
+Tax rate in Ostmarch: from 4.5% to 2%
+It will be announced now and take effect in 24h.
+You will not be able to change this policy again for 3d.
+  ───
+  [✅ Confirm] → gov:set:city.tax_rate:ostmarch:200   │   [✖️ Cancel] → gov:lever:city.tax_rate:ostmarch:200
+
+━━━ Confirm ━━━
+(edits message 42)
+📢 Change announced
+
+Tax rate in Ostmarch will change from 4.5% to 2% in 24h. The change is recorded in the public history.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Change it again at once ━━━
+(edits message 42)
+🏛 Tax rate — Ostmarch
+• Tax rate: 4.5% · default
+  ⏳ Changes to 2% in 24h
+
+Allowed range: 0% to 25%
+Default: 4.5%
+A change takes effect 24h after it is announced.
+After a change, the next one can be made 3d later.
+
+⏳ You can change this policy again in 3d.
+  ───
+  [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:city.tax_rate:ostmarch
+
+━━━ City hall after the change ━━━
+(edits message 42)
+🏛 Offices and policies — Ostmarch
+
+📍 Ostmarch
+Offices:
+• Mayor: Sara (K7Q2M9A)
+• Deputy mayor: vacant
+• City council: vacant
+Policies:
+• Immigration fee: 0 Nil · default
+• Tax rate: 4.5% · default
+  ⏳ Changes to 2% in 24h
+• Minimum wage: 100 Nil · default
+• Income tax: 5% · default
+• Working-hours window (game hours): 24 · default
+• Shifts before fatigue: 4 · default
+• Bank withdrawal fee: 1.5% · default
+• Card transfer fee: 1% · default
+• Public transport fare: 100% · default
+
+📍 The Commonwealth
+Offices:
+• President: vacant
+Policies:
+• Border tariff: 0% · default
+  ───
+  [📜 Policy history] → gov:history:ostmarch
+  [🏛 My office] → gov:office
+  [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
+
+━━━ Policy history ━━━
+(edits message 42)
+📜 Policy history — Ostmarch
+
+• Tax rate (Ostmarch): 4.5% → 2%
+  Announced by Mayor Sara (K7Q2M9A) · 1s ago
+  ⏳ Takes effect in 24h
+  ───
+  [🔙 Back] → gov:city:ostmarch   │   [🔄 Refresh] → gov:history:ostmarch:1
+
+━━━ A friend's office (none) ━━━
+(sends)
+🏛 My office
+
+You do not hold any office. For now, office holders are appointed by the game's administrators; elections will come later.
+  ───
+  [🔙 Back] → gov:city   │   [🔄 Refresh] → gov:office
+
+━━━ A friend tries to change the tax ━━━
+(edits message 42)
+Only the Mayor can change this policy. If you held that office, you may have been replaced.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch

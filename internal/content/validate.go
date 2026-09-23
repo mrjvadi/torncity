@@ -160,6 +160,10 @@ func (p *Pack) Validate() error {
 	// Transport: facilities, modes, and which modes serve which route.
 	p.validateTransport(&problems)
 
+	// Crime: tiers, venues, categories and crimes, against the modes,
+	// careers, courses and facilities above.
+	p.validateCrimes(&problems)
+
 	if len(problems) > 0 {
 		return errors.Join(problems...)
 	}
@@ -322,7 +326,8 @@ func (p *Pack) Warnings() []string {
 		warnings = append(warnings, fmt.Sprintf(
 			"city %q has no route to anywhere: it will load, but nobody can travel to or from it", code))
 	}
-	return append(warnings, p.transportWarnings()...)
+	warnings = append(warnings, p.transportWarnings()...)
+	return append(warnings, p.crimeWarnings()...)
 }
 
 // Edges returns the pack's routes as domain edge values, in file order.

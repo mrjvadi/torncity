@@ -1,0 +1,82 @@
+━━━ /social ━━━
+(sends)
+👥 دوستان
+
+هنوز دوستی ندارید.
+برای پیدا کردن بازیکن، نام کاربری یا کد بازیکنش را بفرستید؛ مثلاً /social @username
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list:1
+
+━━━ /find ━━━
+(sends)
+🔎 پیدا کردن بازیکن
+بازیکن را با یکی از این‌ها پیدا کنید:
+• نام کاربری تلگرام: /social @username
+• کد بازیکن: /social K7Q2M9A
+• شناسهٔ عددی تلگرام: /social 123456789
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ /find B3C4D5F ━━━
+(sends)
+🔎 نتیجهٔ جست‌وجو
+
+👤 کاوه
+🆔 کد بازیکن: B3C4D5F
+  ───
+  [➕ افزودن کاوه] → social:friend.add:7a2e9b4c-1d53-4f8a-a6e2-3c9b8d7e6f22
+  [💸 پرداخت به کاوه] → bank:pay:B3C4D5F
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Add friend ━━━
+(edits message 42)
+✅ درخواست دوستی برای کاوه فرستاده شد. پس از پذیرفتن، در فهرست دوستانتان می‌آید.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ The friend's list ━━━
+(sends)
+👥 دوستان
+
+• سارا · در انتظار پاسخ
+  ───
+  [✅ پذیرفتن سارا] → social:friend.accept:5f1d7c2e-8a41-4c6b-9e3d-2b7a1f0c9d11
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list:1
+
+━━━ The friend accepts ━━━
+(edits message 42)
+✅ شما و سارا از این پس دوست هستید.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Friends ━━━
+(edits message 42)
+👥 دوستان
+
+• کاوه
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list:1
+
+━━━ /find K7Q2M9A (yourself) ━━━
+(sends)
+🔎 نتیجهٔ جست‌وجو
+
+👤 سارا
+🆔 کد بازیکن: K7Q2M9A
+
+این خودتان هستید. کد بازیکنتان را به دوستانتان بدهید تا پیدایتان کنند.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ /find ZZZZZZZ ━━━
+(sends)
+بازیکنی با کد ZZZZZZZ پیدا نشد. کد را دوباره بررسی کنید؛ برای جست‌وجوی نام کاربری، @ را اول آن بگذارید.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list
+
+━━━ Add them again ━━━
+(sends)
+شما از قبل با این بازیکن دوست هستید. او را در «دوستان» پیدا می‌کنید.
+  ───
+  [👥 دوستان] → social:friend.list
+  [🔙 بازگشت] → player:profile.get

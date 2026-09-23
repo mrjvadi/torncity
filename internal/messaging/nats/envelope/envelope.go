@@ -41,12 +41,6 @@ type Metadata struct {
 	ReplyToMessageID *int64  `json:"reply_to_message_id,omitempty"`
 	CallbackQueryID  *string `json:"callback_query_id,omitempty"`
 
-	// TelegramEphemeralMessageID is set when the player acted through an
-	// ephemeral message — one only they and the bot can see in a group — and
-	// TelegramMessageID is then 0. It is what an ephemeral reply answers and
-	// what an ephemeral screen is edited by. See internal/gateway/groups.
-	TelegramEphemeralMessageID int64 `json:"telegram_ephemeral_message_id,omitempty"`
-
 	// ReplyToTelegramUserID and ReplyToPlayerID name the person whose message
 	// the player answered with Telegram's reply, when that person is not the
 	// player and not a bot. In a group this is how a command points at
@@ -68,6 +62,19 @@ type Metadata struct {
 
 	ReceivedAt    time.Time `json:"received_at"`
 	SchemaVersion int       `json:"schema_version"`
+}
+
+// InGroup reports whether the request came from a group, where everybody in
+// the chat sees what the bot posts: a group or supergroup by type, or any
+// chat whose id is negative. Telegram gives a private chat the user's own,
+// positive id and every group, supergroup and channel a negative one, so the
+// id still tells the room apart when the type was not carried.
+//
+// A screen rendered for a group leaves the player's money out; the gateway
+// sends a private screen to the player's private chat instead
+// (internal/gateway/groups).
+func (m Metadata) InGroup() bool {
+	return m.ChatType == "group" || m.ChatType == "supergroup" || m.TelegramChatID < 0
 }
 
 // Validate reports whether the metadata carries the fields the system relies

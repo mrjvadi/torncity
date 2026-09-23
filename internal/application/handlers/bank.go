@@ -289,6 +289,13 @@ func (h *BankHandler) move(ctx context.Context, meta envelope.Metadata, req Bank
 		if err := bank.CheckAtBank(presence(here[0])); err != nil {
 			return application.ErrBankNotInCity.WithCause(err)
 		}
+		// A prisoner cannot reach their bank to draw cash (docs/adr/0019);
+		// bail itself is paid from the bank by the jail.
+		if !deposit {
+			if err := RefuseJailed(ctx, tx, p.ID, h.now()); err != nil {
+				return err
+			}
+		}
 		city, err := h.cities.ByID(ctx, here[0].CityID)
 		if err != nil {
 			return err

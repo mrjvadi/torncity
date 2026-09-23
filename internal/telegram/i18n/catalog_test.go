@@ -358,3 +358,13 @@ func TestShippedLocalesAreValid(t *testing.T) {
 		t.Errorf("the profile body ends with a stray newline: %q", body)
 	}
 }
+
+// A nil value never reaches a player as Go's "<nil>".
+func TestNilArgumentRendersAsNothing(t *testing.T) {
+	var missing *int
+	for name, v := range map[string]any{"nil": nil, "nil pointer": missing} {
+		if got := expand("price: {price}", map[string]any{"price": v}); got != "price: " {
+			t.Errorf("%s rendered as %q", name, got)
+		}
+	}
+}

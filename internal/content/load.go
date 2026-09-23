@@ -68,6 +68,11 @@ type file struct {
 
 	Facilities     []string           `yaml:"facilities"`
 	TransportModes []TransportModeDef `yaml:"transport_modes"`
+
+	CrimeTiers      []CrimeTierDef     `yaml:"crime_tiers"`
+	Venues          []VenueDef         `yaml:"crime_venues"`
+	CrimeCategories []CrimeCategoryDef `yaml:"crime_categories"`
+	Crimes          []CrimeDef         `yaml:"crimes"`
 }
 
 // Load reads every content file in dir and returns them as one pack.
@@ -147,6 +152,10 @@ func Load(dir string) (*Pack, error) {
 		pack.Courses = append(pack.Courses, doc.Courses...)
 		pack.Facilities = append(pack.Facilities, doc.Facilities...)
 		pack.TransportModes = append(pack.TransportModes, doc.TransportModes...)
+		pack.CrimeTiers = append(pack.CrimeTiers, doc.CrimeTiers...)
+		pack.Venues = append(pack.Venues, doc.Venues...)
+		pack.CrimeCategories = append(pack.CrimeCategories, doc.CrimeCategories...)
+		pack.Crimes = append(pack.Crimes, doc.Crimes...)
 	}
 
 	pack.Checksum = hex.EncodeToString(digest.Sum(nil))

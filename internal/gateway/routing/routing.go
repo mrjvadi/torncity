@@ -200,6 +200,11 @@ var shortcuts = map[string]shortcut{
 	"job":   {Bare: "job.status"},
 	"jobs":  {Bare: "job.list"},
 	"study": {Bare: "education.list"},
+	// Crime: "/crime" is the hub and "/crime pickpocketing" commits that
+	// crime where the player stands — it never names a victim; "/jail" is
+	// the jail screen.
+	"crime": {Bare: "crime.hub", Words: "crime.commit"},
+	"jail":  {Bare: "crime.jail"},
 }
 
 // argNames names the positional arguments of a command, in order.
@@ -286,6 +291,21 @@ var argNames = map[string][]string{
 	"education.list":   {"page"},
 	"education.view":   {"course"},
 	"education.enroll": {"course"},
+
+	// Crime. A crime, a category are named by their content code
+	// (crimes.yml); nonce is a button's one-time token, so a second press
+	// is a replay, never a second attempt. crime.report names the theft by
+	// its attempt id, from the victim's notice; "crime:report:<id>:yes"
+	// files it.
+	"crime.hub":    {},
+	"crime.list":   {"category", "page"},
+	"crime.view":   {"crime"},
+	"crime.commit": {"crime", "nonce"},
+	"crime.record": {},
+	"crime.jail":   {},
+	"crime.bail":   {"nonce"},
+	"crime.report": {"crime", "confirm"},
+	"crime.cases":  {},
 }
 
 // joinRest lists the commands whose last named argument takes every word

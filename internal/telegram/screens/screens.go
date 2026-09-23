@@ -20,7 +20,6 @@ package screens
 
 import (
 	stderrors "errors"
-	"strconv"
 	"strings"
 	"time"
 
@@ -94,14 +93,28 @@ type Context struct {
 	// MessageID is the message this response should replace. Zero means
 	// there is nothing to edit, so the screen sends.
 	MessageID int64
+	// Shared says the screen is rendered where others can see it: a group
+	// (envelope.Metadata.InGroup). A shared screen leaves the player's own
+	// money out — the cash they carry, their bank balance — and shows
+	// everything else.
+	Shared bool
+	// Zone is the time zone a clock time is shown in (FormatClock). Nil
+	// means the process default, SetDefaultZone — the configured
+	// player.default_timezone — so a player is never shown UTC.
+	Zone *time.Location
 }
 
 // T resolves one key in this context's language.
+//
+// An integer argument is written as a number of this language before it is
+// substituted — its digits, its thousands separator — so a screen may hand
+// over a level, a page or a count as it stands and still never put ASCII
+// digits in the middle of a Persian sentence. See numerals.go.
 func (c Context) T(key string, args map[string]any) string {
 	if c.Msgs == nil {
 		return key
 	}
-	return c.Msgs.T(c.Lang, key, args)
+	return c.Msgs.T(c.Lang, key, c.localiseArgs(args))
 }
 
 // CityName resolves a city's display name in this context's language.
@@ -203,63 +216,6 @@ func FormatDuration(c Context, d time.Duration) string {
 	return c.T("format.duration_hm", map[string]any{"hours": hours, "minutes": minutes})
 }
 
-// FormatNumber renders an integer with "," between each group of three
-// digits, so 12500 reads as 12,500. Every count a player compares — XP,
-// distance, energy — goes through it.
-func FormatNumber(n int64) string {
-	if n < 0 {
-		return "-" + FormatNumber(-n)
-	}
-	digits := strconv.FormatInt(n, 10)
-	if len(digits) <= 3 {
-		return digits
-	}
-	var b strings.Builder
-	lead := len(digits) % 3
-	if lead > 0 {
-		b.WriteString(digits[:lead])
-	}
-	for i := lead; i < len(digits); i += 3 {
-		if b.Len() > 0 {
-			b.WriteString(thousandsSeparator)
-		}
-		b.WriteString(digits[i : i+3])
-	}
-	return b.String()
-}
-
-// thousandsSeparator is punctuation, not text: both shipped languages use
-// ASCII digits, and "," reads correctly in a right-to-left line too.
-const thousandsSeparator = ","
-
-// PercentFromBPS renders a basis-point rate as a percentage.
-//
-// Integer arithmetic throughout, like world.City.TaxOn: 750 bps is "7.5" and
-// 1000 bps is "10", with no float anywhere near a number a player compares
-// two cities by.
-func PercentFromBPS(bps int) string {
-	if bps < 0 {
-		bps = 0
-	}
-	whole := bps / 100
-	frac := bps % 100
-	switch {
-	case frac == 0:
-		return strconv.Itoa(whole)
-	case frac%10 == 0:
-		return strconv.Itoa(whole) + "." + strconv.Itoa(frac/10)
-	default:
-		return strconv.Itoa(whole) + "." + pad2(frac)
-	}
-}
-
-func pad2(n int) string {
-	if n < 10 {
-		return "0" + strconv.Itoa(n)
-	}
-	return strconv.Itoa(n)
-}
-
 // Error turns a failure into the screen a player sees.
 //
 // # Why this matches on identity and not on class
@@ -277,7 +233,8 @@ func pad2(n int) string {
 // sentence rather than a blank bubble.
 func Error(c Context, err error) *presenter.Response {
 	if err == nil {
-		return c.respond(c.T("error.internal", nil), nil)
+		kb := keyboards.New().Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
+		return c.respond(c.T("error.internal", nil), kb.Build())
 	}
 
 	key, args := errorMessage(c, err)
@@ -297,6 +254,7 @@ func Error(c Context, err error) *presenter.Response {
 // missing from here gets the back button alone.
 var errorNextStep = map[string]struct{ label, addr string }{
 	"error.already_travelling":      {"button.journey", AddrTravelStatus},
+	"error.at_work":                 {"job.button.my_job", AddrJobStatus},
 	"travel.none":                   {"button.map", AddrMap},
 	"travel.same_city":              {"button.map", AddrMap},
 	"travel.no_route":               {"button.map", AddrMap},
@@ -318,6 +276,10 @@ func errorMessage(c Context, err error) (string, map[string]any) {
 	if key, args, ok := bankRefusal(c, err); ok {
 		return key, args
 	}
+	// The crime engine's refusals raised by other features; see crime.go.
+	if key, args, ok := crimeError(c, err); ok {
+		return key, args
+	}
 	// Player-held offices name their own refusals; see governance.go.
 	if key, args, ok := governanceRefusal(c, err, nil, time.Time{}); ok {
 		return key, args
@@ -337,8 +299,8 @@ func errorMessage(c Context, err error) (string, map[string]any) {
 			return "error.not_enough_energy_later", nil
 		}
 		return "error.not_enough_energy", map[string]any{
-			"needed":  FormatNumber(needed),
-			"current": FormatNumber(current),
+			"needed":  FormatNumber(c, needed),
+			"current": FormatNumber(c, current),
 			"wait":    FormatDuration(c, energyWait(needed-current)),
 		}
 	case stderrors.Is(err, travel.ErrSameCity):
@@ -390,6 +352,7 @@ var applicationSentinels = []struct {
 	{application.ErrCityNotFound, "error.city_not_found"},
 	{application.ErrNoActiveTravel, "travel.none"},
 	{application.ErrAlreadyTravelling, "error.already_travelling"},
+	{application.ErrShiftInProgress, "error.at_work"},
 	{application.ErrSkillNotFound, "error.skill_not_found"},
 	{application.ErrNotFriends, "error.not_friends"},
 	{application.ErrAlreadyFriends, "error.already_friends"},

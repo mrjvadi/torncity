@@ -63,6 +63,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	// The zone database is embedded so a player's clock time renders in
+	// player.default_timezone even in a container image with no tzdata.
+	_ "time/tzdata"
 
 	"gopkg.in/yaml.v3"
 )
@@ -70,6 +73,10 @@ import (
 // DefaultPath is where the committed configuration lives, relative to the
 // repository root.
 const DefaultPath = "configs/config.yml"
+
+// maxTimeScale mirrors gametime.MaxScale (one game day per real second). It
+// is restated rather than imported so this package stays free of the domain.
+const maxTimeScale = 86_400
 
 // Load failures.
 var (
@@ -144,6 +151,17 @@ var (
 	// ErrReceiptMarginTooLong rejects a receipt margin that leaves the
 	// gateway no time to send: every notice would arrive already expired.
 	ErrReceiptMarginTooLong = errors.New("config: notifier.receipt_margin must be shorter than notifier.send_budget")
+
+	// ErrInvalidTimeScale means game.time_scale is outside 1..86400: one game
+	// day per real second is the most the game clock can mean.
+	ErrInvalidTimeScale = errors.New("config: game.time_scale must be between 1 and 86400")
+
+	// ErrBPSTooLarge means a basis-point value is above 10000 (100%).
+	ErrBPSTooLarge = errors.New("config: a basis-point value must not exceed 10000")
+
+	// ErrUnknownTimezone means player.default_timezone is not an IANA zone
+	// name the embedded zone database knows.
+	ErrUnknownTimezone = errors.New("config: player.default_timezone is not a known time zone")
 )
 
 // Config is every operational value, grouped the way configs/config.yml is.
@@ -157,6 +175,7 @@ type Config struct {
 	RateLimit  RateLimit
 	Telegram   Telegram
 	Groups     Groups
+	Menu       Menu
 	Dedup      Dedup
 	NATS       NATS
 	Worker     Worker
@@ -167,6 +186,7 @@ type Config struct {
 	Player     Player
 	Economy    Economy
 	Governance Governance
+	Crime      Crime
 }
 
 // Gateway paces the Telegram polling loop and its shutdown.
@@ -221,13 +241,15 @@ func (t Telegram) PollHTTPTimeout() time.Duration {
 // Groups tunes how the game is delivered in Telegram groups, where a private
 // screen must reach only the player who asked for it (internal/gateway/groups).
 type Groups struct {
-	EphemeralReplyWindow  time.Duration // groups.ephemeral_reply_window
-	EphemeralRefusalTTL   time.Duration // groups.ephemeral_refusal_ttl
-	CallbackAlertMaxRunes int           // groups.callback_alert_max_runes
-	// Menu is the slash-commands offered in a group's command menu, each
-	// registered as ephemeral so that using it is seen by nobody else. Each
-	// needs a description under group.menu.<command> in every locale.
-	Menu []string // groups.menu
+	CallbackAlertMaxRunes int // groups.callback_alert_max_runes
+}
+
+// Menu is the bot's command menu (the "/" button). It is registered for
+// private chats only; groups are left without one.
+type Menu struct {
+	// Commands are the slash-commands offered, in order. Each needs a
+	// description under command_menu.<command> in every locale.
+	Commands []string // menu.commands
 }
 
 // Dedup is how long a Telegram update id is remembered.
@@ -309,10 +331,21 @@ type Game struct {
 	// ContentReloadInterval is how often the service checks whether a newer
 	// content version was loaded, and swaps it in without a restart.
 	ContentReloadInterval time.Duration // game.content_reload_interval
+
+	// TimeScale is the game clock (docs/adr/0018-game-clock.md): how many
+	// seconds of game time pass in one real second. Every gameplay duration
+	// content writes — a journey, a course, a shift, a promotion's time in
+	// tier, a fatigue window — is game time, and the player waits it
+	// divided by this. At 60 a 24h course is 24 real minutes.
+	//
+	// The legacy key travel.time_scale (and TORN_TRAVEL_TIME_SCALE) still
+	// fills it, from before the clock was the whole game's; game.time_scale
+	// wins where both are set.
+	TimeScale int // game.time_scale
 }
 
-// Travel is the tuning of a journey that is not content: what arriving pays,
-// and how game time maps to the wall clock.
+// Travel is the tuning of a journey that is not content: what arriving pays.
+// How game time maps to the wall clock is the game clock, Game.TimeScale.
 //
 // The RULES — how a distance and a transport mode become a duration and a
 // fare — live in internal/domain/travel. The modes themselves (speed, fare,
@@ -321,14 +354,27 @@ type Game struct {
 // policy (city.transit_fare), read only through the policy resolver.
 type Travel struct {
 	ArrivalXP int // travel.arrival_xp
-	// TimeScale is how many seconds of game time pass in one real second
-	// of a journey: a trip whose content duration is 2h waits 2m at 60.
-	TimeScale int // travel.time_scale
 }
 
 // Player holds player-facing defaults.
 type Player struct {
 	DefaultLanguage string // player.default_language
+
+	// DefaultTimezone is the IANA zone a clock time is shown in ("arrives at
+	// 14:32") for a player who has not chosen one. Never UTC by accident:
+	// the game's players live somewhere.
+	DefaultTimezone string // player.default_timezone
+}
+
+// Location returns the zone DefaultTimezone names. Validate has already
+// refused a name the zone database does not know, so this cannot fail on a
+// loaded Config; on an unvalidated one it falls back to UTC.
+func (p Player) Location() *time.Location {
+	loc, err := time.LoadLocation(p.DefaultTimezone)
+	if err != nil {
+		return time.UTC
+	}
+	return loc
 }
 
 // Economy is the tuning of the money core (docs/adr/0009-economic-control.md).
@@ -355,6 +401,39 @@ type Governance struct {
 	// 100 and 10 steps by 25 and 250.
 	FineStepDivisor   int // governance.fine_step_divisor
 	CoarseStepDivisor int // governance.coarse_step_divisor
+}
+
+// Crime is the tuning of the crime engine (docs/adr/0019-crime-engine.md).
+// The crimes are content and the justice levers a city's policy; none of
+// that is here. Durations are REAL time except InvestigationDuration, which
+// is GAME time waited through the game clock.
+type Crime struct {
+	NerveMax           int           // crime.nerve_max
+	NerveRegenAmount   int           // crime.nerve_regen_amount
+	NerveRegenInterval time.Duration // crime.nerve_regen_interval
+
+	HeatMax          int // crime.heat_max
+	HeatDecayPerHour int // crime.heat_decay_per_hour
+
+	ProtectMinLevel int           // crime.protect_min_level
+	ProtectMinAge   time.Duration // crime.protect_min_age
+
+	ActiveWindow  time.Duration // crime.active_window
+	ArrivalLinger time.Duration // crime.arrival_linger
+
+	VictimCooldown time.Duration // crime.victim_cooldown
+	ThiefCooldown  time.Duration // crime.thief_cooldown
+	ReportWindow   time.Duration // crime.report_window
+
+	InvestigationDuration        time.Duration // crime.investigation_duration (game time)
+	InvestigationBaseBPS         int           // crime.investigation_base_bps
+	InvestigationPerHeatBPS      int           // crime.investigation_per_heat_bps
+	InvestigationWitnessBonusBPS int           // crime.investigation_witness_bonus_bps
+	InvestigationEffortWeightBPS int           // crime.investigation_effort_weight_bps
+
+	// NPCDailyCap is the most NPC crime pays into the economy per UTC day,
+	// minor units.
+	NPCDailyCap int64 // crime.npc_daily_cap
 }
 
 // Defaults returns every field at the value it was hardcoded to before this
@@ -387,10 +466,10 @@ func Defaults() *Config {
 			DefaultFloodWait: 5 * time.Second,
 		},
 		Groups: Groups{
-			EphemeralReplyWindow:  12 * time.Second,
-			EphemeralRefusalTTL:   10 * time.Minute,
 			CallbackAlertMaxRunes: 200,
-			Menu:                  []string{"profile", "skills", "map", "social", "find", "settings", "help"},
+		},
+		Menu: Menu{
+			Commands: []string{"profile", "map", "job", "study", "bank", "city", "crime", "skills", "social", "find", "settings", "help"},
 		},
 		Dedup: Dedup{
 			TTL: 24 * time.Hour,
@@ -433,13 +512,14 @@ func Defaults() *Config {
 			IdempotencyTTL:  24 * time.Hour,
 
 			ContentReloadInterval: 30 * time.Second,
+			TimeScale:             60,
 		},
 		Travel: Travel{
 			ArrivalXP: 25,
-			TimeScale: 60,
 		},
 		Player: Player{
 			DefaultLanguage: "fa",
+			DefaultTimezone: "Asia/Tehran",
 		},
 		Economy: Economy{
 			StartingCash:  5000,
@@ -449,6 +529,26 @@ func Defaults() *Config {
 		Governance: Governance{
 			FineStepDivisor:   100,
 			CoarseStepDivisor: 10,
+		},
+		Crime: Crime{
+			NerveMax:                     20,
+			NerveRegenAmount:             1,
+			NerveRegenInterval:           5 * time.Minute,
+			HeatMax:                      100,
+			HeatDecayPerHour:             4,
+			ProtectMinLevel:              3,
+			ProtectMinAge:                72 * time.Hour,
+			ActiveWindow:                 30 * time.Minute,
+			ArrivalLinger:                20 * time.Minute,
+			VictimCooldown:               6 * time.Hour,
+			ThiefCooldown:                24 * time.Hour,
+			ReportWindow:                 24 * time.Hour,
+			InvestigationDuration:        6 * time.Hour,
+			InvestigationBaseBPS:         2500,
+			InvestigationPerHeatBPS:      40,
+			InvestigationWitnessBonusBPS: 3500,
+			InvestigationEffortWeightBPS: 3000,
+			NPCDailyCap:                  500000,
 		},
 	}
 }
@@ -607,6 +707,29 @@ func (c *Config) Validate() error {
 	if c.Notifier.SendBudget >= c.NATS.AckWait {
 		return fmt.Errorf("%w: send_budget is %s, nats.ack_wait is %s",
 			ErrSendBudgetTooLong, c.Notifier.SendBudget, c.NATS.AckWait)
+	}
+
+	// The game clock's own bound: past one game day per real second every
+	// duration collapses into the one-second floor.
+	if c.Game.TimeScale > maxTimeScale {
+		return fmt.Errorf("%w: it is %d", ErrInvalidTimeScale, c.Game.TimeScale)
+	}
+
+	// A zone the database does not know would show players UTC.
+	if _, err := time.LoadLocation(c.Player.DefaultTimezone); err != nil {
+		return fmt.Errorf("%w: %q", ErrUnknownTimezone, c.Player.DefaultTimezone)
+	}
+
+	// A basis-point weight above 100% is a typo, not a tuning.
+	for name, v := range map[string]int{
+		"crime.investigation_base_bps":          c.Crime.InvestigationBaseBPS,
+		"crime.investigation_per_heat_bps":      c.Crime.InvestigationPerHeatBPS,
+		"crime.investigation_witness_bonus_bps": c.Crime.InvestigationWitnessBonusBPS,
+		"crime.investigation_effort_weight_bps": c.Crime.InvestigationEffortWeightBPS,
+	} {
+		if v > 10_000 {
+			return fmt.Errorf("%w: %s is %d", ErrBPSTooLarge, name, v)
+		}
 	}
 
 	// The gateway needs some of the budget to send in.

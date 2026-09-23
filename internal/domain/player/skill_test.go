@@ -20,6 +20,10 @@ func TestValidateSkillCode(t *testing.T) {
 		{"cooking", SkillCooking, nil},
 		{"logistics", SkillLogistics, nil},
 		{"driving", SkillDriving, nil},
+		{"stealth", SkillStealth, nil},
+		{"lockpicking", SkillLockpicking, nil},
+		{"deception", SkillDeception, nil},
+		{"streetwise", SkillStreetwise, nil},
 		{"empty is not a skill", SkillCode(""), ErrUnknownSkill},
 		{"invented code", SkillCode("alchemy"), ErrUnknownSkill},
 		{"case matters, the stored value is lower case", SkillCode("Programming"), ErrUnknownSkill},
@@ -39,8 +43,8 @@ func TestValidateSkillCode(t *testing.T) {
 // and that a caller cannot widen the set by writing into the returned slice.
 func TestSkillCodesIsClosed(t *testing.T) {
 	codes := SkillCodes()
-	if len(codes) != 9 {
-		t.Fatalf("got %d skill codes, want the 9 named by the spec", len(codes))
+	if len(codes) != 13 {
+		t.Fatalf("got %d skill codes, want the 9 named by the spec and the 4 criminal skills", len(codes))
 	}
 	for _, c := range codes {
 		if err := Validate(c); err != nil {

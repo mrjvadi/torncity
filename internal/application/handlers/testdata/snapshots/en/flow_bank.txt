@@ -1,0 +1,142 @@
+━━━ /bank ━━━
+(sends)
+🏦 Bank
+
+📍 Ostmarch branch
+Withdrawals here carry a fee of 1.5%, added on top of the amount. Deposits are always free.
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 0 Nil
+
+Choose an amount below, or type one, for example /bank deposit 5000
+
+💸 To pay another player, send /pay with their username or player code, for example /pay @username
+  ───
+  [📥 Deposit 1,250 Nil] → bank:deposit:1250:idxba   │   [📥 Deposit 2,500 Nil] → bank:deposit:2500:idxxca
+  [📥 Deposit 5,000 Nil] → bank:deposit:5000:idda
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
+
+━━━ Deposit ━━━
+(edits message 42)
+✅ 1,250 Nil deposited into your bank account.
+
+🏦 Bank
+
+📍 Ostmarch branch
+Withdrawals here carry a fee of 1.5%, added on top of the amount. Deposits are always free.
+
+💵 Cash: 3,750 Nil
+🏦 Bank balance: 1,250 Nil
+
+Choose an amount below, or type one, for example /bank deposit 5000
+
+💸 To pay another player, send /pay with their username or player code, for example /pay @username
+  ───
+  [📥 Deposit 937 Nil] → bank:deposit:937:idxea   │   [📥 Deposit 1,875 Nil] → bank:deposit:1875:idxxfa
+  [📥 Deposit 3,750 Nil] → bank:deposit:3750:idga
+  [📤 Withdraw 307 Nil] → bank:withdraw:307:idxha   │   [📤 Withdraw 615 Nil] → bank:withdraw:615:idxxia
+  [📤 Withdraw 1,231 Nil] → bank:withdraw:1231:idja
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
+
+━━━ Withdraw ━━━
+(edits message 42)
+✅ You withdrew 307 Nil in cash · fee: 5 Nil
+
+🏦 Bank
+
+📍 Ostmarch branch
+Withdrawals here carry a fee of 1.5%, added on top of the amount. Deposits are always free.
+
+💵 Cash: 4,057 Nil
+🏦 Bank balance: 938 Nil
+
+Choose an amount below, or type one, for example /bank deposit 5000
+
+💸 To pay another player, send /pay with their username or player code, for example /pay @username
+  ───
+  [📥 Deposit 1,014 Nil] → bank:deposit:1014:idxka   │   [📥 Deposit 2,028 Nil] → bank:deposit:2028:idxxla
+  [📥 Deposit 4,057 Nil] → bank:deposit:4057:idma
+  [📤 Withdraw 231 Nil] → bank:withdraw:231:idxna   │   [📤 Withdraw 462 Nil] → bank:withdraw:462:idxxoa
+  [📤 Withdraw 924 Nil] → bank:withdraw:924:idpa
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
+
+━━━ /bank deposit 999999 (too much) ━━━
+(sends)
+You do not have enough cash. Cash on you: 4,057 Nil
+  ───
+  [🏦 Bank] → bank:show
+  [🔙 Back] → player:profile.get
+
+━━━ /bank deposit abc ━━━
+(sends)
+Please write the amount as a whole number, for example /bank deposit 5000
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ /pay ━━━
+(sends)
+💸 Pay a player
+Name the player in one of these ways:
+• Telegram username: /pay @username
+• Player code: /pay K7Q2M9A
+You can add the amount and the method: /pay K7Q2M9A 5000 card
+Cash changes hands only when you are both in the same city; card payments work from anywhere.
+  ───
+  [🔎 Find a player] → social:search
+  [🔙 Back] → bank:show
+
+━━━ /pay B3C4D5F ━━━
+(sends)
+💸 Pay Kaveh
+
+📍 You and Kaveh are both in Ostmarch; pay in cash or by card.
+Card payments from Ostmarch carry a fee of 1%, added on top of the amount.
+
+💵 Cash: 4,057 Nil
+🏦 Bank balance: 938 Nil
+
+Another amount? Type it: /pay B3C4D5F 5000 card or /pay B3C4D5F 5000 cash
+  ───
+  [💵 Cash · 1,014 Nil] → bank:pay:B3C4D5F:1014:cash   │   [💵 Cash · 2,028 Nil] → bank:pay:B3C4D5F:2028:cash
+  [💵 Cash · 4,057 Nil] → bank:pay:B3C4D5F:4057:cash
+  [💳 Card · 232 Nil] → bank:pay:B3C4D5F:232:card   │   [💳 Card · 464 Nil] → bank:pay:B3C4D5F:464:card
+  [💳 Card · 928 Nil] → bank:pay:B3C4D5F:928:card
+  [🔙 Back] → bank:show   │   [🔄 Refresh] → bank:pay:B3C4D5F
+
+━━━ Choose an amount ━━━
+(edits message 42)
+💵 Hand 1,014 Nil in cash to Kaveh?
+  ───
+  [✅ Confirm] → bank:pay.send:B3C4D5F:1014:cash:idxwa   │   [✖️ Cancel] → bank:pay:B3C4D5F
+  [🔙 Back] → bank:show
+
+━━━ Confirm ━━━
+(edits message 42)
+✅ You handed 1,014 Nil in cash to Kaveh.
+  ───
+  [🏦 Bank] → bank:show   │   [💸 Pay again] → bank:pay:B3C4D5F
+  [🔙 Back] → player:profile.get
+
+━━━ /pay B3C4D5F 900000 card (too much) ━━━
+(sends)
+💳 Send 900,000 Nil by card to Kaveh?
+Fee: 9,000 Nil · Total from your bank: 909,000 Nil
+  ───
+  [✅ Confirm] → bank:pay.send:B3C4D5F:900000:card:idxxxa   │   [✖️ Cancel] → bank:pay:B3C4D5F
+  [🔙 Back] → bank:show
+
+━━━ /pay K7Q2M9A (yourself) ━━━
+(sends)
+You cannot pay yourself.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ /pay ZZZZZZZ (nobody) ━━━
+(sends)
+No player to pay was found. Check the username or player code and try again.
+  ───
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get

@@ -38,6 +38,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
+	"github.com/mrjvadi/torncity/internal/telegram/screens"
 	"github.com/mrjvadi/torncity/internal/workers/notification"
 )
 
@@ -121,6 +122,9 @@ func newLogger(level string) *slog.Logger {
 
 func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) error {
 	logger = logger.With(slog.String("service", "notifier"))
+
+	// Every clock time a notice shows is in the players' zone, never UTC.
+	screens.SetDefaultZone(cfg.Player.Location())
 
 	// Every value here is the notifier section of the configuration. Load has
 	// already refused a send budget that could outlast the ack wait, and a

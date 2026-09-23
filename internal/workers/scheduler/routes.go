@@ -40,11 +40,26 @@ const (
 	// ActionTypeEducation is a course reaching its end: the enrolment is
 	// completed and its certificate and skill XP granted.
 	ActionTypeEducation = "education"
+
+	// ActionTypeShift is a shift of work reaching its end: the pay, tax, XP,
+	// skill XP and performance are settled.
+	ActionTypeShift = "work_shift"
+
+	// ActionTypeCrime is a timed crime reaching its end: it is rolled and
+	// settled.
+	ActionTypeCrime = "crime"
+
+	// ActionTypeInvestigation is a reported theft's investigation reaching
+	// its end: solved or closed.
+	ActionTypeInvestigation = "crime_investigation"
+
+	// ActionTypeJailRelease is a sentence served.
+	ActionTypeJailRelease = "jail_release"
 )
 
 // routes maps an action type to the command it is published as.
 //
-// Only travel and education are here, and the absence of the rest is
+// Only travel, education and shifts are here, and the absence of the rest is
 // deliberate. Salary, production, healing and auction expiry are all named in
 // 19_SCHEDULER_WORKERS.md as future scheduled work, but nothing writes those
 // rows yet and no handler consumes those subjects. An entry for a command
@@ -54,6 +69,11 @@ const (
 var routes = map[string]Route{
 	ActionTypeTravel:    {Domain: "travel", Action: "arrive"},
 	ActionTypeEducation: {Domain: "education", Action: "complete"},
+	ActionTypeShift:     {Domain: "job", Action: "finish_shift"},
+
+	ActionTypeCrime:         {Domain: "crime", Action: "resolve"},
+	ActionTypeInvestigation: {Domain: "crime", Action: "conclude"},
+	ActionTypeJailRelease:   {Domain: "crime", Action: "release"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

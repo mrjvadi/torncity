@@ -342,8 +342,8 @@ func TestGovCityShowsOfficesPoliciesAndTheActingDeputy(t *testing.T) {
 	ctx := context.Background()
 
 	got := govShow(t)(g.h.City(ctx, govMeta(govOutsideTG, "req-1", "gov.city"), GovCityRequest{}))
-	for _, want := range []string{"Ostmarch", "The Commonwealth", "Dara (D3PUTY1)", "Tax rate: 4.5% (default)",
-		"Mayor: vacant — Deputy mayor Dara (D3PUTY1) is acting", "President: vacant", "gov:history:ostmarch"} {
+	for _, want := range []string{"Ostmarch", "The Commonwealth", "Dara (D3PUTY1)", "Tax rate: 4.5% · default",
+		"Mayor: vacant · acting: Deputy mayor Dara (D3PUTY1)", "President: vacant", "gov:history:ostmarch"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("the city screen lacks %q:\n%s", want, got)
 		}
@@ -446,7 +446,7 @@ func TestGovRefusalsAreAnswersAndWriteNothing(t *testing.T) {
 		req  GovLeverRequest
 		want string
 	}{
-		{"not the holder", govOutsideTG, tax("800"), "Only the holder of the office of Mayor"},
+		{"not the holder", govOutsideTG, tax("800"), "Only the Mayor can change this policy"},
 		{"out of range", govMayorTG, tax("2600"), "outside the allowed range of 0% to 25%"},
 		{"unknown lever", govMayorTG, GovLeverRequest{Lever: "city.nothing", Place: "ostmarch", Value: "1"}, "no longer exists"},
 		{"unknown place", govMayorTG, GovLeverRequest{Lever: "city.tax_rate", Place: "atlantis", Value: "1"}, "could not be found"},

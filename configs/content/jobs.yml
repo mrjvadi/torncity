@@ -31,13 +31,19 @@
 #     required_certifications  course codes (education.yml) whose certificate
 #                              must be held. The course must certify.
 #     base_salary              pay per full-output shift, minor units.
-#     energy_cost              energy one shift costs.
+#     energy_cost              energy one shift costs, paid when it starts.
+#     shift_duration           how long one shift lasts, in GAME time (e.g.
+#                              8h). The player waits it through the game
+#                              clock (config.yml game.time_scale): at 60 an
+#                              8h shift is an 8-minute wait. They are at work
+#                              until it ends and are paid then. Required.
 #     xp_per_shift             character XP for a full-output shift.
 #     skill_xp_per_shift       [{skill, xp}] for a full-output shift.
 #     promotion                what earns the step to the next tier:
 #                              min_performance (0..100), min_time_in_tier (a
-#                              duration, e.g. 48h), min_shifts. Ignored on the
-#                              last tier.
+#                              GAME-time duration, e.g. 48h, waited through the
+#                              game clock), min_shifts. Ignored on the last
+#                              tier.
 #
 # A player may hold a job only in the city they live in (a work permit for
 # other cities arrives with residency changes, ADR 0014).
@@ -54,6 +60,7 @@ careers:
         min_level: 1
         base_salary: 120
         energy_cost: 15
+        shift_duration: 4h
         xp_per_shift: 10
         skill_xp_per_shift: [{skill: management, xp: 15}]
         promotion: {min_performance: 55, min_time_in_tier: 24h, min_shifts: 6}
@@ -63,6 +70,7 @@ careers:
         required_skills: [{skill: management, level: 2}]
         base_salary: 190
         energy_cost: 15
+        shift_duration: 6h
         xp_per_shift: 14
         skill_xp_per_shift: [{skill: management, xp: 20}]
         promotion: {min_performance: 62, min_time_in_tier: 48h, min_shifts: 10}
@@ -73,6 +81,7 @@ careers:
         required_certifications: [retail_management]
         base_salary: 300
         energy_cost: 20
+        shift_duration: 8h
         xp_per_shift: 20
         skill_xp_per_shift: [{skill: management, xp: 30}, {skill: finance, xp: 10}]
         promotion: {min_performance: 70, min_time_in_tier: 72h, min_shifts: 15}
@@ -83,6 +92,7 @@ careers:
         required_certifications: [retail_management]
         base_salary: 480
         energy_cost: 20
+        shift_duration: 8h
         xp_per_shift: 28
         skill_xp_per_shift: [{skill: management, xp: 40}, {skill: finance, xp: 15}]
 
@@ -95,6 +105,7 @@ careers:
         min_level: 1
         base_salary: 110
         energy_cost: 15
+        shift_duration: 4h
         xp_per_shift: 10
         skill_xp_per_shift: [{skill: cooking, xp: 15}]
         promotion: {min_performance: 55, min_time_in_tier: 24h, min_shifts: 6}
@@ -104,6 +115,7 @@ careers:
         required_skills: [{skill: cooking, level: 3}]
         base_salary: 180
         energy_cost: 20
+        shift_duration: 6h
         xp_per_shift: 14
         skill_xp_per_shift: [{skill: cooking, xp: 25}]
         promotion: {min_performance: 62, min_time_in_tier: 48h, min_shifts: 10}
@@ -114,6 +126,7 @@ careers:
         required_certifications: [culinary_arts]
         base_salary: 290
         energy_cost: 20
+        shift_duration: 8h
         xp_per_shift: 20
         skill_xp_per_shift: [{skill: cooking, xp: 35}, {skill: management, xp: 10}]
         promotion: {min_performance: 70, min_time_in_tier: 72h, min_shifts: 15}
@@ -124,6 +137,7 @@ careers:
         required_certifications: [culinary_arts]
         base_salary: 460
         energy_cost: 25
+        shift_duration: 8h
         xp_per_shift: 28
         skill_xp_per_shift: [{skill: cooking, xp: 40}, {skill: management, xp: 20}]
 
@@ -136,6 +150,7 @@ careers:
         min_level: 1
         base_salary: 115
         energy_cost: 15
+        shift_duration: 4h
         xp_per_shift: 10
         skill_xp_per_shift: [{skill: logistics, xp: 10}, {skill: driving, xp: 10}]
         promotion: {min_performance: 55, min_time_in_tier: 24h, min_shifts: 6}
@@ -146,6 +161,7 @@ careers:
         required_certifications: [driving_licence]
         base_salary: 200
         energy_cost: 20
+        shift_duration: 6h
         xp_per_shift: 14
         skill_xp_per_shift: [{skill: driving, xp: 25}, {skill: logistics, xp: 10}]
         promotion: {min_performance: 62, min_time_in_tier: 48h, min_shifts: 10}
@@ -156,6 +172,7 @@ careers:
         required_certifications: [driving_licence]
         base_salary: 310
         energy_cost: 20
+        shift_duration: 8h
         xp_per_shift: 20
         skill_xp_per_shift: [{skill: logistics, xp: 35}, {skill: management, xp: 10}]
         promotion: {min_performance: 70, min_time_in_tier: 72h, min_shifts: 15}
@@ -166,6 +183,7 @@ careers:
         required_certifications: [driving_licence]
         base_salary: 490
         energy_cost: 20
+        shift_duration: 8h
         xp_per_shift: 28
         skill_xp_per_shift: [{skill: logistics, xp: 40}, {skill: management, xp: 20}]
 
@@ -178,6 +196,7 @@ careers:
         min_level: 1
         base_salary: 125
         energy_cost: 20
+        shift_duration: 4h
         xp_per_shift: 12
         skill_xp_per_shift: [{skill: mechanics, xp: 15}]
         promotion: {min_performance: 55, min_time_in_tier: 24h, min_shifts: 6}
@@ -187,6 +206,7 @@ careers:
         required_skills: [{skill: mechanics, level: 3}]
         base_salary: 210
         energy_cost: 20
+        shift_duration: 6h
         xp_per_shift: 16
         skill_xp_per_shift: [{skill: mechanics, xp: 25}, {skill: engineering, xp: 5}]
         promotion: {min_performance: 64, min_time_in_tier: 48h, min_shifts: 12}
@@ -197,6 +217,7 @@ careers:
         required_certifications: [automotive_repair]
         base_salary: 340
         energy_cost: 25
+        shift_duration: 8h
         xp_per_shift: 22
         skill_xp_per_shift: [{skill: mechanics, xp: 35}, {skill: engineering, xp: 15}]
 
@@ -211,6 +232,7 @@ careers:
         required_certifications: [programming_fundamentals]
         base_salary: 220
         energy_cost: 20
+        shift_duration: 4h
         xp_per_shift: 16
         skill_xp_per_shift: [{skill: programming, xp: 25}]
         promotion: {min_performance: 60, min_time_in_tier: 48h, min_shifts: 10}
@@ -221,6 +243,7 @@ careers:
         required_certifications: [programming_fundamentals]
         base_salary: 360
         energy_cost: 20
+        shift_duration: 6h
         xp_per_shift: 22
         skill_xp_per_shift: [{skill: programming, xp: 35}, {skill: engineering, xp: 10}]
         promotion: {min_performance: 68, min_time_in_tier: 72h, min_shifts: 15}
@@ -231,6 +254,7 @@ careers:
         required_certifications: [software_engineering]
         base_salary: 560
         energy_cost: 25
+        shift_duration: 8h
         xp_per_shift: 30
         skill_xp_per_shift: [{skill: programming, xp: 45}, {skill: engineering, xp: 20}]
         promotion: {min_performance: 75, min_time_in_tier: 120h, min_shifts: 20}
@@ -241,6 +265,7 @@ careers:
         required_certifications: [software_engineering]
         base_salary: 820
         energy_cost: 25
+        shift_duration: 8h
         xp_per_shift: 38
         skill_xp_per_shift: [{skill: programming, xp: 50}, {skill: engineering, xp: 30}, {skill: management, xp: 10}]
 
@@ -255,6 +280,7 @@ careers:
         required_certifications: [first_aid]
         base_salary: 150
         energy_cost: 20
+        shift_duration: 4h
         xp_per_shift: 12
         skill_xp_per_shift: [{skill: medicine, xp: 20}]
         promotion: {min_performance: 58, min_time_in_tier: 36h, min_shifts: 8}
@@ -265,6 +291,7 @@ careers:
         required_certifications: [nursing]
         base_salary: 330
         energy_cost: 25
+        shift_duration: 6h
         xp_per_shift: 22
         skill_xp_per_shift: [{skill: medicine, xp: 35}]
         promotion: {min_performance: 70, min_time_in_tier: 96h, min_shifts: 15}
@@ -275,6 +302,7 @@ careers:
         required_certifications: [nursing]
         base_salary: 520
         energy_cost: 25
+        shift_duration: 8h
         xp_per_shift: 30
         skill_xp_per_shift: [{skill: medicine, xp: 45}, {skill: management, xp: 15}]
 
@@ -289,6 +317,7 @@ careers:
         required_certifications: [bookkeeping]
         base_salary: 170
         energy_cost: 15
+        shift_duration: 4h
         xp_per_shift: 12
         skill_xp_per_shift: [{skill: finance, xp: 20}]
         promotion: {min_performance: 58, min_time_in_tier: 36h, min_shifts: 8}
@@ -299,6 +328,7 @@ careers:
         required_certifications: [bookkeeping]
         base_salary: 320
         energy_cost: 20
+        shift_duration: 6h
         xp_per_shift: 20
         skill_xp_per_shift: [{skill: finance, xp: 30}]
         promotion: {min_performance: 68, min_time_in_tier: 72h, min_shifts: 15}
@@ -309,6 +339,7 @@ careers:
         required_certifications: [bookkeeping]
         base_salary: 520
         energy_cost: 20
+        shift_duration: 8h
         xp_per_shift: 28
         skill_xp_per_shift: [{skill: finance, xp: 40}, {skill: management, xp: 10}]
         promotion: {min_performance: 75, min_time_in_tier: 120h, min_shifts: 20}
@@ -319,5 +350,6 @@ careers:
         required_certifications: [bookkeeping]
         base_salary: 780
         energy_cost: 25
+        shift_duration: 8h
         xp_per_shift: 36
         skill_xp_per_shift: [{skill: finance, xp: 45}, {skill: management, xp: 25}]

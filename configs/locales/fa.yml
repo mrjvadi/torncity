@@ -39,18 +39,37 @@
 #   card payment    پرداخت کارتی             💳       bank to bank, from anywhere
 #   pay             پرداخت                 💸       «پرداخت به {player}»
 #   fee             کارمزد                          never «هزینه» for a bank fee
-#   deposit         واریز      withdraw  برداشت
+#   deposit         واریز                  📥
+#   withdraw        برداشت                 📤
+#   job             شغل / شغل من            💼       «فرصت‌های شغلی» = job openings; «شیفت» = a shift of work
+#   pay per shift   دستمزد هر شیفت          💰
+#   performance     عملکرد                 📈       «۵۳ از ۱۰۰»
+#   promotion       ارتقا                  ⬆️
+#   education       آموزش                  🎓       «دوره» = course, «شهریه» = fee, «ثبت‌نام» = enrol
+#   course          دوره                   📖
+#   certificate     مدرک                   📜
+#   office          منصب / مناصب            🏛       «سیاست» = policy
+#   back            بازگشت                 🔙       every screen has one, except the profile itself
+#   currency        نیل (Nil، پول بازی)             always through format.money: «۵٬۰۰۰ نیل»
 #
 # Voice: address the player as «شما», polite and direct. No exclamation marks
-# except in the one-time welcome. At most one emoji per line, and only the
-# anchor of the concept that line is about.
+# except in the one-time welcome. At most one emoji per line, at the head of
+# the line, and only the anchor of the concept that line is about. A screen
+# reads: a title line, then the facts, then one hint.
 #
-# Numbers: ASCII digits (0-9). The code inserts "," as the thousands separator
-# and turns durations into «2 ساعت و 15 دقیقه»-style text via format.*; never
-# write raw seconds here. Percent is written «٪» after the number.
+# Numbers: never type a number into a message. The code writes every number
+# in Persian digits with «٬» between thousands and «٫» as the decimal mark
+# (format.digits, format.group_separator, format.decimal_separator), and turns
+# durations into «۲ ساعت و ۱۵ دقیقه» through format.duration_*. A count out of
+# a maximum reads «{energy} از {max_energy}». Percent is written «٪» after the
+# number. The one exception is a command the player types: «/bank deposit
+# 5000» stays in ASCII, because that is how it must be typed.
 #
-# Button labels name the place they open («نقشه»), and error messages refer to
-# buttons by that same label in «گیومه».
+# Always use the نیم‌فاصله (ZWNJ) where Persian needs it: «می‌توانید»،
+# «مهارت‌ها»، «به‌روزرسانی»، «دست‌به‌دست».
+#
+# Button labels name the place they open («نقشه»), and messages refer to
+# buttons by that same label in «گیومه», without the emoji.
 # ---------------------------------------------------------------------------
 
 profile:
@@ -58,8 +77,8 @@ profile:
   # has not earned any XP, and it takes no placeholders. (The key name is
   # pinned by internal/telegram/i18n's shipped-locale test.)
   body: |-
-    به بازی خوش آمدید!
-    این پروفایل شماست؛ با دکمه‌های زیر در بازی بگردید.
+    👋 به بازی خوش آمدید!
+    اینجا خانهٔ شماست: وضعیت، پول و کارتان را همین‌جا می‌بینید. با دکمه‌های پایین به هر جای بازی بروید.
 
   name: "👤 {name}"
   city: "📍 {city}"
@@ -67,9 +86,9 @@ profile:
   level: "⭐ سطح {level} · {xp_to_next} امتیاز تجربه تا سطح {next_level}"
   level_plain: "⭐ سطح {level}"
   level_max: "⭐ سطح {level} · بالاترین سطح بازی"
-  energy: "⚡ انرژی: {energy}/{max_energy}"
-  energy_refilling: "⚡ انرژی: {energy}/{max_energy} · {duration} تا پر شدن"
-  health: "❤️ سلامت: {health}/{max_health}"
+  energy: "⚡ انرژی: {energy} از {max_energy}"
+  energy_refilling: "⚡ انرژی: {energy} از {max_energy} · {duration} تا پر شدن"
+  health: "❤️ سلامت: {health} از {max_health}"
   # پول بازیکن: نقدی که همراه دارد و موجودی بانکش. خصوصی است و فقط خود
   # بازیکن آن را می‌بیند.
   cash: "💵 پول نقد: {cash}"
@@ -78,17 +97,25 @@ profile:
   # identifier a player is meant to see and share; see
   # internal/shared/playercode. social.search reuses profile.code.
   code: "🆔 کد بازیکن: {code}"
-  code_hint: دوستانتان می‌توانند با /social {code} شما را پیدا کنند.
-  unavailable: پروفایل شما الان در دسترس نیست. چند لحظه بعد دوباره امتحان کنید.
+  code_hint: "دوستانتان با فرستادن /social {code} شما را پیدا می‌کنند."
+  unavailable: "پروفایل شما الان در دسترس نیست. چند لحظهٔ دیگر دوباره امتحان کنید."
 
+  # The player's work and studies, between their condition and their money.
+  job: "💼 {title} در {city} · {pay} برای هر شیفت"
+  job_none: "💼 هنوز شغلی ندارید"
+  shift_running: "⏳ در حال شیفت · {remaining} مانده"
+  shift_ending: "⏳ شیفت تمام شد؛ دستمزد در راه است"
+  course: "📖 {course} · {remaining} مانده"
+  course_finishing: "📖 {course} · چند لحظهٔ دیگر تمام می‌شود"
+  certificates: "📜 {count} مدرک"
 map:
   title: "🗺 نقشه"
   origin: "📍 شما در {city} هستید."
-  destinations: "از اینجا می‌توانید به این شهرها سفر کنید:"
-  destination: "• {city} — {distance} کیلومتر"
-  no_routes: از اینجا فعلاً مسیری به شهر دیگری وجود ندارد. با «به‌روزرسانی» بعداً دوباره سر بزنید.
-  no_city: هنوز در شهری مستقر نشده‌اید. پس از استقرار، مقصدهای سفر همین‌جا نمایش داده می‌شوند.
-  travelling: "🧭 در راه {city} هستید. پس از رسیدن می‌توانید سفر تازه‌ای شروع کنید."
+  destinations: "از اینجا به این شهرها می‌توانید سفر کنید:"
+  destination: "• {city} · {distance} کیلومتر"
+  no_routes: "فعلاً از اینجا راهی به شهر دیگری نیست. کمی بعد با «به‌روزرسانی» دوباره نگاه کنید."
+  no_city: "هنوز در هیچ شهری مستقر نشده‌اید. پس از استقرار، مقصدهای سفر همین‌جا نمایش داده می‌شوند."
+  travelling: "🧭 در راه {city} هستید. پس از رسیدن می‌توانید سفر تازه‌ای را آغاز کنید."
 
 travel:
   # The choice of transport, shown when a destination is pressed on the Map.
@@ -96,38 +123,45 @@ travel:
   # formatted through format.money; {wait} is the real time the trip takes.
   options_title: |-
     🧭 سفر به {to}
-    مبدأ: {from}
-  options_choose: "با چه وسیله‌ای سفر می‌کنید؟"
-  option: "• {mode}: {fare}، {wait} در راه، {energy} انرژی"
-  option_busy: "• {mode}: {fare} (مسیر پرتردد)، {wait} در راه، {energy} انرژی"
-  requoted: کرایه از زمانی که قیمت‌ها را دیدید تغییر کرده است. مبلغی کسر نشد؛ قیمت‌های فعلی را ببینید و دوباره انتخاب کنید.
+    📍 مبدأ: {from}
+  options_choose: "با چه وسیله‌ای می‌روید؟"
+  option: "• {mode} · {fare} · {wait} در راه · {energy} انرژی"
+  option_busy: "• {mode} · {fare} (مسیر شلوغ) · {wait} در راه · {energy} انرژی"
+  requoted: "⚠️ کرایه از وقتی که قیمت‌ها را دیدید تغییر کرده است. پولی کسر نشد؛ قیمت‌های تازه را ببینید و دوباره انتخاب کنید."
   cash: "💵 پول نقد شما: {cash}"
-  insufficient_funds: پول نقد کافی برای سفر با {mode} ندارید. کرایه {fare} است و شما {cash} دارید. مبلغی کسر نشد؛ شاید وسیلهٔ ارزان‌تری در دسترس باشد.
+  insufficient_funds: |-
+    💵 پول نقدتان برای سفر با {mode} کافی نیست.
+    کرایه: {fare} · پول نقد شما: {cash}
+    پولی کسر نشد؛ شاید وسیلهٔ ارزان‌تری در دسترس باشد.
   # Shown only if a mode has neither a translation nor an authored name.
   mode_unnamed: وسیلهٔ دیگر
+  # What a journey that costs nothing shows instead of a price of zero.
+  free: "رایگان"
   started: |-
-    🧭 سفر شما با {mode} به {to} آغاز شد
-    از {from} راه افتادید و {duration} دیگر می‌رسید.
+    🧭 سفر با {mode} به سوی {to} آغاز شد
+    {from} را ترک کردید و {duration} دیگر می‌رسید.
     ⚡ {energy} انرژی مصرف شد.
-  started_fare: "💵 {fare} کرایه پرداخت شد."
+  started_fare: "💵 کرایهٔ پرداخت‌شده: {fare}"
+  # زمان رسیدن سفر، به وقت منطقهٔ زمانی بازیکن.
+  arrives_at: "🕒 ساعت رسیدن: {time}"
   status_mode: "وسیلهٔ سفر: {mode}"
   status: |-
     🧭 در راه {to}
-    مبدأ: {from}
+    📍 مبدأ: {from}
     ⏳ {remaining} تا رسیدن
   status_arriving: |-
     🧭 در راه {to}
-    مبدأ: {from}
-    ⏳ چند لحظه دیگر می‌رسید.
+    📍 مبدأ: {from}
+    ⏳ چند لحظهٔ دیگر می‌رسید.
   arrived: "📍 به {city} رسیدید."
   arrived_xp: "⭐ {xp} امتیاز تجربه گرفتید."
   # Added to the arrival notice when the XP of the journey lifted the player
   # to a new level; {level} is the highest level reached.
-  arrived_level: "⭐ به سطح {level} رسیدید."
-  none: در حال حاضر در سفر نیستید. برای سفر، «نقشه» را باز کنید.
-  same_city: همین حالا در این شهر هستید. از «نقشه» مقصد دیگری انتخاب کنید.
-  no_route: از شهر فعلی شما مسیری به آنجا وجود ندارد. از «نقشه» یکی از مقصدهای در دسترس را انتخاب کنید.
-  mode_unavailable: این وسیله برای این سفر در دسترس نیست. مقصد را دوباره از «نقشه» انتخاب کنید تا وسیله‌های موجود را ببینید.
+  arrived_level: "⭐ تبریک؛ به سطح {level} رسیدید."
+  none: "الان در سفر نیستید. برای سفر، «نقشه» را باز کنید."
+  same_city: "همین حالا در این شهر هستید. مقصد دیگری را از «نقشه» انتخاب کنید."
+  no_route: "از شهری که در آن هستید راهی به آنجا نیست. یکی از مقصدهای «نقشه» را انتخاب کنید."
+  mode_unavailable: "این وسیله در این مسیر رفت‌وآمد نمی‌کند. مقصد را دوباره از «نقشه» بزنید تا وسیله‌های همین مسیر را ببینید."
 
 # Transport mode names, keyed on the mode's content code
 # (configs/content/transport.yml). A mode with no entry here falls back to its
@@ -140,9 +174,9 @@ transport_mode:
 
 skills:
   title: "🛠 مهارت‌ها"
-  empty: هنوز مهارتی کسب نکرده‌اید. هر مهارتی که تمرین کنید، اینجا نمایش داده می‌شود.
-  line: "• {skill} — سطح {level} · {percent}٪ تا سطح بعد"
-  line_max: "• {skill} — سطح {level} · بالاترین سطح"
+  empty: "هنوز مهارتی ندارید. با کار کردن و گذراندن دوره‌ها مهارت به دست می‌آورید و همین‌جا می‌بینیدشان."
+  line: "• {skill} · سطح {level} · {percent}٪ تا سطح بعد"
+  line_max: "• {skill} · سطح {level} · بالاترین سطح"
 
 skill:
   programming: برنامه‌نویسی
@@ -154,6 +188,10 @@ skill:
   cooking: آشپزی
   logistics: لجستیک
   driving: رانندگی
+  stealth: پنهان‌کاری
+  lockpicking: قفل‌بازکنی
+  deception: فریبکاری
+  streetwise: خیابان‌شناسی
 
 # City display names, keyed on the city's content code (configs/content/cities.yml).
 # The code never changes after a city ships; the name here may. A city with no
@@ -172,26 +210,27 @@ city:
 # help.body are the shortcuts internal/gateway/routing accepts; keep the two
 # in step.
 help:
-  unknown: این پیام را متوجه نشدم.
+  unknown: "این پیام را متوجه نشدم."
   body: |-
-    بازی با دکمه‌های زیر پیش می‌رود. این دستورها را هم می‌توانید بفرستید:
-    /profile — پروفایل
+    بازی با دکمه‌ها پیش می‌رود. این دستورها را هم می‌توانید بفرستید:
+    /profile — پروفایل و خانه
     /map — نقشه و سفر
+    /job — شغل من
+    /jobs — فرصت‌های شغلی
+    /study — آموزش و دوره‌ها
+    /bank — بانک، واریز و برداشت
+    /pay — پرداخت به بازیکن دیگر
     /skills — مهارت‌ها
     /social — دوستان
-    /find — پیدا کردن بازیکن با نام کاربری، کد بازیکن یا شناسهٔ تلگرام
-    /bank — پول نقد، موجودی بانک، واریز و برداشت
-    /pay — پرداخت به یک بازیکن، نقدی یا کارتی
-    /city — مناصب و سیاست‌های شهرتان
+    /find — پیدا کردن بازیکن
+    /city — مناصب و سیاست‌های شهر
     /office — منصب من
-    /job — شغل من و فرصت‌های شغلی
-    /study — آموزش و دوره‌ها
     /settings — تنظیمات
 
 settings:
   title: "⚙️ تنظیمات"
-  language: "🌐 زبان: {language}"
-  language_changed: زبان بازی به {language} تغییر کرد.
+  language: "🌐 زبان بازی: {language}"
+  language_changed: "✅ زبان بازی به {language} تغییر کرد."
 
 # Language names, keyed on the locale file's name (fa.yml -> language.fa).
 # Each language is written in ITSELF, in every locale: a player who landed in
@@ -208,51 +247,61 @@ social:
   # @) or a code — never for a Telegram ID, which no screen prints.
   search:
     help: |-
-      🔎 جست‌وجوی بازیکن
-      بازیکن را با یکی از این سه مورد پیدا کنید:
+      🔎 پیدا کردن بازیکن
+      بازیکن را با یکی از این‌ها پیدا کنید:
       • نام کاربری تلگرام: /social @username
       • کد بازیکن: /social K7Q2M9A
       • شناسهٔ عددی تلگرام: /social 123456789
     title: "🔎 نتیجهٔ جست‌وجو"
     player: "👤 {player}"
-    self: این خودتان هستید. کد بازیکنتان را به دوستانتان بدهید تا شما را پیدا کنند.
-    not_found_username: بازیکنی با نام کاربری {query} پیدا نشد. شاید نام کاربری‌اش را عوض کرده یا هنوز بازی را شروع نکرده باشد؛ کد بازیکنش را از خودش بپرسید.
-    not_found_code: بازیکنی با کد {query} پیدا نشد. کد را دوباره بررسی کنید؛ اگر منظورتان نام کاربری است، @ را پیش از آن بنویسید.
-    not_found_id: بازیکنی با این شناسهٔ تلگرام پیدا نشد. شاید هنوز بازی را شروع نکرده باشد.
+    self: "این خودتان هستید. کد بازیکنتان را به دوستانتان بدهید تا پیدایتان کنند."
+    not_found_username: "بازیکنی با نام کاربری {query} پیدا نشد. شاید نام کاربری‌اش را عوض کرده یا هنوز بازی را شروع نکرده است؛ کد بازیکنش را از خودش بپرسید."
+    not_found_code: "بازیکنی با کد {query} پیدا نشد. کد را دوباره بررسی کنید؛ برای جست‌وجوی نام کاربری، @ را اول آن بگذارید."
+    not_found_id: "بازیکنی با این شناسهٔ تلگرام پیدا نشد. شاید هنوز بازی را شروع نکرده است."
   friends:
     title: "👥 دوستان"
     empty: |-
       هنوز دوستی ندارید.
-      برای پیدا کردن یک بازیکن، نام کاربری تلگرام یا کد بازیکنش را بفرستید؛ مثلاً /social @username
+      برای پیدا کردن بازیکن، نام کاربری یا کد بازیکنش را بفرستید؛ مثلاً /social @username
     line: "• {player}"
-    line_pending: "• {player} — در انتظار پاسخ"
-    line_blocked: "• {player} — مسدود"
+    line_pending: "• {player} · در انتظار پاسخ"
+    line_blocked: "• {player} · مسدود"
   friend:
-    requested: درخواست دوستی برای {player} فرستاده شد. پس از پذیرفتن، در فهرست دوستانتان نمایش داده می‌شود.
-    requested_anon: درخواست دوستی فرستاده شد. پس از پذیرفتن، در فهرست دوستانتان نمایش داده می‌شود.
-    accepted: از این پس شما و {player} با هم دوست هستید.
-    accepted_anon: درخواست دوستی را پذیرفتید. این بازیکن حالا در فهرست دوستان شماست.
+    requested: "✅ درخواست دوستی برای {player} فرستاده شد. پس از پذیرفتن، در فهرست دوستانتان می‌آید."
+    requested_anon: "✅ درخواست دوستی فرستاده شد. پس از پذیرفتن، در فهرست دوستانتان می‌آید."
+    accepted: "✅ شما و {player} از این پس دوست هستید."
+    accepted_anon: "✅ درخواست دوستی را پذیرفتید. این بازیکن حالا در فهرست دوستان شماست."
 
 page:
   indicator: "صفحهٔ {page} از {pages}"
 
 format:
+  # How numbers are written: the ten digits from zero to nine, the mark
+  # between groups of three digits, and the decimal mark. The code writes
+  # every number through these; never type digits into a message by hand.
+  digits: "۰۱۲۳۴۵۶۷۸۹"
+  group_separator: "٬"
+  decimal_separator: "٫"
   duration_hm: "{hours} ساعت و {minutes} دقیقه"
   duration_h: "{hours} ساعت"
   duration_m: "{minutes} دقیقه"
   duration_s: "{seconds} ثانیه"
-  # A sum of money. {amount} is already grouped with "," by the code.
-  money: "{amount} ریال"
+  # زمان ساعتی، به وقت منطقهٔ زمانی بازیکن. {hour} و {minute} همیشه دورقمی
+  # و با همان رقم‌های بالا هستند.
+  clock: "{hour}:{minute}"
+  # A sum of money. {amount} is already written with the digits and the
+  # group separator above.
+  money: "{amount} نیل"
 
 button:
   refresh: "🔄 به‌روزرسانی"
-  back: بازگشت
-  next: بعدی
-  previous: قبلی
+  back: "🔙 بازگشت"
+  next: "بعدی ⬅️"
+  previous: "➡️ قبلی"
   profile: "👤 پروفایل"
   map: "🗺 نقشه"
   journey: "🧭 سفر من"
-  travel_to: "🧭 سفر به {city}"
+  travel_to: "🧭 {city}"
   travel_by: "{mode} · {fare}"
   travel_options: "🧭 وسیله‌های سفر"
   skills: "🛠 مهارت‌ها"
@@ -262,34 +311,37 @@ button:
   add_friend: "➕ افزودن {player}"
   accept: "✅ پذیرفتن {player}"
   bank: "🏦 بانک"
-  deposit: "واریز {amount}"
-  withdraw: "برداشت {amount}"
+  deposit: "📥 واریز {amount}"
+  withdraw: "📤 برداشت {amount}"
   find_player: "🔎 پیدا کردن بازیکن"
   pay: "💸 پرداخت به {player}"
-  pay_cash: "💵 نقد {amount}"
-  pay_card: "💳 کارت {amount}"
+  pay_cash: "💵 نقد · {amount}"
+  pay_card: "💳 کارت · {amount}"
   pay_again: "💸 پرداخت دوباره"
   confirm: "✅ تأیید"
-  cancel: انصراف
+  cancel: "✖️ انصراف"
 
 error:
-  unknown_command: این دستور را نمی‌شناسم. برای رفتن به پروفایل، /start را بفرستید.
-  not_enough_energy: "انرژی کافی ندارید: این کار {needed} انرژی لازم دارد و شما {current} دارید. انرژی با گذشت زمان پر می‌شود و حداکثر تا {wait} دیگر به اندازهٔ کافی خواهید داشت."
-  not_enough_energy_later: انرژی کافی ندارید. انرژی با گذشت زمان پر می‌شود؛ کمی بعد دوباره امتحان کنید.
-  cooldown: کمی صبر کنید؛ {wait} دیگر می‌توانید دوباره این کار را انجام دهید.
-  internal: مشکلی پیش آمد. لطفاً چند لحظه بعد دوباره امتحان کنید.
-  not_found: موردی که دنبالش بودید پیدا نشد. به پروفایل برگردید و دوباره امتحان کنید.
-  invalid_input: این درخواست را متوجه نشدم. لطفاً از دکمه‌ها استفاده کنید.
-  conflict: این کار همین حالا ممکن نیست. «به‌روزرسانی» را بزنید و دوباره امتحان کنید.
-  rate_limited: در این مدت کوتاه درخواست‌های زیادی فرستاده‌اید. چند ثانیه صبر کنید و دوباره امتحان کنید.
-  unauthorized: اجازهٔ انجام این کار را ندارید. با «بازگشت» به پروفایل برگردید.
-  city_not_found: این شهر پیدا نشد. از «نقشه» یکی از مقصدهای در دسترس را انتخاب کنید.
-  already_travelling: همین حالا در سفر هستید. برای دیدن وضعیت سفر، «سفر من» را بزنید.
-  skill_not_found: این مهارت پیدا نشد. مهارت‌های خود را در «مهارت‌ها» ببینید.
-  not_friends: با این بازیکن دوست نیستید و درخواستی از او در انتظار شما نیست. فهرست دوستان و درخواست‌ها را در «دوستان» ببینید.
-  already_friends: شما از قبل با این بازیکن دوست هستید. او را در «دوستان» پیدا می‌کنید.
-  player_not_found: بازیکن پیدا نشد. اگر هنوز بازی را شروع نکرده‌اید، /start را بفرستید.
-  unsupported_language: این زبان در بازی موجود نیست. از «تنظیمات» یکی از زبان‌های موجود را انتخاب کنید.
+  unknown_command: "این دستور را نمی‌شناسم. برای رفتن به پروفایل، /start را بفرستید."
+  not_enough_energy: |-
+    ⚡ انرژی کافی ندارید.
+    این کار {needed} انرژی می‌خواهد و شما {current} دارید. انرژی کم‌کم پر می‌شود و حداکثر {wait} دیگر کافی است.
+  not_enough_energy_later: "⚡ انرژی کافی ندارید. انرژی کم‌کم پر می‌شود؛ کمی بعد دوباره امتحان کنید."
+  cooldown: "⏳ کمی صبر کنید؛ {wait} دیگر می‌توانید دوباره این کار را انجام دهید."
+  internal: "مشکلی پیش آمد. چند لحظهٔ دیگر دوباره امتحان کنید."
+  not_found: "آنچه دنبالش بودید پیدا نشد. به پروفایل برگردید و دوباره امتحان کنید."
+  invalid_input: "این درخواست را متوجه نشدم. لطفاً از دکمه‌ها استفاده کنید."
+  conflict: "این کار همین حالا ممکن نیست. چند لحظهٔ دیگر دوباره امتحان کنید."
+  rate_limited: "در زمان کوتاهی درخواست‌های زیادی فرستادید. چند ثانیه صبر کنید و دوباره امتحان کنید."
+  unauthorized: "اجازهٔ این کار را ندارید. با «بازگشت» به پروفایل برگردید."
+  city_not_found: "این شهر پیدا نشد. یکی از مقصدهای «نقشه» را انتخاب کنید."
+  already_travelling: "همین حالا در سفر هستید. وضعیت سفر را در «سفر من» ببینید."
+  at_work: "💼 الان سر کار هستید. پس از پایان شیفت می‌توانید راه بیفتید."
+  skill_not_found: "این مهارت پیدا نشد. مهارت‌هایتان را در «مهارت‌ها» ببینید."
+  not_friends: "با این بازیکن دوست نیستید و درخواستی از او در انتظار شما نیست. دوستان و درخواست‌ها را در «دوستان» ببینید."
+  already_friends: "شما از قبل با این بازیکن دوست هستید. او را در «دوستان» پیدا می‌کنید."
+  player_not_found: "بازیکن پیدا نشد. اگر هنوز بازی را شروع نکرده‌اید، /start را بفرستید."
+  unsupported_language: "این زبان در بازی نیست. یکی از زبان‌های موجود را در «تنظیمات» انتخاب کنید."
 
 # Player-held offices (docs/adr/0015-player-held-offices.md): the offices and
 # policies of a city, the office holder's own screen, the flow that changes a
@@ -311,41 +363,43 @@ gov:
   city:
     title: "🏛 مناصب و سیاست‌های {city}"
     title_plain: "🏛 مناصب و سیاست‌ها"
-    no_city: هنوز در شهری مستقر نشده‌اید. پس از استقرار، مناصب و سیاست‌های آن شهر همین‌جا نمایش داده می‌شوند.
+    no_city: "هنوز در هیچ شهری مستقر نشده‌اید. پس از استقرار، مناصب و سیاست‌های شهرتان همین‌جا نمایش داده می‌شوند."
     place: "📍 {place}"
     offices: "مناصب:"
-    no_offices: • در اینجا منصبی تعریف نشده است.
+    no_offices: "• منصبی در اینجا تعریف نشده است."
     policies: "سیاست‌ها:"
   office:
     held: "• {office}: {players}"
-    seats: "• {office}: {held} کرسی از {seats} کرسی — {players}"
-    acting: "• {office}: خالی — سرپرستی با {deputy}، {players}"
+    seats: "• {office}: {held} از {seats} کرسی · {players}"
+    acting: "• {office}: خالی · سرپرست: {deputy} {players}"
     vacant: "• {office}: خالی"
   lever:
-    line_default: "• {lever}: {value} (پیش‌فرض)"
-    line_set: "• {lever}: {value} (تعیین‌شده از سوی {player})"
+    line_default: "• {lever}: {value} · پیش‌فرض"
+    line_set: "• {lever}: {value} · تعیین‌شده به دست {player}"
     pending: "  ⏳ {when} دیگر به {value} تغییر می‌کند"
   mine:
     title: "🏛 منصب من"
-    none: شما منصبی ندارید. فعلاً صاحبان مناصب از سوی مدیران بازی منصوب می‌شوند و انتخابات بعداً به بازی اضافه خواهد شد.
-    seat: "{office} {place}"
-    acting_for: شما سرپرست منصب خالی {office} هستید.
-    no_levers: این منصب در حال حاضر سیاستی ندارد که بتوانید تغییرش دهید.
+    none: "شما منصبی ندارید. فعلاً صاحبان مناصب از سوی مدیران بازی منصوب می‌شوند؛ انتخابات بعداً به بازی می‌آید."
+    seat: "📍 {office} {place}"
+    acting_for: "شما سرپرست منصب خالی {office} هستید."
+    no_levers: "این منصب فعلاً سیاستی ندارد که بتوانید تغییرش دهید."
     lever: "• {lever}: {value}"
-    lever_vote: "• {lever}: {value} — با رأی‌گیری تعیین می‌شود که هنوز در دسترس نیست"
+    lever_vote: "• {lever}: {value} · با رأی‌گیری تعیین می‌شود که هنوز در دسترس نیست"
   edit:
     title: "🏛 {lever} — {place}"
     bounds: "بازهٔ مجاز: {min} تا {max}"
     default: "مقدار پیش‌فرض: {value}"
-    notice: هر تغییر {notice} پس از اعلام اجرا می‌شود.
-    cooldown: میان دو تغییر دست‌کم {cooldown} فاصله لازم است.
+    notice: "هر تغییر {notice} پس از اعلام اجرا می‌شود."
+    cooldown: "میان دو تغییر دست‌کم {cooldown} فاصله لازم است."
     cooldown_active: "⏳ {wait} دیگر می‌توانید این سیاست را دوباره تغییر دهید."
-    draft: "مقدار جدید: {value}. با دکمه‌ها تنظیمش کنید و سپس «بازبینی تغییر» را بزنید."
+    draft: |-
+      مقدار تازه: {value}
+      با دکمه‌ها تنظیمش کنید و سپس «بازبینی تغییر» را بزنید.
   confirm:
-    title: تأیید تغییر
+    title: "📝 تأیید تغییر"
     change: "{lever} در {place}: از {old} به {new}"
-    notice: این تغییر همین حالا اعلام می‌شود و {notice} بعد اجرا خواهد شد.
-    cooldown: پس از آن تا {cooldown} نمی‌توانید این سیاست را دوباره تغییر دهید.
+    notice: "این تغییر همین حالا اعلام می‌شود و {notice} بعد اجرا خواهد شد."
+    cooldown: "پس از آن تا {cooldown} نمی‌توانید این سیاست را دوباره تغییر دهید."
   announced:
     title: "📢 تغییر اعلام شد"
     body: "{lever} در {place} از {old} به {new} تغییر می‌کند و {when} دیگر اجرا می‌شود. این تغییر در تاریخچهٔ عمومی ثبت شد."
@@ -353,9 +407,9 @@ gov:
     title: "📜 تاریخچهٔ سیاست‌های {city}"
     empty: هنوز هیچ سیاستی در اینجا تغییر نکرده است.
     change: "• {lever} ({place}): {old} ← {new}"
-    by: "  از سوی {office}، {player} · اعلام‌شده {ago} پیش"
+    by: "  اعلام {office} {player} · {ago} پیش"
     effective_in: "  ⏳ {when} دیگر اجرا می‌شود"
-    effective_since: "  از {when} پیش در حال اجراست"
+    effective_since: "  {when} است که اجرا می‌شود"
   button:
     city: "🏛 مناصب و سیاست‌ها"
     history: "📜 تاریخچهٔ سیاست‌ها"
@@ -370,10 +424,10 @@ gov:
     confirm: "✅ تأیید"
     cancel: "✖️ انصراف"
   refusal:
-    not_holder: تنها صاحب منصب {office} می‌تواند این سیاست را تغییر دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید.
+    not_holder: "تنها {office} می‌تواند این سیاست را تغییر دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
     requires_vote: این سیاست با رأی‌گیری در {office} تعیین می‌شود و رأی‌گیری هنوز در دسترس نیست.
-    out_of_range: این مقدار خارج از بازهٔ مجاز {min} تا {max} است. مقداری در همین بازه انتخاب کنید.
-    out_of_range_plain: این مقدار خارج از بازهٔ مجاز است. مقداری در بازهٔ مجاز انتخاب کنید.
+    out_of_range: "این مقدار بیرون از بازهٔ مجاز {min} تا {max} است. مقداری در همین بازه انتخاب کنید."
+    out_of_range_plain: "این مقدار بیرون از بازهٔ مجاز است. مقداری در بازهٔ مجاز انتخاب کنید."
     cooldown: این سیاست به‌تازگی تغییر کرده است. {wait} دیگر می‌توانید دوباره تغییرش دهید.
     cooldown_later: این سیاست به‌تازگی تغییر کرده است. کمی بعد دوباره امتحان کنید.
     unsupported: این نوع سیاست هنوز قابل تغییر نیست.
@@ -391,6 +445,8 @@ office:
   mayor: شهردار
   deputy_mayor: معاون شهردار
   city_council: شورای شهر
+  police_chief: رئیس پلیس
+  deputy_police_chief: معاون رئیس پلیس
   president: رئیس‌جمهور
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
@@ -403,8 +459,13 @@ lever:
     transit_fare: کرایهٔ حمل‌ونقل عمومی
     minimum_wage: حداقل دستمزد
     income_tax: مالیات بر درآمد
-    shift_window_hours: بازهٔ ساعات کار (ساعت)
+    shift_window_hours: بازهٔ ساعات کار (ساعت بازی)
     shifts_before_fatigue: شیفت‌های پیش از خستگی
+    crime_report_fee: هزینهٔ ثبت شکایت
+    bail_per_hour: وثیقه به ازای هر ساعت بازی
+    jail_term_multiplier: مدت حبس (درصد از میزان پایه)
+    fine_multiplier: جریمه‌ها (درصد از میزان پایه)
+    investigation_effort: شدت پیگیری پرونده‌ها
   country:
     border_tariff: تعرفهٔ مرزی
 
@@ -424,23 +485,30 @@ group:
   # player's private chat with the bot.
   sent_privately: پاسخ شما در گفت‌وگوی خصوصی با ربات فرستاده شد.
   # The player has never started the bot, so nothing can be sent privately.
-  start_bot_first: این صفحه فقط برای شماست. ابتدا ربات را در گفت‌وگوی خصوصی باز کنید و «شروع» را بزنید تا صفحه همان‌جا نمایش داده شود.
+  start_bot_first: "این صفحه فقط برای شماست. ابتدا ربات را در گفت‌وگوی خصوصی باز کنید و «شروع» را بزنید تا صفحه همان‌جا نمایش داده شود."
   # The button under either line; it opens the bot's private chat.
   open_bot: باز کردن ربات
   # Posted once when the bot is added to a group.
   welcome: |-
-    سلام به همه! از این پس می‌توانید در همین گروه بازی کنید.
-    صفحه‌هایی که اطلاعات شخصی شما را دارند فقط به خود شما نشان داده می‌شوند، نه به بقیهٔ گروه. برای شروع از منوی دستورها استفاده کنید.
-  # Descriptions in the group command menu, one per command in
-  # groups.menu (configs/config.yml).
-  menu:
-    profile: پروفایل شما
-    skills: مهارت‌های شما
-    map: نقشهٔ شهرها
-    social: دوستان شما
-    find: جست‌وجوی بازیکن با کد بازیکن
-    settings: تنظیمات
-    help: راهنما
+    سلام به همه! از این پس می‌توانید در همین گروه بازی کنید؛ برای شروع /start را بفرستید.
+    پول، بانک و تنظیمات شما خصوصی می‌ماند: این صفحه‌ها در گفت‌وگوی خصوصی با ربات برای شما فرستاده می‌شوند.
+
+# Descriptions in the bot's command menu, shown in private chats only: a
+# group shows no command menu at all. One per command in menu.commands
+# (configs/config.yml).
+command_menu:
+  profile: پروفایل شما
+  skills: مهارت‌های شما
+  map: نقشهٔ شهرها
+  social: دوستان شما
+  find: جست‌وجوی بازیکن با کد بازیکن
+  settings: تنظیمات
+  help: راهنما
+  job: "شغل من"
+  study: "آموزش و دوره‌ها"
+  bank: "بانک و پول شما"
+  city: "مناصب و سیاست‌های شهر"
+  crime: "دنیای زیرزمینی: خلاف، زندان و پرونده‌های شما"
 
 # بانک: پول نقد همراه بازیکن و موجودی حساب بانکی. بانک خدمتی شهری است، پس
 # واریز و برداشت فقط در شهر انجام می‌شود؛ پرداخت کارتی از همه‌جا ممکن است و
@@ -449,54 +517,56 @@ group:
 bank:
   title: "🏦 بانک"
   branch: "📍 شعبهٔ {city}"
-  withdrawal_fee: کارمزد برداشت در این شهر {percent}٪ است و روی مبلغ برداشت اضافه می‌شود. واریز همیشه رایگان است.
+  withdrawal_fee: "کارمزد برداشت در این شهر {percent}٪ است و به مبلغ برداشت اضافه می‌شود. واریز همیشه رایگان است."
   withdrawal_free: واریز و برداشت در این شهر کارمزد ندارد.
-  closed_travelling: "🧭 شما در سفر هستید. بانک در هر شهری به شما خدمت می‌دهد؛ پرداخت کارتی از همه‌جا ممکن است."
-  closed_no_city: هنوز در شهری مستقر نشده‌اید، پس بانکی در دسترس نیست.
-  hint: یکی از مبلغ‌های زیر را انتخاب کنید یا مبلغ را بنویسید؛ مثلاً /bank deposit 5000 یا /bank withdraw 5000
-  pay_hint: برای پرداخت به یک بازیکن، /pay را همراه با نام کاربری یا کد بازیکن او بفرستید؛ مثلاً /pay @username
+  closed_travelling: "🧭 در سفر هستید. واریز و برداشت پس از رسیدن به هر شهری ممکن است؛ پرداخت کارتی از همه‌جا انجام می‌شود."
+  closed_no_city: "هنوز در هیچ شهری مستقر نشده‌اید، پس بانکی در دسترس نیست."
+  hint: "مبلغی را از دکمه‌ها انتخاب کنید یا خودتان بنویسید؛ مثلاً /bank deposit 5000"
+  pay_hint: "💸 برای پرداخت به بازیکن دیگر، /pay را با نام کاربری یا کد بازیکن او بفرستید؛ مثلاً /pay @username"
   deposited: "✅ {amount} به حساب بانکی شما واریز شد."
-  withdrew: "✅ {amount} به‌صورت نقد برداشت شد."
-  withdrew_fee: "✅ {amount} به‌صورت نقد برداشت شد. کارمزد: {fee}"
+  withdrew: "✅ {amount} نقد برداشت کردید."
+  withdrew_fee: "✅ {amount} نقد برداشت کردید · کارمزد: {fee}"
   error:
-    not_in_city: بانک فقط در شهر باز است. پس از رسیدن به مقصد می‌توانید واریز و برداشت کنید؛ پرداخت کارتی از همه‌جا ممکن است.
-    not_together: پول نقد را فقط به بازیکنی می‌توانید بدهید که با شما در یک شهر باشد. به‌جای آن با کارت پرداخت کنید؛ پرداخت کارتی از همه‌جا ممکن است.
+    not_in_city: "بانک فقط در شهر باز است. پس از رسیدن به مقصد می‌توانید واریز و برداشت کنید؛ پرداخت کارتی از همه‌جا ممکن است."
+    not_together: "پول نقد را فقط به بازیکنی می‌توانید بدهید که با شما در یک شهر است. به‌جای آن با کارت پرداخت کنید؛ پرداخت کارتی از همه‌جا ممکن است."
     self_payment: نمی‌توانید به خودتان پرداخت کنید.
-    payee_not_found: بازیکنی برای پرداخت پیدا نشد. نام کاربری یا کد بازیکن را بررسی کنید و دوباره امتحان کنید.
-    invalid_amount: مبلغ را به‌صورت عدد صحیح بنویسید؛ مثلاً 5000
+    payee_not_found: "بازیکنی برای پرداخت پیدا نشد. نام کاربری یا کد بازیکن را بررسی کنید و دوباره امتحان کنید."
+    invalid_amount: "مبلغ را به عدد صحیح بنویسید؛ مثلاً /bank deposit 5000"
     below_minimum: کمترین مبلغ مجاز {min} است.
     above_maximum: بیشترین مبلغ مجاز در هر بار {max} است.
-    not_enough_cash: پول نقد کافی ندارید. نقدی که همراه دارید {available} است.
-    not_enough_in_bank: "موجودی بانک کافی نیست: این کار با کارمزد {needed} لازم دارد و موجودی شما {available} است."
-    insufficient: پول کافی برای این کار ندارید. برای دیدن موجودی‌ها «بانک» را باز کنید.
-    unavailable: بانک الان در دسترس نیست. چند لحظه بعد دوباره امتحان کنید.
+    not_enough_cash: "پول نقد کافی ندارید. پول نقد همراه شما: {available}"
+    not_enough_in_bank: |-
+      موجودی بانک کافی نیست.
+      این کار با کارمزد {needed} لازم دارد و موجودی شما {available} است.
+    insufficient: "پول کافی برای این کار ندارید. موجودی‌هایتان را در «بانک» ببینید."
+    unavailable: "بانک الان در دسترس نیست. چند لحظهٔ دیگر دوباره امتحان کنید."
 
 # پرداخت به بازیکن دیگر. {player} نام آن بازیکن است.
 pay:
   help: |-
     💸 پرداخت به بازیکن
-    بازیکن را با یکی از این موارد مشخص کنید:
+    بازیکن را با یکی از این‌ها مشخص کنید:
     • نام کاربری تلگرام: /pay @username
     • کد بازیکن: /pay K7Q2M9A
-    مبلغ و روش پرداخت را هم می‌توانید بنویسید: /pay K7Q2M9A 5000 card
+    مبلغ و روش را هم می‌توانید بنویسید: /pay K7Q2M9A 5000 card
     پول نقد فقط وقتی دست‌به‌دست می‌شود که هر دو در یک شهر باشید؛ پرداخت کارتی از همه‌جا ممکن است.
   title: "💸 پرداخت به {player}"
-  together: "📍 شما و {player} هر دو در {city} هستید؛ می‌توانید نقدی یا کارتی پرداخت کنید."
-  apart: شما و {player} در یک مکان نیستید، پس پرداخت نقدی ممکن نیست. پرداخت کارتی از همه‌جا انجام می‌شود.
-  card_fee: کارمزد پرداخت کارتی از {city} {percent}٪ است و روی مبلغ اضافه می‌شود.
+  together: "📍 شما و {player} هر دو در {city} هستید؛ نقدی یا کارتی پرداخت کنید."
+  apart: "شما و {player} در یک شهر نیستید، پس پرداخت نقدی ممکن نیست. پرداخت کارتی از همه‌جا انجام می‌شود."
+  card_fee: "کارمزد پرداخت کارتی از {city} {percent}٪ است و به مبلغ اضافه می‌شود."
   card_free: پرداخت کارتی از {city} کارمزد ندارد.
   hint: "مبلغ دیگری در نظر دارید؟ بنویسید: /pay {code} 5000 card یا /pay {code} 5000 cash"
   confirm_cash: "💵 {amount} به‌صورت نقد به {player} داده شود؟"
   confirm_card: "💳 {amount} با کارت برای {player} فرستاده شود؟"
   confirm_card_fee: |-
     💳 {amount} با کارت برای {player} فرستاده شود؟
-    کارمزد: {fee} · مجموع کسر از حساب بانکی: {total}
+    کارمزد: {fee} · مجموع کسر از بانک: {total}
   sent_cash: "✅ {amount} نقد به {player} دادید."
   sent_card: "✅ {amount} با کارت برای {player} فرستادید."
-  sent_card_fee: "✅ {amount} با کارت برای {player} فرستادید. کارمزد: {fee}"
-  not_together: "{player} اینجا کنار شما نیست، پس نمی‌توانید پول نقد به او بدهید. به‌جای آن با کارت پرداخت کنید؛ پرداخت کارتی از همه‌جا ممکن است."
+  sent_card_fee: "✅ {amount} با کارت برای {player} فرستادید · کارمزد: {fee}"
+  not_together: "{player} اینجا کنار شما نیست، پس نمی‌توانید به او پول نقد بدهید. به‌جای آن با کارت پرداخت کنید؛ پرداخت کارتی از همه‌جا ممکن است."
   received_cash: "💵 {player} مبلغ {amount} را نقد به شما داد."
-  received_card: "💳 {player} مبلغ {amount} را با کارت برای شما فرستاد. این پول در حساب بانکی شماست."
+  received_card: "💳 {player} مبلغ {amount} را با کارت برای شما فرستاد. این پول به حساب بانکی شما واریز شد."
 
 # کار (internal/domain/job، configs/content/jobs.yml). واژه‌ها: شغل 💼، شیفت
 # کاری، دستمزد، مالیات بر درآمد، عملکرد 📈 (از 0 تا 100)، ارتقا ⬆️، فرصت‌های
@@ -504,59 +574,81 @@ pay:
 # و نام هر رشتهٔ شغلی career.<code>.name است.
 job:
   status_title: "💼 شغل من"
-  none: هنوز شغلی ندارید. پیشنهادهای کارفرمایان شهرتان را در «فرصت‌های شغلی» ببینید.
+  none: "هنوز شغلی ندارید. پیشنهادهای کارفرمایان شهرتان را در «فرصت‌های شغلی» ببینید."
   position: "💼 {title} · {career}"
   workplace: "📍 محل کار: {city}"
   pay: "💰 دستمزد هر شیفت: {pay}"
-  energy: "⚡ انرژی هر شیفت: {energy} · انرژی شما {current}/{max_energy}"
+  energy: "⚡ انرژی هر شیفت: {energy} · انرژی شما: {current} از {max_energy}"
   energy_plain: "⚡ انرژی هر شیفت: {energy}"
-  performance: "📈 عملکرد: {performance}/100"
-  shifts: "شیفت‌های این جایگاه: {shifts}"
-  earned: "درآمد از این شغل: {amount}"
-  away: محل کار شما {city} است. وقتی آنجا باشید می‌توانید شیفت کاری بگذرانید.
+  performance: "📈 عملکرد: {performance} از {max}"
+  shifts: "🔁 شیفت‌ها در این جایگاه: {shifts}"
+  earned: "💵 درآمد از این شغل: {amount}"
+  away: "📍 محل کار شما {city} است. برای کار کردن باید آنجا باشید."
   promotion_top: "⭐ در بالاترین جایگاه این رشته هستید."
-  promotion_ready: "⬆️ شایستهٔ ارتقا به {title} شده‌اید. «ارتقا» را بزنید."
-  promotion_next: "⬆️ جایگاه بعدی: {title}. آنچه هنوز لازم است:"
+  promotion_ready: "⬆️ آمادهٔ ارتقا به {title} هستید. «ارتقا» را بزنید."
+  promotion_next: |-
+    ⬆️ جایگاه بعدی: {title}
+    برای ارتقا هنوز لازم است:
   openings_heading: "💼 فرصت‌های شغلی"
   openings_title: "💼 فرصت‌های شغلی {city}"
-  openings_travelling: در سفر هستید. پس از رسیدن به یک شهر، فرصت‌های شغلی آن نمایش داده می‌شوند.
-  openings_employed: شما {title} هستید. برای گرفتن شغل دیگر، ابتدا باید از شغل فعلی کناره بگیرید.
-  openings_employed_short: شما همین حالا شغل دارید. برای گرفتن این شغل، ابتدا از شغل فعلی کناره بگیرید.
-  openings_none: در حال حاضر هیچ کارفرمایی در این شهر نیرو نمی‌گیرد.
-  opening_line: "• {career} — {title} · {pay} برای هر شیفت"
-  opening_line_locked: "• {career} — {title} · {pay} برای هر شیفت · 🔒 شرایط کامل نیست"
+  openings_travelling: "در سفر هستید. پس از رسیدن به شهر، فرصت‌های شغلی آنجا همین‌جا نمایش داده می‌شوند."
+  openings_employed: "شما اکنون {title} هستید. برای گرفتن شغل دیگر، ابتدا از شغل فعلی کناره بگیرید."
+  openings_employed_short: "شما اکنون شغل دارید. برای گرفتن این شغل، ابتدا از شغل فعلی کناره بگیرید."
+  openings_none: "فعلاً هیچ کارفرمایی در این شهر نیرو نمی‌گیرد."
+  openings_hint: "✅ یعنی شرایط را دارید و می‌توانید درخواست بدهید؛ 🔒 یعنی هنوز چیزی کم است. برای دیدن جزئیات، شغل را بزنید."
+  opening_line: "✅ {career} · {title} · {pay} برای هر شیفت"
+  opening_line_locked: "🔒 {career} · {title} · {pay} برای هر شیفت"
   view_title: "💼 {title} · {career}"
   requirements: "شرایط:"
-  requirements_none: به سابقه یا مدرک نیازی نیست.
-  hired: "✅ از این پس {title} در {city} هستید. دستمزد هر شیفت: {pay}."
-  shift_done: "✅ شیفت کاری به پایان رسید."
+  requirements_none: "✅ به سابقه یا مدرک نیازی نیست."
+  hired: |-
+    ✅ استخدام شدید؛ از این پس {title} در {city} هستید.
+    💰 دستمزد هر شیفت: {pay}
+  shift_done: "✅ شیفت کاری تمام شد"
   shift_pay: "💰 دستمزد {gross} · مالیات بر درآمد {tax} · دریافتی شما {net}"
-  shift_pay_untaxed: "💰 {net} دریافت کردید."
+  shift_pay_untaxed: "💰 دریافتی شما: {net}"
   shift_xp: "⭐ {xp} امتیاز تجربه"
   shift_skill: "🛠 {skill}: {xp}+ امتیاز تجربه"
   shift_skill_level: "🛠 مهارت {skill} به سطح {level} رسید."
-  shift_performance_up: "📈 عملکرد: {performance}/100 ({delta}+)"
-  shift_performance_down: "📉 عملکرد: {performance}/100 ({delta}−)"
-  shift_performance_same: "📈 عملکرد: {performance}/100"
-  shift_level: "⭐ به سطح {level} رسیدید."
-  shift_energy_left: "⚡ انرژی: {energy}/{max_energy}"
-  shift_fatigued: خسته‌اید؛ این شیفت با {percent}٪ توان کامل انجام شد و دستمزد کمتری داشت. پیش از شیفت بعدی استراحت کنید تا با توان کامل کار کنید.
-  promoted: "⬆️ تبریک! به {title} ارتقا یافتید. دستمزد هر شیفت: {pay}."
-  quit_confirm: آیا مطمئنید که می‌خواهید از شغل {title} کناره بگیرید؟ پیشرفت شما در این جایگاه از دست می‌رود.
-  quit_done: از شغل {title} کناره گرفتید.
+  shift_performance_up: "📈 عملکرد: {performance} از {max} ({delta}+)"
+  shift_performance_down: "📉 عملکرد: {performance} از {max} ({delta}−)"
+  shift_performance_same: "📈 عملکرد: {performance} از {max}"
+  shift_level: "⭐ تبریک؛ به سطح {level} رسیدید."
+  shift_energy_left: "⚡ انرژی: {energy} از {max_energy}"
+  shift_fatigued: "🥱 به‌خاطر خستگی، توان شما در این شیفت {percent}٪ است و دستمزد به همان نسبت کمتر است. پیش از شیفت بعدی استراحت کنید."
+  # شیفت کاری زمان می‌برد: انرژی‌اش هنگام شروع پرداخت می‌شود و دستمزد، امتیاز
+  # تجربه و عملکرد در پایان شیفت با یک اعلان می‌رسد. {duration} زمان واقعی
+  # انتظار است و {time} ساعت پایان به وقت منطقهٔ زمانی بازیکن.
+  shift_started: |-
+    💼 شیفت شما به‌عنوان {title} شروع شد
+    ⏱ مدت شیفت: {duration}
+  shift_paid_at_end: "دستمزد، امتیاز تجربه و عملکرد در پایان شیفت حساب می‌شود و خبرش را به شما می‌دهیم."
+  shift_running: "⏳ سر شیفت هستید · {remaining} مانده"
+  shift_running_ending: "⏳ شیفت تمام شد؛ دستمزدتان تا چند لحظهٔ دیگر می‌رسد."
+  shift_ends_at: "🕒 پایان شیفت: ساعت {time}"
+  shift_length: "⏱ مدت هر شیفت: {duration}"
+  at_work: "💼 الان سر کار هستید. پس از پایان شیفت می‌توانید شیفت تازه‌ای شروع کنید."
+  promoted: |-
+    ⬆️ تبریک؛ به {title} ارتقا یافتید.
+    💰 دستمزد تازهٔ هر شیفت: {pay}
+  quit_confirm: |-
+    🚪 از شغل {title} کناره می‌گیرید؟
+    عملکرد و پیشرفت شما در این جایگاه از دست می‌رود.
+  quit_done: "از شغل {title} کناره گرفتید. هر وقت خواستید، شغل تازه‌ای را در «فرصت‌های شغلی» پیدا کنید."
   refused: "هنوز نمی‌توانید این شغل را بگیرید:"
-  promotion_refused: "هنوز شایستهٔ ارتقا نشده‌اید:"
-  not_employed: شغلی ندارید. پیشنهادهای موجود را در «فرصت‌های شغلی» ببینید.
-  already_employed: شما همین حالا شغل دارید. برای گرفتن شغل دیگر، ابتدا از آن کناره بگیرید.
-  not_offered: این شغل در جایی که هستید ارائه نمی‌شود. پیشنهادهای موجود را در «فرصت‌های شغلی» ببینید.
-  not_at_workplace: محل کار شما {city} است. برای گذراندن شیفت کاری به آنجا سفر کنید.
+  promotion_refused: "هنوز آمادهٔ ارتقا نیستید:"
+  not_employed: "شغلی ندارید. پیشنهادهای موجود را در «فرصت‌های شغلی» ببینید."
+  already_employed: "شما اکنون شغل دارید. برای گرفتن شغل دیگر، ابتدا از شغل فعلی کناره بگیرید."
+  not_offered: "این شغل در شهری که هستید ارائه نمی‌شود. پیشنهادهای موجود را در «فرصت‌های شغلی» ببینید."
+  not_at_workplace: "📍 محل کار شما {city} است. برای کار کردن به آنجا سفر کنید."
   button:
     my_job: "💼 شغل من"
     openings: "💼 فرصت‌های شغلی"
-    opening: "💼 {career}"
+    opening: "✅ {title}"
+    opening_locked: "🔒 {title}"
     apply: "✅ درخواست استخدام"
-    work: "🛠 گذراندن شیفت کاری"
-    work_again: "🛠 شیفت کاری دیگر"
+    work: "🛠 شروع شیفت"
+    work_again: "🛠 شیفت بعدی"
     promotion: "⬆️ ارتقا"
     quit: "🚪 کناره‌گیری از شغل"
     quit_confirm: "🚪 بله، کناره می‌گیرم"
@@ -566,50 +658,57 @@ requirement:
   met: "✅ {text}"
   unmet: "❌ {text}"
   level: سطح {level}
-  level_have: سطح {need} (سطح شما {have} است)
-  skill: "{skill} سطح {level}"
-  skill_have: "{skill} سطح {need} (سطح شما {have} است)"
+  level_have: "سطح {need} (سطح شما: {have})"
+  skill: "{skill} در سطح {level}"
+  skill_have: "{skill} در سطح {need} (سطح شما: {have})"
   certificate: "مدرک {course}"
   residence: اقامت در {city}
-  residence_unmet: اقامت در {city} — مجوز کار در شهرهای دیگر هنوز در دسترس نیست
-  performance: عملکرد {need} (عملکرد شما {have} است)
-  time: زمان بیشتری در این جایگاه ({wait} مانده)
-  shifts: "شیفت‌های این جایگاه: {need} (شما {have} شیفت دارید)"
+  residence_unmet: "اقامت در {city} · مجوز کار در شهرهای دیگر هنوز در دسترس نیست"
+  performance: "عملکرد {need} (عملکرد شما: {have})"
+  time: "{wait} کار بیشتر در این جایگاه"
+  shifts: "{need} شیفت در این جایگاه (شیفت‌های شما: {have})"
   top: در بالاترین جایگاه این رشته هستید.
   course_city: این دوره در {city} برگزار می‌شود.
-  course_full: همهٔ ظرفیت این دوره پر شده است.
+  course_full: "ظرفیت این دوره پر شده است."
   already_certified: این مدرک را از قبل دارید.
-  already_enrolled: همین حالا دورهٔ {course} را می‌گذرانید. هر بار فقط یک دوره ممکن است.
+  already_enrolled: "همین حالا دورهٔ {course} را می‌گذرانید؛ هر بار یک دوره."
 
 # آموزش (internal/domain/education، configs/content/education.yml). واژه‌ها:
 # آموزش 🎓، دوره، مدرک 📜، شهریه، ثبت‌نام. نام هر دوره course.<code> است.
 education:
   title: "🎓 آموزش"
-  current: "📖 دورهٔ در حال گذراندن: {course}"
+  current: "📖 در حال گذراندن: {course}"
   progress: "⏳ {percent}٪ انجام شده · {remaining} مانده"
-  progress_finishing: "⏳ چند لحظه دیگر به پایان می‌رسد."
+  progress_finishing: "⏳ چند لحظهٔ دیگر تمام می‌شود."
+  ends_at: "🕒 پایان دوره: ساعت {time}"
   certificates: "📜 مدرک‌ها: {list}"
   separator: "، "
   available: "دوره‌هایی که اینجا می‌توانید بگذرانید:"
-  none_available: فعلاً دورهٔ تازه‌ای برای شما در اینجا نیست. با کسب مدرک و سطح بالاتر، و در شهرهای دیگر، دوره‌های بیشتری باز می‌شوند.
-  course_line: "• {course} — {fee} · {duration}"
-  course_line_locked: "• {course} — {fee} · {duration} · از سطح {level}"
+  none_available: "فعلاً دورهٔ تازه‌ای برای شما اینجا نیست. با گرفتن مدرک، رسیدن به سطح بالاتر یا رفتن به شهرهای دیگر، دوره‌های بیشتری باز می‌شود."
+  course_line: "• {course} · {fee} · {duration}"
+  course_line_locked: "🔒 {course} · {fee} · {duration} · از سطح {level}"
   view_title: "🎓 {course}"
   institution: "🏛 {institution}"
   taught_in: "📍 محل برگزاری: {city}"
   fee: "💰 شهریه: {fee}"
   duration: "⏳ مدت: {duration}"
-  seats: "ظرفیت باقی‌مانده: {seats}"
+  seats: "🪑 ظرفیت باقی‌مانده: {seats}"
   rewards: "پس از پایان دوره:"
   reward_skill: "🛠 {skill}: {xp}+ امتیاز تجربه"
   reward_certificate: "📜 مدرک {course}"
   requirements: "شرایط:"
-  enrolled: "✅ در دورهٔ {course} ثبت‌نام کردید. شهریهٔ پرداخت‌شده: {fee}. این دوره {duration} طول می‌کشد و خودبه‌خود به پایان می‌رسد؛ پایانش را به شما خبر می‌دهیم."
+  enrolled: |-
+    ✅ در دورهٔ {course} ثبت‌نام کردید
+    💰 شهریهٔ پرداخت‌شده: {fee}
+    ⏳ مدت دوره: {duration}
+    دوره خودبه‌خود تمام می‌شود و خبرش را به شما می‌دهیم.
   completed: "🎓 دورهٔ {course} را به پایان رساندید."
-  completed_certificate: "📜 مدرک {course} را گرفتید."
+  completed_certificate: "📜 مدرک {course} به نام شما صادر شد."
   refused: "هنوز نمی‌توانید در این دوره ثبت‌نام کنید:"
-  not_found: این دوره در اینجا ارائه نمی‌شود. دوره‌های در دسترس را در «آموزش» ببینید.
-  cannot_afford: شهریه {fee} است و شما {cash} پول نقد دارید. درآمد بیشتری کسب کنید و دوباره امتحان کنید.
+  not_found: "این دوره اینجا ارائه نمی‌شود. دوره‌های موجود را در «آموزش» ببینید."
+  cannot_afford: |-
+    💵 پول نقدتان برای این دوره کافی نیست.
+    شهریه: {fee} · پول نقد شما: {cash}
   button:
     open: "🎓 آموزش"
     course: "📖 {course}"
@@ -675,3 +774,184 @@ course:
   nursing: دیپلم پرستاری
   software_engineering: کارشناسی مهندسی نرم‌افزار
   evening_accounting: کلاس شبانهٔ حسابداری
+
+# موتور جرم (docs/adr/0019-crime-engine.md). واژه‌ها و نشانه‌ها:
+#   جسارت 🔥 (منبعی که هر اقدام خلاف مصرف می‌کند)، حساسیت پلیس 🚨 و
+#   «سطح تحت تعقیب»، رتبهٔ خلافکاری 🎖، زندان ⛓، وثیقه، جریمه، شکایت 🚔،
+#   پرونده 🗂، محل (جایی درون شهر). نام بازیکنِ قربانی هرگز در گروه گفته
+#   نمی‌شود و هیچ مبلغی در گروه نشان داده نمی‌شود.
+crime:
+  hub_title: "🕶 دنیای زیرزمینی"
+  where: "📍 {venue}، {city}"
+  nowhere: "هنوز در هیچ شهری مستقر نشده‌اید. کار خلاف می‌ماند برای وقتی که جایی مستقر شدید."
+  travelling: "🧭 در راه هستید؛ کار خلاف می‌ماند برای بعد از رسیدن."
+  nerve: "🔥 جسارت: {nerve} از {max}"
+  nerve_refilling: "🔥 جسارت: {nerve} از {max} · پر شدن تا {duration} دیگر"
+  heat_none: "🚨 پلیس دنبال شما نیست."
+  heat: "🚨 حساسیت پلیس: {heat} از {max} · سطح تحت تعقیب {wanted} از {stars}"
+  tier: "🎖 {tier} · {xp} امتیاز تجربهٔ خلافکاری"
+  tier_next: "🎖 {tier} · {xp} امتیاز تجربهٔ خلافکاری · {next} از {next_xp}"
+  in_jail: "⛓ در زندان هستید · {remaining} مانده"
+  free_at: "⏳ آزادی ساعت {time}"
+  busy: "⏳ {crime} در جریان است · {remaining} مانده"
+  back_at: "⏳ بازگشت ساعت {time}"
+  choose_category: "نوع کار را انتخاب کنید:"
+  list_title: "🕶 {category}"
+  list_empty: "فعلاً کاری از این نوع در دسترس نیست."
+  line: "✅ {crime} · {nerve} جسارت"
+  line_locked: "🔒 {crime} · {nerve} جسارت"
+  line_timed: "{line} · {duration}"
+  list_separator: "، "
+  view_title: "🕶 {crime}"
+  view_category: "نوع: {category}"
+  view_nerve: "🔥 هزینه: {nerve} جسارت"
+  view_duration: "⏳ مدت: {duration}"
+  view_instant: "⚡ در همان لحظه انجام می‌شود"
+  view_chance: "🎲 شانس موفقیت شما در اینجا: حدود {percent}٪"
+  view_take: "💵 درآمد معمول: از {min} تا {max}"
+  view_risk: "🚔 اگر دستگیر شوید: {jail_min} تا {jail_max} زندان و جریمه‌ای از {fine_min} تا {fine_max}"
+  view_victims_npc: "🏙 قربانیانش مغازه‌ها، خودروها و رهگذرهای شهرند."
+  view_victims_player: "👥 در شلوغی، ممکن است قربانی بازیکنی باشد که نزدیک شماست. اینکه چه کسی، به شانس بستگی دارد، نه به انتخاب شما."
+  requirements: "شرایط:"
+  requirements_none: "هر کسی می‌تواند امتحانش کند."
+  requirement:
+    tier: "رتبهٔ خلافکاری: {tier}"
+    tier_have: "رتبهٔ خلافکاری: {tier} (رتبهٔ شما: {have})"
+    venue: "فقط در: {venues}"
+    venue_here: "فقط در: {venues} (شما در {here} هستید)"
+    facility: "شهر باید {facility} داشته باشد"
+  facility:
+    bus_terminal: پایانهٔ اتوبوس
+    rail_station: ایستگاه راه‌آهن
+    airport: فرودگاه
+  blocked:
+    jail: "⛓ در زندان هستید. کار خلاف می‌ماند برای بعد از آزادی."
+    busy: "⏳ مشغول کار دیگری هستید."
+    work: "💼 سر کار هستید. اول شیفت را تمام کنید."
+    travelling: "🧭 در راه هستید. اول به مقصد برسید."
+    nerve: "🔥 به {need} جسارت نیاز دارید و {have} دارید. تا {wait} دیگر کافی می‌شود."
+  button:
+    commit: "🕶 انجامش بده"
+    again: "🔁 دوباره"
+    hub: "🕶 دنیای زیرزمینی"
+    record: "📜 سابقهٔ من"
+    cases: "🗂 پرونده‌های من"
+    jail: "⛓ زندان"
+    bail: "💰 پرداخت وثیقه"
+    report: "🚔 شکایت به پلیس"
+    report_confirm: "✅ ثبت شکایت"
+  result:
+    success: "🕶 {crime} در {venue}: انجام شد و کسی جلویتان را نگرفت."
+    success_public: "🕶 {crime} در {venue}: {player} کارش را کرد و بی‌سروصدا رفت."
+    success_notice: "🕶 {crime} در {venue} تمام شد: همه‌چیز طبق نقشه پیش رفت."
+    take_private: "مبلغ به دست آمده در گفت‌وگوی خصوصی برایش فرستاده شد."
+    take_player: "💵 {amount} از جیب یک بازیکن برداشتید."
+    take_npc: "💵 با {amount} در رفتید."
+    take_empty: "💵 جیبش خالی بود."
+    take_dry: "💵 امروز چیزی به دردبخور گیر نیامد."
+    escaped: "🏃 {crime} در {venue}: {player} دیده شد و دست‌خالی فرار کرد."
+    escaped_notice: "🏃 {crime} در {venue} خراب شد: دیده شدید و دست‌خالی فرار کردید."
+    caught: "🚔 {crime} در {venue}: {player} حین ارتکاب دستگیر شد و برای {term} به زندان رفت."
+    caught_notice: "🚔 {crime} در {venue} خراب شد: دستگیر شدید و برای {term} به زندان رفتید."
+    fine_public: "جریمه‌ای به شهر پرداخت شد."
+    fine: "💸 جریمهٔ پرداخت‌شده به شهر: {fine}"
+    fine_short: "💸 جریمه: {fine}. توانستید {paid} بپردازید؛ {unpaid} در سابقه‌تان می‌ماند."
+    xp: "⭐ {xp}+ امتیاز تجربه"
+    criminal_xp: "🎖 {xp}+ امتیاز تجربهٔ خلافکاری"
+  started: "🕶 {player} راه افتاد: {crime} در {venue}. {duration} طول می‌کشد."
+  started_notice: "نتیجه پس از پایان کار در پیام خصوصی می‌رسد."
+  record_title: "📜 سابقهٔ کیفری"
+  record_counts: "تلاش‌ها: {attempts} · موفق: {successes} · دستگیری: {arrests} · محکومیت: {convictions}"
+  record_unpaid: "💸 پرداخت‌نشده: {restitution} بدهی به قربانیان و {fines} جریمه"
+  record_clean: "سابقه پاک است."
+  record_recent: "اخیراً:"
+  record_line:
+    in_progress: "⏳ {crime} (در جریان)"
+    succeeded: "✅ {crime}"
+    escaped: "🏃 {crime} (فرار)"
+    caught: "🚔 {crime} (دستگیری)"
+  jail_title: "⛓ زندان"
+  jail_free: "آزاد هستید. کسی شما را نگه نداشته است."
+  jail_where: "📍 زندان {city}"
+  jail_reason:
+    arrest: "حین ارتکاب دستگیر شده‌اید."
+    conviction: "پس از شکایت محکوم شده‌اید."
+  jail_bail: "💰 وثیقه برای آزادی همین حالا: {bail}"
+  jail_blocks: "در زندان نمی‌توانید کار خلاف کنید، سفر کنید، شیفت کار کنید یا از بانک برداشت کنید."
+  bailed: "🔓 {bail} وثیقه پرداختید و از زندان بیرون آمدید."
+  bailed_public: "🔓 {player} وثیقه پرداخت و از زندان بیرون آمد."
+  released: "🔓 دوران حبس شما در {city} تمام شد. آزاد هستید."
+  victim:
+    head: "👛 در {venue} شهر {city} از شما دزدی شد ({crime}). {amount} از دست دادید."
+    unseen: "کسی ندید چه کسی این کار را کرد."
+    seen: "👀 شاهدی دیده است چه کسی این کار را کرد: {thief} ({code})."
+    report: "🚔 می‌توانید به پلیس شکایت کنید. هزینهٔ ثبت شکایت {fee} است و به خزانهٔ شهر می‌رود."
+    report_by: "⏳ تا {duration} دیگر می‌توانید شکایت کنید."
+  report:
+    confirm: "🚔 از دزدی در {city} ({crime}) شکایت می‌کنید؟ {amount} از دست داده‌اید. پلیس برای ثبت شکایت {fee} می‌گیرد که به خزانهٔ شهر می‌رود، و رسیدگی حدود {duration} طول می‌کشد."
+    filed: "🗂 شکایت ثبت شد. پلیس در حال رسیدگی است؛ نتیجه حدود {duration} دیگر به شما می‌رسد."
+    outcome_at: "⏳ نتیجه حدود ساعت {time}"
+  cases_title: "🗂 پرونده‌های من"
+  cases_none: "تا حالا از کسی به پلیس شکایت نکرده‌اید."
+  case:
+    investigating: "• {crime} در {city} · {amount} · در حال رسیدگی، {remaining} مانده"
+    closing: "• {crime} در {city} · {amount} · نتیجه هر لحظه اعلام می‌شود"
+    solved: "• {crime} در {city} · {amount} · حل شد: {thief} · {restored} بازگردانده شد"
+    unsolved: "• {crime} در {city} · {amount} · بسته شد، بی‌نتیجه"
+  case_closed: "🗂 پرونده بسته شد: پلیس نتوانست کسی را که در {city} از شما دزدی کرد پیدا کند."
+  case_solved: "🚔 پرونده حل شد: پلیس {thief} ({code}) را به خاطر دزدی در {city} ({crime}) دستگیر کرد. {restored} به شما بازگردانده شد."
+  case_shortfall: "{short} قابل بازگرداندن نبود و در سابقهٔ او می‌ماند."
+  convicted: "⚖️ محکوم شدید: دزدی‌ای که در {city} کرده بودید ({crime}) به شما رسید. {restored} را بازگرداندید، {fine} جریمه پرداختید و به {term} زندان محکوم شدید."
+  convicted_unpaid: "💸 هنوز پرداخت‌نشده: {restitution} بدهی به قربانی و {fines} جریمه. در سابقه‌تان می‌ماند."
+  refused:
+    requirements: "🔒 {crime}: هنوز نه. این‌ها را کم دارید:"
+    not_found: "چنین کاری وجود ندارد. یکی را از دنیای زیرزمینی انتخاب کنید."
+    jail: "⛓ تا {remaining} دیگر در زندان هستید. کار خلاف می‌ماند برای بعد از آزادی."
+    busy: "⏳ مشغول کار دیگری هستید. صبر کنید تمام شود."
+    work: "💼 سر کار هستید. اول شیفت را تمام کنید."
+    travelling: "🧭 در راه هستید. کار خلاف می‌ماند برای بعد از رسیدن."
+    nerve: "🔥 برای این کار {need} جسارت لازم است و {have} دارید. جسارت با گذشت زمان پر می‌شود."
+    no_victim: "👥 فعلاً کسی این اطراف نیست. کمی بعد دوباره امتحان کنید."
+    not_yours: "این دزدی از شما نبوده یا دیگر وجود ندارد."
+    expired: "مهلت شکایت از این دزدی گذشته است."
+    cannot_afford: "💵 هزینه‌اش {amount} است و شما روی هم {cash} پول نقد و موجودی بانک دارید."
+    nothing_stolen: "در این دزدی چیزی از شما برده نشد، پس شکایتی هم در کار نیست."
+  error:
+    in_jail: "⛓ تا {remaining} دیگر در زندان هستید. از صفحهٔ زندان وثیقه بپردازید یا صبر کنید."
+    in_jail_later: "⛓ در زندان هستید. از صفحهٔ زندان وثیقه بپردازید یا صبر کنید."
+    in_progress: "🕶 مشغول کاری هستید. صبر کنید تمام شود."
+
+# نام جرم‌ها، بر اساس کد محتوایی (configs/content/crimes.yml).
+crime_name:
+  pickpocketing: جیب‌بری
+  shoplifting: دزدی از فروشگاه
+  bag_snatching: کیف‌قاپی
+  street_scam: کلاهبرداری خیابانی
+  car_break_in: سرقت از خودرو
+  home_burglary: دزدی از خانه
+  counterfeit_selling: فروش کالای تقلبی
+  goods_smuggling: قاچاق کالای سبک
+
+# دسته‌های جرم (crimes.yml).
+crime_category:
+  petty_theft: دزدی خُرد
+  street_crime: جرم خیابانی
+  burglary: سرقت از اماکن
+  fraud: کلاهبرداری
+  smuggling: قاچاق
+
+# رتبه‌های خلافکاری (crimes.yml).
+crime_tier:
+  novice: تازه‌کار
+  hustler: کارکشته
+  professional: حرفه‌ای
+
+# محل‌های درون شهر (crimes.yml).
+venue:
+  city_centre: مرکز شهر
+  bus_terminal: پایانهٔ اتوبوس
+  train_station: ایستگاه قطار
+  airport: فرودگاه
+  business_district: منطقهٔ تجاری
+  industrial_zone: منطقهٔ صنعتی
+  hospital: بیمارستان

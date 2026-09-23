@@ -37,6 +37,9 @@ type Snapshot struct {
 
 	// Transport: every mode with the network it serves; see transport.go.
 	transport []transportNetwork
+
+	// Crime: tiers, venues, categories and crimes; see crime.go.
+	crime crimeContent
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -89,6 +92,10 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	}
 
 	if snap.transport, err = buildTransport(p); err != nil {
+		return nil, fmt.Errorf("content: version %d: %w", version, err)
+	}
+
+	if err := snap.buildCrimes(p); err != nil {
 		return nil, fmt.Errorf("content: version %d: %w", version, err)
 	}
 

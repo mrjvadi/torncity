@@ -47,10 +47,8 @@ func (g *gateway) groupRenderer() *groups.Renderer {
 			msgs = g.messages
 		}
 		g.group.renderer = groups.NewRenderer(msgs, groups.Settings{
-			EphemeralReplyWindow:  g.cfg.Groups.EphemeralReplyWindow,
-			EphemeralRefusalTTL:   g.cfg.Groups.EphemeralRefusalTTL,
 			CallbackAlertMaxRunes: g.cfg.Groups.CallbackAlertMaxRunes,
-		}, nil)
+		})
 	})
 	return g.group.renderer
 }
@@ -102,7 +100,7 @@ func (g *gateway) render(ctx context.Context, api *client.Client, botKey string,
 		return render(ctx, api, meta, resp)
 	}
 
-	bot := groups.Bot{Key: botKey, Username: g.botUsername(ctx, botKey, api)}
+	bot := groups.Bot{Username: g.botUsername(ctx, botKey, api)}
 	out, err := g.groupRenderer().Render(ctx, api, bot, meta, resp)
 	if !out.CallbackAnswered {
 		acknowledgeCallback(ctx, api, meta, resp)
@@ -134,7 +132,7 @@ type admission struct {
 //   - A button bound to another player is refused with a popup and goes no
 //     further.
 //   - In a group, a command addressed to another bot is ignored; one
-//     addressed to this bot, or sent as an ephemeral command, is answered; an
+//     addressed to this bot is answered; an
 //     unaddressed one is answered by exactly one of our bots (the first to
 //     claim it) and, if the game does not serve it, by none.
 //   - Messages from bots are ignored in groups.
@@ -186,10 +184,6 @@ func (g *gateway) admit(ctx context.Context, bot application.Bot, update *client
 			if username != "" {
 				return admission{proceed: true, mayHelp: true}
 			}
-		}
-		if msg.EphemeralMessageID != 0 {
-			// Only the bot it names receives an ephemeral command.
-			return admission{proceed: true, mayHelp: true}
 		}
 		won, err := g.group.claims.Claim(ctx, msg)
 		if err != nil {
@@ -285,7 +279,7 @@ func (g *gateway) onMembership(ctx context.Context, bot application.Bot, change 
 		ChatType:       change.Chat.Type,
 		Language:       lang,
 	}
-	resp := presenter.Message(g.messages.T(lang, groups.KeyWelcome, nil), nil).MarkPublic()
+	resp := presenter.Message(g.messages.T(lang, groups.KeyWelcome, nil), nil)
 
 	ctx, cancel := context.WithTimeout(ctx, g.cfg.Gateway.ShutdownTimeout)
 	defer cancel()
@@ -294,53 +288,79 @@ func (g *gateway) onMembership(ctx context.Context, bot application.Bot, change 
 	}
 }
 
-// menuCommandPattern is what the Bot API accepts as a command name.
+// menuCommandPattern is what the Bot API accepts as a command name: "1-32
+// characters. Can contain only lowercase English letters, digits and
+// underscores."
 var menuCommandPattern = regexp.MustCompile(`^[a-z0-9_]{1,32}$`)
 
-// registerGroupMenu sets the bot's command menu for groups, once per language
-// in the catalogue and once for every other language, with every command
-// declared ephemeral: a player's use of it is seen by nobody but the bot, and
-// the bot may answer it with a screen only that player sees. Best effort: a
-// bot without the menu still answers typed commands.
-func (g *gateway) registerGroupMenu(ctx context.Context, bot application.Bot, api *client.Client, log *slog.Logger) {
-	if g.messages == nil || api == nil || len(g.cfg.Groups.Menu) == 0 {
+// commandMenuKeyPrefix is where each menu command's description lives in the
+// message catalogue.
+const commandMenuKeyPrefix = "command_menu."
+
+// menuClearedScopes are the scopes whose menus are removed so that a group
+// shows none. The Bot API picks a group member's menu from the first of these
+// that is set — chat member, chat administrators, chat, all chat
+// administrators, all group chats, then default — so the default scope has
+// to go too: with no group menu of their own, groups fall back to it. The
+// per-chat scopes are never set by the game and are left alone.
+var menuClearedScopes = []string{client.ScopeDefault, client.ScopeAllGroupChats, client.ScopeAllChatAdministrators}
+
+// registerCommandMenu puts the bot's command menu in private chats and takes
+// it out of groups: the menu is set for all_private_chats, and deleted for the
+// default, group and administrator scopes, once without a language and once
+// per language in the catalogue. It runs at every start and converges on the
+// same state however the bot was set up before (BotFather's /setcommands, for
+// one, writes the default scope). Best effort: every call is attempted and
+// failures are logged; a bot without the menu still answers typed commands.
+func (g *gateway) registerCommandMenu(ctx context.Context, bot application.Bot, api *client.Client, log *slog.Logger) {
+	if g.messages == nil || api == nil {
 		return
 	}
-	build := func(lang string) []client.BotCommand {
-		out := make([]client.BotCommand, 0, len(g.cfg.Groups.Menu))
-		for _, name := range g.cfg.Groups.Menu {
+	commands := func(lang string) []client.BotCommand {
+		out := make([]client.BotCommand, 0, len(g.cfg.Menu.Commands))
+		for _, name := range g.cfg.Menu.Commands {
 			if !menuCommandPattern.MatchString(name) {
-				log.Warn("group menu command is not a valid command name; skipped", slog.String("command", name))
+				log.Warn("menu command is not a valid command name; skipped", slog.String("command", name))
 				continue
 			}
 			out = append(out, client.BotCommand{
 				Command:     name,
-				Description: g.messages.T(lang, groups.KeyMenuDescPrefix+name, nil),
-				IsEphemeral: true,
+				Description: g.messages.T(lang, commandMenuKeyPrefix+name, nil),
 			})
 		}
 		return out
 	}
-	scope := &client.BotCommandScope{Type: client.ScopeAllGroupChats}
 
-	langs := append([]string{""}, g.messages.Languages()...)
-	for _, lang := range langs {
+	failed := 0
+	call := func(what, lang string, do func() error) {
+		if err := g.limiter.Wait(ctx, bot.BotKey); err != nil {
+			failed++
+			return
+		}
+		if err := do(); err != nil {
+			failed++
+			log.Warn("cannot update the command menu",
+				slog.String("step", what), slog.String("language", lang), slog.String("error", err.Error()))
+		}
+	}
+
+	for _, lang := range append([]string{""}, g.messages.Languages()...) {
 		text := lang
 		if lang == "" {
 			text = g.messages.Default()
 		}
-		cmds := build(text)
-		if len(cmds) == 0 {
-			return
-		}
-		if err := g.limiter.Wait(ctx, bot.BotKey); err != nil {
-			return
-		}
-		if err := api.SetMyCommands(ctx, cmds, scope, lang); err != nil {
-			log.Warn("cannot register the group command menu",
-				slog.String("language", lang), slog.String("error", err.Error()))
-			return
+		cmds := commands(text)
+		call(client.ScopeAllPrivateChats, lang, func() error {
+			return api.SetMyCommands(ctx, cmds, &client.BotCommandScope{Type: client.ScopeAllPrivateChats}, lang)
+		})
+		for _, scope := range menuClearedScopes {
+			call(scope, lang, func() error {
+				return api.DeleteMyCommands(ctx, &client.BotCommandScope{Type: scope}, lang)
+			})
 		}
 	}
-	log.Info("group command menu registered", slog.Int("commands", len(g.cfg.Groups.Menu)))
+	if failed == 0 {
+		log.Info("command menu set for private chats and cleared from groups",
+			slog.Int("commands", len(g.cfg.Menu.Commands)))
+	}
 }

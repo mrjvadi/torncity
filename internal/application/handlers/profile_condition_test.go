@@ -29,7 +29,7 @@ func TestProfileShowsLevelEnergyHealthAndCity(t *testing.T) {
 	// The level, the XP still needed for the next one, energy, health and
 	// the city — not the raw XP total, which says nothing on its own.
 	toNext := strconv.FormatInt(player.XPForLevel(8)-1234, 10)
-	for _, want := range []string{"7", toNext, "42", "88", "Berlin"} {
+	for _, want := range []string{faDigits("7"), faDigits(toNext), faDigits("42"), faDigits("88"), "Berlin"} {
 		if !strings.Contains(resp.Text, want) {
 			t.Errorf("profile %q is missing %q", resp.Text, want)
 		}
@@ -90,7 +90,7 @@ func TestProfileRegeneratesEnergyOnReadAndPersistsIt(t *testing.T) {
 	if got := h.stats.rows[p.ID].Energy; got != want {
 		t.Errorf("stored energy is %d, want %d", got, want)
 	}
-	if !strings.Contains(resp.Text, strconv.Itoa(want)) {
+	if !strings.Contains(resp.Text, faDigits(strconv.Itoa(want))) {
 		t.Errorf("the profile does not show the regenerated energy: %q", resp.Text)
 	}
 	if !h.stats.rows[p.ID].UpdatedAt.Equal(h.now) {

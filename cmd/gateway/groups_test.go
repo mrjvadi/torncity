@@ -41,9 +41,7 @@ func (c apiCall) chatID() int64 {
 
 func (c apiCall) text() string { s, _ := c.body["text"].(string); return s }
 
-func (c apiCall) ephemeral() bool { _, ok := c.body["ephemeral_message_parameters"]; return ok }
-
-// groupBotAPI answers like a Bot API 10.3 server. reply, when set, decides a
+// groupBotAPI answers like a Bot API server. reply, when set, decides a
 // method's answer first; returning ok=false falls through to the default.
 type groupBotAPI struct {
 	mu    sync.Mutex
@@ -67,11 +65,7 @@ func (f *groupBotAPI) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch method {
 	case "sendMessage":
 		chat := strconv.FormatInt(c.chatID(), 10)
-		if c.ephemeral() {
-			reply = `{"ok":true,"result":{"message_id":0,"ephemeral_message_id":5,"date":1,"chat":{"id":` + chat + `,"type":"supergroup"}}}`
-		} else {
-			reply = `{"ok":true,"result":{"message_id":61,"date":1,"chat":{"id":` + chat + `,"type":"private"}}}`
-		}
+		reply = `{"ok":true,"result":{"message_id":61,"date":1,"chat":{"id":` + chat + `,"type":"private"}}}`
 	case "getMe":
 		reply = `{"ok":true,"result":{"id":900,"is_bot":true,"first_name":"Torn","username":"torn_bot"}}`
 	}
@@ -199,7 +193,7 @@ func groupCommandMeta() envelope.Metadata {
 func assertGroupNeverSaw(t *testing.T, api *groupBotAPI, text string) {
 	t.Helper()
 	for _, c := range api.recorded() {
-		if c.chatID() != testGroupChat || c.ephemeral() {
+		if c.chatID() != testGroupChat {
 			continue
 		}
 		if (c.method == "sendMessage" || c.method == "editMessageText") && strings.Contains(c.text(), text) {
@@ -211,58 +205,55 @@ func assertGroupNeverSaw(t *testing.T, api *groupBotAPI, text string) {
 // --- tests -----------------------------------------------------------------
 
 // The central property: a private screen answering a command in a group
-// never reaches the group chat. Here the bot is not an administrator and the
-// command was typed, so no ephemeral message is allowed; the screen goes to
-// the private chat and the group gets one neutral line.
+// never reaches the group chat. It goes to the private chat, and the group
+// gets one neutral line with a link to the bot.
 func TestPrivateScreenInAGroupNeverReachesTheGroupChat(t *testing.T) {
-	api := &groupBotAPI{reply: func(c apiCall) (int, string, bool) {
-		if c.method == "sendMessage" && c.ephemeral() {
-			return http.StatusBadRequest, `{"ok":false,"error_code":400,"description":"Bad Request: not enough rights to send ephemeral messages"}`, true
-		}
-		return 0, "", false
-	}}
+	api := &groupBotAPI{}
 	g, _ := groupTestGateway(t, api)
+	meta := groupCommandMeta()
+	meta.Command = "bank.show"
 
-	if err := sendThrough(t, g, "bot01", groupCommandMeta(), presenter.Message(privateText, nil)); err != nil {
+	if err := sendThrough(t, g, "bot01", meta, presenter.Message(privateText, nil)); err != nil {
 		t.Fatal(err)
 	}
 	assertGroupNeverSaw(t, api, privateText)
 
 	sends := api.byMethod("sendMessage")
-	if len(sends) != 3 {
-		t.Fatalf("sendMessage calls = %d, want ephemeral attempt, private chat, group line", len(sends))
+	if len(sends) != 2 {
+		t.Fatalf("sendMessage calls = %d, want the private chat and the group line", len(sends))
 	}
-	if sends[1].chatID() != testPlayerTG || sends[1].text() != privateText {
-		t.Errorf("screen not delivered privately: %+v", sends[1].body)
+	if sends[0].chatID() != testPlayerTG || sends[0].text() != privateText {
+		t.Errorf("screen not delivered privately: %+v", sends[0].body)
 	}
-	if want := g.messages.T("en", groups.KeySentPrivately, nil); sends[2].chatID() != testGroupChat || sends[2].text() != want {
-		t.Errorf("group line = %+v", sends[2].body)
+	if want := g.messages.T("en", groups.KeySentPrivately, nil); sends[1].chatID() != testGroupChat || sends[1].text() != want {
+		t.Errorf("group line = %+v", sends[1].body)
+	}
+	markup, _ := json.Marshal(sends[1].body["reply_markup"])
+	if !strings.Contains(string(markup), "https://t.me/torn_bot?start=run-bank-show") {
+		t.Errorf("group line has no link to the bot: %s", markup)
 	}
 }
 
-// With the right to send ephemerally (a fresh ephemeral command), the screen
-// goes to the group as an ephemeral message, only for the player.
-func TestPrivateScreenAnswersAnEphemeralCommandEphemerally(t *testing.T) {
+// Group play is the norm: an ordinary screen is posted in the group, its
+// buttons bound to the player.
+func TestOrdinaryScreenPlaysInTheGroup(t *testing.T) {
 	api := &groupBotAPI{}
 	g, _ := groupTestGateway(t, api)
 	meta := groupCommandMeta()
-	meta.TelegramMessageID = 0
-	meta.TelegramEphemeralMessageID = 14
+	meta.Command = "map.list"
+	kb := &presenter.Keyboard{Rows: [][]presenter.Button{{{Text: "Next", CallbackData: "map:list:2"}}}}
 
-	if err := sendThrough(t, g, "bot01", meta, presenter.Message(privateText, nil)); err != nil {
+	if err := sendThrough(t, g, "bot01", meta, presenter.Message("The world map", kb)); err != nil {
 		t.Fatal(err)
 	}
 	sends := api.byMethod("sendMessage")
-	if len(sends) != 1 || !sends[0].ephemeral() {
-		t.Fatalf("calls = %+v", api.recorded())
+	if len(sends) != 1 || sends[0].chatID() != testGroupChat {
+		t.Fatalf("sends = %+v", sends)
 	}
-	params := sends[0].body["ephemeral_message_parameters"].(map[string]any)
-	if params["receiver_user_id"] != float64(testPlayerTG) {
-		t.Errorf("receiver = %v", params["receiver_user_id"])
-	}
-	rp, _ := sends[0].body["reply_parameters"].(map[string]any)
-	if rp["ephemeral_message_id"] != float64(14) {
-		t.Errorf("reply_parameters = %v", sends[0].body["reply_parameters"])
+	markup, _ := json.Marshal(sends[0].body["reply_markup"])
+	bound, _ := groups.BindOwner("map:list:2", testPlayerTG)
+	if !strings.Contains(string(markup), bound) {
+		t.Errorf("group button not bound to its owner: %s", markup)
 	}
 }
 
@@ -270,20 +261,16 @@ func TestPrivateScreenAnswersAnEphemeralCommandEphemerally(t *testing.T) {
 // its button opens the bot with the command to replay.
 func TestPrivateChatUnreachableFallsBackToADeepLink(t *testing.T) {
 	api := &groupBotAPI{reply: func(c apiCall) (int, string, bool) {
-		if c.method != "sendMessage" {
-			return 0, "", false
-		}
-		if c.ephemeral() {
-			return http.StatusBadRequest, `{"ok":false,"error_code":400,"description":"Bad Request: not enough rights"}`, true
-		}
-		if c.chatID() == testPlayerTG {
+		if c.method == "sendMessage" && c.chatID() == testPlayerTG {
 			return http.StatusForbidden, `{"ok":false,"error_code":403,"description":"Forbidden: bot can't initiate conversation with a user"}`, true
 		}
 		return 0, "", false
 	}}
 	g, _ := groupTestGateway(t, api)
+	meta := groupCommandMeta()
+	meta.Command = "player.settings"
 
-	if err := sendThrough(t, g, "bot01", groupCommandMeta(), presenter.Message(privateText, nil)); err != nil {
+	if err := sendThrough(t, g, "bot01", meta, presenter.Message(privateText, nil)); err != nil {
 		t.Fatal(err)
 	}
 	assertGroupNeverSaw(t, api, privateText)
@@ -294,7 +281,7 @@ func TestPrivateChatUnreachableFallsBackToADeepLink(t *testing.T) {
 		t.Fatalf("group line = %+v", line.body)
 	}
 	markup, _ := json.Marshal(line.body["reply_markup"])
-	if !strings.Contains(string(markup), "https://t.me/torn_bot?start=run-player-profile-get") {
+	if !strings.Contains(string(markup), "https://t.me/torn_bot?start=run-player-settings") {
 		t.Errorf("group line has no deep link: %s", markup)
 	}
 }
@@ -481,35 +468,57 @@ func TestBotAddedToAGroupGreetsIt(t *testing.T) {
 	g.handleUpdate(context.Background(), bot, change("member", "left"), g.logger)
 
 	sends := api.byMethod("sendMessage")
-	if len(sends) != 1 || sends[0].chatID() != testGroupChat || sends[0].ephemeral() ||
+	if len(sends) != 1 || sends[0].chatID() != testGroupChat ||
 		sends[0].text() != g.messages.T("en", groups.KeyWelcome, nil) {
 		t.Fatalf("sends = %+v", sends)
 	}
 }
 
-// The group menu is registered with every command ephemeral, per language.
-func TestGroupMenuIsEphemeral(t *testing.T) {
+// The command menu is set for private chats and cleared from the default,
+// group and administrator scopes — for no language and for every catalogue
+// language — so a group shows no "/" menu at all.
+func TestCommandMenuIsPrivateOnly(t *testing.T) {
 	api := &groupBotAPI{}
 	g, _ := groupTestGateway(t, api)
 	botAPI, _ := g.fleet.ClientFor("bot01")
-	g.registerGroupMenu(context.Background(), application.Bot{BotKey: "bot01"}, botAPI, g.logger)
+	g.registerCommandMenu(context.Background(), application.Bot{BotKey: "bot01"}, botAPI, g.logger)
 
-	calls := api.byMethod("setMyCommands")
-	if len(calls) != 1+len(g.messages.Languages()) {
-		t.Fatalf("setMyCommands calls = %d", len(calls))
+	langs := append([]string{""}, g.messages.Languages()...)
+	sets := api.byMethod("setMyCommands")
+	if len(sets) != len(langs) {
+		t.Fatalf("setMyCommands calls = %d, want %d", len(sets), len(langs))
 	}
-	for _, c := range calls {
+	for _, c := range sets {
+		if scope := c.body["scope"].(map[string]any); scope["type"] != "all_private_chats" {
+			t.Errorf("menu set for scope %v", scope)
+		}
 		cmds := c.body["commands"].([]any)
-		if len(cmds) != len(g.cfg.Groups.Menu) {
+		if len(cmds) != len(g.cfg.Menu.Commands) {
 			t.Fatalf("menu has %d commands", len(cmds))
 		}
 		for _, raw := range cmds {
 			cmd := raw.(map[string]any)
 			desc, _ := cmd["description"].(string)
-			if cmd["is_ephemeral"] != true || desc == "" || strings.HasPrefix(desc, groups.KeyMenuDescPrefix) {
-				t.Errorf("menu entry %v", cmd)
+			if desc == "" || strings.HasPrefix(desc, commandMenuKeyPrefix) {
+				t.Errorf("menu entry without a description: %v", cmd)
 			}
 		}
+	}
+
+	cleared := map[string]bool{}
+	for _, c := range api.byMethod("deleteMyCommands") {
+		lang, _ := c.body["language_code"].(string)
+		cleared[c.body["scope"].(map[string]any)["type"].(string)+"/"+lang] = true
+	}
+	for _, lang := range langs {
+		for _, scope := range []string{"default", "all_group_chats", "all_chat_administrators"} {
+			if !cleared[scope+"/"+lang] {
+				t.Errorf("scope %s not cleared for language %q", scope, lang)
+			}
+		}
+	}
+	if cleared["all_private_chats/"] {
+		t.Error("the private menu was deleted")
 	}
 }
 

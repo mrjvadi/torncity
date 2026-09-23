@@ -481,7 +481,7 @@ func TestSocialFriendListPagesToTheBoundary(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	assertResolved(t, last.Text)
-	if !strings.Contains(last.Text, "3") {
+	if !strings.Contains(last.Text, faDigits("3")) {
 		t.Errorf("the page indicator is missing: %q", last.Text)
 	}
 

@@ -1,0 +1,68 @@
+━━━ /start ━━━
+(sends)
+👋 Welcome to the game!
+This is your home: your condition, your money and your work at a glance. Use the buttons below to go anywhere.
+
+👤 Sara
+📍 Ostmarch
+
+⭐ Level 1 · 50 XP to level 2
+⚡ Energy: 100 of 100
+❤️ Health: 100 of 100
+
+💼 No job yet
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 0 Nil
+
+🆔 Player code: K7Q2M9A
+Friends can find you by sending /social K7Q2M9A.
+  ───
+  [🗺 Map] → map:list   │   [💼 Job openings] → job:list
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Skills ━━━
+(edits message 42)
+🛠 Skills
+
+You have no skills yet. You gain them by working and by taking courses, and they appear here.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → skills:list
+
+━━━ Settings ━━━
+(edits message 42)
+⚙️ Settings
+
+🌐 Game language: English
+  ───
+  [🌐 Switch to فارسی] → player:language.set:fa
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → player:settings
+
+━━━ Refresh the profile ━━━
+(edits message 42)
+👋 Welcome to the game!
+This is your home: your condition, your money and your work at a glance. Use the buttons below to go anywhere.
+
+👤 Sara
+📍 Ostmarch
+
+⭐ Level 1 · 50 XP to level 2
+⚡ Energy: 100 of 100
+❤️ Health: 100 of 100
+
+💼 No job yet
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 0 Nil
+
+🆔 Player code: K7Q2M9A
+Friends can find you by sending /social K7Q2M9A.
+  ───
+  [🗺 Map] → map:list   │   [💼 Job openings] → job:list
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get

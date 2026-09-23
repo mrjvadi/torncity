@@ -1,0 +1,192 @@
+━━━ Profile · a brand-new player (/start) ━━━
+(sends)
+👋 Welcome to the game!
+This is your home: your condition, your money and your work at a glance. Use the buttons below to go anywhere.
+
+📍 Ostmarch
+
+⭐ Level 1 · 50 XP to level 2
+⚡ Energy: 100 of 100
+❤️ Health: 100 of 100
+
+💼 No job yet
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 0 Nil
+
+🆔 Player code: K7Q2M9A
+Friends can find you by sending /social K7Q2M9A.
+  ───
+  [🗺 Map] → map:list   │   [💼 Job openings] → job:list
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Profile · an established player with a job and a course ━━━
+(edits message 42)
+👤 Sara
+📍 Brennhaven
+
+⭐ Level 7 · 460 XP to level 8
+⚡ Energy: 64 of 100 · full in 54m
+❤️ Health: 92 of 100
+
+💼 Sales Associate in Brennhaven · 190 Nil per shift
+📖 Bookkeeping · 1h 35m left
+📜 2 certificates
+
+💵 Cash: 12,850 Nil
+🏦 Bank balance: 240,000 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Profile · on a shift ━━━
+(edits message 42)
+👤 Sara
+📍 Brennhaven
+
+⭐ Level 7 · 460 XP to level 8
+⚡ Energy: 49 of 100 · full in 1h 30m
+❤️ Health: 92 of 100
+
+💼 Sales Associate in Brennhaven · 190 Nil per shift
+⏳ On shift · 25m left
+
+💵 Cash: 12,850 Nil
+🏦 Bank balance: 240,000 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Profile · travelling ━━━
+(edits message 42)
+👤 Sara
+🧭 On the way to Brennhaven · 2h 15m left
+
+⭐ Level 2 · 90 XP to level 3
+⚡ Energy: 82 of 100 · full in 18m
+❤️ Health: 100 of 100
+
+💼 Courier in Ostmarch · 130 Nil per shift
+
+💵 Cash: 4,440 Nil
+🏦 Bank balance: 0 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🧭 My journey] → travel:status   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Profile · not in any city yet ━━━
+(edits message 42)
+👋 Welcome to the game!
+This is your home: your condition, your money and your work at a glance. Use the buttons below to go anywhere.
+
+👤 Sara
+
+⭐ Level 1 · 50 XP to level 2
+⚡ Energy: 100 of 100
+❤️ Health: 100 of 100
+
+💵 Cash: 0 Nil
+🏦 Bank balance: 0 Nil
+  ───
+  [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Profile · top level ━━━
+(edits message 42)
+👤 Sara
+📍 Calderis
+
+⭐ Level 100 · highest level reached
+⚡ Energy: 100 of 100
+❤️ Health: 100 of 100
+
+💵 Cash: 1,250,000 Nil
+🏦 Bank balance: 98,400,000 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Dashboard ━━━
+(edits message 42)
+👤 Sara
+📍 Ostmarch
+
+⭐ Level 3
+⚡ Energy: 40 of 100
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 12,000 Nil
+  ───
+  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Help · an unknown command ━━━
+(sends)
+I did not understand that message.
+
+The game is played with the buttons. You can also send these commands:
+/profile — your profile and home
+/map — the map and travel
+/job — my job
+/jobs — job openings
+/study — education and courses
+/bank — the bank, deposits and withdrawals
+/pay — pay another player
+/skills — your skills
+/social — your friends
+/find — find a player
+/city — offices and policies of your city
+/office — my office
+/settings — settings
+  ───
+  [👤 Profile] → player:profile.get   │   [🗺 Map] → map:list
+  [💼 My job] → job:status   │   [🎓 Education] → education:list
+  [🏦 Bank] → bank:show   │   [🛠 Skills] → skills:list
+  [👥 Friends] → social:friend.list   │   [⚙️ Settings] → player:settings
+
+━━━ Settings ━━━
+(edits message 42)
+⚙️ Settings
+
+🌐 Game language: English
+  ───
+  [🌐 Switch to فارسی] → player:language.set:fa
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → player:settings
+
+━━━ Settings · just changed the language ━━━
+(edits message 42)
+⚙️ Settings
+
+✅ The game language is now English.
+
+🌐 Game language: English
+  ───
+  [🌐 Switch to فارسی] → player:language.set:fa
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → player:settings

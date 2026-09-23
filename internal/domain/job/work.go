@@ -6,6 +6,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 )
@@ -18,7 +19,29 @@ var (
 
 	// ErrInvalidPolicy means a policy's numbers are unusable.
 	ErrInvalidPolicy = errors.New("job: invalid policy")
+
+	// ErrShiftInProgress means the player is already working a shift. One
+	// at a time: the shift_sessions table enforces the same rule with a
+	// partial unique index.
+	ErrShiftInProgress = errors.New("job: a shift is already in progress")
+
+	// ErrNoShiftInProgress means there is no shift to settle.
+	ErrNoShiftInProgress = errors.New("job: no shift in progress")
+
+	// ErrShiftNotFinished means the shift has not run its length yet. The
+	// detail is a ShiftNotFinished carrying the time left.
+	ErrShiftNotFinished = errors.New("job: shift not finished yet")
 )
+
+// ShiftNotFinished details ErrShiftNotFinished.
+type ShiftNotFinished struct{ Remaining time.Duration }
+
+func (e ShiftNotFinished) Error() string {
+	return fmt.Sprintf("%v: %s to go", ErrShiftNotFinished, e.Remaining)
+}
+
+// Unwrap lets errors.Is match ErrShiftNotFinished.
+func (e ShiftNotFinished) Unwrap() error { return ErrShiftNotFinished }
 
 // StartingPerformance is where a new hire's performance starts, matching the
 // employees.performance column default. Halfway leaves room to show both a
@@ -53,6 +76,8 @@ type Policy struct {
 	// FatigueWindow and FatigueFreeShifts define fatigue: within any window
 	// of FatigueWindow, the first FatigueFreeShifts shifts are at full output
 	// and every one after that yields less. A zero window disables fatigue.
+	// The window is GAME time, like the shifts it counts; it meets the wall
+	// clock through gametime.Scale.RealWait.
 	FatigueWindow     time.Duration
 	FatigueFreeShifts int
 }
@@ -77,7 +102,8 @@ func (p Policy) Validate() error {
 }
 
 // Fatigue returns the output multiplier, in basis points, for a shift started
-// at now given the shifts already worked.
+// at now given the shifts already worked. clock maps the game-time window to
+// the real one the recorded start times are compared on.
 //
 // Let k be how many earlier shifts fall inside the window ending at now, and
 // N the free shifts. While k < N the shift is at full output. Past that, with
@@ -94,11 +120,11 @@ func (p Policy) Validate() error {
 // A recorded shift later than now counts as inside the window. That only
 // happens after a clock correction, and counting it is the conservative
 // choice: ignoring it would let a clock step reset fatigue.
-func (p Policy) Fatigue(recent []time.Time, now time.Time) int {
+func (p Policy) Fatigue(recent []time.Time, now time.Time, clock gametime.Scale) int {
 	if p.FatigueWindow <= 0 {
 		return bpsWhole
 	}
-	k := shiftsInWindow(recent, now, p.FatigueWindow)
+	k := shiftsInWindow(recent, now, clock.RealWait(p.FatigueWindow))
 	if k < p.FatigueFreeShifts {
 		return bpsWhole
 	}
@@ -135,24 +161,141 @@ type Employment struct {
 	// ShiftsInTier counts shifts worked since TierSince.
 	ShiftsInTier int
 	// RecentShifts are the start times of shifts still inside the fatigue
-	// window. Work returns it already pruned; the caller just stores it.
+	// window. FinishShift returns it already pruned; the caller just stores
+	// it.
 	RecentShifts []time.Time
 }
 
-// Shift is everything a shift of work reads.
+// Shift is everything starting a shift of work reads.
 type Shift struct {
 	Career     Career
 	Employment Employment
 	Stats      player.Stats
 	Skills     []player.Skill
 	Policy     Policy
-	Now        time.Time
+	// Current is the shift the player is already working, the zero value
+	// when none. A player works one shift at a time.
+	Current Activity
+	Now     time.Time
+	// Clock maps the tier's shift duration and the fatigue window, both
+	// game time, to the real wait.
+	Clock gametime.Scale
 }
 
-// ShiftResult is everything a shift of work changes. The caller persists all
-// of it or none of it.
+// Activity is one shift from its start to its end: what was fixed when it
+// started and is settled when it ends. The zero value is "not working".
+type Activity struct {
+	// Tier is the tier the shift was started in; its rewards are the ones
+	// paid.
+	Tier      int
+	StartedAt time.Time
+	// EndsAt is StartedAt plus the tier's shift duration on the game clock.
+	EndsAt time.Time
+	// FatigueBPS is the output multiplier the shift runs at, decided when
+	// it starts from the shifts before it.
+	FatigueBPS int
+}
+
+// Active reports whether the activity is a shift in progress.
+func (a Activity) Active() bool { return !a.StartedAt.IsZero() }
+
+// Remaining is how long until the shift can be settled, zero once it can.
+func (a Activity) Remaining(now time.Time) time.Duration {
+	if !a.Active() || !now.Before(a.EndsAt) {
+		return 0
+	}
+	return a.EndsAt.Sub(now)
+}
+
+// ShiftStarted is everything starting a shift changes: the energy spent and
+// the shift now in progress. The caller persists both or neither, and
+// schedules the shift's end at Activity.EndsAt.
+type ShiftStarted struct {
+	Stats    player.Stats
+	Activity Activity
+}
+
+// StartShift begins one shift at s.Now.
+//
+// WHY A SHIFT TAKES TIME. A shift that paid on the press could be pressed as
+// fast as a thumb moves. So a shift is an activity: its energy is paid when
+// it starts, the player is at work until it ends, and its pay, XP, skill XP
+// and performance are settled only then, by FinishShift. How long it lasts
+// is content (the tier's ShiftDuration, game time), mapped to the real wait
+// by the game's one clock.
+//
+// ENERGY. The tier's energy cost is paid through player.Stats.SpendEnergy, so
+// a shift the player cannot afford is refused with player.ErrNotEnoughEnergy —
+// never run for less. A player already working is refused with
+// ErrShiftInProgress. A refusal returns a zero ShiftStarted.
+//
+// FATIGUE is decided here, from the shifts already recorded inside the
+// window ending now, and carried on the activity: the shift the player
+// started is the shift they are paid for.
+func StartShift(s Shift) (ShiftStarted, error) {
+	if s.Now.IsZero() {
+		return ShiftStarted{}, ErrInvalidTime
+	}
+	if err := s.Clock.Validate(); err != nil {
+		return ShiftStarted{}, err
+	}
+	if s.Current.Active() {
+		return ShiftStarted{}, ErrShiftInProgress
+	}
+	if err := s.Policy.Validate(); err != nil {
+		return ShiftStarted{}, err
+	}
+	tier, err := employedTier(s.Career, s.Employment)
+	if err != nil {
+		return ShiftStarted{}, err
+	}
+	stats, err := s.Stats.SpendEnergy(tier.EnergyCost)
+	if err != nil {
+		return ShiftStarted{}, err
+	}
+	return ShiftStarted{
+		Stats: stats,
+		Activity: Activity{
+			Tier:       s.Employment.Tier,
+			StartedAt:  s.Now,
+			EndsAt:     s.Now.Add(s.Clock.RealWait(tier.ShiftDuration)),
+			FatigueBPS: s.Policy.Fatigue(s.Employment.RecentShifts, s.Now, s.Clock),
+		},
+	}, nil
+}
+
+// employedTier checks a career and an employment belong together and
+// returns the employment's tier.
+func employedTier(c Career, e Employment) (Tier, error) {
+	if err := c.Validate(); err != nil {
+		return Tier{}, err
+	}
+	if e.CareerCode != c.Code {
+		return Tier{}, fmt.Errorf("%w: employment %q, career %q", ErrWrongCareer, e.CareerCode, c.Code)
+	}
+	if e.Rate.IsNegative() || e.Rate.Minor() > MaxBaseSalary {
+		return Tier{}, fmt.Errorf("%w: %s", ErrInvalidRate, e.Rate)
+	}
+	return c.tier(e.Tier)
+}
+
+// Finish is everything settling a shift reads: the shift in progress, and
+// the job and the player as they are when it ends.
+type Finish struct {
+	Career     Career
+	Employment Employment
+	Stats      player.Stats
+	Skills     []player.Skill
+	Policy     Policy
+	Activity   Activity
+	Now        time.Time
+	Clock      gametime.Scale
+}
+
+// ShiftResult is everything settling a shift changes. The caller persists
+// all of it or none of it.
 type ShiftResult struct {
-	// Stats has the energy spent and the XP added.
+	// Stats has the XP added. Energy was spent when the shift started.
 	Stats    player.Stats
 	LevelUps []player.LevelUp
 	// Employment has performance applied and this shift recorded.
@@ -170,15 +313,15 @@ type ShiftResult struct {
 	FatigueBPS int
 }
 
-// Work performs one shift.
+// FinishShift settles a shift that has run its course.
 //
-// ENERGY. The tier's energy cost is paid through player.Stats.SpendEnergy, so
-// a shift the player cannot afford is refused with player.ErrNotEnoughEnergy —
-// never run for less. A refused shift returns a zero ShiftResult: nothing is
-// paid, awarded, or recorded.
+// Before EndsAt it is refused with a ShiftNotFinished carrying the time left:
+// nothing is paid pro rata. The rewards are those of the tier the shift was
+// started in.
 //
 // PAY. The shift pays the employment's rate, raised to the minimum wage in
-// force if policy moved above it since hiring, scaled by fatigue:
+// force if policy moved above it since hiring, scaled by the fatigue fixed
+// when the shift started:
 //
 //	pay = floor(max(rate, minimumWage) * fatigueBPS / 10000)
 //
@@ -188,38 +331,38 @@ type ShiftResult struct {
 //
 // XP AND SKILL XP scale by the same fatigue multiplier with the same rounding.
 // PERFORMANCE moves as described at perfBelowRequirement and is clamped to
-// 0..MaxPerformance.
-func Work(s Shift) (ShiftResult, error) {
-	if s.Now.IsZero() {
+// 0..MaxPerformance. The shift is recorded in the fatigue history at the
+// moment it STARTED.
+func FinishShift(f Finish) (ShiftResult, error) {
+	if f.Now.IsZero() {
 		return ShiftResult{}, ErrInvalidTime
 	}
-	if err := s.Policy.Validate(); err != nil {
+	if err := f.Clock.Validate(); err != nil {
 		return ShiftResult{}, err
 	}
-	if err := s.Career.Validate(); err != nil {
+	if !f.Activity.Active() {
+		return ShiftResult{}, ErrNoShiftInProgress
+	}
+	if f.Now.Before(f.Activity.EndsAt) {
+		return ShiftResult{}, ShiftNotFinished{Remaining: f.Activity.EndsAt.Sub(f.Now)}
+	}
+	fatigue := f.Activity.FatigueBPS
+	if fatigue < 1 || fatigue > bpsWhole {
+		return ShiftResult{}, fmt.Errorf("%w: fatigue %d bps", ErrInvalidPolicy, fatigue)
+	}
+	if err := f.Policy.Validate(); err != nil {
 		return ShiftResult{}, err
 	}
-	if s.Employment.CareerCode != s.Career.Code {
-		return ShiftResult{}, fmt.Errorf("%w: employment %q, career %q",
-			ErrWrongCareer, s.Employment.CareerCode, s.Career.Code)
+	if _, err := employedTier(f.Career, f.Employment); err != nil {
+		return ShiftResult{}, err
 	}
-	tier, err := s.Career.tier(s.Employment.Tier)
+	tier, err := f.Career.tier(f.Activity.Tier)
 	if err != nil {
 		return ShiftResult{}, err
 	}
-	if s.Employment.Rate.IsNegative() || s.Employment.Rate.Minor() > MaxBaseSalary {
-		return ShiftResult{}, fmt.Errorf("%w: %s", ErrInvalidRate, s.Employment.Rate)
-	}
 
-	stats, err := s.Stats.SpendEnergy(tier.EnergyCost)
-	if err != nil {
-		return ShiftResult{}, err
-	}
-
-	fatigue := s.Policy.Fatigue(s.Employment.RecentShifts, s.Now)
-
-	rate := s.Employment.Rate.Minor()
-	if floor := s.Policy.MinimumWage.Minor(); rate < floor {
+	rate := f.Employment.Rate.Minor()
+	if floor := f.Policy.MinimumWage.Minor(); rate < floor {
 		rate = floor
 	}
 	pay, err := mulDiv(rate, int64(fatigue), bpsWhole)
@@ -239,13 +382,14 @@ func Work(s Shift) (ShiftResult, error) {
 		skillXP = append(skillXP, SkillXP{Skill: r.Skill, XP: v})
 	}
 
-	delta := performanceDelta(tier, s.Skills, fatigue < bpsWhole)
-	stats, ups := stats.AddXP(xp)
+	delta := performanceDelta(tier, f.Skills, fatigue < bpsWhole)
+	stats, ups := f.Stats.AddXP(xp)
+	window := f.Clock.RealWait(f.Policy.FatigueWindow)
 
 	return ShiftResult{
 		Stats:            stats,
 		LevelUps:         ups,
-		Employment:       s.Employment.afterShift(delta, s.Now, s.Policy.FatigueWindow),
+		Employment:       f.Employment.afterShift(delta, f.Activity.StartedAt, window),
 		Pay:              money.FromMinor(pay),
 		XP:               xp,
 		SkillXP:          skillXP,

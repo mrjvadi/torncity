@@ -210,7 +210,10 @@ levers:
   # withheld from every wage paid to a resident and paid into the city's
   # treasury. Fatigue: within any window of shift_window_hours, the first
   # shifts_before_fatigue shifts are at full output and every later one yields
-  # less. The defaults are the game's behaviour before anyone holds the seat.
+  # less. shift_window_hours is GAME hours, like the shifts it counts, waited
+  # through the game clock (config.yml game.time_scale). Every notice and
+  # change_cooldown in this file is REAL time: it is a promise to players
+  # (docs/adr/0018-game-clock.md). The defaults are the game's behaviour before anyone holds the seat.
   - code: city.minimum_wage
     jurisdiction: city
     type: money
@@ -268,6 +271,71 @@ levers:
     change_cooldown: 72h
     notice: 24h
 
+  # Justice (docs/adr/0019-crime-engine.md), held by the police chief. The
+  # crimes themselves — their odds, takes and the ranges their sentences and
+  # fines are drawn from — are content (crimes.yml); these are the city's say
+  # over what happens once a crime is reported or an offender is caught.
+  #   crime_report_fee      what a victim pays the treasury to report a theft.
+  #                         A fee makes a report a decision: a small theft is
+  #                         not worth reporting, a large one is.
+  #   bail_per_hour         what leaving jail early costs per game hour of the
+  #                         sentence still to serve, paid to the treasury.
+  #   jail_term_multiplier  every sentence handed down in the city, in percent
+  #                         of the range the crime authors (100 = as authored).
+  #   fine_multiplier       every fine, likewise.
+  #   investigation_effort  how hard the police work a reported case (0..100%):
+  #                         it raises the chance a report is solved.
+  # The defaults are the game's behaviour before anybody holds the seat.
+  - code: city.crime_report_fee
+    jurisdiction: city
+    type: money
+    default: 200
+    min: 0
+    max: 5000
+    held_by: police_chief
+    change_cooldown: 72h
+    notice: 24h
+
+  - code: city.bail_per_hour
+    jurisdiction: city
+    type: money
+    default: 250
+    min: 50
+    max: 5000
+    held_by: police_chief
+    change_cooldown: 72h
+    notice: 24h
+
+  - code: city.jail_term_multiplier
+    jurisdiction: city
+    type: int
+    default: 100
+    min: 50
+    max: 300
+    held_by: police_chief
+    change_cooldown: 168h
+    notice: 72h
+
+  - code: city.fine_multiplier
+    jurisdiction: city
+    type: int
+    default: 100
+    min: 50
+    max: 300
+    held_by: police_chief
+    change_cooldown: 168h
+    notice: 72h
+
+  - code: city.investigation_effort
+    jurisdiction: city
+    type: bps
+    default: 5000
+    min: 0
+    max: 10000
+    held_by: police_chief
+    change_cooldown: 72h
+    notice: 24h
+
   # No border tariff exists today either.
   - code: country.border_tariff
     jurisdiction: country
@@ -309,6 +377,28 @@ offices:
     jurisdiction: city
     seats: 5
     acquired_by: election
+    levers: []
+
+  # The city's police (docs/adr/0019-crime-engine.md). The mayor appoints the
+  # chief; while the seat is vacant the deputy acts, and with neither the
+  # defaults apply. One person does not run the city and its police.
+  - code: police_chief
+    jurisdiction: city
+    seats: 1
+    acquired_by: appointment
+    appointed_by: mayor
+    levers: [city.crime_report_fee, city.bail_per_hour, city.jail_term_multiplier,
+             city.fine_multiplier, city.investigation_effort]
+    deputy: deputy_police_chief
+    can_be_removed_by: [mayor, operator]
+    incompatible_with: [mayor]
+
+  - code: deputy_police_chief
+    jurisdiction: city
+    seats: 1
+    acquired_by: appointment
+    appointed_by: police_chief
+    can_be_removed_by: [police_chief, operator]
     levers: []
 
   - code: president

@@ -26,6 +26,8 @@ type CurrentCourseView struct {
 	// Percent is progress from 0 to 100, worked out by the domain.
 	Percent   int
 	Remaining time.Duration
+	// EndsAt is when the course finishes; zero shows no clock line.
+	EndsAt time.Time
 }
 
 // CourseLine is one course on offer.
@@ -59,7 +61,11 @@ func Education(c Context, v EducationView) *presenter.Response {
 				"remaining": FormatDuration(c, v.Current.Remaining),
 			})
 		}
-		current = body(c.T("education.current", map[string]any{"course": c.course(v.Current.Course)}), progress)
+		var ends string
+		if v.Current.Remaining >= arrivingThreshold {
+			ends = clockLine(c, "education.ends_at", v.Current.EndsAt)
+		}
+		current = body(c.T("education.current", map[string]any{"course": c.course(v.Current.Course)}), progress, ends)
 	}
 
 	var certificates string
@@ -80,7 +86,7 @@ func Education(c Context, v EducationView) *presenter.Response {
 			"course":   c.course(line.Course),
 			"fee":      FormatMoney(c, line.Fee),
 			"duration": FormatDuration(c, line.Duration),
-			"level":    FormatNumber(int64(line.MinLevel)),
+			"level":    FormatNumber(c, int64(line.MinLevel)),
 		}
 		key := "education.course_line"
 		if !line.Eligible {
@@ -145,13 +151,13 @@ func CourseDetail(c Context, v CourseDetailView) *presenter.Response {
 		c.T("education.duration", map[string]any{"duration": FormatDuration(c, v.Duration)}),
 	)
 	if v.Limited {
-		facts = append(facts, c.T("education.seats", map[string]any{"seats": FormatNumber(int64(v.SeatsLeft))}))
+		facts = append(facts, c.T("education.seats", map[string]any{"seats": FormatNumber(c, int64(v.SeatsLeft))}))
 	}
 
 	rewards := []string{c.T("education.rewards", nil)}
 	for _, s := range v.Skills {
 		rewards = append(rewards, c.T("education.reward_skill", map[string]any{
-			"skill": c.T("skill."+s.Skill, nil), "xp": FormatNumber(s.XP),
+			"skill": c.T("skill."+s.Skill, nil), "xp": FormatNumber(c, s.XP),
 		}))
 	}
 	if v.Certifies {
@@ -181,9 +187,12 @@ func CourseDetail(c Context, v CourseDetailView) *presenter.Response {
 
 // EnrolledView is a successful enrolment.
 type EnrolledView struct {
-	Course   CourseRef
+	Course CourseRef
+	// Duration is the real wait until the course finishes.
 	Duration time.Duration
-	Fee      int64
+	// EndsAt is when it finishes; zero shows no clock line.
+	EndsAt time.Time
+	Fee    int64
 }
 
 // Enrolled renders an enrolment.
@@ -192,11 +201,11 @@ func Enrolled(c Context, v EnrolledView) *presenter.Response {
 	edu, _ := keyboards.Button(c.T("education.button.open", nil), AddrEducation)
 	kb.Row(edu)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
-	return c.respond(c.T("education.enrolled", map[string]any{
+	return c.respond(body(c.T("education.enrolled", map[string]any{
 		"course":   c.course(v.Course),
 		"duration": FormatDuration(c, v.Duration),
 		"fee":      FormatMoney(c, v.Fee),
-	}), kb.Build())
+	}), clockLine(c, "education.ends_at", v.EndsAt)), kb.Build())
 }
 
 // CourseCompletedView is what a finished course tells the player.
@@ -215,9 +224,9 @@ func CourseCompleted(c Context, v CourseCompletedView) *presenter.Response {
 	}
 	for _, s := range v.Skills {
 		skill := c.T("skill."+s.Skill, nil)
-		lines = append(lines, c.T("education.reward_skill", map[string]any{"skill": skill, "xp": FormatNumber(s.XP)}))
+		lines = append(lines, c.T("education.reward_skill", map[string]any{"skill": skill, "xp": FormatNumber(c, s.XP)}))
 		if s.Level > 0 {
-			lines = append(lines, c.T("job.shift_skill_level", map[string]any{"skill": skill, "level": FormatNumber(int64(s.Level))}))
+			lines = append(lines, c.T("job.shift_skill_level", map[string]any{"skill": skill, "level": FormatNumber(c, int64(s.Level))}))
 		}
 	}
 

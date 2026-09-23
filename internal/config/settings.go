@@ -31,6 +31,7 @@ type fileConfig struct {
 	RateLimit  ratelimitSettings  `yaml:"ratelimit"`
 	Telegram   telegramSettings   `yaml:"telegram"`
 	Groups     groupsSettings     `yaml:"groups"`
+	Menu       menuSettings       `yaml:"menu"`
 	Dedup      dedupSettings      `yaml:"dedup"`
 	NATS       natsSettings       `yaml:"nats"`
 	Worker     workerSettings     `yaml:"worker"`
@@ -41,6 +42,7 @@ type fileConfig struct {
 	Player     playerSettings     `yaml:"player"`
 	Economy    economySettings    `yaml:"economy"`
 	Governance governanceSettings `yaml:"governance"`
+	Crime      crimeSettings      `yaml:"crime"`
 }
 
 type gatewaySettings struct {
@@ -69,10 +71,11 @@ type telegramSettings struct {
 }
 
 type groupsSettings struct {
-	EphemeralReplyWindow  *string  `yaml:"ephemeral_reply_window"`
-	EphemeralRefusalTTL   *string  `yaml:"ephemeral_refusal_ttl"`
-	CallbackAlertMaxRunes *int     `yaml:"callback_alert_max_runes"`
-	Menu                  []string `yaml:"menu"`
+	CallbackAlertMaxRunes *int `yaml:"callback_alert_max_runes"`
+}
+
+type menuSettings struct {
+	Commands []string `yaml:"commands"`
 }
 
 type dedupSettings struct {
@@ -116,15 +119,18 @@ type gameSettings struct {
 	IdempotencyTTL  *string `yaml:"idempotency_ttl"`
 
 	ContentReloadInterval *string `yaml:"content_reload_interval"`
+	TimeScale             *int    `yaml:"time_scale"`
 }
 
 type travelSettings struct {
 	ArrivalXP *int `yaml:"arrival_xp"`
+	// TimeScale is the legacy spelling of game.time_scale; see Game.
 	TimeScale *int `yaml:"time_scale"`
 }
 
 type playerSettings struct {
 	DefaultLanguage *string `yaml:"default_language"`
+	DefaultTimezone *string `yaml:"default_timezone"`
 }
 
 type economySettings struct {
@@ -136,6 +142,27 @@ type economySettings struct {
 type governanceSettings struct {
 	FineStepDivisor   *int `yaml:"fine_step_divisor"`
 	CoarseStepDivisor *int `yaml:"coarse_step_divisor"`
+}
+
+type crimeSettings struct {
+	NerveMax                     *int    `yaml:"nerve_max"`
+	NerveRegenAmount             *int    `yaml:"nerve_regen_amount"`
+	NerveRegenInterval           *string `yaml:"nerve_regen_interval"`
+	HeatMax                      *int    `yaml:"heat_max"`
+	HeatDecayPerHour             *int    `yaml:"heat_decay_per_hour"`
+	ProtectMinLevel              *int    `yaml:"protect_min_level"`
+	ProtectMinAge                *string `yaml:"protect_min_age"`
+	ActiveWindow                 *string `yaml:"active_window"`
+	ArrivalLinger                *string `yaml:"arrival_linger"`
+	VictimCooldown               *string `yaml:"victim_cooldown"`
+	ThiefCooldown                *string `yaml:"thief_cooldown"`
+	ReportWindow                 *string `yaml:"report_window"`
+	InvestigationDuration        *string `yaml:"investigation_duration"`
+	InvestigationBaseBPS         *int    `yaml:"investigation_base_bps"`
+	InvestigationPerHeatBPS      *int    `yaml:"investigation_per_heat_bps"`
+	InvestigationWitnessBonusBPS *int    `yaml:"investigation_witness_bonus_bps"`
+	InvestigationEffortWeightBPS *int    `yaml:"investigation_effort_weight_bps"`
+	NPCDailyCap                  *int64  `yaml:"npc_daily_cap"`
 }
 
 // setting is one configurable value, from its yaml key to the field it fills.
@@ -372,6 +399,14 @@ func durationListSetting(section, key string, field func(*Config) *[]time.Durati
 	return s
 }
 
+// aliasSetting marks a legacy key that still fills a field a current key
+// owns. It reads the file and the environment like the setting it wraps, and
+// checks nothing of its own: the current key's setting checks the field.
+func aliasSetting(s setting) setting {
+	s.check = func(*Config) error { return nil }
+	return s
+}
+
 // settings is the whole configurable surface of this project, in the order
 // configs/config.yml declares it.
 var settings = []setting{
@@ -417,18 +452,12 @@ var settings = []setting{
 	durationSetting("telegram", "default_flood_wait",
 		func(c *Config) *time.Duration { return &c.Telegram.DefaultFloodWait },
 		func(f *fileConfig) *string { return f.Telegram.DefaultFloodWait }),
-	durationSetting("groups", "ephemeral_reply_window",
-		func(c *Config) *time.Duration { return &c.Groups.EphemeralReplyWindow },
-		func(f *fileConfig) *string { return f.Groups.EphemeralReplyWindow }),
-	durationSetting("groups", "ephemeral_refusal_ttl",
-		func(c *Config) *time.Duration { return &c.Groups.EphemeralRefusalTTL },
-		func(f *fileConfig) *string { return f.Groups.EphemeralRefusalTTL }),
 	limitSetting("groups", "callback_alert_max_runes",
 		func(c *Config) *int { return &c.Groups.CallbackAlertMaxRunes },
 		func(f *fileConfig) *int { return f.Groups.CallbackAlertMaxRunes }),
-	stringListSetting("groups", "menu",
-		func(c *Config) *[]string { return &c.Groups.Menu },
-		func(f *fileConfig) []string { return f.Groups.Menu }),
+	stringListSetting("menu", "commands",
+		func(c *Config) *[]string { return &c.Menu.Commands },
+		func(f *fileConfig) []string { return f.Menu.Commands }),
 
 	durationSetting("dedup", "ttl",
 		func(c *Config) *time.Duration { return &c.Dedup.TTL },
@@ -508,16 +537,25 @@ var settings = []setting{
 		func(c *Config) *time.Duration { return &c.Game.ContentReloadInterval },
 		func(f *fileConfig) *string { return f.Game.ContentReloadInterval }),
 
+	// The legacy spelling of the game clock comes BEFORE game.time_scale, so
+	// the current key wins wherever both are written.
+	aliasSetting(limitSetting("travel", "time_scale",
+		func(c *Config) *int { return &c.Game.TimeScale },
+		func(f *fileConfig) *int { return f.Travel.TimeScale })),
+	limitSetting("game", "time_scale",
+		func(c *Config) *int { return &c.Game.TimeScale },
+		func(f *fileConfig) *int { return f.Game.TimeScale }),
+
 	limitSetting("travel", "arrival_xp",
 		func(c *Config) *int { return &c.Travel.ArrivalXP },
 		func(f *fileConfig) *int { return f.Travel.ArrivalXP }),
-	limitSetting("travel", "time_scale",
-		func(c *Config) *int { return &c.Travel.TimeScale },
-		func(f *fileConfig) *int { return f.Travel.TimeScale }),
 
 	stringSetting("player", "default_language",
 		func(c *Config) *string { return &c.Player.DefaultLanguage },
 		func(f *fileConfig) *string { return f.Player.DefaultLanguage }),
+	stringSetting("player", "default_timezone",
+		func(c *Config) *string { return &c.Player.DefaultTimezone },
+		func(f *fileConfig) *string { return f.Player.DefaultTimezone }),
 
 	moneySetting("economy", "starting_cash",
 		func(c *Config) *int64 { return &c.Economy.StartingCash },
@@ -535,4 +573,59 @@ var settings = []setting{
 	limitSetting("governance", "coarse_step_divisor",
 		func(c *Config) *int { return &c.Governance.CoarseStepDivisor },
 		func(f *fileConfig) *int { return f.Governance.CoarseStepDivisor }),
+
+	limitSetting("crime", "nerve_max",
+		func(c *Config) *int { return &c.Crime.NerveMax },
+		func(f *fileConfig) *int { return f.Crime.NerveMax }),
+	limitSetting("crime", "nerve_regen_amount",
+		func(c *Config) *int { return &c.Crime.NerveRegenAmount },
+		func(f *fileConfig) *int { return f.Crime.NerveRegenAmount }),
+	durationSetting("crime", "nerve_regen_interval",
+		func(c *Config) *time.Duration { return &c.Crime.NerveRegenInterval },
+		func(f *fileConfig) *string { return f.Crime.NerveRegenInterval }),
+	limitSetting("crime", "heat_max",
+		func(c *Config) *int { return &c.Crime.HeatMax },
+		func(f *fileConfig) *int { return f.Crime.HeatMax }),
+	limitSetting("crime", "heat_decay_per_hour",
+		func(c *Config) *int { return &c.Crime.HeatDecayPerHour },
+		func(f *fileConfig) *int { return f.Crime.HeatDecayPerHour }),
+	limitSetting("crime", "protect_min_level",
+		func(c *Config) *int { return &c.Crime.ProtectMinLevel },
+		func(f *fileConfig) *int { return f.Crime.ProtectMinLevel }),
+	durationSetting("crime", "protect_min_age",
+		func(c *Config) *time.Duration { return &c.Crime.ProtectMinAge },
+		func(f *fileConfig) *string { return f.Crime.ProtectMinAge }),
+	durationSetting("crime", "active_window",
+		func(c *Config) *time.Duration { return &c.Crime.ActiveWindow },
+		func(f *fileConfig) *string { return f.Crime.ActiveWindow }),
+	durationSetting("crime", "arrival_linger",
+		func(c *Config) *time.Duration { return &c.Crime.ArrivalLinger },
+		func(f *fileConfig) *string { return f.Crime.ArrivalLinger }),
+	durationSetting("crime", "victim_cooldown",
+		func(c *Config) *time.Duration { return &c.Crime.VictimCooldown },
+		func(f *fileConfig) *string { return f.Crime.VictimCooldown }),
+	durationSetting("crime", "thief_cooldown",
+		func(c *Config) *time.Duration { return &c.Crime.ThiefCooldown },
+		func(f *fileConfig) *string { return f.Crime.ThiefCooldown }),
+	durationSetting("crime", "report_window",
+		func(c *Config) *time.Duration { return &c.Crime.ReportWindow },
+		func(f *fileConfig) *string { return f.Crime.ReportWindow }),
+	durationSetting("crime", "investigation_duration",
+		func(c *Config) *time.Duration { return &c.Crime.InvestigationDuration },
+		func(f *fileConfig) *string { return f.Crime.InvestigationDuration }),
+	limitSetting("crime", "investigation_base_bps",
+		func(c *Config) *int { return &c.Crime.InvestigationBaseBPS },
+		func(f *fileConfig) *int { return f.Crime.InvestigationBaseBPS }),
+	limitSetting("crime", "investigation_per_heat_bps",
+		func(c *Config) *int { return &c.Crime.InvestigationPerHeatBPS },
+		func(f *fileConfig) *int { return f.Crime.InvestigationPerHeatBPS }),
+	limitSetting("crime", "investigation_witness_bonus_bps",
+		func(c *Config) *int { return &c.Crime.InvestigationWitnessBonusBPS },
+		func(f *fileConfig) *int { return f.Crime.InvestigationWitnessBonusBPS }),
+	limitSetting("crime", "investigation_effort_weight_bps",
+		func(c *Config) *int { return &c.Crime.InvestigationEffortWeightBPS },
+		func(f *fileConfig) *int { return f.Crime.InvestigationEffortWeightBPS }),
+	moneySetting("crime", "npc_daily_cap",
+		func(c *Config) *int64 { return &c.Crime.NPCDailyCap },
+		func(f *fileConfig) *int64 { return f.Crime.NPCDailyCap }),
 }

@@ -33,7 +33,7 @@ func ArrivalNotice(c Context, v ArrivalNoticeView) *presenter.Response {
 		top = max(top, level)
 	}
 	if top > 0 {
-		resp.Text = body(resp.Text, c.T("travel.arrived_level", map[string]any{"level": FormatNumber(int64(top))}))
+		resp.Text = body(resp.Text, c.T("travel.arrived_level", map[string]any{"level": FormatNumber(c, int64(top))}))
 	}
 	return resp
 }

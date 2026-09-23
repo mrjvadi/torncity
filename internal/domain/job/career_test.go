@@ -23,6 +23,7 @@ func testCareer() Career {
 				MinLevel:        1,
 				BaseSalary:      money.FromMinor(1_000),
 				EnergyCost:      10,
+				ShiftDuration:   8 * time.Hour,
 				XPPerShift:      20,
 				SkillXPPerShift: []SkillXP{{Skill: player.SkillProgramming, XP: 30}},
 				Promotion: PromotionRequirement{
@@ -38,6 +39,7 @@ func testCareer() Career {
 				RequiredSkills: []SkillRequirement{{Skill: player.SkillProgramming, Level: 10}},
 				BaseSalary:     money.FromMinor(2_500),
 				EnergyCost:     15,
+				ShiftDuration:  8 * time.Hour,
 				XPPerShift:     40,
 				SkillXPPerShift: []SkillXP{
 					{Skill: player.SkillProgramming, XP: 50},
@@ -56,6 +58,7 @@ func testCareer() Career {
 				RequiredCertifications: []string{"cs_degree", "cloud_cert"},
 				BaseSalary:             money.FromMinor(6_000),
 				EnergyCost:             20,
+				ShiftDuration:          10 * time.Hour,
 				XPPerShift:             60,
 			},
 		},
@@ -102,6 +105,9 @@ func TestCareerValidate(t *testing.T) {
 		{"promotion performance above scale", func(c *Career) { c.Tiers[0].Promotion.MinPerformance = MaxPerformance + 1 }, false},
 		{"negative promotion performance", func(c *Career) { c.Tiers[0].Promotion.MinPerformance = -1 }, false},
 		{"negative promotion time", func(c *Career) { c.Tiers[0].Promotion.MinTimeInTier = -time.Second }, false},
+		{"no shift duration", func(c *Career) { c.Tiers[0].ShiftDuration = 0 }, false},
+		{"shift longer than a day", func(c *Career) { c.Tiers[0].ShiftDuration = MaxShiftDuration + time.Second }, false},
+		{"shift of a whole day", func(c *Career) { c.Tiers[0].ShiftDuration = MaxShiftDuration }, true},
 		{"negative promotion shifts", func(c *Career) { c.Tiers[0].Promotion.MinShifts = -1 }, false},
 		{"promotion shifts above cap", func(c *Career) { c.Tiers[0].Promotion.MinShifts = MaxRequiredShifts + 1 }, false},
 	}

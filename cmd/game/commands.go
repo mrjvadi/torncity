@@ -34,6 +34,8 @@ type phaseHandlers struct {
 
 	jobs      *handlers.JobsHandler
 	education *handlers.EducationHandler
+
+	crime *handlers.CrimeHandler
 }
 
 // bind maps every subscribed command to the handler method that serves it.
@@ -199,6 +201,10 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 	}
 	// Work and study are bound in commands_work.go.
 	for command, fn := range h.bindWork() {
+		bound[command] = fn
+	}
+	// Crime is bound in commands_crime.go.
+	for command, fn := range h.bindCrime() {
 		bound[command] = fn
 	}
 	return bound

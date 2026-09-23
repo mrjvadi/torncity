@@ -92,6 +92,10 @@ const (
 
 	// MaxRequiredShifts bounds a promotion's shift requirement.
 	MaxRequiredShifts = 1_000_000
+
+	// MaxShiftDuration bounds one shift, in game time: a working day of more
+	// than a day is a typo.
+	MaxShiftDuration = 24 * time.Hour
 )
 
 // SkillRequirement is a minimum level in one skill.
@@ -112,7 +116,9 @@ type SkillXP struct {
 type PromotionRequirement struct {
 	// MinPerformance is on the 0..MaxPerformance scale.
 	MinPerformance int
-	// MinTimeInTier is how long the employee must have held this tier.
+	// MinTimeInTier is how long the employee must have held this tier, in
+	// GAME time; it is compared on the wall clock through
+	// gametime.Scale.RealWait.
 	MinTimeInTier time.Duration
 	// MinShifts is how many shifts must have been worked in this tier.
 	MinShifts int
@@ -138,6 +144,10 @@ type Tier struct {
 	BaseSalary money.Amount
 	// EnergyCost is what one shift costs. Zero is allowed.
 	EnergyCost int
+	// ShiftDuration is how long one shift lasts, in GAME time; the player
+	// waits gametime.Scale.RealWait of it. It must be positive: a shift that
+	// ends as it starts is the button that dispenses money.
+	ShiftDuration time.Duration
 	// XPPerShift is character XP for a full-output shift.
 	XPPerShift int64
 	// SkillXPPerShift is skill XP for a full-output shift.
@@ -224,6 +234,9 @@ func (t Tier) validate() error {
 	}
 	if t.EnergyCost < 0 || t.EnergyCost > MaxEnergyCost {
 		return fmt.Errorf("%w: energy cost %d", ErrInvalidCareer, t.EnergyCost)
+	}
+	if t.ShiftDuration <= 0 || t.ShiftDuration > MaxShiftDuration {
+		return fmt.Errorf("%w: shift duration %s", ErrInvalidCareer, t.ShiftDuration)
 	}
 	if t.XPPerShift < 0 || t.XPPerShift > MaxXPPerShift {
 		return fmt.Errorf("%w: xp per shift %d", ErrInvalidCareer, t.XPPerShift)

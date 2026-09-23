@@ -81,8 +81,12 @@ type TierDef struct {
 	RequiredCertifications []string        `yaml:"required_certifications" json:"required_certifications"`
 	// BaseSalary is pay per full-output shift, in minor units. It is what the
 	// base (NPC) employer offers.
-	BaseSalary      int64        `yaml:"base_salary" json:"base_salary"`
-	EnergyCost      int          `yaml:"energy_cost" json:"energy_cost"`
+	BaseSalary int64 `yaml:"base_salary" json:"base_salary"`
+	EnergyCost int   `yaml:"energy_cost" json:"energy_cost"`
+	// ShiftDuration is how long one shift lasts, a Go duration ("8h") in
+	// GAME time; the player waits it through the game clock (config
+	// game.time_scale). Required: the domain refuses a shift of no length.
+	ShiftDuration   string       `yaml:"shift_duration" json:"shift_duration"`
 	XPPerShift      int64        `yaml:"xp_per_shift" json:"xp_per_shift"`
 	SkillXPPerShift []SkillXPDef `yaml:"skill_xp_per_shift" json:"skill_xp_per_shift"`
 	Promotion       PromotionDef `yaml:"promotion" json:"promotion"`
@@ -134,6 +138,11 @@ func (c CareerDef) Career() (job.Career, error) {
 			return job.Career{}, fmt.Errorf("%w: career %q tier %d min_time_in_tier: %v",
 				ErrInvalidDuration, c.Code, i, err)
 		}
+		shift, err := optionalDuration(t.ShiftDuration)
+		if err != nil {
+			return job.Career{}, fmt.Errorf("%w: career %q tier %d shift_duration: %v",
+				ErrInvalidDuration, c.Code, i, err)
+		}
 		tier := job.Tier{
 			Rank:                   rank,
 			Title:                  t.Title,
@@ -141,6 +150,7 @@ func (c CareerDef) Career() (job.Career, error) {
 			RequiredCertifications: append([]string(nil), t.RequiredCertifications...),
 			BaseSalary:             money.FromMinor(t.BaseSalary),
 			EnergyCost:             t.EnergyCost,
+			ShiftDuration:          shift,
 			XPPerShift:             t.XPPerShift,
 			Promotion: job.PromotionRequirement{
 				MinPerformance: t.Promotion.MinPerformance,
@@ -175,7 +185,8 @@ type CourseDef struct {
 	City string `yaml:"city" json:"city"`
 	// Cost is the fee in minor units.
 	Cost int64 `yaml:"cost" json:"cost"`
-	// Duration is a Go duration ("6h"). No fee shortens it.
+	// Duration is a Go duration ("6h") in GAME time; the player waits it
+	// through the game clock (config game.time_scale). No fee shortens it.
 	Duration string `yaml:"duration" json:"duration"`
 	// Capacity is the number of seats; 0 means unlimited.
 	Capacity      int          `yaml:"capacity" json:"capacity"`

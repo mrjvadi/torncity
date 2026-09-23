@@ -473,17 +473,17 @@ func TestProfileTextComesFromTheCatalogue(t *testing.T) {
 				t.Errorf("profile body has an unfilled placeholder: %q", resp.Text)
 			}
 
-			// The last row is refresh on its own. The profile is the home
+			// The last row is settings and refresh. The profile is the home
 			// screen every back button leads to, so it has no back button
 			// of its own.
 			if resp.Keyboard == nil || len(resp.Keyboard.Rows) < 1 {
 				t.Fatalf("expected a keyboard, got %+v", resp.Keyboard)
 			}
 			nav := resp.Keyboard.Rows[len(resp.Keyboard.Rows)-1]
-			if len(nav) != 1 {
-				t.Fatalf("expected a refresh button alone, got %+v", nav)
+			if len(nav) != 2 {
+				t.Fatalf("expected settings and refresh, got %+v", nav)
 			}
-			btn := nav[0]
+			btn := nav[1]
 			if btn.Text == "button.refresh" || btn.Text == "" {
 				t.Errorf("button label did not resolve: %q", btn.Text)
 			}
@@ -527,8 +527,9 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 	// this test creates is brand new, has no city and only the placeholder
 	// name, so the screen asks for the welcome, then level, energy and
 	// health, then cash and bank balance, and no name or city line. With no
-	// city there is nowhere to travel, so the keyboard offers skills,
-	// friends, the bank, settings and refresh — no map.
+	// city there is nowhere to travel, so the keyboard offers the job,
+	// study, the bank, skills, friends, settings and refresh — no map and
+	// no city hall.
 	want := []string{
 		"profile.body",
 		"profile.level",
@@ -538,20 +539,29 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 		"profile.cash",
 		"format.money",
 		"profile.bank",
-		"button.skills",
-		"button.social",
-		"button.bank",
 		"job.button.my_job",
 		"education.button.open",
+		"button.bank",
+		"button.skills",
+		"button.social",
 		"button.settings",
 		"button.refresh",
 	}
-	if len(spy.keys) != len(want) {
-		t.Fatalf("looked up %v, want %v", spy.keys, want)
+	// How the language writes its numbers is looked up for every number
+	// on the screen; it is data about the language, not a line of the
+	// screen, so the sequence below leaves it out.
+	var lines []string
+	for _, key := range spy.keys {
+		if !strings.HasPrefix(key, "format.digits") && !strings.HasSuffix(key, "_separator") {
+			lines = append(lines, key)
+		}
+	}
+	if len(lines) != len(want) {
+		t.Fatalf("looked up %v, want %v", lines, want)
 	}
 	for i, key := range want {
-		if spy.keys[i] != key {
-			t.Errorf("lookup %d was %q, want %q", i, spy.keys[i], key)
+		if lines[i] != key {
+			t.Errorf("lookup %d was %q, want %q", i, lines[i], key)
 		}
 	}
 }

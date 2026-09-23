@@ -1,0 +1,129 @@
+━━━ Error · not enough energy ━━━
+(edits message 42)
+⚡ Not enough energy.
+This needs 10 and you have 3. Energy refills over time; you will have enough within 30m.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Error · not enough energy, numbers unknown ━━━
+(edits message 42)
+⚡ Not enough energy. It refills over time, so please try again a little later.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Error · already travelling ━━━
+(edits message 42)
+You are already on a journey. Tap “My journey” to see how it is going.
+  ───
+  [🧭 My journey] → travel:status
+  [🔙 Back] → player:profile.get
+
+━━━ Error · not travelling ━━━
+(edits message 42)
+You are not travelling right now. Open the “Map” to choose a destination.
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Error · same city ━━━
+(edits message 42)
+You are already in this city. Choose another destination on the “Map”.
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Error · no route ━━━
+(edits message 42)
+That city could not be found. Choose one of the destinations on the “Map”.
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Error · mode unavailable ━━━
+(edits message 42)
+That way of travelling does not serve this route. Choose the destination on the “Map” again to see the ways that do.
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Error · skill not found ━━━
+(edits message 42)
+That skill could not be found. See your skills under “Skills”.
+  ───
+  [🛠 Skills] → skills:list
+  [🔙 Back] → player:profile.get
+
+━━━ Error · not friends ━━━
+(edits message 42)
+You are not friends with this player, and there is no request from them waiting for you. See your friends and requests under “Friends”.
+  ───
+  [👥 Friends] → social:friend.list
+  [🔙 Back] → player:profile.get
+
+━━━ Error · already friends ━━━
+(edits message 42)
+You are already friends with this player. You will find them under “Friends”.
+  ───
+  [👥 Friends] → social:friend.list
+  [🔙 Back] → player:profile.get
+
+━━━ Error · player not found ━━━
+(edits message 42)
+Player not found. If you have not started the game yet, send /start.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Error · unsupported language ━━━
+(edits message 42)
+That language is not available. Choose one of the available languages under “Settings”.
+  ───
+  [⚙️ Settings] → player:settings
+  [🔙 Back] → player:profile.get
+
+━━━ Error · cooldown ━━━
+(edits message 42)
+⏳ Please wait — you can do this again in 2m.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Error · rate limited ━━━
+(edits message 42)
+Too many requests in a row. Please wait a few seconds and try again.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Error · not found ━━━
+(edits message 42)
+We could not find what you were looking for. Go back to your profile and try again.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Error · invalid input ━━━
+(edits message 42)
+I could not understand that request. Please use the buttons.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Error · conflict ━━━
+(edits message 42)
+That cannot be done right now. Please try again in a moment.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Error · unauthorized ━━━
+(edits message 42)
+You are not allowed to do that. Tap “Back” to return to your profile.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Error · internal ━━━
+(edits message 42)
+Something went wrong. Please try again in a moment.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Error · no error at all ━━━
+(edits message 42)
+Something went wrong. Please try again in a moment.
+  ───
+  [🔙 Back] → player:profile.get

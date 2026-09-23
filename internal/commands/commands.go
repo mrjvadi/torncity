@@ -113,9 +113,10 @@ var all = []Subscription{
 	{Domain: "gov", Action: "confirm", Origin: FromPlayer},
 	{Domain: "gov", Action: "set", Origin: FromPlayer},
 
-	// Work: the player's job, the openings in their city, applying, a shift,
-	// promotion and leaving. The base employer pays each shift as it is
-	// worked.
+	// Work: the player's job, the openings in their city, applying, starting
+	// a shift, promotion and leaving. job.work STARTS a shift; only the
+	// scheduler sends job.finish_shift, when the shift's time is up, and the
+	// base employer pays it then.
 	{Domain: "job", Action: "status", Origin: FromPlayer},
 	{Domain: "job", Action: "list", Origin: FromPlayer},
 	{Domain: "job", Action: "view", Origin: FromPlayer},
@@ -123,6 +124,7 @@ var all = []Subscription{
 	{Domain: "job", Action: "work", Origin: FromPlayer},
 	{Domain: "job", Action: "promote", Origin: FromPlayer},
 	{Domain: "job", Action: "quit", Origin: FromPlayer},
+	{Domain: "job", Action: "finish_shift", Origin: FromScheduler},
 
 	// Study. education.complete, like travel.arrive, only the scheduler
 	// sends: a course finishes when its time is up.
@@ -130,6 +132,24 @@ var all = []Subscription{
 	{Domain: "education", Action: "view", Origin: FromPlayer},
 	{Domain: "education", Action: "enroll", Origin: FromPlayer},
 	{Domain: "education", Action: "complete", Origin: FromScheduler},
+
+	// Crime (docs/adr/0019-crime-engine.md): the hub, a category's crimes,
+	// one crime, committing it where the player stands (no victim is ever
+	// named: chance picks one from who is nearby), the record, jail and bail,
+	// and the victim's report and cases. Only the scheduler sends the last
+	// three: a timed crime's end, an investigation's end, a sentence served.
+	{Domain: "crime", Action: "hub", Origin: FromPlayer},
+	{Domain: "crime", Action: "list", Origin: FromPlayer},
+	{Domain: "crime", Action: "view", Origin: FromPlayer},
+	{Domain: "crime", Action: "commit", Origin: FromPlayer},
+	{Domain: "crime", Action: "record", Origin: FromPlayer},
+	{Domain: "crime", Action: "jail", Origin: FromPlayer},
+	{Domain: "crime", Action: "bail", Origin: FromPlayer},
+	{Domain: "crime", Action: "report", Origin: FromPlayer},
+	{Domain: "crime", Action: "cases", Origin: FromPlayer},
+	{Domain: "crime", Action: "resolve", Origin: FromScheduler},
+	{Domain: "crime", Action: "conclude", Origin: FromScheduler},
+	{Domain: "crime", Action: "release", Origin: FromScheduler},
 }
 
 // All returns every subscription. The slice is a copy.

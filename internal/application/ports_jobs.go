@@ -20,6 +20,19 @@ import (
 // education.complete; tests on both sides pin the spelling.
 const EducationActionType = "education"
 
+// ShiftActionType is game_actions.action_type for a shift of work coming to
+// its end (migrations/0012). It must stay equal to the action type the
+// scheduler routes to the command job.finish_shift; tests on both sides pin
+// the spelling.
+const ShiftActionType = "work_shift"
+
+// Shift session statuses, as shift_sessions.status stores them.
+const (
+	ShiftWorking   = "working"
+	ShiftCompleted = "completed"
+	ShiftAbandoned = "abandoned"
+)
+
 // Employment end reasons, as employments.end_reason stores them.
 const (
 	EndResigned = "resigned"
@@ -74,6 +87,24 @@ type WorkShift struct {
 	LedgerTransactionID string
 }
 
+// ShiftSession is one shift from its start to its end: a shift_sessions row.
+type ShiftSession struct {
+	ID           string
+	EmploymentID string
+	PlayerID     string
+	// Tier is the tier the shift was started in.
+	Tier         int
+	GameActionID string
+	Status       string
+	// FatigueBPS is the output the shift runs at, fixed at its start.
+	FatigueBPS int
+	// EnergyCost is what it cost, charged at the start.
+	EnergyCost  int
+	StartedAt   time.Time
+	EndsAt      time.Time
+	CompletedAt *time.Time
+}
+
 // EmploymentRepository persists jobs. Reach it through Tx.Employment, so a
 // shift, its wage and the energy it cost commit together.
 type EmploymentRepository interface {
@@ -91,6 +122,17 @@ type EmploymentRepository interface {
 	End(ctx context.Context, employmentID, reason string, at time.Time) error
 	// RecordShift appends one shift to the payroll record.
 	RecordShift(ctx context.Context, s WorkShift) error
+	// ActiveShift returns the player's shift in progress, or
+	// ErrNoShiftInProgress. It does not lock: starting and ending a shift
+	// are serialised by the job row Current locks.
+	ActiveShift(ctx context.Context, playerID string) (*ShiftSession, error)
+	// StartShift records a shift in progress. A player already working one
+	// is ErrShiftInProgress, whatever raced to start it.
+	StartShift(ctx context.Context, s ShiftSession) error
+	// EndShift moves the working session id names to status (ShiftCompleted
+	// or ShiftAbandoned) at at, or returns ErrNoShiftInProgress when it is
+	// not working any more.
+	EndShift(ctx context.Context, id, status string, at time.Time) error
 	// ResidenceCityID returns the city the player lives in (ADR 0014), or ""
 	// for a player with no residence yet, or ErrPlayerNotFound.
 	ResidenceCityID(ctx context.Context, playerID string) (string, error)
@@ -164,4 +206,11 @@ var (
 
 	ErrAlreadyEnrolled = errors.Sentinel(errors.CodeConflict,
 		"application.ErrAlreadyEnrolled", "already on a course")
+
+	// ErrShiftInProgress means the player is at work: a shift is running.
+	ErrShiftInProgress = errors.Sentinel(errors.CodeConflict,
+		"application.ErrShiftInProgress", "a shift is in progress")
+
+	ErrNoShiftInProgress = errors.Sentinel(errors.CodeNotFound,
+		"application.ErrNoShiftInProgress", "no shift in progress")
 )

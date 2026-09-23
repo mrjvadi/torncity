@@ -9,6 +9,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/education"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
@@ -58,6 +59,9 @@ type EducationHandler struct {
 	msgs    Translator
 	content ContentSource
 	cities  application.CityRepository
+	// scale is the game clock: a course's duration is game time, and the
+	// student waits it through this (config game.time_scale).
+	scale gametime.Scale
 
 	pageSize       int
 	idempotencyTTL time.Duration
@@ -71,6 +75,7 @@ func NewEducationHandler(
 	msgs Translator,
 	source ContentSource,
 	cities application.CityRepository,
+	scale gametime.Scale,
 	pageSize int,
 	idempotencyTTL time.Duration,
 	now func() time.Time,
@@ -80,6 +85,9 @@ func NewEducationHandler(
 	}
 	if idempotencyTTL <= 0 {
 		panic("handlers: NewEducationHandler requires a positive idempotency ttl")
+	}
+	if scale.Validate() != nil {
+		panic("handlers: NewEducationHandler requires a game clock within 1..gametime.MaxScale")
 	}
 	if pageSize < 1 {
 		pageSize = DefaultPageSize
@@ -91,7 +99,7 @@ func NewEducationHandler(
 		msgs = keyTranslator{}
 	}
 	return &EducationHandler{
-		uow: uow, ids: ids, msgs: msgs, content: source, cities: cities,
+		uow: uow, ids: ids, msgs: msgs, content: source, cities: cities, scale: scale,
 		pageSize: pageSize, idempotencyTTL: idempotencyTTL, now: now,
 	}
 }
@@ -204,6 +212,7 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 				Course:    courseRef(snap, current.CourseCode),
 				Percent:   d.Progress(now) / 100,
 				Remaining: d.Remaining(now),
+				EndsAt:    current.CompletesAt,
 			}
 		}
 		for _, c := range s.certs {
@@ -222,7 +231,7 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 			lines = append(lines, screens.CourseLine{
 				Course:   screens.CourseRef{Code: def.Code, Name: def.Name},
 				Fee:      course.Cost.Minor(),
-				Duration: course.Duration,
+				Duration: h.scale.RealWait(course.Duration),
 				MinLevel: course.MinLevel,
 				Eligible: s.stats.Level >= course.MinLevel,
 			})
@@ -291,7 +300,7 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 			Course:      screens.CourseRef{Code: def.Code, Name: def.Name},
 			Institution: string(course.Institution),
 			Fee:         course.Cost.Minor(),
-			Duration:    course.Duration,
+			Duration:    h.scale.RealWait(course.Duration),
 			Limited:     course.Capacity > 0,
 			SeatsLeft:   max(course.Capacity-seats, 0),
 			Certifies:   course.Certifies,
@@ -383,7 +392,7 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
-		enrolment, fee, err := education.Enroll(course, s.applicant(here, current), seats, now)
+		enrolment, fee, err := education.Enroll(course, s.applicant(here, current), seats, now, h.scale)
 		if err != nil {
 			if missing, ok := shortfalls(snap, err, application.City{}); ok {
 				for i := range missing {
@@ -450,7 +459,8 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 		}
 		view = screens.EnrolledView{
 			Course:   screens.CourseRef{Code: def.Code, Name: def.Name},
-			Duration: course.Duration,
+			Duration: enrolment.CompletesAt.Sub(enrolment.StartedAt),
+			EndsAt:   enrolment.CompletesAt,
 			Fee:      fee.Minor(),
 		}
 		return nil

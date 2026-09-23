@@ -283,11 +283,11 @@ func (c Context) govPlayers(ps []GovPlayer) string {
 func FormatLeverValue(c Context, typ string, v int64) string {
 	switch typ {
 	case leverTypeBPS:
-		return c.T("gov.percent", map[string]any{"value": PercentFromBPS(int(v))})
+		return c.T("gov.percent", map[string]any{"value": PercentFromBPS(c, int(v))})
 	case leverTypeMoney:
 		return FormatMoney(c, v)
 	}
-	return FormatNumber(v)
+	return FormatNumber(c, v)
 }
 
 // FormatSpan renders a duration that may run to days: whole days and hours

@@ -1,0 +1,17 @@
+━━━ Skills ━━━
+(edits message 42)
+🛠 Skills
+
+• Management · level 2 · 33% to next level
+• Programming · level 1 · 40% to next level
+• Cooking · level 10 · highest level
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → skills:list
+
+━━━ Skills · nothing trained yet ━━━
+(edits message 42)
+🛠 Skills
+
+You have no skills yet. You gain them by working and by taking courses, and they appear here.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → skills:list

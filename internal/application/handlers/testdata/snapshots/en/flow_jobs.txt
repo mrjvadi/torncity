@@ -1,0 +1,292 @@
+━━━ /job (no job yet) ━━━
+(sends)
+💼 My job
+
+You do not have a job yet. See what the employers in your city are offering under “Job openings”.
+  ───
+  [💼 Job openings] → job:list
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
+
+━━━ Job openings ━━━
+(edits message 42)
+💼 Job openings in Ostmarch
+
+✅ Retail · Sales Trainee · 120 Nil per shift
+✅ Hospitality · Kitchen Porter · 110 Nil per shift
+✅ Logistics · Courier · 115 Nil per shift
+✅ Workshop · Workshop Hand · 125 Nil per shift
+🔒 Technology · Junior Developer · 220 Nil per shift
+
+Page 1 of 2
+
+✅ means you qualify and can apply; 🔒 means something is still missing. Tap a job to see the details.
+  ───
+  [✅ Sales Trainee] → job:view:retail   │   [✅ Kitchen Porter] → job:view:hospitality
+  [✅ Courier] → job:view:logistics   │   [✅ Workshop Hand] → job:view:workshop
+  [🔒 Junior Developer] → job:view:technology
+  [Next ➡️] → job:list:2
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:list:1
+
+━━━ Retail ━━━
+(edits message 42)
+💼 Sales Trainee · Retail
+
+📍 Workplace: Ostmarch
+💰 Pay per shift: 120 Nil
+⚡ Energy per shift: 15
+
+Requirements:
+✅ Living in Ostmarch
+  ───
+  [✅ Apply] → job:apply:retail
+  [🔙 Back] → job:list   │   [🔄 Refresh] → job:view:retail
+
+━━━ Apply ━━━
+(edits message 42)
+✅ You are hired — you now work as Sales Trainee in Ostmarch.
+💰 Pay per shift: 120 Nil
+  ───
+  [🛠 Start a shift] → job:work   │   [💼 My job] → job:status
+  [🔙 Back] → player:profile.get
+
+━━━ Profile with a job ━━━
+(edits message 42)
+👤 Sara
+📍 Ostmarch
+
+⭐ Level 1 · 50 XP to level 2
+⚡ Energy: 100 of 100
+❤️ Health: 100 of 100
+
+💼 Sales Trainee in Ostmarch · 120 Nil per shift
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 0 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ My job ━━━
+(edits message 42)
+💼 My job
+
+💼 Sales Trainee · Retail
+📍 Workplace: Ostmarch
+💰 Pay per shift: 120 Nil
+⚡ Energy per shift: 15 · you have 100 of 100
+📈 Performance: 50 of 100
+🔁 Shifts in this position: 0
+⏱ Each shift takes 4m
+💵 Earned in this job: 0 Nil
+
+⬆️ Next position: Sales Associate
+Still needed for a promotion:
+❌ Performance 55 (yours is 50)
+❌ 24m more in this position
+❌ 6 shifts in this position (you have 0)
+❌ Level 3 (you are level 1)
+❌ Management level 2 (you have 0)
+  ───
+  [🛠 Start a shift] → job:work
+  [🚪 Leave job] → job:quit
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
+
+━━━ Start a shift ━━━
+(edits message 42)
+💼 Your shift as Sales Trainee has begun
+⏱ Shift length: 4m
+🕒 Shift ends at 12:04
+⚡ Energy: 85 of 100
+
+Your pay, XP and performance are settled when the shift ends, and you will be notified.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
+
+━━━ Profile during the shift ━━━
+(edits message 42)
+👤 Sara
+📍 Ostmarch
+
+⭐ Level 1 · 50 XP to level 2
+⚡ Energy: 85 of 100 · full in 44m
+❤️ Health: 100 of 100
+
+💼 Sales Trainee in Ostmarch · 120 Nil per shift
+⏳ On shift · 3m left
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 0 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ My job during the shift ━━━
+(edits message 42)
+💼 My job
+
+💼 Sales Trainee · Retail
+📍 Workplace: Ostmarch
+💰 Pay per shift: 120 Nil
+⚡ Energy per shift: 15 · you have 85 of 100
+📈 Performance: 50 of 100
+🔁 Shifts in this position: 0
+⏱ Each shift takes 4m
+💵 Earned in this job: 0 Nil
+
+⏳ On shift · 3m to go
+🕒 Shift ends at 12:04
+
+⬆️ Next position: Sales Associate
+Still needed for a promotion:
+❌ Performance 55 (yours is 50)
+❌ 23m more in this position
+❌ 6 shifts in this position (you have 0)
+❌ Level 3 (you are level 1)
+❌ Management level 2 (you have 0)
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
+
+━━━ Start another shift while at work ━━━
+(edits message 42)
+💼 You are at work right now. Wait for your shift to end.
+⏳ On shift · 3m to go
+🕒 Shift ends at 12:04
+  ───
+  [💼 My job] → job:status
+  [🔙 Back] → player:profile.get
+
+━━━ Shift finished (scheduler) ━━━
+(sends)
+✅ Shift complete
+
+💰 Wage 120 Nil · income tax 6 Nil · you received 114 Nil
+⭐ 10 XP
+🛠 Management: +15 XP
+📈 Performance: 51 of 100 (+1)
+⚡ Energy: 85 of 100
+  ───
+  [🛠 Next shift] → job:work   │   [💼 My job] → job:status
+  [🔙 Back] → player:profile.get
+
+━━━ My job after the shift ━━━
+(edits message 42)
+💼 My job
+
+💼 Sales Trainee · Retail
+📍 Workplace: Ostmarch
+💰 Pay per shift: 120 Nil
+⚡ Energy per shift: 15 · you have 85 of 100
+📈 Performance: 51 of 100
+🔁 Shifts in this position: 1
+⏱ Each shift takes 4m
+💵 Earned in this job: 120 Nil
+
+⬆️ Next position: Sales Associate
+Still needed for a promotion:
+❌ Performance 55 (yours is 51)
+❌ 20m more in this position
+❌ 6 shifts in this position (you have 1)
+❌ Level 3 (you are level 1)
+❌ Management level 2 (you have 0)
+  ───
+  [🛠 Start a shift] → job:work
+  [🚪 Leave job] → job:quit
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
+
+━━━ Ask for a promotion too early ━━━
+(edits message 42)
+You are not ready for a promotion yet:
+❌ Performance 55 (yours is 51)
+❌ 20m more in this position
+❌ 6 shifts in this position (you have 1)
+❌ Level 3 (you are level 1)
+❌ Management level 2 (you have 0)
+  ───
+  [💼 My job] → job:status
+  [🔙 Back] → player:profile.get
+
+━━━ Openings while employed ━━━
+(edits message 42)
+💼 Job openings in Ostmarch
+
+You work as Sales Trainee. To take another job, leave your current one first.
+
+✅ Retail · Sales Trainee · 120 Nil per shift
+✅ Hospitality · Kitchen Porter · 110 Nil per shift
+✅ Logistics · Courier · 115 Nil per shift
+✅ Workshop · Workshop Hand · 125 Nil per shift
+🔒 Technology · Junior Developer · 220 Nil per shift
+
+Page 1 of 2
+  ───
+  [✅ Sales Trainee] → job:view:retail   │   [✅ Kitchen Porter] → job:view:hospitality
+  [✅ Courier] → job:view:logistics   │   [✅ Workshop Hand] → job:view:workshop
+  [🔒 Junior Developer] → job:view:technology
+  [💼 My job] → job:status
+  [Next ➡️] → job:list:2
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:list:1
+
+━━━ A job needing more ━━━
+(edits message 42)
+💼 Junior Developer · Technology
+
+📍 Workplace: Ostmarch
+💰 Pay per shift: 220 Nil
+⚡ Energy per shift: 20
+
+Requirements:
+✅ Living in Ostmarch
+❌ Level 2 (you are level 1)
+❌ Certificate: Programming Fundamentals
+
+You already have a job. To take this one, leave your current job first.
+  ───
+  [🔙 Back] → job:list   │   [🔄 Refresh] → job:view:technology
+
+━━━ Apply while employed ━━━
+(edits message 42)
+You already have a job. Leave it first to take another one.
+  ───
+  [💼 My job] → job:status
+  [🔙 Back] → player:profile.get
+
+━━━ Quit ━━━
+(edits message 42)
+🚪 Leave your job as Sales Trainee?
+Your performance and progress in this position will be lost.
+  ───
+  [🚪 Yes, leave my job] → job:quit:yes
+  [🔙 Back] → job:status
+
+━━━ Quit, confirmed ━━━
+(edits message 42)
+You have left your job as Sales Trainee. Find a new one under “Job openings” whenever you like.
+  ───
+  [💼 Job openings] → job:list
+  [🔙 Back] → player:profile.get
+
+━━━ Work with no job ━━━
+(edits message 42)
+You do not have a job. See what is on offer under “Job openings”.
+  ───
+  [💼 Job openings] → job:list
+  [🔙 Back] → player:profile.get
+
+━━━ Apply for what you do not qualify for ━━━
+(edits message 42)
+You cannot take this job yet:
+❌ Level 2 (you are level 1)
+❌ Certificate: Programming Fundamentals
+  ───
+  [💼 Job openings] → job:list
+  [🔙 Back] → player:profile.get

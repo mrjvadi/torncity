@@ -524,7 +524,7 @@ func (g *gateway) poll(ctx context.Context, bot application.Bot, log *slog.Logge
 	// package, where an int of unstated units would be the thing that drifts.
 	pollTimeoutSeconds := int(g.cfg.Gateway.PollTimeout.Seconds())
 
-	g.registerGroupMenu(ctx, bot, api, log)
+	g.registerCommandMenu(ctx, bot, api, log)
 
 	var offset int64
 	for {

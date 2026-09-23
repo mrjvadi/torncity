@@ -124,7 +124,7 @@ func TestGovernanceScreensAgainstPostgres(t *testing.T) {
 
 	// --- the city hall names the mayor and the default tax ---
 	got := screen(h.City(ctx, metaFor(outsider, "gov.city"), handlers.GovCityRequest{City: cityCode}))
-	for _, want := range []string{"Mayor: " + mayorLabel, "Tax rate:", "(default)", "gov:history:" + cityCode} {
+	for _, want := range []string{"Mayor: " + mayorLabel, "Tax rate:", "· default", "gov:history:" + cityCode} {
 		if !strings.Contains(got, want) {
 			t.Errorf("city hall lacks %q:\n%s", want, got)
 		}
@@ -142,7 +142,7 @@ func TestGovernanceScreensAgainstPostgres(t *testing.T) {
 
 	// --- refusals: an outsider, a value out of range — nothing written ---
 	got = screen(h.Set(ctx, metaFor(outsider, "gov.set"), tax("800")))
-	if !strings.Contains(got, "Only the holder of the office of Mayor") {
+	if !strings.Contains(got, "Only the Mayor can change this policy") {
 		t.Errorf("an outsider's change:\n%s", got)
 	}
 	got = screen(h.Set(ctx, metaFor(mayor, "gov.set"), tax("99999")))
@@ -196,7 +196,7 @@ func TestGovernanceScreensAgainstPostgres(t *testing.T) {
 	// --- after the notice the value is in force, set by the mayor ---
 	clock = now.Add(25 * time.Hour)
 	got = screen(h.City(ctx, metaFor(outsider, "gov.city"), handlers.GovCityRequest{City: cityCode}))
-	if !strings.Contains(got, "Tax rate: 8% (set by "+mayorLabel+")") {
+	if !strings.Contains(got, "Tax rate: 8% · set by "+mayorLabel) {
 		t.Errorf("the value in force:\n%s", got)
 	}
 }

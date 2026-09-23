@@ -39,18 +39,8 @@ type Message struct {
 
 	// ReplyToMessage is the message this one answers, when the player used
 	// Telegram's reply. In a group it is how a player points at another
-	// player ("pay them"), so its From is what the gateway reads. Telegram
-	// may omit it for a reply to an ephemeral message.
+	// player ("pay them"), so its From is what the gateway reads.
 	ReplyToMessage *Message `json:"reply_to_message,omitempty"`
-
-	// EphemeralMessageID is set on an ephemeral message (Bot API 10.2+): one
-	// that only its sender and the bot can see in a group. MessageID is 0 on
-	// such a message, so this is the only handle there is to reply to it or
-	// to edit it. See internal/gateway/groups.
-	EphemeralMessageID int64 `json:"ephemeral_message_id,omitempty"`
-
-	// ReceiverUser is, on an ephemeral message, the one user who can see it.
-	ReceiverUser *User `json:"receiver_user,omitempty"`
 }
 
 // ChatMember is one member's standing in a chat. Only the status is read:

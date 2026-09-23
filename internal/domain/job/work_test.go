@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 )
@@ -33,7 +34,31 @@ func entryShift() Shift {
 		Stats:  player.NewStats(),
 		Policy: testPolicy(),
 		Now:    workNow,
+		Clock:  1,
 	}
+}
+
+// work runs a whole shift through the two halves a player meets: StartShift
+// at s.Now, then FinishShift the moment it ends, with the stats the start
+// left. It is the shift the old one-press rule paid, now spread over time.
+func work(s Shift) (ShiftResult, error) {
+	if s.Clock == 0 {
+		s.Clock = 1
+	}
+	started, err := StartShift(s)
+	if err != nil {
+		return ShiftResult{}, err
+	}
+	return FinishShift(Finish{
+		Career:     s.Career,
+		Employment: s.Employment,
+		Stats:      started.Stats,
+		Skills:     s.Skills,
+		Policy:     s.Policy,
+		Activity:   started.Activity,
+		Now:        started.Activity.EndsAt,
+		Clock:      s.Clock,
+	})
 }
 
 // hoursAgo returns n shift start times, one per hour before workNow.
@@ -46,9 +71,9 @@ func hoursAgo(n int) []time.Time {
 }
 
 func TestWorkFullShift(t *testing.T) {
-	r, err := Work(entryShift())
+	r, err := work(entryShift())
 	if err != nil {
-		t.Fatalf("Work() = %v", err)
+		t.Fatalf("work() = %v", err)
 	}
 	if r.Stats.Energy != player.DefaultMaxEnergy-10 {
 		t.Errorf("energy = %d, want %d", r.Stats.Energy, player.DefaultMaxEnergy-10)
@@ -79,9 +104,9 @@ func TestWorkFullShift(t *testing.T) {
 func TestWorkLevelUpIsReported(t *testing.T) {
 	s := entryShift()
 	s.Stats.XP = player.XPForLevel(2) - 5
-	r, err := Work(s)
+	r, err := work(s)
 	if err != nil {
-		t.Fatalf("Work() = %v", err)
+		t.Fatalf("work() = %v", err)
 	}
 	if len(r.LevelUps) != 1 || r.LevelUps[0].Level != 2 || r.Stats.Level != 2 {
 		t.Errorf("level ups = %+v, level %d", r.LevelUps, r.Stats.Level)
@@ -104,9 +129,9 @@ func TestWorkMinimumWageFloor(t *testing.T) {
 			s := entryShift()
 			s.Employment.Rate = money.FromMinor(tt.rate)
 			s.Policy.MinimumWage = money.FromMinor(tt.min)
-			r, err := Work(s)
+			r, err := work(s)
 			if err != nil {
-				t.Fatalf("Work() = %v", err)
+				t.Fatalf("work() = %v", err)
 			}
 			if r.Pay.Minor() != tt.wantPays {
 				t.Errorf("pay = %s, want %d", r.Pay, tt.wantPays)
@@ -126,9 +151,9 @@ func TestWorkRefusesWithoutEnergyAndWritesNothing(t *testing.T) {
 	statsBefore := s.Stats
 	empBefore := s.Employment
 
-	r, err := Work(s)
+	r, err := work(s)
 	if !errors.Is(err, player.ErrNotEnoughEnergy) {
-		t.Fatalf("Work() = %v, want player.ErrNotEnoughEnergy", err)
+		t.Fatalf("work() = %v, want player.ErrNotEnoughEnergy", err)
 	}
 	if r.Pay != (money.Amount{}) || r.XP != 0 || r.SkillXP != nil || r.PerformanceDelta != 0 ||
 		r.Stats != (player.Stats{}) || r.Employment.CareerCode != "" || r.LevelUps != nil {
@@ -150,9 +175,9 @@ func TestWorkRefusesWithoutEnergyAndWritesNothing(t *testing.T) {
 func TestWorkExactEnergySucceeds(t *testing.T) {
 	s := entryShift()
 	s.Stats.Energy = 10
-	r, err := Work(s)
+	r, err := work(s)
 	if err != nil {
-		t.Fatalf("Work() = %v", err)
+		t.Fatalf("work() = %v", err)
 	}
 	if r.Stats.Energy != 0 {
 		t.Errorf("energy = %d, want 0", r.Stats.Energy)
@@ -178,8 +203,8 @@ func TestWorkRefusals(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := entryShift()
 			tt.mutate(&s)
-			if _, err := Work(s); !errors.Is(err, tt.want) {
-				t.Fatalf("Work() = %v, want %v", err, tt.want)
+			if _, err := work(s); !errors.Is(err, tt.want) {
+				t.Fatalf("work() = %v, want %v", err, tt.want)
 			}
 		})
 	}
@@ -201,7 +226,7 @@ func TestFatigueCurve(t *testing.T) {
 		{9, 1_250},
 	}
 	for _, tt := range tests {
-		if got := p.Fatigue(hoursAgo(tt.earlier), workNow); got != tt.want {
+		if got := p.Fatigue(hoursAgo(tt.earlier), workNow, 1); got != tt.want {
 			t.Errorf("Fatigue(%d earlier shifts) = %d, want %d", tt.earlier, got, tt.want)
 		}
 	}
@@ -215,7 +240,7 @@ func TestFatigueNeverReachesZeroAndNeverRises(t *testing.T) {
 		for i := range recent {
 			recent[i] = workNow.Add(-time.Minute)
 		}
-		got := p.Fatigue(recent, workNow)
+		got := p.Fatigue(recent, workNow, 1)
 		if got <= 0 || got > prev {
 			t.Fatalf("Fatigue with %d shifts = %d (previous %d)", k, got, prev)
 		}
@@ -236,13 +261,13 @@ func TestFatigueWindowEdges(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := p.Fatigue([]time.Time{tt.shift}, workNow); got != tt.want {
+			if got := p.Fatigue([]time.Time{tt.shift}, workNow, 1); got != tt.want {
 				t.Fatalf("Fatigue() = %d, want %d", got, tt.want)
 			}
 		})
 	}
 	off := Policy{}
-	if got := off.Fatigue(hoursAgo(50), workNow); got != bpsWhole {
+	if got := off.Fatigue(hoursAgo(50), workNow, 1); got != bpsWhole {
 		t.Errorf("a zero window must disable fatigue, got %d", got)
 	}
 }
@@ -251,9 +276,9 @@ func TestWorkFatiguedShift(t *testing.T) {
 	s := entryShift()
 	s.Employment.Rate = money.FromMinor(1_001)
 	s.Employment.RecentShifts = hoursAgo(4) // fifth shift in the window: 1/3
-	r, err := Work(s)
+	r, err := work(s)
 	if err != nil {
-		t.Fatalf("Work() = %v", err)
+		t.Fatalf("work() = %v", err)
 	}
 	if r.FatigueBPS != 3_333 {
 		t.Fatalf("fatigue = %d, want 3333", r.FatigueBPS)
@@ -282,9 +307,9 @@ func TestWorkPrunesHistoryWithoutWritingThrough(t *testing.T) {
 	backing := []time.Time{old, recent, {}}
 	s.Employment.RecentShifts = backing[:2]
 
-	r, err := Work(s)
+	r, err := work(s)
 	if err != nil {
-		t.Fatalf("Work() = %v", err)
+		t.Fatalf("work() = %v", err)
 	}
 	got := r.Employment.RecentShifts
 	if len(got) != 2 || !got[0].Equal(recent) || !got[1].Equal(workNow) {
@@ -296,9 +321,9 @@ func TestWorkPrunesHistoryWithoutWritingThrough(t *testing.T) {
 
 	s.Policy.FatigueWindow = 0
 	s.Policy.FatigueFreeShifts = 0
-	r, err = Work(s)
+	r, err = work(s)
 	if err != nil {
-		t.Fatalf("Work() = %v", err)
+		t.Fatalf("work() = %v", err)
 	}
 	if r.Employment.RecentShifts != nil {
 		t.Errorf("with fatigue off there is nothing to remember, got %v", r.Employment.RecentShifts)
@@ -329,9 +354,9 @@ func TestPerformanceMovesWithSkill(t *testing.T) {
 			s.Stats.Level = 5
 			s.Skills = []player.Skill{{Code: player.SkillProgramming, Level: tt.level}}
 			s.Employment.Performance = tt.perf
-			r, err := Work(s)
+			r, err := work(s)
 			if err != nil {
-				t.Fatalf("Work() = %v", err)
+				t.Fatalf("work() = %v", err)
 			}
 			if r.PerformanceDelta != tt.delta || r.Employment.Performance != tt.after {
 				t.Errorf("delta %d → %d, want %d → %d",
@@ -348,9 +373,9 @@ func TestWorkOverflowSafety(t *testing.T) {
 	s.Employment.ShiftsInTier = math.MaxInt
 	s.Employment.RecentShifts = hoursAgo(3)
 	s.Stats.XP = math.MaxInt64 - 1
-	r, err := Work(s)
+	r, err := work(s)
 	if err != nil {
-		t.Fatalf("Work() = %v", err)
+		t.Fatalf("work() = %v", err)
 	}
 	if r.Pay.Minor() != MaxBaseSalary/2 {
 		t.Errorf("pay = %s, want %d", r.Pay, int64(MaxBaseSalary/2))
@@ -397,5 +422,89 @@ func TestMulDiv(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// A shift lasts its tier's duration on the game clock: at a scale of 60 an
+// eight-hour shift is an eight-minute wait. Energy is paid at the start;
+// nothing else happens until the end.
+func TestStartShiftRunsOnTheGameClock(t *testing.T) {
+	s := entryShift()
+	s.Clock = 60
+	started, err := StartShift(s)
+	if err != nil {
+		t.Fatalf("StartShift() = %v", err)
+	}
+	a := started.Activity
+	if !a.StartedAt.Equal(workNow) || a.EndsAt.Sub(a.StartedAt) != 8*time.Minute {
+		t.Errorf("activity = %+v, want 8 real minutes from now", a)
+	}
+	if a.Tier != 0 || a.FatigueBPS != bpsWhole || !a.Active() {
+		t.Errorf("activity = %+v", a)
+	}
+	if started.Stats.Energy != player.DefaultMaxEnergy-10 || started.Stats.XP != 0 {
+		t.Errorf("stats = %+v, want energy spent and no xp yet", started.Stats)
+	}
+	if got := a.Remaining(workNow.Add(3 * time.Minute)); got != 5*time.Minute {
+		t.Errorf("remaining = %s, want 5m", got)
+	}
+	if got := a.Remaining(a.EndsAt); got != 0 {
+		t.Errorf("remaining at the end = %s, want 0", got)
+	}
+}
+
+// One shift at a time.
+func TestStartShiftWhileWorkingIsRefused(t *testing.T) {
+	s := entryShift()
+	s.Current = Activity{StartedAt: workNow.Add(-time.Minute), EndsAt: workNow.Add(time.Hour), FatigueBPS: bpsWhole}
+	started, err := StartShift(s)
+	if !errors.Is(err, ErrShiftInProgress) || started != (ShiftStarted{}) {
+		t.Fatalf("StartShift() = %+v, %v; want ErrShiftInProgress and nothing", started, err)
+	}
+	s.Current = Activity{}
+	s.Clock = 0
+	if _, err := StartShift(s); !errors.Is(err, gametime.ErrInvalidScale) {
+		t.Errorf("StartShift(scale 0) = %v, want ErrInvalidScale", err)
+	}
+}
+
+// A shift is settled only once it has run its length, and nothing is paid
+// pro rata.
+func TestFinishShiftRefusals(t *testing.T) {
+	s := entryShift()
+	started, err := StartShift(s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f := Finish{Career: s.Career, Employment: s.Employment, Stats: started.Stats, Policy: s.Policy,
+		Activity: started.Activity, Now: started.Activity.EndsAt.Add(-time.Second), Clock: 1}
+	var early ShiftNotFinished
+	r, err := FinishShift(f)
+	if !errors.As(err, &early) || early.Remaining != time.Second || r.Pay != (money.Amount{}) {
+		t.Fatalf("early FinishShift() = %+v, %v; want one second to go", r, err)
+	}
+	f.Activity = Activity{}
+	if _, err := FinishShift(f); !errors.Is(err, ErrNoShiftInProgress) {
+		t.Errorf("FinishShift(no activity) = %v", err)
+	}
+	f.Activity = started.Activity
+	f.Activity.FatigueBPS = 0
+	f.Now = started.Activity.EndsAt
+	if _, err := FinishShift(f); !errors.Is(err, ErrInvalidPolicy) {
+		t.Errorf("FinishShift(fatigue 0) = %v", err)
+	}
+}
+
+// Fatigue is decided when the shift starts and the fatigue window is game
+// time: at a scale of 60 a 24-hour window is 24 real minutes.
+func TestFatigueWindowRunsOnTheGameClock(t *testing.T) {
+	p := Policy{FatigueWindow: 24 * time.Hour, FatigueFreeShifts: 1}
+	inside := []time.Time{workNow.Add(-23 * time.Minute)}
+	outside := []time.Time{workNow.Add(-25 * time.Minute)}
+	if got := p.Fatigue(inside, workNow, 60); got != bpsWhole/2 {
+		t.Errorf("a shift 23 real minutes ago = %d, want it inside the window", got)
+	}
+	if got := p.Fatigue(outside, workNow, 60); got != bpsWhole {
+		t.Errorf("a shift 25 real minutes ago = %d, want it outside the window", got)
 	}
 }

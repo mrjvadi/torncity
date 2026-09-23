@@ -1,0 +1,651 @@
+━━━ Hub · at the train station ━━━
+(sends)
+🕶 The underworld
+
+📍 train station, Ostmarch
+🔥 Nerve: 14 of 20 · full in 30m
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🎖 Novice · 96 criminal XP · Hustler at 150
+
+Choose a kind of crime:
+  ───
+  [Petty theft] → crime:list:petty_theft   │   [Street crime] → crime:list:street_crime
+  [Burglary] → crime:list:burglary   │   [Fraud] → crime:list:fraud
+  [Smuggling] → crime:list:smuggling
+  [📜 My record] → crime:record   │   [🗂 My cases] → crime:cases
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → crime:hub
+
+━━━ Hub · clean, full of nerve ━━━
+(edits message 42)
+🕶 The underworld
+
+📍 city centre, Ostmarch
+🔥 Nerve: 20 of 20
+🚨 The police are not looking for you.
+🎖 Professional · 1,200 criminal XP
+
+Choose a kind of crime:
+  ───
+  [Petty theft] → crime:list:petty_theft   │   [Street crime] → crime:list:street_crime
+  [Burglary] → crime:list:burglary   │   [Fraud] → crime:list:fraud
+  [Smuggling] → crime:list:smuggling
+  [📜 My record] → crime:record   │   [🗂 My cases] → crime:cases
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → crime:hub
+
+━━━ Hub · in jail ━━━
+(edits message 42)
+🕶 The underworld
+
+📍 city centre, Ostmarch
+🔥 Nerve: 14 of 20 · full in 30m
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🎖 Novice · 96 criminal XP · Hustler at 150
+
+⛓ You are in jail · 1h 35m left
+⏳ Free at 16:10
+  ───
+  [Petty theft] → crime:list:petty_theft   │   [Street crime] → crime:list:street_crime
+  [Burglary] → crime:list:burglary   │   [Fraud] → crime:list:fraud
+  [Smuggling] → crime:list:smuggling
+  [📜 My record] → crime:record   │   [🗂 My cases] → crime:cases
+  [⛓ Jail] → crime:jail
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → crime:hub
+
+━━━ Hub · a burglary under way ━━━
+(edits message 42)
+🕶 The underworld
+
+📍 city centre, Ostmarch
+🔥 Nerve: 14 of 20 · full in 30m
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🎖 Novice · 96 criminal XP · Hustler at 150
+
+⏳ Home burglary under way · 2m left
+⏳ Back at 14:36
+
+Choose a kind of crime:
+  ───
+  [Petty theft] → crime:list:petty_theft   │   [Street crime] → crime:list:street_crime
+  [Burglary] → crime:list:burglary   │   [Fraud] → crime:list:fraud
+  [Smuggling] → crime:list:smuggling
+  [📜 My record] → crime:record   │   [🗂 My cases] → crime:cases
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → crime:hub
+
+━━━ Hub · on the road ━━━
+(edits message 42)
+🕶 The underworld
+
+🧭 You are on the road; crime waits until you arrive.
+🔥 Nerve: 14 of 20 · full in 30m
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🎖 Novice · 96 criminal XP · Hustler at 150
+  ───
+  [📜 My record] → crime:record   │   [🗂 My cases] → crime:cases
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → crime:hub
+
+━━━ List · petty theft ━━━
+(edits message 42)
+🕶 Petty theft
+
+✅ Pickpocketing · 2 nerve
+🔒 Shoplifting · 2 nerve
+  ───
+  [Pickpocketing] → crime:view:pickpocketing   │   [Shoplifting] → crime:view:shoplifting
+  [🔙 Back] → crime:hub   │   [🔄 Refresh] → crime:list:petty_theft:1
+
+━━━ List · burglary, a timed crime ━━━
+(edits message 42)
+🕶 Burglary
+
+🔒 Home burglary · 6 nerve · takes 2m
+  ───
+  [Home burglary] → crime:view:home_burglary
+  [🔙 Back] → crime:hub   │   [🔄 Refresh] → crime:list:burglary:1
+
+━━━ Crime · pickpocketing, ready ━━━
+(edits message 42)
+🕶 Pickpocketing
+
+Kind: Petty theft
+🔥 Costs 2 nerve
+⚡ Done on the spot
+🎲 Your odds here: about 51.6%
+💵 A typical take: 15 Nil to 90 Nil
+🚔 If you are caught: 2m to 6m in jail and a fine of 100 Nil to 400 Nil
+
+👥 In a crowd, its victim may be a player standing near you. Chance decides who, never you.
+
+Requirements:
+✅ Only at: city centre, bus terminal, train station, airport
+  ───
+  [🕶 Do it] → crime:commit:pickpocketing:a1b2c3d4e5f6
+  [🔙 Back] → crime:list:petty_theft   │   [🔄 Refresh] → crime:view:pickpocketing
+
+━━━ Crime · home burglary, out of reach ━━━
+(edits message 42)
+🕶 Home burglary
+
+Kind: Burglary
+🔥 Costs 6 nerve
+⏳ Takes 2m
+🎲 Your odds here: about 32%
+💵 A typical take: 500 Nil to 2,500 Nil
+🚔 If you are caught: 8m to 24m in jail and a fine of 500 Nil to 2,000 Nil
+
+🏙 Its victims are the city's shops, cars and passers-by.
+
+Requirements:
+❌ Level 5 (you are level 3)
+❌ Criminal rank: Hustler (you are Novice)
+❌ Lockpicking level 3 (you have 1)
+✅ Stealth level 2
+❌ Only at: city centre (you are at the train station)
+  ───
+  [🔙 Back] → crime:list:burglary   │   [🔄 Refresh] → crime:view:home_burglary
+
+━━━ Crime · smuggling needs a rail station ━━━
+(edits message 42)
+🕶 Smuggling small goods
+
+Kind: Smuggling
+🔥 Costs 8 nerve
+⏳ Takes 4m
+🎲 Your odds here: about 41%
+💵 A typical take: 1,500 Nil to 5,000 Nil
+🚔 If you are caught: 12m to 36m in jail and a fine of 1,000 Nil to 4,000 Nil
+
+🏙 Its victims are the city's shops, cars and passers-by.
+
+Requirements:
+❌ The city needs a rail station
+  ───
+  [🔙 Back] → crime:list:smuggling   │   [🔄 Refresh] → crime:view:goods_smuggling
+
+━━━ Crime · not enough nerve ━━━
+(edits message 42)
+🕶 Street scam
+
+Kind: Fraud
+🔥 Costs 3 nerve
+⏳ Takes 20s
+🎲 Your odds here: about 55%
+💵 A typical take: 80 Nil to 400 Nil
+🚔 If you are caught: 2m to 6m in jail and a fine of 150 Nil to 600 Nil
+
+🏙 Its victims are the city's shops, cars and passers-by.
+
+Anyone can try this.
+
+🔥 You need 3 nerve and have 1. You will have enough in 10m.
+  ───
+  [🔙 Back] → crime:list:fraud   │   [🔄 Refresh] → crime:view:street_scam
+
+━━━ Crime · from a cell ━━━
+(edits message 42)
+🕶 Shoplifting
+
+Kind: Petty theft
+🔥 Costs 2 nerve
+⚡ Done on the spot
+🎲 Your odds here: about 60%
+💵 A typical take: 20 Nil to 120 Nil
+🚔 If you are caught: 1m to 3m in jail and a fine of 50 Nil to 200 Nil
+
+🏙 Its victims are the city's shops, cars and passers-by.
+
+Anyone can try this.
+
+⛓ You are in jail. Crime waits until you are out.
+  ───
+  [🔙 Back] → crime:list:petty_theft   │   [🔄 Refresh] → crime:view:shoplifting
+
+━━━ Result · a pocket picked, as the thief reads it ━━━
+(edits message 42)
+🕶 Pickpocketing at the train station: done, and nobody stopped you.
+
+💵 You lifted 1,500 Nil from a player's pocket.
+⭐ +5 XP
+🎖 +8 criminal XP
+🛠 Stealth: +12 XP
+🛠 Stealth reached level 2.
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🔥 Nerve: 14 of 20 · full in 30m
+  ───
+  [🔁 Again] → crime:view:pickpocketing
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Result · a pocket picked, as the group reads it ━━━
+(edits message 42)
+🕶 Pickpocketing at the train station: Sara pulled it off and slipped away.
+
+What was taken has been sent to them privately.
+⭐ +5 XP
+🎖 +8 criminal XP
+🛠 Stealth: +12 XP
+🛠 Stealth reached level 2.
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🔥 Nerve: 14 of 20 · full in 30m
+  ───
+  [🔁 Again] → crime:view:pickpocketing
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Result · empty pockets ━━━
+(edits message 42)
+🕶 Pickpocketing at the train station: done, and nobody stopped you.
+
+💵 Their pockets were empty.
+⭐ +5 XP
+🎖 +8 criminal XP
+🛠 Stealth: +12 XP
+🛠 Stealth reached level 2.
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🔥 Nerve: 14 of 20 · full in 30m
+  ───
+  [🔁 Again] → crime:view:pickpocketing
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Result · a shop's till ━━━
+(edits message 42)
+🕶 Shoplifting at the city centre: done, and nobody stopped you.
+
+💵 You got away with 64 Nil.
+⭐ +5 XP
+🎖 +8 criminal XP
+🛠 Stealth: +12 XP
+🛠 Stealth reached level 2.
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🔥 Nerve: 14 of 20 · full in 30m
+  ───
+  [🔁 Again] → crime:view:shoplifting
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Result · the city bled dry for today ━━━
+(edits message 42)
+🕶 Shoplifting at the city centre: done, and nobody stopped you.
+
+💵 There was nothing worth taking today.
+⭐ +5 XP
+🎖 +8 criminal XP
+🛠 Stealth: +12 XP
+🛠 Stealth reached level 2.
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🔥 Nerve: 14 of 20 · full in 30m
+  ───
+  [🔁 Again] → crime:view:shoplifting
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Result · spotted, got away (group) ━━━
+(edits message 42)
+🏃 Pickpocketing at the train station: Sara was spotted and got away empty-handed.
+
+🛠 Stealth: +6 XP
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🔥 Nerve: 14 of 20 · full in 30m
+  ───
+  [🔁 Again] → crime:view:pickpocketing
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Result · caught in the act (group) ━━━
+(edits message 42)
+🚔 Pickpocketing at the train station: Sara was caught in the act and taken to jail for 4m.
+
+A fine was paid to the city.
+⏳ Free at 14:39
+🚨 Heat: 31 of 100 · wanted level 2 of 5
+  ───
+  [⛓ Jail] → crime:jail
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Result · caught, the fine not fully paid ━━━
+(edits message 42)
+🚔 Pickpocketing at the train station: Sara was caught in the act and taken to jail for 4m.
+
+💸 Fine: 300 Nil. You could pay 120 Nil; 180 Nil stays on your record.
+⏳ Free at 14:39
+🚨 Heat: 31 of 100 · wanted level 2 of 5
+  ───
+  [⛓ Jail] → crime:jail
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · a burglary ended in an arrest ━━━
+(sends) (private in groups)
+🚔 Home burglary at the city centre went wrong: you were caught and taken to jail for 4m.
+
+💸 Fine paid to the city: 300 Nil
+⏳ Free at 14:39
+🚨 Heat: 31 of 100 · wanted level 2 of 5
+  ───
+  [⛓ Jail] → crime:jail
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · the take, told privately ━━━
+(sends) (private in groups)
+🕶 Pickpocketing at the train station is over: it went to plan.
+
+💵 You lifted 1,500 Nil from a player's pocket.
+⭐ +5 XP
+🎖 +8 criminal XP
+🛠 Stealth: +12 XP
+🛠 Stealth reached level 2.
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🔥 Nerve: 14 of 20 · full in 30m
+  ───
+  [🔁 Again] → crime:view:pickpocketing
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Started · a burglary (group) ━━━
+(sends)
+🕶 Sara set off: Home burglary at the city centre. It takes 2m.
+
+⏳ Back at 14:37
+🔥 Nerve: 14 of 20 · full in 30m
+
+How it went arrives as a private message when it is over.
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Record · as the player reads it ━━━
+(edits message 42)
+📜 Criminal record
+
+🎖 Novice · 96 criminal XP · Hustler at 150
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🔥 Nerve: 14 of 20 · full in 30m
+
+Attempts: 12 · succeeded: 8 · arrested: 3 · convicted: 1
+💸 Unpaid: 400 Nil owed to victims, 250 Nil in fines
+
+Recently:
+⏳ Home burglary (under way)
+✅ Pickpocketing
+🏃 Shoplifting (got away)
+🚔 Pickpocketing (caught)
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → crime:hub   │   [🔄 Refresh] → crime:record
+
+━━━ Record · as the group reads it ━━━
+(edits message 42)
+📜 Criminal record
+
+🎖 Novice · 96 criminal XP · Hustler at 150
+🚨 Heat: 23 of 100 · wanted level 2 of 5
+🔥 Nerve: 14 of 20 · full in 30m
+
+Attempts: 12 · succeeded: 8 · arrested: 3 · convicted: 1
+
+Recently:
+⏳ Home burglary (under way)
+✅ Pickpocketing
+🏃 Shoplifting (got away)
+🚔 Pickpocketing (caught)
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → crime:hub   │   [🔄 Refresh] → crime:record
+
+━━━ Record · clean ━━━
+(edits message 42)
+📜 Criminal record
+
+🎖 Novice · 0 criminal XP · Hustler at 150
+🚨 The police are not looking for you.
+🔥 Nerve: 20 of 20
+
+Attempts: 0 · succeeded: 0 · arrested: 0 · convicted: 0
+
+The record is clean.
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → crime:hub   │   [🔄 Refresh] → crime:record
+
+━━━ Jail · serving, with bail ━━━
+(edits message 42)
+⛓ Jail
+
+📍 Jail of Ostmarch
+Convicted after a report.
+⛓ You are in jail · 1h 35m left
+⏳ Free at 16:10
+💰 Bail to leave now: 3,960 Nil
+
+While in jail you cannot commit crimes, travel, work a shift or withdraw from the bank.
+  ───
+  [💰 Pay bail] → crime:bail:f00dfeed0001
+  [🔙 Back] → crime:hub   │   [🔄 Refresh] → crime:jail
+
+━━━ Jail · free ━━━
+(edits message 42)
+⛓ Jail
+
+You are free. Nobody is holding you.
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → crime:jail
+
+━━━ Bailed · as the player reads it ━━━
+(edits message 42)
+🔓 You paid 3,960 Nil bail and walked out of jail.
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Bailed · as the group reads it ━━━
+(edits message 42)
+🔓 Sara paid bail and walked out of jail.
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · sentence served ━━━
+(sends) (private in groups)
+🔓 Your sentence in Ostmarch is served. You are free.
+  ───
+  [🕶 Underworld] → crime:hub
+
+━━━ Notice · your pocket was picked ━━━
+(sends) (private in groups)
+👛 You were robbed at the train station in Ostmarch (Pickpocketing). You lost 1,500 Nil.
+
+Nobody saw who did it.
+
+🚔 You can report it to the police. The report fee is 200 Nil, paid to the city.
+⏳ You have 24h to report it.
+  ───
+  [🚔 Report to the police] → crime:report:cfaebd97-b816-43a8-aff9-3798555dd818
+
+━━━ Notice · your pocket was picked, and a witness saw who ━━━
+(sends) (private in groups)
+👛 You were robbed at the train station in Ostmarch (Pickpocketing). You lost 1,500 Nil.
+
+👀 A witness saw who did it: Kaveh (B3C4D5F).
+
+🚔 You can report it to the police. The report fee is 200 Nil, paid to the city.
+⏳ You have 24h to report it.
+  ───
+  [🚔 Report to the police] → crime:report:cfaebd97-b816-43a8-aff9-3798555dd818
+
+━━━ Report · confirm ━━━
+(edits message 42) (private in groups)
+🚔 Report the theft in Ostmarch (Pickpocketing)? You lost 1,500 Nil. The police charge a report fee of 200 Nil, paid to the city, and the investigation takes about 6m.
+⏳ You have 23h 40m to report it.
+  ───
+  [✅ File the report] → crime:report:cfaebd97-b816-43a8-aff9-3798555dd818:yes
+  [🔙 Back] → crime:cases
+
+━━━ Report · filed ━━━
+(edits message 42) (private in groups)
+🗂 Report filed. The police are investigating; you will hear the outcome in about 6m.
+⏳ Outcome at about 14:41
+  ───
+  [🗂 My cases] → crime:cases
+  [🔙 Back] → player:profile.get
+
+━━━ Cases ━━━
+(edits message 42) (private in groups)
+🗂 My cases
+
+• Pickpocketing in Ostmarch · 1,500 Nil · under investigation, 4m left
+• Pickpocketing in Brennhaven · 300 Nil · the outcome is due any moment
+• Pickpocketing in Ostmarch · 800 Nil · solved: Kaveh · 800 Nil returned
+• Pickpocketing in Calderis · 120 Nil · closed, unsolved
+  ───
+  [🔙 Back] → crime:hub   │   [🔄 Refresh] → crime:cases
+
+━━━ Cases · none ━━━
+(edits message 42) (private in groups)
+🗂 My cases
+
+You have not reported anything to the police.
+  ───
+  [🔙 Back] → crime:hub   │   [🔄 Refresh] → crime:cases
+
+━━━ Notice · case solved, part of it recovered ━━━
+(sends) (private in groups)
+🚔 Case solved: the police caught Kaveh (B3C4D5F) for the theft in Ostmarch (Pickpocketing). 1,100 Nil was returned to you.
+400 Nil could not be recovered; it stays on their record.
+  ───
+  [🗂 My cases] → crime:cases
+
+━━━ Notice · case closed ━━━
+(sends) (private in groups)
+🗂 Case closed: the police could not find who robbed you in Ostmarch.
+  ───
+  [🗂 My cases] → crime:cases
+
+━━━ Notice · convicted ━━━
+(sends) (private in groups)
+⚖️ Convicted: a theft you committed in Ostmarch (Pickpocketing) was traced to you. You returned 1,100 Nil, paid 0 Nil in fines and were sentenced to 4m in jail.
+💸 Still unpaid: 400 Nil owed to the victim and 300 Nil in fines. It stays on your record.
+  ───
+  [⛓ Jail] → crime:jail
+
+━━━ Refused · requirements ━━━
+(edits message 42)
+🔒 Home burglary: not yet. You still need:
+❌ Level 5 (you are level 3)
+❌ Criminal rank: Hustler (you are Novice)
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → crime:hub
+
+━━━ Refused · not enough nerve ━━━
+(edits message 42)
+🔥 You need 6 nerve for this and have 2. Nerve refills over time.
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → crime:hub
+
+━━━ Refused · in jail ━━━
+(edits message 42)
+⛓ You are in jail for another 42m. Crime waits until you are out.
+  ───
+  [⛓ Jail] → crime:jail
+  [🔙 Back] → crime:hub
+
+━━━ Refused · busy ━━━
+(edits message 42)
+⏳ You are in the middle of another job. Wait until it is over.
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → crime:hub
+
+━━━ Refused · at work ━━━
+(edits message 42)
+💼 You are at work. Finish your shift first.
+  ───
+  [💼 My job] → job:status
+  [🔙 Back] → crime:hub
+
+━━━ Refused · travelling ━━━
+(edits message 42)
+🧭 You are on the road. Crime waits until you arrive.
+  ───
+  [🧭 My journey] → travel:status
+  [🔙 Back] → crime:hub
+
+━━━ Refused · nowhere ━━━
+(edits message 42)
+You are not in any city yet. Crime waits until you have settled somewhere.
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → crime:hub
+
+━━━ Refused · nobody around ━━━
+(edits message 42)
+👥 There is nobody around to do this to right now. Try again later.
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → crime:hub
+
+━━━ Refused · no such crime ━━━
+(edits message 42)
+That crime does not exist. Choose one from the underworld.
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → crime:hub
+
+━━━ Refused · not your theft ━━━
+(edits message 42) (private in groups)
+That theft was not against you, or it no longer exists.
+  ───
+  [🗂 My cases] → crime:cases
+  [🔙 Back] → crime:hub
+
+━━━ Refused · report window passed ━━━
+(edits message 42) (private in groups)
+The time to report that theft has passed.
+  ───
+  [🗂 My cases] → crime:cases
+  [🔙 Back] → crime:hub
+
+━━━ Refused · nothing stolen ━━━
+(edits message 42) (private in groups)
+Nothing was taken from you in that theft, so there is nothing to report.
+  ───
+  [🗂 My cases] → crime:cases
+  [🔙 Back] → crime:hub
+
+━━━ Refused · cannot afford ━━━
+(edits message 42) (private in groups)
+💵 That costs 3,960 Nil, and you have 1,200 Nil in cash and in the bank.
+  ───
+  [🏦 Bank] → bank:show
+  [🔙 Back] → crime:hub
+
+━━━ Refused · not in jail ━━━
+(edits message 42)
+You are free. Nobody is holding you.
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → crime:hub
+
+━━━ Error · a journey from jail ━━━
+(edits message 42)
+That cannot be done right now. Please try again in a moment.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Error · a journey from jail, time unknown ━━━
+(edits message 42)
+⛓ You are in jail. Pay bail from the jail screen, or wait it out.
+  ───
+  [⛓ Jail] → crime:jail
+  [🔙 Back] → player:profile.get
+
+━━━ Error · a shift during a crime ━━━
+(edits message 42)
+🕶 You are in the middle of a job. Wait until it is over.
+  ───
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get

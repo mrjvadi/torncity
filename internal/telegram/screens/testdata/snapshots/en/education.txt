@@ -1,0 +1,176 @@
+━━━ Education · courses on offer (page 1 of 2) ━━━
+(edits message 42)
+🎓 Education
+
+Courses you can take here:
+• First Aid · 600 Nil · 2h
+• Evening Class in Accounting · 400 Nil · 1h 30m
+🔒 Retail Management · 2,800 Nil · 8h · from level 4
+
+Page 1 of 2
+  ───
+  [📖 First Aid] → education:view:first_aid
+  [📖 Evening Class in Accounting] → education:view:evening_accounting
+  [📖 Retail Management] → education:view:retail_management
+  [Next ➡️] → education:list:2
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
+
+━━━ Education · studying, with certificates ━━━
+(edits message 42)
+🎓 Education
+
+📖 Studying: Bookkeeping
+⏳ 60% done · 1h 35m to go
+🕒 Course ends at 16:10
+
+📜 Certificates: First Aid, Driving Licence
+
+Courses you can take here:
+🔒 Retail Management · 2,800 Nil · 8h · from level 4
+  ───
+  [📖 Retail Management] → education:view:retail_management
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
+
+━━━ Education · course finishing ━━━
+(edits message 42)
+🎓 Education
+
+📖 Studying: Bookkeeping
+⏳ Finishing any moment now.
+
+There are no new courses for you here right now. More open up as you earn certificates and levels, and in other cities.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
+
+━━━ Education · nothing new here ━━━
+(edits message 42)
+🎓 Education
+
+There are no new courses for you here right now. More open up as you earn certificates and levels, and in other cities.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
+
+━━━ Course · can enrol ━━━
+(edits message 42)
+🎓 First Aid
+
+🏛 Training centre
+💰 Fee: 600 Nil
+⏳ Duration: 2h
+
+On completion:
+🛠 Medicine: +120 XP
+📜 The First Aid certificate
+  ───
+  [✅ Enrol · 600 Nil] → education:enroll:first_aid
+  [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:first_aid
+
+━━━ Course · requirements not met ━━━
+(edits message 42)
+🎓 Software Engineering Degree
+
+🏛 University
+📍 Taught in Ostmarch
+💰 Fee: 9,000 Nil
+⏳ Duration: 48h
+🪑 Seats left: 12
+
+On completion:
+🛠 Programming: +900 XP
+🛠 Engineering: +300 XP
+📜 The Software Engineering Degree certificate
+
+Requirements:
+❌ Level 7 (you are level 5)
+✅ Certificate: Programming Fundamentals
+  ───
+  [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:software_engineering
+
+━━━ Course · taught elsewhere, full ━━━
+(edits message 42)
+🎓 Nursing Diploma
+
+🏛 University
+📍 Taught in Fenwick Span
+💰 Fee: 6,000 Nil
+⏳ Duration: 24h
+🪑 Seats left: 0
+
+On completion:
+🛠 Medicine: +600 XP
+📜 The Nursing Diploma certificate
+
+Requirements:
+❌ This course is taught in Fenwick Span.
+❌ Every seat on this course is taken.
+  ───
+  [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:nursing
+
+━━━ Course · already certified, already studying ━━━
+(edits message 42)
+🎓 First Aid
+
+🏛 Company academy
+💰 Fee: 600 Nil
+⏳ Duration: 2h
+
+On completion:
+🛠 Medicine: +120 XP
+📜 The First Aid certificate
+
+Requirements:
+❌ You already hold this certificate.
+❌ You are already studying Bookkeeping. You can take one course at a time.
+  ───
+  [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:first_aid
+
+━━━ Enrolled ━━━
+(edits message 42)
+✅ You have enrolled in First Aid
+💰 Fee paid: 600 Nil
+⏳ Duration: 2h
+The course finishes on its own, and you will be notified.
+🕒 Course ends at 16:35
+  ───
+  [🎓 Education] → education:list
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · course completed ━━━
+(sends)
+🎓 You have completed First Aid.
+📜 Certificate earned: First Aid
+🛠 Medicine: +120 XP
+🛠 Medicine reached level 2.
+  ───
+  [🎓 Education] → education:list   │   [💼 Job openings] → job:list
+
+━━━ Notice · course completed, no certificate ━━━
+(sends)
+🎓 You have completed Evening Class in Accounting.
+🛠 Finance: +80 XP
+  ───
+  [🎓 Education] → education:list   │   [💼 Job openings] → job:list
+
+━━━ Refusal · enrolment refused ━━━
+(edits message 42)
+You cannot enrol in this course yet:
+❌ Level 4 (you are level 2)
+❌ Certificate: First Aid
+  ───
+  [🎓 Education] → education:list
+  [🔙 Back] → player:profile.get
+
+━━━ Refusal · course not offered here ━━━
+(edits message 42)
+That course is not on offer here. See “Education” for the courses you can take.
+  ───
+  [🎓 Education] → education:list
+  [🔙 Back] → player:profile.get
+
+━━━ Refusal · cannot afford the fee ━━━
+(edits message 42) (private in groups)
+💵 Not enough cash for this course.
+Fee: 2,800 Nil · Your cash: 1,250 Nil
+  ───
+  [🎓 Education] → education:list
+  [🔙 Back] → player:profile.get

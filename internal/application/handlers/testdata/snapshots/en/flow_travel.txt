@@ -1,0 +1,164 @@
+━━━ Map ━━━
+(edits message 42)
+🗺 Map
+
+📍 You are in Ostmarch.
+
+From here you can travel to:
+• Fenwick Span · 120 km
+• Brennhaven · 320 km
+  ───
+  [🧭 Fenwick Span] → travel:options:fenwick_span
+  [🧭 Brennhaven] → travel:options:brennhaven
+  [🏛 Offices and policies] → gov:city
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list:1
+
+━━━ Choose Brennhaven ━━━
+(edits message 42)
+🧭 Travel to Brennhaven
+📍 From: Ostmarch
+
+How would you like to travel?
+• Bus · Free · 3h 22m on the way · 10 energy
+• Train · 420 Nil · 1h 56m on the way · 6 energy
+• Flight · 1,780 Nil · 1h 18m on the way · 4 energy
+
+💵 Your cash: 5,000 Nil
+  ───
+  [Bus · Free] → travel:start:brennhaven:bus:0
+  [Train · 420 Nil] → travel:start:brennhaven:train:420
+  [Flight · 1,780 Nil] → travel:start:brennhaven:flight:1780
+  [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:brennhaven
+
+━━━ Take the train ━━━
+(edits message 42)
+🧭 Your journey to Brennhaven by Train has begun
+You left Ostmarch and will arrive in 1h 56m.
+⚡ 6 energy used.
+🕒 Arrives at 13:56
+💵 Fare paid: 420 Nil
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
+
+━━━ My journey ━━━
+(edits message 42)
+🧭 On the way to Brennhaven
+📍 From: Ostmarch
+⏳ Arriving in 1h 55m
+🕒 Arrives at 13:56
+Travelling by: Train
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
+
+━━━ Profile on the road ━━━
+(edits message 42)
+👤 Sara
+🧭 On the way to Brennhaven · 1h 55m left
+
+⭐ Level 1 · 50 XP to level 2
+⚡ Energy: 94 of 100 · full in 29m
+❤️ Health: 100 of 100
+
+💼 No job yet
+
+💵 Cash: 4,580 Nil
+🏦 Bank balance: 0 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🧭 My journey] → travel:status   │   [💼 Job openings] → job:list
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Map on the road ━━━
+(edits message 42)
+🗺 Map
+
+🧭 You are on the way to Brennhaven. You can start a new journey once you arrive.
+  ───
+  [🧭 My journey] → travel:status
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ Bank on the road ━━━
+(edits message 42)
+🏦 Bank
+
+🧭 You are travelling. You can deposit and withdraw once you arrive in any city; card payments work from anywhere.
+
+💵 Cash: 4,580 Nil
+🏦 Bank balance: 0 Nil
+
+💸 To pay another player, send /pay with their username or player code, for example /pay @username
+  ───
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
+
+━━━ Arrival (scheduler) ━━━
+(sends)
+📍 You have arrived in Brennhaven.
+⭐ You earned 25 XP.
+  ───
+  [👤 Profile] → player:profile.get   │   [🗺 Map] → map:list
+
+━━━ Profile in Brennhaven ━━━
+(edits message 42)
+👤 Sara
+📍 Brennhaven
+
+⭐ Level 1 · 25 XP to level 2
+⚡ Energy: 100 of 100
+❤️ Health: 100 of 100
+
+💼 No job yet
+
+💵 Cash: 4,580 Nil
+🏦 Bank balance: 0 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list   │   [💼 Job openings] → job:list
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Back to Ostmarch ━━━
+(edits message 42)
+🧭 Travel to Ostmarch
+📍 From: Brennhaven
+
+How would you like to travel?
+• Bus · Free · 3h 22m on the way · 10 energy
+• Train · 420 Nil · 1h 56m on the way · 6 energy
+• Flight · 1,780 Nil · 1h 18m on the way · 4 energy
+
+💵 Your cash: 4,580 Nil
+  ───
+  [Bus · Free] → travel:start:ostmarch:bus:0
+  [Train · 420 Nil] → travel:start:ostmarch:train:420
+  [Flight · 1,780 Nil] → travel:start:ostmarch:flight:1780
+  [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:ostmarch
+
+━━━ Fly with too little cash ━━━
+(edits message 42) (private in groups)
+💵 Not enough cash to travel by Flight.
+Fare: 1,780 Nil · Your cash: 10 Nil
+Nothing was charged; a cheaper way to travel may still be in reach.
+  ───
+  [🧭 Ways to travel] → travel:options:ostmarch
+  [🔙 Back] → map:list
+
+━━━ Same city ━━━
+(sends)
+You are already in this city. Choose another destination on the “Map”.
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Unreachable city ━━━
+(sends)
+There is no route there from your current city. Choose one of the destinations on the “Map”.
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get

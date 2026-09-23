@@ -27,3 +27,9 @@ skills:
   - {code: medicine,    name: Medicine,    category: professional}
   - {code: management,  name: Management,  category: professional}
   - {code: finance,     name: Finance,     category: professional}
+  # The criminal skills (crimes.yml). Streetwise is also how alert a player
+  # is to a thief.
+  - {code: stealth,     name: Stealth,     category: criminal}
+  - {code: lockpicking, name: Lockpicking, category: criminal}
+  - {code: deception,   name: Deception,   category: criminal}
+  - {code: streetwise,  name: Streetwise,  category: criminal}

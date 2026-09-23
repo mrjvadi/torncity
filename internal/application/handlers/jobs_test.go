@@ -19,11 +19,14 @@ import (
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
-// The shared fake transaction reaches no job or study repository; the work
-// tests below wrap it with one that does. nil makes an accidental use by any
-// other test fail loudly.
-func (t *fakeTx) Employment() application.EmploymentRepository { return nil }
+// The shared fake transaction reaches no study repository; the work tests
+// below wrap it with one that does. nil makes an accidental use by any other
+// test fail loudly. Its job repository is an empty one: a departure asks it
+// whether the player is at work (no job, no shift), and anything that would
+// write through it panics on its nil maps.
+func (t *fakeTx) Employment() application.EmploymentRepository { return &fakeEmployment{} }
 func (t *fakeTx) Education() application.EducationRepository   { return nil }
+func (t *fakeTx) Crime() application.CrimeRepository           { return noCrime{} }
 
 // --- fakes -------------------------------------------------------------
 
@@ -32,6 +35,10 @@ type fakeEmployment struct {
 	ended     []application.Employment
 	shifts    []application.WorkShift
 	residence map[string]string
+	// working holds each player's shift in progress; sessions every shift
+	// ever started, by id.
+	working  map[string]application.ShiftSession
+	sessions map[string]application.ShiftSession
 }
 
 func (f *fakeEmployment) snapshot() func() {
@@ -45,7 +52,54 @@ func (f *fakeEmployment) snapshot() func() {
 	}
 	ended := append([]application.Employment(nil), f.ended...)
 	shifts := append([]application.WorkShift(nil), f.shifts...)
-	return func() { f.current, f.ended, f.shifts, f.residence = current, ended, shifts, residence }
+	working := make(map[string]application.ShiftSession, len(f.working))
+	for k, v := range f.working {
+		working[k] = v
+	}
+	sessions := make(map[string]application.ShiftSession, len(f.sessions))
+	for k, v := range f.sessions {
+		sessions[k] = v
+	}
+	return func() {
+		f.current, f.ended, f.shifts, f.residence = current, ended, shifts, residence
+		f.working, f.sessions = working, sessions
+	}
+}
+
+func (f *fakeEmployment) ActiveShift(_ context.Context, playerID string) (*application.ShiftSession, error) {
+	s, ok := f.working[playerID]
+	if !ok {
+		return nil, application.ErrNoShiftInProgress
+	}
+	return &s, nil
+}
+
+func (f *fakeEmployment) StartShift(_ context.Context, s application.ShiftSession) error {
+	if f.working == nil {
+		f.working = map[string]application.ShiftSession{}
+	}
+	if f.sessions == nil {
+		f.sessions = map[string]application.ShiftSession{}
+	}
+	if _, ok := f.working[s.PlayerID]; ok {
+		return application.ErrShiftInProgress
+	}
+	s.Status = application.ShiftWorking
+	f.working[s.PlayerID] = s
+	f.sessions[s.ID] = s
+	return nil
+}
+
+func (f *fakeEmployment) EndShift(_ context.Context, id, status string, at time.Time) error {
+	for k, s := range f.working {
+		if s.ID == id {
+			delete(f.working, k)
+			s.Status, s.CompletedAt = status, &at
+			f.sessions[id] = s
+			return nil
+		}
+	}
+	return application.ErrNoShiftInProgress
 }
 
 func (f *fakeEmployment) Current(_ context.Context, playerID string) (*application.Employment, error) {
@@ -86,6 +140,12 @@ func (f *fakeEmployment) End(_ context.Context, id, _ string, _ time.Time) error
 }
 
 func (f *fakeEmployment) RecordShift(_ context.Context, s application.WorkShift) error {
+	for _, have := range f.shifts {
+		if have.ID == s.ID {
+			// work_shifts.id is the primary key.
+			return stderrors.New("fake: duplicate payroll row " + s.ID)
+		}
+	}
 	f.shifts = append(f.shifts, s)
 	return nil
 }
@@ -237,6 +297,7 @@ type workTx struct {
 
 func (t workTx) Employment() application.EmploymentRepository { return t.w.jobs }
 func (t workTx) Education() application.EducationRepository   { return t.w.edu }
+func (t workTx) Crime() application.CrimeRepository           { return noCrime{} }
 func (t workTx) Ledger() application.LedgerRepository         { return t.w.ledger }
 
 type workWorld struct {
@@ -297,11 +358,16 @@ func (f fixedContent) Current() *content.Snapshot { return f.snap }
 
 const workTelegramID = 4242
 
+// workScale is the game clock these tests run on, the one the game ships
+// with: a game hour is a real minute.
+const workScale = 60
+
 func newWorkHarness(t *testing.T) *workHarness {
 	t.Helper()
 	h := &workHarness{now: time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC)}
 	h.uow = &workUOW{tx: newFakeTx(), w: &workWorld{
-		jobs:   &fakeEmployment{current: map[string]application.Employment{}, residence: map[string]string{}},
+		jobs: &fakeEmployment{current: map[string]application.Employment{}, residence: map[string]string{},
+			working: map[string]application.ShiftSession{}, sessions: map[string]application.ShiftSession{}},
 		edu:    &fakeEducation{active: map[string]application.Enrollment{}, certs: map[string][]application.Certification{}},
 		ledger: &fakeWorkLedger{balances: map[string]int64{}},
 	}}
@@ -311,8 +377,8 @@ func newWorkHarness(t *testing.T) *workHarness {
 	clock := func() time.Time { return h.now }
 	source := fixedContent{shippedSnapshot(t)}
 	cities := newFakeCities()
-	h.jobs = NewJobsHandler(h.uow, &seqIDs{}, messages(t), source, cities, h.policy, DefaultPageSize, testIdempotencyTTL, clock)
-	h.edu = NewEducationHandler(h.uow, &seqIDs{}, messages(t), source, cities, DefaultPageSize, testIdempotencyTTL, clock)
+	h.jobs = NewJobsHandler(h.uow, &seqIDs{}, messages(t), source, cities, h.policy, workScale, DefaultPageSize, testIdempotencyTTL, clock)
+	h.edu = NewEducationHandler(h.uow, &seqIDs{}, messages(t), source, cities, workScale, DefaultPageSize, testIdempotencyTTL, clock)
 
 	city := tehranID
 	h.player = &application.Player{ID: "p-work", TelegramUserID: workTelegramID, CityID: &city, Language: "en"}
@@ -359,10 +425,29 @@ func workText(resp *presenter.Response) string {
 
 // --- work --------------------------------------------------------------
 
-// Applying, then working a shift, pays the wage from the base employer,
-// withholds income tax into the city's treasury at the city's rate, spends
-// the shift's energy, and records all of it — the whole of a shift in one
-// unit of work.
+// finishShift delivers the scheduler's job.finish_shift for the player's
+// shift in progress, at the moment it ends, as dispatch requestID.
+func (h *workHarness) finishShift(t *testing.T, requestID string) (*presenter.Response, error) {
+	t.Helper()
+	s, ok := h.uow.w.jobs.working[h.player.ID]
+	if !ok {
+		t.Fatal("no shift in progress to finish")
+	}
+	if h.now.Before(s.EndsAt) {
+		h.now = s.EndsAt
+	}
+	m := h.meta(requestID, "job.finish_shift")
+	m.TelegramUserID = 0
+	return h.jobs.FinishShift(context.Background(), m, FinishShiftRequest{
+		ActorID: h.player.ID, ReferenceType: "shift_sessions", ReferenceID: s.ID,
+	})
+}
+
+// Applying, then starting a shift, charges its energy and nothing else: the
+// player is at work until the shift ends on the game clock. When the
+// scheduler ends it, the wage is paid from the base employer, income tax is
+// withheld into the city's treasury at the city's rate, and the XP, skill XP
+// and performance land — all in one unit of work.
 func TestApplyThenWorkPaysWageAndWithholdsTax(t *testing.T) {
 	h := newWorkHarness(t)
 	ctx := context.Background()
@@ -383,6 +468,42 @@ func TestApplyThenWorkPaysWageAndWithholdsTax(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Work: %v", err)
 	}
+	// The retail entry shift is 4 game hours: 4 real minutes at 60.
+	if !strings.Contains(resp.Text, "4m") {
+		t.Errorf("shift started screen = %q, want the real 4-minute wait", resp.Text)
+	}
+	stats := h.uow.tx.stats.rows[h.player.ID]
+	if stats.Energy != player.DefaultMaxEnergy-15 || stats.XP != 0 {
+		t.Errorf("after the start: energy %d, xp %d; want the energy spent and no xp yet", stats.Energy, stats.XP)
+	}
+	if h.cash() != 0 || len(h.uow.w.jobs.shifts) != 0 || len(h.uow.w.ledger.posts) != 0 {
+		t.Fatal("starting a shift paid something")
+	}
+	session, ok := h.uow.w.jobs.working[h.player.ID]
+	if !ok || session.EndsAt.Sub(session.StartedAt) != 4*time.Minute || session.FatigueBPS != 10_000 {
+		t.Fatalf("session = %+v, want 4 real minutes at full output", session)
+	}
+	action := h.uow.tx.actions.scheduled[0]
+	if action.ActionType != application.ShiftActionType || !action.FinishAt.Equal(session.EndsAt) ||
+		action.ReferenceID != session.ID {
+		t.Errorf("scheduled %+v, want the shift's end at %s", action, session.EndsAt)
+	}
+
+	// The job screen shows the shift in progress and no button to start
+	// another.
+	h.now = h.now.Add(time.Minute)
+	status, err := h.jobs.Status(ctx, h.meta("req-status", "job.status"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if text := workText(status); !strings.Contains(text, "3m") || strings.Contains(text, screens.AddrJobWork) {
+		t.Errorf("status while working = %q, want 3m left and no work button", text)
+	}
+
+	resp, err = h.finishShift(t, "dispatch-1")
+	if err != nil {
+		t.Fatalf("FinishShift: %v", err)
+	}
 	if got := h.cash(); got != 114 {
 		t.Errorf("cash after one shift = %d, want 120 wage - 6 tax = 114", got)
 	}
@@ -395,7 +516,7 @@ func TestApplyThenWorkPaysWageAndWithholdsTax(t *testing.T) {
 		h.uow.w.ledger.posts[1].Reason != application.ReasonIncomeTax {
 		t.Fatalf("posts = %+v, want the wage then the tax", h.uow.w.ledger.posts)
 	}
-	stats := h.uow.tx.stats.rows[h.player.ID]
+	stats = h.uow.tx.stats.rows[h.player.ID]
 	if stats.Energy != player.DefaultMaxEnergy-15 {
 		t.Errorf("energy = %d, want %d", stats.Energy, player.DefaultMaxEnergy-15)
 	}
@@ -410,10 +531,17 @@ func TestApplyThenWorkPaysWageAndWithholdsTax(t *testing.T) {
 	if emp.Performance != 51 || emp.ShiftsInTier != 1 || emp.TotalShifts != 1 || emp.TotalEarned != 120 {
 		t.Errorf("employment after a shift = %+v", emp)
 	}
-	if len(h.uow.w.jobs.shifts) != 1 || h.uow.w.jobs.shifts[0].Gross != 120 || h.uow.w.jobs.shifts[0].Tax != 6 {
-		t.Errorf("shifts = %+v", h.uow.w.jobs.shifts)
+	if len(emp.RecentShifts) != 1 || !emp.RecentShifts[0].Equal(session.StartedAt) {
+		t.Errorf("fatigue history = %v, want the shift's start", emp.RecentShifts)
 	}
-	want := []string{subjects.Event("job", "hired"), subjects.Event("job", "shift_worked")}
+	if len(h.uow.w.jobs.shifts) != 1 || h.uow.w.jobs.shifts[0].Gross != 120 || h.uow.w.jobs.shifts[0].Tax != 6 ||
+		h.uow.w.jobs.shifts[0].ID != session.ID {
+		t.Errorf("shifts = %+v, want one payroll row under the session's id", h.uow.w.jobs.shifts)
+	}
+	if s := h.uow.w.jobs.sessions[session.ID]; s.Status != application.ShiftCompleted {
+		t.Errorf("session status = %q, want completed", s.Status)
+	}
+	want := []string{subjects.Event("job", "hired"), subjects.Event("job", "shift_started"), subjects.Event("job", "shift_worked")}
 	if got := h.outboxSubjects(); strings.Join(got, ",") != strings.Join(want, ",") {
 		t.Errorf("events = %v, want %v", got, want)
 	}
@@ -422,12 +550,54 @@ func TestApplyThenWorkPaysWageAndWithholdsTax(t *testing.T) {
 			t.Errorf("policy asked of %s, want only tehran's jurisdiction", asked)
 		}
 	}
-	if !strings.Contains(resp.Text, "114") {
-		t.Errorf("shift screen = %q, want the net pay", resp.Text)
+	if resp == nil || !strings.Contains(resp.Text, "114") {
+		t.Errorf("shift notice = %q, want the net pay", workText(resp))
 	}
 }
 
-// A redelivered shift is not worked twice.
+// Pressing "work" again while a shift runs — a double press, a second
+// device, or simply impatience — starts nothing and charges nothing.
+func TestASecondShiftWhileWorkingIsRefused(t *testing.T) {
+	h := newWorkHarness(t)
+	ctx := context.Background()
+	if _, err := h.jobs.Apply(ctx, h.meta("req-apply", "job.apply"), JobRequest{Role: "retail"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.jobs.Work(ctx, h.meta("req-work-1", "job.work")); err != nil {
+		t.Fatal(err)
+	}
+	energy := h.uow.tx.stats.rows[h.player.ID].Energy
+	for i, req := range []string{"req-work-2", "req-work-3"} {
+		resp, err := h.jobs.Work(ctx, h.meta(req, "job.work"))
+		if err != nil || !strings.Contains(resp.Text, "at work") {
+			t.Fatalf("Work #%d while working = %q, %v; want the at-work refusal", i+2, workText(resp), err)
+		}
+	}
+	if got := h.uow.tx.stats.rows[h.player.ID].Energy; got != energy {
+		t.Errorf("energy = %d, want %d: a refused start charged", got, energy)
+	}
+	if len(h.uow.w.jobs.sessions) != 1 || len(h.uow.tx.actions.scheduled) != 1 {
+		t.Errorf("sessions %d, scheduled %d; want exactly one of each", len(h.uow.w.jobs.sessions), len(h.uow.tx.actions.scheduled))
+	}
+	// Promotion and leaving wait for the shift too.
+	for _, call := range []func() (*presenter.Response, error){
+		func() (*presenter.Response, error) { return h.jobs.Promote(ctx, h.meta("req-p", "job.promote")) },
+		func() (*presenter.Response, error) {
+			return h.jobs.Quit(ctx, h.meta("req-q", "job.quit"), QuitRequest{Confirm: screens.QuitConfirmation})
+		},
+	} {
+		resp, err := call()
+		if err != nil || !strings.Contains(resp.Text, "at work") {
+			t.Errorf("while working = %q, %v; want the at-work refusal", workText(resp), err)
+		}
+	}
+	if len(h.uow.w.jobs.current) != 1 {
+		t.Error("the job ended in the middle of a shift")
+	}
+}
+
+// A redelivered start is not a second shift, and a redelivered end is not a
+// second wage: a shift is paid exactly once.
 func TestWorkIsIdempotent(t *testing.T) {
 	h := newWorkHarness(t)
 	ctx := context.Background()
@@ -439,11 +609,77 @@ func TestWorkIsIdempotent(t *testing.T) {
 			t.Fatalf("Work #%d: %v", i+1, err)
 		}
 	}
+	if n := len(h.uow.w.jobs.sessions); n != 1 {
+		t.Fatalf("sessions = %d, want 1 for one request delivered twice", n)
+	}
+	session := h.uow.w.jobs.working[h.player.ID]
+	if _, err := h.finishShift(t, "dispatch-1"); err != nil {
+		t.Fatal(err)
+	}
+	req := FinishShiftRequest{ActorID: h.player.ID, ReferenceType: "shift_sessions", ReferenceID: session.ID}
+	for _, id := range []string{"dispatch-1", "dispatch-2"} {
+		m := h.meta(id, "job.finish_shift")
+		m.TelegramUserID = 0
+		resp, err := h.jobs.FinishShift(ctx, m, req)
+		if err != nil || resp != nil {
+			t.Fatalf("replayed FinishShift = %v, %v; want nothing", resp, err)
+		}
+	}
 	if n := len(h.uow.w.jobs.shifts); n != 1 {
-		t.Fatalf("shifts = %d, want 1 for one request delivered twice", n)
+		t.Fatalf("payroll rows = %d, want 1", n)
 	}
 	if got := h.cash(); got != 114 {
 		t.Errorf("cash = %d, want one shift's pay", got)
+	}
+}
+
+// The scheduler can lag or the clock can step, but a shift is never settled
+// before its end: an early delivery is a retryable fault that pays nothing.
+func TestAShiftIsNotPaidEarly(t *testing.T) {
+	h := newWorkHarness(t)
+	ctx := context.Background()
+	if _, err := h.jobs.Apply(ctx, h.meta("req-apply", "job.apply"), JobRequest{Role: "retail"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.jobs.Work(ctx, h.meta("req-work", "job.work")); err != nil {
+		t.Fatal(err)
+	}
+	session := h.uow.w.jobs.working[h.player.ID]
+	m := h.meta("dispatch-early", "job.finish_shift")
+	m.TelegramUserID = 0
+	if _, err := h.jobs.FinishShift(ctx, m, FinishShiftRequest{ActorID: h.player.ID, ReferenceID: session.ID}); err == nil {
+		t.Fatal("an early FinishShift succeeded")
+	}
+	if h.cash() != 0 || len(h.uow.w.jobs.shifts) != 0 || len(h.uow.w.jobs.working) != 1 {
+		t.Error("an early end paid or ended the shift")
+	}
+	// The retry, once the time is up, is not taken for a replay.
+	if _, err := h.finishShift(t, "dispatch-early"); err != nil {
+		t.Fatal(err)
+	}
+	if h.cash() != 114 {
+		t.Errorf("cash = %d after the retry, want 114", h.cash())
+	}
+}
+
+// Travel waits for the shift: a player at work cannot leave town.
+func TestTravelWhileWorkingIsRefused(t *testing.T) {
+	h := newWorkHarness(t)
+	ctx := context.Background()
+	if _, err := h.jobs.Apply(ctx, h.meta("req-apply", "job.apply"), JobRequest{Role: "retail"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.jobs.Work(ctx, h.meta("req-work", "job.work")); err != nil {
+		t.Fatal(err)
+	}
+	if err := refuseAtWork(ctx, workTx{fakeTx: h.uow.tx, w: h.uow.w}, h.player.ID); !isSentinel(err, application.ErrShiftInProgress) {
+		t.Fatalf("refuseAtWork = %v, want ErrShiftInProgress", err)
+	}
+	if _, err := h.finishShift(t, "dispatch-1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := refuseAtWork(ctx, workTx{fakeTx: h.uow.tx, w: h.uow.w}, h.player.ID); err != nil {
+		t.Fatalf("after the shift refuseAtWork = %v, want nil", err)
 	}
 }
 
@@ -457,6 +693,9 @@ func TestMinimumWageRaisesPay(t *testing.T) {
 	h.policy.values[leverMinimumWage] = 200
 	h.policy.values[leverIncomeTax] = 0
 	if _, err := h.jobs.Work(ctx, h.meta("req-work", "job.work")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.finishShift(t, "dispatch-1"); err != nil {
 		t.Fatal(err)
 	}
 	if got := h.cash(); got != 200 {
@@ -525,8 +764,9 @@ func TestWorkWithoutEnergyChangesNothing(t *testing.T) {
 	if !stderrors.Is(err, player.ErrNotEnoughEnergy) {
 		t.Fatalf("Work = %v, want ErrNotEnoughEnergy", err)
 	}
-	if h.cash() != 0 || len(h.uow.w.jobs.shifts) != 0 || h.uow.tx.stats.rows[h.player.ID].Energy != 5 {
-		t.Error("a refused shift paid, recorded or spent something")
+	if h.cash() != 0 || len(h.uow.w.jobs.sessions) != 0 || len(h.uow.tx.actions.scheduled) != 0 ||
+		h.uow.tx.stats.rows[h.player.ID].Energy != 5 {
+		t.Error("a refused shift started, scheduled or spent something")
 	}
 }
 
@@ -543,8 +783,8 @@ func TestWorkAwayFromTheJobIsRefused(t *testing.T) {
 	if err != nil || !strings.Contains(resp.Text, "Tehran") {
 		t.Fatalf("Work away = %q, %v; want the job's city named", workText(resp), err)
 	}
-	if len(h.uow.w.jobs.shifts) != 0 {
-		t.Error("a shift was worked away from the job")
+	if len(h.uow.w.jobs.sessions) != 0 {
+		t.Error("a shift was started away from the job")
 	}
 }
 
@@ -653,8 +893,9 @@ func TestEnrollThenComplete(t *testing.T) {
 		t.Fatalf("scheduled = %d actions, want 1", n)
 	}
 	action := h.uow.tx.actions.scheduled[0]
-	if action.ActionType != application.EducationActionType || !action.FinishAt.Equal(h.now.Add(2*time.Hour)) {
-		t.Errorf("action = %+v, want education due in 2h", action)
+	// first_aid is a 2-hour course: 2 real minutes on the game clock.
+	if action.ActionType != application.EducationActionType || !action.FinishAt.Equal(h.now.Add(2*time.Minute)) {
+		t.Errorf("action = %+v, want education due in 2 real minutes", action)
 	}
 	enrolment := h.uow.w.edu.active[h.player.ID]
 
@@ -667,7 +908,7 @@ func TestEnrollThenComplete(t *testing.T) {
 		t.Errorf("a refused enrolment charged: cash = %d", got)
 	}
 
-	h.now = h.now.Add(2 * time.Hour)
+	h.now = h.now.Add(2 * time.Minute)
 	req := CompleteCourseRequest{ActorID: h.player.ID, ReferenceID: enrolment.ID, ReferenceType: "enrollments"}
 	sched := h.meta("dispatch-1", "education.complete")
 	sched.TelegramUserID = 0

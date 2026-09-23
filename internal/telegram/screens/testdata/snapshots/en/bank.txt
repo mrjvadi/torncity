@@ -1,0 +1,301 @@
+━━━ Bank · in a city with a withdrawal fee ━━━
+(edits message 42)
+🏦 Bank
+
+📍 Ostmarch branch
+Withdrawals here carry a fee of 1.5%, added on top of the amount. Deposits are always free.
+
+💵 Cash: 12,850 Nil
+🏦 Bank balance: 240,000 Nil
+
+Choose an amount below, or type one, for example /bank deposit 5000
+
+💸 To pay another player, send /pay with their username or player code, for example /pay @username
+  ───
+  [📥 Deposit 1,000 Nil] → bank:deposit:1000:n4Rt   │   [📥 Deposit 5,000 Nil] → bank:deposit:5000:n4Rt
+  [📥 Deposit 12,850 Nil] → bank:deposit:12850:n4Rt
+  [📤 Withdraw 1,000 Nil] → bank:withdraw:1000:n4Rt   │   [📤 Withdraw 5,000 Nil] → bank:withdraw:5000:n4Rt
+  [📤 Withdraw 50,000 Nil] → bank:withdraw:50000:n4Rt
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
+
+━━━ Bank · after a deposit, no fees ━━━
+(edits message 42)
+✅ 5,000 Nil deposited into your bank account.
+
+🏦 Bank
+
+📍 Brennhaven branch
+Withdrawals and deposits here are free.
+
+💵 Cash: 7,850 Nil
+🏦 Bank balance: 245,000 Nil
+
+Choose an amount below, or type one, for example /bank deposit 5000
+
+💸 To pay another player, send /pay with their username or player code, for example /pay @username
+  ───
+  [📥 Deposit 1,000 Nil] → bank:deposit:1000:n4Rt   │   [📥 Deposit 7,850 Nil] → bank:deposit:7850:n4Rt
+  [📤 Withdraw 1,000 Nil] → bank:withdraw:1000:n4Rt   │   [📤 Withdraw 5,000 Nil] → bank:withdraw:5000:n4Rt
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
+
+━━━ Bank · after a withdrawal with a fee ━━━
+(edits message 42)
+✅ You withdrew 5,000 Nil in cash · fee: 75 Nil
+
+🏦 Bank
+
+📍 Ostmarch branch
+Withdrawals here carry a fee of 1.5%, added on top of the amount. Deposits are always free.
+
+💵 Cash: 17,850 Nil
+🏦 Bank balance: 234,925 Nil
+
+Choose an amount below, or type one, for example /bank deposit 5000
+
+💸 To pay another player, send /pay with their username or player code, for example /pay @username
+  ───
+  [📥 Deposit 1,000 Nil] → bank:deposit:1000:n4Rt   │   [📥 Deposit 5,000 Nil] → bank:deposit:5000:n4Rt
+  [📤 Withdraw 1,000 Nil] → bank:withdraw:1000:n4Rt   │   [📤 Withdraw 5,000 Nil] → bank:withdraw:5000:n4Rt
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
+
+━━━ Bank · after a free withdrawal ━━━
+(edits message 42)
+✅ You withdrew 1,000 Nil in cash.
+
+🏦 Bank
+
+📍 Brennhaven branch
+Withdrawals and deposits here are free.
+
+💵 Cash: 1,000 Nil
+🏦 Bank balance: 0 Nil
+
+Choose an amount below, or type one, for example /bank deposit 5000
+
+💸 To pay another player, send /pay with their username or player code, for example /pay @username
+  ───
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
+
+━━━ Bank · while travelling ━━━
+(edits message 42)
+🏦 Bank
+
+🧭 You are travelling. You can deposit and withdraw once you arrive in any city; card payments work from anywhere.
+
+💵 Cash: 4,440 Nil
+🏦 Bank balance: 240,000 Nil
+
+💸 To pay another player, send /pay with their username or player code, for example /pay @username
+  ───
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
+
+━━━ Bank · not in any city ━━━
+(edits message 42)
+🏦 Bank
+
+You have not settled in a city yet, so there is no bank to visit.
+
+💵 Cash: 0 Nil
+🏦 Bank balance: 0 Nil
+
+💸 To pay another player, send /pay with their username or player code, for example /pay @username
+  ───
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
+
+━━━ Pay · how to pay ━━━
+(edits message 42)
+💸 Pay a player
+Name the player in one of these ways:
+• Telegram username: /pay @username
+• Player code: /pay K7Q2M9A
+You can add the amount and the method: /pay K7Q2M9A 5000 card
+Cash changes hands only when you are both in the same city; card payments work from anywhere.
+  ───
+  [🔎 Find a player] → social:search
+  [🔙 Back] → bank:show
+
+━━━ Pay · both in the same city ━━━
+(edits message 42)
+💸 Pay Kaveh
+
+📍 You and Kaveh are both in Ostmarch; pay in cash or by card.
+Card payments from Ostmarch carry a fee of 1%, added on top of the amount.
+
+💵 Cash: 12,850 Nil
+🏦 Bank balance: 240,000 Nil
+
+Another amount? Type it: /pay B3C4D5F 5000 card or /pay B3C4D5F 5000 cash
+  ───
+  [💵 Cash · 1,000 Nil] → bank:pay:B3C4D5F:1000:cash   │   [💵 Cash · 5,000 Nil] → bank:pay:B3C4D5F:5000:cash
+  [💳 Card · 1,000 Nil] → bank:pay:B3C4D5F:1000:card   │   [💳 Card · 5,000 Nil] → bank:pay:B3C4D5F:5000:card
+  [💳 Card · 20,000 Nil] → bank:pay:B3C4D5F:20000:card
+  [🔙 Back] → bank:show   │   [🔄 Refresh] → bank:pay:B3C4D5F
+
+━━━ Pay · apart, free card payments ━━━
+(edits message 42)
+💸 Pay Kaveh
+
+You and Kaveh are not in the same city, so cash is not possible. Card payments work from anywhere.
+Card payments from Brennhaven are free.
+
+💵 Cash: 12,850 Nil
+🏦 Bank balance: 240,000 Nil
+
+Another amount? Type it: /pay B3C4D5F 5000 card or /pay B3C4D5F 5000 cash
+  ───
+  [💳 Card · 1,000 Nil] → bank:pay:B3C4D5F:1000:card   │   [💳 Card · 5,000 Nil] → bank:pay:B3C4D5F:5000:card
+  [🔙 Back] → bank:show   │   [🔄 Refresh] → bank:pay:B3C4D5F
+
+━━━ Pay · a refusal brought you back ━━━
+(edits message 42)
+Kaveh is not here with you, so you cannot hand over cash. Send the money by card instead — card payments work from anywhere.
+
+💸 Pay Kaveh
+
+You and Kaveh are not in the same city, so cash is not possible. Card payments work from anywhere.
+Card payments from Ostmarch carry a fee of 1%, added on top of the amount.
+
+💵 Cash: 12,850 Nil
+🏦 Bank balance: 240,000 Nil
+
+Another amount? Type it: /pay B3C4D5F 5000 card or /pay B3C4D5F 5000 cash
+  ───
+  [💳 Card · 1,000 Nil] → bank:pay:B3C4D5F:1000:card
+  [🔙 Back] → bank:show   │   [🔄 Refresh] → bank:pay:B3C4D5F
+
+━━━ Pay · confirm cash ━━━
+(edits message 42)
+💵 Hand 5,000 Nil in cash to Kaveh?
+  ───
+  [✅ Confirm] → bank:pay.send:B3C4D5F:5000:cash:n4Rt   │   [✖️ Cancel] → bank:pay:B3C4D5F
+  [🔙 Back] → bank:show
+
+━━━ Pay · confirm card, no fee ━━━
+(edits message 42)
+💳 Send 5,000 Nil by card to Kaveh?
+  ───
+  [✅ Confirm] → bank:pay.send:B3C4D5F:5000:card:n4Rt   │   [✖️ Cancel] → bank:pay:B3C4D5F
+  [🔙 Back] → bank:show
+
+━━━ Pay · confirm card with fee ━━━
+(edits message 42)
+💳 Send 20,000 Nil by card to Kaveh?
+Fee: 200 Nil · Total from your bank: 20,200 Nil
+  ───
+  [✅ Confirm] → bank:pay.send:B3C4D5F:20000:card:n4Rt   │   [✖️ Cancel] → bank:pay:B3C4D5F
+  [🔙 Back] → bank:show
+
+━━━ Pay · sent cash ━━━
+(edits message 42)
+✅ You handed 5,000 Nil in cash to Kaveh.
+  ───
+  [🏦 Bank] → bank:show   │   [💸 Pay again] → bank:pay:B3C4D5F
+  [🔙 Back] → player:profile.get
+
+━━━ Pay · sent card ━━━
+(edits message 42)
+✅ You sent 5,000 Nil by card to Kaveh.
+  ───
+  [🏦 Bank] → bank:show   │   [💸 Pay again] → bank:pay:B3C4D5F
+  [🔙 Back] → player:profile.get
+
+━━━ Pay · sent card with fee ━━━
+(edits message 42)
+✅ You sent 20,000 Nil by card to A player · fee: 200 Nil
+  ───
+  [🏦 Bank] → bank:show   │   [💸 Pay again] → bank:pay:B3C4D5F
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · received cash ━━━
+(sends)
+💵 Kaveh handed you 5,000 Nil in cash.
+🆔 Player code: B3C4D5F
+  ───
+  [🏦 Bank] → bank:show
+  [👤 Profile] → player:profile.get
+
+━━━ Notice · received by card ━━━
+(sends)
+💳 Kaveh sent you 20,000 Nil by card. The money is in your bank account.
+🆔 Player code: B3C4D5F
+  ───
+  [🏦 Bank] → bank:show
+  [👤 Profile] → player:profile.get
+
+━━━ Bank refusal · not in a city ━━━
+(edits message 42)
+The bank is only open in a city. You can deposit and withdraw once you arrive; card payments work from anywhere.
+  ───
+  [🏦 Bank] → bank:show
+  [🔙 Back] → player:profile.get
+
+━━━ Bank refusal · cash, not together ━━━
+(edits message 42)
+You can only hand cash to a player who is in the same city as you. Send the money by card instead — it works from anywhere.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Bank refusal · paying yourself ━━━
+(edits message 42)
+You cannot pay yourself.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Bank refusal · payee not found ━━━
+(edits message 42)
+No player to pay was found. Check the username or player code and try again.
+  ───
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get
+
+━━━ Bank refusal · not a whole number ━━━
+(edits message 42)
+Please write the amount as a whole number, for example /bank deposit 5000
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Bank refusal · below the minimum ━━━
+(edits message 42)
+The smallest amount allowed is 1 Nil.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Bank refusal · above the maximum ━━━
+(edits message 42)
+The largest amount allowed at once is 1,000,000 Nil.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Bank refusal · not enough cash ━━━
+(edits message 42)
+You do not have enough cash. Cash on you: 3,200 Nil
+  ───
+  [🏦 Bank] → bank:show
+  [🔙 Back] → player:profile.get
+
+━━━ Bank refusal · not enough in the bank ━━━
+(edits message 42)
+Your bank balance is not enough.
+This needs 5,075 Nil including the fee, and you have 4,000 Nil.
+  ───
+  [🏦 Bank] → bank:show
+  [🔙 Back] → player:profile.get
+
+━━━ Bank refusal · insufficient funds ━━━
+(edits message 42)
+There is not enough money for this. Open “Bank” to see your balances.
+  ───
+  [🏦 Bank] → bank:show
+  [🔙 Back] → player:profile.get
+
+━━━ Bank refusal · bank unavailable ━━━
+(edits message 42)
+The bank is not available right now. Please try again in a moment.
+  ───
+  [🔙 Back] → player:profile.get

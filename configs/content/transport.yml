@@ -7,8 +7,8 @@
 #
 # The RULES live in internal/domain/travel: how a distance and a mode become a
 # game-time duration and a fare, how demand moves the fare, and how game time
-# becomes the real wait (config.yml travel.time_scale). This file holds only
-# the numbers those rules are fed. What a CITY charges on public transport is
+# becomes the real wait (config.yml game.time_scale, the game clock). This
+# file holds only the numbers those rules are fed. What a CITY charges on public transport is
 # not here either: a public mode's fares below are the FULL fare, and the
 # city.transit_fare lever in governance.yml says what share of it a rider
 # pays (50% by default; the mayor may move it within its bounds).

@@ -58,7 +58,7 @@ func TestPromotionBoundaries(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			e, c := promotableJunior()
 			tt.mutate(&e, &c)
-			ok, reason := Promotion(testCareer(), e, c, promoNow)
+			ok, reason := Promotion(testCareer(), e, c, promoNow, 1)
 			if len(tt.want) == 0 {
 				if !ok || reason != nil {
 					t.Fatalf("Promotion() = %v, %v; want eligible", ok, reason)
@@ -82,7 +82,7 @@ func TestPromotionDetails(t *testing.T) {
 	e.Performance = 41
 	e.ShiftsInTier = 4
 	e.TierSince = promoNow.Add(-70 * time.Hour)
-	_, reason := Promotion(testCareer(), e, c, promoNow)
+	_, reason := Promotion(testCareer(), e, c, promoNow, 1)
 
 	var perf PerformanceShortfall
 	if !errors.As(reason, &perf) || perf != (PerformanceShortfall{Need: 60, Have: 41}) {
@@ -104,11 +104,11 @@ func TestPromotionNeedsNextTierCertifications(t *testing.T) {
 		TierSince: promoNow.Add(-168 * time.Hour), ShiftsInTier: 30,
 	}
 	c := seniorCandidate()
-	if ok, reason := Promotion(testCareer(), e, c, promoNow); !ok {
+	if ok, reason := Promotion(testCareer(), e, c, promoNow, 1); !ok {
 		t.Fatalf("Promotion() refused: %v", reason)
 	}
 	c.Certifications = []string{"cs_degree"}
-	ok, reason := Promotion(testCareer(), e, c, promoNow)
+	ok, reason := Promotion(testCareer(), e, c, promoNow, 1)
 	var cert CertificationShortfall
 	if ok || !errors.As(reason, &cert) || cert.Code != "cloud_cert" {
 		t.Fatalf("Promotion() = %v, %v; want the missing cloud_cert named", ok, reason)
@@ -132,7 +132,7 @@ func TestPromotionBrokenQuestions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ok, reason := Promotion(tt.career, tt.e, c, tt.now)
+			ok, reason := Promotion(tt.career, tt.e, c, tt.now, 1)
 			if ok || !errors.Is(reason, tt.want) {
 				t.Fatalf("Promotion() = %v, %v; want false, %v", ok, reason, tt.want)
 			}
@@ -142,7 +142,7 @@ func TestPromotionBrokenQuestions(t *testing.T) {
 
 func TestPromote(t *testing.T) {
 	e, c := promotableJunior()
-	next, err := Promote(testCareer(), e, c, promoNow)
+	next, err := Promote(testCareer(), e, c, promoNow, 1)
 	if err != nil {
 		t.Fatalf("Promote() = %v", err)
 	}
@@ -162,14 +162,30 @@ func TestPromote(t *testing.T) {
 
 	// A rate already above the new base is kept: promotion never cuts pay.
 	e.Rate = money.FromMinor(9_000)
-	next, err = Promote(testCareer(), e, c, promoNow)
+	next, err = Promote(testCareer(), e, c, promoNow, 1)
 	if err != nil || next.Rate != money.FromMinor(9_000) {
 		t.Errorf("Promote() rate = %s, %v; want 9000 kept", next.Rate, err)
 	}
 
 	e.ShiftsInTier = 0
-	next, err = Promote(testCareer(), e, c, promoNow)
+	next, err = Promote(testCareer(), e, c, promoNow, 1)
 	if !errors.Is(err, ErrNotEnoughShifts) || next.CareerCode != "" {
 		t.Errorf("Promote() = %+v, %v; want a zero employment and ErrNotEnoughShifts", next, err)
+	}
+}
+
+// The time-in-tier bar is game time: at a scale of 60 the 72-hour bar is 72
+// real minutes, and what is left is reported in real time.
+func TestPromotionTimeRunsOnTheGameClock(t *testing.T) {
+	e, c := promotableJunior()
+	e.TierSince = promoNow.Add(-72 * time.Minute)
+	if ok, reason := Promotion(testCareer(), e, c, promoNow, 60); !ok {
+		t.Fatalf("Promotion() refused after 72 real minutes: %v", reason)
+	}
+	e.TierSince = promoNow.Add(-70 * time.Minute)
+	_, reason := Promotion(testCareer(), e, c, promoNow, 60)
+	var wait TimeShortfall
+	if !errors.As(reason, &wait) || wait.Remaining != 2*time.Minute {
+		t.Fatalf("Promotion() = %v, want two real minutes to go", reason)
 	}
 }

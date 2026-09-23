@@ -54,7 +54,7 @@ func TestSkillsShowsLevelAndProgress(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	assertResolved(t, resp.Text)
-	if !strings.Contains(resp.Text, "33") {
+	if !strings.Contains(resp.Text, faDigits("33")) {
 		t.Errorf("skill line does not show the progress percentage: %q", resp.Text)
 	}
 	if name := messages(t).T("fa", "skill.programming", nil); !strings.Contains(resp.Text, name) {

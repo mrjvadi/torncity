@@ -1,9 +1,9 @@
 package screens
 
 import (
-	"strconv"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/domain/job"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -114,16 +114,16 @@ func (c Context) requirementLine(r Requirement) string {
 	switch r.Kind {
 	case ReqLevel:
 		if r.Met {
-			text = c.T("requirement.level", map[string]any{"level": FormatNumber(r.Need)})
+			text = c.T("requirement.level", map[string]any{"level": FormatNumber(c, r.Need)})
 		} else {
-			text = c.T("requirement.level_have", map[string]any{"need": FormatNumber(r.Need), "have": FormatNumber(r.Have)})
+			text = c.T("requirement.level_have", map[string]any{"need": FormatNumber(c, r.Need), "have": FormatNumber(c, r.Have)})
 		}
 	case ReqSkill:
 		skill := c.T("skill."+r.Skill, nil)
 		if r.Met {
-			text = c.T("requirement.skill", map[string]any{"skill": skill, "level": FormatNumber(r.Need)})
+			text = c.T("requirement.skill", map[string]any{"skill": skill, "level": FormatNumber(c, r.Need)})
 		} else {
-			text = c.T("requirement.skill_have", map[string]any{"skill": skill, "need": FormatNumber(r.Need), "have": FormatNumber(r.Have)})
+			text = c.T("requirement.skill_have", map[string]any{"skill": skill, "need": FormatNumber(c, r.Need), "have": FormatNumber(c, r.Have)})
 		}
 	case ReqCertificate:
 		text = c.T("requirement.certificate", map[string]any{"course": c.CourseName(r.CourseCode, r.CourseName)})
@@ -134,11 +134,11 @@ func (c Context) requirementLine(r Requirement) string {
 		}
 		text = c.T(key, map[string]any{"city": c.CityName(r.CityCode, r.City)})
 	case ReqPerformance:
-		text = c.T("requirement.performance", map[string]any{"need": FormatNumber(r.Need), "have": FormatNumber(r.Have)})
+		text = c.T("requirement.performance", map[string]any{"need": FormatNumber(c, r.Need), "have": FormatNumber(c, r.Have)})
 	case ReqTime:
 		text = c.T("requirement.time", map[string]any{"wait": FormatDuration(c, r.Wait)})
 	case ReqShifts:
-		text = c.T("requirement.shifts", map[string]any{"need": FormatNumber(r.Need), "have": FormatNumber(r.Have)})
+		text = c.T("requirement.shifts", map[string]any{"need": FormatNumber(c, r.Need), "have": FormatNumber(c, r.Have)})
 	case ReqTopTier:
 		text = c.T("requirement.top", nil)
 	case ReqCourseCity:
@@ -190,11 +190,36 @@ type JobStatusView struct {
 	AtWorkplace bool
 	// TopTier means there is no next position.
 	TopTier bool
+	// ShiftLength is how long one shift of this position takes, the real
+	// wait on the game clock.
+	ShiftLength time.Duration
+	// Shift is the shift in progress, nil when the player is not working.
+	Shift *ShiftProgress
 	// Next is the next position; PromotionReady says it has been earned and
 	// Missing lists what is still needed otherwise.
 	Next           JobRef
 	PromotionReady bool
 	Missing        []Requirement
+}
+
+// ShiftProgress is a shift the player is working.
+type ShiftProgress struct {
+	// Remaining is the real time until it ends.
+	Remaining time.Duration
+	// EndsAt is when it ends.
+	EndsAt time.Time
+}
+
+// shiftProgressLines renders a shift in progress: the time left and the
+// clock time it ends, or "any moment" once the scheduler is due to settle it.
+func (c Context) shiftProgressLines(p ShiftProgress) string {
+	if p.Remaining < arrivingThreshold {
+		return c.T("job.shift_running_ending", nil)
+	}
+	return body(
+		c.T("job.shift_running", map[string]any{"remaining": FormatDuration(c, p.Remaining)}),
+		clockLine(c, "job.shift_ends_at", p.EndsAt),
+	)
 }
 
 // JobStatus renders the player's job, or the invitation to find one.
@@ -212,12 +237,13 @@ func JobStatus(c Context, v JobStatusView) *presenter.Response {
 		c.T("job.workplace", map[string]any{"city": c.CityName(v.CityCode, v.City)}),
 		c.T("job.pay", map[string]any{"pay": FormatMoney(c, v.Pay)}),
 		c.T("job.energy", map[string]any{
-			"energy":     FormatNumber(int64(v.EnergyCost)),
-			"current":    FormatNumber(int64(v.Energy)),
-			"max_energy": FormatNumber(int64(v.MaxEnergy)),
+			"energy":     FormatNumber(c, int64(v.EnergyCost)),
+			"current":    FormatNumber(c, int64(v.Energy)),
+			"max_energy": FormatNumber(c, int64(v.MaxEnergy)),
 		}),
-		c.T("job.performance", map[string]any{"performance": v.Performance}),
-		c.T("job.shifts", map[string]any{"shifts": FormatNumber(int64(v.ShiftsInTier))}),
+		c.T("job.performance", map[string]any{"performance": v.Performance, "max": job.MaxPerformance}),
+		c.T("job.shifts", map[string]any{"shifts": FormatNumber(c, int64(v.ShiftsInTier))}),
+		shiftLengthLine(c, v.ShiftLength),
 		c.T("job.earned", map[string]any{"amount": FormatMoney(c, v.TotalEarned)}),
 	)
 
@@ -234,20 +260,27 @@ func JobStatus(c Context, v JobStatusView) *presenter.Response {
 	}
 
 	var where string
-	if !v.AtWorkplace {
+	switch {
+	case v.Shift != nil:
+		where = c.shiftProgressLines(*v.Shift)
+	case !v.AtWorkplace:
 		where = c.T("job.away", map[string]any{"city": c.CityName(v.CityCode, v.City)})
 	}
 
-	if v.AtWorkplace {
+	// While a shift runs there is nothing to press but refresh: a second
+	// shift, a promotion or a resignation would only be refused.
+	if v.AtWorkplace && v.Shift == nil {
 		work, _ := keyboards.Button(c.T("job.button.work", nil), AddrJobWork)
 		kb.Row(work)
 	}
-	if v.PromotionReady {
+	if v.PromotionReady && v.Shift == nil {
 		promote, _ := keyboards.Button(c.T("job.button.promotion", nil), AddrJobPromote)
 		kb.Row(promote)
 	}
-	quit, _ := keyboards.Button(c.T("job.button.quit", nil), AddrJobQuit)
-	kb.Row(quit)
+	if v.Shift == nil {
+		quit, _ := keyboards.Button(c.T("job.button.quit", nil), AddrJobQuit)
+		kb.Row(quit)
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrJobStatus}))
 
 	return c.respond(paragraphs(c.T("job.status_title", nil), details, where, promotion), kb.Build())
@@ -303,14 +336,25 @@ func JobOpenings(c Context, v JobOpeningsView) *presenter.Response {
 			"title":  c.jobTitle(o.Job),
 			"pay":    FormatMoney(c, o.Pay),
 		}))
-		if btn, ok := keyboards.Button(c.T("job.button.opening", map[string]any{"career": c.jobCareer(o.Job)}),
+		// The button says at a glance whether the player can apply: a job
+		// they qualify for opens straight onto its "apply" button, a locked
+		// one onto what is still missing.
+		label := "job.button.opening"
+		if !o.Eligible {
+			label = "job.button.opening_locked"
+		}
+		if btn, ok := keyboards.Button(c.T(label, map[string]any{"career": c.jobCareer(o.Job), "title": c.jobTitle(o.Job)}),
 			AddrJobView, o.Job.CareerCode); ok {
 			buttons = append(buttons, btn)
 		}
 	}
 	list := body(lines...)
-	if len(lines) == 0 {
+	var hint string
+	switch {
+	case len(lines) == 0:
 		list = c.T("job.openings_none", nil)
+	case !v.Employed:
+		hint = c.T("job.openings_hint", nil)
 	}
 
 	kb.Grid(2, buttons...)
@@ -329,7 +373,7 @@ func JobOpenings(c Context, v JobOpeningsView) *presenter.Response {
 		HasNext:  v.Page < v.Pages,
 		BackData: AddrHome,
 	}))
-	return c.respond(paragraphs(title, employed, list, indicator), kb.Build())
+	return c.respond(paragraphs(title, employed, list, indicator, hint), kb.Build())
 }
 
 // JobDetailView is one opening in detail.
@@ -363,7 +407,7 @@ func JobDetail(c Context, v JobDetailView) *presenter.Response {
 		body(
 			c.T("job.workplace", map[string]any{"city": c.CityName(v.CityCode, v.City)}),
 			c.T("job.pay", map[string]any{"pay": FormatMoney(c, v.Pay)}),
-			c.T("job.energy_plain", map[string]any{"energy": FormatNumber(int64(v.EnergyCost))}),
+			c.T("job.energy_plain", map[string]any{"energy": FormatNumber(c, int64(v.EnergyCost))}),
 		),
 		reqs,
 		note,
@@ -409,6 +453,49 @@ type SkillGain struct {
 	Level int
 }
 
+// shiftLengthLine says how long a shift takes, or nothing when unknown.
+func shiftLengthLine(c Context, d time.Duration) string {
+	if d <= 0 {
+		return ""
+	}
+	return c.T("job.shift_length", map[string]any{"duration": FormatDuration(c, d)})
+}
+
+// ShiftStartedView is a shift that has just begun.
+type ShiftStartedView struct {
+	Job JobRef
+	// Duration is the real wait until the shift ends; EndsAt is when.
+	Duration time.Duration
+	EndsAt   time.Time
+	// FatigueBPS is the output the shift runs at; below 10000 it is tired.
+	FatigueBPS int
+	// Energy and MaxEnergy are what is left after paying for it.
+	Energy    int
+	MaxEnergy int
+}
+
+// ShiftStarted renders the start of a shift. Nothing is paid yet: the pay,
+// XP and performance arrive as a notice when the shift ends.
+func ShiftStarted(c Context, v ShiftStartedView) *presenter.Response {
+	lines := []string{
+		c.T("job.shift_started", map[string]any{
+			"title":    c.jobTitle(v.Job),
+			"duration": FormatDuration(c, v.Duration),
+		}),
+		clockLine(c, "job.shift_ends_at", v.EndsAt),
+		c.T("job.shift_energy_left", map[string]any{
+			"energy": FormatNumber(c, int64(v.Energy)), "max_energy": FormatNumber(c, int64(v.MaxEnergy)),
+		}),
+	}
+	var tired string
+	if v.FatigueBPS > 0 && v.FatigueBPS < 10_000 {
+		tired = c.T("job.shift_fatigued", map[string]any{"percent": PercentFromBPS(c, v.FatigueBPS)})
+	}
+	kb := keyboards.New()
+	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrJobStatus}))
+	return c.respond(paragraphs(body(lines...), c.T("job.shift_paid_at_end", nil), tired), kb.Build())
+}
+
 // ShiftWorkedView is the outcome of one shift.
 type ShiftWorkedView struct {
 	Gross, Tax, Net  int64
@@ -439,42 +526,42 @@ func ShiftWorked(c Context, v ShiftWorkedView) *presenter.Response {
 
 	lines := []string{pay}
 	if v.XP > 0 {
-		lines = append(lines, c.T("job.shift_xp", map[string]any{"xp": FormatNumber(v.XP)}))
+		lines = append(lines, c.T("job.shift_xp", map[string]any{"xp": FormatNumber(c, v.XP)}))
 	}
 	for _, s := range v.Skills {
 		if s.XP <= 0 {
 			continue
 		}
 		lines = append(lines, c.T("job.shift_skill", map[string]any{
-			"skill": c.T("skill."+s.Skill, nil), "xp": FormatNumber(s.XP),
+			"skill": c.T("skill."+s.Skill, nil), "xp": FormatNumber(c, s.XP),
 		}))
 		if s.Level > 0 {
 			lines = append(lines, c.T("job.shift_skill_level", map[string]any{
-				"skill": c.T("skill."+s.Skill, nil), "level": FormatNumber(int64(s.Level)),
+				"skill": c.T("skill."+s.Skill, nil), "level": FormatNumber(c, int64(s.Level)),
 			}))
 		}
 	}
-	perf := map[string]any{"performance": v.Performance}
+	perf := map[string]any{"performance": v.Performance, "max": job.MaxPerformance}
 	switch {
 	case v.PerformanceDelta > 0:
-		perf["delta"] = strconv.Itoa(v.PerformanceDelta)
+		perf["delta"] = v.PerformanceDelta
 		lines = append(lines, c.T("job.shift_performance_up", perf))
 	case v.PerformanceDelta < 0:
-		perf["delta"] = strconv.Itoa(-v.PerformanceDelta)
+		perf["delta"] = -v.PerformanceDelta
 		lines = append(lines, c.T("job.shift_performance_down", perf))
 	default:
 		lines = append(lines, c.T("job.shift_performance_same", perf))
 	}
 	if v.Level > 0 {
-		lines = append(lines, c.T("job.shift_level", map[string]any{"level": FormatNumber(int64(v.Level))}))
+		lines = append(lines, c.T("job.shift_level", map[string]any{"level": FormatNumber(c, int64(v.Level))}))
 	}
 	lines = append(lines, c.T("job.shift_energy_left", map[string]any{
-		"energy": FormatNumber(int64(v.Energy)), "max_energy": FormatNumber(int64(v.MaxEnergy)),
+		"energy": FormatNumber(c, int64(v.Energy)), "max_energy": FormatNumber(c, int64(v.MaxEnergy)),
 	}))
 
 	var tired string
 	if v.FatigueBPS > 0 && v.FatigueBPS < 10_000 {
-		tired = c.T("job.shift_fatigued", map[string]any{"percent": PercentFromBPS(v.FatigueBPS)})
+		tired = c.T("job.shift_fatigued", map[string]any{"percent": PercentFromBPS(c, v.FatigueBPS)})
 	}
 
 	kb := keyboards.New()
@@ -534,6 +621,9 @@ const (
 	RefusalCourseRequirements = "course_requirements"
 	RefusalCourseNotFound     = "course_not_found"
 	RefusalCannotAfford       = "cannot_afford"
+	// RefusalShiftInProgress is a player at work asking for something a
+	// running shift rules out: another shift, a promotion, leaving the job.
+	RefusalShiftInProgress = "shift_in_progress"
 )
 
 // RefusalView is a work or study request that was refused, with the reasons.
@@ -547,6 +637,10 @@ type RefusalView struct {
 	// Fee and Cash are the course fee and the player's cash, for
 	// cannot_afford.
 	Fee, Cash int64
+	// Wait and EndsAt are the time left on the shift and when it ends, for
+	// shift_in_progress.
+	Wait   time.Duration
+	EndsAt time.Time
 }
 
 // refusals maps a refusal to its sentence and its one next step.
@@ -560,6 +654,7 @@ var refusals = map[string]struct{ key, label, addr string }{
 	RefusalCourseRequirements: {"education.refused", "education.button.open", AddrEducation},
 	RefusalCourseNotFound:     {"education.not_found", "education.button.open", AddrEducation},
 	RefusalCannotAfford:       {"education.cannot_afford", "education.button.open", AddrEducation},
+	RefusalShiftInProgress:    {"job.at_work", "job.button.my_job", AddrJobStatus},
 }
 
 // Refusal renders a refused work or study request.
@@ -578,5 +673,15 @@ func Refusal(c Context, v RefusalView) *presenter.Response {
 		kb.Row(btn)
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
-	return c.respond(body(append([]string{head}, c.requirementLines(v.Missing)...)...), kb.Build())
+	lines := append([]string{head}, c.requirementLines(v.Missing)...)
+	if v.Kind == RefusalShiftInProgress {
+		lines = append(lines, c.shiftProgressLines(ShiftProgress{Remaining: v.Wait, EndsAt: v.EndsAt}))
+	}
+	resp := c.respond(body(lines...), kb.Build())
+	if v.Kind == RefusalCannotAfford {
+		// It states the player's cash: in a group it goes to their
+		// private chat.
+		resp.MarkPrivate()
+	}
+	return resp
 }

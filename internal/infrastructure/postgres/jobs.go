@@ -17,6 +17,9 @@ const (
 	employmentsOneCurrentIdx      = "employments_one_current_idx"
 	enrollmentsOneActiveIdx       = "enrollments_one_active_idx"
 	certificationsPlayerCourseKey = "certifications_player_course_key"
+
+	// From migrations/0012_timed_shifts.up.sql.
+	shiftSessionsOneWorkingIdx = "shift_sessions_one_working_idx"
 )
 
 // courseSeatsLockNamespace prefixes a course code in the advisory lock key
@@ -151,6 +154,82 @@ func (r *EmploymentRepository) RecordShift(ctx context.Context, s application.Wo
 		id, s.EmploymentID, s.PlayerID, s.Tier, s.WorkedAt.UTC(), s.Gross, s.Tax, s.Net, s.XP,
 		s.PerformanceDelta, s.FatigueBPS, nullableUUID(s.LedgerTransactionID)); err != nil {
 		return fmt.Errorf("postgres: recording shift: %w", err)
+	}
+	return nil
+}
+
+// shiftSessionColumns are the columns every read of a shift scans, in scan
+// order.
+const shiftSessionColumns = `id::text, employment_id::text, player_id::text, tier, game_action_id::text, status,
+	       fatigue_bps, energy_cost, started_at, ends_at, completed_at`
+
+// ActiveShift returns the player's shift in progress. It takes no lock of
+// its own, on purpose: every command that starts or ends a shift locks the
+// player's job row first (Current), which already runs them in turn, and a
+// departure that only asks "is this player at work?" must not queue behind a
+// shift's settlement while holding the stats row that settlement needs.
+// EndShift moves only a working row, so even an unserialised second ending
+// changes nothing.
+func (r *EmploymentRepository) ActiveShift(ctx context.Context, playerID string) (*application.ShiftSession, error) {
+	var s application.ShiftSession
+	err := r.q.QueryRow(ctx,
+		`SELECT `+shiftSessionColumns+`
+		   FROM shift_sessions
+		  WHERE player_id = $1::uuid AND status = $2`, playerID, application.ShiftWorking).Scan(
+		&s.ID, &s.EmploymentID, &s.PlayerID, &s.Tier, &s.GameActionID, &s.Status,
+		&s.FatigueBPS, &s.EnergyCost, &s.StartedAt, &s.EndsAt, &s.CompletedAt)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows), isInvalidUUIDText(err):
+		return nil, application.ErrNoShiftInProgress
+	case err != nil:
+		return nil, fmt.Errorf("postgres: active shift: %w", err)
+	}
+	s.StartedAt = s.StartedAt.UTC()
+	s.EndsAt = s.EndsAt.UTC()
+	if s.CompletedAt != nil {
+		t := s.CompletedAt.UTC()
+		s.CompletedAt = &t
+	}
+	return &s, nil
+}
+
+// StartShift inserts a shift in progress. The partial unique index is what
+// refuses a second one, whatever raced to start it.
+func (r *EmploymentRepository) StartShift(ctx context.Context, s application.ShiftSession) error {
+	id, err := ensureID(s.ID)
+	if err != nil {
+		return err
+	}
+	_, err = r.q.Exec(ctx,
+		`INSERT INTO shift_sessions (id, employment_id, player_id, tier, game_action_id, status,
+		                             fatigue_bps, energy_cost, started_at, ends_at)
+		 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5::uuid, $6, $7, $8, $9, $10)`,
+		id, s.EmploymentID, s.PlayerID, s.Tier, s.GameActionID, application.ShiftWorking,
+		s.FatigueBPS, s.EnergyCost, s.StartedAt.UTC(), s.EndsAt.UTC())
+	if violates(err, sqlstateUniqueViolation, shiftSessionsOneWorkingIdx) {
+		return application.ErrShiftInProgress
+	}
+	if err != nil {
+		return fmt.Errorf("postgres: starting shift: %w", err)
+	}
+	return nil
+}
+
+// EndShift closes a working session. Only a working one moves, so a second
+// completion of the same shift changes nothing and says so.
+func (r *EmploymentRepository) EndShift(ctx context.Context, id, status string, at time.Time) error {
+	tag, err := r.q.Exec(ctx,
+		`UPDATE shift_sessions SET status = $2, completed_at = $3
+		  WHERE id = $1::uuid AND status = $4`,
+		id, status, at.UTC(), application.ShiftWorking)
+	if err != nil {
+		if isInvalidUUIDText(err) {
+			return application.ErrNoShiftInProgress
+		}
+		return fmt.Errorf("postgres: ending shift: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return application.ErrNoShiftInProgress
 	}
 	return nil
 }

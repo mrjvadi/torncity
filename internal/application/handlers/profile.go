@@ -60,6 +60,11 @@ type ProfileHandler struct {
 	defaultL       string
 	idempotencyTTL time.Duration
 	now            func() time.Time
+
+	// content and policy, when set by WithWork, let the profile show the
+	// player's job and studies.
+	content ContentSource
+	policy  application.PolicyReader
 }
 
 // NewProfileHandler wires the handler.
@@ -119,6 +124,16 @@ func NewProfileHandler(
 		idempotencyTTL: idempotencyTTL,
 		now:            now,
 	}
+}
+
+// WithWork lets the profile show the player's job — its title, where, and
+// what a shift pays under the city's minimum wage — and their studies: the
+// course in progress and the certificates held. The home screen is where a
+// player looks for these first. Without it the profile says nothing about
+// work either way. It returns h so it can be chained onto the constructor.
+func (h *ProfileHandler) WithWork(source ContentSource, policy application.PolicyReader) *ProfileHandler {
+	h.content, h.policy = source, policy
+	return h
 }
 
 // keyTranslator is the no-catalogue fallback described on NewProfileHandler.
@@ -267,6 +282,14 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 		return view, err
 	}
 
+	if h.content != nil {
+		work, err := h.work(ctx, tx, p)
+		if err != nil {
+			return view, err
+		}
+		view.Work = work
+	}
+
 	if p.CityID != nil && *p.CityID != "" {
 		city, err := h.cities.ByID(ctx, *p.CityID)
 		if err != nil {
@@ -283,6 +306,73 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 		}
 	}
 	return view, nil
+}
+
+// work reads the player's job and studies for the home screen. It only
+// reads: nothing is paid, finished or promoted by looking at the profile.
+func (h *ProfileHandler) work(ctx context.Context, tx application.Tx, p *application.Player) (*screens.ProfileWork, error) {
+	snap := h.content.Current()
+	w := &screens.ProfileWork{}
+
+	emp, err := tx.Employment().Current(ctx, p.ID)
+	switch {
+	case isSentinel(err, application.ErrNotEmployed):
+	case err != nil:
+		return nil, err
+	default:
+		def, ok := snap.CareerDef(emp.CareerCode)
+		if !ok {
+			// A job in a career the content no longer has cannot be named;
+			// the job screen explains it, the home screen stays up.
+			break
+		}
+		job := &screens.ProfileJob{Job: jobRef(def, emp.Tier), Pay: emp.Rate}
+		city, err := h.cities.ByID(ctx, emp.CityID)
+		if err != nil && !isSentinel(err, application.ErrCityNotFound) {
+			return nil, err
+		}
+		if city != nil {
+			job.CityCode, job.City = city.Code, city.Name
+			if h.policy != nil {
+				// What a shift pays is the stored rate raised to the city's
+				// minimum wage, exactly as the job screen and the payroll
+				// compute it.
+				if pol, err := readLabourPolicy(ctx, h.policy, *city); err == nil {
+					job.Pay = max(emp.Rate, pol.MinimumWage.Minor())
+				}
+			}
+		}
+		// A shift in progress, so the home screen says the player is at
+		// work and until when.
+		shift, err := tx.Employment().ActiveShift(ctx, p.ID)
+		switch {
+		case isSentinel(err, application.ErrNoShiftInProgress):
+		case err != nil:
+			return nil, err
+		default:
+			job.ShiftEndsIn = max(shift.EndsAt.Sub(h.now()), time.Nanosecond)
+		}
+		w.Job = job
+	}
+
+	enrolment, err := tx.Education().Active(ctx, p.ID)
+	switch {
+	case isSentinel(err, application.ErrNoActiveEnrollment):
+	case err != nil:
+		return nil, err
+	default:
+		w.Course = &screens.ProfileCourse{
+			Course:    courseRef(snap, enrolment.CourseCode),
+			Remaining: max(enrolment.CompletesAt.Sub(h.now()), 0),
+		}
+	}
+
+	certs, err := tx.Education().Certifications(ctx, p.ID)
+	if err != nil {
+		return nil, err
+	}
+	w.Certificates = len(certs)
+	return w, nil
 }
 
 // ensurePlayer loads the player, creating one on first contact and emitting
@@ -354,7 +444,7 @@ func fallbackDisplayName(telegramUserID int64) string {
 // what is true and a screen decides what it looks like. Every word of it
 // still comes from the catalogue.
 func (h *ProfileHandler) renderProfile(meta envelope.Metadata, p *application.Player, view screens.ProfileView) *presenter.Response {
-	c := screens.Context{Msgs: h.msgs, Lang: RenderLanguage(meta, p), MessageID: editableMessageID(meta)}
+	c := screens.Context{Msgs: h.msgs, Lang: RenderLanguage(meta, p), MessageID: editableMessageID(meta), Shared: meta.InGroup()}
 	if p == nil {
 		return presenter.Message(c.T("profile.unavailable", nil), nil)
 	}

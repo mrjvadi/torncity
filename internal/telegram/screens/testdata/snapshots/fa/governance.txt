@@ -1,0 +1,275 @@
+━━━ City hall ━━━
+(edits message 42)
+🏛 مناصب و سیاست‌های استمارچ
+
+📍 استمارچ
+مناصب:
+• شهردار: سارا (K7Q2M9A)
+• معاون شهردار: خالی
+• شورای شهر: ۲ از ۵ کرسی · کاوه (B3C4D5F)، نیلوفر (N1L0F4R)
+سیاست‌ها:
+• نرخ مالیات: ۴٫۵٪ · تعیین‌شده به دست سارا (K7Q2M9A)
+  ⏳ ۲۳ ساعت دیگر به ۸٪ تغییر می‌کند
+• عوارض مهاجرت: ۱٬۵۰۰ نیل · پیش‌فرض
+• حداقل دستمزد: ۱۰۰ نیل · پیش‌فرض
+• بازهٔ ساعات کار (ساعت بازی): ۲۴ · پیش‌فرض
+
+📍 مشترک‌المنافع
+مناصب:
+• رئیس‌جمهور: خالی
+سیاست‌ها:
+• تعرفهٔ مرزی: ۰٪ · پیش‌فرض
+  ───
+  [📜 تاریخچهٔ سیاست‌ها] → gov:history:ostmarch
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → gov:city:ostmarch
+
+━━━ City hall · a deputy is acting ━━━
+(edits message 42)
+🏛 مناصب و سیاست‌های استمارچ
+
+📍 استمارچ
+مناصب:
+• شهردار: خالی · سرپرست: معاون شهردار کاوه (B3C4D5F)
+  ───
+  [📜 تاریخچهٔ سیاست‌ها] → gov:history:ostmarch
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → gov:city:ostmarch
+
+━━━ City hall · not in any city ━━━
+(edits message 42)
+🏛 مناصب و سیاست‌ها
+
+هنوز در هیچ شهری مستقر نشده‌اید. پس از استقرار، مناصب و سیاست‌های شهرتان همین‌جا نمایش داده می‌شوند.
+  ───
+  [🗺 نقشه] → map:list
+  [🔙 بازگشت] → map:list
+
+━━━ My office ━━━
+(edits message 42)
+🏛 منصب من
+
+📍 معاون شهردار استمارچ
+شما سرپرست منصب خالی شهردار هستید.
+• نرخ مالیات: ۴٫۵٪
+• عوارض مهاجرت: ۱٬۵۰۰ نیل
+
+📍 رئیس‌جمهور مشترک‌المنافع
+• تعرفهٔ مرزی: ۰٪ · با رأی‌گیری تعیین می‌شود که هنوز در دسترس نیست
+
+📍 شورای شهر استمارچ
+این منصب فعلاً سیاستی ندارد که بتوانید تغییرش دهید.
+  ───
+  [✏️ نرخ مالیات — استمارچ] → gov:lever:city.tax_rate:ostmarch
+  [✏️ عوارض مهاجرت — استمارچ] → gov:lever:city.immigration_fee:ostmarch
+  [🔙 بازگشت] → gov:city   │   [🔄 به‌روزرسانی] → gov:office
+
+━━━ My office · none ━━━
+(edits message 42)
+🏛 منصب من
+
+شما منصبی ندارید. فعلاً صاحبان مناصب از سوی مدیران بازی منصوب می‌شوند؛ انتخابات بعداً به بازی می‌آید.
+  ───
+  [🔙 بازگشت] → gov:city   │   [🔄 به‌روزرسانی] → gov:office
+
+━━━ Change a policy · percentage ━━━
+(edits message 42)
+🏛 نرخ مالیات — استمارچ
+• نرخ مالیات: ۴٫۵٪ · تعیین‌شده به دست سارا (K7Q2M9A)
+  ⏳ ۲۳ ساعت دیگر به ۸٪ تغییر می‌کند
+
+بازهٔ مجاز: ۰٪ تا ۲۵٪
+مقدار پیش‌فرض: ۴٫۵٪
+هر تغییر ۲۴ ساعت پس از اعلام اجرا می‌شود.
+میان دو تغییر دست‌کم ۳ روز فاصله لازم است.
+
+مقدار تازه: ۸٪
+با دکمه‌ها تنظیمش کنید و سپس «بازبینی تغییر» را بزنید.
+  ───
+  [➖ ۲٫۵٪] → gov:lever:city.tax_rate:ostmarch:550   │   [➖ ۰٫۲۵٪] → gov:lever:city.tax_rate:ostmarch:775   │   [➕ ۰٫۲۵٪] → gov:lever:city.tax_rate:ostmarch:825   │   [➕ ۲٫۵٪] → gov:lever:city.tax_rate:ostmarch:1050
+  [حداقل (۰٪)] → gov:lever:city.tax_rate:ostmarch:0   │   [پیش‌فرض (۴٫۵٪)] → gov:lever:city.tax_rate:ostmarch:450   │   [حداکثر (۲۵٪)] → gov:lever:city.tax_rate:ostmarch:2500
+  [📝 بازبینی تغییر] → gov:confirm:city.tax_rate:ostmarch:800
+  [🔙 بازگشت] → gov:office   │   [🔄 به‌روزرسانی] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Change a policy · money ━━━
+(edits message 42)
+🏛 عوارض مهاجرت — استمارچ
+• عوارض مهاجرت: ۱٬۵۰۰ نیل · پیش‌فرض
+
+بازهٔ مجاز: ۰ نیل تا ۱۰۰٬۰۰۰ نیل
+مقدار پیش‌فرض: ۰ نیل
+هر تغییر ۲۴ ساعت پس از اعلام اجرا می‌شود.
+میان دو تغییر دست‌کم ۳ روز فاصله لازم است.
+
+مقدار تازه: ۱٬۵۰۰ نیل
+با دکمه‌ها تنظیمش کنید و سپس «بازبینی تغییر» را بزنید.
+  ───
+  [➖ ۱۰٬۰۰۰ نیل] → gov:lever:city.immigration_fee:ostmarch:0   │   [➖ ۱٬۰۰۰ نیل] → gov:lever:city.immigration_fee:ostmarch:500   │   [➕ ۱٬۰۰۰ نیل] → gov:lever:city.immigration_fee:ostmarch:2500   │   [➕ ۱۰٬۰۰۰ نیل] → gov:lever:city.immigration_fee:ostmarch:11500
+  [حداقل (۰ نیل)] → gov:lever:city.immigration_fee:ostmarch:0   │   [پیش‌فرض (۰ نیل)] → gov:lever:city.immigration_fee:ostmarch:0   │   [حداکثر (۱۰۰٬۰۰۰ نیل)] → gov:lever:city.immigration_fee:ostmarch:100000
+  [🔙 بازگشت] → gov:office   │   [🔄 به‌روزرسانی] → gov:lever:city.immigration_fee:ostmarch
+
+━━━ Change a policy · waiting for the cooldown ━━━
+(edits message 42)
+🏛 نرخ مالیات — استمارچ
+• نرخ مالیات: ۴٫۵٪ · تعیین‌شده به دست سارا (K7Q2M9A)
+  ⏳ ۲۳ ساعت دیگر به ۸٪ تغییر می‌کند
+
+بازهٔ مجاز: ۰٪ تا ۲۵٪
+مقدار پیش‌فرض: ۴٫۵٪
+هر تغییر ۲۴ ساعت پس از اعلام اجرا می‌شود.
+میان دو تغییر دست‌کم ۳ روز فاصله لازم است.
+
+⏳ ۲ روز و ۲ ساعت دیگر می‌توانید این سیاست را دوباره تغییر دهید.
+  ───
+  [🔙 بازگشت] → gov:office   │   [🔄 به‌روزرسانی] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Change a policy · confirm ━━━
+(edits message 42)
+📝 تأیید تغییر
+
+نرخ مالیات در استمارچ: از ۴٫۵٪ به ۸٫۲۵٪
+این تغییر همین حالا اعلام می‌شود و ۲۴ ساعت بعد اجرا خواهد شد.
+پس از آن تا ۳ روز نمی‌توانید این سیاست را دوباره تغییر دهید.
+  ───
+  [✅ تأیید] → gov:set:city.tax_rate:ostmarch:825   │   [✖️ انصراف] → gov:lever:city.tax_rate:ostmarch:825
+
+━━━ Change a policy · announced ━━━
+(edits message 42)
+📢 تغییر اعلام شد
+
+نرخ مالیات در استمارچ از ۴٫۵٪ به ۸٫۲۵٪ تغییر می‌کند و ۲۴ ساعت دیگر اجرا می‌شود. این تغییر در تاریخچهٔ عمومی ثبت شد.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:office   │   [🔄 به‌روزرسانی] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Policy history (page 1 of 2) ━━━
+(edits message 42)
+📜 تاریخچهٔ سیاست‌های استمارچ
+
+• نرخ مالیات (استمارچ): ۴٫۵٪ ← ۸٪
+  اعلام شهردار سارا (K7Q2M9A) · ۳ ساعت پیش
+  ⏳ ۲۱ ساعت دیگر اجرا می‌شود
+
+• حداقل دستمزد (استمارچ): ۱۰۰ نیل ← ۱۵۰ نیل
+  اعلام شهردار سارا (K7Q2M9A) · ۲ روز و ۲ ساعت پیش
+  ۲۶ ساعت است که اجرا می‌شود
+
+• تعرفهٔ مرزی (مشترک‌المنافع): ۰٪ ← ۲٫۵٪
+  اعلام رئیس‌جمهور یک بازیکن · ۳ روز و ۸ ساعت پیش
+  ۸ ساعت است که اجرا می‌شود
+
+صفحهٔ ۱ از ۲
+  ───
+  [بعدی ⬅️] → gov:history:ostmarch:2
+  [🔙 بازگشت] → gov:city:ostmarch   │   [🔄 به‌روزرسانی] → gov:history:ostmarch:1
+
+━━━ Policy history · empty ━━━
+(edits message 42)
+📜 تاریخچهٔ سیاست‌های استمارچ
+
+هنوز هیچ سیاستی در اینجا تغییر نکرده است.
+  ───
+  [🔙 بازگشت] → gov:city:ostmarch   │   [🔄 به‌روزرسانی] → gov:history:ostmarch:1
+
+━━━ Refusal · not the holder ━━━
+(edits message 42)
+تنها شهردار می‌تواند این سیاست را تغییر دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · decided by a vote ━━━
+(edits message 42)
+این سیاست با رأی‌گیری در شورای شهر تعیین می‌شود و رأی‌گیری هنوز در دسترس نیست.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · out of range ━━━
+(edits message 42)
+این مقدار بیرون از بازهٔ مجاز ۰٪ تا ۲۵٪ است. مقداری در همین بازه انتخاب کنید.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · cooldown ━━━
+(edits message 42)
+این سیاست به‌تازگی تغییر کرده است. ۳۰ ساعت دیگر می‌توانید دوباره تغییرش دهید.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · cooldown, time unknown ━━━
+(edits message 42)
+این سیاست به‌تازگی تغییر کرده است. کمی بعد دوباره امتحان کنید.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · unsupported ━━━
+(edits message 42)
+این نوع سیاست هنوز قابل تغییر نیست.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · unknown policy ━━━
+(edits message 42)
+این سیاست دیگر وجود ندارد. برای دیدن سیاست‌هایی که می‌توانید تغییر دهید، «منصب من» را باز کنید.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · unknown place ━━━
+(edits message 42)
+این مکان پیدا نشد. «نقشه» را باز کنید و دوباره امتحان کنید.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · wrong place ━━━
+(edits message 42)
+این سیاست در این مکان کاربردی ندارد.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · office not found ━━━
+(edits message 42)
+چنین منصبی در اینجا وجود ندارد.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · office occupied ━━━
+(edits message 42)
+این منصب در اختیار کس دیگری است.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · office vacant ━━━
+(edits message 42)
+این منصب از قبل خالی است.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · already holds it ━━━
+(edits message 42)
+شما همین حالا این منصب را دارید.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · incompatible offices ━━━
+(edits message 42)
+این منصب را نمی‌توان هم‌زمان با منصبی که اکنون دارید در اختیار داشت.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · out of range, lever unknown ━━━
+(edits message 42)
+این مقدار بیرون از بازهٔ مجاز است. مقداری در بازهٔ مجاز انتخاب کنید.
+  ───
+  [🔙 بازگشت] → gov:office

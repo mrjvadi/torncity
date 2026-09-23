@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 )
@@ -199,7 +200,7 @@ func TestCanEnrollDetails(t *testing.T) {
 }
 
 func TestEnroll(t *testing.T) {
-	e, fee, err := Enroll(testCourse(), qualifiedApplicant(), 3, now)
+	e, fee, err := Enroll(testCourse(), qualifiedApplicant(), 3, now, 1)
 	if err != nil {
 		t.Fatalf("Enroll() = %v", err)
 	}
@@ -225,14 +226,14 @@ func TestEnroll(t *testing.T) {
 	a.Current = e
 	other := testCourse()
 	other.Code = "another"
-	if _, _, err := Enroll(other, a, 0, now); !errors.Is(err, ErrAlreadyEnrolled) {
+	if _, _, err := Enroll(other, a, 0, now, 1); !errors.Is(err, ErrAlreadyEnrolled) {
 		t.Errorf("second Enroll() = %v, want ErrAlreadyEnrolled", err)
 	}
 
-	if _, _, err := Enroll(testCourse(), qualifiedApplicant(), 0, time.Time{}); !errors.Is(err, ErrInvalidTime) {
+	if _, _, err := Enroll(testCourse(), qualifiedApplicant(), 0, time.Time{}, 1); !errors.Is(err, ErrInvalidTime) {
 		t.Errorf("Enroll(zero time) = %v", err)
 	}
-	e, fee, err = Enroll(testCourse(), qualifiedApplicant(), 20, now)
+	e, fee, err = Enroll(testCourse(), qualifiedApplicant(), 20, now, 1)
 	if !errors.Is(err, ErrCourseFull) || e != (Enrollment{}) || !fee.IsZero() {
 		t.Errorf("a refused Enroll() returned %+v, %s, %v", e, fee, err)
 	}
@@ -311,7 +312,7 @@ func TestRemaining(t *testing.T) {
 
 func TestComplete(t *testing.T) {
 	course := testCourse()
-	e, _, err := Enroll(course, qualifiedApplicant(), 0, now)
+	e, _, err := Enroll(course, qualifiedApplicant(), 0, now, 1)
 	if err != nil {
 		t.Fatalf("Enroll() = %v", err)
 	}
@@ -401,5 +402,23 @@ func TestAbandon(t *testing.T) {
 	}
 	if _, err := Abandon(out); !errors.Is(err, ErrNotInProgress) {
 		t.Errorf("abandoning twice = %v", err)
+	}
+}
+
+// A course's duration is game time: at a scale of 60 a 72-hour course runs
+// 72 real minutes, and an invalid scale is refused before anything is fixed.
+func TestEnrollRunsOnTheGameClock(t *testing.T) {
+	e, _, err := Enroll(testCourse(), qualifiedApplicant(), 0, now, 60)
+	if err != nil {
+		t.Fatalf("Enroll() = %v", err)
+	}
+	if got := e.CompletesAt.Sub(e.StartedAt); got != 72*time.Minute {
+		t.Errorf("real period = %s, want 72m", got)
+	}
+	if got := e.Remaining(now.Add(12 * time.Minute)); got != time.Hour {
+		t.Errorf("remaining = %s, want 1h", got)
+	}
+	if _, _, err := Enroll(testCourse(), qualifiedApplicant(), 0, now, 0); !errors.Is(err, gametime.ErrInvalidScale) {
+		t.Errorf("Enroll(scale 0) = %v, want ErrInvalidScale", err)
 	}
 }

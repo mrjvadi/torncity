@@ -26,35 +26,23 @@ func recordingServer(t *testing.T, reply string) (*Client, *[]string, *[]map[str
 	return c, &methods, &bodies
 }
 
-// An ephemeral send carries the Bot API 10.3 parameter object, and the
-// returned message is decoded with its ephemeral id and message id 0.
-func TestSendMessageWithEphemeralParameters(t *testing.T) {
+// A reply carries its reply parameters, and the sent message comes back.
+func TestSendMessageWithReplyParameters(t *testing.T) {
 	c, methods, bodies := recordingServer(t,
-		`{"ok":true,"result":{"message_id":0,"ephemeral_message_id":17,"date":1,"chat":{"id":-100,"type":"supergroup"},"receiver_user":{"id":5,"is_bot":false,"first_name":"A"},"text":"x"}}`)
+		`{"ok":true,"result":{"message_id":44,"date":1,"chat":{"id":-100,"type":"supergroup"},"text":"x"}}`)
 
 	sent, err := c.SendMessageWith(context.Background(), -100, "x", nil, SendOptions{
-		ReplyParameters: &ReplyParameters{EphemeralMessageID: 3},
-		Ephemeral:       &EphemeralMessageParameters{ReceiverUserID: 5, CallbackQueryID: "cq", ReplaceCallbackQueryMessage: true},
+		ReplyParameters: &ReplyParameters{MessageID: 3, AllowSendingWithoutReply: true},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if sent.MessageID != 0 || sent.EphemeralMessageID != 17 || sent.ReceiverUser == nil || sent.ReceiverUser.ID != 5 {
-		t.Fatalf("sent = %+v", sent)
+	if sent.MessageID != 44 || (*methods)[0] != "sendMessage" {
+		t.Fatalf("sent = %+v via %s", sent, (*methods)[0])
 	}
-	if (*methods)[0] != "sendMessage" {
-		t.Fatalf("method = %s", (*methods)[0])
-	}
-	body := (*bodies)[0]
-	eph, _ := body["ephemeral_message_parameters"].(map[string]any)
-	if eph["receiver_user_id"] != float64(5) || eph["callback_query_id"] != "cq" || eph["replace_callback_query_message"] != true {
-		t.Errorf("ephemeral_message_parameters = %v", body["ephemeral_message_parameters"])
-	}
-	if rp, _ := body["reply_parameters"].(map[string]any); rp["ephemeral_message_id"] != float64(3) {
-		t.Errorf("reply_parameters = %v", body["reply_parameters"])
-	}
-	if _, legacy := body["receiver_user_id"]; legacy {
-		t.Error("the Bot API 10.2 top-level parameter was sent; 10.3 replaced it")
+	rp, _ := (*bodies)[0]["reply_parameters"].(map[string]any)
+	if rp["message_id"] != float64(3) || rp["allow_sending_without_reply"] != true {
+		t.Errorf("reply_parameters = %v", (*bodies)[0]["reply_parameters"])
 	}
 }
 
@@ -64,62 +52,57 @@ func TestSendMessageWithoutOptionsOmitsThem(t *testing.T) {
 	if _, err := c.SendMessageWith(context.Background(), 7, "x", nil, SendOptions{}); err != nil {
 		t.Fatal(err)
 	}
-	for _, k := range []string{"ephemeral_message_parameters", "reply_parameters", "reply_markup"} {
+	for _, k := range []string{"reply_parameters", "reply_markup"} {
 		if _, ok := (*bodies)[0][k]; ok {
 			t.Errorf("%s sent on a plain message", k)
 		}
 	}
 }
 
-func TestEphemeralEditDeleteAnswerAndMenu(t *testing.T) {
+func TestAnswerAndCommandMenu(t *testing.T) {
 	c, methods, bodies := recordingServer(t, `{"ok":true,"result":true}`)
 	ctx := context.Background()
 
-	if err := c.EditEphemeralMessageText(ctx, -100, 5, 17, "y", nil); err != nil {
-		t.Fatal(err)
-	}
-	if err := c.DeleteEphemeralMessage(ctx, -100, 5, 17); err != nil {
-		t.Fatal(err)
-	}
-	if err := c.DeleteMessage(ctx, -100, 40); err != nil {
-		t.Fatal(err)
-	}
 	if err := c.AnswerCallback(ctx, CallbackAnswer{CallbackQueryID: "cq", Text: "t", ShowAlert: true, URL: "https://t.me/b?start=run-map-list"}); err != nil {
 		t.Fatal(err)
 	}
-	if err := c.SetMyCommands(ctx, []BotCommand{{Command: "map", Description: "d", IsEphemeral: true}}, &BotCommandScope{Type: ScopeAllGroupChats}, "en"); err != nil {
+	if err := c.SetMyCommands(ctx, []BotCommand{{Command: "map", Description: "d"}}, &BotCommandScope{Type: ScopeAllPrivateChats}, "en"); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.DeleteMyCommands(ctx, &BotCommandScope{Type: ScopeAllGroupChats}, ""); err != nil {
 		t.Fatal(err)
 	}
 
-	want := []string{"editEphemeralMessageText", "deleteEphemeralMessage", "deleteMessage", "answerCallbackQuery", "setMyCommands"}
+	want := []string{"answerCallbackQuery", "setMyCommands", "deleteMyCommands"}
 	for i, m := range want {
 		if (*methods)[i] != m {
 			t.Fatalf("call %d = %s, want %s", i, (*methods)[i], m)
 		}
 	}
 	b := *bodies
-	if b[0]["receiver_user_id"] != float64(5) || b[0]["ephemeral_message_id"] != float64(17) || b[0]["text"] != "y" {
-		t.Errorf("editEphemeralMessageText body = %v", b[0])
+	if b[0]["show_alert"] != true || b[0]["url"] != "https://t.me/b?start=run-map-list" {
+		t.Errorf("answerCallbackQuery body = %v", b[0])
 	}
-	if b[1]["receiver_user_id"] != float64(5) || b[1]["ephemeral_message_id"] != float64(17) {
-		t.Errorf("deleteEphemeralMessage body = %v", b[1])
-	}
-	if b[3]["show_alert"] != true || b[3]["url"] != "https://t.me/b?start=run-map-list" {
-		t.Errorf("answerCallbackQuery body = %v", b[3])
-	}
-	cmds, _ := b[4]["commands"].([]any)
+	cmds, _ := b[1]["commands"].([]any)
 	first, _ := cmds[0].(map[string]any)
-	scope, _ := b[4]["scope"].(map[string]any)
-	if first["is_ephemeral"] != true || scope["type"] != "all_group_chats" || b[4]["language_code"] != "en" {
-		t.Errorf("setMyCommands body = %v", b[4])
+	scope, _ := b[1]["scope"].(map[string]any)
+	if first["command"] != "map" || scope["type"] != "all_private_chats" || b[1]["language_code"] != "en" {
+		t.Errorf("setMyCommands body = %v", b[1])
+	}
+	scope, _ = b[2]["scope"].(map[string]any)
+	if _, hasLang := b[2]["language_code"]; scope["type"] != "all_group_chats" || hasLang {
+		t.Errorf("deleteMyCommands body = %v", b[2])
+	}
+	if _, has := b[2]["commands"]; has {
+		t.Error("deleteMyCommands sent a command list")
 	}
 }
 
-// Updates carry what group play reads: a reply's author, an ephemeral
-// command's id and the bot's own membership changes.
+// Updates carry what group play reads: a reply's author and the bot's own
+// membership changes.
 func TestGroupUpdateFieldsDecode(t *testing.T) {
 	raw := `[
-	 {"update_id":1,"message":{"message_id":0,"ephemeral_message_id":4,"date":1,"chat":{"id":-100,"type":"supergroup"},
+	 {"update_id":1,"message":{"message_id":8,"date":1,"chat":{"id":-100,"type":"supergroup"},
 	   "from":{"id":5,"is_bot":false,"first_name":"A"},"text":"/pay 10",
 	   "reply_to_message":{"message_id":2,"date":1,"chat":{"id":-100,"type":"supergroup"},"from":{"id":6,"is_bot":false,"first_name":"B"}}}},
 	 {"update_id":2,"my_chat_member":{"chat":{"id":-100,"type":"supergroup"},"from":{"id":5,"is_bot":false,"first_name":"A"},"date":1,
@@ -131,7 +114,7 @@ func TestGroupUpdateFieldsDecode(t *testing.T) {
 		t.Fatal(err)
 	}
 	m := updates[0].Message
-	if m.EphemeralMessageID != 4 || m.ReplyToMessage == nil || m.ReplyToMessage.From.ID != 6 {
+	if m.MessageID != 8 || m.ReplyToMessage == nil || m.ReplyToMessage.From.ID != 6 {
 		t.Errorf("message = %+v", m)
 	}
 	mc := updates[1].MyChatMember
