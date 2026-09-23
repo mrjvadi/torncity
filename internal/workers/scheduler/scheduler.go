@@ -41,11 +41,20 @@
 // # What it does on failure
 //
 // A publish failure is transient by default — the broker restarted, the
-// network blipped — so the action is left exactly as Due claimed it and
-// nothing is written. It is never marked failed: Fail is permanent, and a
-// permanently failed travel is a player stranded between two cities because
-// NATS was unreachable for a second. Only a fault in the row itself, an
-// action_type this build cannot route, is a Fail.
+// network blipped — so nothing is written about it. It is never marked failed:
+// Fail is permanent, and a permanently failed travel is a player stranded
+// between two cities because NATS was unreachable for a second. Only a fault in
+// the row itself — an action_type this build cannot route, a payload that is
+// not json — is a Fail.
+//
+// "Nothing is written" does not mean the next tick sees the row again. Due's
+// claim is a status change, scheduled to running, and a running row is outside
+// the due index. What brings it back is the reaper (see ClaimReaper): once a
+// row has been running for longer than the claim lease it is returned to
+// scheduled, and the tick after that dispatches it. The same path recovers a
+// row whose scheduler died between claiming and completing it. So a publish
+// failure costs at most one claim lease of lateness, and a crash costs the
+// same.
 package scheduler
 
 import (
@@ -72,7 +81,35 @@ var (
 	ErrNoBatchSize    = errors.New("scheduler: batch_size must be greater than zero")
 	ErrNoBatchBudget  = errors.New("scheduler: shutdown_timeout must be greater than zero")
 	ErrNoLanguage     = errors.New("scheduler: a default language is required")
+	ErrNoClaimTimeout = errors.New("scheduler: claim_timeout must be greater than shutdown_timeout")
 )
+
+// ClaimReaper returns abandoned claims to the schedule.
+//
+// # Why it exists
+//
+// GameActionRepository.Due claims a row by moving it from scheduled to
+// running, and only scheduled rows are ever claimed. A scheduler that dies
+// after the claim and before Complete — or a publish that fails — therefore
+// leaves the row in running, where no tick of any process will look at it
+// again. For a travel that is a player who never lands.
+//
+// # Why it is declared here and not on the port
+//
+// application.GameActionRepository has no method for this, and the postgres
+// adapter cannot implement one yet: game_actions records no claim time, so
+// "claimed longer ago than the lease" is not a question the table can answer.
+// The postgres side needs a claimed_at column set by the claim in Due, and a
+// ReclaimStale that moves running rows with claimed_at < claimedBefore back to
+// scheduled, bumping retry_count so the noisy_attempts escalation sees the
+// repeat. Until that exists, cmd/scheduler starts without a reaper and says so
+// at startup; the interface is kept this narrow so that adding the method to
+// the repository is the only change needed to switch it on.
+type ClaimReaper interface {
+	// ReclaimStale returns to scheduled up to limit actions that have been
+	// running since before claimedBefore, and reports how many it moved.
+	ReclaimStale(ctx context.Context, claimedBefore time.Time, limit int) (int, error)
+}
 
 // actorTypePlayer is the game_actions.actor_type that means actor_id is a
 // player id. The other two values the schema admits, company and system, have
@@ -128,14 +165,25 @@ type Options struct {
 	// action has no Telegram user to read a locale from, and a handler that
 	// renders player-facing text needs something rather than an empty string.
 	DefaultLanguage string
+
+	// ClaimTimeout is the lease on a claimed action: a row still running this
+	// long after its claim is presumed abandoned and handed back to the
+	// schedule by Reaper. It must exceed ShutdownTimeout, or a batch that is
+	// still legitimately running would have its rows reclaimed underneath it.
+	ClaimTimeout time.Duration
+
+	// Reaper is optional. Without one, an abandoned claim stays running until
+	// an operator intervenes, and Run says so when it starts.
+	Reaper ClaimReaper
 }
 
 // Scheduler claims due actions and publishes them as commands.
 type Scheduler struct {
-	actions   application.GameActionRepository
-	out       application.EventPublisher
-	logger    *slog.Logger
-	opts      Options
+	actions application.GameActionRepository
+	out     application.EventPublisher
+	reaper  ClaimReaper
+	logger  *slog.Logger
+	opts    Options
 
 	// now, newRequestID and newTraceID are fields rather than direct calls so
 	// a test can make a tick deterministic without a clock or a random source.
@@ -161,11 +209,14 @@ func New(opts Options) (*Scheduler, error) {
 		return nil, ErrNoBatchBudget
 	case opts.DefaultLanguage == "":
 		return nil, ErrNoLanguage
+	case opts.ClaimTimeout <= opts.ShutdownTimeout:
+		return nil, ErrNoClaimTimeout
 	}
 
 	return &Scheduler{
 		actions:      opts.Actions,
 		out:          opts.Publisher,
+		reaper:       opts.Reaper,
 		logger:       opts.Logger,
 		opts:         opts,
 		now:          time.Now,
@@ -187,7 +238,13 @@ func (s *Scheduler) Run(ctx context.Context) error {
 		slog.Duration("tick_interval", s.opts.TickInterval),
 		slog.Int("batch_size", s.opts.BatchSize),
 		slog.Duration("shutdown_timeout", s.opts.ShutdownTimeout),
-		slog.Int("noisy_attempts", s.opts.NoisyAttempts))
+		slog.Duration("claim_timeout", s.opts.ClaimTimeout),
+		slog.Int("noisy_attempts", s.opts.NoisyAttempts),
+		slog.Any("action_types", ActionTypes()),
+		slog.Bool("reaper", s.reaper != nil))
+	if s.reaper == nil {
+		s.logger.Warn("no claim reaper: an action whose dispatch is interrupted stays running until an operator returns it to scheduled")
+	}
 
 	ticker := time.NewTicker(s.opts.TickInterval)
 	defer ticker.Stop()
@@ -209,12 +266,19 @@ func (s *Scheduler) Run(ctx context.Context) error {
 		}
 
 		batchCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), s.opts.ShutdownTimeout)
+		// Reaping first means a row released on this tick is claimable by the
+		// very next statement, rather than waiting a whole interval more.
+		if _, err := s.Reap(batchCtx); err != nil {
+			// Not fatal to the tick: fresh due work must not wait because the
+			// recovery of old work failed.
+			s.logger.Error("reclaiming stale claims failed", slog.String("error", err.Error()))
+		}
 		dispatched, err := s.Tick(batchCtx)
 		cancel()
 
 		if err != nil {
-			// The rows are still claimed and nothing was written, so waiting
-			// for the next tick loses nothing.
+			// Due failed, so nothing was claimed and waiting for the next
+			// tick loses nothing.
 			s.logger.Error("scheduler tick failed", slog.String("error", err.Error()))
 			continue
 		}
@@ -222,6 +286,28 @@ func (s *Scheduler) Run(ctx context.Context) error {
 			s.logger.Debug("scheduler tick dispatched actions", slog.Int("actions", dispatched))
 		}
 	}
+}
+
+// Reap returns abandoned claims to the schedule, bounded by the batch size so a
+// mass recovery after an outage is spread over several ticks like any other
+// backlog. It does nothing and reports zero when no reaper was configured.
+func (s *Scheduler) Reap(ctx context.Context) (int, error) {
+	if s.reaper == nil {
+		return 0, nil
+	}
+	cutoff := s.now().Add(-s.opts.ClaimTimeout)
+	n, err := s.reaper.ReclaimStale(ctx, cutoff, s.opts.BatchSize)
+	if err != nil {
+		return 0, fmt.Errorf("scheduler: reclaiming actions claimed before %s: %w", cutoff.Format(time.RFC3339), err)
+	}
+	if n > 0 {
+		// Warn, not info: every one of these is a dispatch that was
+		// interrupted, by a crash or by a broker that refused it.
+		s.logger.Warn("stale claims returned to the schedule",
+			slog.Int("actions", n),
+			slog.Time("claimed_before", cutoff))
+	}
+	return n, nil
 }
 
 // Tick claims one batch and dispatches it. It returns how many actions reached
@@ -256,19 +342,19 @@ func (s *Scheduler) dispatch(ctx context.Context, action application.GameAction,
 	if !ok {
 		// Not a transient failure and not something a retry can fix: this
 		// build has no subject for that action_type, and every future tick
-		// would reach the same conclusion. Left scheduled it would be claimed
-		// forever; failed it is out of the way and visible.
-		s.logger.Error("no route for this action type, failing the action",
-			slog.String("action_id", action.ID),
-			slog.String("action_type", action.ActionType))
+		// would reach the same conclusion. Left alone it would be reclaimed
+		// and re-claimed forever; failed it is out of the way and visible.
+		s.fail(ctx, action, "no route for this action type, failing the action",
+			fmt.Sprintf("no command route for action_type %q", action.ActionType))
+		return false
+	}
 
-		reason := fmt.Sprintf("no command route for action_type %q", action.ActionType)
-		if err := s.actions.Fail(ctx, action.ID, reason); err != nil {
-			s.logger.Error("cannot fail an unroutable action",
-				slog.String("action_id", action.ID),
-				slog.String("action_type", action.ActionType),
-				slog.String("error", err.Error()))
-		}
+	if len(action.Payload) > 0 && !json.Valid(action.Payload) {
+		// A fault in the row, like a missing route: the bytes will be the
+		// same bytes on every attempt. jsonb makes this unreachable through
+		// postgres, which is exactly why it must be loud if it ever happens.
+		s.fail(ctx, action, "action payload is not valid json, failing the action",
+			"payload is not valid json")
 		return false
 	}
 
@@ -276,9 +362,9 @@ func (s *Scheduler) dispatch(ctx context.Context, action application.GameAction,
 
 	env, err := s.envelopeFor(action, route, now)
 	if err != nil {
-		// Reached only when the random source fails or the row's payload is
-		// not valid json. Nothing is written: the row keeps its claim and the
-		// failure is loud rather than silently permanent.
+		// Reached only when the random source fails. Nothing is written: the
+		// row stays claimed, the reaper returns it once the lease runs out,
+		// and the failure is loud rather than silently permanent.
 		s.logger.Error("cannot build the command envelope",
 			slog.String("action_id", action.ID),
 			slog.String("action_type", action.ActionType),
@@ -301,7 +387,8 @@ func (s *Scheduler) dispatch(ctx context.Context, action application.GameAction,
 			level = slog.LevelError
 		}
 		// Deliberately not failed. A broker that is down for a minute must
-		// cost a minute of lateness, not a permanently dropped journey.
+		// cost some lateness, not a permanently dropped journey. The row stays
+		// claimed; the reaper hands it back once the claim lease runs out.
 		s.logger.Log(ctx, level, "cannot publish a due action",
 			append(metaAttrs(env.Metadata),
 				slog.String("action_id", action.ID),
@@ -361,16 +448,14 @@ func (s *Scheduler) envelopeFor(action application.GameAction, route Route, now 
 		return nil, err
 	}
 
-	payload := action.Payload
+	payload := json.RawMessage(action.Payload)
 	if len(payload) == 0 {
 		// jsonb defaults to '{}' in the schema, but a repository that returns
 		// a nil slice for it would otherwise produce `"payload":null` and a
 		// handler decoding into a struct would get a zero value it cannot
-		// tell from an empty object.
+		// tell from an empty object. Validity was checked by dispatch, where
+		// an invalid payload is a Fail rather than a retry.
 		payload = json.RawMessage(`{}`)
-	}
-	if !json.Valid(payload) {
-		return nil, fmt.Errorf("scheduler: action %s: payload is not valid json", action.ID)
 	}
 
 	return envelope.New(meta, Command{
@@ -457,6 +542,23 @@ func (s *Scheduler) metadataFor(action application.GameAction, route Route, now 
 	}
 
 	return meta, nil
+}
+
+// fail marks an action permanently failed and logs why, loudly. It is only for
+// faults in the row itself; see the package doc for why a broker failure never
+// comes here.
+func (s *Scheduler) fail(ctx context.Context, action application.GameAction, msg, reason string) {
+	s.logger.Error(msg,
+		slog.String("action_id", action.ID),
+		slog.String("action_type", action.ActionType),
+		slog.String("reason", reason))
+
+	if err := s.actions.Fail(ctx, action.ID, reason); err != nil {
+		s.logger.Error("cannot fail the action",
+			slog.String("action_id", action.ID),
+			slog.String("action_type", action.ActionType),
+			slog.String("error", err.Error()))
+	}
 }
 
 // metaAttrs is the trace context every hop logs, in the same shape the other

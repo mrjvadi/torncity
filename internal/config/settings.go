@@ -35,6 +35,7 @@ type fileConfig struct {
 	Worker    workerSettings    `yaml:"worker"`
 	Scheduler schedulerSettings `yaml:"scheduler"`
 	Game      gameSettings      `yaml:"game"`
+	Travel    travelSettings    `yaml:"travel"`
 	Player    playerSettings    `yaml:"player"`
 }
 
@@ -89,11 +90,21 @@ type schedulerSettings struct {
 	BatchSize       *int    `yaml:"batch_size"`
 	ShutdownTimeout *string `yaml:"shutdown_timeout"`
 	NoisyAttempts   *int    `yaml:"noisy_attempts"`
+	ClaimTimeout    *string `yaml:"claim_timeout"`
 }
 
 type gameSettings struct {
 	ShutdownTimeout *string `yaml:"shutdown_timeout"`
 	IdempotencyTTL  *string `yaml:"idempotency_ttl"`
+}
+
+type travelSettings struct {
+	EnergyCost        *int    `yaml:"energy_cost"`
+	ArrivalXP         *int    `yaml:"arrival_xp"`
+	StandardKMPerHour *int    `yaml:"standard_km_per_hour"`
+	StandardBoarding  *string `yaml:"standard_boarding"`
+	ExpressKMPerHour  *int    `yaml:"express_km_per_hour"`
+	ExpressBoarding   *string `yaml:"express_boarding"`
 }
 
 type playerSettings struct {
@@ -359,6 +370,9 @@ var settings = []setting{
 	limitSetting("scheduler", "noisy_attempts",
 		func(c *Config) *int { return &c.Scheduler.NoisyAttempts },
 		func(f *fileConfig) *int { return f.Scheduler.NoisyAttempts }),
+	durationSetting("scheduler", "claim_timeout",
+		func(c *Config) *time.Duration { return &c.Scheduler.ClaimTimeout },
+		func(f *fileConfig) *string { return f.Scheduler.ClaimTimeout }),
 
 	durationSetting("game", "shutdown_timeout",
 		func(c *Config) *time.Duration { return &c.Game.ShutdownTimeout },
@@ -366,6 +380,25 @@ var settings = []setting{
 	durationSetting("game", "idempotency_ttl",
 		func(c *Config) *time.Duration { return &c.Game.IdempotencyTTL },
 		func(f *fileConfig) *string { return f.Game.IdempotencyTTL }),
+
+	limitSetting("travel", "energy_cost",
+		func(c *Config) *int { return &c.Travel.EnergyCost },
+		func(f *fileConfig) *int { return f.Travel.EnergyCost }),
+	limitSetting("travel", "arrival_xp",
+		func(c *Config) *int { return &c.Travel.ArrivalXP },
+		func(f *fileConfig) *int { return f.Travel.ArrivalXP }),
+	limitSetting("travel", "standard_km_per_hour",
+		func(c *Config) *int { return &c.Travel.StandardKMPerHour },
+		func(f *fileConfig) *int { return f.Travel.StandardKMPerHour }),
+	durationSetting("travel", "standard_boarding",
+		func(c *Config) *time.Duration { return &c.Travel.StandardBoarding },
+		func(f *fileConfig) *string { return f.Travel.StandardBoarding }),
+	limitSetting("travel", "express_km_per_hour",
+		func(c *Config) *int { return &c.Travel.ExpressKMPerHour },
+		func(f *fileConfig) *int { return f.Travel.ExpressKMPerHour }),
+	durationSetting("travel", "express_boarding",
+		func(c *Config) *time.Duration { return &c.Travel.ExpressBoarding },
+		func(f *fileConfig) *string { return f.Travel.ExpressBoarding }),
 
 	stringSetting("player", "default_language",
 		func(c *Config) *string { return &c.Player.DefaultLanguage },

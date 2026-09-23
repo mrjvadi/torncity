@@ -5,8 +5,11 @@
 // talks to Telegram and does not know how many bots exist: the gateway owns
 // that, and this process owns the rules.
 //
-// Phase 0 carries one command, player.profile.get, which is also first
-// contact. See ROADMAP.md, Phase 0.
+// It serves every command in cmd/game/subscriptions: the phase 0 profile,
+// which is also first contact, and the phase 1 travel, skills, map and social
+// commands. One of those, travel.arrive, comes from the scheduler rather than
+// from a player — it is how a journey that came due actually lands. See
+// ROADMAP.md, Phases 0 and 1.
 package main
 
 import (
@@ -14,6 +17,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -25,27 +29,31 @@ import (
 
 	natsgo "github.com/nats-io/nats.go"
 
+	"github.com/mrjvadi/torncity/cmd/game/subscriptions"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
+	"github.com/mrjvadi/torncity/internal/content"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
+	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
+	"github.com/mrjvadi/torncity/internal/telegram/presenter"
+	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
+// Every command has its own durable consumer, named by
+// subscriptions.Subscription.Durable, and that name is also the inbox
+// `consumer` column. The two must be the same string: the inbox key is
+// (message_id, consumer) precisely so that several consumers of one message
+// each process it once, and a mismatch would make this process deduplicate
+// against a name nobody else uses. One consumer per command rather than one
+// wildcard consumer, because the command stream is a work queue: a wildcard
+// would also swallow commands this build has no handler for, and one slow
+// command type would sit in front of every other.
+
 const (
-	// consumerName is the durable consumer, and it is also the inbox
-	// `consumer` column. The two must be the same string: the inbox key is
-	// (message_id, consumer) precisely so that several consumers of one
-	// message each process it once, and a mismatch would make this process
-	// deduplicate against a name nobody else uses.
-	consumerName = "game-player-profile-get"
-
-	// commandDomain and commandAction name the one command phase 0 serves.
-	commandDomain = "player"
-	commandAction = "profile.get"
-
 	// defaultLocalesDir is where player-visible text is read from.
 	//
 	// This one path comes from the environment rather than from the config
@@ -149,12 +157,23 @@ func metaAttrs(meta envelope.Metadata) []any {
 }
 
 func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) error {
-	logger = logger.With(slog.String("service", "game"), slog.String("consumer", consumerName))
+	logger = logger.With(slog.String("service", "game"))
 	logger.Info("game starting",
 		slog.String("config", e.configPath),
 		slog.Duration("shutdown_timeout", cfg.Game.ShutdownTimeout),
 		slog.Duration("idempotency_ttl", cfg.Game.IdempotencyTTL),
-		slog.String("default_language", cfg.Player.DefaultLanguage))
+		slog.String("default_language", cfg.Player.DefaultLanguage),
+		slog.Int("travel_energy_cost", cfg.Travel.EnergyCost),
+		slog.Int("travel_arrival_xp", cfg.Travel.ArrivalXP))
+
+	// Fatal before any connection is opened: a price list the domain refuses
+	// would fail every departure, and that is a configuration error, not a
+	// runtime one.
+	tariff, err := newTariff(cfg.Travel.StandardKMPerHour, cfg.Travel.StandardBoarding,
+		cfg.Travel.ExpressKMPerHour, cfg.Travel.ExpressBoarding)
+	if err != nil {
+		return fmt.Errorf("game: travel tuning: %w", err)
+	}
 
 	pool, err := postgres.New(ctx, e.databaseURL)
 	if err != nil {
@@ -181,26 +200,73 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		return err
 	}
 
-	svc := &service{
-		logger: logger,
-		inbox:  postgres.NewInboxStore(pool),
-		// The handler is given the store, not the catalogue it currently
-		// holds: reloading the text then becomes a pointer swap inside
-		// the store, with no change here and no change in the handler.
-		// Do not "simplify" this to *i18n.Catalog.
+	registry, err := loadContent(ctx, pool, logger)
+	if err != nil {
+		return err
+	}
+
+	uow := postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage)
+	cities := postgres.NewCityRepository(pool)
+	stats := postgres.NewStatsRepository(pool)
+	travels := postgres.NewTravelRepository(pool)
+
+	// Every handler is given the store, not the catalogue it currently
+	// holds: reloading the text then becomes a pointer swap inside the
+	// store, with no change here and no change in the handler. Do not
+	// "simplify" this to *i18n.Catalog.
+	h := phaseHandlers{
 		profile: handlers.NewProfileHandler(
-			postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage),
+			uow,
 			uuidGenerator{},
 			messages,
-			postgres.NewStatsRepository(pool),
-			postgres.NewCityRepository(pool),
+			stats,
+			cities,
 			// The language a new account IS, not the catalogue's rendering
 			// fallback. Both read "fa" today and need not always.
 			cfg.Player.DefaultLanguage,
 			cfg.Game.IdempotencyTTL,
 			nil,
 		),
-		conn: conn.Raw(),
+		travel: handlers.NewTravelHandler(
+			uow,
+			uuidGenerator{},
+			messages,
+			cities,
+			stats,
+			travels,
+			postgres.NewGameActionRepository(pool),
+			livePlanner{registry: registry, tariff: tariff},
+			cfg.Travel.EnergyCost,
+			int64(cfg.Travel.ArrivalXP),
+			cfg.Game.IdempotencyTTL,
+			nil,
+		),
+		skills: handlers.NewSkillsHandler(uow, messages, postgres.NewSkillRepository(pool), nil),
+		social: handlers.NewSocialHandler(
+			uow,
+			uuidGenerator{},
+			messages,
+			postgres.NewPlayerSearchRepository(pool),
+			postgres.NewFriendshipRepository(pool),
+			handlers.DefaultPageSize,
+			cfg.Game.IdempotencyTTL,
+			nil,
+		),
+		worldMap: handlers.NewMapHandler(uow, messages, cities, travels, liveRoutes{registry: registry},
+			handlers.DefaultPageSize, nil),
+	}
+
+	subs := subscriptions.All()
+	commands, err := bindAll(subs, h.bind())
+	if err != nil {
+		return err
+	}
+
+	svc := &service{
+		logger:   logger,
+		inbox:    postgres.NewInboxStore(pool),
+		messages: messages,
+		conn:     conn.Raw(),
 	}
 
 	consumer := infranats.NewConsumer(conn, infranats.ConsumerOptions{
@@ -210,11 +276,14 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		Backoff:    cfg.NATS.Backoff,
 	})
 
-	subject := subjects.Command(commandDomain, commandAction)
-	if err := consumer.Subscribe(ctx, subject, consumerName, svc.handle); err != nil {
-		return err
+	for _, sub := range subs {
+		if err := consumer.Subscribe(ctx, sub.Subject(), sub.Durable(), svc.handler(sub, commands[sub.Command()])); err != nil {
+			return err
+		}
+		logger.Info("consuming",
+			slog.String("subject", sub.Subject()),
+			slog.String("consumer", sub.Durable()))
 	}
-	logger.Info("consuming", slog.String("subject", subject))
 
 	<-ctx.Done()
 	logger.Info("shutdown signal received, draining")
@@ -267,14 +336,53 @@ func loadMessages(dir string, logger *slog.Logger) (*i18n.Store, error) {
 	return i18n.NewStore(catalog), nil
 }
 
-// service is one command consumer.
+// loadContent boots the world from the active content version.
+//
+// It reads the database, not configs/content: ADR 0004 rule 6 makes the
+// database the source a service boots from, since a running container may not
+// hold the files, or may hold ones that were never loaded.
+//
+// No active version is logged and survived rather than fatal. The profile
+// screen does not depend on content, and taking first contact down because
+// nobody has run the content loader yet would be the larger outage; with an
+// empty registry every route lookup answers "unknown city", which is visibly
+// wrong on the map and travel screens rather than silently so.
+func loadContent(ctx context.Context, pool *postgres.Pool, logger *slog.Logger) (*content.Registry, error) {
+	registry := content.NewRegistry()
+
+	pack, err := postgres.NewContentStore(pool).LoadActive(ctx)
+	if errors.Is(err, postgres.ErrNoActiveVersion) {
+		logger.Error("no active content version; travel and the map will find no routes until content is loaded")
+		return registry, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	snap, err := content.BuildSnapshot(pack.Version, pack)
+	if err != nil {
+		return nil, err
+	}
+	registry.Swap(snap)
+	logger.Info("content loaded", slog.Int("content_version", snap.Version()))
+	return registry, nil
+}
+
+// service consumes every subscribed command.
 type service struct {
-	logger  *slog.Logger
-	inbox   *postgres.InboxStore
-	profile *handlers.ProfileHandler
-	conn    *natsgo.Conn
+	logger   *slog.Logger
+	inbox    *postgres.InboxStore
+	messages *i18n.Store
+	conn     *natsgo.Conn
 
 	inflight sync.WaitGroup
+}
+
+// handler returns the consumer callback for one subscription.
+func (s *service) handler(sub subscriptions.Subscription, run commandFunc) infranats.Handler {
+	return func(ctx context.Context, env *envelope.Envelope) error {
+		return s.handle(ctx, sub, run, env)
+	}
 }
 
 // handle processes one delivery.
@@ -283,7 +391,14 @@ type service struct {
 // handler accepted and NAKs with backoff the one it rejected, so an error here
 // means "redeliver this", never "drop it". Nothing in this function acks a
 // message it has not finished.
-func (s *service) handle(ctx context.Context, env *envelope.Envelope) error {
+//
+// A handler's error is one of two things, and they are told apart by class.
+// A classified refusal — not enough energy, already travelling, no such city
+// — is an answer: the player gets the screen for it and the message is done,
+// because the next delivery would be refused identically. Anything
+// unclassified, or classified as internal, is a fault that a later attempt
+// might survive, and goes back to the broker.
+func (s *service) handle(ctx context.Context, sub subscriptions.Subscription, run commandFunc, env *envelope.Envelope) error {
 	s.inflight.Add(1)
 	defer s.inflight.Done()
 
@@ -300,7 +415,7 @@ func (s *service) handle(ctx context.Context, env *envelope.Envelope) error {
 		return nil
 	}
 
-	log := s.logger.With(metaAttrs(meta)...)
+	log := s.logger.With(metaAttrs(meta)...).With(slog.String("consumer", sub.Durable()))
 
 	// JetStream delivers at least once, so this may be a redelivery. The
 	// inbox is recorded AFTER the work succeeds, never before.
@@ -317,10 +432,54 @@ func (s *service) handle(ctx context.Context, env *envelope.Envelope) error {
 	// the guarantee section 19 asks for — assume at-least-once, make the
 	// consumer idempotent — and the inbox is a record of completion, not a
 	// lock taken in advance.
-	resp, err := s.profile.Handle(ctx, meta)
+	resp, err := run(ctx, env)
 	if err != nil {
-		log.Error("command failed", slog.String("command", meta.Command), slog.String("error", err.Error()))
+		if apperrors.CodeOf(err) == apperrors.CodeInternal {
+			log.Error("command failed", slog.String("command", meta.Command), slog.String("error", err.Error()))
+			return err
+		}
+
+		log.Info("command refused", slog.String("command", meta.Command), slog.String("error", err.Error()))
+		resp = nil
+		if sub.Origin == subscriptions.FromPlayer {
+			resp = screens.Error(screens.Context{
+				Msgs:      s.messages,
+				Lang:      meta.Language,
+				MessageID: editableMessageID(meta),
+			}, err)
+		}
+	}
+
+	if err := s.reply(meta, resp, log); err != nil {
 		return err
+	}
+
+	// Record completion. A failure here is logged but not returned: the work
+	// is already done and the reply already sent, so redelivering would only
+	// repeat an idempotent handler and a duplicate reply. Losing the inbox row
+	// costs one redundant replay at worst.
+	if _, err := s.inbox.MarkProcessed(ctx, meta.RequestID, sub.Durable()); err != nil {
+		log.Warn("cannot record the message in the inbox", slog.String("error", err.Error()))
+	}
+
+	log.Info("command handled",
+		slog.String("command", meta.Command),
+		slog.String("player_id", meta.PlayerID),
+		slog.String("subject", sub.Subject()))
+
+	return nil
+}
+
+// reply sends a response to the gateway that is waiting for it.
+//
+// Nothing is sent when there is nothing to show, or when the command did not
+// come through a bot. A scheduled command such as travel.arrive has no bot
+// and no chat: a reply would reach the gateway, name a bot it does not serve,
+// and be dropped there with a warning. What such a command did reaches the
+// player through the event its handler wrote to the outbox instead.
+func (s *service) reply(meta envelope.Metadata, resp *presenter.Response, log *slog.Logger) error {
+	if resp == nil || meta.BotID == "" {
+		return nil
 	}
 
 	reply, err := envelope.New(meta, resp)
@@ -344,21 +503,18 @@ func (s *service) handle(ctx context.Context, env *envelope.Envelope) error {
 		log.Error("cannot publish the response", slog.String("subject", subject), slog.String("error", err.Error()))
 		return err
 	}
-
-	// Record completion. A failure here is logged but not returned: the work
-	// is already done and the reply already sent, so redelivering would only
-	// repeat an idempotent handler and a duplicate reply. Losing the inbox row
-	// costs one redundant replay at worst.
-	if _, err := s.inbox.MarkProcessed(ctx, meta.RequestID, consumerName); err != nil {
-		log.Warn("cannot record the message in the inbox", slog.String("error", err.Error()))
-	}
-
-	log.Info("command handled",
-		slog.String("command", meta.Command),
-		slog.String("player_id", meta.PlayerID),
-		slog.String("subject", subject))
-
 	return nil
+}
+
+// editableMessageID is the message an error screen may replace: the one an
+// inline button sits on, which the bot sent. A typed command's message
+// belongs to the player and no bot may edit it, so it is only ever a callback
+// that yields a non-zero id.
+func editableMessageID(meta envelope.Metadata) int64 {
+	if meta.CallbackQueryID == nil || *meta.CallbackQueryID == "" {
+		return 0
+	}
+	return meta.TelegramMessageID
 }
 
 // uuidGenerator supplies identifiers to the handler.

@@ -271,9 +271,17 @@ scheduler:
   batch_size: 102
   shutdown_timeout: 17s
   noisy_attempts: 7
+  claim_timeout: 3m
 game:
   shutdown_timeout: 22s
   idempotency_ttl: 23h
+travel:
+  energy_cost: 11
+  arrival_xp: 26
+  standard_km_per_hour: 241
+  standard_boarding: 6m
+  express_km_per_hour: 721
+  express_boarding: 16m
 player:
   default_language: "en"
 `
@@ -317,9 +325,17 @@ var envOverrides = map[string]string{
 	"TORN_SCHEDULER_BATCH_SIZE":       "103",
 	"TORN_SCHEDULER_SHUTDOWN_TIMEOUT": "37s",
 	"TORN_SCHEDULER_NOISY_ATTEMPTS":   "9",
+	"TORN_SCHEDULER_CLAIM_TIMEOUT":    "4m",
 
 	"TORN_GAME_SHUTDOWN_TIMEOUT": "24s",
 	"TORN_GAME_IDEMPOTENCY_TTL":  "22h",
+
+	"TORN_TRAVEL_ENERGY_COST":          "12",
+	"TORN_TRAVEL_ARRIVAL_XP":           "27",
+	"TORN_TRAVEL_STANDARD_KM_PER_HOUR": "242",
+	"TORN_TRAVEL_STANDARD_BOARDING":    "7m",
+	"TORN_TRAVEL_EXPRESS_KM_PER_HOUR":  "722",
+	"TORN_TRAVEL_EXPRESS_BOARDING":     "17m",
 
 	"TORN_PLAYER_DEFAULT_LANGUAGE": "de",
 }
@@ -586,6 +602,23 @@ func TestValidate(t *testing.T) {
 				c.Game.IdempotencyTTL = time.Second
 			},
 			want: ErrIdempotencyTTLTooShort,
+		},
+		{
+			name: "a claim lease that expires inside the batch budget",
+			break_: func(c *Config) {
+				c.Scheduler.ClaimTimeout = c.Scheduler.ShutdownTimeout
+			},
+			want: ErrClaimTimeoutTooShort,
+		},
+		{
+			name:   "a claim lease of zero",
+			break_: func(c *Config) { c.Scheduler.ClaimTimeout = 0 },
+			want:   ErrNotPositive,
+		},
+		{
+			name:   "a free journey",
+			break_: func(c *Config) { c.Travel.EnergyCost = 0 },
+			want:   ErrNotPositive,
 		},
 	}
 

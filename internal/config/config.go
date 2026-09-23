@@ -125,6 +125,12 @@ var (
 	// the broker has finished redelivering. A redelivery arriving after the
 	// key is gone is executed a second time, and the player is charged twice.
 	ErrIdempotencyTTLTooShort = errors.New("config: game.idempotency_ttl must outlast the nats redelivery schedule")
+
+	// ErrClaimTimeoutTooShort rejects a claim lease that can expire while the
+	// batch holding it is still allowed to run. The reaper would then hand a
+	// row a live scheduler is still dispatching to another tick, and the
+	// action would be published twice for no reason but a mis-set number.
+	ErrClaimTimeoutTooShort = errors.New("config: scheduler.claim_timeout must exceed scheduler.shutdown_timeout")
 )
 
 // Config is every operational value, grouped the way configs/config.yml is.
@@ -142,6 +148,7 @@ type Config struct {
 	Worker    Worker
 	Scheduler Scheduler
 	Game      Game
+	Travel    Travel
 	Player    Player
 }
 
@@ -250,12 +257,33 @@ type Scheduler struct {
 	BatchSize       int           // scheduler.batch_size
 	ShutdownTimeout time.Duration // scheduler.shutdown_timeout
 	NoisyAttempts   int           // scheduler.noisy_attempts
+
+	// ClaimTimeout is the lease on a claimed action. A row still running
+	// this long after its claim is presumed to belong to a scheduler that
+	// died, and is returned to scheduled so another tick can dispatch it.
+	ClaimTimeout time.Duration // scheduler.claim_timeout
 }
 
 // Game is the command-side service.
 type Game struct {
 	ShutdownTimeout time.Duration // game.shutdown_timeout
 	IdempotencyTTL  time.Duration // game.idempotency_ttl
+}
+
+// Travel is the tuning of a journey: what leaving costs, what arriving pays,
+// and how fast each speed moves.
+//
+// The RULES — which speeds exist, how a distance and a speed become a
+// duration — live in internal/domain/travel. These are only the numbers those
+// rules are fed. Fares are absent on purpose: ROADMAP.md phase 1 makes travel
+// free until the ledger exists, so there is nothing to tune yet.
+type Travel struct {
+	EnergyCost        int           // travel.energy_cost
+	ArrivalXP         int           // travel.arrival_xp
+	StandardKMPerHour int           // travel.standard_km_per_hour
+	StandardBoarding  time.Duration // travel.standard_boarding
+	ExpressKMPerHour  int           // travel.express_km_per_hour
+	ExpressBoarding   time.Duration // travel.express_boarding
 }
 
 // Player holds player-facing defaults.
@@ -320,10 +348,19 @@ func Defaults() *Config {
 			BatchSize:       100,
 			ShutdownTimeout: 15 * time.Second,
 			NoisyAttempts:   5,
+			ClaimTimeout:    2 * time.Minute,
 		},
 		Game: Game{
 			ShutdownTimeout: 20 * time.Second,
 			IdempotencyTTL:  24 * time.Hour,
+		},
+		Travel: Travel{
+			EnergyCost:        10,
+			ArrivalXP:         25,
+			StandardKMPerHour: 240,
+			StandardBoarding:  5 * time.Minute,
+			ExpressKMPerHour:  720,
+			ExpressBoarding:   15 * time.Minute,
 		},
 		Player: Player{
 			DefaultLanguage: "fa",
@@ -465,6 +502,13 @@ func (c *Config) Validate() error {
 	if window := c.NATS.RedeliveryWindow(); c.Game.IdempotencyTTL <= window {
 		return fmt.Errorf("%w: game.idempotency_ttl is %s, the redelivery schedule spans %s",
 			ErrIdempotencyTTLTooShort, c.Game.IdempotencyTTL, window)
+	}
+
+	// A lease shorter than the batch budget reclaims rows that are still
+	// being dispatched.
+	if c.Scheduler.ClaimTimeout <= c.Scheduler.ShutdownTimeout {
+		return fmt.Errorf("%w: claim_timeout is %s, shutdown_timeout is %s",
+			ErrClaimTimeoutTooShort, c.Scheduler.ClaimTimeout, c.Scheduler.ShutdownTimeout)
 	}
 
 	return nil

@@ -174,7 +174,6 @@ worker:
   # touched; only the reporting changes.
   noisy_attempts: 5
 
-# The command-side game service.
 # The scheduler turns the durable schedule into published commands. It owns
 # WHEN work happens, never WHAT happens: a due travel becomes a published
 # command that the game service handles.
@@ -202,6 +201,18 @@ scheduler:
   # warn. It changes log volume only; it never drops the action.
   noisy_attempts: 5
 
+  # The lease on a claimed action. A claim moves a row from scheduled to
+  # running, out of the due index; if the scheduler holding it dies before
+  # completing it, nothing would ever look at the row again. A row still
+  # running this long after its claim is returned to scheduled and dispatched
+  # again. It must exceed shutdown_timeout, and loading the config fails if it
+  # does not: a shorter lease reclaims rows a live batch is still publishing.
+  # Lowering it recovers a stranded journey sooner and makes a slow batch more
+  # likely to be dispatched twice; the game service's idempotency absorbs the
+  # repeat, but it is work done twice.
+  claim_timeout: 2m
+
+# The command-side game service.
 game:
   # Bounds the drain of in-flight messages when the service stops.
   shutdown_timeout: 20s
@@ -211,6 +222,27 @@ game:
   # fails if it does not: a redelivery arriving after the key expired is
   # executed a second time.
   idempotency_ttl: 24h
+
+# The tuning of a journey. The RULES — which speeds exist, how a distance and
+# a speed become a duration — live in internal/domain/travel; these are only
+# the numbers those rules are fed. There are no fares: ROADMAP.md phase 1 makes
+# travel free until the ledger exists.
+travel:
+  # Energy a departure costs. It is the only limit phase 1 puts on travelling,
+  # so it must be above zero. Raising it makes a player wait longer between
+  # trips for energy to regenerate.
+  energy_cost: 10
+
+  # XP a player earns on landing.
+  arrival_xp: 25
+
+  # How fast each speed moves, in distance units per hour, and the fixed
+  # boarding time paid before it starts moving whatever the distance. The
+  # boarding term is what makes express not simply better on a short hop.
+  standard_km_per_hour: 240
+  standard_boarding: 5m
+  express_km_per_hour: 720
+  express_boarding: 15m
 
 # Player-facing defaults.
 player:
