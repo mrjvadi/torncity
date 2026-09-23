@@ -137,6 +137,13 @@ func TestValidateRejects(t *testing.T) {
 			want: ErrDuplicateRoute,
 		},
 		{
+			// The domain builds every edge both ways, so a one-way flag would
+			// be a key the file states and the world ignores.
+			name:   "a route marked one-way",
+			mutate: func(p *Pack) { p.Routes[0].Bidirectional = ptr(false) },
+			want:   ErrOneWayRouteUnsupported,
+		},
+		{
 			name:   "distance of zero",
 			mutate: func(p *Pack) { p.Routes[0].Distance = 0 },
 			want:   ErrInvalidDistance,
@@ -199,6 +206,7 @@ func TestValidateAcceptsTheBoundaries(t *testing.T) {
 		{"cost of living of one", func(p *Pack) { p.Cities[0].CostOfLiving = 1 }},
 		{"distance of one", func(p *Pack) { p.Routes[0].Distance = 1 }},
 		{"the longest allowed distance", func(p *Pack) { p.Routes[0].Distance = world.MaxEdgeDistance }},
+		{"a route stated bidirectional explicitly", func(p *Pack) { p.Routes[0].Bidirectional = ptr(true) }},
 		{"no routes at all", func(p *Pack) { p.Routes = nil }},
 		{"no skills at all", func(p *Pack) { p.Skills = nil }},
 	}

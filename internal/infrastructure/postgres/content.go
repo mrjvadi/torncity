@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -113,17 +114,24 @@ type Applied struct {
 // commit is a row that is missing whenever the loader dies in between —
 // exactly the load an investigator would most want to find.
 //
-// Apply does not validate the pack. That is the caller's job and it must have
-// happened before anything reached this point (ADR 0004 rule 1); re-running it
-// here would only hide a caller that forgot.
+// Apply validates the pack again before it opens a transaction. The caller is
+// expected to have done so already (ADR 0004 rule 1), and the admin command
+// does; repeating it here costs microseconds and means no future caller of
+// this method can write a world that the loader would have refused.
 func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequest) (Applied, error) {
 	if p == nil {
 		return Applied{}, fmt.Errorf("postgres: content apply: no pack")
 	}
-	if req.Reason == "" {
+	// A reason of only spaces satisfies NOT NULL and says nothing, which is
+	// exactly what the column exists to prevent.
+	reason := strings.TrimSpace(req.Reason)
+	if reason == "" {
 		return Applied{}, ErrNoReason
 	}
-	actor := req.Actor
+	if err := p.Validate(); err != nil {
+		return Applied{}, fmt.Errorf("postgres: content apply: refusing invalid content: %w", err)
+	}
+	actor := strings.TrimSpace(req.Actor)
 	if actor == "" {
 		actor = "unknown"
 	}
@@ -138,7 +146,13 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 		return Applied{}, fmt.Errorf("postgres: content apply: lock: %w", err)
 	}
 
-	if err := refuseRemovalOfCitiesInUse(ctx, tx, p); err != nil {
+	previous, err := currentWorld(ctx, tx)
+	if err != nil {
+		return Applied{}, err
+	}
+
+	removed, err := refuseRemovalOfCitiesInUse(ctx, tx, p)
+	if err != nil {
 		return Applied{}, err
 	}
 
@@ -164,7 +178,7 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 	if _, err := tx.Exec(ctx,
 		`INSERT INTO content_versions (id, version, loaded_at, loaded_by, source_checksum, status, notes)
 		 VALUES ($1::uuid, $2, $3, $4, $5, 'active', $6)`,
-		versionID, version, time.Now().UTC(), actor, checksum, req.Reason); err != nil {
+		versionID, version, time.Now().UTC(), actor, checksum, reason); err != nil {
 		return Applied{}, fmt.Errorf("postgres: content apply: version row: %w", err)
 	}
 
@@ -181,7 +195,17 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 	if err := appendContentEvent(ctx, tx, version, versionID, checksum); err != nil {
 		return Applied{}, err
 	}
-	if err := appendContentAudit(ctx, tx, version, versionID, checksum, p, actor, req.Reason); err != nil {
+	audit := contentAudit{
+		version:   version,
+		versionID: versionID,
+		checksum:  checksum,
+		previous:  previous,
+		removed:   removed,
+		pack:      p,
+		actor:     actor,
+		reason:    reason,
+	}
+	if err := appendContentAudit(ctx, tx, audit); err != nil {
 		return Applied{}, err
 	}
 
@@ -189,6 +213,47 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 		return Applied{}, fmt.Errorf("postgres: content apply: commit: %w", err)
 	}
 	return Applied{Version: version, VersionID: versionID, Checksum: checksum}, nil
+}
+
+// activeWorld is the part of the active version the audit row compares
+// against.
+type activeWorld struct {
+	version  int
+	checksum string
+	codes    map[string]struct{}
+}
+
+// currentWorld reads the active version's number, checksum and city codes. A
+// database that has never been loaded answers version 0 and no cities.
+func currentWorld(ctx context.Context, tx pgx.Tx) (activeWorld, error) {
+	w := activeWorld{codes: map[string]struct{}{}}
+	var id string
+	err := tx.QueryRow(ctx,
+		`SELECT id::text, version, source_checksum FROM content_versions WHERE status = 'active'`).
+		Scan(&id, &w.version, &w.checksum)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return w, nil
+	}
+	if err != nil {
+		return w, fmt.Errorf("postgres: content apply: reading the active version: %w", err)
+	}
+
+	rows, err := tx.Query(ctx, `SELECT code FROM cities WHERE content_version_id = $1::uuid`, id)
+	if err != nil {
+		return w, fmt.Errorf("postgres: content apply: reading active cities: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var code string
+		if err := rows.Scan(&code); err != nil {
+			return w, fmt.Errorf("postgres: content apply: scanning active city: %w", err)
+		}
+		w.codes[code] = struct{}{}
+	}
+	if err := rows.Err(); err != nil {
+		return w, fmt.Errorf("postgres: content apply: reading active cities: %w", err)
+	}
+	return w, nil
 }
 
 // LoadActive reads the active version back out as a pack.
@@ -206,16 +271,30 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 //     back out of the database needs it.
 //   - Checksum, because the pack's checksum is a digest of source FILES and
 //     there are none here. The stored digest belongs to the version row; use
-//     ActiveVersion to read it.
+//     Active to read it.
 //
 // CityIDs is filled, so the snapshot built from this pack can answer lookups
 // by storage id — which a pack loaded from yaml cannot.
+//
+// All four reads run in ONE read-only REPEATABLE READ transaction. They were
+// four independent statements in the first draft, and a load committing
+// between them breaks the result: cities are rewritten in place (their
+// content_version_id moves to the new version), so the city query would find
+// none of the old version's cities while the route query still found its
+// edges, and BuildSnapshot would refuse the pack as a route to nowhere. One
+// snapshot means one version, whole.
 func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
+	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly})
+	if err != nil {
+		return nil, fmt.Errorf("postgres: content load: begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback(context.WithoutCancel(ctx)) }()
+
 	var (
 		versionID string
 		version   int
 	)
-	err := s.pool.QueryRow(ctx,
+	err = tx.QueryRow(ctx,
 		`SELECT id::text, version FROM content_versions WHERE status = 'active'`).Scan(&versionID, &version)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNoActiveVersion
@@ -229,7 +308,7 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 	// Ordered by code, not by insertion: a pack read back twice must be the
 	// same pack, and the checksum comparison an operator makes between a
 	// stored version and a checkout depends on nothing here being arbitrary.
-	cityRows, err := s.pool.Query(ctx,
+	cityRows, err := tx.Query(ctx,
 		`SELECT id::text, code, name, tax_rate_bps, cost_of_living
 		   FROM cities
 		  WHERE content_version_id = $1::uuid
@@ -259,7 +338,7 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 	// ever did, a missing edge would be far better than a route naming a city
 	// the pack does not contain, which would fail Validate with a message
 	// blaming the content instead of the query.
-	routeRows, err := s.pool.Query(ctx,
+	routeRows, err := tx.Query(ctx,
 		`SELECT f.code, t.code, r.distance, r.bidirectional
 		   FROM city_routes r
 		   JOIN cities f ON f.id = r.from_city_id
@@ -290,7 +369,7 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 	}
 	routeRows.Close()
 
-	skillRows, err := s.pool.Query(ctx,
+	skillRows, err := tx.Query(ctx,
 		`SELECT code, name, category
 		   FROM skill_definitions
 		  WHERE content_version_id = $1::uuid
@@ -309,7 +388,11 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 	if err := skillRows.Err(); err != nil {
 		return nil, fmt.Errorf("postgres: content load: reading skills: %w", err)
 	}
+	skillRows.Close()
 
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("postgres: content load: commit: %w", err)
+	}
 	return pack, nil
 }
 
@@ -341,19 +424,65 @@ func (s *ContentStore) Active(ctx context.Context) (ActiveVersion, error) {
 	return v, nil
 }
 
-// refuseRemovalOfCitiesInUse implements ADR 0004 rule 7.
+// refuseRemovalOfCitiesInUse implements ADR 0004 rule 7 and returns the codes
+// this load retires.
 //
-// A city that no longer appears in the files would be orphaned by this load.
-// If a player is standing in it or travelling to it, the load is refused: a
-// dangling city_id is a broken save, and discovering it when the player next
-// opens a screen is far worse than refusing here.
+// A city of the current world that no longer appears in the files would be
+// retired by this load. If a player is standing in it or travelling to or from
+// it, the load is refused: a player in a city that is not part of the world is
+// a broken save, and discovering it when the player next opens a screen is far
+// worse than refusing here.
 //
-// It runs inside the applying transaction and after the advisory lock, so the
-// answer cannot change between the check and the write.
-func refuseRemovalOfCitiesInUse(ctx context.Context, tx pgx.Tx, p *content.Pack) error {
+// "The current world" is the active version's cities plus any row with no
+// version at all (written before the content system existed). A city an
+// earlier load already retired is not being removed by THIS load, and must not
+// block every future load forever.
+//
+// # Why the rows are locked first, in a separate statement
+//
+// The advisory lock serialises loaders against each other; it does nothing
+// about the game service, which never takes it. In the first draft a player
+// could therefore move into a city after the count and before the commit.
+// So the retiring city rows are locked FOR UPDATE first. Writing a
+// players.city_id or a travels row that references a city takes a FOR KEY
+// SHARE lock on that city, which conflicts with FOR UPDATE: from here to
+// commit nobody can start referencing a retiring city, and anybody who was
+// mid-way through doing so has finished before the lock is granted. The count
+// is then a SECOND statement, because under READ COMMITTED each statement
+// takes a fresh snapshot, so it sees every reference committed while this
+// transaction was waiting for the lock.
+func refuseRemovalOfCitiesInUse(ctx context.Context, tx pgx.Tx, p *content.Pack) ([]string, error) {
 	codes := make([]string, 0, len(p.Cities))
 	for _, c := range p.Cities {
 		codes = append(codes, c.Code)
+	}
+
+	lockRows, err := tx.Query(ctx,
+		`SELECT c.code
+		   FROM cities c
+		  WHERE NOT (c.code = ANY($1::text[]))
+		    AND (c.content_version_id IS NULL
+		         OR c.content_version_id IN (SELECT id FROM content_versions WHERE status = 'active'))
+		  ORDER BY c.code
+		    FOR UPDATE OF c`, codes)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: content apply: locking retiring cities: %w", err)
+	}
+	var retiring []string
+	for lockRows.Next() {
+		var code string
+		if err := lockRows.Scan(&code); err != nil {
+			lockRows.Close()
+			return nil, fmt.Errorf("postgres: content apply: scanning retiring city: %w", err)
+		}
+		retiring = append(retiring, code)
+	}
+	lockRows.Close()
+	if err := lockRows.Err(); err != nil {
+		return nil, fmt.Errorf("postgres: content apply: locking retiring cities: %w", err)
+	}
+	if len(retiring) == 0 {
+		return nil, nil
 	}
 
 	// Residents are counted regardless of player status: a banned or deleted
@@ -364,9 +493,10 @@ func refuseRemovalOfCitiesInUse(ctx context.Context, tx pgx.Tx, p *content.Pack)
 		        (SELECT count(*) FROM travels t  WHERE (t.to_city_id = c.id OR t.from_city_id = c.id)
 		                                           AND t.status = 'in_transit') AS journeys
 		   FROM cities c
-		  WHERE NOT (c.code = ANY($1::text[]))`, codes)
+		  WHERE c.code = ANY($1::text[])
+		  ORDER BY c.code`, retiring)
 	if err != nil {
-		return fmt.Errorf("postgres: content apply: checking cities in use: %w", err)
+		return nil, fmt.Errorf("postgres: content apply: checking cities in use: %w", err)
 	}
 	defer rows.Close()
 
@@ -375,7 +505,7 @@ func refuseRemovalOfCitiesInUse(ctx context.Context, tx pgx.Tx, p *content.Pack)
 		var code string
 		var residents, journeys int64
 		if err := rows.Scan(&code, &residents, &journeys); err != nil {
-			return fmt.Errorf("postgres: content apply: scanning cities in use: %w", err)
+			return nil, fmt.Errorf("postgres: content apply: scanning cities in use: %w", err)
 		}
 		if residents > 0 || journeys > 0 {
 			blocked = append(blocked,
@@ -383,13 +513,12 @@ func refuseRemovalOfCitiesInUse(ctx context.Context, tx pgx.Tx, p *content.Pack)
 		}
 	}
 	if err := rows.Err(); err != nil {
-		return fmt.Errorf("postgres: content apply: reading cities in use: %w", err)
+		return nil, fmt.Errorf("postgres: content apply: reading cities in use: %w", err)
 	}
 	if len(blocked) > 0 {
-		sort.Strings(blocked)
-		return fmt.Errorf("%w: %s", ErrCityInUse, joinLines(blocked))
+		return nil, fmt.Errorf("%w:%s", ErrCityInUse, joinLines(blocked))
 	}
-	return nil
+	return retiring, nil
 }
 
 // joinLines renders a list of offenders one per line, so a refusal naming six
@@ -547,21 +676,61 @@ func appendContentEvent(ctx context.Context, tx pgx.Tx, version int, versionID, 
 	return nil
 }
 
-// appendContentAudit records the load in audit_logs (ADR 0004 rule 5).
+// contentAudit is everything the audit row for one load records.
+type contentAudit struct {
+	version   int
+	versionID string
+	checksum  string
+	previous  activeWorld
+	removed   []string
+	pack      *content.Pack
+	actor     string
+	reason    string
+}
+
+// appendContentAudit records the load in audit_logs (ADR 0004 rule 5: who,
+// when, which version, and what changed).
 //
-// old_value is left NULL: there is no previous value for "a new version
-// appeared", and writing the superseded version there would suggest a diff
-// this row does not contain. new_value holds what the version is, which is
-// enough to answer "what did this load change" when set beside the row before
-// it.
-func appendContentAudit(ctx context.Context, tx pgx.Tx, version int, versionID, checksum string, p *content.Pack, actor, reason string) error {
+// old_value names the version this load replaced and new_value the version it
+// created, each with its checksum, so a row read on its own says what moved.
+// The difference is recorded at the level an investigator asks about first —
+// which cities entered or left the world — rather than as a full row diff;
+// the complete content of both versions is still in the database under their
+// version ids. old_value is NULL for the very first load, because there was
+// no previous value.
+func appendContentAudit(ctx context.Context, tx pgx.Tx, a contentAudit) error {
+	var oldValue any
+	if a.previous.version > 0 {
+		b, err := json.Marshal(map[string]any{
+			"version":         a.previous.version,
+			"source_checksum": a.previous.checksum,
+			"cities":          len(a.previous.codes),
+		})
+		if err != nil {
+			return fmt.Errorf("postgres: content apply: encoding audit value: %w", err)
+		}
+		oldValue = string(b)
+	}
+
+	added := []string{}
+	for _, c := range a.pack.Cities {
+		if _, ok := a.previous.codes[c.Code]; !ok {
+			added = append(added, c.Code)
+		}
+	}
+	sort.Strings(added)
+	removed := append([]string{}, a.removed...)
+
 	newValue, err := json.Marshal(map[string]any{
-		"version":         version,
-		"version_id":      versionID,
-		"source_checksum": checksum,
-		"cities":          len(p.Cities),
-		"routes":          len(p.Routes),
-		"skills":          len(p.Skills),
+		"version":         a.version,
+		"version_id":      a.versionID,
+		"source_checksum": a.checksum,
+		"cities":          len(a.pack.Cities),
+		"routes":          len(a.pack.Routes),
+		"skills":          len(a.pack.Skills),
+		"cities_added":    added,
+		"cities_removed":  removed,
+		"same_source":     a.previous.version > 0 && a.previous.checksum == a.checksum,
 	})
 	if err != nil {
 		return fmt.Errorf("postgres: content apply: encoding audit value: %w", err)
@@ -569,9 +738,9 @@ func appendContentAudit(ctx context.Context, tx pgx.Tx, version int, versionID, 
 
 	if _, err := tx.Exec(ctx,
 		`INSERT INTO audit_logs (actor, action, target_type, target_id, old_value, new_value, reason, created_at)
-		 VALUES ($1, $2, $3, $4::uuid, NULL, $5::jsonb, $6, $7)`,
-		actor, "content.load", "content_version", versionID,
-		string(newValue), reason, time.Now().UTC()); err != nil {
+		 VALUES ($1, $2, $3, $4::uuid, $5::jsonb, $6::jsonb, $7, $8)`,
+		a.actor, "content.load", "content_version", a.versionID,
+		oldValue, string(newValue), a.reason, time.Now().UTC()); err != nil {
 		return fmt.Errorf("postgres: content apply: audit row: %w", err)
 	}
 	return nil

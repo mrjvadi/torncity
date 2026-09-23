@@ -68,6 +68,18 @@ var (
 	// domain's route builder accepts.
 	ErrInvalidDistance = errors.New("content: route distance must be positive")
 
+	// ErrOneWayRouteUnsupported means a route said `bidirectional: false`.
+	//
+	// The file format has the key and the ADR lists it, but the domain does
+	// not honour it: world.Edge is bidirectional by definition and
+	// world.NewRoutes builds a symmetric network whatever the flag says.
+	// Accepting the key would therefore be the exact failure KnownFields(true)
+	// exists to prevent — a file stating an intention the system silently
+	// ignores, here a one-way road that players can drive both ways. It is
+	// refused until the domain grows the extension point world.Edge describes;
+	// stating `bidirectional: true`, or omitting the key, is fine.
+	ErrOneWayRouteUnsupported = errors.New("content: one-way routes (bidirectional: false) are not supported yet")
+
 	// ErrUnknownSkillCode means a skill code is not one of the codes
 	// internal/domain/player declares. That set is closed because other
 	// packages branch on individual members of it, so a code invented in a
@@ -197,6 +209,11 @@ func (p *Pack) validateRoutes(known map[string]struct{}, problems *[]error) {
 			} else {
 				seen[key] = i
 			}
+		}
+
+		if !r.IsBidirectional() {
+			*problems = append(*problems, fmt.Errorf("%w: %s (%q -> %q)",
+				ErrOneWayRouteUnsupported, where, r.From, r.To))
 		}
 
 		if r.Distance <= 0 || r.Distance > world.MaxEdgeDistance {

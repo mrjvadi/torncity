@@ -1,0 +1,29 @@
+# Skills.
+#
+# The SET of skills is a rule, not content: other systems branch on individual
+# skills (programming drives software production, driving drives racing), so
+# a skill invented here would be one a player can train and never use. The
+# loader therefore rejects any code not in internal/domain/player.SkillCodes().
+#
+# What IS content here is how each skill is named and grouped for display.
+# Renaming or regrouping needs no code change.
+#
+# See docs/adr/0004-content-system.md.
+#
+# Fields
+#   code       one of the fixed skill codes; never change it after it ships.
+#   name       display name.
+#   category   presentation group; open vocabulary.
+
+version: 1
+
+skills:
+  - {code: programming, name: Programming, category: technology}
+  - {code: engineering, name: Engineering, category: technology}
+  - {code: mechanics,   name: Mechanics,   category: trades}
+  - {code: cooking,     name: Cooking,     category: trades}
+  - {code: logistics,   name: Logistics,   category: trades}
+  - {code: driving,     name: Driving,     category: trades}
+  - {code: medicine,    name: Medicine,    category: professional}
+  - {code: management,  name: Management,  category: professional}
+  - {code: finance,     name: Finance,     category: professional}

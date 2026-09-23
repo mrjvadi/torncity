@@ -253,17 +253,25 @@ func TestSwapUnderConcurrentReaders(t *testing.T) {
 
 	const readers = 8
 	var (
-		wg    sync.WaitGroup
-		stop  atomic.Bool
-		torn  atomic.Int64
-		reads atomic.Int64
+		wg      sync.WaitGroup
+		started sync.WaitGroup
+		stop    atomic.Bool
+		torn    atomic.Int64
+		reads   atomic.Int64
 	)
 
+	// Every reader completes one full read BEFORE the writer starts swapping,
+	// and the writer waits for that. Without the barrier a fast writer could
+	// finish all its swaps before the scheduler ran a single reader, and the
+	// test would then prove nothing — which is what the earlier, flaky
+	// "no reader ever ran" failure was reporting.
+	started.Add(readers)
 	for i := 0; i < readers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for !stop.Load() {
+			first := true
+			for first || !stop.Load() {
 				// The intended usage: take the snapshot ONCE and use that one
 				// value for the whole unit of work. A swap landing in the
 				// middle must not be visible to this iteration.
@@ -280,9 +288,14 @@ func TestSwapUnderConcurrentReaders(t *testing.T) {
 					torn.Add(1)
 				}
 				reads.Add(1)
+				if first {
+					first = false
+					started.Done()
+				}
 			}
 		}()
 	}
+	started.Wait()
 
 	for i := 0; i < 2000; i++ {
 		if i%2 == 0 {
@@ -297,8 +310,10 @@ func TestSwapUnderConcurrentReaders(t *testing.T) {
 	if n := torn.Load(); n != 0 {
 		t.Errorf("%d reader(s) saw a torn snapshot", n)
 	}
-	if reads.Load() == 0 {
-		t.Error("no reader ever ran, so this proved nothing")
+	// Guaranteed by the barrier above; kept as a guard against somebody
+	// removing it.
+	if reads.Load() < readers {
+		t.Errorf("only %d read(s) happened, want at least one per reader", reads.Load())
 	}
 }
 
@@ -312,22 +327,30 @@ func TestRegistryAccessorsUnderConcurrentSwaps(t *testing.T) {
 	}
 	r.Swap(snap)
 
-	var wg sync.WaitGroup
+	var wg, started sync.WaitGroup
 	var stop atomic.Bool
 
-	for i := 0; i < 4; i++ {
+	const readers = 4
+	started.Add(readers)
+	for i := 0; i < readers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for !stop.Load() {
+			first := true
+			for first || !stop.Load() {
 				_ = r.Version()
 				_ = r.Cities()
 				_, _ = r.City("bravo")
 				_ = r.Routes()
 				_ = r.Skills()
+				if first {
+					first = false
+					started.Done()
+				}
 			}
 		}()
 	}
+	started.Wait()
 
 	for i := 0; i < 1000; i++ {
 		fresh, err := BuildSnapshot(i+2, chainPack())

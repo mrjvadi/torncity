@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/content"
@@ -37,7 +38,7 @@ func contentUsage() {
   status                    report the active version, read back from the database
 
 TORN_CONTENT_DIR overrides the content directory (default `+defaultContentDir+`).
-load also requires DATABASE_URL.
+load and status also require DATABASE_URL.
 `)
 }
 
@@ -52,6 +53,8 @@ func contentCommand(ctx context.Context, args []string) error {
 		return contentValidate(args[1:])
 	case "load":
 		return contentLoad(ctx, args[1:])
+	case "status":
+		return contentStatus(ctx, args[1:])
 	default:
 		contentUsage()
 		os.Exit(2)
@@ -136,6 +139,7 @@ func contentLoad(ctx context.Context, args []string) error {
 	// timeout. ADR 0009: a change whose reason was not recorded is a change
 	// nobody can evaluate six months later, and content_versions.notes is
 	// NOT NULL for exactly that reason.
+	*reason = strings.TrimSpace(*reason)
 	if *reason == "" {
 		return errors.New("content load: --reason is required; " +
 			"a content change with no recorded reason cannot be understood later")
@@ -155,17 +159,9 @@ func contentLoad(ctx context.Context, args []string) error {
 	}
 	describe(pack)
 
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		return errors.New("DATABASE_URL is not set")
-	}
-
-	dialCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-	pool, err := postgres.New(dialCtx, dsn)
+	pool, err := contentPool(ctx)
 	if err != nil {
-		// The DSN carries a password; never echo it.
-		return fmt.Errorf("connect to database: %w", redactDSN(err))
+		return err
 	}
 	defer pool.Close()
 
@@ -180,5 +176,84 @@ func contentLoad(ctx context.Context, args []string) error {
 	fmt.Printf("stored checksum:   %s\n", applied.Checksum)
 	fmt.Printf("loaded by:         %s\n", who)
 	fmt.Printf("reason:            %s\n", *reason)
+	return nil
+}
+
+// contentPool dials the database for the subcommands that need one.
+func contentPool(ctx context.Context) (*postgres.Pool, error) {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		return nil, errors.New("DATABASE_URL is not set")
+	}
+	dialCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	pool, err := postgres.New(dialCtx, dsn)
+	if err != nil {
+		// The DSN carries a password; never echo it.
+		return nil, fmt.Errorf("connect to database: %w", redactDSN(err))
+	}
+	return pool, nil
+}
+
+// contentStatus reports the active version, read back from the database.
+//
+// It goes through LoadActive and BuildSnapshot — the exact path a booting
+// service takes (ADR 0004 rule 6) — rather than only reading the version row,
+// so a status that prints successfully is proof that a service could boot on
+// what is stored, not merely that a row says it is active.
+func contentStatus(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("content status", flag.ExitOnError)
+	fs.Usage = contentUsage
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	pool, err := contentPool(ctx)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+	store := postgres.NewContentStore(pool)
+
+	row, err := store.Active(ctx)
+	if errors.Is(err, postgres.ErrNoActiveVersion) {
+		return errors.New("no content has been loaded yet; run: admin content load --reason \"...\"")
+	}
+	if err != nil {
+		return err
+	}
+
+	pack, err := store.LoadActive(ctx)
+	if err != nil {
+		return err
+	}
+	snap, err := content.BuildSnapshot(pack.Version, pack)
+	if err != nil {
+		return fmt.Errorf("the active version does not build: %w", err)
+	}
+
+	fmt.Printf("active version:    %d\n", pack.Version)
+	fmt.Printf("version id:        %s\n", row.ID)
+	fmt.Printf("loaded at:         %s\n", row.LoadedAt.UTC().Format(time.RFC3339))
+	fmt.Printf("loaded by:         %s\n", row.LoadedBy)
+	fmt.Printf("reason:            %s\n", row.Notes)
+	fmt.Printf("stored checksum:   %s\n", row.Checksum)
+	fmt.Printf("cities:            %d\n", len(pack.Cities))
+	fmt.Printf("routes:            %d\n", len(pack.Routes))
+	fmt.Printf("skills:            %d\n", len(pack.Skills))
+	for _, c := range snap.Cities() {
+		fmt.Printf("  %-16s %-16s tax %5d bps  cost %6d  id %s\n",
+			c.Code, c.Name, c.TaxRateBPS, c.CostOfLiving, c.ID)
+	}
+
+	// Whether the checkout in front of the operator is what is running. Only
+	// compared, never required: status must work on a machine with no files.
+	if local, err := content.Load(contentDir()); err == nil {
+		if local.Checksum == row.Checksum {
+			fmt.Printf("\n%s matches the active version\n", contentDir())
+		} else {
+			fmt.Printf("\n%s DIFFERS from the active version (local checksum %s)\n", contentDir(), local.Checksum)
+		}
+	}
 	return nil
 }

@@ -9,11 +9,15 @@
 # Fields
 #   from, to        city codes. Both must exist in cities.yml or the load fails.
 #   distance        abstract distance units, must be positive.
-#   bidirectional   when true (the default) the reverse route is implied.
-#                   Set false for a one-way route.
+#   bidirectional   optional; may only be true (the default). Every route is
+#                   travelled both ways at the same distance. One-way routes
+#                   are not supported by the travel rules yet, so writing
+#                   false is REJECTED rather than silently treated as two-way:
+#                   a key the system would ignore is worse than no key.
 #
 # The loader rejects: an unknown city code, a distance of zero or less, a
-# duplicate edge, and a route from a city to itself. It also reports any city
+# duplicate edge (including the same pair written in reverse), a route from a
+# city to itself, and bidirectional: false. It also reports any city
 # that no route reaches, because an unreachable city is almost always a typo
 # rather than a design choice.
 
