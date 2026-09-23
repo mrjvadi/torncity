@@ -11,7 +11,8 @@
 # Terminology and emoji anchors follow the glossary at the top of fa.yml:
 # Energy ⚡, Health ❤️, Level ⭐, XP, City 📍, Journey 🧭, Time left ⏳, Map 🗺,
 # Skills 🛠, Friends 👥, Profile 👤, Search 🔎, Refresh 🔄, Settings ⚙️,
-# Player code 🆔, Language 🌐 (a language is always named in itself). Address the player
+# Player code 🆔, Language 🌐 (a language is always named in itself), Cash 💵,
+# Bank 🏦, Card payment 💳, Pay 💸; a bank fee is a "fee". Address the player
 # as "you"; durations read "2h 15m"; numbers use "," as the thousands
 # separator (inserted by the code).
 
@@ -30,6 +31,10 @@ profile:
   energy: "⚡ Energy: {energy}/{max_energy}"
   energy_refilling: "⚡ Energy: {energy}/{max_energy} · full in {duration}"
   health: "❤️ Health: {health}/{max_health}"
+  # A player's money: the cash they carry and their bank balance. Private:
+  # only the player sees these.
+  cash: "💵 Cash: {cash}"
+  bank: "🏦 Bank balance: {bank}"
   code: "🆔 Player code: {code}"
   code_hint: Friends can find you with /social {code}.
   unavailable: Your profile is not available right now. Please try again in a moment.
@@ -44,10 +49,26 @@ map:
   travelling: "🧭 You are on the way to {city}. You can start a new journey once you arrive."
 
 travel:
+  # The choice of transport, shown when a destination is pressed on the Map.
+  # Nothing departs until a mode is chosen. {fare} and {cash} arrive already
+  # formatted through format.money; {wait} is the real time the trip takes.
+  options_title: |-
+    🧭 Travel to {to}
+    From: {from}
+  options_choose: "How would you like to travel?"
+  option: "• {mode}: {fare}, {wait} on the way, {energy} energy"
+  option_busy: "• {mode}: {fare} (busy route), {wait} on the way, {energy} energy"
+  requoted: The fare has changed since you looked. Nothing was charged — here are the current prices.
+  cash: "💵 Your cash: {cash}"
+  insufficient_funds: Not enough cash for the {mode}. The fare is {fare} and you have {cash}. Nothing was charged; a cheaper way to travel may still be in reach.
+  # Shown only if a mode has neither a translation nor an authored name.
+  mode_unnamed: Other transport
   started: |-
-    🧭 Your journey to {to} has begun
+    🧭 Your journey to {to} by {mode} has begun
     You left {from} and will arrive in {duration}.
     ⚡ {energy} energy used.
+  started_fare: "💵 {fare} fare paid."
+  status_mode: "By {mode}"
   status: |-
     🧭 On the way to {to}
     From: {from}
@@ -64,7 +85,16 @@ travel:
   none: You are not travelling right now. Open the Map to choose a destination.
   same_city: You are already in this city. Choose another destination from the Map.
   no_route: There is no route there from your current city. Choose one of the destinations on the Map.
-  unknown_speed: That way of travelling is not available. Use the Map to travel the standard way.
+  mode_unavailable: That way of travelling does not serve this journey. Choose the destination on the Map again to see the ways that do.
+
+# Transport mode names, keyed on the mode's content code
+# (configs/content/transport.yml). A mode with no entry here falls back to its
+# authored name.
+transport_mode:
+  bus: Bus
+  car: Car
+  train: Train
+  flight: Flight
 
 skills:
   title: "🛠 Skills"
@@ -108,6 +138,12 @@ help:
     /skills — your skills
     /social — your friends
     /find — find a player by username, player code or Telegram ID
+    /bank — your cash, your bank balance, deposits and withdrawals
+    /pay — pay a player, in cash or by card
+    /city — offices and policies of your city
+    /office — my office
+    /job — your job and job openings
+    /study — education and courses
     /settings — settings
 
 settings:
@@ -160,6 +196,8 @@ format:
   duration_h: "{hours}h"
   duration_m: "{minutes}m"
   duration_s: "{seconds}s"
+  # A sum of money. {amount} is already grouped with "," by the code.
+  money: "{amount} rials"
 
 button:
   refresh: "🔄 Refresh"
@@ -170,12 +208,24 @@ button:
   map: "🗺 Map"
   journey: "🧭 My journey"
   travel_to: "🧭 Travel to {city}"
+  travel_by: "{mode} · {fare}"
+  travel_options: "🧭 Ways to travel"
   skills: "🛠 Skills"
   social: "👥 Friends"
   settings: "⚙️ Settings"
   change_language: "🌐 Switch to {language}"
   add_friend: "➕ Add {player}"
   accept: "✅ Accept {player}"
+  bank: "🏦 Bank"
+  deposit: "Deposit {amount}"
+  withdraw: "Withdraw {amount}"
+  find_player: "🔎 Find a player"
+  pay: "💸 Pay {player}"
+  pay_cash: "💵 {amount} in cash"
+  pay_card: "💳 {amount} by card"
+  pay_again: "💸 Pay again"
+  confirm: "✅ Confirm"
+  cancel: Cancel
 
 error:
   unknown_command: I do not know that command. Send /start to open your profile.
@@ -195,3 +245,390 @@ error:
   already_friends: You are already friends with this player. You will find them under Friends.
   player_not_found: Player not found. If you have not started the game yet, send /start.
   unsupported_language: That language is not available. Choose one of the available languages under Settings.
+
+# Player-held offices (docs/adr/0015-player-held-offices.md): the offices and
+# policies of a city, the office holder's own screen, the flow that changes a
+# policy, and the public history of changes.
+#
+# Terms: office 🏛 (a seat a player holds: mayor, president), policy (what an
+# office decides: a tax rate, a fee), vacant (nobody holds the office),
+# acting (a deputy exercising a vacant office's powers), announced (a change
+# is public at once and takes effect after its notice), public history 📜.
+# Percentages are written "{value}%"; money goes through format.money.
+gov:
+  player: "{name} ({code})"
+  list_separator: ", "
+  percent: "{value}%"
+  span_d: "{days}d"
+  span_dh: "{days}d {hours}h"
+  unnamed_office: an office
+  unnamed_lever: a policy
+  city:
+    title: "🏛 Offices and policies — {city}"
+    title_plain: "🏛 Offices and policies"
+    no_city: You have not settled in a city yet. Once you do, its offices and policies appear here.
+    place: "📍 {place}"
+    offices: "Offices:"
+    no_offices: • There are no offices here.
+    policies: "Policies:"
+  office:
+    held: "• {office}: {players}"
+    seats: "• {office}: {held} of {seats} seats held — {players}"
+    acting: "• {office}: vacant — {deputy} {players} is acting"
+    vacant: "• {office}: vacant"
+  lever:
+    line_default: "• {lever}: {value} (default)"
+    line_set: "• {lever}: {value} (set by {player})"
+    pending: "  ⏳ Changes to {value} in {when}"
+  mine:
+    title: "🏛 My office"
+    none: You do not hold any office. For now, office holders are appointed by the game's administrators; elections will come later.
+    seat: "{office} of {place}"
+    acting_for: You are acting for the vacant office of {office}.
+    no_levers: This office has no policy you can change right now.
+    lever: "• {lever}: {value}"
+    lever_vote: "• {lever}: {value} — decided by a vote, which is not available yet"
+  edit:
+    title: "🏛 {lever} — {place}"
+    bounds: "Allowed range: {min} to {max}"
+    default: "Default: {value}"
+    notice: A change takes effect {notice} after it is announced.
+    cooldown: After a change, the next one can be made {cooldown} later.
+    cooldown_active: "⏳ You can change this policy again in {wait}."
+    draft: "New value: {value}. Adjust it with the buttons, then tap “Review change”."
+  confirm:
+    title: Confirm the change
+    change: "{lever} in {place}: from {old} to {new}"
+    notice: It will be announced now and take effect in {notice}.
+    cooldown: You will not be able to change this policy again for {cooldown}.
+  announced:
+    title: "📢 Change announced"
+    body: "{lever} in {place} will change from {old} to {new} in {when}. The change is recorded in the public history."
+  history:
+    title: "📜 Policy history — {city}"
+    empty: No policy has been changed here yet.
+    change: "• {lever} ({place}): {old} → {new}"
+    by: "  By {office} {player}, announced {ago} ago"
+    effective_in: "  ⏳ Takes effect in {when}"
+    effective_since: "  In force for {when}"
+  button:
+    city: "🏛 Offices and policies"
+    history: "📜 Policy history"
+    my_office: "🏛 My office"
+    change: "✏️ {lever} — {place}"
+    down: "➖ {amount}"
+    up: "➕ {amount}"
+    min: Minimum ({value})
+    default: Default ({value})
+    max: Maximum ({value})
+    review: "📝 Review change"
+    confirm: "✅ Confirm"
+    cancel: "✖️ Cancel"
+  refusal:
+    not_holder: Only the holder of the office of {office} can change this policy. If you held it, you may have been replaced.
+    requires_vote: This policy is decided by a vote of the {office}, and voting is not available yet.
+    out_of_range: That value is outside the allowed range of {min} to {max}. Choose a value within it.
+    out_of_range_plain: That value is outside the allowed range. Choose a value within it.
+    cooldown: This policy was changed recently. You can change it again in {wait}.
+    cooldown_later: This policy was changed recently. Please try again later.
+    unsupported: This kind of policy cannot be changed yet.
+    unknown_lever: This policy no longer exists. Open “My office” to see the policies you can change.
+    unknown_place: This place could not be found. Open the Map and try again.
+    wrong_place: This policy does not apply to this place.
+    office_not_found: This office does not exist here.
+    office_occupied: Someone already holds this office.
+    office_vacant: This office is already vacant.
+    already_holds: You already hold this office.
+    incompatible: This office cannot be held together with an office you already hold.
+
+# Office names, keyed on the office's content code (configs/content/governance.yml).
+office:
+  mayor: Mayor
+  deputy_mayor: Deputy mayor
+  city_council: City council
+  president: President
+
+# Policy names, keyed on the lever's content code (configs/content/governance.yml).
+lever:
+  city:
+    tax_rate: Tax rate
+    immigration_fee: Immigration fee
+    bank_withdrawal_fee: Bank withdrawal fee
+    card_transfer_fee: Card transfer fee
+    transit_fare: Public transport fare
+    minimum_wage: Minimum wage
+    income_tax: Income tax
+    shift_window_hours: Working-hours window (hours)
+    shifts_before_fatigue: Shifts before fatigue
+  country:
+    border_tariff: Border tariff
+
+# Names of places above a city, keyed on the jurisdiction's content code.
+# Cities are named under city.* above.
+jurisdiction:
+  default_country: The Commonwealth
+
+# Playing in a group (internal/gateway/groups). A screen with a player's own
+# details is shown only to that player; these lines are all the rest of the
+# group ever sees of it, so they name no screen and no number.
+group:
+  # A press on a button that belongs to another player. Shown in a popup to
+  # the presser only; at most 200 characters.
+  not_yours: This button belongs to another player. Send the command yourself to open your own screen.
+  # Posted in the group (or shown as a popup) when the screen went to the
+  # player's private chat with the bot.
+  sent_privately: Your reply was sent to your private chat with the bot.
+  # The player has never started the bot, so nothing can be sent privately.
+  start_bot_first: This screen is for you only. Open the bot in a private chat and press Start first, and it will be shown there.
+  # The button under either line; it opens the bot's private chat.
+  open_bot: Open the bot
+  # Posted once when the bot is added to a group.
+  welcome: |-
+    Hello everyone! You can now play the game right here in this group.
+    Screens with your personal details are shown only to you, never to the rest of the group. Use the command menu to begin.
+  # Descriptions in the group command menu, one per command in
+  # groups.menu (configs/config.yml).
+  menu:
+    profile: Your profile
+    skills: Your skills
+    map: The world map
+    social: Your friends
+    find: Find a player by player code
+    settings: Settings
+    help: Help
+
+# The bank: cash on hand and a bank balance. A bank is a city service, so
+# deposits and withdrawals happen only in a city; card payments work from
+# anywhere, and cash changes hands only between players in the same city.
+# Fees are each city's policy and are always shown before money moves.
+bank:
+  title: "🏦 Bank"
+  branch: "📍 {city} branch"
+  withdrawal_fee: "Withdrawals here carry a fee of {percent}%, added on top of the amount. Deposits are always free."
+  withdrawal_free: Withdrawals and deposits here are free.
+  closed_travelling: "🧭 You are travelling. The bank serves you in any city; card payments work from anywhere."
+  closed_no_city: You have not settled in a city yet, so there is no bank to visit.
+  hint: Choose an amount below, or type one, for example /bank deposit 5000 or /bank withdraw 5000.
+  pay_hint: To pay a player, send /pay with their username or player code, for example /pay @username.
+  deposited: "✅ {amount} deposited into your bank account."
+  withdrew: "✅ {amount} withdrawn in cash."
+  withdrew_fee: "✅ {amount} withdrawn in cash. Fee: {fee}."
+  error:
+    not_in_city: The bank is only open in a city. You can deposit and withdraw once you arrive; card payments work from anywhere.
+    not_together: You can only hand cash to a player who is in the same city as you. Send the money by card instead — it works from anywhere.
+    self_payment: You cannot pay yourself.
+    payee_not_found: No player to pay was found. Check the username or player code and try again.
+    invalid_amount: Please write the amount as a whole number, for example 5000.
+    below_minimum: The smallest amount allowed is {min}.
+    above_maximum: The largest amount allowed at once is {max}.
+    not_enough_cash: You do not have enough cash. You are carrying {available}.
+    not_enough_in_bank: "Your bank balance is not enough: this needs {needed} including the fee, and you have {available}."
+    insufficient: There is not enough money for this. Open “Bank” to see your balances.
+    unavailable: The bank is not available right now. Please try again in a moment.
+
+# Paying another player. {player} is the other player's name.
+pay:
+  help: |-
+    💸 Pay a player
+    Name the player in one of these ways:
+    • Telegram username: /pay @username
+    • Player code: /pay K7Q2M9A
+    You can add the amount and the method: /pay K7Q2M9A 5000 card
+    Cash changes hands only when you are both in the same city; card payments work from anywhere.
+  title: "💸 Pay {player}"
+  together: "📍 You and {player} are both in {city}, so you can pay in cash or by card."
+  apart: You and {player} are not in the same place, so cash is not possible. You can pay by card from anywhere.
+  card_fee: "Card payments from {city} carry a fee of {percent}%, added on top of the amount."
+  card_free: Card payments from {city} are free.
+  hint: "Another amount? Type it: /pay {code} 5000 card or /pay {code} 5000 cash"
+  confirm_cash: "💵 Hand {amount} in cash to {player}?"
+  confirm_card: "💳 Send {amount} by card to {player}?"
+  confirm_card_fee: |-
+    💳 Send {amount} by card to {player}?
+    Fee: {fee} · Total from your bank account: {total}
+  sent_cash: "✅ You handed {amount} in cash to {player}."
+  sent_card: "✅ You sent {amount} by card to {player}."
+  sent_card_fee: "✅ You sent {amount} by card to {player}. Fee: {fee}."
+  not_together: "{player} is not here with you, so you cannot hand over cash. Send the money by card instead — card payments work from anywhere."
+  received_cash: "💵 {player} handed you {amount} in cash."
+  received_card: "💳 {player} sent you {amount} by card. It is in your bank account."
+
+# Work (internal/domain/job, configs/content/jobs.yml). Terms: job 💼, shift,
+# wage, income tax, performance 📈 (0..100), promotion ⬆️, job openings. Money
+# arrives formatted through format.money. A position's title is
+# career.<code>.<rank>; a career's name is career.<code>.name.
+job:
+  status_title: "💼 My job"
+  none: You do not have a job yet. See what the employers in your city are offering under “Job openings”.
+  position: "💼 {title} · {career}"
+  workplace: "📍 Workplace: {city}"
+  pay: "💰 Pay per shift: {pay}"
+  energy: "⚡ Energy per shift: {energy} · you have {current}/{max_energy}"
+  energy_plain: "⚡ Energy per shift: {energy}"
+  performance: "📈 Performance: {performance}/100"
+  shifts: "Shifts in this position: {shifts}"
+  earned: "Earned in this job: {amount}"
+  away: "Your job is in {city}. You can work a shift once you are there."
+  promotion_top: "⭐ You are at the top of this career."
+  promotion_ready: "⬆️ You have earned a promotion to {title}. Tap “Promotion”."
+  promotion_next: "⬆️ Next position: {title}. Still needed:"
+  openings_heading: "💼 Job openings"
+  openings_title: "💼 Job openings in {city}"
+  openings_travelling: You are on a journey. Job openings appear once you arrive in a city.
+  openings_employed: You work as {title}. To take another job, leave your current one first.
+  openings_employed_short: You already have a job. To take this one, leave your current job first.
+  openings_none: No employer in this city is hiring right now.
+  opening_line: "• {career} — {title} · {pay} per shift"
+  opening_line_locked: "• {career} — {title} · {pay} per shift · 🔒 requirements not met"
+  view_title: "💼 {title} · {career}"
+  requirements: "Requirements:"
+  requirements_none: No experience or qualification needed.
+  hired: "✅ You now work as {title} in {city}. Pay per shift: {pay}."
+  shift_done: "✅ Shift complete."
+  shift_pay: "💰 Wage {gross} · income tax {tax} · you received {net}"
+  shift_pay_untaxed: "💰 You received {net}."
+  shift_xp: "⭐ {xp} XP"
+  shift_skill: "🛠 {skill}: +{xp} XP"
+  shift_skill_level: "🛠 {skill} reached level {level}."
+  shift_performance_up: "📈 Performance: {performance}/100 (+{delta})"
+  shift_performance_down: "📉 Performance: {performance}/100 (−{delta})"
+  shift_performance_same: "📈 Performance: {performance}/100"
+  shift_level: "⭐ You reached level {level}."
+  shift_energy_left: "⚡ Energy: {energy}/{max_energy}"
+  shift_fatigued: You are tired, so this shift ran at {percent}% of full output and paid less. Rest before your next shift to work at full strength.
+  promoted: "⬆️ Congratulations — you have been promoted to {title}. Pay per shift: {pay}."
+  quit_confirm: Are you sure you want to leave your job as {title}? Your progress in this position will be lost.
+  quit_done: You have left your job as {title}.
+  refused: "You cannot take this job yet:"
+  promotion_refused: "You have not earned a promotion yet:"
+  not_employed: You do not have a job. See what is on offer under “Job openings”.
+  already_employed: You already have a job. Leave it first to take another one.
+  not_offered: That job is not offered where you are. See “Job openings” for what is.
+  not_at_workplace: Your job is in {city}. Travel there to work a shift.
+  button:
+    my_job: "💼 My job"
+    openings: "💼 Job openings"
+    opening: "💼 {career}"
+    apply: "✅ Apply"
+    work: "🛠 Work a shift"
+    work_again: "🛠 Work another shift"
+    promotion: "⬆️ Promotion"
+    quit: "🚪 Leave job"
+    quit_confirm: "🚪 Yes, leave my job"
+
+# One line of a requirements list; {text} is one of the lines below it.
+requirement:
+  met: "✅ {text}"
+  unmet: "❌ {text}"
+  level: Level {level}
+  level_have: Level {need} (you are level {have})
+  skill: "{skill} level {level}"
+  skill_have: "{skill} level {need} (you have {have})"
+  certificate: "Certificate: {course}"
+  residence: Living in {city}
+  residence_unmet: Living in {city} — work permits for other cities are not available yet
+  performance: Performance {need} (yours is {have})
+  time: More time in this position ({wait} to go)
+  shifts: "Shifts in this position: {need} (you have {have})"
+  top: You are already at the top of this career.
+  course_city: This course is taught in {city}.
+  course_full: Every seat on this course is taken.
+  already_certified: You already hold this certificate.
+  already_enrolled: You are already studying {course}. You can take one course at a time.
+
+# Study (internal/domain/education, configs/content/education.yml). Terms:
+# education 🎓, course, certificate 📜, fee, enrol. A course's name is
+# course.<code>.
+education:
+  title: "🎓 Education"
+  current: "📖 Studying: {course}"
+  progress: "⏳ {percent}% done · {remaining} to go"
+  progress_finishing: "⏳ Finishing any moment now."
+  certificates: "📜 Certificates: {list}"
+  separator: ", "
+  available: "Courses you can take here:"
+  none_available: There are no new courses for you here right now. More open up as you earn certificates and levels, and in other cities.
+  course_line: "• {course} — {fee} · {duration}"
+  course_line_locked: "• {course} — {fee} · {duration} · from level {level}"
+  view_title: "🎓 {course}"
+  institution: "🏛 {institution}"
+  taught_in: "📍 Taught in {city}"
+  fee: "💰 Fee: {fee}"
+  duration: "⏳ Duration: {duration}"
+  seats: "Seats left: {seats}"
+  rewards: "On completion:"
+  reward_skill: "🛠 {skill}: +{xp} XP"
+  reward_certificate: "📜 The {course} certificate"
+  requirements: "Requirements:"
+  enrolled: "✅ You have enrolled in {course}. Fee paid: {fee}. It takes {duration} and finishes on its own — you will be notified."
+  completed: "🎓 You have completed {course}."
+  completed_certificate: "📜 Certificate earned: {course}."
+  refused: "You cannot enrol in this course yet:"
+  not_found: That course is not on offer here. See “Education” for the courses you can take.
+  cannot_afford: The fee is {fee} and you have {cash} in cash. Earn more and try again.
+  button:
+    open: "🎓 Education"
+    course: "📖 {course}"
+    enrol: "✅ Enrol · {fee}"
+
+institution:
+  university: University
+  training_center: Training centre
+  company: Company academy
+
+# Career names and position titles, keyed on content codes
+# (configs/content/jobs.yml). A missing entry falls back to the authored name.
+career:
+  retail:
+    name: Retail
+    entry: Sales Trainee
+    skilled: Sales Associate
+    senior: Store Supervisor
+    manager: Store Manager
+  hospitality:
+    name: Hospitality
+    entry: Kitchen Porter
+    skilled: Line Cook
+    senior: Sous Chef
+    manager: Head Chef
+  logistics:
+    name: Logistics
+    entry: Courier
+    skilled: Delivery Driver
+    senior: Dispatch Coordinator
+    manager: Logistics Manager
+  workshop:
+    name: Workshop
+    entry: Workshop Hand
+    skilled: Mechanic
+    senior: Master Mechanic
+  technology:
+    name: Technology
+    entry: Junior Developer
+    skilled: Software Developer
+    senior: Senior Developer
+    specialist: Software Architect
+  healthcare:
+    name: Healthcare
+    entry: Care Aide
+    skilled: Nurse
+    senior: Senior Nurse
+  finance:
+    name: Finance
+    entry: Bank Teller
+    skilled: Accountant
+    senior: Financial Analyst
+    manager: Finance Manager
+
+# Course names, keyed on content codes (configs/content/education.yml).
+course:
+  first_aid: First Aid
+  driving_licence: Driving Licence
+  bookkeeping: Bookkeeping
+  programming_fundamentals: Programming Fundamentals
+  retail_management: Retail Management
+  culinary_arts: Culinary Arts
+  automotive_repair: Automotive Repair
+  nursing: Nursing Diploma
+  software_engineering: Software Engineering Degree
+  evening_accounting: Evening Class in Accounting

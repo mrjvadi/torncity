@@ -14,6 +14,11 @@
 #                   are not supported by the travel rules yet, so writing
 #                   false is REJECTED rather than silently treated as two-way:
 #                   a key the system would ignore is worse than no key.
+#   modes           optional: the transport modes (transport.yml codes) that
+#                   serve this route. Omitted, they are derived: every mode
+#                   whose required facilities both ends have. A declared list
+#                   may only name modes both ends can serve, and may not be
+#                   empty.
 #
 # The loader rejects: an unknown city code, a distance of zero or less, a
 # duplicate edge (including the same pair written in reverse), a route from a
@@ -36,7 +41,8 @@ routes:
 
   # The coast. Calderis is expensive to reach, which is part of why it is
   # expensive to live in.
-  - {from: kessmoor, to: calderis, distance: 520}
+  # No railway crosses the Kessmoor pass: the road and the air only.
+  - {from: kessmoor, to: calderis, distance: 520, modes: [bus, car, flight]}
   - {from: aldrin_hollow, to: calderis, distance: 610}
 
   # Vantor Reach sits at the far end: one way in, high tax, high cost.

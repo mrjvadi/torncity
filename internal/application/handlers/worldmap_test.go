@@ -64,8 +64,8 @@ func TestMapMarksWhatIsReachableFromHere(t *testing.T) {
 	departures := map[string]bool{}
 	for _, row := range resp.Keyboard.Rows {
 		for _, b := range row {
-			if strings.HasPrefix(b.CallbackData, "travel:start:") {
-				departures[strings.TrimPrefix(b.CallbackData, "travel:start:")] = true
+			if strings.HasPrefix(b.CallbackData, "travel:options:") {
+				departures[strings.TrimPrefix(b.CallbackData, "travel:options:")] = true
 			}
 		}
 	}
@@ -93,7 +93,7 @@ func TestMapOffersNoJourneyToTheCityYouAreIn(t *testing.T) {
 	}
 	for _, row := range resp.Keyboard.Rows {
 		for _, b := range row {
-			if b.CallbackData == "travel:start:tehran" {
+			if b.CallbackData == "travel:options:tehran" {
 				t.Error("the map offers a journey to the city the player is in")
 			}
 		}
@@ -115,7 +115,7 @@ func TestMapOffersNoJourneyWhileTravelling(t *testing.T) {
 	}
 	for _, row := range resp.Keyboard.Rows {
 		for _, b := range row {
-			if strings.HasPrefix(b.CallbackData, "travel:start:") {
+			if strings.HasPrefix(b.CallbackData, "travel:options:") {
 				t.Errorf("the map offers a second journey to a player already travelling: %q", b.CallbackData)
 			}
 		}
@@ -135,7 +135,7 @@ func TestMapWorksForAPlayerWithNoCity(t *testing.T) {
 	assertResolved(t, resp.Text)
 	for _, row := range resp.Keyboard.Rows {
 		for _, b := range row {
-			if strings.HasPrefix(b.CallbackData, "travel:start:") {
+			if strings.HasPrefix(b.CallbackData, "travel:options:") {
 				t.Errorf("a player with no city was offered a journey: %q", b.CallbackData)
 			}
 		}

@@ -36,6 +36,39 @@ type Message struct {
 	Chat      Chat   `json:"chat"`
 	Date      int64  `json:"date"`
 	Text      string `json:"text,omitempty"`
+
+	// ReplyToMessage is the message this one answers, when the player used
+	// Telegram's reply. In a group it is how a player points at another
+	// player ("pay them"), so its From is what the gateway reads. Telegram
+	// may omit it for a reply to an ephemeral message.
+	ReplyToMessage *Message `json:"reply_to_message,omitempty"`
+
+	// EphemeralMessageID is set on an ephemeral message (Bot API 10.2+): one
+	// that only its sender and the bot can see in a group. MessageID is 0 on
+	// such a message, so this is the only handle there is to reply to it or
+	// to edit it. See internal/gateway/groups.
+	EphemeralMessageID int64 `json:"ephemeral_message_id,omitempty"`
+
+	// ReceiverUser is, on an ephemeral message, the one user who can see it.
+	ReceiverUser *User `json:"receiver_user,omitempty"`
+}
+
+// ChatMember is one member's standing in a chat. Only the status is read:
+// "creator", "administrator", "member", "restricted", "left" or "kicked".
+type ChatMember struct {
+	Status string `json:"status"`
+	User   User   `json:"user"`
+}
+
+// ChatMemberUpdated reports a change of one member's standing. As the
+// my_chat_member update it describes the bot itself: added to a group,
+// promoted, or removed from it.
+type ChatMemberUpdated struct {
+	Chat          Chat       `json:"chat"`
+	From          User       `json:"from"`
+	Date          int64      `json:"date"`
+	OldChatMember ChatMember `json:"old_chat_member"`
+	NewChatMember ChatMember `json:"new_chat_member"`
 }
 
 // CallbackQuery is an inline-keyboard press. Message is nil when the original
@@ -55,4 +88,8 @@ type Update struct {
 	Message       *Message       `json:"message,omitempty"`
 	EditedMessage *Message       `json:"edited_message,omitempty"`
 	CallbackQuery *CallbackQuery `json:"callback_query,omitempty"`
+
+	// MyChatMember is the bot's own membership changing in a chat: it was
+	// added to a group, or removed from one.
+	MyChatMember *ChatMemberUpdated `json:"my_chat_member,omitempty"`
 }

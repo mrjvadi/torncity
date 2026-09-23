@@ -204,8 +204,8 @@ func TestStartTravelDefaultsStatusAndDeparture(t *testing.T) {
 	}
 
 	args := q.last().args
-	if len(args) != 9 {
-		t.Fatalf("the travel insert was sent %d arguments, want 9", len(args))
+	if len(args) != 12 {
+		t.Fatalf("the travel insert was sent %d arguments, want 12", len(args))
 	}
 	if args[6] != TravelInTransit {
 		t.Errorf("status argument = %v, want %q", args[6], TravelInTransit)

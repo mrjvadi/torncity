@@ -56,18 +56,22 @@ type Translator interface {
 // routes there, so a back button pointing at it can never land on a command
 // nobody serves.
 const (
-	AddrHome         = "player:profile.get"
-	AddrProfile      = "player:profile.get"
-	AddrMap          = "map:list"
-	AddrTravelStart  = "travel:start"
-	AddrTravelStatus = "travel:status"
-	AddrSkills       = "skills:list"
-	AddrSearch       = "social:search"
-	AddrFriendList   = "social:friend.list"
-	AddrFriendAdd    = "social:friend.add"
-	AddrFriendAccept = "social:friend.accept"
-	AddrSettings     = "player:settings"
-	AddrLanguageSet  = "player:language.set"
+	AddrHome        = "player:profile.get"
+	AddrProfile     = "player:profile.get"
+	AddrMap         = "map:list"
+	AddrTravelStart = "travel:start"
+	// AddrTravelOptions is the choice of transport to one city. Pressing a
+	// destination on the map opens it; nothing departs until a mode is
+	// chosen there.
+	AddrTravelOptions = "travel:options"
+	AddrTravelStatus  = "travel:status"
+	AddrSkills        = "skills:list"
+	AddrSearch        = "social:search"
+	AddrFriendList    = "social:friend.list"
+	AddrFriendAdd     = "social:friend.add"
+	AddrFriendAccept  = "social:friend.accept"
+	AddrSettings      = "player:settings"
+	AddrLanguageSet   = "player:language.set"
 )
 
 // lineBreak separates the lines of a body and blankLine separates its
@@ -292,20 +296,32 @@ func Error(c Context, err error) *presenter.Response {
 // errorNextStep maps a refusal to the one screen that resolves it. A refusal
 // missing from here gets the back button alone.
 var errorNextStep = map[string]struct{ label, addr string }{
-	"error.already_travelling":   {"button.journey", AddrTravelStatus},
-	"travel.none":                {"button.map", AddrMap},
-	"travel.same_city":           {"button.map", AddrMap},
-	"travel.no_route":            {"button.map", AddrMap},
-	"travel.unknown_speed":       {"button.map", AddrMap},
-	"error.city_not_found":       {"button.map", AddrMap},
-	"error.skill_not_found":      {"button.skills", AddrSkills},
-	"error.not_friends":          {"button.social", AddrFriendList},
-	"error.already_friends":      {"button.social", AddrFriendList},
-	"error.unsupported_language": {"button.settings", AddrSettings},
+	"error.already_travelling":      {"button.journey", AddrTravelStatus},
+	"travel.none":                   {"button.map", AddrMap},
+	"travel.same_city":              {"button.map", AddrMap},
+	"travel.no_route":               {"button.map", AddrMap},
+	"travel.mode_unavailable":       {"button.map", AddrMap},
+	"error.city_not_found":          {"button.map", AddrMap},
+	"error.skill_not_found":         {"button.skills", AddrSkills},
+	"error.not_friends":             {"button.social", AddrFriendList},
+	"error.already_friends":         {"button.social", AddrFriendList},
+	"error.unsupported_language":    {"button.settings", AddrSettings},
+	"bank.error.not_in_city":        {"button.bank", AddrBank},
+	"bank.error.not_enough_cash":    {"button.bank", AddrBank},
+	"bank.error.not_enough_in_bank": {"button.bank", AddrBank},
+	"bank.error.insufficient":       {"button.bank", AddrBank},
+	"bank.error.payee_not_found":    {"button.find_player", AddrSearch},
 }
 
 // errorMessage picks the key and the placeholder values for a failure.
 func errorMessage(c Context, err error) (string, map[string]any) {
+	if key, args, ok := bankRefusal(c, err); ok {
+		return key, args
+	}
+	// Player-held offices name their own refusals; see governance.go.
+	if key, args, ok := governanceRefusal(c, err, nil, time.Time{}); ok {
+		return key, args
+	}
 	// Identity first: see Error for why class matching cannot do this.
 	for _, s := range applicationSentinels {
 		if identical(err, s.target) {
@@ -329,8 +345,8 @@ func errorMessage(c Context, err error) (string, map[string]any) {
 		return "travel.same_city", nil
 	case stderrors.Is(err, world.ErrNoRoute), stderrors.Is(err, world.ErrUnknownCity):
 		return "travel.no_route", nil
-	case stderrors.Is(err, travel.ErrUnknownSpeed), stderrors.Is(err, travel.ErrSpeedNotPriced):
-		return "travel.unknown_speed", nil
+	case stderrors.Is(err, travel.ErrModeUnavailable):
+		return "travel.mode_unavailable", nil
 	}
 
 	switch errors.CodeOf(err) {

@@ -17,8 +17,8 @@
 // The first token is the slash-command and names the domain; the token after
 // it names the action; everything that follows is a positional argument. So
 // "/job apply developer" is domain "job", action "apply", one argument
-// "developer", which makes the command "job.apply" (a spelling only: the game
-// serves no jobs yet, so Route refuses it). A trailing @botname on the
+// "developer", which makes the command "job.apply" with the payload
+// {"role": "developer"}. A trailing @botname on the
 // slash-command is stripped, because Telegram appends it in groups
 // ("/job@torncity_bot apply"). Tokens are lower-cased.
 //
@@ -186,6 +186,20 @@ var shortcuts = map[string]shortcut{
 	"map":      {Bare: "map.list", Words: "map.list"},
 	"social":   {Bare: "social.friend.list", Words: "social.search"},
 	"find":     {Bare: "social.search", Words: "social.search"},
+	// The bank: "/bank" is the bank screen, "/bank deposit 5000" says what it
+	// says; "/pay @ali" opens a payment to that player and
+	// "/pay @ali 5000 card" asks to confirm one.
+	"bank": {Bare: "bank.show"},
+	"pay":  {Bare: "bank.pay", Words: "bank.pay"},
+	// Player-held offices: "/city" is the player's own city, "/city ostmarch"
+	// another one; "/office" is the office holder's screen.
+	"city":   {Bare: "gov.city", Words: "gov.city"},
+	"office": {Bare: "gov.office"},
+	// Work and study: "/job" is the player's job, "/jobs" the openings in
+	// their city, "/study" the courses.
+	"job":   {Bare: "job.status"},
+	"jobs":  {Bare: "job.list"},
+	"study": {Bare: "education.list"},
 }
 
 // argNames names the positional arguments of a command, in order.
@@ -203,10 +217,14 @@ var argNames = map[string][]string{
 	// travel.start names its destination by city CODE rather than by database
 	// id, because a code is the stable authored key a content file, a button
 	// and a typed command all agree on, and it is short enough to leave room
-	// inside the 64-byte callback budget. The second argument is the travel
-	// speed, which is optional: "/travel start berlin" is the standard way to
-	// get there and "/travel start berlin express" is the fast one.
-	"travel.start": {"city", "speed"},
+	// inside the 64-byte callback budget. travel.options is the choice of
+	// transport to that city ("/travel options berlin", or the map's button);
+	// travel.start departs by one mode at a fare the player was shown:
+	// "travel:start:berlin:train:1200". The fare is a ceiling the game core
+	// re-checks, never a price it trusts; without a mode or a fare,
+	// travel.start answers with the choice of transport.
+	"travel.options": {"city"},
+	"travel.start":   {"city", "mode", "max"},
 	// travel.status takes nothing. It is listed anyway so that this table
 	// reads as the set of commands phase 1 speaks rather than as the subset
 	// of them that happens to have arguments.
@@ -234,6 +252,40 @@ var argNames = map[string][]string{
 	// against the languages it actually ships.
 	"player.settings":     {},
 	"player.language.set": {"lang"},
+
+	// The bank. An amount is whole minor units as typed ("5000", "12,500");
+	// the game core parses and bounds it. nonce is the one-time token a
+	// button carries so a second press of it is a replay, never a second
+	// payment; a typed command has none. A payee ("to") is anything
+	// /social finds a player by: @username, player code or Telegram ID.
+	"bank.show":     {},
+	"bank.deposit":  {"amount", "nonce"},
+	"bank.withdraw": {"amount", "nonce"},
+	"bank.pay":      {"to", "amount", "method"},
+	"bank.pay.send": {"to", "amount", "method", "nonce"},
+
+	// Player-held offices. A lever is addressed by its content code and the
+	// code of the place it is set in; value is a proposed value, which the
+	// game core checks against the lever's bounds through SetPolicy.
+	"gov.city":    {"city"},
+	"gov.history": {"city", "page"},
+	"gov.office":  {},
+	"gov.lever":   {"lever", "place", "value"},
+	"gov.confirm": {"lever", "place", "value"},
+	"gov.set":     {"lever", "place", "value"},
+
+	// Work and study. A career and a course are named by their content code
+	// (jobs.yml, education.yml). job.apply's argument keeps the name "role"
+	// it has always had here. job.quit asks first; "job:quit:yes" confirms.
+	"job.status":       {},
+	"job.list":         {"page"},
+	"job.view":         {"role"},
+	"job.work":         {},
+	"job.promote":      {},
+	"job.quit":         {"confirm"},
+	"education.list":   {"page"},
+	"education.view":   {"course"},
+	"education.enroll": {"course"},
 }
 
 // joinRest lists the commands whose last named argument takes every word

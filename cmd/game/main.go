@@ -33,6 +33,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/commands"
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/bank"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -163,16 +164,14 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		slog.Duration("shutdown_timeout", cfg.Game.ShutdownTimeout),
 		slog.Duration("idempotency_ttl", cfg.Game.IdempotencyTTL),
 		slog.String("default_language", cfg.Player.DefaultLanguage),
-		slog.Int("travel_energy_cost", cfg.Travel.EnergyCost),
+		slog.Int("travel_time_scale", cfg.Travel.TimeScale),
 		slog.Int("travel_arrival_xp", cfg.Travel.ArrivalXP))
 
-	// Fatal before any connection is opened: a price list the domain refuses
-	// would fail every departure, and that is a configuration error, not a
-	// runtime one.
-	tariff, err := newTariff(cfg.Travel.StandardKMPerHour, cfg.Travel.StandardBoarding,
-		cfg.Travel.ExpressKMPerHour, cfg.Travel.ExpressBoarding)
+	// The bank's limits, validated once here: a pair that would refuse
+	// every amount stops the service at startup, not at a player's press.
+	bankLimits, err := bank.NewLimits(cfg.Economy.BankMinAmount, cfg.Economy.BankMaxAmount)
 	if err != nil {
-		return fmt.Errorf("game: travel tuning: %w", err)
+		return fmt.Errorf("game: bank limits: %w", err)
 	}
 
 	pool, err := postgres.New(ctx, e.databaseURL)
@@ -204,6 +203,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	if err != nil {
 		return err
 	}
+	// A later content load reaches this process without a restart.
+	go watchContent(ctx, postgres.NewContentStore(pool), registry, cfg.Game.ContentReloadInterval, logger)
 
 	uow := postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage)
 	// Only the read-only repositories are built over the pool. Everything a
@@ -234,8 +235,12 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			uuidGenerator{},
 			messages,
 			cities,
-			livePlanner{registry: registry, tariff: tariff},
-			cfg.Travel.EnergyCost,
+			// Transport modes are content, read per request from the
+			// current snapshot; a public fare's city multiplier is policy,
+			// read only through the resolver (ADR 0015).
+			liveTransport{registry: registry},
+			postgres.NewPolicyReader(pool, nil),
+			cfg.Travel.TimeScale,
 			int64(cfg.Travel.ArrivalXP),
 			cfg.Game.IdempotencyTTL,
 			nil,
@@ -253,7 +258,42 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		worldMap: handlers.NewMapHandler(uow, messages, cities, travels, liveRoutes{registry: registry},
 			handlers.DefaultPageSize, nil),
 		settings: handlers.NewSettingsHandler(uow, messages, storeLanguages{store: messages}, cfg.Game.IdempotencyTTL),
+		// The bank's fees are each city's policy, read only through the
+		// resolver; its limits are configuration.
+		bank: handlers.NewBankHandler(
+			uow,
+			uuidGenerator{},
+			messages,
+			cities,
+			postgres.NewPolicyReader(pool, nil),
+			postgres.NewPlayerSearchRepository(pool),
+			bankLimits,
+			cfg.Game.IdempotencyTTL,
+			nil,
+		),
+		// Policy values are read only through the resolver and changed only
+		// through SetPolicy; the directory reads the seats, names and public
+		// record around them (ADR 0015).
+		gov: handlers.NewGovernanceHandler(
+			uow,
+			messages,
+			cities,
+			postgres.NewGovernanceDirectory(pool),
+			postgres.NewPolicyReader(pool, nil),
+			handlers.GovernanceSteps{
+				FineDivisor:   int64(cfg.Governance.FineStepDivisor),
+				CoarseDivisor: int64(cfg.Governance.CoarseStepDivisor),
+			},
+			handlers.DefaultPageSize,
+			cfg.Game.IdempotencyTTL,
+			nil,
+		),
 	}
+
+	// Work and study read careers and courses from the live registry and a
+	// city's labour law only through the resolver (ADR 0015).
+	h.jobs, h.education = newWorkHandlers(uow, messages, registry, cities,
+		postgres.NewPolicyReader(pool, nil), cfg.Game.IdempotencyTTL)
 
 	subs := commands.All()
 	bound, err := bindAll(subs, h.bind())

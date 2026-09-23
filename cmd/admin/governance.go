@@ -24,12 +24,15 @@ func officeUsage() {
 	fmt.Fprint(os.Stderr, `usage: admin office <command>
 
   appoint --office CODE (--city CODE | --country CODE) --player PUBLIC_CODE --reason "why"
-          [--seat N] [--actor NAME]
+          [--seat N] [--by NAME]
                           seat a player in a vacant seat (the seat defaults to 1)
-  vacate  --office CODE (--city CODE | --country CODE) --reason "why" [--seat N] [--actor NAME]
+  vacate  --office CODE (--city CODE | --country CODE) --reason "why" [--seat N] [--by NAME]
                           empty a seat; values its holder set stay in force
   list    [--city CODE | --country CODE]
                           every seat and who holds it
+
+--by names the operator in the audit row; it defaults to $`+operatorEnv+`, then
+$USER, and the change is refused when none of them names anybody.
 
 DATABASE_URL must be set.
 `)
@@ -102,17 +105,6 @@ func (p placeFlags) resolve() (kind, code string, ok bool, err error) {
 	return "", "", false, nil
 }
 
-// operatorName is the --actor flag, else $USER, else "unknown".
-func operatorName(actor string) string {
-	if actor = strings.TrimSpace(actor); actor != "" {
-		return actor
-	}
-	if u := os.Getenv("USER"); u != "" {
-		return u
-	}
-	return "unknown"
-}
-
 // officeChange appoints or vacates one seat.
 func officeChange(ctx context.Context, args []string, appoint bool) error {
 	name := "office vacate"
@@ -126,7 +118,7 @@ func officeChange(ctx context.Context, args []string, appoint bool) error {
 	seat := fs.Int("seat", 1, "seat number")
 	player := fs.String("player", "", "the appointee's public player code")
 	reason := fs.String("reason", "", "why (required)")
-	actor := fs.String("actor", "", "operator identity (defaults to $USER)")
+	operator := addOperatorFlags(fs)
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -148,6 +140,10 @@ func officeChange(ctx context.Context, args []string, appoint bool) error {
 	if appoint && strings.TrimSpace(*player) == "" {
 		return fmt.Errorf("%s: --player is required", name)
 	}
+	who, err := operator.resolve(name, os.LookupEnv)
+	if err != nil {
+		return err
+	}
 
 	pool, err := contentPool(ctx)
 	if err != nil {
@@ -163,7 +159,7 @@ func officeChange(ctx context.Context, args []string, appoint bool) error {
 			Seat:             *seat,
 		},
 		PlayerCode: *player,
-		Actor:      operatorName(*actor),
+		Actor:      who,
 		Reason:     *reason,
 		At:         time.Now().UTC(),
 	}

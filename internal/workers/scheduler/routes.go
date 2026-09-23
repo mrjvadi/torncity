@@ -36,19 +36,24 @@ const (
 	// destination. It is the only scheduled operation phase 1 has
 	// (ROADMAP.md, Phase 1).
 	ActionTypeTravel = "travel"
+
+	// ActionTypeEducation is a course reaching its end: the enrolment is
+	// completed and its certificate and skill XP granted.
+	ActionTypeEducation = "education"
 )
 
 // routes maps an action type to the command it is published as.
 //
-// Only travel is here, and the absence of the rest is deliberate. Salary,
-// production, education, healing and auction expiry are all named in
+// Only travel and education are here, and the absence of the rest is
+// deliberate. Salary, production, healing and auction expiry are all named in
 // 19_SCHEDULER_WORKERS.md as future scheduled work, but nothing writes those
 // rows yet and no handler consumes those subjects. An entry for a command
 // nobody serves would turn a loud, findable "no route for this action type"
 // into a message published into a stream with no consumer, which looks like
 // success from here and is not.
 var routes = map[string]Route{
-	ActionTypeTravel: {Domain: "travel", Action: "arrive"},
+	ActionTypeTravel:    {Domain: "travel", Action: "arrive"},
+	ActionTypeEducation: {Domain: "education", Action: "complete"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

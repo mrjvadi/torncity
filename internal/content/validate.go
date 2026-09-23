@@ -154,6 +154,12 @@ func (p *Pack) Validate() error {
 	// Governance (ADR 0015): levels, jurisdictions, offices, levers.
 	p.validateGovernance(&problems)
 
+	// Work and study: careers, courses and the certifications between them.
+	p.validateJobs(&problems)
+
+	// Transport: facilities, modes, and which modes serve which route.
+	p.validateTransport(&problems)
+
 	if len(problems) > 0 {
 		return errors.Join(problems...)
 	}
@@ -316,7 +322,7 @@ func (p *Pack) Warnings() []string {
 		warnings = append(warnings, fmt.Sprintf(
 			"city %q has no route to anywhere: it will load, but nobody can travel to or from it", code))
 	}
-	return warnings
+	return append(warnings, p.transportWarnings()...)
 }
 
 // Edges returns the pack's routes as domain edge values, in file order.

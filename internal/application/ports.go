@@ -105,6 +105,16 @@ type Tx interface {
 	// Governance changes levers and seats office holders, in the same
 	// transaction as the public record of the change; see governance.go.
 	Governance() GovernanceRepository
+
+	// Bank locks where players are while money moves between them; see
+	// bank.go.
+	Bank() BankRepository
+
+	// Employment and Education hold a player's job and their study, so a
+	// shift commits with its wage and a course with its fee; see
+	// ports_jobs.go.
+	Employment() EmploymentRepository
+	Education() EducationRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

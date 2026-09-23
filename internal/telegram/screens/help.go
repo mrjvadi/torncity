@@ -13,6 +13,10 @@ import (
 //
 // It says so in one line, lists what can be typed, and puts the main screens
 // one press away, so the way forward is a button rather than another guess.
+//
+// It is the one screen marked public: it says nothing about the player, so in
+// a group it may answer on the timeline. Every other screen stays private by
+// default (presenter.Response.Public).
 func Help(c Context) *presenter.Response {
 	profile, _ := keyboards.Button(c.T("button.profile", nil), AddrProfile)
 	worldMap, _ := keyboards.Button(c.T("button.map", nil), AddrMap)
@@ -25,5 +29,5 @@ func Help(c Context) *presenter.Response {
 	kb.Row(skills, social)
 	kb.Row(settings)
 
-	return c.respond(paragraphs(c.T("help.unknown", nil), c.T("help.body", nil)), kb.Build())
+	return c.respond(paragraphs(c.T("help.unknown", nil), c.T("help.body", nil)), kb.Build()).MarkPublic()
 }

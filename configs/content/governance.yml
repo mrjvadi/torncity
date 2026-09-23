@@ -179,6 +179,95 @@ levers:
     change_cooldown: 72h
     notice: 24h
 
+  # The city's bank. Both fees are charged on top of the amount and paid into
+  # the city's treasury; nothing charged either before the bank existed, so
+  # both default to none. A deposit and a face-to-face cash payment are always
+  # free.
+  - code: city.bank_withdrawal_fee
+    jurisdiction: city
+    type: bps
+    default: 0
+    min: 0
+    max: 500
+    held_by: mayor
+    change_cooldown: 72h
+    notice: 24h
+
+  # Charged by the payer's city — where they are, or the city their journey
+  # left — on a card payment to another player.
+  - code: city.card_transfer_fee
+    jurisdiction: city
+    type: bps
+    default: 0
+    min: 0
+    max: 500
+    held_by: mayor
+    change_cooldown: 72h
+    notice: 24h
+
+  # Labour law (internal/domain/job). The minimum wage is the least one shift
+  # may pay in the city; the base employer never pays under it. Income tax is
+  # withheld from every wage paid to a resident and paid into the city's
+  # treasury. Fatigue: within any window of shift_window_hours, the first
+  # shifts_before_fatigue shifts are at full output and every later one yields
+  # less. The defaults are the game's behaviour before anyone holds the seat.
+  - code: city.minimum_wage
+    jurisdiction: city
+    type: money
+    default: 100
+    min: 0
+    max: 5000
+    held_by: mayor
+    change_cooldown: 168h
+    notice: 72h
+
+  - code: city.income_tax
+    jurisdiction: city
+    type: bps
+    default: 500
+    min: 0
+    max: 4000
+    held_by: mayor
+    change_cooldown: 168h
+    notice: 72h
+
+  - code: city.shift_window_hours
+    jurisdiction: city
+    type: int
+    default: 24
+    min: 1
+    max: 168
+    held_by: mayor
+    change_cooldown: 168h
+    notice: 72h
+
+  - code: city.shifts_before_fatigue
+    jurisdiction: city
+    type: int
+    default: 4
+    min: 1
+    max: 24
+    held_by: mayor
+    change_cooldown: 168h
+    notice: 72h
+
+  # Public transport fares (transport.yml modes with public: true): the share
+  # of the full fare transport.yml authors that a rider pays on every public
+  # journey departing from the city. The default, 50%, is the fare the game
+  # charged before anybody held the seat; a mayor may subsidise down to a
+  # quarter of the full fare or charge all of it. The fare is paid into the
+  # city's treasury. A private mode (a car hire, a flight) is not the city's
+  # to price. Demand pricing applies on top, whatever the city chooses.
+  - code: city.transit_fare
+    jurisdiction: city
+    type: bps
+    default: 5000
+    min: 2500
+    max: 10000
+    held_by: mayor
+    change_cooldown: 72h
+    notice: 24h
+
   # No border tariff exists today either.
   - code: country.border_tariff
     jurisdiction: country
@@ -195,7 +284,9 @@ offices:
     jurisdiction: city
     seats: 1
     acquired_by: election
-    levers: [city.tax_rate, city.immigration_fee]
+    levers: [city.tax_rate, city.immigration_fee, city.bank_withdrawal_fee, city.card_transfer_fee,
+             city.minimum_wage, city.income_tax, city.shift_window_hours, city.shifts_before_fatigue,
+             city.transit_fare]
     # While there is no mayor, the deputy mayor acts; with neither, the
     # defaults apply.
     deputy: deputy_mayor

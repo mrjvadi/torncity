@@ -25,7 +25,7 @@ import (
 func TestInsertTravelLeavesTheConflictToTheIndex(t *testing.T) {
 	sql := normalize(insertTravel)
 
-	if !strings.Contains(sql, "INSERT INTO travels (id, player_id, from_city_id, to_city_id, cost, game_action_id, status, departed_at, arrives_at)") {
+	if !strings.Contains(sql, "INSERT INTO travels (id, player_id, from_city_id, to_city_id, cost, game_action_id, status, departed_at, arrives_at, mode, ledger_transaction_id, content_version)") {
 		t.Fatalf("travel insert column list drifted from the schema:\n%s", sql)
 	}
 	if strings.Contains(sql, "ON CONFLICT") {
@@ -505,4 +505,19 @@ func readMigration(t *testing.T) string {
 		t.Fatalf("reading %s: %v", path, err)
 	}
 	return string(b)
+}
+
+// Demand pricing counts every departure on the route by the mode, whatever
+// became of it, from the demand index; a status filter would let arrived
+// journeys stop counting as demand the moment they land.
+func TestCountRecentDeparturesCountsEveryStatus(t *testing.T) {
+	sql := normalize(countRecentDepartures)
+	for _, want := range []string{"from_city_id = $1::uuid", "to_city_id = $2::uuid", "mode = $3", "departed_at >= $4"} {
+		if !strings.Contains(sql, want) {
+			t.Errorf("the departure count lacks %q:\n%s", want, sql)
+		}
+	}
+	if strings.Contains(sql, "status") {
+		t.Errorf("the departure count filters on status:\n%s", sql)
+	}
 }

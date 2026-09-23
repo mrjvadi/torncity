@@ -12,12 +12,12 @@
 // Everything here can therefore be tested at any point in the future or the
 // past without a clock running.
 //
-// RULES LIVE HERE, CONTENT DOES NOT. Which speeds exist and how a fare is
-// derived from distance and speed are rules. The numbers they use — the route
-// network, how fast each speed actually is, what it charges — are content,
-// authored outside the code and injected as values (see world.Routes and
-// Tariff in plan.go). This package defines no city, no route and no default
-// price list.
+// RULES LIVE HERE, CONTENT DOES NOT. How a distance and a transport mode
+// become a duration and a fare, and how demand and a city's policy move that
+// fare, are rules. The numbers they use — the route network, which modes
+// exist, how fast each is, what it charges — are content, authored outside
+// the code and injected as values (see world.Routes and Mode in plan.go).
+// This package defines no city, no route, no mode and no default price list.
 package travel
 
 import (
@@ -98,6 +98,9 @@ func (s Status) CanTransitionTo(next Status) bool {
 type Journey struct {
 	FromCityID string
 	ToCityID   string
+	// Mode is the transport mode's content code. Empty for a journey that
+	// began before modes existed.
+	Mode       string
 	DepartedAt time.Time
 	ArrivesAt  time.Time
 	Status     Status

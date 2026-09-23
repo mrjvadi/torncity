@@ -23,6 +23,10 @@ type DashboardView struct {
 	// Travelling says whether a journey is in progress, so the hub can point
 	// at the journey instead of at the departures board.
 	Travelling bool
+	// Cash and Bank are the player's money, in minor units: what they carry
+	// and their bank balance. Private to the player.
+	Cash int64
+	Bank int64
 }
 
 // Dashboard renders the hub: the same lines and the same buttons as the
@@ -43,6 +47,7 @@ func Dashboard(c Context, v DashboardView) *presenter.Response {
 			c.T("profile.level_plain", map[string]any{"level": max(v.Level, 1)}),
 			energyLine(c, v.Energy, v.MaxEnergy, 0),
 		),
+		moneyLines(c, v.Cash, v.Bank),
 	)
 	return c.respond(text, hubKeyboard(c, city != "", v.Travelling).Build())
 }

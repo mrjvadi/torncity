@@ -1,0 +1,130 @@
+# Transport: the facilities a city may have, and the modes of transport.
+#
+# This file is the authoring source; `admin content load` validates it and
+# stores it with the rest of the content as one numbered version, and running
+# services pick the new version up without a restart. See
+# docs/adr/0004-content-system.md.
+#
+# The RULES live in internal/domain/travel: how a distance and a mode become a
+# game-time duration and a fare, how demand moves the fare, and how game time
+# becomes the real wait (config.yml travel.time_scale). This file holds only
+# the numbers those rules are fed. What a CITY charges on public transport is
+# not here either: a public mode's fares below are the FULL fare, and the
+# city.transit_fare lever in governance.yml says what share of it a rider
+# pays (50% by default; the mayor may move it within its bounds).
+#
+# ---------------------------------------------------------------------------
+# facilities — what a city may have for transport. cities.yml lists each
+# city's facilities by these codes; a code there that is not declared here is
+# refused at load.
+#
+# ---------------------------------------------------------------------------
+# transport_modes — the ways to travel between cities, in the order players
+# are offered them.
+#   code               stable identifier, 1-12 characters: lower-case
+#                      letters, digits, underscores. It is stored on every
+#                      journey, so NEVER change one after it ships. Players
+#                      never see it; they see transport_mode.<code> from the
+#                      locale files.
+#   name               authored display name, shown only in a language that
+#                      has no transport_mode.<code> translation.
+#   public             optional, default false. Public transport: its fares
+#                      here are the full fare, of which a rider pays the share
+#                      the origin city's city.transit_fare policy sets, paid
+#                      into that city's treasury (ADR 0009, transit_fare). A
+#                      private mode's fare is not the city's to set and leaves
+#                      the economy (ADR 0009, travel_fare).
+#   requires           optional: facilities BOTH ends of a route must have for
+#                      this mode to serve it.
+#   speed              distance units per GAME hour, 1..100000.
+#   boarding           fixed game time before moving, whatever the distance
+#                      (e.g. 20m). It is what makes the fastest mode not simply
+#                      the best on a short hop.
+#   base_fare          minor currency units charged on every departure.
+#   fare_per_distance  minor currency units per distance unit.
+#                      fare = (base_fare + fare_per_distance × distance)
+#                             × city share (public only) × demand.
+#   energy_cost        energy one departure costs, 0..1000.
+#   demand             how recent departures move the fare. The departures on
+#                      the same route (origin to destination) by the same mode
+#                      within `window` are counted; each one beyond
+#                      `free_departures` adds `step_bps` to the multiplier,
+#                      capped at `max_bps` (10000 = the plain fare). As those
+#                      departures age out of the window the fare falls back by
+#                      itself. window is real time, not game time.
+#
+# Routes (routes.yml) may list the modes that serve them; a route that does
+# not is served by every mode whose required facilities both its ends have.
+# A mode's network is the routes it serves, so a train follows rails: its
+# distance between two cities is the shortest path over those routes only.
+
+version: 1
+
+facilities:
+  - bus_terminal
+  - rail_station
+  - airport
+
+transport_modes:
+  # The cheap, slow default, run by the city. Every city has a terminal.
+  - code: bus
+    name: Bus
+    public: true
+    requires: [bus_terminal]
+    speed: 60
+    boarding: 20m
+    base_fare: 80
+    fare_per_distance: 4
+    energy_cost: 8
+    demand:
+      window: 30m
+      free_departures: 3
+      step_bps: 500
+      max_bps: 20000
+
+  # A car hire: goes everywhere a road goes, costs fuel by the distance, and
+  # tires the driver more than any seat does.
+  - code: car
+    name: Car
+    requires: []
+    speed: 90
+    boarding: 5m
+    base_fare: 0
+    fare_per_distance: 5
+    energy_cost: 14
+    demand:
+      window: 1h
+      free_departures: 10
+      step_bps: 200
+      max_bps: 15000
+
+  # Public rail between cities with a station at both ends.
+  - code: train
+    name: Train
+    public: true
+    requires: [rail_station]
+    speed: 140
+    boarding: 30m
+    base_fare: 160
+    fare_per_distance: 6
+    energy_cost: 6
+    demand:
+      window: 30m
+      free_departures: 4
+      step_bps: 500
+      max_bps: 20000
+
+  # Commercial flights: fast, dear, and busy routes get dearer quickly.
+  - code: flight
+    name: Flight
+    requires: [airport]
+    speed: 600
+    boarding: 1h
+    base_fare: 400
+    fare_per_distance: 8
+    energy_cost: 4
+    demand:
+      window: 1h
+      free_departures: 2
+      step_bps: 1000
+      max_bps: 30000

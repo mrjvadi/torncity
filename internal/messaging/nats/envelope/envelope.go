@@ -41,6 +41,20 @@ type Metadata struct {
 	ReplyToMessageID *int64  `json:"reply_to_message_id,omitempty"`
 	CallbackQueryID  *string `json:"callback_query_id,omitempty"`
 
+	// TelegramEphemeralMessageID is set when the player acted through an
+	// ephemeral message — one only they and the bot can see in a group — and
+	// TelegramMessageID is then 0. It is what an ephemeral reply answers and
+	// what an ephemeral screen is edited by. See internal/gateway/groups.
+	TelegramEphemeralMessageID int64 `json:"telegram_ephemeral_message_id,omitempty"`
+
+	// ReplyToTelegramUserID and ReplyToPlayerID name the person whose message
+	// the player answered with Telegram's reply, when that person is not the
+	// player and not a bot. In a group this is how a command points at
+	// another player without typing their code. ReplyToPlayerID is empty when
+	// that person has never played; nothing is created on their behalf.
+	ReplyToTelegramUserID int64  `json:"reply_to_telegram_user_id,omitempty"`
+	ReplyToPlayerID       string `json:"reply_to_player_id,omitempty"`
+
 	BotID             string `json:"bot_id"`
 	GatewayInstanceID string `json:"gateway_instance_id"`
 

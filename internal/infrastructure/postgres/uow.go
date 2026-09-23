@@ -160,3 +160,15 @@ func (t *tx) Ledger() application.LedgerRepository { return &LedgerRepository{q:
 func (t *tx) Governance() application.GovernanceRepository {
 	return &GovernanceRepository{q: t.q}
 }
+
+// Bank returns the bank's presence locks bound to this transaction, so they
+// are held until the money they guard has moved.
+func (t *tx) Bank() application.BankRepository { return &BankRepository{q: t.q} }
+
+// Employment returns the job repository bound to this transaction, so a shift
+// commits with the wage and the energy it cost.
+func (t *tx) Employment() application.EmploymentRepository { return &EmploymentRepository{q: t.q} }
+
+// Education returns the study repository bound to this transaction, so an
+// enrolment commits with its fee and its scheduled completion.
+func (t *tx) Education() application.EducationRepository { return &EducationRepository{q: t.q} }

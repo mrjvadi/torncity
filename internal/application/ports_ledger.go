@@ -92,6 +92,37 @@ const (
 	ReasonPenalty      Reason = "penalty"
 )
 
+// Transfers: money moves between two owned accounts and the money supply does
+// not change. Neither faucet nor drain, but each still has its own code so
+// its flow can be measured (ADR 0009 section 2, the transfers table).
+const (
+	// ReasonBankDeposit moves a player's cash into their bank account.
+	ReasonBankDeposit Reason = "bank_deposit"
+	// ReasonBankWithdrawal moves a player's bank balance into their cash.
+	ReasonBankWithdrawal Reason = "bank_withdrawal"
+	// ReasonBankFee moves a bank fee from a player's bank account into the
+	// treasury of the city whose policy set it.
+	ReasonBankFee Reason = "bank_fee"
+	// ReasonCashPayment hands cash from one player to another, face to face.
+	ReasonCashPayment Reason = "cash_payment"
+	// ReasonCardPayment moves money from one player's bank account to
+	// another's, from anywhere.
+	ReasonCardPayment Reason = "card_payment"
+)
+
+// Public transport fares are a transfer too: a player pays the fare of a
+// public mode (content: transport.yml `public: true`) into the treasury of the
+// city the journey departs from, at the rate that city's policy sets
+// (city.transit_fare). A non-public mode's fare leaves the economy under
+// ReasonTravelFare instead.
+const ReasonTransitFare Reason = "transit_fare"
+
+// Income tax is a transfer too: the tax withheld from a wage moves from the
+// player's cash into the treasury of the city they live in, at the rate that
+// city's policy sets (city.income_tax). The wage itself arrives first, under
+// its own reason; this leg only moves part of it on.
+const ReasonIncomeTax Reason = "income_tax"
+
 // knownReasons is the closed set. Adding a code means adding it here AND to
 // the table in ADR 0009, in the same change.
 var knownReasons = map[Reason]struct{}{
@@ -102,6 +133,13 @@ var knownReasons = map[Reason]struct{}{
 	ReasonTax: {}, ReasonCostOfLiving: {}, ReasonMaintenance: {}, ReasonMarketFee: {},
 	ReasonServiceFee: {}, ReasonLogistics: {}, ReasonTravelFare: {}, ReasonHouseEdge: {},
 	ReasonPenalty: {},
+
+	ReasonBankDeposit: {}, ReasonBankWithdrawal: {}, ReasonBankFee: {},
+	ReasonCashPayment: {}, ReasonCardPayment: {},
+
+	ReasonTransitFare: {},
+
+	ReasonIncomeTax: {},
 }
 
 // Known reports whether r is in the closed set.

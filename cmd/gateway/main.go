@@ -40,6 +40,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/config"
 	gwcontext "github.com/mrjvadi/torncity/internal/gateway/context"
 	"github.com/mrjvadi/torncity/internal/gateway/dedup"
+	"github.com/mrjvadi/torncity/internal/gateway/groups"
 	"github.com/mrjvadi/torncity/internal/gateway/identity"
 	"github.com/mrjvadi/torncity/internal/gateway/lease"
 	"github.com/mrjvadi/torncity/internal/gateway/ratelimit"
@@ -57,7 +58,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
-	"github.com/mrjvadi/torncity/internal/workers/notification"
 )
 
 const (
@@ -277,7 +277,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		return err
 	}
 
-	filter, err := dedup.New(infraredis.NewDeduplicator(rdb, cfg.Dedup.TTL))
+	seen := infraredis.NewDeduplicator(rdb, cfg.Dedup.TTL)
+	filter, err := dedup.New(seen)
 	if err != nil {
 		return err
 	}
@@ -314,6 +315,9 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			return m
 		}(),
 	}
+	// The same set-if-absent store picks the one bot of ours that answers
+	// an unaddressed command in a group several of them share.
+	gw.group.claims = groups.NewClaimer(seen)
 
 	// --- response rendering -------------------------------------------------
 
@@ -333,7 +337,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// reason responses are: the event behind a notice is what is durable,
 	// and the notifier keeps it unacknowledged until this process answers
 	// that the message went out. See internal/workers/notification.
-	noticeSub, err := conn.Raw().QueueSubscribe(notification.SubjectAll, noticeQueue, gw.onNotice)
+	noticeSub, err := conn.Raw().QueueSubscribe(subjects.NotifyAll, noticeQueue, gw.onNotice)
 	if err != nil {
 		return fmt.Errorf("gateway: subscribing to notices: %w", err)
 	}
@@ -421,6 +425,9 @@ type gateway struct {
 	// inflight counts work that has left a poll loop but has not finished:
 	// updates being published and responses being sent. Shutdown waits on it.
 	inflight sync.WaitGroup
+
+	// group is what playing in Telegram groups needs; see groups.go.
+	group groupState
 }
 
 // serveBot holds one bot's lease and polls it for as long as the lease lasts.
@@ -517,6 +524,8 @@ func (g *gateway) poll(ctx context.Context, bot application.Bot, log *slog.Logge
 	// package, where an int of unstated units would be the thing that drifts.
 	pollTimeoutSeconds := int(g.cfg.Gateway.PollTimeout.Seconds())
 
+	g.registerGroupMenu(ctx, bot, api, log)
+
 	var offset int64
 	for {
 		if ctx.Err() != nil {
@@ -583,10 +592,22 @@ func (g *gateway) handleUpdate(ctx context.Context, bot application.Bot, update 
 		return
 	}
 
+	if update.MyChatMember != nil {
+		g.onMembership(ctx, bot, update.MyChatMember, log)
+		return
+	}
+
 	meta, err := gwcontext.Build(update, bot.ID, g.env.gatewayInstanceID, g.cfg.Player.DefaultLanguage, time.Now())
 	if err != nil {
 		log.Debug("update carries no usable request context",
 			slog.Int64("update_id", update.UpdateID), slog.String("error", err.Error()))
+		return
+	}
+
+	// Groups: a press on another player's button, a command for another
+	// bot, or one another bot of ours is answering stops here. See groups.go.
+	admitted := g.admit(ctx, bot, &update, meta, log)
+	if !admitted.proceed {
 		return
 	}
 
@@ -595,7 +616,7 @@ func (g *gateway) handleUpdate(ctx context.Context, bot application.Bot, update 
 	// internal/commands for why the broker would not refuse it for us.
 	command, payload, err := routing.Route(update)
 	if err != nil {
-		if routing.NeedsHelp(err, meta.ChatType) {
+		if routing.NeedsHelp(err, meta.ChatType) && admitted.mayHelp {
 			log.Info("update names no command the game serves; answering with help",
 				append(metaAttrs(meta), slog.String("error", err.Error()))...)
 			g.help(ctx, bot, meta, log)
@@ -635,6 +656,9 @@ func (g *gateway) handleUpdate(ctx context.Context, bot application.Bot, update 
 		return
 	}
 	meta = identity.WithPlayer(meta, player)
+	meta = g.withReplyTarget(ctx, meta, log)
+	// "/pay 5000" as a reply in a group pays the person replied to.
+	payload = groups.AimAtReply(command, payload, meta.ReplyToPlayerID)
 
 	env, err := envelope.New(meta, payload)
 	if err != nil {
@@ -798,7 +822,7 @@ func (g *gateway) send(
 			return err
 		}
 
-		err := render(ctx, api, meta, resp)
+		err := g.render(ctx, api, botKey, meta, resp, priority, log)
 		if err == nil {
 			return nil
 		}
@@ -892,28 +916,7 @@ func renderResponse(ctx context.Context, api *client.Client, meta envelope.Metad
 // It returns nil, not an empty markup, when there are no buttons: an empty
 // inline_keyboard is a valid object that Telegram renders as a blank strip.
 func inlineKeyboard(kb *presenter.Keyboard) any {
-	if kb == nil || len(kb.Rows) == 0 {
-		return nil
-	}
-
-	type button struct {
-		Text         string `json:"text"`
-		CallbackData string `json:"callback_data,omitempty"`
-		URL          string `json:"url,omitempty"`
-	}
-
-	rows := make([][]button, 0, len(kb.Rows))
-	for _, row := range kb.Rows {
-		out := make([]button, 0, len(row))
-		for _, b := range row {
-			out = append(out, button{Text: b.Text, CallbackData: b.CallbackData, URL: b.URL})
-		}
-		rows = append(rows, out)
-	}
-
-	return struct {
-		InlineKeyboard [][]button `json:"inline_keyboard"`
-	}{InlineKeyboard: rows}
+	return groups.Markup(kb)
 }
 
 // sleep waits for d, or returns early when ctx is cancelled. A bare
@@ -1055,6 +1058,12 @@ func (s *playerStore) EnsurePlayer(
 			return err
 		}
 
+		if chatID == 0 {
+			// The update came from a group (identity.Identity.ChatID): the
+			// player has no private chat with this bot to record, and the
+			// group must never become the chat their notices go to.
+			return nil
+		}
 		return tx.Players().LinkBot(ctx, application.BotLink{
 			PlayerID:       player.ID,
 			BotID:          botID,

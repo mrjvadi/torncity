@@ -75,6 +75,7 @@ func recordContentBaseline(t *testing.T, pool *postgres.Pool) {
 	}
 
 	gov := recordGovernanceBaseline(t, pool)
+	transport := recordTransportBaseline(t, pool)
 
 	rows, err := raw.Query(ctx,
 		`SELECT id::text, code, name, tax_rate_bps, cost_of_living, content_version_id::text, spawn_weight,
@@ -144,12 +145,17 @@ func recordContentBaseline(t *testing.T, pool *postgres.Pool) {
 		// Governance rows the loads wrote, before the cities and versions
 		// they reference; see restoreGovernance.
 		gov.restore(t, exec, created)
+		// Transport rows the loads wrote, and each city's facilities as
+		// they were; see transportBaseline.
+		transport.restore(exec, created)
 
 		// Cities this test's loads created, and everything hanging from the
 		// versions it wrote. Routes before cities (they reference them), and
 		// cities before versions (likewise).
 		exec("deleting routes", `DELETE FROM city_routes WHERE content_version_id = ANY($1::uuid[])`, created)
 		exec("deleting skills", `DELETE FROM skill_definitions WHERE content_version_id = ANY($1::uuid[])`, created)
+		exec("deleting careers", `DELETE FROM career_definitions WHERE content_version_id = ANY($1::uuid[])`, created)
+		exec("deleting courses", `DELETE FROM course_definitions WHERE content_version_id = ANY($1::uuid[])`, created)
 		exec("deleting created cities", `DELETE FROM cities WHERE content_version_id = ANY($1::uuid[])`, created)
 		exec("deleting audit rows",
 			`DELETE FROM audit_logs WHERE action = 'content.load' AND target_id = ANY($1::uuid[])`, created)

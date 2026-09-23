@@ -44,6 +44,12 @@ type ProfileView struct {
 	Health       int
 	MaxHealth    int
 
+	// Cash is the money the player carries and Bank their bank balance,
+	// both in minor units. Money is a player's own business: in a group
+	// chat this screen is shown to its owner only.
+	Cash int64
+	Bank int64
+
 	// Travelling says a journey is in progress. TravelTo and TravelRemaining
 	// describe it; the profile then shows the journey instead of a city the
 	// player is no longer standing in.
@@ -106,9 +112,19 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 				"max_health": FormatNumber(int64(v.MaxHealth)),
 			}),
 		),
+		moneyLines(c, v.Cash, v.Bank),
 	)
 
 	return c.respond(text, hubKeyboard(c, city != "", v.Travelling).Build())
+}
+
+// moneyLines shows the two places a player's money lives: the cash they
+// carry and their bank balance.
+func moneyLines(c Context, cash, bank int64) string {
+	return body(
+		c.T("profile.cash", map[string]any{"cash": FormatMoney(c, cash)}),
+		c.T("profile.bank", map[string]any{"bank": FormatMoney(c, bank)}),
+	)
 }
 
 // levelLine shows the level and how far the next one is. A player at the top
@@ -162,8 +178,17 @@ func hubKeyboard(c Context, hasCity, travelling bool) *keyboards.Builder {
 	}
 
 	social, _ := keyboards.Button(c.T("button.social", nil), AddrFriendList)
+	bank, _ := keyboards.Button(c.T("button.bank", nil), AddrBank)
+	kb.Row(social, bank)
+
+	// Work and study: the job screen offers the openings to a player
+	// without one, so one button serves both.
+	work, _ := keyboards.Button(c.T("job.button.my_job", nil), AddrJobStatus)
+	study, _ := keyboards.Button(c.T("education.button.open", nil), AddrEducation)
+	kb.Row(work, study)
+
 	settings, _ := keyboards.Button(c.T("button.settings", nil), AddrSettings)
-	kb.Row(social, settings)
+	kb.Row(settings)
 
 	refresh, _ := keyboards.Button(c.T("button.refresh", nil), AddrProfile)
 	kb.Row(refresh)

@@ -4,11 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/travel"
+	"github.com/mrjvadi/torncity/internal/domain/world"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
@@ -28,6 +32,12 @@ import (
 // tests on both sides pin the spelling.
 const TravelActionType = "travel"
 
+// TransitFareLever is the city policy that sets the share, in basis points,
+// of the full content fare a rider pays on every public transport journey
+// departing from the city (configs/content/governance.yml). It is read only
+// through application.PolicyReader: a mayor may have moved it.
+const TransitFareLever = "city.transit_fare"
+
 // Travel statuses as they are stored. They are the domain's values, written
 // through so a row and a rule cannot disagree about what "in transit" is.
 const (
@@ -35,14 +45,27 @@ const (
 	statusPending   = "pending"
 )
 
+// TravelOptionsRequest is the payload of travel.options: the destination, by
+// city CODE.
+type TravelOptionsRequest struct {
+	City string `json:"city"`
+}
+
 // StartTravelRequest is the payload of travel.start.
 //
-// City is a city CODE, the stable authored key, never a database identifier:
-// a code is what a content file, a button and a player's typed command all
-// agree on, and it is short enough to fit a callback address.
+// City is a city CODE and Mode a transport mode CODE: stable authored keys,
+// never database identifiers, short enough for a callback address.
+//
+// Max is the fare the player was shown and agreed to, in minor units, as the
+// button carried it. It is a ceiling, not a price: the journey is priced
+// again and the handler's own fare is charged, and only if it is not above
+// Max. A request without a mode or a readable Max departs nowhere; it is
+// answered with the choice of transport, so no journey ever starts at a
+// price the player did not see.
 type StartTravelRequest struct {
-	City  string `json:"city"`
-	Speed string `json:"speed,omitempty"`
+	City string `json:"city"`
+	Mode string `json:"mode,omitempty"`
+	Max  string `json:"max,omitempty"`
 }
 
 // TravelActionPayload is the jsonb this handler writes onto the game_actions
@@ -52,12 +75,13 @@ type StartTravelRequest struct {
 // reference_id already carry. That redundancy is deliberate: the scheduler
 // forwards the jsonb untouched and promises nothing about the columns beyond
 // them, so a payload that stands on its own cannot be made unreadable by a
-// change to how the schedule is dispatched.
+// change to how the schedule is dispatched. Rows written before transport
+// modes carry "speed" instead of "mode"; decoding ignores it.
 type TravelActionPayload struct {
 	TravelID string `json:"travel_id"`
 	PlayerID string `json:"player_id"`
 	ToCityID string `json:"to_city_id"`
-	Speed    string `json:"speed"`
+	Mode     string `json:"mode,omitempty"`
 }
 
 // ArriveTravelRequest is the command the scheduler publishes when a journey
@@ -71,16 +95,37 @@ type ArriveTravelRequest struct {
 	Payload       json.RawMessage `json:"payload"`
 }
 
-// TravelHandler serves the three travel commands: a departure a player asks
-// for, the journey they check on, and the arrival a clock produces.
+// TransportOption is one mode that connects two cities, with the distance by
+// that mode's own network and the name the content authored for it.
+type TransportOption struct {
+	Mode       travel.Mode
+	Name       string
+	DistanceKM int
+}
+
+// TransportNetwork answers which modes connect two cities.
+//
+// It is declared here rather than taken as a content snapshot because content
+// reloads while the process runs: the composition layer hands in something
+// that reads the current snapshot per call. Options answers from ONE
+// snapshot, and reports that snapshot's content version, so one request never
+// prices with two versions of the world.
+type TransportNetwork interface {
+	Options(fromCode, toCode string) (options []TransportOption, contentVersion int)
+}
+
+// TravelHandler serves the travel commands: the choice of transport a player
+// opens, the departure they confirm, the journey they check on, and the
+// arrival a clock produces.
 type TravelHandler struct {
 	uow     application.UnitOfWork
 	ids     IDGenerator
 	msgs    Translator
 	cities  application.CityRepository
-	planner TravelPlanner
+	network TransportNetwork
+	policy  application.PolicyReader
 
-	energyCost     int
+	timeScale      int
 	arrivalXP      int64
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -88,38 +133,41 @@ type TravelHandler struct {
 
 // NewTravelHandler wires the handler.
 //
-// energyCost is what a departure costs in energy and arrivalXP is what
-// landing awards. Both are tuning, injected rather than written here for the
-// same reason the tariff and the route network are injected into the planner:
-// they are numbers somebody balances, not rules. Both are rejected at zero,
-// because a free journey removes the only limit phase 1 puts on travelling
-// and an arrival worth no XP makes the whole trip pointless — either would be
-// a wiring mistake that looks like a design decision once it is live.
+// timeScale maps game time to the wall clock (config travel.time_scale) and
+// arrivalXP is what landing awards. Both are tuning, injected rather than
+// written here; both are rejected below one, because a journey that never
+// scales down and an arrival worth nothing are wiring mistakes that look like
+// design decisions once they are live.
 //
 // idempotencyTTL is rejected at zero for the reason NewProfileHandler gives:
 // a zero TTL reads as an expiry already past, so every redelivery would run
 // as if it were new.
 //
-// Stats, journeys and the schedule are not constructor arguments: every one of
-// them is written, and a write belongs to the unit of work, so the handler
-// reaches them through the Tx it is given. Cities are read-only content and
-// stay injected; see application.Tx.
+// Stats, journeys, the schedule and the ledger are not constructor arguments:
+// every one of them is written, and a write belongs to the unit of work, so
+// the handler reaches them through the Tx it is given. Cities are read-only
+// content and stay injected; see application.Tx. The policy reader is the one
+// way a city's transit fare policy is read (ADR 0015).
 func NewTravelHandler(
 	uow application.UnitOfWork,
 	ids IDGenerator,
 	msgs Translator,
 	cities application.CityRepository,
-	planner TravelPlanner,
-	energyCost int,
+	network TransportNetwork,
+	policy application.PolicyReader,
+	timeScale int,
 	arrivalXP int64,
 	idempotencyTTL time.Duration,
 	now func() time.Time,
 ) *TravelHandler {
-	if planner == nil {
-		panic("handlers: NewTravelHandler requires a planner")
+	if network == nil {
+		panic("handlers: NewTravelHandler requires a transport network")
 	}
-	if energyCost <= 0 {
-		panic("handlers: NewTravelHandler requires a positive energy cost")
+	if policy == nil {
+		panic("handlers: NewTravelHandler requires a policy reader")
+	}
+	if timeScale < 1 || timeScale > travel.MaxTimeScale {
+		panic("handlers: NewTravelHandler requires a time scale within 1..travel.MaxTimeScale")
 	}
 	if arrivalXP <= 0 {
 		panic("handlers: NewTravelHandler requires a positive arrival xp award")
@@ -138,8 +186,9 @@ func NewTravelHandler(
 		ids:            ids,
 		msgs:           msgs,
 		cities:         cities,
-		planner:        planner,
-		energyCost:     energyCost,
+		network:        network,
+		policy:         policy,
+		timeScale:      timeScale,
 		arrivalXP:      arrivalXP,
 		idempotencyTTL: idempotencyTTL,
 		now:            now,
@@ -152,13 +201,202 @@ func (h *TravelHandler) screen(meta envelope.Metadata, lang string) screens.Cont
 	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta)}
 }
 
-// Start handles travel.start: a player asking to leave for another city.
+// quotedOption is one priced way to make a journey.
+type quotedOption struct {
+	quote travel.Quote
+	name  string
+}
+
+// trip is what both the choice of transport and the departure work out
+// before they diverge: who, from where, to where, and every priced option.
+type trip struct {
+	player         *application.Player
+	from, to       *application.City
+	options        []quotedOption
+	contentVersion int
+}
+
+// planTrip runs the refusals a player meets before any choice — already
+// travelling, nowhere to leave from, no such city, the same city, no way
+// there — and prices every mode that makes the journey, at now.
 //
-// The order of the refusals is the order a player meets them. Already
-// travelling comes first because it is the one that makes every later check
-// meaningless, then the destination, then the route, then the energy. Nothing
-// is written until every refusal has been passed, so a refused departure
-// leaves no travel row, no scheduled action and no spent energy behind.
+// The price of each option reads two things that change: the departures on
+// that route by that mode within the mode's demand window, and — for a public
+// mode — the origin city's transit fare policy, through the resolver. Both
+// are read the same way for the screen and for the departure, so the number a
+// player is shown and the number the departure compares against come from
+// one function.
+func (h *TravelHandler) planTrip(ctx context.Context, tx application.Tx, p *application.Player, cityCode string, now time.Time) (trip, error) {
+	t := trip{player: p}
+
+	if _, err := tx.Travels().Active(ctx, p.ID); err == nil {
+		return t, application.ErrAlreadyTravelling
+	} else if !isSentinel(err, application.ErrNoActiveTravel) {
+		return t, err
+	}
+
+	if p.CityID == nil || *p.CityID == "" {
+		// A player who is nowhere has no origin to plan from. It is the
+		// same shape of problem as a missing destination, so it gets the
+		// same sentinel.
+		return t, application.ErrCityNotFound
+	}
+	from, err := h.cities.ByID(ctx, *p.CityID)
+	if err != nil {
+		return t, err
+	}
+	to, err := h.cities.ByCode(ctx, cityCode)
+	if err != nil {
+		return t, err
+	}
+	t.from, t.to = from, to
+	if from.ID == to.ID {
+		return t, errors.InvalidInput("travel cannot be planned").WithCause(travel.ErrSameCity)
+	}
+
+	options, version := h.network.Options(from.Code, to.Code)
+	t.contentVersion = version
+	if len(options) == 0 {
+		// No mode's network reaches there: for the player, there is no
+		// route. The screen reads the cause to choose the sentence.
+		return t, errors.InvalidInput("travel cannot be planned").
+			WithCause(fmt.Errorf("%w: no transport mode connects %q and %q", world.ErrNoRoute, from.Code, to.Code))
+	}
+
+	policyBPS := -1 // read once, and only if a public mode needs it
+	for _, o := range options {
+		pricing := travel.Pricing{PolicyBPS: travel.BasisPoints}
+		if o.Mode.Public {
+			if policyBPS < 0 {
+				if policyBPS, err = h.transitFare(ctx, from); err != nil {
+					return t, err
+				}
+			}
+			pricing.PolicyBPS = policyBPS
+		}
+		pricing.RecentDepartures, err = tx.Travels().RecentDepartures(ctx, from.ID, to.ID, o.Mode.Code,
+			now.Add(-o.Mode.Demand.Window))
+		if err != nil {
+			return t, err
+		}
+		q, err := travel.QuoteJourney(worldCity(*from), worldCity(*to), o.Mode, o.DistanceKM, pricing, h.timeScale)
+		if err != nil {
+			// Every refusal the player can cause is behind us; what is left
+			// is content or policy the rule cannot price, which is a fault.
+			return t, errors.Internal(err)
+		}
+		t.options = append(t.options, quotedOption{quote: q, name: o.Name})
+	}
+	return t, nil
+}
+
+// transitFare reads the origin city's public transport fare policy.
+func (h *TravelHandler) transitFare(ctx context.Context, from *application.City) (int, error) {
+	if from.JurisdictionID == "" {
+		return 0, errors.Internal(fmt.Errorf("city %q has no jurisdiction to read %s from", from.Code, TransitFareLever))
+	}
+	v, err := h.policy.Get(ctx, from.JurisdictionID, TransitFareLever)
+	if err != nil {
+		return 0, err
+	}
+	return int(v.Value), nil
+}
+
+// cashOf reads the player's cash on hand, opening the account on first use.
+func cashOf(ctx context.Context, tx application.Tx, playerID string) (application.Account, error) {
+	return tx.Ledger().AccountFor(ctx, application.AccountPlayerCash, playerID)
+}
+
+// optionsView turns a priced trip into the choice-of-transport screen.
+func optionsView(t trip, cash int64, requoted bool) screens.TravelOptionsView {
+	v := screens.TravelOptionsView{
+		FromCode: t.from.Code, From: t.from.Name,
+		ToCode: t.to.Code, To: t.to.Name,
+		Cash: cash, Requoted: requoted,
+	}
+	for _, o := range t.options {
+		v.Options = append(v.Options, screens.TravelOption{
+			ModeCode: o.quote.Mode,
+			ModeName: o.name,
+			Fare:     o.quote.Fare.Minor(),
+			Wait:     o.quote.Wait,
+			Energy:   o.quote.Energy,
+			Busy:     o.quote.Surged(),
+		})
+	}
+	return v
+}
+
+// Options handles travel.options: the choice of transport to one city, each
+// mode with its price, its real wait and its energy. It departs nowhere and
+// charges nothing, so it reserves no idempotency key: a refresh must always
+// show the prices of now.
+func (h *TravelHandler) Options(ctx context.Context, meta envelope.Metadata, req TravelOptionsRequest) (*presenter.Response, error) {
+	if err := meta.Validate(); err != nil {
+		return nil, errors.InvalidInput("malformed request context").WithCause(err)
+	}
+	if meta.TelegramUserID == 0 {
+		return nil, errors.InvalidInput("request carries no telegram user")
+	}
+	if req.City == "" {
+		return nil, errors.InvalidInput("travel.options requires a destination city")
+	}
+
+	var view screens.TravelOptionsView
+	lang := meta.Language
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
+		if err != nil {
+			return err
+		}
+		lang = RenderLanguage(meta, p)
+
+		t, err := h.planTrip(ctx, tx, p, req.City, h.now())
+		if err != nil {
+			return err
+		}
+		cash, err := cashOf(ctx, tx, p.ID)
+		if err != nil {
+			return err
+		}
+		view = optionsView(t, cash.Balance.Minor(), false)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return screens.TravelOptions(h.screen(meta, lang), view), nil
+}
+
+// errRequote and errNoFunds end a departure's transaction without writing
+// anything, so the handler can answer with a screen rather than a refusal.
+// They never leave this file.
+var (
+	errRequote = stderrors.New("handlers: the fare rose above the price the player accepted")
+	errNoFunds = stderrors.New("handlers: the player cannot pay the fare")
+)
+
+// Start handles travel.start: a player confirming one way to travel, at a
+// price they were shown.
+//
+// The order of the refusals is the order a player meets them: already
+// travelling, the destination, the route, the chosen mode, the price, the
+// energy, the money. Nothing is written until every refusal has been passed,
+// and the fare moves in the SAME transaction as the journey it pays for, so a
+// refused departure leaves no travel row, no scheduled action, no spent
+// energy and no money moved.
+//
+// Two outcomes are answers rather than refusals, and both write nothing:
+//
+//   - the fare rose above what the player accepted (demand grew, or a policy
+//     change took effect): the choice of transport is shown again at the new
+//     prices, and nothing is charged. A price shown is honoured or
+//     re-quoted, never exceeded.
+//   - the player cannot pay: the fare and their cash are shown, with the way
+//     back to the choice of transport.
+//
+// A fare lower than the one accepted is charged as it stands: the player
+// agreed to pay up to Max, and pays the price of now.
 func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req StartTravelRequest) (*presenter.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
@@ -169,17 +407,23 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 	if req.City == "" {
 		return nil, errors.InvalidInput("travel.start requires a destination city")
 	}
-
-	speed := travel.SpeedStandard
-	if req.Speed != "" {
-		speed = travel.Speed(req.Speed)
+	maxFare, err := strconv.ParseInt(strings.TrimSpace(req.Max), 10, 64)
+	if req.Mode == "" || err != nil || maxFare < 0 {
+		// No mode chosen, or no price agreed to: show the choice instead of
+		// departing at a price nobody saw.
+		return h.Options(ctx, meta, TravelOptionsRequest{City: req.City})
 	}
 
-	var view screens.TravelStartedView
-	replayed := false
-	lang := meta.Language
+	var (
+		started  screens.TravelStartedView
+		options  screens.TravelOptionsView
+		noFunds  screens.TravelFundsView
+		replayed bool
+		lang     = meta.Language
+	)
 
-	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		now := h.now()
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
@@ -197,56 +441,46 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 			return nil
 		}
 
-		if _, err := tx.Travels().Active(ctx, p.ID); err == nil {
-			return application.ErrAlreadyTravelling
-		} else if !isSentinel(err, application.ErrNoActiveTravel) {
-			return err
-		}
-
-		if p.CityID == nil || *p.CityID == "" {
-			// A player who is nowhere has no origin to plan from. It is the
-			// same shape of problem as a missing destination, so it gets the
-			// same sentinel rather than a new one this layer would have to
-			// invent outside ports_phase1.go.
-			return application.ErrCityNotFound
-		}
-
-		from, err := h.cities.ByID(ctx, *p.CityID)
+		t, err := h.planTrip(ctx, tx, p, req.City, now)
 		if err != nil {
 			return err
 		}
-		to, err := h.cities.ByCode(ctx, req.City)
+		chosen, ok := t.option(req.Mode)
+		if !ok {
+			return errors.InvalidInput("travel mode does not serve this journey").
+				WithCause(fmt.Errorf("%w: %q from %q to %q", travel.ErrModeUnavailable, req.Mode, t.from.Code, t.to.Code))
+		}
+		q := chosen.quote
+
+		cash, err := cashOf(ctx, tx, p.ID)
 		if err != nil {
 			return err
 		}
-
-		journey, cost, err := h.planner.Plan(worldCity(*from), worldCity(*to), speed, h.now())
-		if err != nil {
-			// The planner's refusals are the player's mistakes — the same
-			// city, no route, a speed nobody sells — so they are classified
-			// as bad input with the domain error kept as the cause. The
-			// screen reads the cause to choose the sentence.
-			return errors.InvalidInput("travel cannot be planned").WithCause(err)
+		if q.Fare.Minor() > maxFare {
+			options = optionsView(t, cash.Balance.Minor(), true)
+			return errRequote
 		}
 
-		row, err := tx.Stats().EnsureDefaults(ctx, p.ID, defaultStats(p.ID, h.now()))
+		row, err := tx.Stats().EnsureDefaults(ctx, p.ID, defaultStats(p.ID, now))
 		if err != nil {
 			return err
 		}
 		// Regenerate before charging. A player who has been away has the
 		// energy the clock owes them, and charging them before paying it out
 		// would refuse a departure they can afford.
-		regenerated, _ := regenerateEnergy(*row, h.now())
-		spent, err := domainStats(regenerated).SpendEnergy(h.energyCost)
+		regenerated, _ := regenerateEnergy(*row, now)
+		spent, err := domainStats(regenerated).SpendEnergy(q.Energy)
 		if err != nil {
 			return errors.InvalidInput("not enough energy to travel").
 				WithCause(err).
-				WithDetail("needed", h.energyCost).
+				WithDetail("needed", q.Energy).
 				WithDetail("current", regenerated.Energy)
 		}
-
+		// Saved whatever the energy cost, zero included: this write is also
+		// what orders a departure against a cash hand-over, which locks the
+		// same stats row.
 		next := storedStats(regenerated, spent)
-		next.UpdatedAt = h.now()
+		next.UpdatedAt = now
 		if err := tx.Stats().Save(ctx, next); err != nil {
 			return err
 		}
@@ -254,11 +488,28 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		travelID := h.ids.NewID()
 		actionID := h.ids.NewID()
 
+		ledgerTxID, err := h.chargeFare(ctx, tx, p.ID, t.from.ID, travelID, q, now)
+		if isSentinel(err, application.ErrInsufficientFunds) {
+			noFunds = screens.TravelFundsView{
+				ToCode: t.to.Code, ModeCode: q.Mode, ModeName: chosen.name,
+				Fare: q.Fare.Minor(), Cash: cash.Balance.Minor(),
+			}
+			return errNoFunds
+		}
+		if err != nil {
+			return err
+		}
+
+		journey, err := q.Depart(now)
+		if err != nil {
+			return errors.Internal(err)
+		}
+
 		payload, err := json.Marshal(TravelActionPayload{
 			TravelID: travelID,
 			PlayerID: p.ID,
-			ToCityID: to.ID,
-			Speed:    string(speed),
+			ToCityID: t.to.ID,
+			Mode:     q.Mode,
 		})
 		if err != nil {
 			return err
@@ -284,27 +535,40 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		}
 
 		if err := tx.Travels().Start(ctx, application.Travel{
-			ID:           travelID,
-			PlayerID:     p.ID,
-			FromCityID:   from.ID,
-			ToCityID:     to.ID,
-			Cost:         cost.Fare.Minor(),
-			GameActionID: actionID,
-			Status:       statusInTransit,
-			DepartedAt:   journey.DepartedAt,
-			ArrivesAt:    journey.ArrivesAt,
+			ID:                  travelID,
+			PlayerID:            p.ID,
+			FromCityID:          t.from.ID,
+			ToCityID:            t.to.ID,
+			Cost:                q.Fare.Minor(),
+			GameActionID:        actionID,
+			Status:              statusInTransit,
+			DepartedAt:          journey.DepartedAt,
+			ArrivesAt:           journey.ArrivesAt,
+			Mode:                q.Mode,
+			LedgerTransactionID: ledgerTxID,
+			ContentVersion:      t.contentVersion,
 		}); err != nil {
 			return err
 		}
 
 		ev, err := events.New("travel.started", "travel", travelID, map[string]any{
-			"travel_id":    travelID,
-			"player_id":    p.ID,
-			"from_city_id": from.ID,
-			"to_city_id":   to.ID,
-			"speed":        string(speed),
-			"distance_km":  cost.DistanceKM,
-			"arrives_at":   journey.ArrivesAt,
+			"travel_id":             travelID,
+			"player_id":             p.ID,
+			"from_city_id":          t.from.ID,
+			"to_city_id":            t.to.ID,
+			"mode":                  q.Mode,
+			"public":                q.Public,
+			"distance_km":           q.DistanceKM,
+			"fare":                  q.Fare.Minor(),
+			"base_fare":             q.BaseFare.Minor(),
+			"policy_bps":            q.PolicyBPS,
+			"demand_bps":            q.DemandBPS,
+			"ledger_transaction_id": ledgerTxID,
+			"energy":                q.Energy,
+			"game_duration_seconds": int64(q.TravelTime / time.Second),
+			"wait_seconds":          int64(q.Wait / time.Second),
+			"arrives_at":            journey.ArrivesAt,
+			"content_version":       t.contentVersion,
 		})
 		if err != nil {
 			return err
@@ -318,17 +582,25 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 			return err
 		}
 
-		view = screens.TravelStartedView{
-			FromCode: from.Code,
-			From:     from.Name,
-			ToCode:   to.Code,
-			To:       to.Name,
+		started = screens.TravelStartedView{
+			FromCode: t.from.Code,
+			From:     t.from.Name,
+			ToCode:   t.to.Code,
+			To:       t.to.Name,
+			ModeCode: q.Mode,
+			ModeName: chosen.name,
 			Duration: journey.Duration(),
-			Energy:   h.energyCost,
+			Energy:   q.Energy,
+			Fare:     q.Fare.Minor(),
 		}
 		return nil
 	})
-	if err != nil {
+	switch {
+	case err == errRequote:
+		return screens.TravelOptions(h.screen(meta, lang), options), nil
+	case err == errNoFunds:
+		return screens.TravelNoFunds(h.screen(meta, lang), noFunds), nil
+	case err != nil:
 		return nil, err
 	}
 
@@ -338,7 +610,65 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		// they are on.
 		return h.Status(ctx, meta)
 	}
-	return screens.TravelStarted(h.screen(meta, lang), view), nil
+	return screens.TravelStarted(h.screen(meta, lang), started), nil
+}
+
+// option finds the priced option for one mode code.
+func (t trip) option(mode string) (quotedOption, bool) {
+	for _, o := range t.options {
+		if o.quote.Mode == mode {
+			return o, true
+		}
+	}
+	return quotedOption{}, false
+}
+
+// chargeFare moves the fare, in the caller's transaction, and returns the
+// ledger transaction id, or "" for a free journey.
+//
+// Where the money goes (ADR 0009 section 2):
+//
+//   - a PUBLIC mode's fare is the city's transit revenue. The city set its
+//     price (city.transit_fare), so it is paid into the origin city's
+//     treasury — a transfer, reason transit_fare, money supply unchanged;
+//   - a private mode's fare (a car hire's fuel, an airline ticket) is not the
+//     city's; it leaves the economy into system_sink — a drain, reason
+//     travel_fare.
+//
+// The reference is the journey, so the ledger answers "what paid for this
+// trip" and the trip answers "which transaction paid for me".
+func (h *TravelHandler) chargeFare(ctx context.Context, tx application.Tx, playerID, originCityID, travelID string,
+	q travel.Quote, now time.Time,
+) (string, error) {
+	if q.Fare.IsZero() {
+		return "", nil
+	}
+	cash, err := cashOf(ctx, tx, playerID)
+	if err != nil {
+		return "", err
+	}
+	reason, payee := application.ReasonTravelFare, application.SystemSinkAccountID
+	if q.Public {
+		treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, originCityID)
+		if err != nil {
+			return "", err
+		}
+		reason, payee = application.ReasonTransitFare, treasury.ID
+	}
+	debit, err := q.Fare.Neg()
+	if err != nil {
+		return "", errors.Internal(err)
+	}
+	return tx.Ledger().Post(ctx, application.LedgerTransaction{
+		Reason:        reason,
+		ReferenceType: "travels",
+		ReferenceID:   travelID,
+		Entries: []application.LedgerEntry{
+			{AccountID: cash.ID, Amount: debit},
+			{AccountID: payee, Amount: q.Fare},
+		},
+		CreatedAt: now,
+	})
 }
 
 // Status handles travel.status: the journey in progress, and how much of it
@@ -373,6 +703,7 @@ func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*pr
 		journey := travel.Journey{
 			FromCityID: t.FromCityID,
 			ToCityID:   t.ToCityID,
+			Mode:       t.Mode,
 			DepartedAt: t.DepartedAt,
 			ArrivesAt:  t.ArrivesAt,
 			Status:     travel.Status(t.Status),
@@ -392,6 +723,7 @@ func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*pr
 			From:      from.Name,
 			ToCode:    to.Code,
 			To:        to.Name,
+			ModeCode:  t.Mode,
 			Remaining: travel.Remaining(journey, h.now()),
 			ArrivesAt: t.ArrivesAt,
 		}
@@ -488,6 +820,7 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 		journey := travel.Journey{
 			FromCityID: t.FromCityID,
 			ToCityID:   t.ToCityID,
+			Mode:       t.Mode,
 			DepartedAt: t.DepartedAt,
 			ArrivesAt:  t.ArrivesAt,
 			Status:     travel.Status(t.Status),
@@ -535,6 +868,7 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 			"travel_id":  t.ID,
 			"player_id":  playerID,
 			"to_city_id": t.ToCityID,
+			"mode":       t.Mode,
 			"xp":         h.arrivalXP,
 			"levels":     levelNumbers(ups),
 		})

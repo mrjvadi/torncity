@@ -14,8 +14,11 @@ import (
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
-// depart is the request a player's "travel to Berlin" button produces.
-func depart(city string) StartTravelRequest { return StartTravelRequest{City: city} }
+// depart is the request a player's "bus to Berlin" button produces: the free
+// test bus, at any fare up to a generous ceiling.
+func depart(city string) StartTravelRequest {
+	return StartTravelRequest{City: city, Mode: "bus", Max: "1000000"}
+}
 
 func TestTravelStartWritesTheJourneyAndItsSchedule(t *testing.T) {
 	h := newPhase1(t)
@@ -518,17 +521,22 @@ func TestTravelRejectsMalformedContext(t *testing.T) {
 
 func TestNewTravelHandlerRefusesZeroTuning(t *testing.T) {
 	h := newPhase1(t)
-	planner := testPlanner(t)
+	network := testTransport(t)
 
 	tests := []struct {
-		name   string
-		energy int
-		xp     int64
-		ttl    time.Duration
+		name    string
+		network TransportNetwork
+		policy  application.PolicyReader
+		scale   int
+		xp      int64
+		ttl     time.Duration
 	}{
-		{"free travel", 0, testArrivalXP, testIdempotencyTTL},
-		{"pointless arrival", testEnergyCost, 0, testIdempotencyTTL},
-		{"no replay window", testEnergyCost, testArrivalXP, 0},
+		{"no network", nil, h.policy, testTimeScale, testArrivalXP, testIdempotencyTTL},
+		{"no policy", network, nil, testTimeScale, testArrivalXP, testIdempotencyTTL},
+		{"no time scale", network, h.policy, 0, testArrivalXP, testIdempotencyTTL},
+		{"time scale too large", network, h.policy, travel.MaxTimeScale + 1, testArrivalXP, testIdempotencyTTL},
+		{"pointless arrival", network, h.policy, testTimeScale, 0, testIdempotencyTTL},
+		{"no replay window", network, h.policy, testTimeScale, testArrivalXP, 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -537,7 +545,7 @@ func TestNewTravelHandlerRefusesZeroTuning(t *testing.T) {
 					t.Error("expected a panic, got none")
 				}
 			}()
-			NewTravelHandler(h.uow, h.ids, nil, h.cities, planner, tt.energy, tt.xp, tt.ttl, h.clock())
+			NewTravelHandler(h.uow, h.ids, nil, h.cities, tt.network, tt.policy, tt.scale, tt.xp, tt.ttl, h.clock())
 		})
 	}
 }

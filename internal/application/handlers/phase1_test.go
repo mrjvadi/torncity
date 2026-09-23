@@ -15,13 +15,17 @@ import (
 
 // This file holds the fakes and the fixed world the phase 1 handler tests
 // share. Every port is faked; nothing here opens a connection, reads a clock
-// or sleeps. The one thing that is NOT faked is the domain: the planner below
-// is the real travel.Planner over a real world.Routes, because a fake planner
-// would only prove that the handler can call a function.
+// or sleeps. The one thing that is NOT faked is the domain: the transport
+// network below prices with the real travel rules over real world.Routes,
+// because a fake price would only prove that the handler can call a function.
 
 const (
+	// testEnergyCost is what the free test bus costs; see testModes.
 	testEnergyCost = 10
 	testArrivalXP  = 25
+	// testTimeScale of 1 keeps real waits equal to game time, so a test
+	// reads a duration straight off the mode's numbers.
+	testTimeScale = 1
 	// testPageSize is deliberately tiny so a boundary is two rows away
 	// rather than fifty.
 	testPageSize = 2
@@ -39,10 +43,10 @@ var fixedNow = time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC)
 
 func testCities() []application.City {
 	return []application.City{
-		{ID: berlinID, Code: "berlin", Name: "Berlin", CostOfLiving: 1200, Population: 3},
-		{ID: limaID, Code: "lima", Name: "Lima", CostOfLiving: 500, Population: 9},
-		{ID: tehranID, Code: "tehran", Name: "Tehran", CostOfLiving: 900, Population: 9},
-		{ID: tokyoID, Code: "tokyo", Name: "Tokyo", CostOfLiving: 2000, Population: 14},
+		{ID: berlinID, Code: "berlin", Name: "Berlin", JurisdictionID: "jur-berlin", CostOfLiving: 1200, Population: 3},
+		{ID: limaID, Code: "lima", Name: "Lima", JurisdictionID: "jur-lima", CostOfLiving: 500, Population: 9},
+		{ID: tehranID, Code: "tehran", Name: "Tehran", JurisdictionID: "jur-tehran", CostOfLiving: 900, Population: 9},
+		{ID: tokyoID, Code: "tokyo", Name: "Tokyo", JurisdictionID: "jur-tokyo", CostOfLiving: 2000, Population: 14},
 	}
 }
 
@@ -60,17 +64,66 @@ func testRoutes(t *testing.T) world.Routes {
 	return routes
 }
 
-// testPlanner is the real domain planner over the fixed world.
-func testPlanner(t *testing.T) travel.Planner {
+// testModes are the transport modes of the fixed world:
+//
+//   - bus: public and FREE, on every road — the mode the older tests depart
+//     by, so they need no money;
+//   - train: public and priced, on every road, with demand pricing;
+//   - flight: private and priced, only between tehran and berlin.
+func testModes() (bus, train, flight travel.Mode) {
+	bus = travel.Mode{Code: "bus", Public: true, KMPerHour: 100, Boarding: 10 * time.Minute,
+		EnergyCost: testEnergyCost,
+		Demand:     travel.Demand{Window: 30 * time.Minute, FreeDepartures: 1, StepBPS: 1000, MaxBPS: 20000}}
+	train = travel.Mode{Code: "train", Public: true, KMPerHour: 200, Boarding: 20 * time.Minute,
+		BaseFare: 100, FarePerKM: 1, EnergyCost: 6,
+		Demand: travel.Demand{Window: 30 * time.Minute, FreeDepartures: 1, StepBPS: 1000, MaxBPS: 20000}}
+	flight = travel.Mode{Code: "flight", KMPerHour: 400, Boarding: 30 * time.Minute,
+		BaseFare: 500, FarePerKM: 4, EnergyCost: 4,
+		Demand: travel.Demand{Window: time.Hour, MaxBPS: travel.BasisPoints}}
+	return bus, train, flight
+}
+
+// fakeNetwork is TransportNetwork over the fixed world, each mode with its own
+// real world.Routes.
+type fakeNetwork struct {
+	modes  []travel.Mode
+	routes map[string]world.Routes
+}
+
+func testTransport(t *testing.T) *fakeNetwork {
 	t.Helper()
-	tariff, err := travel.NewTariff([]travel.Profile{
-		{Speed: travel.SpeedStandard, KMPerHour: 100, Boarding: 10 * time.Minute, BaseFare: 100, FarePerKM: 1},
-		{Speed: travel.SpeedExpress, KMPerHour: 400, Boarding: 30 * time.Minute, BaseFare: 500, FarePerKM: 4},
-	})
+	bus, train, flight := testModes()
+	air, err := world.NewRoutes([]world.Edge{{From: "tehran", To: "berlin", Distance: 400}})
 	if err != nil {
-		t.Fatalf("build tariff: %v", err)
+		t.Fatalf("build air routes: %v", err)
 	}
-	return travel.NewPlanner(testRoutes(t), tariff)
+	roads := testRoutes(t)
+	return &fakeNetwork{
+		modes:  []travel.Mode{bus, train, flight},
+		routes: map[string]world.Routes{"bus": roads, "train": roads, "flight": air},
+	}
+}
+
+func (n *fakeNetwork) Options(from, to string) ([]TransportOption, int) {
+	var out []TransportOption
+	for _, m := range n.modes {
+		if d, err := n.routes[m.Code].DistanceBetween(from, to); err == nil {
+			out = append(out, TransportOption{Mode: m, Name: strings.ToUpper(m.Code), DistanceKM: d})
+		}
+	}
+	return out, 7
+}
+
+// fakePolicy answers every lever with one value and records what it was
+// asked, so a test can prove the fare policy is read through the resolver.
+type fakePolicy struct {
+	value int64
+	asked []string
+}
+
+func (f *fakePolicy) Get(_ context.Context, jurisdictionID, lever string) (application.PolicyValue, error) {
+	f.asked = append(f.asked, jurisdictionID+"/"+lever)
+	return application.PolicyValue{JurisdictionID: jurisdictionID, Lever: lever, Value: f.value}, nil
 }
 
 // --- fakes -------------------------------------------------------------
@@ -267,6 +320,18 @@ func (f *fakeTravels) Complete(_ context.Context, travelID string) error {
 	return application.ErrNoActiveTravel
 }
 
+// RecentDepartures counts every journey ever started on the route by the
+// mode since the given time, the way the repository counts travels rows.
+func (f *fakeTravels) RecentDepartures(_ context.Context, from, to, mode string, since time.Time) (int, error) {
+	n := 0
+	for _, t := range f.started {
+		if t.FromCityID == from && t.ToCityID == to && t.Mode == mode && !t.DepartedAt.Before(since) {
+			n++
+		}
+	}
+	return n, nil
+}
+
 func (f *fakeTravels) Cancel(_ context.Context, travelID string) error {
 	for playerID, t := range f.active {
 		if t.ID == travelID {
@@ -387,6 +452,7 @@ type phase1 struct {
 	actions     *fakeActions
 	friendships *fakeFriendships
 	search      *fakeSearch
+	policy      *fakePolicy
 	ids         *seqIDs
 	now         time.Time
 }
@@ -407,6 +473,7 @@ func newPhase1(t *testing.T) *phase1 {
 		actions:     tx.actions,
 		friendships: tx.friendships,
 		search:      &fakeSearch{},
+		policy:      &fakePolicy{value: travel.BasisPoints},
 		ids:         &seqIDs{},
 		now:         fixedNow,
 	}
@@ -434,8 +501,8 @@ func (h *phase1) player(telegramUserID int64, id, cityID string) *application.Pl
 
 func (h *phase1) travelHandler(t *testing.T) *TravelHandler {
 	t.Helper()
-	planner := testPlanner(t)
-	return NewTravelHandler(h.uow, h.ids, messages(t), h.cities, planner, testEnergyCost, testArrivalXP, testIdempotencyTTL, h.clock())
+	return NewTravelHandler(h.uow, h.ids, messages(t), h.cities, testTransport(t), h.policy,
+		testTimeScale, testArrivalXP, testIdempotencyTTL, h.clock())
 }
 
 func (h *phase1) skillsHandler(t *testing.T) *SkillsHandler {

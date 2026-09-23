@@ -238,6 +238,14 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 	view.Health = regenerated.Health
 	view.MaxHealth = regenerated.MaxHealth
 
+	// Both of the player's accounts, opened on first sight so a new player
+	// reads zero rather than nothing.
+	cash, bankAcct, err := playerAccounts(ctx, tx.Ledger(), p.ID)
+	if err != nil {
+		return view, err
+	}
+	view.Cash, view.Bank = cash.Balance.Minor(), bankAcct.Balance.Minor()
+
 	// A player on the road is shown the journey rather than the city they
 	// left, and the home screen offers the journey instead of the map.
 	if t, err := tx.Travels().Active(ctx, p.ID); err == nil {

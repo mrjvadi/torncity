@@ -138,7 +138,32 @@ func sampleScreens() map[string]func(Context) *presenter.Response {
 				Destinations: []MapCity{{Code: "brennhaven", Name: "Brennhaven", DistanceKM: 260}}})
 		},
 		"travel started": func(c Context) *presenter.Response {
-			return TravelStarted(c, TravelStartedView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven", Duration: 135 * time.Minute, Energy: 10})
+			return TravelStarted(c, TravelStartedView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven",
+				ModeCode: "train", ModeName: "Train", Duration: 135 * time.Second, Energy: 10, Fare: 12500})
+		},
+		"travel started free": func(c Context) *presenter.Response {
+			return TravelStarted(c, TravelStartedView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven",
+				ModeCode: "car", ModeName: "Car", Duration: 4 * time.Minute, Energy: 14})
+		},
+		"travel options": func(c Context) *presenter.Response {
+			return TravelOptions(c, TravelOptionsView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven",
+				Cash: 5000, Options: []TravelOption{
+					{ModeCode: "bus", ModeName: "Bus", Fare: 560, Wait: 4*time.Minute + 40*time.Second, Energy: 8},
+					{ModeCode: "train", ModeName: "Train", Fare: 12500, Wait: 2 * time.Minute, Energy: 6, Busy: true},
+				}})
+		},
+		"travel options requoted": func(c Context) *presenter.Response {
+			return TravelOptions(c, TravelOptionsView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven",
+				Cash: 5000, Requoted: true, Options: []TravelOption{
+					{ModeCode: "flight", ModeName: "Flight", Fare: 2480, Wait: 90 * time.Second, Energy: 4, Busy: true},
+				}})
+		},
+		"travel no funds": func(c Context) *presenter.Response {
+			return TravelNoFunds(c, TravelFundsView{ToCode: "brennhaven", ModeCode: "flight", ModeName: "Flight", Fare: 2480, Cash: 300})
+		},
+		"travel status by mode": func(c Context) *presenter.Response {
+			return TravelStatus(c, TravelStatusView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven",
+				ModeCode: "bus", Remaining: 3 * time.Minute})
 		},
 		"travel status": func(c Context) *presenter.Response {
 			return TravelStatus(c, TravelStatusView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven", Remaining: 95 * time.Minute})
@@ -638,7 +663,7 @@ func TestErrorScreenReadsTheDomainSentinels(t *testing.T) {
 
 	same := Error(c, errors.InvalidInput("same city").WithCause(travel.ErrSameCity))
 	route := Error(c, errors.InvalidInput("no route").WithCause(world.ErrNoRoute))
-	speed := Error(c, errors.InvalidInput("unpriced").WithCause(travel.ErrSpeedNotPriced))
+	speed := Error(c, errors.InvalidInput("no such mode").WithCause(travel.ErrModeUnavailable))
 	for _, resp := range []*presenter.Response{same, route, speed} {
 		assertRendered(t, resp)
 	}

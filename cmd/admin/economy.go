@@ -24,10 +24,14 @@ func economyUsage() {
 
   verify                          check the ledger invariants (ADR 0009); exits
                                   non-zero if any fails
-  grant-starting --reason "why"   give every player who has not had it their
+  grant-starting --reason "why" [--by NAME]
+                                  give every player who has not had it their
                                   starting cash (economy.starting_cash); a player
                                   already granted is skipped, so it is safe to
                                   run again
+
+--by names the operator in the audit row; it defaults to $`+operatorEnv+`, then
+$USER, and the grant is refused when none of them names anybody.
 
 DATABASE_URL must be set. TORN_CONFIG overrides the configuration file
 (default `+config.DefaultPath+`).
@@ -115,7 +119,7 @@ func economyGrantStarting(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("economy grant-starting", flag.ExitOnError)
 	fs.Usage = economyUsage
 	reason := fs.String("reason", "", "why this grant is being made (required)")
-	actor := fs.String("actor", "", "operator identity (defaults to $USER)")
+	operator := addOperatorFlags(fs)
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -127,12 +131,9 @@ func economyGrantStarting(ctx context.Context, args []string) error {
 		return errors.New("economy grant-starting: --reason is required; " +
 			"money created without a recorded reason cannot be accounted for later")
 	}
-	who := *actor
-	if who == "" {
-		who = os.Getenv("USER")
-	}
-	if who == "" {
-		who = "unknown"
+	who, err := operator.resolve("economy grant-starting", os.LookupEnv)
+	if err != nil {
+		return err
 	}
 
 	cfgPath := os.Getenv("TORN_CONFIG")

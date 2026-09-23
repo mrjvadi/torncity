@@ -29,6 +29,10 @@
 #   country          required. The code of the country this city belongs to,
 #                    declared in governance.yml. Country levers and offices
 #                    reach a city through it.
+#   facilities       optional. What the city has for transport, by the codes
+#                    transport.yml declares (bus_terminal, rail_station,
+#                    airport). A mode that requires a facility serves a route
+#                    only when both ends have it: no airport, no flights.
 #
 # tax_rate_bps is also the DEFAULT of the city.tax_rate lever for this city
 # (governance.yml, `city_default: tax_rate_bps`): the rate the city charges
@@ -50,6 +54,7 @@ cities:
     cost_of_living: 980
     spawn_weight: 30
     country: default_country
+    facilities: [bus_terminal, rail_station]
 
   - code: fenwick_span
     name: Fenwick Span
@@ -57,6 +62,7 @@ cities:
     cost_of_living: 1540
     spawn_weight: 25
     country: default_country
+    facilities: [bus_terminal, rail_station, airport]
 
   - code: aldrin_hollow
     name: Aldrin Hollow
@@ -64,6 +70,7 @@ cities:
     cost_of_living: 2450
     spawn_weight: 15
     country: default_country
+    facilities: [bus_terminal, rail_station]
 
   - code: brennhaven
     name: Brennhaven
@@ -71,6 +78,7 @@ cities:
     cost_of_living: 2600
     spawn_weight: 20
     country: default_country
+    facilities: [bus_terminal, rail_station, airport]
 
   - code: kessmoor
     name: Kessmoor
@@ -78,6 +86,7 @@ cities:
     cost_of_living: 3100
     spawn_weight: 10
     country: default_country
+    facilities: [bus_terminal, rail_station, airport]
 
   # Calderis and Vantor Reach are the expensive far end of the map: places a
   # player travels to, not places anyone is born. Hence spawn_weight 0.
@@ -87,6 +96,7 @@ cities:
     cost_of_living: 3780
     spawn_weight: 0
     country: default_country
+    facilities: [bus_terminal, rail_station, airport]
 
   - code: vantor_reach
     name: Vantor Reach
@@ -94,3 +104,4 @@ cities:
     cost_of_living: 4200
     spawn_weight: 0
     country: default_country
+    facilities: [bus_terminal, airport]

@@ -81,6 +81,9 @@ var all = []Subscription{
 	// Phase 1: travel. travel.arrive is the one command in the game that no
 	// player can send; the scheduler publishes it when a journey comes due.
 	{Domain: "travel", Action: "start", Origin: FromPlayer},
+	// travel.options is the choice of transport to one city, each mode with
+	// its fare and wait; travel.start departs by the mode chosen there.
+	{Domain: "travel", Action: "options", Origin: FromPlayer},
 	{Domain: "travel", Action: "status", Origin: FromPlayer},
 	{Domain: "travel", Action: "arrive", Origin: FromScheduler},
 
@@ -91,6 +94,42 @@ var all = []Subscription{
 	{Domain: "social", Action: "friend.add", Origin: FromPlayer},
 	{Domain: "social", Action: "friend.accept", Origin: FromPlayer},
 	{Domain: "social", Action: "friend.list", Origin: FromPlayer},
+
+	// The bank: balances, deposits and withdrawals in a city, and payments
+	// between players — cash face to face, card from anywhere. bank.pay is
+	// the screen and the confirmation; only bank.pay.send moves money.
+	{Domain: "bank", Action: "show", Origin: FromPlayer},
+	{Domain: "bank", Action: "deposit", Origin: FromPlayer},
+	{Domain: "bank", Action: "withdraw", Origin: FromPlayer},
+	{Domain: "bank", Action: "pay", Origin: FromPlayer},
+	{Domain: "bank", Action: "pay.send", Origin: FromPlayer},
+
+	// Player-held offices (ADR 0015): a city's offices and policies, its
+	// public history, the office holder's screen and the change flow.
+	{Domain: "gov", Action: "city", Origin: FromPlayer},
+	{Domain: "gov", Action: "history", Origin: FromPlayer},
+	{Domain: "gov", Action: "office", Origin: FromPlayer},
+	{Domain: "gov", Action: "lever", Origin: FromPlayer},
+	{Domain: "gov", Action: "confirm", Origin: FromPlayer},
+	{Domain: "gov", Action: "set", Origin: FromPlayer},
+
+	// Work: the player's job, the openings in their city, applying, a shift,
+	// promotion and leaving. The base employer pays each shift as it is
+	// worked.
+	{Domain: "job", Action: "status", Origin: FromPlayer},
+	{Domain: "job", Action: "list", Origin: FromPlayer},
+	{Domain: "job", Action: "view", Origin: FromPlayer},
+	{Domain: "job", Action: "apply", Origin: FromPlayer},
+	{Domain: "job", Action: "work", Origin: FromPlayer},
+	{Domain: "job", Action: "promote", Origin: FromPlayer},
+	{Domain: "job", Action: "quit", Origin: FromPlayer},
+
+	// Study. education.complete, like travel.arrive, only the scheduler
+	// sends: a course finishes when its time is up.
+	{Domain: "education", Action: "list", Origin: FromPlayer},
+	{Domain: "education", Action: "view", Origin: FromPlayer},
+	{Domain: "education", Action: "enroll", Origin: FromPlayer},
+	{Domain: "education", Action: "complete", Origin: FromScheduler},
 }
 
 // All returns every subscription. The slice is a copy.

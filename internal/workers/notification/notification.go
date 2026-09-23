@@ -47,6 +47,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -103,6 +104,14 @@ type Config struct {
 	// broker redelivers an event that is still being sent.
 	SendBudget time.Duration
 
+	// ReceiptMargin is the end of the send budget the gateway may not spend:
+	// the notice's DeliverBy is SendBudget minus this, and the rest is left
+	// for the receipt to travel back. A send the gateway starts at the very
+	// end of the budget would finish after this worker stopped listening,
+	// and the redelivery would be a duplicate. It must be positive and
+	// shorter than SendBudget.
+	ReceiptMargin time.Duration
+
 	// MaxAge is how old an event may be and still be announced. A consumer
 	// created for the first time reads the stream from the start, and a
 	// month of "you have arrived" arriving at once is worse than none. Zero
@@ -125,6 +134,8 @@ func New(cfg Config) (*Worker, error) {
 		return nil, errors.New("notification: players, links, inbox, sender and cities are all required")
 	case cfg.SendBudget <= 0:
 		return nil, errors.New("notification: send budget must be positive")
+	case cfg.ReceiptMargin <= 0 || cfg.ReceiptMargin >= cfg.SendBudget:
+		return nil, errors.New("notification: receipt margin must be positive and shorter than the send budget")
 	}
 	if cfg.Logger == nil {
 		cfg.Logger = slog.New(slog.DiscardHandler)
@@ -134,12 +145,6 @@ func New(cfg Config) (*Worker, error) {
 	}
 	return &Worker{cfg: cfg}, nil
 }
-
-// deliverByShare is the part of the send budget the gateway may spend before
-// it must not start a send. The rest is left for its receipt to travel back:
-// a send the gateway starts at the very end of the budget would finish after
-// this worker stopped listening, and the redelivery would be a duplicate.
-const deliverByShare = 0.8
 
 // Handle processes one delivery of one route's event.
 //
@@ -245,7 +250,7 @@ func (w *Worker) deliver(
 
 	ctx, cancel := context.WithDeadline(ctx, start.Add(w.cfg.SendBudget))
 	defer cancel()
-	deliverBy := start.Add(time.Duration(float64(w.cfg.SendBudget) * deliverByShare))
+	deliverBy := start.Add(w.cfg.SendBudget - w.cfg.ReceiptMargin)
 
 	for _, link := range links {
 		env, err := envelope.New(noticeMetadata(meta, player, link, lang), Notice{DeliverBy: deliverBy, Response: *resp})
@@ -254,7 +259,7 @@ func (w *Worker) deliver(
 			return false, err
 		}
 
-		receipt, err := w.cfg.Sender.Send(ctx, Subject(player.ID), env)
+		receipt, err := w.cfg.Sender.Send(ctx, subjects.Notify(player.ID), env)
 		if err != nil {
 			log.Warn("no receipt for the notice", slog.String("bot_id", link.BotID), slog.String("error", err.Error()))
 			return false, err

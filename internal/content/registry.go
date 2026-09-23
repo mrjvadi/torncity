@@ -5,6 +5,8 @@ import (
 	"sort"
 	"sync/atomic"
 
+	"github.com/mrjvadi/torncity/internal/domain/education"
+	"github.com/mrjvadi/torncity/internal/domain/job"
 	"github.com/mrjvadi/torncity/internal/domain/world"
 )
 
@@ -26,6 +28,15 @@ type Snapshot struct {
 	byID    map[string]world.City
 	codes   []string // sorted, so Cities has a stable order
 	skills  []SkillDef
+
+	// Work and study, in file order; see jobs.go.
+	careers []CareerDef
+	courses []CourseDef
+	career  map[string]job.Career
+	course  map[string]education.Course
+
+	// Transport: every mode with the network it serves; see transport.go.
+	transport []transportNetwork
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -72,6 +83,14 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 		snap.codes = append(snap.codes, c.Code)
 	}
 	sort.Strings(snap.codes)
+
+	if err := snap.buildJobs(p); err != nil {
+		return nil, fmt.Errorf("content: version %d: %w", version, err)
+	}
+
+	if snap.transport, err = buildTransport(p); err != nil {
+		return nil, fmt.Errorf("content: version %d: %w", version, err)
+	}
 
 	return snap, nil
 }

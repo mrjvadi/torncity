@@ -106,6 +106,11 @@ func Search(c Context, v SearchView) *presenter.Response {
 			self = c.T("social.search.self", nil)
 		} else {
 			kb.Add(c.T("button.add_friend", map[string]any{"player": name}), AddrFriendAdd, found.ID)
+			if found.Code != "" {
+				// Paying is addressed by the public code, which is short
+				// enough to leave room for an amount in the next address.
+				kb.Add(c.T("button.pay", map[string]any{"player": name}), AddrPay, found.Code)
+			}
 		}
 		text = paragraphs(
 			c.T("social.search.title", nil),

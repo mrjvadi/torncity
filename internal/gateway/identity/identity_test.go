@@ -137,8 +137,11 @@ func TestOnePersonIsOnePlayerAcrossBots(t *testing.T) {
 		}
 	}
 	// The bot id and chat id still reach the store: they are what the bot
-	// link is made of, and a notification cannot be routed without them.
-	if store.calls[0].chatID != telegramUserID || store.calls[1].chatID != -100999 {
+	// link is made of, and a notification cannot be routed without them. A
+	// group is never recorded as the player's chat, so the second call —
+	// from a supergroup — carries none: a notice sent there would be read
+	// by the whole room.
+	if store.calls[0].chatID != telegramUserID || store.calls[1].chatID != 0 {
 		t.Errorf("chat ids = %d, %d; the bot link would point at the wrong chat",
 			store.calls[0].chatID, store.calls[1].chatID)
 	}
@@ -177,7 +180,8 @@ func TestFromUpdate(t *testing.T) {
 			botID:  "bot02",
 			want: Identity{
 				TelegramUserID: 42, DisplayName: "Sara",
-				Language: "en", BotID: "bot02", ChatID: -100777,
+				// A group is never recorded as the player's chat.
+				Language: "en", BotID: "bot02", ChatID: 0,
 			},
 		},
 		{name: "no bot id", update: messageFrom(99, "/start"), botID: " ", wantErr: ErrNoBotID},

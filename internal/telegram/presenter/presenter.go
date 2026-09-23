@@ -44,6 +44,25 @@ type Response struct {
 	Keyboard  *Keyboard  `json:"keyboard,omitempty"`
 	MessageID int64      `json:"message_id,omitempty"`
 	Alert     bool       `json:"alert,omitempty"`
+
+	// Public says the screen may be seen by everyone in a group. The zero
+	// value is private, on purpose: a screen that forgets to declare itself
+	// is kept to the player who asked for it rather than shown to the room.
+	// In a group the gateway delivers a private screen as an ephemeral
+	// message, or failing that in the player's private chat, and never on the
+	// group's timeline (internal/gateway/groups). In a private chat the flag
+	// changes nothing. Only neutral text with nothing personal in it — help,
+	// a short confirmation — is marked public.
+	Public bool `json:"public,omitempty"`
+}
+
+// MarkPublic declares the response safe for everyone in a group to see, and
+// returns it so a constructor can be wrapped: presenter.Message(t, kb).MarkPublic().
+func (r *Response) MarkPublic() *Response {
+	if r != nil {
+		r.Public = true
+	}
+	return r
 }
 
 // Message builds a send_message response.

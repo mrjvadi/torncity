@@ -1,0 +1,129 @@
+# Courses: what a player can study, what it costs, and what it earns.
+#
+# CONTENT under docs/adr/0004-content-system.md. The RULES — one course at a
+# time, a duration no money shortens, a certificate issued only at the end —
+# live in internal/domain/education.
+#
+# A certificate is identified by the course that issues it: a career in
+# jobs.yml requires one by naming the course's code.
+#
+# Editing this file changes nothing until `admin content load` validates and
+# loads it as a new content version.
+#
+# Fields
+#   code            stable identifier; never change it after it ships —
+#                   enrolments and certificates name it.
+#   name            display name, the fallback when the message catalogue has
+#                   no course.<code> entry.
+#   institution     university | training_center | company.
+#   city            city code where it is taught; omitted means it can be
+#                   taken from anywhere.
+#   cost            the fee, minor units, charged when enrolling.
+#   duration        how long it runs, e.g. 6h. Fixed at enrolment.
+#   capacity        seats; omitted or 0 means unlimited.
+#   min_level       character level needed to enrol.
+#   prerequisites   course codes whose certificate must be held first.
+#   skill_rewards   [{skill, xp}] awarded on completion.
+#   certifies       true when completing it issues a certificate.
+
+version: 1
+
+courses:
+  - code: first_aid
+    name: First Aid
+    institution: training_center
+    cost: 600
+    duration: 2h
+    min_level: 1
+    skill_rewards: [{skill: medicine, xp: 150}]
+    certifies: true
+
+  - code: driving_licence
+    name: Driving Licence
+    institution: training_center
+    cost: 900
+    duration: 3h
+    min_level: 1
+    skill_rewards: [{skill: driving, xp: 250}]
+    certifies: true
+
+  - code: bookkeeping
+    name: Bookkeeping
+    institution: training_center
+    cost: 1200
+    duration: 4h
+    min_level: 1
+    skill_rewards: [{skill: finance, xp: 250}]
+    certifies: true
+
+  - code: programming_fundamentals
+    name: Programming Fundamentals
+    institution: university
+    cost: 2000
+    duration: 6h
+    min_level: 1
+    skill_rewards: [{skill: programming, xp: 300}]
+    certifies: true
+
+  - code: retail_management
+    name: Retail Management
+    institution: training_center
+    cost: 2800
+    duration: 8h
+    min_level: 4
+    skill_rewards: [{skill: management, xp: 400}]
+    certifies: true
+
+  - code: culinary_arts
+    name: Culinary Arts
+    institution: training_center
+    city: brennhaven
+    cost: 3200
+    duration: 10h
+    min_level: 4
+    skill_rewards: [{skill: cooking, xp: 500}]
+    certifies: true
+
+  - code: automotive_repair
+    name: Automotive Repair
+    institution: training_center
+    city: kessmoor
+    cost: 3600
+    duration: 12h
+    min_level: 4
+    skill_rewards: [{skill: mechanics, xp: 500}, {skill: engineering, xp: 150}]
+    certifies: true
+
+  - code: nursing
+    name: Nursing Diploma
+    institution: university
+    city: fenwick_span
+    cost: 6000
+    duration: 24h
+    capacity: 40
+    min_level: 4
+    prerequisites: [first_aid]
+    skill_rewards: [{skill: medicine, xp: 800}]
+    certifies: true
+
+  - code: software_engineering
+    name: Software Engineering Degree
+    institution: university
+    city: ostmarch
+    cost: 9000
+    duration: 48h
+    capacity: 40
+    min_level: 7
+    prerequisites: [programming_fundamentals]
+    skill_rewards: [{skill: programming, xp: 1500}, {skill: engineering, xp: 600}]
+    certifies: true
+
+  # Not a qualification: a short evening class that only trains a skill.
+  - code: evening_accounting
+    name: Evening Class in Accounting
+    institution: training_center
+    cost: 400
+    duration: 90m
+    min_level: 1
+    skill_rewards: [{skill: finance, xp: 120}, {skill: management, xp: 40}]
+    certifies: false

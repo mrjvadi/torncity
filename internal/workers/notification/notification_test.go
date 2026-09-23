@@ -140,15 +140,16 @@ func newRig(t *testing.T, player *application.Player, links ...application.BotLi
 		now:    time.Date(2026, 9, 23, 12, 0, 0, 0, time.UTC),
 	}
 	r.w, err = New(Config{
-		Msgs:       msgs,
-		Players:    fakePlayers{player: player},
-		Links:      r.links,
-		Inbox:      r.inbox,
-		Sender:     r.sender,
-		Deps:       Deps{Cities: fakeCities{}},
-		SendBudget: 10 * time.Second,
-		MaxAge:     24 * time.Hour,
-		Now:        func() time.Time { return r.now },
+		Msgs:          msgs,
+		Players:       fakePlayers{player: player},
+		Links:         r.links,
+		Inbox:         r.inbox,
+		Sender:        r.sender,
+		Deps:          Deps{Cities: fakeCities{}},
+		SendBudget:    10 * time.Second,
+		ReceiptMargin: 2 * time.Second,
+		MaxAge:        24 * time.Hour,
+		Now:           func() time.Time { return r.now },
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -241,8 +242,10 @@ func TestArrivalIsSentToThePlayerThroughTheFirstLinkInTheirLanguage(t *testing.T
 	if !strings.Contains(s.notice.Response.Text, arrived) {
 		t.Errorf("notice is not the English arrival in Calderis:\n%s", s.notice.Response.Text)
 	}
-	if !s.notice.DeliverBy.After(r.now) || s.notice.DeliverBy.After(r.now.Add(10*time.Second)) {
-		t.Errorf("deliver_by %v is outside the send budget", s.notice.DeliverBy)
+	// The send budget less the receipt margin: the gateway may start a send
+	// until then, and the rest of the budget is the receipt's way back.
+	if want := r.now.Add(10*time.Second - 2*time.Second); !s.notice.DeliverBy.Equal(want) {
+		t.Errorf("deliver_by %v, want %v (budget less the receipt margin)", s.notice.DeliverBy, want)
 	}
 	if !r.inbox.done["req-1|"+route.Durable()] {
 		t.Error("the delivered event was not recorded in the inbox")
@@ -485,11 +488,46 @@ func TestRoutesAreWellFormed(t *testing.T) {
 	}
 }
 
-func TestNoticeSubject(t *testing.T) {
-	if got := Subject("p1"); got != "game.notify.p1.v1" {
-		t.Errorf("Subject = %q", got)
+// A notice travels on the subject the subjects package addresses to the
+// player, and that subject is inside the grammar the gateway subscribes by.
+func TestNoticeSubjectIsTheSubjectsPackages(t *testing.T) {
+	r := newRig(t, englishPlayer(), link(botA, 1001))
+	if err := r.w.Handle(context.Background(), travelRoute(t), arrivalEvent(t, "req-s", r.now.Add(-time.Minute), nil)); err != nil {
+		t.Fatal(err)
 	}
-	if SubjectAll != "game.notify.*.v1" {
-		t.Errorf("SubjectAll = %q", SubjectAll)
+	if len(r.sender.sent) != 1 {
+		t.Fatalf("sent %d notices, want 1", len(r.sender.sent))
+	}
+	got := r.sender.sent[0].subject
+	if got != subjects.Notify(playerID) {
+		t.Errorf("subject %q, want %q", got, subjects.Notify(playerID))
+	}
+	if !subjects.Grammar.MatchString(got) {
+		t.Errorf("%q does not match the subject grammar", got)
+	}
+}
+
+// The receipt margin must leave the gateway some of the budget and keep some
+// for the receipt; anything else is refused when the worker is built.
+func TestReceiptMarginMustFitInsideTheBudget(t *testing.T) {
+	base := Config{
+		Players:    fakePlayers{},
+		Links:      &fakeLinks{},
+		Inbox:      &fakeInbox{},
+		Sender:     &fakeSender{},
+		Deps:       Deps{Cities: fakeCities{}},
+		SendBudget: 10 * time.Second,
+	}
+	for _, margin := range []time.Duration{0, -time.Second, 10 * time.Second, 11 * time.Second} {
+		cfg := base
+		cfg.ReceiptMargin = margin
+		if _, err := New(cfg); err == nil {
+			t.Errorf("a receipt margin of %s in a %s budget was accepted", margin, cfg.SendBudget)
+		}
+	}
+	cfg := base
+	cfg.ReceiptMargin = 2 * time.Second
+	if _, err := New(cfg); err != nil {
+		t.Errorf("a receipt margin of 2s in a 10s budget was refused: %v", err)
 	}
 }

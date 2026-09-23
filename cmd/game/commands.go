@@ -3,13 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/commands"
 	"github.com/mrjvadi/torncity/internal/content"
-	"github.com/mrjvadi/torncity/internal/domain/travel"
 	"github.com/mrjvadi/torncity/internal/domain/world"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
@@ -31,6 +29,11 @@ type phaseHandlers struct {
 	social   *handlers.SocialHandler
 	worldMap *handlers.MapHandler
 	settings *handlers.SettingsHandler
+	bank     *handlers.BankHandler
+	gov      *handlers.GovernanceHandler
+
+	jobs      *handlers.JobsHandler
+	education *handlers.EducationHandler
 }
 
 // bind maps every subscribed command to the handler method that serves it.
@@ -40,7 +43,7 @@ type phaseHandlers struct {
 // with no binding would ack messages it never ran, and a binding with no
 // subscription is a command nobody can reach.
 func (h phaseHandlers) bind() map[string]commandFunc {
-	return map[string]commandFunc{
+	bound := map[string]commandFunc{
 		"player.profile.get": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.profile.Handle(ctx, env.Metadata)
 		},
@@ -61,6 +64,13 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 				return nil, err
 			}
 			return h.travel.Start(ctx, env.Metadata, req)
+		},
+		"travel.options": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.TravelOptionsRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.travel.Options(ctx, env.Metadata, req)
 		},
 		"travel.status": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.travel.Status(ctx, env.Metadata)
@@ -115,7 +125,83 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.social.FriendList(ctx, env.Metadata, req)
 		},
+
+		"bank.show": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.bank.Show(ctx, env.Metadata)
+		},
+		"bank.deposit": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.BankAmountRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.bank.Deposit(ctx, env.Metadata, req)
+		},
+		"bank.withdraw": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.BankAmountRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.bank.Withdraw(ctx, env.Metadata, req)
+		},
+		"bank.pay": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.PayRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.bank.Pay(ctx, env.Metadata, req)
+		},
+		"bank.pay.send": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.PayRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.bank.PaySend(ctx, env.Metadata, req)
+		},
+
+		"gov.city": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.GovCityRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.gov.City(ctx, env.Metadata, req)
+		},
+		"gov.history": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.GovHistoryRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.gov.History(ctx, env.Metadata, req)
+		},
+		"gov.office": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.gov.Office(ctx, env.Metadata)
+		},
+		"gov.lever": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.GovLeverRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.gov.Lever(ctx, env.Metadata, req)
+		},
+		"gov.confirm": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.GovLeverRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.gov.Confirm(ctx, env.Metadata, req)
+		},
+		"gov.set": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.GovLeverRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.gov.Set(ctx, env.Metadata, req)
+		},
 	}
+	// Work and study are bound in commands_work.go.
+	for command, fn := range h.bindWork() {
+		bound[command] = fn
+	}
+	return bound
 }
 
 // bindAll pairs every subscription with its handler, or explains which side
@@ -153,40 +239,40 @@ func decode(env *envelope.Envelope, dst any) error {
 	return nil
 }
 
-// newTariff builds the price list from configuration.
+// liveTransport answers which transport modes connect two cities from
+// whatever content snapshot is current at the moment of the request.
 //
-// Fares are zero on purpose: ROADMAP.md phase 1 makes travel free until the
-// ledger exists, so the only thing a speed buys here is time.
-func newTariff(standardKMPerHour int, standardBoarding time.Duration, expressKMPerHour int, expressBoarding time.Duration) (travel.Tariff, error) {
-	return travel.NewTariff([]travel.Profile{
-		{Speed: travel.SpeedStandard, KMPerHour: standardKMPerHour, Boarding: standardBoarding},
-		{Speed: travel.SpeedExpress, KMPerHour: expressKMPerHour, Boarding: expressBoarding},
-	})
-}
-
-// livePlanner plans against whatever content snapshot is current at the moment
-// of the request.
-//
-// travel.Planner is a value built from one route network; building it once at
-// startup would freeze the world at the version this process booted with. Asking
-// the registry per request makes a content reload a pointer swap in the
-// registry with nothing to change here.
-type livePlanner struct {
+// Each call reads the registry ONCE, so the options it returns and the content
+// version it reports come from one snapshot; a content reload is a pointer
+// swap in the registry with nothing to change here.
+type liveTransport struct {
 	registry *content.Registry
-	tariff   travel.Tariff
 }
 
-func (p livePlanner) Plan(from, to world.City, speed travel.Speed, now time.Time) (travel.Journey, travel.Cost, error) {
-	return travel.NewPlanner(p.registry.Routes(), p.tariff).Plan(from, to, speed, now)
+func (t liveTransport) Options(from, to string) ([]handlers.TransportOption, int) {
+	snap := t.registry.Current()
+	opts := snap.TransportOptions(from, to)
+	out := make([]handlers.TransportOption, 0, len(opts))
+	for _, o := range opts {
+		out = append(out, handlers.TransportOption{Mode: o.Mode, Name: o.Name, DistanceKM: o.DistanceKM})
+	}
+	return out, snap.Version()
 }
 
 // liveRoutes is the route network the map screen reads, for the same reason.
+// A destination is listed when some transport mode reaches it, at the
+// shortest distance any mode offers: a city only a road nobody travels
+// reaches is not somewhere the player can go.
 type liveRoutes struct {
 	registry *content.Registry
 }
 
 func (r liveRoutes) DistanceBetween(from, to string) (int, error) {
-	return r.registry.Routes().DistanceBetween(from, to)
+	snap := r.registry.Current()
+	if d, ok := snap.NearestByAnyMode(from, to); ok {
+		return d, nil
+	}
+	return 0, fmt.Errorf("%w: no transport mode connects %q and %q", world.ErrNoRoute, from, to)
 }
 
 func (r liveRoutes) Has(code string) bool { return r.registry.Routes().Has(code) }

@@ -106,6 +106,12 @@ type Identity struct {
 
 	// BotID and ChatID describe the conversation, not the person. They feed
 	// the bot link; they must never reach a player lookup key.
+	//
+	// ChatID is the player's PRIVATE chat with the bot, the one notices are
+	// sent to. It is 0 for an update from a group: recording the group as
+	// the player's chat would deliver their notices to the whole room, and a
+	// player who has only ever played in a group has no private chat the
+	// bot may write to.
 	BotID  string
 	ChatID int64
 }
@@ -124,27 +130,34 @@ func FromUpdate(update client.Update, botID, defaultLanguage string) (Identity, 
 	}
 
 	var (
-		from   *client.User
-		chatID int64
+		from     *client.User
+		chatID   int64
+		chatType string
 	)
 	switch {
 	case update.CallbackQuery != nil:
 		from = &update.CallbackQuery.From
 		if update.CallbackQuery.Message != nil {
 			chatID = update.CallbackQuery.Message.Chat.ID
+			chatType = update.CallbackQuery.Message.Chat.Type
 		}
 	case update.Message != nil:
 		from = update.Message.From
 		chatID = update.Message.Chat.ID
+		chatType = update.Message.Chat.Type
 	case update.EditedMessage != nil:
 		from = update.EditedMessage.From
 		chatID = update.EditedMessage.Chat.ID
+		chatType = update.EditedMessage.Chat.Type
 	default:
 		return Identity{}, ErrUnsupportedUpdate
 	}
 
 	if from == nil || from.ID == 0 {
 		return Identity{}, ErrNoTelegramUser
+	}
+	if chatType != "private" {
+		chatID = 0
 	}
 
 	return Identity{

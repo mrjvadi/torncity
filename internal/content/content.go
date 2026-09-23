@@ -77,6 +77,11 @@ type CityDef struct {
 	// city's parent in the jurisdiction tree
 	// (docs/adr/0015-player-held-offices.md, section 1).
 	Country string `yaml:"country"`
+	// Facilities lists what the city has for transport — a bus terminal, a
+	// rail station, an airport — by the codes transport.yml declares. A
+	// mode that requires a facility serves a route only when both ends have
+	// it. Optional; none means only modes that require nothing stop here.
+	Facilities []string `yaml:"facilities"`
 }
 
 // City converts the definition to the domain value. Population is not content:
@@ -104,6 +109,11 @@ type RouteDef struct {
 	// would be wrong. nil means "not stated", which is read as true by
 	// IsBidirectional.
 	Bidirectional *bool `yaml:"bidirectional"`
+	// Modes lists the transport modes (transport.yml codes) that serve this
+	// route. nil — the key omitted — derives them: every mode whose required
+	// facilities both ends have. A declared list must name only modes both
+	// ends can serve, and may not be empty.
+	Modes []string `yaml:"modes"`
 }
 
 // IsBidirectional reports the effective direction flag, defaulting to true.
@@ -174,6 +184,16 @@ type Pack struct {
 	Jurisdictions []JurisdictionDef
 	Levers        []LeverDef
 	Offices       []OfficeDef
+
+	// Work and study (jobs.yml, education.yml): the careers the base
+	// employer hires into and the courses players may take. See jobs.go.
+	Careers []CareerDef
+	Courses []CourseDef
+
+	// Transport (transport.yml): the facilities a city may have and the
+	// modes of transport between cities. See transport.go.
+	Facilities     []string
+	TransportModes []TransportModeDef
 
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"

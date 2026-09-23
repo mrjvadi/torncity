@@ -79,13 +79,20 @@ func Map(c Context, v MapView) *presenter.Response {
 			// budget. The core looks it up again and re-checks the route, the
 			// energy and whether this player is already travelling, so a
 			// hand-written address buys nothing.
-			kb.Add(c.T("button.travel_to", map[string]any{"city": name}), AddrTravelStart, city.Code)
+			// Pressing a destination opens the choice of transport; nothing
+			// departs until a mode is chosen there.
+			kb.Add(c.T("button.travel_to", map[string]any{"city": name}), AddrTravelOptions, city.Code)
 		}
 		content = paragraphs(
 			c.T("map.origin", map[string]any{"city": origin}),
 			body(lines...),
 			pageIndicator(c, v.Page, v.Pages),
 		)
+	}
+
+	// The offices and policies of the city the player stands in.
+	if !v.Travelling && origin != "" {
+		kb.Add(c.T("gov.button.city", nil), AddrGovCity)
 	}
 
 	nav := keyboards.Nav{RefreshData: AddrMap}

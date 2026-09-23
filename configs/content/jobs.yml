@@ -1,0 +1,323 @@
+# Careers: what a player can work as, rung by rung.
+#
+# docs/adr/0004-content-system.md draws the line this file sits on. Everything
+# here is CONTENT: which careers exist, what each rung asks for, what a shift
+# of it costs and earns, and what earns the step up. The RULES — how a shift
+# pays, how fatigue cuts output, how performance moves, when a promotion is
+# earned — live in internal/domain/job and are not described here.
+#
+# What is NOT here: the minimum wage, income tax and the fatigue limits. They
+# are policy, set by a city's office holders within the operator's bounds
+# (configs/content/governance.yml, docs/adr/0015-player-held-offices.md).
+#
+# Editing this file changes nothing until `admin content load` validates and
+# loads it as a new content version.
+#
+# Fields
+#   code        stable identifier; never change it after it ships — a
+#               player's job names it.
+#   name        display name, the fallback when the message catalogue has no
+#               career.<code>.name entry.
+#   category    open vocabulary, for grouping.
+#   cities      city codes whose base employer hires into this career.
+#               Omitted means every city.
+#   tiers       from the most junior up. Each:
+#     rank                     entry | skilled | senior | specialist |
+#                              manager | executive | owner. Must rise.
+#     title                    display title, the fallback when the catalogue
+#                              has no career.<code>.<rank> entry.
+#     min_level                character level needed to hold it.
+#     required_skills          [{skill, level}], checked in this order.
+#     required_certifications  course codes (education.yml) whose certificate
+#                              must be held. The course must certify.
+#     base_salary              pay per full-output shift, minor units.
+#     energy_cost              energy one shift costs.
+#     xp_per_shift             character XP for a full-output shift.
+#     skill_xp_per_shift       [{skill, xp}] for a full-output shift.
+#     promotion                what earns the step to the next tier:
+#                              min_performance (0..100), min_time_in_tier (a
+#                              duration, e.g. 48h), min_shifts. Ignored on the
+#                              last tier.
+#
+# A player may hold a job only in the city they live in (a work permit for
+# other cities arrives with residency changes, ADR 0014).
+
+version: 1
+
+careers:
+  - code: retail
+    name: Retail
+    category: commerce
+    tiers:
+      - rank: entry
+        title: Sales Trainee
+        min_level: 1
+        base_salary: 120
+        energy_cost: 15
+        xp_per_shift: 10
+        skill_xp_per_shift: [{skill: management, xp: 15}]
+        promotion: {min_performance: 55, min_time_in_tier: 24h, min_shifts: 6}
+      - rank: skilled
+        title: Sales Associate
+        min_level: 3
+        required_skills: [{skill: management, level: 2}]
+        base_salary: 190
+        energy_cost: 15
+        xp_per_shift: 14
+        skill_xp_per_shift: [{skill: management, xp: 20}]
+        promotion: {min_performance: 62, min_time_in_tier: 48h, min_shifts: 10}
+      - rank: senior
+        title: Store Supervisor
+        min_level: 6
+        required_skills: [{skill: management, level: 5}]
+        required_certifications: [retail_management]
+        base_salary: 300
+        energy_cost: 20
+        xp_per_shift: 20
+        skill_xp_per_shift: [{skill: management, xp: 30}, {skill: finance, xp: 10}]
+        promotion: {min_performance: 70, min_time_in_tier: 72h, min_shifts: 15}
+      - rank: manager
+        title: Store Manager
+        min_level: 10
+        required_skills: [{skill: management, level: 10}, {skill: finance, level: 3}]
+        required_certifications: [retail_management]
+        base_salary: 480
+        energy_cost: 20
+        xp_per_shift: 28
+        skill_xp_per_shift: [{skill: management, xp: 40}, {skill: finance, xp: 15}]
+
+  - code: hospitality
+    name: Hospitality
+    category: food
+    tiers:
+      - rank: entry
+        title: Kitchen Porter
+        min_level: 1
+        base_salary: 110
+        energy_cost: 15
+        xp_per_shift: 10
+        skill_xp_per_shift: [{skill: cooking, xp: 15}]
+        promotion: {min_performance: 55, min_time_in_tier: 24h, min_shifts: 6}
+      - rank: skilled
+        title: Line Cook
+        min_level: 3
+        required_skills: [{skill: cooking, level: 3}]
+        base_salary: 180
+        energy_cost: 20
+        xp_per_shift: 14
+        skill_xp_per_shift: [{skill: cooking, xp: 25}]
+        promotion: {min_performance: 62, min_time_in_tier: 48h, min_shifts: 10}
+      - rank: senior
+        title: Sous Chef
+        min_level: 6
+        required_skills: [{skill: cooking, level: 7}]
+        required_certifications: [culinary_arts]
+        base_salary: 290
+        energy_cost: 20
+        xp_per_shift: 20
+        skill_xp_per_shift: [{skill: cooking, xp: 35}, {skill: management, xp: 10}]
+        promotion: {min_performance: 70, min_time_in_tier: 72h, min_shifts: 15}
+      - rank: manager
+        title: Head Chef
+        min_level: 10
+        required_skills: [{skill: cooking, level: 12}, {skill: management, level: 4}]
+        required_certifications: [culinary_arts]
+        base_salary: 460
+        energy_cost: 25
+        xp_per_shift: 28
+        skill_xp_per_shift: [{skill: cooking, xp: 40}, {skill: management, xp: 20}]
+
+  - code: logistics
+    name: Logistics
+    category: transport
+    tiers:
+      - rank: entry
+        title: Courier
+        min_level: 1
+        base_salary: 115
+        energy_cost: 15
+        xp_per_shift: 10
+        skill_xp_per_shift: [{skill: logistics, xp: 10}, {skill: driving, xp: 10}]
+        promotion: {min_performance: 55, min_time_in_tier: 24h, min_shifts: 6}
+      - rank: skilled
+        title: Delivery Driver
+        min_level: 3
+        required_skills: [{skill: driving, level: 2}]
+        required_certifications: [driving_licence]
+        base_salary: 200
+        energy_cost: 20
+        xp_per_shift: 14
+        skill_xp_per_shift: [{skill: driving, xp: 25}, {skill: logistics, xp: 10}]
+        promotion: {min_performance: 62, min_time_in_tier: 48h, min_shifts: 10}
+      - rank: senior
+        title: Dispatch Coordinator
+        min_level: 6
+        required_skills: [{skill: logistics, level: 5}]
+        required_certifications: [driving_licence]
+        base_salary: 310
+        energy_cost: 20
+        xp_per_shift: 20
+        skill_xp_per_shift: [{skill: logistics, xp: 35}, {skill: management, xp: 10}]
+        promotion: {min_performance: 70, min_time_in_tier: 72h, min_shifts: 15}
+      - rank: manager
+        title: Logistics Manager
+        min_level: 10
+        required_skills: [{skill: logistics, level: 10}, {skill: management, level: 4}]
+        required_certifications: [driving_licence]
+        base_salary: 490
+        energy_cost: 20
+        xp_per_shift: 28
+        skill_xp_per_shift: [{skill: logistics, xp: 40}, {skill: management, xp: 20}]
+
+  - code: workshop
+    name: Workshop
+    category: trades
+    tiers:
+      - rank: entry
+        title: Workshop Hand
+        min_level: 1
+        base_salary: 125
+        energy_cost: 20
+        xp_per_shift: 12
+        skill_xp_per_shift: [{skill: mechanics, xp: 15}]
+        promotion: {min_performance: 55, min_time_in_tier: 24h, min_shifts: 6}
+      - rank: skilled
+        title: Mechanic
+        min_level: 3
+        required_skills: [{skill: mechanics, level: 3}]
+        base_salary: 210
+        energy_cost: 20
+        xp_per_shift: 16
+        skill_xp_per_shift: [{skill: mechanics, xp: 25}, {skill: engineering, xp: 5}]
+        promotion: {min_performance: 64, min_time_in_tier: 48h, min_shifts: 12}
+      - rank: senior
+        title: Master Mechanic
+        min_level: 7
+        required_skills: [{skill: mechanics, level: 8}]
+        required_certifications: [automotive_repair]
+        base_salary: 340
+        energy_cost: 25
+        xp_per_shift: 22
+        skill_xp_per_shift: [{skill: mechanics, xp: 35}, {skill: engineering, xp: 15}]
+
+  - code: technology
+    name: Technology
+    category: technology
+    cities: [ostmarch, brennhaven, calderis, vantor_reach]
+    tiers:
+      - rank: entry
+        title: Junior Developer
+        min_level: 2
+        required_certifications: [programming_fundamentals]
+        base_salary: 220
+        energy_cost: 20
+        xp_per_shift: 16
+        skill_xp_per_shift: [{skill: programming, xp: 25}]
+        promotion: {min_performance: 60, min_time_in_tier: 48h, min_shifts: 10}
+      - rank: skilled
+        title: Software Developer
+        min_level: 5
+        required_skills: [{skill: programming, level: 5}]
+        required_certifications: [programming_fundamentals]
+        base_salary: 360
+        energy_cost: 20
+        xp_per_shift: 22
+        skill_xp_per_shift: [{skill: programming, xp: 35}, {skill: engineering, xp: 10}]
+        promotion: {min_performance: 68, min_time_in_tier: 72h, min_shifts: 15}
+      - rank: senior
+        title: Senior Developer
+        min_level: 9
+        required_skills: [{skill: programming, level: 10}, {skill: engineering, level: 3}]
+        required_certifications: [software_engineering]
+        base_salary: 560
+        energy_cost: 25
+        xp_per_shift: 30
+        skill_xp_per_shift: [{skill: programming, xp: 45}, {skill: engineering, xp: 20}]
+        promotion: {min_performance: 75, min_time_in_tier: 120h, min_shifts: 20}
+      - rank: specialist
+        title: Software Architect
+        min_level: 14
+        required_skills: [{skill: programming, level: 16}, {skill: engineering, level: 8}]
+        required_certifications: [software_engineering]
+        base_salary: 820
+        energy_cost: 25
+        xp_per_shift: 38
+        skill_xp_per_shift: [{skill: programming, xp: 50}, {skill: engineering, xp: 30}, {skill: management, xp: 10}]
+
+  - code: healthcare
+    name: Healthcare
+    category: medical
+    cities: [ostmarch, fenwick_span, kessmoor, vantor_reach]
+    tiers:
+      - rank: entry
+        title: Care Aide
+        min_level: 1
+        required_certifications: [first_aid]
+        base_salary: 150
+        energy_cost: 20
+        xp_per_shift: 12
+        skill_xp_per_shift: [{skill: medicine, xp: 20}]
+        promotion: {min_performance: 58, min_time_in_tier: 36h, min_shifts: 8}
+      - rank: skilled
+        title: Nurse
+        min_level: 5
+        required_skills: [{skill: medicine, level: 5}]
+        required_certifications: [nursing]
+        base_salary: 330
+        energy_cost: 25
+        xp_per_shift: 22
+        skill_xp_per_shift: [{skill: medicine, xp: 35}]
+        promotion: {min_performance: 70, min_time_in_tier: 96h, min_shifts: 15}
+      - rank: senior
+        title: Senior Nurse
+        min_level: 9
+        required_skills: [{skill: medicine, level: 10}, {skill: management, level: 3}]
+        required_certifications: [nursing]
+        base_salary: 520
+        energy_cost: 25
+        xp_per_shift: 30
+        skill_xp_per_shift: [{skill: medicine, xp: 45}, {skill: management, xp: 15}]
+
+  - code: finance
+    name: Finance
+    category: finance
+    cities: [aldrin_hollow, brennhaven, calderis, vantor_reach]
+    tiers:
+      - rank: entry
+        title: Bank Teller
+        min_level: 2
+        required_certifications: [bookkeeping]
+        base_salary: 170
+        energy_cost: 15
+        xp_per_shift: 12
+        skill_xp_per_shift: [{skill: finance, xp: 20}]
+        promotion: {min_performance: 58, min_time_in_tier: 36h, min_shifts: 8}
+      - rank: skilled
+        title: Accountant
+        min_level: 5
+        required_skills: [{skill: finance, level: 5}]
+        required_certifications: [bookkeeping]
+        base_salary: 320
+        energy_cost: 20
+        xp_per_shift: 20
+        skill_xp_per_shift: [{skill: finance, xp: 30}]
+        promotion: {min_performance: 68, min_time_in_tier: 72h, min_shifts: 15}
+      - rank: senior
+        title: Financial Analyst
+        min_level: 9
+        required_skills: [{skill: finance, level: 10}]
+        required_certifications: [bookkeeping]
+        base_salary: 520
+        energy_cost: 20
+        xp_per_shift: 28
+        skill_xp_per_shift: [{skill: finance, xp: 40}, {skill: management, xp: 10}]
+        promotion: {min_performance: 75, min_time_in_tier: 120h, min_shifts: 20}
+      - rank: manager
+        title: Finance Manager
+        min_level: 13
+        required_skills: [{skill: finance, level: 15}, {skill: management, level: 6}]
+        required_certifications: [bookkeeping]
+        base_salary: 780
+        energy_cost: 25
+        xp_per_shift: 36
+        skill_xp_per_shift: [{skill: finance, xp: 45}, {skill: management, xp: 25}]

@@ -151,6 +151,9 @@ type fakeTx struct {
 	travels     *fakeTravels
 	actions     *fakeActions
 	friendships *fakeFriendships
+	// ledger and bank are the money fakes of bank_test.go.
+	ledger *fakeMoney
+	bank   *fakeBank
 }
 
 // newFakeTx returns a transaction whose every repository is empty.
@@ -164,6 +167,8 @@ func newFakeTx() *fakeTx {
 		travels:     newFakeTravels(),
 		actions:     &fakeActions{},
 		friendships: newFakeFriendships(),
+		ledger:      newFakeMoney(),
+		bank:        &fakeBank{},
 	}
 }
 
@@ -179,11 +184,22 @@ func (t *fakeTx) Friendships() application.FriendshipRepository  { return t.frie
 // Ledger satisfies the port. No handler in this package moves money yet, so
 // the fake has no behaviour: the embedded nil interface makes any call panic,
 // which is the honest answer to a call this double was never meant to serve.
-func (t *fakeTx) Ledger() application.LedgerRepository { return fakeLedger{} }
+func (t *fakeTx) Ledger() application.LedgerRepository {
+	if t.ledger != nil {
+		return t.ledger
+	}
+	return fakeLedger{}
+}
 
 // Governance is never reached by a handler yet; a nil repository makes any
 // accidental use fail loudly.
 func (t *fakeTx) Governance() application.GovernanceRepository { return nil }
+
+// Bank reads presence off this transaction's own players and journeys.
+func (t *fakeTx) Bank() application.BankRepository {
+	t.bank.tx = t
+	return t.bank
+}
 
 type fakeLedger struct{ application.LedgerRepository }
 
@@ -231,6 +247,7 @@ func (t *fakeTx) snapshot() func() {
 	restoreTravels := t.travels.snapshot()
 	restoreActions := t.actions.snapshot()
 	restoreFriendships := t.friendships.snapshot()
+	restoreMoney := t.ledger.snapshot()
 
 	return func() {
 		t.players.created = created
@@ -243,6 +260,7 @@ func (t *fakeTx) snapshot() func() {
 		restoreTravels()
 		restoreActions()
 		restoreFriendships()
+		restoreMoney()
 	}
 }
 
@@ -508,16 +526,23 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 	// The full sequence the profile screen looks up, in order. The player
 	// this test creates is brand new, has no city and only the placeholder
 	// name, so the screen asks for the welcome, then level, energy and
-	// health, and no name or city line. With no city there is nowhere to
-	// travel, so the keyboard offers skills, friends, settings and refresh —
-	// no map.
+	// health, then cash and bank balance, and no name or city line. With no
+	// city there is nowhere to travel, so the keyboard offers skills,
+	// friends, the bank, settings and refresh — no map.
 	want := []string{
 		"profile.body",
 		"profile.level",
 		"profile.energy",
 		"profile.health",
+		"format.money",
+		"profile.cash",
+		"format.money",
+		"profile.bank",
 		"button.skills",
 		"button.social",
+		"button.bank",
+		"job.button.my_job",
+		"education.button.open",
 		"button.settings",
 		"button.refresh",
 	}

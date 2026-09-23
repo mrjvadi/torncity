@@ -185,6 +185,11 @@ services:
     memswap_limit: 128m
     cpus: "0.25"
     env_file: [.env]
+    # Audit rows name the operator. Inside the container there is no login,
+    # so the host's is passed in; --by on the command line still wins, and
+    # with neither the admin tool refuses to change anything.
+    environment:
+      TORN_OPERATOR: "${TORN_OPERATOR:-${USER:-}}"
     working_dir: /srv
     volumes:
       - "./configs:/srv/configs:ro"

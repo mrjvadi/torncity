@@ -8,7 +8,6 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/player"
-	"github.com/mrjvadi/torncity/internal/domain/travel"
 	"github.com/mrjvadi/torncity/internal/domain/world"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 )
@@ -42,16 +41,6 @@ import (
 //   - The map and skills screens keep their injected TravelRepository and
 //     SkillRepository. They write nothing, so a transaction would add nothing
 //     but its length; moving them onto tx is harmless whenever it is wanted.
-
-// TravelPlanner works out the journey a player would make.
-//
-// It is declared here rather than taken as a travel.Planner value because a
-// planner is built from content that reloads while the process runs: the
-// composition layer can hand in something that reads the current snapshot per
-// request, and travel.Planner itself satisfies this as it stands.
-type TravelPlanner interface {
-	Plan(from, to world.City, speed travel.Speed, now time.Time) (travel.Journey, travel.Cost, error)
-}
 
 // RouteNetwork answers which cities are connected, for the map screen.
 // world.Routes satisfies it.

@@ -131,6 +131,19 @@ var (
 	// row a live scheduler is still dispatching to another tick, and the
 	// action would be published twice for no reason but a mis-set number.
 	ErrClaimTimeoutTooShort = errors.New("config: scheduler.claim_timeout must exceed scheduler.shutdown_timeout")
+
+	// ErrBankLimitsInverted rejects a bank minimum above the maximum, which
+	// would refuse every amount.
+	ErrBankLimitsInverted = errors.New("config: economy.bank_min_amount must not exceed economy.bank_max_amount")
+
+	// ErrSendBudgetTooLong rejects a notice delivery allowed to outlast the
+	// ack wait. The broker would hand the still-running event to a second
+	// delivery, and the player would be told twice.
+	ErrSendBudgetTooLong = errors.New("config: notifier.send_budget must be shorter than nats.ack_wait")
+
+	// ErrReceiptMarginTooLong rejects a receipt margin that leaves the
+	// gateway no time to send: every notice would arrive already expired.
+	ErrReceiptMarginTooLong = errors.New("config: notifier.receipt_margin must be shorter than notifier.send_budget")
 )
 
 // Config is every operational value, grouped the way configs/config.yml is.
@@ -139,18 +152,21 @@ var (
 // validation happen once, in Load, so no caller has to parse or re-check
 // anything. A Config handed out by Load is complete and valid.
 type Config struct {
-	Gateway   Gateway
-	Lease     Lease
-	RateLimit RateLimit
-	Telegram  Telegram
-	Dedup     Dedup
-	NATS      NATS
-	Worker    Worker
-	Scheduler Scheduler
-	Game      Game
-	Travel    Travel
-	Player    Player
-	Economy   Economy
+	Gateway    Gateway
+	Lease      Lease
+	RateLimit  RateLimit
+	Telegram   Telegram
+	Groups     Groups
+	Dedup      Dedup
+	NATS       NATS
+	Worker     Worker
+	Scheduler  Scheduler
+	Notifier   Notifier
+	Game       Game
+	Travel     Travel
+	Player     Player
+	Economy    Economy
+	Governance Governance
 }
 
 // Gateway paces the Telegram polling loop and its shutdown.
@@ -200,6 +216,18 @@ type Telegram struct {
 // the easy one to reach for.
 func (t Telegram) PollHTTPTimeout() time.Duration {
 	return t.MaxPollTimeout + t.PollTimeoutGrace
+}
+
+// Groups tunes how the game is delivered in Telegram groups, where a private
+// screen must reach only the player who asked for it (internal/gateway/groups).
+type Groups struct {
+	EphemeralReplyWindow  time.Duration // groups.ephemeral_reply_window
+	EphemeralRefusalTTL   time.Duration // groups.ephemeral_refusal_ttl
+	CallbackAlertMaxRunes int           // groups.callback_alert_max_runes
+	// Menu is the slash-commands offered in a group's command menu, each
+	// registered as ephemeral so that using it is seen by nobody else. Each
+	// needs a description under group.menu.<command> in every locale.
+	Menu []string // groups.menu
 }
 
 // Dedup is how long a Telegram update id is remembered.
@@ -265,26 +293,37 @@ type Scheduler struct {
 	ClaimTimeout time.Duration // scheduler.claim_timeout
 }
 
+// Notifier paces the delivery of notifications (cmd/notifier).
+type Notifier struct {
+	SendBudget      time.Duration // notifier.send_budget
+	ReceiptMargin   time.Duration // notifier.receipt_margin
+	MaxAge          time.Duration // notifier.max_age
+	ShutdownTimeout time.Duration // notifier.shutdown_timeout
+}
+
 // Game is the command-side service.
 type Game struct {
 	ShutdownTimeout time.Duration // game.shutdown_timeout
 	IdempotencyTTL  time.Duration // game.idempotency_ttl
+
+	// ContentReloadInterval is how often the service checks whether a newer
+	// content version was loaded, and swaps it in without a restart.
+	ContentReloadInterval time.Duration // game.content_reload_interval
 }
 
-// Travel is the tuning of a journey: what leaving costs, what arriving pays,
-// and how fast each speed moves.
+// Travel is the tuning of a journey that is not content: what arriving pays,
+// and how game time maps to the wall clock.
 //
-// The RULES — which speeds exist, how a distance and a speed become a
-// duration — live in internal/domain/travel. These are only the numbers those
-// rules are fed. Fares are absent on purpose: ROADMAP.md phase 1 makes travel
-// free until the ledger exists, so there is nothing to tune yet.
+// The RULES — how a distance and a transport mode become a duration and a
+// fare — live in internal/domain/travel. The modes themselves (speed, fare,
+// energy, which cities serve them) are content, in
+// configs/content/transport.yml. A public mode's fare multiplier is a city
+// policy (city.transit_fare), read only through the policy resolver.
 type Travel struct {
-	EnergyCost        int           // travel.energy_cost
-	ArrivalXP         int           // travel.arrival_xp
-	StandardKMPerHour int           // travel.standard_km_per_hour
-	StandardBoarding  time.Duration // travel.standard_boarding
-	ExpressKMPerHour  int           // travel.express_km_per_hour
-	ExpressBoarding   time.Duration // travel.express_boarding
+	ArrivalXP int // travel.arrival_xp
+	// TimeScale is how many seconds of game time pass in one real second
+	// of a journey: a trip whose content duration is 2h waits 2m at 60.
+	TimeScale int // travel.time_scale
 }
 
 // Player holds player-facing defaults.
@@ -299,6 +338,23 @@ type Economy struct {
 	// StartingCash is what every player receives once, from system_source,
 	// through a reward grant with source starting_grant.
 	StartingCash int64 // economy.starting_cash
+
+	// BankMinAmount and BankMaxAmount bound the amount of ONE deposit,
+	// withdrawal or payment between players. Limits, not policy: what the
+	// bank charges is a city's lever, read through the policy resolver.
+	BankMinAmount int64 // economy.bank_min_amount
+	BankMaxAmount int64 // economy.bank_max_amount
+}
+
+// Governance is the tuning of the office holder's screens
+// (docs/adr/0015-player-held-offices.md). It never holds a policy value or a
+// bound: those are content and the office holder's decision.
+type Governance struct {
+	// FineStepDivisor and CoarseStepDivisor size the step buttons of the
+	// policy screen as fractions of a lever's range: a range of 2500 with
+	// 100 and 10 steps by 25 and 250.
+	FineStepDivisor   int // governance.fine_step_divisor
+	CoarseStepDivisor int // governance.coarse_step_divisor
 }
 
 // Defaults returns every field at the value it was hardcoded to before this
@@ -330,6 +386,12 @@ func Defaults() *Config {
 			PollTimeoutGrace: 15 * time.Second,
 			DefaultFloodWait: 5 * time.Second,
 		},
+		Groups: Groups{
+			EphemeralReplyWindow:  12 * time.Second,
+			EphemeralRefusalTTL:   10 * time.Minute,
+			CallbackAlertMaxRunes: 200,
+			Menu:                  []string{"profile", "skills", "map", "social", "find", "settings", "help"},
+		},
 		Dedup: Dedup{
 			TTL: 24 * time.Hour,
 		},
@@ -360,23 +422,33 @@ func Defaults() *Config {
 			NoisyAttempts:   5,
 			ClaimTimeout:    2 * time.Minute,
 		},
+		Notifier: Notifier{
+			SendBudget:      15 * time.Second,
+			ReceiptMargin:   3 * time.Second,
+			MaxAge:          24 * time.Hour,
+			ShutdownTimeout: 15 * time.Second,
+		},
 		Game: Game{
 			ShutdownTimeout: 20 * time.Second,
 			IdempotencyTTL:  24 * time.Hour,
+
+			ContentReloadInterval: 30 * time.Second,
 		},
 		Travel: Travel{
-			EnergyCost:        10,
-			ArrivalXP:         25,
-			StandardKMPerHour: 240,
-			StandardBoarding:  5 * time.Minute,
-			ExpressKMPerHour:  720,
-			ExpressBoarding:   15 * time.Minute,
+			ArrivalXP: 25,
+			TimeScale: 60,
 		},
 		Player: Player{
 			DefaultLanguage: "fa",
 		},
 		Economy: Economy{
-			StartingCash: 5000,
+			StartingCash:  5000,
+			BankMinAmount: 1,
+			BankMaxAmount: 1000000000,
+		},
+		Governance: Governance{
+			FineStepDivisor:   100,
+			CoarseStepDivisor: 10,
 		},
 	}
 }
@@ -522,6 +594,25 @@ func (c *Config) Validate() error {
 	if c.Scheduler.ClaimTimeout <= c.Scheduler.ShutdownTimeout {
 		return fmt.Errorf("%w: claim_timeout is %s, shutdown_timeout is %s",
 			ErrClaimTimeoutTooShort, c.Scheduler.ClaimTimeout, c.Scheduler.ShutdownTimeout)
+	}
+
+	// A minimum above the maximum refuses every deposit and payment.
+	if c.Economy.BankMinAmount > c.Economy.BankMaxAmount {
+		return fmt.Errorf("%w: bank_min_amount is %d, bank_max_amount is %d",
+			ErrBankLimitsInverted, c.Economy.BankMinAmount, c.Economy.BankMaxAmount)
+	}
+
+	// A delivery still running when the ack wait ends is redelivered while
+	// it runs, and the notice goes out twice.
+	if c.Notifier.SendBudget >= c.NATS.AckWait {
+		return fmt.Errorf("%w: send_budget is %s, nats.ack_wait is %s",
+			ErrSendBudgetTooLong, c.Notifier.SendBudget, c.NATS.AckWait)
+	}
+
+	// The gateway needs some of the budget to send in.
+	if c.Notifier.ReceiptMargin >= c.Notifier.SendBudget {
+		return fmt.Errorf("%w: receipt_margin is %s, send_budget is %s",
+			ErrReceiptMarginTooLong, c.Notifier.ReceiptMargin, c.Notifier.SendBudget)
 	}
 
 	return nil

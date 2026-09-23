@@ -225,6 +225,12 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 	if err := insertSkills(ctx, tx, p, versionID); err != nil {
 		return Applied{}, err
 	}
+	if err := insertJobs(ctx, tx, p, versionID); err != nil {
+		return Applied{}, err
+	}
+	if err := applyTransport(ctx, tx, p, versionID, cityIDs); err != nil {
+		return Applied{}, err
+	}
 	governance, err := applyGovernance(ctx, tx, p, versionID, cityIDs, time.Now().UTC())
 	if err != nil {
 		return Applied{}, err
@@ -563,6 +569,12 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 	skillRows.Close()
 
 	if err := loadGovernance(ctx, tx, versionID, pack); err != nil {
+		return nil, err
+	}
+	if err := loadJobs(ctx, tx, versionID, pack); err != nil {
+		return nil, err
+	}
+	if err := loadTransport(ctx, tx, versionID, pack); err != nil {
 		return nil, err
 	}
 
@@ -933,6 +945,9 @@ func appendContentAudit(ctx context.Context, tx pgx.Tx, a contentAudit) error {
 		"levers":          len(a.pack.Levers),
 		"offices":         len(a.pack.Offices),
 		"offices_created": a.governed.officesCreated,
+		"careers":         len(a.pack.Careers),
+		"courses":         len(a.pack.Courses),
+		"transport_modes": len(a.pack.TransportModes),
 	})
 	if err != nil {
 		return fmt.Errorf("postgres: content apply: encoding audit value: %w", err)
@@ -1031,5 +1046,7 @@ func Checksum(p *content.Pack) string {
 			l.HeldBy, l.Rule(), l.Threshold, l.Quorum, l.VetoBy, l.OverrideRule, l.OverrideThreshold,
 			int64(cooldown/time.Second), int64(notice/time.Second))
 	}
+	checksumJobs(h, p)
+	checksumTransport(h, p)
 	return hex.EncodeToString(h.Sum(nil))
 }

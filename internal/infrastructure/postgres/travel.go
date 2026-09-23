@@ -37,7 +37,8 @@ func NewTravelRepository(p *Pool) *TravelRepository { return &TravelRepository{q
 // on foot and the column stays NULL.
 
 const selectActiveTravel = `
-SELECT id, player_id, from_city_id, to_city_id, cost, game_action_id, status, departed_at, arrives_at
+SELECT id, player_id, from_city_id, to_city_id, cost, game_action_id, status, departed_at, arrives_at,
+       COALESCE(mode, ''), COALESCE(ledger_transaction_id::text, ''), COALESCE(content_version, 0)
 FROM travels
 WHERE player_id = $1::uuid AND status = 'in_transit'`
 
@@ -54,6 +55,7 @@ func (r *TravelRepository) Active(ctx context.Context, playerID string) (*applic
 	err := r.q.QueryRow(ctx, selectActiveTravel, playerID).Scan(
 		&t.ID, &t.PlayerID, &t.FromCityID, &t.ToCityID, &t.Cost,
 		&t.GameActionID, &t.Status, &t.DepartedAt, &t.ArrivesAt,
+		&t.Mode, &t.LedgerTransactionID, &t.ContentVersion,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -66,8 +68,10 @@ func (r *TravelRepository) Active(ctx context.Context, playerID string) (*applic
 }
 
 const insertTravel = `
-INSERT INTO travels (id, player_id, from_city_id, to_city_id, cost, game_action_id, status, departed_at, arrives_at)
-VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, $5, $6::uuid, $7, $8, $9)`
+INSERT INTO travels (id, player_id, from_city_id, to_city_id, cost, game_action_id, status, departed_at, arrives_at,
+                     mode, ledger_transaction_id, content_version)
+VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, $5, $6::uuid, $7, $8, $9,
+        NULLIF($10, ''), NULLIF($11, '')::uuid, NULLIF($12, 0))`
 
 // Start inserts a journey.
 //
@@ -120,6 +124,9 @@ func (r *TravelRepository) Start(ctx context.Context, t application.Travel) erro
 		status,
 		departedAt,
 		t.ArrivesAt,
+		t.Mode,
+		t.LedgerTransactionID,
+		t.ContentVersion,
 	); err != nil {
 		if violates(err, sqlstateUniqueViolation, travelsOneActivePerPlayerIdx) {
 			// Returned unwrapped, like ErrPlayerNotFound: a player pressing a
@@ -204,4 +211,20 @@ func (r *TravelRepository) Cancel(ctx context.Context, travelID string) error {
 	}
 
 	return nil
+}
+
+const countRecentDepartures = `
+SELECT count(*)
+FROM travels
+WHERE from_city_id = $1::uuid AND to_city_id = $2::uuid AND mode = $3 AND departed_at >= $4`
+
+// RecentDepartures counts journeys on one route by one mode since a moment,
+// whatever their status; see application.TravelRepository. It is answered
+// from travels_demand_idx.
+func (r *TravelRepository) RecentDepartures(ctx context.Context, fromCityID, toCityID, mode string, since time.Time) (int, error) {
+	var n int
+	if err := r.q.QueryRow(ctx, countRecentDepartures, fromCityID, toCityID, mode, since).Scan(&n); err != nil {
+		return 0, fmt.Errorf("postgres: counting departures %s -> %s by %s: %w", fromCityID, toCityID, mode, err)
+	}
+	return n, nil
 }

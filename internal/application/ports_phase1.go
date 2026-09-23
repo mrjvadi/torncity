@@ -66,6 +66,15 @@ type Travel struct {
 	Status       string
 	DepartedAt   time.Time
 	ArrivesAt    time.Time
+	// Mode is the transport mode's content code; empty for a journey that
+	// began before modes existed.
+	Mode string
+	// LedgerTransactionID is the transaction that paid Cost; empty when the
+	// fare was zero or the journey predates fares.
+	LedgerTransactionID string
+	// ContentVersion is the content version that priced the journey; zero
+	// when unknown.
+	ContentVersion int
 }
 
 // GameAction is a unit of work due at a point in time.
@@ -138,6 +147,11 @@ type TravelRepository interface {
 	// two cities if the process dies in between.
 	Complete(ctx context.Context, travelID string) error
 	Cancel(ctx context.Context, travelID string) error
+	// RecentDepartures counts the journeys that left fromCityID for
+	// toCityID by mode at or after since, whatever became of them. It is
+	// the demand a fare is priced on (travel.Demand), so it must count
+	// arrived and cancelled journeys too: a trip that happened was demand.
+	RecentDepartures(ctx context.Context, fromCityID, toCityID, mode string, since time.Time) (int, error)
 }
 
 // GameActionRepository is the durable schedule.

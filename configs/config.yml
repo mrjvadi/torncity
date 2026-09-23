@@ -96,6 +96,40 @@ telegram:
   # early risks a longer ban.
   default_flood_wait: 5s
 
+# Playing in Telegram groups. A screen with a player's own business in it
+# (profile, balances, skills, travel, offices, settings, search results) is
+# seen only by that player: it goes out as an ephemeral message — one only the
+# player and the bot can see — or, failing that, in the player's private chat
+# with the bot. See internal/gateway/groups.
+groups:
+  # How long after a button press or an ephemeral command the reply may still
+  # cite it. The Bot API allows an ephemeral reply within 15 seconds of the
+  # action; this leaves a margin for the send itself. Past it, only a bot
+  # that is an administrator of the group can reply ephemerally, and every
+  # other reply goes to the private chat.
+  ephemeral_reply_window: 12s
+
+  # A group that refused an uncited ephemeral message (the bot is not an
+  # administrator there) is not asked again for this long; replies go
+  # straight to the private chat. Promoting the bot takes effect after it.
+  ephemeral_refusal_ttl: 10m
+
+  # The longest popup a button press may answer with. Telegram accepts at
+  # most 200 characters; longer text is cut with an ellipsis.
+  callback_alert_max_runes: 200
+
+  # The group command menu. Each command is registered as ephemeral, so a
+  # player's use of it is seen by nobody but the bot, and each needs a
+  # description at group.menu.<command> in every locale.
+  menu:
+    - profile
+    - skills
+    - map
+    - social
+    - find
+    - settings
+    - help
+
 # Suppression of Telegram updates that arrive more than once.
 dedup:
   # How long an update id is remembered. Telegram redelivers an update until
@@ -212,6 +246,37 @@ scheduler:
   # repeat, but it is work done twice.
   claim_timeout: 2m
 
+# The notifier, which tells players about events that happened while they
+# were away. It consumes events on the same redelivery policy as every other
+# consumer (the nats section above) and hands each notice to the gateway as a
+# request, waiting for a receipt before the event is acknowledged.
+notifier:
+  # How long one event's whole delivery may take: every bot tried, the
+  # gateway's queueing behind direct replies and any flood wait included. It
+  # must be shorter than nats.ack_wait, and loading the config fails if it is
+  # not: a delivery still running when the ack wait runs out is handed to a
+  # second delivery, and the player is told twice. Raising it lets a notice
+  # ride out a longer flood wait; lowering it gives up sooner and retries.
+  send_budget: 15s
+
+  # The end of the send budget the gateway may not spend starting a send;
+  # it is kept for the gateway's receipt to travel back. A notice carries a
+  # deadline of send_budget minus this, and a gateway past it answers
+  # "expired" instead of sending. It must be shorter than send_budget. Too
+  # small and a send started at the last moment is confirmed after the
+  # notifier stopped listening, so the retry sends it again.
+  receipt_margin: 3s
+
+  # How old an event may be and still be announced. A consumer created for
+  # the first time reads the event stream from its start, and a month of
+  # "you have arrived" at once is worse than none. It matches
+  # nats.command_max_age: a notification about an intent expires with it.
+  max_age: 24h
+
+  # Bounds the drain of in-flight deliveries when the notifier stops. A
+  # delivery cut short is not acknowledged and is retried on the next boot.
+  shutdown_timeout: 15s
+
 # The command-side game service.
 game:
   # Bounds the drain of in-flight messages when the service stops.
@@ -223,26 +288,32 @@ game:
   # executed a second time.
   idempotency_ttl: 24h
 
-# The tuning of a journey. The RULES — which speeds exist, how a distance and
-# a speed become a duration — live in internal/domain/travel; these are only
-# the numbers those rules are fed. There are no fares: ROADMAP.md phase 1 makes
-# travel free until the ledger exists.
-travel:
-  # Energy a departure costs. It is the only limit phase 1 puts on travelling,
-  # so it must be above zero. Raising it makes a player wait longer between
-  # trips for energy to regenerate.
-  energy_cost: 10
+  # How often the service asks the database whether a newer content version
+  # was loaded (`admin content load`), and swaps it in without a restart: new
+  # transport modes, fares, cities. A request already running keeps the
+  # version it started with. Lowering it makes a load visible sooner at the
+  # cost of one tiny query per interval.
+  content_reload_interval: 30s
 
+# The tuning of a journey that is not content. The RULES — how a distance and
+# a transport mode become a duration and a fare — live in
+# internal/domain/travel. The modes themselves (bus, train, flight…: speed,
+# fare, energy, which cities serve them, how demand moves the price) are
+# content, in configs/content/transport.yml. What a city charges on public
+# transport is its mayor's decision (the city.transit_fare lever in
+# governance.yml), never a number here.
+travel:
   # XP a player earns on landing.
   arrival_xp: 25
 
-  # How fast each speed moves, in distance units per hour, and the fixed
-  # boarding time paid before it starts moving whatever the distance. The
-  # boarding term is what makes express not simply better on a short hop.
-  standard_km_per_hour: 240
-  standard_boarding: 5m
-  express_km_per_hour: 720
-  express_boarding: 15m
+  # How many seconds of game time pass in one real second of a journey. The
+  # content speaks in game time (a bus does 60 distance units an hour); the
+  # player waits game time divided by this. At 60, a 3-hour bus ride is a
+  # 3-minute wait, which is what keeps travel a short pause rather than an
+  # evening away. The wait the player is shown is always the real one. It
+  # must be at least 1; raising it shortens every journey still to start,
+  # never one already under way.
+  time_scale: 60
 
 # Player-facing defaults.
 player:
@@ -261,3 +332,24 @@ economy:
   # `admin economy grant-starting --reason "..."`. A player is never granted
   # it twice, so changing this value affects only players not yet granted.
   starting_cash: 5000
+
+  # The smallest and the largest amount of ONE bank deposit, withdrawal or
+  # payment between players, in minor units. The maximum caps the damage of a
+  # mistyped amount and of a stolen account in one action; the minimum stops
+  # a flood of one-unit transfers. The bank's FEES are not here: they are
+  # each city's policy (city.bank_withdrawal_fee and city.card_transfer_fee
+  # in governance.yml), set by its mayor. The minimum must not exceed the
+  # maximum.
+  bank_min_amount: 1
+  bank_max_amount: 1000000000
+
+# The office holder's screens (docs/adr/0015-player-held-offices.md). Nothing
+# here is a policy value or a bound — those are content (governance.yml) and
+# the office holder's decision; these only size the buttons.
+governance:
+  # The step buttons of the policy screen move a proposed value by the
+  # lever's range divided by these: a tax rate allowed between 0% and 25%
+  # steps by 0.25% and by 2.5%. Raising a divisor makes that step finer and
+  # the screen slower to cross the range; both must be at least 1.
+  fine_step_divisor: 100
+  coarse_step_divisor: 10

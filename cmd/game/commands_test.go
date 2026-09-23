@@ -68,15 +68,6 @@ func TestDecodeClassifiesABadPayloadAsInput(t *testing.T) {
 	}
 }
 
-func TestNewTariffFromDefaults(t *testing.T) {
-	if _, err := newTariff(240, 1, 720, 1); err != nil {
-		t.Fatalf("newTariff: %v", err)
-	}
-	if _, err := newTariff(0, 1, 720, 1); err == nil {
-		t.Fatal("a speed of zero was accepted")
-	}
-}
-
 // fakePlayerReader answers the one read the refusal path makes.
 type fakePlayerReader struct {
 	player *application.Player

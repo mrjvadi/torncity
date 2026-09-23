@@ -36,10 +36,13 @@ func contentUsage() {
 	fmt.Fprint(os.Stderr, `usage: admin content <command>
 
   validate                  parse and check configs/content, writing nothing
-  load --reason "why"       validate, then store as a new active version
+  load --reason "why" [--by NAME]
+                            validate, then store as a new active version
   status                    report the active version, read back from the database
 
 TORN_CONTENT_DIR overrides the content directory (default `+defaultContentDir+`).
+--by names the operator in the audit row; it defaults to $`+operatorEnv+`, then
+$USER, and the load is refused when none of them names anybody.
 load and status also require DATABASE_URL.
 `)
 }
@@ -97,6 +100,8 @@ func describe(pack *content.Pack) {
 	fmt.Printf("jurisdictions:     %d declared, plus one per city\n", len(pack.Jurisdictions))
 	fmt.Printf("levers:            %d\n", len(pack.Levers))
 	fmt.Printf("offices:           %d\n", len(pack.Offices))
+	fmt.Printf("careers:           %d\n", len(pack.Careers))
+	fmt.Printf("courses:           %d\n", len(pack.Courses))
 
 	warnings := pack.Warnings()
 	if len(warnings) == 0 {
@@ -152,7 +157,7 @@ func contentLoad(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("content load", flag.ExitOnError)
 	fs.Usage = contentUsage
 	reason := fs.String("reason", "", "why this load is happening (required)")
-	actor := fs.String("actor", "", "operator identity (defaults to $USER)")
+	operator := addOperatorFlags(fs)
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -168,12 +173,9 @@ func contentLoad(ctx context.Context, args []string) error {
 			"a content change with no recorded reason cannot be understood later")
 	}
 
-	who := *actor
-	if who == "" {
-		who = os.Getenv("USER")
-	}
-	if who == "" {
-		who = "unknown"
+	who, err := operator.resolve("content load", os.LookupEnv)
+	if err != nil {
+		return err
 	}
 
 	pack, err := loadAndValidate(contentDir())
@@ -295,6 +297,8 @@ func contentStatus(ctx context.Context, args []string) error {
 	fmt.Printf("jurisdictions:     %d declared, plus one per city\n", len(pack.Jurisdictions))
 	fmt.Printf("levers:            %d\n", len(pack.Levers))
 	fmt.Printf("offices:           %d\n", len(pack.Offices))
+	fmt.Printf("careers:           %d\n", len(pack.Careers))
+	fmt.Printf("courses:           %d\n", len(pack.Courses))
 
 	// The tax shown is the rate IN FORCE, through the one resolver every
 	// reader uses (ADR 0015) — a mayor's rate once its notice has passed, the

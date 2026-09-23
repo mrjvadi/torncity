@@ -24,11 +24,18 @@ func TestPhase1CommandsRoute(t *testing.T) {
 			wantPayload: map[string]any{"city": "berlin"},
 		},
 		{
-			name:        "travel at a chosen speed",
-			text:        "/travel start berlin express",
-			callback:    "travel:start:berlin:express",
+			name:        "the choice of transport to a city",
+			text:        "/travel options berlin",
+			callback:    "travel:options:berlin",
+			wantCommand: "travel.options",
+			wantPayload: map[string]any{"city": "berlin"},
+		},
+		{
+			name:        "travel by a chosen mode at an accepted fare",
+			text:        "/travel start berlin train 1200",
+			callback:    "travel:start:berlin:train:1200",
 			wantCommand: "travel.start",
-			wantPayload: map[string]any{"city": "berlin", "speed": "express"},
+			wantPayload: map[string]any{"city": "berlin", "mode": "train", "max": "1200"},
 		},
 		{
 			name:        "travel status",
@@ -137,6 +144,7 @@ func TestSplitCommandHandlesPhase1(t *testing.T) {
 		wantAction string
 	}{
 		{"travel.start", "travel", "start"},
+		{"travel.options", "travel", "options"},
 		{"travel.status", "travel", "status"},
 		{"skills.list", "skills", "list"},
 		{"social.search", "social", "search"},

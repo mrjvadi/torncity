@@ -68,6 +68,8 @@ type Draft struct {
 func Routes() []Route {
 	return []Route{
 		{Domain: "travel", Event: "completed", Render: renderTravelCompleted},
+		{Domain: "bank", Event: "payment_received", Render: renderPaymentReceived},
+		{Domain: "education", Event: "completed", Render: renderCourseCompleted},
 	}
 }
 

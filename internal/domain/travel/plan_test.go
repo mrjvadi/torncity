@@ -8,473 +8,251 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/world"
 )
 
-// The route network and price list every test here plans against. Both are
-// literals in the test because both are content: the domain is given them, it
-// does not know them, and building them here is what proves that.
-//
-//	alpha --100-- bravo --150-- charlie
-//	  \______________400______________/
-//
-//	delta --50-- echo   (unconnected)   long --200000-- haul
-func testRoutes(t *testing.T) world.Routes {
-	t.Helper()
-	r, err := world.NewRoutes([]world.Edge{
-		{From: "alpha", To: "bravo", Distance: 100},
-		{From: "bravo", To: "charlie", Distance: 150},
-		{From: "alpha", To: "charlie", Distance: 400},
-		{From: "delta", To: "echo", Distance: 50},
-		{From: "long", To: "haul", Distance: MaxPlannableDistanceKM + 1},
-	})
-	if err != nil {
-		t.Fatalf("building test routes: %v", err)
+// The modes every test here quotes with. They are literals in the test because
+// they are content: the domain is given them, it does not know them, and
+// building them here is what proves that.
+func bus() Mode {
+	return Mode{
+		Code: "bus", Public: true, KMPerHour: 60, Boarding: 20 * time.Minute,
+		BaseFare: 40, FarePerKM: 2, EnergyCost: 8,
+		Demand: Demand{Window: 30 * time.Minute, FreeDepartures: 2, StepBPS: 1000, MaxBPS: 15000},
 	}
-	return r
 }
 
-func testTariff(t *testing.T) Tariff {
-	t.Helper()
-	tf, err := NewTariff([]Profile{
-		{Speed: SpeedStandard, KMPerHour: 600, Boarding: 15 * time.Minute, BaseFare: 10_000, FarePerKM: 100},
-		{Speed: SpeedExpress, KMPerHour: 1200, Boarding: 10 * time.Minute, BaseFare: 30_000, FarePerKM: 300},
-	})
-	if err != nil {
-		t.Fatalf("building test tariff: %v", err)
+func car() Mode {
+	return Mode{
+		Code: "car", KMPerHour: 90, Boarding: 5 * time.Minute,
+		BaseFare: 0, FarePerKM: 5, EnergyCost: 14,
+		Demand: Demand{Window: time.Hour, MaxBPS: BasisPoints},
 	}
-	return tf
 }
 
 func city(id, code string) world.City {
-	return world.City{ID: id, Code: code, Name: code, TaxRateBPS: 500}
+	return world.City{ID: id, Code: code, Name: code}
 }
 
-func TestPlan(t *testing.T) {
-	p := NewPlanner(testRoutes(t), testTariff(t))
-	now := time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC)
+var (
+	alpha = city("id-alpha", "alpha")
+	bravo = city("id-bravo", "bravo")
+)
 
-	alpha := city("id-alpha", "alpha")
-	charlie := city("id-charlie", "charlie")
-
-	tests := []struct {
-		name         string
-		speed        Speed
-		wantDistance int
-		wantDuration time.Duration
-		wantFare     int64
-	}{
-		{
-			name:  "standard",
-			speed: SpeedStandard,
-			// 250 km is the shortest path, not the 400 km direct edge.
-			wantDistance: 250,
-			// 15 min boarding + 250/600 h = 15 + 25 minutes.
-			wantDuration: 40 * time.Minute,
-			// 10000 + 100*250.
-			wantFare: 35_000,
-		},
-		{
-			name:         "express",
-			speed:        SpeedExpress,
-			wantDistance: 250,
-			// 10 min boarding + 250/1200 h = 10 + 12.5 minutes.
-			wantDuration: 22*time.Minute + 30*time.Second,
-			// 30000 + 300*250.
-			wantFare: 105_000,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			j, cost, err := p.Plan(alpha, charlie, tt.speed, now)
-			if err != nil {
-				t.Fatalf("Plan: %v", err)
-			}
-
-			if j.FromCityID != alpha.ID || j.ToCityID != charlie.ID {
-				t.Errorf("journey runs %q -> %q, want %q -> %q",
-					j.FromCityID, j.ToCityID, alpha.ID, charlie.ID)
-			}
-			if j.Status != StatusInTransit {
-				t.Errorf("status = %q, want %q", string(j.Status), string(StatusInTransit))
-			}
-			if !j.DepartedAt.Equal(now) {
-				t.Errorf("departed at %s, want %s", j.DepartedAt, now)
-			}
-			if got := j.Duration(); got != tt.wantDuration {
-				t.Errorf("duration = %s, want %s", got, tt.wantDuration)
-			}
-			if !j.ArrivesAt.Equal(now.Add(tt.wantDuration)) {
-				t.Errorf("arrives at %s, want %s", j.ArrivesAt, now.Add(tt.wantDuration))
-			}
-			if cost.DistanceKM != tt.wantDistance {
-				t.Errorf("distance = %d km, want %d", cost.DistanceKM, tt.wantDistance)
-			}
-			if cost.Fare.Minor() != tt.wantFare {
-				t.Errorf("fare = %d, want %d", cost.Fare.Minor(), tt.wantFare)
-			}
-			if Arrived(j, now) {
-				t.Error("a journey planned for now has already arrived")
-			}
-			if !Arrived(j, j.ArrivesAt) {
-				t.Error("the journey has not arrived at its own arrival time")
-			}
-		})
-	}
-}
-
-// TestSpeedIsAMeaningfulChoice pins the trade-off itself: express must be
-// strictly faster and strictly dearer, or the choice is decoration.
-func TestSpeedIsAMeaningfulChoice(t *testing.T) {
-	p := NewPlanner(testRoutes(t), testTariff(t))
-	now := time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC)
-
-	std, stdCost, err := p.Plan(city("id-alpha", "alpha"), city("id-charlie", "charlie"), SpeedStandard, now)
+func TestQuoteJourney(t *testing.T) {
+	q, err := QuoteJourney(alpha, bravo, bus(), 120, Pricing{PolicyBPS: BasisPoints}, 60)
 	if err != nil {
-		t.Fatalf("standard: %v", err)
+		t.Fatalf("QuoteJourney: %v", err)
 	}
-	exp, expCost, err := p.Plan(city("id-alpha", "alpha"), city("id-charlie", "charlie"), SpeedExpress, now)
+	// 40 + 2*120.
+	if q.BaseFare.Minor() != 280 || q.Fare.Minor() != 280 {
+		t.Errorf("fare %d (base %d), want 280", q.Fare.Minor(), q.BaseFare.Minor())
+	}
+	// 20m boarding + 120/60 h = 2h20m of game time; at 60 that is 2m20s.
+	if q.TravelTime != 2*time.Hour+20*time.Minute {
+		t.Errorf("travel time %s, want 2h20m", q.TravelTime)
+	}
+	if q.Wait != 2*time.Minute+20*time.Second {
+		t.Errorf("wait %s, want 2m20s", q.Wait)
+	}
+	if q.Energy != 8 || q.Mode != "bus" || !q.Public || q.DistanceKM != 120 {
+		t.Errorf("quote carries the wrong facts: %+v", q)
+	}
+	if q.Surged() {
+		t.Error("a quiet route reads as surged")
+	}
+}
+
+func TestPolicyScalesOnlyPublicFares(t *testing.T) {
+	public, err := QuoteJourney(alpha, bravo, bus(), 120, Pricing{PolicyBPS: 15000}, 60)
 	if err != nil {
-		t.Fatalf("express: %v", err)
+		t.Fatal(err)
+	}
+	if public.Fare.Minor() != 420 || public.PolicyBPS != 15000 {
+		t.Errorf("public fare %d at %d bps, want 420 at 15000", public.Fare.Minor(), public.PolicyBPS)
 	}
 
-	if exp.Duration() >= std.Duration() {
-		t.Errorf("express takes %s, standard takes %s: express is not faster", exp.Duration(), std.Duration())
-	}
-	if expCost.Fare.Minor() <= stdCost.Fare.Minor() {
-		t.Errorf("express costs %d, standard costs %d: speed is free", expCost.Fare.Minor(), stdCost.Fare.Minor())
-	}
-}
-
-func TestPlanRejections(t *testing.T) {
-	p := NewPlanner(testRoutes(t), testTariff(t))
-	now := time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC)
-
-	tests := []struct {
-		name    string
-		from    world.City
-		to      world.City
-		speed   Speed
-		now     time.Time
-		wantErr error
-	}{
-		{
-			name: "travelling to the city you are already in",
-			from: city("id-alpha", "alpha"), to: city("id-alpha", "alpha"),
-			speed: SpeedStandard, now: now, wantErr: ErrSameCity,
-		},
-		{
-			name: "the same city under a different identifier",
-			from: city("id-alpha", "alpha"), to: city("id-other", "alpha"),
-			speed: SpeedStandard, now: now, wantErr: ErrSameCity,
-			// Codes match, so it is the same place however the row is keyed.
-		},
-		{
-			name: "the same identifier under a different code",
-			from: city("id-alpha", "alpha"), to: city("id-alpha", "bravo"),
-			speed: SpeedStandard, now: now, wantErr: ErrSameCity,
-		},
-		{
-			name: "no destination identifier",
-			from: city("id-alpha", "alpha"), to: city("", "bravo"),
-			speed: SpeedStandard, now: now, wantErr: ErrMissingCity,
-		},
-		{
-			name: "no origin code",
-			from: city("id-alpha", ""), to: city("id-bravo", "bravo"),
-			speed: SpeedStandard, now: now, wantErr: ErrMissingCity,
-		},
-		{
-			name: "a speed the game does not offer",
-			from: city("id-alpha", "alpha"), to: city("id-bravo", "bravo"),
-			speed: Speed("teleport"), now: now, wantErr: ErrUnknownSpeed,
-		},
-		{
-			name: "an empty speed",
-			from: city("id-alpha", "alpha"), to: city("id-bravo", "bravo"),
-			speed: Speed(""), now: now, wantErr: ErrUnknownSpeed,
-		},
-		{
-			name: "no departure time",
-			from: city("id-alpha", "alpha"), to: city("id-bravo", "bravo"),
-			speed: SpeedStandard, now: time.Time{}, wantErr: ErrInvalidDepartureTime,
-		},
-		{
-			name: "a city the route network has never heard of",
-			from: city("id-alpha", "alpha"), to: city("id-atlantis", "atlantis"),
-			speed: SpeedStandard, now: now, wantErr: world.ErrUnknownCity,
-		},
-		{
-			name: "two known cities with no route between them",
-			from: city("id-alpha", "alpha"), to: city("id-delta", "delta"),
-			speed: SpeedStandard, now: now, wantErr: world.ErrNoRoute,
-		},
-		{
-			name: "a route longer than this package will plan",
-			from: city("id-long", "long"), to: city("id-haul", "haul"),
-			speed: SpeedStandard, now: now, wantErr: ErrDistanceOutOfRange,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			j, cost, err := p.Plan(tt.from, tt.to, tt.speed, tt.now)
-			if !errors.Is(err, tt.wantErr) {
-				t.Fatalf("Plan() = %v, want %v", err, tt.wantErr)
-			}
-			if j != (Journey{}) {
-				t.Errorf("a refused plan returned a journey: %+v", j)
-			}
-			if cost != (Cost{}) {
-				t.Errorf("a refused plan returned a cost: %+v", cost)
-			}
-		})
-	}
-}
-
-// TestPlanWithoutContent is what happens before anything is loaded: the
-// planner refuses every trip instead of inventing distances or prices.
-func TestPlanWithoutContent(t *testing.T) {
-	p := NewPlanner(world.Routes{}, Tariff{})
-	now := time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC)
-
-	_, _, err := p.Plan(city("id-alpha", "alpha"), city("id-bravo", "bravo"), SpeedStandard, now)
-	if !errors.Is(err, ErrSpeedNotPriced) {
-		t.Errorf("Plan() with no tariff = %v, want ErrSpeedNotPriced", err)
-	}
-
-	p = NewPlanner(world.Routes{}, testTariff(t))
-	if _, _, err := p.Plan(city("id-alpha", "alpha"), city("id-bravo", "bravo"), SpeedStandard, now); !errors.Is(err, world.ErrUnknownCity) {
-		t.Errorf("Plan() with no routes = %v, want world.ErrUnknownCity", err)
-	}
-}
-
-func TestPlanIsPure(t *testing.T) {
-	p := NewPlanner(testRoutes(t), testTariff(t))
-	now := time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC)
-	from, to := city("id-alpha", "alpha"), city("id-charlie", "charlie")
-
-	first, firstCost, err := p.Plan(from, to, SpeedStandard, now)
+	private, err := QuoteJourney(alpha, bravo, car(), 120, Pricing{PolicyBPS: 15000}, 60)
 	if err != nil {
-		t.Fatalf("Plan: %v", err)
+		t.Fatal(err)
 	}
-	second, secondCost, err := p.Plan(from, to, SpeedStandard, now)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-
-	if !first.ArrivesAt.Equal(second.ArrivesAt) || first.FromCityID != second.FromCityID ||
-		first.ToCityID != second.ToCityID || first.Status != second.Status {
-		t.Errorf("two identical calls gave different journeys: %+v and %+v", first, second)
-	}
-	if firstCost != secondCost {
-		t.Errorf("two identical calls gave different costs: %+v and %+v", firstCost, secondCost)
+	if private.Fare.Minor() != 600 || private.PolicyBPS != BasisPoints {
+		t.Errorf("private fare %d at %d bps, want 600 untouched by the city", private.Fare.Minor(), private.PolicyBPS)
 	}
 }
 
-func TestNewTariffRejectsBadContent(t *testing.T) {
-	good := Profile{Speed: SpeedStandard, KMPerHour: 600, Boarding: time.Minute, BaseFare: 10, FarePerKM: 1}
-
-	tests := []struct {
-		name     string
-		profiles []Profile
-		wantErr  error
-	}{
-		{name: "an empty price list is valid, it simply prices nothing"},
-		{name: "one profile", profiles: []Profile{good}},
-		{
-			name:     "a speed the game does not offer",
-			profiles: []Profile{{Speed: Speed("teleport"), KMPerHour: 1, BaseFare: 1}},
-			wantErr:  ErrUnknownSpeed,
-		},
-		{
-			name:     "the same speed priced twice",
-			profiles: []Profile{good, good},
-			wantErr:  ErrDuplicateProfile,
-		},
-		{
-			name:     "a speed of zero would never arrive",
-			profiles: []Profile{{Speed: SpeedStandard, KMPerHour: 0}},
-			wantErr:  ErrInvalidProfile,
-		},
-		{
-			name:     "a negative speed",
-			profiles: []Profile{{Speed: SpeedStandard, KMPerHour: -600}},
-			wantErr:  ErrInvalidProfile,
-		},
-		{
-			name:     "an impossible speed",
-			profiles: []Profile{{Speed: SpeedStandard, KMPerHour: MaxKMPerHour + 1}},
-			wantErr:  ErrInvalidProfile,
-		},
-		{
-			name:     "negative boarding time",
-			profiles: []Profile{{Speed: SpeedStandard, KMPerHour: 600, Boarding: -time.Minute}},
-			wantErr:  ErrInvalidProfile,
-		},
-		{
-			name:     "a boarding time longer than a day",
-			profiles: []Profile{{Speed: SpeedStandard, KMPerHour: 600, Boarding: MaxBoarding + time.Second}},
-			wantErr:  ErrInvalidProfile,
-		},
-		{
-			name:     "a negative base fare would pay players to travel",
-			profiles: []Profile{{Speed: SpeedStandard, KMPerHour: 600, BaseFare: -1}},
-			wantErr:  ErrInvalidProfile,
-		},
-		{
-			name:     "a negative per-km fare",
-			profiles: []Profile{{Speed: SpeedStandard, KMPerHour: 600, FarePerKM: -1}},
-			wantErr:  ErrInvalidProfile,
-		},
-		{
-			name:     "a mistyped per-km fare",
-			profiles: []Profile{{Speed: SpeedStandard, KMPerHour: 600, FarePerKM: MaxFarePerKM + 1}},
-			wantErr:  ErrInvalidProfile,
-		},
-		{
-			name:     "a free journey is allowed",
-			profiles: []Profile{{Speed: SpeedStandard, KMPerHour: 600, BaseFare: 0, FarePerKM: 0}},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewTariff(tt.profiles)
-			if !errors.Is(err, tt.wantErr) {
-				t.Errorf("NewTariff() = %v, want %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestTariffLookup(t *testing.T) {
-	tf := testTariff(t)
-
-	if !tf.Prices(SpeedStandard) || !tf.Prices(SpeedExpress) {
-		t.Error("the test tariff does not price both speeds")
-	}
-	if tf.Prices(Speed("teleport")) {
-		t.Error("Prices() = true for a speed the game does not offer")
-	}
-
-	p, err := tf.Profile(SpeedExpress)
-	if err != nil {
-		t.Fatalf("Profile(express): %v", err)
-	}
-	if p.KMPerHour != 1200 {
-		t.Errorf("express runs at %d km/h, want 1200", p.KMPerHour)
-	}
-
-	if _, err := tf.Profile(Speed("teleport")); !errors.Is(err, ErrUnknownSpeed) {
-		t.Errorf("Profile(teleport) = %v, want ErrUnknownSpeed", err)
-	}
-
-	partial, err := NewTariff([]Profile{{Speed: SpeedStandard, KMPerHour: 600, BaseFare: 1}})
-	if err != nil {
-		t.Fatalf("NewTariff: %v", err)
-	}
-	if _, err := partial.Profile(SpeedExpress); !errors.Is(err, ErrSpeedNotPriced) {
-		t.Errorf("Profile(express) on a tariff without it = %v, want ErrSpeedNotPriced", err)
-	}
-}
-
-func TestSpeeds(t *testing.T) {
-	got := Speeds()
-	if len(got) != 2 {
-		t.Fatalf("Speeds() = %v, want two options", got)
-	}
-	for _, s := range got {
-		if err := s.Validate(); err != nil {
-			t.Errorf("Speeds() returned %q, which Validate rejects: %v", string(s), err)
+func TestDemandMultiplier(t *testing.T) {
+	d := bus().Demand
+	for _, tc := range []struct{ recent, want int }{
+		{-3, BasisPoints}, {0, BasisPoints}, {2, BasisPoints},
+		{3, 11000}, {5, 13000}, {7, 15000}, {100, 15000},
+	} {
+		if got := d.MultiplierBPS(tc.recent); got != tc.want {
+			t.Errorf("MultiplierBPS(%d) = %d, want %d", tc.recent, got, tc.want)
 		}
 	}
-
-	got[0] = Speed("teleport")
-	if err := Speed("teleport").Validate(); err == nil {
-		t.Error("writing into the slice from Speeds() added a speed to the game")
+	// A huge count never overflows past the cap.
+	if got := d.MultiplierBPS(int(^uint(0) >> 1)); got != 15000 {
+		t.Errorf("MultiplierBPS(max int) = %d, want the cap", got)
 	}
 }
 
-func TestTravelDuration(t *testing.T) {
+func TestDemandRaisesAndIsDeterministic(t *testing.T) {
+	quiet, _ := QuoteJourney(alpha, bravo, bus(), 120, Pricing{PolicyBPS: BasisPoints, RecentDepartures: 0}, 60)
+	busy, _ := QuoteJourney(alpha, bravo, bus(), 120, Pricing{PolicyBPS: BasisPoints, RecentDepartures: 4}, 60)
+	again, _ := QuoteJourney(alpha, bravo, bus(), 120, Pricing{PolicyBPS: BasisPoints, RecentDepartures: 4}, 60)
+	if busy.Fare.Minor() <= quiet.Fare.Minor() {
+		t.Errorf("busy fare %d is not above quiet fare %d", busy.Fare.Minor(), quiet.Fare.Minor())
+	}
+	// 280 * 12000 / 10000.
+	if busy.Fare.Minor() != 336 || !busy.Surged() {
+		t.Errorf("busy fare %d, want 336 and surged", busy.Fare.Minor())
+	}
+	if busy != again {
+		t.Error("the same inputs produced two different quotes")
+	}
+	// Both multipliers apply, each rounding down.
+	both, _ := QuoteJourney(alpha, bravo, bus(), 121, Pricing{PolicyBPS: 9999, RecentDepartures: 3}, 60)
+	// base 282; 282*9999/10000 = 281; 281*11000/10000 = 309.
+	if both.Fare.Minor() != 309 {
+		t.Errorf("combined fare %d, want 309", both.Fare.Minor())
+	}
+}
+
+func TestRealWait(t *testing.T) {
+	for _, tc := range []struct {
+		game  time.Duration
+		scale int
+		want  time.Duration
+	}{
+		{2 * time.Hour, 60, 2 * time.Minute},
+		{2 * time.Hour, 1, 2 * time.Hour},
+		{61 * time.Second, 60, 2 * time.Second}, // rounded up
+		{0, 60, time.Second},                    // never zero
+		{time.Hour + time.Nanosecond, 3600, 2 * time.Second},
+	} {
+		got, err := RealWait(tc.game, tc.scale)
+		if err != nil || got != tc.want {
+			t.Errorf("RealWait(%s, %d) = %s, %v; want %s", tc.game, tc.scale, got, err, tc.want)
+		}
+	}
+	for _, scale := range []int{0, -1, MaxTimeScale + 1} {
+		if _, err := RealWait(time.Hour, scale); !errors.Is(err, ErrInvalidTimeScale) {
+			t.Errorf("RealWait at scale %d = %v, want ErrInvalidTimeScale", scale, err)
+		}
+	}
+}
+
+func TestTravelTimeTruncatesAndDoesNotOverflow(t *testing.T) {
+	m := Mode{Code: "slow", KMPerHour: 7}
+	// 10/7 h = 1h + 3/7 h; 3h/7 truncates.
+	if got, want := m.TravelTime(10), time.Hour+3*time.Hour/7; got != want {
+		t.Errorf("TravelTime(10) = %s, want %s", got, want)
+	}
+	m = Mode{Code: "crawl", KMPerHour: 1, Boarding: MaxBoarding}
+	if got := m.TravelTime(MaxPlannableDistanceKM); got <= 0 {
+		t.Errorf("TravelTime at the limits overflowed: %s", got)
+	}
+}
+
+func TestFareAtTheContentLimits(t *testing.T) {
+	m := Mode{
+		Code: "max", Public: true, KMPerHour: 1, BaseFare: MaxBaseFare, FarePerKM: MaxFarePerKM,
+		Demand: Demand{Window: time.Minute, StepBPS: MaxMultiplierBPS, MaxBPS: MaxMultiplierBPS},
+	}
+	q, err := QuoteJourney(alpha, bravo, m, MaxPlannableDistanceKM,
+		Pricing{PolicyBPS: MaxMultiplierBPS, RecentDepartures: 1_000_000}, MaxTimeScale)
+	if err != nil {
+		t.Fatal(err)
+	}
+	base := int64(MaxBaseFare) + int64(MaxFarePerKM)*MaxPlannableDistanceKM
+	if want := base * 100; q.Fare.Minor() != want {
+		t.Errorf("fare at the limits %d, want %d", q.Fare.Minor(), want)
+	}
+}
+
+func TestQuoteRejections(t *testing.T) {
+	ok := Pricing{PolicyBPS: BasisPoints}
+	badMode := bus()
+	badMode.KMPerHour = 0
 	tests := []struct {
 		name     string
+		from, to world.City
+		mode     Mode
 		distance int
-		profile  Profile
-		want     time.Duration
+		pricing  Pricing
+		scale    int
+		want     error
 	}{
-		{
-			name:     "boarding is paid even on the shortest hop",
-			distance: 1,
-			profile:  Profile{KMPerHour: 3600, Boarding: 10 * time.Minute},
-			want:     10*time.Minute + time.Second,
-		},
-		{
-			name:     "a whole number of hours",
-			distance: 1200,
-			profile:  Profile{KMPerHour: 600, Boarding: 0},
-			want:     2 * time.Hour,
-		},
-		{
-			name:     "hours plus a remainder",
-			distance: 1500,
-			profile:  Profile{KMPerHour: 600, Boarding: 0},
-			want:     2*time.Hour + 30*time.Minute,
-		},
-		{
-			name:     "an uneven division rounds down, in the player's favour",
-			distance: 1,
-			profile:  Profile{KMPerHour: 7, Boarding: 0},
-			// 3600000000000 / 7 = 514285714285.714..., truncated.
-			want: 514285714285 * time.Nanosecond,
-		},
-		{
-			name:     "the longest plannable route at the slowest speed does not overflow",
-			distance: MaxPlannableDistanceKM,
-			profile:  Profile{KMPerHour: 1, Boarding: 0},
-			want:     MaxPlannableDistanceKM * time.Hour,
-		},
+		{"same city", alpha, alpha, bus(), 10, ok, 60, ErrSameCity},
+		{"missing city", world.City{}, bravo, bus(), 10, ok, 60, ErrMissingCity},
+		{"zero distance", alpha, bravo, bus(), 0, ok, 60, ErrDistanceOutOfRange},
+		{"too far", alpha, bravo, bus(), MaxPlannableDistanceKM + 1, ok, 60, ErrDistanceOutOfRange},
+		{"broken mode", alpha, bravo, badMode, 10, ok, 60, ErrInvalidMode},
+		{"negative departures", alpha, bravo, bus(), 10, Pricing{PolicyBPS: BasisPoints, RecentDepartures: -1}, 60, ErrInvalidPricing},
+		{"policy out of range", alpha, bravo, bus(), 10, Pricing{PolicyBPS: MaxMultiplierBPS + 1}, 60, ErrInvalidPricing},
+		{"no time scale", alpha, bravo, bus(), 10, ok, 0, ErrInvalidTimeScale},
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := travelDuration(tt.distance, tt.profile); got != tt.want {
-				t.Errorf("travelDuration(%d km) = %s, want %s", tt.distance, got, tt.want)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, err := QuoteJourney(tc.from, tc.to, tc.mode, tc.distance, tc.pricing, tc.scale); !errors.Is(err, tc.want) {
+				t.Errorf("err = %v, want %v", err, tc.want)
 			}
 		})
 	}
+	// A private mode ignores the policy entirely, even a nonsense one.
+	if _, err := QuoteJourney(alpha, bravo, car(), 10, Pricing{PolicyBPS: -5}, 60); err != nil {
+		t.Errorf("a private mode was refused over a policy that does not apply to it: %v", err)
+	}
 }
 
-// TestFareAtTheContentLimits checks that the bounds NewTariff enforces really
-// do keep the fare arithmetic inside int64 at the worst case content allows.
-func TestFareAtTheContentLimits(t *testing.T) {
-	tf, err := NewTariff([]Profile{{
-		Speed:     SpeedStandard,
-		KMPerHour: 1,
-		BaseFare:  MaxBaseFare,
-		FarePerKM: MaxFarePerKM,
-	}})
-	if err != nil {
-		t.Fatalf("NewTariff at the limits: %v", err)
+func TestModeValidate(t *testing.T) {
+	if err := bus().Validate(); err != nil {
+		t.Fatalf("a good mode was refused: %v", err)
 	}
+	breaks := map[string]func(*Mode){
+		"no code":             func(m *Mode) { m.Code = "" },
+		"no speed":            func(m *Mode) { m.KMPerHour = 0 },
+		"too fast":            func(m *Mode) { m.KMPerHour = MaxKMPerHour + 1 },
+		"negative boarding":   func(m *Mode) { m.Boarding = -time.Second },
+		"boarding too long":   func(m *Mode) { m.Boarding = MaxBoarding + time.Second },
+		"negative base fare":  func(m *Mode) { m.BaseFare = -1 },
+		"negative per km":     func(m *Mode) { m.FarePerKM = -1 },
+		"base fare too big":   func(m *Mode) { m.BaseFare = MaxBaseFare + 1 },
+		"negative energy":     func(m *Mode) { m.EnergyCost = -1 },
+		"no demand window":    func(m *Mode) { m.Demand.Window = 0 },
+		"window too long":     func(m *Mode) { m.Demand.Window = MaxDemandWindow + time.Second },
+		"negative free":       func(m *Mode) { m.Demand.FreeDepartures = -1 },
+		"negative step":       func(m *Mode) { m.Demand.StepBPS = -1 },
+		"cap below one whole": func(m *Mode) { m.Demand.MaxBPS = BasisPoints - 1 },
+		"cap too high":        func(m *Mode) { m.Demand.MaxBPS = MaxMultiplierBPS + 1 },
+	}
+	for name, br := range breaks {
+		m := bus()
+		br(&m)
+		if err := m.Validate(); !errors.Is(err, ErrInvalidMode) {
+			t.Errorf("%s: Validate = %v, want ErrInvalidMode", name, err)
+		}
+	}
+}
 
-	routes, err := world.NewRoutes([]world.Edge{
-		{From: "alpha", To: "bravo", Distance: MaxPlannableDistanceKM},
-	})
+func TestDepart(t *testing.T) {
+	now := time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC)
+	q, _ := QuoteJourney(alpha, bravo, bus(), 120, Pricing{PolicyBPS: BasisPoints}, 60)
+	j, err := q.Depart(now)
 	if err != nil {
-		t.Fatalf("NewRoutes: %v", err)
+		t.Fatal(err)
 	}
-
-	_, cost, err := NewPlanner(routes, tf).Plan(
-		city("id-alpha", "alpha"), city("id-bravo", "bravo"),
-		SpeedStandard, time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC))
-	if err != nil {
-		t.Fatalf("Plan at the limits: %v", err)
+	if j.Mode != "bus" || j.FromCityID != alpha.ID || j.ToCityID != bravo.ID || j.Status != StatusInTransit {
+		t.Errorf("journey %+v does not match its quote", j)
 	}
-
-	want := int64(MaxBaseFare) + int64(MaxFarePerKM)*MaxPlannableDistanceKM
-	if cost.Fare.Minor() != want {
-		t.Errorf("fare = %d, want %d", cost.Fare.Minor(), want)
+	if j.Duration() != q.Wait {
+		t.Errorf("journey lasts %s, the quote promised %s", j.Duration(), q.Wait)
 	}
-	if cost.Fare.IsNegative() {
-		t.Error("the fare overflowed into a negative amount")
+	if err := j.Validate(); err != nil {
+		t.Errorf("a departed journey is invalid: %v", err)
+	}
+	if _, err := q.Depart(time.Time{}); !errors.Is(err, ErrInvalidDepartureTime) {
+		t.Errorf("Depart at the zero time = %v", err)
+	}
+	if _, err := (Quote{}).Depart(now); !errors.Is(err, ErrMissingCity) {
+		t.Errorf("Depart of an empty quote = %v", err)
 	}
 }

@@ -4,7 +4,7 @@
 // acknowledged consumer per event type, as cmd/game has one per command — and
 // for each one renders a screen in the player's language, chooses a bot the
 // player has started, and asks the gateway to send it on
-// game.notify.<player>.v1. The gateway answers with a receipt, and only a
+// game.notify.<player>.v1 (subjects.Notify). The gateway answers with a receipt, and only a
 // delivered receipt, or the certainty that nobody can be reached, lets the
 // event go. What to announce is the table in internal/workers/notification.
 //
@@ -119,25 +119,21 @@ func newLogger(level string) *slog.Logger {
 	return slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: lvl}))
 }
 
-// sendBudget is how long one event's delivery may take, derived from the ack
-// wait rather than configured beside it: half of it, so a delivery that runs
-// to its limit is still acknowledged well before the broker would hand the
-// same event to another delivery and send it twice.
-func sendBudget(cfg *config.Config) time.Duration { return cfg.NATS.AckWait / 2 }
-
 func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) error {
 	logger = logger.With(slog.String("service", "notifier"))
 
-	// An arrival from further back than a command is kept for is not news.
-	// command_max_age is the system's statement of how long a player's
-	// intent stays relevant; a notification about it expires with it.
-	maxAge := cfg.NATS.CommandMaxAge
+	// Every value here is the notifier section of the configuration. Load has
+	// already refused a send budget that could outlast the ack wait, and a
+	// receipt margin that leaves the gateway no time to send.
+	tuning := cfg.Notifier
 
 	logger.Info("notifier starting",
 		slog.String("config", e.configPath),
-		slog.Duration("send_budget", sendBudget(cfg)),
-		slog.Duration("max_age", maxAge),
-		slog.Duration("shutdown_timeout", cfg.Worker.ShutdownTimeout))
+		slog.Duration("send_budget", tuning.SendBudget),
+		slog.Duration("receipt_margin", tuning.ReceiptMargin),
+		slog.Duration("max_age", tuning.MaxAge),
+		slog.Duration("ack_wait", cfg.NATS.AckWait),
+		slog.Duration("shutdown_timeout", tuning.ShutdownTimeout))
 
 	pool, err := postgres.New(ctx, e.databaseURL)
 	if err != nil {
@@ -170,17 +166,18 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			slog.String("locales_dir", e.localesDir), slog.String("error", err.Error()))
 	}
 
-	st := newStore(pool)
+	players := postgres.NewPlayerRepository(pool, cfg.Player.DefaultLanguage)
 	worker, err := notification.New(notification.Config{
-		Logger:     logger,
-		Msgs:       i18n.NewStore(catalog),
-		Players:    postgres.NewPlayerRepository(pool, cfg.Player.DefaultLanguage),
-		Links:      st,
-		Inbox:      st,
-		Sender:     natsSender{conn: conn.Raw()},
-		Deps:       notification.Deps{Cities: postgres.NewCityRepository(pool)},
-		SendBudget: sendBudget(cfg),
-		MaxAge:     maxAge,
+		Logger:        logger,
+		Msgs:          i18n.NewStore(catalog),
+		Players:       players,
+		Links:         players,
+		Inbox:         postgres.NewInboxStore(pool),
+		Sender:        natsSender{conn: conn.Raw()},
+		Deps:          notification.Deps{Cities: postgres.NewCityRepository(pool)},
+		SendBudget:    tuning.SendBudget,
+		ReceiptMargin: tuning.ReceiptMargin,
+		MaxAge:        tuning.MaxAge,
 	})
 	if err != nil {
 		return err
@@ -217,8 +214,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	select {
 	case <-done:
 		logger.Info("drained")
-	case <-time.After(cfg.Worker.ShutdownTimeout):
-		logger.Warn("drain timed out, closing anyway", slog.Duration("timeout", cfg.Worker.ShutdownTimeout))
+	case <-time.After(tuning.ShutdownTimeout):
+		logger.Warn("drain timed out, closing anyway", slog.Duration("timeout", tuning.ShutdownTimeout))
 	}
 	return nil
 }

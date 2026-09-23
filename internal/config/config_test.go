@@ -248,6 +248,11 @@ telegram:
   max_poll_timeout: 119s
   poll_timeout_grace: 16s
   default_flood_wait: 6s
+groups:
+  ephemeral_reply_window: 11s
+  ephemeral_refusal_ttl: 11m
+  callback_alert_max_runes: 150
+  menu: [profile, map]
 dedup:
   ttl: 25h
 nats:
@@ -272,20 +277,27 @@ scheduler:
   shutdown_timeout: 17s
   noisy_attempts: 7
   claim_timeout: 3m
+notifier:
+  send_budget: 14s
+  receipt_margin: 4s
+  max_age: 23h
+  shutdown_timeout: 16s
 game:
   shutdown_timeout: 22s
   idempotency_ttl: 23h
+  content_reload_interval: 31s
 travel:
-  energy_cost: 11
   arrival_xp: 26
-  standard_km_per_hour: 241
-  standard_boarding: 6m
-  express_km_per_hour: 721
-  express_boarding: 16m
+  time_scale: 61
 player:
   default_language: "en"
 economy:
   starting_cash: 5001
+  bank_min_amount: 2
+  bank_max_amount: 999
+governance:
+  fine_step_divisor: 101
+  coarse_step_divisor: 11
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -309,6 +321,11 @@ var envOverrides = map[string]string{
 	"TORN_TELEGRAM_POLL_TIMEOUT_GRACE": "17s",
 	"TORN_TELEGRAM_DEFAULT_FLOOD_WAIT": "7s",
 
+	"TORN_GROUPS_EPHEMERAL_REPLY_WINDOW":   "10s",
+	"TORN_GROUPS_EPHEMERAL_REFUSAL_TTL":    "12m",
+	"TORN_GROUPS_CALLBACK_ALERT_MAX_RUNES": "160",
+	"TORN_GROUPS_MENU":                     "profile, skills",
+
 	"TORN_DEDUP_TTL": "26h",
 
 	"TORN_NATS_COMMAND_MAX_AGE":  "22h",
@@ -329,19 +346,26 @@ var envOverrides = map[string]string{
 	"TORN_SCHEDULER_NOISY_ATTEMPTS":   "9",
 	"TORN_SCHEDULER_CLAIM_TIMEOUT":    "4m",
 
-	"TORN_GAME_SHUTDOWN_TIMEOUT": "24s",
-	"TORN_GAME_IDEMPOTENCY_TTL":  "22h",
+	"TORN_NOTIFIER_SEND_BUDGET":      "13s",
+	"TORN_NOTIFIER_RECEIPT_MARGIN":   "5s",
+	"TORN_NOTIFIER_MAX_AGE":          "22h",
+	"TORN_NOTIFIER_SHUTDOWN_TIMEOUT": "17s",
 
-	"TORN_TRAVEL_ENERGY_COST":          "12",
-	"TORN_TRAVEL_ARRIVAL_XP":           "27",
-	"TORN_TRAVEL_STANDARD_KM_PER_HOUR": "242",
-	"TORN_TRAVEL_STANDARD_BOARDING":    "7m",
-	"TORN_TRAVEL_EXPRESS_KM_PER_HOUR":  "722",
-	"TORN_TRAVEL_EXPRESS_BOARDING":     "17m",
+	"TORN_GAME_SHUTDOWN_TIMEOUT":        "24s",
+	"TORN_GAME_IDEMPOTENCY_TTL":         "22h",
+	"TORN_GAME_CONTENT_RELOAD_INTERVAL": "32s",
+
+	"TORN_TRAVEL_ARRIVAL_XP": "27",
+	"TORN_TRAVEL_TIME_SCALE": "62",
 
 	"TORN_PLAYER_DEFAULT_LANGUAGE": "de",
 
-	"TORN_ECONOMY_STARTING_CASH": "5002",
+	"TORN_ECONOMY_STARTING_CASH":   "5002",
+	"TORN_ECONOMY_BANK_MIN_AMOUNT": "3",
+	"TORN_ECONOMY_BANK_MAX_AMOUNT": "998",
+
+	"TORN_GOVERNANCE_FINE_STEP_DIVISOR":   "102",
+	"TORN_GOVERNANCE_COARSE_STEP_DIVISOR": "12",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,
@@ -559,6 +583,16 @@ func TestValidate(t *testing.T) {
 			want:   ErrNotPositive,
 		},
 		{
+			name:   "no bank minimum",
+			break_: func(c *Config) { c.Economy.BankMinAmount = 0 },
+			want:   ErrNotPositive,
+		},
+		{
+			name:   "a bank minimum above the maximum",
+			break_: func(c *Config) { c.Economy.BankMinAmount, c.Economy.BankMaxAmount = 10, 5 },
+			want:   ErrBankLimitsInverted,
+		},
+		{
 			name:   "an empty language",
 			break_: func(c *Config) { c.Player.DefaultLanguage = "  " },
 			want:   ErrEmpty,
@@ -633,8 +667,27 @@ func TestValidate(t *testing.T) {
 			want:   ErrNotPositive,
 		},
 		{
-			name:   "a free journey",
-			break_: func(c *Config) { c.Travel.EnergyCost = 0 },
+			name: "a notice delivery that outlasts the ack wait",
+			break_: func(c *Config) {
+				c.Notifier.SendBudget = c.NATS.AckWait
+			},
+			want: ErrSendBudgetTooLong,
+		},
+		{
+			name: "a receipt margin that leaves the gateway no time to send",
+			break_: func(c *Config) {
+				c.Notifier.ReceiptMargin = c.Notifier.SendBudget
+			},
+			want: ErrReceiptMarginTooLong,
+		},
+		{
+			name:   "a notice that is never too old",
+			break_: func(c *Config) { c.Notifier.MaxAge = 0 },
+			want:   ErrNotPositive,
+		},
+		{
+			name:   "a journey time that never scales",
+			break_: func(c *Config) { c.Travel.TimeScale = 0 },
 			want:   ErrNotPositive,
 		},
 	}

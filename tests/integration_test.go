@@ -265,6 +265,13 @@ func validMeta(t *testing.T) envelope.Metadata {
 //   - honoured: rows locked by a transaction this test holds open are stepped
 //     over, not waited on, and not returned;
 //   - held: two concurrent claims come back with no id in common.
+//
+// The store claims the oldest pending rows in the whole table, so a database
+// with a backlog of its own — events nobody has published because no worker
+// runs on it — would hand those to the claims below. They are fenced off
+// first (fenceOutbox), with a lock of the same kind the first subtest uses:
+// the store must skip them for the same reason it must skip the test's own
+// locked rows, so every assertion stays exactly as strict.
 func TestOutboxClaimIsDisjoint(t *testing.T) {
 	pool := requirePostgres(t)
 	ctx := testCtx(t)
@@ -274,6 +281,7 @@ func TestOutboxClaimIsDisjoint(t *testing.T) {
 
 	subject := subjects.Event("itest", randomToken(t, 12))
 	ids := seedOutbox(t, pool, subject, total)
+	fenceOutbox(t, pool, subject)
 
 	store := postgres.NewOutboxStore(pool)
 
@@ -391,6 +399,48 @@ func TestOutboxClaimIsDisjoint(t *testing.T) {
 				"so this run proved nothing about the locks", len(batches[0]), len(batches[1]))
 		}
 	})
+}
+
+// fenceOutbox holds a row lock, until the test ends, on every pending outbox
+// row that is not on subject, so FetchPending can only claim the test's own.
+//
+// The lock is FOR UPDATE SKIP LOCKED on the fence's side: a row some other
+// transaction holds right now is one the store skips anyway, and the fence
+// must not queue behind it. Rows appended after the seed get higher ids than
+// the test's, so ORDER BY id reaches every row of the test before any of
+// them; the fence covers those it can see as well. Nothing is modified: the
+// transaction only locks, and is rolled back.
+func fenceOutbox(t *testing.T, pool *postgres.Pool, subject string) {
+	t.Helper()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	conn, err := pool.Raw().Acquire(ctx)
+	if err != nil {
+		cancel()
+		t.Fatalf("acquiring a connection for the outbox fence: %v", err)
+	}
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		conn.Release()
+		cancel()
+		t.Fatalf("beginning the outbox fence: %v", err)
+	}
+	t.Cleanup(func() {
+		rollbackCtx, stop := context.WithTimeout(context.Background(), testTimeout)
+		defer stop()
+		_ = tx.Rollback(rollbackCtx)
+		conn.Release()
+		cancel()
+	})
+
+	tag, err := tx.Exec(ctx,
+		`SELECT id FROM outbox WHERE status = 'pending' AND subject <> $1 FOR UPDATE SKIP LOCKED`, subject)
+	if err != nil {
+		t.Fatalf("fencing off the outbox rows this test did not insert: %v", err)
+	}
+	if n := tag.RowsAffected(); n > 0 {
+		t.Logf("fenced off %d pending outbox row(s) this test did not insert", n)
+	}
 }
 
 // seedOutbox inserts n pending rows on subject and returns their event ids.

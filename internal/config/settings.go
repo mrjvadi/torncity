@@ -26,18 +26,21 @@ import (
 // second is a validation error, and conflating them would turn a typo into an
 // unbounded timeout.
 type fileConfig struct {
-	Gateway   gatewaySettings   `yaml:"gateway"`
-	Lease     leaseSettings     `yaml:"lease"`
-	RateLimit ratelimitSettings `yaml:"ratelimit"`
-	Telegram  telegramSettings  `yaml:"telegram"`
-	Dedup     dedupSettings     `yaml:"dedup"`
-	NATS      natsSettings      `yaml:"nats"`
-	Worker    workerSettings    `yaml:"worker"`
-	Scheduler schedulerSettings `yaml:"scheduler"`
-	Game      gameSettings      `yaml:"game"`
-	Travel    travelSettings    `yaml:"travel"`
-	Player    playerSettings    `yaml:"player"`
-	Economy   economySettings   `yaml:"economy"`
+	Gateway    gatewaySettings    `yaml:"gateway"`
+	Lease      leaseSettings      `yaml:"lease"`
+	RateLimit  ratelimitSettings  `yaml:"ratelimit"`
+	Telegram   telegramSettings   `yaml:"telegram"`
+	Groups     groupsSettings     `yaml:"groups"`
+	Dedup      dedupSettings      `yaml:"dedup"`
+	NATS       natsSettings       `yaml:"nats"`
+	Worker     workerSettings     `yaml:"worker"`
+	Scheduler  schedulerSettings  `yaml:"scheduler"`
+	Notifier   notifierSettings   `yaml:"notifier"`
+	Game       gameSettings       `yaml:"game"`
+	Travel     travelSettings     `yaml:"travel"`
+	Player     playerSettings     `yaml:"player"`
+	Economy    economySettings    `yaml:"economy"`
+	Governance governanceSettings `yaml:"governance"`
 }
 
 type gatewaySettings struct {
@@ -63,6 +66,13 @@ type telegramSettings struct {
 	MaxPollTimeout   *string `yaml:"max_poll_timeout"`
 	PollTimeoutGrace *string `yaml:"poll_timeout_grace"`
 	DefaultFloodWait *string `yaml:"default_flood_wait"`
+}
+
+type groupsSettings struct {
+	EphemeralReplyWindow  *string  `yaml:"ephemeral_reply_window"`
+	EphemeralRefusalTTL   *string  `yaml:"ephemeral_refusal_ttl"`
+	CallbackAlertMaxRunes *int     `yaml:"callback_alert_max_runes"`
+	Menu                  []string `yaml:"menu"`
 }
 
 type dedupSettings struct {
@@ -94,18 +104,23 @@ type schedulerSettings struct {
 	ClaimTimeout    *string `yaml:"claim_timeout"`
 }
 
+type notifierSettings struct {
+	SendBudget      *string `yaml:"send_budget"`
+	ReceiptMargin   *string `yaml:"receipt_margin"`
+	MaxAge          *string `yaml:"max_age"`
+	ShutdownTimeout *string `yaml:"shutdown_timeout"`
+}
+
 type gameSettings struct {
 	ShutdownTimeout *string `yaml:"shutdown_timeout"`
 	IdempotencyTTL  *string `yaml:"idempotency_ttl"`
+
+	ContentReloadInterval *string `yaml:"content_reload_interval"`
 }
 
 type travelSettings struct {
-	EnergyCost        *int    `yaml:"energy_cost"`
-	ArrivalXP         *int    `yaml:"arrival_xp"`
-	StandardKMPerHour *int    `yaml:"standard_km_per_hour"`
-	StandardBoarding  *string `yaml:"standard_boarding"`
-	ExpressKMPerHour  *int    `yaml:"express_km_per_hour"`
-	ExpressBoarding   *string `yaml:"express_boarding"`
+	ArrivalXP *int `yaml:"arrival_xp"`
+	TimeScale *int `yaml:"time_scale"`
 }
 
 type playerSettings struct {
@@ -113,7 +128,14 @@ type playerSettings struct {
 }
 
 type economySettings struct {
-	StartingCash *int64 `yaml:"starting_cash"`
+	StartingCash  *int64 `yaml:"starting_cash"`
+	BankMinAmount *int64 `yaml:"bank_min_amount"`
+	BankMaxAmount *int64 `yaml:"bank_max_amount"`
+}
+
+type governanceSettings struct {
+	FineStepDivisor   *int `yaml:"fine_step_divisor"`
+	CoarseStepDivisor *int `yaml:"coarse_step_divisor"`
 }
 
 // setting is one configurable value, from its yaml key to the field it fills.
@@ -266,6 +288,44 @@ func stringSetting(section, key string, field func(*Config) *string, raw func(*f
 	return s
 }
 
+// stringListSetting wires a list of words. From the environment it is
+// comma-separated. Its check rejects an empty list and an empty entry.
+func stringListSetting(section, key string, field func(*Config) *[]string, raw func(*fileConfig) []string) setting {
+	s := setting{section: section, key: key}
+	name := s.name()
+
+	s.fromFile = func(c *Config, f *fileConfig) error {
+		items := raw(f)
+		if items == nil {
+			return nil
+		}
+		*field(c) = append([]string(nil), items...)
+		return nil
+	}
+	s.fromEnv = func(c *Config, text string) error {
+		parts := strings.Split(text, ",")
+		out := make([]string, 0, len(parts))
+		for _, p := range parts {
+			out = append(out, strings.TrimSpace(p))
+		}
+		*field(c) = out
+		return nil
+	}
+	s.check = func(c *Config) error {
+		values := *field(c)
+		if len(values) == 0 {
+			return fmt.Errorf("%w: %s", ErrEmptyList, name)
+		}
+		for i, v := range values {
+			if strings.TrimSpace(v) == "" {
+				return fmt.Errorf("%w: %s[%d]", ErrEmpty, name, i)
+			}
+		}
+		return nil
+	}
+	return s
+}
+
 // durationListSetting wires a schedule. The ordering invariant lives in
 // Validate; this check covers only what is wrong with the entries themselves.
 func durationListSetting(section, key string, field func(*Config) *[]time.Duration, raw func(*fileConfig) []string) setting {
@@ -357,6 +417,18 @@ var settings = []setting{
 	durationSetting("telegram", "default_flood_wait",
 		func(c *Config) *time.Duration { return &c.Telegram.DefaultFloodWait },
 		func(f *fileConfig) *string { return f.Telegram.DefaultFloodWait }),
+	durationSetting("groups", "ephemeral_reply_window",
+		func(c *Config) *time.Duration { return &c.Groups.EphemeralReplyWindow },
+		func(f *fileConfig) *string { return f.Groups.EphemeralReplyWindow }),
+	durationSetting("groups", "ephemeral_refusal_ttl",
+		func(c *Config) *time.Duration { return &c.Groups.EphemeralRefusalTTL },
+		func(f *fileConfig) *string { return f.Groups.EphemeralRefusalTTL }),
+	limitSetting("groups", "callback_alert_max_runes",
+		func(c *Config) *int { return &c.Groups.CallbackAlertMaxRunes },
+		func(f *fileConfig) *int { return f.Groups.CallbackAlertMaxRunes }),
+	stringListSetting("groups", "menu",
+		func(c *Config) *[]string { return &c.Groups.Menu },
+		func(f *fileConfig) []string { return f.Groups.Menu }),
 
 	durationSetting("dedup", "ttl",
 		func(c *Config) *time.Duration { return &c.Dedup.TTL },
@@ -413,31 +485,35 @@ var settings = []setting{
 		func(c *Config) *time.Duration { return &c.Scheduler.ClaimTimeout },
 		func(f *fileConfig) *string { return f.Scheduler.ClaimTimeout }),
 
+	durationSetting("notifier", "send_budget",
+		func(c *Config) *time.Duration { return &c.Notifier.SendBudget },
+		func(f *fileConfig) *string { return f.Notifier.SendBudget }),
+	durationSetting("notifier", "receipt_margin",
+		func(c *Config) *time.Duration { return &c.Notifier.ReceiptMargin },
+		func(f *fileConfig) *string { return f.Notifier.ReceiptMargin }),
+	durationSetting("notifier", "max_age",
+		func(c *Config) *time.Duration { return &c.Notifier.MaxAge },
+		func(f *fileConfig) *string { return f.Notifier.MaxAge }),
+	durationSetting("notifier", "shutdown_timeout",
+		func(c *Config) *time.Duration { return &c.Notifier.ShutdownTimeout },
+		func(f *fileConfig) *string { return f.Notifier.ShutdownTimeout }),
+
 	durationSetting("game", "shutdown_timeout",
 		func(c *Config) *time.Duration { return &c.Game.ShutdownTimeout },
 		func(f *fileConfig) *string { return f.Game.ShutdownTimeout }),
 	durationSetting("game", "idempotency_ttl",
 		func(c *Config) *time.Duration { return &c.Game.IdempotencyTTL },
 		func(f *fileConfig) *string { return f.Game.IdempotencyTTL }),
+	durationSetting("game", "content_reload_interval",
+		func(c *Config) *time.Duration { return &c.Game.ContentReloadInterval },
+		func(f *fileConfig) *string { return f.Game.ContentReloadInterval }),
 
-	limitSetting("travel", "energy_cost",
-		func(c *Config) *int { return &c.Travel.EnergyCost },
-		func(f *fileConfig) *int { return f.Travel.EnergyCost }),
 	limitSetting("travel", "arrival_xp",
 		func(c *Config) *int { return &c.Travel.ArrivalXP },
 		func(f *fileConfig) *int { return f.Travel.ArrivalXP }),
-	limitSetting("travel", "standard_km_per_hour",
-		func(c *Config) *int { return &c.Travel.StandardKMPerHour },
-		func(f *fileConfig) *int { return f.Travel.StandardKMPerHour }),
-	durationSetting("travel", "standard_boarding",
-		func(c *Config) *time.Duration { return &c.Travel.StandardBoarding },
-		func(f *fileConfig) *string { return f.Travel.StandardBoarding }),
-	limitSetting("travel", "express_km_per_hour",
-		func(c *Config) *int { return &c.Travel.ExpressKMPerHour },
-		func(f *fileConfig) *int { return f.Travel.ExpressKMPerHour }),
-	durationSetting("travel", "express_boarding",
-		func(c *Config) *time.Duration { return &c.Travel.ExpressBoarding },
-		func(f *fileConfig) *string { return f.Travel.ExpressBoarding }),
+	limitSetting("travel", "time_scale",
+		func(c *Config) *int { return &c.Travel.TimeScale },
+		func(f *fileConfig) *int { return f.Travel.TimeScale }),
 
 	stringSetting("player", "default_language",
 		func(c *Config) *string { return &c.Player.DefaultLanguage },
@@ -446,4 +522,17 @@ var settings = []setting{
 	moneySetting("economy", "starting_cash",
 		func(c *Config) *int64 { return &c.Economy.StartingCash },
 		func(f *fileConfig) *int64 { return f.Economy.StartingCash }),
+	moneySetting("economy", "bank_min_amount",
+		func(c *Config) *int64 { return &c.Economy.BankMinAmount },
+		func(f *fileConfig) *int64 { return f.Economy.BankMinAmount }),
+	moneySetting("economy", "bank_max_amount",
+		func(c *Config) *int64 { return &c.Economy.BankMaxAmount },
+		func(f *fileConfig) *int64 { return f.Economy.BankMaxAmount }),
+
+	limitSetting("governance", "fine_step_divisor",
+		func(c *Config) *int { return &c.Governance.FineStepDivisor },
+		func(f *fileConfig) *int { return f.Governance.FineStepDivisor }),
+	limitSetting("governance", "coarse_step_divisor",
+		func(c *Config) *int { return &c.Governance.CoarseStepDivisor },
+		func(f *fileConfig) *int { return f.Governance.CoarseStepDivisor }),
 }

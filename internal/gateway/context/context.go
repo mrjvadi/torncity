@@ -200,12 +200,23 @@ func fillFromMessage(meta *envelope.Metadata, msg *client.Message, updateType, d
 	meta.TelegramMessageID = msg.MessageID
 	meta.ChatType = msg.Chat.Type
 	meta.Language = NormalizeLanguage(msg.From.LanguageCode, defaultLanguage)
+	meta.TelegramEphemeralMessageID = msg.EphemeralMessageID
 
-	// TelegramThreadID and ReplyToMessageID stay nil on purpose. The Bot API
-	// carries both, but client.Message does not model them yet (see the note
-	// at the top of the client's types.go: a field is added when a feature
-	// needs it). When the client gains message_thread_id and
-	// reply_to_message, copy them here; the envelope already has the fields.
+	// TelegramThreadID stays nil on purpose: client.Message does not model
+	// message_thread_id yet (a field is added when a feature needs it).
+	//
+	// A reply names the person replied to, so a group command can point at
+	// another player. Replying to oneself, or to a bot — the game's own
+	// screens included — names nobody.
+	if reply := msg.ReplyToMessage; reply != nil {
+		if reply.MessageID != 0 {
+			id := reply.MessageID
+			meta.ReplyToMessageID = &id
+		}
+		if reply.From != nil && !reply.From.IsBot && reply.From.ID != msg.From.ID {
+			meta.ReplyToTelegramUserID = reply.From.ID
+		}
+	}
 	return nil
 }
 
@@ -222,6 +233,9 @@ func fillFromCallback(meta *envelope.Metadata, cq *client.CallbackQuery, default
 	// edits one message in place instead of appending, so this is the handle
 	// the presenter needs on the way back.
 	meta.TelegramMessageID = cq.Message.MessageID
+	// A button on an ephemeral message: MessageID is 0 and this is the
+	// handle the screen is edited by.
+	meta.TelegramEphemeralMessageID = cq.Message.EphemeralMessageID
 	meta.ChatType = cq.Message.Chat.Type
 	meta.Language = NormalizeLanguage(cq.From.LanguageCode, defaultLanguage)
 

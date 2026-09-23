@@ -1,16 +1,15 @@
 package notification
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
-// The notice is the contract between this worker and the gateway. It lives
-// here, beside the only producer, and the gateway imports it; neither side
-// spells the subject or the fields on its own.
+// The notice is the contract between this worker and the gateway. The payload
+// and the receipt live here, beside the only producer, and the gateway imports
+// them; the subject is subjects.Notify, beside every other subject in the
+// system. Neither side spells the subject or the fields on its own.
 //
 // # Why request and reply over core NATS
 //
@@ -24,28 +23,6 @@ import (
 //
 // A notice is not persisted on its own stream. What must survive a crash is
 // the event, and it already does.
-
-// noticeSubjectPrefix and noticeSubjectSuffix bracket the player id.
-//
-// TODO: these belong in internal/messaging/nats/subjects beside Command,
-// Event and Response, with "notify" added to subjects.Grammar. That package
-// was out of reach when this was written; move them there and keep the
-// spelling.
-const (
-	noticeSubjectPrefix = "game.notify."
-	noticeSubjectSuffix = "." + subjects.Version
-)
-
-// SubjectAll is the wildcard the gateway subscribes to: every player's
-// notices.
-const SubjectAll = noticeSubjectPrefix + "*" + noticeSubjectSuffix
-
-// Subject is the subject a notice for one player is sent on, for example
-// game.notify.<player_id>.v1. The player id is in the subject so a notice can
-// be traced, filtered or tapped per player without decoding a payload.
-func Subject(playerID string) string {
-	return fmt.Sprintf("%s%s%s", noticeSubjectPrefix, playerID, noticeSubjectSuffix)
-}
 
 // Notice is the payload of a notice envelope. The envelope's metadata names
 // the bot (BotID, a telegram_bots.id) and the chat (TelegramChatID) to send
