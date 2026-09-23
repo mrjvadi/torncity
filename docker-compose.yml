@@ -8,6 +8,12 @@
 # credentials happen to match, and it points your writes at somebody else's
 # database.
 #
+# configs/ is MOUNTED into every service, never baked into the image. The
+# whole point of configuration and content living in files is changing them
+# without a rebuild; an image that carried its own copy would need one for
+# every number. Mounted read-only, because no service has any business
+# writing its own configuration.
+#
 # Every service carries an explicit memory and cpu cap.
 #
 # This stack is not the only thing on its host: without caps one runaway
@@ -97,6 +103,8 @@ services:
     cpus: "0.50"
     memswap_limit: 256m
     build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: gateway}}
+    working_dir: /srv
+    volumes: ["./configs:/srv/configs:ro"]
     env_file: [.env]
     depends_on:
       postgres: {condition: service_healthy}
@@ -109,6 +117,8 @@ services:
     cpus: "0.50"
     memswap_limit: 256m
     build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: game}}
+    working_dir: /srv
+    volumes: ["./configs:/srv/configs:ro"]
     env_file: [.env]
     depends_on:
       postgres: {condition: service_healthy}
@@ -125,6 +135,8 @@ services:
     cpus: "0.25"
     memswap_limit: 192m
     build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: worker}}
+    working_dir: /srv
+    volumes: ["./configs:/srv/configs:ro"]
     env_file: [.env]
     depends_on:
       postgres: {condition: service_healthy}
@@ -139,10 +151,30 @@ services:
     cpus: "0.15"
     memswap_limit: 128m
     build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: scheduler}}
+    working_dir: /srv
+    volumes: ["./configs:/srv/configs:ro"]
     env_file: [.env]
     depends_on:
       postgres: {condition: service_healthy}
     restart: unless-stopped
+
+  # One-shot operator tool: migrations and content loads.
+  #   docker compose --profile tools run --rm admin migrate
+  #   docker compose --profile tools run --rm admin content load --reason "..."
+  # It is behind a profile so `up` never starts it as a service.
+  admin:
+    profiles: ["tools"]
+    build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: admin}}
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: "0.25"
+    env_file: [.env]
+    working_dir: /srv
+    volumes:
+      - "./configs:/srv/configs:ro"
+      - "./migrations:/srv/migrations:ro"
+    depends_on:
+      postgres: {condition: service_healthy}
 
 volumes:
   pgdata:
