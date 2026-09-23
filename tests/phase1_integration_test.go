@@ -60,15 +60,14 @@ func seedCity(t *testing.T, pool *postgres.Pool, label string) application.City 
 		ID:           newUUID(t),
 		Code:         "IT_" + strings.ToUpper(randomToken(t, 10)),
 		Name:         "integration " + label,
-		TaxRateBPS:   250,
 		CostOfLiving: 1000,
 		Population:   0,
 	}
 
 	if _, err := pool.Raw().Exec(ctx,
 		`INSERT INTO cities (id, code, name, tax_rate_bps, cost_of_living, population)
-		 VALUES ($1::uuid, $2, $3, $4, $5, $6)`,
-		c.ID, c.Code, c.Name, c.TaxRateBPS, c.CostOfLiving, c.Population); err != nil {
+		 VALUES ($1::uuid, $2, $3, 250, $4, $5)`,
+		c.ID, c.Code, c.Name, c.CostOfLiving, c.Population); err != nil {
 		t.Fatalf("seeding city %s: %v", c.Code, err)
 	}
 
@@ -1157,7 +1156,7 @@ func TestCityAndSearchAgainstOwnFixtures(t *testing.T) {
 		if err != nil {
 			t.Fatalf("ByCode(%s): %v", city.Code, err)
 		}
-		if byCode.ID != city.ID || byCode.Name != city.Name || byCode.TaxRateBPS != city.TaxRateBPS {
+		if byCode.ID != city.ID || byCode.Name != city.Name || byCode.CostOfLiving != city.CostOfLiving {
 			t.Errorf("ByCode returned %+v, want the seeded %+v", *byCode, city)
 		}
 

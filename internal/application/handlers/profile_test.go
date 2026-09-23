@@ -181,6 +181,10 @@ func (t *fakeTx) Friendships() application.FriendshipRepository  { return t.frie
 // which is the honest answer to a call this double was never meant to serve.
 func (t *fakeTx) Ledger() application.LedgerRepository { return fakeLedger{} }
 
+// Governance is never reached by a handler yet; a nil repository makes any
+// accidental use fail loudly.
+func (t *fakeTx) Governance() application.GovernanceRepository { return nil }
+
 type fakeLedger struct{ application.LedgerRepository }
 
 // fakeUOW runs fn directly, and discards EVERY change when fn fails so the

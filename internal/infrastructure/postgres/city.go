@@ -26,13 +26,17 @@ var _ application.CityRepository = (*CityRepository)(nil)
 // work.
 func NewCityRepository(p *Pool) *CityRepository { return &CityRepository{q: p.Raw()} }
 
+// tax_rate_bps is deliberately absent from every statement below too: it is
+// the default of the city.tax_rate lever, and the rate in force is read with
+// application.PolicyReader, never off this row (ADR 0015).
+//
 // treasury_account_id is deliberately absent from every statement below:
 // application.City has no field for it, and migrations/0002_phase1.up.sql
 // creates it NULL-able without the foreign key the accounts table will bring.
 // Selecting a column nothing can carry would only invite a scan that fails.
 
 const selectCities = `
-SELECT id, code, name, tax_rate_bps, cost_of_living, population
+SELECT id, code, name, COALESCE(jurisdiction_id::text, ''), cost_of_living, population
 FROM cities
 ORDER BY code`
 
@@ -51,7 +55,7 @@ func (r *CityRepository) List(ctx context.Context) ([]application.City, error) {
 	var out []application.City
 	for rows.Next() {
 		var c application.City
-		if err := rows.Scan(&c.ID, &c.Code, &c.Name, &c.TaxRateBPS, &c.CostOfLiving, &c.Population); err != nil {
+		if err := rows.Scan(&c.ID, &c.Code, &c.Name, &c.JurisdictionID, &c.CostOfLiving, &c.Population); err != nil {
 			return nil, fmt.Errorf("postgres: scanning city row: %w", err)
 		}
 		out = append(out, c)
@@ -64,7 +68,7 @@ func (r *CityRepository) List(ctx context.Context) ([]application.City, error) {
 }
 
 const selectCityByID = `
-SELECT id, code, name, tax_rate_bps, cost_of_living, population
+SELECT id, code, name, COALESCE(jurisdiction_id::text, ''), cost_of_living, population
 FROM cities
 WHERE id = $1::uuid`
 
@@ -80,7 +84,7 @@ func (r *CityRepository) ByID(ctx context.Context, id string) (*application.City
 	var c application.City
 
 	err := r.q.QueryRow(ctx, selectCityByID, id).Scan(
-		&c.ID, &c.Code, &c.Name, &c.TaxRateBPS, &c.CostOfLiving, &c.Population,
+		&c.ID, &c.Code, &c.Name, &c.JurisdictionID, &c.CostOfLiving, &c.Population,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) || isInvalidUUIDText(err) {
@@ -93,7 +97,7 @@ func (r *CityRepository) ByID(ctx context.Context, id string) (*application.City
 }
 
 const selectCityByCode = `
-SELECT id, code, name, tax_rate_bps, cost_of_living, population
+SELECT id, code, name, COALESCE(jurisdiction_id::text, ''), cost_of_living, population
 FROM cities
 WHERE code = $1`
 
@@ -107,7 +111,7 @@ func (r *CityRepository) ByCode(ctx context.Context, code string) (*application.
 	var c application.City
 
 	err := r.q.QueryRow(ctx, selectCityByCode, code).Scan(
-		&c.ID, &c.Code, &c.Name, &c.TaxRateBPS, &c.CostOfLiving, &c.Population,
+		&c.ID, &c.Code, &c.Name, &c.JurisdictionID, &c.CostOfLiving, &c.Population,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

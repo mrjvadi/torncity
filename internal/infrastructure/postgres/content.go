@@ -110,12 +110,21 @@ type Applied struct {
 	// city before residence existed (migration 0005), whose current city
 	// becomes where they live.
 	ResidencesSet int64
+	// Jurisdictions is how many jurisdictions this load wrote, one per city
+	// included (ADR 0015).
+	Jurisdictions int
+	// OfficesCreated is how many office seats were new, all vacant. Zero on
+	// a reload: existing seats, and whoever holds them, are left alone.
+	OfficesCreated int64
 }
 
 // Apply writes a pack as a new active version, in one transaction.
 //
 // Everything happens together: the version row, the cities, the routes, the
-// skills (spawn weights included), the supersede of the previous version, the
+// skills (spawn weights included), the governance content — levels,
+// jurisdictions, office and lever definitions, and one vacant seat per office,
+// jurisdiction and seat that does not exist yet — the supersede of the
+// previous version, the
 // placement of players who have no city yet, the residence of players who have
 // none yet, the outbox record that tells
 // running services to reload, and the audit row that records who did it. A
@@ -216,6 +225,10 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 	if err := insertSkills(ctx, tx, p, versionID); err != nil {
 		return Applied{}, err
 	}
+	governance, err := applyGovernance(ctx, tx, p, versionID, cityIDs, time.Now().UTC())
+	if err != nil {
+		return Applied{}, err
+	}
 	if err := appendContentEvent(ctx, tx, version, versionID, checksum); err != nil {
 		return Applied{}, err
 	}
@@ -230,6 +243,7 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 		reason:    reason,
 		placed:    placed,
 		housed:    housed,
+		governed:  governance,
 	}
 	if err := appendContentAudit(ctx, tx, audit); err != nil {
 		return Applied{}, err
@@ -239,11 +253,13 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 		return Applied{}, fmt.Errorf("postgres: content apply: commit: %w", err)
 	}
 	return Applied{
-		Version:       version,
-		VersionID:     versionID,
-		Checksum:      checksum,
-		PlayersPlaced: placed,
-		ResidencesSet: housed,
+		Version:        version,
+		VersionID:      versionID,
+		Checksum:       checksum,
+		PlayersPlaced:  placed,
+		ResidencesSet:  housed,
+		Jurisdictions:  governance.jurisdictions,
+		OfficesCreated: governance.officesCreated,
 	}, nil
 }
 
@@ -426,7 +442,8 @@ func currentWorld(ctx context.Context, tx pgx.Tx) (activeWorld, error) {
 // CityIDs is filled, so the snapshot built from this pack can answer lookups
 // by storage id — which a pack loaded from yaml cannot.
 //
-// All four reads run in ONE read-only REPEATABLE READ transaction. They were
+// All the reads — governance included — run in ONE read-only REPEATABLE READ
+// transaction. They were
 // four independent statements in the first draft, and a load committing
 // between them breaks the result: cities are rewritten in place (their
 // content_version_id moves to the new version), so the city query would find
@@ -458,11 +475,16 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 	// Ordered by code, not by insertion: a pack read back twice must be the
 	// same pack, and the checksum comparison an operator makes between a
 	// stored version and a checkout depends on nothing here being arbitrary.
+	// A city's country is the parent of its own jurisdiction. A city row
+	// with no jurisdiction reads back with no country, which Validate then
+	// refuses by name rather than letting a half-migrated world boot.
 	cityRows, err := tx.Query(ctx,
-		`SELECT id::text, code, name, tax_rate_bps, cost_of_living, spawn_weight
-		   FROM cities
-		  WHERE content_version_id = $1::uuid
-		  ORDER BY code`, versionID)
+		`SELECT c.id::text, c.code, c.name, c.tax_rate_bps, c.cost_of_living, c.spawn_weight, COALESCE(p.code, '')
+		   FROM cities c
+		   LEFT JOIN jurisdictions j ON j.id = c.jurisdiction_id
+		   LEFT JOIN jurisdictions p ON p.id = j.parent_id
+		  WHERE c.content_version_id = $1::uuid
+		  ORDER BY c.code`, versionID)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: content load: cities: %w", err)
 	}
@@ -472,7 +494,7 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 			id string
 			c  content.CityDef
 		)
-		if err := cityRows.Scan(&id, &c.Code, &c.Name, &c.TaxRateBPS, &c.CostOfLiving, &c.SpawnWeight); err != nil {
+		if err := cityRows.Scan(&id, &c.Code, &c.Name, &c.TaxRateBPS, &c.CostOfLiving, &c.SpawnWeight, &c.Country); err != nil {
 			return nil, fmt.Errorf("postgres: content load: scanning city: %w", err)
 		}
 		pack.Cities = append(pack.Cities, c)
@@ -539,6 +561,10 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 		return nil, fmt.Errorf("postgres: content load: reading skills: %w", err)
 	}
 	skillRows.Close()
+
+	if err := loadGovernance(ctx, tx, versionID, pack); err != nil {
+		return nil, err
+	}
 
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("postgres: content load: commit: %w", err)
@@ -853,6 +879,7 @@ type contentAudit struct {
 	reason    string
 	placed    int64
 	housed    int64
+	governed  governanceApplied
 }
 
 // appendContentAudit records the load in audit_logs (ADR 0004 rule 5: who,
@@ -901,6 +928,11 @@ func appendContentAudit(ctx context.Context, tx pgx.Tx, a contentAudit) error {
 		"spawn_weights":   spawnWeights(a.pack),
 		"players_placed":  a.placed,
 		"residences_set":  a.housed,
+		"levels":          len(a.pack.Levels),
+		"jurisdictions":   a.governed.jurisdictions,
+		"levers":          len(a.pack.Levers),
+		"offices":         len(a.pack.Offices),
+		"offices_created": a.governed.officesCreated,
 	})
 	if err != nil {
 		return fmt.Errorf("postgres: content apply: encoding audit value: %w", err)
@@ -957,13 +989,47 @@ func SourceChecksum(p *content.Pack) string {
 func Checksum(p *content.Pack) string {
 	h := sha256.New()
 	for _, c := range p.Cities {
-		fmt.Fprintf(h, "city|%s|%s|%d|%d|%d\n", c.Code, c.Name, c.TaxRateBPS, c.CostOfLiving, c.SpawnWeight)
+		fmt.Fprintf(h, "city|%s|%s|%d|%d|%d|%s\n", c.Code, c.Name, c.TaxRateBPS, c.CostOfLiving, c.SpawnWeight, c.Country)
 	}
 	for _, r := range p.Routes {
 		fmt.Fprintf(h, "route|%s|%s|%d|%t\n", r.From, r.To, r.Distance, r.IsBidirectional())
 	}
 	for _, s := range p.Skills {
 		fmt.Fprintf(h, "skill|%s|%s|%s\n", s.Code, s.Name, s.Category)
+	}
+	for _, l := range p.Levels {
+		fmt.Fprintf(h, "level|%s|%v|%t\n", l.Code, l.Parents, l.Overlay)
+	}
+	for _, j := range p.Jurisdictions {
+		fmt.Fprintf(h, "jurisdiction|%s|%s|%s|%s\n", j.Code, j.Name, j.Level, j.Parent)
+	}
+	for _, o := range p.Offices {
+		limit := 0
+		if o.TermLimit != nil {
+			limit = *o.TermLimit
+		}
+		term, _ := o.TermDuration()
+		levers := append([]string(nil), o.Levers...)
+		sort.Strings(levers)
+		fmt.Fprintf(h, "office|%s|%s|%d|%s|%v|%s|%s|%s|%d|%d|%v|%v|%v\n",
+			o.Code, o.Jurisdiction, o.Seats, o.AcquiredBy, levers, o.Deputy, o.AppointedBy,
+			o.RequiresConfirmationBy, int64(term/time.Second), limit, o.CanBeRemovedBy, o.VetoOver, o.IncompatibleWith)
+	}
+	for _, l := range p.Levers {
+		// Durations as seconds, so "72h" from a file and "72h0m0s" read back
+		// from the database fingerprint alike.
+		cooldown, _ := l.CooldownDuration()
+		notice, _ := l.NoticeDuration()
+		def := fmt.Sprint(l.DefaultValue())
+		if l.ValueKind() != content.ValueKindScalar {
+			raw, _ := l.DefaultJSON() // encoding/json sorts map keys
+			def = string(raw)
+		}
+		fmt.Fprintf(h, "lever|%s|%s|%s|%s|%d|%d|%v|%s|%v|%s|%s|%s|%s|%s|%v|%s|%s|%d|%d\n",
+			l.Code, l.Jurisdiction, l.Type, def, l.MinValue(), l.MaxValue(), l.Options, l.Key, l.Categories,
+			l.CityDefault,
+			l.HeldBy, l.Rule(), l.Threshold, l.Quorum, l.VetoBy, l.OverrideRule, l.OverrideThreshold,
+			int64(cooldown/time.Second), int64(notice/time.Second))
 	}
 	return hex.EncodeToString(h.Sum(nil))
 }

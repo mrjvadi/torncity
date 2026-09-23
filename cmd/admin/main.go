@@ -44,6 +44,10 @@ func main() {
 		err = contentCommand(ctx, os.Args[2:])
 	case "economy":
 		err = economyCommand(ctx, os.Args[2:])
+	case "office":
+		err = officeCommand(ctx, os.Args[2:])
+	case "policy":
+		err = policyCommand(ctx, os.Args[2:])
 	default:
 		usage()
 		os.Exit(2)
@@ -63,6 +67,8 @@ func usage() {
   status        list applied and pending migrations
   content       validate or load the game content (see: admin content)
   economy       verify the ledger or grant starting cash (see: admin economy)
+  office        appoint, vacate or list office holders (see: admin office)
+  policy        show the policy in force in a place (see: admin policy)
 
 DATABASE_URL must be set, except for `+"`admin content validate`"+`, which
 reads files only.

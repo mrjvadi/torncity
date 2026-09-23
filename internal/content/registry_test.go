@@ -20,7 +20,9 @@ func chainPack() *Pack {
 			{From: "alpha", To: "bravo", Distance: 100},
 			{From: "bravo", To: "charlie", Distance: 250},
 		},
-		Skills: []SkillDef{{Code: "driving", Name: "Driving", Category: "technical"}},
+		Skills:        []SkillDef{{Code: "driving", Name: "Driving", Category: "technical"}},
+		Levels:        homeLevels,
+		Jurisdictions: homeCountry,
 		CityIDs: map[string]string{
 			"alpha": "id-alpha", "bravo": "id-bravo", "charlie": "id-charlie",
 		},

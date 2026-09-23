@@ -19,10 +19,15 @@ func contentPack() *content.Pack {
 	return &content.Pack{
 		Schema: 1,
 		Cities: []content.CityDef{
-			{Code: "alpha", Name: "Alpha", TaxRateBPS: 500, CostOfLiving: 1000, SpawnWeight: 30},
-			{Code: "bravo", Name: "Bravo", TaxRateBPS: 750, CostOfLiving: 2000, SpawnWeight: 10},
+			{Code: "alpha", Name: "Alpha", TaxRateBPS: 500, CostOfLiving: 1000, SpawnWeight: 30, Country: "home"},
+			{Code: "bravo", Name: "Bravo", TaxRateBPS: 750, CostOfLiving: 2000, SpawnWeight: 10, Country: "home"},
 		},
 		Routes: []content.RouteDef{{From: "alpha", To: "bravo", Distance: 100}},
+		Levels: []content.LevelDef{
+			{Code: content.CountryLevel, Parents: []string{content.WorldLevel}},
+			{Code: content.CityLevel, Parents: []string{content.CountryLevel}},
+		},
+		Jurisdictions: []content.JurisdictionDef{{Code: "home", Name: "Home", Level: content.CountryLevel}},
 	}
 }
 
@@ -202,10 +207,10 @@ func TestSpawnCandidatesTakeTheStoredIDs(t *testing.T) {
 // and every service would refuse to boot.
 func TestLoadActiveReadsSpawnWeights(t *testing.T) {
 	src := normalizedSource(t, "content.go")
-	if !strings.Contains(src, "SELECT id::text, code, name, tax_rate_bps, cost_of_living, spawn_weight FROM cities") {
+	if !strings.Contains(src, "SELECT c.id::text, c.code, c.name, c.tax_rate_bps, c.cost_of_living, c.spawn_weight, COALESCE(p.code, '') FROM cities c") {
 		t.Error("LoadActive does not read spawn_weight")
 	}
-	if !strings.Contains(src, "&c.CostOfLiving, &c.SpawnWeight)") {
+	if !strings.Contains(src, "&c.CostOfLiving, &c.SpawnWeight, &c.Country)") {
 		t.Error("LoadActive does not scan spawn_weight into the pack")
 	}
 }

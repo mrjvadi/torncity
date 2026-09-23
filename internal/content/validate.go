@@ -151,6 +151,9 @@ func (p *Pack) Validate() error {
 	p.validateRoutes(known, &problems)
 	p.validateSkills(&problems)
 
+	// Governance (ADR 0015): levels, jurisdictions, offices, levers.
+	p.validateGovernance(&problems)
+
 	if len(problems) > 0 {
 		return errors.Join(problems...)
 	}

@@ -1,0 +1,227 @@
+# Governance: levels, jurisdictions, levers and offices.
+#
+# docs/adr/0015-player-held-offices.md is the governing decision. In one line:
+# every political or economic decision is a LEVER held by an OFFICE; a player
+# may hold the office, and while nobody does — or while nobody has ever moved
+# the lever — its default applies. The operator writes only what this file
+# holds: which levers exist, the bounds each may move within, how often and
+# with how much warning it may change, and which office holds it. The value
+# inside the bounds is the office holder's decision.
+#
+# This file is ordinary content: validated and loaded by `admin content load`
+# together with the other files, as one numbered version. Editing it changes
+# nothing until it is loaded. See docs/adr/0004-content-system.md.
+#
+# No code reads a lever's value from this file. Code asks the policy resolver
+# (application.PolicyReader), which returns the office holder's value once its
+# notice has passed, and the default below otherwise.
+#
+# ---------------------------------------------------------------------------
+# levels — the kinds of jurisdiction that may exist. Content, so adding one
+# needs no migration and no code change.
+#   code      identifier. "world" is reserved: the implicit root, the
+#             operator's level, which holds no levers and no offices.
+#   parents   the levels a jurisdiction of this level may sit directly under;
+#             "world" lets it be a top-level jurisdiction. Enforced on every
+#             jurisdiction a load writes. No cycles.
+#   overlay   optional, default false. A jurisdiction of this level overlays
+#             others (a port authority inside a city, a free zone across
+#             several) instead of partitioning its parent. Stored; no
+#             behaviour yet. Each kind of overlay is its own level, never one
+#             shared "special" level: levers attach to a level.
+#
+# ---------------------------------------------------------------------------
+# jurisdictions — everything that is not a city (cities are cities.yml).
+#   code     stable identifier; unique here and distinct from every city code.
+#            Never change one after it ships.
+#   name     display name.
+#   level    a declared level other than world and city.
+#   parent   optional: the code of the jurisdiction (or city) it sits under;
+#            omitted means the world. Must be a level its level allows.
+#
+# A city's parent is its country (cities.yml `country:`), which must be a
+# jurisdiction of level country. The structure is multi-country, and
+# multi-level, from the start: adding a province or a union later must not
+# mean rewriting every place that assumed one level above a city.
+#
+# ---------------------------------------------------------------------------
+# levers
+#   code             stable identifier, prefixed by its level ("city.",
+#                    "country."). Never change one after it ships: stored
+#                    values and the public history of changes refer to it.
+#   jurisdiction     the level the lever is set at.
+#   type             scalar: bps (basis points, 10000 = 100%) | money (minor
+#                    units) | int — one bounded integer, fully working today.
+#                    structured: bool | enum | map | allocation — a document;
+#                    declared and stored now, refused by the resolver and by
+#                    SetPolicy until their behaviour is built.
+#   default          the value while nobody has set it: the game's behaviour
+#                    from before the lever existed. Required. An integer for
+#                    a scalar type; for bool true/false; for enum one of
+#                    `options`; for map a mapping of key to one of `options`;
+#                    for allocation a mapping of category to bps summing to
+#                    10000.
+#   options          enum and map only: the allowed values.
+#   key              map only: what the keys name, e.g. item.
+#   categories       allocation only: what the whole is divided among.
+#   city_default     optional, city levers only. Names a per-city default
+#                    source; the only one is tax_rate_bps, which takes each
+#                    city's default from its tax_rate_bps in cities.yml, so
+#                    that each city keeps exactly the rate it charged before.
+#                    `default` still applies to a city with no such value.
+#   min, max         scalar only: the bounds every value must lie within,
+#                    default included. Required. For bps, within 0..10000.
+#   held_by          the office — one person or a body — that decides it.
+#   decision_rule    optional, default single. How held_by decides:
+#                      single         the holder decides alone (the office
+#                                     and every deputy acting for it must
+#                                     have one seat)
+#                      majority       a vote of the body
+#                      supermajority  a vote reaching `threshold`, e.g. 2/3
+#                      unanimous      every seat
+#                    Only single works today; a lever needing a vote is
+#                    refused until voting exists.
+#   threshold        supermajority only: the fraction needed, above 1/2.
+#   quorum           optional, votes only: the fraction of seats that must
+#                    take part, e.g. 1/2.
+#   veto_by          optional: offices that may veto a change. Stored.
+#   override_rule    optional, with veto_by: majority | supermajority |
+#                    unanimous — how held_by overrides a veto; omitted means
+#                    a veto is final. override_threshold for a
+#                    supermajority. Stored.
+#   change_cooldown  least time between two changes in one jurisdiction, e.g.
+#                    72h. Required; 0s for none. Stops a holder raising a tax
+#                    for one trade and lowering it again after.
+#   notice           how long after a change is announced it takes effect.
+#                    Required; 0s for immediately. No policy change is a
+#                    surprise: announce, wait, then apply.
+#
+# ---------------------------------------------------------------------------
+# offices
+#   code                      stable identifier. Never change one after it
+#                             ships.
+#   jurisdiction              the level; one set of seats exists in every
+#                             jurisdiction of that level.
+#   seats                     holders per jurisdiction: 1 for a mayor, more
+#                             for a council.
+#   acquired_by               election | appointment | founding | conquest —
+#                             how the office is normally obtained. Until
+#                             elections exist, an operator appoints
+#                             (`admin office appoint`).
+#   levers                    the lever codes it holds. Must agree exactly
+#                             with the levers whose held_by names it.
+#   deputy                    optional: the office that acts for this one
+#                             while it is vacant, before the default applies.
+#                             Same level; chains allowed; cycles refused.
+#   appointed_by              optional: the office that appoints the holder.
+#                             Requires acquired_by: appointment. Stored.
+#   requires_confirmation_by  optional: the office or body that confirms that
+#                             appointment. Stored.
+#   term                      optional duration of one tenure, e.g. 2160h;
+#                             omitted means at pleasure. An appointment
+#                             records when the term ends; nothing ends it yet.
+#   term_limit                optional: terms one player may serve. Needs a
+#                             term. Stored.
+#   can_be_removed_by         optional: offices, "residents" (a recall) or
+#                             "operator", that may remove the holder. Stored.
+#   veto_over                 optional: lever or office codes it may veto.
+#                             Stored.
+#   incompatible_with         optional: offices the same player may not hold
+#                             at the same time, anywhere. Symmetric: stating
+#                             it on either office binds both. Enforced by
+#                             `admin office appoint`. Without it, one player
+#                             may hold several offices.
+#
+# The loader creates one seat row per office, jurisdiction and seat, vacant.
+# Loading again never duplicates one and never unseats anybody.
+
+version: 1
+
+levels:
+  - {code: union,    parents: [world]}
+  - {code: country,  parents: [world, union]}
+  - {code: province, parents: [country]}
+  - {code: city,     parents: [country, province]}
+  - {code: town,     parents: [country, province]}
+  - {code: village,  parents: [country, province, town]}
+  # Overlays: each is a level of its own, because levers attach to a level —
+  # a free zone's tax override must not also be a port's.
+  - {code: port_authority, parents: [country, province, city, town], overlay: true}
+  - {code: free_zone,      parents: [union, country, province, city], overlay: true}
+
+jurisdictions:
+  - code: default_country
+    name: The Commonwealth
+    level: country
+
+levers:
+  # Today's per-city rates carry over unchanged: the default for each city is
+  # its tax_rate_bps. `default: 450` is the fallback for a city with none.
+  - code: city.tax_rate
+    jurisdiction: city
+    type: bps
+    default: 450
+    city_default: tax_rate_bps
+    min: 0
+    max: 2500
+    held_by: mayor
+    change_cooldown: 72h
+    notice: 24h
+
+  # Nothing charges an immigration fee today, so the default is none.
+  - code: city.immigration_fee
+    jurisdiction: city
+    type: money
+    default: 0
+    min: 0
+    max: 100000
+    held_by: mayor
+    change_cooldown: 72h
+    notice: 24h
+
+  # No border tariff exists today either.
+  - code: country.border_tariff
+    jurisdiction: country
+    type: bps
+    default: 0
+    min: 0
+    max: 2500
+    held_by: president
+    change_cooldown: 168h
+    notice: 72h
+
+offices:
+  - code: mayor
+    jurisdiction: city
+    seats: 1
+    acquired_by: election
+    levers: [city.tax_rate, city.immigration_fee]
+    # While there is no mayor, the deputy mayor acts; with neither, the
+    # defaults apply.
+    deputy: deputy_mayor
+    can_be_removed_by: [residents, operator]
+    # One person does not run the city and sit on the council that checks
+    # them.
+    incompatible_with: [city_council]
+
+  - code: deputy_mayor
+    jurisdiction: city
+    seats: 1
+    acquired_by: appointment
+    appointed_by: mayor
+    can_be_removed_by: [mayor, operator]
+    levers: []
+
+  # Seats exist from day one; the council's levers (city law, decided by a
+  # vote rather than one person) arrive with the features that need them.
+  - code: city_council
+    jurisdiction: city
+    seats: 5
+    acquired_by: election
+    levers: []
+
+  - code: president
+    jurisdiction: country
+    seats: 1
+    acquired_by: election
+    levers: [country.border_tariff]

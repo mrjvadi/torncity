@@ -13,13 +13,22 @@ import (
 
 // City is a place in the world. It mirrors the cities row, and the domain's
 // world.City is built from it.
+//
+// It deliberately carries NO tax rate. What a city charges is a policy, set by
+// its mayor within the operator's bounds (docs/adr/0015-player-held-offices.md),
+// and the only way to read it is PolicyReader.Get(ctx, JurisdictionID,
+// "city.tax_rate"). The cities.tax_rate_bps column is the lever's per-city
+// default, which the resolver reads; a field here would be a second, wrong
+// answer one line away from every handler.
 type City struct {
-	ID           string
-	Code         string
-	Name         string
-	TaxRateBPS   int
-	CostOfLiving int64
-	Population   int
+	ID   string
+	Code string
+	Name string
+	// JurisdictionID is the city's own jurisdiction, which policy is read
+	// against. Empty for a city no content load has placed in the tree.
+	JurisdictionID string
+	CostOfLiving   int64
+	Population     int
 }
 
 // Stats is a player's live condition.

@@ -28,10 +28,17 @@ cities:
     tax_rate_bps: 500
     cost_of_living: 1000
     spawn_weight: 10
+    country: home
   - code: bravo
     name: Bravo
     tax_rate_bps: 750
     cost_of_living: 2000
+    country: home
+levels:
+  - {code: country, parents: [world]}
+  - {code: city, parents: [country]}
+jurisdictions:
+  - {code: home, name: Home, level: country}
 `
 
 const routesYML = `version: 1

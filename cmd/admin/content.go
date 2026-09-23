@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 )
@@ -92,6 +93,10 @@ func describe(pack *content.Pack) {
 	fmt.Printf("routes:            %d\n", len(pack.Routes))
 	fmt.Printf("skills:            %d\n", len(pack.Skills))
 	fmt.Printf("spawn weights:     %s\n", spawnSummary(pack))
+	fmt.Printf("levels:            %d\n", len(pack.Levels))
+	fmt.Printf("jurisdictions:     %d declared, plus one per city\n", len(pack.Jurisdictions))
+	fmt.Printf("levers:            %d\n", len(pack.Levers))
+	fmt.Printf("offices:           %d\n", len(pack.Offices))
 
 	warnings := pack.Warnings()
 	if len(warnings) == 0 {
@@ -194,6 +199,8 @@ func contentLoad(ctx context.Context, args []string) error {
 	fmt.Printf("stored checksum:   %s\n", applied.Checksum)
 	fmt.Printf("players placed:    %d (had no city, now in their spawn city)\n", applied.PlayersPlaced)
 	fmt.Printf("residences set:    %d (had no residence, now live where they stand)\n", applied.ResidencesSet)
+	fmt.Printf("jurisdictions:     %d written\n", applied.Jurisdictions)
+	fmt.Printf("office seats:      %d created, all vacant (existing seats and holders untouched)\n", applied.OfficesCreated)
 	fmt.Printf("loaded by:         %s\n", who)
 	fmt.Printf("reason:            %s\n", *reason)
 	return nil
@@ -213,6 +220,28 @@ func contentPool(ctx context.Context) (*postgres.Pool, error) {
 		return nil, fmt.Errorf("connect to database: %w", redactDSN(err))
 	}
 	return pool, nil
+}
+
+// cityTaxLever is the lever a city's tax rate is read through.
+const cityTaxLever = "city.tax_rate"
+
+// cityTax is the city's tax rate in force, as the resolver answers it, with
+// where it came from. A city the resolver cannot answer for (content loaded
+// before governance existed) says so instead of falling back to the column.
+func cityTax(ctx context.Context, admin *postgres.GovernanceAdmin, policy application.PolicyReader, code string) string {
+	j, err := admin.JurisdictionByCode(ctx, "city", code)
+	if err != nil {
+		return "n/a (no jurisdiction)"
+	}
+	v, err := policy.Get(ctx, j.ID, cityTaxLever)
+	if err != nil {
+		return "n/a (" + err.Error() + ")"
+	}
+	source := "default"
+	if v.Source == application.PolicyFromOffice {
+		source = "set"
+	}
+	return fmt.Sprintf("%5d bps (%s)", v.Value, source)
 }
 
 // contentStatus reports the active version, read back from the database.
@@ -262,9 +291,19 @@ func contentStatus(ctx context.Context, args []string) error {
 	fmt.Printf("routes:            %d\n", len(pack.Routes))
 	fmt.Printf("skills:            %d\n", len(pack.Skills))
 	fmt.Printf("spawn weights:     %s\n", spawnSummary(pack))
+	fmt.Printf("levels:            %d\n", len(pack.Levels))
+	fmt.Printf("jurisdictions:     %d declared, plus one per city\n", len(pack.Jurisdictions))
+	fmt.Printf("levers:            %d\n", len(pack.Levers))
+	fmt.Printf("offices:           %d\n", len(pack.Offices))
+
+	// The tax shown is the rate IN FORCE, through the one resolver every
+	// reader uses (ADR 0015) — a mayor's rate once its notice has passed, the
+	// city's default otherwise — never the content column read directly.
+	admin := postgres.NewGovernanceAdmin(pool)
+	policy := postgres.NewPolicyReader(pool, nil)
 	for _, c := range snap.Cities() {
-		fmt.Printf("  %-16s %-16s tax %5d bps  cost %6d  id %s\n",
-			c.Code, c.Name, c.TaxRateBPS, c.CostOfLiving, c.ID)
+		fmt.Printf("  %-16s %-16s tax %s  cost %6d  id %s\n",
+			c.Code, c.Name, cityTax(ctx, admin, policy, c.Code), c.CostOfLiving, c.ID)
 	}
 
 	// Whether the checkout in front of the operator is what is running. Only

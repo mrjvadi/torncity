@@ -154,3 +154,9 @@ func (t *tx) Friendships() application.FriendshipRepository {
 // only if the change that moved it commits. Post runs inside a savepoint of
 // this transaction; see the note on tx.
 func (t *tx) Ledger() application.LedgerRepository { return &LedgerRepository{q: t.q} }
+
+// Governance returns the governance repository bound to this transaction, so
+// a lever changes if and only if its public record is written.
+func (t *tx) Governance() application.GovernanceRepository {
+	return &GovernanceRepository{q: t.q}
+}

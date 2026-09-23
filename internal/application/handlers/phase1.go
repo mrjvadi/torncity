@@ -65,12 +65,16 @@ type RouteNetwork interface {
 const DefaultPageSize = 5
 
 // worldCity turns a stored city into the domain value that carries the rules.
+//
+// TaxRateBPS is left at zero on purpose: a city's rate is a policy, read with
+// application.PolicyReader (ADR 0015), never copied off the stored row. The
+// only rule that uses it, world.City.TaxOn, has no caller yet; the first one
+// sets the rate from policy.Get(ctx, city.JurisdictionID, "city.tax_rate").
 func worldCity(c application.City) world.City {
 	return world.City{
 		ID:           c.ID,
 		Code:         c.Code,
 		Name:         c.Name,
-		TaxRateBPS:   c.TaxRateBPS,
 		CostOfLiving: c.CostOfLiving,
 		Population:   c.Population,
 	}

@@ -26,6 +26,16 @@
 #                    player starts in is also where they live (their residence)
 #                    until a deliberate residency change. Changing a weight only
 #                    affects future newcomers; nobody already placed is moved.
+#   country          required. The code of the country this city belongs to,
+#                    declared in governance.yml. Country levers and offices
+#                    reach a city through it.
+#
+# tax_rate_bps is also the DEFAULT of the city.tax_rate lever for this city
+# (governance.yml, `city_default: tax_rate_bps`): the rate the city charges
+# while no mayor has set one. Nothing reads it as the tax rate directly; the
+# policy resolver does, and a mayor's change, once its notice has passed,
+# takes precedence. It must lie within the lever's min and max, or the loader
+# refuses the file. See docs/adr/0015-player-held-offices.md.
 #
 # Tax and cost are deliberately decorrelated. A city that is cheap to live in is
 # not automatically a cheap place to trade, which gives location more than one
@@ -39,30 +49,35 @@ cities:
     tax_rate_bps: 120
     cost_of_living: 980
     spawn_weight: 30
+    country: default_country
 
   - code: fenwick_span
     name: Fenwick Span
     tax_rate_bps: 640
     cost_of_living: 1540
     spawn_weight: 25
+    country: default_country
 
   - code: aldrin_hollow
     name: Aldrin Hollow
     tax_rate_bps: 720
     cost_of_living: 2450
     spawn_weight: 15
+    country: default_country
 
   - code: brennhaven
     name: Brennhaven
     tax_rate_bps: 310
     cost_of_living: 2600
     spawn_weight: 20
+    country: default_country
 
   - code: kessmoor
     name: Kessmoor
     tax_rate_bps: 980
     cost_of_living: 3100
     spawn_weight: 10
+    country: default_country
 
   # Calderis and Vantor Reach are the expensive far end of the map: places a
   # player travels to, not places anyone is born. Hence spawn_weight 0.
@@ -71,9 +86,11 @@ cities:
     tax_rate_bps: 450
     cost_of_living: 3780
     spawn_weight: 0
+    country: default_country
 
   - code: vantor_reach
     name: Vantor Reach
     tax_rate_bps: 1450
     cost_of_living: 4200
     spawn_weight: 0
+    country: default_country

@@ -52,6 +52,7 @@ type baselineCity struct {
 	costOfLiving     int64
 	contentVersionID *string
 	spawnWeight      int
+	jurisdictionID   *string
 }
 
 // recordContentBaseline snapshots everything a content load can change and
@@ -73,15 +74,20 @@ func recordContentBaseline(t *testing.T, pool *postgres.Pool) {
 		t.Fatalf("reading the active content version: %v", err)
 	}
 
+	gov := recordGovernanceBaseline(t, pool)
+
 	rows, err := raw.Query(ctx,
-		`SELECT id::text, code, name, tax_rate_bps, cost_of_living, content_version_id::text, spawn_weight FROM cities`)
+		`SELECT id::text, code, name, tax_rate_bps, cost_of_living, content_version_id::text, spawn_weight,
+		        jurisdiction_id::text
+		   FROM cities`)
 	if err != nil {
 		t.Fatalf("reading cities: %v", err)
 	}
 	var cities []baselineCity
 	for rows.Next() {
 		var c baselineCity
-		if err := rows.Scan(&c.id, &c.code, &c.name, &c.taxRateBPS, &c.costOfLiving, &c.contentVersionID, &c.spawnWeight); err != nil {
+		if err := rows.Scan(&c.id, &c.code, &c.name, &c.taxRateBPS, &c.costOfLiving, &c.contentVersionID, &c.spawnWeight,
+			&c.jurisdictionID); err != nil {
 			rows.Close()
 			t.Fatalf("scanning city: %v", err)
 		}
@@ -130,10 +136,14 @@ func recordContentBaseline(t *testing.T, pool *postgres.Pool) {
 			exec("restoring city "+c.code,
 				`UPDATE cities
 				    SET name = $2, tax_rate_bps = $3, cost_of_living = $4,
-				        content_version_id = $5::uuid, spawn_weight = $6
+				        content_version_id = $5::uuid, spawn_weight = $6, jurisdiction_id = $7::uuid
 				  WHERE id = $1::uuid`,
-				c.id, c.name, c.taxRateBPS, c.costOfLiving, c.contentVersionID, c.spawnWeight)
+				c.id, c.name, c.taxRateBPS, c.costOfLiving, c.contentVersionID, c.spawnWeight, c.jurisdictionID)
 		}
+
+		// Governance rows the loads wrote, before the cities and versions
+		// they reference; see restoreGovernance.
+		gov.restore(t, exec, created)
 
 		// Cities this test's loads created, and everything hanging from the
 		// versions it wrote. Routes before cities (they reference them), and

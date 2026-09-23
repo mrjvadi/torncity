@@ -101,6 +101,10 @@ type Tx interface {
 	// Ledger moves money in the same transaction as the change that
 	// caused it; see ports_ledger.go.
 	Ledger() LedgerRepository
+
+	// Governance changes levers and seats office holders, in the same
+	// transaction as the public record of the change; see governance.go.
+	Governance() GovernanceRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

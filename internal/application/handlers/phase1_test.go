@@ -39,10 +39,10 @@ var fixedNow = time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC)
 
 func testCities() []application.City {
 	return []application.City{
-		{ID: berlinID, Code: "berlin", Name: "Berlin", TaxRateBPS: 750, CostOfLiving: 1200, Population: 3},
-		{ID: limaID, Code: "lima", Name: "Lima", TaxRateBPS: 1000, CostOfLiving: 500, Population: 9},
-		{ID: tehranID, Code: "tehran", Name: "Tehran", TaxRateBPS: 500, CostOfLiving: 900, Population: 9},
-		{ID: tokyoID, Code: "tokyo", Name: "Tokyo", TaxRateBPS: 1234, CostOfLiving: 2000, Population: 14},
+		{ID: berlinID, Code: "berlin", Name: "Berlin", CostOfLiving: 1200, Population: 3},
+		{ID: limaID, Code: "lima", Name: "Lima", CostOfLiving: 500, Population: 9},
+		{ID: tehranID, Code: "tehran", Name: "Tehran", CostOfLiving: 900, Population: 9},
+		{ID: tokyoID, Code: "tokyo", Name: "Tokyo", CostOfLiving: 2000, Population: 14},
 	}
 }
 

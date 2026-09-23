@@ -461,11 +461,16 @@ func TestCityStatementsAreReadOnlyAndOrderedByCode(t *testing.T) {
 		"by id":   normalize(selectCityByID),
 		"by code": normalize(selectCityByCode),
 	} {
-		if !strings.HasPrefix(sql, "SELECT id, code, name, tax_rate_bps, cost_of_living, population FROM cities") {
+		if !strings.HasPrefix(sql, "SELECT id, code, name, COALESCE(jurisdiction_id::text, ''), cost_of_living, population FROM cities") {
 			t.Errorf("the city %s statement drifted from the schema:\n%s", name, sql)
 		}
 		if strings.Contains(sql, "treasury_account_id") {
 			t.Errorf("the city %s statement selects a column nothing can carry:\n%s", name, sql)
+		}
+		// The tax rate is a policy (ADR 0015): read with PolicyReader, never
+		// off the city row.
+		if strings.Contains(sql, "tax_rate_bps") {
+			t.Errorf("the city %s statement reads the tax rate directly:\n%s", name, sql)
 		}
 	}
 

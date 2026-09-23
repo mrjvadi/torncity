@@ -71,6 +71,12 @@ type CityDef struct {
 	// until a deliberate residency change. Changing a weight never moves
 	// anybody already placed; it only changes where future newcomers land.
 	SpawnWeight int `yaml:"spawn_weight"`
+	// Country is the code of the country this city belongs to: a
+	// jurisdiction of level "country" declared in governance.yml. Required:
+	// country levers and offices reach a city through it, and it is the
+	// city's parent in the jurisdiction tree
+	// (docs/adr/0015-player-held-offices.md, section 1).
+	Country string `yaml:"country"`
 }
 
 // City converts the definition to the domain value. Population is not content:
@@ -159,6 +165,15 @@ type Pack struct {
 	Cities []CityDef
 	Routes []RouteDef
 	Skills []SkillDef
+
+	// Governance content (ADR 0015): the levels of authority, the
+	// jurisdictions above the city (a city's country among them), the levers
+	// a player may take over, and the offices that hold them. See
+	// governance.go.
+	Levels        []LevelDef
+	Jurisdictions []JurisdictionDef
+	Levers        []LeverDef
+	Offices       []OfficeDef
 
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"

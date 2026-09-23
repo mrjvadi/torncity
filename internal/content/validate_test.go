@@ -16,17 +16,29 @@ func ptr(b bool) *bool { return &b }
 // making wrong. A case that spells out four correct fields to test the fifth
 // buries the thing it is testing.
 func city(code string) CityDef {
-	return CityDef{Code: code, Name: strings.ToUpper(code), TaxRateBPS: 500, CostOfLiving: 1000, SpawnWeight: 10}
+	return CityDef{Code: code, Name: strings.ToUpper(code), TaxRateBPS: 500, CostOfLiving: 1000, SpawnWeight: 10, Country: "home"}
 }
+
+// homeLevels and homeCountry are the smallest governance every fixture needs:
+// cities sit under a country, and every fixture city is in "home".
+var (
+	homeLevels = []LevelDef{
+		{Code: CountryLevel, Parents: []string{WorldLevel}},
+		{Code: CityLevel, Parents: []string{CountryLevel}},
+	}
+	homeCountry = []JurisdictionDef{{Code: "home", Name: "Home", Level: CountryLevel}}
+)
 
 // validPack is a small world that passes every rule: two cities that new
 // players may both start in, one route between them, one real skill.
 func validPack() *Pack {
 	return &Pack{
-		Schema: 1,
-		Cities: []CityDef{city("alpha"), city("bravo")},
-		Routes: []RouteDef{{From: "alpha", To: "bravo", Distance: 100}},
-		Skills: []SkillDef{{Code: "driving", Name: "Driving", Category: "technical"}},
+		Schema:        1,
+		Cities:        []CityDef{city("alpha"), city("bravo")},
+		Routes:        []RouteDef{{From: "alpha", To: "bravo", Distance: 100}},
+		Skills:        []SkillDef{{Code: "driving", Name: "Driving", Category: "technical"}},
+		Levels:        homeLevels,
+		Jurisdictions: homeCountry,
 	}
 }
 

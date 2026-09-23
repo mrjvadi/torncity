@@ -57,6 +57,11 @@ type file struct {
 	Cities  []CityDef  `yaml:"cities"`
 	Routes  []RouteDef `yaml:"routes"`
 	Skills  []SkillDef `yaml:"skills"`
+
+	Levels        []LevelDef        `yaml:"levels"`
+	Jurisdictions []JurisdictionDef `yaml:"jurisdictions"`
+	Levers        []LeverDef        `yaml:"levers"`
+	Offices       []OfficeDef       `yaml:"offices"`
 }
 
 // Load reads every content file in dir and returns them as one pack.
@@ -128,6 +133,10 @@ func Load(dir string) (*Pack, error) {
 		pack.Cities = append(pack.Cities, doc.Cities...)
 		pack.Routes = append(pack.Routes, doc.Routes...)
 		pack.Skills = append(pack.Skills, doc.Skills...)
+		pack.Levels = append(pack.Levels, doc.Levels...)
+		pack.Jurisdictions = append(pack.Jurisdictions, doc.Jurisdictions...)
+		pack.Levers = append(pack.Levers, doc.Levers...)
+		pack.Offices = append(pack.Offices, doc.Offices...)
 	}
 
 	pack.Checksum = hex.EncodeToString(digest.Sum(nil))
