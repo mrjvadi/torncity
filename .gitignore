@@ -27,6 +27,5 @@ telegram-bot-api-data/
 *.md
 
 /.agents/
-/tests/
 # local tooling, not project source
 .agents/
