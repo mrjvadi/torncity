@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/shared/playercode"
 )
 
 // PlayerRepository is the players and player_bot_links adapter.
@@ -21,6 +23,11 @@ type PlayerRepository struct {
 	// here, because this used to be the third independent copy of the same
 	// literal and nothing kept the three in step.
 	defaultLanguage string
+
+	// codes draws a public player code. Nil means playercode.New, which is
+	// what production uses; a test injects a scripted sequence to force a
+	// collision.
+	codes func() (string, error)
 }
 
 var _ application.PlayerRepository = (*PlayerRepository)(nil)
@@ -43,8 +50,12 @@ func NewPlayerRepository(p *Pool, defaultLanguage string) *PlayerRepository {
 // written by the database's own default agree.
 const defaultPlayerLanguage = "fa"
 
+// playerColumns is the column list scanPlayer reads, in its order. Every
+// statement that returns a whole player selects exactly this.
+const playerColumns = `id, telegram_user_id, username, display_name, language, city_id, status, created_at, public_code`
+
 const selectPlayerByTelegramUserID = `
-SELECT id, telegram_user_id, username, display_name, language, city_id, status, created_at
+SELECT ` + playerColumns + `
 FROM players
 WHERE telegram_user_id = $1`
 
@@ -70,7 +81,7 @@ func (r *PlayerRepository) GetByTelegramUserID(ctx context.Context, telegramUser
 }
 
 const selectPlayerByID = `
-SELECT id, telegram_user_id, username, display_name, language, city_id, status, created_at
+SELECT ` + playerColumns + `
 FROM players
 WHERE id = $1::uuid`
 
@@ -89,7 +100,7 @@ func (r *PlayerRepository) GetByID(ctx context.Context, id string) (*application
 	return p, nil
 }
 
-// scanPlayer reads one row shaped like selectPlayerByTelegramUserID.
+// scanPlayer reads one row of playerColumns.
 func scanPlayer(row pgx.Row) (*application.Player, error) {
 	var (
 		p        application.Player
@@ -105,6 +116,7 @@ func scanPlayer(row pgx.Row) (*application.Player, error) {
 		&cityID,
 		&p.Status,
 		&p.CreatedAt,
+		&p.PublicCode,
 	); err != nil {
 		return nil, err
 	}
@@ -210,16 +222,43 @@ func (r *PlayerRepository) SetLanguage(ctx context.Context, playerID, lang strin
 // player is never moved, and never rehomed, by first contact. A row that has a
 // city but no residence takes its current city as its residence, which is the
 // same rule the content loader applies.
+//
+// # The public code
+//
+// $9 is a code Create drew with crypto/rand (internal/shared/playercode). It
+// is written by the INSERT and by nothing else: the DO UPDATE branch does not
+// mention public_code, so the row that already exists keeps the code it was
+// born with and RETURNING hands that code back. A code is something a player
+// has shown to friends; a returning player's first contact — or the loser of
+// the race above — silently replacing it would break every "find me with
+// K7Q2M9A" already given out.
+//
+// A new row can still collide with ANOTHER player's code (players_public_code_key).
+// That is not the telegram_user_id conflict ON CONFLICT names, so it raises
+// 23505 instead; Create draws again and retries. See Create.
 const insertPlayer = `
-INSERT INTO players (id, telegram_user_id, username, display_name, language, city_id, residence_city_id, status, created_at, updated_at)
-VALUES ($1::uuid, $2, $3, $4, $5, $6::uuid, $6::uuid, $7, $8, $8)
+INSERT INTO players (id, telegram_user_id, username, display_name, language, city_id, residence_city_id, status, created_at, updated_at, public_code)
+VALUES ($1::uuid, $2, $3, $4, $5, $6::uuid, $6::uuid, $7, $8, $8, $9)
 ON CONFLICT (telegram_user_id) DO UPDATE SET
     username          = EXCLUDED.username,
     display_name      = EXCLUDED.display_name,
     city_id           = COALESCE(players.city_id, EXCLUDED.city_id),
     residence_city_id = COALESCE(players.residence_city_id, players.city_id, EXCLUDED.residence_city_id),
     updated_at        = EXCLUDED.updated_at
-RETURNING id, created_at, city_id::text, language`
+RETURNING id, created_at, city_id::text, language, public_code`
+
+// playersPublicCodeKey is the unique constraint on players.public_code, quoted
+// from migrations/0007_player_public_code.up.sql. Create retries on exactly
+// this constraint and on nothing else: any other 23505 from the insert is a
+// real fault and must surface as one.
+const playersPublicCodeKey = "players_public_code_key"
+
+// maxPublicCodeAttempts bounds Create's retry on a code collision. With
+// 31^7 codes, a draw collides with probability (players / 2.75e10); five
+// consecutive collisions do not happen with an honest source, so reaching the
+// bound means something is wrong with the source or the table, and it is
+// reported rather than looped on.
+const maxPublicCodeAttempts = 5
 
 // selectSpawnCandidates reads the cities a new player may start in: the
 // active content version's cities with a positive spawn weight. Cities an
@@ -260,16 +299,28 @@ func (r *PlayerRepository) spawnCity(ctx context.Context, telegramUserID int64) 
 }
 
 // Create inserts the player, or adopts the existing row for that Telegram
-// user. p.ID, p.CreatedAt, p.CityID and p.Language are overwritten with the
-// surviving row's values, so a caller that lost the race carries the right
-// identity onward, every caller learns which city the player is standing in,
-// and a returning player's chosen language is what comes back, not the
-// client's.
+// user. p.ID, p.CreatedAt, p.CityID, p.Language and p.PublicCode are
+// overwritten with the surviving row's values, so a caller that lost the race
+// carries the right identity onward, every caller learns which city the player
+// is standing in and which code they have, and a returning player's chosen
+// language is what comes back, not the client's.
 //
 // A nil p.CityID asks for the player's spawn city, which also becomes their
 // residence; a non-nil one places (and houses) the player there instead.
 // p.CityID is still nil afterwards only if no spawn city exists yet (see
 // insertPlayer).
+//
+// # Retrying a code collision
+//
+// Each attempt runs inside its own savepoint (inTx on a unit of work's
+// transaction; a short transaction of its own on the pool). A unique
+// violation aborts whatever transaction it happens in, so without the
+// savepoint the retry would be refused by the server and — worse — the
+// caller's whole unit of work would be dead. Rolled back to the savepoint,
+// the outer transaction is intact and the next draw can go.
+//
+// A username given here is also taken from any other player whose record
+// still claims it; see SetUsername.
 func (r *PlayerRepository) Create(ctx context.Context, p *application.Player) error {
 	if p == nil {
 		return fmt.Errorf("postgres: create player: nil player")
@@ -285,8 +336,8 @@ func (r *PlayerRepository) Create(ctx context.Context, p *application.Player) er
 	// NULL-able columns are passed as pointers so an empty string becomes
 	// NULL rather than an empty Telegram handle, which would be a lie.
 	var username *string
-	if p.Username != "" {
-		username = &p.Username
+	if u := strings.TrimSpace(p.Username); u != "" {
+		username = &u
 	}
 
 	status := p.Status
@@ -315,21 +366,149 @@ func (r *PlayerRepository) Create(ctx context.Context, p *application.Player) er
 		}
 	}
 
-	if err := r.q.QueryRow(ctx, insertPlayer,
-		id,
-		p.TelegramUserID,
-		username,
-		p.DisplayName,
-		language,
-		cityID,
-		status,
-		now,
-	).Scan(&p.ID, &p.CreatedAt, &p.CityID, &p.Language); err != nil {
-		return fmt.Errorf("postgres: creating player for telegram user %d: %w", p.TelegramUserID, err)
+	draw := r.codes
+	if draw == nil {
+		draw = playercode.New
 	}
 
-	p.Status = status
+	var saved savedPlayer
+	for attempt := 1; ; attempt++ {
+		code, err := draw()
+		if err != nil {
+			return fmt.Errorf("postgres: creating player for telegram user %d: drawing a public code: %w", p.TelegramUserID, err)
+		}
 
+		saved, err = r.upsertPlayer(ctx, id, p.TelegramUserID, username, p.DisplayName, language, cityID, status, now, code)
+		if err == nil {
+			break
+		}
+		if !violates(err, sqlstateUniqueViolation, playersPublicCodeKey) || attempt >= maxPublicCodeAttempts {
+			return fmt.Errorf("postgres: creating player for telegram user %d: %w", p.TelegramUserID, err)
+		}
+		// Another player already holds this code. Nothing was written; draw
+		// again.
+	}
+
+	p.ID, p.CreatedAt, p.CityID, p.Language, p.PublicCode = saved.id, saved.createdAt, saved.cityID, saved.language, saved.publicCode
+	p.Status = status
+	if username != nil {
+		p.Username = *username
+		if err := r.releaseUsername(ctx, p.ID, *username, now); err != nil {
+			return err
+		}
+	} else {
+		p.Username = ""
+	}
+
+	return nil
+}
+
+// savedPlayer is what insertPlayer returns.
+type savedPlayer struct {
+	id         string
+	createdAt  time.Time
+	cityID     *string
+	language   string
+	publicCode string
+}
+
+// upsertPlayer runs insertPlayer once, inside a savepoint when the querier can
+// open one; see Create.
+func (r *PlayerRepository) upsertPlayer(
+	ctx context.Context,
+	id string,
+	telegramUserID int64,
+	username *string,
+	displayName, language string,
+	cityID *string,
+	status string,
+	now time.Time,
+	code string,
+) (savedPlayer, error) {
+	var out savedPlayer
+	run := func(ctx context.Context, q querier) error {
+		return q.QueryRow(ctx, insertPlayer,
+			id,
+			telegramUserID,
+			username,
+			displayName,
+			language,
+			cityID,
+			status,
+			now,
+			code,
+		).Scan(&out.id, &out.createdAt, &out.cityID, &out.language, &out.publicCode)
+	}
+
+	t, ok := r.q.(transactor)
+	if !ok {
+		// Only a test double lacks Begin: both production queriers, the pool
+		// and a unit of work's transaction, are transactors.
+		return out, run(ctx, r.q)
+	}
+	err := inTx(ctx, t, func(ctx context.Context, tx pgx.Tx) error { return run(ctx, tx) })
+	return out, err
+}
+
+// updatePlayerUsername stores what Telegram reports as the player's username
+// now. $2 is NULL when the account has none: a username Telegram no longer
+// reports must not stay searchable, or a search for it finds this player after
+// someone else has taken the name.
+const updatePlayerUsername = `
+UPDATE players
+   SET username = $2, updated_at = $3
+ WHERE id = $1::uuid`
+
+// releaseUsername takes a username away from every OTHER player whose record
+// still claims it.
+//
+// Telegram lets one account hold a username at a time. So when this player is
+// seen with it, any other row that says the same is out of date — that player
+// renamed, or gave the name up, and has not talked to the bot since. Clearing
+// it here is what keeps a search for the name from finding the previous owner.
+//
+// The comparison is on lower() because usernames are case-insensitive, and
+// "username IS NOT NULL" is spelled out so the planner can use the partial
+// index players_username_lower_idx.
+const releaseUsername = `
+UPDATE players
+   SET username = NULL, updated_at = $3
+ WHERE username IS NOT NULL
+   AND lower(username) = lower($2)
+   AND id <> $1::uuid`
+
+// SetUsername records the username Telegram reports for the player now, or
+// clears it when username is empty. See application.PlayerRepository.
+func (r *PlayerRepository) SetUsername(ctx context.Context, playerID, username string) error {
+	now := time.Now().UTC()
+
+	var value *string
+	if u := strings.TrimSpace(username); u != "" {
+		value = &u
+	}
+
+	tag, err := r.q.Exec(ctx, updatePlayerUsername, playerID, value, now)
+	if err != nil {
+		if isInvalidUUIDText(err) {
+			return application.ErrPlayerNotFound
+		}
+		return fmt.Errorf("postgres: set username for player %s: %w", playerID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return application.ErrPlayerNotFound
+	}
+
+	if value == nil {
+		return nil
+	}
+	return r.releaseUsername(ctx, playerID, *value, now)
+}
+
+// releaseUsername runs the statement of the same name.
+func (r *PlayerRepository) releaseUsername(ctx context.Context, playerID, username string, now time.Time) error {
+	if _, err := r.q.Exec(ctx, releaseUsername, playerID, username, now); err != nil {
+		return fmt.Errorf("postgres: releasing a username for player %s: %w", playerID, err)
+	}
 	return nil
 }
 

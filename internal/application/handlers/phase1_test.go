@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -344,31 +345,34 @@ func (f *fakeFriendships) Accept(_ context.Context, playerID, friendPlayerID str
 func (f *fakeFriendships) Block(context.Context, string, string) error  { return nil }
 func (f *fakeFriendships) Remove(context.Context, string, string) error { return nil }
 
-// fakeSearch honours limit and offset exactly, so a pagination assertion is
-// about the handler's arithmetic and not about a helpful fake.
+// fakeSearch answers Find the way the repository does — an exact match on
+// the one identifier the query names, a username without regard to case — and
+// records every query. It deliberately does NOT filter on status, so a test
+// can prove the handler refuses a banned account even if the port returned
+// one.
 type fakeSearch struct {
 	players []application.Player
-	calls   []searchCall
+	calls   []application.PlayerQuery
 }
 
-type searchCall struct {
-	query  string
-	limit  int
-	offset int
-}
-
-func (f *fakeSearch) Search(_ context.Context, query string, limit, offset int) ([]application.Player, error) {
-	f.calls = append(f.calls, searchCall{query: query, limit: limit, offset: offset})
-	if offset >= len(f.players) {
-		return nil, nil
+func (f *fakeSearch) Find(_ context.Context, q application.PlayerQuery) (*application.Player, error) {
+	f.calls = append(f.calls, q)
+	for i := range f.players {
+		p := f.players[i]
+		var match bool
+		switch q.Kind {
+		case application.PlayerQueryUsername:
+			match = p.Username != "" && strings.EqualFold(p.Username, q.Username)
+		case application.PlayerQueryTelegramUserID:
+			match = p.TelegramUserID == q.TelegramUserID
+		case application.PlayerQueryPublicCode:
+			match = p.PublicCode == q.PublicCode
+		}
+		if match {
+			return &p, nil
+		}
 	}
-	end := offset + limit
-	if end > len(f.players) {
-		end = len(f.players)
-	}
-	out := make([]application.Player, end-offset)
-	copy(out, f.players[offset:end])
-	return out, nil
+	return nil, application.ErrPlayerNotFound
 }
 
 // --- harness -----------------------------------------------------------

@@ -9,8 +9,11 @@ import (
 
 // ProfileView is the player's own record as the profile screen shows it.
 //
-// It carries only what a player understands and can act on. The record's
-// identifier, stored language and account status are deliberately absent:
+// It carries only what a player understands and can act on. The public code
+// is on it for that reason — it is the one identifier a player can DO
+// something with: give it to a friend, who finds them with /social <code>.
+// The record's identifier, stored language and account status are
+// deliberately absent:
 // none of them means anything to a player, and a value that is on screen ends
 // up in a screenshot and then in a support request as if it were a fact about
 // them. A city travels as its content CODE, which the screen turns into a
@@ -18,6 +21,9 @@ import (
 // city nobody has translated yet; the code itself is never shown.
 type ProfileView struct {
 	Name string
+	// Code is the player's public code (internal/shared/playercode). Empty
+	// only for a record that has none, and then the line is left out.
+	Code string
 	// CityCode and City are the player's city: its content code and its
 	// authored name. Both empty when the player is nowhere yet; an empty city
 	// is simply not shown.
@@ -80,9 +86,18 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 		name = c.T("profile.name", map[string]any{"name": v.Name})
 	}
 
+	var code string
+	if v.Code != "" {
+		code = body(
+			c.T("profile.code", map[string]any{"code": v.Code}),
+			c.T("profile.code_hint", map[string]any{"code": v.Code}),
+		)
+	}
+
 	text := paragraphs(
 		welcome,
 		body(name, where),
+		code,
 		body(
 			levelLine(c, v.Level, v.XP, v.NextLevelXP),
 			energyLine(c, v.Energy, v.MaxEnergy, v.EnergyFullIn),

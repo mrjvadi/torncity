@@ -2,32 +2,25 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
+
 	"github.com/mrjvadi/torncity/internal/application"
+	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
+	"github.com/mrjvadi/torncity/internal/shared/playercode"
 )
 
-// Search paging bounds.
+// PlayerSearchRepository finds one other player by an exact identifier, for
+// the social screens.
 //
-// MaxSearchLimit is the cap the repository enforces regardless of what the
-// caller asked for. Without it, `limit` is a parameter a player controls
-// through a command argument, and one request for a limit of ten million is a
-// full table read, a multi-megabyte result set and a stalled connection — an
-// outage anyone can cause by typing. The cap lives here rather than in a
-// handler because it is the last layer before the database and is the only one
-// that cannot be bypassed by a second caller written later.
-//
-// DefaultSearchLimit is what a caller that asked for nothing gets. A limit of
-// zero would otherwise mean "no rows", which is never what a search screen
-// wants.
-const (
-	MaxSearchLimit     = 50
-	DefaultSearchLimit = 20
-)
-
-// PlayerSearchRepository finds other players by display name, for the social
-// screens.
+// It used to match display names by substring, a page at a time, with LIKE
+// escaping and a cap on the page size to keep a typed "%" from listing the
+// player base. All of that is gone with the fuzzy search itself: every lookup
+// here is an equality on an indexed column and returns at most one row, so
+// there is no pattern to escape and no page to cap.
 type PlayerSearchRepository struct {
 	q querier
 }
@@ -39,136 +32,84 @@ func NewPlayerSearchRepository(p *Pool) *PlayerSearchRepository {
 	return &PlayerSearchRepository{q: p.Raw()}
 }
 
-// searchPlayers matches display names case-insensitively.
+// The three lookups.
 //
-// status = 'active' is the load-bearing predicate and is written as a fixed
-// part of the statement, not as a parameter: banned and deleted players must
-// never appear in a search result, and a caller must have no way to ask for
-// them. A banned account surfacing in a friend search would let anyone confirm
-// a ban and would offer a friend request to an account that can never answer
+// status = 'active' is the load-bearing predicate in each and is written as a
+// fixed part of the statement, never as a parameter: banned and deleted
+// players must never be found, and a caller must have no way to ask for them.
+// A banned account surfacing in a friend search would let anyone confirm a
+// ban, and would offer a friend request to an account that can never answer
 // it; a deleted one is a person who asked to stop existing in this game.
 //
-// $1 is the prefix pattern and $2 the substring pattern. Both are needed: the
-// WHERE clause matches anywhere in the name, so a search for "an" finds
-// "Hassan", while the first ORDER BY term lifts the names that actually START
-// with the query above those that merely contain it — which is what someone
-// typing the beginning of a name is looking for.
-//
-// ESCAPE is stated explicitly so that the escaping done in Go and the escaping
-// the server expects cannot drift apart if a future server or connection
-// setting changes the default; see escapeLikePattern.
-//
-// The order is completed by display_name and then id, making it total. Without
-// the id tie-break, two players sharing a display name — which nothing forbids
-// — could swap places between two pages of the same search and be shown twice
-// or not at all.
-const searchPlayers = `
-SELECT id, telegram_user_id, username, display_name, language, city_id, status, created_at
+// findPlayerByUsername picks the holder FIRST and checks status SECOND. A
+// username can briefly sit on two rows (see releaseUsername and migration
+// 0007: the index is deliberately not unique), and the most recently updated
+// row is the one Telegram most recently vouched for. Filtering on status
+// before choosing would let an older, stale row win whenever the current
+// holder is banned — finding a stranger in place of "not found".
+const (
+	findPlayerByUsername = `
+SELECT ` + playerColumns + `
+FROM (
+    SELECT ` + playerColumns + `
+    FROM players
+    WHERE username IS NOT NULL
+      AND lower(username) = lower($1)
+    ORDER BY updated_at DESC, id
+    LIMIT 1
+) AS holder
+WHERE status = 'active'`
+
+	findPlayerByTelegramUserID = `
+SELECT ` + playerColumns + `
 FROM players
 WHERE status = 'active'
-  AND display_name ILIKE $2 ESCAPE '\'
-ORDER BY (display_name ILIKE $1 ESCAPE '\') DESC, display_name, id
-LIMIT $3 OFFSET $4`
+  AND telegram_user_id = $1`
 
-// Search returns active players whose display name contains query, ignoring
-// case, with prefix matches first.
-//
-// An empty query is allowed and lists active players alphabetically. That is
-// safe precisely because of MaxSearchLimit: the result is bounded whatever was
-// asked for, so "browse" is just a search that matches everyone.
-func (r *PlayerSearchRepository) Search(ctx context.Context, query string, limit, offset int) ([]application.Player, error) {
-	if offset < 0 {
-		// A negative OFFSET is rejected by the server at execution time. It
-		// is an off-by-one in the caller's paging arithmetic, and clamping it
-		// to the first page is both what the caller meant and cheaper than a
-		// failed round trip.
-		offset = 0
-	}
+	findPlayerByPublicCode = `
+SELECT ` + playerColumns + `
+FROM players
+WHERE status = 'active'
+  AND public_code = $1`
+)
 
-	pattern := escapeLikePattern(query)
-
-	rows, err := r.q.Query(ctx, searchPlayers,
-		pattern+"%",
-		"%"+pattern+"%",
-		clampSearchLimit(limit),
-		offset,
+// Find returns the active player q names, or application.ErrPlayerNotFound.
+func (r *PlayerSearchRepository) Find(ctx context.Context, q application.PlayerQuery) (*application.Player, error) {
+	var (
+		sql string
+		arg any
 	)
-	if err != nil {
-		return nil, fmt.Errorf("postgres: searching players: %w", err)
-	}
-	defer rows.Close()
-
-	var out []application.Player
-	for rows.Next() {
-		var (
-			p        application.Player
-			username *string
-			cityID   *string
-		)
-		if err := rows.Scan(
-			&p.ID, &p.TelegramUserID, &username, &p.DisplayName,
-			&p.Language, &cityID, &p.Status, &p.CreatedAt,
-		); err != nil {
-			return nil, fmt.Errorf("postgres: scanning player search row: %w", err)
+	switch q.Kind {
+	case application.PlayerQueryUsername:
+		name := strings.TrimPrefix(strings.TrimSpace(q.Username), "@")
+		if name == "" {
+			return nil, apperrors.InvalidInput("a username search names no username")
 		}
-
-		// username is NULL-able (a Telegram handle is optional and mutable)
-		// and city_id is NULL until the player has a city.
-		if username != nil {
-			p.Username = *username
+		sql, arg = findPlayerByUsername, name
+	case application.PlayerQueryTelegramUserID:
+		if q.TelegramUserID <= 0 {
+			return nil, apperrors.InvalidInput("a telegram id search names no id")
 		}
-		p.CityID = cityID
-
-		out = append(out, p)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("postgres: reading player search rows: %w", err)
-	}
-
-	return out, nil
-}
-
-// clampSearchLimit turns a caller's request into a limit this repository will
-// actually run. See MaxSearchLimit.
-func clampSearchLimit(limit int) int {
-	switch {
-	case limit <= 0:
-		return DefaultSearchLimit
-	case limit > MaxSearchLimit:
-		return MaxSearchLimit
+		sql, arg = findPlayerByTelegramUserID, q.TelegramUserID
+	case application.PlayerQueryPublicCode:
+		code := playercode.Normalize(q.PublicCode)
+		if !playercode.Valid(code) {
+			// Not a code any player can hold, so no player has it. Answered
+			// here rather than by the CHECK constraint so a malformed value
+			// costs no round trip.
+			return nil, application.ErrPlayerNotFound
+		}
+		sql, arg = findPlayerByPublicCode, code
 	default:
-		return limit
-	}
-}
-
-// escapeLikePattern neutralises the wildcards in a user-supplied search term.
-//
-// The term is typed by a player and is dropped between two % signs. Left
-// alone, a term of "%" matches every row, and "_" matches any single
-// character, so the cap on the result size would be all that stood between one
-// message and a full listing of the player base. Escaping them makes a
-// percent sign mean a percent sign.
-//
-// The backslash is escaped FIRST and the loop runs once over the string, so a
-// term containing a literal backslash cannot come out as an escape character
-// for whatever followed it — the classic ordering bug in this function, where
-// escaping backslashes after wildcards turns the escape that was just added
-// into an escaped backslash followed by a bare wildcard.
-func escapeLikePattern(s string) string {
-	if !strings.ContainsAny(s, `\%_`) {
-		return s
+		return nil, apperrors.InvalidInput("a player search names no identifier")
 	}
 
-	var b strings.Builder
-	b.Grow(len(s) + 8)
-
-	for _, r := range s {
-		switch r {
-		case '\\', '%', '_':
-			b.WriteByte('\\')
+	p, err := scanPlayer(r.q.QueryRow(ctx, sql, arg))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, application.ErrPlayerNotFound
 		}
-		b.WriteRune(r)
+		return nil, fmt.Errorf("postgres: finding a player: %w", err)
 	}
-
-	return b.String()
+	return p, nil
 }

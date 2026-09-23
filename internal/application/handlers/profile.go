@@ -211,6 +211,9 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 	if p.DisplayName != fallbackDisplayName(p.TelegramUserID) {
 		view.Name = p.DisplayName
 	}
+	// The public code IS copied: unlike the record's id it is meant to be
+	// seen, and it is how a friend finds this player.
+	view.Code = p.PublicCode
 
 	row, err := tx.Stats().EnsureDefaults(ctx, p.ID, defaultStats(p.ID, h.now()))
 	if err != nil {

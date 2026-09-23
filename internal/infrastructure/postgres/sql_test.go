@@ -44,7 +44,7 @@ func TestInsertPlayerPlacesAndHousesNewPlayers(t *testing.T) {
 	sql := normalize(insertPlayer)
 
 	// One value, written to both columns: born there, lives there.
-	if !strings.Contains(sql, "city_id, residence_city_id, status, created_at, updated_at) VALUES ($1::uuid, $2, $3, $4, $5, $6::uuid, $6::uuid, $7, $8, $8)") {
+	if !strings.Contains(sql, "city_id, residence_city_id, status, created_at, updated_at, public_code) VALUES ($1::uuid, $2, $3, $4, $5, $6::uuid, $6::uuid, $7, $8, $8, $9)") {
 		t.Errorf("player insert does not write the spawn city to both city_id and residence_city_id:\n%s", sql)
 	}
 	// The pick is made in Go, deterministically. A random choice inside the

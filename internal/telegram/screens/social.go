@@ -19,69 +19,102 @@ func (c Context) playerName(name string) string {
 	return name
 }
 
-// SearchResult is one player a search found.
+// SearchBy says which identifier a search was made with. It only chooses the
+// "not found" sentence: each form fails for its own reason and has its own
+// advice.
+type SearchBy string
+
+// The three identifiers a search accepts; see handlers.ClassifyPlayerQuery.
+const (
+	SearchByUsername   SearchBy = "username"
+	SearchByTelegramID SearchBy = "telegram_id"
+	SearchByCode       SearchBy = "code"
+)
+
+// searchNotFoundKeys maps each form to its "not found" line.
+var searchNotFoundKeys = map[SearchBy]string{
+	SearchByUsername:   "social.search.not_found_username",
+	SearchByTelegramID: "social.search.not_found_id",
+	SearchByCode:       "social.search.not_found_code",
+}
+
+// SearchResult is the player a search found.
 type SearchResult struct {
 	// ID addresses the player in a callback. It is an opaque identifier and
 	// grants nothing: pressing "add friend" makes a REQUEST, which the other
-	// player has to accept, and the core re-checks the edge either way.
-	ID   string
+	// player has to accept, and the core re-checks the edge either way. It is
+	// never shown.
+	ID string
+	// Name is the player's display name, empty when they have none worth
+	// showing.
 	Name string
+	// Code is the player's public code: the identifier that IS meant to be
+	// seen, and the one a player can pass on.
+	Code string
+	// Self marks the searcher finding themselves.
+	Self bool
 }
 
-// SearchView is one page of search results.
+// SearchView is the answer to one search.
 type SearchView struct {
-	Query   string
-	Results []SearchResult
-	Page    int
-	Pages   int
+	// Help means the query was empty or was none of the three forms. The
+	// screen then explains the forms instead of pretending to have searched.
+	Help bool
+	// By is the form the query took.
+	By SearchBy
+	// Query is what was searched for, as it may be echoed back: the
+	// username with its @, or the code. It is empty for a Telegram id, which
+	// the screen never prints.
+	Query string
+	// Found is the player, or nil when nobody matched.
+	Found *SearchResult
 }
 
-// Search renders a page of search results.
+// Search renders the answer to a search: the one player it found, a "not
+// found" line for the form that was used, or how to search at all.
 //
-// # Why the pager can be missing here and nowhere else
-//
-// Paging a search means carrying the query in the callback address, and a
-// query is text a player typed — in Persian, with spaces, in any script.
-// Almost none of that survives the address rules in the keyboards package,
-// and encoding it would turn a 64-byte budget into a guess. So the pager
-// appears when the query happens to be addressable and is omitted when it is
-// not, rather than shipping a next button that fails on press. A player whose
-// query cannot be paged narrows it instead, which is the better outcome
-// anyway.
+// A search names exactly one player by an exact identifier, so there is no
+// list and no pager. The result shows the display name and the public code,
+// and never the Telegram id or the record's id, even when the search was made
+// with the Telegram id: a screen is screenshotted and forwarded, and a
+// Telegram id is a fact about a person's account, not about their game.
 func Search(c Context, v SearchView) *presenter.Response {
-	prefix := keyboards.Data(AddrSearch, v.Query)
 	kb := keyboards.New()
 
 	var text string
-	if len(v.Results) == 0 {
-		// Nothing found is one line that says what to try, not a heading
-		// with nothing under it.
-		text = c.T("social.search.empty", map[string]any{"query": v.Query})
-	} else {
-		lines := make([]string, 0, len(v.Results))
-		for i, r := range v.Results {
-			lines = append(lines, c.T("social.search.line", map[string]any{
-				"index":  i + 1,
-				"player": c.playerName(r.Name),
-			}))
-			kb.Add(c.T("button.add_friend", map[string]any{"player": c.playerName(r.Name)}), AddrFriendAdd, r.ID)
+	switch {
+	case v.Help:
+		text = c.T("social.search.help", nil)
+
+	case v.Found == nil:
+		key, ok := searchNotFoundKeys[v.By]
+		if !ok {
+			key = "social.search.help"
 		}
-		var indicator string
-		if prefix != "" {
-			indicator = pageIndicator(c, v.Page, v.Pages)
+		text = c.T(key, map[string]any{"query": v.Query})
+
+	default:
+		found := v.Found
+		name := c.playerName(found.Name)
+		var code, self string
+		if found.Code != "" {
+			code = c.T("profile.code", map[string]any{"code": found.Code})
+		}
+		if found.Self {
+			// Offering to befriend yourself is not a feature; saying who
+			// this is, is.
+			self = c.T("social.search.self", nil)
+		} else {
+			kb.Add(c.T("button.add_friend", map[string]any{"player": name}), AddrFriendAdd, found.ID)
 		}
 		text = paragraphs(
-			c.T("social.search.title", map[string]any{"query": v.Query}),
-			body(lines...),
-			indicator,
+			c.T("social.search.title", nil),
+			body(c.T("social.search.player", map[string]any{"player": name}), code),
+			self,
 		)
 	}
 
 	kb.Nav(c.nav(keyboards.Nav{
-		Prefix:      prefix,
-		Page:        v.Page,
-		HasPrev:     prefix != "" && pageOrOne(v.Page) > 1,
-		HasNext:     prefix != "" && len(v.Results) > 0 && pageOrOne(v.Page) < v.Pages,
 		BackData:    AddrHome,
 		RefreshData: AddrFriendList,
 	}))

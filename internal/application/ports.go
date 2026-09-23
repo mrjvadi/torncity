@@ -22,12 +22,19 @@ import (
 type Player struct {
 	ID             string
 	TelegramUserID int64
-	Username       string
-	DisplayName    string
-	Language       string
-	CityID         *string
-	Status         string
-	CreatedAt      time.Time
+	// Username is the Telegram username as Telegram last reported it,
+	// without the @, or empty when the account has none. It is refreshed on
+	// every contact (SetUsername), because usernames move between people.
+	Username    string
+	DisplayName string
+	// PublicCode is the short code the player sees on their profile and
+	// gives to friends (internal/shared/playercode). It is assigned once, by
+	// Create, and never changes. Unlike ID it is meant to be shown.
+	PublicCode string
+	Language   string
+	CityID     *string
+	Status     string
+	CreatedAt  time.Time
 }
 
 // BotLink records that a player has an open chat with one specific bot.
@@ -124,6 +131,13 @@ type PlayerRepository interface {
 	// the caller's question to answer first (see ErrUnsupportedLanguage),
 	// because only the message catalogue knows.
 	SetLanguage(ctx context.Context, playerID, lang string) error
+	// SetUsername records the Telegram username Telegram reports for the
+	// player now; an empty username clears it. Whoever is seen holding a
+	// username takes it: the same write clears it from any other player
+	// whose record still claims it, because Telegram lets one account hold a
+	// username at a time and that other record is simply out of date. It
+	// returns ErrPlayerNotFound when no such player exists.
+	SetUsername(ctx context.Context, playerID, username string) error
 }
 
 // ErrUnsupportedLanguage refuses a language the message catalogue does not

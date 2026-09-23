@@ -453,31 +453,6 @@ func TestFriendshipStatusValues(t *testing.T) {
 // search and cities
 // ---------------------------------------------------------------------------
 
-// status = 'active' is the load-bearing predicate and must stay a fixed part
-// of the statement. As a parameter, a caller could ask for banned or deleted
-// accounts, which would confirm a ban to anyone who looked and would offer a
-// friend request to an account that can never answer.
-func TestSearchPlayersCannotBeAskedForInactiveAccounts(t *testing.T) {
-	sql := normalize(searchPlayers)
-
-	if !strings.Contains(sql, "WHERE status = 'active'") {
-		t.Fatalf("the player search does not restrict itself to active accounts:\n%s", sql)
-	}
-	if strings.Contains(sql, "status = $") {
-		t.Errorf("the player search takes its status from the caller:\n%s", sql)
-	}
-	// Both patterns are needed: $2 matches anywhere, $1 lifts prefix matches.
-	if !strings.Contains(sql, `display_name ILIKE $2 ESCAPE '\'`) {
-		t.Errorf("the player search does not match substrings with an explicit escape:\n%s", sql)
-	}
-	if !strings.Contains(sql, `ORDER BY (display_name ILIKE $1 ESCAPE '\') DESC, display_name, id`) {
-		t.Errorf("the player search order is not prefix-first and total:\n%s", sql)
-	}
-	if !strings.Contains(sql, "LIMIT $3 OFFSET $4") {
-		t.Errorf("the player search does not page:\n%s", sql)
-	}
-}
-
 // Cities are content. Nothing in this package may create one, and the column
 // application.City cannot carry must not be selected into a scan that fails.
 func TestCityStatementsAreReadOnlyAndOrderedByCode(t *testing.T) {

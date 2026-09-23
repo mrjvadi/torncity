@@ -36,6 +36,38 @@ func TestProfileShowsLevelEnergyHealthAndCity(t *testing.T) {
 	}
 }
 
+// The profile shows the player's public code and how a friend uses it — the
+// one identifier on the record a player is meant to see — and still nothing
+// of the record id or the Telegram id.
+func TestProfileShowsThePublicCode(t *testing.T) {
+	h := newPhase1(t)
+	p := h.player(501, "cfaebd97-b816-43a8-aff9-3798555dd818", berlinID)
+	p.DisplayName = "Ada"
+	p.PublicCode = "K7Q2M9A"
+
+	resp, err := h.profileHandler(t).Handle(context.Background(), command("player.profile.get", 501, "req-1"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	assertResolved(t, resp.Text)
+	t.Logf("fa profile:\n%s", transcriptOf(resp))
+
+	cat := messages(t)
+	for _, want := range []string{
+		cat.T("fa", "profile.code", map[string]any{"code": "K7Q2M9A"}),
+		cat.T("fa", "profile.code_hint", map[string]any{"code": "K7Q2M9A"}),
+	} {
+		if !strings.Contains(resp.Text, want) {
+			t.Errorf("the profile is missing %q:\n%s", want, resp.Text)
+		}
+	}
+	for _, secret := range []string{p.ID, "501"} {
+		if strings.Contains(resp.Text, secret) {
+			t.Errorf("the profile shows %q:\n%s", secret, resp.Text)
+		}
+	}
+}
+
 // Reading your profile is how energy catches up. There is no ticker: the
 // amount a player has is a function of when they last looked, so the read has
 // to persist what it worked out or the next read would regenerate it again.

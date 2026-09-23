@@ -11,7 +11,7 @@
 # Terminology and emoji anchors follow the glossary at the top of fa.yml:
 # Energy ⚡, Health ❤️, Level ⭐, XP, City 📍, Journey 🧭, Time left ⏳, Map 🗺,
 # Skills 🛠, Friends 👥, Profile 👤, Search 🔎, Refresh 🔄, Settings ⚙️,
-# Language 🌐 (a language is always named in itself). Address the player
+# Player code 🆔, Language 🌐 (a language is always named in itself). Address the player
 # as "you"; durations read "2h 15m"; numbers use "," as the thousands
 # separator (inserted by the code).
 
@@ -30,6 +30,8 @@ profile:
   energy: "⚡ Energy: {energy}/{max_energy}"
   energy_refilling: "⚡ Energy: {energy}/{max_energy} · full in {duration}"
   health: "❤️ Health: {health}/{max_health}"
+  code: "🆔 Player code: {code}"
+  code_hint: Friends can find you with /social {code}.
   unavailable: Your profile is not available right now. Please try again in a moment.
 
 map:
@@ -101,7 +103,8 @@ help:
     /profile — your profile
     /map — the map and travel
     /skills — your skills
-    /social name — find a player
+    /social — your friends
+    /find — find a player by username, player code or Telegram ID
     /settings — settings
 
 settings:
@@ -120,14 +123,23 @@ language:
 social:
   unknown_player: A player
   search:
-    title: "🔎 Results for “{query}”"
-    empty: No player matches “{query}”. Try another name.
-    line: "{index}. {player}"
+    help: |-
+      🔎 Find a player
+      Search by one of these:
+      • Telegram username: /social @username
+      • Player code: /social K7Q2M9A
+      • Telegram ID: /social 123456789
+    title: "🔎 Search result"
+    player: "👤 {player}"
+    self: This is you. Share your player code so friends can find you.
+    not_found_username: No player has the username {query}. They may have changed it or not started the game yet — ask them for their player code.
+    not_found_code: No player has the code {query}. Check the code; to search by username, put @ in front of it.
+    not_found_id: No player has this Telegram ID. They may not have started the game yet.
   friends:
     title: "👥 Friends"
     empty: |-
       You have no friends yet.
-      To find players, search by name: /social search name
+      To find a player, send their Telegram username or player code, for example /social @username
     line: "• {player}"
     line_pending: "• {player} — waiting for a reply"
     line_blocked: "• {player} — blocked"

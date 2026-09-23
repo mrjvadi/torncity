@@ -964,6 +964,19 @@ func (s *playerStore) EnsurePlayer(
 		p, err := tx.Players().GetByTelegramUserID(ctx, telegramUserID)
 		switch {
 		case err == nil:
+			// Usernames change and move between people, and a player can be
+			// found by theirs. So what Telegram reports on this update is
+			// written back whenever it differs from the record — including
+			// "none", which clears it. Left stale, a search for the old
+			// @username would find this player after they gave it up, or
+			// after somebody else took it. Nothing is written when nothing
+			// changed, which is almost every update.
+			if p.Username != username {
+				if err := tx.Players().SetUsername(ctx, p.ID, username); err != nil {
+					return err
+				}
+				p.Username = username
+			}
 			player = p
 
 		case errors.Is(err, application.ErrPlayerNotFound):

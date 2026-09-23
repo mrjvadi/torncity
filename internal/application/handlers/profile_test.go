@@ -45,6 +45,7 @@ type fakePlayers struct {
 	created        int
 	links          []application.BotLink
 	languageWrites int
+	usernameWrites int
 }
 
 func (f *fakePlayers) GetByTelegramUserID(_ context.Context, id int64) (*application.Player, error) {
@@ -88,6 +89,30 @@ func (f *fakePlayers) SetLanguage(_ context.Context, playerID, lang string) erro
 		}
 	}
 	return application.ErrPlayerNotFound
+}
+
+// SetUsername replaces the record, like SetLanguage, and takes the name from
+// any other record that still claims it, like the repository.
+func (f *fakePlayers) SetUsername(_ context.Context, playerID, username string) error {
+	var found bool
+	for k, p := range f.byTelegramID {
+		switch {
+		case p.ID == playerID:
+			changed := *p
+			changed.Username = username
+			f.byTelegramID[k] = &changed
+			f.usernameWrites++
+			found = true
+		case username != "" && strings.EqualFold(p.Username, username):
+			released := *p
+			released.Username = ""
+			f.byTelegramID[k] = &released
+		}
+	}
+	if !found {
+		return application.ErrPlayerNotFound
+	}
+	return nil
 }
 
 type fakeOutbox struct {

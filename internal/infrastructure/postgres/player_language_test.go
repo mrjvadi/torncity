@@ -94,7 +94,7 @@ func TestSetLanguageWrapsDriverErrors(t *testing.T) {
 func TestGetByIDScansThePlayer(t *testing.T) {
 	created := time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC)
 	city := testCityID
-	q := &fakeQuerier{rowVals: []any{testPlayerID, int64(42), nil, "Ada", "en", &city, "active", created}}
+	q := &fakeQuerier{rowVals: []any{testPlayerID, int64(42), nil, "Ada", "en", &city, "active", created, "K7Q2M9A"}}
 	repo := &PlayerRepository{q: q}
 
 	p, err := repo.GetByID(context.Background(), testPlayerID)
@@ -104,7 +104,7 @@ func TestGetByIDScansThePlayer(t *testing.T) {
 	if q.last().sql != selectPlayerByID {
 		t.Errorf("GetByID sent %q", q.last().sql)
 	}
-	if p.ID != testPlayerID || p.Language != "en" || p.Username != "" || p.CityID == nil || *p.CityID != testCityID {
+	if p.ID != testPlayerID || p.Language != "en" || p.Username != "" || p.CityID == nil || *p.CityID != testCityID || p.PublicCode != "K7Q2M9A" {
 		t.Errorf("GetByID = %+v", p)
 	}
 }

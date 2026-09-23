@@ -102,12 +102,12 @@ func sampleScreens() map[string]func(Context) *presenter.Response {
 			return Dashboard(c, DashboardView{Name: "Ada", Level: 1, Travelling: true})
 		},
 		"profile": func(c Context) *presenter.Response {
-			return Profile(c, ProfileView{Name: "Ada", CityCode: "ostmarch", City: "Ostmarch",
+			return Profile(c, ProfileView{Name: "Ada", Code: "K7Q2M9A", CityCode: "ostmarch", City: "Ostmarch",
 				Level: 3, XP: 180, NextLevelXP: 450, Energy: 75, MaxEnergy: 100,
 				EnergyFullIn: 75 * time.Minute, Health: 100, MaxHealth: 100})
 		},
 		"profile of a new player": func(c Context) *presenter.Response {
-			return Profile(c, ProfileView{CityCode: "ostmarch", City: "Ostmarch", Level: 1, NextLevelXP: 50,
+			return Profile(c, ProfileView{Code: "K7Q2M9A", CityCode: "ostmarch", City: "Ostmarch", Level: 1, NextLevelXP: 50,
 				Energy: 100, MaxEnergy: 100, Health: 100, MaxHealth: 100})
 		},
 		"profile with no city": func(c Context) *presenter.Response {
@@ -180,14 +180,33 @@ func sampleScreens() map[string]func(Context) *presenter.Response {
 		"empty skills": func(c Context) *presenter.Response {
 			return Skills(c, SkillsView{})
 		},
-		"search": func(c Context) *presenter.Response {
-			return Search(c, SearchView{Query: "ada", Page: 1, Pages: 2, Results: []SearchResult{
-				{ID: uuid, Name: "Ada"},
-				{ID: uuid},
-			}})
+		"search by username": func(c Context) *presenter.Response {
+			return Search(c, SearchView{By: SearchByUsername, Query: "@ada",
+				Found: &SearchResult{ID: uuid, Name: "Ada", Code: "K7Q2M9A"}})
 		},
-		"empty search": func(c Context) *presenter.Response {
-			return Search(c, SearchView{Query: "ada", Page: 1, Pages: 1})
+		"search by telegram id": func(c Context) *presenter.Response {
+			return Search(c, SearchView{By: SearchByTelegramID,
+				Found: &SearchResult{ID: uuid, Name: "Ada", Code: "K7Q2M9A"}})
+		},
+		"search finding a nameless player": func(c Context) *presenter.Response {
+			return Search(c, SearchView{By: SearchByCode, Query: "K7Q2M9A",
+				Found: &SearchResult{ID: uuid, Code: "K7Q2M9A"}})
+		},
+		"search finding yourself": func(c Context) *presenter.Response {
+			return Search(c, SearchView{By: SearchByCode, Query: "K7Q2M9A",
+				Found: &SearchResult{ID: uuid, Name: "Ada", Code: "K7Q2M9A", Self: true}})
+		},
+		"search by username, not found": func(c Context) *presenter.Response {
+			return Search(c, SearchView{By: SearchByUsername, Query: "@ada"})
+		},
+		"search by code, not found": func(c Context) *presenter.Response {
+			return Search(c, SearchView{By: SearchByCode, Query: "K7Q2M9A"})
+		},
+		"search by telegram id, not found": func(c Context) *presenter.Response {
+			return Search(c, SearchView{By: SearchByTelegramID})
+		},
+		"search help": func(c Context) *presenter.Response {
+			return Search(c, SearchView{Help: true})
 		},
 		"friends": func(c Context) *presenter.Response {
 			return Friends(c, FriendsView{Page: 1, Pages: 2, Friends: []FriendLine{
@@ -510,32 +529,77 @@ func TestArrivalAlwaysSends(t *testing.T) {
 	}
 }
 
-// The search pager needs the query in its address, and a query a player typed
-// usually cannot go there. The screen omits the pager instead of shipping a
-// next button that fails on press.
-func TestSearchOmitsThePagerForAnUnaddressableQuery(t *testing.T) {
-	persian := Search(ctx(t, "fa", 0), SearchView{Query: "علی", Page: 1, Pages: 3,
-		Results: []SearchResult{{ID: "p-2", Name: "Ali"}}})
-	for _, row := range persian.Keyboard.Rows {
-		for _, b := range row {
-			if strings.HasPrefix(b.CallbackData, AddrSearch+":") {
-				t.Errorf("a pager survived for an unaddressable query: %q", b.CallbackData)
-			}
+// A found player is shown by name and public code, with a button to ask them
+// to be friends. Nothing else about them — least of all the Telegram id the
+// search may have been made with, or the record id the button carries.
+func TestSearchShowsNameAndCodeAndOffersFriendship(t *testing.T) {
+	const recordID = "cfaebd97-b816-43a8-aff9-3798555dd818"
+	for _, lang := range []string{"fa", "en"} {
+		resp := Search(ctx(t, lang, 0), SearchView{By: SearchByTelegramID,
+			Found: &SearchResult{ID: recordID, Name: "Ada", Code: "K7Q2M9A"}})
+		if !strings.Contains(resp.Text, "Ada") || !strings.Contains(resp.Text, "K7Q2M9A") {
+			t.Errorf("%s: the result is missing the name or the code: %q", lang, resp.Text)
 		}
+		if !slices.Contains(addresses(resp), AddrFriendAdd+":"+recordID) {
+			t.Errorf("%s: the result offers no friend request: %v", lang, addresses(resp))
+		}
+		assertNothingInternal(t, resp)
 	}
+}
 
-	ascii := Search(ctx(t, "fa", 0), SearchView{Query: "ada", Page: 1, Pages: 3,
-		Results: []SearchResult{{ID: "p-2", Name: "Ada"}}})
-	found := false
-	for _, row := range ascii.Keyboard.Rows {
-		for _, b := range row {
-			if b.CallbackData == AddrSearch+":ada:2" {
-				found = true
-			}
+// Finding yourself says so, and offers no way to befriend yourself.
+func TestSearchForYourselfSaysSoWithoutAButton(t *testing.T) {
+	c := ctx(t, "en", 0)
+	resp := Search(c, SearchView{By: SearchByCode, Query: "K7Q2M9A",
+		Found: &SearchResult{ID: "p-1", Name: "Ada", Code: "K7Q2M9A", Self: true}})
+	if !strings.Contains(resp.Text, c.T("social.search.self", nil)) {
+		t.Errorf("finding yourself does not say so: %q", resp.Text)
+	}
+	for _, data := range addresses(resp) {
+		if strings.HasPrefix(data, AddrFriendAdd) {
+			t.Errorf("finding yourself offers %q", data)
 		}
 	}
-	if !found {
-		t.Error("an addressable query got no next page")
+}
+
+// Each form fails with its own sentence, and a query that is none of them is
+// answered with the three forms, not with an empty result.
+func TestSearchExplainsWhatWasNotFound(t *testing.T) {
+	c := ctx(t, "en", 0)
+	for by, key := range searchNotFoundKeys {
+		resp := Search(c, SearchView{By: by, Query: "@ada"})
+		want := c.T(key, map[string]any{"query": "@ada"})
+		if resp.Text != want {
+			t.Errorf("%s not found = %q, want %q", by, resp.Text, want)
+		}
+	}
+	help := Search(c, SearchView{Help: true})
+	if help.Text != c.T("social.search.help", nil) {
+		t.Errorf("the search help = %q", help.Text)
+	}
+	for _, data := range addresses(help) {
+		if strings.HasPrefix(data, AddrFriendAdd) {
+			t.Errorf("the search help offers %q", data)
+		}
+	}
+}
+
+// The profile shows the player's public code, with how a friend uses it, and
+// leaves the line out for a record with no code.
+func TestProfileShowsThePublicCode(t *testing.T) {
+	for _, lang := range []string{"fa", "en"} {
+		c := ctx(t, lang, 0)
+		resp := Profile(c, ProfileView{Name: "Ada", Code: "K7Q2M9A", Level: 1, Energy: 1, MaxEnergy: 1, Health: 1, MaxHealth: 1})
+		if !strings.Contains(resp.Text, c.T("profile.code", map[string]any{"code": "K7Q2M9A"})) {
+			t.Errorf("%s: the profile does not show the code: %q", lang, resp.Text)
+		}
+		if !strings.Contains(resp.Text, "/social K7Q2M9A") {
+			t.Errorf("%s: the profile does not say how a friend uses the code: %q", lang, resp.Text)
+		}
+	}
+	none := Profile(ctx(t, "en", 0), ProfileView{Name: "Ada", Level: 1, Energy: 1, MaxEnergy: 1, Health: 1, MaxHealth: 1})
+	if strings.Contains(none.Text, "🆔") {
+		t.Errorf("a record with no code shows a code line: %q", none.Text)
 	}
 }
 

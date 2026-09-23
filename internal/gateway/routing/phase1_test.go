@@ -52,11 +52,22 @@ func TestPhase1CommandsRoute(t *testing.T) {
 			wantPayload: map[string]any{"query": "ali"},
 		},
 		{
-			name:        "search page two",
+			// A search has no page: every word after the command is the
+			// query, so an old "next page" button arrives as one query the
+			// game refuses, rather than as a page of a search it no longer
+			// runs.
+			name:        "search words are one query",
 			text:        "/social search ali 2",
 			callback:    "social:search:ali:2",
 			wantCommand: "social.search",
-			wantPayload: map[string]any{"query": "ali", "page": "2"},
+			wantPayload: map[string]any{"query": "ali 2"},
+		},
+		{
+			name:        "search by code",
+			text:        "/social search K7Q2M9A",
+			callback:    "social:search:K7Q2M9A",
+			wantCommand: "social.search",
+			wantPayload: map[string]any{"query": "K7Q2M9A"},
 		},
 		{
 			name:        "add a friend",
@@ -159,7 +170,7 @@ func TestPhase1CallbackAddressesFitTheBudget(t *testing.T) {
 		"travel:start:tehran",
 		"travel:status",
 		"skills:list",
-		"social:search:ali:2",
+		"social:search:K7Q2M9A",
 		"social:friend.add:0f8c6a1e-4b2d-4c9f-9a1b-2d3e4f506172",
 		"social:friend.accept:0f8c6a1e-4b2d-4c9f-9a1b-2d3e4f506172",
 		"social:friend.list:3",

@@ -1255,46 +1255,26 @@ func TestCityAndSearchAgainstOwnFixtures(t *testing.T) {
 		banned := insertPlayer(t, pool)
 		cleanupPlayerRows(t, pool, banned.ID)
 
-		// A display name nothing else in the database can share.
-		name := "Integration " + randomToken(t, 16)
-		for _, id := range []string{active.ID, banned.ID} {
-			if _, err := pool.Raw().Exec(ctx,
-				`UPDATE players SET display_name = $2 WHERE id = $1::uuid`, id, name); err != nil {
-				t.Fatalf("naming the test player: %v", err)
-			}
-		}
 		if _, err := pool.Raw().Exec(ctx,
 			`UPDATE players SET status = 'banned' WHERE id = $1::uuid`, banned.ID); err != nil {
 			t.Fatalf("banning the second player: %v", err)
 		}
 
 		search := postgres.NewPlayerSearchRepository(pool)
-		got, err := search.Search(ctx, name, 10, 0)
+		got, err := search.Find(ctx, application.PlayerQuery{
+			Kind: application.PlayerQueryPublicCode, PublicCode: active.PublicCode})
 		if err != nil {
-			t.Fatalf("Search: %v", err)
+			t.Fatalf("Find: %v", err)
 		}
-		if len(got) != 1 || got[0].ID != active.ID {
-			t.Fatalf("Search returned %d player(s), want only the active one", len(got))
+		if got.ID != active.ID {
+			t.Fatalf("Find returned %s, want the active player %s", got.ID, active.ID)
 		}
 
 		// A banned account surfacing here would confirm a ban to anyone who
 		// looked and would offer a friend request it can never answer.
-		for _, p := range got {
-			if p.ID == banned.ID {
-				t.Error("Search returned a banned account")
-			}
-		}
-
-		// A wildcard typed by a player is a literal, not a request for
-		// everyone.
-		wild, err := search.Search(ctx, "%", 10, 0)
-		if err != nil {
-			t.Fatalf("Search(%%): %v", err)
-		}
-		for _, p := range wild {
-			if p.ID == active.ID {
-				t.Error("a literal percent sign matched every player")
-			}
+		if _, err := search.Find(ctx, application.PlayerQuery{
+			Kind: application.PlayerQueryPublicCode, PublicCode: banned.PublicCode}); err != application.ErrPlayerNotFound {
+			t.Errorf("Find of a banned account = %v, want application.ErrPlayerNotFound", err)
 		}
 	})
 }

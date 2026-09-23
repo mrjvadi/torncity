@@ -39,11 +39,15 @@
 //   - on its own: "/map" is map.list, "/settings" is player.settings, and
 //     /start — which Telegram itself sends as the first message of every chat
 //     — is the profile.
-//   - followed by words that are not one of its commands: "/social mrjvadi"
-//     is social.search for "mrjvadi", while "/social search mrjvadi" and
+//   - followed by words that are not one of its commands: "/social @mrjvadi"
+//     is social.search for "@mrjvadi", while "/social search @mrjvadi" and
 //     "/social friend.list" still mean exactly what they say. The words
 //     become the command's positional arguments, so "/start <payload>" deep
 //     links arrive as arguments of the profile, and "/map 2" is page two.
+//
+// /find is the search and nothing else: "/find K7Q2M9A" searches, and a bare
+// /find asks for a search with no query, which the game answers by explaining
+// what can be searched. A bare /social stays the friend list.
 //
 // # How positional arguments become a payload
 //
@@ -56,6 +60,13 @@
 // A command that is absent from argNames still parses. Its arguments arrive
 // under the key "args" as a []string, and so do any arguments beyond the names
 // the table lists.
+//
+// A command listed in joinRest is the exception: its LAST named argument takes
+// every remaining word, joined by single spaces. social.search is the one
+// such command. Its query is one identifier, and splitting "/social ali reza"
+// into a query of "ali" and a page of "reza" answered a question nobody
+// asked; joined, the game sees "ali reza" whole and can say plainly that it
+// is not something a player can be found by.
 //
 // # Only commands the game serves are routed
 //
@@ -174,6 +185,7 @@ var shortcuts = map[string]shortcut{
 	"skills":   {Bare: "skills.list"},
 	"map":      {Bare: "map.list", Words: "map.list"},
 	"social":   {Bare: "social.friend.list", Words: "social.search"},
+	"find":     {Bare: "social.search", Words: "social.search"},
 }
 
 // argNames names the positional arguments of a command, in order.
@@ -200,9 +212,10 @@ var argNames = map[string][]string{
 	// of them that happens to have arguments.
 	"travel.status": {},
 	"skills.list":   {"page"},
-	// social.search names the query first and the page second, so a typed
-	// "/social search ali" works and a pressed next button appends the page.
-	"social.search":     {"query", "page"},
+	// social.search takes one argument, the query, and every word after
+	// the command is part of it (see joinRest). A search names one player
+	// exactly, so there is no page.
+	"social.search":     {"query"},
 	"social.friend.add": {"player"},
 	// social.friend.list and social.friend.accept complete the pair; both
 	// route through SplitCommand as domain "social" with the two-token
@@ -221,6 +234,12 @@ var argNames = map[string][]string{
 	// against the languages it actually ships.
 	"player.settings":     {},
 	"player.language.set": {"lang"},
+}
+
+// joinRest lists the commands whose last named argument takes every word
+// that follows, joined into one string. See the package doc.
+var joinRest = map[string]bool{
+	"social.search": true,
 }
 
 // Route is Parse restricted to the commands the game serves to players, and it
@@ -397,6 +416,11 @@ func buildPayload(command string, args []string) map[string]any {
 	names := argNames[command]
 	used := 0
 	for used < len(names) && used < len(args) {
+		if used == len(names)-1 && joinRest[command] {
+			payload[names[used]] = strings.Join(args[used:], " ")
+			used = len(args)
+			break
+		}
 		payload[names[used]] = args[used]
 		used++
 	}

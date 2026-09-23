@@ -19,10 +19,26 @@ func TestRouteShortcuts(t *testing.T) {
 		wantPayload map[string]any
 	}{
 		{"/social mrjvadi", "social.search", map[string]any{"query": "mrjvadi"}},
-		{"/social Mrjvadi 2", "social.search", map[string]any{"query": "Mrjvadi", "page": "2"}},
+		{"/social @Mrjvadi", "social.search", map[string]any{"query": "@Mrjvadi"}},
+		{"/social 123456789", "social.search", map[string]any{"query": "123456789"}},
+		{"/social k7q2m9a", "social.search", map[string]any{"query": "k7q2m9a"}},
+		// Every word after the command is ONE query. This used to be a
+		// search for "ali" with "reza" read as a page number.
+		{"/social ali reza", "social.search", map[string]any{"query": "ali reza"}},
+		{"/social   ali   reza  ", "social.search", map[string]any{"query": "ali reza"}},
+		{"/social Mrjvadi 2", "social.search", map[string]any{"query": "Mrjvadi 2"}},
 		{"/social search ali", "social.search", map[string]any{"query": "ali"}},
+		{"/social search @ali reza", "social.search", map[string]any{"query": "@ali reza"}},
 		{"/social friend.list", "social.friend.list", map[string]any{}},
 		{"/social", "social.friend.list", map[string]any{}},
+		// /find is the search, typed or bare. Bare, it asks for a search
+		// with no query, which the game answers with how to search.
+		{"/find @mrjvadi", "social.search", map[string]any{"query": "@mrjvadi"}},
+		{"/find K7Q2M9A", "social.search", map[string]any{"query": "K7Q2M9A"}},
+		{"/find 123456789", "social.search", map[string]any{"query": "123456789"}},
+		{"/find ali reza", "social.search", map[string]any{"query": "ali reza"}},
+		{"/find@torncity_bot @mrjvadi", "social.search", map[string]any{"query": "@mrjvadi"}},
+		{"/find", "social.search", map[string]any{}},
 		{"/map", "map.list", map[string]any{}},
 		{"/map 2", "map.list", map[string]any{"page": "2"}},
 		{"/map list 3", "map.list", map[string]any{"page": "3"}},

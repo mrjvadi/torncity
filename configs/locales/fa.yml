@@ -29,6 +29,7 @@
 #   search          جست‌وجو                 🔎
 #   refresh         به‌روزرسانی              🔄       never «بروزرسانی»
 #   player          بازیکن
+#   player code     کد بازیکن               🆔       7 characters on the profile, e.g. K7Q2M9A; «/social کد» finds that player
 #   settings        تنظیمات                ⚙️
 #   language        زبان                   🌐       a language is always named in itself: «English», not «انگلیسی»
 #
@@ -61,6 +62,11 @@ profile:
   energy: "⚡ انرژی: {energy}/{max_energy}"
   energy_refilling: "⚡ انرژی: {energy}/{max_energy} · {duration} تا پر شدن"
   health: "❤️ سلامت: {health}/{max_health}"
+  # The public player code, and how a friend uses it. The code is the one
+  # identifier a player is meant to see and share; see
+  # internal/shared/playercode. social.search reuses profile.code.
+  code: "🆔 کد بازیکن: {code}"
+  code_hint: دوستانتان می‌توانند با /social {code} شما را پیدا کنند.
   unavailable: پروفایل شما الان در دسترس نیست. چند لحظه بعد دوباره امتحان کنید.
 
 map:
@@ -132,7 +138,8 @@ help:
     /profile — پروفایل
     /map — نقشه و سفر
     /skills — مهارت‌ها
-    /social نام — جست‌وجوی بازیکن
+    /social — دوستان
+    /find — پیدا کردن بازیکن با نام کاربری، کد بازیکن یا شناسهٔ تلگرام
     /settings — تنظیمات
 
 settings:
@@ -150,15 +157,27 @@ language:
 
 social:
   unknown_player: یک بازیکن
+  # A search names one player exactly, in one of three forms; there is no
+  # search by display name. {query} is echoed only for a username (with its
+  # @) or a code — never for a Telegram ID, which no screen prints.
   search:
-    title: "🔎 نتیجهٔ جست‌وجو برای «{query}»"
-    empty: بازیکنی با نام «{query}» پیدا نشد. نام دیگری را امتحان کنید.
-    line: "{index}. {player}"
+    help: |-
+      🔎 جست‌وجوی بازیکن
+      بازیکن را با یکی از این سه مورد پیدا کنید:
+      • نام کاربری تلگرام: /social @username
+      • کد بازیکن: /social K7Q2M9A
+      • شناسهٔ عددی تلگرام: /social 123456789
+    title: "🔎 نتیجهٔ جست‌وجو"
+    player: "👤 {player}"
+    self: این خودتان هستید. کد بازیکنتان را به دوستانتان بدهید تا شما را پیدا کنند.
+    not_found_username: بازیکنی با نام کاربری {query} پیدا نشد. شاید نام کاربری‌اش را عوض کرده یا هنوز بازی را شروع نکرده باشد؛ کد بازیکنش را از خودش بپرسید.
+    not_found_code: بازیکنی با کد {query} پیدا نشد. کد را دوباره بررسی کنید؛ اگر منظورتان نام کاربری است، @ را پیش از آن بنویسید.
+    not_found_id: بازیکنی با این شناسهٔ تلگرام پیدا نشد. شاید هنوز بازی را شروع نکرده باشد.
   friends:
     title: "👥 دوستان"
     empty: |-
       هنوز دوستی ندارید.
-      برای پیدا کردن بازیکن‌ها، نامشان را جست‌وجو کنید: /social search نام
+      برای پیدا کردن یک بازیکن، نام کاربری تلگرام یا کد بازیکنش را بفرستید؛ مثلاً /social @username
     line: "• {player}"
     line_pending: "• {player} — در انتظار پاسخ"
     line_blocked: "• {player} — مسدود"

@@ -156,7 +156,45 @@ type FriendshipRepository interface {
 	Remove(ctx context.Context, playerID, friendPlayerID string) error
 }
 
-// PlayerSearch finds other players by display name, for the social screens.
+// PlayerQueryKind says which identifier a PlayerQuery carries.
+type PlayerQueryKind int
+
+// The three ways a player can be named in a search. There is deliberately no
+// fourth: display names are not unique, so searching them answered "who is
+// Ali?" with a list of strangers, which is the ambiguity the search exists to
+// remove.
+const (
+	// PlayerQueryUsername is a Telegram username, matched without regard
+	// to case.
+	PlayerQueryUsername PlayerQueryKind = iota + 1
+	// PlayerQueryTelegramUserID is a Telegram user id, matched exactly.
+	PlayerQueryTelegramUserID
+	// PlayerQueryPublicCode is a public player code, matched exactly.
+	PlayerQueryPublicCode
+)
+
+// PlayerQuery names exactly one player by one identifier. Build it with
+// handlers.ClassifyPlayerQuery, which normalises what a player typed; the
+// field that matches Kind is the one that is set.
+type PlayerQuery struct {
+	Kind PlayerQueryKind
+	// Username is lower-case and has no leading @.
+	Username       string
+	TelegramUserID int64
+	// PublicCode is upper-case (playercode.Normalize).
+	PublicCode string
+}
+
+// PlayerSearch finds another player by an exact identifier, for the social
+// screens.
+//
+// It used to search display names by substring, a page at a time; that
+// method is gone rather than kept beside this one, so nothing can quietly go
+// back to fuzzy matching.
 type PlayerSearch interface {
-	Search(ctx context.Context, query string, limit, offset int) ([]Player, error)
+	// Find returns the ACTIVE player q names, or ErrPlayerNotFound. A banned
+	// or deleted account is never returned: surfacing one would confirm a
+	// ban to anyone who asked, and offer a friend request that can never be
+	// answered.
+	Find(ctx context.Context, q PlayerQuery) (*Player, error)
 }
