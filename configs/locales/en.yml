@@ -58,6 +58,9 @@ travel:
     ⏳ Arriving any moment now.
   arrived: "📍 You have arrived in {city}."
   arrived_xp: "⭐ You earned {xp} XP."
+  # Added to the arrival notice when the XP of the journey lifted the player
+  # to a new level; {level} is the highest level reached.
+  arrived_level: "⭐ You reached level {level}."
   none: You are not travelling right now. Open the Map to choose a destination.
   same_city: You are already in this city. Choose another destination from the Map.
   no_route: There is no route there from your current city. Choose one of the destinations on the Map.

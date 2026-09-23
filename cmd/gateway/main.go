@@ -57,6 +57,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/workers/notification"
 )
 
 const (
@@ -299,6 +300,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		resolver:  resolver,
 		filter:    filter,
 		limiter:   limiter,
+		lanes:     newPriorityLanes(),
 		publisher: infranats.NewPublisher(conn),
 		messages:  catalog,
 		players:   postgres.NewPlayerRepository(pool, cfg.Player.DefaultLanguage),
@@ -325,6 +327,18 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	}
 	defer func() { _ = sub.Unsubscribe() }()
 
+	// --- notifications ------------------------------------------------------
+
+	// Notices are requests from cmd/notifier, on core NATS for the same
+	// reason responses are: the event behind a notice is what is durable,
+	// and the notifier keeps it unacknowledged until this process answers
+	// that the message went out. See internal/workers/notification.
+	noticeSub, err := conn.Raw().QueueSubscribe(notification.SubjectAll, noticeQueue, gw.onNotice)
+	if err != nil {
+		return fmt.Errorf("gateway: subscribing to notices: %w", err)
+	}
+	defer func() { _ = noticeSub.Unsubscribe() }()
+
 	// --- one poll loop per leased bot --------------------------------------
 
 	var bots sync.WaitGroup
@@ -344,6 +358,9 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// still being fed is not a drain.
 	if err := sub.Unsubscribe(); err != nil {
 		logger.Warn("could not close the response subscription", slog.String("error", err.Error()))
+	}
+	if err := noticeSub.Unsubscribe(); err != nil {
+		logger.Warn("could not close the notice subscription", slog.String("error", err.Error()))
 	}
 
 	// Polling stops as soon as ctx is cancelled; each bot's goroutine then
@@ -381,6 +398,9 @@ type gateway struct {
 	resolver *identity.Resolver
 	filter   *dedup.Filter
 	limiter  *ratelimit.Limiter
+	// lanes keeps notices behind direct replies on each bot (MASTER_PROMPT
+	// section 15). Nil sends everything as one lane.
+	lanes *priorityLanes
 
 	publisher application.Publisher
 	// messages and players are what the help reply needs: the text, and the
@@ -691,7 +711,7 @@ func (g *gateway) deliverViaFleet(ctx context.Context, bot application.Bot, meta
 	}
 	ctx, cancel := context.WithTimeout(ctx, g.cfg.Gateway.ShutdownTimeout)
 	defer cancel()
-	if err := g.send(ctx, api, bot.BotKey, meta, resp, log); err != nil {
+	if err := g.send(ctx, api, bot.BotKey, meta, resp, laneDirect, log); err != nil {
 		log.Error("cannot deliver the help reply",
 			slog.String("action", string(resp.Type)), slog.String("error", err.Error()))
 	}
@@ -738,7 +758,7 @@ func (g *gateway) onResponse(msg *natsgo.Msg) {
 	ctx, cancel := context.WithTimeout(context.Background(), g.cfg.Gateway.ShutdownTimeout)
 	defer cancel()
 
-	if err := g.send(ctx, api, botKey, meta, &resp, log); err != nil {
+	if err := g.send(ctx, api, botKey, meta, &resp, laneDirect, log); err != nil {
 		log.Error("cannot deliver the response",
 			slog.String("action", string(resp.Type)), slog.String("error", err.Error()))
 		return
@@ -750,18 +770,30 @@ func (g *gateway) onResponse(msg *natsgo.Msg) {
 // send performs one Bot API call, paced by the bot's own limiter.
 //
 // Every attempt waits on the limiter first, so a flood wait that PauseFor just
-// recorded is actually observed by the retry rather than stepped over.
+// recorded is actually observed by the retry rather than stepped over. A
+// notice also waits, before every attempt, for the bot's direct replies to go
+// first; see priorityLanes.
 func (g *gateway) send(
 	ctx context.Context,
 	api *client.Client,
 	botKey string,
 	meta envelope.Metadata,
 	resp *presenter.Response,
+	priority lane,
 	log *slog.Logger,
 ) error {
+	if priority == laneDirect {
+		defer g.lanes.enterDirect(botKey)()
+	}
+
 	var lastErr error
 
 	for attempt := 1; attempt <= g.cfg.Gateway.SendAttempts; attempt++ {
+		if priority != laneDirect {
+			if err := g.lanes.yield(ctx, botKey); err != nil {
+				return err
+			}
+		}
 		if err := g.limiter.Wait(ctx, botKey); err != nil {
 			return err
 		}

@@ -93,6 +93,9 @@ travel:
     ⏳ چند لحظه دیگر می‌رسید.
   arrived: "📍 به {city} رسیدید."
   arrived_xp: "⭐ {xp} امتیاز تجربه گرفتید."
+  # Added to the arrival notice when the XP of the journey lifted the player
+  # to a new level; {level} is the highest level reached.
+  arrived_level: "⭐ به سطح {level} رسیدید."
   none: در حال حاضر در سفر نیستید. برای سفر، «نقشه» را باز کنید.
   same_city: همین حالا در این شهر هستید. از «نقشه» مقصد دیگری انتخاب کنید.
   no_route: از شهر فعلی شما مسیری به آنجا وجود ندارد. از «نقشه» یکی از مقصدهای در دسترس را انتخاب کنید.

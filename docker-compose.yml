@@ -18,7 +18,7 @@
 #
 # This stack is not the only thing on its host: without caps one runaway
 # process starves everything else on the box, and the failure looks like an
-# unrelated service dying. Totals here are roughly 2.4 GB and 2.9 cpu.
+# unrelated service dying. Totals here are roughly 2.5 GB and 3.2 cpu.
 #
 services:
   postgres:
@@ -135,6 +135,22 @@ services:
     cpus: "0.25"
     memswap_limit: 192m
     build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: worker}}
+    working_dir: /srv
+    volumes: ["./configs:/srv/configs:ro"]
+    env_file: [.env]
+    depends_on:
+      postgres: {condition: service_healthy}
+      nats: {condition: service_healthy}
+    restart: unless-stopped
+
+  # Turns domain events into player notifications (internal/workers/notification)
+  # and hands them to the gateway, which owns the Telegram API. Without it a
+  # journey lands in silence.
+  notifier:
+    mem_limit: 128m
+    cpus: "0.25"
+    memswap_limit: 128m
+    build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: notifier}}
     working_dir: /srv
     volumes: ["./configs:/srv/configs:ro"]
     env_file: [.env]
