@@ -141,27 +141,61 @@ func paragraphs(blocks ...string) string {
 	return strings.Join(kept, blankLine)
 }
 
-// FormatDuration renders a duration through the catalogue.
+// FormatDuration renders a duration through the catalogue, in the largest
+// units that read naturally: "2h 15m", "2h", "35m", or "40s" under a minute.
 //
-// The hours and minutes are numbers; the shape of the sentence around them is
-// not, so it comes from format.duration and a translator can put the units
-// wherever that language puts them.
+// The numbers are computed here; the shape of the phrase around them is not,
+// so it comes from format.duration_* and a translator can put the units
+// wherever that language puts them. A zero or negative duration reads as one
+// second rather than as "0m": a screen showing a duration is saying something
+// is still to come, and a caller that means "done" has its own message.
 func FormatDuration(c Context, d time.Duration) string {
-	if d < 0 {
-		d = 0
+	if d < time.Second {
+		d = time.Second
 	}
-	hours := int(d / time.Hour)
-	minutes := int((d % time.Hour) / time.Minute)
-	if hours == 0 && minutes == 0 && d > 0 {
-		// Under a minute still has to read as some time remaining rather
-		// than as none at all.
-		minutes = 1
+	if d < time.Minute {
+		return c.T("format.duration_s", map[string]any{"seconds": int(d / time.Second)})
 	}
-	return c.T("format.duration", map[string]any{
-		"hours":   hours,
-		"minutes": minutes,
-	})
+	// Round up to the minute so a journey never reads as shorter than it is.
+	minutesTotal := int((d + time.Minute - 1) / time.Minute)
+	hours, minutes := minutesTotal/60, minutesTotal%60
+	switch {
+	case hours == 0:
+		return c.T("format.duration_m", map[string]any{"minutes": minutes})
+	case minutes == 0:
+		return c.T("format.duration_h", map[string]any{"hours": hours})
+	}
+	return c.T("format.duration_hm", map[string]any{"hours": hours, "minutes": minutes})
 }
+
+// FormatNumber renders an integer with "," between each group of three
+// digits, so 12500 reads as 12,500. Every count a player compares — XP,
+// distance, energy — goes through it.
+func FormatNumber(n int64) string {
+	if n < 0 {
+		return "-" + FormatNumber(-n)
+	}
+	digits := strconv.FormatInt(n, 10)
+	if len(digits) <= 3 {
+		return digits
+	}
+	var b strings.Builder
+	lead := len(digits) % 3
+	if lead > 0 {
+		b.WriteString(digits[:lead])
+	}
+	for i := lead; i < len(digits); i += 3 {
+		if b.Len() > 0 {
+			b.WriteString(thousandsSeparator)
+		}
+		b.WriteString(digits[i : i+3])
+	}
+	return b.String()
+}
+
+// thousandsSeparator is punctuation, not text: both shipped languages use
+// ASCII digits, and "," reads correctly in a right-to-left line too.
+const thousandsSeparator = ","
 
 // PercentFromBPS renders a basis-point rate as a percentage.
 //
@@ -212,8 +246,30 @@ func Error(c Context, err error) *presenter.Response {
 	}
 
 	key, args := errorMessage(c, err)
-	kb := keyboards.New().Nav(c.nav(keyboards.Nav{BackData: AddrHome})).Build()
-	return c.respond(c.T(key, args), kb)
+	kb := keyboards.New()
+	// Where a refusal has an obvious next step, that step is one press away
+	// instead of described and left for the player to find.
+	if next, ok := errorNextStep[key]; ok {
+		if btn, ok := keyboards.Button(c.T(next.label, nil), next.addr); ok {
+			kb.Row(btn)
+		}
+	}
+	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
+	return c.respond(c.T(key, args), kb.Build())
+}
+
+// errorNextStep maps a refusal to the one screen that resolves it. A refusal
+// missing from here gets the back button alone.
+var errorNextStep = map[string]struct{ label, addr string }{
+	"error.already_travelling": {"button.journey", AddrTravelStatus},
+	"travel.none":              {"button.map", AddrMap},
+	"travel.same_city":         {"button.map", AddrMap},
+	"travel.no_route":          {"button.map", AddrMap},
+	"travel.unknown_speed":     {"button.map", AddrMap},
+	"error.city_not_found":     {"button.map", AddrMap},
+	"error.skill_not_found":    {"button.skills", AddrSkills},
+	"error.not_friends":        {"button.social", AddrFriendList},
+	"error.already_friends":    {"button.social", AddrFriendList},
 }
 
 // errorMessage picks the key and the placeholder values for a failure.
@@ -227,9 +283,15 @@ func errorMessage(c Context, err error) (string, map[string]any) {
 
 	switch {
 	case stderrors.Is(err, player.ErrNotEnoughEnergy):
+		needed, current := detailInt(err, "needed"), detailInt(err, "current")
+		if needed <= current {
+			// Without the two numbers there is no honest wait to quote.
+			return "error.not_enough_energy_later", nil
+		}
 		return "error.not_enough_energy", map[string]any{
-			"needed":  detailInt(err, "needed"),
-			"current": detailInt(err, "current"),
+			"needed":  FormatNumber(needed),
+			"current": FormatNumber(current),
+			"wait":    FormatDuration(c, energyWait(needed-current)),
 		}
 	case stderrors.Is(err, travel.ErrSameCity):
 		return "travel.same_city", nil
@@ -249,11 +311,26 @@ func errorMessage(c Context, err error) (string, map[string]any) {
 	case errors.CodeRateLimited:
 		return "error.rate_limited", nil
 	case errors.CodeCooldown:
-		return "error.cooldown", map[string]any{"seconds": detailInt(err, "seconds")}
+		return "error.cooldown", map[string]any{
+			"wait": FormatDuration(c, time.Duration(detailInt(err, "seconds"))*time.Second),
+		}
 	case errors.CodeUnauthorized:
 		return "error.unauthorized", nil
 	}
 	return "error.internal", nil
+}
+
+// energyWait is the longest a player short of missing energy has to wait for
+// it: whole regeneration ticks, straight from the domain's constants. It is
+// an upper bound, because the current tick may already be part-way through,
+// which is why the message says "within".
+func energyWait(missing int64) time.Duration {
+	amount := int64(player.EnergyRegenAmount)
+	if amount <= 0 || missing <= 0 {
+		return 0
+	}
+	ticks := (missing + amount - 1) / amount
+	return time.Duration(ticks) * player.EnergyRegenInterval
 }
 
 // applicationSentinels maps each phase 1 sentinel to its sentence. Order is

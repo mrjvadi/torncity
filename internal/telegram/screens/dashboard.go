@@ -1,7 +1,6 @@
 package screens
 
 import (
-	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
@@ -23,43 +22,23 @@ type DashboardView struct {
 	Travelling bool
 }
 
-// Dashboard renders the hub.
+// Dashboard renders the hub: the same lines and the same buttons as the
+// profile, minus what the dashboard does not carry.
 func Dashboard(c Context, v DashboardView) *presenter.Response {
-	city := v.City
-	if city == "" {
-		city = c.T("profile.city_unknown", nil)
+	var name, city string
+	if v.Name != "" {
+		name = c.T("profile.name", map[string]any{"name": v.Name})
+	}
+	if v.City != "" && !v.Travelling {
+		city = c.T("profile.city", map[string]any{"city": v.City})
 	}
 
-	text := c.T("dashboard.body", map[string]any{
-		"name":       v.Name,
-		"city":       city,
-		"level":      v.Level,
-		"energy":     v.Energy,
-		"max_energy": v.MaxEnergy,
-	})
-
-	kb := keyboards.New()
-	profile, _ := keyboards.Button(c.T("button.profile", nil), AddrProfile)
-	skills, _ := keyboards.Button(c.T("button.skills", nil), AddrSkills)
-	kb.Row(profile, skills)
-
-	worldMap, _ := keyboards.Button(c.T("button.map", nil), AddrMap)
-	travelLabel, travelAddr := c.T("button.travel", nil), AddrMap
-	if v.Travelling {
-		// A player already on the road wants the journey, not a list of
-		// places they cannot leave for.
-		travelLabel, travelAddr = c.T("button.journey", nil), AddrTravelStatus
-	}
-	travel, _ := keyboards.Button(travelLabel, travelAddr)
-	kb.Row(worldMap, travel)
-
-	social, _ := keyboards.Button(c.T("button.social", nil), AddrFriendList)
-	kb.Row(social)
-
-	// The hub has no parent, so it carries refresh alone: a back button here
-	// would point at the screen the player is already looking at.
-	refresh, _ := keyboards.Button(c.T("button.refresh", nil), AddrHome)
-	kb.Row(refresh)
-
-	return c.respond(text, kb.Build())
+	text := paragraphs(
+		body(name, city),
+		body(
+			c.T("profile.level_plain", map[string]any{"level": max(v.Level, 1)}),
+			energyLine(c, v.Energy, v.MaxEnergy, 0),
+		),
+	)
+	return c.respond(text, hubKeyboard(c, v.City != "", v.Travelling).Build())
 }

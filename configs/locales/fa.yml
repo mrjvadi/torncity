@@ -8,137 +8,162 @@
 # shorter sentence, it is a wrong one, and Validate() fails the build for it.
 #
 # Quote any message that STARTS with a placeholder: bare {name} at the start of
-# a value is a YAML mapping, not text. Mid-sentence placeholders need nothing.
+# a value is a YAML mapping, not text. Quote any message that contains ": " as
+# well, for the same reason. Mid-sentence placeholders need nothing.
+#
+# ---------------------------------------------------------------------------
+# GLOSSARY — use exactly these words and anchors on every screen
+# ---------------------------------------------------------------------------
+#   concept         word                  anchor   notes
+#   energy          انرژی                  ⚡
+#   health          سلامت                  ❤️       never «سلامتی»
+#   level           سطح                    ⭐
+#   XP              امتیاز تجربه                    never «XP» or «تجربه» alone
+#   city            شهر                    📍       where the player is
+#   travel/journey  سفر                    🧭       «در راه» = en route, «مقصد» = destination
+#   time left       «… مانده» / «تا رسیدن»  ⏳
+#   map             نقشه                   🗺
+#   skill           مهارت / مهارت‌ها         🛠
+#   friends         دوستان                 👥       «درخواست دوستی» = friend request
+#   profile         پروفایل                 👤
+#   search          جست‌وجو                 🔎
+#   refresh         به‌روزرسانی              🔄       never «بروزرسانی»
+#   player          بازیکن
+#
+# Voice: address the player as «شما», polite and direct. No exclamation marks
+# except in the one-time welcome. At most one emoji per line, and only the
+# anchor of the concept that line is about.
+#
+# Numbers: ASCII digits (0-9). The code inserts "," as the thousands separator
+# and turns durations into «2 ساعت و 15 دقیقه»-style text via format.*; never
+# write raw seconds here. Percent is written «٪» after the number.
+#
+# Button labels name the place they open («نقشه»), and error messages refer to
+# buttons by that same label in «گیومه».
+# ---------------------------------------------------------------------------
 
 profile:
-  title: پروفایل
-
-  # |- keeps the newlines and drops the trailing one, so the message ends
-  # where the text ends.
+  # The one-time welcome. It is shown above the profile only while the player
+  # has not earned any XP, and it takes no placeholders. (The key name is
+  # pinned by internal/telegram/i18n's shipped-locale test.)
   body: |-
-    پروفایل
+    به بازی خوش آمدید!
+    این پروفایل شماست؛ با دکمه‌های زیر در بازی بگردید.
 
-    شناسه: {id}
-    زبان: {language}
-    وضعیت: {status}
-
-  # The condition block is a separate message from the identity block above:
-  # it changes on every read as energy accrues, and keeping the two apart
-  # keeps each placeholder set small enough to check by eye.
-  condition: |-
-    شهر: {city}
-    سطح: {level} ({xp} تجربه)
-    انرژی: {energy}/{max_energy}
-    سلامتی: {health}/{max_health}
-
-  unavailable: پروفایل در دسترس نیست.
-  city_unknown: هنوز هیچ‌جا
-
-  id_label: شناسه
-  language_label: زبان
-  status_label: وضعیت
-  level_label: سطح
-  energy_label: انرژی
-  health_label: سلامتی
-
-dashboard:
-  title: خانه
-  body: |-
-    {name}
-
-    شهر: {city}
-    سطح: {level}
-    انرژی: {energy}/{max_energy}
+  name: "👤 {name}"
+  city: "📍 {city}"
+  travelling: "🧭 در راه {city} · {remaining} مانده"
+  level: "⭐ سطح {level} · {xp_to_next} امتیاز تجربه تا سطح {next_level}"
+  level_plain: "⭐ سطح {level}"
+  level_max: "⭐ سطح {level} · بالاترین سطح بازی"
+  energy: "⚡ انرژی: {energy}/{max_energy}"
+  energy_refilling: "⚡ انرژی: {energy}/{max_energy} · {duration} تا پر شدن"
+  health: "❤️ سلامت: {health}/{max_health}"
+  unavailable: پروفایل شما الان در دسترس نیست. چند لحظه بعد دوباره امتحان کنید.
 
 map:
-  title: نقشهٔ جهان
-  origin: "در {city} هستی."
-  empty: هنوز هیچ شهری بارگذاری نشده است.
-  depart: "سفر به {city}"
-  city:
-    current: "{city} — همین‌جایی · مالیات {tax}٪ · هزینهٔ زندگی {cost}"
-    reachable: "{city} — {distance} کیلومتر · مالیات {tax}٪ · هزینهٔ زندگی {cost}"
-    unreachable: "{city} — از اینجا مسیری نیست · مالیات {tax}٪ · هزینهٔ زندگی {cost}"
+  title: "🗺 نقشه"
+  origin: "📍 شما در {city} هستید."
+  destinations: "از اینجا می‌توانید به این شهرها سفر کنید:"
+  destination: "• {city} — {distance} کیلومتر"
+  no_routes: از اینجا فعلاً مسیری به شهر دیگری وجود ندارد. با «به‌روزرسانی» بعداً دوباره سر بزنید.
+  no_city: هنوز در شهری مستقر نشده‌اید. پس از استقرار، مقصدهای سفر همین‌جا نمایش داده می‌شوند.
+  travelling: "🧭 در راه {city} هستید. پس از رسیدن می‌توانید سفر تازه‌ای شروع کنید."
 
 travel:
-  title: سفر
-  started: "از {from} به {to} راه افتادی. {duration} دیگر می‌رسی. انرژی مصرف‌شده: {energy}."
-  status: "{from} به {to}. {remaining} باقی مانده."
-  none: الان در سفر نیستی.
-  arrived: "به {city} رسیدی. {xp} تجربه گرفتی."
-  same_city: همین حالا در همان شهر هستی.
-  no_route: از اینجا مسیری به آن شهر نیست.
-  unknown_speed: این گزینهٔ سفر در دسترس نیست.
+  started: |-
+    🧭 سفر به {to} آغاز شد
+    از {from} راه افتادید و {duration} دیگر می‌رسید.
+    ⚡ {energy} انرژی مصرف شد.
+  status: |-
+    🧭 در راه {to}
+    مبدأ: {from}
+    ⏳ {remaining} تا رسیدن
+  status_arriving: |-
+    🧭 در راه {to}
+    مبدأ: {from}
+    ⏳ چند لحظه دیگر می‌رسید.
+  arrived: "📍 به {city} رسیدید."
+  arrived_xp: "⭐ {xp} امتیاز تجربه گرفتید."
+  none: در حال حاضر در سفر نیستید. برای سفر، «نقشه» را باز کنید.
+  same_city: همین حالا در این شهر هستید. از «نقشه» مقصد دیگری انتخاب کنید.
+  no_route: از شهر فعلی شما مسیری به آنجا وجود ندارد. از «نقشه» یکی از مقصدهای در دسترس را انتخاب کنید.
+  unknown_speed: این نوع سفر در دسترس نیست. از «نقشه» با سفر معمولی راه بیفتید.
 
 skills:
-  title: مهارت‌ها
-  empty: هنوز هیچ مهارتی را تمرین نکرده‌ای.
-  line: "{skill} — سطح {level} · {xp}/{next} تجربه ({percent}٪)"
-  line_untrained: "{skill} — تمرین‌نشده · {xp}/{next} تجربه ({percent}٪) · سطح {level}"
+  title: "🛠 مهارت‌ها"
+  empty: هنوز مهارتی کسب نکرده‌اید. هر مهارتی که تمرین کنید، اینجا نمایش داده می‌شود.
+  line: "• {skill} — سطح {level} · {percent}٪ تا سطح بعد"
+  line_max: "• {skill} — سطح {level} · بالاترین سطح"
 
 skill:
   programming: برنامه‌نویسی
   mechanics: مکانیک
   medicine: پزشکی
   management: مدیریت
-  finance: مالی
+  finance: امور مالی
   engineering: مهندسی
   cooking: آشپزی
   logistics: لجستیک
   driving: رانندگی
 
 social:
-  unknown_player: بازیکن بی‌نام
+  unknown_player: یک بازیکن
   search:
-    title: "نتیجهٔ جست‌وجو برای {query}"
-    empty: کسی با این جست‌وجو پیدا نشد.
+    title: "🔎 نتیجهٔ جست‌وجو برای «{query}»"
+    empty: بازیکنی با نام «{query}» پیدا نشد. نام دیگری را امتحان کنید.
     line: "{index}. {player}"
   friends:
-    title: دوستان
-    empty: هنوز دوستی نداری.
-    line: "{player} — {status}"
+    title: "👥 دوستان"
+    empty: |-
+      هنوز دوستی ندارید.
+      برای پیدا کردن بازیکن‌ها، نامشان را جست‌وجو کنید: /social search نام
+    line: "• {player}"
+    line_pending: "• {player} — در انتظار پاسخ"
+    line_blocked: "• {player} — مسدود"
   friend:
-    requested: "درخواست دوستی برای {player} فرستاده شد."
-    accepted: "حالا تو و {player} دوست هستید."
-  status:
-    pending: در انتظار
-    accepted: دوست
-    blocked: مسدود
+    requested: درخواست دوستی برای {player} فرستاده شد. پس از پذیرفتن، در فهرست دوستانتان نمایش داده می‌شود.
+    requested_anon: درخواست دوستی فرستاده شد. پس از پذیرفتن، در فهرست دوستانتان نمایش داده می‌شود.
+    accepted: از این پس شما و {player} با هم دوست هستید.
+    accepted_anon: درخواست دوستی را پذیرفتید. این بازیکن حالا در فهرست دوستان شماست.
 
 page:
   indicator: "صفحهٔ {page} از {pages}"
 
 format:
-  duration: "{hours} ساعت و {minutes} دقیقه"
+  duration_hm: "{hours} ساعت و {minutes} دقیقه"
+  duration_h: "{hours} ساعت"
+  duration_m: "{minutes} دقیقه"
+  duration_s: "{seconds} ثانیه"
 
 button:
-  refresh: بروزرسانی
+  refresh: "🔄 به‌روزرسانی"
   back: بازگشت
   next: بعدی
   previous: قبلی
-  profile: پروفایل
-  dashboard: خانه
-  map: نقشه
-  travel: سفر
-  journey: سفر من
-  skills: مهارت‌ها
-  social: دوستان
-  add_friend: "افزودن {player}"
-  accept: "پذیرفتن {player}"
+  profile: "👤 پروفایل"
+  map: "🗺 نقشه"
+  journey: "🧭 سفر من"
+  travel_to: "🧭 سفر به {city}"
+  skills: "🛠 مهارت‌ها"
+  social: "👥 دوستان"
+  add_friend: "➕ افزودن {player}"
+  accept: "✅ پذیرفتن {player}"
 
 error:
-  unknown_command: این دستور را نمی‌شناسم.
-  not_enough_energy: انرژی کافی نداری. {needed} انرژی لازم است و {current} انرژی داری.
-  cooldown: باید {seconds} ثانیه دیگر صبر کنی.
-  internal: خطایی رخ داد. لطفاً دوباره تلاش کن.
-  not_found: آن را پیدا نکردم.
-  invalid_input: این درخواست را متوجه نشدم.
-  conflict: الان نمی‌شود این کار را کرد.
-  rate_limited: خیلی سریع داری این کار را می‌کنی. کمی آرام‌تر.
-  unauthorized: اجازهٔ این کار را نداری.
-  city_not_found: این شهر را نمی‌شناسم.
-  already_travelling: همین حالا در سفر هستی.
-  skill_not_found: این مهارت را نمی‌شناسم.
-  not_friends: با این بازیکن دوست نیستی.
-  already_friends: از قبل با این بازیکن دوست هستی.
-  player_not_found: هنوز این بازیکن را نمی‌شناسم.
+  unknown_command: این دستور را نمی‌شناسم. برای رفتن به پروفایل، /start را بفرستید.
+  not_enough_energy: "انرژی کافی ندارید: این کار {needed} انرژی لازم دارد و شما {current} دارید. انرژی با گذشت زمان پر می‌شود و حداکثر تا {wait} دیگر به اندازهٔ کافی خواهید داشت."
+  not_enough_energy_later: انرژی کافی ندارید. انرژی با گذشت زمان پر می‌شود؛ کمی بعد دوباره امتحان کنید.
+  cooldown: کمی صبر کنید؛ {wait} دیگر می‌توانید دوباره این کار را انجام دهید.
+  internal: مشکلی پیش آمد. لطفاً چند لحظه بعد دوباره امتحان کنید.
+  not_found: موردی که دنبالش بودید پیدا نشد. به پروفایل برگردید و دوباره امتحان کنید.
+  invalid_input: این درخواست را متوجه نشدم. لطفاً از دکمه‌ها استفاده کنید.
+  conflict: این کار همین حالا ممکن نیست. «به‌روزرسانی» را بزنید و دوباره امتحان کنید.
+  rate_limited: در این مدت کوتاه درخواست‌های زیادی فرستاده‌اید. چند ثانیه صبر کنید و دوباره امتحان کنید.
+  unauthorized: اجازهٔ انجام این کار را ندارید. با «بازگشت» به پروفایل برگردید.
+  city_not_found: این شهر پیدا نشد. از «نقشه» یکی از مقصدهای در دسترس را انتخاب کنید.
+  already_travelling: همین حالا در سفر هستید. برای دیدن وضعیت سفر، «سفر من» را بزنید.
+  skill_not_found: این مهارت پیدا نشد. مهارت‌های خود را در «مهارت‌ها» ببینید.
+  not_friends: با این بازیکن دوست نیستید و درخواستی از او در انتظار شما نیست. فهرست دوستان و درخواست‌ها را در «دوستان» ببینید.
+  already_friends: شما از قبل با این بازیکن دوست هستید. او را در «دوستان» پیدا می‌کنید.
+  player_not_found: بازیکن پیدا نشد. اگر هنوز بازی را شروع نکرده‌اید، /start را بفرستید.

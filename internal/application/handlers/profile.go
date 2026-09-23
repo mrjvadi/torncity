@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/domain/player"
+	"github.com/mrjvadi/torncity/internal/domain/travel"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
@@ -200,10 +202,14 @@ func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*p
 // satisfy its foreign key to players; on tx it can, and a failed request
 // leaves neither a player nor stats behind.
 func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *application.Player) (screens.ProfileView, error) {
-	view := screens.ProfileView{
-		ID:       p.ID,
-		Language: p.Language,
-		Status:   p.Status,
+	// The record's id, stored language and account status are not copied
+	// onto the view: none of them means anything to a player. Nor is the
+	// placeholder name a record gets when no real one was on hand: it is
+	// derived from the Telegram account number, and showing it would put an
+	// identifier on screen dressed up as a name.
+	var view screens.ProfileView
+	if p.DisplayName != fallbackDisplayName(p.TelegramUserID) {
+		view.Name = p.DisplayName
 	}
 
 	row, err := tx.Stats().EnsureDefaults(ctx, p.ID, defaultStats(p.ID, h.now()))
@@ -220,10 +226,34 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 
 	view.Level = regenerated.Level
 	view.XP = regenerated.XP
+	if regenerated.Level < player.MaxLevel {
+		view.NextLevelXP = player.XPForLevel(regenerated.Level + 1)
+	}
 	view.Energy = regenerated.Energy
 	view.MaxEnergy = regenerated.MaxEnergy
+	view.EnergyFullIn = energyFullIn(regenerated, h.now())
 	view.Health = regenerated.Health
 	view.MaxHealth = regenerated.MaxHealth
+
+	// A player on the road is shown the journey rather than the city they
+	// left, and the home screen offers the journey instead of the map.
+	if t, err := tx.Travels().Active(ctx, p.ID); err == nil {
+		view.Travelling = true
+		view.TravelRemaining = travel.Remaining(travel.Journey{
+			FromCityID: t.FromCityID,
+			ToCityID:   t.ToCityID,
+			DepartedAt: t.DepartedAt,
+			ArrivesAt:  t.ArrivesAt,
+			Status:     travel.Status(t.Status),
+		}, h.now())
+		if to, err := h.cities.ByID(ctx, t.ToCityID); err == nil {
+			view.TravelTo = to.Name
+		} else if !isSentinel(err, application.ErrCityNotFound) {
+			return view, err
+		}
+	} else if !isSentinel(err, application.ErrNoActiveTravel) {
+		return view, err
+	}
 
 	if p.CityID != nil && *p.CityID != "" {
 		city, err := h.cities.ByID(ctx, *p.CityID)
@@ -260,7 +290,7 @@ func (h *ProfileHandler) ensurePlayer(ctx context.Context, tx application.Tx, me
 	p = &application.Player{
 		ID:             h.ids.NewID(),
 		TelegramUserID: meta.TelegramUserID,
-		DisplayName:    displayName(meta),
+		DisplayName:    fallbackDisplayName(meta.TelegramUserID),
 		Language:       lang,
 		Status:         "active",
 		CreatedAt:      h.now(),
@@ -288,7 +318,7 @@ func (h *ProfileHandler) ensurePlayer(ctx context.Context, tx application.Tx, me
 	return p, nil
 }
 
-// displayName is the name written on a record this handler creates.
+// fallbackDisplayName is the name written on a record this handler creates.
 //
 // The request envelope carries no Telegram first or last name, so there is
 // nothing better available here. In practice the gateway resolves identity
@@ -298,9 +328,11 @@ func (h *ProfileHandler) ensurePlayer(ctx context.Context, tx application.Tx, me
 // It deliberately does NOT return a constant like "player": every such record
 // would then be indistinguishable in an admin screen or a support request. The
 // Telegram user id is the one identifying fact on hand, so the name is derived
-// from it and is at least unique and traceable back to the account.
-func displayName(meta envelope.Metadata) string {
-	return "player-" + strconv.FormatInt(meta.TelegramUserID, 10)
+// from it and is at least unique and traceable back to the account. It is for
+// records and support, never for the player's own screen, which leaves it out
+// (see condition).
+func fallbackDisplayName(telegramUserID int64) string {
+	return "player-" + strconv.FormatInt(telegramUserID, 10)
 }
 
 // renderProfile hands the view to the screen that lays it out.

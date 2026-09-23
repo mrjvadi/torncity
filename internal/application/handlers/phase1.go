@@ -148,6 +148,25 @@ func regenerateEnergy(row application.Stats, now time.Time) (application.Stats, 
 	return next, true
 }
 
+// energyFullIn reports how long until a caught-up stats row has full energy
+// again, zero when it already has.
+//
+// row must already be regenerated to now, so its UpdatedAt marks the start of
+// the tick in progress: the first of the remaining ticks is part-way done,
+// and the answer is exact rather than rounded up to whole ticks.
+func energyFullIn(row application.Stats, now time.Time) time.Duration {
+	missing := row.MaxEnergy - row.Energy
+	if missing <= 0 || player.EnergyRegenAmount <= 0 {
+		return 0
+	}
+	ticks := (missing + player.EnergyRegenAmount - 1) / player.EnergyRegenAmount
+	left := time.Duration(ticks)*player.EnergyRegenInterval - now.Sub(row.UpdatedAt)
+	if left < 0 {
+		return 0
+	}
+	return left
+}
+
 // skillProgress reports how far a skill is toward its next level, as a
 // percentage of the span between the two thresholds.
 //

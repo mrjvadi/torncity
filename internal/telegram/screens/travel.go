@@ -18,21 +18,18 @@ type TravelStartedView struct {
 }
 
 // TravelStarted renders a departure.
+//
+// Its refresh button opens the journey itself, so there is no separate
+// "my journey" button: two buttons with one destination is one too many.
 func TravelStarted(c Context, v TravelStartedView) *presenter.Response {
-	text := body(
-		c.T("travel.title", nil),
-		"",
-		c.T("travel.started", map[string]any{
-			"from":     v.From,
-			"to":       v.To,
-			"duration": FormatDuration(c, v.Duration),
-			"energy":   v.Energy,
-		}),
-	)
+	text := c.T("travel.started", map[string]any{
+		"from":     v.From,
+		"to":       v.To,
+		"duration": FormatDuration(c, v.Duration),
+		"energy":   FormatNumber(int64(v.Energy)),
+	})
 
 	kb := keyboards.New()
-	status, _ := keyboards.Button(c.T("button.journey", nil), AddrTravelStatus)
-	kb.Row(status)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrTravelStatus}))
 
 	return c.respond(text, kb.Build())
@@ -46,22 +43,29 @@ type TravelStatusView struct {
 	ArrivesAt time.Time
 }
 
+// arrivingThreshold is how close to arrival a journey reads as "any moment
+// now" rather than as a countdown of seconds. The arrival is landed by the
+// scheduler, which can lag the clock by a little; a countdown stuck at "1s"
+// would look broken.
+const arrivingThreshold = time.Minute
+
 // TravelStatus renders the journey a player is on.
+//
+// There is deliberately no map or departure button here: the player cannot
+// leave again until they land, and a button that only leads to a refusal is
+// noise.
 func TravelStatus(c Context, v TravelStatusView) *presenter.Response {
-	text := body(
-		c.T("travel.title", nil),
-		"",
-		c.T("travel.status", map[string]any{
-			"from":      v.From,
-			"to":        v.To,
-			"remaining": FormatDuration(c, v.Remaining),
-		}),
-	)
+	args := map[string]any{"from": v.From, "to": v.To}
+	key := "travel.status_arriving"
+	if v.Remaining >= arrivingThreshold {
+		key = "travel.status"
+		args["remaining"] = FormatDuration(c, v.Remaining)
+	}
 
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrTravelStatus}))
 
-	return c.respond(text, kb.Build())
+	return c.respond(c.T(key, args), kb.Build())
 }
 
 // TravelArrivedView is the notification a landed journey produces.
@@ -77,15 +81,16 @@ type TravelArrivedView struct {
 
 // TravelArrived renders the arrival notification.
 func TravelArrived(c Context, v TravelArrivedView) *presenter.Response {
-	text := c.T("travel.arrived", map[string]any{
-		"city": v.City,
-		"xp":   v.XP,
-	})
+	var xp string
+	if v.XP > 0 {
+		xp = c.T("travel.arrived_xp", map[string]any{"xp": FormatNumber(v.XP)})
+	}
+	text := body(c.T("travel.arrived", map[string]any{"city": v.City}), xp)
 
 	kb := keyboards.New()
 	worldMap, _ := keyboards.Button(c.T("button.map", nil), AddrMap)
 	home, _ := keyboards.Button(c.T("button.profile", nil), AddrHome)
-	kb.Row(worldMap, home)
+	kb.Row(home, worldMap)
 
 	return presenter.Message(text, kb.Build())
 }

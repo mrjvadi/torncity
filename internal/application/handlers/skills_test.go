@@ -10,10 +10,10 @@ import (
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
-// A new player has no skill rows at all, and must still see the whole list:
-// the set of skills is a rule in the domain, not a consequence of which rows
-// a migration happened to create.
-func TestSkillsListsEverySkillTheDomainKnows(t *testing.T) {
+// A new player has no skill rows at all. They see one line on how skills are
+// gained and no rows: nine lines of "level 0" would describe the whole game to
+// someone who has not played it yet.
+func TestSkillsShowsANewPlayerHowToGainSkills(t *testing.T) {
 	h := newPhase1(t)
 	h.player(200, "p-1", tehranID)
 	handler := h.skillsHandler(t)
@@ -25,13 +25,16 @@ func TestSkillsListsEverySkillTheDomainKnows(t *testing.T) {
 	assertResolved(t, resp.Text)
 
 	cat := messages(t)
+	if empty := cat.T("fa", "skills.empty", nil); !strings.Contains(resp.Text, empty) {
+		t.Errorf("a new player's skills do not say how to gain one: %q", resp.Text)
+	}
 	for _, code := range player.SkillCodes() {
 		name := cat.T("fa", "skill."+string(code), nil)
 		if name == "skill."+string(code) {
 			t.Errorf("skill %q has no name in the catalogue", code)
 		}
-		if !strings.Contains(resp.Text, name) {
-			t.Errorf("skill list is missing %q", name)
+		if strings.Contains(resp.Text, name) {
+			t.Errorf("an untrained skill %q is listed", name)
 		}
 	}
 }
@@ -54,8 +57,8 @@ func TestSkillsShowsLevelAndProgress(t *testing.T) {
 	if !strings.Contains(resp.Text, "33") {
 		t.Errorf("skill line does not show the progress percentage: %q", resp.Text)
 	}
-	if !strings.Contains(resp.Text, "600") {
-		t.Errorf("skill line does not show the next threshold: %q", resp.Text)
+	if name := messages(t).T("fa", "skill.programming", nil); !strings.Contains(resp.Text, name) {
+		t.Errorf("the trained skill is not listed: %q", resp.Text)
 	}
 }
 

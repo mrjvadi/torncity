@@ -9,36 +9,44 @@ import (
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
-func TestMapListsCitiesWithTaxAndCostOfLiving(t *testing.T) {
+// The map lists the cities a route reaches from where the player stands,
+// nearest first, with the distance — the one number a traveller decides on.
+func TestMapListsReachableDestinationsNearestFirst(t *testing.T) {
 	h := newPhase1(t)
-	h.player(400, "p-1", tehranID)
+	h.player(400, "p-1", berlinID)
 	handler := h.mapHandler(t)
 
-	// Page two of four cities at two per page: Tehran and Tokyo, sorted by
-	// code (berlin, lima, tehran, tokyo).
-	resp, err := handler.List(context.Background(), command("map.list", 400, "req-1"), PageRequest{Page: "2"})
+	// From Berlin: Tehran at 400 km and Tokyo at 900 km. Lima has no route.
+	resp, err := handler.List(context.Background(), command("map.list", 400, "req-1"), PageRequest{Page: "1"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	assertResolved(t, resp.Text)
 
-	if !strings.Contains(resp.Text, "Tehran") || !strings.Contains(resp.Text, "Tokyo") {
-		t.Errorf("page two is missing its cities: %q", resp.Text)
+	tehran, tokyo := strings.Index(resp.Text, "Tehran"), strings.Index(resp.Text, "Tokyo")
+	if tehran < 0 || tokyo < 0 {
+		t.Fatalf("the reachable cities are missing: %q", resp.Text)
 	}
-	if strings.Contains(resp.Text, "Berlin") {
-		t.Errorf("page two shows a city from page one: %q", resp.Text)
+	if tehran > tokyo {
+		t.Errorf("Tokyo (900 km) is listed before Tehran (400 km): %q", resp.Text)
 	}
-	// Tehran's 500 bps is 5%, Tokyo's 1234 bps is 12.34%.
-	if !strings.Contains(resp.Text, "5") || !strings.Contains(resp.Text, "12.34") {
-		t.Errorf("tax rates are missing from the map: %q", resp.Text)
+	if !strings.Contains(resp.Text, "400") || !strings.Contains(resp.Text, "900") {
+		t.Errorf("the distances are missing: %q", resp.Text)
 	}
-	if !strings.Contains(resp.Text, "2000") {
-		t.Errorf("the cost of living is missing from the map: %q", resp.Text)
+	if strings.Contains(resp.Text, "Lima") {
+		t.Errorf("a city no route reaches is listed: %q", resp.Text)
+	}
+	// Tax and cost of living are not travel decisions; they stay off the
+	// departures board. Tokyo's 1234 bps would read 12.34, its cost 2,000.
+	for _, noise := range []string{"12.34", "2,000", "2000"} {
+		if strings.Contains(resp.Text, noise) {
+			t.Errorf("the map shows %q, which does not help choose a destination: %q", noise, resp.Text)
+		}
 	}
 }
 
-// Reachability is a fact about the route network, and an unreachable city is
-// still a city: it is listed, without a way to leave for it.
+// Reachability is a fact about the route network. A city no route reaches is
+// not a choice the player has, so it is neither listed nor offered.
 func TestMapMarksWhatIsReachableFromHere(t *testing.T) {
 	h := newPhase1(t)
 	h.player(401, "p-1", tehranID)
@@ -48,7 +56,7 @@ func TestMapMarksWhatIsReachableFromHere(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	// Page one is Berlin (400 km from Tehran) and Lima (no route at all).
+	// From Tehran the only destination is Berlin, 400 km away.
 	if !strings.Contains(resp.Text, "400") {
 		t.Errorf("the distance to Berlin is missing: %q", resp.Text)
 	}
@@ -66,6 +74,9 @@ func TestMapMarksWhatIsReachableFromHere(t *testing.T) {
 	}
 	if departures["lima"] {
 		t.Error("the map offers a journey to Lima, which no route reaches")
+	}
+	if strings.Contains(resp.Text, "Lima") {
+		t.Errorf("the map lists Lima, which no route reaches: %q", resp.Text)
 	}
 }
 

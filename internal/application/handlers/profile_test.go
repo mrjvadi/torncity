@@ -375,28 +375,35 @@ func TestProfileTextComesFromTheCatalogue(t *testing.T) {
 				t.Fatal("empty profile body")
 			}
 
-			// The placeholders must have been filled with this
-			// player's own values.
+			// Nothing about the record behind the profile reaches the
+			// player: not its id, its stored language, its status, nor the
+			// placeholder name derived from the Telegram account.
 			p := uow.tx.players.byTelegramID[4242]
-			for _, want := range []string{p.ID, p.Language, p.Status} {
-				if !strings.Contains(resp.Text, want) {
-					t.Errorf("profile body %q is missing %q", resp.Text, want)
+			for _, internal := range []string{p.ID, p.Status, p.DisplayName} {
+				if strings.Contains(resp.Text, internal) {
+					t.Errorf("profile body %q shows the internal value %q", resp.Text, internal)
+				}
+			}
+			for _, word := range strings.Fields(resp.Text) {
+				if word == p.Language {
+					t.Errorf("profile body %q shows the language code %q", resp.Text, p.Language)
 				}
 			}
 			if strings.Contains(resp.Text, "{") {
 				t.Errorf("profile body has an unfilled placeholder: %q", resp.Text)
 			}
 
-			// The last row is the navigation block every screen carries:
-			// back, then refresh.
+			// The last row is refresh on its own. The profile is the home
+			// screen every back button leads to, so it has no back button
+			// of its own.
 			if resp.Keyboard == nil || len(resp.Keyboard.Rows) < 1 {
 				t.Fatalf("expected a keyboard, got %+v", resp.Keyboard)
 			}
 			nav := resp.Keyboard.Rows[len(resp.Keyboard.Rows)-1]
-			if len(nav) != 2 {
-				t.Fatalf("expected a back and a refresh button, got %+v", nav)
+			if len(nav) != 1 {
+				t.Fatalf("expected a refresh button alone, got %+v", nav)
 			}
-			btn := nav[1]
+			btn := nav[0]
 			if btn.Text == "button.refresh" || btn.Text == "" {
 				t.Errorf("button label did not resolve: %q", btn.Text)
 			}
@@ -437,19 +444,17 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 		t.Errorf("handler ignored the injected catalogue, got %q", resp.Text)
 	}
 	// The full sequence the profile screen looks up, in order. The player
-	// this test creates has no city yet, which is why the screen asks for
-	// the "nowhere" label before it renders the body. The navigation keys
-	// at the end are the back, refresh and pagination labels
-	// 17_TELEGRAM_UX.md requires every screen to carry.
+	// this test creates is brand new, has no city and only the placeholder
+	// name, so the screen asks for the welcome, then level, energy and
+	// health, and no name or city line. With no city there is nowhere to
+	// travel, so the keyboard offers skills, friends and refresh — no map.
 	want := []string{
-		"profile.city_unknown",
 		"profile.body",
-		"profile.condition",
+		"profile.level",
+		"profile.energy",
+		"profile.health",
 		"button.skills",
-		"button.map",
-		"button.previous",
-		"button.next",
-		"button.back",
+		"button.social",
 		"button.refresh",
 	}
 	if len(spy.keys) != len(want) {

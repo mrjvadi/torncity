@@ -5,73 +5,66 @@
 # one locale and not another, and any message whose placeholders differ.
 #
 # Quote any message that STARTS with a placeholder: bare {name} at the start of
-# a value is a YAML mapping, not text. Mid-sentence placeholders need nothing.
+# a value is a YAML mapping, not text. Quote any message that contains ": " as
+# well, for the same reason. Mid-sentence placeholders need nothing.
+#
+# Terminology and emoji anchors follow the glossary at the top of fa.yml:
+# Energy ⚡, Health ❤️, Level ⭐, XP, City 📍, Journey 🧭, Time left ⏳, Map 🗺,
+# Skills 🛠, Friends 👥, Profile 👤, Search 🔎, Refresh 🔄. Address the player
+# as "you"; durations read "2h 15m"; numbers use "," as the thousands
+# separator (inserted by the code).
 
 profile:
-  title: Profile
-
-  # |- keeps the newlines and drops the trailing one, so the message ends
-  # where the text ends.
+  # The one-time welcome, shown only while the player has not earned any XP.
   body: |-
-    Profile
+    Welcome to the game!
+    This is your profile — use the buttons below to find your way around.
 
-    ID: {id}
-    Language: {language}
-    Status: {status}
-
-  # The condition block is a separate message from the identity block above:
-  # it changes on every read as energy accrues, and keeping the two apart
-  # keeps each placeholder set small enough to check by eye.
-  condition: |-
-    City: {city}
-    Level: {level} ({xp} XP)
-    Energy: {energy}/{max_energy}
-    Health: {health}/{max_health}
-
-  unavailable: Your profile is not available.
-  city_unknown: nowhere yet
-
-  id_label: ID
-  language_label: Language
-  status_label: Status
-  level_label: Level
-  energy_label: Energy
-  health_label: Health
-
-dashboard:
-  title: Home
-  body: |-
-    {name}
-
-    City: {city}
-    Level: {level}
-    Energy: {energy}/{max_energy}
+  name: "👤 {name}"
+  city: "📍 {city}"
+  travelling: "🧭 On the way to {city} · {remaining} left"
+  level: "⭐ Level {level} · {xp_to_next} XP to level {next_level}"
+  level_plain: "⭐ Level {level}"
+  level_max: "⭐ Level {level} · highest level reached"
+  energy: "⚡ Energy: {energy}/{max_energy}"
+  energy_refilling: "⚡ Energy: {energy}/{max_energy} · full in {duration}"
+  health: "❤️ Health: {health}/{max_health}"
+  unavailable: Your profile is not available right now. Please try again in a moment.
 
 map:
-  title: World map
-  origin: "You are in {city}."
-  empty: No cities have been loaded yet.
-  depart: "Travel to {city}"
-  city:
-    current: "{city} — you are here · tax {tax}% · living {cost}"
-    reachable: "{city} — {distance} km · tax {tax}% · living {cost}"
-    unreachable: "{city} — no route from here · tax {tax}% · living {cost}"
+  title: "🗺 Map"
+  origin: "📍 You are in {city}."
+  destinations: "From here you can travel to:"
+  destination: "• {city} — {distance} km"
+  no_routes: There are no routes from here to another city yet. Tap Refresh to check again later.
+  no_city: You have not settled in a city yet. Once you do, your travel destinations will appear here.
+  travelling: "🧭 You are on the way to {city}. You can start a new journey once you arrive."
 
 travel:
-  title: Travel
-  started: "Leaving {from} for {to}. Arriving in {duration}. Energy spent: {energy}."
-  status: "{from} to {to}. {remaining} remaining."
-  none: You are not travelling right now.
-  arrived: "You have arrived in {city}. You earned {xp} XP."
-  same_city: You are already in that city.
-  no_route: There is no route to that city from here.
-  unknown_speed: That travel option is not available.
+  started: |-
+    🧭 Your journey to {to} has begun
+    You left {from} and will arrive in {duration}.
+    ⚡ {energy} energy used.
+  status: |-
+    🧭 On the way to {to}
+    From: {from}
+    ⏳ Arriving in {remaining}
+  status_arriving: |-
+    🧭 On the way to {to}
+    From: {from}
+    ⏳ Arriving any moment now.
+  arrived: "📍 You have arrived in {city}."
+  arrived_xp: "⭐ You earned {xp} XP."
+  none: You are not travelling right now. Open the Map to choose a destination.
+  same_city: You are already in this city. Choose another destination from the Map.
+  no_route: There is no route there from your current city. Choose one of the destinations on the Map.
+  unknown_speed: That way of travelling is not available. Use the Map to travel the standard way.
 
 skills:
-  title: Skills
-  empty: You have not trained any skill yet.
-  line: "{skill} — level {level} · {xp}/{next} XP ({percent}%)"
-  line_untrained: "{skill} — untrained · {xp}/{next} XP ({percent}%) · level {level}"
+  title: "🛠 Skills"
+  empty: You have not trained any skills yet. Each skill you practise will appear here.
+  line: "• {skill} — level {level} · {percent}% to next level"
+  line_max: "• {skill} — level {level} · highest level"
 
 skill:
   programming: Programming
@@ -85,57 +78,62 @@ skill:
   driving: Driving
 
 social:
-  unknown_player: an unnamed player
+  unknown_player: A player
   search:
-    title: "Search results for {query}"
-    empty: Nobody matched that search.
+    title: "🔎 Results for “{query}”"
+    empty: No player matches “{query}”. Try another name.
     line: "{index}. {player}"
   friends:
-    title: Friends
-    empty: You have no friends yet.
-    line: "{player} — {status}"
+    title: "👥 Friends"
+    empty: |-
+      You have no friends yet.
+      To find players, search by name: /social search name
+    line: "• {player}"
+    line_pending: "• {player} — waiting for a reply"
+    line_blocked: "• {player} — blocked"
   friend:
-    requested: "Friend request sent to {player}."
-    accepted: "You and {player} are now friends."
-  status:
-    pending: pending
-    accepted: friends
-    blocked: blocked
+    requested: Friend request sent to {player}. They will appear in your friends list once they accept.
+    requested_anon: Friend request sent. The player will appear in your friends list once they accept.
+    accepted: You and {player} are now friends.
+    accepted_anon: Friend request accepted. This player is now in your friends list.
 
 page:
   indicator: "Page {page} of {pages}"
 
 format:
-  duration: "{hours}h {minutes}m"
+  duration_hm: "{hours}h {minutes}m"
+  duration_h: "{hours}h"
+  duration_m: "{minutes}m"
+  duration_s: "{seconds}s"
 
 button:
-  refresh: Refresh
+  refresh: "🔄 Refresh"
   back: Back
   next: Next
   previous: Previous
-  profile: Profile
-  dashboard: Home
-  map: Map
-  travel: Travel
-  journey: My journey
-  skills: Skills
-  social: Friends
-  add_friend: "Add {player}"
-  accept: "Accept {player}"
+  profile: "👤 Profile"
+  map: "🗺 Map"
+  journey: "🧭 My journey"
+  travel_to: "🧭 Travel to {city}"
+  skills: "🛠 Skills"
+  social: "👥 Friends"
+  add_friend: "➕ Add {player}"
+  accept: "✅ Accept {player}"
 
 error:
-  unknown_command: I do not know that command.
-  not_enough_energy: Not enough energy. You need {needed} and have {current}.
-  cooldown: Wait {seconds} more seconds.
-  internal: Something went wrong. Please try again.
-  not_found: I could not find that.
-  invalid_input: I could not understand that request.
-  conflict: That cannot be done right now.
-  rate_limited: You are doing that too quickly. Please slow down.
-  unauthorized: You are not allowed to do that.
-  city_not_found: I do not know that city.
-  already_travelling: You are already on a journey.
-  skill_not_found: I do not know that skill.
-  not_friends: You are not friends with that player.
-  already_friends: You are already friends with that player.
-  player_not_found: I do not know that player yet.
+  unknown_command: I do not know that command. Send /start to open your profile.
+  not_enough_energy: "Not enough energy: this needs {needed} and you have {current}. Energy refills over time, and you will have enough within {wait}."
+  not_enough_energy_later: Not enough energy. It refills over time, so please try again a little later.
+  cooldown: Please wait — you can do this again in {wait}.
+  internal: Something went wrong. Please try again in a moment.
+  not_found: We could not find what you were looking for. Go back to your profile and try again.
+  invalid_input: I could not understand that request. Please use the buttons.
+  conflict: That cannot be done right now. Tap Refresh and try again.
+  rate_limited: Too many requests in a row. Please wait a few seconds and try again.
+  unauthorized: You are not allowed to do that. Tap Back to return to your profile.
+  city_not_found: That city could not be found. Choose one of the destinations on the Map.
+  already_travelling: You are already on a journey. Tap “My journey” to see how it is going.
+  skill_not_found: That skill could not be found. See your skills under Skills.
+  not_friends: You are not friends with this player, and there is no request from them waiting for you. See your friends and requests under Friends.
+  already_friends: You are already friends with this player. You will find them under Friends.
+  player_not_found: Player not found. If you have not started the game yet, send /start.

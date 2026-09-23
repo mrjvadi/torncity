@@ -1,67 +1,147 @@
 package screens
 
 import (
+	"time"
+
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
 // ProfileView is the player's own record as the profile screen shows it.
 //
-// City is the resolved NAME of the city, never its identifier: an identifier
-// means nothing to a player and, once it is on screen, it ends up in a
-// screenshot and then in a support request as if it were a fact about them.
+// It carries only what a player understands and can act on. The record's
+// identifier, stored language and account status are deliberately absent:
+// none of them means anything to a player, and a value that is on screen ends
+// up in a screenshot and then in a support request as if it were a fact about
+// them. City is likewise the resolved NAME, never an identifier.
 type ProfileView struct {
-	ID       string
-	Language string
-	Status   string
-	City     string
+	Name string
+	// City is the resolved city name, empty when the player is nowhere yet.
+	// An empty city is simply not shown.
+	City string
 
-	Level     int
-	XP        int64
+	Level int
+	XP    int64
+	// NextLevelXP is the XP total at which the next level is reached, from
+	// the domain's curve. Zero means there is no next level.
+	NextLevelXP int64
+
 	Energy    int
 	MaxEnergy int
-	Health    int
-	MaxHealth int
+	// EnergyFullIn is how long until energy is full again, zero when it
+	// already is.
+	EnergyFullIn time.Duration
+	Health       int
+	MaxHealth    int
+
+	// Travelling says a journey is in progress. TravelTo and TravelRemaining
+	// describe it; the profile then shows the journey instead of a city the
+	// player is no longer standing in.
+	Travelling      bool
+	TravelTo        string
+	TravelRemaining time.Duration
 }
 
-// Profile renders the player's record.
+// isNewPlayer reports whether this is someone who has not done anything yet,
+// the one moment the welcome line earns its space.
+func (v ProfileView) isNewPlayer() bool {
+	return v.XP == 0 && v.Level <= 1 && !v.Travelling
+}
+
+// Profile renders the player's record. It is also the home screen: /start and
+// every back button land here, so it carries the way to every other screen.
 func Profile(c Context, v ProfileView) *presenter.Response {
-	city := v.City
-	if city == "" {
-		city = c.T("profile.city_unknown", nil)
+	var welcome string
+	if v.isNewPlayer() {
+		welcome = c.T("profile.body", nil)
 	}
 
-	// The record and the condition are two messages, not one.
-	//
-	// profile.body is who the player IS: the identity fields that were there
-	// before this screen grew. profile.condition is how they ARE right now,
-	// and it changes on every read as energy accrues. Keeping them apart
-	// means a translator can rework the condition block — which is a table
-	// of numbers and the hardest part to word well — without touching the
-	// identity block, and it keeps each message's placeholder set small
-	// enough to check by eye.
+	var where string
+	switch {
+	case v.Travelling && v.TravelTo != "":
+		where = c.T("profile.travelling", map[string]any{
+			"city":      v.TravelTo,
+			"remaining": FormatDuration(c, v.TravelRemaining),
+		})
+	case v.City != "":
+		where = c.T("profile.city", map[string]any{"city": v.City})
+	}
+
+	var name string
+	if v.Name != "" {
+		name = c.T("profile.name", map[string]any{"name": v.Name})
+	}
+
 	text := paragraphs(
-		c.T("profile.body", map[string]any{
-			"id":       v.ID,
-			"language": v.Language,
-			"status":   v.Status,
-		}),
-		c.T("profile.condition", map[string]any{
-			"city":       city,
-			"level":      v.Level,
-			"xp":         v.XP,
-			"energy":     v.Energy,
-			"max_energy": v.MaxEnergy,
-			"health":     v.Health,
-			"max_health": v.MaxHealth,
-		}),
+		welcome,
+		body(name, where),
+		body(
+			levelLine(c, v.Level, v.XP, v.NextLevelXP),
+			energyLine(c, v.Energy, v.MaxEnergy, v.EnergyFullIn),
+			c.T("profile.health", map[string]any{
+				"health":     FormatNumber(int64(v.Health)),
+				"max_health": FormatNumber(int64(v.MaxHealth)),
+			}),
+		),
 	)
 
+	return c.respond(text, hubKeyboard(c, v.City != "", v.Travelling).Build())
+}
+
+// levelLine shows the level and how far the next one is. A player at the top
+// of the curve sees the level alone: "0 XP to level 101" would be a lie.
+func levelLine(c Context, level int, xp, nextLevelXP int64) string {
+	if level < 1 {
+		level = 1
+	}
+	if nextLevelXP <= xp {
+		return c.T("profile.level_max", map[string]any{"level": level})
+	}
+	return c.T("profile.level", map[string]any{
+		"level":      level,
+		"xp_to_next": FormatNumber(nextLevelXP - xp),
+		"next_level": level + 1,
+	})
+}
+
+// energyLine shows energy, and when it is not full, how long until it is —
+// which is the one thing a player short of energy wants to know.
+func energyLine(c Context, energy, maxEnergy int, fullIn time.Duration) string {
+	args := map[string]any{
+		"energy":     FormatNumber(int64(energy)),
+		"max_energy": FormatNumber(int64(maxEnergy)),
+	}
+	if energy < maxEnergy && fullIn > 0 {
+		args["duration"] = FormatDuration(c, fullIn)
+		return c.T("profile.energy_refilling", args)
+	}
+	return c.T("profile.energy", args)
+}
+
+// hubKeyboard is the navigation of the home screen.
+//
+// It offers only what the player can do right now: the journey instead of
+// the map while travelling, and no map at all for a player who is not in a
+// city yet, because every departure would be refused. It has no back button,
+// because it is the screen every back button leads to.
+func hubKeyboard(c Context, hasCity, travelling bool) *keyboards.Builder {
 	kb := keyboards.New()
 	skills, _ := keyboards.Button(c.T("button.skills", nil), AddrSkills)
-	worldMap, _ := keyboards.Button(c.T("button.map", nil), AddrMap)
-	kb.Row(skills, worldMap)
-	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrProfile}))
+	switch {
+	case travelling:
+		journey, _ := keyboards.Button(c.T("button.journey", nil), AddrTravelStatus)
+		kb.Row(skills, journey)
+	case hasCity:
+		worldMap, _ := keyboards.Button(c.T("button.map", nil), AddrMap)
+		kb.Row(skills, worldMap)
+	default:
+		kb.Row(skills)
+	}
 
-	return c.respond(text, kb.Build())
+	social, _ := keyboards.Button(c.T("button.social", nil), AddrFriendList)
+	kb.Row(social)
+
+	refresh, _ := keyboards.Button(c.T("button.refresh", nil), AddrProfile)
+	kb.Row(refresh)
+	return kb
 }

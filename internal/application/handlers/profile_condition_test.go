@@ -26,7 +26,10 @@ func TestProfileShowsLevelEnergyHealthAndCity(t *testing.T) {
 	}
 	assertResolved(t, resp.Text)
 
-	for _, want := range []string{"7", "1234", "42", "88", "Berlin"} {
+	// The level, the XP still needed for the next one, energy, health and
+	// the city — not the raw XP total, which says nothing on its own.
+	toNext := strconv.FormatInt(player.XPForLevel(8)-1234, 10)
+	for _, want := range []string{"7", toNext, "42", "88", "Berlin"} {
 		if !strings.Contains(resp.Text, want) {
 			t.Errorf("profile %q is missing %q", resp.Text, want)
 		}
