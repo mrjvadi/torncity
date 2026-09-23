@@ -54,7 +54,6 @@ type ProfileHandler struct {
 	uow            application.UnitOfWork
 	ids            IDGenerator
 	msgs           Translator
-	stats          application.StatsRepository
 	cities         application.CityRepository
 	defaultL       string
 	idempotencyTTL time.Duration
@@ -85,14 +84,13 @@ type ProfileHandler struct {
 // twice. It must outlast the broker's redelivery schedule, which
 // internal/config validates.
 //
-// stats and cities are the phase 1 repositories the profile reads. See the
-// note at the top of phase1.go for why they are injected here rather than
-// reached through the unit of work.
+// cities is the one phase 1 repository injected here: cities are read-only
+// content. Stats are written on every read (see condition), so they are
+// reached through the unit of work's Tx instead.
 func NewProfileHandler(
 	uow application.UnitOfWork,
 	ids IDGenerator,
 	msgs Translator,
-	stats application.StatsRepository,
 	cities application.CityRepository,
 	defaultLanguage string,
 	idempotencyTTL time.Duration,
@@ -114,7 +112,6 @@ func NewProfileHandler(
 		uow:            uow,
 		ids:            ids,
 		msgs:           msgs,
-		stats:          stats,
 		cities:         cities,
 		defaultL:       defaultLanguage,
 		idempotencyTTL: idempotencyTTL,
@@ -170,7 +167,7 @@ func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*p
 		// The condition is read on EVERY delivery, replay or not. It is a
 		// read, so repeating it changes nothing, and suppressing it would
 		// answer a redelivered request with a blank profile.
-		view, err = h.condition(ctx, p)
+		view, err = h.condition(ctx, tx, p)
 		return err
 	})
 	if err != nil {
@@ -196,21 +193,27 @@ func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*p
 // mechanism: if the caught-up value were not persisted, the next read would
 // measure from the same old timestamp and regenerate the same energy again,
 // and a player refreshing the screen would watch their bar refill for free.
-func (h *ProfileHandler) condition(ctx context.Context, p *application.Player) (screens.ProfileView, error) {
+//
+// Both stats calls go through tx. On first contact the player row was created
+// earlier in this same transaction and is not yet visible to any other
+// connection, so a stats row written on a separate connection could not even
+// satisfy its foreign key to players; on tx it can, and a failed request
+// leaves neither a player nor stats behind.
+func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *application.Player) (screens.ProfileView, error) {
 	view := screens.ProfileView{
 		ID:       p.ID,
 		Language: p.Language,
 		Status:   p.Status,
 	}
 
-	row, err := h.stats.EnsureDefaults(ctx, p.ID, defaultStats(p.ID, h.now()))
+	row, err := tx.Stats().EnsureDefaults(ctx, p.ID, defaultStats(p.ID, h.now()))
 	if err != nil {
 		return view, err
 	}
 
 	regenerated, changed := regenerateEnergy(*row, h.now())
 	if changed {
-		if err := h.stats.Save(ctx, regenerated); err != nil {
+		if err := tx.Stats().Save(ctx, regenerated); err != nil {
 			return view, err
 		}
 	}

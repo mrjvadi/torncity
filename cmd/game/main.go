@@ -206,8 +206,11 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	}
 
 	uow := postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage)
+	// Only the read-only repositories are built over the pool. Everything a
+	// handler writes — stats, journeys, the schedule, friendships — is reached
+	// through the unit of work's Tx, so it commits with the command's
+	// idempotency key and outbox record or not at all.
 	cities := postgres.NewCityRepository(pool)
-	stats := postgres.NewStatsRepository(pool)
 	travels := postgres.NewTravelRepository(pool)
 
 	// Every handler is given the store, not the catalogue it currently
@@ -219,7 +222,6 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			uow,
 			uuidGenerator{},
 			messages,
-			stats,
 			cities,
 			// The language a new account IS, not the catalogue's rendering
 			// fallback. Both read "fa" today and need not always.
@@ -232,9 +234,6 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			uuidGenerator{},
 			messages,
 			cities,
-			stats,
-			travels,
-			postgres.NewGameActionRepository(pool),
 			livePlanner{registry: registry, tariff: tariff},
 			cfg.Travel.EnergyCost,
 			int64(cfg.Travel.ArrivalXP),
@@ -247,7 +246,6 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			uuidGenerator{},
 			messages,
 			postgres.NewPlayerSearchRepository(pool),
-			postgres.NewFriendshipRepository(pool),
 			handlers.DefaultPageSize,
 			cfg.Game.IdempotencyTTL,
 			nil,

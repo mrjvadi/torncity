@@ -78,9 +78,6 @@ type TravelHandler struct {
 	ids     IDGenerator
 	msgs    Translator
 	cities  application.CityRepository
-	stats   application.StatsRepository
-	travels application.TravelRepository
-	actions application.GameActionRepository
 	planner TravelPlanner
 
 	energyCost     int
@@ -102,14 +99,16 @@ type TravelHandler struct {
 // idempotencyTTL is rejected at zero for the reason NewProfileHandler gives:
 // a zero TTL reads as an expiry already past, so every redelivery would run
 // as if it were new.
+//
+// Stats, journeys and the schedule are not constructor arguments: every one of
+// them is written, and a write belongs to the unit of work, so the handler
+// reaches them through the Tx it is given. Cities are read-only content and
+// stay injected; see application.Tx.
 func NewTravelHandler(
 	uow application.UnitOfWork,
 	ids IDGenerator,
 	msgs Translator,
 	cities application.CityRepository,
-	stats application.StatsRepository,
-	travels application.TravelRepository,
-	actions application.GameActionRepository,
 	planner TravelPlanner,
 	energyCost int,
 	arrivalXP int64,
@@ -139,9 +138,6 @@ func NewTravelHandler(
 		ids:            ids,
 		msgs:           msgs,
 		cities:         cities,
-		stats:          stats,
-		travels:        travels,
-		actions:        actions,
 		planner:        planner,
 		energyCost:     energyCost,
 		arrivalXP:      arrivalXP,
@@ -198,7 +194,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 			return nil
 		}
 
-		if _, err := h.travels.Active(ctx, p.ID); err == nil {
+		if _, err := tx.Travels().Active(ctx, p.ID); err == nil {
 			return application.ErrAlreadyTravelling
 		} else if !isSentinel(err, application.ErrNoActiveTravel) {
 			return err
@@ -230,7 +226,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 			return errors.InvalidInput("travel cannot be planned").WithCause(err)
 		}
 
-		row, err := h.stats.EnsureDefaults(ctx, p.ID, defaultStats(p.ID, h.now()))
+		row, err := tx.Stats().EnsureDefaults(ctx, p.ID, defaultStats(p.ID, h.now()))
 		if err != nil {
 			return err
 		}
@@ -248,7 +244,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 
 		next := storedStats(regenerated, spent)
 		next.UpdatedAt = h.now()
-		if err := h.stats.Save(ctx, next); err != nil {
+		if err := tx.Stats().Save(ctx, next); err != nil {
 			return err
 		}
 
@@ -269,7 +265,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		// It is also the row that makes the journey survive a restart: the
 		// process can die the instant after this commits and the player still
 		// lands, because the work outlived the process that started it.
-		if err := h.actions.Schedule(ctx, application.GameAction{
+		if err := tx.GameActions().Schedule(ctx, application.GameAction{
 			ID:            actionID,
 			ActionType:    TravelActionType,
 			ActorType:     "player",
@@ -284,7 +280,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 			return err
 		}
 
-		if err := h.travels.Start(ctx, application.Travel{
+		if err := tx.Travels().Start(ctx, application.Travel{
 			ID:           travelID,
 			PlayerID:     p.ID,
 			FromCityID:   from.ID,
@@ -362,7 +358,7 @@ func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*pr
 			return err
 		}
 
-		t, err := h.travels.Active(ctx, p.ID)
+		t, err := tx.Travels().Active(ctx, p.ID)
 		if err != nil {
 			return err
 		}
@@ -465,7 +461,7 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 			return nil
 		}
 
-		t, err := h.travels.Active(ctx, playerID)
+		t, err := tx.Travels().Active(ctx, playerID)
 		if err != nil {
 			if isSentinel(err, application.ErrNoActiveTravel) {
 				// Already landed, or cancelled. Nothing to do and nothing
@@ -494,15 +490,22 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 			return errors.Internal(err)
 		}
 
-		// Complete marks the journey arrived AND moves the player, in one
-		// transaction of its own. Splitting those two is what strands a
-		// player between two cities when a process dies in between, which is
-		// why the port promises them together.
-		if err := h.travels.Complete(ctx, t.ID); err != nil {
+		// Complete marks the journey arrived AND moves the player together.
+		// Splitting those two is what strands a player between two cities
+		// when a process dies in between, which is why the port promises
+		// them together.
+		//
+		// It runs on tx, so the arrival is part of THIS unit of work and not
+		// committed on its own. That matters for everything after it: if the
+		// XP award or the outbox record below fails, the arrival and the
+		// idempotency reservation roll back with it, and the redelivery
+		// finds the journey still in transit and lands it — XP included —
+		// instead of finding nothing to do and dropping the award.
+		if err := tx.Travels().Complete(ctx, t.ID); err != nil {
 			return err
 		}
 
-		row, err := h.stats.EnsureDefaults(ctx, playerID, defaultStats(playerID, h.now()))
+		row, err := tx.Stats().EnsureDefaults(ctx, playerID, defaultStats(playerID, h.now()))
 		if err != nil {
 			return err
 		}
@@ -510,7 +513,7 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 		awarded, ups := domainStats(regenerated).AddXP(h.arrivalXP)
 		next := storedStats(regenerated, awarded)
 		next.UpdatedAt = h.now()
-		if err := h.stats.Save(ctx, next); err != nil {
+		if err := tx.Stats().Save(ctx, next); err != nil {
 			return err
 		}
 

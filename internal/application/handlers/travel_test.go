@@ -308,6 +308,99 @@ func TestTravelCompleteTwiceMovesNobodyTwice(t *testing.T) {
 	}
 }
 
+// This is the regression test for the XP that used to be lost on retry.
+//
+// The arrival (journey arrived, player moved) used to commit on its own
+// connection. When a step after it failed, only the idempotency key and the
+// outbox record rolled back, so the redelivery found no active journey,
+// returned nil, and the player had landed without the XP. Now every write
+// goes through the unit of work, so a failure at any step after the landing
+// takes the landing with it, and the retry does the whole arrival exactly
+// once.
+func TestTravelCompleteRetryAfterAFailedStepAwardsXPOnce(t *testing.T) {
+	tests := []struct {
+		name string
+		fail func(h *phase1)
+	}{
+		// The step immediately after travels.Complete.
+		{"xp award fails", func(h *phase1) { h.stats.failSaves = 1 }},
+		// The last step, so everything before it has already been written.
+		{"outbox append fails", func(h *phase1) { h.uow.tx.outbox.failAppends = 1 }},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := newPhase1(t)
+			p := h.player(120, "p-1", tehranID)
+			handler := h.travelHandler(t)
+			ctx := context.Background()
+
+			if _, err := handler.Start(ctx, command("travel.start", 120, "req-1"), depart("berlin")); err != nil {
+				t.Fatalf("departure: %v", err)
+			}
+			journey := h.travels.started[0]
+			h.now = journey.ArrivesAt
+			xpBefore := h.stats.rows[p.ID].XP
+			outboxBefore := len(h.uow.tx.outbox.records)
+			rollbacksBefore := h.uow.rollbacks
+
+			tt.fail(h)
+			if _, err := handler.Complete(ctx, scheduled("travel.arrive", "dispatch-1"), arrival(p.ID, journey.ID)); !stderrors.Is(err, errInjected) {
+				t.Fatalf("got %v, want the injected failure", err)
+			}
+
+			// The whole unit rolled back: the journey is still in transit,
+			// the player has not moved, no XP and no event were kept.
+			if h.uow.rollbacks != rollbacksBefore+1 {
+				t.Errorf("rollbacks = %d, want %d", h.uow.rollbacks, rollbacksBefore+1)
+			}
+			if _, ok := h.travels.active[p.ID]; !ok {
+				t.Fatal("the failed arrival still marked the journey arrived; a retry would find nothing to land")
+			}
+			if n := len(h.travels.completed); n != 0 {
+				t.Errorf("the failed arrival kept %d completions, want 0", n)
+			}
+			if got, moved := h.travels.moved[p.ID]; moved {
+				t.Errorf("the failed arrival moved the player to %q", got)
+			}
+			if got := h.stats.rows[p.ID].XP; got != xpBefore {
+				t.Errorf("xp is %d after the failed arrival, want %d", got, xpBefore)
+			}
+			if n := len(h.uow.tx.outbox.records); n != outboxBefore {
+				t.Errorf("the failed arrival kept %d outbox records, want %d", n, outboxBefore)
+			}
+
+			// The redelivery: a fresh request id, as the scheduler mints.
+			resp, err := handler.Complete(ctx, scheduled("travel.arrive", "dispatch-2"), arrival(p.ID, journey.ID))
+			if err != nil {
+				t.Fatalf("retried arrival: %v", err)
+			}
+			if resp == nil {
+				t.Fatal("the retried arrival found nothing to land")
+			}
+			if got := h.travels.moved[p.ID]; got != berlinID {
+				t.Errorf("player landed in %q, want %q", got, berlinID)
+			}
+			if got := h.stats.rows[p.ID].XP; got != xpBefore+testArrivalXP {
+				t.Errorf("xp is %d after the retry, want %d", got, xpBefore+testArrivalXP)
+			}
+
+			// And a third delivery changes nothing: the award is once.
+			if _, err := handler.Complete(ctx, scheduled("travel.arrive", "dispatch-3"), arrival(p.ID, journey.ID)); err != nil {
+				t.Fatalf("third delivery: %v", err)
+			}
+			if got := h.stats.rows[p.ID].XP; got != xpBefore+testArrivalXP {
+				t.Errorf("xp is %d after a third delivery, want %d", got, xpBefore+testArrivalXP)
+			}
+			if n := len(h.travels.completed); n != 1 {
+				t.Errorf("completed the journey %d times, want 1", n)
+			}
+			if n := len(h.uow.tx.outbox.records); n != outboxBefore+1 {
+				t.Errorf("%d outbox records, want %d (one travel.completed)", n, outboxBefore+1)
+			}
+		})
+	}
+}
+
 // Even with the idempotency store wiped — a key that expired, a store that
 // lost a row — a second arrival must still find nothing to do, because the
 // journey is no longer the player's active one.
@@ -444,8 +537,7 @@ func TestNewTravelHandlerRefusesZeroTuning(t *testing.T) {
 					t.Error("expected a panic, got none")
 				}
 			}()
-			NewTravelHandler(h.uow, h.ids, nil, h.cities, h.stats, h.travels, h.actions,
-				planner, tt.energy, tt.xp, tt.ttl, h.clock())
+			NewTravelHandler(h.uow, h.ids, nil, h.cities, planner, tt.energy, tt.xp, tt.ttl, h.clock())
 		})
 	}
 }

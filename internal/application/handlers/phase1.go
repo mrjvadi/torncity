@@ -18,23 +18,30 @@ import (
 // that owns its rules, and the two or three pieces of arithmetic that would
 // otherwise be copied into five handlers and drift.
 //
-// # A note on where the phase 1 repositories are injected
+// # A note on where the phase 1 repositories come from
 //
-// application.Tx exposes exactly three repositories: players, outbox and
-// idempotency. The phase 1 repositories declared in ports_phase1.go are not
-// reachable through it, and the context a UnitOfWork hands to its function
-// does not carry the transaction either. So a handler here takes them as
-// constructor arguments and calls them inside the unit of work for ORDERING,
-// not for atomicity: the idempotency reservation and the outbox record commit
-// together, while the rows those repositories write commit on their own
-// connection.
+// Every phase 1 repository a handler WRITES through is reached via the Tx its
+// unit of work hands it: tx.Stats(), tx.Travels(), tx.GameActions() and
+// tx.Friendships() (tx.Skills() exists for the same reason, though no handler
+// writes a skill yet). So a command's state change, its idempotency
+// reservation and its outbox record commit together or not at all.
 //
-// That is a gap in the contract, not a decision made here, and it is written
-// down rather than worked around. The one place it would be dangerous —
-// marking a journey arrived and moving the player — is already closed inside
-// TravelRepository.Complete, which its own documentation requires to do both
-// in a single transaction. When application.Tx grows accessors for these
-// repositories, the calls below move onto tx and nothing else changes.
+// This was not always so. These repositories used to be constructor arguments
+// running on their own pooled connection, called inside the unit of work for
+// ordering only. The failure that produced was concrete: TravelHandler.Complete
+// committed the arrival on its own, a later step failed, the idempotency key
+// rolled back — and the redelivery found no active journey, returned nil, and
+// the player landed without the XP. On tx the arrival rolls back with the
+// failed step, and the retry lands the journey and awards the XP once.
+//
+// What is still injected, and why:
+//
+//   - CityRepository and PlayerSearch. Both are read-only lookups — cities are
+//     content only the loader writes, search reads public records — and no
+//     write depends on them for correctness. See application.Tx.
+//   - The map and skills screens keep their injected TravelRepository and
+//     SkillRepository. They write nothing, so a transaction would add nothing
+//     but its length; moving them onto tx is harmless whenever it is wanted.
 
 // TravelPlanner works out the journey a player would make.
 //

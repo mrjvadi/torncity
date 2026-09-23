@@ -88,8 +88,28 @@ func (u *UnitOfWork) Do(ctx context.Context, fn func(ctx context.Context, tx app
 // The repositories are built per call rather than cached: each is a struct
 // holding only a querier, so constructing one is free, and a cached instance
 // would have to be reset between transactions.
+//
+// q is a transactor, not merely a querier, because TravelRepository and
+// FriendshipRepository each run one multi-statement operation through inTx.
+// Handed this transaction, inTx calls pgx.Tx.Begin, which opens a SAVEPOINT on
+// the same connection rather than a second transaction on another one. Two
+// properties follow, and both are what a unit of work needs:
+//
+//   - nothing commits early. Releasing a savepoint makes its statements part
+//     of the outer transaction, not durable; they become durable when Do
+//     commits, and vanish if any later step of the handler fails.
+//   - a failure inside the inner operation rolls back to the savepoint only,
+//     so its mapped sentinel (ErrNoActiveTravel, ErrNotFriends) reaches the
+//     handler with the outer transaction still usable, instead of the
+//     connection being left in the aborted state where every later statement
+//     is refused.
+//
+// The alternative — teaching those repositories to skip inTx when already
+// inside a transaction — was rejected: it would need a second code path per
+// operation, and a repository built over the pool must still open its own
+// transaction, which inTx already does correctly for both cases.
 type tx struct {
-	q               querier
+	q               transactor
 	defaultLanguage string
 }
 
@@ -106,4 +126,26 @@ func (t *tx) Outbox() application.OutboxRepository { return &OutboxRepository{q:
 // Idempotency returns the idempotency repository bound to this transaction.
 func (t *tx) Idempotency() application.IdempotencyRepository {
 	return &IdempotencyRepository{q: t.q}
+}
+
+// Stats returns the stats repository bound to this transaction.
+func (t *tx) Stats() application.StatsRepository { return &StatsRepository{q: t.q} }
+
+// Skills returns the skill repository bound to this transaction.
+func (t *tx) Skills() application.SkillRepository { return &SkillRepository{q: t.q} }
+
+// Travels returns the travel repository bound to this transaction. Its
+// Complete runs inside a savepoint of this transaction; see the note on tx.
+func (t *tx) Travels() application.TravelRepository { return &TravelRepository{q: t.q} }
+
+// GameActions returns the schedule bound to this transaction, so an action is
+// scheduled if and only if the journey that points at it is.
+func (t *tx) GameActions() application.GameActionRepository {
+	return &GameActionRepository{q: t.q}
+}
+
+// Friendships returns the friendship repository bound to this transaction.
+// Its Accept runs inside a savepoint of this transaction; see the note on tx.
+func (t *tx) Friendships() application.FriendshipRepository {
+	return &FriendshipRepository{q: t.q}
 }

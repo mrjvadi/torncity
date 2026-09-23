@@ -161,10 +161,11 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 
 	actions := postgres.NewGameActionRepository(pool)
 
-	// The reaper is switched on by the repository, not by this file. The
-	// postgres adapter cannot answer "claimed longer ago than the lease" yet
-	// (see scheduler.ClaimReaper), and the day it grows ReclaimStale this
-	// assertion starts succeeding with no change here.
+	// The reaper is switched on by the repository, not by this file: any
+	// repository that can answer "claimed longer ago than the lease" (see
+	// scheduler.ClaimReaper) gets it. The postgres adapter can, since
+	// migration 0004 added claimed_at; reaper_test.go pins that, so losing
+	// ReclaimStale fails a test instead of silently stranding claimed work.
 	var reaper scheduler.ClaimReaper
 	if r, ok := any(actions).(scheduler.ClaimReaper); ok {
 		reaper = r

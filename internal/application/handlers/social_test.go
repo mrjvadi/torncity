@@ -313,5 +313,5 @@ func TestNewSocialHandlerRefusesAZeroPageSize(t *testing.T) {
 			t.Error("expected a panic, got none")
 		}
 	}()
-	NewSocialHandler(h.uow, h.ids, nil, h.search, h.friendships, 0, testIdempotencyTTL, h.clock())
+	NewSocialHandler(h.uow, h.ids, nil, h.search, 0, testIdempotencyTTL, h.clock())
 }

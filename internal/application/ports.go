@@ -66,10 +66,29 @@ type OutboxRecord struct {
 
 // Tx is a unit of work. Everything a command changes, including its outbox
 // record, commits or rolls back together.
+//
+// Every repository a handler WRITES through is reachable here, because a write
+// made on any other connection commits on its own: a later step that fails
+// then rolls back the idempotency reservation and the outbox record but not
+// that write, and the retry finds a world that no longer needs the step it is
+// retrying. Landing a journey is the concrete case — the arrival committed, the
+// XP award rolled back, and the redelivery saw no journey to land.
+//
+// CityRepository and PlayerSearch are deliberately NOT here. Both are
+// read-only: cities are content that only the loader writes, and search reads
+// other players' public records. A read that no write in the same command
+// depends on for correctness gains nothing from the transaction and would
+// only lengthen it, so those two stay injected where they are used.
 type Tx interface {
 	Players() PlayerRepository
 	Outbox() OutboxRepository
 	Idempotency() IdempotencyRepository
+
+	Stats() StatsRepository
+	Skills() SkillRepository
+	Travels() TravelRepository
+	GameActions() GameActionRepository
+	Friendships() FriendshipRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

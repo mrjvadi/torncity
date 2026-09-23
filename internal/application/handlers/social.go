@@ -48,11 +48,10 @@ type PageRequest struct {
 // SocialHandler serves the social graph: finding players, asking to be
 // friends, accepting, and listing.
 type SocialHandler struct {
-	uow         application.UnitOfWork
-	ids         IDGenerator
-	msgs        Translator
-	search      application.PlayerSearch
-	friendships application.FriendshipRepository
+	uow    application.UnitOfWork
+	ids    IDGenerator
+	msgs   Translator
+	search application.PlayerSearch
 
 	pageSize       int
 	idempotencyTTL time.Duration
@@ -63,12 +62,16 @@ type SocialHandler struct {
 //
 // pageSize is rejected at zero: a page of no rows is an empty screen with a
 // next button, which is a list a player can never read to the end of.
+//
+// Friendships are not a constructor argument: the edges are written alongside
+// an idempotency reservation and an outbox record, so they are reached through
+// the unit of work's Tx. search reads other players' public records and stays
+// injected; see application.Tx.
 func NewSocialHandler(
 	uow application.UnitOfWork,
 	ids IDGenerator,
 	msgs Translator,
 	search application.PlayerSearch,
-	friendships application.FriendshipRepository,
 	pageSize int,
 	idempotencyTTL time.Duration,
 	now func() time.Time,
@@ -90,7 +93,6 @@ func NewSocialHandler(
 		ids:            ids,
 		msgs:           msgs,
 		search:         search,
-		friendships:    friendships,
 		pageSize:       pageSize,
 		idempotencyTTL: idempotencyTTL,
 		now:            now,
@@ -201,7 +203,7 @@ func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, r
 			return nil
 		}
 
-		edges, err := h.friendships.List(ctx, self.ID)
+		edges, err := tx.Friendships().List(ctx, self.ID)
 		if err != nil {
 			return err
 		}
@@ -222,7 +224,7 @@ func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, r
 			}
 		}
 
-		if err := h.friendships.Request(ctx, self.ID, req.Player); err != nil {
+		if err := tx.Friendships().Request(ctx, self.ID, req.Player); err != nil {
 			return err
 		}
 
@@ -280,7 +282,7 @@ func (h *SocialHandler) FriendAccept(ctx context.Context, meta envelope.Metadata
 			return nil
 		}
 
-		if err := h.friendships.Accept(ctx, self.ID, req.Player); err != nil {
+		if err := tx.Friendships().Accept(ctx, self.ID, req.Player); err != nil {
 			return err
 		}
 
@@ -327,7 +329,7 @@ func (h *SocialHandler) FriendList(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 
-		edges, err := h.friendships.List(ctx, self.ID)
+		edges, err := tx.Friendships().List(ctx, self.ID)
 		if err != nil {
 			return err
 		}

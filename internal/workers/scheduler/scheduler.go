@@ -96,15 +96,15 @@ var (
 //
 // # Why it is declared here and not on the port
 //
-// application.GameActionRepository has no method for this, and the postgres
-// adapter cannot implement one yet: game_actions records no claim time, so
-// "claimed longer ago than the lease" is not a question the table can answer.
-// The postgres side needs a claimed_at column set by the claim in Due, and a
-// ReclaimStale that moves running rows with claimed_at < claimedBefore back to
-// scheduled, bumping retry_count so the noisy_attempts escalation sees the
-// repeat. Until that exists, cmd/scheduler starts without a reaper and says so
-// at startup; the interface is kept this narrow so that adding the method to
-// the repository is the only change needed to switch it on.
+// application.GameActionRepository has no method for this: reaping needs a
+// claim time, which is a property of how one adapter records a claim rather
+// than of the schedule every adapter must provide. The postgres adapter
+// records it in game_actions.claimed_at (migrations/0004_game_action_claims),
+// stamped by the claim in Due, and its ReclaimStale moves running rows with
+// claimed_at < claimedBefore back to scheduled, bumping retry_count so the
+// noisy_attempts escalation sees the repeat. cmd/scheduler switches the reaper
+// on by asserting this interface on the repository it built, and starts
+// without one — saying so at startup — only for an adapter that lacks it.
 type ClaimReaper interface {
 	// ReclaimStale returns to scheduled up to limit actions that have been
 	// running since before claimedBefore, and reports how many it moved.

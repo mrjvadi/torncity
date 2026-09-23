@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	stderrors "errors"
 	"testing"
 	"time"
 
@@ -118,6 +119,21 @@ func (f *fakeCities) ByCode(_ context.Context, code string) (*application.City, 
 type fakeStats struct {
 	rows  map[string]application.Stats
 	saves int
+	// failSaves makes the next n calls to Save fail with errInjected, so a
+	// test can break a unit of work at the step after a journey lands.
+	failSaves int
+}
+
+// errInjected is the failure a fake returns when a test asks it to.
+var errInjected = stderrors.New("injected failure")
+
+func (f *fakeStats) snapshot() func() {
+	rows := make(map[string]application.Stats, len(f.rows))
+	for k, v := range f.rows {
+		rows[k] = v
+	}
+	saves := f.saves
+	return func() { f.rows, f.saves = rows, saves }
 }
 
 func newFakeStats() *fakeStats { return &fakeStats{rows: map[string]application.Stats{}} }
@@ -140,6 +156,10 @@ func (f *fakeStats) EnsureDefaults(_ context.Context, playerID string, s applica
 }
 
 func (f *fakeStats) Save(_ context.Context, s application.Stats) error {
+	if f.failSaves > 0 {
+		f.failSaves--
+		return errInjected
+	}
 	f.saves++
 	f.rows[s.PlayerID] = s
 	return nil
@@ -150,6 +170,14 @@ type fakeSkills struct {
 }
 
 func newFakeSkills() *fakeSkills { return &fakeSkills{rows: map[string][]application.Skill{}} }
+
+func (f *fakeSkills) snapshot() func() {
+	rows := make(map[string][]application.Skill, len(f.rows))
+	for k, v := range f.rows {
+		rows[k] = append([]application.Skill(nil), v...)
+	}
+	return func() { f.rows = rows }
+}
 
 func (f *fakeSkills) List(_ context.Context, playerID string) ([]application.Skill, error) {
 	return f.rows[playerID], nil
@@ -191,6 +219,22 @@ type fakeTravels struct {
 
 func newFakeTravels() *fakeTravels {
 	return &fakeTravels{active: map[string]application.Travel{}, moved: map[string]string{}}
+}
+
+func (f *fakeTravels) snapshot() func() {
+	active := make(map[string]application.Travel, len(f.active))
+	for k, v := range f.active {
+		active[k] = v
+	}
+	moved := make(map[string]string, len(f.moved))
+	for k, v := range f.moved {
+		moved[k] = v
+	}
+	started := append([]application.Travel(nil), f.started...)
+	completed := append([]string(nil), f.completed...)
+	return func() {
+		f.active, f.moved, f.started, f.completed = active, moved, started, completed
+	}
 }
 
 func (f *fakeTravels) Active(_ context.Context, playerID string) (*application.Travel, error) {
@@ -236,6 +280,11 @@ type fakeActions struct {
 	scheduled []application.GameAction
 }
 
+func (f *fakeActions) snapshot() func() {
+	scheduled := append([]application.GameAction(nil), f.scheduled...)
+	return func() { f.scheduled = scheduled }
+}
+
 func (f *fakeActions) Schedule(_ context.Context, a application.GameAction) error {
 	f.scheduled = append(f.scheduled, a)
 	return nil
@@ -255,6 +304,16 @@ type fakeFriendships struct {
 
 func newFakeFriendships() *fakeFriendships {
 	return &fakeFriendships{edges: map[string][]application.Friendship{}}
+}
+
+func (f *fakeFriendships) snapshot() func() {
+	edges := make(map[string][]application.Friendship, len(f.edges))
+	for k, v := range f.edges {
+		edges[k] = append([]application.Friendship(nil), v...)
+	}
+	requested := append([][2]string(nil), f.requested...)
+	accepted := append([][2]string(nil), f.accepted...)
+	return func() { f.edges, f.requested, f.accepted = edges, requested, accepted }
 }
 
 func (f *fakeFriendships) List(_ context.Context, playerID string) ([]application.Friendship, error) {
@@ -330,19 +389,19 @@ type phase1 struct {
 
 func newPhase1(t *testing.T) *phase1 {
 	t.Helper()
-	tx := &fakeTx{
-		players: &fakePlayers{byTelegramID: map[int64]*application.Player{}},
-		outbox:  &fakeOutbox{},
-		idem:    &fakeIdem{seen: map[string]bool{}},
-	}
+	// The repositories a handler writes through live on the transaction, and
+	// the harness keeps a pointer to the same fakes so an assertion reads
+	// exactly what the unit of work left behind — including what it rolled
+	// back.
+	tx := newFakeTx()
 	return &phase1{
 		uow:         &fakeUOW{tx: tx},
 		cities:      newFakeCities(),
-		stats:       newFakeStats(),
-		skills:      newFakeSkills(),
-		travels:     newFakeTravels(),
-		actions:     &fakeActions{},
-		friendships: newFakeFriendships(),
+		stats:       tx.stats,
+		skills:      tx.skills,
+		travels:     tx.travels,
+		actions:     tx.actions,
+		friendships: tx.friendships,
 		search:      &fakeSearch{},
 		ids:         &seqIDs{},
 		now:         fixedNow,
@@ -372,8 +431,7 @@ func (h *phase1) player(telegramUserID int64, id, cityID string) *application.Pl
 func (h *phase1) travelHandler(t *testing.T) *TravelHandler {
 	t.Helper()
 	planner := testPlanner(t)
-	return NewTravelHandler(h.uow, h.ids, messages(t), h.cities, h.stats, h.travels, h.actions,
-		planner, testEnergyCost, testArrivalXP, testIdempotencyTTL, h.clock())
+	return NewTravelHandler(h.uow, h.ids, messages(t), h.cities, planner, testEnergyCost, testArrivalXP, testIdempotencyTTL, h.clock())
 }
 
 func (h *phase1) skillsHandler(t *testing.T) *SkillsHandler {
@@ -383,8 +441,7 @@ func (h *phase1) skillsHandler(t *testing.T) *SkillsHandler {
 
 func (h *phase1) socialHandler(t *testing.T) *SocialHandler {
 	t.Helper()
-	return NewSocialHandler(h.uow, h.ids, messages(t), h.search, h.friendships,
-		testPageSize, testIdempotencyTTL, h.clock())
+	return NewSocialHandler(h.uow, h.ids, messages(t), h.search, testPageSize, testIdempotencyTTL, h.clock())
 }
 
 func (h *phase1) mapHandler(t *testing.T) *MapHandler {
@@ -394,7 +451,7 @@ func (h *phase1) mapHandler(t *testing.T) *MapHandler {
 
 func (h *phase1) profileHandler(t *testing.T) *ProfileHandler {
 	t.Helper()
-	return NewProfileHandler(h.uow, h.ids, messages(t), h.stats, h.cities,
+	return NewProfileHandler(h.uow, h.ids, messages(t), h.cities,
 		testDefaultLanguage, testIdempotencyTTL, h.clock())
 }
 

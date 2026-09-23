@@ -64,9 +64,17 @@ func (f *fakePlayers) LinkBot(_ context.Context, l application.BotLink) error {
 	return nil
 }
 
-type fakeOutbox struct{ records []application.OutboxRecord }
+type fakeOutbox struct {
+	records []application.OutboxRecord
+	// failAppends makes the next n calls to Append fail with errInjected.
+	failAppends int
+}
 
 func (f *fakeOutbox) Append(_ context.Context, r application.OutboxRecord) error {
+	if f.failAppends > 0 {
+		f.failAppends--
+		return errInjected
+	}
 	f.records = append(f.records, r)
 	return nil
 }
@@ -81,18 +89,49 @@ func (f *fakeIdem) Reserve(_ context.Context, key, _, _, _ string, _ time.Durati
 	return true, nil
 }
 
+// fakeTx hands out every repository the unit of work covers. The phase 1
+// fakes live in phase1_test.go.
 type fakeTx struct {
-	players *fakePlayers
-	outbox  *fakeOutbox
-	idem    *fakeIdem
+	players     *fakePlayers
+	outbox      *fakeOutbox
+	idem        *fakeIdem
+	stats       *fakeStats
+	skills      *fakeSkills
+	travels     *fakeTravels
+	actions     *fakeActions
+	friendships *fakeFriendships
+}
+
+// newFakeTx returns a transaction whose every repository is empty.
+func newFakeTx() *fakeTx {
+	return &fakeTx{
+		players:     &fakePlayers{byTelegramID: map[int64]*application.Player{}},
+		outbox:      &fakeOutbox{},
+		idem:        &fakeIdem{seen: map[string]bool{}},
+		stats:       newFakeStats(),
+		skills:      newFakeSkills(),
+		travels:     newFakeTravels(),
+		actions:     &fakeActions{},
+		friendships: newFakeFriendships(),
+	}
 }
 
 func (t *fakeTx) Players() application.PlayerRepository          { return t.players }
 func (t *fakeTx) Outbox() application.OutboxRepository           { return t.outbox }
 func (t *fakeTx) Idempotency() application.IdempotencyRepository { return t.idem }
+func (t *fakeTx) Stats() application.StatsRepository             { return t.stats }
+func (t *fakeTx) Skills() application.SkillRepository            { return t.skills }
+func (t *fakeTx) Travels() application.TravelRepository          { return t.travels }
+func (t *fakeTx) GameActions() application.GameActionRepository  { return t.actions }
+func (t *fakeTx) Friendships() application.FriendshipRepository  { return t.friendships }
 
-// fakeUOW runs fn directly, and discards every change when fn fails so the
+// fakeUOW runs fn directly, and discards EVERY change when fn fails so the
 // test can assert the rollback contract the real implementation must honour.
+//
+// "Every" includes the idempotency reservation and the phase 1 rows. A fake
+// that rolled back only some of them would make the retry tests lie: a key
+// that survived a rollback would turn the redelivery into a no-op, and a
+// journey that survived one would hide the very bug those tests exist for.
 type fakeUOW struct {
 	tx        *fakeTx
 	commits   int
@@ -100,16 +139,49 @@ type fakeUOW struct {
 }
 
 func (u *fakeUOW) Do(ctx context.Context, fn func(context.Context, application.Tx) error) error {
-	snapshotCreated := u.tx.players.created
-	snapshotOutbox := len(u.tx.outbox.records)
+	restore := u.tx.snapshot()
 	if err := fn(ctx, u.tx); err != nil {
 		u.rollbacks++
-		u.tx.players.created = snapshotCreated
-		u.tx.outbox.records = u.tx.outbox.records[:snapshotOutbox]
+		restore()
 		return err
 	}
 	u.commits++
 	return nil
+}
+
+// snapshot copies the state of every repository and returns the function that
+// puts it back. The copies are deep enough that a write after the snapshot
+// cannot reach through a shared map or slice into the saved state.
+func (t *fakeTx) snapshot() func() {
+	created := t.players.created
+	players := make(map[int64]*application.Player, len(t.players.byTelegramID))
+	for k, v := range t.players.byTelegramID {
+		players[k] = v
+	}
+	links := append([]application.BotLink(nil), t.players.links...)
+	outbox := len(t.outbox.records)
+	seen := make(map[string]bool, len(t.idem.seen))
+	for k, v := range t.idem.seen {
+		seen[k] = v
+	}
+	restoreStats := t.stats.snapshot()
+	restoreSkills := t.skills.snapshot()
+	restoreTravels := t.travels.snapshot()
+	restoreActions := t.actions.snapshot()
+	restoreFriendships := t.friendships.snapshot()
+
+	return func() {
+		t.players.created = created
+		t.players.byTelegramID = players
+		t.players.links = links
+		t.outbox.records = t.outbox.records[:outbox]
+		t.idem.seen = seen
+		restoreStats()
+		restoreSkills()
+		restoreTravels()
+		restoreActions()
+		restoreFriendships()
+	}
 }
 
 type seqIDs struct{ n int }
@@ -121,14 +193,9 @@ func (s *seqIDs) NewID() string {
 
 func newHarness(t *testing.T) (*ProfileHandler, *fakeUOW) {
 	t.Helper()
-	tx := &fakeTx{
-		players: &fakePlayers{byTelegramID: map[int64]*application.Player{}},
-		outbox:  &fakeOutbox{},
-		idem:    &fakeIdem{seen: map[string]bool{}},
-	}
-	uow := &fakeUOW{tx: tx}
+	uow := &fakeUOW{tx: newFakeTx()}
 	fixed := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
-	return NewProfileHandler(uow, &seqIDs{}, messages(t), newFakeStats(), newFakeCities(),
+	return NewProfileHandler(uow, &seqIDs{}, messages(t), newFakeCities(),
 		testDefaultLanguage, testIdempotencyTTL, func() time.Time { return fixed }), uow
 }
 
@@ -358,13 +425,8 @@ func (r *recordingTranslator) T(_, key string, _ map[string]any) string {
 }
 
 func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
-	tx := &fakeTx{
-		players: &fakePlayers{byTelegramID: map[int64]*application.Player{}},
-		outbox:  &fakeOutbox{},
-		idem:    &fakeIdem{seen: map[string]bool{}},
-	}
 	spy := &recordingTranslator{}
-	h := NewProfileHandler(&fakeUOW{tx: tx}, &seqIDs{}, spy, newFakeStats(), newFakeCities(),
+	h := NewProfileHandler(&fakeUOW{tx: newFakeTx()}, &seqIDs{}, spy, newFakeCities(),
 		testDefaultLanguage, testIdempotencyTTL, nil)
 
 	resp, err := h.Handle(context.Background(), meta("bot01", 7, "req-spy"))
@@ -404,12 +466,7 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 // catalogue is a deployment mistake; taking down every request for it would
 // turn a wrong word into an outage.
 func TestNilCatalogueRendersKeys(t *testing.T) {
-	tx := &fakeTx{
-		players: &fakePlayers{byTelegramID: map[int64]*application.Player{}},
-		outbox:  &fakeOutbox{},
-		idem:    &fakeIdem{seen: map[string]bool{}},
-	}
-	h := NewProfileHandler(&fakeUOW{tx: tx}, &seqIDs{}, nil, newFakeStats(), newFakeCities(),
+	h := NewProfileHandler(&fakeUOW{tx: newFakeTx()}, &seqIDs{}, nil, newFakeCities(),
 		testDefaultLanguage, testIdempotencyTTL, nil)
 
 	resp, err := h.Handle(context.Background(), meta("bot01", 8, "req-nil"))

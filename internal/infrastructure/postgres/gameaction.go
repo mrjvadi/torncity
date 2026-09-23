@@ -141,10 +141,16 @@ func (r *GameActionRepository) Schedule(ctx context.Context, a application.GameA
 // and cannot be handed out again on the next poll a second later. The cost of
 // that is the mirror image of the outbox's: a worker that dies between claiming
 // and completing leaves its row in running rather than recoverable, so a reaper
-// that returns long-running rows to scheduled (or fails them) is required
-// operationally. That is the right trade for actions, because the work behind
-// one is not idempotent the way publishing a deduplicated message is — paying a
-// salary twice is worse than paying it late.
+// that returns long-running rows to scheduled is required operationally; that
+// is ReclaimStale, and claimed_at below is what lets it tell an abandoned claim
+// from one still in flight. That is the right trade for actions, because the
+// work behind one is not idempotent the way publishing a deduplicated message
+// is — paying a salary twice is worse than paying it late.
+//
+// claimed_at is stamped with the same instant the caller passed as now, so the
+// claim and the reaper's cutoff (the scheduler's clock minus the claim lease)
+// are measured on one clock. claimed_by is not written: the port's Due carries
+// no claimant, so the column stays NULL until the scheduler passes one.
 //
 // WHERE status = 'scheduled' AND finish_at <= $1 ORDER BY finish_at is written
 // to match game_actions_due_idx (finish_at) WHERE status = 'scheduled' exactly.
@@ -161,7 +167,7 @@ WITH claimed AS (
     FOR UPDATE SKIP LOCKED
 )
 UPDATE game_actions a
-SET status = 'running'
+SET status = 'running', claimed_at = $1
 FROM claimed c
 WHERE a.id = c.id
 RETURNING a.id, a.action_type, a.actor_type, a.actor_id, a.reference_type, a.reference_id,
@@ -232,6 +238,84 @@ func (r *GameActionRepository) Due(ctx context.Context, now time.Time, limit int
 	}
 
 	return out, nil
+}
+
+// reclaimStaleSQL returns abandoned claims to the schedule.
+//
+// It has the claim's shape for the claim's reason. Two schedulers reap on
+// every tick, and a standalone SELECT ... FOR UPDATE SKIP LOCKED would release
+// its locks the instant it returned, so both would receive the same stale rows
+// and each would bump retry_count — one abandoned claim would be counted as
+// two, and the noisy_attempts escalation would fire early. Folding the locking
+// select into the UPDATE keeps the lock for the whole statement, so the second
+// reaper steps over the rows the first is returning and the batches are
+// disjoint by construction.
+//
+// SKIP LOCKED also keeps the reaper off a row whose scheduler is, at this very
+// moment, completing it: Complete's UPDATE holds that row's lock, the reaper
+// steps over it, and by the next tick the row is completed and out of the
+// index.
+//
+// WHERE status = 'running' AND claimed_at < $1 ORDER BY claimed_at is written
+// to match game_actions_claimed_idx (claimed_at) WHERE status = 'running' from
+// migrations/0004_game_action_claims.up.sql. The index holds only rows in
+// flight, so a tick walks the front of it — the oldest claims — and stops at
+// the limit without visiting a single completed row.
+//
+// retry_count is incremented because an abandoned claim IS a failed attempt:
+// the scheduler escalates its log level once a row has been retried
+// noisy_attempts times, and a row that keeps being reaped is exactly what that
+// escalation is for. claimed_at and claimed_by are cleared so a returned row
+// looks like one that was never claimed; the next Due stamps it afresh.
+const reclaimStaleSQL = `
+WITH stale AS (
+    SELECT id
+    FROM game_actions
+    WHERE status = 'running' AND claimed_at < $1
+    ORDER BY claimed_at
+    LIMIT $2
+    FOR UPDATE SKIP LOCKED
+)
+UPDATE game_actions a
+SET status = 'scheduled', retry_count = a.retry_count + 1, claimed_at = NULL, claimed_by = NULL
+FROM stale s
+WHERE a.id = s.id`
+
+// ReclaimStatement returns the exact statement ReclaimStale sends, for the same
+// reason DueClaimStatement exists: the integration suite EXPLAINs it and
+// asserts it is answered by game_actions_claimed_idx, and only the statement
+// the repository really runs makes that assertion worth anything.
+func ReclaimStatement() string { return reclaimStaleSQL }
+
+// ReclaimStale returns to scheduled up to limit actions that have been running
+// since before claimedBefore, and reports how many it moved.
+//
+// It satisfies the scheduler's ClaimReaper, which is what switches the reaper
+// on in cmd/scheduler. The compile-time assertion that proves it lives in
+// cmd/scheduler/reaper_test.go rather than here: an adapter importing a worker
+// would point a dependency outward, and a worker importing this adapter would
+// tie the clock to one database. The composition root is the only package that
+// legitimately knows both, and it is the one whose behaviour depends on the
+// fit.
+//
+// A zero claimedBefore is refused rather than run. It would match nothing —
+// no claim is older than the year 1 — and a reaper that silently never reaps
+// is precisely the failure this method exists to end.
+func (r *GameActionRepository) ReclaimStale(ctx context.Context, claimedBefore time.Time, limit int) (int, error) {
+	if limit <= 0 {
+		return 0, fmt.Errorf("postgres: reclaim stale actions: limit must be positive, got %d", limit)
+	}
+	if claimedBefore.IsZero() {
+		return 0, fmt.Errorf("postgres: reclaim stale actions: a claim cutoff is required")
+	}
+
+	tag, err := r.q.Exec(ctx, reclaimStaleSQL, claimedBefore, limit)
+	if err != nil {
+		return 0, fmt.Errorf("postgres: reclaiming actions claimed before %s: %w",
+			claimedBefore.UTC().Format(time.RFC3339), err)
+	}
+
+	return int(tag.RowsAffected()), nil
 }
 
 // completeAction closes an action out.
