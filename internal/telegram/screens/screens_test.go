@@ -96,58 +96,76 @@ func sampleScreens() map[string]func(Context) *presenter.Response {
 	}
 	return map[string]func(Context) *presenter.Response{
 		"dashboard": func(c Context) *presenter.Response {
-			return Dashboard(c, DashboardView{Name: "Ada", City: "Brennhaven", Level: 3, Energy: 40, MaxEnergy: 100})
+			return Dashboard(c, DashboardView{Name: "Ada", CityCode: "brennhaven", City: "Brennhaven", Level: 3, Energy: 40, MaxEnergy: 100})
 		},
 		"dashboard while travelling": func(c Context) *presenter.Response {
 			return Dashboard(c, DashboardView{Name: "Ada", Level: 1, Travelling: true})
 		},
 		"profile": func(c Context) *presenter.Response {
-			return Profile(c, ProfileView{Name: "Ada", City: "Ostmarch",
+			return Profile(c, ProfileView{Name: "Ada", CityCode: "ostmarch", City: "Ostmarch",
 				Level: 3, XP: 180, NextLevelXP: 450, Energy: 75, MaxEnergy: 100,
 				EnergyFullIn: 75 * time.Minute, Health: 100, MaxHealth: 100})
 		},
 		"profile of a new player": func(c Context) *presenter.Response {
-			return Profile(c, ProfileView{City: "Ostmarch", Level: 1, NextLevelXP: 50,
+			return Profile(c, ProfileView{CityCode: "ostmarch", City: "Ostmarch", Level: 1, NextLevelXP: 50,
 				Energy: 100, MaxEnergy: 100, Health: 100, MaxHealth: 100})
 		},
 		"profile with no city": func(c Context) *presenter.Response {
 			return Profile(c, ProfileView{Level: 1, Energy: 100, MaxEnergy: 100, Health: 100, MaxHealth: 100})
 		},
 		"profile while travelling": func(c Context) *presenter.Response {
-			return Profile(c, ProfileView{Name: "Ada", City: "Ostmarch", Level: 2, XP: 60, NextLevelXP: 150,
+			return Profile(c, ProfileView{Name: "Ada", CityCode: "ostmarch", City: "Ostmarch", Level: 2, XP: 60, NextLevelXP: 150,
 				Energy: 12500, MaxEnergy: 20000, Health: 90, MaxHealth: 100,
-				Travelling: true, TravelTo: "Brennhaven", TravelRemaining: 135 * time.Minute})
+				Travelling: true, TravelToCode: "brennhaven", TravelTo: "Brennhaven", TravelRemaining: 135 * time.Minute})
 		},
 		"profile at the top level": func(c Context) *presenter.Response {
 			return Profile(c, ProfileView{Name: "Ada", Level: 100, XP: 999999, Energy: 1, MaxEnergy: 1, Health: 1, MaxHealth: 1})
 		},
 		"map": func(c Context) *presenter.Response {
-			return Map(c, MapView{Origin: "Ostmarch", Page: 1, Pages: 2, Destinations: []MapCity{
+			return Map(c, MapView{OriginCode: "ostmarch", Origin: "Ostmarch", Page: 1, Pages: 2, Destinations: []MapCity{
 				{Code: "fenwick_span", Name: "Fenwick Span", DistanceKM: 120},
 				{Code: "brennhaven", Name: "Brennhaven", DistanceKM: 2600},
 			}})
 		},
 		"map with no routes": func(c Context) *presenter.Response {
-			return Map(c, MapView{Origin: "Ostmarch", Page: 1, Pages: 1})
+			return Map(c, MapView{OriginCode: "ostmarch", Origin: "Ostmarch", Page: 1, Pages: 1})
 		},
 		"map with no city": func(c Context) *presenter.Response {
 			return Map(c, MapView{Page: 1, Pages: 1})
 		},
 		"map while travelling": func(c Context) *presenter.Response {
-			return Map(c, MapView{Travelling: true, TravellingTo: "Brennhaven", Origin: "Ostmarch", Page: 1, Pages: 1,
+			return Map(c, MapView{Travelling: true, TravellingToCode: "brennhaven", TravellingTo: "Brennhaven", OriginCode: "ostmarch", Origin: "Ostmarch", Page: 1, Pages: 1,
 				Destinations: []MapCity{{Code: "brennhaven", Name: "Brennhaven", DistanceKM: 260}}})
 		},
 		"travel started": func(c Context) *presenter.Response {
-			return TravelStarted(c, TravelStartedView{From: "Ostmarch", To: "Brennhaven", Duration: 135 * time.Minute, Energy: 10})
+			return TravelStarted(c, TravelStartedView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven", Duration: 135 * time.Minute, Energy: 10})
 		},
 		"travel status": func(c Context) *presenter.Response {
-			return TravelStatus(c, TravelStatusView{From: "Ostmarch", To: "Brennhaven", Remaining: 95 * time.Minute})
+			return TravelStatus(c, TravelStatusView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven", Remaining: 95 * time.Minute})
 		},
 		"travel status arriving": func(c Context) *presenter.Response {
-			return TravelStatus(c, TravelStatusView{From: "Ostmarch", To: "Brennhaven", Remaining: 20 * time.Second})
+			return TravelStatus(c, TravelStatusView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven", Remaining: 20 * time.Second})
 		},
 		"travel arrived": func(c Context) *presenter.Response {
-			return TravelArrived(c, TravelArrivedView{City: "Brennhaven", XP: 1250})
+			return TravelArrived(c, TravelArrivedView{CityCode: "brennhaven", City: "Brennhaven", XP: 1250})
+		},
+		"help": func(c Context) *presenter.Response {
+			return Help(c)
+		},
+		"settings": func(c Context) *presenter.Response {
+			return Settings(c, SettingsView{Language: "fa", Languages: []string{"en", "fa"}})
+		},
+		"settings in english": func(c Context) *presenter.Response {
+			return Settings(c, SettingsView{Language: "en", Languages: []string{"en", "fa"}})
+		},
+		"settings after a change": func(c Context) *presenter.Response {
+			return Settings(c, SettingsView{Language: "en", Languages: []string{"en", "fa"}, LanguageChanged: true})
+		},
+		"settings with no current language": func(c Context) *presenter.Response {
+			return Settings(c, SettingsView{Languages: []string{"en", "fa"}})
+		},
+		"error unsupported language": func(c Context) *presenter.Response {
+			return Error(c, application.ErrUnsupportedLanguage)
 		},
 		"skills": func(c Context) *presenter.Response {
 			return Skills(c, SkillsView{Lines: []SkillLine{

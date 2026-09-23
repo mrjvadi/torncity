@@ -5,7 +5,7 @@
 // talks to Telegram and does not know how many bots exist: the gateway owns
 // that, and this process owns the rules.
 //
-// It serves every command in cmd/game/subscriptions: the phase 0 profile,
+// It serves every command in internal/commands: the phase 0 profile,
 // which is also first contact, and the phase 1 travel, skills, map and social
 // commands. One of those, travel.arrive, comes from the scheduler rather than
 // from a player — it is how a journey that came due actually lands. See
@@ -29,8 +29,8 @@ import (
 
 	natsgo "github.com/nats-io/nats.go"
 
-	"github.com/mrjvadi/torncity/cmd/game/subscriptions"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
+	"github.com/mrjvadi/torncity/internal/commands"
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/content"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
@@ -44,7 +44,7 @@ import (
 )
 
 // Every command has its own durable consumer, named by
-// subscriptions.Subscription.Durable, and that name is also the inbox
+// commands.Subscription.Durable, and that name is also the inbox
 // `consumer` column. The two must be the same string: the inbox key is
 // (message_id, consumer) precisely so that several consumers of one message
 // each process it once, and a mismatch would make this process deduplicate
@@ -252,10 +252,11 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		),
 		worldMap: handlers.NewMapHandler(uow, messages, cities, travels, liveRoutes{registry: registry},
 			handlers.DefaultPageSize, nil),
+		settings: handlers.NewSettingsHandler(uow, messages, storeLanguages{store: messages}, cfg.Game.IdempotencyTTL),
 	}
 
-	subs := subscriptions.All()
-	commands, err := bindAll(subs, h.bind())
+	subs := commands.All()
+	bound, err := bindAll(subs, h.bind())
 	if err != nil {
 		return err
 	}
@@ -265,6 +266,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		inbox:    postgres.NewInboxStore(pool),
 		messages: messages,
 		conn:     conn.Raw(),
+		players:  postgres.NewPlayerRepository(pool, cfg.Player.DefaultLanguage),
 	}
 
 	consumer := infranats.NewConsumer(conn, infranats.ConsumerOptions{
@@ -275,7 +277,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	})
 
 	for _, sub := range subs {
-		if err := consumer.Subscribe(ctx, sub.Subject(), sub.Durable(), svc.handler(sub, commands[sub.Command()])); err != nil {
+		if err := consumer.Subscribe(ctx, sub.Subject(), sub.Durable(), svc.handler(sub, bound[sub.Command()])); err != nil {
 			return err
 		}
 		logger.Info("consuming",
@@ -372,12 +374,15 @@ type service struct {
 	inbox    *postgres.InboxStore
 	messages *i18n.Store
 	conn     *natsgo.Conn
+	// players reads the stored language a refusal is written in; see
+	// refusalLanguage.
+	players playerReader
 
 	inflight sync.WaitGroup
 }
 
 // handler returns the consumer callback for one subscription.
-func (s *service) handler(sub subscriptions.Subscription, run commandFunc) infranats.Handler {
+func (s *service) handler(sub commands.Subscription, run commandFunc) infranats.Handler {
 	return func(ctx context.Context, env *envelope.Envelope) error {
 		return s.handle(ctx, sub, run, env)
 	}
@@ -396,7 +401,7 @@ func (s *service) handler(sub subscriptions.Subscription, run commandFunc) infra
 // because the next delivery would be refused identically. Anything
 // unclassified, or classified as internal, is a fault that a later attempt
 // might survive, and goes back to the broker.
-func (s *service) handle(ctx context.Context, sub subscriptions.Subscription, run commandFunc, env *envelope.Envelope) error {
+func (s *service) handle(ctx context.Context, sub commands.Subscription, run commandFunc, env *envelope.Envelope) error {
 	s.inflight.Add(1)
 	defer s.inflight.Done()
 
@@ -439,10 +444,10 @@ func (s *service) handle(ctx context.Context, sub subscriptions.Subscription, ru
 
 		log.Info("command refused", slog.String("command", meta.Command), slog.String("error", err.Error()))
 		resp = nil
-		if sub.Origin == subscriptions.FromPlayer {
+		if sub.Origin == commands.FromPlayer {
 			resp = screens.Error(screens.Context{
 				Msgs:      s.messages,
-				Lang:      meta.Language,
+				Lang:      s.refusalLanguage(ctx, meta),
 				MessageID: editableMessageID(meta),
 			}, err)
 		}

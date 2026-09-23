@@ -12,6 +12,12 @@
 // It runs no game rule. Every decision about what a command means belongs to
 // the game core; this process only decides which bot to speak through and how
 // fast. See MASTER_PROMPT sections 6, 7, 16, 57 and 73.
+//
+// The one thing it does answer itself is a message the game does not serve.
+// That is not a rule but a spelling check against the game's own command
+// table (internal/commands): an unknown command published to the command
+// stream reaches nobody and fails silently, so the gateway replies with help
+// instead of publishing it. See internal/gateway/routing.Route.
 package main
 
 import (
@@ -30,6 +36,7 @@ import (
 	natsgo "github.com/nats-io/nats.go"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
 	gwcontext "github.com/mrjvadi/torncity/internal/gateway/context"
 	"github.com/mrjvadi/torncity/internal/gateway/dedup"
@@ -46,7 +53,10 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/events"
+	"github.com/mrjvadi/torncity/internal/shared/money"
+	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
+	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 const (
@@ -66,6 +76,12 @@ const (
 	// the drain budget, the lease timings and the rate limits are all inside
 	// the file this points at, and none of them is in this binary.
 	defaultConfigPath = config.DefaultPath
+
+	// defaultLocalesDir is where player-visible text is read from when
+	// TORN_LOCALES_DIR does not say otherwise; the same default cmd/game
+	// uses. The gateway renders one screen itself, the help it answers an
+	// unknown command with, and it is written in the same catalogue.
+	defaultLocalesDir = "configs/locales"
 )
 
 func main() {
@@ -108,6 +124,7 @@ type env struct {
 	gatewayInstanceID  string
 	logLevel           string
 	configPath         string
+	localesDir         string
 }
 
 func loadEnv() (env, error) {
@@ -119,9 +136,13 @@ func loadEnv() (env, error) {
 		gatewayInstanceID:  os.Getenv("GATEWAY_INSTANCE_ID"),
 		logLevel:           os.Getenv("LOG_LEVEL"),
 		configPath:         os.Getenv("TORN_CONFIG"),
+		localesDir:         os.Getenv("TORN_LOCALES_DIR"),
 	}
 	if e.configPath == "" {
 		e.configPath = defaultConfigPath
+	}
+	if e.localesDir == "" {
+		e.localesDir = defaultLocalesDir
 	}
 
 	var missing []string
@@ -210,6 +231,18 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 
 	// --- gateway components -------------------------------------------------
 
+	// A catalogue that will not load is fatal, as in cmd/game: the help
+	// screen would render as raw keys. One that loads with defects is logged
+	// and used, because the fallback chain keeps it readable.
+	catalog, err := i18n.Load(e.localesDir)
+	if err != nil {
+		return fmt.Errorf("gateway: load messages from %s: %w", e.localesDir, err)
+	}
+	if err := catalog.Validate(); err != nil {
+		logger.Error("the message catalogue has content defects; affected keys will render as keys",
+			slog.String("locales_dir", e.localesDir), slog.String("error", err.Error()))
+	}
+
 	fleet, err := registry.New(registry.Config{
 		Source:         postgres.NewBotRegistry(pool),
 		Secrets:        storage.NewEnvSecretResolver(),
@@ -233,7 +266,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	logger.Info("bot fleet loaded", slog.Int("bots", fleet.Len()))
 
 	resolver, err := identity.NewResolver(
-		&playerStore{uow: postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage)},
+		&playerStore{
+			uow:          postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage),
+			startingCash: money.FromMinor(cfg.Economy.StartingCash),
+		},
 		cfg.Player.DefaultLanguage,
 	)
 	if err != nil {
@@ -264,6 +300,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		filter:    filter,
 		limiter:   limiter,
 		publisher: infranats.NewPublisher(conn),
+		messages:  catalog,
+		players:   postgres.NewPlayerRepository(pool, cfg.Player.DefaultLanguage),
 		conn:      conn,
 		botLease:  infraredis.NewBotLease(rdb),
 		botKeyByID: func() map[string]string {
@@ -345,8 +383,15 @@ type gateway struct {
 	limiter  *ratelimit.Limiter
 
 	publisher application.Publisher
-	conn      *infranats.Conn
-	botLease  *infraredis.BotLease
+	// messages and players are what the help reply needs: the text, and the
+	// player's stored language to write it in.
+	messages *i18n.Catalog
+	players  playerReader
+	// deliver sends a response the gateway produced itself. Nil means
+	// deliverViaFleet; tests replace it to observe the reply.
+	deliver  func(ctx context.Context, bot application.Bot, meta envelope.Metadata, resp *presenter.Response, log *slog.Logger)
+	conn     *infranats.Conn
+	botLease *infraredis.BotLease
 
 	// botKeyByID maps telegram_bots.id (what an envelope carries, because it
 	// is the foreign key player_bot_links points at) to bot_key (what the
@@ -525,8 +570,17 @@ func (g *gateway) handleUpdate(ctx context.Context, bot application.Bot, update 
 		return
 	}
 
-	command, payload, err := routing.Parse(update)
+	// Route, never Parse: Route refuses a command the game does not serve to
+	// players, which must not be published. See the package doc of
+	// internal/commands for why the broker would not refuse it for us.
+	command, payload, err := routing.Route(update)
 	if err != nil {
+		if routing.NeedsHelp(err, meta.ChatType) {
+			log.Info("update names no command the game serves; answering with help",
+				append(metaAttrs(meta), slog.String("error", err.Error()))...)
+			g.help(ctx, bot, meta, log)
+			return
+		}
 		log.Debug("update is not a command",
 			append(metaAttrs(meta), slog.String("error", err.Error()))...)
 		return
@@ -582,6 +636,65 @@ func (g *gateway) handleUpdate(ctx context.Context, bot application.Bot, update 
 			slog.String("subject", subject),
 			slog.Int64("update_id", update.UpdateID),
 		)...)
+}
+
+// playerReader is the one read the help reply needs.
+type playerReader interface {
+	GetByTelegramUserID(ctx context.Context, telegramUserID int64) (*application.Player, error)
+}
+
+// help answers an update the game does not serve, instead of publishing it.
+//
+// The player is looked up, never created: a message nobody could act on is no
+// reason for a first contact, and the next real command creates the record as
+// usual. The reply is in the player's stored language by the same rule every
+// game screen follows (handlers.RenderLanguage), and falls back to the
+// Telegram client's when there is no record or it cannot be read — the reply
+// matters more than its language.
+func (g *gateway) help(ctx context.Context, bot application.Bot, meta envelope.Metadata, log *slog.Logger) {
+	var p *application.Player
+	if g.players != nil && meta.TelegramUserID != 0 {
+		found, err := g.players.GetByTelegramUserID(ctx, meta.TelegramUserID)
+		if err == nil {
+			p = found
+		} else if !errors.Is(err, application.ErrPlayerNotFound) {
+			log.Warn("cannot read the player's language for the help reply",
+				append(metaAttrs(meta), slog.String("error", err.Error()))...)
+		}
+	}
+
+	var messageID int64
+	if meta.CallbackQueryID != nil {
+		// A stale button: replace the screen it sat on rather than stacking
+		// a new message under it.
+		messageID = meta.TelegramMessageID
+	}
+	resp := screens.Help(screens.Context{
+		Msgs:      g.messages,
+		Lang:      handlers.RenderLanguage(meta, p),
+		MessageID: messageID,
+	})
+
+	deliver := g.deliver
+	if deliver == nil {
+		deliver = g.deliverViaFleet
+	}
+	deliver(ctx, bot, meta, resp, log)
+}
+
+// deliverViaFleet sends a response through the bot the update came from.
+func (g *gateway) deliverViaFleet(ctx context.Context, bot application.Bot, meta envelope.Metadata, resp *presenter.Response, log *slog.Logger) {
+	api, err := g.fleet.ClientFor(bot.BotKey)
+	if err != nil {
+		log.Error("no api client for the help reply", slog.String("error", err.Error()))
+		return
+	}
+	ctx, cancel := context.WithTimeout(ctx, g.cfg.Gateway.ShutdownTimeout)
+	defer cancel()
+	if err := g.send(ctx, api, bot.BotKey, meta, resp, log); err != nil {
+		log.Error("cannot deliver the help reply",
+			slog.String("action", string(resp.Type)), slog.String("error", err.Error()))
+	}
 }
 
 // onResponse renders one command response back to the player.
@@ -678,6 +791,35 @@ func (g *gateway) send(
 
 // render maps a presentation model onto one Bot API method.
 func render(ctx context.Context, api *client.Client, meta envelope.Metadata, resp *presenter.Response) error {
+	err := renderResponse(ctx, api, meta, resp)
+	acknowledgeCallback(ctx, api, meta, resp)
+	return err
+}
+
+// acknowledgeCallback answers the callback query behind a button press.
+//
+// Telegram shows a loading spinner on a pressed button until the bot answers
+// its callback query. When the response is an edited or a new message rather
+// than an explicit answer_callback, nothing answered it, so every button in
+// the game spun for several seconds after the screen had already changed. It
+// is answered here for every response type, empty, and best-effort: a failed
+// acknowledgement must never turn a delivered screen into a reported failure.
+func acknowledgeCallback(ctx context.Context, api *client.Client, meta envelope.Metadata, resp *presenter.Response) {
+	if meta.CallbackQueryID == nil || resp.Type == presenter.ActionAnswerCallback {
+		return
+	}
+	_ = api.AnswerCallbackQuery(ctx, *meta.CallbackQueryID, "")
+}
+
+// isNotModified reports Telegram's refusal to edit a message into exactly the
+// text and keyboard it already has.
+func isNotModified(err error) bool {
+	var apiErr *client.APIError
+	return errors.As(err, &apiErr) && apiErr.Code == 400 &&
+		strings.Contains(apiErr.Description, "message is not modified")
+}
+
+func renderResponse(ctx context.Context, api *client.Client, meta envelope.Metadata, resp *presenter.Response) error {
 	switch resp.Type {
 	case presenter.ActionSendMessage:
 		_, err := api.SendMessage(ctx, meta.TelegramChatID, resp.Text, inlineKeyboard(resp.Keyboard))
@@ -690,7 +832,14 @@ func render(ctx context.Context, api *client.Client, meta envelope.Metadata, res
 			// acted on is the one to edit.
 			messageID = meta.TelegramMessageID
 		}
-		return api.EditMessageText(ctx, meta.TelegramChatID, messageID, resp.Text, inlineKeyboard(resp.Keyboard))
+		err := api.EditMessageText(ctx, meta.TelegramChatID, messageID, resp.Text, inlineKeyboard(resp.Keyboard))
+		if isNotModified(err) {
+			// Refresh pressed on a screen whose contents have not changed.
+			// Telegram reports that as a 400, but the player's screen is
+			// already exactly right, so it is success, not a failure.
+			err = nil
+		}
+		return err
 
 	case presenter.ActionAnswerCallback:
 		if meta.CallbackQueryID == nil {
@@ -794,6 +943,12 @@ func metaFrom(ctx context.Context) envelope.Metadata {
 // published before a commit can be lost. The outbox worker drains it.
 type playerStore struct {
 	uow application.UnitOfWork
+
+	// startingCash is granted once, in the transaction that creates the
+	// player, so a person never exists in the world without the money they
+	// were promised, and a retried first contact never pays twice: the grant
+	// is idempotent on the player.
+	startingCash money.Amount
 }
 
 func (s *playerStore) EnsurePlayer(
@@ -826,6 +981,11 @@ func (s *playerStore) EnsurePlayer(
 				return err
 			}
 			player = p
+
+			if _, err := application.GrantStartingCash(ctx, tx.Ledger(), p.ID,
+				s.startingCash, "gateway.first_contact", time.Now().UTC()); err != nil {
+				return err
+			}
 
 			ev, err := events.New("player.created", "player", p.ID, map[string]any{
 				"player_id":        p.ID,

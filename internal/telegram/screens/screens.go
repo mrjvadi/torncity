@@ -66,6 +66,8 @@ const (
 	AddrFriendList   = "social:friend.list"
 	AddrFriendAdd    = "social:friend.add"
 	AddrFriendAccept = "social:friend.accept"
+	AddrSettings     = "player:settings"
+	AddrLanguageSet  = "player:language.set"
 )
 
 // lineBreak separates the lines of a body and blankLine separates its
@@ -81,8 +83,9 @@ type Context struct {
 	// Msgs is the catalogue. A nil Msgs renders keys, which is visibly
 	// wrong rather than silently blank.
 	Msgs Translator
-	// Lang is the player's language as it arrived on the request. Empty is
-	// fine: the catalogue falls back.
+	// Lang is the language the reply is written in: the player's stored
+	// choice where there is one, else their Telegram client's (see
+	// handlers.RenderLanguage). Empty is fine: the catalogue falls back.
 	Lang string
 	// MessageID is the message this response should replace. Zero means
 	// there is nothing to edit, so the screen sends.
@@ -96,6 +99,34 @@ func (c Context) T(key string, args map[string]any) string {
 	}
 	return c.Msgs.T(c.Lang, key, args)
 }
+
+// CityName resolves a city's display name in this context's language.
+//
+// A city's NAME is content keyed on its code, like a skill's: "city.<code>"
+// in the catalogue, so a Persian player reads a Persian name rather than the
+// one cities.yml was authored with. name is that authored name, and it is the
+// fallback when the catalogue has no entry for the code — a city added to
+// content before anyone translated it reads in its authored form instead of
+// as a raw key. An empty code means the caller has no code, so name is used
+// as it stands.
+//
+// The catalogue signals a missing key by returning the key itself (see
+// i18n.Catalog.T), and that is the check used here rather than Has: it
+// honours the same language fallback every other line on the screen does,
+// and it works through any Translator, including a hot-reloadable store.
+func (c Context) CityName(code, name string) string {
+	if code == "" {
+		return name
+	}
+	key := cityKeyPrefix + code
+	if text := c.T(key, nil); text != key {
+		return text
+	}
+	return name
+}
+
+// cityKeyPrefix is the catalogue namespace that holds city display names.
+const cityKeyPrefix = "city."
 
 // respond edits when there is a message to edit and sends otherwise.
 func (c Context) respond(text string, kb *presenter.Keyboard) *presenter.Response {
@@ -261,15 +292,16 @@ func Error(c Context, err error) *presenter.Response {
 // errorNextStep maps a refusal to the one screen that resolves it. A refusal
 // missing from here gets the back button alone.
 var errorNextStep = map[string]struct{ label, addr string }{
-	"error.already_travelling": {"button.journey", AddrTravelStatus},
-	"travel.none":              {"button.map", AddrMap},
-	"travel.same_city":         {"button.map", AddrMap},
-	"travel.no_route":          {"button.map", AddrMap},
-	"travel.unknown_speed":     {"button.map", AddrMap},
-	"error.city_not_found":     {"button.map", AddrMap},
-	"error.skill_not_found":    {"button.skills", AddrSkills},
-	"error.not_friends":        {"button.social", AddrFriendList},
-	"error.already_friends":    {"button.social", AddrFriendList},
+	"error.already_travelling":   {"button.journey", AddrTravelStatus},
+	"travel.none":                {"button.map", AddrMap},
+	"travel.same_city":           {"button.map", AddrMap},
+	"travel.no_route":            {"button.map", AddrMap},
+	"travel.unknown_speed":       {"button.map", AddrMap},
+	"error.city_not_found":       {"button.map", AddrMap},
+	"error.skill_not_found":      {"button.skills", AddrSkills},
+	"error.not_friends":          {"button.social", AddrFriendList},
+	"error.already_friends":      {"button.social", AddrFriendList},
+	"error.unsupported_language": {"button.settings", AddrSettings},
 }
 
 // errorMessage picks the key and the placeholder values for a failure.
@@ -346,6 +378,7 @@ var applicationSentinels = []struct {
 	{application.ErrNotFriends, "error.not_friends"},
 	{application.ErrAlreadyFriends, "error.already_friends"},
 	{application.ErrPlayerNotFound, "error.player_not_found"},
+	{application.ErrUnsupportedLanguage, "error.unsupported_language"},
 }
 
 // identical reports whether target appears anywhere in err's chain as that

@@ -176,10 +176,11 @@ func TestPhase1CallbackAddressesFitTheBudget(t *testing.T) {
 	}
 }
 
-// A command that is not in argNames still routes: the gateway keeps no
-// whitelist, because the list of commands is the game core's business and a
-// copy of it here would be wrong within a week.
-func TestUnlistedPhase1CommandStillRoutes(t *testing.T) {
+// A command that is not in argNames still PARSES: argNames only names
+// arguments. Whether the game serves the command is Route's question, and it
+// is answered from internal/commands, not from this table; travel.cancel is
+// not served, so Route refuses it (see TestRouteRefusesWhatTheGameDoesNotServe).
+func TestUnlistedPhase1CommandStillParses(t *testing.T) {
 	command, payload, err := ParseCallbackData("travel:cancel:abc")
 	if err != nil {
 		t.Fatalf("ParseCallbackData: %v", err)

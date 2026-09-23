@@ -59,13 +59,44 @@ WHERE telegram_user_id = $1`
 // fault — attaching the driver error would classify it as internal and put a
 // generic failure in front of a player who simply has not registered yet.
 func (r *PlayerRepository) GetByTelegramUserID(ctx context.Context, telegramUserID int64) (*application.Player, error) {
+	p, err := scanPlayer(r.q.QueryRow(ctx, selectPlayerByTelegramUserID, telegramUserID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, application.ErrPlayerNotFound
+		}
+		return nil, fmt.Errorf("postgres: loading player by telegram user %d: %w", telegramUserID, err)
+	}
+	return p, nil
+}
+
+const selectPlayerByID = `
+SELECT id, telegram_user_id, username, display_name, language, city_id, status, created_at
+FROM players
+WHERE id = $1::uuid`
+
+// GetByID returns the player, or application.ErrPlayerNotFound.
+//
+// A malformed identifier is a miss, not a fault, for the reason CityRepository
+// gives on ByID: an id that is not uuid text names no player.
+func (r *PlayerRepository) GetByID(ctx context.Context, id string) (*application.Player, error) {
+	p, err := scanPlayer(r.q.QueryRow(ctx, selectPlayerByID, id))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || isInvalidUUIDText(err) {
+			return nil, application.ErrPlayerNotFound
+		}
+		return nil, fmt.Errorf("postgres: loading player by id: %w", err)
+	}
+	return p, nil
+}
+
+// scanPlayer reads one row shaped like selectPlayerByTelegramUserID.
+func scanPlayer(row pgx.Row) (*application.Player, error) {
 	var (
 		p        application.Player
 		username *string
 		cityID   *string
 	)
-
-	err := r.q.QueryRow(ctx, selectPlayerByTelegramUserID, telegramUserID).Scan(
+	if err := row.Scan(
 		&p.ID,
 		&p.TelegramUserID,
 		&username,
@@ -74,12 +105,8 @@ func (r *PlayerRepository) GetByTelegramUserID(ctx context.Context, telegramUser
 		&cityID,
 		&p.Status,
 		&p.CreatedAt,
-	)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, application.ErrPlayerNotFound
-		}
-		return nil, fmt.Errorf("postgres: loading player by telegram user %d: %w", telegramUserID, err)
+	); err != nil {
+		return nil, err
 	}
 
 	// username is NULL-able in the schema (a Telegram handle is optional and
@@ -88,8 +115,39 @@ func (r *PlayerRepository) GetByTelegramUserID(ctx context.Context, telegramUser
 		p.Username = *username
 	}
 	p.CityID = cityID
-
 	return &p, nil
+}
+
+// updatePlayerLanguage stores a player's chosen language. It touches that one
+// column and updated_at, nothing else.
+const updatePlayerLanguage = `
+UPDATE players
+   SET language = $2, updated_at = $3
+ WHERE id = $1::uuid`
+
+// SetLanguage stores the language the player chose, or returns
+// application.ErrPlayerNotFound when no row has that id.
+//
+// It refuses an empty language outright: the column is NOT NULL and every
+// screen rendered for this player reads it, so an empty value is a caller bug,
+// never a choice. Whether lang is one the game actually speaks is checked by
+// the caller against the message catalogue; see
+// application.PlayerRepository.SetLanguage.
+func (r *PlayerRepository) SetLanguage(ctx context.Context, playerID, lang string) error {
+	if lang == "" {
+		return fmt.Errorf("postgres: set language for player %s: empty language", playerID)
+	}
+	tag, err := r.q.Exec(ctx, updatePlayerLanguage, playerID, lang, time.Now().UTC())
+	if err != nil {
+		if isInvalidUUIDText(err) {
+			return application.ErrPlayerNotFound
+		}
+		return fmt.Errorf("postgres: set language for player %s: %w", playerID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return application.ErrPlayerNotFound
+	}
+	return nil
 }
 
 // insertPlayer is written as a single upsert on purpose.
@@ -119,6 +177,11 @@ func (r *PlayerRepository) GetByTelegramUserID(ctx context.Context, telegramUser
 // a returning player's Telegram handle or display name may have changed since
 // the row was written. created_at and id are never touched — the loser of the
 // race must adopt the winner's identity, not overwrite it.
+//
+// language is NOT refreshed either. It starts as the Telegram client's
+// language, but from then on it is the player's own choice (SetLanguage), and
+// a first-contact upsert carrying whatever the client says today must not
+// quietly undo it.
 //
 // # Where a new player stands, and where they live
 //
@@ -153,11 +216,10 @@ VALUES ($1::uuid, $2, $3, $4, $5, $6::uuid, $6::uuid, $7, $8, $8)
 ON CONFLICT (telegram_user_id) DO UPDATE SET
     username          = EXCLUDED.username,
     display_name      = EXCLUDED.display_name,
-    language          = EXCLUDED.language,
     city_id           = COALESCE(players.city_id, EXCLUDED.city_id),
     residence_city_id = COALESCE(players.residence_city_id, players.city_id, EXCLUDED.residence_city_id),
     updated_at        = EXCLUDED.updated_at
-RETURNING id, created_at, city_id::text`
+RETURNING id, created_at, city_id::text, language`
 
 // selectSpawnCandidates reads the cities a new player may start in: the
 // active content version's cities with a positive spawn weight. Cities an
@@ -198,9 +260,11 @@ func (r *PlayerRepository) spawnCity(ctx context.Context, telegramUserID int64) 
 }
 
 // Create inserts the player, or adopts the existing row for that Telegram
-// user. p.ID, p.CreatedAt and p.CityID are overwritten with the surviving
-// row's values, so a caller that lost the race carries the right identity
-// onward, and every caller learns which city the player is standing in.
+// user. p.ID, p.CreatedAt, p.CityID and p.Language are overwritten with the
+// surviving row's values, so a caller that lost the race carries the right
+// identity onward, every caller learns which city the player is standing in,
+// and a returning player's chosen language is what comes back, not the
+// client's.
 //
 // A nil p.CityID asks for the player's spawn city, which also becomes their
 // residence; a non-nil one places (and houses) the player there instead.
@@ -260,12 +324,11 @@ func (r *PlayerRepository) Create(ctx context.Context, p *application.Player) er
 		cityID,
 		status,
 		now,
-	).Scan(&p.ID, &p.CreatedAt, &p.CityID); err != nil {
+	).Scan(&p.ID, &p.CreatedAt, &p.CityID, &p.Language); err != nil {
 		return fmt.Errorf("postgres: creating player for telegram user %d: %w", p.TelegramUserID, err)
 	}
 
 	p.Status = status
-	p.Language = language
 
 	return nil
 }

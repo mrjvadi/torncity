@@ -13,12 +13,16 @@ import (
 // identifier, stored language and account status are deliberately absent:
 // none of them means anything to a player, and a value that is on screen ends
 // up in a screenshot and then in a support request as if it were a fact about
-// them. City is likewise the resolved NAME, never an identifier.
+// them. A city travels as its content CODE, which the screen turns into a
+// name in the player's language, plus its authored name as the fallback for a
+// city nobody has translated yet; the code itself is never shown.
 type ProfileView struct {
 	Name string
-	// City is the resolved city name, empty when the player is nowhere yet.
-	// An empty city is simply not shown.
-	City string
+	// CityCode and City are the player's city: its content code and its
+	// authored name. Both empty when the player is nowhere yet; an empty city
+	// is simply not shown.
+	CityCode string
+	City     string
 
 	Level int
 	XP    int64
@@ -38,6 +42,7 @@ type ProfileView struct {
 	// describe it; the profile then shows the journey instead of a city the
 	// player is no longer standing in.
 	Travelling      bool
+	TravelToCode    string
 	TravelTo        string
 	TravelRemaining time.Duration
 }
@@ -56,15 +61,18 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 		welcome = c.T("profile.body", nil)
 	}
 
+	city := c.CityName(v.CityCode, v.City)
+	travelTo := c.CityName(v.TravelToCode, v.TravelTo)
+
 	var where string
 	switch {
-	case v.Travelling && v.TravelTo != "":
+	case v.Travelling && travelTo != "":
 		where = c.T("profile.travelling", map[string]any{
-			"city":      v.TravelTo,
+			"city":      travelTo,
 			"remaining": FormatDuration(c, v.TravelRemaining),
 		})
-	case v.City != "":
-		where = c.T("profile.city", map[string]any{"city": v.City})
+	case city != "":
+		where = c.T("profile.city", map[string]any{"city": city})
 	}
 
 	var name string
@@ -85,7 +93,7 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 		),
 	)
 
-	return c.respond(text, hubKeyboard(c, v.City != "", v.Travelling).Build())
+	return c.respond(text, hubKeyboard(c, city != "", v.Travelling).Build())
 }
 
 // levelLine shows the level and how far the next one is. A player at the top
@@ -139,7 +147,8 @@ func hubKeyboard(c Context, hasCity, travelling bool) *keyboards.Builder {
 	}
 
 	social, _ := keyboards.Button(c.T("button.social", nil), AddrFriendList)
-	kb.Row(social)
+	settings, _ := keyboards.Button(c.T("button.settings", nil), AddrSettings)
+	kb.Row(social, settings)
 
 	refresh, _ := keyboards.Button(c.T("button.refresh", nil), AddrProfile)
 	kb.Row(refresh)

@@ -56,12 +56,14 @@ func (h *SkillsHandler) List(ctx context.Context, meta envelope.Metadata) (*pres
 	}
 
 	var view screens.SkillsView
+	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
 		}
+		lang = RenderLanguage(meta, p)
 
 		rows, err := h.skills.List(ctx, p.ID)
 		if err != nil {
@@ -94,7 +96,7 @@ func (h *SkillsHandler) List(ctx context.Context, meta envelope.Metadata) (*pres
 
 	return screens.Skills(screens.Context{
 		Msgs:      h.msgs,
-		Lang:      meta.Language,
+		Lang:      lang,
 		MessageID: editableMessageID(meta),
 	}, view), nil
 }

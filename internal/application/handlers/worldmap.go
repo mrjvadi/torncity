@@ -78,12 +78,14 @@ func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageR
 	page := parsePage(req.Page)
 
 	var view screens.MapView
+	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
 		}
+		lang = RenderLanguage(meta, p)
 
 		all, err := h.cities.List(ctx)
 		if err != nil {
@@ -108,6 +110,7 @@ func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageR
 			view.Travelling = true
 			for i := range all {
 				if all[i].ID == t.ToCityID {
+					view.TravellingToCode = all[i].Code
 					view.TravellingTo = all[i].Name
 					break
 				}
@@ -121,6 +124,7 @@ func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageR
 			// Nowhere to measure from, so nowhere to go.
 			return nil
 		}
+		view.OriginCode = origin.Code
 		view.Origin = origin.Name
 
 		// Only destinations are listed: cities a route reaches from here.
@@ -163,7 +167,7 @@ func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageR
 
 	return screens.Map(screens.Context{
 		Msgs:      h.msgs,
-		Lang:      meta.Language,
+		Lang:      lang,
 		MessageID: editableMessageID(meta),
 	}, view), nil
 }

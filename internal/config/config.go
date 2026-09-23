@@ -150,6 +150,7 @@ type Config struct {
 	Game      Game
 	Travel    Travel
 	Player    Player
+	Economy   Economy
 }
 
 // Gateway paces the Telegram polling loop and its shutdown.
@@ -291,6 +292,15 @@ type Player struct {
 	DefaultLanguage string // player.default_language
 }
 
+// Economy is the tuning of the money core (docs/adr/0009-economic-control.md).
+// Every amount is int64 minor units, the same as a ledger entry, so no value
+// here can pass through a float on its way into the ledger.
+type Economy struct {
+	// StartingCash is what every player receives once, from system_source,
+	// through a reward grant with source starting_grant.
+	StartingCash int64 // economy.starting_cash
+}
+
 // Defaults returns every field at the value it was hardcoded to before this
 // package existed.
 //
@@ -364,6 +374,9 @@ func Defaults() *Config {
 		},
 		Player: Player{
 			DefaultLanguage: "fa",
+		},
+		Economy: Economy{
+			StartingCash: 5000,
 		},
 	}
 }
@@ -529,6 +542,17 @@ func parseDuration(field, raw string) (time.Duration, error) {
 
 func parseInt(field, raw string) (int, error) {
 	v, err := strconv.Atoi(strings.TrimSpace(raw))
+	if err != nil {
+		return 0, fmt.Errorf("%w: %s: %q is not a whole number", ErrInvalidValue, field, raw)
+	}
+	return v, nil
+}
+
+// parseInt64 reads a 64-bit whole number, for money in minor units. It goes
+// through strconv.ParseInt, never ParseFloat, so "5000.5" or "5e3" is refused
+// rather than rounded.
+func parseInt64(field, raw string) (int64, error) {
+	v, err := strconv.ParseInt(strings.TrimSpace(raw), 10, 64)
 	if err != nil {
 		return 0, fmt.Errorf("%w: %s: %q is not a whole number", ErrInvalidValue, field, raw)
 	}

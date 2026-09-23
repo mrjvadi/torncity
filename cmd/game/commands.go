@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mrjvadi/torncity/cmd/game/subscriptions"
+	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
+	"github.com/mrjvadi/torncity/internal/commands"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/travel"
 	"github.com/mrjvadi/torncity/internal/domain/world"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
+	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
@@ -28,6 +30,7 @@ type phaseHandlers struct {
 	skills   *handlers.SkillsHandler
 	social   *handlers.SocialHandler
 	worldMap *handlers.MapHandler
+	settings *handlers.SettingsHandler
 }
 
 // bind maps every subscribed command to the handler method that serves it.
@@ -40,6 +43,16 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 	return map[string]commandFunc{
 		"player.profile.get": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.profile.Handle(ctx, env.Metadata)
+		},
+		"player.settings": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.settings.Show(ctx, env.Metadata)
+		},
+		"player.language.set": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.LanguageRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.settings.SetLanguage(ctx, env.Metadata, req)
 		},
 
 		"travel.start": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
@@ -108,7 +121,7 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 // bindAll pairs every subscription with its handler, or explains which side
 // is missing. It runs before anything subscribes, so a mismatch stops the
 // process at startup instead of acking a stream of commands nothing ran.
-func bindAll(subs []subscriptions.Subscription, bound map[string]commandFunc) (map[string]commandFunc, error) {
+func bindAll(subs []commands.Subscription, bound map[string]commandFunc) (map[string]commandFunc, error) {
 	out := make(map[string]commandFunc, len(subs))
 	for _, sub := range subs {
 		fn, ok := bound[sub.Command()]
@@ -177,3 +190,37 @@ func (r liveRoutes) DistanceBetween(from, to string) (int, error) {
 }
 
 func (r liveRoutes) Has(code string) bool { return r.registry.Routes().Has(code) }
+
+// storeLanguages offers the languages of whatever catalogue the store holds
+// at the moment of the request, for the same reason livePlanner reads the
+// registry per request: a reloaded catalogue with a new locale in it is then
+// offered on the settings screen without anything here changing.
+type storeLanguages struct {
+	store *i18n.Store
+}
+
+func (s storeLanguages) Languages() []string { return s.store.Catalog().Languages() }
+
+// playerReader is the one read the refusal path needs.
+type playerReader interface {
+	GetByTelegramUserID(ctx context.Context, telegramUserID int64) (*application.Player, error)
+}
+
+// refusalLanguage is the language a refusal is written in: the player's
+// stored choice, by the same rule every handler follows
+// (handlers.RenderLanguage).
+//
+// A refused command never reaches the handler's render, so the choice is made
+// again here. The read happens only on this path, never for a command that
+// succeeded, and a read that fails costs nothing but the language: the
+// refusal still goes out, in the Telegram client's.
+func (s *service) refusalLanguage(ctx context.Context, meta envelope.Metadata) string {
+	if s.players == nil || meta.TelegramUserID == 0 {
+		return meta.Language
+	}
+	p, err := s.players.GetByTelegramUserID(ctx, meta.TelegramUserID)
+	if err != nil {
+		return handlers.RenderLanguage(meta, nil)
+	}
+	return handlers.RenderLanguage(meta, p)
+}

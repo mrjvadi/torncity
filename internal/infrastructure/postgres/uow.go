@@ -149,3 +149,8 @@ func (t *tx) GameActions() application.GameActionRepository {
 func (t *tx) Friendships() application.FriendshipRepository {
 	return &FriendshipRepository{q: t.q}
 }
+
+// Ledger returns the ledger bound to this transaction, so money moves if and
+// only if the change that moved it commits. Post runs inside a savepoint of
+// this transaction; see the note on tx.
+func (t *tx) Ledger() application.LedgerRepository { return &LedgerRepository{q: t.q} }

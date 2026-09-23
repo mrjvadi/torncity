@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 
-	"github.com/mrjvadi/torncity/cmd/game/subscriptions"
+	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/commands"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
@@ -15,7 +17,7 @@ import (
 // TestEverySubscriptionIsBound: the process refuses to start on a mismatch,
 // and this makes the refusal a test failure instead of a failed deploy.
 func TestEverySubscriptionIsBound(t *testing.T) {
-	if _, err := bindAll(subscriptions.All(), phaseHandlers{}.bind()); err != nil {
+	if _, err := bindAll(commands.All(), phaseHandlers{}.bind()); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -23,13 +25,13 @@ func TestEverySubscriptionIsBound(t *testing.T) {
 func TestBindAllRefusesAGap(t *testing.T) {
 	bound := phaseHandlers{}.bind()
 	delete(bound, "travel.arrive")
-	if _, err := bindAll(subscriptions.All(), bound); err == nil || !strings.Contains(err.Error(), "travel.arrive") {
+	if _, err := bindAll(commands.All(), bound); err == nil || !strings.Contains(err.Error(), "travel.arrive") {
 		t.Fatalf("bindAll = %v, want a refusal naming travel.arrive", err)
 	}
 
 	bound = phaseHandlers{}.bind()
 	bound["travel.teleport"] = func(context.Context, *envelope.Envelope) (*presenter.Response, error) { return nil, nil }
-	if _, err := bindAll(subscriptions.All(), bound); err == nil || !strings.Contains(err.Error(), "travel.teleport") {
+	if _, err := bindAll(commands.All(), bound); err == nil || !strings.Contains(err.Error(), "travel.teleport") {
 		t.Fatalf("bindAll = %v, want a refusal naming travel.teleport", err)
 	}
 }
@@ -37,7 +39,7 @@ func TestBindAllRefusesAGap(t *testing.T) {
 func TestSubscriptionsAreDistinctAndWellFormed(t *testing.T) {
 	seenSubject := map[string]bool{}
 	seenDurable := map[string]bool{}
-	for _, sub := range subscriptions.All() {
+	for _, sub := range commands.All() {
 		if !subjects.Grammar.MatchString(sub.Subject()) {
 			t.Errorf("%s does not match the subject grammar", sub.Subject())
 		}
@@ -72,5 +74,38 @@ func TestNewTariffFromDefaults(t *testing.T) {
 	}
 	if _, err := newTariff(0, 1, 720, 1); err == nil {
 		t.Fatal("a speed of zero was accepted")
+	}
+}
+
+// fakePlayerReader answers the one read the refusal path makes.
+type fakePlayerReader struct {
+	player *application.Player
+	err    error
+}
+
+func (f fakePlayerReader) GetByTelegramUserID(context.Context, int64) (*application.Player, error) {
+	return f.player, f.err
+}
+
+// A refusal is written in the player's stored language, like every other
+// reply, and still goes out when that language cannot be read.
+func TestRefusalLanguagePrefersTheStoredLanguage(t *testing.T) {
+	meta := envelope.Metadata{TelegramUserID: 42, Language: "fa"}
+	for _, tt := range []struct {
+		name    string
+		players playerReader
+		want    string
+	}{
+		{"stored language", fakePlayerReader{player: &application.Player{Language: "en"}}, "en"},
+		{"nothing stored", fakePlayerReader{player: &application.Player{}}, "fa"},
+		{"read failed", fakePlayerReader{err: errors.New("connection reset")}, "fa"},
+		{"no reader", nil, "fa"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &service{players: tt.players}
+			if got := s.refusalLanguage(context.Background(), meta); got != tt.want {
+				t.Errorf("refusalLanguage = %q, want %q", got, tt.want)
+			}
+		})
 	}
 }

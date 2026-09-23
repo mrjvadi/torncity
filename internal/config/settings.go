@@ -37,6 +37,7 @@ type fileConfig struct {
 	Game      gameSettings      `yaml:"game"`
 	Travel    travelSettings    `yaml:"travel"`
 	Player    playerSettings    `yaml:"player"`
+	Economy   economySettings   `yaml:"economy"`
 }
 
 type gatewaySettings struct {
@@ -109,6 +110,10 @@ type travelSettings struct {
 
 type playerSettings struct {
 	DefaultLanguage *string `yaml:"default_language"`
+}
+
+type economySettings struct {
+	StartingCash *int64 `yaml:"starting_cash"`
 }
 
 // setting is one configurable value, from its yaml key to the field it fills.
@@ -187,6 +192,40 @@ func limitSetting(section, key string, field func(*Config) *int, raw func(*fileC
 	}
 	s.fromEnv = func(c *Config, text string) error {
 		v, err := parseInt(s.envName(), text)
+		if err != nil {
+			return err
+		}
+		*field(c) = v
+		return nil
+	}
+	s.check = func(c *Config) error {
+		if v := *field(c); v <= 0 {
+			return fmt.Errorf("%w: %s is %d", ErrNotPositive, name, v)
+		}
+		return nil
+	}
+	return s
+}
+
+// moneySetting wires an amount of money in minor units. It is int64, like
+// every money value in the project, and never passes through a float: the
+// yaml decoder fills an int64 directly and the environment is parsed with
+// strconv.ParseInt. Its check rejects zero and below, for the same reason
+// limitSetting does: an amount of zero means the thing it pays does nothing.
+func moneySetting(section, key string, field func(*Config) *int64, raw func(*fileConfig) *int64) setting {
+	s := setting{section: section, key: key}
+	name := s.name()
+
+	s.fromFile = func(c *Config, f *fileConfig) error {
+		p := raw(f)
+		if p == nil {
+			return nil
+		}
+		*field(c) = *p
+		return nil
+	}
+	s.fromEnv = func(c *Config, text string) error {
+		v, err := parseInt64(s.envName(), text)
 		if err != nil {
 			return err
 		}
@@ -403,4 +442,8 @@ var settings = []setting{
 	stringSetting("player", "default_language",
 		func(c *Config) *string { return &c.Player.DefaultLanguage },
 		func(f *fileConfig) *string { return f.Player.DefaultLanguage }),
+
+	moneySetting("economy", "starting_cash",
+		func(c *Config) *int64 { return &c.Economy.StartingCash },
+		func(f *fileConfig) *int64 { return f.Economy.StartingCash }),
 }

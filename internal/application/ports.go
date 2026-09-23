@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/shared/errors"
 )
 
 // Player is the identity record shared across the whole bot fleet.
@@ -89,6 +90,10 @@ type Tx interface {
 	Travels() TravelRepository
 	GameActions() GameActionRepository
 	Friendships() FriendshipRepository
+
+	// Ledger moves money in the same transaction as the change that
+	// caused it; see ports_ledger.go.
+	Ledger() LedgerRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.
@@ -109,7 +114,24 @@ type PlayerRepository interface {
 	Create(ctx context.Context, p *Player) error
 	// LinkBot records or refreshes the player's chat with one bot.
 	LinkBot(ctx context.Context, link BotLink) error
+	// GetByID returns the player with this id, or ErrPlayerNotFound. It is
+	// for commands that name their player directly instead of arriving from
+	// a Telegram user, such as a journey the scheduler lands.
+	GetByID(ctx context.Context, id string) (*Player, error)
+	// SetLanguage stores the language the player chose to play in, or
+	// returns ErrPlayerNotFound when no such player exists. The repository
+	// stores what it is given: whether lang is a language the game speaks is
+	// the caller's question to answer first (see ErrUnsupportedLanguage),
+	// because only the message catalogue knows.
+	SetLanguage(ctx context.Context, playerID, lang string) error
 }
+
+// ErrUnsupportedLanguage refuses a language the message catalogue does not
+// have. A player's language is chosen from the languages the game ships, never
+// written as a free string: a stored code nothing can render would silently
+// put the player back on the fallback language with no way to tell why.
+var ErrUnsupportedLanguage = errors.Sentinel(errors.CodeInvalidInput,
+	"application.ErrUnsupportedLanguage", "language not supported")
 
 // OutboxRepository appends events for the outbox worker to publish.
 type OutboxRepository interface {

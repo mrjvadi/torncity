@@ -42,6 +42,8 @@ func main() {
 		err = status(ctx)
 	case "content":
 		err = contentCommand(ctx, os.Args[2:])
+	case "economy":
+		err = economyCommand(ctx, os.Args[2:])
 	default:
 		usage()
 		os.Exit(2)
@@ -60,6 +62,7 @@ func usage() {
   migrate-down  roll back the most recently applied migration
   status        list applied and pending migrations
   content       validate or load the game content (see: admin content)
+  economy       verify the ledger or grant starting cash (see: admin economy)
 
 DATABASE_URL must be set, except for `+"`admin content validate`"+`, which
 reads files only.

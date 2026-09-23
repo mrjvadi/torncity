@@ -1,18 +1,25 @@
-// Package subscriptions is the list of commands the game service consumes.
+// Package commands is the table of every command the game serves.
 //
-// It lives apart from cmd/game's main package for one reason: other packages
-// must be able to read it. The scheduler publishes commands that only this
-// service handles, and the two sides agreeing on a subject is otherwise a
-// matter of two string literals in two processes that nobody compares. A test
-// in internal/workers/scheduler imports this package and asserts that every
-// subject the scheduler can publish is one listed here, so a rename on either
-// side fails the build's tests instead of silently publishing into a stream
-// no consumer filters for.
+// It is read from three places, which is why it lives here and not inside any
+// one of them:
+//
+//   - cmd/game subscribes to every entry and binds each to a handler, and
+//     refuses to start if an entry is left unbound or a handler has no entry.
+//   - the scheduler publishes commands that only the game handles, and a test
+//     in internal/workers/scheduler asserts that every subject it can publish
+//     is listed here as a scheduled command.
+//   - the gateway checks every command a player sends against this table
+//     BEFORE publishing it (internal/gateway/routing.Route).
+//
+// The last one is not a formality. The command stream is a JetStream work
+// queue: a publish to a subject nobody consumes SUCCEEDS, with no error and no
+// consumer, so a command that is not in this table does not fail — it
+// vanishes, and the player who sent it waits for a reply that never comes.
+// Checking at the edge turns that silence into an answer.
 //
 // The table holds names only. What each command does is the handler's
-// business; cmd/game binds every entry to one and refuses to start if any
-// entry is left unbound.
-package subscriptions
+// business.
+package commands
 
 import (
 	"sort"
@@ -34,7 +41,8 @@ const (
 	FromScheduler
 )
 
-// Subscription is one command the game service consumes.
+// Subscription is one command the game service consumes: one entry of the
+// table.
 type Subscription struct {
 	// Domain and Action are the two halves subjects.Command takes. The
 	// domain is one token; the action may be several ("friend.add").
@@ -66,6 +74,10 @@ var all = []Subscription{
 	// Phase 0: first contact and the profile screen.
 	{Domain: "player", Action: "profile.get", Origin: FromPlayer},
 
+	// Settings: the screen, and the one setting it has so far.
+	{Domain: "player", Action: "settings", Origin: FromPlayer},
+	{Domain: "player", Action: "language.set", Origin: FromPlayer},
+
 	// Phase 1: travel. travel.arrive is the one command in the game that no
 	// player can send; the scheduler publishes it when a journey comes due.
 	{Domain: "travel", Action: "start", Origin: FromPlayer},
@@ -86,6 +98,24 @@ func All() []Subscription {
 	out := make([]Subscription, len(all))
 	copy(out, all)
 	return out
+}
+
+// Lookup returns the entry for a command in its domain.action spelling.
+func Lookup(command string) (Subscription, bool) {
+	for _, s := range all {
+		if s.Command() == command {
+			return s, true
+		}
+	}
+	return Subscription{}, false
+}
+
+// FromPlayerCommand reports whether a player may send this command: it is in
+// the table and a player, not a clock, is its origin. travel.arrive is in the
+// table and is still not one, because only the scheduler lands a journey.
+func FromPlayerCommand(command string) bool {
+	s, ok := Lookup(command)
+	return ok && s.Origin == FromPlayer
 }
 
 // Subjects returns every subject the game service consumes, sorted.

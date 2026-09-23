@@ -284,6 +284,8 @@ travel:
   express_boarding: 16m
 player:
   default_language: "en"
+economy:
+  starting_cash: 5001
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -338,6 +340,8 @@ var envOverrides = map[string]string{
 	"TORN_TRAVEL_EXPRESS_BOARDING":     "17m",
 
 	"TORN_PLAYER_DEFAULT_LANGUAGE": "de",
+
+	"TORN_ECONOMY_STARTING_CASH": "5002",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,
@@ -469,6 +473,8 @@ func TestEnvRejectsMalformedValues(t *testing.T) {
 		{"not a number", "TORN_WORKER_BATCH_SIZE", "lots"},
 		{"one bad entry in a list", "TORN_NATS_BACKOFF", "1s,5s,soon"},
 		{"set but empty", "TORN_DEDUP_TTL", ""},
+		{"money with a fraction", "TORN_ECONOMY_STARTING_CASH", "5000.5"},
+		{"money in float notation", "TORN_ECONOMY_STARTING_CASH", "5e3"},
 	}
 
 	for _, tc := range tests {
@@ -500,6 +506,7 @@ func TestEnvNamingRule(t *testing.T) {
 		{"ratelimit", "default_burst", "TORN_RATELIMIT_DEFAULT_BURST"},
 		{"nats", "duplicate_window", "TORN_NATS_DUPLICATE_WINDOW"},
 		{"player", "default_language", "TORN_PLAYER_DEFAULT_LANGUAGE"},
+		{"economy", "starting_cash", "TORN_ECONOMY_STARTING_CASH"},
 	}
 
 	for _, tc := range tests {
@@ -539,6 +546,16 @@ func TestValidate(t *testing.T) {
 		{
 			name:   "a negative limit",
 			break_: func(c *Config) { c.RateLimit.DefaultRate = -5 },
+			want:   ErrNotPositive,
+		},
+		{
+			name:   "no starting cash",
+			break_: func(c *Config) { c.Economy.StartingCash = 0 },
+			want:   ErrNotPositive,
+		},
+		{
+			name:   "negative starting cash",
+			break_: func(c *Config) { c.Economy.StartingCash = -1 },
 			want:   ErrNotPositive,
 		},
 		{

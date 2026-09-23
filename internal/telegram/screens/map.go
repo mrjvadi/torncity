@@ -12,6 +12,10 @@ import (
 // list of places the player cannot go is noise on a screen whose whole job is
 // "where can I go"; they appear as soon as the player stands somewhere that
 // connects to them.
+//
+// Code is both the address of its travel button and the key its display name
+// is looked up by; Name is the authored name, shown only when the catalogue
+// has no translation for Code.
 type MapCity struct {
 	Code       string
 	Name       string
@@ -25,35 +29,39 @@ type MapView struct {
 	Destinations []MapCity
 	Page         int
 	Pages        int
-	// Origin is the resolved name of the player's city, empty when they are
-	// nowhere yet.
-	Origin string
-	// Travelling says a journey is in progress, and TravellingTo names its
-	// destination. A traveller is shown the journey, not a departures board
-	// full of buttons that would all be refused.
-	Travelling   bool
-	TravellingTo string
+	// OriginCode and Origin are the player's city: its content code and its
+	// authored name, the fallback for an untranslated code. Both empty when
+	// they are nowhere yet.
+	OriginCode string
+	Origin     string
+	// Travelling says a journey is in progress, and TravellingToCode and
+	// TravellingTo name its destination. A traveller is shown the journey,
+	// not a departures board full of buttons that would all be refused.
+	Travelling       bool
+	TravellingToCode string
+	TravellingTo     string
 }
 
 // Map renders the destinations reachable from the player's city.
 func Map(c Context, v MapView) *presenter.Response {
 	kb := keyboards.New()
+	origin := c.CityName(v.OriginCode, v.Origin)
 
 	var content string
 	switch {
 	case v.Travelling:
-		if v.TravellingTo != "" {
-			content = c.T("map.travelling", map[string]any{"city": v.TravellingTo})
+		if to := c.CityName(v.TravellingToCode, v.TravellingTo); to != "" {
+			content = c.T("map.travelling", map[string]any{"city": to})
 		}
 		journey, _ := keyboards.Button(c.T("button.journey", nil), AddrTravelStatus)
 		kb.Row(journey)
 
-	case v.Origin == "":
+	case origin == "":
 		content = c.T("map.no_city", nil)
 
 	case len(v.Destinations) == 0:
 		content = paragraphs(
-			c.T("map.origin", map[string]any{"city": v.Origin}),
+			c.T("map.origin", map[string]any{"city": origin}),
 			c.T("map.no_routes", nil),
 		)
 
@@ -61,8 +69,9 @@ func Map(c Context, v MapView) *presenter.Response {
 		lines := make([]string, 0, len(v.Destinations)+1)
 		lines = append(lines, c.T("map.destinations", nil))
 		for _, city := range v.Destinations {
+			name := c.CityName(city.Code, city.Name)
 			lines = append(lines, c.T("map.destination", map[string]any{
-				"city":     city.Name,
+				"city":     name,
 				"distance": FormatNumber(int64(city.DistanceKM)),
 			}))
 			// The city CODE is the address: it is authored content, it is
@@ -70,17 +79,17 @@ func Map(c Context, v MapView) *presenter.Response {
 			// budget. The core looks it up again and re-checks the route, the
 			// energy and whether this player is already travelling, so a
 			// hand-written address buys nothing.
-			kb.Add(c.T("button.travel_to", map[string]any{"city": city.Name}), AddrTravelStart, city.Code)
+			kb.Add(c.T("button.travel_to", map[string]any{"city": name}), AddrTravelStart, city.Code)
 		}
 		content = paragraphs(
-			c.T("map.origin", map[string]any{"city": v.Origin}),
+			c.T("map.origin", map[string]any{"city": origin}),
 			body(lines...),
 			pageIndicator(c, v.Page, v.Pages),
 		)
 	}
 
 	nav := keyboards.Nav{RefreshData: AddrMap}
-	if !v.Travelling && v.Origin != "" {
+	if !v.Travelling && origin != "" {
 		nav = keyboards.Nav{
 			Prefix:  AddrMap,
 			Page:    v.Page,

@@ -41,9 +41,10 @@ const testIdempotencyTTL = 24 * time.Hour
 // --- fakes -------------------------------------------------------------
 
 type fakePlayers struct {
-	byTelegramID map[int64]*application.Player
-	created      int
-	links        []application.BotLink
+	byTelegramID   map[int64]*application.Player
+	created        int
+	links          []application.BotLink
+	languageWrites int
 }
 
 func (f *fakePlayers) GetByTelegramUserID(_ context.Context, id int64) (*application.Player, error) {
@@ -62,6 +63,31 @@ func (f *fakePlayers) Create(_ context.Context, p *application.Player) error {
 func (f *fakePlayers) LinkBot(_ context.Context, l application.BotLink) error {
 	f.links = append(f.links, l)
 	return nil
+}
+
+func (f *fakePlayers) GetByID(_ context.Context, id string) (*application.Player, error) {
+	for _, p := range f.byTelegramID {
+		if p.ID == id {
+			return p, nil
+		}
+	}
+	return nil, application.ErrPlayerNotFound
+}
+
+// SetLanguage replaces the record rather than editing it in place, so the
+// unit of work's snapshot, which copies the map but shares the records, still
+// rolls a failed command's language change back.
+func (f *fakePlayers) SetLanguage(_ context.Context, playerID, lang string) error {
+	for k, p := range f.byTelegramID {
+		if p.ID == playerID {
+			changed := *p
+			changed.Language = lang
+			f.byTelegramID[k] = &changed
+			f.languageWrites++
+			return nil
+		}
+	}
+	return application.ErrPlayerNotFound
 }
 
 type fakeOutbox struct {
@@ -124,6 +150,13 @@ func (t *fakeTx) Skills() application.SkillRepository            { return t.skil
 func (t *fakeTx) Travels() application.TravelRepository          { return t.travels }
 func (t *fakeTx) GameActions() application.GameActionRepository  { return t.actions }
 func (t *fakeTx) Friendships() application.FriendshipRepository  { return t.friendships }
+
+// Ledger satisfies the port. No handler in this package moves money yet, so
+// the fake has no behaviour: the embedded nil interface makes any call panic,
+// which is the honest answer to a call this double was never meant to serve.
+func (t *fakeTx) Ledger() application.LedgerRepository { return fakeLedger{} }
+
+type fakeLedger struct{ application.LedgerRepository }
 
 // fakeUOW runs fn directly, and discards EVERY change when fn fails so the
 // test can assert the rollback contract the real implementation must honour.
@@ -447,7 +480,8 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 	// this test creates is brand new, has no city and only the placeholder
 	// name, so the screen asks for the welcome, then level, energy and
 	// health, and no name or city line. With no city there is nowhere to
-	// travel, so the keyboard offers skills, friends and refresh — no map.
+	// travel, so the keyboard offers skills, friends, settings and refresh —
+	// no map.
 	want := []string{
 		"profile.body",
 		"profile.level",
@@ -455,6 +489,7 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 		"profile.health",
 		"button.skills",
 		"button.social",
+		"button.settings",
 		"button.refresh",
 	}
 	if len(spy.keys) != len(want) {

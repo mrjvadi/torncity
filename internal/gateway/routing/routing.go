@@ -5,7 +5,8 @@
 // translated, not executed: market:buy:123 becomes the command market.buy and
 // the game core is the one that checks ownership, availability, the wallet and
 // the cooldown. Nothing in this package knows what a market, a job or an item
-// is; it knows how a command is spelled.
+// is; it knows how a command is spelled, and — from the game's own table, see
+// below — which spellings the game answers.
 //
 // # The parsing scheme
 //
@@ -16,7 +17,8 @@
 // The first token is the slash-command and names the domain; the token after
 // it names the action; everything that follows is a positional argument. So
 // "/job apply developer" is domain "job", action "apply", one argument
-// "developer", which makes the command "job.apply". A trailing @botname on the
+// "developer", which makes the command "job.apply" (a spelling only: the game
+// serves no jobs yet, so Route refuses it). A trailing @botname on the
 // slash-command is stripped, because Telegram appends it in groups
 // ("/job@torncity_bot apply"). Tokens are lower-cased.
 //
@@ -28,9 +30,20 @@
 // every character counts. So "market:buy:123" is the command "market.buy" with
 // one argument, "123".
 //
-// A small number of bare commands have no action token and are mapped by name;
-// the only one phase 0 needs is /start, which opens the player's profile
-// screen. See aliases.
+// # Shortcuts
+//
+// Players do not type "/player profile.get". The shortcuts table maps the
+// slash-commands people naturally type onto the commands they mean, in two
+// ways, and nowhere else in the gateway knows about either:
+//
+//   - on its own: "/map" is map.list, "/settings" is player.settings, and
+//     /start — which Telegram itself sends as the first message of every chat
+//     — is the profile.
+//   - followed by words that are not one of its commands: "/social mrjvadi"
+//     is social.search for "mrjvadi", while "/social search mrjvadi" and
+//     "/social friend.list" still mean exactly what they say. The words
+//     become the command's positional arguments, so "/start <payload>" deep
+//     links arrive as arguments of the profile, and "/map 2" is page two.
 //
 // # How positional arguments become a payload
 //
@@ -40,14 +53,24 @@
 // only. It encodes no rule, no validation and no default; a wrong name costs a
 // rejected command from the domain handler, never a wrong game outcome.
 //
-// A command that is absent from the table still routes. Its arguments arrive
+// A command that is absent from argNames still parses. Its arguments arrive
 // under the key "args" as a []string, and so do any arguments beyond the names
-// the table lists. The gateway deliberately does not keep a whitelist of valid
-// commands: the list of commands is the game core's business, it changes every
-// time a domain grows a feature, and a copy of it here would be wrong within a
-// week. An unknown command produces a subject nobody consumes, which surfaces
-// as a no-responder and is answered as "unknown command" — one place to handle
-// it instead of two.
+// the table lists.
+//
+// # Only commands the game serves are routed
+//
+// Parse answers "is this spelled like a command". Route, which is what the
+// gateway calls, also answers "does the game serve it, from a player" by
+// checking internal/commands — the same table cmd/game subscribes from, so
+// there is no second copy here to drift. An unknown command is refused with
+// ErrUnknownCommand and is never published.
+//
+// This package once argued the opposite: that a whitelist here would be a
+// stale copy, and that an unknown command would surface downstream as a
+// no-responder. The second half is false on JetStream. The command stream is
+// a work queue, a publish to a subject nobody consumes succeeds, and the
+// player who typed "/social mrjvadi" got no reply at all. The first half is
+// answered by reading the game's own table instead of keeping a copy.
 //
 // # Callback data is untrusted input
 //
@@ -70,6 +93,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/mrjvadi/torncity/internal/commands"
 	"github.com/mrjvadi/torncity/internal/gateway/telegram/client"
 )
 
@@ -110,6 +134,10 @@ var (
 	// ErrCallbackDataUnsafe means the data contained a byte outside the safe
 	// set. See safeCallbackByte for what is allowed and why.
 	ErrCallbackDataUnsafe = errors.New("routing: callback data contains characters outside the safe set")
+
+	// ErrUnknownCommand means the update is spelled like a command but names
+	// none the game serves to players. See Route.
+	ErrUnknownCommand = errors.New("routing: the game serves no such command")
 )
 
 // tokenPattern is what a single subject token may look like.
@@ -121,13 +149,31 @@ var (
 // caused it.
 var tokenPattern = regexp.MustCompile(`^[a-z_]+$`)
 
-// aliases maps a bare slash-command to a full domain.action.
+// shortcut is what one slash-command means when it is not followed by one of
+// its own commands. See the package doc.
+type shortcut struct {
+	// Bare is the command the slash-command means on its own.
+	Bare string
+	// Words is the command the slash-command means when words follow it that
+	// do not name one of its commands; the words are that command's
+	// arguments. Empty means such words are read as an action, as usual.
+	Words string
+}
+
+// shortcuts maps the slash-commands players naturally type to the commands
+// they mean.
 //
-// Keep this table tiny. Every entry is a name the gateway has to know, and the
-// general /domain action form needs no entry at all. /start earns its place
-// because Telegram itself sends it as the first message of every chat.
-var aliases = map[string]string{
-	"start": "player.profile.get",
+// Every command named here must be one the game serves to players; a test
+// holds this table to internal/commands.
+var shortcuts = map[string]shortcut{
+	// Telegram sends /start as the first message of every chat, and a deep
+	// link arrives as "/start <payload>".
+	"start":    {Bare: "player.profile.get", Words: "player.profile.get"},
+	"profile":  {Bare: "player.profile.get"},
+	"settings": {Bare: "player.settings"},
+	"skills":   {Bare: "skills.list"},
+	"map":      {Bare: "map.list", Words: "map.list"},
+	"social":   {Bare: "social.friend.list", Words: "social.search"},
 }
 
 // argNames names the positional arguments of a command, in order.
@@ -164,9 +210,59 @@ var argNames = map[string][]string{
 	"social.friend.accept": {"player"},
 	"social.friend.list":   {"page"},
 	"map.list":             {"page"},
+
+	// The profile takes nothing. A /start deep-link payload still arrives,
+	// under "args", for whoever reads it one day.
+	"player.profile.get": {},
+
+	// Settings. player.settings takes nothing; player.language.set names the
+	// language by its catalogue code ("/player language.set en", or the
+	// button "player:language.set:en"). The game core checks the code
+	// against the languages it actually ships.
+	"player.settings":     {},
+	"player.language.set": {"lang"},
 }
 
+// Route is Parse restricted to the commands the game serves to players, and it
+// is the only entry point the gateway may publish from.
+//
+// A command that parses but is not in internal/commands, or is in it only as
+// a scheduled command (travel.arrive), is refused with ErrUnknownCommand. See
+// the package doc for why this check cannot be left to the broker.
+func Route(update client.Update) (command string, payload map[string]any, err error) {
+	command, payload, err = Parse(update)
+	if err != nil {
+		return "", nil, err
+	}
+	if !commands.FromPlayerCommand(command) {
+		return "", nil, ErrUnknownCommand
+	}
+	return command, payload, nil
+}
+
+// NeedsHelp reports whether a routing failure is a player trying to say
+// something the game did not understand, and so deserves an answer: an
+// unknown or misspelled command, a button from an older version of the game,
+// or, in a private chat, plain text. What does not get one is an update that
+// carries nothing at all (a photo, an edit) and plain text in a group, where
+// the bot answering every message would be noise.
+func NeedsHelp(err error, chatType string) bool {
+	switch {
+	case err == nil, errors.Is(err, ErrNoCommand):
+		return false
+	case errors.Is(err, ErrNotACommand):
+		return chatType == privateChat
+	}
+	return true
+}
+
+// privateChat is Telegram's chat type for a one-to-one chat with the bot.
+const privateChat = "private"
+
 // Parse extracts the command and payload from one update.
+//
+// It checks spelling only. Whether the game serves the command is Route's
+// question, so this can be tested, and reasoned about, without the table.
 //
 // The payload is always non-nil on success, so a caller can marshal it without
 // a nil check and a command with no arguments serialises as {} rather than
@@ -219,17 +315,21 @@ func parseText(text string) (string, map[string]any, error) {
 		return "", nil, ErrMalformedCommand
 	}
 
-	if full, ok := aliases[head]; ok {
-		// Anything after an alias is an argument, which is how Telegram deep
-		// links arrive: "/start <payload>".
-		return finish(full, fields[1:])
-	}
-
+	short, hasShortcut := shortcuts[head]
 	if len(fields) < 2 {
+		if hasShortcut && short.Bare != "" {
+			return finish(short.Bare, nil)
+		}
 		return "", nil, ErrMissingAction
 	}
-	action := strings.ToLower(fields[1])
-	return finish(head+"."+action, fields[2:])
+
+	command := head + "." + strings.ToLower(fields[1])
+	if hasShortcut && short.Words != "" && !commands.FromPlayerCommand(command) {
+		// "/social mrjvadi": the words are not one of this slash-command's
+		// commands, so they are the arguments of the one it stands for.
+		return finish(short.Words, fields[1:])
+	}
+	return finish(command, fields[2:])
 }
 
 func parseCallbackData(data string) (string, map[string]any, error) {

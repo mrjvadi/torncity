@@ -10,7 +10,8 @@
 #
 # Terminology and emoji anchors follow the glossary at the top of fa.yml:
 # Energy ⚡, Health ❤️, Level ⭐, XP, City 📍, Journey 🧭, Time left ⏳, Map 🗺,
-# Skills 🛠, Friends 👥, Profile 👤, Search 🔎, Refresh 🔄. Address the player
+# Skills 🛠, Friends 👥, Profile 👤, Search 🔎, Refresh 🔄, Settings ⚙️,
+# Language 🌐 (a language is always named in itself). Address the player
 # as "you"; durations read "2h 15m"; numbers use "," as the thousands
 # separator (inserted by the code).
 
@@ -77,6 +78,45 @@ skill:
   logistics: Logistics
   driving: Driving
 
+# City display names, keyed on the city's content code (configs/content/cities.yml).
+# The code never changes after a city ships; the name here may. A city with no
+# entry here falls back to the `name:` in cities.yml, but a test fails CI until
+# every shipped city is translated in every locale.
+city:
+  ostmarch: Ostmarch
+  fenwick_span: Fenwick Span
+  aldrin_hollow: Aldrin Hollow
+  brennhaven: Brennhaven
+  kessmoor: Kessmoor
+  calderis: Calderis
+  vantor_reach: Vantor Reach
+
+# The answer to a message the game did not understand. The commands listed in
+# help.body are the shortcuts internal/gateway/routing accepts; keep the two
+# in step.
+help:
+  unknown: I did not understand that message.
+  body: |-
+    The game is played with the buttons below. You can also send:
+    /profile — your profile
+    /map — the map and travel
+    /skills — your skills
+    /social name — find a player
+    /settings — settings
+
+settings:
+  title: "⚙️ Settings"
+  language: "🌐 Language: {language}"
+  language_changed: The game language is now {language}.
+
+# Language names, keyed on the locale file's name (fa.yml -> language.fa).
+# Each language is written in ITSELF, in every locale: a player who landed in
+# a language they cannot read must still be able to find their own. A new
+# locale file needs its name added here, in every locale; a test enforces it.
+language:
+  fa: فارسی
+  en: English
+
 social:
   unknown_player: A player
   search:
@@ -117,6 +157,8 @@ button:
   travel_to: "🧭 Travel to {city}"
   skills: "🛠 Skills"
   social: "👥 Friends"
+  settings: "⚙️ Settings"
+  change_language: "🌐 Switch to {language}"
   add_friend: "➕ Add {player}"
   accept: "✅ Accept {player}"
 
@@ -137,3 +179,4 @@ error:
   not_friends: You are not friends with this player, and there is no request from them waiting for you. See your friends and requests under Friends.
   already_friends: You are already friends with this player. You will find them under Friends.
   player_not_found: Player not found. If you have not started the game yet, send /start.
+  unsupported_language: That language is not available. Choose one of the available languages under Settings.

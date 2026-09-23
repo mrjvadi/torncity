@@ -12,7 +12,10 @@ import (
 // of them changes.
 type DashboardView struct {
 	Name string
-	// City is the resolved city name, empty when the player is nowhere yet.
+	// CityCode and City are the player's city: its content code, which the
+	// screen resolves to a name in the player's language, and its authored
+	// name as the fallback. Both empty when the player is nowhere yet.
+	CityCode  string
 	City      string
 	Level     int
 	Energy    int
@@ -25,20 +28,21 @@ type DashboardView struct {
 // Dashboard renders the hub: the same lines and the same buttons as the
 // profile, minus what the dashboard does not carry.
 func Dashboard(c Context, v DashboardView) *presenter.Response {
-	var name, city string
+	var name, where string
 	if v.Name != "" {
 		name = c.T("profile.name", map[string]any{"name": v.Name})
 	}
-	if v.City != "" && !v.Travelling {
-		city = c.T("profile.city", map[string]any{"city": v.City})
+	city := c.CityName(v.CityCode, v.City)
+	if city != "" && !v.Travelling {
+		where = c.T("profile.city", map[string]any{"city": city})
 	}
 
 	text := paragraphs(
-		body(name, city),
+		body(name, where),
 		body(
 			c.T("profile.level_plain", map[string]any{"level": max(v.Level, 1)}),
 			energyLine(c, v.Energy, v.MaxEnergy, 0),
 		),
 	)
-	return c.respond(text, hubKeyboard(c, v.City != "", v.Travelling).Build())
+	return c.respond(text, hubKeyboard(c, city != "", v.Travelling).Build())
 }

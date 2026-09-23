@@ -29,6 +29,8 @@
 #   search          جست‌وجو                 🔎
 #   refresh         به‌روزرسانی              🔄       never «بروزرسانی»
 #   player          بازیکن
+#   settings        تنظیمات                ⚙️
+#   language        زبان                   🌐       a language is always named in itself: «English», not «انگلیسی»
 #
 # Voice: address the player as «شما», polite and direct. No exclamation marks
 # except in the one-time welcome. At most one emoji per line, and only the
@@ -107,6 +109,45 @@ skill:
   logistics: لجستیک
   driving: رانندگی
 
+# City display names, keyed on the city's content code (configs/content/cities.yml).
+# The code never changes after a city ships; the name here may. A city with no
+# entry here falls back to the `name:` in cities.yml, but a test fails CI until
+# every shipped city is translated in every locale.
+city:
+  ostmarch: استمارچ
+  fenwick_span: فنویک اسپن
+  aldrin_hollow: آلدرین هالو
+  brennhaven: برنهاون
+  kessmoor: کسمور
+  calderis: کالدریس
+  vantor_reach: ونتور ریچ
+
+# The answer to a message the game did not understand. The commands listed in
+# help.body are the shortcuts internal/gateway/routing accepts; keep the two
+# in step.
+help:
+  unknown: این پیام را متوجه نشدم.
+  body: |-
+    بازی با دکمه‌های زیر پیش می‌رود. این دستورها را هم می‌توانید بفرستید:
+    /profile — پروفایل
+    /map — نقشه و سفر
+    /skills — مهارت‌ها
+    /social نام — جست‌وجوی بازیکن
+    /settings — تنظیمات
+
+settings:
+  title: "⚙️ تنظیمات"
+  language: "🌐 زبان: {language}"
+  language_changed: زبان بازی به {language} تغییر کرد.
+
+# Language names, keyed on the locale file's name (fa.yml -> language.fa).
+# Each language is written in ITSELF, in every locale: a player who landed in
+# a language they cannot read must still be able to find their own. A new
+# locale file needs its name added here, in every locale; a test enforces it.
+language:
+  fa: فارسی
+  en: English
+
 social:
   unknown_player: یک بازیکن
   search:
@@ -147,6 +188,8 @@ button:
   travel_to: "🧭 سفر به {city}"
   skills: "🛠 مهارت‌ها"
   social: "👥 دوستان"
+  settings: "⚙️ تنظیمات"
+  change_language: "🌐 تغییر زبان به {language}"
   add_friend: "➕ افزودن {player}"
   accept: "✅ پذیرفتن {player}"
 
@@ -167,3 +210,4 @@ error:
   not_friends: با این بازیکن دوست نیستید و درخواستی از او در انتظار شما نیست. فهرست دوستان و درخواست‌ها را در «دوستان» ببینید.
   already_friends: شما از قبل با این بازیکن دوست هستید. او را در «دوستان» پیدا می‌کنید.
   player_not_found: بازیکن پیدا نشد. اگر هنوز بازی را شروع نکرده‌اید، /start را بفرستید.
+  unsupported_language: این زبان در بازی موجود نیست. از «تنظیمات» یکی از زبان‌های موجود را انتخاب کنید.

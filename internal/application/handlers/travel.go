@@ -146,9 +146,10 @@ func NewTravelHandler(
 	}
 }
 
-// screen builds the rendering context for a player's request.
-func (h *TravelHandler) screen(meta envelope.Metadata) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: meta.Language, MessageID: editableMessageID(meta)}
+// screen builds the rendering context for a player's request, in lang (see
+// RenderLanguage).
+func (h *TravelHandler) screen(meta envelope.Metadata, lang string) screens.Context {
+	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta)}
 }
 
 // Start handles travel.start: a player asking to leave for another city.
@@ -176,12 +177,14 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 
 	var view screens.TravelStartedView
 	replayed := false
+	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
 		}
+		lang = RenderLanguage(meta, p)
 
 		key := idempotency.Derive(p.ID, meta.RequestID, meta.IdempotencyKey)
 		fresh, err := tx.Idempotency().Reserve(ctx, string(key), p.ID, meta.RequestID, meta.Command, h.idempotencyTTL)
@@ -316,7 +319,9 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		}
 
 		view = screens.TravelStartedView{
+			FromCode: from.Code,
 			From:     from.Name,
+			ToCode:   to.Code,
 			To:       to.Name,
 			Duration: journey.Duration(),
 			Energy:   h.energyCost,
@@ -333,7 +338,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		// they are on.
 		return h.Status(ctx, meta)
 	}
-	return screens.TravelStarted(h.screen(meta), view), nil
+	return screens.TravelStarted(h.screen(meta, lang), view), nil
 }
 
 // Status handles travel.status: the journey in progress, and how much of it
@@ -351,12 +356,14 @@ func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*pr
 	}
 
 	var view screens.TravelStatusView
+	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
 		}
+		lang = RenderLanguage(meta, p)
 
 		t, err := tx.Travels().Active(ctx, p.ID)
 		if err != nil {
@@ -381,7 +388,9 @@ func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*pr
 		}
 
 		view = screens.TravelStatusView{
+			FromCode:  from.Code,
 			From:      from.Name,
+			ToCode:    to.Code,
 			To:        to.Name,
 			Remaining: travel.Remaining(journey, h.now()),
 			ArrivesAt: t.ArrivesAt,
@@ -392,7 +401,7 @@ func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*pr
 		return nil, err
 	}
 
-	return screens.TravelStatus(h.screen(meta), view), nil
+	return screens.TravelStatus(h.screen(meta, lang), view), nil
 }
 
 // Complete lands a journey. It arrives from the SCHEDULER, not from a player.
@@ -541,8 +550,19 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 
+		// The scheduler knows no Telegram user and stamps the configured
+		// default language, so the arrival is written in the language the
+		// player chose, read from their record. A record that cannot be found
+		// is no reason to lose an arrival that has already happened: the
+		// notification then goes out in the default.
+		if p, err := tx.Players().GetByID(ctx, playerID); err == nil {
+			language = RenderLanguage(meta, p)
+		} else if !isSentinel(err, application.ErrPlayerNotFound) {
+			return err
+		}
+
 		arrived = true
-		view = screens.TravelArrivedView{City: to.Name, XP: h.arrivalXP}
+		view = screens.TravelArrivedView{CityCode: to.Code, City: to.Name, XP: h.arrivalXP}
 		return nil
 	})
 	if err != nil {

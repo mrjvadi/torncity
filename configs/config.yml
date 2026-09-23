@@ -250,3 +250,14 @@ player:
   # theirs. The game ships Persian first, so an unknown locale falls back to
   # it rather than to English. It is a primary subtag only: "fa", not "fa-IR".
   default_language: "fa"
+
+# The money core (docs/adr/0009-economic-control.md). Every amount is a whole
+# number of minor currency units; there are no fractions anywhere in the
+# ledger, so a value like 5000.5 is refused on load rather than rounded.
+economy:
+  # What every player receives once, from the game's system_source account,
+  # recorded as a reward grant with source starting_grant. New players get it
+  # at first contact; players who existed before it get it from
+  # `admin economy grant-starting --reason "..."`. A player is never granted
+  # it twice, so changing this value affects only players not yet granted.
+  starting_cash: 5000

@@ -99,8 +99,10 @@ func NewSocialHandler(
 	}
 }
 
-func (h *SocialHandler) screen(meta envelope.Metadata) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: meta.Language, MessageID: editableMessageID(meta)}
+// screen builds the rendering context for a reply to the player who sent
+// meta, in lang (see RenderLanguage).
+func (h *SocialHandler) screen(meta envelope.Metadata, lang string) screens.Context {
+	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta)}
 }
 
 // Search handles social.search.
@@ -128,12 +130,14 @@ func (h *SocialHandler) Search(ctx context.Context, meta envelope.Metadata, req 
 	page := parsePage(req.Page)
 
 	var view screens.SearchView
+	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		self, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
 		}
+		lang = RenderLanguage(meta, self)
 
 		offset := (page - 1) * h.pageSize
 		found, err := h.search.Search(ctx, query, h.pageSize+1, offset)
@@ -166,7 +170,7 @@ func (h *SocialHandler) Search(ctx context.Context, meta envelope.Metadata, req 
 		return nil, err
 	}
 
-	return screens.Search(h.screen(meta), view), nil
+	return screens.Search(h.screen(meta, lang), view), nil
 }
 
 // FriendAdd handles social.friend.add: asking another player to be friends.
@@ -184,12 +188,14 @@ func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, r
 	if req.Player == "" {
 		return nil, errors.InvalidInput("social.friend.add names no player")
 	}
+	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		self, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
 		}
+		lang = RenderLanguage(meta, self)
 		if self.ID == req.Player {
 			return errors.InvalidInput("a player cannot befriend themselves")
 		}
@@ -249,7 +255,7 @@ func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, r
 	// The other player's NAME is not resolvable here: no port maps a player
 	// id back to a record. The screen says so in the player's language
 	// rather than printing an identifier at them.
-	return screens.FriendRequested(h.screen(meta), ""), nil
+	return screens.FriendRequested(h.screen(meta, lang), ""), nil
 }
 
 // FriendAccept handles social.friend.accept.
@@ -263,12 +269,14 @@ func (h *SocialHandler) FriendAccept(ctx context.Context, meta envelope.Metadata
 	if req.Player == "" {
 		return nil, errors.InvalidInput("social.friend.accept names no player")
 	}
+	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		self, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
 		}
+		lang = RenderLanguage(meta, self)
 		if self.ID == req.Player {
 			return errors.InvalidInput("a player cannot befriend themselves")
 		}
@@ -304,7 +312,7 @@ func (h *SocialHandler) FriendAccept(ctx context.Context, meta envelope.Metadata
 		return nil, err
 	}
 
-	return screens.FriendAccepted(h.screen(meta), ""), nil
+	return screens.FriendAccepted(h.screen(meta, lang), ""), nil
 }
 
 // FriendList handles social.friend.list.
@@ -322,12 +330,14 @@ func (h *SocialHandler) FriendList(ctx context.Context, meta envelope.Metadata, 
 	page := parsePage(req.Page)
 
 	var view screens.FriendsView
+	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		self, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
 		}
+		lang = RenderLanguage(meta, self)
 
 		edges, err := tx.Friendships().List(ctx, self.ID)
 		if err != nil {
@@ -354,5 +364,5 @@ func (h *SocialHandler) FriendList(ctx context.Context, meta envelope.Metadata, 
 		return nil, err
 	}
 
-	return screens.Friends(h.screen(meta), view), nil
+	return screens.Friends(h.screen(meta, lang), view), nil
 }

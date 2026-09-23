@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/mrjvadi/torncity/cmd/game/subscriptions"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
+	"github.com/mrjvadi/torncity/internal/commands"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 )
 
@@ -22,8 +22,8 @@ import (
 // TestEveryRouteHasAConsumer: every subject the scheduler can publish is one
 // the game service subscribes to, and subscribes to as a scheduled command.
 func TestEveryRouteHasAConsumer(t *testing.T) {
-	consumed := map[string]subscriptions.Subscription{}
-	for _, sub := range subscriptions.All() {
+	consumed := map[string]commands.Subscription{}
+	for _, sub := range commands.All() {
 		consumed[sub.Subject()] = sub
 	}
 
@@ -34,10 +34,10 @@ func TestEveryRouteHasAConsumer(t *testing.T) {
 		sub, ok := consumed[subject]
 		if !ok {
 			t.Errorf("action type %q is published on %s, which cmd/game does not subscribe to; subscribed: %v",
-				actionType, subject, subscriptions.Subjects())
+				actionType, subject, commands.Subjects())
 			continue
 		}
-		if sub.Origin != subscriptions.FromScheduler {
+		if sub.Origin != commands.FromScheduler {
 			t.Errorf("%s is consumed as a player command; a scheduled command has no bot to reply through", subject)
 		}
 		if sub.Command() != route.Command() {
@@ -64,13 +64,13 @@ func TestTravelArrivalSubject(t *testing.T) {
 	}
 
 	found := false
-	for _, s := range subscriptions.Subjects() {
+	for _, s := range commands.Subjects() {
 		if s == got {
 			found = true
 		}
 	}
 	if !found {
-		t.Errorf("cmd/game does not subscribe to %s; subscribed: %v", got, subscriptions.Subjects())
+		t.Errorf("cmd/game does not subscribe to %s; subscribed: %v", got, commands.Subjects())
 	}
 }
 

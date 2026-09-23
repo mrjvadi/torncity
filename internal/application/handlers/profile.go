@@ -247,6 +247,7 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 			Status:     travel.Status(t.Status),
 		}, h.now())
 		if to, err := h.cities.ByID(ctx, t.ToCityID); err == nil {
+			view.TravelToCode = to.Code
 			view.TravelTo = to.Name
 		} else if !isSentinel(err, application.ErrCityNotFound) {
 			return view, err
@@ -266,6 +267,7 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 				return view, err
 			}
 		} else {
+			view.CityCode = city.Code
 			view.City = city.Name
 		}
 	}
@@ -341,7 +343,7 @@ func fallbackDisplayName(telegramUserID int64) string {
 // what is true and a screen decides what it looks like. Every word of it
 // still comes from the catalogue.
 func (h *ProfileHandler) renderProfile(meta envelope.Metadata, p *application.Player, view screens.ProfileView) *presenter.Response {
-	c := screens.Context{Msgs: h.msgs, Lang: meta.Language, MessageID: editableMessageID(meta)}
+	c := screens.Context{Msgs: h.msgs, Lang: RenderLanguage(meta, p), MessageID: editableMessageID(meta)}
 	if p == nil {
 		return presenter.Message(c.T("profile.unavailable", nil), nil)
 	}
