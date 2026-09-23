@@ -19,8 +19,8 @@ func contentPack() *content.Pack {
 	return &content.Pack{
 		Schema: 1,
 		Cities: []content.CityDef{
-			{Code: "alpha", Name: "Alpha", TaxRateBPS: 500, CostOfLiving: 1000},
-			{Code: "bravo", Name: "Bravo", TaxRateBPS: 750, CostOfLiving: 2000},
+			{Code: "alpha", Name: "Alpha", TaxRateBPS: 500, CostOfLiving: 1000, SpawnWeight: 30},
+			{Code: "bravo", Name: "Bravo", TaxRateBPS: 750, CostOfLiving: 2000, SpawnWeight: 10},
 		},
 		Routes: []content.RouteDef{{From: "alpha", To: "bravo", Distance: 100}},
 	}
@@ -117,4 +117,116 @@ func normalizedSource(t *testing.T, name string) string {
 		t.Fatalf("reading %s: %v", name, err)
 	}
 	return normalize(string(raw))
+}
+
+// Spawn weights are written, for every city, zero included, in the same
+// statement as the rest of the row.
+func TestApplyWritesSpawnWeights(t *testing.T) {
+	upsert := normalize(upsertCity)
+	if !strings.Contains(upsert, "content_version_id, spawn_weight) VALUES") {
+		t.Errorf("the city insert does not write spawn_weight:\n%s", upsert)
+	}
+	if !strings.Contains(upsert, "spawn_weight = EXCLUDED.spawn_weight") {
+		t.Errorf("an existing city does not take the loaded spawn_weight on conflict:\n%s", upsert)
+	}
+}
+
+// Placing needs the cities' ids, which only exist once the cities are
+// written; housing must follow placing, so a newly placed player lives where
+// they were placed; and both must happen before the commit to be part of the
+// load.
+func TestApplyPlacesThenHousesInsideTheTransaction(t *testing.T) {
+	src := normalizedSource(t, "content.go")
+	upsertAt := strings.Index(src, "upsertCities(ctx, tx, p, versionID)")
+	placeAt := strings.Index(src, "placeUnplacedPlayers(ctx, tx, spawnCandidates(p, cityIDs))")
+	houseAt := strings.Index(src, "houseUnhousedPlayers(ctx, tx)")
+	commitAt := strings.Index(src, "tx.Commit(ctx); err != nil { return Applied{}")
+	if upsertAt < 0 || placeAt < 0 || houseAt < 0 || commitAt < 0 {
+		t.Fatalf("Apply no longer writes cities (%d), places (%d), houses (%d) or commits (%d)",
+			upsertAt, placeAt, houseAt, commitAt)
+	}
+	if !(upsertAt < placeAt && placeAt < houseAt && houseAt < commitAt) {
+		t.Error("Apply does not write cities, place players, house players and commit, in that order")
+	}
+}
+
+// The backfill places players with NO city and nobody else: changing a weight
+// must never relocate a player who is already somewhere. The pick is made in
+// Go by content.PickSpawnCity, never by random() in SQL.
+func TestApplyPlacesOnlyPlayersWithNoCity(t *testing.T) {
+	sel := normalize(selectUnplacedPlayers)
+	if !strings.Contains(sel, "SELECT id::text, telegram_user_id FROM players WHERE city_id IS NULL") {
+		t.Errorf("the backfill does not select exactly the players with no city:\n%s", sel)
+	}
+	if !strings.HasSuffix(sel, "FOR UPDATE") {
+		t.Errorf("the backfill does not lock the players it picks for:\n%s", sel)
+	}
+
+	upd := normalize(placeUnplacedStatement)
+	if !strings.HasPrefix(upd, "UPDATE players AS p SET city_id = v.city_id, updated_at = $3") {
+		t.Errorf("the backfill does not set city_id and updated_at:\n%s", upd)
+	}
+	if !strings.HasSuffix(upd, "WHERE p.id = v.player_id AND p.city_id IS NULL") {
+		t.Errorf("the backfill is not restricted to players with no city:\n%s", upd)
+	}
+	for _, q := range []string{sel, upd} {
+		if strings.Contains(strings.ToLower(q), "random(") {
+			t.Errorf("the backfill picks at random:\n%s", q)
+		}
+	}
+}
+
+// A residence is only ever filled in, never replaced, and it is the player's
+// current city.
+func TestApplyHousesOnlyPlayersWithNoResidence(t *testing.T) {
+	sql := normalize(houseUnhousedStatement)
+	want := "UPDATE players SET residence_city_id = city_id, updated_at = $1 WHERE residence_city_id IS NULL AND city_id IS NOT NULL"
+	if sql != want {
+		t.Errorf("the residence backfill changed shape:\n got %s\nwant %s", sql, want)
+	}
+}
+
+// The ids the placement uses are the ones this load stored, not the pack's
+// own (a pack read from files has none).
+func TestSpawnCandidatesTakeTheStoredIDs(t *testing.T) {
+	p := contentPack()
+	p.Cities[1].SpawnWeight = 0
+	got := spawnCandidates(p, map[string]string{"alpha": "id-a", "bravo": "id-b"})
+	if len(got) != 1 || got[0].Code != "alpha" || got[0].ID != "id-a" || got[0].Weight != 30 {
+		t.Errorf("spawnCandidates = %+v, want only alpha with its stored id", got)
+	}
+}
+
+// A pack read back from the database goes through BuildSnapshot, which
+// validates it; without the weights every read-back would have no spawn city
+// and every service would refuse to boot.
+func TestLoadActiveReadsSpawnWeights(t *testing.T) {
+	src := normalizedSource(t, "content.go")
+	if !strings.Contains(src, "SELECT id::text, code, name, tax_rate_bps, cost_of_living, spawn_weight FROM cities") {
+		t.Error("LoadActive does not read spawn_weight")
+	}
+	if !strings.Contains(src, "&c.CostOfLiving, &c.SpawnWeight)") {
+		t.Error("LoadActive does not scan spawn_weight into the pack")
+	}
+}
+
+// A city a player lives in is in use, exactly like one a player stands in.
+func TestInUseCheckCountsResidents(t *testing.T) {
+	src := normalizedSource(t, "content.go")
+	if !strings.Contains(src, "WHERE pl.residence_city_id = c.id) AS residents") {
+		t.Error("the in-use check does not count the players who live in a retiring city")
+	}
+	if !strings.Contains(src, "WHERE pl.city_id = c.id) AS present") {
+		t.Error("the in-use check does not count the players standing in a retiring city")
+	}
+}
+
+// Changing a weight is a content change, so it must change the value digest
+// too.
+func TestChecksumSeesSpawnWeights(t *testing.T) {
+	a, b := contentPack(), contentPack()
+	b.Cities[0].SpawnWeight++
+	if Checksum(a) == Checksum(b) {
+		t.Error("changing a spawn weight did not change the checksum")
+	}
 }

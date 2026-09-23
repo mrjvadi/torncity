@@ -29,3 +29,10 @@ telegram-bot-api-data/
 /.agents/
 # local tooling, not project source
 .agents/
+
+# binaries produced by `go build ./cmd/<name>` at the repository root
+/admin
+/game
+/gateway
+/worker
+/scheduler

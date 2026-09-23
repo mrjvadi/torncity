@@ -60,6 +60,17 @@ type CityDef struct {
 	TaxRateBPS int `yaml:"tax_rate_bps"`
 	// CostOfLiving is the baseline living cost in minor currency units.
 	CostOfLiving int64 `yaml:"cost_of_living"`
+	// SpawnWeight is how likely a NEW player is to start here, relative to
+	// the other cities: a city of weight 30 receives about three times the
+	// newcomers of a city of weight 10. It is a relative weight, not a
+	// percentage; the weights need not add up to anything. 0 (the default
+	// when the key is omitted) means nobody starts here. Validate refuses a
+	// negative weight and a pack where no city has a positive one.
+	//
+	// The city a player starts in is also where they live (their residence),
+	// until a deliberate residency change. Changing a weight never moves
+	// anybody already placed; it only changes where future newcomers land.
+	SpawnWeight int `yaml:"spawn_weight"`
 }
 
 // City converts the definition to the domain value. Population is not content:

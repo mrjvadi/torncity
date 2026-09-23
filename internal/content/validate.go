@@ -93,6 +93,22 @@ var (
 	// location, so a world with nowhere to be is not a world.
 	ErrNoCities = errors.New("content: at least one city is required")
 
+	// ErrNegativeSpawnWeight means a city's spawn_weight is below zero. A
+	// weight is a share of newcomers; a negative share has no meaning.
+	ErrNegativeSpawnWeight = errors.New("content: spawn_weight must not be negative")
+
+	// ErrSpawnWeightTooLarge means a spawn_weight above MaxSpawnWeight. The
+	// weights are summed when a newcomer is placed and stored in an int
+	// column, so an absurd value is refused here rather than overflowing at
+	// load time.
+	ErrSpawnWeightTooLarge = errors.New("content: spawn_weight is too large")
+
+	// ErrNoSpawnCity means cities were declared but none has a positive
+	// spawn_weight. New players are placed by those weights at first contact,
+	// so with none they would be placed nowhere, and a player with no city
+	// cannot travel.
+	ErrNoSpawnCity = errors.New("content: at least one city must have a positive spawn_weight")
+
 	// ErrUnbuildableRoutes means the edges passed every rule here and the
 	// domain's own route builder still refused them. It should be unreachable;
 	// if it ever fires, a rule in this file has drifted away from
@@ -155,6 +171,7 @@ func (p *Pack) validateCities(problems *[]error) map[string]struct{} {
 	}
 
 	known := make(map[string]struct{}, len(p.Cities))
+	spawnable := 0
 	for i, c := range p.Cities {
 		// The index is reported alongside the code because a city whose code
 		// is empty cannot be identified any other way.
@@ -176,6 +193,23 @@ func (p *Pack) validateCities(problems *[]error) map[string]struct{} {
 			*problems = append(*problems, fmt.Errorf("%w: %s %q has %d",
 				ErrInvalidCostOfLiving, where, c.Code, c.CostOfLiving))
 		}
+		switch {
+		case c.SpawnWeight < 0:
+			*problems = append(*problems, fmt.Errorf("%w: %s %q has %d",
+				ErrNegativeSpawnWeight, where, c.Code, c.SpawnWeight))
+		case c.SpawnWeight > MaxSpawnWeight:
+			*problems = append(*problems, fmt.Errorf("%w: %s %q has %d, the most is %d",
+				ErrSpawnWeightTooLarge, where, c.Code, c.SpawnWeight, MaxSpawnWeight))
+		case c.SpawnWeight > 0:
+			spawnable++
+		}
+	}
+
+	// Only checked when there are cities at all: an empty list is already
+	// ErrNoCities, and naming the missing spawn city as well would report one
+	// mistake twice.
+	if len(p.Cities) > 0 && spawnable == 0 {
+		*problems = append(*problems, ErrNoSpawnCity)
 	}
 	return known
 }

@@ -100,12 +100,24 @@ type Applied struct {
 	VersionID string
 	// Checksum is what was stored as source_checksum.
 	Checksum string
+	// PlayersPlaced is how many players had no city and were placed in their
+	// spawn city by this load. It is zero on every load after the first one
+	// that ran with spawn weights, unless players were created while no city
+	// had a positive weight — which is exactly the case it is there to report.
+	PlayersPlaced int64
+	// ResidencesSet is how many players had no residence and were given one
+	// by this load: players placed above, and players who already stood in a
+	// city before residence existed (migration 0005), whose current city
+	// becomes where they live.
+	ResidencesSet int64
 }
 
 // Apply writes a pack as a new active version, in one transaction.
 //
 // Everything happens together: the version row, the cities, the routes, the
-// skills, the supersede of the previous version, the outbox record that tells
+// skills (spawn weights included), the supersede of the previous version, the
+// placement of players who have no city yet, the residence of players who have
+// none yet, the outbox record that tells
 // running services to reload, and the audit row that records who did it. A
 // failure anywhere leaves the world exactly as it was.
 //
@@ -186,6 +198,18 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 	if err != nil {
 		return Applied{}, err
 	}
+	// After the cities, because the pick needs their ids; placing before
+	// housing, because a newly placed player's residence is the city they
+	// were just placed in; and before the commit, so a load that fails leaves
+	// nobody half-placed.
+	placed, err := placeUnplacedPlayers(ctx, tx, spawnCandidates(p, cityIDs))
+	if err != nil {
+		return Applied{}, err
+	}
+	housed, err := houseUnhousedPlayers(ctx, tx)
+	if err != nil {
+		return Applied{}, err
+	}
 	if err := insertRoutes(ctx, tx, p, versionID, cityIDs); err != nil {
 		return Applied{}, err
 	}
@@ -204,6 +228,8 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 		pack:      p,
 		actor:     actor,
 		reason:    reason,
+		placed:    placed,
+		housed:    housed,
 	}
 	if err := appendContentAudit(ctx, tx, audit); err != nil {
 		return Applied{}, err
@@ -212,7 +238,131 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 	if err := tx.Commit(ctx); err != nil {
 		return Applied{}, fmt.Errorf("postgres: content apply: commit: %w", err)
 	}
-	return Applied{Version: version, VersionID: versionID, Checksum: checksum}, nil
+	return Applied{
+		Version:       version,
+		VersionID:     versionID,
+		Checksum:      checksum,
+		PlayersPlaced: placed,
+		ResidencesSet: housed,
+	}, nil
+}
+
+// spawnCandidates is the pack's spawn cities with the ids this load stored
+// them under. The pack's own CityIDs cannot be used: a pack read from files
+// has none, and for a city new in this load no id existed before upsertCities.
+func spawnCandidates(p *content.Pack, cityIDs map[string]string) []content.SpawnCandidate {
+	out := p.SpawnCandidates()
+	for i := range out {
+		out[i].ID = cityIDs[out[i].Code]
+	}
+	return out
+}
+
+// selectUnplacedPlayers finds every player with no city.
+//
+// This is the backfill for players created while no city had a positive
+// spawn weight: every player that reached first contact before migration
+// 0005, and any created between that migration and the first load after it.
+//
+// The rows are locked so that the update below writes exactly the players
+// picked for here. A player row is only ever created with a NULL city while
+// no spawn weight exists, so once this backlog is gone the select matches
+// nothing, through the players.city_id index.
+//
+// Player status is not considered: a banned or deleted player with no city is
+// as broken a row as an active one, and the foreign key does not care why.
+const selectUnplacedPlayers = `
+SELECT id::text, telegram_user_id
+  FROM players
+ WHERE city_id IS NULL
+ ORDER BY id
+   FOR UPDATE`
+
+// placeUnplacedStatement places each listed player in the city picked for
+// them. Their residence is set right after, by houseUnhousedStatement, so
+// that one statement owns "give a player a residence" and one count reports
+// it. It deliberately never moves a player who already has a city (the
+// `city_id IS NULL` guard): changing the weights changes where NEW players
+// land, and relocating existing players because an author edited a number
+// would be a silent teleport.
+const placeUnplacedStatement = `
+UPDATE players AS p
+   SET city_id    = v.city_id,
+       updated_at = $3
+  FROM unnest($1::uuid[], $2::uuid[]) AS v(player_id, city_id)
+ WHERE p.id = v.player_id
+   AND p.city_id IS NULL`
+
+// placeUnplacedPlayers gives every player with no city their spawn city, by
+// the same deterministic pick first contact uses (content.PickSpawnCity), and
+// returns how many it placed. The pick runs here, in Go, rather than in SQL,
+// so there is exactly one implementation of it.
+func placeUnplacedPlayers(ctx context.Context, tx pgx.Tx, candidates []content.SpawnCandidate) (int64, error) {
+	rows, err := tx.Query(ctx, selectUnplacedPlayers)
+	if err != nil {
+		return 0, fmt.Errorf("postgres: content apply: finding players with no city: %w", err)
+	}
+	var playerIDs, cityIDs []string
+	for rows.Next() {
+		var (
+			id             string
+			telegramUserID int64
+		)
+		if err := rows.Scan(&id, &telegramUserID); err != nil {
+			rows.Close()
+			return 0, fmt.Errorf("postgres: content apply: scanning player with no city: %w", err)
+		}
+		city, ok := content.PickSpawnCity(telegramUserID, candidates)
+		if !ok || city.ID == "" {
+			// Unreachable for a validated pack: Validate requires a positive
+			// weight somewhere, and upsertCities returns an id for every city.
+			rows.Close()
+			return 0, fmt.Errorf("postgres: content apply: no spawn city was written")
+		}
+		playerIDs = append(playerIDs, id)
+		cityIDs = append(cityIDs, city.ID)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return 0, fmt.Errorf("postgres: content apply: finding players with no city: %w", err)
+	}
+	if len(playerIDs) == 0 {
+		return 0, nil
+	}
+
+	tag, err := tx.Exec(ctx, placeUnplacedStatement, playerIDs, cityIDs, time.Now().UTC())
+	if err != nil {
+		return 0, fmt.Errorf("postgres: content apply: placing players with no city: %w", err)
+	}
+	return tag.RowsAffected(), nil
+}
+
+// houseUnhousedStatement gives every player who has a city but no residence
+// their current city as their residence. Two kinds of player match:
+//
+//   - players placeUnplacedStatement just placed, for whom the current city IS
+//     the spawn city, so they end up living where they were born — the same
+//     outcome first contact gives a new player;
+//   - players who were already somewhere when migration 0005 introduced
+//     residence. Where they stand is the best record there is of where they
+//     live.
+//
+// Like the placement, it never changes a residence that is already set.
+const houseUnhousedStatement = `
+UPDATE players
+   SET residence_city_id = city_id,
+       updated_at        = $1
+ WHERE residence_city_id IS NULL
+   AND city_id IS NOT NULL`
+
+// houseUnhousedPlayers runs houseUnhousedStatement and returns how many
+// players it gave a residence. It must run after placeUnplacedPlayers.
+func houseUnhousedPlayers(ctx context.Context, tx pgx.Tx) (int64, error) {
+	tag, err := tx.Exec(ctx, houseUnhousedStatement, time.Now().UTC())
+	if err != nil {
+		return 0, fmt.Errorf("postgres: content apply: giving players a residence: %w", err)
+	}
+	return tag.RowsAffected(), nil
 }
 
 // activeWorld is the part of the active version the audit row compares
@@ -309,7 +459,7 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 	// same pack, and the checksum comparison an operator makes between a
 	// stored version and a checkout depends on nothing here being arbitrary.
 	cityRows, err := tx.Query(ctx,
-		`SELECT id::text, code, name, tax_rate_bps, cost_of_living
+		`SELECT id::text, code, name, tax_rate_bps, cost_of_living, spawn_weight
 		   FROM cities
 		  WHERE content_version_id = $1::uuid
 		  ORDER BY code`, versionID)
@@ -322,7 +472,7 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 			id string
 			c  content.CityDef
 		)
-		if err := cityRows.Scan(&id, &c.Code, &c.Name, &c.TaxRateBPS, &c.CostOfLiving); err != nil {
+		if err := cityRows.Scan(&id, &c.Code, &c.Name, &c.TaxRateBPS, &c.CostOfLiving, &c.SpawnWeight); err != nil {
 			return nil, fmt.Errorf("postgres: content load: scanning city: %w", err)
 		}
 		pack.Cities = append(pack.Cities, c)
@@ -428,8 +578,8 @@ func (s *ContentStore) Active(ctx context.Context) (ActiveVersion, error) {
 // this load retires.
 //
 // A city of the current world that no longer appears in the files would be
-// retired by this load. If a player is standing in it or travelling to or from
-// it, the load is refused: a player in a city that is not part of the world is
+// retired by this load. If a player is standing in it, lives in it (their
+// residence), or is travelling to or from it, the load is refused: a player in a city that is not part of the world is
 // a broken save, and discovering it when the player next opens a screen is far
 // worse than refusing here.
 //
@@ -444,8 +594,8 @@ func (s *ContentStore) Active(ctx context.Context) (ActiveVersion, error) {
 // about the game service, which never takes it. In the first draft a player
 // could therefore move into a city after the count and before the commit.
 // So the retiring city rows are locked FOR UPDATE first. Writing a
-// players.city_id or a travels row that references a city takes a FOR KEY
-// SHARE lock on that city, which conflicts with FOR UPDATE: from here to
+// players.city_id, a players.residence_city_id or a travels row that
+// references a city takes a FOR KEY SHARE lock on that city, which conflicts with FOR UPDATE: from here to
 // commit nobody can start referencing a retiring city, and anybody who was
 // mid-way through doing so has finished before the lock is granted. The count
 // is then a SECOND statement, because under READ COMMITTED each statement
@@ -485,11 +635,14 @@ func refuseRemovalOfCitiesInUse(ctx context.Context, tx pgx.Tx, p *content.Pack)
 		return nil, nil
 	}
 
-	// Residents are counted regardless of player status: a banned or deleted
-	// player still holds a city_id, and the foreign key does not care why.
+	// Players are counted regardless of status: a banned or deleted player
+	// still holds a city_id and a residence_city_id, and the foreign key does
+	// not care why. Present and resident are counted apart because they are
+	// different facts: a traveller standing in a city does not live there.
 	rows, err := tx.Query(ctx,
 		`SELECT c.code,
-		        (SELECT count(*) FROM players pl WHERE pl.city_id = c.id) AS residents,
+		        (SELECT count(*) FROM players pl WHERE pl.city_id = c.id) AS present,
+		        (SELECT count(*) FROM players pl WHERE pl.residence_city_id = c.id) AS residents,
 		        (SELECT count(*) FROM travels t  WHERE (t.to_city_id = c.id OR t.from_city_id = c.id)
 		                                           AND t.status = 'in_transit') AS journeys
 		   FROM cities c
@@ -503,13 +656,14 @@ func refuseRemovalOfCitiesInUse(ctx context.Context, tx pgx.Tx, p *content.Pack)
 	var blocked []string
 	for rows.Next() {
 		var code string
-		var residents, journeys int64
-		if err := rows.Scan(&code, &residents, &journeys); err != nil {
+		var present, residents, journeys int64
+		if err := rows.Scan(&code, &present, &residents, &journeys); err != nil {
 			return nil, fmt.Errorf("postgres: content apply: scanning cities in use: %w", err)
 		}
-		if residents > 0 || journeys > 0 {
+		if present > 0 || residents > 0 || journeys > 0 {
 			blocked = append(blocked,
-				fmt.Sprintf("%s (%d resident(s), %d journey(s) in transit)", code, residents, journeys))
+				fmt.Sprintf("%s (%d player(s) present, %d resident(s), %d journey(s) in transit)",
+					code, present, residents, journeys))
 		}
 	}
 	if err := rows.Err(); err != nil {
@@ -531,6 +685,18 @@ func joinLines(items []string) string {
 	return out
 }
 
+// upsertCity writes one city row; see upsertCities.
+const upsertCity = `
+INSERT INTO cities (id, code, name, tax_rate_bps, cost_of_living, population, content_version_id, spawn_weight)
+     VALUES ($1::uuid, $2, $3, $4, $5, 0, $6::uuid, $7)
+ON CONFLICT (code) DO UPDATE
+   SET name               = EXCLUDED.name,
+       tax_rate_bps       = EXCLUDED.tax_rate_bps,
+       cost_of_living     = EXCLUDED.cost_of_living,
+       content_version_id = EXCLUDED.content_version_id,
+       spawn_weight       = EXCLUDED.spawn_weight
+ RETURNING id::text`
+
 // upsertCities writes each city and returns code to id.
 //
 // Cities are matched on code, never on id: the code is the stable identity an
@@ -542,6 +708,12 @@ func joinLines(items []string) string {
 // simulation moves, not content, so a load must leave it exactly as it was.
 // The same goes for treasury_account_id, which is why neither appears in the
 // DO UPDATE list.
+//
+// spawn_weight IS written, for every city, zero included: it is content, and a
+// city whose weight an author lowered to 0 must stop receiving newcomers. A
+// city this load retires keeps its last weight, but it also keeps the old
+// content_version_id, and new players are only ever picked from the active
+// version's cities.
 func upsertCities(ctx context.Context, tx pgx.Tx, p *content.Pack, versionID string) (map[string]string, error) {
 	ids := make(map[string]string, len(p.Cities))
 	for _, c := range p.Cities {
@@ -551,15 +723,8 @@ func upsertCities(ctx context.Context, tx pgx.Tx, p *content.Pack, versionID str
 		}
 		var stored string
 		err = tx.QueryRow(ctx,
-			`INSERT INTO cities (id, code, name, tax_rate_bps, cost_of_living, population, content_version_id)
-			      VALUES ($1::uuid, $2, $3, $4, $5, 0, $6::uuid)
-			 ON CONFLICT (code) DO UPDATE
-			    SET name               = EXCLUDED.name,
-			        tax_rate_bps       = EXCLUDED.tax_rate_bps,
-			        cost_of_living     = EXCLUDED.cost_of_living,
-			        content_version_id = EXCLUDED.content_version_id
-			  RETURNING id::text`,
-			id, c.Code, c.Name, c.TaxRateBPS, c.CostOfLiving, versionID).Scan(&stored)
+			upsertCity,
+			id, c.Code, c.Name, c.TaxRateBPS, c.CostOfLiving, versionID, c.SpawnWeight).Scan(&stored)
 		if err != nil {
 			return nil, fmt.Errorf("postgres: content apply: city %q: %w", c.Code, err)
 		}
@@ -686,6 +851,8 @@ type contentAudit struct {
 	pack      *content.Pack
 	actor     string
 	reason    string
+	placed    int64
+	housed    int64
 }
 
 // appendContentAudit records the load in audit_logs (ADR 0004 rule 5: who,
@@ -731,6 +898,9 @@ func appendContentAudit(ctx context.Context, tx pgx.Tx, a contentAudit) error {
 		"cities_added":    added,
 		"cities_removed":  removed,
 		"same_source":     a.previous.version > 0 && a.previous.checksum == a.checksum,
+		"spawn_weights":   spawnWeights(a.pack),
+		"players_placed":  a.placed,
+		"residences_set":  a.housed,
 	})
 	if err != nil {
 		return fmt.Errorf("postgres: content apply: encoding audit value: %w", err)
@@ -744,6 +914,19 @@ func appendContentAudit(ctx context.Context, tx pgx.Tx, a contentAudit) error {
 		return fmt.Errorf("postgres: content apply: audit row: %w", err)
 	}
 	return nil
+}
+
+// spawnWeights is the pack's positive spawn weights by city code, for the
+// audit row: "where were newcomers being sent after this load" is a question
+// an investigator asks, and the answer should not need a join.
+func spawnWeights(p *content.Pack) map[string]int {
+	out := map[string]int{}
+	for _, c := range p.Cities {
+		if c.SpawnWeight > 0 {
+			out[c.Code] = c.SpawnWeight
+		}
+	}
+	return out
 }
 
 // SourceChecksum is what goes into content_versions.source_checksum.
@@ -774,7 +957,7 @@ func SourceChecksum(p *content.Pack) string {
 func Checksum(p *content.Pack) string {
 	h := sha256.New()
 	for _, c := range p.Cities {
-		fmt.Fprintf(h, "city|%s|%s|%d|%d\n", c.Code, c.Name, c.TaxRateBPS, c.CostOfLiving)
+		fmt.Fprintf(h, "city|%s|%s|%d|%d|%d\n", c.Code, c.Name, c.TaxRateBPS, c.CostOfLiving, c.SpawnWeight)
 	}
 	for _, r := range p.Routes {
 		fmt.Fprintf(h, "route|%s|%s|%d|%t\n", r.From, r.To, r.Distance, r.IsBidirectional())

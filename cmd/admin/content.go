@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -90,6 +91,7 @@ func describe(pack *content.Pack) {
 	fmt.Printf("cities:            %d\n", len(pack.Cities))
 	fmt.Printf("routes:            %d\n", len(pack.Routes))
 	fmt.Printf("skills:            %d\n", len(pack.Skills))
+	fmt.Printf("spawn weights:     %s\n", spawnSummary(pack))
 
 	warnings := pack.Warnings()
 	if len(warnings) == 0 {
@@ -102,6 +104,22 @@ func describe(pack *content.Pack) {
 	// Deliberately not an error. A warning describes content that loads and
 	// works; see content.Pack.Warnings for why an unreachable city must not
 	// stop a load.
+}
+
+// spawnSummary lists the cities new players may start in, with their weights,
+// ordered by code — the order the pick walks them in. Relative weights only
+// mean something next to each other, so they are printed on one line.
+func spawnSummary(pack *content.Pack) string {
+	candidates := pack.SpawnCandidates()
+	if len(candidates) == 0 {
+		return "none"
+	}
+	sort.Slice(candidates, func(i, j int) bool { return candidates[i].Code < candidates[j].Code })
+	parts := make([]string, 0, len(candidates))
+	for _, c := range candidates {
+		parts = append(parts, fmt.Sprintf("%s %d", c.Code, c.Weight))
+	}
+	return strings.Join(parts, ", ")
 }
 
 // contentValidate checks the files and writes nothing.
@@ -174,6 +192,8 @@ func contentLoad(ctx context.Context, args []string) error {
 	fmt.Printf("\nloaded content version %d\n", applied.Version)
 	fmt.Printf("version id:        %s\n", applied.VersionID)
 	fmt.Printf("stored checksum:   %s\n", applied.Checksum)
+	fmt.Printf("players placed:    %d (had no city, now in their spawn city)\n", applied.PlayersPlaced)
+	fmt.Printf("residences set:    %d (had no residence, now live where they stand)\n", applied.ResidencesSet)
 	fmt.Printf("loaded by:         %s\n", who)
 	fmt.Printf("reason:            %s\n", *reason)
 	return nil
@@ -241,6 +261,7 @@ func contentStatus(ctx context.Context, args []string) error {
 	fmt.Printf("cities:            %d\n", len(pack.Cities))
 	fmt.Printf("routes:            %d\n", len(pack.Routes))
 	fmt.Printf("skills:            %d\n", len(pack.Skills))
+	fmt.Printf("spawn weights:     %s\n", spawnSummary(pack))
 	for _, c := range snap.Cities() {
 		fmt.Printf("  %-16s %-16s tax %5d bps  cost %6d  id %s\n",
 			c.Code, c.Name, c.TaxRateBPS, c.CostOfLiving, c.ID)

@@ -37,6 +37,51 @@ func TestInsertPlayerIsRaceSafe(t *testing.T) {
 	}
 }
 
+// A new player is placed in their spawn city by the insert itself, and that
+// city is also their residence. A player placed nowhere cannot travel, which
+// is the gap this closes.
+func TestInsertPlayerPlacesAndHousesNewPlayers(t *testing.T) {
+	sql := normalize(insertPlayer)
+
+	// One value, written to both columns: born there, lives there.
+	if !strings.Contains(sql, "city_id, residence_city_id, status, created_at, updated_at) VALUES ($1::uuid, $2, $3, $4, $5, $6::uuid, $6::uuid, $7, $8, $8)") {
+		t.Errorf("player insert does not write the spawn city to both city_id and residence_city_id:\n%s", sql)
+	}
+	// The pick is made in Go, deterministically. A random choice inside the
+	// statement would let a retried first contact disagree with itself.
+	if strings.Contains(strings.ToLower(sql), "random(") {
+		t.Errorf("player insert picks a city at random:\n%s", sql)
+	}
+	// On conflict both are only ever filled in, never replaced: first contact
+	// must not move or rehome a returning player.
+	if !strings.Contains(sql, "city_id = COALESCE(players.city_id, EXCLUDED.city_id)") {
+		t.Errorf("player upsert does not preserve an existing city:\n%s", sql)
+	}
+	if !strings.Contains(sql, "residence_city_id = COALESCE(players.residence_city_id, players.city_id, EXCLUDED.residence_city_id)") {
+		t.Errorf("player upsert does not preserve an existing residence:\n%s", sql)
+	}
+	if strings.Contains(sql, "city_id = EXCLUDED.") {
+		t.Errorf("player upsert overwrites an existing city or residence on conflict:\n%s", sql)
+	}
+	// The caller learns where the player stands.
+	if !strings.Contains(sql, "RETURNING id, created_at, city_id::text") {
+		t.Errorf("player insert does not return the city:\n%s", sql)
+	}
+}
+
+// New players are only ever picked from the active version's cities, and only
+// from those with a positive weight: a retired city, or one an author set to
+// 0, must receive nobody.
+func TestSpawnCandidatesComeFromTheActiveVersion(t *testing.T) {
+	sql := normalize(selectSpawnCandidates)
+	if !strings.Contains(sql, "JOIN content_versions v ON v.id = c.content_version_id AND v.status = 'active'") {
+		t.Errorf("spawn candidates are not restricted to the active version:\n%s", sql)
+	}
+	if !strings.HasSuffix(sql, "WHERE c.spawn_weight > 0") {
+		t.Errorf("spawn candidates are not restricted to positive weights:\n%s", sql)
+	}
+}
+
 // first_seen_at answers "when did this person first start this bot". A later
 // /start must refresh the chat id and last_seen_at without rewriting it.
 func TestUpsertBotLinkPreservesFirstSeen(t *testing.T) {

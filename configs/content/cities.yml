@@ -14,6 +14,18 @@
 #   name             display name.
 #   tax_rate_bps     tax in basis points. 10000 = 100%. Integer only.
 #   cost_of_living   baseline living cost, in minor currency units.
+#   spawn_weight     optional, default 0. How likely a NEW player is to start
+#                    in this city, RELATIVE to the other cities. It is a weight,
+#                    not a percentage: the weights need not add up to 100, and
+#                    a city of weight 30 receives about three times the
+#                    newcomers of a city of weight 10. 0 means nobody starts
+#                    here. Negative is refused, and at least one city must have
+#                    a positive weight or the loader refuses the whole file.
+#                    The pick is fixed per Telegram user: the same person always
+#                    lands in the same city under the same weights. The city a
+#                    player starts in is also where they live (their residence)
+#                    until a deliberate residency change. Changing a weight only
+#                    affects future newcomers; nobody already placed is moved.
 #
 # Tax and cost are deliberately decorrelated. A city that is cheap to live in is
 # not automatically a cheap place to trade, which gives location more than one
@@ -26,33 +38,42 @@ cities:
     name: Ostmarch
     tax_rate_bps: 120
     cost_of_living: 980
+    spawn_weight: 30
 
   - code: fenwick_span
     name: Fenwick Span
     tax_rate_bps: 640
     cost_of_living: 1540
+    spawn_weight: 25
 
   - code: aldrin_hollow
     name: Aldrin Hollow
     tax_rate_bps: 720
     cost_of_living: 2450
+    spawn_weight: 15
 
   - code: brennhaven
     name: Brennhaven
     tax_rate_bps: 310
     cost_of_living: 2600
+    spawn_weight: 20
 
   - code: kessmoor
     name: Kessmoor
     tax_rate_bps: 980
     cost_of_living: 3100
+    spawn_weight: 10
 
+  # Calderis and Vantor Reach are the expensive far end of the map: places a
+  # player travels to, not places anyone is born. Hence spawn_weight 0.
   - code: calderis
     name: Calderis
     tax_rate_bps: 450
     cost_of_living: 3780
+    spawn_weight: 0
 
   - code: vantor_reach
     name: Vantor Reach
     tax_rate_bps: 1450
     cost_of_living: 4200
+    spawn_weight: 0

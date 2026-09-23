@@ -27,6 +27,7 @@ cities:
     name: Alpha
     tax_rate_bps: 500
     cost_of_living: 1000
+    spawn_weight: 10
   - code: bravo
     name: Bravo
     tax_rate_bps: 750

@@ -16,11 +16,11 @@ func ptr(b bool) *bool { return &b }
 // making wrong. A case that spells out four correct fields to test the fifth
 // buries the thing it is testing.
 func city(code string) CityDef {
-	return CityDef{Code: code, Name: strings.ToUpper(code), TaxRateBPS: 500, CostOfLiving: 1000}
+	return CityDef{Code: code, Name: strings.ToUpper(code), TaxRateBPS: 500, CostOfLiving: 1000, SpawnWeight: 10}
 }
 
-// validPack is a small world that passes every rule: two cities, one route
-// between them, one real skill.
+// validPack is a small world that passes every rule: two cities that new
+// players may both start in, one route between them, one real skill.
 func validPack() *Pack {
 	return &Pack{
 		Schema: 1,
@@ -366,4 +366,64 @@ func TestRouteDirectionDefaultsToBidirectional(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Spawn weights: a negative one is meaningless, and a world where no city has
+// a positive one places new players nowhere. Zero on some cities is fine —
+// that is how a city says "nobody is born here".
+func TestValidateSpawnWeights(t *testing.T) {
+	t.Run("negative", func(t *testing.T) {
+		p := validPack()
+		p.Cities[1].SpawnWeight = -1
+		err := p.Validate()
+		if !errors.Is(err, ErrNegativeSpawnWeight) {
+			t.Fatalf("got %v, want ErrNegativeSpawnWeight", err)
+		}
+		if !strings.Contains(err.Error(), "bravo") {
+			t.Errorf("the error does not name the city: %v", err)
+		}
+	})
+
+	t.Run("too large", func(t *testing.T) {
+		p := validPack()
+		p.Cities[0].SpawnWeight = MaxSpawnWeight + 1
+		if err := p.Validate(); !errors.Is(err, ErrSpawnWeightTooLarge) {
+			t.Fatalf("got %v, want ErrSpawnWeightTooLarge", err)
+		}
+	})
+
+	t.Run("all zero", func(t *testing.T) {
+		p := validPack()
+		for i := range p.Cities {
+			p.Cities[i].SpawnWeight = 0
+		}
+		if err := p.Validate(); !errors.Is(err, ErrNoSpawnCity) {
+			t.Fatalf("got %v, want ErrNoSpawnCity", err)
+		}
+	})
+
+	t.Run("some zero, one positive", func(t *testing.T) {
+		p := validPack()
+		p.Cities[0].SpawnWeight = 0
+		if err := p.Validate(); err != nil {
+			t.Fatalf("a pack with one spawn city was rejected: %v", err)
+		}
+		got := p.SpawnCandidates()
+		if len(got) != 1 || got[0].Code != "bravo" {
+			t.Errorf("SpawnCandidates = %+v, want only bravo", got)
+		}
+	})
+
+	// No cities at all is one mistake, reported once.
+	t.Run("no cities is not also a missing spawn city", func(t *testing.T) {
+		p := validPack()
+		p.Cities, p.Routes = nil, nil
+		err := p.Validate()
+		if !errors.Is(err, ErrNoCities) {
+			t.Fatalf("got %v, want ErrNoCities", err)
+		}
+		if errors.Is(err, ErrNoSpawnCity) {
+			t.Errorf("an empty city list was also reported as missing a spawn city: %v", err)
+		}
+	})
 }

@@ -106,3 +106,21 @@ func TestShippedSkillsMatchTheDomain(t *testing.T) {
 		t.Log("no skills are authored yet: skills.yml does not exist in this phase")
 	}
 }
+
+// The shipped world must place newcomers somewhere, and the two expensive
+// far-end cities are places players travel to, not places they are born.
+func TestShippedSpawnWeights(t *testing.T) {
+	pack, err := Load(shippedContentDir(t))
+	if err != nil {
+		t.Fatalf("the shipped content does not parse: %v", err)
+	}
+	candidates := pack.SpawnCandidates()
+	if len(candidates) < 2 {
+		t.Errorf("the shipped content spawns players in %d city(ies); new players should be spread over several", len(candidates))
+	}
+	for _, c := range candidates {
+		if c.Code == "calderis" || c.Code == "vantor_reach" {
+			t.Errorf("%s has spawn_weight %d; it is a destination, not a birthplace", c.Code, c.Weight)
+		}
+	}
+}
