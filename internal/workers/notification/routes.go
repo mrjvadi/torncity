@@ -115,6 +115,12 @@ func Routes() []Route {
 		{Domain: "company", Event: "license_sold", Render: renderProduction("license_sold")},
 		{Domain: "company", Event: "sold", Render: renderProduction("sold")},
 
+		// The armed forces, diplomacy and appointments: see military.go.
+		{Domain: "military", Event: "arrived", Render: renderMoveArrived},
+		{Domain: "diplomacy", Event: "treaty_proposed", Render: renderTreatyProposed},
+		{Domain: "governance", Event: "appointed", Render: renderOffice(false)},
+		{Domain: "governance", Event: "dismissed", Render: renderOffice(true)},
+
 		// Public lines in a city's groups (announce.go). Each has its own
 		// consumer beside the event's private notice, if any.
 		{Domain: "travel", Event: "completed", Name: "announce", Announce: arrivalAnnouncement},
@@ -128,6 +134,12 @@ func Routes() []Route {
 		{Domain: "company", Event: "closed", Name: "announce", Announce: companyClosedAnnouncement},
 		{Domain: "company", Event: "tech_published", Name: "announce", Announce: techPublishedAnnouncement},
 		{Domain: "company", Event: "product_launched", Name: "announce", Announce: productLaunchedAnnouncement},
+		{Domain: "military", Event: "procured", Name: "announce", Announce: procuredAnnouncement},
+		{Domain: "diplomacy", Event: "sanction_imposed", Name: "announce", Announce: sanctionImposedAnnouncement},
+		{Domain: "diplomacy", Event: "sanction_lifted", Name: "announce", Announce: sanctionLiftedAnnouncement},
+		{Domain: "diplomacy", Event: "treaty_signed", Name: "announce", Announce: treatySignedAnnouncement},
+		{Domain: "diplomacy", Event: "treaty_terminated", Name: "announce", Announce: treatyEndedAnnouncement},
+		{Domain: "governance", Event: "appointed", Name: "announce", Announce: appointedAnnouncement},
 	}
 }
 

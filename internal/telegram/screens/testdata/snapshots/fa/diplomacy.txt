@@ -1,0 +1,313 @@
+━━━ Sanctions · the president's board ━━━
+(edits message 42)
+⛔ تحریم‌های مشترک‌المنافع
+
+تحریم‌هایی که ما وضع کرده‌ایم:
+• شمارهٔ ۳ بر فدراسیون ونتور: تحریم تجاری، تحریم تسلیحاتی، ممنوعیت سفر - به دلیل تجاوز نظامی
+  ۲ روز و ۲ ساعت است که اجرا می‌شود
+  وضع‌شده به دست رئیس‌جمهور ⁨کاوه (⁨B3C4D5F⁩)⁩
+
+تحریم‌هایی که بر ما وضع شده:
+• شمارهٔ ۴ از سوی فدراسیون ونتور: تحریم مالی - به دلیل مقابله به مثل
+  ⏳ ۴۰ دقیقه دیگر اجرا می‌شود
+
+تحریم دوطرفه اثر می‌کند: تحریم تجاری بازار، حراجی و خرید از شرکت‌ها را میان مردم دو کشور می‌بندد؛ تحریم تسلیحاتی فروش سلاح را؛ تحریم فناوری فروش لایسنس را؛ ممنوعیت سفر سفر میان شهرهای دو کشور را؛ و تحریم مالی پرداخت کارتی میان مردمشان را.
+  ───
+  [✖️ لغو شمارهٔ ۳ بر فدراسیون ونتور] → diplomacy:lift:3
+  [➕ وضع تحریم] → diplomacy:impose
+  [🤝 پیمان‌ها] → diplomacy:treaties:default_country   │   [📜 کارنامه] → diplomacy:history:default_country
+  [🔙 بازگشت] → military:ministry:default_country   │   [🔄 به‌روزرسانی] → diplomacy:sanctions:default_country
+
+━━━ Sanctions · too young to lift ━━━
+(edits message 42)
+⛔ تحریم‌های مشترک‌المنافع
+
+تحریم‌هایی که ما وضع کرده‌ایم:
+• شمارهٔ ۳ بر فدراسیون ونتور: تحریم تجاری، تحریم تسلیحاتی، ممنوعیت سفر - به دلیل تجاوز نظامی
+  ۲ روز و ۲ ساعت است که اجرا می‌شود
+  وضع‌شده به دست رئیس‌جمهور ⁨کاوه (⁨B3C4D5F⁩)⁩
+  🔒 ۲۰ ساعت دیگر می‌توان لغوش کرد
+
+تحریم‌هایی که بر ما وضع شده:
+• هیچ
+
+تحریم دوطرفه اثر می‌کند: تحریم تجاری بازار، حراجی و خرید از شرکت‌ها را میان مردم دو کشور می‌بندد؛ تحریم تسلیحاتی فروش سلاح را؛ تحریم فناوری فروش لایسنس را؛ ممنوعیت سفر سفر میان شهرهای دو کشور را؛ و تحریم مالی پرداخت کارتی میان مردمشان را.
+  ───
+  [➕ وضع تحریم] → diplomacy:impose
+  [🤝 پیمان‌ها] → diplomacy:treaties:default_country   │   [📜 کارنامه] → diplomacy:history:default_country
+  [🔙 بازگشت] → military:ministry:default_country   │   [🔄 به‌روزرسانی] → diplomacy:sanctions:default_country
+
+━━━ Sanctions · as a group reads it ━━━
+(edits message 42)
+⛔ تحریم‌های فدراسیون ونتور
+
+تحریم‌هایی که ما وضع کرده‌ایم:
+• هیچ
+
+تحریم‌هایی که بر ما وضع شده:
+• شمارهٔ ۳ از سوی مشترک‌المنافع: تحریم تجاری، تحریم تسلیحاتی، ممنوعیت سفر - به دلیل تجاوز نظامی
+  ۲ روز و ۲ ساعت است که اجرا می‌شود
+  وضع‌شده به دست رئیس‌جمهور ⁨کاوه (⁨B3C4D5F⁩)⁩
+
+تحریم دوطرفه اثر می‌کند: تحریم تجاری بازار، حراجی و خرید از شرکت‌ها را میان مردم دو کشور می‌بندد؛ تحریم تسلیحاتی فروش سلاح را؛ تحریم فناوری فروش لایسنس را؛ ممنوعیت سفر سفر میان شهرهای دو کشور را؛ و تحریم مالی پرداخت کارتی میان مردمشان را.
+  ───
+  [🤝 پیمان‌ها] → diplomacy:treaties:vantor_federation   │   [📜 کارنامه] → diplomacy:history:vantor_federation
+  [🔙 بازگشت] → military:ministry:vantor_federation   │   [🔄 به‌روزرسانی] → diplomacy:sanctions:vantor_federation
+
+━━━ Sanctions · none ━━━
+(edits message 42)
+⛔ تحریم‌های مشترک‌المنافع
+
+تحریم‌هایی که ما وضع کرده‌ایم:
+• هیچ
+
+تحریم‌هایی که بر ما وضع شده:
+• هیچ
+
+تحریم دوطرفه اثر می‌کند: تحریم تجاری بازار، حراجی و خرید از شرکت‌ها را میان مردم دو کشور می‌بندد؛ تحریم تسلیحاتی فروش سلاح را؛ تحریم فناوری فروش لایسنس را؛ ممنوعیت سفر سفر میان شهرهای دو کشور را؛ و تحریم مالی پرداخت کارتی میان مردمشان را.
+  ───
+  [🤝 پیمان‌ها] → diplomacy:treaties:default_country   │   [📜 کارنامه] → diplomacy:history:default_country
+  [🔙 بازگشت] → military:ministry:default_country   │   [🔄 به‌روزرسانی] → diplomacy:sanctions:default_country
+
+━━━ Impose · choose the country ━━━
+(edits message 42)
+⛔ تحریم تازه از سوی مشترک‌المنافع
+کدام کشور تحریم شود؟
+  ───
+  [فدراسیون ونتور] → diplomacy:impose:vantor_federation
+  [🔙 بازگشت] → diplomacy:sanctions:default_country
+
+━━━ Impose · choose the measures ━━━
+(edits message 42)
+⛔ تحریم تازه از سوی مشترک‌المنافع
+چه تحریم‌هایی بر فدراسیون ونتور وضع شود؟ برای انتخاب بزنید و برای برداشتن دوباره بزنید.
+  ───
+  [✅ تحریم تجاری] → diplomacy:impose:vantor_federation:0   │   [▫️ تحریم تسلیحاتی] → diplomacy:impose:vantor_federation:3
+  [▫️ تحریم فناوری] → diplomacy:impose:vantor_federation:5   │   [▫️ ممنوعیت سفر] → diplomacy:impose:vantor_federation:9
+  [▫️ تحریم مالی] → diplomacy:impose:vantor_federation:17
+  [⬅️ ادامه] → diplomacy:impose:vantor_federation:1:-
+  [🔙 بازگشت] → diplomacy:impose
+
+━━━ Impose · choose the ground ━━━
+(edits message 42)
+⛔ تحریم تازه از سوی مشترک‌المنافع
+تحریم تجاری، تحریم تسلیحاتی بر فدراسیون ونتور به چه دلیلی وضع می‌شود؟
+  ───
+  [تجاوز نظامی] → diplomacy:impose:vantor_federation:3:aggression   │   [اشاعهٔ تسلیحات] → diplomacy:impose:vantor_federation:3:proliferation
+  [حمایت از تروریسم] → diplomacy:impose:vantor_federation:3:terrorism   │   [نقض حقوق بشر] → diplomacy:impose:vantor_federation:3:human_rights
+  [تجارت ناعادلانه] → diplomacy:impose:vantor_federation:3:unfair_trade   │   [مقابله به مثل] → diplomacy:impose:vantor_federation:3:retaliation
+  [🔙 بازگشت] → diplomacy:impose:vantor_federation:3
+
+━━━ Impose · confirm ━━━
+(edits message 42)
+⛔ تحریم تازه از سوی مشترک‌المنافع
+تحریم تجاری، تحریم تسلیحاتی به دلیل اشاعهٔ تسلیحات بر فدراسیون ونتور وضع شود؟
+همین حالا اعلام می‌شود و ۱ ساعت دیگر اجرا خواهد شد؛ تا ۲۴ ساعت دیگر هم نمی‌توان لغوش کرد.
+  ───
+  [✅ وضع کن] → diplomacy:impose:vantor_federation:3:proliferation:yes
+  [🔙 بازگشت] → diplomacy:impose:vantor_federation:3:-
+
+━━━ Lift · confirm ━━━
+(edits message 42)
+تحریم شمارهٔ ۳ بر فدراسیون ونتور (تحریم تجاری، تحریم تسلیحاتی، ممنوعیت سفر) لغو شود؟ از همین لحظه دیگر اجرا نمی‌شود.
+  ───
+  [✅ لغو کن] → diplomacy:lift:3:yes
+  [🔙 بازگشت] → diplomacy:sanctions:default_country
+
+━━━ Treaties · the foreign minister's board ━━━
+(edits message 42)
+🤝 پیمان‌های مشترک‌المنافع
+
+📨 شمارهٔ ۵: فدراسیون ونتور پیشنهاد پیمان نظامی داده است - تا ۲ روز و ۲۲ ساعت دیگر پاسخ دهید
+📤 شمارهٔ ۶: ما به فدراسیون ونتور پیشنهاد موافقت‌نامهٔ تجاری داده‌ایم - ۳۰ ساعت تا پایان مهلت پاسخ
+✅ شمارهٔ ۲: پیمان عدم تجاوز با فدراسیون ونتور
+✖️ شمارهٔ ۱: موافقت‌نامهٔ تجاری با فدراسیون ونتور رد شد
+⌛ شمارهٔ ۷: پیشنهاد پیمان نظامی به فدراسیون ونتور بی‌پاسخ ماند و منقضی شد
+↩️ شمارهٔ ۸: پیشنهاد پیمان عدم تجاوز به فدراسیون ونتور پس گرفته شد
+🔚 شمارهٔ ۹: موافقت‌نامهٔ تجاری با فدراسیون ونتور پایان یافت
+
+پیمان وقتی اجرا می‌شود که وزیر امور خارجهٔ کشور دیگر آن را بپذیرد. پیمان نظامی دو کشور را شریک تسلیحاتی می‌کند و هر کدام را به دفاع از دیگری می‌کشاند؛ موافقت‌نامهٔ تجاری تجارتشان را از تعرفهٔ مرزی معاف می‌کند.
+  ───
+  [✅ پذیرش شمارهٔ ۵] → diplomacy:answer:5:accept   │   [✖️ رد شمارهٔ ۵] → diplomacy:answer:5:decline
+  [↩️ پس گرفتن شمارهٔ ۶] → diplomacy:end:6
+  [🔚 پایان شمارهٔ ۲] → diplomacy:end:2
+  [➕ پیشنهاد پیمان] → diplomacy:propose
+  [⛔ تحریم‌ها] → diplomacy:sanctions:default_country   │   [📜 کارنامه] → diplomacy:history:default_country
+  [🔙 بازگشت] → military:ministry:default_country   │   [🔄 به‌روزرسانی] → diplomacy:treaties:default_country
+
+━━━ Treaties · as a group reads it ━━━
+(edits message 42)
+🤝 پیمان‌های مشترک‌المنافع
+
+📨 شمارهٔ ۵: فدراسیون ونتور پیشنهاد پیمان نظامی داده است - تا ۲ روز و ۲۲ ساعت دیگر پاسخ دهید
+📤 شمارهٔ ۶: ما به فدراسیون ونتور پیشنهاد موافقت‌نامهٔ تجاری داده‌ایم - ۳۰ ساعت تا پایان مهلت پاسخ
+✅ شمارهٔ ۲: پیمان عدم تجاوز با فدراسیون ونتور
+
+پیمان وقتی اجرا می‌شود که وزیر امور خارجهٔ کشور دیگر آن را بپذیرد. پیمان نظامی دو کشور را شریک تسلیحاتی می‌کند و هر کدام را به دفاع از دیگری می‌کشاند؛ موافقت‌نامهٔ تجاری تجارتشان را از تعرفهٔ مرزی معاف می‌کند.
+  ───
+  [⛔ تحریم‌ها] → diplomacy:sanctions:default_country   │   [📜 کارنامه] → diplomacy:history:default_country
+  [🔙 بازگشت] → military:ministry:default_country   │   [🔄 به‌روزرسانی] → diplomacy:treaties:default_country
+
+━━━ Treaties · none ━━━
+(edits message 42)
+🤝 پیمان‌های فدراسیون ونتور
+
+هنوز پیمانی در کار نیست.
+
+پیمان وقتی اجرا می‌شود که وزیر امور خارجهٔ کشور دیگر آن را بپذیرد. پیمان نظامی دو کشور را شریک تسلیحاتی می‌کند و هر کدام را به دفاع از دیگری می‌کشاند؛ موافقت‌نامهٔ تجاری تجارتشان را از تعرفهٔ مرزی معاف می‌کند.
+  ───
+  [⛔ تحریم‌ها] → diplomacy:sanctions:vantor_federation   │   [📜 کارنامه] → diplomacy:history:vantor_federation
+  [🔙 بازگشت] → military:ministry:vantor_federation   │   [🔄 به‌روزرسانی] → diplomacy:treaties:vantor_federation
+
+━━━ Propose · choose the country ━━━
+(edits message 42)
+🤝 پیشنهاد پیمان تازه از سوی مشترک‌المنافع
+به کدام کشور؟
+  ───
+  [فدراسیون ونتور] → diplomacy:propose:vantor_federation
+  [🔙 بازگشت] → diplomacy:treaties:default_country
+
+━━━ Propose · choose the kind ━━━
+(edits message 42)
+🤝 پیشنهاد پیمان تازه از سوی مشترک‌المنافع
+چه پیمانی با فدراسیون ونتور؟
+  ───
+  [پیمان نظامی] → diplomacy:propose:vantor_federation:alliance
+  [پیمان عدم تجاوز] → diplomacy:propose:vantor_federation:non_aggression
+  [موافقت‌نامهٔ تجاری] → diplomacy:propose:vantor_federation:trade_agreement
+  [🔙 بازگشت] → diplomacy:propose
+
+━━━ Propose · confirm ━━━
+(edits message 42)
+🤝 پیشنهاد پیمان تازه از سوی مشترک‌المنافع
+به فدراسیون ونتور پیشنهاد پیمان نظامی داده شود؟ وزیر امور خارجهٔ آن کشور ۳ روز برای پاسخ فرصت دارد.
+  ───
+  [✅ پیشنهاد بده] → diplomacy:propose:vantor_federation:alliance:yes
+  [🔙 بازگشت] → diplomacy:propose:vantor_federation
+
+━━━ End · withdraw a proposal ━━━
+(edits message 42)
+پیشنهاد شمارهٔ ۶ (موافقت‌نامهٔ تجاری به فدراسیون ونتور) پس گرفته شود؟
+  ───
+  [✅ پس بگیر] → diplomacy:end:6:yes
+  [🔙 بازگشت] → diplomacy:treaties:default_country
+
+━━━ End · end a treaty ━━━
+(edits message 42)
+پیمان شمارهٔ ۲ (پیمان عدم تجاوز با فدراسیون ونتور) پایان یابد؟ از همین لحظه دیگر اجرا نمی‌شود و گروه‌های هر دو کشور خبردار می‌شوند.
+  ───
+  [✅ پیمان را پایان بده] → diplomacy:end:2:yes
+  [🔙 بازگشت] → diplomacy:treaties:default_country
+
+━━━ Record · a page ━━━
+(edits message 42)
+📜 کارنامهٔ دیپلماتیک مشترک‌المنافع
+• مشترک‌المنافع تحریم تجاری، تحریم تسلیحاتی را به دلیل تجاوز نظامی بر فدراسیون ونتور وضع کرد (شمارهٔ ۳)
+  به دست رئیس‌جمهور ⁨کاوه (⁨B3C4D5F⁩)⁩ - ۲ روز و ۲ ساعت پیش
+• فدراسیون ونتور تحریم شمارهٔ ۲ بر مشترک‌المنافع را لغو کرد
+• فدراسیون ونتور به مشترک‌المنافع پیشنهاد پیمان نظامی داد (شمارهٔ ۵)
+• مشترک‌المنافع و فدراسیون ونتور پیمان عدم تجاوز امضا کردند (شمارهٔ ۲)
+  به دست وزیر امور خارجه ⁨نیلوفر (⁨N1L0F4R⁩)⁩ - ۴ روز پیش
+• فدراسیون ونتور موافقت‌نامهٔ تجاری با مشترک‌المنافع را رد کرد (شمارهٔ ۱)
+• مشترک‌المنافع پیشنهاد پیمان عدم تجاوز به فدراسیون ونتور را پس گرفت (شمارهٔ ۸)
+• فدراسیون ونتور به موافقت‌نامهٔ تجاری با مشترک‌المنافع پایان داد (شمارهٔ ۹)
+  ───
+  [بعدی ⬅️] → diplomacy:history:default_country:2
+  [🔙 بازگشت] → diplomacy:sanctions:default_country   │   [🔄 به‌روزرسانی] → diplomacy:history:default_country:1
+
+━━━ Record · empty ━━━
+(edits message 42)
+📜 کارنامهٔ دیپلماتیک فدراسیون ونتور
+هنوز میان کشورها اتفاقی نیفتاده است.
+  ───
+  [🔙 بازگشت] → diplomacy:sanctions:vantor_federation   │   [🔄 به‌روزرسانی] → diplomacy:history:vantor_federation:1
+
+━━━ Refused · not_holder ━━━
+(edits message 42)
+تنها رئیس‌جمهور مشترک‌المنافع می‌تواند این کار را انجام دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید.
+  ───
+  [🔙 بازگشت] → diplomacy:sanctions:default_country
+
+━━━ Refused · too_soon ━━━
+(edits message 42)
+هر تحریم مدتی باید بماند تا بتوان لغوش کرد: ۲۰ ساعت دیگر.
+  ───
+  [🔙 بازگشت] → diplomacy:sanctions:default_country
+
+━━━ Refused · standing ━━━
+(edits message 42)
+ما از قبل بر این کشور تحریمی داریم. پیش از وضع تحریم تازه، آن را لغو کنید.
+  ───
+  [🔙 بازگشت] → diplomacy:sanctions:default_country
+
+━━━ Refused · self ━━━
+(edits message 42)
+کشوری نمی‌تواند این کار را با خودش انجام دهد.
+  ───
+  [🔙 بازگشت] → diplomacy:sanctions:default_country
+
+━━━ Refused · open ━━━
+(edits message 42)
+پیمانی از همین نوع با این کشور هم‌اکنون باز است.
+  ───
+  [🔙 بازگشت] → diplomacy:sanctions:default_country
+
+━━━ Refused · state ━━━
+(edits message 42)
+این پیمان پیش‌تر پاسخ گرفته، پس گرفته شده، پایان یافته یا منقضی شده است.
+  ───
+  [🔙 بازگشت] → diplomacy:sanctions:default_country
+
+━━━ Refused · not_found ━━━
+(edits message 42)
+چنین تحریم یا پیمانی وجود ندارد.
+  ───
+  [🔙 بازگشت] → gov:city
+
+━━━ Refused · no_country ━━━
+(edits message 42)
+هنوز در هیچ کشوری ساکن نیستید. اول در شهری مستقر شوید.
+  ───
+  [🔙 بازگشت] → gov:city
+
+━━━ Blocked · trade ━━━
+(edits message 42)
+⛔ تحریم تجاری میان مشترک‌المنافع و فدراسیون ونتور این معامله را ممنوع می‌کند.
+  ───
+  [⛔ تحریم‌ها] → diplomacy:sanctions:default_country
+  [🔙 بازگشت] → market:list
+
+━━━ Blocked · arms ━━━
+(edits message 42)
+⛔ تحریم تسلیحاتی میان مشترک‌المنافع و فدراسیون ونتور این فروش را ممنوع می‌کند.
+  ───
+  [⛔ تحریم‌ها] → diplomacy:sanctions:default_country
+  [🔙 بازگشت] → market:list
+
+━━━ Blocked · technology ━━━
+(edits message 42)
+⛔ تحریم فناوری میان مشترک‌المنافع و فدراسیون ونتور فروش این لایسنس را ممنوع می‌کند.
+  ───
+  [⛔ تحریم‌ها] → diplomacy:sanctions:default_country
+  [🔙 بازگشت] → market:list
+
+━━━ Blocked · travel ━━━
+(edits message 42)
+⛔ ممنوعیت سفر میان مشترک‌المنافع و فدراسیون ونتور این مسیر را بسته است.
+  ───
+  [⛔ تحریم‌ها] → diplomacy:sanctions:default_country
+  [🔙 بازگشت] → market:list
+
+━━━ Blocked · financial ━━━
+(edits message 42)
+⛔ تحریم مالی میان مشترک‌المنافع و فدراسیون ونتور پرداخت کارتی میان مردم دو کشور را ممنوع می‌کند.
+  ───
+  [⛔ تحریم‌ها] → diplomacy:sanctions:default_country
+  [🔙 بازگشت] → market:list
+
+━━━ Notice · a treaty proposed to us ━━━
+(sends)
+📨 مشترک‌المنافع به ما پیشنهاد پیمان نظامی داده است (شمارهٔ ۵). تا ۳ روز دیگر پاسخ دهید.
+  ───
+  [✅ پذیرش شمارهٔ ۵] → diplomacy:answer:5:accept   │   [✖️ رد شمارهٔ ۵] → diplomacy:answer:5:decline
+  [🔙 بازگشت] → diplomacy:treaties:vantor_federation

@@ -1,0 +1,86 @@
+━━━ My office · the president appoints ━━━
+(edits message 42)
+🏛 منصب من
+
+📍 رئیس‌جمهور مشترک‌المنافع
+این منصب فعلاً سیاستی ندارد که بتوانید تغییرش دهید.
+انتصاب‌ها:
+• وزیر دفاع: ⁨سارا (⁨K7Q2M9A⁩)⁩
+• رئیس ستاد کل نیروهای مسلح: خالی
+• وزیر امور خارجه: خالی
+  ───
+  [✖️ برکناری وزیر دفاع] → gov:dismiss:defence_minister:default_country:1
+  [👤 انتصاب رئیس ستاد کل نیروهای مسلح] → ask:gov.appoint:chief_of_general_staff:default_country
+  [👤 انتصاب وزیر امور خارجه] → ask:gov.appoint:foreign_minister:default_country
+  [🎖 دفاع و دیپلماسی مشترک‌المنافع] → military:ministry:default_country
+  [🔙 بازگشت] → gov:city   │   [🔄 به‌روزرسانی] → gov:office
+
+━━━ Appoint · confirm ━━━
+(edits message 42)
+👤 ⁨نیلوفر (⁨N1L0F4R⁩)⁩ را به‌عنوان وزیر دفاع مشترک‌المنافع منصوب می‌کنید؟
+همین حالا بر صندلی می‌نشیند و اگر منصب شما اجازه دهد، بعداً می‌توانید برکنارش کنید.
+  ───
+  [✅ منصوب کن] → gov:seat:defence_minister:default_country:N1L0F4R
+  [🔙 بازگشت] → gov:office
+
+━━━ Appoint · done ━━━
+(edits message 42)
+✅ ⁨نیلوفر (⁨N1L0F4R⁩)⁩ اکنون فرمانده نیروی هوایی مشترک‌المنافع است.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:city
+
+━━━ Appoint · done, a city office with a term ━━━
+(edits message 42)
+✅ ⁨نیلوفر (⁨N1L0F4R⁩)⁩ اکنون رئیس پلیس استمارچ است.
+دورهٔ این منصب ۳۰ روز است.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:city
+
+━━━ Dismiss · confirm ━━━
+(edits message 42)
+✖️ ⁨سارا (⁨K7Q2M9A⁩)⁩ را از منصب وزیر دفاع مشترک‌المنافع برکنار می‌کنید؟
+صندلی همین حالا خالی می‌شود و اگر سرپرستی تعریف شده باشد، او به جایش عمل می‌کند.
+  ───
+  [✅ برکنار کن] → gov:unseat:defence_minister:default_country:1
+  [🔙 بازگشت] → gov:office
+
+━━━ Dismiss · done ━━━
+(edits message 42)
+✅ ⁨سارا (⁨K7Q2M9A⁩)⁩ دیگر وزیر دفاع مشترک‌المنافع نیست.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:city
+
+━━━ Refused · not_appointer ━━━
+(edits message 42)
+تنها رئیس ستاد کل نیروهای مسلح می‌تواند این کار را انجام دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید.
+  ───
+  [🔙 بازگشت] → gov:office
+
+━━━ Refused · no_player ━━━
+(edits message 42)
+بازیکنی با این کد یا نام کاربری پیدا نشد. آن را بررسی کنید و دوباره بفرستید.
+  ───
+  [🔙 بازگشت] → gov:office
+
+━━━ Refused · no_seat ━━━
+(edits message 42)
+این صندلی دیگر خالی نیست.
+  ───
+  [🔙 بازگشت] → gov:office
+
+━━━ Notice · appointed ━━━
+(sends)
+🎖 رئیس‌جمهور ⁨کاوه (⁨B3C4D5F⁩)⁩ شما را به‌عنوان وزیر دفاع مشترک‌المنافع منصوب کرد. «منصب من» را باز کنید تا ببینید از این پس دربارهٔ چه چیزهایی تصمیم می‌گیرید.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:city
+
+━━━ Notice · removed ━━━
+(sends)
+📭 رئیس‌جمهور ⁨کاوه (⁨B3C4D5F⁩)⁩ شما را از منصب وزیر دفاع مشترک‌المنافع برکنار کرد.
+  ───
+  [🏛 منصب من] → gov:office
+  [🔙 بازگشت] → gov:city

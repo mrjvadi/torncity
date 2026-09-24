@@ -209,6 +209,7 @@ The game is played with the buttons. You can also send these words, with or with
 • skills
 • friends - and "find" with a player code or username
 • city - offices and policies; "office" is your own
+• army - your country's ministry of defence and armed forces; "sanctions" and "treaties" its diplomacy
 • settings
 • help - this screen
   ───

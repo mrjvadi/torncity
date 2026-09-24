@@ -177,6 +177,7 @@ help:
     • skills
     • friends - and "find" with a player code or username
     • city - offices and policies; "office" is your own
+    • army - your country's ministry of defence and armed forces; "sanctions" and "treaties" its diplomacy
     • settings
     • help - this screen
 
@@ -395,6 +396,10 @@ gov:
     review: "📝 Review change"
     confirm: "✅ Confirm"
     cancel: "✖️ Cancel"
+    appoint: "👤 Appoint a {office}"
+    dismiss: "✖️ Remove the {office}"
+    confirm_appoint: "✅ Appoint"
+    confirm_dismiss: "✅ Remove"
   refusal:
     not_holder: "Only the {office} can change this policy. If you held that office, you may have been replaced."
     requires_vote: This policy is decided by a vote of the {office}, and voting is not available yet.
@@ -411,6 +416,23 @@ gov:
     office_vacant: This office is already vacant.
     already_holds: You already hold this office.
     incompatible: This office cannot be held together with an office you already hold.
+  appoint:
+    heading: "Appoints:"
+    vacant: "• {office}: vacant"
+    held: "• {office}: {player}"
+    confirm: "👤 Appoint {player} as {office} of {place}?\nThey take the seat at once; you can remove them later if your office may."
+    done: "✅ {player} is now {office} of {place}."
+    term: "The term runs {term}."
+    notice: "🎖 You were appointed {office} of {place} by {by_office} {by}. Open «My office» to see what you now decide."
+    announce: "🎖 {player} was appointed {office} of {place}."
+    refused:
+      not_appointer: "Only the {office} can do that. If you held that office, you may have been replaced."
+      no_player: "No player was found by that code or username. Check it and try again."
+      no_seat: "That seat is not free any more."
+  dismiss:
+    confirm: "✖️ Remove {player} from the office of {office} of {place}?\nThe seat falls vacant at once and the deputy acts for it, if there is one."
+    done: "✅ {player} is no longer {office} of {place}."
+    notice: "📭 You were removed from the office of {office} of {place} by {by_office} {by}."
 
 # Office names, keyed on the office's content code (configs/content/governance.yml).
 office:
@@ -420,6 +442,13 @@ office:
   police_chief: Police chief
   deputy_police_chief: Deputy police chief
   president: President
+  defence_minister: "Defence minister"
+  chief_of_general_staff: "Chief of the general staff"
+  ground_forces_commander: "Commander of the ground forces"
+  air_force_commander: "Commander of the air force"
+  navy_commander: "Commander of the navy"
+  air_defence_commander: "Commander of air defence"
+  foreign_minister: "Foreign minister"
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
 lever:
@@ -444,11 +473,15 @@ lever:
     corporate_tax: Corporate tax
   country:
     border_tariff: Border tariff
+    revenue_share: "National share of city revenue"
+    defence_budget: "Defence budget (share of national revenue)"
+    arms_exports: "Arms export policy"
 
 # Names of places above a city, keyed on the jurisdiction's content code.
 # Cities are named under city.* above.
 jurisdiction:
   default_country: The Commonwealth
+  vantor_federation: "Vantor Federation"
 
 # Playing in a group (internal/gateway/groups). A screen with a player's own
 # details is shown only to that player; these lines are all the rest of the
@@ -1084,6 +1117,9 @@ command_alias:
   vote: "vote"
   help: "help"
   cancel: "cancel"
+  army: "army | defence"
+  sanctions: "sanctions | sanction"
+  treaties: "treaties | treaty"
 
 # Where a command runs (configs/commands.yml).
 channel:
@@ -1111,6 +1147,7 @@ input:
     company_dname: "📐 Type the design's name and send it."
     company_sell: "🏷 Type the price of one unit."
     company_buy: "🛒 How many do you buy? Type the number."
+    gov_appoint: "👤 Send the player code or username of the player to appoint."
   placeholder:
     default: "Value"
     bank_deposit: "Amount to deposit, in Nil"
@@ -1127,6 +1164,7 @@ input:
     company_dname: "Design name"
     company_sell: "Price per unit in Nil"
     company_buy: "Quantity"
+    gov_appoint: "Player code or username"
   cancel_hint: "To cancel, send \"cancel\"."
   cancelled: "✖️ Cancelled. Nothing changed."
 
@@ -1203,6 +1241,7 @@ item_category:
   gear: Tools
   electronics: Electronics
   valuables: Valuables
+  military: "Military equipment"
 
 # Goods, keyed on their content code (configs/content/items.yml).
 item_name:
@@ -1226,6 +1265,23 @@ item_name:
   watch: Wristwatch
   car_stereo: Car stereo
   jewellery: Jewellery
+  fighter_jet: "Fighter jet"
+  stealth_fighter_jet: "Stealth fighter"
+  strategic_bomber: "Strategic bomber"
+  attack_drone: "Combat drone"
+  airlifter: "Military transport"
+  main_battle_tank: "Main battle tank"
+  ifv: "Infantry fighting vehicle"
+  sp_artillery: "Self-propelled howitzer"
+  early_warning_radar: "Early-warning radar"
+  short_range_sam: "Short-range air defence system"
+  medium_range_sam: "Medium-range air defence system"
+  long_range_sam: "Long-range air defence system"
+  ballistic_missile: "Ballistic missile"
+  cruise_missile: "Cruise missile"
+  anti_ship_missile: "Anti-ship missile"
+  frigate: "Frigate"
+  attack_submarine: "Attack submarine"
 
 # What using a good changes.
 vital:
@@ -1362,6 +1418,7 @@ market:
     not_enough: "You do not have that much {item} with you."
     no_order: There is no such order of yours.
     closed: That order is no longer open.
+  embargoed: "⛔ {count} offers from a country under a trade embargo with ours were passed over."
 
 # The auction house (internal/domain/auction): unique pieces only.
 auction:
@@ -1698,6 +1755,11 @@ company_type:
   factory: Factory
   mine: Mine
   farm: Farm
+  aerospace: "Aerospace manufacturer"
+  land_systems: "Land systems manufacturer"
+  missile_works: "Missile works"
+  shipyard: "Naval shipyard"
+  defence_electronics: "Defence electronics"
 
 # The production economy (docs/adr/0021-production-economy.md): a company's
 # warehouse and suppliers, research lab and licenses, design studio,
@@ -1977,18 +2039,70 @@ component:
   plastic_case: Plastic case
   chipset: Chipset
   cell: Battery cell
+  titanium: "Titanium"
+  carbon_fibre: "Carbon fibre"
+  rare_earths: "Rare earth metals"
+  explosive: "Explosive"
+  fighter_airframe: "Fighter airframe"
+  stealth_airframe: "Stealth airframe"
+  bomber_airframe: "Bomber airframe"
+  drone_airframe: "Drone airframe"
+  transport_airframe: "Transport airframe"
+  turbofan: "Afterburning turbofan"
+  turbojet: "Small turbojet"
+  turboprop: "Turboprop"
+  ram_coating: "Radar-absorbent coating"
+  fire_control_radar: "Fire-control radar"
+  aesa_radar: "AESA radar"
+  vhf_array: "VHF early-warning array"
+  tank_hull: "Armoured tank hull"
+  light_hull: "Light armoured hull"
+  tank_gun: "Smoothbore tank gun"
+  autocannon: "Autocannon"
+  howitzer_barrel: "Howitzer"
+  powerpack: "Diesel powerpack"
+  fire_control_computer: "Fire-control computer"
+  short_interceptor: "Short-range interceptor"
+  medium_interceptor: "Medium-range interceptor"
+  long_interceptor: "Long-range interceptor"
+  solid_rocket_motor: "Solid rocket motor"
+  two_stage_motor: "Two-stage rocket motor"
+  missile_body: "Cruise missile body"
+  blast_warhead: "High-explosive warhead"
+  inertial_guidance: "Inertial guidance"
+  precision_guidance: "Precision guidance"
+  radar_seeker: "Active radar seeker"
+  frigate_hull: "Frigate hull"
+  pressure_hull: "Submarine pressure hull"
+  gas_turbine: "Marine gas turbine"
+  diesel_electric: "Diesel-electric drive"
+  hull_sonar: "Hull sonar"
+  missile_cells: "Vertical launch cells"
 
 # Technologies, by content code (configs/content/production.yml).
 technology:
   semiconductors: Semiconductors
   microchips: Microchips
   batteries: Battery chemistry
+  aerospace_engineering: "Aerospace engineering"
+  jet_propulsion: "Jet propulsion"
+  stealth_shaping: "Stealth shaping"
+  radar_absorbent_materials: "Radar-absorbent materials"
+  radar_systems: "Radar systems"
+  aesa_radar: "Active electronically scanned array"
+  vhf_radar: "Long-wave counter-stealth radar"
+  armour_systems: "Armour systems"
+  rocketry: "Rocketry"
+  missile_guidance: "Missile guidance"
+  naval_architecture: "Naval architecture"
+  submarine_technology: "Submarine technology"
 
 # Suppliers, by content code (configs/content/production.yml).
 supplier:
   industrial_supplier: Industrial supplier
   farm_supply: Farm supply store
   wholesale_market: Wholesale market
+  strategic_materials: "Strategic materials trader"
 
 # Design slots, by slot name in the archetypes (configs/content/items.yml).
 design_slot:
@@ -1997,7 +2111,7 @@ design_slot:
   water: Water
   flavour: Flavour
   active: Active ingredient
-  carrier: Carrier
+  carrier: "Carrier vehicle"
   body: Body
   fabric: Fabric
   board: Board
@@ -2005,9 +2119,281 @@ design_slot:
   shell: Shell
   stone: Stone
   setting: Setting
+  airframe: "Airframe"
+  engine: "Engine"
+  radar: "Radar"
+  coating: "Coating"
+  hull: "Hull"
+  gun: "Main gun"
+  drive: "Drive"
+  fcs: "Fire control"
+  interceptor: "Interceptor"
+  motor: "Rocket motor"
+  warhead: "Warhead"
+  guidance: "Guidance"
+  seeker: "Seeker"
+  weapons: "Weapons"
+  sonar: "Sonar"
 
 # Product attributes, by attribute name in the archetypes.
 attribute:
   quality: Quality
   potency: Potency
   battery_life: Battery life
+  rcs: "Radar cross-section"
+  speed: "Top speed"
+  range: "Range"
+  payload: "Payload"
+  detection_range: "Detection range"
+  rcs_gain: "Signature gain"
+  accuracy: "Accuracy"
+  armour: "Armour"
+  firepower: "Firepower"
+  interception: "Interception"
+  depth: "Diving depth"
+lever_label:
+  country:
+    arms_exports:
+      v0: "own state only"
+      v1: "own state and treaty partners"
+      v2: "any state not under embargo"
+military:
+  branch_name:
+    ground: "Ground forces"
+    air: "Air force"
+    navy: "Navy"
+    air_defence: "Air defence"
+  class_name:
+    fighter: "Fighters"
+    stealth_fighter: "Stealth fighters"
+    bomber: "Bombers"
+    drone: "Combat drones"
+    transport: "Transport aircraft"
+    tank: "Main battle tanks"
+    ifv: "Infantry fighting vehicles"
+    artillery: "Artillery"
+    ballistic: "Ballistic missiles"
+    cruise: "Cruise missiles"
+    anti_ship: "Anti-ship missiles"
+    frigate: "Frigates"
+    submarine: "Submarines"
+    radar: "Early-warning radars"
+    sam_short: "Short-range air defence"
+    sam_medium: "Medium-range air defence"
+    sam_long: "Long-range air defence"
+  band:
+    few: "a few"
+    unit: "a unit"
+    force: "a sizeable force"
+    large: "a large force"
+  exports:
+    domestic: "arms go to our own state only"
+    partners: "arms go to our state and to treaty partners"
+    open: "arms go to any state not under an arms embargo"
+  ministry:
+    title: "🎖 Ministry of Defence of {country}"
+    offices: "Offices:"
+    budget: "Budget:"
+    treasury: "🏦 National treasury: {amount}"
+    fund: "🛡 Defence fund: {amount}"
+    shares: "📊 Cities pay {share} of their revenue to the nation; {defence} of that goes to defence."
+    exports: "🚢 Export policy: {policy}."
+    last: "📅 Last period: {levy} came in from the cities, {appropriation} of it to defence."
+    upkeep_paid: "🔧 Upkeep paid in full: {paid}."
+    upkeep_short: "⚠️ Upkeep short: {paid} of {due} paid, and readiness fell."
+    next: "⏳ The next defence period ends in {in}, at {at}."
+    forces: "Forces:"
+    footer: "The minister buys arms from defence companies with the defence fund, and the commanders station them. The president sets the budget; every change is public in city hall."
+  forces:
+    title: "🪖 Armed forces of {country}"
+    branch: "▪️ {branch}"
+    class_band: "  • {class}: {band}"
+    class_count: "  • {class}: {count}"
+    none: "No equipment in service yet."
+    readiness: "🎯 Readiness: {value}"
+    upkeep: "🔧 Upkeep every period: {amount}"
+    moving: "🚚 {count} on the way to a garrison."
+    public: "How many of each is a state secret; what the world knows is only how large each force is."
+    secret: "🔒 Classified: exact numbers, readiness and upkeep are shown only to the country's defence office holders."
+  equipment:
+    title: "🪖 {branch} of {country}"
+    empty: "This branch has no equipment yet."
+    group: "▪️ {good} - {count} in service - quality {quality}"
+    attribute: "  {name}: {value}"
+    seen_at: "  📡 A radar that finds a 1 m² target at {radar} km finds this one at {km} km."
+    garrison: "  📍 {city}: {count}"
+    depot: "  📦 In depot, not stationed: {count}"
+    moving: "  🚚 On the move: {count}"
+    moves: "On the move:"
+    move: "• {count} × {good} to {city} - {left} left, arriving at {at}"
+  station:
+    title: "📍 Station {good}"
+    choose_city: "Which city should it be stationed in?"
+    choose_qty: "How many to {city}? {available} can go. The move takes {time}."
+    confirm: "Send {count} to {city}? They arrive in {time} and cannot be ordered elsewhere on the way."
+    started: "🚚 {count} × {good} set off for {city}; they arrive in {time}."
+  procure:
+    title: "🛒 Arms procurement for {country}"
+    fund: "🛡 Defence fund: {amount}"
+    none: "No defence company is selling military equipment right now."
+    offer: "• {good} - {company}, {city} ({country}) - {price} each - {left} left"
+    offer_export: "🚫 {good} - {company}, {city} ({country}) - its country does not export to us"
+    offer_embargo: "⛔ {good} - {company}, {city} ({country}) - under an arms embargo"
+    footer: "Arms are paid from the defence fund only, and go into the depot until a commander stations them."
+  buy:
+    title: "🛒 {good}"
+    seller: "Seller: {company}, {city} ({country})"
+    price: "Price: {price} each - {left} left"
+    choose: "How many?"
+    confirm: "Buy {count} × {good} for {total}? The defence fund keeps {after}."
+    cannot_afford: "⚠️ The defence fund cannot pay for even one."
+    done: "✅ {count} × {good} bought for {total}, paid from the defence fund. They are in the depot until a commander stations them."
+  button:
+    forces: "🪖 Armed forces"
+    procure: "🛒 Procurement"
+    branch: "🔎 {branch}"
+    station: "📍 Station {good}"
+    qty: "{count}"
+    confirm_station: "✅ Send them"
+    offer: "🛒 {good} - {price}"
+    confirm_buy: "✅ Buy"
+    ministry: "🎖 Defence and diplomacy of {country}"
+  unit:
+    rcs: "{value} m²"
+    km: "{value} km"
+    kmh: "{value} km/h"
+    kg: "{value} kg"
+    m: "{value} m"
+    times: "×{value}"
+    decimal_point: "."
+  refused:
+    not_found: "That is not for sale any more, or never was."
+    not_holder: "Only the {office} of {country} can do that. If you held that office, you may have been replaced."
+    not_arms: "That is not military equipment: a state buys arms only."
+    export: "{country}'s export policy does not let its arms go to us."
+    funds: "The defence fund holds {have}; this costs {need}."
+    stock: "Only {max} are left."
+    city: "That city is not one of {country}'s."
+    no_country: "You do not live in any country yet. Settle in a city first."
+  notice:
+    arrived: "📍 {count} × {good} arrived in {city} and stand there now."
+  announce:
+    procured: "🎖 New arms for {country}: {class} ({band})."
+diplomacy:
+  measure:
+    trade: "trade embargo"
+    arms: "arms embargo"
+    technology: "technology ban"
+    travel: "travel ban"
+    financial: "financial sanctions"
+  ground:
+    aggression: "aggression"
+    proliferation: "weapons proliferation"
+    terrorism: "support for terrorism"
+    human_rights: "human rights abuses"
+    unfair_trade: "unfair trade"
+    retaliation: "retaliation"
+  treaty:
+    alliance: "military alliance"
+    non_aggression: "non-aggression pact"
+    trade_agreement: "trade agreement"
+  sanctions:
+    title: "⛔ Sanctions of {country}"
+    imposed: "Imposed by us:"
+    suffered: "Imposed on us:"
+    none: "• none"
+    line_on: "• No. {no} on {country}: {measures} - for {ground}"
+    line_by: "• No. {no} by {country}: {measures} - for {ground}"
+    pending: "  ⏳ binds in {in}"
+    since: "  in force for {since}"
+    by: "  imposed by the {office}, {player}"
+    liftable_in: "  🔒 may be lifted in {in}"
+    footer: "A sanction binds both ways: a trade embargo stops the market, the auction house and company sales between the two countries' people; an arms embargo, arms sales; a technology ban, licenses; a travel ban, journeys between their cities; financial sanctions, card payments."
+  impose:
+    title: "⛔ New sanction by {country}"
+    choose_target: "On which country?"
+    no_targets: "There is no other country."
+    choose_measures: "Which measures against {target}? Press to choose, press again to drop."
+    choose_ground: "On what ground are {measures} imposed on {target}?"
+    confirm: "Impose {measures} on {target} for {ground}?\nIt is announced now and binds in {notice}; it can be lifted no sooner than {min} from now."
+    done: "⛔ The sanction on {target} is announced and binds in {in}."
+  lift:
+    confirm: "Lift sanction No. {no} on {target} ({measures})? It stops binding at once."
+    done: "🕊 The sanction on {target} is lifted."
+  treaties:
+    title: "🤝 Treaties of {country}"
+    incoming: "📨 No. {no}: {country} proposes a {kind} - answer within {in}"
+    outgoing: "📤 No. {no}: we proposed a {kind} to {country} - {in} left for an answer"
+    active: "✅ No. {no}: {kind} with {country}"
+    ended_declined: "✖️ No. {no}: {kind} with {country} was declined"
+    ended_withdrawn: "↩️ No. {no}: {kind} with {country} was withdrawn"
+    ended_expired: "⌛ No. {no}: {kind} with {country} lapsed unanswered"
+    ended_terminated: "🔚 No. {no}: {kind} with {country} was ended"
+    none: "No treaties yet."
+    footer: "A treaty binds once the other country's foreign minister accepts it. An alliance makes the two arms partners and will bring each to the other's defence; a trade agreement spares their trade the border tariff."
+  propose:
+    title: "🤝 New treaty proposal by {country}"
+    choose_partner: "To which country?"
+    choose_kind: "What kind of treaty with {partner}?"
+    confirm: "Propose a {kind} to {partner}? Their foreign minister has {ttl} to answer."
+    done: "📤 A {kind} was proposed to {partner}. Their answer will show here."
+  end:
+    confirm_withdraw: "Withdraw proposal No. {no} ({kind} to {country})?"
+    confirm_terminate: "End treaty No. {no} ({kind} with {country})? It stops binding at once, and both countries' groups hear of it."
+    done_withdrawn: "↩️ The proposal was withdrawn."
+    done_terminated: "🔚 The treaty was ended."
+  history:
+    title: "📜 Diplomatic record of {country}"
+    empty: "Nothing has happened between countries yet."
+    sanction_imposed: "• {country} imposed {measures} on {other} (No. {no}), for {ground}"
+    sanction_lifted: "• {country} lifted sanction No. {no} on {other}"
+    treaty_proposed: "• {country} proposed a {kind} to {other} (No. {no})"
+    treaty_signed: "• {country} and {other} signed a {kind} (No. {no})"
+    treaty_declined: "• {country} declined a {kind} with {other} (No. {no})"
+    treaty_withdrawn: "• {country} withdrew a {kind} proposal to {other} (No. {no})"
+    treaty_terminated: "• {country} ended the {kind} with {other} (No. {no})"
+    by: "  by the {office}, {player} - {ago} ago"
+  button:
+    sanctions: "⛔ Sanctions"
+    treaties: "🤝 Treaties"
+    history: "📜 Record"
+    impose: "➕ Impose a sanction"
+    lift: "✖️ Lift No. {no} on {country}"
+    measure_on: "✅ {measure}"
+    measure_off: "▫️ {measure}"
+    next: "➡️ Next"
+    confirm_impose: "✅ Impose"
+    confirm_lift: "✅ Lift"
+    accept: "✅ Accept No. {no}"
+    decline: "✖️ Decline No. {no}"
+    withdraw: "↩️ Withdraw No. {no}"
+    terminate: "🔚 End No. {no}"
+    propose: "➕ Propose a treaty"
+    confirm_propose: "✅ Propose"
+    confirm_withdraw: "✅ Withdraw"
+    confirm_terminate: "✅ End the treaty"
+  refused:
+    not_found: "No such sanction or treaty."
+    not_holder: "Only the {office} of {country} can do that. If you held that office, you may have been replaced."
+    self: "A country cannot do that with itself."
+    standing: "We have a sanction on that country already. Lift it before imposing another."
+    too_soon: "A sanction stands for a while before it may be lifted: {in} more."
+    open: "A treaty of that kind with that country is open already."
+    state: "That treaty has already been answered, withdrawn, ended or has lapsed."
+    no_country: "You do not live in any country yet. Settle in a city first."
+  blocked:
+    trade: "⛔ A trade embargo between {imposer} and {target} forbids this deal."
+    arms: "⛔ An arms embargo between {imposer} and {target} forbids this sale."
+    technology: "⛔ A technology ban between {imposer} and {target} forbids this license."
+    travel: "⛔ A travel ban between {imposer} and {target} closes this route."
+    financial: "⛔ Financial sanctions between {imposer} and {target} forbid card payments between their people."
+  notice:
+    proposed: "📨 {country} proposes a {kind} to us (No. {no}). Answer within {in}."
+  announce:
+    imposed: "⛔ {imposer} imposed {measures} on {target}, for {ground}."
+    lifted: "🕊 {imposer} lifted its sanctions on {target}."
+    signed: "🤝 {a} and {b} signed a {kind}."
+    terminated: "🔚 {by} ended its {kind} with {other}."
+  answer:
+    active: "🤝 Treaty signed: it binds from now on."
+    declined: "✖️ The proposal was declined."

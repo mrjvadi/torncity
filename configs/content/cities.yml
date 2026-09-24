@@ -89,13 +89,16 @@ cities:
     facilities: [bus_terminal, rail_station, airport]
 
   # Calderis and Vantor Reach are the expensive far end of the map: places a
-  # player travels to, not places anyone is born. Hence spawn_weight 0.
+  # player travels to, not places anyone is born. Hence spawn_weight 0. They
+  # are a country of their own, the Vantor Federation (governance.yml), so
+  # that the world has a border for sanctions, arms exports and treaties to
+  # cross (docs/adr/0022-military-and-diplomacy.md).
   - code: calderis
     name: Calderis
     tax_rate_bps: 450
     cost_of_living: 3780
     spawn_weight: 0
-    country: default_country
+    country: vantor_federation
     facilities: [bus_terminal, rail_station, airport]
 
   - code: vantor_reach
@@ -103,5 +106,5 @@ cities:
     tax_rate_bps: 1450
     cost_of_living: 4200
     spawn_weight: 0
-    country: default_country
+    country: vantor_federation
     facilities: [bus_terminal, airport]

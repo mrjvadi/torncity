@@ -22,6 +22,7 @@
   ───
   [📜 تاریخچهٔ سیاست‌ها] → gov:history:ostmarch   │   [🗳 انتخابات] → election:list
   [🏛 منصب من] → gov:office
+  [🎖 دفاع و دیپلماسی مشترک‌المنافع] → military:ministry:default_country
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → gov:city:ostmarch
 
 ━━━ City hall · a deputy is acting ━━━
@@ -61,6 +62,7 @@
   ───
   [✏️ نرخ مالیات — استمارچ] → gov:lever:city.tax_rate:ostmarch
   [✏️ عوارض مهاجرت — استمارچ] → gov:lever:city.immigration_fee:ostmarch
+  [🎖 دفاع و دیپلماسی مشترک‌المنافع] → military:ministry:default_country
   [🔙 بازگشت] → gov:city   │   [🔄 به‌روزرسانی] → gov:office
 
 ━━━ My office · none ━━━
@@ -121,6 +123,33 @@
 ⏳ ۲ روز و ۲ ساعت دیگر می‌توانید این سیاست را دوباره تغییر دهید.
   ───
   [🔙 بازگشت] → gov:office   │   [🔄 به‌روزرسانی] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Change a policy · a choice (arms exports) ━━━
+(edits message 42)
+🏛 سیاست صادرات تسلیحات — مشترک‌المنافع
+• سیاست صادرات تسلیحات: دولت خودی و شریکان پیمانی - پیش‌فرض
+
+مقدار پیش‌فرض: دولت خودی و شریکان پیمانی
+هر تغییر ۲۴ ساعت پس از اعلام اجرا می‌شود.
+میان دو تغییر دست‌کم ۳ روز فاصله لازم است.
+
+مقدار تازه: هر دولتی که زیر تحریم تسلیحاتی نیست
+با دکمه‌ها تنظیمش کنید و سپس «بازبینی تغییر» را بزنید.
+  ───
+  [فقط دولت خودی] → gov:lever:country.arms_exports:default_country:0
+  [دولت خودی و شریکان پیمانی] → gov:lever:country.arms_exports:default_country:1
+  [📝 بازبینی تغییر] → gov:confirm:country.arms_exports:default_country:2
+  [🔙 بازگشت] → gov:office   │   [🔄 به‌روزرسانی] → gov:lever:country.arms_exports:default_country
+
+━━━ Change a policy · a choice confirmed ━━━
+(edits message 42)
+📝 تأیید تغییر
+
+سیاست صادرات تسلیحات در مشترک‌المنافع: از دولت خودی و شریکان پیمانی به هر دولتی که زیر تحریم تسلیحاتی نیست
+این تغییر همین حالا اعلام می‌شود و ۲۴ ساعت بعد اجرا خواهد شد.
+پس از آن تا ۳ روز نمی‌توانید این سیاست را دوباره تغییر دهید.
+  ───
+  [✅ تأیید] → gov:set:country.arms_exports:default_country:2   │   [✖️ انصراف] → gov:lever:country.arms_exports:default_country:2
 
 ━━━ Change a policy · confirm ━━━
 (edits message 42)

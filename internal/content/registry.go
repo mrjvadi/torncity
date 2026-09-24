@@ -61,6 +61,9 @@ type Snapshot struct {
 	// Production: components, method timings, technologies, suppliers; see
 	// production.go.
 	production productionContent
+
+	// Military and diplomacy; see military.go.
+	military militaryContent
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -126,6 +129,7 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	snap.buildElections(p)
 	snap.buildCompanies(p)
 	snap.buildProduction(p)
+	snap.buildMilitary(p)
 
 	return snap, nil
 }

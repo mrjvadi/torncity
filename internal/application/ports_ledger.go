@@ -47,6 +47,12 @@ const (
 	// and the auction house: a buy order's reserve, a standing bid. Still
 	// the player's, not theirs to spend until the order or the bid ends.
 	AccountPlayerEscrow AccountKind = "player_escrow"
+	// AccountStateTreasury is a country's national treasury, and
+	// AccountDefenceFund its defence fund, the only money arms and upkeep
+	// are paid from (migrations/0021_military). Both are owned by the
+	// country's jurisdiction.
+	AccountStateTreasury AccountKind = "state_treasury"
+	AccountDefenceFund   AccountKind = "defence_fund"
 )
 
 // Valid reports whether k is one of the kinds the schema allows.
@@ -54,7 +60,7 @@ func (k AccountKind) Valid() bool {
 	switch k {
 	case AccountPlayerCash, AccountPlayerBank, AccountCompanyTreasury,
 		AccountFactionTreasury, AccountCityTreasury, AccountSystemSink, AccountSystemSource,
-		AccountPlayerEscrow:
+		AccountPlayerEscrow, AccountStateTreasury, AccountDefenceFund:
 		return true
 	}
 	return false
@@ -235,6 +241,27 @@ const (
 	ReasonCompanySale Reason = "company_sale"
 )
 
+// The armed forces (docs/adr/0022-military-and-diplomacy.md). A country's
+// treasury and defence fund are owned accounts, so the cities' share of
+// their revenue, the defence appropriation and a purchase of arms are
+// transfers; the forces' upkeep pays the NPC economy and leaves (a drain).
+const (
+	// ReasonNationalLevy pays a city's share of its revenue in a defence
+	// period (country.revenue_share) from its treasury to the national
+	// treasury.
+	ReasonNationalLevy Reason = "national_levy"
+	// ReasonDefenceAppropriation moves the defence budget
+	// (country.defence_budget of a period's national levy) from the
+	// national treasury to the defence fund.
+	ReasonDefenceAppropriation Reason = "defence_appropriation"
+	// ReasonArmsProcurement pays a defence company for the arms a state
+	// bought from its listing, from the defence fund to its treasury.
+	ReasonArmsProcurement Reason = "arms_procurement"
+	// ReasonMilitaryUpkeep pays a period's upkeep of a country's
+	// equipment from the defence fund to system_sink.
+	ReasonMilitaryUpkeep Reason = "military_upkeep"
+)
+
 // knownReasons is the closed set. Adding a code means adding it here AND to
 // the table in ADR 0009, in the same change.
 var knownReasons = map[Reason]struct{}{
@@ -267,6 +294,8 @@ var knownReasons = map[Reason]struct{}{
 	ReasonCorporateTax: {}, ReasonCompanyWage: {}, ReasonCitizenWage: {},
 
 	ReasonResearch: {}, ReasonSupplierPurchase: {}, ReasonTechnologyLicense: {}, ReasonCompanySale: {},
+
+	ReasonNationalLevy: {}, ReasonDefenceAppropriation: {}, ReasonArmsProcurement: {}, ReasonMilitaryUpkeep: {},
 }
 
 // Known reports whether r is in the closed set.

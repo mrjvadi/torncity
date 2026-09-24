@@ -143,6 +143,12 @@ type OfficeDefinition struct {
 	// Term is one tenure; zero means at pleasure.
 	Term             time.Duration
 	IncompatibleWith []string
+	// AcquiredBy is how the office is normally obtained; AppointedBy the
+	// office whose holder appoints to it, empty for none; CanBeRemovedBy
+	// the offices (or "residents", "operator") that may remove its holder.
+	AcquiredBy     string
+	AppointedBy    string
+	CanBeRemovedBy []string
 }
 
 // Jurisdiction is one node of the tree: the world, a country, a city, ….
@@ -304,6 +310,10 @@ type GovernanceRepository interface {
 	// AssignSeat writes a seat's holder, acquisition, term and since. A
 	// vacant seat has an empty holder and acquisition and no term.
 	AssignSeat(ctx context.Context, seat Office) error
+	// ActingChain is an office followed by its deputies, each with its
+	// seats in the jurisdiction, locked against a concurrent appointment
+	// or vacancy: what Authorize walks.
+	ActingChain(ctx context.Context, officeCode, jurisdictionID string) ([]OfficeLink, error)
 }
 
 // ResolvePolicy decides which value of a lever wins. It is the ONLY place

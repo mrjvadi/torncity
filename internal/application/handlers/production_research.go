@@ -10,6 +10,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/company"
+	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/technology"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -606,6 +607,30 @@ func (h *ProductionHandler) License(ctx context.Context, meta envelope.Metadata,
 		if err := technology.Cleared(def.Tech().Control, technology.Buyer{Kind: application.OrgCompany,
 			Sector: f.def.SectorCode()}); err != nil {
 			return refuseProduction(screens.ProductionRefusedNotCleared, c, snap).back(back...)
+		}
+		// Across a border (docs/adr/0022): a technology ban between the two
+		// companies' countries — the one sanctions check — and, for a
+		// controlled technology, the licensor's arms export policy.
+		licensee, err := tx.Diplomacy().CountryOfCity(ctx, c.CityID)
+		if err != nil {
+			return err
+		}
+		licensorCountry, err := tx.Diplomacy().CountryOfCity(ctx, offer.Company.CityID)
+		if err != nil {
+			return err
+		}
+		if err := checkSanctions(ctx, tx, application.CheckSanctions(ctx, tx, diplomacy.Technology, licensee,
+			licensorCountry, h.now()), back...); err != nil {
+			return err
+		}
+		if def.Tech().Control.Restricted {
+			denied, err := armsExportDenied(ctx, tx, h.policy, snap, licensee, licensorCountry, h.now())
+			if err != nil {
+				return err
+			}
+			if denied {
+				return refuseProduction(screens.ProductionRefusedNotCleared, c, snap).back(back...)
+			}
 		}
 		if !req.confirmed() {
 			confirm = &screens.TechOffer{Company: companyRef(snap, offer.Company), Price: offer.Tech.LicensePrice}

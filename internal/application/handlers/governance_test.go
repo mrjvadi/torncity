@@ -251,6 +251,9 @@ func (w *govWorld) Seat(context.Context, string, string, int) (application.Offic
 	return application.Office{}, application.ErrOfficeNotFound
 }
 func (w *govWorld) AssignSeat(context.Context, application.Office) error { return nil }
+func (w *govWorld) ActingChain(context.Context, string, string) ([]application.OfficeLink, error) {
+	return nil, nil
+}
 
 // govTx is the shared fake transaction with this world behind Governance.
 type govTx struct {

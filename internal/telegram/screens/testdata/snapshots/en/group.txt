@@ -217,3 +217,31 @@ To cancel, send "cancel".
 
 ━━━ question · company.buy · reply box ━━━
 Quantity
+
+━━━ announcement · arms acquired ━━━
+🎖 New arms for The Commonwealth: Stealth fighters (a few).
+
+━━━ announcement · a sanction imposed ━━━
+⛔ The Commonwealth imposed trade embargo, arms embargo on Vantor Federation, for aggression.
+
+━━━ announcement · a sanction lifted ━━━
+🕊 The Commonwealth lifted its sanctions on Vantor Federation.
+
+━━━ announcement · a treaty signed ━━━
+🤝 The Commonwealth and Vantor Federation signed a military alliance.
+
+━━━ announcement · a treaty ended ━━━
+🔚 Vantor Federation ended its trade agreement with The Commonwealth.
+
+━━━ announcement · an appointment ━━━
+🎖 Nilou was appointed Defence minister of The Commonwealth.
+
+━━━ announcement · an appointment, nameless ━━━
+🎖 A player was appointed Commander of the air force of The Commonwealth.
+
+━━━ question · gov.appoint ━━━
+👤 Send the player code or username of the player to appoint.
+To cancel, send "cancel".
+
+━━━ question · gov.appoint · reply box ━━━
+Player code or username

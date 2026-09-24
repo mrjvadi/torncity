@@ -185,6 +185,9 @@ func (h *ProductionHandler) finish(meta envelope.Metadata, lang string, err erro
 	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
 		return screens.PaymentDeclined(c, v), nil
 	}
+	if v, ok := asBlocked(err); ok {
+		return screens.SanctionBlocked(c, v), nil
+	}
 	return nil, err
 }
 

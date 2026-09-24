@@ -128,8 +128,9 @@ func TestValidateRejectsBrokenCrimeContent(t *testing.T) {
 func TestPackWithoutCrimesStillValidates(t *testing.T) {
 	p := shippedPack(t)
 	p.Crimes, p.CrimeTiers, p.Venues, p.CrimeCategories = nil, nil, nil, nil
-	// Goods whose gear names crimes, and shops at places, go with them.
-	p.Items, p.Shops = nil, nil
+	// Goods whose gear names crimes, and shops at places, go with them; so
+	// do the military classes, which name goods.
+	p.Items, p.Shops, p.ForceClasses = nil, nil, nil
 	if err := p.Validate(); err != nil {
 		t.Fatal(err)
 	}

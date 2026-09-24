@@ -1,0 +1,32 @@
+# Diplomacy: the kinds of treaty two countries may conclude and the grounds a
+# sanction may be imposed on. docs/adr/0022-military-and-diplomacy.md is the
+# governing decision; the rules — who may propose, accept and end a treaty,
+# what each of the five sanction measures blocks and where — are
+# internal/domain/diplomacy, and who decides is governance.yml
+# (country.treaty, country.sanction).
+#
+# ---------------------------------------------------------------------------
+# treaty_types
+#   code                 stable identifier.
+#   name                 display name, the fallback for diplomacy.treaty.<code>.
+#   mutual_defence       the parties defend each other: data the war stage
+#                        reads (an ally is told, and may join).
+#   non_aggression       the parties undertake not to attack each other:
+#                        data the war stage reads.
+#   arms_partner         a party may buy the other's arms under an arms
+#                        export policy of "partners" (country.arms_exports 1).
+#   tariff_discount_bps  how much of the border tariff (country.border_tariff)
+#                        trade between the parties is spared. Nothing charges
+#                        the tariff yet; the discount is ready for it.
+#
+# sanction_grounds — why a country sanctions another: the reason a sanction
+#   records, publicly. Its words are diplomacy.ground.<code>.
+
+version: 1
+
+treaty_types:
+  - {code: alliance,        name: Military alliance,      mutual_defence: true, arms_partner: true}
+  - {code: non_aggression,  name: Non-aggression pact,    non_aggression: true}
+  - {code: trade_agreement, name: Trade agreement,        tariff_discount_bps: 10000}
+
+sanction_grounds: [aggression, proliferation, terrorism, human_rights, unfair_trade, retaliation]

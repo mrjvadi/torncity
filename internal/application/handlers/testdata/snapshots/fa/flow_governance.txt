@@ -26,6 +26,7 @@
   ───
   [📜 تاریخچهٔ سیاست‌ها] → gov:history:ostmarch   │   [🗳 انتخابات] → election:list
   [🏛 منصب من] → gov:office
+  [🎖 دفاع و دیپلماسی مشترک‌المنافع] → military:ministry:default_country
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → gov:city:ostmarch
 
 ━━━ My office ━━━
@@ -152,6 +153,7 @@
   ───
   [📜 تاریخچهٔ سیاست‌ها] → gov:history:ostmarch   │   [🗳 انتخابات] → election:list
   [🏛 منصب من] → gov:office
+  [🎖 دفاع و دیپلماسی مشترک‌المنافع] → military:ministry:default_country
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → gov:city:ostmarch
 
 ━━━ Policy history ━━━

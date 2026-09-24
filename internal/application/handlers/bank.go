@@ -10,6 +10,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/bank"
+	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
@@ -576,6 +577,11 @@ func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req P
 
 		quote := bank.Quote{Amount: amount, Total: amount}
 		if method == bank.MethodCard {
+			// Financial sanctions between the two players' countries
+			// (docs/adr/0022): the one sanctions check.
+			if err := playersSanctioned(ctx, tx, diplomacy.Financial, p.ID, payee.ID, h.now(), screens.AddrBank); err != nil {
+				return err
+			}
 			feeBPS, _, err := h.cardFee(ctx, here[0])
 			if err != nil {
 				return err
@@ -613,6 +619,9 @@ func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req P
 	})
 	if stderrors.Is(err, application.ErrNotTogether) {
 		return h.payScreen(ctx, meta, req, notTogether)
+	}
+	if v, ok := asBlocked(err); ok {
+		return screens.SanctionBlocked(h.screen(meta, lang), v), nil
 	}
 	if err != nil {
 		return nil, err
@@ -739,6 +748,9 @@ func (h *BankHandler) PaySend(ctx context.Context, meta envelope.Metadata, req P
 			feeCity  string
 		)
 		if method == bank.MethodCard {
+			if err := playersSanctioned(ctx, tx, diplomacy.Financial, p.ID, payee.ID, h.now(), screens.AddrBank); err != nil {
+				return err
+			}
 			reason, from, to = application.ReasonCardPayment, payerBank, payeeBank
 			feeBPS, city, err := h.cardFee(ctx, here[0])
 			if err != nil {
@@ -793,6 +805,9 @@ func (h *BankHandler) PaySend(ctx context.Context, meta envelope.Metadata, req P
 		// Not an error screen: the player is shown how to pay this person
 		// after all — by card — with the reason at the top.
 		return h.payScreen(ctx, meta, req, notTogether)
+	}
+	if v, ok := asBlocked(err); ok {
+		return screens.SanctionBlocked(h.screen(meta, lang), v), nil
 	}
 	if err != nil {
 		return nil, err

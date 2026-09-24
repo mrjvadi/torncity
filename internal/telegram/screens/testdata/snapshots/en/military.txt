@@ -1,0 +1,330 @@
+━━━ Ministry · the defence minister ━━━
+(edits message 42)
+🎖 Ministry of Defence of The Commonwealth
+
+Offices:
+• President: Kaveh (B3C4D5F)
+• Defence minister: Sara (K7Q2M9A)
+• Chief of the general staff: vacant
+• Commander of the air force: Nilou (N1L0F4R)
+• Commander of the navy: vacant
+• Foreign minister: vacant - acting: President Kaveh (B3C4D5F)
+
+Budget:
+🏦 National treasury: 184,500 Nil
+🛡 Defence fund: 96,300 Nil
+📊 Cities pay 10% of their revenue to the nation; 30% of that goes to defence.
+🚢 Export policy: arms go to our state and to treaty partners.
+📅 Last period: 12,400 Nil came in from the cities, 3,720 Nil of it to defence.
+🔧 Upkeep paid in full: 1,290 Nil.
+⏳ The next defence period ends in 17m, at 14:52.
+
+Forces:
+▪️ Ground forces
+  • Main battle tanks: 24
+▪️ Air force
+  • Stealth fighters: 3
+  • Fighters: 12
+▪️ Air defence
+  • Long-range air defence: 2
+🎯 Readiness: 95%
+🔧 Upkeep every period: 1,290 Nil
+
+The minister buys arms from defence companies with the defence fund, and the commanders station them. The president sets the budget; every change is public in city hall.
+  ───
+  [🪖 Armed forces] → military:forces:default_country   │   [🛒 Procurement] → military:procure:default_country
+  [⛔ Sanctions] → diplomacy:sanctions:default_country   │   [🤝 Treaties] → diplomacy:treaties:default_country
+  [🔙 Back] → gov:city   │   [🔄 Refresh] → military:ministry:default_country
+
+━━━ Ministry · as a group reads it ━━━
+(edits message 42)
+🎖 Ministry of Defence of The Commonwealth
+
+Offices:
+• President: Kaveh (B3C4D5F)
+• Defence minister: Sara (K7Q2M9A)
+• Chief of the general staff: vacant
+• Commander of the air force: Nilou (N1L0F4R)
+• Commander of the navy: vacant
+• Foreign minister: vacant - acting: President Kaveh (B3C4D5F)
+
+Budget:
+🏦 National treasury: 184,500 Nil
+🛡 Defence fund: 96,300 Nil
+📊 Cities pay 10% of their revenue to the nation; 30% of that goes to defence.
+🚢 Export policy: arms go to our state and to treaty partners.
+📅 Last period: 12,400 Nil came in from the cities, 3,720 Nil of it to defence.
+⏳ The next defence period ends in 17m, at 14:52.
+
+Forces:
+▪️ Ground forces
+  • Main battle tanks: a sizeable force
+▪️ Air force
+  • Stealth fighters: a few
+  • Fighters: a unit
+▪️ Air defence
+  • Long-range air defence: a few
+
+The minister buys arms from defence companies with the defence fund, and the commanders station them. The president sets the budget; every change is public in city hall.
+  ───
+  [🪖 Armed forces] → military:forces:default_country
+  [⛔ Sanctions] → diplomacy:sanctions:default_country   │   [🤝 Treaties] → diplomacy:treaties:default_country
+  [🔙 Back] → gov:city   │   [🔄 Refresh] → military:ministry:default_country
+
+━━━ Ministry · upkeep short, no forces yet ━━━
+(edits message 42)
+🎖 Ministry of Defence of The Commonwealth
+
+Offices:
+• President: Kaveh (B3C4D5F)
+• Defence minister: Sara (K7Q2M9A)
+• Chief of the general staff: vacant
+• Commander of the air force: Nilou (N1L0F4R)
+• Commander of the navy: vacant
+• Foreign minister: vacant - acting: President Kaveh (B3C4D5F)
+
+Budget:
+🏦 National treasury: 184,500 Nil
+🛡 Defence fund: 96,300 Nil
+📊 Cities pay 10% of their revenue to the nation; 30% of that goes to defence.
+🚢 Export policy: arms go to our state and to treaty partners.
+📅 Last period: 800 Nil came in from the cities, 240 Nil of it to defence.
+⚠️ Upkeep short: 240 Nil of 1,290 Nil paid, and readiness fell.
+⏳ The next defence period ends in 17m, at 14:52.
+
+Forces:
+No equipment in service yet.
+🎯 Readiness: 85%
+🔧 Upkeep every period: 1,290 Nil
+
+The minister buys arms from defence companies with the defence fund, and the commanders station them. The president sets the budget; every change is public in city hall.
+  ───
+  [🪖 Armed forces] → military:forces:default_country   │   [🛒 Procurement] → military:procure:default_country
+  [⛔ Sanctions] → diplomacy:sanctions:default_country   │   [🤝 Treaties] → diplomacy:treaties:default_country
+  [🔙 Back] → gov:city   │   [🔄 Refresh] → military:ministry:default_country
+
+━━━ Forces · public summary ━━━
+(edits message 42)
+🪖 Armed forces of Vantor Federation
+▪️ Ground forces
+  • Main battle tanks: a sizeable force
+▪️ Air force
+  • Stealth fighters: a few
+  • Fighters: a unit
+▪️ Air defence
+  • Long-range air defence: a few
+
+How many of each is a state secret; what the world knows is only how large each force is.
+  ───
+  [🔙 Back] → military:ministry:vantor_federation   │   [🔄 Refresh] → military:forces:vantor_federation
+
+━━━ Forces · in full ━━━
+(edits message 42)
+🪖 Armed forces of The Commonwealth
+▪️ Ground forces
+  • Main battle tanks: 24
+▪️ Air force
+  • Stealth fighters: 3
+  • Fighters: 12
+▪️ Air defence
+  • Long-range air defence: 2
+🎯 Readiness: 95%
+🔧 Upkeep every period: 1,290 Nil
+🚚 2 on the way to a garrison.
+
+🔒 Classified: exact numbers, readiness and upkeep are shown only to the country's defence office holders.
+  ───
+  [🔎 Ground forces] → military:branch:default_country:ground   │   [🔎 Air force] → military:branch:default_country:air
+  [🔎 Navy] → military:branch:default_country:navy   │   [🔎 Air defence] → military:branch:default_country:air_defence
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → military:forces:default_country
+
+━━━ Forces · none ━━━
+(edits message 42)
+🪖 Armed forces of Vantor Federation
+No equipment in service yet.
+
+How many of each is a state secret; what the world knows is only how large each force is.
+  ───
+  [🔙 Back] → military:ministry:vantor_federation   │   [🔄 Refresh] → military:forces:vantor_federation
+
+━━━ Branch · the air force, its commander ━━━
+(edits message 42)
+🪖 Air force of The Commonwealth
+
+▪️ Simorgh 5 (Stealth fighter) - 3 in service - quality 71
+  Radar cross-section: 0.005 m²
+  Top speed: 2,100 km/h
+  Range: 1,400 km
+  Payload: 4,000 kg
+  Detection range: 110 km
+  📡 A radar that finds a 1 m² target at 150 km finds this one at 39 km.
+  📍 Brennhaven: 2
+  🚚 On the move: 1
+
+▪️ Falcon (Fighter jet) - 12 in service - quality 58
+  Radar cross-section: 5 m²
+  Top speed: 2,100 km/h
+  📡 A radar that finds a 1 m² target at 150 km finds this one at 224 km.
+  📍 Ostmarch: 8
+  📦 In depot, not stationed: 4
+
+On the move:
+• 1 × Simorgh 5 (Stealth fighter) to Brennhaven - 2m left, arriving at 14:37
+  ───
+  [📍 Station Simorgh 5 (Stealth fighter)] → military:station:default_country:d7
+  [📍 Station Falcon (Fighter jet)] → military:station:default_country:d4
+  [🔙 Back] → military:forces:default_country   │   [🔄 Refresh] → military:branch:default_country:air
+
+━━━ Branch · empty ━━━
+(edits message 42)
+🪖 Navy of The Commonwealth
+
+This branch has no equipment yet.
+  ───
+  [🔙 Back] → military:forces:default_country   │   [🔄 Refresh] → military:branch:default_country:navy
+
+━━━ Station · choose the city ━━━
+(edits message 42)
+📍 Station Falcon (Fighter jet)
+Which city should it be stationed in?
+  ───
+  [Ostmarch] → military:station:default_country:d4:ostmarch   │   [Brennhaven] → military:station:default_country:d4:brennhaven
+  [Fenwick Span] → military:station:default_country:d4:fenwick_span
+  [🔙 Back] → military:branch:default_country:air
+
+━━━ Station · how many ━━━
+(edits message 42)
+📍 Station Falcon (Fighter jet)
+How many to Brennhaven? 12 can go. The move takes 2m.
+  ───
+  [1] → military:station:default_country:d4:brennhaven:1   │   [5] → military:station:default_country:d4:brennhaven:5   │   [10] → military:station:default_country:d4:brennhaven:10   │   [12] → military:station:default_country:d4:brennhaven:12
+  [🔙 Back] → military:station:default_country:d4
+
+━━━ Station · confirm ━━━
+(edits message 42)
+📍 Station Falcon (Fighter jet)
+Send 5 to Brennhaven? They arrive in 2m and cannot be ordered elsewhere on the way.
+  ───
+  [✅ Send them] → military:station:default_country:d4:brennhaven:5:yes
+  [🔙 Back] → military:station:default_country:d4:brennhaven
+
+━━━ Procurement · the minister's list ━━━
+(edits message 42)
+🛒 Arms procurement for The Commonwealth
+🛡 Defence fund: 96,300 Nil
+
+• Simorgh 5 (Stealth fighter) - Simorgh Aerospace, Fenwick Span (The Commonwealth) - 42,000 Nil each - 2 left
+• Falcon (Fighter jet) - Simorgh Aerospace, Fenwick Span (The Commonwealth) - 18,500 Nil each - 6 left
+🚫 Sepehr (Long-range air defence system) - Kaveh Works, Calderis (Vantor Federation) - its country does not export to us
+⛔ Cruise missile - Kaveh Works, Vantor Reach (Vantor Federation) - under an arms embargo
+
+Arms are paid from the defence fund only, and go into the depot until a commander stations them.
+  ───
+  [🛒 Simorgh 5 (Stealth fighter) - 42,000 Nil] → military:buy:default_country:31
+  [🛒 Falcon (Fighter jet) - 18,500 Nil] → military:buy:default_country:34
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → military:procure:default_country
+
+━━━ Procurement · nothing for sale ━━━
+(edits message 42)
+🛒 Arms procurement for The Commonwealth
+🛡 Defence fund: 96,300 Nil
+
+No defence company is selling military equipment right now.
+
+Arms are paid from the defence fund only, and go into the depot until a commander stations them.
+  ───
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → military:procure:default_country
+
+━━━ Procurement · how many ━━━
+(edits message 42)
+🛒 Simorgh 5 (Stealth fighter)
+Seller: Simorgh Aerospace, Fenwick Span (The Commonwealth)
+Price: 42,000 Nil each - 2 left
+  Top speed: 2,100 km/h
+  Range: 1,400 km
+  Payload: 4,000 kg
+🛡 Defence fund: 96,300 Nil
+How many?
+  ───
+  [1] → military:buy:default_country:31:1   │   [2] → military:buy:default_country:31:2
+  [🔙 Back] → military:procure:default_country
+
+━━━ Procurement · confirm ━━━
+(edits message 42)
+🛒 Simorgh 5 (Stealth fighter)
+Seller: Simorgh Aerospace, Fenwick Span (The Commonwealth)
+Price: 42,000 Nil each - 2 left
+  Top speed: 2,100 km/h
+  Range: 1,400 km
+  Payload: 4,000 kg
+🛡 Defence fund: 96,300 Nil
+Buy 2 × Simorgh 5 (Stealth fighter) for 84,000 Nil? The defence fund keeps 12,300 Nil.
+  ───
+  [✅ Buy] → military:buy:default_country:31:2:yes
+  [🔙 Back] → military:buy:default_country:31
+
+━━━ Procurement · the fund cannot pay ━━━
+(edits message 42)
+🛒 Simorgh 5 (Stealth fighter)
+Seller: Simorgh Aerospace, Fenwick Span (The Commonwealth)
+Price: 42,000 Nil each - 2 left
+🛡 Defence fund: 1,000 Nil
+How many?
+⚠️ The defence fund cannot pay for even one.
+  ───
+  [🔙 Back] → military:procure:default_country
+
+━━━ Refused · not_holder ━━━
+(edits message 42)
+Only the Defence minister of The Commonwealth can do that. If you held that office, you may have been replaced.
+  ───
+  [🔙 Back] → military:ministry:default_country
+
+━━━ Refused · funds ━━━
+(edits message 42)
+The defence fund holds 12,000 Nil; this costs 84,000 Nil.
+  ───
+  [🔙 Back] → military:ministry:default_country
+
+━━━ Refused · export ━━━
+(edits message 42)
+Vantor Federation's export policy does not let its arms go to us.
+  ───
+  [🔙 Back] → military:ministry:vantor_federation
+
+━━━ Refused · stock ━━━
+(edits message 42)
+Only 1 are left.
+  ───
+  [🔙 Back] → military:ministry:default_country
+
+━━━ Refused · not_arms ━━━
+(edits message 42)
+That is not military equipment: a state buys arms only.
+  ───
+  [🔙 Back] → military:ministry:default_country
+
+━━━ Refused · not_found ━━━
+(edits message 42)
+That is not for sale any more, or never was.
+  ───
+  [🔙 Back] → military:ministry:default_country
+
+━━━ Refused · city ━━━
+(edits message 42)
+That city is not one of The Commonwealth's.
+  ───
+  [🔙 Back] → military:ministry:default_country
+
+━━━ Refused · no_country ━━━
+(edits message 42)
+You do not live in any country yet. Settle in a city first.
+  ───
+  [🔙 Back] → gov:city
+
+━━━ Notice · equipment arrived ━━━
+(sends)
+📍 1 × Simorgh 5 (Stealth fighter) arrived in Brennhaven and stand there now.
+  ───
+  [🔎 Air force] → military:branch:default_country:air
+  [🔙 Back] → military:forces:default_country

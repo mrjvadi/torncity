@@ -530,6 +530,36 @@ company:
   # How long taking a bought sample apart takes, GAME time.
   reverse_time: 6h
 
+# The armed forces (docs/adr/0022-military-and-diplomacy.md). Who decides a
+# country's budget and who buys its arms are offices (governance.yml); what
+# each class of equipment costs to keep is content (military.yml).
+military:
+  # One defence period, GAME time: every period, once, each city pays the
+  # national treasury its share of what it took in, the defence fund is
+  # appropriated its share of that, and the forces' upkeep is paid.
+  period: 24h
+  # Readiness a period with its upkeep short costs, and a period paid in
+  # full gives back, bps of full readiness.
+  readiness_loss_bps: 1000
+  readiness_recovery_bps: 500
+  # The radar the forces screen measures each design against: the km at
+  # which it finds a 1 m² target.
+  reference_radar_km: 150
+
+# Sanctions and treaties. Every duration here is REAL time: a promise to
+# players, like a lever's notice (docs/adr/0018-game-clock.md).
+diplomacy:
+  # How long after it is announced a sanction binds, and the least it stands
+  # before it may be lifted (so it cannot be switched off for one trade).
+  sanction_notice: 1h
+  sanction_min_duration: 24h
+  # How long a treaty proposal waits for the other country's answer.
+  treaty_offer_ttl: 72h
+  # How long an ended treaty stays on the treaties board.
+  ended_shown_for: 168h
+  # Entries of the diplomatic record on one page.
+  history_page_size: 8
+
 # Free-text input (internal/gateway/input): a button «✏️ مبلغ دلخواه» asks the
 # player to type a value, and their next message answers it. Which commands
 # may ask is configs/commands.yml, section input.

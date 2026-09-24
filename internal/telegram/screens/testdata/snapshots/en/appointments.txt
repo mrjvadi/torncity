@@ -1,0 +1,86 @@
+━━━ My office · the president appoints ━━━
+(edits message 42)
+🏛 My office
+
+📍 President of The Commonwealth
+This office has no policy you can change right now.
+Appoints:
+• Defence minister: Sara (K7Q2M9A)
+• Chief of the general staff: vacant
+• Foreign minister: vacant
+  ───
+  [✖️ Remove the Defence minister] → gov:dismiss:defence_minister:default_country:1
+  [👤 Appoint a Chief of the general staff] → ask:gov.appoint:chief_of_general_staff:default_country
+  [👤 Appoint a Foreign minister] → ask:gov.appoint:foreign_minister:default_country
+  [🎖 Defence and diplomacy of The Commonwealth] → military:ministry:default_country
+  [🔙 Back] → gov:city   │   [🔄 Refresh] → gov:office
+
+━━━ Appoint · confirm ━━━
+(edits message 42)
+👤 Appoint Nilou (N1L0F4R) as Defence minister of The Commonwealth?
+They take the seat at once; you can remove them later if your office may.
+  ───
+  [✅ Appoint] → gov:seat:defence_minister:default_country:N1L0F4R
+  [🔙 Back] → gov:office
+
+━━━ Appoint · done ━━━
+(edits message 42)
+✅ Nilou (N1L0F4R) is now Commander of the air force of The Commonwealth.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:city
+
+━━━ Appoint · done, a city office with a term ━━━
+(edits message 42)
+✅ Nilou (N1L0F4R) is now Police chief of Ostmarch.
+The term runs 30d.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:city
+
+━━━ Dismiss · confirm ━━━
+(edits message 42)
+✖️ Remove Sara (K7Q2M9A) from the office of Defence minister of The Commonwealth?
+The seat falls vacant at once and the deputy acts for it, if there is one.
+  ───
+  [✅ Remove] → gov:unseat:defence_minister:default_country:1
+  [🔙 Back] → gov:office
+
+━━━ Dismiss · done ━━━
+(edits message 42)
+✅ Sara (K7Q2M9A) is no longer Defence minister of The Commonwealth.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:city
+
+━━━ Refused · not_appointer ━━━
+(edits message 42)
+Only the Chief of the general staff can do that. If you held that office, you may have been replaced.
+  ───
+  [🔙 Back] → gov:office
+
+━━━ Refused · no_player ━━━
+(edits message 42)
+No player was found by that code or username. Check it and try again.
+  ───
+  [🔙 Back] → gov:office
+
+━━━ Refused · no_seat ━━━
+(edits message 42)
+That seat is not free any more.
+  ───
+  [🔙 Back] → gov:office
+
+━━━ Notice · appointed ━━━
+(sends)
+🎖 You were appointed Defence minister of The Commonwealth by President Kaveh (B3C4D5F). Open «My office» to see what you now decide.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:city
+
+━━━ Notice · removed ━━━
+(sends)
+📭 You were removed from the office of Defence minister of The Commonwealth by President Kaveh (B3C4D5F).
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:city

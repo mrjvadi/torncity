@@ -39,6 +39,10 @@ const (
 // value in those checks.
 const (
 	OrgCompany = "company"
+	// OrgState is a country's state, holding its armed forces' equipment
+	// (migrations/0021_military): the Org's ID is the country's
+	// jurisdiction.
+	OrgState = "state"
 )
 
 // Org names an organisation holding goods. The zero Org is no organisation.
@@ -49,6 +53,9 @@ type Org struct {
 
 // CompanyOrg is a company as a holder of goods.
 func CompanyOrg(id string) Org { return Org{Kind: OrgCompany, ID: id} }
+
+// StateOrg is a country's state as a holder of goods.
+func StateOrg(countryID string) Org { return Org{Kind: OrgState, ID: countryID} }
 
 // IsZero reports whether o names nobody.
 func (o Org) IsZero() bool { return o.ID == "" }
@@ -99,6 +106,10 @@ const (
 	ItemListingEscrow   ItemReason = "listing_escrow"
 	ItemListingRelease  ItemReason = "listing_release"
 	ItemCompanySale     ItemReason = "company_sale"
+
+	// ItemProcured is a change of hands: arms a state bought from a
+	// company's listing (migration 0021).
+	ItemProcured ItemReason = "procured"
 )
 
 var itemReasons = map[ItemReason]bool{
@@ -109,6 +120,7 @@ var itemReasons = map[ItemReason]bool{
 	ItemAuctionEscrow: true, ItemAuctionReturn: true, ItemAuctionSold: true,
 	ItemProduced: true, ItemSupplied: true, ItemProductionInput: true, ItemReverseSample: true, ItemNPCSale: true,
 	ItemListingEscrow: true, ItemListingRelease: true, ItemCompanySale: true,
+	ItemProcured: true,
 }
 
 // Known reports whether r is in the closed set.

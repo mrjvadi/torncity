@@ -234,6 +234,19 @@ type Pack struct {
 	Technologies   []TechnologyDef
 	Suppliers      []SupplierDef
 
+	// Military and diplomacy (governance.yml actions, military.yml,
+	// diplomacy.yml): the decisions offices take that are not values, the
+	// branches and classes of a force, who sees it in full, the bands of its
+	// public summary, the kinds of treaty and the grounds of a sanction. See
+	// military.go.
+	Actions           []ActionDef
+	Branches          []BranchDef
+	ForceClasses      []ForceClassDef
+	MilitaryClearance []string
+	StrengthBands     []StrengthBandDef
+	TreatyTypes       []TreatyTypeDef
+	SanctionGrounds   []string
+
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"
 	// It is empty for a pack that was assembled in code rather than read from

@@ -61,6 +61,12 @@ commands:
   gov.lever: {channel: private}
   gov.confirm: {channel: private}
   gov.set: {channel: private}
+  # Appointing to an office and removing its holder are the holder's own
+  # work (docs/adr/0022).
+  gov.appoint: {channel: private}
+  gov.seat: {channel: private}
+  gov.dismiss: {channel: private}
+  gov.unseat: {channel: private}
 
   job.status: {channel: private}
   job.list: {channel: private}
@@ -172,6 +178,29 @@ commands:
   company.goods: {channel: private}
   company.buy: {channel: private}
 
+  # The armed forces (docs/adr/0022): a country's ministry of defence and the
+  # public summary of its forces read anywhere (in a group without counts,
+  # readiness or anyone's buttons); a branch in full, stationing it and
+  # buying arms are the office holders', in PV only.
+  military.ministry: {channel: both}
+  military.forces: {channel: both}
+  military.branch: {channel: private}
+  military.station: {channel: private}
+  military.procure: {channel: private}
+  military.buy: {channel: private}
+
+  # Diplomacy is public business: the sanctions and treaties boards and the
+  # record read anywhere. Imposing, lifting, proposing, answering and ending
+  # are the office holder's decisions, in PV only.
+  diplomacy.sanctions: {channel: both}
+  diplomacy.treaties: {channel: both}
+  diplomacy.history: {channel: both}
+  diplomacy.impose: {channel: private}
+  diplomacy.lift: {channel: private}
+  diplomacy.propose: {channel: private}
+  diplomacy.answer: {channel: private}
+  diplomacy.end: {channel: private}
+
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the
 # commands listed here may ask. field is the payload field the typed text
@@ -193,3 +222,4 @@ input:
   company.dname: {field: name, args: [no], text: true}
   company.sell: {field: price, args: [company, target, qty]}
   company.buy: {field: qty, args: [no]}
+  gov.appoint: {field: to, args: [office, place], text: true}

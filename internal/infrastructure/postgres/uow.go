@@ -202,3 +202,9 @@ func (t *tx) Companies() application.CompanyRepository { return &CompanyReposito
 
 // Production returns the production economy (migration 0020).
 func (t *tx) Production() application.ProductionRepository { return &ProductionRepository{q: t.q} }
+
+// Military returns the armed forces (migration 0021).
+func (t *tx) Military() application.MilitaryRepository { return &MilitaryRepository{q: t.q} }
+
+// Diplomacy returns sanctions and treaties (migration 0021).
+func (t *tx) Diplomacy() application.DiplomacyRepository { return &DiplomacyRepository{q: t.q} }

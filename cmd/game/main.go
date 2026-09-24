@@ -330,6 +330,24 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), productionRules(cfg.Company, bankLimits),
 		cfg.Game.IdempotencyTTL, nil)
 
+	// The armed forces and diplomacy (docs/adr/0022): classes, branches and
+	// treaty types are content; who decides is an office; the defence
+	// period runs on the game clock, every diplomatic promise on real time.
+	h.military = handlers.NewMilitaryHandler(uow, uuidGenerator{}, messages, registry, cities,
+		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), militaryRules(cfg.Military),
+		cfg.Game.IdempotencyTTL, nil)
+	h.diplomacy = handlers.NewDiplomacyHandler(uow, uuidGenerator{}, messages, registry, diplomacyRules(cfg.Diplomacy),
+		cfg.Game.IdempotencyTTL, nil)
+	h.appointments = handlers.NewAppointmentHandler(uow, uuidGenerator{}, messages,
+		postgres.NewPlayerSearchRepository(pool), cfg.Game.IdempotencyTTL, nil)
+	// Every country's defence clock runs from the start; a country a later
+	// content load adds starts its clock the first time its ministry is
+	// opened, or at the next start.
+	if err := h.military.StartClocks(ctx); err != nil {
+		logger.Error("cannot start the defence clocks; they start when a ministry is opened",
+			slog.String("error", err.Error()))
+	}
+
 	subs := commands.All()
 	bound, err := bindAll(subs, h.bind())
 	if err != nil {

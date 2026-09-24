@@ -193,6 +193,8 @@ type Config struct {
 	Crime      Crime
 	Trade      Trade
 	Company    Company
+	Military   Military
+	Diplomacy  Diplomacy
 	Input      Input
 	Announce   Announce
 }
@@ -568,6 +570,44 @@ type Company struct {
 	ReverseTime time.Duration // company.reverse_time
 }
 
+// Military is the tuning of the armed forces
+// (docs/adr/0022-military-and-diplomacy.md). What a force costs, who decides
+// its budget and who may buy its arms are content and policy; this is how
+// the clock and the readiness rule run.
+type Military struct {
+	// Period is one defence period — the cities' share of their revenue,
+	// the defence appropriation, the forces' upkeep — in GAME time, waited
+	// through the game clock.
+	Period time.Duration // military.period
+	// ReadinessLossBPS is what a period whose upkeep was not paid in full
+	// costs the forces' readiness; ReadinessRecoveryBPS what a period paid
+	// in full gives back.
+	ReadinessLossBPS     int // military.readiness_loss_bps
+	ReadinessRecoveryBPS int // military.readiness_recovery_bps
+	// ReferenceRadarKM is the radar the forces screen measures how far each
+	// design is seen by: kilometres at which it sees a 1 m² target.
+	ReferenceRadarKM int // military.reference_radar_km
+}
+
+// Diplomacy is the tuning of sanctions and treaties
+// (docs/adr/0022-military-and-diplomacy.md). Every duration here is REAL
+// time: a governance promise, like a lever's notice
+// (docs/adr/0018-game-clock.md).
+type Diplomacy struct {
+	// SanctionNotice is how long after it is announced a sanction binds.
+	SanctionNotice time.Duration // diplomacy.sanction_notice
+	// SanctionMinDuration is the least a sanction stands before it may be
+	// lifted.
+	SanctionMinDuration time.Duration // diplomacy.sanction_min_duration
+	// TreatyOfferTTL is how long a proposal waits for its answer.
+	TreatyOfferTTL time.Duration // diplomacy.treaty_offer_ttl
+	// EndedShownFor is how long an ended treaty stays on the treaties
+	// board.
+	EndedShownFor time.Duration // diplomacy.ended_shown_for
+	// HistoryPageSize is the entries of the public record on one page.
+	HistoryPageSize int // diplomacy.history_page_size
+}
+
 // Defaults returns every field at the value it was hardcoded to before this
 // package existed.
 //
@@ -678,6 +718,19 @@ func Defaults() *Config {
 			MaxListings:            10,
 			DesignMinSkill:         1,
 			ReverseTime:            6 * time.Hour,
+		},
+		Military: Military{
+			Period:               24 * time.Hour,
+			ReadinessLossBPS:     1000,
+			ReadinessRecoveryBPS: 500,
+			ReferenceRadarKM:     150,
+		},
+		Diplomacy: Diplomacy{
+			SanctionNotice:      time.Hour,
+			SanctionMinDuration: 24 * time.Hour,
+			TreatyOfferTTL:      72 * time.Hour,
+			EndedShownFor:       168 * time.Hour,
+			HistoryPageSize:     8,
 		},
 		Input: Input{
 			TTL:       5 * time.Minute,
@@ -869,6 +922,10 @@ func (c *Config) Validate() error {
 	}
 	if c.Company.PriceStepBPS > 10000 {
 		return fmt.Errorf("%w: company.price_step_bps is %d", ErrNotPositive, c.Company.PriceStepBPS)
+	}
+	if c.Military.ReadinessLossBPS > 10000 || c.Military.ReadinessRecoveryBPS > 10000 {
+		return fmt.Errorf("%w: military.readiness_loss_bps is %d and military.readiness_recovery_bps %d; each at most 10000",
+			ErrNotPositive, c.Military.ReadinessLossBPS, c.Military.ReadinessRecoveryBPS)
 	}
 	if c.Company.CitizenProductivityBPS > 10000 || c.Company.CitizenLabourShareBPS > 10000 {
 		return fmt.Errorf("%w: company.citizen_productivity_bps %d, company.citizen_labour_share_bps %d, above 10000",

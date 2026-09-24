@@ -147,6 +147,23 @@ func economyVerify(ctx context.Context, args []string) error {
 		}
 	}
 
+	if v.Military {
+		m := v.MilitaryInvariants
+		fmt.Printf("%s  every national treasury and defence fund belongs to a country (%d orphans)\n",
+			mark(m.OrphanStateAccounts == 0), m.OrphanStateAccounts)
+		fmt.Printf("%s  every piece a state holds is a military asset of its country, and every asset such a piece (%d, %d without)\n",
+			mark(m.OrphanStateHoldings == 0 && m.OrphanAssets == 0), m.OrphanStateHoldings, m.OrphanAssets)
+		fmt.Printf("%s  the cities' national levy in the ledger matches the defence periods (%d = %d)\n",
+			mark(m.LevyLedger == m.LevyRows), m.LevyLedger, m.LevyRows)
+		fmt.Printf("%s  defence appropriations in the ledger match the defence periods (%d = %d)\n",
+			mark(m.AppropriationLedger == m.AppropriationRows), m.AppropriationLedger, m.AppropriationRows)
+		fmt.Printf("%s  military upkeep in the ledger matches the defence periods (%d = %d)\n",
+			mark(m.UpkeepLedger == m.UpkeepRows), m.UpkeepLedger, m.UpkeepRows)
+		fmt.Printf("%s  arms payments in the ledger match the procurements (%d = %d), and so do the pieces delivered (%d = %d)\n",
+			mark(m.ProcurementLedger == m.ProcurementRows && m.Procured == m.ProcuredRows), m.ProcurementLedger,
+			m.ProcurementRows, m.Procured, m.ProcuredRows)
+	}
+
 	if !v.OK() {
 		return errInvariantsBroken
 	}

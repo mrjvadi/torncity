@@ -411,9 +411,15 @@ func (h *GovernanceHandler) Office(ctx context.Context, meta envelope.Metadata) 
 		return nil, err
 	}
 
+	appointees, err := h.appointees(ctx, held, named)
+	if err != nil {
+		return nil, err
+	}
+
 	var view screens.MyOfficeView
-	for _, r := range rows {
-		seat := screens.GovSeat{Office: r.seat.OfficeCode, Place: govPlace(r.place), ActingFor: r.acting}
+	for i, r := range rows {
+		seat := screens.GovSeat{Office: r.seat.OfficeCode, Place: govPlace(r.place), ActingFor: r.acting,
+			Appointees: appointees[i]}
 		for i, l := range r.act {
 			seat.Levers = append(seat.Levers, govLever(l, r.actV[i], named, now))
 		}
@@ -423,6 +429,76 @@ func (h *GovernanceHandler) Office(ctx context.Context, meta envelope.Metadata) 
 		view.Seats = append(view.Seats, seat)
 	}
 	return screens.MyOffice(c, view), nil
+}
+
+// appointees lists, for each seat held, the seats of the same place whose
+// office it appoints to (a vacant one may be filled) or may remove the
+// holder of (a held one may be vacated). named gains the holders.
+func (h *GovernanceHandler) appointees(ctx context.Context, held []application.Office,
+	named map[string]application.PlayerName,
+) ([][]screens.GovAppointee, error) {
+	out := make([][]screens.GovAppointee, len(held))
+	if len(held) == 0 {
+		return out, nil
+	}
+	defs, err := h.dir.Offices(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for i, seat := range held {
+		places, err := h.dir.Ancestry(ctx, seat.JurisdictionID)
+		if err != nil {
+			return nil, err
+		}
+		var related []application.OfficeDefinition
+		for _, d := range defs {
+			if d.AppointedBy == seat.OfficeCode || hasCode(d.CanBeRemovedBy, seat.OfficeCode) {
+				related = append(related, d)
+			}
+		}
+		if len(related) == 0 {
+			continue
+		}
+		seats, err := h.dir.Seats(ctx, []string{seat.JurisdictionID})
+		if err != nil {
+			return nil, err
+		}
+		var ids []string
+		for _, s := range seats {
+			if s.HolderPlayerID != "" {
+				if _, ok := named[s.HolderPlayerID]; !ok {
+					ids = append(ids, s.HolderPlayerID)
+				}
+			}
+		}
+		if len(ids) > 0 {
+			more, err := h.dir.PlayerNames(ctx, ids)
+			if err != nil {
+				return nil, err
+			}
+			for k, v := range more {
+				named[k] = v
+			}
+		}
+		for _, d := range related {
+			for _, s := range seats {
+				if s.OfficeCode != d.Code || s.HolderPlayerID == seat.HolderPlayerID {
+					continue
+				}
+				a := screens.GovAppointee{Office: d.Code, Place: govPlace(places[0]), Seat: s.Seat,
+					Holder: govPlayer(s.HolderPlayerID, named)}
+				if s.Vacant() {
+					a.CanAppoint = d.AppointedBy == seat.OfficeCode
+				} else {
+					a.CanDismiss = hasCode(d.CanBeRemovedBy, seat.OfficeCode)
+				}
+				if a.CanAppoint || a.CanDismiss || !s.Vacant() || d.AppointedBy == seat.OfficeCode {
+					out[i] = append(out[i], a)
+				}
+			}
+		}
+	}
+	return out, nil
 }
 
 // actsFor reports whether the acting office for a lever is this seat's and

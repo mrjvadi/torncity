@@ -26,6 +26,7 @@ Policies:
   ───
   [📜 Policy history] → gov:history:ostmarch   │   [🗳 Elections] → election:list
   [🏛 My office] → gov:office
+  [🎖 Defence and diplomacy of The Commonwealth] → military:ministry:default_country
   [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
 
 ━━━ My office ━━━
@@ -152,6 +153,7 @@ Policies:
   ───
   [📜 Policy history] → gov:history:ostmarch   │   [🗳 Elections] → election:list
   [🏛 My office] → gov:office
+  [🎖 Defence and diplomacy of The Commonwealth] → military:ministry:default_country
   [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
 
 ━━━ Policy history ━━━

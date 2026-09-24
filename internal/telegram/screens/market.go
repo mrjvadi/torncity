@@ -255,6 +255,10 @@ type OrderPlacedView struct {
 	Spent, Got  int64
 	ExpiresAt   time.Time
 	Method      string
+	// Embargoed is how many offers on the other side the order would have
+	// met but may not: their owners' country and the player's are under a
+	// trade embargo (docs/adr/0022).
+	Embargoed int
 }
 
 // OrderPlaced renders an order placed.
@@ -274,6 +278,9 @@ func OrderPlaced(c Context, v OrderPlacedView) *presenter.Response {
 	if v.Rests {
 		lines = append(lines, c.T("market.rests", map[string]any{"left": FormatNumber(c, v.Qty-v.Filled)}))
 		lines = append(lines, clockLine(c, "market.expires_at", v.ExpiresAt))
+	}
+	if v.Embargoed > 0 {
+		lines = append(lines, c.T("market.embargoed", map[string]any{"count": FormatNumber(c, int64(v.Embargoed))}))
 	}
 	if v.Side == SideBuy {
 		lines = append(lines, c.paidLine(v.Method))

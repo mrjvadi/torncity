@@ -11,6 +11,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/auction"
+	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
 	"github.com/mrjvadi/torncity/internal/domain/place"
@@ -119,6 +120,9 @@ func (h *AuctionsHandler) finish(meta envelope.Metadata, lang string, err error)
 	var r *auctionRefusal
 	if stderrors.As(err, &r) {
 		return screens.AuctionRefusal(h.screen(meta, lang), r.view), nil
+	}
+	if v, ok := asBlocked(err); ok {
+		return screens.SanctionBlocked(h.screen(meta, lang), v), nil
 	}
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(h.screen(meta, lang), v), nil
@@ -471,6 +475,12 @@ func (h *AuctionsHandler) Bid(ctx context.Context, meta envelope.Metadata, req A
 		}
 		if a.Status != application.AuctionOpen {
 			return refuseAuction(screens.AuctionRefusedClosed, a.No)
+		}
+		// A trade embargo between the bidder's country and the seller's
+		// (docs/adr/0022): the one sanctions check.
+		if err := playersSanctioned(ctx, tx, diplomacy.Trade, p.ID, a.SellerID, now, screens.AddrAuction,
+			strconv.FormatInt(a.No, 10)); err != nil {
+			return err
 		}
 		t := h.terms(*a)
 		high, err := auction.PlaceBid(t, a.SellerID, highBid(*a), p.ID, money.FromMinor(amount), now)

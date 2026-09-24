@@ -57,8 +57,12 @@ type Announcement struct {
 	// names one group directly (the group a payment started in), and BotID
 	// the bot to send through when that group is linked to no city.
 	CityID string
-	ChatID int64
-	BotID  string
+	// CityIDs names several cities whose groups all read the line: every
+	// city of the countries a sanction or a treaty concerns. A group linked
+	// to two of them reads it once.
+	CityIDs []string
+	ChatID  int64
+	BotID   string
 	// PlayerID is the player the line is about, whose display name it
 	// carries when Name is empty.
 	PlayerID string
@@ -204,6 +208,23 @@ func (w *Worker) targets(ctx context.Context, a *Announcement, meta envelope.Met
 			return nil, nil
 		}
 		return []application.CityGroup{{ChatID: a.ChatID, BotID: bot, Language: meta.Language}}, nil
+	}
+	if len(a.CityIDs) > 0 {
+		var out []application.CityGroup
+		seen := map[int64]bool{}
+		for _, id := range a.CityIDs {
+			groups, err := w.cfg.Groups.ForCity(ctx, id, "")
+			if err != nil {
+				return nil, err
+			}
+			for _, g := range groups {
+				if !seen[g.ChatID] {
+					seen[g.ChatID] = true
+					out = append(out, g)
+				}
+			}
+		}
+		return out, nil
 	}
 	if a.CityID == "" {
 		return nil, nil

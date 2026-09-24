@@ -141,6 +141,13 @@ type Tx interface {
 	// licenses, orders, reverse engineering, listings — so each changes
 	// with the goods and money that moved for it; see ports_production.go.
 	Production() ProductionRepository
+
+	// Military and Diplomacy hold the armed forces and the relations
+	// between countries — defence periods, arms bought, garrisons,
+	// sanctions, treaties — so each changes with the money and goods that
+	// moved for it; see ports_military.go.
+	Military() MilitaryRepository
+	Diplomacy() DiplomacyRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

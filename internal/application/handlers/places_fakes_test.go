@@ -248,6 +248,8 @@ func (f *fakeItems) snapshot() func() {
 func (t *fakeTx) Items() application.ItemRepository { return t.items }
 
 func (t *fakeTx) Production() application.ProductionRepository { return nil }
+func (t *fakeTx) Military() application.MilitaryRepository     { return nil }
+func (t *fakeTx) Diplomacy() application.DiplomacyRepository   { return noDiplomacy{} }
 
 // The shops, the market and the auction house have no fakes: their handlers
 // are tested against PostgreSQL (tests/trade_integration_test.go).
@@ -256,3 +258,51 @@ func (t *fakeTx) Market() application.MarketRepository      { return nil }
 func (t *fakeTx) Auctions() application.AuctionRepository   { return nil }
 func (t *fakeTx) Elections() application.ElectionRepository { return nil }
 func (t *fakeTx) Companies() application.CompanyRepository  { return noCompanies{} }
+
+// noDiplomacy is a world of one country with no sanctions and no treaties:
+// every cross-border check passes because no border is crossed.
+type noDiplomacy struct{}
+
+func (noDiplomacy) LockCountry(context.Context, string) error { return nil }
+func (noDiplomacy) Countries(context.Context) ([]application.Jurisdiction, error) {
+	return nil, nil
+}
+func (noDiplomacy) CountryByCode(context.Context, string) (application.Jurisdiction, error) {
+	return application.Jurisdiction{}, application.ErrJurisdictionNotFound
+}
+func (noDiplomacy) CountryOfCity(context.Context, string) (string, error) { return "", nil }
+func (noDiplomacy) CountriesOfPlayers(context.Context, []string) (map[string]string, error) {
+	return map[string]string{}, nil
+}
+func (noDiplomacy) CitiesOf(context.Context, string) ([]application.City, error) { return nil, nil }
+func (noDiplomacy) ImposeSanction(_ context.Context, s application.Sanction) (application.Sanction, error) {
+	return s, nil
+}
+func (noDiplomacy) SanctionByNo(context.Context, int64, bool) (*application.Sanction, error) {
+	return nil, application.ErrSanctionNotFound
+}
+func (noDiplomacy) LiftSanction(context.Context, string, string, string, time.Time) error { return nil }
+func (noDiplomacy) StandingSanctions(context.Context, string) ([]application.Sanction, error) {
+	return nil, nil
+}
+func (noDiplomacy) SanctionsBetween(context.Context, string, string) ([]application.Sanction, error) {
+	return nil, nil
+}
+func (noDiplomacy) ExpireTreaties(context.Context, string, string, time.Time) error { return nil }
+func (noDiplomacy) ProposeTreaty(_ context.Context, t application.Treaty) (application.Treaty, error) {
+	return t, nil
+}
+func (noDiplomacy) TreatyByNo(context.Context, int64, bool) (*application.Treaty, error) {
+	return nil, application.ErrTreatyNotFound
+}
+func (noDiplomacy) SaveTreaty(context.Context, application.Treaty) error { return nil }
+func (noDiplomacy) Treaties(context.Context, string, time.Time) ([]application.Treaty, error) {
+	return nil, nil
+}
+func (noDiplomacy) TreatiesBetween(context.Context, string, string) ([]application.Treaty, error) {
+	return nil, nil
+}
+func (noDiplomacy) RecordEvent(context.Context, application.DiplomacyEvent) error { return nil }
+func (noDiplomacy) Events(context.Context, string, int, int) ([]application.DiplomacyEvent, int, error) {
+	return nil, 0, nil
+}

@@ -442,13 +442,23 @@ func TestShippedGovernance(t *testing.T) {
 		}
 	}
 
-	if len(pack.Jurisdictions) != 1 || pack.Jurisdictions[0].Code != "default_country" ||
-		pack.Jurisdictions[0].Level != CountryLevel {
-		t.Fatalf("shipped jurisdictions = %+v, want exactly the country default_country", pack.Jurisdictions)
+	// Two countries (docs/adr/0022-military-and-diplomacy.md): the far end
+	// of the map, where nobody is born, is the Vantor Federation.
+	if len(pack.Jurisdictions) != 2 || pack.Jurisdictions[0].Code != "default_country" ||
+		pack.Jurisdictions[1].Code != "vantor_federation" ||
+		pack.Jurisdictions[0].Level != CountryLevel || pack.Jurisdictions[1].Level != CountryLevel {
+		t.Fatalf("shipped jurisdictions = %+v, want the countries default_country and vantor_federation", pack.Jurisdictions)
 	}
 	for _, c := range pack.Cities {
-		if c.Country != "default_country" {
-			t.Errorf("city %s is in %q, want default_country", c.Code, c.Country)
+		want := "default_country"
+		if c.Code == "calderis" || c.Code == "vantor_reach" {
+			want = "vantor_federation"
+		}
+		if c.Country != want {
+			t.Errorf("city %s is in %q, want %s", c.Code, c.Country, want)
+		}
+		if want == "vantor_federation" && c.SpawnWeight != 0 {
+			t.Errorf("city %s of the Federation is a birthplace (spawn weight %d)", c.Code, c.SpawnWeight)
 		}
 	}
 

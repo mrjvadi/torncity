@@ -247,6 +247,7 @@ help:
     • مهارت‌ها
     • دوستان - و «پیدا» با کد بازیکن یا نام کاربری
     • شهر - مناصب و سیاست‌های شهر؛ «منصب» منصب شما
+    • ارتش - وزارت دفاع و نیروهای مسلح کشور؛ «تحریم» و «پیمان» دیپلماسی آن
     • تنظیمات
     • راهنما - همین صفحه
 
@@ -470,6 +471,10 @@ gov:
     review: "📝 بازبینی تغییر"
     confirm: "✅ تأیید"
     cancel: "✖️ انصراف"
+    appoint: "👤 انتصاب {office}"
+    dismiss: "✖️ برکناری {office}"
+    confirm_appoint: "✅ منصوب کن"
+    confirm_dismiss: "✅ برکنار کن"
   refusal:
     not_holder: "تنها {office} می‌تواند این سیاست را تغییر دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
     requires_vote: این سیاست با رأی‌گیری در {office} تعیین می‌شود و رأی‌گیری هنوز در دسترس نیست.
@@ -486,6 +491,23 @@ gov:
     office_vacant: این منصب از قبل خالی است.
     already_holds: شما همین حالا این منصب را دارید.
     incompatible: این منصب را نمی‌توان هم‌زمان با منصبی که اکنون دارید در اختیار داشت.
+  appoint:
+    heading: "انتصاب‌ها:"
+    vacant: "• {office}: خالی"
+    held: "• {office}: {player}"
+    confirm: "👤 {player} را به‌عنوان {office} {place} منصوب می‌کنید؟\nهمین حالا بر صندلی می‌نشیند و اگر منصب شما اجازه دهد، بعداً می‌توانید برکنارش کنید."
+    done: "✅ {player} اکنون {office} {place} است."
+    term: "دورهٔ این منصب {term} است."
+    notice: "🎖 {by_office} {by} شما را به‌عنوان {office} {place} منصوب کرد. «منصب من» را باز کنید تا ببینید از این پس دربارهٔ چه چیزهایی تصمیم می‌گیرید."
+    announce: "🎖 {player} به‌عنوان {office} {place} منصوب شد."
+    refused:
+      not_appointer: "تنها {office} می‌تواند این کار را انجام دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
+      no_player: "بازیکنی با این کد یا نام کاربری پیدا نشد. آن را بررسی کنید و دوباره بفرستید."
+      no_seat: "این صندلی دیگر خالی نیست."
+  dismiss:
+    confirm: "✖️ {player} را از منصب {office} {place} برکنار می‌کنید؟\nصندلی همین حالا خالی می‌شود و اگر سرپرستی تعریف شده باشد، او به جایش عمل می‌کند."
+    done: "✅ {player} دیگر {office} {place} نیست."
+    notice: "📭 {by_office} {by} شما را از منصب {office} {place} برکنار کرد."
 
 # Office names, keyed on the office's content code (configs/content/governance.yml).
 office:
@@ -495,6 +517,13 @@ office:
   police_chief: رئیس پلیس
   deputy_police_chief: معاون رئیس پلیس
   president: رئیس‌جمهور
+  defence_minister: "وزیر دفاع"
+  chief_of_general_staff: "رئیس ستاد کل نیروهای مسلح"
+  ground_forces_commander: "فرمانده نیروی زمینی"
+  air_force_commander: "فرمانده نیروی هوایی"
+  navy_commander: "فرمانده نیروی دریایی"
+  air_defence_commander: "فرمانده پدافند هوایی"
+  foreign_minister: "وزیر امور خارجه"
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
 lever:
@@ -519,11 +548,15 @@ lever:
     corporate_tax: مالیات شرکت
   country:
     border_tariff: تعرفهٔ مرزی
+    revenue_share: "سهم ملی از درآمد شهرها"
+    defence_budget: "بودجهٔ دفاعی (سهم از درآمد ملی)"
+    arms_exports: "سیاست صادرات تسلیحات"
 
 # Names of places above a city, keyed on the jurisdiction's content code.
 # Cities are named under city.* above.
 jurisdiction:
   default_country: مشترک‌المنافع
+  vantor_federation: "فدراسیون ونتور"
 
 # Playing in a group (internal/gateway/groups). A screen with a player's own
 # details is shown only to that player; these lines are all the rest of the
@@ -1178,6 +1211,9 @@ command_alias:
   vote: "رای | رأی"
   help: "راهنما | کمک"
   cancel: "انصراف | لغو"
+  army: "ارتش | دفاع"
+  sanctions: "تحریم | تحریم‌ها"
+  treaties: "پیمان | پیمان‌ها | معاهده"
 
 # Where a command runs (configs/commands.yml). Sent in the wrong kind of chat,
 # it is not run; the player reads one of these instead.
@@ -1209,6 +1245,7 @@ input:
     company_dname: "📐 نام طرح را بنویسید و بفرستید."
     company_sell: "🏷 قیمت هر واحد را به عدد بنویسید."
     company_buy: "🛒 چند واحد می‌خرید؟ تعداد را به عدد بنویسید."
+    gov_appoint: "👤 کد بازیکن یا نام کاربری کسی را که منصوب می‌کنید بفرستید."
   placeholder:
     default: "مقدار"
     bank_deposit: "مبلغ واریز به نیل"
@@ -1225,6 +1262,7 @@ input:
     company_dname: "نام طرح"
     company_sell: "قیمت هر واحد به نیل"
     company_buy: "تعداد"
+    gov_appoint: "کد بازیکن یا نام کاربری"
   cancel_hint: "برای انصراف، «انصراف» را بفرستید."
   cancelled: "✖️ لغو شد. چیزی تغییر نکرد."
 
@@ -1304,6 +1342,7 @@ item_category:
   gear: ابزار
   electronics: وسایل برقی
   valuables: اشیای قیمتی
+  military: "تجهیزات نظامی"
 
 # نام کالاها بر اساس کد محتوایی (configs/content/items.yml).
 item_name:
@@ -1327,6 +1366,23 @@ item_name:
   watch: ساعت مچی
   car_stereo: پخش ماشین
   jewellery: جواهرات
+  fighter_jet: "جنگنده"
+  stealth_fighter_jet: "جنگندهٔ رادارگریز"
+  strategic_bomber: "بمب‌افکن راهبردی"
+  attack_drone: "پهپاد رزمی"
+  airlifter: "هواپیمای ترابری نظامی"
+  main_battle_tank: "تانک اصلی میدان نبرد"
+  ifv: "نفربر رزمی"
+  sp_artillery: "توپ خودکششی"
+  early_warning_radar: "رادار هشدار زودهنگام"
+  short_range_sam: "سامانهٔ پدافند کوتاه‌برد"
+  medium_range_sam: "سامانهٔ پدافند میان‌برد"
+  long_range_sam: "سامانهٔ پدافند دوربرد"
+  ballistic_missile: "موشک بالستیک"
+  cruise_missile: "موشک کروز"
+  anti_ship_missile: "موشک ضدکشتی"
+  frigate: "ناوچه"
+  attack_submarine: "زیردریایی تهاجمی"
 
 # آنچه مصرف یک کالا تغییر می‌دهد.
 vital:
@@ -1463,6 +1519,7 @@ market:
     not_enough: "این مقدار {item} همراهتان نیست."
     no_order: چنین سفارشی از شما وجود ندارد.
     closed: این سفارش دیگر باز نیست.
+  embargoed: "⛔ از {count} پیشنهاد کشوری که با کشور ما زیر تحریم تجاری است صرف‌نظر شد."
 
 # حراجی (internal/domain/auction): فقط برای اشیای یکتا.
 auction:
@@ -1802,6 +1859,11 @@ company_type:
   factory: کارخانه
   mine: معدن
   farm: مزرعه
+  aerospace: "صنایع هوافضا"
+  land_systems: "صنایع سامانه‌های زمینی"
+  missile_works: "صنایع موشکی"
+  shipyard: "کشتی‌سازی نظامی"
+  defence_electronics: "الکترونیک دفاعی"
 
 # اقتصاد تولید (docs/adr/0021-production-economy.md): انبار شرکت و
 # تأمین‌کننده‌ها، آزمایشگاه تحقیق و لایسنس، طراحی محصول، خط تولید، مهندسی
@@ -2080,18 +2142,70 @@ component:
   plastic_case: بدنهٔ پلاستیکی
   chipset: تراشه
   cell: سلول باتری
+  titanium: "تیتانیوم"
+  carbon_fibre: "الیاف کربن"
+  rare_earths: "فلزات خاکی کمیاب"
+  explosive: "مادهٔ منفجره"
+  fighter_airframe: "بدنهٔ جنگنده"
+  stealth_airframe: "بدنهٔ رادارگریز"
+  bomber_airframe: "بدنهٔ بمب‌افکن"
+  drone_airframe: "بدنهٔ پهپاد"
+  transport_airframe: "بدنهٔ ترابری"
+  turbofan: "موتور توربوفن پس‌سوزدار"
+  turbojet: "موتور توربوجت کوچک"
+  turboprop: "موتور توربوپراپ"
+  ram_coating: "پوشش جاذب امواج رادار"
+  fire_control_radar: "رادار کنترل آتش"
+  aesa_radar: "رادار آرایه‌فازی فعال"
+  vhf_array: "آرایهٔ رادار هشدار موج بلند"
+  tank_hull: "بدنهٔ زرهی تانک"
+  light_hull: "بدنهٔ زرهی سبک"
+  tank_gun: "توپ تانک لوله‌صاف"
+  autocannon: "توپ خودکار"
+  howitzer_barrel: "توپ هویتزر"
+  powerpack: "پیشرانهٔ دیزلی"
+  fire_control_computer: "رایانهٔ کنترل آتش"
+  short_interceptor: "موشک رهگیر کوتاه‌برد"
+  medium_interceptor: "موشک رهگیر میان‌برد"
+  long_interceptor: "موشک رهگیر دوربرد"
+  solid_rocket_motor: "موتور راکت سوخت جامد"
+  two_stage_motor: "موتور راکت دومرحله‌ای"
+  missile_body: "بدنهٔ موشک کروز"
+  blast_warhead: "کلاهک انفجاری"
+  inertial_guidance: "هدایت اینرسی"
+  precision_guidance: "هدایت دقیق"
+  radar_seeker: "جست‌وجوگر راداری فعال"
+  frigate_hull: "بدنهٔ ناوچه"
+  pressure_hull: "بدنهٔ فشار زیردریایی"
+  gas_turbine: "توربین گازی دریایی"
+  diesel_electric: "پیشرانهٔ دیزل‌الکتریک"
+  hull_sonar: "سونار بدنه"
+  missile_cells: "سلول‌های پرتاب عمودی"
 
 # نام فناوری‌ها، به کد محتوا (configs/content/production.yml).
 technology:
   semiconductors: نیمه‌رساناها
   microchips: ریزتراشه‌ها
   batteries: شیمی باتری
+  aerospace_engineering: "مهندسی هوافضا"
+  jet_propulsion: "پیشرانش جت"
+  stealth_shaping: "طراحی رادارگریز"
+  radar_absorbent_materials: "مواد جاذب امواج رادار"
+  radar_systems: "سامانه‌های راداری"
+  aesa_radar: "رادار آرایه‌فازی فعال"
+  vhf_radar: "رادار موج بلند ضدرادارگریز"
+  armour_systems: "سامانه‌های زرهی"
+  rocketry: "راکت‌سازی"
+  missile_guidance: "هدایت موشک"
+  naval_architecture: "معماری دریایی"
+  submarine_technology: "فناوری زیردریایی"
 
 # نام تأمین‌کننده‌ها، به کد محتوا (configs/content/production.yml).
 supplier:
   industrial_supplier: تأمین‌کنندهٔ صنعتی
   farm_supply: فروشگاه لوازم کشاورزی
   wholesale_market: بازار عمده‌فروشی
+  strategic_materials: "بازرگان مواد راهبردی"
 
 # نام جای‌های طرح، به نام جای در archetypeها (configs/content/items.yml).
 design_slot:
@@ -2100,7 +2214,7 @@ design_slot:
   water: آب
   flavour: طعم
   active: مادهٔ مؤثر
-  carrier: حامل
+  carrier: "خودروی حامل"
   body: بدنه
   fabric: پارچه
   board: برد
@@ -2108,9 +2222,281 @@ design_slot:
   shell: قاب
   stone: سنگ
   setting: پایهٔ نگین
+  airframe: "بدنهٔ هواگرد"
+  engine: "موتور"
+  radar: "رادار"
+  coating: "پوشش"
+  hull: "بدنهٔ اصلی"
+  gun: "جنگ‌افزار اصلی"
+  drive: "پیشرانه"
+  fcs: "کنترل آتش"
+  interceptor: "موشک رهگیر"
+  motor: "موتور راکت"
+  warhead: "کلاهک"
+  guidance: "هدایت"
+  seeker: "جست‌وجوگر"
+  weapons: "جنگ‌افزارها"
+  sonar: "سونار"
 
 # نام ویژگی‌های محصول، به نام ویژگی در archetypeها.
 attribute:
   quality: کیفیت
   potency: اثربخشی
   battery_life: عمر باتری
+  rcs: "سطح مقطع راداری"
+  speed: "بیشینهٔ سرعت"
+  range: "برد"
+  payload: "محموله"
+  detection_range: "برد کشف"
+  rcs_gain: "بزرگ‌نمایی ردپای راداری"
+  accuracy: "دقت"
+  armour: "زره"
+  firepower: "قدرت آتش"
+  interception: "احتمال رهگیری"
+  depth: "عمق غوص"
+lever_label:
+  country:
+    arms_exports:
+      v0: "فقط دولت خودی"
+      v1: "دولت خودی و شریکان پیمانی"
+      v2: "هر دولتی که زیر تحریم تسلیحاتی نیست"
+military:
+  branch_name:
+    ground: "نیروی زمینی"
+    air: "نیروی هوایی"
+    navy: "نیروی دریایی"
+    air_defence: "پدافند هوایی"
+  class_name:
+    fighter: "جنگنده‌ها"
+    stealth_fighter: "جنگنده‌های رادارگریز"
+    bomber: "بمب‌افکن‌ها"
+    drone: "پهپادهای رزمی"
+    transport: "هواپیماهای ترابری"
+    tank: "تانک‌های اصلی میدان نبرد"
+    ifv: "نفربرهای رزمی"
+    artillery: "توپخانه"
+    ballistic: "موشک‌های بالستیک"
+    cruise: "موشک‌های کروز"
+    anti_ship: "موشک‌های ضدکشتی"
+    frigate: "ناوچه‌ها"
+    submarine: "زیردریایی‌ها"
+    radar: "رادارهای هشدار زودهنگام"
+    sam_short: "پدافند کوتاه‌برد"
+    sam_medium: "پدافند میان‌برد"
+    sam_long: "پدافند دوربرد"
+  band:
+    few: "معدودی"
+    unit: "یک یگان"
+    force: "نیرویی قابل‌توجه"
+    large: "نیرویی بزرگ"
+  exports:
+    domestic: "تسلیحات فقط به دولت خودی فروخته می‌شود"
+    partners: "تسلیحات به دولت خودی و شریکان پیمانی فروخته می‌شود"
+    open: "تسلیحات به هر دولتی که زیر تحریم تسلیحاتی نیست فروخته می‌شود"
+  ministry:
+    title: "🎖 وزارت دفاع {country}"
+    offices: "مناصب:"
+    budget: "بودجه:"
+    treasury: "🏦 خزانهٔ ملی: {amount}"
+    fund: "🛡 صندوق دفاع: {amount}"
+    shares: "📊 شهرها {share} از درآمدشان را به کشور می‌پردازند و {defence} از آن به دفاع می‌رسد."
+    exports: "🚢 سیاست صادرات: {policy}."
+    last: "📅 دورهٔ گذشته: {levy} از شهرها رسید و {appropriation} از آن به دفاع اختصاص یافت."
+    upkeep_paid: "🔧 هزینهٔ نگهداری کامل پرداخت شد: {paid}."
+    upkeep_short: "⚠️ کسری نگهداری: از {due} فقط {paid} پرداخت شد و آمادگی رزمی افت کرد."
+    next: "⏳ دورهٔ دفاعی بعدی {in} دیگر، ساعت {at} تمام می‌شود."
+    forces: "نیروها:"
+    footer: "وزیر دفاع تسلیحات را با صندوق دفاع از شرکت‌های دفاعی می‌خرد و فرماندهان آن‌ها را مستقر می‌کنند. بودجه را رئیس‌جمهور تعیین می‌کند و هر تغییرش در شهرداری عمومی است."
+  forces:
+    title: "🪖 نیروهای مسلح {country}"
+    branch: "▪️ {branch}"
+    class_band: "  • {class}: {band}"
+    class_count: "  • {class}: {count}"
+    none: "هنوز هیچ تجهیزاتی در خدمت نیست."
+    readiness: "🎯 آمادگی رزمی: {value}"
+    upkeep: "🔧 هزینهٔ نگهداری هر دوره: {amount}"
+    moving: "🚚 {count} واحد در راه پادگان است."
+    public: "شمار دقیق هر رده راز دولتی است؛ آنچه جهان می‌داند فقط اندازهٔ هر نیروست."
+    secret: "🔒 طبقه‌بندی‌شده: شمار دقیق، آمادگی و هزینهٔ نگهداری فقط به صاحبان مناصب دفاعی کشور نشان داده می‌شود."
+  equipment:
+    title: "🪖 {branch} {country}"
+    empty: "این نیرو هنوز تجهیزاتی ندارد."
+    group: "▪️ {good} - {count} در خدمت - کیفیت {quality}"
+    attribute: "  {name}: {value}"
+    seen_at: "  📡 راداری که هدفی یک‌مترمربعی را از {radar} کیلومتری کشف می‌کند، این را از {km} کیلومتری کشف می‌کند."
+    garrison: "  📍 {city}: {count}"
+    depot: "  📦 در انبار، مستقرنشده: {count}"
+    moving: "  🚚 در راه: {count}"
+    moves: "در راه:"
+    move: "• {count} {good} به {city} - {left} مانده، رسیدن ساعت {at}"
+  station:
+    title: "📍 استقرار {good}"
+    choose_city: "در کدام شهر مستقر شود؟"
+    choose_qty: "چند واحد به {city} برود؟ {available} واحد می‌توانند بروند و جابه‌جایی {time} طول می‌کشد."
+    confirm: "{count} واحد به {city} فرستاده شود؟ {time} دیگر می‌رسند و در راه نمی‌توان مقصدشان را عوض کرد."
+    started: "🚚 {count} واحد {good} به سوی {city} راه افتاد و {time} دیگر می‌رسد."
+  procure:
+    title: "🛒 خرید تسلیحات برای {country}"
+    fund: "🛡 صندوق دفاع: {amount}"
+    none: "اکنون هیچ شرکت دفاعی تجهیزات نظامی عرضه نکرده است."
+    offer: "• {good} - {company}، {city} ({country}) - هر واحد {price} - {left} واحد مانده"
+    offer_export: "🚫 {good} - {company}، {city} ({country}) - کشورش به ما سلاح صادر نمی‌کند"
+    offer_embargo: "⛔ {good} - {company}، {city} ({country}) - زیر تحریم تسلیحاتی"
+    footer: "تسلیحات فقط از صندوق دفاع پرداخت می‌شود و تا فرماندهی آن را مستقر نکند در انبار نیروها می‌ماند."
+  buy:
+    title: "🛒 {good}"
+    seller: "فروشنده: {company}، {city} ({country})"
+    price: "قیمت: هر واحد {price} - {left} واحد مانده"
+    choose: "چند واحد؟"
+    confirm: "{count} واحد {good} به بهای {total} خریده شود؟ در صندوق دفاع {after} می‌ماند."
+    cannot_afford: "⚠️ صندوق دفاع حتی بهای یک واحد را ندارد."
+    done: "✅ {count} واحد {good} به بهای {total} از صندوق دفاع خریده شد و تا فرماندهی آن را مستقر نکند در انبار نیروها می‌ماند."
+  button:
+    forces: "🪖 نیروهای مسلح"
+    procure: "🛒 خرید تسلیحات"
+    branch: "🔎 {branch}"
+    station: "📍 استقرار {good}"
+    qty: "{count}"
+    confirm_station: "✅ بفرست"
+    offer: "🛒 {good} - {price}"
+    confirm_buy: "✅ بخر"
+    ministry: "🎖 دفاع و دیپلماسی {country}"
+  unit:
+    rcs: "{value} مترمربع"
+    km: "{value} کیلومتر"
+    kmh: "{value} کیلومتر بر ساعت"
+    kg: "{value} کیلوگرم"
+    m: "{value} متر"
+    times: "{value} برابر"
+    decimal_point: "٫"
+  refused:
+    not_found: "این کالا دیگر عرضه نمی‌شود یا هرگز عرضه نشده بود."
+    not_holder: "تنها {office} {country} می‌تواند این کار را انجام دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
+    not_arms: "این کالا تجهیزات نظامی نیست؛ دولت فقط تسلیحات می‌خرد."
+    export: "سیاست صادرات {country} اجازه نمی‌دهد تسلیحاتش به ما برسد."
+    funds: "در صندوق دفاع {have} هست و این خرید {need} هزینه دارد."
+    stock: "فقط {max} واحد مانده است."
+    city: "این شهر از شهرهای {country} نیست."
+    no_country: "هنوز در هیچ کشوری ساکن نیستید. اول در شهری مستقر شوید."
+  notice:
+    arrived: "📍 {count} واحد {good} به {city} رسید و اکنون همان‌جا مستقر است."
+  announce:
+    procured: "🎖 تسلیحات تازه برای {country}: {class} ({band})."
+diplomacy:
+  measure:
+    trade: "تحریم تجاری"
+    arms: "تحریم تسلیحاتی"
+    technology: "تحریم فناوری"
+    travel: "ممنوعیت سفر"
+    financial: "تحریم مالی"
+  ground:
+    aggression: "تجاوز نظامی"
+    proliferation: "اشاعهٔ تسلیحات"
+    terrorism: "حمایت از تروریسم"
+    human_rights: "نقض حقوق بشر"
+    unfair_trade: "تجارت ناعادلانه"
+    retaliation: "مقابله به مثل"
+  treaty:
+    alliance: "پیمان نظامی"
+    non_aggression: "پیمان عدم تجاوز"
+    trade_agreement: "موافقت‌نامهٔ تجاری"
+  sanctions:
+    title: "⛔ تحریم‌های {country}"
+    imposed: "تحریم‌هایی که ما وضع کرده‌ایم:"
+    suffered: "تحریم‌هایی که بر ما وضع شده:"
+    none: "• هیچ"
+    line_on: "• شمارهٔ {no} بر {country}: {measures} - به دلیل {ground}"
+    line_by: "• شمارهٔ {no} از سوی {country}: {measures} - به دلیل {ground}"
+    pending: "  ⏳ {in} دیگر اجرا می‌شود"
+    since: "  {since} است که اجرا می‌شود"
+    by: "  وضع‌شده به دست {office} {player}"
+    liftable_in: "  🔒 {in} دیگر می‌توان لغوش کرد"
+    footer: "تحریم دوطرفه اثر می‌کند: تحریم تجاری بازار، حراجی و خرید از شرکت‌ها را میان مردم دو کشور می‌بندد؛ تحریم تسلیحاتی فروش سلاح را؛ تحریم فناوری فروش لایسنس را؛ ممنوعیت سفر سفر میان شهرهای دو کشور را؛ و تحریم مالی پرداخت کارتی میان مردمشان را."
+  impose:
+    title: "⛔ تحریم تازه از سوی {country}"
+    choose_target: "کدام کشور تحریم شود؟"
+    no_targets: "کشور دیگری وجود ندارد."
+    choose_measures: "چه تحریم‌هایی بر {target} وضع شود؟ برای انتخاب بزنید و برای برداشتن دوباره بزنید."
+    choose_ground: "{measures} بر {target} به چه دلیلی وضع می‌شود؟"
+    confirm: "{measures} به دلیل {ground} بر {target} وضع شود؟\nهمین حالا اعلام می‌شود و {notice} دیگر اجرا خواهد شد؛ تا {min} دیگر هم نمی‌توان لغوش کرد."
+    done: "⛔ تحریم بر {target} اعلام شد و {in} دیگر اجرا می‌شود."
+  lift:
+    confirm: "تحریم شمارهٔ {no} بر {target} ({measures}) لغو شود؟ از همین لحظه دیگر اجرا نمی‌شود."
+    done: "🕊 تحریم بر {target} لغو شد."
+  treaties:
+    title: "🤝 پیمان‌های {country}"
+    incoming: "📨 شمارهٔ {no}: {country} پیشنهاد {kind} داده است - تا {in} دیگر پاسخ دهید"
+    outgoing: "📤 شمارهٔ {no}: ما به {country} پیشنهاد {kind} داده‌ایم - {in} تا پایان مهلت پاسخ"
+    active: "✅ شمارهٔ {no}: {kind} با {country}"
+    ended_declined: "✖️ شمارهٔ {no}: {kind} با {country} رد شد"
+    ended_withdrawn: "↩️ شمارهٔ {no}: پیشنهاد {kind} به {country} پس گرفته شد"
+    ended_expired: "⌛ شمارهٔ {no}: پیشنهاد {kind} به {country} بی‌پاسخ ماند و منقضی شد"
+    ended_terminated: "🔚 شمارهٔ {no}: {kind} با {country} پایان یافت"
+    none: "هنوز پیمانی در کار نیست."
+    footer: "پیمان وقتی اجرا می‌شود که وزیر امور خارجهٔ کشور دیگر آن را بپذیرد. پیمان نظامی دو کشور را شریک تسلیحاتی می‌کند و هر کدام را به دفاع از دیگری می‌کشاند؛ موافقت‌نامهٔ تجاری تجارتشان را از تعرفهٔ مرزی معاف می‌کند."
+  propose:
+    title: "🤝 پیشنهاد پیمان تازه از سوی {country}"
+    choose_partner: "به کدام کشور؟"
+    choose_kind: "چه پیمانی با {partner}؟"
+    confirm: "به {partner} پیشنهاد {kind} داده شود؟ وزیر امور خارجهٔ آن کشور {ttl} برای پاسخ فرصت دارد."
+    done: "📤 پیشنهاد {kind} به {partner} فرستاده شد. پاسخش همین‌جا نمایش داده می‌شود."
+  end:
+    confirm_withdraw: "پیشنهاد شمارهٔ {no} ({kind} به {country}) پس گرفته شود؟"
+    confirm_terminate: "پیمان شمارهٔ {no} ({kind} با {country}) پایان یابد؟ از همین لحظه دیگر اجرا نمی‌شود و گروه‌های هر دو کشور خبردار می‌شوند."
+    done_withdrawn: "↩️ پیشنهاد پس گرفته شد."
+    done_terminated: "🔚 پیمان پایان یافت."
+  history:
+    title: "📜 کارنامهٔ دیپلماتیک {country}"
+    empty: "هنوز میان کشورها اتفاقی نیفتاده است."
+    sanction_imposed: "• {country} {measures} را به دلیل {ground} بر {other} وضع کرد (شمارهٔ {no})"
+    sanction_lifted: "• {country} تحریم شمارهٔ {no} بر {other} را لغو کرد"
+    treaty_proposed: "• {country} به {other} پیشنهاد {kind} داد (شمارهٔ {no})"
+    treaty_signed: "• {country} و {other} {kind} امضا کردند (شمارهٔ {no})"
+    treaty_declined: "• {country} {kind} با {other} را رد کرد (شمارهٔ {no})"
+    treaty_withdrawn: "• {country} پیشنهاد {kind} به {other} را پس گرفت (شمارهٔ {no})"
+    treaty_terminated: "• {country} به {kind} با {other} پایان داد (شمارهٔ {no})"
+    by: "  به دست {office} {player} - {ago} پیش"
+  button:
+    sanctions: "⛔ تحریم‌ها"
+    treaties: "🤝 پیمان‌ها"
+    history: "📜 کارنامه"
+    impose: "➕ وضع تحریم"
+    lift: "✖️ لغو شمارهٔ {no} بر {country}"
+    measure_on: "✅ {measure}"
+    measure_off: "▫️ {measure}"
+    next: "⬅️ ادامه"
+    confirm_impose: "✅ وضع کن"
+    confirm_lift: "✅ لغو کن"
+    accept: "✅ پذیرش شمارهٔ {no}"
+    decline: "✖️ رد شمارهٔ {no}"
+    withdraw: "↩️ پس گرفتن شمارهٔ {no}"
+    terminate: "🔚 پایان شمارهٔ {no}"
+    propose: "➕ پیشنهاد پیمان"
+    confirm_propose: "✅ پیشنهاد بده"
+    confirm_withdraw: "✅ پس بگیر"
+    confirm_terminate: "✅ پیمان را پایان بده"
+  refused:
+    not_found: "چنین تحریم یا پیمانی وجود ندارد."
+    not_holder: "تنها {office} {country} می‌تواند این کار را انجام دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
+    self: "کشوری نمی‌تواند این کار را با خودش انجام دهد."
+    standing: "ما از قبل بر این کشور تحریمی داریم. پیش از وضع تحریم تازه، آن را لغو کنید."
+    too_soon: "هر تحریم مدتی باید بماند تا بتوان لغوش کرد: {in} دیگر."
+    open: "پیمانی از همین نوع با این کشور هم‌اکنون باز است."
+    state: "این پیمان پیش‌تر پاسخ گرفته، پس گرفته شده، پایان یافته یا منقضی شده است."
+    no_country: "هنوز در هیچ کشوری ساکن نیستید. اول در شهری مستقر شوید."
+  blocked:
+    trade: "⛔ تحریم تجاری میان {imposer} و {target} این معامله را ممنوع می‌کند."
+    arms: "⛔ تحریم تسلیحاتی میان {imposer} و {target} این فروش را ممنوع می‌کند."
+    technology: "⛔ تحریم فناوری میان {imposer} و {target} فروش این لایسنس را ممنوع می‌کند."
+    travel: "⛔ ممنوعیت سفر میان {imposer} و {target} این مسیر را بسته است."
+    financial: "⛔ تحریم مالی میان {imposer} و {target} پرداخت کارتی میان مردم دو کشور را ممنوع می‌کند."
+  notice:
+    proposed: "📨 {country} به ما پیشنهاد {kind} داده است (شمارهٔ {no}). تا {in} دیگر پاسخ دهید."
+  announce:
+    imposed: "⛔ {imposer} به دلیل {ground}، {measures} را بر {target} وضع کرد."
+    lifted: "🕊 {imposer} تحریم‌هایش بر {target} را لغو کرد."
+    signed: "🤝 {a} و {b} {kind} امضا کردند."
+    terminated: "🔚 {by} به {kind} خود با {other} پایان داد."
+  answer:
+    active: "🤝 پیمان امضا شد و از همین حالا اجرا می‌شود."
+    declined: "✖️ پیشنهاد رد شد."

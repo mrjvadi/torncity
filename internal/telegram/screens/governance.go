@@ -56,6 +56,9 @@ const (
 // cityKind is the level whose places are named through city.<code>.
 const cityKind = "city"
 
+// countryKind is the level of a country.
+const countryKind = "country"
+
 // GovPlayer names another player: the display name and the public code, the
 // two things one player may see of another.
 type GovPlayer struct {
@@ -143,6 +146,9 @@ type GovSeat struct {
 	Levers []GovLever
 	// VoteLevers are the policies this office decides by a vote.
 	VoteLevers []GovLever
+	// Appointees are the seats this office appoints to or may remove the
+	// holder of.
+	Appointees []GovAppointee
 }
 
 // MyOfficeView is the office holder's screen.
@@ -278,6 +284,30 @@ func (c Context) govPlayers(ps []GovPlayer) string {
 	return out
 }
 
+// FormatPolicyValue renders a value of one lever: its words when the
+// catalogue names this value of it (lever_label.<code>.v<value>, for a lever
+// whose integers stand for choices, such as an arms export policy), else in
+// its unit as FormatLeverValue.
+func FormatPolicyValue(c Context, code, typ string, v int64) string {
+	if code != "" {
+		key := "lever_label." + code + ".v" + strconv.FormatInt(v, 10)
+		if text := c.T(key, nil); text != key {
+			return text
+		}
+	}
+	return FormatLeverValue(c, typ, v)
+}
+
+// labelled reports whether a lever's values are named choices
+// (lever_label.<code>.v<min> exists), and at most a handful of them.
+func labelled(c Context, l GovLever) bool {
+	if l.Code == "" || l.Max-l.Min > 10 {
+		return false
+	}
+	key := "lever_label." + l.Code + ".v" + strconv.FormatInt(l.Min, 10)
+	return c.T(key, nil) != key
+}
+
 // FormatLeverValue renders a policy value in its unit: a basis-point rate as
 // a percentage, money through FormatMoney, a count with grouped digits.
 func FormatLeverValue(c Context, typ string, v int64) string {
@@ -335,6 +365,11 @@ func CityGovernance(c Context, v CityGovView) *presenter.Response {
 	if v.HoldsOffice {
 		kb.Add(c.T("gov.button.my_office", nil), AddrGovOffice)
 	}
+	for _, sec := range v.Sections {
+		if sec.Place.Kind == countryKind {
+			kb.Add(c.T("military.button.ministry", map[string]any{"country": c.PlaceName(sec.Place)}), AddrMinistry, sec.Place.Code)
+		}
+	}
 	refresh := keyboards.Data(AddrGovCity, v.City.Code)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap, RefreshData: refresh}))
 	return c.respond(paragraphs(blocks...), kb.Build())
@@ -380,7 +415,7 @@ func govOfficeLine(c Context, o GovOffice) string {
 // govLeverLines is one policy: its value and where the value came from, then
 // the announced change, if any.
 func govLeverLines(c Context, l GovLever) []string {
-	value := FormatLeverValue(c, l.Type, l.Value)
+	value := FormatPolicyValue(c, l.Code, l.Type, l.Value)
 	var lines []string
 	if l.FromOffice {
 		lines = append(lines, c.T("gov.lever.line_set", map[string]any{
@@ -393,7 +428,7 @@ func govLeverLines(c Context, l GovLever) []string {
 	}
 	if l.Pending != nil {
 		lines = append(lines, c.T("gov.lever.pending", map[string]any{
-			"value": FormatLeverValue(c, l.Type, l.Pending.Value), "when": FormatSpan(c, l.Pending.In),
+			"value": FormatPolicyValue(c, l.Code, l.Type, l.Pending.Value), "when": FormatSpan(c, l.Pending.In),
 		}))
 	}
 	return lines
@@ -418,17 +453,28 @@ func MyOffice(c Context, v MyOfficeView) *presenter.Response {
 		}
 		for _, l := range s.Levers {
 			lines = append(lines, c.T("gov.mine.lever", map[string]any{
-				"lever": c.LeverName(l.Code), "value": FormatLeverValue(c, l.Type, l.Value),
+				"lever": c.LeverName(l.Code), "value": FormatPolicyValue(c, l.Code, l.Type, l.Value),
 			}))
 			kb.Add(c.T("gov.button.change", map[string]any{"lever": c.LeverName(l.Code), "place": place}),
 				leverAddr(AddrGovLever, l, s.Place)...)
 		}
 		for _, l := range s.VoteLevers {
 			lines = append(lines, c.T("gov.mine.lever_vote", map[string]any{
-				"lever": c.LeverName(l.Code), "value": FormatLeverValue(c, l.Type, l.Value),
+				"lever": c.LeverName(l.Code), "value": FormatPolicyValue(c, l.Code, l.Type, l.Value),
 			}))
 		}
+		lines = append(lines, appointeeLines(c, kb, s.Appointees)...)
 		blocks = append(blocks, body(lines...))
+	}
+	// A country's offices lead to its ministry of defence and its
+	// diplomacy, once per country.
+	shown := map[string]bool{}
+	for _, s := range v.Seats {
+		if s.Place.Kind != countryKind || shown[s.Place.Code] {
+			continue
+		}
+		shown[s.Place.Code] = true
+		kb.Add(c.T("military.button.ministry", map[string]any{"country": c.PlaceName(s.Place)}), AddrMinistry, s.Place.Code)
 	}
 
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrGovCity, RefreshData: AddrGovOffice}))
@@ -439,7 +485,7 @@ func MyOffice(c Context, v MyOfficeView) *presenter.Response {
 // proposing, and the buttons that move it.
 func LeverEdit(c Context, v LeverEditView) *presenter.Response {
 	l := v.Lever
-	format := func(x int64) string { return FormatLeverValue(c, l.Type, x) }
+	format := func(x int64) string { return FormatPolicyValue(c, l.Code, l.Type, x) }
 	kb := keyboards.New()
 
 	head := []string{
@@ -447,8 +493,13 @@ func LeverEdit(c Context, v LeverEditView) *presenter.Response {
 	}
 	head = append(head, govLeverLines(c, l)...)
 
+	bounds := c.T("gov.edit.bounds", map[string]any{"min": format(l.Min), "max": format(l.Max)})
+	if labelled(c, l) {
+		// Named choices have no range to state: the buttons are the choices.
+		bounds = ""
+	}
 	rules := body(
-		c.T("gov.edit.bounds", map[string]any{"min": format(l.Min), "max": format(l.Max)}),
+		bounds,
 		c.T("gov.edit.default", map[string]any{"value": format(l.Default)}),
 		c.T("gov.edit.notice", map[string]any{"notice": FormatSpan(c, l.Notice)}),
 		c.T("gov.edit.cooldown", map[string]any{"cooldown": FormatSpan(c, l.Cooldown)}),
@@ -460,6 +511,29 @@ func LeverEdit(c Context, v LeverEditView) *presenter.Response {
 	} else {
 		action = c.T("gov.edit.draft", map[string]any{"value": format(v.Draft)})
 		addr := func(x int64) []string { return leverAddr(AddrGovLever, l, v.Place, x) }
+
+		if labelled(c, l) {
+			// A lever whose values are choices is set by choosing: one
+			// button per choice, never a step.
+			var choices []presenter.Button
+			for x := l.Min; x <= l.Max; x++ {
+				if x == v.Draft {
+					continue
+				}
+				if b, ok := keyboards.Button(format(x), addr(x)...); ok {
+					choices = append(choices, b)
+				}
+			}
+			kb.Grid(1, choices...)
+			if v.Draft != l.Value {
+				kb.Add(c.T("gov.button.review", nil), leverAddr(AddrGovConfirm, l, v.Place, v.Draft)...)
+			}
+			kb.Nav(c.nav(keyboards.Nav{
+				BackData:    AddrGovOffice,
+				RefreshData: keyboards.Data(leverAddr(AddrGovLever, l, v.Place)...),
+			}))
+			return c.respond(paragraphs(body(head...), rules, action), kb.Build())
+		}
 
 		var steps []presenter.Button
 		for _, s := range []struct {
@@ -528,8 +602,8 @@ func PolicyConfirm(c Context, v PolicyConfirmView) *presenter.Response {
 			c.T("gov.confirm.change", map[string]any{
 				"lever": c.LeverName(l.Code),
 				"place": c.PlaceName(v.Place),
-				"old":   FormatLeverValue(c, l.Type, l.Value),
-				"new":   FormatLeverValue(c, l.Type, v.NewValue),
+				"old":   FormatPolicyValue(c, l.Code, l.Type, l.Value),
+				"new":   FormatPolicyValue(c, l.Code, l.Type, v.NewValue),
 			}),
 			c.T("gov.confirm.notice", map[string]any{"notice": FormatSpan(c, l.Notice)}),
 			c.T("gov.confirm.cooldown", map[string]any{"cooldown": FormatSpan(c, l.Cooldown)}),
@@ -550,8 +624,8 @@ func PolicyAnnounced(c Context, v PolicyAnnouncedView) *presenter.Response {
 		c.T("gov.announced.body", map[string]any{
 			"lever": c.LeverName(l.Code),
 			"place": c.PlaceName(v.Place),
-			"old":   FormatLeverValue(c, l.Type, v.Old),
-			"new":   FormatLeverValue(c, l.Type, v.New),
+			"old":   FormatPolicyValue(c, l.Code, l.Type, v.Old),
+			"new":   FormatPolicyValue(c, l.Code, l.Type, v.New),
 			"when":  FormatSpan(c, v.In),
 		}),
 	)
@@ -572,8 +646,8 @@ func GovHistory(c Context, v GovHistoryView) *presenter.Response {
 			c.T("gov.history.change", map[string]any{
 				"lever": c.LeverName(e.Lever),
 				"place": c.PlaceName(e.Place),
-				"old":   FormatLeverValue(c, e.Type, e.Old),
-				"new":   FormatLeverValue(c, e.Type, e.New),
+				"old":   FormatPolicyValue(c, e.Lever, e.Type, e.Old),
+				"new":   FormatPolicyValue(c, e.Lever, e.Type, e.New),
 			}),
 			c.T("gov.history.by", map[string]any{
 				"office": c.OfficeName(e.Office),
@@ -667,8 +741,8 @@ func governanceRefusal(c Context, err error, lever *GovLever, now time.Time) (st
 			return "gov.refusal.out_of_range_plain", nil, true
 		}
 		return "gov.refusal.out_of_range", map[string]any{
-			"min": FormatLeverValue(c, lever.Type, lever.Min),
-			"max": FormatLeverValue(c, lever.Type, lever.Max),
+			"min": FormatPolicyValue(c, lever.Code, lever.Type, lever.Min),
+			"max": FormatPolicyValue(c, lever.Code, lever.Type, lever.Max),
 		}, true
 
 	case stderrors.Is(err, application.ErrPolicyCooldown):

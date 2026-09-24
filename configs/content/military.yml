@@ -1,0 +1,80 @@
+# The armed forces: how a country's military equipment is organised, what it
+# costs to keep, who may see it in full, and how its strength is described in
+# public. docs/adr/0022-military-and-diplomacy.md is the governing decision.
+#
+# The equipment itself is ordinary goods (defence_industry.yml), designed and
+# built by defence companies and bought by a state through procurement. Once
+# a state holds a piece, this file decides which branch it serves in and
+# what it costs every defence period (config military.period, GAME time).
+# The rules — the defence period, readiness, stationing, the radar equation —
+# are internal/domain/military; who commands each branch is an action in
+# governance.yml.
+#
+# ---------------------------------------------------------------------------
+# branches — the services.
+#   code      stable identifier.
+#   name      display name, the fallback for military.branch.<code>.
+#   command   the action (governance.yml actions) that stations this
+#             branch's equipment. Its holder commands the branch; while that
+#             seat is vacant, the deputy acting for it does.
+#   redeploy  how long moving the branch's equipment to another garrison
+#             takes, GAME time, waited through the game clock.
+#
+# force_classes — what the equipment is, as a force reckons it.
+#   code      stable identifier.
+#   name      display name, the fallback for military.class.<code>.
+#   branch    the branch it serves in.
+#   items     the goods (defence_industry.yml) of this class. Every item is
+#             in at most one class, is a unique piece, and is restricted to
+#             state buyers.
+#   upkeep    what one piece costs every defence period, minor units, paid
+#             from the defence fund; it leaves the economy. An unpaid period
+#             costs readiness instead (config military.readiness_*).
+#
+# military_clearance — the offices whose holders see the forces in full:
+#   exact counts, every design's attributes, garrisons, readiness, upkeep.
+#   Everyone else sees the public summary.
+#
+# strength_bands — how the public summary and the group announcements say
+#   how many pieces of a class a country has: the band whose up_to is the
+#   first at or above the count. The last band has no up_to. A count is
+#   never published: the UN Register of Conventional Arms is voluntary, and
+#   capabilities are secret everywhere.
+#   code      stable identifier; its words are military.band.<code>.
+#   up_to     the largest count the band covers.
+
+version: 1
+
+branches:
+  - {code: ground,      name: Ground forces, command: country.command_ground,      redeploy: 12h}
+  - {code: air,         name: Air force,     command: country.command_air,         redeploy: 2h}
+  - {code: navy,        name: Navy,          command: country.command_navy,        redeploy: 24h}
+  - {code: air_defence, name: Air defence,   command: country.command_air_defence, redeploy: 6h}
+
+force_classes:
+  - {code: fighter,         name: Fighters,              branch: air,         items: [fighter_jet],         upkeep: 90}
+  - {code: stealth_fighter, name: Stealth fighters,      branch: air,         items: [stealth_fighter_jet], upkeep: 240}
+  - {code: bomber,          name: Bombers,               branch: air,         items: [strategic_bomber],    upkeep: 180}
+  - {code: drone,           name: Combat drones,         branch: air,         items: [attack_drone],        upkeep: 20}
+  - {code: transport,       name: Transport aircraft,    branch: air,         items: [airlifter],           upkeep: 70}
+  - {code: tank,            name: Main battle tanks,     branch: ground,      items: [main_battle_tank],    upkeep: 35}
+  - {code: ifv,             name: Infantry fighting vehicles, branch: ground, items: [ifv],                 upkeep: 15}
+  - {code: artillery,       name: Artillery,             branch: ground,      items: [sp_artillery],        upkeep: 25}
+  - {code: ballistic,       name: Ballistic missiles,    branch: ground,      items: [ballistic_missile],   upkeep: 10}
+  - {code: cruise,          name: Cruise missiles,       branch: air,         items: [cruise_missile],      upkeep: 6}
+  - {code: anti_ship,       name: Anti-ship missiles,    branch: navy,        items: [anti_ship_missile],   upkeep: 8}
+  - {code: frigate,         name: Frigates,              branch: navy,        items: [frigate],             upkeep: 270}
+  - {code: submarine,       name: Submarines,            branch: navy,        items: [attack_submarine],    upkeep: 330}
+  - {code: radar,           name: Early-warning radars,  branch: air_defence, items: [early_warning_radar], upkeep: 30}
+  - {code: sam_short,       name: Short-range air defence,  branch: air_defence, items: [short_range_sam],  upkeep: 15}
+  - {code: sam_medium,      name: Medium-range air defence, branch: air_defence, items: [medium_range_sam], upkeep: 35}
+  - {code: sam_long,        name: Long-range air defence,   branch: air_defence, items: [long_range_sam],   upkeep: 90}
+
+military_clearance: [president, defence_minister, chief_of_general_staff, ground_forces_commander,
+                     air_force_commander, navy_commander, air_defence_commander]
+
+strength_bands:
+  - {code: few,   up_to: 3}
+  - {code: unit,  up_to: 12}
+  - {code: force, up_to: 40}
+  - {code: large}

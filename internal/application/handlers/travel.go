@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
 	"github.com/mrjvadi/torncity/internal/domain/player"
@@ -303,6 +304,20 @@ func (h *TravelHandler) planTrip(ctx context.Context, tx application.Tx, p *appl
 	if from.ID == to.ID {
 		return t, errors.InvalidInput("travel cannot be planned").WithCause(travel.ErrSameCity)
 	}
+	// A travel ban between the two cities' countries closes the route
+	// (docs/adr/0022): the one sanctions check.
+	fromCountry, err := tx.Diplomacy().CountryOfCity(ctx, from.ID)
+	if err != nil {
+		return t, err
+	}
+	toCountry, err := tx.Diplomacy().CountryOfCity(ctx, to.ID)
+	if err != nil {
+		return t, err
+	}
+	if err := checkSanctions(ctx, tx, application.CheckSanctions(ctx, tx, diplomacy.Travel, fromCountry, toCountry, now),
+		screens.AddrCities); err != nil {
+		return t, err
+	}
 
 	options, version := h.network.Options(from.Code, to.Code)
 	t.contentVersion = version
@@ -412,6 +427,9 @@ func (h *TravelHandler) Options(ctx context.Context, meta envelope.Metadata, req
 		view = optionsView(t, cash.Balance.Minor(), false)
 		return nil
 	})
+	if v, ok := asBlocked(err); ok {
+		return screens.SanctionBlocked(h.screen(meta, lang), v), nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -681,6 +699,9 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(h.screen(meta, lang), v), nil
 	}
+	if v, ok := asBlocked(err); ok {
+		return screens.SanctionBlocked(h.screen(meta, lang), v), nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -812,6 +833,9 @@ func (h *TravelHandler) checkout(ctx context.Context, meta envelope.Metadata, re
 	})
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(h.screen(meta, lang), v), false, nil
+	}
+	if v, ok := asBlocked(err); ok {
+		return screens.SanctionBlocked(h.screen(meta, lang), v), false, nil
 	}
 	switch {
 	case err != nil:

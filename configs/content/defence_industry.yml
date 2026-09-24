@@ -1,0 +1,771 @@
+# The defence industry: the military goods states buy, what they are made
+# of, the technology that gates them, the companies that make them and the
+# strategic materials they start from.
+#
+# docs/adr/0022-military-and-diplomacy.md is the governing decision. Nothing
+# here is new machinery: military equipment is designed, manufactured, listed
+# and sold through the production economy of ADR 0021 like a phone is. What
+# makes it military is data:
+#   - the goods carry export_control with buyer_classes [state]: no player
+#     and no company may buy one; a state buys through procurement;
+#   - the technologies carry export_control with buyer_classes
+#     [company:defence]: only a defence-sector company may license one, and
+#     across a border only where the seller's arms export policy allows;
+#   - the companies are of sector defence.
+# What a force does with its equipment — its branch, its upkeep — is
+# military.yml. The fields are those of items.yml, production.yml and
+# companies.yml; see the comments there.
+#
+# UNITS of the military attributes (real-world grounding in ADR 0022):
+#   rcs              radar cross-section, thousandths of a square metre
+#                    (1000 = 1 m²). A conventional fighter is about 5 m², a
+#                    stealth fighter a few thousandths, a bomber a hundred.
+#                    A coating's rcs is a factor in basis points: the
+#                    archetype multiplies (aggregate product).
+#   detection_range  kilometres at which a radar sees a 1 m² target. What it
+#                    sees of another target falls with the FOURTH ROOT of
+#                    that target's rcs (the radar equation;
+#                    internal/domain/military.DetectionRangeKM).
+#   rcs_gain         basis points by which a radar's band enlarges what it
+#                    sees of a target: a long-wave (VHF) array resonates with
+#                    a stealth airframe and sees it far larger (10000 = ×1).
+#   speed            km/h.  range  km.  payload  kg.  depth  metres.
+#   armour, firepower  relative points.
+#   accuracy, interception  basis points (a single shot's chance).
+
+version: 1
+
+component_categories: [alloy, composite, rare_earth, energetic,
+                       airframe, stealth_airframe, heavy_airframe, drone_airframe, transport_airframe,
+                       jet_engine, radar_set, ram_coating,
+                       armour_hull, light_hull, cannon, howitzer, powerpack, fire_control,
+                       interceptor_short, interceptor_medium, interceptor_long,
+                       rocket_motor, missile_body, warhead, guidance, seeker,
+                       ship_hull, pressure_hull, marine_engine, sonar, weapon_system]
+
+components:
+  # --- Strategic materials: bought from the strategic materials supplier ---
+  - {code: titanium,     name: Titanium,          category: alloy,      base_price: 150, attributes: {quality: 60}}
+  - {code: carbon_fibre, name: Carbon fibre,      category: composite,  base_price: 120, attributes: {quality: 60}}
+  - {code: rare_earths,  name: Rare earth metals, category: rare_earth, base_price: 200, attributes: {quality: 55}}
+  - {code: explosive,    name: Explosive,         category: energetic,  base_price: 40,  attributes: {quality: 55}}
+
+  # --- Air ------------------------------------------------------------------
+  - code: fighter_airframe
+    name: Fighter airframe
+    category: airframe
+    base_price: 7000
+    attributes: {quality: 55, rcs: 5000, range: 1500, payload: 7000}
+    requires_technology: [aerospace_engineering]
+    production: {method: assemble, by: [aerospace], inputs: [{component: titanium, quantity: 30}, {component: tool_steel, quantity: 20}, {component: carbon_fibre, quantity: 15}], batch: 1, skill: engineering}
+  - code: stealth_airframe
+    name: Stealth airframe
+    category: stealth_airframe
+    base_price: 16000
+    attributes: {quality: 60, rcs: 20, range: 1400, payload: 4000}
+    requires_technology: [stealth_shaping]
+    production: {method: assemble, by: [aerospace], inputs: [{component: titanium, quantity: 50}, {component: carbon_fibre, quantity: 50}, {component: rare_earths, quantity: 4}], batch: 1, skill: engineering}
+  - code: bomber_airframe
+    name: Bomber airframe
+    category: heavy_airframe
+    base_price: 16000
+    attributes: {quality: 55, rcs: 100000, range: 9000, payload: 30000}
+    requires_technology: [aerospace_engineering]
+    production: {method: assemble, by: [aerospace], inputs: [{component: titanium, quantity: 60}, {component: tool_steel, quantity: 60}, {component: carbon_fibre, quantity: 20}], batch: 1, skill: engineering}
+  - code: drone_airframe
+    name: Drone airframe
+    category: drone_airframe
+    base_price: 1500
+    attributes: {quality: 50, rcs: 500, range: 3000, payload: 600}
+    requires_technology: [aerospace_engineering]
+    production: {method: assemble, by: [aerospace], inputs: [{component: carbon_fibre, quantity: 8}, {component: plastic_case, quantity: 4}, {component: chipset, quantity: 2}], batch: 1, skill: engineering}
+  - code: transport_airframe
+    name: Transport airframe
+    category: transport_airframe
+    base_price: 9000
+    attributes: {quality: 55, rcs: 60000, range: 4500, payload: 40000}
+    requires_technology: [aerospace_engineering]
+    production: {method: assemble, by: [aerospace], inputs: [{component: titanium, quantity: 20}, {component: tool_steel, quantity: 80}], batch: 1, skill: engineering}
+  - code: turbofan
+    name: Afterburning turbofan
+    category: jet_engine
+    base_price: 4000
+    attributes: {quality: 55, speed: 2100}
+    requires_technology: [jet_propulsion]
+    production: {method: assemble, by: [aerospace], inputs: [{component: titanium, quantity: 15}, {component: rare_earths, quantity: 5}], batch: 1, skill: engineering}
+  - code: turbojet
+    name: Small turbojet
+    category: jet_engine
+    base_price: 900
+    attributes: {quality: 50, speed: 900}
+    requires_technology: [jet_propulsion]
+    production: {method: assemble, by: [aerospace, missile_works], inputs: [{component: titanium, quantity: 3}, {component: tool_steel, quantity: 3}], batch: 1, skill: engineering}
+  - code: turboprop
+    name: Turboprop
+    category: jet_engine
+    base_price: 1200
+    attributes: {quality: 55, speed: 600}
+    requires_technology: [jet_propulsion]
+    production: {method: assemble, by: [aerospace], inputs: [{component: titanium, quantity: 4}, {component: tool_steel, quantity: 8}], batch: 1, skill: engineering}
+  - code: ram_coating
+    name: Radar-absorbent coating
+    category: ram_coating
+    base_price: 7000
+    attributes: {quality: 60, rcs: 2500}
+    requires_technology: [radar_absorbent_materials]
+    production: {method: assemble, by: [aerospace], inputs: [{component: carbon_fibre, quantity: 20}, {component: rare_earths, quantity: 20}], batch: 1, skill: engineering}
+
+  # --- Radar ----------------------------------------------------------------
+  - code: fire_control_radar
+    name: Fire-control radar
+    category: radar_set
+    base_price: 1500
+    attributes: {quality: 55, detection_range: 110, rcs_gain: 10000}
+    requires_technology: [radar_systems]
+    production: {method: assemble, by: [defence_electronics, aerospace], inputs: [{component: rare_earths, quantity: 6}, {component: titanium, quantity: 2}], batch: 1, skill: engineering}
+  - code: aesa_radar
+    name: AESA radar
+    category: radar_set
+    base_price: 5000
+    attributes: {quality: 65, detection_range: 200, rcs_gain: 10000}
+    requires_technology: [aesa_radar]
+    production: {method: assemble, by: [defence_electronics], inputs: [{component: chipset, quantity: 10}, {component: rare_earths, quantity: 10}], batch: 1, skill: engineering}
+  - code: vhf_array
+    name: VHF early-warning array
+    category: radar_set
+    base_price: 3500
+    attributes: {quality: 50, detection_range: 350, rcs_gain: 200000}
+    requires_technology: [vhf_radar]
+    production: {method: assemble, by: [defence_electronics], inputs: [{component: tool_steel, quantity: 30}, {component: chipset, quantity: 4}, {component: rare_earths, quantity: 4}], batch: 1, skill: engineering}
+
+  # --- Ground ---------------------------------------------------------------
+  - code: tank_hull
+    name: Armoured tank hull
+    category: armour_hull
+    base_price: 4000
+    attributes: {quality: 55, armour: 700}
+    requires_technology: [armour_systems]
+    production: {method: assemble, by: [land_systems], inputs: [{component: tool_steel, quantity: 50}, {component: titanium, quantity: 5}], batch: 1, skill: engineering}
+  - code: light_hull
+    name: Light armoured hull
+    category: light_hull
+    base_price: 1200
+    attributes: {quality: 55, armour: 200}
+    requires_technology: [armour_systems]
+    production: {method: assemble, by: [land_systems, missile_works, defence_electronics], inputs: [{component: tool_steel, quantity: 18}], batch: 1, skill: engineering}
+  - code: tank_gun
+    name: Smoothbore tank gun
+    category: cannon
+    base_price: 1500
+    attributes: {quality: 55, firepower: 800, range: 4}
+    requires_technology: [armour_systems]
+    production: {method: assemble, by: [land_systems], inputs: [{component: tool_steel, quantity: 20}], batch: 1, skill: engineering}
+  - code: autocannon
+    name: Autocannon
+    category: cannon
+    base_price: 700
+    attributes: {quality: 55, firepower: 250, range: 3}
+    production: {method: assemble, by: [land_systems], inputs: [{component: tool_steel, quantity: 10}], batch: 1, skill: engineering}
+  - code: howitzer_barrel
+    name: Howitzer
+    category: howitzer
+    base_price: 1800
+    attributes: {quality: 55, firepower: 600, range: 40}
+    requires_technology: [armour_systems]
+    production: {method: assemble, by: [land_systems], inputs: [{component: tool_steel, quantity: 25}, {component: explosive, quantity: 5}], batch: 1, skill: engineering}
+  - code: powerpack
+    name: Diesel powerpack
+    category: powerpack
+    base_price: 800
+    attributes: {quality: 55, speed: 65}
+    production: {method: assemble, by: [land_systems, defence_electronics, missile_works], inputs: [{component: tool_steel, quantity: 10}, {component: diesel, quantity: 20}], batch: 1, skill: mechanics}
+  - code: fire_control_computer
+    name: Fire-control computer
+    category: fire_control
+    base_price: 900
+    attributes: {quality: 60, accuracy: 7000}
+    requires_technology: [radar_systems]
+    production: {method: assemble, by: [defence_electronics, land_systems], inputs: [{component: chipset, quantity: 3}], batch: 1, skill: engineering}
+
+  # --- Air defence and missiles --------------------------------------------
+  - code: short_interceptor
+    name: Short-range interceptor
+    category: interceptor_short
+    base_price: 700
+    attributes: {quality: 55, range: 12, interception: 7000, speed: 2500}
+    requires_technology: [missile_guidance]
+    production: {method: assemble, by: [missile_works], inputs: [{component: explosive, quantity: 2}, {component: chipset, quantity: 1}, {component: carbon_fibre, quantity: 1}], batch: 1, skill: engineering}
+  - code: medium_interceptor
+    name: Medium-range interceptor
+    category: interceptor_medium
+    base_price: 1800
+    attributes: {quality: 55, range: 50, interception: 7500, speed: 4000}
+    requires_technology: [missile_guidance, rocketry]
+    production: {method: assemble, by: [missile_works], inputs: [{component: explosive, quantity: 5}, {component: chipset, quantity: 2}, {component: carbon_fibre, quantity: 3}], batch: 1, skill: engineering}
+  - code: long_interceptor
+    name: Long-range interceptor
+    category: interceptor_long
+    base_price: 4500
+    attributes: {quality: 60, range: 250, interception: 8000, speed: 6000}
+    requires_technology: [missile_guidance, rocketry]
+    production: {method: assemble, by: [missile_works], inputs: [{component: explosive, quantity: 12}, {component: chipset, quantity: 4}, {component: carbon_fibre, quantity: 8}, {component: titanium, quantity: 4}], batch: 1, skill: engineering}
+  - code: solid_rocket_motor
+    name: Solid rocket motor
+    category: rocket_motor
+    base_price: 1500
+    attributes: {quality: 55, range: 800, speed: 7000}
+    requires_technology: [rocketry]
+    production: {method: assemble, by: [missile_works], inputs: [{component: explosive, quantity: 15}, {component: carbon_fibre, quantity: 3}, {component: tool_steel, quantity: 5}], batch: 1, skill: engineering}
+  - code: two_stage_motor
+    name: Two-stage rocket motor
+    category: rocket_motor
+    base_price: 4000
+    attributes: {quality: 55, range: 2500, speed: 11000}
+    requires_technology: [rocketry]
+    production: {method: assemble, by: [missile_works], inputs: [{component: explosive, quantity: 40}, {component: carbon_fibre, quantity: 8}, {component: titanium, quantity: 5}], batch: 1, skill: engineering}
+  - code: missile_body
+    name: Cruise missile body
+    category: missile_body
+    base_price: 600
+    attributes: {quality: 55, rcs: 100, range: 1500}
+    production: {method: assemble, by: [missile_works], inputs: [{component: carbon_fibre, quantity: 3}, {component: tool_steel, quantity: 3}], batch: 1, skill: engineering}
+  - code: blast_warhead
+    name: High-explosive warhead
+    category: warhead
+    base_price: 500
+    attributes: {quality: 55, firepower: 500, payload: 450}
+    production: {method: assemble, by: [missile_works], inputs: [{component: explosive, quantity: 10}, {component: tool_steel, quantity: 2}], batch: 1, skill: engineering}
+  - code: inertial_guidance
+    name: Inertial guidance
+    category: guidance
+    base_price: 900
+    attributes: {quality: 55, accuracy: 6000}
+    requires_technology: [missile_guidance]
+    production: {method: assemble, by: [missile_works, defence_electronics], inputs: [{component: chipset, quantity: 3}], batch: 1, skill: engineering}
+  - code: precision_guidance
+    name: Precision guidance
+    category: guidance
+    base_price: 2200
+    attributes: {quality: 60, accuracy: 9000}
+    requires_technology: [missile_guidance]
+    production: {method: assemble, by: [missile_works, defence_electronics], inputs: [{component: chipset, quantity: 6}, {component: rare_earths, quantity: 3}], batch: 1, skill: engineering}
+  - code: radar_seeker
+    name: Active radar seeker
+    category: seeker
+    base_price: 1800
+    attributes: {quality: 60, accuracy: 8500}
+    requires_technology: [missile_guidance]
+    production: {method: assemble, by: [missile_works, defence_electronics], inputs: [{component: chipset, quantity: 4}, {component: rare_earths, quantity: 3}], batch: 1, skill: engineering}
+
+  # --- Naval ----------------------------------------------------------------
+  - code: frigate_hull
+    name: Frigate hull
+    category: ship_hull
+    base_price: 20000
+    attributes: {quality: 55, rcs: 5000000, armour: 150, range: 8000}
+    requires_technology: [naval_architecture]
+    production: {method: assemble, by: [shipyard], inputs: [{component: tool_steel, quantity: 300}, {component: titanium, quantity: 10}], batch: 1, skill: engineering}
+  - code: pressure_hull
+    name: Submarine pressure hull
+    category: pressure_hull
+    base_price: 30000
+    attributes: {quality: 60, depth: 450, range: 10000}
+    requires_technology: [submarine_technology]
+    production: {method: assemble, by: [shipyard], inputs: [{component: titanium, quantity: 120}, {component: tool_steel, quantity: 100}], batch: 1, skill: engineering}
+  - code: gas_turbine
+    name: Marine gas turbine
+    category: marine_engine
+    base_price: 5000
+    attributes: {quality: 55, speed: 55}
+    requires_technology: [naval_architecture]
+    production: {method: assemble, by: [shipyard], inputs: [{component: tool_steel, quantity: 40}, {component: titanium, quantity: 5}, {component: diesel, quantity: 40}], batch: 1, skill: mechanics}
+  - code: diesel_electric
+    name: Diesel-electric drive
+    category: marine_engine
+    base_price: 4000
+    attributes: {quality: 55, speed: 37}
+    requires_technology: [naval_architecture]
+    production: {method: assemble, by: [shipyard], inputs: [{component: tool_steel, quantity: 30}, {component: cell, quantity: 20}], batch: 1, skill: mechanics}
+  - code: hull_sonar
+    name: Hull sonar
+    category: sonar
+    base_price: 2500
+    attributes: {quality: 55, detection_range: 30}
+    requires_technology: [submarine_technology]
+    production: {method: assemble, by: [shipyard, defence_electronics], inputs: [{component: chipset, quantity: 6}, {component: rare_earths, quantity: 4}], batch: 1, skill: engineering}
+  - code: missile_cells
+    name: Vertical launch cells
+    category: weapon_system
+    base_price: 3500
+    attributes: {quality: 55, firepower: 600}
+    requires_technology: [naval_architecture]
+    production: {method: assemble, by: [shipyard], inputs: [{component: tool_steel, quantity: 40}, {component: chipset, quantity: 4}], batch: 1, skill: engineering}
+
+archetypes:
+  # Each archetype is one kind of equipment; a design chooses its parts, and
+  # what a part may be is its slot's category — a short-range air defence
+  # system takes only a short-range interceptor. rcs is a product: the
+  # airframe's cross-section times the coating's factor. What a rival sees
+  # on a listing is what is observable: performance, never the signature.
+  - code: fighter
+    method: assemble
+    slots:
+      - {name: airframe, accepts: airframe, min: 1, max: 1}
+      - {name: engine,   accepts: jet_engine, min: 1, max: 1}
+      - {name: radar,    accepts: radar_set, min: 1, max: 1}
+    attributes:
+      - {name: rcs,             aggregate: product, from: [airframe], divisor: 10000}
+      - {name: speed,           aggregate: max, from: [engine], observable: true}
+      - {name: range,           aggregate: sum, from: [airframe], observable: true}
+      - {name: payload,         aggregate: sum, from: [airframe], observable: true}
+      - {name: detection_range, aggregate: max, from: [radar]}
+      - {name: rcs_gain,        aggregate: max, from: [radar]}
+      - {name: quality,         aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 80
+    reverse_skill: engineering
+  - code: stealth_fighter
+    method: assemble
+    slots:
+      - {name: airframe, accepts: stealth_airframe, min: 1, max: 1}
+      - {name: coating,  accepts: ram_coating, min: 1, max: 1}
+      - {name: engine,   accepts: jet_engine, min: 1, max: 1}
+      - {name: radar,    accepts: radar_set, min: 1, max: 1}
+    attributes:
+      - {name: rcs,             aggregate: product, from: [airframe, coating], divisor: 10000}
+      - {name: speed,           aggregate: max, from: [engine], observable: true}
+      - {name: range,           aggregate: sum, from: [airframe], observable: true}
+      - {name: payload,         aggregate: sum, from: [airframe], observable: true}
+      - {name: detection_range, aggregate: max, from: [radar]}
+      - {name: rcs_gain,        aggregate: max, from: [radar]}
+      - {name: quality,         aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 95
+    reverse_skill: engineering
+  - code: bomber
+    method: assemble
+    slots:
+      - {name: airframe, accepts: heavy_airframe, min: 1, max: 1}
+      - {name: engine,   accepts: jet_engine, min: 1, max: 1}
+    attributes:
+      - {name: rcs,     aggregate: product, from: [airframe], divisor: 10000}
+      - {name: speed,   aggregate: max, from: [engine], observable: true}
+      - {name: range,   aggregate: sum, from: [airframe], observable: true}
+      - {name: payload, aggregate: sum, from: [airframe], observable: true}
+      - {name: quality, aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 75
+    reverse_skill: engineering
+  - code: combat_drone
+    method: assemble
+    slots:
+      - {name: airframe, accepts: drone_airframe, min: 1, max: 1}
+      - {name: engine,   accepts: jet_engine, min: 1, max: 1}
+      - {name: guidance, accepts: guidance, min: 1, max: 1}
+    attributes:
+      - {name: rcs,      aggregate: product, from: [airframe], divisor: 10000}
+      - {name: speed,    aggregate: max, from: [engine], observable: true}
+      - {name: range,    aggregate: sum, from: [airframe], observable: true}
+      - {name: payload,  aggregate: sum, from: [airframe], observable: true}
+      - {name: accuracy, aggregate: max, from: [guidance]}
+      - {name: quality,  aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 55
+    reverse_skill: engineering
+  - code: transport_aircraft
+    method: assemble
+    slots:
+      - {name: airframe, accepts: transport_airframe, min: 1, max: 1}
+      - {name: engine,   accepts: jet_engine, min: 1, max: 1}
+    attributes:
+      - {name: rcs,     aggregate: product, from: [airframe], divisor: 10000}
+      - {name: speed,   aggregate: max, from: [engine], observable: true}
+      - {name: range,   aggregate: sum, from: [airframe], observable: true}
+      - {name: payload, aggregate: sum, from: [airframe], observable: true}
+      - {name: quality, aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 50
+    reverse_skill: engineering
+  - code: battle_tank
+    method: assemble
+    slots:
+      - {name: hull,   accepts: armour_hull, min: 1, max: 1}
+      - {name: gun,    accepts: cannon, min: 1, max: 1}
+      - {name: drive,  accepts: powerpack, min: 1, max: 1}
+      - {name: fcs,    accepts: fire_control, min: 1, max: 1}
+    attributes:
+      - {name: armour,    aggregate: sum, from: [hull], observable: true}
+      - {name: firepower, aggregate: sum, from: [gun], observable: true}
+      - {name: speed,     aggregate: max, from: [drive], observable: true}
+      - {name: accuracy,  aggregate: max, from: [fcs]}
+      - {name: quality,   aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 60
+    reverse_skill: engineering
+  - code: fighting_vehicle
+    method: assemble
+    slots:
+      - {name: hull,  accepts: light_hull, min: 1, max: 1}
+      - {name: gun,   accepts: cannon, min: 1, max: 1}
+      - {name: drive, accepts: powerpack, min: 1, max: 1}
+    attributes:
+      - {name: armour,    aggregate: sum, from: [hull], observable: true}
+      - {name: firepower, aggregate: sum, from: [gun], observable: true}
+      - {name: speed,     aggregate: max, from: [drive], observable: true}
+      - {name: quality,   aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 45
+    reverse_skill: engineering
+  - code: artillery
+    method: assemble
+    slots:
+      - {name: hull,  accepts: light_hull, min: 1, max: 1}
+      - {name: gun,   accepts: howitzer, min: 1, max: 1}
+      - {name: drive, accepts: powerpack, min: 1, max: 1}
+      - {name: fcs,   accepts: fire_control, min: 1, max: 1}
+    attributes:
+      - {name: firepower, aggregate: sum, from: [gun], observable: true}
+      - {name: range,     aggregate: max, from: [gun], observable: true}
+      - {name: speed,     aggregate: max, from: [drive], observable: true}
+      - {name: accuracy,  aggregate: max, from: [fcs]}
+      - {name: quality,   aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 50
+    reverse_skill: engineering
+  - code: radar_station
+    method: assemble
+    slots:
+      - {name: radar,   accepts: radar_set, min: 1, max: 1}
+      - {name: carrier, accepts: light_hull, min: 1, max: 1}
+      - {name: drive,   accepts: powerpack, min: 1, max: 1}
+    attributes:
+      - {name: detection_range, aggregate: max, from: [radar]}
+      - {name: rcs_gain,        aggregate: max, from: [radar]}
+      - {name: quality,         aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 65
+    reverse_skill: engineering
+  - code: air_defence_short
+    method: assemble
+    slots:
+      - {name: radar,       accepts: radar_set, min: 1, max: 1}
+      - {name: interceptor, accepts: interceptor_short, min: 1, max: 1}
+      - {name: carrier,     accepts: light_hull, min: 1, max: 1}
+    attributes:
+      - {name: detection_range, aggregate: max, from: [radar]}
+      - {name: rcs_gain,        aggregate: max, from: [radar]}
+      - {name: range,           aggregate: max, from: [interceptor], observable: true}
+      - {name: interception,    aggregate: max, from: [interceptor]}
+      - {name: quality,         aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 60
+    reverse_skill: engineering
+  - code: air_defence_medium
+    method: assemble
+    slots:
+      - {name: radar,       accepts: radar_set, min: 1, max: 1}
+      - {name: interceptor, accepts: interceptor_medium, min: 1, max: 1}
+      - {name: carrier,     accepts: light_hull, min: 1, max: 1}
+    attributes:
+      - {name: detection_range, aggregate: max, from: [radar]}
+      - {name: rcs_gain,        aggregate: max, from: [radar]}
+      - {name: range,           aggregate: max, from: [interceptor], observable: true}
+      - {name: interception,    aggregate: max, from: [interceptor]}
+      - {name: quality,         aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 70
+    reverse_skill: engineering
+  - code: air_defence_long
+    method: assemble
+    slots:
+      - {name: radar,       accepts: radar_set, min: 1, max: 1}
+      - {name: interceptor, accepts: interceptor_long, min: 1, max: 1}
+      - {name: carrier,     accepts: light_hull, min: 1, max: 1}
+    attributes:
+      - {name: detection_range, aggregate: max, from: [radar]}
+      - {name: rcs_gain,        aggregate: max, from: [radar]}
+      - {name: range,           aggregate: max, from: [interceptor], observable: true}
+      - {name: interception,    aggregate: max, from: [interceptor]}
+      - {name: quality,         aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 85
+    reverse_skill: engineering
+  - code: ballistic_missile
+    method: assemble
+    slots:
+      - {name: motor,    accepts: rocket_motor, min: 1, max: 1}
+      - {name: warhead,  accepts: warhead, min: 1, max: 1}
+      - {name: guidance, accepts: guidance, min: 1, max: 1}
+    attributes:
+      - {name: range,     aggregate: max, from: [motor], observable: true}
+      - {name: speed,     aggregate: max, from: [motor], observable: true}
+      - {name: payload,   aggregate: sum, from: [warhead], observable: true}
+      - {name: firepower, aggregate: sum, from: [warhead]}
+      - {name: accuracy,  aggregate: max, from: [guidance]}
+      - {name: quality,   aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 75
+    reverse_skill: engineering
+  - code: cruise_missile
+    method: assemble
+    slots:
+      - {name: body,     accepts: missile_body, min: 1, max: 1}
+      - {name: engine,   accepts: jet_engine, min: 1, max: 1}
+      - {name: warhead,  accepts: warhead, min: 1, max: 1}
+      - {name: guidance, accepts: guidance, min: 1, max: 1}
+    attributes:
+      - {name: rcs,       aggregate: product, from: [body], divisor: 10000}
+      - {name: range,     aggregate: sum, from: [body], observable: true}
+      - {name: speed,     aggregate: max, from: [engine], observable: true}
+      - {name: firepower, aggregate: sum, from: [warhead]}
+      - {name: accuracy,  aggregate: max, from: [guidance]}
+      - {name: quality,   aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 65
+    reverse_skill: engineering
+  - code: anti_ship_missile
+    method: assemble
+    slots:
+      - {name: body,    accepts: missile_body, min: 1, max: 1}
+      - {name: engine,  accepts: jet_engine, min: 1, max: 1}
+      - {name: warhead, accepts: warhead, min: 1, max: 1}
+      - {name: seeker,  accepts: seeker, min: 1, max: 1}
+    attributes:
+      - {name: rcs,       aggregate: product, from: [body], divisor: 10000}
+      - {name: range,     aggregate: sum, from: [body], observable: true}
+      - {name: speed,     aggregate: max, from: [engine], observable: true}
+      - {name: firepower, aggregate: sum, from: [warhead]}
+      - {name: accuracy,  aggregate: max, from: [seeker]}
+      - {name: quality,   aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 70
+    reverse_skill: engineering
+  - code: frigate
+    method: assemble
+    slots:
+      - {name: hull,    accepts: ship_hull, min: 1, max: 1}
+      - {name: engine,  accepts: marine_engine, min: 1, max: 1}
+      - {name: radar,   accepts: radar_set, min: 1, max: 1}
+      - {name: weapons, accepts: weapon_system, min: 1, max: 1}
+    attributes:
+      - {name: rcs,             aggregate: product, from: [hull], divisor: 10000}
+      - {name: armour,          aggregate: sum, from: [hull], observable: true}
+      - {name: range,           aggregate: sum, from: [hull], observable: true}
+      - {name: speed,           aggregate: max, from: [engine], observable: true}
+      - {name: detection_range, aggregate: max, from: [radar]}
+      - {name: rcs_gain,        aggregate: max, from: [radar]}
+      - {name: firepower,       aggregate: sum, from: [weapons]}
+      - {name: quality,         aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 70
+    reverse_skill: engineering
+  - code: submarine
+    method: assemble
+    slots:
+      - {name: hull,    accepts: pressure_hull, min: 1, max: 1}
+      - {name: engine,  accepts: marine_engine, min: 1, max: 1}
+      - {name: sonar,   accepts: sonar, min: 1, max: 1}
+      - {name: weapons, accepts: weapon_system, min: 1, max: 1}
+    attributes:
+      - {name: depth,           aggregate: max, from: [hull]}
+      - {name: range,           aggregate: sum, from: [hull], observable: true}
+      - {name: speed,           aggregate: max, from: [engine], observable: true}
+      - {name: detection_range, aggregate: max, from: [sonar]}
+      - {name: firepower,       aggregate: sum, from: [weapons]}
+      - {name: quality,         aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 90
+    reverse_skill: engineering
+
+items:
+  # Every military good is a unique piece (a serial, a quality, a design) and
+  # goes to states only.
+  - {code: fighter_jet,         name: Fighter jet,          category: military, archetype: fighter,            form: unique, base_price: 30000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: stealth_fighter_jet, name: Stealth fighter,      category: military, archetype: stealth_fighter,    form: unique, base_price: 80000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: strategic_bomber,    name: Strategic bomber,     category: military, archetype: bomber,             form: unique, base_price: 60000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: attack_drone,        name: Combat drone,         category: military, archetype: combat_drone,       form: unique, base_price: 6000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: airlifter,           name: Military transport,   category: military, archetype: transport_aircraft, form: unique, base_price: 25000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: main_battle_tank,    name: Main battle tank,     category: military, archetype: battle_tank,        form: unique, base_price: 12000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: ifv,                 name: Infantry fighting vehicle, category: military, archetype: fighting_vehicle, form: unique, base_price: 5000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: sp_artillery,        name: Self-propelled howitzer, category: military, archetype: artillery,       form: unique, base_price: 8000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: early_warning_radar, name: Early-warning radar,  category: military, archetype: radar_station,      form: unique, base_price: 10000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: short_range_sam,     name: Short-range air defence system,  category: military, archetype: air_defence_short,  form: unique, base_price: 5000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: medium_range_sam,    name: Medium-range air defence system, category: military, archetype: air_defence_medium, form: unique, base_price: 12000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: long_range_sam,      name: Long-range air defence system,   category: military, archetype: air_defence_long,   form: unique, base_price: 30000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: ballistic_missile,   name: Ballistic missile,    category: military, archetype: ballistic_missile,  form: unique, base_price: 9000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: cruise_missile,      name: Cruise missile,       category: military, archetype: cruise_missile,     form: unique, base_price: 5000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: anti_ship_missile,   name: Anti-ship missile,    category: military, archetype: anti_ship_missile,  form: unique, base_price: 6000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: frigate,             name: Frigate,              category: military, archetype: frigate,            form: unique, base_price: 90000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: attack_submarine,    name: Attack submarine,     category: military, archetype: submarine,          form: unique, base_price: 110000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+
+technologies:
+  # The defence tree. Every one is export-controlled: only a defence-sector
+  # company may license it, and across a border only where the licensor's
+  # country allows arms exports to the licensee's (ADR 0022).
+  - {code: aerospace_engineering, name: Aerospace engineering, cost: 120000, time: 12h, company_types: [aerospace], skill: engineering, level: 3,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: jet_propulsion, name: Jet propulsion, requires: [aerospace_engineering], cost: 180000, time: 18h, company_types: [aerospace, missile_works], skill: engineering, level: 4,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: stealth_shaping, name: Stealth shaping, requires: [aerospace_engineering], cost: 400000, time: 36h, company_types: [aerospace], skill: engineering, level: 6,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: radar_absorbent_materials, name: Radar-absorbent materials, requires: [stealth_shaping], cost: 300000, time: 24h, company_types: [aerospace], skill: engineering, level: 6,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: radar_systems, name: Radar systems, cost: 120000, time: 12h, company_types: [defence_electronics, aerospace], skill: engineering, level: 3,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: aesa_radar, name: Active electronically scanned array, requires: [radar_systems], cost: 350000, time: 30h, company_types: [defence_electronics], skill: engineering, level: 6,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: vhf_radar, name: Long-wave counter-stealth radar, requires: [radar_systems], cost: 200000, time: 18h, company_types: [defence_electronics], skill: engineering, level: 4,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: armour_systems, name: Armour systems, cost: 100000, time: 12h, company_types: [land_systems], skill: engineering, level: 3,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: rocketry, name: Rocketry, cost: 150000, time: 18h, company_types: [missile_works], skill: engineering, level: 4,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: missile_guidance, name: Missile guidance, cost: 200000, time: 24h, company_types: [missile_works, defence_electronics], skill: engineering, level: 5,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: naval_architecture, name: Naval architecture, cost: 150000, time: 18h, company_types: [shipyard], skill: engineering, level: 3,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: submarine_technology, name: Submarine technology, requires: [naval_architecture], cost: 400000, time: 36h, company_types: [shipyard], skill: engineering, level: 6,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+
+suppliers:
+  # Strategic materials are scarce: small stocks that refill slowly. This is
+  # the bound on how fast any country can arm.
+  - code: strategic_materials
+    name: Strategic materials trader
+    place: industrial_zone
+    shelves:
+      - {component: titanium,     price: 180, stock: 400, restock: 40,  every: 6h}
+      - {component: carbon_fibre, price: 150, stock: 400, restock: 40,  every: 6h}
+      - {component: rare_earths,  price: 240, stock: 200, restock: 20,  every: 6h}
+      - {component: explosive,    price: 50,  stock: 800, restock: 100, every: 6h}
+
+company_types:
+  # The defence sector (ADR 0022). Each sells its services to the city like
+  # any company (category defence), and its military goods to states only.
+  - code: aerospace
+    name: Aerospace manufacturer
+    category: defence
+    place: industrial_zone
+    careers: [workshop, technology]
+    founding_fee: 250000
+    upkeep: 4000
+    max_staff: 15
+    unit_price: 80
+    base_units: 2
+    units_per_shift: 6
+    staff_target: 10
+    min_quality_bps: 2000
+    price_min_bps: 7000
+    price_max_bps: 15000
+    elasticity_bps: 8000
+    sector: defence
+    produces: [fighter, stealth_fighter, bomber, combat_drone, transport_aircraft]
+  - code: land_systems
+    name: Land systems manufacturer
+    category: defence
+    place: industrial_zone
+    careers: [workshop, logistics]
+    founding_fee: 180000
+    upkeep: 3000
+    max_staff: 15
+    unit_price: 60
+    base_units: 2
+    units_per_shift: 8
+    staff_target: 10
+    min_quality_bps: 2000
+    price_min_bps: 7000
+    price_max_bps: 15000
+    elasticity_bps: 8000
+    sector: defence
+    produces: [battle_tank, fighting_vehicle, artillery]
+  - code: missile_works
+    name: Missile works
+    category: defence
+    place: industrial_zone
+    careers: [workshop, technology]
+    founding_fee: 220000
+    upkeep: 3500
+    max_staff: 15
+    unit_price: 70
+    base_units: 2
+    units_per_shift: 6
+    staff_target: 10
+    min_quality_bps: 2000
+    price_min_bps: 7000
+    price_max_bps: 15000
+    elasticity_bps: 8000
+    sector: defence
+    produces: [ballistic_missile, cruise_missile, anti_ship_missile, air_defence_short, air_defence_medium, air_defence_long]
+  - code: shipyard
+    name: Naval shipyard
+    category: defence
+    place: industrial_zone
+    careers: [workshop, logistics]
+    founding_fee: 300000
+    upkeep: 5000
+    max_staff: 20
+    unit_price: 90
+    base_units: 2
+    units_per_shift: 6
+    staff_target: 12
+    min_quality_bps: 2000
+    price_min_bps: 7000
+    price_max_bps: 15000
+    elasticity_bps: 8000
+    sector: defence
+    produces: [frigate, submarine]
+  - code: defence_electronics
+    name: Defence electronics
+    category: defence
+    place: industrial_zone
+    careers: [technology, workshop]
+    founding_fee: 160000
+    upkeep: 2800
+    max_staff: 12
+    unit_price: 70
+    base_units: 2
+    units_per_shift: 6
+    staff_target: 8
+    min_quality_bps: 2000
+    price_min_bps: 7000
+    price_max_bps: 15000
+    elasticity_bps: 8000
+    sector: defence
+    produces: [radar_station]
+
+company_demand:
+  - {category: defence, per_thousand: 1}

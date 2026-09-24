@@ -10,6 +10,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/company"
+	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
 	"github.com/mrjvadi/torncity/internal/domain/inventory"
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/shop"
@@ -458,6 +459,10 @@ func (h *ProductionHandler) Goods(ctx context.Context, meta envelope.Metadata) (
 			return err
 		}
 		for _, l := range open {
+			if _, military := snap.ClassOfItem(l.Item); military {
+				// Arms go to states only: procurement, not the city's goods.
+				continue
+			}
 			line, err := h.goodsLine(ctx, tx, snap, l)
 			if err != nil {
 				return err
@@ -663,6 +668,25 @@ func (h *ProductionHandler) buy(ctx context.Context, tx application.Tx, snap *co
 		return refuseProduction(screens.ProductionRefusedNotCleared, nil, snap).back(back...)
 	}
 	now := h.now()
+	// A trade embargo between the buyer's country and the seller's
+	// (docs/adr/0022): the one sanctions check.
+	sellerCountry, err := tx.Diplomacy().CountryOfCity(ctx, l.CityID)
+	if err != nil {
+		return err
+	}
+	var buyerCountry string
+	if buyer != nil {
+		buyerCountry, err = tx.Diplomacy().CountryOfCity(ctx, buyer.CityID)
+	} else {
+		buyerCountry, err = nationality(ctx, tx, p)
+	}
+	if err != nil {
+		return err
+	}
+	if err := checkSanctions(ctx, tx, application.CheckSanctions(ctx, tx, diplomacy.Trade, buyerCountry, sellerCountry, now),
+		back...); err != nil {
+		return err
+	}
 	total := money.FromMinor(qty * l.UnitPrice)
 	sellerAcct, err := tx.Ledger().AccountFor(ctx, application.AccountCompanyTreasury, seller.ID)
 	if err != nil {

@@ -1,0 +1,313 @@
+━━━ Sanctions · the president's board ━━━
+(edits message 42)
+⛔ Sanctions of The Commonwealth
+
+Imposed by us:
+• No. 3 on Vantor Federation: trade embargo, arms embargo, travel ban - for aggression
+  in force for 2d 2h
+  imposed by the President, Kaveh (B3C4D5F)
+
+Imposed on us:
+• No. 4 by Vantor Federation: financial sanctions - for retaliation
+  ⏳ binds in 40m
+
+A sanction binds both ways: a trade embargo stops the market, the auction house and company sales between the two countries' people; an arms embargo, arms sales; a technology ban, licenses; a travel ban, journeys between their cities; financial sanctions, card payments.
+  ───
+  [✖️ Lift No. 3 on Vantor Federation] → diplomacy:lift:3
+  [➕ Impose a sanction] → diplomacy:impose
+  [🤝 Treaties] → diplomacy:treaties:default_country   │   [📜 Record] → diplomacy:history:default_country
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → diplomacy:sanctions:default_country
+
+━━━ Sanctions · too young to lift ━━━
+(edits message 42)
+⛔ Sanctions of The Commonwealth
+
+Imposed by us:
+• No. 3 on Vantor Federation: trade embargo, arms embargo, travel ban - for aggression
+  in force for 2d 2h
+  imposed by the President, Kaveh (B3C4D5F)
+  🔒 may be lifted in 20h
+
+Imposed on us:
+• none
+
+A sanction binds both ways: a trade embargo stops the market, the auction house and company sales between the two countries' people; an arms embargo, arms sales; a technology ban, licenses; a travel ban, journeys between their cities; financial sanctions, card payments.
+  ───
+  [➕ Impose a sanction] → diplomacy:impose
+  [🤝 Treaties] → diplomacy:treaties:default_country   │   [📜 Record] → diplomacy:history:default_country
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → diplomacy:sanctions:default_country
+
+━━━ Sanctions · as a group reads it ━━━
+(edits message 42)
+⛔ Sanctions of Vantor Federation
+
+Imposed by us:
+• none
+
+Imposed on us:
+• No. 3 by The Commonwealth: trade embargo, arms embargo, travel ban - for aggression
+  in force for 2d 2h
+  imposed by the President, Kaveh (B3C4D5F)
+
+A sanction binds both ways: a trade embargo stops the market, the auction house and company sales between the two countries' people; an arms embargo, arms sales; a technology ban, licenses; a travel ban, journeys between their cities; financial sanctions, card payments.
+  ───
+  [🤝 Treaties] → diplomacy:treaties:vantor_federation   │   [📜 Record] → diplomacy:history:vantor_federation
+  [🔙 Back] → military:ministry:vantor_federation   │   [🔄 Refresh] → diplomacy:sanctions:vantor_federation
+
+━━━ Sanctions · none ━━━
+(edits message 42)
+⛔ Sanctions of The Commonwealth
+
+Imposed by us:
+• none
+
+Imposed on us:
+• none
+
+A sanction binds both ways: a trade embargo stops the market, the auction house and company sales between the two countries' people; an arms embargo, arms sales; a technology ban, licenses; a travel ban, journeys between their cities; financial sanctions, card payments.
+  ───
+  [🤝 Treaties] → diplomacy:treaties:default_country   │   [📜 Record] → diplomacy:history:default_country
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → diplomacy:sanctions:default_country
+
+━━━ Impose · choose the country ━━━
+(edits message 42)
+⛔ New sanction by The Commonwealth
+On which country?
+  ───
+  [Vantor Federation] → diplomacy:impose:vantor_federation
+  [🔙 Back] → diplomacy:sanctions:default_country
+
+━━━ Impose · choose the measures ━━━
+(edits message 42)
+⛔ New sanction by The Commonwealth
+Which measures against Vantor Federation? Press to choose, press again to drop.
+  ───
+  [✅ trade embargo] → diplomacy:impose:vantor_federation:0   │   [▫️ arms embargo] → diplomacy:impose:vantor_federation:3
+  [▫️ technology ban] → diplomacy:impose:vantor_federation:5   │   [▫️ travel ban] → diplomacy:impose:vantor_federation:9
+  [▫️ financial sanctions] → diplomacy:impose:vantor_federation:17
+  [➡️ Next] → diplomacy:impose:vantor_federation:1:-
+  [🔙 Back] → diplomacy:impose
+
+━━━ Impose · choose the ground ━━━
+(edits message 42)
+⛔ New sanction by The Commonwealth
+On what ground are trade embargo, arms embargo imposed on Vantor Federation?
+  ───
+  [aggression] → diplomacy:impose:vantor_federation:3:aggression   │   [weapons proliferation] → diplomacy:impose:vantor_federation:3:proliferation
+  [support for terrorism] → diplomacy:impose:vantor_federation:3:terrorism   │   [human rights abuses] → diplomacy:impose:vantor_federation:3:human_rights
+  [unfair trade] → diplomacy:impose:vantor_federation:3:unfair_trade   │   [retaliation] → diplomacy:impose:vantor_federation:3:retaliation
+  [🔙 Back] → diplomacy:impose:vantor_federation:3
+
+━━━ Impose · confirm ━━━
+(edits message 42)
+⛔ New sanction by The Commonwealth
+Impose trade embargo, arms embargo on Vantor Federation for weapons proliferation?
+It is announced now and binds in 1h; it can be lifted no sooner than 24h from now.
+  ───
+  [✅ Impose] → diplomacy:impose:vantor_federation:3:proliferation:yes
+  [🔙 Back] → diplomacy:impose:vantor_federation:3:-
+
+━━━ Lift · confirm ━━━
+(edits message 42)
+Lift sanction No. 3 on Vantor Federation (trade embargo, arms embargo, travel ban)? It stops binding at once.
+  ───
+  [✅ Lift] → diplomacy:lift:3:yes
+  [🔙 Back] → diplomacy:sanctions:default_country
+
+━━━ Treaties · the foreign minister's board ━━━
+(edits message 42)
+🤝 Treaties of The Commonwealth
+
+📨 No. 5: Vantor Federation proposes a military alliance - answer within 2d 22h
+📤 No. 6: we proposed a trade agreement to Vantor Federation - 30h left for an answer
+✅ No. 2: non-aggression pact with Vantor Federation
+✖️ No. 1: trade agreement with Vantor Federation was declined
+⌛ No. 7: military alliance with Vantor Federation lapsed unanswered
+↩️ No. 8: non-aggression pact with Vantor Federation was withdrawn
+🔚 No. 9: trade agreement with Vantor Federation was ended
+
+A treaty binds once the other country's foreign minister accepts it. An alliance makes the two arms partners and will bring each to the other's defence; a trade agreement spares their trade the border tariff.
+  ───
+  [✅ Accept No. 5] → diplomacy:answer:5:accept   │   [✖️ Decline No. 5] → diplomacy:answer:5:decline
+  [↩️ Withdraw No. 6] → diplomacy:end:6
+  [🔚 End No. 2] → diplomacy:end:2
+  [➕ Propose a treaty] → diplomacy:propose
+  [⛔ Sanctions] → diplomacy:sanctions:default_country   │   [📜 Record] → diplomacy:history:default_country
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → diplomacy:treaties:default_country
+
+━━━ Treaties · as a group reads it ━━━
+(edits message 42)
+🤝 Treaties of The Commonwealth
+
+📨 No. 5: Vantor Federation proposes a military alliance - answer within 2d 22h
+📤 No. 6: we proposed a trade agreement to Vantor Federation - 30h left for an answer
+✅ No. 2: non-aggression pact with Vantor Federation
+
+A treaty binds once the other country's foreign minister accepts it. An alliance makes the two arms partners and will bring each to the other's defence; a trade agreement spares their trade the border tariff.
+  ───
+  [⛔ Sanctions] → diplomacy:sanctions:default_country   │   [📜 Record] → diplomacy:history:default_country
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → diplomacy:treaties:default_country
+
+━━━ Treaties · none ━━━
+(edits message 42)
+🤝 Treaties of Vantor Federation
+
+No treaties yet.
+
+A treaty binds once the other country's foreign minister accepts it. An alliance makes the two arms partners and will bring each to the other's defence; a trade agreement spares their trade the border tariff.
+  ───
+  [⛔ Sanctions] → diplomacy:sanctions:vantor_federation   │   [📜 Record] → diplomacy:history:vantor_federation
+  [🔙 Back] → military:ministry:vantor_federation   │   [🔄 Refresh] → diplomacy:treaties:vantor_federation
+
+━━━ Propose · choose the country ━━━
+(edits message 42)
+🤝 New treaty proposal by The Commonwealth
+To which country?
+  ───
+  [Vantor Federation] → diplomacy:propose:vantor_federation
+  [🔙 Back] → diplomacy:treaties:default_country
+
+━━━ Propose · choose the kind ━━━
+(edits message 42)
+🤝 New treaty proposal by The Commonwealth
+What kind of treaty with Vantor Federation?
+  ───
+  [military alliance] → diplomacy:propose:vantor_federation:alliance
+  [non-aggression pact] → diplomacy:propose:vantor_federation:non_aggression
+  [trade agreement] → diplomacy:propose:vantor_federation:trade_agreement
+  [🔙 Back] → diplomacy:propose
+
+━━━ Propose · confirm ━━━
+(edits message 42)
+🤝 New treaty proposal by The Commonwealth
+Propose a military alliance to Vantor Federation? Their foreign minister has 3d to answer.
+  ───
+  [✅ Propose] → diplomacy:propose:vantor_federation:alliance:yes
+  [🔙 Back] → diplomacy:propose:vantor_federation
+
+━━━ End · withdraw a proposal ━━━
+(edits message 42)
+Withdraw proposal No. 6 (trade agreement to Vantor Federation)?
+  ───
+  [✅ Withdraw] → diplomacy:end:6:yes
+  [🔙 Back] → diplomacy:treaties:default_country
+
+━━━ End · end a treaty ━━━
+(edits message 42)
+End treaty No. 2 (non-aggression pact with Vantor Federation)? It stops binding at once, and both countries' groups hear of it.
+  ───
+  [✅ End the treaty] → diplomacy:end:2:yes
+  [🔙 Back] → diplomacy:treaties:default_country
+
+━━━ Record · a page ━━━
+(edits message 42)
+📜 Diplomatic record of The Commonwealth
+• The Commonwealth imposed trade embargo, arms embargo on Vantor Federation (No. 3), for aggression
+  by the President, Kaveh (B3C4D5F) - 2d 2h ago
+• Vantor Federation lifted sanction No. 2 on The Commonwealth
+• Vantor Federation proposed a military alliance to The Commonwealth (No. 5)
+• The Commonwealth and Vantor Federation signed a non-aggression pact (No. 2)
+  by the Foreign minister, Nilou (N1L0F4R) - 4d ago
+• Vantor Federation declined a trade agreement with The Commonwealth (No. 1)
+• The Commonwealth withdrew a non-aggression pact proposal to Vantor Federation (No. 8)
+• Vantor Federation ended the trade agreement with The Commonwealth (No. 9)
+  ───
+  [Next ➡️] → diplomacy:history:default_country:2
+  [🔙 Back] → diplomacy:sanctions:default_country   │   [🔄 Refresh] → diplomacy:history:default_country:1
+
+━━━ Record · empty ━━━
+(edits message 42)
+📜 Diplomatic record of Vantor Federation
+Nothing has happened between countries yet.
+  ───
+  [🔙 Back] → diplomacy:sanctions:vantor_federation   │   [🔄 Refresh] → diplomacy:history:vantor_federation:1
+
+━━━ Refused · not_holder ━━━
+(edits message 42)
+Only the President of The Commonwealth can do that. If you held that office, you may have been replaced.
+  ───
+  [🔙 Back] → diplomacy:sanctions:default_country
+
+━━━ Refused · too_soon ━━━
+(edits message 42)
+A sanction stands for a while before it may be lifted: 20h more.
+  ───
+  [🔙 Back] → diplomacy:sanctions:default_country
+
+━━━ Refused · standing ━━━
+(edits message 42)
+We have a sanction on that country already. Lift it before imposing another.
+  ───
+  [🔙 Back] → diplomacy:sanctions:default_country
+
+━━━ Refused · self ━━━
+(edits message 42)
+A country cannot do that with itself.
+  ───
+  [🔙 Back] → diplomacy:sanctions:default_country
+
+━━━ Refused · open ━━━
+(edits message 42)
+A treaty of that kind with that country is open already.
+  ───
+  [🔙 Back] → diplomacy:sanctions:default_country
+
+━━━ Refused · state ━━━
+(edits message 42)
+That treaty has already been answered, withdrawn, ended or has lapsed.
+  ───
+  [🔙 Back] → diplomacy:sanctions:default_country
+
+━━━ Refused · not_found ━━━
+(edits message 42)
+No such sanction or treaty.
+  ───
+  [🔙 Back] → gov:city
+
+━━━ Refused · no_country ━━━
+(edits message 42)
+You do not live in any country yet. Settle in a city first.
+  ───
+  [🔙 Back] → gov:city
+
+━━━ Blocked · trade ━━━
+(edits message 42)
+⛔ A trade embargo between The Commonwealth and Vantor Federation forbids this deal.
+  ───
+  [⛔ Sanctions] → diplomacy:sanctions:default_country
+  [🔙 Back] → market:list
+
+━━━ Blocked · arms ━━━
+(edits message 42)
+⛔ An arms embargo between The Commonwealth and Vantor Federation forbids this sale.
+  ───
+  [⛔ Sanctions] → diplomacy:sanctions:default_country
+  [🔙 Back] → market:list
+
+━━━ Blocked · technology ━━━
+(edits message 42)
+⛔ A technology ban between The Commonwealth and Vantor Federation forbids this license.
+  ───
+  [⛔ Sanctions] → diplomacy:sanctions:default_country
+  [🔙 Back] → market:list
+
+━━━ Blocked · travel ━━━
+(edits message 42)
+⛔ A travel ban between The Commonwealth and Vantor Federation closes this route.
+  ───
+  [⛔ Sanctions] → diplomacy:sanctions:default_country
+  [🔙 Back] → market:list
+
+━━━ Blocked · financial ━━━
+(edits message 42)
+⛔ Financial sanctions between The Commonwealth and Vantor Federation forbid card payments between their people.
+  ───
+  [⛔ Sanctions] → diplomacy:sanctions:default_country
+  [🔙 Back] → market:list
+
+━━━ Notice · a treaty proposed to us ━━━
+(sends)
+📨 The Commonwealth proposes a military alliance to us (No. 5). Answer within 3d.
+  ───
+  [✅ Accept No. 5] → diplomacy:answer:5:accept   │   [✖️ Decline No. 5] → diplomacy:answer:5:decline
+  [🔙 Back] → diplomacy:treaties:vantor_federation

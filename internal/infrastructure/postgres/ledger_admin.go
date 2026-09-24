@@ -97,6 +97,40 @@ type LedgerVerification struct {
 	// 0020): Production is false before that migration.
 	Production bool
 	ProductionInvariants
+
+	// Military is whether the armed forces' tables exist (migration 0021);
+	// MilitaryInvariants their checks.
+	Military bool
+	MilitaryInvariants
+}
+
+// MilitaryInvariants are the armed forces' checks
+// (docs/adr/0022-military-and-diplomacy.md §2.12).
+type MilitaryInvariants struct {
+	// OrphanStateAccounts are national treasuries and defence funds whose
+	// owner is not a country.
+	OrphanStateAccounts int64
+	// OrphanStateHoldings are goods a state holds that name no country, or
+	// that have no military asset row; OrphanAssets asset rows whose piece
+	// the state does not hold.
+	OrphanStateHoldings int64
+	OrphanAssets        int64
+	// The ledger, reason by reason, against the rows: the cities' levy
+	// credited to national treasuries, the appropriation credited to
+	// defence funds, the upkeep taken from them, and arms paid for.
+	LevyLedger, LevyRows                   int64
+	AppropriationLedger, AppropriationRows int64
+	UpkeepLedger, UpkeepRows               int64
+	ProcurementLedger, ProcurementRows     int64
+	// Procured is pieces moved to states by procurement; ProcuredRows the
+	// quantity the procurements say.
+	Procured, ProcuredRows int64
+}
+
+func (m MilitaryInvariants) ok() bool {
+	return m.OrphanStateAccounts == 0 && m.OrphanStateHoldings == 0 && m.OrphanAssets == 0 &&
+		m.LevyLedger == m.LevyRows && m.AppropriationLedger == m.AppropriationRows && m.UpkeepLedger == m.UpkeepRows &&
+		m.ProcurementLedger == m.ProcurementRows && m.Procured == m.ProcuredRows
 }
 
 // ProductionInvariants are the production economy's checks of `admin
@@ -162,7 +196,8 @@ type DriftedStack struct {
 // OK reports whether every invariant holds.
 func (v LedgerVerification) OK() bool {
 	return v.LedgerSum == "0" && len(v.Unbalanced) == 0 && len(v.Drifted) == 0 &&
-		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok() && v.ProductionInvariants.ok()
+		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok() && v.ProductionInvariants.ok() &&
+		v.MilitaryInvariants.ok()
 }
 
 // VerifyLedger runs the three invariants of docs/adr/0009-economic-control.md
@@ -243,6 +278,14 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 	}
 	if v.Production {
 		if err := a.verifyProduction(ctx, &v, limit); err != nil {
+			return v, err
+		}
+	}
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.military_assets') IS NOT NULL`).Scan(&v.Military); err != nil {
+		return v, fmt.Errorf("postgres: looking for the armed forces: %w", err)
+	}
+	if v.Military {
+		if err := a.verifyMilitary(ctx, &v); err != nil {
 			return v, err
 		}
 	}
@@ -492,6 +535,63 @@ func (a *EconomyAdmin) verifyProduction(ctx context.Context, v *LedgerVerificati
 		p.Orders = append(p.Orders, s)
 	}
 	return rows.Err()
+}
+
+// verifyMilitary runs the armed forces' invariants: every state account and
+// every state holding belongs to a country; every piece a state holds is a
+// military asset and every asset a piece the state holds; and the ledger
+// moved exactly what the defence periods and the procurements say.
+func (a *EconomyAdmin) verifyMilitary(ctx context.Context, v *LedgerVerification) error {
+	m := &v.MilitaryInvariants
+	if err := a.q.QueryRow(ctx, `
+		SELECT count(*) FROM accounts a
+		 WHERE a.kind IN ('state_treasury', 'defence_fund')
+		   AND NOT EXISTS (SELECT 1 FROM jurisdictions j WHERE j.id = a.owner_id AND j.kind = 'country')`).Scan(&m.OrphanStateAccounts); err != nil {
+		return fmt.Errorf("postgres: checking state accounts' owners: %w", err)
+	}
+	if err := a.q.QueryRow(ctx, `
+		SELECT (SELECT count(*) FROM org_stacks s WHERE s.org_kind = 'state')
+		     + (SELECT count(*) FROM item_pieces i WHERE i.org_kind = 'state'
+		          AND (NOT EXISTS (SELECT 1 FROM jurisdictions j WHERE j.id = i.org_id AND j.kind = 'country')
+		               OR NOT EXISTS (SELECT 1 FROM military_assets x WHERE x.piece_id = i.id AND x.country_id = i.org_id))),
+		       (SELECT count(*) FROM military_assets x
+		         WHERE NOT EXISTS (SELECT 1 FROM item_pieces i WHERE i.id = x.piece_id AND i.org_kind = 'state'
+		                             AND i.org_id = x.country_id AND i.holding = 'warehouse'))`).Scan(
+		&m.OrphanStateHoldings, &m.OrphanAssets); err != nil {
+		return fmt.Errorf("postgres: checking states' holdings: %w", err)
+	}
+	sums := []struct {
+		ledger, rows *int64
+		reason, kind string
+		sign         string
+		sql          string
+	}{
+		{&m.LevyLedger, &m.LevyRows, "national_levy", "state_treasury", "> 0", `SELECT COALESCE(SUM(levy), 0)::bigint FROM military_periods`},
+		{&m.AppropriationLedger, &m.AppropriationRows, "defence_appropriation", "defence_fund", "> 0",
+			`SELECT COALESCE(SUM(appropriation), 0)::bigint FROM military_periods`},
+		{&m.UpkeepLedger, &m.UpkeepRows, "military_upkeep", "defence_fund", "< 0",
+			`SELECT COALESCE(SUM(upkeep_paid), 0)::bigint FROM military_periods`},
+		{&m.ProcurementLedger, &m.ProcurementRows, "arms_procurement", "defence_fund", "< 0",
+			`SELECT COALESCE(SUM(total), 0)::bigint FROM procurements`},
+	}
+	for _, s := range sums {
+		// s.sign is one of two fixed strings of this file, never input.
+		if err := a.q.QueryRow(ctx, `
+			SELECT COALESCE(ABS(SUM(e.amount)), 0)::bigint
+			  FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
+			 WHERE e.reason = $1 AND a.kind = $2 AND e.amount `+s.sign, s.reason, s.kind).Scan(s.ledger); err != nil {
+			return fmt.Errorf("postgres: summing %s in the ledger: %w", s.reason, err)
+		}
+		if err := a.q.QueryRow(ctx, s.sql).Scan(s.rows); err != nil {
+			return fmt.Errorf("postgres: summing %s rows: %w", s.reason, err)
+		}
+	}
+	if err := a.q.QueryRow(ctx, `
+		SELECT (SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'procured'),
+		       (SELECT COALESCE(SUM(quantity), 0)::bigint FROM procurements)`).Scan(&m.Procured, &m.ProcuredRows); err != nil {
+		return fmt.Errorf("postgres: checking procured goods: %w", err)
+	}
+	return nil
 }
 
 // AuditEntry is one audit_logs row.

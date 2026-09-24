@@ -56,7 +56,8 @@ SELECT j.id::text, j.kind, j.code, j.name, COALESCE(j.parent_id::text, ''), c.ta
 // selectActiveOffices reads every office of the active content version.
 const selectActiveOffices = `
 SELECT od.code, od.jurisdiction_kind, od.seats, COALESCE(od.deputy, ''),
-       COALESCE(od.term_seconds, 0), od.incompatible_with
+       COALESCE(od.term_seconds, 0), od.incompatible_with, od.acquired_by, COALESCE(od.appointed_by, ''),
+       od.can_be_removed_by
   FROM office_definitions od
   JOIN content_versions cv ON cv.id = od.content_version_id
  WHERE cv.status = 'active'
@@ -212,7 +213,8 @@ func activeOffices(ctx context.Context, q querier) ([]application.OfficeDefiniti
 			o    application.OfficeDefinition
 			term int64
 		)
-		if err := rows.Scan(&o.Code, &o.Jurisdiction, &o.Seats, &o.Deputy, &term, &o.IncompatibleWith); err != nil {
+		if err := rows.Scan(&o.Code, &o.Jurisdiction, &o.Seats, &o.Deputy, &term, &o.IncompatibleWith,
+			&o.AcquiredBy, &o.AppointedBy, &o.CanBeRemovedBy); err != nil {
 			return nil, fmt.Errorf("postgres: scanning office: %w", err)
 		}
 		o.Term = time.Duration(term) * time.Second
@@ -447,6 +449,15 @@ func (r *GovernanceRepository) Seat(ctx context.Context, officeCode, jurisdictio
 			fmt.Errorf("no seat %d of %s in jurisdiction %s", seat, officeCode, jurisdictionID))
 	}
 	return o, err
+}
+
+// ActingChain returns an office and its deputies with their seats in the
+// jurisdiction, locked FOR SHARE.
+func (r *GovernanceRepository) ActingChain(ctx context.Context, officeCode, jurisdictionID string) ([]application.OfficeLink, error) {
+	if !validUUID(jurisdictionID) {
+		return nil, application.ErrJurisdictionNotFound
+	}
+	return actingChain(ctx, r.q, officeCode, jurisdictionID, true)
 }
 
 // SeatsHeldBy returns every seat the player holds, anywhere.

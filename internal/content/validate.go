@@ -183,6 +183,7 @@ func (p *Pack) Validate() error {
 	// Production: method timings, the technology tree, how each component
 	// is made, and the NPC suppliers of basic inputs.
 	p.validateProduction(&problems)
+	p.validateMilitary(&problems)
 
 	if len(problems) > 0 {
 		return errors.Join(problems...)

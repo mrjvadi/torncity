@@ -154,6 +154,13 @@ jurisdictions:
     name: The Commonwealth
     level: country
 
+  # The far end of the map is a country of its own
+  # (docs/adr/0022-military-and-diplomacy.md): a second state is what makes
+  # sanctions, arms exports and treaties mean anything.
+  - code: vantor_federation
+    name: Vantor Federation
+    level: country
+
 levers:
   # Today's per-city rates carry over unchanged: the default for each city is
   # its tax_rate_bps. `default: 450` is the fallback for a city with none.
@@ -399,6 +406,48 @@ levers:
     change_cooldown: 168h
     notice: 72h
 
+  # The state's money (docs/adr/0022-military-and-diplomacy.md). Every
+  # defence period (config military.period, GAME time) each city of the
+  # country pays the national treasury revenue_share of what its treasury
+  # took in during the period, and the national treasury appropriates
+  # defence_budget of that to the defence fund, which alone pays for arms and
+  # the forces' upkeep. No national treasury existed before; the defaults
+  # are a moderate start, not a past behaviour.
+  - code: country.revenue_share
+    jurisdiction: country
+    type: bps
+    default: 1000
+    min: 0
+    max: 3000
+    held_by: president
+    change_cooldown: 168h
+    notice: 72h
+
+  - code: country.defence_budget
+    jurisdiction: country
+    type: bps
+    default: 3000
+    min: 0
+    max: 10000
+    held_by: president
+    change_cooldown: 168h
+    notice: 72h
+
+  # Arms export policy: to whom the country's defence companies may sell
+  # arms. 0 — the country's own state only; 1 — also states it has a treaty
+  # with that makes them arms partners (diplomacy.yml); 2 — any state not
+  # under an arms embargo either way. Controlled technology licensed across
+  # the border follows the same policy. The defence minister decides it.
+  - code: country.arms_exports
+    jurisdiction: country
+    type: int
+    default: 1
+    min: 0
+    max: 2
+    held_by: defence_minister
+    change_cooldown: 72h
+    notice: 24h
+
 offices:
   - code: mayor
     jurisdiction: city
@@ -461,7 +510,102 @@ offices:
     seats: 1
     acquired_by: election
     term: 1440h
-    levers: [country.border_tariff]
+    levers: [country.border_tariff, country.revenue_share, country.defence_budget]
+
+  # Defence (docs/adr/0022-military-and-diplomacy.md). Civilian control:
+  # the minister buys and pays, the chief of the general staff and the
+  # branch commanders command, and the three never sit in one person. The
+  # president appoints the minister and the chief; the chief appoints the
+  # commanders and acts for a vacant one.
+  - code: defence_minister
+    jurisdiction: country
+    seats: 1
+    acquired_by: appointment
+    appointed_by: president
+    can_be_removed_by: [president, operator]
+    levers: [country.arms_exports]
+    incompatible_with: [president, chief_of_general_staff]
+
+  - code: chief_of_general_staff
+    jurisdiction: country
+    seats: 1
+    acquired_by: appointment
+    appointed_by: president
+    can_be_removed_by: [president, operator]
+    levers: []
+    incompatible_with: [president]
+
+  - code: ground_forces_commander
+    jurisdiction: country
+    seats: 1
+    acquired_by: appointment
+    appointed_by: chief_of_general_staff
+    can_be_removed_by: [chief_of_general_staff, president, operator]
+    deputy: chief_of_general_staff
+    levers: []
+    incompatible_with: [president, defence_minister]
+
+  - code: air_force_commander
+    jurisdiction: country
+    seats: 1
+    acquired_by: appointment
+    appointed_by: chief_of_general_staff
+    can_be_removed_by: [chief_of_general_staff, president, operator]
+    deputy: chief_of_general_staff
+    levers: []
+    incompatible_with: [president, defence_minister]
+
+  - code: navy_commander
+    jurisdiction: country
+    seats: 1
+    acquired_by: appointment
+    appointed_by: chief_of_general_staff
+    can_be_removed_by: [chief_of_general_staff, president, operator]
+    deputy: chief_of_general_staff
+    levers: []
+    incompatible_with: [president, defence_minister]
+
+  - code: air_defence_commander
+    jurisdiction: country
+    seats: 1
+    acquired_by: appointment
+    appointed_by: chief_of_general_staff
+    can_be_removed_by: [chief_of_general_staff, president, operator]
+    deputy: chief_of_general_staff
+    levers: []
+    incompatible_with: [president, defence_minister]
+
+  # Foreign affairs. The Vienna Convention (1969, art. 7) lets a head of
+  # state and a foreign minister conclude a treaty without full powers: the
+  # minister does, and the president acts while the seat is vacant.
+  - code: foreign_minister
+    jurisdiction: country
+    seats: 1
+    acquired_by: appointment
+    appointed_by: president
+    can_be_removed_by: [president, operator]
+    deputy: president
+    levers: []
+
+# ---------------------------------------------------------------------------
+# actions — decisions that are not a value: buying arms, commanding a branch,
+# sanctioning a country, concluding a treaty. Like a lever, each is held by
+# one office and, while it is vacant, by the deputy acting for it; nobody
+# otherwise. The code knows what each action does; who holds it is here.
+#   code          stable identifier, prefixed by its level. The code
+#                 implements a closed set: country.procure,
+#                 country.sanction, country.treaty, and the branch commands
+#                 military.yml names.
+#   jurisdiction  the level it is taken at.
+#   held_by       the office that takes it, at the same level.
+actions:
+  - {code: country.procure,             jurisdiction: country, held_by: defence_minister}
+  - {code: country.command_ground,      jurisdiction: country, held_by: ground_forces_commander}
+  - {code: country.command_air,         jurisdiction: country, held_by: air_force_commander}
+  - {code: country.command_navy,        jurisdiction: country, held_by: navy_commander}
+  - {code: country.command_air_defence, jurisdiction: country, held_by: air_defence_commander}
+  - {code: country.sanction,            jurisdiction: country, held_by: president}
+  - {code: country.treaty,              jurisdiction: country, held_by: foreign_minister}
 
 # ---------------------------------------------------------------------------
 # elections — how each office acquired by election is elected

@@ -87,6 +87,11 @@ const (
 	ActionTypeResearch   = "company_research"
 	ActionTypeProduction = "production_order"
 	ActionTypeReverse    = "reverse_engineering"
+
+	// The armed forces (docs/adr/0022): a country's defence period ending,
+	// and equipment reaching its garrison.
+	ActionTypeMilitaryPeriod = "military_period"
+	ActionTypeMilitaryMove   = "military_move"
 )
 
 // routes maps an action type to the command it is published as.
@@ -121,6 +126,9 @@ var routes = map[string]Route{
 	ActionTypeResearch:   {Domain: "company", Action: "researched"},
 	ActionTypeProduction: {Domain: "company", Action: "produced"},
 	ActionTypeReverse:    {Domain: "company", Action: "reversed"},
+
+	ActionTypeMilitaryPeriod: {Domain: "military", Action: "settle"},
+	ActionTypeMilitaryMove:   {Domain: "military", Action: "arrive"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

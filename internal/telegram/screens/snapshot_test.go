@@ -535,6 +535,11 @@ func governanceSnapshots(c Context, who people, add func(string, *presenter.Resp
 	add("Change a policy · money", LeverEdit(c, LeverEditView{Place: place, Lever: fee, Draft: 1500, FineStep: 1000, CoarseStep: 10000}))
 	add("Change a policy · waiting for the cooldown", LeverEdit(c, LeverEditView{Place: place, Lever: tax, Draft: 800, FineStep: 25,
 		CoarseStep: 250, NextChangeIn: 50 * time.Hour}))
+	exports := GovLever{Code: "country.arms_exports", Type: "int", Value: 1, Default: 1, Min: 0, Max: 2,
+		HeldBy: "defence_minister", Notice: 24 * time.Hour, Cooldown: 72 * time.Hour}
+	add("Change a policy · a choice (arms exports)", LeverEdit(c, LeverEditView{Place: country, Lever: exports, Draft: 2,
+		FineStep: 1}))
+	add("Change a policy · a choice confirmed", PolicyConfirm(c, PolicyConfirmView{Place: country, Lever: exports, NewValue: 2}))
 	add("Change a policy · confirm", PolicyConfirm(c, PolicyConfirmView{Place: place, Lever: tax, NewValue: 825}))
 	add("Change a policy · announced", PolicyAnnounced(c, PolicyAnnouncedView{Place: place, Lever: tax, Old: 450, New: 825, In: 24 * time.Hour}))
 	add("Policy history (page 1 of 2)", GovHistory(c, GovHistoryView{City: place, Page: 1, Pages: 2, Entries: []GovHistoryEntry{
@@ -629,6 +634,7 @@ func TestGroupTextSnapshots(t *testing.T) {
 			electionAnnouncements(c, who, book)
 			companyAnnouncements(c, who, book)
 			productionAnnouncements(c, book)
+			militaryAnnouncements(c, who, book)
 			book.Check(t, snapshotDir, "group")
 		})
 	}

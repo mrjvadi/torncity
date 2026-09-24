@@ -200,6 +200,26 @@ func (g *fakeGov) SeatsHeldBy(_ context.Context, player string) ([]Office, error
 	return out, nil
 }
 
+func (g *fakeGov) ActingChain(_ context.Context, officeCode, jid string) ([]OfficeLink, error) {
+	deputy := map[string]string{}
+	for _, o := range g.offices {
+		deputy[o.Code] = o.Deputy
+	}
+	var chain []OfficeLink
+	seen := map[string]bool{}
+	for code := officeCode; code != "" && !seen[code]; code = deputy[code] {
+		seen[code] = true
+		link := OfficeLink{OfficeCode: code}
+		for _, s := range g.seats {
+			if s.OfficeCode == code && s.JurisdictionID == jid {
+				link.Seats = append(link.Seats, s)
+			}
+		}
+		chain = append(chain, link)
+	}
+	return chain, nil
+}
+
 func (g *fakeGov) AssignSeat(_ context.Context, o Office) error {
 	for i := range g.seats {
 		if g.seats[i].ID == o.ID {
@@ -587,5 +607,31 @@ func TestIncompatibleIsSymmetric(t *testing.T) {
 	}
 	if incompatible(a, c) || incompatible(b, c) {
 		t.Error("offices nobody declared incompatible are")
+	}
+}
+
+// TestAuthorizeWalksTheDeputyChain: an action is the office's holder's, or
+// — while the office is vacant — the acting deputy's; nobody else's.
+func TestAuthorizeWalksTheDeputyChain(t *testing.T) {
+	g := newFakeGov()
+	tx := govTx{gov: g}
+	ctx := context.Background()
+	if _, err := Authorize(ctx, tx, cityA, "mayor", mayorA); !stderrors.Is(err, ErrNotOfficeHolder) {
+		t.Errorf("a vacant office and deputy: %v, want ErrNotOfficeHolder", err)
+	}
+	g.seat("deputy@"+cityA, mayorB)
+	seat, err := Authorize(ctx, tx, cityA, "mayor", mayorB)
+	if err != nil || seat.OfficeCode != "deputy_mayor" {
+		t.Errorf("the deputy acting for a vacant mayor: %+v, %v", seat, err)
+	}
+	g.seat("mayor@"+cityA, mayorA)
+	if _, err := Authorize(ctx, tx, cityA, "mayor", mayorB); !stderrors.Is(err, ErrNotOfficeHolder) {
+		t.Errorf("the deputy once the mayor is seated: %v, want ErrNotOfficeHolder", err)
+	}
+	if seat, err := Authorize(ctx, tx, cityA, "mayor", mayorA); err != nil || seat.OfficeCode != "mayor" {
+		t.Errorf("the mayor: %+v, %v", seat, err)
+	}
+	if _, err := Authorize(ctx, tx, cityB, "mayor", mayorA); !stderrors.Is(err, ErrNotOfficeHolder) {
+		t.Errorf("another city's mayor: %v, want ErrNotOfficeHolder", err)
 	}
 }

@@ -180,6 +180,7 @@ func (p *Pack) validateGovernance(problems *[]error) {
 	offices := p.validateOffices(levels, problems)
 	leverCodes := p.validateLevers(levels, offices, problems)
 	p.validateOfficeLinks(offices, leverCodes, problems)
+	p.validateActions(levels, offices, problems)
 }
 
 // validateLevels checks the level list and returns the valid ones by code.

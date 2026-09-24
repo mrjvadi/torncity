@@ -11,6 +11,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/market"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
@@ -506,10 +507,23 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 	if err != nil {
 		return screens.OrderPlacedView{}, err
 	}
+	// A trade embargo (docs/adr/0022): offers whose owner's country and the
+	// player's are under one stay on the book, unmatched by this order.
+	embargoed, err := embargoedOwners(ctx, tx, p.ID, resting, now)
+	if err != nil {
+		return screens.OrderPlacedView{}, err
+	}
+	skipped := 0
 	key := market.AssetKey{Type: market.AssetItem, ID: def.Code, City: city.ID, Channel: market.ChannelPublic}
 	book := market.NewBook(key)
 	stored := map[string]application.MarketOrder{}
 	for _, o := range resting {
+		if embargoed[o.OwnerID] {
+			if o.Side != string(side) && ((side == market.Buy && o.Price <= price) || (side == market.Sell && o.Price >= price)) {
+				skipped++
+			}
+			continue
+		}
 		stored[o.ID] = o
 		d := domainOrder(o, key)
 		if d.Side == market.Buy {
@@ -591,7 +605,53 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 		}
 	}
 	return screens.OrderPlacedView{Item: it, Side: string(side), Qty: qty, Filled: order.Filled, Price: price, No: placed.No,
-		Rests: res.Rests, Spent: spent, Got: got, ExpiresAt: order.ExpiresAt, Method: order.Funding}, nil
+		Rests: res.Rests, Spent: spent, Got: got, ExpiresAt: order.ExpiresAt, Method: order.Funding, Embargoed: skipped}, nil
+}
+
+// embargoedOwners are the owners of resting orders the player may not trade
+// with: their country and the player's are under a trade embargo, either
+// way — the one sanctions check, application.CheckSanctions, per country.
+func embargoedOwners(ctx context.Context, tx application.Tx, playerID string, resting []application.MarketOrder,
+	now time.Time,
+) (map[string]bool, error) {
+	out := map[string]bool{}
+	ids := []string{playerID}
+	for _, o := range resting {
+		if o.OwnerID != playerID {
+			ids = append(ids, o.OwnerID)
+		}
+	}
+	if len(ids) == 1 {
+		return out, nil
+	}
+	countries, err := tx.Diplomacy().CountriesOfPlayers(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	mine := countries[playerID]
+	verdict := map[string]bool{}
+	for _, o := range resting {
+		theirs := countries[o.OwnerID]
+		if theirs == "" || theirs == mine {
+			continue
+		}
+		blocked, seen := verdict[theirs]
+		if !seen {
+			err := application.CheckSanctions(ctx, tx, diplomacy.Trade, mine, theirs, now)
+			var s *application.SanctionedError
+			switch {
+			case stderrors.As(err, &s):
+				blocked = true
+			case err != nil:
+				return nil, err
+			}
+			verdict[theirs] = blocked
+		}
+		if blocked {
+			out[o.OwnerID] = true
+		}
+	}
+	return out, nil
 }
 
 // settle books one trade: the goods from the seller's escrow into the

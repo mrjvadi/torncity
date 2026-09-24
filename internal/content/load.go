@@ -92,6 +92,14 @@ type file struct {
 	MethodProfiles []MethodProfileDef `yaml:"production_methods"`
 	Technologies   []TechnologyDef    `yaml:"technologies"`
 	Suppliers      []SupplierDef      `yaml:"suppliers"`
+
+	Actions           []ActionDef       `yaml:"actions"`
+	Branches          []BranchDef       `yaml:"branches"`
+	ForceClasses      []ForceClassDef   `yaml:"force_classes"`
+	MilitaryClearance []string          `yaml:"military_clearance"`
+	StrengthBands     []StrengthBandDef `yaml:"strength_bands"`
+	TreatyTypes       []TreatyTypeDef   `yaml:"treaty_types"`
+	SanctionGrounds   []string          `yaml:"sanction_grounds"`
 }
 
 // Load reads every content file in dir and returns them as one pack.
@@ -189,6 +197,13 @@ func Load(dir string) (*Pack, error) {
 		pack.MethodProfiles = append(pack.MethodProfiles, doc.MethodProfiles...)
 		pack.Technologies = append(pack.Technologies, doc.Technologies...)
 		pack.Suppliers = append(pack.Suppliers, doc.Suppliers...)
+		pack.Actions = append(pack.Actions, doc.Actions...)
+		pack.Branches = append(pack.Branches, doc.Branches...)
+		pack.ForceClasses = append(pack.ForceClasses, doc.ForceClasses...)
+		pack.MilitaryClearance = append(pack.MilitaryClearance, doc.MilitaryClearance...)
+		pack.StrengthBands = append(pack.StrengthBands, doc.StrengthBands...)
+		pack.TreatyTypes = append(pack.TreatyTypes, doc.TreatyTypes...)
+		pack.SanctionGrounds = append(pack.SanctionGrounds, doc.SanctionGrounds...)
 	}
 
 	pack.Checksum = hex.EncodeToString(digest.Sum(nil))

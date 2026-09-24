@@ -119,6 +119,12 @@ var all = []Subscription{
 	{Domain: "gov", Action: "lever", Origin: FromPlayer},
 	{Domain: "gov", Action: "confirm", Origin: FromPlayer},
 	{Domain: "gov", Action: "set", Origin: FromPlayer},
+	// Appointments by office holders (docs/adr/0022): the appointer names a
+	// player and confirms; a holder who may remove another confirms that.
+	{Domain: "gov", Action: "appoint", Origin: FromPlayer},
+	{Domain: "gov", Action: "seat", Origin: FromPlayer},
+	{Domain: "gov", Action: "dismiss", Origin: FromPlayer},
+	{Domain: "gov", Action: "unseat", Origin: FromPlayer},
 
 	// Work: the player's job, the openings in their city, applying, starting
 	// a shift, promotion and leaving. job.work STARTS a shift; only the
@@ -262,6 +268,32 @@ var all = []Subscription{
 	{Domain: "company", Action: "researched", Origin: FromScheduler},
 	{Domain: "company", Action: "produced", Origin: FromScheduler},
 	{Domain: "company", Action: "reversed", Origin: FromScheduler},
+
+	// The armed forces (docs/adr/0022-military-and-diplomacy.md): a
+	// country's ministry of defence and its forces, one branch in full,
+	// stationing equipment, and arms procurement. Only the scheduler sends
+	// military.settle, when a country's defence period ends, and
+	// military.arrive, when equipment reaches its garrison.
+	{Domain: "military", Action: "ministry", Origin: FromPlayer},
+	{Domain: "military", Action: "forces", Origin: FromPlayer},
+	{Domain: "military", Action: "branch", Origin: FromPlayer},
+	{Domain: "military", Action: "station", Origin: FromPlayer},
+	{Domain: "military", Action: "procure", Origin: FromPlayer},
+	{Domain: "military", Action: "buy", Origin: FromPlayer},
+	{Domain: "military", Action: "settle", Origin: FromScheduler},
+	{Domain: "military", Action: "arrive", Origin: FromScheduler},
+
+	// Diplomacy: the sanctions board and imposing and lifting a sanction;
+	// the treaties board and proposing, answering and ending a treaty; the
+	// public record.
+	{Domain: "diplomacy", Action: "sanctions", Origin: FromPlayer},
+	{Domain: "diplomacy", Action: "impose", Origin: FromPlayer},
+	{Domain: "diplomacy", Action: "lift", Origin: FromPlayer},
+	{Domain: "diplomacy", Action: "treaties", Origin: FromPlayer},
+	{Domain: "diplomacy", Action: "propose", Origin: FromPlayer},
+	{Domain: "diplomacy", Action: "answer", Origin: FromPlayer},
+	{Domain: "diplomacy", Action: "end", Origin: FromPlayer},
+	{Domain: "diplomacy", Action: "history", Origin: FromPlayer},
 }
 
 // All returns every subscription. The slice is a copy.

@@ -33,6 +33,10 @@ var ownerTables = map[application.AccountKind]string{
 	application.AccountPlayerEscrow: "players",
 	// A company's treasury (migrations/0019_companies).
 	application.AccountCompanyTreasury: "companies",
+	// A country's national treasury and defence fund
+	// (migrations/0021_military), owned by its jurisdiction.
+	application.AccountStateTreasury: "jurisdictions",
+	application.AccountDefenceFund:   "jurisdictions",
 }
 
 // LedgerRepository implements application.LedgerRepository.

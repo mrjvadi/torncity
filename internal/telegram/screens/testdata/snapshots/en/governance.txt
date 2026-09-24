@@ -22,6 +22,7 @@ Policies:
   ───
   [📜 Policy history] → gov:history:ostmarch   │   [🗳 Elections] → election:list
   [🏛 My office] → gov:office
+  [🎖 Defence and diplomacy of The Commonwealth] → military:ministry:default_country
   [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
 
 ━━━ City hall · a deputy is acting ━━━
@@ -61,6 +62,7 @@ This office has no policy you can change right now.
   ───
   [✏️ Tax rate — Ostmarch] → gov:lever:city.tax_rate:ostmarch
   [✏️ Immigration fee — Ostmarch] → gov:lever:city.immigration_fee:ostmarch
+  [🎖 Defence and diplomacy of The Commonwealth] → military:ministry:default_country
   [🔙 Back] → gov:city   │   [🔄 Refresh] → gov:office
 
 ━━━ My office · none ━━━
@@ -121,6 +123,33 @@ After a change, the next one can be made 3d later.
 ⏳ You can change this policy again in 2d 2h.
   ───
   [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Change a policy · a choice (arms exports) ━━━
+(edits message 42)
+🏛 Arms export policy — The Commonwealth
+• Arms export policy: own state and treaty partners - default
+
+Default: own state and treaty partners
+A change takes effect 24h after it is announced.
+After a change, the next one can be made 3d later.
+
+New value: any state not under embargo
+Adjust it with the buttons, then tap “Review change”.
+  ───
+  [own state only] → gov:lever:country.arms_exports:default_country:0
+  [own state and treaty partners] → gov:lever:country.arms_exports:default_country:1
+  [📝 Review change] → gov:confirm:country.arms_exports:default_country:2
+  [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:country.arms_exports:default_country
+
+━━━ Change a policy · a choice confirmed ━━━
+(edits message 42)
+📝 Confirm the change
+
+Arms export policy in The Commonwealth: from own state and treaty partners to any state not under embargo
+It will be announced now and take effect in 24h.
+You will not be able to change this policy again for 3d.
+  ───
+  [✅ Confirm] → gov:set:country.arms_exports:default_country:2   │   [✖️ Cancel] → gov:lever:country.arms_exports:default_country:2
 
 ━━━ Change a policy · confirm ━━━
 (edits message 42)

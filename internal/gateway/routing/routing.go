@@ -224,6 +224,12 @@ var shortcuts = map[string]shortcut{
 	// "/company" is the companies of the player's city, "/company K7Q2M9A"
 	// one company's page.
 	"company": {Bare: "company.list", Words: "company.view"},
+	// "/army" is the ministry of defence of the player's country, "/army
+	// vantor_federation" another's; "/sanctions" and "/treaties" its
+	// sanctions and treaties boards.
+	"army":      {Bare: "military.ministry", Words: "military.ministry"},
+	"sanctions": {Bare: "diplomacy.sanctions", Words: "diplomacy.sanctions"},
+	"treaties":  {Bare: "diplomacy.treaties", Words: "diplomacy.treaties"},
 }
 
 // argNames names the positional arguments of a command, in order.
@@ -415,6 +421,36 @@ var argNames = map[string][]string{
 	"company.unlist":    {"no"},
 	"company.goods":     {},
 	"company.buy":       {"no", "qty", "method"},
+
+	// The armed forces and diplomacy (docs/adr/0022). A country is named
+	// by its content code (governance.yml), a branch by its code
+	// (military.yml), a listing, a sanction or a treaty by its public
+	// number; a stationing target is «d12» for a design, else a good's code;
+	// a sanction's measures travel as a mask of bits. Imposing and proposing
+	// name no country of their own: it is the one the player decides for,
+	// which keeps both countries' codes inside Telegram's 64 bytes.
+	"military.ministry":   {"country"},
+	"military.forces":     {"country"},
+	"military.branch":     {"country", "branch"},
+	"military.station":    {"country", "target", "city", "qty", "confirm"},
+	"military.procure":    {"country"},
+	"military.buy":        {"country", "no", "qty", "confirm"},
+	"diplomacy.sanctions": {"country"},
+	"diplomacy.impose":    {"target", "mask", "ground", "confirm"},
+	"diplomacy.lift":      {"no", "confirm"},
+	"diplomacy.treaties":  {"country"},
+	"diplomacy.propose":   {"target", "kind", "confirm"},
+	"diplomacy.answer":    {"no", "verdict"},
+	"diplomacy.end":       {"no", "confirm"},
+	"diplomacy.history":   {"country", "page"},
+
+	// Appointments: an office by its code, the place by its code (a city's
+	// or a country's), the appointee by a player code or a username (typed),
+	// or the seat by its number.
+	"gov.appoint": {"office", "place", "to"},
+	"gov.seat":    {"office", "place", "to"},
+	"gov.dismiss": {"office", "place", "seat"},
+	"gov.unseat":  {"office", "place", "seat"},
 }
 
 // landings name the screen a domain opens on when one of its commands cannot

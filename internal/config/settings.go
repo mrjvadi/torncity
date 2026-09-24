@@ -45,6 +45,8 @@ type fileConfig struct {
 	Crime      crimeSettings      `yaml:"crime"`
 	Trade      tradeSettings      `yaml:"trade"`
 	Company    companySettings    `yaml:"company"`
+	Military   militarySettings   `yaml:"military"`
+	Diplomacy  diplomacySettings  `yaml:"diplomacy"`
 	Input      inputSettings      `yaml:"input"`
 	Announce   announceSettings   `yaml:"announce"`
 }
@@ -219,6 +221,21 @@ type companySettings struct {
 	MaxListings            *int    `yaml:"max_listings"`
 	DesignMinSkill         *int    `yaml:"design_min_skill"`
 	ReverseTime            *string `yaml:"reverse_time"`
+}
+
+type militarySettings struct {
+	Period               *string `yaml:"period"`
+	ReadinessLossBPS     *int    `yaml:"readiness_loss_bps"`
+	ReadinessRecoveryBPS *int    `yaml:"readiness_recovery_bps"`
+	ReferenceRadarKM     *int    `yaml:"reference_radar_km"`
+}
+
+type diplomacySettings struct {
+	SanctionNotice      *string `yaml:"sanction_notice"`
+	SanctionMinDuration *string `yaml:"sanction_min_duration"`
+	TreatyOfferTTL      *string `yaml:"treaty_offer_ttl"`
+	EndedShownFor       *string `yaml:"ended_shown_for"`
+	HistoryPageSize     *int    `yaml:"history_page_size"`
 }
 
 // setting is one configurable value, from its yaml key to the field it fills.
@@ -834,6 +851,35 @@ var settings = []setting{
 	durationSetting("company", "reverse_time",
 		func(c *Config) *time.Duration { return &c.Company.ReverseTime },
 		func(f *fileConfig) *string { return f.Company.ReverseTime }),
+
+	durationSetting("military", "period",
+		func(c *Config) *time.Duration { return &c.Military.Period },
+		func(f *fileConfig) *string { return f.Military.Period }),
+	limitSetting("military", "readiness_loss_bps",
+		func(c *Config) *int { return &c.Military.ReadinessLossBPS },
+		func(f *fileConfig) *int { return f.Military.ReadinessLossBPS }),
+	limitSetting("military", "readiness_recovery_bps",
+		func(c *Config) *int { return &c.Military.ReadinessRecoveryBPS },
+		func(f *fileConfig) *int { return f.Military.ReadinessRecoveryBPS }),
+	limitSetting("military", "reference_radar_km",
+		func(c *Config) *int { return &c.Military.ReferenceRadarKM },
+		func(f *fileConfig) *int { return f.Military.ReferenceRadarKM }),
+
+	durationSetting("diplomacy", "sanction_notice",
+		func(c *Config) *time.Duration { return &c.Diplomacy.SanctionNotice },
+		func(f *fileConfig) *string { return f.Diplomacy.SanctionNotice }),
+	durationSetting("diplomacy", "sanction_min_duration",
+		func(c *Config) *time.Duration { return &c.Diplomacy.SanctionMinDuration },
+		func(f *fileConfig) *string { return f.Diplomacy.SanctionMinDuration }),
+	durationSetting("diplomacy", "treaty_offer_ttl",
+		func(c *Config) *time.Duration { return &c.Diplomacy.TreatyOfferTTL },
+		func(f *fileConfig) *string { return f.Diplomacy.TreatyOfferTTL }),
+	durationSetting("diplomacy", "ended_shown_for",
+		func(c *Config) *time.Duration { return &c.Diplomacy.EndedShownFor },
+		func(f *fileConfig) *string { return f.Diplomacy.EndedShownFor }),
+	limitSetting("diplomacy", "history_page_size",
+		func(c *Config) *int { return &c.Diplomacy.HistoryPageSize },
+		func(f *fileConfig) *int { return f.Diplomacy.HistoryPageSize }),
 
 	durationSetting("input", "ttl",
 		func(c *Config) *time.Duration { return &c.Input.TTL },
