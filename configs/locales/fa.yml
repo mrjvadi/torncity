@@ -1667,6 +1667,7 @@ company:
   period_costs: "💸 دستمزدها: {wages} - نگهداری: {upkeep}"
   period_sales: "📦 {sold} واحد از {wanted} واحدِ درخواستی فروخته شد - ظرفیت {capacity} واحد"
   period_quality: "⭐ کیفیت {percent}٪ - {shifts} شیفت کار"
+  period_citizens: "👷 {workers} شهروند جای خالی آگهی‌ها را پر کردند - {shifts} شیفت - دستمزد {wages}"
   notice:
     deposited: "📥 {amount} به حساب شرکت واریز شد."
     withdrawn: "📤 {amount} برداشت شد: {tax} مالیات شرکت و {net} به حساب بانکی شما رفت."
@@ -1681,6 +1682,7 @@ company:
   openings_title: "📋 آگهی‌های استخدام {name}"
   opening_line: "💼 {title} - {wage} برای هر شیفت - {filled} از {positions} جا پر شده"
   openings_none: "آگهی بازی ندارید."
+  openings_citizens: "👷 تا وقتی بازیکنی استخدام نشده، شهروندان شهر جای خالی را پر می‌کنند: همان دستمزد را از حساب شرکت می‌گیرند و کمی کم‌بازده‌ترند. هر بازیکنی که استخدام شود جای یک شهروند را می‌گیرد."
   openings_post: "برای آگهی تازه، رشته را بزنید و دستمزد هر شیفت را بفرستید؛ حداقل دستمزد شهر {wage} است."
   openings_full: "همهٔ ظرفیت کارکنان شرکت پر یا آگهی شده است."
   openings_at_max: "بیش از این آگهی باز نمی‌توانید داشته باشید؛ یکی را ببندید."

@@ -166,6 +166,10 @@ func companySnapshots(c Context, who people, add func(string, *presenter.Respons
 	report := CompanyPeriodSummary{Revenue: 2376, SalesTax: 118, Wages: 600, Upkeep: 500, UpkeepPaid: 500, Shifts: 4,
 		QualityBPS: 10000, Sold: 180, Wanted: 186, Capacity: 180, Balance: 18400}
 	add("Notice · a period report", CompanyPeriodNotice(sent(c), CompanyPeriodNoticeView{Company: mine, Period: report, Grace: 3}))
+	staffedByCitizens := report
+	staffedByCitizens.CitizenWorkers, staffedByCitizens.CitizenShifts, staffedByCitizens.CitizenWages = 2, 4, 600
+	add("Notice · a period report, citizens on the openings", CompanyPeriodNotice(sent(c),
+		CompanyPeriodNoticeView{Company: mine, Period: staffedByCitizens, Grace: 3}))
 	owing := CompanyPeriodSummary{Revenue: 240, SalesTax: 12, Upkeep: 500, UpkeepPaid: 228, Debt: 272, QualityBPS: 3000,
 		Sold: 20, Wanted: 216, Capacity: 20}
 	add("Notice · a period report, in debt", CompanyPeriodNotice(sent(c), CompanyPeriodNoticeView{Company: theirs, Period: owing,

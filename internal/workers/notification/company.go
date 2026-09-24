@@ -57,6 +57,10 @@ type companyEvent struct {
 	Wanted     int64 `json:"wanted"`
 	Capacity   int64 `json:"capacity"`
 	Balance    int64 `json:"balance"`
+
+	CitizenWorkers int   `json:"citizen_workers"`
+	CitizenShifts  int   `json:"citizen_shifts"`
+	CitizenWages   int64 `json:"citizen_wages"`
 }
 
 func decodeCompany(env *envelope.Envelope, name string) (companyEvent, error) {
@@ -138,7 +142,8 @@ func renderCompanyPeriod(_ context.Context, _ Deps, env *envelope.Envelope) (*Dr
 	view := screens.CompanyPeriodNoticeView{Company: ev.ref(), Arrears: ev.Arrears, Grace: ev.Grace, Dissolved: ev.Dissolved,
 		Period: screens.CompanyPeriodSummary{Revenue: ev.Revenue, SalesTax: ev.SalesTax, Wages: ev.Wages,
 			Upkeep: ev.UpkeepDue, UpkeepPaid: ev.UpkeepPaid, Debt: ev.Debt, Shifts: ev.Shifts, QualityBPS: ev.QualityBPS,
-			Sold: ev.Sold, Wanted: ev.Wanted, Capacity: ev.Capacity, Balance: ev.Balance}}
+			Sold: ev.Sold, Wanted: ev.Wanted, Capacity: ev.Capacity, Balance: ev.Balance,
+			CitizenWorkers: ev.CitizenWorkers, CitizenShifts: ev.CitizenShifts, CitizenWages: ev.CitizenWages}}
 	return &Draft{PlayerID: ev.OwnerID, Screen: func(c screens.Context) *presenter.Response {
 		return screens.CompanyPeriodNotice(c, view)
 	}}, nil

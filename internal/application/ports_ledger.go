@@ -209,6 +209,10 @@ const (
 	// to the employee's cash. Income tax is withheld after it, as from any
 	// wage (ReasonIncomeTax).
 	ReasonCompanyWage Reason = "company_wage"
+	// ReasonCitizenWage pays the city's citizens who worked a company's
+	// untaken openings in a period, from its treasury to system_sink: they
+	// are NPC households, so the money leaves the economy (a drain).
+	ReasonCitizenWage Reason = "citizen_wage"
 )
 
 // The production economy (docs/adr/0021-production-economy.md). Research and
@@ -260,7 +264,7 @@ var knownReasons = map[Reason]struct{}{
 	ReasonElectionDeposit: {}, ReasonElectionRefund: {}, ReasonElectionForfeit: {},
 
 	ReasonCompanyRegistration: {}, ReasonCompanyDeposit: {}, ReasonCompanyWithdrawal: {},
-	ReasonCorporateTax: {}, ReasonCompanyWage: {},
+	ReasonCorporateTax: {}, ReasonCompanyWage: {}, ReasonCitizenWage: {},
 
 	ReasonResearch: {}, ReasonSupplierPurchase: {}, ReasonTechnologyLicense: {}, ReasonCompanySale: {},
 }

@@ -150,6 +150,9 @@ func (h *ProductionHandler) Orders(ctx context.Context, meta envelope.Metadata, 
 		if err != nil {
 			return err
 		}
+		if err := h.withCitizens(ctx, tx, f); err != nil {
+			return err
+		}
 		view = screens.OrdersView{Ref: companyRef(snap, *c), Max: h.rules.MaxRunningOrders, Crew: f.crew()}
 		if view.Targets, err = h.targets(ctx, tx, snap, f); err != nil {
 			return err
@@ -208,6 +211,9 @@ type plan struct {
 func (h *ProductionHandler) planOrder(ctx context.Context, tx application.Tx, snap *content.Snapshot, f *floor, t orderTarget,
 	qty int64,
 ) (plan, error) {
+	if err := h.withCitizens(ctx, tx, f); err != nil {
+		return plan{}, err
+	}
 	out := plan{target: t, crew: f.crew()}
 	var err error
 	if out.stock, err = warehouseStock(ctx, tx, f.c.ID); err != nil {

@@ -1563,6 +1563,7 @@ company:
   period_costs: "💸 Wages: {wages} - upkeep: {upkeep}"
   period_sales: "📦 Sold {sold} of {wanted} units asked for - capacity {capacity} units"
   period_quality: "⭐ Quality {percent}% - {shifts} shifts worked"
+  period_citizens: "👷 {workers} citizens filled open positions - {shifts} shifts - wages {wages}"
   notice:
     deposited: "📥 {amount} went into the company's account."
     withdrawn: "📤 {amount} withdrawn: {tax} corporate tax, and {net} into your bank account."
@@ -1577,6 +1578,7 @@ company:
   openings_title: "📋 Job openings of {name}"
   opening_line: "💼 {title} - {wage} per shift - {filled} of {positions} filled"
   openings_none: "You have no open openings."
+  openings_citizens: "👷 Until a player is hired, the city's citizens fill open positions: they are paid the same wage from the company account and are a little less productive. Every player you hire takes a citizen's place."
   openings_post: "For a new opening, press the career and send the wage per shift; the city's minimum wage is {wage}."
   openings_full: "Every staff place is taken or advertised."
   openings_at_max: "You cannot have more open openings; close one first."

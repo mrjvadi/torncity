@@ -346,6 +346,9 @@ company:
   npc_city_period_cap: 50001
   max_openings: 6
   price_step_bps: 1001
+  citizen_shifts_per_period: 3
+  citizen_productivity_bps: 7001
+  citizen_labour_share_bps: 501
   max_running_orders: 4
   max_designs: 21
   max_listings: 11
@@ -473,20 +476,23 @@ var envOverrides = map[string]string{
 	"TORN_TRADE_AUCTION_MAX_OPEN":       "7",
 	"TORN_TRADE_AUCTION_RESERVES_BPS":   "3000,8000",
 
-	"TORN_COMPANY_PERIOD":              "26h",
-	"TORN_COMPANY_MAX_PER_PLAYER":      "4",
-	"TORN_COMPANY_NAME_MIN_LENGTH":     "5",
-	"TORN_COMPANY_NAME_MAX_LENGTH":     "26",
-	"TORN_COMPANY_FOUNDING_SHARES":     "1002",
-	"TORN_COMPANY_INSOLVENCY_PERIODS":  "5",
-	"TORN_COMPANY_NPC_CITY_PERIOD_CAP": "50002",
-	"TORN_COMPANY_MAX_OPENINGS":        "7",
-	"TORN_COMPANY_PRICE_STEP_BPS":      "1002",
-	"TORN_COMPANY_MAX_RUNNING_ORDERS":  "5",
-	"TORN_COMPANY_MAX_DESIGNS":         "22",
-	"TORN_COMPANY_MAX_LISTINGS":        "12",
-	"TORN_COMPANY_DESIGN_MIN_SKILL":    "3",
-	"TORN_COMPANY_REVERSE_TIME":        "7h",
+	"TORN_COMPANY_PERIOD":                    "26h",
+	"TORN_COMPANY_MAX_PER_PLAYER":            "4",
+	"TORN_COMPANY_NAME_MIN_LENGTH":           "5",
+	"TORN_COMPANY_NAME_MAX_LENGTH":           "26",
+	"TORN_COMPANY_FOUNDING_SHARES":           "1002",
+	"TORN_COMPANY_INSOLVENCY_PERIODS":        "5",
+	"TORN_COMPANY_NPC_CITY_PERIOD_CAP":       "50002",
+	"TORN_COMPANY_MAX_OPENINGS":              "7",
+	"TORN_COMPANY_PRICE_STEP_BPS":            "1002",
+	"TORN_COMPANY_CITIZEN_SHIFTS_PER_PERIOD": "4",
+	"TORN_COMPANY_CITIZEN_PRODUCTIVITY_BPS":  "7002",
+	"TORN_COMPANY_CITIZEN_LABOUR_SHARE_BPS":  "502",
+	"TORN_COMPANY_MAX_RUNNING_ORDERS":        "5",
+	"TORN_COMPANY_MAX_DESIGNS":               "22",
+	"TORN_COMPANY_MAX_LISTINGS":              "12",
+	"TORN_COMPANY_DESIGN_MIN_SKILL":          "3",
+	"TORN_COMPANY_REVERSE_TIME":              "7h",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

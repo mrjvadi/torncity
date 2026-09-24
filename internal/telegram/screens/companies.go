@@ -423,6 +423,10 @@ type CompanyPeriodSummary struct {
 	QualityBPS                                         int
 	Sold, Wanted, Capacity                             int64
 	Balance                                            int64
+	// CitizenWorkers citizens worked CitizenShifts shifts on the company's
+	// untaken openings for CitizenWages; zero when none did.
+	CitizenWorkers, CitizenShifts int
+	CitizenWages                  int64
 }
 
 // Management notices: what the press just did, shown above the books.
@@ -591,6 +595,12 @@ func (c Context) companyPeriodLines(p CompanyPeriodSummary, heading bool) string
 		}),
 		c.T("company.period_quality", map[string]any{"percent": PercentFromBPS(c, p.QualityBPS), "shifts": FormatNumber(c, int64(p.Shifts))}),
 	)
+	if p.CitizenWorkers > 0 {
+		lines = append(lines, c.T("company.period_citizens", map[string]any{
+			"workers": FormatNumber(c, int64(p.CitizenWorkers)), "shifts": FormatNumber(c, int64(p.CitizenShifts)),
+			"wages": FormatMoney(c, p.CitizenWages),
+		}))
+	}
 	return body(lines...)
 }
 
@@ -672,6 +682,8 @@ func CompanyOpenings(c Context, v CompanyOpeningsView) *presenter.Response {
 	list := body(lines...)
 	if len(lines) == 0 {
 		list = c.T("company.openings_none", nil)
+	} else {
+		list = paragraphs(list, c.T("company.openings_citizens", nil))
 	}
 	var post string
 	switch {

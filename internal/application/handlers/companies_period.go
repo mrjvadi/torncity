@@ -156,12 +156,21 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 		share int
 		// stock is what a stocked company holds of what it sells.
 		stock *npcStock
+		// citizens is the citizen labour that worked its untaken openings.
+		citizens company.CitizenPlan
 	}
 	var (
 		members []member
 		sellers []company.Seller
 		skipped int
 	)
+	// pool is how many citizens the city can still lend its companies this
+	// period: a share of its NPC population, divided first come first
+	// served in the companies' lock order.
+	pool := 0
+	if ok {
+		pool = int(marketDef.Population * int64(h.rules.CitizenLabourShareBPS) / 10000)
+	}
 	for i := range companies {
 		c := &companies[i]
 		_, ty, ok := snap.CompanyType(c.TypeCode)
@@ -181,8 +190,15 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 			share = int(int64(max(end.Sub(c.FoundedAt), 0)/time.Millisecond) * 10000 / max(int64(length/time.Millisecond), 1))
 		}
 		price := min(max(c.PriceBPS, ty.PriceMinBPS), ty.PriceMaxBPS)
-		seller := company.Seller{ID: c.ID, Type: ty, PriceBPS: price, Shifts: shifts, PresenceBPS: share}
-		mb := member{c: c, ty: ty, shift: shifts, wages: wages, share: share}
+		// Citizens work the openings no player has taken, as far as the
+		// company's free money pays them; their shifts count for less.
+		citizens, err := h.citizenPlan(ctx, tx, *c, share, pool)
+		if err != nil {
+			return err
+		}
+		pool -= citizens.Workers
+		seller := company.Seller{ID: c.ID, Type: ty, PriceBPS: price, Shifts: shifts + citizens.Effective, PresenceBPS: share}
+		mb := member{c: c, ty: ty, shift: shifts, wages: wages, share: share, citizens: citizens}
 		if codes := snap.StockedCodes(c.TypeCode); len(codes) > 0 {
 			if mb.stock, err = readStock(ctx, tx, c.ID, codes); err != nil {
 				return err
@@ -213,6 +229,13 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 			return err
 		}
 		balance := acct.Balance
+		if !mb.citizens.Wages.IsZero() {
+			if _, err := post(ctx, ledger, application.ReasonCitizenWage, c.ID, acct.ID, application.SystemSinkAccountID,
+				mb.citizens.Wages, now); err != nil {
+				return err
+			}
+			balance, _ = balance.Sub(mb.citizens.Wages)
+		}
 		revenue := sale.Revenue
 		var tax money.Amount
 		if !revenue.IsZero() {
@@ -264,9 +287,9 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 		dissolve := u.Insolvent && reserved == 0
 		if err := tx.Companies().RecordPeriod(ctx, application.CompanyPeriod{
 			CompanyID: c.ID, PeriodNo: clock.PeriodNo, CityID: city.ID, StartedAt: start, EndedAt: end,
-			PresenceBPS: mb.share, PriceBPS: sellers[i].PriceBPS, QualityBPS: sale.QualityBPS, Shifts: mb.shift,
+			PresenceBPS: mb.share, PriceBPS: sellers[i].PriceBPS, QualityBPS: sale.QualityBPS, Shifts: sellers[i].Shifts,
 			WantedUnits: sale.Wanted, CapacityUnits: sale.Capacity, SoldUnits: sale.Sold, Revenue: revenue.Minor(),
-			SalesTax: tax.Minor(), Wages: mb.wages, UpkeepDue: u.Due.Minor(), UpkeepPaid: u.Paid.Minor(),
+			SalesTax: tax.Minor(), Wages: mb.wages + mb.citizens.Wages.Minor(), UpkeepDue: u.Due.Minor(), UpkeepPaid: u.Paid.Minor(),
 			Debt: u.Debt.Minor(), BalanceAfter: balance.Minor(), Insolvent: dissolve, SettledAt: now, StockUnits: stockUnits,
 		}); err != nil {
 			return err
@@ -278,6 +301,8 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 			"arrears": u.Arrears, "grace": h.rules.InsolvencyPeriods, "dissolved": dissolve,
 			"shifts": mb.shift, "quality_bps": sale.QualityBPS, "sold": sale.Sold, "wanted": sale.Wanted,
 			"capacity": sale.Capacity, "balance": balance.Minor(),
+			"citizen_workers": mb.citizens.Workers, "citizen_shifts": mb.citizens.Shifts,
+			"citizen_wages": mb.citizens.Wages.Minor(),
 		}); err != nil {
 			return err
 		}
@@ -398,4 +423,48 @@ func (w *npcStock) sell(ctx context.Context, tx application.Tx, ids IDGenerator,
 		left--
 	}
 	return qty - left, nil
+}
+
+// citizenVacancies is a company's untaken positions: the free positions of
+// its open openings, each at its opening's wage. A position a player holds
+// is not free, so players always come before citizens.
+func citizenVacancies(ctx context.Context, tx application.Tx, companyID string) ([]company.Vacancy, error) {
+	openings, err := tx.Companies().Openings(ctx, companyID)
+	if err != nil {
+		return nil, err
+	}
+	var out []company.Vacancy
+	for _, o := range openings {
+		if o.Status != application.OpeningOpen || o.Free() == 0 {
+			continue
+		}
+		out = append(out, company.Vacancy{Positions: o.Free(), Wage: money.FromMinor(o.Wage)})
+	}
+	return out, nil
+}
+
+// citizenPlan is the citizen labour a company gets for a period in which it
+// was present for presenceBPS, with pool citizens still to lend, paid from
+// its free money before the period's revenue.
+func (h *CompaniesHandler) citizenPlan(ctx context.Context, tx application.Tx, c application.Company,
+	presenceBPS, pool int,
+) (company.CitizenPlan, error) {
+	if h.rules.Citizens.Validate() != nil {
+		// No tuning, no citizen labour: the configuration always carries
+		// it, so only a handler built without it gets here.
+		return company.CitizenPlan{}, nil
+	}
+	vacancies, err := citizenVacancies(ctx, tx, c.ID)
+	if err != nil || len(vacancies) == 0 {
+		return company.CitizenPlan{}, err
+	}
+	books, _, err := companyBooks(ctx, tx, c)
+	if err != nil {
+		return company.CitizenPlan{}, err
+	}
+	plan, err := company.PlanCitizens(vacancies, h.rules.Citizens, presenceBPS, max(pool, 0), books.Available())
+	if err != nil {
+		return company.CitizenPlan{}, errors.Internal(err)
+	}
+	return plan, nil
 }

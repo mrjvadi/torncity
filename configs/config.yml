@@ -508,6 +508,17 @@ company:
   max_openings: 5
   # How far one press of «ارزان‌تر» or «گران‌تر» moves a price level, bps.
   price_step_bps: 1000
+  # Citizen labour (docs/adr/0020): the job openings no player has taken are
+  # worked by the city's citizens, paid the opening's wage per shift from the
+  # company's free money. A player who takes a position replaces a citizen.
+  # Shifts one citizen works in a full period.
+  citizen_shifts_per_period: 2
+  # What a citizen's shift counts for against a player's, bps: players stay
+  # the better hire.
+  citizen_productivity_bps: 7000
+  # Share of a city's NPC population (companies.yml) its companies may
+  # employ at once, bps.
+  citizen_labour_share_bps: 500
   # The production economy (docs/adr/0021): production orders one company
   # runs at once, designs it keeps (drafts included), listings it has open.
   max_running_orders: 3

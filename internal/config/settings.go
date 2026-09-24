@@ -202,20 +202,23 @@ type tradeSettings struct {
 }
 
 type companySettings struct {
-	Period            *string `yaml:"period"`
-	MaxPerPlayer      *int    `yaml:"max_per_player"`
-	NameMinLength     *int    `yaml:"name_min_length"`
-	NameMaxLength     *int    `yaml:"name_max_length"`
-	FoundingShares    *int64  `yaml:"founding_shares"`
-	InsolvencyPeriods *int    `yaml:"insolvency_periods"`
-	NPCCityPeriodCap  *int64  `yaml:"npc_city_period_cap"`
-	MaxOpenings       *int    `yaml:"max_openings"`
-	PriceStepBPS      *int    `yaml:"price_step_bps"`
-	MaxRunningOrders  *int    `yaml:"max_running_orders"`
-	MaxDesigns        *int    `yaml:"max_designs"`
-	MaxListings       *int    `yaml:"max_listings"`
-	DesignMinSkill    *int    `yaml:"design_min_skill"`
-	ReverseTime       *string `yaml:"reverse_time"`
+	Period                 *string `yaml:"period"`
+	MaxPerPlayer           *int    `yaml:"max_per_player"`
+	NameMinLength          *int    `yaml:"name_min_length"`
+	NameMaxLength          *int    `yaml:"name_max_length"`
+	FoundingShares         *int64  `yaml:"founding_shares"`
+	InsolvencyPeriods      *int    `yaml:"insolvency_periods"`
+	NPCCityPeriodCap       *int64  `yaml:"npc_city_period_cap"`
+	MaxOpenings            *int    `yaml:"max_openings"`
+	PriceStepBPS           *int    `yaml:"price_step_bps"`
+	CitizenShiftsPerPeriod *int    `yaml:"citizen_shifts_per_period"`
+	CitizenProductivityBPS *int    `yaml:"citizen_productivity_bps"`
+	CitizenLabourShareBPS  *int    `yaml:"citizen_labour_share_bps"`
+	MaxRunningOrders       *int    `yaml:"max_running_orders"`
+	MaxDesigns             *int    `yaml:"max_designs"`
+	MaxListings            *int    `yaml:"max_listings"`
+	DesignMinSkill         *int    `yaml:"design_min_skill"`
+	ReverseTime            *string `yaml:"reverse_time"`
 }
 
 // setting is one configurable value, from its yaml key to the field it fills.
@@ -807,6 +810,15 @@ var settings = []setting{
 	limitSetting("company", "price_step_bps",
 		func(c *Config) *int { return &c.Company.PriceStepBPS },
 		func(f *fileConfig) *int { return f.Company.PriceStepBPS }),
+	limitSetting("company", "citizen_shifts_per_period",
+		func(c *Config) *int { return &c.Company.CitizenShiftsPerPeriod },
+		func(f *fileConfig) *int { return f.Company.CitizenShiftsPerPeriod }),
+	limitSetting("company", "citizen_productivity_bps",
+		func(c *Config) *int { return &c.Company.CitizenProductivityBPS },
+		func(f *fileConfig) *int { return f.Company.CitizenProductivityBPS }),
+	limitSetting("company", "citizen_labour_share_bps",
+		func(c *Config) *int { return &c.Company.CitizenLabourShareBPS },
+		func(f *fileConfig) *int { return f.Company.CitizenLabourShareBPS }),
 	limitSetting("company", "max_running_orders",
 		func(c *Config) *int { return &c.Company.MaxRunningOrders },
 		func(f *fileConfig) *int { return f.Company.MaxRunningOrders }),

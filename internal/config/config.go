@@ -539,6 +539,18 @@ type Company struct {
 	// PriceStepBPS is how far one press of «cheaper» or «dearer» moves a
 	// company's price level.
 	PriceStepBPS int // company.price_step_bps
+	// Citizen labour (docs/adr/0020-companies.md): the job openings no
+	// player has taken are worked by the city's citizens.
+	//
+	// CitizenShiftsPerPeriod is how many shifts one citizen works in a full
+	// period.
+	CitizenShiftsPerPeriod int // company.citizen_shifts_per_period
+	// CitizenProductivityBPS is what one citizen shift counts for against
+	// a player's shift, so a player is always the better hire.
+	CitizenProductivityBPS int // company.citizen_productivity_bps
+	// CitizenLabourShareBPS is the share of a city's NPC population its
+	// companies may employ at once.
+	CitizenLabourShareBPS int // company.citizen_labour_share_bps
 
 	// The production economy (docs/adr/0021-production-economy.md).
 	//
@@ -649,20 +661,23 @@ func Defaults() *Config {
 			BankQuickAmounts: []int64{1000, 5000, 10000, 50000, 100000, 500000, 1000000},
 		},
 		Company: Company{
-			Period:            24 * time.Hour,
-			MaxPerPlayer:      2,
-			NameMinLength:     3,
-			NameMaxLength:     24,
-			FoundingShares:    1000,
-			InsolvencyPeriods: 3,
-			NPCCityPeriodCap:  50000,
-			MaxOpenings:       5,
-			PriceStepBPS:      1000,
-			MaxRunningOrders:  3,
-			MaxDesigns:        20,
-			MaxListings:       10,
-			DesignMinSkill:    1,
-			ReverseTime:       6 * time.Hour,
+			Period:                 24 * time.Hour,
+			MaxPerPlayer:           2,
+			NameMinLength:          3,
+			NameMaxLength:          24,
+			FoundingShares:         1000,
+			InsolvencyPeriods:      3,
+			NPCCityPeriodCap:       50000,
+			MaxOpenings:            5,
+			PriceStepBPS:           1000,
+			CitizenShiftsPerPeriod: 2,
+			CitizenProductivityBPS: 7000,
+			CitizenLabourShareBPS:  500,
+			MaxRunningOrders:       3,
+			MaxDesigns:             20,
+			MaxListings:            10,
+			DesignMinSkill:         1,
+			ReverseTime:            6 * time.Hour,
 		},
 		Input: Input{
 			TTL:       5 * time.Minute,
@@ -854,6 +869,10 @@ func (c *Config) Validate() error {
 	}
 	if c.Company.PriceStepBPS > 10000 {
 		return fmt.Errorf("%w: company.price_step_bps is %d", ErrNotPositive, c.Company.PriceStepBPS)
+	}
+	if c.Company.CitizenProductivityBPS > 10000 || c.Company.CitizenLabourShareBPS > 10000 {
+		return fmt.Errorf("%w: company.citizen_productivity_bps %d, company.citizen_labour_share_bps %d, above 10000",
+			ErrNotPositive, c.Company.CitizenProductivityBPS, c.Company.CitizenLabourShareBPS)
 	}
 	if c.Company.DesignMinSkill > 100 {
 		return fmt.Errorf("%w: company.design_min_skill is %d, above the skill scale", ErrNotPositive, c.Company.DesignMinSkill)

@@ -4,6 +4,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/domain/bank"
+	"github.com/mrjvadi/torncity/internal/domain/company"
 )
 
 // companyRules is the companies' tuning from the configuration: config
@@ -13,6 +14,8 @@ func companyRules(c config.Company, limits bank.Limits) handlers.CompanyRules {
 		Period: c.Period, MaxPerPlayer: c.MaxPerPlayer, NameMin: c.NameMinLength, NameMax: c.NameMaxLength,
 		FoundingShares: c.FoundingShares, InsolvencyPeriods: c.InsolvencyPeriods, NPCCityPeriodCap: c.NPCCityPeriodCap,
 		MaxOpenings: c.MaxOpenings, PriceStepBPS: c.PriceStepBPS, Limits: limits,
+		Citizens:              citizenRules(c),
+		CitizenLabourShareBPS: c.CitizenLabourShareBPS,
 	}
 }
 
@@ -53,8 +56,13 @@ func productionRules(c config.Company, limits bank.Limits) handlers.ProductionRu
 	return handlers.ProductionRules{
 		MaxRunningOrders: c.MaxRunningOrders, MaxDesigns: c.MaxDesigns, MaxListings: c.MaxListings,
 		DesignMinSkill: c.DesignMinSkill, ReverseTime: c.ReverseTime, NameMin: c.NameMinLength, NameMax: c.NameMaxLength,
-		Limits: limits,
+		Limits: limits, Citizens: citizenRules(c),
 	}
+}
+
+// citizenRules is the tuning of citizen labour from config company.
+func citizenRules(c config.Company) company.CitizenRules {
+	return company.CitizenRules{ShiftsPerPeriod: c.CitizenShiftsPerPeriod, ProductivityBPS: c.CitizenProductivityBPS}
 }
 
 // bindProduction maps the production economy's commands to their handler.

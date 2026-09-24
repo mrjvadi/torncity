@@ -40,6 +40,9 @@ type ProductionRules struct {
 	NameMin, NameMax int
 	// Limits bounds a license price and an amount bought.
 	Limits bank.Limits
+	// Citizens is citizen labour: the openings no player has taken count
+	// as crew for as many citizens as the company can pay for a period.
+	Citizens company.CitizenRules
 }
 
 // ProductionHandler serves the production economy
@@ -244,7 +247,10 @@ type floor struct {
 	// members are the owner, the manager and the employees.
 	members []string
 	staff   int
-	skills  map[string]map[string]int
+	// citizens is how many citizens work its untaken openings; set by
+	// withCitizens, which production orders call before sizing a crew.
+	citizens int
+	skills   map[string]map[string]int
 }
 
 // readFloor reads a company's floor.
@@ -329,7 +335,7 @@ func (f *floor) best(ctx context.Context, tx application.Tx, skill string) (int,
 }
 
 // crew is how many work an order: the owner and every employee.
-func (f *floor) crew() int { return 1 + f.staff }
+func (f *floor) crew() int { return 1 + f.staff + f.citizens }
 
 // books reads a company's money under its lock.
 func (f *floor) books(ctx context.Context, tx application.Tx) (company.Books, application.Account, error) {
@@ -741,3 +747,30 @@ func hasCode(list []string, v string) bool {
 
 // internalf is a fault that is the content's or the code's, never a player's.
 func internalf(msg string) error { return errors.Internal(stderrors.New("handlers: " + msg)) }
+
+// withCitizens counts the citizens on a company's untaken openings into its
+// floor's crew: as many as its free money pays for a full period, the same
+// rule the period's settlement pays them by.
+func (h *ProductionHandler) withCitizens(ctx context.Context, tx application.Tx, f *floor) error {
+	if h.rules.Citizens.Validate() != nil {
+		return nil
+	}
+	vacancies, err := citizenVacancies(ctx, tx, f.c.ID)
+	if err != nil || len(vacancies) == 0 {
+		return err
+	}
+	books, _, err := companyBooks(ctx, tx, *f.c)
+	if err != nil {
+		return err
+	}
+	positions := 0
+	for _, v := range vacancies {
+		positions += v.Positions
+	}
+	plan, err := company.PlanCitizens(vacancies, h.rules.Citizens, 10000, positions, books.Available())
+	if err != nil {
+		return errors.Internal(err)
+	}
+	f.citizens = plan.Workers
+	return nil
+}

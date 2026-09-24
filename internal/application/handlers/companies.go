@@ -52,7 +52,12 @@ type CompanyRules struct {
 	NPCCityPeriodCap  int64
 	MaxOpenings       int
 	PriceStepBPS      int
-	Limits            bank.Limits
+	// Citizens is the tuning of citizen labour: the openings no player has
+	// taken are worked by the city's citizens, at most CitizenLabourShareBPS
+	// of its NPC population at once.
+	Citizens              company.CitizenRules
+	CitizenLabourShareBPS int
+	Limits                bank.Limits
 }
 
 // CompaniesHandler serves player companies (docs/adr/0020-companies.md):
