@@ -120,13 +120,19 @@ type Whereabouts struct {
 	// ArrivedBy is the transport mode code of a journey that ended in their
 	// city recently (within the arrival linger), empty otherwise.
 	ArrivedBy string
+	// Place is the place the player went to or was put at last (city
+	// places, internal/domain/place), empty when they have none recorded.
+	Place string
 }
 
 // Locate returns the index of the venue a player is at. The rule:
 //
 //  1. at work — the venue whose WorkCategories name the shift's category;
-//  2. just arrived — the venue whose Arrivals name the mode they came by;
-//  3. otherwise — the default venue.
+//  2. at a place — the venue the player went to, or an arrival or a shift
+//     put them at, when one is recorded;
+//  3. just arrived — the venue whose Arrivals name the mode they came by,
+//     for a player with no place recorded (before places existed);
+//  4. otherwise — the default venue.
 //
 // A shift outranks an arrival: someone who stepped off the bus and went
 // straight to work is at work. A category or a mode no venue claims falls
@@ -143,6 +149,13 @@ func Locate(venues []Venue, w Whereabouts) int {
 	if w.ShiftCategory != "" {
 		for i, v := range venues {
 			if contains(v.WorkCategories, w.ShiftCategory) {
+				return i
+			}
+		}
+	}
+	if w.Place != "" {
+		for i, v := range venues {
+			if v.Code == w.Place {
 				return i
 			}
 		}

@@ -52,6 +52,10 @@ var (
 	// ErrNotInProgress means the enrolment was already completed or abandoned.
 	ErrNotInProgress = errors.New("education: enrollment is not in progress")
 
+	// ErrPaused means the course is standing still because its student is
+	// in jail; it cannot finish until they are out and it has run its time.
+	ErrPaused = errors.New("education: enrollment is paused")
+
 	// ErrNotFinished means the course has not run its full duration yet. The
 	// detail is a NotFinished carrying the time left.
 	ErrNotFinished = errors.New("education: course not finished yet")
@@ -115,6 +119,48 @@ type Enrollment struct {
 	Status      Status
 	StartedAt   time.Time
 	CompletesAt time.Time
+	// Paused is when the course stopped advancing because its student was
+	// jailed; zero while it runs. A paused course's progress and time left
+	// are frozen at that instant (see Resumed).
+	Paused time.Time
+}
+
+// Time in jail.
+//
+// A student in jail cannot attend, so their course stands still: from the
+// moment they are jailed (Paused) until they are out, by bail or by serving
+// their time. On release the whole course moves on by the time it stood
+// still — StartedAt and CompletesAt alike — so its progress and its time left
+// are exactly what they were at the jailing, and it then finishes as late as
+// the jail made it. A course never loses time to jail and never gains any.
+
+// IsPaused reports whether the course is standing still.
+func (e Enrollment) IsPaused() bool { return !e.Paused.IsZero() }
+
+// at is the instant the course's clock reads at now: now itself, or, while
+// paused, the moment it stopped.
+func (e Enrollment) at(now time.Time) time.Time {
+	if e.IsPaused() && e.Paused.Before(now) {
+		return e.Paused
+	}
+	return now
+}
+
+// Resumed is the enrolment released at at: moved on by the time it stood
+// still and running again. An enrolment that is not paused is returned as it
+// is; a release stamped before the pause moves nothing.
+func (e Enrollment) Resumed(at time.Time) Enrollment {
+	if !e.IsPaused() {
+		return e
+	}
+	stood := at.Sub(e.Paused)
+	if stood < 0 {
+		stood = 0
+	}
+	e.StartedAt = e.StartedAt.Add(stood)
+	e.CompletesAt = e.CompletesAt.Add(stood)
+	e.Paused = time.Time{}
+	return e
 }
 
 // Active reports whether the enrolment still occupies the player's one slot.
@@ -232,6 +278,7 @@ func (e Enrollment) Progress(now time.Time) int {
 	default:
 		return 0
 	}
+	now = e.at(now)
 	total := e.CompletesAt.Sub(e.StartedAt)
 	elapsed := now.Sub(e.StartedAt)
 	if total <= 0 || elapsed >= total {
@@ -246,8 +293,10 @@ func (e Enrollment) Progress(now time.Time) int {
 }
 
 // Remaining is how long until an in-progress enrolment can be completed, or
-// zero if it already can or is not in progress.
+// zero if it already can or is not in progress. While the course is paused it
+// is the time that was left at the pause, and it stays that.
 func (e Enrollment) Remaining(now time.Time) time.Duration {
+	now = e.at(now)
 	if e.Status != StatusInProgress || !now.Before(e.CompletesAt) {
 		return 0
 	}
@@ -280,6 +329,9 @@ func Complete(course Course, e Enrollment, now time.Time) (Enrollment, Rewards, 
 	}
 	if e.Status != StatusInProgress {
 		return Enrollment{}, Rewards{}, fmt.Errorf("%w: %s", ErrNotInProgress, e.Status)
+	}
+	if e.IsPaused() {
+		return Enrollment{}, Rewards{}, ErrPaused
 	}
 	if now.Before(e.CompletesAt) {
 		return Enrollment{}, Rewards{}, NotFinished{Remaining: e.CompletesAt.Sub(now)}

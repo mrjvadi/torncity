@@ -3,9 +3,9 @@
 🎓 Education
 
 Courses you can take here:
-• First Aid · 600 Nil · 2h
-• Evening Class in Accounting · 400 Nil · 1h 30m
-🔒 Retail Management · 2,800 Nil · 8h · from level 4
+• First Aid - 600 Nil - 2h
+• Evening Class in Accounting - 400 Nil - 1h 30m
+🔒 Retail Management - 2,800 Nil - 8h - from level 4
 
 Page 1 of 2
   ───
@@ -20,13 +20,26 @@ Page 1 of 2
 🎓 Education
 
 📖 Studying: Bookkeeping
-⏳ 60% done · 1h 35m to go
+⏳ 60% done - 1h 35m to go
 🕒 Course ends at 16:10
 
 📜 Certificates: First Aid, Driving Licence
 
 Courses you can take here:
-🔒 Retail Management · 2,800 Nil · 8h · from level 4
+🔒 Retail Management - 2,800 Nil - 8h - from level 4
+  ───
+  [📖 Retail Management] → education:view:retail_management
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
+
+━━━ Education · the course paused in jail ━━━
+(edits message 42)
+🎓 Education
+
+📖 Studying: Bookkeeping
+⏸ Paused (in jail): 60% done, 40m left. It carries on from here once you are free.
+
+Courses you can take here:
+🔒 Retail Management - 2,800 Nil - 8h - from level 4
   ───
   [📖 Retail Management] → education:view:retail_management
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
@@ -62,7 +75,7 @@ On completion:
 🛠 Medicine: +120 XP
 📜 The First Aid certificate
   ───
-  [✅ Enrol · 600 Nil] → education:enroll:first_aid
+  [✅ Enrol - 600 Nil] → education:enroll:first_aid
   [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:first_aid
 
 ━━━ Course · requirements not met ━━━
@@ -170,7 +183,7 @@ That course is not on offer here. See “Education” for the courses you can ta
 ━━━ Refusal · cannot afford the fee ━━━
 (edits message 42) (private in groups)
 💵 Not enough cash for this course.
-Fee: 2,800 Nil · Your cash: 1,250 Nil
+Fee: 2,800 Nil - Your cash: 1,250 Nil
   ───
   [🎓 Education] → education:list
   [🔙 Back] → player:profile.get

@@ -161,6 +161,30 @@ func (c *Catalog) Languages() []string {
 	return out
 }
 
+// Section returns every message lang itself defines under prefix, keyed by
+// the rest of the key: Section("fa", "command_alias") of a locale holding
+// command_alias.crime and command_alias.bank.deposit returns {"crime": …,
+// "bank.deposit": …}. The fallback chain is not applied: a section is data a
+// language supplies (its own words for something), and borrowing another
+// language's words would be a different language's data. The map is a copy.
+func (c *Catalog) Section(lang, prefix string) map[string]string {
+	if c == nil {
+		return nil
+	}
+	msgs, ok := c.messages[lang]
+	if !ok {
+		return nil
+	}
+	prefix = strings.TrimSuffix(prefix, ".") + "."
+	out := map[string]string{}
+	for key, text := range msgs {
+		if rest, ok := strings.CutPrefix(key, prefix); ok && rest != "" {
+			out[rest] = text
+		}
+	}
+	return out
+}
+
 // Default returns the fallback language.
 func (c *Catalog) Default() string {
 	if c == nil {

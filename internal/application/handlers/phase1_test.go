@@ -382,8 +382,23 @@ func (f *fakeFriendships) snapshot() func() {
 	return func() { f.edges, f.requested, f.accepted = edges, requested, accepted }
 }
 
+// List is the repository's: the player's own edges, and the pending
+// requests others sent them, marked Incoming and turned round.
 func (f *fakeFriendships) List(_ context.Context, playerID string) ([]application.Friendship, error) {
-	return f.edges[playerID], nil
+	out := append([]application.Friendship(nil), f.edges[playerID]...)
+	own := map[string]bool{}
+	for _, e := range out {
+		own[e.FriendPlayerID] = true
+	}
+	for other, edges := range f.edges {
+		for _, e := range edges {
+			if e.FriendPlayerID == playerID && e.Status == friendPending && !own[other] {
+				out = append(out, application.Friendship{PlayerID: playerID, FriendPlayerID: other,
+					Status: friendPending, Incoming: true})
+			}
+		}
+	}
+	return out, nil
 }
 
 func (f *fakeFriendships) Request(_ context.Context, playerID, friendPlayerID string) error {
@@ -396,11 +411,22 @@ func (f *fakeFriendships) Request(_ context.Context, playerID, friendPlayerID st
 	return nil
 }
 
+// Accept is the repository's: the OTHER player's pending request to this
+// one becomes accepted, and this one's own edge is written accepted.
 func (f *fakeFriendships) Accept(_ context.Context, playerID, friendPlayerID string) error {
-	for i, e := range f.edges[playerID] {
-		if e.FriendPlayerID == friendPlayerID {
-			f.edges[playerID][i].Status = friendAccepted
+	for i, e := range f.edges[friendPlayerID] {
+		if e.FriendPlayerID == playerID && e.Status == friendPending {
+			f.edges[friendPlayerID][i].Status = friendAccepted
 			f.accepted = append(f.accepted, [2]string{playerID, friendPlayerID})
+			for j, mine := range f.edges[playerID] {
+				if mine.FriendPlayerID == friendPlayerID {
+					f.edges[playerID][j].Status = friendAccepted
+					return nil
+				}
+			}
+			f.edges[playerID] = append(f.edges[playerID], application.Friendship{
+				PlayerID: playerID, FriendPlayerID: friendPlayerID, Status: friendAccepted,
+			})
 			return nil
 		}
 	}

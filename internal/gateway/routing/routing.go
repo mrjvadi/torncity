@@ -183,9 +183,11 @@ var shortcuts = map[string]shortcut{
 	"profile":  {Bare: "player.profile.get"},
 	"settings": {Bare: "player.settings"},
 	"skills":   {Bare: "skills.list"},
-	"map":      {Bare: "map.list", Words: "map.list"},
-	"social":   {Bare: "social.friend.list", Words: "social.search"},
-	"find":     {Bare: "social.search", Words: "social.search"},
+	// "/map" is the map of the player's own city; "/map bazaar" walks to
+	// that place.
+	"map":    {Bare: "map.list", Words: "place.go"},
+	"social": {Bare: "social.friend.list", Words: "social.search"},
+	"find":   {Bare: "social.search", Words: "social.search"},
 	// The bank: "/bank" is the bank screen, "/bank deposit 5000" says what it
 	// says; "/pay @ali" opens a payment to that player and
 	// "/pay @ali 5000 card" asks to confirm one.
@@ -205,6 +207,15 @@ var shortcuts = map[string]shortcut{
 	// the jail screen.
 	"crime": {Bare: "crime.hub", Words: "crime.commit"},
 	"jail":  {Bare: "crime.jail"},
+	// Goods: "/bag" (or "/inventory") is what the player carries; "/shop"
+	// the shops of their city and "/shop pharmacy" one of them; "/market"
+	// the market and "/market bread" one good's book; "/auction" the
+	// auction house and "/auction 12" one auction.
+	"inventory": {Bare: "inventory.show"},
+	"bag":       {Bare: "inventory.show"},
+	"shop":      {Bare: "shop.list", Words: "shop.view"},
+	"market":    {Bare: "market.list", Words: "market.book"},
+	"auction":   {Bare: "auction.list", Words: "auction.view"},
 }
 
 // argNames names the positional arguments of a command, in order.
@@ -229,7 +240,7 @@ var argNames = map[string][]string{
 	// re-checks, never a price it trusts; without a mode or a fare,
 	// travel.start answers with the choice of transport.
 	"travel.options": {"city"},
-	"travel.start":   {"city", "mode", "max"},
+	"travel.start":   {"city", "mode", "max", "method"},
 	// travel.status takes nothing. It is listed anyway so that this table
 	// reads as the set of commands phase 1 speaks rather than as the subset
 	// of them that happens to have arguments.
@@ -246,6 +257,8 @@ var argNames = map[string][]string{
 	"social.friend.accept": {"player"},
 	"social.friend.list":   {"page"},
 	"map.list":             {"page"},
+	"map.cities":           {"page"},
+	"place.go":             {"place"},
 
 	// The profile takes nothing. A /start deep-link payload still arrives,
 	// under "args", for whoever reads it one day.
@@ -266,8 +279,10 @@ var argNames = map[string][]string{
 	"bank.show":     {},
 	"bank.deposit":  {"amount", "nonce"},
 	"bank.withdraw": {"amount", "nonce"},
-	"bank.pay":      {"to", "amount", "method"},
-	"bank.pay.send": {"to", "amount", "method", "nonce"},
+	// origin is the group a payment was started in (a negative chat id),
+	// carried by the buttons so the group can be told it was made.
+	"bank.pay":      {"to", "amount", "method", "origin"},
+	"bank.pay.send": {"to", "amount", "method", "nonce", "origin"},
 
 	// Player-held offices. A lever is addressed by its content code and the
 	// code of the place it is set in; value is a proposed value, which the
@@ -290,7 +305,7 @@ var argNames = map[string][]string{
 	"job.quit":         {"confirm"},
 	"education.list":   {"page"},
 	"education.view":   {"course"},
-	"education.enroll": {"course"},
+	"education.enroll": {"course", "method"},
 
 	// Crime. A crime, a category are named by their content code
 	// (crimes.yml); nonce is a button's one-time token, so a second press
@@ -303,9 +318,65 @@ var argNames = map[string][]string{
 	"crime.commit": {"crime", "nonce"},
 	"crime.record": {},
 	"crime.jail":   {},
-	"crime.bail":   {"nonce"},
+	"crime.bail":   {"nonce", "method"},
 	"crime.report": {"crime", "confirm"},
 	"crime.cases":  {},
+
+	// Goods. A good is named by its content code (items.yml) or, for a
+	// unique piece, by its serial; a shop by its code (shops.yml); an order
+	// or an auction by its public number. nonce is a button's one-time
+	// token; method is how a charge is paid, cash or card.
+	"inventory.show": {"page"},
+	"inventory.item": {"item"},
+	"inventory.use":  {"item", "nonce"},
+	"inventory.give": {"item", "nonce", "to"},
+	"inventory.drop": {"item", "confirm", "nonce"},
+	"shop.list":      {},
+	"shop.view":      {"shop"},
+	"shop.buy":       {"shop", "item", "qty", "method", "nonce"},
+	"shop.offers":    {"item"},
+	"shop.sell":      {"shop", "item"},
+	"market.list":    {"page"},
+	"market.book":    {"item"},
+	"market.order":   {"side", "item", "qty", "price", "nonce", "method"},
+	"market.cancel":  {"no"},
+	"market.mine":    {"page"},
+	"auction.list":   {},
+	"auction.view":   {"no"},
+	"auction.new":    {"item", "reserve", "duration", "nonce"},
+	"auction.bid":    {"no", "amount", "nonce", "method"},
+	"auction.mine":   {},
+}
+
+// landings name the screen a domain opens on when one of its commands cannot
+// be replayed as it stands (it needs arguments a link does not carry), for
+// the domains no bare shortcut already opens.
+var landings = map[string][]string{
+	"travel": {"map.cities", "map.list"},
+}
+
+// Landing is the command a deep link replays for command: the command itself
+// when it takes no arguments, else the screen its domain opens on — "/bank"
+// for a deposit, the map for a journey — else the profile.
+func Landing(command string) string {
+	if names, ok := argNames[command]; ok && len(names) == 0 {
+		return command
+	}
+	domain, _, _ := strings.Cut(command, ".")
+	for _, l := range landings[domain] {
+		if commands.FromPlayerCommand(l) {
+			return l
+		}
+	}
+	if s, ok := shortcuts[domain]; ok && s.Bare != "" {
+		return s.Bare
+	}
+	for _, s := range shortcuts {
+		if s.Bare != "" && strings.HasPrefix(s.Bare, domain+".") {
+			return s.Bare
+		}
+	}
+	return "player.profile.get"
 }
 
 // joinRest lists the commands whose last named argument takes every word
@@ -341,6 +412,8 @@ func NeedsHelp(err error, chatType string) bool {
 	switch {
 	case err == nil, errors.Is(err, ErrNoCommand):
 		return false
+	case errors.Is(err, ErrHelpRequested):
+		return true
 	case errors.Is(err, ErrNotACommand):
 		return chatType == privateChat
 	}
@@ -404,6 +477,10 @@ func parseText(text string) (string, map[string]any, error) {
 	}
 	if head == "" {
 		return "", nil, ErrMalformedCommand
+	}
+
+	if head == AliasHelp && len(fields) == 1 {
+		return "", nil, ErrHelpRequested
 	}
 
 	short, hasShortcut := shortcuts[head]

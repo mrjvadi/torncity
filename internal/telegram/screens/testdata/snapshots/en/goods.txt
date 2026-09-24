@@ -1,0 +1,314 @@
+━━━ Bag ━━━
+(edits message 42)
+🎒 Your bag
+
+• Bread - 3
+• Bandage - 1
+• Lockpick set - quality 62 - 7 of 10 uses left
+• Phone - quality 55
+
+📦 2 of your goods are on the market or up for auction.
+  ───
+  [🎒 Bread] → inventory:item:bread   │   [🎒 Bandage] → inventory:item:bandage
+  [🎒 Lockpick set] → inventory:item:A1B2C3D4E5   │   [🎒 Phone] → inventory:item:F0E1D2C3B4
+  [🛒 Shops] → shop:list   │   [🏪 Market] → market:list
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → inventory:show:1
+
+━━━ Bag · empty ━━━
+(edits message 42)
+🎒 Your bag
+
+Your bag is empty. The city's shops sell food, medicine and tools.
+  ───
+  [🛒 Shops] → shop:list   │   [🏪 Market] → market:list
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → inventory:show:1
+
+━━━ Item · bread, a friend here ━━━
+(edits message 42)
+🎒 Bread
+
+Kind: Food
+You have 3.
+💰 Worth about 40 Nil
+
+When used:
+• ⚡ Energy up by 10
+• 😊 Happiness up by 2
+⏳ At most once every 30m
+  ───
+  [✅ Use Bread] → inventory:use:bread:0a1b2c3d4e5f
+  [🏪 Sell on the market] → market:book:bread   │   [💰 Sell to a shop] → shop:offers:bread
+  [🎁 Give to Kaveh] → inventory:give:bread:0a1b2c3d4e5f:B3C4D5F
+  [🗑 Throw away] → inventory:drop:bread
+  [🔙 Back] → inventory:show   │   [🔄 Refresh] → inventory:item:bread
+
+━━━ Item · bandage, still cooling ━━━
+(edits message 42)
+🎒 Bandage
+
+Kind: Medicine
+You have 1.
+💰 Worth about 80 Nil
+
+When used:
+• ❤️ Health up by 15
+⏳ At most once every 1h
+
+⏳ You can use it again in 12m.
+🕒 Ready at 14:47
+
+👥 To give it away, stand with a friend at the same place.
+  ───
+  [🏪 Sell on the market] → market:book:bandage   │   [💰 Sell to a shop] → shop:offers:bandage
+  [🗑 Throw away] → inventory:drop:bandage
+  [🔙 Back] → inventory:show   │   [🔄 Refresh] → inventory:item:bandage
+
+━━━ Item · a lockpick set ━━━
+(edits message 42)
+🎒 Lockpick set
+
+Kind: Tools
+quality 62 - 7 of 10 uses left
+💰 Worth about 600 Nil
+
+🕶 Helps with: Home burglary, Car break-in
+🎲 Odds of success up by 10%
+🚔 Odds of arrest down by 3%
+🔥 Costs 1 less nerve
+🚔 If you are caught, the police keep it as evidence.
+
+👥 To give it away, stand with a friend at the same place.
+  ───
+  [🔨 Auction it] → auction:new:A1B2C3D4E5   │   [💰 Sell to a shop] → shop:offers:A1B2C3D4E5
+  [🗑 Throw away] → inventory:drop:A1B2C3D4E5
+  [🔙 Back] → inventory:show   │   [🔄 Refresh] → inventory:item:A1B2C3D4E5
+
+━━━ Used · bread ━━━
+(edits message 42)
+✅ You used: Bread
+⚡ Energy: 40 → 50 of 100
+🎒 Left in your bag: 2
+⏳ The next one in 30m
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ Given · bread to a friend ━━━
+(edits message 42)
+🎁 You gave Bread to Kaveh.
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · a friend gave you bread ━━━
+(sends) (private in groups)
+🎁 Kaveh gave you Bread.
+  ───
+  [🎒 Bag] → inventory:show
+
+━━━ Drop · are you sure ━━━
+(edits message 42)
+🗑 Throw away Phone? It is gone for good.
+  ───
+  [🗑 Yes, throw it away] → inventory:drop:F0E1D2C3B4:yes:0a1b2c3d4e60
+  [🔙 Back] → inventory:item:F0E1D2C3B4
+
+━━━ Drop · done ━━━
+(edits message 42)
+🗑 You threw away Phone.
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ Item refused · not carried ━━━
+(edits message 42)
+You do not have Phone with you.
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ Item refused · not usable ━━━
+(edits message 42)
+Lockpick set is not something you use; you carry it.
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ Item refused · still cooling ━━━
+(edits message 42)
+⏳ You can use Bandage again in 12m.
+🕒 Ready at 14:47
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ Item refused · no effect ━━━
+(edits message 42)
+Bread would do nothing now: you are already at full.
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ Item refused · not tradeable ━━━
+(edits message 42)
+Lockpick set cannot change hands.
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ Item refused · not together ━━━
+(edits message 42)
+👥 You can only hand something to a friend who stands at the same place as you.
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ Shops ━━━
+(edits message 42)
+🛒 Shops of Ostmarch
+
+• Grocery - here
+• Hardware store - here
+• Pawnshop - at the residential area
+  ───
+  [🛒 Grocery] → shop:view:grocery   │   [🛒 Hardware store] → shop:view:hardware_store
+  [🛒 Pawnshop] → shop:view:pawnshop
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → map:list   │   [🔄 Refresh] → shop:list
+
+━━━ Shops · none ━━━
+(edits message 42)
+🛒 Shops of Ostmarch
+
+This city has no shops yet.
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → map:list   │   [🔄 Refresh] → shop:list
+
+━━━ Shop · at the counter ━━━
+(edits message 42)
+🛒 Hardware store - at the bazaar
+
+• Lockpick set - 600 Nil - 4 in stock - buys at 300 Nil
+• Crowbar - 390 Nil (in demand) - 2 in stock
+• Pair of gloves - sold out
+
+📍 You are at the counter.
+🧾 Sales tax here: 5%
+  ───
+  [🛒 Lockpick set] → shop:buy:hardware_store:lockpick_set:1   │   [🛒 Crowbar] → shop:buy:hardware_store:crowbar:1
+  [🔙 Back] → shop:list   │   [🔄 Refresh] → shop:view:hardware_store
+
+━━━ Shop · from across town ━━━
+(edits message 42)
+🛒 Hardware store - at the bazaar
+
+• Lockpick set - 600 Nil - 4 in stock - buys at 300 Nil
+• Crowbar - 390 Nil (in demand) - 2 in stock
+• Pair of gloves - sold out
+
+📍 The shop is at the bazaar. Walk there to buy.
+🧾 Sales tax here: 5%
+  ───
+  [🚶 bazaar] → place:go:bazaar
+  [🔙 Back] → shop:list   │   [🔄 Refresh] → shop:view:hardware_store
+
+━━━ Checkout · both ways cover it ━━━
+(edits message 42)
+🛒 Hardware store
+
+Lockpick set - 1 at 600 Nil each
+Price: 630 Nil
+🧾 Sales tax (5%): 30 Nil
+💵 To pay: 660 Nil
+
+How would you like to pay?
+💵 Your cash: 2,000 Nil - Bank: 9,000 Nil
+  ───
+  [💵 Pay cash - 630 Nil] → shop:buy:hardware_store:lockpick_set:1:cash:0a1b2c3d4e61   │   [💳 Pay by card - 630 Nil] → shop:buy:hardware_store:lockpick_set:1:card:0a1b2c3d4e61
+  [🔙 Back] → shop:view:hardware_store
+
+━━━ Checkout · neither covers it ━━━
+(edits message 42)
+🛒 Hardware store
+
+Lockpick set - 1 at 600 Nil each
+Price: 630 Nil
+🧾 Sales tax (5%): 30 Nil
+💵 To pay: 660 Nil
+
+💸 Neither your cash nor your bank balance covers this.
+💵 Your cash: 100 Nil - Bank: 200 Nil
+  ───
+  [🏦 Bank] → bank:show
+  [🔙 Back] → shop:view:hardware_store
+
+━━━ Bought · with tax ━━━
+(edits message 42)
+✅ You bought Lockpick set - 1 for 660 Nil.
+🧾 That includes 30 Nil sales tax, paid to the city.
+💳 Paid by bank card.
+  ───
+  [🎒 Bag] → inventory:show   │   [🛒 Back to the shop] → shop:view:hardware_store
+  [🔙 Back] → player:profile.get
+
+━━━ Sell · who buys a phone ━━━
+(edits message 42)
+💰 Who buys Phone
+• Pawnshop at the residential area - pays 1,100 Nil
+• Electronics store at the business district - pays 1,250 Nil
+  ───
+  [💰 Pawnshop - 1,100 Nil] → shop:sell:pawnshop:F0E1D2C3B4
+  [💰 Electronics store - 1,250 Nil] → shop:sell:electronics_store:F0E1D2C3B4
+  [🔙 Back] → inventory:item:F0E1D2C3B4
+
+━━━ Sell · nobody buys it ━━━
+(edits message 42)
+💰 Who buys Bread
+No shop in this city buys that.
+  ───
+  [🔙 Back] → inventory:item:bread
+
+━━━ Sold · a phone to the pawnshop ━━━
+(edits message 42)
+💰 You sold Phone to Pawnshop for 1,100 Nil.
+🎒 Left in your bag: 0
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ Shop refused · no such shop ━━━
+(edits message 42)
+That shop is not in this city.
+  ───
+  [🛒 Shops] → shop:list
+  [🔙 Back] → player:profile.get
+
+━━━ Shop refused · not sold here ━━━
+(edits message 42)
+Grocery does not sell that.
+  ───
+  [🛒 Shops] → shop:list
+  [🔙 Back] → player:profile.get
+
+━━━ Shop refused · sold out ━━━
+(edits message 42)
+Lockpick set is sold out at Hardware store. Wait for the next delivery.
+🚚 Next delivery at 14:55
+  ───
+  [🛒 Shops] → shop:list
+  [🔙 Back] → player:profile.get
+
+━━━ Shop refused · not carried ━━━
+(edits message 42)
+You do not have Phone with you.
+  ───
+  [🛒 Shops] → shop:list
+  [🔙 Back] → player:profile.get
+
+━━━ Shop refused · not bought back ━━━
+(edits message 42)
+Grocery does not buy Phone.
+  ───
+  [🛒 Shops] → shop:list
+  [🔙 Back] → player:profile.get

@@ -10,6 +10,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/education"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
+	"github.com/mrjvadi/torncity/internal/domain/payment"
+	"github.com/mrjvadi/torncity/internal/domain/place"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
@@ -20,9 +22,12 @@ import (
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
-// CourseRequest names a course by its code from education.yml.
+// CourseRequest names a course by its code from education.yml. Method is how
+// the tuition is paid — cash or card — on education.enroll; without one, the
+// course's price screen is shown with a button per way to pay.
 type CourseRequest struct {
 	Course string `json:"course"`
+	Method string `json:"method,omitempty"`
 }
 
 // EducationActionPayload is the jsonb an enrolment writes onto its
@@ -105,12 +110,18 @@ func NewEducationHandler(
 }
 
 func (h *EducationHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta)}
+	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
 }
 
 func (h *EducationHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
 	if r, ok := asRefusal(err); ok {
 		return screens.Refusal(h.screen(meta, lang), r.view), nil
+	}
+	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
+		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
+	}
+	if v, ok := asNotHere(err); ok {
+		return screens.NotHere(h.screen(meta, lang), v), nil
 	}
 	return nil, err
 }
@@ -160,12 +171,73 @@ func (s standing) applicant(here string, current *application.Enrollment) educat
 }
 
 func domainEnrollment(e application.Enrollment) education.Enrollment {
-	return education.Enrollment{
+	d := education.Enrollment{
 		CourseCode:  e.CourseCode,
 		Status:      education.Status(e.Status),
 		StartedAt:   e.StartedAt,
 		CompletesAt: e.CompletesAt,
 	}
+	if e.PausedAt != nil {
+		d.Paused = *e.PausedAt
+	}
+	return d
+}
+
+// Time in jail (docs/adr/0019-crime-engine.md): a student in jail cannot
+// attend, so the course stands still from the jailing until the release. The
+// crime engine calls pauseStudies when it jails a player and resumeStudies
+// when the sentence ends — bail, a served term, or a lapsed sentence closed
+// by a new one — in the same transaction as the sentence's own change, so the
+// two cannot disagree.
+
+// pauseStudies stops the player's course, if one is running, at at.
+func pauseStudies(ctx context.Context, tx application.Tx, playerID string, at time.Time) error {
+	_, err := tx.Education().Pause(ctx, playerID, at)
+	return err
+}
+
+// resumeStudies restarts the player's paused course as of at, the moment the
+// jail ended: the course moves on by the time it stood still and a new
+// completion is scheduled for its new end. The completion scheduled before
+// the jail stays on the schedule and does nothing when it fires: the row no
+// longer names it (EducationHandler.Complete). Exactly once: the course row
+// is locked (Active), and Resume changes only a course still paused.
+func resumeStudies(ctx context.Context, tx application.Tx, ids IDGenerator, playerID string, at time.Time) error {
+	e, err := activeEnrollment(ctx, tx, playerID)
+	if err != nil || e == nil || e.PausedAt == nil {
+		return err
+	}
+	moved := domainEnrollment(*e).Resumed(at)
+	actionID := ids.NewID()
+	payload, err := json.Marshal(EducationActionPayload{
+		EnrollmentID: e.ID, PlayerID: playerID, CourseCode: e.CourseCode,
+	})
+	if err != nil {
+		return err
+	}
+	// The schedule row first: the enrolment points at it.
+	if err := tx.GameActions().Schedule(ctx, application.GameAction{
+		ID:            actionID,
+		ActionType:    application.EducationActionType,
+		ActorType:     "player",
+		ActorID:       playerID,
+		ReferenceType: "enrollments",
+		ReferenceID:   e.ID,
+		Payload:       payload,
+		StartedAt:     at,
+		FinishAt:      moved.CompletesAt,
+	}); err != nil {
+		return err
+	}
+	resumed, err := tx.Education().Resume(ctx, e.ID, moved.StartedAt, moved.CompletesAt, actionID)
+	if err != nil {
+		return err
+	}
+	if !resumed {
+		// The row was locked and paused a moment ago in this transaction.
+		return errors.Internal(stderrors.New("handlers: a paused course could not be resumed"))
+	}
+	return nil
 }
 
 // activeEnrollment returns the course in progress, or nil.
@@ -213,6 +285,7 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 				Percent:   d.Progress(now) / 100,
 				Remaining: d.Remaining(now),
 				EndsAt:    current.CompletesAt,
+				Paused:    d.IsPaused(),
 			}
 		}
 		for _, c := range s.certs {
@@ -260,6 +333,16 @@ func (h *EducationHandler) course(snap *content.Snapshot, code string, s standin
 	return def, course, nil
 }
 
+// viewable finds a course to show, wherever it is taught.
+func (h *EducationHandler) viewable(snap *content.Snapshot, code string) (content.CourseDef, education.Course, error) {
+	def, ok := snap.CourseDef(code)
+	course, ok2 := snap.Course(code)
+	if !ok || !ok2 {
+		return content.CourseDef{}, education.Course{}, refuse(screens.RefusalCourseNotFound, nil)
+	}
+	return def, course, nil
+}
+
 // View handles education.view: one course, and the enrol button when the
 // enrolment would be accepted. It writes nothing.
 func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req CourseRequest) (*presenter.Response, error) {
@@ -283,7 +366,10 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		def, course, err := h.course(snap, req.Course, s, here)
+		// A course taught elsewhere, or one whose certificate the player
+		// already holds, is still shown — with where it is taught and why
+		// it cannot be joined here — rather than as "not offered".
+		def, course, err := h.viewable(snap, req.Course)
 		if err != nil {
 			return err
 		}
@@ -306,14 +392,28 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 			Certifies:   course.Certifies,
 		}
 		if def.City != "" {
-			city, err := h.cities.ByCode(ctx, def.City)
-			if err != nil {
+			view.CityCode = def.City
+			if city, err := h.cities.ByCode(ctx, def.City); err == nil {
+				view.City = city.Name
+			} else if !isSentinel(err, application.ErrCityNotFound) {
 				return err
 			}
-			view.CityCode, view.City = city.Code, city.Name
 		}
 		for _, r := range course.SkillRewards {
 			view.Skills = append(view.Skills, screens.SkillGain{Skill: string(r.Skill), XP: r.XP})
+		}
+		elsewhere := def.City != "" && (def.City != here || s.travelling)
+		if elsewhere {
+			req := screens.Requirement{Kind: screens.ReqCourseCity, CityCode: def.City}
+			if city, err := h.cities.ByCode(ctx, def.City); err == nil {
+				req.City = city.Name
+			} else if !isSentinel(err, application.ErrCityNotFound) {
+				return err
+			}
+			view.Requirements = append(view.Requirements, req)
+		}
+		if def.Certifies && s.holds(def.Code) {
+			view.Requirements = append(view.Requirements, screens.Requirement{Kind: screens.ReqAlreadyCertified})
 		}
 		if course.MinLevel > 1 {
 			view.Requirements = append(view.Requirements, screens.Requirement{
@@ -336,7 +436,15 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 		if course.Capacity > 0 && seats >= course.Capacity {
 			view.Requirements = append(view.Requirements, screens.Requirement{Kind: screens.ReqCourseFull})
 		}
-		view.CanEnrol = education.CanEnroll(course, s.applicant(here, current), seats) == nil
+		view.CanEnrol = visible(def, s, here) && education.CanEnroll(course, s.applicant(here, current), seats) == nil
+		if view.CanEnrol && course.Cost.Minor() > 0 {
+			w, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
+			if err != nil {
+				return err
+			}
+			choice := paymentChoice(w.Plan(course.Cost, snap.CourseAccepts(course.Code)), w)
+			view.Payment = &choice
+		}
 		return nil
 	})
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
@@ -351,11 +459,20 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
+	method, chosen, err := chosenMethod(req.Method)
+	if err != nil {
+		return nil, err
+	}
 	snap := h.content.Current()
+	if def, ok := snap.CourseDef(req.Course); ok && def.Cost > 0 && !chosen {
+		// A price and no way to pay it chosen: the course's price screen,
+		// with a button for each way the player can pay.
+		return h.View(ctx, meta, CourseRequest{Course: req.Course})
+	}
 	lang := meta.Language
 	replayed := false
 	var view screens.EnrolledView
-	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
@@ -392,6 +509,20 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
+		// A prisoner cannot start a course: it could not advance anyway.
+		if err := RefuseJailed(ctx, tx, p.ID, now); err != nil {
+			return err
+		}
+		// A course is joined where it is taught: at the city place of its
+		// institution (the university quarter). Nowhere to go — a city
+		// without the place, content without places — joins from anywhere.
+		w, err := locate(ctx, tx, h.cities, snap, p)
+		if err != nil {
+			return err
+		}
+		if err := needService(w, snap, place.Service(course.Institution), h.scale, now); err != nil {
+			return err
+		}
 		enrolment, fee, err := education.Enroll(course, s.applicant(here, current), seats, now, h.scale)
 		if err != nil {
 			if missing, ok := shortfalls(snap, err, application.City{}); ok {
@@ -408,7 +539,7 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 
 		enrollmentID := h.ids.NewID()
 		actionID := h.ids.NewID()
-		if err := h.chargeFee(ctx, tx, p.ID, enrollmentID, fee, now); err != nil {
+		if err := h.chargeFee(ctx, tx, snap, p.ID, course.Code, enrollmentID, fee, method, now); err != nil {
 			return err
 		}
 		payload, err := json.Marshal(EducationActionPayload{
@@ -462,6 +593,7 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 			Duration: enrolment.CompletesAt.Sub(enrolment.StartedAt),
 			EndsAt:   enrolment.CompletesAt,
 			Fee:      fee.Minor(),
+			Method:   string(method),
 		}
 		return nil
 	})
@@ -474,45 +606,41 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 	return screens.Enrolled(h.screen(meta, lang), view), nil
 }
 
-// chargeFee takes a course fee from the player's cash. The institution is the
-// game's (nobody owns it), so the fee leaves the economy into system_sink as
-// a service fee. A company-run course will pay the company's treasury here
-// instead. A player short of the fee is refused with what it costs and what
-// they have.
-func (h *EducationHandler) chargeFee(ctx context.Context, tx application.Tx, playerID, enrollmentID string, fee money.Amount, now time.Time) error {
+// chargeFee takes a course fee from the purse the player chose — their cash
+// or their bank card, whichever the course accepts (payments.yml, service
+// tuition, narrowed by the course's own list). The institution is the game's
+// (nobody owns it), so the fee leaves the economy into system_sink as a
+// service fee, the same reason whichever method paid. A company-run course
+// will pay the company's treasury here instead. A method that does not cover
+// the fee is refused with both balances (screens.PaymentDeclined).
+func (h *EducationHandler) chargeFee(ctx context.Context, tx application.Tx, snap *content.Snapshot,
+	playerID, courseCode, enrollmentID string, fee money.Amount, method payment.Method, now time.Time,
+) error {
 	if fee.IsZero() {
 		return nil
 	}
-	ledger := tx.Ledger()
-	cash, err := ledger.AccountFor(ctx, application.AccountPlayerCash, playerID)
+	w, err := application.OpenWallet(ctx, tx.Ledger(), playerID)
 	if err != nil {
 		return err
 	}
-	if cash.Balance.Minor() < fee.Minor() {
-		r := refuse(screens.RefusalCannotAfford, nil).(*refusal)
-		r.view.Fee, r.view.Cash = fee.Minor(), cash.Balance.Minor()
-		return r
+	plan := w.Plan(fee, snap.CourseAccepts(courseCode))
+	back := []string{screens.AddrCourseView, courseCode}
+	if err := checkMethod(plan, method, w, "education.button.back_to_course", back...); err != nil {
+		return err
 	}
-	neg, err := fee.Neg()
-	if err != nil {
-		return errors.Internal(err)
-	}
-	_, err = ledger.Post(ctx, application.LedgerTransaction{
+	_, err = w.Pay(ctx, tx.Ledger(), application.Charge{
+		Method:        method,
+		Accepted:      plan.Accepted,
 		Reason:        application.ReasonServiceFee,
 		ReferenceType: "enrollments",
 		ReferenceID:   enrollmentID,
-		Entries: []application.LedgerEntry{
-			{AccountID: cash.ID, Amount: neg},
-			{AccountID: application.SystemSinkAccountID, Amount: fee},
-		},
-		CreatedAt: now,
+		To:            []application.LedgerEntry{{AccountID: application.SystemSinkAccountID, Amount: fee}},
+		CreatedAt:     now,
 	})
-	if isSentinel(err, application.ErrInsufficientFunds) {
+	if stderrors.Is(err, application.ErrPaymentDeclined) {
 		// The balance moved between the read and the post; the ledger's
 		// refusal is the one that counts.
-		r := refuse(screens.RefusalCannotAfford, nil).(*refusal)
-		r.view.Fee, r.view.Cash = fee.Minor(), cash.Balance.Minor()
-		return r
+		return declined(plan, w, "education.button.back_to_course", back...)
 	}
 	return err
 }
@@ -551,7 +679,10 @@ func (h *EducationHandler) Complete(ctx context.Context, meta envelope.Metadata,
 		language = meta.Language
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
-		key := idempotency.Derive(playerID, meta.Command, enrollmentID)
+		// Keyed on the action as well as the enrolment: a course paused by
+		// jail gets a new completion on release, and that one must not be
+		// taken for a replay of the first.
+		key := idempotency.Derive(playerID, meta.Command, enrollmentID+":"+req.ActionID)
 		fresh, err := tx.Idempotency().Reserve(ctx, string(key), playerID, meta.RequestID, meta.Command, h.idempotencyTTL)
 		if err != nil || !fresh {
 			return err
@@ -561,6 +692,11 @@ func (h *EducationHandler) Complete(ctx context.Context, meta envelope.Metadata,
 			// Already completed, or the row that came due is not the course
 			// this player is on: nothing to do.
 			return err
+		}
+		if req.ActionID != "" && e.GameActionID != req.ActionID {
+			// A completion the course no longer waits for: jail moved its
+			// end, and a later completion is on the schedule.
+			return nil
 		}
 		def, ok := snap.CourseDef(e.CourseCode)
 		course, ok2 := snap.Course(e.CourseCode)
@@ -576,7 +712,9 @@ func (h *EducationHandler) Complete(ctx context.Context, meta envelope.Metadata,
 				// broker's backoff turns into "later".
 				return errors.Internal(err)
 			}
-			if stderrors.Is(err, education.ErrNotInProgress) {
+			if stderrors.Is(err, education.ErrNotInProgress) || stderrors.Is(err, education.ErrPaused) {
+				// Finished already, or standing still in jail: its release
+				// schedules the completion that will finish it.
 				return nil
 			}
 			return errors.Internal(err)

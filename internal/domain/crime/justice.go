@@ -75,6 +75,13 @@ func (m InvestigationModel) SolveChance(heat int, witnessed bool, effortBPS int)
 	return clampChance(chance)
 }
 
+// SolveChanceWithGear is SolveChance moved by the gear the thief carried at
+// the time of the theft (Gear.SolveBPS: gloves leave less to find), still
+// clamped to 1%..95%.
+func (m InvestigationModel) SolveChanceWithGear(heat int, witnessed bool, effortBPS, gearBPS int) int {
+	return clampChance(int64(m.SolveChance(heat, witnessed, effortBPS)) + int64(gearBPS))
+}
+
 // Solved rolls a report's outcome: Roll(10000) < chance.
 func Solved(chance int, d Dice) (bool, error) {
 	if d == nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	stderrors "errors"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -37,17 +38,27 @@ type BankAmountRequest struct {
 // to someone's message in a group, say). Player wins when both are set.
 // Every one of them is only an address: the handler re-reads the payee and
 // refuses anyone who is not an active player.
+//
+// Origin is the Telegram group the payment was started in, carried from the
+// payment screen to the confirmation as an address like any other: when the
+// money has moved, that group reads one line saying who paid whom, never how
+// much. It is untrusted: a forged one can only name a group for that line.
 type PayRequest struct {
 	To     string `json:"to,omitempty"`
 	Player string `json:"player,omitempty"`
 	Amount string `json:"amount,omitempty"`
 	Method string `json:"method,omitempty"`
 	Nonce  string `json:"nonce,omitempty"`
+	Origin string `json:"origin,omitempty"`
 }
 
-// quickShares are the quick-amount buttons, in basis points of what the
-// player can move: a quarter, a half, all of it. Layout, not balance.
-var quickShares = []int64{2500, 5000, 10000}
+// quickButtons is how many round amounts a screen offers for one way of
+// moving money, beside «all of it» and a typed amount.
+const quickButtons = 3
+
+// defaultQuickAmounts are the round amounts offered when none are configured
+// (economy.bank_quick_amounts). Layout, not balance.
+var defaultQuickAmounts = []int64{1000, 5000, 10000, 50000, 100000, 500000, 1000000}
 
 // nonceLength is how much of a fresh id a one-time button token keeps. Twelve
 // hex digits make a collision between two buttons of one player
@@ -80,6 +91,8 @@ type BankHandler struct {
 	policy application.PolicyReader
 	search application.PlayerSearch
 	limits bank.Limits
+	// quick are the round amounts offered as buttons, smallest first.
+	quick []int64
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -125,9 +138,22 @@ func NewBankHandler(
 		policy:         policy,
 		search:         search,
 		limits:         limits,
+		quick:          defaultQuickAmounts,
 		idempotencyTTL: idempotencyTTL,
 		now:            now,
 	}
+}
+
+// WithQuickAmounts sets the round amounts the bank offers as buttons
+// (economy.bank_quick_amounts), smallest first. It returns h so it can be
+// chained onto the constructor; an empty list keeps the default.
+func (h *BankHandler) WithQuickAmounts(amounts []int64) *BankHandler {
+	if len(amounts) > 0 {
+		sorted := append([]int64(nil), amounts...)
+		sort.Slice(sorted, func(i, j int) bool { return sorted[i] < sorted[j] })
+		h.quick = sorted
+	}
+	return h
 }
 
 func (h *BankHandler) screen(meta envelope.Metadata, lang string) screens.Context {
@@ -186,6 +212,11 @@ func (h *BankHandler) render(ctx context.Context, meta envelope.Metadata,
 			view.NoCity = true
 			return nil
 		}
+		d, err := detained(ctx, tx, p.ID, h.now())
+		if err != nil {
+			return err
+		}
+		view.Jailed = d.sentence != nil
 
 		city, err := h.cities.ByID(ctx, here[0].CityID)
 		if err != nil {
@@ -199,12 +230,14 @@ func (h *BankHandler) render(ctx context.Context, meta envelope.Metadata,
 		}
 		view.WithdrawalFeeBPS = feeBPS
 
-		view.Deposits = h.options(cash.Balance)
+		view.Deposits, view.CanDeposit = h.options(cash.Balance)
+		// A withdrawal's buttons stop where the fee would no longer fit, so
+		// no button the player sees can fail for want of money.
 		maxOut, err := bank.MaxAffordable(bankAcct.Balance, feeBPS)
 		if err != nil {
 			return errors.Internal(err)
 		}
-		view.Withdrawals = h.options(maxOut)
+		view.Withdrawals, view.CanWithdraw = h.options(maxOut)
 		return nil
 	})
 	if err != nil {
@@ -216,21 +249,33 @@ func (h *BankHandler) render(ctx context.Context, meta envelope.Metadata,
 	return screens.Bank(c, view), nil
 }
 
-// options builds the quick amounts for a sum the player could move: each
-// share of it, clamped to the maximum, without the ones under the minimum and
-// without repeats — three buttons all reading 1 help nobody.
-func (h *BankHandler) options(available money.Amount) []screens.AmountOption {
-	seen := map[int64]bool{}
-	out := make([]screens.AmountOption, 0, len(quickShares))
-	for _, share := range quickShares {
-		a := h.limits.Clamp(bank.Share(available, share))
-		if h.limits.Check(a) != nil || seen[a.Minor()] {
-			continue
-		}
-		seen[a.Minor()] = true
-		out = append(out, screens.AmountOption{Amount: a.Minor(), Nonce: h.nonce()})
+// options builds the buttons for a sum the player could move: the largest
+// few round amounts (economy.bank_quick_amounts) that fit in it, then «all of
+// it» — the whole sum, clamped to the maximum — unless a round amount already
+// is exactly that. any reports whether any amount at all can be moved, which
+// is when the screen offers a typed amount too.
+func (h *BankHandler) options(available money.Amount) (opts []screens.AmountOption, any bool) {
+	if h.limits.Check(h.limits.Min) != nil || available.Minor() < h.limits.Min.Minor() {
+		return nil, false
 	}
-	return out
+	all := h.limits.Clamp(available)
+	var fits []int64
+	for _, q := range h.quick {
+		if q <= all.Minor() && h.limits.Check(money.FromMinor(q)) == nil {
+			fits = append(fits, q)
+		}
+	}
+	if len(fits) > quickButtons {
+		fits = fits[len(fits)-quickButtons:]
+	}
+	out := make([]screens.AmountOption, 0, len(fits)+1)
+	for _, q := range fits {
+		out = append(out, screens.AmountOption{Amount: q, Nonce: h.nonce()})
+	}
+	if len(fits) == 0 || fits[len(fits)-1] != all.Minor() {
+		out = append(out, screens.AmountOption{Amount: all.Minor(), Nonce: h.nonce(), All: true})
+	}
+	return out, true
 }
 
 // nonce returns a fresh one-time token for a button.
@@ -382,6 +427,13 @@ func (h *BankHandler) Pay(ctx context.Context, meta envelope.Metadata, req PayRe
 		return screens.PayHelp(h.screen(meta, lang)), nil
 	}
 
+	// Started in a group: the group is told, once the money has moved, who
+	// paid whom.
+	if req.Origin == "" && meta.InGroup() {
+		req.Origin = strconv.FormatInt(meta.TelegramChatID, 10)
+	}
+	req.Origin = cleanOrigin(req.Origin)
+
 	// With both an amount and a method the player has chosen: confirm it.
 	if req.Amount != "" && req.Method != "" {
 		return h.confirm(ctx, meta, req)
@@ -429,7 +481,7 @@ func (h *BankHandler) payScreen(ctx context.Context, meta envelope.Metadata, req
 				return err
 			}
 			view.Together, view.CityCode, view.City = true, city.Code, city.Name
-			view.CashOptions = h.options(cash.Balance)
+			view.CashOptions, view.CanCash = h.options(cash.Balance)
 		}
 
 		feeBPS, city, err := h.cardFee(ctx, here[0])
@@ -441,7 +493,8 @@ func (h *BankHandler) payScreen(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return errors.Internal(err)
 		}
-		view.CardOptions = h.options(maxCard)
+		view.CardOptions, view.CanCard = h.options(maxCard)
+		view.Origin = req.Origin
 		return nil
 	})
 	if err != nil {
@@ -467,7 +520,10 @@ func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req P
 		return nil, errors.InvalidInput("unknown payment method").WithCause(bank.ErrUnknownMethod)
 	}
 
-	var view screens.PayConfirmView
+	var (
+		view  screens.PayConfirmView
+		short error
+	)
 	lang := meta.Language
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -498,6 +554,20 @@ func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req P
 				return errors.Internal(err)
 			}
 		}
+		// The money is checked BEFORE the confirmation, fee included, so a
+		// player is never asked to confirm a payment that would then fail.
+		cash, bankAcct, err := playerAccounts(ctx, tx.Ledger(), p.ID)
+		if err != nil {
+			return err
+		}
+		from := bankAcct
+		if method == bank.MethodCash {
+			from = cash
+		}
+		if err := checkFunds(from, quote, method == bank.MethodCash); err != nil {
+			short = err
+			return nil
+		}
 		view = screens.PayConfirmView{
 			PayeeName: shownName(payee),
 			PayeeCode: payee.PublicCode,
@@ -505,7 +575,9 @@ func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req P
 			Amount:    quote.Amount.Minor(),
 			Fee:       quote.Fee.Minor(),
 			Total:     quote.Total.Minor(),
+			After:     from.Balance.Minor() - quote.Total.Minor(),
 			Nonce:     h.nonce(),
+			Origin:    req.Origin,
 		}
 		return nil
 	})
@@ -515,7 +587,24 @@ func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req P
 	if err != nil {
 		return nil, err
 	}
+	if short != nil {
+		// Not enough: back to the payment screen, whose buttons only offer
+		// what can be paid, with the shortfall at the top.
+		return h.payScreen(ctx, meta, req, func(c screens.Context, _ string) string {
+			return screens.PayShortfall(c, short)
+		})
+	}
 	return screens.PayConfirm(h.screen(meta, lang), view), nil
+}
+
+// cleanOrigin keeps an origin only when it names a group: a Telegram group
+// or supergroup id is negative. Anything else is dropped, never trusted.
+func cleanOrigin(origin string) string {
+	id, err := strconv.ParseInt(origin, 10, 64)
+	if err != nil || id >= 0 {
+		return ""
+	}
+	return origin
 }
 
 // notTogether words the refusal of cash between players who are apart, and
@@ -622,16 +711,22 @@ func (h *BankHandler) PaySend(ctx context.Context, meta envelope.Metadata, req P
 			return err
 		}
 
-		if err := h.announce(ctx, tx, meta, "payment_received", txID, map[string]any{
+		payload := map[string]any{
 			"payer_id":       p.ID,
 			"payer_name":     shownName(p),
 			"payer_code":     p.PublicCode,
 			"payee_id":       payee.ID,
+			"payee_name":     shownName(payee),
 			"method":         string(method),
 			"amount":         quote.Amount.Minor(),
 			"fee":            quote.Fee.Minor(),
 			"transaction_id": txID,
-		}); err != nil {
+		}
+		if origin := cleanOrigin(req.Origin); origin != "" {
+			// The group the payment started in reads who paid whom.
+			payload["origin_chat_id"] = origin
+		}
+		if err := h.announce(ctx, tx, meta, "payment_received", txID, payload); err != nil {
 			return err
 		}
 
@@ -786,7 +881,9 @@ func checkFunds(from application.Account, q bank.Quote, fromCash bool) error {
 		return nil
 	}
 	if fromCash {
-		return application.ErrNotEnoughCash.WithDetail("available", from.Balance.Minor())
+		return application.ErrNotEnoughCash.
+			WithDetail("available", from.Balance.Minor()).
+			WithDetail("needed", q.Total.Minor())
 	}
 	return application.ErrNotEnoughInBank.
 		WithDetail("available", from.Balance.Minor()).

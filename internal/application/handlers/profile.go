@@ -290,6 +290,14 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 		view.Work = work
 	}
 
+	// A player in jail sees it first, with the time left and when they are
+	// free; the home screen then offers the jail instead of the map.
+	jail, err := h.jail(ctx, tx, p.ID)
+	if err != nil {
+		return view, err
+	}
+	view.Jail = jail
+
 	if p.CityID != nil && *p.CityID != "" {
 		city, err := h.cities.ByID(ctx, *p.CityID)
 		if err != nil {
@@ -306,6 +314,27 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 		}
 	}
 	return view, nil
+}
+
+// jail reads the sentence the player is serving, or nil when they are free.
+func (h *ProfileHandler) jail(ctx context.Context, tx application.Tx, playerID string) (*screens.ProfileJail, error) {
+	now := h.now()
+	s, err := tx.Crime().ActiveSentence(ctx, playerID)
+	switch {
+	case isSentinel(err, application.ErrNotJailed):
+		return nil, nil
+	case err != nil:
+		return nil, err
+	case !s.Serving(now):
+		return nil, nil
+	}
+	j := &screens.ProfileJail{Remaining: s.EndsAt.Sub(now), EndsAt: s.EndsAt}
+	if city, err := h.cities.ByID(ctx, s.CityID); err == nil {
+		j.CityCode, j.City = city.Code, city.Name
+	} else if !isSentinel(err, application.ErrCityNotFound) {
+		return nil, err
+	}
+	return j, nil
 }
 
 // work reads the player's job and studies for the home screen. It only
@@ -361,9 +390,11 @@ func (h *ProfileHandler) work(ctx context.Context, tx application.Tx, p *applica
 	case err != nil:
 		return nil, err
 	default:
+		d := domainEnrollment(*enrolment)
 		w.Course = &screens.ProfileCourse{
 			Course:    courseRef(snap, enrolment.CourseCode),
-			Remaining: max(enrolment.CompletesAt.Sub(h.now()), 0),
+			Remaining: d.Remaining(h.now()),
+			Paused:    d.IsPaused(),
 		}
 	}
 

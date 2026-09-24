@@ -11,11 +11,11 @@ You do not have a job yet. See what the employers in your city are offering unde
 (edits message 42)
 💼 Job openings in Ostmarch
 
-✅ Retail · Sales Trainee · 120 Nil per shift
-✅ Hospitality · Kitchen Porter · 110 Nil per shift
-✅ Logistics · Courier · 115 Nil per shift
-✅ Workshop · Workshop Hand · 125 Nil per shift
-🔒 Technology · Junior Developer · 220 Nil per shift
+✅ Retail - Sales Trainee - 120 Nil per shift
+✅ Hospitality - Kitchen Porter - 110 Nil per shift
+✅ Logistics - Courier - 115 Nil per shift
+✅ Workshop - Workshop Hand - 125 Nil per shift
+🔒 Technology - Junior Developer - 220 Nil per shift
 
 Page 1 of 2
 
@@ -29,7 +29,7 @@ Page 1 of 2
 
 ━━━ Retail ━━━
 (edits message 42)
-💼 Sales Trainee · Retail
+💼 Sales Trainee - Retail
 
 📍 Workplace: Ostmarch
 💰 Pay per shift: 120 Nil
@@ -54,11 +54,11 @@ Requirements:
 👤 Sara
 📍 Ostmarch
 
-⭐ Level 1 · 50 XP to level 2
+⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 100 of 100
 ❤️ Health: 100 of 100
 
-💼 Sales Trainee in Ostmarch · 120 Nil per shift
+💼 Sales Trainee in Ostmarch - 120 Nil per shift
 
 💵 Cash: 5,000 Nil
 🏦 Bank balance: 0 Nil
@@ -75,10 +75,10 @@ Requirements:
 (edits message 42)
 💼 My job
 
-💼 Sales Trainee · Retail
+💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
 💰 Pay per shift: 120 Nil
-⚡ Energy per shift: 15 · you have 100 of 100
+⚡ Energy per shift: 15 - you have 100 of 100
 📈 Performance: 50 of 100
 🔁 Shifts in this position: 0
 ⏱ Each shift takes 4m
@@ -112,12 +112,12 @@ Your pay, XP and performance are settled when the shift ends, and you will be no
 👤 Sara
 📍 Ostmarch
 
-⭐ Level 1 · 50 XP to level 2
-⚡ Energy: 85 of 100 · full in 44m
+⭐ Level 1 - 50 XP to level 2
+⚡ Energy: 85 of 100 - full in 44m
 ❤️ Health: 100 of 100
 
-💼 Sales Trainee in Ostmarch · 120 Nil per shift
-⏳ On shift · 3m left
+💼 Sales Trainee in Ostmarch - 120 Nil per shift
+⏳ On shift - 3m left
 
 💵 Cash: 5,000 Nil
 🏦 Bank balance: 0 Nil
@@ -134,16 +134,16 @@ Your pay, XP and performance are settled when the shift ends, and you will be no
 (edits message 42)
 💼 My job
 
-💼 Sales Trainee · Retail
+💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
 💰 Pay per shift: 120 Nil
-⚡ Energy per shift: 15 · you have 85 of 100
+⚡ Energy per shift: 15 - you have 85 of 100
 📈 Performance: 50 of 100
 🔁 Shifts in this position: 0
 ⏱ Each shift takes 4m
 💵 Earned in this job: 0 Nil
 
-⏳ On shift · 3m to go
+⏳ On shift - 3m to go
 🕒 Shift ends at 12:04
 
 ⬆️ Next position: Sales Associate
@@ -159,7 +159,7 @@ Still needed for a promotion:
 ━━━ Start another shift while at work ━━━
 (edits message 42)
 💼 You are at work right now. Wait for your shift to end.
-⏳ On shift · 3m to go
+⏳ On shift - 3m to go
 🕒 Shift ends at 12:04
   ───
   [💼 My job] → job:status
@@ -169,7 +169,7 @@ Still needed for a promotion:
 (sends)
 ✅ Shift complete
 
-💰 Wage 120 Nil · income tax 6 Nil · you received 114 Nil
+💰 Wage 120 Nil - income tax 6 Nil - you received 114 Nil
 ⭐ 10 XP
 🛠 Management: +15 XP
 📈 Performance: 51 of 100 (+1)
@@ -182,10 +182,10 @@ Still needed for a promotion:
 (edits message 42)
 💼 My job
 
-💼 Sales Trainee · Retail
+💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
 💰 Pay per shift: 120 Nil
-⚡ Energy per shift: 15 · you have 85 of 100
+⚡ Energy per shift: 15 - you have 85 of 100
 📈 Performance: 51 of 100
 🔁 Shifts in this position: 1
 ⏱ Each shift takes 4m
@@ -221,11 +221,11 @@ You are not ready for a promotion yet:
 
 You work as Sales Trainee. To take another job, leave your current one first.
 
-✅ Retail · Sales Trainee · 120 Nil per shift
-✅ Hospitality · Kitchen Porter · 110 Nil per shift
-✅ Logistics · Courier · 115 Nil per shift
-✅ Workshop · Workshop Hand · 125 Nil per shift
-🔒 Technology · Junior Developer · 220 Nil per shift
+✅ Retail - Sales Trainee - 120 Nil per shift
+✅ Hospitality - Kitchen Porter - 110 Nil per shift
+✅ Logistics - Courier - 115 Nil per shift
+✅ Workshop - Workshop Hand - 125 Nil per shift
+🔒 Technology - Junior Developer - 220 Nil per shift
 
 Page 1 of 2
   ───
@@ -238,7 +238,7 @@ Page 1 of 2
 
 ━━━ A job needing more ━━━
 (edits message 42)
-💼 Junior Developer · Technology
+💼 Junior Developer - Technology
 
 📍 Workplace: Ostmarch
 💰 Pay per shift: 220 Nil

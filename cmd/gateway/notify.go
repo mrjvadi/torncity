@@ -95,7 +95,13 @@ func (g *gateway) deliverNotice(data []byte) notification.Receipt {
 	resp.Type = presenter.ActionSendMessage
 	resp.MessageID = 0
 
-	err := g.sendNoticeViaFleet(ctx, botKey, meta, &resp, log)
+	priority := laneNotice
+	if notice.Announcement {
+		// A public line for a group: posted in the room as it stands.
+		priority = laneAnnounce
+		resp.Keyboard = nil
+	}
+	err := g.sendNoticeViaFleet(ctx, botKey, meta, &resp, priority, log)
 	receipt := noticeReceipt(ctx, err)
 
 	switch receipt.Outcome {
@@ -112,12 +118,12 @@ func (g *gateway) deliverNotice(data []byte) notification.Receipt {
 }
 
 // sendNoticeViaFleet sends a notice through the named bot at notice priority.
-func (g *gateway) sendNoticeViaFleet(ctx context.Context, botKey string, meta envelope.Metadata, resp *presenter.Response, log *slog.Logger) error {
+func (g *gateway) sendNoticeViaFleet(ctx context.Context, botKey string, meta envelope.Metadata, resp *presenter.Response, priority lane, log *slog.Logger) error {
 	api, err := g.fleet.ClientFor(botKey)
 	if err != nil {
 		return err
 	}
-	return g.send(ctx, api, botKey, meta, resp, laneNotice, log)
+	return g.send(ctx, api, botKey, meta, resp, priority, log)
 }
 
 // noticeReceipt classifies the result of one send.
@@ -156,6 +162,9 @@ const (
 	laneDirect lane = iota
 	// laneNotice is P1: something the player did not ask for just now.
 	laneNotice
+	// laneAnnounce is P1 too: a public line for a group chat (a player
+	// arrived in the city), posted in the group itself.
+	laneAnnounce
 )
 
 // priorityLanes keeps notices behind direct replies, per bot.

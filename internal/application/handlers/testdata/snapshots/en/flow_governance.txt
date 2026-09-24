@@ -8,21 +8,21 @@ Offices:
 • Deputy mayor: vacant
 • City council: vacant
 Policies:
-• Immigration fee: 0 Nil · default
-• Tax rate: 4.5% · default
-• Minimum wage: 100 Nil · default
-• Income tax: 5% · default
-• Working-hours window (game hours): 24 · default
-• Shifts before fatigue: 4 · default
-• Bank withdrawal fee: 1.5% · default
-• Card transfer fee: 1% · default
-• Public transport fare: 100% · default
+• Immigration fee: 0 Nil - default
+• Tax rate: 4.5% - default
+• Minimum wage: 100 Nil - default
+• Income tax: 5% - default
+• Working-hours window (game hours): 24 - default
+• Shifts before fatigue: 4 - default
+• Bank withdrawal fee: 1.5% - default
+• Card transfer fee: 1% - default
+• Public transport fare: 100% - default
 
 📍 The Commonwealth
 Offices:
 • President: vacant
 Policies:
-• Border tariff: 0% · default
+• Border tariff: 0% - default
   ───
   [📜 Policy history] → gov:history:ostmarch
   [🏛 My office] → gov:office
@@ -57,7 +57,7 @@ Policies:
 ━━━ Tax rate ━━━
 (edits message 42)
 🏛 Tax rate — Ostmarch
-• Tax rate: 4.5% · default
+• Tax rate: 4.5% - default
 
 Allowed range: 0% to 25%
 Default: 4.5%
@@ -74,7 +74,7 @@ Adjust it with the buttons, then tap “Review change”.
 ━━━ Lower it ━━━
 (edits message 42)
 🏛 Tax rate — Ostmarch
-• Tax rate: 4.5% · default
+• Tax rate: 4.5% - default
 
 Allowed range: 0% to 25%
 Default: 4.5%
@@ -111,7 +111,7 @@ Tax rate in Ostmarch will change from 4.5% to 2% in 24h. The change is recorded 
 ━━━ Change it again at once ━━━
 (edits message 42)
 🏛 Tax rate — Ostmarch
-• Tax rate: 4.5% · default
+• Tax rate: 4.5% - default
   ⏳ Changes to 2% in 24h
 
 Allowed range: 0% to 25%
@@ -133,22 +133,22 @@ Offices:
 • Deputy mayor: vacant
 • City council: vacant
 Policies:
-• Immigration fee: 0 Nil · default
-• Tax rate: 4.5% · default
+• Immigration fee: 0 Nil - default
+• Tax rate: 4.5% - default
   ⏳ Changes to 2% in 24h
-• Minimum wage: 100 Nil · default
-• Income tax: 5% · default
-• Working-hours window (game hours): 24 · default
-• Shifts before fatigue: 4 · default
-• Bank withdrawal fee: 1.5% · default
-• Card transfer fee: 1% · default
-• Public transport fare: 100% · default
+• Minimum wage: 100 Nil - default
+• Income tax: 5% - default
+• Working-hours window (game hours): 24 - default
+• Shifts before fatigue: 4 - default
+• Bank withdrawal fee: 1.5% - default
+• Card transfer fee: 1% - default
+• Public transport fare: 100% - default
 
 📍 The Commonwealth
 Offices:
 • President: vacant
 Policies:
-• Border tariff: 0% · default
+• Border tariff: 0% - default
   ───
   [📜 Policy history] → gov:history:ostmarch
   [🏛 My office] → gov:office
@@ -159,7 +159,7 @@ Policies:
 📜 Policy history — Ostmarch
 
 • Tax rate (Ostmarch): 4.5% → 2%
-  Announced by Mayor Sara (K7Q2M9A) · 1s ago
+  Announced by Mayor Sara (K7Q2M9A) - 1s ago
   ⏳ Takes effect in 24h
   ───
   [🔙 Back] → gov:city:ostmarch   │   [🔄 Refresh] → gov:history:ostmarch:1

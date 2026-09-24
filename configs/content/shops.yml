@@ -1,0 +1,99 @@
+# City shops: the NPC economy's counters, where players buy the basics.
+#
+# A shop sells goods of items.yml at its place in the city (places.yml): a
+# player buys at the counter, in person. The RULES — how demand moves a
+# price, how a shelf refills on the game clock, what a shop pays to buy a
+# good back — are internal/domain/shop; the city's sales tax on a purchase is
+# its mayor's policy (the city.sales_tax lever in governance.yml), paid into
+# the treasury on top of the price. A purchase pays the NPC economy (the
+# price leaves the economy, ADR 0009 shop_purchase); a good bought back
+# brings money in (shop_buyback), at a spread, so selling to a shop is always
+# worth less than buying from it.
+#
+# shops
+#   code      stable identifier.
+#   name      display name, the fallback for shop_name.<code>.
+#   place     the city place the shop stands at.
+#   cities    optional: only these cities have it (default: every city with
+#             the place).
+#   payment   optional: narrows the methods of payments.yml service shop.
+#   demand    how buying moves prices, like a fare: every sale of a good in
+#             the last `window` (REAL time) beyond `free_sales` adds
+#             `step_bps`, up to `max_bps` (10000 = unchanged). Prices drift
+#             back as sales leave the window.
+#   shelves   the goods it sells:
+#     item         an items.yml code (never a black_market one).
+#     price        optional: this shop's base price instead of the item's.
+#     stock        the shelf's size; a new shelf starts full.
+#     restock      units coming back every `every` of GAME time, waited
+#                  through the game clock, up to stock.
+#     buyback_bps  optional: the share of its selling price the shop pays to
+#                  buy one back; omitted, it does not buy the good.
+
+version: 1
+
+shops:
+  - code: grocery
+    name: Grocery
+    place: bazaar
+    demand: {window: 30m, free_sales: 10, step_bps: 100, max_bps: 15000}
+    shelves:
+      - {item: bread,        stock: 40, restock: 10, every: 1h}
+      - {item: sandwich,     stock: 25, restock: 5,  every: 1h}
+      - {item: water_bottle, stock: 50, restock: 15, every: 1h}
+      - {item: coffee,       stock: 30, restock: 10, every: 1h}
+      - {item: energy_drink, stock: 15, restock: 3,  every: 2h}
+
+  - code: diner
+    name: Diner
+    place: city_centre
+    demand: {window: 30m, free_sales: 8, step_bps: 150, max_bps: 15000}
+    shelves:
+      - {item: hot_meal, stock: 20, restock: 5, every: 1h}
+      - {item: coffee,   price: 70, stock: 20, restock: 5, every: 1h}
+
+  - code: pharmacy
+    name: Pharmacy
+    place: hospital
+    demand: {window: 1h, free_sales: 5, step_bps: 200, max_bps: 16000}
+    shelves:
+      - {item: bandage,       stock: 30, restock: 6, every: 1h}
+      - {item: painkillers,   stock: 20, restock: 4, every: 1h}
+      - {item: first_aid_kit, stock: 8,  restock: 2, every: 2h}
+
+  - code: hardware_store
+    name: Hardware store
+    place: bazaar
+    demand: {window: 2h, free_sales: 3, step_bps: 300, max_bps: 18000}
+    shelves:
+      - {item: gloves,       stock: 30, restock: 6, every: 2h, buyback_bps: 3000}
+      - {item: crowbar,      stock: 6,  restock: 1, every: 3h, buyback_bps: 4000}
+      - {item: lockpick_set, stock: 4,  restock: 1, every: 4h, buyback_bps: 4000}
+
+  - code: outfitter
+    name: Outfitter
+    place: bazaar
+    demand: {window: 2h, free_sales: 3, step_bps: 250, max_bps: 17000}
+    shelves:
+      - {item: ski_mask,      stock: 8, restock: 2, every: 3h, buyback_bps: 3500}
+      - {item: running_shoes, stock: 6, restock: 1, every: 3h, buyback_bps: 4000}
+
+  - code: electronics_store
+    name: Electronics store
+    place: business_district
+    demand: {window: 3h, free_sales: 2, step_bps: 300, max_bps: 18000}
+    shelves:
+      - {item: phone, stock: 5, restock: 1, every: 4h, buyback_bps: 4500}
+      - {item: watch, stock: 5, restock: 1, every: 4h, buyback_bps: 4500}
+
+  # Second-hand goods, no questions asked: the pawnbroker buys what players
+  # bring in, cheaply, and sells it on.
+  - code: pawnshop
+    name: Pawnshop
+    place: residential_area
+    demand: {window: 3h, free_sales: 2, step_bps: 300, max_bps: 16000}
+    shelves:
+      - {item: jewellery,  price: 550,  stock: 5, restock: 1, every: 4h, buyback_bps: 3500}
+      - {item: car_stereo, price: 650,  stock: 3, restock: 1, every: 6h, buyback_bps: 3500}
+      - {item: watch,      price: 700,  stock: 3, restock: 1, every: 6h, buyback_bps: 3500}
+      - {item: phone,      price: 2200, stock: 2, restock: 1, every: 8h, buyback_bps: 3500}

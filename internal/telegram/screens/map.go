@@ -90,23 +90,21 @@ func Map(c Context, v MapView) *presenter.Response {
 		)
 	}
 
-	// The offices and policies of the city the player stands in.
-	if !v.Travelling && origin != "" {
-		kb.Add(c.T("gov.button.city", nil), AddrGovCity)
-	}
-
-	nav := keyboards.Nav{RefreshData: AddrMap}
+	// Back is the map of the player's own city, where this list is opened
+	// from.
+	nav := keyboards.Nav{RefreshData: AddrCities, BackData: AddrMap}
 	if !v.Travelling && origin != "" {
 		nav = keyboards.Nav{
-			Prefix:  AddrMap,
-			Page:    v.Page,
-			HasPrev: pageOrOne(v.Page) > 1,
-			HasNext: pageOrOne(v.Page) < v.Pages,
+			Prefix:   AddrCities,
+			Page:     v.Page,
+			HasPrev:  pageOrOne(v.Page) > 1,
+			HasNext:  pageOrOne(v.Page) < v.Pages,
+			BackData: AddrMap,
 		}
 	}
 	kb.Nav(c.nav(nav))
 
-	return c.respond(paragraphs(c.T("map.title", nil), content), kb.Build())
+	return c.respond(paragraphs(c.T("map.cities_title", nil), content), kb.Build())
 }
 
 // pageIndicator says where in a list the player is, and says nothing at all

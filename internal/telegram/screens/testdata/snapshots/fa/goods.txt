@@ -1,0 +1,314 @@
+━━━ Bag ━━━
+(edits message 42)
+🎒 کوله‌پشتی شما
+
+• نان - ۳ عدد
+• باند زخم - ۱ عدد
+• ابزار بازکردن قفل - کیفیت ۶۲ - ۷ بار از ۱۰ بار مصرف مانده
+• گوشی - کیفیت ۵۵
+
+📦 ۲ قلم از کالاهایتان در بازار یا حراجی است.
+  ───
+  [🎒 نان] → inventory:item:bread   │   [🎒 باند زخم] → inventory:item:bandage
+  [🎒 ابزار بازکردن قفل] → inventory:item:A1B2C3D4E5   │   [🎒 گوشی] → inventory:item:F0E1D2C3B4
+  [🛒 مغازه‌ها] → shop:list   │   [🏪 بازار] → market:list
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → inventory:show:1
+
+━━━ Bag · empty ━━━
+(edits message 42)
+🎒 کوله‌پشتی شما
+
+کوله‌پشتی‌تان خالی است. مغازه‌های شهر خوراکی، دارو و ابزار می‌فروشند.
+  ───
+  [🛒 مغازه‌ها] → shop:list   │   [🏪 بازار] → market:list
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → inventory:show:1
+
+━━━ Item · bread, a friend here ━━━
+(edits message 42)
+🎒 نان
+
+نوع: خوراکی
+۳ عدد دارید.
+💰 ارزش تقریبی: ۴۰ نیل
+
+با مصرفش:
+• ⚡ انرژی ۱۰ واحد بالا می‌رود
+• 😊 شادی ۲ واحد بالا می‌رود
+⏳ هر ۳۰ دقیقه یک بار
+  ───
+  [✅ مصرف نان] → inventory:use:bread:0a1b2c3d4e5f
+  [🏪 فروش در بازار] → market:book:bread   │   [💰 فروش به مغازه] → shop:offers:bread
+  [🎁 بده به کاوه] → inventory:give:bread:0a1b2c3d4e5f:B3C4D5F
+  [🗑 دور انداختن] → inventory:drop:bread
+  [🔙 بازگشت] → inventory:show   │   [🔄 به‌روزرسانی] → inventory:item:bread
+
+━━━ Item · bandage, still cooling ━━━
+(edits message 42)
+🎒 باند زخم
+
+نوع: دارو
+۱ عدد دارید.
+💰 ارزش تقریبی: ۸۰ نیل
+
+با مصرفش:
+• ❤️ سلامت ۱۵ واحد بالا می‌رود
+⏳ هر ۱ ساعت یک بار
+
+⏳ تا ۱۲ دقیقه دیگر دوباره می‌توانید مصرفش کنید.
+🕒 آماده در ساعت ۱۴:۴۷
+
+👥 برای بخشیدن، باید با یک دوست در یک جا باشید.
+  ───
+  [🏪 فروش در بازار] → market:book:bandage   │   [💰 فروش به مغازه] → shop:offers:bandage
+  [🗑 دور انداختن] → inventory:drop:bandage
+  [🔙 بازگشت] → inventory:show   │   [🔄 به‌روزرسانی] → inventory:item:bandage
+
+━━━ Item · a lockpick set ━━━
+(edits message 42)
+🎒 ابزار بازکردن قفل
+
+نوع: ابزار
+کیفیت ۶۲ - ۷ بار از ۱۰ بار مصرف مانده
+💰 ارزش تقریبی: ۶۰۰ نیل
+
+🕶 به کار می‌آید برای: دزدی از خانه، سرقت از خودرو
+🎲 شانس موفقیت ۱۰٪ بیشتر
+🚔 احتمال دستگیری ۳٪ کمتر
+🔥 ۱ جسارت کمتر لازم دارد
+🚔 اگر دستگیر شوید، پلیس آن را به‌عنوان مدرک نگه می‌دارد.
+
+👥 برای بخشیدن، باید با یک دوست در یک جا باشید.
+  ───
+  [🔨 حراج گذاشتن] → auction:new:A1B2C3D4E5   │   [💰 فروش به مغازه] → shop:offers:A1B2C3D4E5
+  [🗑 دور انداختن] → inventory:drop:A1B2C3D4E5
+  [🔙 بازگشت] → inventory:show   │   [🔄 به‌روزرسانی] → inventory:item:A1B2C3D4E5
+
+━━━ Used · bread ━━━
+(edits message 42)
+✅ مصرف شد: نان
+⚡ انرژی: ۴۰ ← ۵۰ از ۱۰۰
+🎒 باقی‌مانده در کوله‌پشتی: ۲
+⏳ بعدی تا ۳۰ دقیقه دیگر
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Given · bread to a friend ━━━
+(edits message 42)
+🎁 نان را به کاوه دادید.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Notice · a friend gave you bread ━━━
+(sends) (private in groups)
+🎁 کاوه به شما نان داد.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+
+━━━ Drop · are you sure ━━━
+(edits message 42)
+🗑 گوشی را دور بیندازید؟ برای همیشه از دست می‌رود.
+  ───
+  [🗑 بله، دور بینداز] → inventory:drop:F0E1D2C3B4:yes:0a1b2c3d4e60
+  [🔙 بازگشت] → inventory:item:F0E1D2C3B4
+
+━━━ Drop · done ━━━
+(edits message 42)
+🗑 گوشی را دور انداختید.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Item refused · not carried ━━━
+(edits message 42)
+گوشی همراهتان نیست.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Item refused · not usable ━━━
+(edits message 42)
+ابزار بازکردن قفل مصرفی نیست؛ فقط همراهتان می‌ماند.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Item refused · still cooling ━━━
+(edits message 42)
+⏳ تا ۱۲ دقیقه دیگر می‌توانید دوباره باند زخم مصرف کنید.
+🕒 آماده در ساعت ۱۴:۴۷
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Item refused · no effect ━━━
+(edits message 42)
+مصرف نان الان فایده‌ای ندارد؛ همین حالا پر هستید.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Item refused · not tradeable ━━━
+(edits message 42)
+ابزار بازکردن قفل قابل واگذاری نیست.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Item refused · not together ━━━
+(edits message 42)
+👥 فقط به دوستی می‌توانید چیزی بدهید که همان‌جایی باشد که شما هستید.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Shops ━━━
+(edits message 42)
+🛒 مغازه‌های استمارچ
+
+• خواربارفروشی - همین‌جا
+• ابزارفروشی - همین‌جا
+• سمساری - در محلهٔ مسکونی
+  ───
+  [🛒 خواربارفروشی] → shop:view:grocery   │   [🛒 ابزارفروشی] → shop:view:hardware_store
+  [🛒 سمساری] → shop:view:pawnshop
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → shop:list
+
+━━━ Shops · none ━━━
+(edits message 42)
+🛒 مغازه‌های استمارچ
+
+این شهر هنوز مغازه‌ای ندارد.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → shop:list
+
+━━━ Shop · at the counter ━━━
+(edits message 42)
+🛒 ابزارفروشی - در بازار
+
+• ابزار بازکردن قفل - ۶۰۰ نیل - ۴ عدد موجود - می‌خرد به ۳۰۰ نیل
+• دیلم - ۳۹۰ نیل (پرطرفدار) - ۲ عدد موجود
+• جفت دستکش - تمام شده
+
+📍 پای پیشخوان هستید.
+🧾 مالیات فروش در اینجا: ۵٪
+  ───
+  [🛒 ابزار بازکردن قفل] → shop:buy:hardware_store:lockpick_set:1   │   [🛒 دیلم] → shop:buy:hardware_store:crowbar:1
+  [🔙 بازگشت] → shop:list   │   [🔄 به‌روزرسانی] → shop:view:hardware_store
+
+━━━ Shop · from across town ━━━
+(edits message 42)
+🛒 ابزارفروشی - در بازار
+
+• ابزار بازکردن قفل - ۶۰۰ نیل - ۴ عدد موجود - می‌خرد به ۳۰۰ نیل
+• دیلم - ۳۹۰ نیل (پرطرفدار) - ۲ عدد موجود
+• جفت دستکش - تمام شده
+
+📍 این مغازه در بازار است. برای خرید به آنجا بروید.
+🧾 مالیات فروش در اینجا: ۵٪
+  ───
+  [🚶 بازار] → place:go:bazaar
+  [🔙 بازگشت] → shop:list   │   [🔄 به‌روزرسانی] → shop:view:hardware_store
+
+━━━ Checkout · both ways cover it ━━━
+(edits message 42)
+🛒 ابزارفروشی
+
+ابزار بازکردن قفل - ۱ عدد، هر عدد ۶۰۰ نیل
+قیمت: ۶۳۰ نیل
+🧾 مالیات فروش (۵٪): ۳۰ نیل
+💵 مبلغ پرداختی: ۶۶۰ نیل
+
+چطور پرداخت می‌کنید؟
+💵 پول نقد شما: ۲٬۰۰۰ نیل - موجودی بانک: ۹٬۰۰۰ نیل
+  ───
+  [💵 پرداخت نقدی - ۶۳۰ نیل] → shop:buy:hardware_store:lockpick_set:1:cash:0a1b2c3d4e61   │   [💳 پرداخت با کارت - ۶۳۰ نیل] → shop:buy:hardware_store:lockpick_set:1:card:0a1b2c3d4e61
+  [🔙 بازگشت] → shop:view:hardware_store
+
+━━━ Checkout · neither covers it ━━━
+(edits message 42)
+🛒 ابزارفروشی
+
+ابزار بازکردن قفل - ۱ عدد، هر عدد ۶۰۰ نیل
+قیمت: ۶۳۰ نیل
+🧾 مالیات فروش (۵٪): ۳۰ نیل
+💵 مبلغ پرداختی: ۶۶۰ نیل
+
+💸 نه پول نقدتان و نه موجودی بانکتان به این مبلغ نمی‌رسد.
+💵 پول نقد شما: ۱۰۰ نیل - موجودی بانک: ۲۰۰ نیل
+  ───
+  [🏦 بانک] → bank:show
+  [🔙 بازگشت] → shop:view:hardware_store
+
+━━━ Bought · with tax ━━━
+(edits message 42)
+✅ ابزار بازکردن قفل خریدید - ۱ عدد به ۶۶۰ نیل.
+🧾 ۳۰ نیل از این مبلغ مالیات فروش است و به شهر می‌رسد.
+💳 با کارت بانکی پرداخت شد.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show   │   [🛒 بازگشت به مغازه] → shop:view:hardware_store
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Sell · who buys a phone ━━━
+(edits message 42)
+💰 چه کسی گوشی می‌خرد
+• سمساری در محلهٔ مسکونی - ۱٬۱۰۰ نیل می‌دهد
+• فروشگاه لوازم برقی در منطقهٔ تجاری - ۱٬۲۵۰ نیل می‌دهد
+  ───
+  [💰 سمساری - ۱٬۱۰۰ نیل] → shop:sell:pawnshop:F0E1D2C3B4
+  [💰 فروشگاه لوازم برقی - ۱٬۲۵۰ نیل] → shop:sell:electronics_store:F0E1D2C3B4
+  [🔙 بازگشت] → inventory:item:F0E1D2C3B4
+
+━━━ Sell · nobody buys it ━━━
+(edits message 42)
+💰 چه کسی نان می‌خرد
+هیچ مغازه‌ای در این شهر این را نمی‌خرد.
+  ───
+  [🔙 بازگشت] → inventory:item:bread
+
+━━━ Sold · a phone to the pawnshop ━━━
+(edits message 42)
+💰 گوشی را به سمساری به ۱٬۱۰۰ نیل فروختید.
+🎒 باقی‌مانده در کوله‌پشتی: ۰
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Shop refused · no such shop ━━━
+(edits message 42)
+این مغازه در این شهر نیست.
+  ───
+  [🛒 مغازه‌ها] → shop:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Shop refused · not sold here ━━━
+(edits message 42)
+خواربارفروشی این را نمی‌فروشد.
+  ───
+  [🛒 مغازه‌ها] → shop:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Shop refused · sold out ━━━
+(edits message 42)
+ابزار بازکردن قفل در ابزارفروشی تمام شده است. منتظر بار بعدی بمانید.
+🚚 بار بعدی در ساعت ۱۴:۵۵ می‌رسد
+  ───
+  [🛒 مغازه‌ها] → shop:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Shop refused · not carried ━━━
+(edits message 42)
+گوشی همراهتان نیست.
+  ───
+  [🛒 مغازه‌ها] → shop:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Shop refused · not bought back ━━━
+(edits message 42)
+خواربارفروشی گوشی نمی‌خرد.
+  ───
+  [🛒 مغازه‌ها] → shop:list
+  [🔙 بازگشت] → player:profile.get

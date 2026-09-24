@@ -71,6 +71,7 @@ const (
 	ReqCrimeTier = "crime_tier"
 	ReqVenue     = "venue"
 	ReqFacility  = "facility"
+	ReqTool      = "tool"
 )
 
 // CrimeRequirement is one condition of a crime, met or not.
@@ -85,6 +86,8 @@ type CrimeRequirement struct {
 	Here   Named
 	// Facility is a facility code, for facility.
 	Facility string
+	// Tool is a good the thief must carry, for tool.
+	Tool Named
 }
 
 // crimeRequirementLine renders a crime requirement, falling back to the work
@@ -112,6 +115,8 @@ func (c Context) crimeRequirementLine(r CrimeRequirement) string {
 		}
 	case ReqFacility:
 		text = c.T("crime.requirement.facility", map[string]any{"facility": c.named("crime.facility."+r.Facility, r.Facility)})
+	case ReqTool:
+		text = c.T("crime.requirement.tool", map[string]any{"item": c.ItemName(r.Tool)})
 	default:
 		return c.requirementLine(r.Requirement)
 	}
@@ -317,6 +322,8 @@ const (
 	CrimeBlockedBusy       = "busy"
 	CrimeBlockedWork       = "work"
 	CrimeBlockedTravelling = "travelling"
+	CrimeBlockedWalking    = "walking"
+	CrimeBlockedCooldown   = "cooldown"
 	CrimeBlockedNerve      = "nerve"
 	CrimeBlockedNowhere    = "nowhere"
 )
@@ -349,6 +356,37 @@ type CrimeDetailView struct {
 	// Nonce is the one-time token of the commit button: pressing it twice
 	// is one attempt.
 	Nonce string
+	// Odds is how ChanceBPS is made up, for the player to read.
+	Odds OddsView
+	// What the carried gear does beside the odds: to the chance of an
+	// arrest, of being seen, of a report being solved, and to the take.
+	GearCatchBPS, GearWitnessBPS, GearSolveBPS, GearRewardBPS int
+	// Cooldown is the rest after an attempt; CooldownLeft what is left of
+	// it now.
+	Cooldown, CooldownLeft time.Duration
+}
+
+// OddsView is a success chance taken apart, in basis points.
+type OddsView struct {
+	Base, Skill, Awareness, Heat, Gear int
+}
+
+// oddsLines renders how the odds are made up: where they start, then every
+// term that moves them.
+func (c Context) oddsLines(o OddsView) []string {
+	out := []string{c.T("crime.odds.base", map[string]any{"pct": PercentFromBPS(c, o.Base)})}
+	for _, t := range []struct {
+		key string
+		bps int
+	}{{"skill", o.Skill}, {"place", o.Awareness}, {"heat", o.Heat}, {"gear", o.Gear}} {
+		switch {
+		case t.bps > 0:
+			out = append(out, c.T("crime.odds."+t.key+"_up", map[string]any{"pct": PercentFromBPS(c, t.bps)}))
+		case t.bps < 0:
+			out = append(out, c.T("crime.odds."+t.key+"_down", map[string]any{"pct": PercentFromBPS(c, -t.bps)}))
+		}
+	}
+	return out
 }
 
 // CrimeDetail renders one crime: its cost, odds, risks and requirements, and
@@ -364,6 +402,23 @@ func CrimeDetail(c Context, v CrimeDetailView) *presenter.Response {
 		facts = append(facts, c.T("crime.view_instant", nil))
 	}
 	facts = append(facts, c.T("crime.view_chance", map[string]any{"percent": PercentFromBPS(c, v.ChanceBPS)}))
+	if v.Odds != (OddsView{}) {
+		facts = append(facts, c.oddsLines(v.Odds)...)
+	}
+	for _, g := range []struct {
+		field string
+		bps   int
+	}{{"catch", v.GearCatchBPS}, {"witness", v.GearWitnessBPS}, {"solve", v.GearSolveBPS}, {"reward", v.GearRewardBPS}} {
+		switch {
+		case g.bps > 0:
+			facts = append(facts, c.T("gear."+g.field+"_up", map[string]any{"pct": PercentFromBPS(c, g.bps)}))
+		case g.bps < 0:
+			facts = append(facts, c.T("gear."+g.field+"_down", map[string]any{"pct": PercentFromBPS(c, -g.bps)}))
+		}
+	}
+	if v.Cooldown > 0 {
+		facts = append(facts, c.T("crime.view_cooldown", map[string]any{"duration": FormatDuration(c, v.Cooldown)}))
+	}
 	if v.HitsNPCs && v.MaxTake > 0 {
 		facts = append(facts, c.T("crime.view_take", map[string]any{
 			"min": FormatMoney(c, v.MinTake), "max": FormatMoney(c, v.MaxTake)}))
@@ -393,6 +448,10 @@ func CrimeDetail(c Context, v CrimeDetailView) *presenter.Response {
 		blocked = c.T("crime.blocked.work", nil)
 	case CrimeBlockedTravelling:
 		blocked = c.T("crime.blocked.travelling", nil)
+	case CrimeBlockedWalking:
+		blocked = c.T("crime.blocked.walking", nil)
+	case CrimeBlockedCooldown:
+		blocked = c.T("crime.blocked.cooldown", map[string]any{"wait": FormatDuration(c, v.Wait)})
 	case CrimeBlockedNowhere:
 		blocked = c.T("crime.nowhere", nil)
 	case CrimeBlockedNerve:
@@ -446,6 +505,18 @@ type CrimeResultView struct {
 	// Notice marks the private notice of a timed crime's end or of a group
 	// success's take, rather than the reply to a press.
 	Notice bool
+	// Loot is what a success against an NPC yielded beside money;
+	// Stolen what was taken from a player victim; Confiscated what the
+	// police took on an arrest.
+	Loot        []LootLine
+	Stolen      *Named
+	Confiscated []Named
+}
+
+// LootLine is a good a crime yielded.
+type LootLine struct {
+	Item Named
+	Qty  int64
 }
 
 // Outcome spellings, as crime.Result writes them.
@@ -524,6 +595,21 @@ func CrimeResult(c Context, v CrimeResultView) *presenter.Response {
 		return Error(c, nil)
 	}
 
+	if !c.Shared {
+		for _, l := range v.Loot {
+			lines = append(lines, c.T("crime.result.loot", map[string]any{"item": c.ItemName(l.Item), "qty": FormatNumber(c, l.Qty)}))
+		}
+		if v.Stolen != nil {
+			lines = append(lines, c.T("crime.result.stolen_item", map[string]any{"item": c.ItemName(*v.Stolen)}))
+		}
+	}
+	if len(v.Confiscated) > 0 {
+		var names []string
+		for _, n := range v.Confiscated {
+			names = append(names, c.ItemName(n))
+		}
+		lines = append(lines, c.T("crime.result.confiscated", map[string]any{"items": joinWith(c, names)}))
+	}
 	if v.XP > 0 {
 		lines = append(lines, c.T("crime.result.xp", map[string]any{"xp": FormatNumber(c, v.XP)}))
 	}
@@ -644,10 +730,13 @@ type JailView struct {
 	Reason    string
 	Remaining time.Duration
 	EndsAt    time.Time
-	// Bail is what leaving now costs; Nonce the bail button's one-time
-	// token.
+	// Bail is what leaving now costs; Nonce the bail buttons' one-time
+	// token, shared by the cash and the card button so only one of them
+	// can ever pay.
 	Bail  int64
 	Nonce string
+	// Payment is how the bail can be paid.
+	Payment *PaymentChoice
 }
 
 // Jail renders the jail screen: the time left and the bail button.
@@ -666,26 +755,33 @@ func Jail(c Context, v JailView) *presenter.Response {
 		c.T("crime.in_jail", map[string]any{"remaining": FormatDuration(c, v.Remaining)}),
 		clockLine(c, "crime.free_at", v.EndsAt),
 	}
+	var pay string
 	if v.Bail > 0 {
 		lines = append(lines, c.T("crime.jail_bail", map[string]any{"bail": FormatMoney(c, v.Bail)}))
-		if btn, ok := keyboards.Button(c.T("crime.button.bail", nil), AddrCrimeBail, v.Nonce); ok {
-			kb.Row(btn)
+		switch {
+		case v.Payment != nil && len(v.Payment.Usable) > 0:
+			pay = body(c.T("crime.bail_how", nil), c.paymentNote(*v.Payment))
+			c.paymentButtons(kb, *v.Payment, func(m string) []string { return []string{AddrCrimeBail, v.Nonce, m} })
+		case v.Payment != nil:
+			pay = body(c.T("payment.cannot_afford", nil), c.paymentNote(*v.Payment))
 		}
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrCrimeHub, RefreshData: AddrCrimeJail}))
-	return c.respond(paragraphs(c.T("crime.jail_title", nil), body(lines...), c.T("crime.jail_blocks", nil)), kb.Build())
+	return c.respond(paragraphs(c.T("crime.jail_title", nil), body(lines...), pay, c.T("crime.jail_blocks", nil)), kb.Build())
 }
 
 // BailedView is a bail paid.
 type BailedView struct {
 	Player string
 	Bail   int64
+	// Method is how the bail was paid, cash or card.
+	Method string
 }
 
 // Bailed renders a release on bail. A group reads that the player walked
 // out; the sum is theirs.
 func Bailed(c Context, v BailedView) *presenter.Response {
-	text := c.T("crime.bailed", map[string]any{"bail": FormatMoney(c, v.Bail)})
+	text := body(c.T("crime.bailed", map[string]any{"bail": FormatMoney(c, v.Bail)}), c.paidLine(v.Method))
 	if c.Shared {
 		text = c.T("crime.bailed_public", map[string]any{"player": v.Player})
 	}
@@ -718,6 +814,8 @@ type VictimNoticeView struct {
 	// report.
 	ReportFee    int64
 	ReportWithin time.Duration
+	// Item is a good taken beside the money, if any.
+	Item *Named
 }
 
 // VictimNotice tells a player they were robbed, and offers the report. It is
@@ -726,6 +824,9 @@ func VictimNotice(c Context, v VictimNoticeView) *presenter.Response {
 	head := c.T("crime.victim.head", map[string]any{
 		"crime": c.CrimeName(v.Crime), "venue": c.VenueName(v.Venue), "city": c.CityName(v.CityCode, v.City),
 		"amount": FormatMoney(c, v.Amount)})
+	if v.Item != nil {
+		head = body(head, c.T("crime.victim.item", map[string]any{"item": c.ItemName(*v.Item)}))
+	}
 	witness := c.T("crime.victim.unseen", nil)
 	if v.ThiefName != "" {
 		witness = c.T("crime.victim.seen", map[string]any{"thief": v.ThiefName, "code": v.ThiefCode})
@@ -750,21 +851,40 @@ type ReportConfirmView struct {
 	// ReportWithin how long is left to report.
 	Investigation time.Duration
 	ReportWithin  time.Duration
+	// Payment is how the fee can be paid; nil for a free report, which
+	// has a plain confirm button.
+	Payment *PaymentChoice
 }
 
 // ReportConfirm renders the report's confirmation, with its fee.
 func ReportConfirm(c Context, v ReportConfirmView) *presenter.Response {
-	text := c.T("crime.report.confirm", map[string]any{
+	key := "crime.report.confirm"
+	if v.Fee == 0 {
+		key = "crime.report.confirm_free"
+	}
+	text := c.T(key, map[string]any{
 		"crime": c.CrimeName(v.Crime), "city": c.CityName(v.CityCode, v.City),
 		"amount": FormatMoney(c, v.Amount), "fee": FormatMoney(c, v.Fee),
 		"duration": FormatDuration(c, v.Investigation)})
 	kb := keyboards.New()
-	if btn, ok := keyboards.Button(c.T("crime.button.report_confirm", nil), AddrCrimeReport, v.CrimeID, ReportConfirmation); ok {
-		kb.Row(btn)
+	var pay string
+	switch {
+	case v.Payment == nil:
+		if btn, ok := keyboards.Button(c.T("crime.button.report_confirm", nil), AddrCrimeReport, v.CrimeID, ReportConfirmation); ok {
+			kb.Row(btn)
+		}
+	case len(v.Payment.Usable) > 0:
+		pay = body(c.T("crime.report.pay_how", nil), c.paymentNote(*v.Payment))
+		c.paymentButtons(kb, *v.Payment, func(m string) []string { return []string{AddrCrimeReport, v.CrimeID, m} })
+	default:
+		pay = body(c.T("payment.cannot_afford", nil), c.paymentNote(*v.Payment))
+		if btn, ok := keyboards.Button(c.T("button.bank", nil), AddrBank); ok {
+			kb.Row(btn)
+		}
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrCrimeCases}))
-	return c.respond(body(text, c.T("crime.victim.report_by", map[string]any{"duration": FormatDuration(c, v.ReportWithin)})),
-		kb.Build()).MarkPrivate()
+	return c.respond(paragraphs(body(text, c.T("crime.victim.report_by", map[string]any{"duration": FormatDuration(c, v.ReportWithin)})),
+		pay), kb.Build()).MarkPrivate()
 }
 
 // CaseFiled renders a report filed.
@@ -831,6 +951,8 @@ type CaseOutcomeView struct {
 	Fine, FinePaid   int64
 	// Term is the real length of the sentence handed down.
 	Term time.Duration
+	// Returned is a stolen good given back to the victim, nil for none.
+	Returned *Named
 }
 
 // CaseSolvedNotice tells a victim how their case ended.
@@ -847,6 +969,9 @@ func CaseSolvedNotice(c Context, v CaseOutcomeView) *presenter.Response {
 		return c.respond(c.T("crime.case_closed", args), kb.Build()).MarkPrivate()
 	}
 	lines := []string{c.T("crime.case_solved", args)}
+	if v.Returned != nil {
+		lines = append(lines, c.T("crime.case_item_returned", map[string]any{"item": c.ItemName(*v.Returned)}))
+	}
 	if v.Shortfall > 0 {
 		lines = append(lines, c.T("crime.case_shortfall", args))
 	}
@@ -878,6 +1003,7 @@ const (
 	CrimeRefusedBusy          = "busy"
 	CrimeRefusedWork          = "work"
 	CrimeRefusedTravelling    = "travelling"
+	CrimeRefusedWalking       = "walking"
 	CrimeRefusedNowhere       = "nowhere"
 	CrimeRefusedNerve         = "nerve"
 	CrimeRefusedNoVictim      = "no_victim"
@@ -886,6 +1012,7 @@ const (
 	CrimeRefusedCannotAfford  = "cannot_afford"
 	CrimeRefusedNotJailed     = "not_jailed"
 	CrimeRefusedNothingStolen = "nothing_stolen"
+	CrimeRefusedCooldown      = "cooldown"
 )
 
 // CrimeRefusalView is a refused crime request.
@@ -910,6 +1037,7 @@ var crimeRefusals = map[string]struct{ key, label, addr string }{
 	CrimeRefusedBusy:          {"crime.refused.busy", "crime.button.hub", AddrCrimeHub},
 	CrimeRefusedWork:          {"crime.refused.work", "job.button.my_job", AddrJobStatus},
 	CrimeRefusedTravelling:    {"crime.refused.travelling", "button.journey", AddrTravelStatus},
+	CrimeRefusedWalking:       {"crime.refused.walking", "button.map", AddrMap},
 	CrimeRefusedNowhere:       {"crime.nowhere", "button.map", AddrMap},
 	CrimeRefusedNerve:         {"crime.refused.nerve", "crime.button.hub", AddrCrimeHub},
 	CrimeRefusedNoVictim:      {"crime.refused.no_victim", "crime.button.hub", AddrCrimeHub},
@@ -918,6 +1046,7 @@ var crimeRefusals = map[string]struct{ key, label, addr string }{
 	CrimeRefusedCannotAfford:  {"crime.refused.cannot_afford", "button.bank", AddrBank},
 	CrimeRefusedNotJailed:     {"crime.jail_free", "crime.button.hub", AddrCrimeHub},
 	CrimeRefusedNothingStolen: {"crime.refused.nothing_stolen", "crime.button.cases", AddrCrimeCases},
+	CrimeRefusedCooldown:      {"crime.refused.cooldown", "crime.button.hub", AddrCrimeHub},
 }
 
 // CrimeRefusal renders a refused crime request.

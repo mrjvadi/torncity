@@ -157,6 +157,7 @@ func recordContentBaseline(t *testing.T, pool *postgres.Pool) {
 		exec("deleting careers", `DELETE FROM career_definitions WHERE content_version_id = ANY($1::uuid[])`, created)
 		exec("deleting courses", `DELETE FROM course_definitions WHERE content_version_id = ANY($1::uuid[])`, created)
 		exec("deleting crime content", `DELETE FROM crime_content WHERE content_version_id = ANY($1::uuid[])`, created)
+		exec("deleting content documents", `DELETE FROM content_documents WHERE content_version_id = ANY($1::uuid[])`, created)
 		exec("deleting created cities", `DELETE FROM cities WHERE content_version_id = ANY($1::uuid[])`, created)
 		exec("deleting audit rows",
 			`DELETE FROM audit_logs WHERE action = 'content.load' AND target_id = ANY($1::uuid[])`, created)

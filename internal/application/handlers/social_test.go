@@ -264,7 +264,7 @@ func TestSocialSearchNeverFindsAnInactiveAccount(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 			want := messages(t).T("fa", "social.search.not_found_code", map[string]any{"query": "K7Q2M9A"})
-			if resp.Text != want {
+			if plain(resp.Text) != want {
 				t.Errorf("a %s account was shown: %q", status, resp.Text)
 			}
 			if hasButton(resp, "social:friend.add") {
@@ -298,7 +298,7 @@ func TestSocialSearchSaysWhatWasNotFound(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
-			if want := cat(t).T("fa", tt.key, tt.args); resp.Text != want {
+			if want := cat(t).T("fa", tt.key, tt.args); plain(resp.Text) != want {
 				t.Errorf("got %q, want %q", resp.Text, want)
 			}
 			if strings.Contains(resp.Text, "424242") {
@@ -434,8 +434,9 @@ func TestSocialFriendAddReplayWritesOnce(t *testing.T) {
 func TestSocialFriendAcceptTurnsTheEdge(t *testing.T) {
 	h := newPhase1(t)
 	self := h.player(309, "p-1", tehranID)
-	h.friendships.edges[self.ID] = []application.Friendship{
-		{PlayerID: self.ID, FriendPlayerID: "other", Status: friendPending},
+	// "other" asked first: theirs is the pending edge, pointing at self.
+	h.friendships.edges["other"] = []application.Friendship{
+		{PlayerID: "other", FriendPlayerID: self.ID, Status: friendPending},
 	}
 	handler := h.socialHandler(t)
 
@@ -527,4 +528,10 @@ func TestNewSocialHandlerRefusesAZeroPageSize(t *testing.T) {
 		}
 	}()
 	NewSocialHandler(h.uow, h.ids, nil, h.search, 0, testIdempotencyTTL, h.clock())
+}
+
+// plain is text without the invisible isolate marks a screen puts around a
+// name or a code written the other way from the language (screens/numerals.go).
+func plain(text string) string {
+	return strings.NewReplacer("\u2068", "", "\u2069", "").Replace(text)
 }

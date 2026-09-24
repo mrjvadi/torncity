@@ -100,6 +100,8 @@ type Situation struct {
 	// VenueSecurity is the security of the venue the crime is committed
 	// at, added to every victim's awareness.
 	VenueSecurity int
+	// Gear is what the offender's carried tools add (Combine).
+	Gear Gear
 }
 
 // VictimAwareness is how alert a player is to a thief: their character level
@@ -134,7 +136,37 @@ func (c Crime) SuccessChance(s Situation) int {
 	awareness += int64(max(s.VenueSecurity, 0))
 	chance -= awareness * int64(m.AwarenessWeightBPS)
 	chance -= int64(max(s.Heat, 0)) * int64(m.HeatPenaltyBPS)
+	chance += int64(s.Gear.SuccessBPS)
 	return clampChance(chance)
+}
+
+// Odds is a success chance taken apart for a screen: where it starts, what
+// skill, the victim and the place, heat and gear each move it, and the
+// clamped result. Their sum before the clamp is Raw.
+type Odds struct {
+	Base, Skill, Awareness, Heat, Gear int
+	Raw, Chance                        int
+}
+
+// OddsOf breaks SuccessChance down by term, for the player to read. Chance
+// is exactly SuccessChance.
+func (c Crime) OddsOf(s Situation) Odds {
+	m := c.Success
+	o := Odds{Base: m.BaseChanceBPS}
+	for _, w := range m.SkillWeights {
+		o.Skill += skillLevel(s.Skills, w.Skill) * w.BPSPerLevel
+	}
+	awareness := max(m.TargetAwareness, 0)
+	if s.Victim == TargetPlayer {
+		awareness = max(s.Awareness, 0)
+	}
+	awareness += max(s.VenueSecurity, 0)
+	o.Awareness = -awareness * m.AwarenessWeightBPS
+	o.Heat = -max(s.Heat, 0) * m.HeatPenaltyBPS
+	o.Gear = s.Gear.SuccessBPS
+	o.Raw = o.Base + o.Skill + o.Awareness + o.Heat + o.Gear
+	o.Chance = c.SuccessChance(s)
+	return o
 }
 
 // JusticePolicy is the police chief's say over punishment, in whole percent
@@ -188,6 +220,18 @@ type Attempt struct {
 	// been bled dry for today: the crime still succeeds, and pays nothing.
 	NPCAllowance money.Amount
 	Policy       JusticePolicy
+	// Gear is what the offender's carried tools add (Combine).
+	Gear Gear
+	// VictimItems is how many things a player victim carries that a thief
+	// may take (Reward.StealItemBPS); the one taken is drawn by index.
+	VictimItems int
+}
+
+// LootDrop is one item a success yields from the NPC economy.
+type LootDrop struct {
+	Item    string
+	Qty     int64
+	Quality int
 }
 
 // Outcome is everything an attempt settles.
@@ -209,6 +253,12 @@ type Outcome struct {
 	// JailTerm (game time) and Fine are set on an arrest.
 	JailTerm time.Duration
 	Fine     money.Amount
+
+	// Loot is what a success against an NPC yields beside money.
+	Loot []LootDrop
+	// StolenItem indexes the player victim's item taken (Attempt.VictimItems);
+	// -1 when none was.
+	StolenItem int
 }
 
 // Resolve settles one attempt whose victim ChooseVictim has already drawn.
@@ -216,10 +266,16 @@ type Outcome struct {
 //
 //  1. success: Roll(10000) < Chance.
 //  2. on a success — an NPC crime's take: MinCash + Roll(MaxCash-MinCash+1),
-//     capped by NPCAllowance; a player crime's witness: Roll(10000) <
-//     WitnessChanceBPS (no roll when the chance is zero).
-//  3. on a failure — the arrest: Roll(10000) < CatchChanceBPS; and on an
-//     arrest the sentence then the fine (Sentence).
+//     scaled by the gear's RewardBPS and capped by MaxCash and
+//     NPCAllowance; then each loot entry in order: Roll(10000) < its chance,
+//     and on a hit its quantity, then its quality, each drawn evenly. A
+//     player crime's take (PlayerTake, scaled by RewardBPS, capped by
+//     MaxTake and the cash); its witness: Roll(10000) < WitnessChanceBPS +
+//     the gear's WitnessBPS (no roll when that is zero); then, when the
+//     victim carries anything takeable and StealItemBPS > 0, Roll(10000) <
+//     StealItemBPS and on a hit Roll(VictimItems) for which.
+//  3. on a failure — the arrest: Roll(10000) < CatchChanceBPS + the gear's
+//     CatchBPS; and on an arrest the sentence then the fine (Sentence).
 //
 // A success earns the full XP, criminal XP, skill XP and heat. An escape
 // earns half the skill XP (a lesson, floored) and the success heat — the
@@ -247,6 +303,7 @@ func Resolve(a Attempt, d Dice) (Outcome, error) {
 			CriminalXP: c.Reward.CriminalXP,
 			SkillXP:    append([]SkillXP(nil), c.Reward.SkillXP...),
 			Heat:       c.Reward.Heat,
+			StolenItem: -1,
 		}
 		switch a.Victim {
 		case TargetNPC:
@@ -255,23 +312,59 @@ func Resolve(a Attempt, d Dice) (Outcome, error) {
 			if err != nil {
 				return Outcome{}, err
 			}
-			take := c.Reward.MinCash.Minor() + extra
-			if allowance := max(a.NPCAllowance.Minor(), 0); take > allowance {
-				take = allowance
+			take, err := scaleTake(c.Reward.MinCash.Minor()+extra, a.Gear.RewardBPS)
+			if err != nil {
+				return Outcome{}, err
 			}
+			take = min(take, c.Reward.MaxCash.Minor(), max(a.NPCAllowance.Minor(), 0))
 			out.Take = money.FromMinor(take)
+			for _, l := range c.Reward.Loot {
+				hit, err := roll(d, BPSWhole)
+				if err != nil {
+					return Outcome{}, err
+				}
+				if hit >= int64(l.ChanceBPS) {
+					continue
+				}
+				q, err := roll(d, l.MaxQty-l.MinQty+1)
+				if err != nil {
+					return Outcome{}, err
+				}
+				quality, err := roll(d, int64(l.MaxQuality-l.MinQuality+1))
+				if err != nil {
+					return Outcome{}, err
+				}
+				out.Loot = append(out.Loot, LootDrop{Item: l.Item, Qty: l.MinQty + q, Quality: l.MinQuality + int(quality)})
+			}
 		case TargetPlayer:
 			take, err := PlayerTake(c.Reward, a.VictimCash)
 			if err != nil {
 				return Outcome{}, err
 			}
-			out.Take = take
-			if c.Success.WitnessChanceBPS > 0 {
+			scaled, err := scaleTake(take.Minor(), a.Gear.RewardBPS)
+			if err != nil {
+				return Outcome{}, err
+			}
+			out.Take = money.FromMinor(min(scaled, c.Reward.MaxTake.Minor(), max(a.VictimCash.Minor(), 0)))
+			if witness := bps(c.Success.WitnessChanceBPS, a.Gear.WitnessBPS); witness > 0 {
 				w, err := roll(d, BPSWhole)
 				if err != nil {
 					return Outcome{}, err
 				}
-				out.Witnessed = w < int64(c.Success.WitnessChanceBPS)
+				out.Witnessed = w < int64(witness)
+			}
+			if c.Reward.StealItemBPS > 0 && a.VictimItems > 0 {
+				hit, err := roll(d, BPSWhole)
+				if err != nil {
+					return Outcome{}, err
+				}
+				if hit < int64(c.Reward.StealItemBPS) {
+					i, err := roll(d, int64(a.VictimItems))
+					if err != nil {
+						return Outcome{}, err
+					}
+					out.StolenItem = int(i)
+				}
 			}
 		}
 		return out, nil
@@ -281,8 +374,8 @@ func Resolve(a Attempt, d Dice) (Outcome, error) {
 	if err != nil {
 		return Outcome{}, err
 	}
-	if caught >= int64(c.Failure.CatchChanceBPS) {
-		out := Outcome{Result: Escaped, Heat: c.Reward.Heat}
+	if caught >= int64(bps(c.Failure.CatchChanceBPS, a.Gear.CatchBPS)) {
+		out := Outcome{Result: Escaped, Heat: c.Reward.Heat, StolenItem: -1}
 		for _, s := range c.Reward.SkillXP {
 			if half := s.XP / 2; half > 0 {
 				out.SkillXP = append(out.SkillXP, SkillXP{Skill: s.Skill, XP: half})
@@ -294,7 +387,20 @@ func Resolve(a Attempt, d Dice) (Outcome, error) {
 	if err != nil {
 		return Outcome{}, err
 	}
-	return Outcome{Result: Caught, Heat: c.Failure.Heat, JailTerm: term, Fine: fine}, nil
+	return Outcome{Result: Caught, Heat: c.Failure.Heat, JailTerm: term, Fine: fine, StolenItem: -1}, nil
+}
+
+// scaleTake moves a take by rewardBPS: floor(take × (10000 + rewardBPS) /
+// 10000), never below zero.
+func scaleTake(take int64, rewardBPS int) (int64, error) {
+	if rewardBPS == 0 || take <= 0 {
+		return max(take, 0), nil
+	}
+	factor := int64(BPSWhole + rewardBPS)
+	if factor <= 0 {
+		return 0, nil
+	}
+	return mulDiv(take, factor, BPSWhole)
 }
 
 // PlayerTake is what a crime against a player takes from cash on hand:

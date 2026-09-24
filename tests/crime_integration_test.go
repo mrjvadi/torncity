@@ -26,6 +26,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/crime"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
@@ -315,7 +316,7 @@ func TestCrimeTheftReportConvictionAndBail(t *testing.T) {
 	if err != nil || resp == nil || !resp.Private || !strings.Contains(resp.Text, "crime.report.confirm") {
 		t.Fatalf("Report (ask) = %+v, %v", resp, err)
 	}
-	resp, err = h.Report(ctx, metaFor(victim, "crime.report", false), handlers.CrimeReportRequest{Crime: attemptID, Confirm: "yes"})
+	resp, err = h.Report(ctx, metaFor(victim, "crime.report", false), handlers.CrimeReportRequest{Crime: attemptID, Confirm: "cash"})
 	if err != nil || resp == nil || !strings.Contains(resp.Text, "crime.report.filed") {
 		t.Fatalf("Report (file) = %+v, %v", resp, err)
 	}
@@ -404,15 +405,26 @@ func TestCrimeTheftReportConvictionAndBail(t *testing.T) {
 	}
 
 	// 5. Bail: refused without the money, paid with it.
-	resp, err = h.Bail(ctx, metaFor(thief, "crime.bail", false), handlers.BailRequest{Nonce: "b1b1b1b1b1b1"})
-	if err != nil || !strings.Contains(resp.Text, "crime.refused.cannot_afford") {
+	resp, err = h.Bail(ctx, metaFor(thief, "crime.bail", false), handlers.BailRequest{Nonce: "b1b1b1b1b1b1", Method: "cash"})
+	if err != nil || !strings.Contains(resp.Text, "payment.declined") || !resp.Private {
 		t.Fatalf("bail without money = %+v, %v", resp, err)
 	}
-	grant(t, pool, application.AccountPlayerCash, thief.ID, 100_000)
+	// A card pays from a cell: jail blocks a withdrawal, not a payment.
+	grant(t, pool, application.AccountPlayerBank, thief.ID, 100_000)
 	treasuryBefore = balance(application.AccountCityTreasury, city.ID)
-	resp, err = h.Bail(ctx, metaFor(thief, "crime.bail", false), handlers.BailRequest{Nonce: "b2b2b2b2b2b2"})
+	cashBefore := balance(application.AccountPlayerCash, thief.ID)
+	bankBefore := balance(application.AccountPlayerBank, thief.ID)
+	resp, err = h.Bail(ctx, metaFor(thief, "crime.bail", false), handlers.BailRequest{Nonce: "b2b2b2b2b2b2", Method: "card"})
 	if err != nil || !strings.Contains(resp.Text, "crime.bailed") {
 		t.Fatalf("Bail = %+v, %v", resp, err)
+	}
+	// The same button pressed again — or its cash twin, which shares the
+	// token — charges nothing more.
+	if _, err := h.Bail(ctx, metaFor(thief, "crime.bail", false), handlers.BailRequest{Nonce: "b2b2b2b2b2b2", Method: "cash"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := balance(application.AccountPlayerCash, thief.ID); got != cashBefore {
+		t.Errorf("cash moved %d on a card bail", got-cashBefore)
 	}
 	var bail int64
 	if err := pool.Raw().QueryRow(ctx, `SELECT bail_paid FROM jail_sentences WHERE id = $1::uuid AND status = 'bailed'`, sentenceID).Scan(&bail); err != nil || bail <= 0 {
@@ -420,6 +432,9 @@ func TestCrimeTheftReportConvictionAndBail(t *testing.T) {
 	}
 	if got := balance(application.AccountCityTreasury, city.ID) - treasuryBefore; got != bail {
 		t.Errorf("treasury grew by %d, want the bail %d", got, bail)
+	}
+	if got := bankBefore - balance(application.AccountPlayerBank, thief.ID); got != bail {
+		t.Errorf("the card paid %d, want the bail %d", got, bail)
 	}
 	// The release the schedule still holds finds nothing to do.
 	advance(endsAt.Sub(now()) + time.Second)
@@ -628,6 +643,16 @@ func TestCrimeVenuesDecideWhoIsNearby(t *testing.T) {
 
 	thief := crimePlayer(t, pool, city.ID, now)
 	traveller := crimePlayer(t, pool, city.ID, now)
+	// An arrival puts a player at the place of the mode they came by
+	// (TravelHandler.Arrive); the journeys below are written by hand, so
+	// the place is too.
+	standAt := func(playerID, place string) {
+		if _, err := pool.Raw().Exec(ctx, `UPDATE players SET place_code = $2, place_since = $3 WHERE id = $1::uuid`,
+			playerID, place, now); err != nil {
+			t.Skipf("players.place_code is not there (migration 0015): %v", err)
+		}
+	}
+	standAt(thief.ID, "city_centre")
 	grant(t, pool, application.AccountPlayerCash, traveller.ID, 2_000)
 	var others int
 	if err := pool.Raw().QueryRow(ctx,
@@ -652,6 +677,7 @@ func TestCrimeVenuesDecideWhoIsNearby(t *testing.T) {
 		}
 	}
 	arrive(traveller.ID)
+	standAt(traveller.ID, "train_station")
 
 	dice := &crimeDice{}
 	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
@@ -679,8 +705,12 @@ func TestCrimeVenuesDecideWhoIsNearby(t *testing.T) {
 		t.Fatalf("from the centre: victim %s at %s, want an NPC in the city centre", victimKind, venue)
 	}
 
-	// Off the same kind of train, the thief is on the platform with them.
+	// Off the same kind of train, the thief is on the platform with them —
+	// once pickpocketing has rested since the last attempt.
+	cr, _ := registry.Current().Crime("pickpocketing")
+	now = now.Add(gametime.Scale(gameScale).RealWait(cr.Cooldown) + time.Second)
 	arrive(thief.ID)
+	standAt(thief.ID, "train_station")
 	dice.script(0, 0, 0, 9999)
 	commit()
 	var victimID string

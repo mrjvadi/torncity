@@ -336,6 +336,31 @@ levers:
     change_cooldown: 72h
     notice: 24h
 
+  # Trade (items.yml, shops.yml). The sales tax is charged on top of every
+  # purchase from a city shop and paid into the city's treasury; the market
+  # fee is taken from the seller's side of every trade on the city's player
+  # market and every sale at its auction house. Nothing charged either
+  # before shops and the market existed; the defaults are a moderate start.
+  - code: city.sales_tax
+    jurisdiction: city
+    type: bps
+    default: 500
+    min: 0
+    max: 2500
+    held_by: mayor
+    change_cooldown: 72h
+    notice: 24h
+
+  - code: city.market_fee
+    jurisdiction: city
+    type: bps
+    default: 200
+    min: 0
+    max: 1000
+    held_by: mayor
+    change_cooldown: 72h
+    notice: 24h
+
   # No border tariff exists today either.
   - code: country.border_tariff
     jurisdiction: country
@@ -354,7 +379,7 @@ offices:
     acquired_by: election
     levers: [city.tax_rate, city.immigration_fee, city.bank_withdrawal_fee, city.card_transfer_fee,
              city.minimum_wage, city.income_tax, city.shift_window_hours, city.shifts_before_fatigue,
-             city.transit_fare]
+             city.transit_fare, city.sales_tax, city.market_fee]
     # While there is no mayor, the deputy mayor acts; with neither, the
     # defaults apply.
     deputy: deputy_mayor

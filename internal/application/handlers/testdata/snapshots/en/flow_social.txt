@@ -34,11 +34,19 @@ Search by one of these:
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
 
+━━━ My list: the request I sent ━━━
+(sends)
+👥 Friends
+
+• Kaveh - waiting for their reply
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list:1
+
 ━━━ The friend's list ━━━
 (sends)
 👥 Friends
 
-• Sara · waiting for a reply
+• Sara - wants to be your friend
   ───
   [✅ Accept Sara] → social:friend.accept:5f1d7c2e-8a41-4c6b-9e3d-2b7a1f0c9d11
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list:1

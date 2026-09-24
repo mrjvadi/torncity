@@ -55,11 +55,10 @@ func insertCrimes(ctx context.Context, tx pgx.Tx, p *content.Pack, versionID str
 			return err
 		}
 	}
-	for i, v := range p.Venues {
-		if err := write(crimeKindVenue, v.Code, i, v); err != nil {
-			return err
-		}
-	}
+	// Venues are the city's places, stored with the other documents
+	// (content_documents, kind place) since places became their own
+	// content; a version stored before that still has them here, and
+	// loadCrimes still reads them.
 	for i, c := range p.CrimeCategories {
 		if err := write(crimeKindCategory, c.Code, i, c); err != nil {
 			return err
@@ -128,10 +127,6 @@ func checksumCrimes(h hash.Hash, p *content.Pack) {
 	for _, t := range p.CrimeTiers {
 		doc, _ := json.Marshal(t)
 		fmt.Fprintf(h, "crime_tier|%s\n", doc)
-	}
-	for _, v := range p.Venues {
-		doc, _ := json.Marshal(v)
-		fmt.Fprintf(h, "venue|%s\n", doc)
 	}
 	for _, c := range p.CrimeCategories {
 		doc, _ := json.Marshal(c)

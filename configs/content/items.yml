@@ -1,0 +1,262 @@
+# Items: the goods of the game, on the production model of ADR 0005.
+#
+# docs/adr/0005-item-and-production-model.md is the governing decision: a
+# production METHOD is code, everything inside a method is data. So this file
+# first declares the model — component categories, starter components and
+# archetypes — and then the goods players buy, carry, use, trade and steal,
+# each a kind of one archetype. The rules of holding and using goods are
+# internal/domain/inventory; of selling them, internal/domain/shop (shops.yml).
+#
+# No unit of any good ever appears from nothing: every one is recorded as a
+# shop's sale by the NPC economy, a crime's loot, a reward or a production
+# order, and after that only changes hands (the item journal).
+#
+# ---------------------------------------------------------------------------
+# component_categories   the kinds of part a slot accepts.
+# components             starter parts: code, name, category, attributes.
+# archetypes             ADR 0005 section 1: code, method (extract, assemble,
+#                        formulate, grow, author, construct, serve), slots
+#                        ({name, accepts, min, max, unit, optional}),
+#                        attributes ({name, aggregate, from: [slots] or
+#                        [all], input, divisor, observable}), value (derived |
+#                        subjective), cost (itemized | discretionary),
+#                        durability (consumable | durable), reverse_difficulty
+#                        (0..100), reverse_skill (a skill code).
+#
+# items
+#   code            stable identifier; stored holdings, orders and the
+#                   journal name it. Never change one after it ships.
+#   name            display name, the fallback for item.<code>.
+#   category        how screens group goods: food, drink, medicine, gear,
+#                   electronics, valuables.
+#   archetype       the archetype above the good is a kind of.
+#   form            stack — counted units, all alike (bread); unique —
+#                   pieces with a serial, a quality and uses left (a phone).
+#   base_price      the reference price, minor units: what a shop asks
+#                   before demand, and what restitution pays for a stolen
+#                   good that is gone.
+#   tradeable       optional, default true: may be given, sold, auctioned.
+#   stealable       optional, default true: a thief may take it from the
+#                   one carrying it.
+#   effects         what using one does: [{target: energy | health |
+#                   happiness | nerve, op: add | multiply | cap, value}].
+#                   Using a stack unit consumes it; a durable piece loses a
+#                   use. A good without effects is held, not used.
+#   cooldown        GAME time a cooldown group rests after a use.
+#   cooldown_group  goods sharing a group share the rest (all food).
+#   durability      uses a unique piece is made with; omitted never wears.
+#   quality         {min, max} a piece is made in, 0..100 (unique only).
+#   gear            what it does while carried, to crimes of `categories`
+#                   or `crimes` (crimes.yml): success_bps, catch_bps,
+#                   witness_bps, solve_bps (a later investigation),
+#                   reward_bps (the take), nerve (the cost), all signed and
+#                   summed across tools, then held inside config crime.gear_*
+#                   caps; wear — uses (piece) or units (stack) one attempt
+#                   takes; confiscated — the police take it on an arrest.
+#   black_market    no city shop may sell it: found through crime, and later
+#                   the black market. Still tradeable between players.
+
+version: 1
+
+component_categories: [grain, water, leavening, flavouring, alkaloid, binder, fibre, steel, casing, circuit, battery, gem, metal]
+
+components:
+  - {code: flour,        name: Flour,         category: grain,      attributes: {quality: 50}}
+  - {code: spring_water, name: Spring water,  category: water,      attributes: {quality: 60}}
+  - {code: yeast,        name: Yeast,         category: leavening,  attributes: {quality: 50}}
+  - {code: coffee_bean,  name: Coffee beans,  category: flavouring, attributes: {quality: 55}}
+  - {code: herb_extract, name: Herb extract,  category: alkaloid,   attributes: {quality: 50, potency: 10}}
+  - {code: starch,       name: Starch,        category: binder,     attributes: {quality: 40}}
+  - {code: cotton,       name: Cotton,        category: fibre,      attributes: {quality: 50}}
+  - {code: tool_steel,   name: Tool steel,    category: steel,      attributes: {quality: 60}}
+  - {code: plastic_case, name: Plastic case,  category: casing,     attributes: {quality: 40}}
+  - {code: chipset,      name: Chipset,       category: circuit,    attributes: {quality: 60}}
+  - {code: cell,         name: Battery cell,  category: battery,    attributes: {quality: 50, capacity: 3000}}
+  - {code: gemstone,     name: Gemstone,      category: gem,        attributes: {quality: 70}}
+  - {code: silver,       name: Silver,        category: metal,      attributes: {quality: 60}}
+
+archetypes:
+  - code: food
+    method: formulate
+    slots:
+      - {name: base, accepts: grain, min: 50, max: 500, unit: g}
+      - {name: leaven, accepts: leavening, min: 1, max: 20, unit: g, optional: true}
+    attributes:
+      - {name: quality, aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: consumable
+    reverse_difficulty: 10
+    reverse_skill: cooking
+  - code: drink
+    method: formulate
+    slots:
+      - {name: water, accepts: water, min: 100, max: 1000, unit: ml}
+      - {name: flavour, accepts: flavouring, min: 1, max: 50, unit: g, optional: true}
+    attributes:
+      - {name: quality, aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: consumable
+    reverse_difficulty: 10
+    reverse_skill: cooking
+  - code: medicine
+    method: formulate
+    slots:
+      - {name: active, accepts: alkaloid, min: 10, max: 500, unit: mg}
+      - {name: carrier, accepts: binder, min: 10, max: 200, unit: mg}
+    attributes:
+      - {name: potency, aggregate: scaled, from: [active], divisor: 100, observable: true}
+      - {name: quality, aggregate: weighted, from: [all]}
+    value: derived
+    cost: itemized
+    durability: consumable
+    reverse_difficulty: 70
+    reverse_skill: medicine
+  - code: tool
+    method: assemble
+    slots:
+      - {name: body, accepts: steel, min: 1, max: 1}
+    attributes:
+      - {name: quality, aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 25
+    reverse_skill: mechanics
+  - code: apparel
+    method: assemble
+    slots:
+      - {name: fabric, accepts: fibre, min: 1, max: 1}
+    attributes:
+      - {name: quality, aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 15
+    reverse_skill: mechanics
+  - code: device
+    method: assemble
+    slots:
+      - {name: board, accepts: circuit, min: 1, max: 1}
+      - {name: power, accepts: battery, min: 1, max: 1}
+      - {name: shell, accepts: casing, min: 1, max: 1}
+    attributes:
+      - {name: battery_life, aggregate: sum, from: [power], input: capacity, observable: true}
+      - {name: quality, aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 50
+    reverse_skill: engineering
+  - code: jewel
+    method: assemble
+    slots:
+      - {name: stone, accepts: gem, min: 1, max: 1}
+      - {name: setting, accepts: metal, min: 1, max: 1}
+    attributes:
+      - {name: quality, aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 40
+    reverse_skill: mechanics
+
+items:
+  # --- Food and drink: energy, one group resting between meals -------------
+  - {code: bread,        name: Bread,        category: food,  archetype: food,  form: stack, base_price: 40,
+     effects: [{target: energy, op: add, value: 10}], cooldown: 30m, cooldown_group: food}
+  - {code: sandwich,     name: Sandwich,     category: food,  archetype: food,  form: stack, base_price: 90,
+     effects: [{target: energy, op: add, value: 20}], cooldown: 30m, cooldown_group: food}
+  - {code: hot_meal,     name: Hot meal,     category: food,  archetype: food,  form: stack, base_price: 180,
+     effects: [{target: energy, op: add, value: 35}, {target: happiness, op: add, value: 5}], cooldown: 1h, cooldown_group: food}
+  - {code: water_bottle, name: Bottle of water, category: drink, archetype: drink, form: stack, base_price: 20,
+     effects: [{target: energy, op: add, value: 5}], cooldown: 20m, cooldown_group: drink}
+  - {code: coffee,       name: Coffee,       category: drink, archetype: drink, form: stack, base_price: 60,
+     effects: [{target: energy, op: add, value: 8}, {target: nerve, op: add, value: 1}], cooldown: 45m, cooldown_group: drink}
+  - {code: energy_drink, name: Energy drink, category: drink, archetype: drink, form: stack, base_price: 150,
+     effects: [{target: energy, op: add, value: 25}], cooldown: 2h, cooldown_group: energy_drink}
+
+  # --- Medicine: health ---------------------------------------------------
+  - {code: bandage,       name: Bandage,       category: medicine, archetype: medicine, form: stack, base_price: 80,
+     effects: [{target: health, op: add, value: 10}], cooldown: 15m, cooldown_group: medical}
+  - {code: painkillers,   name: Painkillers,   category: medicine, archetype: medicine, form: stack, base_price: 150,
+     effects: [{target: health, op: add, value: 20}], cooldown: 30m, cooldown_group: medical}
+  - {code: first_aid_kit, name: First aid kit, category: medicine, archetype: medicine, form: stack, base_price: 400,
+     effects: [{target: health, op: add, value: 50}], cooldown: 1h, cooldown_group: medical}
+
+  # --- Tools of the trade: gear while carried ------------------------------
+  # A lockpick set is what a burglary needs at all (crimes.yml
+  # required_tools), and what makes it likelier. It wears with every job.
+  - code: lockpick_set
+    name: Lockpick set
+    category: gear
+    archetype: tool
+    form: unique
+    base_price: 1200
+    durability: 25
+    quality: {min: 40, max: 70}
+    gear: {categories: [burglary], success_bps: 1200, wear: 1, confiscated: true}
+  # Forces a car door or a window: quicker, but loud.
+  - code: crowbar
+    name: Crowbar
+    category: gear
+    archetype: tool
+    form: unique
+    base_price: 600
+    durability: 40
+    quality: {min: 40, max: 80}
+    gear: {crimes: [car_break_in, home_burglary], success_bps: 800, catch_bps: 300, wear: 1, confiscated: true}
+  # A pair per job; fewer prints for the police to find.
+  - code: gloves
+    name: Pair of gloves
+    category: gear
+    archetype: apparel
+    form: stack
+    base_price: 50
+    gear: {categories: [burglary, petty_theft], solve_bps: -1500, wear: 1, confiscated: true}
+  - code: ski_mask
+    name: Ski mask
+    category: gear
+    archetype: apparel
+    form: unique
+    base_price: 300
+    durability: 30
+    quality: {min: 30, max: 60}
+    gear: {categories: [street_crime, burglary], witness_bps: -1500, catch_bps: -500, wear: 1, confiscated: true}
+  # Not evidence of anything: the police leave a runner's shoes alone.
+  - code: running_shoes
+    name: Running shoes
+    category: gear
+    archetype: apparel
+    form: unique
+    base_price: 900
+    durability: 60
+    quality: {min: 40, max: 80}
+    gear: {categories: [petty_theft, street_crime], catch_bps: -1000, wear: 1}
+  - code: fake_documents
+    name: Forged documents
+    category: gear
+    archetype: tool
+    form: unique
+    base_price: 2500
+    durability: 5
+    quality: {min: 30, max: 70}
+    black_market: true
+    gear: {categories: [fraud, smuggling], success_bps: 1500, solve_bps: -1000, wear: 1, confiscated: true}
+  - code: card_skimmer
+    name: Card skimmer
+    category: gear
+    archetype: device
+    form: unique
+    base_price: 3000
+    durability: 20
+    quality: {min: 30, max: 70}
+    black_market: true
+    gear: {crimes: [street_scam], success_bps: 1000, reward_bps: 1500, wear: 1, confiscated: true}
+
+  # --- Things worth stealing ---------------------------------------------
+  - {code: phone,      name: Phone,       category: electronics, archetype: device, form: unique, base_price: 2500, quality: {min: 40, max: 80}}
+  - {code: watch,      name: Wristwatch,  category: valuables,   archetype: jewel,  form: unique, base_price: 800,  quality: {min: 30, max: 80}}
+  - {code: car_stereo, name: Car stereo,  category: electronics, archetype: device, form: unique, base_price: 700,  quality: {min: 20, max: 60}}
+  - {code: jewellery,  name: Jewellery,   category: valuables,   archetype: jewel,  form: stack,  base_price: 500}

@@ -7,6 +7,8 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/domain/education"
 	"github.com/mrjvadi/torncity/internal/domain/job"
+	"github.com/mrjvadi/torncity/internal/domain/payment"
+	"github.com/mrjvadi/torncity/internal/domain/place"
 	"github.com/mrjvadi/torncity/internal/domain/world"
 )
 
@@ -40,6 +42,15 @@ type Snapshot struct {
 
 	// Crime: tiers, venues, categories and crimes; see crime.go.
 	crime crimeContent
+
+	// Payments: the methods each service accepts; see payment.go.
+	payments map[payment.Service]payment.Accepts
+
+	// Places: every place a city may have; see place.go.
+	places []place.Place
+
+	// Items and shops; see items.go.
+	items itemContent
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -98,6 +109,10 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	if err := snap.buildCrimes(p); err != nil {
 		return nil, fmt.Errorf("content: version %d: %w", version, err)
 	}
+
+	snap.buildPayments(p)
+	snap.buildPlaces(p)
+	snap.buildItems(p)
 
 	return snap, nil
 }

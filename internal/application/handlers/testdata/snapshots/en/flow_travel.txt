@@ -1,17 +1,48 @@
 ━━━ Map ━━━
 (edits message 42)
-🗺 Map
+🗺 Map of Ostmarch
+
+📍 You are at the city centre.
+
+Places in the city:
+• city centre (you are here)
+• bazaar - 15s walk - market
+• business district - 15s walk - bank, auction house
+• university quarter - 20s walk - university, training centre
+• civic centre - 10s walk - city hall
+• police station - 15s walk - police
+• bus terminal - 15s walk - Bus departures
+• train station - 20s walk - Train departures
+• industrial zone - 30s walk
+• hospital - 20s walk
+• residential area - 25s walk
+• city park - 15s walk
+
+Tap a place to walk there. Everything is done at its own place.
+  ───
+  [🚶 bazaar] → place:go:bazaar   │   [🚶 business district] → place:go:business_district
+  [🚶 university quarter] → place:go:university   │   [🚶 civic centre] → place:go:city_hall
+  [🚶 police station] → place:go:police_station   │   [🚶 bus terminal] → place:go:bus_terminal
+  [🚶 train station] → place:go:train_station   │   [🚶 industrial zone] → place:go:industrial_zone
+  [🚶 hospital] → place:go:hospital   │   [🚶 residential area] → place:go:residential_area
+  [🚶 city park] → place:go:park
+  [🧭 Travel to another city] → map:cities
+  [🏛 Offices and policies] → gov:city
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ Other cities ━━━
+(edits message 42)
+🧭 Travel to another city
 
 📍 You are in Ostmarch.
 
 From here you can travel to:
-• Fenwick Span · 120 km
-• Brennhaven · 320 km
+• Fenwick Span - 120 km
+• Brennhaven - 320 km
   ───
   [🧭 Fenwick Span] → travel:options:fenwick_span
   [🧭 Brennhaven] → travel:options:brennhaven
-  [🏛 Offices and policies] → gov:city
-  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list:1
+  [🔙 Back] → map:list   │   [🔄 Refresh] → map:cities:1
 
 ━━━ Choose Brennhaven ━━━
 (edits message 42)
@@ -19,23 +50,57 @@ From here you can travel to:
 📍 From: Ostmarch
 
 How would you like to travel?
-• Bus · Free · 3h 22m on the way · 10 energy
-• Train · 420 Nil · 1h 56m on the way · 6 energy
-• Flight · 1,780 Nil · 1h 18m on the way · 4 energy
+• Bus - Free - 4m on the way - 10 energy
+• Train - 420 Nil - 2m on the way - 6 energy
+• Flight - 1,780 Nil - 2m on the way - 4 energy
 
 💵 Your cash: 5,000 Nil
   ───
-  [Bus · Free] → travel:start:brennhaven:bus:0
-  [Train · 420 Nil] → travel:start:brennhaven:train:420
-  [Flight · 1,780 Nil] → travel:start:brennhaven:flight:1780
+  [Bus - Free] → travel:start:brennhaven:bus:0
+  [Train - 420 Nil] → travel:start:brennhaven:train:420
+  [Flight - 1,780 Nil] → travel:start:brennhaven:flight:1780
   [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:brennhaven
+
+━━━ Take the train from the city centre ━━━
+(edits message 42)
+🚉 Departures by Train are from the train station.
+📍 You are at the city centre now.
+  ───
+  [🚶 Walk to the train station - 20s] → place:go:train_station
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Walk to the station ━━━
+(edits message 42)
+🚶 You set off for the train station - a 20s walk.
+🕒 Arriving at 12:00
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
 
 ━━━ Take the train ━━━
 (edits message 42)
+🧭 To Brennhaven by Train
+📍 From: Ostmarch
+
+💰 Fare: 420 Nil
+⏳ 2m on the road
+⚡ 6 energy
+
+How would you like to pay?
+💳 Your bank balance does not cover it — pay in cash.
+💵 Your cash: 5,000 Nil - Bank: 0 Nil
+  ───
+  [💵 Pay cash - 420 Nil] → travel:start:brennhaven:train:420:cash
+  [🧭 Ways to travel] → travel:options:brennhaven
+  [🔙 Back] → map:list
+
+━━━ Pay the fare in cash ━━━
+(edits message 42)
 🧭 Your journey to Brennhaven by Train has begun
-You left Ostmarch and will arrive in 1h 56m.
+You left Ostmarch and will arrive in 2m.
 ⚡ 6 energy used.
-🕒 Arrives at 13:56
+🕒 Arrives at 12:02
 💵 Fare paid: 420 Nil
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
@@ -44,8 +109,7 @@ You left Ostmarch and will arrive in 1h 56m.
 (edits message 42)
 🧭 On the way to Brennhaven
 📍 From: Ostmarch
-⏳ Arriving in 1h 55m
-🕒 Arrives at 13:56
+⏳ Arriving any moment now.
 Travelling by: Train
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
@@ -53,10 +117,10 @@ Travelling by: Train
 ━━━ Profile on the road ━━━
 (edits message 42)
 👤 Sara
-🧭 On the way to Brennhaven · 1h 55m left
+🧭 On the way to Brennhaven - 56s left
 
-⭐ Level 1 · 50 XP to level 2
-⚡ Energy: 94 of 100 · full in 29m
+⭐ Level 1 - 50 XP to level 2
+⚡ Energy: 94 of 100 - full in 29m
 ❤️ Health: 100 of 100
 
 💼 No job yet
@@ -73,25 +137,24 @@ Travelling by: Train
 
 ━━━ Map on the road ━━━
 (edits message 42)
-🗺 Map
+🧭 Travel to another city
 
 🧭 You are on the way to Brennhaven. You can start a new journey once you arrive.
   ───
   [🧭 My journey] → travel:status
-  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+  [🔙 Back] → map:list   │   [🔄 Refresh] → map:cities
 
 ━━━ Bank on the road ━━━
 (edits message 42)
 🏦 Bank
 
-🧭 You are travelling. You can deposit and withdraw once you arrive in any city; card payments work from anywhere.
-
 💵 Cash: 4,580 Nil
 🏦 Bank balance: 0 Nil
+🧭 You are travelling; you can deposit and withdraw once you arrive in a city. Card payments work from anywhere.
 
-💸 To pay another player, send /pay with their username or player code, for example /pay @username
+💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
   ───
-  [🔎 Find a player] → social:search
+  [💸 Pay a player] → bank:pay
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Arrival (scheduler) ━━━
@@ -106,8 +169,8 @@ Travelling by: Train
 👤 Sara
 📍 Brennhaven
 
-⭐ Level 1 · 25 XP to level 2
-⚡ Energy: 100 of 100
+⭐ Level 1 - 25 XP to level 2
+⚡ Energy: 94 of 100 - full in 30m
 ❤️ Health: 100 of 100
 
 💼 No job yet
@@ -123,31 +186,73 @@ Travelling by: Train
   [🏛 Offices and policies] → gov:city
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
+━━━ Map of Brennhaven, off the train ━━━
+(edits message 42)
+🗺 Map of Brennhaven
+
+📍 You are at the train station.
+
+Places in the city:
+• city centre - 10s walk
+• bazaar - 15s walk - market
+• business district - 15s walk - bank, auction house
+• university quarter - 20s walk - university, training centre
+• civic centre - 10s walk - city hall
+• police station - 15s walk - police
+• bus terminal - 15s walk - Bus departures
+• train station (you are here) - Train departures
+• airport - 45s walk - Flight departures
+• industrial zone - 30s walk
+• hospital - 20s walk
+• residential area - 25s walk
+• city park - 15s walk
+
+Tap a place to walk there. Everything is done at its own place.
+  ───
+  [🚶 city centre] → place:go:city_centre   │   [🚶 bazaar] → place:go:bazaar
+  [🚶 business district] → place:go:business_district   │   [🚶 university quarter] → place:go:university
+  [🚶 civic centre] → place:go:city_hall   │   [🚶 police station] → place:go:police_station
+  [🚶 bus terminal] → place:go:bus_terminal   │   [🚶 airport] → place:go:airport
+  [🚶 industrial zone] → place:go:industrial_zone   │   [🚶 hospital] → place:go:hospital
+  [🚶 residential area] → place:go:residential_area   │   [🚶 city park] → place:go:park
+  [🧭 Travel to another city] → map:cities
+  [🏛 Offices and policies] → gov:city
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
 ━━━ Back to Ostmarch ━━━
 (edits message 42)
 🧭 Travel to Ostmarch
 📍 From: Brennhaven
 
 How would you like to travel?
-• Bus · Free · 3h 22m on the way · 10 energy
-• Train · 420 Nil · 1h 56m on the way · 6 energy
-• Flight · 1,780 Nil · 1h 18m on the way · 4 energy
+• Bus - Free - 4m on the way - 10 energy
+• Train - 420 Nil - 2m on the way - 6 energy
+• Flight - 1,780 Nil - 2m on the way - 4 energy
 
 💵 Your cash: 4,580 Nil
   ───
-  [Bus · Free] → travel:start:ostmarch:bus:0
-  [Train · 420 Nil] → travel:start:ostmarch:train:420
-  [Flight · 1,780 Nil] → travel:start:ostmarch:flight:1780
+  [Bus - Free] → travel:start:ostmarch:bus:0
+  [Train - 420 Nil] → travel:start:ostmarch:train:420
+  [Flight - 1,780 Nil] → travel:start:ostmarch:flight:1780
   [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:ostmarch
 
-━━━ Fly with too little cash ━━━
-(edits message 42) (private in groups)
-💵 Not enough cash to travel by Flight.
-Fare: 1,780 Nil · Your cash: 10 Nil
-Nothing was charged; a cheaper way to travel may still be in reach.
+━━━ Fly with too little money ━━━
+(edits message 42)
+🚉 Departures by Flight are from the airport.
+📍 You are at the train station now.
   ───
-  [🧭 Ways to travel] → travel:options:ostmarch
-  [🔙 Back] → map:list
+  [🚶 Walk to the airport - 45s] → place:go:airport
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Pay the flight in cash anyway ━━━
+(edits message 42)
+🚉 Departures by Flight are from the airport.
+📍 You are at the train station now.
+  ───
+  [🚶 Walk to the airport - 45s] → place:go:airport
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
 
 ━━━ Same city ━━━
 (sends)

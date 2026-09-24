@@ -3,6 +3,7 @@ package screens
 import (
 	"strconv"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -167,10 +168,15 @@ func pad2(n int) string {
 // reuse one argument map for two keys.
 func (c Context) localiseArgs(args map[string]any) map[string]any {
 	var out map[string]any
+	rtl := c.rightToLeft()
 	for k, v := range args {
 		s, ok := c.integerText(v)
 		if !ok {
-			continue
+			text, isText := v.(string)
+			if !isText || !oppositeDirection(text, rtl) {
+				continue
+			}
+			s = isolate(text)
 		}
 		if out == nil {
 			out = make(map[string]any, len(args))
@@ -211,4 +217,54 @@ func (c Context) integerText(v any) (string, bool) {
 		return c.numerals().grouped(n), true
 	}
 	return "", false
+}
+
+// Mixed directions.
+//
+// A Latin name, a player code or an @username inside a Persian sentence is a
+// left-to-right run in a right-to-left line, and the Unicode bidirectional
+// algorithm lets the neutral characters around it — brackets, a colon, a
+// hyphen, a number — attach to the wrong side, so «پرداخت به Ada (K7Q2M9A)»
+// can come out scrambled. The same happens to a Persian name in an English
+// line. So every text value substituted into a message whose own direction
+// differs from the language's is wrapped in a first-strong isolate (FSI ...
+// PDI): the run is laid out on its own and cannot pull its neighbours with
+// it. The isolate marks are invisible. A language says which way it is
+// written with format.direction ("rtl" or "ltr", "ltr" when absent).
+
+const (
+	keyDirection = "format.direction"
+	// firstStrongIsolate and popDirectionalIsolate open and close an
+	// isolated run whose direction is that of its first strong character.
+	firstStrongIsolate    = "\u2068"
+	popDirectionalIsolate = "\u2069"
+)
+
+// rightToLeft reports whether this context's language is written right to
+// left.
+func (c Context) rightToLeft() bool {
+	return c.Msgs != nil && c.Msgs.T(c.Lang, keyDirection, nil) == "rtl"
+}
+
+// oppositeDirection reports whether text holds a letter written the other way
+// from the language: a Latin letter or an ASCII digit in a right-to-left
+// language, a right-to-left letter in a left-to-right one.
+func oppositeDirection(text string, rtl bool) bool {
+	for _, r := range text {
+		switch {
+		case rtl && (r < 0x80 && (unicode.IsLetter(r) || unicode.IsDigit(r))):
+			return true
+		case !rtl && (unicode.In(r, unicode.Arabic, unicode.Hebrew)):
+			return true
+		}
+	}
+	return false
+}
+
+// isolate wraps text in a first-strong isolate, unless it already is one.
+func isolate(text string) string {
+	if strings.HasPrefix(text, firstStrongIsolate) && strings.HasSuffix(text, popDirectionalIsolate) {
+		return text
+	}
+	return firstStrongIsolate + text + popDirectionalIsolate
 }

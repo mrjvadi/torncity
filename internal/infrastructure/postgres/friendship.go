@@ -40,19 +40,26 @@ func NewFriendshipRepository(p *Pool) *FriendshipRepository {
 }
 
 const selectFriendships = `
-SELECT id, player_id, friend_player_id, status, created_at
+SELECT id, player_id, friend_player_id, status, created_at, false AS incoming
 FROM friendships
 WHERE player_id = $1::uuid
+UNION ALL
+SELECT id, friend_player_id, player_id, status, created_at, true AS incoming
+FROM friendships
+WHERE friend_player_id = $1::uuid AND status = 'pending'
 ORDER BY created_at, id`
 
-// List returns the player's own outgoing edges, in every status.
+// List returns the player's own outgoing edges, in every status, and the
+// pending requests others sent them, marked Incoming and turned round so
+// FriendPlayerID is always the other player.
 //
 // Blocked and pending rows are included rather than filtered: the caller is
-// the only party that knows which screen it is drawing — an outgoing-requests
-// list, a friends list or a block list — and a repository that decided for it
-// would need a separate method per screen. Incoming requests are a different
-// query entirely (friend_player_id = me), which friendships_friend_player_id_idx
-// exists to answer and which this port does not expose.
+// the only party that knows which screen it is drawing. The incoming half is
+// the query friendships_friend_player_id_idx exists to answer. One line is
+// kept per other player: their pending request replaces a pending request
+// of the player's own to them (both asked; answering is what is left to do),
+// and any other edge of the player's own — a friendship, a block — wins over
+// their request, so a blocked player's request never surfaces.
 //
 // The tie-break on id makes the order total: created_at is supplied by the
 // application and two rows written in one transaction can share it exactly, so
@@ -67,7 +74,7 @@ func (r *FriendshipRepository) List(ctx context.Context, playerID string) ([]app
 	var out []application.Friendship
 	for rows.Next() {
 		var f application.Friendship
-		if err := rows.Scan(&f.ID, &f.PlayerID, &f.FriendPlayerID, &f.Status, &f.CreatedAt); err != nil {
+		if err := rows.Scan(&f.ID, &f.PlayerID, &f.FriendPlayerID, &f.Status, &f.CreatedAt, &f.Incoming); err != nil {
 			return nil, fmt.Errorf("postgres: scanning friendship row: %w", err)
 		}
 		out = append(out, f)
@@ -76,7 +83,35 @@ func (r *FriendshipRepository) List(ctx context.Context, playerID string) ([]app
 		return nil, fmt.Errorf("postgres: reading friendship rows: %w", err)
 	}
 
-	return out, nil
+	return mergeFriendships(out), nil
+}
+
+// mergeFriendships keeps one edge per other player, in the order given; see
+// List for which one.
+func mergeFriendships(edges []application.Friendship) []application.Friendship {
+	own := map[string]string{} // other player -> status of the player's own edge
+	asked := map[string]bool{} // other player -> they sent a pending request
+	for _, e := range edges {
+		if e.Incoming {
+			asked[e.FriendPlayerID] = true
+		} else {
+			own[e.FriendPlayerID] = e.Status
+		}
+	}
+	out := make([]application.Friendship, 0, len(edges))
+	for _, e := range edges {
+		status, mine := own[e.FriendPlayerID]
+		switch {
+		case e.Incoming && mine && status != FriendshipPending:
+			// A friend already, or blocked: their request is not a line.
+			continue
+		case !e.Incoming && status == FriendshipPending && asked[e.FriendPlayerID]:
+			// Both asked: their request, which can be accepted, stands.
+			continue
+		}
+		out = append(out, e)
+	}
+	return out
 }
 
 // insertFriendRequest creates the pending edge, or reports the one already

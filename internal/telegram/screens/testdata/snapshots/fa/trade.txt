@@ -1,0 +1,399 @@
+━━━ Market ━━━
+(edits message 42)
+🏪 بازار استمارچ
+
+• نان - پیشنهاد خریداران: ۳۵ نیل - قیمت فروشندگان: ۴۲ نیل
+• باند زخم - پیشنهاد خریداران: هنوز کسی نیست - قیمت فروشندگان: ۹۰ نیل
+  ───
+  [🏪 نان] → market:book:bread   │   [🏪 باند زخم] → market:book:bandage
+  [🏪 ابزار بازکردن قفل] → market:book:lockpick_set
+  [📋 سفارش‌های من] → market:mine   │   [🔨 حراجی] → auction:list
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → market:list
+
+━━━ Market · empty, from across town ━━━
+(edits message 42)
+🏪 بازار استمارچ
+
+الان کسی در اینجا نمی‌خرد و نمی‌فروشد.
+
+📍 خرید و فروش در بازار انجام می‌شود. برای معامله به آنجا بروید.
+  ───
+  [📋 سفارش‌های من] → market:mine   │   [🔨 حراجی] → auction:list
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → market:list
+
+━━━ Book · bread, at the market, holding some ━━━
+(edits message 42)
+🏪 نان - بازار استمارچ
+
+برای فروش:
+• ۱۰ عدد به ۴۲ نیل
+• ۴ عدد به ۴۵ نیل
+
+خریدار دارد:
+• ۶ عدد به ۳۵ نیل
+
+آخرین معامله‌ها:
+• ۲ عدد به ۴۰ نیل - ساعت ۱۴:۳۰
+
+🎒 ۳ عدد دارید.
+🧾 کارمزد بازار را فروشنده می‌دهد و نرخش را شهر تعیین می‌کند.
+  ───
+  [🛒 خرید ۱ عدد به ۴۲ نیل] → market:order:buy:bread:1:42   │   [🛒 پیشنهاد ۴۰ نیل] → market:order:buy:bread:1:40
+  [💰 فروش ۱ عدد به ۳۵ نیل] → market:order:sell:bread:1:35:0a1b2c3d4e62   │   [💰 فروش به ۴۰ نیل] → market:order:sell:bread:1:40:0a1b2c3d4e62   │   [💰 فروش به ۴۴ نیل] → market:order:sell:bread:1:44:0a1b2c3d4e62
+  [💰 فروش همهٔ ۳ عدد به ۴۰ نیل] → market:order:sell:bread:3:40:0a1b2c3d4e62
+  [📋 سفارش‌های من] → market:mine
+  [🔙 بازگشت] → market:list   │   [🔄 به‌روزرسانی] → market:book:bread
+
+━━━ Book · nothing on it, from across town ━━━
+(edits message 42)
+🏪 نان - بازار استمارچ
+
+برای فروش:
+• هیچ
+
+خریدار دارد:
+• هیچ
+
+📍 خرید و فروش در بازار انجام می‌شود. برای معامله به آنجا بروید.
+🧾 کارمزد بازار را فروشنده می‌دهد و نرخش را شهر تعیین می‌کند.
+  ───
+  [📋 سفارش‌های من] → market:mine
+  [🔙 بازگشت] → market:list   │   [🔄 به‌روزرسانی] → market:book:bread
+
+━━━ Checkout · a buy order ━━━
+(edits message 42)
+🏪 خرید نان
+
+۱ عدد، هر عدد ۴۲ نیل
+مبلغ کنارگذاشته: ۴۲ نیل
+
+💵 این مبلغ تا انجام سفارش یا لغو آن کنار گذاشته می‌شود. پرداخت کنید:
+💳 موجودی بانکتان کافی نیست؛ نقدی بپردازید.
+💵 پول نقد شما: ۵۰۰ نیل - موجودی بانک: ۱۰ نیل
+  ───
+  [💵 پرداخت نقدی - ۴۲ نیل] → market:order:buy:bread:1:42:0a1b2c3d4e63:cash
+  [🔙 بازگشت] → market:book:bread
+
+━━━ Placed · a buy, filled at once ━━━
+(edits message 42)
+✅ سفارش ۴۱: خرید نان - ۱ عدد به ۴۲ نیل.
+🤝 همان لحظه خریدید: ۱ عدد به ۴۲ نیل.
+💵 از پول نقدتان پرداخت شد.
+  ───
+  [📋 سفارش‌های من] → market:mine   │   [🏪 بازگشت به دفتر سفارش] → market:book:bread
+  [🔙 بازگشت] → market:list
+
+━━━ Placed · a sell, resting ━━━
+(edits message 42)
+✅ سفارش ۴۲: فروش نان - ۳ عدد به ۴۴ نیل.
+🤝 همان لحظه فروختید: ۱ عدد به ۴۳ نیل.
+⏳ ۲ عدد در دفتر سفارش منتظر طرف مقابل می‌ماند.
+🕒 پایان سفارش در ساعت ۱۷:۲۳
+  ───
+  [📋 سفارش‌های من] → market:mine   │   [🏪 بازگشت به دفتر سفارش] → market:book:bread
+  [🔙 بازگشت] → market:list
+
+━━━ Cancelled · a buy ━━━
+(edits message 42)
+❌ سفارش ۴۱ لغو شد و ۸۴ نیل به شما برگشت.
+  ───
+  [📋 سفارش‌های من] → market:mine
+  [🔙 بازگشت] → market:list
+
+━━━ Cancelled · a sell ━━━
+(edits message 42)
+❌ سفارش ۴۲ لغو شد و ۲ عدد نان به کوله‌پشتی‌تان برگشت.
+  ───
+  [📋 سفارش‌های من] → market:mine
+  [🔙 بازگشت] → market:list
+
+━━━ My orders ━━━
+(edits message 42) (private in groups)
+📋 سفارش‌های من
+• ۴۲: فروش نان - ۱ از ۳ به ۴۴ نیل - باز - استمارچ
+• ۴۱: خرید نان - ۱ از ۱ به ۴۲ نیل - انجام‌شده - استمارچ
+• ۱۷: خرید باند زخم - ۰ از ۲ به ۸۰ نیل - پایان‌یافته - برنهاون
+  ───
+  [❌ لغو سفارش ۴۲] → market:cancel:42
+  [🔙 بازگشت] → market:list   │   [🔄 به‌روزرسانی] → market:mine
+
+━━━ My orders · none ━━━
+(edits message 42) (private in groups)
+📋 سفارش‌های من
+هیچ سفارشی ندارید.
+  ───
+  [🔙 بازگشت] → market:list   │   [🔄 به‌روزرسانی] → market:mine
+
+━━━ Notice · your sell order filled ━━━
+(sends) (private in groups)
+🤝 سفارشتان در استمارچ انجام شد: نان فروختید - ۲ عدد، هر عدد ۴۴ نیل، روی هم ۸۸ نیل؛ کارمزد بازار ۲ نیل بود.
+  ───
+  [📋 سفارش‌های من] → market:mine
+
+━━━ Notice · your buy order filled ━━━
+(sends) (private in groups)
+🤝 سفارشتان در استمارچ انجام شد: نان خریدید - ۲ عدد، هر عدد ۴۴ نیل، روی هم ۸۸ نیل.
+  ───
+  [📋 سفارش‌های من] → market:mine
+
+━━━ Notice · a buy order expired ━━━
+(sends) (private in groups)
+⏳ مهلت سفارش ۴۱ برای نان تمام شد و ۲ عدد خریده نشد. مبلغ کنارگذاشته به شما برگشت.
+  ───
+  [📋 سفارش‌های من] → market:mine
+
+━━━ Notice · a sell order expired ━━━
+(sends) (private in groups)
+⏳ مهلت سفارش ۴۲ برای نان تمام شد و ۲ عدد فروخته نشد. به کوله‌پشتی‌تان برگشت.
+  ───
+  [📋 سفارش‌های من] → market:mine
+
+━━━ Market refused · not traded ━━━
+(edits message 42)
+ابزار بازکردن قفل در بازار معامله نمی‌شود.
+  ───
+  [🏪 بازار] → market:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Market refused · too big ━━━
+(edits message 42)
+این سفارش از سقف مجاز بازار بزرگ‌تر است.
+  ───
+  [🏪 بازار] → market:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Market refused · too many open ━━━
+(edits message 42)
+همین حالا ۲۰ سفارش باز دارید. یکی را لغو کنید یا صبر کنید انجام شود.
+  ───
+  [🏪 بازار] → market:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Market refused · not enough ━━━
+(edits message 42)
+این مقدار نان همراهتان نیست.
+  ───
+  [🏪 بازار] → market:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Market refused · no such order ━━━
+(edits message 42)
+چنین سفارشی از شما وجود ندارد.
+  ───
+  [🏪 بازار] → market:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Market refused · order closed ━━━
+(edits message 42)
+این سفارش دیگر باز نیست.
+  ───
+  [🏪 بازار] → market:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Auction house ━━━
+(edits message 42)
+🔨 حراجی استمارچ
+
+• ۷: گوشی (کیفیت ۷۲) - بالاترین پیشنهاد ۲٬۶۰۰ نیل - ۴۰ دقیقه مانده
+• ۸: ساعت مچی (کیفیت ۵۵) - از ۸۰۰ نیل - ۳ دقیقه مانده
+  ───
+  [🔨 حراج ۷] → auction:view:7   │   [🔨 حراج ۸] → auction:view:8
+  [📋 حراج‌های من] → auction:mine   │   [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → market:list   │   [🔄 به‌روزرسانی] → auction:list
+
+━━━ Auction house · none, from across town ━━━
+(edits message 42)
+🔨 حراجی استمارچ
+
+الان چیزی در اینجا حراج نمی‌شود.
+
+📍 پیشنهاد دادن در حراجی انجام می‌شود. برای شرکت به آنجا بروید.
+  ───
+  [📋 حراج‌های من] → auction:mine   │   [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → market:list   │   [🔄 به‌روزرسانی] → auction:list
+
+━━━ Auction · open to bid ━━━
+(edits message 42)
+🔨 حراج ۸
+
+ساعت مچی - کیفیت ۵۵
+فروشنده: کاوه
+حداقل قیمت: ۸۰۰ نیل
+هنوز پیشنهادی نرسیده است.
+⏳ ۳ دقیقه تا پایان
+
+💵 پیشنهاد ۸۰۰ نیل تا وقتی کسی بالاتر ندهد یا حراج را ببرید کنار گذاشته می‌شود. پرداخت کنید:
+💵 پول نقد شما: ۱٬۰۰۰ نیل - موجودی بانک: ۵٬۰۰۰ نیل
+  ───
+  [💵 پرداخت نقدی - ۸۰۰ نیل] → auction:bid:8:800:0a1b2c3d4e64:cash   │   [💳 پرداخت با کارت - ۸۰۰ نیل] → auction:bid:8:800:0a1b2c3d4e64:card
+  [🔙 بازگشت] → auction:list   │   [🔄 به‌روزرسانی] → auction:view:8
+
+━━━ Auction · your bid leads ━━━
+(edits message 42)
+🔨 حراج ۷
+
+گوشی - کیفیت ۷۲
+فروشنده: کاوه
+حداقل قیمت: ۱٬۲۵۰ نیل
+بالاترین پیشنهاد: ۲٬۶۰۰ نیل - ۳ پیشنهاد
+⏳ ۴۰ دقیقه تا پایان
+
+🥇 بالاترین پیشنهاد مال شماست.
+  ───
+  [🔙 بازگشت] → auction:list   │   [🔄 به‌روزرسانی] → auction:view:7
+
+━━━ Auction · your own ━━━
+(edits message 42)
+🔨 حراج ۷
+
+گوشی - کیفیت ۷۲
+فروشنده: سارا
+حداقل قیمت: ۱٬۲۵۰ نیل
+بالاترین پیشنهاد: ۲٬۶۰۰ نیل - ۳ پیشنهاد
+⏳ ۴۰ دقیقه تا پایان
+
+این حراج مال شماست.
+  ───
+  [🔙 بازگشت] → auction:list   │   [🔄 به‌روزرسانی] → auction:view:7
+
+━━━ Auction · over ━━━
+(edits message 42)
+🔨 حراج ۷
+
+گوشی - کیفیت ۷۲
+فروشنده: کاوه
+حداقل قیمت: ۱٬۲۵۰ نیل
+بالاترین پیشنهاد: ۲٬۶۰۰ نیل - ۳ پیشنهاد
+فروخته شد
+  ───
+  [🔙 بازگشت] → auction:list   │   [🔄 به‌روزرسانی] → auction:view:7
+
+━━━ Auction · put a phone up ━━━
+(edits message 42)
+🔨 حراج گوشی (کیفیت ۷۲)
+
+کمترین قیمتی را که می‌پذیرید و مدت حراج را انتخاب کنید.
+  ───
+  [۱٬۲۵۰ نیل - ۱ دقیقه] → auction:new:F0E1D2C3B4:1250:0:0a1b2c3d4e65   │   [۲٬۵۰۰ نیل - ۱ دقیقه] → auction:new:F0E1D2C3B4:2500:0:0a1b2c3d4e65   │   [۳٬۷۵۰ نیل - ۱ دقیقه] → auction:new:F0E1D2C3B4:3750:0:0a1b2c3d4e65
+  [۱٬۲۵۰ نیل - ۶ دقیقه] → auction:new:F0E1D2C3B4:1250:1:0a1b2c3d4e65   │   [۲٬۵۰۰ نیل - ۶ دقیقه] → auction:new:F0E1D2C3B4:2500:1:0a1b2c3d4e65   │   [۳٬۷۵۰ نیل - ۶ دقیقه] → auction:new:F0E1D2C3B4:3750:1:0a1b2c3d4e65
+  [۱٬۲۵۰ نیل - ۲۴ دقیقه] → auction:new:F0E1D2C3B4:1250:2:0a1b2c3d4e65   │   [۲٬۵۰۰ نیل - ۲۴ دقیقه] → auction:new:F0E1D2C3B4:2500:2:0a1b2c3d4e65   │   [۳٬۷۵۰ نیل - ۲۴ دقیقه] → auction:new:F0E1D2C3B4:3750:2:0a1b2c3d4e65
+  [🔙 بازگشت] → inventory:item:F0E1D2C3B4
+
+━━━ Auction · opened ━━━
+(edits message 42)
+✅ حراج ۹: گوشی از ۲٬۵۰۰ نیل، به مدت ۶ دقیقه.
+🕒 پایان در ساعت ۱۴:۴۱
+  ───
+  [🔨 حراج ۹] → auction:view:9
+  [🔙 بازگشت] → auction:list
+
+━━━ Bid · placed ━━━
+(edits message 42)
+✅ برای حراج ۸ (ساعت مچی) ۸۰۰ نیل پیشنهاد دادید.
+💳 با کارت بانکی پرداخت شد.
+💵 مبلغ پیشنهادتان کنار گذاشته شد. اگر کسی بالاتر بدهد، به شما برمی‌گردد.
+🕒 پایان در ساعت ۱۴:۳۸
+  ───
+  [🔨 حراج ۸] → auction:view:8
+  [🔙 بازگشت] → auction:list
+
+━━━ My auctions ━━━
+(edits message 42) (private in groups)
+📋 حراج‌های من
+• ۷: گوشی (کیفیت ۷۲) - بالاترین پیشنهاد ۲٬۶۰۰ نیل - ۴۰ دقیقه مانده - مال شما - باز
+• ۷: گوشی (کیفیت ۷۲) - بالاترین پیشنهاد ۲٬۶۰۰ نیل - ۴۰ دقیقه مانده - پیشنهاد شما بالاترین است - باز
+• ۳: گوشی (کیفیت ۴۰) - بالاترین پیشنهاد ۹۰۰ نیل - ۱ ثانیه مانده - کسی بالاتر داد - فروخته شد
+  ───
+  [🔨 حراج ۷] → auction:view:7   │   [🔨 حراج ۷] → auction:view:7   │   [🔨 حراج ۳] → auction:view:3
+  [🔙 بازگشت] → auction:list   │   [🔄 به‌روزرسانی] → auction:mine
+
+━━━ My auctions · none ━━━
+(edits message 42) (private in groups)
+📋 حراج‌های من
+نه چیزی حراج گذاشته‌اید و نه برای چیزی پیشنهاد داده‌اید.
+  ───
+  [🔙 بازگشت] → auction:list   │   [🔄 به‌روزرسانی] → auction:mine
+
+━━━ Notice · auction outbid ━━━
+(sends) (private in groups)
+🔨 در حراج ۷ (گوشی) کسی پیشنهاد بالاتری داد. ۲٬۶۰۰ نیل به شما برگشت.
+  ───
+  [🔨 حراج ۷] → auction:view:7
+
+━━━ Notice · auction won ━━━
+(sends) (private in groups)
+🏆 حراج ۷ را بردید: گوشی به ۲٬۶۰۰ نیل. در کوله‌پشتی‌تان است.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+
+━━━ Notice · auction sold ━━━
+(sends) (private in groups)
+🔨 حراج ۷: گوشی به ۲٬۶۰۰ نیل فروخته شد؛ کارمزد ۱۳۰ نیل بود.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+
+━━━ Notice · auction unsold ━━━
+(sends) (private in groups)
+🔨 حراج ۷ بدون فروش تمام شد. گوشی به کوله‌پشتی‌تان برگشت.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+
+━━━ Auction refused · no such auction ━━━
+(edits message 42)
+چنین حراجی وجود ندارد.
+  ───
+  [🔨 حراجی] → auction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Auction refused · over ━━━
+(edits message 42)
+این حراج تمام شده است.
+  ───
+  [🔨 حراج ۷] → auction:view:7
+  [🔨 حراجی] → auction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Auction refused · bid too low ━━━
+(edits message 42)
+پیشنهاد باید دست‌کم ۲٬۷۳۰ نیل باشد.
+  ───
+  [🔨 حراج ۷] → auction:view:7
+  [🔨 حراجی] → auction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Auction refused · your own ━━━
+(edits message 42)
+برای حراج خودتان نمی‌توانید پیشنهاد بدهید.
+  ───
+  [🔨 حراج ۷] → auction:view:7
+  [🔨 حراجی] → auction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Auction refused · already leading ━━━
+(edits message 42)
+بالاترین پیشنهاد همین حالا مال شماست.
+  ───
+  [🔨 حراج ۷] → auction:view:7
+  [🔨 حراجی] → auction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Auction refused · not carried ━━━
+(edits message 42)
+این شیء همراهتان نیست.
+  ───
+  [🔨 حراجی] → auction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Auction refused · too many open ━━━
+(edits message 42)
+همین حالا ۵ حراج باز دارید.
+  ───
+  [🔨 حراجی] → auction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Auction refused · not a piece ━━━
+(edits message 42)
+این را نمی‌شود حراج گذاشت. فقط اشیای یکتا به حراج می‌روند.
+  ───
+  [🔨 حراجی] → auction:list
+  [🔙 بازگشت] → player:profile.get

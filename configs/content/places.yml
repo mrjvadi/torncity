@@ -1,0 +1,134 @@
+# City places: where a player stands inside their city.
+#
+# A city is not one room. A player stands at exactly one of its places, and
+# what they can do depends on it: the bank is in the business district, the
+# shops and the market in the bazaar, courses at the university and the
+# training centre, the police at the police station. A crime is committed
+# where the thief stands, and only a player standing at the same place can be
+# its victim. The RULES — which city has which place, what a move takes and
+# costs, where an arrival or a shift puts a player — are
+# internal/domain/place; the crime engine reads the same entries as its
+# venues (docs/adr/0019-crime-engine.md).
+#
+# Where a player stands changes three ways:
+#   * they walk there (the map, «🚶»): a timed move on the game clock
+#     (config.yml game.time_scale), one at a time, never while travelling,
+#     jailed, on a shift or in the middle of a timed crime;
+#   * they arrive in a city: at the place their transport mode stops at
+#     (`arrivals`); a journey also departs from there;
+#   * they work a shift: at the place of their career's category
+#     (`work_categories`), where they are still standing when it ends.
+# Everyone who never moved stands at the default place.
+#
+# places
+#   code             stable identifier; crimes name it in `venues:`, a
+#                    player's stored place names it. Never change one.
+#   name             display name, the fallback for venue.<code>.
+#   default          exactly one place is the default: every city has it.
+#   cities           optional: only these city codes have the place.
+#   requires         optional: transport facilities (transport.yml) a city
+#                    needs to have it — a train station only on a railway.
+#   move_time        how long walking there takes, GAME time ("15m").
+#   energy           optional: what walking there costs (default 0).
+#   services         what is found here: bank, police, city_hall, market,
+#                    auction_house, university, training_center. Each is in
+#                    one place of a city at most; a city without it has none.
+#   arrivals         transport modes that land and depart here.
+#   work_categories  career categories (jobs.yml) whose workers work here.
+#   opportunity_bps  (crime) scales the chance a crime here lands on a
+#                    player rather than an NPC: 10000 as the crime authors
+#                    it, 13000 a crowded platform. 0..20000.
+#   security         (crime) added to every victim's awareness: guards,
+#                    cameras. 0..100.
+#
+# Loaded and versioned with the rest of the content (`admin content load`).
+
+version: 1
+
+places:
+  # The streets of the centre: everyone who has not gone anywhere else.
+  - code: city_centre
+    name: City centre
+    default: true
+    move_time: 10m
+    opportunity_bps: 10000
+    security: 0
+  # Stalls, shops and the market floor: the busiest place in town.
+  - code: bazaar
+    name: Bazaar
+    move_time: 15m
+    services: [market]
+    work_categories: [food]
+    opportunity_bps: 12000
+    security: 2
+  - code: business_district
+    name: Business district
+    move_time: 15m
+    services: [bank, auction_house]
+    work_categories: [commerce, finance, technology]
+    opportunity_bps: 6000
+    security: 6
+  - code: university
+    name: University quarter
+    move_time: 20m
+    services: [university, training_center]
+    opportunity_bps: 7000
+    security: 4
+  - code: city_hall
+    name: Civic centre
+    move_time: 10m
+    services: [city_hall]
+    opportunity_bps: 5000
+    security: 10
+  - code: police_station
+    name: Police station
+    move_time: 15m
+    services: [police]
+    opportunity_bps: 1000
+    security: 40
+  - code: bus_terminal
+    name: Bus terminal
+    move_time: 15m
+    requires: [bus_terminal]
+    arrivals: [bus]
+    opportunity_bps: 11000
+    security: 1
+  # Platforms are crowded and everyone carries their cash: the best
+  # pickpocketing in town, and a transit police presence to match.
+  - code: train_station
+    name: Train station
+    move_time: 20m
+    requires: [rail_station]
+    arrivals: [train]
+    opportunity_bps: 13000
+    security: 3
+  - code: airport
+    name: Airport
+    move_time: 45m
+    energy: 2
+    requires: [airport]
+    arrivals: [flight]
+    opportunity_bps: 8000
+    security: 12
+  - code: industrial_zone
+    name: Industrial zone
+    move_time: 30m
+    work_categories: [transport, trades]
+    opportunity_bps: 7000
+    security: 2
+  - code: hospital
+    name: Hospital
+    move_time: 20m
+    work_categories: [medical]
+    opportunity_bps: 5000
+    security: 8
+  - code: residential_area
+    name: Residential area
+    move_time: 25m
+    opportunity_bps: 8000
+    security: 3
+  - code: park
+    name: City park
+    move_time: 15m
+    opportunity_bps: 9000
+    security: 1

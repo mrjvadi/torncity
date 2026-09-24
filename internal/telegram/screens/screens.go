@@ -269,6 +269,9 @@ var errorNextStep = map[string]struct{ label, addr string }{
 	"bank.error.not_enough_in_bank": {"button.bank", AddrBank},
 	"bank.error.insufficient":       {"button.bank", AddrBank},
 	"bank.error.payee_not_found":    {"button.find_player", AddrSearch},
+	"bank.error.invalid_amount":     {"button.bank", AddrBank},
+	"bank.error.below_minimum":      {"button.bank", AddrBank},
+	"bank.error.above_maximum":      {"button.bank", AddrBank},
 }
 
 // errorMessage picks the key and the placeholder values for a failure.
@@ -358,6 +361,7 @@ var applicationSentinels = []struct {
 	{application.ErrAlreadyFriends, "error.already_friends"},
 	{application.ErrPlayerNotFound, "error.player_not_found"},
 	{application.ErrUnsupportedLanguage, "error.unsupported_language"},
+	{application.ErrPaymentNotAccepted, "payment.not_accepted"},
 }
 
 // identical reports whether target appears anywhere in err's chain as that

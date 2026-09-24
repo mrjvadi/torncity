@@ -3,11 +3,11 @@
 🎓 Education
 
 Courses you can take here:
-• First Aid · 600 Nil · 2m
-• Driving Licence · 900 Nil · 3m
-• Bookkeeping · 1,200 Nil · 4m
-• Programming Fundamentals · 2,000 Nil · 6m
-🔒 Retail Management · 2,800 Nil · 8m · from level 4
+• First Aid - 600 Nil - 2m
+• Driving Licence - 900 Nil - 3m
+• Bookkeeping - 1,200 Nil - 4m
+• Programming Fundamentals - 2,000 Nil - 6m
+🔒 Retail Management - 2,800 Nil - 8m - from level 4
 
 Page 1 of 2
   ───
@@ -30,9 +30,30 @@ Page 1 of 2
 On completion:
 🛠 Medicine: +150 XP
 📜 The First Aid certificate
+
+✅ To enrol, pay the fee:
+💳 Your bank balance does not cover it — pay in cash.
+💵 Your cash: 5,000 Nil - Bank: 0 Nil
   ───
-  [✅ Enrol · 600 Nil] → education:enroll:first_aid
+  [💵 Pay cash - 600 Nil] → education:enroll:first_aid:cash
   [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:first_aid
+
+━━━ Enrol from the city centre ━━━
+(edits message 42)
+🎓 This course is taught at the university quarter.
+📍 You are at the city centre now.
+  ───
+  [🚶 Walk to the university quarter - 20s] → place:go:university
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Walk to the training centre ━━━
+(edits message 42)
+🚶 You set off for the university quarter - a 20s walk.
+🕒 Arriving at 12:00
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
 
 ━━━ Enrol ━━━
 (edits message 42)
@@ -40,6 +61,7 @@ On completion:
 💰 Fee paid: 600 Nil
 ⏳ Duration: 2m
 The course finishes on its own, and you will be notified.
+💵 Paid from your cash.
 🕒 Course ends at 12:02
   ───
   [🎓 Education] → education:list
@@ -53,11 +75,11 @@ The course finishes on its own, and you will be notified.
 ⏳ Finishing any moment now.
 
 Courses you can take here:
-• First Aid · 600 Nil · 2m
-• Driving Licence · 900 Nil · 3m
-• Bookkeeping · 1,200 Nil · 4m
-• Programming Fundamentals · 2,000 Nil · 6m
-🔒 Retail Management · 2,800 Nil · 8m · from level 4
+• First Aid - 600 Nil - 2m
+• Driving Licence - 900 Nil - 3m
+• Bookkeeping - 1,200 Nil - 4m
+• Programming Fundamentals - 2,000 Nil - 6m
+🔒 Retail Management - 2,800 Nil - 8m - from level 4
 
 Page 1 of 2
   ───
@@ -74,12 +96,12 @@ Page 1 of 2
 👤 Sara
 📍 Ostmarch
 
-⭐ Level 1 · 50 XP to level 2
+⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 100 of 100
 ❤️ Health: 100 of 100
 
 💼 No job yet
-📖 First Aid · finishing any moment
+📖 First Aid - finishing any moment
 
 💵 Cash: 4,400 Nil
 🏦 Bank balance: 0 Nil
@@ -102,10 +124,25 @@ You cannot enrol in this course yet:
 
 ━━━ A course taught elsewhere ━━━
 (edits message 42)
-That course is not on offer here. See “Education” for the courses you can take.
+🎓 Nursing Diploma
+
+🏛 University
+📍 Taught in Fenwick Span
+💰 Fee: 6,000 Nil
+⏳ Duration: 24m
+🪑 Seats left: 40
+
+On completion:
+🛠 Medicine: +800 XP
+📜 The Nursing Diploma certificate
+
+Requirements:
+❌ This course is taught in Fenwick Span.
+❌ Level 4 (you are level 1)
+❌ Certificate: First Aid
+❌ You are already studying First Aid. You can take one course at a time.
   ───
-  [🎓 Education] → education:list
-  [🔙 Back] → player:profile.get
+  [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:nursing
 
 ━━━ Course finished (scheduler) ━━━
 (sends)
@@ -123,11 +160,11 @@ That course is not on offer here. See “Education” for the courses you can ta
 📜 Certificates: First Aid
 
 Courses you can take here:
-• Driving Licence · 900 Nil · 3m
-• Bookkeeping · 1,200 Nil · 4m
-• Programming Fundamentals · 2,000 Nil · 6m
-🔒 Retail Management · 2,800 Nil · 8m · from level 4
-• Evening Class in Accounting · 400 Nil · 2m
+• Driving Licence - 900 Nil - 3m
+• Bookkeeping - 1,200 Nil - 4m
+• Programming Fundamentals - 2,000 Nil - 6m
+🔒 Retail Management - 2,800 Nil - 8m - from level 4
+• Evening Class in Accounting - 400 Nil - 2m
   ───
   [📖 Driving Licence] → education:view:driving_licence
   [📖 Bookkeeping] → education:view:bookkeeping
@@ -141,7 +178,7 @@ Courses you can take here:
 👤 Sara
 📍 Ostmarch
 
-⭐ Level 1 · 50 XP to level 2
+⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 100 of 100
 ❤️ Health: 100 of 100
 
@@ -159,12 +196,32 @@ Courses you can take here:
   [🏛 Offices and policies] → gov:city
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
+━━━ A course price with too little cash ━━━
+(edits message 42)
+🎓 Bookkeeping
+
+🏛 Training centre
+💰 Fee: 1,200 Nil
+⏳ Duration: 4m
+
+On completion:
+🛠 Finance: +250 XP
+📜 The Bookkeeping certificate
+
+💸 Neither your cash nor your bank balance covers this.
+💵 Your cash: 100 Nil - Bank: 0 Nil
+  ───
+  [🏦 Bank] → bank:show
+  [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:bookkeeping
+
 ━━━ Enrol without the fee ━━━
 (edits message 42) (private in groups)
-💵 Not enough cash for this course.
-Fee: 1,200 Nil · Your cash: 100 Nil
+💸 You do not have enough to pay 1,200 Nil.
+💵 Cash: 100 Nil
+🏦 Bank: 0 Nil
+Nothing was charged.
   ───
-  [🎓 Education] → education:list
+  [📖 Back to the course] → education:view:bookkeeping   │   [🏦 Bank] → bank:show
   [🔙 Back] → player:profile.get
 
 ━━━ A course that does not exist ━━━

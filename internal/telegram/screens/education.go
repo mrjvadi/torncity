@@ -28,6 +28,10 @@ type CurrentCourseView struct {
 	Remaining time.Duration
 	// EndsAt is when the course finishes; zero shows no clock line.
 	EndsAt time.Time
+	// Paused says the course stands still because the player is in jail:
+	// Percent and Remaining are as they were at the jailing, and there is
+	// no end time until release.
+	Paused bool
 }
 
 // CourseLine is one course on offer.
@@ -55,14 +59,20 @@ func Education(c Context, v EducationView) *presenter.Response {
 	var current string
 	if v.Current != nil {
 		progress := c.T("education.progress_finishing", nil)
-		if v.Current.Remaining >= arrivingThreshold {
+		switch {
+		case v.Current.Paused:
+			progress = c.T("education.paused", map[string]any{
+				"percent":   v.Current.Percent,
+				"remaining": FormatDuration(c, v.Current.Remaining),
+			})
+		case v.Current.Remaining >= arrivingThreshold:
 			progress = c.T("education.progress", map[string]any{
 				"percent":   v.Current.Percent,
 				"remaining": FormatDuration(c, v.Current.Remaining),
 			})
 		}
 		var ends string
-		if v.Current.Remaining >= arrivingThreshold {
+		if v.Current.Remaining >= arrivingThreshold && !v.Current.Paused {
 			ends = clockLine(c, "education.ends_at", v.Current.EndsAt)
 		}
 		current = body(c.T("education.current", map[string]any{"course": c.course(v.Current.Course)}), progress, ends)
@@ -135,6 +145,9 @@ type CourseDetailView struct {
 	Certifies    bool
 	Requirements []Requirement
 	CanEnrol     bool
+	// Payment is how the fee can be paid, set when the course can be
+	// enrolled in and costs something: a button per way the player can pay.
+	Payment *PaymentChoice
 }
 
 // CourseDetail renders a course: what it costs and takes, what it gives, what
@@ -170,7 +183,19 @@ func CourseDetail(c Context, v CourseDetailView) *presenter.Response {
 	}
 
 	kb := keyboards.New()
-	if v.CanEnrol {
+	var pay string
+	switch {
+	case v.CanEnrol && v.Payment != nil && len(v.Payment.Usable) > 0:
+		pay = body(c.T("education.enrol_how", nil), c.paymentNote(*v.Payment))
+		c.paymentButtons(kb, *v.Payment, func(m string) []string {
+			return []string{AddrCourseEnrol, v.Course.Code, m}
+		})
+	case v.CanEnrol && v.Payment != nil:
+		pay = body(c.T("payment.cannot_afford", nil), c.paymentNote(*v.Payment))
+		if btn, ok := keyboards.Button(c.T("button.bank", nil), AddrBank); ok {
+			kb.Row(btn)
+		}
+	case v.CanEnrol:
 		enrol, _ := keyboards.Button(c.T("education.button.enrol", map[string]any{"fee": FormatMoney(c, v.Fee)}),
 			AddrCourseEnrol, v.Course.Code)
 		kb.Row(enrol)
@@ -182,6 +207,7 @@ func CourseDetail(c Context, v CourseDetailView) *presenter.Response {
 		body(facts...),
 		body(rewards...),
 		reqs,
+		pay,
 	), kb.Build())
 }
 
@@ -193,6 +219,17 @@ type EnrolledView struct {
 	// EndsAt is when it finishes; zero shows no clock line.
 	EndsAt time.Time
 	Fee    int64
+	// Method is how the fee was paid: cash or card; empty for a free
+	// course.
+	Method string
+}
+
+// paidLine says which purse a charge came from, or nothing when none did.
+func (c Context) paidLine(method string) string {
+	if method == "" {
+		return ""
+	}
+	return c.T("payment.paid."+method, nil)
 }
 
 // Enrolled renders an enrolment.
@@ -205,7 +242,7 @@ func Enrolled(c Context, v EnrolledView) *presenter.Response {
 		"course":   c.course(v.Course),
 		"duration": FormatDuration(c, v.Duration),
 		"fee":      FormatMoney(c, v.Fee),
-	}), clockLine(c, "education.ends_at", v.EndsAt)), kb.Build())
+	}), c.paidLine(v.Method), clockLine(c, "education.ends_at", v.EndsAt)), kb.Build())
 }
 
 // CourseCompletedView is what a finished course tells the player.

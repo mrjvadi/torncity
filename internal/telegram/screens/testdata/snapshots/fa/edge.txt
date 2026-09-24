@@ -1,0 +1,23 @@
+━━━ Channel · a private command sent in a group ━━━
+(sends)
+🔒 این کار در پی‌وی ربات انجام می‌شود. دکمهٔ زیر را بزنید تا همان‌جا باز شود.
+  ───
+  [🔒 ادامه در پی‌وی ربات] → https://t.me/torn_bot?start=run-bank-show
+
+━━━ Channel · a group command sent in the private chat ━━━
+(sends)
+👥 این کار فقط در گروه ممکن است. در گروه شهرتان دوباره بفرستید.
+  ───
+  [👤 پروفایل] → player:profile.get
+
+━━━ Channel · a group command, the player's city has a group ━━━
+(sends)
+👥 این کار فقط در گروه ممکن است. در گروه شهر استمارچ دوباره بفرستید.
+  ───
+  [👤 پروفایل] → player:profile.get
+
+━━━ Question · cancelled ━━━
+(sends)
+✖️ لغو شد. چیزی تغییر نکرد.
+  ───
+  [👤 پروفایل] → player:profile.get

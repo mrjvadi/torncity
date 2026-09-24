@@ -351,6 +351,12 @@ economy:
   bank_min_amount: 1
   bank_max_amount: 1000000000
 
+  # The round amounts the bank offers as buttons for a deposit, a withdrawal
+  # or a payment, smallest first. A screen shows only those the player can
+  # actually move (a withdrawal's fee included), up to four of them, beside
+  # "all of it" and a button to type any amount.
+  bank_quick_amounts: [1000, 5000, 10000, 50000, 100000, 500000, 1000000]
+
 # The office holder's screens (docs/adr/0015-player-held-offices.md). Nothing
 # here is a policy value or a bound — those are content (governance.yml) and
 # the office holder's decision; these only size the buttons.
@@ -424,3 +430,67 @@ crime:
   # crime opens (crime_proceeds, ADR 0009); each crime's own max_cash caps a
   # single take. Once reached, an NPC crime still succeeds and pays nothing.
   npc_daily_cap: 500000
+
+  # GEAR: what the tools a thief carries add to one attempt is content (each
+  # item's `gear:` in items.yml); these cap the TOTAL of every tool, by
+  # magnitude, so no bag of tools makes a crime certain (the success chance
+  # is still held under 95%). Basis points (10000 = 100%); nerve in points.
+  # Raising a cap makes gear matter more; lowering it makes skill matter
+  # more.
+  gear_max_success_bps: 2500
+  gear_max_catch_bps: 2500
+  gear_max_witness_bps: 3000
+  gear_max_solve_bps: 3000
+  gear_max_reward_bps: 5000
+  gear_max_nerve: 5
+
+# The player market and the auction house. Which goods exist is content
+# (items.yml); the fee a trade or a sale pays is each city's policy
+# (city.market_fee in governance.yml), never a number here. What is here
+# bounds orders and auctions so a typo cannot lock a fortune in escrow.
+trade:
+  # How long a resting order lives, REAL time, before it expires and its
+  # escrow — money for a buy, goods for a sell — goes back to its owner.
+  market_order_ttl: 168h
+
+  # One player's resting orders at a time, and the most one order may ask:
+  # units, and minor units per unit.
+  market_max_open_orders: 20
+  market_max_quantity: 10000
+  market_max_price: 100000000
+
+  # The lengths a seller may choose for an auction, GAME time, waited
+  # through the game clock (game.time_scale): at 60, 24h is 24 minutes.
+  auction_durations: [1h, 6h, 24h]
+
+  # The highest reserve a seller may set; how much a bid must beat the
+  # standing one by (a share, at least a minimum, minor units); and one
+  # seller's open auctions at a time.
+  auction_max_reserve: 100000000
+  auction_step_bps: 500
+  auction_min_step: 10
+  auction_max_open: 5
+
+  # The reserves a seller is offered when putting a piece up, as shares of
+  # the good's reference price in basis points: 10000 is the price itself.
+  auction_reserves_bps: [5000, 10000, 15000]
+
+# Free-text input (internal/gateway/input): a button «✏️ مبلغ دلخواه» asks the
+# player to type a value, and their next message answers it. Which commands
+# may ask is configs/commands.yml, section input.
+input:
+  # How long a question waits for its answer.
+  ttl: 5m
+  # The least time between two questions to one player in one chat, so a
+  # button pressed again and again cannot flood the chat.
+  cooldown: 3s
+  # The longest answer read, in characters; the rest is ignored.
+  max_length: 32
+
+# Public lines in a city's group: a player arrived, a player was jailed. They
+# never carry an amount. A busy city must not drown its group: at most
+# max_per_window lines in any window; what is held back is folded into a count
+# on the next line.
+announce:
+  window: 1m
+  max_per_window: 6

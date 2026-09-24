@@ -338,7 +338,10 @@ func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, r
 		return nil, errors.InvalidInput("social.friend.add names no player")
 	}
 	lang := meta.Language
-	var name string
+	var (
+		name     string
+		accepted bool
+	)
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		self, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -370,6 +373,11 @@ func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, r
 			if e.FriendPlayerID != req.Player {
 				continue
 			}
+			if e.Incoming && e.Status == friendPending {
+				// They asked first: adding them is saying yes.
+				accepted = true
+				return h.acceptRequest(ctx, tx, meta, self, req.Player)
+			}
 			switch e.Status {
 			case friendAccepted:
 				return application.ErrAlreadyFriends
@@ -388,8 +396,10 @@ func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, r
 		}
 
 		ev, err := events.New("social.friend.requested", "player", self.ID, map[string]any{
-			"player_id": self.ID,
-			"friend_id": req.Player,
+			"player_id":   self.ID,
+			"friend_id":   req.Player,
+			"player_name": shownName(self),
+			"player_code": self.PublicCode,
 		})
 		if err != nil {
 			return err
@@ -405,6 +415,9 @@ func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, r
 		return nil, err
 	}
 
+	if accepted {
+		return screens.FriendAccepted(h.screen(meta, lang), name), nil
+	}
 	// The other player is named by their display name; one with no name
 	// worth showing is "a player", never an identifier.
 	return screens.FriendRequested(h.screen(meta, lang), name), nil
@@ -446,29 +459,37 @@ func (h *SocialHandler) FriendAccept(ctx context.Context, meta envelope.Metadata
 			return nil
 		}
 
-		if err := tx.Friendships().Accept(ctx, self.ID, req.Player); err != nil {
-			return err
-		}
-
-		ev, err := events.New("social.friend.accepted", "player", self.ID, map[string]any{
-			"player_id": self.ID,
-			"friend_id": req.Player,
-		})
-		if err != nil {
-			return err
-		}
-		return tx.Outbox().Append(ctx, application.OutboxRecord{
-			EventID:  ev.ID,
-			Subject:  subjects.Event("social", "friend_accepted"),
-			Metadata: meta,
-			Payload:  ev.Payload,
-		})
+		return h.acceptRequest(ctx, tx, meta, self, req.Player)
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return screens.FriendAccepted(h.screen(meta, lang), name), nil
+}
+
+// acceptRequest turns the other player's request into a friendship and tells
+// them, through the outbox, in the caller's transaction.
+func (h *SocialHandler) acceptRequest(ctx context.Context, tx application.Tx, meta envelope.Metadata,
+	self *application.Player, other string,
+) error {
+	if err := tx.Friendships().Accept(ctx, self.ID, other); err != nil {
+		return err
+	}
+	ev, err := events.New("social.friend.accepted", "player", self.ID, map[string]any{
+		"player_id":   self.ID,
+		"friend_id":   other,
+		"player_name": shownName(self),
+	})
+	if err != nil {
+		return err
+	}
+	return tx.Outbox().Append(ctx, application.OutboxRecord{
+		EventID:  ev.ID,
+		Subject:  subjects.Event("social", "friend_accepted"),
+		Metadata: meta,
+		Payload:  ev.Payload,
+	})
 }
 
 // nameOf is the display name of another player, or "" when they have none
@@ -525,11 +546,9 @@ func (h *SocialHandler) FriendList(ctx context.Context, meta envelope.Metadata, 
 				ID:     e.FriendPlayerID,
 				Name:   name,
 				Status: e.Status,
-				// A pending edge gets the accept button. The port gives one
-				// direction of the graph, so it cannot say whether this
-				// request was sent or received; the repository re-checks and
-				// answers ErrNotFriends when it was ours to send.
-				Incoming: e.Status == friendPending,
+				// Only a request the other player sent can be accepted; one
+				// this player sent waits for the other one's answer.
+				Incoming: e.Incoming && e.Status == friendPending,
 			})
 		}
 		view = screens.FriendsView{Friends: lines, Page: page, Pages: pages}

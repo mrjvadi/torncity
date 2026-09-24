@@ -32,24 +32,10 @@
 #   min_xp   criminal XP the tier starts at. The first is 0; each rises.
 #
 # ---------------------------------------------------------------------------
-# crime_venues — places inside every city. Where a player IS is never chosen;
-# the game derives it from what they are doing (internal/domain/crime.Locate):
-#   1. on a shift        -> the venue whose work_categories has the career's
-#                           category;
-#   2. just arrived      -> the venue whose arrivals has the transport mode
-#                           they came by, for crime.arrival_linger after it;
-#   3. anything else     -> the default venue.
-# A category or a mode no venue lists falls through to the next rule.
-#   code             stable identifier; crimes name it in `venues:`.
-#   name             display name, the fallback for venue.<code>.
-#   default          exactly one venue is the default.
-#   arrivals         transport mode codes (transport.yml); each in one venue.
-#   work_categories  career categories (jobs.yml); each in one venue.
-#   opportunity_bps  scales the chance a crime here lands on a player rather
-#                    than an NPC passer-by: 10000 leaves the crime's own
-#                    figure, 13000 is a crowded platform. 0..20000.
-#   security         added to every victim's awareness here: guards, cameras.
-#                    0..100.
+# Venues — where a crime can be committed — are the city's PLACES
+# (configs/content/places.yml): one concept for where a player stands, what
+# is found there, and how crowded and guarded it is. A crime names them in
+# `venues:`.
 #
 # ---------------------------------------------------------------------------
 # crime_categories — how the crime hub groups crimes.
@@ -67,15 +53,21 @@
 #                one of the eligible players in the same venue becomes the
 #                victim by chance (see `victims`), otherwise an NPC does.
 #                A crime that can hit a player is instant (duration 0).
-#   venues       where it can be committed; omitted means anywhere.
+#   venues       the places (places.yml) where it can be committed; omitted
+#                means anywhere.
 #   tier         the crime_tiers code it needs.
 #   min_level    character level needed.
 #   required_skills          [{skill, level}].
 #   required_certifications  course codes (education.yml) that certify.
-#   required_tools           item codes. No items exist yet, so none may be
-#                            named; the key is here so the shape is stable.
+#   required_tools           items.yml codes the thief must carry (a
+#                            lockpick set for a burglary). What carried
+#                            tools ADD to a crime is the item's own `gear:`
+#                            block in items.yml, not here.
 #   required_facilities      facility codes (transport.yml) the city needs.
 #   nerve        nerve one attempt costs, paid when it starts (1..100).
+#   cooldown     GAME time the same player waits after an attempt before
+#                trying this crime again; a category's `cooldown` rests the
+#                whole category, and the longer wait wins. Omitted is none.
 #   duration     how long it takes, game time; 0s or omitted is instant. A
 #                timed crime keeps the player busy until it ends, and its
 #                outcome arrives as a notice.
@@ -106,6 +98,14 @@
 #     xp, criminal_xp       character XP and criminal experience.
 #     skill_xp              [{skill, xp}]. An escape earns half of it.
 #     heat                  heat added (an escape adds it too).
+#     loot                  NPC crimes: items that may come with the money,
+#                           each on its own roll: [{item, chance_bps,
+#                           min_qty, max_qty, min_quality, max_quality}].
+#                           A unit of loot names the attempt as its origin.
+#     steal_item_bps        player crimes: the chance the victim also loses
+#                           one thing they carry that can be stolen; a
+#                           solved case gives it back, or its base price
+#                           when the thief no longer has it.
 #   failure      on a failed attempt:
 #     catch_chance_bps      the chance it ends in an arrest, not an escape.
 #     jail_min, jail_max    the sentence, drawn evenly, game time, then
@@ -123,54 +123,12 @@ crime_tiers:
   - {code: hustler,      name: Hustler,      min_xp: 150}
   - {code: professional, name: Professional, min_xp: 600}
 
-crime_venues:
-  # The streets, the bazaar and the shops: everyone not placed elsewhere.
-  - code: city_centre
-    name: City centre
-    default: true
-    opportunity_bps: 10000
-    security: 0
-  - code: bus_terminal
-    name: Bus terminal
-    arrivals: [bus]
-    opportunity_bps: 11000
-    security: 1
-  # Platforms are crowded and everyone carries their cash: the best
-  # pickpocketing in town, and a transit police presence to match.
-  - code: train_station
-    name: Train station
-    arrivals: [train]
-    opportunity_bps: 13000
-    security: 3
-  - code: airport
-    name: Airport
-    arrivals: [flight]
-    opportunity_bps: 8000
-    security: 12
-  # Workplaces. Somebody on a shift is here; no crime is committed here yet
-  # (workplace crime arrives with player companies).
-  - code: business_district
-    name: Business district
-    work_categories: [commerce, finance, technology]
-    opportunity_bps: 6000
-    security: 6
-  - code: industrial_zone
-    name: Industrial zone
-    work_categories: [transport, trades]
-    opportunity_bps: 7000
-    security: 2
-  - code: hospital
-    name: Hospital
-    work_categories: [medical]
-    opportunity_bps: 5000
-    security: 8
-
 crime_categories:
   - {code: petty_theft,  name: Petty theft}
   - {code: street_crime, name: Street crime}
-  - {code: burglary,     name: Burglary}
+  - {code: burglary,     name: Burglary,  cooldown: 2h}
   - {code: fraud,        name: Fraud}
-  - {code: smuggling,    name: Smuggling}
+  - {code: smuggling,    name: Smuggling, cooldown: 6h}
 
 crimes:
   # --- Tier 1: novice --------------------------------------------------------
@@ -182,10 +140,11 @@ crimes:
     name: Pickpocketing
     category: petty_theft
     targets: [npc, player]
-    venues: [city_centre, bus_terminal, train_station, airport]
+    venues: [city_centre, bazaar, park, bus_terminal, train_station, airport]
     tier: novice
     min_level: 1
     nerve: 2
+    cooldown: 15m
     duration: 0s
     success:
       base_chance_bps: 6000
@@ -205,6 +164,7 @@ crimes:
       criminal_xp: 8
       skill_xp: [{skill: stealth, xp: 12}]
       heat: 3
+      steal_item_bps: 1500
     failure:
       catch_chance_bps: 3500
       jail_min: 2h
@@ -217,10 +177,11 @@ crimes:
     name: Shoplifting
     category: petty_theft
     targets: [npc]
-    venues: [city_centre]
+    venues: [bazaar, city_centre]
     tier: novice
     min_level: 1
     nerve: 2
+    cooldown: 30m
     duration: 0s
     success:
       base_chance_bps: 7000
@@ -235,6 +196,7 @@ crimes:
       criminal_xp: 6
       skill_xp: [{skill: stealth, xp: 10}]
       heat: 2
+      loot: [{item: sandwich, chance_bps: 3000, min_qty: 1, max_qty: 2}, {item: energy_drink, chance_bps: 1500, min_qty: 1, max_qty: 1}]
     failure:
       catch_chance_bps: 3000
       jail_min: 1h
@@ -247,10 +209,11 @@ crimes:
     name: Bag snatching
     category: street_crime
     targets: [npc]
-    venues: [city_centre, bus_terminal, train_station]
+    venues: [city_centre, park, bus_terminal, train_station]
     tier: novice
     min_level: 2
     nerve: 3
+    cooldown: 30m
     duration: 0s
     success:
       base_chance_bps: 6000
@@ -265,6 +228,7 @@ crimes:
       criminal_xp: 10
       skill_xp: [{skill: streetwise, xp: 12}]
       heat: 5
+      loot: [{item: phone, chance_bps: 1200, min_qty: 1, max_qty: 1, min_quality: 30, max_quality: 70}]
     failure:
       catch_chance_bps: 4500
       jail_min: 3h
@@ -277,10 +241,11 @@ crimes:
     name: Street scam
     category: fraud
     targets: [npc]
-    venues: [city_centre, bus_terminal, train_station]
+    venues: [city_centre, bazaar, bus_terminal, train_station]
     tier: novice
     min_level: 2
     nerve: 3
+    cooldown: 1h
     duration: 20m
     success:
       base_chance_bps: 5500
@@ -309,11 +274,12 @@ crimes:
     name: Car break-in
     category: burglary
     targets: [npc]
-    venues: [city_centre, airport]
+    venues: [residential_area, business_district, airport]
     tier: hustler
     min_level: 3
     required_skills: [{skill: lockpicking, level: 1}]
     nerve: 4
+    cooldown: 2h
     duration: 30m
     success:
       base_chance_bps: 5500
@@ -328,6 +294,7 @@ crimes:
       criminal_xp: 15
       skill_xp: [{skill: lockpicking, xp: 18}]
       heat: 6
+      loot: [{item: car_stereo, chance_bps: 3000, min_qty: 1, max_qty: 1, min_quality: 20, max_quality: 60}]
     failure:
       catch_chance_bps: 4500
       jail_min: 4h
@@ -340,11 +307,13 @@ crimes:
     name: Home burglary
     category: burglary
     targets: [npc]
-    venues: [city_centre]
+    venues: [residential_area]
     tier: hustler
     min_level: 5
     required_skills: [{skill: lockpicking, level: 3}, {skill: stealth, level: 2}]
+    required_tools: [lockpick_set]
     nerve: 6
+    cooldown: 6h
     duration: 2h
     success:
       base_chance_bps: 5000
@@ -359,6 +328,7 @@ crimes:
       criminal_xp: 25
       skill_xp: [{skill: lockpicking, xp: 25}, {skill: stealth, xp: 15}]
       heat: 10
+      loot: [{item: jewellery, chance_bps: 4000, min_qty: 1, max_qty: 3}, {item: watch, chance_bps: 1500, min_qty: 1, max_qty: 1, min_quality: 30, max_quality: 80}]
     failure:
       catch_chance_bps: 5000
       jail_min: 8h
@@ -371,11 +341,12 @@ crimes:
     name: Selling counterfeit goods
     category: fraud
     targets: [npc]
-    venues: [city_centre, bus_terminal]
+    venues: [bazaar, city_centre, bus_terminal]
     tier: hustler
     min_level: 4
     required_skills: [{skill: deception, level: 2}]
     nerve: 5
+    cooldown: 3h
     duration: 1h
     success:
       base_chance_bps: 5500
@@ -407,12 +378,13 @@ crimes:
     name: Smuggling small goods
     category: smuggling
     targets: [npc]
-    venues: [city_centre, train_station]
+    venues: [industrial_zone, train_station]
     tier: professional
     min_level: 6
     required_skills: [{skill: streetwise, level: 3}, {skill: deception, level: 2}]
     required_facilities: [rail_station]
     nerve: 8
+    cooldown: 8h
     duration: 4h
     success:
       base_chance_bps: 5000

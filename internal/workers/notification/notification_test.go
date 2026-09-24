@@ -479,8 +479,8 @@ func TestRoutesAreWellFormed(t *testing.T) {
 			t.Errorf("durable %s is used twice", r.Durable())
 		}
 		seen[r.Durable()] = true
-		if r.Render == nil {
-			t.Errorf("%s has no renderer", r.Subject())
+		if (r.Render == nil) == (r.Announce == nil) {
+			t.Errorf("%s needs exactly one of a renderer and an announcer", r.Subject())
 		}
 	}
 	if got := travelRoute(t).Subject(); got != "game.event.travel.completed.v1" {

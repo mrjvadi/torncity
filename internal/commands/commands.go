@@ -90,6 +90,13 @@ var all = []Subscription{
 	// Phase 1: skills, the world map and the social graph.
 	{Domain: "skills", Action: "list", Origin: FromPlayer},
 	{Domain: "map", Action: "list", Origin: FromPlayer},
+	// City places (configs/content/places.yml): map.list is the map of the
+	// player's own city, map.cities the other cities to travel to, place.go
+	// a walk to another place; only the scheduler sends place.arrive, when
+	// the walk is over.
+	{Domain: "map", Action: "cities", Origin: FromPlayer},
+	{Domain: "place", Action: "go", Origin: FromPlayer},
+	{Domain: "place", Action: "arrive", Origin: FromScheduler},
 	{Domain: "social", Action: "search", Origin: FromPlayer},
 	{Domain: "social", Action: "friend.add", Origin: FromPlayer},
 	{Domain: "social", Action: "friend.accept", Origin: FromPlayer},
@@ -150,6 +157,34 @@ var all = []Subscription{
 	{Domain: "crime", Action: "resolve", Origin: FromScheduler},
 	{Domain: "crime", Action: "conclude", Origin: FromScheduler},
 	{Domain: "crime", Action: "release", Origin: FromScheduler},
+
+	// Goods (migrations/0017_items_and_trade.up.sql): what the player
+	// carries, using, giving and dropping it; the city shops, buying and
+	// selling back; the player market's books, orders and cancels; the
+	// auction house. Only the scheduler sends market.expire and
+	// auction.close, when a resting order's or an auction's time is up.
+	{Domain: "inventory", Action: "show", Origin: FromPlayer},
+	{Domain: "inventory", Action: "item", Origin: FromPlayer},
+	{Domain: "inventory", Action: "use", Origin: FromPlayer},
+	{Domain: "inventory", Action: "give", Origin: FromPlayer},
+	{Domain: "inventory", Action: "drop", Origin: FromPlayer},
+	{Domain: "shop", Action: "list", Origin: FromPlayer},
+	{Domain: "shop", Action: "view", Origin: FromPlayer},
+	{Domain: "shop", Action: "buy", Origin: FromPlayer},
+	{Domain: "shop", Action: "offers", Origin: FromPlayer},
+	{Domain: "shop", Action: "sell", Origin: FromPlayer},
+	{Domain: "market", Action: "list", Origin: FromPlayer},
+	{Domain: "market", Action: "book", Origin: FromPlayer},
+	{Domain: "market", Action: "order", Origin: FromPlayer},
+	{Domain: "market", Action: "cancel", Origin: FromPlayer},
+	{Domain: "market", Action: "mine", Origin: FromPlayer},
+	{Domain: "market", Action: "expire", Origin: FromScheduler},
+	{Domain: "auction", Action: "list", Origin: FromPlayer},
+	{Domain: "auction", Action: "view", Origin: FromPlayer},
+	{Domain: "auction", Action: "new", Origin: FromPlayer},
+	{Domain: "auction", Action: "bid", Origin: FromPlayer},
+	{Domain: "auction", Action: "mine", Origin: FromPlayer},
+	{Domain: "auction", Action: "close", Origin: FromScheduler},
 }
 
 // All returns every subscription. The slice is a copy.

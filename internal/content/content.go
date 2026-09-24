@@ -202,6 +202,19 @@ type Pack struct {
 	CrimeCategories []CrimeCategoryDef
 	Crimes          []CrimeDef
 
+	// Payments (payments.yml): which methods each service accepts. See
+	// payment.go.
+	PaymentServices []PaymentServiceDef
+
+	// Items (items.yml): the production model of ADR 0005 — component
+	// categories, starter components and archetypes — and the goods built
+	// on it; and the city shops that sell them (shops.yml). See items.go.
+	ComponentCategories []string
+	Components          []ComponentDef
+	Archetypes          []ArchetypeDef
+	Items               []ItemDef
+	Shops               []ShopDef
+
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"
 	// It is empty for a pack that was assembled in code rather than read from

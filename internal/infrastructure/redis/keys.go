@@ -8,7 +8,11 @@
 // the system must recover by itself rather than wait for an operator.
 package redis
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/mrjvadi/torncity/internal/gateway/input"
+)
 
 // Key namespaces. Every key this package writes begins with one of these, so
 // a Redis instance shared with anything else stays legible and an operator can
@@ -17,6 +21,8 @@ const (
 	dedupPrefix    = "gateway:dedup:"
 	lockPrefix     = "lock:player:"
 	botLeasePrefix = "gateway:bot-lease:"
+	inputPrefix    = "gateway:input:"
+	inputCDPrefix  = "gateway:input-cooldown:"
 )
 
 // dedupKey names the marker for one Telegram update on one bot.
@@ -42,3 +48,9 @@ func playerLockKey(playerID string) string {
 func botLeaseKey(botKey string) string {
 	return botLeasePrefix + botKey
 }
+
+// inputKey names one player's waiting free-text input in one chat through one
+// bot (internal/gateway/input); inputCooldownKey the throttle on prompting
+// them again.
+func inputKey(k input.Key) string         { return inputPrefix + k.String() }
+func inputCooldownKey(k input.Key) string { return inputCDPrefix + k.String() }

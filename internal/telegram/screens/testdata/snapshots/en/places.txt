@@ -1,0 +1,143 @@
+━━━ City map · at the centre, with company ━━━
+(edits message 42)
+🗺 Map of Ostmarch
+
+📍 You are at the city centre.
+👥 Other players here: 3
+
+Places in the city:
+• city centre (you are here)
+• bazaar - 15s walk - market
+• business district - 15s walk - bank, auction house
+• university quarter - 20s walk - university, training centre
+• police station - 15s walk - police
+• train station - 20s walk - Train departures
+• airport - 45s walk - Flight departures
+
+Tap a place to walk there. Everything is done at its own place.
+  ───
+  [🚶 bazaar] → place:go:bazaar   │   [🚶 business district] → place:go:business_district
+  [🚶 university quarter] → place:go:university   │   [🚶 police station] → place:go:police_station
+  [🚶 train station] → place:go:train_station   │   [🚶 airport] → place:go:airport
+  [🧭 Travel to another city] → map:cities
+  [🏛 Offices and policies] → gov:city
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ City map · on the way ━━━
+(edits message 42)
+🗺 Map of Ostmarch
+
+🚶 On your way to the bazaar - 9s left
+🕒 Arriving at 14:35
+
+Places in the city:
+• city centre - 10s walk
+• bazaar - 15s walk - market
+• business district - 15s walk - bank, auction house
+• university quarter - 20s walk - university, training centre
+• police station - 15s walk - police
+• train station - 20s walk - Train departures
+• airport - 45s walk - Flight departures
+
+Tap a place to walk there. Everything is done at its own place.
+  ───
+  [🧭 Travel to another city] → map:cities
+  [🏛 Offices and policies] → gov:city
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ City map · on a journey ━━━
+(edits message 42)
+🗺 Map
+
+🧭 You are on the way to Brennhaven. You can start a new journey once you arrive.
+  ───
+  [🧭 My journey] → travel:status
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ City map · nowhere yet ━━━
+(edits message 42)
+🗺 Map
+
+You have not settled in a city yet. Once you do, your travel destinations appear here.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ Walk · started ━━━
+(edits message 42)
+🚶 You set off for the airport - a 45s walk.
+🕒 Arriving at 14:35
+⚡ 2 energy spent.
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Not here · the bank ━━━
+(edits message 42)
+🏦 The bank is at the business district.
+📍 You are at the city centre now.
+  ───
+  [🚶 Walk to the business district - 15s] → place:go:business_district
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Not here · the market ━━━
+(edits message 42)
+🏪 The market is at the bazaar.
+📍 You are at the city centre now.
+  ───
+  [🚶 Walk to the bazaar - 15s] → place:go:bazaar
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Not here · a course ━━━
+(edits message 42)
+🎓 This course is taught at the university quarter.
+📍 You are at the bazaar now.
+  ───
+  [🚶 Walk to the university quarter - 20s] → place:go:university
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Not here · the police ━━━
+(edits message 42)
+🚓 The police are at the police station.
+📍 You are at the bazaar now.
+  ───
+  [🚶 Walk to the police station - 15s] → place:go:police_station
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Not here · a departure ━━━
+(edits message 42)
+🚉 Departures by Train are from the train station.
+📍 You are at the city centre now.
+  ───
+  [🚶 Walk to the train station - 20s] → place:go:train_station
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Not here · a shop ━━━
+(edits message 42)
+🛒 Hardware store is at the bazaar.
+📍 You are at the city centre now.
+  ───
+  [🚶 Walk to the bazaar - 15s] → place:go:bazaar
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Not here · a crime ━━━
+(edits message 42)
+🕶 Home burglary cannot be done here; go to the residential area to do it.
+📍 You are at the city centre now.
+  ───
+  [🚶 Walk to the residential area - 25s] → place:go:residential_area
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Not here · still walking ━━━
+(edits message 42)
+🚶 You are still on your way to the bazaar - 7s left.
+🕒 Arriving at 14:35
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get

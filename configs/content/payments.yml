@@ -1,0 +1,47 @@
+# Payments: which methods each service accepts.
+#
+# A player pays every charge — tuition, a fare, a police fee, bail, a shop, a
+# market order, an auction bid — from exactly one of their two purses, and
+# chooses which:
+#   cash   the money they carry. It can be stolen.
+#   card   their bank balance, paid by card. No withdrawal needed first.
+# The rule (internal/domain/payment) offers only the accepted methods that
+# actually cover the sum, and refuses only when none does.
+#
+# payment_services
+#   code     the service; the set is closed in code, one per kind of charge:
+#              tuition        a course's fee (education.yml)
+#              fare           a journey's fare (transport.yml)
+#              crime_report   the fee to report a theft to the police
+#              bail           leaving jail early
+#              shop           buying from a city shop
+#              market         funding a buy order on the player market
+#              auction        a bid on an auction
+#              election       a candidate's deposit
+#   accepts  the methods it takes: [cash], [card] or [cash, card]. Never
+#            empty; a service left out of this file takes both.
+#
+# A course or a transport mode may narrow its service with its own
+# `payment:` list (a cash-only night bus); it can only narrow, never add a
+# method the service does not take. Loaded and versioned with the rest of the
+# content (`admin content load`); nothing changes until it is loaded.
+
+version: 1
+
+payment_services:
+  - code: tuition
+    accepts: [cash, card]
+  - code: fare
+    accepts: [cash, card]
+  - code: crime_report
+    accepts: [cash, card]
+  - code: bail
+    accepts: [cash, card]
+  - code: shop
+    accepts: [cash, card]
+  - code: market
+    accepts: [cash, card]
+  - code: auction
+    accepts: [cash, card]
+  - code: election
+    accepts: [cash, card]

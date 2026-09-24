@@ -194,6 +194,10 @@ type CourseDef struct {
 	Prerequisites []string     `yaml:"prerequisites" json:"prerequisites"`
 	SkillRewards  []SkillXPDef `yaml:"skill_rewards" json:"skill_rewards"`
 	Certifies     bool         `yaml:"certifies" json:"certifies"`
+	// Payment optionally narrows the methods its tuition may be paid by
+	// (payments.yml, service tuition): [cash] for a cash-only school.
+	// Omitted means whatever tuition accepts.
+	Payment []string `yaml:"payment,omitempty" json:"payment,omitempty"`
 }
 
 // Course converts the definition to the domain value, like CareerDef.Career.

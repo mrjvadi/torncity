@@ -43,6 +43,9 @@ type fileConfig struct {
 	Economy    economySettings    `yaml:"economy"`
 	Governance governanceSettings `yaml:"governance"`
 	Crime      crimeSettings      `yaml:"crime"`
+	Trade      tradeSettings      `yaml:"trade"`
+	Input      inputSettings      `yaml:"input"`
+	Announce   announceSettings   `yaml:"announce"`
 }
 
 type gatewaySettings struct {
@@ -134,9 +137,21 @@ type playerSettings struct {
 }
 
 type economySettings struct {
-	StartingCash  *int64 `yaml:"starting_cash"`
-	BankMinAmount *int64 `yaml:"bank_min_amount"`
-	BankMaxAmount *int64 `yaml:"bank_max_amount"`
+	StartingCash     *int64  `yaml:"starting_cash"`
+	BankMinAmount    *int64  `yaml:"bank_min_amount"`
+	BankMaxAmount    *int64  `yaml:"bank_max_amount"`
+	BankQuickAmounts []int64 `yaml:"bank_quick_amounts"`
+}
+
+type inputSettings struct {
+	TTL       *string `yaml:"ttl"`
+	Cooldown  *string `yaml:"cooldown"`
+	MaxLength *int    `yaml:"max_length"`
+}
+
+type announceSettings struct {
+	Window       *string `yaml:"window"`
+	MaxPerWindow *int    `yaml:"max_per_window"`
 }
 
 type governanceSettings struct {
@@ -163,6 +178,25 @@ type crimeSettings struct {
 	InvestigationWitnessBonusBPS *int    `yaml:"investigation_witness_bonus_bps"`
 	InvestigationEffortWeightBPS *int    `yaml:"investigation_effort_weight_bps"`
 	NPCDailyCap                  *int64  `yaml:"npc_daily_cap"`
+	GearMaxSuccessBPS            *int    `yaml:"gear_max_success_bps"`
+	GearMaxCatchBPS              *int    `yaml:"gear_max_catch_bps"`
+	GearMaxWitnessBPS            *int    `yaml:"gear_max_witness_bps"`
+	GearMaxSolveBPS              *int    `yaml:"gear_max_solve_bps"`
+	GearMaxRewardBPS             *int    `yaml:"gear_max_reward_bps"`
+	GearMaxNerve                 *int    `yaml:"gear_max_nerve"`
+}
+
+type tradeSettings struct {
+	MarketOrderTTL      *string  `yaml:"market_order_ttl"`
+	MarketMaxOpenOrders *int     `yaml:"market_max_open_orders"`
+	MarketMaxQuantity   *int     `yaml:"market_max_quantity"`
+	MarketMaxPrice      *int64   `yaml:"market_max_price"`
+	AuctionDurations    []string `yaml:"auction_durations"`
+	AuctionMaxReserve   *int64   `yaml:"auction_max_reserve"`
+	AuctionStepBPS      *int     `yaml:"auction_step_bps"`
+	AuctionMinStep      *int64   `yaml:"auction_min_step"`
+	AuctionMaxOpen      *int     `yaml:"auction_max_open"`
+	AuctionReservesBPS  []int64  `yaml:"auction_reserves_bps"`
 }
 
 // setting is one configurable value, from its yaml key to the field it fills.
@@ -399,6 +433,49 @@ func durationListSetting(section, key string, field func(*Config) *[]time.Durati
 	return s
 }
 
+// moneyListSetting wires a list of amounts in minor units, such as the quick
+// amounts on the bank's buttons. From the environment it is comma-separated.
+// Its check rejects an empty list and any amount of zero or below.
+func moneyListSetting(section, key string, field func(*Config) *[]int64, raw func(*fileConfig) []int64) setting {
+	s := setting{section: section, key: key}
+	name := s.name()
+
+	s.fromFile = func(c *Config, f *fileConfig) error {
+		items := raw(f)
+		if items == nil {
+			return nil
+		}
+		*field(c) = append([]int64(nil), items...)
+		return nil
+	}
+	s.fromEnv = func(c *Config, text string) error {
+		parts := strings.Split(text, ",")
+		out := make([]int64, 0, len(parts))
+		for i, p := range parts {
+			v, err := parseInt64(fmt.Sprintf("%s[%d]", s.envName(), i), strings.TrimSpace(p))
+			if err != nil {
+				return err
+			}
+			out = append(out, v)
+		}
+		*field(c) = out
+		return nil
+	}
+	s.check = func(c *Config) error {
+		values := *field(c)
+		if len(values) == 0 {
+			return fmt.Errorf("%w: %s", ErrEmptyList, name)
+		}
+		for i, v := range values {
+			if v <= 0 {
+				return fmt.Errorf("%w: %s[%d] is %d", ErrNotPositive, name, i, v)
+			}
+		}
+		return nil
+	}
+	return s
+}
+
 // aliasSetting marks a legacy key that still fills a field a current key
 // owns. It reads the file and the environment like the setting it wraps, and
 // checks nothing of its own: the current key's setting checks the field.
@@ -566,6 +643,9 @@ var settings = []setting{
 	moneySetting("economy", "bank_max_amount",
 		func(c *Config) *int64 { return &c.Economy.BankMaxAmount },
 		func(f *fileConfig) *int64 { return f.Economy.BankMaxAmount }),
+	moneyListSetting("economy", "bank_quick_amounts",
+		func(c *Config) *[]int64 { return &c.Economy.BankQuickAmounts },
+		func(f *fileConfig) []int64 { return f.Economy.BankQuickAmounts }),
 
 	limitSetting("governance", "fine_step_divisor",
 		func(c *Config) *int { return &c.Governance.FineStepDivisor },
@@ -628,4 +708,70 @@ var settings = []setting{
 	moneySetting("crime", "npc_daily_cap",
 		func(c *Config) *int64 { return &c.Crime.NPCDailyCap },
 		func(f *fileConfig) *int64 { return f.Crime.NPCDailyCap }),
+	limitSetting("crime", "gear_max_success_bps",
+		func(c *Config) *int { return &c.Crime.GearMaxSuccessBPS },
+		func(f *fileConfig) *int { return f.Crime.GearMaxSuccessBPS }),
+	limitSetting("crime", "gear_max_catch_bps",
+		func(c *Config) *int { return &c.Crime.GearMaxCatchBPS },
+		func(f *fileConfig) *int { return f.Crime.GearMaxCatchBPS }),
+	limitSetting("crime", "gear_max_witness_bps",
+		func(c *Config) *int { return &c.Crime.GearMaxWitnessBPS },
+		func(f *fileConfig) *int { return f.Crime.GearMaxWitnessBPS }),
+	limitSetting("crime", "gear_max_solve_bps",
+		func(c *Config) *int { return &c.Crime.GearMaxSolveBPS },
+		func(f *fileConfig) *int { return f.Crime.GearMaxSolveBPS }),
+	limitSetting("crime", "gear_max_reward_bps",
+		func(c *Config) *int { return &c.Crime.GearMaxRewardBPS },
+		func(f *fileConfig) *int { return f.Crime.GearMaxRewardBPS }),
+	limitSetting("crime", "gear_max_nerve",
+		func(c *Config) *int { return &c.Crime.GearMaxNerve },
+		func(f *fileConfig) *int { return f.Crime.GearMaxNerve }),
+
+	durationSetting("trade", "market_order_ttl",
+		func(c *Config) *time.Duration { return &c.Trade.MarketOrderTTL },
+		func(f *fileConfig) *string { return f.Trade.MarketOrderTTL }),
+	limitSetting("trade", "market_max_open_orders",
+		func(c *Config) *int { return &c.Trade.MarketMaxOpenOrders },
+		func(f *fileConfig) *int { return f.Trade.MarketMaxOpenOrders }),
+	limitSetting("trade", "market_max_quantity",
+		func(c *Config) *int { return &c.Trade.MarketMaxQuantity },
+		func(f *fileConfig) *int { return f.Trade.MarketMaxQuantity }),
+	moneySetting("trade", "market_max_price",
+		func(c *Config) *int64 { return &c.Trade.MarketMaxPrice },
+		func(f *fileConfig) *int64 { return f.Trade.MarketMaxPrice }),
+	durationListSetting("trade", "auction_durations",
+		func(c *Config) *[]time.Duration { return &c.Trade.AuctionDurations },
+		func(f *fileConfig) []string { return f.Trade.AuctionDurations }),
+	moneySetting("trade", "auction_max_reserve",
+		func(c *Config) *int64 { return &c.Trade.AuctionMaxReserve },
+		func(f *fileConfig) *int64 { return f.Trade.AuctionMaxReserve }),
+	limitSetting("trade", "auction_step_bps",
+		func(c *Config) *int { return &c.Trade.AuctionStepBPS },
+		func(f *fileConfig) *int { return f.Trade.AuctionStepBPS }),
+	moneySetting("trade", "auction_min_step",
+		func(c *Config) *int64 { return &c.Trade.AuctionMinStep },
+		func(f *fileConfig) *int64 { return f.Trade.AuctionMinStep }),
+	limitSetting("trade", "auction_max_open",
+		func(c *Config) *int { return &c.Trade.AuctionMaxOpen },
+		func(f *fileConfig) *int { return f.Trade.AuctionMaxOpen }),
+	moneyListSetting("trade", "auction_reserves_bps",
+		func(c *Config) *[]int64 { return &c.Trade.AuctionReservesBPS },
+		func(f *fileConfig) []int64 { return f.Trade.AuctionReservesBPS }),
+
+	durationSetting("input", "ttl",
+		func(c *Config) *time.Duration { return &c.Input.TTL },
+		func(f *fileConfig) *string { return f.Input.TTL }),
+	durationSetting("input", "cooldown",
+		func(c *Config) *time.Duration { return &c.Input.Cooldown },
+		func(f *fileConfig) *string { return f.Input.Cooldown }),
+	limitSetting("input", "max_length",
+		func(c *Config) *int { return &c.Input.MaxLength },
+		func(f *fileConfig) *int { return f.Input.MaxLength }),
+
+	durationSetting("announce", "window",
+		func(c *Config) *time.Duration { return &c.Announce.Window },
+		func(f *fileConfig) *string { return f.Announce.Window }),
+	limitSetting("announce", "max_per_window",
+		func(c *Config) *int { return &c.Announce.MaxPerWindow },
+		func(f *fileConfig) *int { return f.Announce.MaxPerWindow }),
 }

@@ -14,7 +14,9 @@
 # Player code 🆔, Language 🌐 (a language is always named in itself), Cash 💵,
 # Bank 🏦, Card payment 💳, Pay 💸; a bank fee is a "fee". Address the player
 # as "you"; durations read "2h 15m"; numbers use "," as the thousands
-# separator (inserted by the code).
+# separator (inserted by the code).. Facts sharing a line are separated by
+# " - " (a hyphen with a space on each side), never "·"; a hyphen never
+# touches a number.
 
 profile:
   # The one-time welcome, shown only while the player has not earned any XP.
@@ -24,34 +26,39 @@ profile:
 
   name: "👤 {name}"
   city: "📍 {city}"
-  travelling: "🧭 On the way to {city} · {remaining} left"
-  level: "⭐ Level {level} · {xp_to_next} XP to level {next_level}"
+  travelling: "🧭 On the way to {city} - {remaining} left"
+  level: "⭐ Level {level} - {xp_to_next} XP to level {next_level}"
   level_plain: "⭐ Level {level}"
-  level_max: "⭐ Level {level} · highest level reached"
+  level_max: "⭐ Level {level} - highest level reached"
   energy: "⚡ Energy: {energy} of {max_energy}"
-  energy_refilling: "⚡ Energy: {energy} of {max_energy} · full in {duration}"
+  energy_refilling: "⚡ Energy: {energy} of {max_energy} - full in {duration}"
   health: "❤️ Health: {health} of {max_health}"
   # A player's money: the cash they carry and their bank balance. Private:
   # only the player sees these.
   cash: "💵 Cash: {cash}"
   bank: "🏦 Bank balance: {bank}"
   code: "🆔 Player code: {code}"
-  code_hint: "Friends can find you by sending /social {code}."
+  code_hint: "Friends can find you by sending \"find {code}\"."
   unavailable: "Your profile is not available right now. Please try again in a moment."
 
   # The player's work and studies, between their condition and their money.
-  job: "💼 {title} in {city} · {pay} per shift"
+  job: "💼 {title} in {city} - {pay} per shift"
   job_none: "💼 No job yet"
-  shift_running: "⏳ On shift · {remaining} left"
-  shift_ending: "⏳ Shift over · your pay is on its way"
-  course: "📖 {course} · {remaining} left"
-  course_finishing: "📖 {course} · finishing any moment"
+  shift_running: "⏳ On shift - {remaining} left"
+  shift_ending: "⏳ Shift over - your pay is on its way"
+  course: "📖 {course} - {remaining} left"
+  course_finishing: "📖 {course} - finishing any moment"
+  course_paused: "📖 {course} - paused (in jail), {remaining} left"
+  jail: "⛓ You are in jail - {remaining} left"
+  jail_in: "⛓ You are in jail in {city} - {remaining} left"
+  jail_blocks: "Until you are free you cannot travel, work a shift, withdraw from the bank or start a new course; the course you are on is paused too."
   certificates: "📜 {count} certificates"
 map:
+  cities_title: "🧭 Travel to another city"
   title: "🗺 Map"
   origin: "📍 You are in {city}."
   destinations: "From here you can travel to:"
-  destination: "• {city} · {distance} km"
+  destination: "• {city} - {distance} km"
   no_routes: "There is no route from here to another city yet. Check again later with “Refresh”."
   no_city: "You have not settled in a city yet. Once you do, your travel destinations appear here."
   travelling: "🧭 You are on the way to {city}. You can start a new journey once you arrive."
@@ -64,14 +71,18 @@ travel:
     🧭 Travel to {to}
     📍 From: {from}
   options_choose: "How would you like to travel?"
-  option: "• {mode} · {fare} · {wait} on the way · {energy} energy"
-  option_busy: "• {mode} · {fare} (busy route) · {wait} on the way · {energy} energy"
+  option: "• {mode} - {fare} - {wait} on the way - {energy} energy"
+  option_busy: "• {mode} - {fare} (busy route) - {wait} on the way - {energy} energy"
   requoted: "⚠️ The fare has changed since you looked. Nothing was charged — here are the current prices."
   cash: "💵 Your cash: {cash}"
-  insufficient_funds: |-
-    💵 Not enough cash to travel by {mode}.
-    Fare: {fare} · Your cash: {cash}
-    Nothing was charged; a cheaper way to travel may still be in reach.
+  # The fare of the chosen mode and the ways to pay it.
+  checkout_title: |-
+    🧭 To {to} by {mode}
+    📍 From: {from}
+  checkout_fare: "💰 Fare: {fare}"
+  checkout_fare_busy: "💰 Fare: {fare} (busy route)"
+  checkout_wait: "⏳ {wait} on the road"
+  checkout_energy: "⚡ {energy} energy"
   # Shown only if a mode has neither a translation nor an authored name.
   mode_unnamed: Other transport
   # What a journey that costs nothing shows instead of a price of zero.
@@ -114,8 +125,8 @@ transport_mode:
 skills:
   title: "🛠 Skills"
   empty: "You have no skills yet. You gain them by working and by taking courses, and they appear here."
-  line: "• {skill} · level {level} · {percent}% to next level"
-  line_max: "• {skill} · level {level} · highest level"
+  line: "• {skill} - level {level} - {percent}% to next level"
+  line_max: "• {skill} - level {level} - highest level"
 
 skill:
   programming: Programming
@@ -151,20 +162,20 @@ city:
 help:
   unknown: I did not understand that message.
   body: |-
-    The game is played with the buttons. You can also send these commands:
-    /profile — your profile and home
-    /map — the map and travel
-    /job — my job
-    /jobs — job openings
-    /study — education and courses
-    /bank — the bank, deposits and withdrawals
-    /pay — pay another player
-    /skills — your skills
-    /social — your friends
-    /find — find a player
-    /city — offices and policies of your city
-    /office — my office
-    /settings — settings
+    The game is played with the buttons. You can also send these words, with or without "/":
+    • profile - your home and condition
+    • crime - crime, in your city's group only
+    • jail - your time in jail, and bail
+    • map - your city's map and its places
+    • job - my job; "jobs" lists the openings
+    • study - courses
+    • bank - your balances; "deposit 5000" and "withdraw 5000"
+    • pay - pay another player; in a group, reply to their message with "pay 5000"
+    • skills
+    • friends - and "find" with a player code or username
+    • city - offices and policies; "office" is your own
+    • settings
+    • help - this screen
 
 settings:
   title: "⚙️ Settings"
@@ -200,18 +211,29 @@ social:
       You have no friends yet.
       To find a player, send their Telegram username or player code, for example /social @username
     line: "• {player}"
-    line_pending: "• {player} · waiting for a reply"
-    line_blocked: "• {player} · blocked"
+    line_pending: "• {player} - waiting for their reply"
+    line_incoming: "• {player} - wants to be your friend"
+    line_blocked: "• {player} - blocked"
   friend:
     requested: "✅ Friend request sent to {player}. They will appear in your friends list once they accept."
     requested_anon: "✅ Friend request sent. The player will appear in your friends list once they accept."
     accepted: "✅ You and {player} are now friends."
     accepted_anon: "✅ Friend request accepted. This player is now in your friends list."
+    # Notices to the other player, sent to their private chat.
+    incoming: "👥 {player} wants to be your friend."
+    incoming_anon: "👥 A player wants to be your friend."
+    incoming_hint: Tap the button below to accept. The request also stays in your friends list.
+    now_friends: "👥 {player} accepted your friend request. You are now friends."
+    now_friends_anon: "👥 Your friend request was accepted. This player is now in your friends list."
 
 page:
   indicator: "Page {page} of {pages}"
 
 format:
+  # Which way the language is written: "rtl" or "ltr". A name, a code or a
+  # username written the other way is isolated inside a sentence so it cannot
+  # scramble the line around it.
+  direction: "ltr"
   # How numbers are written: the ten digits from zero to nine, the mark
   # between groups of three digits, and the decimal mark. The code writes
   # every number through these; never type digits into a message by hand.
@@ -238,7 +260,7 @@ button:
   map: "🗺 Map"
   journey: "🧭 My journey"
   travel_to: "🧭 {city}"
-  travel_by: "{mode} · {fare}"
+  travel_by: "{mode} - {fare}"
   travel_options: "🧭 Ways to travel"
   skills: "🛠 Skills"
   social: "👥 Friends"
@@ -248,11 +270,21 @@ button:
   accept: "✅ Accept {player}"
   bank: "🏦 Bank"
   deposit: "📥 Deposit {amount}"
+  deposit_all: "📥 Deposit all - {amount}"
+  deposit_custom: "✏️ Deposit any amount"
   withdraw: "📤 Withdraw {amount}"
+  withdraw_all: "📤 Withdraw all - {amount}"
+  withdraw_custom: "✏️ Withdraw any amount"
+  pay_player: "💸 Pay a player"
   find_player: "🔎 Find a player"
   pay: "💸 Pay {player}"
-  pay_cash: "💵 Cash · {amount}"
-  pay_card: "💳 Card · {amount}"
+  pay_cash: "💵 Cash {amount}"
+  pay_cash_all: "💵 Cash, all - {amount}"
+  pay_cash_custom: "✏️ Cash, any amount"
+  pay_card: "💳 Card {amount}"
+  pay_card_all: "💳 Card, all - {amount}"
+  pay_card_custom: "✏️ Card, any amount"
+  confirm_pay: "✅ Confirm and pay"
   pay_again: "💸 Pay again"
   confirm: "✅ Confirm"
   cancel: "✖️ Cancel"
@@ -306,12 +338,12 @@ gov:
     policies: "Policies:"
   office:
     held: "• {office}: {players}"
-    seats: "• {office}: {held} of {seats} seats held · {players}"
-    acting: "• {office}: vacant · acting: {deputy} {players}"
+    seats: "• {office}: {held} of {seats} seats held - {players}"
+    acting: "• {office}: vacant - acting: {deputy} {players}"
     vacant: "• {office}: vacant"
   lever:
-    line_default: "• {lever}: {value} · default"
-    line_set: "• {lever}: {value} · set by {player}"
+    line_default: "• {lever}: {value} - default"
+    line_set: "• {lever}: {value} - set by {player}"
     pending: "  ⏳ Changes to {value} in {when}"
   mine:
     title: "🏛 My office"
@@ -320,7 +352,7 @@ gov:
     acting_for: You are acting for the vacant office of {office}.
     no_levers: This office has no policy you can change right now.
     lever: "• {lever}: {value}"
-    lever_vote: "• {lever}: {value} · decided by a vote, which is not available yet"
+    lever_vote: "• {lever}: {value} - decided by a vote, which is not available yet"
   edit:
     title: "🏛 {lever} — {place}"
     bounds: "Allowed range: {min} to {max}"
@@ -343,7 +375,7 @@ gov:
     title: "📜 Policy history — {city}"
     empty: No policy has been changed here yet.
     change: "• {lever} ({place}): {old} → {new}"
-    by: "  Announced by {office} {player} · {ago} ago"
+    by: "  Announced by {office} {player} - {ago} ago"
     effective_in: "  ⏳ Takes effect in {when}"
     effective_since: "  In force for {when}"
   button:
@@ -402,6 +434,8 @@ lever:
     jail_term_multiplier: Jail sentences (% of standard)
     fine_multiplier: Fines (% of standard)
     investigation_effort: Investigation effort
+    sales_tax: Sales tax
+    market_fee: Market fee
   country:
     border_tariff: Border tariff
 
@@ -426,8 +460,11 @@ group:
   open_bot: Open the bot
   # Posted once when the bot is added to a group.
   welcome: |-
-    Hello everyone! You can now play the game right here in this group; send /start to begin.
-    Your money, your bank and your settings stay private: those screens are sent to your private chat with the bot.
+    Hello everyone! You can now play the game right here in this group; send "profile" or "help" to begin.
+    Crime and jail happen in the group; your money, bank, travel and settings stay private, in your chat with the bot.
+  # Added to the welcome when the bot joins without admin rights while its
+  # privacy mode is on.
+  make_admin: "🛠 Group admins: to make words like \"crime\" and \"profile\" work without \"/\", make the bot an admin of this group. Until then, send commands with \"/\"."
 
 # Descriptions in the bot's command menu, shown in private chats only: a
 # group shows no command menu at all. One per command in menu.commands
@@ -452,22 +489,25 @@ command_menu:
 # Fees are each city's policy and are always shown before money moves.
 bank:
   title: "🏦 Bank"
-  branch: "📍 {city} branch"
-  withdrawal_fee: "Withdrawals here carry a fee of {percent}%, added on top of the amount. Deposits are always free."
-  withdrawal_free: Withdrawals and deposits here are free.
-  closed_travelling: "🧭 You are travelling. You can deposit and withdraw once you arrive in any city; card payments work from anywhere."
+  title_branch: "🏦 Bank - {city} branch"
+  withdrawal_fee: "Withdrawals here carry a fee of {percent}%, taken from your bank on top of the amount; deposits are free."
+  withdrawal_free: "Deposits and withdrawals here are free."
+  closed_travelling: "🧭 You are travelling; you can deposit and withdraw once you arrive in a city. Card payments work from anywhere."
   closed_no_city: You have not settled in a city yet, so there is no bank to visit.
-  hint: "Choose an amount below, or type one, for example /bank deposit 5000"
-  pay_hint: "💸 To pay another player, send /pay with their username or player code, for example /pay @username"
+  hint: "Choose an amount below; for any other amount, press \"any amount\" and type it."
+  pay_hint: "💸 To give money to another player, reply to their message in the group with \"pay 5000\", or press \"Pay a player\"."
+  nothing_to_deposit: "📥 You carry no cash to deposit."
+  nothing_to_withdraw: "📤 Your bank balance is too low to withdraw."
+  jailed_no_withdrawal: "⛓ You cannot withdraw while in jail; deposits still work."
   deposited: "✅ {amount} deposited into your bank account."
   withdrew: "✅ You withdrew {amount} in cash."
-  withdrew_fee: "✅ You withdrew {amount} in cash · fee: {fee}"
+  withdrew_fee: "✅ You withdrew {amount} in cash, and a fee of {fee} was taken from your bank."
   error:
     not_in_city: The bank is only open in a city. You can deposit and withdraw once you arrive; card payments work from anywhere.
     not_together: You can only hand cash to a player who is in the same city as you. Send the money by card instead — it works from anywhere.
     self_payment: You cannot pay yourself.
     payee_not_found: No player to pay was found. Check the username or player code and try again.
-    invalid_amount: "Please write the amount as a whole number, for example /bank deposit 5000"
+    invalid_amount: "Please write the amount as a number only, for example \"deposit 5000\"."
     below_minimum: The smallest amount allowed is {min}.
     above_maximum: The largest amount allowed at once is {max}.
     not_enough_cash: "You do not have enough cash. Cash on you: {available}"
@@ -480,29 +520,34 @@ bank:
 # Paying another player. {player} is the other player's name.
 pay:
   help: |-
-    💸 Pay a player
-    Name the player in one of these ways:
-    • Telegram username: /pay @username
-    • Player code: /pay K7Q2M9A
-    You can add the amount and the method: /pay K7Q2M9A 5000 card
+    💸 Pay another player
+    • In a group: reply to their message with "pay 5000".
+    • Here: send "pay" with their username or player code, for example "pay @username" or "pay K7Q2M9A".
     Cash changes hands only when you are both in the same city; card payments work from anywhere.
   title: "💸 Pay {player}"
-  together: "📍 You and {player} are both in {city}; pay in cash or by card."
-  apart: "You and {player} are not in the same city, so cash is not possible. Card payments work from anywhere."
-  card_fee: "Card payments from {city} carry a fee of {percent}%, added on top of the amount."
-  card_free: Card payments from {city} are free.
-  hint: "Another amount? Type it: /pay {code} 5000 card or /pay {code} 5000 cash"
-  confirm_cash: "💵 Hand {amount} in cash to {player}?"
-  confirm_card: "💳 Send {amount} by card to {player}?"
-  confirm_card_fee: |-
-    💳 Send {amount} by card to {player}?
-    Fee: {fee} · Total from your bank: {total}
+  together: "📍 You are both in {city}; cash or card, either works."
+  apart: "🧭 You are not in the same city, so only a card payment is possible."
+  card_fee: "💳 Card payments from {city} carry a fee of {percent}%, on top of the amount."
+  card_free: "💳 Card payments from {city} are free."
+  hint: "Choose an amount below; for any other amount, press \"any amount\" and type it."
+  cannot_afford: "💸 Neither your cash nor your bank balance is enough to pay."
+  short_cash: "💵 Not enough cash: this needs {needed} and you carry {available}. Choose a smaller amount or pay by card."
+  short_bank: "🏦 Not enough in your bank: with the fee this needs {needed} and you have {available}. Choose a smaller amount."
+  confirm_title: "💸 Confirm your payment to {player}"
+  confirm_method_cash: "💵 How: cash, hand to hand"
+  confirm_method_card: "💳 How: bank card"
+  confirm_amount: "Amount: {amount}"
+  confirm_fee: "Fee: {fee}"
+  confirm_total: "🧾 Total from your bank: {total}"
+  confirm_after_cash: "Your cash after paying: {after}"
+  confirm_after_bank: "Your bank balance after paying: {after}"
   sent_cash: "✅ You handed {amount} in cash to {player}."
   sent_card: "✅ You sent {amount} by card to {player}."
-  sent_card_fee: "✅ You sent {amount} by card to {player} · fee: {fee}"
+  sent_fee: "Fee: {fee}"
   not_together: "{player} is not here with you, so you cannot hand over cash. Send the money by card instead — card payments work from anywhere."
   received_cash: "💵 {player} handed you {amount} in cash."
   received_card: "💳 {player} sent you {amount} by card. The money is in your bank account."
+  announced: "💸 {payer} paid {payee}."
 
 # Work (internal/domain/job, configs/content/jobs.yml). Terms: job 💼, shift,
 # wage, income tax, performance 📈 (0..100), promotion ⬆️, job openings. Money
@@ -511,10 +556,10 @@ pay:
 job:
   status_title: "💼 My job"
   none: You do not have a job yet. See what the employers in your city are offering under “Job openings”.
-  position: "💼 {title} · {career}"
+  position: "💼 {title} - {career}"
   workplace: "📍 Workplace: {city}"
   pay: "💰 Pay per shift: {pay}"
-  energy: "⚡ Energy per shift: {energy} · you have {current} of {max_energy}"
+  energy: "⚡ Energy per shift: {energy} - you have {current} of {max_energy}"
   energy_plain: "⚡ Energy per shift: {energy}"
   performance: "📈 Performance: {performance} of {max}"
   shifts: "🔁 Shifts in this position: {shifts}"
@@ -532,16 +577,16 @@ job:
   openings_employed_short: You already have a job. To take this one, leave your current job first.
   openings_none: No employer in this city is hiring right now.
   openings_hint: "✅ means you qualify and can apply; 🔒 means something is still missing. Tap a job to see the details."
-  opening_line: "✅ {career} · {title} · {pay} per shift"
-  opening_line_locked: "🔒 {career} · {title} · {pay} per shift"
-  view_title: "💼 {title} · {career}"
+  opening_line: "✅ {career} - {title} - {pay} per shift"
+  opening_line_locked: "🔒 {career} - {title} - {pay} per shift"
+  view_title: "💼 {title} - {career}"
   requirements: "Requirements:"
   requirements_none: "✅ No experience or qualification needed."
   hired: |-
     ✅ You are hired — you now work as {title} in {city}.
     💰 Pay per shift: {pay}
   shift_done: "✅ Shift complete"
-  shift_pay: "💰 Wage {gross} · income tax {tax} · you received {net}"
+  shift_pay: "💰 Wage {gross} - income tax {tax} - you received {net}"
   shift_pay_untaxed: "💰 You received {net}"
   shift_xp: "⭐ {xp} XP"
   shift_skill: "🛠 {skill}: +{xp} XP"
@@ -559,7 +604,7 @@ job:
     💼 Your shift as {title} has begun
     ⏱ Shift length: {duration}
   shift_paid_at_end: "Your pay, XP and performance are settled when the shift ends, and you will be notified."
-  shift_running: "⏳ On shift · {remaining} to go"
+  shift_running: "⏳ On shift - {remaining} to go"
   shift_running_ending: "⏳ Your shift is ending — your pay arrives any moment now."
   shift_ends_at: "🕒 Shift ends at {time}"
   shift_length: "⏱ Each shift takes {duration}"
@@ -599,7 +644,7 @@ requirement:
   skill_have: "{skill} level {need} (you have {have})"
   certificate: "Certificate: {course}"
   residence: Living in {city}
-  residence_unmet: "Living in {city} · work permits for other cities are not available yet"
+  residence_unmet: "Living in {city} - work permits for other cities are not available yet"
   performance: Performance {need} (yours is {have})
   time: "{wait} more in this position"
   shifts: "{need} shifts in this position (you have {have})"
@@ -615,15 +660,16 @@ requirement:
 education:
   title: "🎓 Education"
   current: "📖 Studying: {course}"
-  progress: "⏳ {percent}% done · {remaining} to go"
+  progress: "⏳ {percent}% done - {remaining} to go"
   progress_finishing: "⏳ Finishing any moment now."
+  paused: "⏸ Paused (in jail): {percent}% done, {remaining} left. It carries on from here once you are free."
   ends_at: "🕒 Course ends at {time}"
   certificates: "📜 Certificates: {list}"
   separator: ", "
   available: "Courses you can take here:"
   none_available: There are no new courses for you here right now. More open up as you earn certificates and levels, and in other cities.
-  course_line: "• {course} · {fee} · {duration}"
-  course_line_locked: "🔒 {course} · {fee} · {duration} · from level {level}"
+  course_line: "• {course} - {fee} - {duration}"
+  course_line_locked: "🔒 {course} - {fee} - {duration} - from level {level}"
   view_title: "🎓 {course}"
   institution: "🏛 {institution}"
   taught_in: "📍 Taught in {city}"
@@ -634,6 +680,7 @@ education:
   reward_skill: "🛠 {skill}: +{xp} XP"
   reward_certificate: "📜 The {course} certificate"
   requirements: "Requirements:"
+  enrol_how: "✅ To enrol, pay the fee:"
   enrolled: |-
     ✅ You have enrolled in {course}
     💰 Fee paid: {fee}
@@ -645,11 +692,12 @@ education:
   not_found: That course is not on offer here. See “Education” for the courses you can take.
   cannot_afford: |-
     💵 Not enough cash for this course.
-    Fee: {fee} · Your cash: {cash}
+    Fee: {fee} - Your cash: {cash}
   button:
     open: "🎓 Education"
     course: "📖 {course}"
-    enrol: "✅ Enrol · {fee}"
+    enrol: "✅ Enrol - {fee}"
+    back_to_course: "📖 Back to the course"
 
 institution:
   university: University
@@ -722,21 +770,21 @@ crime:
   nowhere: You are not in any city yet. Crime waits until you have settled somewhere.
   travelling: "🧭 You are on the road; crime waits until you arrive."
   nerve: "🔥 Nerve: {nerve} of {max}"
-  nerve_refilling: "🔥 Nerve: {nerve} of {max} · full in {duration}"
+  nerve_refilling: "🔥 Nerve: {nerve} of {max} - full in {duration}"
   heat_none: "🚨 The police are not looking for you."
-  heat: "🚨 Heat: {heat} of {max} · wanted level {wanted} of {stars}"
-  tier: "🎖 {tier} · {xp} criminal XP"
-  tier_next: "🎖 {tier} · {xp} criminal XP · {next} at {next_xp}"
-  in_jail: "⛓ You are in jail · {remaining} left"
+  heat: "🚨 Heat: {heat} of {max} - wanted level {wanted} of {stars}"
+  tier: "🎖 {tier} - {xp} criminal XP"
+  tier_next: "🎖 {tier} - {xp} criminal XP - {next} at {next_xp}"
+  in_jail: "⛓ You are in jail - {remaining} left"
   free_at: "⏳ Free at {time}"
-  busy: "⏳ {crime} under way · {remaining} left"
+  busy: "⏳ {crime} under way - {remaining} left"
   back_at: "⏳ Back at {time}"
   choose_category: "Choose a kind of crime:"
   list_title: "🕶 {category}"
   list_empty: Nothing of this kind can be done yet.
-  line: "✅ {crime} · {nerve} nerve"
-  line_locked: "🔒 {crime} · {nerve} nerve"
-  line_timed: "{line} · takes {duration}"
+  line: "✅ {crime} - {nerve} nerve"
+  line_locked: "🔒 {crime} - {nerve} nerve"
+  line_timed: "{line} - takes {duration}"
   list_separator: ", "
   view_title: "🕶 {crime}"
   view_category: "Kind: {category}"
@@ -744,6 +792,17 @@ crime:
   view_duration: "⏳ Takes {duration}"
   view_instant: "⚡ Done on the spot"
   view_chance: "🎲 Your odds here: about {percent}%"
+  view_cooldown: "⏳ At most once every {duration}"
+  odds:
+    base: "• It starts at {pct}%"
+    skill_up: "• Your skills: up by {pct}%"
+    skill_down: "• Your skills: down by {pct}%"
+    place_up: "• The victim and the place: up by {pct}%"
+    place_down: "• The victim and the place: down by {pct}%"
+    heat_up: "• Your heat: up by {pct}%"
+    heat_down: "• Your heat: down by {pct}%"
+    gear_up: "• Your tools: up by {pct}%"
+    gear_down: "• Your tools: down by {pct}%"
   view_take: "💵 A typical take: {min} to {max}"
   view_risk: "🚔 If you are caught: {jail_min} to {jail_max} in jail and a fine of {fine_min} to {fine_max}"
   view_victims_npc: "🏙 Its victims are the city's shops, cars and passers-by."
@@ -756,6 +815,7 @@ crime:
     venue: "Only at: {venues}"
     venue_here: "Only at: {venues} (you are at the {here})"
     facility: "The city needs a {facility}"
+    tool: "You carry: {item}"
   facility:
     bus_terminal: bus terminal
     rail_station: rail station
@@ -765,7 +825,9 @@ crime:
     busy: "⏳ You are in the middle of another job."
     work: "💼 You are at work. Finish your shift first."
     travelling: "🧭 You are on the road. Arrive first."
+    walking: "🚶 You are on your way somewhere in the city. Arrive first."
     nerve: "🔥 You need {need} nerve and have {have}. You will have enough in {wait}."
+    cooldown: "⏳ You did this a moment ago. You can try again in {wait}."
   button:
     commit: "🕶 Do it"
     again: "🔁 Again"
@@ -794,10 +856,13 @@ crime:
     fine_short: "💸 Fine: {fine}. You could pay {paid}; {unpaid} stays on your record."
     xp: "⭐ +{xp} XP"
     criminal_xp: "🎖 +{xp} criminal XP"
+    loot: "🎒 Also taken: {item} - {qty}"
+    stolen_item: "🎒 You also took their {item}."
+    confiscated: "🚔 The police kept as evidence: {items}"
   started: "🕶 {player} set off: {crime} at the {venue}. It takes {duration}."
   started_notice: How it went arrives as a private message when it is over.
   record_title: "📜 Criminal record"
-  record_counts: "Attempts: {attempts} · succeeded: {successes} · arrested: {arrests} · convicted: {convictions}"
+  record_counts: "Attempts: {attempts} - succeeded: {successes} - arrested: {arrests} - convicted: {convictions}"
   record_unpaid: "💸 Unpaid: {restitution} owed to victims, {fines} in fines"
   record_clean: The record is clean.
   record_recent: "Recently:"
@@ -813,6 +878,7 @@ crime:
     arrest: Caught in the act.
     conviction: Convicted after a report.
   jail_bail: "💰 Bail to leave now: {bail}"
+  bail_how: "🔓 To walk out now, pay the bail:"
   jail_blocks: While in jail you cannot commit crimes, travel, work a shift or withdraw from the bank.
   bailed: "🔓 You paid {bail} bail and walked out of jail."
   bailed_public: "🔓 {player} paid bail and walked out of jail."
@@ -823,20 +889,24 @@ crime:
     seen: "👀 A witness saw who did it: {thief} ({code})."
     report: "🚔 You can report it to the police. The report fee is {fee}, paid to the city."
     report_by: "⏳ You have {duration} to report it."
+    item: "🎒 They also took your {item}."
   report:
     confirm: "🚔 Report the theft in {city} ({crime})? You lost {amount}. The police charge a report fee of {fee}, paid to the city, and the investigation takes about {duration}."
     filed: "🗂 Report filed. The police are investigating; you will hear the outcome in about {duration}."
     outcome_at: "⏳ Outcome at about {time}"
+    pay_how: "✅ To file the report, pay the fee:"
+    confirm_free: "🚔 Report the theft in {city} ({crime})? You lost {amount}. Reporting is free in this city, and the investigation takes about {duration}."
   cases_title: "🗂 My cases"
   cases_none: You have not reported anything to the police.
   case:
-    investigating: "• {crime} in {city} · {amount} · under investigation, {remaining} left"
-    closing: "• {crime} in {city} · {amount} · the outcome is due any moment"
-    solved: "• {crime} in {city} · {amount} · solved: {thief} · {restored} returned"
-    unsolved: "• {crime} in {city} · {amount} · closed, unsolved"
+    investigating: "• {crime} in {city} - {amount} - under investigation, {remaining} left"
+    closing: "• {crime} in {city} - {amount} - the outcome is due any moment"
+    solved: "• {crime} in {city} - {amount} - solved: {thief} - {restored} returned"
+    unsolved: "• {crime} in {city} - {amount} - closed, unsolved"
   case_closed: "🗂 Case closed: the police could not find who robbed you in {city}."
   case_solved: "🚔 Case solved: the police caught {thief} ({code}) for the theft in {city} ({crime}). {restored} was returned to you."
   case_shortfall: "{short} could not be recovered; it stays on their record."
+  case_item_returned: "🎒 Your {item} was returned to you."
   convicted: "⚖️ Convicted: a theft you committed in {city} ({crime}) was traced to you. You returned {restored}, paid {fine} in fines and were sentenced to {term} in jail."
   convicted_unpaid: "💸 Still unpaid: {restitution} owed to the victim and {fines} in fines. It stays on your record."
   refused:
@@ -846,12 +916,14 @@ crime:
     busy: "⏳ You are in the middle of another job. Wait until it is over."
     work: "💼 You are at work. Finish your shift first."
     travelling: "🧭 You are on the road. Crime waits until you arrive."
+    walking: "🚶 You are on your way somewhere in the city. Crime waits until you arrive."
     nerve: "🔥 You need {need} nerve for this and have {have}. Nerve refills over time."
     no_victim: "👥 There is nobody around to do this to right now. Try again later."
     not_yours: That theft was not against you, or it no longer exists.
     expired: The time to report that theft has passed.
     cannot_afford: "💵 That costs {amount}, and you have {cash} in cash and in the bank."
     nothing_stolen: Nothing was taken from you in that theft, so there is nothing to report.
+    cooldown: "⏳ {crime}: you did this a moment ago. Try again in {wait}."
   error:
     in_jail: "⛓ You are in jail for another {remaining}. Pay bail from the jail screen, or wait it out."
     in_jail_later: "⛓ You are in jail. Pay bail from the jail screen, or wait it out."
@@ -891,3 +963,399 @@ venue:
   business_district: business district
   industrial_zone: industrial zone
   hospital: hospital
+  bazaar: bazaar
+  university: university quarter
+  city_hall: civic centre
+  police_station: police station
+  residential_area: residential area
+  park: city park
+
+# Paying a service (internal/domain/payment): every charge is paid from the
+# cash the player carries or by bank card, as they choose. A price screen
+# offers only the ways that cover the price; "balances" appears only in the
+# player's own chat, never in a group.
+payment:
+  choose: "How would you like to pay?"
+  button:
+    cash: "💵 Pay cash - {amount}"
+    card: "💳 Pay by card - {amount}"
+  only_card: "💵 Your cash does not cover it — pay by card."
+  only_cash: "💳 Your bank balance does not cover it — pay in cash."
+  cash_only: "💵 Cash only here."
+  card_only: "💳 Card payments only here."
+  not_accepted: "That way of paying is not taken here. Open the price again and pay with the buttons on it."
+  cannot_afford: "💸 Neither your cash nor your bank balance covers this."
+  paid:
+    cash: "💵 Paid from your cash."
+    card: "💳 Paid by bank card."
+  balances: "💵 Your cash: {cash} - Bank: {bank}"
+  declined: |-
+    💸 You do not have enough to pay {amount}.
+    💵 Cash: {cash}
+    🏦 Bank: {bank}
+    Nothing was charged.
+
+# The map of the player's own city (configs/content/places.yml). Place names
+# are under venue.<code>.
+place:
+  title: "🗺 Map of {city}"
+  here: "📍 You are at the {place}."
+  others: "👥 Other players here: {count}"
+  walking: "🚶 On your way to the {place} - {remaining} left"
+  arrives_at: "🕒 Arriving at {time}"
+  list_title: "Places in the city:"
+  line: "• {place} - {walk} walk"
+  line_here: "• {place} (you are here)"
+  line_with: "{line} - {what}"
+  separator: ", "
+  departures: "{mode} departures"
+  hint: "Tap a place to walk there. Everything is done at its own place."
+  walk_started: "🚶 You set off for the {place} - a {duration} walk."
+  walk_energy: "⚡ {energy} energy spent."
+  still_walking: "🚶 You are still on your way to the {place} - {remaining} left."
+  you_are_at: "📍 You are at the {place} now."
+  service:
+    bank: bank
+    police: police
+    city_hall: city hall
+    market: market
+    auction_house: auction house
+    university: university
+    training_center: training centre
+  need:
+    bank: "🏦 The bank is at the {place}."
+    police: "🚓 The police are at the {place}."
+    city_hall: "🏛 City hall is at the {place}."
+    market: "🏪 The market is at the {place}."
+    auction_house: "🔨 The auction house is at the {place}."
+    university: "🎓 This course is taught at the {place}."
+    training_center: "🎓 This course is taught at the {place}."
+    departure: "🚉 Departures by {mode} are from the {place}."
+    shop: "🛒 {shop} is at the {place}."
+    crime: "🕶 {crime} cannot be done here; go to the {place} to do it."
+  button:
+    go: "🚶 {place}"
+    walk: "🚶 Walk to the {place} - {walk}"
+    other_cities: "🧭 Travel to another city"
+
+# Commands typed without a slash; see the note in fa.yml. The key is the
+# slash-command a word stands for; several words are separated by "|".
+command_alias:
+  profile: "profile | me | home"
+  map: "map"
+  crime: "crime"
+  jail: "jail"
+  bank:
+    show: "bank"
+    deposit: "deposit"
+    withdraw: "withdraw"
+  pay: "pay"
+  job: "job | work"
+  jobs: "jobs"
+  study: "study | courses"
+  city: "city"
+  office: "office"
+  social: "friends"
+  find: "find | search"
+  skills: "skills"
+  settings: "settings"
+  help: "help"
+  cancel: "cancel"
+
+# Where a command runs (configs/commands.yml).
+channel:
+  private_only: "🔒 This is done in your private chat with the bot. Press the button below to continue there."
+  private_only_nolink: "🔒 This is done in your private chat with the bot. Open the bot privately and send it again."
+  open_private: "🔒 Continue in private"
+  group_only: "👥 This can only be done in a group. Send it again in your city's group."
+  group_only_city: "👥 This can only be done in a group. Send it again in the {city} group."
+
+# Free-text input; see fa.yml.
+input:
+  prompt:
+    default: "✏️ Type the value and send it."
+    bank_deposit: "📥 How much should go into your bank account? Type the amount as a number."
+    bank_withdraw: "📤 How much should be withdrawn? Type the amount as a number; the fee is charged on top."
+    bank_pay: "💸 How much should be paid? Type the amount as a number."
+  placeholder:
+    default: "Value"
+    bank_deposit: "Amount to deposit, in Nil"
+    bank_withdraw: "Amount to withdraw, in Nil"
+    bank_pay: "Amount to pay, in Nil"
+  cancel_hint: "To cancel, send \"cancel\"."
+  cancelled: "✖️ Cancelled. Nothing changed."
+
+# Public lines in a city's Telegram group, in the group's language.
+announce:
+  arrived: "🧭 {player} arrived in {city}."
+  jailed: "⛓ {player} was jailed in {city}."
+  held: "📰 And {count} more in the meantime."
+
+# What a player carries (internal/telegram/screens/items.go). A good's name is
+# under item_name.<code>, its kind under item_category.<code>.
+item:
+  bag_title: "🎒 Your bag"
+  bag_empty: Your bag is empty. The city's shops sell food, medicine and tools.
+  bag_stack: "• {item} - {qty}"
+  bag_piece: "• {item} - {detail}"
+  piece: "quality {quality}"
+  piece_worn: "quality {quality} - {uses} of {durability} uses left"
+  in_escrow: "📦 {count} of your goods are on the market or up for auction."
+  detail_title: "🎒 {item}"
+  category: "Kind: {category}"
+  you_have: "You have {qty}."
+  worth: "💰 Worth about {price}"
+  effects: "When used:"
+  effect_plus: "• {vital} up by {value}"
+  effect_minus: "• {vital} down by {value}"
+  effect_cap: "• {vital} raised to at least {value}"
+  effect_times: "• {vital} to {pct}% of what it is"
+  cooldown: "⏳ At most once every {duration}"
+  cooling: "⏳ You can use it again in {duration}."
+  ready_at: "🕒 Ready at {time}"
+  gear_for: "🕶 Helps with: {crimes}"
+  gear_evidence: "🚔 If you are caught, the police keep it as evidence."
+  give_nobody: "👥 To give it away, stand with a friend at the same place."
+  used: "✅ You used: {item}"
+  changed: "{vital}: {before} → {after} of {max}"
+  left: "🎒 Left in your bag: {qty}"
+  next_use: "⏳ The next one in {duration}"
+  given: "🎁 You gave {item} to {player}."
+  received: "🎁 {player} gave you {item}."
+  drop_confirm: "🗑 Throw away {item}? It is gone for good."
+  dropped: "🗑 You threw away {item}."
+  button:
+    bag: "🎒 Bag"
+    open: "🎒 {item}"
+    use: "✅ Use {item}"
+    give: "🎁 Give to {player}"
+    drop: "🗑 Throw away"
+    drop_confirm: "🗑 Yes, throw it away"
+  refused:
+    not_held: "You do not have {item} with you."
+    not_usable: "{item} is not something you use; you carry it."
+    cooling: "⏳ You can use {item} again in {duration}."
+    no_effect: "{item} would do nothing now: you are already at full."
+    not_tradeable: "{item} cannot change hands."
+    not_together: "👥 You can only hand something to a friend who stands at the same place as you."
+
+# The kinds of goods (configs/content/items.yml).
+item_category:
+  food: Food
+  drink: Drink
+  medicine: Medicine
+  gear: Tools
+  electronics: Electronics
+  valuables: Valuables
+
+# Goods, keyed on their content code (configs/content/items.yml).
+item_name:
+  bread: Bread
+  sandwich: Sandwich
+  hot_meal: Hot meal
+  water_bottle: Bottle of water
+  coffee: Coffee
+  energy_drink: Energy drink
+  bandage: Bandage
+  painkillers: Painkillers
+  first_aid_kit: First aid kit
+  lockpick_set: Lockpick set
+  crowbar: Crowbar
+  gloves: Pair of gloves
+  ski_mask: Ski mask
+  running_shoes: Running shoes
+  fake_documents: Forged documents
+  card_skimmer: Card skimmer
+  phone: Phone
+  watch: Wristwatch
+  car_stereo: Car stereo
+  jewellery: Jewellery
+
+# What using a good changes.
+vital:
+  energy: "⚡ Energy"
+  health: "❤️ Health"
+  happiness: "😊 Happiness"
+  nerve: "🔥 Nerve"
+
+# What a tool carried does to a crime (internal/domain/crime/gear.go).
+gear:
+  success_up: "🎲 Odds of success up by {pct}%"
+  success_down: "🎲 Odds of success down by {pct}%"
+  catch_up: "🚔 Odds of arrest up by {pct}%"
+  catch_down: "🚔 Odds of arrest down by {pct}%"
+  witness_up: "👀 Odds of being seen up by {pct}%"
+  witness_down: "👀 Odds of being seen down by {pct}%"
+  solve_up: "🗂 Odds a report is solved up by {pct}%"
+  solve_down: "🗂 Odds a report is solved down by {pct}%"
+  reward_up: "💵 The take up by {pct}%"
+  reward_down: "💵 The take down by {pct}%"
+  nerve_up: "🔥 Costs {value} more nerve"
+  nerve_down: "🔥 Costs {value} less nerve"
+
+# The city's shops (configs/content/shops.yml). Each stands at a place of
+# the city; buying is done at its counter.
+shop:
+  title: "🛒 Shops of {city}"
+  none: This city has no shops yet.
+  line: "• {shop} - at the {place}"
+  line_here: "• {shop} - here"
+  detail_title: "🛒 {shop} - at the {place}"
+  shelf: "• {item} - {price} - {stock} in stock"
+  shelf_busy: "• {item} - {price} (in demand) - {stock} in stock"
+  shelf_empty: "• {item} - sold out"
+  shelf_buys: "{line} - buys at {buyback}"
+  at_counter: "📍 You are at the counter."
+  away: "📍 The shop is at the {place}. Walk there to buy."
+  tax: "🧾 Sales tax here: {pct}%"
+  restock_at: "🚚 Next delivery at {time}"
+  checkout_title: "🛒 {shop}"
+  checkout_item: "{item} - {qty} at {unit} each"
+  checkout_total: "Price: {total}"
+  checkout_tax: "🧾 Sales tax ({pct}%): {tax}"
+  checkout_due: "💵 To pay: {due}"
+  bought: "✅ You bought {item} - {qty} for {total}."
+  bought_tax: "🧾 That includes {tax} sales tax, paid to the city."
+  offers_title: "💰 Who buys {item}"
+  offers_none: No shop in this city buys that.
+  offer: "• {shop} at the {place} - pays {price}"
+  sold: "💰 You sold {item} to {shop} for {price}."
+  button:
+    shops: "🛒 Shops"
+    open: "🛒 {shop}"
+    buy: "🛒 {item}"
+    qty: "🛒 Buy {qty}"
+    back_to_shop: "🛒 Back to the shop"
+    sell_back: "💰 Sell to a shop"
+    sell_to: "💰 {shop} - {price}"
+  refused:
+    no_shop: That shop is not in this city.
+    not_sold: "{shop} does not sell that."
+    sold_out: "{item} is sold out at {shop}. Wait for the next delivery."
+    not_held: "You do not have {item} with you."
+    no_buyback: "{shop} does not buy {item}."
+
+# Shop names, keyed on their content code (configs/content/shops.yml).
+shop_name:
+  grocery: Grocery
+  diner: Diner
+  pharmacy: Pharmacy
+  hardware_store: Hardware store
+  outfitter: Outfitter
+  electronics_store: Electronics store
+  pawnshop: Pawnshop
+
+# The player market (internal/domain/market): a book per good per city.
+# The seller pays the fee, set by the city.
+market:
+  title: "🏪 Market of {city}"
+  none_yet: nobody yet
+  empty: Nobody is buying or selling here right now.
+  book_line: "• {item} - buyers offer: {bid} - sellers ask: {ask}"
+  book_title: "🏪 {item} - market of {city}"
+  asks: "For sale:"
+  bids: "Wanted:"
+  level: "• {qty} at {price}"
+  level_none: "• nothing"
+  trades: "Latest trades:"
+  trade: "• {qty} at {price} - {time}"
+  you_hold: "🎒 You have {qty}."
+  away: "📍 Trading is done at the market. Walk there to buy or sell."
+  fee_note: "🧾 The seller pays the market fee, set by the city."
+  escrow_how: "💵 The price is set aside until the order fills or you cancel it. Pay it:"
+  checkout_title: "🏪 Buy {item}"
+  checkout_order: "{qty} at {price} each"
+  checkout_reserve: "Set aside: {reserve}"
+  placed_buy: "✅ Order {no}: buy {item} - {qty} at {price}."
+  placed_sell: "✅ Order {no}: sell {item} - {qty} at {price}."
+  filled_buy: "🤝 Bought at once: {filled} for {spent}."
+  filled_sell: "🤝 Sold at once: {filled} for {got}."
+  rests: "⏳ {left} waits on the book for the other side."
+  expires_at: "🕒 The order ends at {time}"
+  cancelled_buy: "❌ Order {no} cancelled. {refund} came back to you."
+  cancelled_sell: "❌ Order {no} cancelled. {left} of {item} came back to your bag."
+  mine_title: "📋 My orders"
+  mine_none: You have no orders.
+  order_buy: "• {no}: buy {item} - {filled} of {qty} at {price} - {status} - {city}"
+  order_sell: "• {no}: sell {item} - {filled} of {qty} at {price} - {status} - {city}"
+  status:
+    open: open
+    filled: filled
+    cancelled: cancelled
+    expired: expired
+  notice_bought: "🤝 Your order in {city} filled: you bought {item} - {qty} at {price} for {amount}."
+  notice_sold: "🤝 Your order in {city} filled: you sold {item} - {qty} at {price} for {amount}; the market fee was {fee}."
+  notice_expired_buy: "⏳ Order {no} for {item} ended with {left} unbought. The money set aside came back to you."
+  notice_expired_sell: "⏳ Order {no} for {item} ended with {left} unsold. It came back to your bag."
+  button:
+    market: "🏪 Market"
+    book: "🏪 {item}"
+    mine: "📋 My orders"
+    back_to_book: "🏪 Back to the book"
+    buy_at: "🛒 Buy 1 at {price}"
+    bid_at: "🛒 Offer {price}"
+    sell_at: "💰 Sell 1 at {price}"
+    ask_at: "💰 Ask {price}"
+    ask_all: "💰 Sell all {qty} at {price}"
+    cancel: "❌ Cancel order {no}"
+    sell_here: "🏪 Sell on the market"
+  refused:
+    not_traded: "{item} is not traded on the market."
+    too_big: That order is larger than the market allows.
+    too_many: "You already have {count} open orders. Cancel one or wait for one to fill."
+    not_enough: "You do not have that much {item} with you."
+    no_order: There is no such order of yours.
+    closed: That order is no longer open.
+
+# The auction house (internal/domain/auction): unique pieces only.
+auction:
+  title: "🔨 Auction house of {city}"
+  none: Nothing is up for auction here right now.
+  away: "📍 Bidding is done at the auction house. Walk there to bid."
+  line_bid: "• {no}: {item} (quality {quality}) - top bid {bid} - {remaining} left"
+  line_reserve: "• {no}: {item} (quality {quality}) - from {reserve} - {remaining} left"
+  detail_title: "🔨 Auction {no}"
+  item: "{item} - quality {quality}"
+  seller: "Seller: {player}"
+  reserve: "Reserve: {reserve}"
+  high_bid: "Top bid: {bid} - {bids} bids"
+  no_bids: No bids yet.
+  ends_in: "⏳ Ends in {remaining}"
+  ends_at: "🕒 Ends at {time}"
+  yours: This auction is yours.
+  leading: "🥇 You hold the top bid."
+  bid_how: "💵 A bid of {amount} is set aside until you are outbid or win. Pay it:"
+  new_title: "🔨 Put {item} (quality {quality}) up for auction"
+  new_hint: "Choose the lowest price you accept and how long the auction runs."
+  opened: "✅ Auction {no}: {item} from {reserve}, for {duration}."
+  bid_placed: "✅ You bid {amount} on auction {no} ({item})."
+  bid_escrow: "💵 Your bid is set aside. If someone outbids you, it comes back."
+  mine_title: "📋 My auctions"
+  mine_none: You are not selling or bidding on anything.
+  mine_line: "{line} - {role} - {status}"
+  role_seller: yours
+  role_leading: your bid leads
+  role_bidder: you were outbid
+  status:
+    open: open
+    sold: sold
+    unsold: unsold
+  notice_outbid: "🔨 You were outbid on auction {no} ({item}). Your {amount} came back to you."
+  notice_won: "🏆 You won auction {no}: {item} for {amount}. It is in your bag."
+  notice_sold: "🔨 Auction {no} sold {item} for {amount}; the fee was {fee}."
+  notice_unsold: "🔨 Auction {no} ended without a sale. {item} came back to your bag."
+  button:
+    house: "🔨 Auction house"
+    mine: "📋 My auctions"
+    open: "🔨 Auction {no}"
+    sell: "🔨 Auction it"
+    terms: "{reserve} - {duration}"
+  refused:
+    none: There is no such auction.
+    closed: That auction is over.
+    too_low: "A bid must be at least {min}."
+    own: You cannot bid on your own auction.
+    leading: You already hold the top bid.
+    not_held: You do not have that piece with you.
+    too_many: "You already have {count} auctions open."
+    not_sellable: That cannot be auctioned. Only unique pieces go to auction.

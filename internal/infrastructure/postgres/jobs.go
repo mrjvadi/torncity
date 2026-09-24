@@ -31,7 +31,7 @@ const (
 	employmentColumns = `id::text, player_id::text, career_code, city_id::text, tier, rate, performance,
 	       tier_since, shifts_in_tier, total_shifts, recent_shifts, total_earned, hired_at, updated_at`
 	enrollmentColumns = `id::text, player_id::text, course_code, game_action_id::text, status, fee,
-	       started_at, completes_at, completed_at`
+	       started_at, completes_at, completed_at, paused_at`
 )
 
 // EmploymentRepository implements application.EmploymentRepository.
@@ -261,8 +261,12 @@ var _ application.EducationRepository = (*EducationRepository)(nil)
 func scanEnrollment(row pgx.Row) (*application.Enrollment, error) {
 	var e application.Enrollment
 	if err := row.Scan(&e.ID, &e.PlayerID, &e.CourseCode, &e.GameActionID, &e.Status, &e.Fee,
-		&e.StartedAt, &e.CompletesAt, &e.CompletedAt); err != nil {
+		&e.StartedAt, &e.CompletesAt, &e.CompletedAt, &e.PausedAt); err != nil {
 		return nil, err
+	}
+	if e.PausedAt != nil {
+		t := e.PausedAt.UTC()
+		e.PausedAt = &t
 	}
 	e.StartedAt = e.StartedAt.UTC()
 	e.CompletesAt = e.CompletesAt.UTC()
@@ -340,6 +344,34 @@ func (r *EducationRepository) Complete(ctx context.Context, enrollmentID string,
 		return application.ErrNoActiveEnrollment
 	}
 	return nil
+}
+
+// Pause stops the player's course in progress at at, unless it is stopped
+// already: a second jailing while one sentence runs keeps the first instant.
+func (r *EducationRepository) Pause(ctx context.Context, playerID string, at time.Time) (bool, error) {
+	tag, err := r.q.Exec(ctx,
+		`UPDATE enrollments SET paused_at = $2
+		  WHERE player_id = $1::uuid AND status = $3 AND paused_at IS NULL`,
+		playerID, at.UTC(), application.EnrollmentInProgress)
+	if err != nil {
+		return false, fmt.Errorf("postgres: pausing course: %w", err)
+	}
+	return tag.RowsAffected() > 0, nil
+}
+
+// Resume restarts a paused course with its period moved on and its new
+// completion. The paused_at predicate makes it happen once: a second release
+// racing the first finds nothing paused and changes nothing.
+func (r *EducationRepository) Resume(ctx context.Context, enrollmentID string, startedAt, completesAt time.Time, actionID string) (bool, error) {
+	tag, err := r.q.Exec(ctx,
+		`UPDATE enrollments
+		    SET started_at = $2, completes_at = $3, game_action_id = $4::uuid, paused_at = NULL
+		  WHERE id = $1::uuid AND status = $5 AND paused_at IS NOT NULL`,
+		enrollmentID, startedAt.UTC(), completesAt.UTC(), actionID, application.EnrollmentInProgress)
+	if err != nil {
+		return false, fmt.Errorf("postgres: resuming course: %w", err)
+	}
+	return tag.RowsAffected() > 0, nil
 }
 
 // Certify records a certificate once. ON CONFLICT makes a repeat a quiet

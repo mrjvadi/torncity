@@ -34,9 +34,16 @@ type CrimeTierDef struct {
 	MinXP int64 `yaml:"min_xp" json:"min_xp"`
 }
 
-// VenueDef is one place inside a city where players can be (crimes.yml
-// crime_venues). Where a player IS is derived by internal/domain/crime.Locate
-// from what they are doing; see that function for the rule.
+// PlaceDef is one place inside a city (places.yml): the city centre, the
+// bazaar, the business district, a station. It is ONE concept for the whole
+// game: where a player stands (internal/domain/place), what services are
+// found there, and — as a crime venue — how crowded and how guarded it is
+// (internal/domain/crime.Locate derives where a player is from their place,
+// their shift and their arrival).
+type PlaceDef = VenueDef
+
+// VenueDef is the historical name of PlaceDef, kept because the crime engine
+// and its stored content call a place a venue.
 type VenueDef struct {
 	Code string `yaml:"code" json:"code"`
 	// Name is the authored display name, the fallback when the catalogue has
@@ -56,6 +63,21 @@ type VenueDef struct {
 	OpportunityBPS int `yaml:"opportunity_bps" json:"opportunity_bps"`
 	// Security is added to every victim's awareness here.
 	Security int `yaml:"security" json:"security"`
+
+	// Cities limits the place to these city codes; omitted means every city
+	// with the facilities below.
+	Cities []string `yaml:"cities,omitempty" json:"cities,omitempty"`
+	// Requires lists the transport facilities (transport.yml) a city needs
+	// to have the place: a train station only where there is a railway.
+	Requires []string `yaml:"requires,omitempty" json:"requires,omitempty"`
+	// MoveTime is how long walking there takes, in GAME time ("15m").
+	// Required for a place; empty only in content stored before places.
+	MoveTime string `yaml:"move_time,omitempty" json:"move_time,omitempty"`
+	// Energy is what walking there costs.
+	Energy int `yaml:"energy,omitempty" json:"energy,omitempty"`
+	// Services are what is found here: bank, police, city_hall, market,
+	// auction_house, university, training_center.
+	Services []string `yaml:"services,omitempty" json:"services,omitempty"`
 }
 
 // Venue converts the definition to the domain value.
@@ -76,6 +98,9 @@ type CrimeCategoryDef struct {
 	// Name is the authored display name, the fallback when the catalogue has
 	// no crime_category.<code> entry.
 	Name string `yaml:"name" json:"name"`
+	// Cooldown is how long, GAME time, after any crime of the category the
+	// same player waits before the next one of it; omitted is none.
+	Cooldown string `yaml:"cooldown,omitempty" json:"cooldown,omitempty"`
 }
 
 // SkillWeightDef is how much a level of a skill adds to a success chance.
@@ -111,6 +136,22 @@ type CrimeRewardDef struct {
 	CriminalXP int64        `yaml:"criminal_xp" json:"criminal_xp"`
 	SkillXP    []SkillXPDef `yaml:"skill_xp" json:"skill_xp"`
 	Heat       int          `yaml:"heat" json:"heat"`
+	// Loot is what a success against an NPC may also yield (items.yml
+	// codes), each on its own roll.
+	Loot []LootDef `yaml:"loot,omitempty" json:"loot,omitempty"`
+	// StealItemBPS is the chance a success against a player also takes one
+	// item the victim carries and may lose.
+	StealItemBPS int `yaml:"steal_item_bps,omitempty" json:"steal_item_bps,omitempty"`
+}
+
+// LootDef is one item a crime may yield.
+type LootDef struct {
+	Item       string `yaml:"item" json:"item"`
+	ChanceBPS  int    `yaml:"chance_bps" json:"chance_bps"`
+	MinQty     int64  `yaml:"min_qty" json:"min_qty"`
+	MaxQty     int64  `yaml:"max_qty" json:"max_qty"`
+	MinQuality int    `yaml:"min_quality,omitempty" json:"min_quality,omitempty"`
+	MaxQuality int    `yaml:"max_quality,omitempty" json:"max_quality,omitempty"`
 }
 
 // CrimeFailureDef is what a failed attempt risks. Jail terms are GAME-time
@@ -151,6 +192,9 @@ type CrimeDef struct {
 	Victims  CrimeVictimsDef `yaml:"victims" json:"victims"`
 	Reward   CrimeRewardDef  `yaml:"reward" json:"reward"`
 	Failure  CrimeFailureDef `yaml:"failure" json:"failure"`
+	// Cooldown is how long, GAME time, after an attempt the same player
+	// waits before trying this crime again; omitted is none.
+	Cooldown string `yaml:"cooldown,omitempty" json:"cooldown,omitempty"`
 }
 
 // Crime converts the definition to the domain value, given the tier ladder
@@ -178,6 +222,10 @@ func (c CrimeDef) Crime(tiers []CrimeTierDef) (crime.Crime, error) {
 	if err != nil {
 		return crime.Crime{}, fmt.Errorf("%w: crime %q jail_max: %v", ErrInvalidDuration, c.Code, err)
 	}
+	cooldown, err := optionalDuration(c.Cooldown)
+	if err != nil {
+		return crime.Crime{}, fmt.Errorf("%w: crime %q cooldown: %v", ErrInvalidDuration, c.Code, err)
+	}
 	out := crime.Crime{
 		Code:     c.Code,
 		Category: c.Category,
@@ -192,6 +240,7 @@ func (c CrimeDef) Crime(tiers []CrimeTierDef) (crime.Crime, error) {
 		},
 		NerveCost: c.Nerve,
 		Duration:  duration,
+		Cooldown:  cooldown,
 		Success: crime.SuccessModel{
 			BaseChanceBPS:      c.Success.BaseChanceBPS,
 			AwarenessWeightBPS: c.Success.AwarenessWeightBPS,
@@ -200,14 +249,15 @@ func (c CrimeDef) Crime(tiers []CrimeTierDef) (crime.Crime, error) {
 			WitnessChanceBPS:   c.Success.WitnessChanceBPS,
 		},
 		Reward: crime.Reward{
-			MinCash:    money.FromMinor(c.Reward.MinCash),
-			MaxCash:    money.FromMinor(c.Reward.MaxCash),
-			ShareBPS:   c.Reward.ShareBPS,
-			MinTake:    money.FromMinor(c.Reward.MinTake),
-			MaxTake:    money.FromMinor(c.Reward.MaxTake),
-			XP:         c.Reward.XP,
-			CriminalXP: c.Reward.CriminalXP,
-			Heat:       c.Reward.Heat,
+			MinCash:      money.FromMinor(c.Reward.MinCash),
+			MaxCash:      money.FromMinor(c.Reward.MaxCash),
+			ShareBPS:     c.Reward.ShareBPS,
+			MinTake:      money.FromMinor(c.Reward.MinTake),
+			MaxTake:      money.FromMinor(c.Reward.MaxTake),
+			XP:           c.Reward.XP,
+			CriminalXP:   c.Reward.CriminalXP,
+			Heat:         c.Reward.Heat,
+			StealItemBPS: c.Reward.StealItemBPS,
 		},
 		Failure: crime.Failure{
 			CatchChanceBPS: c.Failure.CatchChanceBPS,
@@ -232,7 +282,22 @@ func (c CrimeDef) Crime(tiers []CrimeTierDef) (crime.Crime, error) {
 	for _, s := range c.Reward.SkillXP {
 		out.Reward.SkillXP = append(out.Reward.SkillXP, crime.SkillXP{Skill: player.SkillCode(s.Skill), XP: s.XP})
 	}
+	for _, l := range c.Reward.Loot {
+		out.Reward.Loot = append(out.Reward.Loot, crime.LootEntry{Item: l.Item, ChanceBPS: l.ChanceBPS,
+			MinQty: l.MinQty, MaxQty: l.MaxQty, MinQuality: l.MinQuality, MaxQuality: l.MaxQuality})
+	}
 	return out, nil
+}
+
+// CategoryCooldown returns the cooldown of a crime category, GAME time.
+func (s *Snapshot) CategoryCooldown(code string) time.Duration {
+	for _, c := range s.crime.categories {
+		if c.Code == code {
+			d, _ := optionalDuration(c.Cooldown)
+			return d
+		}
+	}
+	return 0
 }
 
 // crimeContent is the crime part of a snapshot, built once.

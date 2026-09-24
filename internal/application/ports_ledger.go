@@ -43,13 +43,18 @@ const (
 	AccountCityTreasury    AccountKind = "city_treasury"
 	AccountSystemSink      AccountKind = "system_sink"
 	AccountSystemSource    AccountKind = "system_source"
+	// AccountPlayerEscrow holds a player's money set aside for the market
+	// and the auction house: a buy order's reserve, a standing bid. Still
+	// the player's, not theirs to spend until the order or the bid ends.
+	AccountPlayerEscrow AccountKind = "player_escrow"
 )
 
 // Valid reports whether k is one of the kinds the schema allows.
 func (k AccountKind) Valid() bool {
 	switch k {
 	case AccountPlayerCash, AccountPlayerBank, AccountCompanyTreasury,
-		AccountFactionTreasury, AccountCityTreasury, AccountSystemSink, AccountSystemSource:
+		AccountFactionTreasury, AccountCityTreasury, AccountSystemSink, AccountSystemSource,
+		AccountPlayerEscrow:
 		return true
 	}
 	return false
@@ -149,6 +154,37 @@ const (
 	ReasonBail Reason = "bail"
 )
 
+// Trade (items.yml, shops.yml, the market and the auction house).
+//
+// A purchase from a city shop pays the NPC economy, so its price leaves the
+// economy (a drain); the city's sales tax on it is a transfer to the
+// treasury; a good a shop buys back brings money in from the NPC economy (a
+// faucet). Market and auction money moves through the player's escrow
+// account: set aside, released, or paid to the seller — all transfers. The
+// fee of a trade or an auction sale is ReasonMarketFee, a drain.
+const (
+	ReasonShopPurchase Reason = "shop_purchase"
+	ReasonSalesTax     Reason = "sales_tax"
+	ReasonShopBuyback  Reason = "shop_buyback"
+
+	ReasonMarketEscrow  Reason = "market_escrow"
+	ReasonMarketRelease Reason = "market_release"
+	ReasonMarketTrade   Reason = "market_trade"
+
+	ReasonAuctionBid    Reason = "auction_bid"
+	ReasonAuctionRefund Reason = "auction_refund"
+	ReasonAuctionSale   Reason = "auction_sale"
+)
+
+// Elections (governance.yml): a candidate's deposit is set aside in escrow,
+// returned to a candidate who drew enough of the vote, or forfeited to the
+// treasury of the place the election was for.
+const (
+	ReasonElectionDeposit Reason = "election_deposit"
+	ReasonElectionRefund  Reason = "election_refund"
+	ReasonElectionForfeit Reason = "election_forfeit"
+)
+
 // knownReasons is the closed set. Adding a code means adding it here AND to
 // the table in ADR 0009, in the same change.
 var knownReasons = map[Reason]struct{}{
@@ -170,6 +206,12 @@ var knownReasons = map[Reason]struct{}{
 	ReasonCrimeProceeds: {},
 
 	ReasonTheft: {}, ReasonRestitution: {}, ReasonCrimeFine: {}, ReasonReportFee: {}, ReasonBail: {},
+
+	ReasonShopPurchase: {}, ReasonSalesTax: {}, ReasonShopBuyback: {},
+	ReasonMarketEscrow: {}, ReasonMarketRelease: {}, ReasonMarketTrade: {},
+	ReasonAuctionBid: {}, ReasonAuctionRefund: {}, ReasonAuctionSale: {},
+
+	ReasonElectionDeposit: {}, ReasonElectionRefund: {}, ReasonElectionForfeit: {},
 }
 
 // Known reports whether r is in the closed set.

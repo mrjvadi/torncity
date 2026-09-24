@@ -51,6 +51,17 @@ type crimeResult struct {
 	FinePaid       int64     `json:"fine_paid"`
 	JailSeconds    int64     `json:"jail_seconds"`
 	JailEndsAt     time.Time `json:"jail_ends_at"`
+	Loot           []struct {
+		Item     string `json:"item"`
+		ItemName string `json:"item_name"`
+		Qty      int64  `json:"qty"`
+	} `json:"loot"`
+	StolenItem     string `json:"stolen_item"`
+	StolenItemName string `json:"stolen_item_name"`
+	Confiscated    []struct {
+		Item     string `json:"item"`
+		ItemName string `json:"item_name"`
+	} `json:"confiscated"`
 }
 
 // renderCrimeResult tells a thief how an attempt ended: the take of a
@@ -78,6 +89,15 @@ func renderCrimeResult(_ context.Context, _ Deps, env *envelope.Envelope) (*Draf
 	if ev.JailSeconds > 0 {
 		view.Jail = &screens.CrimeProgress{Remaining: time.Duration(ev.JailSeconds) * time.Second, EndsAt: ev.JailEndsAt}
 	}
+	for _, l := range ev.Loot {
+		view.Loot = append(view.Loot, screens.LootLine{Item: screens.Named{Code: l.Item, Name: l.ItemName}, Qty: l.Qty})
+	}
+	if ev.StolenItem != "" {
+		view.Stolen = &screens.Named{Code: ev.StolenItem, Name: ev.StolenItemName}
+	}
+	for _, c := range ev.Confiscated {
+		view.Confiscated = append(view.Confiscated, screens.Named{Code: c.Item, Name: c.ItemName})
+	}
 	return &Draft{
 		PlayerID: ev.PlayerID,
 		Screen: func(c screens.Context) *presenter.Response {
@@ -101,6 +121,9 @@ type victimised struct {
 	ThiefName string `json:"thief_name"`
 	ThiefCode string `json:"thief_code"`
 	ReportFee int64  `json:"report_fee"`
+	// Item and ItemName are a good taken beside the money, if any.
+	Item     string `json:"item"`
+	ItemName string `json:"item_name"`
 	// ReportWindowSeconds is how long the victim has to report, from the
 	// theft.
 	ReportWindowSeconds int64 `json:"report_window_seconds"`
@@ -113,14 +136,17 @@ func renderVictimised(_ context.Context, _ Deps, env *envelope.Envelope) (*Draft
 	if err := json.Unmarshal(env.Payload, &ev); err != nil {
 		return nil, apperrors.InvalidInput("crime.victimised payload is unreadable").WithCause(err)
 	}
-	if ev.VictimID == "" || ev.AttemptID == "" || ev.Amount <= 0 {
-		return nil, apperrors.InvalidInput("crime.victimised names no victim, no theft or no amount")
+	if ev.VictimID == "" || ev.AttemptID == "" || (ev.Amount <= 0 && ev.Item == "") {
+		return nil, apperrors.InvalidInput("crime.victimised names no victim, no theft or nothing taken")
 	}
 	view := screens.VictimNoticeView{
 		Crime: screens.Named{Code: ev.Crime, Name: ev.CrimeName}, Venue: screens.Named{Code: ev.Venue, Name: ev.VenueName},
 		CityCode: ev.CityCode, City: ev.CityName, Amount: ev.Amount, ThiefName: ev.ThiefName, ThiefCode: ev.ThiefCode,
 		CrimeID: ev.AttemptID, ReportFee: ev.ReportFee,
 		ReportWithin: time.Duration(ev.ReportWindowSeconds) * time.Second,
+	}
+	if ev.Item != "" {
+		view.Item = &screens.Named{Code: ev.Item, Name: ev.ItemName}
 	}
 	return &Draft{
 		PlayerID: ev.VictimID,
@@ -168,6 +194,9 @@ type caseOutcome struct {
 	Fine        int64  `json:"fine"`
 	FinePaid    int64  `json:"fine_paid"`
 	TermSeconds int64  `json:"term_seconds"`
+	// ItemReturned is a stolen good given back to the victim.
+	ItemReturned     string `json:"item_returned"`
+	ItemReturnedName string `json:"item_returned_name"`
 }
 
 func (e caseOutcome) view(solved bool) screens.CaseOutcomeView {
@@ -175,7 +204,16 @@ func (e caseOutcome) view(solved bool) screens.CaseOutcomeView {
 		Crime: screens.Named{Code: e.Crime, Name: e.CrimeName}, CityCode: e.CityCode, City: e.CityName,
 		Solved: solved, Thief: e.ThiefName, ThiefCode: e.ThiefCode, Stolen: e.Stolen, Restored: e.Restored,
 		Shortfall: e.Shortfall, Fine: e.Fine, FinePaid: e.FinePaid, Term: time.Duration(e.TermSeconds) * time.Second,
+		Returned: returned(e.ItemReturned, e.ItemReturnedName),
 	}
+}
+
+// returned is a stolen good given back, nil for none.
+func returned(code, name string) *screens.Named {
+	if code == "" {
+		return nil
+	}
+	return &screens.Named{Code: code, Name: name}
 }
 
 func decodeCase(env *envelope.Envelope, name string) (caseOutcome, error) {

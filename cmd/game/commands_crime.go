@@ -114,6 +114,10 @@ func crimeRules(c config.Crime) handlers.CrimeRules {
 		},
 		InvestigationDuration: c.InvestigationDuration,
 		NPCDailyCap:           money.FromMinor(c.NPCDailyCap),
+		GearCaps: crime.GearCaps{
+			SuccessBPS: c.GearMaxSuccessBPS, CatchBPS: c.GearMaxCatchBPS, WitnessBPS: c.GearMaxWitnessBPS,
+			SolveBPS: c.GearMaxSolveBPS, RewardBPS: c.GearMaxRewardBPS, Nerve: c.GearMaxNerve,
+		},
 	}
 }
 

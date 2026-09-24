@@ -41,12 +41,16 @@ type CrimeRules struct {
 	InvestigationDuration time.Duration
 	// NPCDailyCap is the most NPC crime pays into the economy per UTC day.
 	NPCDailyCap money.Amount
+	// GearCaps bound what every carried tool together adds to one attempt
+	// (config crime.gear_*).
+	GearCaps crime.GearCaps
 }
 
 // Validate reports whether the rules are usable.
 func (r CrimeRules) Validate() error {
 	var errs []error
-	errs = append(errs, r.Nerve.Validate(), r.Heat.Validate(), r.Victims.Validate(), r.Investigation.Validate())
+	errs = append(errs, r.Nerve.Validate(), r.Heat.Validate(), r.Victims.Validate(), r.Investigation.Validate(),
+		r.GearCaps.Validate())
 	if r.ArrivalLinger <= 0 || r.ReportWindow <= 0 || r.InvestigationDuration <= 0 {
 		errs = append(errs, fmt.Errorf("crime rules: arrival linger %s, report window %s and investigation %s must be positive",
 			r.ArrivalLinger, r.ReportWindow, r.InvestigationDuration))
@@ -154,13 +158,17 @@ type CrimeCommitRequest struct {
 	Nonce string `json:"nonce,omitempty"`
 }
 
-// BailRequest is crime.bail's payload.
+// BailRequest is crime.bail's payload: the jail screen's one-time token and
+// how the bail is paid, cash or card. Without a method the jail screen is
+// shown, with a button per way to pay.
 type BailRequest struct {
-	Nonce string `json:"nonce,omitempty"`
+	Nonce  string `json:"nonce,omitempty"`
+	Method string `json:"method,omitempty"`
 }
 
 // CrimeReportRequest is crime.report's payload: the theft (an attempt id,
-// from the victim's notice) and, to file it, the confirmation.
+// from the victim's notice) and, to file it, the confirmation — the way the
+// fee is paid (cash or card), or "yes" when the city charges no fee.
 type CrimeReportRequest struct {
 	Crime   string `json:"crime"`
 	Confirm string `json:"confirm,omitempty"`
@@ -229,6 +237,9 @@ func (h *CrimeHandler) finish(meta envelope.Metadata, lang string, err error) (*
 	var r *crimeRefusal
 	if stderrors.As(err, &r) {
 		return screens.CrimeRefusal(h.screen(meta, lang), r.view), nil
+	}
+	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
+		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
 	}
 	return nil, err
 }
@@ -372,9 +383,10 @@ func tierView(snap *content.Snapshot, xp int64) screens.TierView {
 // Where a player is.
 
 // venueOf derives the venue a player stands at in cityID (crime.Locate):
-// at work when a shift is running, at a terminal just after arriving by its
-// mode, and at the default venue otherwise. ok is false when the content
-// has no venues.
+// at work when a shift is running, at the city place they walked to or an
+// arrival put them at, at a terminal just after arriving for a player with
+// no place recorded, and at the default venue otherwise. ok is false when
+// the content has no venues.
 func (h *CrimeHandler) venueOf(ctx context.Context, tx application.Tx, snap *content.Snapshot, playerID, cityID string, now time.Time) (content.VenueDef, int, bool, error) {
 	defs := snap.Venues()
 	if len(defs) == 0 {
@@ -389,6 +401,9 @@ func (h *CrimeHandler) venueOf(ctx context.Context, tx application.Tx, snap *con
 		w.ShiftCategory = def.Category
 	}
 	w.ArrivedBy = arrivedBy
+	if w.Place, err = tx.Places().Where(ctx, playerID); err != nil {
+		return content.VenueDef{}, 0, false, err
+	}
 	i := crime.Locate(snap.VenueList(), w)
 	return defs[i], i, true, nil
 }

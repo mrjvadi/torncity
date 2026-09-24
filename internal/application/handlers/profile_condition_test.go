@@ -57,7 +57,7 @@ func TestProfileShowsThePublicCode(t *testing.T) {
 		cat.T("fa", "profile.code", map[string]any{"code": "K7Q2M9A"}),
 		cat.T("fa", "profile.code_hint", map[string]any{"code": "K7Q2M9A"}),
 	} {
-		if !strings.Contains(resp.Text, want) {
+		if !strings.Contains(plain(resp.Text), want) {
 			t.Errorf("the profile is missing %q:\n%s", want, resp.Text)
 		}
 	}

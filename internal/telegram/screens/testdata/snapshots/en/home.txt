@@ -5,7 +5,7 @@ This is your home: your condition, your money and your work at a glance. Use the
 
 📍 Ostmarch
 
-⭐ Level 1 · 50 XP to level 2
+⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 100 of 100
 ❤️ Health: 100 of 100
 
@@ -15,7 +15,7 @@ This is your home: your condition, your money and your work at a glance. Use the
 🏦 Bank balance: 0 Nil
 
 🆔 Player code: K7Q2M9A
-Friends can find you by sending /social K7Q2M9A.
+Friends can find you by sending "find K7Q2M9A".
   ───
   [🗺 Map] → map:list   │   [💼 Job openings] → job:list
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
@@ -28,12 +28,12 @@ Friends can find you by sending /social K7Q2M9A.
 👤 Sara
 📍 Brennhaven
 
-⭐ Level 7 · 460 XP to level 8
-⚡ Energy: 64 of 100 · full in 54m
+⭐ Level 7 - 460 XP to level 8
+⚡ Energy: 64 of 100 - full in 54m
 ❤️ Health: 92 of 100
 
-💼 Sales Associate in Brennhaven · 190 Nil per shift
-📖 Bookkeeping · 1h 35m left
+💼 Sales Associate in Brennhaven - 190 Nil per shift
+📖 Bookkeeping - 1h 35m left
 📜 2 certificates
 
 💵 Cash: 12,850 Nil
@@ -52,12 +52,12 @@ Friends can find you by sending /social K7Q2M9A.
 👤 Sara
 📍 Brennhaven
 
-⭐ Level 7 · 460 XP to level 8
-⚡ Energy: 49 of 100 · full in 1h 30m
+⭐ Level 7 - 460 XP to level 8
+⚡ Energy: 49 of 100 - full in 1h 30m
 ❤️ Health: 92 of 100
 
-💼 Sales Associate in Brennhaven · 190 Nil per shift
-⏳ On shift · 25m left
+💼 Sales Associate in Brennhaven - 190 Nil per shift
+⏳ On shift - 25m left
 
 💵 Cash: 12,850 Nil
 🏦 Bank balance: 240,000 Nil
@@ -73,13 +73,13 @@ Friends can find you by sending /social K7Q2M9A.
 ━━━ Profile · travelling ━━━
 (edits message 42)
 👤 Sara
-🧭 On the way to Brennhaven · 2h 15m left
+🧭 On the way to Brennhaven - 2h 15m left
 
-⭐ Level 2 · 90 XP to level 3
-⚡ Energy: 82 of 100 · full in 18m
+⭐ Level 2 - 90 XP to level 3
+⚡ Energy: 82 of 100 - full in 18m
 ❤️ Health: 100 of 100
 
-💼 Courier in Ostmarch · 130 Nil per shift
+💼 Courier in Ostmarch - 130 Nil per shift
 
 💵 Cash: 4,440 Nil
 🏦 Bank balance: 0 Nil
@@ -98,7 +98,7 @@ This is your home: your condition, your money and your work at a glance. Use the
 
 👤 Sara
 
-⭐ Level 1 · 50 XP to level 2
+⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 100 of 100
 ❤️ Health: 100 of 100
 
@@ -115,7 +115,7 @@ This is your home: your condition, your money and your work at a glance. Use the
 👤 Sara
 📍 Calderis
 
-⭐ Level 100 · highest level reached
+⭐ Level 100 - highest level reached
 ⚡ Energy: 100 of 100
 ❤️ Health: 100 of 100
 
@@ -147,24 +147,70 @@ This is your home: your condition, your money and your work at a glance. Use the
   [🏛 Offices and policies] → gov:city
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
+━━━ Profile · in jail, the course paused ━━━
+(edits message 42)
+👤 Sara
+📍 Ostmarch
+
+⛓ You are in jail in Ostmarch - 1h 35m left
+⏳ Free at 16:10
+Until you are free you cannot travel, work a shift, withdraw from the bank or start a new course; the course you are on is paused too.
+
+⭐ Level 7 - 460 XP to level 8
+⚡ Energy: 64 of 100 - full in 54m
+❤️ Health: 92 of 100
+
+💼 Sales Associate in Ostmarch - 190 Nil per shift
+📖 Bookkeeping - paused (in jail), 40m left
+
+💵 Cash: 850 Nil
+🏦 Bank balance: 240,000 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [⛓ Jail] → crime:jail   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Dashboard · in jail ━━━
+(edits message 42)
+👤 Sara
+📍 Ostmarch
+
+⛓ You are in jail in Ostmarch - 1h 35m left
+⏳ Free at 16:10
+Until you are free you cannot travel, work a shift, withdraw from the bank or start a new course; the course you are on is paused too.
+
+⭐ Level 3
+⚡ Energy: 40 of 100
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 12,000 Nil
+  ───
+  [⛓ Jail] → crime:jail   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
 ━━━ Help · an unknown command ━━━
 (sends)
 I did not understand that message.
 
-The game is played with the buttons. You can also send these commands:
-/profile — your profile and home
-/map — the map and travel
-/job — my job
-/jobs — job openings
-/study — education and courses
-/bank — the bank, deposits and withdrawals
-/pay — pay another player
-/skills — your skills
-/social — your friends
-/find — find a player
-/city — offices and policies of your city
-/office — my office
-/settings — settings
+The game is played with the buttons. You can also send these words, with or without "/":
+• profile - your home and condition
+• crime - crime, in your city's group only
+• jail - your time in jail, and bail
+• map - your city's map and its places
+• job - my job; "jobs" lists the openings
+• study - courses
+• bank - your balances; "deposit 5000" and "withdraw 5000"
+• pay - pay another player; in a group, reply to their message with "pay 5000"
+• skills
+• friends - and "find" with a player code or username
+• city - offices and policies; "office" is your own
+• settings
+• help - this screen
   ───
   [👤 Profile] → player:profile.get   │   [🗺 Map] → map:list
   [💼 My job] → job:status   │   [🎓 Education] → education:list
@@ -177,7 +223,7 @@ The game is played with the buttons. You can also send these commands:
 
 🌐 Game language: English
   ───
-  [🌐 Switch to فارسی] → player:language.set:fa
+  [🌐 Switch to ⁨فارسی⁩] → player:language.set:fa
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → player:settings
 
 ━━━ Settings · just changed the language ━━━
@@ -188,5 +234,5 @@ The game is played with the buttons. You can also send these commands:
 
 🌐 Game language: English
   ───
-  [🌐 Switch to فارسی] → player:language.set:fa
+  [🌐 Switch to ⁨فارسی⁩] → player:language.set:fa
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → player:settings

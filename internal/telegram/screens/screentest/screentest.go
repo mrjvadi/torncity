@@ -17,7 +17,8 @@
 // Problems lists everything on a screen that must never reach a player: a
 // Go "nil", a formatting error, an unfilled placeholder, an identifier, a
 // catalogue key or content code, ASCII digits or Latin words inside Persian
-// text, and blank values. Every snapshot is linted, so a bug of that kind
+// text, English command syntax inside Persian text, the old « · » separator,
+// a hyphen touching a number (it reads as a minus sign), and blank values. Every snapshot is linted, so a bug of that kind
 // fails the build the moment a screen starts showing it.
 package screentest
 
@@ -205,6 +206,16 @@ var (
 	asciiDigits = regexp.MustCompile(`[0-9]+`)
 	blankValue  = regexp.MustCompile(`: *$|\(\s*\)|« *»|“ *”|  \S| $`)
 	bareBullet  = regexp.MustCompile(`^\s*•\s*$`)
+	// middleDot is the old separator between facts on one line. Beside
+	// Persian digits it reads as a decimal mark; « - » replaced it.
+	middleDot = regexp.MustCompile(`·`)
+	// touchingHyphen is a hyphen with a digit directly on either side, which
+	// a reader takes for a minus sign (or, between two numbers, a range).
+	// The separator is « - », with a space on each side.
+	touchingHyphen = regexp.MustCompile(`[0-9\x{06F0}-\x{06F9}\x{0660}-\x{0669}]-|-[0-9\x{06F0}-\x{06F9}\x{0660}-\x{0669}]`)
+	// commandSyntax is a slash-command written into Persian prose. A Persian
+	// screen names the Persian word for it (command_alias) or a button.
+	commandSyntax = regexp.MustCompile(`/[a-z_]+`)
 )
 
 // Problems lists what is wrong with one piece of visible text in lang.
@@ -241,6 +252,13 @@ func Problems(lang, text string, allowed ...string) []string {
 		add("a content code %q in %q", m, text)
 	}
 
+	if m := middleDot.FindString(text); m != "" {
+		add("the separator «·» in %q; use « - »", text)
+	}
+	if m := touchingHyphen.FindString(prose); m != "" {
+		add("a hyphen touching a number (%q) in %q; the separator is « - » with spaces", m, text)
+	}
+
 	for _, line := range strings.Split(text, "\n") {
 		if bareBullet.MatchString(line) {
 			add("an empty list line in %q", text)
@@ -259,6 +277,9 @@ func Problems(lang, text string, allowed ...string) []string {
 
 	switch lang {
 	case "fa":
+		if m := commandSyntax.FindString(text); m != "" {
+			add("English command syntax %q in Persian text %q; name the Persian word (command_alias) or a button", m, text)
+		}
 		if m := latinWord.FindString(prose); m != "" {
 			add("a Latin word %q in Persian text %q", m, text)
 		}

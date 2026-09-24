@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/crime"
+	"github.com/mrjvadi/torncity/internal/domain/inventory"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -37,6 +39,11 @@ type situation struct {
 	hasVenue   bool
 	hold       detention
 	atWork     bool
+	// walking: on the way between two places of the city.
+	walking bool
+	// carried is what the player carries: the tools a crime may need and
+	// the gear that helps it.
+	carried []inventory.Holding
 }
 
 // situate reads everything a crime screen needs about the player, with
@@ -53,6 +60,9 @@ func (h *CrimeHandler) situate(ctx context.Context, tx application.Tx, snap *con
 	if s.hold, err = detained(ctx, tx, p.ID, now); err != nil {
 		return s, err
 	}
+	if _, _, s.carried, err = carried(ctx, tx, p.ID); err != nil {
+		return s, err
+	}
 	shift, err := activeShift(ctx, tx, p.ID)
 	if err != nil {
 		return s, err
@@ -60,6 +70,11 @@ func (h *CrimeHandler) situate(ctx context.Context, tx application.Tx, snap *con
 	s.atWork = shift != nil
 	if s.stand.travelling || s.stand.here() == "" {
 		return s, nil
+	}
+	if _, err := tx.Places().ActiveMove(ctx, p.ID); err == nil {
+		s.walking = true
+	} else if !isSentinel(err, application.ErrNotMoving) {
+		return s, err
 	}
 	if s.city, err = h.cities.ByID(ctx, s.stand.here()); err != nil {
 		return s, err
@@ -75,6 +90,9 @@ func (s situation) candidate(snap *content.Snapshot) crime.Candidate {
 		Skills:         domainSkills(s.stand.skills),
 		Tier:           crime.TierOf(snap.CrimeTierLadder(), s.profile.CriminalXP),
 		Certifications: certificateCodes(s.stand.certs),
+	}
+	for _, h := range s.carried {
+		c.Tools = append(c.Tools, h.Item)
 	}
 	if s.city != nil {
 		c.Facilities = snap.CityFacilities(s.city.Code)
@@ -95,6 +113,8 @@ func (h *CrimeHandler) blocked(s situation, nerve int, now time.Time) (kind stri
 		return screens.CrimeBlockedWork, 0, 0, 0
 	case s.stand.travelling:
 		return screens.CrimeBlockedTravelling, 0, 0, 0
+	case s.walking:
+		return screens.CrimeBlockedWalking, 0, 0, 0
 	case s.city == nil:
 		return screens.CrimeBlockedNowhere, 0, 0, 0
 	case s.profile.Nerve < nerve:
@@ -133,6 +153,12 @@ func (h *CrimeHandler) requirements(snap *content.Snapshot, cr crime.Crime, s si
 		out = append(out, screens.CrimeRequirement{Requirement: screens.Requirement{
 			Kind: screens.ReqCertificate, Met: s.stand.holds(code), CourseCode: ref.Code, CourseName: ref.Name}})
 	}
+	for _, code := range r.Tools {
+		out = append(out, screens.CrimeRequirement{
+			Requirement: screens.Requirement{Kind: screens.ReqTool, Met: slices.Contains(cand.Tools, code)},
+			Tool:        itemNamed(snap, code),
+		})
+	}
 	for _, f := range r.Facilities {
 		met := false
 		for _, have := range cand.Facilities {
@@ -155,6 +181,32 @@ func (h *CrimeHandler) requirements(snap *content.Snapshot, cr crime.Crime, s si
 		out = append(out, req)
 	}
 	return out
+}
+
+// gear is what the player's carried tools add to one attempt of a crime, and
+// what the attempt wears of them.
+func (h *CrimeHandler) gear(snap *content.Snapshot, cr crime.Crime, s situation) (crime.Gear, []inventory.Wear) {
+	return inventory.GearFor(snap.ItemRules(), s.carried, cr.Code, cr.Category, h.rules.GearCaps)
+}
+
+// cooldown is how long the player must still wait before trying a crime
+// again, zero when they may.
+func (h *CrimeHandler) cooldown(ctx context.Context, tx application.Tx, snap *content.Snapshot, cr crime.Crime,
+	playerID string, now time.Time,
+) (time.Duration, error) {
+	catCD := snap.CategoryCooldown(cr.Category)
+	if cr.Cooldown <= 0 && catCD <= 0 {
+		return 0, nil
+	}
+	last, err := tx.Crime().LastAttempt(ctx, playerID, cr.Code)
+	if err != nil {
+		return 0, err
+	}
+	lastCat, err := tx.Crime().LastAttemptInCategory(ctx, playerID, cr.Category)
+	if err != nil {
+		return 0, err
+	}
+	return crime.CooldownLeft(last, cr.Cooldown, lastCat, catCD, h.scale, now), nil
 }
 
 // eligible reports whether every requirement of a crime is met here.
@@ -316,19 +368,28 @@ func (h *CrimeHandler) View(ctx context.Context, meta envelope.Metadata, req Cri
 		if !cr.Hits(crime.TargetNPC) {
 			victim = crime.TargetPlayer
 		}
+		g, _ := h.gear(snap, cr, s)
+		odds := cr.OddsOf(crime.Situation{
+			Skills: domainSkills(s.stand.skills), Heat: s.profile.Heat, Victim: victim, VenueSecurity: s.venue.Security, Gear: g,
+		})
 		view = screens.CrimeDetailView{
-			Crime:       crimeNamed(def),
-			Nerve:       cr.NerveCost,
-			Duration:    h.scale.RealWait(cr.Duration),
-			HitsPlayers: cr.Hits(crime.TargetPlayer),
-			HitsNPCs:    cr.Hits(crime.TargetNPC),
-			MinTake:     cr.Reward.MinCash.Minor(),
-			MaxTake:     cr.Reward.MaxCash.Minor(),
-			ChanceBPS: cr.SuccessChance(crime.Situation{
-				Skills: domainSkills(s.stand.skills), Heat: s.profile.Heat, Victim: victim, VenueSecurity: s.venue.Security,
-			}),
+			Crime:        crimeNamed(def),
+			Nerve:        g.NerveCost(cr.NerveCost),
+			Duration:     h.scale.RealWait(cr.Duration),
+			HitsPlayers:  cr.Hits(crime.TargetPlayer),
+			HitsNPCs:     cr.Hits(crime.TargetNPC),
+			MinTake:      cr.Reward.MinCash.Minor(),
+			MaxTake:      cr.Reward.MaxCash.Minor(),
+			ChanceBPS:    odds.Chance,
+			Odds:         screens.OddsView{Base: odds.Base, Skill: odds.Skill, Awareness: odds.Awareness, Heat: odds.Heat, Gear: odds.Gear},
 			Requirements: h.requirements(snap, cr, s),
+			GearCatchBPS: g.CatchBPS, GearWitnessBPS: g.WitnessBPS, GearSolveBPS: g.SolveBPS, GearRewardBPS: g.RewardBPS,
 		}
+		left, err := h.cooldown(ctx, tx, snap, cr, p.ID, now)
+		if err != nil {
+			return err
+		}
+		view.Cooldown, view.CooldownLeft = h.scale.RealWait(max(cr.Cooldown, snap.CategoryCooldown(cr.Category))), left
 		for _, c := range snap.CrimeCategories() {
 			if c.Code == def.Category {
 				view.Category = named(c.Code, c.Name)
@@ -346,7 +407,10 @@ func (h *CrimeHandler) View(ctx context.Context, meta envelope.Metadata, req Cri
 		view.JailMax = h.scale.RealWait(cr.Failure.JailMax * time.Duration(pct.JailTermPct) / 100)
 		view.FineMin = cr.Failure.FineMin.Minor() * int64(pct.FinePct) / 100
 		view.FineMax = cr.Failure.FineMax.Minor() * int64(pct.FinePct) / 100
-		view.Blocked, view.Need, view.Have, view.Wait = h.blocked(s, cr.NerveCost, now)
+		view.Blocked, view.Need, view.Have, view.Wait = h.blocked(s, g.NerveCost(cr.NerveCost), now)
+		if view.Blocked == "" && left > 0 {
+			view.Blocked, view.Wait = screens.CrimeBlockedCooldown, left
+		}
 		view.CanCommit = view.Blocked == "" && h.eligible(snap, cr, s)
 		if view.CanCommit {
 			view.Nonce = h.nonce()
@@ -408,6 +472,7 @@ func (h *CrimeHandler) Jail(ctx context.Context, meta envelope.Metadata) (*prese
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
+	snap := h.content.Current()
 	lang := meta.Language
 	var view screens.JailView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -435,6 +500,14 @@ func (h *CrimeHandler) Jail(ctx context.Context, meta envelope.Metadata) (*prese
 		view = screens.JailView{
 			InJail: true, CityCode: city.Code, City: city.Name, Reason: s.Reason,
 			Remaining: s.EndsAt.Sub(now), EndsAt: s.EndsAt, Bail: bail.Minor(), Nonce: h.nonce(),
+		}
+		if bail.Minor() > 0 {
+			w, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
+			if err != nil {
+				return err
+			}
+			choice := paymentChoice(w.Plan(bail, snap.Accepts(content.ServiceBail)), w)
+			view.Payment = &choice
 		}
 		return nil
 	})

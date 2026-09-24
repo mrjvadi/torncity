@@ -176,3 +176,20 @@ func (t *tx) Education() application.EducationRepository { return &EducationRepo
 // Crime returns the crime repository bound to this transaction, so an
 // attempt commits with its nerve, its money and its sentence.
 func (t *tx) Crime() application.CrimeRepository { return &CrimeRepository{q: t.q} }
+
+// Places returns the place repository bound to this transaction, so a walk
+// commits with the energy it cost and its scheduled end.
+func (t *tx) Places() application.PlaceRepository { return &PlaceRepository{q: t.q} }
+
+// Items returns the goods repository bound to this transaction, so goods
+// move with the money that paid for them.
+func (t *tx) Items() application.ItemRepository { return &ItemRepository{q: t.q} }
+
+// Shops returns the shelves and sales of the city shops.
+func (t *tx) Shops() application.ShopRepository { return &ShopRepository{q: t.q} }
+
+// Market returns the player market's orders and trades.
+func (t *tx) Market() application.MarketRepository { return &MarketRepository{q: t.q} }
+
+// Auctions returns the auction house.
+func (t *tx) Auctions() application.AuctionRepository { return &AuctionRepository{q: t.q} }

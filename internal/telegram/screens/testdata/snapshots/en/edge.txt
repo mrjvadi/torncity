@@ -1,0 +1,23 @@
+━━━ Channel · a private command sent in a group ━━━
+(sends)
+🔒 This is done in your private chat with the bot. Press the button below to continue there.
+  ───
+  [🔒 Continue in private] → https://t.me/torn_bot?start=run-bank-show
+
+━━━ Channel · a group command sent in the private chat ━━━
+(sends)
+👥 This can only be done in a group. Send it again in your city's group.
+  ───
+  [👤 Profile] → player:profile.get
+
+━━━ Channel · a group command, the player's city has a group ━━━
+(sends)
+👥 This can only be done in a group. Send it again in the Ostmarch group.
+  ───
+  [👤 Profile] → player:profile.get
+
+━━━ Question · cancelled ━━━
+(sends)
+✖️ Cancelled. Nothing changed.
+  ───
+  [👤 Profile] → player:profile.get

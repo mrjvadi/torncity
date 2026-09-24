@@ -27,7 +27,8 @@ const (
 	attemptColumns = `id::text, player_id::text, crime_code, category, city_id::text, venue_code, victim_kind,
 	       COALESCE(victim_player_id::text, ''), status, chance_bps, nerve_cost, reward_amount, witnessed,
 	       fine_amount, fine_paid, COALESCE(jail_sentence_id::text, ''), COALESCE(ledger_transaction_id::text, ''),
-	       COALESCE(game_action_id::text, ''), content_version, started_at, resolves_at, resolved_at`
+	       COALESCE(game_action_id::text, ''), content_version, started_at, resolves_at, resolved_at,
+       gear_solve_bps, COALESCE(stolen_item, ''), COALESCE(stolen_piece_id::text, ''), COALESCE(stolen_qty, 0)`
 	sentenceColumns = `id::text, player_id::text, city_id::text, COALESCE(crime_id::text, ''), reason, term_seconds,
 	       game_action_id::text, status, bail_paid, COALESCE(bail_transaction_id::text, ''),
 	       starts_at, ends_at, released_at`
@@ -123,7 +124,8 @@ func scanAttempt(row pgx.Row) (*application.CrimeAttempt, error) {
 	if err := row.Scan(&a.ID, &a.PlayerID, &a.CrimeCode, &a.Category, &a.CityID, &a.VenueCode, &a.VictimKind,
 		&a.VictimPlayerID, &a.Status, &a.ChanceBPS, &a.NerveCost, &a.Reward, &a.Witnessed,
 		&a.FineAmount, &a.FinePaid, &a.JailSentenceID, &a.LedgerTransactionID, &a.GameActionID,
-		&a.ContentVersion, &a.StartedAt, &a.ResolvesAt, &a.ResolvedAt); err != nil {
+		&a.ContentVersion, &a.StartedAt, &a.ResolvesAt, &a.ResolvedAt,
+		&a.GearSolveBPS, &a.StolenItem, &a.StolenPieceID, &a.StolenQty); err != nil {
 		return nil, err
 	}
 	a.StartedAt, a.ResolvesAt, a.ResolvedAt = a.StartedAt.UTC(), a.ResolvesAt.UTC(), utcPtr(a.ResolvedAt)
@@ -163,13 +165,13 @@ func (r *CrimeRepository) RecordAttempt(ctx context.Context, a application.Crime
 		`INSERT INTO crimes (id, player_id, crime_code, category, city_id, venue_code, victim_kind, victim_player_id,
 		                     status, chance_bps, nerve_cost, reward_amount, witnessed, fine_amount, fine_paid,
 		                     jail_sentence_id, ledger_transaction_id, game_action_id, content_version,
-		                     started_at, resolves_at, resolved_at)
+		                     started_at, resolves_at, resolved_at, gear_solve_bps)
 		 VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8::uuid, $9, $10, $11, $12, $13, $14, $15,
-		         $16::uuid, $17::uuid, $18::uuid, $19, $20, $21, $22)`,
+		         $16::uuid, $17::uuid, $18::uuid, $19, $20, $21, $22, $23)`,
 		id, a.PlayerID, a.CrimeCode, a.Category, a.CityID, a.VenueCode, a.VictimKind, nullableUUID(a.VictimPlayerID),
 		a.Status, a.ChanceBPS, a.NerveCost, a.Reward, a.Witnessed, a.FineAmount, a.FinePaid,
 		nullableUUID(a.JailSentenceID), nullableUUID(a.LedgerTransactionID), nullableUUID(a.GameActionID),
-		a.ContentVersion, a.StartedAt.UTC(), a.ResolvesAt.UTC(), resolved)
+		a.ContentVersion, a.StartedAt.UTC(), a.ResolvesAt.UTC(), resolved, a.GearSolveBPS)
 	if violates(err, sqlstateUniqueViolation, crimesOneInProgressIdx) {
 		return application.ErrCrimeInProgress
 	}
@@ -189,10 +191,12 @@ func (r *CrimeRepository) ResolveAttempt(ctx context.Context, a application.Crim
 	tag, err := r.q.Exec(ctx,
 		`UPDATE crimes
 		    SET status = $2, reward_amount = $3, witnessed = $4, fine_amount = $5, fine_paid = $6,
-		        jail_sentence_id = $7::uuid, ledger_transaction_id = $8::uuid, resolved_at = $9
+		        jail_sentence_id = $7::uuid, ledger_transaction_id = $8::uuid, resolved_at = $9,
+		        stolen_item = $11, stolen_piece_id = $12::uuid, stolen_qty = $13
 		  WHERE id = $1::uuid AND status = $10`,
 		a.ID, a.Status, a.Reward, a.Witnessed, a.FineAmount, a.FinePaid,
-		nullableUUID(a.JailSentenceID), nullableUUID(a.LedgerTransactionID), resolved, application.CrimeInProgress)
+		nullableUUID(a.JailSentenceID), nullableUUID(a.LedgerTransactionID), resolved, application.CrimeInProgress,
+		nullableText(a.StolenItem), nullableUUID(a.StolenPieceID), nullableInt(a.StolenQty))
 	if err != nil {
 		if isInvalidUUIDText(err) {
 			return application.ErrNoCrimeInProgress
@@ -286,7 +290,8 @@ func (r *CrimeRepository) Bystanders(ctx context.Context, cityID, thiefID string
 		        (SELECT max(c.started_at) FROM crimes c
 		          WHERE c.victim_player_id = p.id AND c.status = 'succeeded'),
 		        (SELECT max(c.started_at) FROM crimes c
-		          WHERE c.victim_player_id = p.id AND c.player_id = $2::uuid AND c.status = 'succeeded')
+		          WHERE c.victim_player_id = p.id AND c.player_id = $2::uuid AND c.status = 'succeeded'),
+		        COALESCE(p.place_code, '')
 		   FROM players p
 		   LEFT JOIN player_stats s ON s.player_id = p.id
 		  WHERE p.city_id = $1::uuid
@@ -294,6 +299,7 @@ func (r *CrimeRepository) Bystanders(ctx context.Context, cityID, thiefID string
 		    AND p.id <> $2::uuid
 		    AND p.last_active_at >= $3
 		    AND NOT EXISTS (SELECT 1 FROM travels t WHERE t.player_id = p.id AND t.status = 'in_transit')
+		    AND NOT EXISTS (SELECT 1 FROM place_moves m WHERE m.player_id = p.id AND m.status = 'moving')
 		    AND NOT EXISTS (SELECT 1 FROM jail_sentences j
 		                     WHERE j.player_id = p.id AND j.status = 'serving' AND j.ends_at > $5)
 		  ORDER BY p.id`,
@@ -312,7 +318,7 @@ func (r *CrimeRepository) Bystanders(ctx context.Context, cityID, thiefID string
 			active, robbed, hit *time.Time
 		)
 		if err := rows.Scan(&b.PlayerID, &b.Level, &b.CreatedAt, &active, &b.ShiftCareer, &b.ArrivedBy,
-			&robbed, &hit); err != nil {
+			&robbed, &hit, &b.Place); err != nil {
 			return nil, fmt.Errorf("postgres: scanning bystander: %w", err)
 		}
 		b.CreatedAt = b.CreatedAt.UTC()
@@ -328,6 +334,39 @@ func (r *CrimeRepository) Bystanders(ctx context.Context, cityID, thiefID string
 		out = append(out, b)
 	}
 	return out, rows.Err()
+}
+
+// LastAttempt is when the player last attempted a crime, zero for never.
+func (r *CrimeRepository) LastAttempt(ctx context.Context, playerID, crimeCode string) (time.Time, error) {
+	return r.lastAttempt(ctx, `SELECT max(started_at) FROM crimes WHERE player_id = $1::uuid AND crime_code = $2`, playerID, crimeCode)
+}
+
+// LastAttemptInCategory is when the player last attempted any crime of a
+// category, zero for never.
+func (r *CrimeRepository) LastAttemptInCategory(ctx context.Context, playerID, category string) (time.Time, error) {
+	return r.lastAttempt(ctx, `SELECT max(started_at) FROM crimes WHERE player_id = $1::uuid AND category = $2`, playerID, category)
+}
+
+func (r *CrimeRepository) lastAttempt(ctx context.Context, sql, playerID, code string) (time.Time, error) {
+	var at *time.Time
+	err := r.q.QueryRow(ctx, sql, playerID, code).Scan(&at)
+	if isInvalidUUIDText(err) {
+		return time.Time{}, nil
+	}
+	if err != nil {
+		return time.Time{}, fmt.Errorf("postgres: reading the last attempt: %w", err)
+	}
+	if at == nil {
+		return time.Time{}, nil
+	}
+	return at.UTC(), nil
+}
+
+func nullableInt(v int64) *int64 {
+	if v == 0 {
+		return nil
+	}
+	return &v
 }
 
 // utcDay is the calendar day of t in UTC, as the date column stores it.

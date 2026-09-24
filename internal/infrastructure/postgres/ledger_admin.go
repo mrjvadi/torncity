@@ -77,11 +77,28 @@ type LedgerVerification struct {
 	// MoneySupply is the sum of every non-system balance: the money that
 	// exists in players' and organisations' hands.
 	MoneySupply string
+
+	// Goods, the item journal's invariants (migrations/0017): Goods is
+	// false before that migration, and the rest are then empty.
+	Goods bool
+	// DriftedStacks lists up to limit stacks whose quantity disagrees with
+	// the journal's units in less units out.
+	DriftedStacks []DriftedStack
+	// OrphanPieces counts pieces with no journal row bringing them into the
+	// world from a recorded origin.
+	OrphanPieces int64
+}
+
+// DriftedStack is a stack the journal does not account for.
+type DriftedStack struct {
+	PlayerID, Item, Holding string
+	Held, Journal           int64
 }
 
 // OK reports whether every invariant holds.
 func (v LedgerVerification) OK() bool {
-	return v.LedgerSum == "0" && len(v.Unbalanced) == 0 && len(v.Drifted) == 0
+	return v.LedgerSum == "0" && len(v.Unbalanced) == 0 && len(v.Drifted) == 0 &&
+		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0
 }
 
 // VerifyLedger runs the three invariants of docs/adr/0009-economic-control.md
@@ -149,7 +166,59 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 		  FROM accounts`).Scan(&v.Accounts, &v.MoneySupply); err != nil {
 		return v, fmt.Errorf("postgres: reading money supply: %w", err)
 	}
-	return v, nil
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.item_movements') IS NOT NULL`).Scan(&v.Goods); err != nil {
+		return v, fmt.Errorf("postgres: looking for the item journal: %w", err)
+	}
+	if !v.Goods {
+		return v, nil
+	}
+	return v, a.verifyGoods(ctx, &v, limit)
+}
+
+// verifyGoods runs the item journal's two invariants: every stack is the
+// journal's units in less its units out, and every piece came into the
+// world from a recorded origin.
+func (a *EconomyAdmin) verifyGoods(ctx context.Context, v *LedgerVerification, limit int) error {
+	rows, err := a.q.Query(ctx, `
+		WITH flows AS (
+		    SELECT to_player AS player_id, item_code, to_holding AS holding, quantity AS delta
+		      FROM item_movements WHERE piece_id IS NULL AND to_player IS NOT NULL
+		    UNION ALL
+		    SELECT from_player, item_code, from_holding, -quantity
+		      FROM item_movements WHERE piece_id IS NULL AND from_player IS NOT NULL
+		), journal AS (
+		    SELECT player_id, item_code, holding, SUM(delta) AS qty FROM flows GROUP BY 1, 2, 3
+		)
+		SELECT COALESCE(s.player_id, j.player_id)::text, COALESCE(s.item_code, j.item_code),
+		       COALESCE(s.holding, j.holding), COALESCE(s.quantity, 0), COALESCE(j.qty, 0)
+		  FROM item_stacks s
+		  FULL JOIN journal j ON j.player_id = s.player_id AND j.item_code = s.item_code AND j.holding = s.holding
+		 WHERE COALESCE(s.quantity, 0) <> COALESCE(j.qty, 0)
+		 ORDER BY 1, 2, 3
+		 LIMIT $1`, limit)
+	if err != nil {
+		return fmt.Errorf("postgres: checking stacks against the item journal: %w", err)
+	}
+	for rows.Next() {
+		var d DriftedStack
+		if err := rows.Scan(&d.PlayerID, &d.Item, &d.Holding, &d.Held, &d.Journal); err != nil {
+			rows.Close()
+			return err
+		}
+		v.DriftedStacks = append(v.DriftedStacks, d)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	if err := a.q.QueryRow(ctx, `
+		SELECT count(*) FROM item_pieces p
+		 WHERE NOT EXISTS (SELECT 1 FROM item_movements m
+		                    WHERE m.piece_id = p.id AND m.from_player IS NULL
+		                      AND m.reason IN ('shop_purchase', 'crime_loot', 'grant'))`).Scan(&v.OrphanPieces); err != nil {
+		return fmt.Errorf("postgres: checking pieces' origins: %w", err)
+	}
+	return nil
 }
 
 // AuditEntry is one audit_logs row.

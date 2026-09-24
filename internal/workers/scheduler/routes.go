@@ -55,6 +55,17 @@ const (
 
 	// ActionTypeJailRelease is a sentence served.
 	ActionTypeJailRelease = "jail_release"
+
+	// ActionTypePlaceMove is a walk between two places of a city ending.
+	ActionTypePlaceMove = "place_move"
+
+	// ActionTypeMarketExpiry is a resting market order's time running out:
+	// what is left of its escrow comes back.
+	ActionTypeMarketExpiry = "market_expiry"
+
+	// ActionTypeAuctionClose is an auction reaching its end: sold to the
+	// standing bid or returned unsold.
+	ActionTypeAuctionClose = "auction_close"
 )
 
 // routes maps an action type to the command it is published as.
@@ -74,6 +85,11 @@ var routes = map[string]Route{
 	ActionTypeCrime:         {Domain: "crime", Action: "resolve"},
 	ActionTypeInvestigation: {Domain: "crime", Action: "conclude"},
 	ActionTypeJailRelease:   {Domain: "crime", Action: "release"},
+
+	ActionTypePlaceMove: {Domain: "place", Action: "arrive"},
+
+	ActionTypeMarketExpiry: {Domain: "market", Action: "expire"},
+	ActionTypeAuctionClose: {Domain: "auction", Action: "close"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

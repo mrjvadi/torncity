@@ -64,9 +64,10 @@ Search by one of these:
 👥 Friends
 
 • Kaveh
-• Nilou · waiting for a reply
-• A player · waiting for a reply
-• Kaveh · blocked
+• Nilou - wants to be your friend
+• A player - waiting for their reply
+• Kaveh - waiting for their reply
+• Kaveh - blocked
 
 Page 1 of 2
   ───
@@ -106,3 +107,34 @@ To find a player, send their Telegram username or player code, for example /soci
 ✅ Friend request accepted. This player is now in your friends list.
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list
+
+━━━ Notice · friend request received ━━━
+(sends)
+👥 Kaveh wants to be your friend.
+🆔 Player code: B3C4D5F
+
+Tap the button below to accept. The request also stays in your friends list.
+  ───
+  [✅ Accept Kaveh] → social:friend.accept:p-friend
+  [👥 Friends] → social:friend.list
+
+━━━ Notice · friend request received · nameless ━━━
+(sends)
+👥 A player wants to be your friend.
+
+Tap the button below to accept. The request also stays in your friends list.
+  ───
+  [✅ Accept A player] → social:friend.accept:p-friend
+  [👥 Friends] → social:friend.list
+
+━━━ Notice · friend request accepted ━━━
+(sends)
+👥 Kaveh accepted your friend request. You are now friends.
+  ───
+  [👥 Friends] → social:friend.list
+
+━━━ Notice · friend request accepted · nameless ━━━
+(sends)
+👥 Your friend request was accepted. This player is now in your friends list.
+  ───
+  [👥 Friends] → social:friend.list

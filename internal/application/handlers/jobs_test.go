@@ -226,6 +226,27 @@ func (f *fakeEducation) Certifications(_ context.Context, playerID string) ([]ap
 	return append([]application.Certification(nil), f.certs[playerID]...), nil
 }
 
+func (f *fakeEducation) Pause(_ context.Context, playerID string, at time.Time) (bool, error) {
+	e, ok := f.active[playerID]
+	if !ok || e.PausedAt != nil {
+		return false, nil
+	}
+	e.PausedAt = &at
+	f.active[playerID] = e
+	return true, nil
+}
+
+func (f *fakeEducation) Resume(_ context.Context, id string, startedAt, completesAt time.Time, actionID string) (bool, error) {
+	for k, e := range f.active {
+		if e.ID == id && e.PausedAt != nil {
+			e.StartedAt, e.CompletesAt, e.GameActionID, e.PausedAt = startedAt, completesAt, actionID, nil
+			f.active[k] = e
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // fakeWorkLedger keeps balances by account and refuses what the real ledger
 // refuses: an unbalanced transaction, an unknown reason, an overdraft.
 type fakeWorkLedger struct {
@@ -385,6 +406,8 @@ func newWorkHarness(t *testing.T) *workHarness {
 	h.uow.tx.players.byTelegramID[workTelegramID] = h.player
 	h.uow.w.jobs.residence[h.player.ID] = tehranID
 	h.uow.tx.stats.rows[h.player.ID] = storedStats(application.Stats{PlayerID: h.player.ID, UpdatedAt: h.now}, player.NewStats())
+	// Courses are joined at the university quarter, where the player stands.
+	h.uow.tx.places.at[h.player.ID] = "university"
 	return h
 }
 
@@ -879,7 +902,7 @@ func TestEnrollThenComplete(t *testing.T) {
 	ctx := context.Background()
 	h.uow.w.ledger.balances[accountID(application.AccountPlayerCash, h.player.ID)] = 1000
 
-	resp, err := h.edu.Enroll(ctx, h.meta("req-e", "education.enroll"), CourseRequest{Course: "first_aid"})
+	resp, err := h.edu.Enroll(ctx, h.meta("req-e", "education.enroll"), CourseRequest{Course: "first_aid", Method: "cash"})
 	if err != nil || !strings.Contains(resp.Text, "First Aid") {
 		t.Fatalf("Enroll = %q, %v", workText(resp), err)
 	}
@@ -900,7 +923,7 @@ func TestEnrollThenComplete(t *testing.T) {
 	enrolment := h.uow.w.edu.active[h.player.ID]
 
 	// A second course while one runs is refused, and costs nothing.
-	resp, err = h.edu.Enroll(ctx, h.meta("req-e2", "education.enroll"), CourseRequest{Course: "driving_licence"})
+	resp, err = h.edu.Enroll(ctx, h.meta("req-e2", "education.enroll"), CourseRequest{Course: "driving_licence", Method: "cash"})
 	if err != nil || !strings.Contains(resp.Text, "already studying") {
 		t.Fatalf("second Enroll = %q, %v; want already enrolled", workText(resp), err)
 	}
@@ -952,30 +975,116 @@ func TestEnrollThenComplete(t *testing.T) {
 	}
 }
 
-// A player who cannot pay the fee is told the fee and their cash, and is not
-// enrolled.
+// A player who cannot pay the fee either way is told the fee and both
+// balances, privately, and is not enrolled.
 func TestEnrollWithoutTheFee(t *testing.T) {
 	h := newWorkHarness(t)
 	h.uow.w.ledger.balances[accountID(application.AccountPlayerCash, h.player.ID)] = 100
-	resp, err := h.edu.Enroll(context.Background(), h.meta("req-e", "education.enroll"), CourseRequest{Course: "first_aid"})
-	if err != nil || !strings.Contains(resp.Text, "600") || !strings.Contains(resp.Text, "100") {
-		t.Fatalf("Enroll = %q, %v; want the fee and the cash", workText(resp), err)
+	h.uow.w.ledger.balances[accountID(application.AccountPlayerBank, h.player.ID)] = 250
+	resp, err := h.edu.Enroll(context.Background(), h.meta("req-e", "education.enroll"), CourseRequest{Course: "first_aid", Method: "cash"})
+	if err != nil || !strings.Contains(resp.Text, "600") || !strings.Contains(resp.Text, "100") ||
+		!strings.Contains(resp.Text, "250") || !resp.Private {
+		t.Fatalf("Enroll = %q, %v; want the fee and both balances, privately", workText(resp), err)
 	}
 	if len(h.uow.w.edu.active) != 0 || len(h.uow.tx.actions.scheduled) != 0 {
 		t.Error("an unpaid enrolment was recorded or scheduled")
 	}
 }
 
-// A course taught in another city, or one whose prerequisite is missing, is
-// not on offer at all.
-func TestCoursesNotReachedAreNotOffered(t *testing.T) {
+// The owner's case: 105 in cash, the fee in the bank. The price screen
+// offers the card alone, with a note, and the card pays.
+func TestEnrollByCardWhenCashIsShort(t *testing.T) {
 	h := newWorkHarness(t)
 	ctx := context.Background()
-	for _, code := range []string{"nursing", "culinary_arts"} {
+	h.uow.w.ledger.balances[accountID(application.AccountPlayerCash, h.player.ID)] = 105
+	h.uow.w.ledger.balances[accountID(application.AccountPlayerBank, h.player.ID)] = 5000
+
+	view, err := h.edu.View(ctx, h.meta("req-v", "education.view"), CourseRequest{Course: "first_aid"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := workText(view)
+	if !strings.Contains(text, "education:enroll:first_aid:card") || strings.Contains(text, "education:enroll:first_aid:cash") {
+		t.Fatalf("the price screen should offer the card alone:\n%s", text)
+	}
+	if !strings.Contains(text, "pay by card") {
+		t.Errorf("no note says why cash is not offered:\n%s", text)
+	}
+
+	// A press without a method shows the same price screen and charges
+	// nothing.
+	resp, err := h.edu.Enroll(ctx, h.meta("req-e0", "education.enroll"), CourseRequest{Course: "first_aid"})
+	if err != nil || !strings.Contains(workText(resp), "education:enroll:first_aid:card") {
+		t.Fatalf("Enroll without a method = %q, %v", workText(resp), err)
+	}
+	if len(h.uow.w.edu.active) != 0 {
+		t.Fatal("a press without a method enrolled")
+	}
+
+	resp, err = h.edu.Enroll(ctx, h.meta("req-e", "education.enroll"), CourseRequest{Course: "first_aid", Method: "card"})
+	if err != nil || !strings.Contains(resp.Text, "First Aid") {
+		t.Fatalf("Enroll by card = %q, %v", workText(resp), err)
+	}
+	if h.cash() != 105 {
+		t.Errorf("cash = %d, want untouched 105", h.cash())
+	}
+	if bank := h.uow.w.ledger.balances[accountID(application.AccountPlayerBank, h.player.ID)]; bank != 4400 {
+		t.Errorf("bank = %d, want 5000 - 600", bank)
+	}
+	if h.uow.w.ledger.balances[application.SystemSinkAccountID] != 600 {
+		t.Error("the fee did not reach the sink")
+	}
+}
+
+// Both purses covering the fee offer both buttons; a method the course does
+// not take is refused as a forged press.
+func TestEnrollOffersBothMethods(t *testing.T) {
+	h := newWorkHarness(t)
+	ctx := context.Background()
+	h.uow.w.ledger.balances[accountID(application.AccountPlayerCash, h.player.ID)] = 1000
+	h.uow.w.ledger.balances[accountID(application.AccountPlayerBank, h.player.ID)] = 1000
+	view, err := h.edu.View(ctx, h.meta("req-v", "education.view"), CourseRequest{Course: "first_aid"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := workText(view)
+	if !strings.Contains(text, "education:enroll:first_aid:card") || !strings.Contains(text, "education:enroll:first_aid:cash") {
+		t.Fatalf("both methods should be offered:\n%s", text)
+	}
+	if _, err := h.edu.Enroll(ctx, h.meta("req-x", "education.enroll"), CourseRequest{Course: "first_aid", Method: "cheque"}); !stderrors.Is(err, application.ErrPaymentNotAccepted) {
+		t.Fatalf("a made-up method = %v", err)
+	}
+}
+
+// A course taught in another city is shown with where it is taught, and
+// without a way to enrol here; a course that does not exist is not on offer.
+func TestCoursesTaughtElsewhereSayWhere(t *testing.T) {
+	h := newWorkHarness(t)
+	ctx := context.Background()
+	for code, city := range map[string]string{"nursing": "Fenwick Span", "culinary_arts": "Brennhaven"} {
 		resp, err := h.edu.View(ctx, h.meta("req-"+code, "education.view"), CourseRequest{Course: code})
-		if err != nil || !strings.Contains(resp.Text, "not on offer") {
-			t.Errorf("View(%s) = %q, %v; want not on offer", code, workText(resp), err)
+		if err != nil || !strings.Contains(resp.Text, city) || strings.Contains(workText(resp), "education:enroll") {
+			t.Errorf("View(%s) = %q, %v; want where it is taught and no enrolment", code, workText(resp), err)
 		}
+	}
+	resp, err := h.edu.View(ctx, h.meta("req-x", "education.view"), CourseRequest{Course: "alchemy"})
+	if err != nil || !strings.Contains(resp.Text, "not on offer") {
+		t.Errorf("View(alchemy) = %q, %v; want not on offer", workText(resp), err)
+	}
+}
+
+// A course is joined where it is taught: from the city centre, the walk to
+// the university quarter is offered instead, and nothing is charged.
+func TestEnrolNeedsTheUniversity(t *testing.T) {
+	h := newWorkHarness(t)
+	h.uow.tx.places.at[h.player.ID] = ""
+	h.uow.w.ledger.balances[accountID(application.AccountPlayerCash, h.player.ID)] = 1000
+	resp, err := h.edu.Enroll(context.Background(), h.meta("req-e", "education.enroll"), CourseRequest{Course: "first_aid", Method: "cash"})
+	if err != nil || !strings.Contains(workText(resp), "place:go:university") {
+		t.Fatalf("Enroll from the centre = %q, %v; want the walk to the university", workText(resp), err)
+	}
+	if h.cash() != 1000 || len(h.uow.w.edu.active) != 0 {
+		t.Error("an enrolment away from the university charged or enrolled")
 	}
 }
 
@@ -983,7 +1092,7 @@ func TestCoursesNotReachedAreNotOffered(t *testing.T) {
 func TestEducationPayloadRoundTrips(t *testing.T) {
 	h := newWorkHarness(t)
 	h.uow.w.ledger.balances[accountID(application.AccountPlayerCash, h.player.ID)] = 1000
-	if _, err := h.edu.Enroll(context.Background(), h.meta("req-e", "education.enroll"), CourseRequest{Course: "evening_accounting"}); err != nil {
+	if _, err := h.edu.Enroll(context.Background(), h.meta("req-e", "education.enroll"), CourseRequest{Course: "evening_accounting", Method: "cash"}); err != nil {
 		t.Fatal(err)
 	}
 	var p EducationActionPayload

@@ -99,7 +99,7 @@ const (
 	testGroupChat = int64(-1009001)
 	testPlayerTG  = int64(3)
 	testStranger  = int64(44)
-	privateText   = "Cash: 12,345,678 · Bank: 9,000,000"
+	privateText   = "Cash: 12,345,678 - Bank: 9,000,000"
 )
 
 // groupTestGateway is a gateway with a real fleet, limiter, catalogue and
@@ -469,8 +469,20 @@ func TestBotAddedToAGroupGreetsIt(t *testing.T) {
 
 	sends := api.byMethod("sendMessage")
 	if len(sends) != 1 || sends[0].chatID() != testGroupChat ||
-		sends[0].text() != g.messages.T("en", groups.KeyWelcome, nil) {
+		!strings.HasPrefix(sends[0].text(), g.messages.T("en", groups.KeyWelcome, nil)) {
 		t.Fatalf("sends = %+v", sends)
+	}
+	// In privacy mode and without admin rights the bot sees only commands
+	// and replies there, so the group's admins are asked to make it an
+	// admin; added as an admin, or with privacy mode off, it is not.
+	if !strings.Contains(sends[0].text(), g.messages.T("en", groups.KeyMakeAdmin, nil)) {
+		t.Errorf("the welcome does not ask for admin rights: %q", sends[0].text())
+	}
+	g.group.readsAll.Store("bot01", true)
+	g.handleUpdate(context.Background(), bot, change("left", "member"), g.logger)
+	if sends := api.byMethod("sendMessage"); len(sends) != 2 ||
+		strings.Contains(sends[1].text(), g.messages.T("en", groups.KeyMakeAdmin, nil)) {
+		t.Errorf("a bot that reads every message still asks for admin rights: %+v", sends)
 	}
 }
 

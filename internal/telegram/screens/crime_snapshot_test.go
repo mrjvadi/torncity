@@ -91,6 +91,25 @@ func crimeSnapshots(c Context, who people, add func(string, *presenter.Response)
 		MinTake: 80, MaxTake: 400, JailMin: 2 * time.Minute, JailMax: 6 * time.Minute, FineMin: 150, FineMax: 600,
 		Blocked: CrimeBlockedNerve, Need: 3, Have: 1, Wait: 10 * time.Minute,
 	}))
+	add("Crime · home burglary with tools, odds taken apart", CrimeDetail(c, CrimeDetailView{
+		Crime: burgle, Category: categories[2], Nerve: 5, Duration: 2 * time.Minute, ChanceBPS: 6200, HitsNPCs: true,
+		MinTake: 500, MaxTake: 2500, JailMin: 8 * time.Minute, JailMax: 24 * time.Minute, FineMin: 500, FineMax: 2000,
+		Odds:         OddsView{Base: 4500, Skill: 1200, Awareness: -300, Heat: -200, Gear: 1000},
+		GearCatchBPS: -500, GearSolveBPS: -1000, GearRewardBPS: 1000,
+		Cooldown: 2 * time.Hour,
+		Requirements: []CrimeRequirement{
+			{Requirement: Requirement{Kind: ReqTool, Met: true}, Tool: Named{Code: "lockpick_set", Name: "Lockpick set"}},
+		},
+		CanCommit: true, Nonce: "a1b2c3d4e5f7",
+	}))
+	add("Crime · resting after the last one", CrimeDetail(c, CrimeDetailView{
+		Crime: burgle, Category: categories[2], Nerve: 6, Duration: 2 * time.Minute, ChanceBPS: 3200, HitsNPCs: true,
+		MinTake: 500, MaxTake: 2500, JailMin: 8 * time.Minute, JailMax: 24 * time.Minute, FineMin: 500, FineMax: 2000,
+		Cooldown: 2 * time.Hour, CooldownLeft: 75 * time.Minute, Blocked: CrimeBlockedCooldown, Wait: 75 * time.Minute,
+		Requirements: []CrimeRequirement{
+			{Requirement: Requirement{Kind: ReqTool}, Tool: Named{Code: "lockpick_set", Name: "Lockpick set"}},
+		},
+	}))
 	add("Crime · from a cell", CrimeDetail(c, CrimeDetailView{
 		Crime: shop, Category: categories[0], Nerve: 2, ChanceBPS: 6000, HitsNPCs: true, MinTake: 20, MaxTake: 120,
 		JailMin: time.Minute, JailMax: 3 * time.Minute, FineMin: 50, FineMax: 200, Blocked: CrimeBlockedJail,
@@ -129,6 +148,16 @@ func crimeSnapshots(c Context, who people, add func(string, *presenter.Response)
 	notice := caught
 	notice.Crime, notice.Venue, notice.Notice = burgle, centre, true
 	add("Notice · a burglary ended in an arrest", CrimeResult(sent(c), notice).MarkPrivate())
+	loot := npc
+	loot.Loot = []LootLine{{Item: Named{Code: "phone", Name: "Phone"}, Qty: 1}, {Item: Named{Code: "jewellery", Name: "Jewellery"}, Qty: 2}}
+	add("Result · a till and loot", CrimeResult(c, loot))
+	add("Result · a till and loot (group)", CrimeResult(group(c), loot))
+	lifted := success
+	lifted.Stolen = &Named{Code: "watch", Name: "Wristwatch"}
+	add("Result · a pocket picked and a watch taken", CrimeResult(c, lifted))
+	evidence := caught
+	evidence.Confiscated = []Named{{Code: "lockpick_set", Name: "Lockpick set"}, {Code: "crowbar", Name: "Crowbar"}}
+	add("Result · caught, the tools kept as evidence", CrimeResult(c, evidence))
 	take := success
 	take.Notice = true
 	add("Notice · the take, told privately", CrimeResult(sent(c), take).MarkPrivate())
@@ -153,9 +182,22 @@ func crimeSnapshots(c Context, who people, add func(string, *presenter.Response)
 	add("Jail · serving, with bail", Jail(c, JailView{
 		InJail: true, CityCode: "ostmarch", City: "Ostmarch", Reason: application.SentenceForConviction,
 		Remaining: 95 * time.Minute, EndsAt: snapshotNow.Add(95 * time.Minute), Bail: 3960, Nonce: "f00dfeed0001",
+		Payment: &PaymentChoice{Amount: 3960, Accepted: []string{MethodCash, MethodCard}, Usable: []string{MethodCash, MethodCard},
+			Cash: 5000, Bank: 12000},
+	}))
+	add("Jail · serving, only the card covers the bail, in a group", Jail(group(c), JailView{
+		InJail: true, CityCode: "ostmarch", City: "Ostmarch", Reason: application.SentenceForArrest,
+		Remaining: 20 * time.Minute, EndsAt: snapshotNow.Add(20 * time.Minute), Bail: 3960, Nonce: "f00dfeed0002",
+		Payment: &PaymentChoice{Amount: 3960, Accepted: []string{MethodCash, MethodCard}, Usable: []string{MethodCard},
+			Cash: 40, Bank: 12000},
+	}))
+	add("Jail · serving, nothing covers the bail", Jail(c, JailView{
+		InJail: true, CityCode: "ostmarch", City: "Ostmarch", Reason: application.SentenceForArrest,
+		Remaining: 20 * time.Minute, EndsAt: snapshotNow.Add(20 * time.Minute), Bail: 3960, Nonce: "f00dfeed0003",
+		Payment: &PaymentChoice{Amount: 3960, Accepted: []string{MethodCash, MethodCard}, Cash: 40, Bank: 100},
 	}))
 	add("Jail · free", Jail(c, JailView{}))
-	add("Bailed · as the player reads it", Bailed(c, BailedView{Player: who.me, Bail: 3960}))
+	add("Bailed · as the player reads it", Bailed(c, BailedView{Player: who.me, Bail: 3960, Method: MethodCard}))
 	add("Bailed · as the group reads it", Bailed(group(c), BailedView{Player: who.me, Bail: 3960}))
 	add("Notice · sentence served", ReleasedNotice(sent(c), Named{Code: "ostmarch", Name: "Ostmarch"}))
 
@@ -167,8 +209,17 @@ func crimeSnapshots(c Context, who people, add func(string, *presenter.Response)
 	seen := victim
 	seen.ThiefName, seen.ThiefCode = who.friend, friendCode
 	add("Notice · your pocket was picked, and a witness saw who", VictimNotice(sent(c), seen))
+	watch := victim
+	watch.Item = &Named{Code: "watch", Name: "Wristwatch"}
+	add("Notice · your pocket was picked and your watch taken", VictimNotice(sent(c), watch))
 	add("Report · confirm", ReportConfirm(c, ReportConfirmView{
 		CrimeID: someID, Crime: pick, CityCode: "ostmarch", City: "Ostmarch", Amount: 1500, Fee: 200,
+		Investigation: 6 * time.Minute, ReportWithin: 23*time.Hour + 40*time.Minute,
+		Payment: &PaymentChoice{Amount: 200, Accepted: []string{MethodCash, MethodCard}, Usable: []string{MethodCash, MethodCard},
+			Cash: 900, Bank: 3000},
+	}))
+	add("Report · confirm, no fee in this city", ReportConfirm(c, ReportConfirmView{
+		CrimeID: someID, Crime: pick, CityCode: "ostmarch", City: "Ostmarch", Amount: 1500,
 		Investigation: 6 * time.Minute, ReportWithin: 23*time.Hour + 40*time.Minute,
 	}))
 	add("Report · filed", CaseFiled(c, 6*time.Minute, snapshotNow.Add(6*time.Minute)))
@@ -187,6 +238,9 @@ func crimeSnapshots(c Context, who people, add func(string, *presenter.Response)
 	closed := outcome
 	closed.Solved = false
 	add("Notice · case closed", CaseSolvedNotice(sent(c), closed))
+	returned := outcome
+	returned.Returned = &Named{Code: "watch", Name: "Wristwatch"}
+	add("Notice · case solved, the watch returned", CaseSolvedNotice(sent(c), returned))
 	add("Notice · convicted", ConvictedNotice(sent(c), outcome))
 
 	for _, r := range []struct {
@@ -210,6 +264,7 @@ func crimeSnapshots(c Context, who people, add func(string, *presenter.Response)
 		{"nothing stolen", CrimeRefusalView{Kind: CrimeRefusedNothingStolen}},
 		{"cannot afford", CrimeRefusalView{Kind: CrimeRefusedCannotAfford, Amount: 3960, Cash: 1200}},
 		{"not in jail", CrimeRefusalView{Kind: CrimeRefusedNotJailed}},
+		{"resting after the last one", CrimeRefusalView{Kind: CrimeRefusedCooldown, Crime: burgle, Wait: 75 * time.Minute}},
 	} {
 		add("Refused · "+r.title, CrimeRefusal(c, r.view))
 	}

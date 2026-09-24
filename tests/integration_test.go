@@ -217,6 +217,7 @@ func deletePlayer(t *testing.T, pool *postgres.Pool, playerID string) {
 	defer cancel()
 
 	raw := pool.Raw()
+	purgeGoodsFor(t, pool, playerID)
 	for _, stmt := range []string{
 		`DELETE FROM idempotency_keys WHERE player_id = $1::uuid`,
 		`DELETE FROM player_bot_links WHERE player_id = $1::uuid`,

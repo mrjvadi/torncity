@@ -7,15 +7,16 @@ import (
 
 // Sentinel errors from creating an instance.
 var (
-	// ErrNoProvenance means an instance was about to exist without a
-	// production order or a reward grant behind it — the one thing the
-	// phone scenario forbids (24_PHONE_END_TO_END.md).
-	ErrNoProvenance = errors.New("item: instance has no production order or reward grant")
+	// ErrNoProvenance means an instance was about to exist without an
+	// origin behind it — a production order, a reward grant, a sale by the
+	// NPC economy or a crime's loot — the one thing the phone scenario
+	// forbids (24_PHONE_END_TO_END.md).
+	ErrNoProvenance = errors.New("item: instance has no production order, reward grant, supply or loot")
 
-	// ErrAmbiguousProvenance means both a production order and a reward
-	// grant were given. An instance has exactly one origin; two would let
-	// one unit be counted by both.
-	ErrAmbiguousProvenance = errors.New("item: instance has both a production order and a reward grant")
+	// ErrAmbiguousProvenance means more than one origin was given. An
+	// instance has exactly one origin; two would let one unit be counted by
+	// both.
+	ErrAmbiguousProvenance = errors.New("item: instance has more than one origin")
 
 	// ErrNotAGood means an instance was requested for a serve archetype,
 	// whose output is an effect that never enters an inventory.
@@ -33,9 +34,28 @@ var (
 const MaxQuality = 100
 
 // Provenance is why an instance exists. Exactly one field is set.
+//
+// Beside production and rewards, two origins are outside the player economy
+// and still recorded: SupplyID is a sale by the city's NPC economy (a shop
+// selling what the NPC economy made, recorded as that sale), and LootID a
+// crime's take from the NPC economy (the attempt). Neither is "from
+// nothing": each names the row that brought the unit into the world.
 type Provenance struct {
 	ProductionOrderID string
 	RewardGrantID     string
+	SupplyID          string
+	LootID            string
+}
+
+// Origins counts the origins given: exactly one is valid.
+func (p Provenance) Origins() int {
+	n := 0
+	for _, s := range []string{p.ProductionOrderID, p.RewardGrantID, p.SupplyID, p.LootID} {
+		if s != "" {
+			n++
+		}
+	}
+	return n
 }
 
 // Instance is one made unit with a serial number (ADR 0005 §1).
@@ -64,11 +84,11 @@ func NewInstance(a Archetype, serial, designID string, quality int, prov Provena
 	if serial == "" || a.Code == "" {
 		return Instance{}, fmt.Errorf("%w: instance needs a serial and an archetype", ErrEmptyCode)
 	}
-	fromOrder, fromGrant := prov.ProductionOrderID != "", prov.RewardGrantID != ""
-	switch {
-	case !fromOrder && !fromGrant:
+	fromOrder := prov.ProductionOrderID != ""
+	switch n := prov.Origins(); {
+	case n == 0:
 		return Instance{}, ErrNoProvenance
-	case fromOrder && fromGrant:
+	case n > 1:
 		return Instance{}, ErrAmbiguousProvenance
 	case fromOrder && designID == "":
 		return Instance{}, ErrMissingDesign

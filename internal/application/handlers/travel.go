@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
+	"github.com/mrjvadi/torncity/internal/domain/payment"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/travel"
 	"github.com/mrjvadi/torncity/internal/domain/world"
@@ -66,6 +68,10 @@ type StartTravelRequest struct {
 	City string `json:"city"`
 	Mode string `json:"mode,omitempty"`
 	Max  string `json:"max,omitempty"`
+	// Method is how the fare is paid: cash or card. Without one, a journey
+	// that costs something is answered with its price and a button per way
+	// to pay it; a free one departs.
+	Method string `json:"method,omitempty"`
 }
 
 // TravelActionPayload is the jsonb this handler writes onto the game_actions
@@ -101,6 +107,9 @@ type TransportOption struct {
 	Mode       travel.Mode
 	Name       string
 	DistanceKM int
+	// Accepts is how its fare may be paid (payments.yml, narrowed by the
+	// mode's own list); nil takes every method.
+	Accepts payment.Accepts
 }
 
 // TransportNetwork answers which modes connect two cities.
@@ -129,6 +138,38 @@ type TravelHandler struct {
 	arrivalXP      int64
 	idempotencyTTL time.Duration
 	now            func() time.Time
+
+	// places is the live content the city places are read from: a journey
+	// departs from the place its mode stops at, and lands there. Nil (a
+	// test without places) departs from anywhere and lands at the default.
+	places ContentSource
+}
+
+// WithPlaces makes the handler honour city places: a departure only from the
+// place its mode stops at, an arrival put at that place of the destination.
+func (h *TravelHandler) WithPlaces(source ContentSource) *TravelHandler {
+	h.places = source
+	return h
+}
+
+// departure refuses a departure by mode unless the player stands at the
+// place of their city the mode leaves from. It is asked after every other
+// refusal, just before the money.
+func (h *TravelHandler) departure(ctx context.Context, tx application.Tx, p *application.Player, mode string, now time.Time) error {
+	if h.places == nil {
+		return nil
+	}
+	snap := h.places.Current()
+	w, err := locate(ctx, tx, h.cities, snap, p)
+	if err != nil || !w.placed() {
+		return err
+	}
+	target, _ := w.cmap.ForMode(mode)
+	err = needAt(w, snap, target, "place.need.departure", nil, gametime.Scale(h.timeScale), now)
+	if n, ok := err.(*notHere); ok {
+		n.view.Mode = mode
+	}
+	return err
 }
 
 // NewTravelHandler wires the handler.
@@ -204,8 +245,9 @@ func (h *TravelHandler) screen(meta envelope.Metadata, lang string) screens.Cont
 
 // quotedOption is one priced way to make a journey.
 type quotedOption struct {
-	quote travel.Quote
-	name  string
+	quote   travel.Quote
+	name    string
+	accepts payment.Accepts
 }
 
 // trip is what both the choice of transport and the departure work out
@@ -293,7 +335,7 @@ func (h *TravelHandler) planTrip(ctx context.Context, tx application.Tx, p *appl
 			// is content or policy the rule cannot price, which is a fault.
 			return t, errors.Internal(err)
 		}
-		t.options = append(t.options, quotedOption{quote: q, name: o.Name})
+		t.options = append(t.options, quotedOption{quote: q, name: o.Name, accepts: o.Accepts})
 	}
 	return t, nil
 }
@@ -376,13 +418,14 @@ func (h *TravelHandler) Options(ctx context.Context, meta envelope.Metadata, req
 	return screens.TravelOptions(h.screen(meta, lang), view), nil
 }
 
-// errRequote and errNoFunds end a departure's transaction without writing
-// anything, so the handler can answer with a screen rather than a refusal.
-// They never leave this file.
-var (
-	errRequote = stderrors.New("handlers: the fare rose above the price the player accepted")
-	errNoFunds = stderrors.New("handlers: the player cannot pay the fare")
-)
+// errRequote ends a departure's transaction without writing anything, so the
+// handler can answer with a screen rather than a refusal. It never leaves
+// this file.
+var errRequote = stderrors.New("handlers: the fare rose above the price the player accepted")
+
+// errPaymentDeclined ends a departure whose chosen way to pay does not cover
+// the fare, so the handler can answer with the refusal screen.
+var errPaymentDeclined = stderrors.New("handlers: the chosen payment method does not cover the fare")
 
 // Start handles travel.start: a player confirming one way to travel, at a
 // price they were shown.
@@ -400,11 +443,15 @@ var (
 //     change took effect): the choice of transport is shown again at the new
 //     prices, and nothing is charged. A price shown is honoured or
 //     re-quoted, never exceeded.
-//   - the player cannot pay: the fare and their cash are shown, with the way
+//   - the chosen way to pay does not cover the fare: the fare and both
+//     balances are shown privately (screens.PaymentDeclined), with the way
 //     back to the choice of transport.
 //
 // A fare lower than the one accepted is charged as it stands: the player
-// agreed to pay up to Max, and pays the price of now.
+// agreed to pay up to Max, and pays the price of now. The fare is paid from
+// the purse the player chose — cash or card — whichever the mode accepts; a
+// press without a method is answered with the fare and a button per way to
+// pay it (Checkout), and a free journey departs without one.
 func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req StartTravelRequest) (*presenter.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
@@ -421,11 +468,23 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		// departing at a price nobody saw.
 		return h.Options(ctx, meta, TravelOptionsRequest{City: req.City})
 	}
+	method, chosen, err := chosenMethod(req.Method)
+	if err != nil {
+		return nil, err
+	}
+	if !chosen {
+		resp, free, err := h.checkout(ctx, meta, req, maxFare)
+		if err != nil || !free {
+			return resp, err
+		}
+		// A free journey: nothing is paid, so no way to pay is asked.
+		method = payment.Cash
+	}
 
 	var (
 		started  screens.TravelStartedView
 		options  screens.TravelOptionsView
-		noFunds  screens.TravelFundsView
+		declined screens.PaymentDeclinedView
 		replayed bool
 		lang     = meta.Language
 	)
@@ -482,6 +541,9 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		if err := RefuseDetained(ctx, tx, p.ID, now); err != nil {
 			return err
 		}
+		if err := h.departure(ctx, tx, p, q.Mode, now); err != nil {
+			return err
+		}
 		// Regenerate before charging. A player who has been away has the
 		// energy the clock owes them, and charging them before paying it out
 		// would refuse a departure they can afford.
@@ -505,13 +567,10 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		travelID := h.ids.NewID()
 		actionID := h.ids.NewID()
 
-		ledgerTxID, err := h.chargeFare(ctx, tx, p.ID, t.from.ID, travelID, q, now)
-		if isSentinel(err, application.ErrInsufficientFunds) {
-			noFunds = screens.TravelFundsView{
-				ToCode: t.to.Code, ModeCode: q.Mode, ModeName: chosen.name,
-				Fare: q.Fare.Minor(), Cash: cash.Balance.Minor(),
-			}
-			return errNoFunds
+		ledgerTxID, err := h.chargeFare(ctx, tx, p.ID, t.from.ID, t.to.Code, travelID, q, chosen.accepts, method, now)
+		if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
+			declined = v
+			return errPaymentDeclined
 		}
 		if err != nil {
 			return err
@@ -616,9 +675,13 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 	switch {
 	case err == errRequote:
 		return screens.TravelOptions(h.screen(meta, lang), options), nil
-	case err == errNoFunds:
-		return screens.TravelNoFunds(h.screen(meta, lang), noFunds), nil
-	case err != nil:
+	case err == errPaymentDeclined:
+		return screens.PaymentDeclined(h.screen(meta, lang), declined), nil
+	}
+	if v, ok := asNotHere(err); ok {
+		return screens.NotHere(h.screen(meta, lang), v), nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
@@ -641,8 +704,9 @@ func (t trip) option(mode string) (quotedOption, bool) {
 	return quotedOption{}, false
 }
 
-// chargeFare moves the fare, in the caller's transaction, and returns the
-// ledger transaction id, or "" for a free journey.
+// chargeFare moves the fare, in the caller's transaction, from the purse the
+// player chose, and returns the ledger transaction id, or "" for a free
+// journey.
 //
 // Where the money goes (ADR 0009 section 2):
 //
@@ -653,16 +717,23 @@ func (t trip) option(mode string) (quotedOption, bool) {
 //     city's; it leaves the economy into system_sink — a drain, reason
 //     travel_fare.
 //
-// The reference is the journey, so the ledger answers "what paid for this
-// trip" and the trip answers "which transaction paid for me".
-func (h *TravelHandler) chargeFare(ctx context.Context, tx application.Tx, playerID, originCityID, travelID string,
-	q travel.Quote, now time.Time,
+// Cash or card changes only which of the player's accounts is debited; the
+// reason is the fare's. The reference is the journey, so the ledger answers
+// "what paid for this trip" and the trip answers "which transaction paid for
+// me". A method that does not cover the fare is refused with both balances.
+func (h *TravelHandler) chargeFare(ctx context.Context, tx application.Tx, playerID, originCityID, toCode, travelID string,
+	q travel.Quote, accepts payment.Accepts, method payment.Method, now time.Time,
 ) (string, error) {
 	if q.Fare.IsZero() {
 		return "", nil
 	}
-	cash, err := cashOf(ctx, tx, playerID)
+	w, err := application.OpenWallet(ctx, tx.Ledger(), playerID)
 	if err != nil {
+		return "", err
+	}
+	plan := w.Plan(q.Fare, accepts)
+	back, addr := "button.travel_options", []string{screens.AddrTravelOptions, toCode}
+	if err := checkMethod(plan, method, w, back, addr...); err != nil {
 		return "", err
 	}
 	reason, payee := application.ReasonTravelFare, application.SystemSinkAccountID
@@ -673,20 +744,84 @@ func (h *TravelHandler) chargeFare(ctx context.Context, tx application.Tx, playe
 		}
 		reason, payee = application.ReasonTransitFare, treasury.ID
 	}
-	debit, err := q.Fare.Neg()
-	if err != nil {
-		return "", errors.Internal(err)
-	}
-	return tx.Ledger().Post(ctx, application.LedgerTransaction{
+	id, err := w.Pay(ctx, tx.Ledger(), application.Charge{
+		Method:        method,
+		Accepted:      plan.Accepted,
 		Reason:        reason,
 		ReferenceType: "travels",
 		ReferenceID:   travelID,
-		Entries: []application.LedgerEntry{
-			{AccountID: cash.ID, Amount: debit},
-			{AccountID: payee, Amount: q.Fare},
-		},
-		CreatedAt: now,
+		To:            []application.LedgerEntry{{AccountID: payee, Amount: q.Fare}},
+		CreatedAt:     now,
 	})
+	if stderrors.Is(err, application.ErrPaymentDeclined) {
+		return "", declined(plan, w, back, addr...)
+	}
+	return id, err
+}
+
+// checkout answers a departure pressed without a way to pay: the fare of the
+// chosen mode with a button per way the player can pay it. It writes
+// nothing. free reports a journey that costs nothing, which departs without
+// asking; a fare risen above the accepted ceiling re-quotes, like Start.
+func (h *TravelHandler) checkout(ctx context.Context, meta envelope.Metadata, req StartTravelRequest, maxFare int64) (*presenter.Response, bool, error) {
+	var (
+		view     screens.TravelCheckoutView
+		options  screens.TravelOptionsView
+		requoted bool
+		free     bool
+		lang     = meta.Language
+	)
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
+		if err != nil {
+			return err
+		}
+		lang = RenderLanguage(meta, p)
+		t, err := h.planTrip(ctx, tx, p, req.City, h.now())
+		if err != nil {
+			return err
+		}
+		chosen, ok := t.option(req.Mode)
+		if !ok {
+			return errors.InvalidInput("travel mode does not serve this journey").
+				WithCause(fmt.Errorf("%w: %q from %q to %q", travel.ErrModeUnavailable, req.Mode, t.from.Code, t.to.Code))
+		}
+		q := chosen.quote
+		if err := h.departure(ctx, tx, p, q.Mode, h.now()); err != nil {
+			return err
+		}
+		w, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
+		if err != nil {
+			return err
+		}
+		if q.Fare.Minor() > maxFare {
+			options, requoted = optionsView(t, w.Cash.Balance.Minor(), true), true
+			return nil
+		}
+		if q.Fare.IsZero() {
+			free = true
+			return nil
+		}
+		view = screens.TravelCheckoutView{
+			FromCode: t.from.Code, From: t.from.Name, ToCode: t.to.Code, To: t.to.Name,
+			ModeCode: q.Mode, ModeName: chosen.name, Fare: q.Fare.Minor(),
+			Wait: q.Wait, Energy: q.Energy, Busy: q.Surged(),
+			Payment: paymentChoice(w.Plan(q.Fare, chosen.accepts), w),
+		}
+		return nil
+	})
+	if v, ok := asNotHere(err); ok {
+		return screens.NotHere(h.screen(meta, lang), v), false, nil
+	}
+	switch {
+	case err != nil:
+		return nil, false, err
+	case requoted:
+		return screens.TravelOptions(h.screen(meta, lang), options), false, nil
+	case free:
+		return nil, true, nil
+	}
+	return screens.TravelCheckout(h.screen(meta, lang), view), false, nil
 }
 
 // Status handles travel.status: the journey in progress, and how much of it
@@ -879,6 +1014,17 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 
 		to, err := h.cities.ByID(ctx, t.ToCityID)
 		if err != nil {
+			return err
+		}
+		// Off the bus, the train or the plane: at the place of the
+		// destination the mode stops at, or its default place.
+		arrivalPlace := ""
+		if h.places != nil {
+			if pl, ok := h.places.Current().CityMap(to.Code).ForMode(t.Mode); ok && !pl.Default {
+				arrivalPlace = pl.Code
+			}
+		}
+		if err := tx.Places().Put(ctx, playerID, arrivalPlace, h.now()); err != nil {
 			return err
 		}
 

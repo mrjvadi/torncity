@@ -120,6 +120,9 @@ func (h *JobsHandler) finish(meta envelope.Metadata, lang string, resp *presente
 		if r, ok := asRefusal(err); ok {
 			return screens.Refusal(h.screen(meta, lang), r.view), nil
 		}
+		if v, ok := asNotHere(err); ok {
+			return screens.NotHere(h.screen(meta, lang), v), nil
+		}
 		return nil, err
 	}
 	return resp, nil
@@ -534,6 +537,13 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 		if err := RefuseDetained(ctx, tx, p.ID, now); err != nil {
 			return err
 		}
+		// Nor halfway through a walk across the city: arrive first. The
+		// shift itself then puts the player at their workplace.
+		if w, err := locate(ctx, tx, h.cities, snap, p); err != nil {
+			return err
+		} else if err := refuseWalking(w, snap, now); err != nil {
+			return err
+		}
 		def, career, err := careerOf(snap, emp.CareerCode)
 		if err != nil {
 			return err
@@ -778,6 +788,23 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 		}
 		if err := tx.Employment().EndShift(ctx, session.ID, application.ShiftCompleted, now); err != nil {
 			return err
+		}
+		// The shift ends where it was worked: the player stands at the
+		// place of their career's category until they walk away.
+		if def, ok := snap.CareerDef(emp.CareerCode); ok {
+			if city, err := h.cities.ByID(ctx, emp.CityID); err == nil {
+				if pl, ok := snap.CityMap(city.Code).ForWork(def.Category); ok {
+					code := pl.Code
+					if pl.Default {
+						code = ""
+					}
+					if err := tx.Places().Put(ctx, playerID, code, now); err != nil {
+						return err
+					}
+				}
+			} else if !isSentinel(err, application.ErrCityNotFound) {
+				return err
+			}
 		}
 
 		stats := storedStats(s.stats, res.Stats)

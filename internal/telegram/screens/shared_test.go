@@ -30,8 +30,19 @@ func TestSharedScreensLeaveMoneyOut(t *testing.T) {
 	}
 
 	c := ctx(t, "en", 0)
-	if !TravelNoFunds(c, TravelFundsView{ToCode: "x", Fare: 10, Cash: 5}).Private {
-		t.Error("the no-funds screen states the player's cash and is not private")
+	if !PaymentDeclined(c, PaymentDeclinedView{Amount: 10, Cash: 5, Bank: 3}).Private {
+		t.Error("the declined-payment screen states the player's money and is not private")
+	}
+	for _, shared := range []bool{false, true} {
+		c := ctx(t, "en", 0)
+		c.Shared = shared
+		balances := c.T("payment.balances", map[string]any{"cash": FormatMoney(c, 1_234_567), "bank": FormatMoney(c, 7_654_321)})
+		text := TravelCheckout(c, TravelCheckoutView{ToCode: "x", To: "X", ModeCode: "bus", Fare: 10,
+			Payment: PaymentChoice{Amount: 10, Accepted: []string{MethodCash, MethodCard}, Usable: []string{MethodCash, MethodCard},
+				Cash: 1_234_567, Bank: 7_654_321}}).Text
+		if got := strings.Contains(text, balances); got == shared {
+			t.Errorf("shared=%v: the checkout shows balances = %v\n%s", shared, got, text)
+		}
 	}
 	if !Refusal(c, RefusalView{Kind: RefusalCannotAfford, Fee: 10, Cash: 5}).Private {
 		t.Error("the cannot-afford refusal states the player's cash and is not private")

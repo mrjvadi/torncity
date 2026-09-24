@@ -224,7 +224,31 @@ type Reward struct {
 	SkillXP    []SkillXP
 	// Heat is what a success adds to the thief's heat.
 	Heat int
+
+	// Loot is what a success against the NPC economy may also yield: items,
+	// each on its own roll (see Resolve).
+	Loot []LootEntry
+	// StealItemBPS is the chance a success against a player also takes one
+	// item from what the victim carries and may lose.
+	StealItemBPS int
 }
+
+// LootEntry is one item a crime may yield: the chance, and the ranges its
+// quantity and quality are drawn from.
+type LootEntry struct {
+	Item                   string
+	ChanceBPS              int
+	MinQty, MaxQty         int64
+	MinQuality, MaxQuality int
+}
+
+// Bounds of loot.
+const (
+	// MaxLootQty caps one loot draw.
+	MaxLootQty = 1_000
+	// MaxLootQuality is the top of the quality scale (item.MaxQuality).
+	MaxLootQuality = 100
+)
 
 // Failure is what a failed attempt risks.
 type Failure struct {
@@ -257,6 +281,11 @@ type Crime struct {
 	Success SuccessModel
 	Reward  Reward
 	Failure Failure
+
+	// Cooldown is how long, in GAME time, after an attempt the same player
+	// must wait before trying this crime again; zero is none. A category
+	// may add its own (CooldownLeft takes the longer wait).
+	Cooldown time.Duration
 }
 
 // Timed reports whether the crime takes time.
@@ -404,6 +433,28 @@ func (c Crime) Validate() error {
 	}
 	if w.Heat < 0 || w.Heat > MaxHeatGain {
 		bad("heat %d is outside 0..%d", w.Heat, MaxHeatGain)
+	}
+	for _, l := range w.Loot {
+		if l.Item == "" {
+			bad("a loot entry names no item")
+		}
+		checkBPS("loot chance of "+l.Item, l.ChanceBPS, BPSWhole)
+		if l.MinQty < 1 || l.MaxQty > MaxLootQty || l.MinQty > l.MaxQty {
+			bad("loot %s quantity %d..%d must be ordered within 1..%d", l.Item, l.MinQty, l.MaxQty, MaxLootQty)
+		}
+		if l.MinQuality < 0 || l.MaxQuality > MaxLootQuality || l.MinQuality > l.MaxQuality {
+			bad("loot %s quality %d..%d must be ordered within 0..%d", l.Item, l.MinQuality, l.MaxQuality, MaxLootQuality)
+		}
+	}
+	if len(w.Loot) > 0 && !c.Hits(TargetNPC) {
+		bad("loot comes from the NPC economy; a crime that hits only players has none")
+	}
+	checkBPS("steal item chance", w.StealItemBPS, BPSWhole)
+	if w.StealItemBPS > 0 && !c.Hits(TargetPlayer) {
+		bad("only a crime that can hit a player can take an item from one")
+	}
+	if c.Cooldown < 0 || c.Cooldown > MaxJailTerm {
+		bad("cooldown %s is outside 0..%s", c.Cooldown, MaxJailTerm)
 	}
 
 	f := c.Failure

@@ -122,31 +122,61 @@ func requoteNotice(c Context, requoted bool) string {
 	return c.T("travel.requoted", nil)
 }
 
-// TravelFundsView is a departure refused for want of cash.
-type TravelFundsView struct {
-	ToCode   string
-	ModeCode string
-	ModeName string
-	Fare     int64
-	Cash     int64
+// TravelCheckoutView is the price of one way to make a journey, and the ways
+// the player can pay it: the step between choosing a mode and departing.
+type TravelCheckoutView struct {
+	FromCode, From string
+	ToCode, To     string
+	ModeCode       string
+	ModeName       string
+	Fare           int64
+	// Wait is the real time the journey takes; Energy what departing costs.
+	Wait    time.Duration
+	Energy  int
+	Busy    bool
+	Payment PaymentChoice
 }
 
-// TravelNoFunds renders a departure the player cannot pay for. Nothing was
-// charged and nothing started; the way back is the choice of transport, where
-// a cheaper mode may still be in reach. It states the player's cash, so it is
-// private: in a group it goes to the player's private chat.
-func TravelNoFunds(c Context, v TravelFundsView) *presenter.Response {
-	text := c.T("travel.insufficient_funds", map[string]any{
-		"mode": c.ModeName(v.ModeCode, v.ModeName),
-		"fare": FormatMoney(c, v.Fare),
-		"cash": FormatMoney(c, v.Cash),
-	})
+// TravelCheckout renders the fare of the chosen mode with a button per way
+// the player can pay it. Each button carries the fare as the ceiling the
+// player agreed to, and the method; the departure re-prices and honours or
+// re-quotes, as a mode button does. Balances appear only outside a group.
+func TravelCheckout(c Context, v TravelCheckoutView) *presenter.Response {
+	mode := c.ModeName(v.ModeCode, v.ModeName)
+	fareKey := "travel.checkout_fare"
+	if v.Busy {
+		fareKey = "travel.checkout_fare_busy"
+	}
+	facts := body(
+		c.T(fareKey, map[string]any{"fare": FormatMoney(c, v.Fare)}),
+		c.T("travel.checkout_wait", map[string]any{"wait": FormatDuration(c, v.Wait)}),
+		c.T("travel.checkout_energy", map[string]any{"energy": FormatNumber(c, int64(v.Energy))}),
+	)
 	kb := keyboards.New()
+	var pay string
+	if len(v.Payment.Usable) > 0 {
+		pay = body(c.T("payment.choose", nil), c.paymentNote(v.Payment))
+		fare := strconv.FormatInt(v.Fare, 10)
+		c.paymentButtons(kb, v.Payment, func(m string) []string {
+			return []string{AddrTravelStart, v.ToCode, v.ModeCode, fare, m}
+		})
+	} else {
+		pay = body(c.T("payment.cannot_afford", nil), c.paymentNote(v.Payment))
+		if btn, ok := keyboards.Button(c.T("button.bank", nil), AddrBank); ok {
+			kb.Row(btn)
+		}
+	}
 	if btn, ok := keyboards.Button(c.T("button.travel_options", nil), AddrTravelOptions, v.ToCode); ok {
 		kb.Row(btn)
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap}))
-	return c.respond(text, kb.Build()).MarkPrivate()
+	return c.respond(paragraphs(
+		c.T("travel.checkout_title", map[string]any{
+			"to": c.CityName(v.ToCode, v.To), "from": c.CityName(v.FromCode, v.From), "mode": mode,
+		}),
+		facts,
+		pay,
+	), kb.Build())
 }
 
 // TravelStartedView is the confirmation a departure produces.

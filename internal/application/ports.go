@@ -119,6 +119,18 @@ type Tx interface {
 	// Crime holds the crime engine's state, so an attempt commits with its
 	// nerve, its money and its sentence; see ports_crime.go.
 	Crime() CrimeRepository
+
+	// Places holds where players stand inside their city and their walks
+	// between places, so a walk commits with its energy and its schedule;
+	// see ports_places.go.
+	Places() PlaceRepository
+
+	// Items, Shops, Market and Auctions hold goods and their trade, so an
+	// item moves with the money that paid for it; see ports_items.go.
+	Items() ItemRepository
+	Shops() ShopRepository
+	Market() MarketRepository
+	Auctions() AuctionRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

@@ -17,6 +17,23 @@ type User struct {
 	LastName     string `json:"last_name,omitempty"`
 	Username     string `json:"username,omitempty"`
 	LanguageCode string `json:"language_code,omitempty"`
+
+	// CanJoinGroups and CanReadAllGroupMessages are returned only by getMe.
+	// The second is "True, if privacy mode is disabled for the bot": a bot
+	// with it false sees in a group only commands, replies to its own
+	// messages and mentions — unless it is an administrator there.
+	CanJoinGroups           bool `json:"can_join_groups,omitempty"`
+	CanReadAllGroupMessages bool `json:"can_read_all_group_messages,omitempty"`
+}
+
+// ForceReply is the reply markup that opens the reply box on the user's
+// side, as if they had chosen the bot's message and tapped Reply. Selective
+// limits it to the users @mentioned in the text (or the sender of the message
+// it answers).
+type ForceReply struct {
+	ForceReply            bool   `json:"force_reply"`
+	InputFieldPlaceholder string `json:"input_field_placeholder,omitempty"`
+	Selective             bool   `json:"selective,omitempty"`
 }
 
 // Chat is where a message happened. Type is "private", "group", "supergroup"

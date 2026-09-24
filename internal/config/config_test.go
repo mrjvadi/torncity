@@ -295,6 +295,7 @@ economy:
   starting_cash: 5001
   bank_min_amount: 2
   bank_max_amount: 999
+  bank_quick_amounts: [7, 70]
 governance:
   fine_step_divisor: 101
   coarse_step_divisor: 11
@@ -317,6 +318,30 @@ crime:
   investigation_witness_bonus_bps: 3501
   investigation_effort_weight_bps: 3001
   npc_daily_cap: 500001
+  gear_max_success_bps: 2501
+  gear_max_catch_bps: 2501
+  gear_max_witness_bps: 3001
+  gear_max_solve_bps: 3001
+  gear_max_reward_bps: 5001
+  gear_max_nerve: 6
+trade:
+  market_order_ttl: 169h
+  market_max_open_orders: 21
+  market_max_quantity: 10001
+  market_max_price: 100000001
+  auction_durations: [2h, 7h]
+  auction_max_reserve: 100000001
+  auction_step_bps: 501
+  auction_min_step: 11
+  auction_max_open: 6
+  auction_reserves_bps: [4000, 9000]
+input:
+  ttl: 7m
+  cooldown: 4s
+  max_length: 33
+announce:
+  window: 2m
+  max_per_window: 7
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -380,9 +405,17 @@ var envOverrides = map[string]string{
 	"TORN_PLAYER_DEFAULT_LANGUAGE": "de",
 	"TORN_PLAYER_DEFAULT_TIMEZONE": "Asia/Tokyo",
 
-	"TORN_ECONOMY_STARTING_CASH":   "5002",
-	"TORN_ECONOMY_BANK_MIN_AMOUNT": "3",
-	"TORN_ECONOMY_BANK_MAX_AMOUNT": "998",
+	"TORN_ECONOMY_STARTING_CASH":      "5002",
+	"TORN_ECONOMY_BANK_MIN_AMOUNT":    "3",
+	"TORN_ECONOMY_BANK_MAX_AMOUNT":    "998",
+	"TORN_ECONOMY_BANK_QUICK_AMOUNTS": "8,80",
+
+	"TORN_INPUT_TTL":        "8m",
+	"TORN_INPUT_COOLDOWN":   "5s",
+	"TORN_INPUT_MAX_LENGTH": "34",
+
+	"TORN_ANNOUNCE_WINDOW":         "3m",
+	"TORN_ANNOUNCE_MAX_PER_WINDOW": "8",
 
 	"TORN_GOVERNANCE_FINE_STEP_DIVISOR":   "102",
 	"TORN_GOVERNANCE_COARSE_STEP_DIVISOR": "12",
@@ -405,6 +438,23 @@ var envOverrides = map[string]string{
 	"TORN_CRIME_INVESTIGATION_WITNESS_BONUS_BPS": "3502",
 	"TORN_CRIME_INVESTIGATION_EFFORT_WEIGHT_BPS": "3002",
 	"TORN_CRIME_NPC_DAILY_CAP":                   "500002",
+	"TORN_CRIME_GEAR_MAX_SUCCESS_BPS":            "2502",
+	"TORN_CRIME_GEAR_MAX_CATCH_BPS":              "2502",
+	"TORN_CRIME_GEAR_MAX_WITNESS_BPS":            "3002",
+	"TORN_CRIME_GEAR_MAX_SOLVE_BPS":              "3002",
+	"TORN_CRIME_GEAR_MAX_REWARD_BPS":             "5002",
+	"TORN_CRIME_GEAR_MAX_NERVE":                  "7",
+
+	"TORN_TRADE_MARKET_ORDER_TTL":       "170h",
+	"TORN_TRADE_MARKET_MAX_OPEN_ORDERS": "22",
+	"TORN_TRADE_MARKET_MAX_QUANTITY":    "10002",
+	"TORN_TRADE_MARKET_MAX_PRICE":       "100000002",
+	"TORN_TRADE_AUCTION_DURATIONS":      "3h,8h",
+	"TORN_TRADE_AUCTION_MAX_RESERVE":    "100000002",
+	"TORN_TRADE_AUCTION_STEP_BPS":       "502",
+	"TORN_TRADE_AUCTION_MIN_STEP":       "12",
+	"TORN_TRADE_AUCTION_MAX_OPEN":       "7",
+	"TORN_TRADE_AUCTION_RESERVES_BPS":   "3000,8000",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

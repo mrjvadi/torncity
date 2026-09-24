@@ -156,25 +156,47 @@ func TestAccountBalancesMatchLedger(t *testing.T) {
 // 24_PHONE_END_TO_END.md, as a query.
 //
 // "It must not be possible to add a phone to a player's inventory with a
-// single INSERT." Every instance traces to a production order or to a formal
-// reward grant. Nothing else may bring an item into existence.
+// single INSERT." Every piece and every unit traces to a recorded origin in
+// the item journal — a shop's sale, a crime's loot, a reward grant — and
+// every stack is exactly what the journal moved in and out.
 func TestNoItemInstanceWithoutOrigin(t *testing.T) {
 	pool := economyPool(t)
-	if !tableExists(t, pool, "item_instances") {
-		t.Skip("item_instances does not exist yet; this guard activates with it")
+	if !tableExists(t, pool, "item_pieces") {
+		t.Skip("item_pieces does not exist yet; this guard activates with migration 0017")
 	}
 
+	// Goods are item_pieces (one row a piece) and item_stacks (units), and
+	// every one of them enters the world through a journal row with no
+	// giver and an origin reason: a shop's sale by the NPC economy, a
+	// crime's loot, a reward grant.
 	var orphans int
 	err := pool.QueryRow(context.Background(),
-		`SELECT count(*) FROM item_instances i
-		  WHERE i.production_order_id IS NULL
-		    AND NOT EXISTS (
-		          SELECT 1 FROM reward_grants r
-		           WHERE r.item_id = i.item_id)`).Scan(&orphans)
+		`SELECT count(*) FROM item_pieces p
+		  WHERE NOT EXISTS (
+		          SELECT 1 FROM item_movements m
+		           WHERE m.piece_id = p.id AND m.from_player IS NULL
+		             AND m.reason IN ('shop_purchase', 'crime_loot', 'grant'))`).Scan(&orphans)
 	if err != nil {
 		t.Fatalf("checking item origins: %v", err)
 	}
 	if orphans != 0 {
-		t.Errorf("%d item instances exist with no production order and no reward grant", orphans)
+		t.Errorf("%d pieces exist with no recorded origin", orphans)
+	}
+	var drifted int
+	if err := pool.QueryRow(context.Background(), `
+		WITH flows AS (
+		    SELECT to_player AS player_id, item_code, to_holding AS holding, quantity AS delta
+		      FROM item_movements WHERE piece_id IS NULL AND to_player IS NOT NULL
+		    UNION ALL
+		    SELECT from_player, item_code, from_holding, -quantity
+		      FROM item_movements WHERE piece_id IS NULL AND from_player IS NOT NULL
+		), journal AS (SELECT player_id, item_code, holding, SUM(delta) AS qty FROM flows GROUP BY 1, 2, 3)
+		SELECT count(*) FROM item_stacks s
+		  FULL JOIN journal j ON j.player_id = s.player_id AND j.item_code = s.item_code AND j.holding = s.holding
+		 WHERE COALESCE(s.quantity, 0) <> COALESCE(j.qty, 0)`).Scan(&drifted); err != nil {
+		t.Fatalf("checking stacks against the journal: %v", err)
+	}
+	if drifted != 0 {
+		t.Errorf("%d stacks disagree with the item journal", drifted)
 	}
 }

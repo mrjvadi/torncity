@@ -150,6 +150,9 @@ type Enrollment struct {
 	StartedAt   time.Time
 	CompletesAt time.Time
 	CompletedAt *time.Time
+	// PausedAt is set while the student is in jail: the course stands still
+	// from then until release (education.Enrollment.Paused).
+	PausedAt *time.Time
 }
 
 // Certification is a qualification held: a certifications row.
@@ -178,6 +181,14 @@ type EducationRepository interface {
 	Certify(ctx context.Context, playerID, courseCode, enrollmentID string, at time.Time) (fresh bool, err error)
 	// Certifications lists the player's certificates, oldest first.
 	Certifications(ctx context.Context, playerID string) ([]Certification, error)
+	// Pause stops the player's course in progress at at, if it is running;
+	// paused reports whether one was stopped now.
+	Pause(ctx context.Context, playerID string, at time.Time) (paused bool, err error)
+	// Resume restarts a paused course with its period moved on
+	// (startedAt, completesAt) and actionID as its completion. resumed is
+	// false when the course was not paused — already resumed by a racing
+	// release — and then nothing is written.
+	Resume(ctx context.Context, enrollmentID string, startedAt, completesAt time.Time, actionID string) (resumed bool, err error)
 }
 
 // Work and study sentinels. Each is a condition a player can reach by

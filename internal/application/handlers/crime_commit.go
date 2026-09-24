@@ -9,6 +9,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/crime"
+	"github.com/mrjvadi/torncity/internal/domain/inventory"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
@@ -72,7 +73,11 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 		if err != nil {
 			return err
 		}
-		if kind, need, have, wait := h.blocked(s, cr.NerveCost, now); kind != "" {
+		// What the carried tools add, and what the attempt will wear of
+		// them; the nerve cost is the crime's moved by the gear.
+		g, wear := h.gear(snap, cr, s)
+		cost := g.NerveCost(cr.NerveCost)
+		if kind, need, have, wait := h.blocked(s, cost, now); kind != "" {
 			r := refuseCrime(blockedRefusal[kind])
 			r.view.Crime, r.view.Need, r.view.Have, r.view.Wait = crimeNamed(def), need, have, wait
 			if s.hold.sentence != nil {
@@ -85,7 +90,16 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 			r.view.Crime, r.view.Missing = crimeNamed(def), missing
 			return r
 		}
-		nerve, err := h.rules.Nerve.Spend(crime.Nerve{Current: s.profile.Nerve, UpdatedAt: s.profile.NerveUpdatedAt}, cr.NerveCost)
+		left, err := h.cooldown(ctx, tx, snap, cr, p.ID, now)
+		if err != nil {
+			return err
+		}
+		if left > 0 {
+			r := refuseCrime(screens.CrimeRefusedCooldown)
+			r.view.Crime, r.view.Wait = crimeNamed(def), left
+			return r
+		}
+		nerve, err := h.rules.Nerve.Spend(crime.Nerve{Current: s.profile.Nerve, UpdatedAt: s.profile.NerveUpdatedAt}, cost)
 		if err != nil {
 			var short crime.NerveShortfall
 			if stderrors.As(err, &short) {
@@ -103,7 +117,7 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 		}
 		chance := cr.SuccessChance(crime.Situation{
 			Skills: domainSkills(s.stand.skills), Heat: s.profile.Heat, Victim: victim.kind,
-			Awareness: victim.awareness, VenueSecurity: s.venue.Security,
+			Awareness: victim.awareness, VenueSecurity: s.venue.Security, Gear: g,
 		})
 		attempt := application.CrimeAttempt{
 			ID:             h.ids.NewID(),
@@ -114,7 +128,8 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 			VenueCode:      s.venue.Code,
 			VictimKind:     string(victim.kind),
 			ChanceBPS:      chance,
-			NerveCost:      cr.NerveCost,
+			NerveCost:      cost,
+			GearSolveBPS:   g.SolveBPS,
 			ContentVersion: snap.Version(),
 			StartedAt:      now,
 			ResolvesAt:     now,
@@ -136,6 +151,14 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 				if isSentinel(err, application.ErrCrimeInProgress) {
 					return refuseCrime(screens.CrimeRefusedBusy)
 				}
+				return err
+			}
+			// The tools wear when the job starts; the ones still carried at
+			// its end decide the arrest and the take.
+			if err := tx.Items().LockOwner(ctx, p.ID); err != nil {
+				return err
+			}
+			if err := wearOut(ctx, tx, h.ids, p.ID, wear, attempt.ID, now); err != nil {
 				return err
 			}
 			s.profile.UpdatedAt = now
@@ -166,6 +189,7 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 		view, err := h.settle(ctx, tx, meta, settlement{
 			snap: snap, def: def, cr: cr, thief: p, profile: s.profile, stand: s.stand,
 			city: s.city, venue: s.venue, attempt: attempt, victim: victim.player, now: now,
+			gear: g, wear: wear,
 		})
 		if err != nil {
 			return err
@@ -197,6 +221,7 @@ var blockedRefusal = map[string]string{
 	screens.CrimeBlockedBusy:       screens.CrimeRefusedBusy,
 	screens.CrimeBlockedWork:       screens.CrimeRefusedWork,
 	screens.CrimeBlockedTravelling: screens.CrimeRefusedTravelling,
+	screens.CrimeBlockedWalking:    screens.CrimeRefusedWalking,
 	screens.CrimeBlockedNowhere:    screens.CrimeRefusedNowhere,
 	screens.CrimeBlockedNerve:      screens.CrimeRefusedNerve,
 }
@@ -228,7 +253,7 @@ func (h *CrimeHandler) chooseVictim(ctx context.Context, tx application.Tx, snap
 			return victimChoice{}, err
 		}
 		for _, b := range all {
-			w := crime.Whereabouts{ArrivedBy: b.ArrivedBy}
+			w := crime.Whereabouts{ArrivedBy: b.ArrivedBy, Place: b.Place}
 			if b.ShiftCareer != "" {
 				if def, ok := snap.CareerDef(b.ShiftCareer); ok {
 					w.ShiftCategory = def.Category
@@ -305,6 +330,58 @@ type settlement struct {
 	now    time.Time
 	// timed marks the end of a timed attempt: its outcome is a notice.
 	timed bool
+	// gear is what the thief's carried tools add; wear what the attempt
+	// uses of them, applied here (an instant crime) or already at the start
+	// (a timed one, nil here).
+	gear crime.Gear
+	wear []inventory.Wear
+}
+
+// wearOut applies what an attempt used of the thief's tools: units of a
+// stack are used up, a piece loses uses, and one with none left is gone. A
+// tool that left the thief's hands since it was counted wears nothing.
+func wearOut(ctx context.Context, tx application.Tx, ids IDGenerator, playerID string, wear []inventory.Wear, attemptID string, now time.Time) error {
+	for _, w := range wear {
+		m := application.ItemMove{
+			ID: ids.NewID(), Item: w.Holding.Item, PieceID: w.Holding.Instance, Qty: int64(w.Uses),
+			From: playerID, FromHolding: application.HoldCarried, Reason: application.ItemWornOut,
+			ReferenceType: application.CrimeReferenceAttempt, ReferenceID: attemptID, At: now,
+		}
+		var err error
+		switch {
+		case w.Holding.Instance == "" || w.Breaks:
+			if w.Holding.Instance != "" {
+				m.Qty = 1
+			}
+			err = tx.Items().Move(ctx, m)
+		default:
+			err = tx.Items().SetUses(ctx, w.Holding.Instance, w.Holding.UsesLeft-w.Uses)
+		}
+		if isSentinel(err, application.ErrNotEnoughItems) || isSentinel(err, application.ErrPieceNotFound) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// lockGoods takes the goods locks of the players in id order, as the ledger
+// locks accounts, so two crimes between the same two players cannot wait on
+// each other.
+func lockGoods(ctx context.Context, tx application.Tx, ids ...string) error {
+	ordered := append([]string(nil), ids...)
+	sort.Strings(ordered)
+	for i, id := range ordered {
+		if id == "" || (i > 0 && ordered[i-1] == id) {
+			continue
+		}
+		if err := tx.Items().LockOwner(ctx, id); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // settle rolls an attempt, recorded in progress, and applies everything it
@@ -318,7 +395,29 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 		return screens.CrimeResultView{}, err
 	}
 	victimKind := crime.TargetKind(in.attempt.VictimKind)
-	a := crime.Attempt{Crime: in.cr, Victim: victimKind, Chance: in.attempt.ChanceBPS, Policy: pol.JusticePolicy}
+	a := crime.Attempt{Crime: in.cr, Victim: victimKind, Chance: in.attempt.ChanceBPS, Policy: pol.JusticePolicy, Gear: in.gear}
+
+	// Goods: the thief's tools wear, a victim's pockets may be picked, an
+	// arrest takes the evidence. Both players' goods are locked first.
+	victimID := ""
+	if in.victim != nil {
+		victimID = in.victim.ID
+	}
+	if err := lockGoods(ctx, tx, in.thief.ID, victimID); err != nil {
+		return screens.CrimeResultView{}, err
+	}
+	if err := wearOut(ctx, tx, h.ids, in.thief.ID, in.wear, in.attempt.ID, in.now); err != nil {
+		return screens.CrimeResultView{}, err
+	}
+	var takeable []inventory.Holding
+	if victimKind == crime.TargetPlayer && in.cr.Reward.StealItemBPS > 0 {
+		_, _, held, err := carried(ctx, tx, victimID)
+		if err != nil {
+			return screens.CrimeResultView{}, err
+		}
+		takeable = inventory.Stealable(in.snap.ItemRules(), held)
+		a.VictimItems = len(takeable)
+	}
 
 	ledger := tx.Ledger()
 	thiefCash, thiefBank, err := playerAccounts(ctx, ledger, in.thief.ID)
@@ -369,7 +468,7 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 		row.Reward = out.Take.Minor()
 		switch {
 		case out.Take.IsZero():
-			view.DrySpell = victimKind == crime.TargetNPC
+			view.DrySpell = victimKind == crime.TargetNPC && len(out.Loot) == 0
 		case victimKind == crime.TargetNPC:
 			if row.LedgerTransactionID, err = h.post(ctx, tx, application.ReasonCrimeProceeds,
 				application.CrimeReferenceAttempt, row.ID, []application.LedgerEntry{
@@ -391,9 +490,30 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 			}
 		}
 		view.Take = out.Take.Minor()
+		loot := origin{kind: application.OriginLoot, reason: application.ItemCrimeLoot,
+			refType: application.CrimeReferenceAttempt, refID: row.ID}
+		for _, d := range out.Loot {
+			if _, err := bring(ctx, tx, in.snap, h.ids, nil, in.thief.ID, d.Item, d.Qty, d.Quality, loot, in.now); err != nil {
+				return view, err
+			}
+			view.Loot = append(view.Loot, screens.LootLine{Item: itemNamed(in.snap, d.Item), Qty: d.Qty})
+		}
+		if out.StolenItem >= 0 && out.StolenItem < len(takeable) {
+			got := takeable[out.StolenItem]
+			if err := tx.Items().Move(ctx, application.ItemMove{
+				ID: h.ids.NewID(), Item: got.Item, PieceID: got.Instance, Qty: 1,
+				From: victimID, FromHolding: application.HoldCarried, To: in.thief.ID, ToHolding: application.HoldCarried,
+				Reason: application.ItemTheft, ReferenceType: application.CrimeReferenceAttempt, ReferenceID: row.ID, At: in.now,
+			}); err != nil {
+				return view, err
+			}
+			row.StolenItem, row.StolenPieceID, row.StolenQty = got.Item, got.Instance, 1
+			stolen := itemNamed(in.snap, got.Item)
+			view.Stolen = &stolen
+		}
 	case crime.Caught:
 		prof.Arrests++
-		sentence, err := h.jail(ctx, tx, in.thief.ID, in.city.ID, row.ID, application.SentenceForArrest, out.JailTerm, in.now)
+		sentence, err := h.jail(ctx, tx, meta, in.thief.ID, in.city.ID, row.ID, application.SentenceForArrest, out.JailTerm, in.now)
 		if err != nil {
 			return view, err
 		}
@@ -414,6 +534,21 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 			row.FineAmount, row.FinePaid = out.Fine.Minor(), split.FinePaid().Minor()
 			prof.UnpaidFines += split.FineShortfall.Minor()
 			view.Fine, view.FinePaid = row.FineAmount, row.FinePaid
+		}
+		// The police keep what the thief carried as evidence.
+		_, _, held, err := carried(ctx, tx, in.thief.ID)
+		if err != nil {
+			return view, err
+		}
+		for _, c := range inventory.Confiscated(in.snap.ItemRules(), held) {
+			if err := tx.Items().Move(ctx, application.ItemMove{
+				ID: h.ids.NewID(), Item: c.Item, PieceID: c.Instance, Qty: c.Qty,
+				From: in.thief.ID, FromHolding: application.HoldCarried, Reason: application.ItemConfiscated,
+				ReferenceType: application.CrimeReferenceAttempt, ReferenceID: row.ID, At: in.now,
+			}); err != nil {
+				return view, err
+			}
+			view.Confiscated = append(view.Confiscated, itemNamed(in.snap, c.Item))
 		}
 	}
 
@@ -447,7 +582,7 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 	view.Heat = h.heatView(prof.Heat)
 	view.Nerve = h.nerveView(prof, in.now)
 
-	if out.Result == crime.Succeeded && victimKind == crime.TargetPlayer && out.Take.Minor() > 0 {
+	if out.Result == crime.Succeeded && victimKind == crime.TargetPlayer && (out.Take.Minor() > 0 || view.Stolen != nil) {
 		payload := map[string]any{
 			"victim_id": in.victim.ID, "attempt_id": row.ID, "crime": in.def.Code, "crime_name": in.def.Name,
 			"venue": in.venue.Code, "venue_name": in.venue.Name, "city_code": in.city.Code, "city_name": in.city.Name,
@@ -456,6 +591,9 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 		}
 		if out.Witnessed {
 			payload["thief_name"], payload["thief_code"] = shownName(in.thief), in.thief.PublicCode
+		}
+		if view.Stolen != nil {
+			payload["item"], payload["item_name"] = view.Stolen.Code, view.Stolen.Name
 		}
 		if err := appendCrimeEvent(ctx, tx, meta, "victimised", row.ID, payload); err != nil {
 			return view, err
@@ -485,6 +623,19 @@ func resultPayload(playerID string, v screens.CrimeResultView) map[string]any {
 		p["jail_seconds"] = int64(v.Jail.Remaining / time.Second)
 		p["jail_ends_at"] = v.Jail.EndsAt
 	}
+	loot := make([]map[string]any, 0, len(v.Loot))
+	for _, l := range v.Loot {
+		loot = append(loot, map[string]any{"item": l.Item.Code, "item_name": l.Item.Name, "qty": l.Qty})
+	}
+	p["loot"] = loot
+	if v.Stolen != nil {
+		p["stolen_item"], p["stolen_item_name"] = v.Stolen.Code, v.Stolen.Name
+	}
+	taken := make([]map[string]any, 0, len(v.Confiscated))
+	for _, c := range v.Confiscated {
+		taken = append(taken, map[string]any{"item": c.Code, "item_name": c.Name})
+	}
+	p["confiscated"] = taken
 	return p
 }
 
@@ -547,9 +698,16 @@ func (h *CrimeHandler) Resolve(ctx context.Context, meta envelope.Metadata, req 
 				venue = v
 			}
 		}
+		// The tools still carried at the end decide the arrest and the take;
+		// they wore when the job started.
+		_, _, held, err := carried(ctx, tx, playerID)
+		if err != nil {
+			return err
+		}
+		g, _ := inventory.GearFor(snap.ItemRules(), held, cr.Code, cr.Category, h.rules.GearCaps)
 		view, err := h.settle(ctx, tx, meta, settlement{
 			snap: snap, def: def, cr: cr, thief: p, profile: prof, stand: stand,
-			city: city, venue: venue, attempt: *a, now: now, timed: true,
+			city: city, venue: venue, attempt: *a, now: now, timed: true, gear: g,
 		})
 		if err != nil {
 			return err

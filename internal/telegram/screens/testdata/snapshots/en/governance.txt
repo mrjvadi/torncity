@@ -6,19 +6,19 @@
 Offices:
 • Mayor: Sara (K7Q2M9A)
 • Deputy mayor: vacant
-• City council: 2 of 5 seats held · Kaveh (B3C4D5F), Nilou (N1L0F4R)
+• City council: 2 of 5 seats held - Kaveh (B3C4D5F), Nilou (N1L0F4R)
 Policies:
-• Tax rate: 4.5% · set by Sara (K7Q2M9A)
+• Tax rate: 4.5% - set by Sara (K7Q2M9A)
   ⏳ Changes to 8% in 23h
-• Immigration fee: 1,500 Nil · default
-• Minimum wage: 100 Nil · default
-• Working-hours window (game hours): 24 · default
+• Immigration fee: 1,500 Nil - default
+• Minimum wage: 100 Nil - default
+• Working-hours window (game hours): 24 - default
 
 📍 The Commonwealth
 Offices:
 • President: vacant
 Policies:
-• Border tariff: 0% · default
+• Border tariff: 0% - default
   ───
   [📜 Policy history] → gov:history:ostmarch
   [🏛 My office] → gov:office
@@ -30,7 +30,7 @@ Policies:
 
 📍 Ostmarch
 Offices:
-• Mayor: vacant · acting: Deputy mayor Kaveh (B3C4D5F)
+• Mayor: vacant - acting: Deputy mayor Kaveh (B3C4D5F)
   ───
   [📜 Policy history] → gov:history:ostmarch
   [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
@@ -54,7 +54,7 @@ You are acting for the vacant office of Mayor.
 • Immigration fee: 1,500 Nil
 
 📍 President of The Commonwealth
-• Border tariff: 0% · decided by a vote, which is not available yet
+• Border tariff: 0% - decided by a vote, which is not available yet
 
 📍 City council of Ostmarch
 This office has no policy you can change right now.
@@ -74,7 +74,7 @@ You do not hold any office. For now, office holders are appointed by the game's 
 ━━━ Change a policy · percentage ━━━
 (edits message 42)
 🏛 Tax rate — Ostmarch
-• Tax rate: 4.5% · set by Sara (K7Q2M9A)
+• Tax rate: 4.5% - set by Sara (K7Q2M9A)
   ⏳ Changes to 8% in 23h
 
 Allowed range: 0% to 25%
@@ -93,7 +93,7 @@ Adjust it with the buttons, then tap “Review change”.
 ━━━ Change a policy · money ━━━
 (edits message 42)
 🏛 Immigration fee — Ostmarch
-• Immigration fee: 1,500 Nil · default
+• Immigration fee: 1,500 Nil - default
 
 Allowed range: 0 Nil to 100,000 Nil
 Default: 0 Nil
@@ -110,7 +110,7 @@ Adjust it with the buttons, then tap “Review change”.
 ━━━ Change a policy · waiting for the cooldown ━━━
 (edits message 42)
 🏛 Tax rate — Ostmarch
-• Tax rate: 4.5% · set by Sara (K7Q2M9A)
+• Tax rate: 4.5% - set by Sara (K7Q2M9A)
   ⏳ Changes to 8% in 23h
 
 Allowed range: 0% to 25%
@@ -146,15 +146,15 @@ Tax rate in Ostmarch will change from 4.5% to 8.25% in 24h. The change is record
 📜 Policy history — Ostmarch
 
 • Tax rate (Ostmarch): 4.5% → 8%
-  Announced by Mayor Sara (K7Q2M9A) · 3h ago
+  Announced by Mayor Sara (K7Q2M9A) - 3h ago
   ⏳ Takes effect in 21h
 
 • Minimum wage (Ostmarch): 100 Nil → 150 Nil
-  Announced by Mayor Sara (K7Q2M9A) · 2d 2h ago
+  Announced by Mayor Sara (K7Q2M9A) - 2d 2h ago
   In force for 26h
 
 • Border tariff (The Commonwealth): 0% → 2.5%
-  Announced by President A player · 3d 8h ago
+  Announced by President A player - 3d 8h ago
   In force for 8h
 
 Page 1 of 2

@@ -38,15 +38,21 @@ func applyTransport(ctx context.Context, tx pgx.Tx, p *content.Pack, versionID s
 			return fmt.Errorf("postgres: content apply: mode %q: %w", m.Code, err)
 		}
 		requires := append([]string{}, m.Requires...)
+		// NULL for a mode that does not narrow its payment methods: it
+		// reads back as nil, "whatever fares accept".
+		var pay []string
+		if m.Payment != nil {
+			pay = append([]string{}, m.Payment...)
+		}
 		if _, err := tx.Exec(ctx,
 			`INSERT INTO transport_modes
 			        (id, content_version_id, position, code, name, public, requires, speed,
 			         boarding_seconds, base_fare, fare_per_distance, energy_cost,
-			         demand_window_seconds, demand_free_departures, demand_step_bps, demand_max_bps)
-			 VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+			         demand_window_seconds, demand_free_departures, demand_step_bps, demand_max_bps, payment)
+			 VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
 			id, versionID, i, m.Code, m.Name, m.Public, requires, m.Speed,
 			int64(mode.Boarding/time.Second), m.BaseFare, m.FarePerDistance, m.EnergyCost,
-			int64(mode.Demand.Window/time.Second), m.Demand.FreeDepartures, m.Demand.StepBPS, m.Demand.MaxBPS); err != nil {
+			int64(mode.Demand.Window/time.Second), m.Demand.FreeDepartures, m.Demand.StepBPS, m.Demand.MaxBPS, pay); err != nil {
 			return fmt.Errorf("postgres: content apply: mode %q: %w", m.Code, err)
 		}
 	}
@@ -105,7 +111,8 @@ func loadTransport(ctx context.Context, tx pgx.Tx, versionID string, pack *conte
 
 	rows, err = tx.Query(ctx,
 		`SELECT code, name, public, requires, speed, boarding_seconds, base_fare, fare_per_distance,
-		        energy_cost, demand_window_seconds, demand_free_departures, demand_step_bps, demand_max_bps
+		        energy_cost, demand_window_seconds, demand_free_departures, demand_step_bps, demand_max_bps,
+		        payment
 		   FROM transport_modes
 		  WHERE content_version_id = $1::uuid
 		  ORDER BY position`, versionID)
@@ -119,7 +126,7 @@ func loadTransport(ctx context.Context, tx pgx.Tx, versionID string, pack *conte
 		)
 		if err := rows.Scan(&m.Code, &m.Name, &m.Public, &m.Requires, &m.Speed, &boarding,
 			&m.BaseFare, &m.FarePerDistance, &m.EnergyCost, &windowSecond,
-			&m.Demand.FreeDepartures, &m.Demand.StepBPS, &m.Demand.MaxBPS); err != nil {
+			&m.Demand.FreeDepartures, &m.Demand.StepBPS, &m.Demand.MaxBPS, &m.Payment); err != nil {
 			rows.Close()
 			return fmt.Errorf("postgres: content load: scanning transport mode: %w", err)
 		}
@@ -216,5 +223,8 @@ func checksumTransport(h hash.Hash, p *content.Pack) {
 			m.Code, m.Name, m.Public, m.Requires, m.Speed, int64(mode.Boarding/time.Second),
 			m.BaseFare, m.FarePerDistance, m.EnergyCost, int64(mode.Demand.Window/time.Second),
 			m.Demand.FreeDepartures, m.Demand.StepBPS, m.Demand.MaxBPS)
+		if m.Payment != nil {
+			fmt.Fprintf(h, "transport_mode_payment|%s|%v\n", m.Code, m.Payment)
+		}
 	}
 }

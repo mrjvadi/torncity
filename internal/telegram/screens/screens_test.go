@@ -158,8 +158,14 @@ func sampleScreens() map[string]func(Context) *presenter.Response {
 					{ModeCode: "flight", ModeName: "Flight", Fare: 2480, Wait: 90 * time.Second, Energy: 4, Busy: true},
 				}})
 		},
-		"travel no funds": func(c Context) *presenter.Response {
-			return TravelNoFunds(c, TravelFundsView{ToCode: "brennhaven", ModeCode: "flight", ModeName: "Flight", Fare: 2480, Cash: 300})
+		"travel checkout": func(c Context) *presenter.Response {
+			return TravelCheckout(c, TravelCheckoutView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven",
+				ModeCode: "flight", ModeName: "Flight", Fare: 2480, Wait: 90 * time.Second, Energy: 4,
+				Payment: PaymentChoice{Amount: 2480, Accepted: []string{MethodCash, MethodCard}, Usable: []string{MethodCard}, Cash: 300, Bank: 9000}})
+		},
+		"payment declined": func(c Context) *presenter.Response {
+			return PaymentDeclined(c, PaymentDeclinedView{Amount: 2480, Cash: 300, Bank: 150, Accepted: []string{MethodCash, MethodCard},
+				BackLabel: "button.travel_options", BackAddr: []string{AddrTravelOptions, "brennhaven"}})
 		},
 		"travel status by mode": func(c Context) *presenter.Response {
 			return TravelStatus(c, TravelStatusView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven",
@@ -476,8 +482,8 @@ func TestMapPaginationShowsOnlyUsableControls(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resp := Map(c, MapView{Origin: "Ostmarch", Destinations: dest, Page: tt.page, Pages: tt.pages})
-			prev := AddrMap + ":" + strconv.Itoa(tt.page-1)
-			next := AddrMap + ":" + strconv.Itoa(tt.page+1)
+			prev := AddrCities + ":" + strconv.Itoa(tt.page-1)
+			next := AddrCities + ":" + strconv.Itoa(tt.page+1)
 			if got := slices.Contains(addresses(resp), prev); got != tt.wantPrev {
 				t.Errorf("previous button present = %v, want %v: %v", got, tt.wantPrev, addresses(resp))
 			}
@@ -627,7 +633,7 @@ func TestProfileShowsThePublicCode(t *testing.T) {
 		if !strings.Contains(resp.Text, c.T("profile.code", map[string]any{"code": "K7Q2M9A"})) {
 			t.Errorf("%s: the profile does not show the code: %q", lang, resp.Text)
 		}
-		if !strings.Contains(resp.Text, "/social K7Q2M9A") {
+		if hint := c.T("profile.code_hint", map[string]any{"code": "K7Q2M9A"}); !strings.Contains(resp.Text, hint) {
 			t.Errorf("%s: the profile does not say how a friend uses the code: %q", lang, resp.Text)
 		}
 	}

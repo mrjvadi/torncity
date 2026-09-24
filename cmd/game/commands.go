@@ -36,6 +36,10 @@ type phaseHandlers struct {
 	education *handlers.EducationHandler
 
 	crime *handlers.CrimeHandler
+
+	places *handlers.PlacesHandler
+
+	goods goodsHandlers
 }
 
 // bind maps every subscribed command to the handler method that serves it.
@@ -92,11 +96,28 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			return h.skills.List(ctx, env.Metadata)
 		},
 		"map.list": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.places.Map(ctx, env.Metadata)
+		},
+		"map.cities": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.PageRequest
 			if err := decode(env, &req); err != nil {
 				return nil, err
 			}
 			return h.worldMap.List(ctx, env.Metadata, req)
+		},
+		"place.go": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.PlaceRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.places.Go(ctx, env.Metadata, req)
+		},
+		"place.arrive": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.PlaceScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.places.Arrive(ctx, env.Metadata, req)
 		},
 
 		"social.search": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
@@ -207,6 +228,10 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 	for command, fn := range h.bindCrime() {
 		bound[command] = fn
 	}
+	// Goods are bound in commands_goods.go.
+	for command, fn := range h.bindGoods() {
+		bound[command] = fn
+	}
 	return bound
 }
 
@@ -260,7 +285,8 @@ func (t liveTransport) Options(from, to string) ([]handlers.TransportOption, int
 	opts := snap.TransportOptions(from, to)
 	out := make([]handlers.TransportOption, 0, len(opts))
 	for _, o := range opts {
-		out = append(out, handlers.TransportOption{Mode: o.Mode, Name: o.Name, DistanceKM: o.DistanceKM})
+		out = append(out, handlers.TransportOption{Mode: o.Mode, Name: o.Name, DistanceKM: o.DistanceKM,
+			Accepts: snap.ModeAccepts(o.Mode.Code)})
 	}
 	return out, snap.Version()
 }

@@ -1,0 +1,146 @@
+━━━ /map ━━━
+(sends)
+🗺 Map of Ostmarch
+
+📍 You are at the city centre.
+
+Places in the city:
+• city centre (you are here)
+• bazaar - 15s walk - market
+• business district - 15s walk - bank, auction house
+• university quarter - 20s walk - university, training centre
+• civic centre - 10s walk - city hall
+• police station - 15s walk - police
+• bus terminal - 15s walk - Bus departures
+• train station - 20s walk - Train departures
+• industrial zone - 30s walk
+• hospital - 20s walk
+• residential area - 25s walk
+• city park - 15s walk
+
+Tap a place to walk there. Everything is done at its own place.
+  ───
+  [🚶 bazaar] → place:go:bazaar   │   [🚶 business district] → place:go:business_district
+  [🚶 university quarter] → place:go:university   │   [🚶 civic centre] → place:go:city_hall
+  [🚶 police station] → place:go:police_station   │   [🚶 bus terminal] → place:go:bus_terminal
+  [🚶 train station] → place:go:train_station   │   [🚶 industrial zone] → place:go:industrial_zone
+  [🚶 hospital] → place:go:hospital   │   [🚶 residential area] → place:go:residential_area
+  [🚶 city park] → place:go:park
+  [🧭 Travel to another city] → map:cities
+  [🏛 Offices and policies] → gov:city
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ Walk to the bazaar ━━━
+(edits message 42)
+🚶 You set off for the bazaar - a 15s walk.
+🕒 Arriving at 12:00
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ The map on the way ━━━
+(edits message 42)
+🗺 Map of Ostmarch
+
+🚶 On your way to the bazaar - 10s left
+🕒 Arriving at 12:00
+
+Places in the city:
+• city centre - 10s walk
+• bazaar - 15s walk - market
+• business district - 15s walk - bank, auction house
+• university quarter - 20s walk - university, training centre
+• civic centre - 10s walk - city hall
+• police station - 15s walk - police
+• bus terminal - 15s walk - Bus departures
+• train station - 20s walk - Train departures
+• industrial zone - 30s walk
+• hospital - 20s walk
+• residential area - 25s walk
+• city park - 15s walk
+
+Tap a place to walk there. Everything is done at its own place.
+  ───
+  [🧭 Travel to another city] → map:cities
+  [🏛 Offices and policies] → gov:city
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ Walk somewhere else on the way ━━━
+(edits message 42)
+🚶 You are still on your way to the bazaar - 10s left.
+🕒 Arriving at 12:00
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ At the bazaar ━━━
+(edits message 42)
+🗺 Map of Ostmarch
+
+📍 You are at the bazaar.
+👥 Other players here: 1
+
+Places in the city:
+• city centre - 10s walk
+• bazaar (you are here) - market
+• business district - 15s walk - bank, auction house
+• university quarter - 20s walk - university, training centre
+• civic centre - 10s walk - city hall
+• police station - 15s walk - police
+• bus terminal - 15s walk - Bus departures
+• train station - 20s walk - Train departures
+• industrial zone - 30s walk
+• hospital - 20s walk
+• residential area - 25s walk
+• city park - 15s walk
+
+Tap a place to walk there. Everything is done at its own place.
+  ───
+  [🚶 city centre] → place:go:city_centre   │   [🚶 business district] → place:go:business_district
+  [🚶 university quarter] → place:go:university   │   [🚶 civic centre] → place:go:city_hall
+  [🚶 police station] → place:go:police_station   │   [🚶 bus terminal] → place:go:bus_terminal
+  [🚶 train station] → place:go:train_station   │   [🚶 industrial zone] → place:go:industrial_zone
+  [🚶 hospital] → place:go:hospital   │   [🚶 residential area] → place:go:residential_area
+  [🚶 city park] → place:go:park
+  [🧭 Travel to another city] → map:cities
+  [🏛 Offices and policies] → gov:city
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ Walk to where you stand ━━━
+(edits message 42)
+🗺 Map of Ostmarch
+
+📍 You are at the bazaar.
+👥 Other players here: 1
+
+Places in the city:
+• city centre - 10s walk
+• bazaar (you are here) - market
+• business district - 15s walk - bank, auction house
+• university quarter - 20s walk - university, training centre
+• civic centre - 10s walk - city hall
+• police station - 15s walk - police
+• bus terminal - 15s walk - Bus departures
+• train station - 20s walk - Train departures
+• industrial zone - 30s walk
+• hospital - 20s walk
+• residential area - 25s walk
+• city park - 15s walk
+
+Tap a place to walk there. Everything is done at its own place.
+  ───
+  [🚶 city centre] → place:go:city_centre   │   [🚶 business district] → place:go:business_district
+  [🚶 university quarter] → place:go:university   │   [🚶 civic centre] → place:go:city_hall
+  [🚶 police station] → place:go:police_station   │   [🚶 bus terminal] → place:go:bus_terminal
+  [🚶 train station] → place:go:train_station   │   [🚶 industrial zone] → place:go:industrial_zone
+  [🚶 hospital] → place:go:hospital   │   [🚶 residential area] → place:go:residential_area
+  [🚶 city park] → place:go:park
+  [🧭 Travel to another city] → map:cities
+  [🏛 Offices and policies] → gov:city
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ A place this city does not have ━━━
+(sends)
+We could not find what you were looking for. Go back to your profile and try again.
+  ───
+  [🔙 Back] → player:profile.get

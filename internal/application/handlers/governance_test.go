@@ -342,8 +342,8 @@ func TestGovCityShowsOfficesPoliciesAndTheActingDeputy(t *testing.T) {
 	ctx := context.Background()
 
 	got := govShow(t)(g.h.City(ctx, govMeta(govOutsideTG, "req-1", "gov.city"), GovCityRequest{}))
-	for _, want := range []string{"Ostmarch", "The Commonwealth", "Dara (D3PUTY1)", "Tax rate: 4.5% · default",
-		"Mayor: vacant · acting: Deputy mayor Dara (D3PUTY1)", "President: vacant", "gov:history:ostmarch"} {
+	for _, want := range []string{"Ostmarch", "The Commonwealth", "Dara (D3PUTY1)", "Tax rate: 4.5% - default",
+		"Mayor: vacant - acting: Deputy mayor Dara (D3PUTY1)", "President: vacant", "gov:history:ostmarch"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("the city screen lacks %q:\n%s", want, got)
 		}

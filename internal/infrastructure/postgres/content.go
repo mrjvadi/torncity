@@ -234,6 +234,9 @@ func (s *ContentStore) Apply(ctx context.Context, p *content.Pack, req ApplyRequ
 	if err := insertCrimes(ctx, tx, p, versionID); err != nil {
 		return Applied{}, err
 	}
+	if err := insertDocuments(ctx, tx, p, versionID); err != nil {
+		return Applied{}, err
+	}
 	governance, err := applyGovernance(ctx, tx, p, versionID, cityIDs, time.Now().UTC())
 	if err != nil {
 		return Applied{}, err
@@ -581,6 +584,9 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 		return nil, err
 	}
 	if err := loadCrimes(ctx, tx, versionID, pack); err != nil {
+		return nil, err
+	}
+	if err := loadDocuments(ctx, tx, versionID, pack); err != nil {
 		return nil, err
 	}
 
@@ -1057,5 +1063,6 @@ func Checksum(p *content.Pack) string {
 	checksumJobs(h, p)
 	checksumTransport(h, p)
 	checksumCrimes(h, p)
+	checksumDocuments(h, p)
 	return hex.EncodeToString(h.Sum(nil))
 }

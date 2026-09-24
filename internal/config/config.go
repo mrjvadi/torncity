@@ -187,6 +187,9 @@ type Config struct {
 	Economy    Economy
 	Governance Governance
 	Crime      Crime
+	Trade      Trade
+	Input      Input
+	Announce   Announce
 }
 
 // Gateway paces the Telegram polling loop and its shutdown.
@@ -390,6 +393,33 @@ type Economy struct {
 	// bank charges is a city's lever, read through the policy resolver.
 	BankMinAmount int64 // economy.bank_min_amount
 	BankMaxAmount int64 // economy.bank_max_amount
+
+	// BankQuickAmounts are the round amounts the bank offers as buttons,
+	// smallest first. A screen shows the ones the player can move, plus
+	// "all of it" and a typed amount.
+	BankQuickAmounts []int64 // economy.bank_quick_amounts
+}
+
+// Input tunes free-text input: a button that asks the player to type a value
+// (internal/gateway/input).
+type Input struct {
+	// TTL is how long a prompt waits for its answer.
+	TTL time.Duration // input.ttl
+	// Cooldown is the least time between two prompts to one player in one
+	// chat, so a button pressed repeatedly cannot flood the chat.
+	Cooldown time.Duration // input.cooldown
+	// MaxLength caps the typed value, in characters.
+	MaxLength int // input.max_length
+}
+
+// Announce tunes the public lines posted in a city's group (a player
+// arrived, a player was jailed).
+type Announce struct {
+	// Window and MaxPerWindow bound how many lines one group receives: at
+	// most MaxPerWindow in any Window; the rest are folded into a count on
+	// the next line that goes out.
+	Window       time.Duration // announce.window
+	MaxPerWindow int           // announce.max_per_window
 }
 
 // Governance is the tuning of the office holder's screens
@@ -434,6 +464,40 @@ type Crime struct {
 	// NPCDailyCap is the most NPC crime pays into the economy per UTC day,
 	// minor units.
 	NPCDailyCap int64 // crime.npc_daily_cap
+
+	// The caps on what carried gear may add to one attempt, by magnitude
+	// (crime.Combine): basis points, and nerve points for the cost.
+	GearMaxSuccessBPS int // crime.gear_max_success_bps
+	GearMaxCatchBPS   int // crime.gear_max_catch_bps
+	GearMaxWitnessBPS int // crime.gear_max_witness_bps
+	GearMaxSolveBPS   int // crime.gear_max_solve_bps
+	GearMaxRewardBPS  int // crime.gear_max_reward_bps
+	GearMaxNerve      int // crime.gear_max_nerve
+}
+
+// Trade is the tuning of the player market and the auction house. The fee a
+// trade pays is each city's policy (city.market_fee), never a number here.
+type Trade struct {
+	// MarketOrderTTL is how long, REAL time, a resting order lives before
+	// it expires and its escrow comes back.
+	MarketOrderTTL time.Duration // trade.market_order_ttl
+	// MarketMaxOpenOrders bounds one player's resting orders.
+	MarketMaxOpenOrders int // trade.market_max_open_orders
+	// MarketMaxQuantity and MarketMaxPrice bound one order.
+	MarketMaxQuantity int   // trade.market_max_quantity
+	MarketMaxPrice    int64 // trade.market_max_price
+	// AuctionDurations are the lengths, GAME time, a seller may choose.
+	AuctionDurations []time.Duration // trade.auction_durations
+	// AuctionMaxReserve bounds a reserve; AuctionStepBPS and AuctionMinStep
+	// are how much a bid must beat the standing one by.
+	AuctionMaxReserve int64 // trade.auction_max_reserve
+	AuctionStepBPS    int   // trade.auction_step_bps
+	AuctionMinStep    int64 // trade.auction_min_step
+	// AuctionMaxOpen bounds one seller's open auctions.
+	AuctionMaxOpen int // trade.auction_max_open
+	// AuctionReservesBPS are the reserves a seller is offered, as shares
+	// of the good's reference price in basis points.
+	AuctionReservesBPS []int64 // trade.auction_reserves_bps
 }
 
 // Defaults returns every field at the value it was hardcoded to before this
@@ -522,9 +586,19 @@ func Defaults() *Config {
 			DefaultTimezone: "Asia/Tehran",
 		},
 		Economy: Economy{
-			StartingCash:  5000,
-			BankMinAmount: 1,
-			BankMaxAmount: 1000000000,
+			StartingCash:     5000,
+			BankMinAmount:    1,
+			BankMaxAmount:    1000000000,
+			BankQuickAmounts: []int64{1000, 5000, 10000, 50000, 100000, 500000, 1000000},
+		},
+		Input: Input{
+			TTL:       5 * time.Minute,
+			Cooldown:  3 * time.Second,
+			MaxLength: 32,
+		},
+		Announce: Announce{
+			Window:       time.Minute,
+			MaxPerWindow: 6,
 		},
 		Governance: Governance{
 			FineStepDivisor:   100,
@@ -549,6 +623,24 @@ func Defaults() *Config {
 			InvestigationWitnessBonusBPS: 3500,
 			InvestigationEffortWeightBPS: 3000,
 			NPCDailyCap:                  500000,
+			GearMaxSuccessBPS:            2500,
+			GearMaxCatchBPS:              2500,
+			GearMaxWitnessBPS:            3000,
+			GearMaxSolveBPS:              3000,
+			GearMaxRewardBPS:             5000,
+			GearMaxNerve:                 5,
+		},
+		Trade: Trade{
+			MarketOrderTTL:      168 * time.Hour,
+			MarketMaxOpenOrders: 20,
+			MarketMaxQuantity:   10000,
+			MarketMaxPrice:      100_000_000,
+			AuctionDurations:    []time.Duration{time.Hour, 6 * time.Hour, 24 * time.Hour},
+			AuctionMaxReserve:   100_000_000,
+			AuctionStepBPS:      500,
+			AuctionMinStep:      10,
+			AuctionMaxOpen:      5,
+			AuctionReservesBPS:  []int64{5000, 10000, 15000},
 		},
 	}
 }

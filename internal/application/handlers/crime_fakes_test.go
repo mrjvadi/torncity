@@ -30,6 +30,12 @@ func (noCrime) Attempt(context.Context, string) (*application.CrimeAttempt, erro
 func (noCrime) RecentAttempts(context.Context, string, int) ([]application.CrimeAttempt, error) {
 	return nil, nil
 }
+func (noCrime) LastAttempt(context.Context, string, string) (time.Time, error) {
+	return time.Time{}, nil
+}
+func (noCrime) LastAttemptInCategory(context.Context, string, string) (time.Time, error) {
+	return time.Time{}, nil
+}
 func (noCrime) Whereabouts(context.Context, string, string, time.Time) (string, string, error) {
 	return "", "", nil
 }

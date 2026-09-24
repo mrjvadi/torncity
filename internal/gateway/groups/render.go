@@ -32,6 +32,9 @@ const (
 	KeyStartBotFirst = "group.start_bot_first"
 	KeyOpenBot       = "group.open_bot"
 	KeyWelcome       = "group.welcome"
+	// KeyMakeAdmin is added to the welcome when the bot, in privacy mode,
+	// joins a group without admin rights: plain-word commands need it.
+	KeyMakeAdmin = "group.make_admin"
 )
 
 // Settings are the tuning of group delivery; configs/config.yml, section
@@ -40,6 +43,9 @@ type Settings struct {
 	// CallbackAlertMaxRunes bounds a callback popup's text; Telegram
 	// accepts 0-200 characters.
 	CallbackAlertMaxRunes int
+	// Policy is configs/commands.yml: which replies are private. Nil keeps
+	// the bank's and the settings' replies private and every other public.
+	Policy *Policy
 }
 
 // Bot is the bot a response goes out through.
@@ -145,7 +151,7 @@ func (r *Renderer) Render(ctx context.Context, api API, bot Bot, meta envelope.M
 		return Outcome{}, fmt.Errorf("groups: response action %q is not rendered in a group", resp.Type)
 	}
 
-	if IsPrivate(meta.Command, resp) {
+	if r.set.Policy.IsPrivate(meta.Command, resp) {
 		return r.direct(ctx, api, bot, meta, resp)
 	}
 	return r.public(ctx, api, meta, resp)

@@ -182,6 +182,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		SendBudget:    tuning.SendBudget,
 		ReceiptMargin: tuning.ReceiptMargin,
 		MaxAge:        tuning.MaxAge,
+		// Public lines in the cities' groups, a few at a time per group.
+		Groups:         postgres.NewCityGroupRepository(pool),
+		AnnounceWindow: cfg.Announce.Window,
+		AnnounceMax:    cfg.Announce.MaxPerWindow,
 	})
 	if err != nil {
 		return err

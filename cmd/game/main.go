@@ -250,7 +250,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			int64(cfg.Travel.ArrivalXP),
 			cfg.Game.IdempotencyTTL,
 			nil,
-		),
+		// A journey departs from, and lands at, the place of its mode.
+		).WithPlaces(registry),
 		skills: handlers.NewSkillsHandler(uow, messages, postgres.NewSkillRepository(pool), nil),
 		social: handlers.NewSocialHandler(
 			uow,
@@ -276,7 +277,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			bankLimits,
 			cfg.Game.IdempotencyTTL,
 			nil,
-		),
+		).WithQuickAmounts(cfg.Economy.BankQuickAmounts),
 		// Policy values are read only through the resolver and changed only
 		// through SetPolicy; the directory reads the seats, names and public
 		// record around them (ADR 0015).
@@ -305,6 +306,16 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// only through the resolver (ADR 0015), on the game clock.
 	h.crime = newCrimeHandler(uow, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.Crime, cfg.Game.IdempotencyTTL)
+
+	// The map of the player's own city and the walks between its places,
+	// on the game clock.
+	h.places = handlers.NewPlacesHandler(uow, uuidGenerator{}, messages, registry, cities,
+		gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL, nil)
+
+	// Goods: the inventory, the city shops, the player market and the
+	// auction house, on the game clock.
+	h.goods = newGoodsHandlers(uow, messages, registry, cities, postgres.NewPolicyReader(pool, nil),
+		gametime.Scale(cfg.Game.TimeScale), cfg.Crime, cfg.Trade, cfg.Game.IdempotencyTTL)
 
 	subs := commands.All()
 	bound, err := bindAll(subs, h.bind())

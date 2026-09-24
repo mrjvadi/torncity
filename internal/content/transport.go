@@ -55,6 +55,9 @@ type TransportModeDef struct {
 	// EnergyCost is the energy a departure costs.
 	EnergyCost int       `yaml:"energy_cost"`
 	Demand     DemandDef `yaml:"demand"`
+	// Payment optionally narrows the methods its fare may be paid by
+	// (payments.yml, service fare). Omitted means whatever fares accept.
+	Payment []string `yaml:"payment"`
 }
 
 // Mode converts the definition to the domain value, or explains which field

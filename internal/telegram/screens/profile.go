@@ -63,6 +63,21 @@ type ProfileView struct {
 	// Work with no Job says the player has none, and the profile says so
 	// and points at the openings.
 	Work *ProfileWork
+
+	// Jail is the sentence the player is serving, nil when free. The home
+	// screen says so first, with the time left and the release time, and
+	// offers the jail instead of what jail rules out.
+	Jail *ProfileJail
+}
+
+// ProfileJail is a sentence as the home screen shows it.
+type ProfileJail struct {
+	// CityCode and City are where the player is held.
+	CityCode string
+	City     string
+	// Remaining is how long until release; EndsAt is the release instant.
+	Remaining time.Duration
+	EndsAt    time.Time
 }
 
 // ProfileWork is what the profile shows of a player's job and studies: the
@@ -93,8 +108,11 @@ type ProfileJob struct {
 // ProfileCourse is the course in progress as the profile shows it.
 type ProfileCourse struct {
 	Course CourseRef
-	// Remaining is how long until it finishes.
+	// Remaining is how long until it finishes; while Paused, the time that
+	// was left when it stopped.
 	Remaining time.Duration
+	// Paused says the course stands still because the player is in jail.
+	Paused bool
 }
 
 // isNewPlayer reports whether this is someone who has not done anything yet,
@@ -146,6 +164,7 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 	text := paragraphs(
 		welcome,
 		body(name, where),
+		jailLines(c, v.Jail),
 		body(
 			levelLine(c, v.Level, v.XP, v.NextLevelXP),
 			energyLine(c, v.Energy, v.MaxEnergy, v.EnergyFullIn),
@@ -159,7 +178,25 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 		code,
 	)
 
-	return c.respond(text, hubKeyboard(c, city != "", v.Travelling, v.Work).Build())
+	return c.respond(text, hubKeyboard(c, city != "", v.Travelling, v.Jail != nil, v.Work).Build())
+}
+
+// jailLines says the player is in jail: where, for how long, and at what time
+// they are free, and what jail stops them doing.
+func jailLines(c Context, j *ProfileJail) string {
+	if j == nil {
+		return ""
+	}
+	args := map[string]any{"remaining": FormatDuration(c, j.Remaining)}
+	key := "profile.jail"
+	if city := c.CityName(j.CityCode, j.City); city != "" {
+		key, args["city"] = "profile.jail_in", city
+	}
+	return body(
+		c.T(key, args),
+		clockLine(c, "crime.free_at", j.EndsAt),
+		c.T("profile.jail_blocks", nil),
+	)
 }
 
 // workLines shows the player's job and studies: the position, where and for
@@ -190,9 +227,13 @@ func workLines(c Context, w *ProfileWork) string {
 	}
 	if cr := w.Course; cr != nil {
 		key, args := "profile.course", map[string]any{"course": c.course(cr.Course)}
-		if cr.Remaining < arrivingThreshold {
+		switch {
+		case cr.Paused:
+			key = "profile.course_paused"
+			args["remaining"] = FormatDuration(c, cr.Remaining)
+		case cr.Remaining < arrivingThreshold:
 			key = "profile.course_finishing"
-		} else {
+		default:
 			args["remaining"] = FormatDuration(c, cr.Remaining)
 		}
 		lines = append(lines, c.T(key, args))
@@ -255,11 +296,15 @@ func energyLine(c Context, energy, maxEnergy int, fullIn time.Duration) string {
 //
 // The order is the order of use: going somewhere and working first, then
 // study and money, then skills and friends, then the city, then settings.
-func hubKeyboard(c Context, hasCity, travelling bool, work *ProfileWork) *keyboards.Builder {
+func hubKeyboard(c Context, hasCity, travelling, jailed bool, work *ProfileWork) *keyboards.Builder {
 	kb := keyboards.New()
 
 	var place presenter.Button
 	switch {
+	case jailed:
+		// Jail rules out travel and a shift; the jail — bail, the time
+		// left — is what the player can act on.
+		place, _ = keyboards.Button(c.T("crime.button.jail", nil), AddrCrimeJail)
 	case travelling:
 		place, _ = keyboards.Button(c.T("button.journey", nil), AddrTravelStatus)
 	case hasCity:
@@ -283,7 +328,7 @@ func hubKeyboard(c Context, hasCity, travelling bool, work *ProfileWork) *keyboa
 	social, _ := keyboards.Button(c.T("button.social", nil), AddrFriendList)
 	kb.Row(skills, social)
 
-	if hasCity && !travelling {
+	if hasCity && !travelling && !jailed {
 		kb.Add(c.T("gov.button.city", nil), AddrGovCity)
 	}
 

@@ -6,7 +6,7 @@ This is your home: your condition, your money and your work at a glance. Use the
 👤 Sara
 📍 Ostmarch
 
-⭐ Level 1 · 50 XP to level 2
+⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 100 of 100
 ❤️ Health: 100 of 100
 
@@ -16,7 +16,7 @@ This is your home: your condition, your money and your work at a glance. Use the
 🏦 Bank balance: 0 Nil
 
 🆔 Player code: K7Q2M9A
-Friends can find you by sending /social K7Q2M9A.
+Friends can find you by sending "find K7Q2M9A".
   ───
   [🗺 Map] → map:list   │   [💼 Job openings] → job:list
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
@@ -38,7 +38,7 @@ You have no skills yet. You gain them by working and by taking courses, and they
 
 🌐 Game language: English
   ───
-  [🌐 Switch to فارسی] → player:language.set:fa
+  [🌐 Switch to ⁨فارسی⁩] → player:language.set:fa
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → player:settings
 
 ━━━ Refresh the profile ━━━
@@ -49,7 +49,7 @@ This is your home: your condition, your money and your work at a glance. Use the
 👤 Sara
 📍 Ostmarch
 
-⭐ Level 1 · 50 XP to level 2
+⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 100 of 100
 ❤️ Health: 100 of 100
 
@@ -59,7 +59,7 @@ This is your home: your condition, your money and your work at a glance. Use the
 🏦 Bank balance: 0 Nil
 
 🆔 Player code: K7Q2M9A
-Friends can find you by sending /social K7Q2M9A.
+Friends can find you by sending "find K7Q2M9A".
   ───
   [🗺 Map] → map:list   │   [💼 Job openings] → job:list
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show

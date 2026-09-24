@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/crime"
+	"github.com/mrjvadi/torncity/internal/domain/payment"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
@@ -23,7 +25,10 @@ import (
 // second served after the first. A sentence whose time is up but whose
 // release has not been processed yet is closed first. Its release is put on
 // the schedule, the old release of an extended sentence becoming a no-op.
-func (h *CrimeHandler) jail(ctx context.Context, tx application.Tx, playerID, cityID, crimeID, reason string, term time.Duration, now time.Time) (application.JailSentence, error) {
+//
+// A new sentence is announced (crime.jailed): the city's group reads that the
+// player was jailed there, never why or for how long.
+func (h *CrimeHandler) jail(ctx context.Context, tx application.Tx, meta envelope.Metadata, playerID, cityID, crimeID, reason string, term time.Duration, now time.Time) (application.JailSentence, error) {
 	secs := int64(term / time.Second)
 	if secs < 1 {
 		secs = 1
@@ -53,6 +58,11 @@ func (h *CrimeHandler) jail(ctx context.Context, tx application.Tx, playerID, ci
 			!isSentinel(err, application.ErrNotJailed) {
 			return application.JailSentence{}, err
 		}
+		// That sentence ended at its own end, not now: the course ran again
+		// from then until this jailing stops it once more, below.
+		if err := resumeStudies(ctx, tx, h.ids, playerID, current.EndsAt); err != nil {
+			return application.JailSentence{}, err
+		}
 	case !isSentinel(err, application.ErrNotJailed):
 		return application.JailSentence{}, err
 	}
@@ -66,6 +76,22 @@ func (h *CrimeHandler) jail(ctx context.Context, tx application.Tx, playerID, ci
 		return application.JailSentence{}, err
 	}
 	if err := tx.Crime().Jail(ctx, s); err != nil {
+		return application.JailSentence{}, err
+	}
+	// A prisoner's course stands still until they are out.
+	if err := pauseStudies(ctx, tx, playerID, now); err != nil {
+		return application.JailSentence{}, err
+	}
+	var name string
+	if p, err := tx.Players().GetByID(ctx, playerID); err == nil {
+		name = shownName(p)
+	} else if !isSentinel(err, application.ErrPlayerNotFound) {
+		return application.JailSentence{}, err
+	}
+	if err := appendCrimeEvent(ctx, tx, meta, "jailed", s.ID, map[string]any{
+		"sentence_id": s.ID, "player_id": playerID, "player_name": name, "city_id": cityID,
+		"reason": reason, "ends_at": s.EndsAt,
+	}); err != nil {
 		return application.JailSentence{}, err
 	}
 	return s, nil
@@ -85,18 +111,30 @@ func (h *CrimeHandler) bailFor(ctx context.Context, s application.JailSentence, 
 	return b, nil
 }
 
-// Bail handles crime.bail: paying to leave jail early, from cash and then
-// the bank, into the treasury of the city that jailed the player.
+// Bail handles crime.bail: paying to leave jail early, from the purse the
+// player chose — cash or card, whichever bail accepts (payments.yml) — into
+// the treasury of the city that jailed the player. A card works from a cell:
+// jail blocks a withdrawal, not a payment. The cash and the card button share
+// one token, so a second press — of either — is a replay, never a second
+// charge. A press without a method shows the jail screen.
 func (h *CrimeHandler) Bail(ctx context.Context, meta envelope.Metadata, req BailRequest) (*presenter.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
+	method, chosen, err := chosenMethod(req.Method)
+	if err != nil {
+		return nil, err
+	}
+	if !chosen {
+		return h.Jail(ctx, meta)
+	}
+	snap := h.content.Current()
 	lang := meta.Language
 	var (
 		view     screens.BailedView
 		replayed bool
 	)
-	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
@@ -134,29 +172,24 @@ func (h *CrimeHandler) Bail(ctx context.Context, meta envelope.Metadata, req Bai
 		if err != nil {
 			return err
 		}
-		cash, bank, err := playerAccounts(ctx, tx.Ledger(), p.ID)
-		if err != nil {
-			return err
-		}
-		fromCash, fromBank, ok := crime.Charge(bail, cash.Balance, bank.Balance)
-		if !ok {
-			r := refuseCrime(screens.CrimeRefusedCannotAfford)
-			r.view.Amount, r.view.Cash = bail.Minor(), cash.Balance.Minor()+bank.Balance.Minor()
-			return r
-		}
 		treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, city.ID)
 		if err != nil {
 			return err
 		}
-		txID, err := h.post(ctx, tx, application.ReasonBail, application.CrimeReferenceSentence, s.ID,
-			legs(cash, bank, fromCash, fromBank, treasury.ID))
+		txID, err := h.pay(ctx, tx, p.ID, snap.Accepts(content.ServiceBail), method, application.Charge{
+			Reason: application.ReasonBail, ReferenceType: application.CrimeReferenceSentence, ReferenceID: s.ID,
+			To: []application.LedgerEntry{{AccountID: treasury.ID, Amount: bail}},
+		}, "crime.button.jail", screens.AddrCrimeJail)
 		if err != nil {
 			return err
 		}
 		if err := tx.Crime().EndSentence(ctx, s.ID, application.SentenceBailed, bail.Minor(), txID, now); err != nil {
 			return err
 		}
-		view = screens.BailedView{Player: shownName(p), Bail: bail.Minor()}
+		if err := resumeStudies(ctx, tx, h.ids, p.ID, now); err != nil {
+			return err
+		}
+		view = screens.BailedView{Player: shownName(p), Bail: bail.Minor(), Method: string(method)}
 		return appendCrimeEvent(ctx, tx, meta, "bailed", s.ID, map[string]any{
 			"sentence_id": s.ID, "player_id": p.ID, "city_id": city.ID, "bail": bail.Minor(),
 		})
@@ -168,6 +201,37 @@ func (h *CrimeHandler) Bail(ctx context.Context, meta envelope.Metadata, req Bai
 		return h.Jail(ctx, meta)
 	}
 	return screens.Bailed(h.screen(meta, lang), view), nil
+}
+
+// errShowConfirm rolls back a report confirmed without a way to pay its fee,
+// so the confirmation screen is shown instead and its idempotency key is not
+// spent. It never leaves this file.
+var errShowConfirm = stderrors.New("handlers: the report needs a way to pay its fee")
+
+// pay takes a charge from the purse the player chose, refusing a method the
+// service does not take or that does not cover it (screens.PaymentDeclined,
+// with backLabel and back as the way back).
+func (h *CrimeHandler) pay(ctx context.Context, tx application.Tx, playerID string, accepts payment.Accepts,
+	method payment.Method, c application.Charge, backLabel string, back ...string,
+) (string, error) {
+	w, err := application.OpenWallet(ctx, tx.Ledger(), playerID)
+	if err != nil {
+		return "", err
+	}
+	amount, err := c.Amount()
+	if err != nil {
+		return "", errors.Internal(err)
+	}
+	plan := w.Plan(amount, accepts)
+	if err := checkMethod(plan, method, w, backLabel, back...); err != nil {
+		return "", err
+	}
+	c.Method, c.Accepted, c.CreatedAt = method, plan.Accepted, h.now()
+	id, err := w.Pay(ctx, tx.Ledger(), c)
+	if stderrors.Is(err, application.ErrPaymentDeclined) {
+		return "", declined(plan, w, backLabel, back...)
+	}
+	return id, err
 }
 
 // Release ends a sentence whose time is up. It arrives from the SCHEDULER.
@@ -208,6 +272,11 @@ func (h *CrimeHandler) Release(ctx context.Context, meta envelope.Metadata, req 
 			}
 			return err
 		}
+		// The course resumes from the sentence's end, not from whenever the
+		// release was processed: a late scheduler costs the student nothing.
+		if err := resumeStudies(ctx, tx, h.ids, playerID, s.EndsAt); err != nil {
+			return err
+		}
 		city, err := h.cities.ByID(ctx, s.CityID)
 		if err != nil {
 			return err
@@ -232,7 +301,14 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	confirmed := req.Confirm == screens.ReportConfirmation
+	method, paid, err := chosenMethod(req.Confirm)
+	if req.Confirm == screens.ReportConfirmation {
+		method, paid, err = "", false, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	confirmed := req.Confirm == screens.ReportConfirmation || paid
 	var (
 		confirm  *screens.ReportConfirmView
 		filed    bool
@@ -240,7 +316,7 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 		replayed bool
 		existing bool
 	)
-	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
@@ -266,7 +342,7 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 		if a.VictimPlayerID != p.ID {
 			return refuseCrime(screens.CrimeRefusedNotYours)
 		}
-		if a.Status != application.CrimeSucceeded || a.Reward <= 0 || a.ResolvedAt == nil {
+		if a.Status != application.CrimeSucceeded || (a.Reward <= 0 && a.StolenItem == "") || a.ResolvedAt == nil {
 			return refuseCrime(screens.CrimeRefusedNothingStolen)
 		}
 		if _, err := tx.Crime().ReportForCrime(ctx, a.ID); err == nil {
@@ -289,11 +365,27 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 			return err
 		}
 		investigation := h.scale.RealWait(h.rules.InvestigationDuration)
-		if !confirmed {
+		accepts := snap.Accepts(content.ServiceCrimeReport)
+		// A fee to pay and no way to pay it chosen, or no fee and no
+		// confirmation: the confirmation screen.
+		if !confirmed || (pol.ReportFee.Minor() > 0 && !paid) {
 			def, _ := snap.CrimeDef(a.CrimeCode)
 			confirm = &screens.ReportConfirmView{
 				CrimeID: a.ID, Crime: named(a.CrimeCode, def.Name), CityCode: city.Code, City: city.Name,
 				Amount: a.Reward, Fee: pol.ReportFee.Minor(), Investigation: investigation, ReportWithin: deadline.Sub(now),
+			}
+			if pol.ReportFee.Minor() > 0 {
+				w, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
+				if err != nil {
+					return err
+				}
+				choice := paymentChoice(w.Plan(pol.ReportFee, accepts), w)
+				confirm.Payment = &choice
+			}
+			if confirmed {
+				// The key reserved for a confirmation that turned out to
+				// need a method is released with the rollback.
+				return errShowConfirm
 			}
 			return nil
 		}
@@ -304,22 +396,14 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 			ConcludesAt: now.Add(investigation),
 		}
 		if pol.ReportFee.Minor() > 0 {
-			cash, bank, err := playerAccounts(ctx, tx.Ledger(), p.ID)
-			if err != nil {
-				return err
-			}
-			fromCash, fromBank, ok := crime.Charge(pol.ReportFee, cash.Balance, bank.Balance)
-			if !ok {
-				r := refuseCrime(screens.CrimeRefusedCannotAfford)
-				r.view.Amount, r.view.Cash = pol.ReportFee.Minor(), cash.Balance.Minor()+bank.Balance.Minor()
-				return r
-			}
 			treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, city.ID)
 			if err != nil {
 				return err
 			}
-			if report.FeeTransactionID, err = h.post(ctx, tx, application.ReasonReportFee,
-				application.CrimeReferenceReport, report.ID, legs(cash, bank, fromCash, fromBank, treasury.ID)); err != nil {
+			if report.FeeTransactionID, err = h.pay(ctx, tx, p.ID, accepts, method, application.Charge{
+				Reason: application.ReasonReportFee, ReferenceType: application.CrimeReferenceReport, ReferenceID: report.ID,
+				To: []application.LedgerEntry{{AccountID: treasury.ID, Amount: pol.ReportFee}},
+			}, "crime.button.cases", screens.AddrCrimeCases); err != nil {
 				return err
 			}
 		}
@@ -329,7 +413,9 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 		if err != nil {
 			return err
 		}
-		report.SolveChanceBPS = h.rules.Investigation.SolveChance(suspect.Heat, a.Witnessed, pol.EffortBPS)
+		// A thief who wore gloves leaves less behind: the gear's solve
+		// term, fixed at the attempt, moves the odds.
+		report.SolveChanceBPS = h.rules.Investigation.SolveChanceWithGear(suspect.Heat, a.Witnessed, pol.EffortBPS, a.GearSolveBPS)
 		if report.GameActionID, err = h.schedule(ctx, tx, application.InvestigationActionType, p.ID,
 			application.CrimeReferenceReport, report.ID, now, report.ConcludesAt); err != nil {
 			return err
@@ -347,6 +433,9 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 			"fee": report.ReportFee, "solve_chance_bps": report.SolveChanceBPS, "concludes_at": report.ConcludesAt,
 		})
 	})
+	if err == errShowConfirm {
+		err = nil
+	}
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
@@ -457,7 +546,15 @@ func (h *CrimeHandler) Conclude(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		split := crime.Settle(money.FromMinor(r.Stolen), fine, cash.Balance, bank.Balance)
+		// A good taken goes back if the thief still carries it; if not,
+		// its reference price joins what they owe.
+		owed := r.Stolen
+		returned, value, err := h.returnGoods(ctx, tx, snap, r, thief.ID, now)
+		if err != nil {
+			return err
+		}
+		owed += value
+		split := crime.Settle(money.FromMinor(owed), fine, cash.Balance, bank.Balance)
 		if _, err := h.post(ctx, tx, application.ReasonRestitution, application.CrimeReferenceReport, r.ID,
 			legs(cash, bank, split.RestitutionFromCash, split.RestitutionFromBank, victimCash.ID)); err != nil {
 			return err
@@ -468,7 +565,7 @@ func (h *CrimeHandler) Conclude(ctx context.Context, meta envelope.Metadata, req
 		}
 		var sentence application.JailSentence
 		if term > 0 {
-			if sentence, err = h.jail(ctx, tx, thief.ID, city.ID, r.CrimeID, application.SentenceForConviction, term, now); err != nil {
+			if sentence, err = h.jail(ctx, tx, meta, thief.ID, city.ID, r.CrimeID, application.SentenceForConviction, term, now); err != nil {
 				return err
 			}
 		}
@@ -490,6 +587,11 @@ func (h *CrimeHandler) Conclude(ctx context.Context, meta envelope.Metadata, req
 		outcome["thief_id"], outcome["thief_name"], outcome["thief_code"] = thief.ID, shownName(thief), thief.PublicCode
 		outcome["restored"], outcome["shortfall"] = r.RestitutionPaid, r.RestitutionShortfall
 		outcome["fine"], outcome["fine_paid"] = r.FineAmount, r.FinePaid
+		if returned != "" {
+			outcome["item_returned"] = returned
+			def, _ := snap.ItemDef(returned)
+			outcome["item_returned_name"] = def.Name
+		}
 		if sentence.ID != "" {
 			outcome["term_seconds"] = int64(sentence.EndsAt.Sub(now) / time.Second)
 		}
@@ -498,4 +600,37 @@ func (h *CrimeHandler) Conclude(ctx context.Context, meta envelope.Metadata, req
 		}
 		return appendCrimeEvent(ctx, tx, meta, "convicted", r.ID, outcome)
 	})
+}
+
+// returnGoods gives a victim back what a solved theft took beside money: the
+// very piece, or the units of a stack, if the thief still carries them. It
+// returns the good given back, or — when the thief no longer has it — the
+// good's reference price times the units, which the caller adds to the
+// restitution owed.
+func (h *CrimeHandler) returnGoods(ctx context.Context, tx application.Tx, snap *content.Snapshot, r *application.CrimeReport,
+	thiefID string, now time.Time,
+) (string, int64, error) {
+	a, err := tx.Crime().Attempt(ctx, r.CrimeID)
+	if err != nil {
+		return "", 0, err
+	}
+	if a.StolenItem == "" || a.StolenQty <= 0 {
+		return "", 0, nil
+	}
+	if err := lockGoods(ctx, tx, thiefID, r.VictimPlayerID); err != nil {
+		return "", 0, err
+	}
+	err = tx.Items().Move(ctx, application.ItemMove{
+		ID: h.ids.NewID(), Item: a.StolenItem, PieceID: a.StolenPieceID, Qty: a.StolenQty,
+		From: thiefID, FromHolding: application.HoldCarried, To: r.VictimPlayerID, ToHolding: application.HoldCarried,
+		Reason: application.ItemRestitution, ReferenceType: application.CrimeReferenceReport, ReferenceID: r.ID, At: now,
+	})
+	switch {
+	case err == nil:
+		return a.StolenItem, 0, nil
+	case isSentinel(err, application.ErrNotEnoughItems), isSentinel(err, application.ErrPieceNotFound):
+		def, _ := snap.ItemDef(a.StolenItem)
+		return "", def.BasePrice * a.StolenQty, nil
+	}
+	return "", 0, err
 }

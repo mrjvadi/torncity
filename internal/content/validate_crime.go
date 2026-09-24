@@ -32,8 +32,8 @@ var (
 	// ErrUnknownCrimeFacility means a crime requires a facility transport.yml
 	// does not declare.
 	ErrUnknownCrimeFacility = errors.New("content: crime requires an unknown facility")
-	// ErrUnknownTool means a crime requires a tool that is not a known item.
-	// No items exist yet, so every tool is unknown until they do.
+	// ErrUnknownTool means a crime requires a tool that is not a good of
+	// items.yml.
 	ErrUnknownTool = errors.New("content: crime requires an unknown tool")
 	// ErrInvalidCrimeContent means the domain refused a crime.
 	ErrInvalidCrimeContent = errors.New("content: invalid crime")
@@ -42,17 +42,11 @@ var (
 	ErrCrimeNotWholeSeconds = errors.New("content: crime durations are whole seconds")
 )
 
-// knownTools is the set of item codes a crime may require. Items (ADR 0005)
-// are not content yet, so it is empty: a crime naming a tool fails the load
-// instead of asking for something nobody could ever carry. When items land,
-// this becomes the item catalogue.
-var knownTools = map[string]bool{}
-
 // validateCrimes checks the tiers, venues, categories and crimes together,
 // because a crime names all three and a venue names transport modes and
 // career categories.
 func (p *Pack) validateCrimes(problems *[]error) {
-	if len(p.Crimes) == 0 && len(p.CrimeTiers) == 0 && len(p.Venues) == 0 && len(p.CrimeCategories) == 0 {
+	if len(p.Crimes) == 0 && len(p.CrimeTiers) == 0 && len(p.CrimeCategories) == 0 {
 		// Crime content is optional as a whole: a pack without any (an older
 		// version, a test fixture) simply has no crimes.
 		return
@@ -97,6 +91,20 @@ func (p *Pack) validateCrimes(problems *[]error) {
 	facilities := map[string]bool{}
 	for _, f := range p.Facilities {
 		facilities[f] = true
+	}
+	// A crime's required tools are goods of items.yml: something a player
+	// can actually come to carry.
+	knownTools := map[string]bool{}
+	for _, it := range p.Items {
+		knownTools[it.Code] = true
+	}
+	for i, c := range p.CrimeCategories {
+		if c.Cooldown == "" {
+			continue
+		}
+		if d, err := optionalDuration(c.Cooldown); err != nil || d%crimeTimeUnit != 0 {
+			add(fmt.Errorf("%w: crime_categories[%d] %q cooldown %q", ErrInvalidDuration, i, c.Code, c.Cooldown))
+		}
 	}
 	certifying := map[string]bool{}
 	for _, c := range p.Courses {
@@ -148,7 +156,8 @@ func (p *Pack) validateCrimes(problems *[]error) {
 				add(fmt.Errorf("%w: crime %q: %w", ErrInvalidCrimeContent, c.Code, err))
 			}
 		}
-		for name, raw := range map[string]string{"duration": c.Duration, "jail_min": c.Failure.JailMin, "jail_max": c.Failure.JailMax} {
+		for name, raw := range map[string]string{"duration": c.Duration, "jail_min": c.Failure.JailMin,
+			"jail_max": c.Failure.JailMax, "cooldown": c.Cooldown} {
 			if d, err := optionalDuration(raw); err == nil && d%crimeTimeUnit != 0 {
 				add(fmt.Errorf("%w: crime %q %s %q", ErrCrimeNotWholeSeconds, c.Code, name, raw))
 			}

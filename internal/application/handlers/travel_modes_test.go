@@ -28,7 +28,7 @@ func withSink(h *phase1) {
 }
 
 func by(city, mode string, max int64) StartTravelRequest {
-	return StartTravelRequest{City: city, Mode: mode, Max: strconv.FormatInt(max, 10)}
+	return StartTravelRequest{City: city, Mode: mode, Max: strconv.FormatInt(max, 10), Method: "cash"}
 }
 
 // buttons lists every callback address on a response.

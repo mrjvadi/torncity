@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"github.com/mrjvadi/torncity/internal/application"
 	"os"
 	"strings"
 	"testing"
@@ -416,13 +417,18 @@ func TestBlockAndRemoveTouchOneEdgeOnly(t *testing.T) {
 	}
 }
 
-// Incoming requests are a different query entirely, so the listing must be the
-// caller's own outgoing edges and must be totally ordered for paging.
+// The listing is the caller's own edges in every status, plus the pending
+// requests others sent them, and it is totally ordered for paging.
 func TestSelectFriendshipsIsOutgoingAndTotallyOrdered(t *testing.T) {
 	sql := normalize(selectFriendships)
 
 	if !strings.Contains(sql, "WHERE player_id = $1::uuid") {
 		t.Errorf("the friendship listing is not the caller's own edges:\n%s", sql)
+	}
+	// The other half is only requests sent TO the caller, still pending:
+	// somebody else's friendships and blocks are none of their business.
+	if !strings.Contains(sql, "WHERE friend_player_id = $1::uuid AND status = 'pending'") {
+		t.Errorf("the listing does not add the requests the caller received, and only those:\n%s", sql)
 	}
 	// created_at is supplied by the application and two rows written in one
 	// transaction share it exactly, so the id tie-break is what makes paging
@@ -430,9 +436,33 @@ func TestSelectFriendshipsIsOutgoingAndTotallyOrdered(t *testing.T) {
 	if !strings.Contains(sql, "ORDER BY created_at, id") {
 		t.Errorf("the friendship listing has no total order:\n%s", sql)
 	}
-	// Filtering here would need a separate method per screen.
-	if strings.Contains(sql, "status =") {
-		t.Errorf("the friendship listing decides which statuses the caller may see:\n%s", sql)
+	// The caller's own edges are not filtered by status: that would need a
+	// separate method per screen.
+	own := sql[:strings.Index(sql, "UNION ALL")]
+	if strings.Contains(own, "status =") {
+		t.Errorf("the listing decides which of the caller's own statuses they may see:\n%s", sql)
+	}
+}
+
+// mergeFriendships keeps one line per other player.
+func TestMergeFriendships(t *testing.T) {
+	got := mergeFriendships([]application.Friendship{
+		{FriendPlayerID: "a", Status: FriendshipPending},                 // sent to a
+		{FriendPlayerID: "a", Status: FriendshipPending, Incoming: true}, // a asked too
+		{FriendPlayerID: "b", Status: FriendshipAccepted},                // friends
+		{FriendPlayerID: "b", Status: FriendshipPending, Incoming: true}, // stale request from b
+		{FriendPlayerID: "c", Status: FriendshipBlocked},                 // blocked
+		{FriendPlayerID: "c", Status: FriendshipPending, Incoming: true}, // c's request
+		{FriendPlayerID: "d", Status: FriendshipPending, Incoming: true}, // received only
+	})
+	want := map[string]bool{"a": true, "b": false, "c": false, "d": true} // other -> incoming
+	if len(got) != len(want) {
+		t.Fatalf("merged %d lines, want %d: %+v", len(got), len(want), got)
+	}
+	for _, e := range got {
+		if w, ok := want[e.FriendPlayerID]; !ok || w != e.Incoming {
+			t.Errorf("line %+v", e)
+		}
 	}
 }
 

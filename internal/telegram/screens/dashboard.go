@@ -27,6 +27,8 @@ type DashboardView struct {
 	// and their bank balance. Private to the player.
 	Cash int64
 	Bank int64
+	// Jail is the sentence the player is serving, nil when free.
+	Jail *ProfileJail
 }
 
 // Dashboard renders the hub: the same lines and the same buttons as the
@@ -43,11 +45,12 @@ func Dashboard(c Context, v DashboardView) *presenter.Response {
 
 	text := paragraphs(
 		body(name, where),
+		jailLines(c, v.Jail),
 		body(
 			c.T("profile.level_plain", map[string]any{"level": max(v.Level, 1)}),
 			energyLine(c, v.Energy, v.MaxEnergy, 0),
 		),
 		moneyLines(c, v.Cash, v.Bank),
 	)
-	return c.respond(text, hubKeyboard(c, city != "", v.Travelling, nil).Build())
+	return c.respond(text, hubKeyboard(c, city != "", v.Travelling, v.Jail != nil, nil).Build())
 }

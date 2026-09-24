@@ -30,6 +30,7 @@ var ownerTables = map[application.AccountKind]string{
 	application.AccountPlayerCash:   "players",
 	application.AccountPlayerBank:   "players",
 	application.AccountCityTreasury: "cities",
+	application.AccountPlayerEscrow: "players",
 }
 
 // LedgerRepository implements application.LedgerRepository.
@@ -109,7 +110,7 @@ func (r *LedgerRepository) AccountFor(ctx context.Context, kind application.Acco
 }
 
 func notFoundOwner(kind application.AccountKind) error {
-	if kind == application.AccountPlayerCash || kind == application.AccountPlayerBank {
+	if kind == application.AccountPlayerCash || kind == application.AccountPlayerBank || kind == application.AccountPlayerEscrow {
 		return application.ErrPlayerNotFound
 	}
 	return application.ErrAccountOwnerNotFound.WithDetail("kind", string(kind))

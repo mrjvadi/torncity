@@ -40,7 +40,8 @@ func TestRouteShortcuts(t *testing.T) {
 		{"/find@torncity_bot @mrjvadi", "social.search", map[string]any{"query": "@mrjvadi"}},
 		{"/find", "social.search", map[string]any{}},
 		{"/map", "map.list", map[string]any{}},
-		{"/map 2", "map.list", map[string]any{"page": "2"}},
+		// Words after /map name a place of the city to walk to.
+		{"/map bazaar", "place.go", map[string]any{"place": "bazaar"}},
 		{"/map list 3", "map.list", map[string]any{"page": "3"}},
 		{"/profile", "player.profile.get", map[string]any{}},
 		{"/start", "player.profile.get", map[string]any{}},

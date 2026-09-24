@@ -94,6 +94,14 @@ func economyVerify(ctx context.Context, args []string) error {
 		fmt.Printf("        account %s (%s): cached %d, entries say %s\n", d.AccountID, d.Kind, d.Cached, d.Derived)
 	}
 
+	if v.Goods {
+		fmt.Printf("%s  every stack of goods matches the item journal\n", mark(len(v.DriftedStacks) == 0))
+		for _, d := range v.DriftedStacks {
+			fmt.Printf("        %s of player %s (%s): holds %d, the journal says %d\n", d.Item, d.PlayerID, d.Holding, d.Held, d.Journal)
+		}
+		fmt.Printf("%s  every unique piece came from a recorded origin (%d without)\n", mark(v.OrphanPieces == 0), v.OrphanPieces)
+	}
+
 	if !v.OK() {
 		return errInvariantsBroken
 	}

@@ -17,7 +17,7 @@ import (
 // depart is the request a player's "bus to Berlin" button produces: the free
 // test bus, at any fare up to a generous ceiling.
 func depart(city string) StartTravelRequest {
-	return StartTravelRequest{City: city, Mode: "bus", Max: "1000000"}
+	return StartTravelRequest{City: city, Mode: "bus", Max: "1000000", Method: "cash"}
 }
 
 func TestTravelStartWritesTheJourneyAndItsSchedule(t *testing.T) {

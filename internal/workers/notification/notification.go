@@ -120,11 +120,21 @@ type Config struct {
 
 	// Now is the clock. Nil means time.Now.
 	Now func() time.Time
+
+	// Groups are the cities' Telegram groups, for announcements. Nil posts
+	// no announcement.
+	Groups CityGroups
+	// AnnounceWindow and AnnounceMax bound the lines one group receives:
+	// at most AnnounceMax in any AnnounceWindow (announce.window and
+	// announce.max_per_window). Zero leaves them unbounded.
+	AnnounceWindow time.Duration
+	AnnounceMax    int
 }
 
 // Worker turns events into notices.
 type Worker struct {
-	cfg Config
+	cfg      Config
+	throttle *throttle
 }
 
 // New validates cfg and returns a worker.
@@ -143,7 +153,9 @@ func New(cfg Config) (*Worker, error) {
 	if cfg.Now == nil {
 		cfg.Now = time.Now
 	}
-	return &Worker{cfg: cfg}, nil
+	return &Worker{cfg: cfg, throttle: &throttle{
+		window: cfg.AnnounceWindow, max: cfg.AnnounceMax, groups: map[int64]*groupWindow{},
+	}}, nil
 }
 
 // Handle processes one delivery of one route's event.
@@ -166,6 +178,10 @@ func (w *Worker) Handle(ctx context.Context, route Route, env *envelope.Envelope
 	if w.cfg.MaxAge > 0 && !meta.ReceivedAt.IsZero() && now.Sub(meta.ReceivedAt) > w.cfg.MaxAge {
 		log.Info("event is too old to announce", slog.Time("received_at", meta.ReceivedAt))
 		return nil
+	}
+
+	if route.Announce != nil {
+		return w.announce(ctx, route, env, now, log)
 	}
 
 	// The message id is the request id, as in cmd/game. The route's own

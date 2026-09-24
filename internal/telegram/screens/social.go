@@ -168,6 +168,12 @@ func Friends(c Context, v FriendsView) *presenter.Response {
 			if !ok {
 				key = "social.friends.line"
 			}
+			if f.Incoming && f.Status == "pending" {
+				// Their request, waiting for this player: the one line an
+				// accept button belongs to. A request this player SENT
+				// waits for the other one, and says so.
+				key = "social.friends.line_incoming"
+			}
 			lines = append(lines, c.T(key, map[string]any{"player": c.playerName(f.Name)}))
 			if f.Incoming {
 				kb.Add(c.T("button.accept", map[string]any{"player": c.playerName(f.Name)}), AddrFriendAccept, f.ID)
@@ -208,4 +214,40 @@ func FriendAccepted(c Context, name string) *presenter.Response {
 		return c.respond(c.T("social.friend.accepted_anon", nil), kb.Build())
 	}
 	return c.respond(c.T("social.friend.accepted", map[string]any{"player": name}), kb.Build())
+}
+
+// FriendRequestNotice tells a player that someone asked to be their friend,
+// with the button that accepts. It goes to the player's private chat; the
+// sender is named by display name and public code, never by record id.
+func FriendRequestNotice(c Context, name, code, requesterID string) *presenter.Response {
+	head := c.T("social.friend.incoming_anon", nil)
+	if name != "" {
+		head = c.T("social.friend.incoming", map[string]any{"player": name})
+	}
+	var codeLine string
+	if code != "" {
+		codeLine = c.T("profile.code", map[string]any{"code": code})
+	}
+	kb := keyboards.New()
+	if btn, ok := keyboards.Button(c.T("button.accept", map[string]any{"player": c.playerName(name)}), AddrFriendAccept, requesterID); ok {
+		kb.Row(btn)
+	}
+	if btn, ok := keyboards.Button(c.T("button.social", nil), AddrFriendList); ok {
+		kb.Row(btn)
+	}
+	return presenter.Message(paragraphs(body(head, codeLine), c.T("social.friend.incoming_hint", nil)), kb.Build())
+}
+
+// FriendAcceptedNotice tells a player that their friend request was
+// accepted. It goes to the player's private chat.
+func FriendAcceptedNotice(c Context, name string) *presenter.Response {
+	text := c.T("social.friend.now_friends_anon", nil)
+	if name != "" {
+		text = c.T("social.friend.now_friends", map[string]any{"player": name})
+	}
+	kb := keyboards.New()
+	if btn, ok := keyboards.Button(c.T("button.social", nil), AddrFriendList); ok {
+		kb.Row(btn)
+	}
+	return presenter.Message(text, kb.Build())
 }

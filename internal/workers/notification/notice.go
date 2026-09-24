@@ -39,6 +39,12 @@ type Notice struct {
 	// Response is the screen to send. It is always a new message: a notice
 	// never edits.
 	Response presenter.Response `json:"response"`
+
+	// Announcement marks a public line for a group chat (announce.go). A
+	// notice addressed to a group is otherwise delivered to the player's
+	// private chat instead, never to the room; an announcement is meant for
+	// the room and is posted there as it stands.
+	Announcement bool `json:"announcement,omitempty"`
 }
 
 // Outcome is what became of one notice.

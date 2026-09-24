@@ -98,12 +98,19 @@ type GameAction struct {
 }
 
 // Friendship is one direction of a social edge.
+//
+// As FriendshipRepository.List returns it, PlayerID is always the player whose
+// list it is and FriendPlayerID the other one; Incoming says which way the
+// edge points. An outgoing edge (Incoming false) is the player's own row: a
+// friend, a request they SENT, or a block. An incoming edge is the other
+// player's pending request TO them, the only kind they can accept.
 type Friendship struct {
 	ID             string
 	PlayerID       string
 	FriendPlayerID string
 	Status         string
 	CreatedAt      time.Time
+	Incoming       bool
 }
 
 // CityRepository reads the world's places.
@@ -172,6 +179,9 @@ type GameActionRepository interface {
 // An edge is directed: a mutual friendship is two rows, and A blocking B does
 // not imply B blocking A.
 type FriendshipRepository interface {
+	// List returns the player's own edges in every status, and the pending
+	// requests other players sent them (Incoming), one line per other
+	// player: when both asked each other, the request to answer wins.
 	List(ctx context.Context, playerID string) ([]Friendship, error)
 	Request(ctx context.Context, playerID, friendPlayerID string) error
 	Accept(ctx context.Context, playerID, friendPlayerID string) error

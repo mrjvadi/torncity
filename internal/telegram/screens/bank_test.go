@@ -26,11 +26,12 @@ func TestBankScreensRender(t *testing.T) {
 			"pay help":        PayHelp(c),
 			"pay together": Pay(c, PayView{PayeeName: "Bob", PayeeCode: "K7Q2M9A", Together: true,
 				CityCode: "ostmarch", City: "Ostmarch", PayerCityCode: "ostmarch", PayerCity: "Ostmarch",
-				CardFeeBPS: 100, Cash: 10, Bank: 20, CashOptions: opts, CardOptions: opts}),
+				CardFeeBPS: 100, Cash: 10, Bank: 20, CashOptions: opts, CardOptions: opts, CanCash: true, CanCard: true,
+				Origin: "-1001234567890"}),
 			"pay apart": Pay(c, PayView{PayeeCode: "K7Q2M9A", PayerCityCode: "ostmarch", CardOptions: opts,
 				Notice: c.T("pay.not_together", map[string]any{"player": "Bob"})}),
 			"confirm cash": PayConfirm(c, PayConfirmView{PayeeName: "Bob", PayeeCode: "K7Q2M9A", Method: PayCash,
-				Amount: 999_999_999, Total: 999_999_999, Nonce: "abcdef012345"}),
+				Amount: 999_999_999, Total: 999_999_999, Nonce: "abcdef012345", Origin: "-1001234567890"}),
 			"confirm card fee": PayConfirm(c, PayConfirmView{PayeeCode: "K7Q2M9A", Method: PayCard,
 				Amount: 1000, Fee: 10, Total: 1010, Nonce: "abcdef012345"}),
 			"sent cash":     PaySent(c, PaySentView{PayeeName: "Bob", PayeeCode: "K7Q2M9A", Method: PayCash, Amount: 5}),
@@ -54,15 +55,36 @@ func TestBankScreensRender(t *testing.T) {
 func TestPayOffersCashOnlyWhenTogether(t *testing.T) {
 	c := ctx(t, "en", 0)
 	opts := []AmountOption{{Amount: 100}}
-	apart := Pay(c, PayView{PayeeCode: "K7Q2M9A", CashOptions: opts, CardOptions: opts})
+	apart := Pay(c, PayView{PayeeCode: "K7Q2M9A", CashOptions: opts, CardOptions: opts, CanCash: true, CanCard: true})
 	for _, a := range addresses(apart) {
 		if strings.HasSuffix(a, ":"+PayCash) {
 			t.Errorf("cash offered while apart: %q", a)
 		}
 	}
-	together := Pay(c, PayView{PayeeCode: "K7Q2M9A", Together: true, CashOptions: opts, CardOptions: opts})
+	together := Pay(c, PayView{PayeeCode: "K7Q2M9A", Together: true, CashOptions: opts, CardOptions: opts, CanCash: true, CanCard: true})
 	if !hasAddress(together, AddrPay+":K7Q2M9A:100:"+PayCash) {
 		t.Errorf("no cash while together: %v", addresses(together))
+	}
+}
+
+// The confirm button never goes missing: when the group a payment started in
+// does not fit Telegram's 64 bytes beside the largest amount, the group is
+// left off, not the button.
+func TestConfirmButtonSurvivesALongOrigin(t *testing.T) {
+	c := ctx(t, "en", 0)
+	resp := PayConfirm(c, PayConfirmView{PayeeCode: "K7Q2M9A", Method: PayCard, Amount: 999_999_999,
+		Total: 999_999_999, Nonce: "abcdef012345", Origin: "-1001234567890"})
+	found := false
+	for _, a := range addresses(resp) {
+		if strings.HasPrefix(a, AddrPaySend+":") {
+			found = true
+			if len(a) > 64 {
+				t.Errorf("address over 64 bytes: %q", a)
+			}
+		}
+	}
+	if !found {
+		t.Fatalf("no confirm button: %v", addresses(resp))
 	}
 }
 

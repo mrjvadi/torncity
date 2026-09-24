@@ -1,6 +1,9 @@
 ━━━ group.welcome ━━━
-Hello everyone! You can now play the game right here in this group; send /start to begin.
-Your money, your bank and your settings stay private: those screens are sent to your private chat with the bot.
+Hello everyone! You can now play the game right here in this group; send "profile" or "help" to begin.
+Crime and jail happen in the group; your money, bank, travel and settings stay private, in your chat with the bot.
+
+━━━ group.make_admin ━━━
+🛠 Group admins: to make words like "crime" and "profile" work without "/", make the bot an admin of this group. Until then, send commands with "/".
 
 ━━━ group.not_yours ━━━
 This button belongs to another player. Send the command yourself to open your own screen.
@@ -15,37 +18,86 @@ This screen is for you only. Open the bot in a private chat and press Start firs
 Open the bot
 
 ━━━ menu /profile ━━━
-/profile — Your profile
+Your profile
 
 ━━━ menu /map ━━━
-/map — The world map
+The world map
 
 ━━━ menu /job ━━━
-/job — Your job
+Your job
 
 ━━━ menu /study ━━━
-/study — Education and courses
+Education and courses
 
 ━━━ menu /bank ━━━
-/bank — The bank and your money
+The bank and your money
 
 ━━━ menu /city ━━━
-/city — Offices and policies of your city
+Offices and policies of your city
 
 ━━━ menu /crime ━━━
-/crime — The underworld: crime, jail and your cases
+The underworld: crime, jail and your cases
 
 ━━━ menu /skills ━━━
-/skills — Your skills
+Your skills
 
 ━━━ menu /social ━━━
-/social — Your friends
+Your friends
 
 ━━━ menu /find ━━━
-/find — Find a player by player code
+Find a player by player code
 
 ━━━ menu /settings ━━━
-/settings — Settings
+Settings
 
 ━━━ menu /help ━━━
-/help — Help
+Help
+
+━━━ question · bank.deposit ━━━
+📥 How much should go into your bank account? Type the amount as a number.
+To cancel, send "cancel".
+
+━━━ question · bank.deposit · reply box ━━━
+Amount to deposit, in Nil
+
+━━━ question · bank.withdraw ━━━
+📤 How much should be withdrawn? Type the amount as a number; the fee is charged on top.
+To cancel, send "cancel".
+
+━━━ question · bank.withdraw · reply box ━━━
+Amount to withdraw, in Nil
+
+━━━ question · bank.pay ━━━
+💸 How much should be paid? Type the amount as a number.
+To cancel, send "cancel".
+
+━━━ question · bank.pay · reply box ━━━
+Amount to pay, in Nil
+
+━━━ question · an.unlisted ━━━
+✏️ Type the value and send it.
+To cancel, send "cancel".
+
+━━━ question · an.unlisted · reply box ━━━
+Value
+
+━━━ question · in a group, to one player ━━━
+@kaveh
+💸 How much should be paid? Type the amount as a number.
+To cancel, send "cancel".
+
+━━━ announcement · arrived ━━━
+🧭 Kaveh arrived in Brennhaven.
+
+━━━ announcement · arrived · nameless ━━━
+🧭 A player arrived in Brennhaven.
+
+━━━ announcement · jailed ━━━
+⛓ Nilou was jailed in Ostmarch.
+
+━━━ announcement · jailed, a busy group ━━━
+⛓ Nilou was jailed in Ostmarch.
+📰 And 4 more in the meantime.
+
+━━━ announcement · a payment in the group ━━━
+💸 Sara paid Kaveh.

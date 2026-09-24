@@ -310,7 +310,7 @@ func TestDepartureChargesTheFareInTheSameTransaction(t *testing.T) {
 
 	treasuryBefore := cashBalance(t, pool, application.AccountCityTreasury, ostmarch)
 	if _, err := handler.Start(testCtx(t), travelMeta(rich, "req-go"), handlers.StartTravelRequest{
-		City: "fenwick_span", Mode: "train", Max: fmt.Sprint(trainFare),
+		City: "fenwick_span", Mode: "train", Max: fmt.Sprint(trainFare), Method: "cash",
 	}); err != nil {
 		t.Fatalf("departure: %v", err)
 	}
@@ -344,7 +344,7 @@ func TestDepartureChargesTheFareInTheSameTransaction(t *testing.T) {
 
 	// The poor player is answered, not failed, and nothing of theirs moved.
 	resp, err = handler.Start(testCtx(t), travelMeta(poor, "req-poor"), handlers.StartTravelRequest{
-		City: "fenwick_span", Mode: "train", Max: fmt.Sprint(trainFare * 10),
+		City: "fenwick_span", Mode: "train", Max: fmt.Sprint(trainFare * 10), Method: "cash",
 	})
 	if err != nil || resp == nil {
 		t.Fatalf("a player who cannot pay: %v, %v", resp, err)

@@ -1,50 +1,48 @@
 ━━━ Map · destinations from here (page 1 of 2) ━━━
 (edits message 42)
-🗺 نقشه
+🧭 سفر به شهر دیگر
 
 📍 شما در استمارچ هستید.
 
 از اینجا به این شهرها می‌توانید سفر کنید:
-• فنویک اسپن · ۱۲۰ کیلومتر
-• آلدرین هالو · ۳۴۰ کیلومتر
-• برنهاون · ۱٬۲۶۰ کیلومتر
+• فنویک اسپن - ۱۲۰ کیلومتر
+• آلدرین هالو - ۳۴۰ کیلومتر
+• برنهاون - ۱٬۲۶۰ کیلومتر
 
 صفحهٔ ۱ از ۲
   ───
   [🧭 فنویک اسپن] → travel:options:fenwick_span
   [🧭 آلدرین هالو] → travel:options:aldrin_hollow
   [🧭 برنهاون] → travel:options:brennhaven
-  [🏛 مناصب و سیاست‌ها] → gov:city
-  [بعدی ⬅️] → map:list:2
-  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → map:list:1
+  [بعدی ⬅️] → map:cities:2
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → map:cities:1
 
 ━━━ Map · no routes from here ━━━
 (edits message 42)
-🗺 نقشه
+🧭 سفر به شهر دیگر
 
 📍 شما در ونتور ریچ هستید.
 
 فعلاً از اینجا راهی به شهر دیگری نیست. کمی بعد با «به‌روزرسانی» دوباره نگاه کنید.
   ───
-  [🏛 مناصب و سیاست‌ها] → gov:city
-  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → map:list:1
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → map:cities:1
 
 ━━━ Map · not in any city ━━━
 (edits message 42)
-🗺 نقشه
+🧭 سفر به شهر دیگر
 
 هنوز در هیچ شهری مستقر نشده‌اید. پس از استقرار، مقصدهای سفر همین‌جا نمایش داده می‌شوند.
   ───
-  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → map:list
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → map:cities
 
 ━━━ Map · while travelling ━━━
 (edits message 42)
-🗺 نقشه
+🧭 سفر به شهر دیگر
 
 🧭 در راه برنهاون هستید. پس از رسیدن می‌توانید سفر تازه‌ای را آغاز کنید.
   ───
   [🧭 سفر من] → travel:status
-  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → map:list
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → map:cities
 
 ━━━ Travel options ━━━
 (edits message 42)
@@ -52,17 +50,17 @@
 📍 مبدأ: استمارچ
 
 با چه وسیله‌ای می‌روید؟
-• اتوبوس · رایگان · ۱۳ دقیقه در راه · ۸ انرژی
-• خودرو · ۶٬۳۰۰ نیل · ۷ دقیقه در راه · ۱۴ انرژی
-• قطار · ۷٬۷۲۰ نیل (مسیر شلوغ) · ۴ دقیقه در راه · ۶ انرژی
-• هواپیما · ۱۰٬۴۸۰ نیل · ۲ دقیقه در راه · ۴ انرژی
+• اتوبوس - رایگان - ۱۳ دقیقه در راه - ۸ انرژی
+• خودرو - ۶٬۳۰۰ نیل - ۷ دقیقه در راه - ۱۴ انرژی
+• قطار - ۷٬۷۲۰ نیل (مسیر شلوغ) - ۴ دقیقه در راه - ۶ انرژی
+• هواپیما - ۱۰٬۴۸۰ نیل - ۲ دقیقه در راه - ۴ انرژی
 
 💵 پول نقد شما: ۵٬۰۰۰ نیل
   ───
-  [اتوبوس · رایگان] → travel:start:brennhaven:bus:0
-  [خودرو · ۶٬۳۰۰ نیل] → travel:start:brennhaven:car:6300
-  [قطار · ۷٬۷۲۰ نیل] → travel:start:brennhaven:train:7720
-  [هواپیما · ۱۰٬۴۸۰ نیل] → travel:start:brennhaven:flight:10480
+  [اتوبوس - رایگان] → travel:start:brennhaven:bus:0
+  [خودرو - ۶٬۳۰۰ نیل] → travel:start:brennhaven:car:6300
+  [قطار - ۷٬۷۲۰ نیل] → travel:start:brennhaven:train:7720
+  [هواپیما - ۱۰٬۴۸۰ نیل] → travel:start:brennhaven:flight:10480
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → travel:options:brennhaven
 
 ━━━ Travel options · the fare changed before departure ━━━
@@ -73,21 +71,115 @@
 ⚠️ کرایه از وقتی که قیمت‌ها را دیدید تغییر کرده است. پولی کسر نشد؛ قیمت‌های تازه را ببینید و دوباره انتخاب کنید.
 
 با چه وسیله‌ای می‌روید؟
-• قطار · ۸٬۴۹۰ نیل (مسیر شلوغ) · ۴ دقیقه در راه · ۶ انرژی
+• قطار - ۸٬۴۹۰ نیل (مسیر شلوغ) - ۴ دقیقه در راه - ۶ انرژی
 
 💵 پول نقد شما: ۵٬۰۰۰ نیل
   ───
-  [قطار · ۸٬۴۹۰ نیل] → travel:start:brennhaven:train:8490
+  [قطار - ۸٬۴۹۰ نیل] → travel:start:brennhaven:train:8490
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → travel:options:brennhaven
 
-━━━ Travel · cannot afford the fare ━━━
-(edits message 42) (private in groups)
-💵 پول نقدتان برای سفر با هواپیما کافی نیست.
-کرایه: ۱۰٬۴۸۰ نیل · پول نقد شما: ۳٬۲۰۰ نیل
-پولی کسر نشد؛ شاید وسیلهٔ ارزان‌تری در دسترس باشد.
+━━━ Travel · pay for the chosen mode, both ways ━━━
+(edits message 42)
+🧭 سفر به برنهاون با قطار
+📍 مبدأ: استمارچ
+
+💰 کرایه: ۷٬۷۲۰ نیل
+⏳ ۴ دقیقه در راه
+⚡ ۶ انرژی
+
+چطور پرداخت می‌کنید؟
+💵 پول نقد شما: ۹٬۰۰۰ نیل - موجودی بانک: ۲۵٬۰۰۰ نیل
   ───
+  [💵 پرداخت نقدی - ۷٬۷۲۰ نیل] → travel:start:brennhaven:train:7720:cash   │   [💳 پرداخت با کارت - ۷٬۷۲۰ نیل] → travel:start:brennhaven:train:7720:card
   [🧭 وسیله‌های سفر] → travel:options:brennhaven
   [🔙 بازگشت] → map:list
+
+━━━ Travel · pay for the chosen mode, card only covers it ━━━
+(edits message 42)
+🧭 سفر به برنهاون با هواپیما
+📍 مبدأ: استمارچ
+
+💰 کرایه: ۱۰٬۴۸۰ نیل (مسیر شلوغ)
+⏳ ۲ دقیقه در راه
+⚡ ۴ انرژی
+
+چطور پرداخت می‌کنید؟
+💵 پول نقدتان کافی نیست؛ با کارت بانکی بپردازید.
+💵 پول نقد شما: ۱۰۵ نیل - موجودی بانک: ۲۵٬۰۰۰ نیل
+  ───
+  [💳 پرداخت با کارت - ۱۰٬۴۸۰ نیل] → travel:start:brennhaven:flight:10480:card
+  [🧭 وسیله‌های سفر] → travel:options:brennhaven
+  [🔙 بازگشت] → map:list
+
+━━━ Travel · pay for the chosen mode, in a group ━━━
+(edits message 42)
+🧭 سفر به برنهاون با اتوبوس
+📍 مبدأ: استمارچ
+
+💰 کرایه: ۳۰۰ نیل
+⏳ ۵ دقیقه در راه
+⚡ ۸ انرژی
+
+چطور پرداخت می‌کنید؟
+💳 موجودی بانکتان کافی نیست؛ نقدی بپردازید.
+  ───
+  [💵 پرداخت نقدی - ۳۰۰ نیل] → travel:start:brennhaven:bus:300:cash
+  [🧭 وسیله‌های سفر] → travel:options:brennhaven
+  [🔙 بازگشت] → map:list
+
+━━━ Travel · a cash-only mode ━━━
+(edits message 42)
+🧭 سفر به فنویک اسپن با اتوبوس
+📍 مبدأ: استمارچ
+
+💰 کرایه: ۳۰۰ نیل
+⏳ ۱ ساعت و ۳۵ دقیقه در راه
+⚡ ۸ انرژی
+
+چطور پرداخت می‌کنید؟
+💵 اینجا فقط پول نقد پذیرفته می‌شود.
+💵 پول نقد شما: ۹۰۰ نیل - موجودی بانک: ۱۰۰ نیل
+  ───
+  [💵 پرداخت نقدی - ۳۰۰ نیل] → travel:start:fenwick_span:bus:300:cash
+  [🧭 وسیله‌های سفر] → travel:options:fenwick_span
+  [🔙 بازگشت] → map:list
+
+━━━ Travel · nothing covers the fare ━━━
+(edits message 42)
+🧭 سفر به برنهاون با هواپیما
+📍 مبدأ: استمارچ
+
+💰 کرایه: ۱۰٬۴۸۰ نیل
+⏳ ۲ دقیقه در راه
+⚡ ۴ انرژی
+
+💸 نه پول نقدتان و نه موجودی بانکتان به این مبلغ نمی‌رسد.
+💵 پول نقد شما: ۳٬۲۰۰ نیل - موجودی بانک: ۱٬۵۰۰ نیل
+  ───
+  [🏦 بانک] → bank:show
+  [🧭 وسیله‌های سفر] → travel:options:brennhaven
+  [🔙 بازگشت] → map:list
+
+━━━ Payment · declined, both balances ━━━
+(edits message 42) (private in groups)
+💸 پولتان برای پرداخت ۱۰٬۴۸۰ نیل کافی نیست.
+💵 پول نقد: ۳٬۲۰۰ نیل
+🏦 موجودی بانک: ۱٬۵۰۰ نیل
+چیزی کسر نشد.
+  ───
+  [🧭 وسیله‌های سفر] → travel:options:brennhaven   │   [🏦 بانک] → bank:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Payment · declined, cash only here ━━━
+(edits message 42) (private in groups)
+💸 پولتان برای پرداخت ۳۰۰ نیل کافی نیست.
+💵 پول نقد: ۱۰۰ نیل
+🏦 موجودی بانک: ۲۵٬۰۰۰ نیل
+چیزی کسر نشد.
+💵 اینجا فقط پول نقد پذیرفته می‌شود.
+  ───
+  [🧭 وسیله‌های سفر] → travel:options:fenwick_span   │   [🏦 بانک] → bank:show
+  [🔙 بازگشت] → player:profile.get
 
 ━━━ Travel · departed, paid fare ━━━
 (edits message 42)

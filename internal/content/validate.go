@@ -164,6 +164,15 @@ func (p *Pack) Validate() error {
 	// careers, courses and facilities above.
 	p.validateCrimes(&problems)
 
+	// Payments: which methods each service, course and mode accepts.
+	p.validatePayments(&problems)
+
+	// Places: the places of a city, against its cities and facilities.
+	p.validatePlaces(&problems)
+
+	// Items: components, archetypes, goods and the shops that sell them.
+	p.validateItems(&problems)
+
 	if len(problems) > 0 {
 		return errors.Join(problems...)
 	}

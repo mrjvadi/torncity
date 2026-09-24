@@ -154,6 +154,10 @@ type fakeTx struct {
 	// ledger and bank are the money fakes of bank_test.go.
 	ledger *fakeMoney
 	bank   *fakeBank
+	// places is where players stand, items what they carry; see
+	// places_fakes_test.go.
+	places *fakePlaces
+	items  *fakeItems
 }
 
 // newFakeTx returns a transaction whose every repository is empty.
@@ -169,6 +173,8 @@ func newFakeTx() *fakeTx {
 		friendships: newFakeFriendships(),
 		ledger:      newFakeMoney(),
 		bank:        &fakeBank{},
+		places:      newFakePlaces(),
+		items:       newFakeItems(),
 	}
 }
 
@@ -248,6 +254,8 @@ func (t *fakeTx) snapshot() func() {
 	restoreActions := t.actions.snapshot()
 	restoreFriendships := t.friendships.snapshot()
 	restoreMoney := t.ledger.snapshot()
+	restorePlaces := t.places.snapshot()
+	restoreItems := t.items.snapshot()
 
 	return func() {
 		t.players.created = created
@@ -261,6 +269,8 @@ func (t *fakeTx) snapshot() func() {
 		restoreActions()
 		restoreFriendships()
 		restoreMoney()
+		restorePlaces()
+		restoreItems()
 	}
 }
 
@@ -552,7 +562,7 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 	// screen, so the sequence below leaves it out.
 	var lines []string
 	for _, key := range spy.keys {
-		if !strings.HasPrefix(key, "format.digits") && !strings.HasSuffix(key, "_separator") {
+		if !strings.HasPrefix(key, "format.digits") && !strings.HasSuffix(key, "_separator") && key != "format.direction" {
 			lines = append(lines, key)
 		}
 	}

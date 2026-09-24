@@ -108,6 +108,14 @@ type CrimeAttempt struct {
 	StartedAt           time.Time
 	ResolvesAt          time.Time
 	ResolvedAt          *time.Time
+	// GearSolveBPS is what the thief's gear added to a report's solve
+	// chance, fixed when the crime was committed.
+	GearSolveBPS int
+	// StolenItem, StolenPieceID and StolenQty are what was taken from a
+	// player victim besides money: a unit of a good or one piece.
+	StolenItem    string
+	StolenPieceID string
+	StolenQty     int64
 }
 
 // JailSentence is a jail_sentences row.
@@ -173,7 +181,10 @@ type Bystander struct {
 	ShiftCareer string
 	// ArrivedBy is the mode of a journey that ended in the city recently,
 	// "" otherwise.
-	ArrivedBy        string
+	ArrivedBy string
+	// Place is the city place they stand at, "" for none recorded (the
+	// default). A player walking between places is not a bystander.
+	Place            string
 	LastVictimisedAt time.Time
 	LastHitByThief   time.Time
 }
@@ -204,6 +215,11 @@ type CrimeRepository interface {
 	Attempt(ctx context.Context, id string) (*CrimeAttempt, error)
 	// RecentAttempts lists the player's attempts, most recent first.
 	RecentAttempts(ctx context.Context, playerID string, limit int) ([]CrimeAttempt, error)
+	// LastAttempt and LastAttemptInCategory are when the player last
+	// attempted a crime, or any crime of a category; zero for never. They
+	// are what a cooldown counts from.
+	LastAttempt(ctx context.Context, playerID, crimeCode string) (time.Time, error)
+	LastAttemptInCategory(ctx context.Context, playerID, category string) (time.Time, error)
 	// Whereabouts returns, without taking a lock, the career code of the
 	// shift the player is working ("" when none) and the mode of their
 	// latest journey that arrived in cityID at or after since ("" when
@@ -211,7 +227,8 @@ type CrimeRepository interface {
 	Whereabouts(ctx context.Context, playerID, cityID string, since time.Time) (shiftCareer, arrivedBy string, err error)
 	// Bystanders lists the players in cityID other than thiefID who might
 	// be near a crime at now (see Bystander): active at or after
-	// activeSince, with arrivals counted from arrivedSince.
+	// activeSince, with arrivals counted from arrivedSince, and not walking
+	// between places.
 	Bystanders(ctx context.Context, cityID, thiefID string, activeSince, arrivedSince, now time.Time) ([]Bystander, error)
 
 	// LockNPCProceeds locks the day's running total of NPC crime proceeds,

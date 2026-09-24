@@ -37,6 +37,52 @@ type groupState struct {
 	// usernames caches each bot's @username by bot key, for bots whose
 	// registry row has none.
 	usernames sync.Map
+
+	// readsAll records, by bot key, getMe's can_read_all_group_messages:
+	// true when the bot's privacy mode is off and it sees every group
+	// message. Unknown counts as false.
+	readsAll sync.Map
+}
+
+// checkPrivacyMode asks Telegram, once per start, whether this bot sees every
+// message in a group, and says so plainly in the log. A bot in privacy mode
+// (the default) receives in a group only commands, replies to its own
+// messages and mentions; aliases such as «دزدی» then reach it only in groups
+// where it is an administrator. See the Bot API's getMe
+// (can_read_all_group_messages) and "Privacy Mode" in the bot features.
+func (g *gateway) checkPrivacyMode(ctx context.Context, bot application.Bot, api *client.Client, log *slog.Logger) {
+	if api == nil {
+		return
+	}
+	if g.limiter != nil {
+		if err := g.limiter.Wait(ctx, bot.BotKey); err != nil {
+			return
+		}
+	}
+	me, err := api.GetMe(ctx)
+	if err != nil {
+		log.Warn("cannot read the bot's privacy mode (getMe)", slog.String("error", err.Error()))
+		return
+	}
+	g.group.readsAll.Store(bot.BotKey, me.CanReadAllGroupMessages)
+	if me.Username != "" {
+		g.group.usernames.Store(bot.BotKey, me.Username)
+	}
+	if me.CanReadAllGroupMessages {
+		log.Info("privacy mode is OFF: the bot reads every group message, so plain-word commands work in every group",
+			slog.String("username", me.Username), slog.Bool("can_read_all_group_messages", true))
+		return
+	}
+	log.Warn("privacy mode is ON: in a group the bot sees only slash-commands and replies to it, unless it is an admin there; "+
+		"to make plain-word commands (aliases) work everywhere, make the bot an admin of each group, "+
+		"or disable privacy mode in BotFather (/setprivacy) and re-add the bot to its groups",
+		slog.String("username", me.Username), slog.Bool("can_read_all_group_messages", false))
+}
+
+// canReadAll reports what checkPrivacyMode learned for the bot.
+func (g *gateway) canReadAll(botKey string) bool {
+	v, ok := g.group.readsAll.Load(botKey)
+	return ok && v.(bool)
 }
 
 // groupRenderer returns the renderer, building it on first use.
@@ -48,6 +94,7 @@ func (g *gateway) groupRenderer() *groups.Renderer {
 		}
 		g.group.renderer = groups.NewRenderer(msgs, groups.Settings{
 			CallbackAlertMaxRunes: g.cfg.Groups.CallbackAlertMaxRunes,
+			Policy:                g.policy,
 		})
 	})
 	return g.group.renderer
@@ -85,6 +132,11 @@ func (g *gateway) botUsername(ctx context.Context, botKey string, api *client.Cl
 func (g *gateway) render(ctx context.Context, api *client.Client, botKey string, meta envelope.Metadata, resp *presenter.Response, priority lane, log *slog.Logger) error {
 	if resp.Type == presenter.ActionAnswerCallback {
 		return g.groupRenderer().Answer(ctx, api, meta, resp)
+	}
+
+	if priority == laneAnnounce {
+		// An announcement is for the room: no owner, no buttons, as is.
+		return render(ctx, api, meta, resp)
 	}
 
 	if priority == laneNotice && groups.IsGroupChat(meta.ChatType, meta.TelegramChatID) {
@@ -279,7 +331,15 @@ func (g *gateway) onMembership(ctx context.Context, bot application.Bot, change 
 		ChatType:       change.Chat.Type,
 		Language:       lang,
 	}
-	resp := presenter.Message(g.messages.T(lang, groups.KeyWelcome, nil), nil)
+	text := g.messages.T(lang, groups.KeyWelcome, nil)
+	if change.NewChatMember.Status != "administrator" && !g.canReadAll(bot.BotKey) {
+		// Privacy mode: in this group the bot will see slash-commands and
+		// replies to its own messages, not «دزدی». An admin sees everything
+		// (Telegram: "bot admins always receive all messages").
+		text += "\n\n" + g.messages.T(lang, groups.KeyMakeAdmin, nil)
+		log.Info("bot added to a group without admin rights while in privacy mode; plain-word commands will not reach it", attrs...)
+	}
+	resp := presenter.Message(text, nil)
 
 	ctx, cancel := context.WithTimeout(ctx, g.cfg.Gateway.ShutdownTimeout)
 	defer cancel()

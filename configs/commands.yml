@@ -1,0 +1,119 @@
+# Where each command may be used, and whose eyes its reply is for.
+#
+# The group is the public square: only a few things happen there, and
+# everything else happens in the player's private chat with the bot (PV).
+# Every command the game serves to players needs a line here; a test holds
+# this file to internal/commands, so a new command cannot ship without a
+# decision. The gateway enforces it (internal/gateway/groups/privacy.go).
+#
+#   channel: group    only in a group. Sent in PV, the player is told it is
+#                     done in a group, and nothing runs.
+#   channel: private  only in PV. Sent in a group, the player is told it is
+#                     done in PV and given a button that opens PV and runs it.
+#   channel: both     anywhere.
+#
+#   reply: private    (for "both") run from a group, the reply still goes to
+#                     the player's PV; the group sees one neutral line.
+#                     Omitted, the reply is posted in the group.
+#
+# Aliases (command_alias in the locales) obey the same table.
+commands:
+  # The home screen. In a group it leaves the player's money out.
+  player.profile.get: {channel: both}
+  player.settings: {channel: private}
+  player.language.set: {channel: private}
+
+  # The map of the player's own city and the walks between its places work
+  # everywhere: crime happens at a place, in the group, so moving between
+  # places must too.
+  map.list: {channel: both}
+  place.go: {channel: both}
+
+  # Going to another city is the player's own business: PV only.
+  map.cities: {channel: private}
+  travel.options: {channel: private}
+  travel.start: {channel: private}
+  travel.status: {channel: private}
+
+  skills.list: {channel: private}
+
+  # Players meet in groups: finding someone and asking them to be friends
+  # work there; the friend list and accepting are the player's own.
+  social.search: {channel: both}
+  social.friend.add: {channel: both}
+  social.friend.accept: {channel: private}
+  social.friend.list: {channel: private}
+
+  # The bank is private. Paying another player also works in a group — a
+  # reply to their message names them — but the confirmation and the receipt
+  # go to PV, and the amount never appears in the group.
+  bank.show: {channel: private}
+  bank.deposit: {channel: private}
+  bank.withdraw: {channel: private}
+  bank.pay: {channel: both, reply: private}
+  bank.pay.send: {channel: private}
+
+  # City hall: who holds office and the city's policies are public; running
+  # an office is the holder's own work.
+  gov.city: {channel: both}
+  gov.history: {channel: both}
+  gov.office: {channel: private}
+  gov.lever: {channel: private}
+  gov.confirm: {channel: private}
+  gov.set: {channel: private}
+
+  job.status: {channel: private}
+  job.list: {channel: private}
+  job.view: {channel: private}
+  job.apply: {channel: private}
+  job.work: {channel: private}
+  job.promote: {channel: private}
+  job.quit: {channel: private}
+
+  education.list: {channel: private}
+  education.view: {channel: private}
+  education.enroll: {channel: private}
+
+  # Crime happens in the city's group, where the victims are. The jail is
+  # public knowledge; bail, the record and a victim's reports are private.
+  crime.hub: {channel: group}
+  crime.list: {channel: group}
+  crime.view: {channel: group}
+  crime.commit: {channel: group}
+  crime.jail: {channel: both}
+  crime.bail: {channel: private}
+  crime.record: {channel: private}
+  crime.report: {channel: private}
+  crime.cases: {channel: private}
+
+  # What a player carries, and buying, selling and trading it, show their
+  # goods and their money: PV only.
+  inventory.show: {channel: private}
+  inventory.item: {channel: private}
+  inventory.use: {channel: private}
+  inventory.give: {channel: private}
+  inventory.drop: {channel: private}
+  shop.list: {channel: private}
+  shop.view: {channel: private}
+  shop.buy: {channel: private}
+  shop.offers: {channel: private}
+  shop.sell: {channel: private}
+  market.list: {channel: private}
+  market.book: {channel: private}
+  market.order: {channel: private}
+  market.cancel: {channel: private}
+  market.mine: {channel: private}
+  auction.list: {channel: private}
+  auction.view: {channel: private}
+  auction.new: {channel: private}
+  auction.bid: {channel: private}
+  auction.mine: {channel: private}
+
+# Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
+# type a value, and their next message fills one field of a command. Only the
+# commands listed here may ask. field is the payload field the typed text
+# fills; args are the names of what the button carries, in order.
+input:
+  bank.deposit: {field: amount}
+  bank.withdraw: {field: amount}
+  bank.pay: {field: amount, args: [to, method, origin]}

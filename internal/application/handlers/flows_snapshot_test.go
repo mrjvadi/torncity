@@ -151,6 +151,7 @@ type flowGame struct {
 	jobs      *JobsHandler
 	education *EducationHandler
 	gov       *GovernanceHandler
+	places    *PlacesHandler
 }
 
 func newFlowGame(t *testing.T, lang string) *flowGame {
@@ -201,7 +202,9 @@ func newFlowGame(t *testing.T, lang string) *flowGame {
 	search := bankSearch{players: g.w.tx.players}
 
 	g.profile = NewProfileHandler(g.w, ids, g.msgs, cities, testDefaultLanguage, testIdempotencyTTL, clock).WithWork(source, gov)
-	g.travel = NewTravelHandler(g.w, ids, g.msgs, cities, flowTransport(t), gov, testTimeScale, testArrivalXP, testIdempotencyTTL, clock)
+	g.travel = NewTravelHandler(g.w, ids, g.msgs, cities, flowTransport(t), gov, int(workScale), testArrivalXP, testIdempotencyTTL, clock).
+		WithPlaces(source)
+	g.places = NewPlacesHandler(g.w, ids, g.msgs, source, cities, workScale, testIdempotencyTTL, clock)
 	g.worldMap = NewMapHandler(g.w, g.msgs, cities, g.w.tx.travels, flowRoutes(t), DefaultPageSize, clock)
 	g.skills = NewSkillsHandler(g.w, g.msgs, g.w.tx.skills, clock)
 	g.social = NewSocialHandler(g.w, ids, g.msgs, search, DefaultPageSize, testIdempotencyTTL, clock)
@@ -320,6 +323,7 @@ func TestFlowSnapshots(t *testing.T) {
 			"flow_education":  educationFlow,
 			"flow_governance": governanceFlow,
 			"flow_social":     socialFlow,
+			"flow_places":     placesFlow,
 		} {
 			t.Run(lang+"/"+name, func(t *testing.T) {
 				flow(newFlowGame(t, lang)).check(name)
@@ -341,11 +345,19 @@ func homeFlow(g *flowGame) *flowBook {
 func travelFlow(g *flowGame) *flowBook {
 	ctx := context.Background()
 	b := g.book()
-	b.step("Map")(g.worldMap.List(ctx, g.press(flowMeTG, "map.list"), PageRequest{Page: "1"}))
+	b.step("Map")(g.places.Map(ctx, g.press(flowMeTG, "map.list")))
+	b.step("Other cities")(g.worldMap.List(ctx, g.press(flowMeTG, "map.cities"), PageRequest{Page: "1"}))
 	opts := b.step("Choose Brennhaven")(g.travel.Options(ctx, g.press(flowMeTG, "travel.options"), TravelOptionsRequest{City: "brennhaven"}))
 	train := b.button(opts, screens.AddrTravelStart+":brennhaven:train:")
-	b.step("Take the train")(g.travel.Start(ctx, g.press(flowMeTG, "travel.start"),
+	// The train leaves from the station, not the city centre.
+	away := b.step("Take the train from the city centre")(g.travel.Start(ctx, g.press(flowMeTG, "travel.start"),
 		StartTravelRequest{City: train[2], Mode: train[3], Max: train[4]}))
+	walk(g, b, away, "Walk to the station")
+	checkout := b.step("Take the train")(g.travel.Start(ctx, g.press(flowMeTG, "travel.start"),
+		StartTravelRequest{City: train[2], Mode: train[3], Max: train[4]}))
+	pay := b.button(checkout, screens.AddrTravelStart+":brennhaven:train:")
+	b.step("Pay the fare in cash")(g.travel.Start(ctx, g.press(flowMeTG, "travel.start"),
+		StartTravelRequest{City: pay[2], Mode: pay[3], Max: pay[4], Method: pay[5]}))
 	g.now = g.now.Add(time.Minute)
 	b.step("My journey")(g.travel.Status(ctx, g.press(flowMeTG, "travel.status")))
 	b.step("Profile on the road")(g.profile.Handle(ctx, g.press(flowMeTG, "player.profile.get")))
@@ -362,14 +374,17 @@ func travelFlow(g *flowGame) *flowBook {
 	moved := g.w.tx.travels.moved[flowMeID]
 	g.w.tx.players.byTelegramID[flowMeTG].CityID = &moved
 	b.step("Profile in Brennhaven")(g.profile.Handle(ctx, g.press(flowMeTG, "player.profile.get")))
+	b.step("Map of Brennhaven, off the train")(g.places.Map(ctx, g.press(flowMeTG, "map.list")))
 
 	// A trip the player cannot pay for.
 	opts = b.step("Back to Ostmarch")(g.travel.Options(ctx, g.press(flowMeTG, "travel.options"), TravelOptionsRequest{City: "ostmarch"}))
 	flight := b.button(opts, screens.AddrTravelStart+":ostmarch:flight:")
 	cash := g.w.tx.ledger.balance(application.AccountPlayerCash, flowMeID)
 	moveCash(g, flowMeID, cash-10)
-	b.step("Fly with too little cash")(g.travel.Start(ctx, g.press(flowMeTG, "travel.start"),
+	b.step("Fly with too little money")(g.travel.Start(ctx, g.press(flowMeTG, "travel.start"),
 		StartTravelRequest{City: flight[2], Mode: flight[3], Max: flight[4]}))
+	b.step("Pay the flight in cash anyway")(g.travel.Start(ctx, g.press(flowMeTG, "travel.start"),
+		StartTravelRequest{City: flight[2], Mode: flight[3], Max: flight[4], Method: "cash"}))
 	b.refused("Same city")(g.travel.Options(ctx, g.press(flowMeTG, "travel.options"), TravelOptionsRequest{City: "brennhaven"}))
 	b.refused("Unreachable city")(g.travel.Options(ctx, g.press(flowMeTG, "travel.options"), TravelOptionsRequest{City: "vantor_reach"}))
 	return b
@@ -463,11 +478,14 @@ func educationFlow(g *flowGame) *flowBook {
 	view := b.button(list, screens.AddrCourseView+":first_aid")
 	detail := b.step("First Aid")(g.education.View(ctx, g.press(flowMeTG, "education.view"), CourseRequest{Course: view[2]}))
 	enrol := b.button(detail, screens.AddrCourseEnrol+":")
-	b.step("Enrol")(g.education.Enroll(ctx, g.press(flowMeTG, "education.enroll"), CourseRequest{Course: enrol[2]}))
+	away := b.step("Enrol from the city centre")(g.education.Enroll(ctx, g.press(flowMeTG, "education.enroll"),
+		CourseRequest{Course: enrol[2], Method: enrol[3]}))
+	walk(g, b, away, "Walk to the training centre")
+	b.step("Enrol")(g.education.Enroll(ctx, g.press(flowMeTG, "education.enroll"), CourseRequest{Course: enrol[2], Method: enrol[3]}))
 	g.now = g.now.Add(30 * time.Minute)
 	b.step("Studying")(g.education.List(ctx, g.press(flowMeTG, "education.list"), PageRequest{Page: "1"}))
 	b.step("Profile while studying")(g.profile.Handle(ctx, g.press(flowMeTG, "player.profile.get")))
-	b.step("Enrol in a second course")(g.education.Enroll(ctx, g.press(flowMeTG, "education.enroll"), CourseRequest{Course: "bookkeeping"}))
+	b.step("Enrol in a second course")(g.education.Enroll(ctx, g.press(flowMeTG, "education.enroll"), CourseRequest{Course: "bookkeeping", Method: "cash"}))
 	b.step("A course taught elsewhere")(g.education.View(ctx, g.press(flowMeTG, "education.view"), CourseRequest{Course: "nursing"}))
 
 	enrolment := g.w.edu.active[flowMeID]
@@ -480,8 +498,51 @@ func educationFlow(g *flowGame) *flowBook {
 	b.step("Profile after the course")(g.profile.Handle(ctx, g.press(flowMeTG, "player.profile.get")))
 
 	moveCash(g, flowMeID, g.w.tx.ledger.balance(application.AccountPlayerCash, flowMeID)-100)
-	b.step("Enrol without the fee")(g.education.Enroll(ctx, g.press(flowMeTG, "education.enroll"), CourseRequest{Course: "bookkeeping"}))
+	b.step("A course price with too little cash")(g.education.View(ctx, g.press(flowMeTG, "education.view"), CourseRequest{Course: "bookkeeping"}))
+	b.step("Enrol without the fee")(g.education.Enroll(ctx, g.press(flowMeTG, "education.enroll"), CourseRequest{Course: "bookkeeping", Method: "cash"}))
 	b.step("A course that does not exist")(g.education.View(ctx, g.press(flowMeTG, "education.view"), CourseRequest{Course: "alchemy"}))
+	return b
+}
+
+// walk presses the walk a NotHere screen offers and lets the scheduler end it.
+func walk(g *flowGame, b *flowBook, from *presenter.Response, title string) {
+	ctx := context.Background()
+	to := b.button(from, screens.AddrPlaceGo+":")
+	b.step(title)(g.places.Go(ctx, g.press(flowMeTG, "place.go"), PlaceRequest{Place: to[2]}))
+	arrive(g, flowMeID)
+}
+
+// arrive ends a player's walk as the scheduler would.
+func arrive(g *flowGame, playerID string) {
+	g.t.Helper()
+	m, ok := g.w.tx.places.moving[playerID]
+	if !ok {
+		g.t.Errorf("[%s] %s is not walking", g.lang, playerID)
+		return
+	}
+	g.now = m.ArrivesAt.Add(time.Second)
+	sched := g.typed(0, "place.arrive")
+	sched.TelegramUserID = 0
+	if _, err := g.places.Arrive(context.Background(), sched, PlaceScheduledRequest{ActorID: playerID, ReferenceID: m.ID}); err != nil {
+		g.t.Errorf("[%s] arrival: %v", g.lang, err)
+	}
+}
+
+// placesFlow walks around the player's own city.
+func placesFlow(g *flowGame) *flowBook {
+	ctx := context.Background()
+	b := g.book()
+	g.w.tx.places.at[flowFriendID] = "bazaar"
+	city := b.step("/map")(g.places.Map(ctx, g.typed(flowMeTG, "map.list")))
+	bazaar := b.button(city, screens.AddrPlaceGo+":bazaar")
+	b.step("Walk to the bazaar")(g.places.Go(ctx, g.press(flowMeTG, "place.go"), PlaceRequest{Place: bazaar[2]}))
+	g.now = g.now.Add(5 * time.Second)
+	b.step("The map on the way")(g.places.Map(ctx, g.press(flowMeTG, "map.list")))
+	b.step("Walk somewhere else on the way")(g.places.Go(ctx, g.press(flowMeTG, "place.go"), PlaceRequest{Place: "park"}))
+	arrive(g, flowMeID)
+	b.step("At the bazaar")(g.places.Map(ctx, g.press(flowMeTG, "map.list")))
+	b.step("Walk to where you stand")(g.places.Go(ctx, g.press(flowMeTG, "place.go"), PlaceRequest{Place: "bazaar"}))
+	b.refused("A place this city does not have")(g.places.Go(ctx, g.press(flowMeTG, "place.go"), PlaceRequest{Place: "airport"}))
 	return b
 }
 
@@ -515,17 +576,12 @@ func socialFlow(g *flowGame) *flowBook {
 	found := b.step("/find " + flowFriendC)(g.social.Search(ctx, g.typed(flowMeTG, "social.search"), SearchRequest{Query: flowFriendC}))
 	add := b.button(found, screens.AddrFriendAdd+":")
 	b.step("Add friend")(g.social.FriendAdd(ctx, g.press(flowMeTG, "social.friend.add"), FriendRequest{Player: add[2]}))
-	// The friendship repository lists a request on both sides; the fake
-	// keeps the requester's side only.
-	f := g.w.tx.friendships
-	f.edges[flowFriendID] = append(f.edges[flowFriendID], application.Friendship{
-		PlayerID: flowFriendID, FriendPlayerID: flowMeID, Status: friendPending})
+	// The request shows on both lists: sent, waiting for an answer, on the
+	// requester's; received, with the accept button, on the other's.
+	b.step("My list: the request I sent")(g.social.FriendList(ctx, g.typed(flowMeTG, "social.friend.list"), PageRequest{}))
 	list := b.step("The friend's list")(g.social.FriendList(ctx, g.typed(flowFriendTG, "social.friend.list"), PageRequest{}))
 	accept := b.button(list, screens.AddrFriendAccept+":")
 	b.step("The friend accepts")(g.social.FriendAccept(ctx, g.press(flowFriendTG, "social.friend.accept"), FriendRequest{Player: accept[2]}))
-	for i := range f.edges[flowMeID] {
-		f.edges[flowMeID][i].Status = friendAccepted
-	}
 	b.step("Friends")(g.social.FriendList(ctx, g.press(flowMeTG, "social.friend.list"), PageRequest{}))
 	b.step("/find " + flowMeCode + " (yourself)")(g.social.Search(ctx, g.typed(flowMeTG, "social.search"), SearchRequest{Query: flowMeCode}))
 	b.step("/find ZZZZZZZ")(g.social.Search(ctx, g.typed(flowMeTG, "social.search"), SearchRequest{Query: "ZZZZZZZ"}))

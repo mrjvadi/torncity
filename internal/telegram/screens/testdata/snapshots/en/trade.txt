@@ -1,0 +1,399 @@
+━━━ Market ━━━
+(edits message 42)
+🏪 Market of Ostmarch
+
+• Bread - buyers offer: 35 Nil - sellers ask: 42 Nil
+• Bandage - buyers offer: nobody yet - sellers ask: 90 Nil
+  ───
+  [🏪 Bread] → market:book:bread   │   [🏪 Bandage] → market:book:bandage
+  [🏪 Lockpick set] → market:book:lockpick_set
+  [📋 My orders] → market:mine   │   [🔨 Auction house] → auction:list
+  [🔙 Back] → map:list   │   [🔄 Refresh] → market:list
+
+━━━ Market · empty, from across town ━━━
+(edits message 42)
+🏪 Market of Ostmarch
+
+Nobody is buying or selling here right now.
+
+📍 Trading is done at the market. Walk there to buy or sell.
+  ───
+  [📋 My orders] → market:mine   │   [🔨 Auction house] → auction:list
+  [🔙 Back] → map:list   │   [🔄 Refresh] → market:list
+
+━━━ Book · bread, at the market, holding some ━━━
+(edits message 42)
+🏪 Bread - market of Ostmarch
+
+For sale:
+• 10 at 42 Nil
+• 4 at 45 Nil
+
+Wanted:
+• 6 at 35 Nil
+
+Latest trades:
+• 2 at 40 Nil - 14:30
+
+🎒 You have 3.
+🧾 The seller pays the market fee, set by the city.
+  ───
+  [🛒 Buy 1 at 42 Nil] → market:order:buy:bread:1:42   │   [🛒 Offer 40 Nil] → market:order:buy:bread:1:40
+  [💰 Sell 1 at 35 Nil] → market:order:sell:bread:1:35:0a1b2c3d4e62   │   [💰 Ask 40 Nil] → market:order:sell:bread:1:40:0a1b2c3d4e62   │   [💰 Ask 44 Nil] → market:order:sell:bread:1:44:0a1b2c3d4e62
+  [💰 Sell all 3 at 40 Nil] → market:order:sell:bread:3:40:0a1b2c3d4e62
+  [📋 My orders] → market:mine
+  [🔙 Back] → market:list   │   [🔄 Refresh] → market:book:bread
+
+━━━ Book · nothing on it, from across town ━━━
+(edits message 42)
+🏪 Bread - market of Ostmarch
+
+For sale:
+• nothing
+
+Wanted:
+• nothing
+
+📍 Trading is done at the market. Walk there to buy or sell.
+🧾 The seller pays the market fee, set by the city.
+  ───
+  [📋 My orders] → market:mine
+  [🔙 Back] → market:list   │   [🔄 Refresh] → market:book:bread
+
+━━━ Checkout · a buy order ━━━
+(edits message 42)
+🏪 Buy Bread
+
+1 at 42 Nil each
+Set aside: 42 Nil
+
+💵 The price is set aside until the order fills or you cancel it. Pay it:
+💳 Your bank balance does not cover it — pay in cash.
+💵 Your cash: 500 Nil - Bank: 10 Nil
+  ───
+  [💵 Pay cash - 42 Nil] → market:order:buy:bread:1:42:0a1b2c3d4e63:cash
+  [🔙 Back] → market:book:bread
+
+━━━ Placed · a buy, filled at once ━━━
+(edits message 42)
+✅ Order 41: buy Bread - 1 at 42 Nil.
+🤝 Bought at once: 1 for 42 Nil.
+💵 Paid from your cash.
+  ───
+  [📋 My orders] → market:mine   │   [🏪 Back to the book] → market:book:bread
+  [🔙 Back] → market:list
+
+━━━ Placed · a sell, resting ━━━
+(edits message 42)
+✅ Order 42: sell Bread - 3 at 44 Nil.
+🤝 Sold at once: 1 for 43 Nil.
+⏳ 2 waits on the book for the other side.
+🕒 The order ends at 17:23
+  ───
+  [📋 My orders] → market:mine   │   [🏪 Back to the book] → market:book:bread
+  [🔙 Back] → market:list
+
+━━━ Cancelled · a buy ━━━
+(edits message 42)
+❌ Order 41 cancelled. 84 Nil came back to you.
+  ───
+  [📋 My orders] → market:mine
+  [🔙 Back] → market:list
+
+━━━ Cancelled · a sell ━━━
+(edits message 42)
+❌ Order 42 cancelled. 2 of Bread came back to your bag.
+  ───
+  [📋 My orders] → market:mine
+  [🔙 Back] → market:list
+
+━━━ My orders ━━━
+(edits message 42) (private in groups)
+📋 My orders
+• 42: sell Bread - 1 of 3 at 44 Nil - open - Ostmarch
+• 41: buy Bread - 1 of 1 at 42 Nil - filled - Ostmarch
+• 17: buy Bandage - 0 of 2 at 80 Nil - expired - Brennhaven
+  ───
+  [❌ Cancel order 42] → market:cancel:42
+  [🔙 Back] → market:list   │   [🔄 Refresh] → market:mine
+
+━━━ My orders · none ━━━
+(edits message 42) (private in groups)
+📋 My orders
+You have no orders.
+  ───
+  [🔙 Back] → market:list   │   [🔄 Refresh] → market:mine
+
+━━━ Notice · your sell order filled ━━━
+(sends) (private in groups)
+🤝 Your order in Ostmarch filled: you sold Bread - 2 at 44 Nil for 88 Nil; the market fee was 2 Nil.
+  ───
+  [📋 My orders] → market:mine
+
+━━━ Notice · your buy order filled ━━━
+(sends) (private in groups)
+🤝 Your order in Ostmarch filled: you bought Bread - 2 at 44 Nil for 88 Nil.
+  ───
+  [📋 My orders] → market:mine
+
+━━━ Notice · a buy order expired ━━━
+(sends) (private in groups)
+⏳ Order 41 for Bread ended with 2 unbought. The money set aside came back to you.
+  ───
+  [📋 My orders] → market:mine
+
+━━━ Notice · a sell order expired ━━━
+(sends) (private in groups)
+⏳ Order 42 for Bread ended with 2 unsold. It came back to your bag.
+  ───
+  [📋 My orders] → market:mine
+
+━━━ Market refused · not traded ━━━
+(edits message 42)
+Lockpick set is not traded on the market.
+  ───
+  [🏪 Market] → market:list
+  [🔙 Back] → player:profile.get
+
+━━━ Market refused · too big ━━━
+(edits message 42)
+That order is larger than the market allows.
+  ───
+  [🏪 Market] → market:list
+  [🔙 Back] → player:profile.get
+
+━━━ Market refused · too many open ━━━
+(edits message 42)
+You already have 20 open orders. Cancel one or wait for one to fill.
+  ───
+  [🏪 Market] → market:list
+  [🔙 Back] → player:profile.get
+
+━━━ Market refused · not enough ━━━
+(edits message 42)
+You do not have that much Bread with you.
+  ───
+  [🏪 Market] → market:list
+  [🔙 Back] → player:profile.get
+
+━━━ Market refused · no such order ━━━
+(edits message 42)
+There is no such order of yours.
+  ───
+  [🏪 Market] → market:list
+  [🔙 Back] → player:profile.get
+
+━━━ Market refused · order closed ━━━
+(edits message 42)
+That order is no longer open.
+  ───
+  [🏪 Market] → market:list
+  [🔙 Back] → player:profile.get
+
+━━━ Auction house ━━━
+(edits message 42)
+🔨 Auction house of Ostmarch
+
+• 7: Phone (quality 72) - top bid 2,600 Nil - 40m left
+• 8: Wristwatch (quality 55) - from 800 Nil - 3m left
+  ───
+  [🔨 Auction 7] → auction:view:7   │   [🔨 Auction 8] → auction:view:8
+  [📋 My auctions] → auction:mine   │   [🎒 Bag] → inventory:show
+  [🔙 Back] → market:list   │   [🔄 Refresh] → auction:list
+
+━━━ Auction house · none, from across town ━━━
+(edits message 42)
+🔨 Auction house of Ostmarch
+
+Nothing is up for auction here right now.
+
+📍 Bidding is done at the auction house. Walk there to bid.
+  ───
+  [📋 My auctions] → auction:mine   │   [🎒 Bag] → inventory:show
+  [🔙 Back] → market:list   │   [🔄 Refresh] → auction:list
+
+━━━ Auction · open to bid ━━━
+(edits message 42)
+🔨 Auction 8
+
+Wristwatch - quality 55
+Seller: Kaveh
+Reserve: 800 Nil
+No bids yet.
+⏳ Ends in 3m
+
+💵 A bid of 800 Nil is set aside until you are outbid or win. Pay it:
+💵 Your cash: 1,000 Nil - Bank: 5,000 Nil
+  ───
+  [💵 Pay cash - 800 Nil] → auction:bid:8:800:0a1b2c3d4e64:cash   │   [💳 Pay by card - 800 Nil] → auction:bid:8:800:0a1b2c3d4e64:card
+  [🔙 Back] → auction:list   │   [🔄 Refresh] → auction:view:8
+
+━━━ Auction · your bid leads ━━━
+(edits message 42)
+🔨 Auction 7
+
+Phone - quality 72
+Seller: Kaveh
+Reserve: 1,250 Nil
+Top bid: 2,600 Nil - 3 bids
+⏳ Ends in 40m
+
+🥇 You hold the top bid.
+  ───
+  [🔙 Back] → auction:list   │   [🔄 Refresh] → auction:view:7
+
+━━━ Auction · your own ━━━
+(edits message 42)
+🔨 Auction 7
+
+Phone - quality 72
+Seller: Sara
+Reserve: 1,250 Nil
+Top bid: 2,600 Nil - 3 bids
+⏳ Ends in 40m
+
+This auction is yours.
+  ───
+  [🔙 Back] → auction:list   │   [🔄 Refresh] → auction:view:7
+
+━━━ Auction · over ━━━
+(edits message 42)
+🔨 Auction 7
+
+Phone - quality 72
+Seller: Kaveh
+Reserve: 1,250 Nil
+Top bid: 2,600 Nil - 3 bids
+sold
+  ───
+  [🔙 Back] → auction:list   │   [🔄 Refresh] → auction:view:7
+
+━━━ Auction · put a phone up ━━━
+(edits message 42)
+🔨 Put Phone (quality 72) up for auction
+
+Choose the lowest price you accept and how long the auction runs.
+  ───
+  [1,250 Nil - 1m] → auction:new:F0E1D2C3B4:1250:0:0a1b2c3d4e65   │   [2,500 Nil - 1m] → auction:new:F0E1D2C3B4:2500:0:0a1b2c3d4e65   │   [3,750 Nil - 1m] → auction:new:F0E1D2C3B4:3750:0:0a1b2c3d4e65
+  [1,250 Nil - 6m] → auction:new:F0E1D2C3B4:1250:1:0a1b2c3d4e65   │   [2,500 Nil - 6m] → auction:new:F0E1D2C3B4:2500:1:0a1b2c3d4e65   │   [3,750 Nil - 6m] → auction:new:F0E1D2C3B4:3750:1:0a1b2c3d4e65
+  [1,250 Nil - 24m] → auction:new:F0E1D2C3B4:1250:2:0a1b2c3d4e65   │   [2,500 Nil - 24m] → auction:new:F0E1D2C3B4:2500:2:0a1b2c3d4e65   │   [3,750 Nil - 24m] → auction:new:F0E1D2C3B4:3750:2:0a1b2c3d4e65
+  [🔙 Back] → inventory:item:F0E1D2C3B4
+
+━━━ Auction · opened ━━━
+(edits message 42)
+✅ Auction 9: Phone from 2,500 Nil, for 6m.
+🕒 Ends at 14:41
+  ───
+  [🔨 Auction 9] → auction:view:9
+  [🔙 Back] → auction:list
+
+━━━ Bid · placed ━━━
+(edits message 42)
+✅ You bid 800 Nil on auction 8 (Wristwatch).
+💳 Paid by bank card.
+💵 Your bid is set aside. If someone outbids you, it comes back.
+🕒 Ends at 14:38
+  ───
+  [🔨 Auction 8] → auction:view:8
+  [🔙 Back] → auction:list
+
+━━━ My auctions ━━━
+(edits message 42) (private in groups)
+📋 My auctions
+• 7: Phone (quality 72) - top bid 2,600 Nil - 40m left - yours - open
+• 7: Phone (quality 72) - top bid 2,600 Nil - 40m left - your bid leads - open
+• 3: Phone (quality 40) - top bid 900 Nil - 1s left - you were outbid - sold
+  ───
+  [🔨 Auction 7] → auction:view:7   │   [🔨 Auction 7] → auction:view:7   │   [🔨 Auction 3] → auction:view:3
+  [🔙 Back] → auction:list   │   [🔄 Refresh] → auction:mine
+
+━━━ My auctions · none ━━━
+(edits message 42) (private in groups)
+📋 My auctions
+You are not selling or bidding on anything.
+  ───
+  [🔙 Back] → auction:list   │   [🔄 Refresh] → auction:mine
+
+━━━ Notice · auction outbid ━━━
+(sends) (private in groups)
+🔨 You were outbid on auction 7 (Phone). Your 2,600 Nil came back to you.
+  ───
+  [🔨 Auction 7] → auction:view:7
+
+━━━ Notice · auction won ━━━
+(sends) (private in groups)
+🏆 You won auction 7: Phone for 2,600 Nil. It is in your bag.
+  ───
+  [🎒 Bag] → inventory:show
+
+━━━ Notice · auction sold ━━━
+(sends) (private in groups)
+🔨 Auction 7 sold Phone for 2,600 Nil; the fee was 130 Nil.
+  ───
+  [🎒 Bag] → inventory:show
+
+━━━ Notice · auction unsold ━━━
+(sends) (private in groups)
+🔨 Auction 7 ended without a sale. Phone came back to your bag.
+  ───
+  [🎒 Bag] → inventory:show
+
+━━━ Auction refused · no such auction ━━━
+(edits message 42)
+There is no such auction.
+  ───
+  [🔨 Auction house] → auction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Auction refused · over ━━━
+(edits message 42)
+That auction is over.
+  ───
+  [🔨 Auction 7] → auction:view:7
+  [🔨 Auction house] → auction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Auction refused · bid too low ━━━
+(edits message 42)
+A bid must be at least 2,730 Nil.
+  ───
+  [🔨 Auction 7] → auction:view:7
+  [🔨 Auction house] → auction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Auction refused · your own ━━━
+(edits message 42)
+You cannot bid on your own auction.
+  ───
+  [🔨 Auction 7] → auction:view:7
+  [🔨 Auction house] → auction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Auction refused · already leading ━━━
+(edits message 42)
+You already hold the top bid.
+  ───
+  [🔨 Auction 7] → auction:view:7
+  [🔨 Auction house] → auction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Auction refused · not carried ━━━
+(edits message 42)
+You do not have that piece with you.
+  ───
+  [🔨 Auction house] → auction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Auction refused · too many open ━━━
+(edits message 42)
+You already have 5 auctions open.
+  ───
+  [🔨 Auction house] → auction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Auction refused · not a piece ━━━
+(edits message 42)
+That cannot be auctioned. Only unique pieces go to auction.
+  ───
+  [🔨 Auction house] → auction:list
+  [🔙 Back] → player:profile.get

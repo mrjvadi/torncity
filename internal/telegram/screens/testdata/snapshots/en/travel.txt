@@ -1,50 +1,48 @@
 ━━━ Map · destinations from here (page 1 of 2) ━━━
 (edits message 42)
-🗺 Map
+🧭 Travel to another city
 
 📍 You are in Ostmarch.
 
 From here you can travel to:
-• Fenwick Span · 120 km
-• Aldrin Hollow · 340 km
-• Brennhaven · 1,260 km
+• Fenwick Span - 120 km
+• Aldrin Hollow - 340 km
+• Brennhaven - 1,260 km
 
 Page 1 of 2
   ───
   [🧭 Fenwick Span] → travel:options:fenwick_span
   [🧭 Aldrin Hollow] → travel:options:aldrin_hollow
   [🧭 Brennhaven] → travel:options:brennhaven
-  [🏛 Offices and policies] → gov:city
-  [Next ➡️] → map:list:2
-  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list:1
+  [Next ➡️] → map:cities:2
+  [🔙 Back] → map:list   │   [🔄 Refresh] → map:cities:1
 
 ━━━ Map · no routes from here ━━━
 (edits message 42)
-🗺 Map
+🧭 Travel to another city
 
 📍 You are in Vantor Reach.
 
 There is no route from here to another city yet. Check again later with “Refresh”.
   ───
-  [🏛 Offices and policies] → gov:city
-  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list:1
+  [🔙 Back] → map:list   │   [🔄 Refresh] → map:cities:1
 
 ━━━ Map · not in any city ━━━
 (edits message 42)
-🗺 Map
+🧭 Travel to another city
 
 You have not settled in a city yet. Once you do, your travel destinations appear here.
   ───
-  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+  [🔙 Back] → map:list   │   [🔄 Refresh] → map:cities
 
 ━━━ Map · while travelling ━━━
 (edits message 42)
-🗺 Map
+🧭 Travel to another city
 
 🧭 You are on the way to Brennhaven. You can start a new journey once you arrive.
   ───
   [🧭 My journey] → travel:status
-  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+  [🔙 Back] → map:list   │   [🔄 Refresh] → map:cities
 
 ━━━ Travel options ━━━
 (edits message 42)
@@ -52,17 +50,17 @@ You have not settled in a city yet. Once you do, your travel destinations appear
 📍 From: Ostmarch
 
 How would you like to travel?
-• Bus · Free · 13m on the way · 8 energy
-• Car · 6,300 Nil · 7m on the way · 14 energy
-• Train · 7,720 Nil (busy route) · 4m on the way · 6 energy
-• Flight · 10,480 Nil · 2m on the way · 4 energy
+• Bus - Free - 13m on the way - 8 energy
+• Car - 6,300 Nil - 7m on the way - 14 energy
+• Train - 7,720 Nil (busy route) - 4m on the way - 6 energy
+• Flight - 10,480 Nil - 2m on the way - 4 energy
 
 💵 Your cash: 5,000 Nil
   ───
-  [Bus · Free] → travel:start:brennhaven:bus:0
-  [Car · 6,300 Nil] → travel:start:brennhaven:car:6300
-  [Train · 7,720 Nil] → travel:start:brennhaven:train:7720
-  [Flight · 10,480 Nil] → travel:start:brennhaven:flight:10480
+  [Bus - Free] → travel:start:brennhaven:bus:0
+  [Car - 6,300 Nil] → travel:start:brennhaven:car:6300
+  [Train - 7,720 Nil] → travel:start:brennhaven:train:7720
+  [Flight - 10,480 Nil] → travel:start:brennhaven:flight:10480
   [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:brennhaven
 
 ━━━ Travel options · the fare changed before departure ━━━
@@ -73,21 +71,115 @@ How would you like to travel?
 ⚠️ The fare has changed since you looked. Nothing was charged — here are the current prices.
 
 How would you like to travel?
-• Train · 8,490 Nil (busy route) · 4m on the way · 6 energy
+• Train - 8,490 Nil (busy route) - 4m on the way - 6 energy
 
 💵 Your cash: 5,000 Nil
   ───
-  [Train · 8,490 Nil] → travel:start:brennhaven:train:8490
+  [Train - 8,490 Nil] → travel:start:brennhaven:train:8490
   [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:brennhaven
 
-━━━ Travel · cannot afford the fare ━━━
-(edits message 42) (private in groups)
-💵 Not enough cash to travel by Flight.
-Fare: 10,480 Nil · Your cash: 3,200 Nil
-Nothing was charged; a cheaper way to travel may still be in reach.
+━━━ Travel · pay for the chosen mode, both ways ━━━
+(edits message 42)
+🧭 To Brennhaven by Train
+📍 From: Ostmarch
+
+💰 Fare: 7,720 Nil
+⏳ 4m on the road
+⚡ 6 energy
+
+How would you like to pay?
+💵 Your cash: 9,000 Nil - Bank: 25,000 Nil
   ───
+  [💵 Pay cash - 7,720 Nil] → travel:start:brennhaven:train:7720:cash   │   [💳 Pay by card - 7,720 Nil] → travel:start:brennhaven:train:7720:card
   [🧭 Ways to travel] → travel:options:brennhaven
   [🔙 Back] → map:list
+
+━━━ Travel · pay for the chosen mode, card only covers it ━━━
+(edits message 42)
+🧭 To Brennhaven by Flight
+📍 From: Ostmarch
+
+💰 Fare: 10,480 Nil (busy route)
+⏳ 2m on the road
+⚡ 4 energy
+
+How would you like to pay?
+💵 Your cash does not cover it — pay by card.
+💵 Your cash: 105 Nil - Bank: 25,000 Nil
+  ───
+  [💳 Pay by card - 10,480 Nil] → travel:start:brennhaven:flight:10480:card
+  [🧭 Ways to travel] → travel:options:brennhaven
+  [🔙 Back] → map:list
+
+━━━ Travel · pay for the chosen mode, in a group ━━━
+(edits message 42)
+🧭 To Brennhaven by Bus
+📍 From: Ostmarch
+
+💰 Fare: 300 Nil
+⏳ 5m on the road
+⚡ 8 energy
+
+How would you like to pay?
+💳 Your bank balance does not cover it — pay in cash.
+  ───
+  [💵 Pay cash - 300 Nil] → travel:start:brennhaven:bus:300:cash
+  [🧭 Ways to travel] → travel:options:brennhaven
+  [🔙 Back] → map:list
+
+━━━ Travel · a cash-only mode ━━━
+(edits message 42)
+🧭 To Fenwick Span by Bus
+📍 From: Ostmarch
+
+💰 Fare: 300 Nil
+⏳ 1h 35m on the road
+⚡ 8 energy
+
+How would you like to pay?
+💵 Cash only here.
+💵 Your cash: 900 Nil - Bank: 100 Nil
+  ───
+  [💵 Pay cash - 300 Nil] → travel:start:fenwick_span:bus:300:cash
+  [🧭 Ways to travel] → travel:options:fenwick_span
+  [🔙 Back] → map:list
+
+━━━ Travel · nothing covers the fare ━━━
+(edits message 42)
+🧭 To Brennhaven by Flight
+📍 From: Ostmarch
+
+💰 Fare: 10,480 Nil
+⏳ 2m on the road
+⚡ 4 energy
+
+💸 Neither your cash nor your bank balance covers this.
+💵 Your cash: 3,200 Nil - Bank: 1,500 Nil
+  ───
+  [🏦 Bank] → bank:show
+  [🧭 Ways to travel] → travel:options:brennhaven
+  [🔙 Back] → map:list
+
+━━━ Payment · declined, both balances ━━━
+(edits message 42) (private in groups)
+💸 You do not have enough to pay 10,480 Nil.
+💵 Cash: 3,200 Nil
+🏦 Bank: 1,500 Nil
+Nothing was charged.
+  ───
+  [🧭 Ways to travel] → travel:options:brennhaven   │   [🏦 Bank] → bank:show
+  [🔙 Back] → player:profile.get
+
+━━━ Payment · declined, cash only here ━━━
+(edits message 42) (private in groups)
+💸 You do not have enough to pay 300 Nil.
+💵 Cash: 100 Nil
+🏦 Bank: 25,000 Nil
+Nothing was charged.
+💵 Cash only here.
+  ───
+  [🧭 Ways to travel] → travel:options:fenwick_span   │   [🏦 Bank] → bank:show
+  [🔙 Back] → player:profile.get
 
 ━━━ Travel · departed, paid fare ━━━
 (edits message 42)

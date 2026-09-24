@@ -11,10 +11,10 @@ You do not have a job yet. See what the employers in your city are offering unde
 (edits message 42)
 💼 My job
 
-💼 Sales Trainee · Retail
+💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
 💰 Pay per shift: 120 Nil
-⚡ Energy per shift: 15 · you have 70 of 100
+⚡ Energy per shift: 15 - you have 70 of 100
 📈 Performance: 53 of 100
 🔁 Shifts in this position: 4
 💵 Earned in this job: 456 Nil
@@ -35,10 +35,10 @@ Still needed for a promotion:
 (edits message 42)
 💼 My job
 
-💼 Sales Trainee · Retail
+💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
 💰 Pay per shift: 120 Nil
-⚡ Energy per shift: 15 · you have 70 of 100
+⚡ Energy per shift: 15 - you have 70 of 100
 📈 Performance: 61 of 100
 🔁 Shifts in this position: 7
 💵 Earned in this job: 456 Nil
@@ -54,10 +54,10 @@ Still needed for a promotion:
 (edits message 42)
 💼 My job
 
-💼 Sales Trainee · Retail
+💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
 💰 Pay per shift: 120 Nil
-⚡ Energy per shift: 15 · you have 70 of 100
+⚡ Energy per shift: 15 - you have 70 of 100
 📈 Performance: 53 of 100
 🔁 Shifts in this position: 4
 💵 Earned in this job: 456 Nil
@@ -79,16 +79,16 @@ Still needed for a promotion:
 (edits message 42)
 💼 My job
 
-💼 Sales Trainee · Retail
+💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
 💰 Pay per shift: 120 Nil
-⚡ Energy per shift: 15 · you have 70 of 100
+⚡ Energy per shift: 15 - you have 70 of 100
 📈 Performance: 53 of 100
 🔁 Shifts in this position: 4
 ⏱ Each shift takes 4m
 💵 Earned in this job: 456 Nil
 
-⏳ On shift · 3m to go
+⏳ On shift - 3m to go
 🕒 Shift ends at 14:38
 
 ⬆️ Next position: Sales Associate
@@ -105,10 +105,10 @@ Still needed for a promotion:
 (edits message 42)
 💼 My job
 
-💼 Sales Trainee · Retail
+💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
 💰 Pay per shift: 120 Nil
-⚡ Energy per shift: 15 · you have 70 of 100
+⚡ Energy per shift: 15 - you have 70 of 100
 📈 Performance: 53 of 100
 🔁 Shifts in this position: 4
 ⏱ Each shift takes 4m
@@ -154,10 +154,10 @@ Your pay, XP and performance are settled when the shift ends, and you will be no
 (edits message 42)
 💼 My job
 
-💼 Store Manager · Retail
+💼 Store Manager - Retail
 📍 Workplace: Ostmarch
 💰 Pay per shift: 480 Nil
-⚡ Energy per shift: 15 · you have 70 of 100
+⚡ Energy per shift: 15 - you have 70 of 100
 📈 Performance: 53 of 100
 🔁 Shifts in this position: 4
 💵 Earned in this job: 456 Nil
@@ -172,10 +172,10 @@ Your pay, XP and performance are settled when the shift ends, and you will be no
 (edits message 42)
 💼 Job openings in Ostmarch
 
-✅ Retail · Sales Trainee · 120 Nil per shift
-✅ Logistics · Courier · 130 Nil per shift
-🔒 Technology · Junior Developer · 260 Nil per shift
-🔒 Healthcare · Care Aide · 150 Nil per shift
+✅ Retail - Sales Trainee - 120 Nil per shift
+✅ Logistics - Courier - 130 Nil per shift
+🔒 Technology - Junior Developer - 260 Nil per shift
+🔒 Healthcare - Care Aide - 150 Nil per shift
 
 Page 1 of 2
 
@@ -192,8 +192,8 @@ Page 1 of 2
 
 You work as Sales Trainee. To take another job, leave your current one first.
 
-✅ Logistics · Courier · 130 Nil per shift
-🔒 Technology · Junior Developer · 260 Nil per shift
+✅ Logistics - Courier - 130 Nil per shift
+🔒 Technology - Junior Developer - 260 Nil per shift
   ───
   [✅ Courier] → job:view:logistics   │   [🔒 Junior Developer] → job:view:technology
   [💼 My job] → job:status
@@ -217,7 +217,7 @@ You are on a journey. Job openings appear once you arrive in a city.
 
 ━━━ Job detail · can apply ━━━
 (edits message 42)
-💼 Sales Trainee · Retail
+💼 Sales Trainee - Retail
 
 📍 Workplace: Ostmarch
 💰 Pay per shift: 120 Nil
@@ -231,7 +231,7 @@ Requirements:
 
 ━━━ Job detail · requirements not met ━━━
 (edits message 42)
-💼 Junior Developer · Technology
+💼 Junior Developer - Technology
 
 📍 Workplace: Ostmarch
 💰 Pay per shift: 260 Nil
@@ -247,20 +247,20 @@ Requirements:
 
 ━━━ Job detail · not a resident ━━━
 (edits message 42)
-💼 Sales Trainee · Retail
+💼 Sales Trainee - Retail
 
 📍 Workplace: Ostmarch
 💰 Pay per shift: 120 Nil
 ⚡ Energy per shift: 15
 
 Requirements:
-❌ Living in Ostmarch · work permits for other cities are not available yet
+❌ Living in Ostmarch - work permits for other cities are not available yet
   ───
   [🔙 Back] → job:list   │   [🔄 Refresh] → job:view:retail
 
 ━━━ Job detail · already employed ━━━
 (edits message 42)
-💼 Courier · Logistics
+💼 Courier - Logistics
 
 📍 Workplace: Ostmarch
 💰 Pay per shift: 130 Nil
@@ -284,7 +284,7 @@ You already have a job. To take this one, leave your current job first.
 (edits message 42)
 ✅ Shift complete
 
-💰 Wage 120 Nil · income tax 6 Nil · you received 114 Nil
+💰 Wage 120 Nil - income tax 6 Nil - you received 114 Nil
 ⭐ 10 XP
 🛠 Management: +15 XP
 🛠 Management reached level 2.
@@ -312,7 +312,7 @@ You already have a job. To take this one, leave your current job first.
 (edits message 42)
 ✅ Shift complete
 
-💰 Wage 84 Nil · income tax 4 Nil · you received 80 Nil
+💰 Wage 84 Nil - income tax 4 Nil - you received 80 Nil
 ⭐ 10 XP
 📉 Performance: 50 of 100 (−2)
 ⚡ Energy: 10 of 100
@@ -350,7 +350,7 @@ You have left your job as Sales Trainee. Find a new one under “Job openings”
 You cannot take this job yet:
 ❌ Level 3 (you are level 2)
 ❌ Certificate: Programming Fundamentals
-❌ Living in Ostmarch · work permits for other cities are not available yet
+❌ Living in Ostmarch - work permits for other cities are not available yet
   ───
   [💼 Job openings] → job:list
   [🔙 Back] → player:profile.get
@@ -404,7 +404,7 @@ That job is not offered where you are. See “Job openings” for what is.
 ━━━ Refusal · already on a shift ━━━
 (edits message 42)
 💼 You are at work right now. Wait for your shift to end.
-⏳ On shift · 3m to go
+⏳ On shift - 3m to go
 🕒 Shift ends at 14:38
   ───
   [💼 My job] → job:status

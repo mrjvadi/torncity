@@ -97,7 +97,10 @@ func TestValidateRejectsBrokenCrimeContent(t *testing.T) {
 		{"unknown category", func(p *Pack) { find(p, "shoplifting").Category = "piracy" }, ErrUnknownCrimeCategory},
 		{"unknown venue", func(p *Pack) { find(p, "shoplifting").Venues = []string{"moon"} }, ErrUnknownCrimeVenue},
 		{"unknown facility", func(p *Pack) { find(p, "goods_smuggling").RequiredFacilities = []string{"seaport"} }, ErrUnknownCrimeFacility},
-		{"a tool while no items exist", func(p *Pack) { find(p, "home_burglary").RequiredTools = []string{"crowbar"} }, ErrUnknownTool},
+		{"a tool that is not an item", func(p *Pack) { find(p, "home_burglary").RequiredTools = []string{"blowtorch"} }, ErrUnknownTool},
+		{"loot that is not an item", func(p *Pack) {
+			find(p, "home_burglary").Reward.Loot = []LootDef{{Item: "gold_bar", ChanceBPS: 100, MinQty: 1, MaxQty: 1}}
+		}, ErrUnknownItem},
 		{"certificate nobody issues", func(p *Pack) { find(p, "home_burglary").RequiredCertifications = []string{"phd"} }, ErrUnknownCertification},
 		{"duplicate crime", func(p *Pack) { p.Crimes = append(p.Crimes, p.Crimes[0]) }, ErrDuplicateCrimeCode},
 		{"crime without a name", func(p *Pack) { find(p, "shoplifting").Name = "" }, ErrMissingDisplayName},
@@ -125,6 +128,8 @@ func TestValidateRejectsBrokenCrimeContent(t *testing.T) {
 func TestPackWithoutCrimesStillValidates(t *testing.T) {
 	p := shippedPack(t)
 	p.Crimes, p.CrimeTiers, p.Venues, p.CrimeCategories = nil, nil, nil, nil
+	// Goods whose gear names crimes, and shops at places, go with them.
+	p.Items, p.Shops = nil, nil
 	if err := p.Validate(); err != nil {
 		t.Fatal(err)
 	}

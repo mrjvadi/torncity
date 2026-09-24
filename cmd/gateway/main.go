@@ -28,6 +28,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
@@ -42,6 +43,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/gateway/dedup"
 	"github.com/mrjvadi/torncity/internal/gateway/groups"
 	"github.com/mrjvadi/torncity/internal/gateway/identity"
+	"github.com/mrjvadi/torncity/internal/gateway/input"
 	"github.com/mrjvadi/torncity/internal/gateway/lease"
 	"github.com/mrjvadi/torncity/internal/gateway/ratelimit"
 	"github.com/mrjvadi/torncity/internal/gateway/registry"
@@ -83,6 +85,10 @@ const (
 	// uses. The gateway renders one screen itself, the help it answers an
 	// unknown command with, and it is written in the same catalogue.
 	defaultLocalesDir = "configs/locales"
+
+	// commandsFile is the per-command table the gateway enforces, read from
+	// the configuration's directory.
+	commandsFile = "commands.yml"
 )
 
 func main() {
@@ -126,6 +132,10 @@ type env struct {
 	logLevel           string
 	configPath         string
 	localesDir         string
+	// commandsPath is configs/commands.yml, which says where each command
+	// runs. It sits beside the configuration file unless TORN_COMMANDS says
+	// otherwise.
+	commandsPath string
 }
 
 func loadEnv() (env, error) {
@@ -144,6 +154,10 @@ func loadEnv() (env, error) {
 	}
 	if e.localesDir == "" {
 		e.localesDir = defaultLocalesDir
+	}
+	e.commandsPath = os.Getenv("TORN_COMMANDS")
+	if e.commandsPath == "" {
+		e.commandsPath = filepath.Join(filepath.Dir(e.configPath), commandsFile)
 	}
 
 	var missing []string
@@ -319,6 +333,29 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// an unaddressed command in a group several of them share.
 	gw.group.claims = groups.NewClaimer(seen)
 
+	// Where each command runs (configs/commands.yml, beside the
+	// configuration). A table that will not load is fatal: guessing would
+	// either run a private command in a group or lock players out of one.
+	gw.policy, err = groups.LoadPolicy(e.commandsPath)
+	if err != nil {
+		return fmt.Errorf("gateway: load the command table from %s: %w", e.commandsPath, err)
+	}
+	if missing := gw.policy.Missing(); len(missing) > 0 {
+		logger.Error("commands.yml has no line for these commands; they run anywhere",
+			slog.String("commands", strings.Join(missing, ",")))
+	}
+	gw.inputs = infraredis.NewInputStore(rdb)
+	gw.cityGroups = postgres.NewCityGroupRepository(pool)
+
+	// Commands typed without a slash, in every language. A collision is
+	// logged and the word left out; the rest work.
+	aliases, err := routing.LoadAliases(catalog)
+	if err != nil {
+		logger.Error("some command aliases were left out", slog.String("error", err.Error()))
+	}
+	gw.aliases = aliases
+	logger.Info("command aliases loaded", slog.Int("words", aliases.Len()))
+
 	// --- response rendering -------------------------------------------------
 
 	// Responses travel on core NATS, not JetStream. A reply is worthless once
@@ -428,6 +465,21 @@ type gateway struct {
 
 	// group is what playing in Telegram groups needs; see groups.go.
 	group groupState
+
+	// aliases are the commands players type without a slash, in every
+	// language (command_alias in the locales); policy is configs/commands.yml,
+	// where each command may run; inputs keeps the answers the bot is waiting
+	// for (internal/gateway/input). See text.go. Nil aliases and a nil policy
+	// match nothing and allow everything; nil inputs asks nothing.
+	aliases *routing.Aliases
+	policy  *groups.Policy
+	inputs  input.Store
+	// prompter sends a question with its ForceReply markup; nil sends
+	// through the fleet. Tests replace it.
+	prompter func(ctx context.Context, bot application.Bot, chatID int64, text string, markup any) (int64, error)
+	// cityGroups says whether a player's city has a group, for the hint a
+	// group-only command gets in the private chat. Nil leaves it out.
+	cityGroups cityGroupReader
 }
 
 // serveBot holds one bot's lease and polls it for as long as the lease lasts.
@@ -525,6 +577,7 @@ func (g *gateway) poll(ctx context.Context, bot application.Bot, log *slog.Logge
 	pollTimeoutSeconds := int(g.cfg.Gateway.PollTimeout.Seconds())
 
 	g.registerCommandMenu(ctx, bot, api, log)
+	g.checkPrivacyMode(ctx, bot, api, log)
 
 	var offset int64
 	for {
@@ -604,17 +657,38 @@ func (g *gateway) handleUpdate(ctx context.Context, bot application.Bot, update 
 		return
 	}
 
+	// Plain text: the answer to a question the bot asked, or a command
+	// typed without its slash in the player's language. See text.go.
+	read := g.readTyped(ctx, bot, &update, meta, log)
+	if read.done {
+		return
+	}
+
 	// Groups: a press on another player's button, a command for another
 	// bot, or one another bot of ours is answering stops here. See groups.go.
 	admitted := g.admit(ctx, bot, &update, meta, log)
 	if !admitted.proceed {
 		return
 	}
+	if read.aliased {
+		// The player typed a word of ours in their own language: they are
+		// talking to the game, not to another bot.
+		admitted.mayHelp = true
+	}
+
+	// A button that asks the player to type a value. See text.go.
+	if cq := update.CallbackQuery; cq != nil && strings.HasPrefix(cq.Data, input.AskPrefix+":") {
+		g.ask(ctx, bot, meta, cq, log)
+		return
+	}
 
 	// Route, never Parse: Route refuses a command the game does not serve to
 	// players, which must not be published. See the package doc of
 	// internal/commands for why the broker would not refuse it for us.
-	command, payload, err := routing.Route(update)
+	command, payload := read.command, read.payload
+	if command == "" {
+		command, payload, err = routing.Route(update)
+	}
 	if err != nil {
 		if routing.NeedsHelp(err, meta.ChatType) && admitted.mayHelp {
 			log.Info("update names no command the game serves; answering with help",
@@ -624,6 +698,12 @@ func (g *gateway) handleUpdate(ctx context.Context, bot application.Bot, update 
 		}
 		log.Debug("update is not a command",
 			append(metaAttrs(meta), slog.String("error", err.Error()))...)
+		return
+	}
+	// Where the command may run (configs/commands.yml). Sent in the wrong
+	// kind of chat it is answered with a hint and not run.
+	if !g.policy.Allowed(command, meta.InGroup()) {
+		g.wrongChannel(ctx, bot, meta, command, log)
 		return
 	}
 	domain, action, err := routing.SplitCommand(command)

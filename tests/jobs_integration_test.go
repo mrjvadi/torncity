@@ -346,8 +346,14 @@ func TestWorkAndStudyEndToEnd(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
+	// A course is taught at its institution's place: the player walks to
+	// the university quarter first (places.yml).
+	if _, err := pool.Raw().Exec(ctx, `UPDATE players SET place_code = 'university', place_since = now() WHERE id = $1::uuid`,
+		p.ID); err != nil {
+		t.Fatal(err)
+	}
 	before := balance(application.AccountPlayerCash, p.ID)
-	if _, err := edu.Enroll(ctx, metaFor("education.enroll"), handlers.CourseRequest{Course: "first_aid"}); err != nil {
+	if _, err := edu.Enroll(ctx, metaFor("education.enroll"), handlers.CourseRequest{Course: "first_aid", Method: "cash"}); err != nil {
 		t.Fatalf("Enroll: %v", err)
 	}
 	if got := before - balance(application.AccountPlayerCash, p.ID); got != 600 {
