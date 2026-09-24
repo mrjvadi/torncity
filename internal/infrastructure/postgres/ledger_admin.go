@@ -350,3 +350,9 @@ func (a *EconomyAdmin) AppendAudit(ctx context.Context, e AuditEntry) error {
 	}
 	return nil
 }
+
+// PlayerByCode resolves a public player code to an active player, for
+// operator commands that name a player the way players do.
+func (a *EconomyAdmin) PlayerByCode(ctx context.Context, code string) (id, label string, err error) {
+	return activePlayerByCode(ctx, a.q, code)
+}

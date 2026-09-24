@@ -29,6 +29,10 @@ func economyUsage() {
                                   starting cash (economy.starting_cash); a player
                                   already granted is skipped, so it is safe to
                                   run again
+  grant --player CODE --amount N --reason "why" [--by NAME]
+                                  pay N (minor units) into one player's cash from
+                                  system_source, as an audited operator grant;
+                                  each run is one grant
 
 --by names the operator in the audit row; it defaults to $`+operatorEnv+`, then
 $USER, and the grant is refused when none of them names anybody.
@@ -49,6 +53,8 @@ func economyCommand(ctx context.Context, args []string) error {
 		return economyVerify(ctx, args[1:])
 	case "grant-starting":
 		return economyGrantStarting(ctx, args[1:])
+	case "grant":
+		return economyGrant(ctx, args[1:])
 	default:
 		economyUsage()
 		os.Exit(2)
@@ -226,6 +232,90 @@ func economyGrantStarting(ctx context.Context, args []string) error {
 	fmt.Printf("candidates:     %d\n", len(players))
 	fmt.Printf("granted:        %d\n", granted)
 	fmt.Printf("skipped:        %d (granted meanwhile by another path)\n", skipped)
+	fmt.Printf("granted by:     %s\n", grantedBy)
+	fmt.Printf("reason:         %s\n", *reason)
+	return nil
+}
+
+// economyGrant pays one operator grant into one player's cash.
+//
+// The player is named by public code, as players name each other.
+func economyGrant(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("economy grant", flag.ExitOnError)
+	fs.Usage = economyUsage
+	code := fs.String("player", "", "the player's public code (required)")
+	minor := fs.Int64("amount", 0, "amount in minor units, above zero (required)")
+	reason := fs.String("reason", "", "why this grant is being made (required)")
+	operator := addOperatorFlags(fs)
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	*reason = strings.TrimSpace(*reason)
+	switch {
+	case strings.TrimSpace(*code) == "":
+		return errors.New("economy grant: --player is required")
+	case *minor <= 0:
+		return errors.New("economy grant: --amount must be above zero")
+	case *reason == "":
+		return errors.New("economy grant: --reason is required; " +
+			"money created without a recorded reason cannot be accounted for later")
+	}
+	who, err := operator.resolve("economy grant", os.LookupEnv)
+	if err != nil {
+		return err
+	}
+
+	cfgPath := os.Getenv("TORN_CONFIG")
+	if cfgPath == "" {
+		cfgPath = config.DefaultPath
+	}
+	cfg, err := config.Load(cfgPath)
+	if err != nil {
+		return err
+	}
+	pool, err := contentPool(ctx)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
+	admin := postgres.NewEconomyAdmin(pool)
+	playerID, label, err := admin.PlayerByCode(ctx, *code)
+	if err != nil {
+		return err
+	}
+	amount := money.FromMinor(*minor)
+	grantedBy := "admin:" + who
+	now := time.Now()
+
+	// The audit row is written first, as grant-starting does, so the intent
+	// is on record even if the grant itself fails; the grant row names the
+	// operator too, so every unit of money traces back to this run.
+	if err := admin.AppendAudit(ctx, postgres.AuditEntry{
+		Actor:      who,
+		Action:     "economy.grant",
+		TargetType: "reward_grants",
+		NewValue:   map[string]any{"player": playerID, "amount": amount.Minor()},
+		Reason:     *reason,
+		At:         now,
+	}); err != nil {
+		return err
+	}
+
+	var grant application.RewardGrant
+	uow := postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage)
+	err = uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		var err error
+		grant, err = application.GrantAdminCash(ctx, tx.Ledger(), playerID, amount, grantedBy, now)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("granted:        %s minor units\n", amount)
+	fmt.Printf("to:             %s\n", label)
+	fmt.Printf("grant:          %s\n", grant.ID)
 	fmt.Printf("granted by:     %s\n", grantedBy)
 	fmt.Printf("reason:         %s\n", *reason)
 	return nil
