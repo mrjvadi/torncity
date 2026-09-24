@@ -91,6 +91,9 @@ profile:
 
   name: "👤 {name}"
   city: "📍 {city}"
+  # Where in the city the player stands, or the walk they are on.
+  place: "📍 {place} - {city}"
+  walking: "🚶 در راه {place} - {remaining} مانده - رسیدن ساعت {time}"
   travelling: "🧭 در راه {city} - {remaining} مانده"
   level: "⭐ سطح {level} - {xp_to_next} امتیاز تجربه تا سطح {next_level}"
   level_plain: "⭐ سطح {level}"
@@ -422,7 +425,7 @@ gov:
     pending: "  ⏳ {when} دیگر به {value} تغییر می‌کند"
   mine:
     title: "🏛 منصب من"
-    none: "شما منصبی ندارید. فعلاً صاحبان مناصب از سوی مدیران بازی منصوب می‌شوند؛ انتخابات بعداً به بازی می‌آید."
+    none: "شما منصبی ندارید. شهردار، اعضای شورای شهر و رئیس‌جمهور انتخاب می‌شوند و مناصب دیگر انتصابی‌اند."
     seat: "📍 {office} {place}"
     acting_for: "شما سرپرست منصب خالی {office} هستید."
     no_levers: "این منصب فعلاً سیاستی ندارد که بتوانید تغییرش دهید."
@@ -456,6 +459,7 @@ gov:
   button:
     city: "🏛 مناصب و سیاست‌ها"
     history: "📜 تاریخچهٔ سیاست‌ها"
+    elections: "🗳 انتخابات"
     my_office: "🏛 منصب من"
     change: "✏️ {lever} — {place}"
     down: "➖ {amount}"
@@ -533,6 +537,10 @@ group:
   start_bot_first: "این صفحه فقط برای شماست. ابتدا ربات را در گفت‌وگوی خصوصی باز کنید و «شروع» را بزنید تا صفحه همان‌جا نمایش داده شود."
   # The button under either line; it opens the bot's private chat.
   open_bot: باز کردن ربات
+  # In a group, the one button that stands in for every private-chat button
+  # of a screen (the bank, the bag, the job…): it opens the bot's private
+  # chat, where those live.
+  continue_private: "🔒 ادامه در پی‌وی"
   # Posted once when the bot is added to a group.
   welcome: |-
     سلام به همه! از این پس می‌توانید در همین گروه بازی کنید؛ برای شروع «پروفایل» یا «راهنما» را بفرستید.
@@ -645,6 +653,8 @@ job:
   shifts: "🔁 شیفت‌ها در این جایگاه: {shifts}"
   earned: "💵 درآمد از این شغل: {amount}"
   away: "📍 محل کار شما {city} است. برای کار کردن باید آنجا باشید."
+  at_work_place: "📍 الان در محل کارتان، {place}، هستید."
+  walk_to_work: "📍 محل کارتان {place} است - {walk} پیاده‌روی از جایی که هستید."
   promotion_top: "⭐ در بالاترین جایگاه این رشته هستید."
   promotion_ready: "⬆️ آمادهٔ ارتقا به {title} هستید. «ارتقا» را بزنید."
   promotion_next: |-
@@ -709,6 +719,8 @@ job:
     opening_locked: "🔒 {title}"
     apply: "✅ درخواست استخدام"
     work: "🛠 شروع شیفت"
+    work_for: "🛠 شروع شیفت ({shift} کار)"
+    walk_work: "🛠 شروع شیفت ({walk} پیاده‌روی تا محل کار + {shift} کار)"
     work_again: "🛠 شیفت بعدی"
     promotion: "⬆️ ارتقا"
     quit: "🚪 کناره‌گیری از شغل"
@@ -1098,6 +1110,13 @@ place:
   walk_energy: "⚡ {energy} انرژی مصرف شد."
   still_walking: "🚶 هنوز در راه {place} هستید - {remaining} مانده."
   you_are_at: "📍 شما الان در {place} هستید."
+  # A walk that does something on arrival (go, then do): the line the
+  # started walk adds, and the hint under a refusal whose button walks there
+  # and opens the same page again.
+  then:
+    work: "🛠 به‌محض رسیدن، شیفت کارتان شروع می‌شود."
+    open: "📲 به‌محض رسیدن، صفحه‌ای که خواستید برایتان باز می‌شود."
+  then_hint: "با یک دکمه تا {place} پیاده می‌روید ({walk}) و همین صفحه آنجا دوباره باز می‌شود."
   service:
     bank: بانک
     police: پلیس
@@ -1120,6 +1139,7 @@ place:
   button:
     go: "🚶 {place}"
     walk: "🚶 رفتن به {place} - {walk}"
+    walk_then: "🚶 رفتن به {place} ({walk})"
     other_cities: "🧭 سفر به شهر دیگر"
 
 # Commands typed without a slash (internal/gateway/routing/alias.go). The key
@@ -1150,6 +1170,8 @@ command_alias:
   find: "پیدا | جستجو | جست‌وجو"
   skills: "مهارت | مهارت‌ها"
   settings: "تنظیمات"
+  election: "انتخابات"
+  vote: "رای | رأی"
   help: "راهنما | کمک"
   cancel: "انصراف | لغو"
 
@@ -1188,6 +1210,14 @@ announce:
   # A busy group is sent a few lines at a time; this follows the next line
   # that goes out.
   held: "📰 و {count} خبر دیگر در همین فاصله."
+  election_opened: "🗳 {election} آغاز شد. نامزدها تا {duration} دیگر در شهرداری ثبت‌نام می‌کنند. برای دیدنش بنویسید «انتخابات {no}»."
+  election_stood: "📝 {player} در {election} نامزد شد."
+  election_voting: "🗳 رأی‌گیری {election} آغاز شد: {count} نامزد. هر ساکن تا {duration} دیگر یک بار و مخفیانه رأی می‌دهد."
+  election_voting_none: "🗳 ثبت‌نام نامزدهای {election} بسته شد و کسی نامزد نشد."
+  election_counted: "🏆 نتیجهٔ {election}: {elected} برگزیده شد. در مجموع {cast} رأی داده شد."
+  election_counted_many: "🏆 نتیجهٔ {election}: {elected} برگزیده شدند. در مجموع {cast} رأی داده شد."
+  election_unfilled: "🗳 {election} بی‌نتیجه ماند: هیچ نامزدی رأی نیاورد و منصب تا انتخابات بعدی خالی می‌ماند."
+  election_no_candidates: "🗳 {election} بی‌نتیجه ماند: کسی نامزد نشد و منصب تا انتخابات بعدی خالی می‌ماند."
 
 # آنچه بازیکن همراه دارد (internal/telegram/screens/items.go). نام هر کالا زیر
 # item_name.<code> و نوعش زیر item_category.<code> است.
@@ -1457,3 +1487,87 @@ auction:
     not_held: این شیء همراهتان نیست.
     too_many: "همین حالا {count} حراج باز دارید."
     not_sellable: این را نمی‌شود حراج گذاشت. فقط اشیای یکتا به حراج می‌روند.
+
+# انتخابات (internal/telegram/screens/elections.go). رأی مخفی است: هیچ سطری
+# نمی‌گوید چه کسی به چه کسی رأی داد.
+election:
+  # نام یک انتخابات. election.name.<کد منصب> نام رایج آن است؛ منصبی که
+  # نامی اینجا ندارد با election.of نامیده می‌شود.
+  of: "انتخابات {office} {place}"
+  name:
+    mayor: "انتخابات شهرداری {place}"
+    city_council: "انتخابات شورای شهر {place}"
+    president: "انتخابات ریاست‌جمهوری {place}"
+  this: این انتخابات
+  title: "🗳 انتخابات {place}"
+  title_plain: "🗳 انتخابات"
+  no_city: هنوز در شهری نیستید. هر کس در انتخابات شهری شرکت می‌کند که در آن زندگی می‌کند.
+  none: الان انتخاباتی در جریان نیست و تا امروز هم انتخاباتی اینجا برگزار نشده است.
+  hint: "نامزدها در شهرداری ثبت‌نام می‌کنند و هر ساکن یک بار و مخفیانه رأی می‌دهد. برای دیدن هر انتخابات، دکمهٔ شماره‌اش را بزنید."
+  line:
+    candidacy: "• شمارهٔ {no}: {election} - ثبت‌نام نامزدها، {remaining} مانده، تا الان {count} نامزد"
+    voting: "• شمارهٔ {no}: {election} - رأی‌گیری، {remaining} مانده، {count} نامزد"
+    counting: "• شمارهٔ {no}: {election} - در انتظار شمارش آرا"
+    counted: "• شمارهٔ {no}: {election} - برگزیده: {elected}"
+    unfilled: "• شمارهٔ {no}: {election} - کسی برگزیده نشد"
+  detail_title: "🗳 {election} (شمارهٔ {no})"
+  seats: "🪑 تعداد کرسی‌ها: {seats}"
+  deposit: "💰 ودیعهٔ نامزدی: {deposit}؛ اگر دست‌کم {share} آرا را بیاورید، پس از شمارش به شما برمی‌گردد."
+  phase:
+    candidacy: "📝 ثبت‌نام نامزدها - {remaining} مانده"
+    voting: "🗳 رأی‌گیری - {remaining} مانده"
+    counting: "⏳ رأی‌گیری تمام شده و آرا به‌زودی شمرده می‌شود."
+    counted: "✅ آرا شمرده شد: در مجموع {cast} رأی"
+  voting_from: "🕒 رأی‌گیری {duration} دیگر، ساعت {time}، شروع می‌شود."
+  voting_in: "🕒 رأی‌گیری {duration} دیگر شروع می‌شود."
+  count_at: "🕒 آرا {duration} دیگر، ساعت {time}، شمرده می‌شود."
+  count_in: "🕒 آرا {duration} دیگر شمرده می‌شود."
+  candidates: "نامزدها:"
+  no_candidates: "• هنوز کسی نامزد نشده است"
+  candidate: "{n}. {player}"
+  candidate_counted: "{n}. {player} - {votes} رأی"
+  candidate_elected: "{n}. {player} - {votes} رأی 🏆"
+  candidate_you: "{line} (شما)"
+  you_stand: "📝 شما نامزد این انتخابات هستید."
+  you_voted: "🗳 رأی‌تان را داده‌اید. رأی شما مخفی است."
+  stand_how: "📝 برای نامزد شدن، ودیعهٔ {deposit} را بپردازید:"
+  vote_how: "🗳 نامزد دلخواهتان را انتخاب کنید. فقط یک بار می‌توانید رأی بدهید و رأی شما مخفی می‌ماند."
+  private: "🔒 نامزد شدن و رأی دادن در پی‌وی ربات انجام می‌شود."
+  cannot_stand:
+    not_resident: "📝 فقط ساکنان همین‌جا می‌توانند نامزد شوند."
+    too_new: "📝 هنوز آن‌قدر اینجا زندگی نکرده‌اید که بتوانید نامزد شوید."
+    level: "📝 برای نامزد شدن باید دست‌کم سطح {level} باشید."
+    record: "📝 به قربانیان یا شهر بدهی دارید؛ پیش از نامزد شدن آن را تسویه کنید."
+    jailed: "📝 در زندان نمی‌توانید نامزد شوید."
+  cannot_vote:
+    not_resident: "🗳 فقط ساکنان همین‌جا رأی می‌دهند."
+    too_new: "🗳 هنوز آن‌قدر اینجا زندگی نکرده‌اید که بتوانید رأی بدهید."
+  stood: "📝 نامزدی شما در {election} ثبت شد."
+  stood_deposit: "💰 ودیعهٔ {deposit} تا شمارش آرا امانت می‌ماند."
+  voted: "🗳 رأی شما در {election} به نام {player} ثبت شد."
+  secret: "🔒 هیچ‌کس نمی‌فهمد به چه کسی رأی داده‌اید."
+  button:
+    open: "🗳 شمارهٔ {no}"
+    vote: "🗳 رأی به {player}"
+    stand: "📝 نامزد می‌شوم"
+    back: "🗳 بازگشت به انتخابات"
+    results: "🗳 دیدن نتیجه"
+  refused:
+    none: چنین انتخاباتی پیدا نشد.
+    not_candidacy: "ثبت‌نام نامزدهای {election} الان باز نیست."
+    not_voting: "رأی‌گیری {election} الان باز نیست."
+    away: "📍 نامزدی را باید در شهرداریِ همان شهری ثبت کنید که انتخابات برای آن است."
+    no_candidate: این نامزد در فهرست نامزدها نیست.
+    not_resident: "در {election} فقط ساکنان همان‌جا شرکت می‌کنند."
+    too_new: "هنوز آن‌قدر اینجا زندگی نکرده‌اید که در {election} شرکت کنید."
+    level: "سطح شما برای نامزد شدن در {election} کافی نیست."
+    record: به قربانیان یا شهر بدهی دارید؛ پیش از نامزد شدن آن را تسویه کنید.
+    jailed: در زندان نمی‌توانید نامزد شوید.
+    standing: "شما همین حالا نامزد {election} هستید."
+    voted: "شما در {election} رأی داده‌اید و هر نفر فقط یک بار رأی می‌دهد."
+    incompatible: منصبی دارید که با این منصب قابل جمع نیست.
+  notice:
+    won: "🏆 تبریک! در {election} برگزیده شدید: {votes} رأی از {cast} رأی."
+    lost: "🗳 در {election} برگزیده نشدید: {votes} رأی از {cast} رأی به دست آوردید."
+    deposit_back: "💰 ودیعهٔ {deposit} به شما برگشت."
+    deposit_kept: "💰 آرای شما به حد لازم نرسید و ودیعهٔ {deposit} به خزانهٔ شهرتان رفت."

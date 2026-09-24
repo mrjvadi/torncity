@@ -24,7 +24,7 @@ Offices:
 Policies:
 • Border tariff: 0% - default
   ───
-  [📜 Policy history] → gov:history:ostmarch
+  [📜 Policy history] → gov:history:ostmarch   │   [🗳 Elections] → election:list
   [🏛 My office] → gov:office
   [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
 
@@ -150,7 +150,7 @@ Offices:
 Policies:
 • Border tariff: 0% - default
   ───
-  [📜 Policy history] → gov:history:ostmarch
+  [📜 Policy history] → gov:history:ostmarch   │   [🗳 Elections] → election:list
   [🏛 My office] → gov:office
   [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
 
@@ -168,7 +168,7 @@ Policies:
 (sends)
 🏛 My office
 
-You do not hold any office. For now, office holders are appointed by the game's administrators; elections will come later.
+You do not hold any office. Mayors, councillors and presidents are elected; the other offices are appointed.
   ───
   [🔙 Back] → gov:city   │   [🔄 Refresh] → gov:office
 

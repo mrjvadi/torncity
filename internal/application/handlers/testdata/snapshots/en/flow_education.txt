@@ -42,15 +42,16 @@ On completion:
 (edits message 42)
 🎓 This course is taught at the university quarter.
 📍 You are at the city centre now.
+One press walks you to the university quarter (20s) and opens this page again there.
   ───
-  [🚶 Walk to the university quarter - 20s] → place:go:university
-  [🗺 Map] → map:list
+  [🚶 Go to the university quarter (20s)] → place:go:university:education.view:first_aid
   [🔙 Back] → player:profile.get
 
 ━━━ Walk to the training centre ━━━
 (edits message 42)
 🚶 You set off for the university quarter - a 20s walk.
 🕒 Arriving at 12:00
+📲 What you asked for opens as soon as you arrive.
   ───
   [🗺 Map] → map:list
   [🔙 Back] → player:profile.get
@@ -94,7 +95,7 @@ Page 1 of 2
 ━━━ Profile while studying ━━━
 (edits message 42)
 👤 Sara
-📍 Ostmarch
+📍 university quarter - Ostmarch
 
 ⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 100 of 100
@@ -144,6 +145,15 @@ Requirements:
   ───
   [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:nursing
 
+━━━ Enrol in a course taught elsewhere ━━━
+(edits message 42)
+You cannot enrol in this course yet:
+❌ This course is taught in Fenwick Span.
+❌ Certificate: First Aid
+  ───
+  [🎓 Education] → education:list
+  [🔙 Back] → player:profile.get
+
 ━━━ Course finished (scheduler) ━━━
 (sends)
 🎓 You have completed First Aid.
@@ -176,7 +186,7 @@ Courses you can take here:
 ━━━ Profile after the course ━━━
 (edits message 42)
 👤 Sara
-📍 Ostmarch
+📍 university quarter - Ostmarch
 
 ⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 100 of 100

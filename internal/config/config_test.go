@@ -250,6 +250,7 @@ telegram:
   default_flood_wait: 6s
 groups:
   callback_alert_max_runes: 150
+  deep_link_ttl: 25m
 menu:
   commands: [profile, map]
 dedup:
@@ -366,6 +367,7 @@ var envOverrides = map[string]string{
 	"TORN_TELEGRAM_DEFAULT_FLOOD_WAIT": "7s",
 
 	"TORN_GROUPS_CALLBACK_ALERT_MAX_RUNES": "160",
+	"TORN_GROUPS_DEEP_LINK_TTL":            "20m",
 	"TORN_MENU_COMMANDS":                   "profile, skills",
 
 	"TORN_DEDUP_TTL": "26h",

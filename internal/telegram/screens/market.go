@@ -41,6 +41,8 @@ type MarketView struct {
 	// Yours are goods the player carries with no book yet here.
 	Yours    []Named
 	AtMarket bool
+	// Way is the walk to the market when the player is elsewhere.
+	Way *Way
 }
 
 // priceOrDash is a price, or the catalogue's "none yet".
@@ -79,6 +81,7 @@ func Market(c Context, v MarketView) *presenter.Response {
 	var where string
 	if !v.AtMarket {
 		where = c.T("market.away", nil)
+		c.wayButton(kb, v.Way, "market.list")
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap, RefreshData: AddrMarket}))
 	return c.respond(paragraphs(c.T("market.title", map[string]any{"city": c.CityName(v.CityCode, v.City)}),
@@ -107,6 +110,8 @@ type BookView struct {
 	Reference int64
 	Holding   int64
 	AtMarket  bool
+	// Way is the walk to the market when the player is elsewhere.
+	Way *Way
 	// Nonce binds the sell buttons: one press is one order.
 	Nonce string
 }
@@ -188,6 +193,7 @@ func Book(c Context, v BookView) *presenter.Response {
 	}
 	if !v.AtMarket {
 		footer = append(footer, c.T("market.away", nil))
+		c.wayButton(kb, v.Way, "market.book", item)
 	}
 	footer = append(footer, c.T("market.fee_note", nil))
 	mine, _ := keyboards.Button(c.T("market.button.mine", nil), AddrMarketMine)

@@ -101,3 +101,27 @@ To cancel, send "cancel".
 
 ━━━ announcement · a payment in the group ━━━
 💸 Sara paid Kaveh.
+
+━━━ announcement · an election opened ━━━
+🗳 The Ostmarch mayoral election has opened. Candidates may stand at city hall for 2d. Send "election 4" to see it.
+
+━━━ announcement · a candidate stood ━━━
+📝 Kaveh is standing in the Ostmarch mayoral election.
+
+━━━ announcement · the vote opened ━━━
+🗳 Voting in the Ostmarch mayoral election has opened: 3 candidates. Every resident votes once, in secret, within 2d.
+
+━━━ announcement · the vote opened, nobody stood ━━━
+🗳 The Ostmarch mayoral election closed its candidacy with nobody standing.
+
+━━━ announcement · elected ━━━
+🏆 Ostmarch mayoral election result: Kaveh (B3C4D5F) elected, 23 votes cast.
+
+━━━ announcement · a council elected ━━━
+🏆 Ostmarch city council election result: Kaveh (B3C4D5F), Nilou (N1L0F4R) elected, 41 votes cast.
+
+━━━ announcement · nobody won a vote ━━━
+🗳 The Ostmarch city council election filled no seat: no candidate won a vote, and the office stays vacant until the next election.
+
+━━━ announcement · nobody stood ━━━
+🗳 The Ostmarch mayoral election filled no seat: nobody stood, and the office stays vacant until the next election.

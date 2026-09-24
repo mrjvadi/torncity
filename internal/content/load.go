@@ -81,6 +81,8 @@ type file struct {
 	Archetypes          []ArchetypeDef `yaml:"archetypes"`
 	Items               []ItemDef      `yaml:"items"`
 	Shops               []ShopDef      `yaml:"shops"`
+
+	Elections []ElectionDef `yaml:"elections"`
 }
 
 // Load reads every content file in dir and returns them as one pack.
@@ -170,6 +172,7 @@ func Load(dir string) (*Pack, error) {
 		pack.Archetypes = append(pack.Archetypes, doc.Archetypes...)
 		pack.Items = append(pack.Items, doc.Items...)
 		pack.Shops = append(pack.Shops, doc.Shops...)
+		pack.Elections = append(pack.Elections, doc.Elections...)
 	}
 
 	pack.Checksum = hex.EncodeToString(digest.Sum(nil))

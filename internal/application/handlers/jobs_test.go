@@ -411,6 +411,23 @@ func newWorkHarness(t *testing.T) *workHarness {
 	return h
 }
 
+// work starts a shift where it is worked: the player is put at their
+// job's workplace first (a walk there is tested on its own, in
+// places_then_test.go).
+func (h *workHarness) work(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+	if emp, ok := h.uow.w.jobs.current[h.player.ID]; ok {
+		snap := h.jobs.content.Current()
+		city, err := h.jobs.cities.ByID(ctx, emp.CityID)
+		def, known := snap.CareerDef(emp.CareerCode)
+		if err == nil && known {
+			if wp, ok := snap.CityMap(city.Code).ForWork(def.Category); ok {
+				h.uow.tx.places.at[h.player.ID] = wp.Code
+			}
+		}
+	}
+	return h.jobs.Work(ctx, meta)
+}
+
 func (h *workHarness) meta(requestID, command string) envelope.Metadata {
 	m := meta("bot-1", workTelegramID, requestID)
 	m.Command = command
@@ -487,7 +504,7 @@ func TestApplyThenWorkPaysWageAndWithholdsTax(t *testing.T) {
 		t.Fatalf("employment = %+v, want retail entry at 120 in tehran", emp)
 	}
 
-	resp, err = h.jobs.Work(ctx, h.meta("req-work-1", "job.work"))
+	resp, err = h.work(ctx, h.meta("req-work-1", "job.work"))
 	if err != nil {
 		t.Fatalf("Work: %v", err)
 	}
@@ -586,12 +603,12 @@ func TestASecondShiftWhileWorkingIsRefused(t *testing.T) {
 	if _, err := h.jobs.Apply(ctx, h.meta("req-apply", "job.apply"), JobRequest{Role: "retail"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := h.jobs.Work(ctx, h.meta("req-work-1", "job.work")); err != nil {
+	if _, err := h.work(ctx, h.meta("req-work-1", "job.work")); err != nil {
 		t.Fatal(err)
 	}
 	energy := h.uow.tx.stats.rows[h.player.ID].Energy
 	for i, req := range []string{"req-work-2", "req-work-3"} {
-		resp, err := h.jobs.Work(ctx, h.meta(req, "job.work"))
+		resp, err := h.work(ctx, h.meta(req, "job.work"))
 		if err != nil || !strings.Contains(resp.Text, "at work") {
 			t.Fatalf("Work #%d while working = %q, %v; want the at-work refusal", i+2, workText(resp), err)
 		}
@@ -628,7 +645,7 @@ func TestWorkIsIdempotent(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i := 0; i < 2; i++ {
-		if _, err := h.jobs.Work(ctx, h.meta("req-work", "job.work")); err != nil {
+		if _, err := h.work(ctx, h.meta("req-work", "job.work")); err != nil {
 			t.Fatalf("Work #%d: %v", i+1, err)
 		}
 	}
@@ -664,7 +681,7 @@ func TestAShiftIsNotPaidEarly(t *testing.T) {
 	if _, err := h.jobs.Apply(ctx, h.meta("req-apply", "job.apply"), JobRequest{Role: "retail"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := h.jobs.Work(ctx, h.meta("req-work", "job.work")); err != nil {
+	if _, err := h.work(ctx, h.meta("req-work", "job.work")); err != nil {
 		t.Fatal(err)
 	}
 	session := h.uow.w.jobs.working[h.player.ID]
@@ -692,7 +709,7 @@ func TestTravelWhileWorkingIsRefused(t *testing.T) {
 	if _, err := h.jobs.Apply(ctx, h.meta("req-apply", "job.apply"), JobRequest{Role: "retail"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := h.jobs.Work(ctx, h.meta("req-work", "job.work")); err != nil {
+	if _, err := h.work(ctx, h.meta("req-work", "job.work")); err != nil {
 		t.Fatal(err)
 	}
 	if err := refuseAtWork(ctx, workTx{fakeTx: h.uow.tx, w: h.uow.w}, h.player.ID); !isSentinel(err, application.ErrShiftInProgress) {
@@ -715,7 +732,7 @@ func TestMinimumWageRaisesPay(t *testing.T) {
 	}
 	h.policy.values[leverMinimumWage] = 200
 	h.policy.values[leverIncomeTax] = 0
-	if _, err := h.jobs.Work(ctx, h.meta("req-work", "job.work")); err != nil {
+	if _, err := h.work(ctx, h.meta("req-work", "job.work")); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := h.finishShift(t, "dispatch-1"); err != nil {
@@ -783,7 +800,7 @@ func TestWorkWithoutEnergyChangesNothing(t *testing.T) {
 	row.Energy = 5
 	h.uow.tx.stats.rows[h.player.ID] = row
 
-	_, err := h.jobs.Work(ctx, h.meta("req-work", "job.work"))
+	_, err := h.work(ctx, h.meta("req-work", "job.work"))
 	if !stderrors.Is(err, player.ErrNotEnoughEnergy) {
 		t.Fatalf("Work = %v, want ErrNotEnoughEnergy", err)
 	}
@@ -802,7 +819,7 @@ func TestWorkAwayFromTheJobIsRefused(t *testing.T) {
 	}
 	elsewhere := berlinID
 	h.player.CityID = &elsewhere
-	resp, err := h.jobs.Work(ctx, h.meta("req-work", "job.work"))
+	resp, err := h.work(ctx, h.meta("req-work", "job.work"))
 	if err != nil || !strings.Contains(resp.Text, "Tehran") {
 		t.Fatalf("Work away = %q, %v; want the job's city named", workText(resp), err)
 	}

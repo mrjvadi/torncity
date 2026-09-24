@@ -320,17 +320,54 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 	return screens.Education(h.screen(meta, lang), view), nil
 }
 
-// course finds a course on offer to this player here, or refuses.
-func (h *EducationHandler) course(snap *content.Snapshot, code string, s standing, here string) (content.CourseDef, education.Course, error) {
-	def, ok := snap.CourseDef(code)
-	if !ok || !visible(def, s, here) {
-		return content.CourseDef{}, education.Course{}, refuse(screens.RefusalCourseNotFound, nil)
+// course finds a course on offer to this player here, or refuses. A course
+// that exists but is not open to them here is refused with what stands in
+// the way — the city it is taught in, a certificate already held, one still
+// missing — never as "not offered".
+func (h *EducationHandler) course(ctx context.Context, snap *content.Snapshot, code string, s standing, here string,
+) (content.CourseDef, education.Course, error) {
+	def, course, err := h.viewable(snap, code)
+	if err != nil {
+		return def, course, err
 	}
-	course, ok := snap.Course(code)
-	if !ok {
-		return content.CourseDef{}, education.Course{}, refuse(screens.RefusalCourseNotFound, nil)
+	if visible(def, s, here) {
+		return def, course, nil
 	}
-	return def, course, nil
+	var missing []screens.Requirement
+	if req, ok, err := h.taughtElsewhere(ctx, def, s, here); err != nil {
+		return def, course, err
+	} else if ok {
+		missing = append(missing, req)
+	}
+	if def.Certifies && s.holds(def.Code) {
+		missing = append(missing, screens.Requirement{Kind: screens.ReqAlreadyCertified})
+	}
+	for _, pre := range def.Prerequisites {
+		if !s.holds(pre) {
+			ref := courseRef(snap, pre)
+			missing = append(missing, screens.Requirement{Kind: screens.ReqCertificate, CourseCode: ref.Code, CourseName: ref.Name})
+		}
+	}
+	return def, course, refuse(screens.RefusalCourseRequirements, missing)
+}
+
+// taughtElsewhere is the requirement of a course taught in another city than
+// the one the player stands in (or taught in one while they travel), naming
+// that city.
+func (h *EducationHandler) taughtElsewhere(ctx context.Context, def content.CourseDef, s standing, here string,
+) (screens.Requirement, bool, error) {
+	if def.City == "" || (def.City == here && !s.travelling) {
+		return screens.Requirement{}, false, nil
+	}
+	req := screens.Requirement{Kind: screens.ReqCourseCity, CityCode: def.City}
+	city, err := h.cities.ByCode(ctx, def.City)
+	switch {
+	case err == nil:
+		req.City = city.Name
+	case !isSentinel(err, application.ErrCityNotFound):
+		return req, false, err
+	}
+	return req, true, nil
 }
 
 // viewable finds a course to show, wherever it is taught.
@@ -402,14 +439,9 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 		for _, r := range course.SkillRewards {
 			view.Skills = append(view.Skills, screens.SkillGain{Skill: string(r.Skill), XP: r.XP})
 		}
-		elsewhere := def.City != "" && (def.City != here || s.travelling)
-		if elsewhere {
-			req := screens.Requirement{Kind: screens.ReqCourseCity, CityCode: def.City}
-			if city, err := h.cities.ByCode(ctx, def.City); err == nil {
-				req.City = city.Name
-			} else if !isSentinel(err, application.ErrCityNotFound) {
-				return err
-			}
+		if req, ok, err := h.taughtElsewhere(ctx, def, s, here); err != nil {
+			return err
+		} else if ok {
 			view.Requirements = append(view.Requirements, req)
 		}
 		if def.Certifies && s.holds(def.Code) {
@@ -497,7 +529,7 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
-		def, course, err := h.course(snap, req.Course, s, here)
+		def, course, err := h.course(ctx, snap, req.Course, s, here)
 		if err != nil {
 			return err
 		}
@@ -521,7 +553,7 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		if err := needService(w, snap, place.Service(course.Institution), h.scale, now); err != nil {
-			return err
+			return thenFor(err, "education.view", course.Code)
 		}
 		enrolment, fee, err := education.Enroll(course, s.applicant(here, current), seats, now, h.scale)
 		if err != nil {

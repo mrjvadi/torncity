@@ -4,7 +4,7 @@
 This is your home: your condition, your money and your work at a glance. Use the buttons below to go anywhere.
 
 👤 Sara
-📍 Ostmarch
+📍 city centre - Ostmarch
 
 ⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 100 of 100
@@ -47,7 +47,7 @@ You have no skills yet. You gain them by working and by taking courses, and they
 This is your home: your condition, your money and your work at a glance. Use the buttons below to go anywhere.
 
 👤 Sara
-📍 Ostmarch
+📍 city centre - Ostmarch
 
 ⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 100 of 100

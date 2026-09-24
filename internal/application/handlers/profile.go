@@ -311,9 +311,47 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 		} else {
 			view.CityCode = city.Code
 			view.City = city.Name
+			if err := h.place(ctx, tx, p, city, &view); err != nil {
+				return view, err
+			}
 		}
 	}
 	return view, nil
+}
+
+// place fills in where in their city the player stands, or the walk they are
+// on. A city without places, or a profile served without content, says only
+// the city.
+func (h *ProfileHandler) place(ctx context.Context, tx application.Tx, p *application.Player, city *application.City,
+	view *screens.ProfileView,
+) error {
+	if h.content == nil || view.Travelling {
+		return nil
+	}
+	snap := h.content.Current()
+	cmap := snap.CityMap(city.Code)
+	if len(cmap.Places) == 0 {
+		return nil
+	}
+	walk, err := tx.Places().ActiveMove(ctx, p.ID)
+	switch {
+	case err == nil:
+		now := h.now()
+		view.Walk = &screens.WalkView{
+			To: placeNamed(snap, walk.To), Remaining: walk.ArrivesAt.Sub(now), ArrivesAt: walk.ArrivesAt,
+		}
+		return nil
+	case !isSentinel(err, application.ErrNotMoving):
+		return err
+	}
+	code, err := tx.Places().Where(ctx, p.ID)
+	if err != nil {
+		return err
+	}
+	if here, ok := cmap.Current(code); ok {
+		view.Place = placeNamed(snap, here.Code)
+	}
+	return nil
 }
 
 // jail reads the sentence the player is serving, or nil when they are free.

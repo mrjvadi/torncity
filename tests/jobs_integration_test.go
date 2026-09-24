@@ -173,6 +173,9 @@ func TestWorkAndStudyEndToEnd(t *testing.T) {
 	if n := countRows(t, pool, `SELECT count(*) FROM employments WHERE player_id = $1::uuid AND ended_at IS NULL`, p.ID); n != 1 {
 		t.Fatalf("current jobs = %d, want 1", n)
 	}
+	// A shift is worked at the workplace (places.yml work_categories); the
+	// walk there from elsewhere is places_integration_test.go's.
+	standAtWorkplace(t, pool, registry, p.ID, "ostmarch", "retail")
 
 	// Three presses of "work" at once, then a fourth: exactly one shift
 	// starts and its energy is charged once. The job row's lock serialises

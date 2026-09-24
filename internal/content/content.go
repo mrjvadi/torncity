@@ -215,6 +215,10 @@ type Pack struct {
 	Items               []ItemDef
 	Shops               []ShopDef
 
+	// Elections (governance.yml elections): how each elected office is
+	// elected. See election.go.
+	Elections []ElectionDef
+
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"
 	// It is empty for a pack that was assembled in code rather than read from

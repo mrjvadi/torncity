@@ -20,7 +20,7 @@ Offices:
 Policies:
 • Border tariff: 0% - default
   ───
-  [📜 Policy history] → gov:history:ostmarch
+  [📜 Policy history] → gov:history:ostmarch   │   [🗳 Elections] → election:list
   [🏛 My office] → gov:office
   [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
 
@@ -32,7 +32,7 @@ Policies:
 Offices:
 • Mayor: vacant - acting: Deputy mayor Kaveh (B3C4D5F)
   ───
-  [📜 Policy history] → gov:history:ostmarch
+  [📜 Policy history] → gov:history:ostmarch   │   [🗳 Elections] → election:list
   [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
 
 ━━━ City hall · not in any city ━━━
@@ -67,7 +67,7 @@ This office has no policy you can change right now.
 (edits message 42)
 🏛 My office
 
-You do not hold any office. For now, office holders are appointed by the game's administrators; elections will come later.
+You do not hold any office. Mayors, councillors and presidents are elected; the other offices are appointed.
   ───
   [🔙 Back] → gov:city   │   [🔄 Refresh] → gov:office
 

@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 	"unicode/utf8"
 
+	"github.com/mrjvadi/torncity/internal/gateway/input"
 	"github.com/mrjvadi/torncity/internal/gateway/telegram/client"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -31,7 +33,10 @@ const (
 	KeySentPrivately = "group.sent_privately"
 	KeyStartBotFirst = "group.start_bot_first"
 	KeyOpenBot       = "group.open_bot"
-	KeyWelcome       = "group.welcome"
+	// KeyContinuePrivate labels the one button that, in a group, stands in
+	// for a screen's private-chat buttons.
+	KeyContinuePrivate = "group.continue_private"
+	KeyWelcome         = "group.welcome"
 	// KeyMakeAdmin is added to the welcome when the bot, in privacy mode,
 	// joins a group without admin rights: plain-word commands need it.
 	KeyMakeAdmin = "group.make_admin"
@@ -43,9 +48,15 @@ type Settings struct {
 	// CallbackAlertMaxRunes bounds a callback popup's text; Telegram
 	// accepts 0-200 characters.
 	CallbackAlertMaxRunes int
-	// Policy is configs/commands.yml: which replies are private. Nil keeps
-	// the bank's and the settings' replies private and every other public.
+	// Policy is configs/commands.yml: which replies are private, and which
+	// buttons a group may not be shown. Nil keeps the bank's and the
+	// settings' replies private and every other public.
 	Policy *Policy
+	// Links keeps, for LinkTTL, a deep link too long for Telegram's start
+	// parameter (LinkPayload). Nil sends such a link without its
+	// arguments.
+	Links   LinkStore
+	LinkTTL time.Duration
 }
 
 // Bot is the bot a response goes out through.
@@ -154,13 +165,15 @@ func (r *Renderer) Render(ctx context.Context, api API, bot Bot, meta envelope.M
 	if r.set.Policy.IsPrivate(meta.Command, resp) {
 		return r.direct(ctx, api, bot, meta, resp)
 	}
-	return r.public(ctx, api, meta, resp)
+	return r.public(ctx, api, bot, meta, resp)
 }
 
-// public posts or edits a screen everybody in the group may see.
-func (r *Renderer) public(ctx context.Context, api API, meta envelope.Metadata, resp *presenter.Response) (Outcome, error) {
+// public posts or edits a screen everybody in the group may see. Its
+// buttons are the group's (ForGroup), bound to the player who asked.
+func (r *Renderer) public(ctx context.Context, api API, bot Bot, meta envelope.Metadata, resp *presenter.Response) (Outcome, error) {
 	out := Outcome{Route: RoutePublic}
-	markup := Markup(BindKeyboard(resp.Keyboard, meta.TelegramUserID))
+	kb := r.ForGroup(resp.Keyboard, meta.Language, DeepLink(bot.Username, ""))
+	markup := Markup(BindKeyboard(kb, meta.TelegramUserID))
 
 	if resp.Type == presenter.ActionEditMessage {
 		messageID := resp.MessageID
@@ -193,14 +206,20 @@ func (r *Renderer) direct(ctx context.Context, api API, bot Bot, meta envelope.M
 		return out, err
 	}
 
-	link := DeepLink(bot.Username, StartPayload(meta.Command))
+	// Delivered: the link only opens the private chat, where the screen
+	// already waits; replaying the command there would stack a second copy
+	// of it under the first.
+	link := DeepLink(bot.Username, "")
 	key := KeySentPrivately
 	out.Route = RouteDirect
 	if err != nil {
 		// Never started the bot, or blocked it: nothing can be sent there
-		// until the player opens it.
+		// until the player opens it. The link replays the command with
+		// what the screen was about (Response.Resume) — the payee of a
+		// payment — so the private chat opens on that very screen.
 		key = KeyStartBotFirst
 		out.Route = RouteDeepLink
+		link = DeepLink(bot.Username, LinkPayload(ctx, r.set.Links, r.set.LinkTTL, meta.Command, resp.Resume...))
 	}
 
 	if meta.CallbackQueryID != nil {
@@ -235,6 +254,80 @@ func (r *Renderer) direct(ctx context.Context, api API, bot Bot, meta envelope.M
 		out.note("group notice failed: " + lerr.Error())
 	}
 	return out, nil
+}
+
+// ForGroup returns the keyboard a group may be shown: every button whose
+// command runs only in the private chat (configs/commands.yml) is taken off —
+// the bank, the bag, the job, the settings have no place on a group's
+// timeline, and pressing one there would only be refused — and when any was,
+// one «🔒 ادامه در پی‌وی» button that opens the private chat (link) stands
+// in for them all. A row left empty goes. The keyboard is not changed in
+// place.
+func (r *Renderer) ForGroup(kb *presenter.Keyboard, lang, link string) *presenter.Keyboard {
+	if kb == nil {
+		return nil
+	}
+	out := &presenter.Keyboard{Rows: make([][]presenter.Button, 0, len(kb.Rows)+1)}
+	dropped := false
+	for _, row := range kb.Rows {
+		next := make([]presenter.Button, 0, len(row))
+		for _, b := range row {
+			if b.CallbackData != "" && r.set.Policy.Channel(CallbackCommand(b.CallbackData)) == ChannelPrivate {
+				dropped = true
+				continue
+			}
+			next = append(next, b)
+		}
+		if len(next) > 0 {
+			out.Rows = append(out.Rows, next)
+		}
+	}
+	if dropped && link != "" {
+		pv := []presenter.Button{{Text: r.t(lang, KeyContinuePrivate), URL: link}}
+		if n := len(out.Rows); n > 0 && isNavRow(out.Rows[n-1]) {
+			// Above the way back, which stays the last row.
+			out.Rows = append(out.Rows[:n-1], pv, out.Rows[n-1])
+		} else {
+			out.Rows = append(out.Rows, pv)
+		}
+	}
+	if len(out.Rows) == 0 {
+		return nil
+	}
+	return out
+}
+
+// isNavRow reports whether a row is a screen's navigation: the way back
+// home, or to the screen before.
+func isNavRow(row []presenter.Button) bool {
+	for _, b := range row {
+		if CallbackCommand(b.CallbackData) == homeCommand {
+			return true
+		}
+	}
+	return false
+}
+
+// homeCommand is the home screen, where every navigation block's way back
+// leads by default.
+const homeCommand = "player.profile.get"
+
+// CallbackCommand is the command a button's callback data runs:
+// "bank:show" is bank.show, "ask:bank.pay:K7Q2M9A" (a button that asks for
+// a typed value, internal/gateway/input) is bank.pay. A button bound to its
+// owner is read past the owner's tag. Empty when the data names none.
+func CallbackCommand(data string) string {
+	if _, rest, bound := SplitOwner(data); bound {
+		data = rest
+	}
+	parts := strings.Split(data, ":")
+	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
+		return ""
+	}
+	if parts[0] == input.AskPrefix {
+		return parts[1]
+	}
+	return parts[0] + "." + parts[1]
 }
 
 // isNotModified reports Telegram's refusal to edit a message into exactly the

@@ -210,6 +210,7 @@ func (h *AuctionsHandler) List(ctx context.Context, meta envelope.Metadata) (*pr
 			return err
 		}
 		view.CityCode, view.City, view.AtHouse = w.city.Code, w.city.Name, h.atHouse(w)
+		view.Way = wayTo(w, snap, place.ServiceAuctionHouse, h.scale)
 		list, err := tx.Auctions().List(ctx, w.city.ID, 15)
 		if err != nil {
 			return err
@@ -356,7 +357,7 @@ func (h *AuctionsHandler) New(ctx context.Context, meta envelope.Metadata, req A
 			return nil
 		}
 		if err := needService(w, snap, place.ServiceAuctionHouse, h.scale, now); err != nil {
-			return err
+			return thenFor(err, "auction.list")
 		}
 		if durationAt < 0 || durationAt >= len(h.rules.Durations) {
 			return errors.InvalidInput("auction length is not one on offer")
@@ -466,7 +467,7 @@ func (h *AuctionsHandler) Bid(ctx context.Context, meta envelope.Metadata, req A
 			return refuseAuction(screens.AuctionRefusedNone, a.No)
 		}
 		if err := needService(w, snap, place.ServiceAuctionHouse, h.scale, now); err != nil {
-			return err
+			return thenFor(err, "auction.view", strconv.FormatInt(a.No, 10))
 		}
 		if a.Status != application.AuctionOpen {
 			return refuseAuction(screens.AuctionRefusedClosed, a.No)

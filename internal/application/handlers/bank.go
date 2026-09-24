@@ -448,6 +448,14 @@ func (h *BankHandler) payScreen(ctx context.Context, meta envelope.Metadata, req
 ) (*presenter.Response, error) {
 	var view screens.PayView
 	lang := meta.Language
+	// An amount named without a method («پرداخت ۵۰۰۰» as a reply) is
+	// offered first, each way it can be paid.
+	var asked money.Amount
+	if req.Amount != "" {
+		if a, err := h.parseAmount(req.Amount); err == nil {
+			asked = a
+		}
+	}
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -482,6 +490,7 @@ func (h *BankHandler) payScreen(ctx context.Context, meta envelope.Metadata, req
 			}
 			view.Together, view.CityCode, view.City = true, city.Code, city.Name
 			view.CashOptions, view.CanCash = h.options(cash.Balance)
+			view.CashOptions = h.withAsked(view.CashOptions, asked, cash.Balance)
 		}
 
 		feeBPS, city, err := h.cardFee(ctx, here[0])
@@ -494,6 +503,7 @@ func (h *BankHandler) payScreen(ctx context.Context, meta envelope.Metadata, req
 			return errors.Internal(err)
 		}
 		view.CardOptions, view.CanCard = h.options(maxCard)
+		view.CardOptions = h.withAsked(view.CardOptions, asked, maxCard)
 		view.Origin = req.Origin
 		return nil
 	})
@@ -505,7 +515,27 @@ func (h *BankHandler) payScreen(ctx context.Context, meta envelope.Metadata, req
 	if refusal != nil {
 		view.Notice = refusal(c, view.PayeeName)
 	}
-	return screens.Pay(c, view), nil
+	resp := screens.Pay(c, view)
+	resp.Resume = payResume(view.PayeeCode, asked.Minor(), "")
+	return resp, nil
+}
+
+// withAsked puts the amount the player named at the head of one method's
+// quick amounts, when that method can pay it: moved there when it is one of
+// them already.
+func (h *BankHandler) withAsked(opts []screens.AmountOption, asked, available money.Amount) []screens.AmountOption {
+	if asked.Minor() <= 0 || asked.Minor() > available.Minor() {
+		return opts
+	}
+	out := []screens.AmountOption{{Amount: asked.Minor(), Nonce: h.nonce()}}
+	for _, o := range opts {
+		if o.Amount == asked.Minor() && !o.All {
+			out[0] = o
+			continue
+		}
+		out = append(out, o)
+	}
+	return out
 }
 
 // confirm renders the last look before a payment: the amount, the fee and
@@ -594,7 +624,27 @@ func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req P
 			return screens.PayShortfall(c, short)
 		})
 	}
-	return screens.PayConfirm(h.screen(meta, lang), view), nil
+	resp := screens.PayConfirm(h.screen(meta, lang), view)
+	resp.Resume = payResume(view.PayeeCode, view.Amount, string(method))
+	return resp, nil
+}
+
+// payResume is what reopens a payment screen from a deep link
+// (presenter.Response.Resume): the payee's public code, and the amount and
+// the method when the player named them — bank.pay's own positional
+// arguments, so the private chat opens on «💸 پرداخت به …».
+func payResume(code string, amount int64, method string) []string {
+	if code == "" {
+		return nil
+	}
+	out := []string{code}
+	if amount > 0 {
+		out = append(out, strconv.FormatInt(amount, 10))
+		if method != "" {
+			out = append(out, method)
+		}
+	}
+	return out
 }
 
 // cleanOrigin keeps an origin only when it names a group: a Telegram group

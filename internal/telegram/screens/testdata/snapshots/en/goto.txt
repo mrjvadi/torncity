@@ -1,0 +1,251 @@
+━━━ Profile · standing at a place ━━━
+(edits message 42)
+👤 Sara
+📍 bazaar - Ostmarch
+
+⭐ Level 3 - 160 XP to level 4
+⚡ Energy: 85 of 100 - full in 45m
+❤️ Health: 100 of 100
+
+💼 Sales Trainee in Ostmarch - 120 Nil per shift
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 12,000 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Profile · walking to a place ━━━
+(edits message 42)
+👤 Sara
+📍 Ostmarch
+🚶 On the way to the business district - 12s left - arriving at 14:35
+
+⭐ Level 3 - 160 XP to level 4
+⚡ Energy: 85 of 100 - full in 45m
+❤️ Health: 100 of 100
+
+💼 Sales Trainee in Ostmarch - 120 Nil per shift
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 12,000 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Profile · in a group, as the group sees it ━━━
+(edits message 42)
+👤 Sara
+📍 bazaar - Ostmarch
+
+⭐ Level 3 - 160 XP to level 4
+⚡ Energy: 85 of 100 - full in 45m
+❤️ Health: 100 of 100
+
+💼 Sales Trainee in Ostmarch - 120 Nil per shift
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list
+  [🏛 Offices and policies] → gov:city
+  [🕶 Underworld] → crime:hub
+  [🔒 Continue in private chat] → https://t.me/torn_bot
+  [🔄 Refresh] → player:profile.get
+
+━━━ Dashboard · standing at a place ━━━
+(edits message 42)
+👤 Sara
+📍 bazaar - Ostmarch
+
+⭐ Level 3
+⚡ Energy: 85 of 100
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 12,000 Nil
+  ───
+  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ Dashboard · walking ━━━
+(edits message 42)
+👤 Sara
+📍 Ostmarch
+🚶 On the way to the university quarter - 20s left - arriving at 14:35
+
+⭐ Level 3
+⚡ Energy: 85 of 100
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 12,000 Nil
+  ───
+  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ My job · away from the workplace ━━━
+(edits message 42)
+💼 My job
+
+💼 Sales Trainee - Retail
+📍 Workplace: Ostmarch
+💰 Pay per shift: 120 Nil
+⚡ Energy per shift: 15 - you have 85 of 100
+📈 Performance: 50 of 100
+🔁 Shifts in this position: 0
+⏱ Each shift takes 4m
+💵 Earned in this job: 0 Nil
+
+📍 You work at the business district - a 15s walk from where you are.
+
+⬆️ Next position: Sales Associate
+Still needed for a promotion:
+  ───
+  [🛠 Start a shift (15s walk to work + 4m of work)] → job:work
+  [🚪 Leave job] → job:quit
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
+
+━━━ My job · at the workplace ━━━
+(edits message 42)
+💼 My job
+
+💼 Sales Trainee - Retail
+📍 Workplace: Ostmarch
+💰 Pay per shift: 120 Nil
+⚡ Energy per shift: 15 - you have 85 of 100
+📈 Performance: 50 of 100
+🔁 Shifts in this position: 0
+⏱ Each shift takes 4m
+💵 Earned in this job: 0 Nil
+
+📍 You are at your workplace, the business district.
+
+⬆️ Next position: Sales Associate
+Still needed for a promotion:
+  ───
+  [🛠 Start a shift (4m of work)] → job:work
+  [🚪 Leave job] → job:quit
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
+
+━━━ Walk · to work, the shift starts on arrival ━━━
+(edits message 42)
+🚶 You set off for the business district - a 15s walk.
+🕒 Arriving at 14:35
+🛠 Your shift starts as soon as you arrive.
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Walk · to a page that opens on arrival ━━━
+(edits message 42)
+🚶 You set off for the university quarter - a 20s walk.
+🕒 Arriving at 14:35
+📲 What you asked for opens as soon as you arrive.
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Not here · a course, walk and come back to it ━━━
+(edits message 42)
+🎓 This course is taught at the university quarter.
+📍 You are at the city centre now.
+One press walks you to the university quarter (20s) and opens this page again there.
+  ───
+  [🚶 Go to the university quarter (20s)] → place:go:university:education.view:first_aid
+  [🔙 Back] → player:profile.get
+
+━━━ Not here · a shop, walk and come back to it ━━━
+(edits message 42)
+🛒 Hardware store is at the bazaar.
+📍 You are at the city centre now.
+One press walks you to the bazaar (15s) and opens this page again there.
+  ───
+  [🚶 Go to the bazaar (15s)] → place:go:bazaar:shop.view:hardware_store
+  [🔙 Back] → player:profile.get
+
+━━━ Not here · a departure, walk and choose again ━━━
+(edits message 42)
+🚉 Departures by Train are from the train station.
+📍 You are at the city centre now.
+One press walks you to the train station (20s) and opens this page again there.
+  ───
+  [🚶 Go to the train station (20s)] → place:go:train_station:travel.options:brennhaven
+  [🔙 Back] → player:profile.get
+
+━━━ Shop · away from the counter ━━━
+(edits message 42)
+🛒 Hardware store - at the bazaar
+
+• Lockpick set - 450 Nil - 4 in stock
+
+📍 The shop is at the bazaar. Walk there to buy.
+  ───
+  [🚶 Go to the bazaar (15s)] → place:go:bazaar:shop.view:hardware_store
+  [🔙 Back] → shop:list   │   [🔄 Refresh] → shop:view:hardware_store
+
+━━━ Market · away from the market ━━━
+(edits message 42)
+🏪 Market of Ostmarch
+
+• Bread - buyers offer: 18 Nil - sellers ask: 22 Nil
+
+📍 Trading is done at the market. Walk there to buy or sell.
+  ───
+  [🏪 Bread] → market:book:bread
+  [📋 My orders] → market:mine   │   [🔨 Auction house] → auction:list
+  [🚶 Go to the bazaar (15s)] → place:go:bazaar:market.list
+  [🔙 Back] → map:list   │   [🔄 Refresh] → market:list
+
+━━━ Auctions · away from the auction house ━━━
+(edits message 42)
+🔨 Auction house of Ostmarch
+
+Nothing is up for auction here right now.
+
+📍 Bidding is done at the auction house. Walk there to bid.
+  ───
+  [📋 My auctions] → auction:mine   │   [🎒 Bag] → inventory:show
+  [🚶 Go to the business district (15s)] → place:go:business_district:auction.list
+  [🔙 Back] → market:list   │   [🔄 Refresh] → auction:list
+
+━━━ Crime result · as the group sees it ━━━
+(edits message 42)
+🕶 Pickpocketing at the train station: Sara pulled it off and slipped away.
+
+What was taken has been sent to them privately.
+⭐ +5 XP
+🎖 +8 criminal XP
+🚨 The police are not looking for you.
+  ───
+  [🔁 Again] → crime:view:pickpocketing
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Crime hub · as the group sees it ━━━
+(edits message 42)
+🕶 The underworld
+
+📍 bazaar, Ostmarch
+🔥 Nerve: 8 of 10
+🚨 The police are not looking for you.
+🎖 Novice - 96 criminal XP - Hustler at 150
+
+Choose a kind of crime:
+  ───
+  [Petty theft] → crime:list:petty_theft   │   [Street crime] → crime:list:street_crime
+  [🔒 Continue in private chat] → https://t.me/torn_bot
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → crime:hub

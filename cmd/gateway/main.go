@@ -345,6 +345,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			slog.String("commands", strings.Join(missing, ",")))
 	}
 	gw.inputs = infraredis.NewInputStore(rdb)
+	gw.links = infraredis.NewLinkStore(rdb)
 	gw.cityGroups = postgres.NewCityGroupRepository(pool)
 
 	// Commands typed without a slash, in every language. A collision is
@@ -474,6 +475,9 @@ type gateway struct {
 	aliases *routing.Aliases
 	policy  *groups.Policy
 	inputs  input.Store
+	// links keeps deep links too long for a start parameter
+	// (groups.LinkPayload); nil sends them without their arguments.
+	links groups.LinkStore
 	// prompter sends a question with its ForceReply markup; nil sends
 	// through the fleet. Tests replace it.
 	prompter func(ctx context.Context, bot application.Bot, chatID int64, text string, markup any) (int64, error)

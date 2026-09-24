@@ -104,6 +104,11 @@ groups:
   # The longest popup a button press may answer with. Telegram accepts at
   # most 200 characters; longer text is cut with an ellipsis.
   callback_alert_max_runes: 200
+  # A deep link that opens the private chat on a screen for a target (paying
+  # a player named in the group) carries the target in Telegram's start
+  # parameter, at most 64 characters of A-Z a-z 0-9 _ -. One that does not
+  # fit is kept in Redis under a short token for this long instead.
+  deep_link_ttl: 15m
 
 # The bot's command menu (the "/" button). It is registered for private chats
 # only, and the default and group menus are cleared at every gateway start, so

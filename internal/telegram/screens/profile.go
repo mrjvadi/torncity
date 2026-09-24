@@ -29,6 +29,11 @@ type ProfileView struct {
 	// is simply not shown.
 	CityCode string
 	City     string
+	// Place is where in the city the player stands, empty in a city
+	// without places; Walk a walk under way instead, which the profile
+	// shows with its time left and arrival.
+	Place Named
+	Walk  *WalkView
 
 	Level int
 	XP    int64
@@ -143,7 +148,7 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 			"remaining": FormatDuration(c, v.TravelRemaining),
 		})
 	case city != "":
-		where = c.T("profile.city", map[string]any{"city": city})
+		where = placeLines(c, city, v.Place, v.Walk)
 	}
 
 	var name string
@@ -179,6 +184,26 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 	)
 
 	return c.respond(text, hubKeyboard(c, city != "", v.Travelling, v.Jail != nil, v.Work).Build())
+}
+
+// placeLines is where the player is in their city: the place they stand at,
+// or the walk they are on — where to, how long is left and when they
+// arrive — or the city alone when it has no places.
+func placeLines(c Context, city string, here Named, walk *WalkView) string {
+	switch {
+	case walk != nil:
+		return body(
+			c.T("profile.city", map[string]any{"city": city}),
+			c.T("profile.walking", map[string]any{
+				"place":     c.SpotName(walk.To),
+				"remaining": FormatDuration(c, walk.Remaining),
+				"time":      FormatClock(c, walk.ArrivesAt),
+			}),
+		)
+	case here.Code != "":
+		return c.T("profile.place", map[string]any{"city": city, "place": c.SpotName(here)})
+	}
+	return c.T("profile.city", map[string]any{"city": city})
 }
 
 // jailLines says the player is in jail: where, for how long, and at what time
@@ -330,6 +355,12 @@ func hubKeyboard(c Context, hasCity, travelling, jailed bool, work *ProfileWork)
 
 	if hasCity && !travelling && !jailed {
 		kb.Add(c.T("gov.button.city", nil), AddrGovCity)
+	}
+	if c.Shared && !travelling && !jailed {
+		// In a group the home screen is a public square: crime is what is
+		// played here (configs/commands.yml), and the gateway keeps the
+		// private-chat buttons above off the group's timeline.
+		kb.Add(c.T("crime.button.hub", nil), AddrCrimeHub)
 	}
 
 	settings, _ := keyboards.Button(c.T("button.settings", nil), AddrSettings)

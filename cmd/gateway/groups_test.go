@@ -229,8 +229,10 @@ func TestPrivateScreenInAGroupNeverReachesTheGroupChat(t *testing.T) {
 		t.Errorf("group line = %+v", sends[1].body)
 	}
 	markup, _ := json.Marshal(sends[1].body["reply_markup"])
-	if !strings.Contains(string(markup), "https://t.me/torn_bot?start=run-bank-show") {
-		t.Errorf("group line has no link to the bot: %s", markup)
+	// Delivered: the link only opens the private chat, where the screen
+	// already is; replaying the command would stack a second copy.
+	if !strings.Contains(string(markup), `"https://t.me/torn_bot"`) || strings.Contains(string(markup), "start=") {
+		t.Errorf("group line has no plain link to the bot: %s", markup)
 	}
 }
 
@@ -572,3 +574,49 @@ func TestPayAsReplyInAGroup(t *testing.T) {
 		t.Errorf("payload = %v", payload)
 	}
 }
+
+// A payment handed off from a group opens, in the private chat, on the
+// payment to that player with that amount: the deep link replays bank.pay
+// with the payee's public code, stateless or through the link store.
+func TestDeepLinkReplaysAPaymentWithItsPayee(t *testing.T) {
+	g, pub, _ := testGateway(t, nil)
+	handle(g, message("/start "+groups.StartPayload("bank.pay", "K7Q2M9A", "5000"), "private", "en"))
+	if len(pub.sent) != 1 || pub.sent[0].subject != "game.command.bank.pay.v1" {
+		t.Fatalf("published %+v", pub.sent)
+	}
+	var payload map[string]any
+	if err := pub.sent[0].env.Decode(&payload); err != nil {
+		t.Fatal(err)
+	}
+	if payload["to"] != "K7Q2M9A" || payload["amount"] != "5000" {
+		t.Errorf("payload = %v", payload)
+	}
+
+	g, pub, _ = testGateway(t, nil)
+	links := memoryLinks{}
+	g.links = links
+	payloadText := groups.LinkPayload(context.Background(), links, time.Minute, "bank.pay", "K7Q2M9A",
+		strings.Repeat("9", 45), "card")
+	handle(g, message("/start "+payloadText, "private", "en"))
+	if len(pub.sent) != 1 || pub.sent[0].subject != "game.command.bank.pay.v1" {
+		t.Fatalf("token link published %+v", pub.sent)
+	}
+	payload = nil
+	if err := pub.sent[0].env.Decode(&payload); err != nil {
+		t.Fatal(err)
+	}
+	if payload["to"] != "K7Q2M9A" || payload["method"] != "card" {
+		t.Errorf("token link payload = %v", payload)
+	}
+}
+
+// memoryLinks is a groups.LinkStore in memory.
+type memoryLinks map[string]string
+
+func (m memoryLinks) Put(_ context.Context, value string, _ time.Duration) (string, error) {
+	token := "tok" + strings.Repeat("x", len(m)+1)
+	m[token] = value
+	return token, nil
+}
+
+func (m memoryLinks) Get(_ context.Context, token string) (string, error) { return m[token], nil }

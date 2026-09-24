@@ -23,6 +23,7 @@ const (
 	botLeasePrefix = "gateway:bot-lease:"
 	inputPrefix    = "gateway:input:"
 	inputCDPrefix  = "gateway:input-cooldown:"
+	deepLinkPrefix = "gateway:deep-link:"
 )
 
 // dedupKey names the marker for one Telegram update on one bot.
@@ -54,3 +55,6 @@ func botLeaseKey(botKey string) string {
 // them again.
 func inputKey(k input.Key) string         { return inputPrefix + k.String() }
 func inputCooldownKey(k input.Key) string { return inputCDPrefix + k.String() }
+
+// deepLinkKey names a deep link kept under a token (groups.LinkPayload).
+func deepLinkKey(token string) string { return deepLinkPrefix + token }

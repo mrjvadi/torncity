@@ -193,6 +193,11 @@ type JobStatusView struct {
 	// ShiftLength is how long one shift of this position takes, the real
 	// wait on the game clock.
 	ShiftLength time.Duration
+	// Workplace is the place of the city the job is worked at, when the
+	// city has places; WalkToWork the walk there from where the player
+	// stands, zero when they are there. The start button walks first.
+	Workplace  Named
+	WalkToWork time.Duration
 	// Shift is the shift in progress, nil when the player is not working.
 	Shift *ShiftProgress
 	// Next is the next position; PromotionReady says it has been earned and
@@ -265,12 +270,29 @@ func JobStatus(c Context, v JobStatusView) *presenter.Response {
 		where = c.shiftProgressLines(*v.Shift)
 	case !v.AtWorkplace:
 		where = c.T("job.away", map[string]any{"city": c.CityName(v.CityCode, v.City)})
+	case v.WalkToWork > 0 && v.Workplace.Code != "":
+		where = c.T("job.walk_to_work", map[string]any{
+			"place": c.SpotName(v.Workplace), "walk": FormatDuration(c, v.WalkToWork),
+		})
+	case v.Workplace.Code != "":
+		where = c.T("job.at_work_place", map[string]any{"place": c.SpotName(v.Workplace)})
 	}
 
 	// While a shift runs there is nothing to press but refresh: a second
-	// shift, a promotion or a resignation would only be refused.
+	// shift, a promotion or a resignation would only be refused. Away from
+	// the workplace the one press walks there and starts the shift on
+	// arrival, and says how long each takes.
 	if v.AtWorkplace && v.Shift == nil {
-		work, _ := keyboards.Button(c.T("job.button.work", nil), AddrJobWork)
+		label := c.T("job.button.work", nil)
+		switch {
+		case v.WalkToWork > 0 && v.ShiftLength > 0:
+			label = c.T("job.button.walk_work", map[string]any{
+				"walk": FormatDuration(c, v.WalkToWork), "shift": FormatDuration(c, v.ShiftLength),
+			})
+		case v.ShiftLength > 0:
+			label = c.T("job.button.work_for", map[string]any{"shift": FormatDuration(c, v.ShiftLength)})
+		}
+		work, _ := keyboards.Button(label, AddrJobWork)
 		kb.Row(work)
 	}
 	if v.PromotionReady && v.Shift == nil {

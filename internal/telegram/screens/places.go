@@ -156,6 +156,9 @@ type WalkStartedView struct {
 	Duration  time.Duration
 	ArrivesAt time.Time
 	Energy    int
+	// Then is the catalogue key of what happens on arrival (place.then.*),
+	// empty for a plain walk.
+	Then string
 }
 
 // WalkStarted renders a walk under way.
@@ -168,6 +171,9 @@ func WalkStarted(c Context, v WalkStartedView) *presenter.Response {
 	}
 	if v.Energy > 0 {
 		lines = append(lines, c.T("place.walk_energy", map[string]any{"energy": FormatNumber(c, int64(v.Energy))}))
+	}
+	if v.Then != "" {
+		lines = append(lines, c.T(v.Then, map[string]any{"place": c.SpotName(v.To)}))
 	}
 	kb := keyboards.New()
 	if btn, ok := keyboards.Button(c.T("button.map", nil), AddrMap); ok {
@@ -198,6 +204,33 @@ type NotHereView struct {
 	Walking   bool
 	Remaining time.Duration
 	ArrivesAt time.Time
+	// Then, with ThenArgs, is the screen the walk button opens on arrival
+	// (the one the player asked for), so one press walks there and carries
+	// on. Empty: the button only walks.
+	Then     string
+	ThenArgs []string
+}
+
+// GoThen is the address of a walk to place that runs then, with its
+// arguments, on arrival. It falls back to the plain walk when the whole
+// address would not fit Telegram's 64 bytes, and is empty when not even that
+// fits.
+func GoThen(place, then string, args ...string) string {
+	if then != "" {
+		if data := keyboards.Data(append([]string{AddrPlaceGo, place, then}, args...)...); data != "" {
+			return data
+		}
+	}
+	return keyboards.Data(AddrPlaceGo, place)
+}
+
+// goThenButton is a button that walks to place and then runs then.
+func goThenButton(label, place, then string, args ...string) (presenter.Button, bool) {
+	data := GoThen(place, then, args...)
+	if label == "" || data == "" {
+		return presenter.Button{}, false
+	}
+	return presenter.Button{Text: label, CallbackData: data}, true
 }
 
 // NotHere renders a request made at the wrong place, with the walk to the
@@ -230,14 +263,20 @@ func NotHere(c Context, v NotHereView) *presenter.Response {
 		args["shop"] = c.ShopName(v.Shop)
 	}
 	need := c.T(v.Need, args)
-	if btn, ok := keyboards.Button(c.T("place.button.walk", map[string]any{
-		"place": c.SpotName(v.Place), "walk": FormatDuration(c, v.Walk),
-	}), AddrPlaceGo, v.Place.Code); ok {
+	walkArgs := map[string]any{"place": c.SpotName(v.Place), "walk": FormatDuration(c, v.Walk)}
+	label, hint := c.T("place.button.walk", walkArgs), ""
+	if v.Then != "" {
+		// One press walks there and opens what the player asked for.
+		label, hint = c.T("place.button.walk_then", walkArgs), c.T("place.then_hint", walkArgs)
+	}
+	if btn, ok := goThenButton(label, v.Place.Code, v.Then, v.ThenArgs...); ok {
 		kb.Row(btn)
 	}
-	if btn, ok := keyboards.Button(c.T("button.map", nil), AddrMap); ok {
-		kb.Row(btn)
+	if v.Then == "" {
+		if btn, ok := keyboards.Button(c.T("button.map", nil), AddrMap); ok {
+			kb.Row(btn)
+		}
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
-	return c.respond(body(need, c.T("place.you_are_at", map[string]any{"place": c.SpotName(v.Here)})), kb.Build())
+	return c.respond(body(need, c.T("place.you_are_at", map[string]any{"place": c.SpotName(v.Here)}), hint), kb.Build())
 }

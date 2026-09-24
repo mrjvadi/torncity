@@ -322,6 +322,9 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	if err != nil {
 		return err
 	}
+	// A walk to where the player already stands runs what was to follow it
+	// at once, through the same table every command is served from.
+	h.places.WithRunner(runnerFor(bound))
 
 	svc := &service{
 		logger:   logger,

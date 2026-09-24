@@ -235,3 +235,22 @@ func TestUnlistedCommandCannotAsk(t *testing.T) {
 		t.Errorf("an unlisted command asked: %v", *prompts)
 	}
 }
+
+// A press on a stale private-chat button left on a group's screen — the bank,
+// the bag, a typed amount — runs nothing in the group: the presser is sent
+// to the private chat instead (wrongChannel), and nothing is published or
+// asked.
+func TestStalePrivateButtonInAGroupRunsNothing(t *testing.T) {
+	for _, data := range []string{"bank:show", "inventory:show", "job:status", "ask:bank.deposit"} {
+		g, pub, replies, prompts := textGateway(t)
+		handle(g, askPress(data, "supergroup", -100777))
+		if len(pub.sent) != 0 || len(*prompts) != 0 {
+			t.Errorf("%s pressed in a group: published %+v, asked %v", data, pub.sent, *prompts)
+		}
+		for _, r := range *replies {
+			if r.meta.TelegramChatID == -100777 && r.resp.Keyboard != nil {
+				t.Errorf("%s pressed in a group put a screen with buttons there: %+v", data, r.resp)
+			}
+		}
+	}
+}

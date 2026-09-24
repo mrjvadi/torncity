@@ -435,7 +435,11 @@ func jobsFlow(g *flowGame) *flowBook {
 	b.step("Apply")(g.jobs.Apply(ctx, g.press(flowMeTG, "job.apply"), JobRequest{Role: apply[2]}))
 	b.step("Profile with a job")(g.profile.Handle(ctx, g.press(flowMeTG, "player.profile.get")))
 	b.step("My job")(g.jobs.Status(ctx, g.press(flowMeTG, "job.status")))
-	b.step("Start a shift")(g.jobs.Work(ctx, g.press(flowMeTG, "job.work")))
+	b.step("Start a shift away from work (walks there first)")(g.jobs.Work(ctx, g.press(flowMeTG, "job.work")))
+	b.step("Profile on the way to work")(g.profile.Handle(ctx, g.press(flowMeTG, "player.profile.get")))
+	arrive(g, flowMeID)
+	b.step("My job at the workplace")(g.jobs.Status(ctx, g.press(flowMeTG, "job.status")))
+	b.step("Start a shift (on arrival)")(g.jobs.Work(ctx, g.press(flowMeTG, "job.work")))
 	g.now = g.now.Add(time.Minute)
 	b.step("Profile during the shift")(g.profile.Handle(ctx, g.press(flowMeTG, "player.profile.get")))
 	b.step("My job during the shift")(g.jobs.Status(ctx, g.press(flowMeTG, "job.status")))
@@ -487,6 +491,8 @@ func educationFlow(g *flowGame) *flowBook {
 	b.step("Profile while studying")(g.profile.Handle(ctx, g.press(flowMeTG, "player.profile.get")))
 	b.step("Enrol in a second course")(g.education.Enroll(ctx, g.press(flowMeTG, "education.enroll"), CourseRequest{Course: "bookkeeping", Method: "cash"}))
 	b.step("A course taught elsewhere")(g.education.View(ctx, g.press(flowMeTG, "education.view"), CourseRequest{Course: "nursing"}))
+	b.refused("Enrol in a course taught elsewhere")(g.education.Enroll(ctx, g.press(flowMeTG, "education.enroll"),
+		CourseRequest{Course: "nursing", Method: "cash"}))
 
 	enrolment := g.w.edu.active[flowMeID]
 	g.now = enrolment.CompletesAt.Add(time.Second)
@@ -508,7 +514,12 @@ func educationFlow(g *flowGame) *flowBook {
 func walk(g *flowGame, b *flowBook, from *presenter.Response, title string) {
 	ctx := context.Background()
 	to := b.button(from, screens.AddrPlaceGo+":")
-	b.step(title)(g.places.Go(ctx, g.press(flowMeTG, "place.go"), PlaceRequest{Place: to[2]}))
+	req := PlaceRequest{Place: to[2]}
+	if len(to) > 3 {
+		// A walk that opens a screen on arrival (go, then do).
+		req.Then, req.Args = to[3], to[4:]
+	}
+	b.step(title)(g.places.Go(ctx, g.press(flowMeTG, "place.go"), req))
 	arrive(g, flowMeID)
 }
 

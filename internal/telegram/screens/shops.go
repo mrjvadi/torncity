@@ -78,8 +78,11 @@ type ShelfLine struct {
 type ShopView struct {
 	Shop, Place Named
 	Here        bool
-	Shelves     []ShelfLine
-	TaxBPS      int
+	// Walk is the real time the walk to the shop takes, when the player
+	// is elsewhere and not already walking.
+	Walk    time.Duration
+	Shelves []ShelfLine
+	TaxBPS  int
 }
 
 // ShopDetail renders a shop's shelves, with a buy button per good in stock
@@ -113,9 +116,8 @@ func ShopDetail(c Context, v ShopView) *presenter.Response {
 	where := c.T("shop.at_counter", nil)
 	if !v.Here {
 		where = c.T("shop.away", map[string]any{"place": c.SpotName(v.Place)})
-		if btn, ok := keyboards.Button(c.T("place.button.go", map[string]any{"place": c.SpotName(v.Place)}),
-			AddrPlaceGo, v.Place.Code); ok {
-			kb.Row(btn)
+		if v.Walk > 0 {
+			c.wayButton(kb, &Way{Place: v.Place, Walk: v.Walk}, "shop.view", v.Shop.Code)
 		}
 	}
 	var tax string

@@ -42,6 +42,8 @@ type AuctionsView struct {
 	CityCode, City string
 	Auctions       []AuctionLine
 	AtHouse        bool
+	// Way is the walk to the auction house when the player is elsewhere.
+	Way *Way
 }
 
 func (c Context) auctionLine(a AuctionLine) string {
@@ -77,6 +79,7 @@ func Auctions(c Context, v AuctionsView) *presenter.Response {
 	var where string
 	if !v.AtHouse {
 		where = c.T("auction.away", nil)
+		c.wayButton(kb, v.Way, "auction.list")
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMarket, RefreshData: AddrAuctions}))
 	return c.respond(paragraphs(c.T("auction.title", map[string]any{"city": c.CityName(v.CityCode, v.City)}),

@@ -74,7 +74,8 @@ type telegramSettings struct {
 }
 
 type groupsSettings struct {
-	CallbackAlertMaxRunes *int `yaml:"callback_alert_max_runes"`
+	CallbackAlertMaxRunes *int    `yaml:"callback_alert_max_runes"`
+	DeepLinkTTL           *string `yaml:"deep_link_ttl"`
 }
 
 type menuSettings struct {
@@ -532,6 +533,9 @@ var settings = []setting{
 	limitSetting("groups", "callback_alert_max_runes",
 		func(c *Config) *int { return &c.Groups.CallbackAlertMaxRunes },
 		func(f *fileConfig) *int { return f.Groups.CallbackAlertMaxRunes }),
+	durationSetting("groups", "deep_link_ttl",
+		func(c *Config) *time.Duration { return &c.Groups.DeepLinkTTL },
+		func(f *fileConfig) *string { return f.Groups.DeepLinkTTL }),
 	stringListSetting("menu", "commands",
 		func(c *Config) *[]string { return &c.Menu.Commands },
 		func(f *fileConfig) []string { return f.Menu.Commands }),

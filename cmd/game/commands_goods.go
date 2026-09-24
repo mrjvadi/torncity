@@ -20,6 +20,7 @@ type goodsHandlers struct {
 	shops     *handlers.ShopsHandler
 	market    *handlers.MarketHandler
 	auctions  *handlers.AuctionsHandler
+	elections *handlers.ElectionsHandler
 }
 
 // newGoodsHandlers builds the goods handlers. Goods are content read from
@@ -56,6 +57,8 @@ func newGoodsHandlers(
 				StepBPS: trade.AuctionStepBPS, MinStep: trade.AuctionMinStep, MaxOpen: trade.AuctionMaxOpen,
 				ReservesBPS: reserves,
 			}, handlers.DefaultPageSize, idempotencyTTL, nil),
+		elections: handlers.NewElectionsHandler(uow, uuidGenerator{}, msgs, registry, cities, scale,
+			crimeRules(crimeCfg).Nerve, idempotencyTTL, nil),
 	}
 }
 
@@ -108,5 +111,15 @@ func (h phaseHandlers) bindGoods() map[string]commandFunc {
 		"auction.bid":   decoded(g.auctions.Bid),
 		"auction.mine":  bare(g.auctions.Mine),
 		"auction.close": decoded(g.auctions.Close),
+
+		"election.list":  bare(g.elections.List),
+		"election.view":  decoded(g.elections.View),
+		"election.stand": decoded(g.elections.Stand),
+		"election.vote":  decoded(g.elections.Vote),
+		// The scheduler's: an election's vote opening, its count, and the
+		// next one opening.
+		"election.voting": decoded(g.elections.Voting),
+		"election.count":  decoded(g.elections.Count),
+		"election.open":   decoded(g.elections.Open),
 	}
 }

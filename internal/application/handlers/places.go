@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"strings"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -11,9 +12,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/place"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -43,6 +42,9 @@ type PlacesHandler struct {
 	cities  application.CityRepository
 	// scale is the game clock: a walk's length is game time.
 	scale gametime.Scale
+	// run runs a follow-up at once, for a walk to where the player already
+	// stands (WithRunner). Nil shows the map instead.
+	run CommandRunner
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -72,9 +74,13 @@ func NewPlacesHandler(uow application.UnitOfWork, ids IDGenerator, msgs Translat
 		idempotencyTTL: idempotencyTTL, now: now}
 }
 
-// PlaceRequest names a place by its content code, for place.go.
+// PlaceRequest names a place by its content code, for place.go. Then, with
+// its positional Args, is what to do on arrival (places_then.go): a button
+// «🚶 رفتن به دانشگاه» on a course carries "education.view" and the course.
 type PlaceRequest struct {
-	Place string `json:"place"`
+	Place string   `json:"place"`
+	Then  string   `json:"then,omitempty"`
+	Args  []string `json:"args,omitempty"`
 }
 
 // PlaceScheduledRequest is the scheduler's dispatch payload for place.arrive.
@@ -270,9 +276,6 @@ func (h *PlacesHandler) Map(ctx context.Context, meta envelope.Metadata) (*prese
 	return screens.CityMap(h.screen(meta, lang), view), nil
 }
 
-// PlaceActionPayload is the jsonb a walk writes onto its game_actions row.
-type PlaceActionPayload = CrimeActionPayload
-
 // Go handles place.go: a walk to another place of the player's city. The walk
 // costs the destination's energy at once and takes its time on the game
 // clock; the player is on the way until it ends and stands nowhere
@@ -288,6 +291,7 @@ func (h *PlacesHandler) Go(ctx context.Context, meta envelope.Metadata, req Plac
 		view     screens.WalkStartedView
 		replayed bool
 		there    bool
+		follow   *FollowUp
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -332,69 +336,39 @@ func (h *PlacesHandler) Go(ctx context.Context, meta envelope.Metadata, req Plac
 		if err := refuseWalking(w, snap, now); err != nil {
 			return err
 		}
-		mv, err := place.StartMove(w.cmap, w.here.Code, req.Place, now, h.scale)
-		switch {
-		case stderrors.Is(err, place.ErrAlreadyThere):
-			there = true
-			return nil
-		case stderrors.Is(err, place.ErrUnknownPlace):
-			return errors.NotFound("no such place in this city").WithCause(err)
-		case err != nil:
-			return errors.Internal(err)
+		then, err := followUpFrom(meta, req.Then, req.Args)
+		if err != nil {
+			return err
 		}
 		regenerated, _ := regenerateEnergy(*row, now)
-		spent, err := domainStats(regenerated).SpendEnergy(mv.Energy)
-		if err != nil {
-			return errors.InvalidInput("not enough energy to walk there").
-				WithCause(err).WithDetail("needed", mv.Energy).WithDetail("current", regenerated.Energy)
+		view, err = beginWalk(ctx, tx, h.ids, h.scale, snap, meta, walkStart{
+			player: p, stats: regenerated, where: w, to: req.Place, then: then,
+		}, now)
+		if stderrors.Is(err, errAlreadyThere) {
+			there = true
+			if then != nil {
+				// Already there: nothing to walk, so what was to follow the
+				// walk is what the player sees now.
+				follow = then
+			}
+			return nil
 		}
-		next := storedStats(regenerated, spent)
-		next.UpdatedAt = now
-		if err := tx.Stats().Save(ctx, next); err != nil {
-			return err
-		}
-
-		moveID, actionID := h.ids.NewID(), h.ids.NewID()
-		payload, err := json.Marshal(PlaceActionPayload{ReferenceID: moveID, PlayerID: p.ID})
-		if err != nil {
-			return err
-		}
-		if err := tx.GameActions().Schedule(ctx, application.GameAction{
-			ID: actionID, ActionType: application.PlaceMoveActionType, ActorType: "player", ActorID: p.ID,
-			ReferenceType: application.PlaceMoveReference, ReferenceID: moveID, Payload: payload,
-			StartedAt: mv.StartedAt, FinishAt: mv.ArrivesAt,
-		}); err != nil {
-			return err
-		}
-		if err := tx.Places().StartMove(ctx, application.PlaceMove{
-			ID: moveID, PlayerID: p.ID, CityID: w.city.ID, From: mv.From, To: mv.To, Energy: mv.Energy,
-			GameActionID: actionID, StartedAt: mv.StartedAt, ArrivesAt: mv.ArrivesAt,
-		}); err != nil {
-			return err
-		}
-		ev, err := events.New("place.walk_started", "place_move", moveID, map[string]any{
-			"move_id": moveID, "player_id": p.ID, "city_id": w.city.ID, "from": mv.From, "to": mv.To,
-			"energy": mv.Energy, "arrives_at": mv.ArrivesAt, "content_version": snap.Version(),
-		})
-		if err != nil {
-			return err
-		}
-		if err := tx.Outbox().Append(ctx, application.OutboxRecord{
-			EventID: ev.ID, Subject: subjects.Event("place", "walk_started"), Metadata: meta, Payload: ev.Payload,
-		}); err != nil {
-			return err
-		}
-		view = screens.WalkStartedView{
-			To: placeNamed(snap, mv.To), From: placeNamed(snap, mv.From),
-			Duration: mv.Duration(), ArrivesAt: mv.ArrivesAt, Energy: mv.Energy,
-		}
-		return nil
+		return err
 	})
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(h.screen(meta, lang), v), nil
 	}
 	if err != nil {
 		return nil, err
+	}
+	if follow != nil && h.run != nil {
+		// The follow-up runs as its own command: its own idempotency key,
+		// so it is not mistaken for a replay of this press.
+		next := meta
+		next.Command = follow.Command
+		_, next.Action, _ = strings.Cut(follow.Command, ".")
+		next.IdempotencyKey = followUpIdempotencyPrefix + meta.RequestID + ":" + meta.IdempotencyKey
+		return h.run(ctx, next, follow.Command, follow.Payload)
 	}
 	if replayed || there {
 		return h.Map(ctx, meta)
@@ -405,7 +379,8 @@ func (h *PlacesHandler) Go(ctx context.Context, meta envelope.Metadata, req Plac
 // Arrive ends a walk. It arrives from the SCHEDULER and runs exactly once:
 // the key is derived from the walk, and only a walk still under way moves.
 // Nothing is announced: a walk is short, and the map shows where the player
-// stands.
+// stands. A walk with a follow-up (places_then.go) hands it to the outbox in
+// the same transaction, as the command itself.
 func (h *PlacesHandler) Arrive(ctx context.Context, meta envelope.Metadata, req PlaceScheduledRequest) (*presenter.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
@@ -434,9 +409,37 @@ func (h *PlacesHandler) Arrive(ctx context.Context, meta envelope.Metadata, req 
 		if now.Before(m.ArrivesAt) {
 			return errors.Internal(stderrors.New("handlers: a walk ended before its time"))
 		}
-		if _, err := tx.Places().FinishMove(ctx, moveID, now); err != nil && !isSentinel(err, application.ErrNotMoving) {
+		if _, err := tx.Places().FinishMove(ctx, moveID, now); err != nil {
+			if isSentinel(err, application.ErrNotMoving) {
+				return nil
+			}
 			return err
 		}
-		return nil
+		return dispatchFollowUp(ctx, tx, h.ids, meta, playerID, moveID, followUpOf(req), now)
 	})
+}
+
+// followUpOf reads the follow-up a walk's scheduled action carries, if any.
+// An unreadable payload carries none: the arrival itself must not fail over
+// what was to come after it.
+func followUpOf(req PlaceScheduledRequest) *FollowUp {
+	if len(req.Payload) == 0 {
+		return nil
+	}
+	var p PlaceActionPayload
+	if err := json.Unmarshal(req.Payload, &p); err != nil {
+		return nil
+	}
+	return p.Then
+}
+
+// CommandRunner runs one command of the game for the player in meta, as if
+// they had sent it: cmd/game hands in its own table of commands.
+type CommandRunner func(ctx context.Context, meta envelope.Metadata, command string, payload map[string]string) (*presenter.Response, error)
+
+// WithRunner lets a walk to where the player already stands run its
+// follow-up at once, instead of showing the map.
+func (h *PlacesHandler) WithRunner(run CommandRunner) *PlacesHandler {
+	h.run = run
+	return h
 }

@@ -210,7 +210,7 @@ This city has no shops yet.
 📍 The shop is at the bazaar. Walk there to buy.
 🧾 Sales tax here: 5%
   ───
-  [🚶 bazaar] → place:go:bazaar
+  [🚶 Go to the bazaar (15s)] → place:go:bazaar:shop.view:hardware_store
   [🔙 Back] → shop:list   │   [🔄 Refresh] → shop:view:hardware_store
 
 ━━━ Checkout · both ways cover it ━━━

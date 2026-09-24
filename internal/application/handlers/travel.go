@@ -542,7 +542,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 			return err
 		}
 		if err := h.departure(ctx, tx, p, q.Mode, now); err != nil {
-			return err
+			return thenFor(err, "travel.options", t.to.Code)
 		}
 		// Regenerate before charging. A player who has been away has the
 		// energy the clock owes them, and charging them before paying it out
@@ -788,7 +788,7 @@ func (h *TravelHandler) checkout(ctx context.Context, meta envelope.Metadata, re
 		}
 		q := chosen.quote
 		if err := h.departure(ctx, tx, p, q.Mode, h.now()); err != nil {
-			return err
+			return thenFor(err, "travel.options", t.to.Code)
 		}
 		w, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
 		if err != nil {

@@ -100,11 +100,16 @@ func Routes() []Route {
 		{Domain: "auction", Event: "won", Render: renderAuction("won")},
 		{Domain: "auction", Event: "sold", Render: renderAuction("sold")},
 		{Domain: "auction", Event: "unsold", Render: renderAuction("unsold")},
+		{Domain: "election", Event: "result", Render: renderElectionResult},
 
 		// Public lines in a city's groups (announce.go). Each has its own
 		// consumer beside the event's private notice, if any.
 		{Domain: "travel", Event: "completed", Name: "announce", Announce: arrivalAnnouncement},
 		{Domain: "crime", Event: "jailed", Name: "announce", Announce: jailAnnouncement},
+		{Domain: "election", Event: "opened", Name: "announce", Announce: electionOpenedAnnouncement},
+		{Domain: "election", Event: "stood", Name: "announce", Announce: electionStoodAnnouncement},
+		{Domain: "election", Event: "voting", Name: "announce", Announce: electionVotingAnnouncement},
+		{Domain: "election", Event: "counted", Name: "announce", Announce: electionCountedAnnouncement},
 		{Domain: "bank", Event: "payment_received", Name: "announce", Announce: paymentAnnouncement},
 	}
 }

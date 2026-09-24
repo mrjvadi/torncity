@@ -15,8 +15,11 @@ type DashboardView struct {
 	// CityCode and City are the player's city: its content code, which the
 	// screen resolves to a name in the player's language, and its authored
 	// name as the fallback. Both empty when the player is nowhere yet.
-	CityCode  string
-	City      string
+	CityCode string
+	City     string
+	// Place is where in the city the player stands; Walk a walk under way.
+	Place     Named
+	Walk      *WalkView
 	Level     int
 	Energy    int
 	MaxEnergy int
@@ -40,7 +43,7 @@ func Dashboard(c Context, v DashboardView) *presenter.Response {
 	}
 	city := c.CityName(v.CityCode, v.City)
 	if city != "" && !v.Travelling {
-		where = c.T("profile.city", map[string]any{"city": city})
+		where = placeLines(c, city, v.Place, v.Walk)
 	}
 
 	text := paragraphs(

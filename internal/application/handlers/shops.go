@@ -224,6 +224,9 @@ func (h *ShopsHandler) View(ctx context.Context, meta envelope.Metadata, req Sho
 		now := h.now()
 		view = screens.ShopView{Shop: named(def.Code, def.Name), Place: placeNamed(snap, def.Place),
 			Here: w.walk == nil && def.Place == w.here.Code}
+		if pl, ok := w.cmap.Find(def.Place); ok && !view.Here && w.walk == nil {
+			view.Walk = h.scale.RealWait(pl.MoveTime)
+		}
 		for _, sh := range def.Shelves {
 			item, _ := snap.ItemDef(sh.Item)
 			line, _, err := h.quote(ctx, tx, def, sh, item, w.city.ID, now)
@@ -265,7 +268,7 @@ func (h *ShopsHandler) atCounter(w whereabouts, snap *content.Snapshot, def cont
 	if n, ok := err.(*notHere); ok {
 		n.view.Shop = named(def.Code, def.Name)
 	}
-	return err
+	return thenFor(err, "shop.view", def.Code)
 }
 
 // Buy handles shop.buy: a checkout without a way to pay, the purchase with

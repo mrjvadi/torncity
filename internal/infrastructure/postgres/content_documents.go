@@ -117,6 +117,10 @@ func init() {
 			func(p *content.Pack) []content.ShopDef { return p.Shops },
 			func(s content.ShopDef) string { return s.Code },
 			func(p *content.Pack, s content.ShopDef) { p.Shops = append(p.Shops, s) }),
+		listKind("election",
+			func(p *content.Pack) []content.ElectionDef { return p.Elections },
+			func(e content.ElectionDef) string { return e.Office },
+			func(p *content.Pack, e content.ElectionDef) { p.Elections = append(p.Elections, e) }),
 	)
 }
 

@@ -131,6 +131,7 @@ type Tx interface {
 	Shops() ShopRepository
 	Market() MarketRepository
 	Auctions() AuctionRepository
+	Elections() ElectionRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

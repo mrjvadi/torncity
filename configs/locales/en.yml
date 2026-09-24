@@ -26,6 +26,9 @@ profile:
 
   name: "👤 {name}"
   city: "📍 {city}"
+  # Where in the city the player stands, or the walk they are on.
+  place: "📍 {place} - {city}"
+  walking: "🚶 On the way to the {place} - {remaining} left - arriving at {time}"
   travelling: "🧭 On the way to {city} - {remaining} left"
   level: "⭐ Level {level} - {xp_to_next} XP to level {next_level}"
   level_plain: "⭐ Level {level}"
@@ -347,7 +350,7 @@ gov:
     pending: "  ⏳ Changes to {value} in {when}"
   mine:
     title: "🏛 My office"
-    none: You do not hold any office. For now, office holders are appointed by the game's administrators; elections will come later.
+    none: You do not hold any office. Mayors, councillors and presidents are elected; the other offices are appointed.
     seat: "📍 {office} of {place}"
     acting_for: You are acting for the vacant office of {office}.
     no_levers: This office has no policy you can change right now.
@@ -381,6 +384,7 @@ gov:
   button:
     city: "🏛 Offices and policies"
     history: "📜 Policy history"
+    elections: "🗳 Elections"
     my_office: "🏛 My office"
     change: "✏️ {lever} — {place}"
     down: "➖ {amount}"
@@ -458,6 +462,9 @@ group:
   start_bot_first: This screen is for you only. Open the bot in a private chat and press Start first, and it will be shown there.
   # The button under either line; it opens the bot's private chat.
   open_bot: Open the bot
+  # In a group, the one button that stands in for every private-chat button
+  # of a screen: it opens the bot's private chat, where those live.
+  continue_private: "🔒 Continue in private chat"
   # Posted once when the bot is added to a group.
   welcome: |-
     Hello everyone! You can now play the game right here in this group; send "profile" or "help" to begin.
@@ -565,6 +572,8 @@ job:
   shifts: "🔁 Shifts in this position: {shifts}"
   earned: "💵 Earned in this job: {amount}"
   away: "📍 Your job is in {city}. You need to be there to work."
+  at_work_place: "📍 You are at your workplace, the {place}."
+  walk_to_work: "📍 You work at the {place} - a {walk} walk from where you are."
   promotion_top: "⭐ You are at the top of this career."
   promotion_ready: "⬆️ You are ready for a promotion to {title}. Tap “Promotion”."
   promotion_next: |-
@@ -629,6 +638,8 @@ job:
     opening_locked: "🔒 {title}"
     apply: "✅ Apply"
     work: "🛠 Start a shift"
+    work_for: "🛠 Start a shift ({shift} of work)"
+    walk_work: "🛠 Start a shift ({walk} walk to work + {shift} of work)"
     work_again: "🛠 Next shift"
     promotion: "⬆️ Promotion"
     quit: "🚪 Leave job"
@@ -1014,6 +1025,11 @@ place:
   walk_energy: "⚡ {energy} energy spent."
   still_walking: "🚶 You are still on your way to the {place} - {remaining} left."
   you_are_at: "📍 You are at the {place} now."
+  # A walk that does something on arrival (go, then do).
+  then:
+    work: "🛠 Your shift starts as soon as you arrive."
+    open: "📲 What you asked for opens as soon as you arrive."
+  then_hint: "One press walks you to the {place} ({walk}) and opens this page again there."
   service:
     bank: bank
     police: police
@@ -1036,6 +1052,7 @@ place:
   button:
     go: "🚶 {place}"
     walk: "🚶 Walk to the {place} - {walk}"
+    walk_then: "🚶 Go to the {place} ({walk})"
     other_cities: "🧭 Travel to another city"
 
 # Commands typed without a slash; see the note in fa.yml. The key is the
@@ -1059,6 +1076,8 @@ command_alias:
   find: "find | search"
   skills: "skills"
   settings: "settings"
+  election: "election | elections"
+  vote: "vote"
   help: "help"
   cancel: "cancel"
 
@@ -1090,6 +1109,14 @@ announce:
   arrived: "🧭 {player} arrived in {city}."
   jailed: "⛓ {player} was jailed in {city}."
   held: "📰 And {count} more in the meantime."
+  election_opened: "🗳 The {election} has opened. Candidates may stand at city hall for {duration}. Send \"election {no}\" to see it."
+  election_stood: "📝 {player} is standing in the {election}."
+  election_voting: "🗳 Voting in the {election} has opened: {count} candidates. Every resident votes once, in secret, within {duration}."
+  election_voting_none: "🗳 The {election} closed its candidacy with nobody standing."
+  election_counted: "🏆 {election} result: {elected} elected, {cast} votes cast."
+  election_counted_many: "🏆 {election} result: {elected} elected, {cast} votes cast."
+  election_unfilled: "🗳 The {election} filled no seat: no candidate won a vote, and the office stays vacant until the next election."
+  election_no_candidates: "🗳 The {election} filled no seat: nobody stood, and the office stays vacant until the next election."
 
 # What a player carries (internal/telegram/screens/items.go). A good's name is
 # under item_name.<code>, its kind under item_category.<code>.
@@ -1359,3 +1386,87 @@ auction:
     not_held: You do not have that piece with you.
     too_many: "You already have {count} auctions open."
     not_sellable: That cannot be auctioned. Only unique pieces go to auction.
+
+# Elections (internal/telegram/screens/elections.go). A ballot is secret: no
+# line says who voted for whom.
+election:
+  # An election's name: election.name.<office code> is its usual name;
+  # an office without one here is named through election.of.
+  of: "{office} election in {place}"
+  name:
+    mayor: "{place} mayoral election"
+    city_council: "{place} city council election"
+    president: "{place} presidential election"
+  this: this election
+  title: "🗳 Elections - {place}"
+  title_plain: "🗳 Elections"
+  no_city: You are not in a city yet. You take part in the elections of the city you live in.
+  none: No election is under way, and none has been held here yet.
+  hint: "Candidates stand at city hall; every resident votes once, in secret. Press an election's number to open it."
+  line:
+    candidacy: "• No. {no}: {election} - taking candidates, {remaining} left, {count} so far"
+    voting: "• No. {no}: {election} - voting, {remaining} left, {count} candidates"
+    counting: "• No. {no}: {election} - waiting for the count"
+    counted: "• No. {no}: {election} - elected: {elected}"
+    unfilled: "• No. {no}: {election} - nobody was elected"
+  detail_title: "🗳 {election} (No. {no})"
+  seats: "🪑 Seats: {seats}"
+  deposit: "💰 Deposit to stand: {deposit}; it comes back after the count if you win at least {share} of the votes."
+  phase:
+    candidacy: "📝 Taking candidates - {remaining} left"
+    voting: "🗳 Voting - {remaining} left"
+    counting: "⏳ The vote is over; the count is due any moment."
+    counted: "✅ Counted: {cast} votes cast"
+  voting_from: "🕒 Voting opens in {duration}, at {time}."
+  voting_in: "🕒 Voting opens in {duration}."
+  count_at: "🕒 The votes are counted in {duration}, at {time}."
+  count_in: "🕒 The votes are counted in {duration}."
+  candidates: "Candidates:"
+  no_candidates: "• nobody has stood yet"
+  candidate: "{n}. {player}"
+  candidate_counted: "{n}. {player} - {votes} votes"
+  candidate_elected: "{n}. {player} - {votes} votes 🏆"
+  candidate_you: "{line} (you)"
+  you_stand: "📝 You are standing in this election."
+  you_voted: "🗳 You have voted. Your ballot is secret."
+  stand_how: "📝 To stand, pay the deposit of {deposit}:"
+  vote_how: "🗳 Choose your candidate. You vote once, and your ballot stays secret."
+  private: "🔒 Standing and voting are done in your private chat with the bot."
+  cannot_stand:
+    not_resident: "📝 Only residents may stand here."
+    too_new: "📝 You have not lived here long enough to stand."
+    level: "📝 Standing needs level {level}."
+    record: "📝 You owe victims or the city money; settle it before you stand."
+    jailed: "📝 You cannot stand from a cell."
+  cannot_vote:
+    not_resident: "🗳 Only residents vote here."
+    too_new: "🗳 You have not lived here long enough to vote."
+  stood: "📝 You are now a candidate in the {election}."
+  stood_deposit: "💰 Your deposit of {deposit} is held until the count."
+  voted: "🗳 Your vote in the {election} went to {player}."
+  secret: "🔒 Nobody else will ever see whom you voted for."
+  button:
+    open: "🗳 No. {no}"
+    vote: "🗳 Vote {player}"
+    stand: "📝 Stand as a candidate"
+    back: "🗳 Back to the election"
+    results: "🗳 See the results"
+  refused:
+    none: There is no such election.
+    not_candidacy: "The {election} is not taking candidates now."
+    not_voting: "The {election} is not taking votes now."
+    away: "📍 A candidacy is registered at city hall, in the city the election is for."
+    no_candidate: That candidate is not on the ballot.
+    not_resident: "Only residents take part in the {election}."
+    too_new: "You have not lived here long enough to take part in the {election}."
+    level: "Your level is too low to stand in the {election}."
+    record: "You owe victims or the city money; settle it before you stand."
+    jailed: You cannot stand from a cell.
+    standing: "You are already a candidate in the {election}."
+    voted: "You have already voted in the {election}; everyone votes once."
+    incompatible: "You hold an office that cannot be held with this one."
+  notice:
+    won: "🏆 Congratulations! You won the {election}: {votes} of {cast} votes."
+    lost: "🗳 You were not elected in the {election}: {votes} of {cast} votes."
+    deposit_back: "💰 Your deposit of {deposit} came back to you."
+    deposit_kept: "💰 Too few votes: your deposit of {deposit} went to your city's treasury."

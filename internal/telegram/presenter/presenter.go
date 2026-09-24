@@ -53,6 +53,16 @@ type Response struct {
 	// bot and leaves one neutral line in the group (internal/gateway/groups).
 	// In a private chat the flag changes nothing.
 	Private bool `json:"private,omitempty"`
+
+	// Resume are the arguments that reopen this very screen, in the order
+	// the command takes them: for a payment, the payee's public code and
+	// the amount. When a private screen asked for in a group cannot be
+	// delivered to the private chat (the player never started the bot), the
+	// link that opens the private chat replays the command WITH them, so the
+	// player lands on the screen they asked for — «پرداخت به …» — rather
+	// than on the command's empty form. Addresses only, never a secret: the
+	// game checks everything again when the command runs.
+	Resume []string `json:"resume,omitempty"`
 }
 
 // MarkPrivate declares the response the player's own business, and returns

@@ -1,0 +1,300 @@
+━━━ Elections ━━━
+(edits message 42)
+🗳 Elections - Ostmarch
+
+• No. 4: Ostmarch mayoral election - taking candidates, 31h left, 2 so far
+• No. 5: Ostmarch city council election - voting, 12h left, 6 candidates
+• No. 2: The Commonwealth presidential election - waiting for the count
+• No. 1: Ostmarch mayoral election - elected: Kaveh (B3C4D5F)
+• No. 3: Ostmarch city council election - nobody was elected
+
+Candidates stand at city hall; every resident votes once, in secret. Press an election's number to open it.
+  ───
+  [🗳 No. 4] → election:view:4   │   [🗳 No. 5] → election:view:5   │   [🗳 No. 2] → election:view:2
+  [🗳 No. 1] → election:view:1   │   [🗳 No. 3] → election:view:3
+  [🔙 Back] → gov:city:ostmarch   │   [🔄 Refresh] → election:list
+
+━━━ Elections · none yet ━━━
+(edits message 42)
+🗳 Elections - Ostmarch
+
+No election is under way, and none has been held here yet.
+
+Candidates stand at city hall; every resident votes once, in secret. Press an election's number to open it.
+  ───
+  [🔙 Back] → gov:city:ostmarch   │   [🔄 Refresh] → election:list
+
+━━━ Elections · not in a city ━━━
+(edits message 42)
+🗳 Elections
+
+You are not in a city yet. You take part in the elections of the city you live in.
+  ───
+  [🔙 Back] → map:list
+
+━━━ Election · taking candidates, you may stand ━━━
+(edits message 42)
+🗳 Ostmarch mayoral election (No. 4)
+
+🪑 Seats: 1
+📝 Taking candidates - 31h left
+🕒 Voting opens in 31h.
+💰 Deposit to stand: 5,000 Nil; it comes back after the count if you win at least 10% of the votes.
+
+Candidates:
+1. Kaveh (B3C4D5F)
+
+📝 To stand, pay the deposit of 5,000 Nil:
+💵 Your cash: 8,000 Nil - Bank: 20,000 Nil
+  ───
+  [💵 Pay cash - 5,000 Nil] → election:stand:4:cash:0a1b2c3d4e70   │   [💳 Pay by card - 5,000 Nil] → election:stand:4:card:0a1b2c3d4e70
+  [🔙 Back] → election:list   │   [🔄 Refresh] → election:view:4
+
+━━━ Election · taking candidates, in a group ━━━
+(edits message 42)
+🗳 Ostmarch mayoral election (No. 4)
+
+🪑 Seats: 1
+📝 Taking candidates - 31h left
+🕒 Voting opens in 31h.
+💰 Deposit to stand: 5,000 Nil; it comes back after the count if you win at least 10% of the votes.
+
+Candidates:
+1. Kaveh (B3C4D5F)
+
+🔒 Standing and voting are done in your private chat with the bot.
+  ───
+  [🔙 Back] → election:list   │   [🔄 Refresh] → election:view:4
+
+━━━ Election · taking candidates, level too low ━━━
+(edits message 42)
+🗳 Ostmarch mayoral election (No. 4)
+
+🪑 Seats: 1
+📝 Taking candidates - 31h left
+🕒 Voting opens in 31h.
+💰 Deposit to stand: 5,000 Nil; it comes back after the count if you win at least 10% of the votes.
+
+Candidates:
+1. Kaveh (B3C4D5F)
+
+📝 Standing needs level 5.
+  ───
+  [🔙 Back] → election:list   │   [🔄 Refresh] → election:view:4
+
+━━━ Election · you are standing ━━━
+(edits message 42)
+🗳 Ostmarch mayoral election (No. 4)
+
+🪑 Seats: 1
+📝 Taking candidates - 31h left
+🕒 Voting opens in 31h.
+💰 Deposit to stand: 5,000 Nil; it comes back after the count if you win at least 10% of the votes.
+
+Candidates:
+1. Kaveh (B3C4D5F)
+2. Sara (K7Q2M9A) (you)
+
+📝 You are standing in this election.
+  ───
+  [🔙 Back] → election:list   │   [🔄 Refresh] → election:view:4
+
+━━━ Election · voting ━━━
+(edits message 42)
+🗳 Ostmarch city council election (No. 5)
+
+🪑 Seats: 5
+🗳 Voting - 12h left
+🕒 The votes are counted in 12h, at 02:35.
+
+Candidates:
+1. Kaveh (B3C4D5F)
+2. Sara (K7Q2M9A) (you)
+3. Nilou (N1L0F4R)
+
+🗳 Choose your candidate. You vote once, and your ballot stays secret.
+  ───
+  [🗳 Vote Kaveh (B3C4D5F)] → election:vote:5:1:0a1b2c3d4e71
+  [🗳 Vote Sara (K7Q2M9A)] → election:vote:5:2:0a1b2c3d4e71
+  [🗳 Vote Nilou (N1L0F4R)] → election:vote:5:3:0a1b2c3d4e71
+  [🔙 Back] → election:list   │   [🔄 Refresh] → election:view:5
+
+━━━ Election · voted ━━━
+(edits message 42)
+🗳 Ostmarch city council election (No. 5)
+
+🪑 Seats: 5
+🗳 Voting - 12h left
+🕒 The votes are counted in 12h, at 02:35.
+
+Candidates:
+1. Kaveh (B3C4D5F)
+2. Sara (K7Q2M9A) (you)
+3. Nilou (N1L0F4R)
+
+🗳 You have voted. Your ballot is secret.
+  ───
+  [🔙 Back] → election:list   │   [🔄 Refresh] → election:view:5
+
+━━━ Election · voting, too new to vote ━━━
+(edits message 42)
+🗳 Ostmarch city council election (No. 5)
+
+🪑 Seats: 5
+🗳 Voting - 12h left
+🕒 The votes are counted in 12h, at 02:35.
+
+Candidates:
+1. Kaveh (B3C4D5F)
+2. Sara (K7Q2M9A) (you)
+3. Nilou (N1L0F4R)
+
+🗳 You have not lived here long enough to vote.
+  ───
+  [🔙 Back] → election:list   │   [🔄 Refresh] → election:view:5
+
+━━━ Election · counted ━━━
+(edits message 42)
+🗳 Ostmarch mayoral election (No. 1)
+
+🪑 Seats: 1
+✅ Counted: 23 votes cast
+
+Candidates:
+1. Kaveh (B3C4D5F) - 15 votes 🏆
+2. Sara (K7Q2M9A) - 8 votes
+  ───
+  [🔙 Back] → election:list   │   [🔄 Refresh] → election:view:1
+
+━━━ Election · counting ━━━
+(edits message 42)
+🗳 The Commonwealth presidential election (No. 2)
+
+🪑 Seats: 1
+⏳ The vote is over; the count is due any moment.
+
+Candidates:
+1. Kaveh (B3C4D5F)
+  ───
+  [🔙 Back] → election:list   │   [🔄 Refresh] → election:view:2
+
+━━━ Stood ━━━
+(edits message 42) (private in groups)
+📝 You are now a candidate in the Ostmarch mayoral election.
+💰 Your deposit of 5,000 Nil is held until the count.
+💳 Paid by bank card.
+🕒 Voting opens in 31h.
+  ───
+  [🗳 Back to the election] → election:view:4
+
+━━━ Voted ━━━
+(edits message 42) (private in groups)
+🗳 Your vote in the Ostmarch city council election went to Kaveh (B3C4D5F).
+🔒 Nobody else will ever see whom you voted for.
+🕒 The votes are counted in 12h, at 02:35.
+  ───
+  [🗳 Back to the election] → election:view:5
+
+━━━ Election refused · none ━━━
+(edits message 42)
+There is no such election.
+  ───
+  [🔙 Back] → election:list
+
+━━━ Election refused · not_candidacy ━━━
+(edits message 42)
+The Ostmarch mayoral election is not taking candidates now.
+  ───
+  [🗳 Back to the election] → election:view:4
+  [🔙 Back] → election:list
+
+━━━ Election refused · not_voting ━━━
+(edits message 42)
+The Ostmarch mayoral election is not taking votes now.
+  ───
+  [🗳 Back to the election] → election:view:4
+  [🔙 Back] → election:list
+
+━━━ Election refused · away ━━━
+(edits message 42)
+📍 A candidacy is registered at city hall, in the city the election is for.
+  ───
+  [🗳 Back to the election] → election:view:4
+  [🔙 Back] → election:list
+
+━━━ Election refused · no_candidate ━━━
+(edits message 42)
+That candidate is not on the ballot.
+  ───
+  [🗳 Back to the election] → election:view:4
+  [🔙 Back] → election:list
+
+━━━ Election refused · not_resident ━━━
+(edits message 42)
+Only residents take part in the Ostmarch mayoral election.
+  ───
+  [🗳 Back to the election] → election:view:4
+  [🔙 Back] → election:list
+
+━━━ Election refused · too_new ━━━
+(edits message 42)
+You have not lived here long enough to take part in the Ostmarch mayoral election.
+  ───
+  [🗳 Back to the election] → election:view:4
+  [🔙 Back] → election:list
+
+━━━ Election refused · level ━━━
+(edits message 42)
+Your level is too low to stand in the Ostmarch mayoral election.
+  ───
+  [🗳 Back to the election] → election:view:4
+  [🔙 Back] → election:list
+
+━━━ Election refused · record ━━━
+(edits message 42)
+You owe victims or the city money; settle it before you stand.
+  ───
+  [🗳 Back to the election] → election:view:4
+  [🔙 Back] → election:list
+
+━━━ Election refused · jailed ━━━
+(edits message 42)
+You cannot stand from a cell.
+  ───
+  [🗳 Back to the election] → election:view:4
+  [🔙 Back] → election:list
+
+━━━ Election refused · standing ━━━
+(edits message 42)
+You are already a candidate in the Ostmarch mayoral election.
+  ───
+  [🗳 Back to the election] → election:view:4
+  [🔙 Back] → election:list
+
+━━━ Election refused · voted ━━━
+(edits message 42)
+You have already voted in the Ostmarch mayoral election; everyone votes once.
+  ───
+  [🗳 Back to the election] → election:view:4
+  [🔙 Back] → election:list
+
+━━━ Election refused · incompatible ━━━
+(edits message 42)
+You hold an office that cannot be held with this one.
+  ───
+  [🗳 Back to the election] → election:view:4
+  [🔙 Back] → election:list
+
+━━━ Notice · elected ━━━
+(sends) (private in groups)
+🏆 Congratulations! You won the Ostmarch mayoral election: 15 of 23 votes.
+💰 Your deposit of 5,000 Nil came back to you.
+  ───
+  [🗳 See the results] → election:view:1
+
+━━━ Notice · not elected, deposit kept ━━━
+(sends) (private in groups)
+🗳 You were not elected in the Ostmarch mayoral election: 1 of 23 votes.
+💰 Too few votes: your deposit of 5,000 Nil went to your city's treasury.
+  ───
+  [🗳 See the results] → election:view:1

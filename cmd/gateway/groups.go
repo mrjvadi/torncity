@@ -92,10 +92,15 @@ func (g *gateway) groupRenderer() *groups.Renderer {
 		if g.messages != nil {
 			msgs = g.messages
 		}
-		g.group.renderer = groups.NewRenderer(msgs, groups.Settings{
+		set := groups.Settings{
 			CallbackAlertMaxRunes: g.cfg.Groups.CallbackAlertMaxRunes,
 			Policy:                g.policy,
-		})
+			LinkTTL:               g.cfg.Groups.DeepLinkTTL,
+		}
+		if g.links != nil {
+			set.Links = g.links
+		}
+		g.group.renderer = groups.NewRenderer(msgs, set)
 	})
 	return g.group.renderer
 }
@@ -208,12 +213,13 @@ func (g *gateway) admit(ctx context.Context, bot application.Bot, update *client
 	case update.Message != nil:
 		msg := update.Message
 		if !groups.IsGroupChat(msg.Chat.Type, msg.Chat.ID) {
-			if command, ok := groups.CommandFromStart(msg.Text); ok && commands.FromPlayerCommand(command) {
-				// A deep link from a group: replay the command it names, as
-				// if the player had typed it here.
+			if command, args, ok := g.startCommand(ctx, msg.Text, meta, log); ok && commands.FromPlayerCommand(command) {
+				// A deep link from a group: replay the command it names, with
+				// what it was about (a payment's payee), as if the player had
+				// typed it here.
 				domain, action, _ := strings.Cut(command, ".")
 				replay := *msg
-				replay.Text = "/" + domain + " " + action
+				replay.Text = strings.Join(append([]string{"/" + domain, action}, args...), " ")
 				update.Message = &replay
 			}
 			return admission{proceed: true, mayHelp: true}
@@ -249,6 +255,25 @@ func (g *gateway) admit(ctx context.Context, bot application.Bot, update *client
 		return admission{proceed: true, mayHelp: false}
 	}
 	return admission{proceed: true, mayHelp: true}
+}
+
+// startCommand reads the command a deep link's "/start <payload>" replays:
+// from the payload itself, or from the link store when the payload is a
+// token for a link too long to carry (groups.LinkPayload).
+func (g *gateway) startCommand(ctx context.Context, text string, meta envelope.Metadata, log *slog.Logger) (string, []string, bool) {
+	if command, args, ok := groups.CommandFromStart(text); ok {
+		return command, args, true
+	}
+	token, ok := groups.TokenFromStart(text)
+	if !ok || g.links == nil {
+		return "", nil, false
+	}
+	value, err := g.links.Get(ctx, token)
+	if err != nil {
+		log.Warn("cannot read a deep link", append(metaAttrs(meta), slog.String("error", err.Error()))...)
+		return "", nil, false
+	}
+	return groups.ParseStored(value)
 }
 
 // clientFor is the bot's API client, or nil when the fleet has none.

@@ -181,7 +181,9 @@ func TestPrivateCommandGoesToThePrivateChat(t *testing.T) {
 		line.opts.ReplyParameters == nil || line.opts.ReplyParameters.MessageID != 40 {
 		t.Errorf("group line = %+v", line)
 	}
-	if url := buttonURL(t, line.markup); url != "https://t.me/torn_bot?start=run-bank-show" {
+	// Delivered: the link only opens the private chat, where the screen
+	// already is.
+	if url := buttonURL(t, line.markup); url != "https://t.me/torn_bot" {
 		t.Errorf("group line link = %q", url)
 	}
 }

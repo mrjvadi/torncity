@@ -216,6 +216,11 @@ var shortcuts = map[string]shortcut{
 	"shop":      {Bare: "shop.list", Words: "shop.view"},
 	"market":    {Bare: "market.list", Words: "market.book"},
 	"auction":   {Bare: "auction.list", Words: "auction.view"},
+	// "/election" is the elections of the player's city, "/election 3" one;
+	// "/vote 3 2" votes in election 3 for the second on its ballot, and
+	// "/vote" alone is the list to choose from.
+	"election": {Bare: "election.list", Words: "election.view"},
+	"vote":     {Bare: "election.list", Words: "election.vote"},
 }
 
 // argNames names the positional arguments of a command, in order.
@@ -258,7 +263,7 @@ var argNames = map[string][]string{
 	"social.friend.list":   {"page"},
 	"map.list":             {"page"},
 	"map.cities":           {"page"},
-	"place.go":             {"place"},
+	"place.go":             {"place", "then"},
 
 	// The profile takes nothing. A /start deep-link payload still arrives,
 	// under "args", for whoever reads it one day.
@@ -346,6 +351,13 @@ var argNames = map[string][]string{
 	"auction.new":    {"item", "reserve", "duration", "nonce"},
 	"auction.bid":    {"no", "amount", "nonce", "method"},
 	"auction.mine":   {},
+
+	// Elections, named by their public number; a candidate by their place
+	// on the ballot, from 1.
+	"election.list":  {},
+	"election.view":  {"no"},
+	"election.stand": {"no", "method", "nonce"},
+	"election.vote":  {"no", "candidate", "nonce"},
 }
 
 // landings name the screen a domain opens on when one of its commands cannot

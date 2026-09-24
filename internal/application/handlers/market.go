@@ -214,6 +214,7 @@ func (h *MarketHandler) Books(ctx context.Context, meta envelope.Metadata, req M
 			}
 		}
 		view.AtMarket = h.atMarket(w)
+		view.Way = wayTo(w, snap, place.ServiceMarket, h.scale)
 		return nil
 	})
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
@@ -275,7 +276,7 @@ func (h *MarketHandler) bookView(ctx context.Context, tx application.Tx, snap *c
 		return screens.BookView{}, err
 	}
 	v := screens.BookView{Item: named(def.Code, def.Name), CityCode: w.city.Code, City: w.city.Name,
-		AtMarket: h.atMarket(w), Nonce: h.nonce()}
+		AtMarket: h.atMarket(w), Way: wayTo(w, snap, place.ServiceMarket, h.scale), Nonce: h.nonce()}
 	now := h.now()
 	bids, asks := map[int64]int64{}, map[int64]int64{}
 	for _, o := range orders {
@@ -391,7 +392,7 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 			return err
 		}
 		if err := needService(w, snap, place.ServiceMarket, h.scale, now); err != nil {
-			return err
+			return thenFor(err, "market.book", def.Code)
 		}
 		if err := RefuseDetained(ctx, tx, p.ID, now); err != nil {
 			return err

@@ -185,6 +185,19 @@ var all = []Subscription{
 	{Domain: "auction", Action: "bid", Origin: FromPlayer},
 	{Domain: "auction", Action: "mine", Origin: FromPlayer},
 	{Domain: "auction", Action: "close", Origin: FromScheduler},
+
+	// Elections (migrations/0018_elections.up.sql): a city's and its
+	// country's elections, one election, standing and voting. Only the
+	// scheduler sends election.voting, when the candidacy is over,
+	// election.count, when the vote is over, and election.open, when a term
+	// is running out.
+	{Domain: "election", Action: "list", Origin: FromPlayer},
+	{Domain: "election", Action: "view", Origin: FromPlayer},
+	{Domain: "election", Action: "stand", Origin: FromPlayer},
+	{Domain: "election", Action: "vote", Origin: FromPlayer},
+	{Domain: "election", Action: "voting", Origin: FromScheduler},
+	{Domain: "election", Action: "count", Origin: FromScheduler},
+	{Domain: "election", Action: "open", Origin: FromScheduler},
 }
 
 // All returns every subscription. The slice is a copy.

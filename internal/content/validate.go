@@ -173,6 +173,9 @@ func (p *Pack) Validate() error {
 	// Items: components, archetypes, goods and the shops that sell them.
 	p.validateItems(&problems)
 
+	// Elections: how each elected office is elected.
+	p.validateElections(&problems)
+
 	if len(problems) > 0 {
 		return errors.Join(problems...)
 	}

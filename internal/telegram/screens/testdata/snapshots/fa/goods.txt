@@ -210,7 +210,7 @@
 📍 این مغازه در بازار است. برای خرید به آنجا بروید.
 🧾 مالیات فروش در اینجا: ۵٪
   ───
-  [🚶 بازار] → place:go:bazaar
+  [🚶 رفتن به بازار (۱۵ ثانیه)] → place:go:bazaar:shop.view:hardware_store
   [🔙 بازگشت] → shop:list   │   [🔄 به‌روزرسانی] → shop:view:hardware_store
 
 ━━━ Checkout · both ways cover it ━━━

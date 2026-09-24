@@ -245,6 +245,10 @@ func (t Telegram) PollHTTPTimeout() time.Duration {
 // screen must reach only the player who asked for it (internal/gateway/groups).
 type Groups struct {
 	CallbackAlertMaxRunes int // groups.callback_alert_max_runes
+	// DeepLinkTTL is how long a deep link to the private chat that carries
+	// more than a start parameter holds (a payee and an amount that do not
+	// fit Telegram's 64 characters) stays valid; groups.deep_link_ttl.
+	DeepLinkTTL time.Duration
 }
 
 // Menu is the bot's command menu (the "/" button). It is registered for
@@ -531,6 +535,7 @@ func Defaults() *Config {
 		},
 		Groups: Groups{
 			CallbackAlertMaxRunes: 200,
+			DeepLinkTTL:           15 * time.Minute,
 		},
 		Menu: Menu{
 			Commands: []string{"profile", "map", "job", "study", "bank", "city", "crime", "skills", "social", "find", "settings", "help"},

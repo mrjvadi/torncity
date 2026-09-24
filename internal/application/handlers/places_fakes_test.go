@@ -243,6 +243,7 @@ func (t *fakeTx) Items() application.ItemRepository { return t.items }
 
 // The shops, the market and the auction house have no fakes: their handlers
 // are tested against PostgreSQL (tests/trade_integration_test.go).
-func (t *fakeTx) Shops() application.ShopRepository       { return nil }
-func (t *fakeTx) Market() application.MarketRepository    { return nil }
-func (t *fakeTx) Auctions() application.AuctionRepository { return nil }
+func (t *fakeTx) Shops() application.ShopRepository         { return nil }
+func (t *fakeTx) Market() application.MarketRepository      { return nil }
+func (t *fakeTx) Auctions() application.AuctionRepository   { return nil }
+func (t *fakeTx) Elections() application.ElectionRepository { return nil }

@@ -38,6 +38,10 @@ const ValueKindScalar = "scalar"
 // filled — today, always the operator's.
 const AcquiredByAppointment = "appointment"
 
+// AcquiredByElection is offices.acquired_by for a seat won at an election's
+// count.
+const AcquiredByElection = "election"
+
 // Governance sentinels. Each is a refusal with its own identity, so a caller
 // can tell "not yours to change" from "out of bounds" from "too soon".
 var (
@@ -508,9 +512,25 @@ func heldSeat(acting *ActingOffice, playerID string) (Office, bool) {
 // declared incompatible with this one, in either direction, anywhere).
 //
 // The seat's term ends at now + the office's term, or never for an office
-// held at pleasure. Nothing ends a term yet; the date is recorded.
+// held at pleasure. The term is real time (docs/adr/0018-game-clock.md); an
+// elected office's next election is timed so its count ends the term.
 func AppointToOffice(ctx context.Context, tx Tx, officeCode, jurisdictionID string, seat int,
 	playerID string, now time.Time,
+) (before, after Office, err error) {
+	return fillSeat(ctx, tx, officeCode, jurisdictionID, seat, playerID, AcquiredByAppointment, now)
+}
+
+// ElectToOffice seats the winner of an election's count, under the same
+// checks as an appointment; the seat must be vacated first.
+func ElectToOffice(ctx context.Context, tx Tx, officeCode, jurisdictionID string, seat int,
+	playerID string, now time.Time,
+) (before, after Office, err error) {
+	return fillSeat(ctx, tx, officeCode, jurisdictionID, seat, playerID, AcquiredByElection, now)
+}
+
+// fillSeat gives a vacant seat a holder, by appointment or election.
+func fillSeat(ctx context.Context, tx Tx, officeCode, jurisdictionID string, seat int,
+	playerID, acquiredBy string, now time.Time,
 ) (before, after Office, err error) {
 	gov := tx.Governance()
 	now = now.UTC()
@@ -564,7 +584,7 @@ func AppointToOffice(ctx context.Context, tx Tx, officeCode, jurisdictionID stri
 
 	after = before
 	after.HolderPlayerID = playerID
-	after.AcquiredBy = AcquiredByAppointment
+	after.AcquiredBy = acquiredBy
 	after.Since = now
 	after.TermEndsAt = nil
 	if def.Term > 0 {

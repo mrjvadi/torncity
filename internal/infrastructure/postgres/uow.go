@@ -193,3 +193,6 @@ func (t *tx) Market() application.MarketRepository { return &MarketRepository{q:
 
 // Auctions returns the auction house.
 func (t *tx) Auctions() application.AuctionRepository { return &AuctionRepository{q: t.q} }
+
+// Elections returns the elections (migration 0018).
+func (t *tx) Elections() application.ElectionRepository { return &ElectionRepository{q: t.q} }

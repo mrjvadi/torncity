@@ -52,7 +52,7 @@ Requirements:
 ━━━ Profile with a job ━━━
 (edits message 42)
 👤 Sara
-📍 Ostmarch
+📍 city centre - Ostmarch
 
 ⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 100 of 100
@@ -84,6 +84,8 @@ Requirements:
 ⏱ Each shift takes 4m
 💵 Earned in this job: 0 Nil
 
+📍 You work at the business district - a 15s walk from where you are.
+
 ⬆️ Next position: Sales Associate
 Still needed for a promotion:
 ❌ Performance 55 (yours is 50)
@@ -92,11 +94,70 @@ Still needed for a promotion:
 ❌ Level 3 (you are level 1)
 ❌ Management level 2 (you have 0)
   ───
-  [🛠 Start a shift] → job:work
+  [🛠 Start a shift (15s walk to work + 4m of work)] → job:work
   [🚪 Leave job] → job:quit
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
 
-━━━ Start a shift ━━━
+━━━ Start a shift away from work (walks there first) ━━━
+(edits message 42)
+🚶 You set off for the business district - a 15s walk.
+🕒 Arriving at 12:00
+🛠 Your shift starts as soon as you arrive.
+  ───
+  [🗺 Map] → map:list
+  [🔙 Back] → player:profile.get
+
+━━━ Profile on the way to work ━━━
+(edits message 42)
+👤 Sara
+📍 Ostmarch
+🚶 On the way to the business district - 15s left - arriving at 12:00
+
+⭐ Level 1 - 50 XP to level 2
+⚡ Energy: 100 of 100
+❤️ Health: 100 of 100
+
+💼 Sales Trainee in Ostmarch - 120 Nil per shift
+
+💵 Cash: 5,000 Nil
+🏦 Bank balance: 0 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [🏛 Offices and policies] → gov:city
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
+━━━ My job at the workplace ━━━
+(edits message 42)
+💼 My job
+
+💼 Sales Trainee - Retail
+📍 Workplace: Ostmarch
+💰 Pay per shift: 120 Nil
+⚡ Energy per shift: 15 - you have 100 of 100
+📈 Performance: 50 of 100
+🔁 Shifts in this position: 0
+⏱ Each shift takes 4m
+💵 Earned in this job: 0 Nil
+
+📍 You are at your workplace, the business district.
+
+⬆️ Next position: Sales Associate
+Still needed for a promotion:
+❌ Performance 55 (yours is 50)
+❌ 24m more in this position
+❌ 6 shifts in this position (you have 0)
+❌ Level 3 (you are level 1)
+❌ Management level 2 (you have 0)
+  ───
+  [🛠 Start a shift (4m of work)] → job:work
+  [🚪 Leave job] → job:quit
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
+
+━━━ Start a shift (on arrival) ━━━
 (edits message 42)
 💼 Your shift as Sales Trainee has begun
 ⏱ Shift length: 4m
@@ -110,7 +171,7 @@ Your pay, XP and performance are settled when the shift ends, and you will be no
 ━━━ Profile during the shift ━━━
 (edits message 42)
 👤 Sara
-📍 Ostmarch
+📍 business district - Ostmarch
 
 ⭐ Level 1 - 50 XP to level 2
 ⚡ Energy: 85 of 100 - full in 44m
@@ -191,6 +252,8 @@ Still needed for a promotion:
 ⏱ Each shift takes 4m
 💵 Earned in this job: 120 Nil
 
+📍 You are at your workplace, the business district.
+
 ⬆️ Next position: Sales Associate
 Still needed for a promotion:
 ❌ Performance 55 (yours is 51)
@@ -199,7 +262,7 @@ Still needed for a promotion:
 ❌ Level 3 (you are level 1)
 ❌ Management level 2 (you have 0)
   ───
-  [🛠 Start a shift] → job:work
+  [🛠 Start a shift (4m of work)] → job:work
   [🚪 Leave job] → job:quit
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
 

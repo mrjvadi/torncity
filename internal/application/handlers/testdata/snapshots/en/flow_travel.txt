@@ -65,15 +65,16 @@ How would you like to travel?
 (edits message 42)
 🚉 Departures by Train are from the train station.
 📍 You are at the city centre now.
+One press walks you to the train station (20s) and opens this page again there.
   ───
-  [🚶 Walk to the train station - 20s] → place:go:train_station
-  [🗺 Map] → map:list
+  [🚶 Go to the train station (20s)] → place:go:train_station:travel.options:brennhaven
   [🔙 Back] → player:profile.get
 
 ━━━ Walk to the station ━━━
 (edits message 42)
 🚶 You set off for the train station - a 20s walk.
 🕒 Arriving at 12:00
+📲 What you asked for opens as soon as you arrive.
   ───
   [🗺 Map] → map:list
   [🔙 Back] → player:profile.get
@@ -167,7 +168,7 @@ Travelling by: Train
 ━━━ Profile in Brennhaven ━━━
 (edits message 42)
 👤 Sara
-📍 Brennhaven
+📍 train station - Brennhaven
 
 ⭐ Level 1 - 25 XP to level 2
 ⚡ Energy: 94 of 100 - full in 30m
@@ -240,18 +241,18 @@ How would you like to travel?
 (edits message 42)
 🚉 Departures by Flight are from the airport.
 📍 You are at the train station now.
+One press walks you to the airport (45s) and opens this page again there.
   ───
-  [🚶 Walk to the airport - 45s] → place:go:airport
-  [🗺 Map] → map:list
+  [🚶 Go to the airport (45s)] → place:go:airport:travel.options:ostmarch
   [🔙 Back] → player:profile.get
 
 ━━━ Pay the flight in cash anyway ━━━
 (edits message 42)
 🚉 Departures by Flight are from the airport.
 📍 You are at the train station now.
+One press walks you to the airport (45s) and opens this page again there.
   ───
-  [🚶 Walk to the airport - 45s] → place:go:airport
-  [🗺 Map] → map:list
+  [🚶 Go to the airport (45s)] → place:go:airport:travel.options:ostmarch
   [🔙 Back] → player:profile.get
 
 ━━━ Same city ━━━

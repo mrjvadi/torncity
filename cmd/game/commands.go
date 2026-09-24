@@ -255,6 +255,28 @@ func bindAll(subs []commands.Subscription, bound map[string]commandFunc) (map[st
 	return out, nil
 }
 
+// runnerFor runs one command from the bound table for a handler that has to
+// run another command on the player's behalf (a walk's follow-up,
+// internal/application/handlers/places_then.go). A command not in the table
+// is refused as bad input.
+func runnerFor(bound map[string]commandFunc) handlers.CommandRunner {
+	return func(ctx context.Context, meta envelope.Metadata, command string, payload map[string]string) (*presenter.Response, error) {
+		fn, ok := bound[command]
+		if !ok {
+			return nil, apperrors.InvalidInput("no such command to run")
+		}
+		if payload == nil {
+			payload = map[string]string{}
+		}
+		meta.Command = command
+		env, err := envelope.New(meta, payload)
+		if err != nil {
+			return nil, apperrors.InvalidInput("cannot run the command").WithCause(err)
+		}
+		return fn(ctx, env)
+	}
+}
+
 // decode reads a command's payload into its request type.
 //
 // A payload that does not decode is the sender's mistake and will be the same

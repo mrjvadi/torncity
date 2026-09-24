@@ -137,14 +137,15 @@ func TestStartPayloadRoundTripsEveryPlayerCommand(t *testing.T) {
 			t.Errorf("%s: payload %q", s.Command(), payload)
 			continue
 		}
-		got, ok := CommandFromStart("/start " + payload)
-		if !ok || got != s.Command() {
-			t.Errorf("%s: round trip gave %q, %v", s.Command(), got, ok)
+		got, args, ok := CommandFromStart("/start " + payload)
+		if !ok || got != s.Command() || len(args) != 0 {
+			t.Errorf("%s: round trip gave %q %v, %v", s.Command(), got, args, ok)
 		}
 	}
-	for _, text := range []string{"/start", "/start K7Q2M9A", "/start run-", "/start run-Map-list", "/profile run-map-list", "/start run-map-list extra"} {
-		if cmd, ok := CommandFromStart(text); ok {
-			t.Errorf("CommandFromStart(%q) = %q", text, cmd)
+	for _, text := range []string{"/start", "/start K7Q2M9A", "/start run-", "/start run-Map-list", "/profile run-map-list",
+		"/start run-map-list extra", "/start run---K7Q2M9A", "/start run-bank-pay--", "/start run-bank-pay--K7Q2M9A--5000"} {
+		if cmd, args, ok := CommandFromStart(text); ok {
+			t.Errorf("CommandFromStart(%q) = %q %v", text, cmd, args)
 		}
 	}
 	if DeepLink("", "run-map-list") != "" || DeepLink("@torn_bot", "") != "https://t.me/torn_bot" {

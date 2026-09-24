@@ -329,7 +329,8 @@ func CityGovernance(c Context, v CityGovView) *presenter.Response {
 	}
 
 	if b, ok := keyboards.Button(c.T("gov.button.history", nil), AddrGovHistory, v.City.Code); ok {
-		kb.Row(b)
+		elections, _ := keyboards.Button(c.T("gov.button.elections", nil), AddrElections)
+		kb.Row(b, elections)
 	}
 	if v.HoldsOffice {
 		kb.Add(c.T("gov.button.my_office", nil), AddrGovOffice)

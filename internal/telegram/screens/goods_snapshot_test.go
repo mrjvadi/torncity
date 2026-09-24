@@ -91,7 +91,7 @@ func goodsSnapshots(c Context, who people, add func(string, *presenter.Response)
 		{Item: Named{Code: "gloves", Name: "Pair of gloves"}, Price: 120, Stock: 0, NextRestock: snapshotNow.Add(20 * time.Minute)},
 	}
 	add("Shop · at the counter", ShopDetail(c, ShopView{Shop: snapHardware, Place: snapBazaar, Here: true, Shelves: shelves, TaxBPS: 500}))
-	add("Shop · from across town", ShopDetail(c, ShopView{Shop: snapHardware, Place: snapBazaar, Shelves: shelves, TaxBPS: 500}))
+	add("Shop · from across town", ShopDetail(c, ShopView{Shop: snapHardware, Place: snapBazaar, Walk: 15 * time.Second, Shelves: shelves, TaxBPS: 500}))
 	add("Checkout · both ways cover it", ShopCheckout(c, ShopCheckoutView{
 		Shop: snapHardware, Item: snapLockpick, Qty: 1, Unit: 600, Total: 630, Tax: 30, TaxBPS: 500, Stock: 4,
 		Payment: PaymentChoice{Amount: 630, Accepted: []string{MethodCash, MethodCard}, Usable: []string{MethodCash, MethodCard}, Cash: 2000, Bank: 9000},

@@ -66,6 +66,17 @@ const (
 	// ActionTypeAuctionClose is an auction reaching its end: sold to the
 	// standing bid or returned unsold.
 	ActionTypeAuctionClose = "auction_close"
+
+	// ActionTypeElectionVoting is an election's candidacy ending: the vote
+	// opens.
+	ActionTypeElectionVoting = "election_voting"
+
+	// ActionTypeElectionCount is an election's vote ending: the count.
+	ActionTypeElectionCount = "election_count"
+
+	// ActionTypeElectionOpen is an elected office's term running out (or a
+	// seat left unfilled): the next election opens.
+	ActionTypeElectionOpen = "election_open"
 )
 
 // routes maps an action type to the command it is published as.
@@ -90,6 +101,10 @@ var routes = map[string]Route{
 
 	ActionTypeMarketExpiry: {Domain: "market", Action: "expire"},
 	ActionTypeAuctionClose: {Domain: "auction", Action: "close"},
+
+	ActionTypeElectionVoting: {Domain: "election", Action: "voting"},
+	ActionTypeElectionCount:  {Domain: "election", Action: "count"},
+	ActionTypeElectionOpen:   {Domain: "election", Action: "open"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

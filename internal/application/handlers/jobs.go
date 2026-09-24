@@ -10,6 +10,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/job"
+	"github.com/mrjvadi/torncity/internal/domain/place"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
@@ -214,6 +215,22 @@ func (h *JobsHandler) statusView(ctx context.Context, tx application.Tx, snap *c
 		view.Shift = &screens.ShiftProgress{
 			Remaining: domainActivity(*shift).Remaining(now),
 			EndsAt:    shift.EndsAt,
+		}
+	}
+	// Where in the city the job is worked, and the walk there from here:
+	// the start button walks there first when it is somewhere else.
+	if view.AtWorkplace && shift == nil {
+		w, err := locate(ctx, tx, h.cities, snap, p)
+		if err != nil {
+			return screens.JobStatusView{}, err
+		}
+		if w.placed() && w.city.ID == emp.CityID && w.walk == nil {
+			if wp, ok := w.cmap.ForWork(def.Category); ok {
+				view.Workplace = placeNamed(snap, wp.Code)
+				if wp, away := workplaceAway(w, def.Category, emp.CityID); away {
+					view.WalkToWork = h.scale.RealWait(wp.MoveTime)
+				}
+			}
 		}
 	}
 	if !view.TopTier {
@@ -499,7 +516,12 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 	snap := h.content.Current()
 	lang := meta.Language
 	replayed := false
-	var view screens.ShiftStartedView
+	var (
+		view screens.ShiftStartedView
+		// walk is set when the player was elsewhere in the city: they walk
+		// to the workplace, and the shift starts on arrival.
+		walk *screens.WalkStartedView
+	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -537,11 +559,12 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 		if err := RefuseDetained(ctx, tx, p.ID, now); err != nil {
 			return err
 		}
-		// Nor halfway through a walk across the city: arrive first. The
-		// shift itself then puts the player at their workplace.
-		if w, err := locate(ctx, tx, h.cities, snap, p); err != nil {
+		// Nor halfway through a walk across the city: arrive first.
+		w, err := locate(ctx, tx, h.cities, snap, p)
+		if err != nil {
 			return err
-		} else if err := refuseWalking(w, snap, now); err != nil {
+		}
+		if err := refuseWalking(w, snap, now); err != nil {
 			return err
 		}
 		def, career, err := careerOf(snap, emp.CareerCode)
@@ -583,6 +606,25 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 				return energyRefusal(err, tier.EnergyCost, s.stats.Energy)
 			}
 			return errors.Internal(err)
+		}
+		// A shift is worked at the workplace: the place of the career's
+		// category (places.yml work_categories). A player elsewhere in the
+		// city walks there first — the shift they could start now is what
+		// was just checked — and it starts on arrival (places_then.go).
+		// Nothing of the shift is charged until then.
+		if wp, away := workplaceAway(w, def.Category, emp.CityID); away {
+			then, err := followUpFrom(meta, "job.work", nil)
+			if err != nil {
+				return err
+			}
+			started, err := beginWalk(ctx, tx, h.ids, h.scale, snap, meta, walkStart{
+				player: p, stats: s.stats, where: w, to: wp.Code, then: then,
+			}, now)
+			if err != nil {
+				return err
+			}
+			walk = &started
+			return nil
 		}
 
 		stats := storedStats(s.stats, started.Stats)
@@ -660,7 +702,25 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 	if replayed {
 		return h.Status(ctx, meta)
 	}
+	if walk != nil {
+		return screens.WalkStarted(h.screen(meta, lang), *walk), nil
+	}
 	return screens.ShiftStarted(h.screen(meta, lang), view), nil
+}
+
+// workplaceAway returns the workplace of a career category in the player's
+// city, and whether the player stands somewhere else in it. A player in
+// another city, in a city without places, or nowhere, is not "away" here:
+// the job's own city check answers for them.
+func workplaceAway(w whereabouts, category, jobCityID string) (place.Place, bool) {
+	if !w.placed() || w.city.ID != jobCityID || w.walk != nil {
+		return place.Place{}, false
+	}
+	wp, ok := w.cmap.ForWork(category)
+	if !ok || wp.Code == w.here.Code {
+		return wp, false
+	}
+	return wp, true
 }
 
 // ShiftActionPayload is the jsonb a started shift writes onto its
