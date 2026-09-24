@@ -947,6 +947,9 @@ func (h *CompaniesHandler) manageView(ctx context.Context, tx application.Tx, sn
 		return v, err
 	}
 	v.Openings = len(openings)
+	if v.Citizens, err = h.citizensNow(ctx, tx, snap, c, city.Code); err != nil {
+		return v, err
+	}
 	pending, err := tx.Companies().Pending(ctx, c.ID)
 	if err != nil {
 		return v, err

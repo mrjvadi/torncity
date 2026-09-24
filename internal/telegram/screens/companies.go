@@ -475,6 +475,8 @@ type CompanyManageView struct {
 	PriceBPS, PriceMin, PriceMax, PriceStep int
 	Staff, MaxStaff, Openings, Pending      int
 	AutoAccept                              bool
+	// Citizens is who works the untaken openings this period.
+	Citizens CompanyCitizens
 	// TaxBPS is the city's corporate tax on profits taken out.
 	TaxBPS int
 	Last   *CompanyPeriodSummary
@@ -507,6 +509,9 @@ func CompanyManage(c Context, v CompanyManageView) *presenter.Response {
 			"staff": FormatNumber(c, int64(v.Staff)), "max": FormatNumber(c, int64(v.MaxStaff)),
 			"openings": FormatNumber(c, int64(v.Openings)), "pending": FormatNumber(c, int64(v.Pending)),
 		}),
+	}
+	if line := c.citizensLine(v.Citizens); line != "" {
+		running = append(running, line)
 	}
 	if v.Manager != nil {
 		running = append(running, c.T("company.manager", map[string]any{"player": c.govPlayer(v.Manager)}))
@@ -727,12 +732,36 @@ type CompanyApplicationLine struct {
 type CompanyStaffView struct {
 	Ref          CompanyRef
 	Employees    []CompanyEmployeeLine
+	Citizens     CompanyCitizens
 	Applications []CompanyApplicationLine
 	// Firing is the employee a firing is being confirmed for.
 	Firing *CompanyEmployeeLine
 	// Decided is the application just decided, and whether it was taken.
 	Decided *CompanyApplicationLine
 	Hired   bool
+}
+
+// CompanyCitizens is the citizen labour on a company's untaken openings:
+// Vacant free positions, of which Workers are worked this period for Wages a
+// full period.
+type CompanyCitizens struct {
+	Vacant, Workers int
+	Wages           int64
+}
+
+// citizensLine says who works the untaken openings, or why nobody does;
+// empty when the company has no untaken opening.
+func (c Context) citizensLine(v CompanyCitizens) string {
+	switch {
+	case v.Vacant == 0:
+		return ""
+	case v.Workers == 0:
+		return c.T("company.citizens_unpaid", map[string]any{"vacant": FormatNumber(c, int64(v.Vacant))})
+	}
+	return c.T("company.citizens_working", map[string]any{
+		"workers": FormatNumber(c, int64(v.Workers)), "vacant": FormatNumber(c, int64(v.Vacant)),
+		"wages": FormatMoney(c, v.Wages),
+	})
 }
 
 // CompanyStaff renders a company's staff.
@@ -770,6 +799,7 @@ func CompanyStaff(c Context, v CompanyStaffView) *presenter.Response {
 	if len(staff) == 0 {
 		employees = c.T("company.staff_none", nil)
 	}
+	employees = paragraphs(employees, c.citizensLine(v.Citizens))
 	var apps []string
 	if len(v.Applications) > 0 {
 		apps = append(apps, c.T("company.applications", nil))

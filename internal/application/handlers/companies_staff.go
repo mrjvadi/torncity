@@ -339,6 +339,13 @@ func (h *CompaniesHandler) staffView(ctx context.Context, tx application.Tx, sna
 	if err != nil {
 		return v, err
 	}
+	city, err := h.cities.ByID(ctx, c.CityID)
+	if err != nil {
+		return v, err
+	}
+	if v.Citizens, err = h.citizensNow(ctx, tx, snap, c, city.Code); err != nil {
+		return v, err
+	}
 	for _, e := range staff {
 		who, err := playerNamed(ctx, tx, e.PlayerID)
 		if err != nil {

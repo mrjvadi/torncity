@@ -14,6 +14,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
+	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The settlement of a city's companies.
@@ -467,4 +468,31 @@ func (h *CompaniesHandler) citizenPlan(ctx context.Context, tx application.Tx, c
 		return company.CitizenPlan{}, errors.Internal(err)
 	}
 	return plan, nil
+}
+
+// citizensNow is the citizen labour on a company's untaken openings as the
+// coming settlement would pay it for a full period: what its management
+// and staff screens show, so the owner sees citizens at work from the
+// moment an opening is posted rather than only in the period's report.
+func (h *CompaniesHandler) citizensNow(ctx context.Context, tx application.Tx, snap *content.Snapshot,
+	c application.Company, cityCode string,
+) (screens.CompanyCitizens, error) {
+	vacancies, err := citizenVacancies(ctx, tx, c.ID)
+	if err != nil || len(vacancies) == 0 {
+		return screens.CompanyCitizens{}, err
+	}
+	out := screens.CompanyCitizens{}
+	for _, v := range vacancies {
+		out.Vacant += v.Positions
+	}
+	pool := 0
+	if def, _, ok := snap.CompanyMarket(cityCode); ok {
+		pool = int(def.Population * int64(h.rules.CitizenLabourShareBPS) / 10000)
+	}
+	plan, err := h.citizenPlan(ctx, tx, c, 10000, pool)
+	if err != nil {
+		return out, err
+	}
+	out.Workers, out.Wages = plan.Workers, plan.Wages.Minor()
+	return out, nil
 }

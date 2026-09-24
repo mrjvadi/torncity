@@ -245,6 +245,74 @@ Now put money into the company's account and post a job opening; from the next p
   [🧑‍💼 Appoint a manager] → ask:company.manager:Q7M2K9B   │   [🚪 Close the company] → company:close:Q7M2K9B
   [🔙 Back] → company:view:Q7M2K9B   │   [🔄 Refresh] → company:manage:Q7M2K9B
 
+━━━ Manage · citizens on the openings ━━━
+(edits message 42) (private in groups)
+⚙️ Managing Kaveh Bakery
+🏷 Grocery store - code Q7M2K9B
+
+💰 Company balance: 18,400 Nil
+🔒 Wages reserved for shifts under way: 300 Nil
+💵 Free to spend: 18,100 Nil
+🔧 Upkeep per period: 500 Nil
+🏛 Corporate tax on profits taken out: 10%
+
+🏷 Price level: 110% of the reference price
+👥 Staff: 3 of 5 - open openings: 1 - applications waiting: 2
+👷 3 citizens work 3 open positions - their wages are about 900 Nil a period, paid from the company account at settlement
+🧑‍💼 Manager: Kaveh (B3C4D5F)
+🤝 You accept or reject every application yourself.
+
+📊 Last period:
+💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
+💸 Wages: 600 Nil - upkeep: 500 Nil
+📦 Sold 180 of 186 units asked for - capacity 180 units
+⭐ Quality 100% - 4 shifts worked
+
+🕒 Next settlement: 14:52 - in 17m
+  ───
+  [📥 Put in cash] → ask:company.deposit:Q7M2K9B:cash   │   [📥 Put in by card] → ask:company.deposit:Q7M2K9B:card
+  [📤 Take out profit] → ask:company.withdraw:Q7M2K9B
+  [🏷 Cheaper] → company:price:Q7M2K9B:10000   │   [🏷 Dearer] → company:price:Q7M2K9B:12000
+  [👥 Staff and applications] → company:staff:Q7M2K9B   │   [📋 Job openings] → company:openings:Q7M2K9B
+  [🏭 Production and warehouse] → company:warehouse:Q7M2K9B
+  [🤝 Hire automatically] → company:auto:Q7M2K9B:on
+  [🧑‍💼 Appoint a manager] → ask:company.manager:Q7M2K9B   │   [🚪 Close the company] → company:close:Q7M2K9B
+  [🔙 Back] → company:view:Q7M2K9B   │   [🔄 Refresh] → company:manage:Q7M2K9B
+
+━━━ Manage · openings the company cannot pay citizens for ━━━
+(edits message 42) (private in groups)
+⚙️ Managing Kaveh Bakery
+🏷 Grocery store - code Q7M2K9B
+
+💰 Company balance: 18,400 Nil
+🔒 Wages reserved for shifts under way: 300 Nil
+💵 Free to spend: 18,100 Nil
+🔧 Upkeep per period: 500 Nil
+🏛 Corporate tax on profits taken out: 10%
+
+🏷 Price level: 110% of the reference price
+👥 Staff: 3 of 5 - open openings: 1 - applications waiting: 2
+👷 You have 2 open positions, but the company's free money cannot pay citizens' wages; deposit into the company account and they will come to work.
+🧑‍💼 Manager: Kaveh (B3C4D5F)
+🤝 You accept or reject every application yourself.
+
+📊 Last period:
+💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
+💸 Wages: 600 Nil - upkeep: 500 Nil
+📦 Sold 180 of 186 units asked for - capacity 180 units
+⭐ Quality 100% - 4 shifts worked
+
+🕒 Next settlement: 14:52 - in 17m
+  ───
+  [📥 Put in cash] → ask:company.deposit:Q7M2K9B:cash   │   [📥 Put in by card] → ask:company.deposit:Q7M2K9B:card
+  [📤 Take out profit] → ask:company.withdraw:Q7M2K9B
+  [🏷 Cheaper] → company:price:Q7M2K9B:10000   │   [🏷 Dearer] → company:price:Q7M2K9B:12000
+  [👥 Staff and applications] → company:staff:Q7M2K9B   │   [📋 Job openings] → company:openings:Q7M2K9B
+  [🏭 Production and warehouse] → company:warehouse:Q7M2K9B
+  [🤝 Hire automatically] → company:auto:Q7M2K9B:on
+  [🧑‍💼 Appoint a manager] → ask:company.manager:Q7M2K9B   │   [🚪 Close the company] → company:close:Q7M2K9B
+  [🔙 Back] → company:view:Q7M2K9B   │   [🔄 Refresh] → company:manage:Q7M2K9B
+
 ━━━ Manage · profit taken out ━━━
 (edits message 42) (private in groups)
 📤 5,000 Nil withdrawn: 500 Nil corporate tax, and 4,500 Nil into your bank account.
@@ -396,6 +464,16 @@ Every staff place is taken or advertised.
   ───
   [✅ Accept Sara] → company:decide:7:yes   │   [❌ Reject Sara] → company:decide:7:no
   [🚪 Fire Nilou] → company:fire:Q7M2K9B:N1L0F4R
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:staff:Q7M2K9B
+
+━━━ Staff · nobody hired, citizens working ━━━
+(edits message 42) (private in groups)
+👥 Staff of Kaveh Bakery
+
+You have no staff yet.
+
+👷 2 citizens work 2 open positions - their wages are about 440 Nil a period, paid from the company account at settlement
+  ───
   [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:staff:Q7M2K9B
 
 ━━━ Staff · just hired ━━━

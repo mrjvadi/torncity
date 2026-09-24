@@ -1579,6 +1579,8 @@ company:
   opening_line: "💼 {title} - {wage} per shift - {filled} of {positions} filled"
   openings_none: "You have no open openings."
   openings_citizens: "👷 Until a player is hired, the city's citizens fill open positions: they are paid the same wage from the company account and are a little less productive. Every player you hire takes a citizen's place."
+  citizens_working: "👷 {workers} citizens work {vacant} open positions - their wages are about {wages} a period, paid from the company account at settlement"
+  citizens_unpaid: "👷 You have {vacant} open positions, but the company's free money cannot pay citizens' wages; deposit into the company account and they will come to work."
   openings_post: "For a new opening, press the career and send the wage per shift; the city's minimum wage is {wage}."
   openings_full: "Every staff place is taken or advertised."
   openings_at_max: "You cannot have more open openings; close one first."

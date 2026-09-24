@@ -86,6 +86,12 @@ func companySnapshots(c Context, who people, add func(string, *presenter.Respons
 			Shifts: 4, QualityBPS: 10000, Sold: 180, Wanted: 186, Capacity: 180, Balance: 18400},
 		NextAt: snapshotNow.Add(17 * time.Minute), NextIn: 17 * time.Minute}
 	add("Manage · the owner's screen", CompanyManage(c, manage))
+	withCitizens := manage
+	withCitizens.Citizens = CompanyCitizens{Vacant: 3, Workers: 3, Wages: 900}
+	add("Manage · citizens on the openings", CompanyManage(c, withCitizens))
+	unpaid := manage
+	unpaid.Citizens = CompanyCitizens{Vacant: 2}
+	add("Manage · openings the company cannot pay citizens for", CompanyManage(c, unpaid))
 	withdrawn := manage
 	withdrawn.Notice = &CompanyNotice{Kind: CompanyNoticeWithdrawn, Amount: 5000, Tax: 500, Net: 4500}
 	add("Manage · profit taken out", CompanyManage(c, withdrawn))
@@ -109,6 +115,8 @@ func companySnapshots(c Context, who people, add func(string, *presenter.Respons
 			{Player: third, Job: cashier, Wage: 150, Shifts: 3},
 		},
 		Applications: []CompanyApplicationLine{{No: 7, Player: GovPlayer{Name: who.me, Code: myCode}, Job: cashier, Level: 4}}}))
+	add("Staff · nobody hired, citizens working", CompanyStaff(c, CompanyStaffView{Ref: mine,
+		Citizens: CompanyCitizens{Vacant: 2, Workers: 2, Wages: 440}}))
 	add("Staff · just hired", CompanyStaff(c, CompanyStaffView{Ref: mine, Decided: &CompanyApplicationLine{No: 7, Player: third, Job: cashier},
 		Hired: true, Employees: []CompanyEmployeeLine{{Player: third, Job: cashier, Wage: 150}}}))
 	add("Staff · firing, confirm", CompanyStaff(c, CompanyStaffView{Ref: mine, Firing: &CompanyEmployeeLine{Player: third, Job: cashier}}))
