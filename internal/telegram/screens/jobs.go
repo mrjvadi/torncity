@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/domain/job"
@@ -173,6 +174,9 @@ type JobStatusView struct {
 	// Employed is false for a player with no job; nothing else is set then.
 	Employed bool
 	Job      JobRef
+	// Employer is the company the job is at; empty at the city's base
+	// employer.
+	Employer string
 	// CityCode and City are where the job is.
 	CityCode string
 	City     string
@@ -237,8 +241,13 @@ func JobStatus(c Context, v JobStatusView) *presenter.Response {
 		return c.respond(paragraphs(c.T("job.status_title", nil), c.T("job.none", nil)), kb.Build())
 	}
 
+	var employer string
+	if v.Employer != "" {
+		employer = c.T("company.opening_employer", map[string]any{"company": v.Employer})
+	}
 	details := body(
 		c.T("job.position", map[string]any{"title": c.jobTitle(v.Job), "career": c.jobCareer(v.Job)}),
+		employer,
 		c.T("job.workplace", map[string]any{"city": c.CityName(v.CityCode, v.City)}),
 		c.T("job.pay", map[string]any{"pay": FormatMoney(c, v.Pay)}),
 		c.T("job.energy", map[string]any{
@@ -317,10 +326,22 @@ type JobOpening struct {
 	Eligible bool
 }
 
+// CompanyJobOpening is an opening of a player company in the city.
+type CompanyJobOpening struct {
+	No       int64
+	Company  string
+	Job      JobRef
+	Pay      int64
+	Eligible bool
+}
+
 // JobOpeningsView is the openings in the player's city, one page of them.
 type JobOpeningsView struct {
-	CityCode string
-	City     string
+	// Companies are the openings of the city's player companies, shown
+	// beside the base employer's on the first page.
+	Companies []CompanyJobOpening
+	CityCode  string
+	City      string
 	// Travelling means the player is between cities; nothing is listed.
 	Travelling bool
 	// Employed means the player already works; Current is their position.
@@ -370,16 +391,39 @@ func JobOpenings(c Context, v JobOpeningsView) *presenter.Response {
 			buttons = append(buttons, btn)
 		}
 	}
+	var companyLines []string
+	var companyButtons []presenter.Button
+	for _, o := range v.Companies {
+		key := "company.job_line"
+		if !o.Eligible {
+			key = "company.job_line_locked"
+		}
+		if len(companyLines) == 0 {
+			companyLines = append(companyLines, c.T("company.job_heading", nil))
+		}
+		companyLines = append(companyLines, c.T(key, map[string]any{
+			"company": o.Company, "title": c.jobTitle(o.Job), "pay": FormatMoney(c, o.Pay),
+		}))
+		label := "company.button.job"
+		if !o.Eligible {
+			label = "company.button.job_locked"
+		}
+		if btn, ok := keyboards.Button(c.T(label, map[string]any{"title": c.jobTitle(o.Job), "company": o.Company}),
+			AddrCompanyOpening, strconv.FormatInt(o.No, 10)); ok {
+			companyButtons = append(companyButtons, btn)
+		}
+	}
 	list := body(lines...)
 	var hint string
 	switch {
-	case len(lines) == 0:
+	case len(lines) == 0 && len(companyLines) == 0:
 		list = c.T("job.openings_none", nil)
 	case !v.Employed:
 		hint = c.T("job.openings_hint", nil)
 	}
 
 	kb.Grid(2, buttons...)
+	kb.Grid(2, companyButtons...)
 	if v.Employed {
 		mine, _ := keyboards.Button(c.T("job.button.my_job", nil), AddrJobStatus)
 		kb.Row(mine)
@@ -395,7 +439,7 @@ func JobOpenings(c Context, v JobOpeningsView) *presenter.Response {
 		HasNext:  v.Page < v.Pages,
 		BackData: AddrHome,
 	}))
-	return c.respond(paragraphs(title, employed, list, indicator, hint), kb.Build())
+	return c.respond(paragraphs(title, employed, list, body(companyLines...), indicator, hint), kb.Build())
 }
 
 // JobDetailView is one opening in detail.
@@ -446,7 +490,9 @@ func JobDetail(c Context, v JobDetailView) *presenter.Response {
 
 // JobHiredView is a successful application.
 type JobHiredView struct {
-	Job      JobRef
+	Job JobRef
+	// Employer is the company hired at; empty at the base employer.
+	Employer string
 	CityCode string
 	City     string
 	Pay      int64
@@ -454,10 +500,15 @@ type JobHiredView struct {
 
 // JobHired renders the new job.
 func JobHired(c Context, v JobHiredView) *presenter.Response {
-	text := c.T("job.hired", map[string]any{
-		"title": c.jobTitle(v.Job),
-		"city":  c.CityName(v.CityCode, v.City),
-		"pay":   FormatMoney(c, v.Pay),
+	key := "job.hired"
+	if v.Employer != "" {
+		key = "company.hired"
+	}
+	text := c.T(key, map[string]any{
+		"title":   c.jobTitle(v.Job),
+		"city":    c.CityName(v.CityCode, v.City),
+		"pay":     FormatMoney(c, v.Pay),
+		"company": v.Employer,
 	})
 	kb := keyboards.New()
 	work, _ := keyboards.Button(c.T("job.button.work", nil), AddrJobWork)

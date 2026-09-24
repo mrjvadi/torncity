@@ -54,6 +54,9 @@ type Snapshot struct {
 
 	// Elections by office; see election.go.
 	elections map[string]ElectionDef
+
+	// Companies; see company.go.
+	companies companyContent
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -117,6 +120,7 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	snap.buildPlaces(p)
 	snap.buildItems(p)
 	snap.buildElections(p)
+	snap.buildCompanies(p)
 
 	return snap, nil
 }

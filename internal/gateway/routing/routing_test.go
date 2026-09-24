@@ -101,7 +101,7 @@ func TestParse(t *testing.T) {
 		{name: "plain text is not a command", update: textUpdate("hello"), wantErr: ErrNotACommand},
 		{name: "empty text", update: textUpdate("   "), wantErr: ErrNoCommand},
 		{name: "a lone slash", update: textUpdate("/"), wantErr: ErrMalformedCommand},
-		{name: "domain without an action", update: textUpdate("/company"), wantErr: ErrMissingAction},
+		{name: "domain without an action", update: textUpdate("/factory"), wantErr: ErrMissingAction},
 		{name: "digits are not a subject token", update: textUpdate("/job apply2"), wantErr: ErrMalformedCommand},
 		{name: "a dash is not a subject token", update: textUpdate("/job re-apply"), wantErr: ErrMalformedCommand},
 		{name: "empty callback data", update: callbackUpdate(""), wantErr: ErrEmptyCallbackData},

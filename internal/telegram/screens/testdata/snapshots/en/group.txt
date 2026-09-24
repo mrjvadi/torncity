@@ -125,3 +125,47 @@ To cancel, send "cancel".
 
 ━━━ announcement · nobody stood ━━━
 🗳 The Ostmarch mayoral election filled no seat: nobody stood, and the office stays vacant until the next election.
+
+━━━ announcement · a company founded ━━━
+🏢 Kaveh registered Kaveh Bakery (Grocery store) in Ostmarch. Send "company Q7M2K9B" to see it.
+
+━━━ announcement · a company closed ━━━
+🔒 Kaveh Bakery in Ostmarch has closed.
+
+━━━ announcement · a company dissolved ━━━
+🔒 Kaveh Bakery in Ostmarch was dissolved for unpaid upkeep.
+
+━━━ question · company.found ━━━
+🏢 Type the company's name and send it.
+To cancel, send "cancel".
+
+━━━ question · company.found · reply box ━━━
+Company name
+
+━━━ question · company.deposit ━━━
+📥 How much should go into the company's account? Type the amount as a number.
+To cancel, send "cancel".
+
+━━━ question · company.deposit · reply box ━━━
+Amount to put in, in Nil
+
+━━━ question · company.withdraw ━━━
+📤 How much profit should be taken out? Type the amount as a number; the corporate tax comes out of it.
+To cancel, send "cancel".
+
+━━━ question · company.withdraw · reply box ━━━
+Amount to take out, in Nil
+
+━━━ question · company.post ━━━
+💼 What should one shift of this opening pay? Type the amount as a number.
+To cancel, send "cancel".
+
+━━━ question · company.post · reply box ━━━
+Pay per shift, in Nil
+
+━━━ question · company.manager ━━━
+🧑‍💼 Send the new manager's player code or username; to remove the manager, send "none".
+To cancel, send "cancel".
+
+━━━ question · company.manager · reply box ━━━
+Player code or username

@@ -247,3 +247,4 @@ func (t *fakeTx) Shops() application.ShopRepository         { return nil }
 func (t *fakeTx) Market() application.MarketRepository      { return nil }
 func (t *fakeTx) Auctions() application.AuctionRepository   { return nil }
 func (t *fakeTx) Elections() application.ElectionRepository { return nil }
+func (t *fakeTx) Companies() application.CompanyRepository  { return noCompanies{} }

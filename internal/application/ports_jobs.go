@@ -36,6 +36,10 @@ const (
 // Employment end reasons, as employments.end_reason stores them.
 const (
 	EndResigned = "resigned"
+	// EndFired is a job at a company its owner or manager ended.
+	EndFired = "fired"
+	// EndCompanyClosed is a job at a company that closed.
+	EndCompanyClosed = "company_closed"
 )
 
 // Enrollment statuses, as enrollments.status stores them. They are the
@@ -68,6 +72,10 @@ type Employment struct {
 	TotalEarned int64
 	HiredAt     time.Time
 	UpdatedAt   time.Time
+	// CompanyID is the player company the job is at, and OpeningID the
+	// opening it was taken from; both empty at a city's base employer.
+	CompanyID string
+	OpeningID string
 }
 
 // WorkShift is one shift worked: a work_shifts row, the base employer's
@@ -85,6 +93,8 @@ type WorkShift struct {
 	// LedgerTransactionID is the wage payment; empty for a shift that paid
 	// nothing.
 	LedgerTransactionID string
+	// CompanyID is the company that paid it; empty for the base employer.
+	CompanyID string
 }
 
 // ShiftSession is one shift from its start to its end: a shift_sessions row.
@@ -103,6 +113,11 @@ type ShiftSession struct {
 	StartedAt   time.Time
 	EndsAt      time.Time
 	CompletedAt *time.Time
+	// CompanyID is the company the shift is worked for, and WageReserved
+	// the wage it set aside of the company's money when it started;
+	// empty and zero at the base employer.
+	CompanyID    string
+	WageReserved int64
 }
 
 // EmploymentRepository persists jobs. Reach it through Tx.Employment, so a

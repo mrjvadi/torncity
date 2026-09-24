@@ -132,6 +132,10 @@ type Tx interface {
 	Market() MarketRepository
 	Auctions() AuctionRepository
 	Elections() ElectionRepository
+
+	// Companies holds player companies, so a company changes with the
+	// money that moved for it; see ports_companies.go.
+	Companies() CompanyRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

@@ -29,12 +29,16 @@ const (
 	ServiceMarket      payment.Service = "market"
 	ServiceAuction     payment.Service = "auction"
 	ServiceElection    payment.Service = "election"
+	// ServiceCompany is a company's registration fee, and money its owner or
+	// manager puts into it.
+	ServiceCompany payment.Service = "company"
 )
 
 // knownServices is the closed set content may name.
 var knownServices = map[payment.Service]bool{
 	ServiceTuition: true, ServiceFare: true, ServiceCrimeReport: true, ServiceBail: true,
 	ServiceShop: true, ServiceMarket: true, ServiceAuction: true, ServiceElection: true,
+	ServiceCompany: true,
 }
 
 // PaymentServiceDef is one entry of payments.yml.

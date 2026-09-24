@@ -72,6 +72,10 @@ type Rule struct {
 type InputSpec struct {
 	Field string   `yaml:"field"`
 	Args  []string `yaml:"args"`
+	// Text marks a field that is words, not a number: a name. The typed
+	// answer is kept as written (input.CleanText) instead of having its
+	// digits and separators rewritten for an amount (input.CleanValue).
+	Text bool `yaml:"text"`
 }
 
 // Policy is configs/commands.yml, loaded. The zero value and nil allow every

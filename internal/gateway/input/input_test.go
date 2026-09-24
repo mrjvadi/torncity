@@ -65,3 +65,25 @@ func TestKeyIsPerBotChatAndUser(t *testing.T) {
 		t.Errorf("keys collide: %s %s %s", a, b, c)
 	}
 }
+
+func TestCleanTextKeepsAName(t *testing.T) {
+	for raw, want := range map[string]string{
+		"  کافه‌نیل ۲۴  ": "کافه‌نیل ۲۴",
+		"‏نان، شیرینی":    "نان، شیرینی",
+		"Kaveh & Sons":    "Kaveh & Sons",
+	} {
+		if got := CleanText(raw, 32); got != want {
+			t.Errorf("CleanText(%q) = %q, want %q", raw, got, want)
+		}
+	}
+	if got := CleanText("abcdef", 3); got != "abc" {
+		t.Errorf("capped to %q", got)
+	}
+	p := Pending{Text: true}
+	if got := p.Clean("۲۴ ساعته", 32); got != "۲۴ ساعته" {
+		t.Errorf("a text field rewrote %q", got)
+	}
+	if got := (Pending{}).Clean("۵٬۰۰۰", 32); got != "5,000" {
+		t.Errorf("an amount field kept %q", got)
+	}
+}

@@ -198,6 +198,34 @@ var all = []Subscription{
 	{Domain: "election", Action: "voting", Origin: FromScheduler},
 	{Domain: "election", Action: "count", Origin: FromScheduler},
 	{Domain: "election", Action: "open", Origin: FromScheduler},
+
+	// Companies (migrations/0019_companies.up.sql): a city's registry and a
+	// company's page; founding one at city hall; running it — money in and
+	// out, prices, openings, staff, a manager, closing; an opening as an
+	// applicant sees it, and applying. Only the scheduler sends
+	// company.settle, when a city's period is over.
+	{Domain: "company", Action: "list", Origin: FromPlayer},
+	{Domain: "company", Action: "view", Origin: FromPlayer},
+	{Domain: "company", Action: "register", Origin: FromPlayer},
+	{Domain: "company", Action: "type", Origin: FromPlayer},
+	{Domain: "company", Action: "found", Origin: FromPlayer},
+	{Domain: "company", Action: "mine", Origin: FromPlayer},
+	{Domain: "company", Action: "manage", Origin: FromPlayer},
+	{Domain: "company", Action: "deposit", Origin: FromPlayer},
+	{Domain: "company", Action: "withdraw", Origin: FromPlayer},
+	{Domain: "company", Action: "price", Origin: FromPlayer},
+	{Domain: "company", Action: "auto", Origin: FromPlayer},
+	{Domain: "company", Action: "manager", Origin: FromPlayer},
+	{Domain: "company", Action: "close", Origin: FromPlayer},
+	{Domain: "company", Action: "openings", Origin: FromPlayer},
+	{Domain: "company", Action: "post", Origin: FromPlayer},
+	{Domain: "company", Action: "slots", Origin: FromPlayer},
+	{Domain: "company", Action: "staff", Origin: FromPlayer},
+	{Domain: "company", Action: "decide", Origin: FromPlayer},
+	{Domain: "company", Action: "fire", Origin: FromPlayer},
+	{Domain: "company", Action: "opening", Origin: FromPlayer},
+	{Domain: "company", Action: "apply", Origin: FromPlayer},
+	{Domain: "company", Action: "settle", Origin: FromScheduler},
 }
 
 // All returns every subscription. The slice is a copy.

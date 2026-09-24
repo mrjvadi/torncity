@@ -87,6 +87,35 @@ type LedgerVerification struct {
 	// OrphanPieces counts pieces with no journal row bringing them into the
 	// world from a recorded origin.
 	OrphanPieces int64
+
+	// Companies, the invariants of player companies (migrations/0019):
+	// Companies is false before that migration, and the rest are empty.
+	Companies bool
+	CompanyInvariants
+}
+
+// CompanyInvariants are the company checks of `admin economy verify`.
+type CompanyInvariants struct {
+	// OrphanCompanyAccounts counts company treasuries owned by no company.
+	OrphanCompanyAccounts int64
+	// Underfunded lists companies whose treasury holds less than the
+	// wages their running shifts reserved.
+	Underfunded []string
+	// DissolvedWithMoney lists closed companies that still hold money.
+	DissolvedWithMoney []string
+	// OverBudget lists settled city periods whose companies were paid more
+	// than the population's budget, or whose company rows do not add up to
+	// what the period says was paid.
+	OverBudget []string
+	// NPCRevenue and PeriodRevenue are the NPC money every company ever
+	// received in the ledger and in the settled periods; they must agree.
+	NPCRevenue, PeriodRevenue int64
+}
+
+// ok reports whether every company invariant holds.
+func (c CompanyInvariants) ok() bool {
+	return c.OrphanCompanyAccounts == 0 && len(c.Underfunded) == 0 && len(c.DissolvedWithMoney) == 0 &&
+		len(c.OverBudget) == 0 && c.NPCRevenue == c.PeriodRevenue
 }
 
 // DriftedStack is a stack the journal does not account for.
@@ -98,7 +127,7 @@ type DriftedStack struct {
 // OK reports whether every invariant holds.
 func (v LedgerVerification) OK() bool {
 	return v.LedgerSum == "0" && len(v.Unbalanced) == 0 && len(v.Drifted) == 0 &&
-		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0
+		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok()
 }
 
 // VerifyLedger runs the three invariants of docs/adr/0009-economic-control.md
@@ -169,10 +198,85 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.item_movements') IS NOT NULL`).Scan(&v.Goods); err != nil {
 		return v, fmt.Errorf("postgres: looking for the item journal: %w", err)
 	}
-	if !v.Goods {
+	if v.Goods {
+		if err := a.verifyGoods(ctx, &v, limit); err != nil {
+			return v, err
+		}
+	}
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.companies') IS NOT NULL`).Scan(&v.Companies); err != nil {
+		return v, fmt.Errorf("postgres: looking for companies: %w", err)
+	}
+	if !v.Companies {
 		return v, nil
 	}
-	return v, a.verifyGoods(ctx, &v, limit)
+	return v, a.verifyCompanies(ctx, &v, limit)
+}
+
+// verifyCompanies runs the company invariants: every company treasury
+// belongs to a company; no treasury holds less than the wages its running
+// shifts reserved; a closed company holds nothing; no settled period paid
+// more than its budget or other than its companies' rows say; and the NPC
+// money the ledger paid companies is exactly what the settled periods say.
+func (a *EconomyAdmin) verifyCompanies(ctx context.Context, v *LedgerVerification, limit int) error {
+	c := &v.CompanyInvariants
+	if err := a.q.QueryRow(ctx, `
+		SELECT count(*) FROM accounts a
+		 WHERE a.kind = 'company_treasury'
+		   AND NOT EXISTS (SELECT 1 FROM companies c WHERE c.id = a.owner_id)`).Scan(&c.OrphanCompanyAccounts); err != nil {
+		return fmt.Errorf("postgres: checking company accounts' owners: %w", err)
+	}
+	list := func(sql string, into *[]string) error {
+		rows, err := a.q.Query(ctx, sql, limit)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var s string
+			if err := rows.Scan(&s); err != nil {
+				return err
+			}
+			*into = append(*into, s)
+		}
+		return rows.Err()
+	}
+	if err := list(`
+		SELECT c.code || ': holds ' || COALESCE(a.balance, 0) || ', reserved ' || r.reserved
+		  FROM companies c
+		  JOIN (SELECT company_id, SUM(wage_reserved) AS reserved FROM shift_sessions
+		         WHERE status = 'working' AND company_id IS NOT NULL GROUP BY company_id) r ON r.company_id = c.id
+		  LEFT JOIN accounts a ON a.kind = 'company_treasury' AND a.owner_id = c.id
+		 WHERE COALESCE(a.balance, 0) < r.reserved
+		 ORDER BY c.code LIMIT $1`, &c.Underfunded); err != nil {
+		return fmt.Errorf("postgres: checking companies' reserved wages: %w", err)
+	}
+	if err := list(`
+		SELECT c.code || ': holds ' || a.balance
+		  FROM companies c JOIN accounts a ON a.kind = 'company_treasury' AND a.owner_id = c.id
+		 WHERE c.status = 'dissolved' AND a.balance <> 0
+		 ORDER BY c.code LIMIT $1`, &c.DissolvedWithMoney); err != nil {
+		return fmt.Errorf("postgres: checking closed companies: %w", err)
+	}
+	if err := list(`
+		SELECT m.city_id::text || ' period ' || m.period_no || ': budget ' || m.budget || ', paid ' || m.paid
+		       || ', companies say ' || COALESCE(SUM(p.revenue), 0)
+		  FROM company_market_periods m
+		  LEFT JOIN company_periods p ON p.city_id = m.city_id AND p.period_no = m.period_no
+		 GROUP BY m.city_id, m.period_no, m.budget, m.paid
+		HAVING m.paid > m.budget OR m.paid <> COALESCE(SUM(p.revenue), 0)
+		 ORDER BY 1 LIMIT $1`, &c.OverBudget); err != nil {
+		return fmt.Errorf("postgres: checking settled periods: %w", err)
+	}
+	if err := a.q.QueryRow(ctx, `
+		SELECT COALESCE(SUM(e.amount), 0)::bigint
+		  FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
+		 WHERE e.reason = 'npc_purchase' AND a.kind = 'company_treasury'`).Scan(&c.NPCRevenue); err != nil {
+		return fmt.Errorf("postgres: summing companies' NPC revenue: %w", err)
+	}
+	if err := a.q.QueryRow(ctx, `SELECT COALESCE(SUM(revenue), 0)::bigint FROM company_periods`).Scan(&c.PeriodRevenue); err != nil {
+		return fmt.Errorf("postgres: summing settled revenue: %w", err)
+	}
+	return nil
 }
 
 // verifyGoods runs the item journal's two invariants: every stack is the

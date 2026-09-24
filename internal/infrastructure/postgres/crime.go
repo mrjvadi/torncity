@@ -248,13 +248,16 @@ func (r *CrimeRepository) RecentAttempts(ctx context.Context, playerID string, l
 // Whereabouts reads what the player is doing, as the venue rule takes it,
 // with the same two reads Bystanders makes for everybody else — and, like
 // them, no lock: the shift is read from shift_sessions, its source of
-// truth, never by locking the job a shift's settlement locks first.
+// truth, never by locking the job a shift's settlement locks first. A shift
+// worked for a player company names no career: it is worked at the
+// company's place, which is where the player stands (they walk there
+// before it starts and cannot walk away during it).
 func (r *CrimeRepository) Whereabouts(ctx context.Context, playerID, cityID string, since time.Time) (string, string, error) {
 	var career, mode string
 	err := r.q.QueryRow(ctx,
 		`SELECT COALESCE((SELECT e.career_code
 		                    FROM shift_sessions ss JOIN employments e ON e.id = ss.employment_id
-		                   WHERE ss.player_id = $1::uuid AND ss.status = 'working' LIMIT 1), ''),
+		                   WHERE ss.player_id = $1::uuid AND ss.status = 'working' AND ss.company_id IS NULL LIMIT 1), ''),
 		        COALESCE((SELECT t.mode FROM travels t
 		                   WHERE t.player_id = $1::uuid AND t.to_city_id = $2::uuid AND t.status = 'arrived'
 		                     AND t.arrives_at >= $3
@@ -282,7 +285,7 @@ func (r *CrimeRepository) Bystanders(ctx context.Context, cityID, thiefID string
 		        p.last_active_at,
 		        COALESCE((SELECT e.career_code
 		                    FROM shift_sessions ss JOIN employments e ON e.id = ss.employment_id
-		                   WHERE ss.player_id = p.id AND ss.status = 'working' LIMIT 1), ''),
+		                   WHERE ss.player_id = p.id AND ss.status = 'working' AND ss.company_id IS NULL LIMIT 1), ''),
 		        COALESCE((SELECT t.mode FROM travels t
 		                   WHERE t.player_id = p.id AND t.to_city_id = $1::uuid AND t.status = 'arrived'
 		                     AND t.arrives_at >= $4

@@ -176,6 +176,10 @@ func (p *Pack) Validate() error {
 	// Elections: how each elected office is elected.
 	p.validateElections(&problems)
 
+	// Companies: kinds of business against careers and places, and each
+	// city's NPC market.
+	p.validateCompanies(&problems)
+
 	if len(problems) > 0 {
 		return errors.Join(problems...)
 	}

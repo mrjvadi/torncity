@@ -85,6 +85,7 @@ var followUps = map[string][]string{
 	"crime.hub":      nil,
 	"crime.view":     {"crime"},
 	"bank.show":      nil,
+	"company.type":   {"type"},
 }
 
 // FollowUpCommands lists the commands a walk may be followed by.

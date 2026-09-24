@@ -133,6 +133,10 @@ var (
 	// key is gone is executed a second time, and the player is charged twice.
 	ErrIdempotencyTTLTooShort = errors.New("config: game.idempotency_ttl must outlast the nats redelivery schedule")
 
+	// ErrCompanyNameBounds rejects company name bounds that cross, or a
+	// longest name a typed answer (input.max_length) cannot carry.
+	ErrCompanyNameBounds = errors.New("config: company name bounds must be ordered and fit input.max_length")
+
 	// ErrClaimTimeoutTooShort rejects a claim lease that can expire while the
 	// batch holding it is still allowed to run. The reaper would then hand a
 	// row a live scheduler is still dispatching to another tick, and the
@@ -188,6 +192,7 @@ type Config struct {
 	Governance Governance
 	Crime      Crime
 	Trade      Trade
+	Company    Company
 	Input      Input
 	Announce   Announce
 }
@@ -504,6 +509,38 @@ type Trade struct {
 	AuctionReservesBPS []int64 // trade.auction_reserves_bps
 }
 
+// Company is the tuning of player companies (docs/adr/0020-companies.md).
+// What a kind of business costs and sells is content (companies.yml); what a
+// city charges a company is policy (city.company_registration,
+// city.corporate_tax, city.minimum_wage, city.sales_tax), never a number
+// here.
+type Company struct {
+	// Period is one settlement of a city's companies — NPC revenue and
+	// upkeep — in GAME time, waited through the game clock.
+	Period time.Duration // company.period
+	// MaxPerPlayer bounds the companies one player owns at a time.
+	MaxPerPlayer int // company.max_per_player
+	// NameMinLength and NameMaxLength bound a name, in characters. The
+	// longest must fit a typed answer (input.max_length).
+	NameMinLength int // company.name_min_length
+	NameMaxLength int // company.name_max_length
+	// FoundingShares is how many shares a company is founded with, all of
+	// them the founder's.
+	FoundingShares int64 // company.founding_shares
+	// InsolvencyPeriods is how many settlements in a row a company may end
+	// owing upkeep before it is dissolved.
+	InsolvencyPeriods int // company.insolvency_periods
+	// NPCCityPeriodCap is the most one city's NPC population may pay its
+	// companies in one period, whatever the content says: the operator's
+	// last bound on the faucet, minor units.
+	NPCCityPeriodCap int64 // company.npc_city_period_cap
+	// MaxOpenings bounds one company's open job openings.
+	MaxOpenings int // company.max_openings
+	// PriceStepBPS is how far one press of «cheaper» or «dearer» moves a
+	// company's price level.
+	PriceStepBPS int // company.price_step_bps
+}
+
 // Defaults returns every field at the value it was hardcoded to before this
 // package existed.
 //
@@ -595,6 +632,17 @@ func Defaults() *Config {
 			BankMinAmount:    1,
 			BankMaxAmount:    1000000000,
 			BankQuickAmounts: []int64{1000, 5000, 10000, 50000, 100000, 500000, 1000000},
+		},
+		Company: Company{
+			Period:            24 * time.Hour,
+			MaxPerPlayer:      2,
+			NameMinLength:     3,
+			NameMaxLength:     24,
+			FoundingShares:    1000,
+			InsolvencyPeriods: 3,
+			NPCCityPeriodCap:  50000,
+			MaxOpenings:       5,
+			PriceStepBPS:      1000,
 		},
 		Input: Input{
 			TTL:       5 * time.Minute,
@@ -777,6 +825,15 @@ func (c *Config) Validate() error {
 			return fmt.Errorf("%w: nats.backoff entry %d (%s) does not exceed entry %d (%s)",
 				ErrNotIncreasing, i+1, c.NATS.Backoff[i], i, c.NATS.Backoff[i-1])
 		}
+	}
+
+	// A name must fit the typed answer that carries it.
+	if c.Company.NameMinLength > c.Company.NameMaxLength || c.Company.NameMaxLength > c.Input.MaxLength {
+		return fmt.Errorf("%w: company.name_min_length %d, company.name_max_length %d, input.max_length %d",
+			ErrCompanyNameBounds, c.Company.NameMinLength, c.Company.NameMaxLength, c.Input.MaxLength)
+	}
+	if c.Company.PriceStepBPS > 10000 {
+		return fmt.Errorf("%w: company.price_step_bps is %d", ErrNotPositive, c.Company.PriceStepBPS)
 	}
 
 	// The idempotency key has to outlive the last redelivery, or the last

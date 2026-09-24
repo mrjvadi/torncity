@@ -1,0 +1,817 @@
+━━━ Companies · a city's registry ━━━
+(edits message 42)
+🏢 Companies of Ostmarch
+
+🏢 Kaveh Bakery - Grocery store - 3 staff - hiring for 1
+🏢 Nilou Repairs - Repair workshop - 0 staff
+
+Companies are registered at city hall. They earn from the people of the city, and the more their staff work, the more customers they serve.
+  ───
+  [🏢 Kaveh Bakery] → company:view:Q7M2K9B   │   [🏢 Nilou Repairs] → company:view:H4T8W2C
+  [➕ Register a company] → company:register   │   [💼 My companies] → company:mine
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → company:list
+
+━━━ Companies · a registry in a group ━━━
+(edits message 42)
+🏢 Companies of Ostmarch
+
+🏢 Nilou Repairs - Repair workshop - 1 staff
+
+Companies are registered at city hall. They earn from the people of the city, and the more their staff work, the more customers they serve.
+  ───
+  [🏢 Nilou Repairs] → company:view:H4T8W2C
+  [➕ Register a company] → company:register
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → company:list
+
+━━━ Companies · none yet ━━━
+(edits message 42)
+🏢 Companies of Ostmarch
+
+No company is registered in this city yet. Be the first.
+
+Companies are registered at city hall. They earn from the people of the city, and the more their staff work, the more customers they serve.
+  ───
+  [➕ Register a company] → company:register
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → company:list
+
+━━━ Companies · travelling ━━━
+(edits message 42)
+🏢 Companies
+
+You are travelling. Once you arrive, that city's companies are listed here.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Company · its page, to its owner ━━━
+(edits message 42)
+🏢 Kaveh Bakery
+
+🏷 Grocery store - code Q7M2K9B
+📍 bazaar - Ostmarch
+👤 Owner: Sara (K7Q2M9A)
+🧑‍💼 Manager: Kaveh (B3C4D5F)
+👥 Staff: 3 of 5
+⭐ Rated 4 of 5
+
+💼 Hiring:
+💼 Sales Trainee (Retail) - 150 Nil per shift - 1 open
+  ───
+  [💼 Sales Trainee] → company:opening:12
+  [⚙️ Manage the company] → company:manage:Q7M2K9B
+  [🔙 Back] → company:list   │   [🔄 Refresh] → company:view:Q7M2K9B
+
+━━━ Company · its page, in a group ━━━
+(edits message 42)
+🏢 Kaveh Bakery
+
+🏷 Grocery store - code Q7M2K9B
+📍 bazaar - Ostmarch
+👤 Owner: Sara (K7Q2M9A)
+🧑‍💼 Manager: Kaveh (B3C4D5F)
+👥 Staff: 3 of 5
+⭐ Rated 4 of 5
+
+💼 Hiring:
+💼 Sales Trainee (Retail) - 150 Nil per shift - 1 open
+  ───
+  [💼 Sales Trainee] → company:opening:12
+  [🔙 Back] → company:list   │   [🔄 Refresh] → company:view:Q7M2K9B
+
+━━━ Company · a new company's page ━━━
+(edits message 42)
+🏢 Nilou Repairs
+
+🏷 Repair workshop - code H4T8W2C
+📍 industrial zone - Ostmarch
+👤 Owner: Nilou (N1L0F4R)
+👥 Staff: 0 of 5
+⭐ Not rated yet
+  ───
+  [🔙 Back] → company:list   │   [🔄 Refresh] → company:view:H4T8W2C
+
+━━━ Company · closed ━━━
+(edits message 42)
+🏢 Nilou Repairs
+
+🏷 Repair workshop - code H4T8W2C
+📍 industrial zone - Ostmarch
+👤 Owner: Nilou (N1L0F4R)
+👥 Staff: 0 of 5
+⭐ Not rated yet
+
+🔒 This company has closed.
+  ───
+  [🔙 Back] → company:list   │   [🔄 Refresh] → company:view:H4T8W2C
+
+━━━ Register · the kinds of business ━━━
+(edits message 42)
+🏢 Register a company in Ostmarch
+
+The registration fee goes to the city's treasury, and each period the company's upkeep is taken from its account. Choose the kind of business.
+
+🏷 Grocery store - registration 20,000 Nil - upkeep 500 Nil per period
+🏷 Restaurant - registration 30,000 Nil - upkeep 700 Nil per period
+🏷 Repair workshop - registration 35,000 Nil - upkeep 800 Nil per period
+  ───
+  [🏷 Grocery store] → company:type:grocery   │   [🏷 Restaurant] → company:type:restaurant
+  [🏷 Repair workshop] → company:type:repair_workshop
+  [🔙 Back] → company:list
+
+━━━ Register · at the limit ━━━
+(edits message 42)
+🏢 Register a company in Ostmarch
+
+The registration fee goes to the city's treasury, and each period the company's upkeep is taken from its account. Choose the kind of business.
+
+🏷 Grocery store - registration 20,000 Nil - upkeep 500 Nil per period
+🏷 Restaurant - registration 30,000 Nil - upkeep 700 Nil per period
+🏷 Repair workshop - registration 35,000 Nil - upkeep 800 Nil per period
+
+You already own 2 companies and cannot register more.
+  ───
+  [🔙 Back] → company:list
+
+━━━ Register · a kind of business, at city hall ━━━
+(edits message 42)
+🏷 Grocery store in Ostmarch
+
+📍 Workplace: bazaar
+💼 Hires into Retail
+👥 Staff at most: 5
+💰 Registration fee: 20,000 Nil
+🔧 Upkeep: 500 Nil per period - a period lasts 24m
+
+A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
+
+💵 Your cash: 25,000 Nil - Bank: 120,000 Nil
+
+To register, press how you pay and send the company's name: 3 to 24 characters.
+  ───
+  [✏️ Register, pay 20,000 Nil in cash] → ask:company.found:grocery:cash   │   [✏️ Register, pay 20,000 Nil by card] → ask:company.found:grocery:card
+  [🔙 Back] → company:register
+
+━━━ Register · a kind of business, away from city hall ━━━
+(edits message 42)
+🏷 Grocery store in Ostmarch
+
+📍 Workplace: bazaar
+💼 Hires into Retail
+👥 Staff at most: 5
+💰 Registration fee: 20,000 Nil
+🔧 Upkeep: 500 Nil per period - a period lasts 24m
+
+A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
+
+📍 Companies are registered at civic centre; the button below takes you there.
+  ───
+  [🚶 Go to the civic centre (10s)] → place:go:city_hall:company.type:grocery
+  [🔙 Back] → company:register
+
+━━━ Register · the fee is not covered ━━━
+(edits message 42)
+🏷 Grocery store in Ostmarch
+
+📍 Workplace: bazaar
+💼 Hires into Retail
+👥 Staff at most: 5
+💰 Registration fee: 20,000 Nil
+🔧 Upkeep: 500 Nil per period - a period lasts 24m
+
+A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
+
+💵 Your cash: 3,000 Nil - Bank: 1,200 Nil
+
+Neither your cash nor your bank balance covers the registration fee.
+  ───
+  [🔙 Back] → company:register
+
+━━━ Register · at the limit, one kind ━━━
+(edits message 42)
+🏷 Grocery store in Ostmarch
+
+📍 Workplace: bazaar
+💼 Hires into Retail
+👥 Staff at most: 5
+💰 Registration fee: 20,000 Nil
+🔧 Upkeep: 500 Nil per period - a period lasts 24m
+
+A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
+
+You already own 2 companies and cannot register more.
+  ───
+  [🔙 Back] → company:register
+
+━━━ Register · founded, paid by card ━━━
+(sends)
+✅ Kaveh Bakery is registered in Ostmarch.
+🏷 Grocery store - code Q7M2K9B
+💳 The registration fee, 20,000 Nil, was paid by card.
+
+Now put money into the company's account and post a job opening; from the next period the people of the city buy from you.
+  ───
+  [⚙️ Manage the company] → company:manage:Q7M2K9B   │   [🏢 Company page] → company:view:Q7M2K9B
+  [🔙 Back] → company:list
+
+━━━ Manage · the owner's screen ━━━
+(edits message 42) (private in groups)
+⚙️ Managing Kaveh Bakery
+🏷 Grocery store - code Q7M2K9B
+
+💰 Company balance: 18,400 Nil
+🔒 Wages reserved for shifts under way: 300 Nil
+💵 Free to spend: 18,100 Nil
+🔧 Upkeep per period: 500 Nil
+🏛 Corporate tax on profits taken out: 10%
+
+🏷 Price level: 110% of the reference price
+👥 Staff: 3 of 5 - open openings: 1 - applications waiting: 2
+🧑‍💼 Manager: Kaveh (B3C4D5F)
+🤝 You accept or reject every application yourself.
+
+📊 Last period:
+💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
+💸 Wages: 600 Nil - upkeep: 500 Nil
+📦 Sold 180 of 186 units asked for - capacity 180 units
+⭐ Quality 100% - 4 shifts worked
+
+🕒 Next settlement: 14:52 - in 17m
+  ───
+  [📥 Put in cash] → ask:company.deposit:Q7M2K9B:cash   │   [📥 Put in by card] → ask:company.deposit:Q7M2K9B:card
+  [📤 Take out profit] → ask:company.withdraw:Q7M2K9B
+  [🏷 Cheaper] → company:price:Q7M2K9B:10000   │   [🏷 Dearer] → company:price:Q7M2K9B:12000
+  [👥 Staff and applications] → company:staff:Q7M2K9B   │   [📋 Job openings] → company:openings:Q7M2K9B
+  [🤝 Hire automatically] → company:auto:Q7M2K9B:on
+  [🧑‍💼 Appoint a manager] → ask:company.manager:Q7M2K9B   │   [🚪 Close the company] → company:close:Q7M2K9B
+  [🔙 Back] → company:view:Q7M2K9B   │   [🔄 Refresh] → company:manage:Q7M2K9B
+
+━━━ Manage · profit taken out ━━━
+(edits message 42) (private in groups)
+📤 5,000 Nil withdrawn: 500 Nil corporate tax, and 4,500 Nil into your bank account.
+
+⚙️ Managing Kaveh Bakery
+🏷 Grocery store - code Q7M2K9B
+
+💰 Company balance: 18,400 Nil
+🔒 Wages reserved for shifts under way: 300 Nil
+💵 Free to spend: 18,100 Nil
+🔧 Upkeep per period: 500 Nil
+🏛 Corporate tax on profits taken out: 10%
+
+🏷 Price level: 110% of the reference price
+👥 Staff: 3 of 5 - open openings: 1 - applications waiting: 2
+🧑‍💼 Manager: Kaveh (B3C4D5F)
+🤝 You accept or reject every application yourself.
+
+📊 Last period:
+💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
+💸 Wages: 600 Nil - upkeep: 500 Nil
+📦 Sold 180 of 186 units asked for - capacity 180 units
+⭐ Quality 100% - 4 shifts worked
+
+🕒 Next settlement: 14:52 - in 17m
+  ───
+  [📥 Put in cash] → ask:company.deposit:Q7M2K9B:cash   │   [📥 Put in by card] → ask:company.deposit:Q7M2K9B:card
+  [📤 Take out profit] → ask:company.withdraw:Q7M2K9B
+  [🏷 Cheaper] → company:price:Q7M2K9B:10000   │   [🏷 Dearer] → company:price:Q7M2K9B:12000
+  [👥 Staff and applications] → company:staff:Q7M2K9B   │   [📋 Job openings] → company:openings:Q7M2K9B
+  [🤝 Hire automatically] → company:auto:Q7M2K9B:on
+  [🧑‍💼 Appoint a manager] → ask:company.manager:Q7M2K9B   │   [🚪 Close the company] → company:close:Q7M2K9B
+  [🔙 Back] → company:view:Q7M2K9B   │   [🔄 Refresh] → company:manage:Q7M2K9B
+
+━━━ Manage · money put in ━━━
+(edits message 42) (private in groups)
+📥 10,000 Nil went into the company's account.
+
+⚙️ Managing Kaveh Bakery
+🏷 Grocery store - code Q7M2K9B
+
+💰 Company balance: 18,400 Nil
+🔒 Wages reserved for shifts under way: 300 Nil
+💵 Free to spend: 18,100 Nil
+🔧 Upkeep per period: 500 Nil
+🏛 Corporate tax on profits taken out: 10%
+
+🏷 Price level: 110% of the reference price
+👥 Staff: 3 of 5 - open openings: 1 - applications waiting: 2
+🧑‍💼 Manager: Kaveh (B3C4D5F)
+🤝 You accept or reject every application yourself.
+
+📊 Last period:
+💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
+💸 Wages: 600 Nil - upkeep: 500 Nil
+📦 Sold 180 of 186 units asked for - capacity 180 units
+⭐ Quality 100% - 4 shifts worked
+
+🕒 Next settlement: 14:52 - in 17m
+  ───
+  [📥 Put in cash] → ask:company.deposit:Q7M2K9B:cash   │   [📥 Put in by card] → ask:company.deposit:Q7M2K9B:card
+  [📤 Take out profit] → ask:company.withdraw:Q7M2K9B
+  [🏷 Cheaper] → company:price:Q7M2K9B:10000   │   [🏷 Dearer] → company:price:Q7M2K9B:12000
+  [👥 Staff and applications] → company:staff:Q7M2K9B   │   [📋 Job openings] → company:openings:Q7M2K9B
+  [🤝 Hire automatically] → company:auto:Q7M2K9B:on
+  [🧑‍💼 Appoint a manager] → ask:company.manager:Q7M2K9B   │   [🚪 Close the company] → company:close:Q7M2K9B
+  [🔙 Back] → company:view:Q7M2K9B   │   [🔄 Refresh] → company:manage:Q7M2K9B
+
+━━━ Manage · the manager's screen, in debt ━━━
+(edits message 42) (private in groups)
+🤝 From now on qualified applicants are hired automatically.
+
+⚙️ Managing Kaveh Bakery
+🏷 Grocery store - code Q7M2K9B
+
+💰 Company balance: 0 Nil
+⚠️ Upkeep owed: 750 Nil - 2 of 3 periods of grace
+🔧 Upkeep per period: 500 Nil
+🏛 Corporate tax on profits taken out: 10%
+
+🏷 Price level: 100% of the reference price
+👥 Staff: 0 of 5 - open openings: 0 - applications waiting: 0
+🤝 Qualified applicants are hired automatically.
+
+📊 No period has been settled yet.
+  ───
+  [📥 Put in cash] → ask:company.deposit:Q7M2K9B:cash   │   [📥 Put in by card] → ask:company.deposit:Q7M2K9B:card
+  [🏷 Cheaper] → company:price:Q7M2K9B:9000   │   [🏷 Dearer] → company:price:Q7M2K9B:11000
+  [👥 Staff and applications] → company:staff:Q7M2K9B   │   [📋 Job openings] → company:openings:Q7M2K9B
+  [🤝 Stop hiring automatically] → company:auto:Q7M2K9B:off
+  [🔙 Back] → company:view:Q7M2K9B   │   [🔄 Refresh] → company:manage:Q7M2K9B
+
+━━━ My companies · two ━━━
+(edits message 42)
+💼 My companies
+
+🏢 Kaveh Bakery - Grocery store - 3 staff
+🏢 Nilou Repairs - Repair workshop - 1 staff
+  ───
+  [🏢 Kaveh Bakery] → company:manage:Q7M2K9B
+  [🏢 Nilou Repairs] → company:manage:H4T8W2C
+  [🔙 Back] → company:list
+
+━━━ My companies · none ━━━
+(edits message 42)
+💼 My companies
+
+You own no company and manage none.
+  ───
+  [➕ Register a company] → company:register
+  [🔙 Back] → company:list
+
+━━━ Openings · a company's ━━━
+(edits message 42) (private in groups)
+📋 Job openings of Kaveh Bakery
+
+💼 Sales Trainee - 150 Nil per shift - 1 of 2 filled
+
+For a new opening, press the career and send the wage per shift; the city's minimum wage is 100 Nil.
+  ───
+  [➕ One more place for Sales Trainee] → company:slots:12:3   │   [➖ One place fewer for Sales Trainee] → company:slots:12:1
+  [✏️ Advertise Retail] → ask:company.post:Q7M2K9B:retail
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:openings:Q7M2K9B
+
+━━━ Openings · none, full ━━━
+(edits message 42) (private in groups)
+📋 Job openings of Kaveh Bakery
+
+You have no open openings.
+
+Every staff place is taken or advertised.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:openings:Q7M2K9B
+
+━━━ Staff · employees and applications ━━━
+(edits message 42) (private in groups)
+👥 Staff of Kaveh Bakery
+
+👤 Kaveh (B3C4D5F) - Sales Trainee - 150 Nil per shift - 12 shifts - on a shift now
+👤 Nilou (N1L0F4R) - Sales Trainee - 150 Nil per shift - 3 shifts
+
+📨 Applications:
+📨 Sara (K7Q2M9A) - Sales Trainee - level 4
+  ───
+  [✅ Accept Sara] → company:decide:7:yes   │   [❌ Reject Sara] → company:decide:7:no
+  [🚪 Fire Nilou] → company:fire:Q7M2K9B:N1L0F4R
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:staff:Q7M2K9B
+
+━━━ Staff · just hired ━━━
+(edits message 42) (private in groups)
+✅ Nilou (N1L0F4R) is hired as Sales Trainee.
+
+👥 Staff of Kaveh Bakery
+
+👤 Nilou (N1L0F4R) - Sales Trainee - 150 Nil per shift - 0 shifts
+  ───
+  [🚪 Fire Nilou] → company:fire:Q7M2K9B:N1L0F4R
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:staff:Q7M2K9B
+
+━━━ Staff · firing, confirm ━━━
+(edits message 42) (private in groups)
+🚪 Fire Nilou (N1L0F4R) from Sales Trainee? Their progress in the job is lost, and they will be told.
+  ───
+  [🚪 Yes, fire them] → company:fire:Q7M2K9B:N1L0F4R:yes
+  [🔙 Back] → company:staff:Q7M2K9B
+
+━━━ Staff · none ━━━
+(edits message 42) (private in groups)
+👥 Staff of Kaveh Bakery
+
+You have no staff yet.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:staff:Q7M2K9B
+
+━━━ Opening · an applicant may apply ━━━
+(edits message 42)
+💼 Sales Trainee - Retail
+
+🏢 Employer: Kaveh Bakery
+📍 bazaar - Ostmarch
+💰 Pay per shift: 150 Nil
+⚡ Energy per shift: 10
+⏱ Each shift takes 4m
+👥 Open positions: 1
+
+Requirements:
+✅ Living in Ostmarch
+  ───
+  [✅ Apply] → company:apply:12
+  [🏢 Company page] → company:view:Q7M2K9B
+  [🔙 Back] → job:list   │   [🔄 Refresh] → company:opening:12
+
+━━━ Opening · applied already ━━━
+(edits message 42)
+💼 Sales Trainee - Retail
+
+🏢 Employer: Kaveh Bakery
+📍 bazaar - Ostmarch
+💰 Pay per shift: 150 Nil
+⚡ Energy per shift: 10
+⏱ Each shift takes 4m
+👥 Open positions: 1
+
+Requirements:
+✅ Living in Ostmarch
+
+📨 Your application is in and waiting for the employer's answer.
+  ───
+  [🏢 Company page] → company:view:Q7M2K9B
+  [🔙 Back] → job:list   │   [🔄 Refresh] → company:opening:12
+
+━━━ Opening · hired on applying ━━━
+(edits message 42)
+💼 Sales Trainee - Retail
+
+🏢 Employer: Kaveh Bakery
+📍 bazaar - Ostmarch
+💰 Pay per shift: 150 Nil
+⚡ Energy per shift: 10
+⏱ Each shift takes 4m
+👥 Open positions: 1
+
+Requirements:
+✅ Living in Ostmarch
+
+🤝 This company hires qualified applicants automatically.
+  ───
+  [✅ Apply] → company:apply:12
+  [🏢 Company page] → company:view:Q7M2K9B
+  [🔙 Back] → job:list   │   [🔄 Refresh] → company:opening:12
+
+━━━ Applied ━━━
+(edits message 42)
+📨 Your application for Sales Trainee at Kaveh Bakery is sent. You will be told the employer's answer.
+  ───
+  [💼 Job openings] → job:list   │   [🏢 Company page] → company:view:Q7M2K9B
+  [🔙 Back] → player:profile.get
+
+━━━ Hired on applying ━━━
+(edits message 42)
+✅ You are hired: you are now Sales Trainee at Kaveh Bakery, Ostmarch.
+💰 Pay per shift: 150 Nil
+  ───
+  [🛠 Start a shift] → job:work   │   [💼 My job] → job:status
+  [🔙 Back] → player:profile.get
+
+━━━ Close · confirm ━━━
+(edits message 42) (private in groups)
+🚪 Close Kaveh Bakery?
+
+The upkeep owed, 250 Nil, is paid; 1,800 Nil of corporate tax goes to the city's treasury and 16,200 Nil into your bank account.
+
+👥 The company's 3 staff lose their jobs, and will be told.
+
+This cannot be undone.
+  ───
+  [🚪 Yes, close it] → company:close:Q7M2K9B:yes
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Close · done ━━━
+(edits message 42) (private in groups)
+🔒 Kaveh Bakery is closed.
+
+🏦 16,200 Nil went into your bank account, and 1,800 Nil of corporate tax was paid.
+  ───
+  [🏢 The city's companies] → company:list
+  [🔙 Back] → player:profile.get
+
+━━━ Company refused · not_found ━━━
+(edits message 42)
+No such company was found.
+  ───
+  [🔙 Back] → company:list
+
+━━━ Company refused · not_allowed ━━━
+(edits message 42)
+You are not allowed to do that at Kaveh Bakery.
+  ───
+  [🔙 Back] → company:view:Q7M2K9B
+
+━━━ Company refused · dissolved ━━━
+(edits message 42)
+Kaveh Bakery has closed.
+  ───
+  [🔙 Back] → company:view:Q7M2K9B
+
+━━━ Company refused · name_length ━━━
+(edits message 42)
+A company's name is 3 to 24 characters. Send it again.
+  ───
+  [🔙 Back] → company:list
+
+━━━ Company refused · name_charset ━━━
+(edits message 42)
+A company's name is made of letters, digits, spaces and simple marks, with at least two letters. Send it again.
+  ───
+  [🔙 Back] → company:list
+
+━━━ Company refused · name_reserved ━━━
+(edits message 42)
+That name looks like the city's or the game's own, and is not allowed. Send another.
+  ───
+  [🔙 Back] → company:list
+
+━━━ Company refused · name_taken ━━━
+(edits message 42)
+A company of that name exists in this city. Send another.
+  ───
+  [🔙 Back] → company:list
+
+━━━ Company refused · limit ━━━
+(edits message 42)
+You already own 2 companies and cannot register more.
+  ───
+  [🔙 Back] → company:list
+
+━━━ Company refused · no_place ━━━
+(edits message 42)
+This kind of company cannot be registered in this city.
+  ───
+  [🔙 Back] → company:list
+
+━━━ Company refused · cannot_pay ━━━
+(edits message 42)
+💰 Kaveh Bakery has not got enough free money for this shift's pay (150 Nil), so the shift did not start. Let your employer know.
+  ───
+  [💼 My job] → job:status
+  [🔙 Back] → company:view:Q7M2K9B
+
+━━━ Company refused · in_debt ━━━
+(edits message 42)
+⚠️ Kaveh Bakery owes upkeep; no profit can be taken out until it is paid.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · not_enough ━━━
+(edits message 42)
+Kaveh Bakery has 40 Nil free, which does not cover 150 Nil.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · price ━━━
+(edits message 42)
+That price level is not allowed for this kind of company.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · staff_full ━━━
+(edits message 42)
+Kaveh Bakery has no room for more staff.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · career ━━━
+(edits message 42)
+This kind of company does not hire into that career.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · below_minimum ━━━
+(edits message 42)
+The pay per shift cannot be under the city's minimum wage, 100 Nil.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · openings_max ━━━
+(edits message 42)
+You cannot have more than 5 open openings.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · opening_closed ━━━
+(edits message 42)
+This opening is closed.
+  ───
+  [🔙 Back] → company:view:Q7M2K9B
+
+━━━ Company refused · opening_full ━━━
+(edits message 42)
+Every place of this opening is filled.
+  ───
+  [🔙 Back] → company:view:Q7M2K9B
+
+━━━ Company refused · applied ━━━
+(edits message 42)
+Your application for this opening is already waiting for an answer.
+  ───
+  [🔙 Back] → company:view:Q7M2K9B
+
+━━━ Company refused · employed ━━━
+(edits message 42)
+You already have a job. To take this one, leave your current job first.
+  ───
+  [🔙 Back] → company:view:Q7M2K9B
+
+━━━ Company refused · shifts_running ━━━
+(edits message 42)
+Staff of Kaveh Bakery are on shifts right now; try again once they end.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · working ━━━
+(edits message 42)
+This employee is on a shift right now; try again once it ends.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · self ━━━
+(edits message 42)
+The owner cannot also be the company's manager.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · no_player ━━━
+(edits message 42)
+No such player was found. Send their player code or username again.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · not_employee ━━━
+(edits message 42)
+That player does not work at Kaveh Bakery.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · application_gone ━━━
+(edits message 42)
+That application is no longer waiting for an answer.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · away ━━━
+(edits message 42)
+📍 You need to be in Ostmarch for that.
+  ───
+  [🔙 Back] → company:view:Q7M2K9B
+
+━━━ Company refused · cash_away ━━━
+(edits message 42)
+💵 You can put cash into the company only while in Ostmarch; by card you can from anywhere.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Company refused · invalid_amount ━━━
+(edits message 42)
+Type the amount as a number, for example 5000.
+  ───
+  [🔙 Back] → company:manage:Q7M2K9B
+
+━━━ Notice · an application ━━━
+(sends) (private in groups)
+📨 Nilou (N1L0F4R), level 4, applied for Sales Trainee at Kaveh Bakery.
+  ───
+  [✅ Accept Nilou] → company:decide:7:yes   │   [❌ Reject Nilou] → company:decide:7:no
+  [👥 Staff and applications] → company:staff:Q7M2K9B
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · employee hired ━━━
+(sends)
+✅ Nilou Repairs hired you as Workshop Hand.
+💰 Pay per shift: 180 Nil
+  ───
+  [🛠 Start a shift] → job:work   │   [💼 My job] → job:status
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · employee rejected ━━━
+(sends)
+❌ Nilou Repairs did not take your application for Workshop Hand. See other openings under "Job openings".
+  ───
+  [💼 Job openings] → job:list
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · employee fired ━━━
+(sends)
+🚪 Nilou Repairs fired you from Workshop Hand. See new openings under "Job openings".
+  ───
+  [💼 Job openings] → job:list
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · employee closed ━━━
+(sends)
+🔒 Nilou Repairs has closed, and your job as Workshop Hand ended with it. See new openings under "Job openings".
+  ───
+  [💼 Job openings] → job:list
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · made manager ━━━
+(sends)
+🧑‍💼 Sara (K7Q2M9A) made you the manager of Kaveh Bakery. The staff, the openings and the prices are yours to run.
+  ───
+  [⚙️ Manage the company] → company:manage:Q7M2K9B
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · a period report ━━━
+(sends) (private in groups)
+📊 Period report of Kaveh Bakery
+
+💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
+💸 Wages: 600 Nil - upkeep: 500 Nil
+📦 Sold 180 of 186 units asked for - capacity 180 units
+⭐ Quality 100% - 4 shifts worked
+💰 Company balance: 18,400 Nil
+  ───
+  [⚙️ Manage the company] → company:manage:Q7M2K9B
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · a period report, in debt ━━━
+(sends) (private in groups)
+📊 Period report of Nilou Repairs
+
+💰 Sales to the city: 240 Nil - sales tax: 12 Nil
+💸 Wages: 0 Nil - upkeep: 228 Nil
+📦 Sold 20 of 216 units asked for - capacity 20 units
+⭐ Quality 30% - 0 shifts worked
+💰 Company balance: 0 Nil
+
+⚠️ The company owes 272 Nil of upkeep. If it is not paid within 2 more periods, the company is dissolved; put money into its account.
+  ───
+  [⚙️ Manage the company] → company:manage:H4T8W2C
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · dissolved for its debt ━━━
+(sends) (private in groups)
+📊 Period report of Nilou Repairs
+
+💰 Sales to the city: 240 Nil - sales tax: 12 Nil
+💸 Wages: 0 Nil - upkeep: 228 Nil
+📦 Sold 20 of 216 units asked for - capacity 20 units
+⭐ Quality 30% - 0 shifts worked
+💰 Company balance: 0 Nil
+
+🔒 The company could not pay its upkeep for several periods in a row and was dissolved.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Job openings · with a company's ━━━
+(edits message 42)
+💼 Job openings in Ostmarch
+
+✅ Retail - Sales Trainee - 120 Nil per shift
+
+🏢 At the city's companies:
+✅ Kaveh Bakery - Sales Trainee - 150 Nil per shift
+
+✅ means you qualify and can apply; 🔒 means something is still missing. Tap a job to see the details.
+  ───
+  [✅ Sales Trainee] → job:view:retail
+  [✅ Sales Trainee at Kaveh Bakery] → company:opening:12
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:list:1
+
+━━━ My job · at a company ━━━
+(edits message 42)
+💼 My job
+
+💼 Sales Trainee - Retail
+🏢 Employer: Kaveh Bakery
+📍 Workplace: Ostmarch
+💰 Pay per shift: 150 Nil
+⚡ Energy per shift: 10 - you have 80 of 100
+📈 Performance: 52 of 100
+🔁 Shifts in this position: 0
+⏱ Each shift takes 4m
+💵 Earned in this job: 0 Nil
+
+📍 You are at your workplace, the bazaar.
+
+⭐ You are at the top of this career.
+  ───
+  [🛠 Start a shift (4m of work)] → job:work
+  [🚪 Leave job] → job:quit
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status

@@ -149,6 +149,8 @@ func TestVenueReferencesAreWarnings(t *testing.T) {
 	p := shippedPack(t)
 	p.Venues[1].Arrivals = []string{"zeppelin"}
 	p.Careers, p.Courses = nil, nil
+	// Company types hire into careers, so they go with them.
+	p.CompanyTypes = nil
 	for i := range p.Crimes {
 		p.Crimes[i].RequiredCertifications = nil
 	}

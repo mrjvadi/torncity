@@ -185,6 +185,32 @@ const (
 	ReasonElectionForfeit Reason = "election_forfeit"
 )
 
+// Companies (docs/adr/0020-companies.md). A company's treasury is an owned
+// account (company_treasury), so everything between it and a player or a
+// city is a transfer. Its NPC revenue is ReasonNPCPurchase (a faucet, from
+// system_source, bounded by the city's budget) and its upkeep
+// ReasonMaintenance (a drain); the sales tax on its revenue is
+// ReasonSalesTax. The rest have codes of their own:
+const (
+	// ReasonCompanyRegistration pays a founder's registration fee into the
+	// treasury of the company's city (city.company_registration).
+	ReasonCompanyRegistration Reason = "company_registration"
+	// ReasonCompanyDeposit moves a player's cash or bank money into a
+	// company's treasury.
+	ReasonCompanyDeposit Reason = "company_deposit"
+	// ReasonCompanyWithdrawal moves profit from a company's treasury to its
+	// owner's bank account, net of the corporate tax.
+	ReasonCompanyWithdrawal Reason = "company_withdrawal"
+	// ReasonCorporateTax moves the corporate tax on a withdrawal (or a
+	// closing payout) from the company's treasury to its city's treasury
+	// (city.corporate_tax).
+	ReasonCorporateTax Reason = "corporate_tax"
+	// ReasonCompanyWage pays a shift worked for a company from its treasury
+	// to the employee's cash. Income tax is withheld after it, as from any
+	// wage (ReasonIncomeTax).
+	ReasonCompanyWage Reason = "company_wage"
+)
+
 // knownReasons is the closed set. Adding a code means adding it here AND to
 // the table in ADR 0009, in the same change.
 var knownReasons = map[Reason]struct{}{
@@ -212,6 +238,9 @@ var knownReasons = map[Reason]struct{}{
 	ReasonAuctionBid: {}, ReasonAuctionRefund: {}, ReasonAuctionSale: {},
 
 	ReasonElectionDeposit: {}, ReasonElectionRefund: {}, ReasonElectionForfeit: {},
+
+	ReasonCompanyRegistration: {}, ReasonCompanyDeposit: {}, ReasonCompanyWithdrawal: {},
+	ReasonCorporateTax: {}, ReasonCompanyWage: {},
 }
 
 // Known reports whether r is in the closed set.

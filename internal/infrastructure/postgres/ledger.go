@@ -24,13 +24,15 @@ const (
 )
 
 // ownerTables names the table each ownable account kind's owner_id points at.
-// A kind missing here has no owner table yet (companies and factions arrive
-// in later phases), so an account of that kind cannot be opened yet.
+// A kind missing here has no owner table yet (factions arrive in a later
+// phase), so an account of that kind cannot be opened yet.
 var ownerTables = map[application.AccountKind]string{
 	application.AccountPlayerCash:   "players",
 	application.AccountPlayerBank:   "players",
 	application.AccountCityTreasury: "cities",
 	application.AccountPlayerEscrow: "players",
+	// A company's treasury (migrations/0019_companies).
+	application.AccountCompanyTreasury: "companies",
 }
 
 // LedgerRepository implements application.LedgerRepository.

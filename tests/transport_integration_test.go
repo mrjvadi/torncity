@@ -98,6 +98,8 @@ func transportPack(t *testing.T) *content.Pack {
 	t.Helper()
 	pack := shippedPack(t)
 	pack.Careers, pack.Courses = nil, nil
+	// Kinds of business hire into careers, so they go with them.
+	pack.CompanyTypes = nil
 	return pack
 }
 

@@ -77,6 +77,10 @@ const (
 	// ActionTypeElectionOpen is an elected office's term running out (or a
 	// seat left unfilled): the next election opens.
 	ActionTypeElectionOpen = "election_open"
+
+	// ActionTypeCompanyPeriod is a city's company period ending: its
+	// companies are paid by the population and pay their upkeep.
+	ActionTypeCompanyPeriod = "company_period"
 )
 
 // routes maps an action type to the command it is published as.
@@ -105,6 +109,8 @@ var routes = map[string]Route{
 	ActionTypeElectionVoting: {Domain: "election", Action: "voting"},
 	ActionTypeElectionCount:  {Domain: "election", Action: "count"},
 	ActionTypeElectionOpen:   {Domain: "election", Action: "open"},
+
+	ActionTypeCompanyPeriod: {Domain: "company", Action: "settle"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

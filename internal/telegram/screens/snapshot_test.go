@@ -627,6 +627,7 @@ func TestGroupTextSnapshots(t *testing.T) {
 			book.AddText("announcement · jailed, a busy group", Announcement(c, JailAnnouncement(c, who.third, "ostmarch", "Ostmarch"), 4))
 			book.AddText("announcement · a payment in the group", PaymentMade(c, PaymentMadeView{PayerName: who.me, PayeeName: who.friend}))
 			electionAnnouncements(c, who, book)
+			companyAnnouncements(c, who, book)
 			book.Check(t, snapshotDir, "group")
 		})
 	}

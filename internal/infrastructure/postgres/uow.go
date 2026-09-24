@@ -196,3 +196,6 @@ func (t *tx) Auctions() application.AuctionRepository { return &AuctionRepositor
 
 // Elections returns the elections (migration 0018).
 func (t *tx) Elections() application.ElectionRepository { return &ElectionRepository{q: t.q} }
+
+// Companies returns the player companies (migration 0019).
+func (t *tx) Companies() application.CompanyRepository { return &CompanyRepository{q: t.q} }

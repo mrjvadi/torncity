@@ -72,6 +72,38 @@ type Pending struct {
 	// Prompt is the message id of the prompt, which a reply in a group must
 	// answer.
 	Prompt int64 `json:"prompt"`
+	// Text says the value is words (CleanText), not a number (CleanValue).
+	Text bool `json:"text,omitempty"`
+}
+
+// Clean prepares a typed answer for the field it fills: words kept as
+// written, a number with its digits and separators made ASCII.
+func (p Pending) Clean(text string, maxRunes int) string {
+	if p.Text {
+		return CleanText(text, maxRunes)
+	}
+	return CleanValue(text, maxRunes)
+}
+
+// CleanText trims what the player typed and caps its length, and drops the
+// invisible direction marks a keyboard may add; everything else — the
+// Persian non-joiner that is part of a word's spelling, Persian digits, a
+// Persian comma — is kept as written. Empty means there is nothing to use.
+func CleanText(text string, maxRunes int) string {
+	text = strings.TrimSpace(text)
+	var b strings.Builder
+	n := 0
+	for _, r := range text {
+		if maxRunes > 0 && n >= maxRunes {
+			break
+		}
+		if r == '\u200e' || r == '\u200f' {
+			continue
+		}
+		b.WriteRune(r)
+		n++
+	}
+	return strings.TrimSpace(b.String())
 }
 
 // Store keeps waiting inputs. internal/infrastructure/redis implements it.

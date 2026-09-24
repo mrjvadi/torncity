@@ -41,11 +41,13 @@ type QuitRequest struct {
 //
 // # Who pays
 //
-// Every employer today is a city's base (NPC) employer. It pays each shift
-// when it ends, from system_source under ReasonBaseEmployerSalary — the
-// faucet ADR 0009 lists for exactly this. When player companies arrive, a
-// job at a company is paid from that company's treasury instead, as a
-// transfer, in payWage; nothing else here changes.
+// A city's base (NPC) employer pays each shift when it ends, from
+// system_source under ReasonBaseEmployerSalary — the faucet ADR 0009 lists
+// for exactly this. A job at a player company is paid from that company's
+// treasury instead, as a transfer (ReasonCompanyWage, payWage): the shift
+// sets its wage aside when it starts, so it cannot start at a company that
+// has not got it, and is always paid when it ends
+// (docs/adr/0020-companies.md).
 //
 // # What the city decides
 //
@@ -124,6 +126,9 @@ func (h *JobsHandler) finish(meta envelope.Metadata, lang string, resp *presente
 		if v, ok := asNotHere(err); ok {
 			return screens.NotHere(h.screen(meta, lang), v), nil
 		}
+		if v, ok := asCompanyRefusal(err); ok {
+			return screens.CompanyRefusal(h.screen(meta, lang), v), nil
+		}
 		return nil, err
 	}
 	return resp, nil
@@ -195,8 +200,13 @@ func (h *JobsHandler) statusView(ctx context.Context, tx application.Tx, snap *c
 		return screens.JobStatusView{}, err
 	}
 	tier := career.Tiers[emp.Tier]
+	employer, err := employerOf(ctx, tx, *emp)
+	if err != nil {
+		return screens.JobStatusView{}, err
+	}
 	view := screens.JobStatusView{
 		Employed:     true,
+		Employer:     employer.name(),
 		Job:          jobRef(def, emp.Tier),
 		CityCode:     city.Code,
 		City:         city.Name,
@@ -225,9 +235,9 @@ func (h *JobsHandler) statusView(ctx context.Context, tx application.Tx, snap *c
 			return screens.JobStatusView{}, err
 		}
 		if w.placed() && w.city.ID == emp.CityID && w.walk == nil {
-			if wp, ok := w.cmap.ForWork(def.Category); ok {
+			if wp, ok := employer.workplace(snap, w.cmap, def.Category); ok {
 				view.Workplace = placeNamed(snap, wp.Code)
-				if wp, away := workplaceAway(w, def.Category, emp.CityID); away {
+				if wp, away := workplaceAway(w, wp, ok, emp.CityID); away {
 					view.WalkToWork = h.scale.RealWait(wp.MoveTime)
 				}
 			}
@@ -306,6 +316,26 @@ func (h *JobsHandler) List(ctx context.Context, meta envelope.Metadata, req Page
 				Pay:      entryRate(career, pol.Policy).Minor(),
 				Eligible: job.Eligibility(career, 0, s.candidate(city.ID)) == nil,
 			})
+		}
+		// The city's player companies hire beside the base employer, on
+		// the first page.
+		if page <= 1 {
+			openings, err := tx.Companies().CityOpenings(ctx, city.ID)
+			if err != nil {
+				return err
+			}
+			for _, o := range openings {
+				def, ok := snap.CareerDef(o.Opening.CareerCode)
+				career, ok2 := snap.Career(o.Opening.CareerCode)
+				if !ok || !ok2 {
+					continue
+				}
+				view.Companies = append(view.Companies, screens.CompanyJobOpening{
+					No: o.Opening.No, Company: o.Company.Name, Job: jobRef(def, 0),
+					Pay:      max(o.Opening.Wage, pol.MinimumWage.Minor()),
+					Eligible: job.Eligibility(career, 0, s.candidate(city.ID)) == nil,
+				})
+			}
 		}
 		start, end, pages := pageWindow(len(all), page, h.pageSize)
 		view.Openings = all[start:end]
@@ -471,6 +501,10 @@ func (h *JobsHandler) Apply(ctx context.Context, meta envelope.Metadata, req Job
 			}
 			return err
 		}
+		// Hired: whatever they applied for at a company is withdrawn.
+		if _, err := tx.Companies().WithdrawPlayerApplications(ctx, p.ID, now); err != nil {
+			return err
+		}
 		if err := appendJobEvent(ctx, tx, meta, "hired", empID, map[string]any{
 			"employment_id":   empID,
 			"player_id":       p.ID,
@@ -607,12 +641,43 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 			}
 			return errors.Internal(err)
 		}
-		// A shift is worked at the workplace: the place of the career's
-		// category (places.yml work_categories). A player elsewhere in the
-		// city walks there first — the shift they could start now is what
-		// was just checked — and it starts on arrival (places_then.go).
-		// Nothing of the shift is charged until then.
-		if wp, away := workplaceAway(w, def.Category, emp.CityID); away {
+		// A shift at a company is paid from its treasury: the company must
+		// hold the wage free of every other running shift's, and sets it
+		// aside now (docs/adr/0020-companies.md). The company row is locked
+		// after the job row, as every company command orders them.
+		employer, err := employerOf(ctx, tx, *emp)
+		if err != nil {
+			return err
+		}
+		var reserve int64
+		if employer.company != nil {
+			co, err := tx.Companies().Lock(ctx, employer.company.ID)
+			if err != nil {
+				return err
+			}
+			if !co.Active() {
+				return refuseCompany(screens.CompanyRefusedDissolved, co, snap)
+			}
+			books, _, err := companyBooks(ctx, tx, *co)
+			if err != nil {
+				return err
+			}
+			reserve = max(emp.Rate, pol.MinimumWage.Minor())
+			if err := books.CanReserve(money.FromMinor(reserve)); err != nil {
+				r := refuseCompany(screens.CompanyRefusedCannotPay, co, snap)
+				r.view.Need, r.view.Have = reserve, books.Available().Minor()
+				return r
+			}
+			employer.company = co
+		}
+		// A shift is worked at the workplace: the place of the company's
+		// kind of business, or of the career's category (places.yml
+		// work_categories). A player elsewhere in the city walks there first
+		// — the shift they could start now is what was just checked — and
+		// it starts on arrival (places_then.go). Nothing of the shift is
+		// charged until then.
+		wp, found := employer.workplace(snap, w.cmap, def.Category)
+		if wp, away := workplaceAway(w, wp, found, emp.CityID); away {
 			then, err := followUpFrom(meta, "job.work", nil)
 			if err != nil {
 				return err
@@ -666,6 +731,8 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 			EnergyCost:   tier.EnergyCost,
 			StartedAt:    a.StartedAt,
 			EndsAt:       a.EndsAt,
+			CompanyID:    employer.id(),
+			WageReserved: reserve,
 		}); err != nil {
 			if isSentinel(err, application.ErrShiftInProgress) {
 				return refuse(screens.RefusalShiftInProgress, nil)
@@ -712,15 +779,57 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 // city, and whether the player stands somewhere else in it. A player in
 // another city, in a city without places, or nowhere, is not "away" here:
 // the job's own city check answers for them.
-func workplaceAway(w whereabouts, category, jobCityID string) (place.Place, bool) {
+func workplaceAway(w whereabouts, wp place.Place, ok bool, jobCityID string) (place.Place, bool) {
 	if !w.placed() || w.city.ID != jobCityID || w.walk != nil {
 		return place.Place{}, false
 	}
-	wp, ok := w.cmap.ForWork(category)
 	if !ok || wp.Code == w.here.Code {
 		return wp, false
 	}
 	return wp, true
+}
+
+// employer is who a job is at: a player company, or nil for the city's
+// base employer.
+type employer struct {
+	company *application.Company
+}
+
+// employerOf reads the company a job is at, if any.
+func employerOf(ctx context.Context, tx application.Tx, emp application.Employment) (employer, error) {
+	if emp.CompanyID == "" {
+		return employer{}, nil
+	}
+	c, err := tx.Companies().ByID(ctx, emp.CompanyID)
+	if err != nil {
+		return employer{}, err
+	}
+	return employer{company: c}, nil
+}
+
+func (e employer) name() string {
+	if e.company == nil {
+		return ""
+	}
+	return e.company.Name
+}
+
+func (e employer) id() string {
+	if e.company == nil {
+		return ""
+	}
+	return e.company.ID
+}
+
+// workplace is where the job is worked: the place of the company's kind of
+// business, or the place of the career's category at the base employer.
+func (e employer) workplace(snap *content.Snapshot, cmap place.Map, category string) (place.Place, bool) {
+	if e.company != nil {
+		if def, _, ok := snap.CompanyType(e.company.TypeCode); ok {
+			return cmap.Find(def.Place)
+		}
+	}
+	return cmap.ForWork(category)
 }
 
 // ShiftActionPayload is the jsonb a started shift writes onto its
@@ -846,14 +955,25 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 			// which the broker's backoff turns into "later".
 			return errors.Internal(err)
 		}
+		// A shift worked for a company is paid from its treasury: its row
+		// is locked after the job row, before the wage it reserved leaves.
+		employer, err := employerOf(ctx, tx, *emp)
+		if err != nil {
+			return err
+		}
+		if session.CompanyID != "" {
+			if employer.company, err = tx.Companies().Lock(ctx, session.CompanyID); err != nil {
+				return err
+			}
+		}
 		if err := tx.Employment().EndShift(ctx, session.ID, application.ShiftCompleted, now); err != nil {
 			return err
 		}
 		// The shift ends where it was worked: the player stands at the
-		// place of their career's category until they walk away.
+		// workplace until they walk away.
 		if def, ok := snap.CareerDef(emp.CareerCode); ok {
 			if city, err := h.cities.ByID(ctx, emp.CityID); err == nil {
-				if pl, ok := snap.CityMap(city.Code).ForWork(def.Category); ok {
+				if pl, ok := employer.workplace(snap, snap.CityMap(city.Code), def.Category); ok {
 					code := pl.Code
 					if pl.Default {
 						code = ""
@@ -878,7 +998,7 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 		}
 		// The payroll row and both ledger transactions carry the session's
 		// id: one shift, one payment, whatever is delivered twice.
-		pay, err := h.payWage(ctx, tx, playerID, s.residence, emp.CityID, session.ID, res.Pay, pol)
+		pay, err := h.payWage(ctx, tx, playerID, s.residence, emp.CityID, *session, res.Pay, pol)
 		if err != nil {
 			return err
 		}
@@ -906,6 +1026,7 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 			PerformanceDelta:    res.PerformanceDelta,
 			FatigueBPS:          res.FatigueBPS,
 			LedgerTransactionID: pay.transactionID,
+			CompanyID:           session.CompanyID,
 		}); err != nil {
 			return err
 		}
@@ -1003,17 +1124,20 @@ type wage struct {
 //
 // Two transactions, each with its own reason, so the flows stay measurable:
 //
-//  1. the wage: system_source -> the player's cash, ReasonBaseEmployerSalary.
-//     This is the NPC employer. A player company will pay from its
-//     company_treasury account here instead, as a transfer; that is the one
-//     line that changes when companies exist.
+//  1. the wage: system_source -> the player's cash, ReasonBaseEmployerSalary,
+//     at the city's base (NPC) employer; at a player company, its
+//     company_treasury -> the player's cash, ReasonCompanyWage, a transfer,
+//     capped at the wage the shift reserved when it started.
 //  2. the tax: the player's cash -> the treasury of the city they live in,
 //     ReasonIncomeTax, at that city's city.income_tax.
 //
 // A player with no residence pays no income tax: no city's policy applies to
 // them. A zero wage (a policy of zero minimum wage and a tired shift can
 // floor to nothing) moves no money.
-func (h *JobsHandler) payWage(ctx context.Context, tx application.Tx, playerID, residence, jobCityID, shiftID string, pay money.Amount, jobPolicy labourPolicy) (wage, error) {
+func (h *JobsHandler) payWage(ctx context.Context, tx application.Tx, playerID, residence, jobCityID string,
+	session application.ShiftSession, pay money.Amount, jobPolicy labourPolicy,
+) (wage, error) {
+	shiftID := session.ID
 	taxBPS := 0
 	if residence != "" {
 		pol := jobPolicy
@@ -1029,6 +1153,24 @@ func (h *JobsHandler) payWage(ctx context.Context, tx application.Tx, playerID, 
 		taxBPS = pol.IncomeTaxBPS
 	}
 	now := h.now()
+	ledger := tx.Ledger()
+	// A company pays what the shift reserved when it started, never more:
+	// the terms in force when it began are the terms it is paid on. The
+	// reservation is what makes the money be there.
+	var from application.Account
+	if session.CompanyID != "" {
+		if pay.Minor() > session.WageReserved {
+			pay = money.FromMinor(session.WageReserved)
+		}
+		var err error
+		if from, err = ledger.AccountFor(ctx, application.AccountCompanyTreasury, session.CompanyID); err != nil {
+			return wage{}, err
+		}
+		if pay.Minor() > from.Balance.Minor() {
+			// Only a bug elsewhere gets here; never overdraw a company.
+			pay = from.Balance
+		}
+	}
 	payments, err := job.Payroll([]job.Employee{{ID: playerID, ShiftPay: pay}},
 		job.Period{Start: now, End: now.Add(time.Nanosecond)}, taxBPS)
 	if err != nil {
@@ -1039,7 +1181,6 @@ func (h *JobsHandler) payWage(ctx context.Context, tx application.Tx, playerID, 
 	}
 	w := wage{Gross: payments[0].Gross, Tax: payments[0].Tax, Net: payments[0].Net}
 
-	ledger := tx.Ledger()
 	cash, err := ledger.AccountFor(ctx, application.AccountPlayerCash, playerID)
 	if err != nil {
 		return wage{}, err
@@ -1048,12 +1189,16 @@ func (h *JobsHandler) payWage(ctx context.Context, tx application.Tx, playerID, 
 	if err != nil {
 		return wage{}, errors.Internal(err)
 	}
+	reason, payer := application.ReasonBaseEmployerSalary, application.SystemSourceAccountID
+	if session.CompanyID != "" {
+		reason, payer = application.ReasonCompanyWage, from.ID
+	}
 	if w.transactionID, err = ledger.Post(ctx, application.LedgerTransaction{
-		Reason:        application.ReasonBaseEmployerSalary,
+		Reason:        reason,
 		ReferenceType: "work_shifts",
 		ReferenceID:   shiftID,
 		Entries: []application.LedgerEntry{
-			{AccountID: application.SystemSourceAccountID, Amount: negGross},
+			{AccountID: payer, Amount: negGross},
 			{AccountID: cash.ID, Amount: w.Gross},
 		},
 		CreatedAt: now,
@@ -1146,7 +1291,11 @@ func (h *JobsHandler) Promote(ctx context.Context, meta envelope.Metadata) (*pre
 		}
 		next := *emp
 		next.Tier = promoted.Tier
-		next.Rate = promoted.Rate.Minor()
+		// A company sets its own wages: a promotion there changes the
+		// position, not the pay, until the company changes it.
+		if emp.CompanyID == "" {
+			next.Rate = promoted.Rate.Minor()
+		}
 		next.TierSince = promoted.TierSince
 		next.ShiftsInTier = promoted.ShiftsInTier
 		next.UpdatedAt = now
@@ -1170,7 +1319,7 @@ func (h *JobsHandler) Promote(ctx context.Context, meta envelope.Metadata) (*pre
 		}
 		view = screens.JobPromotedView{
 			Job: jobRef(def, promoted.Tier),
-			Pay: max(promoted.Rate.Minor(), pol.MinimumWage.Minor()),
+			Pay: max(next.Rate, pol.MinimumWage.Minor()),
 		}
 		return nil
 	})

@@ -317,6 +317,13 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.goods = newGoodsHandlers(uow, messages, registry, cities, postgres.NewPolicyReader(pool, nil),
 		gametime.Scale(cfg.Game.TimeScale), cfg.Crime, cfg.Trade, cfg.Game.IdempotencyTTL)
 
+	// Companies: kinds of business and each city's market are content read
+	// from the live registry; what a city charges a company only through
+	// the resolver (ADR 0015); periods run on the game clock.
+	h.companies = handlers.NewCompaniesHandler(uow, uuidGenerator{}, messages, registry, cities,
+		postgres.NewPolicyReader(pool, nil), postgres.NewPlayerSearchRepository(pool), gametime.Scale(cfg.Game.TimeScale),
+		companyRules(cfg.Company, bankLimits), cfg.Game.IdempotencyTTL, nil)
+
 	subs := commands.All()
 	bound, err := bindAll(subs, h.bind())
 	if err != nil {

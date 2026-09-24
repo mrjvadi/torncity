@@ -317,6 +317,18 @@ func TestWorkAndStudyEndToEnd(t *testing.T) {
 		}
 	}
 	pack.Careers = kept
+	// Kinds of business that hire into retail go with it.
+	var kinds []content.CompanyTypeDef
+	for _, k := range pack.CompanyTypes {
+		hires := false
+		for _, c := range k.Careers {
+			hires = hires || c == "retail"
+		}
+		if !hires {
+			kinds = append(kinds, k)
+		}
+	}
+	pack.CompanyTypes = kinds
 	// Keep the rest of the pack consistent without retail — a venue that
 	// places workers of its category would otherwise be refused first — so
 	// the refusal seen is the one about the job in use.

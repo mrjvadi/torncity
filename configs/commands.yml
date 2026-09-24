@@ -117,11 +117,44 @@ commands:
   election.stand: {channel: private}
   election.vote: {channel: private}
 
+  # Companies: a city's registry and a company's public page read anywhere
+  # (in a group without the owner's buttons). Founding one pays a fee, and
+  # running one shows and moves its money: PV only. So do an opening and
+  # applying to it, which read the applicant's own standing.
+  company.list: {channel: both}
+  company.view: {channel: both}
+  company.register: {channel: private}
+  company.type: {channel: private}
+  company.found: {channel: private}
+  company.mine: {channel: private}
+  company.manage: {channel: private}
+  company.deposit: {channel: private}
+  company.withdraw: {channel: private}
+  company.price: {channel: private}
+  company.auto: {channel: private}
+  company.manager: {channel: private}
+  company.close: {channel: private}
+  company.openings: {channel: private}
+  company.post: {channel: private}
+  company.slots: {channel: private}
+  company.staff: {channel: private}
+  company.decide: {channel: private}
+  company.fire: {channel: private}
+  company.opening: {channel: private}
+  company.apply: {channel: private}
+
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the
 # commands listed here may ask. field is the payload field the typed text
-# fills; args are the names of what the button carries, in order.
+# fills; args are the names of what the button carries, in order; text: true
+# keeps the answer as written (a name), where by default it is read as an
+# amount (Persian digits and separators made ASCII).
 input:
   bank.deposit: {field: amount}
   bank.withdraw: {field: amount}
   bank.pay: {field: amount, args: [to, method, origin]}
+  company.found: {field: name, args: [type, method], text: true}
+  company.deposit: {field: amount, args: [company, method]}
+  company.withdraw: {field: amount, args: [company]}
+  company.post: {field: wage, args: [company, career]}
+  company.manager: {field: to, args: [company], text: true}

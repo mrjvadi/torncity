@@ -336,6 +336,16 @@ trade:
   auction_min_step: 11
   auction_max_open: 6
   auction_reserves_bps: [4000, 9000]
+company:
+  period: 25h
+  max_per_player: 3
+  name_min_length: 4
+  name_max_length: 25
+  founding_shares: 1001
+  insolvency_periods: 4
+  npc_city_period_cap: 50001
+  max_openings: 6
+  price_step_bps: 1001
 input:
   ttl: 7m
   cooldown: 4s
@@ -457,6 +467,16 @@ var envOverrides = map[string]string{
 	"TORN_TRADE_AUCTION_MIN_STEP":       "12",
 	"TORN_TRADE_AUCTION_MAX_OPEN":       "7",
 	"TORN_TRADE_AUCTION_RESERVES_BPS":   "3000,8000",
+
+	"TORN_COMPANY_PERIOD":              "26h",
+	"TORN_COMPANY_MAX_PER_PLAYER":      "4",
+	"TORN_COMPANY_NAME_MIN_LENGTH":     "5",
+	"TORN_COMPANY_NAME_MAX_LENGTH":     "26",
+	"TORN_COMPANY_FOUNDING_SHARES":     "1002",
+	"TORN_COMPANY_INSOLVENCY_PERIODS":  "5",
+	"TORN_COMPANY_NPC_CITY_PERIOD_CAP": "50002",
+	"TORN_COMPANY_MAX_OPENINGS":        "7",
+	"TORN_COMPANY_PRICE_STEP_BPS":      "1002",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

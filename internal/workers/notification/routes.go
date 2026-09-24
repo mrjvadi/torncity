@@ -102,6 +102,12 @@ func Routes() []Route {
 		{Domain: "auction", Event: "unsold", Render: renderAuction("unsold")},
 		{Domain: "election", Event: "result", Render: renderElectionResult},
 
+		// Companies: see company.go.
+		{Domain: "company", Event: "applied", Render: renderCompanyApplied},
+		{Domain: "company", Event: "employee", Render: renderCompanyEmployee},
+		{Domain: "company", Event: "manager_appointed", Render: renderCompanyManager},
+		{Domain: "company", Event: "period_settled", Render: renderCompanyPeriod},
+
 		// Public lines in a city's groups (announce.go). Each has its own
 		// consumer beside the event's private notice, if any.
 		{Domain: "travel", Event: "completed", Name: "announce", Announce: arrivalAnnouncement},
@@ -111,6 +117,8 @@ func Routes() []Route {
 		{Domain: "election", Event: "voting", Name: "announce", Announce: electionVotingAnnouncement},
 		{Domain: "election", Event: "counted", Name: "announce", Announce: electionCountedAnnouncement},
 		{Domain: "bank", Event: "payment_received", Name: "announce", Announce: paymentAnnouncement},
+		{Domain: "company", Event: "founded", Name: "announce", Announce: companyFoundedAnnouncement},
+		{Domain: "company", Event: "closed", Name: "announce", Announce: companyClosedAnnouncement},
 	}
 }
 

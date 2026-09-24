@@ -354,7 +354,9 @@ func hubKeyboard(c Context, hasCity, travelling, jailed bool, work *ProfileWork)
 	kb.Row(skills, social)
 
 	if hasCity && !travelling && !jailed {
-		kb.Add(c.T("gov.button.city", nil), AddrGovCity)
+		city, _ := keyboards.Button(c.T("gov.button.city", nil), AddrGovCity)
+		companies, _ := keyboards.Button(c.T("company.button.registry", nil), AddrCompanies)
+		kb.Row(city, companies)
 	}
 	if c.Shared && !travelling && !jailed {
 		// In a group the home screen is a public square: crime is what is

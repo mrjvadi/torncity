@@ -132,10 +132,10 @@ func checksumJobs(h hash.Hash, p *content.Pack) {
 }
 
 // ErrJobContentInUse reports that a load would remove a career someone works
-// in, cut a career below the position someone holds, or remove a course
-// someone is studying. ADR 0004 rule 7, like ErrCityInUse: a stored job or
+// in, cut a career below the position someone holds, remove a course
+// someone is studying, or remove the kind of business an active company is. ADR 0004 rule 7, like ErrCityInUse: a stored job or
 // enrolment naming content that no longer exists is a broken save.
-var ErrJobContentInUse = errors.New("postgres: content: a career or course in use would be removed")
+var ErrJobContentInUse = errors.New("postgres: content: a career, course or kind of company in use would be removed")
 
 // refuseRemovalOfJobsInUse implements ADR 0004 rule 7 for work and study,
 // inside the applying transaction.
@@ -201,6 +201,41 @@ func refuseRemovalOfJobsInUse(ctx context.Context, tx pgx.Tx, p *content.Pack) e
 	rows.Close()
 	if err := rows.Err(); err != nil {
 		return fmt.Errorf("postgres: content apply: checking courses in use: %w", err)
+	}
+
+	// A kind of business an active company is of (migrations/0019): a
+	// company whose kind is gone could be neither run nor settled.
+	var companies bool
+	if err := tx.QueryRow(ctx, `SELECT to_regclass('public.companies') IS NOT NULL`).Scan(&companies); err != nil {
+		return fmt.Errorf("postgres: content apply: looking for companies: %w", err)
+	}
+	if companies {
+		kinds := make(map[string]bool, len(p.CompanyTypes))
+		for _, t := range p.CompanyTypes {
+			kinds[t.Code] = true
+		}
+		rows, err = tx.Query(ctx,
+			`SELECT type_code, count(*) FROM companies WHERE status = 'active' GROUP BY type_code ORDER BY type_code`)
+		if err != nil {
+			return fmt.Errorf("postgres: content apply: checking kinds of company in use: %w", err)
+		}
+		for rows.Next() {
+			var (
+				code string
+				n    int
+			)
+			if err := rows.Scan(&code, &n); err != nil {
+				rows.Close()
+				return fmt.Errorf("postgres: content apply: scanning a kind of company in use: %w", err)
+			}
+			if !kinds[code] {
+				blocked = append(blocked, fmt.Sprintf("company type %s (%d active companies)", code, n))
+			}
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			return fmt.Errorf("postgres: content apply: checking kinds of company in use: %w", err)
+		}
 	}
 
 	if len(blocked) > 0 {

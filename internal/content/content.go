@@ -219,6 +219,14 @@ type Pack struct {
 	// elected. See election.go.
 	Elections []ElectionDef
 
+	// Companies (companies.yml): the kinds of business a player may found,
+	// each city's NPC market, what its population buys per category, and
+	// the words no company name may contain. See company.go.
+	CompanyTypes         []CompanyTypeDef
+	CompanyMarkets       []CompanyMarketDef
+	CompanyDemand        []CompanyDemandDef
+	CompanyReservedNames []string
+
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"
 	// It is empty for a pack that was assembled in code rather than read from

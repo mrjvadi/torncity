@@ -17,7 +17,7 @@
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [🏛 Offices and policies] → gov:city
+  [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Profile · walking to a place ━━━
@@ -40,7 +40,7 @@
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [🏛 Offices and policies] → gov:city
+  [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Profile · in a group, as the group sees it ━━━
@@ -57,7 +57,7 @@
 🆔 Player code: K7Q2M9A
   ───
   [🗺 Map] → map:list
-  [🏛 Offices and policies] → gov:city
+  [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [🕶 Underworld] → crime:hub
   [🔒 Continue in private chat] → https://t.me/torn_bot
   [🔄 Refresh] → player:profile.get
@@ -76,7 +76,7 @@
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [🏛 Offices and policies] → gov:city
+  [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Dashboard · walking ━━━
@@ -94,7 +94,7 @@
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [🏛 Offices and policies] → gov:city
+  [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ My job · away from the workplace ━━━

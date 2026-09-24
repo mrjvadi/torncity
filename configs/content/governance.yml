@@ -361,6 +361,33 @@ levers:
     change_cooldown: 72h
     notice: 24h
 
+  # Companies (companies.yml, docs/adr/0020-companies.md). The registration
+  # fee a founder pays the city's treasury is each kind of business's
+  # founding fee scaled by city.company_registration, in percent (100 = as
+  # authored); a mayor may halve it to attract business or double it. The
+  # corporate tax is taken, for the treasury, from every profit an owner
+  # takes out of a company and from what is left when one closes. Companies
+  # did not exist before; the defaults are a moderate start.
+  - code: city.company_registration
+    jurisdiction: city
+    type: int
+    default: 100
+    min: 50
+    max: 200
+    held_by: mayor
+    change_cooldown: 72h
+    notice: 24h
+
+  - code: city.corporate_tax
+    jurisdiction: city
+    type: bps
+    default: 1000
+    min: 0
+    max: 4000
+    held_by: mayor
+    change_cooldown: 72h
+    notice: 24h
+
   # No border tariff exists today either.
   - code: country.border_tariff
     jurisdiction: country
@@ -380,7 +407,8 @@ offices:
     term: 720h
     levers: [city.tax_rate, city.immigration_fee, city.bank_withdrawal_fee, city.card_transfer_fee,
              city.minimum_wage, city.income_tax, city.shift_window_hours, city.shifts_before_fatigue,
-             city.transit_fare, city.sales_tax, city.market_fee]
+             city.transit_fare, city.sales_tax, city.market_fee, city.company_registration,
+             city.corporate_tax]
     # While there is no mayor, the deputy mayor acts; with neither, the
     # defaults apply.
     deputy: deputy_mayor

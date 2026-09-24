@@ -44,6 +44,7 @@ type fileConfig struct {
 	Governance governanceSettings `yaml:"governance"`
 	Crime      crimeSettings      `yaml:"crime"`
 	Trade      tradeSettings      `yaml:"trade"`
+	Company    companySettings    `yaml:"company"`
 	Input      inputSettings      `yaml:"input"`
 	Announce   announceSettings   `yaml:"announce"`
 }
@@ -198,6 +199,18 @@ type tradeSettings struct {
 	AuctionMinStep      *int64   `yaml:"auction_min_step"`
 	AuctionMaxOpen      *int     `yaml:"auction_max_open"`
 	AuctionReservesBPS  []int64  `yaml:"auction_reserves_bps"`
+}
+
+type companySettings struct {
+	Period            *string `yaml:"period"`
+	MaxPerPlayer      *int    `yaml:"max_per_player"`
+	NameMinLength     *int    `yaml:"name_min_length"`
+	NameMaxLength     *int    `yaml:"name_max_length"`
+	FoundingShares    *int64  `yaml:"founding_shares"`
+	InsolvencyPeriods *int    `yaml:"insolvency_periods"`
+	NPCCityPeriodCap  *int64  `yaml:"npc_city_period_cap"`
+	MaxOpenings       *int    `yaml:"max_openings"`
+	PriceStepBPS      *int    `yaml:"price_step_bps"`
 }
 
 // setting is one configurable value, from its yaml key to the field it fills.
@@ -761,6 +774,34 @@ var settings = []setting{
 	moneyListSetting("trade", "auction_reserves_bps",
 		func(c *Config) *[]int64 { return &c.Trade.AuctionReservesBPS },
 		func(f *fileConfig) []int64 { return f.Trade.AuctionReservesBPS }),
+
+	durationSetting("company", "period",
+		func(c *Config) *time.Duration { return &c.Company.Period },
+		func(f *fileConfig) *string { return f.Company.Period }),
+	limitSetting("company", "max_per_player",
+		func(c *Config) *int { return &c.Company.MaxPerPlayer },
+		func(f *fileConfig) *int { return f.Company.MaxPerPlayer }),
+	limitSetting("company", "name_min_length",
+		func(c *Config) *int { return &c.Company.NameMinLength },
+		func(f *fileConfig) *int { return f.Company.NameMinLength }),
+	limitSetting("company", "name_max_length",
+		func(c *Config) *int { return &c.Company.NameMaxLength },
+		func(f *fileConfig) *int { return f.Company.NameMaxLength }),
+	moneySetting("company", "founding_shares",
+		func(c *Config) *int64 { return &c.Company.FoundingShares },
+		func(f *fileConfig) *int64 { return f.Company.FoundingShares }),
+	limitSetting("company", "insolvency_periods",
+		func(c *Config) *int { return &c.Company.InsolvencyPeriods },
+		func(f *fileConfig) *int { return f.Company.InsolvencyPeriods }),
+	moneySetting("company", "npc_city_period_cap",
+		func(c *Config) *int64 { return &c.Company.NPCCityPeriodCap },
+		func(f *fileConfig) *int64 { return f.Company.NPCCityPeriodCap }),
+	limitSetting("company", "max_openings",
+		func(c *Config) *int { return &c.Company.MaxOpenings },
+		func(f *fileConfig) *int { return f.Company.MaxOpenings }),
+	limitSetting("company", "price_step_bps",
+		func(c *Config) *int { return &c.Company.PriceStepBPS },
+		func(f *fileConfig) *int { return f.Company.PriceStepBPS }),
 
 	durationSetting("input", "ttl",
 		func(c *Config) *time.Duration { return &c.Input.TTL },

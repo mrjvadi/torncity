@@ -102,6 +102,25 @@ func economyVerify(ctx context.Context, args []string) error {
 		fmt.Printf("%s  every unique piece came from a recorded origin (%d without)\n", mark(v.OrphanPieces == 0), v.OrphanPieces)
 	}
 
+	if v.Companies {
+		c := v.CompanyInvariants
+		fmt.Printf("%s  every company treasury belongs to a company (%d orphans)\n", mark(c.OrphanCompanyAccounts == 0), c.OrphanCompanyAccounts)
+		fmt.Printf("%s  no company holds less than the wages its running shifts reserved\n", mark(len(c.Underfunded) == 0))
+		for _, u := range c.Underfunded {
+			fmt.Printf("        %s\n", u)
+		}
+		fmt.Printf("%s  every closed company holds nothing\n", mark(len(c.DissolvedWithMoney) == 0))
+		for _, d := range c.DissolvedWithMoney {
+			fmt.Printf("        %s\n", d)
+		}
+		fmt.Printf("%s  every settled period paid within its budget, as its companies' rows say\n", mark(len(c.OverBudget) == 0))
+		for _, o := range c.OverBudget {
+			fmt.Printf("        %s\n", o)
+		}
+		fmt.Printf("%s  NPC revenue in the ledger matches the settled periods (%d = %d)\n",
+			mark(c.NPCRevenue == c.PeriodRevenue), c.NPCRevenue, c.PeriodRevenue)
+	}
+
 	if !v.OK() {
 		return errInvariantsBroken
 	}

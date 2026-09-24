@@ -121,6 +121,22 @@ func init() {
 			func(p *content.Pack) []content.ElectionDef { return p.Elections },
 			func(e content.ElectionDef) string { return e.Office },
 			func(p *content.Pack, e content.ElectionDef) { p.Elections = append(p.Elections, e) }),
+		listKind("company_type",
+			func(p *content.Pack) []content.CompanyTypeDef { return p.CompanyTypes },
+			func(t content.CompanyTypeDef) string { return t.Code },
+			func(p *content.Pack, t content.CompanyTypeDef) { p.CompanyTypes = append(p.CompanyTypes, t) }),
+		listKind("company_market",
+			func(p *content.Pack) []content.CompanyMarketDef { return p.CompanyMarkets },
+			func(m content.CompanyMarketDef) string { return m.City },
+			func(p *content.Pack, m content.CompanyMarketDef) { p.CompanyMarkets = append(p.CompanyMarkets, m) }),
+		listKind("company_demand",
+			func(p *content.Pack) []content.CompanyDemandDef { return p.CompanyDemand },
+			func(d content.CompanyDemandDef) string { return d.Category },
+			func(p *content.Pack, d content.CompanyDemandDef) { p.CompanyDemand = append(p.CompanyDemand, d) }),
+		listKind("company_reserved_name",
+			func(p *content.Pack) []string { return p.CompanyReservedNames },
+			func(w string) string { return w },
+			func(p *content.Pack, w string) { p.CompanyReservedNames = append(p.CompanyReservedNames, w) }),
 	)
 }
 

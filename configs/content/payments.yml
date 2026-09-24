@@ -18,6 +18,8 @@
 #              market         funding a buy order on the player market
 #              auction        a bid on an auction
 #              election       a candidate's deposit
+#              company        a company's registration fee, and money put
+#                             into a company
 #   accepts  the methods it takes: [cash], [card] or [cash, card]. Never
 #            empty; a service left out of this file takes both.
 #
@@ -44,4 +46,6 @@ payment_services:
   - code: auction
     accepts: [cash, card]
   - code: election
+    accepts: [cash, card]
+  - code: company
     accepts: [cash, card]

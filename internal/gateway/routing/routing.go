@@ -221,6 +221,9 @@ var shortcuts = map[string]shortcut{
 	// "/vote" alone is the list to choose from.
 	"election": {Bare: "election.list", Words: "election.view"},
 	"vote":     {Bare: "election.list", Words: "election.vote"},
+	// "/company" is the companies of the player's city, "/company K7Q2M9A"
+	// one company's page.
+	"company": {Bare: "company.list", Words: "company.view"},
 }
 
 // argNames names the positional arguments of a command, in order.
@@ -358,6 +361,32 @@ var argNames = map[string][]string{
 	"election.view":  {"no"},
 	"election.stand": {"no", "method", "nonce"},
 	"election.vote":  {"no", "candidate", "nonce"},
+
+	// Companies, named by their public code; a kind of business by its
+	// content code (companies.yml); an opening or an application by its
+	// public number. A company's name, an amount, a wage and a manager are
+	// typed (configs/commands.yml, section input).
+	"company.list":     {},
+	"company.view":     {"code"},
+	"company.register": {},
+	"company.type":     {"type"},
+	"company.found":    {"type", "method", "name"},
+	"company.mine":     {},
+	"company.manage":   {"company"},
+	"company.deposit":  {"company", "method", "amount"},
+	"company.withdraw": {"company", "amount"},
+	"company.price":    {"company", "price"},
+	"company.auto":     {"company", "on"},
+	"company.manager":  {"company", "to"},
+	"company.close":    {"company", "confirm"},
+	"company.openings": {"company"},
+	"company.post":     {"company", "career", "wage"},
+	"company.slots":    {"no", "positions"},
+	"company.staff":    {"company"},
+	"company.decide":   {"no", "verdict"},
+	"company.fire":     {"company", "player", "confirm"},
+	"company.opening":  {"no"},
+	"company.apply":    {"no"},
 }
 
 // landings name the screen a domain opens on when one of its commands cannot

@@ -480,6 +480,35 @@ trade:
   # the good's reference price in basis points: 10000 is the price itself.
   auction_reserves_bps: [5000, 10000, 15000]
 
+# Player companies (docs/adr/0020-companies.md). The kinds of business and each
+# city's NPC market are content (companies.yml); what a city charges a company
+# — registration, corporate tax, minimum wage, sales tax — is its policy
+# (governance.yml), never a number here.
+company:
+  # One settlement of a city's companies, GAME time: every period, once, the
+  # population pays them and they pay their upkeep. At game.time_scale 60 a
+  # day of game time is 24 minutes.
+  period: 24h
+  # Companies one player may own at a time.
+  max_per_player: 2
+  # A name's length, in characters; the longest must fit input.max_length.
+  name_min_length: 3
+  name_max_length: 24
+  # Shares a company is founded with, every one of them its founder's. Kept
+  # for the stock market; nothing trades them yet.
+  founding_shares: 1000
+  # Settlements in a row a company may end owing upkeep before it is
+  # dissolved.
+  insolvency_periods: 3
+  # The most one city's population pays its companies in one period, minor
+  # units, whatever companies.yml allows: the operator's last bound on this
+  # faucet.
+  npc_city_period_cap: 50000
+  # Open job openings per company at a time.
+  max_openings: 5
+  # How far one press of «ارزان‌تر» or «گران‌تر» moves a price level, bps.
+  price_step_bps: 1000
+
 # Free-text input (internal/gateway/input): a button «✏️ مبلغ دلخواه» asks the
 # player to type a value, and their next message answers it. Which commands
 # may ask is configs/commands.yml, section input.

@@ -40,6 +40,8 @@ type phaseHandlers struct {
 	places *handlers.PlacesHandler
 
 	goods goodsHandlers
+
+	companies *handlers.CompaniesHandler
 }
 
 // bind maps every subscribed command to the handler method that serves it.
@@ -230,6 +232,9 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 	}
 	// Goods are bound in commands_goods.go.
 	for command, fn := range h.bindGoods() {
+		bound[command] = fn
+	}
+	for command, fn := range h.bindCompanies() {
 		bound[command] = fn
 	}
 	return bound

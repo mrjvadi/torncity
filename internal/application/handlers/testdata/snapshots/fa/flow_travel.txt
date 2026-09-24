@@ -184,7 +184,7 @@
   [🗺 نقشه] → map:list   │   [💼 فرصت‌های شغلی] → job:list
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
-  [🏛 مناصب و سیاست‌ها] → gov:city
+  [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ Map of Brennhaven, off the train ━━━

@@ -29,7 +29,8 @@ const courseSeatsLockNamespace = "course_seats:"
 // The columns every read of a job or an enrolment scans, in scan order.
 const (
 	employmentColumns = `id::text, player_id::text, career_code, city_id::text, tier, rate, performance,
-	       tier_since, shifts_in_tier, total_shifts, recent_shifts, total_earned, hired_at, updated_at`
+	       tier_since, shifts_in_tier, total_shifts, recent_shifts, total_earned, hired_at, updated_at,
+	       COALESCE(company_id::text, ''), COALESCE(opening_id::text, '')`
 	enrollmentColumns = `id::text, player_id::text, course_code, game_action_id::text, status, fee,
 	       started_at, completes_at, completed_at, paused_at`
 )
@@ -45,7 +46,7 @@ func scanEmployment(row pgx.Row) (*application.Employment, error) {
 	var e application.Employment
 	if err := row.Scan(&e.ID, &e.PlayerID, &e.CareerCode, &e.CityID, &e.Tier, &e.Rate, &e.Performance,
 		&e.TierSince, &e.ShiftsInTier, &e.TotalShifts, &e.RecentShifts, &e.TotalEarned,
-		&e.HiredAt, &e.UpdatedAt); err != nil {
+		&e.HiredAt, &e.UpdatedAt, &e.CompanyID, &e.OpeningID); err != nil {
 		return nil, err
 	}
 	e.TierSince = e.TierSince.UTC()
@@ -90,10 +91,12 @@ func (r *EmploymentRepository) Hire(ctx context.Context, e application.Employmen
 	}
 	_, err = r.q.Exec(ctx,
 		`INSERT INTO employments (id, player_id, career_code, city_id, tier, rate, performance, tier_since,
-		                          shifts_in_tier, total_shifts, recent_shifts, total_earned, hired_at, updated_at)
-		 VALUES ($1::uuid, $2::uuid, $3, $4::uuid, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+		                          shifts_in_tier, total_shifts, recent_shifts, total_earned, hired_at, updated_at,
+		                          company_id, opening_id)
+		 VALUES ($1::uuid, $2::uuid, $3, $4::uuid, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::uuid, $16::uuid)`,
 		id, e.PlayerID, e.CareerCode, e.CityID, e.Tier, e.Rate, e.Performance, e.TierSince.UTC(),
-		e.ShiftsInTier, e.TotalShifts, recent, e.TotalEarned, e.HiredAt.UTC(), e.UpdatedAt.UTC())
+		e.ShiftsInTier, e.TotalShifts, recent, e.TotalEarned, e.HiredAt.UTC(), e.UpdatedAt.UTC(),
+		nullableUUID(e.CompanyID), nullableUUID(e.OpeningID))
 	if violates(err, sqlstateUniqueViolation, employmentsOneCurrentIdx) {
 		return application.ErrAlreadyEmployed
 	}
@@ -149,10 +152,10 @@ func (r *EmploymentRepository) RecordShift(ctx context.Context, s application.Wo
 	}
 	if _, err := r.q.Exec(ctx,
 		`INSERT INTO work_shifts (id, employment_id, player_id, tier, worked_at, gross, tax, net, xp,
-		                          performance_delta, fatigue_bps, ledger_transaction_id)
-		 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $11, $12::uuid)`,
+		                          performance_delta, fatigue_bps, ledger_transaction_id, company_id)
+		 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $11, $12::uuid, $13::uuid)`,
 		id, s.EmploymentID, s.PlayerID, s.Tier, s.WorkedAt.UTC(), s.Gross, s.Tax, s.Net, s.XP,
-		s.PerformanceDelta, s.FatigueBPS, nullableUUID(s.LedgerTransactionID)); err != nil {
+		s.PerformanceDelta, s.FatigueBPS, nullableUUID(s.LedgerTransactionID), nullableUUID(s.CompanyID)); err != nil {
 		return fmt.Errorf("postgres: recording shift: %w", err)
 	}
 	return nil
@@ -161,7 +164,8 @@ func (r *EmploymentRepository) RecordShift(ctx context.Context, s application.Wo
 // shiftSessionColumns are the columns every read of a shift scans, in scan
 // order.
 const shiftSessionColumns = `id::text, employment_id::text, player_id::text, tier, game_action_id::text, status,
-	       fatigue_bps, energy_cost, started_at, ends_at, completed_at`
+	       fatigue_bps, energy_cost, started_at, ends_at, completed_at,
+	       COALESCE(company_id::text, ''), wage_reserved`
 
 // ActiveShift returns the player's shift in progress. It takes no lock of
 // its own, on purpose: every command that starts or ends a shift locks the
@@ -177,7 +181,7 @@ func (r *EmploymentRepository) ActiveShift(ctx context.Context, playerID string)
 		   FROM shift_sessions
 		  WHERE player_id = $1::uuid AND status = $2`, playerID, application.ShiftWorking).Scan(
 		&s.ID, &s.EmploymentID, &s.PlayerID, &s.Tier, &s.GameActionID, &s.Status,
-		&s.FatigueBPS, &s.EnergyCost, &s.StartedAt, &s.EndsAt, &s.CompletedAt)
+		&s.FatigueBPS, &s.EnergyCost, &s.StartedAt, &s.EndsAt, &s.CompletedAt, &s.CompanyID, &s.WageReserved)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows), isInvalidUUIDText(err):
 		return nil, application.ErrNoShiftInProgress
@@ -202,10 +206,10 @@ func (r *EmploymentRepository) StartShift(ctx context.Context, s application.Shi
 	}
 	_, err = r.q.Exec(ctx,
 		`INSERT INTO shift_sessions (id, employment_id, player_id, tier, game_action_id, status,
-		                             fatigue_bps, energy_cost, started_at, ends_at)
-		 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5::uuid, $6, $7, $8, $9, $10)`,
+		                             fatigue_bps, energy_cost, started_at, ends_at, company_id, wage_reserved)
+		 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5::uuid, $6, $7, $8, $9, $10, $11::uuid, $12)`,
 		id, s.EmploymentID, s.PlayerID, s.Tier, s.GameActionID, application.ShiftWorking,
-		s.FatigueBPS, s.EnergyCost, s.StartedAt.UTC(), s.EndsAt.UTC())
+		s.FatigueBPS, s.EnergyCost, s.StartedAt.UTC(), s.EndsAt.UTC(), nullableUUID(s.CompanyID), s.WageReserved)
 	if violates(err, sqlstateUniqueViolation, shiftSessionsOneWorkingIdx) {
 		return application.ErrShiftInProgress
 	}

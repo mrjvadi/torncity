@@ -1,0 +1,227 @@
+# Player companies: the kinds of business a player may found, each city's NPC
+# market, what its population buys, and the words no company name may contain.
+#
+# The RULES — who may do what in a company, where its money may go, what
+# happens when it cannot pay its upkeep, how a city's population divides its
+# spending among competing companies — are internal/domain/company
+# (docs/adr/0020-companies.md). What is here is parameter. The city's levers
+# (governance.yml) decide the rest: city.company_registration scales the
+# founding fee, city.corporate_tax taxes profits taken out, city.minimum_wage
+# floors every wage a company offers, city.sales_tax is charged on what the
+# population pays.
+#
+# Loaded and versioned with the rest of the content (`admin content load`).
+#
+# ---------------------------------------------------------------------------
+# company_types — the kinds of business.
+#   code             stable identifier; stored on every company of the kind.
+#                    Never change one after it ships.
+#   name             display name, the fallback for company_type.<code>.
+#   category         the NPC demand category it sells into (company_demand).
+#   place            where in the city it operates (places.yml): its staff
+#                    work their shifts there. A city without the place has no
+#                    such business.
+#   careers          the careers (jobs.yml) it hires into.
+#   founding_fee     the registration fee, minor units, before the city's
+#                    multiplier; paid to the city's treasury.
+#   upkeep           what one full period of operation costs, minor units;
+#                    it leaves the economy.
+#   max_staff        employees plus open positions, at most.
+#   unit_price       what one unit of its output sells for at the reference
+#                    price level, minor units.
+#   base_units       what it can sell in a full period with nobody working.
+#   units_per_shift  what each shift worked for it adds to that.
+#   staff_target     shifts in one period that bring it to full quality.
+#   min_quality_bps  its quality with no shift worked (10000 = full).
+#   price_min_bps    the price levels the owner may choose between; 10000 is
+#   price_max_bps    the reference price and must lie within.
+#   elasticity_bps   how much volume a dearer price loses: at 12000, 10%
+#                    dearer sells 12% fewer units (and 10% cheaper, 12% more).
+#
+# A period is one day of GAME time (config company.period), waited through the
+# game clock: at game.time_scale 60, 24 minutes. Every period, once, each
+# city's companies are paid by its population and charge their upkeep.
+#
+# ---------------------------------------------------------------------------
+# company_markets — each city's NPC population. A city without an entry has
+# no NPC customers: its companies earn nothing from the population.
+#   city                 city code.
+#   population           the NPC population that buys from its companies.
+#   wealth_bps           how much it spends, 10000 = an average city.
+#   budget_per_thousand  the most it spends in one period, all companies
+#                        together, per thousand residents, before wealth.
+#                        This is the faucet's bound: no settlement pays more.
+#                        Config company.npc_city_period_cap caps it again.
+#
+# company_demand — what the population buys, per category.
+#   category      a category a company type sells into.
+#   per_thousand  units per thousand residents per period, before wealth.
+#
+# company_reserved_names — words no company name may contain, compared with
+# case, spaces, marks and the Arabic forms of yeh and kaf ignored: the names
+# of offices and institutions, so no company passes itself off as the city.
+
+version: 1
+
+company_types:
+  - code: grocery
+    name: Grocery store
+    category: groceries
+    place: bazaar
+    careers: [retail]
+    founding_fee: 20000
+    upkeep: 500
+    max_staff: 5
+    unit_price: 12
+    base_units: 20
+    units_per_shift: 40
+    staff_target: 4
+    min_quality_bps: 3000
+    price_min_bps: 6000
+    price_max_bps: 16000
+    elasticity_bps: 14000
+
+  - code: restaurant
+    name: Restaurant
+    category: meals
+    place: bazaar
+    careers: [hospitality]
+    founding_fee: 30000
+    upkeep: 700
+    max_staff: 6
+    unit_price: 18
+    base_units: 10
+    units_per_shift: 30
+    staff_target: 5
+    min_quality_bps: 2500
+    price_min_bps: 6000
+    price_max_bps: 18000
+    elasticity_bps: 12000
+
+  - code: repair_workshop
+    name: Repair workshop
+    category: repairs
+    place: industrial_zone
+    careers: [workshop]
+    founding_fee: 35000
+    upkeep: 800
+    max_staff: 5
+    unit_price: 40
+    base_units: 4
+    units_per_shift: 12
+    staff_target: 4
+    min_quality_bps: 2500
+    price_min_bps: 6000
+    price_max_bps: 17000
+    elasticity_bps: 10000
+
+  - code: clinic
+    name: Clinic
+    category: health
+    place: hospital
+    careers: [healthcare]
+    founding_fee: 60000
+    upkeep: 1400
+    max_staff: 6
+    unit_price: 60
+    base_units: 3
+    units_per_shift: 10
+    staff_target: 5
+    min_quality_bps: 2000
+    price_min_bps: 7000
+    price_max_bps: 20000
+    elasticity_bps: 8000
+
+  - code: courier
+    name: Courier company
+    category: delivery
+    place: industrial_zone
+    careers: [logistics]
+    founding_fee: 40000
+    upkeep: 900
+    max_staff: 8
+    unit_price: 25
+    base_units: 6
+    units_per_shift: 20
+    staff_target: 6
+    min_quality_bps: 2500
+    price_min_bps: 6000
+    price_max_bps: 16000
+    elasticity_bps: 11000
+
+  - code: tech_studio
+    name: Tech studio
+    category: software
+    place: business_district
+    careers: [technology]
+    founding_fee: 80000
+    upkeep: 1800
+    max_staff: 6
+    unit_price: 120
+    base_units: 1
+    units_per_shift: 6
+    staff_target: 5
+    min_quality_bps: 1500
+    price_min_bps: 6000
+    price_max_bps: 20000
+    elasticity_bps: 9000
+
+  - code: factory
+    name: Factory
+    category: manufacturing
+    place: industrial_zone
+    careers: [workshop, logistics]
+    founding_fee: 120000
+    upkeep: 2500
+    max_staff: 12
+    unit_price: 30
+    base_units: 10
+    units_per_shift: 25
+    staff_target: 10
+    min_quality_bps: 2000
+    price_min_bps: 7000
+    price_max_bps: 15000
+    elasticity_bps: 13000
+
+company_demand:
+  - {category: groceries,     per_thousand: 5}
+  - {category: meals,         per_thousand: 4}
+  - {category: repairs,       per_thousand: 1}
+  - {category: health,        per_thousand: 1}
+  - {category: delivery,      per_thousand: 2}
+  - {category: software,      per_thousand: 1}
+  - {category: manufacturing, per_thousand: 3}
+
+company_markets:
+  - {city: ostmarch,      population: 50000, wealth_bps: 8000,  budget_per_thousand: 400}
+  - {city: fenwick_span,  population: 70000, wealth_bps: 9000,  budget_per_thousand: 400}
+  - {city: aldrin_hollow, population: 40000, wealth_bps: 10500, budget_per_thousand: 400}
+  - {city: brennhaven,    population: 60000, wealth_bps: 11000, budget_per_thousand: 400}
+  - {city: kessmoor,      population: 45000, wealth_bps: 12000, budget_per_thousand: 400}
+  - {city: calderis,      population: 55000, wealth_bps: 13500, budget_per_thousand: 400}
+  - {city: vantor_reach,  population: 35000, wealth_bps: 15000, budget_per_thousand: 400}
+
+company_reserved_names:
+  - شهرداری
+  - شهردار
+  - شورای شهر
+  - پلیس
+  - کلانتری
+  - دولت
+  - ریاست جمهوری
+  - رئیس جمهور
+  - دادگستری
+  - زندان
+  - خزانه
+  - بانک مرکزی
+  - مدیریت بازی
+  - mayor
+  - city hall
+  - council
+  - police
+  - government
+  - president
+  - treasury
+  - central bank
+  - moderator
+  - game master

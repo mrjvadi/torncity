@@ -117,7 +117,7 @@ func (g *gateway) takeInput(ctx context.Context, bot application.Bot, msg *clien
 		log.Warn("a waiting input is unreadable", append(metaAttrs(meta), slog.String("error", err.Error()))...)
 		return typed{}, false
 	}
-	answer := input.CleanValue(text, g.cfg.Input.MaxLength)
+	answer := pending.Clean(text, g.cfg.Input.MaxLength)
 	if answer == "" {
 		return typed{}, false
 	}
@@ -181,7 +181,7 @@ func (g *gateway) ask(ctx context.Context, bot application.Bot, meta envelope.Me
 	for i, arg := range args {
 		payload[spec.Args[i]] = arg
 	}
-	value, err := input.Encode(input.Pending{Command: command, Payload: payload, Field: spec.Field, Prompt: promptID})
+	value, err := input.Encode(input.Pending{Command: command, Payload: payload, Field: spec.Field, Prompt: promptID, Text: spec.Text})
 	if err == nil {
 		err = g.inputs.Put(ctx, key, value, g.cfg.Input.TTL)
 	}
