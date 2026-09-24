@@ -346,6 +346,11 @@ company:
   npc_city_period_cap: 50001
   max_openings: 6
   price_step_bps: 1001
+  max_running_orders: 4
+  max_designs: 21
+  max_listings: 11
+  design_min_skill: 2
+  reverse_time: 5h
 input:
   ttl: 7m
   cooldown: 4s
@@ -477,6 +482,11 @@ var envOverrides = map[string]string{
 	"TORN_COMPANY_NPC_CITY_PERIOD_CAP": "50002",
 	"TORN_COMPANY_MAX_OPENINGS":        "7",
 	"TORN_COMPANY_PRICE_STEP_BPS":      "1002",
+	"TORN_COMPANY_MAX_RUNNING_ORDERS":  "5",
+	"TORN_COMPANY_MAX_DESIGNS":         "22",
+	"TORN_COMPANY_MAX_LISTINGS":        "12",
+	"TORN_COMPANY_DESIGN_MIN_SKILL":    "3",
+	"TORN_COMPANY_REVERSE_TIME":        "7h",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

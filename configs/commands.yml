@@ -143,6 +143,35 @@ commands:
   company.opening: {channel: private}
   company.apply: {channel: private}
 
+  # The production economy: a company's floor — its warehouse, suppliers,
+  # research lab and licenses, design studio, orders, reverse engineering
+  # and listings — shows and spends its money and its secrets: PV only. The
+  # city's company goods and buying them read and move the buyer's money:
+  # PV only too. A company's public page (company.view) shows its products.
+  company.warehouse: {channel: private}
+  company.suppliers: {channel: private}
+  company.supply: {channel: private}
+  company.lab: {channel: private}
+  company.research: {channel: private}
+  company.techmode: {channel: private}
+  company.license: {channel: private}
+  company.studio: {channel: private}
+  company.dnew: {channel: private}
+  company.design: {channel: private}
+  company.dfill: {channel: private}
+  company.dqty: {channel: private}
+  company.dname: {channel: private}
+  company.dfinal: {channel: private}
+  company.produce: {channel: private}
+  company.orders: {channel: private}
+  company.relab: {channel: private}
+  company.reverse: {channel: private}
+  company.sell: {channel: private}
+  company.listings: {channel: private}
+  company.unlist: {channel: private}
+  company.goods: {channel: private}
+  company.buy: {channel: private}
+
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the
 # commands listed here may ask. field is the payload field the typed text
@@ -158,3 +187,9 @@ input:
   company.withdraw: {field: amount, args: [company]}
   company.post: {field: wage, args: [company, career]}
   company.manager: {field: to, args: [company], text: true}
+  company.supply: {field: qty, args: [company, component]}
+  company.techmode: {field: price, args: [company, tech, mode]}
+  company.dqty: {field: qty, args: [no, slot]}
+  company.dname: {field: name, args: [no], text: true}
+  company.sell: {field: price, args: [company, target, qty]}
+  company.buy: {field: qty, args: [no]}

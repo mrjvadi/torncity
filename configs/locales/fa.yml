@@ -1064,6 +1064,7 @@ venue:
   police_station: کلانتری
   residential_area: محلهٔ مسکونی
   park: پارک شهر
+  farmland: زمین‌های کشاورزی
 
 # Paying a service (internal/domain/payment): every charge — tuition, a fare,
 # a police fee, bail, a shop, the market — is paid from the cash the player
@@ -1202,6 +1203,12 @@ input:
     company_withdraw: "📤 چه مبلغی از سود شرکت برداشت شود؟ مبلغ را به عدد بنویسید؛ مالیات شرکت از همین مبلغ کسر می‌شود."
     company_post: "💼 دستمزد هر شیفت این آگهی چقدر باشد؟ مبلغ را به عدد بنویسید."
     company_manager: "🧑‍💼 کد بازیکن یا نام کاربری مدیر تازه را بفرستید؛ برای برداشتن مدیر، «هیچ» را بفرستید."
+    company_supply: "🚚 چند واحد خریده شود؟ مقدار را به عدد بنویسید."
+    company_techmode: "📜 قیمت هر لایسنس این فناوری را به عدد بنویسید."
+    company_dqty: "🧩 مقدار این جای طرح را به عدد بنویسید."
+    company_dname: "📐 نام طرح را بنویسید و بفرستید."
+    company_sell: "🏷 قیمت هر واحد را به عدد بنویسید."
+    company_buy: "🛒 چند واحد می‌خرید؟ تعداد را به عدد بنویسید."
   placeholder:
     default: "مقدار"
     bank_deposit: "مبلغ واریز به نیل"
@@ -1212,6 +1219,12 @@ input:
     company_withdraw: "مبلغ برداشت به نیل"
     company_post: "دستمزد هر شیفت به نیل"
     company_manager: "کد بازیکن یا نام کاربری"
+    company_supply: "تعداد واحد"
+    company_techmode: "قیمت لایسنس به نیل"
+    company_dqty: "مقدار"
+    company_dname: "نام طرح"
+    company_sell: "قیمت هر واحد به نیل"
+    company_buy: "تعداد"
   cancel_hint: "برای انصراف، «انصراف» را بفرستید."
   cancelled: "✖️ لغو شد. چیزی تغییر نکرد."
 
@@ -1783,3 +1796,317 @@ company_type:
   courier: شرکت پیک و حمل‌ونقل
   tech_studio: استودیوی فناوری
   factory: کارخانه
+  mine: معدن
+  farm: مزرعه
+
+# اقتصاد تولید (docs/adr/0021-production-economy.md): انبار شرکت و
+# تأمین‌کننده‌ها، آزمایشگاه تحقیق و لایسنس، طراحی محصول، خط تولید، مهندسی
+# معکوس، عرضهٔ کالا و خرید از شرکت‌ها. نام قطعه‌ها زیر component، فناوری‌ها
+# زیر technology، تأمین‌کننده‌ها زیر supplier، جای‌های طرح زیر design_slot و
+# ویژگی‌ها زیر attribute است.
+production:
+  good_designed: "{design} ({item})"
+  list_separator: "، "
+  available: "💵 پول آزاد شرکت: {amount}"
+  warehouse_title: "🏭 انبار {name}"
+  warehouse_status: "⚙️ سفارش‌های تولید در جریان: {orders} - عرضه‌های باز: {listings}"
+  warehouse_researching: "🧪 یک تحقیق در آزمایشگاه در جریان است."
+  warehouse_stock: "موجودی انبار:"
+  stock_line: "📦 {good} - {qty} واحد"
+  stock_line_pieces: "📦 {good} - {qty} عدد - کیفیت {quality}"
+  stock_listed: " - {qty} در عرضه"
+  warehouse_empty: "📦 انبار خالی است. مواد پایه را از تأمین‌کننده‌ها بخرید یا خودتان تولید کنید."
+  warehouse_hint: "هر چه شرکت می‌خرد، تولید می‌کند یا می‌فروشد از همین انبار می‌گذرد. از دکمه‌های زیر به خط تولید، طراحی، آزمایشگاه و عرضه‌ها بروید."
+  suppliers_title: "🚚 تأمین‌کننده‌های {city}"
+  supply_line: "• {component} - {supplier} - {price} برای هر واحد - موجودی {stock} واحد"
+  supply_bought: "✅ {qty} واحد {component} به انبار رسید و {total} از حساب شرکت پرداخت شد."
+  suppliers_none: "در این شهر تأمین‌کننده‌ای نیست."
+  suppliers_hint: "تأمین‌کننده‌ها مواد پایه‌ای را می‌فروشند که هیچ شرکتی نمی‌سازد؛ موجودی هر کدام محدود است و با گذر زمان دوباره پر می‌شود."
+  shortage_line: "• {component}: {need} واحد لازم است و {have} واحد دارید"
+  lab_title: "🧪 آزمایشگاه {name}"
+  lab_running: "⏳ تحقیق {tech} ساعت {time} تمام می‌شود - {duration} دیگر"
+  lab_none: "این نوع شرکت فناوری‌ای برای تحقیق ندارد."
+  lab_hint: "هر فناوری را یک بار تحقیق می‌کنید و مال شرکت می‌شود. آن را خصوصی نگه دارید، لایسنسش را بفروشید یا برای همه منتشرش کنید. مهندسی معکوس هرگز فناوری نمی‌دهد."
+  tech_line:
+    owned_private: "✅ {tech} - مال شماست - خصوصی"
+    owned_license: "✅ {tech} - مال شماست - لایسنس به قیمت {price}"
+    owned_published: "✅ {tech} - مال شماست - منتشرشده برای همه"
+    licensed: "📜 {tech} - لایسنسش را دارید"
+    published: "🌐 {tech} - شرکت دیگری برای همه منتشرش کرده"
+    running: "⏳ {tech} - در حال تحقیق"
+    available: "🔬 {tech} - هزینهٔ تحقیق {cost}"
+    locked: "🔒 {tech} - اول باید {missing} را داشته باشید"
+  tech_line_offers: " - {count} شرکت لایسنسش را می‌فروشد"
+  tech_title: "🔬 {tech}"
+  tech_state:
+    owned: "✅ این فناوری مال شرکت شماست."
+    licensed: "📜 لایسنس این فناوری را دارید؛ می‌توانید با آن طراحی و تولید کنید."
+    published: "🌐 این فناوری برای همه منتشر شده و شما هم از آن استفاده می‌کنید."
+    running: "⏳ این فناوری در حال تحقیق است."
+    available: "🔬 این فناوری را می‌توانید تحقیق کنید."
+    locked: "🔒 هنوز پیش‌نیازهای این فناوری را ندارید."
+  tech_cost: "💰 هزینهٔ تحقیق: {cost} - ⏱ مدت: {duration}"
+  tech_skill: "🎓 مهارت لازم: {skill} سطح {level} - بهترین فرد شرکت: سطح {best}"
+  tech_requires_met: "✅ پیش‌نیاز: {tech}"
+  tech_requires_missing: "❌ پیش‌نیاز: {tech}"
+  tech_unlocks: "🔓 ساخت و طراحی با: {components}"
+  tech_mode:
+    private: "🔐 خصوصی: فقط شرکت شما از آن استفاده می‌کند."
+    license: "📜 لایسنس به قیمت {price}: شرکت‌های دیگر لایسنس می‌خرند و پولش به حساب شرکت شما می‌آید."
+    published: "🌐 منتشرشده: همه آزادانه از آن استفاده می‌کنند و این تصمیم برگشت‌پذیر نیست."
+  tech_sold: "📜 لایسنس‌های فروخته‌شده: {count}"
+  tech_blocked:
+    busy: "⏳ آزمایشگاه همین حالا سرگرم تحقیق دیگری است؛ هر بار یک تحقیق."
+    wrong_type: "🏷 این نوع شرکت نمی‌تواند این فناوری را تحقیق کند."
+    skill: "🎓 کسی در شرکت {skill} سطح {level} ندارد. کارمندی با این مهارت استخدام کنید یا خودتان آموزش ببینید."
+    prerequisite: "🔒 اول پیش‌نیازهای بالا را تحقیق کنید، یا صبر کنید شرکتی آن‌ها را برای همه منتشر کند."
+    funds: "💰 پول آزاد شرکت ({money}) برای هزینهٔ تحقیق ({need}) کافی نیست."
+    owned: "✅ این فناوری را همین حالا دارید."
+  tech_publish_confirm: "🌐 {tech} را برای همه منتشر می‌کنید؟ هر شرکتی بی‌هزینه از آن استفاده خواهد کرد و دیگر نمی‌توانید خصوصی‌اش کنید یا لایسنسش را بفروشید."
+  tech_license_confirm: "📜 لایسنس {tech} را از {company} به قیمت {price} می‌خرید؟ پول آزاد شرکت شما: {money}"
+  tech_offers: "🏢 شرکت‌هایی که لایسنس این فناوری را می‌فروشند:"
+  tech_offer: "• {company} - {price}"
+  tech_notice:
+    started: "⏳ تحقیق آغاز شد و هزینه‌اش از حساب شرکت پرداخت شد. پایانش را خبر می‌دهیم."
+    private: "🔐 این فناوری از این پس خصوصی است."
+    license: "📜 لایسنس این فناوری از این پس به قیمت {price} فروخته می‌شود."
+    published: "🌐 این فناوری برای همه منتشر شد."
+    bought: "✅ لایسنس از {company} خریده شد و {price} به حساب آن شرکت رفت."
+  studio_title: "📐 طراحی محصول {name}"
+  design_unnamed: "طرح شمارهٔ {no}"
+  design_line:
+    draft: "✏️ {name} - {item} - پیش‌نویس"
+    final: "✅ {name} - {item}"
+    retired: "🗄 {name} - {item} - کنار گذاشته"
+    copy: "🔍 {name} - {item} - کپی از مهندسی معکوس"
+  studio_none: "هنوز طرحی ندارید."
+  studio_new: "برای طرح تازه، نوع کالا را انتخاب کنید:"
+  studio_no_kinds: "این نوع شرکت کالایی طراحی نمی‌کند."
+  studio_at_max: "شرکت شما {max} طرح دارد و بیش از این نمی‌تواند داشته باشد."
+  studio_hint: "طرح را جای‌به‌جای با قطعه‌ها پر می‌کنید؛ هر قطعه‌ای که فناوری لازم دارد، فقط با آن فناوری یا لایسنسش انتخاب می‌شود. طرح مال شرکت است و دیگران فقط ویژگی‌های آشکار محصول را می‌بینند."
+  design_title: "📐 {name} - {item}"
+  design_state:
+    draft: "✏️ پیش‌نویس"
+    final: "✅ طرح نهایی؛ آمادهٔ تولید"
+    retired: "🗄 کنار گذاشته"
+  design_copy: "🔍 کپی از «{source}» با مهندسی معکوس - کیفیت {loss}٪ کمتر - مصرف مواد {overhead}٪ بیشتر"
+  slot_empty: "⬜ {slot}: خالی"
+  slot_optional: "▫️ {slot}: خالی (اختیاری)"
+  slot_filled: "🟩 {slot}: {component} - {qty}"
+  choose_title: "قطعهٔ جای {slot} را انتخاب کنید:"
+  choose_range: "مقدار از {min} تا {max}؛ پس از انتخاب قطعه، مقدار را بنویسید."
+  candidate: "• {component} - قیمت مرجع {price} - کیفیت {quality}"
+  candidate_locked: "🔒 {component} - فناوری‌اش را ندارید"
+  attribute: "📊 {name}: {value}"
+  attribute_public: "👁 {name}: {value}"
+  cost_floor: "💰 کف هزینهٔ هر واحد: {cost}"
+  design_locked: "🔒 این قطعه‌ها فناوری {techs} را لازم دارند؛ تحقیقش کنید یا لایسنسش را بخرید."
+  design_incomplete: "⬜ جای‌های لازم هنوز پر نشده‌اند."
+  design_ready: "✅ طرح کامل است؛ نامش را بگذارید و نهایی‌اش کنید."
+  unit:
+    g: "{qty} گرم"
+    ml: "{qty} میلی‌لیتر"
+    mg: "{qty} میلی‌گرم"
+  orders_title: "⚙️ خط تولید {name}"
+  orders_crew: "👥 نیروی کار: {crew} نفر - سفارش‌های در جریان: {running} از {max}"
+  orders_running: "⏳ در جریان:"
+  orders_done: "✅ تمام‌شده:"
+  order_running: "⏳ سفارش {no} - {qty} {good} - ساعت {time} - {duration} دیگر"
+  order_done: "✅ سفارش {no} - {qty} {good} - کیفیت {quality}"
+  orders_none: "هنوز سفارش تولیدی نداده‌اید."
+  orders_targets: "برای سفارش تازه، محصول یا قطعه را انتخاب کنید:"
+  orders_no_targets: "هنوز چیزی برای تولید ندارید: طرحی نهایی کنید یا فناوری ساخت قطعه‌ای را به دست آورید."
+  produce_title: "⚙️ تولید {good}"
+  produce_batch: "📦 هر نوبت تولید {batch} واحد می‌دهد."
+  recipe_title: "🧾 مواد لازم هر واحد:"
+  recipe_line: "• {component}: {per} واحد - در انبار {have}"
+  recipe_line_order: "✅ {component}: {need} واحد - در انبار {have}"
+  recipe_line_short: "❌ {component}: {need} واحد - در انبار {have}"
+  plan_choose: "چند واحد تولید شود؟ با موجودی فعلی انبار تا {max} واحد می‌شود."
+  plan: "⏱ {qty} {good} با {crew} نفر نیروی کار {duration} طول می‌کشد."
+  plan_consumes: "همهٔ مواد بالا همین حالا از انبار برداشته می‌شوند؛ اگر حتی یکی کم باشد، هیچ چیز برداشته نمی‌شود."
+  plan_short: "❌ مواد انبار برای {qty} واحد کافی نیست؛ کمبودها با ❌ مشخص‌اند."
+  placed: "✅ سفارش {no} ثبت شد: {qty} {good}، ساعت {time} آماده می‌شود - {duration} دیگر."
+  placed_hint: "مواد از انبار برداشته شد. محصول پس از آماده شدن به انبار می‌آید و خبرتان می‌کنیم."
+  relab_title: "🔍 مهندسی معکوس {name}"
+  relab_engineer: "🎓 مهندس شرکت: {skill} سطح {level}"
+  relab_samples: "نمونه‌های محصولات شرکت‌های دیگر در انبار:"
+  sample_line: "• {good} ساخت {maker} - کیفیت {quality} - شانس موفقیت {chance}٪"
+  relab_no_samples: "نمونه‌ای در انبار نیست. یک واحد از محصول شرکتی دیگر را از کالای شرکت‌ها بخرید."
+  relab_jobs: "کارهای مهندسی معکوس:"
+  reverse_line:
+    running: "⏳ کار {no} - {good} - ساعت {time} - {duration} دیگر"
+    succeeded: "✅ کار {no} - {good} - طرح «{result}» به دست آمد"
+    failed: "❌ کار {no} - {good} - ناموفق"
+  relab_hint: "نمونه در این کار از بین می‌رود. نتیجه، اگر موفق باشد، طرحی ناقص‌تر از اصل است و هرگز فناوری نمی‌دهد: قطعه‌هایی را که فناوری‌اش را ندارید باید بخرید."
+  reverse_confirm: "🔍 {good} ساخت {maker} را باز می‌کنید؟ نمونه از بین می‌رود و شانس موفقیت {chance}٪ است. کار {duration} طول می‌کشد."
+  reverse_started: "⏳ نمونهٔ {good} باز شد؛ نتیجه ساعت {time} معلوم می‌شود - {duration} دیگر."
+  sell_title: "💰 فروش {good} - در انبار {have} - قیمت مرجع {reference}"
+  sell_qty: "چند واحد عرضه شود؟"
+  sell_price: "قیمت هر واحد از {qty} {good} را بنویسید، یا با قیمت مرجع عرضه کنید."
+  listing_notice:
+    listed: "🏷 {qty} {good} به قیمت هر واحد {price} عرضه شد."
+    withdrawn: "↩️ عرضهٔ {good} پس گرفته شد و {qty} واحد به انبار برگشت."
+  listings_title: "🏷 عرضه‌های {name} در {city}"
+  listing_line: "• {good} - {qty} مانده - هر واحد {price}"
+  listings_none: "عرضهٔ بازی ندارید."
+  listings_hint: "کالای عرضه‌شده را بازیکنان و شرکت‌های این شهر در «کالای شرکت‌ها» می‌بینند و می‌خرند. مالیات فروش شهر از درآمد کسر می‌شود."
+  goods_heading: "🏭 کالای شرکت‌ها"
+  goods_title: "🏭 کالای شرکت‌های {city}"
+  goods_line: "• {good} - {company} - {qty} مانده - هر واحد {price}"
+  goods_attribute: "{name} {value}"
+  goods_attributes: "  👁 {attributes}"
+  goods_none: "شرکت‌های این شهر فعلاً کالایی عرضه نکرده‌اند."
+  buy_total: "🧾 {qty} واحد - جمعاً {total}"
+  buy_cannot_pay: "پول نقد و موجودی بانک شما برای این خرید کافی نیست و شرکتی هم ندارید که برایش بخرید."
+  bought_player: "✅ {qty} {good} از {seller} خریدید و {total} پرداخت شد. کالا در کوله‌پشتی شماست."
+  bought_company: "✅ {qty} {good} از {seller} برای {company} خریده شد و {total} از حساب شرکت پرداخت شد. کالا در انبار شرکت است."
+  page_products: "📦 محصولات: {products}"
+  page_published: "🌐 فناوری‌های منتشرشده: {techs}"
+  notice:
+    researched: "🧪 تحقیق {tech} در {company} تمام شد؛ این فناوری از این پس مال شرکت شماست."
+    produced: "⚙️ سفارش تولید {company} آماده شد: {qty} {good} با کیفیت {quality} به انبار رسید."
+    reversed_ok: "🔍 مهندسی معکوس {good} در {company} موفق بود و طرح «{design}» به طرح‌های شرکت اضافه شد."
+    reversed_failed: "🔍 مهندسی معکوس {good} در {company} ناموفق بود و نمونه از بین رفت."
+    license_sold: "📜 {buyer} لایسنس {tech} را از {company} خرید و {price} به حساب شرکت رفت."
+    sold: "💰 {buyer} {qty} {good} از {company} خرید و {price} به حساب شرکت رفت."
+  announce:
+    published: "🌐 شرکت {company} فناوری {tech} را برای همهٔ شرکت‌ها منتشر کرد."
+    launched: "📦 شرکت {company} محصول تازه‌اش، {design} ({item})، را در {city} عرضه کرد."
+  button:
+    warehouse: "🏭 تولید و انبار"
+    goods: "🏭 کالای شرکت‌ها"
+    sell: "💰 فروش {good}"
+    suppliers: "🚚 تأمین‌کننده‌ها"
+    orders: "⚙️ خط تولید"
+    studio: "📐 طراحی محصول"
+    lab: "🧪 آزمایشگاه تحقیق"
+    reverse_lab: "🔍 مهندسی معکوس"
+    listings: "🏷 عرضه‌ها"
+    supply: "🛒 {qty} {component}"
+    supply_other: "✏️ مقدار دلخواه {component}"
+    tech: "🔬 {tech}"
+    research: "🔬 شروع تحقیق - {cost}"
+    mode_private: "🔐 خصوصی"
+    mode_license: "📜 فروش لایسنس"
+    mode_publish: "🌐 انتشار برای همه"
+    publish_confirm: "🌐 بله، منتشر شود"
+    license: "📜 خرید لایسنس از {company}"
+    license_confirm: "📜 بله، خرید به قیمت {price}"
+    design: "📐 {name}"
+    new_design: "➕ {item}"
+    slot: "🔧 {slot}"
+    candidate: "🧩 {component}"
+    slot_clear: "✖️ خالی بماند"
+    slot_qty: "✏️ مقدار {slot}"
+    name: "✏️ نام طرح"
+    finalize: "✅ نهایی کردن طرح"
+    produce_design: "⚙️ تولید این محصول"
+    produce: "⚙️ {good}"
+    size: "{qty} واحد"
+    size_batch: "{qty} نوبت"
+    size_max: "همه: {qty}"
+    start_order: "✅ شروع تولید {qty} واحد"
+    reverse: "🔍 {good}"
+    reverse_confirm: "🔍 بله، باز شود"
+    price: "✏️ قیمت دلخواه"
+    price_reference: "🏷 قیمت مرجع {price}"
+    sell_all: "همه: {qty}"
+    unlist: "↩️ پس گرفتن {good}"
+    buy: "🛒 {good}"
+    buy_qty: "✏️ تعداد دلخواه"
+    pay_cash: "💵 پرداخت نقدی {total}"
+    pay_card: "💳 پرداخت کارتی {total}"
+    pay_company: "🏢 خرید برای {company}"
+    bag: "🎒 کوله‌پشتی"
+    company_warehouse: "🏭 انبار {company}"
+  refused:
+    not_found: "چنین چیزی پیدا نشد؛ شاید تغییر کرده باشد."
+    skill: "🎓 کسی در {name} مهارت {skill} سطح {level} ندارد (بهترین: سطح {have}). کارمندی با این مهارت استخدام کنید یا خودتان آموزش ببینید."
+    tech_locked: "🔒 {name} فناوری {techs} را ندارد؛ تحقیقش کنید یا لایسنسش را بخرید."
+    shortage: "📦 مواد انبار {name} برای این سفارش کافی نیست و چیزی برداشته نشد:"
+    busy: "⏳ آزمایشگاه {name} سرگرم تحقیق {techs} است؛ هر بار یک تحقیق."
+    owned: "✅ {name} این فناوری را پیش‌تر تحقیق کرده است."
+    prerequisite: "🔒 اول باید {techs} را داشته باشید."
+    wrong_type: "🏷 این نوع شرکت این کار را نمی‌کند."
+    funds: "💰 پول آزاد {name} {money} است و {need} از آن برنمی‌آید."
+    incomplete: "⬜ جای‌های لازم طرح هنوز پر نشده‌اند."
+    no_name: "✏️ اول نام طرح را بگذارید."
+    name_length: "نام طرح باید {level} تا {max} حرف باشد. دوباره بفرستید."
+    name_charset: "نام طرح فقط از حرف، عدد، فاصله و نشانه‌های ساده ساخته می‌شود و دست‌کم دو حرف دارد. دوباره بفرستید."
+    name_taken: "{name} طرح دیگری با همین نام دارد. نام دیگری بفرستید."
+    max_orders: "⚙️ {name} همین حالا {max} سفارش در جریان دارد؛ پس از تمام شدن یکی دوباره امتحان کنید."
+    max_designs: "📐 {name} {max} طرح دارد و بیش از این نمی‌تواند داشته باشد."
+    max_listings: "🏷 {name} {max} عرضهٔ باز دارد؛ یکی را پس بگیرید."
+    not_reversible: "🔍 این کالا طرحی ندارد که بشود بازش کرد، یا این نوع شرکت چنین کالایی نمی‌سازد."
+    own_design: "🔍 این محصول طرح خود شرکت شماست."
+    stock: "📦 این مقدار در انبار یا در عرضه نیست؛ حداکثر {max} واحد."
+    not_cleared: "🚫 این کالا یا فناوری به شما فروخته نمی‌شود."
+    supplier_empty: "🚚 تأمین‌کننده الان فقط {max} واحد دارد؛ مقدار کمتری بخرید یا صبر کنید دوباره پر شود."
+    amount: "مقدار را به عدد بنویسید؛ مثلاً ۲۵."
+    published: "🌐 این فناوری منتشر شده و منتشرشده می‌ماند."
+    not_for_sale: "📜 صاحب این فناوری لایسنسش را نمی‌فروشد."
+    licensed: "📜 شما همین حالا می‌توانید از این فناوری استفاده کنید."
+    final: "✅ این طرح نهایی شده و دیگر تغییر نمی‌کند."
+    listed: "🏷 این کالا همین حالا عرضه شده است؛ اول آن عرضه را پس بگیرید."
+    away: "📍 برای خرید این کالا باید در {city} باشید."
+    own_listing: "🏷 این کالای شرکت خودتان است."
+    too_long: "⏱ این سفارش بیش از اندازه طول می‌کشد؛ مقدار کمتری سفارش دهید."
+
+# نام قطعه‌ها و مواد، به کد محتوا (configs/content/items.yml).
+component:
+  diesel: گازوئیل
+  seed_grain: بذر غلات
+  lithium_salt: نمک لیتیم
+  spring_water: آب چشمه
+  yeast: مخمر
+  coffee_bean: دانهٔ قهوه
+  herb_extract: عصارهٔ گیاهی
+  starch: نشاسته
+  gemstone: سنگ قیمتی
+  silver: نقره
+  silica: ماسهٔ سیلیس
+  iron_ore: سنگ آهن
+  crude_oil: نفت خام
+  wheat: گندم
+  cotton: پنبه
+  timber: الوار
+  flour: آرد
+  tool_steel: فولاد ابزار
+  plastic_case: بدنهٔ پلاستیکی
+  chipset: تراشه
+  cell: سلول باتری
+
+# نام فناوری‌ها، به کد محتوا (configs/content/production.yml).
+technology:
+  semiconductors: نیمه‌رساناها
+  microchips: ریزتراشه‌ها
+  batteries: شیمی باتری
+
+# نام تأمین‌کننده‌ها، به کد محتوا (configs/content/production.yml).
+supplier:
+  industrial_supplier: تأمین‌کنندهٔ صنعتی
+  farm_supply: فروشگاه لوازم کشاورزی
+  wholesale_market: بازار عمده‌فروشی
+
+# نام جای‌های طرح، به نام جای در archetypeها (configs/content/items.yml).
+design_slot:
+  base: پایه
+  leaven: مایه
+  water: آب
+  flavour: طعم
+  active: مادهٔ مؤثر
+  carrier: حامل
+  body: بدنه
+  fabric: پارچه
+  board: برد
+  power: منبع انرژی
+  shell: قاب
+  stone: سنگ
+  setting: پایهٔ نگین
+
+# نام ویژگی‌های محصول، به نام ویژگی در archetypeها.
+attribute:
+  quality: کیفیت
+  potency: اثربخشی
+  battery_life: عمر باتری

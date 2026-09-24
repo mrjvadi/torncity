@@ -46,3 +46,47 @@ func (h phaseHandlers) bindCompanies() map[string]commandFunc {
 		"company.settle": decoded(c.Settle),
 	}
 }
+
+// productionRules is the production economy's tuning from the
+// configuration: config company, and the bank's bounds on one amount.
+func productionRules(c config.Company, limits bank.Limits) handlers.ProductionRules {
+	return handlers.ProductionRules{
+		MaxRunningOrders: c.MaxRunningOrders, MaxDesigns: c.MaxDesigns, MaxListings: c.MaxListings,
+		DesignMinSkill: c.DesignMinSkill, ReverseTime: c.ReverseTime, NameMin: c.NameMinLength, NameMax: c.NameMaxLength,
+		Limits: limits,
+	}
+}
+
+// bindProduction maps the production economy's commands to their handler.
+func (h phaseHandlers) bindProduction() map[string]commandFunc {
+	p := h.production
+	return map[string]commandFunc{
+		"company.warehouse": decoded(p.Warehouse),
+		"company.suppliers": decoded(p.Suppliers),
+		"company.supply":    decoded(p.Supply),
+		"company.lab":       decoded(p.Lab),
+		"company.research":  decoded(p.Research),
+		"company.techmode":  decoded(p.TechMode),
+		"company.license":   decoded(p.License),
+		"company.studio":    decoded(p.Studio),
+		"company.dnew":      decoded(p.DesignNew),
+		"company.design":    decoded(p.Design),
+		"company.dfill":     decoded(p.DesignFill),
+		"company.dqty":      decoded(p.DesignQty),
+		"company.dname":     decoded(p.DesignName),
+		"company.dfinal":    decoded(p.DesignFinal),
+		"company.produce":   decoded(p.Produce),
+		"company.orders":    decoded(p.Orders),
+		"company.relab":     decoded(p.ReverseLab),
+		"company.reverse":   decoded(p.Reverse),
+		"company.sell":      decoded(p.Sell),
+		"company.listings":  decoded(p.Listings),
+		"company.unlist":    decoded(p.Unlist),
+		"company.goods":     bare(p.Goods),
+		"company.buy":       decoded(p.Buy),
+		// The scheduler's: a research, an order, a reverse engineering done.
+		"company.researched": decoded(p.Researched),
+		"company.produced":   decoded(p.Produced),
+		"company.reversed":   decoded(p.Reversed),
+	}
+}

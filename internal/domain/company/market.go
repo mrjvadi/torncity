@@ -85,6 +85,11 @@ type Seller struct {
 	// PresenceBPS is the share of the period the company existed: 10000
 	// for one founded before the period began.
 	PresenceBPS int
+	// Stocked is a company that sells goods from its warehouse, not a
+	// service: it can never sell more than Stock, the units of its stocked
+	// goods it holds (docs/adr/0021-production-economy.md).
+	Stocked bool
+	Stock   int64
 }
 
 // Sale is what one seller did in a period.
@@ -140,7 +145,7 @@ func Settle(m Market, sellers []Seller) (Settlement, error) {
 		if err := s.Type.CheckPrice(s.PriceBPS); err != nil {
 			return Settlement{}, fmt.Errorf("%w (company %s)", err, s.ID)
 		}
-		if s.Shifts < 0 || s.PresenceBPS < 0 || s.PresenceBPS > bpsWhole {
+		if s.Shifts < 0 || s.PresenceBPS < 0 || s.PresenceBPS > bpsWhole || s.Stock < 0 {
 			return Settlement{}, fmt.Errorf("%w: company %s shifts %d presence %d", ErrInvalidAmount, s.ID, s.Shifts, s.PresenceBPS)
 		}
 	}
@@ -221,6 +226,10 @@ func Settle(m Market, sellers []Seller) (Settlement, error) {
 				return Settlement{}, err
 			}
 			sale.Capacity = base + staffed
+			if s.Stocked {
+				// Goods, not a service: what it holds bounds what it sells.
+				sale.Capacity = min(sale.Capacity, s.Stock)
+			}
 			sale.Sold = min(sale.Wanted, sale.Capacity)
 			sold += sale.Sold
 			value, err := mulDiv(sale.Sold, s.Type.UnitPrice.Minor(), 1)

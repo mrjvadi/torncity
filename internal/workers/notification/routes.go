@@ -108,6 +108,13 @@ func Routes() []Route {
 		{Domain: "company", Event: "manager_appointed", Render: renderCompanyManager},
 		{Domain: "company", Event: "period_settled", Render: renderCompanyPeriod},
 
+		// The production economy: see production.go.
+		{Domain: "company", Event: "researched", Render: renderProduction("researched")},
+		{Domain: "company", Event: "produced", Render: renderProduction("produced")},
+		{Domain: "company", Event: "reversed", Render: renderProduction("reversed")},
+		{Domain: "company", Event: "license_sold", Render: renderProduction("license_sold")},
+		{Domain: "company", Event: "sold", Render: renderProduction("sold")},
+
 		// Public lines in a city's groups (announce.go). Each has its own
 		// consumer beside the event's private notice, if any.
 		{Domain: "travel", Event: "completed", Name: "announce", Announce: arrivalAnnouncement},
@@ -119,6 +126,8 @@ func Routes() []Route {
 		{Domain: "bank", Event: "payment_received", Name: "announce", Announce: paymentAnnouncement},
 		{Domain: "company", Event: "founded", Name: "announce", Announce: companyFoundedAnnouncement},
 		{Domain: "company", Event: "closed", Name: "announce", Announce: companyClosedAnnouncement},
+		{Domain: "company", Event: "tech_published", Name: "announce", Announce: techPublishedAnnouncement},
+		{Domain: "company", Event: "product_launched", Name: "announce", Announce: productLaunchedAnnouncement},
 	}
 }
 

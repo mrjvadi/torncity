@@ -13,7 +13,19 @@
 #
 # ---------------------------------------------------------------------------
 # component_categories   the kinds of part a slot accepts.
-# components             starter parts: code, name, category, attributes.
+# components             parts and materials: code, name, category,
+#                        attributes, base_price (the reference price, minor
+#                        units: a design's cost floor counts it), optional
+#                        requires_technology (what a company must know to MAKE
+#                        it or design around it — never to buy or use one;
+#                        production.yml technologies), optional production:
+#                        how a company makes it — {method: extract | grow |
+#                        formulate | assemble, by: [company types], inputs:
+#                        [{component, quantity}] one batch consumes, batch:
+#                        units one batch yields, skill: the craft whose level
+#                        raises the quality}. A component without production
+#                        is only bought from an NPC supplier. A component's
+#                        code is never an item's: a warehouse holds both.
 # archetypes             ADR 0005 section 1: code, method (extract, assemble,
 #                        formulate, grow, author, construct, serve), slots
 #                        ({name, accepts, min, max, unit, optional}),
@@ -58,22 +70,96 @@
 
 version: 1
 
-component_categories: [grain, water, leavening, flavouring, alkaloid, binder, fibre, steel, casing, circuit, battery, gem, metal]
+component_categories: [grain, water, leavening, flavouring, alkaloid, binder, fibre, steel, casing, circuit, battery, gem, metal,
+                       fuel, seed, salt, mineral, ore, oil, crop, wood]
 
 components:
-  - {code: flour,        name: Flour,         category: grain,      attributes: {quality: 50}}
-  - {code: spring_water, name: Spring water,  category: water,      attributes: {quality: 60}}
-  - {code: yeast,        name: Yeast,         category: leavening,  attributes: {quality: 50}}
-  - {code: coffee_bean,  name: Coffee beans,  category: flavouring, attributes: {quality: 55}}
-  - {code: herb_extract, name: Herb extract,  category: alkaloid,   attributes: {quality: 50, potency: 10}}
-  - {code: starch,       name: Starch,        category: binder,     attributes: {quality: 40}}
-  - {code: cotton,       name: Cotton,        category: fibre,      attributes: {quality: 50}}
-  - {code: tool_steel,   name: Tool steel,    category: steel,      attributes: {quality: 60}}
-  - {code: plastic_case, name: Plastic case,  category: casing,     attributes: {quality: 40}}
-  - {code: chipset,      name: Chipset,       category: circuit,    attributes: {quality: 60}}
-  - {code: cell,         name: Battery cell,  category: battery,    attributes: {quality: 50, capacity: 3000}}
-  - {code: gemstone,     name: Gemstone,      category: gem,        attributes: {quality: 70}}
-  - {code: silver,       name: Silver,        category: metal,      attributes: {quality: 60}}
+  # --- Bought from NPC suppliers only (production.yml suppliers) -----------
+  - {code: diesel,       name: Diesel fuel,   category: fuel,       base_price: 4,   attributes: {quality: 50}}
+  - {code: seed_grain,   name: Seed grain,    category: seed,       base_price: 2,   attributes: {quality: 50}}
+  - {code: lithium_salt, name: Lithium salt,  category: salt,       base_price: 12,  attributes: {quality: 55}}
+  - {code: spring_water, name: Spring water,  category: water,      base_price: 1,   attributes: {quality: 60}}
+  - {code: yeast,        name: Yeast,         category: leavening,  base_price: 2,   attributes: {quality: 50}}
+  - {code: coffee_bean,  name: Coffee beans,  category: flavouring, base_price: 3,   attributes: {quality: 55}}
+  - {code: herb_extract, name: Herb extract,  category: alkaloid,   base_price: 1,   attributes: {quality: 50, potency: 10}}
+  - {code: starch,       name: Starch,        category: binder,     base_price: 1,   attributes: {quality: 40}}
+  - {code: gemstone,     name: Gemstone,      category: gem,        base_price: 250, attributes: {quality: 70}}
+  - {code: silver,       name: Silver,        category: metal,      base_price: 120, attributes: {quality: 60}}
+
+  # --- Raw materials: extracted by mines, grown on farms --------------------
+  - code: silica
+    name: Silica sand
+    category: mineral
+    base_price: 5
+    attributes: {quality: 55}
+    production: {method: extract, by: [mine], inputs: [{component: diesel, quantity: 1}], batch: 10, skill: engineering}
+  - code: iron_ore
+    name: Iron ore
+    category: ore
+    base_price: 6
+    attributes: {quality: 50}
+    production: {method: extract, by: [mine], inputs: [{component: diesel, quantity: 1}], batch: 10, skill: engineering}
+  - code: crude_oil
+    name: Crude oil
+    category: oil
+    base_price: 8
+    attributes: {quality: 50}
+    production: {method: extract, by: [mine], inputs: [{component: diesel, quantity: 1}], batch: 8, skill: engineering}
+  - code: wheat
+    name: Wheat
+    category: crop
+    base_price: 3
+    attributes: {quality: 55}
+    production: {method: grow, by: [farm], inputs: [{component: seed_grain, quantity: 1}], batch: 20, skill: logistics}
+  - code: cotton
+    name: Cotton
+    category: fibre
+    base_price: 20
+    attributes: {quality: 50}
+    production: {method: grow, by: [farm], inputs: [{component: seed_grain, quantity: 2}], batch: 5, skill: logistics}
+  - code: timber
+    name: Timber
+    category: wood
+    base_price: 15
+    attributes: {quality: 50}
+    production: {method: grow, by: [farm], inputs: [{component: seed_grain, quantity: 3}], batch: 4, skill: logistics}
+
+  # --- Made from other components by factories and kitchens ----------------
+  # A design counts flour in grams: one wheat mills into a hundred.
+  - code: flour
+    name: Flour
+    category: grain
+    base_price: 1
+    attributes: {quality: 50}
+    production: {method: formulate, by: [factory, restaurant], inputs: [{component: wheat, quantity: 1}], batch: 100, skill: cooking}
+  - code: tool_steel
+    name: Tool steel
+    category: steel
+    base_price: 60
+    attributes: {quality: 60}
+    production: {method: formulate, by: [factory], inputs: [{component: iron_ore, quantity: 3}, {component: diesel, quantity: 1}], batch: 1, skill: engineering}
+  - code: plastic_case
+    name: Plastic case
+    category: casing
+    base_price: 40
+    attributes: {quality: 40}
+    production: {method: formulate, by: [factory], inputs: [{component: crude_oil, quantity: 2}], batch: 2, skill: engineering}
+  # The phone scenario's gate: nobody makes a chipset or a battery cell, or
+  # designs a phone around one, without the technology — or a license.
+  - code: chipset
+    name: Chipset
+    category: circuit
+    base_price: 400
+    attributes: {quality: 60}
+    requires_technology: [microchips]
+    production: {method: assemble, by: [factory], inputs: [{component: silica, quantity: 3}, {component: diesel, quantity: 1}], batch: 1, skill: engineering}
+  - code: cell
+    name: Battery cell
+    category: battery
+    base_price: 150
+    attributes: {quality: 50, capacity: 3000}
+    requires_technology: [batteries]
+    production: {method: formulate, by: [factory], inputs: [{component: lithium_salt, quantity: 2}, {component: iron_ore, quantity: 1}], batch: 1, skill: engineering}
 
 archetypes:
   - code: food

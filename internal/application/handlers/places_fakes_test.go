@@ -123,6 +123,12 @@ func (f *fakeItems) give(player, item string, qty int64) {
 
 func (f *fakeItems) LockOwner(context.Context, string) error { return nil }
 
+func (f *fakeItems) LockOrg(context.Context, application.Org) error { return nil }
+
+func (f *fakeItems) OrgHoldings(context.Context, application.Org, string) ([]application.OrgStack, []application.Piece, error) {
+	return nil, nil, nil
+}
+
 func (f *fakeItems) Holdings(_ context.Context, playerID, holding string) ([]application.Stack, []application.Piece, error) {
 	var stacks []application.Stack
 	for k, q := range f.stacks {
@@ -240,6 +246,8 @@ func (f *fakeItems) snapshot() func() {
 }
 
 func (t *fakeTx) Items() application.ItemRepository { return t.items }
+
+func (t *fakeTx) Production() application.ProductionRepository { return nil }
 
 // The shops, the market and the auction house have no fakes: their handlers
 // are tested against PostgreSQL (tests/trade_integration_test.go).

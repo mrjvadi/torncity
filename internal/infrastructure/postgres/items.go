@@ -21,12 +21,13 @@ type ItemRepository struct {
 var _ application.ItemRepository = (*ItemRepository)(nil)
 
 const pieceColumns = `id::text, serial, item_code, archetype, quality, uses_left, COALESCE(owner_id::text, ''),
-       holding, origin, origin_ref::text, created_at`
+       holding, origin, origin_ref::text, created_at, COALESCE(org_kind, ''), COALESCE(org_id::text, ''),
+       COALESCE(design_id::text, '')`
 
 func scanPiece(row pgx.Row) (*application.Piece, error) {
 	var p application.Piece
 	if err := row.Scan(&p.ID, &p.Serial, &p.Item, &p.Archetype, &p.Quality, &p.UsesLeft, &p.OwnerID,
-		&p.Holding, &p.Origin, &p.OriginRef, &p.CreatedAt); err != nil {
+		&p.Holding, &p.Origin, &p.OriginRef, &p.CreatedAt, &p.Org.Kind, &p.Org.ID, &p.DesignID); err != nil {
 		return nil, err
 	}
 	p.CreatedAt = p.CreatedAt.UTC()
@@ -116,13 +117,14 @@ func (r *ItemRepository) CreatePiece(ctx context.Context, p application.Piece, m
 	}
 	if _, err := r.q.Exec(ctx,
 		`INSERT INTO item_pieces (id, serial, item_code, archetype, quality, uses_left, owner_id, holding,
-		                          origin, origin_ref, created_at)
-		 VALUES ($1::uuid, $2, $3, $4, $5, $6, $7::uuid, $8, $9, $10::uuid, $11)`,
-		p.ID, p.Serial, p.Item, p.Archetype, p.Quality, p.UsesLeft, p.OwnerID, p.Holding,
-		p.Origin, p.OriginRef, p.CreatedAt.UTC()); err != nil {
+		                          origin, origin_ref, created_at, org_kind, org_id, design_id)
+		 VALUES ($1::uuid, $2, $3, $4, $5, $6, $7::uuid, $8, $9, $10::uuid, $11, $12, $13::uuid, $14::uuid)`,
+		p.ID, p.Serial, p.Item, p.Archetype, p.Quality, p.UsesLeft, nullableUUID(p.OwnerID), p.Holding,
+		p.Origin, p.OriginRef, p.CreatedAt.UTC(), nullableText(p.Org.Kind), nullableUUID(p.Org.ID),
+		nullableUUID(p.DesignID)); err != nil {
 		return fmt.Errorf("postgres: creating a piece: %w", err)
 	}
-	m.PieceID, m.Qty, m.From, m.FromHolding = p.ID, 1, "", ""
+	m.PieceID, m.Qty, m.From, m.FromHolding, m.FromOrg = p.ID, 1, "", "", application.Org{}
 	return r.journal(ctx, m)
 }
 
@@ -140,6 +142,19 @@ func (r *ItemRepository) Move(ctx context.Context, m application.ItemMove) error
 		}
 		m.Qty = 1
 		return r.journal(ctx, m)
+	}
+	if !m.FromOrg.IsZero() {
+		if err := r.takeOrg(ctx, m); err != nil {
+			return err
+		}
+	}
+	if !m.ToOrg.IsZero() {
+		if _, err := r.q.Exec(ctx,
+			`INSERT INTO org_stacks (org_kind, org_id, item_code, holding, quantity) VALUES ($1, $2::uuid, $3, $4, $5)
+			 ON CONFLICT (org_kind, org_id, item_code, holding) DO UPDATE SET quantity = org_stacks.quantity + EXCLUDED.quantity`,
+			m.ToOrg.Kind, m.ToOrg.ID, m.Item, m.ToHolding, m.Qty); err != nil {
+			return fmt.Errorf("postgres: giving goods to an organisation: %w", err)
+		}
 	}
 	if m.From != "" {
 		// Taking the whole stack deletes it (an empty stack is never kept,
@@ -173,23 +188,54 @@ func (r *ItemRepository) Move(ctx context.Context, m application.ItemMove) error
 	return r.journal(ctx, m)
 }
 
+// takeOrg takes units of a stack from an organisation: the whole stack
+// deletes it, part of it lowers it, more than it holds is ErrNotEnoughItems.
+func (r *ItemRepository) takeOrg(ctx context.Context, m application.ItemMove) error {
+	tag, err := r.q.Exec(ctx,
+		`DELETE FROM org_stacks WHERE org_kind = $1 AND org_id = $2::uuid AND item_code = $3 AND holding = $4 AND quantity = $5`,
+		m.FromOrg.Kind, m.FromOrg.ID, m.Item, m.FromHolding, m.Qty)
+	if err != nil {
+		return fmt.Errorf("postgres: taking an organisation's goods: %w", err)
+	}
+	if tag.RowsAffected() > 0 {
+		return nil
+	}
+	if tag, err = r.q.Exec(ctx,
+		`UPDATE org_stacks SET quantity = quantity - $5
+		  WHERE org_kind = $1 AND org_id = $2::uuid AND item_code = $3 AND holding = $4 AND quantity > $5`,
+		m.FromOrg.Kind, m.FromOrg.ID, m.Item, m.FromHolding, m.Qty); err != nil {
+		return fmt.Errorf("postgres: taking an organisation's goods: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return application.ErrNotEnoughItems
+	}
+	return nil
+}
+
 // movePiece changes a piece's hands, only if the From side still holds it.
+// Either side is a player or an organisation.
 func (r *ItemRepository) movePiece(ctx context.Context, m application.ItemMove) error {
 	var (
 		tag interface{ RowsAffected() int64 }
 		err error
 	)
+	// The side it leaves: the player's or the organisation's holding.
+	fromOwner, fromOrg := nullableUUID(m.From), nullableUUID(m.FromOrg.ID)
+	where := `id = $1::uuid AND holding = $2
+	      AND owner_id IS NOT DISTINCT FROM $3::uuid AND org_id IS NOT DISTINCT FROM $4::uuid
+	      AND (owner_id IS NOT NULL OR org_id IS NOT NULL)`
 	switch {
-	case m.To == "":
+	case m.To == "" && m.ToOrg.IsZero():
 		tag, err = r.q.Exec(ctx,
-			`UPDATE item_pieces SET owner_id = NULL, holding = 'gone', gone_at = $4
-			  WHERE id = $1::uuid AND owner_id = $2::uuid AND holding = $3`,
-			m.PieceID, m.From, m.FromHolding, m.At.UTC())
+			`UPDATE item_pieces SET owner_id = NULL, org_kind = NULL, org_id = NULL, holding = 'gone', gone_at = $5
+			  WHERE `+where,
+			m.PieceID, m.FromHolding, fromOwner, fromOrg, m.At.UTC())
 	default:
 		tag, err = r.q.Exec(ctx,
-			`UPDATE item_pieces SET owner_id = $4::uuid, holding = $5
-			  WHERE id = $1::uuid AND owner_id = $2::uuid AND holding = $3`,
-			m.PieceID, m.From, m.FromHolding, m.To, m.ToHolding)
+			`UPDATE item_pieces SET owner_id = $5::uuid, org_kind = $6, org_id = $7::uuid, holding = $8
+			  WHERE `+where,
+			m.PieceID, m.FromHolding, fromOwner, fromOrg,
+			nullableUUID(m.To), nullableText(m.ToOrg.Kind), nullableUUID(m.ToOrg.ID), m.ToHolding)
 	}
 	if isInvalidUUIDText(err) {
 		return application.ErrPieceNotFound
@@ -214,10 +260,10 @@ func (r *ItemRepository) journal(ctx context.Context, m application.ItemMove) er
 		at = time.Now().UTC()
 	}
 	var fromHolding, toHolding *string
-	if m.From != "" {
+	if m.From != "" || !m.FromOrg.IsZero() {
 		fromHolding = &m.FromHolding
 	}
-	if m.To != "" {
+	if m.To != "" || !m.ToOrg.IsZero() {
 		toHolding = &m.ToHolding
 	}
 	var refType *string
@@ -226,10 +272,13 @@ func (r *ItemRepository) journal(ctx context.Context, m application.ItemMove) er
 	}
 	if _, err := r.q.Exec(ctx,
 		`INSERT INTO item_movements (id, item_code, piece_id, quantity, from_player, from_holding, to_player,
-		                             to_holding, reason, reference_type, reference_id, created_at)
-		 VALUES ($1::uuid, $2, $3::uuid, $4, $5::uuid, $6, $7::uuid, $8, $9, $10, $11::uuid, $12)`,
+		                             to_holding, reason, reference_type, reference_id, created_at,
+		                             from_org_kind, from_org, to_org_kind, to_org)
+		 VALUES ($1::uuid, $2, $3::uuid, $4, $5::uuid, $6, $7::uuid, $8, $9, $10, $11::uuid, $12,
+		         $13, $14::uuid, $15, $16::uuid)`,
 		id, m.Item, nullableUUID(m.PieceID), m.Qty, nullableUUID(m.From), fromHolding, nullableUUID(m.To), toHolding,
-		string(m.Reason), refType, nullableUUID(m.ReferenceID), at.UTC()); err != nil {
+		string(m.Reason), refType, nullableUUID(m.ReferenceID), at.UTC(),
+		nullableText(m.FromOrg.Kind), nullableUUID(m.FromOrg.ID), nullableText(m.ToOrg.Kind), nullableUUID(m.ToOrg.ID)); err != nil {
 		return fmt.Errorf("postgres: journalling goods: %w", err)
 	}
 	return nil
@@ -266,4 +315,55 @@ func (r *ItemRepository) MarkUsed(ctx context.Context, playerID, group string, a
 		return fmt.Errorf("postgres: recording a use: %w", err)
 	}
 	return nil
+}
+
+// LockOrg takes a transaction-scoped advisory lock on an organisation's
+// goods.
+func (r *ItemRepository) LockOrg(ctx context.Context, org application.Org) error {
+	if _, err := r.q.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtext('items:' || $1 || ':' || $2))`, org.Kind, org.ID); err != nil {
+		return fmt.Errorf("postgres: locking an organisation's goods: %w", err)
+	}
+	return nil
+}
+
+// OrgHoldings lists an organisation's stacks and pieces in one holding.
+func (r *ItemRepository) OrgHoldings(ctx context.Context, org application.Org, holding string) ([]application.OrgStack, []application.Piece, error) {
+	rows, err := r.q.Query(ctx,
+		`SELECT item_code, quantity FROM org_stacks
+		  WHERE org_kind = $1 AND org_id = $2::uuid AND holding = $3 ORDER BY item_code`, org.Kind, org.ID, holding)
+	if isInvalidUUIDText(err) {
+		return nil, nil, nil
+	}
+	if err != nil {
+		return nil, nil, fmt.Errorf("postgres: reading an organisation's stacks: %w", err)
+	}
+	var stacks []application.OrgStack
+	for rows.Next() {
+		s := application.OrgStack{Org: org, Holding: holding}
+		if err := rows.Scan(&s.Item, &s.Qty); err != nil {
+			rows.Close()
+			return nil, nil, fmt.Errorf("postgres: scanning a stack: %w", err)
+		}
+		stacks = append(stacks, s)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, nil, fmt.Errorf("postgres: reading an organisation's stacks: %w", err)
+	}
+	rows, err = r.q.Query(ctx,
+		`SELECT `+pieceColumns+` FROM item_pieces
+		  WHERE org_kind = $1 AND org_id = $2::uuid AND holding = $3 ORDER BY item_code, serial`, org.Kind, org.ID, holding)
+	if err != nil {
+		return nil, nil, fmt.Errorf("postgres: reading an organisation's pieces: %w", err)
+	}
+	defer rows.Close()
+	var pieces []application.Piece
+	for rows.Next() {
+		p, err := scanPiece(rows)
+		if err != nil {
+			return nil, nil, fmt.Errorf("postgres: scanning a piece: %w", err)
+		}
+		pieces = append(pieces, *p)
+	}
+	return stacks, pieces, rows.Err()
 }

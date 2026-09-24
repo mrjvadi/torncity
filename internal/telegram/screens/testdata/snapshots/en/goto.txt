@@ -207,6 +207,7 @@ One press walks you to the train station (20s) and opens this page again there.
   ───
   [🏪 Bread] → market:book:bread
   [📋 My orders] → market:mine   │   [🔨 Auction house] → auction:list
+  [🏭 Company goods] → company:goods
   [🚶 Go to the bazaar (15s)] → place:go:bazaar:market.list
   [🔙 Back] → map:list   │   [🔄 Refresh] → market:list
 

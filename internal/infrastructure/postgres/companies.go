@@ -599,12 +599,12 @@ func (r *CompanyRepository) RecordPeriod(ctx context.Context, p application.Comp
 		`INSERT INTO company_periods (company_id, period_no, city_id, started_at, ended_at, presence_bps, price_bps,
 		                              quality_bps, shifts, wanted_units, capacity_units, sold_units, revenue,
 		                              sales_tax, wages, upkeep_due, upkeep_paid, debt, balance_after, insolvent,
-		                              settled_at)
+		                              settled_at, stock_units)
 		 VALUES ($1::uuid, $2, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
-		         $19, $20, $21)`,
+		         $19, $20, $21, $22)`,
 		p.CompanyID, p.PeriodNo, p.CityID, p.StartedAt.UTC(), p.EndedAt.UTC(), p.PresenceBPS, p.PriceBPS,
 		p.QualityBPS, p.Shifts, p.WantedUnits, p.CapacityUnits, p.SoldUnits, p.Revenue, p.SalesTax, p.Wages,
-		p.UpkeepDue, p.UpkeepPaid, p.Debt, p.BalanceAfter, p.Insolvent, p.SettledAt.UTC()); err != nil {
+		p.UpkeepDue, p.UpkeepPaid, p.Debt, p.BalanceAfter, p.Insolvent, p.SettledAt.UTC(), p.StockUnits); err != nil {
 		return fmt.Errorf("postgres: recording a company's period: %w", err)
 	}
 	return nil

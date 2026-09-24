@@ -88,6 +88,10 @@ type file struct {
 	CompanyMarkets       []CompanyMarketDef `yaml:"company_markets"`
 	CompanyDemand        []CompanyDemandDef `yaml:"company_demand"`
 	CompanyReservedNames []string           `yaml:"company_reserved_names"`
+
+	MethodProfiles []MethodProfileDef `yaml:"production_methods"`
+	Technologies   []TechnologyDef    `yaml:"technologies"`
+	Suppliers      []SupplierDef      `yaml:"suppliers"`
 }
 
 // Load reads every content file in dir and returns them as one pack.
@@ -182,6 +186,9 @@ func Load(dir string) (*Pack, error) {
 		pack.CompanyMarkets = append(pack.CompanyMarkets, doc.CompanyMarkets...)
 		pack.CompanyDemand = append(pack.CompanyDemand, doc.CompanyDemand...)
 		pack.CompanyReservedNames = append(pack.CompanyReservedNames, doc.CompanyReservedNames...)
+		pack.MethodProfiles = append(pack.MethodProfiles, doc.MethodProfiles...)
+		pack.Technologies = append(pack.Technologies, doc.Technologies...)
+		pack.Suppliers = append(pack.Suppliers, doc.Suppliers...)
 	}
 
 	pack.Checksum = hex.EncodeToString(digest.Sum(nil))

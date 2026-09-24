@@ -92,6 +92,41 @@ type LedgerVerification struct {
 	// Companies is false before that migration, and the rest are empty.
 	Companies bool
 	CompanyInvariants
+
+	// Production, the invariants of the production economy (migrations/
+	// 0020): Production is false before that migration.
+	Production bool
+	ProductionInvariants
+}
+
+// ProductionInvariants are the production economy's checks of `admin
+// economy verify`.
+type ProductionInvariants struct {
+	// OrphanHolders counts organisation holdings whose company does not
+	// exist.
+	OrphanHolders int64
+	// Each pair is what the ledger moved under a reason and what the rows
+	// of the production economy say it should have: they must agree.
+	LicenseLedger, LicenseRows   int64
+	SaleLedger, SaleRows         int64
+	SupplyLedger, SupplyRows     int64
+	ResearchLedger, ResearchRows int64
+	// UnpaidLicenses counts licenses whose ledger transaction is not a
+	// technology_license payment of their price to the licensor.
+	UnpaidLicenses int64
+	// NPCStockJournal and NPCStockPeriods are the units stocked companies
+	// sold the population, in the item journal and in the settled periods.
+	NPCStockJournal, NPCStockPeriods int64
+	// Orders lists orders whose journal disagrees with them: inputs taken
+	// other than the order consumed, or output other than it made.
+	Orders []string
+}
+
+// ok reports whether every production invariant holds.
+func (p ProductionInvariants) ok() bool {
+	return p.OrphanHolders == 0 && p.LicenseLedger == p.LicenseRows && p.SaleLedger == p.SaleRows &&
+		p.SupplyLedger == p.SupplyRows && p.ResearchLedger == p.ResearchRows && p.UnpaidLicenses == 0 &&
+		p.NPCStockJournal == p.NPCStockPeriods && len(p.Orders) == 0
 }
 
 // CompanyInvariants are the company checks of `admin economy verify`.
@@ -127,7 +162,7 @@ type DriftedStack struct {
 // OK reports whether every invariant holds.
 func (v LedgerVerification) OK() bool {
 	return v.LedgerSum == "0" && len(v.Unbalanced) == 0 && len(v.Drifted) == 0 &&
-		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok()
+		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok() && v.ProductionInvariants.ok()
 }
 
 // VerifyLedger runs the three invariants of docs/adr/0009-economic-control.md
@@ -198,8 +233,16 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.item_movements') IS NOT NULL`).Scan(&v.Goods); err != nil {
 		return v, fmt.Errorf("postgres: looking for the item journal: %w", err)
 	}
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.org_stacks') IS NOT NULL`).Scan(&v.Production); err != nil {
+		return v, fmt.Errorf("postgres: looking for the production economy: %w", err)
+	}
 	if v.Goods {
 		if err := a.verifyGoods(ctx, &v, limit); err != nil {
+			return v, err
+		}
+	}
+	if v.Production {
+		if err := a.verifyProduction(ctx, &v, limit); err != nil {
 			return v, err
 		}
 	}
@@ -315,14 +358,140 @@ func (a *EconomyAdmin) verifyGoods(ctx context.Context, v *LedgerVerification, l
 	if err := rows.Err(); err != nil {
 		return err
 	}
-	if err := a.q.QueryRow(ctx, `
+	orphans := `
 		SELECT count(*) FROM item_pieces p
 		 WHERE NOT EXISTS (SELECT 1 FROM item_movements m
 		                    WHERE m.piece_id = p.id AND m.from_player IS NULL
-		                      AND m.reason IN ('shop_purchase', 'crime_loot', 'grant'))`).Scan(&v.OrphanPieces); err != nil {
+		                      AND m.reason IN ('shop_purchase', 'crime_loot', 'grant'))`
+	if v.Production {
+		// A produced piece's first row comes from its order, into an
+		// organisation.
+		orphans = `
+		SELECT count(*) FROM item_pieces p
+		 WHERE NOT EXISTS (SELECT 1 FROM item_movements m
+		                    WHERE m.piece_id = p.id AND m.from_player IS NULL AND m.from_org IS NULL
+		                      AND m.reason IN ('shop_purchase', 'crime_loot', 'grant', 'produced'))`
+	}
+	if err := a.q.QueryRow(ctx, orphans).Scan(&v.OrphanPieces); err != nil {
 		return fmt.Errorf("postgres: checking pieces' origins: %w", err)
 	}
-	return nil
+	if !v.Production {
+		return nil
+	}
+	// An organisation's stacks are its journal's units in less its units
+	// out, as a player's are.
+	rows, err = a.q.Query(ctx, `
+		WITH flows AS (
+		    SELECT to_org_kind AS kind, to_org AS org, item_code, to_holding AS holding, quantity AS delta
+		      FROM item_movements WHERE piece_id IS NULL AND to_org IS NOT NULL
+		    UNION ALL
+		    SELECT from_org_kind, from_org, item_code, from_holding, -quantity
+		      FROM item_movements WHERE piece_id IS NULL AND from_org IS NOT NULL
+		), journal AS (
+		    SELECT kind, org, item_code, holding, SUM(delta) AS qty FROM flows GROUP BY 1, 2, 3, 4
+		)
+		SELECT COALESCE(s.org_kind, j.kind) || ':' || COALESCE(s.org_id, j.org)::text, COALESCE(s.item_code, j.item_code),
+		       COALESCE(s.holding, j.holding), COALESCE(s.quantity, 0), COALESCE(j.qty, 0)
+		  FROM org_stacks s
+		  FULL JOIN journal j ON j.kind = s.org_kind AND j.org = s.org_id AND j.item_code = s.item_code AND j.holding = s.holding
+		 WHERE COALESCE(s.quantity, 0) <> COALESCE(j.qty, 0)
+		 ORDER BY 1, 2, 3
+		 LIMIT $1`, limit)
+	if err != nil {
+		return fmt.Errorf("postgres: checking organisations' stacks against the item journal: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var d DriftedStack
+		if err := rows.Scan(&d.PlayerID, &d.Item, &d.Holding, &d.Held, &d.Journal); err != nil {
+			return err
+		}
+		v.DriftedStacks = append(v.DriftedStacks, d)
+	}
+	return rows.Err()
+}
+
+// verifyProduction runs the production economy's invariants: every
+// organisation holding names a company that exists; the ledger moved
+// exactly what the licenses, the company sales, the supplier purchases and
+// the research say, reason by reason; every license was paid to its
+// licensor at its price; and every order's journal is the order — its
+// inputs taken as it consumed them, its output as it made it.
+func (a *EconomyAdmin) verifyProduction(ctx context.Context, v *LedgerVerification, limit int) error {
+	p := &v.ProductionInvariants
+	if err := a.q.QueryRow(ctx, `
+		SELECT (SELECT count(*) FROM org_stacks s WHERE s.org_kind = 'company'
+		          AND NOT EXISTS (SELECT 1 FROM companies c WHERE c.id = s.org_id))
+		     + (SELECT count(*) FROM item_pieces i WHERE i.org_kind = 'company'
+		          AND NOT EXISTS (SELECT 1 FROM companies c WHERE c.id = i.org_id))`).Scan(&p.OrphanHolders); err != nil {
+		return fmt.Errorf("postgres: checking organisations' holdings: %w", err)
+	}
+	sums := []struct {
+		ledger, rows *int64
+		reason, kind string
+		sql          string
+	}{
+		{&p.LicenseLedger, &p.LicenseRows, "technology_license", "company_treasury", `SELECT COALESCE(SUM(price), 0)::bigint FROM technology_licenses`},
+		{&p.SaleLedger, &p.SaleRows, "company_sale", "company_treasury", `SELECT COALESCE(SUM(total), 0)::bigint FROM company_sales`},
+		{&p.SupplyLedger, &p.SupplyRows, "supplier_purchase", "system_sink", `SELECT COALESCE(SUM(total), 0)::bigint FROM supply_purchases`},
+		{&p.ResearchLedger, &p.ResearchRows, "research", "system_sink", `SELECT COALESCE(SUM(cost), 0)::bigint FROM company_research`},
+	}
+	for _, s := range sums {
+		if err := a.q.QueryRow(ctx, `
+			SELECT COALESCE(SUM(e.amount), 0)::bigint
+			  FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
+			 WHERE e.reason = $1 AND a.kind = $2 AND e.amount > 0`, s.reason, s.kind).Scan(s.ledger); err != nil {
+			return fmt.Errorf("postgres: summing %s in the ledger: %w", s.reason, err)
+		}
+		if err := a.q.QueryRow(ctx, s.sql).Scan(s.rows); err != nil {
+			return fmt.Errorf("postgres: summing %s rows: %w", s.reason, err)
+		}
+	}
+	if err := a.q.QueryRow(ctx, `
+		SELECT count(*) FROM technology_licenses l
+		 WHERE NOT EXISTS (
+		       SELECT 1 FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
+		        WHERE e.transaction_id = l.ledger_transaction_id AND e.reason = 'technology_license'
+		          AND a.kind = 'company_treasury' AND a.owner_id = l.licensor_company_id AND e.amount = l.price)`).Scan(&p.UnpaidLicenses); err != nil {
+		return fmt.Errorf("postgres: checking licenses' payments: %w", err)
+	}
+	if err := a.q.QueryRow(ctx, `
+		SELECT (SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'npc_sale'),
+		       (SELECT COALESCE(SUM(stock_units), 0)::bigint FROM company_periods)`).Scan(&p.NPCStockJournal, &p.NPCStockPeriods); err != nil {
+		return fmt.Errorf("postgres: checking stocked sales: %w", err)
+	}
+	rows, err := a.q.Query(ctx, `
+		WITH inputs AS (
+		    SELECT reference_id AS id, SUM(quantity) AS qty FROM item_movements
+		     WHERE reason = 'production_input' AND reference_type = 'production_orders' GROUP BY 1
+		), outputs AS (
+		    SELECT reference_id AS id, SUM(quantity) AS qty FROM item_movements
+		     WHERE reason = 'produced' AND reference_type = 'production_orders' GROUP BY 1
+		), consumed AS (
+		    SELECT o.id, COALESCE(SUM(c.value::bigint), 0) AS qty
+		      FROM production_orders o LEFT JOIN LATERAL jsonb_each_text(o.consumed) c ON true GROUP BY o.id
+		)
+		SELECT o.no::text || ': consumed ' || c.qty || ', journal took ' || COALESCE(i.qty, 0)
+		       || '; made ' || CASE WHEN o.status = 'done' THEN o.output_qty ELSE 0 END || ', journal says ' || COALESCE(t.qty, 0)
+		  FROM production_orders o
+		  JOIN consumed c ON c.id = o.id
+		  LEFT JOIN inputs i ON i.id = o.id
+		  LEFT JOIN outputs t ON t.id = o.id
+		 WHERE c.qty <> COALESCE(i.qty, 0)
+		    OR (CASE WHEN o.status = 'done' THEN o.output_qty ELSE 0 END) <> COALESCE(t.qty, 0)
+		 ORDER BY o.no LIMIT $1`, limit)
+	if err != nil {
+		return fmt.Errorf("postgres: checking production orders against the journal: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var s string
+		if err := rows.Scan(&s); err != nil {
+			return err
+		}
+		p.Orders = append(p.Orders, s)
+	}
+	return rows.Err()
 }
 
 // AuditEntry is one audit_logs row.

@@ -539,6 +539,21 @@ type Company struct {
 	// PriceStepBPS is how far one press of «cheaper» or «dearer» moves a
 	// company's price level.
 	PriceStepBPS int // company.price_step_bps
+
+	// The production economy (docs/adr/0021-production-economy.md).
+	//
+	// MaxRunningOrders bounds one company's production orders running at
+	// once.
+	MaxRunningOrders int // company.max_running_orders
+	// MaxDesigns bounds one company's designs, drafts included.
+	MaxDesigns int // company.max_designs
+	// MaxListings bounds one company's open listings.
+	MaxListings int // company.max_listings
+	// DesignMinSkill is the level the company's best member must have in an
+	// archetype's craft skill to author a design of it.
+	DesignMinSkill int // company.design_min_skill
+	// ReverseTime is how long taking a sample apart takes, GAME time.
+	ReverseTime time.Duration // company.reverse_time
 }
 
 // Defaults returns every field at the value it was hardcoded to before this
@@ -643,6 +658,11 @@ func Defaults() *Config {
 			NPCCityPeriodCap:  50000,
 			MaxOpenings:       5,
 			PriceStepBPS:      1000,
+			MaxRunningOrders:  3,
+			MaxDesigns:        20,
+			MaxListings:       10,
+			DesignMinSkill:    1,
+			ReverseTime:       6 * time.Hour,
 		},
 		Input: Input{
 			TTL:       5 * time.Minute,
@@ -834,6 +854,9 @@ func (c *Config) Validate() error {
 	}
 	if c.Company.PriceStepBPS > 10000 {
 		return fmt.Errorf("%w: company.price_step_bps is %d", ErrNotPositive, c.Company.PriceStepBPS)
+	}
+	if c.Company.DesignMinSkill > 100 {
+		return fmt.Errorf("%w: company.design_min_skill is %d, above the skill scale", ErrNotPositive, c.Company.DesignMinSkill)
 	}
 
 	// The idempotency key has to outlive the last redelivery, or the last

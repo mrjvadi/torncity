@@ -211,6 +211,11 @@ type companySettings struct {
 	NPCCityPeriodCap  *int64  `yaml:"npc_city_period_cap"`
 	MaxOpenings       *int    `yaml:"max_openings"`
 	PriceStepBPS      *int    `yaml:"price_step_bps"`
+	MaxRunningOrders  *int    `yaml:"max_running_orders"`
+	MaxDesigns        *int    `yaml:"max_designs"`
+	MaxListings       *int    `yaml:"max_listings"`
+	DesignMinSkill    *int    `yaml:"design_min_skill"`
+	ReverseTime       *string `yaml:"reverse_time"`
 }
 
 // setting is one configurable value, from its yaml key to the field it fills.
@@ -802,6 +807,21 @@ var settings = []setting{
 	limitSetting("company", "price_step_bps",
 		func(c *Config) *int { return &c.Company.PriceStepBPS },
 		func(f *fileConfig) *int { return f.Company.PriceStepBPS }),
+	limitSetting("company", "max_running_orders",
+		func(c *Config) *int { return &c.Company.MaxRunningOrders },
+		func(f *fileConfig) *int { return f.Company.MaxRunningOrders }),
+	limitSetting("company", "max_designs",
+		func(c *Config) *int { return &c.Company.MaxDesigns },
+		func(f *fileConfig) *int { return f.Company.MaxDesigns }),
+	limitSetting("company", "max_listings",
+		func(c *Config) *int { return &c.Company.MaxListings },
+		func(f *fileConfig) *int { return f.Company.MaxListings }),
+	limitSetting("company", "design_min_skill",
+		func(c *Config) *int { return &c.Company.DesignMinSkill },
+		func(f *fileConfig) *int { return f.Company.DesignMinSkill }),
+	durationSetting("company", "reverse_time",
+		func(c *Config) *time.Duration { return &c.Company.ReverseTime },
+		func(f *fileConfig) *string { return f.Company.ReverseTime }),
 
 	durationSetting("input", "ttl",
 		func(c *Config) *time.Duration { return &c.Input.TTL },

@@ -1,0 +1,106 @@
+# The production economy: how long each production method takes, the
+# technology tree companies research, and the NPC suppliers that sell the
+# basic inputs every production chain starts from.
+#
+# The RULES — how a design's recipe is derived from its parts, what an order
+# consumes (all of it or none), how long it takes for its crew, the quality
+# it comes out at, what reverse engineering yields, who may research what and
+# what an owner may do with a technology — are internal/domain/item,
+# production and technology (docs/adr/0005-item-and-production-model.md,
+# docs/adr/0021-production-economy.md). What is here is parameter. How each
+# component is made is on the component (items.yml); which kinds of company
+# design and make which goods is on the company type (companies.yml,
+# produces).
+#
+# Loaded and versioned with the rest of the content (`admin content load`).
+#
+# ---------------------------------------------------------------------------
+# production_methods — how long a method takes, GAME time (config.yml
+# game.time_scale: at 60, an hour is a minute).
+#   method              extract, grow, formulate or assemble.
+#   setup               paid once per order, however large.
+#   work_per_unit       one unit's (or one batch's) labour for one worker.
+#                       Every worker of the company adds a worker's pace: the
+#                       crew is the owner and the company's employees.
+#   min_cycle           optional: the shortest an order runs whatever the
+#                       crew — a field takes a season.
+#   machine_output_bps  optional: one machine's work in basis points of a
+#                       worker (no machines are sold yet).
+#
+# technologies — the tree.
+#   code            stable identifier; stored on every owner and license.
+#   name            display name, the fallback for technology.<code>.
+#   requires        technologies the company must have unlocked first —
+#                   owned, or published by anyone.
+#   cost            what research costs the company, minor units; it leaves
+#                   the economy.
+#   time            how long research takes, GAME time.
+#   company_types   the kinds of company that may research it.
+#   skill, level    what the company's best member (owner, manager or an
+#                   employee) must know.
+#
+# suppliers — the NPC economy's wholesale trade with companies.
+#   code, name      identifier and display name (supplier.<code>).
+#   place           where in a city it trades; a city without the place has
+#                   none. Deliveries go to the company's warehouse.
+#   cities          optional: only these cities.
+#   shelves         {component, price (per unit, minor units, leaves the
+#                   economy), stock (the most it holds in a city), restock
+#                   (units back every `every` of GAME time)}. The stock is
+#                   the bound on the goods this faucet lets into the world.
+
+version: 1
+
+production_methods:
+  - {method: extract,   setup: 15m, work_per_unit: 1h,  min_cycle: 2h}
+  - {method: grow,      setup: 30m, work_per_unit: 30m, min_cycle: 12h}
+  - {method: formulate, setup: 15m, work_per_unit: 20m}
+  - {method: assemble,  setup: 30m, work_per_unit: 45m}
+
+technologies:
+  - code: semiconductors
+    name: Semiconductors
+    cost: 30000
+    time: 8h
+    company_types: [factory, tech_studio]
+    skill: engineering
+    level: 1
+  - code: microchips
+    name: Microchips
+    requires: [semiconductors]
+    cost: 60000
+    time: 12h
+    company_types: [factory]
+    skill: engineering
+    level: 2
+  - code: batteries
+    name: Battery chemistry
+    cost: 25000
+    time: 6h
+    company_types: [factory]
+    skill: engineering
+    level: 1
+
+suppliers:
+  - code: industrial_supplier
+    name: Industrial supplier
+    place: industrial_zone
+    shelves:
+      - {component: diesel,       price: 5,   stock: 2000, restock: 400, every: 1h}
+      - {component: lithium_salt, price: 15,  stock: 400,  restock: 80,  every: 1h}
+      - {component: gemstone,     price: 300, stock: 20,   restock: 2,   every: 6h}
+      - {component: silver,       price: 150, stock: 40,   restock: 4,   every: 6h}
+  - code: farm_supply
+    name: Farm supply store
+    place: farmland
+    shelves:
+      - {component: seed_grain, price: 3, stock: 2000, restock: 400, every: 1h}
+  - code: wholesale_market
+    name: Wholesale market
+    place: bazaar
+    shelves:
+      - {component: spring_water, price: 1, stock: 20000, restock: 4000, every: 1h}
+      - {component: yeast,        price: 2, stock: 2000,  restock: 400,  every: 1h}
+      - {component: coffee_bean,  price: 4, stock: 2000,  restock: 400,  every: 1h}
+      - {component: herb_extract, price: 2, stock: 5000,  restock: 1000, every: 1h}
+      - {component: starch,       price: 1, stock: 5000,  restock: 1000, every: 1h}

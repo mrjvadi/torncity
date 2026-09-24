@@ -169,3 +169,51 @@
 
 ━━━ question · company.manager · reply box ━━━
 کد بازیکن یا نام کاربری
+
+━━━ announcement · a technology published ━━━
+🌐 شرکت صنایع نیلوفر فناوری نیمه‌رساناها را برای همهٔ شرکت‌ها منتشر کرد.
+
+━━━ announcement · a product launched ━━━
+📦 شرکت صنایع نیلوفر محصول تازه‌اش، نیل موبایل ایکس (گوشی)، را در استمارچ عرضه کرد.
+
+━━━ question · company.supply ━━━
+🚚 چند واحد خریده شود؟ مقدار را به عدد بنویسید.
+برای انصراف، «انصراف» را بفرستید.
+
+━━━ question · company.supply · reply box ━━━
+تعداد واحد
+
+━━━ question · company.techmode ━━━
+📜 قیمت هر لایسنس این فناوری را به عدد بنویسید.
+برای انصراف، «انصراف» را بفرستید.
+
+━━━ question · company.techmode · reply box ━━━
+قیمت لایسنس به نیل
+
+━━━ question · company.dqty ━━━
+🧩 مقدار این جای طرح را به عدد بنویسید.
+برای انصراف، «انصراف» را بفرستید.
+
+━━━ question · company.dqty · reply box ━━━
+مقدار
+
+━━━ question · company.dname ━━━
+📐 نام طرح را بنویسید و بفرستید.
+برای انصراف، «انصراف» را بفرستید.
+
+━━━ question · company.dname · reply box ━━━
+نام طرح
+
+━━━ question · company.sell ━━━
+🏷 قیمت هر واحد را به عدد بنویسید.
+برای انصراف، «انصراف» را بفرستید.
+
+━━━ question · company.sell · reply box ━━━
+قیمت هر واحد به نیل
+
+━━━ question · company.buy ━━━
+🛒 چند واحد می‌خرید؟ تعداد را به عدد بنویسید.
+برای انصراف، «انصراف» را بفرستید.
+
+━━━ question · company.buy · reply box ━━━
+تعداد

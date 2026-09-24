@@ -149,8 +149,10 @@ func TestVenueReferencesAreWarnings(t *testing.T) {
 	p := shippedPack(t)
 	p.Venues[1].Arrivals = []string{"zeppelin"}
 	p.Careers, p.Courses = nil, nil
-	// Company types hire into careers, so they go with them.
+	// Company types hire into careers, so they go with them, and what only
+	// companies make or research.
 	p.CompanyTypes = nil
+	dropProduction(p)
 	for i := range p.Crimes {
 		p.Crimes[i].RequiredCertifications = nil
 	}
@@ -164,5 +166,14 @@ func TestVenueReferencesAreWarnings(t *testing.T) {
 	}
 	if !zeppelin || !categories {
 		t.Errorf("warnings do not report the dangling venue references: %v", p.Warnings())
+	}
+}
+
+// dropProduction removes what names company types: the technologies and how
+// each component is made.
+func dropProduction(p *Pack) {
+	p.Technologies = nil
+	for i := range p.Components {
+		p.Components[i].Production, p.Components[i].RequiresTechnology = nil, nil
 	}
 }

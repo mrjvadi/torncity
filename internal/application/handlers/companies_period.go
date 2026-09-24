@@ -9,6 +9,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/company"
+	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
@@ -153,6 +154,8 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 		shift int
 		wages int64
 		share int
+		// stock is what a stocked company holds of what it sells.
+		stock *npcStock
 	}
 	var (
 		members []member
@@ -178,8 +181,16 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 			share = int(int64(max(end.Sub(c.FoundedAt), 0)/time.Millisecond) * 10000 / max(int64(length/time.Millisecond), 1))
 		}
 		price := min(max(c.PriceBPS, ty.PriceMinBPS), ty.PriceMaxBPS)
-		members = append(members, member{c: c, ty: ty, shift: shifts, wages: wages, share: share})
-		sellers = append(sellers, company.Seller{ID: c.ID, Type: ty, PriceBPS: price, Shifts: shifts, PresenceBPS: share})
+		seller := company.Seller{ID: c.ID, Type: ty, PriceBPS: price, Shifts: shifts, PresenceBPS: share}
+		mb := member{c: c, ty: ty, shift: shifts, wages: wages, share: share}
+		if codes := snap.StockedCodes(c.TypeCode); len(codes) > 0 {
+			if mb.stock, err = readStock(ctx, tx, c.ID, codes); err != nil {
+				return err
+			}
+			seller.Stocked, seller.Stock = true, mb.stock.total()
+		}
+		members = append(members, mb)
+		sellers = append(sellers, seller)
 	}
 	settlement, err := company.Settle(market, sellers)
 	if err != nil {
@@ -241,6 +252,13 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 			balance, _ = balance.Sub(u.Paid)
 		}
 		c.Debt, c.Arrears, c.RatingBPS, c.UpdatedAt = u.Debt.Minor(), u.Arrears, sale.QualityBPS, now
+		var stockUnits int64
+		if mb.stock != nil && sale.Sold > 0 {
+			// Goods, not a service: the units sold leave the warehouse.
+			if stockUnits, err = mb.stock.sell(ctx, tx, h.ids, sale.Sold, clock.ActionID, now); err != nil {
+				return err
+			}
+		}
 		// A company still paying running shifts is dissolved at the next
 		// settlement instead: their wages are promised.
 		dissolve := u.Insolvent && reserved == 0
@@ -249,7 +267,7 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 			PresenceBPS: mb.share, PriceBPS: sellers[i].PriceBPS, QualityBPS: sale.QualityBPS, Shifts: mb.shift,
 			WantedUnits: sale.Wanted, CapacityUnits: sale.Capacity, SoldUnits: sale.Sold, Revenue: revenue.Minor(),
 			SalesTax: tax.Minor(), Wages: mb.wages, UpkeepDue: u.Due.Minor(), UpkeepPaid: u.Paid.Minor(),
-			Debt: u.Debt.Minor(), BalanceAfter: balance.Minor(), Insolvent: dissolve, SettledAt: now,
+			Debt: u.Debt.Minor(), BalanceAfter: balance.Minor(), Insolvent: dissolve, SettledAt: now, StockUnits: stockUnits,
 		}); err != nil {
 			return err
 		}
@@ -303,4 +321,81 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 		return tx.Companies().SaveMarketClock(ctx, *clock)
 	}
 	return h.schedule(ctx, tx, clock, now)
+}
+
+// npcStock is what a stocked company holds of the goods it sells to the
+// population, under its goods' lock.
+type npcStock struct {
+	org    application.Org
+	stacks []application.OrgStack
+	pieces []application.Piece
+}
+
+// readStock locks a company's goods and reads its stock of codes.
+func readStock(ctx context.Context, tx application.Tx, companyID string, codes item.Set) (*npcStock, error) {
+	org := application.CompanyOrg(companyID)
+	if err := tx.Items().LockOrg(ctx, org); err != nil {
+		return nil, err
+	}
+	stacks, pieces, err := tx.Items().OrgHoldings(ctx, org, application.HoldWarehouse)
+	if err != nil {
+		return nil, err
+	}
+	w := &npcStock{org: org}
+	for _, s := range stacks {
+		if codes.Has(s.Item) {
+			w.stacks = append(w.stacks, s)
+		}
+	}
+	for _, p := range pieces {
+		if codes.Has(p.Item) {
+			w.pieces = append(w.pieces, p)
+		}
+	}
+	return w, nil
+}
+
+// total is how many units the stock holds.
+func (w *npcStock) total() int64 {
+	n := int64(len(w.pieces))
+	for _, s := range w.stacks {
+		n += s.Qty
+	}
+	return n
+}
+
+// sell takes qty units out of the warehouse for the population — counted
+// units first, in code order, then pieces — each movement an end of the
+// goods (npc_sale), naming the settlement's action. It returns the units
+// taken, which is qty: the settlement never sold more than the stock.
+func (w *npcStock) sell(ctx context.Context, tx application.Tx, ids IDGenerator, qty int64, actionID string,
+	now time.Time,
+) (int64, error) {
+	left := qty
+	move := application.ItemMove{FromOrg: w.org, FromHolding: application.HoldWarehouse, Reason: application.ItemNPCSale,
+		ReferenceType: "game_actions", ReferenceID: actionID, At: now}
+	for _, s := range w.stacks {
+		if left == 0 {
+			break
+		}
+		take := min(left, s.Qty)
+		m := move
+		m.ID, m.Item, m.Qty = ids.NewID(), s.Item, take
+		if err := tx.Items().Move(ctx, m); err != nil {
+			return 0, err
+		}
+		left -= take
+	}
+	for _, p := range w.pieces {
+		if left == 0 {
+			break
+		}
+		m := move
+		m.ID, m.Item, m.PieceID, m.Qty = ids.NewID(), p.Item, p.ID, 1
+		if err := tx.Items().Move(ctx, m); err != nil {
+			return 0, err
+		}
+		left--
+	}
+	return qty - left, nil
 }

@@ -982,6 +982,7 @@ venue:
   police_station: police station
   residential_area: residential area
   park: city park
+  farmland: farmland
 
 # Paying a service (internal/domain/payment): every charge is paid from the
 # cash the player carries or by bank card, as they choose. A price screen
@@ -1104,6 +1105,12 @@ input:
     company_withdraw: "📤 How much profit should be taken out? Type the amount as a number; the corporate tax comes out of it."
     company_post: "💼 What should one shift of this opening pay? Type the amount as a number."
     company_manager: "🧑‍💼 Send the new manager's player code or username; to remove the manager, send \"none\"."
+    company_supply: "🚚 How many units? Type the number."
+    company_techmode: "📜 Type the price of one license for this technology."
+    company_dqty: "🧩 Type the amount for this slot of the design."
+    company_dname: "📐 Type the design's name and send it."
+    company_sell: "🏷 Type the price of one unit."
+    company_buy: "🛒 How many do you buy? Type the number."
   placeholder:
     default: "Value"
     bank_deposit: "Amount to deposit, in Nil"
@@ -1114,6 +1121,12 @@ input:
     company_withdraw: "Amount to take out, in Nil"
     company_post: "Pay per shift, in Nil"
     company_manager: "Player code or username"
+    company_supply: "Units"
+    company_techmode: "License price in Nil"
+    company_dqty: "Amount"
+    company_dname: "Design name"
+    company_sell: "Price per unit in Nil"
+    company_buy: "Quantity"
   cancel_hint: "To cancel, send \"cancel\"."
   cancelled: "✖️ Cancelled. Nothing changed."
 
@@ -1679,3 +1692,318 @@ company_type:
   courier: Courier company
   tech_studio: Tech studio
   factory: Factory
+  mine: Mine
+  farm: Farm
+
+# The production economy (docs/adr/0021-production-economy.md): a company's
+# warehouse and suppliers, research lab and licenses, design studio,
+# production floor, reverse engineering, listings, and buying from companies.
+# Components are named under component, technologies under technology,
+# suppliers under supplier, design slots under design_slot and attributes
+# under attribute.
+production:
+  good_designed: "{design} ({item})"
+  list_separator: ", "
+  available: "💵 Company's free money: {amount}"
+  warehouse_title: "🏭 {name} warehouse"
+  warehouse_status: "⚙️ Production orders running: {orders} - open listings: {listings}"
+  warehouse_researching: "🧪 A research is running in the lab."
+  warehouse_stock: "In the warehouse:"
+  stock_line: "📦 {good} - {qty} units"
+  stock_line_pieces: "📦 {good} - {qty} pieces - quality {quality}"
+  stock_listed: " - {qty} listed"
+  warehouse_empty: "📦 The warehouse is empty. Buy basic inputs from the suppliers, or make your own."
+  warehouse_hint: "Everything the company buys, makes or sells passes through this warehouse. The buttons below lead to the floor, the studio, the lab and your listings."
+  suppliers_title: "🚚 Suppliers in {city}"
+  supply_line: "• {component} - {supplier} - {price} a unit - {stock} units in stock"
+  supply_bought: "✅ {qty} units of {component} reached the warehouse; {total} was paid from the company's account."
+  suppliers_none: "This city has no suppliers."
+  suppliers_hint: "Suppliers sell the basic inputs no company makes. Each has a limited stock that refills over time."
+  shortage_line: "• {component}: {need} units needed, you have {have}"
+  lab_title: "🧪 {name} lab"
+  lab_running: "⏳ Research into {tech} finishes at {time} - in {duration}"
+  lab_none: "This kind of company has no technology to research."
+  lab_hint: "You research each technology once and the company owns it. Keep it private, sell licenses, or publish it for everyone. Reverse engineering never yields a technology."
+  tech_line:
+    owned_private: "✅ {tech} - yours - private"
+    owned_license: "✅ {tech} - yours - licensed at {price}"
+    owned_published: "✅ {tech} - yours - published for everyone"
+    licensed: "📜 {tech} - you hold a license"
+    published: "🌐 {tech} - published by another company"
+    running: "⏳ {tech} - being researched"
+    available: "🔬 {tech} - research costs {cost}"
+    locked: "🔒 {tech} - needs {missing} first"
+  tech_line_offers: " - licenses on sale from {count}"
+  tech_title: "🔬 {tech}"
+  tech_state:
+    owned: "✅ Your company owns this technology."
+    licensed: "📜 You hold a license for this technology; you may design and make with it."
+    published: "🌐 This technology was published for everyone, and you use it too."
+    running: "⏳ This technology is being researched."
+    available: "🔬 You can research this technology."
+    locked: "🔒 You do not have this technology's prerequisites yet."
+  tech_cost: "💰 Research cost: {cost} - ⏱ time: {duration}"
+  tech_skill: "🎓 Skill needed: {skill} level {level} - your best person: level {best}"
+  tech_requires_met: "✅ Requires: {tech}"
+  tech_requires_missing: "❌ Requires: {tech}"
+  tech_unlocks: "🔓 Make and design with: {components}"
+  tech_mode:
+    private: "🔐 Private: only your company uses it."
+    license: "📜 Licensed at {price}: other companies buy licenses and the money comes to your company."
+    published: "🌐 Published: everyone uses it freely, and that cannot be undone."
+  tech_sold: "📜 Licenses sold: {count}"
+  tech_blocked:
+    busy: "⏳ The lab is busy with another research; one at a time."
+    wrong_type: "🏷 This kind of company cannot research this technology."
+    skill: "🎓 Nobody in the company has {skill} at level {level}. Hire someone with the skill, or train yourself."
+    prerequisite: "🔒 Research the prerequisites above first, or wait for a company to publish them."
+    funds: "💰 The company's free money ({money}) does not cover the research ({need})."
+    owned: "✅ You own this technology already."
+  tech_publish_confirm: "🌐 Publish {tech} for everyone? Every company will use it for free, and you will never make it private or sell its licenses again."
+  tech_license_confirm: "📜 Buy a license for {tech} from {company} at {price}? Your company's free money: {money}"
+  tech_offers: "🏢 Companies selling licenses for it:"
+  tech_offer: "• {company} - {price}"
+  tech_notice:
+    started: "⏳ Research started and its cost was paid from the company's account. We will tell you when it is done."
+    private: "🔐 This technology is private from now on."
+    license: "📜 Licenses for this technology now sell at {price}."
+    published: "🌐 This technology was published for everyone."
+    bought: "✅ License bought from {company}; {price} went to their account."
+  studio_title: "📐 {name} design studio"
+  design_unnamed: "Design no. {no}"
+  design_line:
+    draft: "✏️ {name} - {item} - draft"
+    final: "✅ {name} - {item}"
+    retired: "🗄 {name} - {item} - retired"
+    copy: "🔍 {name} - {item} - reverse engineered copy"
+  studio_none: "No designs yet."
+  studio_new: "To start a design, choose the kind of good:"
+  studio_no_kinds: "This kind of company designs no goods."
+  studio_at_max: "Your company has {max} designs and cannot have more."
+  studio_hint: "You fill a design slot by slot with components; one that needs a technology can only be chosen with that technology or its license. A design is the company's own; others only see the product's visible attributes."
+  design_title: "📐 {name} - {item}"
+  design_state:
+    draft: "✏️ Draft"
+    final: "✅ Final design; ready to produce"
+    retired: "🗄 Retired"
+  design_copy: "🔍 Copied from \"{source}\" by reverse engineering - {loss}% lower quality - {overhead}% more materials"
+  slot_empty: "⬜ {slot}: empty"
+  slot_optional: "▫️ {slot}: empty (optional)"
+  slot_filled: "🟩 {slot}: {component} - {qty}"
+  choose_title: "Choose the component for {slot}:"
+  choose_range: "The amount goes from {min} to {max}; after choosing, type the amount."
+  candidate: "• {component} - reference price {price} - quality {quality}"
+  candidate_locked: "🔒 {component} - you lack its technology"
+  attribute: "📊 {name}: {value}"
+  attribute_public: "👁 {name}: {value}"
+  cost_floor: "💰 Cost floor per unit: {cost}"
+  design_locked: "🔒 These components need {techs}; research it or buy a license."
+  design_incomplete: "⬜ Required slots are still empty."
+  design_ready: "✅ The design is complete; name it and finalise it."
+  unit:
+    g: "{qty} g"
+    ml: "{qty} ml"
+    mg: "{qty} mg"
+  orders_title: "⚙️ {name} production floor"
+  orders_crew: "👥 Workforce: {crew} - orders running: {running} of {max}"
+  orders_running: "⏳ Running:"
+  orders_done: "✅ Done:"
+  order_running: "⏳ Order {no} - {qty} {good} - at {time} - in {duration}"
+  order_done: "✅ Order {no} - {qty} {good} - quality {quality}"
+  orders_none: "No production orders yet."
+  orders_targets: "For a new order, choose a product or a component:"
+  orders_no_targets: "Nothing to produce yet: finalise a design, or acquire the technology to make a component."
+  produce_title: "⚙️ Produce {good}"
+  produce_batch: "📦 Each batch yields {batch} units."
+  recipe_title: "🧾 Each unit takes:"
+  recipe_line: "• {component}: {per} units - {have} in the warehouse"
+  recipe_line_order: "✅ {component}: {need} units - {have} in the warehouse"
+  recipe_line_short: "❌ {component}: {need} units - {have} in the warehouse"
+  plan_choose: "How many? The warehouse holds enough for up to {max}."
+  plan: "⏱ {qty} {good} take {duration} with a workforce of {crew}."
+  plan_consumes: "All the materials above leave the warehouse now; if even one is short, nothing is taken."
+  plan_short: "❌ The warehouse is short for {qty} units; the shortages are marked ❌."
+  placed: "✅ Order {no} placed: {qty} {good}, ready at {time} - in {duration}."
+  placed_hint: "The materials left the warehouse. The products arrive in it when ready, and we will tell you."
+  relab_title: "🔍 {name} reverse engineering"
+  relab_engineer: "🎓 Company engineer: {skill} level {level}"
+  relab_samples: "Other companies' products in the warehouse:"
+  sample_line: "• {good} by {maker} - quality {quality} - chance of success {chance}%"
+  relab_no_samples: "No samples in the warehouse. Buy one unit of another company's product from the company goods."
+  relab_jobs: "Reverse engineering:"
+  reverse_line:
+    running: "⏳ Job {no} - {good} - at {time} - in {duration}"
+    succeeded: "✅ Job {no} - {good} - recovered design \"{result}\""
+    failed: "❌ Job {no} - {good} - failed"
+  relab_hint: "The sample is destroyed. A success is a design worse than the original, and never a technology: components you cannot make, you must buy."
+  reverse_confirm: "🔍 Take apart {good} by {maker}? The sample is destroyed, and the chance of success is {chance}%. It takes {duration}."
+  reverse_started: "⏳ The {good} sample was opened; the result comes at {time} - in {duration}."
+  sell_title: "💰 Sell {good} - {have} in the warehouse - reference price {reference}"
+  sell_qty: "How many units to list?"
+  sell_price: "Type a price per unit for {qty} {good}, or list at the reference price."
+  listing_notice:
+    listed: "🏷 {qty} {good} listed at {price} a unit."
+    withdrawn: "↩️ The {good} listing was withdrawn and {qty} units went back to the warehouse."
+  listings_title: "🏷 {name} listings in {city}"
+  listing_line: "• {good} - {qty} left - {price} a unit"
+  listings_none: "No open listings."
+  listings_hint: "Players and companies of this city see and buy your listings under \"Company goods\". The city's sales tax is taken from the revenue."
+  goods_heading: "🏭 Company goods"
+  goods_title: "🏭 Company goods in {city}"
+  goods_line: "• {good} - {company} - {qty} left - {price} a unit"
+  goods_attribute: "{name} {value}"
+  goods_attributes: "  👁 {attributes}"
+  goods_none: "The companies of this city list nothing for now."
+  buy_total: "🧾 {qty} units - {total} in all"
+  buy_cannot_pay: "Your cash and bank balance do not cover this, and you run no company to buy for."
+  bought_player: "✅ You bought {qty} {good} from {seller} for {total}. It is in your bag."
+  bought_company: "✅ {qty} {good} bought from {seller} for {company}; {total} was paid from the company's account. It is in the company's warehouse."
+  page_products: "📦 Products: {products}"
+  page_published: "🌐 Published technologies: {techs}"
+  notice:
+    researched: "🧪 Research into {tech} at {company} is done; the company owns the technology now."
+    produced: "⚙️ {company}'s production order is ready: {qty} {good} at quality {quality} reached the warehouse."
+    reversed_ok: "🔍 Reverse engineering {good} at {company} succeeded; the design \"{design}\" joined the company's designs."
+    reversed_failed: "🔍 Reverse engineering {good} at {company} failed, and the sample is gone."
+    license_sold: "📜 {buyer} bought a license for {tech} from {company}; {price} went to the company's account."
+    sold: "💰 {buyer} bought {qty} {good} from {company}; {price} went to the company's account."
+  announce:
+    published: "🌐 {company} published {tech} for every company."
+    launched: "📦 {company} launched its new product, {design} ({item}), in {city}."
+  button:
+    warehouse: "🏭 Production and warehouse"
+    goods: "🏭 Company goods"
+    sell: "💰 Sell {good}"
+    suppliers: "🚚 Suppliers"
+    orders: "⚙️ Production floor"
+    studio: "📐 Design studio"
+    lab: "🧪 Research lab"
+    reverse_lab: "🔍 Reverse engineering"
+    listings: "🏷 Listings"
+    supply: "🛒 {qty} {component}"
+    supply_other: "✏️ Other amount of {component}"
+    tech: "🔬 {tech}"
+    research: "🔬 Start research - {cost}"
+    mode_private: "🔐 Private"
+    mode_license: "📜 Sell licenses"
+    mode_publish: "🌐 Publish for everyone"
+    publish_confirm: "🌐 Yes, publish it"
+    license: "📜 License from {company}"
+    license_confirm: "📜 Yes, buy at {price}"
+    design: "📐 {name}"
+    new_design: "➕ {item}"
+    slot: "🔧 {slot}"
+    candidate: "🧩 {component}"
+    slot_clear: "✖️ Leave empty"
+    slot_qty: "✏️ Amount of {slot}"
+    name: "✏️ Name the design"
+    finalize: "✅ Finalise the design"
+    produce_design: "⚙️ Produce it"
+    produce: "⚙️ {good}"
+    size: "{qty} units"
+    size_batch: "{qty} batches"
+    size_max: "All: {qty}"
+    start_order: "✅ Start producing {qty} units"
+    reverse: "🔍 {good}"
+    reverse_confirm: "🔍 Yes, take it apart"
+    price: "✏️ Other price"
+    price_reference: "🏷 Reference price {price}"
+    sell_all: "All: {qty}"
+    unlist: "↩️ Withdraw {good}"
+    buy: "🛒 {good}"
+    buy_qty: "✏️ Other quantity"
+    pay_cash: "💵 Pay cash {total}"
+    pay_card: "💳 Pay by card {total}"
+    pay_company: "🏢 Buy for {company}"
+    bag: "🎒 Bag"
+    company_warehouse: "🏭 {company} warehouse"
+  refused:
+    not_found: "Not found; it may have changed."
+    skill: "🎓 Nobody at {name} has {skill} at level {level} (best: level {have}). Hire someone with the skill, or train yourself."
+    tech_locked: "🔒 {name} lacks {techs}; research it or buy a license."
+    shortage: "📦 The {name} warehouse is short for this order, and nothing was taken:"
+    busy: "⏳ The {name} lab is busy researching {techs}; one at a time."
+    owned: "✅ {name} researched this technology already."
+    prerequisite: "🔒 You need {techs} first."
+    wrong_type: "🏷 This kind of company does not do that."
+    funds: "💰 {name} has {money} of free money, which does not cover {need}."
+    incomplete: "⬜ The design's required slots are still empty."
+    no_name: "✏️ Name the design first."
+    name_length: "A design's name is {level} to {max} characters. Send it again."
+    name_charset: "A design's name is letters, digits, spaces and simple marks, with at least two letters. Send it again."
+    name_taken: "{name} has another design of that name. Send another name."
+    max_orders: "⚙️ {name} has {max} orders running; try again when one is done."
+    max_designs: "📐 {name} has {max} designs and cannot have more."
+    max_listings: "🏷 {name} has {max} open listings; withdraw one."
+    not_reversible: "🔍 This good has no design to take apart, or this kind of company does not make it."
+    own_design: "🔍 This product is your own company's design."
+    stock: "📦 That many are not in the warehouse or on sale; {max} at most."
+    not_cleared: "🚫 This good or technology is not sold to you."
+    supplier_empty: "🚚 The supplier has only {max} units now; buy fewer, or wait for it to refill."
+    amount: "Type the amount as a number, for example 25."
+    published: "🌐 This technology is published, and published it stays."
+    not_for_sale: "📜 The owner does not sell licenses for this technology."
+    licensed: "📜 You can already use this technology."
+    final: "✅ This design is final and no longer changes."
+    listed: "🏷 This good is listed already; withdraw that listing first."
+    away: "📍 To buy this, you must be in {city}."
+    own_listing: "🏷 This is your own company's listing."
+    too_long: "⏱ This order would take too long; order fewer."
+
+# Components and materials, by content code (configs/content/items.yml).
+component:
+  diesel: Diesel fuel
+  seed_grain: Seed grain
+  lithium_salt: Lithium salt
+  spring_water: Spring water
+  yeast: Yeast
+  coffee_bean: Coffee beans
+  herb_extract: Herb extract
+  starch: Starch
+  gemstone: Gemstone
+  silver: Silver
+  silica: Silica sand
+  iron_ore: Iron ore
+  crude_oil: Crude oil
+  wheat: Wheat
+  cotton: Cotton
+  timber: Timber
+  flour: Flour
+  tool_steel: Tool steel
+  plastic_case: Plastic case
+  chipset: Chipset
+  cell: Battery cell
+
+# Technologies, by content code (configs/content/production.yml).
+technology:
+  semiconductors: Semiconductors
+  microchips: Microchips
+  batteries: Battery chemistry
+
+# Suppliers, by content code (configs/content/production.yml).
+supplier:
+  industrial_supplier: Industrial supplier
+  farm_supply: Farm supply store
+  wholesale_market: Wholesale market
+
+# Design slots, by slot name in the archetypes (configs/content/items.yml).
+design_slot:
+  base: Base
+  leaven: Leaven
+  water: Water
+  flavour: Flavour
+  active: Active ingredient
+  carrier: Carrier
+  body: Body
+  fabric: Fabric
+  board: Board
+  power: Power
+  shell: Shell
+  stone: Stone
+  setting: Setting
+
+# Product attributes, by attribute name in the archetypes.
+attribute:
+  quality: Quality
+  potency: Potency
+  battery_life: Battery life

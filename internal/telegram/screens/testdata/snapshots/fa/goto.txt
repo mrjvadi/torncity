@@ -207,6 +207,7 @@
   ───
   [🏪 نان] → market:book:bread
   [📋 سفارش‌های من] → market:mine   │   [🔨 حراجی] → auction:list
+  [🏭 کالای شرکت‌ها] → company:goods
   [🚶 رفتن به بازار (۱۵ ثانیه)] → place:go:bazaar:market.list
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → market:list
 

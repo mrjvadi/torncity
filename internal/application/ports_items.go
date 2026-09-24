@@ -26,7 +26,41 @@ const (
 	// HoldEscrow is set aside for a market order or an auction: still the
 	// player's, but not theirs to use until the order or auction ends.
 	HoldEscrow = "escrow"
+	// HoldWarehouse is what an organisation holds (migration 0020).
+	HoldWarehouse = "warehouse"
+	// HoldListed is an organisation's goods put up for sale: still its, not
+	// to use until the listing is sold or withdrawn.
+	HoldListed = "listed"
 )
+
+// Organisation kinds: holders of goods that are not players
+// (migrations/0020_production.up.sql). The set is closed in the schema's
+// checks and here; a state or an army is one more constant and one more
+// value in those checks.
+const (
+	OrgCompany = "company"
+)
+
+// Org names an organisation holding goods. The zero Org is no organisation.
+type Org struct {
+	Kind string
+	ID   string
+}
+
+// CompanyOrg is a company as a holder of goods.
+func CompanyOrg(id string) Org { return Org{Kind: OrgCompany, ID: id} }
+
+// IsZero reports whether o names nobody.
+func (o Org) IsZero() bool { return o.ID == "" }
+
+// OrgStack is units of one good (or component) one organisation holds in one
+// place.
+type OrgStack struct {
+	Org     Org
+	Item    string
+	Holding string
+	Qty     int64
+}
 
 // ItemReason is why goods moved: the item journal's closed set.
 type ItemReason string
@@ -52,6 +86,19 @@ const (
 	ItemAuctionEscrow ItemReason = "auction_escrow"
 	ItemAuctionReturn ItemReason = "auction_return"
 	ItemAuctionSold   ItemReason = "auction_sold"
+
+	// The production economy (migration 0020). Origins: a production
+	// order's output, a supplier's delivery. Ends: an order's inputs, the
+	// sample reverse engineering destroyed, a unit sold to the population.
+	// Changes of hand: a company's goods listed and taken back, and sold.
+	ItemProduced        ItemReason = "produced"
+	ItemSupplied        ItemReason = "supplied"
+	ItemProductionInput ItemReason = "production_input"
+	ItemReverseSample   ItemReason = "reverse_sample"
+	ItemNPCSale         ItemReason = "npc_sale"
+	ItemListingEscrow   ItemReason = "listing_escrow"
+	ItemListingRelease  ItemReason = "listing_release"
+	ItemCompanySale     ItemReason = "company_sale"
 )
 
 var itemReasons = map[ItemReason]bool{
@@ -60,6 +107,8 @@ var itemReasons = map[ItemReason]bool{
 	ItemTheft: true, ItemRestitution: true, ItemGift: true,
 	ItemMarketEscrow: true, ItemMarketRelease: true, ItemMarketTrade: true,
 	ItemAuctionEscrow: true, ItemAuctionReturn: true, ItemAuctionSold: true,
+	ItemProduced: true, ItemSupplied: true, ItemProductionInput: true, ItemReverseSample: true, ItemNPCSale: true,
+	ItemListingEscrow: true, ItemListingRelease: true, ItemCompanySale: true,
 }
 
 // Known reports whether r is in the closed set.
@@ -70,6 +119,8 @@ const (
 	OriginSupply = "supply" // a shop's sale (shop_sales)
 	OriginLoot   = "loot"   // a crime (crimes)
 	OriginGrant  = "grant"  // a reward grant (reward_grants)
+	// OriginProduction is a production order's output (production_orders).
+	OriginProduction = "production"
 )
 
 // Stack is units of one good one player holds in one place.
@@ -90,9 +141,14 @@ type Piece struct {
 	// UsesLeft is what remains of a piece that wears; 0 for one that does
 	// not (see the good's durability).
 	UsesLeft int
-	// OwnerID and Holding say who has it and where; empty owner once gone.
+	// OwnerID (a player) or Org (an organisation) and Holding say who has
+	// it and where; both empty once gone.
 	OwnerID string
+	Org     Org
 	Holding string
+	// DesignID is the design it was produced from, empty for a good the
+	// NPC economy made.
+	DesignID string
 	// Origin and OriginRef are its provenance: the kind and the row.
 	Origin    string
 	OriginRef string
@@ -107,8 +163,11 @@ type ItemMove struct {
 	PieceID string
 	Qty     int64
 
+	// A side is a player (From, To) or an organisation (FromOrg, ToOrg),
+	// never both.
 	From, FromHolding string
 	To, ToHolding     string
+	FromOrg, ToOrg    Org
 
 	Reason        ItemReason
 	ReferenceType string
@@ -139,6 +198,13 @@ type ItemRepository interface {
 	Move(ctx context.Context, m ItemMove) error
 	// SetUses records what is left of a piece that wears.
 	SetUses(ctx context.Context, pieceID string, uses int) error
+
+	// LockOrg serialises every change to one organisation's goods, as
+	// LockOwner does a player's.
+	LockOrg(ctx context.Context, org Org) error
+	// OrgHoldings returns what an organisation holds in a holding: its
+	// stacks by code, its pieces in item and serial order.
+	OrgHoldings(ctx context.Context, org Org, holding string) ([]OrgStack, []Piece, error)
 
 	// LastUsed is when the player last used a good of a cooldown group,
 	// zero for never; MarkUsed records a use.

@@ -135,6 +135,13 @@ const (
 	RightWithdraw    Right = "withdraw"
 	RightAppoint     Right = "appoint"
 	RightClose       Right = "close"
+	// RightProduce runs the floor: designs, production orders, supplier
+	// purchases, reverse engineering and listings. A manager may.
+	RightProduce Right = "produce"
+	// RightResearch spends on research and decides what the company's
+	// technologies are shared as, and buys licenses: the owner's alone,
+	// since it gives away or spends the company's future.
+	RightResearch Right = "research"
 )
 
 // Can reports whether the role carries the right.
@@ -144,7 +151,7 @@ func (r Role) Can(right Right) bool {
 		return true
 	case RoleManager:
 		switch right {
-		case RightViewBooks, RightDeposit, RightManageStaff, RightSetPrice:
+		case RightViewBooks, RightDeposit, RightManageStaff, RightSetPrice, RightProduce:
 			return true
 		}
 	}

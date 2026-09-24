@@ -116,6 +116,14 @@ places:
     work_categories: [transport, trades]
     opportunity_bps: 7000
     security: 2
+  # Fields and orchards at the edge of town: farms work here, and the farm
+  # supply store sells seed.
+  - code: farmland
+    name: Farmland
+    move_time: 40m
+    energy: 1
+    opportunity_bps: 3000
+    security: 1
   - code: hospital
     name: Hospital
     move_time: 20m

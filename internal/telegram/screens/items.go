@@ -46,6 +46,9 @@ type InventoryLine struct {
 	Quality    int
 	UsesLeft   int
 	Durability int
+	// Design is the name of the design a piece was made from, when a
+	// company made it (docs/adr/0021-production-economy.md).
+	Design string
 }
 
 // InventoryView is one page of the bag.
@@ -80,6 +83,9 @@ func Inventory(c Context, v InventoryView) *presenter.Response {
 		var buttons []presenter.Button
 		for _, l := range v.Lines {
 			name := c.ItemName(l.Item)
+			if l.Design != "" {
+				name = c.GoodName(Good{Item: l.Item, Design: l.Design})
+			}
 			var line string
 			if l.Serial != "" {
 				line = c.T("item.bag_piece", map[string]any{"item": name, "detail": c.pieceLine(l.Quality, l.UsesLeft, l.Durability)})

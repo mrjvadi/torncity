@@ -181,6 +181,9 @@ type CompanyPeriod struct {
 	BalanceAfter  int64
 	Insolvent     bool
 	SettledAt     time.Time
+	// StockUnits are the units that left a stocked company's warehouse
+	// for the population (migration 0020).
+	StockUnits int64
 }
 
 // CompanyRepository persists companies. Reach it through Tx.Companies, so a

@@ -254,3 +254,36 @@ func TestStalePrivateButtonInAGroupRunsNothing(t *testing.T) {
 		}
 	}
 }
+
+// A question that waits for words takes words that are also an alias: «بانک
+// ملی» typed as a company's name is the name, not the bank. The cancel word
+// still cancels, and a question for a number is still dropped by an alias.
+func TestTypedNameThatLooksLikeAnAlias(t *testing.T) {
+	g, pub, _, prompts := textGateway(t)
+	handle(g, askPress("ask:company.found:grocery:cash", "private", 4))
+	if len(*prompts) != 1 {
+		t.Fatalf("asking sent %d questions", len(*prompts))
+	}
+	handle(g, message("بانک ملی", "private", "fa"))
+	if len(pub.sent) != 1 || pub.sent[0].subject != "game.command.company.found.v1" {
+		t.Fatalf("the name went elsewhere: %+v", pub.sent)
+	}
+	if p := payloadOf(t, pub.sent[0]); p["name"] != "بانک ملی" || p["type"] != "grocery" || p["method"] != "cash" {
+		t.Errorf("payload %v", p)
+	}
+
+	g, pub, replies, _ := textGateway(t)
+	handle(g, askPress("ask:company.found:grocery:cash", "private", 4))
+	handle(g, message("انصراف", "private", "fa"))
+	if len(pub.sent) != 0 || len(*replies) != 1 {
+		t.Fatalf("cancel published %d, replied %d", len(pub.sent), len(*replies))
+	}
+
+	g, pub, _, _ = textGateway(t)
+	handle(g, askPress("ask:bank.deposit", "private", 4))
+	handle(g, message("بانک", "private", "fa"))
+	handle(g, message("۵۰۰", "private", "fa"))
+	if len(pub.sent) != 1 || pub.sent[0].subject != "game.command.bank.show.v1" {
+		t.Errorf("an alias did not drop a question for a number: %+v", pub.sent)
+	}
+}

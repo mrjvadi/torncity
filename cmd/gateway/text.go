@@ -58,7 +58,7 @@ func (g *gateway) readTyped(ctx context.Context, bot application.Bot, update *cl
 	}
 	cancel := strings.EqualFold(text, routing.CancelText) || (isAlias && rewritten == routing.CancelText)
 
-	if res, handled := g.takeInput(ctx, bot, msg, meta, inGroup, slash || isAlias, cancel, text, log); handled {
+	if res, handled := g.takeInput(ctx, bot, msg, meta, inGroup, slash, isAlias, cancel, text, log); handled {
 		return res
 	}
 	if isAlias && rewritten != routing.CancelText {
@@ -73,9 +73,17 @@ func (g *gateway) readTyped(ctx context.Context, bot application.Bot, update *cl
 // takeInput answers a waiting input, if the message is its answer. See
 // internal/gateway/input for when it is: in the private chat, the next text
 // that is not a command; in a group, only a reply to the question.
+//
+// A WAITING NAME TAKES WORDS AS WRITTEN. In the private chat, while a
+// question that waits for words (an input with text: true — a company's
+// name, a design's name) is open, the next message is its answer even when
+// its first word is also an alias: «بانک ملی» is a name, not the bank. Only
+// a slash-command or the cancel word leaves such a question. A question that
+// waits for a number is still dropped by an alias, which then runs.
 func (g *gateway) takeInput(ctx context.Context, bot application.Bot, msg *client.Message, meta envelope.Metadata,
-	inGroup, commandLike, cancel bool, text string, log *slog.Logger,
+	inGroup, slash, alias, cancel bool, text string, log *slog.Logger,
 ) (typed, bool) {
+	commandLike := slash || alias
 	if g.inputs == nil {
 		return typed{}, false
 	}
@@ -89,6 +97,27 @@ func (g *gateway) takeInput(ctx context.Context, bot application.Bot, msg *clien
 		prompt = reply.MessageID
 	}
 
+	if alias && !slash && !cancel && !inGroup {
+		// An alias in the private chat: the words answer a question that
+		// waits for words; any other question is dropped by taking it, and
+		// the alias runs.
+		value, err := g.inputs.Take(ctx, key, 0)
+		if err != nil {
+			log.Warn("cannot read a waiting input", append(metaAttrs(meta), slog.String("error", err.Error()))...)
+			return typed{}, false
+		}
+		if value == "" {
+			return typed{}, false
+		}
+		pending, err := input.Decode(value)
+		if err != nil || !pending.Text {
+			return typed{}, false
+		}
+		if answer := pending.Clean(text, g.cfg.Input.MaxLength); answer != "" {
+			return typed{command: pending.Command, payload: pending.Build(answer)}, true
+		}
+		return typed{}, false
+	}
 	if commandLike && !cancel {
 		// The player moved on to something else: the question is dropped
 		// and the command goes its usual way.

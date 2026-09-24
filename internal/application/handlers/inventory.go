@@ -136,7 +136,11 @@ func (h *InventoryHandler) Show(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		lines := inventoryLines(snap, stacks, pieces)
+		names, err := designNames(ctx, tx, pieces)
+		if err != nil {
+			return err
+		}
+		lines := inventoryLines(snap, stacks, pieces, names)
 		start, end, pages := pageWindow(len(lines), page, h.pageSize)
 		view = screens.InventoryView{Lines: lines[start:end], Page: min(page, pages), Pages: pages, Total: len(lines)}
 		esc, escPieces, err := tx.Items().Holdings(ctx, p.ID, application.HoldEscrow)
@@ -153,7 +157,9 @@ func (h *InventoryHandler) Show(ctx context.Context, meta envelope.Metadata, req
 }
 
 // inventoryLines lists stacks and pieces in the content's order of goods.
-func inventoryLines(snap *content.Snapshot, stacks []application.Stack, pieces []application.Piece) []screens.InventoryLine {
+func inventoryLines(snap *content.Snapshot, stacks []application.Stack, pieces []application.Piece,
+	designs map[string]string,
+) []screens.InventoryLine {
 	order := map[string]int{}
 	for i, d := range snap.Items() {
 		order[d.Code] = i
@@ -166,7 +172,8 @@ func inventoryLines(snap *content.Snapshot, stacks []application.Stack, pieces [
 	for _, pc := range pieces {
 		def, _ := snap.ItemDef(pc.Item)
 		lines = append(lines, screens.InventoryLine{Item: itemNamed(snap, pc.Item), Category: def.Category, Qty: 1,
-			Serial: pc.Serial, Quality: pc.Quality, UsesLeft: pc.UsesLeft, Durability: def.Durability})
+			Serial: pc.Serial, Quality: pc.Quality, UsesLeft: pc.UsesLeft, Durability: def.Durability,
+			Design: designs[pc.DesignID]})
 	}
 	sort.SliceStable(lines, func(i, j int) bool {
 		if a, b := order[lines[i].Item.Code], order[lines[j].Item.Code]; a != b {
@@ -684,4 +691,28 @@ func parseQty(raw string) int64 {
 		return 1
 	}
 	return n
+}
+
+// designNames reads the names of the designs the pieces were made from: a
+// phone a company made reads by its make in the bag.
+func designNames(ctx context.Context, tx application.Tx, pieces []application.Piece) (map[string]string, error) {
+	out := map[string]string{}
+	for _, pc := range pieces {
+		if pc.DesignID == "" {
+			continue
+		}
+		if _, seen := out[pc.DesignID]; seen {
+			continue
+		}
+		d, err := tx.Production().DesignByID(ctx, pc.DesignID)
+		switch {
+		case err == nil:
+			out[pc.DesignID] = d.Name
+		case isSentinel(err, application.ErrDesignNotFound):
+			out[pc.DesignID] = ""
+		default:
+			return nil, err
+		}
+	}
+	return out, nil
 }

@@ -81,6 +81,12 @@ const (
 	// ActionTypeCompanyPeriod is a city's company period ending: its
 	// companies are paid by the population and pay their upkeep.
 	ActionTypeCompanyPeriod = "company_period"
+
+	// The production economy: a company's research, a production order
+	// and a reverse engineering reaching their end.
+	ActionTypeResearch   = "company_research"
+	ActionTypeProduction = "production_order"
+	ActionTypeReverse    = "reverse_engineering"
 )
 
 // routes maps an action type to the command it is published as.
@@ -111,6 +117,10 @@ var routes = map[string]Route{
 	ActionTypeElectionOpen:   {Domain: "election", Action: "open"},
 
 	ActionTypeCompanyPeriod: {Domain: "company", Action: "settle"},
+
+	ActionTypeResearch:   {Domain: "company", Action: "researched"},
+	ActionTypeProduction: {Domain: "company", Action: "produced"},
+	ActionTypeReverse:    {Domain: "company", Action: "reversed"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

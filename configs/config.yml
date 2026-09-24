@@ -508,6 +508,16 @@ company:
   max_openings: 5
   # How far one press of «ارزان‌تر» or «گران‌تر» moves a price level, bps.
   price_step_bps: 1000
+  # The production economy (docs/adr/0021): production orders one company
+  # runs at once, designs it keeps (drafts included), listings it has open.
+  max_running_orders: 3
+  max_designs: 20
+  max_listings: 10
+  # The level the company's best member (owner, manager or employee) needs
+  # in a good's craft skill to author a design of it.
+  design_min_skill: 1
+  # How long taking a bought sample apart takes, GAME time.
+  reverse_time: 6h
 
 # Free-text input (internal/gateway/input): a button «✏️ مبلغ دلخواه» asks the
 # player to type a value, and their next message answers it. Which commands

@@ -169,3 +169,51 @@ To cancel, send "cancel".
 
 ━━━ question · company.manager · reply box ━━━
 Player code or username
+
+━━━ announcement · a technology published ━━━
+🌐 Nilou Industries published Semiconductors for every company.
+
+━━━ announcement · a product launched ━━━
+📦 Nilou Industries launched its new product, Nil Mobile X (Phone), in Ostmarch.
+
+━━━ question · company.supply ━━━
+🚚 How many units? Type the number.
+To cancel, send "cancel".
+
+━━━ question · company.supply · reply box ━━━
+Units
+
+━━━ question · company.techmode ━━━
+📜 Type the price of one license for this technology.
+To cancel, send "cancel".
+
+━━━ question · company.techmode · reply box ━━━
+License price in Nil
+
+━━━ question · company.dqty ━━━
+🧩 Type the amount for this slot of the design.
+To cancel, send "cancel".
+
+━━━ question · company.dqty · reply box ━━━
+Amount
+
+━━━ question · company.dname ━━━
+📐 Type the design's name and send it.
+To cancel, send "cancel".
+
+━━━ question · company.dname · reply box ━━━
+Design name
+
+━━━ question · company.sell ━━━
+🏷 Type the price of one unit.
+To cancel, send "cancel".
+
+━━━ question · company.sell · reply box ━━━
+Price per unit in Nil
+
+━━━ question · company.buy ━━━
+🛒 How many do you buy? Type the number.
+To cancel, send "cancel".
+
+━━━ question · company.buy · reply box ━━━
+Quantity

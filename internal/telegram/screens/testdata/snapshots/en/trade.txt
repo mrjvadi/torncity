@@ -8,6 +8,7 @@
   [🏪 Bread] → market:book:bread   │   [🏪 Bandage] → market:book:bandage
   [🏪 Lockpick set] → market:book:lockpick_set
   [📋 My orders] → market:mine   │   [🔨 Auction house] → auction:list
+  [🏭 Company goods] → company:goods
   [🔙 Back] → map:list   │   [🔄 Refresh] → market:list
 
 ━━━ Market · empty, from across town ━━━
@@ -19,6 +20,7 @@ Nobody is buying or selling here right now.
 📍 Trading is done at the market. Walk there to buy or sell.
   ───
   [📋 My orders] → market:mine   │   [🔨 Auction house] → auction:list
+  [🏭 Company goods] → company:goods
   [🔙 Back] → map:list   │   [🔄 Refresh] → market:list
 
 ━━━ Book · bread, at the market, holding some ━━━

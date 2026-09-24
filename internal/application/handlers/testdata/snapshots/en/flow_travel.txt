@@ -14,6 +14,7 @@ Places in the city:
 • bus terminal - 15s walk - Bus departures
 • train station - 20s walk - Train departures
 • industrial zone - 30s walk
+• farmland - 40s walk
 • hospital - 20s walk
 • residential area - 25s walk
 • city park - 15s walk
@@ -24,8 +25,8 @@ Tap a place to walk there. Everything is done at its own place.
   [🚶 university quarter] → place:go:university   │   [🚶 civic centre] → place:go:city_hall
   [🚶 police station] → place:go:police_station   │   [🚶 bus terminal] → place:go:bus_terminal
   [🚶 train station] → place:go:train_station   │   [🚶 industrial zone] → place:go:industrial_zone
-  [🚶 hospital] → place:go:hospital   │   [🚶 residential area] → place:go:residential_area
-  [🚶 city park] → place:go:park
+  [🚶 farmland] → place:go:farmland   │   [🚶 hospital] → place:go:hospital
+  [🚶 residential area] → place:go:residential_area   │   [🚶 city park] → place:go:park
   [🧭 Travel to another city] → map:cities
   [🏛 Offices and policies] → gov:city
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
@@ -204,6 +205,7 @@ Places in the city:
 • train station (you are here) - Train departures
 • airport - 45s walk - Flight departures
 • industrial zone - 30s walk
+• farmland - 40s walk
 • hospital - 20s walk
 • residential area - 25s walk
 • city park - 15s walk
@@ -214,8 +216,9 @@ Tap a place to walk there. Everything is done at its own place.
   [🚶 business district] → place:go:business_district   │   [🚶 university quarter] → place:go:university
   [🚶 civic centre] → place:go:city_hall   │   [🚶 police station] → place:go:police_station
   [🚶 bus terminal] → place:go:bus_terminal   │   [🚶 airport] → place:go:airport
-  [🚶 industrial zone] → place:go:industrial_zone   │   [🚶 hospital] → place:go:hospital
-  [🚶 residential area] → place:go:residential_area   │   [🚶 city park] → place:go:park
+  [🚶 industrial zone] → place:go:industrial_zone   │   [🚶 farmland] → place:go:farmland
+  [🚶 hospital] → place:go:hospital   │   [🚶 residential area] → place:go:residential_area
+  [🚶 city park] → place:go:park
   [🧭 Travel to another city] → map:cities
   [🏛 Offices and policies] → gov:city
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list

@@ -455,6 +455,9 @@ func (h *CompaniesHandler) page(ctx context.Context, tx application.Tx, snap *co
 	} else if !isSentinel(err, application.ErrNoCompanyPeriod) {
 		return v, err
 	}
+	if err := publicProducts(ctx, tx, snap, c, &v); err != nil {
+		return v, err
+	}
 	if c.Active() {
 		openings, err := tx.Companies().Openings(ctx, c.ID)
 		if err != nil {
@@ -1499,4 +1502,29 @@ func (h *CompaniesHandler) employeeEvent(ctx context.Context, tx application.Tx,
 		"kind": kind, "company_id": c.ID, "code": c.Code, "name": c.Name, "player_id": playerID,
 		"career": ref.CareerCode, "career_name": ref.CareerName, "rank": ref.Rank, "title": ref.Title, "wage": wage,
 	})
+}
+
+// publicProducts adds to a company's public page what it makes — its own
+// final designs, by name and kind — and the technologies it published.
+func publicProducts(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company, v *screens.CompanyPageView) error {
+	designs, err := tx.Production().Designs(ctx, c.ID)
+	if err != nil {
+		return err
+	}
+	for _, d := range designs {
+		if d.Status == application.DesignFinal && d.Origin == "authored" {
+			v.Products = append(v.Products, designGood(snap, d))
+		}
+	}
+	techs, err := tx.Production().Technologies(ctx, c.ID)
+	if err != nil {
+		return err
+	}
+	for _, t := range techs {
+		if t.Mode == "published" {
+			def, _ := snap.Technology(t.Tech)
+			v.Published = append(v.Published, named(def.Code, def.Name))
+		}
+	}
+	return nil
 }

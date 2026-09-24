@@ -227,6 +227,13 @@ type Pack struct {
 	CompanyDemand        []CompanyDemandDef
 	CompanyReservedNames []string
 
+	// Production (production.yml): how long each production method takes,
+	// the technology tree and the NPC suppliers of basic inputs. See
+	// production.go.
+	MethodProfiles []MethodProfileDef
+	Technologies   []TechnologyDef
+	Suppliers      []SupplierDef
+
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"
 	// It is empty for a pack that was assembled in code rather than read from

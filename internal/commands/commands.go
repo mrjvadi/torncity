@@ -226,6 +226,42 @@ var all = []Subscription{
 	{Domain: "company", Action: "opening", Origin: FromPlayer},
 	{Domain: "company", Action: "apply", Origin: FromPlayer},
 	{Domain: "company", Action: "settle", Origin: FromScheduler},
+
+	// The production economy (migrations/0020_production.up.sql): a
+	// company's warehouse and the NPC suppliers it buys from; its research
+	// lab, a research, how a technology is shared, a license bought; its
+	// design studio — a new draft, a design, a slot filled, a quantity, a
+	// name, the final design; its production orders; its reverse
+	// engineering; its listings; and the city's company goods and buying
+	// them. Only the scheduler sends company.researched, company.produced
+	// and company.reversed, when a research, an order or a reverse
+	// engineering is done.
+	{Domain: "company", Action: "warehouse", Origin: FromPlayer},
+	{Domain: "company", Action: "suppliers", Origin: FromPlayer},
+	{Domain: "company", Action: "supply", Origin: FromPlayer},
+	{Domain: "company", Action: "lab", Origin: FromPlayer},
+	{Domain: "company", Action: "research", Origin: FromPlayer},
+	{Domain: "company", Action: "techmode", Origin: FromPlayer},
+	{Domain: "company", Action: "license", Origin: FromPlayer},
+	{Domain: "company", Action: "studio", Origin: FromPlayer},
+	{Domain: "company", Action: "dnew", Origin: FromPlayer},
+	{Domain: "company", Action: "design", Origin: FromPlayer},
+	{Domain: "company", Action: "dfill", Origin: FromPlayer},
+	{Domain: "company", Action: "dqty", Origin: FromPlayer},
+	{Domain: "company", Action: "dname", Origin: FromPlayer},
+	{Domain: "company", Action: "dfinal", Origin: FromPlayer},
+	{Domain: "company", Action: "produce", Origin: FromPlayer},
+	{Domain: "company", Action: "orders", Origin: FromPlayer},
+	{Domain: "company", Action: "relab", Origin: FromPlayer},
+	{Domain: "company", Action: "reverse", Origin: FromPlayer},
+	{Domain: "company", Action: "sell", Origin: FromPlayer},
+	{Domain: "company", Action: "listings", Origin: FromPlayer},
+	{Domain: "company", Action: "unlist", Origin: FromPlayer},
+	{Domain: "company", Action: "goods", Origin: FromPlayer},
+	{Domain: "company", Action: "buy", Origin: FromPlayer},
+	{Domain: "company", Action: "researched", Origin: FromScheduler},
+	{Domain: "company", Action: "produced", Origin: FromScheduler},
+	{Domain: "company", Action: "reversed", Origin: FromScheduler},
 }
 
 // All returns every subscription. The slice is a copy.

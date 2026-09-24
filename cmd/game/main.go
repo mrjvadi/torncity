@@ -323,6 +323,12 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.companies = handlers.NewCompaniesHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), postgres.NewPlayerSearchRepository(pool), gametime.Scale(cfg.Game.TimeScale),
 		companyRules(cfg.Company, bankLimits), cfg.Game.IdempotencyTTL, nil)
+	// The production economy: components, technologies, suppliers and
+	// method timings are content; research, orders and reverse engineering
+	// run on the game clock.
+	h.production = handlers.NewProductionHandler(uow, uuidGenerator{}, messages, registry, cities,
+		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), productionRules(cfg.Company, bankLimits),
+		cfg.Game.IdempotencyTTL, nil)
 
 	subs := commands.All()
 	bound, err := bindAll(subs, h.bind())

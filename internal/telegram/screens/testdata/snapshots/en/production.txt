@@ -1,0 +1,787 @@
+━━━ Warehouse · stocked, the owner ━━━
+(edits message 42)
+🏭 Nilou Industries warehouse
+⚙️ Production orders running: 1 - open listings: 1
+🧪 A research is running in the lab.
+
+In the warehouse:
+📦 Chipset - 12 units
+📦 Diesel fuel - 40 units
+📦 Nil Mobile X (Phone) - 4 pieces - quality 63 - 2 listed
+
+Everything the company buys, makes or sells passes through this warehouse. The buttons below lead to the floor, the studio, the lab and your listings.
+  ───
+  [💰 Sell Chipset] → company:sell:Q7M2K9B:chipset   │   [💰 Sell Diesel fuel] → company:sell:Q7M2K9B:diesel
+  [💰 Sell Nil Mobile X (Phone)] → company:sell:Q7M2K9B:d12
+  [🚚 Suppliers] → company:suppliers:Q7M2K9B   │   [⚙️ Production floor] → company:orders:Q7M2K9B
+  [📐 Design studio] → company:studio:Q7M2K9B   │   [🧪 Research lab] → company:lab:Q7M2K9B
+  [🔍 Reverse engineering] → company:relab:Q7M2K9B   │   [🏷 Listings] → company:listings:Q7M2K9B
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:warehouse:Q7M2K9B
+
+━━━ Warehouse · empty, the manager ━━━
+(edits message 42)
+🏭 Kaveh Works warehouse
+⚙️ Production orders running: 0 - open listings: 0
+
+📦 The warehouse is empty. Buy basic inputs from the suppliers, or make your own.
+
+Everything the company buys, makes or sells passes through this warehouse. The buttons below lead to the floor, the studio, the lab and your listings.
+  ───
+  [🚚 Suppliers] → company:suppliers:H4T8W2C   │   [⚙️ Production floor] → company:orders:H4T8W2C
+  [📐 Design studio] → company:studio:H4T8W2C   │   [🔍 Reverse engineering] → company:relab:H4T8W2C
+  [🏷 Listings] → company:listings:H4T8W2C
+  [🔙 Back] → company:manage:H4T8W2C   │   [🔄 Refresh] → company:warehouse:H4T8W2C
+
+━━━ Suppliers · the city's ━━━
+(edits message 42)
+🚚 Suppliers in Ostmarch
+💵 Company's free money: 84,000 Nil
+
+• Diesel fuel - Industrial supplier - 5 Nil a unit - 1,850 units in stock
+• Lithium salt - Industrial supplier - 15 Nil a unit - 60 units in stock
+
+Suppliers sell the basic inputs no company makes. Each has a limited stock that refills over time.
+  ───
+  [🛒 10 Diesel fuel] → company:supply:Q7M2K9B:diesel:10   │   [🛒 100 Diesel fuel] → company:supply:Q7M2K9B:diesel:100   │   [✏️ Other amount of Diesel fuel] → ask:company.supply:Q7M2K9B:diesel
+  [🛒 10 Lithium salt] → company:supply:Q7M2K9B:lithium_salt:10   │   [✏️ Other amount of Lithium salt] → ask:company.supply:Q7M2K9B:lithium_salt
+  [🔙 Back] → company:warehouse:Q7M2K9B   │   [🔄 Refresh] → company:suppliers:Q7M2K9B
+
+━━━ Suppliers · just bought ━━━
+(edits message 42)
+✅ 100 units of Diesel fuel reached the warehouse; 500 Nil was paid from the company's account.
+
+🚚 Suppliers in Ostmarch
+💵 Company's free money: 83,500 Nil
+
+• Diesel fuel - Industrial supplier - 5 Nil a unit - 1,850 units in stock
+• Lithium salt - Industrial supplier - 15 Nil a unit - 60 units in stock
+
+Suppliers sell the basic inputs no company makes. Each has a limited stock that refills over time.
+  ───
+  [🛒 10 Diesel fuel] → company:supply:Q7M2K9B:diesel:10   │   [🛒 100 Diesel fuel] → company:supply:Q7M2K9B:diesel:100   │   [✏️ Other amount of Diesel fuel] → ask:company.supply:Q7M2K9B:diesel
+  [🛒 10 Lithium salt] → company:supply:Q7M2K9B:lithium_salt:10   │   [✏️ Other amount of Lithium salt] → ask:company.supply:Q7M2K9B:lithium_salt
+  [🔙 Back] → company:warehouse:Q7M2K9B   │   [🔄 Refresh] → company:suppliers:Q7M2K9B
+
+━━━ Suppliers · none ━━━
+(edits message 42)
+🚚 Suppliers in Ostmarch
+💵 Company's free money: 100 Nil
+
+This city has no suppliers.
+
+Suppliers sell the basic inputs no company makes. Each has a limited stock that refills over time.
+  ───
+  [🔙 Back] → company:warehouse:Q7M2K9B   │   [🔄 Refresh] → company:suppliers:Q7M2K9B
+
+━━━ Lab · the tree ━━━
+(edits message 42)
+🧪 Nilou Industries lab
+💵 Company's free money: 84,000 Nil
+
+⏳ Research into Battery chemistry finishes at 14:41 - in 6m
+
+✅ Semiconductors - yours - licensed at 9,000 Nil
+🔒 Microchips - needs Semiconductors first
+⏳ Battery chemistry - being researched
+
+You research each technology once and the company owns it. Keep it private, sell licenses, or publish it for everyone. Reverse engineering never yields a technology.
+  ───
+  [🔬 Semiconductors] → company:lab:Q7M2K9B:semiconductors   │   [🔬 Microchips] → company:lab:Q7M2K9B:microchips
+  [🔬 Battery chemistry] → company:lab:Q7M2K9B:batteries
+  [🔙 Back] → company:warehouse:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B
+
+━━━ Lab · a licensee's tree ━━━
+(edits message 42)
+🧪 Kaveh Works lab
+💵 Company's free money: 12,000 Nil
+
+🌐 Semiconductors - published by another company
+📜 Microchips - you hold a license
+🔬 Battery chemistry - research costs 25,000 Nil - licenses on sale from 2
+
+You research each technology once and the company owns it. Keep it private, sell licenses, or publish it for everyone. Reverse engineering never yields a technology.
+  ───
+  [🔬 Semiconductors] → company:lab:H4T8W2C:semiconductors   │   [🔬 Microchips] → company:lab:H4T8W2C:microchips
+  [🔬 Battery chemistry] → company:lab:H4T8W2C:batteries
+  [🔙 Back] → company:warehouse:H4T8W2C   │   [🔄 Refresh] → company:lab:H4T8W2C
+
+━━━ Technology · ready to research ━━━
+(edits message 42)
+🔬 Microchips
+🔬 You can research this technology.
+
+💰 Research cost: 60,000 Nil - ⏱ time: 12m
+🎓 Skill needed: Engineering level 2 - your best person: level 3
+✅ Requires: Semiconductors
+🔓 Make and design with: Chipset
+  ───
+  [🔬 Start research - 60,000 Nil] → company:research:Q7M2K9B:microchips
+  [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
+
+━━━ Technology · research started ━━━
+(edits message 42)
+⏳ Research started and its cost was paid from the company's account. We will tell you when it is done.
+
+🔬 Microchips
+⏳ This technology is being researched.
+
+💰 Research cost: 60,000 Nil - ⏱ time: 12m
+🎓 Skill needed: Engineering level 2 - your best person: level 3
+✅ Requires: Semiconductors
+🔓 Make and design with: Chipset
+
+⏳ Research into Microchips finishes at 14:47 - in 12m
+  ───
+  [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
+
+━━━ Technology · locked, a license on offer ━━━
+(edits message 42)
+🔬 Microchips
+🔒 You do not have this technology's prerequisites yet.
+
+💰 Research cost: 60,000 Nil - ⏱ time: 12m
+🎓 Skill needed: Engineering level 2 - your best person: level 3
+❌ Requires: Semiconductors
+🔓 Make and design with: Chipset
+
+🔒 Research the prerequisites above first, or wait for a company to publish them.
+
+🏢 Companies selling licenses for it:
+• Kaveh Works - 12,000 Nil
+  ───
+  [📜 License from Kaveh Works] → company:license:Q7M2K9B:microchips:H4T8W2C
+  [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
+
+━━━ Technology · the company cannot pay ━━━
+(edits message 42)
+🔬 Microchips
+🔬 You can research this technology.
+
+💰 Research cost: 60,000 Nil - ⏱ time: 12m
+🎓 Skill needed: Engineering level 2 - your best person: level 3
+✅ Requires: Semiconductors
+🔓 Make and design with: Chipset
+
+💰 The company's free money (20,000 Nil) does not cover the research (60,000 Nil).
+  ───
+  [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
+
+━━━ Technology · nobody skilled enough ━━━
+(edits message 42)
+🔬 Microchips
+🔬 You can research this technology.
+
+💰 Research cost: 60,000 Nil - ⏱ time: 12m
+🎓 Skill needed: Engineering level 2 - your best person: level 1
+✅ Requires: Semiconductors
+🔓 Make and design with: Chipset
+
+🎓 Nobody in the company has Engineering at level 2. Hire someone with the skill, or train yourself.
+  ───
+  [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
+
+━━━ Technology · owned, licensed ━━━
+(edits message 42)
+🔬 Microchips
+✅ Your company owns this technology.
+
+💰 Research cost: 60,000 Nil - ⏱ time: 12m
+🔓 Make and design with: Chipset
+
+📜 Licensed at 12,000 Nil: other companies buy licenses and the money comes to your company.
+📜 Licenses sold: 3
+  ───
+  [🔐 Private] → company:techmode:Q7M2K9B:microchips:private   │   [📜 Sell licenses] → ask:company.techmode:Q7M2K9B:microchips:license
+  [🌐 Publish for everyone] → company:techmode:Q7M2K9B:microchips:published
+  [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
+
+━━━ Technology · owned, private ━━━
+(edits message 42)
+🔐 This technology is private from now on.
+
+🔬 Microchips
+✅ Your company owns this technology.
+
+💰 Research cost: 60,000 Nil - ⏱ time: 12m
+🔓 Make and design with: Chipset
+
+🔐 Private: only your company uses it.
+📜 Licenses sold: 0
+  ───
+  [📜 Sell licenses] → ask:company.techmode:Q7M2K9B:microchips:license   │   [🌐 Publish for everyone] → company:techmode:Q7M2K9B:microchips:published
+  [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
+
+━━━ Technology · publish, confirm ━━━
+(edits message 42)
+🔬 Microchips
+✅ Your company owns this technology.
+
+💰 Research cost: 60,000 Nil - ⏱ time: 12m
+🔓 Make and design with: Chipset
+
+📜 Licensed at 12,000 Nil: other companies buy licenses and the money comes to your company.
+📜 Licenses sold: 3
+
+🌐 Publish Microchips for everyone? Every company will use it for free, and you will never make it private or sell its licenses again.
+  ───
+  [🌐 Yes, publish it] → company:techmode:Q7M2K9B:microchips:published:0:yes
+  [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
+
+━━━ Technology · published ━━━
+(edits message 42)
+🌐 This technology was published for everyone.
+
+🔬 Microchips
+✅ Your company owns this technology.
+
+💰 Research cost: 60,000 Nil - ⏱ time: 12m
+🔓 Make and design with: Chipset
+
+🌐 Published: everyone uses it freely, and that cannot be undone.
+📜 Licenses sold: 3
+  ───
+  [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
+
+━━━ Technology · buy a license, confirm ━━━
+(edits message 42)
+🔬 Microchips
+🔒 You do not have this technology's prerequisites yet.
+
+💰 Research cost: 60,000 Nil - ⏱ time: 12m
+
+🔒 Research the prerequisites above first, or wait for a company to publish them.
+
+📜 Buy a license for Microchips from Nilou Industries at 12,000 Nil? Your company's free money: 30,000 Nil
+  ───
+  [📜 Yes, buy at 12,000 Nil] → company:license:H4T8W2C:microchips:Q7M2K9B:yes
+  [🔙 Back] → company:lab:H4T8W2C   │   [🔄 Refresh] → company:lab:H4T8W2C:microchips
+
+━━━ Technology · license bought ━━━
+(edits message 42)
+✅ License bought from Nilou Industries; 12,000 Nil went to their account.
+
+🔬 Microchips
+📜 You hold a license for this technology; you may design and make with it.
+
+💰 Research cost: 60,000 Nil - ⏱ time: 12m
+  ───
+  [🔙 Back] → company:lab:H4T8W2C   │   [🔄 Refresh] → company:lab:H4T8W2C:microchips
+
+━━━ Studio · designs and kinds ━━━
+(edits message 42)
+📐 Nilou Industries design studio
+
+✅ Nil Mobile X - Phone
+✏️ Design no. 14 - Phone - draft
+
+To start a design, choose the kind of good:
+
+You fill a design slot by slot with components; one that needs a technology can only be chosen with that technology or its license. A design is the company's own; others only see the product's visible attributes.
+  ───
+  [📐 Nil Mobile X] → company:design:12   │   [📐 Design no. 14] → company:design:14
+  [➕ Phone] → company:dnew:Q7M2K9B:phone   │   [➕ Car stereo] → company:dnew:Q7M2K9B:car_stereo   │   [➕ Wristwatch] → company:dnew:Q7M2K9B:watch
+  [🔙 Back] → company:warehouse:Q7M2K9B   │   [🔄 Refresh] → company:studio:Q7M2K9B
+
+━━━ Studio · at the limit ━━━
+(edits message 42)
+📐 Nilou Industries design studio
+
+✅ Nil Mobile X - Phone
+🔍 Nil Mobile X - Phone - reverse engineered copy
+
+Your company has 2 designs and cannot have more.
+
+You fill a design slot by slot with components; one that needs a technology can only be chosen with that technology or its license. A design is the company's own; others only see the product's visible attributes.
+  ───
+  [📐 Nil Mobile X] → company:design:12   │   [📐 Nil Mobile X] → company:design:15
+  [🔙 Back] → company:warehouse:Q7M2K9B   │   [🔄 Refresh] → company:studio:Q7M2K9B
+
+━━━ Design · a draft ━━━
+(edits message 42)
+📐 Design no. 14 - Phone
+✏️ Draft
+
+🟩 Board: Chipset - 1
+⬜ Power: empty
+🟩 Shell: Plastic case - 1
+
+👁 Battery life: 0
+👁 Quality: 53
+💰 Cost floor per unit: 440 Nil
+
+⬜ Required slots are still empty.
+  ───
+  [🔧 Board] → company:design:14:board   │   [🔧 Power] → company:design:14:power
+  [🔧 Shell] → company:design:14:shell
+  [✏️ Name the design] → ask:company.dname:14
+  [🔙 Back] → company:studio:Q7M2K9B   │   [🔄 Refresh] → company:design:14
+
+━━━ Design · choosing a slot, locked ━━━
+(edits message 42)
+📐 Design no. 14 - Phone
+✏️ Draft
+
+🟩 Board: Chipset - 1
+⬜ Power: empty
+🟩 Shell: Plastic case - 1
+
+Choose the component for Power:
+🔒 Battery cell - you lack its technology
+
+👁 Battery life: 0
+👁 Quality: 53
+💰 Cost floor per unit: 440 Nil
+
+⬜ Required slots are still empty.
+  ───
+  [🔙 Back] → company:design:14   │   [🔄 Refresh] → company:design:14:power
+
+━━━ Design · a slot that takes an amount ━━━
+(edits message 42)
+📐 Design no. 16 - Bread
+✏️ Draft
+
+🟩 Base: Flour - 120 g
+▫️ Leaven: empty (optional)
+
+Choose the component for Base:
+The amount goes from 50 g to 500 g; after choosing, type the amount.
+• Flour - reference price 1 Nil - quality 50
+
+👁 Quality: 50
+💰 Cost floor per unit: 120 Nil
+
+✅ The design is complete; name it and finalise it.
+  ───
+  [🧩 Flour] → company:dfill:16:base:flour
+  [✏️ Amount of Base] → ask:company.dqty:16:base
+  [🔙 Back] → company:design:16   │   [🔄 Refresh] → company:design:16:base
+
+━━━ Design · complete, named ━━━
+(edits message 42)
+📐 Nil Mobile X - Phone
+✏️ Draft
+
+🟩 Board: Chipset - 1
+🟩 Power: Battery cell - 1
+🟩 Shell: Plastic case - 1
+
+👁 Battery life: 3,000
+👁 Quality: 50
+💰 Cost floor per unit: 590 Nil
+
+✅ The design is complete; name it and finalise it.
+  ───
+  [🔧 Board] → company:design:14:board   │   [🔧 Power] → company:design:14:power
+  [🔧 Shell] → company:design:14:shell
+  [✏️ Name the design] → ask:company.dname:14   │   [✅ Finalise the design] → company:dfinal:14
+  [🔙 Back] → company:studio:Q7M2K9B   │   [🔄 Refresh] → company:design:14
+
+━━━ Design · complete, a technology missing ━━━
+(edits message 42)
+📐 Nil Mobile X - Phone
+✏️ Draft
+
+🟩 Board: Chipset - 1
+🟩 Power: Battery cell - 1
+🟩 Shell: Plastic case - 1
+
+👁 Battery life: 3,000
+👁 Quality: 50
+💰 Cost floor per unit: 590 Nil
+
+🔒 These components need Battery chemistry; research it or buy a license.
+  ───
+  [🔧 Board] → company:design:14:board   │   [🔧 Power] → company:design:14:power
+  [🔧 Shell] → company:design:14:shell
+  [✏️ Name the design] → ask:company.dname:14
+  [🔙 Back] → company:studio:Q7M2K9B   │   [🔄 Refresh] → company:design:14
+
+━━━ Design · final ━━━
+(edits message 42)
+📐 Nil Mobile X - Phone
+✅ Final design; ready to produce
+
+🟩 Board: Chipset - 1
+🟩 Power: Battery cell - 1
+🟩 Shell: Plastic case - 1
+
+👁 Battery life: 3,000
+👁 Quality: 50
+💰 Cost floor per unit: 590 Nil
+  ───
+  [⚙️ Produce it] → company:produce:Q7M2K9B:d12
+  [🔙 Back] → company:studio:Q7M2K9B   │   [🔄 Refresh] → company:design:12
+
+━━━ Design · a reverse engineered copy ━━━
+(edits message 42)
+📐 Nil Mobile X - Phone
+✅ Final design; ready to produce
+🔍 Copied from "Nil Mobile X" by reverse engineering - 13.5% lower quality - 13.5% more materials
+
+🟩 Board: Chipset - 1
+🟩 Power: Battery cell - 1
+🟩 Shell: Plastic case - 1
+
+👁 Battery life: 3,000
+👁 Quality: 50
+💰 Cost floor per unit: 590 Nil
+  ───
+  [⚙️ Produce it] → company:produce:H4T8W2C:d15
+  [🔙 Back] → company:studio:H4T8W2C   │   [🔄 Refresh] → company:design:15
+
+━━━ Floor · targets and orders ━━━
+(edits message 42)
+⚙️ Nilou Industries production floor
+👥 Workforce: 4 - orders running: 1 of 3
+
+⏳ Running:
+⏳ Order 31 - 5 Nil Mobile X (Phone) - at 14:39 - in 4m
+
+✅ Done:
+✅ Order 30 - 10 Chipset - quality 58
+
+For a new order, choose a product or a component:
+  ───
+  [⚙️ Nil Mobile X (Phone)] → company:produce:Q7M2K9B:d12   │   [⚙️ Chipset] → company:produce:Q7M2K9B:chipset
+  [🔙 Back] → company:warehouse:Q7M2K9B   │   [🔄 Refresh] → company:orders:Q7M2K9B
+
+━━━ Floor · nothing to make ━━━
+(edits message 42)
+⚙️ Kaveh Works production floor
+👥 Workforce: 1 - orders running: 0 of 3
+
+No production orders yet.
+
+Nothing to produce yet: finalise a design, or acquire the technology to make a component.
+  ───
+  [🔙 Back] → company:warehouse:H4T8W2C   │   [🔄 Refresh] → company:orders:H4T8W2C
+
+━━━ Produce · choose how many ━━━
+(edits message 42)
+⚙️ Produce Nil Mobile X (Phone)
+
+🧾 Each unit takes:
+• Chipset: 1 units - 12 in the warehouse
+• Battery cell: 1 units - 3 in the warehouse
+• Plastic case: 1 units - 8 in the warehouse
+
+How many? The warehouse holds enough for up to 3.
+  ───
+  [1 units] → company:produce:Q7M2K9B:d12:1   │   [5 units] → company:produce:Q7M2K9B:d12:5   │   [10 units] → company:produce:Q7M2K9B:d12:10   │   [All: 3] → company:produce:Q7M2K9B:d12:3
+  [🔙 Back] → company:orders:Q7M2K9B
+
+━━━ Produce · the plan ━━━
+(edits message 42)
+⚙️ Produce Nil Mobile X (Phone)
+
+🧾 Each unit takes:
+✅ Chipset: 3 units - 12 in the warehouse
+✅ Battery cell: 3 units - 3 in the warehouse
+✅ Plastic case: 3 units - 8 in the warehouse
+
+⏱ 3 Nil Mobile X (Phone) take 2m with a workforce of 4.
+All the materials above leave the warehouse now; if even one is short, nothing is taken.
+  ───
+  [✅ Start producing 3 units] → company:produce:Q7M2K9B:d12:3:yes
+  [1 units] → company:produce:Q7M2K9B:d12:1   │   [5 units] → company:produce:Q7M2K9B:d12:5   │   [10 units] → company:produce:Q7M2K9B:d12:10   │   [All: 3] → company:produce:Q7M2K9B:d12:3
+  [🔙 Back] → company:orders:Q7M2K9B
+
+━━━ Produce · short of inputs ━━━
+(edits message 42)
+⚙️ Produce Nil Mobile X (Phone)
+
+🧾 Each unit takes:
+✅ Chipset: 5 units - 12 in the warehouse
+❌ Battery cell: 5 units - 3 in the warehouse
+✅ Plastic case: 5 units - 8 in the warehouse
+
+❌ The warehouse is short for 5 units; the shortages are marked ❌.
+  ───
+  [🚚 Suppliers] → company:suppliers:Q7M2K9B
+  [1 units] → company:produce:Q7M2K9B:d12:1   │   [5 units] → company:produce:Q7M2K9B:d12:5   │   [10 units] → company:produce:Q7M2K9B:d12:10   │   [All: 3] → company:produce:Q7M2K9B:d12:3
+  [🔙 Back] → company:orders:Q7M2K9B
+
+━━━ Produce · a component, in batches ━━━
+(edits message 42)
+⚙️ Produce Silica sand
+📦 Each batch yields 10 units.
+
+🧾 Each unit takes:
+• Diesel fuel: 1 units - 40 in the warehouse
+
+How many? The warehouse holds enough for up to 40.
+  ───
+  [1 batches] → company:produce:Q7M2K9B:silica:1   │   [5 batches] → company:produce:Q7M2K9B:silica:5   │   [10 batches] → company:produce:Q7M2K9B:silica:10   │   [All: 40] → company:produce:Q7M2K9B:silica:40
+  [🔙 Back] → company:orders:Q7M2K9B
+
+━━━ Produce · placed ━━━
+(edits message 42)
+✅ Order 32 placed: 3 Nil Mobile X (Phone), ready at 14:36 - in 1m.
+
+The materials left the warehouse. The products arrive in it when ready, and we will tell you.
+  ───
+  [⚙️ Production floor] → company:orders:Q7M2K9B
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Reverse lab · a sample and a finished job ━━━
+(edits message 42)
+🔍 Kaveh Works reverse engineering
+🎓 Company engineer: Engineering level 15
+
+Other companies' products in the warehouse:
+• Nil Mobile X (Phone) by Nilou Industries - quality 61 - chance of success 15%
+
+Reverse engineering:
+✅ Job 3 - Nil Mobile X (Phone) - recovered design "Nil Mobile X"
+❌ Job 2 - Nil Mobile X (Phone) - failed
+⏳ Job 4 - Nil Mobile X (Phone) - at 14:40 - in 5m
+
+The sample is destroyed. A success is a design worse than the original, and never a technology: components you cannot make, you must buy.
+  ───
+  [🔍 Nil Mobile X (Phone)] → company:reverse:H4T8W2C:A1B2C3D4E5   │   [📐 Nil Mobile X] → company:design:15
+  [🔙 Back] → company:warehouse:H4T8W2C   │   [🔄 Refresh] → company:relab:H4T8W2C
+
+━━━ Reverse lab · take it apart, confirm ━━━
+(edits message 42)
+🔍 Take apart Nil Mobile X (Phone) by Nilou Industries? The sample is destroyed, and the chance of success is 15%. It takes 6m.
+  ───
+  [🔍 Yes, take it apart] → company:reverse:H4T8W2C:A1B2C3D4E5:yes
+  [🔙 Back] → company:relab:H4T8W2C
+
+━━━ Reverse lab · no samples ━━━
+(edits message 42)
+🔍 Kaveh Works reverse engineering
+🎓 Company engineer: Engineering level 0
+
+No samples in the warehouse. Buy one unit of another company's product from the company goods.
+
+The sample is destroyed. A success is a design worse than the original, and never a technology: components you cannot make, you must buy.
+  ───
+  [🔙 Back] → company:warehouse:H4T8W2C   │   [🔄 Refresh] → company:relab:H4T8W2C
+
+━━━ Sell · how many ━━━
+(edits message 42)
+💰 Sell Nil Mobile X (Phone) - 4 in the warehouse - reference price 590 Nil
+
+How many units to list?
+  ───
+  [1 units] → company:sell:Q7M2K9B:d12:1   │   [All: 4] → company:sell:Q7M2K9B:d12:4
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Sell · the price ━━━
+(edits message 42)
+💰 Sell Nil Mobile X (Phone) - 4 in the warehouse - reference price 590 Nil
+
+Type a price per unit for 2 Nil Mobile X (Phone), or list at the reference price.
+  ───
+  [✏️ Other price] → ask:company.sell:Q7M2K9B:d12:2
+  [🏷 Reference price 590 Nil] → company:sell:Q7M2K9B:d12:2:590
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Listings · just listed ━━━
+(edits message 42)
+🏷 2 Nil Mobile X (Phone) listed at 1,500 Nil a unit.
+
+🏷 Nilou Industries listings in Ostmarch
+
+• Nil Mobile X (Phone) - 2 left - 1,500 Nil a unit
+• Chipset - 10 left - 420 Nil a unit
+
+Players and companies of this city see and buy your listings under "Company goods". The city's sales tax is taken from the revenue.
+  ───
+  [↩️ Withdraw Nil Mobile X (Phone)] → company:unlist:7
+  [↩️ Withdraw Chipset] → company:unlist:8
+  [🔙 Back] → company:warehouse:Q7M2K9B   │   [🔄 Refresh] → company:listings:Q7M2K9B
+
+━━━ Listings · none ━━━
+(edits message 42)
+🏷 Nilou Industries listings in Ostmarch
+
+No open listings.
+
+Players and companies of this city see and buy your listings under "Company goods". The city's sales tax is taken from the revenue.
+  ───
+  [🔙 Back] → company:warehouse:Q7M2K9B   │   [🔄 Refresh] → company:listings:Q7M2K9B
+
+━━━ Company goods · a city's ━━━
+(edits message 42)
+🏭 Company goods in Ostmarch
+
+• Nil Mobile X (Phone) - Nilou Industries - 2 left - 1,500 Nil a unit
+  👁 Battery life 3,000, Quality 50
+• Chipset - Nilou Industries - 10 left - 420 Nil a unit
+  ───
+  [🛒 Nil Mobile X (Phone)] → company:buy:7   │   [🛒 Chipset] → company:buy:8
+  [🔙 Back] → market:list   │   [🔄 Refresh] → company:goods
+
+━━━ Company goods · none ━━━
+(edits message 42)
+🏭 Company goods in Ostmarch
+
+The companies of this city list nothing for now.
+  ───
+  [🔙 Back] → market:list   │   [🔄 Refresh] → company:goods
+
+━━━ Buy · a player or a company ━━━
+(edits message 42)
+• Nil Mobile X (Phone) - Nilou Industries - 2 left - 1,500 Nil a unit
+  👁 Battery life 3,000, Quality 50
+
+🧾 1 units - 1,500 Nil in all
+  ───
+  [💵 Pay cash 1,500 Nil] → company:buy:7:1:cash
+  [💳 Pay by card 1,500 Nil] → company:buy:7:1:card
+  [🏢 Buy for Kaveh Works] → company:buy:7:1:H4T8W2C
+  [✏️ Other quantity] → ask:company.buy:7
+  [🔙 Back] → company:goods   │   [🔄 Refresh] → company:buy:7
+
+━━━ Buy · bought for a company ━━━
+(edits message 42)
+✅ 1 Nil Mobile X (Phone) bought from Nilou Industries for Kaveh Works; 1,500 Nil was paid from the company's account. It is in the company's warehouse.
+  ───
+  [🏭 Kaveh Works warehouse] → company:warehouse:H4T8W2C
+  [🔙 Back] → company:goods
+
+━━━ Buy · bought for the player ━━━
+(edits message 42)
+✅ You bought 1 Nil Mobile X (Phone) from Nilou Industries for 1,500 Nil. It is in your bag.
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → company:goods
+
+━━━ Bag · a phone a company made ━━━
+(edits message 42)
+🎒 Your bag
+
+• Nil Mobile X (Phone) - quality 61
+  ───
+  [🎒 Nil Mobile X (Phone)] → inventory:item:A1B2C3D4E5
+  [🛒 Shops] → shop:list   │   [🏪 Market] → market:list
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → inventory:show:1
+
+━━━ Notice · research done ━━━
+(sends)
+🧪 Research into Microchips at Nilou Industries is done; the company owns the technology now.
+  ───
+  [🔬 Microchips] → company:lab:Q7M2K9B:microchips
+
+━━━ Notice · an order done ━━━
+(sends)
+⚙️ Nilou Industries's production order is ready: 5 Nil Mobile X (Phone) at quality 61 reached the warehouse.
+  ───
+  [🏭 Production and warehouse] → company:warehouse:Q7M2K9B
+
+━━━ Notice · a copy recovered ━━━
+(sends)
+🔍 Reverse engineering Nil Mobile X (Phone) at Kaveh Works succeeded; the design "Nil Mobile X" joined the company's designs.
+  ───
+  [📐 Nil Mobile X] → company:design:15
+
+━━━ Notice · a sample wasted ━━━
+(sends)
+🔍 Reverse engineering Nil Mobile X (Phone) at Kaveh Works failed, and the sample is gone.
+  ───
+  [🧪 Research lab] → company:lab:H4T8W2C
+
+━━━ Notice · a license sold ━━━
+(sends)
+📜 Kaveh Works bought a license for Microchips from Nilou Industries; 12,000 Nil went to the company's account.
+  ───
+  [🧪 Research lab] → company:lab:Q7M2K9B
+
+━━━ Notice · goods sold ━━━
+(sends)
+💰 Kaveh Works bought 1 Nil Mobile X (Phone) from Nilou Industries; 1,500 Nil went to the company's account.
+  ───
+  [🏭 Production and warehouse] → company:warehouse:Q7M2K9B
+
+━━━ Refused · shortage ━━━
+(edits message 42)
+📦 The Nilou Industries warehouse is short for this order, and nothing was taken:
+• Battery cell: 5 units needed, you have 3
+• Chipset: 5 units needed, you have 0
+  ───
+  [🚚 Suppliers] → company:suppliers:Q7M2K9B
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Refused · skill ━━━
+(edits message 42)
+🎓 Nobody at Nilou Industries has Engineering at level 2 (best: level 0). Hire someone with the skill, or train yourself.
+  ───
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Refused · tech_locked ━━━
+(edits message 42)
+🔒 Kaveh Works lacks Microchips, Battery chemistry; research it or buy a license.
+  ───
+  [🔙 Back] → company:warehouse:H4T8W2C
+
+━━━ Refused · funds ━━━
+(edits message 42)
+💰 Nilou Industries has 12,000 Nil of free money, which does not cover 60,000 Nil.
+  ───
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Refused · busy ━━━
+(edits message 42)
+⏳ The Nilou Industries lab is busy researching Battery chemistry; one at a time.
+  ───
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Refused · max_orders ━━━
+(edits message 42)
+⚙️ Nilou Industries has 3 orders running; try again when one is done.
+  ───
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Refused · supplier_empty ━━━
+(edits message 42)
+🚚 The supplier has only 60 units now; buy fewer, or wait for it to refill.
+  ───
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Refused · name_length ━━━
+(edits message 42)
+A design's name is 3 to 24 characters. Send it again.
+  ───
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Refused · published ━━━
+(edits message 42)
+🌐 This technology is published, and published it stays.
+  ───
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Refused · not_cleared ━━━
+(edits message 42)
+🚫 This good or technology is not sold to you.
+  ───
+  [🔙 Back] → company:mine
+
+━━━ Refused · away ━━━
+(edits message 42)
+📍 To buy this, you must be in Ostmarch.
+  ───
+  [🔙 Back] → company:mine
+
+━━━ Refused · own_design ━━━
+(edits message 42)
+🔍 This product is your own company's design.
+  ───
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Company page · products and published technologies ━━━
+(edits message 42)
+🏢 Nilou Industries
+
+🏷 Factory - code Q7M2K9B
+📍 industrial zone - Ostmarch
+👤 Owner: Nilou (N1L0F4R)
+👥 Staff: 3 of 12
+⭐ Rated 3 of 5
+
+📦 Products: Nil Mobile X (Phone)
+🌐 Published technologies: Semiconductors
+  ───
+  [🔙 Back] → company:list   │   [🔄 Refresh] → company:view:Q7M2K9B

@@ -41,7 +41,8 @@ type phaseHandlers struct {
 
 	goods goodsHandlers
 
-	companies *handlers.CompaniesHandler
+	companies  *handlers.CompaniesHandler
+	production *handlers.ProductionHandler
 }
 
 // bind maps every subscribed command to the handler method that serves it.
@@ -235,6 +236,9 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		bound[command] = fn
 	}
 	for command, fn := range h.bindCompanies() {
+		bound[command] = fn
+	}
+	for command, fn := range h.bindProduction() {
 		bound[command] = fn
 	}
 	return bound

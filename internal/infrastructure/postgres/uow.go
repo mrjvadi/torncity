@@ -199,3 +199,6 @@ func (t *tx) Elections() application.ElectionRepository { return &ElectionReposi
 
 // Companies returns the player companies (migration 0019).
 func (t *tx) Companies() application.CompanyRepository { return &CompanyRepository{q: t.q} }
+
+// Production returns the production economy (migration 0020).
+func (t *tx) Production() application.ProductionRepository { return &ProductionRepository{q: t.q} }

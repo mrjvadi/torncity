@@ -211,6 +211,26 @@ const (
 	ReasonCompanyWage Reason = "company_wage"
 )
 
+// The production economy (docs/adr/0021-production-economy.md). Research and
+// a supplier's delivery pay the NPC economy, so their money leaves (drains);
+// a license and a company's sale move money between owned accounts
+// (transfers). The sales tax on a company's sale is ReasonSalesTax.
+const (
+	// ReasonResearch pays a technology's research cost from a company's
+	// treasury to system_sink.
+	ReasonResearch Reason = "research"
+	// ReasonSupplierPurchase pays an NPC supplier for basic inputs from a
+	// company's treasury to system_sink.
+	ReasonSupplierPurchase Reason = "supplier_purchase"
+	// ReasonTechnologyLicense pays a technology's owner for a license, from
+	// the licensee company's treasury to the licensor's.
+	ReasonTechnologyLicense Reason = "technology_license"
+	// ReasonCompanySale pays a company for goods it listed, from the
+	// buyer — a player's cash or card, or a company's treasury — to its
+	// treasury.
+	ReasonCompanySale Reason = "company_sale"
+)
+
 // knownReasons is the closed set. Adding a code means adding it here AND to
 // the table in ADR 0009, in the same change.
 var knownReasons = map[Reason]struct{}{
@@ -241,6 +261,8 @@ var knownReasons = map[Reason]struct{}{
 
 	ReasonCompanyRegistration: {}, ReasonCompanyDeposit: {}, ReasonCompanyWithdrawal: {},
 	ReasonCorporateTax: {}, ReasonCompanyWage: {},
+
+	ReasonResearch: {}, ReasonSupplierPurchase: {}, ReasonTechnologyLicense: {}, ReasonCompanySale: {},
 }
 
 // Known reports whether r is in the closed set.

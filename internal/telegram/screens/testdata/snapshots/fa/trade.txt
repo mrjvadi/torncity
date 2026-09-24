@@ -8,6 +8,7 @@
   [🏪 نان] → market:book:bread   │   [🏪 باند زخم] → market:book:bandage
   [🏪 ابزار بازکردن قفل] → market:book:lockpick_set
   [📋 سفارش‌های من] → market:mine   │   [🔨 حراجی] → auction:list
+  [🏭 کالای شرکت‌ها] → company:goods
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → market:list
 
 ━━━ Market · empty, from across town ━━━
@@ -19,6 +20,7 @@
 📍 خرید و فروش در بازار انجام می‌شود. برای معامله به آنجا بروید.
   ───
   [📋 سفارش‌های من] → market:mine   │   [🔨 حراجی] → auction:list
+  [🏭 کالای شرکت‌ها] → company:goods
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → market:list
 
 ━━━ Book · bread, at the market, holding some ━━━

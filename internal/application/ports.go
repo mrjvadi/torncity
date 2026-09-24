@@ -136,6 +136,11 @@ type Tx interface {
 	// Companies holds player companies, so a company changes with the
 	// money that moved for it; see ports_companies.go.
 	Companies() CompanyRepository
+
+	// Production holds the production economy — designs, research and
+	// licenses, orders, reverse engineering, listings — so each changes
+	// with the goods and money that moved for it; see ports_production.go.
+	Production() ProductionRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

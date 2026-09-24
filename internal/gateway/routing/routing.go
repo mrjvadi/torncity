@@ -387,6 +387,34 @@ var argNames = map[string][]string{
 	"company.fire":     {"company", "player", "confirm"},
 	"company.opening":  {"no"},
 	"company.apply":    {"no"},
+
+	// The production economy. A technology, a component, a good and a slot
+	// are content codes; a design, a listing and an order are public
+	// numbers; a target is «d12» (a design) or a code; a serial names a
+	// piece. A price, a quantity and a design's name are typed.
+	"company.warehouse": {"company"},
+	"company.suppliers": {"company"},
+	"company.supply":    {"company", "component", "qty"},
+	"company.lab":       {"company", "tech"},
+	"company.research":  {"company", "tech"},
+	"company.techmode":  {"company", "tech", "mode", "price", "confirm"},
+	"company.license":   {"company", "tech", "from", "confirm"},
+	"company.studio":    {"company"},
+	"company.dnew":      {"company", "item"},
+	"company.design":    {"no", "slot"},
+	"company.dfill":     {"no", "slot", "component"},
+	"company.dqty":      {"no", "slot", "qty"},
+	"company.dname":     {"no", "name"},
+	"company.dfinal":    {"no"},
+	"company.produce":   {"company", "target", "qty", "confirm"},
+	"company.orders":    {"company"},
+	"company.relab":     {"company"},
+	"company.reverse":   {"company", "serial", "confirm"},
+	"company.sell":      {"company", "target", "qty", "price"},
+	"company.listings":  {"company"},
+	"company.unlist":    {"no"},
+	"company.goods":     {},
+	"company.buy":       {"no", "qty", "method"},
 }
 
 // landings name the screen a domain opens on when one of its commands cannot

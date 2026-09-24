@@ -37,6 +37,18 @@
 #   price_max_bps    the reference price and must lie within.
 #   elasticity_bps   how much volume a dearer price loses: at 12000, 10%
 #                    dearer sells 12% fewer units (and 10% cheaper, 12% more).
+#   produces         optional: the archetypes (items.yml) its engineers may
+#                    design and its floor may make — goods of those kinds.
+#                    What components it makes is on each component
+#                    (items.yml, production: by).
+#   stocked          optional: item or component categories (items.yml)
+#                    whose goods from its warehouse it sells to the
+#                    population. Its NPC sales are then real units leaving
+#                    its warehouse, never more than it holds; without it, a
+#                    company sells a service in abstract units
+#                    (docs/adr/0021). The kinds of D1 keep selling abstract
+#                    units, so that no running company loses its revenue
+#                    overnight; turning one to stock is a content change.
 #
 # A period is one day of GAME time (config company.period), waited through the
 # game clock: at game.time_scale 60, 24 minutes. Every period, once, each
@@ -97,6 +109,7 @@ company_types:
     price_min_bps: 6000
     price_max_bps: 18000
     elasticity_bps: 12000
+    produces: [food, drink]
 
   - code: repair_workshop
     name: Repair workshop
@@ -131,6 +144,7 @@ company_types:
     price_min_bps: 7000
     price_max_bps: 20000
     elasticity_bps: 8000
+    produces: [medicine]
 
   - code: courier
     name: Courier company
@@ -182,6 +196,46 @@ company_types:
     price_min_bps: 7000
     price_max_bps: 15000
     elasticity_bps: 13000
+    produces: [device, tool, jewel, apparel]
+
+  # Raw materials: a mine extracts ore, sand and oil from the ground, burning
+  # fuel bought from the industrial supplier; the city buys its output too.
+  - code: mine
+    name: Mine
+    category: raw_materials
+    place: industrial_zone
+    careers: [workshop, logistics]
+    founding_fee: 60000
+    upkeep: 1200
+    max_staff: 10
+    unit_price: 20
+    base_units: 10
+    units_per_shift: 20
+    staff_target: 8
+    min_quality_bps: 2500
+    price_min_bps: 7000
+    price_max_bps: 15000
+    elasticity_bps: 13000
+    stocked: [mineral, ore, oil]
+
+  # A farm grows wheat, cotton and timber on the city's farmland, from seed.
+  - code: farm
+    name: Farm
+    category: produce
+    place: farmland
+    careers: [logistics]
+    founding_fee: 40000
+    upkeep: 800
+    max_staff: 8
+    unit_price: 15
+    base_units: 10
+    units_per_shift: 25
+    staff_target: 6
+    min_quality_bps: 2500
+    price_min_bps: 6000
+    price_max_bps: 16000
+    elasticity_bps: 14000
+    stocked: [crop, fibre, wood]
 
 company_demand:
   - {category: groceries,     per_thousand: 5}
@@ -191,6 +245,8 @@ company_demand:
   - {category: delivery,      per_thousand: 2}
   - {category: software,      per_thousand: 1}
   - {category: manufacturing, per_thousand: 3}
+  - {category: raw_materials, per_thousand: 2}
+  - {category: produce,       per_thousand: 3}
 
 company_markets:
   - {city: ostmarch,      population: 50000, wealth_bps: 8000,  budget_per_thousand: 400}

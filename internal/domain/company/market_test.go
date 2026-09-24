@@ -106,3 +106,27 @@ func TestSettleRefusesBadInput(t *testing.T) {
 		t.Errorf("a city with nobody in it paid %s (%v)", s.Paid, err)
 	}
 }
+
+// A company that sells goods sells no more than it holds; the same company
+// selling a service is bounded only by its staff.
+func TestSettleStockedBoundsByStock(t *testing.T) {
+	ty := Type{Code: "mine", Category: "raw", Place: "industrial_zone", Careers: []string{"workshop"},
+		FoundingFee: money.FromMinor(1), Upkeep: money.FromMinor(1), MaxStaff: 5, UnitPrice: money.FromMinor(10),
+		BaseUnits: 100, UnitsPerShift: 10, StaffTarget: 1, MinQualityBPS: 10000, PriceMinBPS: 10000, PriceMaxBPS: 10000}
+	m := Market{Population: 100000, WealthBPS: 10000, BudgetPerThousand: 1000, Demand: map[string]int64{"raw": 10}}
+	service, err := Settle(m, []Seller{{ID: "a", Type: ty, PriceBPS: 10000, PresenceBPS: 10000}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	goods, err := Settle(m, []Seller{{ID: "a", Type: ty, PriceBPS: 10000, PresenceBPS: 10000, Stocked: true, Stock: 7}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if service.Sales[0].Sold != 100 || goods.Sales[0].Sold != 7 || goods.Sales[0].Capacity != 7 {
+		t.Fatalf("service sold %d, goods sold %d of capacity %d; want 100, 7, 7",
+			service.Sales[0].Sold, goods.Sales[0].Sold, goods.Sales[0].Capacity)
+	}
+	if _, err := Settle(m, []Seller{{ID: "a", Type: ty, PriceBPS: 10000, PresenceBPS: 10000, Stocked: true, Stock: -1}}); err == nil {
+		t.Error("a negative stock was accepted")
+	}
+}

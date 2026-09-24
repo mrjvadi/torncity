@@ -182,6 +182,11 @@ type CompanyPageView struct {
 	Openings []CompanyOpeningLine
 	// CanManage is the owner or the manager looking at it.
 	CanManage bool
+	// Products are its final designs, by name and kind: what it makes,
+	// never what it is made of. Published are the technologies it gave
+	// everyone.
+	Products  []Good
+	Published []Named
 }
 
 // CompanyPage renders a company's public page.
@@ -223,8 +228,23 @@ func CompanyPage(c Context, v CompanyPageView) *presenter.Response {
 			kb.Row(btn)
 		}
 	}
+	var makes string
+	if len(v.Products) > 0 {
+		names := make([]string, 0, len(v.Products))
+		for _, g := range v.Products {
+			names = append(names, c.GoodName(g))
+		}
+		makes = c.T("production.page_products", map[string]any{"products": c.list(names)})
+	}
+	if len(v.Published) > 0 {
+		names := make([]string, 0, len(v.Published))
+		for _, t := range v.Published {
+			names = append(names, c.TechName(t))
+		}
+		makes = body(makes, c.T("production.page_published", map[string]any{"techs": c.list(names)}))
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrCompanies, RefreshData: keyboards.Data(AddrCompany, v.Ref.Code)}))
-	return c.respond(paragraphs(c.T("company.title", map[string]any{"name": v.Ref.Name}), body(facts...), hiring), kb.Build())
+	return c.respond(paragraphs(c.T("company.title", map[string]any{"name": v.Ref.Name}), body(facts...), makes, hiring), kb.Build())
 }
 
 // CompanyTypeLine is one kind of business a player may found.
@@ -533,6 +553,9 @@ func CompanyManage(c Context, v CompanyManageView) *presenter.Response {
 	staff, _ := keyboards.Button(c.T("company.button.staff", nil), AddrCompanyStaff, v.Ref.Code)
 	openings, _ := keyboards.Button(c.T("company.button.openings", nil), AddrCompanyOpenings, v.Ref.Code)
 	kb.Row(staff, openings)
+	if btn, ok := keyboards.Button(c.T("production.button.warehouse", nil), AddrWarehouse, v.Ref.Code); ok {
+		kb.Row(btn)
+	}
 	auto, label := CompanyAutoOn, "company.button.auto_on"
 	if v.AutoAccept {
 		auto, label = CompanyAutoOff, "company.button.auto_off"

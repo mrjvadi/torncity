@@ -33,12 +33,39 @@ var (
 	ErrInvalidShopContent = errors.New("content: invalid shop")
 )
 
-// ComponentDef is one starter component (ADR 0005 section 1).
+// ComponentDef is one component or material (ADR 0005 section 1): what it
+// is, what it is worth, what a company must know to make it, and how a
+// company makes it (production.go).
 type ComponentDef struct {
 	Code       string           `yaml:"code" json:"code"`
 	Name       string           `yaml:"name" json:"name"`
 	Category   string           `yaml:"category" json:"category"`
 	Attributes map[string]int64 `yaml:"attributes,omitempty" json:"attributes,omitempty"`
+	// BasePrice is its reference price, minor units: what a design's cost
+	// floor counts it at (item.ItemizedCost) and what a listing is compared
+	// with.
+	BasePrice int64 `yaml:"base_price" json:"base_price"`
+	// RequiresTechnology gates MAKING it, and authoring a design around it,
+	// never buying or using one (technologies in production.yml).
+	RequiresTechnology []string `yaml:"requires_technology,omitempty" json:"requires_technology,omitempty"`
+	// Production is how a company makes it; none means it is only bought
+	// from a supplier (suppliers in production.yml).
+	Production *ComponentProductionDef `yaml:"production,omitempty" json:"production,omitempty"`
+}
+
+// Component converts the definition to the domain value.
+func (c ComponentDef) Component() item.Component {
+	return item.Component{Code: c.Code, Category: c.Category, Attributes: c.Attributes,
+		RequiresTechnology: append([]string(nil), c.RequiresTechnology...)}
+}
+
+// Quality is the component's own quality, 0..100: its quality attribute, or
+// the middle of the scale when it declares none.
+func (c ComponentDef) Quality() int {
+	if q, ok := c.Attributes["quality"]; ok && q >= 0 && q <= item.MaxQuality {
+		return int(q)
+	}
+	return item.MaxQuality / 2
 }
 
 // SlotDef is one slot of an archetype.
@@ -156,6 +183,9 @@ type ItemDef struct {
 	// BlackMarket marks a good no city shop may sell: it is found through
 	// crime and, later, the black market.
 	BlackMarket bool `yaml:"black_market,omitempty" json:"black_market,omitempty"`
+	// ExportControl restricts who may buy it from a company: some goods
+	// only go to some buyer classes (production.go).
+	ExportControl *ExportControlDef `yaml:"export_control,omitempty" json:"export_control,omitempty"`
 }
 
 func boolOr(p *bool, def bool) bool {
@@ -275,8 +305,11 @@ func (p *Pack) validateItems(problems *[]error) {
 		if c.Name == "" {
 			add(fmt.Errorf("%w: component %q", ErrMissingDisplayName, c.Code))
 		}
-		if err := item.ValidateComponent(item.Component{Code: c.Code, Category: c.Category, Attributes: c.Attributes}, categories); err != nil {
+		if err := item.ValidateComponent(c.Component(), categories); err != nil {
 			add(fmt.Errorf("%w: %w", ErrInvalidItemContent, err))
+		}
+		if c.BasePrice < 1 || c.BasePrice > shop.MaxPrice {
+			add(fmt.Errorf("%w: component %q base price %d is outside 1..%d", ErrInvalidItemContent, c.Code, c.BasePrice, shop.MaxPrice))
 		}
 	}
 	skills := item.Set{}

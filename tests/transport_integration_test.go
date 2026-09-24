@@ -98,8 +98,13 @@ func transportPack(t *testing.T) *content.Pack {
 	t.Helper()
 	pack := shippedPack(t)
 	pack.Careers, pack.Courses = nil, nil
-	// Kinds of business hire into careers, so they go with them.
+	// Kinds of business hire into careers, so they go with them, and what
+	// only companies make and research.
 	pack.CompanyTypes = nil
+	pack.Technologies = nil
+	for i := range pack.Components {
+		pack.Components[i].Production, pack.Components[i].RequiresTechnology = nil, nil
+	}
 	return pack
 }
 

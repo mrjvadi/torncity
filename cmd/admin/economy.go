@@ -127,6 +127,26 @@ func economyVerify(ctx context.Context, args []string) error {
 			mark(c.NPCRevenue == c.PeriodRevenue), c.NPCRevenue, c.PeriodRevenue)
 	}
 
+	if v.Production {
+		p := v.ProductionInvariants
+		fmt.Printf("%s  every organisation's goods belong to a company that exists (%d without)\n",
+			mark(p.OrphanHolders == 0), p.OrphanHolders)
+		fmt.Printf("%s  license payments in the ledger match the licenses (%d = %d), each paid to its licensor (%d not)\n",
+			mark(p.LicenseLedger == p.LicenseRows && p.UnpaidLicenses == 0), p.LicenseLedger, p.LicenseRows, p.UnpaidLicenses)
+		fmt.Printf("%s  company sales in the ledger match the sales (%d = %d)\n",
+			mark(p.SaleLedger == p.SaleRows), p.SaleLedger, p.SaleRows)
+		fmt.Printf("%s  supplier purchases in the ledger match the purchases (%d = %d)\n",
+			mark(p.SupplyLedger == p.SupplyRows), p.SupplyLedger, p.SupplyRows)
+		fmt.Printf("%s  research costs in the ledger match the research (%d = %d)\n",
+			mark(p.ResearchLedger == p.ResearchRows), p.ResearchLedger, p.ResearchRows)
+		fmt.Printf("%s  goods sold to the population left the warehouses as the settled periods say (%d = %d)\n",
+			mark(p.NPCStockJournal == p.NPCStockPeriods), p.NPCStockJournal, p.NPCStockPeriods)
+		fmt.Printf("%s  every production order's journal is the order: inputs taken, output made\n", mark(len(p.Orders) == 0))
+		for _, o := range p.Orders {
+			fmt.Printf("        order %s\n", o)
+		}
+	}
+
 	if !v.OK() {
 		return errInvariantsBroken
 	}

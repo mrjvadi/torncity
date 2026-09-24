@@ -78,6 +78,9 @@ func Market(c Context, v MarketView) *presenter.Response {
 	mine, _ := keyboards.Button(c.T("market.button.mine", nil), AddrMarketMine)
 	auctions, _ := keyboards.Button(c.T("auction.button.house", nil), AddrAuctions)
 	kb.Row(mine, auctions)
+	if btn, ok := keyboards.Button(c.T("production.button.goods", nil), AddrCompanyGoods); ok {
+		kb.Row(btn)
+	}
 	var where string
 	if !v.AtMarket {
 		where = c.T("market.away", nil)

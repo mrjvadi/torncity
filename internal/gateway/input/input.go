@@ -9,7 +9,9 @@
 // command a value. Their next message is that value:
 //
 //   - in the private chat, the next text message that is neither a command nor
-//     an alias of one;
+//     an alias of one — except that a question waiting for words (text: true,
+//     a name) takes an alias's words too: «بانک ملی» is a name there, and
+//     only a slash-command or the cancel word leaves it;
 //   - in a group, only a reply to the prompt itself. A bot in privacy mode
 //     receives replies to its own messages in any case (Telegram's "Replies
 //     to any messages implicitly or explicitly meant for this bot"), so this

@@ -48,6 +48,40 @@ type CompanyTypeDef struct {
 	PriceMinBPS   int   `yaml:"price_min_bps" json:"price_min_bps"`
 	PriceMaxBPS   int   `yaml:"price_max_bps" json:"price_max_bps"`
 	ElasticityBPS int   `yaml:"elasticity_bps" json:"elasticity_bps"`
+	// Produces lists the archetypes (items.yml) its engineers may design
+	// and its floor may make: a factory makes devices, a restaurant food.
+	// None means it designs and makes no goods of its own.
+	Produces []string `yaml:"produces,omitempty" json:"produces,omitempty"`
+	// Stocked lists the item or component categories (items.yml) whose
+	// goods from its warehouse it sells to the city's population: its NPC
+	// sales are then bounded by that stock, and the units sold leave its
+	// warehouse. None means it sells a service, in abstract units.
+	Stocked []string `yaml:"stocked,omitempty" json:"stocked,omitempty"`
+	// Sector is the part of the economy it belongs to (civilian when
+	// omitted; defence…): a buyer class of export control, so a restricted
+	// technology or good can go to some sectors only.
+	Sector string `yaml:"sector,omitempty" json:"sector,omitempty"`
+}
+
+// DefaultSector is the sector of a kind of business that names none.
+const DefaultSector = "civilian"
+
+// SectorCode is the kind of business's sector.
+func (d CompanyTypeDef) SectorCode() string {
+	if d.Sector == "" {
+		return DefaultSector
+	}
+	return d.Sector
+}
+
+// Makes reports whether the kind of business designs and makes archetype.
+func (d CompanyTypeDef) Makes(archetype string) bool {
+	for _, a := range d.Produces {
+		if a == archetype {
+			return true
+		}
+	}
+	return false
 }
 
 // Type converts the definition to the domain value.
