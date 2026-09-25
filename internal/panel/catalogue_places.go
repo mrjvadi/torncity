@@ -21,7 +21,7 @@ const countryIs = `v.country_uuid = @::uuid`
 
 func init() {
 	register(
-		View{Name: "cities", SQL: `SELECT c.code, c.name, k.code AS country, c.population, c.tax_rate_bps, c.cost_of_living,
+		View{Name: "cities", SQL: `SELECT c.code, c.name, k.code AS country, c.population, c.cost_of_living,
 			(SELECT balance FROM accounts WHERE kind = 'city_treasury' AND owner_id = c.id) AS treasury,
 			(SELECT count(*) FROM players WHERE residence_city_id = c.id) AS residents,
 			(SELECT count(*) FROM players WHERE city_id = c.id) AS present,
@@ -33,7 +33,7 @@ func init() {
 			FROM cities c LEFT JOIN jurisdictions j ON j.id = c.jurisdiction_id LEFT JOIN jurisdictions k ON k.id = j.parent_id
 			LEFT JOIN city_war_damage d ON d.city_id = c.id LEFT JOIN city_control cc ON cc.city_id = c.id
 			LEFT JOIN jurisdictions ctl ON ctl.id = cc.controller_country_id`,
-			Cols: cols("code:city", "name:text", "country:country", "population:int", "tax_rate_bps:bps", "cost_of_living:money",
+			Cols: cols("code:city", "name:text", "country:country", "population:int", "cost_of_living:money",
 				"treasury:money", "residents:int", "present:int", "companies:int", "properties:int", "damage_bps:bps",
 				"controller:country", "groups:int", "spawn_weight:int"),
 			Scopes: map[string]string{"country": countryIs, "city": `v.city_uuid = @::uuid`},

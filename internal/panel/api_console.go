@@ -269,7 +269,7 @@ func (s *Server) cityDossier(r *http.Request) (any, error) {
 }
 
 const cityHeadSQL = `SELECT c.id::text AS id, c.code, c.name, k.code AS country, k.name AS country_name, c.population,
-	c.tax_rate_bps, c.cost_of_living, c.spawn_weight, c.facilities,
+	c.cost_of_living, c.spawn_weight, c.facilities,
 	(SELECT balance FROM accounts WHERE kind = 'city_treasury' AND owner_id = c.id) AS treasury,
 	(SELECT count(*) FROM players WHERE residence_city_id = c.id) AS residents,
 	(SELECT count(*) FROM players WHERE city_id = c.id) AS present,

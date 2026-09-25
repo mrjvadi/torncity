@@ -73,7 +73,6 @@ function City({ code, tab }: { code: string; tab: string }) {
               <Grid>
                 <Card title={t('city.facts')}>
                   <KV rows={[
-                    [t('city.tax_rate'), pct(nOf(c, 'tax_rate_bps'))],
                     [t('city.cost_of_living'), <Money key="c" v={nOf(c, 'cost_of_living')} />],
                     [t('city.properties'), n(nOf(c, 'properties'))],
                     [t('city.factions'), n(nOf(c, 'factions'))],
