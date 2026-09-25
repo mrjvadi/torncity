@@ -426,7 +426,7 @@ alias `tc-centrifugo`, admin UI off). On the server both join
 `antispam_default`; exposing them through the reverse proxy is a later step
 (route the API and `/connection/websocket`).
 
-**Migration**: `0032_client_devices` (tables `client_devices`,
+**Migration**: `0033_client_devices` (tables `client_devices`,
 `client_refresh_tokens`).
 
 ### Opening the Mini App from the bot (when its URL is public)

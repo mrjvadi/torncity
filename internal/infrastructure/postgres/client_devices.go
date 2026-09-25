@@ -13,7 +13,7 @@ import (
 )
 
 // ClientDevices keeps the game clients players have linked and their
-// refresh tokens (migrations/0032_client_devices). Only a token's SHA-256
+// refresh tokens (migrations/0033_client_devices). Only a token's SHA-256
 // is ever written.
 type ClientDevices struct {
 	pool *pgxpool.Pool

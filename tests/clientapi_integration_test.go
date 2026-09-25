@@ -41,7 +41,7 @@ import (
 // answers on the response subject, as cmd/game does, else a direct bus
 // stands in for the broker.
 
-// ensureClientTables applies migrations/0032 when the database has not had
+// ensureClientTables applies migrations/0033 when the database has not had
 // it yet (the tables are new; applying twice is refused by CREATE TABLE).
 func ensureClientTables(t *testing.T, pool *postgres.Pool) {
 	t.Helper()
@@ -52,18 +52,18 @@ func ensureClientTables(t *testing.T, pool *postgres.Pool) {
 	if present {
 		return
 	}
-	sql, err := os.ReadFile("../migrations/0032_client_devices.up.sql")
+	sql, err := os.ReadFile("../migrations/0033_client_devices.up.sql")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if _, err := pool.Raw().Exec(testCtx(t), string(sql)); err != nil {
-		t.Fatalf("applying 0032_client_devices: %v", err)
+		t.Fatalf("applying 0033_client_devices: %v", err)
 	}
 	// Recorded as `admin migrate` records it, so a later migrate does not
 	// apply it a second time.
-	if _, err := pool.Raw().Exec(testCtx(t), `INSERT INTO schema_migrations (version, applied_at) VALUES ('0032_client_devices', now())
+	if _, err := pool.Raw().Exec(testCtx(t), `INSERT INTO schema_migrations (version, applied_at) VALUES ('0033_client_devices', now())
 		ON CONFLICT (version) DO NOTHING`); err != nil {
-		t.Fatalf("recording 0032_client_devices: %v", err)
+		t.Fatalf("recording 0033_client_devices: %v", err)
 	}
 }
 

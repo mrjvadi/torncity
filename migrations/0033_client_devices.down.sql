@@ -1,4 +1,4 @@
--- 0032_client_devices, reversed. Every linked game client is signed out.
+-- 0033_client_devices, reversed. Every linked game client is signed out.
 
 BEGIN;
 
