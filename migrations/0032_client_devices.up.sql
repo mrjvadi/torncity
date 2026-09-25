@@ -1,4 +1,4 @@
--- 0031_client_devices — the game clients a player has linked (cmd/clientapi,
+-- 0032_client_devices — the game clients a player has linked (cmd/clientapi,
 -- api/client-api.md) and the refresh tokens that keep them signed in.
 --
 -- DEVICES. A device is one signed-in client: a native build linked with a
