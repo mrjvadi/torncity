@@ -43,7 +43,13 @@ type Options struct {
 	// Static is the built web client (index.html at its root); nil serves
 	// the API only.
 	Static fs.FS
-	Logger *slog.Logger
+	// Console is the operations console's reads and actions; nil answers
+	// its endpoints 404.
+	Console Console
+	// Realtime signs the live feed's tokens and publishes to it; nil
+	// leaves the client polling.
+	Realtime *Realtime
+	Logger   *slog.Logger
 	// Now is the clock; time.Now when nil.
 	Now func() time.Time
 }
@@ -54,8 +60,14 @@ type Server struct {
 	backend  Backend
 	accounts Accounts
 	static   fs.FS
-	log      *slog.Logger
-	now      func() time.Time
+	console  Console
+	reader   Reader
+	realtime *Realtime
+	// connectSrc is the CSP's connect-src: the panel itself and, with the
+	// live feed on, its WebSocket.
+	connectSrc string
+	log        *slog.Logger
+	now        func() time.Time
 
 	origin   string
 	trusted  []*net.IPNet
@@ -80,6 +92,7 @@ func New(o Options) (*Server, error) {
 		return nil, fmt.Errorf("panel: public url %q is not an origin", o.Config.PublicURL)
 	}
 	s := &Server{cfg: o.Config, backend: o.Backend, accounts: o.Accounts, static: o.Static, log: o.Logger, now: o.Now,
+		console: o.Console, realtime: o.Realtime,
 		origin: u.Scheme + "://" + u.Host, loginIP: newLimiter(o.Config.LoginPerMinute),
 		mutating:  newLimiter(o.Config.MutationsPerMinute),
 		unknown:   newStrikes(o.Config.LockoutAfter, o.Config.LockoutBase, o.Config.LockoutMax),
@@ -90,6 +103,9 @@ func New(o Options) (*Server, error) {
 	if s.now == nil {
 		s.now = time.Now
 	}
+	if s.console != nil {
+		s.reader = s.console
+	}
 	for _, c := range o.Config.TrustedProxies {
 		_, n, err := net.ParseCIDR(strings.TrimSpace(c))
 		if err != nil {
@@ -97,6 +113,7 @@ func New(o Options) (*Server, error) {
 		}
 		s.trusted = append(s.trusted, n)
 	}
+	s.connectSrc = connectSources(s.origin, o.Config.RealtimeWebSocketURL, o.Realtime != nil)
 	s.routes()
 	return s, nil
 }
@@ -112,7 +129,7 @@ func (s *Server) headers(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
 		h.Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "+
-			"font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
+			"font-src 'self'; connect-src "+s.connectSrc+"; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
 		h.Set("X-Frame-Options", "DENY")
 		h.Set("X-Content-Type-Options", "nosniff")
 		h.Set("Referrer-Policy", "no-referrer")

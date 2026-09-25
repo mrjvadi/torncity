@@ -20,6 +20,8 @@ type PG struct {
 	ContentDir string
 	// Config gives the daily caps the ledger checks compare against.
 	Config *config.Config
+
+	cache snapCache
 }
 
 var _ Backend = (*PG)(nil)

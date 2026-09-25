@@ -779,6 +779,26 @@ panel:
   totp_issuer: torncity
   # The longest one request may run (a content load is the slowest).
   request_timeout: 2m
+  # The console's lists: each read runs read-only and is cancelled by the
+  # database after read_timeout; an export carries at most export_max_rows.
+  read_timeout: 8s
+  export_max_rows: 10000
+  # How long a gateway trusts its cached copy of a player's mute or ban, so
+  # a moderation takes effect within this long without a query per command.
+  moderation_cache_ttl: 30s
+  # The live feed: new audit rows, flags and holds are looked for every
+  # feed_interval, and the dashboard's figures pushed every kpi_interval.
+  feed_interval: 3s
+  kpi_interval: 30s
+  # Centrifugo: its server API (the key is CENTRIFUGO_API_KEY), the
+  # WebSocket the browser connects to (a path is on the panel's own origin),
+  # and how long a connection or subscription token lasts. Tokens are signed
+  # with CENTRIFUGO_TOKEN_HMAC_SECRET; without it the panel polls instead.
+  realtime_api_url: http://tc-centrifugo:8000/api
+  realtime_websocket_url: /connection/websocket
+  realtime_token_ttl: 10m
+  # NATS monitoring, for the system page's stream depths.
+  nats_monitor_url: http://tc-nats:8222
 
 # The game client API (cmd/clientapi, api/client-api.md): a native or
 # Telegram Mini App client plays through the same command pipeline as a

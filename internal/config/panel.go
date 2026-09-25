@@ -29,6 +29,16 @@ type Panel struct {
 	PasswordMinLength  int           // panel.password_min_length
 	TOTPIssuer         string        // panel.totp_issuer
 	RequestTimeout     time.Duration // panel.request_timeout
+	// The console's reads and live feed.
+	ReadTimeout          time.Duration // panel.read_timeout
+	ExportMaxRows        int           // panel.export_max_rows
+	ModerationCacheTTL   time.Duration // panel.moderation_cache_ttl
+	FeedInterval         time.Duration // panel.feed_interval
+	KPIInterval          time.Duration // panel.kpi_interval
+	RealtimeAPIURL       string        // panel.realtime_api_url
+	RealtimeWebSocketURL string        // panel.realtime_websocket_url
+	RealtimeTokenTTL     time.Duration // panel.realtime_token_ttl
+	NATSMonitorURL       string        // panel.nats_monitor_url
 }
 
 type panelSettings struct {
@@ -47,6 +57,16 @@ type panelSettings struct {
 	PasswordMinLength  *int     `yaml:"password_min_length"`
 	TOTPIssuer         *string  `yaml:"totp_issuer"`
 	RequestTimeout     *string  `yaml:"request_timeout"`
+
+	ReadTimeout          *string `yaml:"read_timeout"`
+	ExportMaxRows        *int    `yaml:"export_max_rows"`
+	ModerationCacheTTL   *string `yaml:"moderation_cache_ttl"`
+	FeedInterval         *string `yaml:"feed_interval"`
+	KPIInterval          *string `yaml:"kpi_interval"`
+	RealtimeAPIURL       *string `yaml:"realtime_api_url"`
+	RealtimeWebSocketURL *string `yaml:"realtime_websocket_url"`
+	RealtimeTokenTTL     *string `yaml:"realtime_token_ttl"`
+	NATSMonitorURL       *string `yaml:"nats_monitor_url"`
 }
 
 // defaultPanel is what configs/config.yml says.
@@ -67,6 +87,16 @@ func defaultPanel() Panel {
 		PasswordMinLength:  12,
 		TOTPIssuer:         "torncity",
 		RequestTimeout:     2 * time.Minute,
+
+		ReadTimeout:          8 * time.Second,
+		ExportMaxRows:        10000,
+		ModerationCacheTTL:   30 * time.Second,
+		FeedInterval:         3 * time.Second,
+		KPIInterval:          30 * time.Second,
+		RealtimeAPIURL:       "http://tc-centrifugo:8000/api",
+		RealtimeWebSocketURL: "/connection/websocket",
+		RealtimeTokenTTL:     10 * time.Minute,
+		NATSMonitorURL:       "http://tc-nats:8222",
 	}
 }
 
@@ -148,5 +178,32 @@ func panelSettingsTable() []setting {
 		durationSetting("panel", "request_timeout",
 			func(c *Config) *time.Duration { return &c.Panel.RequestTimeout },
 			func(f *fileConfig) *string { return f.Panel.RequestTimeout }),
+		durationSetting("panel", "read_timeout",
+			func(c *Config) *time.Duration { return &c.Panel.ReadTimeout },
+			func(f *fileConfig) *string { return f.Panel.ReadTimeout }),
+		limitSetting("panel", "export_max_rows",
+			func(c *Config) *int { return &c.Panel.ExportMaxRows },
+			func(f *fileConfig) *int { return f.Panel.ExportMaxRows }),
+		durationSetting("panel", "moderation_cache_ttl",
+			func(c *Config) *time.Duration { return &c.Panel.ModerationCacheTTL },
+			func(f *fileConfig) *string { return f.Panel.ModerationCacheTTL }),
+		durationSetting("panel", "feed_interval",
+			func(c *Config) *time.Duration { return &c.Panel.FeedInterval },
+			func(f *fileConfig) *string { return f.Panel.FeedInterval }),
+		durationSetting("panel", "kpi_interval",
+			func(c *Config) *time.Duration { return &c.Panel.KPIInterval },
+			func(f *fileConfig) *string { return f.Panel.KPIInterval }),
+		stringSetting("panel", "realtime_api_url",
+			func(c *Config) *string { return &c.Panel.RealtimeAPIURL },
+			func(f *fileConfig) *string { return f.Panel.RealtimeAPIURL }),
+		stringSetting("panel", "realtime_websocket_url",
+			func(c *Config) *string { return &c.Panel.RealtimeWebSocketURL },
+			func(f *fileConfig) *string { return f.Panel.RealtimeWebSocketURL }),
+		durationSetting("panel", "realtime_token_ttl",
+			func(c *Config) *time.Duration { return &c.Panel.RealtimeTokenTTL },
+			func(f *fileConfig) *string { return f.Panel.RealtimeTokenTTL }),
+		stringSetting("panel", "nats_monitor_url",
+			func(c *Config) *string { return &c.Panel.NATSMonitorURL },
+			func(f *fileConfig) *string { return f.Panel.NATSMonitorURL }),
 	}
 }

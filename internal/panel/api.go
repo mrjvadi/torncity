@@ -55,6 +55,8 @@ func (s *Server) routes() {
 	m.HandleFunc("POST /api/announce", s.mutation("announce", s.announce))
 	m.HandleFunc("POST /api/broadcast", s.mutation("broadcast", s.broadcast))
 
+	s.consoleRoutes(m)
+
 	m.HandleFunc("/api/", func(w http.ResponseWriter, _ *http.Request) { writeError(w, http.StatusNotFound, "not_found", "") })
 	m.Handle("/", s.staticHandler())
 	s.mux = m
@@ -93,7 +95,8 @@ func statusOf(err error, fallback int) int {
 		errors.Is(err, postgres.ErrNotFound), errors.Is(err, postgres.ErrUnknownJurisdictionCode),
 		errors.Is(err, postgres.ErrNoActiveVersion), apperrors.CodeOf(err) == apperrors.CodeNotFound:
 		return http.StatusNotFound
-	case errors.Is(err, postgres.ErrCityGroupTaken), apperrors.CodeOf(err) == apperrors.CodeConflict:
+	case errors.Is(err, postgres.ErrCityGroupTaken), errors.Is(err, postgres.ErrPanelConflict),
+		apperrors.CodeOf(err) == apperrors.CodeConflict:
 		return http.StatusConflict
 	case errors.Is(err, operator.ErrNoActor):
 		return http.StatusBadRequest

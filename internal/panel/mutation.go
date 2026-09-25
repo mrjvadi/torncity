@@ -113,6 +113,7 @@ func (s *Server) mutation(route string, fn change) http.HandlerFunc {
 			s.log.Error("panel: remembering an answer", slog.String("error", ferr.Error()))
 		}
 		s.log.Info("panel: change made", slog.String("route", route), slog.String("operator", sess.Username))
+		s.publish("change", map[string]any{"route": route, "operator": sess.Username, "status": status})
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(status)
 		_, _ = w.Write(append(out, '\n'))

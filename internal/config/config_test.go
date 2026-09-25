@@ -446,6 +446,15 @@ panel:
   password_min_length: 13
   totp_issuer: torncity-test
   request_timeout: 3m
+  read_timeout: 9s
+  export_max_rows: 10001
+  moderation_cache_ttl: 31s
+  feed_interval: 4s
+  kpi_interval: 31s
+  realtime_api_url: http://centrifugo.test:8000/api
+  realtime_websocket_url: wss://live.example.test/connection/websocket
+  realtime_token_ttl: 11m
+  nats_monitor_url: http://nats.test:8222
 client:
   listen: 127.0.0.1:8082
   trusted_proxies: ["10.0.0.0/8"]
@@ -670,6 +679,15 @@ var envOverrides = map[string]string{
 	"TORN_PANEL_PASSWORD_MIN_LENGTH":          "14",
 	"TORN_PANEL_TOTP_ISSUER":                  "torncity-env",
 	"TORN_PANEL_REQUEST_TIMEOUT":              "4m",
+	"TORN_PANEL_READ_TIMEOUT":                 "10s",
+	"TORN_PANEL_EXPORT_MAX_ROWS":              "10002",
+	"TORN_PANEL_MODERATION_CACHE_TTL":         "32s",
+	"TORN_PANEL_FEED_INTERVAL":                "5s",
+	"TORN_PANEL_KPI_INTERVAL":                 "32s",
+	"TORN_PANEL_REALTIME_API_URL":             "http://centrifugo.env:8000/api",
+	"TORN_PANEL_REALTIME_WEBSOCKET_URL":       "/ws",
+	"TORN_PANEL_REALTIME_TOKEN_TTL":           "12m",
+	"TORN_PANEL_NATS_MONITOR_URL":             "http://nats.env:8222",
 	"TORN_CLIENT_LISTEN":                      "127.0.0.1:8083",
 	"TORN_CLIENT_TRUSTED_PROXIES":             "172.16.0.0/12",
 	"TORN_CLIENT_ACCESS_TTL":                  "17m",

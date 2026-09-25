@@ -11,6 +11,8 @@
 //	TORN_CONTENT_DIR        the authored content a content load reads (default configs/content)
 //	TORN_PANEL_STATIC_DIR   serve the web client from this directory instead (development)
 //	LOG_LEVEL               debug, info, warn or error (default info)
+//	CENTRIFUGO_TOKEN_HMAC_SECRET, CENTRIFUGO_API_KEY
+//	                        the live feed (both, or it is off and the client polls)
 package main
 
 import (
@@ -92,16 +94,25 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	if dir := os.Getenv("TORN_PANEL_STATIC_DIR"); dir != "" {
 		static = os.DirFS(dir)
 	}
+	pg := &panel.PG{Pool: pool, Ops: operator.Ops{Pool: pool, Language: cfg.Player.DefaultLanguage},
+		ContentDir: env("TORN_CONTENT_DIR", "configs/content"), Config: cfg}
+	rt := realtime(cfg.Panel, logger)
 	srv, err := panel.New(panel.Options{
-		Config: cfg.Panel,
-		Backend: &panel.PG{Pool: pool, Ops: operator.Ops{Pool: pool, Language: cfg.Player.DefaultLanguage},
-			ContentDir: env("TORN_CONTENT_DIR", "configs/content"), Config: cfg},
+		Config:   cfg.Panel,
+		Backend:  pg,
+		Console:  pg,
+		Realtime: rt,
 		Accounts: accounts,
 		Static:   static,
 		Logger:   logger,
 	})
 	if err != nil {
 		return err
+	}
+	if rt != nil {
+		feed := &panel.Feed{Reader: pg, Publisher: rt.Publisher, Interval: cfg.Panel.FeedInterval,
+			KPIInterval: cfg.Panel.KPIInterval, Log: logger}
+		go feed.Run(ctx)
 	}
 	httpServer := &http.Server{
 		Addr:              cfg.Panel.Listen,
@@ -147,6 +158,18 @@ func purge(ctx context.Context, logger *slog.Logger, accounts *postgres.PanelAcc
 		case <-tick.C:
 		}
 	}
+}
+
+// realtime is the live feed, when both of Centrifugo's secrets are in the
+// environment; without them the web client polls.
+func realtime(cfg config.Panel, logger *slog.Logger) *panel.Realtime {
+	secret, key := os.Getenv("CENTRIFUGO_TOKEN_HMAC_SECRET"), os.Getenv("CENTRIFUGO_API_KEY")
+	if secret == "" || key == "" {
+		logger.Info("panel: live feed off (CENTRIFUGO_TOKEN_HMAC_SECRET and CENTRIFUGO_API_KEY are not both set)")
+		return nil
+	}
+	return &panel.Realtime{Secret: []byte(secret), TokenTTL: cfg.RealtimeTokenTTL, WebSocketURL: cfg.RealtimeWebSocketURL,
+		Publisher: &panel.CentrifugoPublisher{APIURL: cfg.RealtimeAPIURL, APIKey: key}}
 }
 
 // redact strips a credential out of a driver error.
