@@ -276,6 +276,38 @@ const (
 	ReasonMilitaryRepair Reason = "military_repair"
 )
 
+// Stage E (docs/adr/0023-health-missions-factions.md): hospitals, factions
+// and the watch. Every one moves money between owned accounts (transfers):
+// a hospital treatment into the city's treasury or a clinic's, a faction's
+// founding fee into its city's treasury, money into and out of a faction's
+// bank, and a payment the watch holds in the payer's escrow until it is
+// released to the payee or returned. A mission's cash reward is
+// ReasonMissionReward (a faucet, listed from the start); an organised crime's
+// take is ReasonCrimeProceeds, paid from system_source into the crew's cash
+// and the faction bank's cut into its treasury.
+const (
+	// ReasonHospitalFee pays the city hospital for a treatment, from the
+	// patient's cash or card to the city's treasury.
+	ReasonHospitalFee Reason = "hospital_fee"
+	// ReasonTreatmentFee pays a player clinic for a treatment, from the
+	// patient's cash or card to the clinic's company treasury.
+	ReasonTreatmentFee Reason = "treatment_fee"
+	// ReasonFactionRegistration pays a faction's founding fee from its
+	// founder's cash or card to its city's treasury.
+	ReasonFactionRegistration Reason = "faction_registration"
+	// ReasonFactionDeposit moves a member's cash or card money into the
+	// faction's treasury; ReasonFactionWithdrawal moves the faction's money
+	// to the bank of the member who took it out.
+	ReasonFactionDeposit    Reason = "faction_deposit"
+	ReasonFactionWithdrawal Reason = "faction_withdrawal"
+	// ReasonPaymentHold moves a payment the watch held from the payer's cash
+	// or bank into their escrow; ReasonPaymentRelease pays it on to the
+	// payee; ReasonPaymentReturn gives it back to the payer.
+	ReasonPaymentHold    Reason = "payment_hold"
+	ReasonPaymentRelease Reason = "payment_release"
+	ReasonPaymentReturn  Reason = "payment_return"
+)
+
 // knownReasons is the closed set. Adding a code means adding it here AND to
 // the table in ADR 0009, in the same change.
 var knownReasons = map[Reason]struct{}{
@@ -312,6 +344,9 @@ var knownReasons = map[Reason]struct{}{
 	ReasonNationalLevy: {}, ReasonDefenceAppropriation: {}, ReasonArmsProcurement: {}, ReasonMilitaryUpkeep: {},
 
 	ReasonWarLevy: {}, ReasonMilitaryRepair: {},
+
+	ReasonHospitalFee: {}, ReasonTreatmentFee: {}, ReasonFactionRegistration: {}, ReasonFactionDeposit: {},
+	ReasonFactionWithdrawal: {}, ReasonPaymentHold: {}, ReasonPaymentRelease: {}, ReasonPaymentReturn: {},
 }
 
 // Known reports whether r is in the closed set.

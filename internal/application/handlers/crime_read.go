@@ -107,6 +107,8 @@ func (h *CrimeHandler) blocked(s situation, nerve int, now time.Time) (kind stri
 	switch {
 	case s.hold.sentence != nil:
 		return screens.CrimeBlockedJail, 0, 0, 0
+	case s.hold.stay != nil:
+		return screens.CrimeBlockedHospital, 0, 0, 0
 	case s.hold.attempt != nil:
 		return screens.CrimeBlockedBusy, 0, 0, 0
 	case s.atWork:

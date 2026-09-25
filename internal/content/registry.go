@@ -66,6 +66,12 @@ type Snapshot struct {
 	military militaryContent
 	// war is military.yml's war section, nil without one; see war.go.
 	war *WarDef
+
+	// Stage E: health, missions and factions; see health.go, mission.go,
+	// faction.go.
+	health   *HealthDef
+	missions missionContent
+	faction  *FactionDef
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -135,6 +141,15 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	if len(p.War) > 0 {
 		w := p.War[0]
 		snap.war = &w
+	}
+	if len(p.Health) > 0 {
+		h := p.Health[0]
+		snap.health = &h
+	}
+	snap.buildMissions(p)
+	if len(p.Factions) > 0 {
+		f := p.Factions[0]
+		snap.faction = &f
 	}
 
 	return snap, nil

@@ -56,6 +56,8 @@ profile:
   jail_in: "⛓ You are in jail in {city} - {remaining} left"
   jail_blocks: "Until you are free you cannot travel, work a shift, withdraw from the bank or start a new course; the course you are on is paused too."
   certificates: "📜 {count} certificates"
+  hospital: "🏥 You are in hospital in {city} - {remaining} left"
+  hospital_blocks: "Until you are discharged you cannot travel, work a shift, walk across town or commit a crime. Treatment shortens the stay."
 map:
   cities_title: "🧭 Travel to another city"
   title: "🗺 Map"
@@ -178,6 +180,9 @@ help:
     • friends - and "find" with a player code or username
     • city - offices and policies; "office" is your own
     • army - your country's ministry of defence and armed forces; "sanctions" and "treaties" its diplomacy
+    • hospital - your health, a stay and treatment
+    • missions - your missions; "board" the city's mission boards
+    • faction - your faction; "factions" the city's factions
     • settings
     • help - this screen
 
@@ -592,6 +597,7 @@ pay:
   received_cash: "💵 {player} handed you {amount} in cash."
   received_card: "💳 {player} sent you {amount} by card. The money is in your bank account."
   announced: "💸 {payer} paid {payee}."
+  held: "⏸ Your payment of {amount} to {player} is held for review. It has left your purse and waits in your escrow; after the review it reaches {player} or comes back to you."
 
 # Work (internal/domain/job, configs/content/jobs.yml). Terms: job 💼, shift,
 # wage, income tax, performance 📈 (0..100), promotion ⬆️, job openings. Money
@@ -876,6 +882,7 @@ crime:
     walking: "🚶 You are on your way somewhere in the city. Arrive first."
     nerve: "🔥 You need {need} nerve and have {have}. You will have enough in {wait}."
     cooldown: "⏳ You did this a moment ago. You can try again in {wait}."
+    hospital: "🏥 You are in hospital. Crime will have to wait until you are discharged."
   button:
     commit: "🕶 Do it"
     again: "🔁 Again"
@@ -972,6 +979,7 @@ crime:
     cannot_afford: "💵 That costs {amount}, and you have {cash} in cash and in the bank."
     nothing_stolen: Nothing was taken from you in that theft, so there is nothing to report.
     cooldown: "⏳ {crime}: you did this a moment ago. Try again in {wait}."
+    hospital: "🏥 You are in hospital for {remaining} more. Crime will have to wait until you are discharged."
   error:
     in_jail: "⛓ You are in jail for another {remaining}. Pay bail from the jail screen, or wait it out."
     in_jail_later: "⛓ You are in jail. Pay bail from the jail screen, or wait it out."
@@ -987,6 +995,8 @@ crime_name:
   home_burglary: Home burglary
   counterfeit_selling: Selling counterfeit goods
   goods_smuggling: Smuggling small goods
+  warehouse_heist: Warehouse heist
+  armoured_van_job: Armoured van job
 
 # Crime categories, keyed on their content code (crimes.yml).
 crime_category:
@@ -1087,6 +1097,8 @@ place:
     departure: "🚉 Departures by {mode} are from the {place}."
     shop: "🛒 {shop} is at the {place}."
     crime: "🕶 {crime} cannot be done here; go to the {place} to do it."
+    heist: "🕶 {crime} cannot be done here; the crew gathers at the {place}."
+    board: "📋 Missions are taken and handed in at the {board} at the {place}."
   button:
     go: "🚶 {place}"
     walk: "🚶 Walk to the {place} - {walk}"
@@ -1123,6 +1135,11 @@ command_alias:
   sanctions: "sanctions | sanction"
   treaties: "treaties | treaty"
   war: "war | wars"
+  hospital: "hospital | health"
+  faction: "faction | gang"
+  factions: "factions | gangs"
+  missions: "missions | mission"
+  board: "board | noticeboard"
 
 # Where a command runs (configs/commands.yml).
 channel:
@@ -1151,6 +1168,11 @@ input:
     company_sell: "🏷 Type the price of one unit."
     company_buy: "🛒 How many do you buy? Type the number."
     gov_appoint: "👤 Send the player code or username of the player to appoint."
+    health_price: "🩺 What should your clinic charge for a treatment? Type the amount; zero means free."
+    faction_found: "🏴 Type the faction's name and send it."
+    faction_invite: "🤝 Send the player code or username of the player you are inviting."
+    faction_deposit: "📥 How much should go into the faction's bank? Type the amount."
+    faction_withdraw: "📤 How much should come out of the faction's bank into your bank? Type the amount."
   placeholder:
     default: "Value"
     bank_deposit: "Amount to deposit, in Nil"
@@ -1168,6 +1190,11 @@ input:
     company_sell: "Price per unit in Nil"
     company_buy: "Quantity"
     gov_appoint: "Player code or username"
+    health_price: "Price of a treatment, in Nil"
+    faction_found: "Faction name"
+    faction_invite: "Player code or username"
+    faction_deposit: "Amount to deposit, in Nil"
+    faction_withdraw: "Amount to withdraw, in Nil"
   cancel_hint: "To cancel, send \"cancel\"."
   cancelled: "✖️ Cancelled. Nothing changed."
 
@@ -2592,3 +2619,361 @@ war:
     target: "🎯 {city}"
     launch: "🚀 {op} with {class}"
     confirm_launch: "🚀 Launch"
+
+# Health and hospitals (docs/adr/0023). Nobody dies: health never falls below
+# the floor, and a player badly hurt is taken to hospital.
+health:
+  title: "🏥 Hospital"
+  health_line: "❤️ Health: {health} of {max}"
+  not_in_hospital: "✅ You are not in hospital."
+  rest_full_in: "🛌 Resting, your health is back in full in {duration}. Medicine gets you there sooner."
+  in_hospital: "🛏 You are in hospital in {city}."
+  remaining: "⏳ {remaining} until you are discharged"
+  discharge_at: "Discharged at {time}"
+  discharge_new: "Discharged after treatment at {time}"
+  cause:
+    crime: "Cause: hurt on a job"
+    war: "Cause: wounded when the city was struck"
+    work: "Cause: an accident at work"
+    faction_crime: "Cause: hurt on a crew job"
+  treat_title: "🩺 Who should treat you? A stay is treated once:"
+  clinics_title: "🩺 Clinics in {city}:"
+  city_hospital: "City hospital"
+  clinic_name: "{name} clinic ({code})"
+  offer:
+    city: "• {provider}: {price} - out {saves} sooner"
+    clinic: "• {provider}: {price} - out {saves} sooner - doctor level {doctor}"
+    closed: "• {provider}: not taking patients"
+    no_medicine: "• {provider}: out of medicine"
+  clinic_line: "• {provider}: {price} a treatment - doctor level {doctor}"
+  treated_by: "✅ {provider} treated this stay; rest until you are discharged."
+  confirm: "🩺 Treatment at {provider}: {price}. It takes {saves} off the {remaining} left of your stay."
+  pay_how: "How will you pay?"
+  treated: "🩺 Treated at {provider}: you are out {saved} sooner."
+  paid: "💸 Treatment: {price}"
+  injury:
+    hurt: "🩹 You lost {damage} health; health: {health} of {max}"
+    hospital: "🚑 You lost {damage} health and were taken to hospital; health: {health} of {max}"
+    public: "🩹 {player} got hurt."
+    public_hospital: "🚑 {player} got hurt and was taken to hospital."
+    work: "⚠️ There was an accident at work."
+    strike: "💥 You were hurt in the strike."
+  desk:
+    title: "🩺 {name} clinic desk"
+    open: "🟢 Taking patients"
+    closed: "🔴 Not taking patients"
+    price: "💵 A treatment: {price}"
+    stock: "💊 Medicine in the warehouse: {units} units - a treatment uses {per}"
+    no_stock: "⚠️ Not enough medicine for a single treatment; buy from a pharmaceutical lab's listings or make your own."
+    doctor: "👨‍⚕️ Best doctor: medicine level {level} - a treatment takes {share}% off a stay"
+    earned: "📈 Treatments: {count} - earned: {earned}"
+    help: "Patients in the city's hospital see this clinic beside the city hospital. Each treatment uses medicine from the warehouse and pays the clinic."
+  notice:
+    hospitalised: "🚑 You lost {damage} health and were taken to hospital in {city}. Health: {health} of {max}"
+    blocks: "Until you are discharged you cannot travel, work a shift, walk across town or commit a crime. Treatment shortens the stay."
+    discharged: "🏥 You were discharged from hospital in {city}. Health: {health} of {max}"
+    clinic_treated: "🩺 {name} clinic treated a patient: {patient}. {price} was paid to the clinic and {units} {item} used; the patient is out {saved} sooner."
+  announce:
+    hospitalised: "🚑 {player} was taken to hospital in {city}."
+  button:
+    hospital: "🏥 Hospital"
+    treat: "🩺 {provider} - {price}"
+    confirm_free: "✅ Free treatment"
+    desk: "🩺 Clinic desk"
+    price: "✏️ Treatment price"
+    open: "🟢 Take patients"
+    close: "🔴 Stop taking patients"
+  refused:
+    no_hospitals: "This world has no hospitals yet."
+    not_hospitalised: "✅ You are not in hospital; no treatment needed."
+    treated: "This stay was already treated. Rest until you are discharged."
+    no_clinic: "No such clinic."
+    elsewhere: "That clinic is in a city you are not in hospital in."
+    closed: "That clinic is not taking patients."
+    no_medicine: "That clinic is out of medicine. Try the city hospital or another clinic."
+    not_yours: "You do not run that clinic."
+  error:
+    hospitalised: "🏥 You are in hospital for {remaining} more. A treatment shortens the stay."
+    hospitalised_later: "🏥 You are in hospital. Get treated from the hospital screen, or wait."
+
+# Factions (docs/adr/0023): gangs and organisations players found and run.
+faction:
+  name: "{name} ({code})"
+  rank:
+    leader: "leader"
+    officer: "officer"
+    member: "member"
+  list_title: "🏴 Factions"
+  list_title_city: "🏴 Factions of {city}"
+  list_line: "• {faction} - {members} members"
+  list_none: "No faction in this city yet."
+  list_mine: "Your faction: {faction}"
+  list_found: "Found your own at city hall; registering one costs {fee}."
+  page_title: "🏴 {faction}"
+  page_city: "📍 City: {city}"
+  page_members: "👥 {count} members:"
+  member_line: "• {player} - {rank}"
+  member_line_self: "• {player} - {rank} (you)"
+  page_linked: "💬 The faction's Telegram group is linked; its news is posted there."
+  found_title: "🏴 Found a faction"
+  found_fee: "Registering a faction in {city} costs {fee}, paid to the city's treasury."
+  found_rules: "A name is {min} to {max} letters and may not name a city institution. You found it at city hall."
+  found_how: "How will you pay? Then you send the faction's name."
+  founded: "🏴 {faction} is founded in {city}, and you are its leader."
+  founded_fee: "💸 Registration: {fee}"
+  founded_next: "Now invite members, fill the faction's bank and link its Telegram group: send «/faction {code}» in that group and press the link button."
+  home_title: "🏴 {faction}"
+  home_rank: "🎖 Your rank: {rank}"
+  home_members: "👥 Members: {count} of {max}"
+  home_bank: "🏦 Faction bank: {amount}"
+  home_applications: "📨 {count} applications waiting"
+  home_unlinked: "💬 No Telegram group yet; the leader sends «/faction {code}» in one and presses the link button."
+  members_title: "👥 Members of {faction}"
+  members_count: "{count} members of {max}"
+  requests_title: "📨 Waiting:"
+  request_line:
+    invite: "• invited {player}"
+    apply: "• {player} applied"
+  invited: "📨 {player} was invited."
+  applied: "📨 Your application to {faction} is sent. You will hear back in private."
+  answered:
+    invite_accepted: "🤝 You joined {faction}."
+    invite_declined: "You turned down {faction}."
+    apply_accepted: "🤝 {player} joined {faction}."
+    apply_declined: "{player}'s application was turned down."
+  confirm:
+    kick: "Remove {player} from {faction}?"
+    lead: "Hand the leadership of {faction} to {player}? You become an officer, and only they can hand it back."
+    leave: "Leave {faction}?"
+    disband: "You are the last member of {faction}. Leaving disbands it, and what is left in its bank goes to your bank. Go on?"
+  left: "You left {faction}."
+  disbanded: "🏴 {faction} is disbanded."
+  disbanded_paid: "🏦 {amount} came from the faction's bank to yours."
+  linked: "💬 {faction} is linked to this group; its news is posted here from now on."
+  bank_title: "🏦 {faction} bank"
+  bank_balance: "Balance: {amount}"
+  bank_limits: "Each deposit or withdrawal between {min} and {max}"
+  bank_rules: "Members whose rank allows put money in; only allowed ranks take it out, to their own bank."
+  bank_deposited: "📥 {amount} went into the faction's bank."
+  bank_withdrawn: "📤 {amount} came from the faction's bank to your bank."
+  op:
+    gathering: "🕶 {crime} at the {place}, {city}: the crew is gathering."
+    running: "🕶 {crime} at the {place}, {city} is under way - {chance}% chance - {left} left"
+    gather_until: "Gathering until {time}"
+    ends_at: "Done at {time}"
+    crew_count: "👥 {crew} of at least {min} and at most {max} - each pays {nerve} nerve at the start"
+    crew: "Crew: {crew}"
+  crime_notice:
+    planned: "🗺 The plan is laid. Members gather at the same place and join the crew."
+    joined: "🤝 You joined the crew. Stay here until it starts."
+    launched: "🚀 The job has started. How it went arrives in private when it is done."
+    called_off: "✖️ The plan is off. Nobody had paid anything."
+  crime_title: "🕶 {faction} crew jobs"
+  crime_none: "Nothing under way. Jobs:"
+  crime_line: "• {crime}: {min} to {max} people - {nerve} nerve each - level {level} - {duration} - at: {places}"
+  crime_rules: "The planner must stand at the place. Members join there and pay their nerve at the start; whoever is not there is left behind. The faction's bank takes {cut}% and the rest is split by rank. If the police arrive, the whole crew is jailed and fined."
+  crime_result:
+    succeeded: "🕶 {crime} with {faction} went to plan."
+    escaped: "🏃 {crime} with {faction} went wrong, but the crew got away."
+    caught: "🚔 {crime} with {faction} went wrong and the police caught the crew."
+    split: "💵 Take {take} - faction bank {cut} - your share {share}"
+    jail: "⛓ You are jailed for {term}."
+  op_result:
+    succeeded: "went to plan"
+    escaped: "went wrong; the crew got away"
+    caught: "went wrong; the crew was caught"
+  notice:
+    invite: "📨 {player} invited you to {faction}."
+    apply: "📨 {player} wants to join {faction}."
+    answer_invite_accepted: "🤝 {player} accepted your invitation and joined {faction}."
+    answer_invite_declined: "{player} turned down {faction}'s invitation."
+    answer_apply_accepted: "🤝 You were accepted: you are now a member of {faction}."
+    answer_apply_declined: "Your application to {faction} was turned down."
+    kicked: "🚪 {player} removed you from {faction}."
+  announce:
+    founded: "🏴 {player} founded {faction}."
+    joined: "🤝 {player} joined {faction}."
+    left: "🚪 {player} left {faction}."
+    linked: "💬 {faction} is linked to this group."
+    ranked: "🎖 {player} is now {rank} of {faction}."
+    disbanded: "🏴 {faction} is disbanded."
+    planned: "🗺 {faction} is planning {crime} at the {place}. Members, gather there."
+    launched: "🚀 {faction}'s crew is off on {crime}."
+    crime_resolved: "🕶 {faction}'s {crime}: {result}."
+  button:
+    view: "🏴 {name}"
+    mine: "🏴 My faction"
+    found: "🏴 Found a faction"
+    list: "🏴 Factions"
+    apply: "📨 Apply to join"
+    members: "👥 Members"
+    bank: "🏦 Faction bank"
+    crime: "🕶 Crew jobs"
+    invite: "✏️ Invite a player"
+    leave: "🚪 Leave the faction"
+    promote: "⬆️ {name}"
+    demote: "⬇️ {name}"
+    kick: "✖️ {name}"
+    lead: "👑 {name}"
+    accept: "✅ Accept"
+    accept_name: "✅ {name}"
+    decline: "❌ Decline"
+    confirm_kick: "✖️ Remove"
+    confirm_lead: "👑 Hand over"
+    confirm_leave: "🚪 Leave"
+    confirm_disband: "🏴 Leave and disband"
+    deposit_cash: "✏️ Deposit cash"
+    deposit_card: "✏️ Deposit by card"
+    withdraw: "✏️ Withdraw"
+    plan: "🗺 Plan {crime}"
+    join: "🤝 Join the crew"
+    launch: "🚀 Start the job"
+    calloff: "✖️ Call it off"
+    link: "🔗 Link to this group"
+  refused:
+    none: "This world has no factions yet."
+    not_member: "You are not in a faction."
+    rank: "🎖 Your rank does not allow that."
+    not_found: "No such faction."
+    already_member: "You are already in a faction."
+    name: "A faction's name is {min} to {max} letters, starts with a letter or a digit, and may not name a city institution."
+    name_taken: "Another faction has that name."
+    not_group: "That is done in the faction's Telegram group."
+    group_taken: "This group is linked to another faction."
+    bank_short: "🏦 The faction's bank holds {balance}; you asked for {amount}."
+    no_player: "No such player. Send their player code or username."
+    theirs: "That player is in a faction."
+    full: "The faction is full: {max} members at most."
+    pending_full: "The faction has too many requests waiting; try again later."
+    pending: "An invitation or application is already waiting."
+    request_gone: "That invitation or application is no longer waiting."
+    not_yours: "That request is not yours to answer."
+    not_in_it: "That player is not in your faction."
+    on_a_job: "🕶 Your crew is out on a job; you cannot leave until it is done."
+    leader_leaving: "👑 The leader hands the leadership over before leaving."
+    no_such_crime: "No such crew job."
+    operation_open: "Your faction already has a crew job going."
+    level: "Planning that takes level {level}."
+    no_place_here: "That job cannot be done in this city."
+    no_operation: "No crew is gathering."
+    crew_full: "The crew is full."
+    elsewhere: "The crew gathers in another city or place."
+    crew_short: "👥 Starting takes at least {need} crew at the place with the nerve; {have} are ready."
+
+# Career categories (configs/content/jobs.yml).
+career_category:
+  commerce: commerce
+  food: food
+  transport: transport
+  trades: trades
+  technology: technology
+  medical: healthcare
+  finance: finance
+
+# Mission boards (configs/content/missions.yml).
+mission_board:
+  city_hall: Civic noticeboard
+  police: Police board
+
+# Missions (docs/adr/0023): jobs a city posts on its boards.
+mission:
+  first_steps:
+    name: "First steps"
+    brief: "Every newcomer stands on their own feet: earn a wage and stock the medicine cabinet."
+  study_up:
+    name: "Back to school"
+    brief: "The city needs trained hands."
+  city_courier:
+    name: "City courier"
+    brief: "City hall's post must reach another city."
+  medicine_drive:
+    name: "Medicine drive"
+    brief: "The city's clinics are running short; bring bandages to the civic centre."
+  market_day:
+    name: "Market day"
+    brief: "The market needs life: sell something."
+  road_watch:
+    name: "Road watch"
+    brief: "The precinct wants drivers and couriers keeping an eye on the road."
+  first_aid_course:
+    name: "First aid training"
+    brief: "The police want volunteers who know how to use medicine."
+  objective:
+    travel: "Travel to {target}"
+    travel_any: "Travel to another city"
+    work_shift: "Work {count} shifts in {target}"
+    work_shift_any: "Work {count} shifts"
+    course: "Complete the {target} course"
+    course_any: "Complete {count} courses"
+    buy_item: "Buy {count} {target} at the city's shops"
+    buy_item_any: "Buy {count} goods at the city's shops"
+    sell_item: "Sell {count} {target}"
+    sell_item_any: "Sell {count} goods to a shop or on the market"
+    crime: "Pull off {target} {count} times"
+    crime_any: "Pull off {count} crimes"
+    use_item: "Use {count} {target}"
+    use_item_any: "Use {count} goods"
+    deliver: "Hand in {count} {target} at the board"
+  objective_todo: "• {objective}"
+  objective_progress: "• {objective} - {done} of {count}"
+  objective_done: "✅ {objective}"
+  reward: "🎁 Reward: {reward}"
+  reward_xp: "{xp} XP"
+  reward_item: "{qty} {item}"
+  boards_title: "📋 Mission boards of {city}"
+  board_line: "• {board} - at the {place}"
+  boards_none: "This city has no mission board yet."
+  board_title: "📋 {board} - {city}"
+  board_elsewhere: "You take a mission at the {place}."
+  board_empty: "Nothing on this board for now."
+  line: "• {mission} - {reward}"
+  title: "📋 {mission}"
+  where: "📍 Taken and handed in: {board} at the {place}"
+  min_level: "⭐ Level {level} at least"
+  requires: "🔗 After: {missions}"
+  time_limit: "⏳ To be done within {duration} of taking it"
+  repeatable: "🔁 Repeatable; {duration} after each time"
+  blocked:
+    active: "You have this mission already."
+    level: "This mission takes level {level} at least."
+    requires: "Do the missions it builds on first."
+    done: "You have done this mission."
+    cooldown: "⏳ It can be taken again in {wait}."
+    too_many: "You have {max} missions already; finish one first."
+  mine_title: "📋 My missions - {count} of {max}"
+  mine_none: "No mission in hand. Take one from a city board."
+  mine_line: "📌 {mission}"
+  left: "⏳ {duration} left"
+  expired: "⌛ Time is up"
+  recent_title: "Lately:"
+  recent:
+    completed: "✅ {mission} - {cash}"
+    abandoned: "✖️ {mission} - given up"
+    expired: "⌛ {mission} - ran out of time"
+    active: "📌 {mission}"
+  notice:
+    accepted: "📌 You took «{mission}». Everything you do from now on counts."
+    delivered: "📦 {qty} units handed in for «{mission}»."
+    completed: "🎉 «{mission}» is done."
+    abandoned: "✖️ You gave up «{mission}»."
+  withheld: "⚖️ {amount} of the reward was not paid: the day's cap on rewards."
+  completed: "🎉 «{mission}» is done!"
+  paid: "💵 {cash} went into your cash."
+  got_item: "🎒 You got {qty} {item}."
+  abandon_confirm: "Give up «{mission}»? Its progress is lost."
+  button:
+    board: "📋 {board}"
+    mine: "📋 My missions"
+    boards: "📋 Mission boards"
+    view: "📌 {mission}"
+    accept: "✅ Take the mission"
+    deliver: "📦 Hand in for {mission}"
+    abandon: "✖️ Give up {mission}"
+    abandon_confirm: "✖️ Give it up"
+  refused:
+    not_found: "No such mission."
+    not_here: "That mission is not posted in this city."
+    blocked: "That mission cannot be taken now."
+    not_active: "That mission is not in your hands any more."
+    expired: "⌛ That mission's time ran out."
+    nothing_to_deliver: "📦 You are not carrying what the mission asks for."

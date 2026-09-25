@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/travel"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -65,6 +66,9 @@ type ProfileHandler struct {
 	// player's job and studies.
 	content ContentSource
 	policy  application.PolicyReader
+	// scale, when set by WithHealth, lets the profile show health as the
+	// game clock has brought it back, and a hospital stay (docs/adr/0023).
+	scale gametime.Scale
 }
 
 // NewProfileHandler wires the handler.
@@ -133,6 +137,13 @@ func NewProfileHandler(
 // work either way. It returns h so it can be chained onto the constructor.
 func (h *ProfileHandler) WithWork(source ContentSource, policy application.PolicyReader) *ProfileHandler {
 	h.content, h.policy = source, policy
+	return h
+}
+
+// WithHealth lets the profile show a player's health on the game clock and
+// their hospital stay.
+func (h *ProfileHandler) WithHealth(scale gametime.Scale) *ProfileHandler {
+	h.scale = scale
 	return h
 }
 
@@ -297,6 +308,9 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 		return view, err
 	}
 	view.Jail = jail
+	if err := h.hospital(ctx, tx, *row, &view); err != nil {
+		return view, err
+	}
 
 	if p.CityID != nil && *p.CityID != "" {
 		city, err := h.cities.ByID(ctx, *p.CityID)
@@ -373,6 +387,39 @@ func (h *ProfileHandler) jail(ctx context.Context, tx application.Tx, playerID s
 		return nil, err
 	}
 	return j, nil
+}
+
+// hospital reads the player's health and stay for the home screen: health
+// as it stands now — recovering in hospital, or with the rest the game clock
+// gave back — and the stay while it lasts. It only reads.
+func (h *ProfileHandler) hospital(ctx context.Context, tx application.Tx, row application.Stats, view *screens.ProfileView) error {
+	if h.content == nil {
+		return nil
+	}
+	def, ok := h.content.Current().Health()
+	if !ok || h.scale.Validate() != nil {
+		return nil
+	}
+	now := h.now()
+	hp, stay, _, err := currentHealth(ctx, tx, def, h.scale, row, now)
+	if err != nil {
+		return err
+	}
+	view.Health = hp
+	if stay == nil || !stay.Admitted(now) {
+		if stay != nil {
+			view.Health = max(hp, stay.HealthOut)
+		}
+		return nil
+	}
+	j := &screens.ProfileJail{Remaining: stay.EndsAt.Sub(now), EndsAt: stay.EndsAt}
+	if city, err := h.cities.ByID(ctx, stay.CityID); err == nil {
+		j.CityCode, j.City = city.Code, city.Name
+	} else if !isSentinel(err, application.ErrCityNotFound) {
+		return err
+	}
+	view.Hospital = j
+	return nil
 }
 
 // work reads the player's job and studies for the home screen. It only

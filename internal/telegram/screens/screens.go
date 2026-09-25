@@ -283,6 +283,10 @@ func errorMessage(c Context, err error) (string, map[string]any) {
 	if key, args, ok := crimeError(c, err); ok {
 		return key, args
 	}
+	// A patient asking for what hospital rules out; see health.go.
+	if key, args, ok := healthError(c, err); ok {
+		return key, args
+	}
 	// Player-held offices name their own refusals; see governance.go.
 	if key, args, ok := governanceRefusal(c, err, nil, time.Time{}); ok {
 		return key, args
@@ -366,9 +370,18 @@ var applicationSentinels = []struct {
 
 // identical reports whether target appears anywhere in err's chain as that
 // exact value, ignoring the Is method entirely.
+//
+// A named sentinel (errors.Sentinel) is matched by its id as well, so a copy
+// carrying details — ErrInJail.WithDetail("remaining_seconds", …), as every
+// refusal with a number is raised — is still the sentinel it was copied
+// from. An unnamed one is matched by identity alone.
 func identical(err, target error) bool {
+	named, _ := target.(*errors.Error)
 	for e := err; e != nil; e = stderrors.Unwrap(e) {
 		if e == target {
+			return true
+		}
+		if x, ok := e.(*errors.Error); ok && named != nil && named.ID() != "" && x.ID() == named.ID() {
 			return true
 		}
 	}

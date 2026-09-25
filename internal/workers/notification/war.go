@@ -45,6 +45,7 @@ type warEvent struct {
 	ProposalKind  string   `json:"proposal_kind"`
 
 	Report *screens.StrikeReportView `json:"report"`
+	Injury *injuryPayload            `json:"injury"`
 }
 
 func decodeWar(env *envelope.Envelope, name string) (warEvent, error) {
@@ -66,7 +67,7 @@ func renderWarNotice(name string) Renderer {
 		view := screens.WarNoticeView{Kind: ev.Kind, Country: country(ev.CountryCode, ev.CountryName),
 			Other: country(ev.OtherCode, ev.OtherName), Ally: country(ev.AllyCode, ev.AllyName), CityCode: ev.CityCode,
 			City: ev.CityName, WarNo: ev.WarNo, ProposalNo: ev.ProposalNo, ProposalKind: ev.ProposalKind, Band: ev.Band,
-			In: time.Duration(ev.TTLSeconds) * time.Second}
+			In: time.Duration(ev.TTLSeconds) * time.Second, Injury: ev.Injury.view()}
 		return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
 			return screens.WarNotice(c, view)
 		}}, nil

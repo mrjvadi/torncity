@@ -822,8 +822,9 @@ You are free. Nobody is holding you.
 
 ━━━ Error · a journey from jail ━━━
 (edits message 42)
-That cannot be done right now. Please try again in a moment.
+⛓ You are in jail for another 42m. Pay bail from the jail screen, or wait it out.
   ───
+  [⛓ Jail] → crime:jail
   [🔙 Back] → player:profile.get
 
 ━━━ Error · a journey from jail, time unknown ━━━

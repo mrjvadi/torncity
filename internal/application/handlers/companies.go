@@ -911,7 +911,7 @@ func (h *CompaniesHandler) manageView(ctx context.Context, tx application.Tx, sn
 	if err != nil {
 		return screens.CompanyManageView{}, err
 	}
-	_, ty, err := companyType(snap, c)
+	tdef, ty, err := companyType(snap, c)
 	if err != nil {
 		return screens.CompanyManageView{}, err
 	}
@@ -928,7 +928,7 @@ func (h *CompaniesHandler) manageView(ctx context.Context, tx application.Tx, sn
 		Balance: books.Balance.Minor(), Reserved: books.Reserved.Minor(), Available: books.Available().Minor(),
 		Debt: c.Debt, Upkeep: ty.Upkeep.Minor(), Arrears: c.Arrears, Grace: h.rules.InsolvencyPeriods,
 		PriceBPS: c.PriceBPS, PriceMin: ty.PriceMinBPS, PriceMax: ty.PriceMaxBPS, PriceStep: h.rules.PriceStepBPS,
-		MaxStaff: ty.MaxStaff, AutoAccept: c.AutoAccept, TaxBPS: int(tax),
+		MaxStaff: ty.MaxStaff, AutoAccept: c.AutoAccept, TaxBPS: int(tax), Clinic: tdef.Care != nil,
 	}
 	if c.ManagerID != "" {
 		m, err := playerNamed(ctx, tx, c.ManagerID)

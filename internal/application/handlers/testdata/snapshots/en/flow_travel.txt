@@ -135,6 +135,7 @@ Travelling by: Train
   [🧭 My journey] → travel:status   │   [💼 Job openings] → job:list
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Map on the road ━━━
@@ -185,6 +186,7 @@ Travelling by: Train
   [🗺 Map] → map:list   │   [💼 Job openings] → job:list
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 

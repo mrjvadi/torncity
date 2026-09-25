@@ -309,6 +309,56 @@ var all = []Subscription{
 	{Domain: "war", Action: "target", Origin: FromPlayer},
 	{Domain: "war", Action: "launch", Origin: FromPlayer},
 	{Domain: "war", Action: "resolve", Origin: FromScheduler},
+
+	// Health and hospitals (docs/adr/0023-health-missions-factions.md): the
+	// hospital screen, a treatment, a clinic's desk, its price and whether
+	// it takes patients. Only the scheduler sends health.discharge, when a
+	// stay ends.
+	{Domain: "health", Action: "hospital", Origin: FromPlayer},
+	{Domain: "health", Action: "treat", Origin: FromPlayer},
+	{Domain: "health", Action: "clinic", Origin: FromPlayer},
+	{Domain: "health", Action: "price", Origin: FromPlayer},
+	{Domain: "health", Action: "open", Origin: FromPlayer},
+	{Domain: "health", Action: "discharge", Origin: FromScheduler},
+
+	// Factions (docs/adr/0023): the factions of a city and a faction's page;
+	// founding one; a member's faction, its members, inviting, applying,
+	// answering, kicking, ranks and leaving; its bank; linking its group;
+	// its organised crimes — the board, planning, joining, launching,
+	// calling off. Only the scheduler sends faction.resolve, when an
+	// organised crime ends.
+	{Domain: "faction", Action: "list", Origin: FromPlayer},
+	{Domain: "faction", Action: "view", Origin: FromPlayer},
+	{Domain: "faction", Action: "found", Origin: FromPlayer},
+	{Domain: "faction", Action: "mine", Origin: FromPlayer},
+	{Domain: "faction", Action: "members", Origin: FromPlayer},
+	{Domain: "faction", Action: "invite", Origin: FromPlayer},
+	{Domain: "faction", Action: "apply", Origin: FromPlayer},
+	{Domain: "faction", Action: "answer", Origin: FromPlayer},
+	{Domain: "faction", Action: "kick", Origin: FromPlayer},
+	{Domain: "faction", Action: "rank", Origin: FromPlayer},
+	{Domain: "faction", Action: "leave", Origin: FromPlayer},
+	{Domain: "faction", Action: "bank", Origin: FromPlayer},
+	{Domain: "faction", Action: "deposit", Origin: FromPlayer},
+	{Domain: "faction", Action: "withdraw", Origin: FromPlayer},
+	{Domain: "faction", Action: "link", Origin: FromPlayer},
+	{Domain: "faction", Action: "crime", Origin: FromPlayer},
+	{Domain: "faction", Action: "plan", Origin: FromPlayer},
+	{Domain: "faction", Action: "join", Origin: FromPlayer},
+	{Domain: "faction", Action: "launch", Origin: FromPlayer},
+	{Domain: "faction", Action: "calloff", Origin: FromPlayer},
+	{Domain: "faction", Action: "resolve", Origin: FromScheduler},
+
+	// Missions (docs/adr/0023): a city's boards and a board's missions, one
+	// mission, taking it, the player's missions, handing goods in, and
+	// giving one up. Missions move on from the game's own events, which
+	// cmd/game consumes beside these commands.
+	{Domain: "mission", Action: "board", Origin: FromPlayer},
+	{Domain: "mission", Action: "view", Origin: FromPlayer},
+	{Domain: "mission", Action: "accept", Origin: FromPlayer},
+	{Domain: "mission", Action: "mine", Origin: FromPlayer},
+	{Domain: "mission", Action: "deliver", Origin: FromPlayer},
+	{Domain: "mission", Action: "abandon", Origin: FromPlayer},
 }
 
 // All returns every subscription. The slice is a copy.

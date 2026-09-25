@@ -54,6 +54,8 @@ func main() {
 		err = electionCommand(ctx, os.Args[2:])
 	case "company":
 		err = companyCommand(ctx, os.Args[2:])
+	case "watch":
+		err = watchCommand(ctx, os.Args[2:])
 	default:
 		usage()
 		os.Exit(2)
@@ -78,6 +80,7 @@ func usage() {
   city          link a city to its Telegram group (see: admin city)
   election      open an election of an elected office (see: admin election)
   company       list player companies or show one (see: admin company)
+  watch         the watch's flags and held payments (see: admin watch)
 
 DATABASE_URL must be set, except for `+"`admin content validate`"+`, which
 reads files only.

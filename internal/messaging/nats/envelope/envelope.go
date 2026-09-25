@@ -62,6 +62,23 @@ type Metadata struct {
 
 	ReceivedAt    time.Time `json:"received_at"`
 	SchemaVersion int       `json:"schema_version"`
+
+	// EventID is the outbox event a message published from the outbox
+	// carries (the outbox worker stamps it), empty on a message a gateway
+	// or the scheduler published. One command may write several events of
+	// one kind — a notice to each member of a crew — and they share the
+	// command's RequestID; a consumer that must process each once keys on
+	// this instead.
+	EventID string `json:"event_id,omitempty"`
+}
+
+// MessageID is what a consumer processes a message once by: the outbox
+// event's id when the message came from the outbox, else the request's.
+func (m Metadata) MessageID() string {
+	if m.EventID != "" {
+		return m.EventID
+	}
+	return m.RequestID
 }
 
 // InGroup reports whether the request came from a group, where everybody in

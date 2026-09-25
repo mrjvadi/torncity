@@ -196,6 +196,9 @@ type Config struct {
 	Military   Military
 	Diplomacy  Diplomacy
 	War        War
+	Missions   Missions
+	Factions   Factions
+	AntiCheat  AntiCheat
 	Input      Input
 	Announce   Announce
 }
@@ -608,6 +611,50 @@ type War struct {
 	NoticeCap int // war.notice_cap
 }
 
+// Missions is the tuning of missions (docs/adr/0023). What each mission asks
+// and gives is content (configs/content/missions.yml); these are the caps on
+// the faucet and the page sizes. The day is a UTC day.
+type Missions struct {
+	// MaxActive is how many missions a player may run at once.
+	MaxActive int // missions.max_active
+	// PlayerDailyCap is the most mission cash one player receives in a day.
+	PlayerDailyCap int64 // missions.player_daily_cap
+	// EconomyDailyCap is the most mission cash all players together receive
+	// in a day.
+	EconomyDailyCap int64 // missions.economy_daily_cap
+}
+
+// Factions is the tuning of factions (docs/adr/0023). What founding one costs
+// and what each rank may do is content (configs/content/factions.yml).
+type Factions struct {
+	NameMinLength int // factions.name_min_length
+	NameMaxLength int // factions.name_max_length
+	// MaxMembers caps a faction's members, leader included.
+	MaxMembers int // factions.max_members
+	// MaxPending caps a faction's invitations and applications waiting.
+	MaxPending int // factions.max_pending
+	// ListSize is how many factions or members one screen lists.
+	ListSize int // factions.list_size
+}
+
+// AntiCheat is the watch's tuning (docs/adr/0023, internal/domain/watch).
+// Every threshold is behavioural; nothing here bans anyone. Window is REAL
+// time.
+type AntiCheat struct {
+	Window                time.Duration // anticheat.window
+	OneWayCount           int           // anticheat.one_way_count
+	OneWayMinTotal        int64         // anticheat.one_way_min_total
+	OneWayRatioBPS        int           // anticheat.one_way_ratio_bps
+	OffMarketBPS          int           // anticheat.off_market_bps
+	OffMarketMinValue     int64         // anticheat.off_market_min_value
+	SinglePartnerMinCount int           // anticheat.single_partner_min_count
+	SinglePartnerShareBPS int           // anticheat.single_partner_share_bps
+	CommandsPerMinute     int           // anticheat.commands_per_minute
+	// HoldAbove is the smallest payment held for review between accounts a
+	// flag links.
+	HoldAbove int64 // anticheat.hold_above
+}
+
 // Diplomacy is the tuning of sanctions and treaties
 // (docs/adr/0022-military-and-diplomacy.md). Every duration here is REAL
 // time: a governance promise, like a lever's notice
@@ -757,6 +804,30 @@ func Defaults() *Config {
 			EndedShownFor:     168 * time.Hour,
 			BoardOperations:   8,
 			NoticeCap:         200,
+		},
+		Missions: Missions{
+			MaxActive:       5,
+			PlayerDailyCap:  5_000,
+			EconomyDailyCap: 1_000_000,
+		},
+		Factions: Factions{
+			NameMinLength: 3,
+			NameMaxLength: 24,
+			MaxMembers:    30,
+			MaxPending:    20,
+			ListSize:      10,
+		},
+		AntiCheat: AntiCheat{
+			Window:                24 * time.Hour,
+			OneWayCount:           4,
+			OneWayMinTotal:        20_000,
+			OneWayRatioBPS:        9_000,
+			OffMarketBPS:          5_000,
+			OffMarketMinValue:     5_000,
+			SinglePartnerMinCount: 6,
+			SinglePartnerShareBPS: 9_000,
+			CommandsPerMinute:     90,
+			HoldAbove:             50_000,
 		},
 		Input: Input{
 			TTL:       5 * time.Minute,
@@ -956,6 +1027,19 @@ func (c *Config) Validate() error {
 	if c.Company.CitizenProductivityBPS > 10000 || c.Company.CitizenLabourShareBPS > 10000 {
 		return fmt.Errorf("%w: company.citizen_productivity_bps %d, company.citizen_labour_share_bps %d, above 10000",
 			ErrNotPositive, c.Company.CitizenProductivityBPS, c.Company.CitizenLabourShareBPS)
+	}
+	if c.Factions.NameMinLength > c.Factions.NameMaxLength || c.Factions.NameMaxLength > c.Input.MaxLength {
+		return fmt.Errorf("%w: factions.name_min_length %d, factions.name_max_length %d, input.max_length %d",
+			ErrCompanyNameBounds, c.Factions.NameMinLength, c.Factions.NameMaxLength, c.Input.MaxLength)
+	}
+	if c.AntiCheat.OneWayRatioBPS < 5000 || c.AntiCheat.OneWayRatioBPS > 10000 ||
+		c.AntiCheat.SinglePartnerShareBPS < 5000 || c.AntiCheat.SinglePartnerShareBPS > 10000 ||
+		c.AntiCheat.OneWayCount < 2 || c.AntiCheat.SinglePartnerMinCount < 2 {
+		return fmt.Errorf("%w: anticheat ratios must lie in 5000..10000 bps and counts be at least 2", ErrNotPositive)
+	}
+	if c.Missions.PlayerDailyCap > c.Missions.EconomyDailyCap {
+		return fmt.Errorf("%w: missions.player_daily_cap %d is above missions.economy_daily_cap %d",
+			ErrNotPositive, c.Missions.PlayerDailyCap, c.Missions.EconomyDailyCap)
 	}
 	if c.Company.DesignMinSkill > 100 {
 		return fmt.Errorf("%w: company.design_min_skill is %d, above the skill scale", ErrNotPositive, c.Company.DesignMinSkill)

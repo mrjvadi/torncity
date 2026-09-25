@@ -1,0 +1,79 @@
+# Health: what hurts a player, when they end up in hospital, how they get
+# better, and what a hospital charges.
+#
+# A player's health is part of their condition (player_stats). Things hurt it:
+# a failed crime (crimes.yml failure.injury), a war strike on the city they
+# stand in, an accident at work, a failed organised crime (factions.yml). The
+# RULES — an injury never takes health below the floor, so nobody dies; a
+# player left at or below the hospital line is admitted and stays until
+# recovery brings them to the discharge health; a treatment takes a share of
+# the stay left off it; health comes back at rest — are internal/domain/health
+# (docs/adr/0023-health-missions-factions.md). What is here is parameter.
+#
+# A patient lies at the hospital place (`place`) of the city they were hurt
+# in, and cannot travel, work a shift, walk, commit a crime or join an
+# organised crime until discharged. The profile shows the stay. Two kinds of
+# hospital treat, at that place:
+#   * the city hospital (`city_hospital`): always open, stocked by the city,
+#     paid cash or card (payments.yml service hospital) into the city's
+#     treasury (ledger hospital_fee). Its price is a base plus a rate for
+#     every GAME hour of the stay left; its care is modest.
+#   * a player clinic: a company of a kind with `care` (companies.yml). Its
+#     owner sets the price, paid into the clinic's treasury (treatment_fee);
+#     it treats only with medicine from its own warehouse — `medicine_units`
+#     units of any good of the `medicine` category — so a clinic without
+#     stock turns patients away. Its doctors are its staff: the best medicine
+#     skill among owner, manager and employees adds to its care.
+# One treatment per stay.
+#
+# Every duration is GAME time, waited through the game clock (config.yml
+# game.time_scale): at 60, a 6h stay is six real minutes. Every chance is
+# basis points (10000 = 100%).
+#
+# health
+#   floor              the least health anyone has; at least 1. Nobody dies.
+#   hospital_below     an injury leaving health at or below this admits.
+#   discharge_at       the health a patient leaves with (capped by their
+#                      maximum).
+#   recovery_per_hour  health recovered per GAME hour in hospital: what makes
+#                      the length of a stay.
+#   rest_per_hour      health recovered per GAME hour out of hospital; 0 for
+#                      none (only medicine then).
+#   min_stay, max_stay bounds of a stay, whole minutes.
+#   place              where patients lie and hospitals treat (places.yml).
+#   medicine           the item category (items.yml) hospitals treat with.
+#   medicine_units     units one clinic treatment uses.
+#   city_hospital      {base_price, per_hour, care: {reduction_bps}}: the
+#                      city's price and the share of the stay it takes off.
+#   injuries
+#     war_strike       {chance_bps, min, max}: a player standing in a city a
+#                      strike damaged, each on their own roll.
+#     work             [{category, chance_bps, min, max}]: an accident on a
+#                      shift of a career category (jobs.yml); a category not
+#                      listed has none.
+#
+# Loaded and versioned with the rest of the content (`admin content load`).
+
+version: 1
+
+health:
+  floor: 1
+  hospital_below: 20
+  discharge_at: 60
+  recovery_per_hour: 8
+  rest_per_hour: 4
+  min_stay: 1h
+  max_stay: 16h
+  place: hospital
+  medicine: medicine
+  medicine_units: 1
+  city_hospital:
+    base_price: 300
+    per_hour: 90
+    care: {reduction_bps: 3500}
+  injuries:
+    war_strike: {chance_bps: 1500, min: 15, max: 60}
+    work:
+      - {category: trades,    chance_bps: 150, min: 8,  max: 35}
+      - {category: transport, chance_bps: 100, min: 10, max: 40}
+      - {category: food,      chance_bps: 40,  min: 4,  max: 15}

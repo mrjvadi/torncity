@@ -62,6 +62,15 @@ func economyCommand(ctx context.Context, args []string) error {
 	}
 }
 
+// loadConfig reads the configuration the way the services do.
+func loadConfig() (*config.Config, error) {
+	path := os.Getenv("TORN_CONFIG")
+	if path == "" {
+		path = config.DefaultPath
+	}
+	return config.Load(path)
+}
+
 // errInvariantsBroken makes verify exit non-zero. The details are already
 // printed; this only has to say that they are failures.
 var errInvariantsBroken = errors.New("economy verify: ledger invariants FAILED — this is a bug, not a tuning problem")
@@ -178,7 +187,35 @@ func economyVerify(ctx context.Context, args []string) error {
 			mark(w.RepairLedger == w.RepairRows), w.RepairLedger, w.RepairRows)
 	}
 
-	if !v.OK() {
+	capsOK := true
+	if v.StageE {
+		s := v.StageEInvariants
+		fmt.Printf("%s  hospital fees in the ledger match the city hospital's treatments (%d = %d)\n",
+			mark(s.HospitalFeeLedger == s.HospitalFeeRows), s.HospitalFeeLedger, s.HospitalFeeRows)
+		fmt.Printf("%s  clinic fees in the ledger match the clinics' treatments (%d = %d), each paid (%d not)\n",
+			mark(s.TreatmentFeeLedger == s.TreatmentFeeRows && s.UnpaidTreatments == 0), s.TreatmentFeeLedger,
+			s.TreatmentFeeRows, s.UnpaidTreatments)
+		fmt.Printf("%s  medicine clinics used left the world through the item journal (%d = %d)\n",
+			mark(s.MedicineJournal == s.MedicineRows), s.MedicineJournal, s.MedicineRows)
+		fmt.Printf("%s  every faction bank belongs to a faction (%d orphans), a disbanded one holds nothing (%d do), and moves by its own reasons only (%d stray)\n",
+			mark(s.OrphanFactionAccounts == 0 && s.DisbandedWithMoney == 0 && s.StrayFactionMoves == 0),
+			s.OrphanFactionAccounts, s.DisbandedWithMoney, s.StrayFactionMoves)
+		fmt.Printf("%s  organised crime takes in the ledger match the operations (%d = %d), and the faction cuts (%d = %d)\n",
+			mark(s.HeistLedger == s.HeistRows && s.CutLedger == s.CutRows), s.HeistLedger, s.HeistRows, s.CutLedger, s.CutRows)
+		fmt.Printf("%s  mission rewards in the ledger match the completed missions and their grants (%d = %d = %d)\n",
+			mark(s.MissionLedger == s.MissionRows && s.MissionLedger == s.MissionGrants), s.MissionLedger, s.MissionRows,
+			s.MissionGrants)
+		if cfg, err := loadConfig(); err == nil {
+			capsOK = s.MissionPlayerDayMax <= cfg.Missions.PlayerDailyCap && s.MissionEconomyDayMax <= cfg.Missions.EconomyDailyCap
+			fmt.Printf("%s  no day paid a player more mission cash than its cap (%d <= %d), nor everyone (%d <= %d)\n",
+				mark(capsOK), s.MissionPlayerDayMax, cfg.Missions.PlayerDailyCap, s.MissionEconomyDayMax,
+				cfg.Missions.EconomyDailyCap)
+		}
+		fmt.Printf("%s  held payments in the ledger match the payments still held (%d = %d), each settled one settled (%d not)\n",
+			mark(s.HeldLedger == s.HeldRows && s.UnsettledHolds == 0), s.HeldLedger, s.HeldRows, s.UnsettledHolds)
+	}
+
+	if !v.OK() || !capsOK {
 		return errInvariantsBroken
 	}
 	fmt.Println("\nall ledger invariants hold")

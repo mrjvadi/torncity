@@ -49,6 +49,13 @@
 #                    (docs/adr/0021). The kinds of D1 keep selling abstract
 #                    units, so that no running company loses its revenue
 #                    overnight; turning one to stock is a content change.
+#   care             optional: it is a clinic — it treats hospital patients at
+#                    its place (health.yml), with medicine from its
+#                    warehouse, at a price its owner sets: {reduction_bps —
+#                    the share of a stay's remaining time a treatment takes
+#                    off; bps_per_level, max_skill_bps — what the best
+#                    medicine skill of its owner, manager and staff adds, up
+#                    to a cap} (docs/adr/0023).
 #
 # A period is one day of GAME time (config company.period), waited through the
 # game clock: at game.time_scale 60, 24 minutes. Every period, once, each
@@ -145,6 +152,47 @@ company_types:
     price_max_bps: 20000
     elasticity_bps: 8000
     produces: [medicine]
+    care: {reduction_bps: 5500, bps_per_level: 150, max_skill_bps: 3500}
+
+  # Makes medicine at scale from herb extract and starch (the wholesale
+  # market), and sells it to pharmacies and clinics on its listings.
+  - code: pharma
+    name: Pharmaceutical lab
+    category: pharmaceuticals
+    place: industrial_zone
+    careers: [healthcare, workshop]
+    founding_fee: 90000
+    upkeep: 1600
+    max_staff: 8
+    unit_price: 50
+    base_units: 2
+    units_per_shift: 8
+    staff_target: 6
+    min_quality_bps: 2000
+    price_min_bps: 7000
+    price_max_bps: 16000
+    elasticity_bps: 9000
+    produces: [medicine]
+
+  # A chemist's shop by the hospital: it buys medicine from the labs and
+  # sells it on its listings to players, and from its shelves to the city.
+  - code: pharmacy
+    name: Pharmacy
+    category: pharmacy
+    place: hospital
+    careers: [retail, healthcare]
+    founding_fee: 45000
+    upkeep: 900
+    max_staff: 5
+    unit_price: 30
+    base_units: 10
+    units_per_shift: 30
+    staff_target: 4
+    min_quality_bps: 3000
+    price_min_bps: 7000
+    price_max_bps: 17000
+    elasticity_bps: 11000
+    stocked: [medicine]
 
   - code: courier
     name: Courier company
@@ -242,6 +290,8 @@ company_demand:
   - {category: meals,         per_thousand: 4}
   - {category: repairs,       per_thousand: 1}
   - {category: health,        per_thousand: 1}
+  - {category: pharmaceuticals, per_thousand: 1}
+  - {category: pharmacy,      per_thousand: 3}
   - {category: delivery,      per_thousand: 2}
   - {category: software,      per_thousand: 1}
   - {category: manufacturing, per_thousand: 3}

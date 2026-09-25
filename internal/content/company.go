@@ -61,6 +61,10 @@ type CompanyTypeDef struct {
 	// omitted; defence…): a buyer class of export control, so a restricted
 	// technology or good can go to some sectors only.
 	Sector string `yaml:"sector,omitempty" json:"sector,omitempty"`
+	// Care makes it a clinic: it treats hospital patients at its place,
+	// using medicine from its warehouse, as well as this care
+	// (docs/adr/0023). Omitted: it treats nobody.
+	Care *CareDef `yaml:"care,omitempty" json:"care,omitempty"`
 }
 
 // DefaultSector is the sector of a kind of business that names none.

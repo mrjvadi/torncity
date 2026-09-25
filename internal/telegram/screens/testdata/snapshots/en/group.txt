@@ -281,3 +281,74 @@ Player code or username
 
 ━━━ announcement · a city liberated ━━━
 🏳️ Vantor Federation has liberated Calderis from the occupation of The Commonwealth.
+
+━━━ announcement · taken to hospital ━━━
+🚑 Kaveh was taken to hospital in Ostmarch.
+
+━━━ question · health.price ━━━
+🩺 What should your clinic charge for a treatment? Type the amount; zero means free.
+To cancel, send "cancel".
+
+━━━ question · health.price · reply box ━━━
+Price of a treatment, in Nil
+
+━━━ faction · founded ━━━
+🏴 Sara founded Northern Lions (L10N5ZA).
+
+━━━ faction · joined ━━━
+🤝 Kaveh joined Northern Lions (L10N5ZA).
+
+━━━ faction · left ━━━
+🚪 Nilou left Northern Lions (L10N5ZA).
+
+━━━ faction · linked ━━━
+💬 Northern Lions (L10N5ZA) is linked to this group.
+
+━━━ faction · ranked ━━━
+🎖 Kaveh is now officer of Northern Lions (L10N5ZA).
+
+━━━ faction · disbanded ━━━
+🏴 Northern Lions (L10N5ZA) is disbanded.
+
+━━━ faction · planned ━━━
+🗺 Northern Lions (L10N5ZA) is planning Warehouse heist at the industrial zone. Members, gather there.
+
+━━━ faction · launched ━━━
+🚀 Northern Lions (L10N5ZA)'s crew is off on Warehouse heist.
+
+━━━ faction · crime resolved · succeeded ━━━
+🕶 Northern Lions (L10N5ZA)'s Warehouse heist: went to plan.
+
+━━━ faction · crime resolved · escaped ━━━
+🕶 Northern Lions (L10N5ZA)'s Warehouse heist: went wrong; the crew got away.
+
+━━━ faction · crime resolved · caught ━━━
+🕶 Northern Lions (L10N5ZA)'s Warehouse heist: went wrong; the crew was caught.
+
+━━━ question · faction.found ━━━
+🏴 Type the faction's name and send it.
+To cancel, send "cancel".
+
+━━━ question · faction.found · reply box ━━━
+Faction name
+
+━━━ question · faction.invite ━━━
+🤝 Send the player code or username of the player you are inviting.
+To cancel, send "cancel".
+
+━━━ question · faction.invite · reply box ━━━
+Player code or username
+
+━━━ question · faction.deposit ━━━
+📥 How much should go into the faction's bank? Type the amount.
+To cancel, send "cancel".
+
+━━━ question · faction.deposit · reply box ━━━
+Amount to deposit, in Nil
+
+━━━ question · faction.withdraw ━━━
+📤 How much should come out of the faction's bank into your bank? Type the amount.
+To cancel, send "cancel".
+
+━━━ question · faction.withdraw · reply box ━━━
+Amount to withdraw, in Nil

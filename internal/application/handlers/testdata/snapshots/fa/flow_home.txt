@@ -21,6 +21,7 @@
   [🗺 نقشه] → map:list   │   [💼 فرصت‌های شغلی] → job:list
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
@@ -64,5 +65,6 @@
   [🗺 نقشه] → map:list   │   [💼 فرصت‌های شغلی] → job:list
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get

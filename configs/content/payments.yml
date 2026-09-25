@@ -20,6 +20,10 @@
 #              election       a candidate's deposit
 #              company        a company's registration fee, and money put
 #                             into a company
+#              hospital       a hospital treatment, at the city hospital or
+#                             a player clinic
+#              faction        a faction's founding fee, and money put into
+#                             its bank
 #   accepts  the methods it takes: [cash], [card] or [cash, card]. Never
 #            empty; a service left out of this file takes both.
 #
@@ -48,4 +52,8 @@ payment_services:
   - code: election
     accepts: [cash, card]
   - code: company
+    accepts: [cash, card]
+  - code: hospital
+    accepts: [cash, card]
+  - code: faction
     accepts: [cash, card]

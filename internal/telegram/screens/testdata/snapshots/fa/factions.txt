@@ -1,0 +1,576 @@
+━━━ List · a city's factions, the viewer in none ━━━
+(edits message 42)
+🏴 جناح‌های استمارچ
+
+• ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ - ۷ عضو
+• ⁨سایه‌ها (⁨SH4D3SB⁩)⁩ - ۳ عضو
+
+جناح خودتان را در شهرداری تأسیس کنید؛ هزینهٔ ثبت ۵۰٬۰۰۰ نیل است.
+  ───
+  [🏴 شیرهای شمال] → faction:view:L10N5ZA
+  [🏴 سایه‌ها] → faction:view:SH4D3SB
+  [🏴 تأسیس جناح] → faction:found
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → faction:list
+
+━━━ List · empty, the viewer a member ━━━
+(edits message 42)
+🏴 جناح‌های کسمور
+
+هنوز جناحی در این شهر نیست.
+
+جناح شما: ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → faction:list
+
+━━━ Page · as an outsider ━━━
+(edits message 42)
+🏴 ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩
+
+📍 شهر: استمارچ
+👥 ۳ عضو:
+• ⁨سارا (⁨K7Q2M9A⁩)⁩ - رهبر
+• ⁨کاوه (⁨B3C4D5F⁩)⁩ - افسر
+• ⁨نیلوفر (⁨N1L0F4R⁩)⁩ - عضو
+💬 گروه تلگرامی جناح وصل است؛ خبرهای جناح آنجا اعلام می‌شود.
+  ───
+  [📨 درخواست عضویت] → faction:apply:L10N5ZA:yes
+  [🔙 بازگشت] → faction:list   │   [🔄 به‌روزرسانی] → faction:view:L10N5ZA
+
+━━━ Page · as a group reads it ━━━
+(edits message 42)
+🏴 ⁨سایه‌ها (⁨SH4D3SB⁩)⁩
+
+📍 شهر: استمارچ
+👥 ۱ عضو:
+• ⁨کاوه (⁨B3C4D5F⁩)⁩ - رهبر
+  ───
+  [🔙 بازگشت] → faction:list   │   [🔄 به‌روزرسانی] → faction:view:SH4D3SB
+
+━━━ Page · its leader, in a group to link ━━━
+(edits message 42)
+🏴 ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩
+
+📍 شهر: استمارچ
+👥 ۱ عضو:
+• ⁨سارا (⁨K7Q2M9A⁩)⁩ - رهبر
+  ───
+  [🔗 وصل کردن به این گروه] → faction:link
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → faction:list   │   [🔄 به‌روزرسانی] → faction:view:L10N5ZA
+
+━━━ Found · the fee and the ways to pay ━━━
+(edits message 42) (private in groups)
+🏴 تأسیس جناح
+هزینهٔ ثبت جناح در استمارچ: ۵۰٬۰۰۰ نیل که به خزانهٔ شهر می‌رود.
+نام جناح باید ۳ تا ۲۴ حرف باشد و نام نهادهای شهر را نداشته باشد. تأسیس در شهرداری انجام می‌شود.
+
+هزینه را چطور می‌پردازید؟ پس از انتخاب، نام جناح را می‌فرستید.
+💵 پول نقدتان کافی نیست؛ با کارت بانکی بپردازید.
+💵 پول نقد شما: ۱٬۲۰۰ نیل - موجودی بانک: ۹۰٬۰۰۰ نیل
+  ───
+  [💳 پرداخت با کارت - ۵۰٬۰۰۰ نیل] → ask:faction.found:card
+  [🔙 بازگشت] → faction:list
+
+━━━ Founded ━━━
+(edits message 42) (private in groups)
+🏴 ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ در استمارچ تأسیس شد و شما رهبر آن هستید.
+💸 هزینهٔ ثبت: ۵۰٬۰۰۰ نیل
+💳 با کارت بانکی پرداخت شد.
+حالا اعضا را دعوت کنید، بانک جناح را پر کنید و گروه تلگرامی جناح را وصل کنید: در آن گروه «جناح ⁨L10N5ZA⁩» را بفرستید و دکمهٔ وصل کردن را بزنید.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Home · the leader, a crew gathering ━━━
+(edits message 42) (private in groups)
+🏴 ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩
+
+🎖 رتبهٔ شما: رهبر
+📍 شهر: استمارچ
+👥 اعضا: ۷ از ۳۰
+🏦 بانک جناح: ۱۸۴٬۵۰۰ نیل
+📨 ۲ درخواست عضویت در انتظار پاسخ
+
+💬 جناح هنوز گروه تلگرامی ندارد؛ رهبر در گروه «جناح ⁨L10N5ZA⁩» را می‌فرستد و دکمهٔ وصل کردن را می‌زند.
+
+🕶 دستبرد به انبار در منطقهٔ صنعتی استمارچ: گروه در حال جمع شدن است.
+مهلت جمع شدن: ساعت ۱۴:۳۶
+👥 ۱ نفر از حداقل ۲ و حداکثر ۵ - هر نفر هنگام شروع ۵ جسارت می‌دهد
+گروه: ⁨سارا (⁨K7Q2M9A⁩)⁩
+  ───
+  [👥 اعضا] → faction:members   │   [🏦 بانک جناح] → faction:bank
+  [🕶 خلاف گروهی] → faction:crime
+  [✏️ دعوت از بازیکن] → ask:faction.invite
+  [🚪 خروج از جناح] → faction:leave
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → faction:mine
+
+━━━ Home · a member, linked ━━━
+(edits message 42) (private in groups)
+🏴 ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩
+
+🎖 رتبهٔ شما: عضو
+📍 شهر: استمارچ
+👥 اعضا: ۷ از ۳۰
+🏦 بانک جناح: ۱۸۴٬۵۰۰ نیل
+
+💬 گروه تلگرامی جناح وصل است؛ خبرهای جناح آنجا اعلام می‌شود.
+  ───
+  [👥 اعضا] → faction:members   │   [🏦 بانک جناح] → faction:bank
+  [🕶 خلاف گروهی] → faction:crime
+  [🚪 خروج از جناح] → faction:leave
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → faction:mine
+
+━━━ Members · the leader's view ━━━
+(edits message 42) (private in groups)
+👥 اعضای ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩
+
+۳ عضو از ۳۰
+• ⁨سارا (⁨K7Q2M9A⁩)⁩ - رهبر (شما)
+• ⁨کاوه (⁨B3C4D5F⁩)⁩ - افسر
+• ⁨نیلوفر (⁨N1L0F4R⁩)⁩ - عضو
+
+📨 در انتظار پاسخ:
+• درخواست عضویت ⁨آرش (⁨A2R4S6H⁩)⁩
+• دعوت از ⁨دارا (⁨D4R4X1Y⁩)⁩
+  ───
+  [⬇️ کاوه] → faction:rank:B3C4D5F:member   │   [✖️ کاوه] → faction:kick:B3C4D5F   │   [👑 کاوه] → faction:rank:B3C4D5F:leader
+  [⬆️ نیلوفر] → faction:rank:N1L0F4R:officer   │   [✖️ نیلوفر] → faction:kick:N1L0F4R   │   [👑 نیلوفر] → faction:rank:N1L0F4R:leader
+  [✅ آرش] → faction:answer:12:accept   │   [❌ رد] → faction:answer:12:decline
+  [✏️ دعوت از بازیکن] → ask:faction.invite
+  [🔙 بازگشت] → faction:mine   │   [🔄 به‌روزرسانی] → faction:members
+
+━━━ Invited ━━━
+(edits message 42) (private in groups)
+📨 دعوت برای ⁨نیلوفر (⁨N1L0F4R⁩)⁩ فرستاده شد.
+  ───
+  [👥 اعضا] → faction:members
+  [🔙 بازگشت] → faction:mine
+
+━━━ Applied ━━━
+(edits message 42) (private in groups)
+📨 درخواست عضویت شما برای ⁨سایه‌ها (⁨SH4D3SB⁩)⁩ فرستاده شد. پاسخ را در پیام خصوصی می‌گیرید.
+  ───
+  [🏴 جناح‌ها] → faction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Answered · joined by invitation ━━━
+(edits message 42) (private in groups)
+🤝 به ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ پیوستید.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Answered · an application turned down ━━━
+(edits message 42) (private in groups)
+درخواست ⁨نیلوفر (⁨N1L0F4R⁩)⁩ رد شد.
+  ───
+  [👥 اعضا] → faction:members
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Confirm · kick ━━━
+(edits message 42) (private in groups)
+⁨کاوه (⁨B3C4D5F⁩)⁩ از ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ اخراج شود؟
+  ───
+  [✖️ اخراج] → faction:kick:B3C4D5F:yes
+  [🔙 بازگشت] → faction:mine
+
+━━━ Confirm · lead ━━━
+(edits message 42) (private in groups)
+رهبری ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ به ⁨کاوه (⁨B3C4D5F⁩)⁩ سپرده شود؟ شما افسر می‌شوید و این کار برگشت‌پذیر نیست مگر او دوباره رهبری را به شما بسپارد.
+  ───
+  [👑 سپردن رهبری] → faction:rank:B3C4D5F:leader:yes
+  [🔙 بازگشت] → faction:mine
+
+━━━ Confirm · leave ━━━
+(edits message 42) (private in groups)
+از ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ خارج می‌شوید؟
+  ───
+  [🚪 خروج] → faction:leave:yes
+  [🔙 بازگشت] → faction:mine
+
+━━━ Confirm · disband ━━━
+(edits message 42) (private in groups)
+شما تنها عضو ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ هستید. با خروج، جناح منحل می‌شود و ماندهٔ بانکش به حساب بانکی شما می‌آید. ادامه می‌دهید؟
+  ───
+  [🏴 خروج و انحلال] → faction:leave:yes
+  [🔙 بازگشت] → faction:mine
+
+━━━ Left ━━━
+(edits message 42) (private in groups)
+از ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ خارج شدید.
+  ───
+  [🏴 جناح‌ها] → faction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Disbanded, the bank paid out ━━━
+(edits message 42) (private in groups)
+🏴 ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ منحل شد.
+🏦 ۱۲٬۰۰۰ نیل از بانک جناح به حساب بانکی شما آمد.
+  ───
+  [🏴 جناح‌ها] → faction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Linked in a group ━━━
+(edits message 42)
+💬 ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ به این گروه وصل شد؛ خبرهای جناح از این پس اینجا اعلام می‌شود.
+  ───
+  [🕶 خلاف گروهی] → faction:crime
+
+━━━ Bank · an officer after a deposit ━━━
+(edits message 42) (private in groups)
+📥 ۱۰٬۰۰۰ نیل به بانک جناح واریز شد.
+💵 از پول نقدتان پرداخت شد.
+
+🏦 بانک ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩
+
+موجودی: ۱۹۴٬۵۰۰ نیل
+💵 پول نقد شما: ۳٬۰۰۰ نیل - موجودی بانک: ۴۲٬۰۰۰ نیل
+هر واریز یا برداشت بین ۱۰۰ نیل و ۱۰٬۰۰۰٬۰۰۰ نیل
+
+واریز با اعضایی است که رتبه‌شان اجازه می‌دهد؛ برداشت فقط با رتبه‌های مجاز و به حساب بانکی خودشان.
+  ───
+  [✏️ واریز نقدی] → ask:faction.deposit:cash   │   [✏️ واریز با کارت] → ask:faction.deposit:card
+  [✏️ برداشت] → ask:faction.withdraw
+  [🔙 بازگشت] → faction:mine   │   [🔄 به‌روزرسانی] → faction:bank
+
+━━━ Bank · a member after nothing ━━━
+(edits message 42) (private in groups)
+🏦 بانک ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩
+
+موجودی: ۱۹۴٬۵۰۰ نیل
+💵 پول نقد شما: ۳٬۰۰۰ نیل - موجودی بانک: ۴۲٬۰۰۰ نیل
+هر واریز یا برداشت بین ۱۰۰ نیل و ۱۰٬۰۰۰٬۰۰۰ نیل
+
+واریز با اعضایی است که رتبه‌شان اجازه می‌دهد؛ برداشت فقط با رتبه‌های مجاز و به حساب بانکی خودشان.
+  ───
+  [✏️ واریز نقدی] → ask:faction.deposit:cash   │   [✏️ واریز با کارت] → ask:faction.deposit:card
+  [🔙 بازگشت] → faction:mine   │   [🔄 به‌روزرسانی] → faction:bank
+
+━━━ Crime · nothing under way, an officer ━━━
+(edits message 42)
+🕶 خلاف گروهی ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩
+
+کاری در جریان نیست. کارهای ممکن:
+• دستبرد به انبار: ۲ تا ۵ نفر - هر نفر ۵ جسارت - حداقل سطح ۳ - ۳ دقیقه - در: منطقهٔ صنعتی
+• زدن ماشین پول: ۳ تا ۶ نفر - هر نفر ۸ جسارت - حداقل سطح ۵ - ۴ دقیقه - در: منطقهٔ تجاری
+
+کسی که نقشه می‌کشد باید همان‌جایی باشد که کار انجام می‌شود. اعضا در همان محل به گروه می‌پیوندند و هنگام شروع جسارت می‌دهند؛ هر کس آنجا نباشد جا می‌ماند. سهم بانک جناح ۱۵٪ است و باقی به نسبت رتبه تقسیم می‌شود. اگر پلیس برسد، همهٔ گروه زندانی و جریمه می‌شوند.
+  ───
+  [🗺 نقشهٔ دستبرد به انبار] → faction:plan:warehouse_heist
+  [🗺 نقشهٔ زدن ماشین پول] → faction:plan:armoured_van_job
+  [🔙 بازگشت] → faction:mine   │   [🔄 به‌روزرسانی] → faction:crime
+
+━━━ Crime · planned, a member may join ━━━
+(edits message 42)
+🗺 نقشه کشیده شد. اعضا باید در همان محل جمع شوند و به گروه بپیوندند.
+
+🕶 خلاف گروهی ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩
+
+🕶 دستبرد به انبار در منطقهٔ صنعتی استمارچ: گروه در حال جمع شدن است.
+مهلت جمع شدن: ساعت ۱۴:۳۶
+👥 ۱ نفر از حداقل ۲ و حداکثر ۵ - هر نفر هنگام شروع ۵ جسارت می‌دهد
+گروه: ⁨سارا (⁨K7Q2M9A⁩)⁩
+
+کسی که نقشه می‌کشد باید همان‌جایی باشد که کار انجام می‌شود. اعضا در همان محل به گروه می‌پیوندند و هنگام شروع جسارت می‌دهند؛ هر کس آنجا نباشد جا می‌ماند. سهم بانک جناح ۱۵٪ است و باقی به نسبت رتبه تقسیم می‌شود. اگر پلیس برسد، همهٔ گروه زندانی و جریمه می‌شوند.
+  ───
+  [🤝 پیوستن به گروه] → faction:join
+  [🔙 بازگشت] → faction:mine   │   [🔄 به‌روزرسانی] → faction:crime
+
+━━━ Crime · the crew ready, the leader ━━━
+(edits message 42)
+🤝 به گروه پیوستید. تا شروع کار همین‌جا بمانید.
+
+🕶 خلاف گروهی ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩
+
+🕶 دستبرد به انبار در منطقهٔ صنعتی استمارچ: گروه در حال جمع شدن است.
+مهلت جمع شدن: ساعت ۱۴:۳۶
+👥 ۲ نفر از حداقل ۲ و حداکثر ۵ - هر نفر هنگام شروع ۵ جسارت می‌دهد
+گروه: ⁨سارا (⁨K7Q2M9A⁩)، کاوه (⁨B3C4D5F⁩)⁩
+
+کسی که نقشه می‌کشد باید همان‌جایی باشد که کار انجام می‌شود. اعضا در همان محل به گروه می‌پیوندند و هنگام شروع جسارت می‌دهند؛ هر کس آنجا نباشد جا می‌ماند. سهم بانک جناح ۱۵٪ است و باقی به نسبت رتبه تقسیم می‌شود. اگر پلیس برسد، همهٔ گروه زندانی و جریمه می‌شوند.
+  ───
+  [🚀 شروع کار] → faction:launch
+  [✖️ لغو نقشه] → faction:calloff
+  [🔙 بازگشت] → faction:mine   │   [🔄 به‌روزرسانی] → faction:crime
+
+━━━ Crime · under way, as a group reads it ━━━
+(edits message 42)
+🚀 کار شروع شد. نتیجه پس از پایان در پیام خصوصی می‌رسد.
+
+🕶 خلاف گروهی ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩
+
+🕶 دستبرد به انبار در منطقهٔ صنعتی استمارچ در جریان است - شانس موفقیت ۶۲٪ - ۳ دقیقه مانده
+پایان کار: ساعت ۱۴:۳۸
+گروه: ⁨سارا (⁨K7Q2M9A⁩)، کاوه (⁨B3C4D5F⁩)، نیلوفر (⁨N1L0F4R⁩)⁩
+
+کسی که نقشه می‌کشد باید همان‌جایی باشد که کار انجام می‌شود. اعضا در همان محل به گروه می‌پیوندند و هنگام شروع جسارت می‌دهند؛ هر کس آنجا نباشد جا می‌ماند. سهم بانک جناح ۱۵٪ است و باقی به نسبت رتبه تقسیم می‌شود. اگر پلیس برسد، همهٔ گروه زندانی و جریمه می‌شوند.
+  ───
+  [🔙 بازگشت] → faction:mine   │   [🔄 به‌روزرسانی] → faction:crime
+
+━━━ Refused · none ━━━
+(edits message 42)
+این دنیا هنوز جناح ندارد.
+  ───
+  [🏴 جناح‌ها] → faction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · not_member ━━━
+(edits message 42)
+عضو هیچ جناحی نیستید.
+  ───
+  [🏴 جناح‌ها] → faction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · rank ━━━
+(edits message 42)
+🎖 رتبهٔ شما اجازهٔ این کار را نمی‌دهد.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · not_found ━━━
+(edits message 42)
+چنین جناحی پیدا نشد.
+  ───
+  [🏴 جناح‌ها] → faction:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · already_member ━━━
+(edits message 42)
+شما همین حالا عضو یک جناح هستید.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · name_taken ━━━
+(edits message 42)
+این نام را جناح دیگری دارد.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · not_group ━━━
+(edits message 42)
+این کار فقط در گروه تلگرامی جناح انجام می‌شود.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · group_taken ━━━
+(edits message 42)
+این گروه به جناح دیگری وصل است.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · no_player ━━━
+(edits message 42)
+چنین بازیکنی پیدا نشد. کد بازیکن یا نام کاربری را درست بفرستید.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · theirs ━━━
+(edits message 42)
+این بازیکن عضو یک جناح است.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · pending_full ━━━
+(edits message 42)
+درخواست‌های در انتظار این جناح زیاد است؛ کمی بعد دوباره امتحان کنید.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · pending ━━━
+(edits message 42)
+یک دعوت یا درخواست از قبل در انتظار پاسخ است.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · request_gone ━━━
+(edits message 42)
+این دعوت یا درخواست دیگر در انتظار نیست.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · not_yours ━━━
+(edits message 42)
+پاسخ این درخواست با شما نیست.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · not_in_it ━━━
+(edits message 42)
+این بازیکن عضو جناح شما نیست.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · on_a_job ━━━
+(edits message 42)
+🕶 گروه در حال کار است؛ تا پایانش نمی‌شود جناح را ترک کرد.
+  ───
+  [🕶 خلاف گروهی] → faction:crime
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · leader_leaving ━━━
+(edits message 42)
+👑 رهبر پیش از خروج باید رهبری را به عضو دیگری بسپارد.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · no_such_crime ━━━
+(edits message 42)
+چنین کار گروهی‌ای وجود ندارد.
+  ───
+  [🕶 خلاف گروهی] → faction:crime
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · operation_open ━━━
+(edits message 42)
+جناح همین حالا یک کار گروهی در جریان دارد.
+  ───
+  [🕶 خلاف گروهی] → faction:crime
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · no_place_here ━━━
+(edits message 42)
+این کار در این شهر شدنی نیست.
+  ───
+  [🕶 خلاف گروهی] → faction:crime
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · no_operation ━━━
+(edits message 42)
+کار گروهی‌ای در حال جمع شدن نیست.
+  ───
+  [🕶 خلاف گروهی] → faction:crime
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · crew_full ━━━
+(edits message 42)
+گروه پر است.
+  ───
+  [🕶 خلاف گروهی] → faction:crime
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · elsewhere ━━━
+(edits message 42)
+گروه در شهر یا محل دیگری جمع می‌شود.
+  ───
+  [🕶 خلاف گروهی] → faction:crime
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · a name ━━━
+(edits message 42)
+نام جناح باید ۳ تا ۲۴ حرف باشد، با حرف یا عدد شروع شود و نام نهادهای شهر را نداشته باشد.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · the bank short ━━━
+(edits message 42)
+🏦 بانک جناح ۱۲٬۰۰۰ نیل دارد و ۵۰٬۰۰۰ نیل خواستید.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · full ━━━
+(edits message 42)
+جناح پر است: حداکثر ۳۰ عضو.
+  ───
+  [🏴 جناح من] → faction:mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · level ━━━
+(edits message 42)
+برای کشیدن این نقشه دست‌کم سطح ۵ لازم است.
+  ───
+  [🕶 خلاف گروهی] → faction:crime
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refused · crew short ━━━
+(edits message 42)
+👥 برای شروع دست‌کم ۳ نفر در محل با جسارت کافی لازم است و ۲ نفر آماده‌اند.
+  ───
+  [🕶 خلاف گروهی] → faction:crime
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Not here · the crew gathers elsewhere ━━━
+(edits message 42)
+🕶 دستبرد به انبار اینجا شدنی نیست؛ گروه باید در منطقهٔ صنعتی جمع شود.
+📍 شما الان در بازار هستید.
+با یک دکمه تا منطقهٔ صنعتی پیاده می‌روید (۳۰ ثانیه) و همین صفحه آنجا دوباره باز می‌شود.
+  ───
+  [🚶 رفتن به منطقهٔ صنعتی (۳۰ ثانیه)] → place:go:industrial_zone:faction.crime
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Notice · invited ━━━
+(sends) (private in groups)
+📨 ⁨سارا (⁨K7Q2M9A⁩)⁩ شما را به ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ دعوت کرد.
+  ───
+  [✅ پذیرفتن] → faction:answer:13:accept   │   [❌ رد] → faction:answer:13:decline
+
+━━━ Notice · an application ━━━
+(sends) (private in groups)
+📨 ⁨نیلوفر (⁨N1L0F4R⁩)⁩ می‌خواهد به ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ بپیوندد.
+  ───
+  [✅ پذیرفتن] → faction:answer:12:accept   │   [❌ رد] → faction:answer:12:decline
+
+━━━ Notice · the invitation accepted ━━━
+(sends) (private in groups)
+🤝 ⁨نیلوفر (⁨N1L0F4R⁩)⁩ دعوت شما را پذیرفت و به ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ پیوست.
+  ───
+  [🏴 جناح‌ها] → faction:list
+
+━━━ Notice · the application accepted ━━━
+(sends) (private in groups)
+🤝 درخواست شما پذیرفته شد: اکنون عضو ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ هستید.
+  ───
+  [🏴 جناح من] → faction:mine
+
+━━━ Notice · the application declined ━━━
+(sends) (private in groups)
+درخواست عضویت شما در ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ پذیرفته نشد.
+  ───
+  [🏴 جناح‌ها] → faction:list
+
+━━━ Notice · kicked ━━━
+(sends) (private in groups)
+🚪 سارا شما را از ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ اخراج کرد.
+  ───
+  [🏴 جناح‌ها] → faction:list
+
+━━━ Notice · the job went to plan ━━━
+(sends) (private in groups)
+🕶 دستبرد به انبار با ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ موفق بود.
+💵 کل درآمد ۷٬۸۰۰ نیل - سهم بانک جناح ۱٬۱۷۰ نیل - سهم شما ۲٬۲۱۰ نیل
+⭐ ۳۰+ امتیاز تجربه
+  ───
+  [🕶 خلاف گروهی] → faction:crime
+
+━━━ Notice · caught and hurt ━━━
+(sends) (private in groups)
+🚔 زدن ماشین پول با ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ خراب شد و پلیس گروه را گرفت.
+⛓ برای ۱۸ دقیقه به زندان رفتید.
+⏳ آزادی ساعت ۱۴:۵۳
+💸 جریمه: ۲٬۴۰۰ نیل. توانستید ۱٬۰۰۰ نیل بپردازید؛ ۱٬۴۰۰ نیل در سابقه‌تان می‌ماند.
+🚑 ۴۴ از سلامتتان کم شد و به بیمارستان منتقل شدید؛ سلامت: ۱۸ از ۱۰۰
+ترخیص: ساعت ۱۴:۴۲
+  ───
+  [🏥 بیمارستان] → health:hospital
+
+━━━ Notice · escaped ━━━
+(sends) (private in groups)
+🏃 دستبرد به انبار با ⁨شیرهای شمال (⁨L10N5ZA⁩)⁩ خراب شد، ولی گروه فرار کرد.
+🩹 ۱۲ از سلامتتان کم شد؛ سلامت: ۷۰ از ۱۰۰
+  ───
+  [🕶 خلاف گروهی] → faction:crime

@@ -95,6 +95,11 @@ const (
 
 	// War (docs/adr/0022, part two): an operation reaching its target.
 	ActionTypeWarOperation = "war_operation"
+
+	// Stage E (docs/adr/0023): a hospital stay ending, and a faction's
+	// organised crime reaching its end.
+	ActionTypeHospitalDischarge = "hospital_discharge"
+	ActionTypeFactionCrime      = "faction_crime"
 )
 
 // routes maps an action type to the command it is published as.
@@ -134,6 +139,9 @@ var routes = map[string]Route{
 	ActionTypeMilitaryMove:   {Domain: "military", Action: "arrive"},
 
 	ActionTypeWarOperation: {Domain: "war", Action: "resolve"},
+
+	ActionTypeHospitalDischarge: {Domain: "health", Action: "discharge"},
+	ActionTypeFactionCrime:      {Domain: "faction", Action: "resolve"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

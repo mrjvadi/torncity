@@ -1,0 +1,120 @@
+# Missions: the jobs a city posts on its boards.
+#
+# A mission asks for things the game already knows how to see happen — a
+# journey arriving, a shift worked, a course completed, a good bought, sold or
+# used, a crime that succeeded — or for goods handed in at the board. It is
+# taken at the board, in person (go-then-do walks the player there), counts
+# only what happens after it was taken, and pays once, when the last
+# objective is met. The RULES — what counts toward an objective, when a
+# mission may be taken again, how the day's caps cut a cash reward — are
+# internal/domain/mission (docs/adr/0023-health-missions-factions.md). What is
+# here is content.
+#
+# Cash rewards enter the economy (ADR 0009 mission_reward), recorded as a
+# reward grant; they are held inside two caps a day (config.yml missions.*):
+# per player and for the whole economy. What a cap withholds is shown on the
+# completion notice and never paid later. A sale to someone the watch has
+# flagged as the seller's other account does not count (anti-farming).
+#
+# mission_boards
+#   code, name   the board; the name is the fallback for mission_board.<code>.
+#   place        where it stands (places.yml): taken and handed in there.
+#
+# missions
+#   code, name   stable identifier; name is the fallback for
+#                mission.<code>.name (and mission.<code>.brief for its line).
+#   board        the board that posts it.
+#   cities       optional: only these cities' boards post it.
+#   min_level    optional: the character level it asks for.
+#   requires     optional: missions completed first.
+#   objectives   [{kind, target, count}], all to be met:
+#                  travel      arrive in a city; target a city code.
+#                  work_shift  work a shift; target a career or category.
+#                  course      complete a course; target a course.
+#                  buy_item    buy units at a city shop; target a good.
+#                  sell_item   sell units to a shop or on the market.
+#                  crime       succeed at a crime; target a crime or category.
+#                  use_item    use a good; target a good or its category.
+#                  deliver     hand units in at the board; target a good.
+#                A target left out counts any.
+#   repeat       once (default) or repeat.
+#   cooldown     for repeat: how long after a completion it may be taken
+#                again, GAME time (24h = a daily mission).
+#   time_limit   optional: how long a taken mission may run, GAME time.
+#   reward       {cash, xp, items: [{item, qty}]}.
+#
+# Loaded and versioned with the rest of the content (`admin content load`).
+
+version: 1
+
+mission_boards:
+  - {code: city_hall, name: Civic noticeboard, place: city_hall}
+  - {code: police,    name: Police board,      place: police_station}
+
+missions:
+  # A newcomer's first week: earn a wage, stock the medicine cabinet.
+  - code: first_steps
+    name: First steps
+    board: city_hall
+    min_level: 1
+    objectives:
+      - {kind: work_shift, count: 2}
+      - {kind: buy_item, target: bandage, count: 1}
+    reward: {cash: 300, xp: 40, items: [{item: sandwich, qty: 2}]}
+
+  - code: study_up
+    name: Back to school
+    board: city_hall
+    requires: [first_steps]
+    objectives:
+      - {kind: course, count: 1}
+    reward: {cash: 500, xp: 60}
+
+  # Daily: carry the city's post to another city.
+  - code: city_courier
+    name: City courier
+    board: city_hall
+    min_level: 2
+    objectives:
+      - {kind: travel, count: 1}
+    repeat: repeat
+    cooldown: 24h
+    time_limit: 12h
+    reward: {cash: 250, xp: 25}
+
+  # Daily: the city's clinics run short; bring bandages to the civic centre.
+  - code: medicine_drive
+    name: Medicine drive
+    board: city_hall
+    objectives:
+      - {kind: deliver, target: bandage, count: 3}
+    repeat: repeat
+    cooldown: 24h
+    reward: {cash: 450, xp: 30}
+
+  - code: market_day
+    name: Market day
+    board: city_hall
+    min_level: 2
+    objectives:
+      - {kind: sell_item, count: 3}
+    reward: {cash: 300, xp: 30}
+
+  # The precinct wants eyes on the road: drivers and delivery staff.
+  - code: road_watch
+    name: Road watch
+    board: police
+    min_level: 2
+    objectives:
+      - {kind: work_shift, target: transport, count: 2}
+      - {kind: travel, count: 1}
+    repeat: repeat
+    cooldown: 48h
+    reward: {cash: 600, xp: 50}
+
+  - code: first_aid_course
+    name: First aid training
+    board: police
+    objectives:
+      - {kind: use_item, target: medicine, count: 2}
+    reward: {cash: 200, xp: 20, items: [{item: first_aid_kit, qty: 1}]}

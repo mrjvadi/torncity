@@ -1,0 +1,316 @@
+━━━ Hospital · well, resting back to full ━━━
+(edits message 42) (private in groups)
+🏥 Hospital
+
+❤️ Health: 72 of 100
+
+✅ You are not in hospital.
+🛌 Resting, your health is back in full in 7m. Medicine gets you there sooner.
+
+🩺 Clinics in Ostmarch:
+• Shefa clinic (C1N1C2A): 1,200 Nil a treatment - doctor level 12
+• Nilou Repairs clinic (M3D1C4L): not taking patients
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
+
+━━━ Hospital · in hospital, three ways to be treated ━━━
+(edits message 42) (private in groups)
+🏥 Hospital
+
+❤️ Health: 23 of 100
+
+🛏 You are in hospital in Ostmarch.
+Cause: hurt on a job
+⏳ 6m until you are discharged
+Discharged at 14:41
+
+🩺 Who should treat you? A stay is treated once:
+• City hospital: 750 Nil - out 3m sooner
+• Shefa clinic (C1N1C2A): 1,200 Nil - out 5m sooner - doctor level 12
+• Kaveh Bakery clinic (D4R0B8K): out of medicine
+• Nilou Repairs clinic (M3D1C4L): not taking patients
+  ───
+  [🩺 City hospital - 750 Nil] → health:treat:city
+  [🩺 Shefa clinic (C1N1C2A) - 1,200 Nil] → health:treat:C1N1C2A
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
+
+━━━ Hospital · treated, resting ━━━
+(edits message 42) (private in groups)
+🏥 Hospital
+
+❤️ Health: 41 of 100
+
+🛏 You are in hospital in Ostmarch.
+Cause: wounded when the city was struck
+⏳ 2m until you are discharged
+Discharged at 14:36
+
+✅ Shefa clinic (C1N1C2A) treated this stay; rest until you are discharged.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
+
+━━━ Hospital · full health, nowhere ━━━
+(edits message 42) (private in groups)
+🏥 Hospital
+
+❤️ Health: 100 of 100
+
+✅ You are not in hospital.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
+
+━━━ Treat · confirm at a clinic ━━━
+(edits message 42) (private in groups)
+🩺 Treatment at Shefa clinic (C1N1C2A): 1,200 Nil. It takes 5m off the 6m left of your stay.
+Discharged after treatment at 14:36
+
+How will you pay?
+💵 Your cash: 3,400 Nil - Bank: 52,000 Nil
+  ───
+  [💵 Pay cash - 1,200 Nil] → health:treat:C1N1C2A:cash   │   [💳 Pay by card - 1,200 Nil] → health:treat:C1N1C2A:card
+  [🔙 Back] → health:hospital
+
+━━━ Treat · confirm, cannot afford ━━━
+(edits message 42) (private in groups)
+🩺 Treatment at City hospital: 750 Nil. It takes 3m off the 6m left of your stay.
+Discharged after treatment at 14:39
+
+💸 Neither your cash nor your bank balance covers this.
+💵 Your cash: 100 Nil - Bank: 0 Nil
+  ───
+  [🏦 Bank] → bank:show
+  [🔙 Back] → health:hospital
+
+━━━ Treat · confirm, a free clinic ━━━
+(edits message 42) (private in groups)
+🩺 Treatment at Shefa clinic (C1N1C2A): 0 Nil. It takes 5m off the 6m left of your stay.
+Discharged after treatment at 14:36
+  ───
+  [✅ Free treatment] → health:treat:C1N1C2A:free
+  [🔙 Back] → health:hospital
+
+━━━ Treat · treated at a clinic ━━━
+(edits message 42) (private in groups)
+🩺 Treated at Shefa clinic (C1N1C2A): you are out 5m sooner.
+💸 Treatment: 1,200 Nil
+💳 Paid by bank card.
+⏳ 2m until you are discharged
+Discharged at 14:36
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
+
+━━━ Clinic desk · open, stocked ━━━
+(edits message 42) (private in groups)
+🩺 Shefa clinic desk
+
+🟢 Taking patients
+💵 A treatment: 1,200 Nil
+💊 Medicine in the warehouse: 18 units - a treatment uses 1
+👨‍⚕️ Best doctor: medicine level 12 - a treatment takes 73% off a stay
+📈 Treatments: 9 - earned: 10,800 Nil
+
+Patients in the city's hospital see this clinic beside the city hospital. Each treatment uses medicine from the warehouse and pays the clinic.
+  ───
+  [✏️ Treatment price] → ask:health.price:C1N1C2A
+  [🔴 Stop taking patients] → health:open:C1N1C2A:off
+  [🏭 Production and warehouse] → company:warehouse:C1N1C2A
+  [🔙 Back] → company:manage:C1N1C2A   │   [🔄 Refresh] → health:clinic:C1N1C2A
+
+━━━ Clinic desk · closed, no medicine ━━━
+(edits message 42) (private in groups)
+🩺 Shefa clinic desk
+
+🔴 Not taking patients
+💵 A treatment: 0 Nil
+💊 Medicine in the warehouse: 0 units - a treatment uses 1
+⚠️ Not enough medicine for a single treatment; buy from a pharmaceutical lab's listings or make your own.
+👨‍⚕️ Best doctor: medicine level 0 - a treatment takes 55% off a stay
+📈 Treatments: 0 - earned: 0 Nil
+
+Patients in the city's hospital see this clinic beside the city hospital. Each treatment uses medicine from the warehouse and pays the clinic.
+  ───
+  [✏️ Treatment price] → ask:health.price:C1N1C2A
+  [🟢 Take patients] → health:open:C1N1C2A:on
+  [🏭 Production and warehouse] → company:warehouse:C1N1C2A
+  [🔙 Back] → company:manage:C1N1C2A   │   [🔄 Refresh] → health:clinic:C1N1C2A
+
+━━━ Notice · taken to hospital ━━━
+(sends) (private in groups)
+🚑 You lost 31 health and were taken to hospital in Ostmarch. Health: 14 of 100
+Cause: an accident at work
+⏳ 6m until you are discharged
+Discharged at 14:41
+Until you are discharged you cannot travel, work a shift, walk across town or commit a crime. Treatment shortens the stay.
+  ───
+  [🏥 Hospital] → health:hospital
+
+━━━ Notice · discharged ━━━
+(sends) (private in groups)
+🏥 You were discharged from hospital in Ostmarch. Health: 60 of 100
+  ───
+  [🗺 Map] → map:list
+
+━━━ Notice · the clinic treated a patient ━━━
+(sends) (private in groups)
+🩺 Shefa clinic treated a patient: Kaveh. 1,200 Nil was paid to the clinic and 1 Bandage used; the patient is out 4m sooner.
+  ───
+  [🩺 Clinic desk] → health:clinic:C1N1C2A
+
+━━━ Refused · no_hospitals ━━━
+(edits message 42) (private in groups)
+This world has no hospitals yet.
+  ───
+  [🏥 Hospital] → health:hospital
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · not_hospitalised ━━━
+(edits message 42) (private in groups)
+✅ You are not in hospital; no treatment needed.
+  ───
+  [🏥 Hospital] → health:hospital
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · treated ━━━
+(edits message 42) (private in groups)
+This stay was already treated. Rest until you are discharged.
+  ───
+  [🏥 Hospital] → health:hospital
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · no_clinic ━━━
+(edits message 42) (private in groups)
+No such clinic.
+  ───
+  [🏥 Hospital] → health:hospital
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · elsewhere ━━━
+(edits message 42) (private in groups)
+That clinic is in a city you are not in hospital in.
+  ───
+  [🏥 Hospital] → health:hospital
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · closed ━━━
+(edits message 42) (private in groups)
+That clinic is not taking patients.
+  ───
+  [🏥 Hospital] → health:hospital
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · no_medicine ━━━
+(edits message 42) (private in groups)
+That clinic is out of medicine. Try the city hospital or another clinic.
+  ───
+  [🏥 Hospital] → health:hospital
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · not_yours ━━━
+(edits message 42) (private in groups)
+You do not run that clinic.
+  ───
+  [🏥 Hospital] → health:hospital
+  [🔙 Back] → player:profile.get
+
+━━━ Error · asked to travel from a hospital bed ━━━
+(edits message 42)
+🏥 You are in hospital for 5m more. A treatment shortens the stay.
+  ───
+  [🏥 Hospital] → health:hospital
+  [🔙 Back] → player:profile.get
+
+━━━ Crime · caught and hurt, off to hospital ━━━
+(sends)
+🚔 Home burglary at the residential area went wrong: you were caught and taken to jail for 9m.
+
+⏳ Free at 14:44
+🚑 You lost 45 health and were taken to hospital; health: 12 of 100
+Discharged at 14:41
+🚨 Heat: 31 of 100 - wanted level 2 of 5
+  ───
+  [🏥 Hospital] → health:hospital
+  [⛓ Jail] → crime:jail
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Crime · escaped with a scratch ━━━
+(edits message 42)
+🏃 Home burglary at the residential area: Sara was spotted and got away empty-handed.
+
+🩹 You lost 12 health; health: 58 of 100
+🚨 Heat: 31 of 100 - wanted level 2 of 5
+🔥 Nerve: 6 of 20 - full in 40m
+  ───
+  [🔁 Again] → crime:view:home_burglary
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Crime · as a group reads it ━━━
+(edits message 42)
+🏃 Home burglary at the residential area: Sara was spotted and got away empty-handed.
+
+🚑 Sara got hurt and was taken to hospital.
+🚨 Heat: 31 of 100 - wanted level 2 of 5
+  ───
+  [🔁 Again] → crime:view:home_burglary
+  [🕶 Underworld] → crime:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Crime · refused, in hospital ━━━
+(edits message 42)
+🏥 You are in hospital for 5m more. Crime will have to wait until you are discharged.
+  ───
+  [🏥 Hospital] → health:hospital
+  [🔙 Back] → crime:hub
+
+━━━ Shift · an accident at work ━━━
+(sends)
+✅ Shift complete
+
+💰 Wage 180 Nil - income tax 18 Nil - you received 162 Nil
+⭐ 12 XP
+📈 Performance: 64 of 100 (+2)
+⚡ Energy: 60 of 100
+
+⚠️ There was an accident at work.
+🚑 You lost 45 health and were taken to hospital; health: 12 of 100
+Discharged at 14:41
+  ───
+  [🏥 Hospital] → health:hospital
+  [🔙 Back] → player:profile.get
+
+━━━ War · a strike on the city hurt you ━━━
+(sends)
+💥 Kessmoor, where you are now, was struck by Vantor Federation: moderate damage. You are free to leave.
+
+💥 You were hurt in the strike.
+🚑 You lost 45 health and were taken to hospital; health: 12 of 100
+Discharged at 14:41
+  ───
+  [🏥 Hospital] → health:hospital
+  [🔙 Back] → war:board:default_country
+
+━━━ Profile · in hospital ━━━
+(edits message 42)
+👤 Sara
+📍 Ostmarch
+
+🏥 You are in hospital in Ostmarch - 4m left
+Discharged at 14:39
+Until you are discharged you cannot travel, work a shift, walk across town or commit a crime. Treatment shortens the stay.
+
+⭐ Level 4 - 230 XP to level 5
+⚡ Energy: 70 of 100
+❤️ Health: 34 of 100
+
+💼 No job yet
+
+💵 Cash: 2,400 Nil
+🏦 Bank balance: 18,000 Nil
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🏥 Hospital] → health:hospital   │   [💼 Job openings] → job:list
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get

@@ -430,6 +430,9 @@ type PaySentView struct {
 	Method    string
 	Amount    int64
 	Fee       int64
+	// Held says the watch held the payment for review (docs/adr/0023): the
+	// money has left the payer and waits in their escrow.
+	Held bool
 }
 
 // PaySent confirms a payment to the payer.
@@ -441,6 +444,8 @@ func PaySent(c Context, v PaySentView) *presenter.Response {
 	}
 	var text string
 	switch {
+	case v.Held:
+		text = c.T("pay.held", args)
 	case v.Method == PayCash:
 		text = c.T("pay.sent_cash", args)
 	case v.Fee > 0:

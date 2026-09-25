@@ -22,6 +22,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sort"
 	"strings"
 	"sync"
 	"syscall"
@@ -277,7 +278,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			bankLimits,
 			cfg.Game.IdempotencyTTL,
 			nil,
-		).WithQuickAmounts(cfg.Economy.BankQuickAmounts),
+		).WithQuickAmounts(cfg.Economy.BankQuickAmounts).WithWatch(watchThresholds(cfg.AntiCheat)),
 		// Policy values are read only through the resolver and changed only
 		// through SetPolicy; the directory reads the seats, names and public
 		// record around them (ADR 0015).
@@ -316,6 +317,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// auction house, on the game clock.
 	h.goods = newGoodsHandlers(uow, messages, registry, cities, postgres.NewPolicyReader(pool, nil),
 		gametime.Scale(cfg.Game.TimeScale), cfg.Crime, cfg.Trade, cfg.Game.IdempotencyTTL)
+	// The watch checks every market trade (docs/adr/0023).
+	h.goods.market.WithWatch(watchThresholds(cfg.AntiCheat))
 
 	// Companies: kinds of business and each city's market are content read
 	// from the live registry; what a city charges a company only through
@@ -345,6 +348,23 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.war = handlers.NewWarHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), warRules(cfg.War),
 		cfg.Game.IdempotencyTTL, nil)
+	// Stage E (docs/adr/0023): health and hospitals on the game clock; what
+	// a hospital charges and how well it treats are content.
+	h.stageE.health = handlers.NewHealthHandler(uow, uuidGenerator{}, messages, registry, cities,
+		gametime.Scale(cfg.Game.TimeScale), bankLimits, cfg.Game.IdempotencyTTL, nil)
+	h.profile.WithHealth(gametime.Scale(cfg.Game.TimeScale))
+	// Factions: what founding one costs and the organised crimes are
+	// content; an organised crime runs through the crime engine.
+	h.stageE.factions = handlers.NewFactionsHandler(uow, uuidGenerator{}, messages, registry, cities,
+		postgres.NewPlayerSearchRepository(pool), gametime.Scale(cfg.Game.TimeScale), handlers.FactionRules{
+			NameMin: cfg.Factions.NameMinLength, NameMax: cfg.Factions.NameMaxLength, MaxMembers: cfg.Factions.MaxMembers,
+			MaxPending: cfg.Factions.MaxPending, ListSize: cfg.Factions.ListSize, Limits: bankLimits},
+		h.crime, cfg.Game.IdempotencyTTL, nil)
+	// Missions: content; their cash within the day's caps (config).
+	h.stageE.missions = handlers.NewMissionsHandler(uow, uuidGenerator{}, messages, registry, cities,
+		gametime.Scale(cfg.Game.TimeScale), handlers.MissionRules{MaxActive: cfg.Missions.MaxActive,
+			PlayerDailyCap: cfg.Missions.PlayerDailyCap, EconomyDailyCap: cfg.Missions.EconomyDailyCap},
+		cfg.Game.IdempotencyTTL, nil)
 	// Every country's defence clock runs from the start; a country a later
 	// content load adds starts its clock the first time its ministry is
 	// opened, or at the next start.
@@ -372,6 +392,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		// decides who is "nearby" a crime, so a burst of presses writes once
 		// and the window stays accurate to within a few percent.
 		activity: postgres.NewActivityRecorder(pool, cfg.Crime.ActiveWindow/activityStampsPerWindow),
+		// The watch counts each player's commands (docs/adr/0023).
+		rate: newCommandRate(watchThresholds(cfg.AntiCheat), postgres.NewWatchRepository(pool), logger),
 	}
 
 	consumer := infranats.NewConsumer(conn, infranats.ConsumerOptions{
@@ -388,6 +410,26 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		logger.Info("consuming",
 			slog.String("subject", sub.Subject()),
 			slog.String("consumer", sub.Durable()))
+	}
+
+	// Missions move on from the game's own events (docs/adr/0023): one
+	// durable consumer per event, each event processed once per player (the
+	// missions' inbox, in the same transaction as the progress).
+	for _, subject := range sortedSubjects(handlers.MissionEventSubjects) {
+		subject := subject
+		durable := missionDurable(subject)
+		if err := consumer.Subscribe(ctx, subject, durable, func(ctx context.Context, env *envelope.Envelope) error {
+			svc.inflight.Add(1)
+			defer svc.inflight.Done()
+			if err := h.stageE.missions.OnEvent(ctx, env, subject); err != nil {
+				logger.Error("cannot move missions on", slog.String("subject", subject), slog.String("error", err.Error()))
+				return err
+			}
+			return nil
+		}); err != nil {
+			return err
+		}
+		logger.Info("consuming", slog.String("subject", subject), slog.String("consumer", durable))
 	}
 
 	<-ctx.Done()
@@ -485,6 +527,8 @@ type service struct {
 	// activity stamps when a player last did anything, so a crime lands
 	// only on someone playing (docs/adr/0019-crime-engine.md).
 	activity application.ActivityRecorder
+	// rate flags a player sending commands faster than a person plays.
+	rate *commandRate
 
 	inflight sync.WaitGroup
 }
@@ -550,6 +594,9 @@ func (s *service) handle(ctx context.Context, sub commands.Subscription, run com
 		if terr := s.activity.Touch(context.WithoutCancel(ctx), meta.PlayerID, time.Now().UTC()); terr != nil {
 			log.Warn("cannot stamp player activity", slog.String("error", terr.Error()))
 		}
+	}
+	if sub.Origin == commands.FromPlayer && meta.PlayerID != "" {
+		s.rate.note(context.WithoutCancel(ctx), meta.PlayerID, time.Now().UTC())
 	}
 	if err != nil {
 		if apperrors.CodeOf(err) == apperrors.CodeInternal {
@@ -662,6 +709,22 @@ func (uuidGenerator) NewID() string {
 	buf[23] = '-'
 	hex.Encode(buf[24:36], b[10:16])
 	return string(buf[:])
+}
+
+// sortedSubjects lists a subject table's subjects in order.
+func sortedSubjects[V any](m map[string]V) []string {
+	out := make([]string, 0, len(m))
+	for s := range m {
+		out = append(out, s)
+	}
+	sort.Strings(out)
+	return out
+}
+
+// missionDurable is the durable consumer name of the missions' consumer of
+// one event: "game-missions-" and the event, dots as dashes.
+func missionDurable(subject string) string {
+	return "game-missions-" + strings.ReplaceAll(strings.TrimPrefix(subject, "game.event."), ".", "-")
 }
 
 // activityStampsPerWindow is how many activity stamps fit in the crime

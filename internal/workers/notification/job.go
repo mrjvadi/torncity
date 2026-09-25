@@ -29,6 +29,7 @@ type shiftWorked struct {
 		XP    int64  `json:"xp"`
 		Level int    `json:"level"`
 	} `json:"skills"`
+	Injury *injuryPayload `json:"injury"`
 }
 
 // renderShiftWorked tells a player their shift has ended and what it paid.
@@ -53,6 +54,7 @@ func renderShiftWorked(_ context.Context, _ Deps, env *envelope.Envelope) (*Draf
 		Level:            ev.Level,
 		Energy:           ev.Energy,
 		MaxEnergy:        ev.MaxEnergy,
+		Injury:           ev.Injury.view(),
 	}
 	for _, s := range ev.Skills {
 		view.Skills = append(view.Skills, screens.SkillGain{Skill: s.Skill, XP: s.XP, Level: s.Level})

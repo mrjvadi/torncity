@@ -184,10 +184,11 @@ func (w *Worker) Handle(ctx context.Context, route Route, env *envelope.Envelope
 		return w.announce(ctx, route, env, now, log)
 	}
 
-	// The message id is the request id, as in cmd/game. The route's own
-	// consumer name keeps two events of one request apart: a command appends
-	// at most one event of each kind.
-	done, err := w.cfg.Inbox.Processed(ctx, meta.RequestID, consumer)
+	// The message id is the outbox event's (Metadata.MessageID), so each of
+	// several events of one kind a command wrote — a notice to every member
+	// of a crew, to every player in a struck city — is told once; a message
+	// from before the worker stamped it falls back to the request id.
+	done, err := w.cfg.Inbox.Processed(ctx, meta.MessageID(), consumer)
 	if err != nil {
 		log.Error("cannot read the inbox", slog.String("error", err.Error()))
 		return err
@@ -233,7 +234,7 @@ func (w *Worker) Handle(ctx context.Context, route Route, env *envelope.Envelope
 	}
 
 	// After success, never before; see the package doc.
-	if _, err := w.cfg.Inbox.MarkProcessed(ctx, meta.RequestID, consumer); err != nil {
+	if _, err := w.cfg.Inbox.MarkProcessed(ctx, meta.MessageID(), consumer); err != nil {
 		log.Warn("cannot record the notification in the inbox", slog.String("error", err.Error()))
 	}
 	return nil

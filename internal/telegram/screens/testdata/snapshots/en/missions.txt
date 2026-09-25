@@ -1,0 +1,238 @@
+━━━ Boards · the city's ━━━
+(edits message 42)
+📋 Mission boards of Ostmarch
+• Civic noticeboard - at the civic centre
+• Police board - at the police station
+  ───
+  [📋 Civic noticeboard] → mission:board:city_hall
+  [📋 Police board] → mission:board:police
+  [📋 My missions] → mission:mine
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → mission:board
+
+━━━ Board · at the civic centre ━━━
+(edits message 42)
+📋 Civic noticeboard - Ostmarch
+
+• First steps - 🎁 Reward: 300 Nil, 40 XP, 2 Sandwich
+• Back to school - 🎁 Reward: 500 Nil, 60 XP
+  Do the missions it builds on first.
+• City courier - 🎁 Reward: 250 Nil, 25 XP
+  ⏳ It can be taken again in 14m.
+• Medicine drive - 🎁 Reward: 450 Nil, 30 XP
+  You have this mission already.
+  ───
+  [📌 First steps] → mission:view:first_steps
+  [📌 Back to school] → mission:view:study_up
+  [📌 City courier] → mission:view:city_courier
+  [📌 Medicine drive] → mission:view:medicine_drive
+  [📋 My missions] → mission:mine
+  [🔙 Back] → mission:board   │   [🔄 Refresh] → mission:board:city_hall
+
+━━━ Board · read in a group, elsewhere ━━━
+(edits message 42)
+📋 Police board - Ostmarch
+You take a mission at the police station.
+
+• Road watch - 🎁 Reward: 600 Nil, 50 XP
+  ───
+  [📌 Road watch] → mission:view:road_watch
+  [📋 My missions] → mission:mine
+  [🔙 Back] → mission:board   │   [🔄 Refresh] → mission:board:police
+
+━━━ Mission · open to take ━━━
+(edits message 42)
+📋 First steps
+
+Every newcomer stands on their own feet: earn a wage and stock the medicine cabinet.
+• Work 2 shifts
+• Buy 1 Bandage at the city's shops
+
+🎁 Reward: 300 Nil, 40 XP, 2 Sandwich
+📍 Taken and handed in: Civic noticeboard at the civic centre
+  ───
+  [✅ Take the mission] → mission:accept:first_steps
+  [🔙 Back] → mission:board:city_hall
+
+━━━ Mission · daily, on its cooldown ━━━
+(edits message 42)
+📋 City courier
+
+City hall's post must reach another city.
+• Travel to another city
+
+🎁 Reward: 250 Nil, 25 XP
+📍 Taken and handed in: Civic noticeboard at the civic centre
+⭐ Level 2 at least
+⏳ To be done within 12m of taking it
+🔁 Repeatable; 24m after each time
+
+⏳ It can be taken again in 14m.
+  ───
+  [🔙 Back] → mission:board:city_hall
+
+━━━ Mission · after another ━━━
+(edits message 42)
+📋 Back to school
+
+The city needs trained hands.
+• Complete 1 courses
+
+🎁 Reward: 500 Nil, 60 XP
+📍 Taken and handed in: Civic noticeboard at the civic centre
+🔗 After: First steps
+
+Do the missions it builds on first.
+  ───
+  [🔙 Back] → mission:board:city_hall
+
+━━━ Mission · too many in hand ━━━
+(edits message 42)
+📋 Medicine drive
+
+The city's clinics are running short; bring bandages to the civic centre.
+• Hand in 3 Bandage at the board
+
+🎁 Reward: 450 Nil, 30 XP
+📍 Taken and handed in: Civic noticeboard at the civic centre
+🔁 Repeatable; 24m after each time
+
+You have 5 missions already; finish one first.
+  ───
+  [🔙 Back] → mission:board:city_hall
+
+━━━ Mission · giving it up ━━━
+(edits message 42) (private in groups)
+Give up «Medicine drive»? Its progress is lost.
+  ───
+  [✖️ Give it up] → mission:abandon:17:yes
+  [🔙 Back] → mission:mine
+
+━━━ Mine · two in hand, one done lately ━━━
+(edits message 42) (private in groups)
+📦 2 units handed in for «Medicine drive».
+
+📋 My missions - 2 of 5
+
+📌 Medicine drive
+  • Hand in 3 Bandage at the board - 2 of 3
+
+📌 Road watch
+  • Work 2 shifts in transport - 1 of 2
+  ✅ Travel to Brennhaven
+  • Use 2 Medicine - 0 of 2
+  • Pull off Petty theft 3 times - 0 of 3
+  • Sell 3 goods to a shop or on the market - 2 of 3
+  • Complete the First Aid course - 0 of 1
+  ⏳ 9m left
+
+Lately:
+✅ First steps - 300 Nil
+⌛ City courier - ran out of time
+  ───
+  [📦 Hand in for Medicine drive] → mission:deliver:17   │   [✖️ Give up Medicine drive] → mission:abandon:17
+  [✖️ Give up Road watch] → mission:abandon:18
+  [📋 Mission boards] → mission:board
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → mission:mine
+
+━━━ Mine · completed, a cap kept some back ━━━
+(edits message 42) (private in groups)
+🎉 «Medicine drive» is done.
+⚖️ 300 Nil of the reward was not paid: the day's cap on rewards.
+
+📋 My missions - 0 of 5
+
+No mission in hand. Take one from a city board.
+  ───
+  [📋 Mission boards] → mission:board
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → mission:mine
+
+━━━ Mine · just taken ━━━
+(edits message 42) (private in groups)
+📌 You took «First steps». Everything you do from now on counts.
+
+📋 My missions - 1 of 5
+
+📌 First steps
+  • Work 2 shifts - 0 of 2
+  • Buy 1 Bandage at the city's shops - 0 of 1
+  ───
+  [✖️ Give up First steps] → mission:abandon:19
+  [📋 Mission boards] → mission:board
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → mission:mine
+
+━━━ Notice · a mission completed ━━━
+(sends) (private in groups)
+🎉 «First steps» is done!
+💵 300 Nil went into your cash.
+⭐ +40 XP
+🎒 You got 2 Sandwich.
+  ───
+  [📋 My missions] → mission:mine
+
+━━━ Notice · completed, capped ━━━
+(sends) (private in groups)
+🎉 «Medicine drive» is done!
+💵 150 Nil went into your cash.
+⚖️ 300 Nil of the reward was not paid: the day's cap on rewards.
+⭐ +30 XP
+🎒 You got 1 Bandage.
+  ───
+  [📋 My missions] → mission:mine
+
+━━━ Refused · not_found ━━━
+(edits message 42)
+No such mission.
+  ───
+  [📋 My missions] → mission:mine
+  [🔙 Back] → mission:board
+
+━━━ Refused · not_here ━━━
+(edits message 42)
+That mission is not posted in this city.
+  ───
+  [📋 My missions] → mission:mine
+  [🔙 Back] → mission:board
+
+━━━ Refused · not_active ━━━
+(edits message 42)
+That mission is not in your hands any more.
+  ───
+  [📋 My missions] → mission:mine
+  [🔙 Back] → mission:board
+
+━━━ Refused · expired ━━━
+(edits message 42)
+⌛ That mission's time ran out.
+  ───
+  [📋 My missions] → mission:mine
+  [🔙 Back] → mission:board
+
+━━━ Refused · nothing_to_deliver ━━━
+(edits message 42)
+📦 You are not carrying what the mission asks for.
+  ───
+  [📋 My missions] → mission:mine
+  [🔙 Back] → mission:board
+
+━━━ Refused · level ━━━
+(edits message 42)
+This mission takes level 2 at least.
+  ───
+  [📋 My missions] → mission:mine
+  [🔙 Back] → mission:board
+
+━━━ Not here · take it at the board ━━━
+(edits message 42)
+📋 Missions are taken and handed in at the Civic noticeboard at the civic centre.
+📍 You are at the bazaar now.
+One press walks you to the civic centre (10s) and opens this page again there.
+  ───
+  [🚶 Go to the civic centre (10s)] → place:go:city_hall:mission.board:city_hall
+  [🔙 Back] → player:profile.get
+
+━━━ Pay · held for review ━━━
+(edits message 42)
+⏸ Your payment of 80,000 Nil to Kaveh is held for review. It has left your purse and waits in your escrow; after the review it reaches Kaveh or comes back to you.
+  ───
+  [🏦 Bank] → bank:show   │   [💸 Pay again] → bank:pay:B3C4D5F
+  [🔙 Back] → player:profile.get

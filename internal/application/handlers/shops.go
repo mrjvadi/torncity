@@ -582,7 +582,9 @@ func (h *ShopsHandler) Sell(ctx context.Context, meta envelope.Metadata, req Sho
 		}
 		view = screens.ShopSoldView{Shop: named(def.Code, def.Name), Item: named(item.Code, item.Name), Price: line.Buyback,
 			Left: qty - 1}
-		return nil
+		return appendItemEvent(ctx, tx, meta, "sold", p.ID, map[string]any{
+			"player_id": p.ID, "shop": def.Code, "item": code, "qty": 1, "total": line.Buyback, "sale_id": saleID,
+		})
 	})
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
 		return resp, ferr

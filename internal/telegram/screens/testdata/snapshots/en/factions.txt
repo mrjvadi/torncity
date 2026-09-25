@@ -1,0 +1,576 @@
+━━━ List · a city's factions, the viewer in none ━━━
+(edits message 42)
+🏴 Factions of Ostmarch
+
+• Northern Lions (L10N5ZA) - 7 members
+• The Shades (SH4D3SB) - 3 members
+
+Found your own at city hall; registering one costs 50,000 Nil.
+  ───
+  [🏴 Northern Lions] → faction:view:L10N5ZA
+  [🏴 The Shades] → faction:view:SH4D3SB
+  [🏴 Found a faction] → faction:found
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → faction:list
+
+━━━ List · empty, the viewer a member ━━━
+(edits message 42)
+🏴 Factions of Kessmoor
+
+No faction in this city yet.
+
+Your faction: Northern Lions (L10N5ZA)
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → faction:list
+
+━━━ Page · as an outsider ━━━
+(edits message 42)
+🏴 Northern Lions (L10N5ZA)
+
+📍 City: Ostmarch
+👥 3 members:
+• Sara (K7Q2M9A) - leader
+• Kaveh (B3C4D5F) - officer
+• Nilou (N1L0F4R) - member
+💬 The faction's Telegram group is linked; its news is posted there.
+  ───
+  [📨 Apply to join] → faction:apply:L10N5ZA:yes
+  [🔙 Back] → faction:list   │   [🔄 Refresh] → faction:view:L10N5ZA
+
+━━━ Page · as a group reads it ━━━
+(edits message 42)
+🏴 The Shades (SH4D3SB)
+
+📍 City: Ostmarch
+👥 1 members:
+• Kaveh (B3C4D5F) - leader
+  ───
+  [🔙 Back] → faction:list   │   [🔄 Refresh] → faction:view:SH4D3SB
+
+━━━ Page · its leader, in a group to link ━━━
+(edits message 42)
+🏴 Northern Lions (L10N5ZA)
+
+📍 City: Ostmarch
+👥 1 members:
+• Sara (K7Q2M9A) - leader
+  ───
+  [🔗 Link to this group] → faction:link
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → faction:list   │   [🔄 Refresh] → faction:view:L10N5ZA
+
+━━━ Found · the fee and the ways to pay ━━━
+(edits message 42) (private in groups)
+🏴 Found a faction
+Registering a faction in Ostmarch costs 50,000 Nil, paid to the city's treasury.
+A name is 3 to 24 letters and may not name a city institution. You found it at city hall.
+
+How will you pay? Then you send the faction's name.
+💵 Your cash does not cover it — pay by card.
+💵 Your cash: 1,200 Nil - Bank: 90,000 Nil
+  ───
+  [💳 Pay by card - 50,000 Nil] → ask:faction.found:card
+  [🔙 Back] → faction:list
+
+━━━ Founded ━━━
+(edits message 42) (private in groups)
+🏴 Northern Lions (L10N5ZA) is founded in Ostmarch, and you are its leader.
+💸 Registration: 50,000 Nil
+💳 Paid by bank card.
+Now invite members, fill the faction's bank and link its Telegram group: send «/faction L10N5ZA» in that group and press the link button.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Home · the leader, a crew gathering ━━━
+(edits message 42) (private in groups)
+🏴 Northern Lions (L10N5ZA)
+
+🎖 Your rank: leader
+📍 City: Ostmarch
+👥 Members: 7 of 30
+🏦 Faction bank: 184,500 Nil
+📨 2 applications waiting
+
+💬 No Telegram group yet; the leader sends «/faction L10N5ZA» in one and presses the link button.
+
+🕶 Warehouse heist at the industrial zone, Ostmarch: the crew is gathering.
+Gathering until 14:36
+👥 1 of at least 2 and at most 5 - each pays 5 nerve at the start
+Crew: Sara (K7Q2M9A)
+  ───
+  [👥 Members] → faction:members   │   [🏦 Faction bank] → faction:bank
+  [🕶 Crew jobs] → faction:crime
+  [✏️ Invite a player] → ask:faction.invite
+  [🚪 Leave the faction] → faction:leave
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → faction:mine
+
+━━━ Home · a member, linked ━━━
+(edits message 42) (private in groups)
+🏴 Northern Lions (L10N5ZA)
+
+🎖 Your rank: member
+📍 City: Ostmarch
+👥 Members: 7 of 30
+🏦 Faction bank: 184,500 Nil
+
+💬 The faction's Telegram group is linked; its news is posted there.
+  ───
+  [👥 Members] → faction:members   │   [🏦 Faction bank] → faction:bank
+  [🕶 Crew jobs] → faction:crime
+  [🚪 Leave the faction] → faction:leave
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → faction:mine
+
+━━━ Members · the leader's view ━━━
+(edits message 42) (private in groups)
+👥 Members of Northern Lions (L10N5ZA)
+
+3 members of 30
+• Sara (K7Q2M9A) - leader (you)
+• Kaveh (B3C4D5F) - officer
+• Nilou (N1L0F4R) - member
+
+📨 Waiting:
+• Arash (A2R4S6H) applied
+• invited Dara (D4R4X1Y)
+  ───
+  [⬇️ Kaveh] → faction:rank:B3C4D5F:member   │   [✖️ Kaveh] → faction:kick:B3C4D5F   │   [👑 Kaveh] → faction:rank:B3C4D5F:leader
+  [⬆️ Nilou] → faction:rank:N1L0F4R:officer   │   [✖️ Nilou] → faction:kick:N1L0F4R   │   [👑 Nilou] → faction:rank:N1L0F4R:leader
+  [✅ Arash] → faction:answer:12:accept   │   [❌ Decline] → faction:answer:12:decline
+  [✏️ Invite a player] → ask:faction.invite
+  [🔙 Back] → faction:mine   │   [🔄 Refresh] → faction:members
+
+━━━ Invited ━━━
+(edits message 42) (private in groups)
+📨 Nilou (N1L0F4R) was invited.
+  ───
+  [👥 Members] → faction:members
+  [🔙 Back] → faction:mine
+
+━━━ Applied ━━━
+(edits message 42) (private in groups)
+📨 Your application to The Shades (SH4D3SB) is sent. You will hear back in private.
+  ───
+  [🏴 Factions] → faction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Answered · joined by invitation ━━━
+(edits message 42) (private in groups)
+🤝 You joined Northern Lions (L10N5ZA).
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Answered · an application turned down ━━━
+(edits message 42) (private in groups)
+Nilou (N1L0F4R)'s application was turned down.
+  ───
+  [👥 Members] → faction:members
+  [🔙 Back] → player:profile.get
+
+━━━ Confirm · kick ━━━
+(edits message 42) (private in groups)
+Remove Kaveh (B3C4D5F) from Northern Lions (L10N5ZA)?
+  ───
+  [✖️ Remove] → faction:kick:B3C4D5F:yes
+  [🔙 Back] → faction:mine
+
+━━━ Confirm · lead ━━━
+(edits message 42) (private in groups)
+Hand the leadership of Northern Lions (L10N5ZA) to Kaveh (B3C4D5F)? You become an officer, and only they can hand it back.
+  ───
+  [👑 Hand over] → faction:rank:B3C4D5F:leader:yes
+  [🔙 Back] → faction:mine
+
+━━━ Confirm · leave ━━━
+(edits message 42) (private in groups)
+Leave Northern Lions (L10N5ZA)?
+  ───
+  [🚪 Leave] → faction:leave:yes
+  [🔙 Back] → faction:mine
+
+━━━ Confirm · disband ━━━
+(edits message 42) (private in groups)
+You are the last member of Northern Lions (L10N5ZA). Leaving disbands it, and what is left in its bank goes to your bank. Go on?
+  ───
+  [🏴 Leave and disband] → faction:leave:yes
+  [🔙 Back] → faction:mine
+
+━━━ Left ━━━
+(edits message 42) (private in groups)
+You left Northern Lions (L10N5ZA).
+  ───
+  [🏴 Factions] → faction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Disbanded, the bank paid out ━━━
+(edits message 42) (private in groups)
+🏴 Northern Lions (L10N5ZA) is disbanded.
+🏦 12,000 Nil came from the faction's bank to yours.
+  ───
+  [🏴 Factions] → faction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Linked in a group ━━━
+(edits message 42)
+💬 Northern Lions (L10N5ZA) is linked to this group; its news is posted here from now on.
+  ───
+  [🕶 Crew jobs] → faction:crime
+
+━━━ Bank · an officer after a deposit ━━━
+(edits message 42) (private in groups)
+📥 10,000 Nil went into the faction's bank.
+💵 Paid from your cash.
+
+🏦 Northern Lions (L10N5ZA) bank
+
+Balance: 194,500 Nil
+💵 Your cash: 3,000 Nil - Bank: 42,000 Nil
+Each deposit or withdrawal between 100 Nil and 10,000,000 Nil
+
+Members whose rank allows put money in; only allowed ranks take it out, to their own bank.
+  ───
+  [✏️ Deposit cash] → ask:faction.deposit:cash   │   [✏️ Deposit by card] → ask:faction.deposit:card
+  [✏️ Withdraw] → ask:faction.withdraw
+  [🔙 Back] → faction:mine   │   [🔄 Refresh] → faction:bank
+
+━━━ Bank · a member after nothing ━━━
+(edits message 42) (private in groups)
+🏦 Northern Lions (L10N5ZA) bank
+
+Balance: 194,500 Nil
+💵 Your cash: 3,000 Nil - Bank: 42,000 Nil
+Each deposit or withdrawal between 100 Nil and 10,000,000 Nil
+
+Members whose rank allows put money in; only allowed ranks take it out, to their own bank.
+  ───
+  [✏️ Deposit cash] → ask:faction.deposit:cash   │   [✏️ Deposit by card] → ask:faction.deposit:card
+  [🔙 Back] → faction:mine   │   [🔄 Refresh] → faction:bank
+
+━━━ Crime · nothing under way, an officer ━━━
+(edits message 42)
+🕶 Northern Lions (L10N5ZA) crew jobs
+
+Nothing under way. Jobs:
+• Warehouse heist: 2 to 5 people - 5 nerve each - level 3 - 3m - at: industrial zone
+• Armoured van job: 3 to 6 people - 8 nerve each - level 5 - 4m - at: business district
+
+The planner must stand at the place. Members join there and pay their nerve at the start; whoever is not there is left behind. The faction's bank takes 15% and the rest is split by rank. If the police arrive, the whole crew is jailed and fined.
+  ───
+  [🗺 Plan Warehouse heist] → faction:plan:warehouse_heist
+  [🗺 Plan Armoured van job] → faction:plan:armoured_van_job
+  [🔙 Back] → faction:mine   │   [🔄 Refresh] → faction:crime
+
+━━━ Crime · planned, a member may join ━━━
+(edits message 42)
+🗺 The plan is laid. Members gather at the same place and join the crew.
+
+🕶 Northern Lions (L10N5ZA) crew jobs
+
+🕶 Warehouse heist at the industrial zone, Ostmarch: the crew is gathering.
+Gathering until 14:36
+👥 1 of at least 2 and at most 5 - each pays 5 nerve at the start
+Crew: Sara (K7Q2M9A)
+
+The planner must stand at the place. Members join there and pay their nerve at the start; whoever is not there is left behind. The faction's bank takes 15% and the rest is split by rank. If the police arrive, the whole crew is jailed and fined.
+  ───
+  [🤝 Join the crew] → faction:join
+  [🔙 Back] → faction:mine   │   [🔄 Refresh] → faction:crime
+
+━━━ Crime · the crew ready, the leader ━━━
+(edits message 42)
+🤝 You joined the crew. Stay here until it starts.
+
+🕶 Northern Lions (L10N5ZA) crew jobs
+
+🕶 Warehouse heist at the industrial zone, Ostmarch: the crew is gathering.
+Gathering until 14:36
+👥 2 of at least 2 and at most 5 - each pays 5 nerve at the start
+Crew: Sara (K7Q2M9A), Kaveh (B3C4D5F)
+
+The planner must stand at the place. Members join there and pay their nerve at the start; whoever is not there is left behind. The faction's bank takes 15% and the rest is split by rank. If the police arrive, the whole crew is jailed and fined.
+  ───
+  [🚀 Start the job] → faction:launch
+  [✖️ Call it off] → faction:calloff
+  [🔙 Back] → faction:mine   │   [🔄 Refresh] → faction:crime
+
+━━━ Crime · under way, as a group reads it ━━━
+(edits message 42)
+🚀 The job has started. How it went arrives in private when it is done.
+
+🕶 Northern Lions (L10N5ZA) crew jobs
+
+🕶 Warehouse heist at the industrial zone, Ostmarch is under way - 62% chance - 3m left
+Done at 14:38
+Crew: Sara (K7Q2M9A), Kaveh (B3C4D5F), Nilou (N1L0F4R)
+
+The planner must stand at the place. Members join there and pay their nerve at the start; whoever is not there is left behind. The faction's bank takes 15% and the rest is split by rank. If the police arrive, the whole crew is jailed and fined.
+  ───
+  [🔙 Back] → faction:mine   │   [🔄 Refresh] → faction:crime
+
+━━━ Refused · none ━━━
+(edits message 42)
+This world has no factions yet.
+  ───
+  [🏴 Factions] → faction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · not_member ━━━
+(edits message 42)
+You are not in a faction.
+  ───
+  [🏴 Factions] → faction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · rank ━━━
+(edits message 42)
+🎖 Your rank does not allow that.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · not_found ━━━
+(edits message 42)
+No such faction.
+  ───
+  [🏴 Factions] → faction:list
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · already_member ━━━
+(edits message 42)
+You are already in a faction.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · name_taken ━━━
+(edits message 42)
+Another faction has that name.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · not_group ━━━
+(edits message 42)
+That is done in the faction's Telegram group.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · group_taken ━━━
+(edits message 42)
+This group is linked to another faction.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · no_player ━━━
+(edits message 42)
+No such player. Send their player code or username.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · theirs ━━━
+(edits message 42)
+That player is in a faction.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · pending_full ━━━
+(edits message 42)
+The faction has too many requests waiting; try again later.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · pending ━━━
+(edits message 42)
+An invitation or application is already waiting.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · request_gone ━━━
+(edits message 42)
+That invitation or application is no longer waiting.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · not_yours ━━━
+(edits message 42)
+That request is not yours to answer.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · not_in_it ━━━
+(edits message 42)
+That player is not in your faction.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · on_a_job ━━━
+(edits message 42)
+🕶 Your crew is out on a job; you cannot leave until it is done.
+  ───
+  [🕶 Crew jobs] → faction:crime
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · leader_leaving ━━━
+(edits message 42)
+👑 The leader hands the leadership over before leaving.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · no_such_crime ━━━
+(edits message 42)
+No such crew job.
+  ───
+  [🕶 Crew jobs] → faction:crime
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · operation_open ━━━
+(edits message 42)
+Your faction already has a crew job going.
+  ───
+  [🕶 Crew jobs] → faction:crime
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · no_place_here ━━━
+(edits message 42)
+That job cannot be done in this city.
+  ───
+  [🕶 Crew jobs] → faction:crime
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · no_operation ━━━
+(edits message 42)
+No crew is gathering.
+  ───
+  [🕶 Crew jobs] → faction:crime
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · crew_full ━━━
+(edits message 42)
+The crew is full.
+  ───
+  [🕶 Crew jobs] → faction:crime
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · elsewhere ━━━
+(edits message 42)
+The crew gathers in another city or place.
+  ───
+  [🕶 Crew jobs] → faction:crime
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · a name ━━━
+(edits message 42)
+A faction's name is 3 to 24 letters, starts with a letter or a digit, and may not name a city institution.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · the bank short ━━━
+(edits message 42)
+🏦 The faction's bank holds 12,000 Nil; you asked for 50,000 Nil.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · full ━━━
+(edits message 42)
+The faction is full: 30 members at most.
+  ───
+  [🏴 My faction] → faction:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · level ━━━
+(edits message 42)
+Planning that takes level 5.
+  ───
+  [🕶 Crew jobs] → faction:crime
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · crew short ━━━
+(edits message 42)
+👥 Starting takes at least 3 crew at the place with the nerve; 2 are ready.
+  ───
+  [🕶 Crew jobs] → faction:crime
+  [🔙 Back] → player:profile.get
+
+━━━ Not here · the crew gathers elsewhere ━━━
+(edits message 42)
+🕶 Warehouse heist cannot be done here; the crew gathers at the industrial zone.
+📍 You are at the bazaar now.
+One press walks you to the industrial zone (30s) and opens this page again there.
+  ───
+  [🚶 Go to the industrial zone (30s)] → place:go:industrial_zone:faction.crime
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · invited ━━━
+(sends) (private in groups)
+📨 Sara (K7Q2M9A) invited you to Northern Lions (L10N5ZA).
+  ───
+  [✅ Accept] → faction:answer:13:accept   │   [❌ Decline] → faction:answer:13:decline
+
+━━━ Notice · an application ━━━
+(sends) (private in groups)
+📨 Nilou (N1L0F4R) wants to join Northern Lions (L10N5ZA).
+  ───
+  [✅ Accept] → faction:answer:12:accept   │   [❌ Decline] → faction:answer:12:decline
+
+━━━ Notice · the invitation accepted ━━━
+(sends) (private in groups)
+🤝 Nilou (N1L0F4R) accepted your invitation and joined Northern Lions (L10N5ZA).
+  ───
+  [🏴 Factions] → faction:list
+
+━━━ Notice · the application accepted ━━━
+(sends) (private in groups)
+🤝 You were accepted: you are now a member of Northern Lions (L10N5ZA).
+  ───
+  [🏴 My faction] → faction:mine
+
+━━━ Notice · the application declined ━━━
+(sends) (private in groups)
+Your application to Northern Lions (L10N5ZA) was turned down.
+  ───
+  [🏴 Factions] → faction:list
+
+━━━ Notice · kicked ━━━
+(sends) (private in groups)
+🚪 Sara removed you from Northern Lions (L10N5ZA).
+  ───
+  [🏴 Factions] → faction:list
+
+━━━ Notice · the job went to plan ━━━
+(sends) (private in groups)
+🕶 Warehouse heist with Northern Lions (L10N5ZA) went to plan.
+💵 Take 7,800 Nil - faction bank 1,170 Nil - your share 2,210 Nil
+⭐ +30 XP
+  ───
+  [🕶 Crew jobs] → faction:crime
+
+━━━ Notice · caught and hurt ━━━
+(sends) (private in groups)
+🚔 Armoured van job with Northern Lions (L10N5ZA) went wrong and the police caught the crew.
+⛓ You are jailed for 18m.
+⏳ Free at 14:53
+💸 Fine: 2,400 Nil. You could pay 1,000 Nil; 1,400 Nil stays on your record.
+🚑 You lost 44 health and were taken to hospital; health: 18 of 100
+Discharged at 14:42
+  ───
+  [🏥 Hospital] → health:hospital
+
+━━━ Notice · escaped ━━━
+(sends) (private in groups)
+🏃 Warehouse heist with Northern Lions (L10N5ZA) went wrong, but the crew got away.
+🩹 You lost 12 health; health: 70 of 100
+  ───
+  [🕶 Crew jobs] → faction:crime

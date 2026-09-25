@@ -1039,6 +1039,17 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 		for _, g := range gains {
 			skills = append(skills, CourseSkillGain{Skill: g.Skill, XP: g.XP, Level: g.Level})
 		}
+		// An accident at work (health.yml injuries.work), rolled on the
+		// shift's own id so a replay decides the same (docs/adr/0023).
+		var accident *injured
+		if hd, ok := snap.Health(); ok {
+			if cdef, ok := snap.CareerDef(emp.CareerCode); ok {
+				if accident, err = rollInjury(ctx, tx, snap, h.ids, h.scale, meta, hd.WorkInjury(cdef.Category), session.ID, 0,
+					hurt{playerID: playerID, cityID: emp.CityID, cause: application.CauseWork, causeRef: session.ID}, now); err != nil {
+					return err
+				}
+			}
+		}
 		ref := jobRef(def, session.Tier)
 		if err := appendJobEvent(ctx, tx, meta, "shift_worked", emp.ID, map[string]any{
 			"employment_id":     emp.ID,
@@ -1061,6 +1072,7 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 			"levels":            levelNumbers(res.LevelUps),
 			"energy":            stats.Energy,
 			"max_energy":        stats.MaxEnergy,
+			"injury":            accident.payload(),
 			"content_version":   snap.Version(),
 		}); err != nil {
 			return err
@@ -1079,6 +1091,7 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 			Level:            top,
 			Energy:           stats.Energy,
 			MaxEnergy:        stats.MaxEnergy,
+			Injury:           accident.View(),
 		}
 		return nil
 	})

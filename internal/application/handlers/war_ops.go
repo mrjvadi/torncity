@@ -10,6 +10,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/health"
 	"github.com/mrjvadi/torncity/internal/domain/war"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
@@ -875,10 +876,24 @@ func (h *WarHandler) announceOperation(ctx context.Context, tx application.Tx, s
 	if err != nil {
 		return err
 	}
+	var strike health.Injury
+	if hd, ok := snap.Health(); ok {
+		strike = hd.Injuries.WarStrike.Injury()
+	}
 	for _, id := range players {
+		// A strike may hurt who stands in the city (health.yml
+		// injuries.war_strike): each on their own die, of the operation and
+		// the player, so a replay hurts the same people the same
+		// (docs/adr/0023). Nobody dies.
+		inj, err := rollInjury(ctx, tx, snap, h.ids, h.scale, meta, strike, op.ID, health.Seed(id),
+			hurt{playerID: id, cityID: city.ID, cause: application.CauseWar, causeRef: op.ID}, now)
+		if err != nil {
+			return err
+		}
 		if err := appendDomainEvent(ctx, tx, meta, "war", "city_struck", op.ID, map[string]any{"player_id": id,
 			"kind": "struck", "country_code": target.Code, "country_name": target.Name, "other_code": attacker.Code,
-			"other_name": attacker.Name, "city_code": city.Code, "city_name": city.Name, "band": band}); err != nil {
+			"other_name": attacker.Name, "city_code": city.Code, "city_name": city.Name, "band": band,
+			"injury": inj.payload()}); err != nil {
 			return err
 		}
 	}

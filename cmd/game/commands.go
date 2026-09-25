@@ -48,6 +48,8 @@ type phaseHandlers struct {
 	diplomacy    *handlers.DiplomacyHandler
 	appointments *handlers.AppointmentHandler
 	war          *handlers.WarHandler
+
+	stageE stageEHandlers
 }
 
 // bind maps every subscribed command to the handler method that serves it.
@@ -247,6 +249,9 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		bound[command] = fn
 	}
 	for command, fn := range h.bindMilitary() {
+		bound[command] = fn
+	}
+	for command, fn := range h.bindStageE() {
 		bound[command] = fn
 	}
 	return bound

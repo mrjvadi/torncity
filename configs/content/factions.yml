@@ -1,0 +1,113 @@
+# Factions: gangs and organisations players found and run together.
+#
+# A faction is founded at city hall (go-then-do), for a fee paid into the
+# city's treasury (ledger faction_registration), under a name held to the
+# rules of company names. It has three ranks — leader, officer, member — and
+# a bank (a faction_treasury account): members put money in (faction_deposit)
+# and those whose rank allows take it out to their own bank
+# (faction_withdrawal). A faction's chat is a Telegram group: its leader links
+# one, and the faction's news is posted there. The RULES — who may act on
+# whom, how leadership passes, how a take is split — are
+# internal/domain/faction (docs/adr/0023-health-missions-factions.md). What is
+# here is content; name lengths and member caps are config.yml factions.*.
+#
+# Organised crime: an officer plans one of the crimes below at a place its
+# venues allow; members standing at that place join (paying the crime's
+# nerve) within `gather`; once the crew is big enough it is launched, runs
+# for the crime's duration on the game clock and is settled once, through
+# the crime engine's own rules — the chance from the crew's best skills and
+# its size, the take from the NPC economy under the crime's cap and the
+# economy's daily cap (ADR 0009 crime_proceeds), an arrest jailing and
+# fining the whole crew, a failure maybe hurting them (failure.injury). The
+# faction bank takes its cut (faction_cut); the rest is split by rank.
+#
+# faction
+#   founding_fee     minor units, to the founding city's treasury.
+#   rights           what officers and members may do (the leader may do
+#                    everything): invite, decide (answer an application),
+#                    kick (a lower rank), promote (member <-> officer),
+#                    deposit, withdraw, link (a group), plan and launch an
+#                    organised crime, join one.
+#   shares           each rank's weight in a take's split.
+#   crime_cut_bps    the bank's cut of a take, 0..5000.
+#   gather           how long a planned crime waits for its crew, GAME time.
+#   organised_crimes crimes.yml's shape (npc target only, timed, with
+#                    venues), plus crew: {min, max, bps_per_member — what each
+#                    member beyond the first adds to the chance}.
+#
+# Loaded and versioned with the rest of the content (`admin content load`).
+
+version: 1
+
+faction:
+  founding_fee: 50000
+  rights:
+    officer: [invite, decide, kick, deposit, withdraw, plan, launch, join]
+    member: [deposit, join]
+  shares: {leader: 3, officer: 2, member: 1}
+  crime_cut_bps: 1500
+  gather: 2h
+  organised_crimes:
+    - code: warehouse_heist
+      name: Warehouse heist
+      category: organised
+      targets: [npc]
+      venues: [industrial_zone]
+      tier: novice
+      min_level: 3
+      nerve: 5
+      duration: 3h
+      success:
+        base_chance_bps: 4500
+        skill_weights: [{skill: lockpicking, bps_per_level: 80}, {skill: stealth, bps_per_level: 60}]
+        awareness_weight_bps: 80
+        target_awareness: 20
+        heat_penalty_bps: 30
+      reward:
+        min_cash: 2000
+        max_cash: 8000
+        xp: 30
+        criminal_xp: 40
+        skill_xp: [{skill: lockpicking, xp: 20}, {skill: stealth, xp: 15}]
+        heat: 12
+      failure:
+        catch_chance_bps: 4500
+        jail_min: 6h
+        jail_max: 18h
+        fine_min: 500
+        fine_max: 2000
+        heat: 20
+        injury: {chance_bps: 3000, min: 15, max: 60}
+      crew: {min: 2, max: 5, bps_per_member: 500}
+
+    - code: armoured_van_job
+      name: Armoured van job
+      category: organised
+      targets: [npc]
+      venues: [business_district]
+      tier: hustler
+      min_level: 5
+      nerve: 8
+      duration: 4h
+      success:
+        base_chance_bps: 3500
+        skill_weights: [{skill: streetwise, bps_per_level: 100}, {skill: driving, bps_per_level: 80}]
+        awareness_weight_bps: 80
+        target_awareness: 35
+        heat_penalty_bps: 40
+      reward:
+        min_cash: 6000
+        max_cash: 20000
+        xp: 50
+        criminal_xp: 70
+        skill_xp: [{skill: streetwise, xp: 25}, {skill: driving, xp: 20}]
+        heat: 20
+      failure:
+        catch_chance_bps: 5500
+        jail_min: 12h
+        jail_max: 36h
+        fine_min: 1500
+        fine_max: 5000
+        heat: 30
+        injury: {chance_bps: 4000, min: 20, max: 70}
+      crew: {min: 3, max: 6, bps_per_member: 400}

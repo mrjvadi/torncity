@@ -635,6 +635,8 @@ func TestGroupTextSnapshots(t *testing.T) {
 			companyAnnouncements(c, who, book)
 			productionAnnouncements(c, book)
 			militaryAnnouncements(c, who, book)
+			healthAnnouncements(c, who, book)
+			factionAnnouncements(c, who, book)
 			book.Check(t, snapshotDir, "group")
 		})
 	}

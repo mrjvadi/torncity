@@ -211,3 +211,15 @@ func (t *tx) Diplomacy() application.DiplomacyRepository { return &DiplomacyRepo
 
 // War returns wars (migration 0022).
 func (t *tx) War() application.WarRepository { return &WarRepository{q: t.q} }
+
+// Health returns hospital stays and treatments (migration 0023).
+func (t *tx) Health() application.HealthRepository { return &HealthRepository{q: t.q} }
+
+// Missions returns missions and their inbox (migration 0023).
+func (t *tx) Missions() application.MissionRepository { return &MissionRepository{q: t.q} }
+
+// Factions returns factions and their organised crimes (migration 0023).
+func (t *tx) Factions() application.FactionRepository { return &FactionRepository{q: t.q} }
+
+// Watch returns the watch's flags and held payments (migration 0023).
+func (t *tx) Watch() application.WatchRepository { return &WatchRepository{q: t.q} }

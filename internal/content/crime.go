@@ -163,6 +163,9 @@ type CrimeFailureDef struct {
 	FineMin        int64  `yaml:"fine_min" json:"fine_min"`
 	FineMax        int64  `yaml:"fine_max" json:"fine_max"`
 	Heat           int    `yaml:"heat" json:"heat"`
+	// Injury is what a failed attempt — an escape or an arrest — can do to
+	// the thief's health (docs/adr/0023); nil: nothing.
+	Injury *InjuryDef `yaml:"injury,omitempty" json:"injury,omitempty"`
 }
 
 // CrimeDef is one entry of crimes.yml.

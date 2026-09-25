@@ -371,6 +371,27 @@ war:
   ended_shown_for: 169h
   board_operations: 9
   notice_cap: 201
+missions:
+  max_active: 6
+  player_daily_cap: 5001
+  economy_daily_cap: 1000001
+factions:
+  name_min_length: 4
+  name_max_length: 25
+  max_members: 31
+  max_pending: 21
+  list_size: 11
+anticheat:
+  window: 25h
+  one_way_count: 5
+  one_way_min_total: 20001
+  one_way_ratio_bps: 9001
+  off_market_bps: 5001
+  off_market_min_value: 5001
+  single_partner_min_count: 7
+  single_partner_share_bps: 9001
+  commands_per_minute: 91
+  hold_above: 50001
 input:
   ttl: 7m
   cooldown: 4s
@@ -493,37 +514,55 @@ var envOverrides = map[string]string{
 	"TORN_TRADE_AUCTION_MAX_OPEN":       "7",
 	"TORN_TRADE_AUCTION_RESERVES_BPS":   "3000,8000",
 
-	"TORN_COMPANY_PERIOD":                    "26h",
-	"TORN_COMPANY_MAX_PER_PLAYER":            "4",
-	"TORN_COMPANY_NAME_MIN_LENGTH":           "5",
-	"TORN_COMPANY_NAME_MAX_LENGTH":           "26",
-	"TORN_COMPANY_FOUNDING_SHARES":           "1002",
-	"TORN_COMPANY_INSOLVENCY_PERIODS":        "5",
-	"TORN_COMPANY_NPC_CITY_PERIOD_CAP":       "50002",
-	"TORN_COMPANY_MAX_OPENINGS":              "7",
-	"TORN_COMPANY_PRICE_STEP_BPS":            "1002",
-	"TORN_COMPANY_CITIZEN_SHIFTS_PER_PERIOD": "4",
-	"TORN_COMPANY_CITIZEN_PRODUCTIVITY_BPS":  "7002",
-	"TORN_COMPANY_CITIZEN_LABOUR_SHARE_BPS":  "502",
-	"TORN_COMPANY_MAX_RUNNING_ORDERS":        "5",
-	"TORN_COMPANY_MAX_DESIGNS":               "22",
-	"TORN_COMPANY_MAX_LISTINGS":              "12",
-	"TORN_COMPANY_DESIGN_MIN_SKILL":          "3",
-	"TORN_COMPANY_REVERSE_TIME":              "7h",
-	"TORN_MILITARY_PERIOD":                   "26h",
-	"TORN_MILITARY_READINESS_LOSS_BPS":       "1002",
-	"TORN_MILITARY_READINESS_RECOVERY_BPS":   "502",
-	"TORN_MILITARY_REFERENCE_RADAR_KM":       "152",
-	"TORN_DIPLOMACY_SANCTION_NOTICE":         "3h",
-	"TORN_DIPLOMACY_SANCTION_MIN_DURATION":   "26h",
-	"TORN_DIPLOMACY_TREATY_OFFER_TTL":        "74h",
-	"TORN_DIPLOMACY_ENDED_SHOWN_FOR":         "170h",
-	"TORN_DIPLOMACY_HISTORY_PAGE_SIZE":       "10",
-	"TORN_WAR_DECLARATION_NOTICE":            "26h",
-	"TORN_WAR_PROPOSAL_TTL":                  "50h",
-	"TORN_WAR_ENDED_SHOWN_FOR":               "170h",
-	"TORN_WAR_BOARD_OPERATIONS":              "10",
-	"TORN_WAR_NOTICE_CAP":                    "202",
+	"TORN_COMPANY_PERIOD":                     "26h",
+	"TORN_COMPANY_MAX_PER_PLAYER":             "4",
+	"TORN_COMPANY_NAME_MIN_LENGTH":            "5",
+	"TORN_COMPANY_NAME_MAX_LENGTH":            "26",
+	"TORN_COMPANY_FOUNDING_SHARES":            "1002",
+	"TORN_COMPANY_INSOLVENCY_PERIODS":         "5",
+	"TORN_COMPANY_NPC_CITY_PERIOD_CAP":        "50002",
+	"TORN_COMPANY_MAX_OPENINGS":               "7",
+	"TORN_COMPANY_PRICE_STEP_BPS":             "1002",
+	"TORN_COMPANY_CITIZEN_SHIFTS_PER_PERIOD":  "4",
+	"TORN_COMPANY_CITIZEN_PRODUCTIVITY_BPS":   "7002",
+	"TORN_COMPANY_CITIZEN_LABOUR_SHARE_BPS":   "502",
+	"TORN_COMPANY_MAX_RUNNING_ORDERS":         "5",
+	"TORN_COMPANY_MAX_DESIGNS":                "22",
+	"TORN_COMPANY_MAX_LISTINGS":               "12",
+	"TORN_COMPANY_DESIGN_MIN_SKILL":           "3",
+	"TORN_COMPANY_REVERSE_TIME":               "7h",
+	"TORN_MILITARY_PERIOD":                    "26h",
+	"TORN_MILITARY_READINESS_LOSS_BPS":        "1002",
+	"TORN_MILITARY_READINESS_RECOVERY_BPS":    "502",
+	"TORN_MILITARY_REFERENCE_RADAR_KM":        "152",
+	"TORN_DIPLOMACY_SANCTION_NOTICE":          "3h",
+	"TORN_DIPLOMACY_SANCTION_MIN_DURATION":    "26h",
+	"TORN_DIPLOMACY_TREATY_OFFER_TTL":         "74h",
+	"TORN_DIPLOMACY_ENDED_SHOWN_FOR":          "170h",
+	"TORN_DIPLOMACY_HISTORY_PAGE_SIZE":        "10",
+	"TORN_WAR_DECLARATION_NOTICE":             "26h",
+	"TORN_WAR_PROPOSAL_TTL":                   "50h",
+	"TORN_WAR_ENDED_SHOWN_FOR":                "170h",
+	"TORN_WAR_BOARD_OPERATIONS":               "10",
+	"TORN_WAR_NOTICE_CAP":                     "202",
+	"TORN_MISSIONS_MAX_ACTIVE":                "7",
+	"TORN_MISSIONS_PLAYER_DAILY_CAP":          "5002",
+	"TORN_MISSIONS_ECONOMY_DAILY_CAP":         "1000002",
+	"TORN_FACTIONS_NAME_MIN_LENGTH":           "5",
+	"TORN_FACTIONS_NAME_MAX_LENGTH":           "26",
+	"TORN_FACTIONS_MAX_MEMBERS":               "32",
+	"TORN_FACTIONS_MAX_PENDING":               "22",
+	"TORN_FACTIONS_LIST_SIZE":                 "12",
+	"TORN_ANTICHEAT_WINDOW":                   "26h",
+	"TORN_ANTICHEAT_ONE_WAY_COUNT":            "6",
+	"TORN_ANTICHEAT_ONE_WAY_MIN_TOTAL":        "20002",
+	"TORN_ANTICHEAT_ONE_WAY_RATIO_BPS":        "9002",
+	"TORN_ANTICHEAT_OFF_MARKET_BPS":           "5002",
+	"TORN_ANTICHEAT_OFF_MARKET_MIN_VALUE":     "5002",
+	"TORN_ANTICHEAT_SINGLE_PARTNER_MIN_COUNT": "8",
+	"TORN_ANTICHEAT_SINGLE_PARTNER_SHARE_BPS": "9002",
+	"TORN_ANTICHEAT_COMMANDS_PER_MINUTE":      "92",
+	"TORN_ANTICHEAT_HOLD_ABOVE":               "50002",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

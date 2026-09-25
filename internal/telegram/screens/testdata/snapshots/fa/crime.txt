@@ -822,8 +822,9 @@
 
 ━━━ Error · a journey from jail ━━━
 (edits message 42)
-این کار همین حالا ممکن نیست. چند لحظهٔ دیگر دوباره امتحان کنید.
+⛓ تا ۴۲ دقیقه دیگر در زندان هستید. از صفحهٔ زندان وثیقه بپردازید یا صبر کنید.
   ───
+  [⛓ زندان] → crime:jail
   [🔙 بازگشت] → player:profile.get
 
 ━━━ Error · a journey from jail, time unknown ━━━

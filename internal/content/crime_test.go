@@ -131,6 +131,16 @@ func TestPackWithoutCrimesStillValidates(t *testing.T) {
 	// Goods whose gear names crimes, and shops at places, go with them; so
 	// do the military classes, which name goods.
 	p.Items, p.Shops, p.ForceClasses = nil, nil, nil
+	// Stage E stands on places, goods and tiers: health, missions and
+	// factions go too, and the pharmacy that stocks medicine.
+	p.Health, p.MissionBoards, p.Missions, p.Factions = nil, nil, nil, nil
+	kept := p.CompanyTypes[:0]
+	for _, t := range p.CompanyTypes {
+		if t.Code != "pharmacy" {
+			kept = append(kept, t)
+		}
+	}
+	p.CompanyTypes = kept
 	if err := p.Validate(); err != nil {
 		t.Fatal(err)
 	}
@@ -157,6 +167,8 @@ func TestVenueReferencesAreWarnings(t *testing.T) {
 	for i := range p.Crimes {
 		p.Crimes[i].RequiredCertifications = nil
 	}
+	// Work accidents and missions name careers and courses.
+	p.Health, p.MissionBoards, p.Missions = nil, nil, nil
 	if err := p.Validate(); err != nil {
 		t.Fatalf("a venue naming unknown modes or categories failed the load: %v", err)
 	}

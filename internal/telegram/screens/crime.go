@@ -319,6 +319,7 @@ func CrimeList(c Context, v CrimeListView) *presenter.Response {
 // Why a crime cannot be committed now, beyond its requirements.
 const (
 	CrimeBlockedJail       = "jail"
+	CrimeBlockedHospital   = "hospital"
 	CrimeBlockedBusy       = "busy"
 	CrimeBlockedWork       = "work"
 	CrimeBlockedTravelling = "travelling"
@@ -442,6 +443,8 @@ func CrimeDetail(c Context, v CrimeDetailView) *presenter.Response {
 	switch v.Blocked {
 	case CrimeBlockedJail:
 		blocked = c.T("crime.blocked.jail", nil)
+	case CrimeBlockedHospital:
+		blocked = c.T("crime.blocked.hospital", nil)
 	case CrimeBlockedBusy:
 		blocked = c.T("crime.blocked.busy", nil)
 	case CrimeBlockedWork:
@@ -511,6 +514,9 @@ type CrimeResultView struct {
 	Loot        []LootLine
 	Stolen      *Named
 	Confiscated []Named
+	// Injury is what a failure did to the thief's health, nil for nothing
+	// (docs/adr/0023).
+	Injury *InjuryView
 }
 
 // LootLine is a good a crime yielded.
@@ -629,12 +635,26 @@ func CrimeResult(c Context, v CrimeResultView) *presenter.Response {
 	if v.Level > 0 {
 		lines = append(lines, c.T("job.shift_level", map[string]any{"level": FormatNumber(c, int64(v.Level))}))
 	}
+	switch {
+	case v.Injury == nil:
+	case c.Shared && v.Injury.Hospital:
+		lines = append(lines, c.T("health.injury.public_hospital", map[string]any{"player": v.Player}))
+	case c.Shared:
+		lines = append(lines, c.T("health.injury.public", map[string]any{"player": v.Player}))
+	default:
+		lines = append(lines, c.injuryLines(v.Injury))
+	}
 	lines = append(lines, c.heatLine(v.Heat))
 	if v.Result != CrimeOutcomeCaught && v.Nerve.Max > 0 {
 		lines = append(lines, c.nerveLine(v.Nerve))
 	}
 
 	kb := keyboards.New()
+	if v.Injury != nil && v.Injury.Hospital && !c.Shared {
+		if btn, ok := keyboards.Button(c.T("health.button.hospital", nil), AddrHospital); ok {
+			kb.Row(btn)
+		}
+	}
 	if v.Result == CrimeOutcomeCaught {
 		jail, _ := keyboards.Button(c.T("crime.button.jail", nil), AddrCrimeJail)
 		kb.Row(jail)
@@ -1000,6 +1020,7 @@ const (
 	CrimeRefusedRequirements  = "requirements"
 	CrimeRefusedNotFound      = "not_found"
 	CrimeRefusedJail          = "jail"
+	CrimeRefusedHospital      = "hospital"
 	CrimeRefusedBusy          = "busy"
 	CrimeRefusedWork          = "work"
 	CrimeRefusedTravelling    = "travelling"
@@ -1034,6 +1055,7 @@ var crimeRefusals = map[string]struct{ key, label, addr string }{
 	CrimeRefusedRequirements:  {"crime.refused.requirements", "crime.button.hub", AddrCrimeHub},
 	CrimeRefusedNotFound:      {"crime.refused.not_found", "crime.button.hub", AddrCrimeHub},
 	CrimeRefusedJail:          {"crime.refused.jail", "crime.button.jail", AddrCrimeJail},
+	CrimeRefusedHospital:      {"crime.refused.hospital", "health.button.hospital", AddrHospital},
 	CrimeRefusedBusy:          {"crime.refused.busy", "crime.button.hub", AddrCrimeHub},
 	CrimeRefusedWork:          {"crime.refused.work", "job.button.my_job", AddrJobStatus},
 	CrimeRefusedTravelling:    {"crime.refused.travelling", "button.journey", AddrTravelStatus},

@@ -250,8 +250,12 @@ func (p *publisher) publishBatch(ctx context.Context) (int, error) {
 		// The deduplication id is the outbox event id, not the request id:
 		// one command can append several events, and sharing one id would
 		// have the broker discard every event after the first.
+		// The event's own id travels with it, so a consumer can process
+		// each of several events of one command once (Metadata.EventID).
+		meta := ev.Metadata
+		meta.EventID = ev.EventID
 		err := p.out.PublishWithID(ctx, ev.Subject, &envelope.Envelope{
-			Metadata: ev.Metadata,
+			Metadata: meta,
 			Payload:  ev.Payload,
 		}, ev.EventID)
 		if err != nil {

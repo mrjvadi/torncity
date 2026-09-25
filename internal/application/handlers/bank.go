@@ -11,6 +11,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/bank"
 	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
+	"github.com/mrjvadi/torncity/internal/domain/watch"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
@@ -97,6 +98,16 @@ type BankHandler struct {
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
+
+	// watch is the watch's tuning (docs/adr/0023); nil checks nothing.
+	watch *watch.Thresholds
+}
+
+// WithWatch has every payment checked by the watch, and one above its
+// threshold between accounts a flag links held for review.
+func (h *BankHandler) WithWatch(th watch.Thresholds) *BankHandler {
+	h.watch = &th
+	return h
 }
 
 // NewBankHandler wires the handler.
@@ -765,6 +776,26 @@ func (h *BankHandler) PaySend(ctx context.Context, meta envelope.Metadata, req P
 			return err
 		}
 
+		// The watch (docs/adr/0023): a payment that makes a pattern is
+		// flagged; one above the threshold between accounts a flag links
+		// waits in the payer's escrow for an operator, never refused.
+		linked, err := watchPayment(ctx, tx, h.watch, p.ID, payee.ID, quote.Amount.Minor(), h.now())
+		if err != nil {
+			return err
+		}
+		if h.watch != nil && h.watch.Hold(quote.Amount.Minor(), linked != nil) {
+			hold, err := h.hold(ctx, tx, from, p.ID, payee.ID, string(method), quote.Amount, linked)
+			if err != nil {
+				return err
+			}
+			if err := h.chargeFee(ctx, tx, from.ID, feeCity, quote.Fee, hold.HoldTransactionID); err != nil {
+				return err
+			}
+			sent = screens.PaySentView{PayeeName: shownName(payee), PayeeCode: payee.PublicCode, Method: string(method),
+				Amount: quote.Amount.Minor(), Fee: quote.Fee.Minor(), Held: true}
+			return nil
+		}
+
 		txID, err := h.transfer(ctx, tx, reason, from.ID, to.ID, quote.Amount, "", "")
 		if err != nil {
 			return err
@@ -1008,6 +1039,33 @@ func (h *BankHandler) announce(ctx context.Context, tx application.Tx, meta enve
 		Metadata: meta,
 		Payload:  ev.Payload,
 	})
+}
+
+// hold moves a payment the watch held from the payer's purse into their
+// escrow, and records it for an operator to release or return.
+func (h *BankHandler) hold(ctx context.Context, tx application.Tx, from application.Account, payerID, payeeID, method string,
+	amount money.Amount, flag *application.WatchFlag,
+) (application.PaymentHold, error) {
+	escrow, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerEscrow, payerID)
+	if err != nil {
+		return application.PaymentHold{}, err
+	}
+	holdID := h.ids.NewID()
+	neg, _ := amount.Neg()
+	txID, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
+		Reason: application.ReasonPaymentHold, ReferenceType: application.PaymentHoldReference, ReferenceID: holdID,
+		Entries:   []application.LedgerEntry{{AccountID: from.ID, Amount: neg}, {AccountID: escrow.ID, Amount: amount}},
+		CreatedAt: h.now(),
+	})
+	if err != nil {
+		return application.PaymentHold{}, err
+	}
+	hold := application.PaymentHold{ID: holdID, PayerID: payerID, PayeeID: payeeID, Method: method, Amount: amount.Minor(),
+		HoldTransactionID: txID, CreatedAt: h.now()}
+	if flag != nil {
+		hold.FlagID = flag.ID
+	}
+	return tx.Watch().Hold(ctx, hold)
 }
 
 // playerAccounts opens, on first use, and returns a player's two accounts:

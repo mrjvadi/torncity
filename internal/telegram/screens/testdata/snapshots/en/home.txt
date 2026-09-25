@@ -20,6 +20,7 @@ Friends can find you by sending "find K7Q2M9A".
   [🗺 Map] → map:list   │   [💼 Job openings] → job:list
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -44,6 +45,7 @@ Friends can find you by sending "find K7Q2M9A".
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -67,6 +69,7 @@ Friends can find you by sending "find K7Q2M9A".
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -89,6 +92,7 @@ Friends can find you by sending "find K7Q2M9A".
   [🧭 My journey] → travel:status   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Profile · not in any city yet ━━━
@@ -108,6 +112,7 @@ This is your home: your condition, your money and your work at a glance. Use the
   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Profile · top level ━━━
@@ -127,6 +132,7 @@ This is your home: your condition, your money and your work at a glance. Use the
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -144,6 +150,7 @@ This is your home: your condition, your money and your work at a glance. Use the
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -171,6 +178,7 @@ Until you are free you cannot travel, work a shift, withdraw from the bank or st
   [⛓ Jail] → crime:jail   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Dashboard · in jail ━━━
@@ -191,6 +199,7 @@ Until you are free you cannot travel, work a shift, withdraw from the bank or st
   [⛓ Jail] → crime:jail   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
+  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Help · an unknown command ━━━
@@ -210,6 +219,9 @@ The game is played with the buttons. You can also send these words, with or with
 • friends - and "find" with a player code or username
 • city - offices and policies; "office" is your own
 • army - your country's ministry of defence and armed forces; "sanctions" and "treaties" its diplomacy
+• hospital - your health, a stay and treatment
+• missions - your missions; "board" the city's mission boards
+• faction - your faction; "factions" the city's factions
 • settings
 • help - this screen
   ───

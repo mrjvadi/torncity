@@ -24,8 +24,8 @@ const (
 )
 
 // ownerTables names the table each ownable account kind's owner_id points at.
-// A kind missing here has no owner table yet (factions arrive in a later
-// phase), so an account of that kind cannot be opened yet.
+// A kind missing here has no owner table yet, so an account of that kind
+// cannot be opened.
 var ownerTables = map[application.AccountKind]string{
 	application.AccountPlayerCash:   "players",
 	application.AccountPlayerBank:   "players",
@@ -37,6 +37,8 @@ var ownerTables = map[application.AccountKind]string{
 	// (migrations/0021_military), owned by its jurisdiction.
 	application.AccountStateTreasury: "jurisdictions",
 	application.AccountDefenceFund:   "jurisdictions",
+	// A faction's bank (migrations/0023_health_missions_factions).
+	application.AccountFactionTreasury: "factions",
 }
 
 // LedgerRepository implements application.LedgerRepository.

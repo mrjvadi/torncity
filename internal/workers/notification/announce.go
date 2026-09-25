@@ -63,6 +63,10 @@ type Announcement struct {
 	CityIDs []string
 	ChatID  int64
 	BotID   string
+	// Language is the language of the one group ChatID names when no city
+	// is linked to it (a faction's group, docs/adr/0023); empty: the
+	// language of the player who acted.
+	Language string
 	// PlayerID is the player the line is about, whose display name it
 	// carries when Name is empty.
 	PlayerID string
@@ -161,7 +165,7 @@ func (w *Worker) announce(ctx context.Context, route Route, env *envelope.Envelo
 	consumer := route.Durable()
 	for _, g := range targets {
 		key := consumer + ":" + strconv.FormatInt(g.ChatID, 10)
-		done, err := w.cfg.Inbox.Processed(ctx, env.Metadata.RequestID, key)
+		done, err := w.cfg.Inbox.Processed(ctx, env.Metadata.MessageID(), key)
 		if err != nil {
 			return err
 		}
@@ -171,7 +175,7 @@ func (w *Worker) announce(ctx context.Context, route Route, env *envelope.Envelo
 		ok, held := w.throttle.allow(g.ChatID, now)
 		if !ok {
 			log.Info("announcement held back: the group had its fill for now", slog.Int64("chat_id", g.ChatID))
-			if _, err := w.cfg.Inbox.MarkProcessed(ctx, env.Metadata.RequestID, key); err != nil {
+			if _, err := w.cfg.Inbox.MarkProcessed(ctx, env.Metadata.MessageID(), key); err != nil {
 				log.Warn("cannot record the announcement in the inbox", slog.String("error", err.Error()))
 			}
 			continue
@@ -181,7 +185,7 @@ func (w *Worker) announce(ctx context.Context, route Route, env *envelope.Envelo
 		if err := w.sendAnnouncement(ctx, now, env.Metadata, g, text, log); err != nil {
 			return err
 		}
-		if _, err := w.cfg.Inbox.MarkProcessed(ctx, env.Metadata.RequestID, key); err != nil {
+		if _, err := w.cfg.Inbox.MarkProcessed(ctx, env.Metadata.MessageID(), key); err != nil {
 			log.Warn("cannot record the announcement in the inbox", slog.String("error", err.Error()))
 		}
 	}
@@ -207,7 +211,11 @@ func (w *Worker) targets(ctx context.Context, a *Announcement, meta envelope.Met
 		if bot == "" {
 			return nil, nil
 		}
-		return []application.CityGroup{{ChatID: a.ChatID, BotID: bot, Language: meta.Language}}, nil
+		lang := a.Language
+		if lang == "" {
+			lang = meta.Language
+		}
+		return []application.CityGroup{{ChatID: a.ChatID, BotID: bot, Language: lang}}, nil
 	}
 	if len(a.CityIDs) > 0 {
 		var out []application.CityGroup

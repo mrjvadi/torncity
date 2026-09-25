@@ -462,7 +462,9 @@ func (c Context) companyNotice(n *CompanyNotice) string {
 
 // CompanyManageView is the owner's or the manager's screen of a company.
 type CompanyManageView struct {
-	Ref      CompanyRef
+	Ref CompanyRef
+	// Clinic says it treats hospital patients: its desk is one press away.
+	Clinic   bool
 	CityCode string
 	City     string
 	// Owner is the viewer's role: the owner, else the manager.
@@ -564,6 +566,11 @@ func CompanyManage(c Context, v CompanyManageView) *presenter.Response {
 	kb.Row(staff, openings)
 	if btn, ok := keyboards.Button(c.T("production.button.warehouse", nil), AddrWarehouse, v.Ref.Code); ok {
 		kb.Row(btn)
+	}
+	if v.Clinic {
+		if btn, ok := keyboards.Button(c.T("health.button.desk", nil), AddrClinicDesk, v.Ref.Code); ok {
+			kb.Row(btn)
+		}
 	}
 	auto, label := CompanyAutoOn, "company.button.auto_on"
 	if v.AutoAccept {

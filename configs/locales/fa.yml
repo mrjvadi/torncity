@@ -125,6 +125,8 @@ profile:
   jail_in: "⛓ در زندان {city} هستید - {remaining} مانده"
   jail_blocks: "تا آزادی نمی‌توانید سفر کنید، شیفت کار کنید، از بانک برداشت کنید یا دورهٔ تازه‌ای شروع کنید؛ دورهٔ در حال گذراندن هم متوقف می‌ماند."
   certificates: "📜 {count} مدرک"
+  hospital: "🏥 در بیمارستان {city} بستری هستید - {remaining} مانده"
+  hospital_blocks: "تا ترخیص نمی‌توانید سفر کنید، سر کار بروید، در شهر جابه‌جا شوید یا خلاف کنید. درمان، بستری را کوتاه می‌کند."
 map:
   cities_title: "🧭 سفر به شهر دیگر"
   title: "🗺 نقشه"
@@ -248,6 +250,9 @@ help:
     • دوستان - و «پیدا» با کد بازیکن یا نام کاربری
     • شهر - مناصب و سیاست‌های شهر؛ «منصب» منصب شما
     • ارتش - وزارت دفاع و نیروهای مسلح کشور؛ «تحریم» و «پیمان» دیپلماسی آن
+    • بیمارستان - سلامت شما، بستری و درمان
+    • مأموریت - مأموریت‌های من؛ «تابلو» تابلوهای مأموریت شهر
+    • جناح - جناح من؛ «جناح‌ها» جناح‌های شهر
     • تنظیمات
     • راهنما - همین صفحه
 
@@ -673,6 +678,7 @@ pay:
   # Posted in the group a payment was started in, once it is made. It never
   # says how much.
   announced: "💸 {payer} به {payee} پول داد."
+  held: "⏸ پرداخت {amount} به {player} برای بررسی نگه داشته شد. مبلغ از حساب شما کسر و در حساب امانی شما نگه داشته شده است؛ پس از بررسی یا به {player} می‌رسد یا به شما برمی‌گردد."
 
 # کار (internal/domain/job، configs/content/jobs.yml). واژه‌ها: شغل 💼، شیفت
 # کاری، دستمزد، مالیات بر درآمد، عملکرد 📈 (از 0 تا 100)، ارتقا ⬆️، فرصت‌های
@@ -958,6 +964,7 @@ crime:
     walking: "🚶 در راه جای دیگری از شهر هستید. اول برسید."
     nerve: "🔥 به {need} جسارت نیاز دارید و {have} دارید. تا {wait} دیگر کافی می‌شود."
     cooldown: "⏳ همین تازگی این کار را کرده‌اید. تا {wait} دیگر می‌توانید دوباره امتحان کنید."
+    hospital: "🏥 در بیمارستان بستری هستید. کار خلاف می‌ماند برای بعد از ترخیص."
   button:
     commit: "🕶 انجامش بده"
     again: "🔁 دوباره"
@@ -1054,6 +1061,7 @@ crime:
     cannot_afford: "💵 هزینه‌اش {amount} است و شما روی هم {cash} پول نقد و موجودی بانک دارید."
     nothing_stolen: "در این دزدی چیزی از شما برده نشد، پس شکایتی هم در کار نیست."
     cooldown: "⏳ {crime}: همین تازگی این کار را کرده‌اید. تا {wait} دیگر دوباره امتحان کنید."
+    hospital: "🏥 تا {remaining} دیگر در بیمارستان بستری هستید. کار خلاف می‌ماند برای بعد از ترخیص."
   error:
     in_jail: "⛓ تا {remaining} دیگر در زندان هستید. از صفحهٔ زندان وثیقه بپردازید یا صبر کنید."
     in_jail_later: "⛓ در زندان هستید. از صفحهٔ زندان وثیقه بپردازید یا صبر کنید."
@@ -1069,6 +1077,8 @@ crime_name:
   home_burglary: دزدی از خانه
   counterfeit_selling: فروش کالای تقلبی
   goods_smuggling: قاچاق کالای سبک
+  warehouse_heist: دستبرد به انبار
+  armoured_van_job: زدن ماشین پول
 
 # دسته‌های جرم (crimes.yml).
 crime_category:
@@ -1174,6 +1184,8 @@ place:
     departure: "🚉 {mode} از {place} حرکت می‌کند."
     shop: "🛒 {shop} در {place} است."
     crime: "🕶 {crime} اینجا شدنی نیست؛ برای انجامش به {place} بروید."
+    heist: "🕶 {crime} اینجا شدنی نیست؛ گروه باید در {place} جمع شود."
+    board: "📋 مأموریت در تابلوی {board} در {place} گرفته و تحویل داده می‌شود."
   button:
     go: "🚶 {place}"
     walk: "🚶 رفتن به {place} - {walk}"
@@ -1217,6 +1229,11 @@ command_alias:
   sanctions: "تحریم | تحریم‌ها"
   treaties: "پیمان | پیمان‌ها | معاهده"
   war: "جنگ | نبرد"
+  hospital: "بیمارستان | درمان"
+  faction: "جناح | باند"
+  factions: "جناح‌ها | باندها"
+  missions: "مأموریت | ماموریت | مأموریت‌ها"
+  board: "تابلو | اعلانات"
 
 # Where a command runs (configs/commands.yml). Sent in the wrong kind of chat,
 # it is not run; the player reads one of these instead.
@@ -1249,6 +1266,11 @@ input:
     company_sell: "🏷 قیمت هر واحد را به عدد بنویسید."
     company_buy: "🛒 چند واحد می‌خرید؟ تعداد را به عدد بنویسید."
     gov_appoint: "👤 کد بازیکن یا نام کاربری کسی را که منصوب می‌کنید بفرستید."
+    health_price: "🩺 درمانگاه شما برای هر درمان چقدر بگیرد؟ مبلغ را به عدد بنویسید؛ صفر یعنی رایگان."
+    faction_found: "🏴 نام جناح را بنویسید و بفرستید."
+    faction_invite: "🤝 کد بازیکن یا نام کاربری کسی را که دعوت می‌کنید بفرستید."
+    faction_deposit: "📥 چه مبلغی به بانک جناح واریز شود؟ مبلغ را به عدد بنویسید."
+    faction_withdraw: "📤 چه مبلغی از بانک جناح به حساب بانکی‌تان برداشته شود؟ مبلغ را به عدد بنویسید."
   placeholder:
     default: "مقدار"
     bank_deposit: "مبلغ واریز به نیل"
@@ -1266,6 +1288,11 @@ input:
     company_sell: "قیمت هر واحد به نیل"
     company_buy: "تعداد"
     gov_appoint: "کد بازیکن یا نام کاربری"
+    health_price: "هزینهٔ هر درمان به نیل"
+    faction_found: "نام جناح"
+    faction_invite: "کد بازیکن یا نام کاربری"
+    faction_deposit: "مبلغ واریز به نیل"
+    faction_withdraw: "مبلغ برداشت به نیل"
   cancel_hint: "برای انصراف، «انصراف» را بفرستید."
   cancelled: "✖️ لغو شد. چیزی تغییر نکرد."
 
@@ -2695,3 +2722,361 @@ war:
     target: "🎯 {city}"
     launch: "🚀 {op} با {class}"
     confirm_launch: "🚀 آغاز عملیات"
+
+# سلامت و بیمارستان (docs/adr/0023). کسی نمی‌میرد: سلامت هیچ‌وقت از کف پایین‌تر
+# نمی‌رود و بازیکنِ آسیب‌دیده بستری می‌شود.
+health:
+  title: "🏥 بیمارستان"
+  health_line: "❤️ سلامت: {health} از {max}"
+  not_in_hospital: "✅ بستری نیستید."
+  rest_full_in: "🛌 با استراحت، سلامت تا {duration} دیگر کامل می‌شود. دارو این راه را کوتاه می‌کند."
+  in_hospital: "🛏 در بیمارستان {city} بستری هستید."
+  remaining: "⏳ {remaining} تا ترخیص"
+  discharge_at: "ترخیص: ساعت {time}"
+  discharge_new: "ترخیص پس از درمان: ساعت {time}"
+  cause:
+    crime: "علت: آسیب در حین خلاف"
+    war: "علت: زخمی شدن در حملهٔ جنگی به شهر"
+    work: "علت: حادثه در محل کار"
+    faction_crime: "علت: آسیب در عملیات گروهی"
+  treat_title: "🩺 چه کسی درمانتان کند؟ هر بستری فقط یک بار درمان می‌شود:"
+  clinics_title: "🩺 درمانگاه‌های {city}:"
+  city_hospital: "بیمارستان شهر"
+  clinic_name: "درمانگاه {name} ({code})"
+  offer:
+    city: "• {provider}: {price} - {saves} زودتر ترخیص"
+    clinic: "• {provider}: {price} - {saves} زودتر ترخیص - پزشک سطح {doctor}"
+    closed: "• {provider}: فعلاً بیمار نمی‌پذیرد"
+    no_medicine: "• {provider}: داروی کافی ندارد"
+  clinic_line: "• {provider}: {price} برای هر درمان - پزشک سطح {doctor}"
+  treated_by: "✅ این بستری را {provider} درمان کرده است؛ تا ترخیص استراحت کنید."
+  confirm: "🩺 درمان در {provider}: {price}. این درمان {saves} از {remaining} بستری باقی‌مانده کم می‌کند."
+  pay_how: "با چه پرداخت می‌کنید؟"
+  treated: "🩺 درمان شدید در {provider}: {saved} زودتر ترخیص می‌شوید."
+  paid: "💸 هزینهٔ درمان: {price}"
+  injury:
+    hurt: "🩹 {damage} از سلامتتان کم شد؛ سلامت: {health} از {max}"
+    hospital: "🚑 {damage} از سلامتتان کم شد و به بیمارستان منتقل شدید؛ سلامت: {health} از {max}"
+    public: "🩹 {player} آسیب دید."
+    public_hospital: "🚑 {player} آسیب دید و به بیمارستان منتقل شد."
+    work: "⚠️ در محل کار حادثه‌ای پیش آمد."
+    strike: "💥 در حمله آسیب دیدید."
+  desk:
+    title: "🩺 میز درمانگاه {name}"
+    open: "🟢 بیمار می‌پذیرد"
+    closed: "🔴 فعلاً بیمار نمی‌پذیرد"
+    price: "💵 هزینهٔ هر درمان: {price}"
+    stock: "💊 دارو در انبار: {units} واحد - هر درمان {per} واحد مصرف می‌کند"
+    no_stock: "⚠️ دارو برای یک درمان هم کافی نیست؛ از لیست فروش آزمایشگاه‌های دارویی بخرید یا خودتان بسازید."
+    doctor: "👨‍⚕️ بهترین پزشک: سطح {level} پزشکی - هر درمان {share}٪ از زمان بستری را کم می‌کند"
+    earned: "📈 درمان‌ها: {count} - درآمد: {earned}"
+    help: "بیماران در بیمارستان شهر، این درمانگاه را کنار بیمارستان شهر می‌بینند. هر درمان داروی انبار را مصرف می‌کند و هزینه‌اش به حساب درمانگاه واریز می‌شود."
+  notice:
+    hospitalised: "🚑 {damage} از سلامتتان کم شد و در {city} به بیمارستان منتقل شدید. سلامت: {health} از {max}"
+    blocks: "تا ترخیص نمی‌توانید سفر کنید، سر کار بروید، در شهر جابه‌جا شوید یا خلاف کنید. درمان، بستری را کوتاه می‌کند."
+    discharged: "🏥 از بیمارستان {city} مرخص شدید. سلامت: {health} از {max}"
+    clinic_treated: "🩺 درمانگاه {name} بیماری را درمان کرد: {patient}. {price} به حساب درمانگاه واریز شد و {units} واحد {item} مصرف شد؛ بیمار {saved} زودتر مرخص می‌شود."
+  announce:
+    hospitalised: "🚑 {player} در {city} به بیمارستان منتقل شد."
+  button:
+    hospital: "🏥 بیمارستان"
+    treat: "🩺 {provider} - {price}"
+    confirm_free: "✅ درمان رایگان"
+    desk: "🩺 میز درمانگاه"
+    price: "✏️ هزینهٔ درمان"
+    open: "🟢 پذیرش بیمار"
+    close: "🔴 توقف پذیرش"
+  refused:
+    no_hospitals: "این دنیا هنوز بیمارستانی ندارد."
+    not_hospitalised: "✅ بستری نیستید؛ درمانی لازم نیست."
+    treated: "این بستری یک بار درمان شده است. تا ترخیص استراحت کنید."
+    no_clinic: "چنین درمانگاهی پیدا نشد."
+    elsewhere: "این درمانگاه در شهری است که شما در آن بستری نیستید."
+    closed: "این درمانگاه فعلاً بیمار نمی‌پذیرد."
+    no_medicine: "این درمانگاه داروی کافی ندارد. بیمارستان شهر یا درمانگاه دیگری را امتحان کنید."
+    not_yours: "این درمانگاه را شما اداره نمی‌کنید."
+  error:
+    hospitalised: "🏥 تا {remaining} دیگر در بیمارستان بستری هستید. درمان در بیمارستان، بستری را کوتاه می‌کند."
+    hospitalised_later: "🏥 در بیمارستان بستری هستید. از صفحهٔ بیمارستان درمان بگیرید یا صبر کنید."
+
+# جناح‌ها (docs/adr/0023): گروه‌ها و سازمان‌هایی که بازیکنان تأسیس و اداره می‌کنند.
+faction:
+  name: "{name} ({code})"
+  rank:
+    leader: "رهبر"
+    officer: "افسر"
+    member: "عضو"
+  list_title: "🏴 جناح‌ها"
+  list_title_city: "🏴 جناح‌های {city}"
+  list_line: "• {faction} - {members} عضو"
+  list_none: "هنوز جناحی در این شهر نیست."
+  list_mine: "جناح شما: {faction}"
+  list_found: "جناح خودتان را در شهرداری تأسیس کنید؛ هزینهٔ ثبت {fee} است."
+  page_title: "🏴 {faction}"
+  page_city: "📍 شهر: {city}"
+  page_members: "👥 {count} عضو:"
+  member_line: "• {player} - {rank}"
+  member_line_self: "• {player} - {rank} (شما)"
+  page_linked: "💬 گروه تلگرامی جناح وصل است؛ خبرهای جناح آنجا اعلام می‌شود."
+  found_title: "🏴 تأسیس جناح"
+  found_fee: "هزینهٔ ثبت جناح در {city}: {fee} که به خزانهٔ شهر می‌رود."
+  found_rules: "نام جناح باید {min} تا {max} حرف باشد و نام نهادهای شهر را نداشته باشد. تأسیس در شهرداری انجام می‌شود."
+  found_how: "هزینه را چطور می‌پردازید؟ پس از انتخاب، نام جناح را می‌فرستید."
+  founded: "🏴 {faction} در {city} تأسیس شد و شما رهبر آن هستید."
+  founded_fee: "💸 هزینهٔ ثبت: {fee}"
+  founded_next: "حالا اعضا را دعوت کنید، بانک جناح را پر کنید و گروه تلگرامی جناح را وصل کنید: در آن گروه «جناح {code}» را بفرستید و دکمهٔ وصل کردن را بزنید."
+  home_title: "🏴 {faction}"
+  home_rank: "🎖 رتبهٔ شما: {rank}"
+  home_members: "👥 اعضا: {count} از {max}"
+  home_bank: "🏦 بانک جناح: {amount}"
+  home_applications: "📨 {count} درخواست عضویت در انتظار پاسخ"
+  home_unlinked: "💬 جناح هنوز گروه تلگرامی ندارد؛ رهبر در گروه «جناح {code}» را می‌فرستد و دکمهٔ وصل کردن را می‌زند."
+  members_title: "👥 اعضای {faction}"
+  members_count: "{count} عضو از {max}"
+  requests_title: "📨 در انتظار پاسخ:"
+  request_line:
+    invite: "• دعوت از {player}"
+    apply: "• درخواست عضویت {player}"
+  invited: "📨 دعوت برای {player} فرستاده شد."
+  applied: "📨 درخواست عضویت شما برای {faction} فرستاده شد. پاسخ را در پیام خصوصی می‌گیرید."
+  answered:
+    invite_accepted: "🤝 به {faction} پیوستید."
+    invite_declined: "دعوت {faction} را نپذیرفتید."
+    apply_accepted: "🤝 {player} به {faction} پیوست."
+    apply_declined: "درخواست {player} رد شد."
+  confirm:
+    kick: "{player} از {faction} اخراج شود؟"
+    lead: "رهبری {faction} به {player} سپرده شود؟ شما افسر می‌شوید و این کار برگشت‌پذیر نیست مگر او دوباره رهبری را به شما بسپارد."
+    leave: "از {faction} خارج می‌شوید؟"
+    disband: "شما تنها عضو {faction} هستید. با خروج، جناح منحل می‌شود و ماندهٔ بانکش به حساب بانکی شما می‌آید. ادامه می‌دهید؟"
+  left: "از {faction} خارج شدید."
+  disbanded: "🏴 {faction} منحل شد."
+  disbanded_paid: "🏦 {amount} از بانک جناح به حساب بانکی شما آمد."
+  linked: "💬 {faction} به این گروه وصل شد؛ خبرهای جناح از این پس اینجا اعلام می‌شود."
+  bank_title: "🏦 بانک {faction}"
+  bank_balance: "موجودی: {amount}"
+  bank_limits: "هر واریز یا برداشت بین {min} و {max}"
+  bank_rules: "واریز با اعضایی است که رتبه‌شان اجازه می‌دهد؛ برداشت فقط با رتبه‌های مجاز و به حساب بانکی خودشان."
+  bank_deposited: "📥 {amount} به بانک جناح واریز شد."
+  bank_withdrawn: "📤 {amount} از بانک جناح به حساب بانکی شما آمد."
+  op:
+    gathering: "🕶 {crime} در {place} {city}: گروه در حال جمع شدن است."
+    running: "🕶 {crime} در {place} {city} در جریان است - شانس موفقیت {chance}٪ - {left} مانده"
+    gather_until: "مهلت جمع شدن: ساعت {time}"
+    ends_at: "پایان کار: ساعت {time}"
+    crew_count: "👥 {crew} نفر از حداقل {min} و حداکثر {max} - هر نفر هنگام شروع {nerve} جسارت می‌دهد"
+    crew: "گروه: {crew}"
+  crime_notice:
+    planned: "🗺 نقشه کشیده شد. اعضا باید در همان محل جمع شوند و به گروه بپیوندند."
+    joined: "🤝 به گروه پیوستید. تا شروع کار همین‌جا بمانید."
+    launched: "🚀 کار شروع شد. نتیجه پس از پایان در پیام خصوصی می‌رسد."
+    called_off: "✖️ نقشه لغو شد. کسی چیزی پرداخت نکرده بود."
+  crime_title: "🕶 خلاف گروهی {faction}"
+  crime_none: "کاری در جریان نیست. کارهای ممکن:"
+  crime_line: "• {crime}: {min} تا {max} نفر - هر نفر {nerve} جسارت - حداقل سطح {level} - {duration} - در: {places}"
+  crime_rules: "کسی که نقشه می‌کشد باید همان‌جایی باشد که کار انجام می‌شود. اعضا در همان محل به گروه می‌پیوندند و هنگام شروع جسارت می‌دهند؛ هر کس آنجا نباشد جا می‌ماند. سهم بانک جناح {cut}٪ است و باقی به نسبت رتبه تقسیم می‌شود. اگر پلیس برسد، همهٔ گروه زندانی و جریمه می‌شوند."
+  crime_result:
+    succeeded: "🕶 {crime} با {faction} موفق بود."
+    escaped: "🏃 {crime} با {faction} خراب شد، ولی گروه فرار کرد."
+    caught: "🚔 {crime} با {faction} خراب شد و پلیس گروه را گرفت."
+    split: "💵 کل درآمد {take} - سهم بانک جناح {cut} - سهم شما {share}"
+    jail: "⛓ برای {term} به زندان رفتید."
+  op_result:
+    succeeded: "موفق بود"
+    escaped: "خراب شد؛ گروه فرار کرد"
+    caught: "خراب شد؛ گروه دستگیر شد"
+  notice:
+    invite: "📨 {player} شما را به {faction} دعوت کرد."
+    apply: "📨 {player} می‌خواهد به {faction} بپیوندد."
+    answer_invite_accepted: "🤝 {player} دعوت شما را پذیرفت و به {faction} پیوست."
+    answer_invite_declined: "{player} دعوت {faction} را نپذیرفت."
+    answer_apply_accepted: "🤝 درخواست شما پذیرفته شد: اکنون عضو {faction} هستید."
+    answer_apply_declined: "درخواست عضویت شما در {faction} پذیرفته نشد."
+    kicked: "🚪 {player} شما را از {faction} اخراج کرد."
+  announce:
+    founded: "🏴 {player} جناح {faction} را تأسیس کرد."
+    joined: "🤝 {player} به {faction} پیوست."
+    left: "🚪 {player} از {faction} رفت."
+    linked: "💬 {faction} به این گروه وصل شد."
+    ranked: "🎖 {player} در {faction} {rank} شد."
+    disbanded: "🏴 {faction} منحل شد."
+    planned: "🗺 {faction} نقشهٔ {crime} را در {place} کشید. اعضا، در همان محل جمع شوید."
+    launched: "🚀 گروه {faction} راهی {crime} شد."
+    crime_resolved: "🕶 {crime} گروه {faction}: {result}."
+  button:
+    view: "🏴 {name}"
+    mine: "🏴 جناح من"
+    found: "🏴 تأسیس جناح"
+    list: "🏴 جناح‌ها"
+    apply: "📨 درخواست عضویت"
+    members: "👥 اعضا"
+    bank: "🏦 بانک جناح"
+    crime: "🕶 خلاف گروهی"
+    invite: "✏️ دعوت از بازیکن"
+    leave: "🚪 خروج از جناح"
+    promote: "⬆️ {name}"
+    demote: "⬇️ {name}"
+    kick: "✖️ {name}"
+    lead: "👑 {name}"
+    accept: "✅ پذیرفتن"
+    accept_name: "✅ {name}"
+    decline: "❌ رد"
+    confirm_kick: "✖️ اخراج"
+    confirm_lead: "👑 سپردن رهبری"
+    confirm_leave: "🚪 خروج"
+    confirm_disband: "🏴 خروج و انحلال"
+    deposit_cash: "✏️ واریز نقدی"
+    deposit_card: "✏️ واریز با کارت"
+    withdraw: "✏️ برداشت"
+    plan: "🗺 نقشهٔ {crime}"
+    join: "🤝 پیوستن به گروه"
+    launch: "🚀 شروع کار"
+    calloff: "✖️ لغو نقشه"
+    link: "🔗 وصل کردن به این گروه"
+  refused:
+    none: "این دنیا هنوز جناح ندارد."
+    not_member: "عضو هیچ جناحی نیستید."
+    rank: "🎖 رتبهٔ شما اجازهٔ این کار را نمی‌دهد."
+    not_found: "چنین جناحی پیدا نشد."
+    already_member: "شما همین حالا عضو یک جناح هستید."
+    name: "نام جناح باید {min} تا {max} حرف باشد، با حرف یا عدد شروع شود و نام نهادهای شهر را نداشته باشد."
+    name_taken: "این نام را جناح دیگری دارد."
+    not_group: "این کار فقط در گروه تلگرامی جناح انجام می‌شود."
+    group_taken: "این گروه به جناح دیگری وصل است."
+    bank_short: "🏦 بانک جناح {balance} دارد و {amount} خواستید."
+    no_player: "چنین بازیکنی پیدا نشد. کد بازیکن یا نام کاربری را درست بفرستید."
+    theirs: "این بازیکن عضو یک جناح است."
+    full: "جناح پر است: حداکثر {max} عضو."
+    pending_full: "درخواست‌های در انتظار این جناح زیاد است؛ کمی بعد دوباره امتحان کنید."
+    pending: "یک دعوت یا درخواست از قبل در انتظار پاسخ است."
+    request_gone: "این دعوت یا درخواست دیگر در انتظار نیست."
+    not_yours: "پاسخ این درخواست با شما نیست."
+    not_in_it: "این بازیکن عضو جناح شما نیست."
+    on_a_job: "🕶 گروه در حال کار است؛ تا پایانش نمی‌شود جناح را ترک کرد."
+    leader_leaving: "👑 رهبر پیش از خروج باید رهبری را به عضو دیگری بسپارد."
+    no_such_crime: "چنین کار گروهی‌ای وجود ندارد."
+    operation_open: "جناح همین حالا یک کار گروهی در جریان دارد."
+    level: "برای کشیدن این نقشه دست‌کم سطح {level} لازم است."
+    no_place_here: "این کار در این شهر شدنی نیست."
+    no_operation: "کار گروهی‌ای در حال جمع شدن نیست."
+    crew_full: "گروه پر است."
+    elsewhere: "گروه در شهر یا محل دیگری جمع می‌شود."
+    crew_short: "👥 برای شروع دست‌کم {need} نفر در محل با جسارت کافی لازم است و {have} نفر آماده‌اند."
+
+# دسته‌های شغلی (configs/content/jobs.yml).
+career_category:
+  commerce: بازرگانی
+  food: خوراک
+  transport: حمل‌ونقل
+  trades: فنی و صنعتی
+  technology: فناوری
+  medical: درمان
+  finance: مالی
+
+# تابلوهای مأموریت (configs/content/missions.yml).
+mission_board:
+  city_hall: تابلوی اعلانات شهرداری
+  police: تابلوی پلیس
+
+# مأموریت‌ها (docs/adr/0023): کارهایی که شهر روی تابلوهایش می‌گذارد.
+mission:
+  first_steps:
+    name: "قدم‌های اول"
+    brief: "هر تازه‌واردی باید روی پای خودش بایستد: کار کنید و جعبهٔ کمک‌های اولیه‌تان را پر کنید."
+  study_up:
+    name: "برگشت به کلاس"
+    brief: "شهر به نیروی آموزش‌دیده نیاز دارد."
+  city_courier:
+    name: "پیک شهر"
+    brief: "نامه‌های شهرداری باید به شهر دیگری برسد."
+  medicine_drive:
+    name: "پویش دارو"
+    brief: "درمانگاه‌های شهر کم آورده‌اند؛ باند زخم به مرکز شهرداری بیاورید."
+  market_day:
+    name: "روز بازار"
+    brief: "بازار شهر رونق می‌خواهد: چیزی بفروشید."
+  road_watch:
+    name: "مراقبت جاده‌ها"
+    brief: "کلانتری از رانندگان و پیک‌ها می‌خواهد چشم‌شان به جاده باشد."
+  first_aid_course:
+    name: "آموزش کمک‌های اولیه"
+    brief: "پلیس از داوطلبان می‌خواهد دارو را درست به کار ببرند."
+  objective:
+    travel: "سفر به {target}"
+    travel_any: "سفر به شهری دیگر"
+    work_shift: "{count} شیفت کار در {target}"
+    work_shift_any: "{count} شیفت کار"
+    course: "گذراندن دورهٔ {target}"
+    course_any: "گذراندن {count} دوره"
+    buy_item: "خرید {count} {target} از مغازه‌های شهر"
+    buy_item_any: "خرید {count} کالا از مغازه‌های شهر"
+    sell_item: "فروش {count} {target}"
+    sell_item_any: "فروش {count} کالا به مغازه یا در بازار"
+    crime: "{count} بار {target} موفق"
+    crime_any: "{count} خلاف موفق"
+    use_item: "مصرف {count} {target}"
+    use_item_any: "مصرف {count} کالا"
+    deliver: "تحویل {count} {target} در تابلو"
+  objective_todo: "• {objective}"
+  objective_progress: "• {objective} - {done} از {count}"
+  objective_done: "✅ {objective}"
+  reward: "🎁 پاداش: {reward}"
+  reward_xp: "{xp} امتیاز تجربه"
+  reward_item: "{qty} {item}"
+  boards_title: "📋 تابلوهای مأموریت {city}"
+  board_line: "• {board} - در {place}"
+  boards_none: "این شهر هنوز تابلوی مأموریت ندارد."
+  board_title: "📋 {board} - {city}"
+  board_elsewhere: "برای گرفتن مأموریت باید در {place} باشید."
+  board_empty: "فعلاً مأموریتی روی این تابلو نیست."
+  line: "• {mission} - {reward}"
+  title: "📋 {mission}"
+  where: "📍 گرفتن و تحویل: {board} در {place}"
+  min_level: "⭐ حداقل سطح {level}"
+  requires: "🔗 پیش‌نیاز: {missions}"
+  time_limit: "⏳ مهلت انجام: {duration} پس از گرفتن"
+  repeatable: "🔁 تکرارشدنی؛ {duration} پس از هر بار انجام"
+  blocked:
+    active: "این مأموریت را همین حالا در دست دارید."
+    level: "برای این مأموریت دست‌کم سطح {level} لازم است."
+    requires: "اول مأموریت‌های پیش‌نیاز را انجام دهید."
+    done: "این مأموریت را انجام داده‌اید."
+    cooldown: "⏳ تا {wait} دیگر دوباره می‌شود این مأموریت را گرفت."
+    too_many: "همین حالا {max} مأموریت در دست دارید؛ اول یکی را تمام کنید."
+  mine_title: "📋 مأموریت‌های من - {count} از {max}"
+  mine_none: "مأموریتی در دست ندارید. از تابلوهای شهر یکی بگیرید."
+  mine_line: "📌 {mission}"
+  left: "⏳ {duration} مهلت مانده"
+  expired: "⌛ مهلت تمام شد"
+  recent_title: "اخیراً:"
+  recent:
+    completed: "✅ {mission} - {cash}"
+    abandoned: "✖️ {mission} - رها شد"
+    expired: "⌛ {mission} - مهلتش گذشت"
+    active: "📌 {mission}"
+  notice:
+    accepted: "📌 مأموریت «{mission}» را گرفتید. از همین حالا هر کاری که بکنید به حسابش می‌آید."
+    delivered: "📦 {qty} واحد برای «{mission}» تحویل داده شد."
+    completed: "🎉 مأموریت «{mission}» انجام شد."
+    abandoned: "✖️ مأموریت «{mission}» را رها کردید."
+  withheld: "⚖️ {amount} از پاداش به‌خاطر سقف روزانهٔ پاداش‌ها پرداخت نشد."
+  completed: "🎉 مأموریت «{mission}» انجام شد!"
+  paid: "💵 {cash} به پول نقدتان اضافه شد."
+  got_item: "🎒 {qty} {item} گرفتید."
+  abandon_confirm: "مأموریت «{mission}» را رها می‌کنید؟ پیشرفتش از بین می‌رود."
+  button:
+    board: "📋 {board}"
+    mine: "📋 مأموریت‌های من"
+    boards: "📋 تابلوهای مأموریت"
+    view: "📌 {mission}"
+    accept: "✅ گرفتن مأموریت"
+    deliver: "📦 تحویل برای {mission}"
+    abandon: "✖️ رها کردن {mission}"
+    abandon_confirm: "✖️ رها کن"
+  refused:
+    not_found: "چنین مأموریتی پیدا نشد."
+    not_here: "این مأموریت در این شهر نیست."
+    blocked: "این مأموریت را الان نمی‌شود گرفت."
+    not_active: "این مأموریت دیگر در دست شما نیست."
+    expired: "⌛ مهلت این مأموریت تمام شده است."
+    nothing_to_deliver: "📦 چیزی که این مأموریت می‌خواهد همراهتان نیست."

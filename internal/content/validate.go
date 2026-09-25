@@ -185,6 +185,9 @@ func (p *Pack) Validate() error {
 	p.validateProduction(&problems)
 	p.validateMilitary(&problems)
 	p.validateWar(&problems)
+	p.validateHealth(&problems)
+	p.validateMissions(&problems)
+	p.validateFactions(&problems)
 
 	if len(problems) > 0 {
 		return errors.Join(problems...)

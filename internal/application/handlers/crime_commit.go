@@ -83,6 +83,9 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 			if s.hold.sentence != nil {
 				r.view.Remaining = s.hold.sentence.EndsAt.Sub(now)
 			}
+			if s.hold.stay != nil {
+				r.view.Remaining = s.hold.stay.EndsAt.Sub(now)
+			}
 			return r
 		}
 		if missing := h.missing(snap, cr, s); len(missing) > 0 {
@@ -218,6 +221,7 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 // blockedRefusal maps why a crime is blocked to its refusal.
 var blockedRefusal = map[string]string{
 	screens.CrimeBlockedJail:       screens.CrimeRefusedJail,
+	screens.CrimeBlockedHospital:   screens.CrimeRefusedHospital,
 	screens.CrimeBlockedBusy:       screens.CrimeRefusedBusy,
 	screens.CrimeBlockedWork:       screens.CrimeRefusedWork,
 	screens.CrimeBlockedTravelling: screens.CrimeRefusedTravelling,
@@ -571,6 +575,16 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 	if view.Skills, err = awardSkillXP(ctx, tx, in.thief.ID, in.stand.skills, awards, in.now); err != nil {
 		return view, err
 	}
+	// A failure may hurt (crimes.yml failure.injury), rolled on the
+	// attempt's own id so a replay decides the same (docs/adr/0023).
+	if out.Result != crime.Succeeded && in.def.Failure.Injury != nil {
+		inj, err := rollInjury(ctx, tx, in.snap, h.ids, h.scale, meta, in.def.Failure.Injury.Injury(), row.ID, 0,
+			hurt{playerID: in.thief.ID, cityID: in.city.ID, cause: application.CauseCrime, causeRef: row.ID}, in.now)
+		if err != nil {
+			return view, err
+		}
+		view.Injury = inj.View()
+	}
 
 	prof.UpdatedAt = in.now
 	if err := tx.Crime().SaveProfile(ctx, *prof); err != nil {
@@ -582,6 +596,14 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 	view.Heat = h.heatView(prof.Heat)
 	view.Nerve = h.nerveView(prof, in.now)
 
+	// Every attempt is told, for what counts crimes (missions,
+	// docs/adr/0023): who, which crime, and how it went — no sum.
+	if err := appendCrimeEvent(ctx, tx, meta, "attempted", row.ID, map[string]any{
+		"player_id": in.thief.ID, "crime": in.def.Code, "category": in.def.Category, "result": string(out.Result),
+		"city_id": in.city.ID,
+	}); err != nil {
+		return view, err
+	}
 	if out.Result == crime.Succeeded && victimKind == crime.TargetPlayer && (out.Take.Minor() > 0 || view.Stolen != nil) {
 		payload := map[string]any{
 			"victim_id": in.victim.ID, "attempt_id": row.ID, "crime": in.def.Code, "crime_name": in.def.Name,
@@ -622,6 +644,10 @@ func resultPayload(playerID string, v screens.CrimeResultView) map[string]any {
 	if v.Jail != nil {
 		p["jail_seconds"] = int64(v.Jail.Remaining / time.Second)
 		p["jail_ends_at"] = v.Jail.EndsAt
+	}
+	if v.Injury != nil {
+		p["injury"] = map[string]any{"damage": v.Injury.Damage, "health": v.Injury.Health, "max_health": v.Injury.Max,
+			"hospital": v.Injury.Hospital, "ends_at": v.Injury.EndsAt}
 	}
 	loot := make([]map[string]any, 0, len(v.Loot))
 	for _, l := range v.Loot {

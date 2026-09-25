@@ -722,6 +722,9 @@ type WarNoticeView struct {
 	ProposalKind   string
 	Band           string
 	In             time.Duration
+	// Injury is what a strike did to the player, nil for nothing
+	// (docs/adr/0023).
+	Injury *InjuryView
 }
 
 // WarNotice renders a private notice of war.
@@ -740,8 +743,15 @@ func WarNotice(c Context, v WarNoticeView) *presenter.Response {
 		decline, _ := keyboards.Button(c.T("war.button.decline", pa), AddrWarAnswer, pn, AnswerDecline)
 		kb.Row(accept, decline)
 	}
+	if v.Injury != nil && v.Injury.Hospital {
+		kb.Add(c.T("health.button.hospital", nil), AddrHospital)
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrWarBoard, v.Country.Code)}))
-	return c.respond(c.T("war.notice."+v.Kind, args), kb.Build())
+	text := c.T("war.notice."+v.Kind, args)
+	if v.Injury != nil {
+		text = paragraphs(text, body(c.T("health.injury.strike", nil), c.injuryLines(v.Injury)))
+	}
+	return c.respond(text, kb.Build())
 }
 
 // War refusals.

@@ -73,9 +73,15 @@ type ProfileView struct {
 	// screen says so first, with the time left and the release time, and
 	// offers the jail instead of what jail rules out.
 	Jail *ProfileJail
+
+	// Hospital is the stay the player is in hospital for, nil when well.
+	// Like jail it is said first, and the home screen offers the hospital
+	// instead of what a stay rules out (docs/adr/0023).
+	Hospital *ProfileJail
 }
 
-// ProfileJail is a sentence as the home screen shows it.
+// ProfileJail is a sentence as the home screen shows it. A hospital stay is
+// shown with the same facts.
 type ProfileJail struct {
 	// CityCode and City are where the player is held.
 	CityCode string
@@ -170,6 +176,7 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 		welcome,
 		body(name, where),
 		jailLines(c, v.Jail),
+		hospitalLines(c, v.Hospital),
 		body(
 			levelLine(c, v.Level, v.XP, v.NextLevelXP),
 			energyLine(c, v.Energy, v.MaxEnergy, v.EnergyFullIn),
@@ -183,7 +190,47 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 		code,
 	)
 
-	return c.respond(text, hubKeyboard(c, city != "", v.Travelling, v.Jail != nil, v.Work).Build())
+	kb := hubKeyboard(c, city != "", v.Travelling, v.Jail != nil || v.Hospital != nil, v.Work)
+	if v.Hospital != nil && v.Jail == nil {
+		kb = hospitalHub(c, v.Work)
+	}
+	return c.respond(text, kb.Build())
+}
+
+// hospitalLines says the player is in hospital: where, for how long, when
+// they leave, and what a stay stops them doing.
+func hospitalLines(c Context, h *ProfileJail) string {
+	if h == nil {
+		return ""
+	}
+	return body(
+		c.T("profile.hospital", map[string]any{"city": c.CityName(h.CityCode, h.City),
+			"remaining": FormatDuration(c, h.Remaining)}),
+		clockLine(c, "health.discharge_at", h.EndsAt),
+		c.T("profile.hospital_blocks", nil),
+	)
+}
+
+// hospitalHub is the home screen's keyboard for a patient: the hospital
+// first, where a treatment shortens the stay.
+func hospitalHub(c Context, work *ProfileWork) *keyboards.Builder {
+	kb := keyboards.New()
+	hospital, _ := keyboards.Button(c.T("health.button.hospital", nil), AddrHospital)
+	job, _ := keyboards.Button(c.T("job.button.my_job", nil), AddrJobStatus)
+	if work != nil && work.Job == nil {
+		job, _ = keyboards.Button(c.T("job.button.openings", nil), AddrJobList)
+	}
+	kb.Row(hospital, job)
+	study, _ := keyboards.Button(c.T("education.button.open", nil), AddrEducation)
+	bank, _ := keyboards.Button(c.T("button.bank", nil), AddrBank)
+	kb.Row(study, bank)
+	skills, _ := keyboards.Button(c.T("button.skills", nil), AddrSkills)
+	social, _ := keyboards.Button(c.T("button.social", nil), AddrFriendList)
+	kb.Row(skills, social)
+	settings, _ := keyboards.Button(c.T("button.settings", nil), AddrSettings)
+	refresh, _ := keyboards.Button(c.T("button.refresh", nil), AddrProfile)
+	kb.Row(settings, refresh)
+	return kb
 }
 
 // placeLines is where the player is in their city: the place they stand at,
@@ -352,6 +399,11 @@ func hubKeyboard(c Context, hasCity, travelling, jailed bool, work *ProfileWork)
 	skills, _ := keyboards.Button(c.T("button.skills", nil), AddrSkills)
 	social, _ := keyboards.Button(c.T("button.social", nil), AddrFriendList)
 	kb.Row(skills, social)
+
+	// Stage E (docs/adr/0023): missions and the player's faction.
+	missions, _ := keyboards.Button(c.T("mission.button.mine", nil), AddrMissions)
+	factionBtn, _ := keyboards.Button(c.T("faction.button.mine", nil), AddrFactionMine)
+	kb.Row(missions, factionBtn)
 
 	if hasCity && !travelling && !jailed {
 		city, _ := keyboards.Button(c.T("gov.button.city", nil), AddrGovCity)

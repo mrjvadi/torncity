@@ -62,6 +62,24 @@ type crimeResult struct {
 		Item     string `json:"item"`
 		ItemName string `json:"item_name"`
 	} `json:"confiscated"`
+	Injury *injuryPayload `json:"injury"`
+}
+
+// injuryPayload is an injury as an event carries it (handlers.injured).
+type injuryPayload struct {
+	Damage    int       `json:"damage"`
+	Health    int       `json:"health"`
+	MaxHealth int       `json:"max_health"`
+	Hospital  bool      `json:"hospital"`
+	EndsAt    time.Time `json:"ends_at"`
+}
+
+// view is the injury as a screen shows it; nil for none.
+func (p *injuryPayload) view() *screens.InjuryView {
+	if p == nil || p.Damage <= 0 {
+		return nil
+	}
+	return &screens.InjuryView{Damage: p.Damage, Health: p.Health, Max: p.MaxHealth, Hospital: p.Hospital, EndsAt: p.EndsAt}
 }
 
 // renderCrimeResult tells a thief how an attempt ended: the take of a
@@ -81,7 +99,7 @@ func renderCrimeResult(_ context.Context, _ Deps, env *envelope.Envelope) (*Draf
 		XP: ev.XP, CriminalXP: ev.CriminalXP, Level: ev.Level,
 		Heat:  screens.HeatView{Heat: ev.Heat, Max: ev.HeatMax, Wanted: ev.Wanted, Stars: ev.Stars},
 		Nerve: screens.NerveView{Nerve: ev.Nerve, Max: ev.NerveMax, FullIn: time.Duration(ev.NerveFullInSec) * time.Second},
-		Fine:  ev.Fine, FinePaid: ev.FinePaid, Notice: true,
+		Fine:  ev.Fine, FinePaid: ev.FinePaid, Notice: true, Injury: ev.Injury.view(),
 	}
 	for _, s := range ev.Skills {
 		view.Skills = append(view.Skills, screens.SkillGain{Skill: s.Skill, XP: s.XP, Level: s.Level})

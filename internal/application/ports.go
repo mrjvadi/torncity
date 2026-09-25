@@ -153,6 +153,17 @@ type Tx interface {
 	// cities, so each changes with the equipment and money that moved for
 	// it; see ports_war.go.
 	War() WarRepository
+
+	// Health, Missions, Factions and Watch are stage E
+	// (docs/adr/0023-health-missions-factions.md): hospital stays and
+	// treatments, missions and their inbox, factions and their organised
+	// crimes, and the watch's flags and held payments — each changing with
+	// the money, goods and state that moved for it; see ports_health.go,
+	// ports_missions.go, ports_factions.go and ports_watch.go.
+	Health() HealthRepository
+	Missions() MissionRepository
+	Factions() FactionRepository
+	Watch() WatchRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

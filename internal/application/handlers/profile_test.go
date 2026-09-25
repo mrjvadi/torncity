@@ -554,6 +554,8 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 		"button.bank",
 		"button.skills",
 		"button.social",
+		"mission.button.mine",
+		"faction.button.mine",
 		"button.settings",
 		"button.refresh",
 	}

@@ -215,6 +215,52 @@ commands:
   war.target: {channel: private}
   war.launch: {channel: private}
 
+  # Health (docs/adr/0023): the hospital screen and a treatment show the
+  # patient's health and move their money; a clinic's desk is its owner's.
+  # All in PV. That someone was taken to hospital is read in the city's group.
+  health.hospital: {channel: private}
+  health.treat: {channel: private}
+  health.clinic: {channel: private}
+  health.price: {channel: private}
+  health.open: {channel: private}
+
+  # Factions (docs/adr/0023): the list and a faction's page are public.
+  # Founding one and running it — members, ranks, invitations, its bank —
+  # are the members' business, in PV. A faction is tied to its Telegram
+  # group from inside that group. Its organised crimes are planned, joined
+  # and launched where the crew stands — in PV or in a group — and the
+  # group reads how they went, never the take.
+  faction.list: {channel: both}
+  faction.view: {channel: both}
+  faction.found: {channel: private}
+  faction.mine: {channel: private}
+  faction.members: {channel: private}
+  faction.invite: {channel: private}
+  faction.apply: {channel: private}
+  faction.answer: {channel: private}
+  faction.kick: {channel: private}
+  faction.rank: {channel: private}
+  faction.leave: {channel: private}
+  faction.bank: {channel: private}
+  faction.deposit: {channel: private}
+  faction.withdraw: {channel: private}
+  faction.link: {channel: group}
+  faction.crime: {channel: both}
+  faction.plan: {channel: both}
+  faction.join: {channel: both}
+  faction.launch: {channel: both}
+  faction.calloff: {channel: both}
+
+  # Missions (docs/adr/0023): a board is a public noticeboard and reads
+  # anywhere; taking a mission, the player's own missions, handing goods in
+  # and giving one up are theirs, in PV.
+  mission.board: {channel: both}
+  mission.view: {channel: both}
+  mission.accept: {channel: private}
+  mission.mine: {channel: private}
+  mission.deliver: {channel: private}
+  mission.abandon: {channel: private}
+
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the
 # commands listed here may ask. field is the payload field the typed text
@@ -237,3 +283,8 @@ input:
   company.sell: {field: price, args: [company, target, qty]}
   company.buy: {field: qty, args: [no]}
   gov.appoint: {field: to, args: [office, place], text: true}
+  health.price: {field: price, args: [company]}
+  faction.found: {field: name, args: [method], text: true}
+  faction.invite: {field: to, text: true}
+  faction.deposit: {field: amount, args: [method]}
+  faction.withdraw: {field: amount}

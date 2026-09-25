@@ -582,6 +582,8 @@ type ShiftWorkedView struct {
 	Level     int
 	Energy    int
 	MaxEnergy int
+	// Injury is an accident at work, nil for none (docs/adr/0023).
+	Injury *InjuryView
 }
 
 // ShiftWorked renders a shift's outcome.
@@ -636,14 +638,24 @@ func ShiftWorked(c Context, v ShiftWorkedView) *presenter.Response {
 	if v.FatigueBPS > 0 && v.FatigueBPS < 10_000 {
 		tired = c.T("job.shift_fatigued", map[string]any{"percent": PercentFromBPS(c, v.FatigueBPS)})
 	}
+	var accident string
+	if v.Injury != nil {
+		accident = body(c.T("health.injury.work", nil), c.injuryLines(v.Injury))
+	}
 
 	kb := keyboards.New()
-	again, _ := keyboards.Button(c.T("job.button.work_again", nil), AddrJobWork)
-	mine, _ := keyboards.Button(c.T("job.button.my_job", nil), AddrJobStatus)
-	kb.Row(again, mine)
+	if v.Injury != nil && v.Injury.Hospital {
+		if btn, ok := keyboards.Button(c.T("health.button.hospital", nil), AddrHospital); ok {
+			kb.Row(btn)
+		}
+	} else {
+		again, _ := keyboards.Button(c.T("job.button.work_again", nil), AddrJobWork)
+		mine, _ := keyboards.Button(c.T("job.button.my_job", nil), AddrJobStatus)
+		kb.Row(again, mine)
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
 
-	return c.respond(paragraphs(c.T("job.shift_done", nil), body(lines...), tired), kb.Build())
+	return c.respond(paragraphs(c.T("job.shift_done", nil), body(lines...), tired, accident), kb.Build())
 }
 
 // JobPromotedView is a promotion.

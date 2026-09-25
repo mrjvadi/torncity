@@ -101,6 +101,11 @@ type file struct {
 	TreatyTypes       []TreatyTypeDef   `yaml:"treaty_types"`
 	SanctionGrounds   []string          `yaml:"sanction_grounds"`
 	War               *WarDef           `yaml:"war"`
+
+	Health        *HealthDef        `yaml:"health"`
+	MissionBoards []MissionBoardDef `yaml:"mission_boards"`
+	Missions      []MissionDef      `yaml:"missions"`
+	Faction       *FactionDef       `yaml:"faction"`
 }
 
 // Load reads every content file in dir and returns them as one pack.
@@ -207,6 +212,14 @@ func Load(dir string) (*Pack, error) {
 		pack.SanctionGrounds = append(pack.SanctionGrounds, doc.SanctionGrounds...)
 		if doc.War != nil {
 			pack.War = append(pack.War, *doc.War)
+		}
+		if doc.Health != nil {
+			pack.Health = append(pack.Health, *doc.Health)
+		}
+		pack.MissionBoards = append(pack.MissionBoards, doc.MissionBoards...)
+		pack.Missions = append(pack.Missions, doc.Missions...)
+		if doc.Faction != nil {
+			pack.Factions = append(pack.Factions, *doc.Faction)
 		}
 	}
 

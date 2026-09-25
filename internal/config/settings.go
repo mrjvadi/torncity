@@ -48,6 +48,9 @@ type fileConfig struct {
 	Military   militarySettings   `yaml:"military"`
 	Diplomacy  diplomacySettings  `yaml:"diplomacy"`
 	War        warSettings        `yaml:"war"`
+	Missions   missionsSettings   `yaml:"missions"`
+	Factions   factionsSettings   `yaml:"factions"`
+	AntiCheat  antiCheatSettings  `yaml:"anticheat"`
 	Input      inputSettings      `yaml:"input"`
 	Announce   announceSettings   `yaml:"announce"`
 }
@@ -237,6 +240,33 @@ type warSettings struct {
 	EndedShownFor     *string `yaml:"ended_shown_for"`
 	BoardOperations   *int    `yaml:"board_operations"`
 	NoticeCap         *int    `yaml:"notice_cap"`
+}
+
+type missionsSettings struct {
+	MaxActive       *int   `yaml:"max_active"`
+	PlayerDailyCap  *int64 `yaml:"player_daily_cap"`
+	EconomyDailyCap *int64 `yaml:"economy_daily_cap"`
+}
+
+type factionsSettings struct {
+	NameMinLength *int `yaml:"name_min_length"`
+	NameMaxLength *int `yaml:"name_max_length"`
+	MaxMembers    *int `yaml:"max_members"`
+	MaxPending    *int `yaml:"max_pending"`
+	ListSize      *int `yaml:"list_size"`
+}
+
+type antiCheatSettings struct {
+	Window                *string `yaml:"window"`
+	OneWayCount           *int    `yaml:"one_way_count"`
+	OneWayMinTotal        *int64  `yaml:"one_way_min_total"`
+	OneWayRatioBPS        *int    `yaml:"one_way_ratio_bps"`
+	OffMarketBPS          *int    `yaml:"off_market_bps"`
+	OffMarketMinValue     *int64  `yaml:"off_market_min_value"`
+	SinglePartnerMinCount *int    `yaml:"single_partner_min_count"`
+	SinglePartnerShareBPS *int    `yaml:"single_partner_share_bps"`
+	CommandsPerMinute     *int    `yaml:"commands_per_minute"`
+	HoldAbove             *int64  `yaml:"hold_above"`
 }
 
 type diplomacySettings struct {
@@ -905,6 +935,63 @@ var settings = []setting{
 	limitSetting("war", "notice_cap",
 		func(c *Config) *int { return &c.War.NoticeCap },
 		func(f *fileConfig) *int { return f.War.NoticeCap }),
+
+	limitSetting("missions", "max_active",
+		func(c *Config) *int { return &c.Missions.MaxActive },
+		func(f *fileConfig) *int { return f.Missions.MaxActive }),
+	moneySetting("missions", "player_daily_cap",
+		func(c *Config) *int64 { return &c.Missions.PlayerDailyCap },
+		func(f *fileConfig) *int64 { return f.Missions.PlayerDailyCap }),
+	moneySetting("missions", "economy_daily_cap",
+		func(c *Config) *int64 { return &c.Missions.EconomyDailyCap },
+		func(f *fileConfig) *int64 { return f.Missions.EconomyDailyCap }),
+
+	limitSetting("factions", "name_min_length",
+		func(c *Config) *int { return &c.Factions.NameMinLength },
+		func(f *fileConfig) *int { return f.Factions.NameMinLength }),
+	limitSetting("factions", "name_max_length",
+		func(c *Config) *int { return &c.Factions.NameMaxLength },
+		func(f *fileConfig) *int { return f.Factions.NameMaxLength }),
+	limitSetting("factions", "max_members",
+		func(c *Config) *int { return &c.Factions.MaxMembers },
+		func(f *fileConfig) *int { return f.Factions.MaxMembers }),
+	limitSetting("factions", "max_pending",
+		func(c *Config) *int { return &c.Factions.MaxPending },
+		func(f *fileConfig) *int { return f.Factions.MaxPending }),
+	limitSetting("factions", "list_size",
+		func(c *Config) *int { return &c.Factions.ListSize },
+		func(f *fileConfig) *int { return f.Factions.ListSize }),
+
+	durationSetting("anticheat", "window",
+		func(c *Config) *time.Duration { return &c.AntiCheat.Window },
+		func(f *fileConfig) *string { return f.AntiCheat.Window }),
+	limitSetting("anticheat", "one_way_count",
+		func(c *Config) *int { return &c.AntiCheat.OneWayCount },
+		func(f *fileConfig) *int { return f.AntiCheat.OneWayCount }),
+	moneySetting("anticheat", "one_way_min_total",
+		func(c *Config) *int64 { return &c.AntiCheat.OneWayMinTotal },
+		func(f *fileConfig) *int64 { return f.AntiCheat.OneWayMinTotal }),
+	limitSetting("anticheat", "one_way_ratio_bps",
+		func(c *Config) *int { return &c.AntiCheat.OneWayRatioBPS },
+		func(f *fileConfig) *int { return f.AntiCheat.OneWayRatioBPS }),
+	limitSetting("anticheat", "off_market_bps",
+		func(c *Config) *int { return &c.AntiCheat.OffMarketBPS },
+		func(f *fileConfig) *int { return f.AntiCheat.OffMarketBPS }),
+	moneySetting("anticheat", "off_market_min_value",
+		func(c *Config) *int64 { return &c.AntiCheat.OffMarketMinValue },
+		func(f *fileConfig) *int64 { return f.AntiCheat.OffMarketMinValue }),
+	limitSetting("anticheat", "single_partner_min_count",
+		func(c *Config) *int { return &c.AntiCheat.SinglePartnerMinCount },
+		func(f *fileConfig) *int { return f.AntiCheat.SinglePartnerMinCount }),
+	limitSetting("anticheat", "single_partner_share_bps",
+		func(c *Config) *int { return &c.AntiCheat.SinglePartnerShareBPS },
+		func(f *fileConfig) *int { return f.AntiCheat.SinglePartnerShareBPS }),
+	limitSetting("anticheat", "commands_per_minute",
+		func(c *Config) *int { return &c.AntiCheat.CommandsPerMinute },
+		func(f *fileConfig) *int { return f.AntiCheat.CommandsPerMinute }),
+	moneySetting("anticheat", "hold_above",
+		func(c *Config) *int64 { return &c.AntiCheat.HoldAbove },
+		func(f *fileConfig) *int64 { return f.AntiCheat.HoldAbove }),
 
 	durationSetting("input", "ttl",
 		func(c *Config) *time.Duration { return &c.Input.TTL },

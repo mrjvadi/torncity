@@ -113,6 +113,10 @@
 #     fine_min, fine_max    the fine to the city's treasury, drawn evenly,
 #                           then scaled by city.fine_multiplier.
 #     heat                  heat an arrest adds.
+#     injury                optional {chance_bps, min, max}: a failed
+#                           attempt — an escape or an arrest — may hurt the
+#                           thief: that chance, and min..max health taken
+#                           (health.yml says when that means hospital).
 # A conviction after a reported theft draws its sentence and fine from the
 # same failure ranges.
 
@@ -172,6 +176,7 @@ crimes:
       fine_min: 100
       fine_max: 400
       heat: 8
+      injury: {chance_bps: 800, min: 5, max: 20}
 
   - code: shoplifting
     name: Shoplifting
@@ -236,6 +241,7 @@ crimes:
       fine_min: 150
       fine_max: 500
       heat: 10
+      injury: {chance_bps: 2000, min: 10, max: 35}
 
   - code: street_scam
     name: Street scam
@@ -302,6 +308,7 @@ crimes:
       fine_min: 300
       fine_max: 1000
       heat: 12
+      injury: {chance_bps: 1500, min: 10, max: 40}
 
   - code: home_burglary
     name: Home burglary
@@ -336,6 +343,7 @@ crimes:
       fine_min: 500
       fine_max: 2000
       heat: 18
+      injury: {chance_bps: 2500, min: 15, max: 55}
 
   - code: counterfeit_selling
     name: Selling counterfeit goods
@@ -406,3 +414,4 @@ crimes:
       fine_min: 1000
       fine_max: 4000
       heat: 20
+      injury: {chance_bps: 2000, min: 15, max: 50}

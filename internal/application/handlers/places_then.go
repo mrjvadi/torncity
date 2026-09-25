@@ -86,6 +86,12 @@ var followUps = map[string][]string{
 	"crime.view":     {"crime"},
 	"bank.show":      nil,
 	"company.type":   {"type"},
+	// Stage E (docs/adr/0023): founding a faction at city hall, the
+	// organised crime board at its place.
+	"faction.found": nil,
+	"faction.crime": nil,
+	"mission.board": {"board"},
+	"mission.mine":  nil,
 }
 
 // FollowUpCommands lists the commands a walk may be followed by.

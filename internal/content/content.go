@@ -249,6 +249,15 @@ type Pack struct {
 	// War is military.yml's war section, at most one; see war.go.
 	War []WarDef
 
+	// Stage E (docs/adr/0023-health-missions-factions.md): health.yml's
+	// health section, at most one (health.go); the mission boards and the
+	// missions (missions.yml, mission.go); factions.yml's faction section,
+	// at most one (faction.go).
+	Health        []HealthDef
+	MissionBoards []MissionBoardDef
+	Missions      []MissionDef
+	Factions      []FactionDef
+
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"
 	// It is empty for a pack that was assembled in code rather than read from

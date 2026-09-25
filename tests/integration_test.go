@@ -218,9 +218,18 @@ func deletePlayer(t *testing.T, pool *postgres.Pool, playerID string) {
 
 	raw := pool.Raw()
 	purgeGoodsFor(t, pool, playerID)
+	// A player may have been hurt (a war strike, a shift) or flagged without
+	// the test knowing: stage E's rows go first.
+	var stageE bool
+	if err := raw.QueryRow(ctx, `SELECT to_regclass('public.player_health') IS NOT NULL`).Scan(&stageE); err == nil && stageE {
+		purgeStageE(t, pool, playerID)
+	}
 	for _, stmt := range []string{
 		`DELETE FROM idempotency_keys WHERE player_id = $1::uuid`,
 		`DELETE FROM player_bot_links WHERE player_id = $1::uuid`,
+		// A war strike hurts everyone in a city, which gives a player the
+		// test never played a stats row.
+		`DELETE FROM player_stats WHERE player_id = $1::uuid`,
 		`DELETE FROM players WHERE id = $1::uuid`,
 	} {
 		if _, err := raw.Exec(ctx, stmt, playerID); err != nil {

@@ -20,6 +20,7 @@
   [🗺 نقشه] → map:list   │   [💼 فرصت‌های شغلی] → job:list
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
@@ -44,6 +45,7 @@
   [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
@@ -67,6 +69,7 @@
   [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
@@ -89,6 +92,7 @@
   [🧭 سفر من] → travel:status   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ Profile · not in any city yet ━━━
@@ -108,6 +112,7 @@
   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ Profile · top level ━━━
@@ -127,6 +132,7 @@
   [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
@@ -144,6 +150,7 @@
   [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
@@ -171,6 +178,7 @@
   [⛓ زندان] → crime:jail   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ Dashboard · in jail ━━━
@@ -191,6 +199,7 @@
   [⛓ زندان] → crime:jail   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
+  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ Help · an unknown command ━━━
@@ -210,6 +219,9 @@
 • دوستان - و «پیدا» با کد بازیکن یا نام کاربری
 • شهر - مناصب و سیاست‌های شهر؛ «منصب» منصب شما
 • ارتش - وزارت دفاع و نیروهای مسلح کشور؛ «تحریم» و «پیمان» دیپلماسی آن
+• بیمارستان - سلامت شما، بستری و درمان
+• مأموریت - مأموریت‌های من؛ «تابلو» تابلوهای مأموریت شهر
+• جناح - جناح من؛ «جناح‌ها» جناح‌های شهر
 • تنظیمات
 • راهنما - همین صفحه
   ───

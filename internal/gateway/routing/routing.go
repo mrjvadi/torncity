@@ -233,6 +233,16 @@ var shortcuts = map[string]shortcut{
 	// "/war" is the war board of the player's country, "/war
 	// vantor_federation" another's.
 	"war": {Bare: "war.board", Words: "war.board"},
+	// "/hospital" is the hospital screen: health, a stay and who treats.
+	"hospital": {Bare: "health.hospital"},
+	// "/faction" is the player's faction (or the list, without one);
+	// "/faction K7Q2M9A" a faction's page; "/factions" the list.
+	"faction":  {Bare: "faction.mine", Words: "faction.view"},
+	"factions": {Bare: "faction.list"},
+	// "/missions" is the player's missions; "/board" the city's boards and
+	// "/board police" one of them.
+	"missions": {Bare: "mission.mine"},
+	"board":    {Bare: "mission.board", Words: "mission.board"},
 }
 
 // argNames names the positional arguments of a command, in order.
@@ -466,6 +476,48 @@ var argNames = map[string][]string{
 	// Appointments: an office by its code, the place by its code (a city's
 	// or a country's), the appointee by a player code or a username (typed),
 	// or the seat by its number.
+	// Health (docs/adr/0023). A provider is «city» or a clinic's public
+	// code; a price is typed.
+	"health.hospital": {},
+	"health.treat":    {"provider", "method"},
+	"health.clinic":   {"company"},
+	"health.price":    {"company", "price"},
+	"health.open":     {"company", "on"},
+
+	// Factions (docs/adr/0023). A faction is named by its public code, a
+	// member by their player code, a request by its public number, an
+	// organised crime by its content code (factions.yml). A name, an amount
+	// and an invitee are typed.
+	"faction.list":     {"page"},
+	"faction.view":     {"code"},
+	"faction.found":    {"method", "name"},
+	"faction.mine":     {},
+	"faction.members":  {},
+	"faction.invite":   {"to"},
+	"faction.apply":    {"code", "confirm"},
+	"faction.answer":   {"no", "verdict"},
+	"faction.kick":     {"player", "confirm"},
+	"faction.rank":     {"player", "rank", "confirm"},
+	"faction.leave":    {"confirm"},
+	"faction.bank":     {},
+	"faction.deposit":  {"method", "amount"},
+	"faction.withdraw": {"amount"},
+	"faction.link":     {"confirm"},
+	"faction.crime":    {},
+	"faction.plan":     {"crime", "confirm"},
+	"faction.join":     {},
+	"faction.launch":   {"confirm"},
+	"faction.calloff":  {"confirm"},
+
+	// Missions (docs/adr/0023). A board and a mission are content codes
+	// (missions.yml); a taken mission is its public number.
+	"mission.board":   {"board"},
+	"mission.view":    {"mission"},
+	"mission.accept":  {"mission"},
+	"mission.mine":    {},
+	"mission.deliver": {"no"},
+	"mission.abandon": {"no", "confirm"},
+
 	"gov.appoint": {"office", "place", "to"},
 	"gov.seat":    {"office", "place", "to"},
 	"gov.dismiss": {"office", "place", "seat"},

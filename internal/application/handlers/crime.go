@@ -429,10 +429,11 @@ func crimeOf(snap *content.Snapshot, code string) (content.CrimeDef, crime.Crime
 // Detention: jail and a timed crime keep a player from other things.
 
 // detention is what holds a player: a sentence being served, a timed crime
-// under way. Either may be nil.
+// under way, a hospital stay (docs/adr/0023). Any may be nil.
 type detention struct {
 	sentence *application.JailSentence
 	attempt  *application.CrimeAttempt
+	stay     *application.HospitalStay
 }
 
 // detained reads what holds the player at now. A sentence whose time is up
@@ -453,12 +454,16 @@ func detained(ctx context.Context, tx application.Tx, playerID string, now time.
 	case !isSentinel(err, application.ErrNoCrimeInProgress):
 		return d, err
 	}
+	if d.stay, err = hospitalised(ctx, tx, playerID, now); err != nil {
+		return d, err
+	}
 	return d, nil
 }
 
-// RefuseDetained refuses what a player in jail, or in the middle of a timed
-// crime, cannot do: travel and work a shift (docs/adr/0019-crime-engine.md).
-// Travel and the jobs handler call it beside their own "at work" check.
+// RefuseDetained refuses what a player in jail, in the middle of a timed
+// crime, or in hospital cannot do: travel and work a shift
+// (docs/adr/0019-crime-engine.md, docs/adr/0023). Travel and the jobs handler
+// call it beside their own "at work" check.
 func RefuseDetained(ctx context.Context, tx application.Tx, playerID string, now time.Time) error {
 	d, err := detained(ctx, tx, playerID, now)
 	if err != nil {
@@ -466,6 +471,9 @@ func RefuseDetained(ctx context.Context, tx application.Tx, playerID string, now
 	}
 	if d.sentence != nil {
 		return application.ErrInJail.WithDetail("remaining_seconds", int64(d.sentence.EndsAt.Sub(now)/time.Second))
+	}
+	if d.stay != nil {
+		return application.ErrHospitalised.WithDetail("remaining_seconds", int64(d.stay.EndsAt.Sub(now)/time.Second))
 	}
 	if d.attempt != nil {
 		return application.ErrCrimeInProgress

@@ -315,3 +315,40 @@ func (noWar) Wars(context.Context, string, time.Time) ([]application.War, error)
 func (noWar) CityDamage(context.Context, string, bool) (*application.CityDamage, error) {
 	return nil, nil
 }
+
+// Stage E (docs/adr/0023): nobody in hospital, no missions, no factions,
+// nothing flagged. The shared fakes reach these only through the checks
+// every activity makes.
+func (t *fakeTx) Health() application.HealthRepository    { return noHealth{} }
+func (t *fakeTx) Missions() application.MissionRepository { return noMissions{} }
+func (t *fakeTx) Factions() application.FactionRepository { return noFactions{} }
+func (t *fakeTx) Watch() application.WatchRepository      { return noWatch{} }
+
+// noHealth is a world where nobody is hurt.
+type noHealth struct{ application.HealthRepository }
+
+func (noHealth) ActiveStay(context.Context, string) (*application.HospitalStay, error) {
+	return nil, application.ErrNotHospitalised
+}
+func (noHealth) RestSince(context.Context, string) (time.Time, error) { return time.Time{}, nil }
+
+type noMissions struct{ application.MissionRepository }
+
+func (noMissions) Active(context.Context, string) ([]application.MissionAssignment, error) {
+	return nil, nil
+}
+
+type noFactions struct{ application.FactionRepository }
+
+func (noFactions) Membership(context.Context, string) (*application.FactionMember, error) {
+	return nil, application.ErrNotInFaction
+}
+func (noFactions) RunningCrew(context.Context, string) (*application.FactionOperation, error) {
+	return nil, application.ErrNoOperation
+}
+
+type noWatch struct{ application.WatchRepository }
+
+func (noWatch) Linking(context.Context, string, string) (*application.WatchFlag, error) {
+	return nil, application.ErrFlagNotFound
+}

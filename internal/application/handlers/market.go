@@ -16,6 +16,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/market"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
 	"github.com/mrjvadi/torncity/internal/domain/place"
+	"github.com/mrjvadi/torncity/internal/domain/watch"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
@@ -71,6 +72,15 @@ type MarketHandler struct {
 	pageSize       int
 	idempotencyTTL time.Duration
 	now            func() time.Time
+
+	// watch is the watch's tuning (docs/adr/0023); nil checks nothing.
+	watch *watch.Thresholds
+}
+
+// WithWatch has every trade checked against its good's reference price.
+func (h *MarketHandler) WithWatch(th watch.Thresholds) *MarketHandler {
+	h.watch = &th
+	return h
 }
 
 // NewMarketHandler wires the handler.
@@ -711,6 +721,17 @@ func (h *MarketHandler) settle(ctx context.Context, tx application.Tx, meta enve
 		ID: tradeID, CityID: city.ID, Item: def.Code, BuyOrder: t.BuyOrderID, SellOrder: t.SellOrderID,
 		Buyer: t.Buyer, Seller: t.Seller, Qty: t.Quantity, Price: t.UnitPrice.Minor(), Notional: t.Notional.Minor(),
 		Fee: s.Fee.Minor(), LedgerTransactionID: txID, At: now,
+	}); err != nil {
+		return 0, err
+	}
+	// A trade far from the good's price between two accounts is value
+	// moved in disguise (docs/adr/0023): the watch flags it.
+	if err := watchTrade(ctx, tx, h.watch, t.Seller, t.Buyer, t.UnitPrice.Minor(), def.BasePrice, t.Quantity, now); err != nil {
+		return 0, err
+	}
+	if err := appendMarketEvent(ctx, tx, meta, "traded", tradeID, map[string]any{
+		"trade_id": tradeID, "seller_id": t.Seller, "buyer_id": t.Buyer, "item": def.Code, "qty": t.Quantity,
+		"price": t.UnitPrice.Minor(), "city_id": city.ID,
 	}); err != nil {
 		return 0, err
 	}

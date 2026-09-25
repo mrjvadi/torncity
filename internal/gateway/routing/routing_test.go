@@ -81,8 +81,8 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:        "unnamed arguments land under args",
-			update:      textUpdate("/faction invite alice bob"),
-			wantCommand: "faction.invite",
+			update:      textUpdate("/guild invite alice bob"),
+			wantCommand: "guild.invite",
 			wantPayload: map[string]any{"args": []string{"alice", "bob"}},
 		},
 		{

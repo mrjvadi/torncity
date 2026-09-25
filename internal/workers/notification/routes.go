@@ -127,6 +127,21 @@ func Routes() []Route {
 		{Domain: "war", Event: "proposed", Render: renderWarNotice("war.proposed")},
 		{Domain: "war", Event: "city_struck", Render: renderWarNotice("war.city_struck")},
 
+		// Health: see health.go.
+		{Domain: "health", Event: "hospitalised", Render: renderHospitalised},
+		{Domain: "health", Event: "discharged", Render: renderDischarged},
+		{Domain: "health", Event: "clinic_treated", Render: renderClinicTreated},
+
+		// Factions: see faction.go.
+		{Domain: "faction", Event: "invited", Render: renderFactionRequest("invite")},
+		{Domain: "faction", Event: "applied", Render: renderFactionRequest("apply")},
+		{Domain: "faction", Event: "answered", Render: renderFactionAnswer},
+		{Domain: "faction", Event: "kicked", Render: renderFactionKicked},
+		{Domain: "faction", Event: "crime_settled", Render: renderFactionCrime},
+
+		// Missions: see mission.go.
+		{Domain: "mission", Event: "completed", Render: renderMissionCompleted},
+
 		// Public lines in a city's groups (announce.go). Each has its own
 		// consumer beside the event's private notice, if any.
 		{Domain: "travel", Event: "completed", Name: "announce", Announce: arrivalAnnouncement},
@@ -151,6 +166,16 @@ func Routes() []Route {
 		{Domain: "war", Event: "settled", Name: "announce", Announce: warSettledAnnouncement},
 		{Domain: "war", Event: "struck", Name: "announce", Announce: warStruckAnnouncement},
 		{Domain: "war", Event: "taken", Name: "announce", Announce: warTakenAnnouncement},
+		{Domain: "health", Event: "hospitalised", Name: "announce", Announce: hospitalisedAnnouncement},
+		{Domain: "faction", Event: "founded", Name: "announce", Announce: factionFoundedLine},
+		{Domain: "faction", Event: "joined", Name: "announce", Announce: factionGroupLine("joined")},
+		{Domain: "faction", Event: "left", Name: "announce", Announce: factionGroupLine("left")},
+		{Domain: "faction", Event: "linked", Name: "announce", Announce: factionGroupLine("linked")},
+		{Domain: "faction", Event: "ranked", Name: "announce", Announce: factionGroupLine("ranked")},
+		{Domain: "faction", Event: "disbanded", Name: "announce", Announce: factionGroupLine("disbanded")},
+		{Domain: "faction", Event: "planned", Name: "announce", Announce: factionGroupLine("planned")},
+		{Domain: "faction", Event: "launched", Name: "announce", Announce: factionGroupLine("launched")},
+		{Domain: "faction", Event: "crime_resolved", Name: "announce", Announce: factionGroupLine("crime_resolved")},
 	}
 }
 
