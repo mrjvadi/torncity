@@ -64,6 +64,8 @@ func main() {
 		err = announceCommand(ctx, os.Args[2:])
 	case "broadcast":
 		err = broadcastCommand(ctx, os.Args[2:])
+	case "defence":
+		err = defenceCommand(ctx, os.Args[2:])
 	case "life":
 		err = lifeCommand(ctx, os.Args[2:])
 	default:
