@@ -253,7 +253,11 @@ var shortcuts = map[string]shortcut{
 	// the player's card and "/card K7Q2M9A" another's; "/history" the
 	// player's story and "/history K7Q2M9A" another's public one; "/top"
 	// the leaderboards and "/top cities" one of them.
-	"life":    {Bare: "life.me"},
+	"life": {Bare: "life.me"},
+	// Game clients: "/link" is a one-time code that links one, "/devices"
+	// the clients linked so far.
+	"link":    {Bare: "device.link"},
+	"devices": {Bare: "device.list"},
 	"card":    {Bare: "life.card", Words: "life.card"},
 	"history": {Bare: "life.history", Words: "life.history"},
 	"top":     {Bare: "life.top", Words: "life.top"},
@@ -428,6 +432,10 @@ var argNames = map[string][]string{
 	// Work and study. A career and a course are named by their content code
 	// (jobs.yml, education.yml). job.apply's argument keeps the name "role"
 	// it has always had here. job.quit asks first; "job:quit:yes" confirms.
+	"device.link":   {},
+	"device.list":   {},
+	"device.revoke": {"device"},
+
 	"job.status":       {},
 	"job.list":         {"page"},
 	"job.view":         {"role"},

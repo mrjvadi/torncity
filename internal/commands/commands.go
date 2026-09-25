@@ -463,6 +463,12 @@ var all = []Subscription{
 	{Domain: "gold", Action: "buy", Origin: FromPlayer},
 	{Domain: "gold", Action: "sell", Origin: FromPlayer},
 	{Domain: "finance", Action: "settle", Origin: FromScheduler},
+
+	// Game clients (api/client-api.md): a one-time code that links a
+	// client to the account, the linked clients, and signing one out.
+	{Domain: "device", Action: "link", Origin: FromPlayer},
+	{Domain: "device", Action: "list", Origin: FromPlayer},
+	{Domain: "device", Action: "revoke", Origin: FromPlayer},
 }
 
 // All returns every subscription. The slice is a copy.

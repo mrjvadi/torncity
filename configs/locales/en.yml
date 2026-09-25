@@ -1209,6 +1209,8 @@ command_alias:
   history: "story | history"
   top: "top | leaderboards"
   card: "card"
+  link: "link"
+  devices: "devices"
 
 # Where a command runs (configs/commands.yml).
 channel:
@@ -4040,3 +4042,25 @@ recruit:
     left: "🚪 {name} ({what}) left {company}: {reason}."
     unpaid: "🔴 {name}'s ({what}) pay at {company} was not paid; the company's free money fell short."
   announce: "📢 Job advertisement - {company} ({type}) is looking for {what}; specialists of {city} may apply."
+
+# Game clients (api/client-api.md): the one-time code that links a native
+# client to the account, and the clients linked so far.
+device:
+  link_title: "📱 Link a game client"
+  link_code: "Your code: {code}"
+  link_valid: "It works once, for {valid}."
+  link_until: "Valid until {time}."
+  link_help: "Open the game client, choose «Link with Telegram» and type this code. Never give it to anyone: whoever types it plays as you."
+  list_title: "📱 Your linked game clients"
+  list_empty: "No game client is linked. Send /link to get a code for one."
+  line: "• {name} ({via}) — linked {date}, last seen {date_seen}"
+  via:
+    link: "code"
+    telegram: "Telegram app"
+  notice:
+    revoked: "✅ That client is signed out."
+    gone: "That client was already signed out."
+  button:
+    link: "➕ Link a client"
+    list: "📱 Linked clients"
+    revoke: "🚫 Sign out {name}"

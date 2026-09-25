@@ -357,6 +357,12 @@ commands:
   mission.deliver: {channel: private}
   mission.abandon: {channel: private}
 
+  # Game clients (api/client-api.md): the link code and the linked clients
+  # are the player's own business.
+  device.link: {channel: private}
+  device.list: {channel: private}
+  device.revoke: {channel: private}
+
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the
 # commands listed here may ask. field is the payload field the typed text

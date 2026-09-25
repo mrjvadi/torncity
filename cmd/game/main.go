@@ -39,6 +39,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
+	infraredis "github.com/mrjvadi/torncity/internal/infrastructure/redis"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
@@ -109,15 +110,18 @@ func main() {
 type env struct {
 	databaseURL string
 	natsURL     string
-	logLevel    string
-	localesDir  string
-	configPath  string
+	// redisURL is where game-client link codes are kept (device.link).
+	redisURL   string
+	logLevel   string
+	localesDir string
+	configPath string
 }
 
 func loadEnv() (env, error) {
 	e := env{
 		databaseURL: os.Getenv("DATABASE_URL"),
 		natsURL:     os.Getenv("NATS_URL"),
+		redisURL:    os.Getenv("REDIS_URL"),
 		logLevel:    os.Getenv("LOG_LEVEL"),
 		localesDir:  os.Getenv("TORN_LOCALES_DIR"),
 		configPath:  os.Getenv("TORN_CONFIG"),
@@ -135,6 +139,9 @@ func loadEnv() (env, error) {
 	}
 	if e.natsURL == "" {
 		missing = append(missing, "NATS_URL")
+	}
+	if e.redisURL == "" {
+		missing = append(missing, "REDIS_URL")
 	}
 	if len(missing) > 0 {
 		return env{}, fmt.Errorf("missing required environment variables: %s", strings.Join(missing, ", "))
@@ -401,6 +408,24 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale),
 		handlers.FinanceLimits{OrderTTL: cfg.Trade.MarketOrderTTL, MaxOpen: cfg.Trade.MarketMaxOpenOrders},
 		cfg.Game.IdempotencyTTL, nil).WithWatch(watchThresholds(cfg.AntiCheat))
+	// Game clients (api/client-api.md): /link hands out a one-time code
+	// kept in Redis; the linked devices are rows.
+	rdb, err := infraredis.New(ctx, e.redisURL)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = rdb.Close() }()
+	h.clients.devices, err = handlers.NewDevicesHandler(handlers.DevicesConfig{
+		Msgs:    messages,
+		Players: postgres.NewPlayerRepository(pool, cfg.Player.DefaultLanguage),
+		Codes:   infraredis.NewClientLinkCodes(rdb),
+		Devices: postgres.NewClientDevices(pool),
+		CodeTTL: cfg.Client.LinkCodeTTL,
+		PerHour: cfg.Client.LinkCodesPerHour,
+	})
+	if err != nil {
+		return err
+	}
 	if err := h.stageG2.finance.StartClock(ctx); err != nil {
 		logger.Error("cannot start the finance clock; it starts at the next start",
 			slog.String("error", err.Error()))
