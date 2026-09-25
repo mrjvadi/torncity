@@ -169,7 +169,8 @@ func (h *LifeHandler) me(ctx context.Context, meta envelope.Metadata, notice str
 		view.Needs = *needsView(l)
 		h.fillLife(def, l.row, now, &view)
 		view.Worth = screens.WorthView{Cash: worth.Cash, Bank: worth.Bank, Escrow: worth.Escrow, Equity: worth.Equity,
-			Property: worth.Property, Goods: worth.Goods, Debts: worth.Debts, Total: worth.Total()}
+			Property: worth.Property, Goods: worth.Goods, Debts: worth.Debts, Savings: worth.Savings, Gold: worth.Gold,
+			Loans: worth.Loans, Total: worth.Total()}
 		ladder := def.Ladder()
 		for i, r := range ladder.Ranks {
 			if r.Code == l.row.Rank && i+1 < len(ladder.Ranks) {
@@ -820,11 +821,6 @@ func (h *LifeHandler) refresh(ctx context.Context, tx application.Tx, snap *cont
 		return err
 	}
 	byID := make(map[string]*application.PlayerLife, len(worths))
-	type growth struct {
-		n     application.NetWorth
-		grown int64
-	}
-	var investors []growth
 	source := "period:" + strconv.FormatInt(period, 10)
 	for _, n := range worths {
 		// Each life is read locked, as it stands now: a need a player's
@@ -834,10 +830,6 @@ func (h *LifeHandler) refresh(ctx context.Context, tx application.Tx, snap *cont
 			return err
 		}
 		byID[n.PlayerID] = row
-		known := !row.CreatedAt.Equal(now)
-		if known && n.Worth.Equity > row.Equity {
-			investors = append(investors, growth{n: n, grown: n.Worth.Equity - row.Equity})
-		}
 		row.Equity = n.Worth.Equity
 		if err := judgeRank(ctx, tx, snap, meta, row, n.Worth.Total(), source, now); err != nil {
 			return err
@@ -865,11 +857,11 @@ func (h *LifeHandler) refresh(ctx context.Context, tx application.Tx, snap *cont
 		lines = append(lines, application.LeaderLine{Board: application.BoardRichest, Position: i + 1, Code: n.Code,
 			Name: shown(n), Tag: rank, Value: n.Worth.Total()})
 	}
-	sort.SliceStable(investors, func(i, j int) bool { return investors[i].grown > investors[j].grown })
-	for i, g := range investors[:min(size, len(investors))] {
-		lines = append(lines, application.LeaderLine{Board: application.BoardInvestors, Position: i + 1, Code: g.n.Code,
-			Name: shown(g.n), Value: g.grown, Extra: g.n.Worth.Equity})
+	investors, err := h.investors(ctx, tx, snap, prices.GoldBid, size, now)
+	if err != nil {
+		return err
 	}
+	lines = append(lines, investors...)
 	companies, err := tx.Life().TopCompanies(ctx, size)
 	if err != nil {
 		return err
@@ -904,4 +896,50 @@ func (h *LifeHandler) refresh(ctx context.Context, tx application.Tx, snap *cont
 		return err
 	}
 	return tx.Life().Prune(ctx, period-int64(def.Leaderboards.Keep)+1)
+}
+
+// investors is the investors' board (docs/adr/0026): what each player's
+// portfolio — shares at market price, gold at the dealer's price, savings —
+// gained over what they put into it since the last board, the best first.
+// Every portfolio is marked for the next board.
+func (h *LifeHandler) investors(ctx context.Context, tx application.Tx, snap *content.Snapshot, goldBid int64, size int,
+	now time.Time,
+) ([]application.LeaderLine, error) {
+	if _, ok := snap.Finance(); !ok {
+		return nil, nil
+	}
+	ports, err := tx.Finance().Portfolios(ctx, "", goldBid)
+	if err != nil {
+		return nil, err
+	}
+	marks, err := tx.Finance().Marks(ctx)
+	if err != nil {
+		return nil, err
+	}
+	type growth struct {
+		p     application.Portfolio
+		grown int64
+	}
+	var grew []growth
+	next := make([]application.PortfolioMark, 0, len(ports))
+	for _, p := range ports {
+		if m, ok := marks[p.PlayerID]; ok && p.Gain() > m.Gain {
+			grew = append(grew, growth{p: p, grown: p.Gain() - m.Gain})
+		}
+		next = append(next, application.PortfolioMark{PlayerID: p.PlayerID, Gain: p.Gain(), Value: p.Value(), At: now})
+	}
+	if err := tx.Finance().SaveMarks(ctx, next); err != nil {
+		return nil, err
+	}
+	sort.SliceStable(grew, func(i, j int) bool { return grew[i].grown > grew[j].grown })
+	var lines []application.LeaderLine
+	for i, g := range grew[:min(size, len(grew))] {
+		name := g.p.Name
+		if name == fallbackDisplayName(g.p.TelegramUserID) {
+			name = ""
+		}
+		lines = append(lines, application.LeaderLine{Board: application.BoardInvestors, Position: i + 1, Code: g.p.Code,
+			Name: name, Value: g.grown, Extra: g.p.Value()})
+	}
+	return lines, nil
 }

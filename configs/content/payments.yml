@@ -28,6 +28,10 @@
 #                             player, and a lease's first rent
 #              lodging        a night at a paid sleeping spot, a hostel bed
 #                             (life.yml)
+#              exchange       a buy order on the stock exchange (docs/adr/0026)
+#              gold           gold bought from the dealer
+#              insurance      an insurance policy's first premium
+#              savings        money put into a savings account
 #   accepts  the methods it takes: [cash], [card] or [cash, card]. Never
 #            empty; a service left out of this file takes both.
 #
@@ -65,3 +69,14 @@ payment_services:
     accepts: [cash, card]
   - code: lodging
     accepts: [cash, card]
+  # The stock exchange settles through bank accounts: a buy order's money is
+  # set aside from the card. Gold and a policy's first premium take either;
+  # savings are moved from the bank (docs/adr/0026).
+  - code: exchange
+    accepts: [card]
+  - code: gold
+    accepts: [cash, card]
+  - code: insurance
+    accepts: [cash, card]
+  - code: savings
+    accepts: [card]

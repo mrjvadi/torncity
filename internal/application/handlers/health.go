@@ -520,6 +520,13 @@ func (h *HealthHandler) Treat(ctx context.Context, meta envelope.Metadata, req H
 			}
 			return err
 		}
+		// A health policy pays its share of what the treatment cost, once
+		// per stay (docs/adr/0026).
+		if t.Price > 0 {
+			if _, err := ClaimHospital(ctx, tx, snap, h.ids, meta, p.ID, stay.ID, t.Price, now); err != nil {
+				return err
+			}
+		}
 		done = &screens.TreatedView{Option: o.view(snap), Paid: t.Price, Method: t.Method, Saved: t.Saved,
 			Remaining: ends.Sub(now), EndsAt: ends}
 		if o.clinic != nil {

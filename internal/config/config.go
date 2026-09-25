@@ -207,6 +207,22 @@ type Config struct {
 	City         City
 	Property     Property
 	Achievements Achievements
+
+	// Postgres is every service's connection pool (the deadlock fix: a
+	// bounded pool, and no transaction left idle holding its locks).
+	Postgres Postgres
+}
+
+// Postgres bounds every service's connection pool.
+type Postgres struct {
+	// MaxConns is the most connections one service's pool opens; a command
+	// holds exactly one (its unit of work), so it bounds the commands run
+	// at once, not a guess of pgx's.
+	MaxConns int // postgres.max_conns
+	// IdleInTransactionTimeout makes the server end a session left idle
+	// inside a transaction this long, releasing its locks, so a stuck
+	// process can never freeze everyone else.
+	IdleInTransactionTimeout time.Duration // postgres.idle_in_transaction_timeout
 }
 
 // Gateway paces the Telegram polling loop and its shutdown.
@@ -366,6 +382,12 @@ type Game struct {
 	// fills it, from before the clock was the whole game's; game.time_scale
 	// wins where both are set.
 	TimeScale int // game.time_scale
+
+	// CommandTimeout is the most one command may run: its context is
+	// cancelled after it, the transaction rolled back and the message
+	// redelivered, rather than a stuck handler holding its connection and
+	// its locks forever.
+	CommandTimeout time.Duration // game.command_timeout
 }
 
 // Travel is the tuning of a journey that is not content: what arriving pays.
@@ -719,6 +741,7 @@ type AntiCheat struct {
 	SinglePartnerMinCount int           // anticheat.single_partner_min_count
 	SinglePartnerShareBPS int           // anticheat.single_partner_share_bps
 	CommandsPerMinute     int           // anticheat.commands_per_minute
+	WashTradeCount        int           // anticheat.wash_trade_count
 	// HoldAbove is the smallest payment held for review between accounts a
 	// flag links.
 	HoldAbove int64 // anticheat.hold_above
@@ -821,6 +844,7 @@ func Defaults() *Config {
 
 			ContentReloadInterval: 30 * time.Second,
 			TimeScale:             60,
+			CommandTimeout:        30 * time.Second,
 		},
 		Travel: Travel{
 			ArrivalXP: 25,
@@ -899,6 +923,7 @@ func Defaults() *Config {
 			SinglePartnerMinCount: 6,
 			SinglePartnerShareBPS: 9_000,
 			CommandsPerMinute:     90,
+			WashTradeCount:        3,
 			HoldAbove:             50_000,
 		},
 		Input: Input{
@@ -920,6 +945,7 @@ func Defaults() *Config {
 		Property: Property{ForeclosurePeriods: 3, EvictionPeriods: 2, MaxOwned: 5, MaxPrice: 100_000_000,
 			MaxRent: 1_000_000, RestCooldown: 8 * time.Hour},
 		Achievements: Achievements{PlayerDailyCap: 5000, EconomyDailyCap: 500_000},
+		Postgres:     Postgres{MaxConns: 16, IdleInTransactionTimeout: 60 * time.Second},
 		Crime: Crime{
 			NerveMax:                     20,
 			NerveRegenAmount:             1,
@@ -1122,6 +1148,17 @@ func (c *Config) Validate() error {
 	if c.Missions.PlayerDailyCap > c.Missions.EconomyDailyCap {
 		return fmt.Errorf("%w: missions.player_daily_cap %d is above missions.economy_daily_cap %d",
 			ErrNotPositive, c.Missions.PlayerDailyCap, c.Missions.EconomyDailyCap)
+	}
+	if c.Postgres.MaxConns < 2 || c.Postgres.MaxConns > 500 {
+		return fmt.Errorf("%w: postgres.max_conns is %d, outside 2..500", ErrNotPositive, c.Postgres.MaxConns)
+	}
+	if c.Postgres.IdleInTransactionTimeout < time.Second {
+		return fmt.Errorf("%w: postgres.idle_in_transaction_timeout is %s, under a second", ErrNotPositive,
+			c.Postgres.IdleInTransactionTimeout)
+	}
+	if c.Game.CommandTimeout >= c.Postgres.IdleInTransactionTimeout {
+		return fmt.Errorf("%w: game.command_timeout %s must be shorter than postgres.idle_in_transaction_timeout %s",
+			ErrNotPositive, c.Game.CommandTimeout, c.Postgres.IdleInTransactionTimeout)
 	}
 	if c.Company.DesignMinSkill > 100 {
 		return fmt.Errorf("%w: company.design_min_skill is %d, above the skill scale", ErrNotPositive, c.Company.DesignMinSkill)

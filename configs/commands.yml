@@ -109,6 +109,34 @@ commands:
   life.avatar: {channel: private}
   life.sleep: {channel: private}
 
+  # Finance (docs/adr/0026). The exchange's list and a company's page are
+  # market data, public anywhere (a company page shows the player's own
+  # holding only in PV); the gold dealer's price is public too, what the
+  # player holds only in PV. Loans, the credit score, savings, insurance,
+  # orders, a listing, a dividend and the portfolio are the player's own.
+  loan.hub: {channel: private}
+  loan.offer: {channel: private}
+  loan.take: {channel: private}
+  loan.view: {channel: private}
+  loan.repay: {channel: private}
+  save.show: {channel: private}
+  save.deposit: {channel: private}
+  save.withdraw: {channel: private}
+  insure.list: {channel: private}
+  insure.buy: {channel: private}
+  insure.cancel: {channel: private}
+  stock.list: {channel: both}
+  stock.view: {channel: both}
+  stock.buy: {channel: private}
+  stock.sell: {channel: private}
+  stock.cancel: {channel: private}
+  stock.mine: {channel: private}
+  stock.ipo: {channel: private}
+  stock.dividend: {channel: private}
+  gold.show: {channel: both}
+  gold.buy: {channel: private}
+  gold.sell: {channel: private}
+
   job.status: {channel: private}
   job.list: {channel: private}
   job.view: {channel: private}
@@ -345,3 +373,5 @@ input:
   property.sell: {field: price, args: [no]}
   property.let: {field: price, args: [no]}
   life.bio: {field: text, text: true}
+  save.deposit: {field: amount}
+  save.withdraw: {field: amount}

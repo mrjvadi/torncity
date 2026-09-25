@@ -420,6 +420,34 @@ var all = []Subscription{
 	{Domain: "life", Action: "sleep", Origin: FromPlayer},
 	{Domain: "life", Action: "top", Origin: FromPlayer},
 	{Domain: "life", Action: "refresh", Origin: FromScheduler},
+
+	// Finance (docs/adr/0026-finance.md): the national bank's loans and the
+	// credit score, savings, insurance, the stock exchange and the gold
+	// dealer. Only the scheduler sends finance.settle, when a finance period
+	// ends.
+	{Domain: "loan", Action: "hub", Origin: FromPlayer},
+	{Domain: "loan", Action: "offer", Origin: FromPlayer},
+	{Domain: "loan", Action: "take", Origin: FromPlayer},
+	{Domain: "loan", Action: "view", Origin: FromPlayer},
+	{Domain: "loan", Action: "repay", Origin: FromPlayer},
+	{Domain: "save", Action: "show", Origin: FromPlayer},
+	{Domain: "save", Action: "deposit", Origin: FromPlayer},
+	{Domain: "save", Action: "withdraw", Origin: FromPlayer},
+	{Domain: "insure", Action: "list", Origin: FromPlayer},
+	{Domain: "insure", Action: "buy", Origin: FromPlayer},
+	{Domain: "insure", Action: "cancel", Origin: FromPlayer},
+	{Domain: "stock", Action: "list", Origin: FromPlayer},
+	{Domain: "stock", Action: "view", Origin: FromPlayer},
+	{Domain: "stock", Action: "buy", Origin: FromPlayer},
+	{Domain: "stock", Action: "sell", Origin: FromPlayer},
+	{Domain: "stock", Action: "cancel", Origin: FromPlayer},
+	{Domain: "stock", Action: "mine", Origin: FromPlayer},
+	{Domain: "stock", Action: "ipo", Origin: FromPlayer},
+	{Domain: "stock", Action: "dividend", Origin: FromPlayer},
+	{Domain: "gold", Action: "show", Origin: FromPlayer},
+	{Domain: "gold", Action: "buy", Origin: FromPlayer},
+	{Domain: "gold", Action: "sell", Origin: FromPlayer},
+	{Domain: "finance", Action: "settle", Origin: FromScheduler},
 }
 
 // All returns every subscription. The slice is a copy.

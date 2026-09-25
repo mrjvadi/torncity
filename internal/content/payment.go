@@ -43,6 +43,14 @@ const (
 	// ServiceLodging is a night at a paid sleeping spot, a hostel bed
 	// (life.yml; docs/adr/0025).
 	ServiceLodging payment.Service = "lodging"
+	// ServiceExchange is money set aside for a buy order on the stock
+	// exchange; ServiceGold gold bought from the dealer; ServiceInsurance a
+	// policy's first premium; ServiceSavings money put into a savings
+	// account (docs/adr/0026).
+	ServiceExchange  payment.Service = "exchange"
+	ServiceGold      payment.Service = "gold"
+	ServiceInsurance payment.Service = "insurance"
+	ServiceSavings   payment.Service = "savings"
 )
 
 // knownServices is the closed set content may name.
@@ -50,7 +58,7 @@ var knownServices = map[payment.Service]bool{
 	ServiceTuition: true, ServiceFare: true, ServiceCrimeReport: true, ServiceBail: true,
 	ServiceShop: true, ServiceMarket: true, ServiceAuction: true, ServiceElection: true,
 	ServiceCompany: true, ServiceHospital: true, ServiceFaction: true, ServiceProperty: true,
-	ServiceLodging: true,
+	ServiceLodging: true, ServiceExchange: true, ServiceGold: true, ServiceInsurance: true, ServiceSavings: true,
 }
 
 // PaymentServiceDef is one entry of payments.yml.

@@ -124,7 +124,11 @@ func Bank(c Context, v BankView) *presenter.Response {
 		hint = body(lines...)
 	}
 
-	kb.Add(c.T("button.pay_player", nil), AddrPay)
+	pay, _ := keyboards.Button(c.T("button.pay_player", nil), AddrPay)
+	// The national bank: loans, savings, insurance, investing
+	// (docs/adr/0026).
+	national, _ := keyboards.Button(c.T("finance.button.bank", nil), AddrLoanHub)
+	kb.Row(pay, national)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrBank}))
 
 	text := paragraphs(

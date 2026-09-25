@@ -362,3 +362,7 @@ func (t *fakeTx) Achievements() application.AchievementRepository               
 
 // Stage G1 (docs/adr/0025): no life yet.
 func (t *fakeTx) Life() application.LifeRepository { return nil }
+
+func (t *fakeTx) Finance() application.FinanceRepository { return nil }
+
+func (t *fakeTx) Stocks() application.StockRepository { return nil }

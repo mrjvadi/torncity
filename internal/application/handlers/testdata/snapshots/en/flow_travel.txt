@@ -165,7 +165,7 @@ Travelling by: Train
 
 💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
   ───
-  [💸 Pay a player] → bank:pay
+  [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Arrival (scheduler) ━━━

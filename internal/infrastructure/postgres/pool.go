@@ -20,6 +20,8 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -41,10 +43,36 @@ type Pool struct {
 // The Ping is deliberate: pgxpool connects lazily, so without it a wrong host
 // or password would first surface on a player's command rather than at boot.
 func New(ctx context.Context, dsn string) (*Pool, error) {
+	return Open(ctx, dsn, Options{})
+}
+
+// Options bound a pool (config postgres.*). Zero values keep the DSN's and
+// the driver's own.
+type Options struct {
+	// MaxConns is the most connections the pool opens.
+	MaxConns int
+	// IdleInTransactionTimeout is set on every session
+	// (idle_in_transaction_session_timeout): the server ends a session left
+	// idle inside a transaction this long, and its locks go with it.
+	IdleInTransactionTimeout time.Duration
+}
+
+// Open is New with the pool's bounds.
+func Open(ctx context.Context, dsn string, o Options) (*Pool, error) {
 	cfg, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		// The DSN carries a password, so only the failure is reported.
 		return nil, fmt.Errorf("postgres: invalid dsn: %w", err)
+	}
+	if o.MaxConns > 0 {
+		cfg.MaxConns = int32(o.MaxConns)
+		if cfg.MinConns > cfg.MaxConns {
+			cfg.MinConns = cfg.MaxConns
+		}
+	}
+	if o.IdleInTransactionTimeout > 0 {
+		cfg.ConnConfig.RuntimeParams["idle_in_transaction_session_timeout"] =
+			strconv.FormatInt(o.IdleInTransactionTimeout.Milliseconds(), 10)
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)

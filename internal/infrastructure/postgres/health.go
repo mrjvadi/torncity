@@ -34,7 +34,7 @@ var _ application.HealthRepository = (*HealthRepository)(nil)
 
 // NewHealthRepository returns the repository over the pool, for reads
 // outside a unit of work.
-func NewHealthRepository(p *Pool) *HealthRepository { return &HealthRepository{q: p.Raw()} }
+func NewHealthRepository(p *Pool) *HealthRepository { return &HealthRepository{q: p.shared()} }
 
 func scanStay(row pgx.Row) (*application.HospitalStay, error) {
 	var s application.HospitalStay

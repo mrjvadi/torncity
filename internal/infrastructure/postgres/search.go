@@ -29,7 +29,7 @@ var _ application.PlayerSearch = (*PlayerSearchRepository)(nil)
 
 // NewPlayerSearchRepository returns a repository over the pool.
 func NewPlayerSearchRepository(p *Pool) *PlayerSearchRepository {
-	return &PlayerSearchRepository{q: p.Raw()}
+	return &PlayerSearchRepository{q: p.shared()}
 }
 
 // The three lookups.

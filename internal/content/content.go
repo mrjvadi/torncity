@@ -274,6 +274,9 @@ type Pack struct {
 	// life.yml: the life section, at most one (life.go;
 	// docs/adr/0025-life-and-legacy.md).
 	Life []LifeDef
+	// finance.yml: the finance section, at most one (finance.go;
+	// docs/adr/0026-finance.md).
+	Finance []FinanceDef
 
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"

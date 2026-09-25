@@ -17,7 +17,7 @@ type EconomyAdmin struct {
 }
 
 // NewEconomyAdmin returns the operator queries over the pool.
-func NewEconomyAdmin(p *Pool) *EconomyAdmin { return &EconomyAdmin{q: p.Raw()} }
+func NewEconomyAdmin(p *Pool) *EconomyAdmin { return &EconomyAdmin{q: p.shared()} }
 
 // PlayersWithoutStartingGrant lists, oldest first, every player who has no
 // starting grant yet. It is only a work list: the grant itself is still
@@ -123,6 +123,11 @@ type LedgerVerification struct {
 	Life bool
 	LifeInvariants
 
+	// Finance is whether finance's tables exist (migration 0029);
+	// FinanceInvariants their checks (ledger_admin_finance.go).
+	Finance bool
+	FinanceInvariants
+
 	// DefenceInvariants are the armed forces' wages
 	// (ledger_admin_defence.go); they need nothing but the ledger.
 	DefenceInvariants
@@ -222,7 +227,7 @@ func (v LedgerVerification) OK() bool {
 	return v.LedgerSum == "0" && len(v.Unbalanced) == 0 && len(v.Drifted) == 0 &&
 		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok() && v.ProductionInvariants.ok() &&
 		v.MilitaryInvariants.ok() && v.WarInvariants.ok() && v.StageEInvariants.ok() && v.StageFInvariants.ok() &&
-		v.DefenceInvariants.ok() && v.LifeInvariants.ok()
+		v.DefenceInvariants.ok() && v.LifeInvariants.ok() && v.FinanceInvariants.ok()
 }
 
 // VerifyLedger runs the three invariants of docs/adr/0009-economic-control.md
@@ -344,6 +349,14 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 	}
 	if v.Life {
 		if err := a.verifyLife(ctx, &v); err != nil {
+			return v, err
+		}
+	}
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.loans') IS NOT NULL`).Scan(&v.Finance); err != nil {
+		return v, fmt.Errorf("postgres: looking for finance: %w", err)
+	}
+	if v.Finance {
+		if err := a.verifyFinance(ctx, &v); err != nil {
 			return v, err
 		}
 	}

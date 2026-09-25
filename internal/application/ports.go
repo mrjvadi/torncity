@@ -183,6 +183,12 @@ type Tx interface {
 	// needs, age, mood, intelligence, rank, bio and avatar, their life
 	// history, the nights slept and the leaderboards; see ports_life.go.
 	Life() LifeRepository
+
+	// Finance and Stocks are stage G2 (docs/adr/0026-finance.md): the
+	// national banks' loans, the credit record, savings, insurance and the
+	// gold dealer; and the stock exchange; see ports_finance.go.
+	Finance() FinanceRepository
+	Stocks() StockRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

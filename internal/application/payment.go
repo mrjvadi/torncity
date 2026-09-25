@@ -79,6 +79,9 @@ type Charge struct {
 	// amount taken from the player.
 	To        []LedgerEntry
 	CreatedAt time.Time
+	// ID, when set, is the ledger transaction's id: a record written before
+	// the payment names it.
+	ID string
 }
 
 // Amount is the sum of the credits.
@@ -141,6 +144,7 @@ func (w *Wallet) Pay(ctx context.Context, ledger LedgerRepository, c Charge) (st
 		entries = append(entries, e)
 	}
 	id, err := ledger.Post(ctx, LedgerTransaction{
+		ID:            c.ID,
 		Reason:        c.Reason,
 		ReferenceType: c.ReferenceType,
 		ReferenceID:   c.ReferenceID,

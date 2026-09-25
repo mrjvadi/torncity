@@ -13,7 +13,7 @@
   ───
   [📥 واریز ۱٬۰۰۰ نیل] → bank:deposit:1000:idxba   │   [📥 واریز ۵٬۰۰۰ نیل] → bank:deposit:5000:idxxca
   [✏️ واریز مبلغ دلخواه] → ask:bank.deposit
-  [💸 پرداخت به بازیکن] → bank:pay
+  [💸 پرداخت به بازیکن] → bank:pay   │   [🏛 بانک ملی] → loan:hub
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → bank:show
 
 ━━━ Deposit ━━━
@@ -34,7 +34,7 @@
   [✏️ واریز مبلغ دلخواه] → ask:bank.deposit
   [📤 برداشت همه - ۹۸۵ نیل] → bank:withdraw:985:idxxfa
   [✏️ برداشت مبلغ دلخواه] → ask:bank.withdraw
-  [💸 پرداخت به بازیکن] → bank:pay
+  [💸 پرداخت به بازیکن] → bank:pay   │   [🏛 بانک ملی] → loan:hub
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → bank:show
 
 ━━━ Withdraw ━━━
@@ -54,7 +54,7 @@
   ───
   [📥 واریز ۱٬۰۰۰ نیل] → bank:deposit:1000:idga   │   [📥 واریز همه - ۴٬۹۸۵ نیل] → bank:deposit:4985:idxha
   [✏️ واریز مبلغ دلخواه] → ask:bank.deposit
-  [💸 پرداخت به بازیکن] → bank:pay
+  [💸 پرداخت به بازیکن] → bank:pay   │   [🏛 بانک ملی] → loan:hub
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → bank:show
 
 ━━━ /bank deposit 999999 (too much) ━━━

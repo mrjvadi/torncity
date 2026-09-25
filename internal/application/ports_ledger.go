@@ -53,6 +53,15 @@ const (
 	// country's jurisdiction.
 	AccountStateTreasury AccountKind = "state_treasury"
 	AccountDefenceFund   AccountKind = "defence_fund"
+	// AccountNationalBank is a country's national bank, the only money its
+	// loans are lent from; AccountInsuranceFund its insurance fund, the only
+	// money claims are paid from. Both are owned by the country's
+	// jurisdiction. AccountPlayerSavings is a player's savings account:
+	// their money, earning the bank's deposit rate (migrations/0029_finance,
+	// docs/adr/0026-finance.md).
+	AccountNationalBank  AccountKind = "national_bank"
+	AccountInsuranceFund AccountKind = "insurance_fund"
+	AccountPlayerSavings AccountKind = "player_savings"
 )
 
 // Valid reports whether k is one of the kinds the schema allows.
@@ -60,7 +69,8 @@ func (k AccountKind) Valid() bool {
 	switch k {
 	case AccountPlayerCash, AccountPlayerBank, AccountCompanyTreasury,
 		AccountFactionTreasury, AccountCityTreasury, AccountSystemSink, AccountSystemSource,
-		AccountPlayerEscrow, AccountStateTreasury, AccountDefenceFund:
+		AccountPlayerEscrow, AccountStateTreasury, AccountDefenceFund, AccountNationalBank, AccountInsuranceFund,
+		AccountPlayerSavings:
 		return true
 	}
 	return false
@@ -365,8 +375,69 @@ const (
 	ReasonLodgingFee Reason = "lodging_fee"
 )
 
+// Finance (docs/adr/0026-finance.md). A national bank, an insurance fund
+// and a savings account are owned accounts, so lending, repaying, saving,
+// insuring and every move of the stock exchange are transfers: no money is
+// created by a loan. Only the gold dealer is the NPC economy: gold bought
+// leaves the economy (a drain), gold sold back brings money in (a faucet).
+// The fee of a share trade is ReasonMarketFee (a drain); the corporate tax
+// on a dividend is ReasonCorporateTax.
+const (
+	// ReasonBankCapital moves a period's funding (country.bank_funding) from
+	// a national treasury into its national bank.
+	ReasonBankCapital Reason = "bank_capital"
+	// ReasonLoanDisbursement lends a loan's principal from the national
+	// bank to the borrower's bank account (a company's treasury for a
+	// business loan).
+	ReasonLoanDisbursement Reason = "loan_disbursement"
+	// ReasonLoanRepayment is the principal part of an instalment (or a
+	// payoff), from the borrower back to the national bank;
+	// ReasonLoanInterest its interest part; ReasonLoanPenalty a late fee.
+	ReasonLoanRepayment Reason = "loan_repayment"
+	ReasonLoanInterest  Reason = "loan_interest"
+	ReasonLoanPenalty   Reason = "loan_penalty"
+	// ReasonLoanRecovery is what the city that repossessed a defaulted
+	// mortgage's property pays the bank, from its treasury.
+	ReasonLoanRecovery Reason = "loan_recovery"
+	// ReasonSavingsDeposit moves money from a player's bank account into
+	// their savings; ReasonSavingsWithdrawal back; ReasonSavingsInterest
+	// pays a period's interest from the national bank into the savings.
+	ReasonSavingsDeposit    Reason = "savings_deposit"
+	ReasonSavingsWithdrawal Reason = "savings_withdrawal"
+	ReasonSavingsInterest   Reason = "savings_interest"
+	// ReasonInsurancePremium pays a policy's premium into its country's
+	// insurance fund; ReasonInsuranceClaim pays a claim from the fund to the
+	// policyholder's bank account.
+	ReasonInsurancePremium Reason = "insurance_premium"
+	ReasonInsuranceClaim   Reason = "insurance_claim"
+	// ReasonListingFee pays a company's listing fee from its treasury to its
+	// city's treasury.
+	ReasonListingFee Reason = "listing_fee"
+	// ReasonShareEscrow sets a buy order's money aside from the buyer's
+	// bank in their escrow; ReasonShareRelease gives back what an order no
+	// longer needs; ReasonShareTrade pays a trade from the buyer's escrow to
+	// the seller's bank, less the fee.
+	ReasonShareEscrow  Reason = "share_escrow"
+	ReasonShareRelease Reason = "share_release"
+	ReasonShareTrade   Reason = "share_trade"
+	// ReasonDividend pays a holder's part of a dividend from the company's
+	// treasury to their bank.
+	ReasonDividend Reason = "dividend"
+	// ReasonGoldPurchase pays the gold dealer, the NPC economy, for gold (a
+	// drain); ReasonGoldSale pays a player for gold the dealer bought back
+	// (a faucet, bounded by the finite reserve and the spread).
+	ReasonGoldPurchase Reason = "gold_purchase"
+	ReasonGoldSale     Reason = "gold_sale"
+)
+
 var knownReasons = map[Reason]struct{}{
 	ReasonLodgingFee: {},
+
+	ReasonBankCapital: {}, ReasonLoanDisbursement: {}, ReasonLoanRepayment: {}, ReasonLoanInterest: {},
+	ReasonLoanPenalty: {}, ReasonLoanRecovery: {}, ReasonSavingsDeposit: {}, ReasonSavingsWithdrawal: {},
+	ReasonSavingsInterest: {}, ReasonInsurancePremium: {}, ReasonInsuranceClaim: {}, ReasonListingFee: {},
+	ReasonShareEscrow: {}, ReasonShareRelease: {}, ReasonShareTrade: {}, ReasonDividend: {},
+	ReasonGoldPurchase: {}, ReasonGoldSale: {},
 
 	ReasonBudgetSpending: {}, ReasonDefenceContribution: {}, ReasonPropertyPurchase: {}, ReasonPropertySale: {},
 	ReasonPropertyTax: {}, ReasonPropertyUpkeep: {}, ReasonRent: {}, ReasonBorderTariff: {}, ReasonFuel: {},

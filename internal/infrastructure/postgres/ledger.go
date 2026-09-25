@@ -39,6 +39,11 @@ var ownerTables = map[application.AccountKind]string{
 	application.AccountDefenceFund:   "jurisdictions",
 	// A faction's bank (migrations/0023_health_missions_factions).
 	application.AccountFactionTreasury: "factions",
+	// A country's national bank and insurance fund, and a player's savings
+	// (migrations/0029_finance).
+	application.AccountNationalBank:  "jurisdictions",
+	application.AccountInsuranceFund: "jurisdictions",
+	application.AccountPlayerSavings: "players",
 }
 
 // LedgerRepository implements application.LedgerRepository.
@@ -54,7 +59,7 @@ var _ application.LedgerRepository = (*LedgerRepository)(nil)
 // NewLedgerRepository returns a ledger over the pool, for callers outside a
 // unit of work (the admin tool). Inside one, use Tx.Ledger.
 func NewLedgerRepository(p *Pool) *LedgerRepository {
-	return &LedgerRepository{q: p.Raw()}
+	return &LedgerRepository{q: p.shared()}
 }
 
 // AccountFor returns, opening on first use, the account of kind for ownerID.
@@ -118,7 +123,8 @@ func (r *LedgerRepository) AccountFor(ctx context.Context, kind application.Acco
 }
 
 func notFoundOwner(kind application.AccountKind) error {
-	if kind == application.AccountPlayerCash || kind == application.AccountPlayerBank || kind == application.AccountPlayerEscrow {
+	if kind == application.AccountPlayerCash || kind == application.AccountPlayerBank || kind == application.AccountPlayerEscrow ||
+		kind == application.AccountPlayerSavings {
 		return application.ErrPlayerNotFound
 	}
 	return application.ErrAccountOwnerNotFound.WithDetail("kind", string(kind))

@@ -181,7 +181,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		return fmt.Errorf("game: bank limits: %w", err)
 	}
 
-	pool, err := postgres.New(ctx, e.databaseURL)
+	pool, err := postgres.Open(ctx, e.databaseURL, postgres.Options{MaxConns: cfg.Postgres.MaxConns,
+		IdleInTransactionTimeout: cfg.Postgres.IdleInTransactionTimeout})
 	if err != nil {
 		return err
 	}
@@ -218,7 +219,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// handler writes — stats, journeys, the schedule, friendships — is reached
 	// through the unit of work's Tx, so it commits with the command's
 	// idempotency key and outbox record or not at all.
-	cities := postgres.NewCityRepository(pool)
+	cities := postgres.NewCityCache(pool, cfg.Game.ContentReloadInterval)
 	travels := postgres.NewTravelRepository(pool)
 
 	// Every handler is given the store, not the catalogue it currently
@@ -391,6 +392,15 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// the game clock.
 	h.stageG1.life = handlers.NewLifeHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPlayerSearchRepository(pool), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL, nil)
+	// Stage G2 (docs/adr/0026): finance, on its own game clock.
+	h.stageG2.finance = handlers.NewFinanceHandler(uow, uuidGenerator{}, messages, registry, cities,
+		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale),
+		handlers.FinanceLimits{OrderTTL: cfg.Trade.MarketOrderTTL, MaxOpen: cfg.Trade.MarketMaxOpenOrders},
+		cfg.Game.IdempotencyTTL, nil).WithWatch(watchThresholds(cfg.AntiCheat))
+	if err := h.stageG2.finance.StartClock(ctx); err != nil {
+		logger.Error("cannot start the finance clock; it starts at the next start",
+			slog.String("error", err.Error()))
+	}
 	if err := h.stageG1.life.StartClock(ctx); err != nil {
 		logger.Error("cannot start the leaderboard clock; it starts at the next start",
 			slog.String("error", err.Error()))
@@ -418,6 +428,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.places.WithRunner(runnerFor(bound))
 
 	svc := &service{
+		timeout:  cfg.Game.CommandTimeout,
 		logger:   logger,
 		inbox:    postgres.NewInboxStore(pool),
 		messages: messages,
@@ -456,7 +467,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		if err := consumer.Subscribe(ctx, subject, durable, func(ctx context.Context, env *envelope.Envelope) error {
 			svc.inflight.Add(1)
 			defer svc.inflight.Done()
-			if err := h.stageE.missions.OnEvent(ctx, env, subject); err != nil {
+			if err := svc.consume(ctx, func(ctx context.Context) error { return h.stageE.missions.OnEvent(ctx, env, subject) }); err != nil {
 				logger.Error("cannot move missions on", slog.String("subject", subject), slog.String("error", err.Error()))
 				return err
 			}
@@ -476,7 +487,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		if err := consumer.Subscribe(ctx, subject, durable, func(ctx context.Context, env *envelope.Envelope) error {
 			svc.inflight.Add(1)
 			defer svc.inflight.Done()
-			if err := h.stageF.achievement.OnEvent(ctx, env, subject); err != nil {
+			if err := svc.consume(ctx, func(ctx context.Context) error { return h.stageF.achievement.OnEvent(ctx, env, subject) }); err != nil {
 				logger.Error("cannot move achievements on", slog.String("subject", subject), slog.String("error", err.Error()))
 				return err
 			}
@@ -496,7 +507,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		if err := consumer.Subscribe(ctx, subject, durable, func(ctx context.Context, env *envelope.Envelope) error {
 			svc.inflight.Add(1)
 			defer svc.inflight.Done()
-			if err := h.stageG1.life.OnEvent(ctx, env, subject); err != nil {
+			if err := svc.consume(ctx, func(ctx context.Context) error { return h.stageG1.life.OnEvent(ctx, env, subject) }); err != nil {
 				logger.Error("cannot touch a life", slog.String("subject", subject), slog.String("error", err.Error()))
 				return err
 			}
@@ -592,6 +603,11 @@ func loadContent(ctx context.Context, pool *postgres.Pool, logger *slog.Logger) 
 
 // service consumes every subscribed command.
 type service struct {
+	// timeout is the most one command may run (game.command_timeout): a
+	// stuck handler is cancelled, its transaction rolled back and the
+	// message redelivered, rather than holding its connection forever.
+	timeout time.Duration
+
 	logger   *slog.Logger
 	inbox    *postgres.InboxStore
 	messages *i18n.Store
@@ -662,7 +678,7 @@ func (s *service) handle(ctx context.Context, sub commands.Subscription, run com
 	// the guarantee section 19 asks for — assume at-least-once, make the
 	// consumer idempotent — and the inbox is a record of completion, not a
 	// lock taken in advance.
-	resp, err := run(ctx, env)
+	resp, err := s.run(ctx, run, env)
 	if sub.Origin == commands.FromPlayer && meta.PlayerID != "" && s.activity != nil {
 		// Best effort and outside the command's transaction: a lost stamp
 		// costs a moment of invisibility, never a command.
@@ -708,6 +724,26 @@ func (s *service) handle(ctx context.Context, sub commands.Subscription, run com
 		slog.String("subject", sub.Subject()))
 
 	return nil
+}
+
+// run runs one command under the command deadline.
+func (s *service) run(ctx context.Context, run commandFunc, env *envelope.Envelope) (*presenter.Response, error) {
+	if s.timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, s.timeout)
+		defer cancel()
+	}
+	return run(ctx, env)
+}
+
+// consume runs one event consumer under the command deadline.
+func (s *service) consume(ctx context.Context, fn func(context.Context) error) error {
+	if s.timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, s.timeout)
+		defer cancel()
+	}
+	return fn(ctx)
 }
 
 // reply sends a response to the gateway that is waiting for it.

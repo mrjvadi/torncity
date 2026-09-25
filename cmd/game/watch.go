@@ -17,7 +17,7 @@ func watchThresholds(c config.AntiCheat) watch.Thresholds {
 	return watch.Thresholds{Window: c.Window, OneWayCount: c.OneWayCount, OneWayMinTotal: c.OneWayMinTotal,
 		OneWayRatioBPS: c.OneWayRatioBPS, OffMarketBPS: c.OffMarketBPS, OffMarketMinValue: c.OffMarketMinValue,
 		SinglePartnerMinCount: c.SinglePartnerMinCount, SinglePartnerShareBPS: c.SinglePartnerShareBPS,
-		CommandsPerMinute: c.CommandsPerMinute, HoldAbove: c.HoldAbove}
+		CommandsPerMinute: c.CommandsPerMinute, HoldAbove: c.HoldAbove, WashTradeCount: c.WashTradeCount}
 }
 
 // commandRate counts the commands each player sends in a sliding minute and

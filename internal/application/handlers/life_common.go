@@ -193,6 +193,15 @@ func netWorthPrices(ctx context.Context, tx application.Tx, snap *content.Snapsh
 	for _, it := range snap.Items() {
 		prices.Items[it.Code] = it.BasePrice
 	}
+	// Gold at what the dealer would pay for it now (docs/adr/0026).
+	if fin, ok := snap.Finance(); ok && tx.Finance() != nil {
+		d, err := tx.Finance().Dealer(ctx, application.GoldDealer{Price: fin.Gold.StartPrice, Reserve: fin.Gold.Reserve,
+			UpdatedAt: time.Now().UTC()}, false)
+		if err != nil {
+			return prices, err
+		}
+		_, prices.GoldBid = fin.GoldRules().Quote(d.Price)
+	}
 	def, ok := snap.Property()
 	if !ok || cities == nil {
 		return prices, nil

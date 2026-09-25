@@ -23,7 +23,7 @@ type SkillRepository struct {
 var _ application.SkillRepository = (*SkillRepository)(nil)
 
 // NewSkillRepository returns a repository over the pool.
-func NewSkillRepository(p *Pool) *SkillRepository { return &SkillRepository{q: p.Raw()} }
+func NewSkillRepository(p *Pool) *SkillRepository { return &SkillRepository{q: p.shared()} }
 
 // The id column is not selected: application.Skill is keyed by (player_id,
 // code), which is also the unique constraint, so the surrogate id is of no use

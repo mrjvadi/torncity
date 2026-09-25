@@ -8,7 +8,7 @@ import (
 func thresholds() Thresholds {
 	return Thresholds{Window: 24 * time.Hour, OneWayCount: 3, OneWayMinTotal: 5000, OneWayRatioBPS: 9000,
 		OffMarketBPS: 5000, OffMarketMinValue: 1000, SinglePartnerMinCount: 5, SinglePartnerShareBPS: 9000,
-		CommandsPerMinute: 60, HoldAbove: 10_000}
+		CommandsPerMinute: 60, HoldAbove: 10_000, WashTradeCount: 2}
 }
 
 func TestValidate(t *testing.T) {
@@ -70,5 +70,15 @@ func TestConcentrationRateHold(t *testing.T) {
 	}
 	if th.Hold(50_000, false) || th.Hold(9_999, true) || !th.Hold(10_000, true) {
 		t.Error("hold decided wrongly")
+	}
+}
+
+func TestWashTrades(t *testing.T) {
+	th := thresholds()
+	if _, ok := th.WashTrades(2, 1); ok {
+		t.Fatal("trades one way are not a wash")
+	}
+	if f, ok := th.WashTrades(2, 3); !ok || f.Rule != WashTrade {
+		t.Fatalf("a round trip twice each way is a wash: %+v %v", f, ok)
 	}
 }

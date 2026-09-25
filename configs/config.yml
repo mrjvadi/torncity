@@ -309,6 +309,12 @@ game:
   # travel.time_scale, which is still read if present; this key wins.)
   time_scale: 60
 
+  # The most one command may run, REAL time. Its context is then cancelled:
+  # the transaction rolls back and the message is redelivered, instead of a
+  # stuck handler holding its connection and its locks. Must be shorter than
+  # postgres.idle_in_transaction_timeout.
+  command_timeout: 30s
+
 # The tuning of a journey that is not content. The RULES — how a distance and
 # a transport mode become a duration and a fare — live in
 # internal/domain/travel. The modes themselves (bus, train, flight…: speed,
@@ -642,6 +648,9 @@ anticheat:
   single_partner_share_bps: 9000
   # Commands a player sends in a minute before the rate is flagged.
   commands_per_minute: 90
+  # Wash trading on the stock exchange: each of two accounts selling one
+  # company's shares to the other at least this many times in the window.
+  wash_trade_count: 3
   # The smallest payment held for review between accounts a flag links.
   hold_above: 50000
 
@@ -707,3 +716,13 @@ property:
 achievements:
   player_daily_cap: 5000
   economy_daily_cap: 500000
+
+# Every service's connection pool. A command holds exactly one connection —
+# its unit of work's transaction; every read inside it runs on that
+# transaction — so max_conns bounds how many commands run at once. A session
+# left idle inside a transaction longer than idle_in_transaction_timeout is
+# ended by the server, releasing its locks, so one stuck process can never
+# freeze the others.
+postgres:
+  max_conns: 16
+  idle_in_transaction_timeout: 60s

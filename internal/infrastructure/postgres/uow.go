@@ -48,7 +48,17 @@ func NewUnitOfWork(p *Pool, defaultLanguage string) *UnitOfWork {
 // or rolled back itself — and reporting it would turn a clean path into a
 // spurious error.
 func (u *UnitOfWork) Do(ctx context.Context, fn func(ctx context.Context, tx application.Tx) error) error {
-	pgtx, err := u.pool.Begin(ctx)
+	// Inside another unit of work, this one is a savepoint of it: a command
+	// never holds two connections (ambient.go).
+	var (
+		pgtx pgx.Tx
+		err  error
+	)
+	if outer := ambient(ctx); outer != nil {
+		pgtx, err = outer.Begin(ctx)
+	} else {
+		pgtx, err = u.pool.Begin(ctx)
+	}
 	if err != nil {
 		return fmt.Errorf("postgres: begin transaction: %w", err)
 	}
@@ -62,7 +72,7 @@ func (u *UnitOfWork) Do(ctx context.Context, fn func(ctx context.Context, tx app
 		}
 	}()
 
-	if err := fn(ctx, &tx{q: pgtx, defaultLanguage: u.defaultLanguage}); err != nil {
+	if err := fn(withAmbient(ctx, pgtx), &tx{q: pgtx, defaultLanguage: u.defaultLanguage}); err != nil {
 		// context.WithoutCancel: when fn failed because ctx was cancelled, a
 		// rollback on that same context would fail too and the transaction
 		// would be left for the server to clean up on connection close.
@@ -239,3 +249,10 @@ func (t *tx) Achievements() application.AchievementRepository { return &Achievem
 // Life returns a character's life, its history and the leaderboards
 // (migration 0028).
 func (t *tx) Life() application.LifeRepository { return &LifeRepository{q: t.q} }
+
+// Finance returns the banks, credit, savings, insurance and gold (migration
+// 0029).
+func (t *tx) Finance() application.FinanceRepository { return &FinanceRepository{q: t.q} }
+
+// Stocks returns the stock exchange (migration 0029).
+func (t *tx) Stocks() application.StockRepository { return &StockRepository{q: t.q} }

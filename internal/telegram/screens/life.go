@@ -98,7 +98,9 @@ func needsLines(c Context, n *NeedsView) string {
 // WorthView is what a player is worth, part by part.
 type WorthView struct {
 	Cash, Bank, Escrow, Equity, Property, Goods, Debts int64
-	Total                                              int64
+	// Savings, Gold and Loans are finance's (docs/adr/0026).
+	Savings, Gold, Loans int64
+	Total                int64
 }
 
 // SleepSpotLine is a place anyone may sleep at, as the life screen offers it.
@@ -173,7 +175,8 @@ func Life(c Context, v LifeView) *presenter.Response {
 		for _, p := range []struct {
 			key string
 			v   int64
-		}{{"cash", w.Cash + w.Escrow}, {"bank", w.Bank}, {"equity", w.Equity}, {"property", w.Property}, {"goods", w.Goods}} {
+		}{{"cash", w.Cash + w.Escrow}, {"bank", w.Bank}, {"savings", w.Savings}, {"equity", w.Equity}, {"gold", w.Gold},
+			{"property", w.Property}, {"goods", w.Goods}} {
 			if p.v != 0 {
 				parts = append(parts, c.T("life.worth_part."+p.key, map[string]any{"amount": FormatMoney(c, p.v)}))
 			}
@@ -184,6 +187,9 @@ func Life(c Context, v LifeView) *presenter.Response {
 		}
 		if w.Debts > 0 {
 			rank = append(rank, c.T("life.worth_debts", map[string]any{"debts": FormatMoney(c, w.Debts)}))
+		}
+		if w.Loans > 0 {
+			rank = append(rank, c.T("life.worth_loans", map[string]any{"loans": FormatMoney(c, w.Loans)}))
 		}
 		if v.Next != nil {
 			rank = append(rank, c.T("life.next_rank", map[string]any{"rank": c.RankName(*v.Next),
@@ -570,6 +576,8 @@ func (c Context) boardLine(board string, l BoardLine) string {
 	case "cities":
 		args["name"] = c.CityName(l.Code, l.Name)
 		args["extra2"] = FormatNumber(c, l.Extra2)
+	case "investors":
+		args["extra"] = FormatMoney(c, l.Extra)
 	case "workers":
 		if l.Tag != "" {
 			args["tag"] = c.CareerName(l.Tag, l.TagName)

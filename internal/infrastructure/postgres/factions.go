@@ -49,7 +49,7 @@ var _ application.FactionRepository = (*FactionRepository)(nil)
 
 // NewFactionRepository returns the repository over the pool, for reads
 // outside a unit of work (the notifier's groups).
-func NewFactionRepository(p *Pool) *FactionRepository { return &FactionRepository{q: p.Raw()} }
+func NewFactionRepository(p *Pool) *FactionRepository { return &FactionRepository{q: p.shared()} }
 
 func scanFaction(row pgx.Row) (*application.Faction, error) {
 	var f application.Faction

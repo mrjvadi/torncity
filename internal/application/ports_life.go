@@ -144,6 +144,8 @@ type LifeFactors struct {
 type NetWorthPrices struct {
 	Items          map[string]int64
 	PropertyPrices map[PropertyKey]int64
+	// GoldBid is what the gold dealer pays for a gram now.
+	GoldBid int64
 }
 
 // PropertyKey is a kind of property in a city.

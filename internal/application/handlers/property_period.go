@@ -112,6 +112,13 @@ func (h *PropertyHandler) charge(ctx context.Context, tx application.Tx, snap *c
 // repossess takes a property back into the city's stock: no owner, its
 // debt written off, its lease ended and its offer withdrawn.
 func (h *PropertyHandler) repossess(ctx context.Context, tx application.Tx, pr *application.Property, now time.Time) error {
+	return repossessProperty(ctx, tx, pr, now)
+}
+
+// repossessProperty takes a property back into its city's stock — for its
+// debts, or for a mortgage it secured that defaulted (docs/adr/0026). The
+// caller saves it.
+func repossessProperty(ctx context.Context, tx application.Tx, pr *application.Property, now time.Time) error {
 	lease, err := tx.Property().LeaseOf(ctx, pr.ID)
 	if err != nil {
 		return err

@@ -22,7 +22,7 @@ type GovernanceDirectory struct {
 var _ application.GovernanceDirectory = (*GovernanceDirectory)(nil)
 
 // NewGovernanceDirectory returns the directory backed by p.
-func NewGovernanceDirectory(p *Pool) *GovernanceDirectory { return &GovernanceDirectory{q: p.Raw()} }
+func NewGovernanceDirectory(p *Pool) *GovernanceDirectory { return &GovernanceDirectory{q: p.shared()} }
 
 // selectActiveLevers reads every lever of the active content version, in
 // scanLever's column order.

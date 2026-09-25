@@ -83,6 +83,9 @@ type Snapshot struct {
 	achievements []AchievementDef
 	// life is life.yml's life section, nil without one; see life.go.
 	life *LifeDef
+	// finance is finance.yml's finance section, nil without one; see
+	// finance.go.
+	finance *FinanceDef
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -172,6 +175,10 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	if len(p.Life) > 0 {
 		l := p.Life[0]
 		snap.life = &l
+	}
+	if len(p.Finance) > 0 {
+		f := p.Finance[0]
+		snap.finance = &f
 	}
 
 	return snap, nil

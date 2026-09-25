@@ -13,7 +13,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
   ───
   [📥 Deposit 1,000 Nil] → bank:deposit:1000:idxba   │   [📥 Deposit 5,000 Nil] → bank:deposit:5000:idxxca
   [✏️ Deposit any amount] → ask:bank.deposit
-  [💸 Pay a player] → bank:pay
+  [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Deposit ━━━
@@ -34,7 +34,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
   [✏️ Deposit any amount] → ask:bank.deposit
   [📤 Withdraw all - 985 Nil] → bank:withdraw:985:idxxfa
   [✏️ Withdraw any amount] → ask:bank.withdraw
-  [💸 Pay a player] → bank:pay
+  [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Withdraw ━━━
@@ -54,7 +54,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
   ───
   [📥 Deposit 1,000 Nil] → bank:deposit:1000:idga   │   [📥 Deposit all - 4,985 Nil] → bank:deposit:4985:idxha
   [✏️ Deposit any amount] → ask:bank.deposit
-  [💸 Pay a player] → bank:pay
+  [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ /bank deposit 999999 (too much) ━━━

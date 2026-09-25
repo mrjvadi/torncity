@@ -30,7 +30,7 @@ var _ application.DiplomacyRepository = (*DiplomacyRepository)(nil)
 
 // NewDiplomacyRepository returns the repository over the pool, for reads
 // outside a unit of work.
-func NewDiplomacyRepository(p *Pool) *DiplomacyRepository { return &DiplomacyRepository{q: p.Raw()} }
+func NewDiplomacyRepository(p *Pool) *DiplomacyRepository { return &DiplomacyRepository{q: p.shared()} }
 
 // countryOfJurisdiction is the recursive walk from a jurisdiction up to the
 // country above it (or itself).

@@ -385,11 +385,24 @@ func NewPolicyReader(p *Pool, now func() time.Time) *PolicyStore {
 
 // Get answers the value of a lever in a jurisdiction, now. A vacant office is
 // never an error; see application.ResolvePolicy.
+//
+// Inside a unit of work it reads on the command's own transaction, in a
+// savepoint (ambient.go): a command never waits for a second connection.
 func (s *PolicyStore) Get(ctx context.Context, jurisdictionID, leverCode string) (application.PolicyValue, error) {
-	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly})
+	var (
+		tx  pgx.Tx
+		err error
+	)
+	if outer := ambient(ctx); outer != nil {
+		tx, err = outer.Begin(ctx)
+	} else {
+		tx, err = s.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly})
+	}
 	if err != nil {
 		return application.PolicyValue{}, fmt.Errorf("postgres: policy read: begin: %w", err)
 	}
+	// A read changes nothing: its transaction (or savepoint) is always
+	// rolled back.
 	defer func() { _ = tx.Rollback(context.WithoutCancel(ctx)) }()
 
 	now := s.now()

@@ -15,7 +15,7 @@ type BotRegistry struct {
 var _ application.BotRegistry = (*BotRegistry)(nil)
 
 // NewBotRegistry returns a registry over the pool.
-func NewBotRegistry(p *Pool) *BotRegistry { return &BotRegistry{q: p.Raw()} }
+func NewBotRegistry(p *Pool) *BotRegistry { return &BotRegistry{q: p.shared()} }
 
 // selectEnabledBots lists the bots a gateway may actually poll.
 //

@@ -139,7 +139,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		slog.Duration("ack_wait", cfg.NATS.AckWait),
 		slog.Duration("shutdown_timeout", tuning.ShutdownTimeout))
 
-	pool, err := postgres.New(ctx, e.databaseURL)
+	pool, err := postgres.Open(ctx, e.databaseURL, postgres.Options{MaxConns: cfg.Postgres.MaxConns,
+		IdleInTransactionTimeout: cfg.Postgres.IdleInTransactionTimeout})
 	if err != nil {
 		return err
 	}

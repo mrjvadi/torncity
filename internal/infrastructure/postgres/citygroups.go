@@ -23,7 +23,7 @@ var _ application.CityGroupRepository = (*CityGroupRepository)(nil)
 
 // NewCityGroupRepository returns the repository over the pool.
 func NewCityGroupRepository(p *Pool) *CityGroupRepository {
-	return &CityGroupRepository{q: p.Raw()}
+	return &CityGroupRepository{q: p.shared()}
 }
 
 const cityGroupColumns = `c.id::text, c.code, c.name, l.chat_id, l.bot_id::text, l.language, l.linked_by, l.linked_at`

@@ -43,7 +43,7 @@ var _ application.GameActionRepository = (*GameActionRepository)(nil)
 
 // NewGameActionRepository returns a repository over the pool.
 func NewGameActionRepository(p *Pool) *GameActionRepository {
-	return &GameActionRepository{q: p.Raw()}
+	return &GameActionRepository{q: p.shared()}
 }
 
 const insertGameAction = `

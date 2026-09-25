@@ -17,7 +17,7 @@ var _ application.IdempotencyRepository = (*IdempotencyRepository)(nil)
 
 // NewIdempotencyRepository returns a repository over the pool.
 func NewIdempotencyRepository(p *Pool) *IdempotencyRepository {
-	return &IdempotencyRepository{q: p.Raw()}
+	return &IdempotencyRepository{q: p.shared()}
 }
 
 // reserveKey claims a command key, or does nothing if it is already claimed.

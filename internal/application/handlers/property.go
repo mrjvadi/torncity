@@ -758,6 +758,16 @@ func (h *PropertyHandler) offer(ctx context.Context, meta envelope.Metadata, req
 		if lease != nil {
 			return refuseProperty(screens.PropertyRefusedLet, back...)
 		}
+		// A property securing a running mortgage is not the owner's to sell
+		// until it is repaid (docs/adr/0026).
+		if kind == application.OfferSale {
+			if pledged, err := tx.Finance().PledgedProperty(ctx, pr.ID); err != nil || pledged {
+				if err != nil {
+					return err
+				}
+				return refuseProperty(screens.PropertyRefusedPledged, back...)
+			}
+		}
 		_, err = tx.Property().OpenListing(ctx, application.PropertyListing{ID: h.ids.NewID(), PropertyID: pr.ID,
 			SellerID: p.ID, Kind: kind, Price: price, CreatedAt: h.now()})
 		if isSentinel(err, application.ErrOfferExists) {

@@ -1,0 +1,862 @@
+━━━ Bank · the national bank with offers and loans ━━━
+(edits message 42) (private in groups)
+🏛 National bank of The Commonwealth
+📈 Policy rate (set by the central bank governor): 15% a year
+
+📊 Your credit score: 672 of 850 (good)
+Payments 90% - light debt 75% - history 40% - income 65%
+⚠️ On record: 1 missed instalments and 0 defaulted loans
+
+💳 Loans we would make you:
+▫️ Personal loan: up to 40,000 Nil at 26% a year
+▫️ Mortgage: up to 320,000 Nil at 21% a year
+▫️ Business loan: not now; it needs a score of 700
+
+📒 Your loans:
+▫️ Loan 12 (Personal loan): next instalment 1,786 Nil - 12 left - owed 21,430 Nil
+▫️ Loan 9 (Business loan for Kaveh Bakery): next instalment 3,900 Nil - owed 42,000 Nil
+✅ Loan 4 (Personal loan): repaid
+⏰ The next instalment is taken at 14:53, from your bank account first, then your cash.
+
+🐖 Savings: 15,000 Nil earning 9% a year
+  ───
+  [💳 Personal loan] → loan:offer:personal   │   [💳 Mortgage] → loan:offer:mortgage
+  [📒 Loan 12] → loan:view:12
+  [📒 Loan 9] → loan:view:9
+  [🐖 Savings] → save:show   │   [🛡 Insurance] → insure:list
+  [📈 Exchange] → stock:list   │   [🪙 Gold] → gold:show
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → bank:show   │   [🔄 Refresh] → loan:hub
+
+━━━ Bank · a newcomer, the bank run dry ━━━
+(edits message 42) (private in groups)
+🏛 National bank of The Commonwealth
+📈 Policy rate (set by the central bank governor): 15% a year
+
+📊 Your credit score: 541 of 850 (fair)
+Payments 60% - light debt 100% - history 0% - income 0%
+
+💳 Loans we would make you:
+▫️ Personal loan: up to 10,000 Nil at 36% a year
+▫️ Mortgage: not now; it needs a score of 560
+🏦 The national bank has no money to lend right now.
+
+🐖 Savings: 0 Nil earning 0% a year
+  ───
+  [💳 Personal loan] → loan:offer:personal
+  [🐖 Savings] → save:show   │   [🛡 Insurance] → insure:list
+  [📈 Exchange] → stock:list   │   [🪙 Gold] → gold:show
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → bank:show   │   [🔄 Refresh] → loan:hub
+
+━━━ Bank · just borrowed ━━━
+(edits message 42) (private in groups)
+✅ The loan is yours and its money paid in.
+
+🏛 National bank of The Commonwealth
+📈 Policy rate (set by the central bank governor): 15% a year
+
+📊 Your credit score: 541 of 850 (fair)
+Payments 60% - light debt 100% - history 0% - income 0%
+
+💳 Loans we would make you:
+▫️ Personal loan: up to 10,000 Nil at 36% a year
+▫️ Mortgage: not now; it needs a score of 560
+
+🐖 Savings: 0 Nil earning 0% a year
+  ───
+  [💳 Personal loan] → loan:offer:personal
+  [🐖 Savings] → save:show   │   [🛡 Insurance] → insure:list
+  [📈 Exchange] → stock:list   │   [🪙 Gold] → gold:show
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → bank:show   │   [🔄 Refresh] → loan:hub
+
+━━━ Loan offer · a personal loan's amounts and terms ━━━
+(edits message 42) (private in groups)
+💳 Personal loan
+A loan to you, with nothing pledged.
+📈 Interest: 26% a year, fixed on the day you borrow
+⚠️ A missed instalment costs 5% in late fees, and 4 instalments overdue is a default.
+The most you may borrow: 40,000 Nil. Choose an amount and a term:
+  ───
+  [10,000 Nil over 7 (1,500 Nil each)] → loan:take:personal:10000:7:0
+  [10,000 Nil over 14 (786 Nil each)] → loan:take:personal:10000:14:0
+  [40,000 Nil over 28 (1,786 Nil each)] → loan:take:personal:40000:28:0
+  [🔙 Back] → loan:hub
+
+━━━ Loan offer · a mortgage, choosing the property ━━━
+(edits message 42) (private in groups)
+💳 Mortgage
+A loan against your property: it cannot be sold until the loan is repaid, and a default hands it back to the city.
+📈 Interest: 21% a year, fixed on the day you borrow
+⚠️ A missed instalment costs 3% in late fees, and 4 instalments overdue is a default.
+Which property secures this loan?
+▫️ Studio flat 3 in Ostmarch (worth 46,350 Nil)
+  ───
+  [🔒 Studio flat 3 in Ostmarch (worth 46,350 Nil)] → loan:offer:mortgage:3
+  [🔙 Back] → loan:hub
+
+━━━ Loan offer · a mortgage against a home ━━━
+(edits message 42) (private in groups)
+💳 Mortgage
+A loan against your property: it cannot be sold until the loan is repaid, and a default hands it back to the city.
+📈 Interest: 21% a year, fixed on the day you borrow
+⚠️ A missed instalment costs 3% in late fees, and 4 instalments overdue is a default.
+🔒 Pledged: Studio flat 3 in Ostmarch (worth 46,350 Nil)
+The most you may borrow: 25,000 Nil. Choose an amount and a term:
+  ───
+  [25,000 Nil over 28 (1,015 Nil each)] → loan:take:mortgage:25000:28:3
+  [🔙 Back] → loan:hub
+
+━━━ Loan offer · nothing left to lend ━━━
+(edits message 42) (private in groups)
+💳 Personal loan
+A loan to you, with nothing pledged.
+📈 Interest: 26% a year, fixed on the day you borrow
+⚠️ A missed instalment costs 5% in late fees, and 4 instalments overdue is a default.
+With your score and collateral nothing is left to lend on this loan.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Loan · confirming the terms ━━━
+(edits message 42) (private in groups)
+📝 Terms of the Personal loan
+40,000 Nil over 28 instalments at 26% a year
+Interest 5,600 Nil - each instalment 1,628 Nil - repaid in all 45,600 Nil
+⏰ The first instalment is taken at 14:53.
+Instalments are taken automatically from your bank account and then your cash. An unpaid instalment lowers your credit score.
+  ───
+  [✅ Borrow 40,000 Nil] → loan:take:personal:40000:28:0:a1b2c3d4e5f6
+  [🔙 Back] → loan:offer:personal
+
+━━━ Loan · one in arrears ━━━
+(edits message 42) (private in groups)
+📒 Loan 12 - Personal loan
+Principal 40,000 Nil - interest 5,600 Nil (26% a year) - 28 instalments
+🗓 Taken on 23 September 2026
+Paid: 15 of 28 instalments - missed so far: 1
+💰 Owed: 21,430 Nil - next instalment: 1,786 Nil
+🔴 1 instalments overdue and 89 Nil in late fees
+⏰ The next instalment is taken at 14:53, from your bank account first, then your cash.
+  ───
+  [💰 Pay off (21,430 Nil)] → loan:repay:12
+  [🔙 Back] → loan:hub   │   [🔄 Refresh] → loan:view:12
+
+━━━ Loan · confirming a payoff ━━━
+(edits message 42) (private in groups)
+📒 Loan 12 - Personal loan
+Principal 40,000 Nil - interest 5,600 Nil (26% a year) - 28 instalments
+🗓 Taken on 23 September 2026
+Paid: 15 of 28 instalments - missed so far: 1
+💰 Owed: 21,430 Nil - next instalment: 1,786 Nil
+🔴 1 instalments overdue and 89 Nil in late fees
+⏰ The next instalment is taken at 14:53, from your bank account first, then your cash.
+Everything this loan still asks, 21,430 Nil, is taken now from your bank account and then your cash. Paying early saves no interest.
+  ───
+  [✅ Yes, pay 21,430 Nil] → loan:repay:12:f6e5d4c3b2a1
+  [🔙 Back] → loan:hub   │   [🔄 Refresh] → loan:view:12
+
+━━━ Loan · a defaulted mortgage ━━━
+(edits message 42) (private in groups)
+📒 Loan 7 - Mortgage
+Principal 25,000 Nil - interest 2,500 Nil (21% a year) - 28 instalments
+🗓 Taken on 20 September 2026
+Paid: 6 of 28 instalments - missed so far: 4
+🔒 Pledged: Studio flat 3 in Ostmarch (worth 46,350 Nil)
+⛔ This loan defaulted. The bank recovered 18,000 Nil from its collateral and wrote off 1,200 Nil.
+  ───
+  [🔙 Back] → loan:hub   │   [🔄 Refresh] → loan:view:7
+
+━━━ Loan · paid off ━━━
+(edits message 42) (private in groups)
+✅ The loan is paid off. Well done!
+
+📒 Loan 4 - Personal loan
+Principal 10,000 Nil - interest 350 Nil (26% a year) - 7 instalments
+🗓 Taken on 22 September 2026
+Paid: 7 of 7 instalments - missed so far: 0
+✅ This loan is repaid in full.
+  ───
+  [🔙 Back] → loan:hub   │   [🔄 Refresh] → loan:view:4
+
+━━━ Savings · an account ━━━
+(edits message 42) (private in groups)
+🐖 Savings account
+Balance: 15,000 Nil - 9% a year
+Interest earned so far: 480 Nil - next period's: 25 Nil
+🏦 Bank account: 21,000 Nil
+Each game day's interest is paid on the lower of the last two days' balances: money just put in earns from the next day.
+⏰ The next interest is paid at 14:53.
+  ───
+  [📥 5,250 Nil] → save:deposit:5250   │   [📥 10,500 Nil] → save:deposit:10500   │   [📥 21,000 Nil] → save:deposit:21000
+  [📤 3,750 Nil] → save:withdraw:3750   │   [📤 7,500 Nil] → save:withdraw:7500   │   [📤 15,000 Nil] → save:withdraw:15000
+  [✏️ Deposit an amount] → ask:save.deposit   │   [✏️ Withdraw an amount] → ask:save.withdraw
+  [🔙 Back] → loan:hub   │   [🔄 Refresh] → save:show
+
+━━━ Savings · just deposited ━━━
+(edits message 42) (private in groups)
+✅ 5,000 Nil went into your savings.
+
+🐖 Savings account
+Balance: 20,000 Nil - 9% a year
+Interest earned so far: 0 Nil - next period's: 0 Nil
+🏦 Bank account: 16,000 Nil
+Each game day's interest is paid on the lower of the last two days' balances: money just put in earns from the next day.
+  ───
+  [📥 4,000 Nil] → save:deposit:4000   │   [📥 8,000 Nil] → save:deposit:8000   │   [📥 16,000 Nil] → save:deposit:16000
+  [📤 5,000 Nil] → save:withdraw:5000   │   [📤 10,000 Nil] → save:withdraw:10000   │   [📤 20,000 Nil] → save:withdraw:20000
+  [✏️ Deposit an amount] → ask:save.deposit   │   [✏️ Withdraw an amount] → ask:save.withdraw
+  [🔙 Back] → loan:hub   │   [🔄 Refresh] → save:show
+
+━━━ Refused · no_bank ━━━
+(edits message 42) (private in groups)
+🏛 You live in no country yet, so you have no national bank.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · too_many ━━━
+(edits message 42) (private in groups)
+📒 You may run at most 2 loans at once. Repay one first.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · bank_dry ━━━
+(edits message 42) (private in groups)
+🏦 The national bank does not have enough to lend right now. Come back later.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · amount ━━━
+(edits message 42) (private in groups)
+That amount is not accepted. The limit is 40,000 Nil.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · pledge ━━━
+(edits message 42) (private in groups)
+🔒 You have nothing suitable to secure this loan.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · not_owner ━━━
+(edits message 42) (private in groups)
+🏢 Only whoever controls the company can do that.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · short ━━━
+(edits message 42) (private in groups)
+💸 You do not have enough. It needs 40,000 Nil.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · savings_cap ━━━
+(edits message 42) (private in groups)
+🐖 Savings cannot hold more than 40,000 Nil.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · no_product ━━━
+(edits message 42) (private in groups)
+That product is no longer offered.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · held ━━━
+(edits message 42) (private in groups)
+🛡 You already hold that policy.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · pledged ━━━
+(edits message 42) (private in groups)
+🔒 That property secures a loan.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · not_listed ━━━
+(edits message 42) (private in groups)
+📈 That company is not on the exchange.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · listed ━━━
+(edits message 42) (private in groups)
+📈 That company is already listed.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · too_young ━━━
+(edits message 42) (private in groups)
+⏳ That company is too young to list.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · too_small ━━━
+(edits message 42) (private in groups)
+📉 That company has not earned enough to list.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · in_debt ━━━
+(edits message 42) (private in groups)
+🧾 A company in debt can neither list nor pay a dividend.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · bad_float ━━━
+(edits message 42) (private in groups)
+That float or price is not accepted for a listing.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · no_shares ━━━
+(edits message 42) (private in groups)
+📄 You do not have enough free shares. Free: 2.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · no_money ━━━
+(edits message 42) (private in groups)
+🏢 The company's free money is not enough. It needs 40,000 Nil.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · too_many_orders ━━━
+(edits message 42) (private in groups)
+📋 You may have at most 2 open orders. Cancel one first.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · order ━━━
+(edits message 42) (private in groups)
+That order is not accepted.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · gold_stock ━━━
+(edits message 42) (private in groups)
+🪙 The dealer only has 2 grams.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · gold_held ━━━
+(edits message 42) (private in groups)
+🪙 You only have 2 grams.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · not_yours ━━━
+(edits message 42) (private in groups)
+🔎 That is not yours, or it does not exist.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · own_company ━━━
+(edits message 42) (private in groups)
+You cannot trade with yourself.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · fund_closed ━━━
+(edits message 42) (private in groups)
+🛡 The fund does not sell that policy.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · no_player ━━━
+(edits message 42) (private in groups)
+🔎 No such player.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Refused · score ━━━
+(edits message 42) (private in groups)
+📊 Your credit score is too low for this loan. It needs 600: pay on time, work, and owe less.
+  ───
+  [🔙 Back] → loan:hub
+
+━━━ Notice · an instalment due, not covered ━━━
+(sends) (private in groups)
+⏰ Loan 12 (Personal loan) takes 1,786 Nil at 14:53, but your bank account and cash hold 900 Nil together. Set enough aside so the instalment is not missed.
+  ───
+  [📒 Loan 12] → loan:view:12
+  [🏛 National bank] → loan:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · an instalment missed ━━━
+(sends) (private in groups)
+🔴 An instalment of loan 12 (Personal loan) went unpaid. A late fee of 89 Nil was added and your credit score fell. 2 instalments are overdue.
+  ───
+  [📒 Loan 12] → loan:view:12
+  [🏛 National bank] → loan:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · a mortgage defaulted, its home taken ━━━
+(sends) (private in groups)
+⛔ Loan 7 (Mortgage) defaulted. 1,200 Nil was written off and stays on your record.
+🏚 Its collateral, Studio flat 3 in Ostmarch (worth 46,350 Nil), went back to the city, which paid the bank 18,000 Nil.
+  ───
+  [🏛 National bank] → loan:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · a loan repaid ━━━
+(sends) (private in groups)
+✅ Loan 4 (Personal loan) is repaid in full. Well done!
+  ───
+  [🏛 National bank] → loan:hub
+  [🔙 Back] → player:profile.get
+
+━━━ Insurance · nothing held yet ━━━
+(edits message 42) (private in groups)
+🛡 Insurance fund of The Commonwealth
+The fund holds 84,000 Nil; claims are paid only up to what it holds.
+
+▫️ Health insurance: 80% of a hospital treatment, up to 5,000 Nil a stay - 40 Nil each game day - covers after 24m
+▫️ Property insurance: 70% of a strike's damage to the property, up to 250,000 Nil a strike - 20 Nil plus 0.08% of its value each game day - covers after 48m
+
+Premiums are taken each game day from your bank account and then your cash; a policy that cannot be paid lapses.
+  ───
+  [🛡 Buy Health insurance] → insure:buy:health:0
+  [🛡 Property insurance on Studio flat 3 in Ostmarch (worth 46,350 Nil)] → insure:buy:property:3
+  [🔙 Back] → loan:hub   │   [🔄 Refresh] → insure:list
+
+━━━ Insurance · two policies and a lapsed one ━━━
+(edits message 42) (private in groups)
+✅ Your policy is issued.
+
+🛡 Insurance fund of The Commonwealth
+The fund holds 84,000 Nil; claims are paid only up to what it holds.
+
+▫️ Health insurance: 80% of a hospital treatment, up to 5,000 Nil a stay - 40 Nil each game day - covers after 24m
+▫️ Property insurance: 70% of a strike's damage to the property, up to 250,000 Nil a strike - 20 Nil plus 0.08% of its value each game day - covers after 48m
+
+📄 Your policies:
+▫️ No. 5 (Health insurance): 40 Nil each game day - paid out: 3,200 Nil
+⏳ No. 6 (Property insurance): covers from 14:55 - 57 Nil each game day
+▫️ No. 2 (Health insurance): a premium went unpaid and it lapsed
+
+Premiums are taken each game day from your bank account and then your cash; a policy that cannot be paid lapses.
+  ───
+  [✖️ Cancel policy 5] → insure:cancel:5
+  [✖️ Cancel policy 6] → insure:cancel:6
+  [🔙 Back] → loan:hub   │   [🔄 Refresh] → insure:list
+
+━━━ Insurance · cancelling a policy ━━━
+(edits message 42) (private in groups)
+🛡 Insurance fund of The Commonwealth
+The fund holds 84,000 Nil; claims are paid only up to what it holds.
+
+▫️ Health insurance: 80% of a hospital treatment, up to 5,000 Nil a stay - 40 Nil each game day - covers after 24m
+▫️ Property insurance: 70% of a strike's damage to the property, up to 250,000 Nil a strike - 20 Nil plus 0.08% of its value each game day - covers after 48m
+
+📄 Your policies:
+▫️ No. 5 (Health insurance): 40 Nil each game day - paid out: 3,200 Nil
+⏳ No. 6 (Property insurance): covers from 14:55 - 57 Nil each game day
+▫️ No. 2 (Health insurance): a premium went unpaid and it lapsed
+
+Cancel policy 5 (Health insurance)? Premiums paid are not returned.
+
+Premiums are taken each game day from your bank account and then your cash; a policy that cannot be paid lapses.
+  ───
+  [✅ Yes, cancel it] → insure:cancel:5:yes
+  [🔙 Back] → loan:hub   │   [🔄 Refresh] → insure:list
+
+━━━ Insurance · buying health cover ━━━
+(edits message 42) (private in groups)
+🛡 Health insurance
+Today's premium 40 Nil - covers 80% up to 5,000 Nil - cover starts after 24m
+From the next game day the same premium is taken every day.
+
+💵 Your cash: 900 Nil - Bank: 21,000 Nil
+  ───
+  [💵 Pay cash - 40 Nil] → insure:buy:health:0:cash   │   [💳 Pay by card - 40 Nil] → insure:buy:health:0:card
+  [🔙 Back] → insure:list
+
+━━━ Insurance · insuring a home ━━━
+(edits message 42) (private in groups)
+🛡 Property insurance
+Today's premium 57 Nil - covers 70% up to 250,000 Nil - cover starts after 48m
+On: Studio flat 3 in Ostmarch (worth 46,350 Nil)
+From the next game day the same premium is taken every day.
+
+💵 Your cash does not cover it — pay by card.
+💵 Your cash: 10 Nil - Bank: 21,000 Nil
+  ───
+  [💳 Pay by card - 57 Nil] → insure:buy:property:3:card
+  [🔙 Back] → insure:list
+
+━━━ Notice · a claim paid ━━━
+(sends) (private in groups)
+🛡 Health insurance: 1,440 Nil was paid into your bank account for your loss.
+  ───
+  [🛡 Insurance] → insure:list
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · a policy lapsed ━━━
+(sends) (private in groups)
+🛡 The premium of your Health insurance, 40 Nil, went unpaid and the policy lapsed.
+  ───
+  [🛡 Insurance] → insure:list
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · a policy's property gone ━━━
+(sends) (private in groups)
+🛡 The property your Property insurance covered is no longer yours; the policy ended.
+  ───
+  [🛡 Insurance] → insure:list
+  [🔙 Back] → player:profile.get
+
+━━━ Exchange · two listed companies ━━━
+(edits message 42)
+📈 The stock exchange
+▫️ Kaveh Bakery (Grocery store, Brennhaven): 132 Nil 🟢 +10% - traded today 240 shares - market value 132,000 Nil
+▫️ Nilou Repairs (Repair workshop, Ostmarch): 88 Nil 🔴 −7.36% - traded today 0 shares - market value 88,000 Nil
+A share's price comes only from players trading. Dividends are paid by a company's owner from its free money.
+  ───
+  [🏢 Kaveh Bakery] → stock:view:Q7M2K9B   │   [🏢 Nilou Repairs] → stock:view:H4T8W2C
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → stock:list
+
+━━━ Exchange · read in a group ━━━
+(edits message 42)
+📈 The stock exchange
+▫️ Kaveh Bakery (Grocery store, Brennhaven): 132 Nil 🟢 +10% - traded today 240 shares - market value 132,000 Nil
+A share's price comes only from players trading. Dividends are paid by a company's owner from its free money.
+  ───
+  [🏢 Kaveh Bakery] → stock:view:Q7M2K9B
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → stock:list
+
+━━━ Exchange · nothing listed yet ━━━
+(edits message 42)
+📈 The stock exchange
+No company is listed yet. A company's owner lists it from its page.
+A share's price comes only from players trading. Dividends are paid by a company's owner from its free money.
+  ───
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → stock:list
+
+━━━ Stock · a listed company, holding some ━━━
+(edits message 42)
+🏢 Kaveh Bakery - Grocery store in Brennhaven
+💹 Share price: 132 Nil 🟢 +10% - listed at 110 Nil
+📘 Book value a share 96 Nil - shares 1,000 - market value 132,000 Nil
+👤 Controlled by: Kaveh
+💵 Last dividend a share: 4 Nil
+
+📋 Order book:
+🔺 selling 40 at 135 Nil
+🔺 selling 100 at 140 Nil
+🔻 buying 25 at 128 Nil
+
+🕘 Last trades:
+▫️ 10 shares at 132 Nil at 14:20
+▫️ 50 shares at 120 Nil at 14:15
+
+💼 Your shares: 60 (10 in sell orders) - worth 7,920 Nil - cost 7,200 Nil
+  ───
+  [🛒 1 at up to 125 Nil] → stock:buy:Q7M2K9B:1:125   │   [🛒 1 at up to 132 Nil] → stock:buy:Q7M2K9B:1:132
+  [🛒 1 at up to 139 Nil] → stock:buy:Q7M2K9B:1:139   │   [🛒 10 at up to 132 Nil] → stock:buy:Q7M2K9B:10:132
+  [🏷 1 from 125 Nil] → stock:sell:Q7M2K9B:1:125   │   [🏷 1 from 132 Nil] → stock:sell:Q7M2K9B:1:132
+  [🏷 1 from 139 Nil] → stock:sell:Q7M2K9B:1:139   │   [🏷 10 from 132 Nil] → stock:sell:Q7M2K9B:10:132
+  [🔙 Back] → stock:list   │   [🔄 Refresh] → stock:view:Q7M2K9B
+
+━━━ Stock · the same, read in a group ━━━
+(edits message 42)
+🏢 Kaveh Bakery - Grocery store in Brennhaven
+💹 Share price: 132 Nil 🟢 +10% - listed at 110 Nil
+📘 Book value a share 96 Nil - shares 1,000 - market value 132,000 Nil
+👤 Controlled by: Kaveh
+💵 Last dividend a share: 4 Nil
+
+📋 Order book:
+🔺 selling 40 at 135 Nil
+🔺 selling 100 at 140 Nil
+🔻 buying 25 at 128 Nil
+
+🕘 Last trades:
+▫️ 10 shares at 132 Nil at 14:20
+▫️ 50 shares at 120 Nil at 14:15
+  ───
+  [🔙 Back] → stock:list   │   [🔄 Refresh] → stock:view:Q7M2K9B
+
+━━━ Stock · the owner's unlisted company ━━━
+(edits message 42)
+🏢 Kaveh Bakery - Grocery store in Brennhaven
+This company is not listed on the exchange.
+📘 Book value a share 96 Nil - shares 1,000 - market value 96,000 Nil
+👤 Controlled by: Sara
+
+💼 Your shares: 1,000 (0 in sell orders) - worth 96,000 Nil - cost 0 Nil
+  ───
+  [🔔 List on the exchange] → stock:ipo:Q7M2K9B
+  [💵 Pay a dividend] → stock:dividend:Q7M2K9B
+  [🔙 Back] → stock:list   │   [🔄 Refresh] → stock:view:Q7M2K9B
+
+━━━ Order · confirming a buy ━━━
+(edits message 42) (private in groups)
+🛒 Buy 10 shares of Kaveh Bakery at up to 132 Nil. 1,320 Nil is set aside from your bank account (balance 21,000 Nil); buying cheaper returns the rest.
+The market fee of the company's city, 2%, comes off the seller's proceeds.
+  ───
+  [✅ Place the buy] → stock:buy:Q7M2K9B:10:132:a1b2c3d4e5f6
+  [🏢 Kaveh Bakery] → stock:view:Q7M2K9B
+  [🔙 Back] → stock:mine
+
+━━━ Order · confirming a sell ━━━
+(edits message 42) (private in groups)
+🏷 Sell 10 shares of Kaveh Bakery at 139 Nil or more. The shares stay locked until sold or the order is cancelled.
+The market fee of the company's city, 2%, comes off the seller's proceeds.
+  ───
+  [✅ Place the sell] → stock:sell:Q7M2K9B:10:139:a1b2c3d4e5f6
+  [🏢 Kaveh Bakery] → stock:view:Q7M2K9B
+  [🔙 Back] → stock:mine
+
+━━━ Order · a buy partly filled, the rest resting ━━━
+(edits message 42) (private in groups)
+✅ Buy order 31 placed: 50 shares of Kaveh Bakery at up to 132 Nil.
+🤝 You bought 40 shares and paid 5,280 Nil.
+⏳ The rest of the order stays on the book until 14:35.
+  ───
+  [✖️ Cancel order 31] → stock:cancel:31
+  [🏢 Kaveh Bakery] → stock:view:Q7M2K9B
+  [🔙 Back] → stock:mine
+
+━━━ Order · a sell filled at once ━━━
+(edits message 42) (private in groups)
+✅ Sell order 32 placed: 10 shares of Kaveh Bakery from 128 Nil.
+🤝 You sold 10 shares; 1,254 Nil went to your bank account.
+  ───
+  [🏢 Kaveh Bakery] → stock:view:Q7M2K9B
+  [🔙 Back] → stock:mine
+
+━━━ Portfolio · shares, gold, savings and orders ━━━
+(edits message 42) (private in groups)
+💼 Your portfolio
+▫️ Kaveh Bakery: 60 shares at 132 Nil - worth 7,920 Nil - cost 7,200 Nil
+▫️ Nilou Repairs (unlisted): 1,000 shares - book value 12,000 Nil
+🪙 Gold: 25 grams - worth 19,500 Nil
+🐖 Savings: 15,000 Nil
+💎 Portfolio value: 54,420 Nil
+📈 Gain over what you put in: 2,120 Nil
+
+📋 Your open orders:
+▫️ No. 31: buying 10 shares of Kaveh Bakery at up to 132 Nil
+▫️ No. 33: selling 10 shares of Kaveh Bakery from 150 Nil
+  ───
+  [🏢 Kaveh Bakery] → stock:view:Q7M2K9B
+  [🏢 Nilou Repairs] → stock:view:H4T8W2C
+  [✖️ Cancel order 31] → stock:cancel:31
+  [✖️ Cancel order 33] → stock:cancel:33
+  [📈 Exchange] → stock:list   │   [🪙 Gold] → gold:show
+  [🐖 Savings] → save:show
+  [🔙 Back] → loan:hub   │   [🔄 Refresh] → stock:mine
+
+━━━ Portfolio · an investor at a loss ━━━
+(edits message 42) (private in groups)
+🗑 Order 33 is cancelled; what it held is back.
+
+💼 Your portfolio
+You hold no shares yet.
+🪙 Gold: 10 grams - worth 7,200 Nil
+🐖 Savings: 0 Nil
+💎 Portfolio value: 7,200 Nil
+📉 Loss against what you put in: 800 Nil
+  ───
+  [📈 Exchange] → stock:list   │   [🪙 Gold] → gold:show
+  [🐖 Savings] → save:show
+  [🔙 Back] → loan:hub   │   [🔄 Refresh] → stock:mine
+
+━━━ Listing · choosing the float and the price ━━━
+(edits message 42) (private in groups)
+🔔 Listing Kaveh Bakery on the exchange
+It must be at least 1h 12m old, have earned 5,000 Nil, and owe nothing. Listing costs 5,000 Nil, paid by the company to its city.
+Book value a share 96 Nil - shares 1,000
+How many shares, and at what price? You keep control unless someone buys more than half of the company.
+  ───
+  [100 shares at 96 Nil] → stock:ipo:Q7M2K9B:100:96
+  [100 shares at 120 Nil] → stock:ipo:Q7M2K9B:100:120
+  [100 shares at 144 Nil] → stock:ipo:Q7M2K9B:100:144
+  [250 shares at 96 Nil] → stock:ipo:Q7M2K9B:250:96
+  [250 shares at 120 Nil] → stock:ipo:Q7M2K9B:250:120
+  [250 shares at 144 Nil] → stock:ipo:Q7M2K9B:250:144
+  [490 shares at 96 Nil] → stock:ipo:Q7M2K9B:490:96
+  [490 shares at 120 Nil] → stock:ipo:Q7M2K9B:490:120
+  [490 shares at 144 Nil] → stock:ipo:Q7M2K9B:490:144
+  [🔙 Back] → stock:view:Q7M2K9B
+
+━━━ Listing · confirming ━━━
+(edits message 42) (private in groups)
+🔔 Listing Kaveh Bakery on the exchange
+It must be at least 1h 12m old, have earned 5,000 Nil, and owe nothing. Listing costs 5,000 Nil, paid by the company to its city.
+Book value a share 96 Nil - shares 1,000
+250 shares go on the book at 120 Nil each, and 5,000 Nil is paid from the company's treasury.
+  ───
+  [✅ Yes, list it] → stock:ipo:Q7M2K9B:250:120:a1b2c3d4e5f6
+  [🔙 Back] → stock:view:Q7M2K9B
+
+━━━ Listing · too young ━━━
+(edits message 42) (private in groups)
+🔔 Listing Kaveh Bakery on the exchange
+It must be at least 1h 12m old, have earned 5,000 Nil, and owe nothing. Listing costs 5,000 Nil, paid by the company to its city.
+Book value a share 96 Nil - shares 1,000
+⏳ The company is still young; wait 42m more.
+  ───
+  [🔙 Back] → stock:view:Q7M2K9B
+
+━━━ Listing · not earned enough ━━━
+(edits message 42) (private in groups)
+🔔 Listing Kaveh Bakery on the exchange
+It must be at least 1h 12m old, have earned 5,000 Nil, and owe nothing. Listing costs 5,000 Nil, paid by the company to its city.
+Book value a share 96 Nil - shares 1,000
+📉 The company has earned 1,200 Nil so far, not enough yet.
+  ───
+  [🔙 Back] → stock:view:Q7M2K9B
+
+━━━ Dividend · choosing ━━━
+(edits message 42) (private in groups)
+💵 Dividend of Kaveh Bakery
+Free money 42,000 Nil - corporate tax 10% - shares 1,000
+  ───
+  [4,200 Nil (3 Nil a share)] → stock:dividend:Q7M2K9B:4200
+  [10,500 Nil (9 Nil a share)] → stock:dividend:Q7M2K9B:10500
+  [21,000 Nil (18 Nil a share)] → stock:dividend:Q7M2K9B:21000
+  [🔙 Back] → stock:view:Q7M2K9B
+
+━━━ Dividend · confirming ━━━
+(edits message 42) (private in groups)
+💵 Dividend of Kaveh Bakery
+Free money 42,000 Nil - corporate tax 10% - shares 1,000
+10,500 Nil is taken from the company's free money; the tax goes to the city and each share receives 9 Nil.
+  ───
+  [✅ Yes, pay it] → stock:dividend:Q7M2K9B:10500:a1b2c3d4e5f6
+  [🔙 Back] → stock:view:Q7M2K9B
+
+━━━ Dividend · paid ━━━
+(edits message 42) (private in groups)
+💵 Dividend of Kaveh Bakery
+Free money 31,500 Nil - corporate tax 10% - shares 1,000
+✅ Dividend paid: 9 Nil a share, 9,000 Nil in all to 4 holders.
+  ───
+  [🔙 Back] → stock:view:Q7M2K9B
+
+━━━ Dividend · a company in debt ━━━
+(edits message 42) (private in groups)
+💵 Dividend of Kaveh Bakery
+Free money 0 Nil - corporate tax 10% - shares 1,000
+🧾 A company in debt pays no dividend.
+  ───
+  [🔙 Back] → stock:view:Q7M2K9B
+
+━━━ Notice · a buy order filled ━━━
+(sends) (private in groups)
+🤝 Your buy order filled: 10 shares of Kaveh Bakery at 132 Nil, 1,320 Nil in all.
+  ───
+  [🏢 Kaveh Bakery] → stock:view:Q7M2K9B
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · a sell order filled ━━━
+(sends) (private in groups)
+🤝 Your sell order filled: 10 shares of Kaveh Bakery at 132 Nil; 1,294 Nil went to your bank account.
+  ───
+  [🏢 Kaveh Bakery] → stock:view:Q7M2K9B
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · a dividend received ━━━
+(sends) (private in groups)
+💵 Kaveh Bakery paid a dividend: your 60 shares at 9 Nil each, 540 Nil to your bank account.
+  ───
+  [🏢 Kaveh Bakery] → stock:view:Q7M2K9B
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · control taken ━━━
+(sends) (private in groups)
+👑 You now hold 510 shares of Kaveh Bakery and control it.
+  ───
+  [🏢 Kaveh Bakery] → stock:view:Q7M2K9B
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · control lost ━━━
+(sends) (private in groups)
+⚠️ Someone bought more than half of Kaveh Bakery and now controls it.
+  ───
+  [🏢 Kaveh Bakery] → stock:view:Q7M2K9B
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Gold · the dealer, holding some ━━━
+(edits message 42)
+🪙 The gold dealer
+A gram: buy from us 824 Nil - sell to us 776 Nil 🟢 +2.56%
+The dealer holds 498,750 grams.
+⏰ The next price is set at 14:59.
+
+📉 Recent prices:
+▫️ 800 Nil at 14:11
+▫️ 780 Nil at 13:47
+▫️ 792 Nil at 13:23
+
+💼 Your gold: 25 grams - worth 19,400 Nil today - cost 19,800 Nil
+  ───
+  [🛒 1 g (824 Nil)] → gold:buy:1   │   [🛒 10 g (8,240 Nil)] → gold:buy:10
+  [🛒 50 g (41,200 Nil)] → gold:buy:50   │   [🛒 100 g (82,400 Nil)] → gold:buy:100
+  [🏷 Sell 1 g (776 Nil)] → gold:sell:1   │   [🏷 Sell 10 g (7,760 Nil)] → gold:sell:10
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → gold:show
+
+━━━ Gold · read in a group ━━━
+(edits message 42)
+🪙 The gold dealer
+A gram: buy from us 824 Nil - sell to us 776 Nil 🟢 +2.56%
+The dealer holds 498,750 grams.
+⏰ The next price is set at 14:59.
+
+📉 Recent prices:
+▫️ 800 Nil at 14:11
+▫️ 780 Nil at 13:47
+▫️ 792 Nil at 13:23
+  ───
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → gold:show
+
+━━━ Gold · just bought ━━━
+(edits message 42)
+✅ You bought 10 grams of gold for 8,240 Nil.
+
+🪙 The gold dealer
+A gram: buy from us 824 Nil - sell to us 776 Nil 🟢 +2.56%
+The dealer holds 498,750 grams.
+⏰ The next price is set at 14:59.
+
+📉 Recent prices:
+▫️ 800 Nil at 14:11
+▫️ 780 Nil at 13:47
+▫️ 792 Nil at 13:23
+
+💼 Your gold: 25 grams - worth 19,400 Nil today - cost 19,800 Nil
+  ───
+  [🛒 1 g (824 Nil)] → gold:buy:1   │   [🛒 10 g (8,240 Nil)] → gold:buy:10
+  [🛒 50 g (41,200 Nil)] → gold:buy:50   │   [🛒 100 g (82,400 Nil)] → gold:buy:100
+  [🏷 Sell 1 g (776 Nil)] → gold:sell:1   │   [🏷 Sell 10 g (7,760 Nil)] → gold:sell:10
+  [💼 Portfolio] → stock:mine
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → gold:show
+
+━━━ Gold · buying, the ways to pay ━━━
+(edits message 42) (private in groups)
+🪙 Buy 10 grams of gold at 824 Nil a gram, 8,240 Nil in all.
+
+💵 Your cash: 9,000 Nil - Bank: 21,000 Nil
+  ───
+  [💵 Pay cash - 8,240 Nil] → gold:buy:10:cash:a1b2c3d4e5f6   │   [💳 Pay by card - 8,240 Nil] → gold:buy:10:card:a1b2c3d4e5f6
+  [🔙 Back] → gold:show
+
+━━━ Gold · selling ━━━
+(edits message 42) (private in groups)
+🪙 Sell 10 grams of gold at 776 Nil a gram, 7,760 Nil to your bank account.
+  ───
+  [✅ Yes, sell] → gold:sell:10:a1b2c3d4e5f6
+  [🔙 Back] → gold:show

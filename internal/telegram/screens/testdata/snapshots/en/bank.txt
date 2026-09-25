@@ -16,7 +16,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
   [📤 Withdraw 10,000 Nil] → bank:withdraw:10000:n4Rt   │   [📤 Withdraw 50,000 Nil] → bank:withdraw:50000:n4Rt
   [📤 Withdraw 100,000 Nil] → bank:withdraw:100000:n4Rt   │   [📤 Withdraw all - 236,453 Nil] → bank:withdraw:236453:n4Rt
   [✏️ Withdraw any amount] → ask:bank.withdraw
-  [💸 Pay a player] → bank:pay
+  [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Bank · after a deposit, no fees ━━━
@@ -39,7 +39,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
   [📤 Withdraw 10,000 Nil] → bank:withdraw:10000:n4Rt   │   [📤 Withdraw 50,000 Nil] → bank:withdraw:50000:n4Rt
   [📤 Withdraw 100,000 Nil] → bank:withdraw:100000:n4Rt   │   [📤 Withdraw all - 245,000 Nil] → bank:withdraw:245000:n4Rt
   [✏️ Withdraw any amount] → ask:bank.withdraw
-  [💸 Pay a player] → bank:pay
+  [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Bank · after a withdrawal with a fee ━━━
@@ -62,7 +62,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
   [📤 Withdraw 10,000 Nil] → bank:withdraw:10000:n4Rt   │   [📤 Withdraw 50,000 Nil] → bank:withdraw:50000:n4Rt
   [📤 Withdraw 100,000 Nil] → bank:withdraw:100000:n4Rt   │   [📤 Withdraw all - 231,453 Nil] → bank:withdraw:231453:n4Rt
   [✏️ Withdraw any amount] → ask:bank.withdraw
-  [💸 Pay a player] → bank:pay
+  [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Bank · after a free withdrawal, the bank emptied ━━━
@@ -82,7 +82,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
   ───
   [📥 Deposit 1,000 Nil] → bank:deposit:1000:n4Rt
   [✏️ Deposit any amount] → ask:bank.deposit
-  [💸 Pay a player] → bank:pay
+  [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Bank · in jail ━━━
@@ -100,7 +100,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
   ───
   [📥 Deposit all - 850 Nil] → bank:deposit:850:n4Rt
   [✏️ Deposit any amount] → ask:bank.deposit
-  [💸 Pay a player] → bank:pay
+  [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Bank · nothing to move ━━━
@@ -116,7 +116,7 @@ Withdrawals here carry a fee of 1.5%, taken from your bank on top of the amount;
 
 💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
   ───
-  [💸 Pay a player] → bank:pay
+  [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Bank · while travelling ━━━
@@ -129,7 +129,7 @@ Withdrawals here carry a fee of 1.5%, taken from your bank on top of the amount;
 
 💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
   ───
-  [💸 Pay a player] → bank:pay
+  [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Bank · not in any city ━━━
@@ -142,7 +142,7 @@ You have not settled in a city yet, so there is no bank to visit.
 
 💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
   ───
-  [💸 Pay a player] → bank:pay
+  [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Pay · how to pay ━━━

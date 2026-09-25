@@ -1,0 +1,203 @@
+# Finance (docs/adr/0026-finance.md): the national banks' loans and the
+# credit score they lend by, savings, insurance, the stock exchange and the
+# gold dealer. The RULES — how a score is worked out, how a loan's
+# instalments are collected, what a claim pays, how the gold price walks, who
+# may list a company — are internal/domain/finance; everything below is what
+# they are fed. The RATES are not here: every country's central banker
+# (governance.yml, office central_banker) sets the policy rate
+# (country.base_interest_rate) and the reserve its bank keeps
+# (country.bank_reserve_ratio), and its president how much of the national
+# treasury funds the bank (country.bank_funding).
+#
+# period            the finance period, GAME time. Once per period, exactly
+#                   once: the gold price moves, the national treasuries fund
+#                   their banks, every loan's instalment falls due, every
+#                   policy's premium, every savings account's interest. At
+#                   game.time_scale 60 a game day is 24 real minutes.
+# periods_per_year  how many finance periods make the year every rate is
+#                   written per: a 1500 bps policy rate lends at 15% a year,
+#                   15%/52 a period. 52 makes a game day a banking week.
+#
+# bank — capital_cap: a national bank holding this much takes no more from
+#   the treasury; recovery_bps: the share of a repossessed property's value
+#   the city that takes it back pays the bank, as far as its treasury goes;
+#   max_active_loans: loans one player may have running (their companies'
+#   business loans included); offer_bps: the amounts a product's screen
+#   offers, as shares of the most the player may borrow.
+#
+# credit — the credit score (min..max, the FICO range), from six factors
+#   weighted in bps summing to 10000: payment (on-time instalments ÷ all
+#   instalments; neutral_payment_bps with none), debt (1 − owed ÷ assets),
+#   history (time in the game ÷ history_full), income (shifts in
+#   income_window ÷ income_full), worth (net worth ÷ worth_full), new_credit
+#   (1 − loans opened in new_credit_window × new_credit_step_bps). Every
+#   instalment missed takes missed_points off, every default default_points,
+#   while they are within memory. Durations are GAME time.
+#
+# bands — what a score unlocks: from min_score, limit_bps of a product's
+#   max_amount at premium_bps a year over its rate. limit_bps 0 lends nothing.
+#
+# loans — the products: code (≤ 12 characters), name, borrower (player |
+#   company: an owner borrowing for their company, into its treasury, repaid
+#   from it), collateral (property: a home or business the player owns is
+#   pledged, and at most ltv_bps of its value lent; a default repossesses it),
+#   spread_bps over the policy rate, min_amount..max_amount in steps of step,
+#   terms (1..4 choices, finance periods), min_score, late_fee_bps (of an
+#   instalment missed), default_after (instalments in arrears).
+#
+# savings — the deposit rate is the policy rate less spread_bps (never below
+#   zero), paid by the saver's national bank each period as far as it holds;
+#   min_amount per deposit, max_balance per account.
+#
+# insurance — the products, sold by each country's insurance fund: code,
+#   name, covers (hospital: a treatment at a hospital or clinic | war_damage:
+#   a strike on the city of the property insured), premium per period and/or
+#   premium_bps of the property's value, cover_bps of a loss paid up to
+#   max_claim (0: no cap), waiting: GAME time before the first claim. A fund
+#   pays what it holds, never more.
+#
+# stocks — listing: min_age (GAME time since founding), min_revenue (what its
+#   settled periods earned), min_float_bps..max_float_bps of the company its
+#   founder may offer, float_options and price_options (bps of the book value
+#   per share) offered, listing_fee (from the company to its city),
+#   takeover_bps (holding this share of a company takes its control). Orders:
+#   price_steps (bps of the last price) and qty_options offered; the fee is
+#   the company's city's market fee (city.market_fee). dividend_options: bps
+#   of the company's free money. book_depth and trades: what a page shows.
+#
+# gold — the dealer: start_price per gram, bounded min_price..max_price,
+#   moving at most step_bps a period at random plus demand_bps_per_kg per
+#   1000 grams bought net (capped demand_cap_bps); spread_bps between its
+#   selling and buying price; reserve: all the gold there is, grams;
+#   gram_options offered, max_grams per trade; history: past prices shown.
+#
+# ton_exchange — the hook of a future TON↔Nil exchange through the treasury
+#   (docs/adr/0010, docs/adr/0026 section 8). It must stay disabled: nothing
+#   is built behind it.
+
+version: 1
+
+finance:
+  period: 24h
+  periods_per_year: 52
+
+  bank:
+    capital_cap: 2000000
+    recovery_bps: 7000
+    max_active_loans: 2
+    offer_bps: [2500, 5000, 10000]
+
+  credit:
+    min: 300
+    max: 850
+    weights: {payment: 3500, debt: 3000, history: 1500, income: 1000, worth: 500, new_credit: 500}
+    neutral_payment_bps: 6000
+    history_full: 720h
+    income_window: 168h
+    income_full: 20
+    worth_full: 200000
+    new_credit_window: 168h
+    new_credit_step_bps: 2500
+    memory: 1440h
+    missed_points: 40
+    default_points: 150
+
+  bands:
+    - {min_score: 300, limit_bps: 0,     premium_bps: 0}
+    - {min_score: 500, limit_bps: 2000,  premium_bps: 1200}
+    - {min_score: 600, limit_bps: 5000,  premium_bps: 600}
+    - {min_score: 680, limit_bps: 8000,  premium_bps: 200}
+    - {min_score: 750, limit_bps: 10000, premium_bps: 0}
+
+  loans:
+    - code: personal
+      name: Personal loan
+      borrower: player
+      spread_bps: 900
+      min_amount: 1000
+      max_amount: 50000
+      step: 500
+      terms: [7, 14, 28]
+      min_score: 500
+      late_fee_bps: 500
+      default_after: 4
+
+    - code: mortgage
+      name: Mortgage
+      borrower: player
+      collateral: property
+      ltv_bps: 6000
+      spread_bps: 400
+      min_amount: 10000
+      max_amount: 400000
+      step: 5000
+      terms: [28, 56, 84]
+      min_score: 560
+      late_fee_bps: 300
+      default_after: 4
+
+    - code: business
+      name: Business loan
+      borrower: company
+      spread_bps: 600
+      min_amount: 5000
+      max_amount: 200000
+      step: 2500
+      terms: [14, 28, 56]
+      min_score: 600
+      late_fee_bps: 500
+      default_after: 4
+
+  savings:
+    spread_bps: 600
+    min_amount: 100
+    max_balance: 2000000
+
+  insurance:
+    - code: health
+      name: Health insurance
+      covers: hospital
+      premium: 40
+      cover_bps: 8000
+      max_claim: 5000
+      waiting: 24h
+
+    - code: property
+      name: Property insurance
+      covers: war_damage
+      premium: 20
+      premium_bps: 8
+      cover_bps: 7000
+      max_claim: 250000
+      waiting: 48h
+
+  stocks:
+    min_age: 72h
+    min_revenue: 5000
+    min_float_bps: 1000
+    max_float_bps: 4900
+    float_options: [1000, 2500, 4900]
+    price_options: [10000, 12500, 15000]
+    listing_fee: 5000
+    takeover_bps: 5001
+    price_steps: [9500, 10000, 10500]
+    qty_options: [1, 10, 50, 100]
+    dividend_options: [1000, 2500, 5000]
+    book_depth: 5
+    trades: 5
+
+  gold:
+    start_price: 800
+    min_price: 400
+    max_price: 2000
+    step_bps: 250
+    demand_bps_per_kg: 150
+    demand_cap_bps: 400
+    spread_bps: 300
+    reserve: 500000
+    gram_options: [1, 10, 50, 100]
+    max_grams: 1000
+    history: 8
+
+  ton_exchange:
+    enabled: false

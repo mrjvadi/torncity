@@ -787,6 +787,11 @@ func (h *WarHandler) resolve(ctx context.Context, tx application.Tx, snap *conte
 			return err
 		}
 		op.DamageBPS = int(damageBPS)
+		// Property insured against war damage in the city claims what the
+		// strike took of its value, once per operation (docs/adr/0026).
+		if err := ClaimStrike(ctx, tx, snap, h.ids, meta, op.TargetCityID, op.ID, damageBPS, now); err != nil {
+			return err
+		}
 	}
 	if taken {
 		if liberated, err = h.conquer(ctx, tx, snap, def, meta, w, op, city, now); err != nil {

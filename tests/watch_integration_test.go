@@ -34,7 +34,7 @@ func TestWatchFlagsWashTradeAndHoldsPayment(t *testing.T) {
 	// The shipped defaults of config anticheat.*.
 	th := watch.Thresholds{Window: 24 * time.Hour, OneWayCount: 4, OneWayMinTotal: 20_000, OneWayRatioBPS: 9000,
 		OffMarketBPS: 5000, OffMarketMinValue: 5000, SinglePartnerMinCount: 6, SinglePartnerShareBPS: 9000,
-		CommandsPerMinute: 60, HoldAbove: 5000}
+		CommandsPerMinute: 60, HoldAbove: 5000, WashTradeCount: 2}
 	if err := th.Validate(); err != nil {
 		t.Fatal(err)
 	}

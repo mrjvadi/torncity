@@ -40,7 +40,7 @@ var (
 
 // NewWatchRepository returns the watch over the pool: the game service's
 // command-rate recorder and the operator's tool.
-func NewWatchRepository(p *Pool) *WatchRepository { return &WatchRepository{q: p.Raw()} }
+func NewWatchRepository(p *Pool) *WatchRepository { return &WatchRepository{q: p.shared()} }
 
 func scanFlag(row pgx.Row) (*application.WatchFlag, error) {
 	var (

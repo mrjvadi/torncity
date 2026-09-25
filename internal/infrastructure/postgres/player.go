@@ -40,7 +40,7 @@ var _ application.PlayerRepository = (*PlayerRepository)(nil)
 // in migrations/0001_init.up.sql: the row has to carry something, and a NULL
 // or empty language would break every screen that renders for that player.
 func NewPlayerRepository(p *Pool, defaultLanguage string) *PlayerRepository {
-	return &PlayerRepository{q: p.Raw(), defaultLanguage: defaultLanguage}
+	return &PlayerRepository{q: p.shared(), defaultLanguage: defaultLanguage}
 }
 
 // defaultPlayerLanguage is the LAST-RESORT fallback, used only when no

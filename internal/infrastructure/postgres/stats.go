@@ -24,7 +24,7 @@ type StatsRepository struct {
 var _ application.StatsRepository = (*StatsRepository)(nil)
 
 // NewStatsRepository returns a repository over the pool.
-func NewStatsRepository(p *Pool) *StatsRepository { return &StatsRepository{q: p.Raw()} }
+func NewStatsRepository(p *Pool) *StatsRepository { return &StatsRepository{q: p.shared()} }
 
 const selectStats = `
 SELECT player_id, level, xp, health, max_health, energy, max_energy, happiness, stamina, reputation, updated_at,

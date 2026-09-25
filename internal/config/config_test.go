@@ -286,6 +286,7 @@ game:
   shutdown_timeout: 22s
   idempotency_ttl: 23h
   content_reload_interval: 31s
+  command_timeout: 31s
   time_scale: 61
 travel:
   arrival_xp: 26
@@ -395,6 +396,7 @@ anticheat:
   single_partner_min_count: 7
   single_partner_share_bps: 9001
   commands_per_minute: 91
+  wash_trade_count: 4
   hold_above: 50001
 input:
   ttl: 7m
@@ -418,6 +420,9 @@ property:
 achievements:
   player_daily_cap: 5001
   economy_daily_cap: 500001
+postgres:
+  max_conns: 17
+  idle_in_transaction_timeout: 61s
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -470,9 +475,12 @@ var envOverrides = map[string]string{
 	"TORN_NOTIFIER_MAX_AGE":          "22h",
 	"TORN_NOTIFIER_SHUTDOWN_TIMEOUT": "17s",
 
-	"TORN_GAME_SHUTDOWN_TIMEOUT":        "24s",
-	"TORN_GAME_IDEMPOTENCY_TTL":         "22h",
-	"TORN_GAME_CONTENT_RELOAD_INTERVAL": "32s",
+	"TORN_GAME_SHUTDOWN_TIMEOUT":                "24s",
+	"TORN_GAME_IDEMPOTENCY_TTL":                 "22h",
+	"TORN_GAME_CONTENT_RELOAD_INTERVAL":         "32s",
+	"TORN_GAME_COMMAND_TIMEOUT":                 "32s",
+	"TORN_POSTGRES_MAX_CONNS":                   "18",
+	"TORN_POSTGRES_IDLE_IN_TRANSACTION_TIMEOUT": "62s",
 
 	"TORN_TRAVEL_ARRIVAL_XP": "27",
 	// The legacy spelling of the game clock; TORN_GAME_TIME_SCALE wins.
@@ -585,6 +593,7 @@ var envOverrides = map[string]string{
 	"TORN_ANTICHEAT_SINGLE_PARTNER_MIN_COUNT": "8",
 	"TORN_ANTICHEAT_SINGLE_PARTNER_SHARE_BPS": "9002",
 	"TORN_ANTICHEAT_COMMANDS_PER_MINUTE":      "92",
+	"TORN_ANTICHEAT_WASH_TRADE_COUNT":         "5",
 	"TORN_ANTICHEAT_HOLD_ABOVE":               "50002",
 	"TORN_LEGISLATURE_VOTE_WINDOW":            "50h",
 	"TORN_LEGISLATURE_LIST_SIZE":              "10",

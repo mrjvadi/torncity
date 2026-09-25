@@ -23,7 +23,8 @@ func lifeSnapshots(c Context, who people, add func(string, *presenter.Response))
 
 	base := LifeView{Needs: calm, Age: 20, Stage: youth, Intelligence: 18, IntelligenceMax: 200, CourseBPS: 180,
 		SkillBPS: 180, Rank: &breadwinner, Next: &trader, NextNeed: 18500,
-		Worth: WorthView{Cash: 4200, Bank: 21000, Equity: 3500, Property: 0, Goods: 2800, Total: 31500},
+		Worth: WorthView{Cash: 4200, Bank: 21000, Equity: 3500, Property: 0, Goods: 2800, Savings: 5000, Gold: 1600,
+			Total: 38100},
 		Spots: []SleepSpotLine{
 			{Spot: hostel, Place: residential, Price: 150, Rest: 55, Relief: 8, Way: &Way{Place: residential, Walk: 25 * time.Second}},
 			{Spot: bench, Place: park, Rest: 30, Relief: -3},
@@ -34,7 +35,7 @@ func lifeSnapshots(c Context, who people, add func(string, *presenter.Response))
 	pressed.Needs = NeedsView{Hunger: 84, Sleep: 93, Stress: 71, Happiness: 24, BodyBPS: 6900, XPBPS: 9000,
 		Pressing: []string{"hunger", "sleep", "stress"}}
 	pressed.Home, pressed.Spots = true, nil
-	pressed.Worth = WorthView{Cash: 900, Bank: 12000, Property: 46350, Debts: 460, Total: 58790}
+	pressed.Worth = WorthView{Cash: 900, Bank: 12000, Property: 46350, Debts: 460, Loans: 12000, Total: 46790}
 	pressed.Rank, pressed.Next, pressed.NextNeed = &trader, &RankRef{Code: "comfortable", Name: "Comfortable", Emoji: "🏡"}, 91210
 	add("Life · hungry, tired and stressed, with a home", Life(c, pressed))
 

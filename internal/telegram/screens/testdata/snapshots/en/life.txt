@@ -10,8 +10,8 @@
 😊 Happiness ▰▰▰▰▰▰▰▱▱▱ 68
 
 🍞 Rank: Breadwinner
-💎 Net worth: 31,500 Nil
-cash 4,200 Nil - bank 21,000 Nil - company shares 3,500 Nil - goods 2,800 Nil
+💎 Net worth: 38,100 Nil
+cash 4,200 Nil - bank 21,000 Nil - savings 5,000 Nil - company shares 3,500 Nil - gold 1,600 Nil - goods 2,800 Nil
 ⬆️ To Trader: 18,500 Nil more
 
 🛏 Where to sleep:
@@ -41,9 +41,10 @@ cash 4,200 Nil - bank 21,000 Nil - company shares 3,500 Nil - goods 2,800 Nil
 🔻 You feel low and earn 10% less experience.
 
 🛍 Rank: Trader
-💎 Net worth: 58,790 Nil
+💎 Net worth: 46,790 Nil
 cash 900 Nil - bank 12,000 Nil - property 46,350 Nil
 🧾 Debts: 460 Nil
+🏦 Loans: 12,000 Nil
 ⬆️ To Comfortable: 91,210 Nil more
 
 🛏 Where to sleep:
@@ -68,8 +69,8 @@ cash 900 Nil - bank 12,000 Nil - property 46,350 Nil
 😊 Happiness ▰▰▰▰▰▰▰▱▱▱ 68
 
 🍞 Rank: Breadwinner
-💎 Net worth: 31,500 Nil
-cash 4,200 Nil - bank 21,000 Nil - company shares 3,500 Nil - goods 2,800 Nil
+💎 Net worth: 38,100 Nil
+cash 4,200 Nil - bank 21,000 Nil - savings 5,000 Nil - company shares 3,500 Nil - gold 1,600 Nil - goods 2,800 Nil
 ⬆️ To Trader: 18,500 Nil more
 
 🛏 Where to sleep:
@@ -294,7 +295,7 @@ Pick one to sit beside your name on your card and profile.
 
 🔄 Refreshed 23 September 2026 at 13:55
 
-Net worth: cash, bank, company shares, property and goods, less debts.
+Net worth: cash, bank, savings, shares, gold, property and goods, less debts and loans.
   ───
   [🏢 Companies] → life:top:companies   │   [🏙 Cities] → life:top:cities
   [💼 Workers] → life:top:workers   │   [📈 Investors] → life:top:investors
@@ -351,7 +352,7 @@ By every shift worked so far.
 
 No board yet. The boards are refreshed every game day.
 
-How each player's share of their companies grew since the last board. With the stock exchange this board grows up.
+What each player's portfolio — shares at market price, gold and savings, less what they put in — gained since the last board.
   ───
   [💎 Richest] → life:top:richest   │   [🏢 Companies] → life:top:companies
   [🏙 Cities] → life:top:cities   │   [💼 Workers] → life:top:workers

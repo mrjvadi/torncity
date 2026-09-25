@@ -519,6 +519,42 @@ levers:
     change_cooldown: 72h
     notice: 24h
 
+  # Finance (docs/adr/0026). A country's central banker sets its policy
+  # rate — every loan of its national bank is lent at it plus the product's
+  # spread and the borrower's band, and savings earn it less a spread — and
+  # the share of the bank's assets it keeps and never lends. The president
+  # decides how much of the national treasury funds the bank each finance
+  # period, until the bank holds finance.yml bank.capital_cap.
+  - code: country.base_interest_rate
+    jurisdiction: country
+    type: bps
+    default: 1500
+    min: 0
+    max: 6000
+    held_by: central_banker
+    change_cooldown: 168h
+    notice: 24h
+
+  - code: country.bank_reserve_ratio
+    jurisdiction: country
+    type: bps
+    default: 2000
+    min: 0
+    max: 10000
+    held_by: central_banker
+    change_cooldown: 168h
+    notice: 24h
+
+  - code: country.bank_funding
+    jurisdiction: country
+    type: bps
+    default: 500
+    min: 0
+    max: 5000
+    held_by: president
+    change_cooldown: 168h
+    notice: 72h
+
 offices:
   - code: mayor
     jurisdiction: city
@@ -599,7 +635,8 @@ offices:
     seats: 1
     acquired_by: election
     term: 1440h
-    levers: [country.border_tariff, country.revenue_share, country.defence_budget, country.war_levy]
+    levers: [country.border_tariff, country.revenue_share, country.defence_budget, country.war_levy,
+             country.bank_funding]
 
   # The national legislature (ADR 0016: a parliament elected by the
   # residents; docs/adr/0024). It approves a declaration of war and large
@@ -680,6 +717,21 @@ offices:
   # Foreign affairs. The Vienna Convention (1969, art. 7) lets a head of
   # state and a foreign minister conclude a treaty without full powers: the
   # minister does, and the president acts while the seat is vacant.
+  # The governor of the national bank (docs/adr/0016: central_banker;
+  # docs/adr/0026): proposed by the president, confirmed by parliament, for
+  # a fixed term longer than the president's, so the rate is not bent to an
+  # election.
+  - code: central_banker
+    jurisdiction: country
+    seats: 1
+    acquired_by: appointment
+    appointed_by: president
+    requires_confirmation_by: parliament
+    term: 2688h
+    can_be_removed_by: [operator]
+    levers: [country.base_interest_rate, country.bank_reserve_ratio]
+    incompatible_with: [president]
+
   - code: foreign_minister
     jurisdiction: country
     seats: 1

@@ -260,6 +260,10 @@ func economyVerify(ctx context.Context, args []string) error {
 			mark(l.LodgingLedger == l.LodgingRows && l.UnpaidNights == 0), l.LodgingLedger, l.LodgingRows, l.UnpaidNights)
 	}
 
+	if v.Finance {
+		printFinance(v.FinanceInvariants)
+	}
+
 	if !v.OK() || !capsOK {
 		return errInvariantsBroken
 	}

@@ -27,7 +27,7 @@ type InboxStore struct {
 }
 
 // NewInboxStore returns a store over the pool.
-func NewInboxStore(p *Pool) *InboxStore { return &InboxStore{q: p.Raw()} }
+func NewInboxStore(p *Pool) *InboxStore { return &InboxStore{q: p.shared()} }
 
 const markProcessed = `
 INSERT INTO inbox_messages (message_id, consumer, processed_at)

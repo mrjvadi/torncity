@@ -255,6 +255,8 @@ help:
     • بیمارستان - سلامت شما، بستری و درمان
     • مأموریت - مأموریت‌های من؛ «تابلو» تابلوهای مأموریت شهر
     • جناح - جناح من؛ «جناح‌ها» جناح‌های شهر
+    • وام - بانک ملی، امتیاز اعتباری و وام‌ها؛ «پس‌انداز» و «بیمه»
+    • بورس - سهام شرکت‌ها؛ «سبد» سرمایهٔ شما؛ «طلا» طلافروشی
     • تنظیمات
     • راهنما - همین صفحه
 
@@ -562,6 +564,7 @@ office:
   navy_commander: "فرمانده نیروی دریایی"
   air_defence_commander: "فرمانده پدافند هوایی"
   foreign_minister: "وزیر امور خارجه"
+  central_banker: "رئیس بانک مرکزی"
   military_governor: "فرماندار نظامی"
   parliament: مجلس
 
@@ -594,6 +597,9 @@ lever:
     defence_budget: "بودجهٔ دفاعی (سهم از درآمد ملی)"
     arms_exports: "سیاست صادرات تسلیحات"
     war_levy: "عوارض جنگ (سهم از درآمد شهرها در زمان جنگ)"
+    base_interest_rate: "نرخ بهرهٔ پایه (سالانه)"
+    bank_reserve_ratio: "ذخیرهٔ قانونی بانک ملی"
+    bank_funding: "سرمایه‌گذاری خزانه در بانک ملی (سهم هر دوره)"
 
 # Names of places above a city, keyed on the jurisdiction's content code.
 # Cities are named under city.* above.
@@ -1291,6 +1297,12 @@ command_alias:
   history: "سرگذشت"
   top: "برترین‌ها | رتبه‌بندی | جدول"
   card: "کارت"
+  loan: "وام | وام‌ها"
+  savings: "پس‌انداز"
+  insurance: "بیمه"
+  stocks: "بورس | سهام"
+  portfolio: "سبد | پرتفوی"
+  gold: "طلا | طلافروشی"
 
 # Where a command runs (configs/commands.yml). Sent in the wrong kind of chat,
 # it is not run; the player reads one of these instead.
@@ -3384,6 +3396,7 @@ property:
     renting: شما همین حالا خانه‌ای اجاره کرده‌اید؛ اول از آن بروید.
     let: این ملک در اجاره است و تا پایان اجاره نمی‌شود آگهی‌اش کرد.
     offered: این ملک همین حالا آگهی شده است.
+    pledged: این ملک وثیقهٔ یک وام مسکن است و تا وام تسویه نشود فروخته نمی‌شود.
     in_debt: تا بدهی این ملک پرداخت نشود نمی‌شود آن را آگهی کرد یا فروخت.
     price: "این قیمت بیش از سقف مجاز {max} است."
     no_home: در این شهر خانه‌ای ندارید که در آن استراحت کنید.
@@ -3516,11 +3529,14 @@ life:
   worth_part:
     cash: "نقد {amount}"
     bank: "بانک {amount}"
-    equity: "سهم شرکت‌ها {amount}"
+    equity: "سهام {amount}"
     property: "املاک {amount}"
     goods: "کالاها {amount}"
+    savings: "پس‌انداز {amount}"
+    gold: "طلا {amount}"
   worth_sep: " - "
   worth_debts: "🧾 بدهی: {debts}"
+  worth_loans: "🏦 وام: {loans}"
   next_rank: "⬆️ تا رتبهٔ {rank}: {need} دیگر"
   bar_full: "▰"
   bar_empty: "▱"
@@ -3634,7 +3650,7 @@ life:
     richest_title: "💎 ثروتمندترین بازیکنان"
     richest_line: "{pos}. {name} - {tag} - {value}"
     richest_tab: "💎 ثروتمندترین‌ها"
-    richest_hint: "دارایی خالص: نقد، بانک، سهم شرکت‌ها، املاک و کالاها، منهای بدهی."
+    richest_hint: "دارایی خالص: نقد، بانک، پس‌انداز، سهام، طلا، املاک و کالاها، منهای بدهی و وام."
     companies_title: "🏢 بزرگ‌ترین شرکت‌ها"
     companies_line: "{pos}. {name} - {tag} در {city} - {value}"
     companies_tab: "🏢 شرکت‌ها"
@@ -3648,9 +3664,9 @@ life:
     workers_tab: "💼 کارمندان"
     workers_hint: "بر پایهٔ همهٔ شیفت‌هایی که تا امروز کار کرده‌اند."
     investors_title: "📈 سرمایه‌گذاران برتر"
-    investors_line: "{pos}. {name} - {value} رشد سهم شرکت‌ها"
+    investors_line: "{pos}. {name} - {value} سود - سبد {extra}"
     investors_tab: "📈 سرمایه‌گذاران"
-    investors_hint: "رشد سهم هر بازیکن از ارزش شرکت‌هایش از روز قبل تا امروز. با آمدن بورس، این جدول کامل‌تر می‌شود."
+    investors_hint: "سود سبد سرمایهٔ هر بازیکن از جدول قبل تا امروز: سهام به قیمت بازار، طلا و پس‌انداز، منهای آنچه در آن‌ها گذاشته است."
   rank_up_notice: "{emoji} تبریک! رتبهٔ شما از {from} به {rank} رسید. دارایی خالص شما {worth} است."
   rank_down_notice: "{emoji} رتبهٔ شما از {from} به {rank} رسید. دارایی خالص شما {worth} است؛ با کار و سرمایه‌گذاری دوباره بالا می‌روید."
   rank:
@@ -3683,3 +3699,275 @@ life:
     crown: تاج
     panda: پاندا
     dove: کبوتر
+
+# Finance (docs/adr/0026-finance.md): the national bank — the credit score,
+# loans, savings — and insurance. Product names are keyed on their content
+# code (configs/content/finance.yml).
+loan_product:
+  personal: "وام شخصی"
+  mortgage: "وام مسکن"
+  business: "وام تجاری"
+insurance_product:
+  health: "بیمهٔ درمان"
+  property: "بیمهٔ ملک"
+finance:
+  credit:
+    score: "📊 امتیاز اعتباری شما: {score} از {max} ({band})"
+    band:
+      poor: "ضعیف"
+      fair: "متوسط"
+      good: "خوب"
+      very_good: "خیلی خوب"
+      excellent: "عالی"
+    factors: "خوش‌حسابی {payment}٪ - سبکی بدهی {debt}٪ - سابقه {history}٪ - درآمد {income}٪"
+    record: "⚠️ در پرونده: {missed} قسط عقب‌افتاده و {defaults} وام نکول‌شده"
+  hub:
+    title: "🏛 بانک ملی {country}"
+    rate: "📈 نرخ بهرهٔ پایه (رئیس بانک مرکزی): {rate}٪ در سال"
+    offers: "💳 وام‌هایی که به شما می‌دهیم:"
+    offer: "▫️ {product}: تا {limit} با سود {rate}٪ در سال"
+    offer_closed: "▫️ {product}: فعلاً نه؛ حداقل امتیاز {score} لازم است"
+    bank_dry: "🏦 بانک ملی الان پولی برای وام دادن ندارد."
+    loans: "📒 وام‌های شما:"
+    next_due: "⏰ قسط بعدی ساعت {time} برداشت می‌شود، اول از بانک و بعد از نقد."
+    savings: "🐖 پس‌انداز: {amount} با سود {rate}٪ در سال"
+  loan:
+    line: "▫️ وام شمارهٔ {no} ({product}): قسط بعدی {next} - {left} قسط مانده - کل بدهی {owed}"
+    line_company: "▫️ وام شمارهٔ {no} ({product} برای «{company}»): قسط بعدی {next} - کل بدهی {owed}"
+    line_arrears: "🔴 وام شمارهٔ {no} ({product}): {arrears} قسط عقب‌افتاده - کل بدهی {owed}"
+    line_repaid: "✅ وام شمارهٔ {no} ({product}): تسویه شد"
+    line_defaulted: "⛔ وام شمارهٔ {no} ({product}): نکول شد"
+    title: "📒 وام شمارهٔ {no} - {product}"
+    terms: "اصل وام {principal} - سود کل {interest} ({rate}٪ در سال) - {periods} قسط"
+    opened: "🗓 گرفته‌شده در {date}"
+    progress: "پرداخت‌شده: {paid} قسط از {periods} - قسط‌های عقب‌افتاده تا امروز: {missed}"
+    owed: "💰 کل بدهی: {owed} - قسط بعدی: {next}"
+    arrears: "🔴 {arrears} قسط عقب‌افتاده و {fees} جریمهٔ دیرکرد"
+    defaulted: "⛔ این وام نکول شد. بانک {recovered} از وثیقه برگرداند و {written_off} سوخت شد."
+    repaid: "✅ این وام کامل تسویه شده است."
+    payoff_confirm: "کل بدهی این وام، {amount}، همین حالا از حساب بانکی و بعد نقد شما برداشت می‌شود. تسویهٔ زودتر سودی را کم نمی‌کند."
+  offer:
+    title: "💳 {product}"
+    kind:
+      player: "وام بدون وثیقه به خود شما."
+      mortgage: "وام با وثیقهٔ ملک: تا وام تسویه نشود ملک فروخته نمی‌شود و اگر نکول کنید، شهر آن را پس می‌گیرد."
+      company: "وام به شرکت شما: به حساب شرکت واریز و از پول آزاد شرکت بازپرداخت می‌شود."
+    rate: "📈 سود: {rate}٪ در سال، ثابت از روزی که وام را می‌گیرید"
+    rules: "⚠️ هر قسط عقب‌افتاده {fee}٪ جریمه دارد و {after} قسط عقب‌افتاده یعنی نکول."
+    choose_pledge:
+      mortgage: "کدام ملک وثیقهٔ این وام باشد؟"
+      company: "این وام برای کدام شرکت شماست؟"
+    company: "شرکت «{company}»"
+    property: "{type} شمارهٔ {no} در {city} (ارزش {value})"
+    pledged: "🔒 وثیقه: {pledge}"
+    limit: "بیشترین مبلغ برای شما: {limit}. یک مبلغ و مدت را انتخاب کنید:"
+    nothing: "با امتیاز و وثیقهٔ فعلی شما مبلغی برای این وام نمی‌ماند."
+  confirm:
+    title: "📝 شرایط {product}"
+    terms: "مبلغ {amount} در {term} قسط، با سود {rate}٪ در سال"
+    cost: "سود کل {interest} - هر قسط {instalment} - جمع بازپرداخت {total}"
+    first: "⏰ قسط اول ساعت {time} برداشت می‌شود."
+    warning: "قسط‌ها خودکار از حساب بانکی و سپس نقد شما برداشت می‌شوند. قسط نپرداخته امتیاز اعتباری‌تان را پایین می‌آورد."
+  savings:
+    title: "🐖 حساب پس‌انداز"
+    balance: "موجودی: {amount} - سود {rate}٪ در سال"
+    earned: "سود گرفته تا امروز: {earned} - سود دورهٔ بعد: {next}"
+    bank: "🏦 موجودی حساب بانکی: {bank}"
+    hint: "سود هر روز بازی به کمترین موجودی دو روز آخر تعلق می‌گیرد؛ پولی که تازه گذاشته‌اید از روز بعد سود می‌گیرد."
+    next: "⏰ سود بعدی ساعت {time} واریز می‌شود."
+  insurance:
+    title: "🛡 صندوق بیمهٔ {country}"
+    fund: "موجودی صندوق: {fund}؛ خسارت فقط تا همین مقدار پرداخت می‌شود."
+    product:
+      hospital: "▫️ {product}: {cover}٪ هزینهٔ درمان در بیمارستان، تا {max} در هر بستری - حق بیمه {premium} در هر روز بازی - پوشش پس از {wait}"
+      war_damage: "▫️ {product}: {cover}٪ خسارت حمله به ملک، تا {max} در هر حمله - حق بیمه {premium} در هر روز بازی - پوشش پس از {wait}"
+      war_damage_valued: "▫️ {product}: {cover}٪ خسارت حمله به ملک، تا {max} در هر حمله - حق بیمه {premium} به‌علاوهٔ {bps}٪ ارزش ملک در هر روز بازی - پوشش پس از {wait}"
+    mine: "📄 بیمه‌نامه‌های شما:"
+    policy: "▫️ شمارهٔ {no} ({product}): حق بیمه {premium} در هر روز بازی - خسارت گرفته: {paid}"
+    policy_property: "▫️ شمارهٔ {no} ({product} برای {pledge}): حق بیمه {premium} در هر روز بازی - خسارت گرفته: {paid}"
+    policy_waiting: "⏳ شمارهٔ {no} ({product}): پوشش از ساعت {time} - حق بیمه {premium} در هر روز بازی"
+    policy_ended:
+      cancelled: "▫️ شمارهٔ {no} ({product}): لغو شد - خسارت گرفته: {paid}"
+      lapsed: "▫️ شمارهٔ {no} ({product}): حق بیمه پرداخت نشد و باطل شد"
+      property_gone: "▫️ شمارهٔ {no} ({product}): ملک دیگر مال شما نیست و بیمه تمام شد"
+    cancel_confirm: "بیمه‌نامهٔ شمارهٔ {no} ({product}) لغو شود؟ حق بیمه‌های پرداخته برنمی‌گردد."
+    hint: "حق بیمه هر روز بازی خودکار از حساب بانکی و سپس نقد شما برداشت می‌شود؛ اگر پول کافی نباشد بیمه باطل می‌شود."
+  insure:
+    title: "🛡 {product}"
+    terms: "حق بیمهٔ امروز {premium} - پوشش {cover}٪ تا {max} - پوشش پس از {wait} شروع می‌شود"
+    property: "برای: {pledge}"
+    every_period: "از روز بازی بعد، هر روز همین حق بیمه خودکار برداشت می‌شود."
+  button:
+    product: "💳 {product}"
+    loan: "📒 وام شمارهٔ {no}"
+    savings: "🐖 پس‌انداز"
+    insurance: "🛡 بیمه"
+    exchange: "📈 بورس"
+    gold: "🪙 طلا"
+    portfolio: "💼 سبد سرمایه"
+    bank: "🏛 بانک ملی"
+    pledge: "🔒 {pledge}"
+    option: "{amount} در {term} قسط ({instalment} هر قسط)"
+    take: "✅ گرفتن وام {amount}"
+    payoff: "💰 تسویهٔ کامل ({amount})"
+    payoff_yes: "✅ بله، {amount} پرداخت شود"
+    deposit: "📥 {amount}"
+    withdraw: "📤 {amount}"
+    deposit_custom: "✏️ واریز مبلغ دلخواه"
+    withdraw_custom: "✏️ برداشت مبلغ دلخواه"
+    insure: "🛡 خرید {product}"
+    insure_property: "🛡 {product} برای {pledge}"
+    cancel_policy: "✖️ لغو بیمه‌نامهٔ {no}"
+    cancel_yes: "✅ بله، لغو شود"
+  notice:
+    taken: "✅ وام گرفته شد و پولش واریز شد."
+    paid_off: "✅ وام کامل تسویه شد. آفرین!"
+    deposited: "✅ {amount} به پس‌انداز رفت."
+    withdrawn: "✅ {amount} از پس‌انداز به حساب بانکی برگشت."
+    insured: "✅ بیمه‌نامه صادر شد."
+    cancelled: "🗑 بیمه‌نامه لغو شد."
+  refused:
+    no_bank: "🏛 شما هنوز ساکن هیچ کشوری نیستید و بانک ملی‌ای ندارید."
+    score: "📊 امتیاز اعتباری شما برای این وام کافی نیست. دست‌کم {score} لازم است؛ قسط‌ها را به‌موقع بدهید، کار کنید و بدهی‌تان را کم کنید."
+    too_many: "📒 نمی‌شود بیش از {count} وام هم‌زمان داشت. اول یکی را تسویه کنید."
+    bank_dry: "🏦 بانک ملی الان پول کافی برای این وام ندارد. بعداً دوباره سر بزنید."
+    amount: "این مبلغ پذیرفته نیست. حداکثر یا حداقل مجاز: {amount}."
+    pledge: "🔒 وثیقهٔ مناسبی برای این وام ندارید."
+    not_owner: "🏢 فقط کسی که شرکت را در اختیار دارد این کار را می‌کند."
+    short: "💸 موجودی شما کافی نیست. لازم است: {amount}."
+    savings_cap: "🐖 موجودی پس‌انداز نمی‌تواند از {amount} بیشتر شود."
+    no_product: "این محصول دیگر عرضه نمی‌شود."
+    held: "🛡 همین بیمه را همین حالا دارید."
+    pledged: "🔒 این ملک وثیقهٔ یک وام است."
+    not_listed: "📈 این شرکت در بورس نیست."
+    listed: "📈 این شرکت همین حالا در بورس است."
+    too_young: "⏳ این شرکت هنوز جوان‌تر از آن است که عرضه شود."
+    too_small: "📉 درآمد این شرکت هنوز برای عرضه کافی نیست."
+    in_debt: "🧾 شرکتی که بدهی دارد عرضه نمی‌شود و سود نمی‌دهد."
+    bad_float: "این مقدار سهم یا این قیمت برای عرضه پذیرفته نیست."
+    no_shares: "📄 سهم آزاد کافی ندارید. سهم آزاد شما: {count}."
+    no_money: "🏢 پول آزاد شرکت کافی نیست. لازم است: {amount}."
+    too_many_orders: "📋 بیش از {count} سفارش باز نمی‌شود داشت. یکی را لغو کنید."
+    order: "این سفارش پذیرفته نیست."
+    gold_stock: "🪙 طلافروش فقط {count} گرم طلا دارد."
+    gold_held: "🪙 شما فقط {count} گرم طلا دارید."
+    not_yours: "🔎 این مورد مال شما نیست یا پیدا نشد."
+    own_company: "نمی‌شود با خودتان معامله کنید."
+    fund_closed: "🛡 صندوق بیمه این بیمه را نمی‌فروشد."
+    no_player: "🔎 بازیکنی پیدا نشد."
+  event:
+    due: "⏰ قسط وام شمارهٔ {no} ({product}) {amount} است و ساعت {time} برداشت می‌شود، اما حساب بانکی و نقد شما روی هم {other} است. پول کافی کنار بگذارید تا قسط عقب نیفتد."
+    missed: "🔴 قسط وام شمارهٔ {no} ({product}) پرداخت نشد. {other} جریمهٔ دیرکرد اضافه شد و امتیاز اعتباری‌تان پایین آمد. {count} قسط عقب‌افتاده دارید."
+    defaulted: "⛔ وام شمارهٔ {no} ({product}) نکول شد. {amount} از بدهی سوخت شد و در پرونده‌تان ماند."
+    pledge_defaulted: "🏚 وثیقهٔ این وام، {pledge}، به شهر برگشت و شهر {other} به بانک پرداخت."
+    repaid: "✅ وام شمارهٔ {no} ({product}) کامل تسویه شد. آفرین!"
+    claimed: "🛡 {product}: {amount} خسارت به حساب بانکی شما واریز شد."
+    lapsed: "🛡 حق بیمهٔ {product}، {amount}، پرداخت نشد و بیمه‌نامه باطل شد."
+    gone: "🛡 ملکی که {product} برایش بود دیگر مال شما نیست و بیمه‌نامه تمام شد."
+
+# The stock exchange (docs/adr/0026-finance.md section 5). Market data is
+# public; a holding and an order are the player's own.
+stock:
+  move_up: "🟢 {pct}٪+"
+  move_down: "🔴 {pct}٪−"
+  move_flat: "⚪️ بی‌تغییر"
+  exchange_title: "📈 بورس شرکت‌ها"
+  exchange_line: "▫️ «{company}» ({type}، {city}): {price} {move} - حجم امروز {volume} سهم - ارزش بازار {cap}"
+  exchange_empty: "هنوز هیچ شرکتی در بورس عرضه نشده است. صاحب شرکت می‌تواند از صفحهٔ شرکتش آن را عرضه کند."
+  exchange_hint: "قیمت هر سهم فقط از خرید و فروش بازیکنان درمی‌آید. سود سهام را صاحب شرکت از پول آزاد شرکت می‌دهد."
+  title: "🏢 «{company}» - {type} در {city}"
+  not_listed: "این شرکت در بورس عرضه نشده است."
+  price: "💹 قیمت هر سهم: {price} {move} - قیمت عرضهٔ اولیه {ipo}"
+  book: "📘 ارزش دفتری هر سهم {book} - کل سهام {total} - ارزش بازار {cap}"
+  controller: "👤 اختیار شرکت با: {player}"
+  last_dividend: "💵 آخرین سود هر سهم: {amount}"
+  book_title: "📋 دفتر سفارش:"
+  ask_line: "🔺 فروش {qty} سهم به {price}"
+  bid_line: "🔻 خرید {qty} سهم به {price}"
+  book_empty: "دفتر سفارش خالی است."
+  trades_title: "🕘 آخرین معامله‌ها:"
+  trade_line: "▫️ {qty} سهم به {price} ساعت {time}"
+  holding: "💼 سهام شما: {shares} سهم ({locked} سهم در سفارش فروش) - ارزش {value} - بهای خرید {cost}"
+  notice:
+    listed: "🎉 شرکت در بورس عرضه شد و سهام عرضه‌شده در دفتر سفارش است."
+    cancelled: "🗑 سفارش شمارهٔ {no} لغو شد و پول یا سهمش برگشت."
+  order:
+    confirm_buy: "🛒 خرید {qty} سهم «{company}» تا قیمت {price}. {reserve} از حساب بانکی شما کنار گذاشته می‌شود (موجودی: {bank})؛ اگر ارزان‌تر بخرید، باقی برمی‌گردد."
+    confirm_sell: "🏷 فروش {qty} سهم «{company}» دست‌کم به قیمت {price}. سهم‌ها تا فروش یا لغو سفارش قفل می‌مانند."
+    fee: "کارمزد بازار شهر شرکت، {fee}٪، از پول فروشنده کم می‌شود."
+    placed_buy: "✅ سفارش خرید شمارهٔ {no} ثبت شد: {qty} سهم «{company}» تا {price}."
+    placed_sell: "✅ سفارش فروش شمارهٔ {no} ثبت شد: {qty} سهم «{company}» از {price}."
+    filled_buy: "🤝 {filled} سهم خریدید و {spent} پرداختید."
+    filled_sell: "🤝 {filled} سهم فروختید و {got} به حساب بانکی‌تان آمد."
+    rests: "⏳ باقی سفارش در دفتر می‌ماند تا ساعت {time}."
+  portfolio:
+    title: "💼 سبد سرمایهٔ شما"
+    holding: "▫️ «{company}»: {shares} سهم به قیمت {price} - ارزش {value} - بهای خرید {cost}"
+    holding_private: "▫️ «{company}» (عرضه‌نشده): {shares} سهم - ارزش دفتری {value}"
+    no_shares: "هنوز سهمی ندارید."
+    gold: "🪙 طلا: {grams} گرم - ارزش {value}"
+    savings: "🐖 پس‌انداز: {amount}"
+    total: "💎 ارزش کل سبد: {value}"
+    gain: "📈 سود نسبت به پولی که گذاشته‌اید: {amount}"
+    loss: "📉 زیان نسبت به پولی که گذاشته‌اید: {amount}"
+    orders: "📋 سفارش‌های باز شما:"
+    order_buy: "▫️ شمارهٔ {no}: خرید {qty} سهم «{company}» تا {price}"
+    order_sell: "▫️ شمارهٔ {no}: فروش {qty} سهم «{company}» از {price}"
+  ipo:
+    title: "🔔 عرضهٔ اولیهٔ «{company}» در بورس"
+    rules: "شرط‌ها: دست‌کم {age} عمر، {revenue} درآمد و بی‌بدهی. هزینهٔ عرضه {fee} از حساب شرکت به شهر."
+    book: "ارزش دفتری هر سهم {book} - کل سهام {total}"
+    refused:
+      too_young: "⏳ شرکت هنوز جوان است؛ {wait} دیگر صبر کنید."
+      too_small: "📉 درآمد شرکت تا امروز {revenue} است و هنوز کافی نیست."
+      in_debt: "🧾 اول بدهی نگهداری شرکت را بپردازید."
+      bad_float: "📄 سهم آزاد کافی برای عرضه ندارید."
+    choose: "چند سهم و به چه قیمتی عرضه شود؟ اختیار شرکت با شما می‌ماند مگر کسی بیش از نیمی از سهام را بخرد."
+    confirm: "{shares} سهم به قیمت هر سهم {price} در دفتر فروش گذاشته می‌شود و {fee} هزینهٔ عرضه از حساب شرکت پرداخت می‌شود."
+  dividend:
+    title: "💵 سود سهام «{company}»"
+    free: "پول آزاد شرکت {free} - مالیات شرکت {tax}٪ - کل سهام {total}"
+    refused:
+      in_debt: "🧾 شرکتی که بدهی دارد سود نمی‌دهد."
+      no_money: "پول آزاد شرکت برای سود دادن کافی نیست."
+    paid: "✅ سود پرداخت شد: هر سهم {per_share} و در کل {paid} به {holders} سهامدار."
+    confirm: "{amount} از پول آزاد شرکت برداشته می‌شود؛ مالیات به شهر می‌رود و به هر سهم {per_share} می‌رسد."
+  button:
+    company: "🏢 {company}"
+    buy: "🛒 {qty} سهم تا {price}"
+    sell: "🏷 {qty} سهم از {price}"
+    confirm_buy: "✅ ثبت خرید"
+    confirm_sell: "✅ ثبت فروش"
+    cancel: "✖️ لغو سفارش {no}"
+    ipo: "🔔 عرضه در بورس"
+    ipo_option: "{shares} سهم به {price}"
+    ipo_yes: "✅ بله، عرضه شود"
+    dividend: "💵 تقسیم سود"
+    dividend_option: "{amount} (هر سهم {per_share})"
+    dividend_yes: "✅ بله، سود پرداخت شود"
+  event:
+    filled_buy: "🤝 سفارش خرید شما پر شد: {qty} سهم «{company}» به {price}، جمعاً {amount}."
+    filled_sell: "🤝 سفارش فروش شما پر شد: {qty} سهم «{company}» به {price}؛ {amount} به حساب بانکی‌تان آمد."
+    dividend: "💵 «{company}» سود داد: {qty} سهم شما، هر سهم {price}، جمعاً {amount} به حساب بانکی‌تان آمد."
+    takeover: "👑 حالا {qty} سهم «{company}» مال شماست و اختیار شرکت با شماست."
+    takeover_lost: "⚠️ کسی بیش از نیمی از سهام «{company}» را خرید و اختیار شرکت با اوست."
+
+# The gold dealer (docs/adr/0026-finance.md section 6).
+gold:
+  title: "🪙 طلافروشی"
+  price: "هر گرم: خرید از ما {buy} - فروش به ما {sell} {move}"
+  stock: "طلای موجود طلافروش: {grams} گرم"
+  next: "⏰ قیمت بعدی ساعت {time} اعلام می‌شود."
+  history: "📉 قیمت‌های اخیر:"
+  history_line: "▫️ {price} ساعت {time}"
+  holding: "💼 طلای شما: {grams} گرم - ارزش امروز {value} - بهای خرید {cost}"
+  confirm_buy: "🪙 خرید {grams} گرم طلا، هر گرم {price}، جمعاً {total}."
+  confirm_sell: "🪙 فروش {grams} گرم طلا، هر گرم {price}، جمعاً {total} به حساب بانکی شما."
+  notice:
+    buy_done: "✅ {grams} گرم طلا خریدید و {total} پرداختید."
+    sell_done: "✅ {grams} گرم طلا فروختید و {total} به حساب بانکی‌تان آمد."
+  button:
+    buy: "🛒 {grams} گرم ({price})"
+    sell: "🏷 فروش {grams} گرم ({price})"
+    sell_yes: "✅ بله، بفروش"
+    back: "🪙 طلافروشی"

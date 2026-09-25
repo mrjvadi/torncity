@@ -151,6 +151,17 @@ func Routes() []Route {
 		{Domain: "achievement", Event: "awarded", Render: renderAchievement},
 		// A character's life: see life.go.
 		{Domain: "life", Event: "rank_changed", Render: renderRankChanged},
+		// Finance: see finance.go.
+		{Domain: "loan", Event: "due", Render: renderFinanceNotice},
+		{Domain: "loan", Event: "missed", Render: renderFinanceNotice},
+		{Domain: "loan", Event: "defaulted", Render: renderFinanceNotice},
+		{Domain: "loan", Event: "repaid", Render: renderFinanceNotice},
+		{Domain: "insurance", Event: "claimed", Render: renderFinanceNotice},
+		{Domain: "insurance", Event: "lapsed", Render: renderFinanceNotice},
+		{Domain: "insurance", Event: "gone", Render: renderFinanceNotice},
+		{Domain: "stock", Event: "filled", Render: renderStockNotice},
+		{Domain: "stock", Event: "dividend", Render: renderStockNotice},
+		{Domain: "stock", Event: "takeover", Render: renderStockNotice},
 
 		// Property: see property.go.
 		{Domain: "property", Event: "sold", Render: renderPropertyNotice},

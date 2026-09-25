@@ -16,7 +16,7 @@
   [📤 برداشت ۱۰٬۰۰۰ نیل] → bank:withdraw:10000:n4Rt   │   [📤 برداشت ۵۰٬۰۰۰ نیل] → bank:withdraw:50000:n4Rt
   [📤 برداشت ۱۰۰٬۰۰۰ نیل] → bank:withdraw:100000:n4Rt   │   [📤 برداشت همه - ۲۳۶٬۴۵۳ نیل] → bank:withdraw:236453:n4Rt
   [✏️ برداشت مبلغ دلخواه] → ask:bank.withdraw
-  [💸 پرداخت به بازیکن] → bank:pay
+  [💸 پرداخت به بازیکن] → bank:pay   │   [🏛 بانک ملی] → loan:hub
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → bank:show
 
 ━━━ Bank · after a deposit, no fees ━━━
@@ -39,7 +39,7 @@
   [📤 برداشت ۱۰٬۰۰۰ نیل] → bank:withdraw:10000:n4Rt   │   [📤 برداشت ۵۰٬۰۰۰ نیل] → bank:withdraw:50000:n4Rt
   [📤 برداشت ۱۰۰٬۰۰۰ نیل] → bank:withdraw:100000:n4Rt   │   [📤 برداشت همه - ۲۴۵٬۰۰۰ نیل] → bank:withdraw:245000:n4Rt
   [✏️ برداشت مبلغ دلخواه] → ask:bank.withdraw
-  [💸 پرداخت به بازیکن] → bank:pay
+  [💸 پرداخت به بازیکن] → bank:pay   │   [🏛 بانک ملی] → loan:hub
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → bank:show
 
 ━━━ Bank · after a withdrawal with a fee ━━━
@@ -62,7 +62,7 @@
   [📤 برداشت ۱۰٬۰۰۰ نیل] → bank:withdraw:10000:n4Rt   │   [📤 برداشت ۵۰٬۰۰۰ نیل] → bank:withdraw:50000:n4Rt
   [📤 برداشت ۱۰۰٬۰۰۰ نیل] → bank:withdraw:100000:n4Rt   │   [📤 برداشت همه - ۲۳۱٬۴۵۳ نیل] → bank:withdraw:231453:n4Rt
   [✏️ برداشت مبلغ دلخواه] → ask:bank.withdraw
-  [💸 پرداخت به بازیکن] → bank:pay
+  [💸 پرداخت به بازیکن] → bank:pay   │   [🏛 بانک ملی] → loan:hub
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → bank:show
 
 ━━━ Bank · after a free withdrawal, the bank emptied ━━━
@@ -82,7 +82,7 @@
   ───
   [📥 واریز ۱٬۰۰۰ نیل] → bank:deposit:1000:n4Rt
   [✏️ واریز مبلغ دلخواه] → ask:bank.deposit
-  [💸 پرداخت به بازیکن] → bank:pay
+  [💸 پرداخت به بازیکن] → bank:pay   │   [🏛 بانک ملی] → loan:hub
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → bank:show
 
 ━━━ Bank · in jail ━━━
@@ -100,7 +100,7 @@
   ───
   [📥 واریز همه - ۸۵۰ نیل] → bank:deposit:850:n4Rt
   [✏️ واریز مبلغ دلخواه] → ask:bank.deposit
-  [💸 پرداخت به بازیکن] → bank:pay
+  [💸 پرداخت به بازیکن] → bank:pay   │   [🏛 بانک ملی] → loan:hub
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → bank:show
 
 ━━━ Bank · nothing to move ━━━
@@ -116,7 +116,7 @@
 
 💸 برای پول دادن به بازیکن دیگر، در گروه روی پیام او «پرداخت ۵۰۰۰» را پاسخ بدهید، یا دکمهٔ «پرداخت به بازیکن» را بزنید.
   ───
-  [💸 پرداخت به بازیکن] → bank:pay
+  [💸 پرداخت به بازیکن] → bank:pay   │   [🏛 بانک ملی] → loan:hub
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → bank:show
 
 ━━━ Bank · while travelling ━━━
@@ -129,7 +129,7 @@
 
 💸 برای پول دادن به بازیکن دیگر، در گروه روی پیام او «پرداخت ۵۰۰۰» را پاسخ بدهید، یا دکمهٔ «پرداخت به بازیکن» را بزنید.
   ───
-  [💸 پرداخت به بازیکن] → bank:pay
+  [💸 پرداخت به بازیکن] → bank:pay   │   [🏛 بانک ملی] → loan:hub
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → bank:show
 
 ━━━ Bank · not in any city ━━━
@@ -142,7 +142,7 @@
 
 💸 برای پول دادن به بازیکن دیگر، در گروه روی پیام او «پرداخت ۵۰۰۰» را پاسخ بدهید، یا دکمهٔ «پرداخت به بازیکن» را بزنید.
   ───
-  [💸 پرداخت به بازیکن] → bank:pay
+  [💸 پرداخت به بازیکن] → bank:pay   │   [🏛 بانک ملی] → loan:hub
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → bank:show
 
 ━━━ Pay · how to pay ━━━

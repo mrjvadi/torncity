@@ -35,7 +35,7 @@ type OutboxRepository struct {
 var _ application.OutboxRepository = (*OutboxRepository)(nil)
 
 // NewOutboxRepository returns a repository over the pool.
-func NewOutboxRepository(p *Pool) *OutboxRepository { return &OutboxRepository{q: p.Raw()} }
+func NewOutboxRepository(p *Pool) *OutboxRepository { return &OutboxRepository{q: p.shared()} }
 
 const insertOutbox = `
 INSERT INTO outbox (event_id, subject, metadata, payload, status, attempts, created_at)

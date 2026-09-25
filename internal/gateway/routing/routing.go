@@ -257,6 +257,17 @@ var shortcuts = map[string]shortcut{
 	"card":    {Bare: "life.card", Words: "life.card"},
 	"history": {Bare: "life.history", Words: "life.history"},
 	"top":     {Bare: "life.top", Words: "life.top"},
+	// Finance (docs/adr/0026): "/loan" is the national bank's counter and
+	// "/loan 12" one loan; "/savings" the savings account; "/insurance" the
+	// insurance counter; "/stocks" the exchange and "/stock Q7M2K9B" one
+	// company; "/portfolio" the player's investments; "/gold" the dealer.
+	"loan":      {Bare: "loan.hub", Words: "loan.view"},
+	"savings":   {Bare: "save.show"},
+	"insurance": {Bare: "insure.list"},
+	"stocks":    {Bare: "stock.list"},
+	"stock":     {Bare: "stock.list", Words: "stock.view"},
+	"portfolio": {Bare: "stock.mine"},
+	"gold":      {Bare: "gold.show"},
 	// "/laws" is the proposals before the bodies of the player's places;
 	// "/law 12" one of them. "/budget" is the budget of the player's city,
 	// "/budget kessmoor" another's.
@@ -384,6 +395,35 @@ var argNames = map[string][]string{
 	"life.avatar":  {"choice"},
 	"life.sleep":   {"spot", "method"},
 	"life.top":     {"board"},
+
+	// Finance (docs/adr/0026). A product, an insurance product by their
+	// content code; a loan, a policy, an order by their number; a company by
+	// its public code; a pledge by a property's number or a company's code
+	// ("0" for none); amounts, terms, quantities, prices and grams as whole
+	// numbers; a confirmation by its one-time token. A savings amount may
+	// be typed (configs/commands.yml, input).
+	"loan.hub":       {},
+	"loan.offer":     {"product", "pledge"},
+	"loan.take":      {"product", "amount", "term", "pledge", "nonce"},
+	"loan.view":      {"no"},
+	"loan.repay":     {"no", "nonce"},
+	"save.show":      {},
+	"save.deposit":   {"amount", "nonce"},
+	"save.withdraw":  {"amount", "nonce"},
+	"insure.list":    {},
+	"insure.buy":     {"product", "property", "method", "nonce"},
+	"insure.cancel":  {"no", "confirm"},
+	"stock.list":     {},
+	"stock.view":     {"code"},
+	"stock.buy":      {"code", "qty", "price", "nonce"},
+	"stock.sell":     {"code", "qty", "price", "nonce"},
+	"stock.cancel":   {"no"},
+	"stock.mine":     {},
+	"stock.ipo":      {"code", "qty", "price", "nonce"},
+	"stock.dividend": {"code", "amount", "nonce"},
+	"gold.show":      {},
+	"gold.buy":       {"grams", "method", "nonce"},
+	"gold.sell":      {"grams", "nonce"},
 
 	// Work and study. A career and a course are named by their content code
 	// (jobs.yml, education.yml). job.apply's argument keeps the name "role"

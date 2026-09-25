@@ -58,6 +58,12 @@ type fileConfig struct {
 	City         citySettings         `yaml:"city"`
 	Property     propertySettings     `yaml:"property"`
 	Achievements achievementsSettings `yaml:"achievements"`
+	Postgres     postgresSettings     `yaml:"postgres"`
+}
+
+type postgresSettings struct {
+	MaxConns                 *int    `yaml:"max_conns"`
+	IdleInTransactionTimeout *string `yaml:"idle_in_transaction_timeout"`
 }
 
 type legislatureSettings struct {
@@ -159,6 +165,7 @@ type gameSettings struct {
 
 	ContentReloadInterval *string `yaml:"content_reload_interval"`
 	TimeScale             *int    `yaml:"time_scale"`
+	CommandTimeout        *string `yaml:"command_timeout"`
 }
 
 type travelSettings struct {
@@ -298,6 +305,7 @@ type antiCheatSettings struct {
 	SinglePartnerMinCount *int    `yaml:"single_partner_min_count"`
 	SinglePartnerShareBPS *int    `yaml:"single_partner_share_bps"`
 	CommandsPerMinute     *int    `yaml:"commands_per_minute"`
+	WashTradeCount        *int    `yaml:"wash_trade_count"`
 	HoldAbove             *int64  `yaml:"hold_above"`
 }
 
@@ -797,6 +805,15 @@ var settings = []setting{
 	durationSetting("property", "rest_cooldown",
 		func(c *Config) *time.Duration { return &c.Property.RestCooldown },
 		func(f *fileConfig) *string { return f.Property.RestCooldown }),
+	limitSetting("postgres", "max_conns",
+		func(c *Config) *int { return &c.Postgres.MaxConns },
+		func(f *fileConfig) *int { return f.Postgres.MaxConns }),
+	durationSetting("postgres", "idle_in_transaction_timeout",
+		func(c *Config) *time.Duration { return &c.Postgres.IdleInTransactionTimeout },
+		func(f *fileConfig) *string { return f.Postgres.IdleInTransactionTimeout }),
+	durationSetting("game", "command_timeout",
+		func(c *Config) *time.Duration { return &c.Game.CommandTimeout },
+		func(f *fileConfig) *string { return f.Game.CommandTimeout }),
 	moneySetting("achievements", "player_daily_cap",
 		func(c *Config) *int64 { return &c.Achievements.PlayerDailyCap },
 		func(f *fileConfig) *int64 { return f.Achievements.PlayerDailyCap }),
@@ -1067,6 +1084,9 @@ var settings = []setting{
 	limitSetting("anticheat", "commands_per_minute",
 		func(c *Config) *int { return &c.AntiCheat.CommandsPerMinute },
 		func(f *fileConfig) *int { return f.AntiCheat.CommandsPerMinute }),
+	limitSetting("anticheat", "wash_trade_count",
+		func(c *Config) *int { return &c.AntiCheat.WashTradeCount },
+		func(f *fileConfig) *int { return f.AntiCheat.WashTradeCount }),
 	moneySetting("anticheat", "hold_above",
 		func(c *Config) *int64 { return &c.AntiCheat.HoldAbove },
 		func(f *fileConfig) *int64 { return f.AntiCheat.HoldAbove }),

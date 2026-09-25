@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 
@@ -24,7 +26,7 @@ var _ application.CityRepository = (*CityRepository)(nil)
 // NewCityRepository returns a repository using the pool directly. City reads
 // are lookups against near-static content, so they do not belong to a unit of
 // work.
-func NewCityRepository(p *Pool) *CityRepository { return &CityRepository{q: p.Raw()} }
+func NewCityRepository(p *Pool) *CityRepository { return &CityRepository{q: p.shared()} }
 
 // tax_rate_bps is deliberately absent from every statement below too: it is
 // the default of the city.tax_rate lever, and the rate in force is read with
@@ -121,4 +123,110 @@ func (r *CityRepository) ByCode(ctx context.Context, code string) (*application.
 	}
 
 	return &c, nil
+}
+
+// CityCache is a CityRepository read through memory.
+//
+// Cities change only when content is loaded (`admin content load`): a
+// command reads them dozens of times — every price, every screen names one —
+// and none of those reads should cost a round trip, let alone a pooled
+// connection. The cache holds every city, reloaded when it is older than ttl
+// (the content reload interval) and whenever a lookup misses, so a city a
+// load added is found at once. A reload runs where the caller is: inside a
+// unit of work, on its transaction (ambient.go).
+type CityCache struct {
+	repo *CityRepository
+	ttl  time.Duration
+	now  func() time.Time
+
+	mu       sync.RWMutex
+	loadedAt time.Time
+	list     []application.City
+	byID     map[string]application.City
+	byCode   map[string]application.City
+}
+
+var _ application.CityRepository = (*CityCache)(nil)
+
+// cityCacheMissReload is the least time between two reloads a miss causes.
+const cityCacheMissReload = 2 * time.Second
+
+// NewCityCache returns a cache over the pool that reloads after ttl.
+func NewCityCache(p *Pool, ttl time.Duration) *CityCache {
+	if ttl <= 0 {
+		ttl = 30 * time.Second
+	}
+	return &CityCache{repo: NewCityRepository(p), ttl: ttl, now: time.Now}
+}
+
+// fresh returns the cached cities, reloading them when stale or forced.
+func (c *CityCache) fresh(ctx context.Context, force bool) ([]application.City, map[string]application.City,
+	map[string]application.City, error,
+) {
+	c.mu.RLock()
+	list, byID, byCode, at := c.list, c.byID, c.byCode, c.loadedAt
+	c.mu.RUnlock()
+	age := c.now().Sub(at)
+	// A miss reloads at most once in a while: a forged id must not turn
+	// every press into a reload.
+	force = force && age >= cityCacheMissReload
+	if !force && byID != nil && age < c.ttl {
+		return list, byID, byCode, nil
+	}
+	loaded, err := c.repo.List(ctx)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	byID = make(map[string]application.City, len(loaded))
+	byCode = make(map[string]application.City, len(loaded))
+	for _, city := range loaded {
+		byID[city.ID], byCode[city.Code] = city, city
+	}
+	c.mu.Lock()
+	c.list, c.byID, c.byCode, c.loadedAt = loaded, byID, byCode, c.now()
+	c.mu.Unlock()
+	return loaded, byID, byCode, nil
+}
+
+// List returns every city, ordered by code.
+func (c *CityCache) List(ctx context.Context) ([]application.City, error) {
+	list, _, _, err := c.fresh(ctx, false)
+	if err != nil {
+		return nil, err
+	}
+	return append([]application.City(nil), list...), nil
+}
+
+// ByID returns the city, or application.ErrCityNotFound.
+func (c *CityCache) ByID(ctx context.Context, id string) (*application.City, error) {
+	return c.lookup(ctx, id, func(_, byID, _ map[string]application.City) (application.City, bool) {
+		city, ok := byID[id]
+		return city, ok
+	})
+}
+
+// ByCode returns the city with this code, or application.ErrCityNotFound.
+func (c *CityCache) ByCode(ctx context.Context, code string) (*application.City, error) {
+	return c.lookup(ctx, code, func(_, _, byCode map[string]application.City) (application.City, bool) {
+		city, ok := byCode[code]
+		return city, ok
+	})
+}
+
+func (c *CityCache) lookup(ctx context.Context, key string,
+	find func(_, byID, byCode map[string]application.City) (application.City, bool),
+) (*application.City, error) {
+	if key == "" {
+		return nil, application.ErrCityNotFound
+	}
+	for _, force := range []bool{false, true} {
+		_, byID, byCode, err := c.fresh(ctx, force)
+		if err != nil {
+			return nil, err
+		}
+		if city, ok := find(nil, byID, byCode); ok {
+			return &city, nil
+		}
+	}
+	return nil, application.ErrCityNotFound
 }

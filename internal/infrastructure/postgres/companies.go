@@ -29,7 +29,7 @@ var _ application.CompanyRepository = (*CompanyRepository)(nil)
 
 // NewCompanyRepository returns the companies over the pool, for the admin
 // tool's reads. Inside a unit of work, use Tx.Companies.
-func NewCompanyRepository(p *Pool) *CompanyRepository { return &CompanyRepository{q: p.Raw()} }
+func NewCompanyRepository(p *Pool) *CompanyRepository { return &CompanyRepository{q: p.shared()} }
 
 // Periods lists a company's latest settled periods, newest first, for the
 // admin tool.

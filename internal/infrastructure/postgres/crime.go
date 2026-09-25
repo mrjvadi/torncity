@@ -628,7 +628,7 @@ var _ application.ActivityRecorder = (*ActivityRecorder)(nil)
 // NewActivityRecorder returns a recorder that stamps a player at most once
 // per every.
 func NewActivityRecorder(p *Pool, every time.Duration) *ActivityRecorder {
-	return &ActivityRecorder{q: p.Raw(), every: every}
+	return &ActivityRecorder{q: p.shared(), every: every}
 }
 
 // Touch stamps players.last_active_at, unless it was stamped within every.

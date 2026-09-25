@@ -36,7 +36,7 @@ var _ application.FriendshipRepository = (*FriendshipRepository)(nil)
 
 // NewFriendshipRepository returns a repository over the pool.
 func NewFriendshipRepository(p *Pool) *FriendshipRepository {
-	return &FriendshipRepository{q: p.Raw()}
+	return &FriendshipRepository{q: p.shared()}
 }
 
 const selectFriendships = `

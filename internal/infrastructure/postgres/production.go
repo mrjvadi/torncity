@@ -32,7 +32,7 @@ var _ application.ProductionRepository = (*ProductionRepository)(nil)
 
 // NewProductionRepository returns the production economy over the pool, for
 // the admin tool's reads. Inside a unit of work, use Tx.Production.
-func NewProductionRepository(p *Pool) *ProductionRepository { return &ProductionRepository{q: p.Raw()} }
+func NewProductionRepository(p *Pool) *ProductionRepository { return &ProductionRepository{q: p.shared()} }
 
 // ---------------------------------------------------------------------------
 // Designs.

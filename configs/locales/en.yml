@@ -185,6 +185,8 @@ help:
     • hospital - your health, a stay and treatment
     • missions - your missions; "board" the city's mission boards
     • faction - your faction; "factions" the city's factions
+    • loan - the national bank, your credit score and loans; "savings" and "insurance"
+    • stocks - company shares; "portfolio" your investments; "gold" the gold dealer
     • settings
     • help - this screen
 
@@ -487,6 +489,7 @@ office:
   navy_commander: "Commander of the navy"
   air_defence_commander: "Commander of air defence"
   foreign_minister: "Foreign minister"
+  central_banker: "Central bank governor"
   military_governor: "Military governor"
   parliament: Parliament
 
@@ -519,6 +522,9 @@ lever:
     defence_budget: "Defence budget (share of national revenue)"
     arms_exports: "Arms export policy"
     war_levy: "War levy (share of the cities' revenue in wartime)"
+    base_interest_rate: "Policy interest rate (yearly)"
+    bank_reserve_ratio: "National bank reserve ratio"
+    bank_funding: "Treasury funding of the national bank (share per period)"
 
 # Names of places above a city, keyed on the jurisdiction's content code.
 # Cities are named under city.* above.
@@ -1194,6 +1200,12 @@ command_alias:
   bag: "bag | inventory"
   market: "market"
   life: "life"
+  loan: "loan | loans"
+  savings: "savings"
+  insurance: "insurance"
+  stocks: "stocks | exchange"
+  portfolio: "portfolio"
+  gold: "gold"
   history: "story | history"
   top: "top | leaderboards"
   card: "card"
@@ -3269,6 +3281,7 @@ property:
     renting: You already rent a home; leave it first.
     let: This property is let and cannot be offered until the lease ends.
     offered: This property is already offered.
+    pledged: This property secures a mortgage and cannot be sold until the loan is repaid.
     in_debt: This property cannot be offered or sold until its debt is paid.
     price: "That price is above the allowed ceiling of {max}."
     no_home: You have no home in this city to rest at.
@@ -3402,8 +3415,11 @@ life:
     equity: "company shares {amount}"
     property: "property {amount}"
     goods: "goods {amount}"
+    savings: "savings {amount}"
+    gold: "gold {amount}"
   worth_sep: " - "
   worth_debts: "🧾 Debts: {debts}"
+  worth_loans: "🏦 Loans: {loans}"
   next_rank: "⬆️ To {rank}: {need} more"
   bar_full: "▰"
   bar_empty: "▱"
@@ -3517,7 +3533,7 @@ life:
     richest_title: "💎 The richest players"
     richest_line: "{pos}. {name} - {tag} - {value}"
     richest_tab: "💎 Richest"
-    richest_hint: "Net worth: cash, bank, company shares, property and goods, less debts."
+    richest_hint: "Net worth: cash, bank, savings, shares, gold, property and goods, less debts and loans."
     companies_title: "🏢 The biggest companies"
     companies_line: "{pos}. {name} - {tag} in {city} - {value}"
     companies_tab: "🏢 Companies"
@@ -3531,9 +3547,9 @@ life:
     workers_tab: "💼 Workers"
     workers_hint: "By every shift worked so far."
     investors_title: "📈 Top investors"
-    investors_line: "{pos}. {name} - {value} growth in company shares"
+    investors_line: "{pos}. {name} - {value} gained - portfolio {extra}"
     investors_tab: "📈 Investors"
-    investors_hint: "How each player's share of their companies grew since the last board. With the stock exchange this board grows up."
+    investors_hint: "What each player's portfolio — shares at market price, gold and savings, less what they put in — gained since the last board."
   rank_up_notice: "{emoji} Congratulations! Your rank rose from {from} to {rank}. You are worth {worth}."
   rank_down_notice: "{emoji} Your rank went from {from} to {rank}. You are worth {worth}; work and investing bring it back."
   rank:
@@ -3566,3 +3582,273 @@ life:
     crown: Crown
     panda: Panda
     dove: Dove
+
+# Finance (docs/adr/0026-finance.md): the national bank — the credit score,
+# loans, savings — and insurance.
+loan_product:
+  personal: "Personal loan"
+  mortgage: "Mortgage"
+  business: "Business loan"
+insurance_product:
+  health: "Health insurance"
+  property: "Property insurance"
+finance:
+  credit:
+    score: "📊 Your credit score: {score} of {max} ({band})"
+    band:
+      poor: "poor"
+      fair: "fair"
+      good: "good"
+      very_good: "very good"
+      excellent: "excellent"
+    factors: "Payments {payment}% - light debt {debt}% - history {history}% - income {income}%"
+    record: "⚠️ On record: {missed} missed instalments and {defaults} defaulted loans"
+  hub:
+    title: "🏛 National bank of {country}"
+    rate: "📈 Policy rate (set by the central bank governor): {rate}% a year"
+    offers: "💳 Loans we would make you:"
+    offer: "▫️ {product}: up to {limit} at {rate}% a year"
+    offer_closed: "▫️ {product}: not now; it needs a score of {score}"
+    bank_dry: "🏦 The national bank has no money to lend right now."
+    loans: "📒 Your loans:"
+    next_due: "⏰ The next instalment is taken at {time}, from your bank account first, then your cash."
+    savings: "🐖 Savings: {amount} earning {rate}% a year"
+  loan:
+    line: "▫️ Loan {no} ({product}): next instalment {next} - {left} left - owed {owed}"
+    line_company: "▫️ Loan {no} ({product} for {company}): next instalment {next} - owed {owed}"
+    line_arrears: "🔴 Loan {no} ({product}): {arrears} instalments overdue - owed {owed}"
+    line_repaid: "✅ Loan {no} ({product}): repaid"
+    line_defaulted: "⛔ Loan {no} ({product}): defaulted"
+    title: "📒 Loan {no} - {product}"
+    terms: "Principal {principal} - interest {interest} ({rate}% a year) - {periods} instalments"
+    opened: "🗓 Taken on {date}"
+    progress: "Paid: {paid} of {periods} instalments - missed so far: {missed}"
+    owed: "💰 Owed: {owed} - next instalment: {next}"
+    arrears: "🔴 {arrears} instalments overdue and {fees} in late fees"
+    defaulted: "⛔ This loan defaulted. The bank recovered {recovered} from its collateral and wrote off {written_off}."
+    repaid: "✅ This loan is repaid in full."
+    payoff_confirm: "Everything this loan still asks, {amount}, is taken now from your bank account and then your cash. Paying early saves no interest."
+  offer:
+    title: "💳 {product}"
+    kind:
+      player: "A loan to you, with nothing pledged."
+      mortgage: "A loan against your property: it cannot be sold until the loan is repaid, and a default hands it back to the city."
+      company: "A loan to your company: paid into its treasury and repaid from its free money."
+    rate: "📈 Interest: {rate}% a year, fixed on the day you borrow"
+    rules: "⚠️ A missed instalment costs {fee}% in late fees, and {after} instalments overdue is a default."
+    choose_pledge:
+      mortgage: "Which property secures this loan?"
+      company: "Which of your companies is this loan for?"
+    company: "the company {company}"
+    property: "{type} {no} in {city} (worth {value})"
+    pledged: "🔒 Pledged: {pledge}"
+    limit: "The most you may borrow: {limit}. Choose an amount and a term:"
+    nothing: "With your score and collateral nothing is left to lend on this loan."
+  confirm:
+    title: "📝 Terms of the {product}"
+    terms: "{amount} over {term} instalments at {rate}% a year"
+    cost: "Interest {interest} - each instalment {instalment} - repaid in all {total}"
+    first: "⏰ The first instalment is taken at {time}."
+    warning: "Instalments are taken automatically from your bank account and then your cash. An unpaid instalment lowers your credit score."
+  savings:
+    title: "🐖 Savings account"
+    balance: "Balance: {amount} - {rate}% a year"
+    earned: "Interest earned so far: {earned} - next period's: {next}"
+    bank: "🏦 Bank account: {bank}"
+    hint: "Each game day's interest is paid on the lower of the last two days' balances: money just put in earns from the next day."
+    next: "⏰ The next interest is paid at {time}."
+  insurance:
+    title: "🛡 Insurance fund of {country}"
+    fund: "The fund holds {fund}; claims are paid only up to what it holds."
+    product:
+      hospital: "▫️ {product}: {cover}% of a hospital treatment, up to {max} a stay - {premium} each game day - covers after {wait}"
+      war_damage: "▫️ {product}: {cover}% of a strike's damage to the property, up to {max} a strike - {premium} each game day - covers after {wait}"
+      war_damage_valued: "▫️ {product}: {cover}% of a strike's damage to the property, up to {max} a strike - {premium} plus {bps}% of its value each game day - covers after {wait}"
+    mine: "📄 Your policies:"
+    policy: "▫️ No. {no} ({product}): {premium} each game day - paid out: {paid}"
+    policy_property: "▫️ No. {no} ({product} on {pledge}): {premium} each game day - paid out: {paid}"
+    policy_waiting: "⏳ No. {no} ({product}): covers from {time} - {premium} each game day"
+    policy_ended:
+      cancelled: "▫️ No. {no} ({product}): cancelled - paid out: {paid}"
+      lapsed: "▫️ No. {no} ({product}): a premium went unpaid and it lapsed"
+      property_gone: "▫️ No. {no} ({product}): the property is no longer yours and it ended"
+    cancel_confirm: "Cancel policy {no} ({product})? Premiums paid are not returned."
+    hint: "Premiums are taken each game day from your bank account and then your cash; a policy that cannot be paid lapses."
+  insure:
+    title: "🛡 {product}"
+    terms: "Today's premium {premium} - covers {cover}% up to {max} - cover starts after {wait}"
+    property: "On: {pledge}"
+    every_period: "From the next game day the same premium is taken every day."
+  button:
+    product: "💳 {product}"
+    loan: "📒 Loan {no}"
+    savings: "🐖 Savings"
+    insurance: "🛡 Insurance"
+    exchange: "📈 Exchange"
+    gold: "🪙 Gold"
+    portfolio: "💼 Portfolio"
+    bank: "🏛 National bank"
+    pledge: "🔒 {pledge}"
+    option: "{amount} over {term} ({instalment} each)"
+    take: "✅ Borrow {amount}"
+    payoff: "💰 Pay off ({amount})"
+    payoff_yes: "✅ Yes, pay {amount}"
+    deposit: "📥 {amount}"
+    withdraw: "📤 {amount}"
+    deposit_custom: "✏️ Deposit an amount"
+    withdraw_custom: "✏️ Withdraw an amount"
+    insure: "🛡 Buy {product}"
+    insure_property: "🛡 {product} on {pledge}"
+    cancel_policy: "✖️ Cancel policy {no}"
+    cancel_yes: "✅ Yes, cancel it"
+  notice:
+    taken: "✅ The loan is yours and its money paid in."
+    paid_off: "✅ The loan is paid off. Well done!"
+    deposited: "✅ {amount} went into your savings."
+    withdrawn: "✅ {amount} went back to your bank account."
+    insured: "✅ Your policy is issued."
+    cancelled: "🗑 The policy is cancelled."
+  refused:
+    no_bank: "🏛 You live in no country yet, so you have no national bank."
+    score: "📊 Your credit score is too low for this loan. It needs {score}: pay on time, work, and owe less."
+    too_many: "📒 You may run at most {count} loans at once. Repay one first."
+    bank_dry: "🏦 The national bank does not have enough to lend right now. Come back later."
+    amount: "That amount is not accepted. The limit is {amount}."
+    pledge: "🔒 You have nothing suitable to secure this loan."
+    not_owner: "🏢 Only whoever controls the company can do that."
+    short: "💸 You do not have enough. It needs {amount}."
+    savings_cap: "🐖 Savings cannot hold more than {amount}."
+    no_product: "That product is no longer offered."
+    held: "🛡 You already hold that policy."
+    pledged: "🔒 That property secures a loan."
+    not_listed: "📈 That company is not on the exchange."
+    listed: "📈 That company is already listed."
+    too_young: "⏳ That company is too young to list."
+    too_small: "📉 That company has not earned enough to list."
+    in_debt: "🧾 A company in debt can neither list nor pay a dividend."
+    bad_float: "That float or price is not accepted for a listing."
+    no_shares: "📄 You do not have enough free shares. Free: {count}."
+    no_money: "🏢 The company's free money is not enough. It needs {amount}."
+    too_many_orders: "📋 You may have at most {count} open orders. Cancel one first."
+    order: "That order is not accepted."
+    gold_stock: "🪙 The dealer only has {count} grams."
+    gold_held: "🪙 You only have {count} grams."
+    not_yours: "🔎 That is not yours, or it does not exist."
+    own_company: "You cannot trade with yourself."
+    fund_closed: "🛡 The fund does not sell that policy."
+    no_player: "🔎 No such player."
+  event:
+    due: "⏰ Loan {no} ({product}) takes {amount} at {time}, but your bank account and cash hold {other} together. Set enough aside so the instalment is not missed."
+    missed: "🔴 An instalment of loan {no} ({product}) went unpaid. A late fee of {other} was added and your credit score fell. {count} instalments are overdue."
+    defaulted: "⛔ Loan {no} ({product}) defaulted. {amount} was written off and stays on your record."
+    pledge_defaulted: "🏚 Its collateral, {pledge}, went back to the city, which paid the bank {other}."
+    repaid: "✅ Loan {no} ({product}) is repaid in full. Well done!"
+    claimed: "🛡 {product}: {amount} was paid into your bank account for your loss."
+    lapsed: "🛡 The premium of your {product}, {amount}, went unpaid and the policy lapsed."
+    gone: "🛡 The property your {product} covered is no longer yours; the policy ended."
+
+# The stock exchange (docs/adr/0026-finance.md section 5).
+stock:
+  move_up: "🟢 +{pct}%"
+  move_down: "🔴 −{pct}%"
+  move_flat: "⚪️ unchanged"
+  exchange_title: "📈 The stock exchange"
+  exchange_line: "▫️ {company} ({type}, {city}): {price} {move} - traded today {volume} shares - market value {cap}"
+  exchange_empty: "No company is listed yet. A company's owner lists it from its page."
+  exchange_hint: "A share's price comes only from players trading. Dividends are paid by a company's owner from its free money."
+  title: "🏢 {company} - {type} in {city}"
+  not_listed: "This company is not listed on the exchange."
+  price: "💹 Share price: {price} {move} - listed at {ipo}"
+  book: "📘 Book value a share {book} - shares {total} - market value {cap}"
+  controller: "👤 Controlled by: {player}"
+  last_dividend: "💵 Last dividend a share: {amount}"
+  book_title: "📋 Order book:"
+  ask_line: "🔺 selling {qty} at {price}"
+  bid_line: "🔻 buying {qty} at {price}"
+  book_empty: "The order book is empty."
+  trades_title: "🕘 Last trades:"
+  trade_line: "▫️ {qty} shares at {price} at {time}"
+  holding: "💼 Your shares: {shares} ({locked} in sell orders) - worth {value} - cost {cost}"
+  notice:
+    listed: "🎉 The company is listed and its float is on the order book."
+    cancelled: "🗑 Order {no} is cancelled; what it held is back."
+  order:
+    confirm_buy: "🛒 Buy {qty} shares of {company} at up to {price}. {reserve} is set aside from your bank account (balance {bank}); buying cheaper returns the rest."
+    confirm_sell: "🏷 Sell {qty} shares of {company} at {price} or more. The shares stay locked until sold or the order is cancelled."
+    fee: "The market fee of the company's city, {fee}%, comes off the seller's proceeds."
+    placed_buy: "✅ Buy order {no} placed: {qty} shares of {company} at up to {price}."
+    placed_sell: "✅ Sell order {no} placed: {qty} shares of {company} from {price}."
+    filled_buy: "🤝 You bought {filled} shares and paid {spent}."
+    filled_sell: "🤝 You sold {filled} shares; {got} went to your bank account."
+    rests: "⏳ The rest of the order stays on the book until {time}."
+  portfolio:
+    title: "💼 Your portfolio"
+    holding: "▫️ {company}: {shares} shares at {price} - worth {value} - cost {cost}"
+    holding_private: "▫️ {company} (unlisted): {shares} shares - book value {value}"
+    no_shares: "You hold no shares yet."
+    gold: "🪙 Gold: {grams} grams - worth {value}"
+    savings: "🐖 Savings: {amount}"
+    total: "💎 Portfolio value: {value}"
+    gain: "📈 Gain over what you put in: {amount}"
+    loss: "📉 Loss against what you put in: {amount}"
+    orders: "📋 Your open orders:"
+    order_buy: "▫️ No. {no}: buying {qty} shares of {company} at up to {price}"
+    order_sell: "▫️ No. {no}: selling {qty} shares of {company} from {price}"
+  ipo:
+    title: "🔔 Listing {company} on the exchange"
+    rules: "It must be at least {age} old, have earned {revenue}, and owe nothing. Listing costs {fee}, paid by the company to its city."
+    book: "Book value a share {book} - shares {total}"
+    refused:
+      too_young: "⏳ The company is still young; wait {wait} more."
+      too_small: "📉 The company has earned {revenue} so far, not enough yet."
+      in_debt: "🧾 Pay the company's upkeep debt first."
+      bad_float: "📄 You do not hold enough free shares to list."
+    choose: "How many shares, and at what price? You keep control unless someone buys more than half of the company."
+    confirm: "{shares} shares go on the book at {price} each, and {fee} is paid from the company's treasury."
+  dividend:
+    title: "💵 Dividend of {company}"
+    free: "Free money {free} - corporate tax {tax}% - shares {total}"
+    refused:
+      in_debt: "🧾 A company in debt pays no dividend."
+      no_money: "The company's free money is not enough for a dividend."
+    paid: "✅ Dividend paid: {per_share} a share, {paid} in all to {holders} holders."
+    confirm: "{amount} is taken from the company's free money; the tax goes to the city and each share receives {per_share}."
+  button:
+    company: "🏢 {company}"
+    buy: "🛒 {qty} at up to {price}"
+    sell: "🏷 {qty} from {price}"
+    confirm_buy: "✅ Place the buy"
+    confirm_sell: "✅ Place the sell"
+    cancel: "✖️ Cancel order {no}"
+    ipo: "🔔 List on the exchange"
+    ipo_option: "{shares} shares at {price}"
+    ipo_yes: "✅ Yes, list it"
+    dividend: "💵 Pay a dividend"
+    dividend_option: "{amount} ({per_share} a share)"
+    dividend_yes: "✅ Yes, pay it"
+  event:
+    filled_buy: "🤝 Your buy order filled: {qty} shares of {company} at {price}, {amount} in all."
+    filled_sell: "🤝 Your sell order filled: {qty} shares of {company} at {price}; {amount} went to your bank account."
+    dividend: "💵 {company} paid a dividend: your {qty} shares at {price} each, {amount} to your bank account."
+    takeover: "👑 You now hold {qty} shares of {company} and control it."
+    takeover_lost: "⚠️ Someone bought more than half of {company} and now controls it."
+
+# The gold dealer (docs/adr/0026-finance.md section 6).
+gold:
+  title: "🪙 The gold dealer"
+  price: "A gram: buy from us {buy} - sell to us {sell} {move}"
+  stock: "The dealer holds {grams} grams."
+  next: "⏰ The next price is set at {time}."
+  history: "📉 Recent prices:"
+  history_line: "▫️ {price} at {time}"
+  holding: "💼 Your gold: {grams} grams - worth {value} today - cost {cost}"
+  confirm_buy: "🪙 Buy {grams} grams of gold at {price} a gram, {total} in all."
+  confirm_sell: "🪙 Sell {grams} grams of gold at {price} a gram, {total} to your bank account."
+  notice:
+    buy_done: "✅ You bought {grams} grams of gold for {total}."
+    sell_done: "✅ You sold {grams} grams of gold; {total} went to your bank account."
+  button:
+    buy: "🛒 {grams} g ({price})"
+    sell: "🏷 Sell {grams} g ({price})"
+    sell_yes: "✅ Yes, sell"
+    back: "🪙 Gold dealer"

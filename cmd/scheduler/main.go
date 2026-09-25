@@ -136,7 +136,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		slog.Duration("claim_timeout", cfg.Scheduler.ClaimTimeout),
 		slog.Int("noisy_attempts", cfg.Scheduler.NoisyAttempts))
 
-	pool, err := postgres.New(ctx, e.databaseURL)
+	pool, err := postgres.Open(ctx, e.databaseURL, postgres.Options{MaxConns: cfg.Postgres.MaxConns,
+		IdleInTransactionTimeout: cfg.Postgres.IdleInTransactionTimeout})
 	if err != nil {
 		return err
 	}

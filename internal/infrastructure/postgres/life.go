@@ -26,7 +26,7 @@ var _ application.LifeRepository = (*LifeRepository)(nil)
 
 // NewLifeRepository returns a repository over the pool, for readers outside
 // a unit of work (the gateway's photo cache).
-func NewLifeRepository(p *Pool) *LifeRepository { return &LifeRepository{q: p.Raw()} }
+func NewLifeRepository(p *Pool) *LifeRepository { return &LifeRepository{q: p.shared()} }
 
 const lifeColumns = `player_id::text, born_at, hunger, sleep, stress, needs_at, happiness_at, intelligence,
 	COALESCE(rank, ''), rank_since, net_worth, net_worth_at, equity, COALESCE(bio, ''), COALESCE(avatar, ''),
@@ -221,8 +221,12 @@ func (r *LifeRepository) CountHistory(ctx context.Context, playerID, kind string
 
 // netWorthQuery values what players hold. $1 one player or ” for everyone;
 // $2..$4 the property prices by city and kind, $5..$6 the goods' reference
-// prices. Money is summed as numeric and brought back to bigint.
-const netWorthQuery = `
+// prices, $7 what the gold dealer pays for a gram. Shares are valued at
+// their company's last trade price (its listing price before a first trade,
+// its book before a listing); savings and gold count; loans a player owes
+// come off (docs/adr/0026). Money is summed as numeric and brought back to
+// bigint.
+var netWorthQuery = `
 WITH p AS (
     SELECT id, public_code, display_name, telegram_user_id, created_at FROM players
      WHERE status = 'active' AND ($1 = '' OR id = NULLIF($1, '')::uuid)
@@ -230,17 +234,18 @@ WITH p AS (
     SELECT owner_id,
            SUM(balance) FILTER (WHERE kind = 'player_cash')   AS cash,
            SUM(balance) FILTER (WHERE kind = 'player_bank')   AS bank,
-           SUM(balance) FILTER (WHERE kind = 'player_escrow') AS escrow
-      FROM accounts WHERE kind IN ('player_cash', 'player_bank', 'player_escrow') AND owner_id IN (SELECT id FROM p)
+           SUM(balance) FILTER (WHERE kind = 'player_escrow') AS escrow,
+           SUM(balance) FILTER (WHERE kind = 'player_savings') AS savings
+      FROM accounts WHERE kind IN ('player_cash', 'player_bank', 'player_escrow', 'player_savings')
+       AND owner_id IN (SELECT id FROM p)
      GROUP BY owner_id
-), eq AS (
-    SELECT s.player_id,
-           SUM(GREATEST(COALESCE(a.balance, 0) - c.debt, 0)::numeric * s.shares / c.total_shares) AS equity
-      FROM company_shareholders s
-      JOIN companies c ON c.id = s.company_id AND c.status = 'active'
-      LEFT JOIN accounts a ON a.kind = 'company_treasury' AND a.owner_id = c.id
-     WHERE s.player_id IN (SELECT id FROM p)
-     GROUP BY s.player_id
+), eq AS (`+shareValueSQL+`
+), gold AS (
+    SELECT player_id, grams FROM gold_holdings WHERE player_id IN (SELECT id FROM p)
+), owed AS (
+    SELECT player_id, SUM(`+loanOwedSQL+`) AS amount FROM loans
+     WHERE status = 'active' AND borrower_kind = 'player' AND player_id IN (SELECT id FROM p)
+     GROUP BY player_id
 ), prop AS (
     SELECT pr.owner_player_id AS pid, SUM(COALESCE(pp.price, pr.value)::numeric) AS value,
            SUM((pr.tax_debt + pr.upkeep_debt)::numeric) AS debt
@@ -260,11 +265,14 @@ WITH p AS (
 )
 SELECT p.id::text, p.public_code, p.display_name, p.telegram_user_id, p.created_at,
        COALESCE(acct.cash, 0)::bigint, COALESCE(acct.bank, 0)::bigint, COALESCE(acct.escrow, 0)::bigint,
-       COALESCE(eq.equity, 0)::bigint, COALESCE(prop.value, 0)::bigint, COALESCE(goods.value, 0)::bigint,
-       COALESCE(prop.debt, 0)::bigint
+       COALESCE(eq.value, 0)::bigint, COALESCE(prop.value, 0)::bigint, COALESCE(goods.value, 0)::bigint,
+       COALESCE(prop.debt, 0)::bigint, COALESCE(acct.savings, 0)::bigint,
+       (COALESCE(gold.grams, 0) * $7::bigint)::bigint, COALESCE(owed.amount, 0)::bigint
   FROM p
   LEFT JOIN acct ON acct.owner_id = p.id
   LEFT JOIN eq ON eq.player_id = p.id
+  LEFT JOIN gold ON gold.player_id = p.id
+  LEFT JOIN owed ON owed.player_id = p.id
   LEFT JOIN prop ON prop.pid = p.id
   LEFT JOIN goods ON goods.pid = p.id`
 
@@ -285,7 +293,7 @@ func (r *LifeRepository) NetWorth(ctx context.Context, prices application.NetWor
 	for k, v := range prices.Items {
 		codes, iprices = append(codes, k), append(iprices, v)
 	}
-	rows, err := r.q.Query(ctx, netWorthQuery, playerID, cities, types, pprices, codes, iprices)
+	rows, err := r.q.Query(ctx, netWorthQuery, playerID, cities, types, pprices, codes, iprices, prices.GoldBid)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: valuing players: %w", err)
 	}
@@ -295,7 +303,7 @@ func (r *LifeRepository) NetWorth(ctx context.Context, prices application.NetWor
 		var n application.NetWorth
 		w := &n.Worth
 		if err := rows.Scan(&n.PlayerID, &n.Code, &n.Name, &n.TelegramUserID, &n.JoinedAt, &w.Cash, &w.Bank, &w.Escrow, &w.Equity,
-			&w.Property, &w.Goods, &w.Debts); err != nil {
+			&w.Property, &w.Goods, &w.Debts, &w.Savings, &w.Gold, &w.Loans); err != nil {
 			return nil, fmt.Errorf("postgres: scanning a worth: %w", err)
 		}
 		out = append(out, n)

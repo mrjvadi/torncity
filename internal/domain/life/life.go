@@ -438,13 +438,17 @@ type Worth struct {
 	Property int64
 	// Goods is what they hold, at reference prices.
 	Goods int64
-	// Debts is what they owe.
-	Debts int64
+	// Savings is their savings account; Gold their gold at what the dealer
+	// pays for it now (docs/adr/0026).
+	Savings, Gold int64
+	// Debts is what they owe on their property; Loans what they owe the
+	// bank on loans of their own (a company's loans lower its equity).
+	Debts, Loans int64
 }
 
 // Total is net worth: everything held less every debt. It may be negative.
 func (w Worth) Total() int64 {
-	return w.Cash + w.Bank + w.Escrow + w.Equity + w.Property + w.Goods - w.Debts
+	return w.Cash + w.Bank + w.Escrow + w.Equity + w.Property + w.Goods + w.Savings + w.Gold - w.Debts - w.Loans
 }
 
 // Rank is one rung of the ladder of wealth.

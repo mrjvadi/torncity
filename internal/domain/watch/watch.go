@@ -38,10 +38,14 @@ const (
 	SinglePartner Rule = "single_partner"
 	// CommandRate is commands arriving faster than a person plays.
 	CommandRate Rule = "command_rate"
+	// WashTrade is two accounts trading a company's shares back and forth:
+	// volume and a price printed with no real change of hands
+	// (docs/adr/0026).
+	WashTrade Rule = "wash_trade"
 )
 
 // Rules lists every rule.
-func Rules() []Rule { return []Rule{OneWay, OffMarket, SinglePartner, CommandRate} }
+func Rules() []Rule { return []Rule{OneWay, OffMarket, SinglePartner, CommandRate, WashTrade} }
 
 // Valid reports whether r is a known rule.
 func (r Rule) Valid() bool {
@@ -76,6 +80,9 @@ type Thresholds struct {
 	// CommandsPerMinute is the most commands a player sends in a minute
 	// before CommandRate flags them.
 	CommandsPerMinute int
+	// A pair is flagged WashTrade when, in the window, each has sold one
+	// company's shares to the other at least WashTradeCount times.
+	WashTradeCount int
 	// HoldAbove is the smallest payment held for review between accounts a
 	// flag links; zero holds nothing.
 	HoldAbove int64
@@ -95,6 +102,8 @@ func (t Thresholds) Validate() error {
 		return fmt.Errorf("%w: off-market %d bps, %d value", ErrInvalidThresholds, t.OffMarketBPS, t.OffMarketMinValue)
 	case t.SinglePartnerMinCount < 2 || t.SinglePartnerShareBPS < 5000 || t.SinglePartnerShareBPS > 10000:
 		return fmt.Errorf("%w: single partner %d transfers, %d bps", ErrInvalidThresholds, t.SinglePartnerMinCount, t.SinglePartnerShareBPS)
+	case t.WashTradeCount < 1:
+		return fmt.Errorf("%w: wash trades %d", ErrInvalidThresholds, t.WashTradeCount)
 	case t.CommandsPerMinute < 1 || t.HoldAbove < 0:
 		return fmt.Errorf("%w: %d commands a minute, hold above %d", ErrInvalidThresholds, t.CommandsPerMinute, t.HoldAbove)
 	}
@@ -181,4 +190,14 @@ func (t Thresholds) Rate(count int) (Finding, bool) {
 // held for review.
 func (t Thresholds) Hold(amount int64, linked bool) bool {
 	return linked && t.HoldAbove > 0 && amount >= t.HoldAbove
+}
+
+// WashTrades checks a pair's trades in one company's shares in the window:
+// there sold by the account being checked to the other, back the other way.
+func (t Thresholds) WashTrades(there, back int) (Finding, bool) {
+	if there < t.WashTradeCount || back < t.WashTradeCount {
+		return Finding{}, false
+	}
+	return Finding{Rule: WashTrade, Score: min(there, back), Evidence: map[string]int64{
+		"sold": int64(there), "bought_back": int64(back), "window_seconds": int64(t.Window / time.Second)}}, true
 }

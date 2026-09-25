@@ -421,15 +421,17 @@ func PropertyLeave(c Context, v PropertyLeaveView) *presenter.Response {
 
 // Refusals of the property screens.
 const (
-	PropertyRefusedNotFound  = "not_found"
-	PropertyRefusedNotYours  = "not_yours"
-	PropertyRefusedSoldOut   = "sold_out"
-	PropertyRefusedTooMany   = "too_many"
-	PropertyRefusedTaken     = "taken"
-	PropertyRefusedOwn       = "own"
-	PropertyRefusedRenting   = "renting"
-	PropertyRefusedLet       = "let"
-	PropertyRefusedOffered   = "offered"
+	PropertyRefusedNotFound = "not_found"
+	PropertyRefusedNotYours = "not_yours"
+	PropertyRefusedSoldOut  = "sold_out"
+	PropertyRefusedTooMany  = "too_many"
+	PropertyRefusedTaken    = "taken"
+	PropertyRefusedOwn      = "own"
+	PropertyRefusedRenting  = "renting"
+	PropertyRefusedLet      = "let"
+	PropertyRefusedOffered  = "offered"
+	// PropertyRefusedPledged: it secures a running mortgage.
+	PropertyRefusedPledged   = "pledged"
 	PropertyRefusedInDebt    = "in_debt"
 	PropertyRefusedPrice     = "price"
 	PropertyRefusedNoHome    = "no_home"

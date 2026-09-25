@@ -29,7 +29,7 @@ type TravelRepository struct {
 var _ application.TravelRepository = (*TravelRepository)(nil)
 
 // NewTravelRepository returns a repository over the pool.
-func NewTravelRepository(p *Pool) *TravelRepository { return &TravelRepository{q: p.Raw()} }
+func NewTravelRepository(p *Pool) *TravelRepository { return &TravelRepository{q: p.shared()} }
 
 // vehicle_id is absent from the insert below: application.Travel has no field
 // for it and migrations/0002_phase1.up.sql creates the column NULL-able with
