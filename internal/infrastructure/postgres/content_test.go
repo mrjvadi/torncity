@@ -207,7 +207,7 @@ func TestSpawnCandidatesTakeTheStoredIDs(t *testing.T) {
 // and every service would refuse to boot.
 func TestLoadActiveReadsSpawnWeights(t *testing.T) {
 	src := normalizedSource(t, "content.go")
-	if !strings.Contains(src, "SELECT c.id::text, c.code, c.name, c.tax_rate_bps, c.cost_of_living, c.spawn_weight, COALESCE(p.code, '') FROM cities c") {
+	if !strings.Contains(src, "SELECT c.id::text, c.code, c.name, c.tax_rate_bps, c.cost_of_living, c.spawn_weight, COALESCE(dj.code, p.code, '') FROM cities c") {
 		t.Error("LoadActive does not read spawn_weight")
 	}
 	if !strings.Contains(src, "&c.CostOfLiving, &c.SpawnWeight, &c.Country)") {

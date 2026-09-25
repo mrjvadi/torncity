@@ -47,6 +47,7 @@ type phaseHandlers struct {
 	military     *handlers.MilitaryHandler
 	diplomacy    *handlers.DiplomacyHandler
 	appointments *handlers.AppointmentHandler
+	war          *handlers.WarHandler
 }
 
 // bind maps every subscribed command to the handler method that serves it.

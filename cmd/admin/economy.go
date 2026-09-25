@@ -164,6 +164,20 @@ func economyVerify(ctx context.Context, args []string) error {
 			m.ProcurementRows, m.Procured, m.ProcuredRows)
 	}
 
+	if v.War {
+		w := v.WarInvariants
+		fmt.Printf("%s  every piece lost in war has left the world, once, through the item journal (%d still there; %d journal rows = %d lost)\n",
+			mark(w.LostNotGone == 0 && w.LostJournal == w.LostRows), w.LostNotGone, w.LostJournal, w.LostRows)
+		fmt.Printf("%s  every piece committed belongs to an operation under way (%d stray)\n",
+			mark(w.StrayCommitted == 0), w.StrayCommitted)
+		fmt.Printf("%s  every occupied city stands under the country that holds it (%d misplaced)\n",
+			mark(w.MisplacedCities == 0), w.MisplacedCities)
+		fmt.Printf("%s  war levies in the ledger match the defence periods (%d = %d)\n",
+			mark(w.WarLevyLedger == w.WarLevyRows), w.WarLevyLedger, w.WarLevyRows)
+		fmt.Printf("%s  repairs in the ledger match the defence periods (%d = %d)\n",
+			mark(w.RepairLedger == w.RepairRows), w.RepairLedger, w.RepairRows)
+	}
+
 	if !v.OK() {
 		return errInvariantsBroken
 	}

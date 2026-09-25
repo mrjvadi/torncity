@@ -1,0 +1,459 @@
+━━━ Board · the president's ━━━
+(edits message 42)
+⚔️ Wars of The Commonwealth
+
+🔥 War no. 3: The Commonwealth against Vantor Federation, on grounds of a territorial claim
+  Fighting for 26h.
+  💔 The declaration broke the treaties between the two.
+  📨 Vantor Federation offers a ceasefire (no. 7) - answer within 30h
+
+📜 War no. 4: Vantor Federation against The Commonwealth, on grounds of retaliation
+  ⏳ Declared; fighting begins in 20h, at 10:35.
+  🤝 Beside The Commonwealth: Northern League
+
+🏳️ War no. 2: The Commonwealth against Vantor Federation
+  A ceasefire has held for 5h.
+  📤 We offered Vantor Federation peace (no. 5) - 40h left to answer
+
+🕊 War no. 1: Vantor Federation against The Commonwealth
+  Ended in peace 3d ago.
+
+🏴 Occupied cities:
+• Calderis of Vantor Federation - held by The Commonwealth for 2d 2h
+
+💥 Damaged cities:
+• Kessmoor: moderate damage - closed to arrivals for 4m
+
+📋 Latest operations:
+• Air strike by The Commonwealth on Calderis (the city's air defences) - 40m ago - attacker's losses: a few, defender's: a few
+• Missile strike by Vantor Federation on Kessmoor (the city's infrastructure) - 3h ago - moderate damage - attacker's losses: a unit, defender's: none
+• ⏳ Ground assault by The Commonwealth on Calderis - in 6m
+• 🏴 Ground assault by The Commonwealth: Calderis taken - 2d 2h ago
+• ✖️ Air strike by The Commonwealth on Vantor Reach called off
+
+The president declares war, ceasefires and peace; the commanders of the forces run operations. War touches only equipment and the economy: no player is ever killed. The exact figures of every operation are a military secret.
+  ───
+  [✅ Accept a ceasefire no. 7] → war:answer:7:accept   │   [✖️ Decline a ceasefire no. 7] → war:answer:7:decline
+  [🏳️ Offer a ceasefire (war 3)] → war:propose:3:ceasefire   │   [🕊 Offer peace (war 3)] → war:propose:3:peace
+  [🕊 Offer peace (war 2)] → war:propose:2:peace
+  [🔥 End the ceasefire (war 2)] → war:resume:2
+  [🗺 War room] → war:room
+  [📜 Declare war] → war:declare
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → war:board:default_country
+
+━━━ Board · as a group reads it ━━━
+(edits message 42)
+⚔️ Wars of The Commonwealth
+
+🔥 War no. 3: The Commonwealth against Vantor Federation, on grounds of a territorial claim
+  Fighting for 26h.
+  💔 The declaration broke the treaties between the two.
+  📨 Vantor Federation offers a ceasefire (no. 7) - answer within 30h
+
+📜 War no. 4: Vantor Federation against The Commonwealth, on grounds of retaliation
+  ⏳ Declared; fighting begins in 20h, at 10:35.
+  🤝 Beside The Commonwealth: Northern League
+
+🏳️ War no. 2: The Commonwealth against Vantor Federation
+  A ceasefire has held for 5h.
+  📤 We offered Vantor Federation peace (no. 5) - 40h left to answer
+
+🕊 War no. 1: Vantor Federation against The Commonwealth
+  Ended in peace 3d ago.
+
+🏴 Occupied cities:
+• Calderis of Vantor Federation - held by The Commonwealth for 2d 2h
+
+💥 Damaged cities:
+• Kessmoor: moderate damage - closed to arrivals for 4m
+
+📋 Latest operations:
+• Air strike by The Commonwealth on Calderis (the city's air defences) - 40m ago - attacker's losses: a few, defender's: a few
+• Missile strike by Vantor Federation on Kessmoor (the city's infrastructure) - 3h ago - moderate damage - attacker's losses: a unit, defender's: none
+• ⏳ Ground assault by The Commonwealth on Calderis - in 6m
+• 🏴 Ground assault by The Commonwealth: Calderis taken - 2d 2h ago
+• ✖️ Air strike by The Commonwealth on Vantor Reach called off
+
+The president declares war, ceasefires and peace; the commanders of the forces run operations. War touches only equipment and the economy: no player is ever killed. The exact figures of every operation are a military secret.
+  ───
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → war:board:default_country
+
+━━━ Board · at peace ━━━
+(edits message 42)
+⚔️ Wars of Vantor Federation
+
+🕊 This country is at peace.
+
+The president declares war, ceasefires and peace; the commanders of the forces run operations. War touches only equipment and the economy: no player is ever killed. The exact figures of every operation are a military secret.
+  ───
+  [🔙 Back] → military:ministry:vantor_federation   │   [🔄 Refresh] → war:board:vantor_federation
+
+━━━ Board · an ally called ━━━
+(edits message 42)
+⚔️ Wars of Northern League
+
+🕊 This country is at peace.
+
+🛡 Allies under attack:
+• Vantor Federation has declared war on The Commonwealth (war no. 4). Our military alliance calls us to its defence.
+
+The president declares war, ceasefires and peace; the commanders of the forces run operations. War touches only equipment and the economy: no player is ever killed. The exact figures of every operation are a military secret.
+  ───
+  [🛡 Join war 4] → war:join:4
+  [📜 Declare war] → war:declare
+  [🔙 Back] → military:ministry:ally   │   [🔄 Refresh] → war:board:ally
+
+━━━ Declare · choose the country ━━━
+(edits message 42)
+📜 A declaration of war by The Commonwealth
+On which country do you declare war?
+  ───
+  [Vantor Federation] → war:declare:vantor_federation
+  [🔙 Back] → war:board:default_country
+
+━━━ Declare · choose the ground ━━━
+(edits message 42)
+📜 A declaration of war by The Commonwealth
+On what grounds is war declared on Vantor Federation? The public declaration gives them.
+  ───
+  [repelling aggression] → war:declare:vantor_federation:aggression
+  [self-defence] → war:declare:vantor_federation:self_defence
+  [a territorial claim] → war:declare:vantor_federation:territorial_claim
+  [the protection of nationals] → war:declare:vantor_federation:protection_of_nationals
+  [retaliation] → war:declare:vantor_federation:retaliation
+  [🔙 Back] → war:declare
+
+━━━ Declare · confirm, breaking a pact ━━━
+(edits message 42)
+📜 A declaration of war by The Commonwealth
+Declare war on Vantor Federation on grounds of the protection of nationals?
+It is announced now in both countries' groups and fighting begins in 24h; no operation is possible before.
+💔 The non-aggression pact between the two is broken by this declaration.
+🛡 The other side's allies (Northern League) are told, and each decides for itself whether to join.
+  ───
+  [📜 Declare] → war:declare:vantor_federation:protection_of_nationals:yes
+  [🔙 Back] → war:declare:vantor_federation
+
+━━━ Declare · none left ━━━
+(edits message 42)
+📜 A declaration of war by The Commonwealth
+On which country do you declare war?
+There is no country left we are not at war with.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Decide · join ━━━
+(edits message 42)
+Join war no. 3 beside Northern League, against Vantor Federation? We are a party from this moment.
+  ───
+  [✅ Join the war] → war:join:3:yes
+  [🔙 Back] → war:board:default_country
+
+━━━ Decide · ceasefire ━━━
+(edits message 42)
+Offer Vantor Federation a ceasefire in war no. 3? If accepted, every operation stops. They have 2d to answer.
+  ───
+  [✅ Make the offer] → war:propose:3:ceasefire:yes
+  [🔙 Back] → war:board:default_country
+
+━━━ Decide · peace ━━━
+(edits message 42)
+Offer Vantor Federation peace in war no. 3? If accepted, the war ends. They have 2d to answer.
+  ───
+  [✅ Make the offer] → war:propose:3:peace:yes
+  [🔙 Back] → war:board:default_country
+
+━━━ Decide · resume ━━━
+(edits message 42)
+End the ceasefire of war no. 3 with Vantor Federation? It is announced now and fighting resumes in 24h.
+  ───
+  [🔥 End the ceasefire] → war:resume:3:yes
+  [🔙 Back] → war:board:default_country
+
+━━━ Room · the air force's commander ━━━
+(edits message 42)
+🗺 War room of The Commonwealth
+🎯 Readiness: 95%
+
+Enemy cities:
+• Calderis (Vantor Federation) - 520 km from our nearest garrison
+• Vantor Reach (Vantor Federation) - 1,000 km from our nearest garrison - heavy damage
+
+⏳ Operations under way:
+• ⏳ Ground assault by The Commonwealth on Calderis - in 6m
+
+Pick a target to see which forces reach it. An aircraft's range counts there and back, a missile's one way.
+  ───
+  [🎯 Calderis] → war:target:calderis   │   [🎯 Vantor Reach] → war:target:vantor_reach
+  [🔙 Back] → war:board:default_country   │   [🔄 Refresh] → war:room
+
+━━━ Room · no war ━━━
+(edits message 42)
+🗺 War room of The Commonwealth
+🎯 Readiness: 100%
+
+Enemy cities:
+We are at war with no country now.
+
+Pick a target to see which forces reach it. An aircraft's range counts there and back, a missile's one way.
+  ───
+  [🔙 Back] → war:board:default_country   │   [🔄 Refresh] → war:room
+
+━━━ Target · forces in reach ━━━
+(edits message 42)
+🎯 Vantor Reach (Vantor Federation)
+💥 State: heavy damage
+🏴 This city is territory of Vantor Federation, under occupation.
+
+Forces in reach of this target:
+• Air strike: 3 Stealth fighters at Kessmoor (520 km) - 8 bombs in the base's store
+• Missile strike: 12 Ballistic missiles at Kessmoor (520 km) - commanded by the Commander of the ground forces
+• Ground assault: 14 ground units at Kessmoor (520 km) - commanded by the Commander of the ground forces
+
+To take the city its air defences must be out of action and our ground forces must hold it.
+  ───
+  [🚀 Air strike with Stealth fighters] → war:launch:vantor_reach:air:stealth_fighter
+  [🔙 Back] → war:room   │   [🔄 Refresh] → war:target:vantor_reach
+
+━━━ Target · nothing in reach ━━━
+(edits message 42)
+🎯 Calderis (Vantor Federation)
+
+Forces in reach of this target:
+None of our forces stationed in reach of this target. Move them to a nearer garrison.
+
+To take the city its air defences must be out of action and our ground forces must hold it.
+  ───
+  [🔙 Back] → war:room   │   [🔄 Refresh] → war:target:calderis
+
+━━━ Launch · choose the objective ━━━
+(edits message 42)
+🎯 Air strike on Calderis
+What is the objective? Hitting the air defences opens the way for later strikes and for taking the city; hitting the infrastructure cripples its economy.
+  ───
+  [the city's infrastructure] → war:launch:calderis:air:stealth_fighter:city
+  [the city's air defences] → war:launch:calderis:air:stealth_fighter:defences
+  [🔙 Back] → war:target:calderis
+
+━━━ Launch · how many ━━━
+(edits message 42)
+🎯 Air strike on Calderis
+How many Stealth fighters from Kessmoor? 3 are ready.
+  ───
+  [1] → war:launch:calderis:air:stealth_fighter:defences:1   │   [2] → war:launch:calderis:air:stealth_fighter:defences:2   │   [3] → war:launch:calderis:air:stealth_fighter:defences:3
+  [🔙 Back] → war:launch:calderis:air:stealth_fighter
+
+━━━ Launch · the estimate, confirm ━━━
+(edits message 42)
+🎯 Air strike on Calderis
+Fly 2 Stealth fighters from Kessmoor against the city's air defences? They reach the target in 1m.
+💣 4 bombs are loaded from the base's store.
+🧭 Staff estimate:
+  Chance of reaching the target: high
+  Our likely losses: none
+  Likely damage to the air defences: heavy damage
+  This is the staff's estimate from its intelligence, not a certain outcome.
+  ───
+  [🚀 Launch] → war:launch:calderis:air:stealth_fighter:defences:2:yes
+  [🔙 Back] → war:launch:calderis:air:stealth_fighter:defences
+
+━━━ Launch · a missile salvo ━━━
+(edits message 42)
+🎯 Missile strike on Vantor Reach
+Fire 8 Ballistic missiles from Kessmoor at the city's infrastructure? They reach the target in 20s, and every missile is spent, intercepted or not.
+🧭 Staff estimate:
+  Chance of reaching the target: even
+  Our likely losses: a unit
+  Likely damage to the city: moderate damage
+  This is the staff's estimate from its intelligence, not a certain outcome.
+  ───
+  [🚀 Launch] → war:launch:vantor_reach:missile:ballistic:city:8:yes
+  [🔙 Back] → war:launch:vantor_reach:missile:ballistic:city
+
+━━━ Launch · a ground assault ━━━
+(edits message 42)
+🎯 Ground assault on Calderis
+Send all 14 ready ground units of Kessmoor against Calderis? Battle begins in 6m.
+🧭 Staff estimate:
+  Chance of taking the city: low
+  Our likely losses: a unit
+  This is the staff's estimate from its intelligence, not a certain outcome.
+  ───
+  [🚀 Launch] → war:launch:calderis:ground:all:take:14:yes
+  [🔙 Back] → war:target:calderis
+
+━━━ Report · our air strike ━━━
+(sends)
+📋 Report of operation no. 12: our Air strike on Calderis (Vantor Federation)
+Objective: the city's air defences - 2 Stealth fighters committed.
+📡 The defence first saw the attackers 38 km out.
+🚀 6 interceptors were fired.
+Attacker: 0 destroyed, 0 damaged.
+Defender: 2 destroyed, 1 damaged.
+💣 4 bombs dropped, 3 hits on the target.
+🔒 This report is a military secret, sent only to the commanders and the head of state.
+  ───
+  [🗺 War room] → war:room
+  [🔙 Back] → war:board:default_country
+
+━━━ Report · a salvo on our city ━━━
+(sends)
+📋 Report of operation no. 11: Missile strike by Vantor Federation on Kessmoor
+Objective: the city's infrastructure - 10 Cruise missiles committed.
+📡 The defence never saw the attackers.
+🚀 8 interceptors were fired.
+🛡 4 missiles were intercepted.
+💥 5 missiles hit the target.
+💥 Damage to the city: 12.5% (light damage).
+🔒 This report is a military secret, sent only to the commanders and the head of state.
+  ───
+  [🔙 Back] → war:board:vantor_federation
+
+━━━ Report · a city taken ━━━
+(sends)
+📋 Report of operation no. 10: our Ground assault on Calderis (Vantor Federation)
+Objective: taking the city - 14 ground units committed.
+Attacker: 2 destroyed, 3 damaged.
+Defender: 4 destroyed, 0 damaged.
+🏴 Calderis is taken.
+🔒 This report is a military secret, sent only to the commanders and the head of state.
+  ───
+  [🗺 War room] → war:room
+  [🔙 Back] → war:board:default_country
+
+━━━ Report · an assault held off ━━━
+(sends)
+📋 Report of operation no. 10: our Ground assault on Calderis (Vantor Federation)
+Objective: taking the city - 14 ground units committed.
+Attacker: 2 destroyed, 3 damaged.
+Defender: 1 destroyed, 0 damaged.
+🛡 The defenders held the city.
+🔒 This report is a military secret, sent only to the commanders and the head of state.
+  ───
+  [🗺 War room] → war:room
+  [🔙 Back] → war:board:default_country
+
+━━━ Report · called off ━━━
+(sends)
+📋 Report of operation no. 9: our Air strike on Vantor Reach (Vantor Federation)
+✖️ The operation was called off: the war is no longer fought or the city changed hands. The forces are back at their garrison and nothing was spent.
+🔒 This report is a military secret, sent only to the commanders and the head of state.
+  ───
+  [🗺 War room] → war:room
+  [🔙 Back] → war:board:default_country
+
+━━━ Notice · an ally attacked ━━━
+(sends)
+🛡 Vantor Federation has declared war on our ally The Commonwealth (war no. 4). Our military alliance calls us to its defence; the decision is yours.
+  ───
+  [🛡 Join war 4] → war:join:4
+  [🔙 Back] → war:board:ally
+
+━━━ Notice · a ceasefire offered ━━━
+(sends)
+📨 Vantor Federation offers a ceasefire (no. 7). Answer within 2d.
+  ───
+  [✅ Accept a ceasefire no. 7] → war:answer:7:accept   │   [✖️ Decline a ceasefire no. 7] → war:answer:7:decline
+  [🔙 Back] → war:board:default_country
+
+━━━ Notice · our city struck ━━━
+(sends)
+💥 Kessmoor, where you are now, was struck by Vantor Federation: heavy damage. You are free to leave.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Refused · not_holder ━━━
+(edits message 42)
+Only the President of The Commonwealth can do that.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Refused · no_country ━━━
+(edits message 42)
+You live in no country yet. Settle in a city first.
+  ───
+  [🔙 Back] → war:board
+
+━━━ Refused · not_found ━━━
+(edits message 42)
+There is no such war, offer or city.
+  ───
+  [🔙 Back] → war:board
+
+━━━ Refused · self ━━━
+(edits message 42)
+A country cannot go to war with itself.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Refused · at_war ━━━
+(edits message 42)
+These two countries are at war already.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Refused · state ━━━
+(edits message 42)
+That is not possible in the war as it stands.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Refused · not_enemy ━━━
+(edits message 42)
+This city belongs to no country we are at war with.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Refused · not_yet ━━━
+(edits message 42)
+The war has not begun yet: 20m to go.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Refused · no_forces ━━━
+(edits message 42)
+We have no ready forces of that class in reach of this target.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Refused · no_munitions ━━━
+(edits message 42)
+There are no bombs in this base's store. Buy bombs and station them at this base before an air strike.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Refused · open ━━━
+(edits message 42)
+An offer of that kind is still waiting for an answer.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Refused · no_ally ━━━
+(edits message 42)
+Our country has no military alliance with either side of this war.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Refused · stock ━━━
+(edits message 42)
+Only 3 are ready.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Refused · not_cleared ━━━
+(edits message 42)
+The war room is open only to the holders of the country's defence offices.
+  ───
+  [🔙 Back] → war:board:default_country
+
+━━━ Blocked · the border ━━━
+(edits message 42)
+⛔ The border between The Commonwealth and Vantor Federation is closed by war.
+  ───
+  [🔙 Back] → map:cities
+
+━━━ Blocked · a struck city ━━━
+(edits message 42)
+⛔ Kessmoor was struck lately and is closed to arrivals for 5m.
+  ───
+  [🔙 Back] → map:cities

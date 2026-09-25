@@ -448,6 +448,21 @@ levers:
     change_cooldown: 72h
     notice: 24h
 
+  # The war economy (docs/adr/0022, part two): while the country is at war,
+  # every defence period each of its cities pays war_levy of what its
+  # treasury took in, on top of revenue_share and straight into the defence
+  # fund (war_levy). Bounded, like any lever: a war levy that took a city's
+  # whole income would starve it. Nothing is levied in peace.
+  - code: country.war_levy
+    jurisdiction: country
+    type: bps
+    default: 1000
+    min: 0
+    max: 2500
+    held_by: president
+    change_cooldown: 72h
+    notice: 24h
+
 offices:
   - code: mayor
     jurisdiction: city
@@ -473,6 +488,9 @@ offices:
     appointed_by: mayor
     can_be_removed_by: [mayor, operator]
     levers: []
+    # In a city taken in war its offices are emptied and the military
+    # governor acts for them (docs/adr/0022, part two).
+    deputy: military_governor
 
   # Seats exist from day one; the council's levers (city law, decided by a
   # vote rather than one person) arrive with the features that need them.
@@ -504,13 +522,27 @@ offices:
     appointed_by: police_chief
     can_be_removed_by: [police_chief, operator]
     levers: []
+    deputy: military_governor
+
+  # Occupation (docs/adr/0022, part two; Hague Regulations art. 42-43: the
+  # authority of the occupant). When a city is taken in war its offices are
+  # emptied and the commander who took it governs it, by conquest: acting for
+  # the vacant mayor and police chief. The seat is emptied again when the city
+  # changes hands, and stays empty everywhere else.
+  - code: military_governor
+    jurisdiction: city
+    seats: 1
+    acquired_by: conquest
+    can_be_removed_by: [operator]
+    levers: []
+    incompatible_with: [mayor, city_council]
 
   - code: president
     jurisdiction: country
     seats: 1
     acquired_by: election
     term: 1440h
-    levers: [country.border_tariff, country.revenue_share, country.defence_budget]
+    levers: [country.border_tariff, country.revenue_share, country.defence_budget, country.war_levy]
 
   # Defence (docs/adr/0022-military-and-diplomacy.md). Civilian control:
   # the minister buys and pays, the chief of the general staff and the
@@ -606,6 +638,11 @@ actions:
   - {code: country.command_air_defence, jurisdiction: country, held_by: air_defence_commander}
   - {code: country.sanction,            jurisdiction: country, held_by: president}
   - {code: country.treaty,              jurisdiction: country, held_by: foreign_minister}
+  # War (docs/adr/0022, part two): declaring it, joining an ally's, offering
+  # and answering a ceasefire or a peace, resuming after a ceasefire. The
+  # head of state decides, as the constitutions the ADR reads assign it; a
+  # legislature's approval arrives with a legislature.
+  - {code: country.war,                 jurisdiction: country, held_by: president}
 
 # ---------------------------------------------------------------------------
 # elections — how each office acquired by election is elected

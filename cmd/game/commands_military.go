@@ -17,10 +17,16 @@ func diplomacyRules(c config.Diplomacy) handlers.DiplomacyRules {
 		TreatyOfferTTL: c.TreatyOfferTTL, EndedShownFor: c.EndedShownFor, HistoryPageSize: c.HistoryPageSize}
 }
 
+// warRules is war's tuning from the configuration.
+func warRules(c config.War) handlers.WarRules {
+	return handlers.WarRules{DeclarationNotice: c.DeclarationNotice, ProposalTTL: c.ProposalTTL,
+		EndedShownFor: c.EndedShownFor, BoardOperations: c.BoardOperations, NoticeCap: c.NoticeCap}
+}
+
 // bindMilitary maps the armed forces', diplomacy's and appointments'
 // commands to their handlers (docs/adr/0022-military-and-diplomacy.md).
 func (h phaseHandlers) bindMilitary() map[string]commandFunc {
-	m, d, a := h.military, h.diplomacy, h.appointments
+	m, d, a, w := h.military, h.diplomacy, h.appointments, h.war
 	return map[string]commandFunc{
 		"military.ministry": decoded(m.Ministry),
 		"military.forces":   decoded(m.Forces),
@@ -45,5 +51,17 @@ func (h phaseHandlers) bindMilitary() map[string]commandFunc {
 		"gov.seat":    decoded(a.Seat),
 		"gov.dismiss": decoded(a.Dismiss),
 		"gov.unseat":  decoded(a.Unseat),
+
+		"war.board":   decoded(w.Board),
+		"war.declare": decoded(w.Declare),
+		"war.join":    decoded(w.Join),
+		"war.propose": decoded(w.Propose),
+		"war.answer":  decoded(w.Answer),
+		"war.resume":  decoded(w.Resume),
+		"war.room":    decoded(w.Room),
+		"war.target":  decoded(w.Target),
+		"war.launch":  decoded(w.Launch),
+		// The scheduler's: an operation reaching its target.
+		"war.resolve": decoded(w.Resolve),
 	}
 }

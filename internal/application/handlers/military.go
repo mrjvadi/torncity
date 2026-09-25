@@ -14,6 +14,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/military"
+	"github.com/mrjvadi/torncity/internal/domain/war"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
@@ -292,6 +293,22 @@ func (h *MilitaryHandler) settle(ctx context.Context, tx application.Tx, snap *c
 	}
 	period := military.Period{RevenueShareBPS: share.Value, DefenceBudgetBPS: defence.Value, Readiness: clock.ReadinessBPS,
 		LossBPS: h.rules.ReadinessLossBPS, RecoveryBPS: h.rules.ReadinessRecoveryBPS}
+	// The war economy: a country at war levies its cities for the war too.
+	wars, err := tx.War().Wars(ctx, country, now)
+	if err != nil {
+		return err
+	}
+	rules := make([]war.War, len(wars))
+	for i, w := range wars {
+		rules[i] = w.Rule()
+	}
+	if war.AtWar(rules, country, now) {
+		levy, err := h.policy.Get(ctx, country, LeverWarLevy)
+		if err != nil {
+			return err
+		}
+		period.WarLevyBPS = levy.Value
+	}
 	accounts := map[string]string{}
 	var revenue int64
 	for _, city := range cities {
@@ -349,15 +366,53 @@ func (h *MilitaryHandler) settle(ctx context.Context, tx application.Tx, snap *c
 			return err
 		}
 	}
+	for _, l := range out.WarLevies {
+		if _, err := postRef(ctx, tx.Ledger(), application.ReasonWarLevy, "game_actions", ref,
+			accounts[l.CityID], fund.ID, money.FromMinor(l.Amount), now); err != nil {
+			return err
+		}
+	}
 	if out.UpkeepPaid > 0 {
 		if _, err := postRef(ctx, tx.Ledger(), application.ReasonMilitaryUpkeep, "game_actions", ref,
 			fund.ID, application.SystemSinkAccountID, money.FromMinor(out.UpkeepPaid), now); err != nil {
 			return err
 		}
 	}
+	// Repairs: equipment damaged in battle, the longest damaged first, as
+	// far as the fund goes; the rest waits for the next period.
+	damaged, err := tx.War().Damaged(ctx, country)
+	if err != nil {
+		return err
+	}
+	costs := make([]int64, len(damaged))
+	for i, a := range damaged {
+		if cl, ok := snap.ForceClass(a.ClassCode); ok {
+			costs[i] = cl.Repair
+		}
+	}
+	repaired, repairs, err := military.Repairs(costs, out.Fund)
+	if err != nil {
+		return errors.Internal(err)
+	}
+	if repairs > 0 {
+		if _, err := postRef(ctx, tx.Ledger(), application.ReasonMilitaryRepair, "game_actions", ref,
+			fund.ID, application.SystemSinkAccountID, money.FromMinor(repairs), now); err != nil {
+			return err
+		}
+	}
+	if repaired > 0 {
+		ids := make([]string, repaired)
+		for i := range ids {
+			ids[i] = damaged[i].PieceID
+		}
+		if err := tx.War().Repair(ctx, ids, now); err != nil {
+			return err
+		}
+	}
 	if err := tx.Military().RecordPeriod(ctx, application.MilitaryPeriod{CountryID: country, PeriodNo: clock.PeriodNo,
 		StartedAt: clock.PeriodStartedAt, EndedAt: now, Revenue: revenue, Levy: out.Levy, Appropriation: out.Appropriation,
-		UpkeepDue: out.UpkeepDue, UpkeepPaid: out.UpkeepPaid, Pieces: pieces, ReadinessBPS: out.Readiness}); err != nil {
+		UpkeepDue: out.UpkeepDue, UpkeepPaid: out.UpkeepPaid, Pieces: pieces, ReadinessBPS: out.Readiness,
+		WarLevy: out.WarLevy, Repairs: repairs, Repaired: int64(repaired)}); err != nil {
 		return err
 	}
 	clock.PeriodNo++
@@ -716,9 +771,14 @@ func (h *MilitaryHandler) fillBranch(ctx context.Context, tx application.Tx, sna
 		}
 		g.view.Count++
 		g.quality += a.Quality
+		if a.Condition == application.AssetDamaged {
+			g.view.Damaged++
+		}
 		switch {
 		case a.Status == application.AssetMoving:
 			g.view.Moving++
+		case a.Status == application.AssetCommitted:
+			g.view.Committed++
 		case a.GarrisonCityID == "":
 			g.view.Depot++
 		default:

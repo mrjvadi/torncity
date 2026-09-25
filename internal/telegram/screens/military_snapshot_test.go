@@ -85,6 +85,10 @@ func militarySnapshots(c Context, who people, add func(string, *presenter.Respon
 		Moves: []MoveLine{{Good: stealth, Qty: 1, CityCode: "brennhaven", City: "Brennhaven", Left: 2 * time.Minute,
 			At: snapshotNow.Add(2 * time.Minute)}}}
 	add("Branch · the air force, its commander", Branch(c, branch))
+	atWar := branch
+	atWar.Groups = append([]AssetGroup(nil), branch.Groups...)
+	atWar.Groups[1].Committed, atWar.Groups[1].Damaged = 4, 2
+	add("Branch · at war: pieces in an operation, pieces damaged", Branch(c, atWar))
 	add("Branch · empty", Branch(c, BranchView{Country: homeCountry, Branch: navy, ReferenceRadarKM: 150}))
 	cities := []GovPlace{{Kind: "city", Code: "ostmarch", Name: "Ostmarch"}, {Kind: "city", Code: "brennhaven", Name: "Brennhaven"},
 		{Kind: "city", Code: "fenwick_span", Name: "Fenwick Span"}}
@@ -259,6 +263,7 @@ func militaryAnnouncements(c Context, who people, book *screentest.Book) {
 	book.AddText("announcement · an appointment, nameless", AppointedAnnouncement(c, "", "air_force_commander", homeCountry))
 	book.AddText("question · gov.appoint", InputPrompt(c, "gov.appoint", ""))
 	book.AddText("question · gov.appoint · reply box", InputPlaceholder(c, "gov.appoint"))
+	warAnnouncements(c, book)
 }
 
 // TestMilitaryButtonsFitTelegram renders every decision of the armed

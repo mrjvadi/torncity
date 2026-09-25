@@ -102,6 +102,11 @@ type LedgerVerification struct {
 	// MilitaryInvariants their checks.
 	Military bool
 	MilitaryInvariants
+
+	// War is whether war's tables exist (migration 0022); WarInvariants
+	// their checks (ledger_admin_war.go).
+	War bool
+	WarInvariants
 }
 
 // MilitaryInvariants are the armed forces' checks
@@ -197,7 +202,7 @@ type DriftedStack struct {
 func (v LedgerVerification) OK() bool {
 	return v.LedgerSum == "0" && len(v.Unbalanced) == 0 && len(v.Drifted) == 0 &&
 		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok() && v.ProductionInvariants.ok() &&
-		v.MilitaryInvariants.ok()
+		v.MilitaryInvariants.ok() && v.WarInvariants.ok()
 }
 
 // VerifyLedger runs the three invariants of docs/adr/0009-economic-control.md
@@ -286,6 +291,14 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 	}
 	if v.Military {
 		if err := a.verifyMilitary(ctx, &v); err != nil {
+			return v, err
+		}
+		if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.war_operations') IS NOT NULL`).Scan(&v.War); err != nil {
+			return v, fmt.Errorf("postgres: looking for war: %w", err)
+		}
+	}
+	if v.War {
+		if err := a.verifyWar(ctx, &v); err != nil {
 			return v, err
 		}
 	}
@@ -553,9 +566,11 @@ func (a *EconomyAdmin) verifyMilitary(ctx context.Context, v *LedgerVerification
 		SELECT (SELECT count(*) FROM org_stacks s WHERE s.org_kind = 'state')
 		     + (SELECT count(*) FROM item_pieces i WHERE i.org_kind = 'state'
 		          AND (NOT EXISTS (SELECT 1 FROM jurisdictions j WHERE j.id = i.org_id AND j.kind = 'country')
-		               OR NOT EXISTS (SELECT 1 FROM military_assets x WHERE x.piece_id = i.id AND x.country_id = i.org_id))),
+		               OR NOT EXISTS (SELECT 1 FROM military_assets x WHERE x.piece_id = i.id AND x.country_id = i.org_id
+		                                AND x.status NOT IN ('destroyed', 'expended')))),
 		       (SELECT count(*) FROM military_assets x
-		         WHERE NOT EXISTS (SELECT 1 FROM item_pieces i WHERE i.id = x.piece_id AND i.org_kind = 'state'
+		         WHERE x.status NOT IN ('destroyed', 'expended')
+		           AND NOT EXISTS (SELECT 1 FROM item_pieces i WHERE i.id = x.piece_id AND i.org_kind = 'state'
 		                             AND i.org_id = x.country_id AND i.holding = 'warehouse'))`).Scan(
 		&m.OrphanStateHoldings, &m.OrphanAssets); err != nil {
 		return fmt.Errorf("postgres: checking states' holdings: %w", err)

@@ -245,3 +245,39 @@ To cancel, send "cancel".
 
 ━━━ question · gov.appoint · reply box ━━━
 Player code or username
+
+━━━ announcement · war declared ━━━
+📜 The Commonwealth has declared war on Vantor Federation, on grounds of a territorial claim. Fighting begins in 24h.
+
+━━━ announcement · war declared, a pact broken ━━━
+📜 Vantor Federation has declared war on The Commonwealth, on grounds of retaliation. Fighting begins in 24h. The declaration broke the treaties between the two.
+
+━━━ announcement · an ally joined ━━━
+🛡 Northern League has joined the war beside The Commonwealth, against Vantor Federation.
+
+━━━ announcement · ceasefire ━━━
+🏳️ The Commonwealth and Vantor Federation have agreed a ceasefire.
+
+━━━ announcement · peace ━━━
+🕊 The Commonwealth and Vantor Federation have made peace; the war is over.
+
+━━━ announcement · resumed ━━━
+🔥 The Commonwealth has ended the ceasefire with Vantor Federation. Fighting resumes in 24h.
+
+━━━ announcement · a strike on a city ━━━
+💥 Missile strike by Vantor Federation on Kessmoor: heavy damage.
+
+━━━ announcement · a strike on air defences ━━━
+💥 Air strike by The Commonwealth on the air defences of Calderis.
+
+━━━ announcement · a strike repelled ━━━
+🛡 The defences of Vantor Federation repelled the Air strike by The Commonwealth on Calderis.
+
+━━━ announcement · an assault held off ━━━
+🛡 Vantor Federation repelled the ground assault by The Commonwealth on Calderis.
+
+━━━ announcement · a city taken ━━━
+🏴 The Commonwealth has taken Calderis from Vantor Federation. Its residents stay in their homes and may leave whenever they wish.
+
+━━━ announcement · a city liberated ━━━
+🏳️ Vantor Federation has liberated Calderis from the occupation of The Commonwealth.

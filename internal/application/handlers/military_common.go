@@ -26,6 +26,9 @@ const (
 	LeverRevenueShare  = "country.revenue_share"
 	LeverDefenceBudget = "country.defence_budget"
 	LeverArmsExports   = "country.arms_exports"
+	// LeverWarLevy is what a country at war levies its cities for the war
+	// (docs/adr/0022, part two).
+	LeverWarLevy = "country.war_levy"
 )
 
 // countryPlace names a country for a screen.
@@ -263,4 +266,49 @@ func playersSanctioned(ctx context.Context, tx application.Tx, m diplomacy.Measu
 		return err
 	}
 	return checkSanctions(ctx, tx, application.CheckSanctions(ctx, tx, m, countries[a], countries[b], now), back...)
+}
+
+// warTravelRefusal carries a journey the war closes out of a unit of work,
+// with the screen already named.
+type warTravelRefusal struct{ view screens.WarBlockedView }
+
+func (r *warTravelRefusal) Error() string { return "handlers: the journey is closed by war" }
+
+// checkWarTravel turns application.CheckWarTravel's refusal into its
+// screen.
+func checkWarTravel(ctx context.Context, tx application.Tx, cities application.CityRepository, err error, now time.Time,
+	back ...string,
+) error {
+	var b *application.WarBlockedError
+	if !stderrors.As(err, &b) {
+		return err
+	}
+	view := screens.WarBlockedView{Border: b.Border, Back: back}
+	if b.Border {
+		from, ferr := placeOf(ctx, tx, b.From)
+		if ferr != nil {
+			return ferr
+		}
+		to, terr := placeOf(ctx, tx, b.To)
+		if terr != nil {
+			return terr
+		}
+		view.From, view.To = from, to
+	} else {
+		city, cerr := cities.ByID(ctx, b.CityID)
+		if cerr != nil {
+			return cerr
+		}
+		view.CityCode, view.City, view.In = city.Code, city.Name, max(b.Until.Sub(now), time.Second)
+	}
+	return &warTravelRefusal{view: view}
+}
+
+// asWarBlocked finds a journey the war closed in err.
+func asWarBlocked(err error) (screens.WarBlockedView, bool) {
+	var r *warTravelRefusal
+	if stderrors.As(err, &r) {
+		return r.view, true
+	}
+	return screens.WarBlockedView{}, false
 }

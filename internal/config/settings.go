@@ -47,6 +47,7 @@ type fileConfig struct {
 	Company    companySettings    `yaml:"company"`
 	Military   militarySettings   `yaml:"military"`
 	Diplomacy  diplomacySettings  `yaml:"diplomacy"`
+	War        warSettings        `yaml:"war"`
 	Input      inputSettings      `yaml:"input"`
 	Announce   announceSettings   `yaml:"announce"`
 }
@@ -228,6 +229,14 @@ type militarySettings struct {
 	ReadinessLossBPS     *int    `yaml:"readiness_loss_bps"`
 	ReadinessRecoveryBPS *int    `yaml:"readiness_recovery_bps"`
 	ReferenceRadarKM     *int    `yaml:"reference_radar_km"`
+}
+
+type warSettings struct {
+	DeclarationNotice *string `yaml:"declaration_notice"`
+	ProposalTTL       *string `yaml:"proposal_ttl"`
+	EndedShownFor     *string `yaml:"ended_shown_for"`
+	BoardOperations   *int    `yaml:"board_operations"`
+	NoticeCap         *int    `yaml:"notice_cap"`
 }
 
 type diplomacySettings struct {
@@ -880,6 +889,22 @@ var settings = []setting{
 	limitSetting("diplomacy", "history_page_size",
 		func(c *Config) *int { return &c.Diplomacy.HistoryPageSize },
 		func(f *fileConfig) *int { return f.Diplomacy.HistoryPageSize }),
+
+	durationSetting("war", "declaration_notice",
+		func(c *Config) *time.Duration { return &c.War.DeclarationNotice },
+		func(f *fileConfig) *string { return f.War.DeclarationNotice }),
+	durationSetting("war", "proposal_ttl",
+		func(c *Config) *time.Duration { return &c.War.ProposalTTL },
+		func(f *fileConfig) *string { return f.War.ProposalTTL }),
+	durationSetting("war", "ended_shown_for",
+		func(c *Config) *time.Duration { return &c.War.EndedShownFor },
+		func(f *fileConfig) *string { return f.War.EndedShownFor }),
+	limitSetting("war", "board_operations",
+		func(c *Config) *int { return &c.War.BoardOperations },
+		func(f *fileConfig) *int { return f.War.BoardOperations }),
+	limitSetting("war", "notice_cap",
+		func(c *Config) *int { return &c.War.NoticeCap },
+		func(f *fileConfig) *int { return f.War.NoticeCap }),
 
 	durationSetting("input", "ttl",
 		func(c *Config) *time.Duration { return &c.Input.TTL },

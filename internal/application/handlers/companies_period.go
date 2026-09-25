@@ -10,6 +10,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/company"
 	"github.com/mrjvadi/torncity/internal/domain/item"
+	"github.com/mrjvadi/torncity/internal/domain/war"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
@@ -148,6 +149,9 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 		market = m
 	}
 	market.Cap = money.FromMinor(h.rules.NPCCityPeriodCap)
+	if err := h.warEconomy(ctx, tx, snap, city, &market, end); err != nil {
+		return err
+	}
 
 	type member struct {
 		c     *application.Company
@@ -495,4 +499,49 @@ func (h *CompaniesHandler) citizensNow(ctx context.Context, tx application.Tx, s
 	}
 	out.Workers, out.Wages = plan.Workers, plan.Wages.Minor()
 	return out, nil
+}
+
+// warEconomy is what a war does to a city's NPC market
+// (docs/adr/0022, part two): a damaged city's people spend less — its wealth
+// cut by the damage as it stands now, healed on the game clock — and a city
+// of a country at war demands more arms (content war.economy).
+func (h *CompaniesHandler) warEconomy(ctx context.Context, tx application.Tx, snap *content.Snapshot,
+	city *application.City, market *company.Market, now time.Time,
+) error {
+	def, ok := snap.War()
+	if !ok {
+		return nil
+	}
+	stored, err := tx.War().CityDamage(ctx, city.ID, false)
+	if err != nil {
+		return err
+	}
+	if stored != nil {
+		rules := def.CityRules()
+		damage := rules.DamageAt(stored.DamageBPS, stored.AsOf, now, int64(h.scale))
+		market.WealthBPS = int(int64(market.WealthBPS) * rules.Spending(damage) / war.BPSWhole)
+	}
+	cat := def.Economy.ArmsCategory
+	if cat == "" || def.Economy.ArmsDemandBPS == war.BPSWhole {
+		return nil
+	}
+	if _, ok := market.Demand[cat]; !ok {
+		return nil
+	}
+	country, err := tx.Diplomacy().CountryOfCity(ctx, city.ID)
+	if err != nil || country == "" {
+		return err
+	}
+	wars, err := tx.War().Wars(ctx, country, now)
+	if err != nil {
+		return err
+	}
+	rules := make([]war.War, len(wars))
+	for i, w := range wars {
+		rules[i] = w.Rule()
+	}
+	if war.AtWar(rules, country, now) {
+		market.Demand[cat] = market.Demand[cat] * def.Economy.ArmsDemandBPS / war.BPSWhole
+	}
+	return nil
 }

@@ -365,6 +365,12 @@ diplomacy:
   treaty_offer_ttl: 73h
   ended_shown_for: 169h
   history_page_size: 9
+war:
+  declaration_notice: 25h
+  proposal_ttl: 49h
+  ended_shown_for: 169h
+  board_operations: 9
+  notice_cap: 201
 input:
   ttl: 7m
   cooldown: 4s
@@ -513,6 +519,11 @@ var envOverrides = map[string]string{
 	"TORN_DIPLOMACY_TREATY_OFFER_TTL":        "74h",
 	"TORN_DIPLOMACY_ENDED_SHOWN_FOR":         "170h",
 	"TORN_DIPLOMACY_HISTORY_PAGE_SIZE":       "10",
+	"TORN_WAR_DECLARATION_NOTICE":            "26h",
+	"TORN_WAR_PROPOSAL_TTL":                  "50h",
+	"TORN_WAR_ENDED_SHOWN_FOR":               "170h",
+	"TORN_WAR_BOARD_OPERATIONS":              "10",
+	"TORN_WAR_NOTICE_CAP":                    "202",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

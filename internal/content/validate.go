@@ -184,6 +184,7 @@ func (p *Pack) Validate() error {
 	// is made, and the NPC suppliers of basic inputs.
 	p.validateProduction(&problems)
 	p.validateMilitary(&problems)
+	p.validateWar(&problems)
 
 	if len(problems) > 0 {
 		return errors.Join(problems...)

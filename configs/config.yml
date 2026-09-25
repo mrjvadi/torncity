@@ -560,6 +560,22 @@ diplomacy:
   # Entries of the diplomatic record on one page.
   history_page_size: 8
 
+# War (docs/adr/0022-military-and-diplomacy.md, part two). How battles are
+# fought is content (configs/content/military.yml, war). The notice and the
+# proposal's life are REAL time: promises, like a lever's notice.
+war:
+  # How long after a declaration — or the end of a ceasefire — the war may be
+  # fought: no hostilities without previous and explicit warning.
+  declaration_notice: 24h
+  # How long a ceasefire or a peace waits for the other side's answer.
+  proposal_ttl: 48h
+  # How long an ended war stays on the war board.
+  ended_shown_for: 168h
+  # Operations listed on the war board.
+  board_operations: 8
+  # The most players of a struck city told privately that it was hit.
+  notice_cap: 200
+
 # Free-text input (internal/gateway/input): a button «✏️ مبلغ دلخواه» asks the
 # player to type a value, and their next message answers it. Which commands
 # may ask is configs/commands.yml, section input.

@@ -487,14 +487,20 @@ func (s *ContentStore) LoadActive(ctx context.Context) (*content.Pack, error) {
 	// Ordered by code, not by insertion: a pack read back twice must be the
 	// same pack, and the checksum comparison an operator makes between a
 	// stored version and a checkout depends on nothing here being arbitrary.
-	// A city's country is the parent of its own jurisdiction. A city row
-	// with no jurisdiction reads back with no country, which Validate then
-	// refuses by name rather than letting a half-migrated world boot.
+	// A city's country is the parent of its own jurisdiction — or, for a
+	// city another country holds by conquest, the content's country that
+	// city_control remembers: the pack is what was loaded, not the war. A
+	// city row with no jurisdiction reads back with no country, which
+	// Validate then refuses by name rather than letting a half-migrated
+	// world boot.
 	cityRows, err := tx.Query(ctx,
-		`SELECT c.id::text, c.code, c.name, c.tax_rate_bps, c.cost_of_living, c.spawn_weight, COALESCE(p.code, '')
+		`SELECT c.id::text, c.code, c.name, c.tax_rate_bps, c.cost_of_living, c.spawn_weight,
+		        COALESCE(dj.code, p.code, '')
 		   FROM cities c
 		   LEFT JOIN jurisdictions j ON j.id = c.jurisdiction_id
 		   LEFT JOIN jurisdictions p ON p.id = j.parent_id
+		   LEFT JOIN city_control cc ON cc.city_id = c.id
+		   LEFT JOIN jurisdictions dj ON dj.id = cc.de_jure_country_id
 		  WHERE c.content_version_id = $1::uuid
 		  ORDER BY c.code`, versionID)
 	if err != nil {

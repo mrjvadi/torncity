@@ -164,6 +164,7 @@ func Ministry(c Context, v MinistryView) *presenter.Response {
 	sanctions, _ := keyboards.Button(c.T("diplomacy.button.sanctions", nil), AddrSanctions, v.Country.Code)
 	treaties, _ := keyboards.Button(c.T("diplomacy.button.treaties", nil), AddrTreaties, v.Country.Code)
 	kb.Row(sanctions, treaties)
+	kb.Add(c.T("military.button.war", nil), AddrWarBoard, v.Country.Code)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrGovCity, RefreshData: keyboards.Data(AddrMinistry, v.Country.Code)}))
 	return c.respond(paragraphs(body(head...), body(offices...), body(budget...), body(forces...),
 		c.T("military.ministry.footer", nil)), kb.Build())
@@ -254,6 +255,10 @@ type AssetGroup struct {
 	Garrisons []GarrisonLine
 	Depot     int64
 	Moving    int64
+	// Committed are in an operation under way; Damaged out of action until
+	// a defence period repairs them.
+	Committed int64
+	Damaged   int64
 	// Attributes are the design's, in full: the cleared see the signature.
 	Attributes []AttributeLine
 	// SeenAt is how far a reference radar (a 1 m² target at
@@ -357,6 +362,12 @@ func Branch(c Context, v BranchView) *presenter.Response {
 		}
 		if g.Moving > 0 {
 			lines = append(lines, c.T("military.equipment.moving", map[string]any{"count": FormatNumber(c, g.Moving)}))
+		}
+		if g.Committed > 0 {
+			lines = append(lines, c.T("military.equipment.committed", map[string]any{"count": FormatNumber(c, g.Committed)}))
+		}
+		if g.Damaged > 0 {
+			lines = append(lines, c.T("military.equipment.damaged", map[string]any{"count": FormatNumber(c, g.Damaged)}))
 		}
 		blocks = append(blocks, body(lines...))
 		if v.CanStation && g.Count > g.Moving {

@@ -195,6 +195,7 @@ type Config struct {
 	Company    Company
 	Military   Military
 	Diplomacy  Diplomacy
+	War        War
 	Input      Input
 	Announce   Announce
 }
@@ -589,6 +590,24 @@ type Military struct {
 	ReferenceRadarKM int // military.reference_radar_km
 }
 
+// War is the tuning of war (docs/adr/0022-military-and-diplomacy.md, part
+// two). How battles are fought is content (military.yml war); these are the
+// promises and the page sizes. DeclarationNotice and ProposalTTL are REAL
+// time: a governance promise (docs/adr/0018-game-clock.md).
+type War struct {
+	// DeclarationNotice is how long after a declaration — or a ceasefire's
+	// end — the war may be fought.
+	DeclarationNotice time.Duration // war.declaration_notice
+	// ProposalTTL is how long a ceasefire or a peace waits for an answer.
+	ProposalTTL time.Duration // war.proposal_ttl
+	// EndedShownFor is how long an ended war stays on the war board.
+	EndedShownFor time.Duration // war.ended_shown_for
+	// BoardOperations is how many operations the war board lists.
+	BoardOperations int // war.board_operations
+	// NoticeCap is the most players of a struck city told privately.
+	NoticeCap int // war.notice_cap
+}
+
 // Diplomacy is the tuning of sanctions and treaties
 // (docs/adr/0022-military-and-diplomacy.md). Every duration here is REAL
 // time: a governance promise, like a lever's notice
@@ -731,6 +750,13 @@ func Defaults() *Config {
 			TreatyOfferTTL:      72 * time.Hour,
 			EndedShownFor:       168 * time.Hour,
 			HistoryPageSize:     8,
+		},
+		War: War{
+			DeclarationNotice: 24 * time.Hour,
+			ProposalTTL:       48 * time.Hour,
+			EndedShownFor:     168 * time.Hour,
+			BoardOperations:   8,
+			NoticeCap:         200,
 		},
 		Input: Input{
 			TTL:       5 * time.Minute,

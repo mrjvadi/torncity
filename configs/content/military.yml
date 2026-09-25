@@ -30,6 +30,29 @@
 #   upkeep    what one piece costs every defence period, minor units, paid
 #             from the defence fund; it leaves the economy. An unpaid period
 #             costs readiness instead (config military.readiness_*).
+#   repair    what putting one DAMAGED piece back in service costs, paid from
+#             the defence fund at the next defence period while it lasts
+#             (military_repair, a drain). Omitted: nothing to repair.
+#   combat    the class's part in a war (docs/adr/0022, part two); a class
+#             without one does not fight. Naval warfare is not built yet, so
+#             the navy's classes have none.
+#     role        aircraft  flies strikes, carries `load` munitions a sortie,
+#                           and with `air_to_air` shots sweeps (attacking) or
+#                           patrols (defending) against fighters;
+#                 munition  what aircraft drop; spent on use;
+#                 missile   a strike on its own; spent on use; `ballistic`
+#                           ones only a battery with `ballistic` can engage,
+#                           `low_level` ones are seen no farther than the
+#                           radar horizon;
+#                 ground | artillery  a ground assault's units; artillery
+#                           fires from beyond reach and never holds a city;
+#                 radar     early warning: cues the batteries;
+#                 sam       a battery: `rounds` ready per launcher in a raid.
+#     evasion_bps what the class takes off an interceptor's single-shot
+#                 chance (a warhead's speed, manoeuvre, decoys).
+#     defaults    attribute values a piece fights with where its design has
+#                 none (a ballistic missile's cross-section), in the units
+#                 of defence_industry.yml.
 #
 # military_clearance — the offices whose holders see the forces in full:
 #   exact counts, every design's attributes, garrisons, readiness, upkeep.
@@ -52,23 +75,38 @@ branches:
   - {code: air_defence, name: Air defence,   command: country.command_air_defence, redeploy: 6h}
 
 force_classes:
-  - {code: fighter,         name: Fighters,              branch: air,         items: [fighter_jet],         upkeep: 90}
-  - {code: stealth_fighter, name: Stealth fighters,      branch: air,         items: [stealth_fighter_jet], upkeep: 240}
-  - {code: bomber,          name: Bombers,               branch: air,         items: [strategic_bomber],    upkeep: 180}
-  - {code: drone,           name: Combat drones,         branch: air,         items: [attack_drone],        upkeep: 20}
-  - {code: transport,       name: Transport aircraft,    branch: air,         items: [airlifter],           upkeep: 70}
-  - {code: tank,            name: Main battle tanks,     branch: ground,      items: [main_battle_tank],    upkeep: 35}
-  - {code: ifv,             name: Infantry fighting vehicles, branch: ground, items: [ifv],                 upkeep: 15}
-  - {code: artillery,       name: Artillery,             branch: ground,      items: [sp_artillery],        upkeep: 25}
-  - {code: ballistic,       name: Ballistic missiles,    branch: ground,      items: [ballistic_missile],   upkeep: 10}
-  - {code: cruise,          name: Cruise missiles,       branch: air,         items: [cruise_missile],      upkeep: 6}
+  - {code: fighter,         name: Fighters,              branch: air,         items: [fighter_jet],         upkeep: 90,  repair: 3000,
+     combat: {role: aircraft, load: 2, air_to_air: 2}}
+  - {code: stealth_fighter, name: Stealth fighters,      branch: air,         items: [stealth_fighter_jet], upkeep: 240, repair: 8000,
+     combat: {role: aircraft, load: 2, air_to_air: 2}}
+  - {code: bomber,          name: Bombers,               branch: air,         items: [strategic_bomber],    upkeep: 180, repair: 6000,
+     combat: {role: aircraft, load: 12}}
+  - {code: drone,           name: Combat drones,         branch: air,         items: [attack_drone],        upkeep: 20,  repair: 600,
+     combat: {role: aircraft, load: 1}}
+  - {code: transport,       name: Transport aircraft,    branch: air,         items: [airlifter],           upkeep: 70,  repair: 2500}
+  - {code: bomb,            name: Guided bombs,          branch: air,         items: [guided_bomb],         upkeep: 2,
+     combat: {role: munition}}
+  - {code: tank,            name: Main battle tanks,     branch: ground,      items: [main_battle_tank],    upkeep: 35,  repair: 1200,
+     combat: {role: ground}}
+  - {code: ifv,             name: Infantry fighting vehicles, branch: ground, items: [ifv],                 upkeep: 15,  repair: 500,
+     combat: {role: ground}}
+  - {code: artillery,       name: Artillery,             branch: ground,      items: [sp_artillery],        upkeep: 25,  repair: 800,
+     combat: {role: artillery}}
+  - {code: ballistic,       name: Ballistic missiles,    branch: ground,      items: [ballistic_missile],   upkeep: 10,
+     combat: {role: missile, ballistic: true, evasion_bps: 3000, defaults: {rcs: 100}}}
+  - {code: cruise,          name: Cruise missiles,       branch: air,         items: [cruise_missile],      upkeep: 6,
+     combat: {role: missile, low_level: true, evasion_bps: 1000}}
   - {code: anti_ship,       name: Anti-ship missiles,    branch: navy,        items: [anti_ship_missile],   upkeep: 8}
-  - {code: frigate,         name: Frigates,              branch: navy,        items: [frigate],             upkeep: 270}
-  - {code: submarine,       name: Submarines,            branch: navy,        items: [attack_submarine],    upkeep: 330}
-  - {code: radar,           name: Early-warning radars,  branch: air_defence, items: [early_warning_radar], upkeep: 30}
-  - {code: sam_short,       name: Short-range air defence,  branch: air_defence, items: [short_range_sam],  upkeep: 15}
-  - {code: sam_medium,      name: Medium-range air defence, branch: air_defence, items: [medium_range_sam], upkeep: 35}
-  - {code: sam_long,        name: Long-range air defence,   branch: air_defence, items: [long_range_sam],   upkeep: 90}
+  - {code: frigate,         name: Frigates,              branch: navy,        items: [frigate],             upkeep: 270, repair: 9000}
+  - {code: submarine,       name: Submarines,            branch: navy,        items: [attack_submarine],    upkeep: 330, repair: 11000}
+  - {code: radar,           name: Early-warning radars,  branch: air_defence, items: [early_warning_radar], upkeep: 30,  repair: 1000,
+     combat: {role: radar}}
+  - {code: sam_short,       name: Short-range air defence,  branch: air_defence, items: [short_range_sam],  upkeep: 15, repair: 500,
+     combat: {role: sam, rounds: 4}}
+  - {code: sam_medium,      name: Medium-range air defence, branch: air_defence, items: [medium_range_sam], upkeep: 35, repair: 1200,
+     combat: {role: sam, rounds: 4, ballistic: true}}
+  - {code: sam_long,        name: Long-range air defence,   branch: air_defence, items: [long_range_sam],   upkeep: 90, repair: 3000,
+     combat: {role: sam, rounds: 4, ballistic: true}}
 
 military_clearance: [president, defence_minister, chief_of_general_staff, ground_forces_commander,
                      air_force_commander, navy_commander, air_defence_commander]
@@ -78,3 +116,68 @@ strength_bands:
   - {code: unit,  up_to: 12}
   - {code: force, up_to: 40}
   - {code: large}
+
+# ---------------------------------------------------------------------------
+# war — how wars are fought (docs/adr/0022-military-and-diplomacy.md, part two;
+# rules in internal/domain/war). Who declares, joins, proposes a ceasefire or
+# a peace is the action country.war (governance.yml); who launches an
+# operation is the command of the branch whose equipment flies or drives.
+# Declaration notice, proposal expiry: config war (REAL time, promises).
+#
+#   grounds      the reasons a declaration may give (Hague Convention III,
+#                1907: a declaration of war, giving reasons). Their words
+#                are war.ground.<code>.
+#   operations   the three kinds the code resolves — air (aircraft and their
+#                munitions), missile (a salvo), ground (an assault) — and
+#                `prepare`: launch to strike, GAME time.
+#   doctrine     every air and missile engagement: reaction_seconds is one
+#                shoot-look-shoot cycle, shots_per_target the interceptors in
+#                one cycle at one threat, pk_floor/ceiling bound every
+#                single-shot chance, horizon_km is how far a low-flying
+#                missile is seen, cue_bps how much of the early-warning
+#                network's range a battery may engage from, air_to_air_km and
+#                air_to_air_pk_bps the fighters' missiles.
+#   ground       the assault: rounds of fire, the defender's multiplier on
+#                its hit chance (prepared positions), the chance of a unit
+#                without fire control, the chance bounds, how many holding
+#                units taking a city needs, and how far by road (km) a
+#                garrison's ground forces reach.
+#   militia      what defends a city besides the army: its police and
+#                reservists, fewer the more the city is damaged.
+#   city         a strike's firepower that would ruin a city (structure), the
+#                most damage a city takes (bps), what heals per GAME hour,
+#                how much of its people's spending full damage takes, and how
+#                long after a strike journeys into it are refused.
+#   defence_hit_destroys_bps  a hit on an air defence asset destroys it with
+#                this chance and otherwise damages it.
+#   damage_bands how a strike's damage is told in public (war.damage.<code>).
+#   economy      close_border shuts journeys between countries at war; a city
+#                of a country at war demands arms_demand_bps of its usual
+#                arms_category.
+#   occupation   the city offices emptied when a city changes hands, and the
+#                office its conqueror holds.
+#   preview_samples  how many dice a commander's estimate is averaged over.
+
+war:
+  grounds: [aggression, self_defence, territorial_claim, protection_of_nationals, retaliation]
+  operations:
+    - {code: air,     prepare: 1h}
+    - {code: missile, prepare: 20m}
+    - {code: ground,  prepare: 6h}
+  doctrine: {reaction_seconds: 45, shots_per_target: 2, pk_floor_bps: 500, pk_ceiling_bps: 9500,
+             horizon_km: 40, cue_bps: 5000, air_to_air_km: 100, air_to_air_pk_bps: 6000}
+  ground: {rounds: 3, defender_advantage_bps: 15000, base_hit_bps: 5000, hit_floor_bps: 500,
+           hit_ceiling_bps: 9500, hold_min: 2, reach_km: 650}
+  militia: {units: 3, firepower: 200, armour: 150, quality: 45}
+  city: {structure: 20000, max_damage_bps: 9000, recovery_bps_per_hour: 50, wealth_loss_bps: 8000, closed_for: 6h}
+  defence_hit_destroys_bps: 6000
+  damage_bands:
+    - {code: light,       up_to: 1500}
+    - {code: moderate,    up_to: 4000}
+    - {code: heavy,       up_to: 7000}
+    - {code: devastating}
+  economy: {close_border: true, arms_category: defence, arms_demand_bps: 20000}
+  occupation:
+    vacate: [mayor, deputy_mayor, police_chief, deputy_police_chief, city_council]
+    governor: military_governor
+  preview_samples: 12

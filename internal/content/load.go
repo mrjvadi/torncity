@@ -100,6 +100,7 @@ type file struct {
 	StrengthBands     []StrengthBandDef `yaml:"strength_bands"`
 	TreatyTypes       []TreatyTypeDef   `yaml:"treaty_types"`
 	SanctionGrounds   []string          `yaml:"sanction_grounds"`
+	War               *WarDef           `yaml:"war"`
 }
 
 // Load reads every content file in dir and returns them as one pack.
@@ -204,6 +205,9 @@ func Load(dir string) (*Pack, error) {
 		pack.StrengthBands = append(pack.StrengthBands, doc.StrengthBands...)
 		pack.TreatyTypes = append(pack.TreatyTypes, doc.TreatyTypes...)
 		pack.SanctionGrounds = append(pack.SanctionGrounds, doc.SanctionGrounds...)
+		if doc.War != nil {
+			pack.War = append(pack.War, *doc.War)
+		}
 	}
 
 	pack.Checksum = hex.EncodeToString(digest.Sum(nil))

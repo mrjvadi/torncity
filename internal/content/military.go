@@ -73,6 +73,12 @@ type ForceClassDef struct {
 	Items  []string `yaml:"items" json:"items"`
 	// Upkeep is what one piece costs each defence period, minor units.
 	Upkeep int64 `yaml:"upkeep" json:"upkeep"`
+	// Repair is what putting one damaged piece back in service costs, paid
+	// from the defence fund at a defence period (war.go).
+	Repair int64 `yaml:"repair,omitempty" json:"repair,omitempty"`
+	// Combat is the class's part in a battle; nil for a class that does
+	// not fight (war.go).
+	Combat *CombatDef `yaml:"combat,omitempty" json:"combat,omitempty"`
 }
 
 // Class converts the definition.
@@ -177,7 +183,7 @@ func (p *Pack) validateMilitary(problems *[]error) {
 	}
 	for code := range actions {
 		switch code {
-		case ActionProcure, ActionSanction, ActionTreaty:
+		case ActionProcure, ActionSanction, ActionTreaty, ActionWar:
 		default:
 			if !commands[code] {
 				bad("action %q is implemented by nothing: not procure, sanction, treaty or a branch's command", code)

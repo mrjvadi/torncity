@@ -309,14 +309,14 @@ func TestStealthFighterProcuredStationedAndKept(t *testing.T) {
 	resp, err = appoint.Seat(ctx, metaAs(president, "gov.seat"), handlers.AppointRequest{Office: "chief_of_general_staff",
 		Place: homeCountryCode, To: minister.PublicCode})
 	said(t, "the minister as chief too", resp, err, "gov.refusal.incompatible")
-	for who, office := range map[*application.Player]string{president: "chief_of_general_staff", chief: "air_force_commander"} {
-		appointee := chief
-		if office == "air_force_commander" {
-			appointee = commander
-		}
-		resp, err = appoint.Seat(ctx, metaAs(who, "gov.seat"), handlers.AppointRequest{Office: office, Place: homeCountryCode,
-			To: appointee.PublicCode})
-		said(t, "appoint "+office, resp, err, "gov.appoint.done")
+	// In order: the chief must hold the seat before appointing a commander.
+	for _, a := range []struct {
+		who, appointee *application.Player
+		office         string
+	}{{president, chief, "chief_of_general_staff"}, {chief, commander, "air_force_commander"}} {
+		resp, err = appoint.Seat(ctx, metaAs(a.who, "gov.seat"), handlers.AppointRequest{Office: a.office, Place: homeCountryCode,
+			To: a.appointee.PublicCode})
+		said(t, "appoint "+a.office, resp, err, "gov.appoint.done")
 	}
 	if holder(t, pool, "chief_of_general_staff", home) != chief.ID || holder(t, pool, "air_force_commander", home) != commander.ID {
 		t.Fatal("the chief or the commander was not seated")

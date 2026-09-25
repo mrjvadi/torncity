@@ -110,6 +110,11 @@ const (
 	// ItemProcured is a change of hands: arms a state bought from a
 	// company's listing (migration 0021).
 	ItemProcured ItemReason = "procured"
+
+	// War (migration 0022). Ends: a piece destroyed in battle, and a
+	// munition or missile spent on a strike.
+	ItemDestroyed ItemReason = "destroyed"
+	ItemExpended  ItemReason = "expended"
 )
 
 var itemReasons = map[ItemReason]bool{
@@ -120,7 +125,8 @@ var itemReasons = map[ItemReason]bool{
 	ItemAuctionEscrow: true, ItemAuctionReturn: true, ItemAuctionSold: true,
 	ItemProduced: true, ItemSupplied: true, ItemProductionInput: true, ItemReverseSample: true, ItemNPCSale: true,
 	ItemListingEscrow: true, ItemListingRelease: true, ItemCompanySale: true,
-	ItemProcured: true,
+	ItemProcured:  true,
+	ItemDestroyed: true, ItemExpended: true,
 }
 
 // Known reports whether r is in the closed set.

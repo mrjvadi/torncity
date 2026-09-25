@@ -148,6 +148,11 @@ type Tx interface {
 	// moved for it; see ports_military.go.
 	Military() MilitaryRepository
 	Diplomacy() DiplomacyRepository
+
+	// War holds wars, their operations, the damage and occupation of
+	// cities, so each changes with the equipment and money that moved for
+	// it; see ports_war.go.
+	War() WarRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

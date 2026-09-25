@@ -36,6 +36,18 @@ const (
 const (
 	AssetStationed = "stationed"
 	AssetMoving    = "moving"
+	// AssetCommitted is a piece in an operation (migration 0022);
+	// AssetDestroyed one lost in battle and AssetExpended a munition or
+	// missile spent: both stay as the record, out of service.
+	AssetCommitted = "committed"
+	AssetDestroyed = "destroyed"
+	AssetExpended  = "expended"
+)
+
+// An asset's condition: ready to fight, or damaged until repaired.
+const (
+	AssetReady   = "ready"
+	AssetDamaged = "damaged"
 )
 
 // MilitaryClock is a military_clocks row: a country's running defence period
@@ -64,6 +76,11 @@ type MilitaryPeriod struct {
 	UpkeepPaid    int64
 	Pieces        int64
 	ReadinessBPS  int64
+	// The war economy (migration 0022): what the cities paid the defence
+	// fund for the war, and what repairs cost and how many were done.
+	WarLevy  int64
+	Repairs  int64
+	Repaired int64
 }
 
 // Procurement is one procurements row.
@@ -97,6 +114,10 @@ type MilitaryAsset struct {
 	ProcurementID  string
 	AcquiredAt     time.Time
 	UpdatedAt      time.Time
+	// Condition is AssetReady or AssetDamaged; OperationID the operation
+	// it is committed to or was lost in.
+	Condition   string
+	OperationID string
 	// From the piece: its good, design, serial and quality.
 	Item     string
 	DesignID string

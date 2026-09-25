@@ -294,6 +294,21 @@ var all = []Subscription{
 	{Domain: "diplomacy", Action: "answer", Origin: FromPlayer},
 	{Domain: "diplomacy", Action: "end", Origin: FromPlayer},
 	{Domain: "diplomacy", Action: "history", Origin: FromPlayer},
+
+	// War (docs/adr/0022, part two): the war board; declaring, joining,
+	// proposing and answering a ceasefire or a peace, resuming; the war room,
+	// a target, launching an operation. Only the scheduler sends war.resolve,
+	// when an operation reaches its target.
+	{Domain: "war", Action: "board", Origin: FromPlayer},
+	{Domain: "war", Action: "declare", Origin: FromPlayer},
+	{Domain: "war", Action: "join", Origin: FromPlayer},
+	{Domain: "war", Action: "propose", Origin: FromPlayer},
+	{Domain: "war", Action: "answer", Origin: FromPlayer},
+	{Domain: "war", Action: "resume", Origin: FromPlayer},
+	{Domain: "war", Action: "room", Origin: FromPlayer},
+	{Domain: "war", Action: "target", Origin: FromPlayer},
+	{Domain: "war", Action: "launch", Origin: FromPlayer},
+	{Domain: "war", Action: "resolve", Origin: FromScheduler},
 }
 
 // All returns every subscription. The slice is a copy.

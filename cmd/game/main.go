@@ -340,6 +340,11 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		cfg.Game.IdempotencyTTL, nil)
 	h.appointments = handlers.NewAppointmentHandler(uow, uuidGenerator{}, messages,
 		postgres.NewPlayerSearchRepository(pool), cfg.Game.IdempotencyTTL, nil)
+	// War (docs/adr/0022, part two): battles are content and the domain's
+	// dice; who declares and who launches are offices.
+	h.war = handlers.NewWarHandler(uow, uuidGenerator{}, messages, registry, cities,
+		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), warRules(cfg.War),
+		cfg.Game.IdempotencyTTL, nil)
 	// Every country's defence clock runs from the start; a country a later
 	// content load adds starts its clock the first time its ministry is
 	// opened, or at the next start.

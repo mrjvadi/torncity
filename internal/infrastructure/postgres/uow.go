@@ -208,3 +208,6 @@ func (t *tx) Military() application.MilitaryRepository { return &MilitaryReposit
 
 // Diplomacy returns sanctions and treaties (migration 0021).
 func (t *tx) Diplomacy() application.DiplomacyRepository { return &DiplomacyRepository{q: t.q} }
+
+// War returns wars (migration 0022).
+func (t *tx) War() application.WarRepository { return &WarRepository{q: t.q} }

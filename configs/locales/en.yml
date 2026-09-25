@@ -449,6 +449,7 @@ office:
   navy_commander: "Commander of the navy"
   air_defence_commander: "Commander of air defence"
   foreign_minister: "Foreign minister"
+  military_governor: "Military governor"
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
 lever:
@@ -476,6 +477,7 @@ lever:
     revenue_share: "National share of city revenue"
     defence_budget: "Defence budget (share of national revenue)"
     arms_exports: "Arms export policy"
+    war_levy: "War levy (share of the cities' revenue in wartime)"
 
 # Names of places above a city, keyed on the jurisdiction's content code.
 # Cities are named under city.* above.
@@ -1120,6 +1122,7 @@ command_alias:
   army: "army | defence"
   sanctions: "sanctions | sanction"
   treaties: "treaties | treaty"
+  war: "war | wars"
 
 # Where a command runs (configs/commands.yml).
 channel:
@@ -1280,6 +1283,7 @@ item_name:
   ballistic_missile: "Ballistic missile"
   cruise_missile: "Cruise missile"
   anti_ship_missile: "Anti-ship missile"
+  guided_bomb: "Guided bomb"
   frigate: "Frigate"
   attack_submarine: "Attack submarine"
 
@@ -2181,6 +2185,8 @@ military:
     sam_short: "Short-range air defence"
     sam_medium: "Medium-range air defence"
     sam_long: "Long-range air defence"
+    bomb: "Guided bombs"
+    all: "ground units"
   band:
     few: "a few"
     unit: "a unit"
@@ -2224,6 +2230,8 @@ military:
     garrison: "  📍 {city}: {count}"
     depot: "  📦 In depot, not stationed: {count}"
     moving: "  🚚 On the move: {count}"
+    committed: "  ⚔️ In an operation: {count}"
+    damaged: "  🔧 Damaged, awaiting repair: {count}"
     moves: "On the move:"
     move: "• {count} × {good} to {city} - {left} left, arriving at {at}"
   station:
@@ -2258,6 +2266,7 @@ military:
     offer: "🛒 {good} - {price}"
     confirm_buy: "✅ Buy"
     ministry: "🎖 Defence and diplomacy of {country}"
+    war: "⚔️ War"
   unit:
     rcs: "{value} m²"
     km: "{value} km"
@@ -2397,3 +2406,189 @@ diplomacy:
   answer:
     active: "🤝 Treaty signed: it binds from now on."
     declined: "✖️ The proposal was declined."
+
+# War (docs/adr/0022-military-and-diplomacy.md, part two;
+# internal/telegram/screens/war.go). In public a strike is told in bands;
+# exact figures reach only the commander and the defender's head of state.
+war:
+  ground:
+    aggression: "repelling aggression"
+    self_defence: "self-defence"
+    territorial_claim: "a territorial claim"
+    protection_of_nationals: "the protection of nationals"
+    retaliation: "retaliation"
+  damage:
+    light: "light damage"
+    moderate: "moderate damage"
+    heavy: "heavy damage"
+    devastating: "devastation"
+  op:
+    air: "Air strike"
+    missile: "Missile strike"
+    ground: "Ground assault"
+  objective:
+    city: "the city's infrastructure"
+    defences: "the city's air defences"
+    take: "taking the city"
+  proposal:
+    ceasefire: "a ceasefire"
+    peace: "peace"
+  chance:
+    likely: "high"
+    even: "even"
+    unlikely: "low"
+  band_none: "none"
+  board:
+    title: "⚔️ Wars of {country}"
+    peace: "🕊 This country is at peace."
+    war_declared: "📜 War no. {no}: {attacker} against {defender}, on grounds of {ground}\n  ⏳ Declared; fighting begins in {in}, at {at}."
+    war_active: "🔥 War no. {no}: {attacker} against {defender}, on grounds of {ground}\n  Fighting for {since}."
+    war_ceasefire: "🏳️ War no. {no}: {attacker} against {defender}\n  A ceasefire has held for {since}."
+    war_ended: "🕊 War no. {no}: {attacker} against {defender}\n  Ended in peace {since} ago."
+    broke: "  💔 The declaration broke the treaties between the two."
+    allies: "  🤝 Beside {side}: {allies}"
+    proposal_in: "  📨 {country} offers {kind} (no. {no}) - answer within {in}"
+    proposal_out: "  📤 We offered {country} {kind} (no. {no}) - {in} left to answer"
+    joinable: "🛡 Allies under attack:"
+    join_line: "• {enemy} has declared war on {ally} (war no. {no}). Our military alliance calls us to its defence."
+    occupied: "🏴 Occupied cities:"
+    occupied_line: "• {city} of {country} - held by {controller} for {since}"
+    damaged: "💥 Damaged cities:"
+    damaged_line: "• {city}: {band}"
+    closed: " - closed to arrivals for {in}"
+    operations: "📋 Latest operations:"
+    op_pending: "• ⏳ {op} by {country} on {city} - in {in}"
+    op_called_off: "• ✖️ {op} by {country} on {city} called off"
+    op_captured: "• 🏴 {op} by {country}: {city} taken - {ago} ago"
+    op_done: "• {op} by {country} on {city} ({objective}) - {ago} ago"
+    op_damage: " - {damage}"
+    op_losses: " - attacker's losses: {lost}, defender's: {enemy_lost}"
+    footer: "The president declares war, ceasefires and peace; the commanders of the forces run operations. War touches only equipment and the economy: no player is ever killed. The exact figures of every operation are a military secret."
+  declare:
+    title: "📜 A declaration of war by {country}"
+    choose_target: "On which country do you declare war?"
+    no_targets: "There is no country left we are not at war with."
+    choose_ground: "On what grounds is war declared on {target}? The public declaration gives them."
+    confirm: "Declare war on {target} on grounds of {ground}?\nIt is announced now in both countries' groups and fighting begins in {in}; no operation is possible before."
+    breaks: "💔 The {kind} between the two is broken by this declaration."
+    allies: "🛡 The other side's allies ({allies}) are told, and each decides for itself whether to join."
+    done: "📜 War is declared on {target}. Fighting begins in {in}."
+  decide:
+    join: "Join war no. {no} beside {ally}, against {other}? We are a party from this moment."
+    ceasefire: "Offer {other} a ceasefire in war no. {no}? If accepted, every operation stops. They have {ttl} to answer."
+    peace: "Offer {other} peace in war no. {no}? If accepted, the war ends. They have {ttl} to answer."
+    resume: "End the ceasefire of war no. {no} with {other}? It is announced now and fighting resumes in {in}."
+  join:
+    done: "🛡 We have joined the war beside {ally}."
+  propose:
+    done: "📤 Our offer of {kind} has gone to {other}."
+  resume:
+    done: "🔥 The ceasefire is over; fighting resumes in {in}."
+  answer:
+    declined: "✖️ The offer was declined."
+    ceasefire: "🏳️ The ceasefire is accepted and holds from now."
+    peace: "🕊 Peace is accepted and the war is over."
+  room:
+    title: "🗺 War room of {country}"
+    targets: "Enemy cities:"
+    no_targets: "We are at war with no country now."
+    target: "• {city} ({country}) - {km} km from our nearest garrison"
+    target_damage: " - {damage}"
+    running: "⏳ Operations under way:"
+    footer: "Pick a target to see which forces reach it. An aircraft's range counts there and back, a missile's one way."
+  target:
+    title: "🎯 {city} ({country})"
+    damage: "💥 State: {damage}"
+    occupied: "🏴 This city is territory of {country}, under occupation."
+    options: "Forces in reach of this target:"
+    none: "None of our forces stationed in reach of this target. Move them to a nearer garrison."
+    option: "• {op}: {count} {class} at {from} ({km} km)"
+    option_munitions: " - {munitions} bombs in the base's store"
+    option_office: " - commanded by the {office}"
+    footer: "To take the city its air defences must be out of action and our ground forces must hold it."
+  launch:
+    title: "🎯 {op} on {city}"
+    choose_objective: "What is the objective? Hitting the air defences opens the way for later strikes and for taking the city; hitting the infrastructure cripples its economy."
+    choose_qty: "How many {class} from {from}? {ready} are ready."
+    confirm_air: "Fly {count} {class} from {from} against {objective}? They reach the target in {time}."
+    confirm_missile: "Fire {count} {class} from {from} at {objective}? They reach the target in {time}, and every missile is spent, intercepted or not."
+    confirm_ground: "Send all {ready} ready ground units of {from} against {city}? Battle begins in {time}."
+    munitions: "💣 {munitions} bombs are loaded from the base's store."
+    estimate: "🧭 Staff estimate:"
+    chance_air: "  Chance of reaching the target: {chance}"
+    chance_missile: "  Chance of reaching the target: {chance}"
+    chance_ground: "  Chance of taking the city: {chance}"
+    losses: "  Our likely losses: {lost}"
+    damage_city: "  Likely damage to the city: {damage}"
+    damage_defences: "  Likely damage to the air defences: {damage}"
+    estimate_note: "  This is the staff's estimate from its intelligence, not a certain outcome."
+    done: "🚀 {op} on {city} is under way; it reaches the target in {time}."
+  report:
+    title_attacker: "📋 Report of operation no. {no}: our {op} on {city} ({target})"
+    title_defender: "📋 Report of operation no. {no}: {op} by {country} on {city}"
+    called_off: "✖️ The operation was called off: the war is no longer fought or the city changed hands. The forces are back at their garrison and nothing was spent."
+    committed: "Objective: {objective} - {committed} {class} committed."
+    seen_at: "📡 The defence first saw the attackers {km} km out."
+    unseen: "📡 The defence never saw the attackers."
+    fired: "🚀 {fired} interceptors were fired."
+    losses: "Attacker: {lost} destroyed, {damaged} damaged."
+    enemy_losses: "Defender: {enemy_lost} destroyed, {enemy_damaged} damaged."
+    hits: "💣 {munitions} bombs dropped, {hits} hits on the target."
+    intercepted: "🛡 {lost} missiles were intercepted."
+    missile_hits: "💥 {hits} missiles hit the target."
+    damage: "💥 Damage to the city: {damage} ({band})."
+    liberated: "🏳️ {city} is liberated and back with its country."
+    captured: "🏴 {city} is taken."
+    held: "🛡 The defenders held the city."
+    secret: "🔒 This report is a military secret, sent only to the commanders and the head of state."
+  notice:
+    ally: "🛡 {other} has declared war on our ally {ally} (war no. {no}). Our military alliance calls us to its defence; the decision is yours."
+    proposal: "📨 {other} offers {kind} (no. {pno}). Answer within {in}."
+    struck: "💥 {city}, where you are now, was struck by {other}: {band}. You are free to leave."
+  refused:
+    not_holder: "Only the {office} of {country} can do that."
+    no_country: "You live in no country yet. Settle in a city first."
+    not_found: "There is no such war, offer or city."
+    self: "A country cannot go to war with itself."
+    at_war: "These two countries are at war already."
+    state: "That is not possible in the war as it stands."
+    not_enemy: "This city belongs to no country we are at war with."
+    not_yet: "The war has not begun yet: {in} to go."
+    no_forces: "We have no ready forces of that class in reach of this target."
+    no_munitions: "There are no bombs in this base's store. Buy bombs and station them at this base before an air strike."
+    open: "An offer of that kind is still waiting for an answer."
+    no_ally: "Our country has no military alliance with either side of this war."
+    stock: "Only {max} are ready."
+    not_cleared: "The war room is open only to the holders of the country's defence offices."
+  blocked:
+    border: "⛔ The border between {from} and {to} is closed by war."
+    city: "⛔ {city} was struck lately and is closed to arrivals for {in}."
+  announce:
+    declared: "📜 {attacker} has declared war on {defender}, on grounds of {ground}. Fighting begins in {in}."
+    broke: " The declaration broke the treaties between the two."
+    joined: "🛡 {ally} has joined the war beside {beside}, against {enemy}."
+    ceasefire: "🏳️ {a} and {b} have agreed a ceasefire."
+    peace: "🕊 {a} and {b} have made peace; the war is over."
+    resumed: "🔥 {a} has ended the ceasefire with {b}. Fighting resumes in {in}."
+    strike_city: "💥 {op} by {attacker} on {city}: {damage}."
+    strike_defences: "💥 {op} by {attacker} on the air defences of {city}."
+    strike_repelled: "🛡 The defences of {target} repelled the {op} by {attacker} on {city}."
+    strike_held: "🛡 {target} repelled the ground assault by {attacker} on {city}."
+    captured: "🏴 {by} has taken {city} from {from}. Its residents stay in their homes and may leave whenever they wish."
+    liberated: "🏳️ {by} has liberated {city} from the occupation of {from}."
+  button:
+    accept: "✅ Accept {kind} no. {no}"
+    decline: "✖️ Decline {kind} no. {no}"
+    ceasefire: "🏳️ Offer a ceasefire (war {no})"
+    peace: "🕊 Offer peace (war {no})"
+    resume: "🔥 End the ceasefire (war {no})"
+    join: "🛡 Join war {no}"
+    room: "🗺 War room"
+    declare: "📜 Declare war"
+    confirm_declare: "📜 Declare"
+    confirm_join: "✅ Join the war"
+    confirm_resume: "🔥 End the ceasefire"
+    confirm_propose: "✅ Make the offer"
+    target: "🎯 {city}"
+    launch: "🚀 {op} with {class}"
+    confirm_launch: "🚀 Launch"

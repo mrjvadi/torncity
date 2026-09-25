@@ -72,10 +72,10 @@ func (r *MilitaryRepository) SaveClock(ctx context.Context, c application.Milita
 func (r *MilitaryRepository) RecordPeriod(ctx context.Context, p application.MilitaryPeriod) error {
 	_, err := r.q.Exec(ctx,
 		`INSERT INTO military_periods (country_id, period_no, started_at, ended_at, revenue, levy, appropriation,
-		        upkeep_due, upkeep_paid, pieces, readiness_bps)
-		 VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+		        upkeep_due, upkeep_paid, pieces, readiness_bps, war_levy, repairs, repaired)
+		 VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
 		p.CountryID, p.PeriodNo, p.StartedAt.UTC(), p.EndedAt.UTC(), p.Revenue, p.Levy, p.Appropriation,
-		p.UpkeepDue, p.UpkeepPaid, p.Pieces, p.ReadinessBPS)
+		p.UpkeepDue, p.UpkeepPaid, p.Pieces, p.ReadinessBPS, p.WarLevy, p.Repairs, p.Repaired)
 	if violates(err, sqlstateUniqueViolation, "military_periods_pkey") {
 		return application.ErrPeriodSettled
 	}
@@ -92,7 +92,7 @@ func (r *MilitaryRepository) Periods(ctx context.Context, countryID string, limi
 	}
 	rows, err := r.q.Query(ctx,
 		`SELECT country_id::text, period_no, started_at, ended_at, revenue, levy, appropriation, upkeep_due,
-		        upkeep_paid, pieces, readiness_bps
+		        upkeep_paid, pieces, readiness_bps, war_levy, repairs, repaired
 		   FROM military_periods WHERE country_id = $1::uuid ORDER BY period_no DESC LIMIT $2`, countryID, limit)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: reading defence periods: %w", err)
@@ -102,7 +102,7 @@ func (r *MilitaryRepository) Periods(ctx context.Context, countryID string, limi
 	for rows.Next() {
 		var p application.MilitaryPeriod
 		if err := rows.Scan(&p.CountryID, &p.PeriodNo, &p.StartedAt, &p.EndedAt, &p.Revenue, &p.Levy, &p.Appropriation,
-			&p.UpkeepDue, &p.UpkeepPaid, &p.Pieces, &p.ReadinessBPS); err != nil {
+			&p.UpkeepDue, &p.UpkeepPaid, &p.Pieces, &p.ReadinessBPS, &p.WarLevy, &p.Repairs, &p.Repaired); err != nil {
 			return nil, fmt.Errorf("postgres: scanning a defence period: %w", err)
 		}
 		p.StartedAt, p.EndedAt = p.StartedAt.UTC(), p.EndedAt.UTC()
@@ -201,43 +201,61 @@ func (r *MilitaryRepository) AddAsset(ctx context.Context, a application.Militar
 	if a.GarrisonCityID != "" {
 		garrison = a.GarrisonCityID
 	}
+	var procurement any
+	if a.ProcurementID != "" {
+		procurement = a.ProcurementID
+	}
 	if _, err := r.q.Exec(ctx,
 		`INSERT INTO military_assets (piece_id, country_id, branch, class_code, status, garrison_city_id, procurement_id,
 		        acquired_at, updated_at)
 		 VALUES ($1::uuid, $2::uuid, $3, $4, 'stationed', $5::uuid, $6::uuid, $7, $7)`,
-		a.PieceID, a.CountryID, a.Branch, a.ClassCode, garrison, a.ProcurementID, a.AcquiredAt.UTC()); err != nil {
+		a.PieceID, a.CountryID, a.Branch, a.ClassCode, garrison, procurement, a.AcquiredAt.UTC()); err != nil {
 		return fmt.Errorf("postgres: recording a military asset: %w", err)
 	}
 	return nil
 }
 
-// Assets lists a country's pieces with what each is.
-func (r *MilitaryRepository) Assets(ctx context.Context, countryID string) ([]application.MilitaryAsset, error) {
-	if !validUUID(countryID) {
-		return nil, nil
-	}
-	rows, err := r.q.Query(ctx,
-		`SELECT a.piece_id::text, a.country_id::text, a.branch, a.class_code, a.status,
-		        COALESCE(a.garrison_city_id::text, ''), COALESCE(a.move_id::text, ''), a.procurement_id::text,
-		        a.acquired_at, a.updated_at, p.item_code, COALESCE(p.design_id::text, ''), p.serial, p.quality
-		   FROM military_assets a JOIN item_pieces p ON p.id = a.piece_id
-		  WHERE a.country_id = $1::uuid
-		  ORDER BY a.class_code, p.item_code, p.design_id NULLS FIRST, p.serial`, countryID)
-	if err != nil {
-		return nil, fmt.Errorf("postgres: reading military assets: %w", err)
-	}
+// assetColumns are what scanAsset reads of military_assets a joined to
+// item_pieces p.
+const assetColumns = `a.piece_id::text, a.country_id::text, a.branch, a.class_code, a.status,
+		        COALESCE(a.garrison_city_id::text, ''), COALESCE(a.move_id::text, ''), COALESCE(a.procurement_id::text, ''),
+		        a.acquired_at, a.updated_at, p.item_code, COALESCE(p.design_id::text, ''), p.serial, p.quality,
+		        a.condition, COALESCE(a.operation_id::text, '')`
+
+// assetsInService is the condition of a piece still in the state's hands:
+// not destroyed, not spent.
+const assetsInService = `a.status NOT IN ('destroyed', 'expended')`
+
+func scanAssets(rows pgx.Rows) ([]application.MilitaryAsset, error) {
 	defer rows.Close()
 	var out []application.MilitaryAsset
 	for rows.Next() {
 		var a application.MilitaryAsset
 		if err := rows.Scan(&a.PieceID, &a.CountryID, &a.Branch, &a.ClassCode, &a.Status, &a.GarrisonCityID, &a.MoveID,
-			&a.ProcurementID, &a.AcquiredAt, &a.UpdatedAt, &a.Item, &a.DesignID, &a.Serial, &a.Quality); err != nil {
+			&a.ProcurementID, &a.AcquiredAt, &a.UpdatedAt, &a.Item, &a.DesignID, &a.Serial, &a.Quality,
+			&a.Condition, &a.OperationID); err != nil {
 			return nil, fmt.Errorf("postgres: scanning a military asset: %w", err)
 		}
 		a.AcquiredAt, a.UpdatedAt = a.AcquiredAt.UTC(), a.UpdatedAt.UTC()
 		out = append(out, a)
 	}
 	return out, rows.Err()
+}
+
+// Assets lists a country's pieces in service with what each is.
+func (r *MilitaryRepository) Assets(ctx context.Context, countryID string) ([]application.MilitaryAsset, error) {
+	if !validUUID(countryID) {
+		return nil, nil
+	}
+	rows, err := r.q.Query(ctx,
+		`SELECT `+assetColumns+`
+		   FROM military_assets a JOIN item_pieces p ON p.id = a.piece_id
+		  WHERE a.country_id = $1::uuid AND `+assetsInService+`
+		  ORDER BY a.class_code, p.item_code, p.design_id NULLS FIRST, p.serial`, countryID)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading military assets: %w", err)
+	}
+	return scanAssets(rows)
 }
 
 // CountByClass counts a country's pieces by class.
@@ -247,7 +265,8 @@ func (r *MilitaryRepository) CountByClass(ctx context.Context, countryID string)
 		return out, nil
 	}
 	rows, err := r.q.Query(ctx,
-		`SELECT class_code, count(*) FROM military_assets WHERE country_id = $1::uuid GROUP BY class_code`, countryID)
+		`SELECT class_code, count(*) FROM military_assets a WHERE country_id = $1::uuid AND `+assetsInService+`
+		  GROUP BY class_code`, countryID)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: counting military assets: %w", err)
 	}

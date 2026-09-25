@@ -230,6 +230,9 @@ var shortcuts = map[string]shortcut{
 	"army":      {Bare: "military.ministry", Words: "military.ministry"},
 	"sanctions": {Bare: "diplomacy.sanctions", Words: "diplomacy.sanctions"},
 	"treaties":  {Bare: "diplomacy.treaties", Words: "diplomacy.treaties"},
+	// "/war" is the war board of the player's country, "/war
+	// vantor_federation" another's.
+	"war": {Bare: "war.board", Words: "war.board"},
 }
 
 // argNames names the positional arguments of a command, in order.
@@ -443,6 +446,22 @@ var argNames = map[string][]string{
 	"diplomacy.answer":    {"no", "verdict"},
 	"diplomacy.end":       {"no", "confirm"},
 	"diplomacy.history":   {"country", "page"},
+
+	// War (docs/adr/0022, part two). A war is named by its public number, a
+	// proposal by its own; a target by its city's code; an operation by its
+	// kind (air, missile, ground), the class that goes (or «all» for an
+	// assault), the objective and how many. The country an operation is
+	// launched for is the player's own, which keeps every address inside
+	// Telegram's 64 bytes.
+	"war.board":   {"country"},
+	"war.declare": {"target", "ground", "confirm"},
+	"war.join":    {"no", "confirm"},
+	"war.propose": {"no", "kind", "confirm"},
+	"war.answer":  {"no", "verdict"},
+	"war.resume":  {"no", "confirm"},
+	"war.room":    {},
+	"war.target":  {"city"},
+	"war.launch":  {"city", "kind", "class", "objective", "qty", "confirm"},
 
 	// Appointments: an office by its code, the place by its code (a city's
 	// or a country's), the appointee by a player code or a username (typed),

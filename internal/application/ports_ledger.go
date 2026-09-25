@@ -262,6 +262,20 @@ const (
 	ReasonMilitaryUpkeep Reason = "military_upkeep"
 )
 
+// War (docs/adr/0022-military-and-diplomacy.md, part two). The war levy is a
+// transfer from a city's treasury straight to its country's defence fund;
+// repairing equipment damaged in battle pays the NPC economy and leaves (a
+// drain).
+const (
+	// ReasonWarLevy pays a city's war levy in a defence period
+	// (country.war_levy of its revenue, while its country is at war) from
+	// its treasury to the defence fund.
+	ReasonWarLevy Reason = "war_levy"
+	// ReasonMilitaryRepair pays for putting damaged equipment back in
+	// service, from the defence fund to system_sink.
+	ReasonMilitaryRepair Reason = "military_repair"
+)
+
 // knownReasons is the closed set. Adding a code means adding it here AND to
 // the table in ADR 0009, in the same change.
 var knownReasons = map[Reason]struct{}{
@@ -296,6 +310,8 @@ var knownReasons = map[Reason]struct{}{
 	ReasonResearch: {}, ReasonSupplierPurchase: {}, ReasonTechnologyLicense: {}, ReasonCompanySale: {},
 
 	ReasonNationalLevy: {}, ReasonDefenceAppropriation: {}, ReasonArmsProcurement: {}, ReasonMilitaryUpkeep: {},
+
+	ReasonWarLevy: {}, ReasonMilitaryRepair: {},
 }
 
 // Known reports whether r is in the closed set.

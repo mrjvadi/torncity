@@ -250,6 +250,7 @@ func (t *fakeTx) Items() application.ItemRepository { return t.items }
 func (t *fakeTx) Production() application.ProductionRepository { return nil }
 func (t *fakeTx) Military() application.MilitaryRepository     { return nil }
 func (t *fakeTx) Diplomacy() application.DiplomacyRepository   { return noDiplomacy{} }
+func (t *fakeTx) War() application.WarRepository               { return noWar{} }
 
 // The shops, the market and the auction house have no fakes: their handlers
 // are tested against PostgreSQL (tests/trade_integration_test.go).
@@ -305,4 +306,12 @@ func (noDiplomacy) TreatiesBetween(context.Context, string, string) ([]applicati
 func (noDiplomacy) RecordEvent(context.Context, application.DiplomacyEvent) error { return nil }
 func (noDiplomacy) Events(context.Context, string, int, int) ([]application.DiplomacyEvent, int, error) {
 	return nil, 0, nil
+}
+
+// noWar is a world at peace: no war, no damage, no occupation.
+type noWar struct{ application.WarRepository }
+
+func (noWar) Wars(context.Context, string, time.Time) ([]application.War, error) { return nil, nil }
+func (noWar) CityDamage(context.Context, string, bool) (*application.CityDamage, error) {
+	return nil, nil
 }

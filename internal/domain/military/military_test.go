@@ -153,3 +153,38 @@ func TestDetectionRangeFollowsTheFourthRoot(t *testing.T) {
 		}
 	}
 }
+
+func TestSettleLeviesTheWar(t *testing.T) {
+	out, err := Settle(Period{
+		Cities:          []CityRevenue{{CityID: "a", Revenue: 10_000, Balance: 50_000}, {CityID: "b", Revenue: 10_000, Balance: 1_500}},
+		RevenueShareBPS: 1000, DefenceBudgetBPS: 5000, WarLevyBPS: 1000, Fund: 0, UpkeepDue: 100, Readiness: 9000,
+		LossBPS: 1000, RecoveryBPS: 500,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// City b pays its 1000 levy and only the 500 its treasury still holds.
+	if out.WarLevy != 1500 || len(out.WarLevies) != 2 || out.WarLevies[1].Amount != 500 {
+		t.Fatalf("war levies = %+v, %d", out.WarLevies, out.WarLevy)
+	}
+	if out.Fund != 1000+1500-100 {
+		t.Errorf("fund after = %d, want the appropriation and the war levy less the upkeep", out.Fund)
+	}
+	peace, _ := Settle(Period{Cities: []CityRevenue{{CityID: "a", Revenue: 10_000, Balance: 50_000}}, RevenueShareBPS: 1000})
+	if peace.WarLevy != 0 || len(peace.WarLevies) != 0 {
+		t.Errorf("a war levy in peace: %+v", peace.WarLevies)
+	}
+}
+
+func TestRepairsPayInOrder(t *testing.T) {
+	n, total, err := Repairs([]int64{300, 500, 100}, 850)
+	if err != nil || n != 2 || total != 800 {
+		t.Fatalf("Repairs = %d, %d, %v; want the first two for 800", n, total, err)
+	}
+	if n, total, _ := Repairs([]int64{900}, 850); n != 0 || total != 0 {
+		t.Errorf("an unaffordable repair paid: %d, %d", n, total)
+	}
+	if _, _, err := Repairs([]int64{-1}, 10); !errors.Is(err, ErrInvalid) {
+		t.Errorf("a negative cost = %v", err)
+	}
+}

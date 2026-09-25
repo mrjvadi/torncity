@@ -34,6 +34,7 @@ The minister buys arms from defence companies with the defence fund, and the com
   ───
   [🪖 Armed forces] → military:forces:default_country   │   [🛒 Procurement] → military:procure:default_country
   [⛔ Sanctions] → diplomacy:sanctions:default_country   │   [🤝 Treaties] → diplomacy:treaties:default_country
+  [⚔️ War] → war:board:default_country
   [🔙 Back] → gov:city   │   [🔄 Refresh] → military:ministry:default_country
 
 ━━━ Ministry · as a group reads it ━━━
@@ -69,6 +70,7 @@ The minister buys arms from defence companies with the defence fund, and the com
   ───
   [🪖 Armed forces] → military:forces:default_country
   [⛔ Sanctions] → diplomacy:sanctions:default_country   │   [🤝 Treaties] → diplomacy:treaties:default_country
+  [⚔️ War] → war:board:default_country
   [🔙 Back] → gov:city   │   [🔄 Refresh] → military:ministry:default_country
 
 ━━━ Ministry · upkeep short, no forces yet ━━━
@@ -101,6 +103,7 @@ The minister buys arms from defence companies with the defence fund, and the com
   ───
   [🪖 Armed forces] → military:forces:default_country   │   [🛒 Procurement] → military:procure:default_country
   [⛔ Sanctions] → diplomacy:sanctions:default_country   │   [🤝 Treaties] → diplomacy:treaties:default_country
+  [⚔️ War] → war:board:default_country
   [🔙 Back] → gov:city   │   [🔄 Refresh] → military:ministry:default_country
 
 ━━━ Forces · public summary ━━━
@@ -167,6 +170,36 @@ How many of each is a state secret; what the world knows is only how large each 
   📡 A radar that finds a 1 m² target at 150 km finds this one at 224 km.
   📍 Ostmarch: 8
   📦 In depot, not stationed: 4
+
+On the move:
+• 1 × Simorgh 5 (Stealth fighter) to Brennhaven - 2m left, arriving at 14:37
+  ───
+  [📍 Station Simorgh 5 (Stealth fighter)] → military:station:default_country:d7
+  [📍 Station Falcon (Fighter jet)] → military:station:default_country:d4
+  [🔙 Back] → military:forces:default_country   │   [🔄 Refresh] → military:branch:default_country:air
+
+━━━ Branch · at war: pieces in an operation, pieces damaged ━━━
+(edits message 42)
+🪖 Air force of The Commonwealth
+
+▪️ Simorgh 5 (Stealth fighter) - 3 in service - quality 71
+  Radar cross-section: 0.005 m²
+  Top speed: 2,100 km/h
+  Range: 1,400 km
+  Payload: 4,000 kg
+  Detection range: 110 km
+  📡 A radar that finds a 1 m² target at 150 km finds this one at 39 km.
+  📍 Brennhaven: 2
+  🚚 On the move: 1
+
+▪️ Falcon (Fighter jet) - 12 in service - quality 58
+  Radar cross-section: 5 m²
+  Top speed: 2,100 km/h
+  📡 A radar that finds a 1 m² target at 150 km finds this one at 224 km.
+  📍 Ostmarch: 8
+  📦 In depot, not stationed: 4
+  ⚔️ In an operation: 4
+  🔧 Damaged, awaiting repair: 2
 
 On the move:
 • 1 × Simorgh 5 (Stealth fighter) to Brennhaven - 2m left, arriving at 14:37

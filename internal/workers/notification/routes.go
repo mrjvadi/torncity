@@ -121,6 +121,12 @@ func Routes() []Route {
 		{Domain: "governance", Event: "appointed", Render: renderOffice(false)},
 		{Domain: "governance", Event: "dismissed", Render: renderOffice(true)},
 
+		// War: see war.go.
+		{Domain: "war", Event: "report", Render: renderWarReport},
+		{Domain: "war", Event: "ally_called", Render: renderWarNotice("war.ally_called")},
+		{Domain: "war", Event: "proposed", Render: renderWarNotice("war.proposed")},
+		{Domain: "war", Event: "city_struck", Render: renderWarNotice("war.city_struck")},
+
 		// Public lines in a city's groups (announce.go). Each has its own
 		// consumer beside the event's private notice, if any.
 		{Domain: "travel", Event: "completed", Name: "announce", Announce: arrivalAnnouncement},
@@ -140,6 +146,11 @@ func Routes() []Route {
 		{Domain: "diplomacy", Event: "treaty_signed", Name: "announce", Announce: treatySignedAnnouncement},
 		{Domain: "diplomacy", Event: "treaty_terminated", Name: "announce", Announce: treatyEndedAnnouncement},
 		{Domain: "governance", Event: "appointed", Name: "announce", Announce: appointedAnnouncement},
+		{Domain: "war", Event: "declared", Name: "announce", Announce: warDeclaredAnnouncement},
+		{Domain: "war", Event: "joined", Name: "announce", Announce: warJoinedAnnouncement},
+		{Domain: "war", Event: "settled", Name: "announce", Announce: warSettledAnnouncement},
+		{Domain: "war", Event: "struck", Name: "announce", Announce: warStruckAnnouncement},
+		{Domain: "war", Event: "taken", Name: "announce", Announce: warTakenAnnouncement},
 	}
 }
 

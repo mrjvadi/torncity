@@ -64,6 +64,8 @@ type Snapshot struct {
 
 	// Military and diplomacy; see military.go.
 	military militaryContent
+	// war is military.yml's war section, nil without one; see war.go.
+	war *WarDef
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -130,6 +132,10 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	snap.buildCompanies(p)
 	snap.buildProduction(p)
 	snap.buildMilitary(p)
+	if len(p.War) > 0 {
+		w := p.War[0]
+		snap.war = &w
+	}
 
 	return snap, nil
 }

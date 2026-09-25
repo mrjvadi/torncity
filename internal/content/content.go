@@ -246,6 +246,8 @@ type Pack struct {
 	StrengthBands     []StrengthBandDef
 	TreatyTypes       []TreatyTypeDef
 	SanctionGrounds   []string
+	// War is military.yml's war section, at most one; see war.go.
+	War []WarDef
 
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"

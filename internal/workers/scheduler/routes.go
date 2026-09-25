@@ -92,6 +92,9 @@ const (
 	// and equipment reaching its garrison.
 	ActionTypeMilitaryPeriod = "military_period"
 	ActionTypeMilitaryMove   = "military_move"
+
+	// War (docs/adr/0022, part two): an operation reaching its target.
+	ActionTypeWarOperation = "war_operation"
 )
 
 // routes maps an action type to the command it is published as.
@@ -129,6 +132,8 @@ var routes = map[string]Route{
 
 	ActionTypeMilitaryPeriod: {Domain: "military", Action: "settle"},
 	ActionTypeMilitaryMove:   {Domain: "military", Action: "arrive"},
+
+	ActionTypeWarOperation: {Domain: "war", Action: "resolve"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

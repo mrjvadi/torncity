@@ -524,6 +524,7 @@ office:
   navy_commander: "فرمانده نیروی دریایی"
   air_defence_commander: "فرمانده پدافند هوایی"
   foreign_minister: "وزیر امور خارجه"
+  military_governor: "فرماندار نظامی"
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
 lever:
@@ -551,6 +552,7 @@ lever:
     revenue_share: "سهم ملی از درآمد شهرها"
     defence_budget: "بودجهٔ دفاعی (سهم از درآمد ملی)"
     arms_exports: "سیاست صادرات تسلیحات"
+    war_levy: "عوارض جنگ (سهم از درآمد شهرها در زمان جنگ)"
 
 # Names of places above a city, keyed on the jurisdiction's content code.
 # Cities are named under city.* above.
@@ -1214,6 +1216,7 @@ command_alias:
   army: "ارتش | دفاع"
   sanctions: "تحریم | تحریم‌ها"
   treaties: "پیمان | پیمان‌ها | معاهده"
+  war: "جنگ | نبرد"
 
 # Where a command runs (configs/commands.yml). Sent in the wrong kind of chat,
 # it is not run; the player reads one of these instead.
@@ -1381,6 +1384,7 @@ item_name:
   ballistic_missile: "موشک بالستیک"
   cruise_missile: "موشک کروز"
   anti_ship_missile: "موشک ضدکشتی"
+  guided_bomb: "بمب هدایت‌شونده"
   frigate: "ناوچه"
   attack_submarine: "زیردریایی تهاجمی"
 
@@ -2284,6 +2288,8 @@ military:
     sam_short: "پدافند کوتاه‌برد"
     sam_medium: "پدافند میان‌برد"
     sam_long: "پدافند دوربرد"
+    bomb: "بمب‌های هدایت‌شونده"
+    all: "یگان‌های زمینی"
   band:
     few: "معدودی"
     unit: "یک یگان"
@@ -2327,6 +2333,8 @@ military:
     garrison: "  📍 {city}: {count}"
     depot: "  📦 در انبار، مستقرنشده: {count}"
     moving: "  🚚 در راه: {count}"
+    committed: "  ⚔️ در عملیات: {count}"
+    damaged: "  🔧 آسیب‌دیده و در انتظار تعمیر: {count}"
     moves: "در راه:"
     move: "• {count} {good} به {city} - {left} مانده، رسیدن ساعت {at}"
   station:
@@ -2361,6 +2369,7 @@ military:
     offer: "🛒 {good} - {price}"
     confirm_buy: "✅ بخر"
     ministry: "🎖 دفاع و دیپلماسی {country}"
+    war: "⚔️ جنگ"
   unit:
     rcs: "{value} مترمربع"
     km: "{value} کیلومتر"
@@ -2500,3 +2509,189 @@ diplomacy:
   answer:
     active: "🤝 پیمان امضا شد و از همین حالا اجرا می‌شود."
     declined: "✖️ پیشنهاد رد شد."
+
+# War (docs/adr/0022-military-and-diplomacy.md, part two;
+# internal/telegram/screens/war.go). In public a strike is told in bands;
+# exact figures reach only the commander and the defender's head of state.
+war:
+  ground:
+    aggression: "دفع تجاوز"
+    self_defence: "دفاع مشروع"
+    territorial_claim: "ادعای ارضی"
+    protection_of_nationals: "حمایت از اتباع"
+    retaliation: "مقابله به مثل"
+  damage:
+    light: "خسارت سبک"
+    moderate: "خسارت متوسط"
+    heavy: "خسارت سنگین"
+    devastating: "ویرانی گسترده"
+  op:
+    air: "حملهٔ هوایی"
+    missile: "حملهٔ موشکی"
+    ground: "یورش زمینی"
+  objective:
+    city: "زیرساخت شهر"
+    defences: "پدافند هوایی شهر"
+    take: "تصرف شهر"
+  proposal:
+    ceasefire: "آتش‌بس"
+    peace: "صلح"
+  chance:
+    likely: "زیاد"
+    even: "متوسط"
+    unlikely: "کم"
+  band_none: "هیچ"
+  board:
+    title: "⚔️ جنگ‌های {country}"
+    peace: "🕊 این کشور در صلح است."
+    war_declared: "📜 جنگ شمارهٔ {no}: {attacker} علیه {defender} - به دلیل {ground}\n  ⏳ اعلان شده؛ {in} دیگر، ساعت {at}، نبرد آغاز می‌شود."
+    war_active: "🔥 جنگ شمارهٔ {no}: {attacker} علیه {defender} - به دلیل {ground}\n  {since} است که نبرد جریان دارد."
+    war_ceasefire: "🏳️ جنگ شمارهٔ {no}: {attacker} علیه {defender}\n  {since} است که آتش‌بس برقرار است."
+    war_ended: "🕊 جنگ شمارهٔ {no}: {attacker} علیه {defender}\n  {since} پیش با صلح پایان یافت."
+    broke: "  💔 این اعلان جنگ پیمان‌های میان دو کشور را شکست."
+    allies: "  🤝 در کنار {side}: {allies}"
+    proposal_in: "  📨 پیشنهاد {kind} از سوی {country} (شمارهٔ {no}) - تا {in} دیگر پاسخ دهید"
+    proposal_out: "  📤 پیشنهاد {kind} ما به {country} (شمارهٔ {no}) - {in} تا پایان مهلت پاسخ"
+    joinable: "🛡 متحدانی که به آن‌ها حمله شده:"
+    join_line: "• {enemy} به {ally} اعلان جنگ کرده است (جنگ شمارهٔ {no}). پیمان نظامی ما را به دفاع از او فرامی‌خواند."
+    occupied: "🏴 شهرهای اشغال‌شده:"
+    occupied_line: "• {city} از {country} - در دست {controller} از {since} پیش"
+    damaged: "💥 شهرهای آسیب‌دیده:"
+    damaged_line: "• {city}: {band}"
+    closed: " - ورود به شهر تا {in} دیگر ممنوع است"
+    operations: "📋 عملیات‌های اخیر:"
+    op_pending: "• ⏳ {op} {country} به سوی {city} - {in} دیگر"
+    op_called_off: "• ✖️ {op} {country} به {city} لغو شد"
+    op_captured: "• 🏴 {op} {country}: {city} تصرف شد - {ago} پیش"
+    op_done: "• {op} {country} به {city} ({objective}) - {ago} پیش"
+    op_damage: " - {damage}"
+    op_losses: " - تلفات مهاجم: {lost}، تلفات مدافع: {enemy_lost}"
+    footer: "اعلان جنگ، آتش‌بس و صلح با رئیس‌جمهور است و عملیات با فرماندهان نیروها. جنگ فقط تجهیزات و اقتصاد را درگیر می‌کند و هیچ بازیکنی کشته نمی‌شود. آمار دقیق هر عملیات راز نظامی است."
+  declare:
+    title: "📜 اعلان جنگ از سوی {country}"
+    choose_target: "به کدام کشور اعلان جنگ می‌کنید؟"
+    no_targets: "کشوری نمانده که با آن در جنگ نباشیم."
+    choose_ground: "دلیل اعلان جنگ به {target} چیست؟ این دلیل در اعلان عمومی خوانده می‌شود."
+    confirm: "به دلیل {ground} به {target} اعلان جنگ شود؟\nهمین حالا در گروه‌های هر دو کشور اعلام می‌شود و {in} دیگر نبرد آغاز می‌شود؛ پیش از آن هیچ عملیاتی ممکن نیست."
+    breaks: "💔 {kind} میان دو کشور با این اعلان شکسته می‌شود."
+    allies: "🛡 متحدان طرف مقابل ({allies}) خبردار می‌شوند و خودشان تصمیم می‌گیرند که وارد جنگ شوند یا نه."
+    done: "📜 اعلان جنگ به {target} منتشر شد. {in} دیگر نبرد آغاز می‌شود."
+  decide:
+    join: "در جنگ شمارهٔ {no} در کنار {ally} علیه {other} وارد شویم؟ از همین لحظه طرف جنگ خواهیم بود."
+    ceasefire: "به {other} در جنگ شمارهٔ {no} پیشنهاد آتش‌بس داده شود؟ اگر بپذیرد، همهٔ عملیات‌ها متوقف می‌شود. آن کشور {ttl} برای پاسخ فرصت دارد."
+    peace: "به {other} در جنگ شمارهٔ {no} پیشنهاد صلح داده شود؟ اگر بپذیرد، جنگ پایان می‌یابد. آن کشور {ttl} برای پاسخ فرصت دارد."
+    resume: "آتش‌بس جنگ شمارهٔ {no} با {other} شکسته شود؟ همین حالا اعلام می‌شود و {in} دیگر نبرد از سر گرفته می‌شود."
+  join:
+    done: "🛡 در کنار {ally} وارد جنگ شدیم."
+  propose:
+    done: "📤 پیشنهاد {kind} برای {other} فرستاده شد."
+  resume:
+    done: "🔥 آتش‌بس پایان یافت؛ {in} دیگر نبرد از سر گرفته می‌شود."
+  answer:
+    declined: "✖️ پیشنهاد رد شد."
+    ceasefire: "🏳️ آتش‌بس پذیرفته شد و از همین لحظه برقرار است."
+    peace: "🕊 صلح پذیرفته شد و جنگ پایان یافت."
+  room:
+    title: "🗺 اتاق جنگ {country}"
+    targets: "شهرهای دشمن:"
+    no_targets: "اکنون با هیچ کشوری در جنگ نیستیم."
+    target: "• {city} ({country}) - {km} کیلومتر از نزدیک‌ترین پادگان ما"
+    target_damage: " - {damage}"
+    running: "⏳ عملیات‌های در جریان:"
+    footer: "هدفی را برگزینید تا ببینید کدام نیروها به آن می‌رسند. برد هواپیما رفت‌وبرگشت حساب می‌شود و برد موشک یک‌طرفه."
+  target:
+    title: "🎯 {city} ({country})"
+    damage: "💥 وضعیت: {damage}"
+    occupied: "🏴 این شهر از خاک {country} است و در اشغال."
+    options: "نیروهایی که به این هدف می‌رسند:"
+    none: "هیچ نیرویی از ما در برد این هدف مستقر نیست. نیروها را به پادگانی نزدیک‌تر بفرستید."
+    option: "• {op}: {count} واحد از {class} در {from} ({km} کیلومتر)"
+    option_munitions: " - {munitions} بمب در انبار پایگاه"
+    option_office: " - فرمانش با {office} است"
+    footer: "برای تصرف شهر، پدافند هوایی آن باید از کار افتاده باشد و نیروی زمینی ما آن را نگه دارد."
+  launch:
+    title: "🎯 {op} به {city}"
+    choose_objective: "هدف عملیات چیست؟ زدن پدافند هوایی راه را برای حمله‌های بعدی و تصرف شهر باز می‌کند؛ زدن زیرساخت اقتصاد شهر را فلج می‌کند."
+    choose_qty: "چند واحد از {class} در {from} بفرستیم؟ {ready} واحد آماده است."
+    confirm_air: "{count} واحد از {class} از {from} برای زدن {objective} پرواز کنند؟ {time} دیگر به هدف می‌رسند."
+    confirm_missile: "{count} واحد از {class} از {from} به سوی {objective} شلیک شود؟ {time} دیگر به هدف می‌رسند و هر موشک، رهگیری شود یا نه، مصرف می‌شود."
+    confirm_ground: "همهٔ {ready} یگان زمینی آمادهٔ {from} به {city} یورش ببرند؟ {time} دیگر نبرد آغاز می‌شود."
+    munitions: "💣 {munitions} بمب از انبار پایگاه بار می‌شود."
+    estimate: "🧭 برآورد ستاد:"
+    chance_air: "  احتمال رسیدن به هدف: {chance}"
+    chance_missile: "  احتمال رسیدن به هدف: {chance}"
+    chance_ground: "  احتمال تصرف شهر: {chance}"
+    losses: "  تلفات احتمالی ما: {lost}"
+    damage_city: "  آسیب احتمالی به شهر: {damage}"
+    damage_defences: "  آسیب احتمالی به پدافند: {damage}"
+    estimate_note: "  این برآورد از روی اطلاعات ستاد است و نتیجه قطعی نیست."
+    done: "🚀 {op} به {city} آغاز شد؛ {time} دیگر به هدف می‌رسد."
+  report:
+    title_attacker: "📋 گزارش عملیات شمارهٔ {no}: {op} ما به {city} ({target})"
+    title_defender: "📋 گزارش عملیات شمارهٔ {no}: {op} {country} به {city}"
+    called_off: "✖️ عملیات لغو شد: جنگ دیگر در جریان نیست یا شهر دست‌به‌دست شده است. نیروها به پادگان برگشتند و چیزی مصرف نشد."
+    committed: "هدف: {objective} - {committed} واحد از {class} به کار رفت."
+    seen_at: "📡 پدافند مدافع مهاجمان را از {km} کیلومتری کشف کرد."
+    unseen: "📡 پدافند مدافع مهاجمان را کشف نکرد."
+    fired: "🚀 {fired} موشک رهگیر شلیک شد."
+    losses: "مهاجم: {lost} نابود و {damaged} آسیب‌دیده."
+    enemy_losses: "مدافع: {enemy_lost} نابود و {enemy_damaged} آسیب‌دیده."
+    hits: "💣 {munitions} بمب رها شد و {hits} اصابت به هدف رسید."
+    intercepted: "🛡 {lost} موشک رهگیری شد."
+    missile_hits: "💥 {hits} موشک به هدف خورد."
+    damage: "💥 آسیب به شهر: {damage} ({band})."
+    liberated: "🏳️ {city} آزاد شد و به کشورش بازگشت."
+    captured: "🏴 {city} تصرف شد."
+    held: "🛡 مدافعان شهر را نگه داشتند."
+    secret: "🔒 این گزارش راز نظامی است و فقط برای فرماندهان و رئیس کشور فرستاده می‌شود."
+  notice:
+    ally: "🛡 {other} به متحد ما {ally} اعلان جنگ کرد (جنگ شمارهٔ {no}). پیمان نظامی ما را به دفاع فرامی‌خواند؛ تصمیم با شماست."
+    proposal: "📨 {other} پیشنهاد {kind} داده است (شمارهٔ {pno}). تا {in} دیگر پاسخ دهید."
+    struck: "💥 {city} که اکنون در آن هستید هدف حملهٔ {other} قرار گرفت: {band}. خروج از شهر آزاد است."
+  refused:
+    not_holder: "تنها {office} {country} می‌تواند این کار را انجام دهد."
+    no_country: "هنوز در هیچ کشوری ساکن نیستید. اول در شهری مستقر شوید."
+    not_found: "چنین جنگ، پیشنهاد یا شهری وجود ندارد."
+    self: "کشوری نمی‌تواند با خودش بجنگد."
+    at_war: "این دو کشور هم‌اکنون در جنگ‌اند."
+    state: "این کار در وضعیت کنونی جنگ ممکن نیست."
+    not_enemy: "این شهر از آن کشوری نیست که با ما در جنگ باشد."
+    not_yet: "جنگ هنوز آغاز نشده است: {in} دیگر."
+    no_forces: "از این رده نیرویی آماده در برد این هدف نداریم."
+    no_munitions: "در انبار این پایگاه بمبی نیست. پیش از حملهٔ هوایی بمب بخرید و به همین پایگاه بفرستید."
+    open: "پیشنهادی از همین نوع هنوز منتظر پاسخ است."
+    no_ally: "کشور ما با هیچ طرف این جنگ پیمان نظامی ندارد."
+    stock: "فقط {max} واحد آماده است."
+    not_cleared: "اتاق جنگ فقط برای صاحبان مناصب دفاعی کشور باز است."
+  blocked:
+    border: "⛔ مرز میان {from} و {to} به‌خاطر جنگ بسته است."
+    city: "⛔ {city} تازه هدف حمله قرار گرفته و ورود به آن تا {in} دیگر ممنوع است."
+  announce:
+    declared: "📜 {attacker} به دلیل {ground} به {defender} اعلان جنگ کرد. نبرد {in} دیگر آغاز می‌شود."
+    broke: " این اعلان پیمان‌های میان دو کشور را شکست."
+    joined: "🛡 {ally} در کنار {beside} وارد جنگ با {enemy} شد."
+    ceasefire: "🏳️ {a} و {b} آتش‌بس کردند."
+    peace: "🕊 {a} و {b} صلح کردند و جنگ پایان یافت."
+    resumed: "🔥 {a} آتش‌بس با {b} را شکست. نبرد {in} دیگر از سر گرفته می‌شود."
+    strike_city: "💥 {op} {attacker} به {city}: {damage}."
+    strike_defences: "💥 {op} {attacker} پدافند هوایی {city} را هدف گرفت."
+    strike_repelled: "🛡 پدافند {target} {op} {attacker} به {city} را دفع کرد."
+    strike_held: "🛡 {target} یورش زمینی {attacker} به {city} را دفع کرد."
+    captured: "🏴 {by} شهر {city} را از {from} گرفت. ساکنان شهر در خانه‌هایشان می‌مانند و هر وقت بخواهند می‌توانند بروند."
+    liberated: "🏳️ {by} شهر {city} را از اشغال {from} آزاد کرد."
+  button:
+    accept: "✅ پذیرش {kind} شمارهٔ {no}"
+    decline: "✖️ رد {kind} شمارهٔ {no}"
+    ceasefire: "🏳️ پیشنهاد آتش‌بس (جنگ {no})"
+    peace: "🕊 پیشنهاد صلح (جنگ {no})"
+    resume: "🔥 پایان آتش‌بس (جنگ {no})"
+    join: "🛡 ورود به جنگ {no}"
+    room: "🗺 اتاق جنگ"
+    declare: "📜 اعلان جنگ"
+    confirm_declare: "📜 اعلان کن"
+    confirm_join: "✅ وارد جنگ شو"
+    confirm_resume: "🔥 آتش‌بس را بشکن"
+    confirm_propose: "✅ پیشنهاد بده"
+    target: "🎯 {city}"
+    launch: "🚀 {op} با {class}"
+    confirm_launch: "🚀 آغاز عملیات"

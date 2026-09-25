@@ -570,6 +570,22 @@ archetypes:
     durability: durable
     reverse_difficulty: 70
     reverse_skill: engineering
+  # A guided bomb: what a strike aircraft drops. Spent on use.
+  - code: guided_bomb
+    method: assemble
+    slots:
+      - {name: warhead,  accepts: warhead, min: 1, max: 1}
+      - {name: guidance, accepts: guidance, min: 1, max: 1}
+    attributes:
+      - {name: firepower, aggregate: sum, from: [warhead]}
+      - {name: payload,   aggregate: sum, from: [warhead], observable: true}
+      - {name: accuracy,  aggregate: max, from: [guidance]}
+      - {name: quality,   aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 40
+    reverse_skill: engineering
   - code: frigate
     method: assemble
     slots:
@@ -628,6 +644,7 @@ items:
   - {code: long_range_sam,      name: Long-range air defence system,   category: military, archetype: air_defence_long,   form: unique, base_price: 30000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
   - {code: ballistic_missile,   name: Ballistic missile,    category: military, archetype: ballistic_missile,  form: unique, base_price: 9000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
   - {code: cruise_missile,      name: Cruise missile,       category: military, archetype: cruise_missile,     form: unique, base_price: 5000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: guided_bomb,         name: Guided bomb,          category: military, archetype: guided_bomb,        form: unique, base_price: 1500,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
   - {code: anti_ship_missile,   name: Anti-ship missile,    category: military, archetype: anti_ship_missile,  form: unique, base_price: 6000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
   - {code: frigate,             name: Frigate,              category: military, archetype: frigate,            form: unique, base_price: 90000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
   - {code: attack_submarine,    name: Attack submarine,     category: military, archetype: submarine,          form: unique, base_price: 110000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
@@ -729,7 +746,7 @@ company_types:
     price_max_bps: 15000
     elasticity_bps: 8000
     sector: defence
-    produces: [ballistic_missile, cruise_missile, anti_ship_missile, air_defence_short, air_defence_medium, air_defence_long]
+    produces: [ballistic_missile, cruise_missile, anti_ship_missile, guided_bomb, air_defence_short, air_defence_medium, air_defence_long]
   - code: shipyard
     name: Naval shipyard
     category: defence

@@ -124,6 +124,10 @@ type Period struct {
 	Readiness   int64
 	LossBPS     int64
 	RecoveryBPS int64
+	// WarLevyBPS is country.war_levy while the country is at war, zero in
+	// peace: each city pays it of its revenue, after the national levy and
+	// within what its treasury still holds, straight to the defence fund.
+	WarLevyBPS int64
 }
 
 // Levy is one city's payment to the national treasury.
@@ -141,6 +145,13 @@ type Outcome struct {
 	// Appropriation is what moves from the national treasury to the
 	// defence fund.
 	Appropriation int64
+	// WarLevies are the cities' war levies, zero ones left out; WarLevy
+	// their sum.
+	WarLevies []Levy
+	WarLevy   int64
+	// Fund is the defence fund after the period: its balance, the
+	// appropriation and the war levy in, the upkeep paid out.
+	Fund int64
 	// UpkeepDue is what the equipment cost; UpkeepPaid what the fund
 	// could pay of it. The rest is not owed: it is readiness lost.
 	UpkeepDue  int64
@@ -163,7 +174,7 @@ type Outcome struct {
 // It never creates a debt: an army that cannot be paid is less ready, not
 // bankrupt.
 func Settle(p Period) (Outcome, error) {
-	for _, r := range []int64{p.RevenueShareBPS, p.DefenceBudgetBPS, p.LossBPS, p.RecoveryBPS} {
+	for _, r := range []int64{p.RevenueShareBPS, p.DefenceBudgetBPS, p.LossBPS, p.RecoveryBPS, p.WarLevyBPS} {
 		if r < 0 || r > BPSWhole {
 			return Outcome{}, fmt.Errorf("%w: rate %d", ErrInvalid, r)
 		}
@@ -181,12 +192,21 @@ func Settle(p Period) (Outcome, error) {
 			return Outcome{}, err
 		}
 		due = min(due, c.Balance)
-		if due == 0 {
-			continue
+		if due > 0 {
+			out.Levies = append(out.Levies, Levy{CityID: c.CityID, Amount: due})
+			if out.Levy, err = add(out.Levy, due); err != nil {
+				return Outcome{}, err
+			}
 		}
-		out.Levies = append(out.Levies, Levy{CityID: c.CityID, Amount: due})
-		if out.Levy, err = add(out.Levy, due); err != nil {
+		war, err := Share(c.Revenue, p.WarLevyBPS)
+		if err != nil {
 			return Outcome{}, err
+		}
+		if war = min(war, c.Balance-due); war > 0 {
+			out.WarLevies = append(out.WarLevies, Levy{CityID: c.CityID, Amount: war})
+			if out.WarLevy, err = add(out.WarLevy, war); err != nil {
+				return Outcome{}, err
+			}
 		}
 	}
 	var err error
@@ -197,13 +217,35 @@ func Settle(p Period) (Outcome, error) {
 	if err != nil {
 		return Outcome{}, err
 	}
+	if fund, err = add(fund, out.WarLevy); err != nil {
+		return Outcome{}, err
+	}
 	out.UpkeepPaid = min(p.UpkeepDue, fund)
+	out.Fund = fund - out.UpkeepPaid
 	if out.UpkeepPaid == p.UpkeepDue {
 		out.Readiness = min(p.Readiness+p.RecoveryBPS, ReadinessFull)
 	} else {
 		out.Readiness = max(p.Readiness-p.LossBPS, 0)
 	}
 	return out, nil
+}
+
+// Repairs is what a fund pays to put damaged pieces back in service: the
+// costs in the order given (the longest damaged first), each paid in full or
+// not at all, stopping at the first the fund cannot pay — the order is a
+// queue, not a menu. It returns how many were paid for and what they cost.
+func Repairs(costs []int64, fund int64) (int, int64, error) {
+	var total int64
+	for i, c := range costs {
+		if c < 0 {
+			return 0, 0, fmt.Errorf("%w: repair cost %d", ErrInvalid, c)
+		}
+		if total+c > fund {
+			return i, total, nil
+		}
+		total += c
+	}
+	return len(costs), total, nil
 }
 
 // Band is one band of the public summary (content strength_bands): the

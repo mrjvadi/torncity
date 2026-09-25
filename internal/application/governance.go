@@ -530,6 +530,18 @@ func AppointToOffice(ctx context.Context, tx Tx, officeCode, jurisdictionID stri
 	return fillSeat(ctx, tx, officeCode, jurisdictionID, seat, playerID, AcquiredByAppointment, now)
 }
 
+// AcquiredByConquest is offices.acquired_by for a seat taken in war: a
+// city's military governor (docs/adr/0022, part two).
+const AcquiredByConquest = "conquest"
+
+// ConquerToOffice seats the commander who took a city in its conquest
+// office, under the same checks as an appointment.
+func ConquerToOffice(ctx context.Context, tx Tx, officeCode, jurisdictionID string, seat int,
+	playerID string, now time.Time,
+) (before, after Office, err error) {
+	return fillSeat(ctx, tx, officeCode, jurisdictionID, seat, playerID, AcquiredByConquest, now)
+}
+
 // ElectToOffice seats the winner of an election's count, under the same
 // checks as an appointment; the seat must be vacated first.
 func ElectToOffice(ctx context.Context, tx Tx, officeCode, jurisdictionID string, seat int,

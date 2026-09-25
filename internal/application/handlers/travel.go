@@ -318,6 +318,13 @@ func (h *TravelHandler) planTrip(ctx context.Context, tx application.Tx, p *appl
 		screens.AddrCities); err != nil {
 		return t, err
 	}
+	// War closes the border between countries at war, and a city struck
+	// lately to arrivals (docs/adr/0022, part two). Leaving is never
+	// refused.
+	if err := checkWarTravel(ctx, tx, h.cities, application.CheckWarTravel(ctx, tx, fromCountry, toCountry, to.ID, now),
+		now, screens.AddrCities); err != nil {
+		return t, err
+	}
 
 	options, version := h.network.Options(from.Code, to.Code)
 	t.contentVersion = version
@@ -429,6 +436,9 @@ func (h *TravelHandler) Options(ctx context.Context, meta envelope.Metadata, req
 	})
 	if v, ok := asBlocked(err); ok {
 		return screens.SanctionBlocked(h.screen(meta, lang), v), nil
+	}
+	if v, ok := asWarBlocked(err); ok {
+		return screens.WarBlocked(h.screen(meta, lang), v), nil
 	}
 	if err != nil {
 		return nil, err
@@ -702,6 +712,9 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 	if v, ok := asBlocked(err); ok {
 		return screens.SanctionBlocked(h.screen(meta, lang), v), nil
 	}
+	if v, ok := asWarBlocked(err); ok {
+		return screens.WarBlocked(h.screen(meta, lang), v), nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -836,6 +849,9 @@ func (h *TravelHandler) checkout(ctx context.Context, meta envelope.Metadata, re
 	}
 	if v, ok := asBlocked(err); ok {
 		return screens.SanctionBlocked(h.screen(meta, lang), v), false, nil
+	}
+	if v, ok := asWarBlocked(err); ok {
+		return screens.WarBlocked(h.screen(meta, lang), v), false, nil
 	}
 	switch {
 	case err != nil:

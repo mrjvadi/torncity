@@ -91,6 +91,21 @@ ON CONFLICT (kind, code) DO UPDATE
        content_version_id = EXCLUDED.content_version_id
  RETURNING id::text`
 
+// upsertCityJurisdiction is upsertJurisdiction for a city's own
+// jurisdiction: a city another country holds by conquest (city_control,
+// migration 0022) stays under the country that holds it — a content load
+// never undoes a war. Its content country is kept in city_control.
+const upsertCityJurisdiction = `
+INSERT INTO jurisdictions (id, kind, code, name, parent_id, content_version_id)
+     VALUES ($1::uuid, $2, $3, $4, $5::uuid, $6::uuid)
+ON CONFLICT (kind, code) DO UPDATE
+   SET name               = EXCLUDED.name,
+       parent_id          = CASE WHEN EXISTS (SELECT 1 FROM city_control cc JOIN cities c ON c.id = cc.city_id
+                                               WHERE c.jurisdiction_id = jurisdictions.id)
+                                 THEN jurisdictions.parent_id ELSE EXCLUDED.parent_id END,
+       content_version_id = EXCLUDED.content_version_id
+ RETURNING id::text`
+
 // pendingJurisdiction is one jurisdiction waiting for its parent's id.
 type pendingJurisdiction struct {
 	kind, code, name, parent string // parent "" = the world
@@ -137,7 +152,11 @@ func upsertJurisdictions(ctx context.Context, tx pgx.Tx, p *content.Pack, versio
 				return nil, fmt.Errorf("postgres: content apply: jurisdiction %q: %w", j.code, err)
 			}
 			var stored string
-			if err := tx.QueryRow(ctx, upsertJurisdiction,
+			stmt := upsertJurisdiction
+			if j.cityID != "" {
+				stmt = upsertCityJurisdiction
+			}
+			if err := tx.QueryRow(ctx, stmt,
 				newID, j.kind, j.code, j.name, parentID, versionID).Scan(&stored); err != nil {
 				return nil, fmt.Errorf("postgres: content apply: jurisdiction %s %q: %w", j.kind, j.code, err)
 			}
