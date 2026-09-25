@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/mrjvadi/torncity/internal/application"
 )
@@ -16,13 +15,13 @@ import (
 // refresh tokens (migrations/0033_client_devices). Only a token's SHA-256
 // is ever written.
 type ClientDevices struct {
-	pool *pgxpool.Pool
+	pool routed
 }
 
 var _ application.ClientDevices = (*ClientDevices)(nil)
 
 // NewClientDevices returns the repository over the pool.
-func NewClientDevices(p *Pool) *ClientDevices { return &ClientDevices{pool: p.Raw()} }
+func NewClientDevices(p *Pool) *ClientDevices { return &ClientDevices{pool: p.shared()} }
 
 const clientDeviceColumns = `d.id::text, d.player_id::text, COALESCE(d.bot_id::text, ''), d.name, d.via,
 	d.created_at, d.last_seen_at, d.revoked_at`
