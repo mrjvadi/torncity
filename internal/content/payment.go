@@ -40,6 +40,9 @@ const (
 	// ServiceProperty is a property bought from a city or a player, and the
 	// first period's rent of a lease (docs/adr/0024).
 	ServiceProperty payment.Service = "property"
+	// ServiceLodging is a night at a paid sleeping spot, a hostel bed
+	// (life.yml; docs/adr/0025).
+	ServiceLodging payment.Service = "lodging"
 )
 
 // knownServices is the closed set content may name.
@@ -47,6 +50,7 @@ var knownServices = map[payment.Service]bool{
 	ServiceTuition: true, ServiceFare: true, ServiceCrimeReport: true, ServiceBail: true,
 	ServiceShop: true, ServiceMarket: true, ServiceAuction: true, ServiceElection: true,
 	ServiceCompany: true, ServiceHospital: true, ServiceFaction: true, ServiceProperty: true,
+	ServiceLodging: true,
 }
 
 // PaymentServiceDef is one entry of payments.yml.

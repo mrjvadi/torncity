@@ -69,6 +69,7 @@ Requirements:
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
   [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
@@ -131,6 +132,7 @@ Still needed for a promotion:
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
   [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
@@ -195,6 +197,7 @@ Your pay, XP and performance are settled when the shift ends, and you will be no
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
   [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list

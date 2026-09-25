@@ -320,6 +320,9 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 			if course, err = h.subsidised(ctx, tx, p, course); err != nil {
 				return err
 			}
+			if course, err = smarterCourse(ctx, tx, snap, p.ID, course); err != nil {
+				return err
+			}
 			lines = append(lines, screens.CourseLine{
 				Course:   screens.CourseRef{Code: def.Code, Name: def.Name},
 				Fee:      course.Cost.Minor(),
@@ -430,6 +433,9 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		if course, err = h.subsidised(ctx, tx, p, course); err != nil {
+			return err
+		}
+		if course, err = smarterCourse(ctx, tx, snap, p.ID, course); err != nil {
 			return err
 		}
 		current, err := activeEnrollment(ctx, tx, p.ID)
@@ -556,6 +562,9 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		if course, err = h.subsidised(ctx, tx, p, course); err != nil {
+			return err
+		}
+		if course, err = smarterCourse(ctx, tx, snap, p.ID, course); err != nil {
 			return err
 		}
 		current, err := activeEnrollment(ctx, tx, p.ID)
@@ -787,7 +796,7 @@ func (h *EducationHandler) Complete(ctx context.Context, meta envelope.Metadata,
 		for _, r := range rewards.SkillXP {
 			awards = append(awards, skillAward{Skill: r.Skill, XP: r.XP})
 		}
-		gains, err := awardSkillXP(ctx, tx, playerID, skills, awards, now)
+		gains, err := awardSkillXP(ctx, tx, snap, playerID, skills, awards, now)
 		if err != nil {
 			return err
 		}
@@ -858,6 +867,19 @@ func appendEducationEvent(ctx context.Context, tx application.Tx, meta envelope.
 
 // subsidised is a course at the fee the player pays in the city they stand
 // in: its education line takes its share off (docs/adr/0024).
+// smarterCourse shortens a course by the player's intelligence
+// (docs/adr/0025): what the listing shows and what enrolling schedules.
+func smarterCourse(ctx context.Context, tx application.Tx, snap *content.Snapshot, playerID string,
+	course education.Course,
+) (education.Course, error) {
+	iq, mind, ok, err := intelligence(ctx, tx, snap, playerID)
+	if err != nil || !ok {
+		return course, err
+	}
+	course.Duration = mind.CourseTime(course.Duration, iq)
+	return course, nil
+}
+
 func (h *EducationHandler) subsidised(ctx context.Context, tx application.Tx, p *application.Player,
 	course education.Course,
 ) (education.Course, error) {

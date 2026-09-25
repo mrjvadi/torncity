@@ -27,7 +27,8 @@ var _ application.StatsRepository = (*StatsRepository)(nil)
 func NewStatsRepository(p *Pool) *StatsRepository { return &StatsRepository{q: p.Raw()} }
 
 const selectStats = `
-SELECT player_id, level, xp, health, max_health, energy, max_energy, happiness, stamina, reputation, updated_at
+SELECT player_id, level, xp, health, max_health, energy, max_energy, happiness, stamina, reputation, updated_at,
+       regen_bps
 FROM player_stats
 WHERE player_id = $1::uuid`
 
@@ -44,7 +45,7 @@ func (r *StatsRepository) Get(ctx context.Context, playerID string) (*applicatio
 
 	err := r.q.QueryRow(ctx, selectStats, playerID).Scan(
 		&s.PlayerID, &s.Level, &s.XP, &s.Health, &s.MaxHealth,
-		&s.Energy, &s.MaxEnergy, &s.Happiness, &s.Stamina, &s.Reputation, &s.UpdatedAt,
+		&s.Energy, &s.MaxEnergy, &s.Happiness, &s.Stamina, &s.Reputation, &s.UpdatedAt, &s.RegenBPS,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -83,7 +84,7 @@ const insertStatsDefaults = `
 INSERT INTO player_stats (player_id, level, xp, health, max_health, energy, max_energy, happiness, stamina, reputation, updated_at)
 VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 ON CONFLICT (player_id) DO UPDATE SET updated_at = player_stats.updated_at
-RETURNING player_id, level, xp, health, max_health, energy, max_energy, happiness, stamina, reputation, updated_at`
+RETURNING player_id, level, xp, health, max_health, energy, max_energy, happiness, stamina, reputation, updated_at, regen_bps`
 
 // EnsureDefaults creates the row on first contact and returns it.
 //
@@ -121,7 +122,7 @@ func (r *StatsRepository) EnsureDefaults(ctx context.Context, playerID string, s
 		updatedAt,
 	).Scan(
 		&out.PlayerID, &out.Level, &out.XP, &out.Health, &out.MaxHealth,
-		&out.Energy, &out.MaxEnergy, &out.Happiness, &out.Stamina, &out.Reputation, &out.UpdatedAt,
+		&out.Energy, &out.MaxEnergy, &out.Happiness, &out.Stamina, &out.Reputation, &out.UpdatedAt, &out.RegenBPS,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: ensuring stats defaults for player %s: %w", playerID, err)

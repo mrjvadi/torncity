@@ -96,6 +96,8 @@ var followUps = map[string][]string{
 	"property.type":  {"type"},
 	"property.offer": {"no"},
 	"property.mine":  nil,
+	// Stage G1 (docs/adr/0025): a place to sleep.
+	"life.me": nil,
 }
 
 // FollowUpCommands lists the commands a walk may be followed by.

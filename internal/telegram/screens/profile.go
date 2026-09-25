@@ -82,6 +82,15 @@ type ProfileView struct {
 	// Achievements is how many achievements the player has earned
 	// (docs/adr/0024); none says nothing.
 	Achievements int
+
+	// A character's life (docs/adr/0025): the avatar shown before the
+	// name (an emoji), the headline rank by net worth, the age and stage of
+	// life, and the needs as bars. Each is left out when absent.
+	Avatar string
+	Rank   *RankRef
+	Age    int
+	Stage  Named
+	Needs  *NeedsView
 }
 
 // ProfileJail is a sentence as the home screen shows it. A hospital stay is
@@ -162,7 +171,10 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 	}
 
 	var name string
-	if v.Name != "" {
+	switch {
+	case v.Name != "" && v.Avatar != "":
+		name = c.T("life.card.name_avatar", map[string]any{"avatar": v.Avatar, "name": v.Name})
+	case v.Name != "":
 		name = c.T("profile.name", map[string]any{"name": v.Name})
 	}
 
@@ -178,7 +190,7 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 
 	text := paragraphs(
 		welcome,
-		body(name, where),
+		body(name, lifeLines(c, v.Rank, v.Age, v.Stage), where),
 		jailLines(c, v.Jail),
 		hospitalLines(c, v.Hospital),
 		body(
@@ -189,6 +201,7 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 				"max_health": FormatNumber(c, int64(v.MaxHealth)),
 			}),
 		),
+		needsLines(c, v.Needs),
 		workLines(c, v.Work),
 		moneyLines(c, v.Cash, v.Bank),
 		achievementsLine(c, v.Achievements),
@@ -409,6 +422,11 @@ func hubKeyboard(c Context, hasCity, travelling, jailed bool, work *ProfileWork)
 	missions, _ := keyboards.Button(c.T("mission.button.mine", nil), AddrMissions)
 	factionBtn, _ := keyboards.Button(c.T("faction.button.mine", nil), AddrFactionMine)
 	kb.Row(missions, factionBtn)
+
+	// Stage G1 (docs/adr/0025): the player's life, and the leaderboards.
+	lifeBtn, _ := keyboards.Button(c.T("life.button.open", nil), AddrLife)
+	topBtn, _ := keyboards.Button(c.T("life.button.top", nil), AddrLifeTop)
+	kb.Row(lifeBtn, topBtn)
 
 	// Stage F (docs/adr/0024): the player's property and home, and their
 	// achievements.

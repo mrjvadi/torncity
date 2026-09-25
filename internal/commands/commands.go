@@ -406,6 +406,20 @@ var all = []Subscription{
 	// from the game's own events, which cmd/game consumes beside these
 	// commands.
 	{Domain: "achievement", Action: "list", Origin: FromPlayer},
+
+	// A character's life (docs/adr/0025-life-and-legacy.md): «🧬 زندگی من»,
+	// a player's card, a life history, the bio and the avatar, a night at a
+	// hostel or on a bench, and the leaderboards. Only the scheduler sends
+	// life.refresh, when a leaderboard period ends. The game's own events
+	// touch a life through a consumer cmd/game runs beside these commands.
+	{Domain: "life", Action: "me", Origin: FromPlayer},
+	{Domain: "life", Action: "card", Origin: FromPlayer},
+	{Domain: "life", Action: "history", Origin: FromPlayer},
+	{Domain: "life", Action: "bio", Origin: FromPlayer},
+	{Domain: "life", Action: "avatar", Origin: FromPlayer},
+	{Domain: "life", Action: "sleep", Origin: FromPlayer},
+	{Domain: "life", Action: "top", Origin: FromPlayer},
+	{Domain: "life", Action: "refresh", Origin: FromScheduler},
 }
 
 // All returns every subscription. The slice is a copy.

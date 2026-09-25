@@ -13,6 +13,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/crime"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/inventory"
+	"github.com/mrjvadi/torncity/internal/domain/life"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
@@ -409,10 +410,28 @@ func (h *InventoryHandler) Use(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		regenerated, _ := regenerateEnergy(*row, now)
+		// Food and drink touch the needs (docs/adr/0025): the life is caught
+		// up first, so a meal lowers the hunger there is now.
+		var lived *lifeNow
+		for _, e := range rules.Effects {
+			if inventory.NeedTarget(e.Target) && lived == nil {
+				if lived, err = touchLife(ctx, tx, snap, h.scale, p, now, nil); err != nil {
+					return err
+				}
+				if lived != nil {
+					regenerated = *lived.stats
+				}
+			}
+		}
 		v := inventory.Vitals{
 			Energy: regenerated.Energy, MaxEnergy: regenerated.MaxEnergy,
 			Health: regenerated.Health, MaxHealth: regenerated.MaxHealth,
 			Happiness: regenerated.Happiness, MaxHappiness: max(regenerated.Happiness, player.DefaultHappiness),
+		}
+		if lived != nil {
+			v.Hunger, v.Sleep, v.Stress = life.Points(lived.needs.Hunger), life.Points(lived.needs.Sleep),
+				life.Points(lived.needs.Stress)
+			v.MaxNeed = life.MaxPoints
 		}
 		touchesNerve := false
 		for _, e := range rules.Effects {
@@ -474,6 +493,12 @@ func (h *InventoryHandler) Use(ctx context.Context, meta envelope.Metadata, req 
 				return err
 			}
 		}
+		if lived != nil {
+			lived.row.SetNeeds(lived.needs.Change(after.Hunger-v.Hunger, after.Sleep-v.Sleep, after.Stress-v.Stress))
+			if err := tx.Life().Save(ctx, *lived.row); err != nil {
+				return err
+			}
+		}
 		view = screens.ItemUsedView{Item: it, Left: left, ReadyAt: ready, Cooldown: h.scale.RealWait(rules.Cooldown)}
 		for _, c := range []struct {
 			target        string
@@ -484,6 +509,9 @@ func (h *InventoryHandler) Use(ctx context.Context, meta envelope.Metadata, req 
 			{inventory.TargetHealth, v.Health, after.Health, v.MaxHealth},
 			{inventory.TargetHappiness, v.Happiness, after.Happiness, v.MaxHappiness},
 			{inventory.TargetNerve, v.Nerve, after.Nerve, v.MaxNerve},
+			{inventory.TargetHunger, v.Hunger, after.Hunger, v.MaxNeed},
+			{inventory.TargetSleep, v.Sleep, after.Sleep, v.MaxNeed},
+			{inventory.TargetStress, v.Stress, after.Stress, v.MaxNeed},
 		} {
 			if c.before != c.after {
 				view.Changes = append(view.Changes, screens.VitalChange{Target: c.target, Before: c.before, After: c.after, Max: c.max})

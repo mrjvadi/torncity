@@ -806,7 +806,7 @@ func (h *FactionsHandler) settleMember(ctx context.Context, tx application.Tx, s
 		if err != nil {
 			return err
 		}
-		next, _ := domainStats(*row).AddXP(out.XP)
+		next, _ := domainStats(*row).AddXP(moodXP(snap, row.Happiness, out.XP))
 		stats := storedStats(*row, next)
 		if err := tx.Stats().Save(ctx, stats); err != nil {
 			return err
@@ -821,7 +821,7 @@ func (h *FactionsHandler) settleMember(ctx context.Context, tx application.Tx, s
 		for _, s := range out.SkillXP {
 			awards = append(awards, skillAward{Skill: player.SkillCode(s.Skill), XP: s.XP})
 		}
-		if _, err := awardSkillXP(ctx, tx, c.PlayerID, skills, awards, now); err != nil {
+		if _, err := awardSkillXP(ctx, tx, snap, c.PlayerID, skills, awards, now); err != nil {
 			return err
 		}
 	}

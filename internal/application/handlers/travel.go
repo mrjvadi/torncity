@@ -1134,7 +1134,12 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		regenerated, _ := regenerateEnergy(*row, h.now())
-		awarded, ups := domainStats(regenerated).AddXP(h.arrivalXP)
+		xp := h.arrivalXP
+		if h.places != nil {
+			// A low mood learns slower (docs/adr/0025).
+			xp = moodXP(h.places.Current(), regenerated.Happiness, xp)
+		}
+		awarded, ups := domainStats(regenerated).AddXP(xp)
 		next := storedStats(regenerated, awarded)
 		next.UpdatedAt = h.now()
 		if err := tx.Stats().Save(ctx, next); err != nil {

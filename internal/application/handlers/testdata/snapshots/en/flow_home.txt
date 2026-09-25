@@ -22,6 +22,7 @@ Friends can find you by sending "find K7Q2M9A".
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
   [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
@@ -68,6 +69,7 @@ Friends can find you by sending "find K7Q2M9A".
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
   [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list

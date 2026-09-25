@@ -358,7 +358,7 @@ func TestStatsRefuseAnEmptyPlayerID(t *testing.T) {
 // would be written as year 1 and would sort first in every staleness sweep.
 func TestStatsSupplyATimestampWhenTheCallerDidNot(t *testing.T) {
 	q := &fakeQuerier{
-		rowVals: []any{testPlayerID, 1, int64(0), 100, 100, 50, 50, 50, 50, 0, nowForTest()},
+		rowVals: []any{testPlayerID, 1, int64(0), 100, 100, 50, 50, 50, 50, 0, nowForTest(), 10000},
 		execTag: okTag(),
 	}
 	repo := &StatsRepository{q: q}

@@ -44,6 +44,10 @@ type Stats struct {
 	Stamina    int
 	Reputation int
 	UpdatedAt  time.Time
+	// RegenBPS is how fast energy comes back, 10000 = as always; zero reads
+	// as 10000. A hard-pressed body regenerates slower (docs/adr/0025). It
+	// is written only through LifeRepository.SetRegen, never by Save.
+	RegenBPS int
 }
 
 // Skill is one trained ability.

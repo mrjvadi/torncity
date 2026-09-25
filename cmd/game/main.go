@@ -387,6 +387,14 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		cfg.Game.IdempotencyTTL, nil).WithProperty(h.stageF.property)
 	h.stageF.achievement = handlers.NewAchievementsHandler(uow, messages, registry, handlers.AchievementRules{
 		PlayerDailyCap: cfg.Achievements.PlayerDailyCap, EconomyDailyCap: cfg.Achievements.EconomyDailyCap}, nil)
+	// Stage G1 (docs/adr/0025): a character's life; the leaderboards on
+	// the game clock.
+	h.stageG1.life = handlers.NewLifeHandler(uow, uuidGenerator{}, messages, registry, cities,
+		postgres.NewPlayerSearchRepository(pool), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL, nil)
+	if err := h.stageG1.life.StartClock(ctx); err != nil {
+		logger.Error("cannot start the leaderboard clock; it starts at the next start",
+			slog.String("error", err.Error()))
+	}
 	if err := h.stageF.city.StartClocks(ctx); err != nil {
 		logger.Error("cannot start the city clocks; they start at the next start",
 			slog.String("error", err.Error()))
@@ -470,6 +478,26 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			defer svc.inflight.Done()
 			if err := h.stageF.achievement.OnEvent(ctx, env, subject); err != nil {
 				logger.Error("cannot move achievements on", slog.String("subject", subject), slog.String("error", err.Error()))
+				return err
+			}
+			return nil
+		}); err != nil {
+			return err
+		}
+		logger.Info("consuming", slog.String("subject", subject), slog.String("consumer", durable))
+	}
+
+	// A life is touched by the game's own events (docs/adr/0025): one
+	// durable consumer per event, each event touching each player once (the
+	// life's inbox, in the same transaction as the change).
+	for _, subject := range handlers.LifeEventSubjects {
+		subject := subject
+		durable := "game-life-" + strings.ReplaceAll(strings.TrimPrefix(subject, "game.event."), ".", "-")
+		if err := consumer.Subscribe(ctx, subject, durable, func(ctx context.Context, env *envelope.Envelope) error {
+			svc.inflight.Add(1)
+			defer svc.inflight.Done()
+			if err := h.stageG1.life.OnEvent(ctx, env, subject); err != nil {
+				logger.Error("cannot touch a life", slog.String("subject", subject), slog.String("error", err.Error()))
 				return err
 			}
 			return nil

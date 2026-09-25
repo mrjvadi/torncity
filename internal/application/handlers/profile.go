@@ -195,7 +195,7 @@ func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*p
 		// The condition is read on EVERY delivery, replay or not. It is a
 		// read, so repeating it changes nothing, and suppressing it would
 		// answer a redelivered request with a blank profile.
-		view, err = h.condition(ctx, tx, p)
+		view, err = h.condition(ctx, tx, p, meta)
 		return err
 	})
 	if err != nil {
@@ -227,7 +227,7 @@ func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*p
 // connection, so a stats row written on a separate connection could not even
 // satisfy its foreign key to players; on tx it can, and a failed request
 // leaves neither a player nor stats behind.
-func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *application.Player) (screens.ProfileView, error) {
+func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *application.Player, meta envelope.Metadata) (screens.ProfileView, error) {
 	// The record's id, stored language and account status are not copied
 	// onto the view: none of them means anything to a player. Nor is the
 	// placeholder name a record gets when no real one was on hand: it is
@@ -304,6 +304,12 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 	if view.Achievements, err = EarnedCount(ctx, tx, p.ID); err != nil {
 		return view, err
 	}
+	// The character's life (docs/adr/0025): caught up to now — its needs
+	// and mood, the pace energy comes back at — and its rank judged on
+	// what the player is worth.
+	if err := h.life(ctx, tx, p, meta, &view); err != nil {
+		return view, err
+	}
 
 	// A player in jail sees it first, with the time left and when they are
 	// free; the home screen then offers the jail instead of the map.
@@ -335,6 +341,50 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 		}
 	}
 	return view, nil
+}
+
+// life catches the player's life up and puts its rank, age, avatar and
+// needs on the home screen. A world without life content shows none.
+func (h *ProfileHandler) life(ctx context.Context, tx application.Tx, p *application.Player, meta envelope.Metadata,
+	view *screens.ProfileView,
+) error {
+	if h.content == nil || h.scale.Validate() != nil {
+		return nil
+	}
+	snap := h.content.Current()
+	def, ok := snap.Life()
+	if !ok {
+		return nil
+	}
+	now := h.now()
+	l, err := touchLife(ctx, tx, snap, h.scale, p, now, nil)
+	if err != nil || l == nil {
+		return err
+	}
+	worth, err := worthOf(ctx, tx, snap, h.cities, p.ID)
+	if err != nil {
+		return err
+	}
+	if err := judgeRank(ctx, tx, snap, meta, l.row, worth.Total(), "look", now); err != nil {
+		return err
+	}
+	if err := tx.Life().Save(ctx, *l.row); err != nil {
+		return err
+	}
+	view.Needs = needsView(l)
+	view.Rank = rankRef(def, l.row.Rank)
+	aging := def.Aging()
+	view.Age = aging.Age(l.row.BornAt, now, h.scale)
+	if st, ok := def.Stage(aging.StageOf(view.Age)); ok {
+		view.Stage = named(st.Code, st.Name)
+	}
+	if a, ok := def.Avatar(l.row.Avatar); ok {
+		view.Avatar = a.Emoji
+	}
+	// The energy line reads the stats row the life just caught up.
+	view.Energy, view.MaxEnergy = l.stats.Energy, l.stats.MaxEnergy
+	view.EnergyFullIn = energyFullIn(*l.stats, now)
+	return nil
 }
 
 // place fills in where in their city the player stands, or the walk they are

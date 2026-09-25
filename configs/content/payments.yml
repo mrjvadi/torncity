@@ -26,6 +26,8 @@
 #                             its bank
 #              property       a property bought from the city or from a
 #                             player, and a lease's first rent
+#              lodging        a night at a paid sleeping spot, a hostel bed
+#                             (life.yml)
 #   accepts  the methods it takes: [cash], [card] or [cash, card]. Never
 #            empty; a service left out of this file takes both.
 #
@@ -60,4 +62,6 @@ payment_services:
   - code: faction
     accepts: [cash, card]
   - code: property
+    accepts: [cash, card]
+  - code: lodging
     accepts: [cash, card]

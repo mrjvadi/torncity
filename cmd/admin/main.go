@@ -62,6 +62,8 @@ func main() {
 		err = playerCommand(ctx, os.Args[2:])
 	case "announce":
 		err = announceCommand(ctx, os.Args[2:])
+	case "life":
+		err = lifeCommand(ctx, os.Args[2:])
 	default:
 		usage()
 		os.Exit(2)
@@ -90,6 +92,7 @@ func usage() {
   dashboard     the economy at a glance: supply, faucets and drains, prices
   player        one player by their code (admin player CODE)
   announce      post an operator's text in every city's groups (audited)
+  life          backfill players' life histories from older records (audited)
 
 DATABASE_URL must be set, except for `+"`admin content validate`"+`, which
 reads files only.

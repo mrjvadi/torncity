@@ -118,6 +118,11 @@ type LedgerVerification struct {
 	StageF bool
 	StageFInvariants
 
+	// Life is whether a life's tables exist (migration 0028); LifeInvariants
+	// their checks (ledger_admin_life.go).
+	Life bool
+	LifeInvariants
+
 	// DefenceInvariants are the armed forces' wages
 	// (ledger_admin_defence.go); they need nothing but the ledger.
 	DefenceInvariants
@@ -217,7 +222,7 @@ func (v LedgerVerification) OK() bool {
 	return v.LedgerSum == "0" && len(v.Unbalanced) == 0 && len(v.Drifted) == 0 &&
 		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok() && v.ProductionInvariants.ok() &&
 		v.MilitaryInvariants.ok() && v.WarInvariants.ok() && v.StageEInvariants.ok() && v.StageFInvariants.ok() &&
-		v.DefenceInvariants.ok()
+		v.DefenceInvariants.ok() && v.LifeInvariants.ok()
 }
 
 // VerifyLedger runs the three invariants of docs/adr/0009-economic-control.md
@@ -331,6 +336,14 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 	}
 	if v.StageF {
 		if err := a.verifyStageF(ctx, &v); err != nil {
+			return v, err
+		}
+	}
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.life_sleeps') IS NOT NULL`).Scan(&v.Life); err != nil {
+		return v, fmt.Errorf("postgres: looking for lives: %w", err)
+	}
+	if v.Life {
+		if err := a.verifyLife(ctx, &v); err != nil {
 			return v, err
 		}
 	}

@@ -254,6 +254,12 @@ func economyVerify(ctx context.Context, args []string) error {
 		}
 	}
 
+	if v.Life {
+		l := v.LifeInvariants
+		fmt.Printf("%s  lodging fees in the ledger match the nights paid for (%d = %d), each with its own fee (%d without)\n",
+			mark(l.LodgingLedger == l.LodgingRows && l.UnpaidNights == 0), l.LodgingLedger, l.LodgingRows, l.UnpaidNights)
+	}
+
 	if !v.OK() || !capsOK {
 		return errInvariantsBroken
 	}

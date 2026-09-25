@@ -168,6 +168,13 @@ func (r *Renderer) Render(ctx context.Context, api API, bot Bot, meta envelope.M
 	return r.public(ctx, api, bot, meta, resp)
 }
 
+// PublicMarkup is the keyboard of a public screen in a group: the group's
+// buttons, bound to the player who asked. A screen sent another way than
+// Render — a photo — carries the same.
+func (r *Renderer) PublicMarkup(bot Bot, meta envelope.Metadata, kb *presenter.Keyboard) any {
+	return Markup(BindKeyboard(r.ForGroup(kb, meta.Language, DeepLink(bot.Username, "")), meta.TelegramUserID))
+}
+
 // public posts or edits a screen everybody in the group may see. Its
 // buttons are the group's (ForGroup), bound to the player who asked.
 func (r *Renderer) public(ctx context.Context, api API, bot Bot, meta envelope.Metadata, resp *presenter.Response) (Outcome, error) {

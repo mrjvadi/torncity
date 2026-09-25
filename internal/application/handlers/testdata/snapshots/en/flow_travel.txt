@@ -141,6 +141,7 @@ Travelling by: Train
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
   [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
   [🛒 Shops] → shop:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
@@ -194,6 +195,7 @@ Travelling by: Train
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
   [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list

@@ -741,7 +741,7 @@ func (h *MissionsHandler) complete(ctx context.Context, tx application.Tx, snap 
 		if err != nil {
 			return nil, err
 		}
-		next, _ := domainStats(*row).AddXP(reward.XP)
+		next, _ := domainStats(*row).AddXP(moodXP(h.content.Current(), row.Happiness, reward.XP))
 		if err := tx.Stats().Save(ctx, storedStats(*row, next)); err != nil {
 			return nil, err
 		}

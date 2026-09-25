@@ -138,6 +138,16 @@ func (g *gateway) render(ctx context.Context, api *client.Client, botKey string,
 	if resp.Type == presenter.ActionAnswerCallback {
 		return g.groupRenderer().Answer(ctx, api, meta, resp)
 	}
+	if resp.Photo != nil && priority == laneDirect {
+		sent, err := g.renderPhoto(ctx, api, botKey, meta, resp, log)
+		if err != nil || sent {
+			return err
+		}
+		// No photo to send: the card goes out as text, a new message.
+		text := *resp
+		text.Photo = nil
+		resp = &text
+	}
 
 	if priority == laneAnnounce {
 		// An announcement is for the room: no owner, no buttons, as is.

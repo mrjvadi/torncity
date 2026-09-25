@@ -1,0 +1,372 @@
+━━━ Life · a calm day, a hostel down the road ━━━
+(edits message 42)
+🧬 Your life
+🎂 Age: 20 - youth
+🧠 Intelligence: 18 of 200 - courses 1.8% shorter and 1.8% more skill experience
+
+🍽 Hunger ▰▰▱▱▱▱▱▱▱▱ 22
+😴 Tiredness ▰▰▰▰▱▱▱▱▱▱ 35
+😣 Stress ▰▱▱▱▱▱▱▱▱▱ 12
+😊 Happiness ▰▰▰▰▰▰▰▱▱▱ 68
+
+🍞 Rank: Breadwinner
+💎 Net worth: 31,500 Nil
+cash 4,200 Nil - bank 21,000 Nil - company shares 3,500 Nil - goods 2,800 Nil
+⬆️ To Trader: 18,500 Nil more
+
+🛏 Where to sleep:
+▫️ hostel at the residential area - 150 Nil - 55 less tiredness
+▫️ park bench at the city park - free - 30 less tiredness
+  ───
+  [🚶 Go to the hostel (25s)] → place:go:residential_area:life.me
+  [😴 Sleep: park bench] → life:sleep:bench
+  [📜 My story] → life:history   │   [🪪 My card] → life:card
+  [🏆 Leaderboards] → life:top
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → life:me
+
+━━━ Life · hungry, tired and stressed, with a home ━━━
+(edits message 42)
+🧬 Your life
+🎂 Age: 20 - youth
+🧠 Intelligence: 18 of 200 - courses 1.8% shorter and 1.8% more skill experience
+
+🍽 Hunger ▰▰▰▰▰▰▰▰▱▱ 84
+😴 Tiredness ▰▰▰▰▰▰▰▰▰▱ 93
+😣 Stress ▰▰▰▰▰▰▰▱▱▱ 71
+😊 Happiness ▰▰▱▱▱▱▱▱▱▱ 24
+⚠️ You are hungry; eat something from your bag or a shop.
+⚠️ You are tired; rest at home or sleep somewhere.
+⚠️ Your stress is high; rest, sleep and happiness bring it down.
+🔻 Your condition takes 31% off energy recovery, work and crime.
+🔻 You feel low and earn 10% less experience.
+
+🛍 Rank: Trader
+💎 Net worth: 58,790 Nil
+cash 900 Nil - bank 12,000 Nil - property 46,350 Nil
+🧾 Debts: 460 Nil
+⬆️ To Comfortable: 91,210 Nil more
+
+🛏 Where to sleep:
+🏠 Your own home - the best sleep
+  ───
+  [🏠 Rest at home] → property:rest
+  [📜 My story] → life:history   │   [🪪 My card] → life:card
+  [🏆 Leaderboards] → life:top
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → life:me
+
+━━━ Life · just slept on a bench ━━━
+(edits message 42)
+😴 You slept well (park bench); your tiredness fell by 30.
+
+🧬 Your life
+🎂 Age: 20 - youth
+🧠 Intelligence: 18 of 200 - courses 1.8% shorter and 1.8% more skill experience
+
+🍽 Hunger ▰▰▱▱▱▱▱▱▱▱ 22
+😴 Tiredness ▰▱▱▱▱▱▱▱▱▱ 5
+😣 Stress ▰▱▱▱▱▱▱▱▱▱ 12
+😊 Happiness ▰▰▰▰▰▰▰▱▱▱ 68
+
+🍞 Rank: Breadwinner
+💎 Net worth: 31,500 Nil
+cash 4,200 Nil - bank 21,000 Nil - company shares 3,500 Nil - goods 2,800 Nil
+⬆️ To Trader: 18,500 Nil more
+
+🛏 Where to sleep:
+▫️ hostel at the residential area - 150 Nil - 55 less tiredness
+▫️ park bench at the city park - free - 30 less tiredness
+⏳ 7m until you can sleep again.
+  ───
+  [📜 My story] → life:history   │   [🪪 My card] → life:card
+  [🏆 Leaderboards] → life:top
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → life:me
+
+━━━ Life · read in a group ━━━
+(edits message 42)
+🧬 Your life
+🎂 Age: 20 - youth
+🧠 Intelligence: 18 of 200 - courses 1.8% shorter and 1.8% more skill experience
+
+🍽 Hunger ▰▰▱▱▱▱▱▱▱▱ 22
+😴 Tiredness ▰▰▰▰▱▱▱▱▱▱ 35
+😣 Stress ▰▱▱▱▱▱▱▱▱▱ 12
+😊 Happiness ▰▰▰▰▰▰▰▱▱▱ 68
+
+🍞 Rank: Breadwinner
+
+🛏 Where to sleep:
+▫️ hostel at the residential area - 150 Nil - 55 less tiredness
+▫️ park bench at the city park - free - 30 less tiredness
+  ───
+  [🚶 Go to the hostel (25s)] → place:go:residential_area:life.me
+  [😴 Sleep: park bench] → life:sleep:bench
+  [📜 My story] → life:history   │   [🪪 My card] → life:card
+  [🏆 Leaderboards] → life:top
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → life:me
+
+━━━ Card · my own, with an avatar and a bio ━━━
+(edits message 42)
+🦊 Sara
+💬 “Loves travel and books; will build my own company one day”
+
+🍞 Rank: Breadwinner
+🎂 20 - youth - level 7
+🏅 3 achievements - 9 moments in their story
+🗓 Life began: 24 August 2026
+🆔 Player code: K7Q2M9A
+  ───
+  [📜 My story] → life:history
+  [✏️ Bio] → ask:life.bio   │   [🎭 Avatar] → life:avatar
+  [🗑 Clear my bio] → life:bio:yes
+  [🔙 Back] → life:me   │   [🔄 Refresh] → life:card
+
+━━━ Card · my own, nothing written yet ━━━
+(edits message 42)
+✅ Your avatar has changed.
+
+👤 Sara
+💬 No bio yet. Press «Bio» to write a few words about yourself.
+
+🌱 Rank: Newcomer
+🎂 18 - youth - level 1
+🏅 0 achievements - 0 moments in their story
+🗓 Life began: 23 September 2026
+🆔 Player code: K7Q2M9A
+  ───
+  [📜 My story] → life:history
+  [✏️ Bio] → ask:life.bio   │   [🎭 Avatar] → life:avatar
+  [🔙 Back] → life:me   │   [🔄 Refresh] → life:card
+
+━━━ Card · another player's, in a group ━━━
+(edits message 42)
+🦉 Kaveh
+💬 “Loves travel and books; will build my own company one day”
+
+🛍 Rank: Trader
+🎂 23 - youth - level 12
+🏅 5 achievements - 14 moments in their story
+🗓 Life began: 25 July 2026
+🆔 Player code: B3C4D5F
+  ───
+  [📜 Kaveh's story] → life:history:B3C4D5F
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → life:card:B3C4D5F
+
+━━━ Card · with a Telegram photo ━━━
+(sends)
+👤 Kaveh
+
+🛍 Rank: Trader
+🎂 23 - youth - level 12
+🏅 5 achievements - 14 moments in their story
+🆔 Player code: B3C4D5F
+  ───
+  [📜 Kaveh's story] → life:history:B3C4D5F
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → life:card:B3C4D5F
+
+━━━ History · mine, page 1 of 2 ━━━
+(edits message 42)
+📜 Your story
+Page 1 of 2
+
+📈 23 September 2026 - Rose to Breadwinner
+🏅 22 September 2026 - Achievement «First day at work»
+🏥 21 September 2026 - In hospital in Ostmarch (only you)
+📜 20 September 2026 - Earned the Bookkeeping certificate
+⬆️ 19 September 2026 - Promoted to Sales Associate
+🏠 18 September 2026 - Bought a Studio flat in Ostmarch for 46,350 Nil
+💼 15 September 2026 - First job: Sales Trainee in Ostmarch
+🌱 14 September 2026 - Began a life in the game (from older records)
+
+Moments marked «only you» are not shown to others.
+  ───
+  [Next ➡️] → life:history:K7Q2M9A:2
+  [🔙 Back] → life:me   │   [🔄 Refresh] → life:history:K7Q2M9A:1
+
+━━━ History · another player's public story, in a group ━━━
+(edits message 42)
+📜 Kaveh's story
+
+🗳 22 September 2026 - Won the election for Mayor of Brennhaven with 41 votes
+🎖 21 September 2026 - Commanded an operation against Kessmoor
+🏢 20 September 2026 - Founded «Kaveh Bakery» in Brennhaven
+🤝 19 September 2026 - A big Phone trade in Brennhaven worth 180,000 Nil
+⛓ 18 September 2026 - Jailed in Brennhaven
+📉 17 September 2026 - Fell to Trader
+  ───
+  [🔙 Back] → life:card:B3C4D5F   │   [🔄 Refresh] → life:history:B3C4D5F:1
+
+━━━ History · nothing yet ━━━
+(edits message 42)
+📜 Your story
+
+Nothing yet. Everything important you do stays here.
+
+Moments marked «only you» are not shown to others.
+  ───
+  [🔙 Back] → life:me   │   [🔄 Refresh] → life:history:K7Q2M9A:1
+
+━━━ Avatars · choosing ━━━
+(edits message 42)
+🎭 Your avatar
+Current avatar: 🦊
+Pick one to sit beside your name on your card and profile.
+  ───
+  [🦊 Fox] → life:avatar:fox   │   [🦁 Lion] → life:avatar:lion   │   [🦉 Owl] → life:avatar:owl
+  [🐺 Wolf] → life:avatar:wolf   │   [🌷 Tulip] → life:avatar:tulip
+  [📷 My Telegram photo] → life:avatar:photo   │   [🚫 No avatar] → life:avatar:none
+  [🔙 Back] → life:card   │   [🔄 Refresh] → life:avatar
+
+━━━ Sleep · a hostel bed, paid by cash or card ━━━
+(edits message 42)
+🛏 A night at the hostel: 150 Nil - 55 less tiredness
+💵 Your cash: 4,200 Nil - Bank: 21,000 Nil
+  ───
+  [💵 Pay cash - 150 Nil] → life:sleep:hostel:cash   │   [💳 Pay by card - 150 Nil] → life:sleep:hostel:card
+  [🔙 Back] → life:me
+
+━━━ Refused · bio_length ━━━
+(edits message 42)
+✏️ A bio is 3 to 140 characters long.
+  ───
+  [✏️ Write it again] → ask:life.bio
+  [🔙 Back] → life:card
+
+━━━ Refused · bio_link ━━━
+(edits message 42)
+🔗 A bio may not hold a link, a web address or a username.
+  ───
+  [✏️ Write it again] → ask:life.bio
+  [🔙 Back] → life:card
+
+━━━ Refused · bio_blocked ━━━
+(edits message 42)
+🚫 That has a word a bio may not hold. Please keep it polite.
+  ───
+  [✏️ Write it again] → ask:life.bio
+  [🔙 Back] → life:card
+
+━━━ Refused · bio_chars ━━━
+(edits message 42)
+✏️ That has characters that cannot be shown. Keep it simple.
+  ───
+  [✏️ Write it again] → ask:life.bio
+  [🔙 Back] → life:card
+
+━━━ Refused · no_spot ━━━
+(edits message 42)
+🛏 This city has no such place to sleep.
+  ───
+  [🔙 Back] → life:me
+
+━━━ Refused · no_avatar ━━━
+(edits message 42)
+🎭 That avatar is not on the list. Pick one from it.
+  ───
+  [🔙 Back] → life:avatar
+
+━━━ Refused · no_player ━━━
+(edits message 42)
+🔎 No player has that code or username.
+  ───
+  [🔎 Find a player] → social:search
+  [🔙 Back] → player:profile.get
+
+━━━ Refused · no_city ━━━
+(edits message 42)
+🧭 You sleep in a city, not on the road.
+  ───
+  [🔙 Back] → life:me
+
+━━━ Refused · slept lately ━━━
+(edits message 42)
+⏳ You slept not long ago. 6m until the next night.
+  ───
+  [🔙 Back] → life:me
+
+━━━ Top · the richest ━━━
+(edits message 42)
+💎 The richest players
+
+1. Nilou - Tycoon - 12,400,000 Nil
+2. Kaveh - Trader - 95,000 Nil
+👉 3. Sara - Breadwinner - 31,500 Nil
+4. A player - Newcomer - 5,000 Nil
+
+🔄 Refreshed 23 September 2026 at 13:55
+
+Net worth: cash, bank, company shares, property and goods, less debts.
+  ───
+  [🏢 Companies] → life:top:companies   │   [🏙 Cities] → life:top:cities
+  [💼 Workers] → life:top:workers   │   [📈 Investors] → life:top:investors
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → life:top:richest
+
+━━━ Top · the biggest companies ━━━
+(edits message 42)
+🏢 The biggest companies
+
+1. Kaveh Bakery - Grocery store in Brennhaven - 840,000 Nil
+2. Nilou Repairs - Repair workshop in Ostmarch - 212,000 Nil
+
+🔄 Refreshed 23 September 2026 at 13:55
+
+Book value: the company's account less its debt.
+  ───
+  [💎 Richest] → life:top:richest   │   [🏙 Cities] → life:top:cities
+  [💼 Workers] → life:top:workers   │   [📈 Investors] → life:top:investors
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → life:top:companies
+
+━━━ Top · the best cities ━━━
+(edits message 42)
+🏙 The best cities
+
+1. Brennhaven - 52 residents - 9 companies - score 94,500
+2. Ostmarch - 38 residents - 4 companies - score 61,200
+
+🔄 Refreshed 23 September 2026 at 13:55
+
+A city's score comes from its residents, companies and treasury; war damage takes from it.
+  ───
+  [💎 Richest] → life:top:richest   │   [🏢 Companies] → life:top:companies
+  [💼 Workers] → life:top:workers   │   [📈 Investors] → life:top:investors
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → life:top:cities
+
+━━━ Top · the hardest workers ━━━
+(edits message 42)
+💼 The hardest workers
+
+1. Kaveh - Retail - 212 shifts - performance 88
+👉 2. Sara - out of work - 64 shifts - performance 0
+
+🔄 Refreshed 23 September 2026 at 13:55
+
+By every shift worked so far.
+  ───
+  [💎 Richest] → life:top:richest   │   [🏢 Companies] → life:top:companies
+  [🏙 Cities] → life:top:cities   │   [📈 Investors] → life:top:investors
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → life:top:workers
+
+━━━ Top · investors, before the first refresh ━━━
+(edits message 42)
+📈 Top investors
+
+No board yet. The boards are refreshed every game day.
+
+How each player's share of their companies grew since the last board. With the stock exchange this board grows up.
+  ───
+  [💎 Richest] → life:top:richest   │   [🏢 Companies] → life:top:companies
+  [🏙 Cities] → life:top:cities   │   [💼 Workers] → life:top:workers
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → life:top:investors
+
+━━━ Notice · rank up ━━━
+(sends)
+🛍 Congratulations! Your rank rose from Breadwinner to Trader. You are worth 51,200 Nil.
+  ───
+  [🧬 My life] → life:me
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · rank down ━━━
+(sends)
+🍞 Your rank went from Trader to Breadwinner. You are worth 44,100 Nil; work and investing bring it back.
+  ───
+  [🧬 My life] → life:me
+  [🔙 Back] → player:profile.get

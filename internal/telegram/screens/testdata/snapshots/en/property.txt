@@ -169,7 +169,7 @@ Property in debt 3 periods in a row goes back to the city.
 
 ━━━ Mine · rested, renting from another ━━━
 (edits message 42) (private in groups)
-🛏 You rested at home and gained 25 energy.
+🛏 You slept at home: 25 energy gained and 60 less tiredness.
 
 🏠 My property
 📍 Residence: Ostmarch

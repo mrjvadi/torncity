@@ -97,6 +97,18 @@ commands:
   # A player's achievements are shown off where they are asked for.
   achievement.list: {channel: both}
 
+  # A character's life (docs/adr/0025). «زندگی من» shows the player's net
+  # worth, so its reply goes to PV; a card, a history (another's shows only
+  # its public moments) and the leaderboards are public; writing the bio,
+  # choosing an avatar and a night's lodging are the player's own.
+  life.me: {channel: both, reply: private}
+  life.card: {channel: both}
+  life.history: {channel: both}
+  life.top: {channel: both}
+  life.bio: {channel: private}
+  life.avatar: {channel: private}
+  life.sleep: {channel: private}
+
   job.status: {channel: private}
   job.list: {channel: private}
   job.view: {channel: private}
@@ -332,3 +344,4 @@ input:
   faction.withdraw: {field: amount}
   property.sell: {field: price, args: [no]}
   property.let: {field: price, args: [no]}
+  life.bio: {field: text, text: true}

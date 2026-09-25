@@ -81,6 +81,8 @@ type Snapshot struct {
 	budget       *BudgetDef
 	property     propertyContent
 	achievements []AchievementDef
+	// life is life.yml's life section, nil without one; see life.go.
+	life *LifeDef
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -167,6 +169,10 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	}
 	snap.buildProperty(p)
 	snap.achievements = append([]AchievementDef(nil), p.Achievements...)
+	if len(p.Life) > 0 {
+		l := p.Life[0]
+		snap.life = &l
+	}
 
 	return snap, nil
 }

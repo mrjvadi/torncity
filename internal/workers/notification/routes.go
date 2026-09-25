@@ -149,6 +149,8 @@ func Routes() []Route {
 
 		// Achievements: see achievement.go.
 		{Domain: "achievement", Event: "awarded", Render: renderAchievement},
+		// A character's life: see life.go.
+		{Domain: "life", Event: "rank_changed", Render: renderRankChanged},
 
 		// Property: see property.go.
 		{Domain: "property", Event: "sold", Render: renderPropertyNotice},

@@ -359,3 +359,6 @@ func (t *fakeTx) CityPeriods() application.CityPeriodRepository                 
 func (t *fakeTx) Property() application.PropertyRepository                       { return nil }
 func (noDiplomacy) RecordTariff(context.Context, application.BorderTariff) error { return nil }
 func (t *fakeTx) Achievements() application.AchievementRepository                { return nil }
+
+// Stage G1 (docs/adr/0025): no life yet.
+func (t *fakeTx) Life() application.LifeRepository { return nil }

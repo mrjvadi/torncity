@@ -136,6 +136,8 @@ func TestPackWithoutCrimesStillValidates(t *testing.T) {
 	p.Health, p.MissionBoards, p.Missions, p.Factions = nil, nil, nil, nil
 	// Stage F: property stands at places.
 	p.Property, p.PropertyTypes, p.PropertyMarkets = nil, nil, nil
+	// Stage G1: a life sleeps at places.
+	p.Life = nil
 	kept := p.CompanyTypes[:0]
 	for _, t := range p.CompanyTypes {
 		if t.Code != "pharmacy" {

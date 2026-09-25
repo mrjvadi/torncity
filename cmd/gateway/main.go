@@ -347,6 +347,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	gw.inputs = infraredis.NewInputStore(rdb)
 	gw.links = infraredis.NewLinkStore(rdb)
 	gw.cityGroups = postgres.NewCityGroupRepository(pool)
+	gw.photos = postgres.NewLifeRepository(pool)
 
 	// Commands typed without a slash, in every language. A collision is
 	// logged and the word left out; the rest work.
@@ -484,6 +485,9 @@ type gateway struct {
 	// cityGroups says whether a player's city has a group, for the hint a
 	// group-only command gets in the private chat. Nil leaves it out.
 	cityGroups cityGroupReader
+	// photos keeps each bot's file id of a player's Telegram photo, for a
+	// card shown with it (docs/adr/0025); nil sends such a card as text.
+	photos photoKeeper
 }
 
 // serveBot holds one bot's lease and polls it for as long as the lease lasts.

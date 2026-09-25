@@ -224,6 +224,12 @@ func deletePlayer(t *testing.T, pool *postgres.Pool, playerID string) {
 	if err := raw.QueryRow(ctx, `SELECT to_regclass('public.player_health') IS NOT NULL`).Scan(&stageE); err == nil && stageE {
 		purgeStageE(t, pool, playerID)
 	}
+	// A life (docs/adr/0025) is started whenever a player's profile is
+	// read or an event touches them.
+	var lives bool
+	if err := raw.QueryRow(ctx, `SELECT to_regclass('public.player_life') IS NOT NULL`).Scan(&lives); err == nil && lives {
+		purgeLife(t, pool, playerID)
+	}
 	for _, stmt := range []string{
 		`DELETE FROM idempotency_keys WHERE player_id = $1::uuid`,
 		`DELETE FROM player_bot_links WHERE player_id = $1::uuid`,

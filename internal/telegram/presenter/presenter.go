@@ -63,6 +63,23 @@ type Response struct {
 	// than on the command's empty form. Addresses only, never a secret: the
 	// game checks everything again when the command runs.
 	Resume []string `json:"resume,omitempty"`
+
+	// Photo, when set, shows the screen as a photo with its text as the
+	// caption: a player card with the player's Telegram profile photo
+	// (docs/adr/0025). The gateway sends it as a new message, and falls back
+	// to the text alone when there is no photo to send.
+	Photo *Photo `json:"photo,omitempty"`
+}
+
+// Photo is a Telegram profile photo to show. A file id is valid only for
+// the bot that received it, so FileID is the one the bot answering already
+// knows, empty when it knows none; UserID is whose profile photo it is, for
+// the gateway to fetch (getUserProfilePhotos) when FileID is empty, and
+// PlayerID the game's player it keeps what it fetched under.
+type Photo struct {
+	FileID   string `json:"file_id,omitempty"`
+	UserID   int64  `json:"user_id,omitempty"`
+	PlayerID string `json:"player_id,omitempty"`
 }
 
 // MarkPrivate declares the response the player's own business, and returns

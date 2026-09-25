@@ -10,6 +10,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/crime"
 	"github.com/mrjvadi/torncity/internal/domain/inventory"
+	"github.com/mrjvadi/torncity/internal/domain/life"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
@@ -122,6 +123,16 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 			Skills: domainSkills(s.stand.skills), Heat: s.profile.Heat, Victim: victim.kind,
 			Awareness: victim.awareness, VenueSecurity: s.venue.Security, Gear: g,
 		})
+		// A hungry, tired or stressed thief is a clumsier one
+		// (docs/adr/0025): the chance times the body's condition, bounded
+		// by content.
+		body, err := lifeEffects(ctx, tx, snap, h.scale, p.ID, s.stand.stats.Happiness, now)
+		if err != nil {
+			return err
+		}
+		if chance > 0 {
+			chance = max(int(life.Scale(int64(chance), body.BodyBPS)), 1)
+		}
 		attempt := application.CrimeAttempt{
 			ID:             h.ids.NewID(),
 			PlayerID:       p.ID,
@@ -447,6 +458,8 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 	if err != nil {
 		return screens.CrimeResultView{}, errors.Internal(err)
 	}
+	// A low mood learns slower (docs/adr/0025).
+	out.XP = moodXP(in.snap, in.stand.stats.Happiness, out.XP)
 
 	row := in.attempt
 	row.Status = string(out.Result)
@@ -572,7 +585,7 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 	for _, s := range out.SkillXP {
 		awards = append(awards, skillAward{Skill: player.SkillCode(s.Skill), XP: s.XP})
 	}
-	if view.Skills, err = awardSkillXP(ctx, tx, in.thief.ID, in.stand.skills, awards, in.now); err != nil {
+	if view.Skills, err = awardSkillXP(ctx, tx, in.snap, in.thief.ID, in.stand.skills, awards, in.now); err != nil {
 		return view, err
 	}
 	// A failure may hurt (crimes.yml failure.injury), rolled on the

@@ -51,6 +51,8 @@ type phaseHandlers struct {
 
 	stageE stageEHandlers
 	stageF stageFHandlers
+
+	stageG1 lifeHandlers
 }
 
 // bind maps every subscribed command to the handler method that serves it.
@@ -256,6 +258,9 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		bound[command] = fn
 	}
 	for command, fn := range h.bindStageF() {
+		bound[command] = fn
+	}
+	for command, fn := range h.bindLife() {
 		bound[command] = fn
 	}
 	return bound

@@ -336,6 +336,23 @@ format:
   # A sum of money. {amount} is already written with the digits and the
   # group separator above.
   money: "{amount} نیل"
+  # A date: the calendar it is counted in (jalali, the Solar Hijri calendar,
+  # or gregorian), its shape, and the month names.
+  calendar: jalali
+  date: "{day} {month} {year}"
+  month:
+    m1: فروردین
+    m2: اردیبهشت
+    m3: خرداد
+    m4: تیر
+    m5: مرداد
+    m6: شهریور
+    m7: مهر
+    m8: آبان
+    m9: آذر
+    m10: دی
+    m11: بهمن
+    m12: اسفند
 
 button:
   refresh: "🔄 به‌روزرسانی"
@@ -1218,6 +1235,7 @@ place:
     heist: "🕶 {crime} اینجا شدنی نیست؛ گروه باید در {place} جمع شود."
     board: "📋 مأموریت در تابلوی {board} در {place} گرفته و تحویل داده می‌شود."
     home: "🛏 خانهٔ شما در {place} است."
+    sleep: "🛏 این جای خواب در {place} است."
   button:
     go: "🚶 {place}"
     walk: "🚶 رفتن به {place} - {walk}"
@@ -1269,6 +1287,10 @@ command_alias:
   shop: "مغازه | مغازه‌ها | فروشگاه | خرید"
   bag: "کیف | کوله | کوله‌پشتی"
   market: "بازار"
+  life: "زندگی"
+  history: "سرگذشت"
+  top: "برترین‌ها | رتبه‌بندی | جدول"
+  card: "کارت"
 
 # Where a command runs (configs/commands.yml). Sent in the wrong kind of chat,
 # it is not run; the player reads one of these instead.
@@ -1308,6 +1330,7 @@ input:
     faction_withdraw: "📤 چه مبلغی از بانک جناح به حساب بانکی‌تان برداشته شود؟ مبلغ را به عدد بنویسید."
     property_sell: "💰 ملک را به چه قیمتی می‌فروشید؟ مبلغ را به عدد بنویسید؛ کارمزد بازار شهر از آن کم می‌شود."
     property_let: "🔑 اجاره‌بهای هر دورهٔ شهر چقدر باشد؟ مبلغ را به عدد بنویسید."
+    life_bio: "💬 چند کلمه دربارهٔ خودتان بنویسید تا روی کارت‌تان بنشیند؛ بدون لینک و نام کاربری."
   placeholder:
     default: "مقدار"
     bank_deposit: "مبلغ واریز به نیل"
@@ -1332,6 +1355,7 @@ input:
     faction_withdraw: "مبلغ برداشت به نیل"
     property_sell: "قیمت فروش به نیل"
     property_let: "اجاره‌بهای هر دوره به نیل"
+    life_bio: "چند کلمه دربارهٔ خودتان"
   cancel_hint: "برای انصراف، «انصراف» را بفرستید."
   cancelled: "✖️ لغو شد. چیزی تغییر نکرد."
 
@@ -1467,6 +1491,9 @@ vital:
   health: "❤️ سلامت"
   happiness: "😊 شادی"
   nerve: "🔥 جسارت"
+  hunger: "🍽 گرسنگی"
+  sleep: "😴 خستگی"
+  stress: "😣 استرس"
 
 # اثر ابزار همراه بر یک جرم (internal/domain/crime/gear.go).
 gear:
@@ -3345,7 +3372,7 @@ property:
     cancelled: "آگهی برداشته شد."
     rented: "🔑 اجاره امضا شد؛ اجارهٔ دورهٔ اول پرداخت شد."
     left: "🔑 از خانهٔ اجاره‌ای رفتید."
-    rested: "🛏 در خانه استراحت کردید و {energy} انرژی گرفتید."
+    rested: "🛏 در خانه خوابیدید؛ {energy} انرژی گرفتید و {rest} واحد از خستگی‌تان کم شد."
     bought_offer: "✅ ملک #{no} اکنون به نام شماست."
   refused:
     not_found: این ملک پیدا نشد.
@@ -3476,3 +3503,183 @@ defence:
     granted: "🛡 شرکت {company} مجوز پیمانکاری دفاعی {country} را گرفت."
     revoked: "⛔ مجوز دفاعی شرکت {company} در {country} لغو شد و ساعت {time} از اعتبار می‌افتد."
   ministry_pending: "🛡 درخواست‌های مجوز دفاعی منتظر تصمیم: {count}"
+
+# A character's life (docs/adr/0025-life-and-legacy.md): «🧬 زندگی من», the
+# player card, the life history, sleeping, the leaderboards.
+life:
+  title: "🧬 زندگی شما"
+  age: "🎂 سن: {age} سال - {stage}"
+  intelligence: "🧠 هوش: {iq} از {max}"
+  intelligence_perks: "🧠 هوش: {iq} از {max} - دوره‌ها {course}٪ کوتاه‌تر و تجربهٔ مهارت {skill}٪ بیشتر"
+  rank_line: "{emoji} رتبه: {rank}"
+  worth: "💎 دارایی خالص: {total}"
+  worth_part:
+    cash: "نقد {amount}"
+    bank: "بانک {amount}"
+    equity: "سهم شرکت‌ها {amount}"
+    property: "املاک {amount}"
+    goods: "کالاها {amount}"
+  worth_sep: " - "
+  worth_debts: "🧾 بدهی: {debts}"
+  next_rank: "⬆️ تا رتبهٔ {rank}: {need} دیگر"
+  bar_full: "▰"
+  bar_empty: "▱"
+  need:
+    hunger: "🍽 گرسنگی {bar} {value}"
+    sleep: "😴 خستگی {bar} {value}"
+    stress: "😣 استرس {bar} {value}"
+    happiness: "😊 شادی {bar} {value}"
+  pressing:
+    hunger: "⚠️ گرسنه‌اید؛ یک غذا از کوله یا مغازه بخورید."
+    sleep: "⚠️ خسته‌اید؛ در خانه استراحت کنید یا جایی بخوابید."
+    stress: "⚠️ استرس‌تان بالاست؛ استراحت، خواب و شادی آن را پایین می‌آورد."
+  body_cost: "🔻 حال جسمی‌تان {percent}٪ از بازیابی انرژی و بازدهی کار و خلاف کم می‌کند."
+  mood_cost: "🔻 کم‌حوصله‌اید و {percent}٪ امتیاز تجربهٔ کمتری می‌گیرید."
+  sleep_title: "🛏 جای خواب:"
+  sleep_home: "🏠 خانهٔ خودتان - بهترین خواب"
+  spot_line: "▫️ {spot} در {place} - {price} - {rest} واحد از خستگی کم می‌کند"
+  spot_line_free: "▫️ {spot} در {place} - رایگان - {rest} واحد از خستگی کم می‌کند"
+  sleep_wait: "⏳ تا خواب بعدی {wait} مانده."
+  sleep_pay: "🛏 یک شب خواب در {spot}: {price} - {rest} واحد از خستگی کم می‌کند"
+  notice:
+    slept: "😴 خوب خوابیدید ({spot}) و {rest} واحد از خستگی‌تان کم شد."
+    bio: "✅ بیوگرافی شما ذخیره شد."
+    bio_gone: "🗑 بیوگرافی شما پاک شد."
+    avatar: "✅ آواتار شما عوض شد."
+  button:
+    open: "🧬 زندگی من"
+    top: "🏆 برترین‌ها"
+    sleep: "😴 خواب: {spot}"
+    sleep_walk: "🚶 رفتن به {spot} ({walk})"
+    home_rest: "🏠 استراحت در خانه"
+    history: "📜 سرگذشت من"
+    my_history: "📜 سرگذشت من"
+    their_history: "📜 سرگذشت {player}"
+    card: "🪪 کارت من"
+    bio: "✏️ بیوگرافی"
+    bio_again: "✏️ نوشتن دوباره"
+    bio_clear: "🗑 پاک کردن بیوگرافی"
+    avatar: "🎭 آواتار"
+    avatar_choice: "{emoji} {name}"
+    avatar_photo: "📷 عکس تلگرامم"
+    avatar_none: "🚫 بدون آواتار"
+  card:
+    name: "👤 {name}"
+    name_avatar: "{avatar} {name}"
+    bio: "💬 «{bio}»"
+    no_bio: "💬 هنوز بیوگرافی ننوشته‌اید. با دکمهٔ «بیوگرافی» چند کلمه دربارهٔ خودتان بنویسید."
+    age_level: "🎂 {age} سال - {stage} - سطح {level}"
+    record: "🏅 {achievements} دستاورد - {entries} رویداد در سرگذشت"
+    joined: "🗓 آغاز زندگی: {date}"
+  history_title_mine: "📜 سرگذشت شما"
+  history_title: "📜 سرگذشت {player}"
+  history_page: "صفحهٔ {page} از {pages}"
+  history_empty: "هنوز رویدادی ثبت نشده است. هر کار مهمی که انجام دهید اینجا می‌ماند."
+  history_hint: "رویدادهایی که «فقط برای شما» دارند را دیگران نمی‌بینند."
+  history:
+    backfilled: "{line} (از پرونده‌های قدیمی)"
+    private: "{line} (فقط برای شما)"
+    joined: "🌱 {date} - آغاز زندگی در بازی"
+    first_job: "💼 {date} - نخستین شغل: {what} در {place}"
+    first_job_nowhere: "💼 {date} - نخستین شغل: {what}"
+    hired: "💼 {date} - استخدام: {what} در {place}"
+    hired_nowhere: "💼 {date} - استخدام: {what}"
+    promoted: "⬆️ {date} - ارتقا به {what}"
+    course: "📖 {date} - پایان دورهٔ {what}"
+    certificate: "📜 {date} - گرفتن مدرک {what}"
+    company_founded: "🏢 {date} - تأسیس شرکت «{what}» در {place}"
+    company_founded_nowhere: "🏢 {date} - تأسیس شرکت «{what}»"
+    company_closed: "🏚 {date} - تعطیلی شرکت «{what}» در {place}"
+    company_closed_nowhere: "🏚 {date} - تعطیلی شرکت «{what}»"
+    property_bought: "🏠 {date} - خرید {what} در {place} به {amount}"
+    property_bought_nowhere: "🏠 {date} - خرید {what} به {amount}"
+    property_sold: "🏷 {date} - فروش {what} در {place} به {amount}"
+    property_sold_nowhere: "🏷 {date} - فروش {what} به {amount}"
+    election_won: "🗳 {date} - پیروزی در انتخابات {what} {place} با {number} رأی"
+    election_lost: "🗳 {date} - شکست در انتخابات {what} {place} با {number} رأی"
+    office_taken: "🏛 {date} - رسیدن به منصب {what} {place}"
+    office_lost: "🏛 {date} - کنار رفتن از منصب {what} {place}"
+    jailed: "⛓ {date} - زندان در {place}"
+    jailed_nowhere: "⛓ {date} - زندان"
+    convicted: "⚖️ {date} - محکومیت در دادگاه"
+    hospitalised: "🏥 {date} - بستری در بیمارستان {place}"
+    hospitalised_nowhere: "🏥 {date} - بستری در بیمارستان"
+    war_command: "🎖 {date} - فرماندهی عملیات علیه {place}"
+    achievement: "🏅 {date} - دستاورد «{what}»"
+    rank_up: "📈 {date} - رسیدن به رتبهٔ {what}"
+    rank_down: "📉 {date} - افت به رتبهٔ {what}"
+    big_trade: "🤝 {date} - معاملهٔ بزرگ {what} در {place} به ارزش {amount}"
+    big_trade_nowhere: "🤝 {date} - معاملهٔ بزرگ {what} به ارزش {amount}"
+  avatar_title: "🎭 آواتار شما"
+  avatar_current: "آواتار فعلی: {avatar}"
+  avatar_none: "ندارید"
+  avatar_photo: "عکس پروفایل تلگرام"
+  avatar_hint: "یکی را انتخاب کنید تا کنار نامتان روی کارت و پروفایل بنشیند."
+  refused:
+    bio_length: "✏️ بیوگرافی باید بین {min} تا {max} حرف باشد."
+    bio_link: "🔗 بیوگرافی نمی‌تواند لینک، نشانی سایت یا نام کاربری داشته باشد."
+    bio_blocked: "🚫 این متن کلمه‌ای دارد که در بیوگرافی مجاز نیست. لطفاً مؤدبانه بنویسید."
+    bio_chars: "✏️ بیوگرافی نویسه‌هایی دارد که نمی‌شود نمایش داد. آن را ساده‌تر بنویسید."
+    too_soon: "⏳ تازه خوابیده‌اید. تا خواب بعدی {wait} مانده."
+    no_spot: "🛏 این جای خواب در این شهر نیست."
+    no_avatar: "🎭 این آواتار در فهرست نیست. یکی از فهرست را انتخاب کنید."
+    no_player: "🔎 بازیکنی با این کد یا نام کاربری پیدا نشد."
+    no_city: "🧭 برای خوابیدن باید در یک شهر باشید، نه در راه."
+    rested: "⏳ تازه استراحت کرده‌اید. کمی بعد دوباره امتحان کنید."
+  board:
+    empty: "هنوز جدولی ساخته نشده است. جدول‌ها هر روز بازی به‌روز می‌شوند."
+    refreshed: "🔄 به‌روزشده {date} ساعت {time}"
+    mine: "👉 {line}"
+    no_job: "بیکار"
+    richest_title: "💎 ثروتمندترین بازیکنان"
+    richest_line: "{pos}. {name} - {tag} - {value}"
+    richest_tab: "💎 ثروتمندترین‌ها"
+    richest_hint: "دارایی خالص: نقد، بانک، سهم شرکت‌ها، املاک و کالاها، منهای بدهی."
+    companies_title: "🏢 بزرگ‌ترین شرکت‌ها"
+    companies_line: "{pos}. {name} - {tag} در {city} - {value}"
+    companies_tab: "🏢 شرکت‌ها"
+    companies_hint: "ارزش دفتری: موجودی حساب شرکت منهای بدهی آن."
+    cities_title: "🏙 بهترین شهرها"
+    cities_line: "{pos}. {name} - {extra} ساکن - {extra2} شرکت - امتیاز {number}"
+    cities_tab: "🏙 شهرها"
+    cities_hint: "امتیاز شهر از ساکنان، شرکت‌ها و خزانه‌اش می‌آید و آسیب جنگ از آن کم می‌کند."
+    workers_title: "💼 پرکارترین کارمندان"
+    workers_line: "{pos}. {name} - {tag} - {number} شیفت - عملکرد {extra}"
+    workers_tab: "💼 کارمندان"
+    workers_hint: "بر پایهٔ همهٔ شیفت‌هایی که تا امروز کار کرده‌اند."
+    investors_title: "📈 سرمایه‌گذاران برتر"
+    investors_line: "{pos}. {name} - {value} رشد سهم شرکت‌ها"
+    investors_tab: "📈 سرمایه‌گذاران"
+    investors_hint: "رشد سهم هر بازیکن از ارزش شرکت‌هایش از روز قبل تا امروز. با آمدن بورس، این جدول کامل‌تر می‌شود."
+  rank_up_notice: "{emoji} تبریک! رتبهٔ شما از {from} به {rank} رسید. دارایی خالص شما {worth} است."
+  rank_down_notice: "{emoji} رتبهٔ شما از {from} به {rank} رسید. دارایی خالص شما {worth} است؛ با کار و سرمایه‌گذاری دوباره بالا می‌روید."
+  rank:
+    newcomer: تازه‌کار
+    breadwinner: نان‌آور
+    trader: کاسب
+    comfortable: مرفه
+    wealthy: ثروتمند
+    capitalist: سرمایه‌دار
+    tycoon: غول اقتصادی
+    mogul: ابرثروتمند
+  stage:
+    youth: جوانی
+    adult: بزرگسالی
+    midlife: میانسالی
+    retired: بازنشستگی
+  spot:
+    hostel: مسافرخانه
+    bench: نیمکت پارک
+  avatar:
+    fox: روباه
+    lion: شیر
+    owl: جغد
+    wolf: گرگ
+    cat: گربه
+    eagle: عقاب
+    tulip: لاله
+    rocket: موشک
+    gem: الماس
+    crown: تاج
+    panda: پاندا
+    dove: کبوتر

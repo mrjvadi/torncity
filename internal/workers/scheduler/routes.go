@@ -105,6 +105,9 @@ const (
 	// city's period ending (its budget, property and rent).
 	ActionTypeLegislatureClose = "legislature_close"
 	ActionTypeCityPeriod       = "city_period"
+
+	// Stage G1 (docs/adr/0025): a leaderboard period ending.
+	ActionTypeLeaderboard = "leaderboard_period"
 )
 
 // routes maps an action type to the command it is published as.
@@ -150,6 +153,8 @@ var routes = map[string]Route{
 
 	ActionTypeLegislatureClose: {Domain: "law", Action: "close"},
 	ActionTypeCityPeriod:       {Domain: "city", Action: "settle"},
+
+	ActionTypeLeaderboard: {Domain: "life", Action: "refresh"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

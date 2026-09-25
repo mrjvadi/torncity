@@ -104,11 +104,17 @@ func homeScreens(c Context, who people, add func(string, *presenter.Response)) {
 			Course:       &ProfileCourse{Course: CourseRef{Code: "bookkeeping", Name: "Bookkeeping"}, Remaining: 95 * time.Minute},
 			Certificates: 2,
 		},
+		Avatar: "🦊", Rank: &RankRef{Code: "breadwinner", Name: "Breadwinner", Emoji: "🍞"}, Age: 20,
+		Stage: Named{Code: "youth", Name: "Youth"},
+		Needs: &NeedsView{Hunger: 22, Sleep: 35, Stress: 12, Happiness: 68, BodyBPS: 10000, XPBPS: 10000},
 	}))
 	add("Profile · on a shift", Profile(c, ProfileView{
 		Name: who.me, Code: myCode, CityCode: "brennhaven", City: "Brennhaven",
 		Level: 7, XP: 2340, NextLevelXP: 2800, Energy: 49, MaxEnergy: 100, EnergyFullIn: 90 * time.Minute,
 		Health: 92, MaxHealth: 100, Cash: 12850, Bank: 240000,
+		Rank: &RankRef{Code: "breadwinner", Name: "Breadwinner", Emoji: "🍞"}, Age: 20, Stage: Named{Code: "youth", Name: "Youth"},
+		Needs: &NeedsView{Hunger: 78, Sleep: 55, Stress: 40, Happiness: 51, BodyBPS: 9200, XPBPS: 10000,
+			Pressing: []string{"hunger"}},
 		Work: &ProfileWork{Job: &ProfileJob{Job: JobRef{CareerCode: "retail", Rank: "skilled", Title: "Sales Associate"},
 			CityCode: "brennhaven", City: "Brennhaven", Pay: 190, ShiftEndsIn: 25 * time.Minute}},
 	}))

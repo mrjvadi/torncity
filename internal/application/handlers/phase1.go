@@ -130,15 +130,31 @@ func regenerateEnergy(row application.Stats, now time.Time) (application.Stats, 
 		return row, false
 	}
 
+	// A hard-pressed body regenerates slower (docs/adr/0025): the elapsed
+	// time counts at regen_bps, and the timestamp moves on by the REAL time
+	// the whole ticks took, so a slowed player loses no part of a tick.
+	bps := regenBPS(row)
+	effective := elapsed / 10000 * time.Duration(bps)
+	effective += elapsed % 10000 * time.Duration(bps) / 10000
 	before := domainStats(row)
-	after := before.RegenerateEnergy(elapsed)
+	after := before.RegenerateEnergy(effective)
 	if after.Energy == before.Energy {
 		return row, false
 	}
 
 	next := storedStats(row, after)
-	next.UpdatedAt = row.UpdatedAt.Add(player.EnergyRegenConsumed(elapsed))
+	used := player.EnergyRegenConsumed(effective)
+	next.UpdatedAt = row.UpdatedAt.Add(used / time.Duration(bps) * 10000)
 	return next, true
+}
+
+// regenBPS is how fast a row's energy comes back: 10000 unless a hard-pressed
+// body slowed it.
+func regenBPS(row application.Stats) int {
+	if row.RegenBPS <= 0 || row.RegenBPS > 10000 {
+		return 10000
+	}
+	return row.RegenBPS
 }
 
 // energyFullIn reports how long until a caught-up stats row has full energy
@@ -153,7 +169,8 @@ func energyFullIn(row application.Stats, now time.Time) time.Duration {
 		return 0
 	}
 	ticks := (missing + player.EnergyRegenAmount - 1) / player.EnergyRegenAmount
-	left := time.Duration(ticks)*player.EnergyRegenInterval - now.Sub(row.UpdatedAt)
+	tick := player.EnergyRegenInterval / time.Duration(regenBPS(row)) * 10000
+	left := time.Duration(ticks)*tick - now.Sub(row.UpdatedAt)
 	if left < 0 {
 		return 0
 	}

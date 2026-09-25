@@ -1,0 +1,185 @@
+# A character's life (docs/adr/0025-life-and-legacy.md): needs that drift on
+# the game clock, the mood a life pushes happiness toward, age, intelligence,
+# the rank a player holds by what they are worth, the bio, the avatars, the
+# life history and the leaderboards. The rules are internal/domain/life;
+# everything below is what they are fed. Nothing ticks in the background: a
+# need is stored with the instant it describes, and read forward from there.
+#
+# needs — hunger, need of sleep and stress, 0..100 points, higher is worse.
+#   start                     where a new life begins.
+#   hunger_per_game_day       how fast hunger rises, points per GAME day
+#                             (config game.time_scale: at 60 a game day is
+#                             24 real minutes).
+#   sleep_per_game_day        how fast the need of sleep rises.
+#   stress_fall_per_game_day  how fast stress falls on its own, and
+#   happy_stress_fall_per_game_day  how much faster at full happiness (in
+#                             proportion below).
+#   high, severe              the points a need starts to cost at, and costs
+#                             more at;
+#   high_bps, severe_bps      what one need over each costs: energy comes
+#                             back, a shift pays and a crime succeeds that
+#                             much less (10000 = all of it);
+#   max_bps                   the most all needs together may cost. Nothing
+#                             kills.
+#
+# mood — what a life pushes happiness (0..100) toward, and how fast:
+#   base + home (a home to live in) + friend per friend (up to friend_cap) +
+#   faction (a member of one) + achievement per achievement (up to
+#   achievement_cap) − pressing_need per need over `high`; per_game_day
+#   points a game day toward it. Below `low`, experience comes low_xp_bps
+#   slower.
+#
+# events — what the game's own events do to a life: stress and happiness
+#   points added (negative takes away). The kinds are a closed set:
+#   shift_worked, crime_attempted, jailed, hospitalised, war_struck (a strike
+#   on the city the player is in), achievement_awarded, promoted,
+#   course_completed, property_bought, election_won.
+#
+# sleep — home: what resting at home (property.rest) does; spots: where
+#   anyone may sleep — code, name, place (places.yml), price (minor units,
+#   paid to the city; 0 is free), rest (points of the need of sleep taken
+#   away), relief (points of stress taken away; negative adds); cooldown:
+#   GAME time before sleeping at a spot again.
+#
+# age — start: the age a character joins at; game_days_per_year: GAME days
+#   a year of age takes (420 at scale 60 is a week of real time); stages:
+#   the stages of a life by the age they begin at (hooks for school,
+#   university and retirement).
+#
+# intelligence — start (0: every bonus is earned by study) and max; per_course and per_certificate: what a
+#   course finished adds; course_bps_per_point shortens a course, up to
+#   course_max_bps; skill_bps_per_point adds skill experience, up to
+#   skill_max_bps.
+#
+# ranks — the headline rank, by net worth (cash + bank + held money + a
+#   share of one's companies' books + what one's property would fetch from
+#   its city now + goods at reference prices − property debts). ladder:
+#   code, name (the fallback for life.rank.<code>), emoji, min (minor
+#   units), lowest first and the first at 0. A player keeps a rank until
+#   they are worth hysteresis_bps less than its min, so a rank does not
+#   flicker.
+#
+# bio — min and max characters, allow_links, and blocked words (matched
+#   without regard to case, spaces or dots).
+# avatars — what a player may choose to be seen as. «photo» (their Telegram
+#   profile photo) and «none» are reserved.
+# photo_ttl — how long (REAL time) a Telegram photo's file id, kept per bot,
+#   is trusted before it is fetched again.
+# history — page_size of the timeline; big_trade: the value from which a
+#   trade enters it (minor units).
+# leaderboards — refreshed once a period (GAME time) on the game clock:
+#   size lines a board, keep periods kept; city_score: per_resident,
+#   per_company and treasury_bps (a share of the treasury) points, cut by
+#   the city's war damage.
+#
+# Loaded and versioned with the rest of the content (`admin content load`).
+
+version: 1
+
+life:
+  needs:
+    start: {hunger: 20, sleep: 15, stress: 10}
+    hunger_per_game_day: 10
+    sleep_per_game_day: 8
+    stress_fall_per_game_day: 4
+    happy_stress_fall_per_game_day: 6
+    high: 70
+    severe: 90
+    high_bps: 800
+    severe_bps: 1500
+    max_bps: 3000
+
+  mood:
+    base: 45
+    home: 15
+    friend: 3
+    friend_cap: 12
+    faction: 8
+    achievement: 2
+    achievement_cap: 10
+    pressing_need: 10
+    per_game_day: 12
+    low: 30
+    low_xp_bps: 1000
+
+  events:
+    - {event: shift_worked,        stress: 4}
+    - {event: crime_attempted,     stress: 3}
+    - {event: jailed,              stress: 15, happiness: -8}
+    - {event: hospitalised,        stress: 10, happiness: -5}
+    - {event: war_struck,          stress: 12, happiness: -4}
+    - {event: achievement_awarded, happiness: 5}
+    - {event: promoted,            happiness: 6, stress: -3}
+    - {event: course_completed,    happiness: 3}
+    - {event: property_bought,     happiness: 8}
+    - {event: election_won,        happiness: 10}
+
+  sleep:
+    home: {rest: 80, relief: 20}
+    spots:
+      - {code: hostel, name: Hostel bed, place: residential_area, price: 150, rest: 55, relief: 8}
+      - {code: bench,  name: Park bench, place: park, rest: 30, relief: -3}
+    cooldown: 8h
+
+  age:
+    start: 18
+    game_days_per_year: 420
+    stages:
+      - {code: youth,   name: Youth,   from: 18}
+      - {code: adult,   name: Adult,   from: 26}
+      - {code: midlife, name: Midlife, from: 45}
+      - {code: retired, name: Retired, from: 65}
+
+  intelligence:
+    start: 0
+    max: 200
+    per_course: 3
+    per_certificate: 5
+    course_bps_per_point: 10
+    course_max_bps: 2000
+    skill_bps_per_point: 10
+    skill_max_bps: 1500
+
+  ranks:
+    hysteresis_bps: 1000
+    ladder:
+      - {code: newcomer,     name: Newcomer,      emoji: "🌱", min: 0}
+      - {code: breadwinner,  name: Breadwinner,   emoji: "🍞", min: 15000}
+      - {code: trader,       name: Trader,        emoji: "🛍", min: 50000}
+      - {code: comfortable,  name: Comfortable,   emoji: "🏡", min: 150000}
+      - {code: wealthy,      name: Wealthy,       emoji: "💰", min: 500000}
+      - {code: capitalist,   name: Capitalist,    emoji: "🏦", min: 2000000}
+      - {code: tycoon,       name: Tycoon,        emoji: "🏙", min: 10000000}
+      - {code: mogul,        name: Mogul,         emoji: "👑", min: 50000000}
+
+  bio:
+    min: 3
+    max: 140
+    allow_links: false
+    blocked: [admin, support, moderator, fuck, shit, کصکش, کسکش, کیر, جنده, حرومزاده, مادرجنده]
+
+  avatars:
+    - {code: fox,     name: Fox,     emoji: "🦊"}
+    - {code: lion,    name: Lion,    emoji: "🦁"}
+    - {code: owl,     name: Owl,     emoji: "🦉"}
+    - {code: wolf,    name: Wolf,    emoji: "🐺"}
+    - {code: cat,     name: Cat,     emoji: "🐱"}
+    - {code: eagle,   name: Eagle,   emoji: "🦅"}
+    - {code: tulip,   name: Tulip,   emoji: "🌷"}
+    - {code: rocket,  name: Rocket,  emoji: "🚀"}
+    - {code: gem,     name: Gem,     emoji: "💎"}
+    - {code: crown,   name: Crown,   emoji: "👑"}
+    - {code: panda,   name: Panda,   emoji: "🐼"}
+    - {code: dove,    name: Dove,    emoji: "🕊"}
+
+  photo_ttl: 168h
+
+  history:
+    page_size: 8
+    big_trade: 100000
+
+  leaderboards:
+    period: 24h
+    size: 10
+    keep: 7
+    city_score: {per_resident: 1000, per_company: 5000, treasury_bps: 100}

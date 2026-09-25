@@ -10,6 +10,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/job"
+	"github.com/mrjvadi/torncity/internal/domain/life"
 	"github.com/mrjvadi/torncity/internal/domain/place"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -645,6 +646,14 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 			}
 			return errors.Internal(err)
 		}
+		// A hungry, tired or stressed body works worse (docs/adr/0025): the
+		// shift's output is its labour-law fatigue times the body's
+		// condition, fixed now like the fatigue is, bounded by content.
+		body, err := lifeEffects(ctx, tx, snap, h.scale, p.ID, s.stats.Happiness, now)
+		if err != nil {
+			return err
+		}
+		started.Activity.FatigueBPS = max(int(life.Scale(int64(started.Activity.FatigueBPS), body.BodyBPS)), 1)
 		// A shift at a company is paid from its treasury: the company must
 		// hold the wage free of every other running shift's, and sets it
 		// aside now (docs/adr/0020-companies.md). The company row is locked
@@ -971,6 +980,11 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 			// which the broker's backoff turns into "later".
 			return errors.Internal(err)
 		}
+		// A low mood learns slower (docs/adr/0025).
+		if xp := moodXP(snap, s.stats.Happiness, res.XP); xp != res.XP {
+			res.Stats, res.LevelUps = domainStats(s.stats).AddXP(xp)
+			res.XP = xp
+		}
 		// A shift worked for a company is paid from its treasury: its row
 		// is locked after the job row, before the wage it reserved leaves.
 		employer, err := employerOf(ctx, tx, *emp)
@@ -1008,7 +1022,7 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 		if err := tx.Stats().Save(ctx, stats); err != nil {
 			return err
 		}
-		gains, err := awardSkillXP(ctx, tx, playerID, s.skills, skillXPFromJob(res.SkillXP), now)
+		gains, err := awardSkillXP(ctx, tx, snap, playerID, s.skills, skillXPFromJob(res.SkillXP), now)
 		if err != nil {
 			return err
 		}
@@ -1518,7 +1532,16 @@ type skillAward struct {
 
 // awardSkillXP adds XP to skills through the domain's curve and stores the
 // result, returning what each gained for the screen.
-func awardSkillXP(ctx context.Context, tx application.Tx, playerID string, current []application.Skill, awards []skillAward, now time.Time) ([]screens.SkillGain, error) {
+//
+// Intelligence raises every award (docs/adr/0025): snap names the life rules;
+// nil leaves the awards as they are.
+func awardSkillXP(ctx context.Context, tx application.Tx, snap *content.Snapshot, playerID string, current []application.Skill,
+	awards []skillAward, now time.Time,
+) ([]screens.SkillGain, error) {
+	awards, err := smarterSkillXP(ctx, tx, snap, playerID, awards)
+	if err != nil {
+		return nil, err
+	}
 	var gains []screens.SkillGain
 	for _, a := range awards {
 		if a.XP <= 0 {

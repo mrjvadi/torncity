@@ -357,7 +357,17 @@ const (
 	ReasonMilitaryWage Reason = "military_wage"
 )
 
+// A character's life (docs/adr/0025-life-and-legacy.md).
+const (
+	// ReasonLodgingFee is a night at a paid sleeping spot (a hostel bed,
+	// life.yml sleep.spots), from the player into the treasury of the city
+	// the spot is in (a transfer).
+	ReasonLodgingFee Reason = "lodging_fee"
+)
+
 var knownReasons = map[Reason]struct{}{
+	ReasonLodgingFee: {},
+
 	ReasonBudgetSpending: {}, ReasonDefenceContribution: {}, ReasonPropertyPurchase: {}, ReasonPropertySale: {},
 	ReasonPropertyTax: {}, ReasonPropertyUpkeep: {}, ReasonRent: {}, ReasonBorderTariff: {}, ReasonFuel: {},
 	ReasonVehicleRepair: {},

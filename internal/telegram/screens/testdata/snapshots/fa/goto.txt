@@ -18,6 +18,7 @@
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
   [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
+  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
   [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
   [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
@@ -44,6 +45,7 @@
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
   [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
+  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
   [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
   [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
@@ -63,6 +65,7 @@
 🆔 کد بازیکن: ⁨K7Q2M9A⁩
   ───
   [🗺 نقشه] → map:list
+  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
   [🏅 دستاوردها] → achievement:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [🕶 دنیای زیرزمینی] → crime:hub
@@ -84,6 +87,7 @@
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
   [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
+  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
   [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
   [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
@@ -105,6 +109,7 @@
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
   [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
+  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
   [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
   [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list

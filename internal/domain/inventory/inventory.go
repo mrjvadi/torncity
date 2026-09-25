@@ -59,9 +59,18 @@ const (
 	TargetHealth    = "health"
 	TargetHappiness = "happiness"
 	TargetNerve     = "nerve"
+	// The needs (docs/adr/0025): hunger, the need of sleep and stress,
+	// 0..100 where higher is worse — food lowers hunger with a negative add.
+	TargetHunger = "hunger"
+	TargetSleep  = "sleep"
+	TargetStress = "stress"
 )
 
-var vitals = map[string]bool{TargetEnergy: true, TargetHealth: true, TargetHappiness: true, TargetNerve: true}
+var vitals = map[string]bool{TargetEnergy: true, TargetHealth: true, TargetHappiness: true, TargetNerve: true,
+	TargetHunger: true, TargetSleep: true, TargetStress: true}
+
+// NeedTarget reports whether an effect target is one of the needs.
+func NeedTarget(t string) bool { return t == TargetHunger || t == TargetSleep || t == TargetStress }
 
 // ValidTarget reports whether an effect target is a vital this package
 // applies.
@@ -138,7 +147,7 @@ func Validate(it Item) error {
 			bad("effect: %v", err)
 		}
 		if !ValidTarget(e.Target) {
-			bad("effect target %q is not energy, health, happiness or nerve", e.Target)
+			bad("effect target %q is not energy, health, happiness, nerve, hunger, sleep or stress", e.Target)
 		}
 	}
 	if it.Cooldown < 0 || it.Cooldown > 30*24*time.Hour {
@@ -171,12 +180,17 @@ type Vitals struct {
 	Happiness         int
 	MaxHappiness      int
 	Nerve, MaxNerve   int
+	// Hunger, Sleep and Stress are the needs, whole points out of MaxNeed
+	// (zero when the item does not touch them).
+	Hunger, Sleep, Stress int
+	MaxNeed               int
 }
 
 func (v Vitals) values() map[string]int64 {
 	return map[string]int64{
 		TargetEnergy: int64(v.Energy), TargetHealth: int64(v.Health),
 		TargetHappiness: int64(v.Happiness), TargetNerve: int64(v.Nerve),
+		TargetHunger: int64(v.Hunger), TargetSleep: int64(v.Sleep), TargetStress: int64(v.Stress),
 	}
 }
 
@@ -205,6 +219,9 @@ func Use(it Item, v Vitals, lastUsed time.Time, now time.Time, scale gametime.Sc
 	next.Health = clamp(out[TargetHealth], v.MaxHealth)
 	next.Happiness = clamp(out[TargetHappiness], v.MaxHappiness)
 	next.Nerve = clamp(out[TargetNerve], v.MaxNerve)
+	next.Hunger = clamp(out[TargetHunger], v.MaxNeed)
+	next.Sleep = clamp(out[TargetSleep], v.MaxNeed)
+	next.Stress = clamp(out[TargetStress], v.MaxNeed)
 	if next == v {
 		return v, time.Time{}, ErrNoEffect
 	}

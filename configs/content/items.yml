@@ -51,7 +51,9 @@
 #   stealable       optional, default true: a thief may take it from the
 #                   one carrying it.
 #   effects         what using one does: [{target: energy | health |
-#                   happiness | nerve, op: add | multiply | cap, value}].
+#                   happiness | nerve | hunger | sleep | stress, op: add |
+#                   multiply | cap, value}]. The needs (life.yml) are
+#                   0..100 and higher is worse: food adds a negative hunger.
 #                   Using a stack unit consumes it; a durable piece loses a
 #                   use. A good without effects is held, not used.
 #   cooldown        GAME time a cooldown group rests after a use.
@@ -305,19 +307,23 @@ archetypes:
     reverse_skill: mechanics
 
 items:
-  # --- Food and drink: energy, one group resting between meals -------------
+  # --- Food and drink: energy and hunger, one group resting between meals ---
+  # (life.yml: hunger is 0..100 and higher is worse, so food takes it away.)
   - {code: bread,        name: Bread,        category: food,  archetype: food,  form: stack, base_price: 40,
-     effects: [{target: energy, op: add, value: 10}], cooldown: 30m, cooldown_group: food}
+     effects: [{target: energy, op: add, value: 10}, {target: hunger, op: add, value: -25}], cooldown: 30m, cooldown_group: food}
   - {code: sandwich,     name: Sandwich,     category: food,  archetype: food,  form: stack, base_price: 90,
-     effects: [{target: energy, op: add, value: 20}], cooldown: 30m, cooldown_group: food}
+     effects: [{target: energy, op: add, value: 20}, {target: hunger, op: add, value: -40}], cooldown: 30m, cooldown_group: food}
   - {code: hot_meal,     name: Hot meal,     category: food,  archetype: food,  form: stack, base_price: 180,
-     effects: [{target: energy, op: add, value: 35}, {target: happiness, op: add, value: 5}], cooldown: 1h, cooldown_group: food}
+     effects: [{target: energy, op: add, value: 35}, {target: happiness, op: add, value: 5}, {target: hunger, op: add, value: -70},
+               {target: stress, op: add, value: -5}], cooldown: 1h, cooldown_group: food}
   - {code: water_bottle, name: Bottle of water, category: drink, archetype: drink, form: stack, base_price: 20,
-     effects: [{target: energy, op: add, value: 5}], cooldown: 20m, cooldown_group: drink}
+     effects: [{target: energy, op: add, value: 5}, {target: hunger, op: add, value: -5}], cooldown: 20m, cooldown_group: drink}
   - {code: coffee,       name: Coffee,       category: drink, archetype: drink, form: stack, base_price: 60,
-     effects: [{target: energy, op: add, value: 8}, {target: nerve, op: add, value: 1}], cooldown: 45m, cooldown_group: drink}
+     effects: [{target: energy, op: add, value: 8}, {target: nerve, op: add, value: 1}, {target: sleep, op: add, value: -10}],
+     cooldown: 45m, cooldown_group: drink}
   - {code: energy_drink, name: Energy drink, category: drink, archetype: drink, form: stack, base_price: 150,
-     effects: [{target: energy, op: add, value: 25}], cooldown: 2h, cooldown_group: energy_drink}
+     effects: [{target: energy, op: add, value: 25}, {target: sleep, op: add, value: -15}, {target: stress, op: add, value: 3}],
+     cooldown: 2h, cooldown_group: energy_drink}
 
   # --- Medicine: health ---------------------------------------------------
   - {code: bandage,       name: Bandage,       category: medicine, archetype: medicine, form: stack, base_price: 80,

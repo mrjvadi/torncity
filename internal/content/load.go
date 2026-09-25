@@ -115,6 +115,8 @@ type file struct {
 	PropertyMarkets []PropertyMarketDef `yaml:"property_markets"`
 
 	Achievements []AchievementDef `yaml:"achievements"`
+
+	Life *LifeDef `yaml:"life"`
 }
 
 // Load reads every content file in dir and returns them as one pack.
@@ -242,6 +244,9 @@ func Load(dir string) (*Pack, error) {
 		pack.PropertyTypes = append(pack.PropertyTypes, doc.PropertyTypes...)
 		pack.PropertyMarkets = append(pack.PropertyMarkets, doc.PropertyMarkets...)
 		pack.Achievements = append(pack.Achievements, doc.Achievements...)
+		if doc.Life != nil {
+			pack.Life = append(pack.Life, *doc.Life)
+		}
 	}
 
 	pack.Checksum = hex.EncodeToString(digest.Sum(nil))

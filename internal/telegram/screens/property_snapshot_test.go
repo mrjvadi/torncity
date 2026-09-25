@@ -72,7 +72,7 @@ func propertySnapshots(c Context, who people, add func(string, *presenter.Respon
 	add("Mine · a home to rest at", PropertyMine(c, PropertyMineView{Owned: []PropertyLine{home, let, indebted, offered},
 		Residence: city, Grace: 3, CanRest: true, RestEnergy: 25}))
 	add("Mine · rested, renting from another", PropertyMine(c, PropertyMineView{Residence: city, Grace: 3, CanRest: true,
-		RestIn: 7 * time.Minute, RestEnergy: 25, Notice: PropertyNoticeRested, NoticeArgs: map[string]any{"energy": 25},
+		RestIn: 7 * time.Minute, RestEnergy: 25, Notice: PropertyNoticeRested, NoticeArgs: map[string]any{"energy": 25, "rest": 60},
 		Rented: &RentedHomeLine{LeaseNo: 4, Property: PropertyLine{No: 15, Type: studio, City: city}, Landlord: third,
 			Rent: 900, Arrears: 1}}))
 	add("Mine · nothing yet", PropertyMine(c, PropertyMineView{Grace: 3}))

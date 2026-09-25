@@ -249,6 +249,14 @@ var shortcuts = map[string]shortcut{
 	"home":     {Bare: "property.mine"},
 	// "/achievements" is the player's achievements.
 	"achievements": {Bare: "achievement.list"},
+	// A character's life (docs/adr/0025): "/life" is «زندگی من»; "/card"
+	// the player's card and "/card K7Q2M9A" another's; "/history" the
+	// player's story and "/history K7Q2M9A" another's public one; "/top"
+	// the leaderboards and "/top cities" one of them.
+	"life":    {Bare: "life.me"},
+	"card":    {Bare: "life.card", Words: "life.card"},
+	"history": {Bare: "life.history", Words: "life.history"},
+	"top":     {Bare: "life.top", Words: "life.top"},
 	// "/laws" is the proposals before the bodies of the player's places;
 	// "/law 12" one of them. "/budget" is the budget of the player's city,
 	// "/budget kessmoor" another's.
@@ -364,6 +372,18 @@ var argNames = map[string][]string{
 
 	// Achievements (docs/adr/0024).
 	"achievement.list": {},
+
+	// A character's life (docs/adr/0025). A player is named by their
+	// public code (or a typed @username); a sleeping spot and an avatar by
+	// their content code (life.yml); a board by its name. A bio is typed
+	// (configs/commands.yml, input); the button «life:bio:yes» clears it.
+	"life.me":      {},
+	"life.card":    {"code"},
+	"life.history": {"code", "page"},
+	"life.bio":     {"clear"},
+	"life.avatar":  {"choice"},
+	"life.sleep":   {"spot", "method"},
+	"life.top":     {"board"},
 
 	// Work and study. A career and a course are named by their content code
 	// (jobs.yml, education.yml). job.apply's argument keeps the name "role"

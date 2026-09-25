@@ -192,6 +192,7 @@ func (p *Pack) Validate() error {
 	p.validateBudget(&problems)
 	p.validateProperty(&problems)
 	p.validateAchievements(&problems)
+	p.validateLife(&problems)
 	p.validateVehicles(&problems)
 
 	if len(problems) > 0 {

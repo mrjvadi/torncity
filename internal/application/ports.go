@@ -178,6 +178,11 @@ type Tx interface {
 	// Achievements holds progress toward achievements and what was earned;
 	// see ports_achievements.go.
 	Achievements() AchievementRepository
+
+	// Life is stage G1 (docs/adr/0025-life-and-legacy.md): a character's
+	// needs, age, mood, intelligence, rank, bio and avatar, their life
+	// history, the nights slept and the leaderboards; see ports_life.go.
+	Life() LifeRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

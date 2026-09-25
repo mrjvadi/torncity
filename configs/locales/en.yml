@@ -261,6 +261,23 @@ format:
   # A sum of money. {amount} is already written with the digits and the
   # group separator above.
   money: "{amount} Nil"
+  # A date: the calendar it is counted in (jalali or gregorian), its shape,
+  # and the month names.
+  calendar: gregorian
+  date: "{day} {month} {year}"
+  month:
+    m1: January
+    m2: February
+    m3: March
+    m4: April
+    m5: May
+    m6: June
+    m7: July
+    m8: August
+    m9: September
+    m10: October
+    m11: November
+    m12: December
 
 button:
   refresh: "🔄 Refresh"
@@ -1131,6 +1148,7 @@ place:
     heist: "🕶 {crime} cannot be done here; the crew gathers at the {place}."
     board: "📋 Missions are taken and handed in at the {board} at the {place}."
     home: "🛏 Your home is at the {place}."
+    sleep: "🛏 This place to sleep is at the {place}."
   button:
     go: "🚶 {place}"
     walk: "🚶 Walk to the {place} - {walk}"
@@ -1175,6 +1193,10 @@ command_alias:
   shop: "shop | shops"
   bag: "bag | inventory"
   market: "market"
+  life: "life"
+  history: "story | history"
+  top: "top | leaderboards"
+  card: "card"
 
 # Where a command runs (configs/commands.yml).
 channel:
@@ -1210,6 +1232,7 @@ input:
     faction_withdraw: "📤 How much should come out of the faction's bank into your bank? Type the amount."
     property_sell: "💰 What price do you ask for the property? Type the amount; the city's market fee comes off it."
     property_let: "🔑 What rent per city period? Type the amount."
+    life_bio: "💬 Write a few words about yourself for your card; no links or usernames."
   placeholder:
     default: "Value"
     bank_deposit: "Amount to deposit, in Nil"
@@ -1234,6 +1257,7 @@ input:
     faction_withdraw: "Amount to withdraw, in Nil"
     property_sell: "Sale price, in Nil"
     property_let: "Rent per period, in Nil"
+    life_bio: "A few words about you"
   cancel_hint: "To cancel, send \"cancel\"."
   cancelled: "✖️ Cancelled. Nothing changed."
 
@@ -1365,6 +1389,9 @@ vital:
   health: "❤️ Health"
   happiness: "😊 Happiness"
   nerve: "🔥 Nerve"
+  hunger: "🍽 Hunger"
+  sleep: "😴 Tiredness"
+  stress: "😣 Stress"
 
 # What a tool carried does to a crime (internal/domain/crime/gear.go).
 gear:
@@ -3230,7 +3257,7 @@ property:
     cancelled: The offer is withdrawn.
     rented: "🔑 The lease is signed; the first period's rent is paid."
     left: "🔑 You left your rented home."
-    rested: "🛏 You rested at home and gained {energy} energy."
+    rested: "🛏 You slept at home: {energy} energy gained and {rest} less tiredness."
     bought_offer: "✅ Property #{no} is now yours."
   refused:
     not_found: That property was not found.
@@ -3360,3 +3387,182 @@ defence:
     granted: "🛡 {company} was granted a defence contractor licence of {country}."
     revoked: "⛔ The defence licence of {company} in {country} was revoked; it lapses at {time}."
   ministry_pending: "🛡 Defence licence applications waiting: {count}"
+
+# A character's life (docs/adr/0025-life-and-legacy.md).
+life:
+  title: "🧬 Your life"
+  age: "🎂 Age: {age} - {stage}"
+  intelligence: "🧠 Intelligence: {iq} of {max}"
+  intelligence_perks: "🧠 Intelligence: {iq} of {max} - courses {course}% shorter and {skill}% more skill experience"
+  rank_line: "{emoji} Rank: {rank}"
+  worth: "💎 Net worth: {total}"
+  worth_part:
+    cash: "cash {amount}"
+    bank: "bank {amount}"
+    equity: "company shares {amount}"
+    property: "property {amount}"
+    goods: "goods {amount}"
+  worth_sep: " - "
+  worth_debts: "🧾 Debts: {debts}"
+  next_rank: "⬆️ To {rank}: {need} more"
+  bar_full: "▰"
+  bar_empty: "▱"
+  need:
+    hunger: "🍽 Hunger {bar} {value}"
+    sleep: "😴 Tiredness {bar} {value}"
+    stress: "😣 Stress {bar} {value}"
+    happiness: "😊 Happiness {bar} {value}"
+  pressing:
+    hunger: "⚠️ You are hungry; eat something from your bag or a shop."
+    sleep: "⚠️ You are tired; rest at home or sleep somewhere."
+    stress: "⚠️ Your stress is high; rest, sleep and happiness bring it down."
+  body_cost: "🔻 Your condition takes {percent}% off energy recovery, work and crime."
+  mood_cost: "🔻 You feel low and earn {percent}% less experience."
+  sleep_title: "🛏 Where to sleep:"
+  sleep_home: "🏠 Your own home - the best sleep"
+  spot_line: "▫️ {spot} at the {place} - {price} - {rest} less tiredness"
+  spot_line_free: "▫️ {spot} at the {place} - free - {rest} less tiredness"
+  sleep_wait: "⏳ {wait} until you can sleep again."
+  sleep_pay: "🛏 A night at the {spot}: {price} - {rest} less tiredness"
+  notice:
+    slept: "😴 You slept well ({spot}); your tiredness fell by {rest}."
+    bio: "✅ Your bio is saved."
+    bio_gone: "🗑 Your bio is cleared."
+    avatar: "✅ Your avatar has changed."
+  button:
+    open: "🧬 My life"
+    top: "🏆 Leaderboards"
+    sleep: "😴 Sleep: {spot}"
+    sleep_walk: "🚶 Go to the {spot} ({walk})"
+    home_rest: "🏠 Rest at home"
+    history: "📜 My story"
+    my_history: "📜 My story"
+    their_history: "📜 {player}'s story"
+    card: "🪪 My card"
+    bio: "✏️ Bio"
+    bio_again: "✏️ Write it again"
+    bio_clear: "🗑 Clear my bio"
+    avatar: "🎭 Avatar"
+    avatar_choice: "{emoji} {name}"
+    avatar_photo: "📷 My Telegram photo"
+    avatar_none: "🚫 No avatar"
+  card:
+    name: "👤 {name}"
+    name_avatar: "{avatar} {name}"
+    bio: "💬 “{bio}”"
+    no_bio: "💬 No bio yet. Press «Bio» to write a few words about yourself."
+    age_level: "🎂 {age} - {stage} - level {level}"
+    record: "🏅 {achievements} achievements - {entries} moments in their story"
+    joined: "🗓 Life began: {date}"
+  history_title_mine: "📜 Your story"
+  history_title: "📜 {player}'s story"
+  history_page: "Page {page} of {pages}"
+  history_empty: "Nothing yet. Everything important you do stays here."
+  history_hint: "Moments marked «only you» are not shown to others."
+  history:
+    backfilled: "{line} (from older records)"
+    private: "{line} (only you)"
+    joined: "🌱 {date} - Began a life in the game"
+    first_job: "💼 {date} - First job: {what} in {place}"
+    first_job_nowhere: "💼 {date} - First job: {what}"
+    hired: "💼 {date} - Hired: {what} in {place}"
+    hired_nowhere: "💼 {date} - Hired: {what}"
+    promoted: "⬆️ {date} - Promoted to {what}"
+    course: "📖 {date} - Finished the {what} course"
+    certificate: "📜 {date} - Earned the {what} certificate"
+    company_founded: "🏢 {date} - Founded «{what}» in {place}"
+    company_founded_nowhere: "🏢 {date} - Founded «{what}»"
+    company_closed: "🏚 {date} - Closed «{what}» in {place}"
+    company_closed_nowhere: "🏚 {date} - Closed «{what}»"
+    property_bought: "🏠 {date} - Bought a {what} in {place} for {amount}"
+    property_bought_nowhere: "🏠 {date} - Bought a {what} for {amount}"
+    property_sold: "🏷 {date} - Sold a {what} in {place} for {amount}"
+    property_sold_nowhere: "🏷 {date} - Sold a {what} for {amount}"
+    election_won: "🗳 {date} - Won the election for {what} of {place} with {number} votes"
+    election_lost: "🗳 {date} - Lost the election for {what} of {place} with {number} votes"
+    office_taken: "🏛 {date} - Took office as {what} of {place}"
+    office_lost: "🏛 {date} - Left office as {what} of {place}"
+    jailed: "⛓ {date} - Jailed in {place}"
+    jailed_nowhere: "⛓ {date} - Jailed"
+    convicted: "⚖️ {date} - Convicted in court"
+    hospitalised: "🏥 {date} - In hospital in {place}"
+    hospitalised_nowhere: "🏥 {date} - In hospital"
+    war_command: "🎖 {date} - Commanded an operation against {place}"
+    achievement: "🏅 {date} - Achievement «{what}»"
+    rank_up: "📈 {date} - Rose to {what}"
+    rank_down: "📉 {date} - Fell to {what}"
+    big_trade: "🤝 {date} - A big {what} trade in {place} worth {amount}"
+    big_trade_nowhere: "🤝 {date} - A big {what} trade worth {amount}"
+  avatar_title: "🎭 Your avatar"
+  avatar_current: "Current avatar: {avatar}"
+  avatar_none: "none"
+  avatar_photo: "your Telegram profile photo"
+  avatar_hint: "Pick one to sit beside your name on your card and profile."
+  refused:
+    bio_length: "✏️ A bio is {min} to {max} characters long."
+    bio_link: "🔗 A bio may not hold a link, a web address or a username."
+    bio_blocked: "🚫 That has a word a bio may not hold. Please keep it polite."
+    bio_chars: "✏️ That has characters that cannot be shown. Keep it simple."
+    too_soon: "⏳ You slept not long ago. {wait} until the next night."
+    no_spot: "🛏 This city has no such place to sleep."
+    no_avatar: "🎭 That avatar is not on the list. Pick one from it."
+    no_player: "🔎 No player has that code or username."
+    no_city: "🧭 You sleep in a city, not on the road."
+    rested: "⏳ You rested not long ago. Try again a little later."
+  board:
+    empty: "No board yet. The boards are refreshed every game day."
+    refreshed: "🔄 Refreshed {date} at {time}"
+    mine: "👉 {line}"
+    no_job: "out of work"
+    richest_title: "💎 The richest players"
+    richest_line: "{pos}. {name} - {tag} - {value}"
+    richest_tab: "💎 Richest"
+    richest_hint: "Net worth: cash, bank, company shares, property and goods, less debts."
+    companies_title: "🏢 The biggest companies"
+    companies_line: "{pos}. {name} - {tag} in {city} - {value}"
+    companies_tab: "🏢 Companies"
+    companies_hint: "Book value: the company's account less its debt."
+    cities_title: "🏙 The best cities"
+    cities_line: "{pos}. {name} - {extra} residents - {extra2} companies - score {number}"
+    cities_tab: "🏙 Cities"
+    cities_hint: "A city's score comes from its residents, companies and treasury; war damage takes from it."
+    workers_title: "💼 The hardest workers"
+    workers_line: "{pos}. {name} - {tag} - {number} shifts - performance {extra}"
+    workers_tab: "💼 Workers"
+    workers_hint: "By every shift worked so far."
+    investors_title: "📈 Top investors"
+    investors_line: "{pos}. {name} - {value} growth in company shares"
+    investors_tab: "📈 Investors"
+    investors_hint: "How each player's share of their companies grew since the last board. With the stock exchange this board grows up."
+  rank_up_notice: "{emoji} Congratulations! Your rank rose from {from} to {rank}. You are worth {worth}."
+  rank_down_notice: "{emoji} Your rank went from {from} to {rank}. You are worth {worth}; work and investing bring it back."
+  rank:
+    newcomer: Newcomer
+    breadwinner: Breadwinner
+    trader: Trader
+    comfortable: Comfortable
+    wealthy: Wealthy
+    capitalist: Capitalist
+    tycoon: Tycoon
+    mogul: Mogul
+  stage:
+    youth: youth
+    adult: adulthood
+    midlife: midlife
+    retired: retirement
+  spot:
+    hostel: hostel
+    bench: park bench
+  avatar:
+    fox: Fox
+    lion: Lion
+    owl: Owl
+    wolf: Wolf
+    cat: Cat
+    eagle: Eagle
+    tulip: Tulip
+    rocket: Rocket
+    gem: Gem
+    crown: Crown
+    panda: Panda
+    dove: Dove

@@ -235,3 +235,7 @@ func (t *tx) Property() application.PropertyRepository { return &PropertyReposit
 
 // Achievements returns achievements and their progress (migration 0026).
 func (t *tx) Achievements() application.AchievementRepository { return &AchievementRepository{q: t.q} }
+
+// Life returns a character's life, its history and the leaderboards
+// (migration 0028).
+func (t *tx) Life() application.LifeRepository { return &LifeRepository{q: t.q} }

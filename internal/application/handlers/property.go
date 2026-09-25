@@ -11,6 +11,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/bank"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
+	"github.com/mrjvadi/torncity/internal/domain/life"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
 	"github.com/mrjvadi/torncity/internal/domain/place"
 	"github.com/mrjvadi/torncity/internal/domain/property"
@@ -1234,7 +1235,7 @@ func (h *PropertyHandler) Rest(ctx context.Context, meta envelope.Metadata) (*pr
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var gained int
+	var gained, rested int
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -1282,10 +1283,26 @@ func (h *PropertyHandler) Rest(ctx context.Context, meta envelope.Metadata) (*pr
 			return err
 		}
 		gained = stats.Energy - before
-		return tx.Property().SetRested(ctx, p.ID, now)
+		if err := tx.Property().SetRested(ctx, p.ID, now); err != nil {
+			return err
+		}
+		// A night at home is the best sleep there is (life.yml sleep.home;
+		// docs/adr/0025).
+		if def, ok := snap.Life(); ok {
+			home := def.Sleep.Home
+			l, err := touchLife(ctx, tx, snap, h.scale, p, now, func(l *lifeNow) {
+				before := l.needs.Sleep
+				l.needs = l.needs.Change(0, -home.Rest, -home.Relief)
+				rested = int((before - l.needs.Sleep + life.Milli/2) / life.Milli)
+			})
+			if err != nil || l == nil {
+				return err
+			}
+		}
+		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return h.mine(ctx, meta, screens.PropertyNoticeRested, map[string]any{"energy": gained})
+	return h.mine(ctx, meta, screens.PropertyNoticeRested, map[string]any{"energy": gained, "rest": rested})
 }
