@@ -199,6 +199,7 @@ func Routes() []Route {
 		{Domain: "legislature", Event: "proposed", Name: "announce", Announce: billOpenedAnnouncement},
 		{Domain: "legislature", Event: "decided", Name: "announce", Announce: billDecidedAnnouncement},
 		{Domain: "admin", Event: "announced", Name: "announce", Announce: operatorAnnouncement},
+		{Domain: "admin", Event: "broadcast", Render: renderBroadcast},
 	}
 }
 

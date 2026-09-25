@@ -330,6 +330,9 @@ func (a *EconomyAdmin) AllCityIDs(ctx context.Context) ([]string, error) {
 // OperatorAnnouncement is what `admin announce` posts: the text, optional
 // texts per group language, who and why.
 type OperatorAnnouncement struct {
+	// Only, for a broadcast, limits it to the player with this public code
+	// (a preview to oneself before everyone gets it); empty means everyone.
+	Only   string
 	Text   string
 	Texts  map[string]string
 	Actor  string
@@ -374,4 +377,61 @@ func Announce(ctx context.Context, p *Pool, a OperatorAnnouncement) (string, int
 		return "", 0, fmt.Errorf("postgres: announce: commit: %w", err)
 	}
 	return ev.ID, len(cities), nil
+}
+
+// Broadcast writes an operator's message to every active player: one
+// admin.broadcast event per player in the outbox, which the notifier sends
+// to that player's private chat through the bot they last used, and one
+// audit row, in one transaction. It returns how many players it goes to.
+func Broadcast(ctx context.Context, p *Pool, a OperatorAnnouncement) (int, error) {
+	if a.Text == "" || a.Reason == "" || a.Actor == "" {
+		return 0, errors.New("postgres: a broadcast needs its text, a reason and who sends it")
+	}
+	pgtx, err := p.Raw().Begin(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("postgres: broadcast: begin: %w", err)
+	}
+	defer func() { _ = pgtx.Rollback(context.WithoutCancel(ctx)) }()
+	rows, err := pgtx.Query(ctx, `SELECT id::text FROM players WHERE status = 'active'
+		AND ($1 = '' OR public_code = upper($1)) ORDER BY created_at`, a.Only)
+	if err != nil {
+		return 0, fmt.Errorf("postgres: broadcast: players: %w", err)
+	}
+	var players []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return 0, fmt.Errorf("postgres: broadcast: players: %w", err)
+		}
+		players = append(players, id)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return 0, fmt.Errorf("postgres: broadcast: players: %w", err)
+	}
+	outbox := &OutboxRepository{q: pgtx}
+	for _, id := range players {
+		ev, err := events.New("admin.broadcast", "player", id, map[string]any{
+			"player_id": id, "text": a.Text, "texts": a.Texts, "by": a.Actor,
+		})
+		if err != nil {
+			return 0, fmt.Errorf("postgres: broadcast: %w", err)
+		}
+		meta := envelope.Metadata{RequestID: ev.ID, TraceID: ev.ID, Command: "admin.broadcast", ReceivedAt: a.At.UTC(),
+			SchemaVersion: envelope.SchemaVersion}
+		if err := outbox.Append(ctx, application.OutboxRecord{EventID: ev.ID,
+			Subject: subjects.Event("admin", "broadcast"), Metadata: meta, Payload: ev.Payload}); err != nil {
+			return 0, err
+		}
+	}
+	if err := (&EconomyAdmin{q: pgtx}).AppendAudit(ctx, AuditEntry{Actor: a.Actor, Action: "admin.broadcast",
+		TargetType: "players", NewValue: map[string]any{"text": a.Text, "texts": a.Texts, "players": len(players), "only": a.Only},
+		Reason: a.Reason, At: a.At}); err != nil {
+		return 0, err
+	}
+	if err := pgtx.Commit(ctx); err != nil {
+		return 0, fmt.Errorf("postgres: broadcast: commit: %w", err)
+	}
+	return len(players), nil
 }

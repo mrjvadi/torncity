@@ -7,6 +7,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
+	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -36,5 +37,31 @@ func operatorAnnouncement(_ context.Context, _ Deps, env *envelope.Envelope) (*A
 			text = t
 		}
 		return screens.OperatorAnnouncement(c, text)
+	}}, nil
+}
+
+// operatorBroadcast is the payload `admin broadcast` writes, one per player.
+type operatorBroadcast struct {
+	PlayerID string            `json:"player_id"`
+	Text     string            `json:"text"`
+	Texts    map[string]string `json:"texts"`
+}
+
+// renderBroadcast sends an operator's message to one player's private chat,
+// in the player's language when a text was written for it.
+func renderBroadcast(_ context.Context, _ Deps, env *envelope.Envelope) (*Draft, error) {
+	var ev operatorBroadcast
+	if err := json.Unmarshal(env.Payload, &ev); err != nil {
+		return nil, apperrors.InvalidInput("admin.broadcast payload is unreadable").WithCause(err)
+	}
+	if ev.PlayerID == "" || strings.TrimSpace(ev.Text) == "" {
+		return nil, apperrors.InvalidInput("admin.broadcast names no player or no text")
+	}
+	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
+		text := ev.Text
+		if t := strings.TrimSpace(ev.Texts[c.Lang]); t != "" {
+			text = t
+		}
+		return presenter.Message(screens.OperatorAnnouncement(c, text), nil)
 	}}, nil
 }

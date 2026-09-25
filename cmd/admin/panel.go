@@ -32,6 +32,8 @@ func panelUsage() {
                           period's spending, people, companies, homes, damage,
                           offices
   admin announce --text "..." [--text-en "..."] --reason "why" [--by NAME]
+  admin broadcast --text "..." [--text-en "..."] [--only CODE] --reason "why" [--by NAME]
+                    send the text to every active player's private chat
                           post the text in every city's linked groups, once
                           each; --text-en is what English groups read instead
 
@@ -283,5 +285,48 @@ func announceCommand(ctx context.Context, args []string) error {
 		return fmt.Errorf("announce: %w", err)
 	}
 	fmt.Printf("announcement %s queued for the groups of %d cities\nby:     %s\nreason: %s\n", id, cities, who, a.Reason)
+	return nil
+}
+
+// broadcastCommand sends an operator's message to every active player's
+// private chat, audited, one outbox event per player.
+func broadcastCommand(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("broadcast", flag.ExitOnError)
+	fs.Usage = panelUsage
+	text := fs.String("text", "", "the message (required)")
+	textEN := fs.String("text-en", "", "what English-speaking players read instead")
+	only := fs.String("only", "", "send only to the player with this public code (a preview)")
+	reason := fs.String("reason", "", "why (required)")
+	operator := addOperatorFlags(fs)
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	switch {
+	case strings.TrimSpace(*reason) == "":
+		return errors.New("broadcast: --reason is required")
+	case strings.TrimSpace(*text) == "":
+		return errors.New("broadcast: --text is required")
+	case len(*text) > 3000 || len(*textEN) > 3000:
+		return errors.New("broadcast: the text is longer than a Telegram message allows")
+	}
+	who, err := operator.resolve("broadcast", os.LookupEnv)
+	if err != nil {
+		return err
+	}
+	pool, err := contentPool(ctx)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+	a := postgres.OperatorAnnouncement{Text: strings.TrimSpace(*text), Actor: who,
+		Reason: strings.TrimSpace(*reason), At: time.Now().UTC(), Only: strings.TrimSpace(*only)}
+	if t := strings.TrimSpace(*textEN); t != "" {
+		a.Texts = map[string]string{"en": t}
+	}
+	n, err := postgres.Broadcast(ctx, pool, a)
+	if err != nil {
+		return fmt.Errorf("broadcast: %w", err)
+	}
+	fmt.Printf("broadcast queued for %d players\nby:     %s\nreason: %s\n", n, who, a.Reason)
 	return nil
 }
