@@ -1,0 +1,23 @@
+{
+  "channel": {
+    "namespaces": [
+      {
+        "name": "panel",
+        "allow_subscribe_for_client": false,
+        "allow_subscribe_for_anonymous": false,
+        "subscribe_proxy_enabled": false,
+        "presence": false,
+        "join_leave": false,
+        "force_push_join_leave": false,
+        "allow_presence_for_subscriber": false,
+        "allow_presence_for_client": false,
+        "allow_history_for_subscriber": false,
+        "allow_history_for_client": false,
+        "allow_publish_for_client": false,
+        "allow_publish_for_subscriber": false,
+        "history_size": 0,
+        "force_recovery": false
+      }
+    ]
+  }
+}

@@ -46,6 +46,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/gateway/identity/firstcontact"
 	"github.com/mrjvadi/torncity/internal/gateway/input"
 	"github.com/mrjvadi/torncity/internal/gateway/lease"
+	"github.com/mrjvadi/torncity/internal/gateway/moderation"
 	"github.com/mrjvadi/torncity/internal/gateway/ratelimit"
 	"github.com/mrjvadi/torncity/internal/gateway/registry"
 	"github.com/mrjvadi/torncity/internal/gateway/routing"
@@ -349,6 +350,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	gw.links = infraredis.NewLinkStore(rdb)
 	gw.cityGroups = postgres.NewCityGroupRepository(pool)
 	gw.photos = postgres.NewLifeRepository(pool)
+	gw.moderation = &moderation.Checker{Source: moderationSource{postgres.NewModerationReader(pool)},
+		Cache: infraredis.NewModerationCache(rdb), TTL: cfg.Panel.ModerationCacheTTL}
 
 	// Commands typed without a slash, in every language. A collision is
 	// logged and the word left out; the rest work.
@@ -468,6 +471,10 @@ type gateway struct {
 
 	// group is what playing in Telegram groups needs; see groups.go.
 	group groupState
+
+	// moderation drops the commands of a muted (in groups) or banned player
+	// (moderation.go). Nil lets every command through.
+	moderation *moderation.Checker
 
 	// aliases are the commands players type without a slash, in every
 	// language (command_alias in the locales); policy is configs/commands.yml,
@@ -683,6 +690,12 @@ func (g *gateway) handleUpdate(ctx context.Context, bot application.Bot, update 
 		// The player typed a word of ours in their own language: they are
 		// talking to the game, not to another bot.
 		admitted.mayHelp = true
+	}
+
+	// A muted player's commands in groups, and a banned player's anywhere,
+	// stop here. See moderation.go.
+	if g.moderated(ctx, meta, log) {
+		return
 	}
 
 	// A button that asks the player to type a value. See text.go.
