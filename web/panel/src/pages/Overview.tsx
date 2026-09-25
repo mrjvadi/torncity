@@ -1,120 +1,166 @@
-import { useState } from 'react';
-import { Select } from '../components/Action.tsx';
-import { Async, Card, Money, PageTitle } from '../components/ui.tsx';
-import { useI18n } from '../i18n/index.tsx';
-import type { Flow, Overview as O } from '../lib/types.ts';
+import { useEffect, useState } from 'react';
+import { Chart } from '../components/Chart.tsx';
+import { DataView } from '../components/DataView.tsx';
+import { RangePicker, SeriesChart, Stat, StatGrid } from '../components/Stat.tsx';
+import { Card, ErrorBox, Grid, Loading, Money, PageHeader, Ref, Status, When } from '../components/ui.tsx';
+import { useI18n, type Key } from '../i18n/index.tsx';
+import { foldSeries } from '../lib/chart.ts';
+import { useLive } from '../lib/live.tsx';
+import type { EconomySeries, Rec, Series } from '../lib/types.ts';
 import { useLoad } from '../lib/useLoad.ts';
 
-function Flows({ rows, total }: { rows: Flow[] | null; total?: number }) {
-  const { t } = useI18n();
-  const list = rows ?? [];
-  const sum = total ?? list.reduce((s, f) => s + f.amount, 0);
-  const max = Math.max(1, ...list.map((f) => Math.abs(f.amount)));
+// The dashboard: the world's figures now (pushed live, or polled), how the
+// money and the players moved over the chosen days, and what happened last.
+
+const num = (r: Rec | null | undefined, k: string): number => {
+  const v = r?.[k];
+  return typeof v === 'number' ? v : 0;
+};
+
+export function Overview() {
+  const { t, n, nc, pct, val } = useI18n();
+  const [days, setDays] = useState(30);
+  const live = useLive();
+  const kpiLoad = useLoad<Rec>('/api/kpis');
+  const econ = useLoad<EconomySeries>(`/api/series/economy?days=${days}`);
+  const newPlayers = useLoad<Series>(`/api/series/players.new?days=${days}`);
+
+  // Without the live feed the figures are read again every minute.
+  useEffect(() => {
+    if (live.status === 'connected') return;
+    const id = window.setInterval(kpiLoad.reload, 60_000);
+    return () => window.clearInterval(id);
+  }, [live.status, kpiLoad.reload]);
+
+  const k = live.state.kpis ?? kpiLoad.data;
+  const e = econ.data;
+  const supply = e?.supply ?? [];
+  const joined = newPlayers.data?.lines[0]?.values ?? [];
+  const priceIdx = (e?.price_index_bps ?? []).filter((v) => v > 0);
+  const health = typeof k?.health === 'string' ? k.health : null;
+
   return (
-    <ul className="bars">
-      {list.map((f) => (
-        <li key={f.reason}>
-          <span className="bar-label">
-            <bdi dir="ltr">{f.reason}</bdi>
-          </span>
-          <span className="bar-track" aria-hidden="true">
-            <span className="bar" style={{ inlineSize: `${(Math.abs(f.amount) / max) * 100}%` }} />
-          </span>
-          <Money v={f.amount} />
-        </li>
-      ))}
-      <li className="bar-total">
-        <span className="bar-label">{t('overview.total')}</span>
-        <span />
-        <Money v={sum} />
-      </li>
-    </ul>
+    <>
+      <PageHeader
+        title={t('overview.title')}
+        subtitle={t('overview.subtitle')}
+        actions={<RangePicker days={days} setDays={setDays} />}
+        badge={health ? <Status value={health} /> : undefined}
+      />
+      {kpiLoad.error && !k ? (
+        <ErrorBox error={kpiLoad.error} retry={kpiLoad.reload} />
+      ) : !k ? (
+        <Loading rows={2} />
+      ) : (
+        <StatGrid>
+          <Stat label={t('kpi.money_supply')} value={<Money v={num(k, 'money_supply')} compact />} trend={supply}
+            before={supply.length > 1 ? supply[0] : undefined} href="#/economy" />
+          <Stat label={t('kpi.players')} value={n(num(k, 'players'))} hint={t('kpi.new_24h', { n: num(k, 'new_24h') })} trend={joined} href="#/players" />
+          <Stat label={t('kpi.active_15m')} value={n(num(k, 'active_15m'))} hint={t('kpi.active_24h', { n: num(k, 'active_24h') })} />
+          <Stat label={t('kpi.price_index')} value={priceIdx.length ? pct(priceIdx[priceIdx.length - 1] ?? 0) : '—'} trend={priceIdx}
+            before={priceIdx.length > 1 ? priceIdx[0] : undefined} good="down" href="#/economy" />
+          <Stat label={t('kpi.companies')} value={n(num(k, 'companies'))} href="#/companies" />
+          <Stat label={t('kpi.open_flags')} value={n(num(k, 'open_flags'))} tone={num(k, 'open_flags') > 0 ? 'warn' : undefined} href="#/watch" />
+          <Stat label={t('kpi.held_payments')} value={n(num(k, 'held_payments'))} tone={num(k, 'held_payments') > 0 ? 'warn' : undefined} href="#/watch/holds" />
+          <Stat label={t('kpi.moderated')} value={n(num(k, 'moderated'))} href="#/watch/moderation" />
+          <Stat label={t('kpi.jailed')} value={n(num(k, 'jailed'))} href="#/justice/jail" />
+          <Stat label={t('kpi.hospitalised')} value={n(num(k, 'hospitalised'))} href="#/health" />
+          <Stat label={t('kpi.wars')} value={n(num(k, 'wars'))} tone={num(k, 'wars') > 0 ? 'warn' : undefined} href="#/wars" />
+          <Stat label={t('kpi.backlog')} value={nc(num(k, 'outbox_pending') + num(k, 'actions_overdue'))}
+            tone={num(k, 'actions_stuck') + num(k, 'actions_failed') > 0 ? 'bad' : undefined}
+            hint={t('kpi.failed_actions', { n: num(k, 'actions_failed') })} href="#/system" />
+        </StatGrid>
+      )}
+      <Grid>
+        <Card title={t('overview.supply_over_time')}>
+          {econ.error ? (
+            <ErrorBox error={econ.error} retry={econ.reload} />
+          ) : !e ? (
+            <Loading rows={4} />
+          ) : (
+            <Chart title={t('overview.supply_over_time')} days={e.days} kind="area" unit="money"
+              series={[{ key: 'supply', label: t('economy.supply'), values: e.supply }]} />
+          )}
+        </Card>
+        <Card title={t('overview.faucets_drains')}>
+          {!e ? (
+            <Loading rows={4} />
+          ) : (
+            <Chart title={t('overview.faucets_drains')} days={e.days} kind="bar" unit="money"
+              series={[
+                { key: 'minted', label: t('overview.minted'), values: e.minted },
+                { key: 'burned', label: t('overview.burned'), values: e.burned },
+              ]} />
+          )}
+        </Card>
+      </Grid>
+      <Grid>
+        <SeriesChart name="players.new" title={t('overview.new_players')} days={days} kind="bar" />
+        <SeriesChart name="trade.volume" title={t('overview.trade_volume')} days={days} kind="bar" stacked />
+      </Grid>
+      {e && e.faucets.length > 0 && (
+        <Card title={t('overview.faucets_by_reason')}>
+          <Chart title={t('overview.faucets_by_reason')} days={e.days} kind="bar" stacked unit="money"
+            series={foldSeries(e.faucets, 7, 'other').map((l) => ({ key: l.key, label: l.key === 'other' ? t('chart.other') : (val(l.key) ?? l.key), values: l.values }))} />
+        </Card>
+      )}
+      <Grid>
+        <LiveFeed />
+        <DataView view="audit" title={t('overview.recent_changes')} pageSize={10} live={['audit']}
+          hide={['target_type', 'target', 'new_value', 'old_value', 'id']} />
+      </Grid>
+    </>
   );
 }
 
-export function Overview() {
-  const { t, n, pct } = useI18n();
-  const [days, setDays] = useState('7');
-  const load = useLoad<O>(`/api/overview?days=${days}`);
-  const index = (v: number) => (v === 0 ? t('overview.no_trades') : pct(v));
+// LiveFeed lists what the live feed brought since the page opened.
+function LiveFeed() {
+  const { t } = useI18n();
+  const { status, state, seen } = useLive();
+  useEffect(() => {
+    seen();
+  }, [state.feed.length, seen]);
+  const events = state.feed.filter((e) => e.type !== 'kpis');
   return (
-    <>
-      <PageTitle
-        actions={
-          <div className="inline">
-            <Select
-              label={t('overview.window')}
-              value={days}
-              onChange={setDays}
-              options={['1', '7', '30', '90'].map((d) => [d, `${n(Number(d))} ${t('common.days')}`])}
-            />
-            <button type="button" className="btn" onClick={load.reload}>
-              {t('common.refresh')}
-            </button>
-          </div>
-        }
-      >
-        {t('overview.title')}
-      </PageTitle>
-      <Async load={load}>
-        {(o) => {
-          const inflow = (o.faucets ?? []).reduce((s, f) => s + f.amount, 0);
-          const outflow = (o.drains ?? []).reduce((s, f) => s + f.amount, 0);
-          const stats: [string, number, string?][] = [
-            [t('overview.players'), o.counts.players],
-            [t('overview.active_15m'), o.counts.active_15m],
-            [t('overview.active_24h'), o.counts.active_24h],
-            [t('overview.companies'), o.counts.companies, '#/companies'],
-            [t('overview.cities'), o.counts.cities, '#/cities'],
-            [t('overview.open_flags'), o.counts.open_flags, '#/watch'],
-            [t('overview.held_payments'), o.counts.held_payments, '#/watch'],
-          ];
-          return (
-            <>
-              <div className="stats">
-                {stats.map(([label, v, href]) => {
-                  const body = (
-                    <>
-                      <span className="stat-value">{n(v)}</span>
-                      <span className="stat-label">{label}</span>
-                    </>
-                  );
-                  return href ? (
-                    <a key={label} className="stat" href={href}>
-                      {body}
-                    </a>
-                  ) : (
-                    <div key={label} className="stat">
-                      {body}
-                    </div>
-                  );
-                })}
-                <div className="stat">
-                  <span className="stat-value">{index(o.price_index_bps)}</span>
-                  <span className="stat-label">
-                    {t('overview.price_index')} · {t('overview.prior_index')}: {index(o.prior_index_bps)}
-                  </span>
-                </div>
-                <div className="stat">
-                  <span className={`stat-value ${inflow - outflow < 0 ? 'neg' : ''}`}>{n(inflow - outflow)}</span>
-                  <span className="stat-label">{t('overview.net')}</span>
-                </div>
-              </div>
-              <div className="grid-2">
-                <Card title={t('overview.faucets')}>
-                  <Flows rows={o.faucets} />
-                </Card>
-                <Card title={t('overview.drains')}>
-                  <Flows rows={o.drains} />
-                </Card>
-              </div>
-              <Card title={t('overview.supply')}>
-                <Flows rows={o.supply} total={o.total} />
-              </Card>
-            </>
-          );
-        }}
-      </Async>
-    </>
+    <Card title={t('overview.live')} subtitle={t(`live.${status}` as Key)}>
+      {status === 'off' ? (
+        <p className="muted">{t('overview.live_off')}</p>
+      ) : events.length === 0 ? (
+        <p className="muted">{t('overview.live_waiting')}</p>
+      ) : (
+        <ol className="feed">
+          {events.map((e, i) => (
+            <li key={`${e.at}-${i}`} className={`feed-${e.type}`}>
+              <span className="feed-type">{t(`feed.${e.type}` as Key)}</span>
+              <span className="feed-body">
+                {e.type === 'audit' && (
+                  <>
+                    <bdi dir="ltr" className="code">{String(e.data.action ?? '')}</bdi> · <bdi>{String(e.data.actor ?? '')}</bdi>
+                  </>
+                )}
+                {e.type === 'flag' && (
+                  <>
+                    <Ref kind="player" code={String(e.data.player ?? '')} /> · <bdi dir="ltr">{String(e.data.rule ?? '')}</bdi>
+                  </>
+                )}
+                {e.type === 'hold' && (
+                  <>
+                    <Ref kind="player" code={String(e.data.payer ?? '')} /> → <Ref kind="player" code={String(e.data.payee ?? '')} /> ·{' '}
+                    <Money v={Number(e.data.amount ?? 0)} />
+                  </>
+                )}
+                {e.type === 'change' && (
+                  <>
+                    <bdi dir="ltr" className="code">{String(e.data.route ?? '')}</bdi> · <bdi>{String(e.data.operator ?? '')}</bdi>
+                  </>
+                )}
+                {e.type === 'health' && <Status value={String(e.data.state ?? '')} />}
+              </span>
+              <When iso={e.at} rel />
+            </li>
+          ))}
+        </ol>
+      )}
+    </Card>
   );
 }

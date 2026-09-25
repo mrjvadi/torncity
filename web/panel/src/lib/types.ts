@@ -266,3 +266,137 @@ export interface AuditLine {
   reason: string;
   at: string;
 }
+
+// The console's lists (GET /api/views/{name}).
+export interface ViewCol {
+  key: string;
+  type: string;
+  sort: boolean;
+}
+
+export interface ViewFilter {
+  key: string;
+  options?: string[];
+  prefix?: boolean;
+}
+
+export interface ViewPage {
+  name: string;
+  columns: ViewCol[];
+  filters: ViewFilter[];
+  scopes: string[];
+  search: boolean;
+  time: boolean;
+  order: string;
+  desc: boolean;
+  rows: unknown[][];
+  more: boolean;
+  offset: number;
+  limit: number;
+}
+
+export type ViewRow = Record<string, unknown>;
+
+export type Rec = Record<string, unknown>;
+
+// A chart's data (GET /api/series/{name}).
+export interface SeriesLine {
+  key: string;
+  values: number[];
+  total: number;
+}
+
+export interface Series {
+  name: string;
+  unit: string;
+  days: string[];
+  lines: SeriesLine[];
+}
+
+export interface EconomySeries {
+  days: string[];
+  supply: number[];
+  minted: number[];
+  burned: number[];
+  faucets: SeriesLine[];
+  drains: SeriesLine[];
+  price_index_bps: number[];
+  total: number;
+}
+
+export interface SearchHit {
+  kind: string;
+  code: string;
+  name: string;
+  extra: string;
+}
+
+export interface PlayerDossier {
+  player: Rec;
+  accounts: { account: string; kind: string; balance: number }[];
+  now: Rec;
+  counts: Rec;
+  offices: Rec[];
+  moderation: Rec[];
+  age: number | null;
+  stage: string;
+}
+
+export interface SectionDiff {
+  name: string;
+  local: number;
+  active: number;
+  added: string[];
+  removed: string[];
+  changed: string[];
+}
+
+export interface ContentDiff {
+  version: number;
+  local_error: string;
+  sections: SectionDiff[];
+}
+
+export interface NATSStream {
+  name: string;
+  messages: number;
+  bytes: number;
+  consumers: { name: string; pending: number; ack_pending: number; redelivered: number }[];
+}
+
+export interface NATSStatus {
+  url: string;
+  error?: string;
+  streams: NATSStream[];
+}
+
+export interface SystemStatus {
+  db_ok: boolean;
+  db_ms: number;
+  db_error?: string;
+  health?: Rec;
+  content?: Rec;
+  schema?: Rec;
+  postgres?: Rec;
+  nats?: NATSStatus;
+}
+
+export interface SessionLine {
+  id: string;
+  created_at: string;
+  last_seen_at: string;
+  expires_at: string;
+  client_ip: string;
+  user_agent: string;
+  current: boolean;
+}
+
+export interface Me {
+  username: string;
+  totp_enabled: boolean;
+  last_login_at: string | null;
+  created_at: string;
+  created_by: string;
+  password_min_length: number;
+  session_expires_at: string;
+}

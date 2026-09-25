@@ -1,10 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// The built client is embedded into cmd/panel (web/panel/embed.go). Nothing
-// is inlined: the panel's Content-Security-Policy allows only same-origin
-// scripts, styles and fonts. In development, /api is proxied to a panel
-// running locally (TORN_PANEL_PUBLIC_URL=http://localhost:5173).
+// The built client (dist/) is served by the panel backend as static files.
+// Nothing is inlined: the panel's Content-Security-Policy allows only
+// same-origin scripts, styles and fonts. In development, /api is proxied to
+// a panel running locally and /connection to the real-time server.
+const api = process.env.PANEL_DEV_API ?? 'http://127.0.0.1:8090';
+const live = process.env.PANEL_DEV_LIVE ?? 'http://127.0.0.1:8000';
+
 export default defineConfig({
   plugins: [react()],
   build: {
@@ -15,6 +18,9 @@ export default defineConfig({
     target: 'es2022',
   },
   server: {
-    proxy: { '/api': 'http://127.0.0.1:8090' },
+    proxy: {
+      '/api': api,
+      '/connection': { target: live, ws: true },
+    },
   },
 });

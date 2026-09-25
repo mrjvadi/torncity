@@ -2,14 +2,17 @@ import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } fr
 import { useI18n } from '../i18n/index.tsx';
 import { newKey } from '../lib/api.ts';
 import { checkReason, MAX_REASON } from '../lib/validate.ts';
+import { Icon } from './Icon.tsx';
 import { useToast } from './Toast.tsx';
 import { useErrorText } from './ui.tsx';
 
 // Action is a button that opens a confirmation dialog for one change: the
 // change's own fields (children), a required reason, and a confirm. The
 // request's idempotency key is made when the dialog opens and kept across
-// retries, so a double click or a retry after a timeout acts once.
-export function Action<R>({ label, title, lead, danger, children, check, run, done, disabled }: {
+// retries, so a double click or a retry after a timeout acts once. A
+// destructive change names what it acts on (typed): the confirm button waits
+// until the operator has typed it, and the typed text is sent along.
+export function Action<R>({ label, title, lead, danger, children, check, run, done, disabled, typed, icon, small }: {
   label: string;
   title?: string;
   lead?: ReactNode;
@@ -17,9 +20,12 @@ export function Action<R>({ label, title, lead, danger, children, check, run, do
   children?: ReactNode;
   // check returns a message when the fields are not ready, else null.
   check?: () => string | null;
-  run: (reason: string, key: string) => Promise<R>;
+  run: (reason: string, key: string, confirm: string) => Promise<R>;
   done: (result: R) => string;
   disabled?: boolean;
+  typed?: string;
+  icon?: string;
+  small?: boolean;
 }) {
   const { t } = useI18n();
   const toast = useToast();
@@ -27,10 +33,12 @@ export function Action<R>({ label, title, lead, danger, children, check, run, do
   const ref = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [key, setKey] = useState('');
   const reasonId = useId();
+  const typedId = useId();
   const errId = useId();
 
   useEffect(() => {
@@ -42,10 +50,13 @@ export function Action<R>({ label, title, lead, danger, children, check, run, do
 
   const start = () => {
     setReason('');
+    setConfirm('');
     setProblem(null);
     setKey(newKey());
     setOpen(true);
   };
+
+  const typedOK = !typed || confirm.trim().toUpperCase() === typed.toUpperCase();
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -59,10 +70,14 @@ export function Action<R>({ label, title, lead, danger, children, check, run, do
       setProblem(r === 'reason_required' ? t('err.reason_required') : t('common.reason_too_long'));
       return;
     }
+    if (!typedOK) {
+      setProblem(t('confirm.typed_mismatch'));
+      return;
+    }
     setBusy(true);
     setProblem(null);
     try {
-      const result = await run(reason.trim(), key);
+      const result = await run(reason.trim(), key, confirm.trim());
       setOpen(false);
       toast('ok', done(result));
     } catch (err) {
@@ -74,14 +89,20 @@ export function Action<R>({ label, title, lead, danger, children, check, run, do
 
   return (
     <>
-      <button type="button" className={`btn ${danger ? 'danger' : 'primary'}`} onClick={start} disabled={disabled}>
+      <button type="button" className={`btn ${small ? 'small' : ''} ${danger ? 'danger' : 'primary'}`} onClick={start} disabled={disabled}>
+        {icon && <Icon name={icon} size={16} />}
         {label}
       </button>
       <dialog ref={ref} className="dialog" onClose={() => setOpen(false)} aria-labelledby={`${reasonId}-title`}>
         {open && (
           <form onSubmit={submit} noValidate>
-            <h2 id={`${reasonId}-title`}>{title ?? label}</h2>
-            <p className="muted">{lead ?? t('confirm.lead')}</p>
+            <div className="dialog-head">
+              <h2 id={`${reasonId}-title`}>{title ?? label}</h2>
+            </div>
+            <p className={danger ? 'warning-box' : 'muted'}>
+              {danger && <Icon name="alert" />}
+              <span>{lead ?? t('confirm.lead')}</span>
+            </p>
             {children}
             <label htmlFor={reasonId} className="field-label">
               {t('common.reason')} <span className="req">*</span>
@@ -98,6 +119,14 @@ export function Action<R>({ label, title, lead, danger, children, check, run, do
               onChange={(e) => setReason(e.target.value)}
             />
             <p className="hint">{t('common.reason_hint')}</p>
+            {typed && (
+              <div className="field">
+                <label htmlFor={typedId} className="field-label">
+                  {t('confirm.type_to_confirm', { code: typed })}
+                </label>
+                <input id={typedId} dir="ltr" value={confirm} autoComplete="off" onChange={(e) => setConfirm(e.target.value)} />
+              </div>
+            )}
             {problem && (
               <p id={errId} className="error" role="alert">
                 {problem}
@@ -107,7 +136,7 @@ export function Action<R>({ label, title, lead, danger, children, check, run, do
               <button type="button" className="btn" onClick={() => setOpen(false)} disabled={busy}>
                 {t('common.cancel')}
               </button>
-              <button type="submit" className={`btn ${danger ? 'danger' : 'primary'}`} disabled={busy}>
+              <button type="submit" className={`btn ${danger ? 'danger' : 'primary'}`} disabled={busy || !typedOK}>
                 {busy ? t('common.loading') : t('common.confirm')}
               </button>
             </div>

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.log
+.env
+.env.*
+!.env.example
+# The parent repository ignores Markdown; this client's README travels with it.
+!README.md

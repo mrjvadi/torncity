@@ -1,6 +1,10 @@
 // The panel's API client. The session is an HttpOnly cookie the page never
 // sees; every change carries the session's CSRF token and a fresh
 // idempotency key, so a retried click is answered, not repeated.
+//
+// The API is served from the same origin as the page, under API_BASE (empty
+// by default: /api/... on this origin). Set VITE_API_BASE at build time to
+// put the API under a prefix.
 
 export class ApiError extends Error {
   readonly status: number;
@@ -12,6 +16,13 @@ export class ApiError extends Error {
     this.code = code;
     this.detail = detail;
   }
+}
+
+const env = (import.meta as { env?: Record<string, string | undefined> }).env;
+export const API_BASE: string = (env?.VITE_API_BASE ?? '').replace(/\/+$/, '');
+
+export function apiURL(path: string): string {
+  return API_BASE + path;
 }
 
 let csrf = '';
@@ -40,7 +51,7 @@ async function request<T>(method: string, path: string, body?: unknown, key?: st
   }
   let res: Response;
   try {
-    res = await fetch(path, {
+    res = await fetch(apiURL(path), {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -75,6 +86,44 @@ export function post<T>(path: string, body: unknown, key: string = newKey()): Pr
   return request<T>('POST', path, body, key);
 }
 
+// postSelf sends an operator's change to their own account (no reason, no
+// idempotency key: each is its own sign-in check).
+export function postSelf<T>(path: string, body: unknown): Promise<T> {
+  return request<T>('POST', path, body);
+}
+
+// download fetches a file (a CSV export) with the session and hands it to
+// the browser to save.
+export async function download(path: string, fallbackName: string): Promise<void> {
+  let res: Response;
+  try {
+    res = await fetch(apiURL(path), { credentials: 'same-origin', cache: 'no-store' });
+  } catch {
+    throw new ApiError(0, 'network', '');
+  }
+  if (!res.ok) {
+    if (res.status === 401) onUnauthorized();
+    let code = 'internal';
+    try {
+      code = ((await res.json()) as { error?: string }).error ?? code;
+    } catch {
+      // not JSON
+    }
+    throw new ApiError(res.status, code, '');
+  }
+  const blob = await res.blob();
+  const cd = res.headers.get('Content-Disposition') ?? '';
+  const name = /filename="([^"]+)"/.exec(cd)?.[1] ?? fallbackName;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
+
 export interface Session {
   username: string;
   csrf: string;
@@ -104,9 +153,9 @@ export async function logout(): Promise<void> {
   setCsrf('');
 }
 
-export function q(params: Record<string, string | number | undefined>): string {
+export function q(params: Record<string, string | number | undefined | null>): string {
   const u = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '') u.set(k, String(v));
+  for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null && v !== '') u.set(k, String(v));
   const s = u.toString();
   return s ? `?${s}` : '';
 }

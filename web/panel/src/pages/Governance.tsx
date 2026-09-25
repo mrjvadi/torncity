@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { Action, Field, Select } from '../components/Action.tsx';
-import { Async, Badge, Card, Code, PageTitle, Table } from '../components/ui.tsx';
-import { useI18n } from '../i18n/index.tsx';
+import { DataView } from '../components/DataView.tsx';
+import { Async, Badge, Card, Code, PageHeader, Tabs } from '../components/ui.tsx';
+import { useI18n, type Key } from '../i18n/index.tsx';
 import { post, q } from '../lib/api.ts';
-import type { ElectionLine, Lever, PolicyPlace, Seat } from '../lib/types.ts';
+import type { Lever, PolicyPlace, Seat, ViewRow } from '../lib/types.ts';
 import { useLoad } from '../lib/useLoad.ts';
-import { SeatTable } from './Cities.tsx';
+import { href, type Route } from '../router.ts';
 
 type Kind = 'city' | 'country';
 
@@ -19,47 +20,48 @@ function PlacePicker({ kind, code, setKind, setCode }: {
   const { t } = useI18n();
   return (
     <>
-      <Select
-        label={t('gov.kind')}
-        value={kind}
-        onChange={(v) => setKind(v === 'country' ? 'country' : 'city')}
-        options={[
-          ['city', t('gov.city')],
-          ['country', t('gov.country')],
-        ]}
-      />
+      <Select label={t('gov.kind')} value={kind} onChange={(v) => setKind(v === 'country' ? 'country' : 'city')}
+        options={[['city', t('gov.city')], ['country', t('gov.country')]]} />
       <Field label={t('gov.code')} value={code} onChange={setCode} dir="ltr" />
     </>
   );
 }
 
-function SeatChange({ appoint, onDone }: { appoint: boolean; onDone: () => void }) {
+function SeatChange({ appoint, onDone, preset }: { appoint: boolean; onDone: () => void; preset?: ViewRow }) {
   const { t } = useI18n();
-  const [office, setOffice] = useState('mayor');
-  const [kind, setKind] = useState<Kind>('city');
-  const [code, setCode] = useState('');
-  const [seat, setSeat] = useState('1');
+  const [office, setOffice] = useState(preset ? String(preset.office) : 'mayor');
+  const [kind, setKind] = useState<Kind>(preset?.place_kind === 'country' ? 'country' : 'city');
+  const [code, setCode] = useState(preset ? String(preset.place) : '');
+  const [seat, setSeat] = useState(preset ? String(preset.seat) : '1');
   const [player, setPlayer] = useState('');
   return (
     <Action<Seat>
+      small
       label={appoint ? t('gov.appoint') : t('gov.vacate')}
       danger={!appoint}
+      icon={appoint ? 'plus' : undefined}
       check={() => (!office.trim() || !code.trim() || !/^\d+$/.test(seat) || (appoint && !player.trim()) ? t('common.invalid') : null)}
       run={(reason, key) =>
-        post<Seat>(
-          `/api/offices/${appoint ? 'appoint' : 'vacate'}`,
-          { office: office.trim(), kind, code: code.trim(), seat: Number(seat), player: appoint ? player.trim() : '', reason },
-          key,
-        )
+        post<Seat>(`/api/offices/${appoint ? 'appoint' : 'vacate'}`,
+          { office: office.trim(), kind, code: code.trim(), seat: Number(seat), player: appoint ? player.trim() : '', reason }, key)
       }
       done={() => {
         onDone();
         return t('toast.done');
       }}
     >
-      <Field label={t('gov.office')} value={office} onChange={setOffice} dir="ltr" />
-      <PlacePicker kind={kind} code={code} setKind={setKind} setCode={setCode} />
-      <Field label={t('gov.seat')} value={seat} onChange={setSeat} dir="ltr" inputMode="numeric" />
+      {!preset && (
+        <>
+          <Field label={t('gov.office')} value={office} onChange={setOffice} dir="ltr" />
+          <PlacePicker kind={kind} code={code} setKind={setKind} setCode={setCode} />
+          <Field label={t('gov.seat')} value={seat} onChange={setSeat} dir="ltr" inputMode="numeric" />
+        </>
+      )}
+      {preset && (
+        <p>
+          <Code>{`${office}#${seat}`}</Code> · <Code>{`${kind}:${code}`}</Code>
+        </p>
+      )}
       {appoint && <Field label={t('gov.player')} value={player} onChange={setPlayer} dir="ltr" />}
     </Action>
   );
@@ -72,11 +74,7 @@ function LeverRow({ l }: { l: Lever }) {
     <div className="lever">
       <div className="lever-head">
         <Code>{l.code}</Code>
-        {!l.supported ? (
-          <Badge tone="info">{t('gov.unsupported')}</Badge>
-        ) : (
-          <strong>{fmt(l.value)}</strong>
-        )}
+        {!l.supported ? <Badge tone="info">{t('gov.unsupported')}</Badge> : <strong>{fmt(l.value)}</strong>}
       </div>
       {l.supported && (
         <div className="small muted">
@@ -92,129 +90,124 @@ function LeverRow({ l }: { l: Lever }) {
   );
 }
 
-function Policy() {
+// PolicyView is every lever in force at a place and above it.
+export function PolicyView({ kind, code }: { kind: Kind; code: string }) {
   const { t } = useI18n();
-  const [kind, setKind] = useState<Kind>('city');
-  const [code, setCode] = useState('');
-  const [shown, setShown] = useState<string | null>(null);
-  const load = useLoad<PolicyPlace[]>(shown);
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    if (code.trim()) setShown(`/api/policy${q({ kind, code: code.trim() })}`);
-  };
+  const load = useLoad<PolicyPlace[]>(code ? `/api/policy${q({ kind, code })}` : null);
   return (
     <Card title={t('gov.policy')}>
-      <form className="inline" onSubmit={submit}>
-        <PlacePicker kind={kind} code={code} setKind={setKind} setCode={setCode} />
-        <button type="submit" className="btn primary">
-          {t('gov.show')}
-        </button>
-      </form>
-      {shown && (
-        <Async load={load}>
-          {(places) => (
-            <>
-              {places.map((p) => (
-                <section key={`${p.kind}:${p.code}`} className="policy-place">
-                  <h3>
-                    <Code>{`${p.kind}:${p.code}`}</Code> <bdi>{p.name}</bdi>
-                  </h3>
-                  {(p.levers ?? []).length === 0 ? (
-                    <p className="muted">{t('common.none')}</p>
-                  ) : (
-                    (p.levers ?? []).map((l) => <LeverRow key={l.code} l={l} />)
-                  )}
-                </section>
-              ))}
-            </>
-          )}
-        </Async>
-      )}
+      <Async load={load}>
+        {(places) => (
+          <div className="policy">
+            {places.map((p) => (
+              <section key={`${p.kind}:${p.code}`} className="policy-place">
+                <h3>
+                  <Code>{`${p.kind}:${p.code}`}</Code> <bdi>{p.name}</bdi>
+                </h3>
+                {(p.levers ?? []).length === 0 ? <p className="muted">{t('common.none')}</p> : (p.levers ?? []).map((l) => <LeverRow key={l.code} l={l} />)}
+              </section>
+            ))}
+          </div>
+        )}
+      </Async>
     </Card>
   );
 }
 
-export function Governance() {
+function PolicyPicker() {
   const { t } = useI18n();
   const [kind, setKind] = useState<Kind>('city');
   const [code, setCode] = useState('');
-  const [filter, setFilter] = useState('');
-  const seats = useLoad<Seat[]>(`/api/offices${filter}`);
+  const [shown, setShown] = useState<{ kind: Kind; code: string } | null>(null);
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    setFilter(code.trim() ? q({ kind, code: code.trim() }) : '');
+    if (code.trim()) setShown({ kind, code: code.trim() });
   };
   return (
     <>
-      <PageTitle>{t('gov.title')}</PageTitle>
-      <Card
-        title={t('gov.offices')}
-        actions={
-          <div className="inline">
-            <SeatChange appoint onDone={seats.reload} />
-            <SeatChange appoint={false} onDone={seats.reload} />
-          </div>
-        }
-      >
+      <Card title={t('gov.policy_lookup')}>
         <form className="inline" onSubmit={submit}>
           <PlacePicker kind={kind} code={code} setKind={setKind} setCode={setCode} />
-          <button type="submit" className="btn">
-            {code.trim() ? t('gov.show') : t('gov.all_places')}
+          <button type="submit" className="btn primary">
+            {t('gov.show')}
           </button>
         </form>
-        <Async load={seats}>{(rows) => <SeatTable rows={rows} />}</Async>
       </Card>
-      <Policy />
+      {shown && <PolicyView kind={shown.kind} code={shown.code} />}
     </>
   );
 }
 
-export function Elections() {
-  const { t, n, at } = useI18n();
-  const load = useLoad<ElectionLine[]>('/api/elections');
+const TABS: [string, Key][] = [
+  ['seats', 'gov.tab_seats'],
+  ['policy', 'gov.tab_policy'],
+  ['proposals', 'gov.tab_proposals'],
+  ['elections', 'gov.tab_elections'],
+];
+
+export function GovernancePage({ route }: { route: Route }) {
+  const { t } = useI18n();
+  const tab = route.segments[0] === 'elections' ? 'elections' : (route.segments[1] ?? 'seats');
+  const [tick, setTick] = useState(0);
+  const bump = () => setTick((x) => x + 1);
+  const election = route.query.get('election') ?? undefined;
+  return (
+    <>
+      <PageHeader title={t('gov.title')} subtitle={t('gov.subtitle')} crumbs={[{ label: t('nav.governance') }]} />
+      <Tabs active={tab} hrefOf={(id) => href(['governance', id])} tabs={TABS.map(([id, label]) => ({ id, label: t(label) }))} />
+      {tab === 'seats' && (
+        <DataView key={tick} view="seats" pageSize={50}
+          actions={<><SeatChange appoint onDone={bump} /><SeatChange appoint={false} onDone={bump} /></>}
+          rowActions={(r) => (r.state === 'vacant' ? <SeatChange appoint preset={r} onDone={bump} /> : <SeatChange appoint={false} preset={r} onDone={bump} />)} />
+      )}
+      {tab === 'policy' && (
+        <>
+          <PolicyPicker />
+          <DataView view="policy.values" />
+          <DataView view="policy.changes" />
+        </>
+      )}
+      {tab === 'proposals' && (
+        <>
+          <DataView view="proposals" hide={['body', 'value_json', 'threshold', 'quorum']}
+            rowActions={(r) => <a className="btn small" href={href(['governance', 'proposals'], { proposal: String(r.no) })}>{t('gov.votes')}</a>} />
+          {route.query.get('proposal') ? (
+            <DataView view="proposal.votes" scope={{ proposal: route.query.get('proposal') ?? undefined }} />
+          ) : (
+            <p className="muted">{t('gov.pick_proposal')}</p>
+          )}
+        </>
+      )}
+      {tab === 'elections' && (
+        <>
+          <DataView key={tick} view="elections" actions={<OpenElection onDone={bump} />}
+            rowActions={(r) => <a className="btn small" href={href(['governance', 'elections'], { election: String(r.no) })}>{t('gov.candidates')}</a>} />
+          {election ? (
+            <DataView view="election.candidates" scope={{ election }} />
+          ) : (
+            <p className="muted">{t('gov.pick_election')}</p>
+          )}
+        </>
+      )}
+    </>
+  );
+}
+
+function OpenElection({ onDone }: { onDone: () => void }) {
+  const { t } = useI18n();
   const [office, setOffice] = useState('mayor');
   const [kind, setKind] = useState<Kind>('city');
   const [code, setCode] = useState('');
   return (
-    <>
-      <PageTitle
-        actions={
-          <Action
-            label={t('elections.open')}
-            check={() => (!office.trim() || !code.trim() ? t('common.invalid') : null)}
-            run={(reason, key) => post('/api/elections/open', { office: office.trim(), kind, code: code.trim(), reason }, key)}
-            done={() => {
-              load.reload();
-              return t('toast.done');
-            }}
-          >
-            <Field label={t('elections.office')} value={office} onChange={setOffice} dir="ltr" />
-            <PlacePicker kind={kind} code={code} setKind={setKind} setCode={setCode} />
-          </Action>
-        }
-      >
-        {t('elections.title')}
-      </PageTitle>
-      <Card>
-        <Async load={load}>
-          {(rows) => (
-            <Table
-              rows={rows}
-              rowKey={(e) => String(e.no)}
-              cols={[
-                { label: t('elections.no'), cell: (e) => n(e.no), num: true },
-                { label: t('elections.office'), cell: (e) => <Code>{e.office}</Code> },
-                { label: t('elections.place'), cell: (e) => <Code>{`${e.jurisdiction_kind}:${e.jurisdiction_code}`}</Code> },
-                { label: t('elections.status'), cell: (e) => <Badge tone={e.status === 'open' ? 'warn' : 'ok'}>{e.status}</Badge> },
-                { label: t('elections.candidacy_ends'), cell: (e) => at(e.candidacy_ends_at) },
-                { label: t('elections.voting_ends'), cell: (e) => at(e.voting_ends_at) },
-                { label: t('elections.candidates'), cell: (e) => n(e.candidates), num: true },
-                { label: t('elections.votes'), cell: (e) => n(e.votes_cast), num: true },
-              ]}
-            />
-          )}
-        </Async>
-      </Card>
-    </>
+    <Action small label={t('elections.open')} icon="vote"
+      check={() => (!office.trim() || !code.trim() ? t('common.invalid') : null)}
+      run={(reason, key) => post('/api/elections/open', { office: office.trim(), kind, code: code.trim(), reason }, key)}
+      done={() => {
+        onDone();
+        return t('toast.done');
+      }}>
+      <Field label={t('elections.office')} value={office} onChange={setOffice} dir="ltr" />
+      <PlacePicker kind={kind} code={code} setKind={setKind} setCode={setCode} />
+    </Action>
   );
 }

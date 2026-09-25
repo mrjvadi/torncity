@@ -1,221 +1,147 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { Action, Field, TextArea } from '../components/Action.tsx';
-import { Async, Card, Code, Money, PageTitle, Table } from '../components/ui.tsx';
-import { useI18n } from '../i18n/index.tsx';
-import { post, q } from '../lib/api.ts';
-import type { AuditLine, FlagLine, HoldLine } from '../lib/types.ts';
-import { useLoad } from '../lib/useLoad.ts';
+import { DataView } from '../components/DataView.tsx';
+import { Card, Code, Grid, Money, PageHeader, Tabs } from '../components/ui.tsx';
+import { useI18n, type Key } from '../i18n/index.tsx';
+import { post } from '../lib/api.ts';
+import type { ViewRow } from '../lib/types.ts';
+import { href, currentRoute, type Route } from '../router.ts';
 
-export function Watch() {
-  const { t, n, at } = useI18n();
-  const [status, setStatus] = useState<'open' | 'cleared'>('open');
-  const flags = useLoad<FlagLine[]>(`/api/watch/flags?status=${status}`);
-  const holds = useLoad<HoldLine[]>('/api/watch/holds');
-  const settle = (h: HoldLine, release: boolean) => (
-    <Action
-      label={release ? t('watch.release') : t('watch.return')}
-      danger={!release}
-      run={(reason, key) => post(`/api/watch/holds/${h.no}/${release ? 'release' : 'return'}`, { reason }, key)}
-      done={() => {
-        holds.reload();
-        return t('toast.done');
-      }}
-    >
+const TABS: [string, Key][] = [
+  ['flags', 'watch.flags'],
+  ['holds', 'watch.holds'],
+  ['moderation', 'watch.moderation'],
+];
+
+export function WatchPage({ route }: { route: Route }) {
+  const { t, n } = useI18n();
+  const tab = route.segments[1] ?? 'flags';
+  const [tick, setTick] = useState(0);
+  const done = () => {
+    setTick((x) => x + 1);
+    return t('toast.done');
+  };
+  const settle = (h: ViewRow, release: boolean) => (
+    <Action small label={release ? t('watch.release') : t('watch.return')} danger={!release}
+      run={(reason, key) => post(`/api/watch/holds/${String(h.no)}/${release ? 'release' : 'return'}`, { reason }, key)} done={done}>
       <p>
-        #{n(h.no)} · <Code>{h.payer}</Code> → <Code>{h.payee}</Code> · <Money v={h.amount} />
+        #{n(Number(h.no))} · <Code>{String(h.payer)}</Code> → <Code>{String(h.payee)}</Code> · <Money v={Number(h.amount)} />
       </p>
     </Action>
   );
   return (
     <>
-      <PageTitle>{t('watch.title')}</PageTitle>
-      <Card
-        title={t('watch.flags')}
-        actions={
-          <div className="segmented" role="group" aria-label={t('watch.flags')}>
-            {(['open', 'cleared'] as const).map((s) => (
-              <button key={s} type="button" className={`btn small ${status === s ? 'active' : ''}`} aria-pressed={status === s} onClick={() => setStatus(s)}>
-                {s === 'open' ? t('watch.open') : t('watch.cleared')}
-              </button>
-            ))}
-          </div>
-        }
-      >
-        <Async load={flags}>
-          {(rows) => (
-            <Table
-              rows={rows}
-              rowKey={(f) => String(f.no)}
-              cols={[
-                { label: t('watch.no'), cell: (f) => n(f.no), num: true },
-                { label: t('watch.rule'), cell: (f) => <Code>{f.rule}</Code> },
-                { label: t('watch.player'), cell: (f) => <a href={`#/players/${encodeURIComponent(f.player)}`}><Code>{f.player}</Code></a> },
-                { label: t('watch.other'), cell: (f) => (f.other ? <a href={`#/players/${encodeURIComponent(f.other)}`}><Code>{f.other}</Code></a> : '—') },
-                { label: t('watch.score'), cell: (f) => n(f.score), num: true },
-                { label: t('watch.hits'), cell: (f) => n(f.hits), num: true },
-                {
-                  label: t('watch.evidence'),
-                  cell: (f) => (
-                    <bdi dir="ltr" className="small">
-                      {Object.entries(f.evidence ?? {})
-                        .map(([k, v]) => `${k}=${v}`)
-                        .join(' ')}
-                    </bdi>
-                  ),
-                },
-                { label: t('watch.updated'), cell: (f) => at(f.updated_at) },
-                {
-                  label: status === 'open' ? t('watch.clear') : t('watch.note'),
-                  cell: (f) =>
-                    f.status === 'open' ? (
-                      <Action
-                        label={t('watch.clear')}
-                        run={(reason, key) => post(`/api/watch/flags/${f.no}/clear`, { reason }, key)}
-                        done={() => {
-                          flags.reload();
-                          return t('toast.done');
-                        }}
-                      >
-                        <p>
-                          #{n(f.no)} · <Code>{f.rule}</Code> · <Code>{f.player}</Code>
-                        </p>
-                      </Action>
-                    ) : (
-                      <bdi>{`${f.cleared_by ?? ''}: ${f.note ?? ''}`}</bdi>
-                    ),
-                },
-              ]}
-            />
-          )}
-        </Async>
-      </Card>
-      <Card title={t('watch.holds')}>
-        <Async load={holds}>
-          {(rows) => (
-            <Table
-              rows={rows}
-              rowKey={(h) => String(h.no)}
-              cols={[
-                { label: t('watch.no'), cell: (h) => n(h.no), num: true },
-                { label: t('watch.payer'), cell: (h) => <Code>{h.payer}</Code> },
-                { label: t('watch.payee'), cell: (h) => <Code>{h.payee}</Code> },
-                { label: t('watch.method'), cell: (h) => <Code>{h.method}</Code> },
-                { label: t('watch.amount'), cell: (h) => <Money v={h.amount} />, num: true },
-                { label: t('watch.since'), cell: (h) => at(h.created_at) },
-                {
-                  label: '',
-                  cell: (h) => (
-                    <div className="inline">
-                      {settle(h, true)}
-                      {settle(h, false)}
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          )}
-        </Async>
-      </Card>
+      <PageHeader title={t('watch.title')} subtitle={t('watch.subtitle')} crumbs={[{ label: t('nav.watch') }]} />
+      <Tabs active={tab} hrefOf={(id) => href(['watch', id])} tabs={TABS.map(([id, label]) => ({ id, label: t(label) }))} />
+      {tab === 'flags' && (
+        <DataView key={tick} view="flags" defaultFilters={{ status: 'open' }} live={['flag']}
+          rowActions={(f) =>
+            f.status === 'open' ? (
+              <Action small label={t('watch.clear')} run={(reason, key) => post(`/api/watch/flags/${String(f.no)}/clear`, { reason }, key)} done={done}>
+                <p>
+                  #{n(Number(f.no))} · <Code>{String(f.rule)}</Code> · <Code>{String(f.player)}</Code>
+                </p>
+              </Action>
+            ) : null
+          } />
+      )}
+      {tab === 'holds' && (
+        <DataView key={tick} view="holds" defaultFilters={{ status: 'held' }} live={['hold']}
+          rowActions={(h) =>
+            h.status === 'held' ? (
+              <div className="inline">
+                {settle(h, true)}
+                {settle(h, false)}
+              </div>
+            ) : null
+          } />
+      )}
+      {tab === 'moderation' && <DataView view="moderation" defaultFilters={{ state: 'standing' }} live={['change']} />}
     </>
   );
 }
 
 const MAX_MESSAGE = 3000;
 
-export function Messages() {
+export function MessagesPage() {
   const { t } = useI18n();
   const [text, setText] = useState('');
   const [textEN, setTextEN] = useState('');
   const [btext, setBText] = useState('');
   const [btextEN, setBTextEN] = useState('');
-  const [only, setOnly] = useState('');
+  const [only, setOnly] = useState(() => currentRoute().query.get('only') ?? '');
   const tooLong = (a: string, b: string) => [...a].length > MAX_MESSAGE || [...b].length > MAX_MESSAGE;
   const check = (a: string, b: string) => (!a.trim() ? t('common.invalid') : tooLong(a, b) ? t('messages.too_long') : null);
+  const Counter = ({ v }: { v: string }) => (
+    <span className={`counter ${[...v].length > MAX_MESSAGE ? 'over' : ''}`}>
+      {t('messages.count', { n: [...v].length, max: MAX_MESSAGE })}
+    </span>
+  );
   return (
     <>
-      <PageTitle>{t('messages.title')}</PageTitle>
-      <Card title={t('messages.announce')}>
-        <p className="muted">{t('messages.announce_lead')}</p>
-        <TextArea label={t('messages.text')} value={text} onChange={setText} dir="rtl" />
-        <TextArea label={t('messages.text_en')} value={textEN} onChange={setTextEN} dir="ltr" />
-        <Action<{ cities: number }>
-          label={t('messages.send')}
-          danger
-          check={() => check(text, textEN)}
-          run={(reason, key) => post('/api/announce', { text: text.trim(), text_en: textEN.trim(), reason }, key)}
-          done={(r) => t('messages.sent_groups', { n: r.cities })}
-        >
-          <blockquote className="preview">{text}</blockquote>
-        </Action>
-      </Card>
-      <Card title={t('messages.broadcast')}>
-        <p className="muted">{t('messages.broadcast_lead')}</p>
-        <TextArea label={t('messages.text')} value={btext} onChange={setBText} dir="rtl" />
-        <TextArea label={t('messages.text_en')} value={btextEN} onChange={setBTextEN} dir="ltr" />
-        <Field label={t('messages.only')} value={only} onChange={setOnly} dir="ltr" hint={t('messages.only_hint')} />
-        <Action<{ players: number }>
-          label={t('messages.send')}
-          danger={!only.trim()}
-          check={() => check(btext, btextEN)}
-          run={(reason, key) =>
-            post('/api/broadcast', { text: btext.trim(), text_en: btextEN.trim(), only: only.trim(), reason }, key)
-          }
-          done={(r) => t('messages.sent_players', { n: r.players })}
-        >
-          <blockquote className="preview">{btext}</blockquote>
-          {only.trim() && (
-            <p>
-              {t('messages.only')}: <Code>{only.trim()}</Code>
-            </p>
-          )}
-        </Action>
-      </Card>
+      <PageHeader title={t('messages.title')} subtitle={t('messages.subtitle')} crumbs={[{ label: t('nav.messages') }]} />
+      <Grid>
+        <Card title={t('messages.announce')} subtitle={t('messages.announce_lead')}>
+          <TextArea label={t('messages.text')} value={text} onChange={setText} dir="rtl" />
+          <Counter v={text} />
+          <TextArea label={t('messages.text_en')} value={textEN} onChange={setTextEN} dir="ltr" />
+          <Preview fa={text} en={textEN} />
+          <Action<{ cities: number }> label={t('messages.send')} danger icon="message" check={() => check(text, textEN)}
+            run={(reason, key) => post('/api/announce', { text: text.trim(), text_en: textEN.trim(), reason }, key)}
+            done={(r) => t('messages.sent_groups', { n: r.cities })}>
+            <Preview fa={text} en={textEN} />
+          </Action>
+        </Card>
+        <Card title={t('messages.broadcast')} subtitle={t('messages.broadcast_lead')}>
+          <TextArea label={t('messages.text')} value={btext} onChange={setBText} dir="rtl" />
+          <Counter v={btext} />
+          <TextArea label={t('messages.text_en')} value={btextEN} onChange={setBTextEN} dir="ltr" />
+          <Field label={t('messages.only')} value={only} onChange={setOnly} dir="ltr" hint={t('messages.only_hint')} />
+          <Preview fa={btext} en={btextEN} />
+          <Action<{ players: number }> label={only.trim() ? t('messages.send_preview') : t('messages.send_all')} danger={!only.trim()} icon="message"
+            check={() => check(btext, btextEN)}
+            run={(reason, key) => post('/api/broadcast', { text: btext.trim(), text_en: btextEN.trim(), only: only.trim(), reason }, key)}
+            done={(r) => t('messages.sent_players', { n: r.players })}>
+            <Preview fa={btext} en={btextEN} />
+            {only.trim() && (
+              <p>
+                {t('messages.only')}: <Code>{only.trim()}</Code>
+              </p>
+            )}
+          </Action>
+        </Card>
+      </Grid>
+      <DataView view="audit" title={t('messages.history')} defaultFilters={{ action: 'admin.' }} hide={['target_type', 'target', 'old_value', 'id']} live={['audit']} />
     </>
   );
 }
 
-export function Audit() {
-  const { t, at } = useI18n();
-  const [prefix, setPrefix] = useState('');
-  const [shown, setShown] = useState('');
-  const load = useLoad<AuditLine[]>(`/api/audit${q({ action: shown, limit: 100 })}`);
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    setShown(prefix.trim());
-  };
+// Preview shows a message the way a player's chat bubble would.
+function Preview({ fa, en }: { fa: string; en: string }) {
+  const { t } = useI18n();
+  if (!fa.trim() && !en.trim()) return null;
+  return (
+    <div className="preview-pane" aria-label={t('messages.preview')}>
+      {fa.trim() && (
+        <div className="bubble" dir="rtl" lang="fa">
+          {fa}
+        </div>
+      )}
+      {en.trim() && (
+        <div className="bubble" dir="ltr" lang="en">
+          {en}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function AuditPage() {
+  const { t } = useI18n();
   return (
     <>
-      <PageTitle>{t('audit.title')}</PageTitle>
-      <form className="inline" onSubmit={submit}>
-        <Field label={t('audit.filter')} value={prefix} onChange={setPrefix} dir="ltr" placeholder="economy." />
-        <button type="submit" className="btn primary">
-          {t('common.show')}
-        </button>
-      </form>
-      <Card>
-        <Async load={load}>
-          {(rows) => (
-            <Table
-              rows={rows}
-              rowKey={(r) => String(r.id)}
-              cols={[
-                { label: t('audit.at'), cell: (r) => at(r.at) },
-                { label: t('audit.actor'), cell: (r) => <Code>{r.actor}</Code> },
-                { label: t('audit.action'), cell: (r) => <Code>{r.action}</Code> },
-                { label: t('audit.reason'), cell: (r) => <bdi>{r.reason}</bdi> },
-                {
-                  label: t('audit.target'),
-                  cell: (r) => (
-                    <bdi dir="ltr" className="small">
-                      {JSON.stringify(r.new_value)}
-                    </bdi>
-                  ),
-                },
-              ]}
-            />
-          )}
-        </Async>
-      </Card>
+      <PageHeader title={t('audit.title')} subtitle={t('audit.subtitle')} crumbs={[{ label: t('nav.audit') }]} />
+      <DataView view="audit" pageSize={50} live={['audit']} hide={['target', 'old_value']} />
     </>
   );
 }
