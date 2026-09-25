@@ -1,0 +1,301 @@
+━━━ Budget · the mayor's view ━━━
+(edits message 42)
+💰 Budget of Ostmarch
+🏦 Treasury: 30,000 Nil
+Each city period the budget spends up to 20% of the treasury.
+
+Division in force: Police 30%, Public transport subsidy 20%, Defence contribution 10%
+
+Last period 4,200 Nil was spent:
+• Police: 1,800 Nil - cases worked 1.8% harder
+• Public transport subsidy: 1,200 Nil - public transport 4.8% cheaper
+• Defence contribution: 600 Nil - paid into the country's defence fund
+
+⏳ Next period: in 14m
+The period ends at 14:49
+  ───
+  [✏️ Change the division] → gov:lever:city.budget:ostmarch
+  [⚖️ Proposals and votes] → law:list
+  [🔙 Back] → gov:city:ostmarch   │   [🔄 Refresh] → city:budget:ostmarch
+
+━━━ Budget · a new division announced ━━━
+(edits message 42)
+💰 Budget of Ostmarch
+🏦 Treasury: 30,000 Nil
+Each city period the budget spends up to 20% of the treasury.
+
+Division in force: Police 30%, Public transport subsidy 20%, Defence contribution 10%
+⏳ A new division takes effect in 20h: Hospital subsidy 50%, Infrastructure and repair 25%
+
+Last period 4,200 Nil was spent:
+• Police: 1,800 Nil - cases worked 1.8% harder
+• Public transport subsidy: 1,200 Nil - public transport 4.8% cheaper
+• Defence contribution: 600 Nil - paid into the country's defence fund
+
+⏳ Next period: in 3m
+The period ends at 14:38
+  ───
+  [⚖️ Proposals and votes] → law:list
+  [🔙 Back] → gov:city:ostmarch   │   [🔄 Refresh] → city:budget:ostmarch
+
+━━━ Budget · nothing allocated, no period yet ━━━
+(edits message 42)
+💰 Budget of Ostmarch
+🏦 Treasury: 1,200 Nil
+Each city period the budget spends up to 20% of the treasury.
+
+Division in force: no line has a share and nothing is spent
+
+No budget period has ended yet.
+  ───
+  [⚖️ Proposals and votes] → law:list
+  [🔙 Back] → gov:city:ostmarch   │   [🔄 Refresh] → city:budget:ostmarch
+
+━━━ Budget · in no city ━━━
+(edits message 42)
+You have not settled in a city yet. Once you do, its budget appears here.
+  ───
+  [🔙 Back] → gov:city
+
+━━━ Allocation · editing the budget ━━━
+(edits message 42)
+🏛 City budget — Ostmarch
+• City budget: Police 30%, Public transport subsidy 20%, Defence contribution 10% - set by Sara (K7Q2M9A)
+
+Each city period the budget spends up to 20% of the treasury.
+A change takes effect 24h after it is announced.
+After a change, the next one can be made 3d later.
+🗳 This change goes to a vote of the City council before it is announced, and takes effect only if it passes.
+
+✏️ Draft division:
+• Police: 30%
+• Hospital subsidy: 0%
+• Public transport subsidy: 20%
+• Education: 5%
+• Infrastructure and repair: 0%
+• City marketing: 0%
+• Defence contribution: 10%
+Total: 65% - 35% is not spent and stays in the treasury.
+  ───
+  [➖ Police] → gov:alloc:city.budget:ostmarch:5400002   │   [➕ Police] → gov:alloc:city.budget:ostmarch:6400001
+  [➕ Hospital subsidy] → gov:alloc:city.budget:ostmarch:6400001
+  [➖ Public transport subsidy] → gov:alloc:city.budget:ostmarch:5400002   │   [➕ Public transport subsidy] → gov:alloc:city.budget:ostmarch:6400001
+  [➖ Education] → gov:alloc:city.budget:ostmarch:5400002   │   [➕ Education] → gov:alloc:city.budget:ostmarch:6400001
+  [➕ Infrastructure and repair] → gov:alloc:city.budget:ostmarch:6400001
+  [➕ City marketing] → gov:alloc:city.budget:ostmarch:6400001
+  [➖ Defence contribution] → gov:alloc:city.budget:ostmarch:5400002   │   [➕ Defence contribution] → gov:alloc:city.budget:ostmarch:6400001
+  [📝 Review change] → gov:allocok:city.budget:ostmarch:6410002
+  [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:alloc:city.budget:ostmarch:6410002
+
+━━━ Allocation · waiting for the cooldown ━━━
+(edits message 42)
+🏛 City budget — Ostmarch
+• City budget: Police 30%, Public transport subsidy 20%, Defence contribution 10% - set by Sara (K7Q2M9A)
+
+Each city period the budget spends up to 20% of the treasury.
+A change takes effect 24h after it is announced.
+After a change, the next one can be made 3d later.
+🗳 This change goes to a vote of the City council before it is announced, and takes effect only if it passes.
+
+⏳ You can change this policy again in 40h.
+  ───
+  [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:city.budget:ostmarch
+
+━━━ Allocation · confirm, to the council ━━━
+(edits message 42)
+📝 Confirm the change
+
+City budget in Ostmarch: from Police 30%, Public transport subsidy 20%, Defence contribution 10% to Police 30%, Public transport subsidy 20%, Education 5%, Defence contribution 10%
+🗳 This change goes to a vote of the City council before it is announced, and takes effect only if it passes.
+You will not be able to change this policy again for 3d.
+  ───
+  [✅ Confirm] → gov:allocset:city.budget:ostmarch:6410002   │   [✖️ Cancel] → gov:alloc:city.budget:ostmarch:6410002
+
+━━━ Allocation · confirm, announced at once ━━━
+(edits message 42)
+📝 Confirm the change
+
+City budget in Ostmarch: from Police 30%, Public transport subsidy 20%, Defence contribution 10% to Police 30%, Public transport subsidy 20%, Education 5%, Defence contribution 10%
+It will be announced now and take effect in 24h.
+You will not be able to change this policy again for 3d.
+  ───
+  [✅ Confirm] → gov:allocset:city.budget:ostmarch:6410002   │   [✖️ Cancel] → gov:alloc:city.budget:ostmarch:6410002
+
+━━━ Allocation · announced ━━━
+(edits message 42)
+📢 Change announced
+
+City budget in Ostmarch will change from Police 30%, Public transport subsidy 20%, Defence contribution 10% to Police 30%, Public transport subsidy 20%, Education 5%, Defence contribution 10% in 24h. The change is recorded in the public history.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:city.budget:ostmarch
+
+━━━ Tax · a large change goes to the council ━━━
+(edits message 42)
+📝 Confirm the change
+
+Tax rate in Ostmarch: from 4.5% to 12%
+🗳 This change goes to a vote of the City council before it is announced, and takes effect only if it passes.
+You will not be able to change this policy again for 3d.
+  ───
+  [✅ Confirm] → gov:set:city.tax_rate:ostmarch:1200   │   [✖️ Cancel] → gov:lever:city.tax_rate:ostmarch:1200
+
+━━━ Refusal · needs the council ━━━
+(edits message 42)
+This change must be confirmed by the City council before it takes effect.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.tax_rate:ostmarch
+
+━━━ Refusal · an allocation beyond the whole ━━━
+(edits message 42)
+That division is not allowed: only this budget's lines take a share, and the shares add up to at most 100%.
+  ───
+  [🏛 My office] → gov:office
+  [🔙 Back] → gov:lever:city.budget:ostmarch
+
+━━━ Proposal · a councillor may vote ━━━
+(edits message 42)
+⚖️ Proposal #12 — Ostmarch
+divide City budget anew: Police 30%, Public transport subsidy 20%, Education 5%, Defence contribution 10%
+Proposed by Mayor Sara (K7Q2M9A)
+
+Voting: City council - 3 of 5 seats held
+To pass: more yes than no among the votes cast
+
+🗳 Voting - 47h left - 1 yes, 0 no
+With 3 members seated, 2 yes votes carry it.
+Voting closes at 13:35
+
+Members' votes:
+• Kaveh (B3C4D5F): yes
+  ───
+  [✅ Yes] → law:vote:12:yes   │   [❌ No] → law:vote:12:no
+  [⚖️ Proposals and votes] → law:list
+  [🔙 Back] → law:list   │   [🔄 Refresh] → law:view:12
+
+━━━ Proposal · just submitted ━━━
+(edits message 42)
+📨 The proposal is before the City council of Ostmarch. The result is announced in the city's groups after the vote.
+
+⚖️ Proposal #12 — Ostmarch
+divide City budget anew: Police 30%, Public transport subsidy 20%, Education 5%, Defence contribution 10%
+Proposed by Mayor Sara (K7Q2M9A)
+
+Voting: City council - 3 of 5 seats held
+To pass: more yes than no among the votes cast
+
+🗳 Voting - 47h left - 0 yes, 0 no
+With 3 members seated, 2 yes votes carry it.
+Voting closes at 13:35
+  ───
+  [⚖️ Proposals and votes] → law:list
+  [🔙 Back] → law:list   │   [🔄 Refresh] → law:view:12
+
+━━━ Proposal · passed by the vote just cast ━━━
+(edits message 42)
+✅ Your vote is recorded.
+
+⚖️ Proposal #12 — Ostmarch
+divide City budget anew: Police 30%, Public transport subsidy 20%, Education 5%, Defence contribution 10%
+Proposed by Mayor Sara (K7Q2M9A)
+
+Voting: City council - 3 of 5 seats held
+To pass: more yes than no among the votes cast
+
+✅ Passed - 2 yes, 1 no
+
+Members' votes:
+• Kaveh (B3C4D5F): yes
+• Nilou (N1L0F4R): yes
+• Sara (K7Q2M9A): no
+  ───
+  [⚖️ Proposals and votes] → law:list
+  [🔙 Back] → law:list   │   [🔄 Refresh] → law:view:12
+
+━━━ Proposal · a declaration of war rejected ━━━
+(edits message 42)
+⚖️ Proposal #13 — The Commonwealth
+declare war on Vantor Federation
+Proposed by President Kaveh (B3C4D5F)
+
+Voting: Parliament - 6 of 9 seats held
+To pass: at least 2/3 of the votes cast are yes
+Quorum: 1/2 of the seats must vote
+
+❌ Rejected - 2 yes, 3 no
+  ───
+  [⚖️ Proposals and votes] → law:list
+  [🔙 Back] → law:list   │   [🔄 Refresh] → law:view:13
+
+━━━ Proposal · passed but lapsed ━━━
+(edits message 42)
+⚖️ Proposal #14 — Ostmarch
+set Property tax to 0.5%
+Proposed by City council Nilou (N1L0F4R)
+
+Voting: City council - 5 of 5 seats held
+To pass: more yes than no among the votes cast
+Quorum: 1/2 of the seats must vote
+
+⚪️ Passed but not applied: the policy had changed meanwhile and could not change again yet
+  ───
+  [⚖️ Proposals and votes] → law:list
+  [🔙 Back] → law:list   │   [🔄 Refresh] → law:view:14
+
+━━━ Proposals · the list ━━━
+(edits message 42)
+⚖️ Proposals and votes
+
+• Proposal #12 in Ostmarch: divide City budget anew: Police 30%, Public transport subsidy 20%, Education 5%, Defence contribution 10%
+  🗳 Voting - 47h left - 1 yes, 0 no
+
+• Proposal #13 in The Commonwealth: declare war on Vantor Federation
+  ❌ Rejected - 2 yes, 3 no
+
+• Proposal #14 in Ostmarch: set Property tax to 0.5%
+  ⚪️ Passed but not applied: the policy had changed meanwhile and could not change again yet
+  ───
+  [⚖️ Proposal #12] → law:view:12
+  [⚖️ Proposal #13] → law:view:13
+  [⚖️ Proposal #14] → law:view:14
+  [🔙 Back] → gov:city   │   [🔄 Refresh] → law:list
+
+━━━ Proposals · none ━━━
+(edits message 42)
+⚖️ Proposals and votes
+No proposal is before any body of your city or country right now.
+  ───
+  [🔙 Back] → gov:city   │   [🔄 Refresh] → law:list
+
+━━━ Refused · not_found ━━━
+(edits message 42)
+No such proposal was found. Open the list of proposals.
+  ───
+  [🔙 Back] → law:view:12
+
+━━━ Refused · not_member ━━━
+(edits message 42)
+Only members of the City council vote on this proposal.
+  ───
+  [🔙 Back] → law:view:12
+
+━━━ Refused · under_way ━━━
+(edits message 42)
+A proposal on the same matter is already before the City council. Try again once it is decided.
+  ───
+  [🔙 Back] → law:view:12
+
+━━━ Notice · your proposal passed ━━━
+(sends)
+✅ The City council of Ostmarch passed proposal #12: divide City budget anew: Police 30%, Public transport subsidy 20%, Education 5%, Defence contribution 10%. 2 yes, 1 no.
+  ───
+  [⚖️ Proposal #12] → law:view:12
+  [🔙 Back] → law:list
+
+━━━ Notice · your proposal was rejected ━━━
+(sends)
+❌ The Parliament of The Commonwealth rejected proposal #13: declare war on Vantor Federation. 2 yes, 3 no.
+  ───
+  [⚖️ Proposal #13] → law:view:13
+  [🔙 Back] → law:list

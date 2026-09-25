@@ -36,6 +36,11 @@ const (
 	AddrGovLever   = "gov:lever"
 	AddrGovConfirm = "gov:confirm"
 	AddrGovSet     = "gov:set"
+	// The allocation editor (a budget): the draft travels in the address,
+	// one character per category (docs/adr/0024-property-and-politics.md).
+	AddrGovAlloc        = "gov:alloc"
+	AddrGovAllocConfirm = "gov:allocok"
+	AddrGovAllocSet     = "gov:allocset"
 )
 
 // Catalogue namespaces for content-coded names.
@@ -103,14 +108,34 @@ type GovLever struct {
 	// HeldBy is the office deciding the lever.
 	HeldBy           string
 	Notice, Cooldown time.Duration
-	// Vote says the lever is decided by a vote of HeldBy, which does not
-	// exist yet: nobody can change it alone.
+	// Vote says the lever is decided by a vote of HeldBy: nobody changes it
+	// alone; a member proposes and the body votes.
 	Vote bool
+	// ConfirmBy is the body whose vote confirms a change, empty for none.
+	ConfirmBy string
+	// Allocation and Categories are an allocation lever's shares in force
+	// and its categories, in order; nil for a scalar lever.
+	Allocation map[string]int64
+	Categories []string
+}
+
+// isAllocation reports whether the lever divides a budget.
+func (l GovLever) isAllocation() bool { return l.Type == application.LeverAllocation }
+
+// leverValue renders the lever's value in force: an allocation's shares, a
+// scalar in its unit.
+func (c Context) leverValue(l GovLever) string {
+	if l.isAllocation() {
+		return c.AllocationText(l.Allocation, l.Categories)
+	}
+	return FormatPolicyValue(c, l.Code, l.Type, l.Value)
 }
 
 // GovPending is a change announced and not yet in force.
 type GovPending struct {
 	Value int64
+	// Allocation is an allocation lever's announced shares.
+	Allocation map[string]int64
 	// In is how long until it takes effect.
 	In time.Duration
 	By *GovPlayer
@@ -175,6 +200,26 @@ type PolicyConfirmView struct {
 	Place    GovPlace
 	Lever    GovLever
 	NewValue int64
+	// VoteBy is the body the change goes to for a vote, empty when it is
+	// announced at once.
+	VoteBy string
+}
+
+// confirmNotice says when a change takes effect: after its notice, or —
+// when a body must confirm it — after the vote.
+func (c Context) confirmNotice(l GovLever, body string) string {
+	if body != "" {
+		return c.confirmVote(l, body)
+	}
+	return c.T("gov.confirm.notice", map[string]any{"notice": FormatSpan(c, l.Notice)})
+}
+
+// confirmVote is the line saying a change goes to a vote first.
+func (c Context) confirmVote(l GovLever, body string) string {
+	if body == "" {
+		return ""
+	}
+	return c.T("gov.confirm.vote", map[string]any{"office": c.OfficeName(body)})
 }
 
 // PolicyAnnouncedView reports a change that was made.
@@ -182,6 +227,8 @@ type PolicyAnnouncedView struct {
 	Place    GovPlace
 	Lever    GovLever
 	Old, New int64
+	// OldAllocation and NewAllocation are an allocation lever's shares.
+	OldAllocation, NewAllocation map[string]int64
 	// In is how long until it takes effect.
 	In time.Duration
 }
@@ -362,6 +409,10 @@ func CityGovernance(c Context, v CityGovView) *presenter.Response {
 		elections, _ := keyboards.Button(c.T("gov.button.elections", nil), AddrElections)
 		kb.Row(b, elections)
 	}
+	if b, ok := keyboards.Button(c.T("gov.button.budget", nil), AddrBudget, v.City.Code); ok {
+		laws, _ := keyboards.Button(c.T("gov.button.laws", nil), AddrBills)
+		kb.Row(b, laws)
+	}
 	if v.HoldsOffice {
 		kb.Add(c.T("gov.button.my_office", nil), AddrGovOffice)
 	}
@@ -415,7 +466,7 @@ func govOfficeLine(c Context, o GovOffice) string {
 // govLeverLines is one policy: its value and where the value came from, then
 // the announced change, if any.
 func govLeverLines(c Context, l GovLever) []string {
-	value := FormatPolicyValue(c, l.Code, l.Type, l.Value)
+	value := c.leverValue(l)
 	var lines []string
 	if l.FromOffice {
 		lines = append(lines, c.T("gov.lever.line_set", map[string]any{
@@ -427,8 +478,12 @@ func govLeverLines(c Context, l GovLever) []string {
 		}))
 	}
 	if l.Pending != nil {
+		pending := FormatPolicyValue(c, l.Code, l.Type, l.Pending.Value)
+		if l.isAllocation() {
+			pending = c.AllocationText(l.Pending.Allocation, l.Categories)
+		}
 		lines = append(lines, c.T("gov.lever.pending", map[string]any{
-			"value": FormatPolicyValue(c, l.Code, l.Type, l.Pending.Value), "when": FormatSpan(c, l.Pending.In),
+			"value": pending, "when": FormatSpan(c, l.Pending.In),
 		}))
 	}
 	return lines
@@ -453,15 +508,20 @@ func MyOffice(c Context, v MyOfficeView) *presenter.Response {
 		}
 		for _, l := range s.Levers {
 			lines = append(lines, c.T("gov.mine.lever", map[string]any{
-				"lever": c.LeverName(l.Code), "value": FormatPolicyValue(c, l.Code, l.Type, l.Value),
+				"lever": c.LeverName(l.Code), "value": c.leverValue(l),
 			}))
+			if l.ConfirmBy != "" {
+				lines = append(lines, c.T("gov.mine.confirmed_by", map[string]any{"office": c.OfficeName(l.ConfirmBy)}))
+			}
 			kb.Add(c.T("gov.button.change", map[string]any{"lever": c.LeverName(l.Code), "place": place}),
 				leverAddr(AddrGovLever, l, s.Place)...)
 		}
 		for _, l := range s.VoteLevers {
 			lines = append(lines, c.T("gov.mine.lever_vote", map[string]any{
-				"lever": c.LeverName(l.Code), "value": FormatPolicyValue(c, l.Code, l.Type, l.Value),
+				"lever": c.LeverName(l.Code), "value": c.leverValue(l), "office": c.OfficeName(l.HeldBy),
 			}))
+			kb.Add(c.T("gov.button.propose", map[string]any{"lever": c.LeverName(l.Code), "place": place}),
+				leverAddr(AddrGovLever, l, s.Place)...)
 		}
 		lines = append(lines, appointeeLines(c, kb, s.Appointees)...)
 		blocks = append(blocks, body(lines...))
@@ -605,7 +665,7 @@ func PolicyConfirm(c Context, v PolicyConfirmView) *presenter.Response {
 				"old":   FormatPolicyValue(c, l.Code, l.Type, l.Value),
 				"new":   FormatPolicyValue(c, l.Code, l.Type, v.NewValue),
 			}),
-			c.T("gov.confirm.notice", map[string]any{"notice": FormatSpan(c, l.Notice)}),
+			c.confirmNotice(l, v.VoteBy),
 			c.T("gov.confirm.cooldown", map[string]any{"cooldown": FormatSpan(c, l.Cooldown)}),
 		),
 	)
@@ -624,14 +684,137 @@ func PolicyAnnounced(c Context, v PolicyAnnouncedView) *presenter.Response {
 		c.T("gov.announced.body", map[string]any{
 			"lever": c.LeverName(l.Code),
 			"place": c.PlaceName(v.Place),
-			"old":   FormatPolicyValue(c, l.Code, l.Type, v.Old),
-			"new":   FormatPolicyValue(c, l.Code, l.Type, v.New),
+			"old":   c.announcedValue(l, v.Old, v.OldAllocation),
+			"new":   c.announcedValue(l, v.New, v.NewAllocation),
 			"when":  FormatSpan(c, v.In),
 		}),
 	)
 	kb := keyboards.New()
 	kb.Add(c.T("gov.button.my_office", nil), AddrGovOffice)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrGovOffice, RefreshData: keyboards.Data(leverAddr(AddrGovLever, l, v.Place)...)}))
+	return c.respond(text, kb.Build())
+}
+
+// announcedValue is one side of an announced change.
+func (c Context) announcedValue(l GovLever, v int64, shares map[string]int64) string {
+	if l.isAllocation() {
+		return c.AllocationText(shares, l.Categories)
+	}
+	return FormatPolicyValue(c, l.Code, l.Type, v)
+}
+
+// AllocationLine is one category of an allocation being drafted, with the
+// drafts one press down and up leads to ("" where it cannot move).
+type AllocationLine struct {
+	Code     string
+	Share    int64
+	Down, Up string
+}
+
+// AllocationEditView is an allocation the viewer may change: the draft,
+// encoded for the addresses, and its lines.
+type AllocationEditView struct {
+	Place GovPlace
+	Lever GovLever
+	Draft string
+	Lines []AllocationLine
+	// Total is what the draft allocates, bps; SpendShareBPS the share of the
+	// treasury the budget spends each period, zero when not a budget.
+	Total         int64
+	SpendShareBPS int64
+	NextChangeIn  time.Duration
+	// Changed says the draft differs from the value in force.
+	Changed bool
+}
+
+// AllocationEdit renders the allocation editor.
+func AllocationEdit(c Context, v AllocationEditView) *presenter.Response {
+	l := v.Lever
+	kb := keyboards.New()
+	head := []string{c.T("gov.edit.title", map[string]any{"lever": c.LeverName(l.Code), "place": c.PlaceName(v.Place)})}
+	head = append(head, govLeverLines(c, l)...)
+	rules := body(
+		c.spendShareLine(v.SpendShareBPS),
+		c.T("gov.edit.notice", map[string]any{"notice": FormatSpan(c, l.Notice)}),
+		c.T("gov.edit.cooldown", map[string]any{"cooldown": FormatSpan(c, l.Cooldown)}),
+		c.confirmVote(l, l.ConfirmBy),
+	)
+	if v.NextChangeIn > 0 {
+		kb.Nav(c.nav(keyboards.Nav{BackData: AddrGovOffice,
+			RefreshData: keyboards.Data(leverAddr(AddrGovLever, l, v.Place)...)}))
+		return c.respond(paragraphs(body(head...), rules,
+			c.T("gov.edit.cooldown_active", map[string]any{"wait": FormatSpan(c, v.NextChangeIn)})), kb.Build())
+	}
+	draft := []string{c.T("gov.alloc.draft", nil)}
+	for _, line := range v.Lines {
+		draft = append(draft, c.T("gov.alloc.line", map[string]any{"line": c.BudgetLineName(line.Code),
+			"share": c.T("gov.percent", map[string]any{"value": PercentFromBPS(c, int(line.Share))})}))
+		var row []presenter.Button
+		if line.Down != "" {
+			if b, ok := keyboards.Button(c.T("gov.alloc.down", map[string]any{"line": c.BudgetLineName(line.Code)}),
+				AddrGovAlloc, l.Code, v.Place.Code, line.Down); ok {
+				row = append(row, b)
+			}
+		}
+		if line.Up != "" {
+			if b, ok := keyboards.Button(c.T("gov.alloc.up", map[string]any{"line": c.BudgetLineName(line.Code)}),
+				AddrGovAlloc, l.Code, v.Place.Code, line.Up); ok {
+				row = append(row, b)
+			}
+		}
+		if len(row) > 0 {
+			kb.Row(row...)
+		}
+	}
+	draft = append(draft, c.T("gov.alloc.total", map[string]any{
+		"total": c.T("gov.percent", map[string]any{"value": PercentFromBPS(c, int(v.Total))}),
+		"left":  c.T("gov.percent", map[string]any{"value": PercentFromBPS(c, int(10000-v.Total))})}))
+	if v.Changed {
+		kb.Add(c.T("gov.button.review", nil), AddrGovAllocConfirm, l.Code, v.Place.Code, v.Draft)
+	}
+	kb.Nav(c.nav(keyboards.Nav{BackData: AddrGovOffice,
+		RefreshData: keyboards.Data(AddrGovAlloc, l.Code, v.Place.Code, v.Draft)}))
+	return c.respond(paragraphs(body(head...), rules, body(draft...)), kb.Build())
+}
+
+// spendShareLine says what share of the treasury a budget spends.
+func (c Context) spendShareLine(bps int64) string {
+	if bps <= 0 {
+		return ""
+	}
+	return c.T("gov.alloc.spend_share", map[string]any{"share": c.T("gov.percent",
+		map[string]any{"value": PercentFromBPS(c, int(bps))})})
+}
+
+// AllocationConfirmView asks to confirm an allocation.
+type AllocationConfirmView struct {
+	Place GovPlace
+	Lever GovLever
+	Draft string
+	New   map[string]int64
+	// VoteBy is the body it goes to, empty when announced at once.
+	VoteBy string
+}
+
+// AllocationConfirm asks the holder to confirm an allocation.
+func AllocationConfirm(c Context, v AllocationConfirmView) *presenter.Response {
+	l := v.Lever
+	notice := c.confirmNotice(l, v.VoteBy)
+	text := paragraphs(
+		c.T("gov.confirm.title", nil),
+		body(
+			c.T("gov.confirm.change", map[string]any{
+				"lever": c.LeverName(l.Code), "place": c.PlaceName(v.Place),
+				"old": c.leverValue(l), "new": c.AllocationText(v.New, l.Categories),
+			}),
+			notice,
+			c.T("gov.confirm.cooldown", map[string]any{"cooldown": FormatSpan(c, l.Cooldown)}),
+		),
+	)
+	kb := keyboards.New()
+	yes, _ := keyboards.Button(c.T("gov.button.confirm", nil), AddrGovAllocSet, l.Code, v.Place.Code, v.Draft)
+	no, _ := keyboards.Button(c.T("gov.button.cancel", nil), AddrGovAlloc, l.Code, v.Place.Code, v.Draft)
+	kb.Row(yes, no)
 	return c.respond(text, kb.Build())
 }
 
@@ -710,6 +893,7 @@ var governanceSentinels = []struct {
 	{application.ErrJurisdictionNotFound, "gov.refusal.unknown_place"},
 	{application.ErrWrongJurisdiction, "gov.refusal.wrong_place"},
 	{application.ErrLeverKindUnsupported, "gov.refusal.unsupported"},
+	{application.ErrInvalidAllocation, "gov.refusal.invalid_allocation"},
 	{application.ErrOfficeNotFound, "gov.refusal.office_not_found"},
 	{application.ErrOfficeOccupied, "gov.refusal.office_occupied"},
 	{application.ErrOfficeVacant, "gov.refusal.office_vacant"},
@@ -728,6 +912,9 @@ func governanceRefusal(c Context, err error, lever *GovLever, now time.Time) (st
 			office = lever.HeldBy
 		}
 		return "gov.refusal.not_holder", map[string]any{"office": c.OfficeName(office)}, true
+
+	case stderrors.Is(err, application.ErrPolicyRequiresConfirmation):
+		return "gov.refusal.requires_confirmation", map[string]any{"office": c.OfficeName(detailString(err, "body"))}, true
 
 	case stderrors.Is(err, application.ErrPolicyRequiresVote):
 		body := detailString(err, "body")

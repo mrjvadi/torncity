@@ -1,0 +1,135 @@
+# Property: homes, flats, shop premises and land
+# (docs/adr/0024-property-and-politics.md).
+#
+# A city's government sells a limited stock of each kind of property at city
+# hall (the land registry): its price is the kind's base price at the city's
+# price level, and rises as the city sells — every unit of a kind already sold
+# and still owned adds demand_step_bps, up to demand_max_bps. The money goes to
+# the city's treasury (ADR 0009 property_purchase). Owners may sell to each
+# other or let to a tenant; both are signed at city hall.
+#
+# Every city period (config.yml city.period, GAME time), once, an owner pays
+# each property's upkeep (out of the economy, property_upkeep) and its tax
+# (the city's policy city.property_tax, decided by its council, on the price
+# it last changed hands at, into the treasury). What they cannot pay is the
+# property's debt; after property.foreclosure_periods periods in a row in debt
+# the city takes it back. A tenant pays the rent the landlord asked every
+# period, the first when the lease is signed; after property.eviction_periods
+# unpaid periods in a row the lease ends.
+#
+# A HOME (home: true) is where a player can live: buying one, or renting one,
+# makes them a resident of its city — where they vote, stand for office, pay
+# income tax and may take the city's jobs — and they may rest there for
+# rest_energy energy once every property.rest_cooldown (GAME time).
+#
+# The rules are internal/domain/property.
+#
+# property
+#   demand_step_bps  what each unit sold adds to the price, bps.
+#   demand_max_bps   the most demand raises a price, bps of it (>= 10000).
+#
+# property_types
+#   code         stable identifier. Never change one after it ships.
+#   name         display name, shown only in a language without
+#                property_type.<code>.
+#   kind         house | apartment | shop | land.
+#   size         floor or plot area, square metres.
+#   quality      1..5.
+#   base_price   minor units, before the city's level and demand.
+#   upkeep       minor units, every city period.
+#   home         optional: a player can live in it.
+#   rest_energy  a home only: energy a rest there gives back.
+#   place        where in a city it stands (places.yml); a home's owner
+#                rests there.
+#
+# property_markets — what each city sells. A city not listed sells none.
+#   city         a city of cities.yml.
+#   price_bps    the city's price level, 10000 = the base prices.
+#   stock        how many of each kind the city sells in all.
+
+version: 1
+
+property:
+  demand_step_bps: 300
+  demand_max_bps: 15000
+
+property_types:
+  - code: studio
+    name: Studio flat
+    kind: apartment
+    size: 35
+    quality: 2
+    base_price: 45000
+    upkeep: 40
+    home: true
+    rest_energy: 25
+    place: residential_area
+  - code: apartment
+    name: Two-room apartment
+    kind: apartment
+    size: 70
+    quality: 3
+    base_price: 90000
+    upkeep: 80
+    home: true
+    rest_energy: 35
+    place: residential_area
+  - code: family_house
+    name: Family house
+    kind: house
+    size: 140
+    quality: 3
+    base_price: 180000
+    upkeep: 160
+    home: true
+    rest_energy: 45
+    place: residential_area
+  - code: villa
+    name: Villa
+    kind: house
+    size: 320
+    quality: 5
+    base_price: 600000
+    upkeep: 500
+    home: true
+    rest_energy: 60
+    place: residential_area
+  - code: shop_unit
+    name: Shop premises
+    kind: shop
+    size: 60
+    quality: 3
+    base_price: 120000
+    upkeep: 120
+    place: bazaar
+  - code: plot
+    name: Plot of land
+    kind: land
+    size: 500
+    quality: 1
+    base_price: 30000
+    upkeep: 15
+    place: city_centre
+
+property_markets:
+  - city: ostmarch
+    price_bps: 10000
+    stock: {studio: 30, apartment: 15, family_house: 8, villa: 2, shop_unit: 6, plot: 10}
+  - city: fenwick_span
+    price_bps: 9500
+    stock: {studio: 25, apartment: 12, family_house: 8, villa: 2, shop_unit: 5, plot: 12}
+  - city: aldrin_hollow
+    price_bps: 11000
+    stock: {studio: 20, apartment: 12, family_house: 6, villa: 2, shop_unit: 5, plot: 8}
+  - city: brennhaven
+    price_bps: 9000
+    stock: {studio: 25, apartment: 10, family_house: 10, villa: 1, shop_unit: 5, plot: 15}
+  - city: kessmoor
+    price_bps: 12000
+    stock: {studio: 15, apartment: 10, family_house: 5, villa: 2, shop_unit: 4, plot: 6}
+  - city: calderis
+    price_bps: 15000
+    stock: {studio: 10, apartment: 10, family_house: 6, villa: 4, shop_unit: 6, plot: 4}
+  - city: vantor_reach
+    price_bps: 18000
+    stock: {studio: 10, apartment: 8, family_house: 5, villa: 5, shop_unit: 5, plot: 4}

@@ -100,6 +100,11 @@ const (
 	// organised crime reaching its end.
 	ActionTypeHospitalDischarge = "hospital_discharge"
 	ActionTypeFactionCrime      = "faction_crime"
+
+	// Stage F (docs/adr/0024): a proposal's vote window ending, and a
+	// city's period ending (its budget, property and rent).
+	ActionTypeLegislatureClose = "legislature_close"
+	ActionTypeCityPeriod       = "city_period"
 )
 
 // routes maps an action type to the command it is published as.
@@ -142,6 +147,9 @@ var routes = map[string]Route{
 
 	ActionTypeHospitalDischarge: {Domain: "health", Action: "discharge"},
 	ActionTypeFactionCrime:      {Domain: "faction", Action: "resolve"},
+
+	ActionTypeLegislatureClose: {Domain: "law", Action: "close"},
+	ActionTypeCityPeriod:       {Domain: "city", Action: "settle"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

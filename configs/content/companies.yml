@@ -244,7 +244,7 @@ company_types:
     price_min_bps: 7000
     price_max_bps: 15000
     elasticity_bps: 13000
-    produces: [device, tool, jewel, apparel]
+    produces: [device, tool, jewel, apparel, vehicle]
 
   # Raw materials: a mine extracts ore, sand and oil from the ground, burning
   # fuel bought from the industrial supplier; the city buys its output too.

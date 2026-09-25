@@ -85,6 +85,8 @@ func goodsSnapshots(c Context, who people, add func(string, *presenter.Response)
 		{Shop: snapPawn, Place: snapHomes},
 	}}))
 	add("Shops · none", Shops(c, ShopsView{CityCode: "ostmarch", City: "Ostmarch"}))
+	add("Shops · at one place", Shops(c, ShopsView{CityCode: "ostmarch", City: "Ostmarch", Place: &snapBazaar,
+		Shops: []ShopLine{{Shop: snapGrocery, Place: snapBazaar}, {Shop: snapHardware, Place: snapBazaar}}}))
 	shelves := []ShelfLine{
 		{Item: snapLockpick, Price: 600, Stock: 4, Buyback: 300},
 		{Item: Named{Code: "crowbar", Name: "Crowbar"}, Price: 390, Stock: 2, Busy: true},

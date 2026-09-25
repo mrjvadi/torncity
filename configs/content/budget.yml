@@ -1,0 +1,82 @@
+# A city's budget: what its treasury is spent on
+# (docs/adr/0024-property-and-politics.md).
+#
+# Every city period (config.yml city.period, GAME time), once, the budget —
+# spend_share_bps of what the treasury holds — is divided among the lines
+# below by the city's allocation (the lever named here, in governance.yml:
+# proposed by the mayor, confirmed by the city council). Each line is paid its
+# part, and what it was paid buys its effect for the period that follows.
+# Nothing is spent on a line the allocation gives nothing, and an allocation
+# summing to less than the whole leaves the rest in the treasury. The money
+# leaves the economy (ADR 0009 budget_spending), except the defence line's,
+# which goes to the country's defence fund (defence_contribution).
+#
+# The rules are internal/domain/budget. What each effect touches is fixed in
+# code; how much it can do is here.
+#
+# budget
+#   lever            the city allocation lever that divides the budget. Its
+#                    categories must be exactly the lines' codes.
+#   spend_share_bps  the most of the treasury one period's budget spends,
+#                    bps (10000 = all of it).
+#   lines
+#     code     stable identifier: an allocation's category. Never change one
+#              after it ships.
+#     name     display name, shown only in a language without
+#              budget_line.<code>.
+#     effect   what spending on the line does — a closed set:
+#                investigation   the police solve more reported cases: bps
+#                                added to the police chief's investigation
+#                                effort
+#                hospital_price  the city hospital charges less: bps off
+#                transit_fare    public transport costs less: bps off the
+#                                share of the full fare a rider pays
+#                course_fee      courses cost less: bps off every fee
+#                war_repair      war damage is repaired: bps of damage off
+#                                at the settlement, on top of healing
+#                npc_demand      the city's population spends more at its
+#                                companies: bps on top of the period's budget
+#                defence_fund    the money goes to the country's defence fund
+#     full_at  the spending in one period that buys the whole effect, minor
+#              units; less buys a proportional part. Not for defence_fund.
+#     max_bps  the whole effect, 1..10000. Not for defence_fund.
+
+version: 1
+
+budget:
+  lever: city.budget
+  spend_share_bps: 2000
+  lines:
+    - code: police
+      name: Police
+      effect: investigation
+      full_at: 20000
+      max_bps: 2000
+    - code: hospital
+      name: Hospital subsidy
+      effect: hospital_price
+      full_at: 15000
+      max_bps: 3000
+    - code: transit
+      name: Public transport subsidy
+      effect: transit_fare
+      full_at: 10000
+      max_bps: 4000
+    - code: education
+      name: Education
+      effect: course_fee
+      full_at: 10000
+      max_bps: 3000
+    - code: infrastructure
+      name: Infrastructure and repair
+      effect: war_repair
+      full_at: 20000
+      max_bps: 1500
+    - code: marketing
+      name: City marketing
+      effect: npc_demand
+      full_at: 25000
+      max_bps: 1500
+    - code: defence
+      name: Defence contribution
+      effect: defence_fund

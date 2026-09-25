@@ -19,7 +19,9 @@ func placesSnapshots(c Context, _ people, add func(string, *presenter.Response))
 	police := Named{Code: "police_station", Name: "Police station"}
 	lines := []PlaceLine{
 		{Place: centre, Walk: 10 * time.Second, Here: true},
-		{Place: bazaar, Walk: 15 * time.Second, Services: []string{"market"}},
+		{Place: bazaar, Walk: 15 * time.Second, Services: []string{"market"}, Shops: []Named{
+			{Code: "grocery", Name: "Grocery"}, {Code: "hardware_store", Name: "Hardware store"},
+			{Code: "outfitter", Name: "Outfitter"}}},
 		{Place: business, Walk: 15 * time.Second, Services: []string{"bank", "auction_house"}},
 		{Place: uni, Walk: 20 * time.Second, Services: []string{"university", "training_center"}},
 		{Place: police, Walk: 15 * time.Second, Services: []string{"police"}},
@@ -28,6 +30,11 @@ func placesSnapshots(c Context, _ people, add func(string, *presenter.Response))
 	}
 	add("City map · at the centre, with company", CityMap(group(c), CityMapView{
 		CityCode: "ostmarch", City: "Ostmarch", Here: centre, Others: 3, Places: lines,
+	}))
+	atBazaar := append([]PlaceLine(nil), lines...)
+	atBazaar[0].Here, atBazaar[1].Here = false, true
+	add("City map · at the bazaar, among its shops", CityMap(c, CityMapView{
+		CityCode: "ostmarch", City: "Ostmarch", Here: bazaar, Places: atBazaar,
 	}))
 	add("City map · on the way", CityMap(c, CityMapView{
 		CityCode: "ostmarch", City: "Ostmarch", Here: centre, Places: lines,

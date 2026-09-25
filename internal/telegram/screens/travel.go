@@ -43,6 +43,10 @@ type TravelOption struct {
 	Energy int
 	// Busy says demand has raised the fare above its plain price.
 	Busy bool
+	// Vehicle is the player's own vehicle this mode is driven in: Fare is
+	// then its fuel (docs/adr/0024). Condition is what is left of it, bps.
+	Vehicle   *Named
+	Condition int64
 }
 
 // TravelOptionsView is the choice of transport between two cities.
@@ -85,11 +89,16 @@ func TravelOptions(c Context, v TravelOptionsView) *presenter.Response {
 			// price of zero.
 			fare = c.T("travel.free", nil)
 		}
+		if o.Vehicle != nil {
+			key = "travel.option_own"
+			mode = c.ItemName(*o.Vehicle)
+		}
 		lines = append(lines, c.T(key, map[string]any{
-			"mode":   mode,
-			"fare":   fare,
-			"wait":   FormatDuration(c, o.Wait),
-			"energy": FormatNumber(c, int64(o.Energy)),
+			"mode":      mode,
+			"fare":      fare,
+			"wait":      FormatDuration(c, o.Wait),
+			"energy":    FormatNumber(c, int64(o.Energy)),
+			"condition": c.T("gov.percent", map[string]any{"value": PercentFromBPS(c, int(o.Condition))}),
 		}))
 		kb.Add(c.T("button.travel_by", map[string]any{"mode": mode, "fare": fare}),
 			AddrTravelStart, v.ToCode, o.ModeCode, strconv.FormatInt(o.Fare, 10))

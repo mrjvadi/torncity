@@ -5,9 +5,9 @@
 📍 You are at the city centre.
 
 Places in the city:
-• city centre (you are here)
-• bazaar - 15s walk - market
-• business district - 15s walk - bank, auction house
+• city centre (you are here) - Diner
+• bazaar - 15s walk - market, Grocery, Hardware store, Outfitter
+• business district - 15s walk - bank, auction house, Electronics store, Car dealer
 • university quarter - 20s walk - university, training centre
 • civic centre - 10s walk - city hall
 • police station - 15s walk - police
@@ -15,8 +15,8 @@ Places in the city:
 • train station - 20s walk - Train departures
 • industrial zone - 30s walk
 • farmland - 40s walk
-• hospital - 20s walk
-• residential area - 25s walk
+• hospital - 20s walk - Pharmacy
+• residential area - 25s walk - Pawnshop
 • city park - 15s walk
 
 Tap a place to walk there. Everything is done at its own place.
@@ -27,6 +27,9 @@ Tap a place to walk there. Everything is done at its own place.
   [🚶 train station] → place:go:train_station   │   [🚶 industrial zone] → place:go:industrial_zone
   [🚶 farmland] → place:go:farmland   │   [🚶 hospital] → place:go:hospital
   [🚶 residential area] → place:go:residential_area   │   [🚶 city park] → place:go:park
+  [🛒 Shops here] → shop:list:city_centre   │   [🛒 Shops at the bazaar] → place:go:bazaar:shop.list:bazaar
+  [🛒 Shops at the business district] → place:go:business_district:shop.list:business_district   │   [🛒 Shops at the hospital] → place:go:hospital:shop.list:hospital
+  [🛒 Shops at the residential area] → place:go:residential_area:shop.list:residential_area
   [🧭 Travel to another city] → map:cities
   [🏛 Offices and policies] → gov:city
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
@@ -136,6 +139,8 @@ Travelling by: Train
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Map on the road ━━━
@@ -187,6 +192,8 @@ Travelling by: Train
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -197,9 +204,9 @@ Travelling by: Train
 📍 You are at the train station.
 
 Places in the city:
-• city centre - 10s walk
-• bazaar - 15s walk - market
-• business district - 15s walk - bank, auction house
+• city centre - 10s walk - Diner
+• bazaar - 15s walk - market, Grocery, Hardware store, Outfitter
+• business district - 15s walk - bank, auction house, Electronics store, Car dealer
 • university quarter - 20s walk - university, training centre
 • civic centre - 10s walk - city hall
 • police station - 15s walk - police
@@ -208,8 +215,8 @@ Places in the city:
 • airport - 45s walk - Flight departures
 • industrial zone - 30s walk
 • farmland - 40s walk
-• hospital - 20s walk
-• residential area - 25s walk
+• hospital - 20s walk - Pharmacy
+• residential area - 25s walk - Pawnshop
 • city park - 15s walk
 
 Tap a place to walk there. Everything is done at its own place.
@@ -221,6 +228,9 @@ Tap a place to walk there. Everything is done at its own place.
   [🚶 industrial zone] → place:go:industrial_zone   │   [🚶 farmland] → place:go:farmland
   [🚶 hospital] → place:go:hospital   │   [🚶 residential area] → place:go:residential_area
   [🚶 city park] → place:go:park
+  [🛒 Shops at the city centre] → place:go:city_centre:shop.list:city_centre   │   [🛒 Shops at the bazaar] → place:go:bazaar:shop.list:bazaar
+  [🛒 Shops at the business district] → place:go:business_district:shop.list:business_district   │   [🛒 Shops at the hospital] → place:go:hospital:shop.list:hospital
+  [🛒 Shops at the residential area] → place:go:residential_area:shop.list:residential_area
   [🧭 Travel to another city] → map:cities
   [🏛 Offices and policies] → gov:city
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list

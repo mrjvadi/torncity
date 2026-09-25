@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	stderrors "errors"
 	"fmt"
+	"github.com/mrjvadi/torncity/internal/domain/budget"
+	"github.com/mrjvadi/torncity/internal/domain/vehicle"
+	"github.com/mrjvadi/torncity/internal/shared/money"
 	"strconv"
 	"strings"
 	"time"
@@ -249,6 +252,17 @@ type quotedOption struct {
 	quote   travel.Quote
 	name    string
 	accepts payment.Accepts
+	// own is the player's vehicle the mode is driven in, nil for a hire or
+	// a seat (docs/adr/0024).
+	own *ownVehicle
+}
+
+// ownVehicle is a vehicle of the player's that drives a journey: the piece,
+// the good it is, and what is left of it.
+type ownVehicle struct {
+	piece     application.Piece
+	item      screens.Named
+	condition int64
 }
 
 // trip is what both the choice of transport and the departure work out
@@ -343,6 +357,13 @@ func (h *TravelHandler) planTrip(ctx context.Context, tx application.Tx, p *appl
 				if policyBPS, err = h.transitFare(ctx, from); err != nil {
 					return t, err
 				}
+				// The city's transport subsidy (its budget's transit line)
+				// takes its share off what a rider pays.
+				subsidy, err := budgetEffect(ctx, tx, from.ID, budget.EffectTransitFare)
+				if err != nil {
+					return t, err
+				}
+				policyBPS = int(max(budget.Lower(int64(policyBPS), subsidy), 1))
 			}
 			pricing.PolicyBPS = policyBPS
 		}
@@ -357,9 +378,56 @@ func (h *TravelHandler) planTrip(ctx context.Context, tx application.Tx, p *appl
 			// is content or policy the rule cannot price, which is a fault.
 			return t, errors.Internal(err)
 		}
-		t.options = append(t.options, quotedOption{quote: q, name: o.Name, accepts: o.Accepts})
+		opt := quotedOption{quote: q, name: o.Name, accepts: o.Accepts}
+		if !o.Mode.Public {
+			// The player's own vehicle of this mode drives it for its fuel
+			// instead of the hire's fare (docs/adr/0024).
+			own, fuel, err := h.ownVehicle(ctx, tx, p.ID, o.Mode.Code, o.DistanceKM)
+			if err != nil {
+				return t, err
+			}
+			if own != nil {
+				opt.own, opt.quote.Fare = own, money.FromMinor(fuel)
+			}
+		}
+		t.options = append(t.options, opt)
 	}
 	return t, nil
+}
+
+// ownVehicle is the player's best vehicle of a mode that still drives —
+// the one with the most journeys left — and the fuel a journey of distance
+// burns in it; nil when they have none.
+func (h *TravelHandler) ownVehicle(ctx context.Context, tx application.Tx, playerID, mode string, distance int,
+) (*ownVehicle, int64, error) {
+	if h.places == nil {
+		return nil, 0, nil
+	}
+	snap := h.places.Current()
+	if len(snap.Vehicles(mode)) == 0 {
+		return nil, 0, nil
+	}
+	_, pieces, err := tx.Items().Holdings(ctx, playerID, application.HoldCarried)
+	if err != nil {
+		return nil, 0, err
+	}
+	var best *ownVehicle
+	var fuel int64
+	for _, pc := range pieces {
+		def, ok := snap.ItemDef(pc.Item)
+		if !ok {
+			continue
+		}
+		v, ok := def.VehicleOf()
+		if !ok || v.Mode != mode || !vehicle.Drives(pc.UsesLeft) {
+			continue
+		}
+		if best == nil || pc.UsesLeft > best.piece.UsesLeft {
+			best = &ownVehicle{piece: pc, item: named(def.Code, def.Name), condition: v.ConditionBPS(pc.UsesLeft)}
+			fuel = v.Fuel(distance)
+		}
+	}
+	return best, fuel, nil
 }
 
 // transitFare reads the origin city's public transport fare policy.
@@ -387,13 +455,20 @@ func optionsView(t trip, cash int64, requoted bool) screens.TravelOptionsView {
 		Cash: cash, Requoted: requoted,
 	}
 	for _, o := range t.options {
+		var own *screens.Named
+		var condition int64
+		if o.own != nil {
+			own, condition = &o.own.item, o.own.condition
+		}
 		v.Options = append(v.Options, screens.TravelOption{
-			ModeCode: o.quote.Mode,
-			ModeName: o.name,
-			Fare:     o.quote.Fare.Minor(),
-			Wait:     o.quote.Wait,
-			Energy:   o.quote.Energy,
-			Busy:     o.quote.Surged(),
+			Vehicle:   own,
+			Condition: condition,
+			ModeCode:  o.quote.Mode,
+			ModeName:  o.name,
+			Fare:      o.quote.Fare.Minor(),
+			Wait:      o.quote.Wait,
+			Energy:    o.quote.Energy,
+			Busy:      o.quote.Surged(),
 		})
 	}
 	return v
@@ -595,7 +670,8 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		travelID := h.ids.NewID()
 		actionID := h.ids.NewID()
 
-		ledgerTxID, err := h.chargeFare(ctx, tx, p.ID, t.from.ID, t.to.Code, travelID, q, chosen.accepts, method, now)
+		ledgerTxID, err := h.chargeFare(ctx, tx, p.ID, t.from.ID, t.to.Code, travelID, q, chosen.accepts, method,
+			chosen.own != nil, now)
 		if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
 			declined = v
 			return errPaymentDeclined
@@ -638,7 +714,16 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 			return err
 		}
 
+		// A journey in the player's own vehicle wears it by one.
+		vehicleID := ""
+		if chosen.own != nil {
+			vehicleID = chosen.own.piece.ID
+			if err := tx.Items().SetUses(ctx, vehicleID, chosen.own.piece.UsesLeft-1); err != nil {
+				return err
+			}
+		}
 		if err := tx.Travels().Start(ctx, application.Travel{
+			VehicleID:           vehicleID,
 			ID:                  travelID,
 			PlayerID:            p.ID,
 			FromCityID:          t.from.ID,
@@ -756,7 +841,7 @@ func (t trip) option(mode string) (quotedOption, bool) {
 // "what paid for this trip" and the trip answers "which transaction paid for
 // me". A method that does not cover the fare is refused with both balances.
 func (h *TravelHandler) chargeFare(ctx context.Context, tx application.Tx, playerID, originCityID, toCode, travelID string,
-	q travel.Quote, accepts payment.Accepts, method payment.Method, now time.Time,
+	q travel.Quote, accepts payment.Accepts, method payment.Method, own bool, now time.Time,
 ) (string, error) {
 	if q.Fare.IsZero() {
 		return "", nil
@@ -771,6 +856,10 @@ func (h *TravelHandler) chargeFare(ctx context.Context, tx application.Tx, playe
 		return "", err
 	}
 	reason, payee := application.ReasonTravelFare, application.SystemSinkAccountID
+	if own {
+		// The player's own vehicle burns fuel, not a fare (docs/adr/0024).
+		reason = application.ReasonFuel
+	}
 	if q.Public {
 		treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, originCityID)
 		if err != nil {

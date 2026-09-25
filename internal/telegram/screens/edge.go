@@ -100,3 +100,10 @@ func Announcement(c Context, line string, held int) string {
 	}
 	return body(line, c.T("announce.held", map[string]any{"count": held}))
 }
+
+// OperatorAnnouncement is an operator's announcement to every city's groups
+// (admin announce): their words, as written, under a heading that says who
+// speaks.
+func OperatorAnnouncement(c Context, text string) string {
+	return c.T("announce.operator", map[string]any{"text": text})
+}

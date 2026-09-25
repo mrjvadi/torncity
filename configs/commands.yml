@@ -67,6 +67,35 @@ commands:
   gov.seat: {channel: private}
   gov.dismiss: {channel: private}
   gov.unseat: {channel: private}
+  # Dividing a city's budget is the mayor's own work; the budget itself is
+  # public, like the treasury it spends (docs/adr/0024).
+  gov.alloc: {channel: private}
+  gov.allocok: {channel: private}
+  gov.allocset: {channel: private}
+  city.budget: {channel: both}
+  # Proposals before a council or a parliament and how each member voted
+  # are public record; casting a vote is the member's own act.
+  law.list: {channel: both}
+  law.view: {channel: both}
+  law.vote: {channel: private}
+  # Property (docs/adr/0024): the city's market and an owner's offer are
+  # public, like a shop's shelf; buying, renting, a player's own property
+  # and resting at home are the player's own.
+  property.list: {channel: both}
+  property.type: {channel: both}
+  property.offer: {channel: both}
+  property.purchase: {channel: private}
+  property.mine: {channel: private}
+  property.view: {channel: private}
+  property.sell: {channel: private}
+  property.let: {channel: private}
+  property.cancel: {channel: private}
+  property.buy: {channel: private}
+  property.rent: {channel: private}
+  property.leave: {channel: private}
+  property.rest: {channel: private}
+  # A player's achievements are shown off where they are asked for.
+  achievement.list: {channel: both}
 
   job.status: {channel: private}
   job.list: {channel: private}
@@ -288,3 +317,5 @@ input:
   faction.invite: {field: to, text: true}
   faction.deposit: {field: amount, args: [method]}
   faction.withdraw: {field: amount}
+  property.sell: {field: price, args: [no]}
+  property.let: {field: price, args: [no]}

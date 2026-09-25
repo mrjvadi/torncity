@@ -47,6 +47,29 @@ type ActionDef struct {
 	Code         string `yaml:"code" json:"code"`
 	Jurisdiction string `yaml:"jurisdiction" json:"jurisdiction"`
 	HeldBy       string `yaml:"held_by" json:"held_by"`
+
+	// RequiresConfirmationBy is the body whose vote must approve the action
+	// before it is taken — a legislature approving a declaration of war —
+	// with its rule, threshold and quorum, as a lever's
+	// (docs/adr/0024-property-and-politics.md). Empty: the holder decides
+	// alone. A body with no member seated approves nothing and blocks
+	// nothing.
+	RequiresConfirmationBy string `yaml:"requires_confirmation_by,omitempty" json:"requires_confirmation_by,omitempty"`
+	ConfirmationRule       string `yaml:"confirmation_rule,omitempty" json:"confirmation_rule,omitempty"`
+	ConfirmationThreshold  string `yaml:"confirmation_threshold,omitempty" json:"confirmation_threshold,omitempty"`
+	ConfirmationQuorum     string `yaml:"confirmation_quorum,omitempty" json:"confirmation_quorum,omitempty"`
+}
+
+// ConfirmRule is the confirming body's rule with the default applied, ""
+// for an action needing no confirmation.
+func (a ActionDef) ConfirmRule() string {
+	if a.RequiresConfirmationBy == "" {
+		return ""
+	}
+	if a.ConfirmationRule == "" {
+		return DecisionMajority
+	}
+	return a.ConfirmationRule
 }
 
 // BranchDef is one service of a country's forces (military.yml branches).
@@ -143,6 +166,9 @@ func (p *Pack) validateActions(levels map[string]LevelDef, offices map[string]Of
 		case o.Jurisdiction != a.Jurisdiction:
 			bad("%s: held by %q, an office of another level", where, a.HeldBy)
 		}
+		validateConfirmation(confirmation{by: a.RequiresConfirmationBy, rule: a.ConfirmationRule,
+			threshold: a.ConfirmationThreshold, quorum: a.ConfirmationQuorum, level: a.Jurisdiction, holder: a.HeldBy},
+			where, offices, problems)
 		out[a.Code] = a
 	}
 	return out

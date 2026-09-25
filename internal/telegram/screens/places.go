@@ -50,6 +50,8 @@ type PlaceLine struct {
 	// the transport modes that leave from there.
 	Services   []string
 	Departures []string
+	// Shops are the shops found there (shops.yml place).
+	Shops []Named
 	// Here marks where the player stands.
 	Here bool
 }
@@ -78,6 +80,9 @@ func (c Context) placeWhat(l PlaceLine) string {
 	}
 	for _, m := range l.Departures {
 		parts = append(parts, c.T("place.departures", map[string]any{"mode": c.ModeName(m, "")}))
+	}
+	for _, s := range l.Shops {
+		parts = append(parts, c.ShopName(s))
 	}
 	return strings.Join(parts, c.T("place.separator", nil))
 }
@@ -117,7 +122,7 @@ func CityMap(c Context, v CityMapView) *presenter.Response {
 	var list string
 	if len(v.Places) > 0 {
 		lines := []string{c.T("place.list_title", nil)}
-		var buttons []presenter.Button
+		var buttons, shops []presenter.Button
 		for _, l := range v.Places {
 			args := map[string]any{"place": c.SpotName(l.Place), "walk": FormatDuration(c, l.Walk)}
 			key := "place.line"
@@ -135,9 +140,25 @@ func CityMap(c Context, v CityMapView) *presenter.Response {
 					buttons = append(buttons, btn)
 				}
 			}
+			// A place with shops offers them: here, the list at once;
+			// elsewhere, one press that walks there and opens it.
+			if len(l.Shops) > 0 && v.Walking == nil {
+				var btn presenter.Button
+				var ok bool
+				if l.Here {
+					btn, ok = keyboards.Button(c.T("shop.button.here", nil), AddrShops, l.Place.Code)
+				} else {
+					btn, ok = goThenButton(c.T("shop.button.at", map[string]any{"place": c.SpotName(l.Place)}),
+						l.Place.Code, "shop.list", l.Place.Code)
+				}
+				if ok {
+					shops = append(shops, btn)
+				}
+			}
 		}
 		list = body(lines...)
 		kb.Grid(2, buttons...)
+		kb.Grid(2, shops...)
 	}
 
 	if btn, ok := keyboards.Button(c.T("place.button.other_cities", nil), AddrCities); ok {

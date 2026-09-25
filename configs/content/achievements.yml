@@ -1,0 +1,36 @@
+# Achievements (docs/adr/0024-property-and-politics.md): milestones a player
+# reaches through the game's own events, each earned once, ever. The rules
+# are internal/domain/achievement. The cash an achievement pays enters the
+# economy (ADR 0009 achievement_reward), capped twice a UTC day — per player
+# and for everyone (config.yml achievements.*); what the caps keep back is
+# not paid later.
+#
+# achievements
+#   code    stable identifier. Never change one after it ships: the players'
+#           earned achievements name it.
+#   name    display name, shown only in a language without
+#           achievement.<code>.
+#   event   what it counts — a closed set:
+#             shift_worked      a shift worked to its end
+#             company_founded   a company founded
+#             election_won      a seat won at an election's count
+#             crime_succeeded   a crime pulled off
+#             property_bought   a property bought, from a city or a player
+#             journey_made      a journey to another city completed
+#             course_completed  a course completed
+#             law_passed        a proposal of theirs passed by a body
+#   count   how many of those events earn it.
+#   reward  optional cash, minor units.
+
+version: 1
+
+achievements:
+  - {code: first_shift,     name: First day at work,  event: shift_worked,     count: 1,  reward: 100}
+  - {code: hard_worker,     name: Hard worker,        event: shift_worked,     count: 25, reward: 1000}
+  - {code: first_journey,   name: On the road,        event: journey_made,     count: 1,  reward: 100}
+  - {code: graduate,        name: Graduate,           event: course_completed, count: 1,  reward: 300}
+  - {code: entrepreneur,    name: Entrepreneur,       event: company_founded,  count: 1,  reward: 1000}
+  - {code: homeowner,       name: Homeowner,          event: property_bought,  count: 1,  reward: 500}
+  - {code: ten_crimes,      name: Career criminal,    event: crime_succeeded,  count: 10, reward: 500}
+  - {code: elected,         name: Elected,            event: election_won,     count: 1,  reward: 1000}
+  - {code: lawmaker,        name: Lawmaker,           event: law_passed,       count: 1,  reward: 500}

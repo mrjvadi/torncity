@@ -757,6 +757,16 @@ func (h *ProductionHandler) buy(ctx context.Context, tx application.Tx, snap *co
 			return err
 		}
 	}
+	// A buyer across the border: the importing country's tariff, withheld
+	// from the proceeds (docs/adr/0024).
+	saleID := h.ids.NewID()
+	tariff, err := quoteTariff(ctx, tx, h.policy, snap, buyerCountry, sellerCountry, total.Minor(), now)
+	if err != nil {
+		return err
+	}
+	if err := tariff.charge(ctx, tx, h.ids, "company_sales", saleID, sellerAcct.ID, now); err != nil {
+		return err
+	}
 	line, err := h.listingLine(ctx, tx, snap, *l)
 	if err != nil {
 		return err
@@ -767,7 +777,7 @@ func (h *ProductionHandler) buy(ctx context.Context, tx application.Tx, snap *co
 	}
 	m := application.ItemMove{FromOrg: sellerOrg, FromHolding: application.HoldListed, Reason: application.ItemCompanySale,
 		ReferenceType: listingReference, ReferenceID: l.ID, At: now}
-	sale := application.CompanySale{ID: h.ids.NewID(), ListingID: l.ID, CompanyID: seller.ID, Item: l.Item, Qty: qty,
+	sale := application.CompanySale{ID: saleID, ListingID: l.ID, CompanyID: seller.ID, Item: l.Item, Qty: qty,
 		UnitPrice: l.UnitPrice, Total: total.Minor(), Tax: tax.Minor(), LedgerTransactionID: txID, At: now}
 	if buyer != nil {
 		m.ToOrg, m.ToHolding = application.CompanyOrg(buyer.ID), application.HoldWarehouse

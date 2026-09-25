@@ -125,6 +125,7 @@ profile:
   jail_in: "⛓ در زندان {city} هستید - {remaining} مانده"
   jail_blocks: "تا آزادی نمی‌توانید سفر کنید، شیفت کار کنید، از بانک برداشت کنید یا دورهٔ تازه‌ای شروع کنید؛ دورهٔ در حال گذراندن هم متوقف می‌ماند."
   certificates: "📜 {count} مدرک"
+  achievements: "🏅 {count} دستاورد"
   hospital: "🏥 در بیمارستان {city} بستری هستید - {remaining} مانده"
   hospital_blocks: "تا ترخیص نمی‌توانید سفر کنید، سر کار بروید، در شهر جابه‌جا شوید یا خلاف کنید. درمان، بستری را کوتاه می‌کند."
 map:
@@ -147,6 +148,7 @@ travel:
   options_choose: "با چه وسیله‌ای می‌روید؟"
   option: "• {mode} - {fare} - {wait} در راه - {energy} انرژی"
   option_busy: "• {mode} - {fare} (مسیر شلوغ) - {wait} در راه - {energy} انرژی"
+  option_own: "• {mode} (وسیلهٔ خودتان) - سوخت {fare} - {wait} در راه - {energy} انرژی - سلامت خودرو {condition}"
   requoted: "⚠️ کرایه از وقتی که قیمت‌ها را دیدید تغییر کرده است. پولی کسر نشد؛ قیمت‌های تازه را ببینید و دوباره انتخاب کنید."
   cash: "💵 پول نقد شما: {cash}"
   # The fare of the chosen mode and the ways to pay it: the step between
@@ -436,7 +438,8 @@ gov:
     acting_for: "شما سرپرست منصب خالی {office} هستید."
     no_levers: "این منصب فعلاً سیاستی ندارد که بتوانید تغییرش دهید."
     lever: "• {lever}: {value}"
-    lever_vote: "• {lever}: {value} - با رأی‌گیری تعیین می‌شود که هنوز در دسترس نیست"
+    lever_vote: "• {lever}: {value} - با رأی {office} تعیین می‌شود"
+    confirmed_by: "  🗳 برای تغییرش ممکن است تأیید {office} لازم باشد."
   edit:
     title: "🏛 {lever} — {place}"
     bounds: "بازهٔ مجاز: {min} تا {max}"
@@ -452,6 +455,7 @@ gov:
     change: "{lever} در {place}: از {old} به {new}"
     notice: "این تغییر همین حالا اعلام می‌شود و {notice} بعد اجرا خواهد شد."
     cooldown: "پس از آن تا {cooldown} نمی‌توانید این سیاست را دوباره تغییر دهید."
+    vote: "🗳 این تغییر پیش از اعلام به رأی {office} گذاشته می‌شود و تنها در صورت تصویب اجرا خواهد شد."
   announced:
     title: "📢 تغییر اعلام شد"
     body: "{lever} در {place} از {old} به {new} تغییر می‌کند و {when} دیگر اجرا می‌شود. این تغییر در تاریخچهٔ عمومی ثبت شد."
@@ -474,6 +478,9 @@ gov:
     default: پیش‌فرض ({value})
     max: حداکثر ({value})
     review: "📝 بازبینی تغییر"
+    propose: "🗳 پیشنهاد {lever} — {place}"
+    budget: "💰 بودجهٔ شهر"
+    laws: "⚖️ طرح‌ها و رأی‌گیری‌ها"
     confirm: "✅ تأیید"
     cancel: "✖️ انصراف"
     appoint: "👤 انتصاب {office}"
@@ -482,7 +489,9 @@ gov:
     confirm_dismiss: "✅ برکنار کن"
   refusal:
     not_holder: "تنها {office} می‌تواند این سیاست را تغییر دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
-    requires_vote: این سیاست با رأی‌گیری در {office} تعیین می‌شود و رأی‌گیری هنوز در دسترس نیست.
+    requires_vote: این سیاست با رأی {office} تعیین می‌شود و تنها اعضای آن می‌توانند تغییرش را پیشنهاد دهند.
+    requires_confirmation: این تغییر پیش از اجرا باید به تأیید {office} برسد.
+    invalid_allocation: "این تقسیم مجاز نیست: فقط خطوط همین بودجه سهم می‌گیرند و جمع سهم‌ها حداکثر ۱۰۰٪ است."
     out_of_range: "این مقدار بیرون از بازهٔ مجاز {min} تا {max} است. مقداری در همین بازه انتخاب کنید."
     out_of_range_plain: "این مقدار بیرون از بازهٔ مجاز است. مقداری در بازهٔ مجاز انتخاب کنید."
     cooldown: این سیاست به‌تازگی تغییر کرده است. {wait} دیگر می‌توانید دوباره تغییرش دهید.
@@ -496,6 +505,13 @@ gov:
     office_vacant: این منصب از قبل خالی است.
     already_holds: شما همین حالا این منصب را دارید.
     incompatible: این منصب را نمی‌توان هم‌زمان با منصبی که اکنون دارید در اختیار داشت.
+  alloc:
+    draft: "✏️ پیش‌نویس تقسیم:"
+    line: "• {line}: {share}"
+    down: "➖ {line}"
+    up: "➕ {line}"
+    total: "جمع: {total} - {left} خرج نمی‌شود و در خزانه می‌ماند."
+    spend_share: "هر دورهٔ شهر، بودجه تا {share} از موجودی خزانه را خرج می‌کند."
   appoint:
     heading: "انتصاب‌ها:"
     vacant: "• {office}: خالی"
@@ -530,6 +546,7 @@ office:
   air_defence_commander: "فرمانده پدافند هوایی"
   foreign_minister: "وزیر امور خارجه"
   military_governor: "فرماندار نظامی"
+  parliament: مجلس
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
 lever:
@@ -552,6 +569,8 @@ lever:
     market_fee: کارمزد بازار
     company_registration: هزینهٔ ثبت شرکت (درصد از میزان پایه)
     corporate_tax: مالیات شرکت
+    budget: بودجهٔ شهر
+    property_tax: مالیات ملک
   country:
     border_tariff: تعرفهٔ مرزی
     revenue_share: "سهم ملی از درآمد شهرها"
@@ -1186,6 +1205,7 @@ place:
     crime: "🕶 {crime} اینجا شدنی نیست؛ برای انجامش به {place} بروید."
     heist: "🕶 {crime} اینجا شدنی نیست؛ گروه باید در {place} جمع شود."
     board: "📋 مأموریت در تابلوی {board} در {place} گرفته و تحویل داده می‌شود."
+    home: "🛏 خانهٔ شما در {place} است."
   button:
     go: "🚶 {place}"
     walk: "🚶 رفتن به {place} - {walk}"
@@ -1234,6 +1254,9 @@ command_alias:
   factions: "جناح‌ها | باندها"
   missions: "مأموریت | ماموریت | مأموریت‌ها"
   board: "تابلو | اعلانات"
+  shop: "مغازه | مغازه‌ها | فروشگاه | خرید"
+  bag: "کیف | کوله | کوله‌پشتی"
+  market: "بازار"
 
 # Where a command runs (configs/commands.yml). Sent in the wrong kind of chat,
 # it is not run; the player reads one of these instead.
@@ -1271,6 +1294,8 @@ input:
     faction_invite: "🤝 کد بازیکن یا نام کاربری کسی را که دعوت می‌کنید بفرستید."
     faction_deposit: "📥 چه مبلغی به بانک جناح واریز شود؟ مبلغ را به عدد بنویسید."
     faction_withdraw: "📤 چه مبلغی از بانک جناح به حساب بانکی‌تان برداشته شود؟ مبلغ را به عدد بنویسید."
+    property_sell: "💰 ملک را به چه قیمتی می‌فروشید؟ مبلغ را به عدد بنویسید؛ کارمزد بازار شهر از آن کم می‌شود."
+    property_let: "🔑 اجاره‌بهای هر دورهٔ شهر چقدر باشد؟ مبلغ را به عدد بنویسید."
   placeholder:
     default: "مقدار"
     bank_deposit: "مبلغ واریز به نیل"
@@ -1293,12 +1318,16 @@ input:
     faction_invite: "کد بازیکن یا نام کاربری"
     faction_deposit: "مبلغ واریز به نیل"
     faction_withdraw: "مبلغ برداشت به نیل"
+    property_sell: "قیمت فروش به نیل"
+    property_let: "اجاره‌بهای هر دوره به نیل"
   cancel_hint: "برای انصراف، «انصراف» را بفرستید."
   cancelled: "✖️ لغو شد. چیزی تغییر نکرد."
 
 # Public lines in a city's Telegram group (internal/workers/notification,
 # announce.go), in the group's language. They never carry an amount.
 announce:
+  # An operator's announcement (admin announce), their words as written.
+  operator: "📣 اطلاعیهٔ گردانندگان بازی:\n{text}"
   arrived: "🧭 {player} وارد {city} شد."
   jailed: "⛓ {player} در {city} زندانی شد."
   # A busy group is sent a few lines at a time; this follows the next line
@@ -1366,6 +1395,7 @@ item:
 
 # نوع کالاها (configs/content/items.yml).
 item_category:
+  vehicles: وسیلهٔ نقلیه
   food: خوراکی
   drink: نوشیدنی
   medicine: دارو
@@ -1376,6 +1406,8 @@ item_category:
 
 # نام کالاها بر اساس کد محتوایی (configs/content/items.yml).
 item_name:
+  car: خودرو
+  motorbike: موتورسیکلت
   bread: نان
   sandwich: ساندویچ
   hot_meal: غذای گرم
@@ -1441,7 +1473,9 @@ gear:
 # شهر است و خرید پای پیشخوان خودش انجام می‌شود.
 shop:
   title: "🛒 مغازه‌های {city}"
+  title_at: "🛒 مغازه‌های {place} در {city}"
   none: این شهر هنوز مغازه‌ای ندارد.
+  none_at: "در {place} مغازه‌ای نیست."
   line: "• {shop} - در {place}"
   line_here: "• {shop} - همین‌جا"
   detail_title: "🛒 {shop} - در {place}"
@@ -1466,6 +1500,9 @@ shop:
   sold: "💰 {item} را به {shop} به {price} فروختید."
   button:
     shops: "🛒 مغازه‌ها"
+    all: "🛒 همهٔ مغازه‌های شهر"
+    here: "🛒 مغازه‌های اینجا"
+    at: "🛒 مغازه‌های {place}"
     open: "🛒 {shop}"
     buy: "🛒 {item}"
     qty: "🛒 خرید {qty} عدد"
@@ -1481,6 +1518,7 @@ shop:
 
 # نام مغازه‌ها بر اساس کد محتوایی (configs/content/shops.yml).
 shop_name:
+  car_dealer: نمایشگاه خودرو
   grocery: خواربارفروشی
   diner: غذاخوری
   pharmacy: داروخانه
@@ -3080,3 +3118,238 @@ mission:
     not_active: "این مأموریت دیگر در دست شما نیست."
     expired: "⌛ مهلت این مأموریت تمام شده است."
     nothing_to_deliver: "📦 چیزی که این مأموریت می‌خواهد همراهتان نیست."
+
+# Votes of a body (docs/adr/0024-property-and-politics.md): a council
+# confirming the mayor's budget, a parliament approving a declaration of war,
+# a council setting a policy it holds. Terms: proposal «طرح» ⚖️ (numbered
+# «طرح #۱۲»), vote «رأی»، yes «موافق»، no «مخالف»، passed «تصویب شد»، failed
+# «رد شد»؛ a passed proposal that could not be applied «اجرا نشد». A
+# legislator's vote is public record.
+legislature:
+  list_title: "⚖️ طرح‌ها و رأی‌گیری‌ها"
+  list_empty: در شهر و کشور شما اکنون هیچ طرحی در دست بررسی نیست.
+  line: "• طرح #{no} در {place}: {subject}"
+  title: "⚖️ طرح #{no} — {place}"
+  subject_lever: "تغییر {lever} به {value}"
+  subject_allocation: "تقسیم تازهٔ {lever}: {shares}"
+  action:
+    country:
+      war: اعلان جنگ
+  action_target: " علیه {target}"
+  action_unnamed: یک اقدام
+  proposed_by: "پیشنهاد {office} {player}"
+  body: "رأی‌دهندگان: {body} - {held} کرسی پر از {seats} کرسی"
+  rule:
+    majority: "برای تصویب: بیشتر آرای داده‌شده موافق باشد"
+    supermajority: "برای تصویب: دست‌کم {threshold} آرای داده‌شده موافق باشد"
+    unanimous: "برای تصویب: همهٔ اعضا موافق باشند"
+  fraction: "{num}/{den}"
+  quorum: "حد نصاب: {quorum} کرسی‌ها باید رأی بدهند"
+  status:
+    open: "🗳 در حال رأی‌گیری - {remaining} مانده - {yes} موافق، {no} مخالف"
+    passed: "✅ تصویب شد - {yes} موافق، {no} مخالف"
+    failed: "❌ رد شد - {yes} موافق، {no} مخالف"
+    lapsed: "⚪️ تصویب شد اما اجرا نشد: {why}"
+  lapse:
+    cooldown: این سیاست در این فاصله تغییر کرده بود و هنوز نمی‌شد دوباره تغییرش داد
+    bounds: مرزهای مجاز این سیاست در این فاصله عوض شده بود
+    gone: این موضوع دیگر وجود ندارد
+    changed: اوضاع در این فاصله عوض شده بود
+  needs: "با {held} عضو حاضر، {needs} رأی موافق این طرح را تصویب می‌کند."
+  closes_at: "پایان رأی‌گیری ساعت {time}"
+  votes: "آرای اعضا:"
+  vote_yes: "• {player}: موافق"
+  vote_no: "• {player}: مخالف"
+  notice:
+    submitted: "📨 طرح به رأی {body} {place} گذاشته شد. نتیجه پس از رأی‌گیری در گروه‌های شهر اعلام می‌شود."
+    voted: "✅ رأی شما ثبت شد."
+    already_voted: شما پیش‌تر به این طرح رأی داده‌اید.
+    closed: رأی‌گیری این طرح به پایان رسیده است.
+  refused:
+    not_found: چنین طرحی پیدا نشد. فهرست طرح‌ها را باز کنید.
+    not_member: تنها اعضای {body} به این طرح رأی می‌دهند.
+    under_way: همین حالا طرحی دربارهٔ همین موضوع در {body} در دست رأی‌گیری است. پس از اعلام نتیجهٔ آن دوباره امتحان کنید.
+  announce:
+    opened: "⚖️ طرح #{no} در {place}: {subject}. پیشنهاد {office} {player}؛ {body} تا {window} دیگر رأی می‌دهد."
+    passed: "✅ {body} {place} طرح #{no} را تصویب کرد: {subject}. {yes} موافق، {no_votes} مخالف."
+    failed: "❌ {body} {place} طرح #{no} را رد کرد: {subject}. {yes} موافق، {no_votes} مخالف."
+    lapsed: "⚪️ طرح #{no} در {place} تصویب شد اما اجرا نشد ({subject}): {why}."
+  button:
+    view: "⚖️ طرح #{no}"
+    for: "✅ موافق"
+    against: "❌ مخالف"
+    list: "⚖️ طرح‌ها و رأی‌گیری‌ها"
+
+# A city's budget (docs/adr/0024; configs/content/budget.yml). Terms: budget
+# «بودجه» 💰، treasury «خزانه» 🏦، a line of the budget «خط بودجه»، share
+# «سهم» (a percentage).
+budget:
+  title: "💰 بودجهٔ {city}"
+  treasury: "🏦 موجودی خزانه: {amount}"
+  spend_share: "هر دورهٔ شهر، بودجه تا {share} از موجودی خزانه را خرج می‌کند."
+  allocation: "تقسیم فعلی: {shares}"
+  pending: "⏳ تقسیم تازه {when} دیگر اجرا می‌شود: {shares}"
+  share: "{line} {share}"
+  nothing_allocated: هیچ خطی سهمی ندارد و چیزی خرج نمی‌شود
+  unnamed_line: یک خط بودجه
+  last: "دورهٔ گذشته {spent} خرج شد:"
+  last_line: "• {line}: {spent} - {effect}"
+  no_period: هنوز هیچ دورهٔ بودجه‌ای به پایان نرسیده است.
+  next: "⏳ دورهٔ بعد: {in} دیگر"
+  next_at: "پایان دوره ساعت {time}"
+  no_city: هنوز در هیچ شهری مستقر نشده‌اید. پس از استقرار، بودجهٔ شهرتان همین‌جا نمایش داده می‌شود.
+  effect:
+    investigation: "پیگیری پرونده‌ها {share} جدی‌تر"
+    hospital_price: "بیمارستان شهر {share} ارزان‌تر"
+    transit_fare: "حمل‌ونقل عمومی {share} ارزان‌تر"
+    course_fee: "دوره‌های آموزشی {share} ارزان‌تر"
+    war_repair: "{share} از خرابی جنگ بازسازی شد"
+    npc_demand: "خرید مردم از شرکت‌ها {share} بیشتر"
+    defence_fund: "به صندوق دفاع کشور رفت"
+  button:
+    change: "✏️ تغییر تقسیم بودجه"
+
+# Budget lines, keyed on the line's content code (configs/content/budget.yml).
+budget_line:
+  police: پلیس
+  hospital: یارانهٔ بیمارستان
+  transit: یارانهٔ حمل‌ونقل عمومی
+  education: آموزش
+  infrastructure: زیرساخت و بازسازی
+  marketing: تبلیغ شهری
+  defence: سهم دفاعی
+
+# Property (docs/adr/0024-property-and-politics.md). Terms: property «ملک» 🏠
+# (numbered «ملک #۱۲»), home «خانه»، the land registry «ثبت اسناد» at city
+# hall، offer «آگهی» (for sale «فروش»، to let «اجاره»)، rent «اجاره‌بها»،
+# tenant «مستأجر»، landlord «موجر»، owner «مالک»، upkeep «هزینهٔ نگهداری»،
+# debt «بدهی»، repossessed «مصادره»، evicted «تخلیه».
+property:
+  no_city: "🏠 برای دیدن بازار املاک باید در یک شهر باشید، نه در راه."
+  market_title: "🏠 بازار املاک {city}"
+  city_sells: "ثبت اسناد شهر می‌فروشد:"
+  city_sells_none: "• این شهر ملکی برای فروش ندارد."
+  type_line: "• {type} ({facts}): {price} - {left} واحد مانده"
+  type_line_sold_out: "• {type} ({facts}): فروخته شد"
+  facts: "{kind}، {size} متر، کیفیت {quality}"
+  offers: "آگهی‌های مالکان:"
+  offers_none: "• فعلاً آگهی‌ای نیست."
+  offer_sale: "• ملک #{no}، {type}: فروش به {price} - {seller}"
+  offer_rent: "• ملک #{no}، {type}: اجاره {price} در هر دورهٔ شهر - {seller}"
+  kind:
+    house: خانه
+    apartment: آپارتمان
+    shop: مغازه
+    land: زمین
+  type_title: "🏠 {type} - {city}"
+  where: "📍 در {place}"
+  price: "💰 قیمت: {price} (ثبت اسناد {left} واحد دیگر دارد)"
+  upkeep: "🧾 هزینهٔ نگهداری: {upkeep} در هر دورهٔ شهر"
+  tax: "🏛 مالیات ملک: {tax} ارزش ملک در هر دورهٔ شهر"
+  home_note: "🛏 خانه است: خرید یا اجاره‌اش شما را مقیم این شهر می‌کند و در آن {energy} انرژی استراحت می‌کنید."
+  home_residence: "🛏 خانه است: خرید یا اجاره‌اش شما را مقیم این شهر می‌کند."
+  at_registry: "✍️ سند در ثبت اسناد {place} امضا می‌شود."
+  bought: "✅ ملک #{no} ({type}) اکنون به نام شماست."
+  offer_title: "🏠 ملک #{no}، {type} - {city}"
+  rent_terms: "🔑 اجاره‌بهای دورهٔ اول هنگام امضا پرداخت می‌شود و هر دورهٔ بعد پایان همان دوره."
+  mine_title: "🏠 املاک من"
+  residence: "📍 محل اقامت: {city}"
+  owned_line: "• ملک #{no}، {type} در {city} - ارزش {value}"
+  debt: "⚠️ بدهی: {debt} ({periods} دورهٔ پیاپی)"
+  let_to: "🔑 در اجارهٔ {tenant} به {rent} در هر دوره"
+  offered_rent: "📢 آگهی اجاره: {price} در هر دوره"
+  offered_sale: "📢 آگهی فروش: {price}"
+  lived_in: "🛏 خانهٔ شما"
+  owned_none: "هنوز ملکی ندارید. ثبت اسناد هر شهر ملک می‌فروشد."
+  grace: "ملکی که {periods} دورهٔ پیاپی بدهکار بماند به شهر برمی‌گردد."
+  renting: "🔑 مستأجر {type} در {city} از {landlord}، {rent} در هر دوره"
+  arrears: "⚠️ اجارهٔ {periods} دوره پرداخت نشده است."
+  rest_wait: "🛏 {wait} دیگر می‌توانید در خانه استراحت کنید."
+  rest_ready: "🛏 می‌توانید در خانه استراحت کنید و {energy} انرژی بگیرید."
+  debt_blocks: "⚠️ تا بدهی این ملک پرداخت نشود نمی‌توانید آن را آگهی کنید."
+  offer_limits: "آگهی فروش تا {price} و اجاره تا {rent} در هر دوره."
+  leave_confirm: "🔑 از {type} در {city} می‌روید؟ اجارهٔ این دوره برنمی‌گردد."
+  notice:
+    listed: "📢 آگهی ثبت شد."
+    cancelled: "آگهی برداشته شد."
+    rented: "🔑 اجاره امضا شد؛ اجارهٔ دورهٔ اول پرداخت شد."
+    left: "🔑 از خانهٔ اجاره‌ای رفتید."
+    rested: "🛏 در خانه استراحت کردید و {energy} انرژی گرفتید."
+    bought_offer: "✅ ملک #{no} اکنون به نام شماست."
+  refused:
+    not_found: این ملک پیدا نشد.
+    not_yours: این ملک یا اجاره مال شما نیست.
+    sold_out: ثبت اسناد این شهر دیگر از این نوع ملک ندارد.
+    too_many: "شما همین حالا بیشترین تعداد مجاز ملک را دارید."
+    taken: این آگهی دیگر برقرار نیست.
+    own: این آگهی خودتان است.
+    renting: شما همین حالا خانه‌ای اجاره کرده‌اید؛ اول از آن بروید.
+    let: این ملک در اجاره است و تا پایان اجاره نمی‌شود آگهی‌اش کرد.
+    offered: این ملک همین حالا آگهی شده است.
+    in_debt: تا بدهی این ملک پرداخت نشود نمی‌شود آن را آگهی کرد یا فروخت.
+    price: "این قیمت بیش از سقف مجاز {max} است."
+    no_home: در این شهر خانه‌ای ندارید که در آن استراحت کنید.
+    too_soon: "{wait} دیگر می‌توانید دوباره در خانه استراحت کنید."
+    not_in_city: برای این کار باید در همان شهر باشید.
+  notice_event:
+    sold: "💰 ملک #{no} ({type} در {city}) را {player} خرید؛ {amount} به حساب بانکی شما واریز شد."
+    let: "🔑 {player} ملک #{no} ({type} در {city}) را اجاره کرد؛ اجارهٔ دورهٔ اول، {amount}، به حساب بانکی شما واریز شد."
+    tenant_left: "🔑 {player} از ملک #{no} ({type} در {city}) رفت."
+    foreclosed: "⚠️ ملک #{no} ({type} در {city}) به خاطر بدهی پرداخت‌نشده به شهر برگشت."
+    evicted: "⚠️ اجارهٔ {type} در {city} چند دوره پرداخت نشد و قرارداد تمام شد."
+    evicted_tenant: "⚠️ مستأجر ملک #{no} ({type} در {city}) چند دوره اجاره نداد و قرارداد تمام شد."
+  button:
+    type: "🏠 {type}"
+    offer: "📢 ملک #{no}"
+    mine: "🏠 املاک من"
+    market: "🏠 بازار املاک"
+    manage: "🏠 ملک #{no}، {type}"
+    sell: "💰 آگهی فروش"
+    let: "🔑 آگهی اجاره"
+    cancel: "✖️ برداشتن آگهی"
+    leave: "🚪 ترک خانهٔ اجاره‌ای"
+    leave_confirm: "✅ بله، می‌روم"
+    rest: "🛏 استراحت در خانه"
+    back_to_type: "🔙 بازگشت به ملک"
+    back_to_offer: "🔙 بازگشت به آگهی"
+
+# Kinds of property, keyed on the kind's content code (property.yml).
+property_type:
+  studio: آپارتمان یک‌خوابه
+  apartment: آپارتمان دوخوابه
+  family_house: خانهٔ خانوادگی
+  villa: ویلا
+  shop_unit: مغازه
+  plot: قطعه زمین
+
+# Achievements (docs/adr/0024; configs/content/achievements.yml). Term:
+# achievement «دستاورد» 🏅.
+achievement:
+  title: "🏅 دستاوردهای شما: {earned} از {all}"
+  none_yet: هنوز دستاوردی به دست نیاورده‌اید.
+  earned_line: "✅ {achievement}"
+  open_line: "▫️ {achievement} - {done} از {count}"
+  open_line_reward: "▫️ {achievement} - {done} از {count} - جایزه {reward}"
+  notice: "🏅 دستاورد تازه: {achievement}!"
+  notice_cash: "💵 {cash} جایزه به پول نقدتان اضافه شد."
+  notice_withheld: "سقف روزانهٔ جایزه‌ها {amount} از آن را نگه داشت."
+  button:
+    list: "🏅 دستاوردها"
+  first_shift:
+    name: روز اول کار
+  hard_worker:
+    name: سخت‌کوش
+  first_journey:
+    name: در راه
+  graduate:
+    name: فارغ‌التحصیل
+  entrepreneur:
+    name: کارآفرین
+  homeowner:
+    name: صاحب‌خانه
+  ten_crimes:
+    name: خلافکار حرفه‌ای
+  elected:
+    name: منتخب مردم
+  lawmaker:
+    name: قانون‌گذار

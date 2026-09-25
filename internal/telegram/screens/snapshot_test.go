@@ -164,6 +164,12 @@ func travelScreens(c Context, who people, add func(string, *presenter.Response))
 			{ModeCode: "train", ModeName: "Train", Fare: 7720, Wait: 4 * time.Minute, Energy: 6, Busy: true},
 			{ModeCode: "flight", ModeName: "Flight", Fare: 10480, Wait: 2 * time.Minute, Energy: 4},
 		}}))
+	add("Travel options · in your own car", TravelOptions(c, TravelOptionsView{FromCode: "ostmarch", From: "Ostmarch",
+		ToCode: "brennhaven", To: "Brennhaven", Cash: 5000, Options: []TravelOption{
+			{ModeCode: "bus", ModeName: "Bus", Fare: 1140, Wait: 12*time.Minute + 30*time.Second, Energy: 8},
+			{ModeCode: "car", ModeName: "Car", Fare: 2520, Wait: 7 * time.Minute, Energy: 14,
+				Vehicle: &Named{Code: "car", Name: "Car"}, Condition: 8700},
+		}}))
 	add("Travel options · the fare changed before departure", TravelOptions(c, TravelOptionsView{FromCode: "ostmarch", From: "Ostmarch",
 		ToCode: "brennhaven", To: "Brennhaven", Cash: 5000, Requoted: true, Options: []TravelOption{
 			{ModeCode: "train", ModeName: "Train", Fare: 8490, Wait: 4 * time.Minute, Energy: 6, Busy: true},
@@ -512,7 +518,9 @@ func governanceSnapshots(c Context, who people, add func(string, *presenter.Resp
 	window := GovLever{Code: "city.shift_window_hours", Type: "int", Value: 24, Default: 24, Min: 6, Max: 72, HeldBy: "mayor",
 		Notice: 24 * time.Hour, Cooldown: 72 * time.Hour}
 	tariff := GovLever{Code: "country.border_tariff", Type: "bps", Value: 0, Max: 2500, HeldBy: "president",
-		Notice: 72 * time.Hour, Cooldown: 168 * time.Hour, Vote: true}
+		Notice: 72 * time.Hour, Cooldown: 168 * time.Hour, ConfirmBy: "parliament"}
+	propertyTax := GovLever{Code: "city.property_tax", Type: "bps", Value: 20, Default: 20, Max: 200, HeldBy: "city_council",
+		Notice: 24 * time.Hour, Cooldown: 72 * time.Hour, Vote: true}
 
 	add("City hall", CityGovernance(c, CityGovView{City: place, HoldsOffice: true, Sections: []GovSection{
 		{Place: place, Offices: []GovOffice{
@@ -527,8 +535,8 @@ func governanceSnapshots(c Context, who people, add func(string, *presenter.Resp
 	add("City hall · not in any city", CityGovernance(c, CityGovView{NoCity: true}))
 	add("My office", MyOffice(c, MyOfficeView{Seats: []GovSeat{
 		{Office: "deputy_mayor", Place: place, ActingFor: "mayor", Levers: []GovLever{tax, fee}},
-		{Office: "president", Place: country, VoteLevers: []GovLever{tariff}},
-		{Office: "city_council", Place: place},
+		{Office: "president", Place: country, Levers: []GovLever{tariff}},
+		{Office: "city_council", Place: place, VoteLevers: []GovLever{propertyTax}},
 	}}))
 	add("My office · none", MyOffice(c, MyOfficeView{}))
 	add("Change a policy · percentage", LeverEdit(c, LeverEditView{Place: place, Lever: tax, Draft: 800, FineStep: 25, CoarseStep: 250}))
@@ -637,6 +645,7 @@ func TestGroupTextSnapshots(t *testing.T) {
 			militaryAnnouncements(c, who, book)
 			healthAnnouncements(c, who, book)
 			factionAnnouncements(c, who, book)
+			politicsAnnouncements(c, who, book)
 			book.Check(t, snapshotDir, "group")
 		})
 	}

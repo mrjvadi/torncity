@@ -28,11 +28,23 @@ const WorldJurisdictionID = "00000000-0000-4000-8000-000000000100"
 // with ErrPolicyRequiresVote until voting exists.
 const DecisionSingle = "single"
 
-// ValueKindScalar is the value kind of the lever types with behaviour today —
-// bps, money, int: one bounded integer. The structured kinds (bool, enum, map,
-// allocation) are declared and stored, and refused with
-// ErrLeverKindUnsupported until their behaviour is built.
+// ValueKindScalar is the value kind of bps, money and int levers: one
+// bounded integer.
 const ValueKindScalar = "scalar"
+
+// ValueKindStructured is the value kind of bool, enum, map and allocation
+// levers: a document. Of these only the allocation has behaviour
+// (docs/adr/0024-property-and-politics.md); the rest are declared and stored,
+// and refused with ErrLeverKindUnsupported until theirs is built.
+const ValueKindStructured = "structured"
+
+// LeverAllocation is the lever type dividing a whole (10000 bps) among
+// categories: a budget. Its value is a share per category; the shares sum to
+// at most the whole, and what is not allocated is not spent.
+const LeverAllocation = "allocation"
+
+// AllocationWhole is the whole an allocation divides, in basis points.
+const AllocationWhole = 10000
 
 // AcquiredByAppointment is offices.acquired_by for a seat an appointment
 // filled — today, always the operator's.
@@ -70,6 +82,18 @@ var (
 	// not by one holder. The cause names the body.
 	ErrPolicyRequiresVote = errors.Sentinel(errors.CodeUnauthorized,
 		"application.ErrPolicyRequiresVote", "that decision requires a vote")
+
+	// ErrPolicyRequiresConfirmation means the change must be confirmed by a
+	// vote of a body (the detail "body") before it is announced: it is
+	// proposed to the legislature instead of set.
+	ErrPolicyRequiresConfirmation = errors.Sentinel(errors.CodeUnauthorized,
+		"application.ErrPolicyRequiresConfirmation", "that change must be confirmed by a vote")
+
+	// ErrInvalidAllocation means an allocation naming a category the lever
+	// does not divide among, a negative share, or shares summing to more
+	// than the whole.
+	ErrInvalidAllocation = errors.Sentinel(errors.CodeInvalidInput,
+		"application.ErrInvalidAllocation", "that division of the budget is not allowed")
 
 	// ErrNotOfficeHolder means the caller does not hold the office acting for
 	// the lever in that jurisdiction: not its holder, nor — while it is
@@ -126,12 +150,35 @@ type LeverDefinition struct {
 	Default, Min, Max int64
 	// HeldBy is the office deciding the lever.
 	HeldBy string
-	// DecisionRule is how HeldBy decides; see DecisionSingle.
-	DecisionRule   string
-	ChangeCooldown time.Duration
-	Notice         time.Duration
+	// DecisionRule is how HeldBy decides; see DecisionSingle. Threshold and
+	// Quorum are its fractions ("2/3"), empty when not set.
+	DecisionRule      string
+	Threshold, Quorum string
+	ChangeCooldown    time.Duration
+	Notice            time.Duration
 	// CityDefault names the per-city default source, or is empty.
 	CityDefault string
+
+	// Categories are what an allocation divides the whole among, and
+	// DefaultAllocation its default shares; empty for another type.
+	Categories        []string
+	DefaultAllocation map[string]int64
+
+	// RequiresConfirmationBy is the body whose vote confirms a change, with
+	// its rule, threshold and quorum; empty for none. ConfirmAbove, when
+	// set, spares a change of at most that much from it.
+	RequiresConfirmationBy                                      string
+	ConfirmationRule, ConfirmationThreshold, ConfirmationQuorum string
+	ConfirmAbove                                                *int64
+}
+
+// IsAllocation reports whether the lever divides a budget.
+func (l LeverDefinition) IsAllocation() bool { return l.Type == LeverAllocation }
+
+// ByVote reports whether the lever is decided by a vote of the body holding
+// it.
+func (l LeverDefinition) ByVote() bool {
+	return l.DecisionRule != "" && l.DecisionRule != DecisionSingle
 }
 
 // OfficeDefinition is one office of the active content.
@@ -193,7 +240,9 @@ type PolicySetting struct {
 	JurisdictionID string
 	LeverCode      string
 	Value          int64
-	SetByPlayerID  string
+	// Allocation is an allocation lever's shares; nil for a scalar.
+	Allocation    map[string]int64
+	SetByPlayerID string
 	// OfficeID is the seat the change was made from.
 	OfficeID    string
 	SetAt       time.Time
@@ -248,7 +297,10 @@ type PolicyValue struct {
 	Lever          string
 	Type           string
 	Value          int64
-	Source         PolicySource
+	// Allocation is an allocation lever's shares in force, a category
+	// missing from it having none; nil for a scalar lever.
+	Allocation map[string]int64
+	Source     PolicySource
 	// InForce is the setting whose value applies, nil for a default.
 	InForce *PolicySetting
 	// Pending is the next announced change still inside its notice, if any.
@@ -269,8 +321,10 @@ type PolicyChange struct {
 	ID         string
 	Setting    PolicySetting
 	OfficeCode string
-	// OldValue is the value in force when the change was made.
-	OldValue int64
+	// OldValue is the value in force when the change was made;
+	// OldAllocation the shares, for an allocation lever.
+	OldValue      int64
+	OldAllocation map[string]int64
 }
 
 // PolicyReader is the ONE way code reads a policy value.
@@ -368,6 +422,22 @@ func ResolvePolicy(in PolicyInputs, now time.Time) PolicyValue {
 		v.Source = PolicyFromOffice
 	}
 
+	if in.Lever.IsAllocation() {
+		// An allocation's value is its shares. One set under older content
+		// that no longer fits — a category gone, the whole exceeded — never
+		// escapes the lever as it stands: the default applies instead.
+		v.Value = 0
+		v.Allocation = copyAllocation(in.Lever.DefaultAllocation)
+		if v.InForce != nil {
+			if CheckAllocation(in.Lever, v.InForce.Allocation) == nil {
+				v.Allocation = copyAllocation(v.InForce.Allocation)
+			} else {
+				v.Clamped = true
+			}
+		}
+		return v
+	}
+
 	switch {
 	case v.Value < in.Lever.Min:
 		v.Value, v.Clamped = in.Lever.Min, true
@@ -414,18 +484,79 @@ func CheckLeverApplies(in PolicyInputs) error {
 	return nil
 }
 
-// CheckLeverSupported refuses a structured lever: storable, not yet usable.
+// copyAllocation copies shares, dropping the empty ones.
+func copyAllocation(a map[string]int64) map[string]int64 {
+	out := make(map[string]int64, len(a))
+	for k, v := range a {
+		if v != 0 {
+			out[k] = v
+		}
+	}
+	return out
+}
+
+// CheckAllocation refuses shares an allocation lever may not hold: a category
+// it does not divide among, a negative share, a sum beyond the whole.
+func CheckAllocation(l LeverDefinition, shares map[string]int64) error {
+	var total int64
+	for k, v := range shares {
+		known := false
+		for _, c := range l.Categories {
+			if c == k {
+				known = true
+				break
+			}
+		}
+		if !known {
+			return ErrInvalidAllocation.WithDetail("category", k)
+		}
+		if v < 0 {
+			return ErrInvalidAllocation.WithDetail("category", k).WithDetail("share", v)
+		}
+		total += v
+	}
+	if total > AllocationWhole {
+		return ErrInvalidAllocation.WithDetail("total", total)
+	}
+	return nil
+}
+
+// SameAllocation reports whether two allocations give every category the
+// same share.
+func SameAllocation(a, b map[string]int64) bool {
+	for k, v := range a {
+		if b[k] != v {
+			return false
+		}
+	}
+	for k, v := range b {
+		if a[k] != v {
+			return false
+		}
+	}
+	return true
+}
+
+// CheckLeverSupported refuses a structured lever with no behaviour yet: a
+// yes/no, a choice or a table. Scalars and allocations are usable.
 func CheckLeverSupported(l LeverDefinition) error {
-	if l.ValueKind != ValueKindScalar {
+	if l.ValueKind != ValueKindScalar && !l.IsAllocation() {
 		return ErrLeverKindUnsupported.WithCause(fmt.Errorf("lever %s is of type %s (%s), which has no behaviour yet",
 			l.Code, l.Type, l.ValueKind))
 	}
 	return nil
 }
 
-// SetPolicy changes a lever on behalf of the player who holds the office
-// acting for it, and records the change publicly. It must run on the caller's
-// unit of work, so the value and its public record commit together.
+// ProposedValue is a value proposed for a lever: an integer for a scalar
+// lever, shares for an allocation.
+type ProposedValue struct {
+	Value      int64
+	Allocation map[string]int64
+}
+
+// SetPolicy changes a scalar lever on behalf of the player who holds the
+// office acting for it, and records the change publicly. It must run on the
+// caller's unit of work, so the value and its public record commit together.
 //
 // It refuses, writing nothing, with a distinct sentinel for each case:
 //
@@ -435,66 +566,252 @@ func CheckLeverSupported(l LeverDefinition) error {
 //   - ErrNotOfficeHolder: the player does not hold the acting office here —
 //     the lever's office, or while that is vacant the deputy acting for it;
 //   - ErrPolicyOutOfBounds: value outside the lever's [min, max];
-//   - ErrPolicyCooldown: the lever changed here less than change_cooldown ago.
+//   - ErrPolicyCooldown: the lever changed here less than change_cooldown ago;
+//   - ErrPolicyRequiresConfirmation: the change must first pass a vote of the
+//     body the lever names (docs/adr/0024-property-and-politics.md).
 //
 // The change takes effect at now + notice: announced now, applied later, so
 // no policy change is a surprise (ADR 0015 section 2).
 func SetPolicy(ctx context.Context, tx Tx, holderPlayerID, jurisdictionID, leverCode string,
 	value int64, now time.Time,
 ) (PolicyChange, error) {
-	gov := tx.Governance()
-	now = now.UTC()
+	return ChangePolicy(ctx, tx, holderPlayerID, jurisdictionID, leverCode, ProposedValue{Value: value}, now)
+}
 
-	// First, so the cooldown and the current value read below cannot change
-	// under this transaction before it writes.
-	if err := gov.LockLever(ctx, jurisdictionID, leverCode); err != nil {
-		return PolicyChange{}, err
-	}
-	in, err := gov.PolicyInputs(ctx, jurisdictionID, leverCode, now)
+// SetAllocation is SetPolicy for an allocation lever: the shares of each
+// category, summing to at most the whole (ErrInvalidAllocation otherwise).
+func SetAllocation(ctx context.Context, tx Tx, holderPlayerID, jurisdictionID, leverCode string,
+	shares map[string]int64, now time.Time,
+) (PolicyChange, error) {
+	return ChangePolicy(ctx, tx, holderPlayerID, jurisdictionID, leverCode, ProposedValue{Allocation: shares}, now)
+}
+
+// ChangePolicy is SetPolicy and SetAllocation.
+func ChangePolicy(ctx context.Context, tx Tx, holderPlayerID, jurisdictionID, leverCode string,
+	v ProposedValue, now time.Time,
+) (PolicyChange, error) {
+	now = now.UTC()
+	in, current, err := lockPolicy(ctx, tx, jurisdictionID, leverCode, now)
 	if err != nil {
 		return PolicyChange{}, err
 	}
-	if err := CheckLeverApplies(in); err != nil {
-		return PolicyChange{}, err
-	}
-	if err := CheckLeverSupported(in.Lever); err != nil {
-		return PolicyChange{}, err
-	}
-	if rule := in.Lever.DecisionRule; rule != "" && rule != DecisionSingle {
+	if in.Lever.ByVote() {
 		return PolicyChange{}, ErrPolicyRequiresVote.WithDetail("body", in.Lever.HeldBy).
-			WithCause(fmt.Errorf("%s requires a %s vote of %s", in.Lever.Code, rule, in.Lever.HeldBy))
+			WithCause(fmt.Errorf("%s requires a %s vote of %s", in.Lever.Code, in.Lever.DecisionRule, in.Lever.HeldBy))
 	}
 
-	current := ResolvePolicy(in, now)
 	seat, ok := heldSeat(current.Acting, holderPlayerID)
 	if !ok {
 		return PolicyChange{}, ErrNotOfficeHolder.WithDetail("office", in.Lever.HeldBy)
 	}
-
-	if value < in.Lever.Min || value > in.Lever.Max {
-		return PolicyChange{}, ErrPolicyOutOfBounds.
-			WithDetail("min", in.Lever.Min).WithDetail("max", in.Lever.Max).WithDetail("value", value)
+	if err := checkProposed(in, v, now); err != nil {
+		return PolicyChange{}, err
 	}
+	need, err := NeedsConfirmation(ctx, tx, in.Lever, in.Jurisdiction.ID, current, v)
+	if err != nil {
+		return PolicyChange{}, err
+	}
+	if need {
+		return PolicyChange{}, ErrPolicyRequiresConfirmation.WithDetail("body", in.Lever.RequiresConfirmationBy)
+	}
+	return recordChange(ctx, tx, in, current, v, holderPlayerID, seat.ID, seat.OfficeCode, now)
+}
 
+// lockPolicy serialises changes of one lever in one place, loads the
+// resolver's inputs and answers the value in force, refusing a lever of
+// another level or of a type with no behaviour.
+func lockPolicy(ctx context.Context, tx Tx, jurisdictionID, leverCode string, now time.Time,
+) (PolicyInputs, PolicyValue, error) {
+	gov := tx.Governance()
+	// First, so the cooldown and the current value read below cannot change
+	// under this transaction before it writes.
+	if err := gov.LockLever(ctx, jurisdictionID, leverCode); err != nil {
+		return PolicyInputs{}, PolicyValue{}, err
+	}
+	in, err := gov.PolicyInputs(ctx, jurisdictionID, leverCode, now)
+	if err != nil {
+		return in, PolicyValue{}, err
+	}
+	if err := CheckLeverApplies(in); err != nil {
+		return in, PolicyValue{}, err
+	}
+	if err := CheckLeverSupported(in.Lever); err != nil {
+		return in, PolicyValue{}, err
+	}
+	return in, ResolvePolicy(in, now), nil
+}
+
+// checkProposed refuses a value outside the lever's bounds, or shares its
+// allocation may not hold, and a change inside the cooldown.
+func checkProposed(in PolicyInputs, v ProposedValue, now time.Time) error {
+	if in.Lever.IsAllocation() != (v.Allocation != nil) {
+		// A number for an allocation, or shares for a number: never a
+		// value of this lever.
+		return ErrInvalidAllocation.WithDetail("lever", in.Lever.Code)
+	}
+	if in.Lever.IsAllocation() {
+		if err := CheckAllocation(in.Lever, v.Allocation); err != nil {
+			return err
+		}
+	} else if v.Value < in.Lever.Min || v.Value > in.Lever.Max {
+		return ErrPolicyOutOfBounds.
+			WithDetail("min", in.Lever.Min).WithDetail("max", in.Lever.Max).WithDetail("value", v.Value)
+	}
 	if in.LastChangeAt != nil {
 		if next := in.LastChangeAt.Add(in.Lever.ChangeCooldown); now.Before(next) {
-			return PolicyChange{}, ErrPolicyCooldown.WithDetail("available_at", next.UTC())
+			return ErrPolicyCooldown.WithDetail("available_at", next.UTC())
 		}
 	}
+	return nil
+}
 
-	return gov.RecordPolicy(ctx, PolicyChange{
-		Setting: PolicySetting{
-			JurisdictionID: in.Jurisdiction.ID,
-			LeverCode:      in.Lever.Code,
-			Value:          value,
-			SetByPlayerID:  holderPlayerID,
-			OfficeID:       seat.ID,
-			SetAt:          now,
-			EffectiveAt:    now.Add(in.Lever.Notice),
-		},
-		OfficeCode: seat.OfficeCode,
-		OldValue:   current.Value,
-	})
+// NeedsConfirmation reports whether a change must first pass a vote of the
+// body the lever names: the lever names one, the change is larger than its
+// confirm_above (a scalar lever), and the body has a member seated. A body
+// nobody sits in confirms nothing and blocks nothing: the holder decides, as
+// before the body existed (docs/adr/0024-property-and-politics.md).
+func NeedsConfirmation(ctx context.Context, tx Tx, l LeverDefinition, jurisdictionID string, current PolicyValue,
+	v ProposedValue,
+) (bool, error) {
+	if l.RequiresConfirmationBy == "" {
+		return false, nil
+	}
+	if l.ConfirmAbove != nil && !l.IsAllocation() {
+		diff := v.Value - current.Value
+		if diff < 0 {
+			diff = -diff
+		}
+		if diff <= *l.ConfirmAbove {
+			return false, nil
+		}
+	}
+	return BodySeated(ctx, tx, l.RequiresConfirmationBy, jurisdictionID)
+}
+
+// BodySeated reports whether any seat of an office is held in a
+// jurisdiction.
+func BodySeated(ctx context.Context, tx Tx, officeCode, jurisdictionID string) (bool, error) {
+	chain, err := tx.Governance().ActingChain(ctx, officeCode, jurisdictionID)
+	if err != nil || len(chain) == 0 {
+		return false, err
+	}
+	for _, s := range chain[0].Seats {
+		if !s.Vacant() {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// recordChange writes the change and its public record.
+func recordChange(ctx context.Context, tx Tx, in PolicyInputs, current PolicyValue, v ProposedValue,
+	playerID, officeID, officeCode string, now time.Time,
+) (PolicyChange, error) {
+	setting := PolicySetting{
+		JurisdictionID: in.Jurisdiction.ID,
+		LeverCode:      in.Lever.Code,
+		Value:          v.Value,
+		SetByPlayerID:  playerID,
+		OfficeID:       officeID,
+		SetAt:          now,
+		EffectiveAt:    now.Add(in.Lever.Notice),
+	}
+	change := PolicyChange{Setting: setting, OfficeCode: officeCode, OldValue: current.Value}
+	if in.Lever.IsAllocation() {
+		change.Setting.Value = 0
+		change.Setting.Allocation = copyAllocation(v.Allocation)
+		change.OldAllocation = copyAllocation(current.Allocation)
+		change.OldValue = 0
+	}
+	return tx.Governance().RecordPolicy(ctx, change)
+}
+
+// PolicyDraft is a change proposed to a vote: the lever, the place, the value,
+// the seat it is proposed from, and the body that decides and how.
+type PolicyDraft struct {
+	Lever        LeverDefinition
+	Jurisdiction Jurisdiction
+	Value        ProposedValue
+	Current      PolicyValue
+	Seat         Office
+	// Body is the office whose members vote; Rule, Threshold and Quorum how.
+	Body, Rule, Threshold, Quorum string
+}
+
+// DraftPolicyVote checks a change before it goes to a vote, under the same
+// lock SetPolicy takes: the lever applies here and has behaviour, the
+// proposer may propose it — a member of the body that holds a lever decided
+// by vote, or the holder acting for a lever that needs confirmation — the
+// value fits and the cooldown is over. It writes nothing. A lever needing
+// neither a vote nor, for this change, a confirmation is answered with
+// ok false: set it directly.
+func DraftPolicyVote(ctx context.Context, tx Tx, proposerID, jurisdictionID, leverCode string, v ProposedValue,
+	now time.Time,
+) (PolicyDraft, bool, error) {
+	now = now.UTC()
+	in, current, err := lockPolicy(ctx, tx, jurisdictionID, leverCode, now)
+	if err != nil {
+		return PolicyDraft{}, false, err
+	}
+	d := PolicyDraft{Lever: in.Lever, Jurisdiction: in.Jurisdiction, Value: v, Current: current}
+	switch {
+	case in.Lever.ByVote():
+		chain, err := tx.Governance().ActingChain(ctx, in.Lever.HeldBy, jurisdictionID)
+		if err != nil {
+			return d, false, err
+		}
+		var seat Office
+		ok := false
+		if len(chain) > 0 {
+			for _, s := range chain[0].Seats {
+				if s.HolderPlayerID == proposerID && proposerID != "" {
+					seat, ok = s, true
+				}
+			}
+		}
+		if !ok {
+			return d, false, ErrNotOfficeHolder.WithDetail("office", in.Lever.HeldBy)
+		}
+		d.Seat, d.Body, d.Rule = seat, in.Lever.HeldBy, in.Lever.DecisionRule
+		d.Threshold, d.Quorum = in.Lever.Threshold, in.Lever.Quorum
+	default:
+		seat, ok := heldSeat(current.Acting, proposerID)
+		if !ok {
+			return d, false, ErrNotOfficeHolder.WithDetail("office", in.Lever.HeldBy)
+		}
+		need, err := NeedsConfirmation(ctx, tx, in.Lever, jurisdictionID, current, v)
+		if err != nil || !need {
+			return d, false, err
+		}
+		d.Seat, d.Body, d.Rule = seat, in.Lever.RequiresConfirmationBy, in.Lever.ConfirmationRule
+		if d.Rule == "" {
+			d.Rule = "majority"
+		}
+		d.Threshold, d.Quorum = in.Lever.ConfirmationThreshold, in.Lever.ConfirmationQuorum
+	}
+	if err := checkProposed(in, v, now); err != nil {
+		return d, false, err
+	}
+	return d, true, nil
+}
+
+// ApplyVotedPolicy announces a change a vote has passed, on behalf of the
+// member who proposed it, from the seat they proposed it from. The notice
+// runs from now. It refuses, writing nothing, what no longer fits the lever
+// as it stands — its bounds or categories changed, or another change landed
+// inside the cooldown while the vote ran — with SetPolicy's sentinels.
+func ApplyVotedPolicy(ctx context.Context, tx Tx, proposerID, officeID, officeCode, jurisdictionID, leverCode string,
+	v ProposedValue, now time.Time,
+) (PolicyChange, error) {
+	now = now.UTC()
+	in, current, err := lockPolicy(ctx, tx, jurisdictionID, leverCode, now)
+	if err != nil {
+		return PolicyChange{}, err
+	}
+	if err := checkProposed(in, v, now); err != nil {
+		return PolicyChange{}, err
+	}
+	return recordChange(ctx, tx, in, current, v, proposerID, officeID, officeCode, now)
 }
 
 // heldSeat finds the player's seat among the acting office's holders.

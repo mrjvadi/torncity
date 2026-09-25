@@ -52,15 +52,17 @@
 #   jurisdiction     the level the lever is set at.
 #   type             scalar: bps (basis points, 10000 = 100%) | money (minor
 #                    units) | int — one bounded integer, fully working today.
-#                    structured: bool | enum | map | allocation — a document;
-#                    declared and stored now, refused by the resolver and by
+#                    structured: bool | enum | map | allocation — a document.
+#                    allocation works (a budget: category to bps, summing to
+#                    at most 10000, the rest unallocated); bool, enum and map
+#                    are declared and stored, refused by the resolver and by
 #                    SetPolicy until their behaviour is built.
 #   default          the value while nobody has set it: the game's behaviour
 #                    from before the lever existed. Required. An integer for
 #                    a scalar type; for bool true/false; for enum one of
 #                    `options`; for map a mapping of key to one of `options`;
 #                    for allocation a mapping of category to bps summing to
-#                    10000.
+#                    at most 10000 ({} allocates nothing).
 #   options          enum and map only: the allowed values.
 #   key              map only: what the keys name, e.g. item.
 #   categories       allocation only: what the whole is divided among.
@@ -79,8 +81,11 @@
 #                      majority       a vote of the body
 #                      supermajority  a vote reaching `threshold`, e.g. 2/3
 #                      unanimous      every seat
-#                    Only single works today; a lever needing a vote is
-#                    refused until voting exists.
+#                    A vote is a proposal any member of the body makes and
+#                    the body's members vote on within
+#                    legislature.vote_window (config.yml, REAL time); it is
+#                    applied once, when it passes
+#                    (docs/adr/0024-property-and-politics.md).
 #   threshold        supermajority only: the fraction needed, above 1/2.
 #   quorum           optional, votes only: the fraction of seats that must
 #                    take part, e.g. 1/2.
@@ -89,6 +94,17 @@
 #                    unanimous — how held_by overrides a veto; omitted means
 #                    a veto is final. override_threshold for a
 #                    supermajority. Stored.
+#   requires_confirmation_by  optional: the body (an office of the same
+#                    level) whose vote must confirm a change the holder
+#                    makes before it is announced — a council confirming
+#                    the mayor's budget. While nobody sits in the body it
+#                    confirms nothing and blocks nothing.
+#   confirmation_rule         majority (default) | supermajority | unanimous;
+#   confirmation_threshold    for a supermajority, e.g. 2/3;
+#   confirmation_quorum       optional share of the body's seats that must
+#                             vote.
+#   confirm_above    optional, scalar levers only: only a change moving the
+#                    value by more than this needs the confirmation.
 #   change_cooldown  least time between two changes in one jurisdiction, e.g.
 #                    72h. Required; 0s for none. Stops a holder raising a tax
 #                    for one trade and lowering it again after.
@@ -172,6 +188,40 @@ levers:
     min: 0
     max: 2500
     held_by: mayor
+    # A mayor moves the rate a little alone; a move of more than 3 points
+    # goes to the council's vote first (docs/adr/0024).
+    requires_confirmation_by: city_council
+    confirm_above: 300
+    change_cooldown: 72h
+    notice: 24h
+
+  # The city's budget (budget.yml, docs/adr/0024): how the part of the
+  # treasury spent every city period is divided among the lines. The mayor
+  # proposes it and the council confirms it. Nothing was spent before the
+  # budget existed, so by default nothing is allocated.
+  - code: city.budget
+    jurisdiction: city
+    type: allocation
+    categories: [police, hospital, transit, education, infrastructure, marketing, defence]
+    default: {}
+    held_by: mayor
+    requires_confirmation_by: city_council
+    change_cooldown: 72h
+    notice: 24h
+
+  # Property tax (property.yml, docs/adr/0024): charged every city period on
+  # each property's value, paid by its owner into the treasury. City law,
+  # decided by a vote of the council, not by one person. Property did not
+  # exist before; the default is a moderate start.
+  - code: city.property_tax
+    jurisdiction: city
+    type: bps
+    default: 20
+    min: 0
+    max: 200
+    held_by: city_council
+    decision_rule: majority
+    quorum: 1/2
     change_cooldown: 72h
     notice: 24h
 
@@ -395,7 +445,11 @@ levers:
     change_cooldown: 72h
     notice: 24h
 
-  # No border tariff exists today either.
+  # The border tariff (docs/adr/0024): charged on every sale of goods from
+  # a company or a market seller of another country to a buyer in this one,
+  # paid by the buyer into this country's national treasury. A treaty whose
+  # kind carries a tariff discount (diplomacy.yml) lowers it. A change of more
+  # than 5 points goes to parliament's vote first.
   - code: country.border_tariff
     jurisdiction: country
     type: bps
@@ -403,6 +457,8 @@ levers:
     min: 0
     max: 2500
     held_by: president
+    requires_confirmation_by: parliament
+    confirm_above: 500
     change_cooldown: 168h
     notice: 72h
 
@@ -472,7 +528,7 @@ offices:
     levers: [city.tax_rate, city.immigration_fee, city.bank_withdrawal_fee, city.card_transfer_fee,
              city.minimum_wage, city.income_tax, city.shift_window_hours, city.shifts_before_fatigue,
              city.transit_fare, city.sales_tax, city.market_fee, city.company_registration,
-             city.corporate_tax]
+             city.corporate_tax, city.budget]
     # While there is no mayor, the deputy mayor acts; with neither, the
     # defaults apply.
     deputy: deputy_mayor
@@ -492,14 +548,15 @@ offices:
     # governor acts for them (docs/adr/0022, part two).
     deputy: military_governor
 
-  # Seats exist from day one; the council's levers (city law, decided by a
-  # vote rather than one person) arrive with the features that need them.
+  # City law, decided by a vote rather than one person; and the check on the
+  # mayor: the council confirms the budget and large tax changes
+  # (docs/adr/0024).
   - code: city_council
     jurisdiction: city
     seats: 5
     acquired_by: election
     term: 720h
-    levers: []
+    levers: [city.property_tax]
 
   # The city's police (docs/adr/0019-crime-engine.md). The mayor appoints the
   # chief; while the seat is vacant the deputy acts, and with neither the
@@ -543,6 +600,19 @@ offices:
     acquired_by: election
     term: 1440h
     levers: [country.border_tariff, country.revenue_share, country.defence_budget, country.war_levy]
+
+  # The national legislature (ADR 0016: a parliament elected by the
+  # residents; docs/adr/0024). It approves a declaration of war and large
+  # tariff changes. While nobody sits in it, it approves nothing and blocks
+  # nothing. One person does not lead the state and sit in the chamber that
+  # checks them.
+  - code: parliament
+    jurisdiction: country
+    seats: 9
+    acquired_by: election
+    term: 1440h
+    levers: []
+    incompatible_with: [president]
 
   # Defence (docs/adr/0022-military-and-diplomacy.md). Civilian control:
   # the minister buys and pays, the chief of the general staff and the
@@ -641,8 +711,14 @@ actions:
   # War (docs/adr/0022, part two): declaring it, joining an ally's, offering
   # and answering a ceasefire or a peace, resuming after a ceasefire. The
   # head of state decides, as the constitutions the ADR reads assign it; a
-  # legislature's approval arrives with a legislature.
-  - {code: country.war,                 jurisdiction: country, held_by: president}
+  # declaration needs parliament's approval first (docs/adr/0024) — the
+  # other steps of a war stay the head of state's.
+  #   requires_confirmation_by  optional: the body whose vote must approve
+  #                             the action first, with confirmation_rule,
+  #                             confirmation_threshold and
+  #                             confirmation_quorum as on a lever.
+  - {code: country.war,                 jurisdiction: country, held_by: president,
+     requires_confirmation_by: parliament}
 
 # ---------------------------------------------------------------------------
 # elections — how each office acquired by election is elected
@@ -695,6 +771,17 @@ elections:
     deposit: 1000
     refund_share_bps: 500
     reopen_after: 168h
+
+  - office: parliament
+    candidacy: 72h
+    voting: 72h
+    min_level: 5
+    min_residency: 168h
+    clean_record: true
+    voter_min_residency: 72h
+    deposit: 5000
+    refund_share_bps: 500
+    reopen_after: 336h
 
   - office: president
     candidacy: 72h

@@ -37,13 +37,16 @@ const (
 	// ServiceFaction is a faction's founding fee, and money a member puts
 	// into its bank.
 	ServiceFaction payment.Service = "faction"
+	// ServiceProperty is a property bought from a city or a player, and the
+	// first period's rent of a lease (docs/adr/0024).
+	ServiceProperty payment.Service = "property"
 )
 
 // knownServices is the closed set content may name.
 var knownServices = map[payment.Service]bool{
 	ServiceTuition: true, ServiceFare: true, ServiceCrimeReport: true, ServiceBail: true,
 	ServiceShop: true, ServiceMarket: true, ServiceAuction: true, ServiceElection: true,
-	ServiceCompany: true, ServiceHospital: true, ServiceFaction: true,
+	ServiceCompany: true, ServiceHospital: true, ServiceFaction: true, ServiceProperty: true,
 }
 
 // PaymentServiceDef is one entry of payments.yml.

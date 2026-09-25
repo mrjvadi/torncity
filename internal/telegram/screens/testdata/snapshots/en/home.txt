@@ -21,6 +21,8 @@ Friends can find you by sending "find K7Q2M9A".
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -46,6 +48,8 @@ Friends can find you by sending "find K7Q2M9A".
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -70,6 +74,8 @@ Friends can find you by sending "find K7Q2M9A".
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -93,6 +99,8 @@ Friends can find you by sending "find K7Q2M9A".
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Profile · not in any city yet ━━━
@@ -113,6 +121,8 @@ This is your home: your condition, your money and your work at a glance. Use the
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Profile · top level ━━━
@@ -133,6 +143,8 @@ This is your home: your condition, your money and your work at a glance. Use the
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -151,6 +163,8 @@ This is your home: your condition, your money and your work at a glance. Use the
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -179,6 +193,8 @@ Until you are free you cannot travel, work a shift, withdraw from the bank or st
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Dashboard · in jail ━━━
@@ -200,6 +216,8 @@ Until you are free you cannot travel, work a shift, withdraw from the bank or st
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Help · an unknown command ━━━

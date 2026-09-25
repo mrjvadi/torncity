@@ -106,6 +106,14 @@ type file struct {
 	MissionBoards []MissionBoardDef `yaml:"mission_boards"`
 	Missions      []MissionDef      `yaml:"missions"`
 	Faction       *FactionDef       `yaml:"faction"`
+
+	Budget *BudgetDef `yaml:"budget"`
+
+	Property        *PropertyDef        `yaml:"property"`
+	PropertyTypes   []PropertyTypeDef   `yaml:"property_types"`
+	PropertyMarkets []PropertyMarketDef `yaml:"property_markets"`
+
+	Achievements []AchievementDef `yaml:"achievements"`
 }
 
 // Load reads every content file in dir and returns them as one pack.
@@ -221,6 +229,15 @@ func Load(dir string) (*Pack, error) {
 		if doc.Faction != nil {
 			pack.Factions = append(pack.Factions, *doc.Faction)
 		}
+		if doc.Budget != nil {
+			pack.Budget = append(pack.Budget, *doc.Budget)
+		}
+		if doc.Property != nil {
+			pack.Property = append(pack.Property, *doc.Property)
+		}
+		pack.PropertyTypes = append(pack.PropertyTypes, doc.PropertyTypes...)
+		pack.PropertyMarkets = append(pack.PropertyMarkets, doc.PropertyMarkets...)
+		pack.Achievements = append(pack.Achievements, doc.Achievements...)
 	}
 
 	pack.Checksum = hex.EncodeToString(digest.Sum(nil))

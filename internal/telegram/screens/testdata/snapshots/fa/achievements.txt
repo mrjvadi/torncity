@@ -1,0 +1,39 @@
+━━━ Achievements · two earned ━━━
+(edits message 42)
+🏅 دستاوردهای شما: ۲ از ۴
+
+✅ روز اول کار
+✅ صاحب‌خانه
+
+▫️ خلافکار حرفه‌ای - ۴ از ۱۰ - جایزه ۵۰۰ نیل
+▫️ سخت‌کوش - ۳ از ۲۵
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → achievement:list
+
+━━━ Achievements · none yet ━━━
+(edits message 42)
+🏅 دستاوردهای شما: ۰ از ۲
+
+هنوز دستاوردی به دست نیاورده‌اید.
+
+▫️ خلافکار حرفه‌ای - ۴ از ۱۰ - جایزه ۵۰۰ نیل
+▫️ سخت‌کوش - ۳ از ۲۵
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → achievement:list
+
+━━━ Notice · earned, paid ━━━
+(sends)
+🏅 دستاورد تازه: صاحب‌خانه!
+💵 ۵۰۰ نیل جایزه به پول نقدتان اضافه شد.
+  ───
+  [🏅 دستاوردها] → achievement:list
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Notice · earned, the cap kept some ━━━
+(sends)
+🏅 دستاورد تازه: روز اول کار!
+💵 ۴۰ نیل جایزه به پول نقدتان اضافه شد.
+سقف روزانهٔ جایزه‌ها ۶۰ نیل از آن را نگه داشت.
+  ───
+  [🏅 دستاوردها] → achievement:list
+  [🔙 بازگشت] → player:profile.get

@@ -86,6 +86,15 @@ shops:
       - {item: phone, stock: 5, restock: 1, every: 4h, buyback_bps: 4500}
       - {item: watch, stock: 5, restock: 1, every: 4h, buyback_bps: 4500}
 
+  # A car dealer: new cars and motorbikes (docs/adr/0024).
+  - code: car_dealer
+    name: Car dealer
+    place: business_district
+    demand: {window: 6h, free_sales: 2, step_bps: 400, max_bps: 16000}
+    shelves:
+      - {item: car,       stock: 3, restock: 1, every: 6h, buyback_bps: 5000}
+      - {item: motorbike, stock: 4, restock: 1, every: 6h, buyback_bps: 5000}
+
   # Second-hand goods, no questions asked: the pawnbroker buys what players
   # bring in, cheaply, and sells it on.
   - code: pawnshop

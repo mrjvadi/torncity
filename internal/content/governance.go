@@ -258,6 +258,40 @@ type LeverDef struct {
 	// Notice is how long after a change is announced it takes effect.
 	// Required; "0s" for immediately. Enforced.
 	Notice string `yaml:"notice"`
+
+	// RequiresConfirmationBy is the office — a body, usually — whose vote
+	// must confirm a change the holder proposes before it is announced: a
+	// council approving the mayor's budget. Empty: the holder decides alone.
+	// Enforced: SetPolicy refuses such a change with
+	// application.ErrPolicyRequiresConfirmation while the body has a seated
+	// member, and the legislature puts it to the body's vote
+	// (docs/adr/0024-property-and-politics.md). A body with no member
+	// seated confirms nothing and blocks nothing.
+	RequiresConfirmationBy string `yaml:"requires_confirmation_by"`
+	// ConfirmationRule is how the confirming body decides: majority (the
+	// default), supermajority or unanimous.
+	ConfirmationRule string `yaml:"confirmation_rule"`
+	// ConfirmationThreshold is the supermajority fraction, as "2/3".
+	ConfirmationThreshold string `yaml:"confirmation_threshold"`
+	// ConfirmationQuorum is the fraction of the body's seats that must
+	// vote for the vote to count, as "1/2". Optional.
+	ConfirmationQuorum string `yaml:"confirmation_quorum"`
+	// ConfirmAbove, on a scalar lever, asks for confirmation only of a
+	// change that moves the value by more than this much; smaller changes
+	// the holder decides alone. Omitted: every change is confirmed.
+	ConfirmAbove *int64 `yaml:"confirm_above"`
+}
+
+// ConfirmRule is the confirming body's rule with the default applied, ""
+// for a lever needing no confirmation.
+func (l LeverDef) ConfirmRule() string {
+	if l.RequiresConfirmationBy == "" {
+		return ""
+	}
+	if l.ConfirmationRule == "" {
+		return DecisionMajority
+	}
+	return l.ConfirmationRule
 }
 
 // Rule is the lever's decision rule with the default applied.

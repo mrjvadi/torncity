@@ -300,6 +300,7 @@ economy:
 governance:
   fine_step_divisor: 101
   coarse_step_divisor: 11
+  allocation_step_bps: 1000
 crime:
   nerve_max: 21
   nerve_regen_amount: 2
@@ -399,6 +400,21 @@ input:
 announce:
   window: 2m
   max_per_window: 7
+legislature:
+  vote_window: 49h
+  list_size: 9
+city:
+  period: 25h
+property:
+  foreclosure_periods: 4
+  eviction_periods: 3
+  max_owned: 6
+  max_price: 100000001
+  max_rent: 1000001
+  rest_cooldown: 9h
+achievements:
+  player_daily_cap: 5001
+  economy_daily_cap: 500001
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -477,6 +493,7 @@ var envOverrides = map[string]string{
 
 	"TORN_GOVERNANCE_FINE_STEP_DIVISOR":   "102",
 	"TORN_GOVERNANCE_COARSE_STEP_DIVISOR": "12",
+	"TORN_GOVERNANCE_ALLOCATION_STEP_BPS": "2000",
 
 	"TORN_CRIME_NERVE_MAX":                       "22",
 	"TORN_CRIME_NERVE_REGEN_AMOUNT":              "3",
@@ -563,6 +580,17 @@ var envOverrides = map[string]string{
 	"TORN_ANTICHEAT_SINGLE_PARTNER_SHARE_BPS": "9002",
 	"TORN_ANTICHEAT_COMMANDS_PER_MINUTE":      "92",
 	"TORN_ANTICHEAT_HOLD_ABOVE":               "50002",
+	"TORN_LEGISLATURE_VOTE_WINDOW":            "50h",
+	"TORN_LEGISLATURE_LIST_SIZE":              "10",
+	"TORN_CITY_PERIOD":                        "26h",
+	"TORN_PROPERTY_FORECLOSURE_PERIODS":       "5",
+	"TORN_PROPERTY_EVICTION_PERIODS":          "4",
+	"TORN_PROPERTY_MAX_OWNED":                 "7",
+	"TORN_PROPERTY_MAX_PRICE":                 "100000002",
+	"TORN_PROPERTY_MAX_RENT":                  "1000002",
+	"TORN_PROPERTY_REST_COOLDOWN":             "10h",
+	"TORN_ACHIEVEMENTS_PLAYER_DAILY_CAP":      "5002",
+	"TORN_ACHIEVEMENTS_ECONOMY_DAILY_CAP":     "500002",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

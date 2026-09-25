@@ -112,6 +112,11 @@ type LedgerVerification struct {
 	// StageEInvariants their checks (ledger_admin_stage_e.go).
 	StageE bool
 	StageEInvariants
+
+	// StageF is whether stage F's tables exist (migrations 0024, 0025);
+	// StageFInvariants their checks (ledger_admin_stage_f.go).
+	StageF bool
+	StageFInvariants
 }
 
 // MilitaryInvariants are the armed forces' checks
@@ -207,7 +212,7 @@ type DriftedStack struct {
 func (v LedgerVerification) OK() bool {
 	return v.LedgerSum == "0" && len(v.Unbalanced) == 0 && len(v.Drifted) == 0 &&
 		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok() && v.ProductionInvariants.ok() &&
-		v.MilitaryInvariants.ok() && v.WarInvariants.ok() && v.StageEInvariants.ok()
+		v.MilitaryInvariants.ok() && v.WarInvariants.ok() && v.StageEInvariants.ok() && v.StageFInvariants.ok()
 }
 
 // VerifyLedger runs the three invariants of docs/adr/0009-economic-control.md
@@ -312,6 +317,15 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 	}
 	if v.StageE {
 		if err := a.verifyStageE(ctx, &v); err != nil {
+			return v, err
+		}
+	}
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.city_budget_periods') IS NOT NULL
+	   AND to_regclass('public.properties') IS NOT NULL`).Scan(&v.StageF); err != nil {
+		return v, fmt.Errorf("postgres: looking for stage F: %w", err)
+	}
+	if v.StageF {
+		if err := a.verifyStageF(ctx, &v); err != nil {
 			return v, err
 		}
 	}

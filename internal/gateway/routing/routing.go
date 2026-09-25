@@ -243,6 +243,18 @@ var shortcuts = map[string]shortcut{
 	// "/board police" one of them.
 	"missions": {Bare: "mission.mine"},
 	"board":    {Bare: "mission.board", Words: "mission.board"},
+	// "/property" is the property market of the player's city, "/home" the
+	// player's own property and home.
+	"property": {Bare: "property.list"},
+	"home":     {Bare: "property.mine"},
+	// "/achievements" is the player's achievements.
+	"achievements": {Bare: "achievement.list"},
+	// "/laws" is the proposals before the bodies of the player's places;
+	// "/law 12" one of them. "/budget" is the budget of the player's city,
+	// "/budget kessmoor" another's.
+	"laws":   {Bare: "law.list"},
+	"law":    {Bare: "law.list", Words: "law.view"},
+	"budget": {Bare: "city.budget", Words: "city.budget"},
 }
 
 // argNames names the positional arguments of a command, in order.
@@ -320,6 +332,38 @@ var argNames = map[string][]string{
 	"gov.lever":   {"lever", "place", "value"},
 	"gov.confirm": {"lever", "place", "value"},
 	"gov.set":     {"lever", "place", "value"},
+	// An allocation (a city's budget): its draft travels in the address, one
+	// character per category (docs/adr/0024).
+	"gov.alloc":    {"lever", "place", "draft"},
+	"gov.allocok":  {"lever", "place", "draft"},
+	"gov.allocset": {"lever", "place", "draft"},
+
+	// Votes of a body: a proposal by its public number, a vote yes or no.
+	"law.list": {},
+	"law.view": {"no"},
+	"law.vote": {"no", "vote"},
+	// A city's budget, by the city's code; the player's own without one.
+	"city.budget": {"city"},
+
+	// Property (docs/adr/0024). A kind is its content code (property.yml);
+	// a property, an offer and a lease their public numbers; a price or a
+	// rent is typed.
+	"property.list":     {},
+	"property.type":     {"type"},
+	"property.purchase": {"type", "method"},
+	"property.mine":     {},
+	"property.view":     {"no"},
+	"property.sell":     {"no", "price"},
+	"property.let":      {"no", "price"},
+	"property.cancel":   {"no"},
+	"property.offer":    {"no"},
+	"property.buy":      {"no", "method"},
+	"property.rent":     {"no", "method"},
+	"property.leave":    {"no", "confirm"},
+	"property.rest":     {},
+
+	// Achievements (docs/adr/0024).
+	"achievement.list": {},
 
 	// Work and study. A career and a course are named by their content code
 	// (jobs.yml, education.yml). job.apply's argument keeps the name "role"
@@ -358,7 +402,7 @@ var argNames = map[string][]string{
 	"inventory.use":  {"item", "nonce"},
 	"inventory.give": {"item", "nonce", "to"},
 	"inventory.drop": {"item", "confirm", "nonce"},
-	"shop.list":      {},
+	"shop.list":      {"place"},
 	"shop.view":      {"shop"},
 	"shop.buy":       {"shop", "item", "qty", "method", "nonce"},
 	"shop.offers":    {"item"},

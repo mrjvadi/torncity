@@ -185,6 +185,18 @@
   [🎒 کوله‌پشتی] → inventory:show
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → shop:list
 
+━━━ Shops · at one place ━━━
+(edits message 42)
+🛒 مغازه‌های بازار در استمارچ
+
+• خواربارفروشی - در بازار
+• ابزارفروشی - در بازار
+  ───
+  [🛒 خواربارفروشی] → shop:view:grocery   │   [🛒 ابزارفروشی] → shop:view:hardware_store
+  [🛒 همهٔ مغازه‌های شهر] → shop:list
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → shop:list:bazaar
+
 ━━━ Shop · at the counter ━━━
 (edits message 42)
 🛒 ابزارفروشی - در بازار

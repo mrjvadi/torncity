@@ -310,7 +310,48 @@ const (
 
 // knownReasons is the closed set. Adding a code means adding it here AND to
 // the table in ADR 0009, in the same change.
+// Stage F (docs/adr/0024-property-and-politics.md): a city's budget, property,
+// the border tariff and vehicles.
+const (
+	// ReasonBudgetSpending is a budget line paid from a city's treasury: the
+	// money leaves the economy (a drain), buying its effect for the next
+	// period.
+	ReasonBudgetSpending Reason = "budget_spending"
+	// ReasonDefenceContribution is a city's defence line paid from its
+	// treasury into its country's defence fund (a transfer).
+	ReasonDefenceContribution Reason = "defence_contribution"
+	// ReasonPropertyPurchase is a property bought from the city: from the
+	// buyer's cash or card into the city's treasury (a transfer).
+	ReasonPropertyPurchase Reason = "property_purchase"
+	// ReasonPropertySale is a property bought from another player: from the
+	// buyer's cash or card to the seller's bank (a transfer); the market fee
+	// on it is market_fee.
+	ReasonPropertySale Reason = "property_sale"
+	// ReasonPropertyTax is a property's tax for a city period, from its
+	// owner to the city's treasury (a transfer).
+	ReasonPropertyTax Reason = "property_tax"
+	// ReasonPropertyUpkeep is a property's upkeep for a city period, from
+	// its owner out of the economy (a drain).
+	ReasonPropertyUpkeep Reason = "property_upkeep"
+	// ReasonRent is a period's rent, from the tenant to the landlord's bank
+	// (a transfer).
+	ReasonRent Reason = "rent"
+	// ReasonBorderTariff is the tariff on goods bought across a border, from
+	// the buyer to the importing country's national treasury (a transfer).
+	ReasonBorderTariff Reason = "border_tariff"
+	// ReasonFuel is the fuel a player's own vehicle burns on a journey, out
+	// of the economy (a drain).
+	ReasonFuel Reason = "fuel"
+	// ReasonVehicleRepair is a repair of a player's vehicle at a garage, out
+	// of the economy (a drain).
+	ReasonVehicleRepair Reason = "vehicle_repair"
+)
+
 var knownReasons = map[Reason]struct{}{
+	ReasonBudgetSpending: {}, ReasonDefenceContribution: {}, ReasonPropertyPurchase: {}, ReasonPropertySale: {},
+	ReasonPropertyTax: {}, ReasonPropertyUpkeep: {}, ReasonRent: {}, ReasonBorderTariff: {}, ReasonFuel: {},
+	ReasonVehicleRepair: {},
+
 	ReasonNPCPurchase: {}, ReasonMissionReward: {}, ReasonEventReward: {},
 	ReasonAchievementReward: {}, ReasonBaseEmployerSalary: {}, ReasonAdminGrant: {},
 	ReasonStartingGrant: {},

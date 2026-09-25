@@ -244,14 +244,16 @@ func insertLeverDefinitions(ctx context.Context, tx pgx.Tx, p *content.Pack, ver
 			`INSERT INTO lever_definitions (id, content_version_id, code, jurisdiction_kind, value_type, value_kind,
 			        default_value, min_value, max_value, default_json, options, map_key, categories,
 			        held_by, decision_rule, threshold, quorum, veto_by, override_rule, override_threshold,
-			        change_cooldown_seconds, notice_seconds, city_default)
+			        change_cooldown_seconds, notice_seconds, city_default,
+			        requires_confirmation_by, confirmation_rule, confirmation_threshold, confirmation_quorum, confirm_above)
 			 VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11, NULLIF($12, ''), $13,
 			         $14, $15, NULLIF($16, ''), NULLIF($17, ''), $18, NULLIF($19, ''), NULLIF($20, ''),
-			         $21, $22, NULLIF($23, ''))`,
+			         $21, $22, NULLIF($23, ''), NULLIF($24, ''), NULLIF($25, ''), NULLIF($26, ''), NULLIF($27, ''), $28)`,
 			id, versionID, l.Code, l.Jurisdiction, l.Type, l.ValueKind(),
 			def, lo, hi, defJSON, nonNil(l.Options), l.Key, nonNil(l.Categories),
 			l.HeldBy, l.Rule(), l.Threshold, l.Quorum, nonNil(l.VetoBy), l.OverrideRule, l.OverrideThreshold,
-			int64(cooldown/time.Second), int64(notice/time.Second), l.CityDefault); err != nil {
+			int64(cooldown/time.Second), int64(notice/time.Second), l.CityDefault,
+			l.RequiresConfirmationBy, l.ConfirmRule(), l.ConfirmationThreshold, l.ConfirmationQuorum, l.ConfirmAbove); err != nil {
 			return fmt.Errorf("postgres: content apply: lever %q: %w", l.Code, err)
 		}
 	}
@@ -388,7 +390,9 @@ func loadGovernance(ctx context.Context, tx pgx.Tx, versionID string, pack *cont
 		        options, COALESCE(map_key, ''), categories, held_by,
 		        decision_rule, COALESCE(threshold, ''), COALESCE(quorum, ''), veto_by,
 		        COALESCE(override_rule, ''), COALESCE(override_threshold, ''),
-		        change_cooldown_seconds, notice_seconds, COALESCE(city_default, '')
+		        change_cooldown_seconds, notice_seconds, COALESCE(city_default, ''),
+		        COALESCE(requires_confirmation_by, ''), COALESCE(confirmation_rule, ''),
+		        COALESCE(confirmation_threshold, ''), COALESCE(confirmation_quorum, ''), confirm_above
 		   FROM lever_definitions WHERE content_version_id = $1::uuid ORDER BY code`, versionID)
 	if err != nil {
 		return fmt.Errorf("postgres: content load: levers: %w", err)
@@ -403,7 +407,8 @@ func loadGovernance(ctx context.Context, tx pgx.Tx, versionID string, pack *cont
 		if err := lRows.Scan(&l.Code, &l.Jurisdiction, &l.Type, &def, &l.Min, &l.Max, &defJSON,
 			&l.Options, &l.Key, &l.Categories, &l.HeldBy,
 			&l.DecisionRule, &l.Threshold, &l.Quorum, &l.VetoBy, &l.OverrideRule, &l.OverrideThreshold,
-			&cooldown, &noticeSecs, &l.CityDefault); err != nil {
+			&cooldown, &noticeSecs, &l.CityDefault, &l.RequiresConfirmationBy, &l.ConfirmationRule,
+			&l.ConfirmationThreshold, &l.ConfirmationQuorum, &l.ConfirmAbove); err != nil {
 			lRows.Close()
 			return fmt.Errorf("postgres: content load: scanning lever: %w", err)
 		}

@@ -76,8 +76,11 @@ func TestValidateRejectsStructuredLevers(t *testing.T) {
 		{"map default value not an option", func(p *Pack) {
 			lever(p, "city.item_legality").Default = map[string]any{"bread": "encouraged"}
 		}},
-		{"allocation short of the whole", func(p *Pack) {
-			lever(p, "city.budget").Default = map[string]any{"police": 5000, "roads": 3000}
+		{"allocation beyond the whole", func(p *Pack) {
+			lever(p, "city.budget").Default = map[string]any{"police": 5000, "roads": 6000}
+		}},
+		{"allocation of a negative share", func(p *Pack) {
+			lever(p, "city.budget").Default = map[string]any{"police": -1}
 		}},
 		{"allocation to an undeclared category", func(p *Pack) {
 			lever(p, "city.budget").Default = map[string]any{"police": 5000, "parks": 5000}

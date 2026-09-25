@@ -142,6 +142,20 @@ func Routes() []Route {
 		// Missions: see mission.go.
 		{Domain: "mission", Event: "completed", Render: renderMissionCompleted},
 
+		// Legislatures: see legislature.go.
+		{Domain: "legislature", Event: "decided", Render: renderBillDecided},
+
+		// Achievements: see achievement.go.
+		{Domain: "achievement", Event: "awarded", Render: renderAchievement},
+
+		// Property: see property.go.
+		{Domain: "property", Event: "sold", Render: renderPropertyNotice},
+		{Domain: "property", Event: "let", Render: renderPropertyNotice},
+		{Domain: "property", Event: "tenant_left", Render: renderPropertyNotice},
+		{Domain: "property", Event: "foreclosed", Render: renderPropertyNotice},
+		{Domain: "property", Event: "evicted", Render: renderPropertyNotice},
+		{Domain: "property", Event: "evicted_tenant", Render: renderPropertyNotice},
+
 		// Public lines in a city's groups (announce.go). Each has its own
 		// consumer beside the event's private notice, if any.
 		{Domain: "travel", Event: "completed", Name: "announce", Announce: arrivalAnnouncement},
@@ -176,6 +190,9 @@ func Routes() []Route {
 		{Domain: "faction", Event: "planned", Name: "announce", Announce: factionGroupLine("planned")},
 		{Domain: "faction", Event: "launched", Name: "announce", Announce: factionGroupLine("launched")},
 		{Domain: "faction", Event: "crime_resolved", Name: "announce", Announce: factionGroupLine("crime_resolved")},
+		{Domain: "legislature", Event: "proposed", Name: "announce", Announce: billOpenedAnnouncement},
+		{Domain: "legislature", Event: "decided", Name: "announce", Announce: billDecidedAnnouncement},
+		{Domain: "admin", Event: "announced", Name: "announce", Announce: operatorAnnouncement},
 	}
 }
 

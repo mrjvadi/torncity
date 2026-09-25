@@ -73,7 +73,7 @@ var followUps = map[string][]string{
 	"job.work":       nil,
 	"education.list": nil,
 	"education.view": {"course"},
-	"shop.list":      nil,
+	"shop.list":      {"place"},
 	"shop.view":      {"shop"},
 	"market.list":    nil,
 	"market.book":    {"item"},
@@ -92,6 +92,10 @@ var followUps = map[string][]string{
 	"faction.crime": nil,
 	"mission.board": {"board"},
 	"mission.mine":  nil,
+	// Stage F (docs/adr/0024): the land registry at city hall, and home.
+	"property.type":  {"type"},
+	"property.offer": {"no"},
+	"property.mine":  nil,
 }
 
 // FollowUpCommands lists the commands a walk may be followed by.

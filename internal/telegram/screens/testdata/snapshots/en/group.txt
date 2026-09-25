@@ -352,3 +352,22 @@ To cancel, send "cancel".
 
 ━━━ question · faction.withdraw · reply box ━━━
 Amount to withdraw, in Nil
+
+━━━ announcement · a proposal before the council ━━━
+⚖️ Proposal #12 in Ostmarch: divide City budget anew: Police 30%, Public transport subsidy 20%. Proposed by Mayor Sara (K7Q2M9A); the City council votes within 2d.
+
+━━━ announcement · a declaration of war before parliament ━━━
+⚖️ Proposal #13 in The Commonwealth: declare war on Vantor Federation. Proposed by President Sara (K7Q2M9A); the Parliament votes within 2d.
+
+━━━ announcement · a proposal passed ━━━
+✅ The City council of Ostmarch passed proposal #12: divide City budget anew: Police 30%, Public transport subsidy 20%. 3 yes, 1 no.
+
+━━━ announcement · a proposal rejected ━━━
+❌ The Parliament of The Commonwealth rejected proposal #13: declare war on Vantor Federation. 2 yes, 5 no.
+
+━━━ announcement · a proposal lapsed ━━━
+⚪️ Proposal #14 in Ostmarch passed but was not applied (set Property tax to 0.5%): the policy had changed meanwhile and could not change again yet.
+
+━━━ announcement · the operators speak ━━━
+📣 From the game's operators:
+The markets close early tonight for maintenance.

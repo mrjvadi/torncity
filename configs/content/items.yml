@@ -67,6 +67,14 @@
 #                   takes; confiscated — the police take it on an arrest.
 #   black_market    no city shop may sell it: found through crime, and later
 #                   the black market. Still tradeable between players.
+#   vehicle         a car or a motorbike its owner drives
+#                   (docs/adr/0024-property-and-politics.md): {mode: the
+#                   private transport mode (transport.yml) it drives without
+#                   that mode's fare, fuel_per_distance: minor units burned
+#                   per distance unit instead, repair_per_journey: what one
+#                   journey of wear costs to repair}. A vehicle is a unique
+#                   good; its durability is the journeys a new one holds,
+#                   one worn by each journey.
 
 version: 1
 
@@ -235,6 +243,20 @@ archetypes:
     durability: durable
     reverse_difficulty: 50
     reverse_skill: engineering
+  # A car or a motorbike: a frame of steel and a body shell. Factories build
+  # them (companies.yml produces); dealers sell them.
+  - code: vehicle
+    method: assemble
+    slots:
+      - {name: frame, accepts: steel, min: 1, max: 1}
+      - {name: body, accepts: casing, min: 1, max: 1}
+    attributes:
+      - {name: quality, aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 45
+    reverse_skill: mechanics
   - code: jewel
     method: assemble
     slots:
@@ -346,3 +368,25 @@ items:
   - {code: watch,      name: Wristwatch,  category: valuables,   archetype: jewel,  form: unique, base_price: 800,  quality: {min: 30, max: 80}}
   - {code: car_stereo, name: Car stereo,  category: electronics, archetype: device, form: unique, base_price: 700,  quality: {min: 20, max: 60}}
   - {code: jewellery,  name: Jewellery,   category: valuables,   archetype: jewel,  form: stack,  base_price: 500}
+
+  # --- Vehicles (docs/adr/0024): driven on the car mode without its fare -----
+  - code: car
+    name: Car
+    category: vehicles
+    archetype: vehicle
+    form: unique
+    base_price: 35000
+    durability: 150
+    quality: {min: 40, max: 85}
+    stealable: false
+    vehicle: {mode: car, fuel_per_distance: 2, repair_per_journey: 60}
+  - code: motorbike
+    name: Motorbike
+    category: vehicles
+    archetype: vehicle
+    form: unique
+    base_price: 12000
+    durability: 100
+    quality: {min: 30, max: 75}
+    stealable: false
+    vehicle: {mode: car, fuel_per_distance: 1, repair_per_journey: 30}

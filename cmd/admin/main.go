@@ -56,6 +56,12 @@ func main() {
 		err = companyCommand(ctx, os.Args[2:])
 	case "watch":
 		err = watchCommand(ctx, os.Args[2:])
+	case "dashboard":
+		err = dashboardCommand(ctx, os.Args[2:])
+	case "player":
+		err = playerCommand(ctx, os.Args[2:])
+	case "announce":
+		err = announceCommand(ctx, os.Args[2:])
 	default:
 		usage()
 		os.Exit(2)
@@ -81,6 +87,9 @@ func usage() {
   election      open an election of an elected office (see: admin election)
   company       list player companies or show one (see: admin company)
   watch         the watch's flags and held payments (see: admin watch)
+  dashboard     the economy at a glance: supply, faucets and drains, prices
+  player        one player by their code (admin player CODE)
+  announce      post an operator's text in every city's groups (audited)
 
 DATABASE_URL must be set, except for `+"`admin content validate`"+`, which
 reads files only.

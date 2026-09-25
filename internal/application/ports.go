@@ -164,6 +164,20 @@ type Tx interface {
 	Missions() MissionRepository
 	Factions() FactionRepository
 	Watch() WatchRepository
+
+	// Legislature and CityPeriods are stage F
+	// (docs/adr/0024-property-and-politics.md): proposals put to a body's
+	// vote, and each city's period with its budget — each changing with the
+	// policy, action and money that moved for it; see ports_legislature.go
+	// and ports_city.go.
+	Legislature() LegislatureRepository
+	CityPeriods() CityPeriodRepository
+	// Property holds property, its listings, leases and period charges; see
+	// ports_property.go.
+	Property() PropertyRepository
+	// Achievements holds progress toward achievements and what was earned;
+	// see ports_achievements.go.
+	Achievements() AchievementRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

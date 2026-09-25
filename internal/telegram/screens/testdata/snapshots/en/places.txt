@@ -7,7 +7,7 @@
 
 Places in the city:
 • city centre (you are here)
-• bazaar - 15s walk - market
+• bazaar - 15s walk - market, Grocery, Hardware store, Outfitter
 • business district - 15s walk - bank, auction house
 • university quarter - 20s walk - university, training centre
 • police station - 15s walk - police
@@ -19,6 +19,32 @@ Tap a place to walk there. Everything is done at its own place.
   [🚶 bazaar] → place:go:bazaar   │   [🚶 business district] → place:go:business_district
   [🚶 university quarter] → place:go:university   │   [🚶 police station] → place:go:police_station
   [🚶 train station] → place:go:train_station   │   [🚶 airport] → place:go:airport
+  [🛒 Shops at the bazaar] → place:go:bazaar:shop.list:bazaar
+  [🧭 Travel to another city] → map:cities
+  [🏛 Offices and policies] → gov:city
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
+
+━━━ City map · at the bazaar, among its shops ━━━
+(edits message 42)
+🗺 Map of Ostmarch
+
+📍 You are at the bazaar.
+
+Places in the city:
+• city centre - 10s walk
+• bazaar (you are here) - market, Grocery, Hardware store, Outfitter
+• business district - 15s walk - bank, auction house
+• university quarter - 20s walk - university, training centre
+• police station - 15s walk - police
+• train station - 20s walk - Train departures
+• airport - 45s walk - Flight departures
+
+Tap a place to walk there. Everything is done at its own place.
+  ───
+  [🚶 city centre] → place:go:city_centre   │   [🚶 business district] → place:go:business_district
+  [🚶 university quarter] → place:go:university   │   [🚶 police station] → place:go:police_station
+  [🚶 train station] → place:go:train_station   │   [🚶 airport] → place:go:airport
+  [🛒 Shops here] → shop:list:bazaar
   [🧭 Travel to another city] → map:cities
   [🏛 Offices and policies] → gov:city
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → map:list
@@ -32,7 +58,7 @@ Tap a place to walk there. Everything is done at its own place.
 
 Places in the city:
 • city centre - 10s walk
-• bazaar - 15s walk - market
+• bazaar - 15s walk - market, Grocery, Hardware store, Outfitter
 • business district - 15s walk - bank, auction house
 • university quarter - 20s walk - university, training centre
 • police station - 15s walk - police

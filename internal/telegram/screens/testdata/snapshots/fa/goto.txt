@@ -18,6 +18,8 @@
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
   [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
+  [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
+  [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
@@ -42,6 +44,8 @@
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
   [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
+  [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
+  [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
@@ -59,6 +63,7 @@
 🆔 کد بازیکن: ⁨K7Q2M9A⁩
   ───
   [🗺 نقشه] → map:list
+  [🏅 دستاوردها] → achievement:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [🕶 دنیای زیرزمینی] → crime:hub
   [🔒 ادامه در پی‌وی] → https://t.me/torn_bot
@@ -79,6 +84,8 @@
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
   [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
+  [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
+  [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
@@ -98,6 +105,8 @@
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
   [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
+  [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
+  [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 

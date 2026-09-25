@@ -223,3 +223,15 @@ func (t *tx) Factions() application.FactionRepository { return &FactionRepositor
 
 // Watch returns the watch's flags and held payments (migration 0023).
 func (t *tx) Watch() application.WatchRepository { return &WatchRepository{q: t.q} }
+
+// Legislature returns proposals and their votes (migration 0024).
+func (t *tx) Legislature() application.LegislatureRepository { return &LegislatureRepository{q: t.q} }
+
+// CityPeriods returns each city's period and budget (migration 0024).
+func (t *tx) CityPeriods() application.CityPeriodRepository { return &CityPeriodRepository{q: t.q} }
+
+// Property returns property, its listings and leases (migration 0025).
+func (t *tx) Property() application.PropertyRepository { return &PropertyRepository{q: t.q} }
+
+// Achievements returns achievements and their progress (migration 0026).
+func (t *tx) Achievements() application.AchievementRepository { return &AchievementRepository{q: t.q} }

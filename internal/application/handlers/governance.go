@@ -62,6 +62,10 @@ type GovLeverRequest struct {
 type GovernanceSteps struct {
 	FineDivisor   int64
 	CoarseDivisor int64
+	// AllocationStep is how far one press moves a share of an allocation,
+	// bps; it divides 10000 into at most 35 steps (config
+	// governance.allocation_step_bps).
+	AllocationStep int64
 }
 
 // GovernanceHandler serves the gov.* commands.
@@ -72,6 +76,11 @@ type GovernanceHandler struct {
 	dir    application.GovernanceDirectory
 	policy application.PolicyReader
 	steps  GovernanceSteps
+
+	// legislature opens the proposals a change needs; content names the
+	// budget an allocation divides (docs/adr/0024).
+	legislature *LegislatureHandler
+	content     ContentSource
 
 	pageSize       int
 	idempotencyTTL time.Duration
@@ -112,6 +121,15 @@ func NewGovernanceHandler(
 		uow: uow, msgs: msgs, cities: cities, dir: dir, policy: policy, steps: steps,
 		pageSize: pageSize, idempotencyTTL: idempotencyTTL, now: now,
 	}
+}
+
+// WithLegislature lets a change that needs a vote go to one: a lever decided
+// by a body, or a change its body must confirm
+// (docs/adr/0024-property-and-politics.md). source names the budget an
+// allocation lever divides.
+func (h *GovernanceHandler) WithLegislature(l *LegislatureHandler, source ContentSource) *GovernanceHandler {
+	h.legislature, h.content = l, source
+	return h
 }
 
 // viewer reads the player behind a request, in a short read-only unit of
@@ -554,13 +572,23 @@ func (h *GovernanceHandler) target(ctx context.Context, p *application.Player, r
 	if err := application.CheckLeverSupported(*def); err != nil {
 		return t, err
 	}
-	if rule := def.DecisionRule; rule != "" && rule != application.DecisionSingle {
+	if def.ByVote() && h.legislature == nil {
 		return t, application.ErrPolicyRequiresVote.WithDetail("body", def.HeldBy)
 	}
 	if t.value, err = h.policy.Get(ctx, t.place.ID, def.Code); err != nil {
 		return t, err
 	}
-	if !holds(t.value.Acting, p.ID) {
+	switch {
+	case def.ByVote():
+		// A member of the body proposes; the body votes.
+		member, err := h.member(ctx, p.ID, def.HeldBy, t.place.ID)
+		if err != nil {
+			return t, err
+		}
+		if !member {
+			return t, application.ErrNotOfficeHolder.WithDetail("office", def.HeldBy)
+		}
+	case !holds(t.value.Acting, p.ID):
 		return t, application.ErrNotOfficeHolder.WithDetail("office", def.HeldBy)
 	}
 	names := newNameSet()
@@ -569,6 +597,20 @@ func (h *GovernanceHandler) target(ctx context.Context, p *application.Player, r
 		return t, err
 	}
 	return t, nil
+}
+
+// member reports whether the player holds a seat of an office in a place.
+func (h *GovernanceHandler) member(ctx context.Context, playerID, office, placeID string) (bool, error) {
+	seats, err := h.dir.Seats(ctx, []string{placeID})
+	if err != nil {
+		return false, err
+	}
+	for _, s := range seats {
+		if s.OfficeCode == office && s.HolderPlayerID == playerID && playerID != "" {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // holds reports whether the player sits in the acting office.
@@ -631,6 +673,9 @@ func (h *GovernanceHandler) lever(ctx context.Context, c screens.Context, p *app
 		}
 		return nil, err
 	}
+	if t.def.IsAllocation() {
+		return h.allocation(ctx, c, t, "", now)
+	}
 	wait, err := h.nextChangeIn(ctx, t, now)
 	if err != nil {
 		return nil, err
@@ -687,7 +732,31 @@ func (h *GovernanceHandler) Confirm(ctx context.Context, meta envelope.Metadata,
 		return nil, err
 	}
 	place, lever := t.view(now)
-	return screens.PolicyConfirm(c, screens.PolicyConfirmView{Place: place, Lever: lever, NewValue: value}), nil
+	body, err := h.voteBy(ctx, t, application.ProposedValue{Value: value})
+	if err != nil {
+		return nil, err
+	}
+	return screens.PolicyConfirm(c, screens.PolicyConfirmView{Place: place, Lever: lever, NewValue: value, VoteBy: body}), nil
+}
+
+// voteBy is the body a change goes to for a vote, "" when it is announced
+// at once. Display only: the change itself asks again, under the lock.
+func (h *GovernanceHandler) voteBy(ctx context.Context, t *leverTarget, v application.ProposedValue) (string, error) {
+	if h.legislature == nil {
+		return "", nil
+	}
+	if t.def.ByVote() {
+		return t.def.HeldBy, nil
+	}
+	var body string
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		need, err := application.NeedsConfirmation(ctx, tx, t.def, t.place.ID, t.value, v)
+		if need {
+			body = t.def.RequiresConfirmationBy
+		}
+		return err
+	})
+	return body, err
 }
 
 // precheck refuses, with SetPolicy's own sentinels, a change the confirm
@@ -740,6 +809,7 @@ func (h *GovernanceHandler) Set(ctx context.Context, meta envelope.Metadata, req
 		p      *application.Player
 		change application.PolicyChange
 		replay bool
+		bill   *application.Proposal
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		var err error
@@ -764,6 +834,18 @@ func (h *GovernanceHandler) Set(ctx context.Context, meta envelope.Metadata, req
 			return nil
 		}
 
+		if h.legislature != nil {
+			draft, vote, err := application.DraftPolicyVote(ctx, tx, p.ID, t.place.ID, t.def.Code,
+				application.ProposedValue{Value: value}, now)
+			if err != nil {
+				return err
+			}
+			if vote {
+				opened, err := h.legislature.OpenBill(ctx, tx, meta, PolicyBill(draft, p.ID), now)
+				bill = &opened
+				return err
+			}
+		}
 		change, err = application.SetPolicy(ctx, tx, p.ID, t.place.ID, t.def.Code, value, now)
 		if err != nil {
 			return err
@@ -771,6 +853,9 @@ func (h *GovernanceHandler) Set(ctx context.Context, meta envelope.Metadata, req
 		return appendPolicyChanged(ctx, tx, meta, t.place, change)
 	})
 	c := h.screen(meta, lang)
+	if resp, ok, err := h.billOpened(ctx, meta, lang, bill, err); ok {
+		return resp, err
+	}
 	if err != nil {
 		// The refusal is written with the lever's bounds, which t carries
 		// once the place is known.
@@ -790,6 +875,24 @@ func (h *GovernanceHandler) Set(ctx context.Context, meta envelope.Metadata, req
 		Old: change.OldValue, New: change.Setting.Value,
 		In: change.Setting.EffectiveAt.Sub(now),
 	}), nil
+}
+
+// billOpened answers a change that went to a vote: the proposal, with the
+// notice that it was submitted; or a legislature refusal. ok is false when
+// neither happened.
+func (h *GovernanceHandler) billOpened(ctx context.Context, meta envelope.Metadata, lang string, bill *application.Proposal,
+	err error,
+) (*presenter.Response, bool, error) {
+	var r *billRefusal
+	if stderrors.As(err, &r) {
+		return screens.BillRefusal(h.screen(meta, lang), r.view), true, nil
+	}
+	if err != nil || bill == nil || h.legislature == nil {
+		return nil, false, nil
+	}
+	resp, err := h.legislature.view(ctx, meta, LegislatureRequest{No: strconv.FormatInt(bill.No, 10)},
+		screens.BillNoticeSubmitted)
+	return resp, true, err
 }
 
 // appendPolicyChanged queues the public event of a change in the change's
@@ -916,16 +1019,21 @@ func govLever(d application.LeverDefinition, v application.PolicyValue, named ma
 		FromOffice: v.Source == application.PolicyFromOffice,
 		HeldBy:     d.HeldBy,
 		Notice:     d.Notice, Cooldown: d.ChangeCooldown,
-		Vote: d.DecisionRule != "" && d.DecisionRule != application.DecisionSingle,
+		Vote:      d.ByVote(),
+		ConfirmBy: d.RequiresConfirmationBy,
+	}
+	if d.IsAllocation() {
+		l.Allocation, l.Categories = v.Allocation, d.Categories
 	}
 	if v.InForce != nil {
 		l.SetBy = govPlayer(v.InForce.SetByPlayerID, named)
 	}
 	if v.Pending != nil {
 		l.Pending = &screens.GovPending{
-			Value: v.Pending.Value,
-			In:    v.Pending.EffectiveAt.Sub(now),
-			By:    govPlayer(v.Pending.SetByPlayerID, named),
+			Value:      v.Pending.Value,
+			Allocation: v.Pending.Allocation,
+			In:         v.Pending.EffectiveAt.Sub(now),
+			By:         govPlayer(v.Pending.SetByPlayerID, named),
 		}
 	}
 	return l

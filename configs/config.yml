@@ -372,6 +372,10 @@ governance:
   # the screen slower to cross the range; both must be at least 1.
   fine_step_divisor: 100
   coarse_step_divisor: 10
+  # How far one press moves a budget line's share on the allocation screen
+  # (city.budget, docs/adr/0024-property-and-politics.md), bps. 10000 must be
+  # a whole number of steps, at most 35 of them.
+  allocation_step_bps: 500
 
 # The crime engine's tuning (docs/adr/0019-crime-engine.md). Which crimes
 # exist and what each asks, risks and pays are content (crimes.yml); what a
@@ -648,3 +652,46 @@ input:
 announce:
   window: 1m
   max_per_window: 6
+
+# Votes of a body (docs/adr/0024-property-and-politics.md): a council
+# confirming a mayor's budget or a large tax change, a national assembly
+# approving a declaration of war. Which bodies confirm what is content
+# (governance.yml). The window is REAL time: a promise, like a lever's notice.
+legislature:
+  # How long a proposal stays open for the members' votes. It closes earlier
+  # the moment no vote still to come could change the outcome.
+  vote_window: 48h
+  # Proposals listed on one screen.
+  list_size: 8
+
+# A city's period (docs/adr/0024), GAME time: every period, once, the city's
+# budget is spent by its allocation (city.budget), property pays its upkeep
+# and tax, and rent falls due. At game.time_scale 60 a day is 24 minutes.
+city:
+  period: 24h
+
+# Property (docs/adr/0024). What each kind of property costs, where, and how
+# many a city sells are content (configs/content/property.yml); a city's
+# property tax is its policy (city.property_tax).
+property:
+  # City periods in a row an owner may end owing upkeep or tax before the
+  # city repossesses the property.
+  foreclosure_periods: 3
+  # Periods of rent in a row a tenant may owe before the lease ends.
+  eviction_periods: 2
+  # Properties one player may own at once.
+  max_owned: 5
+  # The highest asking price of a sale listing and the highest rent per
+  # period, minor units, so a typo cannot lock a fortune.
+  max_price: 100000000
+  max_rent: 1000000
+  # How long after resting at home a player may rest again, GAME time.
+  rest_cooldown: 8h
+
+# Achievements (docs/adr/0024). What each asks and gives is content
+# (configs/content/achievements.yml). Their cash enters the economy (ADR 0009
+# achievement_reward), so it is capped twice a UTC day, like missions'. What
+# a cap withholds is not paid later.
+achievements:
+  player_daily_cap: 5000
+  economy_daily_cap: 500000

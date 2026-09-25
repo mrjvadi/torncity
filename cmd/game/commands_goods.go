@@ -91,7 +91,7 @@ func (h phaseHandlers) bindGoods() map[string]commandFunc {
 		"inventory.give": decoded(g.inventory.Give),
 		"inventory.drop": decoded(g.inventory.Drop),
 
-		"shop.list":   bare(g.shops.List),
+		"shop.list":   decoded(g.shops.List),
 		"shop.view":   decoded(g.shops.View),
 		"shop.buy":    decoded(g.shops.Buy),
 		"shop.offers": decoded(g.shops.Offers),

@@ -35,14 +35,28 @@ type ShopLine struct {
 type ShopsView struct {
 	CityCode, City string
 	Shops          []ShopLine
+	// Place, when set, is the one place whose shops are listed (the map's
+	// «🛒 مغازه‌های اینجا»); nil lists the whole city's.
+	Place *Named
 }
 
 // Shops renders the shops of the city.
 func Shops(c Context, v ShopsView) *presenter.Response {
 	kb := keyboards.New()
 	var lines []string
+	city := c.CityName(v.CityCode, v.City)
+	title := c.T("shop.title", map[string]any{"city": city})
+	refresh := keyboards.Data(AddrShops)
+	if v.Place != nil {
+		title = c.T("shop.title_at", map[string]any{"place": c.SpotName(*v.Place), "city": city})
+		refresh = keyboards.Data(AddrShops, v.Place.Code)
+	}
 	if len(v.Shops) == 0 {
-		lines = append(lines, c.T("shop.none", nil))
+		if v.Place != nil {
+			lines = append(lines, c.T("shop.none_at", map[string]any{"place": c.SpotName(*v.Place)}))
+		} else {
+			lines = append(lines, c.T("shop.none", nil))
+		}
 	}
 	var buttons []presenter.Button
 	for _, s := range v.Shops {
@@ -56,10 +70,15 @@ func Shops(c Context, v ShopsView) *presenter.Response {
 		}
 	}
 	kb.Grid(2, buttons...)
+	if v.Place != nil {
+		if all, ok := keyboards.Button(c.T("shop.button.all", nil), AddrShops); ok {
+			kb.Row(all)
+		}
+	}
 	bag, _ := keyboards.Button(c.T("item.button.bag", nil), AddrInventory)
 	kb.Row(bag)
-	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap, RefreshData: AddrShops}))
-	return c.respond(paragraphs(c.T("shop.title", map[string]any{"city": c.CityName(v.CityCode, v.City)}), body(lines...)), kb.Build())
+	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap, RefreshData: refresh}))
+	return c.respond(paragraphs(title, body(lines...)), kb.Build())
 }
 
 // ShelfLine is one good on a shelf, priced now.

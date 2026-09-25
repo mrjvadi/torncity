@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/domain/budget"
 	"strings"
 	"time"
 
@@ -209,12 +210,14 @@ type option struct {
 }
 
 // cityOption is the city hospital's offer for a stay with remaining left.
-func (h *HealthHandler) cityOption(def content.HealthDef, remaining time.Duration) option {
+// subsidyBPS is what the city's budget takes off its hospital's price
+// (docs/adr/0024-property-and-politics.md).
+func (h *HealthHandler) cityOption(def content.HealthDef, remaining time.Duration, subsidyBPS int64) option {
 	ch := def.CityHospital
 	red := ch.Care.Care().Reduction(0)
+	price := budget.Lower(health.CityPrice(ch.BasePrice, ch.PerHour, h.remainingGame(remaining)), subsidyBPS)
 	return option{provider: application.ProviderCity, open: true, treatsHere: true,
-		price: health.CityPrice(ch.BasePrice, ch.PerHour, h.remainingGame(remaining)), reduction: red,
-		saves: remaining - health.Shorten(remaining, red)}
+		price: price, reduction: red, saves: remaining - health.Shorten(remaining, red)}
 }
 
 // clinicOption is a clinic's offer for a stay with remaining left.
@@ -333,7 +336,11 @@ func (h *HealthHandler) hospitalView(ctx context.Context, tx application.Tx, sna
 			return view, err
 		}
 		if !view.Treated {
-			v := h.cityOption(def, remaining).view(snap)
+			subsidy, err := budgetEffect(ctx, tx, stay.CityID, budget.EffectHospitalPrice)
+			if err != nil {
+				return view, err
+			}
+			v := h.cityOption(def, remaining, subsidy).view(snap)
 			view.CityHospital = &v
 		}
 	}
@@ -544,7 +551,11 @@ func (h *HealthHandler) provider(ctx context.Context, tx application.Tx, snap *c
 	provider string, stay *application.HospitalStay, remaining time.Duration,
 ) (option, error) {
 	if provider == application.ProviderCity {
-		return h.cityOption(def, remaining), nil
+		subsidy, err := budgetEffect(ctx, tx, stay.CityID, budget.EffectHospitalPrice)
+		if err != nil {
+			return option{}, err
+		}
+		return h.cityOption(def, remaining, subsidy), nil
 	}
 	code := playercode.Normalize(provider)
 	if !playercode.Valid(code) {
@@ -636,6 +647,11 @@ func (h *HealthHandler) Discharge(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		if err := tx.Health().SetRestSince(ctx, playerID, s.EndsAt); err != nil {
+			return err
+		}
+		// The course resumes from the stay's end, unless jail still holds
+		// them (docs/adr/0024).
+		if err := resumeStudies(ctx, tx, h.ids, playerID, s.EndsAt); err != nil {
 			return err
 		}
 		city, err := h.cities.ByID(ctx, s.CityID)

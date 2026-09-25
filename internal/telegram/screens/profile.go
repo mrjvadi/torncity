@@ -78,6 +78,10 @@ type ProfileView struct {
 	// Like jail it is said first, and the home screen offers the hospital
 	// instead of what a stay rules out (docs/adr/0023).
 	Hospital *ProfileJail
+
+	// Achievements is how many achievements the player has earned
+	// (docs/adr/0024); none says nothing.
+	Achievements int
 }
 
 // ProfileJail is a sentence as the home screen shows it. A hospital stay is
@@ -187,6 +191,7 @@ func Profile(c Context, v ProfileView) *presenter.Response {
 		),
 		workLines(c, v.Work),
 		moneyLines(c, v.Cash, v.Bank),
+		achievementsLine(c, v.Achievements),
 		code,
 	)
 
@@ -404,6 +409,15 @@ func hubKeyboard(c Context, hasCity, travelling, jailed bool, work *ProfileWork)
 	missions, _ := keyboards.Button(c.T("mission.button.mine", nil), AddrMissions)
 	factionBtn, _ := keyboards.Button(c.T("faction.button.mine", nil), AddrFactionMine)
 	kb.Row(missions, factionBtn)
+
+	// Stage F (docs/adr/0024): the player's property and home, and their
+	// achievements.
+	homeBtn, _ := keyboards.Button(c.T("property.button.mine", nil), AddrPropertyMine)
+	achBtn, _ := keyboards.Button(c.T("achievement.button.list", nil), AddrAchievements)
+	kb.Row(homeBtn, achBtn)
+	// The city's shops, a press from home (the bag has them too).
+	shopsBtn, _ := keyboards.Button(c.T("shop.button.shops", nil), AddrShops)
+	kb.Row(shopsBtn)
 
 	if hasCity && !travelling && !jailed {
 		city, _ := keyboards.Button(c.T("gov.button.city", nil), AddrGovCity)

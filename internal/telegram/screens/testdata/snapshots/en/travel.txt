@@ -63,6 +63,21 @@ How would you like to travel?
   [Flight - 10,480 Nil] → travel:start:brennhaven:flight:10480
   [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:brennhaven
 
+━━━ Travel options · in your own car ━━━
+(edits message 42)
+🧭 Travel to Brennhaven
+📍 From: Ostmarch
+
+How would you like to travel?
+• Bus - 1,140 Nil - 13m on the way - 8 energy
+• In your own Car - fuel 2,520 Nil - 7m on the way - 14 energy - condition 87%
+
+💵 Your cash: 5,000 Nil
+  ───
+  [Bus - 1,140 Nil] → travel:start:brennhaven:bus:1140
+  [Car - 2,520 Nil] → travel:start:brennhaven:car:2520
+  [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:brennhaven
+
 ━━━ Travel options · the fare changed before departure ━━━
 (edits message 42)
 🧭 Travel to Brennhaven

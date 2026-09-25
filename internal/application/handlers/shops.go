@@ -77,6 +77,8 @@ func NewShopsHandler(uow application.UnitOfWork, ids IDGenerator, msgs Translato
 // ShopRequest names a shop, a good in it, a quantity, the way to pay and a
 // one-time token.
 type ShopRequest struct {
+	// Place narrows shop.list to one place's shops.
+	Place  string `json:"place,omitempty"`
 	Shop   string `json:"shop"`
 	Item   string `json:"item"`
 	Qty    string `json:"qty,omitempty"`
@@ -167,7 +169,7 @@ func (h *ShopsHandler) quote(ctx context.Context, tx application.Tx, def content
 }
 
 // List handles shop.list: the shops of the player's city.
-func (h *ShopsHandler) List(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *ShopsHandler) List(ctx context.Context, meta envelope.Metadata, req ShopRequest) (*presenter.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -185,7 +187,14 @@ func (h *ShopsHandler) List(ctx context.Context, meta envelope.Metadata) (*prese
 			return err
 		}
 		view.CityCode, view.City = w.city.Code, w.city.Name
+		if pl, ok := w.cmap.Find(req.Place); ok && req.Place != "" {
+			at := placeNamed(snap, pl.Code)
+			view.Place = &at
+		}
 		for _, s := range snap.CityShops(w.city.Code) {
+			if view.Place != nil && s.Place != view.Place.Code {
+				continue
+			}
 			view.Shops = append(view.Shops, screens.ShopLine{
 				Shop: named(s.Code, s.Name), Place: placeNamed(snap, s.Place),
 				Here: w.walk == nil && s.Place == w.here.Code,
@@ -590,7 +599,7 @@ func (h *ShopsHandler) Sell(ctx context.Context, meta envelope.Metadata, req Sho
 		return resp, ferr
 	}
 	if view.Item.Code == "" {
-		return h.List(ctx, meta)
+		return h.List(ctx, meta, ShopRequest{})
 	}
 	return screens.ShopSold(h.screen(meta, lang), view), nil
 }

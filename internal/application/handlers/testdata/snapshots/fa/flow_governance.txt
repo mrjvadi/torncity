@@ -25,6 +25,7 @@
 • تعرفهٔ مرزی: ۰٪ - پیش‌فرض
   ───
   [📜 تاریخچهٔ سیاست‌ها] → gov:history:ostmarch   │   [🗳 انتخابات] → election:list
+  [💰 بودجهٔ شهر] → city:budget:ostmarch   │   [⚖️ طرح‌ها و رأی‌گیری‌ها] → law:list
   [🏛 منصب من] → gov:office
   [🎖 دفاع و دیپلماسی مشترک‌المنافع] → military:ministry:default_country
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → gov:city:ostmarch
@@ -152,6 +153,7 @@
 • تعرفهٔ مرزی: ۰٪ - پیش‌فرض
   ───
   [📜 تاریخچهٔ سیاست‌ها] → gov:history:ostmarch   │   [🗳 انتخابات] → election:list
+  [💰 بودجهٔ شهر] → city:budget:ostmarch   │   [⚖️ طرح‌ها و رأی‌گیری‌ها] → law:list
   [🏛 منصب من] → gov:office
   [🎖 دفاع و دیپلماسی مشترک‌المنافع] → military:ministry:default_country
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → gov:city:ostmarch

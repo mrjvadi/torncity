@@ -24,6 +24,8 @@
 #                             a player clinic
 #              faction        a faction's founding fee, and money put into
 #                             its bank
+#              property       a property bought from the city or from a
+#                             player, and a lease's first rent
 #   accepts  the methods it takes: [cash], [card] or [cash, card]. Never
 #            empty; a service left out of this file takes both.
 #
@@ -56,4 +58,6 @@ payment_services:
   - code: hospital
     accepts: [cash, card]
   - code: faction
+    accepts: [cash, card]
+  - code: property
     accepts: [cash, card]

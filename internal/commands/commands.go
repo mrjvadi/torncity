@@ -359,6 +359,46 @@ var all = []Subscription{
 	{Domain: "mission", Action: "mine", Origin: FromPlayer},
 	{Domain: "mission", Action: "deliver", Origin: FromPlayer},
 	{Domain: "mission", Action: "abandon", Origin: FromPlayer},
+
+	// Stage F (docs/adr/0024-property-and-politics.md). An allocation lever
+	// — a city's budget — is edited, reviewed and set through gov.alloc,
+	// gov.allocok and gov.allocset. Votes of a body: the proposals of the
+	// player's places, one proposal, a member's vote; only the scheduler
+	// sends law.close, when a proposal's window ends. A city's budget, and
+	// — from the scheduler — the end of a city period.
+	{Domain: "gov", Action: "alloc", Origin: FromPlayer},
+	{Domain: "gov", Action: "allocok", Origin: FromPlayer},
+	{Domain: "gov", Action: "allocset", Origin: FromPlayer},
+	{Domain: "law", Action: "list", Origin: FromPlayer},
+	{Domain: "law", Action: "view", Origin: FromPlayer},
+	{Domain: "law", Action: "vote", Origin: FromPlayer},
+	{Domain: "law", Action: "close", Origin: FromScheduler},
+	{Domain: "city", Action: "budget", Origin: FromPlayer},
+	{Domain: "city", Action: "settle", Origin: FromScheduler},
+
+	// Property (docs/adr/0024): a city's market, one kind it sells, buying
+	// from the city; the player's own, one property, offering it for sale or
+	// to let and withdrawing the offer; an owner's offer, buying it, renting
+	// it; leaving a rented home; resting at home. Each city period's charges
+	// and rent run inside city.settle.
+	{Domain: "property", Action: "list", Origin: FromPlayer},
+	{Domain: "property", Action: "type", Origin: FromPlayer},
+	{Domain: "property", Action: "purchase", Origin: FromPlayer},
+	{Domain: "property", Action: "mine", Origin: FromPlayer},
+	{Domain: "property", Action: "view", Origin: FromPlayer},
+	{Domain: "property", Action: "sell", Origin: FromPlayer},
+	{Domain: "property", Action: "let", Origin: FromPlayer},
+	{Domain: "property", Action: "cancel", Origin: FromPlayer},
+	{Domain: "property", Action: "offer", Origin: FromPlayer},
+	{Domain: "property", Action: "buy", Origin: FromPlayer},
+	{Domain: "property", Action: "rent", Origin: FromPlayer},
+	{Domain: "property", Action: "leave", Origin: FromPlayer},
+	{Domain: "property", Action: "rest", Origin: FromPlayer},
+
+	// Achievements (docs/adr/0024): the player's achievements. They move on
+	// from the game's own events, which cmd/game consumes beside these
+	// commands.
+	{Domain: "achievement", Action: "list", Origin: FromPlayer},
 }
 
 // All returns every subscription. The slice is a copy.

@@ -53,6 +53,34 @@ type fileConfig struct {
 	AntiCheat  antiCheatSettings  `yaml:"anticheat"`
 	Input      inputSettings      `yaml:"input"`
 	Announce   announceSettings   `yaml:"announce"`
+
+	Legislature  legislatureSettings  `yaml:"legislature"`
+	City         citySettings         `yaml:"city"`
+	Property     propertySettings     `yaml:"property"`
+	Achievements achievementsSettings `yaml:"achievements"`
+}
+
+type legislatureSettings struct {
+	VoteWindow *string `yaml:"vote_window"`
+	ListSize   *int    `yaml:"list_size"`
+}
+
+type citySettings struct {
+	Period *string `yaml:"period"`
+}
+
+type propertySettings struct {
+	ForeclosurePeriods *int    `yaml:"foreclosure_periods"`
+	EvictionPeriods    *int    `yaml:"eviction_periods"`
+	MaxOwned           *int    `yaml:"max_owned"`
+	MaxPrice           *int64  `yaml:"max_price"`
+	MaxRent            *int64  `yaml:"max_rent"`
+	RestCooldown       *string `yaml:"rest_cooldown"`
+}
+
+type achievementsSettings struct {
+	PlayerDailyCap  *int64 `yaml:"player_daily_cap"`
+	EconomyDailyCap *int64 `yaml:"economy_daily_cap"`
 }
 
 type gatewaySettings struct {
@@ -165,6 +193,7 @@ type announceSettings struct {
 type governanceSettings struct {
 	FineStepDivisor   *int `yaml:"fine_step_divisor"`
 	CoarseStepDivisor *int `yaml:"coarse_step_divisor"`
+	AllocationStepBPS *int `yaml:"allocation_step_bps"`
 }
 
 type crimeSettings struct {
@@ -734,6 +763,43 @@ var settings = []setting{
 	limitSetting("governance", "coarse_step_divisor",
 		func(c *Config) *int { return &c.Governance.CoarseStepDivisor },
 		func(f *fileConfig) *int { return f.Governance.CoarseStepDivisor }),
+	limitSetting("governance", "allocation_step_bps",
+		func(c *Config) *int { return &c.Governance.AllocationStepBPS },
+		func(f *fileConfig) *int { return f.Governance.AllocationStepBPS }),
+
+	durationSetting("legislature", "vote_window",
+		func(c *Config) *time.Duration { return &c.Legislature.VoteWindow },
+		func(f *fileConfig) *string { return f.Legislature.VoteWindow }),
+	limitSetting("legislature", "list_size",
+		func(c *Config) *int { return &c.Legislature.ListSize },
+		func(f *fileConfig) *int { return f.Legislature.ListSize }),
+	durationSetting("city", "period",
+		func(c *Config) *time.Duration { return &c.City.Period },
+		func(f *fileConfig) *string { return f.City.Period }),
+	limitSetting("property", "foreclosure_periods",
+		func(c *Config) *int { return &c.Property.ForeclosurePeriods },
+		func(f *fileConfig) *int { return f.Property.ForeclosurePeriods }),
+	limitSetting("property", "eviction_periods",
+		func(c *Config) *int { return &c.Property.EvictionPeriods },
+		func(f *fileConfig) *int { return f.Property.EvictionPeriods }),
+	limitSetting("property", "max_owned",
+		func(c *Config) *int { return &c.Property.MaxOwned },
+		func(f *fileConfig) *int { return f.Property.MaxOwned }),
+	moneySetting("property", "max_price",
+		func(c *Config) *int64 { return &c.Property.MaxPrice },
+		func(f *fileConfig) *int64 { return f.Property.MaxPrice }),
+	moneySetting("property", "max_rent",
+		func(c *Config) *int64 { return &c.Property.MaxRent },
+		func(f *fileConfig) *int64 { return f.Property.MaxRent }),
+	durationSetting("property", "rest_cooldown",
+		func(c *Config) *time.Duration { return &c.Property.RestCooldown },
+		func(f *fileConfig) *string { return f.Property.RestCooldown }),
+	moneySetting("achievements", "player_daily_cap",
+		func(c *Config) *int64 { return &c.Achievements.PlayerDailyCap },
+		func(f *fileConfig) *int64 { return f.Achievements.PlayerDailyCap }),
+	moneySetting("achievements", "economy_daily_cap",
+		func(c *Config) *int64 { return &c.Achievements.EconomyDailyCap },
+		func(f *fileConfig) *int64 { return f.Achievements.EconomyDailyCap }),
 
 	limitSetting("crime", "nerve_max",
 		func(c *Config) *int { return &c.Crime.NerveMax },

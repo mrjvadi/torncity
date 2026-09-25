@@ -69,9 +69,9 @@ func (r *TravelRepository) Active(ctx context.Context, playerID string) (*applic
 
 const insertTravel = `
 INSERT INTO travels (id, player_id, from_city_id, to_city_id, cost, game_action_id, status, departed_at, arrives_at,
-                     mode, ledger_transaction_id, content_version)
+                     mode, ledger_transaction_id, content_version, vehicle_id)
 VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, $5, $6::uuid, $7, $8, $9,
-        NULLIF($10, ''), NULLIF($11, '')::uuid, NULLIF($12, 0))`
+        NULLIF($10, ''), NULLIF($11, '')::uuid, NULLIF($12, 0), NULLIF($13, '')::uuid)`
 
 // Start inserts a journey.
 //
@@ -127,6 +127,7 @@ func (r *TravelRepository) Start(ctx context.Context, t application.Travel) erro
 		t.Mode,
 		t.LedgerTransactionID,
 		t.ContentVersion,
+		t.VehicleID,
 	); err != nil {
 		if violates(err, sqlstateUniqueViolation, travelsOneActivePerPlayerIdx) {
 			// Returned unwrapped, like ErrPlayerNotFound: a player pressing a

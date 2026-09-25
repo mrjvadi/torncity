@@ -215,6 +215,41 @@ func economyVerify(ctx context.Context, args []string) error {
 			mark(s.HeldLedger == s.HeldRows && s.UnsettledHolds == 0), s.HeldLedger, s.HeldRows, s.UnsettledHolds)
 	}
 
+	if v.StageF {
+		f := v.StageFInvariants
+		fmt.Printf("%s  budget spending in the ledger matches the cities' budget periods (%d = %d), and defence contributions (%d = %d)\n",
+			mark(f.BudgetLedger == f.BudgetRows && f.DefenceLedger == f.DefenceRows), f.BudgetLedger, f.BudgetRows,
+			f.DefenceLedger, f.DefenceRows)
+		fmt.Printf("%s  every property the cities sold was paid for once (%d purchases = %d properties)\n",
+			mark(f.PurchaseTransactions == f.PropertyRows), f.PurchaseTransactions, f.PropertyRows)
+		fmt.Printf("%s  property sales in the ledger match the offers sold (%d = %d)\n",
+			mark(f.PropertySaleLedger == f.PropertySaleRows), f.PropertySaleLedger, f.PropertySaleRows)
+		fmt.Printf("%s  property tax and upkeep in the ledger match the period charges (%d = %d, %d = %d), no debt below zero (%d)\n",
+			mark(f.PropertyTaxLedger == f.PropertyTaxRows && f.PropertyUpkeepLedger == f.PropertyUpkeepRows && f.NegativeDebts == 0), f.PropertyTaxLedger,
+			f.PropertyTaxRows, f.PropertyUpkeepLedger, f.PropertyUpkeepRows, f.NegativeDebts)
+		fmt.Printf("%s  rent in the ledger matches the rent payments (%d = %d)\n",
+			mark(f.RentLedger == f.RentRows), f.RentLedger, f.RentRows)
+		fmt.Printf("%s  fuel in the ledger matches the journeys driven in players' own vehicles (%d = %d)\n",
+			mark(f.FuelLedger == f.FuelRows), f.FuelLedger, f.FuelRows)
+		if f.Tariffs {
+			fmt.Printf("%s  border tariffs in the ledger match the tariffed trades (%d = %d)\n",
+				mark(f.TariffLedger == f.TariffRows), f.TariffLedger, f.TariffRows)
+		}
+		if f.Achievements {
+			fmt.Printf("%s  achievement rewards in the ledger match the awards and their grants (%d = %d = %d)\n",
+				mark(f.AchievementLedger == f.AchievementRows && f.AchievementLedger == f.AchievementGrants),
+				f.AchievementLedger, f.AchievementRows, f.AchievementGrants)
+			if cfg, err := loadConfig(); err == nil {
+				ok := f.AchievementPlayerDayMax <= cfg.Achievements.PlayerDailyCap &&
+					f.AchievementEconomyDayMax <= cfg.Achievements.EconomyDailyCap
+				capsOK = capsOK && ok
+				fmt.Printf("%s  no day paid a player more achievement cash than its cap (%d <= %d), nor everyone (%d <= %d)\n",
+					mark(ok), f.AchievementPlayerDayMax, cfg.Achievements.PlayerDailyCap, f.AchievementEconomyDayMax,
+					cfg.Achievements.EconomyDailyCap)
+			}
+		}
+	}
+
 	if !v.OK() || !capsOK {
 		return errInvariantsBroken
 	}

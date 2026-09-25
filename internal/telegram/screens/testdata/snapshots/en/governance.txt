@@ -21,6 +21,7 @@ Policies:
 • Border tariff: 0% - default
   ───
   [📜 Policy history] → gov:history:ostmarch   │   [🗳 Elections] → election:list
+  [💰 City budget] → city:budget:ostmarch   │   [⚖️ Proposals and votes] → law:list
   [🏛 My office] → gov:office
   [🎖 Defence and diplomacy of The Commonwealth] → military:ministry:default_country
   [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
@@ -34,6 +35,7 @@ Offices:
 • Mayor: vacant - acting: Deputy mayor Kaveh (B3C4D5F)
   ───
   [📜 Policy history] → gov:history:ostmarch   │   [🗳 Elections] → election:list
+  [💰 City budget] → city:budget:ostmarch   │   [⚖️ Proposals and votes] → law:list
   [🔙 Back] → map:list   │   [🔄 Refresh] → gov:city:ostmarch
 
 ━━━ City hall · not in any city ━━━
@@ -55,13 +57,16 @@ You are acting for the vacant office of Mayor.
 • Immigration fee: 1,500 Nil
 
 📍 President of The Commonwealth
-• Border tariff: 0% - decided by a vote, which is not available yet
+• Border tariff: 0%
+  🗳 Changing it may need the Parliament to confirm.
 
 📍 City council of Ostmarch
-This office has no policy you can change right now.
+• Property tax: 0.2% - decided by a vote of the City council
   ───
   [✏️ Tax rate — Ostmarch] → gov:lever:city.tax_rate:ostmarch
   [✏️ Immigration fee — Ostmarch] → gov:lever:city.immigration_fee:ostmarch
+  [✏️ Border tariff — The Commonwealth] → gov:lever:country.border_tariff:default_country
+  [🗳 Propose Property tax — Ostmarch] → gov:lever:city.property_tax:ostmarch
   [🎖 Defence and diplomacy of The Commonwealth] → military:ministry:default_country
   [🔙 Back] → gov:city   │   [🔄 Refresh] → gov:office
 
@@ -208,7 +213,7 @@ Only the Mayor can change this policy. If you held that office, you may have bee
 
 ━━━ Refusal · decided by a vote ━━━
 (edits message 42)
-This policy is decided by a vote of the City council, and voting is not available yet.
+This policy is decided by a vote of the City council; only its members can propose a change.
   ───
   [🏛 My office] → gov:office
   [🔙 Back] → gov:lever:city.tax_rate:ostmarch

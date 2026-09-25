@@ -15,24 +15,26 @@ import (
 // groups, the public lines of an election opening, a candidacy, the vote
 // opening and the count. None of them says who voted for whom: the events
 // carry no ballot.
-// A country's election is announced in no group yet (city_id is empty).
+// A country's election — a presidency, a parliament — is announced in the
+// groups of every city of the country (city_ids; docs/adr/0024).
 
 // electionEvent is the payload shape the elections handler writes.
 type electionEvent struct {
-	PlayerID        string `json:"player_id"`
-	PlayerName      string `json:"player_name"`
-	No              int64  `json:"no"`
-	Office          string `json:"office"`
-	PlaceKind       string `json:"place_kind"`
-	PlaceCode       string `json:"place_code"`
-	PlaceName       string `json:"place_name"`
-	CityID          string `json:"city_id"`
-	Votes           int64  `json:"votes"`
-	Cast            int64  `json:"cast"`
-	VotesCast       int64  `json:"votes_cast"`
-	Elected         bool   `json:"elected"`
-	Deposit         int64  `json:"deposit"`
-	DepositReturned bool   `json:"deposit_returned"`
+	PlayerID        string   `json:"player_id"`
+	PlayerName      string   `json:"player_name"`
+	No              int64    `json:"no"`
+	Office          string   `json:"office"`
+	PlaceKind       string   `json:"place_kind"`
+	PlaceCode       string   `json:"place_code"`
+	PlaceName       string   `json:"place_name"`
+	CityID          string   `json:"city_id"`
+	CityIDs         []string `json:"city_ids"`
+	Votes           int64    `json:"votes"`
+	Cast            int64    `json:"cast"`
+	VotesCast       int64    `json:"votes_cast"`
+	Elected         bool     `json:"elected"`
+	Deposit         int64    `json:"deposit"`
+	DepositReturned bool     `json:"deposit_returned"`
 	// CandidacySeconds and VotingSeconds are how long candidates may stand,
 	// and how long the vote lasts.
 	CandidacySeconds int64 `json:"candidacy_seconds"`
@@ -80,11 +82,11 @@ func renderElectionResult(_ context.Context, _ Deps, env *envelope.Envelope) (*D
 // electionOpenedAnnouncement: an election opened in a city.
 func electionOpenedAnnouncement(_ context.Context, _ Deps, env *envelope.Envelope) (*Announcement, error) {
 	ev, err := decodeElection(env, "opened")
-	if err != nil || ev.CityID == "" {
+	if err != nil || (ev.CityID == "" && len(ev.CityIDs) == 0) {
 		return nil, err
 	}
 	candidacy := time.Duration(ev.CandidacySeconds) * time.Second
-	return &Announcement{CityID: ev.CityID, Line: func(c screens.Context, _ string) string {
+	return &Announcement{CityID: ev.CityID, CityIDs: ev.CityIDs, Line: func(c screens.Context, _ string) string {
 		return screens.ElectionOpenedAnnouncement(c, ev.Office, ev.place(), ev.No, candidacy)
 	}}, nil
 }
@@ -92,10 +94,10 @@ func electionOpenedAnnouncement(_ context.Context, _ Deps, env *envelope.Envelop
 // electionStoodAnnouncement: a player stood in a city's election.
 func electionStoodAnnouncement(_ context.Context, _ Deps, env *envelope.Envelope) (*Announcement, error) {
 	ev, err := decodeElection(env, "stood")
-	if err != nil || ev.CityID == "" {
+	if err != nil || (ev.CityID == "" && len(ev.CityIDs) == 0) {
 		return nil, err
 	}
-	return &Announcement{CityID: ev.CityID, PlayerID: ev.PlayerID, Name: ev.PlayerName,
+	return &Announcement{CityID: ev.CityID, CityIDs: ev.CityIDs, PlayerID: ev.PlayerID, Name: ev.PlayerName,
 		Line: func(c screens.Context, name string) string {
 			return screens.ElectionStoodAnnouncement(c, name, ev.Office, ev.place())
 		}}, nil
@@ -104,7 +106,7 @@ func electionStoodAnnouncement(_ context.Context, _ Deps, env *envelope.Envelope
 // electionCountedAnnouncement: a city's election was counted.
 func electionCountedAnnouncement(_ context.Context, _ Deps, env *envelope.Envelope) (*Announcement, error) {
 	ev, err := decodeElection(env, "counted")
-	if err != nil || ev.CityID == "" {
+	if err != nil || (ev.CityID == "" && len(ev.CityIDs) == 0) {
 		return nil, err
 	}
 	var elected []screens.GovPlayer
@@ -113,7 +115,7 @@ func electionCountedAnnouncement(_ context.Context, _ Deps, env *envelope.Envelo
 			elected = append(elected, screens.GovPlayer{Name: c.PlayerName, Code: c.PlayerCode})
 		}
 	}
-	return &Announcement{CityID: ev.CityID, Line: func(c screens.Context, _ string) string {
+	return &Announcement{CityID: ev.CityID, CityIDs: ev.CityIDs, Line: func(c screens.Context, _ string) string {
 		return screens.ElectionCountedAnnouncement(c, ev.Office, ev.place(), elected, ev.VotesCast, ev.CandidateCount)
 	}}, nil
 }
@@ -121,11 +123,11 @@ func electionCountedAnnouncement(_ context.Context, _ Deps, env *envelope.Envelo
 // electionVotingAnnouncement: a city's election opened its vote.
 func electionVotingAnnouncement(_ context.Context, _ Deps, env *envelope.Envelope) (*Announcement, error) {
 	ev, err := decodeElection(env, "voting")
-	if err != nil || ev.CityID == "" {
+	if err != nil || (ev.CityID == "" && len(ev.CityIDs) == 0) {
 		return nil, err
 	}
 	voting := time.Duration(ev.VotingSeconds) * time.Second
-	return &Announcement{CityID: ev.CityID, Line: func(c screens.Context, _ string) string {
+	return &Announcement{CityID: ev.CityID, CityIDs: ev.CityIDs, Line: func(c screens.Context, _ string) string {
 		return screens.ElectionVotingAnnouncement(c, ev.Office, ev.place(), ev.CandidateCount, voting)
 	}}, nil
 }

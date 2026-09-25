@@ -186,6 +186,9 @@ type ItemDef struct {
 	// ExportControl restricts who may buy it from a company: some goods
 	// only go to some buyer classes (production.go).
 	ExportControl *ExportControlDef `yaml:"export_control,omitempty" json:"export_control,omitempty"`
+	// Vehicle makes the good a car or a motorbike its owner drives
+	// (vehicle.go; docs/adr/0024).
+	Vehicle *VehicleDef `yaml:"vehicle,omitempty" json:"vehicle,omitempty"`
 }
 
 func boolOr(p *bool, def bool) bool {

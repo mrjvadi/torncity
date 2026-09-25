@@ -483,3 +483,14 @@ func (r *DiplomacyRepository) Events(ctx context.Context, countryID string, limi
 	}
 	return out, total, rows.Err()
 }
+
+// RecordTariff appends the tariff withheld from one sale.
+func (r *DiplomacyRepository) RecordTariff(ctx context.Context, t application.BorderTariff) error {
+	if _, err := r.q.Exec(ctx,
+		`INSERT INTO border_tariffs (id, reference_type, reference_id, importer_id, exporter_id, value, rate_bps, tariff, at)
+		 VALUES ($1::uuid, $2, $3::uuid, $4::uuid, $5::uuid, $6, $7, $8, $9)`,
+		t.ID, t.ReferenceType, t.ReferenceID, t.ImporterID, t.ExporterID, t.Value, t.RateBPS, t.Tariff, t.At.UTC()); err != nil {
+		return fmt.Errorf("postgres: recording a border tariff: %w", err)
+	}
+	return nil
+}

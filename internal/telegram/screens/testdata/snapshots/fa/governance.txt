@@ -21,6 +21,7 @@
 • تعرفهٔ مرزی: ۰٪ - پیش‌فرض
   ───
   [📜 تاریخچهٔ سیاست‌ها] → gov:history:ostmarch   │   [🗳 انتخابات] → election:list
+  [💰 بودجهٔ شهر] → city:budget:ostmarch   │   [⚖️ طرح‌ها و رأی‌گیری‌ها] → law:list
   [🏛 منصب من] → gov:office
   [🎖 دفاع و دیپلماسی مشترک‌المنافع] → military:ministry:default_country
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → gov:city:ostmarch
@@ -34,6 +35,7 @@
 • شهردار: خالی - سرپرست: معاون شهردار ⁨کاوه (⁨B3C4D5F⁩)⁩
   ───
   [📜 تاریخچهٔ سیاست‌ها] → gov:history:ostmarch   │   [🗳 انتخابات] → election:list
+  [💰 بودجهٔ شهر] → city:budget:ostmarch   │   [⚖️ طرح‌ها و رأی‌گیری‌ها] → law:list
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → gov:city:ostmarch
 
 ━━━ City hall · not in any city ━━━
@@ -55,13 +57,16 @@
 • عوارض مهاجرت: ۱٬۵۰۰ نیل
 
 📍 رئیس‌جمهور مشترک‌المنافع
-• تعرفهٔ مرزی: ۰٪ - با رأی‌گیری تعیین می‌شود که هنوز در دسترس نیست
+• تعرفهٔ مرزی: ۰٪
+  🗳 برای تغییرش ممکن است تأیید مجلس لازم باشد.
 
 📍 شورای شهر استمارچ
-این منصب فعلاً سیاستی ندارد که بتوانید تغییرش دهید.
+• مالیات ملک: ۰٫۲٪ - با رأی شورای شهر تعیین می‌شود
   ───
   [✏️ نرخ مالیات — استمارچ] → gov:lever:city.tax_rate:ostmarch
   [✏️ عوارض مهاجرت — استمارچ] → gov:lever:city.immigration_fee:ostmarch
+  [✏️ تعرفهٔ مرزی — مشترک‌المنافع] → gov:lever:country.border_tariff:default_country
+  [🗳 پیشنهاد مالیات ملک — استمارچ] → gov:lever:city.property_tax:ostmarch
   [🎖 دفاع و دیپلماسی مشترک‌المنافع] → military:ministry:default_country
   [🔙 بازگشت] → gov:city   │   [🔄 به‌روزرسانی] → gov:office
 
@@ -208,7 +213,7 @@
 
 ━━━ Refusal · decided by a vote ━━━
 (edits message 42)
-این سیاست با رأی‌گیری در شورای شهر تعیین می‌شود و رأی‌گیری هنوز در دسترس نیست.
+این سیاست با رأی شورای شهر تعیین می‌شود و تنها اعضای آن می‌توانند تغییرش را پیشنهاد دهند.
   ───
   [🏛 منصب من] → gov:office
   [🔙 بازگشت] → gov:lever:city.tax_rate:ostmarch

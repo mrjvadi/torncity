@@ -289,8 +289,9 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			postgres.NewGovernanceDirectory(pool),
 			postgres.NewPolicyReader(pool, nil),
 			handlers.GovernanceSteps{
-				FineDivisor:   int64(cfg.Governance.FineStepDivisor),
-				CoarseDivisor: int64(cfg.Governance.CoarseStepDivisor),
+				FineDivisor:    int64(cfg.Governance.FineStepDivisor),
+				CoarseDivisor:  int64(cfg.Governance.CoarseStepDivisor),
+				AllocationStep: int64(cfg.Governance.AllocationStepBPS),
 			},
 			handlers.DefaultPageSize,
 			cfg.Game.IdempotencyTTL,
@@ -365,6 +366,32 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		gametime.Scale(cfg.Game.TimeScale), handlers.MissionRules{MaxActive: cfg.Missions.MaxActive,
 			PlayerDailyCap: cfg.Missions.PlayerDailyCap, EconomyDailyCap: cfg.Missions.EconomyDailyCap},
 		cfg.Game.IdempotencyTTL, nil)
+	// Stage F (docs/adr/0024): votes of a body on the real clock; a city's
+	// period — its budget, its property — on the game clock. A change that
+	// needs a vote goes to one, and a declaration a parliament must approve
+	// is declared once it does.
+	h.stageF.legislature = handlers.NewLegislatureHandler(uow, uuidGenerator{}, messages, registry, cities,
+		postgres.NewGovernanceDirectory(pool), handlers.LegislatureRules{VoteWindow: cfg.Legislature.VoteWindow,
+			ListSize: cfg.Legislature.ListSize}, cfg.Game.IdempotencyTTL, nil).
+		WithExecutor(content.ActionWar, h.war)
+	h.gov.WithLegislature(h.stageF.legislature, registry)
+	h.war.WithLegislature(h.stageF.legislature)
+	h.stageF.property = handlers.NewPropertyHandler(uow, uuidGenerator{}, messages, registry, cities,
+		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), handlers.PropertyRules{
+			ForeclosurePeriods: cfg.Property.ForeclosurePeriods, EvictionPeriods: cfg.Property.EvictionPeriods,
+			MaxOwned: cfg.Property.MaxOwned, MaxPrice: cfg.Property.MaxPrice, MaxRent: cfg.Property.MaxRent,
+			RestCooldown: cfg.Property.RestCooldown, ListSize: handlers.DefaultPageSize},
+		cfg.Game.IdempotencyTTL, nil)
+	h.stageF.city = handlers.NewCityHandler(uow, uuidGenerator{}, messages, registry, cities,
+		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.City.Period,
+		cfg.Game.IdempotencyTTL, nil).WithProperty(h.stageF.property)
+	h.stageF.achievement = handlers.NewAchievementsHandler(uow, messages, registry, handlers.AchievementRules{
+		PlayerDailyCap: cfg.Achievements.PlayerDailyCap, EconomyDailyCap: cfg.Achievements.EconomyDailyCap}, nil)
+	if err := h.stageF.city.StartClocks(ctx); err != nil {
+		logger.Error("cannot start the city clocks; they start at the next start",
+			slog.String("error", err.Error()))
+	}
+
 	// Every country's defence clock runs from the start; a country a later
 	// content load adds starts its clock the first time its ministry is
 	// opened, or at the next start.
@@ -423,6 +450,26 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			defer svc.inflight.Done()
 			if err := h.stageE.missions.OnEvent(ctx, env, subject); err != nil {
 				logger.Error("cannot move missions on", slog.String("subject", subject), slog.String("error", err.Error()))
+				return err
+			}
+			return nil
+		}); err != nil {
+			return err
+		}
+		logger.Info("consuming", slog.String("subject", subject), slog.String("consumer", durable))
+	}
+
+	// Achievements move on from the game's own events (docs/adr/0024): one
+	// durable consumer per event, each event counted once per player (the
+	// achievements' inbox, in the same transaction as the progress).
+	for _, subject := range sortedSubjects(handlers.AchievementEventSubjects) {
+		subject := subject
+		durable := "game-achievements-" + strings.ReplaceAll(strings.TrimPrefix(subject, "game.event."), ".", "-")
+		if err := consumer.Subscribe(ctx, subject, durable, func(ctx context.Context, env *envelope.Envelope) error {
+			svc.inflight.Add(1)
+			defer svc.inflight.Done()
+			if err := h.stageF.achievement.OnEvent(ctx, env, subject); err != nil {
+				logger.Error("cannot move achievements on", slog.String("subject", subject), slog.String("error", err.Error()))
 				return err
 			}
 			return nil

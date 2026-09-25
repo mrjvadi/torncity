@@ -18,6 +18,8 @@
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -42,6 +44,8 @@
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -59,6 +63,7 @@
 🆔 Player code: K7Q2M9A
   ───
   [🗺 Map] → map:list
+  [🏅 Achievements] → achievement:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [🕶 Underworld] → crime:hub
   [🔒 Continue in private chat] → https://t.me/torn_bot
@@ -79,6 +84,8 @@
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -98,6 +105,8 @@
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 

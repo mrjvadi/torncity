@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/domain/budget"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -183,12 +184,14 @@ func domainEnrollment(e application.Enrollment) education.Enrollment {
 	return d
 }
 
-// Time in jail (docs/adr/0019-crime-engine.md): a student in jail cannot
-// attend, so the course stands still from the jailing until the release. The
+// Time in jail (docs/adr/0019-crime-engine.md) or in hospital
+// (docs/adr/0024): a student held cannot attend, so the course stands still
+// from the jailing or the admission until the release or the discharge. The
 // crime engine calls pauseStudies when it jails a player and resumeStudies
 // when the sentence ends — bail, a served term, or a lapsed sentence closed
-// by a new one — in the same transaction as the sentence's own change, so the
-// two cannot disagree.
+// by a new one — and health does the same at an admission and a discharge,
+// each in the same transaction as the sentence's or the stay's own change,
+// so the two cannot disagree.
 
 // pauseStudies stops the player's course, if one is running, at at.
 func pauseStudies(ctx context.Context, tx application.Tx, playerID string, at time.Time) error {
@@ -202,9 +205,22 @@ func pauseStudies(ctx context.Context, tx application.Tx, playerID string, at ti
 // the jail stays on the schedule and does nothing when it fires: the row no
 // longer names it (EducationHandler.Complete). Exactly once: the course row
 // is locked (Active), and Resume changes only a course still paused.
+//
+// A course stands still while anything holds its student — jail or a
+// hospital bed (docs/adr/0024) — so it resumes only when neither does: a
+// release from jail into a hospital bed resumes nothing, and the discharge
+// does.
 func resumeStudies(ctx context.Context, tx application.Tx, ids IDGenerator, playerID string, at time.Time) error {
 	e, err := activeEnrollment(ctx, tx, playerID)
 	if err != nil || e == nil || e.PausedAt == nil {
+		return err
+	}
+	if s, err := tx.Crime().ActiveSentence(ctx, playerID); err == nil && s.Serving(at) {
+		return nil
+	} else if err != nil && !isSentinel(err, application.ErrNotJailed) {
+		return err
+	}
+	if stay, err := hospitalised(ctx, tx, playerID, at); err != nil || stay != nil {
 		return err
 	}
 	moved := domainEnrollment(*e).Resumed(at)
@@ -300,6 +316,9 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 			course, ok := snap.Course(def.Code)
 			if !ok {
 				continue
+			}
+			if course, err = h.subsidised(ctx, tx, p, course); err != nil {
+				return err
 			}
 			lines = append(lines, screens.CourseLine{
 				Course:   screens.CourseRef{Code: def.Code, Name: def.Name},
@@ -408,6 +427,9 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 		// it cannot be joined here — rather than as "not offered".
 		def, course, err := h.viewable(snap, req.Course)
 		if err != nil {
+			return err
+		}
+		if course, err = h.subsidised(ctx, tx, p, course); err != nil {
 			return err
 		}
 		current, err := activeEnrollment(ctx, tx, p.ID)
@@ -531,6 +553,9 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 		}
 		def, course, err := h.course(ctx, snap, req.Course, s, here)
 		if err != nil {
+			return err
+		}
+		if course, err = h.subsidised(ctx, tx, p, course); err != nil {
 			return err
 		}
 		current, err := activeEnrollment(ctx, tx, p.ID)
@@ -829,4 +854,20 @@ func appendEducationEvent(ctx context.Context, tx application.Tx, meta envelope.
 		Metadata: meta,
 		Payload:  ev.Payload,
 	})
+}
+
+// subsidised is a course at the fee the player pays in the city they stand
+// in: its education line takes its share off (docs/adr/0024).
+func (h *EducationHandler) subsidised(ctx context.Context, tx application.Tx, p *application.Player,
+	course education.Course,
+) (education.Course, error) {
+	if p.CityID == nil || course.Cost.Minor() <= 0 {
+		return course, nil
+	}
+	off, err := budgetEffect(ctx, tx, *p.CityID, budget.EffectCourseFee)
+	if err != nil || off <= 0 {
+		return course, err
+	}
+	course.Cost = money.FromMinor(budget.Lower(course.Cost.Minor(), off))
+	return course, nil
 }

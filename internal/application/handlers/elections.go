@@ -267,10 +267,20 @@ func (h *ElectionsHandler) person(ctx context.Context, tx application.Tx, p *app
 	e *application.Election, rules election.Rules, now time.Time,
 ) (election.Person, error) {
 	who := election.Person{Resident: el.residentOf(e.JurisdictionID)}
-	// Residence changes only by spawning today, so a resident has lived
-	// there since the character was made. Real time, as every election
+	// A resident has lived there since the character was made, or since a
+	// home moved them there (docs/adr/0024). Real time, as every election
 	// period is.
-	who.ResidentFor = max(now.Sub(p.CreatedAt), 0)
+	since := p.CreatedAt
+	if repo := tx.Property(); repo != nil {
+		moved, err := repo.ResidenceSince(ctx, p.ID)
+		if err != nil {
+			return who, err
+		}
+		if moved != nil {
+			since = *moved
+		}
+	}
+	who.ResidentFor = max(now.Sub(since), 0)
 	stats, err := tx.Stats().EnsureDefaults(ctx, p.ID, defaultStats(p.ID, now))
 	if err != nil {
 		return who, err
@@ -640,9 +650,14 @@ func (h *ElectionsHandler) Stand(ctx context.Context, meta envelope.Metadata, re
 		}
 		stood = screens.StoodView{No: e.No, Office: e.OfficeCode, Place: govPlace(j), Deposit: def.Deposit,
 			Method: string(method), VotingAt: e.CandidacyEndsAt, VotingIn: max(e.CandidacyEndsAt.Sub(now), 0)}
+		cityIDs, err := electionCities(ctx, tx, j)
+		if err != nil {
+			return err
+		}
 		return appendElectionEvent(ctx, tx, meta, "stood", e.ID, map[string]any{
 			"election_id": e.ID, "no": e.No, "office": e.OfficeCode, "jurisdiction_id": e.JurisdictionID,
 			"player_id": p.ID, "player_name": shownName(p), "city_id": cityOfJurisdiction(el, e.JurisdictionID),
+			"city_ids":   cityIDs,
 			"place_kind": j.Kind, "place_code": j.Code, "place_name": j.Name,
 		})
 	})
@@ -818,8 +833,8 @@ func electionActionID(req CrimeScheduledRequest) (string, error) {
 }
 
 // electionCity is the city whose groups hear of an election: the city a
-// city's election is of. A country's election has none, and is announced in
-// no group yet.
+// city's election is of. A country's election has none of its own; its
+// lines go to the groups of every city of the country (electionCities).
 func electionCity(ctx context.Context, cities application.CityRepository, j application.Jurisdiction) (string, error) {
 	if j.Kind != "city" {
 		return "", nil
@@ -832,6 +847,16 @@ func electionCity(ctx context.Context, cities application.CityRepository, j appl
 		return "", err
 	}
 	return c.ID, nil
+}
+
+// electionCities is, for an election of a place above a city — a
+// presidency, a parliament — every city of that country, whose groups all
+// hear of it (docs/adr/0024); nil for a city's own election.
+func electionCities(ctx context.Context, tx application.Tx, j application.Jurisdiction) ([]string, error) {
+	if j.Kind != "country" {
+		return nil, nil
+	}
+	return cityIDsOf(ctx, tx, j.ID)
 }
 
 // Voting handles election.voting from the SCHEDULER: the candidacy is over
@@ -877,9 +902,13 @@ func (h *ElectionsHandler) Voting(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
+		cityIDs, err := electionCities(ctx, tx, j)
+		if err != nil {
+			return err
+		}
 		return appendElectionEvent(ctx, tx, meta, "voting", e.ID, map[string]any{
 			"election_id": e.ID, "no": e.No, "office": e.OfficeCode, "jurisdiction_id": e.JurisdictionID,
-			"place_kind": j.Kind, "place_code": j.Code, "place_name": j.Name, "city_id": cityID,
+			"place_kind": j.Kind, "place_code": j.Code, "place_name": j.Name, "city_id": cityID, "city_ids": cityIDs,
 			"candidate_count": len(cs), "voting_ends_at": e.VotingEndsAt,
 			"voting_seconds": int64(max(e.VotingEndsAt.Sub(now), 0) / time.Second),
 		})
@@ -1010,6 +1039,10 @@ func (h *ElectionsHandler) Count(ctx context.Context, meta envelope.Metadata, re
 		if err != nil {
 			return err
 		}
+		cityIDs, err := electionCities(ctx, tx, j)
+		if err != nil {
+			return err
+		}
 		// Each candidate hears their own result privately.
 		for _, r := range results {
 			if err := appendElectionEvent(ctx, tx, meta, "result", e.ID, map[string]any{
@@ -1022,7 +1055,7 @@ func (h *ElectionsHandler) Count(ctx context.Context, meta envelope.Metadata, re
 		}
 		return appendElectionEvent(ctx, tx, meta, "counted", e.ID, map[string]any{
 			"election_id": e.ID, "no": e.No, "office": e.OfficeCode, "jurisdiction_id": e.JurisdictionID,
-			"place_kind": j.Kind, "place_code": j.Code, "place_name": j.Name, "city_id": cityID,
+			"place_kind": j.Kind, "place_code": j.Code, "place_name": j.Name, "city_id": cityID, "city_ids": cityIDs,
 			"seats": e.Seats, "votes_cast": res.Cast, "candidate_count": len(cs), "candidates": results,
 		})
 	})
@@ -1164,9 +1197,13 @@ func AnnounceElectionOpened(ctx context.Context, tx application.Tx, cities appli
 	if err != nil {
 		return err
 	}
+	cityIDs, err := electionCities(ctx, tx, j)
+	if err != nil {
+		return err
+	}
 	return appendElectionEvent(ctx, tx, meta, "opened", e.ID, map[string]any{
 		"election_id": e.ID, "no": e.No, "office": e.OfficeCode, "jurisdiction_id": e.JurisdictionID,
-		"place_kind": j.Kind, "place_code": j.Code, "place_name": j.Name, "city_id": cityID,
+		"place_kind": j.Kind, "place_code": j.Code, "place_name": j.Name, "city_id": cityID, "city_ids": cityIDs,
 		"candidacy_ends_at": e.CandidacyEndsAt, "voting_ends_at": e.VotingEndsAt,
 		"candidacy_seconds": int64(e.CandidacyEndsAt.Sub(e.OpensAt) / time.Second),
 	})

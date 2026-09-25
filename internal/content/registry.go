@@ -72,6 +72,11 @@ type Snapshot struct {
 	health   *HealthDef
 	missions missionContent
 	faction  *FactionDef
+
+	// Stage F: the city budget and property; see budget.go, property.go.
+	budget       *BudgetDef
+	property     propertyContent
+	achievements []AchievementDef
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -151,6 +156,12 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 		f := p.Factions[0]
 		snap.faction = &f
 	}
+	if len(p.Budget) > 0 {
+		b := p.Budget[0]
+		snap.budget = &b
+	}
+	snap.buildProperty(p)
+	snap.achievements = append([]AchievementDef(nil), p.Achievements...)
 
 	return snap, nil
 }

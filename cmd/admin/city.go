@@ -31,6 +31,7 @@ func cityUsage() {
   unlink-group --city CODE --chat CHAT_ID --reason "why" [--by NAME]
                           remove the link
   groups                  every city's groups
+  show --city CODE        the city's overview (see: admin dashboard)
 
 --by names the operator in the audit row; it defaults to $`+operatorEnv+`, then
 $USER, and the change is refused when none of them names anybody.
@@ -52,6 +53,8 @@ func cityCommand(ctx context.Context, args []string) error {
 		return cityGroupChange(ctx, args[1:], false)
 	case "groups":
 		return cityGroups(ctx)
+	case "show":
+		return cityShow(ctx, args[1:])
 	}
 	cityUsage()
 	os.Exit(2)

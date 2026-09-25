@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/domain/budget"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -152,6 +153,14 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 	if err := h.warEconomy(ctx, tx, snap, city, &market, end); err != nil {
 		return err
 	}
+	// The city's marketing (its budget's line) brings its population out to
+	// spend more; the operator's cap above still bounds it
+	// (docs/adr/0024-property-and-politics.md).
+	marketing, err := budgetEffect(ctx, tx, city.ID, budget.EffectNPCDemand)
+	if err != nil {
+		return err
+	}
+	market.BudgetPerThousand = budget.Raise(market.BudgetPerThousand, marketing)
 
 	type member struct {
 		c     *application.Company

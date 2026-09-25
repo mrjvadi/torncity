@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/domain/budget"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -415,7 +416,13 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 		}
 		// A thief who wore gloves leaves less behind: the gear's solve
 		// term, fixed at the attempt, moves the odds.
-		report.SolveChanceBPS = h.rules.Investigation.SolveChanceWithGear(suspect.Heat, a.Witnessed, pol.EffortBPS, a.GearSolveBPS)
+		// The city's police budget adds to the chief's effort.
+		police, err := budgetEffect(ctx, tx, city.ID, budget.EffectInvestigation)
+		if err != nil {
+			return err
+		}
+		effort := int(min(int64(pol.EffortBPS)+police, budget.BasisPoints))
+		report.SolveChanceBPS = h.rules.Investigation.SolveChanceWithGear(suspect.Heat, a.Witnessed, effort, a.GearSolveBPS)
 		if report.GameActionID, err = h.schedule(ctx, tx, application.InvestigationActionType, p.ID,
 			application.CrimeReferenceReport, report.ID, now, report.ConcludesAt); err != nil {
 			return err

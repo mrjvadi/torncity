@@ -352,3 +352,10 @@ type noWatch struct{ application.WatchRepository }
 func (noWatch) Linking(context.Context, string, string) (*application.WatchFlag, error) {
 	return nil, application.ErrFlagNotFound
 }
+
+// Stage F (docs/adr/0024): nothing before any body, no city period.
+func (t *fakeTx) Legislature() application.LegislatureRepository                 { return nil }
+func (t *fakeTx) CityPeriods() application.CityPeriodRepository                  { return nil }
+func (t *fakeTx) Property() application.PropertyRepository                       { return nil }
+func (noDiplomacy) RecordTariff(context.Context, application.BorderTariff) error { return nil }
+func (t *fakeTx) Achievements() application.AchievementRepository                { return nil }

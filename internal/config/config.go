@@ -201,6 +201,12 @@ type Config struct {
 	AntiCheat  AntiCheat
 	Input      Input
 	Announce   Announce
+
+	// Stage F (docs/adr/0024-property-and-politics.md).
+	Legislature  Legislature
+	City         City
+	Property     Property
+	Achievements Achievements
 }
 
 // Gateway paces the Telegram polling loop and its shutdown.
@@ -446,6 +452,10 @@ type Governance struct {
 	// 100 and 10 steps by 25 and 250.
 	FineStepDivisor   int // governance.fine_step_divisor
 	CoarseStepDivisor int // governance.coarse_step_divisor
+	// AllocationStepBPS is how far one press moves a budget line's share on
+	// the allocation screen, bps; 10000 must be a whole number of steps of
+	// at most 35 (one callback character each).
+	AllocationStepBPS int // governance.allocation_step_bps
 }
 
 // Crime is the tuning of the crime engine (docs/adr/0019-crime-engine.md).
@@ -622,6 +632,55 @@ type Missions struct {
 	// EconomyDailyCap is the most mission cash all players together receive
 	// in a day.
 	EconomyDailyCap int64 // missions.economy_daily_cap
+}
+
+// Legislature is the tuning of votes of a body
+// (docs/adr/0024-property-and-politics.md): which bodies exist and what they
+// confirm is content (governance.yml).
+type Legislature struct {
+	// VoteWindow is how long a proposal stays open for the body's votes,
+	// REAL time: a governance promise (docs/adr/0018-game-clock.md).
+	VoteWindow time.Duration // legislature.vote_window
+	// ListSize is how many proposals one screen lists.
+	ListSize int // legislature.list_size
+}
+
+// City is the tuning of a city's period (docs/adr/0024): each period, once,
+// the city's budget is spent by its allocation and property pays its upkeep,
+// tax and rent.
+type City struct {
+	// Period is one city period, GAME time, waited through the game clock.
+	Period time.Duration // city.period
+}
+
+// Property is the tuning of property (docs/adr/0024). What each kind of
+// property costs, where and how many are for sale is content
+// (configs/content/property.yml); a city's property tax is policy.
+type Property struct {
+	// ForeclosurePeriods is how many city periods in a row an owner may end
+	// owing upkeep or tax before the property is repossessed.
+	ForeclosurePeriods int // property.foreclosure_periods
+	// EvictionPeriods is how many periods of rent in a row a tenant may owe
+	// before the lease ends.
+	EvictionPeriods int // property.eviction_periods
+	// MaxOwned is how many properties one player may own at once.
+	MaxOwned int // property.max_owned
+	// MaxPrice is the highest asking price of a listing; MaxRent the highest
+	// rent a landlord may ask per period. Minor units.
+	MaxPrice int64 // property.max_price
+	MaxRent  int64 // property.max_rent
+	// RestCooldown is how long after resting at home a player may rest
+	// again, GAME time.
+	RestCooldown time.Duration // property.rest_cooldown
+}
+
+// Achievements is the tuning of achievements (docs/adr/0024). What each one
+// asks and gives is content (configs/content/achievements.yml); its cash is a
+// faucet (ADR 0009 achievement_reward), capped twice a UTC day. What a cap
+// withholds is not paid later.
+type Achievements struct {
+	PlayerDailyCap  int64 // achievements.player_daily_cap
+	EconomyDailyCap int64 // achievements.economy_daily_cap
 }
 
 // Factions is the tuning of factions (docs/adr/0023). What founding one costs
@@ -841,7 +900,13 @@ func Defaults() *Config {
 		Governance: Governance{
 			FineStepDivisor:   100,
 			CoarseStepDivisor: 10,
+			AllocationStepBPS: 500,
 		},
+		Legislature: Legislature{VoteWindow: 48 * time.Hour, ListSize: 8},
+		City:        City{Period: 24 * time.Hour},
+		Property: Property{ForeclosurePeriods: 3, EvictionPeriods: 2, MaxOwned: 5, MaxPrice: 100_000_000,
+			MaxRent: 1_000_000, RestCooldown: 8 * time.Hour},
+		Achievements: Achievements{PlayerDailyCap: 5000, EconomyDailyCap: 500_000},
 		Crime: Crime{
 			NerveMax:                     20,
 			NerveRegenAmount:             1,
@@ -1019,6 +1084,10 @@ func (c *Config) Validate() error {
 	}
 	if c.Company.PriceStepBPS > 10000 {
 		return fmt.Errorf("%w: company.price_step_bps is %d", ErrNotPositive, c.Company.PriceStepBPS)
+	}
+	if step := c.Governance.AllocationStepBPS; step > 10000 || 10000%step != 0 || 10000/step > 35 {
+		return fmt.Errorf("%w: governance.allocation_step_bps is %d; it must divide 10000 into at most 35 steps",
+			ErrInvalidValue, step)
 	}
 	if c.Military.ReadinessLossBPS > 10000 || c.Military.ReadinessRecoveryBPS > 10000 {
 		return fmt.Errorf("%w: military.readiness_loss_bps is %d and military.readiness_recovery_bps %d; each at most 10000",

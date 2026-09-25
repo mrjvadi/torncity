@@ -185,6 +185,18 @@ This city has no shops yet.
   [🎒 Bag] → inventory:show
   [🔙 Back] → map:list   │   [🔄 Refresh] → shop:list
 
+━━━ Shops · at one place ━━━
+(edits message 42)
+🛒 Shops at the bazaar, Ostmarch
+
+• Grocery - at the bazaar
+• Hardware store - at the bazaar
+  ───
+  [🛒 Grocery] → shop:view:grocery   │   [🛒 Hardware store] → shop:view:hardware_store
+  [🛒 All the city's shops] → shop:list
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → map:list   │   [🔄 Refresh] → shop:list:bazaar
+
 ━━━ Shop · at the counter ━━━
 (edits message 42)
 🛒 Hardware store - at the bazaar

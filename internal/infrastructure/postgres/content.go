@@ -1065,6 +1065,14 @@ func Checksum(p *content.Pack) string {
 			l.CityDefault,
 			l.HeldBy, l.Rule(), l.Threshold, l.Quorum, l.VetoBy, l.OverrideRule, l.OverrideThreshold,
 			int64(cooldown/time.Second), int64(notice/time.Second))
+		if l.RequiresConfirmationBy != "" {
+			above := int64(-1)
+			if l.ConfirmAbove != nil {
+				above = *l.ConfirmAbove
+			}
+			fmt.Fprintf(h, "lever-confirm|%s|%s|%s|%s|%s|%d\n", l.Code, l.RequiresConfirmationBy, l.ConfirmRule(),
+				l.ConfirmationThreshold, l.ConfirmationQuorum, above)
+		}
 	}
 	checksumJobs(h, p)
 	checksumTransport(h, p)

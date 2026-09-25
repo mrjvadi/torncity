@@ -462,6 +462,21 @@ func (p *Pack) validateLevers(levels map[string]LevelDef, offices map[string]Off
 			}
 		}
 		validateOverride(l, name, problems)
+		validateConfirmation(confirmation{by: l.RequiresConfirmationBy, rule: l.ConfirmationRule,
+			threshold: l.ConfirmationThreshold, quorum: l.ConfirmationQuorum, level: l.Jurisdiction, holder: l.HeldBy},
+			name, offices, problems)
+		switch {
+		case l.ConfirmAbove != nil && l.RequiresConfirmationBy == "":
+			*problems = append(*problems, fmt.Errorf("%w: %s has confirm_above but nobody confirms it", ErrInvalidDecisionRule, name))
+		case l.ConfirmAbove != nil && LeverValueKind(l.Type) != ValueKindScalar:
+			*problems = append(*problems, fmt.Errorf("%w: %s has confirm_above, which only a scalar lever has", ErrInvalidDecisionRule, name))
+		case l.ConfirmAbove != nil && *l.ConfirmAbove < 0:
+			*problems = append(*problems, fmt.Errorf("%w: %s has a negative confirm_above", ErrInvalidDecisionRule, name))
+		}
+		if l.RequiresConfirmationBy != "" && l.Rule() != DecisionSingle {
+			*problems = append(*problems, fmt.Errorf("%w: %s is decided by a vote and also needs confirmation; declare one",
+				ErrInvalidDecisionRule, name))
+		}
 	}
 	return seen
 }
@@ -500,6 +515,56 @@ func validateDecisionRule(l LeverDef, name string, offices map[string]OfficeDef,
 		return
 	}
 	validateThreshold(l.Rule(), l.Threshold, "threshold", bad)
+}
+
+// confirmation is what a lever or an action says about the body that must
+// confirm it.
+type confirmation struct {
+	by, rule, threshold, quorum string
+	// level is the lever's or action's level; holder the office deciding.
+	level, holder string
+}
+
+// validateConfirmation checks requires_confirmation_by and its rule: the
+// body is a declared office of the same level other than the holder, the rule
+// is a vote, a supermajority states its threshold, a quorum is a fraction.
+// With no body, none of the rest may be set.
+func validateConfirmation(c confirmation, name string, offices map[string]OfficeDef, problems *[]error) {
+	bad := func(format string, args ...any) {
+		*problems = append(*problems, fmt.Errorf("%w: %s "+format, append([]any{ErrInvalidDecisionRule, name}, args...)...))
+	}
+	if c.by == "" {
+		if c.rule != "" || c.threshold != "" || c.quorum != "" {
+			bad("has a confirmation rule, threshold or quorum but nobody confirms it")
+		}
+		return
+	}
+	o, ok := offices[c.by]
+	switch {
+	case !ok:
+		bad("requires_confirmation_by names %q, which no office declares", c.by)
+		return
+	case o.Jurisdiction != c.level:
+		bad("is confirmed by %q, an office of another level", c.by)
+	case c.by == c.holder:
+		bad("is confirmed by the office that decides it")
+	}
+	rule := c.rule
+	if rule == "" {
+		rule = DecisionMajority
+	}
+	switch rule {
+	case DecisionMajority, DecisionSupermajority, DecisionUnanimous:
+	default:
+		bad("confirmation_rule %q is not majority, supermajority or unanimous", c.rule)
+		return
+	}
+	validateThreshold(rule, c.threshold, "confirmation_threshold", bad)
+	if c.quorum != "" {
+		if _, _, err := ParseFraction(c.quorum); err != nil {
+			bad("confirmation_quorum %v", err)
+		}
+	}
 }
 
 // validateOverride checks the veto override rule.
@@ -663,8 +728,8 @@ func validateStructuredLever(l LeverDef, name string, problems *[]error) {
 				total += n
 			}
 		}
-		if total != world.BasisPointsScale {
-			bad("default allocates %d bps; an allocation divides the whole, %d", total, world.BasisPointsScale)
+		if total > world.BasisPointsScale {
+			bad("default allocates %d bps; an allocation divides at most the whole, %d", total, world.BasisPointsScale)
 		}
 	}
 }

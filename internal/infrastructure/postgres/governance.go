@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -29,21 +30,65 @@ const policyLockClass = 15
 
 // Constraint names raised by the policy_values trigger in migration 0008.
 const (
-	policyValuesWithinBounds = "policy_values_within_bounds"
-	policyValuesCooldown     = "policy_values_cooldown"
-	officesOneSeatPerHolder  = "offices_one_seat_per_holder_key"
+	policyValuesWithinBounds     = "policy_values_within_bounds"
+	policyValuesWithinAllocation = "policy_values_within_allocation"
+	policyValuesCooldown         = "policy_values_cooldown"
+	officesOneSeatPerHolder      = "offices_one_seat_per_holder_key"
 )
+
+// leverColumns is what every lever read selects, in scanLever's order.
+const leverColumns = `ld.code, ld.jurisdiction_kind, ld.value_type, ld.value_kind,
+       COALESCE(ld.default_value, 0), COALESCE(ld.min_value, 0), COALESCE(ld.max_value, 0),
+       ld.held_by, ld.decision_rule, ld.change_cooldown_seconds, ld.notice_seconds,
+       COALESCE(ld.city_default, ''), COALESCE(ld.threshold, ''), COALESCE(ld.quorum, ''),
+       ld.categories, ld.default_json, COALESCE(ld.requires_confirmation_by, ''),
+       COALESCE(ld.confirmation_rule, ''), COALESCE(ld.confirmation_threshold, ''),
+       COALESCE(ld.confirmation_quorum, ''), ld.confirm_above`
 
 // selectActiveLever reads one lever of the active content version.
 const selectActiveLever = `
-SELECT ld.code, ld.jurisdiction_kind, ld.value_type, ld.value_kind,
-       COALESCE(ld.default_value, 0), COALESCE(ld.min_value, 0), COALESCE(ld.max_value, 0),
-       ld.held_by, ld.decision_rule, ld.change_cooldown_seconds, ld.notice_seconds,
-       COALESCE(ld.city_default, '')
+SELECT ` + leverColumns + `
   FROM lever_definitions ld
   JOIN content_versions cv ON cv.id = ld.content_version_id
  WHERE cv.status = 'active'
    AND ld.code = $1`
+
+// scanLever reads one lever selected with leverColumns.
+func scanLever(row pgx.Row) (application.LeverDefinition, error) {
+	var (
+		l                  application.LeverDefinition
+		cooldown, noticeSe int64
+		defJSON            []byte
+	)
+	if err := row.Scan(&l.Code, &l.Jurisdiction, &l.Type, &l.ValueKind,
+		&l.Default, &l.Min, &l.Max, &l.HeldBy, &l.DecisionRule, &cooldown, &noticeSe, &l.CityDefault,
+		&l.Threshold, &l.Quorum, &l.Categories, &defJSON, &l.RequiresConfirmationBy,
+		&l.ConfirmationRule, &l.ConfirmationThreshold, &l.ConfirmationQuorum, &l.ConfirmAbove); err != nil {
+		return l, err
+	}
+	l.ChangeCooldown = time.Duration(cooldown) * time.Second
+	l.Notice = time.Duration(noticeSe) * time.Second
+	if l.IsAllocation() {
+		shares, err := decodeAllocation(defJSON)
+		if err != nil {
+			return l, fmt.Errorf("postgres: lever %q default: %w", l.Code, err)
+		}
+		l.DefaultAllocation = shares
+	}
+	return l, nil
+}
+
+// decodeAllocation reads an allocation document: category to bps.
+func decodeAllocation(raw []byte) (map[string]int64, error) {
+	out := map[string]int64{}
+	if len(raw) == 0 {
+		return out, nil
+	}
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
 
 // selectJurisdiction reads one jurisdiction and, for a city, the stored
 // values a per-city default may come from.
@@ -78,15 +123,15 @@ SELECT ` + officeColumns + `
 // selectPolicySettings reads the latest setting in effect at $3 and every
 // setting not yet in effect. Nothing older can win, so nothing older is read.
 const selectPolicySettings = `
-(SELECT id::text, jurisdiction_id::text, lever_code, value, set_by_player_id::text, office_id::text,
-        set_at, effective_at
+(SELECT id::text, jurisdiction_id::text, lever_code, COALESCE(value, 0), value_json, set_by_player_id::text,
+        office_id::text, set_at, effective_at
    FROM policy_values
   WHERE jurisdiction_id = $1::uuid AND lever_code = $2 AND effective_at <= $3
   ORDER BY effective_at DESC, set_at DESC, id DESC
   LIMIT 1)
 UNION ALL
-(SELECT id::text, jurisdiction_id::text, lever_code, value, set_by_player_id::text, office_id::text,
-        set_at, effective_at
+(SELECT id::text, jurisdiction_id::text, lever_code, COALESCE(value, 0), value_json, set_by_player_id::text,
+        office_id::text, set_at, effective_at
    FROM policy_values
   WHERE jurisdiction_id = $1::uuid AND lever_code = $2 AND effective_at > $3)`
 
@@ -141,10 +186,18 @@ func loadPolicyInputs(ctx context.Context, q querier, jurisdictionID, leverCode 
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var s application.PolicySetting
-		if err := rows.Scan(&s.ID, &s.JurisdictionID, &s.LeverCode, &s.Value, &s.SetByPlayerID, &s.OfficeID,
+		var (
+			s   application.PolicySetting
+			doc []byte
+		)
+		if err := rows.Scan(&s.ID, &s.JurisdictionID, &s.LeverCode, &s.Value, &doc, &s.SetByPlayerID, &s.OfficeID,
 			&s.SetAt, &s.EffectiveAt); err != nil {
 			return in, fmt.Errorf("postgres: scanning policy setting: %w", err)
+		}
+		if lever.IsAllocation() {
+			if s.Allocation, err = decodeAllocation(doc); err != nil {
+				return in, fmt.Errorf("postgres: policy setting %s: %w", s.ID, err)
+			}
 		}
 		in.Settings = append(in.Settings, s)
 	}
@@ -161,20 +214,13 @@ func loadPolicyInputs(ctx context.Context, q querier, jurisdictionID, leverCode 
 
 // activeLever reads one lever of the active content, or ErrUnknownLever.
 func activeLever(ctx context.Context, q querier, code string) (application.LeverDefinition, error) {
-	var (
-		l                  application.LeverDefinition
-		cooldown, noticeSe int64
-	)
-	err := q.QueryRow(ctx, selectActiveLever, code).Scan(&l.Code, &l.Jurisdiction, &l.Type, &l.ValueKind,
-		&l.Default, &l.Min, &l.Max, &l.HeldBy, &l.DecisionRule, &cooldown, &noticeSe, &l.CityDefault)
+	l, err := scanLever(q.QueryRow(ctx, selectActiveLever, code))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return l, application.ErrUnknownLever.WithCause(fmt.Errorf("no lever %q in the active content", code))
 	}
 	if err != nil {
 		return l, fmt.Errorf("postgres: reading lever %q: %w", code, err)
 	}
-	l.ChangeCooldown = time.Duration(cooldown) * time.Second
-	l.Notice = time.Duration(noticeSe) * time.Second
 	return l, nil
 }
 
@@ -398,12 +444,17 @@ func (r *GovernanceRepository) RecordPolicy(ctx context.Context, c application.P
 		return c, err
 	}
 	s := c.Setting
+	if s.Allocation != nil {
+		return c, r.recordAllocation(ctx, c)
+	}
 	_, err = r.q.Exec(ctx,
 		`INSERT INTO policy_values (id, jurisdiction_id, lever_code, value_kind, value, set_by_player_id, office_id,
 		        set_at, effective_at)
 		 VALUES ($1::uuid, $2::uuid, $3, 'scalar', $4, $5::uuid, $6::uuid, $7, $8)`,
 		s.ID, s.JurisdictionID, s.LeverCode, s.Value, s.SetByPlayerID, s.OfficeID, s.SetAt.UTC(), s.EffectiveAt.UTC())
 	switch {
+	case violates(err, sqlstateCheckViolation, policyValuesWithinAllocation):
+		return c, application.ErrInvalidAllocation.WithCause(err)
 	case violates(err, sqlstateCheckViolation, policyValuesWithinBounds):
 		return c, application.ErrPolicyOutOfBounds.WithCause(err)
 	case violates(err, sqlstateCheckViolation, policyValuesCooldown):
@@ -421,6 +472,46 @@ func (r *GovernanceRepository) RecordPolicy(ctx context.Context, c application.P
 		return c, fmt.Errorf("postgres: writing policy change: %w", err)
 	}
 	return c, nil
+}
+
+// recordAllocation writes an allocation's setting and public record: the
+// shares as a document, the old and the new.
+func (r *GovernanceRepository) recordAllocation(ctx context.Context, c application.PolicyChange) error {
+	s := c.Setting
+	newDoc, err := json.Marshal(s.Allocation)
+	if err != nil {
+		return fmt.Errorf("postgres: encoding allocation: %w", err)
+	}
+	old := c.OldAllocation
+	if old == nil {
+		old = map[string]int64{}
+	}
+	oldDoc, err := json.Marshal(old)
+	if err != nil {
+		return fmt.Errorf("postgres: encoding allocation: %w", err)
+	}
+	_, err = r.q.Exec(ctx,
+		`INSERT INTO policy_values (id, jurisdiction_id, lever_code, value_kind, value_json, set_by_player_id, office_id,
+		        set_at, effective_at)
+		 VALUES ($1::uuid, $2::uuid, $3, 'structured', $4::jsonb, $5::uuid, $6::uuid, $7, $8)`,
+		s.ID, s.JurisdictionID, s.LeverCode, newDoc, s.SetByPlayerID, s.OfficeID, s.SetAt.UTC(), s.EffectiveAt.UTC())
+	switch {
+	case violates(err, sqlstateCheckViolation, policyValuesWithinAllocation):
+		return application.ErrInvalidAllocation.WithCause(err)
+	case violates(err, sqlstateCheckViolation, policyValuesCooldown):
+		return application.ErrPolicyCooldown.WithCause(err)
+	case err != nil:
+		return fmt.Errorf("postgres: writing policy value: %w", err)
+	}
+	if _, err := r.q.Exec(ctx,
+		`INSERT INTO policy_changes (id, policy_value_id, jurisdiction_id, lever_code, office_id, office_code,
+		        set_by_player_id, value_kind, old_value_json, new_value_json, set_at, effective_at)
+		 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5::uuid, $6, $7::uuid, 'structured', $8::jsonb, $9::jsonb, $10, $11)`,
+		c.ID, s.ID, s.JurisdictionID, s.LeverCode, s.OfficeID, c.OfficeCode,
+		s.SetByPlayerID, oldDoc, newDoc, s.SetAt.UTC(), s.EffectiveAt.UTC()); err != nil {
+		return fmt.Errorf("postgres: writing policy change: %w", err)
+	}
+	return nil
 }
 
 // Jurisdiction returns one jurisdiction, or ErrJurisdictionNotFound.

@@ -266,6 +266,11 @@ func (h *PlacesHandler) Map(ctx context.Context, meta envelope.Metadata) (*prese
 			for _, m := range pl.Arrivals {
 				line.Departures = append(line.Departures, m)
 			}
+			for _, s := range snap.CityShops(w.city.Code) {
+				if s.Place == pl.Code {
+					line.Shops = append(line.Shops, named(s.Code, s.Name))
+				}
+			}
 			view.Places = append(view.Places, line)
 		}
 		return nil

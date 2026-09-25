@@ -75,6 +75,9 @@ type Travel struct {
 	// ContentVersion is the content version that priced the journey; zero
 	// when unknown.
 	ContentVersion int
+	// VehicleID is the item piece the player drove (docs/adr/0024); empty
+	// for a hired or public mode.
+	VehicleID string
 }
 
 // GameAction is a unit of work due at a point in time.

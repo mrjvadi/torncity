@@ -1,0 +1,382 @@
+━━━ Market · a city's registry and its owners' offers ━━━
+(edits message 42)
+🏠 Property market of Ostmarch
+
+The land registry sells:
+• Studio flat (apartment, 35 m², quality 2): 46,350 Nil - 28 left
+• Family house (house, 140 m², quality 3): 180,000 Nil - 8 left
+• Shop premises (shop, 60 m², quality 3): sold out
+
+Owners' offers:
+• Property #12, Family house: for sale at 210,000 Nil - Kaveh (B3C4D5F)
+• Property #15, Studio flat: to let at 900 Nil per city period - Nilou (N1L0F4R)
+  ───
+  [🏠 Studio flat] → property:type:studio
+  [🏠 Family house] → property:type:family_house
+  [🏠 Shop premises] → property:type:shop_unit
+  [📢 Property #12] → property:offer:7
+  [📢 Property #15] → property:offer:8
+  [🏠 My property] → property:mine
+  [🔙 Back] → map:list   │   [🔄 Refresh] → property:list
+
+━━━ Market · read in a group, nothing offered ━━━
+(edits message 42)
+🏠 Property market of Ostmarch
+
+The land registry sells:
+• Studio flat (apartment, 35 m², quality 2): 45,000 Nil - 30 left
+
+Owners' offers:
+• No offers right now.
+  ───
+  [🏠 Studio flat] → property:type:studio
+  [🏠 My property] → property:mine
+  [🔙 Back] → map:list   │   [🔄 Refresh] → property:list
+
+━━━ Market · on the road ━━━
+(edits message 42)
+🏠 To see the property market you must be in a city, not on the road.
+  ───
+  [🔙 Back] → map:list
+
+━━━ Type · at the land registry, the card pays ━━━
+(edits message 42)
+🏠 Studio flat - Ostmarch
+apartment, 35 m², quality 2
+📍 At the residential area
+💰 Price: 46,350 Nil (the registry has 28 more)
+🧾 Upkeep: 40 Nil per city period
+🏛 Property tax: 0.2% of its value per city period
+🛏 A home: buying or renting it makes you a resident of this city, and you rest there for 25 energy.
+
+💵 Your cash does not cover it — pay by card.
+💵 Your cash: 1,200 Nil - Bank: 80,000 Nil
+  ───
+  [💳 Pay by card - 46,350 Nil] → property:purchase:studio:card
+  [🏠 My property] → property:mine
+  [🔙 Back] → property:list   │   [🔄 Refresh] → property:type:studio
+
+━━━ Type · elsewhere in the city ━━━
+(edits message 42)
+🏠 Studio flat - Ostmarch
+apartment, 35 m², quality 2
+📍 At the residential area
+💰 Price: 46,350 Nil (the registry has 28 more)
+🧾 Upkeep: 40 Nil per city period
+🏛 Property tax: 0.2% of its value per city period
+🛏 A home: buying or renting it makes you a resident of this city, and you rest there for 25 energy.
+
+✍️ Deeds are signed at the land registry at the civic centre.
+  ───
+  [🚶 Go to the civic centre (12s)] → place:go:city_hall:property.type:studio
+  [🏠 My property] → property:mine
+  [🔙 Back] → property:list   │   [🔄 Refresh] → property:type:studio
+
+━━━ Type · sold out ━━━
+(edits message 42)
+🏠 Studio flat - Ostmarch
+apartment, 35 m², quality 2
+📍 At the residential area
+💰 Price: 46,350 Nil (the registry has 0 more)
+🧾 Upkeep: 40 Nil per city period
+🏛 Property tax: 0.2% of its value per city period
+🛏 A home: buying or renting it makes you a resident of this city, and you rest there for 25 energy.
+
+The land registry here has no more of this kind.
+  ───
+  [🏠 My property] → property:mine
+  [🔙 Back] → property:list   │   [🔄 Refresh] → property:type:studio
+
+━━━ Type · just bought, now at the limit ━━━
+(edits message 42)
+✅ Property #16 (Studio flat) is now yours.
+
+🏠 Studio flat - Ostmarch
+apartment, 35 m², quality 2
+📍 At the residential area
+💰 Price: 46,350 Nil (the registry has 28 more)
+🧾 Upkeep: 40 Nil per city period
+🏛 Property tax: 0.2% of its value per city period
+🛏 A home: buying or renting it makes you a resident of this city, and you rest there for 25 energy.
+
+You already own as much property as you may.
+  ───
+  [🏠 My property] → property:mine
+  [🔙 Back] → property:list   │   [🔄 Refresh] → property:type:studio
+
+━━━ Offer · to let, at the registry ━━━
+(edits message 42)
+🏠 Property #15, Studio flat - Ostmarch
+apartment, 35 m², quality 2
+• Property #15, Studio flat: to let at 900 Nil per city period - Nilou (N1L0F4R)
+🔑 The first period's rent is paid on signing, each later one at its end.
+🛏 A home: buying or renting it makes you a resident of this city.
+
+💵 Your cash: 1,200 Nil - Bank: 80,000 Nil
+  ───
+  [💵 Pay cash - 900 Nil] → property:rent:8:cash   │   [💳 Pay by card - 900 Nil] → property:rent:8:card
+  [🔙 Back] → property:list   │   [🔄 Refresh] → property:offer:8
+
+━━━ Offer · for sale, already renting elsewhere ━━━
+(edits message 42)
+🏠 Property #12, Family house - Ostmarch
+house, 140 m², quality 3
+• Property #12, Family house: for sale at 210,000 Nil - Kaveh (B3C4D5F)
+🧾 Upkeep: 160 Nil per city period
+🛏 A home: buying or renting it makes you a resident of this city.
+
+You already own as much property as you may.
+  ───
+  [🔙 Back] → property:list   │   [🔄 Refresh] → property:offer:7
+
+━━━ Offer · your own ━━━
+(edits message 42)
+🏠 Property #12, Family house - Ostmarch
+house, 140 m², quality 3
+• Property #12, Family house: for sale at 210,000 Nil - Kaveh (B3C4D5F)
+🧾 Upkeep: 160 Nil per city period
+🛏 A home: buying or renting it makes you a resident of this city.
+
+That offer is your own.
+  ───
+  [✖️ Withdraw the offer] → property:cancel:12
+  [🔙 Back] → property:list   │   [🔄 Refresh] → property:offer:7
+
+━━━ Mine · a home to rest at ━━━
+(edits message 42) (private in groups)
+🏠 My property
+📍 Residence: Ostmarch
+
+• Property #16, Studio flat in Ostmarch - worth 46,350 Nil
+  🛏 Your home
+• Property #12, Family house in Ostmarch - worth 180,000 Nil
+  🔑 Let to Kaveh (B3C4D5F) at 1,500 Nil per period
+• Property #21, Shop premises in Ostmarch - worth 120,000 Nil
+  ⚠️ Debt: 460 Nil (2 periods in a row)
+• Property #22, Studio flat in Ostmarch - worth 45,000 Nil
+  📢 Offered to let: 850 Nil per period
+Property in debt 3 periods in a row goes back to the city.
+
+🛏 You can rest at home for 25 energy.
+  ───
+  [🏠 Property #16, Studio flat] → property:view:16
+  [🏠 Property #12, Family house] → property:view:12
+  [🏠 Property #21, Shop premises] → property:view:21
+  [🏠 Property #22, Studio flat] → property:view:22
+  [🛏 Rest at home] → property:rest
+  [🏠 Property market] → property:list
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → property:mine
+
+━━━ Mine · rested, renting from another ━━━
+(edits message 42) (private in groups)
+🛏 You rested at home and gained 25 energy.
+
+🏠 My property
+📍 Residence: Ostmarch
+
+You own no property yet. Every city's land registry sells some.
+
+🔑 Renting a Studio flat in Ostmarch from Nilou (N1L0F4R), 900 Nil per period
+  ⚠️ Rent unpaid for 1 periods.
+
+🛏 You can rest at home again in 7m.
+  ───
+  [🚪 Leave my rented home] → property:leave:4
+  [🏠 Property market] → property:list
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → property:mine
+
+━━━ Mine · nothing yet ━━━
+(edits message 42) (private in groups)
+🏠 My property
+
+You own no property yet. Every city's land registry sells some.
+  ───
+  [🏠 Property market] → property:list
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → property:mine
+
+━━━ Mine · just rented ━━━
+(edits message 42) (private in groups)
+🔑 The lease is signed; the first period's rent is paid.
+
+🏠 My property
+
+You own no property yet. Every city's land registry sells some.
+
+🔑 Renting a Studio flat in Ostmarch from Nilou (N1L0F4R), 900 Nil per period
+  ───
+  [🚪 Leave my rented home] → property:leave:4
+  [🏠 Property market] → property:list
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → property:mine
+
+━━━ Property · free to offer ━━━
+(edits message 42) (private in groups)
+• Property #16, Studio flat in Ostmarch - worth 46,350 Nil
+  🛏 Your home
+apartment, 35 m², quality 2
+📍 At the residential area
+🧾 Upkeep: 40 Nil per city period
+🏛 Property tax: 0.2% of its value per city period
+Offers for sale up to 100,000,000 Nil, to let up to 1,000,000 Nil per period.
+  ───
+  [💰 Offer for sale] → property:sell:16
+  [🔑 Offer to let] → property:let:16
+  [🔙 Back] → property:mine   │   [🔄 Refresh] → property:view:16
+
+━━━ Property · offered to let ━━━
+(edits message 42) (private in groups)
+📢 The offer is posted.
+
+• Property #22, Studio flat in Ostmarch - worth 45,000 Nil
+  📢 Offered to let: 850 Nil per period
+apartment, 35 m², quality 2
+📍 At the residential area
+🧾 Upkeep: 40 Nil per city period
+🏛 Property tax: 0.2% of its value per city period
+  ───
+  [✖️ Withdraw the offer] → property:cancel:22
+  [🔙 Back] → property:mine   │   [🔄 Refresh] → property:view:22
+
+━━━ Property · in debt ━━━
+(edits message 42) (private in groups)
+• Property #21, Shop premises in Ostmarch - worth 120,000 Nil
+  ⚠️ Debt: 460 Nil (2 periods in a row)
+shop, 60 m², quality 3
+📍 At the bazaar
+🧾 Upkeep: 120 Nil per city period
+🏛 Property tax: 0.2% of its value per city period
+⚠️ You cannot offer this property until its debt is paid.
+  ───
+  [🔙 Back] → property:mine   │   [🔄 Refresh] → property:view:21
+
+━━━ Leave · confirm ━━━
+(edits message 42) (private in groups)
+🔑 Leave the Studio flat in Ostmarch? This period's rent is not returned.
+  ───
+  [✅ Yes, leave] → property:leave:4:yes
+  [🔙 Back] → property:mine
+
+━━━ Refused · not_found ━━━
+(edits message 42)
+That property was not found.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Refused · not_yours ━━━
+(edits message 42)
+That property or lease is not yours.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Refused · sold_out ━━━
+(edits message 42)
+The land registry here has no more of this kind.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Refused · taken ━━━
+(edits message 42)
+That offer is no longer open.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Refused · own ━━━
+(edits message 42)
+That offer is your own.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Refused · renting ━━━
+(edits message 42)
+You already rent a home; leave it first.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Refused · let ━━━
+(edits message 42)
+This property is let and cannot be offered until the lease ends.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Refused · offered ━━━
+(edits message 42)
+This property is already offered.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Refused · in_debt ━━━
+(edits message 42)
+This property cannot be offered or sold until its debt is paid.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Refused · no_home ━━━
+(edits message 42)
+You have no home in this city to rest at.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Refused · not_in_city ━━━
+(edits message 42)
+You must be in that city to do this.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Refused · too many ━━━
+(edits message 42)
+You already own as much property as you may.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Refused · price above the ceiling ━━━
+(edits message 42)
+That price is above the allowed ceiling of 1,000,000 Nil.
+  ───
+  [🔙 Back] → property:view:16
+
+━━━ Refused · rested lately ━━━
+(edits message 42)
+You can rest at home again in 6m.
+  ───
+  [🔙 Back] → property:mine
+
+━━━ Notice · sold ━━━
+(sends)
+💰 Kaveh (B3C4D5F) bought property #12 (Family house in Ostmarch); 205,800 Nil was paid into your bank.
+  ───
+  [🏠 My property] → property:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · let ━━━
+(sends)
+🔑 Kaveh (B3C4D5F) rented property #12 (Family house in Ostmarch); the first period's rent, 205,800 Nil, was paid into your bank.
+  ───
+  [🏠 My property] → property:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · tenant_left ━━━
+(sends)
+🔑 Kaveh (B3C4D5F) left property #12 (Family house in Ostmarch).
+  ───
+  [🏠 My property] → property:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · foreclosed ━━━
+(sends)
+⚠️ Property #12 (Family house in Ostmarch) went back to the city for its unpaid debt.
+  ───
+  [🏠 My property] → property:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · evicted ━━━
+(sends)
+⚠️ The rent of the Family house in Ostmarch went unpaid for several periods, and the lease has ended.
+  ───
+  [🏠 My property] → property:mine
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · evicted_tenant ━━━
+(sends)
+⚠️ The tenant of property #12 (Family house in Ostmarch) paid no rent for several periods, and the lease has ended.
+  ───
+  [🏠 My property] → property:mine
+  [🔙 Back] → player:profile.get

@@ -25,12 +25,9 @@ var _ application.GovernanceDirectory = (*GovernanceDirectory)(nil)
 func NewGovernanceDirectory(p *Pool) *GovernanceDirectory { return &GovernanceDirectory{q: p.Raw()} }
 
 // selectActiveLevers reads every lever of the active content version, in
-// activeLever's column order.
+// scanLever's column order.
 const selectActiveLevers = `
-SELECT ld.code, ld.jurisdiction_kind, ld.value_type, ld.value_kind,
-       COALESCE(ld.default_value, 0), COALESCE(ld.min_value, 0), COALESCE(ld.max_value, 0),
-       ld.held_by, ld.decision_rule, ld.change_cooldown_seconds, ld.notice_seconds,
-       COALESCE(ld.city_default, '')
+SELECT ` + leverColumns + `
   FROM lever_definitions ld
   JOIN content_versions cv ON cv.id = ld.content_version_id
  WHERE cv.status = 'active'
@@ -98,16 +95,10 @@ func (d *GovernanceDirectory) Levers(ctx context.Context) ([]application.LeverDe
 	defer rows.Close()
 	var out []application.LeverDefinition
 	for rows.Next() {
-		var (
-			l                application.LeverDefinition
-			cooldown, notice int64
-		)
-		if err := rows.Scan(&l.Code, &l.Jurisdiction, &l.Type, &l.ValueKind, &l.Default, &l.Min, &l.Max,
-			&l.HeldBy, &l.DecisionRule, &cooldown, &notice, &l.CityDefault); err != nil {
+		l, err := scanLever(rows)
+		if err != nil {
 			return nil, fmt.Errorf("postgres: scanning lever: %w", err)
 		}
-		l.ChangeCooldown = time.Duration(cooldown) * time.Second
-		l.Notice = time.Duration(notice) * time.Second
 		out = append(out, l)
 	}
 	if err := rows.Err(); err != nil {

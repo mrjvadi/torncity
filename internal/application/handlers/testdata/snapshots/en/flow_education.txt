@@ -113,6 +113,8 @@ Page 1 of 2
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
@@ -205,6 +207,8 @@ Courses you can take here:
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
   [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
+  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
+  [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 

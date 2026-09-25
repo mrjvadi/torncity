@@ -56,6 +56,7 @@ profile:
   jail_in: "⛓ You are in jail in {city} - {remaining} left"
   jail_blocks: "Until you are free you cannot travel, work a shift, withdraw from the bank or start a new course; the course you are on is paused too."
   certificates: "📜 {count} certificates"
+  achievements: "🏅 {count} achievements"
   hospital: "🏥 You are in hospital in {city} - {remaining} left"
   hospital_blocks: "Until you are discharged you cannot travel, work a shift, walk across town or commit a crime. Treatment shortens the stay."
 map:
@@ -78,6 +79,7 @@ travel:
   options_choose: "How would you like to travel?"
   option: "• {mode} - {fare} - {wait} on the way - {energy} energy"
   option_busy: "• {mode} - {fare} (busy route) - {wait} on the way - {energy} energy"
+  option_own: "• In your own {mode} - fuel {fare} - {wait} on the way - {energy} energy - condition {condition}"
   requoted: "⚠️ The fare has changed since you looked. Nothing was charged — here are the current prices."
   cash: "💵 Your cash: {cash}"
   # The fare of the chosen mode and the ways to pay it.
@@ -361,7 +363,8 @@ gov:
     acting_for: You are acting for the vacant office of {office}.
     no_levers: This office has no policy you can change right now.
     lever: "• {lever}: {value}"
-    lever_vote: "• {lever}: {value} - decided by a vote, which is not available yet"
+    lever_vote: "• {lever}: {value} - decided by a vote of the {office}"
+    confirmed_by: "  🗳 Changing it may need the {office} to confirm."
   edit:
     title: "🏛 {lever} — {place}"
     bounds: "Allowed range: {min} to {max}"
@@ -377,6 +380,7 @@ gov:
     change: "{lever} in {place}: from {old} to {new}"
     notice: It will be announced now and take effect in {notice}.
     cooldown: You will not be able to change this policy again for {cooldown}.
+    vote: "🗳 This change goes to a vote of the {office} before it is announced, and takes effect only if it passes."
   announced:
     title: "📢 Change announced"
     body: "{lever} in {place} will change from {old} to {new} in {when}. The change is recorded in the public history."
@@ -399,6 +403,9 @@ gov:
     default: Default ({value})
     max: Maximum ({value})
     review: "📝 Review change"
+    propose: "🗳 Propose {lever} — {place}"
+    budget: "💰 City budget"
+    laws: "⚖️ Proposals and votes"
     confirm: "✅ Confirm"
     cancel: "✖️ Cancel"
     appoint: "👤 Appoint a {office}"
@@ -407,7 +414,9 @@ gov:
     confirm_dismiss: "✅ Remove"
   refusal:
     not_holder: "Only the {office} can change this policy. If you held that office, you may have been replaced."
-    requires_vote: This policy is decided by a vote of the {office}, and voting is not available yet.
+    requires_vote: This policy is decided by a vote of the {office}; only its members can propose a change.
+    requires_confirmation: This change must be confirmed by the {office} before it takes effect.
+    invalid_allocation: "That division is not allowed: only this budget's lines take a share, and the shares add up to at most 100%."
     out_of_range: That value is outside the allowed range of {min} to {max}. Choose a value within it.
     out_of_range_plain: That value is outside the allowed range. Choose a value within it.
     cooldown: This policy was changed recently. You can change it again in {wait}.
@@ -421,6 +430,13 @@ gov:
     office_vacant: This office is already vacant.
     already_holds: You already hold this office.
     incompatible: This office cannot be held together with an office you already hold.
+  alloc:
+    draft: "✏️ Draft division:"
+    line: "• {line}: {share}"
+    down: "➖ {line}"
+    up: "➕ {line}"
+    total: "Total: {total} - {left} is not spent and stays in the treasury."
+    spend_share: "Each city period the budget spends up to {share} of the treasury."
   appoint:
     heading: "Appoints:"
     vacant: "• {office}: vacant"
@@ -455,6 +471,7 @@ office:
   air_defence_commander: "Commander of air defence"
   foreign_minister: "Foreign minister"
   military_governor: "Military governor"
+  parliament: Parliament
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
 lever:
@@ -477,6 +494,8 @@ lever:
     market_fee: Market fee
     company_registration: Company registration fee (% of standard)
     corporate_tax: Corporate tax
+    budget: City budget
+    property_tax: Property tax
   country:
     border_tariff: Border tariff
     revenue_share: "National share of city revenue"
@@ -1099,6 +1118,7 @@ place:
     crime: "🕶 {crime} cannot be done here; go to the {place} to do it."
     heist: "🕶 {crime} cannot be done here; the crew gathers at the {place}."
     board: "📋 Missions are taken and handed in at the {board} at the {place}."
+    home: "🛏 Your home is at the {place}."
   button:
     go: "🚶 {place}"
     walk: "🚶 Walk to the {place} - {walk}"
@@ -1140,6 +1160,9 @@ command_alias:
   factions: "factions | gangs"
   missions: "missions | mission"
   board: "board | noticeboard"
+  shop: "shop | shops"
+  bag: "bag | inventory"
+  market: "market"
 
 # Where a command runs (configs/commands.yml).
 channel:
@@ -1173,6 +1196,8 @@ input:
     faction_invite: "🤝 Send the player code or username of the player you are inviting."
     faction_deposit: "📥 How much should go into the faction's bank? Type the amount."
     faction_withdraw: "📤 How much should come out of the faction's bank into your bank? Type the amount."
+    property_sell: "💰 What price do you ask for the property? Type the amount; the city's market fee comes off it."
+    property_let: "🔑 What rent per city period? Type the amount."
   placeholder:
     default: "Value"
     bank_deposit: "Amount to deposit, in Nil"
@@ -1195,11 +1220,14 @@ input:
     faction_invite: "Player code or username"
     faction_deposit: "Amount to deposit, in Nil"
     faction_withdraw: "Amount to withdraw, in Nil"
+    property_sell: "Sale price, in Nil"
+    property_let: "Rent per period, in Nil"
   cancel_hint: "To cancel, send \"cancel\"."
   cancelled: "✖️ Cancelled. Nothing changed."
 
 # Public lines in a city's Telegram group, in the group's language.
 announce:
+  operator: "📣 From the game's operators:\n{text}"
   arrived: "🧭 {player} arrived in {city}."
   jailed: "⛓ {player} was jailed in {city}."
   held: "📰 And {count} more in the meantime."
@@ -1265,6 +1293,7 @@ item:
 
 # The kinds of goods (configs/content/items.yml).
 item_category:
+  vehicles: Vehicles
   food: Food
   drink: Drink
   medicine: Medicine
@@ -1275,6 +1304,8 @@ item_category:
 
 # Goods, keyed on their content code (configs/content/items.yml).
 item_name:
+  car: Car
+  motorbike: Motorbike
   bread: Bread
   sandwich: Sandwich
   hot_meal: Hot meal
@@ -1340,7 +1371,9 @@ gear:
 # the city; buying is done at its counter.
 shop:
   title: "🛒 Shops of {city}"
+  title_at: "🛒 Shops at the {place}, {city}"
   none: This city has no shops yet.
+  none_at: "There are no shops at the {place}."
   line: "• {shop} - at the {place}"
   line_here: "• {shop} - here"
   detail_title: "🛒 {shop} - at the {place}"
@@ -1365,6 +1398,9 @@ shop:
   sold: "💰 You sold {item} to {shop} for {price}."
   button:
     shops: "🛒 Shops"
+    all: "🛒 All the city's shops"
+    here: "🛒 Shops here"
+    at: "🛒 Shops at the {place}"
     open: "🛒 {shop}"
     buy: "🛒 {item}"
     qty: "🛒 Buy {qty}"
@@ -1380,6 +1416,7 @@ shop:
 
 # Shop names, keyed on their content code (configs/content/shops.yml).
 shop_name:
+  car_dealer: Car dealer
   grocery: Grocery
   diner: Diner
   pharmacy: Pharmacy
@@ -2977,3 +3014,226 @@ mission:
     not_active: "That mission is not in your hands any more."
     expired: "⌛ That mission's time ran out."
     nothing_to_deliver: "📦 You are not carrying what the mission asks for."
+
+# Votes of a body (docs/adr/0024-property-and-politics.md).
+legislature:
+  list_title: "⚖️ Proposals and votes"
+  list_empty: No proposal is before any body of your city or country right now.
+  line: "• Proposal #{no} in {place}: {subject}"
+  title: "⚖️ Proposal #{no} — {place}"
+  subject_lever: "set {lever} to {value}"
+  subject_allocation: "divide {lever} anew: {shares}"
+  action:
+    country:
+      war: declare war
+  action_target: " on {target}"
+  action_unnamed: an action
+  proposed_by: "Proposed by {office} {player}"
+  body: "Voting: {body} - {held} of {seats} seats held"
+  rule:
+    majority: "To pass: more yes than no among the votes cast"
+    supermajority: "To pass: at least {threshold} of the votes cast are yes"
+    unanimous: "To pass: every member votes yes"
+  fraction: "{num}/{den}"
+  quorum: "Quorum: {quorum} of the seats must vote"
+  status:
+    open: "🗳 Voting - {remaining} left - {yes} yes, {no} no"
+    passed: "✅ Passed - {yes} yes, {no} no"
+    failed: "❌ Rejected - {yes} yes, {no} no"
+    lapsed: "⚪️ Passed but not applied: {why}"
+  lapse:
+    cooldown: the policy had changed meanwhile and could not change again yet
+    bounds: the policy's allowed range had changed meanwhile
+    gone: the matter no longer exists
+    changed: things had changed meanwhile
+  needs: "With {held} members seated, {needs} yes votes carry it."
+  closes_at: "Voting closes at {time}"
+  votes: "Members' votes:"
+  vote_yes: "• {player}: yes"
+  vote_no: "• {player}: no"
+  notice:
+    submitted: "📨 The proposal is before the {body} of {place}. The result is announced in the city's groups after the vote."
+    voted: "✅ Your vote is recorded."
+    already_voted: You have already voted on this proposal.
+    closed: The vote on this proposal is over.
+  refused:
+    not_found: No such proposal was found. Open the list of proposals.
+    not_member: Only members of the {body} vote on this proposal.
+    under_way: A proposal on the same matter is already before the {body}. Try again once it is decided.
+  announce:
+    opened: "⚖️ Proposal #{no} in {place}: {subject}. Proposed by {office} {player}; the {body} votes within {window}."
+    passed: "✅ The {body} of {place} passed proposal #{no}: {subject}. {yes} yes, {no_votes} no."
+    failed: "❌ The {body} of {place} rejected proposal #{no}: {subject}. {yes} yes, {no_votes} no."
+    lapsed: "⚪️ Proposal #{no} in {place} passed but was not applied ({subject}): {why}."
+  button:
+    view: "⚖️ Proposal #{no}"
+    for: "✅ Yes"
+    against: "❌ No"
+    list: "⚖️ Proposals and votes"
+
+# A city's budget (docs/adr/0024; configs/content/budget.yml).
+budget:
+  title: "💰 Budget of {city}"
+  treasury: "🏦 Treasury: {amount}"
+  spend_share: "Each city period the budget spends up to {share} of the treasury."
+  allocation: "Division in force: {shares}"
+  pending: "⏳ A new division takes effect in {when}: {shares}"
+  share: "{line} {share}"
+  nothing_allocated: no line has a share and nothing is spent
+  unnamed_line: a budget line
+  last: "Last period {spent} was spent:"
+  last_line: "• {line}: {spent} - {effect}"
+  no_period: No budget period has ended yet.
+  next: "⏳ Next period: in {in}"
+  next_at: "The period ends at {time}"
+  no_city: You have not settled in a city yet. Once you do, its budget appears here.
+  effect:
+    investigation: "cases worked {share} harder"
+    hospital_price: "the city hospital {share} cheaper"
+    transit_fare: "public transport {share} cheaper"
+    course_fee: "courses {share} cheaper"
+    war_repair: "{share} of war damage repaired"
+    npc_demand: "people spend {share} more at companies"
+    defence_fund: "paid into the country's defence fund"
+  button:
+    change: "✏️ Change the division"
+
+# Budget lines, keyed on the line's content code (configs/content/budget.yml).
+budget_line:
+  police: Police
+  hospital: Hospital subsidy
+  transit: Public transport subsidy
+  education: Education
+  infrastructure: Infrastructure and repair
+  marketing: City marketing
+  defence: Defence contribution
+
+# Property (docs/adr/0024-property-and-politics.md).
+property:
+  no_city: "🏠 To see the property market you must be in a city, not on the road."
+  market_title: "🏠 Property market of {city}"
+  city_sells: "The land registry sells:"
+  city_sells_none: "• This city sells no property."
+  type_line: "• {type} ({facts}): {price} - {left} left"
+  type_line_sold_out: "• {type} ({facts}): sold out"
+  facts: "{kind}, {size} m², quality {quality}"
+  offers: "Owners' offers:"
+  offers_none: "• No offers right now."
+  offer_sale: "• Property #{no}, {type}: for sale at {price} - {seller}"
+  offer_rent: "• Property #{no}, {type}: to let at {price} per city period - {seller}"
+  kind:
+    house: house
+    apartment: apartment
+    shop: shop
+    land: land
+  type_title: "🏠 {type} - {city}"
+  where: "📍 At the {place}"
+  price: "💰 Price: {price} (the registry has {left} more)"
+  upkeep: "🧾 Upkeep: {upkeep} per city period"
+  tax: "🏛 Property tax: {tax} of its value per city period"
+  home_note: "🛏 A home: buying or renting it makes you a resident of this city, and you rest there for {energy} energy."
+  home_residence: "🛏 A home: buying or renting it makes you a resident of this city."
+  at_registry: "✍️ Deeds are signed at the land registry at the {place}."
+  bought: "✅ Property #{no} ({type}) is now yours."
+  offer_title: "🏠 Property #{no}, {type} - {city}"
+  rent_terms: "🔑 The first period's rent is paid on signing, each later one at its end."
+  mine_title: "🏠 My property"
+  residence: "📍 Residence: {city}"
+  owned_line: "• Property #{no}, {type} in {city} - worth {value}"
+  debt: "⚠️ Debt: {debt} ({periods} periods in a row)"
+  let_to: "🔑 Let to {tenant} at {rent} per period"
+  offered_rent: "📢 Offered to let: {price} per period"
+  offered_sale: "📢 Offered for sale: {price}"
+  lived_in: "🛏 Your home"
+  owned_none: You own no property yet. Every city's land registry sells some.
+  grace: "Property in debt {periods} periods in a row goes back to the city."
+  renting: "🔑 Renting a {type} in {city} from {landlord}, {rent} per period"
+  arrears: "⚠️ Rent unpaid for {periods} periods."
+  rest_wait: "🛏 You can rest at home again in {wait}."
+  rest_ready: "🛏 You can rest at home for {energy} energy."
+  debt_blocks: "⚠️ You cannot offer this property until its debt is paid."
+  offer_limits: "Offers for sale up to {price}, to let up to {rent} per period."
+  leave_confirm: "🔑 Leave the {type} in {city}? This period's rent is not returned."
+  notice:
+    listed: "📢 The offer is posted."
+    cancelled: The offer is withdrawn.
+    rented: "🔑 The lease is signed; the first period's rent is paid."
+    left: "🔑 You left your rented home."
+    rested: "🛏 You rested at home and gained {energy} energy."
+    bought_offer: "✅ Property #{no} is now yours."
+  refused:
+    not_found: That property was not found.
+    not_yours: That property or lease is not yours.
+    sold_out: The land registry here has no more of this kind.
+    too_many: You already own as much property as you may.
+    taken: That offer is no longer open.
+    own: That offer is your own.
+    renting: You already rent a home; leave it first.
+    let: This property is let and cannot be offered until the lease ends.
+    offered: This property is already offered.
+    in_debt: This property cannot be offered or sold until its debt is paid.
+    price: "That price is above the allowed ceiling of {max}."
+    no_home: You have no home in this city to rest at.
+    too_soon: "You can rest at home again in {wait}."
+    not_in_city: You must be in that city to do this.
+  notice_event:
+    sold: "💰 {player} bought property #{no} ({type} in {city}); {amount} was paid into your bank."
+    let: "🔑 {player} rented property #{no} ({type} in {city}); the first period's rent, {amount}, was paid into your bank."
+    tenant_left: "🔑 {player} left property #{no} ({type} in {city})."
+    foreclosed: "⚠️ Property #{no} ({type} in {city}) went back to the city for its unpaid debt."
+    evicted: "⚠️ The rent of the {type} in {city} went unpaid for several periods, and the lease has ended."
+    evicted_tenant: "⚠️ The tenant of property #{no} ({type} in {city}) paid no rent for several periods, and the lease has ended."
+  button:
+    type: "🏠 {type}"
+    offer: "📢 Property #{no}"
+    mine: "🏠 My property"
+    market: "🏠 Property market"
+    manage: "🏠 Property #{no}, {type}"
+    sell: "💰 Offer for sale"
+    let: "🔑 Offer to let"
+    cancel: "✖️ Withdraw the offer"
+    leave: "🚪 Leave my rented home"
+    leave_confirm: "✅ Yes, leave"
+    rest: "🛏 Rest at home"
+    back_to_type: "🔙 Back to the property"
+    back_to_offer: "🔙 Back to the offer"
+
+# Kinds of property, keyed on the kind's content code (property.yml).
+property_type:
+  studio: Studio flat
+  apartment: Two-room apartment
+  family_house: Family house
+  villa: Villa
+  shop_unit: Shop premises
+  plot: Plot of land
+
+# Achievements (docs/adr/0024; configs/content/achievements.yml).
+achievement:
+  title: "🏅 Your achievements: {earned} of {all}"
+  none_yet: You have not earned an achievement yet.
+  earned_line: "✅ {achievement}"
+  open_line: "▫️ {achievement} - {done} of {count}"
+  open_line_reward: "▫️ {achievement} - {done} of {count} - reward {reward}"
+  notice: "🏅 New achievement: {achievement}!"
+  notice_cash: "💵 A reward of {cash} was added to your cash."
+  notice_withheld: "The day's cap on rewards held back {amount} of it."
+  button:
+    list: "🏅 Achievements"
+  first_shift:
+    name: First day at work
+  hard_worker:
+    name: Hard worker
+  first_journey:
+    name: On the road
+  graduate:
+    name: Graduate
+  entrepreneur:
+    name: Entrepreneur
+  homeowner:
+    name: Homeowner
+  ten_crimes:
+    name: Career criminal
+  elected:
+    name: Elected
+  lawmaker:
+    name: Lawmaker

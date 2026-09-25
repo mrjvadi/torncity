@@ -26,7 +26,7 @@ import (
 func TestInsertTravelLeavesTheConflictToTheIndex(t *testing.T) {
 	sql := normalize(insertTravel)
 
-	if !strings.Contains(sql, "INSERT INTO travels (id, player_id, from_city_id, to_city_id, cost, game_action_id, status, departed_at, arrives_at, mode, ledger_transaction_id, content_version)") {
+	if !strings.Contains(sql, "INSERT INTO travels (id, player_id, from_city_id, to_city_id, cost, game_action_id, status, departed_at, arrives_at, mode, ledger_transaction_id, content_version, vehicle_id)") {
 		t.Fatalf("travel insert column list drifted from the schema:\n%s", sql)
 	}
 	if strings.Contains(sql, "ON CONFLICT") {

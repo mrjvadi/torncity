@@ -258,6 +258,17 @@ type Pack struct {
 	Missions      []MissionDef
 	Factions      []FactionDef
 
+	// Stage F (docs/adr/0024-property-and-politics.md): budget.yml's budget
+	// section, at most one (budget.go).
+	Budget []BudgetDef
+	// property.yml: the property section (at most one), the kinds of
+	// property and what each city sells (property.go).
+	Property        []PropertyDef
+	PropertyTypes   []PropertyTypeDef
+	PropertyMarkets []PropertyMarketDef
+	// achievements.yml: the achievements (achievement.go).
+	Achievements []AchievementDef
+
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"
 	// It is empty for a pack that was assembled in code rather than read from

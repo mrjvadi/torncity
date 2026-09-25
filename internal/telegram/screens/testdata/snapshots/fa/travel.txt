@@ -63,6 +63,21 @@
   [هواپیما - ۱۰٬۴۸۰ نیل] → travel:start:brennhaven:flight:10480
   [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → travel:options:brennhaven
 
+━━━ Travel options · in your own car ━━━
+(edits message 42)
+🧭 سفر به برنهاون
+📍 مبدأ: استمارچ
+
+با چه وسیله‌ای می‌روید؟
+• اتوبوس - ۱٬۱۴۰ نیل - ۱۳ دقیقه در راه - ۸ انرژی
+• خودرو (وسیلهٔ خودتان) - سوخت ۲٬۵۲۰ نیل - ۷ دقیقه در راه - ۱۴ انرژی - سلامت خودرو ۸۷٪
+
+💵 پول نقد شما: ۵٬۰۰۰ نیل
+  ───
+  [اتوبوس - ۱٬۱۴۰ نیل] → travel:start:brennhaven:bus:1140
+  [خودرو - ۲٬۵۲۰ نیل] → travel:start:brennhaven:car:2520
+  [🔙 بازگشت] → map:list   │   [🔄 به‌روزرسانی] → travel:options:brennhaven
+
 ━━━ Travel options · the fare changed before departure ━━━
 (edits message 42)
 🧭 سفر به برنهاون

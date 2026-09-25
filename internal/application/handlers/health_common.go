@@ -162,6 +162,11 @@ func injure(ctx context.Context, tx application.Tx, snap *content.Snapshot, ids 
 	if err := tx.Health().Admit(ctx, s); err != nil {
 		return nil, err
 	}
+	// A patient's course stands still until they are discharged, as a
+	// prisoner's does (docs/adr/0024).
+	if err := pauseStudies(ctx, tx, h.playerID, now); err != nil {
+		return nil, err
+	}
 	if err := tx.Stats().Save(ctx, next); err != nil {
 		return nil, err
 	}

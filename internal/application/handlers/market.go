@@ -675,6 +675,22 @@ func (h *MarketHandler) settle(ctx context.Context, tx application.Tx, meta enve
 	if err != nil {
 		return 0, errors.Internal(err)
 	}
+	// Seller and buyer of different countries: the buyer's country's tariff,
+	// withheld from the seller's proceeds (docs/adr/0024).
+	countries, err := tx.Diplomacy().CountriesOfPlayers(ctx, []string{t.Buyer, t.Seller})
+	if err != nil {
+		return 0, err
+	}
+	tariff, err := quoteTariff(ctx, tx, h.policy, snap, countries[t.Buyer], countries[t.Seller], t.Notional.Minor(), now)
+	if err != nil {
+		return 0, err
+	}
+	if tariff.amount > 0 {
+		tariff.amount = min(tariff.amount, s.SellerReceives.Minor())
+		if s.SellerReceives, err = s.SellerReceives.Sub(money.FromMinor(tariff.amount)); err != nil {
+			return 0, errors.Internal(err)
+		}
+	}
 	buyerEscrow, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerEscrow, t.Buyer)
 	if err != nil {
 		return 0, err
@@ -708,6 +724,9 @@ func (h *MarketHandler) settle(ctx context.Context, tx application.Tx, meta enve
 		if txID == "" {
 			txID = feeTx
 		}
+	}
+	if err := tariff.charge(ctx, tx, h.ids, "market_trades", tradeID, buyerEscrow.ID, now); err != nil {
+		return 0, err
 	}
 	// A resting buy reserved at its own price and traded at it: no
 	// improvement. (The incoming side's improvement is given back once, by

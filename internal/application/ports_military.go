@@ -337,6 +337,9 @@ type DiplomacyRepository interface {
 	Treaties(ctx context.Context, countryID string, since time.Time) ([]Treaty, error)
 	// TreatiesBetween lists the treaties between two countries.
 	TreatiesBetween(ctx context.Context, a, b string) ([]Treaty, error)
+	// RecordTariff appends the border tariff withheld from one sale
+	// (migration 0026); a trade is tariffed once.
+	RecordTariff(ctx context.Context, t BorderTariff) error
 
 	// RecordEvent appends to the public record.
 	RecordEvent(ctx context.Context, e DiplomacyEvent) error
@@ -419,4 +422,19 @@ func Authorize(ctx context.Context, tx Tx, jurisdictionID, officeCode, playerID 
 		return Office{}, ErrNotOfficeHolder.WithDetail("office", officeCode)
 	}
 	return seat, nil
+}
+
+// BorderTariff is a border_tariffs row: the tariff withheld from one sale
+// across a border, paid into the importing country's national treasury
+// (docs/adr/0024-property-and-politics.md).
+type BorderTariff struct {
+	ID            string
+	ReferenceType string
+	ReferenceID   string
+	ImporterID    string
+	ExporterID    string
+	Value         int64
+	RateBPS       int64
+	Tariff        int64
+	At            time.Time
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	stderrors "errors"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -54,6 +55,17 @@ type WarHandler struct {
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
+
+	// legislature puts a declaration its body must approve to a vote
+	// (docs/adr/0024-property-and-politics.md).
+	legislature *LegislatureHandler
+}
+
+// WithLegislature lets a declaration that needs a body's approval go to its
+// vote; the handler then declares it once the vote passes.
+func (h *WarHandler) WithLegislature(l *LegislatureHandler) *WarHandler {
+	h.legislature = l
+	return h
 }
 
 // NewWarHandler wires the handler.
@@ -596,6 +608,7 @@ func (h *WarHandler) Declare(ctx context.Context, meta envelope.Metadata, req Wa
 		view    screens.DeclareView
 		done    bool
 		country *application.Jurisdiction
+		bill    *application.Proposal
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
@@ -673,88 +686,40 @@ func (h *WarHandler) Declare(ctx context.Context, meta envelope.Metadata, req Wa
 		if !confirm {
 			return nil
 		}
-		if err := lockCountries(ctx, tx, country.ID, target.ID); err != nil {
-			return err
-		}
-		open, err := tx.War().Wars(ctx, country.ID, now)
-		if err != nil {
-			return err
-		}
-		rules := make([]war.War, len(open))
-		for i, w := range open {
-			rules[i] = w.Rule()
-		}
-		if err := war.CheckDeclare(country.ID, target.ID, rules); err != nil {
-			return refuseWar(screens.WarRefusedAtWar, country, screens.AddrWarBoard, country.Code)
-		}
-		w := application.War{ID: h.ids.NewID(), AttackerID: country.ID, DefenderID: target.ID, Ground: ground,
-			DeclaredBy: p.ID, DeclaredOffice: seat.OfficeCode, DeclaredAt: now, ActiveAt: now.Add(h.rules.DeclarationNotice),
-			BorderClosed: def.Economy.CloseBorder}
-		// A declaration ends every treaty in force between the two: an
-		// alliance or a pact of non-aggression cannot survive a war, and
-		// the record says who broke it.
-		for _, t := range breaking {
-			locked, err := tx.Diplomacy().TreatyByNo(ctx, t.No, true)
+		// A declaration the constitution puts to a body's vote goes there
+		// first; the body's approval declares it (ExecuteProposal).
+		if a, ok := snap.Action(content.ActionWar); ok && a.RequiresConfirmationBy != "" && h.legislature != nil {
+			seated, err := application.BodySeated(ctx, tx, a.RequiresConfirmationBy, country.ID)
 			if err != nil {
 				return err
 			}
-			if locked.Rule().StatusAt(now) != diplomacy.Active {
-				continue
-			}
-			locked.Status, locked.EndedBy, locked.EndedOffice, locked.EndedAt = diplomacy.Terminated, p.ID, seat.OfficeCode, &now
-			if err := tx.Diplomacy().SaveTreaty(ctx, *locked); err != nil {
-				return err
-			}
-			if err := tx.Diplomacy().RecordEvent(ctx, application.DiplomacyEvent{ID: h.ids.NewID(),
-				Kind: application.EventTreatyTerminated, CountryID: country.ID, OtherCountryID: target.ID, TreatyID: t.ID,
-				PlayerID: p.ID, OfficeCode: seat.OfficeCode, At: now}); err != nil {
-				return err
-			}
-			w.BrokeTreaties = append(w.BrokeTreaties, t.No)
-		}
-		w, err = tx.War().DeclareWar(ctx, w)
-		if isSentinel(err, application.ErrAtWar) {
-			return refuseWar(screens.WarRefusedAtWar, country, screens.AddrWarBoard, country.Code)
-		}
-		if err != nil {
-			return err
-		}
-		if err := tx.War().RecordEvent(ctx, application.WarEvent{ID: h.ids.NewID(), Kind: application.WarEventDeclared,
-			WarID: w.ID, CountryID: country.ID, OtherCountryID: target.ID, PlayerID: p.ID, OfficeCode: seat.OfficeCode,
-			At: now}); err != nil {
-			return err
-		}
-		if len(w.BrokeTreaties) > 0 {
-			if err := tx.War().RecordEvent(ctx, application.WarEvent{ID: h.ids.NewID(), Kind: application.WarEventTreatyBroken,
-				WarID: w.ID, CountryID: country.ID, OtherCountryID: target.ID, PlayerID: p.ID, OfficeCode: seat.OfficeCode,
-				At: now}); err != nil {
+			if seated {
+				opened, err := h.legislature.OpenBill(ctx, tx, meta, BillDraft{Kind: application.ProposalAction,
+					JurisdictionID: country.ID, Subject: content.ActionWar,
+					Args: map[string]string{"target": target.Code, "ground": ground}, Seat: seat, ProposerID: p.ID,
+					Body: a.RequiresConfirmationBy, Rule: a.ConfirmRule(), Threshold: a.ConfirmationThreshold,
+					Quorum: a.ConfirmationQuorum}, now)
+				bill = &opened
 				return err
 			}
 		}
-		cities, err := cityIDsOf(ctx, tx, append([]string{country.ID, target.ID}, idsOf(allies)...)...)
-		if err != nil {
+		if err := h.declareNow(ctx, tx, snap, def, meta, country, &target, ground, p.ID, seat.OfficeCode, breaking,
+			allies, now); err != nil {
 			return err
-		}
-		if err := appendDomainEvent(ctx, tx, meta, "war", "declared", w.ID, map[string]any{
-			"country_code": country.Code, "country_name": country.Name, "other_code": target.Code,
-			"other_name": target.Name, "ground": ground, "notice_seconds": int64(h.rules.DeclarationNotice / time.Second),
-			"broke": len(w.BrokeTreaties) > 0, "city_ids": cities}); err != nil {
-			return err
-		}
-		// Each ally of the target by mutual defence hears privately, and
-		// decides for itself whether to join.
-		for _, a := range allies {
-			if err := h.tellHead(ctx, tx, snap, meta, a, "ally_called", w.ID, map[string]any{"kind": "ally",
-				"country_code": a.Code, "country_name": a.Name, "other_code": country.Code, "other_name": country.Name,
-				"ally_code": target.Code, "ally_name": target.Name, "war_no": w.No}); err != nil {
-				return err
-			}
 		}
 		done = true
 		return nil
 	})
+	var refused *billRefusal
+	if stderrors.As(err, &refused) {
+		return screens.BillRefusal(h.screen(meta, lang), refused.view), nil
+	}
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
+	}
+	if bill != nil && h.legislature != nil {
+		return h.legislature.view(ctx, meta, LegislatureRequest{No: strconv.FormatInt(bill.No, 10)},
+			screens.BillNoticeSubmitted)
 	}
 	if done {
 		c := h.screen(meta, lang)
@@ -763,6 +728,95 @@ func (h *WarHandler) Declare(ctx context.Context, meta envelope.Metadata, req Wa
 		return h.boardWith(ctx, meta, WarRequest{Country: country.Code}, notice)
 	}
 	return screens.Declare(h.screen(meta, lang), view), nil
+}
+
+// declareNow declares a war, once: the countries locked, a second war
+// between them refused, every treaty in force between them ended, the war
+// recorded, both sides' groups told and the target's allies called. It is
+// the head of state's declaration, or a body's approval of one.
+func (h *WarHandler) declareNow(ctx context.Context, tx application.Tx, snap *content.Snapshot, def content.WarDef,
+	meta envelope.Metadata, country, target *application.Jurisdiction, ground, playerID, officeCode string,
+	breaking []application.Treaty, allies []application.Jurisdiction, now time.Time,
+) error {
+	_ = snap
+	if err := lockCountries(ctx, tx, country.ID, target.ID); err != nil {
+		return err
+	}
+	open, err := tx.War().Wars(ctx, country.ID, now)
+	if err != nil {
+		return err
+	}
+	rules := make([]war.War, len(open))
+	for i, w := range open {
+		rules[i] = w.Rule()
+	}
+	if err := war.CheckDeclare(country.ID, target.ID, rules); err != nil {
+		return refuseWar(screens.WarRefusedAtWar, country, screens.AddrWarBoard, country.Code)
+	}
+	w := application.War{ID: h.ids.NewID(), AttackerID: country.ID, DefenderID: target.ID, Ground: ground,
+		DeclaredBy: playerID, DeclaredOffice: officeCode, DeclaredAt: now, ActiveAt: now.Add(h.rules.DeclarationNotice),
+		BorderClosed: def.Economy.CloseBorder}
+	// A declaration ends every treaty in force between the two: an
+	// alliance or a pact of non-aggression cannot survive a war, and
+	// the record says who broke it.
+	for _, t := range breaking {
+		locked, err := tx.Diplomacy().TreatyByNo(ctx, t.No, true)
+		if err != nil {
+			return err
+		}
+		if locked.Rule().StatusAt(now) != diplomacy.Active {
+			continue
+		}
+		locked.Status, locked.EndedBy, locked.EndedOffice, locked.EndedAt = diplomacy.Terminated, playerID, officeCode, &now
+		if err := tx.Diplomacy().SaveTreaty(ctx, *locked); err != nil {
+			return err
+		}
+		if err := tx.Diplomacy().RecordEvent(ctx, application.DiplomacyEvent{ID: h.ids.NewID(),
+			Kind: application.EventTreatyTerminated, CountryID: country.ID, OtherCountryID: target.ID, TreatyID: t.ID,
+			PlayerID: playerID, OfficeCode: officeCode, At: now}); err != nil {
+			return err
+		}
+		w.BrokeTreaties = append(w.BrokeTreaties, t.No)
+	}
+	w, err = tx.War().DeclareWar(ctx, w)
+	if isSentinel(err, application.ErrAtWar) {
+		return refuseWar(screens.WarRefusedAtWar, country, screens.AddrWarBoard, country.Code)
+	}
+	if err != nil {
+		return err
+	}
+	if err := tx.War().RecordEvent(ctx, application.WarEvent{ID: h.ids.NewID(), Kind: application.WarEventDeclared,
+		WarID: w.ID, CountryID: country.ID, OtherCountryID: target.ID, PlayerID: playerID, OfficeCode: officeCode,
+		At: now}); err != nil {
+		return err
+	}
+	if len(w.BrokeTreaties) > 0 {
+		if err := tx.War().RecordEvent(ctx, application.WarEvent{ID: h.ids.NewID(), Kind: application.WarEventTreatyBroken,
+			WarID: w.ID, CountryID: country.ID, OtherCountryID: target.ID, PlayerID: playerID, OfficeCode: officeCode,
+			At: now}); err != nil {
+			return err
+		}
+	}
+	cities, err := cityIDsOf(ctx, tx, append([]string{country.ID, target.ID}, idsOf(allies)...)...)
+	if err != nil {
+		return err
+	}
+	if err := appendDomainEvent(ctx, tx, meta, "war", "declared", w.ID, map[string]any{
+		"country_code": country.Code, "country_name": country.Name, "other_code": target.Code,
+		"other_name": target.Name, "ground": ground, "notice_seconds": int64(h.rules.DeclarationNotice / time.Second),
+		"broke": len(w.BrokeTreaties) > 0, "city_ids": cities}); err != nil {
+		return err
+	}
+	// Each ally of the target by mutual defence hears privately, and
+	// decides for itself whether to join.
+	for _, a := range allies {
+		if err := h.tellHead(ctx, tx, snap, meta, a, "ally_called", w.ID, map[string]any{"kind": "ally",
+			"country_code": a.Code, "country_name": a.Name, "other_code": country.Code, "other_name": country.Name,
+			"ally_code": target.Code, "ally_name": target.Name, "war_no": w.No}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // alliesOf lists the countries with a treaty of mutual defence in force with
@@ -1265,4 +1319,61 @@ func (h *WarHandler) Resume(ctx context.Context, meta envelope.Metadata, req War
 			"in": screens.FormatSpan(c, h.rules.DeclarationNotice)}))
 	}
 	return screens.WarDecision(h.screen(meta, lang), view), nil
+}
+
+// ExecuteProposal declares a war a body approved
+// (docs/adr/0024-property-and-politics.md), in the transaction that decides
+// the vote: on behalf of the head of state who proposed it, from the seat
+// they proposed it from. What stands between the two countries is read
+// again now — the treaties the war ends, the allies it calls — and a
+// declaration that no longer makes sense lapses.
+func (h *WarHandler) ExecuteProposal(ctx context.Context, tx application.Tx, meta envelope.Metadata, prop application.Proposal,
+	now time.Time,
+) error {
+	snap := h.content.Current()
+	def, ok := snap.War()
+	if !ok {
+		return &ProposalLapse{Reason: LapseGone}
+	}
+	country, err := tx.Governance().Jurisdiction(ctx, prop.JurisdictionID)
+	if err != nil {
+		return err
+	}
+	target, err := tx.Diplomacy().CountryByCode(ctx, prop.Args["target"])
+	if isSentinel(err, application.ErrJurisdictionNotFound) || (err == nil && target.ID == country.ID) {
+		return &ProposalLapse{Reason: LapseGone}
+	}
+	if err != nil {
+		return err
+	}
+	ground := prop.Args["ground"]
+	if !hasCode(def.Grounds, ground) {
+		return &ProposalLapse{Reason: LapseGone}
+	}
+	if w, err := warBetween(ctx, tx, country.ID, target.ID, now); err != nil {
+		return err
+	} else if w != nil {
+		return &ProposalLapse{Reason: LapseChanged}
+	}
+	treaties, err := tx.Diplomacy().TreatiesBetween(ctx, country.ID, target.ID)
+	if err != nil {
+		return err
+	}
+	var breaking []application.Treaty
+	for _, t := range treaties {
+		if t.Rule().StatusAt(now) == diplomacy.Active {
+			breaking = append(breaking, t)
+		}
+	}
+	allies, err := h.alliesOf(ctx, tx, snap, target.ID, country.ID, now)
+	if err != nil {
+		return err
+	}
+	err = h.declareNow(ctx, tx, snap, def, meta, &country, &target, ground, prop.ProposedBy, prop.ProposerOffice,
+		breaking, allies, now)
+	var refused *warRefusal
+	if stderrors.As(err, &refused) {
+		return &ProposalLapse{Reason: LapseChanged}
+	}
+	return err
 }

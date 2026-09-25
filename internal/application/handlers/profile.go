@@ -300,6 +300,10 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 		}
 		view.Work = work
 	}
+	// The achievements earned (docs/adr/0024).
+	if view.Achievements, err = EarnedCount(ctx, tx, p.ID); err != nil {
+		return view, err
+	}
 
 	// A player in jail sees it first, with the time left and when they are
 	// free; the home screen then offers the jail instead of the map.
