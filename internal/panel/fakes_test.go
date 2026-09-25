@@ -177,16 +177,20 @@ func (b *fakeBackend) Cities(context.Context) ([]postgres.CityLine, error) { ret
 func (b *fakeBackend) City(context.Context, string) (CityDetail, error) {
 	return CityDetail{}, postgres.ErrNoSuchCity
 }
-func (b *fakeBackend) Bots(context.Context) ([]string, error)                          { return []string{"bot01"}, nil }
+func (b *fakeBackend) Bots(context.Context) ([]string, error)                         { return []string{"bot01"}, nil }
 func (b *fakeBackend) LinkGroup(context.Context, GroupChange, operator.Actor) error   { return nil }
 func (b *fakeBackend) UnlinkGroup(context.Context, GroupChange, operator.Actor) error { return nil }
-func (b *fakeBackend) Companies(context.Context, int) ([]CompanyLine, error)           { return nil, nil }
+func (b *fakeBackend) Companies(context.Context, int) ([]CompanyLine, error)          { return nil, nil }
 func (b *fakeBackend) Company(context.Context, string) (CompanyDetail, error) {
 	return CompanyDetail{}, postgres.ErrNotFound
 }
-func (b *fakeBackend) GrantDefence(context.Context, string, operator.Actor) (int64, error)  { return 1, nil }
-func (b *fakeBackend) RevokeDefence(context.Context, string, operator.Actor) (int64, error) { return 1, nil }
-func (b *fakeBackend) Seats(context.Context, string, string) ([]Seat, error)                { return nil, nil }
+func (b *fakeBackend) GrantDefence(context.Context, string, operator.Actor) (int64, error) {
+	return 1, nil
+}
+func (b *fakeBackend) RevokeDefence(context.Context, string, operator.Actor) (int64, error) {
+	return 1, nil
+}
+func (b *fakeBackend) Seats(context.Context, string, string) ([]Seat, error) { return nil, nil }
 func (b *fakeBackend) ChangeSeat(_ context.Context, s SeatChange, _ bool, _ operator.Actor) (Seat, error) {
 	return Seat{Office: s.Office, Seat: s.Seat}, nil
 }
@@ -197,7 +201,9 @@ func (b *fakeBackend) Elections(context.Context, int) ([]postgres.ElectionLine, 
 func (b *fakeBackend) OpenElection(context.Context, string, string, string, operator.Actor) (OpenedElection, error) {
 	return OpenedElection{No: 1}, nil
 }
-func (b *fakeBackend) Verify(context.Context) (Verification, error) { return Verification{OK: true}, nil }
+func (b *fakeBackend) Verify(context.Context) (Verification, error) {
+	return Verification{OK: true}, nil
+}
 
 func (b *fakeBackend) Grant(_ context.Context, player string, amount int64, a operator.Actor) (operator.Grant, error) {
 	b.mu.Lock()
@@ -215,7 +221,9 @@ func (b *fakeBackend) Content(context.Context) (ContentStatus, error) {
 func (b *fakeBackend) LoadContent(context.Context, operator.Actor) (ContentLoaded, error) {
 	return ContentLoaded{Version: 4}, nil
 }
-func (b *fakeBackend) Flags(context.Context, string, int) ([]postgres.FlagLine, error) { return nil, nil }
+func (b *fakeBackend) Flags(context.Context, string, int) ([]postgres.FlagLine, error) {
+	return nil, nil
+}
 func (b *fakeBackend) Flag(context.Context, int64) (postgres.FlagLine, error) {
 	return postgres.FlagLine{}, postgres.ErrNotFound
 }

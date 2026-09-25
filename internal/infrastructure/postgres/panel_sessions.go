@@ -50,9 +50,9 @@ func (r *PanelAccounts) AuditPanel(ctx context.Context, actor, action, reason st
 
 // PanelSession is one signed-in browser.
 type PanelSession struct {
-	TokenHash, AccountID, CSRFToken string
+	TokenHash, AccountID, CSRFToken  string
 	CreatedAt, LastSeenAt, ExpiresAt time.Time
-	ClientIP, UserAgent             string
+	ClientIP, UserAgent              string
 	// Username is the account's, as read with it.
 	Username string
 }

@@ -239,11 +239,11 @@ WITH p AS (
       FROM accounts WHERE kind IN ('player_cash', 'player_bank', 'player_escrow', 'player_savings')
        AND owner_id IN (SELECT id FROM p)
      GROUP BY owner_id
-), eq AS (`+shareValueSQL+`
+), eq AS (` + shareValueSQL + `
 ), gold AS (
     SELECT player_id, grams FROM gold_holdings WHERE player_id IN (SELECT id FROM p)
 ), owed AS (
-    SELECT player_id, SUM(`+loanOwedSQL+`) AS amount FROM loans
+    SELECT player_id, SUM(` + loanOwedSQL + `) AS amount FROM loans
      WHERE status = 'active' AND borrower_kind = 'player' AND player_id IN (SELECT id FROM p)
      GROUP BY player_id
 ), prop AS (

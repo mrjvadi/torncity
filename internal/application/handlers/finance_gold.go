@@ -169,7 +169,7 @@ func (h *FinanceHandler) goldTrade(ctx context.Context, meta envelope.Metadata, 
 			}
 			if trade.LedgerTx, err = wallet.Pay(ctx, tx.Ledger(), application.Charge{Method: method, Accepted: plan.Accepted,
 				Reason: application.ReasonGoldPurchase, ReferenceType: application.GoldTradeReference, ReferenceID: trade.ID,
-				To: []application.LedgerEntry{{AccountID: application.SystemSinkAccountID, Amount: moneyOf(total)}},
+				To:        []application.LedgerEntry{{AccountID: application.SystemSinkAccountID, Amount: moneyOf(total)}},
 				CreatedAt: now}); err != nil {
 				if stderrors.Is(err, application.ErrPaymentDeclined) {
 					return declined(plan, wallet, "gold.button.back", screens.AddrGold)

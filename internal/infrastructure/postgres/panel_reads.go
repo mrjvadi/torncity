@@ -127,14 +127,14 @@ type FlagLine struct {
 
 // Licence is a defence licence of a company.
 type Licence struct {
-	No       int64      `json:"no"`
-	Company  string     `json:"company"`
-	Kind     string     `json:"kind"`
-	Basis    string     `json:"basis"`
-	Status   string     `json:"status"`
-	Office   string     `json:"decided_office"`
-	Decided  *time.Time `json:"decided_at"`
-	Revoked  *time.Time `json:"revoked_at"`
+	No        int64      `json:"no"`
+	Company   string     `json:"company"`
+	Kind      string     `json:"kind"`
+	Basis     string     `json:"basis"`
+	Status    string     `json:"status"`
+	Office    string     `json:"decided_office"`
+	Decided   *time.Time `json:"decided_at"`
+	Revoked   *time.Time `json:"revoked_at"`
 	Effective *time.Time `json:"effective_at"`
 }
 

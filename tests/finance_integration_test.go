@@ -237,7 +237,9 @@ func (w *financeWorld) balance(kind application.AccountKind, owner string) int64
 	return cashBalance(w.t, w.pool, kind, owner)
 }
 
-func (w *financeWorld) count(query string, args ...any) int { return countRows(w.t, w.pool, query, args...) }
+func (w *financeWorld) count(query string, args ...any) int {
+	return countRows(w.t, w.pool, query, args...)
+}
 
 // fundCountry puts money in the country's national treasury, as an
 // operator's grant does, for the treasury to fund its bank.

@@ -158,4 +158,3 @@ func redact(msg string) string {
 	}
 	return msg
 }
-

@@ -622,7 +622,7 @@ const shareValueSQL = `
      WHERE s.player_id IN (SELECT id FROM p)
      GROUP BY s.player_id`
 
-// Portfolios values every player's portfolio. $1 one player or ''; $2 the
+// Portfolios values every player's portfolio. $1 one player or ”; $2 the
 // dealer's buying price of a gram.
 func (r *FinanceRepository) Portfolios(ctx context.Context, playerID string, bid int64) ([]application.Portfolio, error) {
 	if playerID != "" && !validUUID(playerID) {
