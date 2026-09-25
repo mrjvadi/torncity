@@ -174,6 +174,35 @@ services:
       postgres: {condition: service_healthy}
     restart: unless-stopped
 
+  # The operators' web panel (cmd/panel): the JSON API over the operator
+  # tooling plus its web client, behind username-and-password accounts made
+  # on the server (admin panel user add). Plain HTTP inside the network; TLS
+  # is the reverse proxy's. The host port is loopback only, for an SSH tunnel:
+  #   ssh -L 58090:127.0.0.1:58090 server   then open http://127.0.0.1:58090
+  # 256m: a password check is argon2id at 64 MiB, and two run at most at once.
+  panel:
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: "0.50"
+    build: {context: ., dockerfile: deployments/panel.Dockerfile}
+    working_dir: /srv
+    volumes: ["./configs:/srv/configs:ro"]
+    env_file: [.env]
+    environment:
+      TORN_PANEL_LISTEN: "0.0.0.0:8080"
+    ports: ["127.0.0.1:58090:8080"]
+    networks:
+      default:
+        aliases: ["tc-panel"]
+    depends_on:
+      postgres: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
   # One-shot operator tool: migrations and content loads.
   #   docker compose --profile tools run --rm admin migrate
   #   docker compose --profile tools run --rm admin content load --reason "..."

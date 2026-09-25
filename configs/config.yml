@@ -726,3 +726,40 @@ achievements:
 postgres:
   max_conns: 16
   idle_in_transaction_timeout: 60s
+
+# The operators' web panel (cmd/panel). Accounts are created on the server
+# only (`admin panel user add`); nothing here is a password or a key.
+panel:
+  # Where it listens. Loopback by default; the container overrides it with
+  # TORN_PANEL_LISTEN so the reverse proxy on the docker network reaches it.
+  listen: 127.0.0.1:8090
+  # The one origin the panel answers for: state-changing requests from any
+  # other origin (loopback aside, for an SSH tunnel) are refused.
+  public_url: https://panelomm.ir404.site
+  # Direct peers whose CF-Connecting-IP / X-Forwarded-For is believed, for
+  # rate limiting and the audit trail. Anyone else is named by the socket.
+  trusted_proxies: ["127.0.0.1/32", "::1/128"]
+  # A session ends after this long without a request, and after
+  # session_absolute whatever happens.
+  session_idle: 30m
+  session_absolute: 12h
+  # Sign-in attempts one address may make per minute.
+  login_per_minute: 10
+  # After this many wrong passwords in a row an account is locked for
+  # lockout_base, doubling with each further failure up to lockout_max.
+  lockout_after: 5
+  lockout_base: 1m
+  lockout_max: 1h
+  # Changes one operator may make per minute.
+  mutations_per_minute: 30
+  # The largest request body, bytes.
+  max_body_bytes: 65536
+  # How long a request id's answer is remembered, so a retry does not act
+  # twice.
+  idempotency_ttl: 24h
+  # The shortest password `admin panel user` accepts.
+  password_min_length: 12
+  # The name an authenticator app shows beside the code.
+  totp_issuer: torncity
+  # The longest one request may run (a content load is the slowest).
+  request_timeout: 2m

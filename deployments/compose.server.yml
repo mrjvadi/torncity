@@ -12,6 +12,8 @@
 #     non-default ports (55432/56379/54222), which are free on this host.
 #  3. The gateway joins the external network the bot api server lives on, so it
 #     can reach it by container name.
+#  4. The web panel joins that network too, as tc-panel, for the host's
+#     reverse proxy.
 services:
   telegram-bot-api:
     # Disabled here: the host's existing server is used instead. Compose has no
@@ -24,6 +26,19 @@ services:
 
   gateway:
     networks: [default, botapi]
+
+  # The web panel joins the same external network, where the host's Caddy
+  # reverse-proxies panelomm.ir404.site to tc-panel:8080 (TLS and Cloudflare
+  # in front of it). Only peers on the docker networks may name the client
+  # (CF-Connecting-IP / X-Forwarded-For); the panel has no public port.
+  panel:
+    networks:
+      botapi:
+        aliases: ["tc-panel"]
+    environment:
+      TORN_PANEL_LISTEN: "0.0.0.0:8080"
+      TORN_PANEL_PUBLIC_URL: "https://panelomm.ir404.site"
+      TORN_PANEL_TRUSTED_PROXIES: "172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
 
 networks:
   botapi:

@@ -23,6 +23,11 @@ var rawPoolAllowed = map[string]bool{
 	"outbox.go":           true,
 	"governance_admin.go": true,
 	"admin_panel.go":      true,
+	"defence_admin.go":    true,
+	// The web panel's accounts and its operator changes (cmd/panel): they
+	// run on requests of their own, never inside a command.
+	"panel_accounts.go": true,
+	"panel_lists.go":    true,
 }
 
 // TestRepositoriesDoNotTakeTheRawPool is the guard against the freeze of the

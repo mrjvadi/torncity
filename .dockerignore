@@ -1,0 +1,5 @@
+# Build inputs only: the web panel's local dependencies and build output are
+# made inside the image, never copied from a checkout.
+.git
+web/panel/node_modules
+web/panel/dist

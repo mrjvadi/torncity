@@ -68,6 +68,8 @@ func main() {
 		err = defenceCommand(ctx, os.Args[2:])
 	case "life":
 		err = lifeCommand(ctx, os.Args[2:])
+	case "panel":
+		err = panelCommand(ctx, os.Args[2:])
 	default:
 		usage()
 		os.Exit(2)
@@ -97,6 +99,7 @@ func usage() {
   player        one player by their code (admin player CODE)
   announce      post an operator's text in every city's groups (audited)
   life          backfill players' life histories from older records (audited)
+  panel         the web panel's operator accounts (see: admin panel user)
 
 DATABASE_URL must be set, except for `+"`admin content validate`"+`, which
 reads files only.

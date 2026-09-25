@@ -36,3 +36,8 @@ telegram-bot-api-data/
 /gateway
 /worker
 /scheduler
+
+# web panel build output and dependencies
+/web/panel/node_modules/
+/web/panel/dist/
+/panel

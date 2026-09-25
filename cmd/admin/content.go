@@ -13,6 +13,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
+	ops "github.com/mrjvadi/torncity/internal/operator"
 )
 
 // defaultContentDir is where authored content is read from.
@@ -74,14 +75,7 @@ func contentCommand(ctx context.Context, args []string) error {
 // `load` asks. If they could differ, `validate` would be a check that passes
 // on content the loader then refuses, which is worse than no check at all.
 func loadAndValidate(dir string) (*content.Pack, error) {
-	pack, err := content.Load(dir)
-	if err != nil {
-		return nil, err
-	}
-	if err := pack.Validate(); err != nil {
-		return nil, err
-	}
-	return pack, nil
+	return ops.LoadAndValidate(dir)
 }
 
 // describe prints what a pack contains, and anything suspicious about it.

@@ -423,6 +423,22 @@ achievements:
 postgres:
   max_conns: 17
   idle_in_transaction_timeout: 61s
+panel:
+  listen: 127.0.0.1:8091
+  public_url: https://panel.example.test
+  trusted_proxies: ["10.0.0.0/8"]
+  session_idle: 31m
+  session_absolute: 13h
+  login_per_minute: 11
+  lockout_after: 6
+  lockout_base: 2m
+  lockout_max: 2h
+  mutations_per_minute: 31
+  max_body_bytes: 65537
+  idempotency_ttl: 25h
+  password_min_length: 13
+  totp_issuer: torncity-test
+  request_timeout: 3m
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -606,6 +622,21 @@ var envOverrides = map[string]string{
 	"TORN_PROPERTY_REST_COOLDOWN":             "10h",
 	"TORN_ACHIEVEMENTS_PLAYER_DAILY_CAP":      "5002",
 	"TORN_ACHIEVEMENTS_ECONOMY_DAILY_CAP":     "500002",
+	"TORN_PANEL_LISTEN":                       "127.0.0.1:8092",
+	"TORN_PANEL_PUBLIC_URL":                   "https://panel2.example.test",
+	"TORN_PANEL_TRUSTED_PROXIES":              "172.16.0.0/12,10.0.0.0/8",
+	"TORN_PANEL_SESSION_IDLE":                 "32m",
+	"TORN_PANEL_SESSION_ABSOLUTE":             "14h",
+	"TORN_PANEL_LOGIN_PER_MINUTE":             "12",
+	"TORN_PANEL_LOCKOUT_AFTER":                "7",
+	"TORN_PANEL_LOCKOUT_BASE":                 "3m",
+	"TORN_PANEL_LOCKOUT_MAX":                  "3h",
+	"TORN_PANEL_MUTATIONS_PER_MINUTE":         "32",
+	"TORN_PANEL_MAX_BODY_BYTES":               "65538",
+	"TORN_PANEL_IDEMPOTENCY_TTL":              "26h",
+	"TORN_PANEL_PASSWORD_MIN_LENGTH":          "14",
+	"TORN_PANEL_TOTP_ISSUER":                  "torncity-env",
+	"TORN_PANEL_REQUEST_TIMEOUT":              "4m",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

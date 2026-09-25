@@ -59,6 +59,8 @@ type fileConfig struct {
 	Property     propertySettings     `yaml:"property"`
 	Achievements achievementsSettings `yaml:"achievements"`
 	Postgres     postgresSettings     `yaml:"postgres"`
+
+	Panel panelSettings `yaml:"panel"`
 }
 
 type postgresSettings struct {
@@ -604,7 +606,10 @@ func aliasSetting(s setting) setting {
 
 // settings is the whole configurable surface of this project, in the order
 // configs/config.yml declares it.
-var settings = []setting{
+var settings = append(coreSettings, panelSettingsTable()...)
+
+// coreSettings are the game's own settings; the panel's are in panel.go.
+var coreSettings = []setting{
 	durationSetting("gateway", "poll_timeout",
 		func(c *Config) *time.Duration { return &c.Gateway.PollTimeout },
 		func(f *fileConfig) *string { return f.Gateway.PollTimeout }),

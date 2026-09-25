@@ -13,6 +13,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
+	ops "github.com/mrjvadi/torncity/internal/operator"
 )
 
 // The watch's desk for operators (docs/adr/0023-health-missions-factions.md,
@@ -164,12 +165,7 @@ func watchClear(ctx context.Context, args []string) error {
 		return err
 	}
 	defer pool.Close()
-	now := time.Now()
-	if err := postgres.NewEconomyAdmin(pool).AppendAudit(ctx, postgres.AuditEntry{Actor: who, Action: "watch.clear",
-		TargetType: "watch_flags", NewValue: map[string]any{"no": no}, Reason: *note, At: now}); err != nil {
-		return err
-	}
-	if err := postgres.NewWatchRepository(pool).Clear(ctx, no, "admin:"+who, *note, now); err != nil {
+	if err := (ops.Ops{Pool: pool, Language: "fa"}).ClearFlag(ctx, no, ops.Actor{Name: who, Reason: *note, At: time.Now()}); err != nil {
 		return err
 	}
 	fmt.Printf("flag #%d cleared by %s\n", no, who)
@@ -236,18 +232,8 @@ func watchSettle(ctx context.Context, release bool, args []string) error {
 		return err
 	}
 	defer pool.Close()
-	now := time.Now()
-	if err := postgres.NewEconomyAdmin(pool).AppendAudit(ctx, postgres.AuditEntry{Actor: who, Action: "watch." + verb,
-		TargetType: "payment_holds", NewValue: map[string]any{"no": no}, Reason: *note, At: now}); err != nil {
-		return err
-	}
-	var held application.PaymentHold
-	uow := postgres.NewUnitOfWork(pool, "fa")
-	if err := uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
-		var err error
-		held, err = application.SettleHold(ctx, tx, no, release, "admin:"+who, *note, now)
-		return err
-	}); err != nil {
+	held, err := (ops.Ops{Pool: pool, Language: "fa"}).SettleHold(ctx, no, release, ops.Actor{Name: who, Reason: *note, At: time.Now()})
+	if err != nil {
 		return err
 	}
 	fmt.Printf("held payment #%d %s: %d (%s), transaction %s\n", held.No, held.Status, held.Amount, held.Method,

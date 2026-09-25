@@ -12,6 +12,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
+	ops "github.com/mrjvadi/torncity/internal/operator"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 )
 
@@ -99,172 +100,16 @@ func economyVerify(ctx context.Context, args []string) error {
 	fmt.Printf("entries:        %d\n", v.Entries)
 	fmt.Printf("money supply:   %s (sum of non-system balances)\n\n", v.MoneySupply)
 
-	fmt.Printf("%s  ledger sums to zero (sum = %s)\n", mark(v.LedgerSum == "0"), v.LedgerSum)
-	fmt.Printf("%s  every transaction balances\n", mark(len(v.Unbalanced) == 0))
-	for _, u := range v.Unbalanced {
-		fmt.Printf("        transaction %s sums to %s\n", u.TransactionID, u.Sum)
-	}
-	fmt.Printf("%s  cached balances match their entries\n", mark(len(v.Drifted) == 0))
-	for _, d := range v.Drifted {
-		fmt.Printf("        account %s (%s): cached %d, entries say %s\n", d.AccountID, d.Kind, d.Cached, d.Derived)
-	}
-
-	if v.Goods {
-		fmt.Printf("%s  every stack of goods matches the item journal\n", mark(len(v.DriftedStacks) == 0))
-		for _, d := range v.DriftedStacks {
-			fmt.Printf("        %s of player %s (%s): holds %d, the journal says %d\n", d.Item, d.PlayerID, d.Holding, d.Held, d.Journal)
-		}
-		fmt.Printf("%s  every unique piece came from a recorded origin (%d without)\n", mark(v.OrphanPieces == 0), v.OrphanPieces)
-	}
-
-	if v.Companies {
-		c := v.CompanyInvariants
-		fmt.Printf("%s  every company treasury belongs to a company (%d orphans)\n", mark(c.OrphanCompanyAccounts == 0), c.OrphanCompanyAccounts)
-		fmt.Printf("%s  no company holds less than the wages its running shifts reserved\n", mark(len(c.Underfunded) == 0))
-		for _, u := range c.Underfunded {
-			fmt.Printf("        %s\n", u)
-		}
-		fmt.Printf("%s  every closed company holds nothing\n", mark(len(c.DissolvedWithMoney) == 0))
-		for _, d := range c.DissolvedWithMoney {
+	cfg, _ := loadConfig()
+	list := ops.VerifyChecks(v, cfg)
+	for _, c := range list {
+		fmt.Printf("%s  %s\n", mark(c.OK), c.Text)
+		for _, d := range c.Details {
 			fmt.Printf("        %s\n", d)
 		}
-		fmt.Printf("%s  every settled period paid within its budget, as its companies' rows say\n", mark(len(c.OverBudget) == 0))
-		for _, o := range c.OverBudget {
-			fmt.Printf("        %s\n", o)
-		}
-		fmt.Printf("%s  NPC revenue in the ledger matches the settled periods (%d = %d)\n",
-			mark(c.NPCRevenue == c.PeriodRevenue), c.NPCRevenue, c.PeriodRevenue)
 	}
 
-	if v.Production {
-		p := v.ProductionInvariants
-		fmt.Printf("%s  every organisation's goods belong to a company that exists (%d without)\n",
-			mark(p.OrphanHolders == 0), p.OrphanHolders)
-		fmt.Printf("%s  license payments in the ledger match the licenses (%d = %d), each paid to its licensor (%d not)\n",
-			mark(p.LicenseLedger == p.LicenseRows && p.UnpaidLicenses == 0), p.LicenseLedger, p.LicenseRows, p.UnpaidLicenses)
-		fmt.Printf("%s  company sales in the ledger match the sales (%d = %d)\n",
-			mark(p.SaleLedger == p.SaleRows), p.SaleLedger, p.SaleRows)
-		fmt.Printf("%s  supplier purchases in the ledger match the purchases (%d = %d)\n",
-			mark(p.SupplyLedger == p.SupplyRows), p.SupplyLedger, p.SupplyRows)
-		fmt.Printf("%s  research costs in the ledger match the research (%d = %d)\n",
-			mark(p.ResearchLedger == p.ResearchRows), p.ResearchLedger, p.ResearchRows)
-		fmt.Printf("%s  goods sold to the population left the warehouses as the settled periods say (%d = %d)\n",
-			mark(p.NPCStockJournal == p.NPCStockPeriods), p.NPCStockJournal, p.NPCStockPeriods)
-		fmt.Printf("%s  every production order's journal is the order: inputs taken, output made\n", mark(len(p.Orders) == 0))
-		for _, o := range p.Orders {
-			fmt.Printf("        order %s\n", o)
-		}
-	}
-
-	if v.Military {
-		m := v.MilitaryInvariants
-		fmt.Printf("%s  every national treasury and defence fund belongs to a country (%d orphans)\n",
-			mark(m.OrphanStateAccounts == 0), m.OrphanStateAccounts)
-		fmt.Printf("%s  every piece a state holds is a military asset of its country, and every asset such a piece (%d, %d without)\n",
-			mark(m.OrphanStateHoldings == 0 && m.OrphanAssets == 0), m.OrphanStateHoldings, m.OrphanAssets)
-		fmt.Printf("%s  the cities' national levy in the ledger matches the defence periods (%d = %d)\n",
-			mark(m.LevyLedger == m.LevyRows), m.LevyLedger, m.LevyRows)
-		fmt.Printf("%s  defence appropriations in the ledger match the defence periods (%d = %d)\n",
-			mark(m.AppropriationLedger == m.AppropriationRows), m.AppropriationLedger, m.AppropriationRows)
-		fmt.Printf("%s  military upkeep in the ledger matches the defence periods (%d = %d)\n",
-			mark(m.UpkeepLedger == m.UpkeepRows), m.UpkeepLedger, m.UpkeepRows)
-		fmt.Printf("%s  arms payments in the ledger match the procurements (%d = %d), and so do the pieces delivered (%d = %d)\n",
-			mark(m.ProcurementLedger == m.ProcurementRows && m.Procured == m.ProcuredRows), m.ProcurementLedger,
-			m.ProcurementRows, m.Procured, m.ProcuredRows)
-	}
-
-	if v.War {
-		w := v.WarInvariants
-		fmt.Printf("%s  every piece lost in war has left the world, once, through the item journal (%d still there; %d journal rows = %d lost)\n",
-			mark(w.LostNotGone == 0 && w.LostJournal == w.LostRows), w.LostNotGone, w.LostJournal, w.LostRows)
-		fmt.Printf("%s  every piece committed belongs to an operation under way (%d stray)\n",
-			mark(w.StrayCommitted == 0), w.StrayCommitted)
-		fmt.Printf("%s  every occupied city stands under the country that holds it (%d misplaced)\n",
-			mark(w.MisplacedCities == 0), w.MisplacedCities)
-		fmt.Printf("%s  war levies in the ledger match the defence periods (%d = %d)\n",
-			mark(w.WarLevyLedger == w.WarLevyRows), w.WarLevyLedger, w.WarLevyRows)
-		fmt.Printf("%s  repairs in the ledger match the defence periods (%d = %d)\n",
-			mark(w.RepairLedger == w.RepairRows), w.RepairLedger, w.RepairRows)
-	}
-
-	d := v.DefenceInvariants
-	fmt.Printf("%s  every military wage left a defence fund for a soldier's cash (%d stray legs), and matches the shifts it paid (%d = %d)\n",
-		mark(d.StrayWageLegs == 0 && d.WageLedger == d.WageRows), d.StrayWageLegs, d.WageLedger, d.WageRows)
-
-	capsOK := true
-	if v.StageE {
-		s := v.StageEInvariants
-		fmt.Printf("%s  hospital fees in the ledger match the city hospital's treatments (%d = %d)\n",
-			mark(s.HospitalFeeLedger == s.HospitalFeeRows), s.HospitalFeeLedger, s.HospitalFeeRows)
-		fmt.Printf("%s  clinic fees in the ledger match the clinics' treatments (%d = %d), each paid (%d not)\n",
-			mark(s.TreatmentFeeLedger == s.TreatmentFeeRows && s.UnpaidTreatments == 0), s.TreatmentFeeLedger,
-			s.TreatmentFeeRows, s.UnpaidTreatments)
-		fmt.Printf("%s  medicine clinics used left the world through the item journal (%d = %d)\n",
-			mark(s.MedicineJournal == s.MedicineRows), s.MedicineJournal, s.MedicineRows)
-		fmt.Printf("%s  every faction bank belongs to a faction (%d orphans), a disbanded one holds nothing (%d do), and moves by its own reasons only (%d stray)\n",
-			mark(s.OrphanFactionAccounts == 0 && s.DisbandedWithMoney == 0 && s.StrayFactionMoves == 0),
-			s.OrphanFactionAccounts, s.DisbandedWithMoney, s.StrayFactionMoves)
-		fmt.Printf("%s  organised crime takes in the ledger match the operations (%d = %d), and the faction cuts (%d = %d)\n",
-			mark(s.HeistLedger == s.HeistRows && s.CutLedger == s.CutRows), s.HeistLedger, s.HeistRows, s.CutLedger, s.CutRows)
-		fmt.Printf("%s  mission rewards in the ledger match the completed missions and their grants (%d = %d = %d)\n",
-			mark(s.MissionLedger == s.MissionRows && s.MissionLedger == s.MissionGrants), s.MissionLedger, s.MissionRows,
-			s.MissionGrants)
-		if cfg, err := loadConfig(); err == nil {
-			capsOK = s.MissionPlayerDayMax <= cfg.Missions.PlayerDailyCap && s.MissionEconomyDayMax <= cfg.Missions.EconomyDailyCap
-			fmt.Printf("%s  no day paid a player more mission cash than its cap (%d <= %d), nor everyone (%d <= %d)\n",
-				mark(capsOK), s.MissionPlayerDayMax, cfg.Missions.PlayerDailyCap, s.MissionEconomyDayMax,
-				cfg.Missions.EconomyDailyCap)
-		}
-		fmt.Printf("%s  held payments in the ledger match the payments still held (%d = %d), each settled one settled (%d not)\n",
-			mark(s.HeldLedger == s.HeldRows && s.UnsettledHolds == 0), s.HeldLedger, s.HeldRows, s.UnsettledHolds)
-	}
-
-	if v.StageF {
-		f := v.StageFInvariants
-		fmt.Printf("%s  budget spending in the ledger matches the cities' budget periods (%d = %d), and defence contributions (%d = %d)\n",
-			mark(f.BudgetLedger == f.BudgetRows && f.DefenceLedger == f.DefenceRows), f.BudgetLedger, f.BudgetRows,
-			f.DefenceLedger, f.DefenceRows)
-		fmt.Printf("%s  every property the cities sold was paid for once (%d purchases = %d properties)\n",
-			mark(f.PurchaseTransactions == f.PropertyRows), f.PurchaseTransactions, f.PropertyRows)
-		fmt.Printf("%s  property sales in the ledger match the offers sold (%d = %d)\n",
-			mark(f.PropertySaleLedger == f.PropertySaleRows), f.PropertySaleLedger, f.PropertySaleRows)
-		fmt.Printf("%s  property tax and upkeep in the ledger match the period charges (%d = %d, %d = %d), no debt below zero (%d)\n",
-			mark(f.PropertyTaxLedger == f.PropertyTaxRows && f.PropertyUpkeepLedger == f.PropertyUpkeepRows && f.NegativeDebts == 0), f.PropertyTaxLedger,
-			f.PropertyTaxRows, f.PropertyUpkeepLedger, f.PropertyUpkeepRows, f.NegativeDebts)
-		fmt.Printf("%s  rent in the ledger matches the rent payments (%d = %d)\n",
-			mark(f.RentLedger == f.RentRows), f.RentLedger, f.RentRows)
-		fmt.Printf("%s  fuel in the ledger matches the journeys driven in players' own vehicles (%d = %d)\n",
-			mark(f.FuelLedger == f.FuelRows), f.FuelLedger, f.FuelRows)
-		if f.Tariffs {
-			fmt.Printf("%s  border tariffs in the ledger match the tariffed trades (%d = %d)\n",
-				mark(f.TariffLedger == f.TariffRows), f.TariffLedger, f.TariffRows)
-		}
-		if f.Achievements {
-			fmt.Printf("%s  achievement rewards in the ledger match the awards and their grants (%d = %d = %d)\n",
-				mark(f.AchievementLedger == f.AchievementRows && f.AchievementLedger == f.AchievementGrants),
-				f.AchievementLedger, f.AchievementRows, f.AchievementGrants)
-			if cfg, err := loadConfig(); err == nil {
-				ok := f.AchievementPlayerDayMax <= cfg.Achievements.PlayerDailyCap &&
-					f.AchievementEconomyDayMax <= cfg.Achievements.EconomyDailyCap
-				capsOK = capsOK && ok
-				fmt.Printf("%s  no day paid a player more achievement cash than its cap (%d <= %d), nor everyone (%d <= %d)\n",
-					mark(ok), f.AchievementPlayerDayMax, cfg.Achievements.PlayerDailyCap, f.AchievementEconomyDayMax,
-					cfg.Achievements.EconomyDailyCap)
-			}
-		}
-	}
-
-	if v.Life {
-		l := v.LifeInvariants
-		fmt.Printf("%s  lodging fees in the ledger match the nights paid for (%d = %d), each with its own fee (%d without)\n",
-			mark(l.LodgingLedger == l.LodgingRows && l.UnpaidNights == 0), l.LodgingLedger, l.LodgingRows, l.UnpaidNights)
-	}
-
-	if v.Finance {
-		printFinance(v.FinanceInvariants)
-	}
-
-	if !v.OK() || !capsOK {
+	if !ops.AllHold(v, list) {
 		return errInvariantsBroken
 	}
 	fmt.Println("\nall ledger invariants hold")
@@ -416,44 +261,15 @@ func economyGrant(ctx context.Context, args []string) error {
 	}
 	defer pool.Close()
 
-	admin := postgres.NewEconomyAdmin(pool)
-	playerID, label, err := admin.PlayerByCode(ctx, *code)
+	g, err := ops.Ops{Pool: pool, Language: cfg.Player.DefaultLanguage}.GrantCash(ctx, *code, *minor,
+		ops.Actor{Name: who, Reason: *reason, At: time.Now()})
 	if err != nil {
 		return err
 	}
-	amount := money.FromMinor(*minor)
-	grantedBy := "admin:" + who
-	now := time.Now()
-
-	// The audit row is written first, as grant-starting does, so the intent
-	// is on record even if the grant itself fails; the grant row names the
-	// operator too, so every unit of money traces back to this run.
-	if err := admin.AppendAudit(ctx, postgres.AuditEntry{
-		Actor:      who,
-		Action:     "economy.grant",
-		TargetType: "reward_grants",
-		NewValue:   map[string]any{"player": playerID, "amount": amount.Minor()},
-		Reason:     *reason,
-		At:         now,
-	}); err != nil {
-		return err
-	}
-
-	var grant application.RewardGrant
-	uow := postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage)
-	err = uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
-		var err error
-		grant, err = application.GrantAdminCash(ctx, tx.Ledger(), playerID, amount, grantedBy, now)
-		return err
-	})
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("granted:        %s minor units\n", amount)
-	fmt.Printf("to:             %s\n", label)
-	fmt.Printf("grant:          %s\n", grant.ID)
-	fmt.Printf("granted by:     %s\n", grantedBy)
+	fmt.Printf("granted:        %s minor units\n", money.FromMinor(g.Amount))
+	fmt.Printf("to:             %s\n", g.Label)
+	fmt.Printf("grant:          %s\n", g.ID)
+	fmt.Printf("granted by:     %s\n", g.GrantedBy)
 	fmt.Printf("reason:         %s\n", *reason)
 	return nil
 }

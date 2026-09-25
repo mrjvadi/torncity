@@ -211,6 +211,9 @@ type Config struct {
 	// Postgres is every service's connection pool (the deadlock fix: a
 	// bounded pool, and no transaction left idle holding its locks).
 	Postgres Postgres
+
+	// The operators' web panel (cmd/panel).
+	Panel Panel
 }
 
 // Postgres bounds every service's connection pool.
@@ -946,6 +949,7 @@ func Defaults() *Config {
 			MaxRent: 1_000_000, RestCooldown: 8 * time.Hour},
 		Achievements: Achievements{PlayerDailyCap: 5000, EconomyDailyCap: 500_000},
 		Postgres:     Postgres{MaxConns: 16, IdleInTransactionTimeout: 60 * time.Second},
+		Panel:        defaultPanel(),
 		Crime: Crime{
 			NerveMax:                     20,
 			NerveRegenAmount:             1,
@@ -1086,6 +1090,9 @@ func (c *Config) Validate() error {
 		if err := s.check(c); err != nil {
 			return err
 		}
+	}
+	if err := c.Panel.validate(); err != nil {
+		return err
 	}
 
 	// Renewing at or after the TTL is not renewing. A divisor of one renews

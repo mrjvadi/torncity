@@ -2,19 +2,14 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/mrjvadi/torncity/internal/application"
-	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
-	"github.com/mrjvadi/torncity/internal/content"
-	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
-	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	ops "github.com/mrjvadi/torncity/internal/operator"
 )
 
 // Operator tooling for elections (internal/domain/election). An operator
@@ -41,19 +36,6 @@ func electionCommand(ctx context.Context, args []string) error {
 		os.Exit(2)
 	}
 	return electionOpen(ctx, args[1:])
-}
-
-// electionIDs draws new row ids.
-type electionIDs struct{}
-
-func (electionIDs) NewID() string {
-	var b [16]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		panic("admin: no randomness available for identifiers: " + err.Error())
-	}
-	b[6] = b[6]&0x0f | 0x40
-	b[8] = b[8]&0x3f | 0x80
-	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
 }
 
 func electionOpen(ctx context.Context, args []string) error {
@@ -98,43 +80,10 @@ func electionOpen(ctx context.Context, args []string) error {
 		return err
 	}
 	defer pool.Close()
-	pack, err := postgres.NewContentStore(pool).LoadActive(ctx)
+	opened, err := ops.Ops{Pool: pool, Language: cfg.Player.DefaultLanguage}.OpenElection(ctx,
+		strings.TrimSpace(*office), kind, code, ops.Actor{Name: who, Reason: *reason, At: time.Now().UTC()})
 	if err != nil {
 		return fmt.Errorf("%s: %w", name, err)
-	}
-	snap, err := content.BuildSnapshot(pack.Version, pack)
-	if err != nil {
-		return fmt.Errorf("%s: %w", name, err)
-	}
-	j, err := postgres.NewGovernanceAdmin(pool).JurisdictionByCode(ctx, kind, code)
-	if err != nil {
-		return fmt.Errorf("%s: %w", name, err)
-	}
-	now := time.Now().UTC()
-	meta := envelope.Metadata{
-		RequestID: electionIDs{}.NewID(), TraceID: electionIDs{}.NewID(), Command: "election.open",
-		Language: cfg.Player.DefaultLanguage, SchemaVersion: envelope.SchemaVersion,
-	}
-	var opened application.Election
-	uow := postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage)
-	if err := uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
-		e, err := handlers.OpenElection(ctx, tx, electionIDs{}, snap,
-			strings.TrimSpace(*office), j.ID, now)
-		if err != nil {
-			return err
-		}
-		opened = e
-		return handlers.AnnounceElectionOpened(ctx, tx, postgres.NewCityRepository(pool), meta, e)
-	}); err != nil {
-		return fmt.Errorf("%s: %w", name, err)
-	}
-	if err := postgres.NewEconomyAdmin(pool).AppendAudit(ctx, postgres.AuditEntry{
-		Actor: who, Action: "election.open", TargetType: "election",
-		NewValue: map[string]any{"election_id": opened.ID, "no": opened.No, "office": opened.OfficeCode,
-			"jurisdiction": kind + ":" + code, "voting_ends_at": opened.VotingEndsAt},
-		Reason: strings.TrimSpace(*reason), At: now,
-	}); err != nil {
-		return err
 	}
 	fmt.Printf("opened election %d: %s of %s %s\n", opened.No, opened.OfficeCode, kind, code)
 	fmt.Printf("candidacy until: %s\n", opened.CandidacyEndsAt.Format(time.RFC3339))
