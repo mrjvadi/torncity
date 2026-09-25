@@ -296,7 +296,7 @@ func (s *Server) decode(w http.ResponseWriter, r *http.Request, dst any) bool {
 // logged and answered as internal, its cause never shown.
 func (s *Server) fail(w http.ResponseWriter, r *http.Request, lang string, err error) {
 	status, code := classify(err)
-	msg := err.Error()
+	msg := strings.TrimPrefix(err.Error(), "clientapi: ")
 	switch {
 	case status == http.StatusInternalServerError:
 		s.cfg.Logger.Error("client request failed", slog.String("path", r.URL.Path), slog.String("error", err.Error()))

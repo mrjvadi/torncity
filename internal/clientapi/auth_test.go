@@ -33,8 +33,8 @@ func newAuthFixture(t *testing.T) *authFixture {
 		Secret: testSecret, AccessTTL: 15 * time.Minute, RefreshTTL: 30 * 24 * time.Hour, MaxDevices: 2,
 		TelegramMaxAge: time.Hour, DefaultLanguage: "fa",
 		Codes: f.codes, Devices: f.devices, Players: f.players, Contact: f.players, Once: &memOnce{seen: map[string]bool{}},
-		Bots:  func(context.Context) ([]BotCredential, error) { return testBots, nil },
-		Now:   c.now, NewID: gen.next,
+		Bots: func(context.Context) ([]BotCredential, error) { return testBots, nil },
+		Now:  c.now, NewID: gen.next,
 	})
 	if err != nil {
 		t.Fatal(err)
