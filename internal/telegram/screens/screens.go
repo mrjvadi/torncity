@@ -234,7 +234,7 @@ func FormatDuration(c Context, d time.Duration) string {
 func Error(c Context, err error) *presenter.Response {
 	if err == nil {
 		kb := keyboards.New().Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
-		return c.respond(c.T("error.internal", nil), kb.Build())
+		return asError(c.respond(c.T("error.internal", nil), kb.Build()))
 	}
 
 	key, args := errorMessage(c, err)
@@ -247,7 +247,7 @@ func Error(c Context, err error) *presenter.Response {
 		}
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
-	return c.respond(c.T(key, args), kb.Build())
+	return asError(c.respond(c.T(key, args), kb.Build()))
 }
 
 // errorNextStep maps a refusal to the one screen that resolves it. A refusal

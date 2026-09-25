@@ -17,6 +17,10 @@ const (
 	ScreenInventory     = "inventory"
 	ScreenJobStatus     = "job_status"
 	ScreenLife          = "life"
+
+	// ScreenError is a refusal or a failure: its text says what went
+	// wrong. It carries no view.
+	ScreenError = "error"
 )
 
 // withView attaches the view to a screen shown to the player alone. A screen
@@ -27,4 +31,12 @@ func (c Context) withView(r *presenter.Response, screen string, view any) *prese
 		return r
 	}
 	return presenter.WithView(r, screen, view)
+}
+
+// asError marks a response as the error screen.
+func asError(r *presenter.Response) *presenter.Response {
+	if r != nil {
+		r.Screen = ScreenError
+	}
+	return r
 }

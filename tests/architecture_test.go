@@ -34,6 +34,7 @@ var forbiddenDomainImports = []string{
 	"net/http",
 	"database/sql",
 	"jackc/pgx",
+	"centrifugo",
 }
 
 // TestDomainImports enforces the layering rule from MASTER_PROMPT: the domain
