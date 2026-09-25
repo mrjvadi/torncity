@@ -34,6 +34,7 @@ import (
 	natsgo "github.com/nats-io/nats.go"
 
 	"github.com/mrjvadi/torncity/internal/config"
+	"github.com/mrjvadi/torncity/internal/infrastructure/centrifugo"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -172,6 +173,24 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	}
 
 	players := postgres.NewPlayerRepository(pool, cfg.Player.DefaultLanguage)
+
+	// Game clients (api/client-api.md): notices and city announcements are
+	// also published to the realtime server when its API key is set. A
+	// failure there is logged and never holds up a Telegram notice.
+	var realtime notification.Realtime
+	languages := []string{cfg.Player.DefaultLanguage}
+	for _, lang := range catalog.Languages() {
+		if lang != cfg.Player.DefaultLanguage {
+			languages = append(languages, lang)
+		}
+	}
+	if key := os.Getenv("CENTRIFUGO_API_KEY"); key != "" {
+		realtime = centrifugo.NewPublisher(cfg.Realtime.APIURL, key, cfg.Realtime.PublishTimeout)
+		logger.Info("publishing notices to the realtime server", slog.String("api_url", cfg.Realtime.APIURL))
+	} else {
+		logger.Info("CENTRIFUGO_API_KEY is not set; notices go to Telegram only")
+	}
+
 	worker, err := notification.New(notification.Config{
 		Logger:        logger,
 		Msgs:          i18n.NewStore(catalog),
@@ -187,6 +206,9 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		Groups:         postgres.NewCityGroupRepository(pool),
 		AnnounceWindow: cfg.Announce.Window,
 		AnnounceMax:    cfg.Announce.MaxPerWindow,
+
+		Realtime:          realtime,
+		RealtimeLanguages: languages,
 	})
 	if err != nil {
 		return err

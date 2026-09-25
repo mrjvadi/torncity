@@ -141,6 +141,7 @@ func (w *Worker) announce(ctx context.Context, route Route, env *envelope.Envelo
 	if a == nil {
 		return nil
 	}
+	w.publishAnnouncement(ctx, route, env, a, log)
 
 	targets, err := w.targets(ctx, a, env.Metadata)
 	if err != nil {

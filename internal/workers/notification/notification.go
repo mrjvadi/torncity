@@ -129,6 +129,13 @@ type Config struct {
 	// announce.max_per_window). Zero leaves them unbounded.
 	AnnounceWindow time.Duration
 	AnnounceMax    int
+
+	// Realtime, when set, also publishes every notice and every city
+	// announcement to the realtime server (realtime.go); a failure there
+	// never touches the Telegram delivery. RealtimeLanguages are the
+	// languages an announcement is written in there, the default first.
+	Realtime          Realtime
+	RealtimeLanguages []string
 }
 
 // Worker turns events into notices.
@@ -232,6 +239,7 @@ func (w *Worker) Handle(ctx context.Context, route Route, env *envelope.Envelope
 	if !delivered {
 		log.Warn("no bot can reach the player; the notification is dropped")
 	}
+	w.publishNotice(ctx, route, meta, player.ID, resp, log)
 
 	// After success, never before; see the package doc.
 	if _, err := w.cfg.Inbox.MarkProcessed(ctx, meta.MessageID(), consumer); err != nil {
