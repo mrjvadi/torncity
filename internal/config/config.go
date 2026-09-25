@@ -214,6 +214,11 @@ type Config struct {
 
 	// The operators' web panel (cmd/panel).
 	Panel Panel
+
+	// The game client API (cmd/clientapi) and the realtime server it and
+	// the notifier publish through; see client.go.
+	Client   Client
+	Realtime Realtime
 }
 
 // Postgres bounds every service's connection pool.
@@ -975,6 +980,8 @@ func Defaults() *Config {
 		Achievements: Achievements{PlayerDailyCap: 5000, EconomyDailyCap: 500_000},
 		Postgres:     Postgres{MaxConns: 16, IdleInTransactionTimeout: 60 * time.Second},
 		Panel:        defaultPanel(),
+		Client:       defaultClient(),
+		Realtime:     defaultRealtime(),
 		Crime: Crime{
 			NerveMax:                     20,
 			NerveRegenAmount:             1,
@@ -1117,6 +1124,12 @@ func (c *Config) Validate() error {
 		}
 	}
 	if err := c.Panel.validate(); err != nil {
+		return err
+	}
+	if err := c.Client.validate(); err != nil {
+		return err
+	}
+	if err := c.Realtime.validate(); err != nil {
 		return err
 	}
 

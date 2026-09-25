@@ -61,6 +61,9 @@ type fileConfig struct {
 	Postgres     postgresSettings     `yaml:"postgres"`
 
 	Panel panelSettings `yaml:"panel"`
+
+	Client   clientSettings   `yaml:"client"`
+	Realtime realtimeSettings `yaml:"realtime"`
 }
 
 type postgresSettings struct {
@@ -613,7 +616,7 @@ func aliasSetting(s setting) setting {
 
 // settings is the whole configurable surface of this project, in the order
 // configs/config.yml declares it.
-var settings = append(coreSettings, panelSettingsTable()...)
+var settings = append(append(coreSettings, panelSettingsTable()...), clientSettingsTable()...)
 
 // coreSettings are the game's own settings; the panel's are in panel.go.
 var coreSettings = []setting{

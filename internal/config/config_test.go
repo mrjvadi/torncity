@@ -446,6 +446,25 @@ panel:
   password_min_length: 13
   totp_issuer: torncity-test
   request_timeout: 3m
+client:
+  listen: 127.0.0.1:8082
+  trusted_proxies: ["10.0.0.0/8"]
+  access_ttl: 16m
+  refresh_ttl: 721h
+  link_code_ttl: 11m
+  link_codes_per_hour: 6
+  sign_ins_per_minute: 11
+  max_devices: 11
+  command_timeout: 16s
+  commands_per_minute: 121
+  max_body_bytes: 16385
+  telegram_auth_max_age: 61m
+  realtime_token_ttl: 16m
+  group_commands: allow
+  mini_app_url: https://play.example.test
+realtime:
+  api_url: http://realtime.example.test:8000/api
+  publish_timeout: 3s
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -651,6 +670,23 @@ var envOverrides = map[string]string{
 	"TORN_PANEL_PASSWORD_MIN_LENGTH":          "14",
 	"TORN_PANEL_TOTP_ISSUER":                  "torncity-env",
 	"TORN_PANEL_REQUEST_TIMEOUT":              "4m",
+	"TORN_CLIENT_LISTEN":                      "127.0.0.1:8083",
+	"TORN_CLIENT_TRUSTED_PROXIES":             "172.16.0.0/12",
+	"TORN_CLIENT_ACCESS_TTL":                  "17m",
+	"TORN_CLIENT_REFRESH_TTL":                 "722h",
+	"TORN_CLIENT_LINK_CODE_TTL":               "12m",
+	"TORN_CLIENT_LINK_CODES_PER_HOUR":         "7",
+	"TORN_CLIENT_SIGN_INS_PER_MINUTE":         "12",
+	"TORN_CLIENT_MAX_DEVICES":                 "12",
+	"TORN_CLIENT_COMMAND_TIMEOUT":             "17s",
+	"TORN_CLIENT_COMMANDS_PER_MINUTE":         "122",
+	"TORN_CLIENT_MAX_BODY_BYTES":              "16386",
+	"TORN_CLIENT_TELEGRAM_AUTH_MAX_AGE":       "62m",
+	"TORN_CLIENT_REALTIME_TOKEN_TTL":          "17m",
+	"TORN_CLIENT_GROUP_COMMANDS":              "allow",
+	"TORN_CLIENT_MINI_APP_URL":                "https://play2.example.test",
+	"TORN_REALTIME_API_URL":                   "http://realtime2.example.test:8000/api",
+	"TORN_REALTIME_PUBLISH_TIMEOUT":           "4s",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

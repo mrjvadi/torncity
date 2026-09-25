@@ -779,3 +779,48 @@ panel:
   totp_issuer: torncity
   # The longest one request may run (a content load is the slowest).
   request_timeout: 2m
+
+# The game client API (cmd/clientapi, api/client-api.md): a native or
+# Telegram Mini App client plays through the same command pipeline as a
+# chat. Its signing secrets are environment (CLIENT_JWT_SECRET,
+# CENTRIFUGO_TOKEN_HMAC_SECRET), never this file.
+client:
+  listen: 127.0.0.1:8081
+  # Direct peers whose X-Forwarded-For names the client, for rate limits.
+  trusted_proxies: ["127.0.0.1/32", "::1/128"]
+  # An access token (JWT) lasts access_ttl; the refresh token that renews
+  # it lasts refresh_ttl and is replaced on every use.
+  access_ttl: 15m
+  refresh_ttl: 720h
+  # A /link code works once, for link_code_ttl; a player may ask for
+  # link_codes_per_hour of them.
+  link_code_ttl: 10m
+  link_codes_per_hour: 5
+  # Sign-in attempts (a link code, Mini App data) one address may make per
+  # minute.
+  sign_ins_per_minute: 10
+  # Clients one player may have linked at once; one more signs the oldest
+  # out.
+  max_devices: 10
+  # How long a command's answer is waited for, and how many commands one
+  # player may send per minute.
+  command_timeout: 15s
+  commands_per_minute: 120
+  # The largest request body, bytes.
+  max_body_bytes: 16384
+  # How old a Telegram Mini App's signed launch data may be.
+  telegram_auth_max_age: 1h
+  # How long a realtime connection or subscription token lasts.
+  realtime_token_ttl: 15m
+  # A command played only in a Telegram group (commands.yml, channel:
+  # group), sent from a client: refuse (answered group_only) or allow.
+  group_commands: refuse
+  # The Mini App build's https address; empty until it is published.
+  mini_app_url: ""
+
+# The realtime server (Centrifugo, deployments/centrifugo). The client API
+# issues its tokens and the notifier publishes notices to it; its API key
+# is environment (CENTRIFUGO_API_KEY), and without it nothing is published.
+realtime:
+  api_url: http://tc-centrifugo:8000/api
+  publish_timeout: 2s
