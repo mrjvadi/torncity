@@ -1,9 +1,9 @@
--- 0032_panel_console — what the operators' console (cmd/panel) adds to the
+-- 0035_panel_console — what the operators' console (cmd/panel) adds to the
 -- game: a player's moderation, a company closed on an operator's authority,
 -- and the indexes the console's lists read through.
 --
--- Numbered 0032, leaving 0031 to the specialist-recruitment migration that is
--- being written alongside this one; neither depends on the other.
+-- Numbered 0035 by assignment (0032-0034 belong to other features); it depends
+-- on none of them.
 --
 -- MODERATION. A mute stops a player's commands in groups; a ban stops every
 -- command. Each is imposed by an operator with a reason, for a time or until

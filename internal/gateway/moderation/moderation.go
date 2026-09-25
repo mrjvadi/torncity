@@ -3,7 +3,7 @@
 //
 // An operator mutes a player (no commands in groups) or bans them (no
 // commands anywhere) from the web panel, for a time or until lifted
-// (migrations/0032). The gateway asks for every command it is about to
+// (migrations/0035). The gateway asks for every command it is about to
 // publish, so the answer must be cheap: it is cached in Redis for a short
 // TTL (panel.moderation_cache_ttl), and a moderation takes effect within
 // that long. A cache or database failure lets the command through — a

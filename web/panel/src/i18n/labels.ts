@@ -214,7 +214,8 @@ const viewFa: Record<string, string> = {
   'achievement.progress': 'پیشرفت دستاوردها', factions: 'دسته‌ها', 'faction.members': 'اعضا', 'faction.requests': 'درخواست‌ها',
   'faction.operations': 'عملیات دسته', 'faction.crew': 'خدمهٔ عملیات', leaderboards: 'جدول‌های برتر', outbox: 'صف رویدادها',
   migrations: 'مهاجرت‌های پایگاه داده', bots: 'بات‌ها', 'content.versions': 'نسخه‌های محتوا', clocks: 'ساعت‌های بازی',
-  'action.backlog': 'صف اقدام‌ها',
+  'action.backlog': 'صف اقدام‌ها', 'npc.staff': 'متخصصان استخدامی', 'recruit.campaigns': 'کارزارهای جذب',
+  'recruit.candidates': 'نامزدهای جذب', 'specialist.pools': 'ذخیرهٔ متخصصان',
 };
 
 export function colLabel(lang: Lang, key: string): string {

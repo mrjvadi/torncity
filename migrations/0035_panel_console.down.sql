@@ -1,4 +1,4 @@
--- 0032_panel_console, reversed. The moderation record goes; a company an
+-- 0035_panel_console, reversed. The moderation record goes; a company an
 -- operator dissolved keeps its row, recorded as closed.
 
 BEGIN;

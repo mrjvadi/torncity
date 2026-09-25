@@ -136,6 +136,8 @@ function City({ code, tab }: { code: string; tab: string }) {
           <DataView view="players" title={t('city.residents_list')} scope={{ city: code }} hide={['residence', 'telegram_id', 'language']} />
           <DataView view="players" title={t('city.present_list')} scope={{ here: code }} hide={['city', 'telegram_id', 'language']} />
           <DataView view="factions" scope={scope} hide={['city']} />
+          <DataView view="specialist.pools" scope={scope} hide={['city']} />
+          <DataView view="npc.staff" scope={scope} />
           <DataView view="travels" scope={scope} />
           <DataView view="walks" scope={scope} />
         </>

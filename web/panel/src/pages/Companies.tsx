@@ -130,6 +130,9 @@ function Company({ code, tab }: { code: string; tab: string }) {
       {tab === 'staff' && (
         <>
           <DataView view="employments" scope={scope} hide={['company', 'city']} defaultFilters={{ state: 'current' }} />
+          <DataView view="npc.staff" scope={scope} hide={['company']} />
+          <DataView view="recruit.campaigns" scope={scope} hide={['company']} />
+          <DataView view="recruit.candidates" scope={scope} hide={['company']} />
           <DataView view="shift.sessions" scope={scope} hide={['company']} />
           <DataView view="shifts" scope={scope} hide={['company']} />
           <DataView view="company.openings" scope={scope} hide={['company']} />
