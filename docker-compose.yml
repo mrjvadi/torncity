@@ -236,8 +236,8 @@ services:
   # The realtime server (Centrifugo v6): game clients hold a WebSocket to
   # it and receive their notices and their city's announcements
   # (deployments/centrifugo/config.json). Only the server API key publishes
-  # (the client API, the notifier, the panel); clients only subscribe, with
-  # tokens the client API signs. The admin UI is off.
+  # (the notifier, the operators' panel); clients only subscribe, with tokens
+  # the client API signs. The admin UI is off.
   centrifugo:
     mem_limit: 128m
     memswap_limit: 128m

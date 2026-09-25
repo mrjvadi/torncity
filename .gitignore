@@ -42,3 +42,6 @@ telegram-bot-api-data/
 /web/panel/dist/
 /panel
 /.claude/
+
+# The game client contract is committed (api/client-api.md).
+!/api/*.md
