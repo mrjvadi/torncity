@@ -285,6 +285,9 @@ func (h *ProductionHandler) techView(ctx context.Context, tx application.Tx, sna
 		if stderrors.Is(cerr, technology.ErrPrerequisiteMissing) {
 			v.State = screens.TechLocked
 		}
+		if v.Blocked == screens.ProductionRefusedSkill {
+			v.Gap = skillGapOf(snap, c.Code, def.Skill, def.Level)
+		}
 		if v.Blocked == "" && b.Available().Minor() < def.Cost {
 			v.Blocked = screens.ProductionRefusedFunds
 		}

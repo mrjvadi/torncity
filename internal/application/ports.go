@@ -189,6 +189,12 @@ type Tx interface {
 	// gold dealer; and the stock exchange; see ports_finance.go.
 	Finance() FinanceRepository
 	Stocks() StockRepository
+
+	// Recruitment is specialist recruitment
+	// (docs/adr/0027-specialist-recruitment.md): the cities' pools of NPC
+	// specialists, companies' campaigns, candidates and the specialists
+	// they hired, with their pay; see ports_recruit.go.
+	Recruitment() RecruitRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.

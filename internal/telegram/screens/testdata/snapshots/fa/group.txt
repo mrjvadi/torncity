@@ -218,6 +218,16 @@
 ━━━ question · company.buy · reply box ━━━
 تعداد
 
+━━━ announcement · a job advertisement ━━━
+📢 آگهی استخدام - صنایع نیلوفر (استودیوی فناوری) در پی مهندسی سطح ۳ است؛ متخصصان فنویک اسپن می‌توانند درخواست دهند.
+
+━━━ question · company.ramount ━━━
+💵 مبلغ این بخش از پیشنهاد استخدام را به عدد بنویسید؛ صفر یعنی ندارد.
+برای انصراف، «انصراف» را بفرستید.
+
+━━━ question · company.ramount · reply box ━━━
+مبلغ به نیل
+
 ━━━ announcement · a contractor licence granted ━━━
 🛡 شرکت فناوران آریا مجوز پیمانکاری دفاعی مشترک‌المنافع را گرفت.
 

@@ -184,6 +184,16 @@ func doctorLevel(ctx context.Context, tx application.Tx, c application.Company) 
 			return 0, err
 		}
 	}
+	// Its specialists count like staff (docs/adr/0027).
+	specialists, err := tx.Recruitment().Staff(ctx, c.ID)
+	if err != nil {
+		return 0, err
+	}
+	for _, s := range specialists {
+		if s.Skill == "medicine" {
+			best = max(best, s.Level)
+		}
+	}
 	return best, nil
 }
 

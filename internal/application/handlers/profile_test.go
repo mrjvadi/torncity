@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -21,12 +22,21 @@ const localesDir = "../../../configs/locales"
 // locale files, which is worth stopping the test run for.
 func messages(t *testing.T) *i18n.Catalog {
 	t.Helper()
-	c, err := i18n.Load(localesDir)
-	if err != nil {
-		t.Fatalf("load locales from %s: %v", localesDir, err)
+	shippedOnce.Do(func() { shipped, shippedErr = i18n.Load(localesDir) })
+	if shippedErr != nil {
+		t.Fatalf("load locales from %s: %v", localesDir, shippedErr)
 	}
-	return c
+	return shipped
 }
+
+// The catalogue is read once per test binary: it is read-only, and parsing
+// both locale files for every test made the package outlast the race
+// detector's timeout.
+var (
+	shippedOnce sync.Once
+	shipped     *i18n.Catalog
+	shippedErr  error
+)
 
 // testDefaultLanguage is what a player record gets when the request carries
 // no language. Tests fix it so an assertion never depends on the shipped

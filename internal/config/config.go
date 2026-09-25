@@ -610,6 +610,24 @@ type Company struct {
 	QuickOrderUnits int // company.quick_order_units
 	// ReverseTime is how long taking a sample apart takes, GAME time.
 	ReverseTime time.Duration // company.reverse_time
+
+	// Specialist recruitment (docs/adr/0027-specialist-recruitment.md).
+	//
+	// RecruitCheckEvery is the GAME time between two checks of a campaign,
+	// and RecruitChecks how many checks one campaign runs.
+	RecruitCheckEvery time.Duration // company.recruit_check_every
+	RecruitChecks     int           // company.recruit_checks
+	// RecruitMaxCampaigns bounds one company's campaigns running at once;
+	// RecruitMaxPositions the specialists one campaign may seek.
+	RecruitMaxCampaigns int // company.recruit_max_campaigns
+	RecruitMaxPositions int // company.recruit_max_positions
+	// RecruitMaxCandidates bounds the candidates one check brings.
+	RecruitMaxCandidates int // company.recruit_max_candidates
+	// RecruitPatience is how long, GAME time, a candidate waits for an
+	// answer before taking another job.
+	RecruitPatience time.Duration // company.recruit_patience
+	// RecruitMaxStaff bounds one company's specialists.
+	RecruitMaxStaff int // company.recruit_max_staff
 }
 
 // Military is the tuning of the armed forces
@@ -881,6 +899,13 @@ func Defaults() *Config {
 			DesignMinSkill:         1,
 			QuickOrderUnits:        5,
 			ReverseTime:            6 * time.Hour,
+			RecruitCheckEvery:      6 * time.Hour,
+			RecruitChecks:          4,
+			RecruitMaxCampaigns:    2,
+			RecruitMaxPositions:    5,
+			RecruitMaxCandidates:   6,
+			RecruitPatience:        24 * time.Hour,
+			RecruitMaxStaff:        10,
 		},
 		Military: Military{
 			Period:               24 * time.Hour,

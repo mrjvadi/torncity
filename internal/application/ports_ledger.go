@@ -428,6 +428,21 @@ const (
 	// (a faucet, bounded by the finite reserve and the spread).
 	ReasonGoldPurchase Reason = "gold_purchase"
 	ReasonGoldSale     Reason = "gold_sale"
+
+	// Specialist recruitment (docs/adr/0027-specialist-recruitment.md).
+	// ReasonRecruitmentAd pays a campaign's advertising fee from the
+	// company's treasury to each advertised city's treasury (a transfer).
+	ReasonRecruitmentAd Reason = "recruitment_ad"
+	// ReasonSpecialistSigning pays a hired specialist's signing bonus and
+	// ReasonSpecialistRelocation their move, once at hire; ReasonSpecialistSalary
+	// pays a specialist's salary and housing every company period;
+	// ReasonSpecialistEquity pays their phantom shares in cash when the
+	// contract is completed. All four leave the economy: the specialists are
+	// the NPC economy's households, like the citizens (drains).
+	ReasonSpecialistSigning    Reason = "specialist_signing"
+	ReasonSpecialistRelocation Reason = "specialist_relocation"
+	ReasonSpecialistSalary     Reason = "specialist_salary"
+	ReasonSpecialistEquity     Reason = "specialist_equity"
 )
 
 var knownReasons = map[Reason]struct{}{
@@ -438,6 +453,9 @@ var knownReasons = map[Reason]struct{}{
 	ReasonSavingsInterest: {}, ReasonInsurancePremium: {}, ReasonInsuranceClaim: {}, ReasonListingFee: {},
 	ReasonShareEscrow: {}, ReasonShareRelease: {}, ReasonShareTrade: {}, ReasonDividend: {},
 	ReasonGoldPurchase: {}, ReasonGoldSale: {},
+
+	ReasonRecruitmentAd: {}, ReasonSpecialistSigning: {}, ReasonSpecialistRelocation: {}, ReasonSpecialistSalary: {},
+	ReasonSpecialistEquity: {},
 
 	ReasonBudgetSpending: {}, ReasonDefenceContribution: {}, ReasonPropertyPurchase: {}, ReasonPropertySale: {},
 	ReasonPropertyTax: {}, ReasonPropertyUpkeep: {}, ReasonRent: {}, ReasonBorderTariff: {}, ReasonFuel: {},

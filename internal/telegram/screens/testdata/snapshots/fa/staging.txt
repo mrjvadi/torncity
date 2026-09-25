@@ -300,6 +300,7 @@
   [📤 برداشت سود] → ask:company.withdraw:T3C5T8D
   [🏷 ارزان‌تر] → company:price:T3C5T8D:9000   │   [🏷 گران‌تر] → company:price:T3C5T8D:11000
   [👥 کارکنان و درخواست‌ها] → company:staff:T3C5T8D   │   [📋 آگهی‌های استخدام] → company:openings:T3C5T8D
+  [🧲 جذب متخصص] → company:recruit:T3C5T8D   │   [👷 متخصصان شرکت] → company:npcs:T3C5T8D
   [🏭 تولید و انبار] → company:warehouse:T3C5T8D
   [🛡 مجوز دفاعی] → company:defence:T3C5T8D
   [🤝 پذیرش خودکار را روشن کن] → company:auto:T3C5T8D:on
@@ -326,6 +327,7 @@
   [📤 برداشت سود] → ask:company.withdraw:D3F2N5S
   [🏷 ارزان‌تر] → company:price:D3F2N5S:9000   │   [🏷 گران‌تر] → company:price:D3F2N5S:11000
   [👥 کارکنان و درخواست‌ها] → company:staff:D3F2N5S   │   [📋 آگهی‌های استخدام] → company:openings:D3F2N5S
+  [🧲 جذب متخصص] → company:recruit:D3F2N5S   │   [👷 متخصصان شرکت] → company:npcs:D3F2N5S
   [🏭 تولید و انبار] → company:warehouse:D3F2N5S
   [🛡 مجوز دفاعی] → company:defence:D3F2N5S
   [🤝 پذیرش خودکار را روشن کن] → company:auto:D3F2N5S:on

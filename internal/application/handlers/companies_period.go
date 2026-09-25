@@ -211,7 +211,15 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 			return err
 		}
 		pool -= citizens.Workers
-		seller := company.Seller{ID: c.ID, Type: ty, PriceBPS: price, Shifts: shifts + citizens.Effective, PresenceBPS: share}
+		// Specialists work the period like players do: each the shifts a
+		// citizen would, at full productivity (docs/adr/0027).
+		specialists, err := specialistsAt(ctx, tx, c.ID)
+		if err != nil {
+			return err
+		}
+		skilled := specialists * h.rules.Citizens.ShiftsPerPeriod * share / 10000
+		seller := company.Seller{ID: c.ID, Type: ty, PriceBPS: price, Shifts: shifts + citizens.Effective + skilled,
+			PresenceBPS: share}
 		mb := member{c: c, ty: ty, shift: shifts, wages: wages, share: share, citizens: citizens}
 		if codes := snap.StockedCodes(c.TypeCode); len(codes) > 0 {
 			if mb.stock, err = readStock(ctx, tx, c.ID, codes); err != nil {
@@ -272,6 +280,12 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 		if err != nil {
 			return err
 		}
+		// The specialists' pay, before the upkeep: payroll first.
+		specialistPay, err := h.paySpecialists(ctx, tx, meta, snap, *c, acct.ID, balance, reserved, clock.PeriodNo, now)
+		if err != nil {
+			return err
+		}
+		balance, _ = balance.Sub(money.FromMinor(specialistPay))
 		upkeep, err := company.Prorate(mb.ty.Upkeep, mb.share)
 		if err != nil {
 			return errors.Internal(err)
@@ -303,7 +317,7 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 			CompanyID: c.ID, PeriodNo: clock.PeriodNo, CityID: city.ID, StartedAt: start, EndedAt: end,
 			PresenceBPS: mb.share, PriceBPS: sellers[i].PriceBPS, QualityBPS: sale.QualityBPS, Shifts: sellers[i].Shifts,
 			WantedUnits: sale.Wanted, CapacityUnits: sale.Capacity, SoldUnits: sale.Sold, Revenue: revenue.Minor(),
-			SalesTax: tax.Minor(), Wages: mb.wages + mb.citizens.Wages.Minor(), UpkeepDue: u.Due.Minor(), UpkeepPaid: u.Paid.Minor(),
+			SalesTax: tax.Minor(), Wages: mb.wages + mb.citizens.Wages.Minor() + specialistPay, UpkeepDue: u.Due.Minor(), UpkeepPaid: u.Paid.Minor(),
 			Debt: u.Debt.Minor(), BalanceAfter: balance.Minor(), Insolvent: dissolve, SettledAt: now, StockUnits: stockUnits,
 		}); err != nil {
 			return err
@@ -316,7 +330,7 @@ func (h *CompaniesHandler) settle(ctx context.Context, tx application.Tx, meta e
 			"shifts": mb.shift, "quality_bps": sale.QualityBPS, "sold": sale.Sold, "wanted": sale.Wanted,
 			"capacity": sale.Capacity, "balance": balance.Minor(),
 			"citizen_workers": mb.citizens.Workers, "citizen_shifts": mb.citizens.Shifts,
-			"citizen_wages": mb.citizens.Wages.Minor(),
+			"citizen_wages": mb.citizens.Wages.Minor(), "specialist_wages": specialistPay,
 		}); err != nil {
 			return err
 		}

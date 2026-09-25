@@ -115,6 +115,9 @@ func Routes() []Route {
 		{Domain: "company", Event: "license_sold", Render: renderProduction("license_sold")},
 		{Domain: "company", Event: "sold", Render: renderProduction("sold")},
 
+		// Specialist recruitment: see recruit.go.
+		{Domain: "company", Event: "recruit", Render: renderRecruit},
+
 		// The armed forces, diplomacy and appointments: see military.go.
 		{Domain: "military", Event: "arrived", Render: renderMoveArrived},
 		{Domain: "military", Event: "licence_applied", Render: renderLicence("licence_applied")},
@@ -184,6 +187,7 @@ func Routes() []Route {
 		{Domain: "company", Event: "closed", Name: "announce", Announce: companyClosedAnnouncement},
 		{Domain: "company", Event: "tech_published", Name: "announce", Announce: techPublishedAnnouncement},
 		{Domain: "company", Event: "product_launched", Name: "announce", Announce: productLaunchedAnnouncement},
+		{Domain: "company", Event: "recruit_ad", Name: "announce", Announce: recruitAdAnnouncement},
 		{Domain: "military", Event: "procured", Name: "announce", Announce: procuredAnnouncement},
 		{Domain: "military", Event: "licence_granted", Name: "announce", Announce: licenceAnnouncement("granted")},
 		{Domain: "military", Event: "licence_revoked", Name: "announce", Announce: licenceAnnouncement("revoked")},

@@ -43,6 +43,7 @@ type phaseHandlers struct {
 
 	companies  *handlers.CompaniesHandler
 	production *handlers.ProductionHandler
+	recruit    *handlers.RecruitHandler
 
 	military     *handlers.MilitaryHandler
 	diplomacy    *handlers.DiplomacyHandler
@@ -250,6 +251,9 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		bound[command] = fn
 	}
 	for command, fn := range h.bindProduction() {
+		bound[command] = fn
+	}
+	for command, fn := range h.bindRecruit() {
 		bound[command] = fn
 	}
 	for command, fn := range h.bindMilitary() {

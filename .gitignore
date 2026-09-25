@@ -41,3 +41,4 @@ telegram-bot-api-data/
 /web/panel/node_modules/
 /web/panel/dist/
 /panel
+/.claude/

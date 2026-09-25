@@ -172,8 +172,12 @@ You research each technology once and the company owns it. Keep it private, sell
 ✅ Requires: Semiconductors
 🔓 Make and design with: Chipset
 
-🎓 Nobody in the company has Engineering at level 2. Hire someone with the skill, or train yourself.
+🎓 Nobody in the company has Engineering at level 2.
+🧲 Recruit a specialist in Engineering at level 2 from the cities' job market: your advertisement runs in the cities you choose, and specialists weigh your offer.
+📚 Or train yourself; these courses raise Engineering: «Software Engineering Degree»
   ───
+  [🧲 Recruit Engineering level 2] → company:rnew:Q7M2K9B:engineering:2
+  [📚 Software Engineering Degree course] → education:view:software_engineering
   [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
 
 ━━━ Technology · owned, licensed ━━━
@@ -699,8 +703,11 @@ The companies of this city list nothing for now.
 
 ━━━ Refused · skill ━━━
 (edits message 42)
-🎓 Nobody at Nilou Industries has Engineering at level 2 (best: level 0). Hire someone with the skill, or train yourself.
+🎓 Nobody at Nilou Industries has Engineering at level 2 (best: level 0).
+🧲 Recruit a specialist in Engineering at level 2 from the cities' job market: your advertisement runs in the cities you choose, and specialists weigh your offer.
+📚 No course teaches Engineering yet; recruiting a specialist is the way.
   ───
+  [🧲 Recruit Engineering level 2] → company:rnew:Q7M2K9B:engineering:2
   [🔙 Back] → company:warehouse:Q7M2K9B
 
 ━━━ Refused · tech_locked ━━━

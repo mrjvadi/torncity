@@ -111,6 +111,9 @@ const (
 
 	// Stage G2 (docs/adr/0026): a finance period ending.
 	ActionTypeFinance = "finance_period"
+
+	// Specialist recruitment (docs/adr/0027): a campaign's check.
+	ActionTypeRecruitCheck = "recruit_check"
 )
 
 // routes maps an action type to the command it is published as.
@@ -160,6 +163,8 @@ var routes = map[string]Route{
 	ActionTypeLeaderboard: {Domain: "life", Action: "refresh"},
 
 	ActionTypeFinance: {Domain: "finance", Action: "settle"},
+
+	ActionTypeRecruitCheck: {Domain: "company", Action: "rcheck"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

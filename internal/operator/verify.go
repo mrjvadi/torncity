@@ -159,7 +159,26 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 	if v.Finance {
 		financeChecks(&out, v.FinanceInvariants)
 	}
+	if v.Recruit {
+		recruitChecks(&out, v.RecruitInvariants)
+	}
 	return out
+}
+
+// recruitChecks are specialist recruitment's invariants
+// (docs/adr/0027-specialist-recruitment.md).
+func recruitChecks(out *checks, r postgres.RecruitInvariants) {
+	line := func(ok bool, format string, args ...any) { out.add(ok, fmt.Sprintf(format, args...)) }
+	line(r.AdLedger == r.AdRows && r.AdRows == r.AdCampaigns && r.AdMisrouted == 0,
+		"advertising fees in the ledger match the fees and the campaigns (%d = %d = %d), each to its own city (%d not)",
+		r.AdLedger, r.AdRows, r.AdCampaigns, r.AdMisrouted)
+	line(r.SalaryLedger == r.SalaryRows && r.UnbackedPay == 0,
+		"specialists' pay in the ledger matches the payments (%d = %d), each with its own transaction (%d without)",
+		r.SalaryLedger, r.SalaryRows, r.UnbackedPay)
+	line(r.SigningLedger == r.SigningRows && r.RelocationLedger == r.RelocationRows && r.EquityLedger == r.EquityRows,
+		"signing bonuses, moves and phantom shares in the ledger match the specialists (%d = %d, %d = %d, %d = %d)",
+		r.SigningLedger, r.SigningRows, r.RelocationLedger, r.RelocationRows, r.EquityLedger, r.EquityRows)
+	line(r.HiresBroken == 0, "every hire is one specialist of its campaign (%d broken)", r.HiresBroken)
 }
 
 // financeChecks are finance's invariants (docs/adr/0026-finance.md).

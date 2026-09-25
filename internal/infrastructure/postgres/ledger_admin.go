@@ -128,6 +128,11 @@ type LedgerVerification struct {
 	Finance bool
 	FinanceInvariants
 
+	// Recruit is whether recruitment's tables exist (migration 0031);
+	// RecruitInvariants their checks (ledger_admin_recruit.go).
+	Recruit bool
+	RecruitInvariants
+
 	// DefenceInvariants are the armed forces' wages
 	// (ledger_admin_defence.go); they need nothing but the ledger.
 	DefenceInvariants
@@ -227,7 +232,8 @@ func (v LedgerVerification) OK() bool {
 	return v.LedgerSum == "0" && len(v.Unbalanced) == 0 && len(v.Drifted) == 0 &&
 		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok() && v.ProductionInvariants.ok() &&
 		v.MilitaryInvariants.ok() && v.WarInvariants.ok() && v.StageEInvariants.ok() && v.StageFInvariants.ok() &&
-		v.DefenceInvariants.ok() && v.LifeInvariants.ok() && v.FinanceInvariants.ok()
+		v.DefenceInvariants.ok() && v.LifeInvariants.ok() && v.FinanceInvariants.ok() &&
+		v.RecruitInvariants.ok()
 }
 
 // VerifyLedger runs the three invariants of docs/adr/0009-economic-control.md
@@ -357,6 +363,14 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 	}
 	if v.Finance {
 		if err := a.verifyFinance(ctx, &v); err != nil {
+			return v, err
+		}
+	}
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.npc_staff') IS NOT NULL`).Scan(&v.Recruit); err != nil {
+		return v, fmt.Errorf("postgres: looking for recruitment: %w", err)
+	}
+	if v.Recruit {
+		if err := a.verifyRecruit(ctx, &v); err != nil {
 			return v, err
 		}
 	}

@@ -300,6 +300,7 @@ To grow, research Microchips: it opens Phone.
   [📤 Take out profit] → ask:company.withdraw:T3C5T8D
   [🏷 Cheaper] → company:price:T3C5T8D:9000   │   [🏷 Dearer] → company:price:T3C5T8D:11000
   [👥 Staff and applications] → company:staff:T3C5T8D   │   [📋 Job openings] → company:openings:T3C5T8D
+  [🧲 Recruit specialists] → company:recruit:T3C5T8D   │   [👷 Company specialists] → company:npcs:T3C5T8D
   [🏭 Production and warehouse] → company:warehouse:T3C5T8D
   [🛡 Defence licence] → company:defence:T3C5T8D
   [🤝 Hire automatically] → company:auto:T3C5T8D:on
@@ -326,6 +327,7 @@ To grow, research Microchips: it opens Phone.
   [📤 Take out profit] → ask:company.withdraw:D3F2N5S
   [🏷 Cheaper] → company:price:D3F2N5S:9000   │   [🏷 Dearer] → company:price:D3F2N5S:11000
   [👥 Staff and applications] → company:staff:D3F2N5S   │   [📋 Job openings] → company:openings:D3F2N5S
+  [🧲 Recruit specialists] → company:recruit:D3F2N5S   │   [👷 Company specialists] → company:npcs:D3F2N5S
   [🏭 Production and warehouse] → company:warehouse:D3F2N5S
   [🛡 Defence licence] → company:defence:D3F2N5S
   [🤝 Hire automatically] → company:auto:D3F2N5S:on

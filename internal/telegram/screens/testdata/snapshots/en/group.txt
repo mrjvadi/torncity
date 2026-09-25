@@ -218,6 +218,16 @@ To cancel, send "cancel".
 ━━━ question · company.buy · reply box ━━━
 Quantity
 
+━━━ announcement · a job advertisement ━━━
+📢 Job advertisement - Nilou Industries (Tech studio) is looking for Engineering level 3; specialists of Fenwick Span may apply.
+
+━━━ question · company.ramount ━━━
+💵 Type the amount for this part of the job offer; zero means none.
+To cancel, send "cancel".
+
+━━━ question · company.ramount · reply box ━━━
+Amount in Nil
+
 ━━━ announcement · a contractor licence granted ━━━
 🛡 Aria Tech was granted a defence contractor licence of The Commonwealth.
 

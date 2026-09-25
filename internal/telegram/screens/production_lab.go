@@ -168,6 +168,9 @@ type TechView struct {
 	ConfirmPublish bool
 	ConfirmLicense *TechOffer
 	Notice         *TechNotice
+	// Gap, for research blocked on a skill, is how to close it: recruit a
+	// specialist, or train (docs/adr/0027).
+	Gap *SkillGap
 }
 
 // Tech renders one technology: research it, share it, or license it.
@@ -218,6 +221,9 @@ func Tech(c Context, v TechView) *presenter.Response {
 			"level": FormatNumber(c, int64(v.Level)), "need": FormatMoney(c, v.Cost), "money": FormatMoney(c, v.Available)})
 	}
 	kb := keyboards.New()
+	if v.Blocked == ProductionRefusedSkill && v.State == TechAvailable {
+		blocked = body(blocked, c.skillGap(kb, v.Gap))
+	}
 	var offers string
 	switch {
 	case v.ConfirmPublish:

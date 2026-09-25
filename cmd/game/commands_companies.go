@@ -102,3 +102,31 @@ func (h phaseHandlers) bindProduction() map[string]commandFunc {
 		"company.reversed":   decoded(p.Reversed),
 	}
 }
+
+// recruitRules is specialist recruitment's tuning from config company
+// (docs/adr/0027-specialist-recruitment.md).
+func recruitRules(c config.Company, limits bank.Limits) handlers.RecruitRules {
+	return handlers.RecruitRules{CheckEvery: c.RecruitCheckEvery, Checks: c.RecruitChecks,
+		MaxCampaigns: c.RecruitMaxCampaigns, MaxPositions: c.RecruitMaxPositions, MaxCandidates: c.RecruitMaxCandidates,
+		MaxStaff: c.RecruitMaxStaff, Patience: c.RecruitPatience, Period: c.Period, Limits: limits}
+}
+
+// bindRecruit maps specialist recruitment's commands to their handler.
+func (h phaseHandlers) bindRecruit() map[string]commandFunc {
+	r := h.recruit
+	return map[string]commandFunc{
+		"company.recruit": decoded(r.Hub),
+		"company.rnew":    decoded(r.New),
+		"company.rdraft":  decoded(r.Draft),
+		"company.rset":    decoded(r.Set),
+		"company.ramount": decoded(r.Amount),
+		"company.rpost":   decoded(r.Post),
+		"company.rcamp":   decoded(r.Campaign),
+		"company.rdecide": decoded(r.Decide),
+		"company.rcancel": decoded(r.Cancel),
+		"company.npcs":    decoded(r.Specialists),
+		"company.npc":     decoded(r.Specialist),
+		// The scheduler's: a campaign's check.
+		"company.rcheck": decoded(r.Check),
+	}
+}

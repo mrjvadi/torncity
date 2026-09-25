@@ -541,6 +541,21 @@ var argNames = map[string][]string{
 	"company.stockup":   {"company", "target", "qty"},
 	"company.defence":   {"company", "confirm"},
 
+	// Specialist recruitment (docs/adr/0027). A campaign, a candidate and a
+	// specialist are public numbers; a skill and a city are content codes;
+	// a preset is its index; amounts are typed.
+	"company.recruit": {"company"},
+	"company.rnew":    {"company", "skill", "level"},
+	"company.rdraft":  {"no", "section"},
+	"company.rset":    {"no", "field", "value", "extra"},
+	"company.ramount": {"no", "field", "amount"},
+	"company.rpost":   {"no", "confirm"},
+	"company.rcamp":   {"no"},
+	"company.rdecide": {"no", "verdict"},
+	"company.rcancel": {"no", "confirm"},
+	"company.npcs":    {"company"},
+	"company.npc":     {"no", "act", "confirm"},
+
 	// The armed forces and diplomacy (docs/adr/0022). A country is named
 	// by its content code (governance.yml), a branch by its code
 	// (military.yml), a listing, a sanction or a treaty by its public

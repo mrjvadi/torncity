@@ -119,6 +119,8 @@ type file struct {
 	Life *LifeDef `yaml:"life"`
 
 	Finance *FinanceDef `yaml:"finance"`
+
+	Recruitment *RecruitmentDef `yaml:"recruitment"`
 }
 
 // Load reads every content file in dir and returns them as one pack.
@@ -251,6 +253,9 @@ func Load(dir string) (*Pack, error) {
 		}
 		if doc.Finance != nil {
 			pack.Finance = append(pack.Finance, *doc.Finance)
+		}
+		if doc.Recruitment != nil {
+			pack.Recruitment = append(pack.Recruitment, *doc.Recruitment)
 		}
 	}
 

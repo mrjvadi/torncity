@@ -357,6 +357,13 @@ company:
   design_min_skill: 2
   quick_order_units: 6
   reverse_time: 5h
+  recruit_check_every: 5h
+  recruit_checks: 5
+  recruit_max_campaigns: 3
+  recruit_max_positions: 6
+  recruit_max_candidates: 7
+  recruit_patience: 23h
+  recruit_max_staff: 11
 military:
   period: 25h
   readiness_loss_bps: 1001
@@ -576,6 +583,13 @@ var envOverrides = map[string]string{
 	"TORN_COMPANY_DESIGN_MIN_SKILL":           "3",
 	"TORN_COMPANY_QUICK_ORDER_UNITS":          "7",
 	"TORN_COMPANY_REVERSE_TIME":               "7h",
+	"TORN_COMPANY_RECRUIT_CHECK_EVERY":        "7h",
+	"TORN_COMPANY_RECRUIT_CHECKS":             "6",
+	"TORN_COMPANY_RECRUIT_MAX_CAMPAIGNS":      "4",
+	"TORN_COMPANY_RECRUIT_MAX_POSITIONS":      "7",
+	"TORN_COMPANY_RECRUIT_MAX_CANDIDATES":     "8",
+	"TORN_COMPANY_RECRUIT_PATIENCE":           "22h",
+	"TORN_COMPANY_RECRUIT_MAX_STAFF":          "12",
 	"TORN_MILITARY_PERIOD":                    "26h",
 	"TORN_MILITARY_READINESS_LOSS_BPS":        "1002",
 	"TORN_MILITARY_READINESS_RECOVERY_BPS":    "502",

@@ -256,3 +256,6 @@ func (t *tx) Finance() application.FinanceRepository { return &FinanceRepository
 
 // Stocks returns the stock exchange (migration 0029).
 func (t *tx) Stocks() application.StockRepository { return &StockRepository{q: t.q} }
+
+// Recruitment returns specialist recruitment (migration 0031).
+func (t *tx) Recruitment() application.RecruitRepository { return &RecruitRepository{q: t.q} }

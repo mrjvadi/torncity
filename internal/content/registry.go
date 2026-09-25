@@ -86,6 +86,9 @@ type Snapshot struct {
 	// finance is finance.yml's finance section, nil without one; see
 	// finance.go.
 	finance *FinanceDef
+	// recruitment is recruitment.yml's section, nil without one; see
+	// recruitment.go.
+	recruitment *RecruitmentDef
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -179,6 +182,10 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	if len(p.Finance) > 0 {
 		f := p.Finance[0]
 		snap.finance = &f
+	}
+	if len(p.Recruitment) > 0 {
+		r := p.Recruitment[0]
+		snap.recruitment = &r
 	}
 
 	return snap, nil

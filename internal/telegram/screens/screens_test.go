@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -25,12 +26,21 @@ const localesDir = "../../../configs/locales"
 
 func catalogue(t *testing.T) *i18n.Catalog {
 	t.Helper()
-	c, err := i18n.Load(localesDir)
-	if err != nil {
-		t.Fatalf("load locales from %s: %v", localesDir, err)
+	loadedOnce.Do(func() { loaded, loadErr = i18n.Load(localesDir) })
+	if loadErr != nil {
+		t.Fatalf("load locales from %s: %v", localesDir, loadErr)
 	}
-	return c
+	return loaded
 }
+
+// The catalogue is read once per test binary: it is read-only, and parsing
+// both locale files for each of hundreds of subtests made the package
+// outlast the race detector's timeout.
+var (
+	loadedOnce sync.Once
+	loaded     *i18n.Catalog
+	loadErr    error
+)
 
 func ctx(t *testing.T, lang string, messageID int64) Context {
 	t.Helper()

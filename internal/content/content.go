@@ -277,6 +277,9 @@ type Pack struct {
 	// finance.yml: the finance section, at most one (finance.go;
 	// docs/adr/0026-finance.md).
 	Finance []FinanceDef
+	// recruitment.yml: the recruitment section, at most one
+	// (recruitment.go; docs/adr/0027-specialist-recruitment.md).
+	Recruitment []RecruitmentDef
 
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"

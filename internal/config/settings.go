@@ -264,6 +264,13 @@ type companySettings struct {
 	DesignMinSkill         *int    `yaml:"design_min_skill"`
 	QuickOrderUnits        *int    `yaml:"quick_order_units"`
 	ReverseTime            *string `yaml:"reverse_time"`
+	RecruitCheckEvery      *string `yaml:"recruit_check_every"`
+	RecruitChecks          *int    `yaml:"recruit_checks"`
+	RecruitMaxCampaigns    *int    `yaml:"recruit_max_campaigns"`
+	RecruitMaxPositions    *int    `yaml:"recruit_max_positions"`
+	RecruitMaxCandidates   *int    `yaml:"recruit_max_candidates"`
+	RecruitPatience        *string `yaml:"recruit_patience"`
+	RecruitMaxStaff        *int    `yaml:"recruit_max_staff"`
 }
 
 type militarySettings struct {
@@ -984,6 +991,27 @@ var coreSettings = []setting{
 	durationSetting("company", "reverse_time",
 		func(c *Config) *time.Duration { return &c.Company.ReverseTime },
 		func(f *fileConfig) *string { return f.Company.ReverseTime }),
+	durationSetting("company", "recruit_check_every",
+		func(c *Config) *time.Duration { return &c.Company.RecruitCheckEvery },
+		func(f *fileConfig) *string { return f.Company.RecruitCheckEvery }),
+	limitSetting("company", "recruit_checks",
+		func(c *Config) *int { return &c.Company.RecruitChecks },
+		func(f *fileConfig) *int { return f.Company.RecruitChecks }),
+	limitSetting("company", "recruit_max_campaigns",
+		func(c *Config) *int { return &c.Company.RecruitMaxCampaigns },
+		func(f *fileConfig) *int { return f.Company.RecruitMaxCampaigns }),
+	limitSetting("company", "recruit_max_positions",
+		func(c *Config) *int { return &c.Company.RecruitMaxPositions },
+		func(f *fileConfig) *int { return f.Company.RecruitMaxPositions }),
+	limitSetting("company", "recruit_max_candidates",
+		func(c *Config) *int { return &c.Company.RecruitMaxCandidates },
+		func(f *fileConfig) *int { return f.Company.RecruitMaxCandidates }),
+	durationSetting("company", "recruit_patience",
+		func(c *Config) *time.Duration { return &c.Company.RecruitPatience },
+		func(f *fileConfig) *string { return f.Company.RecruitPatience }),
+	limitSetting("company", "recruit_max_staff",
+		func(c *Config) *int { return &c.Company.RecruitMaxStaff },
+		func(f *fileConfig) *int { return f.Company.RecruitMaxStaff }),
 
 	durationSetting("military", "period",
 		func(c *Config) *time.Duration { return &c.Military.Period },

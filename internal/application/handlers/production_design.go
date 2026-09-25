@@ -228,6 +228,7 @@ func (h *ProductionHandler) checkEngineer(ctx context.Context, tx application.Tx
 	if level < h.rules.DesignMinSkill {
 		r := refuseProduction(screens.ProductionRefusedSkill, f.c, snap).back(screens.AddrStudio, f.c.Code)
 		r.view.Skill, r.view.Level, r.view.Have = a.ReverseSkill, h.rules.DesignMinSkill, level
+		r.view.Gap = skillGapOf(snap, f.c.Code, a.ReverseSkill, h.rules.DesignMinSkill)
 		return r
 	}
 	return nil

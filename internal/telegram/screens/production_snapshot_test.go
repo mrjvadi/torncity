@@ -84,6 +84,8 @@ func productionSnapshots(c Context, _ people, add func(string, *presenter.Respon
 	add("Technology · the company cannot pay", Tech(c, poor))
 	novice := tech
 	novice.Blocked, novice.Best = ProductionRefusedSkill, 1
+	novice.Gap = &SkillGap{Company: maker.Code, Skill: "engineering", Level: 2,
+		Courses: []CourseRef{{Code: "software_engineering", Name: "Software Engineering"}}}
 	add("Technology · nobody skilled enough", Tech(c, novice))
 	owned := TechView{Ref: maker, Tech: micro, State: TechOwned, Cost: 60000, Time: 12 * time.Minute, Mode: TechLicensed,
 		Price: 12000, Sold: 3, Unlocks: []Named{chipset}}
@@ -230,7 +232,8 @@ func productionSnapshots(c Context, _ people, add func(string, *presenter.Respon
 	// Refusals.
 	refusals := []ProductionRefusalView{
 		{Kind: ProductionRefusedShortage, Ref: maker, Shortages: []Shortage{{Component: cell, Need: 5, Have: 3}, {Component: chipset, Need: 5, Have: 0}}},
-		{Kind: ProductionRefusedSkill, Ref: maker, Skill: "engineering", Level: 2, Have: 0},
+		{Kind: ProductionRefusedSkill, Ref: maker, Skill: "engineering", Level: 2, Have: 0,
+			Gap: &SkillGap{Company: maker.Code, Skill: "engineering", Level: 2}},
 		{Kind: ProductionRefusedTechLocked, Ref: rival, Techs: []Named{micro, batteries}},
 		{Kind: ProductionRefusedFunds, Ref: maker, Need: 60000, HaveMoney: 12000},
 		{Kind: ProductionRefusedBusy, Ref: maker, Techs: []Named{batteries}},

@@ -1,0 +1,581 @@
+━━━ Technology · nobody skilled enough, recruit or train ━━━
+(edits message 42)
+🔬 Microchips
+🔬 You can research this technology.
+
+💰 Research cost: 60,000 Nil - ⏱ time: 12m
+🎓 Skill needed: Engineering level 3 - your best person: level 0
+
+🎓 Nobody in the company has Engineering at level 3.
+🧲 Recruit a specialist in Engineering at level 3 from the cities' job market: your advertisement runs in the cities you choose, and specialists weigh your offer.
+📚 Or train yourself; these courses raise Engineering: «Software Engineering Degree», «Automotive Repair»
+  ───
+  [🧲 Recruit Engineering level 3] → company:rnew:Q7M2K9B:engineering:3
+  [📚 Software Engineering Degree course] → education:view:software_engineering   │   [📚 Automotive Repair course] → education:view:automotive_repair
+  [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
+
+━━━ Refusal · a design needs a skill, recruit or train ━━━
+(edits message 42)
+🎓 Nobody at Nilou Industries has Cooking at level 1 (best: level 0).
+🧲 Recruit a specialist in Cooking at level 1 from the cities' job market: your advertisement runs in the cities you choose, and specialists weigh your offer.
+📚 No course teaches Cooking yet; recruiting a specialist is the way.
+  ───
+  [🧲 Recruit Cooking level 1] → company:rnew:Q7M2K9B:cooking:1
+  [🔙 Back] → company:warehouse:Q7M2K9B
+
+━━━ Recruitment · the hub ━━━
+(edits message 42) (private in groups)
+🧲 Specialist recruitment - Nilou Industries
+👷 Company specialists: 1 of 10
+
+📋 Campaigns:
+⏳ No. 14 - Engineering level 3 - 3 cities - 1 of 2 hired - next check at 14:41 - 2 waiting for an answer
+✏️ No. 15 - Medicine level 2 - draft
+⌛️ No. 9 - Programming level 1 - over - 0 of 1 hired
+
+A recruitment campaign is your job advertisement in the cities you choose. Each city's specialists are few, and they weigh your offer against what they expect, the cost of moving and the company's reputation. You may run 2 campaigns at once; running now: 1.
+  ───
+  [🧲 Campaign 14 - Engineering level 3] → company:rcamp:14
+  [🧲 Campaign 15 - Medicine level 2] → company:rdraft:15
+  [🧲 Campaign 9 - Programming level 1] → company:rcamp:9
+  [➕ New campaign] → company:rnew:Q7M2K9B   │   [👷 Company specialists] → company:npcs:Q7M2K9B
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:recruit:Q7M2K9B
+
+━━━ Recruitment · no campaign yet ━━━
+(edits message 42) (private in groups)
+🧲 Specialist recruitment - Nilou Industries
+👷 Company specialists: 0 of 10
+
+You have no recruitment campaign yet.
+
+A recruitment campaign is your job advertisement in the cities you choose. Each city's specialists are few, and they weigh your offer against what they expect, the cost of moving and the company's reputation. You may run 2 campaigns at once; running now: 0.
+  ───
+  [➕ New campaign] → company:rnew:Q7M2K9B   │   [👷 Company specialists] → company:npcs:Q7M2K9B
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:recruit:Q7M2K9B
+
+━━━ Recruitment · a new draft ━━━
+(edits message 42) (private in groups)
+✏️ The campaign draft is ready; set the offer and post it.
+
+🧲 Recruitment campaign No. 14 - Nilou Industries
+✏️ Draft: set each part, then post the advertisement.
+
+🎓 Skill: Engineering level 3 or higher
+📍 Cities: Ostmarch, Fenwick Span
+👥 Positions: 1
+💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
+🏠 Housing allowance per period: 33 Nil
+🎁 Signing bonus: 330 Nil
+🚚 Relocation package: up to 1,000 Nil
+📄 Contract: 10 periods
+📈 Phantom shares: none
+✋ Auto-hire: off - you accept each applicant yourself
+
+🔎 41 specialists of Engineering level 3 or higher are free to work in these cities.
+📊 Rough chance each specialist answers: 42%
+💰 Advertising: 3,000 Nil (2 cities × 1,500 Nil) - company free money: 52,000 Nil
+  ───
+  [🎓 Skill and level] → company:rdraft:14:skill   │   [📍 Cities] → company:rdraft:14:cities
+  [💵 Pay and benefits] → company:rdraft:14:pay   │   [📄 Contract and shares] → company:rdraft:14:terms
+  [📢 Post the ad - 3,000 Nil] → company:rpost:14
+  [🔙 Back] → company:recruit:Q7M2K9B   │   [🔄 Refresh] → company:rdraft:14
+
+━━━ Recruitment · the builder, skill ━━━
+(edits message 42) (private in groups)
+✅ Saved.
+
+🧲 Recruitment campaign No. 14 - Nilou Industries
+🎓 Choose the skill and the lowest level you accept.
+
+🎓 Skill: Engineering level 3 or higher
+📍 Cities: Ostmarch, Fenwick Span
+👥 Positions: 1
+💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
+🏠 Housing allowance per period: 33 Nil
+🎁 Signing bonus: 330 Nil
+🚚 Relocation package: up to 1,000 Nil
+📄 Contract: 10 periods
+📈 Phantom shares: none
+✋ Auto-hire: off - you accept each applicant yourself
+
+🔎 41 specialists of Engineering level 3 or higher are free to work in these cities.
+📊 Rough chance each specialist answers: 42%
+💰 Advertising: 3,000 Nil (2 cities × 1,500 Nil) - company free money: 52,000 Nil
+  ───
+  [✅ Engineering] → company:rset:14:skill:engineering   │   [Programming] → company:rset:14:skill:programming   │   [Medicine] → company:rset:14:skill:medicine
+  [Management] → company:rset:14:skill:management   │   [Finance] → company:rset:14:skill:finance   │   [Mechanics] → company:rset:14:skill:mechanics
+  [➖ One level lower] → company:rset:14:level:2   │   [➕ One level higher] → company:rset:14:level:4
+  [🔙 Back] → company:rdraft:14   │   [🔄 Refresh] → company:rdraft:14:skill
+
+━━━ Recruitment · the builder, cities ━━━
+(edits message 42) (private in groups)
+✅ Saved.
+
+🧲 Recruitment campaign No. 14 - Nilou Industries
+📍 The cities the advertisement runs in; each city's fee is separate.
+
+🎓 Skill: Engineering level 3 or higher
+📍 Cities: Ostmarch, Fenwick Span
+👥 Positions: 1
+💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
+🏠 Housing allowance per period: 33 Nil
+🎁 Signing bonus: 330 Nil
+🚚 Relocation package: up to 1,000 Nil
+📄 Contract: 10 periods
+📈 Phantom shares: none
+✋ Auto-hire: off - you accept each applicant yourself
+
+🔎 41 specialists of Engineering level 3 or higher are free to work in these cities.
+📊 Rough chance each specialist answers: 42%
+💰 Advertising: 3,000 Nil (2 cities × 1,500 Nil) - company free money: 52,000 Nil
+  ───
+  [✅ Ostmarch] → company:rset:14:city:ostmarch:0   │   [✅ Fenwick Span] → company:rset:14:city:fenwick_span:0
+  [Calderis ✈️] → company:rset:14:city:calderis:1
+  [🏙 Our city only] → company:rset:14:scope:own   │   [🗺 All cities of the country] → company:rset:14:scope:nation   │   [🌐 All cities] → company:rset:14:scope:all
+  [🔙 Back] → company:rdraft:14   │   [🔄 Refresh] → company:rdraft:14:cities
+
+━━━ Recruitment · the builder, pay ━━━
+(edits message 42) (private in groups)
+✅ Saved.
+
+🧲 Recruitment campaign No. 14 - Nilou Industries
+💵 Choose or type the salary per period, housing allowance, signing bonus and relocation package.
+
+🎓 Skill: Engineering level 3 or higher
+📍 Cities: Ostmarch, Fenwick Span
+👥 Positions: 1
+💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
+🏠 Housing allowance per period: 33 Nil
+🎁 Signing bonus: 330 Nil
+🚚 Relocation package: up to 1,000 Nil
+📄 Contract: 10 periods
+📈 Phantom shares: none
+✋ Auto-hire: off - you accept each applicant yourself
+
+🔎 41 specialists of Engineering level 3 or higher are free to work in these cities.
+📊 Rough chance each specialist answers: 42%
+💰 Advertising: 3,000 Nil (2 cities × 1,500 Nil) - company free money: 52,000 Nil
+  ───
+  [💵 250 Nil] → company:rset:14:salary:0   │   [💵 290 Nil] → company:rset:14:salary:1   │   [💵 343 Nil] → company:rset:14:salary:2   │   [✏️ Other salary] → ask:company.ramount:14:salary
+  [🏠 none] → company:rset:14:housing:0   │   [✅ 🏠 33 Nil] → company:rset:14:housing:1   │   [🏠 66 Nil] → company:rset:14:housing:2   │   [✏️ Other housing] → ask:company.ramount:14:housing
+  [🎁 none] → company:rset:14:signing:0   │   [✅ 🎁 330 Nil] → company:rset:14:signing:1   │   [🎁 990 Nil] → company:rset:14:signing:2   │   [✏️ Other bonus] → ask:company.ramount:14:signing
+  [🚚 none] → company:rset:14:relocation:0   │   [✅ 🚚 1,000 Nil] → company:rset:14:relocation:1   │   [🚚 2,500 Nil] → company:rset:14:relocation:2   │   [✏️ Other relocation] → ask:company.ramount:14:relocation
+  [🔙 Back] → company:rdraft:14   │   [🔄 Refresh] → company:rdraft:14:pay
+
+━━━ Recruitment · the builder, terms ━━━
+(edits message 42) (private in groups)
+✅ Saved.
+
+🧲 Recruitment campaign No. 14 - Nilou Industries
+📄 Contract length, phantom shares, how many to hire and auto-hire.
+
+🎓 Skill: Engineering level 3 or higher
+📍 Cities: Ostmarch, Fenwick Span
+👥 Positions: 1
+💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
+🏠 Housing allowance per period: 33 Nil
+🎁 Signing bonus: 330 Nil
+🚚 Relocation package: up to 1,000 Nil
+📄 Contract: 10 periods
+📈 Phantom shares: 25 - worth 4,200 Nil today - paid in cash at the end of the contract
+⚡️ Auto-hire: on - every applicant is hired at once
+
+🔎 41 specialists of Engineering level 3 or higher are free to work in these cities.
+📊 Rough chance each specialist answers: 42%
+💰 Advertising: 3,000 Nil (2 cities × 1,500 Nil) - company free money: 52,000 Nil
+  ───
+  [📄 5 periods] → company:rset:14:term:0   │   [✅ 📄 10 periods] → company:rset:14:term:1   │   [📄 20 periods] → company:rset:14:term:2
+  [📈 0 shares] → company:rset:14:shares:0   │   [📈 10 shares] → company:rset:14:shares:1   │   [✅ 📈 25 shares] → company:rset:14:shares:2   │   [📈 50 shares] → company:rset:14:shares:3
+  [➕ One more] → company:rset:14:positions:2
+  [✋ Turn auto-hire off] → company:rset:14:auto:0
+  [🔙 Back] → company:rdraft:14   │   [🔄 Refresh] → company:rdraft:14:terms
+
+━━━ Recruitment · post, confirm ━━━
+(edits message 42) (private in groups)
+🧲 Recruitment campaign No. 14 - Nilou Industries
+✏️ Draft: set each part, then post the advertisement.
+
+🎓 Skill: Engineering level 3 or higher
+📍 Cities: Ostmarch, Fenwick Span
+👥 Positions: 1
+💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
+🏠 Housing allowance per period: 33 Nil
+🎁 Signing bonus: 330 Nil
+🚚 Relocation package: up to 1,000 Nil
+📄 Contract: 10 periods
+📈 Phantom shares: none
+✋ Auto-hire: off - you accept each applicant yourself
+
+🔎 41 specialists of Engineering level 3 or higher are free to work in these cities.
+📊 Rough chance each specialist answers: 42%
+💰 Advertising: 3,000 Nil (2 cities × 1,500 Nil) - company free money: 52,000 Nil
+
+📢 The advertisement runs in 2 cities and 3,000 Nil goes from the company's account to their treasuries. The campaign checks the specialists 4 times, every 6m. Post it?
+  ───
+  [✅ Post and pay 3,000 Nil] → company:rpost:14:yes
+  [🔙 Back] → company:rdraft:14   │   [🔄 Refresh] → company:rdraft:14
+
+━━━ Recruitment · a draft with no city ━━━
+(edits message 42) (private in groups)
+🧲 Recruitment campaign No. 14 - Nilou Industries
+✏️ Draft: set each part, then post the advertisement.
+
+🎓 Skill: Engineering level 3 or higher
+📍 Cities: no city chosen yet
+👥 Positions: 1
+💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
+🏠 Housing allowance per period: 33 Nil
+🎁 Signing bonus: 330 Nil
+🚚 Relocation package: up to 1,000 Nil
+📄 Contract: 10 periods
+📈 Phantom shares: none
+✋ Auto-hire: off - you accept each applicant yourself
+
+🔎 0 specialists of Engineering level 3 or higher are free to work in these cities.
+💰 Advertising: 0 Nil (0 cities × 1,500 Nil) - company free money: 52,000 Nil
+  ───
+  [🎓 Skill and level] → company:rdraft:14:skill   │   [📍 Cities] → company:rdraft:14:cities
+  [💵 Pay and benefits] → company:rdraft:14:pay   │   [📄 Contract and shares] → company:rdraft:14:terms
+  [🔙 Back] → company:recruit:Q7M2K9B   │   [🔄 Refresh] → company:rdraft:14
+
+━━━ Campaign · running, candidates waiting ━━━
+(edits message 42) (private in groups)
+📢 The advertisement is posted; we will tell you what each check brings.
+
+🧲 Campaign No. 14 - Engineering level 3 or higher
+⏳ Running - next check at 14:41 - 2 checks to go
+📍 Cities: Fenwick Span, Ostmarch
+👥 Hired: 1 of 2
+
+💵 Salary per period: 330 Nil
+🏠 Housing allowance per period: 33 Nil
+🎁 Signing bonus: 330 Nil
+🚚 Relocation package: up to 1,000 Nil
+📄 Contract: 10 periods
+📈 Phantom shares: 25
+
+📨 Applicants:
+• Leila Rostami - Engineering level 4 - from Fenwick Span - expects 520 Nil - waits until 14:59
+• Pouya Nowruzi - Engineering level 3 - from Ostmarch - expects 290 Nil - waits until 14:55
+✅ Negar Rostami - Engineering level 3 - from Calderis ✈️ - hired
+⌛️ Farhad Salehi - Engineering level 5 - from Fenwick Span - did not wait and took another job
+❌ Arash Moradi - Engineering level 3 - from Fenwick Span - turned down
+
+💰 Company free money: 48,000 Nil
+  ───
+  [✅ Hire Leila Rostami - 1,330 Nil] → company:rdecide:31:yes   │   [❌ Turn down] → company:rdecide:31:no
+  [✅ Hire Pouya Nowruzi - 330 Nil] → company:rdecide:32:yes   │   [❌ Turn down] → company:rdecide:32:no
+  [🛑 Stop the campaign] → company:rcancel:14
+  [🔙 Back] → company:recruit:Q7M2K9B   │   [🔄 Refresh] → company:rcamp:14
+
+━━━ Campaign · one hired ━━━
+(edits message 42) (private in groups)
+✅ Leila Rostami is hired and joins the company's specialists.
+
+🧲 Campaign No. 14 - Engineering level 3 or higher
+⏳ Running - next check at 14:41 - 2 checks to go
+📍 Cities: Fenwick Span, Ostmarch
+👥 Hired: 1 of 2
+
+💵 Salary per period: 330 Nil
+🏠 Housing allowance per period: 33 Nil
+🎁 Signing bonus: 330 Nil
+🚚 Relocation package: up to 1,000 Nil
+📄 Contract: 10 periods
+📈 Phantom shares: 25
+
+📨 Applicants:
+• Leila Rostami - Engineering level 4 - from Fenwick Span - expects 520 Nil - waits until 14:59
+• Pouya Nowruzi - Engineering level 3 - from Ostmarch - expects 290 Nil - waits until 14:55
+✅ Negar Rostami - Engineering level 3 - from Calderis ✈️ - hired
+⌛️ Farhad Salehi - Engineering level 5 - from Fenwick Span - did not wait and took another job
+❌ Arash Moradi - Engineering level 3 - from Fenwick Span - turned down
+
+💰 Company free money: 48,000 Nil
+  ───
+  [✅ Hire Leila Rostami - 1,330 Nil] → company:rdecide:31:yes   │   [❌ Turn down] → company:rdecide:31:no
+  [✅ Hire Pouya Nowruzi - 330 Nil] → company:rdecide:32:yes   │   [❌ Turn down] → company:rdecide:32:no
+  [🛑 Stop the campaign] → company:rcancel:14
+  [🔙 Back] → company:recruit:Q7M2K9B   │   [🔄 Refresh] → company:rcamp:14
+
+━━━ Campaign · stop, confirm ━━━
+(edits message 42) (private in groups)
+🧲 Campaign No. 14 - Engineering level 3 or higher
+⏳ Running - next check at 14:41 - 2 checks to go
+📍 Cities: Fenwick Span, Ostmarch
+👥 Hired: 1 of 2
+
+💵 Salary per period: 330 Nil
+🏠 Housing allowance per period: 33 Nil
+🎁 Signing bonus: 330 Nil
+🚚 Relocation package: up to 1,000 Nil
+📄 Contract: 10 periods
+📈 Phantom shares: 25
+
+📨 Applicants:
+• Leila Rostami - Engineering level 4 - from Fenwick Span - expects 520 Nil - waits until 14:59
+• Pouya Nowruzi - Engineering level 3 - from Ostmarch - expects 290 Nil - waits until 14:55
+✅ Negar Rostami - Engineering level 3 - from Calderis ✈️ - hired
+⌛️ Farhad Salehi - Engineering level 5 - from Fenwick Span - did not wait and took another job
+❌ Arash Moradi - Engineering level 3 - from Fenwick Span - turned down
+
+💰 Company free money: 48,000 Nil
+
+🛑 Stop the campaign? The advertising fee is not refunded and waiting applicants step aside.
+  ───
+  [🛑 Yes, stop it] → company:rcancel:14:yes
+  [🔙 Back] → company:recruit:Q7M2K9B   │   [🔄 Refresh] → company:rcamp:14
+
+━━━ Campaign · over, nobody answered ━━━
+(edits message 42) (private in groups)
+🧲 Campaign No. 9 - Programming level 1 or higher
+⌛️ The campaign's checks are over.
+📍 Cities: Ostmarch
+👥 Hired: 0 of 1
+
+💵 Salary per period: 250 Nil
+📄 Contract: 5 periods
+
+📨 Nobody answered this advertisement. Try a better offer or more cities.
+
+💰 Company free money: 48,000 Nil
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B   │   [🔄 Refresh] → company:rcamp:9
+
+━━━ Campaign · filled by auto-hire ━━━
+(edits message 42) (private in groups)
+🧲 Campaign No. 9 - Programming level 1 or higher
+✅ Every position is filled.
+📍 Cities: Ostmarch
+👥 Hired: 1 of 1
+⚡️ Auto-hire: on - every applicant is hired at once
+
+💵 Salary per period: 250 Nil
+📄 Contract: 5 periods
+
+📨 No other applicant.
+
+💰 Company free money: 48,000 Nil
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B   │   [🔄 Refresh] → company:rcamp:9
+
+━━━ Specialists · the list ━━━
+(edits message 42) (private in groups)
+👷 Specialists of Nilou Industries - 3 of 10
+
+• Negar Rostami - Engineering level 3 - from Calderis
+💵 Salary per period: 330 Nil + housing 33 Nil
+📄 Contract: period 4 of 10
+📈 Phantom shares: 25
+
+• Bahram Nowruzi - Medicine level 2 - from Fenwick Span
+💵 Salary per period: 300 Nil
+📄 Contract: period 3 of 10
+⚠️ Paid below the market (420 Nil); in 1 more periods they take a better offer.
+
+• Nasrin Rostami - Programming level 5 - from Ostmarch
+💵 Salary per period: 700 Nil
+⏳ The contract is completed; renew it before the next settlement or they leave.
+🔴 Their pay is overdue; 1 more periods unpaid and they leave.
+
+Specialists count like an employee with their skill in the lab, the design studio, reverse engineering, a clinic and on the production floor. They are paid every period from the company's account; unpaid or underpaid, they leave.
+  ───
+  [🚪 Part ways with Negar Rostami] → company:npc:5:dismiss
+  [💰 Match the market for Bahram Nowruzi] → company:npc:6:raise   │   [🚪 Part ways with Bahram Nowruzi] → company:npc:6:dismiss
+  [🔁 Renew Nasrin Rostami's contract] → company:npc:7:renew   │   [🚪 Part ways with Nasrin Rostami] → company:npc:7:dismiss
+  [🧲 Recruit specialists] → company:recruit:Q7M2K9B
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:npcs:Q7M2K9B
+
+━━━ Specialists · a contract renewed ━━━
+(edits message 42) (private in groups)
+🔁 Nasrin Rostami's contract is renewed.
+
+👷 Specialists of Nilou Industries - 3 of 10
+
+• Negar Rostami - Engineering level 3 - from Calderis
+💵 Salary per period: 330 Nil + housing 33 Nil
+📄 Contract: period 4 of 10
+📈 Phantom shares: 25
+
+• Bahram Nowruzi - Medicine level 2 - from Fenwick Span
+💵 Salary per period: 300 Nil
+📄 Contract: period 3 of 10
+⚠️ Paid below the market (420 Nil); in 1 more periods they take a better offer.
+
+• Nasrin Rostami - Programming level 5 - from Ostmarch
+💵 Salary per period: 700 Nil
+⏳ The contract is completed; renew it before the next settlement or they leave.
+🔴 Their pay is overdue; 1 more periods unpaid and they leave.
+
+Specialists count like an employee with their skill in the lab, the design studio, reverse engineering, a clinic and on the production floor. They are paid every period from the company's account; unpaid or underpaid, they leave.
+  ───
+  [🚪 Part ways with Negar Rostami] → company:npc:5:dismiss
+  [💰 Match the market for Bahram Nowruzi] → company:npc:6:raise   │   [🚪 Part ways with Bahram Nowruzi] → company:npc:6:dismiss
+  [🔁 Renew Nasrin Rostami's contract] → company:npc:7:renew   │   [🚪 Part ways with Nasrin Rostami] → company:npc:7:dismiss
+  [🧲 Recruit specialists] → company:recruit:Q7M2K9B
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:npcs:Q7M2K9B
+
+━━━ Specialists · part ways, confirm ━━━
+(edits message 42) (private in groups)
+👷 Specialists of Nilou Industries - 3 of 10
+
+• Bahram Nowruzi - Medicine level 2 - from Fenwick Span
+💵 Salary per period: 300 Nil
+📄 Contract: period 3 of 10
+⚠️ Paid below the market (420 Nil); in 1 more periods they take a better offer.
+
+🚪 Part ways with Bahram Nowruzi? Bonuses paid are not returned, and they stop working for the company now.
+  ───
+  [🚪 Yes, part ways] → company:npc:6:dismiss:yes
+  [🧲 Recruit specialists] → company:recruit:Q7M2K9B
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:npcs:Q7M2K9B
+
+━━━ Specialists · none yet ━━━
+(edits message 42) (private in groups)
+👷 Specialists of Nilou Industries - 0 of 10
+
+You have not hired a specialist yet.
+
+Specialists count like an employee with their skill in the lab, the design studio, reverse engineering, a clinic and on the production floor. They are paid every period from the company's account; unpaid or underpaid, they leave.
+  ───
+  [🧲 Recruit specialists] → company:recruit:Q7M2K9B
+  [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:npcs:Q7M2K9B
+
+━━━ Recruitment refusal · funds ━━━
+(edits message 42) (private in groups)
+💰 The company's free money (1,200 Nil) does not cover this (3,000 Nil).
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B
+
+━━━ Recruitment refusal · campaigns ━━━
+(edits message 42) (private in groups)
+📋 Nilou Industries already runs 2 campaigns; wait for one to end.
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B
+
+━━━ Recruitment refusal · staff ━━━
+(edits message 42) (private in groups)
+👷 Nilou Industries has reached its limit of 10 specialists.
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B
+
+━━━ Recruitment refusal · no_cities ━━━
+(edits message 42) (private in groups)
+📍 Choose at least one city for the advertisement first.
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B
+
+━━━ Recruitment refusal · no_skill ━━━
+(edits message 42) (private in groups)
+🎓 No city has specialists of this skill at this level.
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B
+
+━━━ Recruitment refusal · finished ━━━
+(edits message 42) (private in groups)
+⌛️ This campaign is no longer running.
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B
+
+━━━ Recruitment refusal · gone ━━━
+(edits message 42) (private in groups)
+↩️ Leila Rostami is no longer available; they did not wait or took another job.
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B
+
+━━━ Recruitment refusal · posted ━━━
+(edits message 42) (private in groups)
+📢 This campaign is posted and no longer changes.
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B
+
+━━━ Recruitment refusal · amount ━━━
+(edits message 42) (private in groups)
+🔢 That amount is not accepted.
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B
+
+━━━ Recruitment refusal · filled ━━━
+(edits message 42) (private in groups)
+✅ This campaign's positions are filled.
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B
+
+━━━ Recruitment refusal · not_now ━━━
+(edits message 42) (private in groups)
+⏳ That is not possible now.
+  ───
+  [🔙 Back] → company:recruit:Q7M2K9B
+
+━━━ Recruitment refusal · not_found ━━━
+(edits message 42) (private in groups)
+🔍 No such campaign, applicant or specialist.
+  ───
+  [🔙 Back] → company:mine
+
+━━━ Notice · applied  ━━━
+(sends) (private in groups)
+📨 Nilou Industries - campaign No. 14: 3 specialists applied.
+  ───
+  [🧲 Open the campaign] → company:rcamp:14
+
+━━━ Notice · hired  ━━━
+(sends) (private in groups)
+✅ Leila Rostami (Engineering level 4) joined Nilou Industries by auto-hire.
+  ───
+  [👷 Company specialists] → company:npcs:Q7M2K9B
+
+━━━ Notice · ended  ━━━
+(sends) (private in groups)
+⌛️ Nilou Industries - campaign No. 14: the checks are over.
+  ───
+  [🧲 Open the campaign] → company:rcamp:14
+
+━━━ Notice · filled  ━━━
+(sends) (private in groups)
+✅ Nilou Industries - campaign No. 14: every position is filled.
+  ───
+  [🧲 Open the campaign] → company:rcamp:14
+
+━━━ Notice · unpaid  ━━━
+(sends) (private in groups)
+🔴 Leila Rostami's (Engineering level 4) pay at Nilou Industries was not paid; the company's free money fell short.
+  ───
+  [👷 Company specialists] → company:npcs:Q7M2K9B
+
+━━━ Notice · completed  ━━━
+(sends) (private in groups)
+📄 Leila Rostami's (Engineering level 4) contract at Nilou Industries is completed. Renew it before the next settlement, or they leave.
+📈 Their phantom shares were paid: 5,250 Nil.
+  ───
+  [👷 Company specialists] → company:npcs:Q7M2K9B
+
+━━━ Notice · completed  ━━━
+(sends) (private in groups)
+📄 Leila Rostami's (Engineering level 4) contract at Nilou Industries is completed. Renew it before the next settlement, or they leave.
+  ───
+  [👷 Company specialists] → company:npcs:Q7M2K9B
+
+━━━ Notice · left unpaid ━━━
+(sends) (private in groups)
+🚪 Leila Rostami (Engineering level 4) left Nilou Industries: unpaid for several periods.
+  ───
+  [👷 Company specialists] → company:npcs:Q7M2K9B
+
+━━━ Notice · left poached ━━━
+(sends) (private in groups)
+🚪 Leila Rostami (Engineering level 4) left Nilou Industries: paid below the market, they took a better offer.
+  ───
+  [👷 Company specialists] → company:npcs:Q7M2K9B
+
+━━━ Notice · left contract_end ━━━
+(sends) (private in groups)
+🚪 Leila Rostami (Engineering level 4) left Nilou Industries: their contract ended unrenewed.
+  ───
+  [👷 Company specialists] → company:npcs:Q7M2K9B
+
+━━━ Notice · left company_closed ━━━
+(sends) (private in groups)
+🚪 Leila Rostami (Engineering level 4) left Nilou Industries: the company closed.
+  ───
+  [👷 Company specialists] → company:npcs:Q7M2K9B

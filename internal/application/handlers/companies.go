@@ -952,6 +952,12 @@ func (h *CompaniesHandler) manageView(ctx context.Context, tx application.Tx, sn
 		PriceBPS: c.PriceBPS, PriceMin: ty.PriceMinBPS, PriceMax: ty.PriceMaxBPS, PriceStep: h.rules.PriceStepBPS,
 		MaxStaff: ty.MaxStaff, AutoAccept: c.AutoAccept, TaxBPS: int(tax), Clinic: tdef.Care != nil,
 	}
+	if v.Specialists, err = specialistsAt(ctx, tx, c.ID); err != nil {
+		return v, err
+	}
+	if v.Recruiting, err = tx.Recruitment().Running(ctx, c.ID); err != nil {
+		return v, err
+	}
 	if c.ManagerID != "" {
 		m, err := playerNamed(ctx, tx, c.ManagerID)
 		if err != nil {
@@ -1511,6 +1517,9 @@ func (h *CompaniesHandler) dissolve(ctx context.Context, tx application.Tx, meta
 		return err
 	}
 	if _, err := tx.Companies().WithdrawCompanyApplications(ctx, c.ID, now); err != nil {
+		return err
+	}
+	if err := releaseSpecialists(ctx, tx, c.ID, now); err != nil {
 		return err
 	}
 	c.Status, c.ClosedAt, c.CloseReason, c.UpdatedAt = application.CompanyDissolved, &now, reason, now

@@ -544,6 +544,22 @@ company:
   # units of a product, batches of a component — or what the warehouse can
   # cover when that is less.
   quick_order_units: 5
+  # Specialist recruitment (docs/adr/0027): who the NPC specialists are and
+  # what they expect is content (recruitment.yml); how a campaign runs is
+  # here. GAME time between two checks of a campaign, and the checks one
+  # campaign runs: at scale 60, four checks six game hours apart are about
+  # a real hour and a half.
+  recruit_check_every: 6h
+  recruit_checks: 4
+  # Campaigns one company runs at once, and specialists one campaign seeks.
+  recruit_max_campaigns: 2
+  recruit_max_positions: 5
+  # Candidates one check brings at most: the bound on notices and rows.
+  recruit_max_candidates: 6
+  # How long, GAME time, a candidate waits for an answer.
+  recruit_patience: 24h
+  # Specialists one company employs at most.
+  recruit_max_staff: 10
 
 # The armed forces (docs/adr/0022-military-and-diplomacy.md). Who decides a
 # country's budget and who buys its arms are offices (governance.yml); what

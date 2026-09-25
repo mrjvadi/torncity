@@ -334,6 +334,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.production = handlers.NewProductionHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), productionRules(cfg.Company, bankLimits),
 		cfg.Game.IdempotencyTTL, nil)
+	// Specialist recruitment (docs/adr/0027): who the specialists are is
+	// content; campaigns check on the game clock.
+	h.recruit = handlers.NewRecruitHandler(uow, uuidGenerator{}, messages, registry, cities,
+		gametime.Scale(cfg.Game.TimeScale), recruitRules(cfg.Company, bankLimits), cfg.Game.IdempotencyTTL, nil)
 
 	// The armed forces and diplomacy (docs/adr/0022): classes, branches and
 	// treaty types are content; who decides is an office; the defence

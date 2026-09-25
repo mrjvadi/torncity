@@ -273,6 +273,21 @@ var all = []Subscription{
 	{Domain: "company", Action: "researched", Origin: FromScheduler},
 	{Domain: "company", Action: "produced", Origin: FromScheduler},
 	{Domain: "company", Action: "reversed", Origin: FromScheduler},
+	// Specialist recruitment (docs/adr/0027): the hub, the campaign
+	// builder, posting, a campaign and its candidates, the company's
+	// specialists; and a campaign's check from the scheduler.
+	{Domain: "company", Action: "recruit", Origin: FromPlayer},
+	{Domain: "company", Action: "rnew", Origin: FromPlayer},
+	{Domain: "company", Action: "rdraft", Origin: FromPlayer},
+	{Domain: "company", Action: "rset", Origin: FromPlayer},
+	{Domain: "company", Action: "ramount", Origin: FromPlayer},
+	{Domain: "company", Action: "rpost", Origin: FromPlayer},
+	{Domain: "company", Action: "rcamp", Origin: FromPlayer},
+	{Domain: "company", Action: "rdecide", Origin: FromPlayer},
+	{Domain: "company", Action: "rcancel", Origin: FromPlayer},
+	{Domain: "company", Action: "npcs", Origin: FromPlayer},
+	{Domain: "company", Action: "npc", Origin: FromPlayer},
+	{Domain: "company", Action: "rcheck", Origin: FromScheduler},
 
 	// The armed forces (docs/adr/0022-military-and-diplomacy.md): a
 	// country's ministry of defence and its forces, one branch in full,

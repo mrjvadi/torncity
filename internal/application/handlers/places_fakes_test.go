@@ -366,3 +366,6 @@ func (t *fakeTx) Life() application.LifeRepository { return nil }
 func (t *fakeTx) Finance() application.FinanceRepository { return nil }
 
 func (t *fakeTx) Stocks() application.StockRepository { return nil }
+func (t *fakeTx) Recruitment() application.RecruitRepository {
+	return noRecruitment{}
+}

@@ -648,6 +648,7 @@ func TestGroupTextSnapshots(t *testing.T) {
 			electionAnnouncements(c, who, book)
 			companyAnnouncements(c, who, book)
 			productionAnnouncements(c, book)
+			recruitAnnouncements(c, book)
 			stagingAnnouncements(c, book)
 			militaryAnnouncements(c, who, book)
 			healthAnnouncements(c, who, book)

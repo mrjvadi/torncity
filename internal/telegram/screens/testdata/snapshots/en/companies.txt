@@ -240,6 +240,7 @@ Now put money into the company's account and post a job opening; from the next p
   [📤 Take out profit] → ask:company.withdraw:Q7M2K9B
   [🏷 Cheaper] → company:price:Q7M2K9B:10000   │   [🏷 Dearer] → company:price:Q7M2K9B:12000
   [👥 Staff and applications] → company:staff:Q7M2K9B   │   [📋 Job openings] → company:openings:Q7M2K9B
+  [🧲 Recruit specialists] → company:recruit:Q7M2K9B   │   [👷 Company specialists] → company:npcs:Q7M2K9B
   [🏭 Production and warehouse] → company:warehouse:Q7M2K9B
   [🤝 Hire automatically] → company:auto:Q7M2K9B:on
   [🧑‍💼 Appoint a manager] → ask:company.manager:Q7M2K9B   │   [🚪 Close the company] → company:close:Q7M2K9B
@@ -274,6 +275,7 @@ Now put money into the company's account and post a job opening; from the next p
   [📤 Take out profit] → ask:company.withdraw:Q7M2K9B
   [🏷 Cheaper] → company:price:Q7M2K9B:10000   │   [🏷 Dearer] → company:price:Q7M2K9B:12000
   [👥 Staff and applications] → company:staff:Q7M2K9B   │   [📋 Job openings] → company:openings:Q7M2K9B
+  [🧲 Recruit specialists] → company:recruit:Q7M2K9B   │   [👷 Company specialists] → company:npcs:Q7M2K9B
   [🏭 Production and warehouse] → company:warehouse:Q7M2K9B
   [🤝 Hire automatically] → company:auto:Q7M2K9B:on
   [🧑‍💼 Appoint a manager] → ask:company.manager:Q7M2K9B   │   [🚪 Close the company] → company:close:Q7M2K9B
@@ -308,6 +310,7 @@ Now put money into the company's account and post a job opening; from the next p
   [📤 Take out profit] → ask:company.withdraw:Q7M2K9B
   [🏷 Cheaper] → company:price:Q7M2K9B:10000   │   [🏷 Dearer] → company:price:Q7M2K9B:12000
   [👥 Staff and applications] → company:staff:Q7M2K9B   │   [📋 Job openings] → company:openings:Q7M2K9B
+  [🧲 Recruit specialists] → company:recruit:Q7M2K9B   │   [👷 Company specialists] → company:npcs:Q7M2K9B
   [🏭 Production and warehouse] → company:warehouse:Q7M2K9B
   [🤝 Hire automatically] → company:auto:Q7M2K9B:on
   [🧑‍💼 Appoint a manager] → ask:company.manager:Q7M2K9B   │   [🚪 Close the company] → company:close:Q7M2K9B
@@ -343,6 +346,7 @@ Now put money into the company's account and post a job opening; from the next p
   [📤 Take out profit] → ask:company.withdraw:Q7M2K9B
   [🏷 Cheaper] → company:price:Q7M2K9B:10000   │   [🏷 Dearer] → company:price:Q7M2K9B:12000
   [👥 Staff and applications] → company:staff:Q7M2K9B   │   [📋 Job openings] → company:openings:Q7M2K9B
+  [🧲 Recruit specialists] → company:recruit:Q7M2K9B   │   [👷 Company specialists] → company:npcs:Q7M2K9B
   [🏭 Production and warehouse] → company:warehouse:Q7M2K9B
   [🤝 Hire automatically] → company:auto:Q7M2K9B:on
   [🧑‍💼 Appoint a manager] → ask:company.manager:Q7M2K9B   │   [🚪 Close the company] → company:close:Q7M2K9B
@@ -378,6 +382,7 @@ Now put money into the company's account and post a job opening; from the next p
   [📤 Take out profit] → ask:company.withdraw:Q7M2K9B
   [🏷 Cheaper] → company:price:Q7M2K9B:10000   │   [🏷 Dearer] → company:price:Q7M2K9B:12000
   [👥 Staff and applications] → company:staff:Q7M2K9B   │   [📋 Job openings] → company:openings:Q7M2K9B
+  [🧲 Recruit specialists] → company:recruit:Q7M2K9B   │   [👷 Company specialists] → company:npcs:Q7M2K9B
   [🏭 Production and warehouse] → company:warehouse:Q7M2K9B
   [🤝 Hire automatically] → company:auto:Q7M2K9B:on
   [🧑‍💼 Appoint a manager] → ask:company.manager:Q7M2K9B   │   [🚪 Close the company] → company:close:Q7M2K9B
@@ -404,6 +409,7 @@ Now put money into the company's account and post a job opening; from the next p
   [📥 Put in cash] → ask:company.deposit:Q7M2K9B:cash   │   [📥 Put in by card] → ask:company.deposit:Q7M2K9B:card
   [🏷 Cheaper] → company:price:Q7M2K9B:9000   │   [🏷 Dearer] → company:price:Q7M2K9B:11000
   [👥 Staff and applications] → company:staff:Q7M2K9B   │   [📋 Job openings] → company:openings:Q7M2K9B
+  [🧲 Recruit specialists] → company:recruit:Q7M2K9B   │   [👷 Company specialists] → company:npcs:Q7M2K9B
   [🏭 Production and warehouse] → company:warehouse:Q7M2K9B
   [🤝 Stop hiring automatically] → company:auto:Q7M2K9B:off
   [🔙 Back] → company:view:Q7M2K9B   │   [🔄 Refresh] → company:manage:Q7M2K9B

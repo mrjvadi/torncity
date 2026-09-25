@@ -253,6 +253,20 @@ commands:
   # licence show its standing and its owner's decisions: PV only
   # (docs/adr/0022, section 2.14).
   company.defence: {channel: private}
+  # Specialist recruitment (docs/adr/0027): recruiting spends the company's
+  # money and shows its books, so every screen of it is PV. Only the job
+  # advertisement is public, as a line in the target cities' groups.
+  company.recruit: {channel: private}
+  company.rnew: {channel: private}
+  company.rdraft: {channel: private}
+  company.rset: {channel: private}
+  company.ramount: {channel: private}
+  company.rpost: {channel: private}
+  company.rcamp: {channel: private}
+  company.rdecide: {channel: private}
+  company.rcancel: {channel: private}
+  company.npcs: {channel: private}
+  company.npc: {channel: private}
 
   # The armed forces (docs/adr/0022): a country's ministry of defence and the
   # public summary of its forces read anywhere (in a group without counts,
@@ -364,6 +378,7 @@ input:
   company.dname: {field: name, args: [no], text: true}
   company.sell: {field: price, args: [company, target, qty]}
   company.buy: {field: qty, args: [no]}
+  company.ramount: {field: amount, args: [no, field]}
   gov.appoint: {field: to, args: [office, place], text: true}
   health.price: {field: price, args: [company]}
   faction.found: {field: name, args: [method], text: true}

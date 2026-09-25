@@ -259,6 +259,10 @@ type floor struct {
 	// withCitizens, which production orders call before sizing a crew.
 	citizens int
 	skills   map[string]map[string]int
+	// specialists are the NPC specialists it employs
+	// (docs/adr/0027-specialist-recruitment.md): crew, and a skill level
+	// each, counted like an employee's.
+	specialists []application.NPCStaff
 	// sector is the company's sector as export control reads it, once
 	// sectorRead (production_staging.go).
 	sector     string
@@ -301,6 +305,9 @@ func readFloor(ctx context.Context, tx application.Tx, snap *content.Snapshot, c
 		return nil, err
 	}
 	f.staff = len(staff)
+	if f.specialists, err = tx.Recruitment().Staff(ctx, c.ID); err != nil {
+		return nil, err
+	}
 	seen := map[string]bool{}
 	for _, id := range append([]string{c.OwnerID, c.ManagerID}, staffIDs(staff)...) {
 		if id == "" || seen[id] {
@@ -349,11 +356,19 @@ func (f *floor) best(ctx context.Context, tx application.Tx, skill string) (int,
 			level, who = l, id
 		}
 	}
+	// A specialist counts like an employee with their skill; a player of
+	// the same level comes first, and is the one named.
+	for _, s := range f.specialists {
+		if s.Skill == skill && s.Level > level {
+			level, who = s.Level, ""
+		}
+	}
 	return min(max(level, 0), item.MaxSkillLevel), who, nil
 }
 
-// crew is how many work an order: the owner and every employee.
-func (f *floor) crew() int { return 1 + f.staff + f.citizens }
+// crew is how many work an order: the owner, every employee, the citizens
+// on its untaken openings and its specialists.
+func (f *floor) crew() int { return 1 + f.staff + f.citizens + len(f.specialists) }
 
 // books reads a company's money under its lock.
 func (f *floor) books(ctx context.Context, tx application.Tx) (company.Books, application.Account, error) {

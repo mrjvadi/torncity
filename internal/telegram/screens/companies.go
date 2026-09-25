@@ -511,6 +511,9 @@ type CompanyManageView struct {
 	// Defence is where it stands on a defence licence, nil when licences
 	// do not concern it (docs/adr/0022, section 2.14).
 	Defence *DefenceBadge
+	// Specialists are the NPC specialists it employs, and Recruiting its
+	// campaigns running (docs/adr/0027).
+	Specialists, Recruiting int
 }
 
 // DefenceBadge is a company's defence licence as its management screen shows
@@ -568,6 +571,10 @@ func CompanyManage(c Context, v CompanyManageView) *presenter.Response {
 	if line := c.citizensLine(v.Citizens); line != "" {
 		running = append(running, line)
 	}
+	if v.Specialists > 0 || v.Recruiting > 0 {
+		running = append(running, c.T("recruit.manage_line", map[string]any{
+			"count": FormatNumber(c, int64(v.Specialists)), "campaigns": FormatNumber(c, int64(v.Recruiting))}))
+	}
 	if v.Manager != nil {
 		running = append(running, c.T("company.manager", map[string]any{"player": c.govPlayer(v.Manager)}))
 	}
@@ -618,6 +625,9 @@ func CompanyManage(c Context, v CompanyManageView) *presenter.Response {
 	staff, _ := keyboards.Button(c.T("company.button.staff", nil), AddrCompanyStaff, v.Ref.Code)
 	openings, _ := keyboards.Button(c.T("company.button.openings", nil), AddrCompanyOpenings, v.Ref.Code)
 	kb.Row(staff, openings)
+	recruit, _ := keyboards.Button(c.T("recruit.button.manage", nil), AddrRecruit, v.Ref.Code)
+	specialists, _ := keyboards.Button(c.T("recruit.button.staff", nil), AddrSpecialists, v.Ref.Code)
+	kb.Row(recruit, specialists)
 	if btn, ok := keyboards.Button(c.T("production.button.warehouse", nil), AddrWarehouse, v.Ref.Code); ok {
 		kb.Row(btn)
 	}

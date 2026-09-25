@@ -390,6 +390,8 @@ type ProductionRefusalView struct {
 	Max       int
 	CityCode  string
 	City      string
+	// Gap, for a skill refusal, is how to close it (docs/adr/0027).
+	Gap *SkillGap
 }
 
 // ProductionRefusal renders a refused production command.
@@ -426,6 +428,9 @@ func ProductionRefusal(c Context, v ProductionRefusalView) *presenter.Response {
 	}
 	if v.Kind == ProductionRefusedShortage && v.Ref.Code != "" {
 		kb.Add(c.T("production.button.suppliers", nil), AddrSuppliers, v.Ref.Code)
+	}
+	if v.Kind == ProductionRefusedSkill {
+		text = body(text, c.skillGap(kb, v.Gap))
 	}
 	c.productionNav(kb, back)
 	return c.respond(text, kb.Build())

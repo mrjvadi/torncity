@@ -1,0 +1,156 @@
+# Specialist recruitment (docs/adr/0027-specialist-recruitment.md): the NPC
+# specialists each city has, what they expect to be paid, how they weigh a
+# company's job offer, and how patient they are once hired.
+#
+# A company that needs a skill nobody in it has — an engineer of level 3 for
+# its research lab — runs a recruitment campaign: a job advertisement in the
+# cities it chooses, with a package (salary, housing, signing bonus,
+# relocation, contract, phantom shares). At each check of the campaign the
+# specialists of those cities weigh the offer, and those who like it apply;
+# the company hires whom it wants. A hired specialist works for the company
+# like an employee with their skill — the research lab, the design studio,
+# reverse engineering, a clinic's doctor and the production floor all count
+# them — and is paid every company period from the company's money.
+#
+# The RULES are internal/domain/recruit. How often a campaign checks, how
+# many checks it runs and the caps on candidates and staff are the
+# operator's (config.yml company.recruit_*). Everything here is parameter.
+#
+# A period is one company period (config company.period, GAME time).
+#
+# Fields
+#   reference_cost_of_living  the cost of living (cities.yml) the market wages
+#                    below are quoted at; a city dearer than it expects more.
+#   ad_fee           paid once per city a campaign advertises in, to that
+#                    city's treasury (recruitment_ad), minor units.
+#   announce         post the advertisement («آگهی استخدام») in the groups
+#                    of the cities it runs in — no amount in it.
+#   pool_regen_bps_per_game_day  the share of a pool's capacity that comes
+#                    back every game day (at least one specialist a day); a
+#                    city that funds its education budget line trains faster.
+#   scarcity_premium_bps  what an empty pool adds to what its specialists
+#                    expect; a full pool adds nothing. Hiring a city's
+#                    engineers away raises the price of the rest — and of
+#                    those already hired, who may then be poached.
+#   reach_per_check  specialists of one city and one level a check reaches.
+#   skills           the skills cities have specialists of: per_100k of the
+#                    city's population (companies.yml company_markets) are
+#                    specialists of the skill; wage_base is the market wage
+#                    per period at level 1, wage_per_level what each level
+#                    above adds.
+#   levels           how a skill's specialists divide among levels, bps (the
+#                    shares sum to at most 10000). A level not listed has
+#                    nobody.
+#   cities           a city's education against the standard, bps; a city
+#                    not listed is standard (10000).
+#   acceptance       a candidate applies with a chance that rises from 0 at
+#                    floor_bps of what they expect to max_chance_bps at
+#                    full_bps, then scaled by: other_city_bps for moving
+#                    within the country, other_country_bps for moving abroad;
+#                    the company city's war damage times war_damage_bps; its
+#                    country at war (at_war_bps); the company's reputation
+#                    (reputation_min_bps + per_star_bps per star of its rating
+#                    + per_staff_bps per person working for it, at most
+#                    staff_cap_bps). A travel sanction or a war between the
+#                    two countries stops the move altogether.
+#   move             what a move costs a specialist: base + per_km × the
+#                    route's distance, + abroad for another country. The
+#                    relocation package pays it, up to what it offers.
+#   staff            underpaid_bps: paid below this share of the pay-to-market
+#                    ratio they accepted, a specialist is underpaid;
+#                    underpaid_periods / unpaid_periods: settlements in a row
+#                    a specialist bears either before leaving.
+#   preferences      kinds of specialist and how common each is (share_bps):
+#                    how each part of an offer weighs with them, bps (10000 =
+#                    face value) — salary, housing, signing (spread over the
+#                    contract), equity (spread over it), move (the part of the
+#                    move the offer leaves unpaid) — and what each period of
+#                    contract adds (term_per_period_bps, up to term_cap_bps).
+#   presets          the campaign builder's one-press choices: salary_bps of
+#                    the market's expectation for the campaign's level in the
+#                    company's city; housing_bps of the salary; signing_bps of
+#                    one period's salary; relocation amounts; terms in
+#                    periods; phantom shares. Each list has 1..4 choices.
+
+version: 1
+
+recruitment:
+  reference_cost_of_living: 2000
+  ad_fee: 1500
+  announce: true
+  pool_regen_bps_per_game_day: 500
+  scarcity_premium_bps: 5000
+  reach_per_check: 3
+
+  skills:
+    - {skill: engineering, per_100k: 400, wage_base: 300, wage_per_level: 120}
+    - {skill: programming, per_100k: 380, wage_base: 300, wage_per_level: 120}
+    - {skill: medicine,    per_100k: 300, wage_base: 340, wage_per_level: 140}
+    - {skill: management,  per_100k: 450, wage_base: 280, wage_per_level: 110}
+    - {skill: finance,     per_100k: 350, wage_base: 300, wage_per_level: 120}
+    - {skill: mechanics,   per_100k: 500, wage_base: 240, wage_per_level: 90}
+    - {skill: logistics,   per_100k: 550, wage_base: 220, wage_per_level: 80}
+    - {skill: cooking,     per_100k: 600, wage_base: 200, wage_per_level: 70}
+
+  levels:
+    - {level: 1,  share_bps: 2995}
+    - {level: 2,  share_bps: 2200}
+    - {level: 3,  share_bps: 1500}
+    - {level: 4,  share_bps: 1000}
+    - {level: 5,  share_bps: 700}
+    - {level: 6,  share_bps: 500}
+    - {level: 7,  share_bps: 350}
+    - {level: 8,  share_bps: 250}
+    - {level: 9,  share_bps: 170}
+    - {level: 10, share_bps: 120}
+    - {level: 11, share_bps: 80}
+    - {level: 12, share_bps: 50}
+    - {level: 13, share_bps: 30}
+    - {level: 14, share_bps: 20}
+    - {level: 15, share_bps: 15}
+    - {level: 16, share_bps: 10}
+    - {level: 17, share_bps: 6}
+    - {level: 18, share_bps: 4}
+
+  cities:
+    - {city: ostmarch,      education_bps: 8000}
+    - {city: fenwick_span,  education_bps: 11000}
+    - {city: aldrin_hollow, education_bps: 10000}
+    - {city: brennhaven,    education_bps: 12000}
+    - {city: kessmoor,      education_bps: 9000}
+    - {city: calderis,      education_bps: 13000}
+    - {city: vantor_reach,  education_bps: 11000}
+
+  acceptance:
+    floor_bps: 8500
+    full_bps: 12500
+    max_chance_bps: 7000
+    other_city_bps: 8500
+    other_country_bps: 6000
+    war_damage_bps: 10000
+    at_war_bps: 6000
+    reputation_min_bps: 8500
+    per_star_bps: 300
+    per_staff_bps: 100
+    staff_cap_bps: 1000
+
+  move: {base: 400, per_km: 2, abroad: 1200}
+
+  staff:
+    underpaid_bps: 9000
+    underpaid_periods: 2
+    unpaid_periods: 2
+
+  preferences:
+    - {code: earner,   share_bps: 4000, salary_bps: 11000, housing_bps: 9000,  signing_bps: 11000, equity_bps: 7000,  move_bps: 10000}
+    - {code: settler,  share_bps: 2500, salary_bps: 10000, housing_bps: 13000, signing_bps: 9000,  equity_bps: 8000,  move_bps: 14000, term_per_period_bps: 50, term_cap_bps: 1000}
+    - {code: builder,  share_bps: 2000, salary_bps: 9500,  housing_bps: 9000,  signing_bps: 9000,  equity_bps: 15000, move_bps: 9000}
+    - {code: cautious, share_bps: 1500, salary_bps: 10000, housing_bps: 10000, signing_bps: 10000, equity_bps: 6000,  move_bps: 12000, term_per_period_bps: 120, term_cap_bps: 2000}
+
+  presets:
+    salary_bps: [9500, 11000, 13000]
+    housing_bps: [0, 1000, 2000]
+    signing_bps: [0, 10000, 30000]
+    relocation: [0, 1000, 2500]
+    terms: [5, 10, 20]
+    shares: [0, 10, 25, 50]

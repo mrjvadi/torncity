@@ -240,6 +240,7 @@
   [📤 برداشت سود] → ask:company.withdraw:Q7M2K9B
   [🏷 ارزان‌تر] → company:price:Q7M2K9B:10000   │   [🏷 گران‌تر] → company:price:Q7M2K9B:12000
   [👥 کارکنان و درخواست‌ها] → company:staff:Q7M2K9B   │   [📋 آگهی‌های استخدام] → company:openings:Q7M2K9B
+  [🧲 جذب متخصص] → company:recruit:Q7M2K9B   │   [👷 متخصصان شرکت] → company:npcs:Q7M2K9B
   [🏭 تولید و انبار] → company:warehouse:Q7M2K9B
   [🤝 پذیرش خودکار را روشن کن] → company:auto:Q7M2K9B:on
   [🧑‍💼 تعیین مدیر] → ask:company.manager:Q7M2K9B   │   [🚪 بستن شرکت] → company:close:Q7M2K9B
@@ -274,6 +275,7 @@
   [📤 برداشت سود] → ask:company.withdraw:Q7M2K9B
   [🏷 ارزان‌تر] → company:price:Q7M2K9B:10000   │   [🏷 گران‌تر] → company:price:Q7M2K9B:12000
   [👥 کارکنان و درخواست‌ها] → company:staff:Q7M2K9B   │   [📋 آگهی‌های استخدام] → company:openings:Q7M2K9B
+  [🧲 جذب متخصص] → company:recruit:Q7M2K9B   │   [👷 متخصصان شرکت] → company:npcs:Q7M2K9B
   [🏭 تولید و انبار] → company:warehouse:Q7M2K9B
   [🤝 پذیرش خودکار را روشن کن] → company:auto:Q7M2K9B:on
   [🧑‍💼 تعیین مدیر] → ask:company.manager:Q7M2K9B   │   [🚪 بستن شرکت] → company:close:Q7M2K9B
@@ -308,6 +310,7 @@
   [📤 برداشت سود] → ask:company.withdraw:Q7M2K9B
   [🏷 ارزان‌تر] → company:price:Q7M2K9B:10000   │   [🏷 گران‌تر] → company:price:Q7M2K9B:12000
   [👥 کارکنان و درخواست‌ها] → company:staff:Q7M2K9B   │   [📋 آگهی‌های استخدام] → company:openings:Q7M2K9B
+  [🧲 جذب متخصص] → company:recruit:Q7M2K9B   │   [👷 متخصصان شرکت] → company:npcs:Q7M2K9B
   [🏭 تولید و انبار] → company:warehouse:Q7M2K9B
   [🤝 پذیرش خودکار را روشن کن] → company:auto:Q7M2K9B:on
   [🧑‍💼 تعیین مدیر] → ask:company.manager:Q7M2K9B   │   [🚪 بستن شرکت] → company:close:Q7M2K9B
@@ -343,6 +346,7 @@
   [📤 برداشت سود] → ask:company.withdraw:Q7M2K9B
   [🏷 ارزان‌تر] → company:price:Q7M2K9B:10000   │   [🏷 گران‌تر] → company:price:Q7M2K9B:12000
   [👥 کارکنان و درخواست‌ها] → company:staff:Q7M2K9B   │   [📋 آگهی‌های استخدام] → company:openings:Q7M2K9B
+  [🧲 جذب متخصص] → company:recruit:Q7M2K9B   │   [👷 متخصصان شرکت] → company:npcs:Q7M2K9B
   [🏭 تولید و انبار] → company:warehouse:Q7M2K9B
   [🤝 پذیرش خودکار را روشن کن] → company:auto:Q7M2K9B:on
   [🧑‍💼 تعیین مدیر] → ask:company.manager:Q7M2K9B   │   [🚪 بستن شرکت] → company:close:Q7M2K9B
@@ -378,6 +382,7 @@
   [📤 برداشت سود] → ask:company.withdraw:Q7M2K9B
   [🏷 ارزان‌تر] → company:price:Q7M2K9B:10000   │   [🏷 گران‌تر] → company:price:Q7M2K9B:12000
   [👥 کارکنان و درخواست‌ها] → company:staff:Q7M2K9B   │   [📋 آگهی‌های استخدام] → company:openings:Q7M2K9B
+  [🧲 جذب متخصص] → company:recruit:Q7M2K9B   │   [👷 متخصصان شرکت] → company:npcs:Q7M2K9B
   [🏭 تولید و انبار] → company:warehouse:Q7M2K9B
   [🤝 پذیرش خودکار را روشن کن] → company:auto:Q7M2K9B:on
   [🧑‍💼 تعیین مدیر] → ask:company.manager:Q7M2K9B   │   [🚪 بستن شرکت] → company:close:Q7M2K9B
@@ -404,6 +409,7 @@
   [📥 واریز نقدی] → ask:company.deposit:Q7M2K9B:cash   │   [📥 واریز کارتی] → ask:company.deposit:Q7M2K9B:card
   [🏷 ارزان‌تر] → company:price:Q7M2K9B:9000   │   [🏷 گران‌تر] → company:price:Q7M2K9B:11000
   [👥 کارکنان و درخواست‌ها] → company:staff:Q7M2K9B   │   [📋 آگهی‌های استخدام] → company:openings:Q7M2K9B
+  [🧲 جذب متخصص] → company:recruit:Q7M2K9B   │   [👷 متخصصان شرکت] → company:npcs:Q7M2K9B
   [🏭 تولید و انبار] → company:warehouse:Q7M2K9B
   [🤝 پذیرش خودکار را خاموش کن] → company:auto:Q7M2K9B:off
   [🔙 بازگشت] → company:view:Q7M2K9B   │   [🔄 به‌روزرسانی] → company:manage:Q7M2K9B
