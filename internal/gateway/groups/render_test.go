@@ -144,6 +144,27 @@ func TestOrdinaryScreenIsAGroupMessage(t *testing.T) {
 	}
 }
 
+// A typed command is answered as a reply to the player's own message, so the
+// group sees whom the bot answers; a press sends its new message plainly.
+func TestTypedCommandIsAnsweredAsAReply(t *testing.T) {
+	api := &fakeAPI{}
+	if _, err := newRenderer().Render(context.Background(), api, bot, groupMeta("crime.hub"), presenter.Message("Crime", nil)); err != nil {
+		t.Fatal(err)
+	}
+	c := api.recorded()
+	if len(c) != 1 || c[0].opts.ReplyParameters == nil || c[0].opts.ReplyParameters.MessageID != 40 ||
+		!c[0].opts.ReplyParameters.AllowSendingWithoutReply {
+		t.Fatalf("typed command answer = %+v", c)
+	}
+	api = &fakeAPI{}
+	if _, err := newRenderer().Render(context.Background(), api, bot, withCallback(groupMeta("crime.hub")), presenter.Message("Crime", nil)); err != nil {
+		t.Fatal(err)
+	}
+	if c := api.recorded(); len(c) != 1 || c[0].opts.ReplyParameters != nil {
+		t.Fatalf("a press replied to the bot's own message: %+v", c)
+	}
+}
+
 // A press on a group screen edits that screen in the group.
 func TestOrdinaryPressEditsTheGroupMessage(t *testing.T) {
 	api := &fakeAPI{}

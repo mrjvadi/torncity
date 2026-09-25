@@ -195,8 +195,20 @@ func (r *Renderer) public(ctx context.Context, api API, bot Bot, meta envelope.M
 			return out, err
 		}
 	}
-	_, err := api.SendMessageWith(ctx, meta.TelegramChatID, resp.Text, markup, client.SendOptions{})
+	_, err := api.SendMessageWith(ctx, meta.TelegramChatID, resp.Text, markup, replyTo(meta))
 	return out, err
+}
+
+// replyTo answers a typed command in a group as a reply to the player's own
+// message, so everyone sees whom the bot is answering. A button press has no
+// message of the player's to reply to (its message is the bot's), so it is
+// sent plainly; a reply to a message deleted meanwhile is still sent.
+func replyTo(meta envelope.Metadata) client.SendOptions {
+	if meta.CallbackQueryID != nil || meta.TelegramMessageID == 0 {
+		return client.SendOptions{}
+	}
+	return client.SendOptions{ReplyParameters: &client.ReplyParameters{
+		MessageID: meta.TelegramMessageID, AllowSendingWithoutReply: true}}
 }
 
 // direct delivers a private screen in the player's private chat and says so
