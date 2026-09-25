@@ -168,7 +168,6 @@ body {
   font-family: 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: var(--fs);
   line-height: 1.6;
-  font-feature-settings: 'ss01';
 }
 
 a {
@@ -437,7 +436,7 @@ main {
 }
 
 .bottomnav,
-.only-mobile {
+.icon-btn.only-mobile {
   display: none;
 }
 
@@ -805,6 +804,7 @@ a.stat:hover {
   display: flex;
   gap: 2px;
   overflow-x: auto;
+  overflow-y: hidden;
   margin-block-end: var(--space-4);
   border-block-end: 1px solid var(--border);
   scrollbar-width: thin;
@@ -1594,7 +1594,7 @@ input[type='date'] {
   .sidebar {
     display: none;
   }
-  .only-mobile {
+  .icon-btn.only-mobile {
     display: inline-flex;
   }
   .topbar {

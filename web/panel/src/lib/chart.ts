@@ -8,14 +8,15 @@ export interface Scale {
 }
 
 // niceScale covers lo..hi with about `count` round steps (1, 2, 2.5 or 5
-// times a power of ten), always including zero.
-export function niceScale(lo: number, hi: number, count: number): Scale {
+// times a power of ten), always including zero; for counts, whole steps.
+export function niceScale(lo: number, hi: number, count: number, integer = false): Scale {
   lo = Math.min(lo, 0);
   hi = Math.max(hi, 0);
   if (hi === lo) hi = lo + 1;
   const raw = (hi - lo) / Math.max(count, 1);
   const pow = 10 ** Math.floor(Math.log10(raw));
-  const step = [1, 2, 2.5, 5, 10].map((m) => m * pow).find((s) => s >= raw) ?? 10 * pow;
+  let step = [1, 2, 2.5, 5, 10].map((m) => m * pow).find((s) => s >= raw) ?? 10 * pow;
+  if (integer) step = Math.max(1, Math.ceil(step));
   const min = Math.floor(lo / step) * step;
   const max = Math.ceil(hi / step) * step;
   const ticks: number[] = [];

@@ -322,7 +322,7 @@ const ID_LINKS: Record<string, (v: string) => string> = {
 };
 
 export function Cell({ col, value, onJson }: { col: ViewCol; value: unknown; onJson?: (v: unknown) => void }) {
-  const { n, pct, dur, t } = useI18n();
+  const { n, pct, dur, t, val } = useI18n();
 
   if (value === null || value === undefined || value === '') return <span className="muted">—</span>;
   switch (col.type) {
@@ -382,6 +382,10 @@ export function Cell({ col, value, onJson }: { col: ViewCol; value: unknown; onJ
           <CopyButton text={s} />
         </span>
       );
+    }
+    case 'enum': {
+      const words = val(String(value));
+      return words ? <span title={String(value)}>{words}</span> : <Code>{String(value)}</Code>;
     }
     case 'code':
     case 'item':

@@ -42,7 +42,7 @@ func init() {
 		View{Name: "accounts", SQL: `SELECT a.id AS account_uuid, a.id::text AS account, a.kind, ` + accountOwner + ` AS owner,
 			a.balance, a.currency, a.created_at, a.owner_id AS owner_uuid
 			FROM accounts a` + accountJoins,
-			Cols: cols("account:id", "kind:code", "owner:ref", "balance:money", "currency:code", "created_at:time"),
+			Cols: cols("account:id", "kind:enum", "owner:ref", "balance:money", "currency:code", "created_at:time"),
 			Scopes: map[string]string{"player": ownerIs, "company": ownerIs, "city": ownerIs, "country": ownerIs,
 				"faction": ownerIs, "account": `v.account_uuid = @::uuid`},
 			Filters: []Filter{opts("kind", "player_cash", "player_bank", "player_escrow", "player_savings", "company_treasury",
@@ -55,7 +55,7 @@ func init() {
 			le.reference_id::text AS reference, le.account_id::text AS account,
 			le.transaction_id AS tx_uuid, le.account_id AS account_uuid, a.owner_id AS owner_uuid, le.reference_id AS reference_uuid
 			FROM ledger_entries le JOIN accounts a ON a.id = le.account_id` + accountJoins,
-			Cols: cols("created_at:time", "tx:id", "account_kind:code", "owner:ref", "amount:money", "reason:code",
+			Cols: cols("created_at:time", "tx:id", "account_kind:enum", "owner:ref", "amount:money", "reason:enum",
 				"reference_type:code", "reference:id", "account:id"),
 			Scopes: map[string]string{"tx": `v.tx_uuid = @::uuid`, "account": `v.account_uuid = @::uuid`,
 				"player": ownerIs, "company": ownerIs, "city": ownerIs, "country": ownerIs, "faction": ownerIs,
@@ -71,7 +71,7 @@ func init() {
 			COALESCE(SUM(le.amount) FILTER (WHERE le.amount > 0), 0)::bigint AS moved,
 			count(DISTINCT le.transaction_id) AS transactions
 			FROM ledger_entries le WHERE true /*window*/ GROUP BY le.reason`,
-			Cols:   cols("reason:code", "minted:money", "burned:money", "moved:money", "transactions:int"),
+			Cols:   cols("reason:enum", "minted:money", "burned:money", "moved:money", "transactions:int"),
 			Search: []string{"reason"}, Order: "moved", Tie: "reason", Window: "le.created_at", WindowDays: 7},
 
 		View{Name: "inventory", SQL: `SELECT s.player_id AS player_uuid, p.public_code AS player, s.item_code AS item, s.holding, s.quantity

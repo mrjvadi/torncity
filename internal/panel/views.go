@@ -50,6 +50,8 @@ const (
 	// TRef is "kind:code" — a player, company, city, country or faction —
 	// for a column whose rows name different kinds of thing.
 	TRef = "ref"
+	// TEnum is a code shown in words where the client has some.
+	TEnum = "enum"
 )
 
 // Col is one column a view shows.

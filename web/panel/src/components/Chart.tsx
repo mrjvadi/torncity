@@ -70,13 +70,13 @@ export function Chart({ title, days, series, kind, stacked, unit, height }: {
       lo = Math.min(lo, a, b);
       hi = Math.max(hi, a, b);
     }
-    const scale = niceScale(lo, hi, 4);
+    const scale = niceScale(lo, hi, 4, unit === 'int');
     const count = days.length;
     const band = plotW / Math.max(count, 1);
     const x = (i: number) => (kind === 'bar' ? padL + band * i + band / 2 : padL + (count <= 1 ? plotW / 2 : (plotW * i) / (count - 1)));
     const y = (v: number) => padT + plotH - ((v - scale.min) / (scale.max - scale.min || 1)) * plotH;
     return { rtl, padL, padR, padT, padB, plotW, plotH, layers, scale, band, x, y, count };
-  }, [width, h, dir, stacked, shown, days.length, kind]);
+  }, [width, h, dir, stacked, shown, days.length, kind, unit]);
 
   const { padL, padT, plotW, plotH, layers, scale, band, x, y, count } = geo;
   const labelEvery = Math.max(1, Math.ceil(count / Math.max(2, Math.floor(plotW / 70))));
