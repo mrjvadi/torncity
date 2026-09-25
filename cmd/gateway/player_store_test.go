@@ -67,7 +67,7 @@ func (u storeUOW) Do(ctx context.Context, fn func(context.Context, application.T
 
 func newStore(rows ...*application.Player) (*playerStore, *storePlayers) {
 	players := &storePlayers{rows: rows}
-	return &playerStore{uow: storeUOW{tx: storeTx{players: players}}}, players
+	return &playerStore{UOW: storeUOW{tx: storeTx{players: players}}}, players
 }
 
 // --- the tests -----------------------------------------------------------

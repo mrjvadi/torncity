@@ -233,6 +233,10 @@ func (c Context) shiftProgressLines(p ShiftProgress) string {
 
 // JobStatus renders the player's job, or the invitation to find one.
 func JobStatus(c Context, v JobStatusView) *presenter.Response {
+	return c.withView(renderJobStatus(c, v), ScreenJobStatus, v)
+}
+
+func renderJobStatus(c Context, v JobStatusView) *presenter.Response {
 	kb := keyboards.New()
 	if !v.Employed {
 		openings, _ := keyboards.Button(c.T("job.button.openings", nil), AddrJobList)

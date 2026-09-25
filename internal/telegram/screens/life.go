@@ -150,6 +150,10 @@ type LifeView struct {
 
 // Life renders «🧬 زندگی من».
 func Life(c Context, v LifeView) *presenter.Response {
+	return c.withView(renderLife(c, v), ScreenLife, v)
+}
+
+func renderLife(c Context, v LifeView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("life.notice."+v.Notice, v.NoticeArgs)

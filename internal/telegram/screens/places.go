@@ -89,6 +89,10 @@ func (c Context) placeWhat(l PlaceLine) string {
 
 // CityMap renders the map of the player's own city.
 func CityMap(c Context, v CityMapView) *presenter.Response {
+	return c.withView(renderCityMap(c, v), ScreenCityMap, v)
+}
+
+func renderCityMap(c Context, v CityMapView) *presenter.Response {
 	kb := keyboards.New()
 	switch {
 	case v.Travelling:

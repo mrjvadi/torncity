@@ -151,6 +151,10 @@ func (v ProfileView) isNewPlayer() bool {
 // Profile renders the player's record. It is also the home screen: /start and
 // every back button land here, so it carries the way to every other screen.
 func Profile(c Context, v ProfileView) *presenter.Response {
+	return c.withView(renderProfile(c, v), ScreenProfile, v)
+}
+
+func renderProfile(c Context, v ProfileView) *presenter.Response {
 	var welcome string
 	if v.isNewPlayer() {
 		welcome = c.T("profile.body", nil)

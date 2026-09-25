@@ -8,6 +8,8 @@
 // without change. See MASTER_PROMPT sections 14 and 74.
 package presenter
 
+import "encoding/json"
+
 // ActionType is one of the standard responses the gateway knows how to render.
 type ActionType string
 
@@ -69,6 +71,12 @@ type Response struct {
 	// (docs/adr/0025). The gateway sends it as a new message, and falls back
 	// to the text alone when there is no photo to send.
 	Photo *Photo `json:"photo,omitempty"`
+
+	// Screen and View are the screen's name and the facts it was rendered
+	// from, for a client that draws the screen itself (cmd/clientapi); see
+	// view.go. The gateway renders Text and Keyboard and never reads them.
+	Screen string          `json:"screen,omitempty"`
+	View   json.RawMessage `json:"view,omitempty"`
 }
 
 // Photo is a Telegram profile photo to show. A file id is valid only for

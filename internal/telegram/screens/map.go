@@ -44,6 +44,10 @@ type MapView struct {
 
 // Map renders the destinations reachable from the player's city.
 func Map(c Context, v MapView) *presenter.Response {
+	return c.withView(renderMap(c, v), ScreenMap, v)
+}
+
+func renderMap(c Context, v MapView) *presenter.Response {
 	kb := keyboards.New()
 	origin := c.CityName(v.OriginCode, v.Origin)
 

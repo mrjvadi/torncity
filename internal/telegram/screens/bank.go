@@ -81,6 +81,10 @@ type BankView struct {
 // buttons to deposit and withdraw round amounts, everything, or any amount
 // typed in.
 func Bank(c Context, v BankView) *presenter.Response {
+	return c.withView(renderBank(c, v), ScreenBank, v)
+}
+
+func renderBank(c Context, v BankView) *presenter.Response {
 	kb := keyboards.New()
 
 	balances := body(

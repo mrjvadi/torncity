@@ -37,6 +37,10 @@ type DashboardView struct {
 // Dashboard renders the hub: the same lines and the same buttons as the
 // profile, minus what the dashboard does not carry.
 func Dashboard(c Context, v DashboardView) *presenter.Response {
+	return c.withView(renderDashboard(c, v), ScreenDashboard, v)
+}
+
+func renderDashboard(c Context, v DashboardView) *presenter.Response {
 	var name, where string
 	if v.Name != "" {
 		name = c.T("profile.name", map[string]any{"name": v.Name})

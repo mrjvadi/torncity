@@ -74,6 +74,10 @@ func (c Context) pieceLine(quality, uses, durability int) string {
 
 // Inventory renders the bag.
 func Inventory(c Context, v InventoryView) *presenter.Response {
+	return c.withView(renderInventory(c, v), ScreenInventory, v)
+}
+
+func renderInventory(c Context, v InventoryView) *presenter.Response {
 	kb := keyboards.New()
 	var content string
 	if len(v.Lines) == 0 {

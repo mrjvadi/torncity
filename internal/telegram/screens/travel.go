@@ -72,6 +72,10 @@ type TravelOptionsView struct {
 // again and charges its own figure, and only if it is not above this one. A
 // forged address can therefore agree to pay more, never pay less.
 func TravelOptions(c Context, v TravelOptionsView) *presenter.Response {
+	return c.withView(renderTravelOptions(c, v), ScreenTravelOptions, v)
+}
+
+func renderTravelOptions(c Context, v TravelOptionsView) *presenter.Response {
 	to := c.CityName(v.ToCode, v.To)
 	lines := make([]string, 0, len(v.Options)+1)
 	lines = append(lines, c.T("travel.options_choose", nil))
@@ -260,6 +264,10 @@ const arrivingThreshold = time.Minute
 // leave again until they land, and a button that only leads to a refusal is
 // noise.
 func TravelStatus(c Context, v TravelStatusView) *presenter.Response {
+	return c.withView(renderTravelStatus(c, v), ScreenTravelStatus, v)
+}
+
+func renderTravelStatus(c Context, v TravelStatusView) *presenter.Response {
 	args := map[string]any{
 		"from": c.CityName(v.FromCode, v.From),
 		"to":   c.CityName(v.ToCode, v.To),
