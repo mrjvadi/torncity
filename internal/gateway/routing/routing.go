@@ -478,6 +478,8 @@ var argNames = map[string][]string{
 	"company.unlist":    {"no"},
 	"company.goods":     {},
 	"company.buy":       {"no", "qty", "method"},
+	"company.stockup":   {"company", "target", "qty"},
+	"company.defence":   {"company", "confirm"},
 
 	// The armed forces and diplomacy (docs/adr/0022). A country is named
 	// by its content code (governance.yml), a branch by its code
@@ -492,6 +494,8 @@ var argNames = map[string][]string{
 	"military.station":    {"country", "target", "city", "qty", "confirm"},
 	"military.procure":    {"country"},
 	"military.buy":        {"country", "no", "qty", "confirm"},
+	"military.licences":   {"country"},
+	"military.licence":    {"no", "verdict", "confirm"},
 	"diplomacy.sanctions": {"country"},
 	"diplomacy.impose":    {"target", "mask", "ground", "confirm"},
 	"diplomacy.lift":      {"no", "confirm"},

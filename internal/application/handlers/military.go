@@ -33,6 +33,11 @@ type MilitaryRules struct {
 	ReadinessRecoveryBPS int64
 	// ReferenceRadarKM is the radar the forces screen measures designs by.
 	ReferenceRadarKM int64
+	// LicenceRevokeNotice is how long a revoked defence licence stays in
+	// force, REAL time (docs/adr/0022, section 2.14); EndedLicencesShown
+	// how many ended licences the registry lists.
+	LicenceRevokeNotice time.Duration
+	EndedLicencesShown  int
 }
 
 // MilitaryHandler serves the armed forces
@@ -95,6 +100,7 @@ type MilitaryRequest struct {
 	No      string `json:"no,omitempty"`
 	Qty     string `json:"qty,omitempty"`
 	Confirm string `json:"confirm,omitempty"`
+	Verdict string `json:"verdict,omitempty"`
 }
 
 func (r MilitaryRequest) confirmed() bool {
@@ -536,6 +542,9 @@ func (h *MilitaryHandler) Ministry(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		view.Forces = forceSummary(snap, counts)
+		if view.PendingLicences, err = pendingLicences(ctx, tx, country.ID, now); err != nil {
+			return err
+		}
 		if !meta.InGroup() {
 			if view.Cleared, err = cleared(ctx, tx, snap, country.ID, p); err != nil {
 				return err

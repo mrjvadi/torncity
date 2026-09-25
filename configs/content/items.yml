@@ -67,6 +67,15 @@
 #                   takes; confiscated — the police take it on an arrest.
 #   black_market    no city shop may sell it: found through crime, and later
 #                   the black market. Still tradeable between players.
+#   requires_technology  optional: technologies (production.yml) a company
+#                   must know to start a new design of this good at all,
+#                   whatever parts it uses — a car needs vehicle
+#                   engineering. It never gates a design a company holds,
+#                   nor buying or using one. With the technologies of its
+#                   parts it stages what a company is offered: a new company
+#                   sees the basic goods it can design now and the ones one
+#                   research away, never the whole catalogue
+#                   (docs/adr/0021, section 14).
 #   vehicle         a car or a motorbike its owner drives
 #                   (docs/adr/0024-property-and-politics.md): {mode: the
 #                   private transport mode (transport.yml) it drives without
@@ -79,7 +88,7 @@
 version: 1
 
 component_categories: [grain, water, leavening, flavouring, alkaloid, binder, fibre, steel, casing, circuit, battery, gem, metal,
-                       fuel, seed, salt, mineral, ore, oil, crop, wood]
+                       fuel, seed, salt, mineral, ore, oil, crop, wood, wire, resin, board]
 
 components:
   # --- Bought from NPC suppliers only (production.yml suppliers) -----------
@@ -93,6 +102,8 @@ components:
   - {code: starch,       name: Starch,        category: binder,     base_price: 1,   attributes: {quality: 40}}
   - {code: gemstone,     name: Gemstone,      category: gem,        base_price: 250, attributes: {quality: 70}}
   - {code: silver,       name: Silver,        category: metal,      base_price: 120, attributes: {quality: 60}}
+  - {code: copper_wire,  name: Copper wire,   category: wire,       base_price: 2,   attributes: {quality: 55}}
+  - {code: resin,        name: Epoxy resin,   category: resin,      base_price: 2,   attributes: {quality: 50}}
 
   # --- Raw materials: extracted by mines, grown on farms --------------------
   - code: silica
@@ -152,6 +163,15 @@ components:
     base_price: 40
     attributes: {quality: 40}
     production: {method: formulate, by: [factory], inputs: [{component: crude_oil, quantity: 2}], batch: 2, skill: engineering}
+  # The first thing a tech studio makes: a plain circuit board, from wire
+  # and resin the electronics wholesaler sells. No technology: it is where
+  # electronics starts.
+  - code: circuit_board
+    name: Circuit board
+    category: board
+    base_price: 20
+    attributes: {quality: 50}
+    production: {method: assemble, by: [tech_studio, factory], inputs: [{component: copper_wire, quantity: 2}, {component: resin, quantity: 1}], batch: 2, skill: engineering}
   # The phone scenario's gate: nobody makes a chipset or a battery cell, or
   # designs a phone around one, without the technology — or a license.
   - code: chipset
@@ -160,14 +180,14 @@ components:
     base_price: 400
     attributes: {quality: 60}
     requires_technology: [microchips]
-    production: {method: assemble, by: [factory], inputs: [{component: silica, quantity: 3}, {component: diesel, quantity: 1}], batch: 1, skill: engineering}
+    production: {method: assemble, by: [factory, tech_studio], inputs: [{component: silica, quantity: 3}, {component: diesel, quantity: 1}], batch: 1, skill: engineering}
   - code: cell
     name: Battery cell
     category: battery
     base_price: 150
     attributes: {quality: 50, capacity: 3000}
     requires_technology: [batteries]
-    production: {method: formulate, by: [factory], inputs: [{component: lithium_salt, quantity: 2}, {component: iron_ore, quantity: 1}], batch: 1, skill: engineering}
+    production: {method: formulate, by: [factory, tech_studio], inputs: [{component: lithium_salt, quantity: 2}, {component: iron_ore, quantity: 1}], batch: 1, skill: engineering}
 
 archetypes:
   - code: food
@@ -229,6 +249,20 @@ archetypes:
     durability: durable
     reverse_difficulty: 15
     reverse_skill: mechanics
+  # Basic electronics: a circuit board in an optional case. What a new tech
+  # studio designs first, long before a phone.
+  - code: gadget
+    method: assemble
+    slots:
+      - {name: board, accepts: board, min: 1, max: 1}
+      - {name: shell, accepts: casing, min: 1, max: 1, optional: true}
+    attributes:
+      - {name: quality, aggregate: weighted, from: [all], observable: true}
+    value: derived
+    cost: itemized
+    durability: durable
+    reverse_difficulty: 20
+    reverse_skill: engineering
   - code: device
     method: assemble
     slots:
@@ -369,6 +403,10 @@ items:
   - {code: car_stereo, name: Car stereo,  category: electronics, archetype: device, form: unique, base_price: 700,  quality: {min: 20, max: 60}}
   - {code: jewellery,  name: Jewellery,   category: valuables,   archetype: jewel,  form: stack,  base_price: 500}
 
+  # --- Basic electronics: what a tech studio designs first ------------------
+  - {code: led_torch,    name: LED torch,    category: electronics, archetype: gadget, form: unique, base_price: 250, quality: {min: 30, max: 70}}
+  - {code: pocket_radio, name: Pocket radio, category: electronics, archetype: gadget, form: unique, base_price: 450, quality: {min: 30, max: 75}}
+
   # --- Vehicles (docs/adr/0024): driven on the car mode without its fare -----
   - code: car
     name: Car
@@ -379,6 +417,7 @@ items:
     durability: 150
     quality: {min: 40, max: 85}
     stealable: false
+    requires_technology: [vehicle_engineering]
     vehicle: {mode: car, fuel_per_distance: 2, repair_per_journey: 60}
   - code: motorbike
     name: Motorbike
@@ -389,4 +428,5 @@ items:
     durability: 100
     quality: {min: 30, max: 75}
     stealable: false
+    requires_technology: [vehicle_engineering]
     vehicle: {mode: car, fuel_per_distance: 1, repair_per_journey: 30}

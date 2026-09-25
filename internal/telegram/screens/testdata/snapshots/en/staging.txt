@@ -1,0 +1,547 @@
+━━━ Studio · a new tech studio: basic goods only ━━━
+(edits message 42)
+📐 Aria Tech design studio
+
+No designs yet.
+
+To start a design, choose the kind of good:
+
+🔭 More advanced goods open after these.
+  ───
+  [➕ LED torch] → company:dnew:T3C5T8D:led_torch   │   [➕ Pocket radio] → company:dnew:T3C5T8D:pocket_radio
+  [🔙 Back] → company:warehouse:T3C5T8D   │   [🔄 Refresh] → company:studio:T3C5T8D
+
+━━━ Studio · one research away from a phone ━━━
+(edits message 42)
+📐 Aria Tech design studio
+
+✅ Beacon - LED torch
+
+To start a design, choose the kind of good:
+
+🔒 One step away:
+🔒 Phone: To open it, research Microchips and Battery chemistry first.
+  ───
+  [📐 Beacon] → company:design:21
+  [➕ LED torch] → company:dnew:T3C5T8D:led_torch   │   [➕ Pocket radio] → company:dnew:T3C5T8D:pocket_radio
+  [🧪 Research lab] → company:lab:T3C5T8D
+  [🔙 Back] → company:warehouse:T3C5T8D   │   [🔄 Refresh] → company:studio:T3C5T8D
+
+━━━ Studio · a phone behind a license ━━━
+(edits message 42)
+📐 Aria Tech design studio
+
+No designs yet.
+
+Nothing is ready to design yet: the goods below open with one step.
+
+🔒 One step away:
+🔒 Phone: To open it, research Battery chemistry first and buy a license for Microchips.
+  ───
+  [🔙 Back] → company:warehouse:T3C5T8D   │   [🔄 Refresh] → company:studio:T3C5T8D
+
+━━━ Studio · the phone open ━━━
+(edits message 42)
+📐 Aria Tech design studio
+
+No designs yet.
+
+To start a design, choose the kind of good:
+  ───
+  [➕ LED torch] → company:dnew:T3C5T8D:led_torch   │   [➕ Pocket radio] → company:dnew:T3C5T8D:pocket_radio   │   [➕ Phone] → company:dnew:T3C5T8D:phone
+  [🔙 Back] → company:warehouse:T3C5T8D   │   [🔄 Refresh] → company:studio:T3C5T8D
+
+━━━ Lab · a new tech studio ━━━
+(edits message 42)
+🧪 Aria Tech lab
+💵 Company's free money: 90,000 Nil
+
+🔬 Semiconductors - research costs 30,000 Nil
+🔬 Battery chemistry - research costs 25,000 Nil
+🔒 Microchips - needs Semiconductors first
+
+🔭 2 more advanced technologies open after these.
+
+You research each technology once and the company owns it. Keep it private, sell licenses, or publish it for everyone. Reverse engineering never yields a technology.
+  ───
+  [🔬 Semiconductors] → company:lab:T3C5T8D:semiconductors   │   [🔬 Battery chemistry] → company:lab:T3C5T8D:batteries
+  [🔬 Microchips] → company:lab:T3C5T8D:microchips
+  [🔙 Back] → company:warehouse:T3C5T8D   │   [🔄 Refresh] → company:lab:T3C5T8D
+
+━━━ Floor · a component one step away ━━━
+(edits message 42)
+⚙️ Aria Tech production floor
+👥 Workforce: 1 - orders running: 0 of 3
+
+No production orders yet.
+
+For a new order, choose a product or a component:
+
+🔒 One step away:
+🔒 Chipset: To open it, research Microchips first.
+  ───
+  [⚙️ Circuit board] → company:produce:T3C5T8D:circuit_board
+  [🔙 Back] → company:warehouse:T3C5T8D   │   [🔄 Refresh] → company:orders:T3C5T8D
+
+━━━ Produce · short, the supplier sells it all ━━━
+(edits message 42)
+⚙️ Produce Circuit board
+📦 Each batch yields 2 units.
+
+🧾 Each unit takes:
+❌ Copper wire: 10 units - 0 in the warehouse
+❌ Epoxy resin: 5 units - 1 in the warehouse
+
+❌ The warehouse is short for 5 units; the shortages are marked ❌.
+• Copper wire: 10 short - a supplier sells it
+• Epoxy resin: 4 short - a supplier sells it
+  ───
+  [🛒 Buy what is missing - 42 Nil] → company:stockup:T3C5T8D:circuit_board:5
+  [1 batches] → company:produce:T3C5T8D:circuit_board:1   │   [5 batches] → company:produce:T3C5T8D:circuit_board:5   │   [10 batches] → company:produce:T3C5T8D:circuit_board:10
+  [🔙 Back] → company:orders:T3C5T8D
+
+━━━ Produce · short, a part made here ━━━
+(edits message 42)
+⚙️ Produce Beacon (LED torch)
+
+🧾 Each unit takes:
+❌ Circuit board: 5 units - 2 in the warehouse
+
+❌ The warehouse is short for 5 units; the shortages are marked ❌.
+• Circuit board: 3 short - you make it yourselves
+  ───
+  [⚙️ Circuit board] → company:produce:T3C5T8D:circuit_board
+  [1 units] → company:produce:T3C5T8D:d21:1   │   [5 units] → company:produce:T3C5T8D:d21:5   │   [10 units] → company:produce:T3C5T8D:d21:10
+  [🔙 Back] → company:orders:T3C5T8D
+
+━━━ Produce · the inputs bought in one tap ━━━
+(edits message 42)
+✅ The missing inputs were bought from the supplier and 42 Nil paid from the company's account.
+
+⚙️ Produce Circuit board
+📦 Each batch yields 2 units.
+
+🧾 Each unit takes:
+✅ Copper wire: 10 units - 10 in the warehouse
+✅ Epoxy resin: 5 units - 6 in the warehouse
+
+⏱ 10 Circuit board take 4m with a workforce of 1.
+All the materials above leave the warehouse now; if even one is short, nothing is taken.
+  ───
+  [✅ Start producing 10 units] → company:produce:T3C5T8D:circuit_board:5:yes
+  [1 batches] → company:produce:T3C5T8D:circuit_board:1   │   [5 batches] → company:produce:T3C5T8D:circuit_board:5   │   [10 batches] → company:produce:T3C5T8D:circuit_board:10
+  [🔙 Back] → company:orders:T3C5T8D
+
+━━━ Warehouse · next step: design_first ━━━
+(edits message 42)
+🏭 Aria Tech warehouse
+⚙️ Production orders running: 0 - open listings: 0
+
+🧭 Next step:
+Design your first product: start with something simple.
+
+📦 The warehouse is empty.
+  ───
+  [📐 Design a first product] → company:studio:T3C5T8D
+  [🚚 Suppliers] → company:suppliers:T3C5T8D   │   [⚙️ Production floor] → company:orders:T3C5T8D
+  [📐 Design studio] → company:studio:T3C5T8D   │   [🧪 Research lab] → company:lab:T3C5T8D
+  [🔍 Reverse engineering] → company:relab:T3C5T8D   │   [🏷 Listings] → company:listings:T3C5T8D
+  [🔙 Back] → company:manage:T3C5T8D   │   [🔄 Refresh] → company:warehouse:T3C5T8D
+
+━━━ Warehouse · next step: design_draft ━━━
+(edits message 42)
+🏭 Aria Tech warehouse
+⚙️ Production orders running: 0 - open listings: 0
+
+🧭 Next step:
+The design «Design no. 22» is half done: complete it and finalise it.
+
+📦 The warehouse is empty.
+  ───
+  [📐 Continue Design no. 22] → company:design:22
+  [🚚 Suppliers] → company:suppliers:T3C5T8D   │   [⚙️ Production floor] → company:orders:T3C5T8D
+  [📐 Design studio] → company:studio:T3C5T8D   │   [🧪 Research lab] → company:lab:T3C5T8D
+  [🔍 Reverse engineering] → company:relab:T3C5T8D   │   [🏷 Listings] → company:listings:T3C5T8D
+  [🔙 Back] → company:manage:T3C5T8D   │   [🔄 Refresh] → company:warehouse:T3C5T8D
+
+━━━ Warehouse · next step: supply ━━━
+(edits message 42)
+🏭 Aria Tech warehouse
+⚙️ Production orders running: 0 - open listings: 0
+
+🧭 Next step:
+To make Circuit board, buy its inputs from the supplier in one go: 45 Nil in all.
+
+📦 The warehouse is empty.
+  ───
+  [🛒 Buy the inputs - 45 Nil] → company:stockup:T3C5T8D:circuit_board:5
+  [🚚 Suppliers] → company:suppliers:T3C5T8D   │   [⚙️ Production floor] → company:orders:T3C5T8D
+  [📐 Design studio] → company:studio:T3C5T8D   │   [🧪 Research lab] → company:lab:T3C5T8D
+  [🔍 Reverse engineering] → company:relab:T3C5T8D   │   [🏷 Listings] → company:listings:T3C5T8D
+  [🔙 Back] → company:manage:T3C5T8D   │   [🔄 Refresh] → company:warehouse:T3C5T8D
+
+━━━ Warehouse · next step: produce ━━━
+(edits message 42)
+🏭 Aria Tech warehouse
+⚙️ Production orders running: 0 - open listings: 0
+
+🧭 Next step:
+The inputs are ready: make 10 Circuit board.
+
+📦 The warehouse is empty.
+  ───
+  [⚙️ Make 10 Circuit board] → company:produce:T3C5T8D:circuit_board:5:yes
+  [🚚 Suppliers] → company:suppliers:T3C5T8D   │   [⚙️ Production floor] → company:orders:T3C5T8D
+  [📐 Design studio] → company:studio:T3C5T8D   │   [🧪 Research lab] → company:lab:T3C5T8D
+  [🔍 Reverse engineering] → company:relab:T3C5T8D   │   [🏷 Listings] → company:listings:T3C5T8D
+  [🔙 Back] → company:manage:T3C5T8D   │   [🔄 Refresh] → company:warehouse:T3C5T8D
+
+━━━ Warehouse · next step: producing ━━━
+(edits message 42)
+🏭 Aria Tech warehouse
+⚙️ Production orders running: 0 - open listings: 0
+
+🧭 Next step:
+5 Beacon (LED torch) are being made and will be ready at 14:38 - 3m from now.
+
+📦 The warehouse is empty.
+  ───
+  [⚙️ Production floor] → company:orders:T3C5T8D
+  [🚚 Suppliers] → company:suppliers:T3C5T8D   │   [⚙️ Production floor] → company:orders:T3C5T8D
+  [📐 Design studio] → company:studio:T3C5T8D   │   [🧪 Research lab] → company:lab:T3C5T8D
+  [🔍 Reverse engineering] → company:relab:T3C5T8D   │   [🏷 Listings] → company:listings:T3C5T8D
+  [🔙 Back] → company:manage:T3C5T8D   │   [🔄 Refresh] → company:warehouse:T3C5T8D
+
+━━━ Warehouse · next step: sell ━━━
+(edits message 42)
+🏭 Aria Tech warehouse
+⚙️ Production orders running: 0 - open listings: 0
+
+🧭 Next step:
+You have Beacon (LED torch) in the warehouse: list it so players and companies can buy it.
+
+📦 The warehouse is empty.
+  ───
+  [💰 Sell Beacon (LED torch)] → company:sell:T3C5T8D:d21
+  [🚚 Suppliers] → company:suppliers:T3C5T8D   │   [⚙️ Production floor] → company:orders:T3C5T8D
+  [📐 Design studio] → company:studio:T3C5T8D   │   [🧪 Research lab] → company:lab:T3C5T8D
+  [🔍 Reverse engineering] → company:relab:T3C5T8D   │   [🏷 Listings] → company:listings:T3C5T8D
+  [🔙 Back] → company:manage:T3C5T8D   │   [🔄 Refresh] → company:warehouse:T3C5T8D
+
+━━━ Warehouse · next step: buy_goods ━━━
+(edits message 42)
+🏭 Aria Tech warehouse
+⚙️ Production orders running: 0 - open listings: 0
+
+🧭 Next step:
+To make Aria Phone (Phone) you need Plastic case, which other companies make: buy it from the company goods.
+
+📦 The warehouse is empty.
+  ───
+  [🏭 Company goods] → company:goods
+  [🚚 Suppliers] → company:suppliers:T3C5T8D   │   [⚙️ Production floor] → company:orders:T3C5T8D
+  [📐 Design studio] → company:studio:T3C5T8D   │   [🧪 Research lab] → company:lab:T3C5T8D
+  [🔍 Reverse engineering] → company:relab:T3C5T8D   │   [🏷 Listings] → company:listings:T3C5T8D
+  [🔙 Back] → company:manage:T3C5T8D   │   [🔄 Refresh] → company:warehouse:T3C5T8D
+
+━━━ Warehouse · next step: research ━━━
+(edits message 42)
+🏭 Aria Tech warehouse
+⚙️ Production orders running: 0 - open listings: 0
+
+🧭 Next step:
+To grow, research Microchips: it opens Phone.
+
+📦 The warehouse is empty.
+  ───
+  [🔬 Research Microchips] → company:lab:T3C5T8D:microchips
+  [🚚 Suppliers] → company:suppliers:T3C5T8D   │   [⚙️ Production floor] → company:orders:T3C5T8D
+  [📐 Design studio] → company:studio:T3C5T8D   │   [🧪 Research lab] → company:lab:T3C5T8D
+  [🔍 Reverse engineering] → company:relab:T3C5T8D   │   [🏷 Listings] → company:listings:T3C5T8D
+  [🔙 Back] → company:manage:T3C5T8D   │   [🔄 Refresh] → company:warehouse:T3C5T8D
+
+━━━ Warehouse · next step: design_next ━━━
+(edits message 42)
+🏭 Aria Tech warehouse
+⚙️ Production orders running: 0 - open listings: 0
+
+🧭 Next step:
+You can design Phone now.
+
+📦 The warehouse is empty.
+  ───
+  [📐 Design Phone] → company:dnew:T3C5T8D:phone
+  [🚚 Suppliers] → company:suppliers:T3C5T8D   │   [⚙️ Production floor] → company:orders:T3C5T8D
+  [📐 Design studio] → company:studio:T3C5T8D   │   [🧪 Research lab] → company:lab:T3C5T8D
+  [🔍 Reverse engineering] → company:relab:T3C5T8D   │   [🏷 Listings] → company:listings:T3C5T8D
+  [🔙 Back] → company:manage:T3C5T8D   │   [🔄 Refresh] → company:warehouse:T3C5T8D
+
+━━━ Manage · a tech studio that may apply ━━━
+(edits message 42) (private in groups)
+⚙️ Managing Aria Tech
+🏷 Tech studio - code T3C5T8D
+🛡 Your company may apply for a defence contractor licence.
+
+🧭 Next step:
+To grow, research Microchips: it opens Phone.
+
+💰 Company balance: 90,000 Nil
+🔧 Upkeep per period: 1,800 Nil
+🏛 Corporate tax on profits taken out: 10%
+
+🏷 Price level: 100% of the reference price
+👥 Staff: 0 of 6 - open openings: 0 - applications waiting: 0
+🤝 You accept or reject every application yourself.
+
+📊 No period has been settled yet.
+  ───
+  [🔬 Research Microchips] → company:lab:T3C5T8D:microchips
+  [📥 Put in cash] → ask:company.deposit:T3C5T8D:cash   │   [📥 Put in by card] → ask:company.deposit:T3C5T8D:card
+  [📤 Take out profit] → ask:company.withdraw:T3C5T8D
+  [🏷 Cheaper] → company:price:T3C5T8D:9000   │   [🏷 Dearer] → company:price:T3C5T8D:11000
+  [👥 Staff and applications] → company:staff:T3C5T8D   │   [📋 Job openings] → company:openings:T3C5T8D
+  [🏭 Production and warehouse] → company:warehouse:T3C5T8D
+  [🛡 Defence licence] → company:defence:T3C5T8D
+  [🤝 Hire automatically] → company:auto:T3C5T8D:on
+  [🧑‍💼 Appoint a manager] → ask:company.manager:T3C5T8D   │   [🚪 Close the company] → company:close:T3C5T8D
+  [🔙 Back] → company:view:T3C5T8D   │   [🔄 Refresh] → company:manage:T3C5T8D
+
+━━━ Manage · a defence company, its licence revoked ━━━
+(edits message 42) (private in groups)
+⚙️ Managing Alborz Defence
+🏷 Aerospace manufacturer - code D3F2N5S
+🛡 The defence licence was revoked and lapses at 14:35.
+
+💰 Company balance: 90,000 Nil
+🔧 Upkeep per period: 1,800 Nil
+🏛 Corporate tax on profits taken out: 10%
+
+🏷 Price level: 100% of the reference price
+👥 Staff: 0 of 6 - open openings: 0 - applications waiting: 0
+🤝 You accept or reject every application yourself.
+
+📊 No period has been settled yet.
+  ───
+  [📥 Put in cash] → ask:company.deposit:D3F2N5S:cash   │   [📥 Put in by card] → ask:company.deposit:D3F2N5S:card
+  [📤 Take out profit] → ask:company.withdraw:D3F2N5S
+  [🏷 Cheaper] → company:price:D3F2N5S:9000   │   [🏷 Dearer] → company:price:D3F2N5S:11000
+  [👥 Staff and applications] → company:staff:D3F2N5S   │   [📋 Job openings] → company:openings:D3F2N5S
+  [🏭 Production and warehouse] → company:warehouse:D3F2N5S
+  [🛡 Defence licence] → company:defence:D3F2N5S
+  [🤝 Hire automatically] → company:auto:D3F2N5S:on
+  [🧑‍💼 Appoint a manager] → ask:company.manager:D3F2N5S   │   [🚪 Close the company] → company:close:D3F2N5S
+  [🔙 Back] → company:view:D3F2N5S   │   [🔄 Refresh] → company:manage:D3F2N5S
+
+━━━ Register · a defence company, no licence ━━━
+(edits message 42)
+🏷 Aerospace manufacturer in Ostmarch
+
+📍 Workplace: industrial zone
+💼 Hires into Workshop, Technology
+👥 Staff at most: 15
+💰 Registration fee: 250,000 Nil
+🔧 Upkeep: 4,000 Nil per period - a period lasts 24m
+
+A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
+
+🛡 Aerospace manufacturer is a defence business, registered only under a defence licence. Take one of two paths:
+• serve in the Armed Forces and reach the rank of Captain at least;
+• own a company that holds a defence contractor licence.
+  ───
+  [💼 Job openings] → job:list
+  [🔙 Back] → company:register
+
+━━━ Register · the kinds, one licensed ━━━
+(edits message 42)
+🏢 Register a company in Ostmarch
+
+The registration fee goes to the city's treasury, and each period the company's upkeep is taken from its account. Choose the kind of business.
+
+🏷 Tech studio - registration 80,000 Nil - upkeep 1,800 Nil per period
+🏷 Aerospace manufacturer - registration 250,000 Nil - upkeep 4,000 Nil per period - 🛡 needs a defence licence
+  ───
+  [🏷 Tech studio] → company:type:tech_studio   │   [🏷 Aerospace manufacturer] → company:type:aerospace
+  [🔙 Back] → company:list
+
+━━━ Company refused · defence ━━━
+(edits message 42)
+🛡 This is a defence company and is registered only under a defence licence: a high enough rank in the armed forces, or a company holding a defence contractor licence.
+  ───
+  [🔙 Back] → company:list
+
+━━━ Defence · a tech studio that may apply ━━━
+(edits message 42) (private in groups)
+🛡 Defence licence of Aria Tech
+This company holds no defence licence yet.
+
+A company advanced in technology can become a contractor to the armed forces: under a defence contractor licence it researches military technologies and buys their licenses, and its owner may register a defence company. The defence minister approves or rejects the application.
+
+📊 The company's standing in technology:
+✅ at least 3 technologies of its own - you have 3
+✅ a technology of tier 2 or above - your highest: 2
+
+Your company qualifies. Send the application to the defence minister with the button below.
+  ───
+  [🛡 Apply for a defence contractor licence] → company:defence:T3C5T8D:yes
+  [🔙 Back] → company:manage:T3C5T8D   │   [🔄 Refresh] → company:defence:T3C5T8D
+
+━━━ Defence · not there yet ━━━
+(edits message 42) (private in groups)
+🛡 Defence licence of Aria Tech
+This company holds no defence licence yet.
+
+A company advanced in technology can become a contractor to the armed forces: under a defence contractor licence it researches military technologies and buys their licenses, and its owner may register a defence company. The defence minister approves or rejects the application.
+
+📊 The company's standing in technology:
+❌ at least 3 technologies of its own - you have 1
+❌ a technology of tier 2 or above - your highest: 1
+
+You do not qualify yet: research more technologies in the lab.
+  ───
+  [🧪 Research lab] → company:lab:T3C5T8D
+  [🔙 Back] → company:manage:T3C5T8D   │   [🔄 Refresh] → company:defence:T3C5T8D
+
+━━━ Defence · applied, no minister ━━━
+(edits message 42) (private in groups)
+✅ The application went to the defence minister. We will tell you the decision.
+⏳ The defence minister's seat is empty right now: the application waits until someone is appointed.
+
+🛡 Defence licence of Aria Tech
+⏳ waiting for the defence minister
+
+A company advanced in technology can become a contractor to the armed forces: under a defence contractor licence it researches military technologies and buys their licenses, and its owner may register a defence company. The defence minister approves or rejects the application.
+
+📊 The company's standing in technology:
+✅ at least 3 technologies of its own - you have 3
+✅ a technology of tier 2 or above - your highest: 2
+  ───
+  [🔙 Back] → company:manage:T3C5T8D   │   [🔄 Refresh] → company:defence:T3C5T8D
+
+━━━ Defence · a defence company's licence ━━━
+(edits message 42) (private in groups)
+🛡 Defence licence of Alborz Defence
+✅ in force
+
+A defence company works only under a defence licence: it lets the company research military technology, buy its licenses and make arms.
+  ───
+  [🔙 Back] → company:manage:D3F2N5S   │   [🔄 Refresh] → company:defence:D3F2N5S
+
+━━━ Registry · the minister's ━━━
+(sends)
+🛡 Defence licences of The Commonwealth
+
+⏳ Applications waiting:
+• Aria Tech (Tech studio) - defence contractor - ⏳ waiting for the defence minister
+
+✅ Licences in force:
+• Alborz Defence (Aerospace manufacturer) - arms maker - ✅ in force
+• Aria Tech (Tech studio) - defence contractor - ✅ in force
+• Alborz Defence (Land systems manufacturer) - arms maker - ⚠️ revoked - in force until 10:35
+
+Defence licences are public. The defence minister approves or rejects applications and may revoke a licence with notice.
+  ───
+  [✅ Approve Aria Tech] → military:licence:4:approve   │   [❌ Reject] → military:licence:4:reject
+  [⛔ Revoke Alborz Defence's licence] → military:licence:1:revoke   │   [⛔ Revoke Aria Tech's licence] → military:licence:5:revoke
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → military:licences:default_country
+
+━━━ Registry · in a group ━━━
+(edits message 42)
+🛡 Defence licences of The Commonwealth
+
+⏳ Applications waiting:
+• Aria Tech (Tech studio) - defence contractor - ⏳ waiting for the defence minister
+
+✅ Licences in force:
+• Alborz Defence (Aerospace manufacturer) - arms maker - ✅ in force
+• Aria Tech (Tech studio) - defence contractor - ✅ in force
+• Alborz Defence (Land systems manufacturer) - arms maker - ⚠️ revoked - in force until 10:35
+
+Defence licences are public. The defence minister approves or rejects applications and may revoke a licence with notice.
+  ───
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → military:licences:default_country
+
+━━━ Registry · just approved ━━━
+(edits message 42)
+✅ Aria Tech was granted a defence contractor licence.
+
+🛡 Defence licences of The Commonwealth
+
+✅ Licences in force:
+• Alborz Defence (Aerospace manufacturer) - arms maker - ✅ in force
+• Aria Tech (Tech studio) - defence contractor - ✅ in force
+• Alborz Defence (Land systems manufacturer) - arms maker - ⚠️ revoked - in force until 10:35
+
+Defence licences are public. The defence minister approves or rejects applications and may revoke a licence with notice.
+  ───
+  [⛔ Revoke Alborz Defence's licence] → military:licence:1:revoke   │   [⛔ Revoke Aria Tech's licence] → military:licence:5:revoke
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → military:licences:default_country
+
+━━━ Registry · revoke, confirm ━━━
+(edits message 42)
+⛔ Revoke the defence licence of Aria Tech? The revocation is announced now and the licence lapses 24h from now.
+  ───
+  [⛔ Yes, revoke it] → military:licence:5:revoke:yes
+  [🔙 Back] → military:licences:default_country
+
+━━━ Registry · none ━━━
+(edits message 42)
+🛡 Defence licences of The Commonwealth
+
+No defence licence has been recorded yet.
+
+Defence licences are public. The defence minister approves or rejects applications and may revoke a licence with notice.
+  ───
+  [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → military:licences:default_country
+
+━━━ Military refused · licence_state ━━━
+(edits message 42)
+🛡 This licence was decided already.
+  ───
+  [🔙 Back] → military:ministry:default_country
+
+━━━ Notice · licence applied ━━━
+(sends)
+🛡 Aria Tech in The Commonwealth applied for a defence contractor licence and waits for your decision.
+  ───
+  [🛡 Defence licences] → military:licences:default_country
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · licence approved ━━━
+(sends)
+✅ The defence minister approved the defence contractor licence of Aria Tech.
+  ───
+  [🛡 The company's defence licence] → company:defence:T3C5T8D
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · licence rejected ━━━
+(sends)
+❌ The defence minister rejected the defence licence application of Aria Tech.
+  ───
+  [🛡 The company's defence licence] → company:defence:T3C5T8D
+  [🔙 Back] → player:profile.get
+
+━━━ Notice · licence revoked ━━━
+(sends)
+⛔ The defence minister revoked the defence licence of Aria Tech; it lapses at 14:35.
+  ───
+  [🛡 The company's defence licence] → company:defence:T3C5T8D
+  [🔙 Back] → player:profile.get
+
+━━━ Job refused · the defence fund cannot pay ━━━
+(edits message 42)
+🪖 The country's defence fund cannot pay one shift right now, so your duty did not start. Try again once the defence budget comes in.
+  ───
+  [💼 My job] → job:status
+  [🔙 Back] → player:profile.get
+
+━━━ Job openings · the armed forces ━━━
+(edits message 42)
+💼 Job openings in Ostmarch
+
+✅ Armed Forces - Private - 140 Nil per shift
+✅ Retail - Sales Trainee - 120 Nil per shift
+
+✅ means you qualify and can apply; 🔒 means something is still missing. Tap a job to see the details.
+  ───
+  [✅ Private] → job:view:armed_forces   │   [✅ Sales Trainee] → job:view:retail
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:list:1

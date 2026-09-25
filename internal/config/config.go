@@ -580,6 +580,9 @@ type Company struct {
 	// DesignMinSkill is the level the company's best member must have in an
 	// archetype's craft skill to author a design of it.
 	DesignMinSkill int // company.design_min_skill
+	// QuickOrderUnits is the size of a quick order: the one-tap order a
+	// company's next step offers, and the size an order screen opens at.
+	QuickOrderUnits int // company.quick_order_units
 	// ReverseTime is how long taking a sample apart takes, GAME time.
 	ReverseTime time.Duration // company.reverse_time
 }
@@ -601,6 +604,13 @@ type Military struct {
 	// ReferenceRadarKM is the radar the forces screen measures how far each
 	// design is seen by: kilometres at which it sees a 1 m² target.
 	ReferenceRadarKM int // military.reference_radar_km
+	// LicenceRevokeNotice is how long a defence licence the minister
+	// revokes stays in force, REAL time: a governance promise, like a
+	// lever's notice (docs/adr/0022, section 2.14).
+	LicenceRevokeNotice time.Duration // military.licence_revoke_notice
+	// EndedLicencesShown is how many ended defence licences the public
+	// registry lists.
+	EndedLicencesShown int // military.ended_licences_shown
 }
 
 // War is the tuning of war (docs/adr/0022-military-and-diplomacy.md, part
@@ -842,6 +852,7 @@ func Defaults() *Config {
 			MaxDesigns:             20,
 			MaxListings:            10,
 			DesignMinSkill:         1,
+			QuickOrderUnits:        5,
 			ReverseTime:            6 * time.Hour,
 		},
 		Military: Military{
@@ -849,6 +860,8 @@ func Defaults() *Config {
 			ReadinessLossBPS:     1000,
 			ReadinessRecoveryBPS: 500,
 			ReferenceRadarKM:     150,
+			LicenceRevokeNotice:  24 * time.Hour,
+			EndedLicencesShown:   5,
 		},
 		Diplomacy: Diplomacy{
 			SanctionNotice:      time.Hour,

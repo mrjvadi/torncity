@@ -265,6 +265,11 @@ var all = []Subscription{
 	{Domain: "company", Action: "unlist", Origin: FromPlayer},
 	{Domain: "company", Action: "goods", Origin: FromPlayer},
 	{Domain: "company", Action: "buy", Origin: FromPlayer},
+	// Staged production (docs/adr/0021, section 14): one tap buys an
+	// order's missing inputs; and a company's defence licence
+	// (docs/adr/0022, section 2.14).
+	{Domain: "company", Action: "stockup", Origin: FromPlayer},
+	{Domain: "company", Action: "defence", Origin: FromPlayer},
 	{Domain: "company", Action: "researched", Origin: FromScheduler},
 	{Domain: "company", Action: "produced", Origin: FromScheduler},
 	{Domain: "company", Action: "reversed", Origin: FromScheduler},
@@ -280,6 +285,8 @@ var all = []Subscription{
 	{Domain: "military", Action: "station", Origin: FromPlayer},
 	{Domain: "military", Action: "procure", Origin: FromPlayer},
 	{Domain: "military", Action: "buy", Origin: FromPlayer},
+	{Domain: "military", Action: "licences", Origin: FromPlayer},
+	{Domain: "military", Action: "licence", Origin: FromPlayer},
 	{Domain: "military", Action: "settle", Origin: FromScheduler},
 	{Domain: "military", Action: "arrive", Origin: FromScheduler},
 

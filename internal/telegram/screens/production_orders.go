@@ -37,6 +37,8 @@ type ProductionLine struct {
 type OrdersView struct {
 	Ref     CompanyRef
 	Targets []ProduceTarget
+	// Locked are the components one step away, each with the way in.
+	Locked  []LockedTarget
 	Orders  []ProductionLine
 	Max     int
 	Running int
@@ -82,8 +84,17 @@ func Orders(c Context, v OrdersView) *presenter.Response {
 		targets = c.T("production.orders_no_targets", nil)
 	}
 	kb.Grid(2, buttons...)
+	locked := ""
+	if len(v.Locked) > 0 {
+		lines := []string{c.T("production.orders_locked", nil)}
+		for _, l := range v.Locked {
+			lines = append(lines, c.T("production.orders_locked_line", map[string]any{"good": c.GoodName(l.Good),
+				"hint": c.unlockHint(l.Steps)}))
+		}
+		locked = body(lines...)
+	}
 	c.productionNav(kb, []string{AddrWarehouse, v.Ref.Code}, AddrOrders, v.Ref.Code)
-	return c.respond(paragraphs(head, orders, targets), kb.Build())
+	return c.respond(paragraphs(head, orders, targets, locked), kb.Build())
 }
 
 // RecipeLine is one input of an order: what one unit (or batch) takes, what
@@ -114,6 +125,13 @@ type ProduceView struct {
 	MaxQty int64
 	// Short is the order's shortages, when it cannot be placed.
 	Short []Shortage
+	// StockUp is what buying every short input from the city's suppliers
+	// costs, when they sell them all: one tap buys them
+	// (docs/adr/0021, section 14). Zero when they do not.
+	StockUp int64
+	// Bought is what the inputs just bought cost, after a one-tap
+	// purchase.
+	Bought int64
 	// Placed is set once the order is running.
 	Placed *ProductionLine
 }
@@ -153,8 +171,16 @@ func Produce(c Context, v ProduceView) *presenter.Response {
 	var plan string
 	switch {
 	case v.Qty > 0 && len(v.Short) > 0:
-		plan = c.T("production.plan_short", map[string]any{"qty": FormatNumber(c, v.Qty)})
-		kb.Add(c.T("production.button.suppliers", nil), AddrSuppliers, v.Ref.Code)
+		lines := []string{c.T("production.plan_short", map[string]any{"qty": FormatNumber(c, v.Qty)})}
+		for _, sh := range v.Short {
+			if sh.Source == "" {
+				continue
+			}
+			lines = append(lines, c.T("production.short_source."+sh.sourceKey(), map[string]any{
+				"component": c.ComponentName(sh.Component), "qty": FormatNumber(c, sh.Need-sh.Have)}))
+		}
+		plan = body(lines...)
+		c.shortageButton(kb, v, target)
 	case v.Qty > 0:
 		plan = body(c.T("production.plan", map[string]any{"qty": FormatNumber(c, v.Output), "good": good,
 			"duration": FormatDuration(c, v.Duration), "crew": FormatNumber(c, int64(v.Crew))}),
@@ -182,7 +208,11 @@ func Produce(c Context, v ProduceView) *presenter.Response {
 	}
 	kb.Grid(4, sizes...)
 	c.productionNav(kb, []string{AddrOrders, v.Ref.Code})
-	return c.respond(paragraphs(head, recipe, plan), kb.Build())
+	bought := ""
+	if v.Bought > 0 {
+		bought = c.T("production.stock_up_done", map[string]any{"total": FormatMoney(c, v.Bought)})
+	}
+	return c.respond(paragraphs(bought, head, recipe, plan), kb.Build())
 }
 
 func contains64(list []int64, v int64) bool {
@@ -277,4 +307,29 @@ func ReverseLab(c Context, v ReverseLabView) *presenter.Response {
 	kb.Grid(2, buttons...)
 	c.productionNav(kb, []string{AddrWarehouse, v.Ref.Code}, AddrReverseLab, v.Ref.Code)
 	return c.respond(paragraphs(v.Notice, head, sampleBlock, jobBlock, c.T("production.relab_hint", nil)), kb.Build())
+}
+
+// shortageButton is the one way forward from a short order: buy it all from
+// the suppliers in one tap, make the missing part first, or buy it from
+// other companies.
+func (c Context) shortageButton(kb *keyboards.Builder, v ProduceView, target string) {
+	if v.StockUp > 0 {
+		kb.Add(c.T("production.button.stock_up", map[string]any{"total": FormatMoney(c, v.StockUp)}),
+			AddrStockUp, v.Ref.Code, target, strconv.FormatInt(v.Qty, 10))
+		return
+	}
+	for _, s := range v.Short {
+		if s.Source == ShortMadeHere {
+			kb.Add(c.T("production.button.produce", map[string]any{"good": c.ComponentName(s.Component)}),
+				AddrProduce, v.Ref.Code, s.Component.Code)
+			return
+		}
+	}
+	for _, s := range v.Short {
+		if s.Source == ShortFromCompanies {
+			kb.Add(c.T("production.button.goods", nil), AddrCompanyGoods)
+			return
+		}
+	}
+	kb.Add(c.T("production.button.suppliers", nil), AddrSuppliers, v.Ref.Code)
 }

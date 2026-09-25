@@ -70,13 +70,22 @@ technologies:
     requires: [semiconductors]
     cost: 60000
     time: 12h
-    company_types: [factory]
+    company_types: [factory, tech_studio]
     skill: engineering
     level: 2
   - code: batteries
     name: Battery chemistry
     cost: 25000
     time: 6h
+    company_types: [factory, tech_studio]
+    skill: engineering
+    level: 1
+  # A factory's first step up from tools and clothes: cars and motorbikes
+  # (items.yml requires_technology).
+  - code: vehicle_engineering
+    name: Vehicle engineering
+    cost: 40000
+    time: 8h
     company_types: [factory]
     skill: engineering
     level: 1
@@ -95,6 +104,14 @@ suppliers:
     place: farmland
     shelves:
       - {component: seed_grain, price: 3, stock: 2000, restock: 400, every: 1h}
+  # A tech studio's supplier: the wire and resin its first circuit boards
+  # are made of.
+  - code: electronics_wholesaler
+    name: Electronics wholesaler
+    place: business_district
+    shelves:
+      - {component: copper_wire, price: 3, stock: 2000, restock: 400, every: 1h}
+      - {component: resin,       price: 3, stock: 2000, restock: 400, every: 1h}
   - code: wholesale_market
     name: Wholesale market
     place: bazaar

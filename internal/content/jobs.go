@@ -106,7 +106,19 @@ type CareerDef struct {
 	// openings later; this list is only the NPC employer's.
 	Cities []string  `yaml:"cities" json:"cities"`
 	Tiers  []TierDef `yaml:"tiers" json:"tiers"`
+	// PaidBy is who pays the base employer's wage: omitted, the city's
+	// NPC employer (base_employer_salary, a faucet); "defence_fund", the
+	// armed forces of the country the job's city belongs to, from its
+	// defence fund (military_wage, a transfer) — a military career
+	// (docs/adr/0022, section 2.14).
+	PaidBy string `yaml:"paid_by,omitempty" json:"paid_by,omitempty"`
 }
+
+// PaidByDefenceFund is the paid_by of a career the armed forces pay.
+const PaidByDefenceFund = "defence_fund"
+
+// Military reports whether the career is one of the armed forces.
+func (c CareerDef) Military() bool { return c.PaidBy == PaidByDefenceFund }
 
 // OfferedIn reports whether the base employer hires into this career in the
 // city with this code.

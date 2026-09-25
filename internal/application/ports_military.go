@@ -193,6 +193,65 @@ type MilitaryRepository interface {
 	FinishMove(ctx context.Context, moveID string, now time.Time) (int64, error)
 	// Moves lists a country's moves still under way.
 	Moves(ctx context.Context, countryID string) ([]MilitaryMove, error)
+
+	// Defence licences (migrations/0027_defence_licences.up.sql,
+	// docs/adr/0022 section 2.14). Lock order: the company, then its
+	// licence.
+	//
+	// CompanyLicence reads a company's latest licence or application,
+	// locked when lock is set, or ErrDefenceLicenceNotFound.
+	CompanyLicence(ctx context.Context, companyID string, lock bool) (*DefenceLicence, error)
+	// LicenceByNo reads a licence by its public number, locked when lock
+	// is set, or ErrDefenceLicenceNotFound.
+	LicenceByNo(ctx context.Context, no int64, lock bool) (*DefenceLicence, error)
+	// CreateLicence records a licence or an application and returns it
+	// with its number; a company with one open already is
+	// ErrDefenceLicenceOpen.
+	CreateLicence(ctx context.Context, l DefenceLicence) (DefenceLicence, error)
+	// SaveLicence writes a licence's status, decision and revocation.
+	SaveLicence(ctx context.Context, l DefenceLicence) error
+	// Licences lists the licences of the companies of these cities with
+	// their companies: every one open (pending, active, revoking) and the
+	// latest ended ones, at most ended of them — applications first, then
+	// the rest, newest first.
+	Licences(ctx context.Context, cityIDs []string, ended int) ([]LicenceLine, error)
+}
+
+// Defence licence kinds and bases, as defence_licences spells them; the
+// statuses are internal/domain/military's LicenceStatus.
+const (
+	LicenceManufacturer = "manufacturer"
+	LicenceContractor   = "contractor"
+)
+
+// DefenceLicence is one defence_licences row: a company's defence licence,
+// or its application for a contractor licence.
+type DefenceLicence struct {
+	ID        string
+	No        int64
+	CompanyID string
+	Kind      string
+	Basis     string
+	Status    string
+	AppliedBy string
+	AppliedAt time.Time
+	// DecidedBy, from DecidedOffice, at DecidedAt: the minister's answer.
+	DecidedBy     string
+	DecidedOffice string
+	DecidedAt     *time.Time
+	// RevokedBy, from RevokedOffice, at RevokedAt; in force until
+	// EffectiveAt.
+	RevokedBy     string
+	RevokedOffice string
+	RevokedAt     *time.Time
+	EffectiveAt   *time.Time
+	UpdatedAt     time.Time
+}
+
+// LicenceLine is a licence with its company, for the public registry.
+type LicenceLine struct {
+	Licence DefenceLicence
+	Company Company
 }
 
 // Military sentinels.
@@ -201,6 +260,10 @@ var (
 		"application.ErrMoveNotFound", "no such movement of forces")
 	ErrPeriodSettled = errors.Sentinel(errors.CodeConflict,
 		"application.ErrPeriodSettled", "that defence period is settled already")
+	ErrDefenceLicenceNotFound = errors.Sentinel(errors.CodeNotFound,
+		"application.ErrDefenceLicenceNotFound", "no such defence licence")
+	ErrDefenceLicenceOpen = errors.Sentinel(errors.CodeConflict,
+		"application.ErrDefenceLicenceOpen", "the company has a defence licence or an application open")
 )
 
 // ---------------------------------------------------------------------------

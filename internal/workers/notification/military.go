@@ -162,3 +162,64 @@ var (
 			screens.GovPlace{Kind: ev.PlaceKind, Code: ev.PlaceCode, Name: ev.PlaceName})
 	})
 )
+
+// licenceEvent is the payload the defence licence handlers write
+// (docs/adr/0022 section 2.14).
+type licenceEvent struct {
+	PlayerID    string    `json:"player_id"`
+	CityIDs     []string  `json:"city_ids"`
+	CompanyCode string    `json:"company_code"`
+	CompanyName string    `json:"company_name"`
+	Type        string    `json:"type"`
+	CountryCode string    `json:"country_code"`
+	CountryName string    `json:"country_name"`
+	Kind        string    `json:"kind"`
+	EffectiveAt time.Time `json:"effective_at"`
+}
+
+func decodeLicence(env *envelope.Envelope, name string) (licenceEvent, error) {
+	var ev licenceEvent
+	if err := json.Unmarshal(env.Payload, &ev); err != nil {
+		return ev, apperrors.InvalidInput(name + " payload is unreadable").WithCause(err)
+	}
+	return ev, nil
+}
+
+func (ev licenceEvent) company() screens.CompanyRef {
+	return screens.CompanyRef{Code: ev.CompanyCode, Name: ev.CompanyName, Type: screens.Named{Code: ev.Type, Name: ev.Type}}
+}
+
+// renderLicence: the defence minister hears an application waits
+// ("applied"); the owner hears the verdict ("approved", "rejected",
+// "revoked").
+func renderLicence(event string) Renderer {
+	return func(_ context.Context, _ Deps, env *envelope.Envelope) (*Draft, error) {
+		ev, err := decodeLicence(env, "military."+event)
+		if err != nil || ev.PlayerID == "" {
+			return nil, err
+		}
+		kind := ev.Kind
+		if event == "licence_applied" {
+			kind = "applied"
+		}
+		view := screens.LicenceNoticeView{Kind: kind, Company: ev.company(), Country: country(ev.CountryCode, ev.CountryName),
+			EffectiveAt: ev.EffectiveAt}
+		return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
+			return screens.LicenceNotice(c, view)
+		}}, nil
+	}
+}
+
+// licenceAnnouncement: a contractor licence granted ("granted") or a licence
+// revoked ("revoked"), in the groups of every city of the country.
+func licenceAnnouncement(kind string) Announcer {
+	return func(_ context.Context, _ Deps, env *envelope.Envelope) (*Announcement, error) {
+		ev, err := decodeLicence(env, "military.licence_"+kind)
+		if err != nil || len(ev.CityIDs) == 0 {
+			return nil, err
+		}
+		return &Announcement{CityIDs: ev.CityIDs, Name: ev.CompanyName, Line: func(c screens.Context, _ string) string {
+			return screens.LicenceAnnouncement(c, kind, ev.CompanyName, country(ev.CountryCode, ev.CountryName), ev.EffectiveAt)
+		}}, nil
+	}
+}

@@ -12,6 +12,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/bank"
 	"github.com/mrjvadi/torncity/internal/domain/company"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
+	"github.com/mrjvadi/torncity/internal/domain/military"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
 	"github.com/mrjvadi/torncity/internal/domain/place"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -58,6 +59,11 @@ type CompanyRules struct {
 	Citizens              company.CitizenRules
 	CitizenLabourShareBPS int
 	Limits                bank.Limits
+	// MaxRunningOrders and QuickUnits are the production economy's, for
+	// the next step the management screen shows (docs/adr/0021, section
+	// 14).
+	MaxRunningOrders int
+	QuickUnits       int
 }
 
 // CompaniesHandler serves player companies (docs/adr/0020-companies.md):
@@ -532,6 +538,7 @@ func (h *CompaniesHandler) Register(ctx context.Context, meta envelope.Metadata)
 			}
 			view.Types = append(view.Types, screens.CompanyTypeLine{
 				Type: screens.Named{Code: def.Code, Name: def.Name}, Fee: fee.Minor(), Upkeep: def.Upkeep,
+				Licensed: snap.LicensedSector(def),
 			})
 		}
 		return nil
@@ -551,6 +558,11 @@ type foundable struct {
 	fee     money.Amount
 	blocked string
 	where   whereabouts
+	// basis is what a defence company's licence rests on; rank the lowest
+	// rank of the armed forces that may found one, for the block
+	// (docs/adr/0022, section 2.14).
+	basis military.Basis
+	rank  screens.JobRef
 }
 
 // foundability works out whether p may found a company of kind code here.
@@ -585,6 +597,9 @@ func (h *CompaniesHandler) foundability(ctx context.Context, tx application.Tx, 
 	}
 	if owned >= h.rules.MaxPerPlayer {
 		f.blocked = screens.CompanyBlockedLimit
+	}
+	if err := h.defenceGate(ctx, tx, snap, def, p, &f); err != nil {
+		return f, err
 	}
 	multiplier, err := h.lever(ctx, *city, LeverCompanyRegistration)
 	if err != nil {
@@ -630,6 +645,7 @@ func (h *CompaniesHandler) typeView(ctx context.Context, tx application.Tx, snap
 		Type: screens.Named{Code: f.def.Code, Name: f.def.Name}, Place: placeNamed(snap, f.def.Place),
 		Fee: f.fee.Minor(), Upkeep: f.def.Upkeep, MaxStaff: f.def.MaxStaff, Period: h.periodWait(),
 		NameMin: h.rules.NameMin, NameMax: h.rules.NameMax, Blocked: f.blocked, Max: h.rules.MaxPerPlayer,
+		Rank: f.rank,
 	}
 	for _, c := range f.def.Careers {
 		if def, ok := snap.CareerDef(c); ok {
@@ -715,6 +731,8 @@ func (h *CompaniesHandler) Found(ctx context.Context, meta envelope.Metadata, re
 			return refuseCompany(screens.CompanyRefusedNoPlace, nil, snap)
 		case screens.CompanyBlockedNoCity:
 			return application.ErrCityNotFound
+		case screens.CompanyBlockedDefence:
+			return refuseCompany(screens.CompanyRefusedDefence, nil, snap)
 		}
 		if err := needService(f.where, snap, place.ServiceCityHall, h.scale, now); err != nil {
 			return thenFor(err, "company.type", f.def.Code)
@@ -775,6 +793,10 @@ func (h *CompaniesHandler) Found(ctx context.Context, meta envelope.Metadata, re
 		}
 		// The treasury exists from the first moment, at zero.
 		if _, err := tx.Ledger().AccountFor(ctx, application.AccountCompanyTreasury, c.ID); err != nil {
+			return err
+		}
+		// A defence company is founded on its licence.
+		if err := h.recordFoundingLicence(ctx, tx, f, c, p, now); err != nil {
 			return err
 		}
 		if err := h.startClock(ctx, tx, f.city.ID, now); err != nil {
@@ -969,7 +991,12 @@ func (h *CompaniesHandler) manageView(ctx context.Context, tx application.Tx, sn
 	if next != nil {
 		v.NextAt, v.NextIn = *next, max(next.Sub(h.now()), 0)
 	}
-	return v, nil
+	// The one step its floor should take next, and its defence licence.
+	if v.Step, err = h.floorHelper().nextStep(ctx, tx, snap, &c, role.Can(company.RightResearch)); err != nil {
+		return v, err
+	}
+	v.Defence, err = h.defenceBadge(ctx, tx, snap, c)
+	return v, err
 }
 
 // periodSummary is a settled period for a screen.

@@ -8,7 +8,8 @@ import (
 // militaryRules is the armed forces' tuning from the configuration.
 func militaryRules(c config.Military) handlers.MilitaryRules {
 	return handlers.MilitaryRules{Period: c.Period, ReadinessLossBPS: int64(c.ReadinessLossBPS),
-		ReadinessRecoveryBPS: int64(c.ReadinessRecoveryBPS), ReferenceRadarKM: int64(c.ReferenceRadarKM)}
+		ReadinessRecoveryBPS: int64(c.ReadinessRecoveryBPS), ReferenceRadarKM: int64(c.ReferenceRadarKM),
+		LicenceRevokeNotice: c.LicenceRevokeNotice, EndedLicencesShown: c.EndedLicencesShown}
 }
 
 // diplomacyRules is diplomacy's tuning from the configuration.
@@ -34,6 +35,8 @@ func (h phaseHandlers) bindMilitary() map[string]commandFunc {
 		"military.station":  decoded(m.Station),
 		"military.procure":  decoded(m.Procure),
 		"military.buy":      decoded(m.ArmsBuy),
+		"military.licences": decoded(m.Licences),
+		"military.licence":  decoded(m.Licence),
 		// The scheduler's: a defence period ending, equipment landing.
 		"military.settle": decoded(m.Settle),
 		"military.arrive": decoded(m.Arrive),

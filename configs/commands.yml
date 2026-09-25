@@ -206,6 +206,13 @@ commands:
   company.unlist: {channel: private}
   company.goods: {channel: private}
   company.buy: {channel: private}
+  # One tap buys an order's missing inputs from the suppliers: the company's
+  # money, PV only (docs/adr/0021, section 14).
+  company.stockup: {channel: private}
+  # A company's defence licence and its application for a contractor
+  # licence show its standing and its owner's decisions: PV only
+  # (docs/adr/0022, section 2.14).
+  company.defence: {channel: private}
 
   # The armed forces (docs/adr/0022): a country's ministry of defence and the
   # public summary of its forces read anywhere (in a group without counts,
@@ -217,6 +224,12 @@ commands:
   military.station: {channel: private}
   military.procure: {channel: private}
   military.buy: {channel: private}
+  # Defence licences are public record: the registry reads anywhere (in a
+  # group without anyone's buttons); the defence minister's verdicts —
+  # approve, reject, revoke — are theirs, in PV only (docs/adr/0022, section
+  # 2.14).
+  military.licences: {channel: both}
+  military.licence: {channel: private}
 
   # Diplomacy is public business: the sanctions and treaties boards and the
   # record read anywhere. Imposing, lifting, proposing, answering and ending

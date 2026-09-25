@@ -704,6 +704,7 @@ pay:
 # شغلی. مبلغ‌ها از format.money می‌آیند. عنوان هر جایگاه career.<code>.<rank>
 # و نام هر رشتهٔ شغلی career.<code>.name است.
 job:
+  army_cannot_pay: "🪖 صندوق دفاع کشور الان پول دستمزد یک شیفت را ندارد، پس شیفت شروع نشد. وقتی بودجهٔ دفاعی برسد دوباره امتحان کنید."
   status_title: "💼 شغل من"
   none: "هنوز شغلی ندارید. پیشنهادهای کارفرمایان شهرتان را در «فرصت‌های شغلی» ببینید."
   position: "💼 {title} - {career}"
@@ -860,6 +861,15 @@ institution:
 
 # نام رشته‌های شغلی و عنوان جایگاه‌ها، با کلید کد محتوا (configs/content/jobs.yml).
 career:
+  armed_forces:
+    name: نیروهای مسلح
+    entry: سرباز
+    skilled: گروهبان
+    senior: ستوان
+    specialist: سروان
+    manager: سرگرد
+    executive: سرهنگ
+    owner: سرتیپ
   retail:
     name: خرده‌فروشی
     entry: فروشندهٔ کارآموز
@@ -903,6 +913,7 @@ career:
 
 # نام دوره‌ها، با کلید کد محتوا (configs/content/education.yml).
 course:
+  officer_training: دورهٔ افسری
   first_aid: کمک‌های اولیه
   driving_licence: گواهینامهٔ رانندگی
   bookkeeping: دفترداری
@@ -1115,6 +1126,7 @@ crime_tier:
 
 # محل‌های درون شهر (crimes.yml).
 venue:
+  barracks: پادگان
   city_centre: مرکز شهر
   bus_terminal: پایانهٔ اتوبوس
   train_station: ایستگاه قطار
@@ -1406,6 +1418,8 @@ item_category:
 
 # نام کالاها بر اساس کد محتوایی (configs/content/items.yml).
 item_name:
+  led_torch: چراغ‌قوه
+  pocket_radio: رادیو جیبی
   car: خودرو
   motorbike: موتورسیکلت
   bread: نان
@@ -1733,6 +1747,17 @@ election:
 # هزینهٔ نگهداری 🔧، دوره (تسویهٔ هر روز بازی)، سطح قیمت 🏷، امتیاز ⭐.
 # نام هر نوع شرکت company_type.<code> است. شرکت با نام و کدش شناخته می‌شود.
 company:
+  type_line_licensed: " - 🛡 نیازمند مجوز دفاعی"
+  type_defence: "🛡 {type} از صنایع دفاعی است و بدون مجوز دفاعی ثبت نمی‌شود. یکی از این دو راه را بروید:"
+  type_defence_rank: "• در {career} خدمت کنید و دست‌کم به درجهٔ {rank} برسید."
+  type_defence_contractor: "• صاحب شرکتی باشید که مجوز پیمانکاری دفاعی دارد."
+  defence_badge:
+    eligible: "🛡 شرکت شما می‌تواند برای مجوز پیمانکاری دفاعی درخواست بدهد."
+    pending: "🛡 درخواست مجوز دفاعی منتظر تصمیم وزیر دفاع است."
+    active: "🛡 مجوز دفاعی: معتبر"
+    revoking: "🛡 مجوز دفاعی لغو شده و ساعت {time} از اعتبار می‌افتد."
+    revoked: "🛡 مجوز دفاعی لغو شده است."
+    rejected: "🛡 درخواست مجوز دفاعی رد شد."
   # What a player types to say the company has no manager (alternatives
   # separated by «|»).
   none_words: "هیچ | هیچ‌کس | ندارد"
@@ -1853,6 +1878,7 @@ company:
   report_debt: "⚠️ شرکت {amount} بدهی نگهداری دارد. اگر تا {left} دورهٔ دیگر تسویه نشود، شرکت منحل می‌شود؛ به حساب شرکت پول واریز کنید."
   report_dissolved: "🔒 شرکت چند دوره پیاپی نتوانست هزینهٔ نگهداری را بدهد و منحل شد."
   button:
+    defence: "🛡 مجوز دفاعی"
     company: "🏢 {name}"
     register: "➕ ثبت شرکت"
     mine: "💼 شرکت‌های من"
@@ -1886,6 +1912,7 @@ company:
     job: "✅ {title} در {company}"
     job_locked: "🔒 {title} در {company}"
   refused:
+    defence: "🛡 این شرکت از صنایع دفاعی است و بدون مجوز دفاعی ثبت نمی‌شود: درجهٔ کافی در نیروهای مسلح، یا شرکتی با مجوز پیمانکاری دفاعی لازم است."
     not_found: چنین شرکتی پیدا نشد.
     not_allowed: "در {name} اجازهٔ این کار را ندارید."
     dissolved: "شرکت {name} بسته شده است."
@@ -1940,6 +1967,43 @@ company_type:
 # زیر technology، تأمین‌کننده‌ها زیر supplier، جای‌های طرح زیر design_slot و
 # ویژگی‌ها زیر attribute است.
 production:
+  warehouse_empty_short: "📦 انبار خالی است."
+  list_and: " و "
+  unlock:
+    research: "برای باز شدن، اول فناوری {techs} را تحقیق کنید."
+    license: "برای باز شدن، لایسنس فناوری {techs} را بخرید."
+    both: "برای باز شدن، اول فناوری {research} را تحقیق کنید و لایسنس {license} را بخرید."
+  step_title: "🧭 قدم بعدی:"
+  step:
+    design_first: "اولین محصولتان را طراحی کنید؛ با یک کالای ساده شروع کنید."
+    design_draft: "طرح «{name}» نیمه‌کاره مانده؛ کاملش کنید و نهایی‌اش کنید."
+    sell: "{good} در انبار دارید؛ عرضه‌اش کنید تا بازیکنان و شرکت‌ها بخرند."
+    produce: "مواد لازم آماده است؛ {qty} {good} بسازید."
+    producing: "{qty} {good} در حال ساخت است و ساعت {time} آماده می‌شود - {duration} دیگر."
+    supply: "برای ساختن {good}، مواد اولیه را یک‌جا از تأمین‌کننده بخرید؛ جمعاً {total}."
+    buy_goods: "برای ساختن {good} به {component} نیاز دارید که شرکت‌های دیگر می‌سازند؛ آن را از کالای شرکت‌ها بخرید."
+    research: "برای رشد شرکت، فناوری {tech} را تحقیق کنید تا {item} باز شود."
+    design_next: "حالا می‌توانید {item} را طراحی کنید."
+  step_button:
+    design_first: "📐 طراحی اولین محصول"
+    design_draft: "📐 ادامهٔ {name}"
+    sell: "💰 فروش {good}"
+    produce: "⚙️ ساخت {qty} {good}"
+    supply: "🛒 خرید مواد اولیه - {total}"
+    research: "🔬 تحقیق {tech}"
+    design_next: "📐 طراحی {item}"
+  studio_none_ready: "هنوز کالایی برای طراحی آماده نیست؛ کالاهای زیر با یک قدم باز می‌شوند."
+  studio_next: "🔒 با یک قدم باز می‌شود:"
+  studio_next_line: "🔒 {item}: {hint}"
+  studio_later: "🔭 کالاهای پیشرفته‌تر بعد از این‌ها باز می‌شوند."
+  lab_later: "🔭 {count} فناوری پیشرفته‌تر بعد از این‌ها باز می‌شود."
+  orders_locked: "🔒 با یک قدم باز می‌شود:"
+  orders_locked_line: "🔒 {good}: {hint}"
+  short_source:
+    supplier: "• {component}: {qty} واحد کم است - تأمین‌کننده می‌فروشد"
+    made: "• {component}: {qty} واحد کم است - خودتان می‌سازید"
+    companies: "• {component}: {qty} واحد کم است - از کالای شرکت‌ها بخرید"
+  stock_up_done: "✅ مواد کم‌وکسر از تأمین‌کننده خریده شد و {total} از حساب شرکت پرداخت شد."
   good_designed: "{design} ({item})"
   list_separator: "، "
   available: "💵 پول آزاد شرکت: {amount}"
@@ -1951,7 +2015,6 @@ production:
   stock_line_pieces: "📦 {good} - {qty} عدد - کیفیت {quality}"
   stock_listed: " - {qty} در عرضه"
   warehouse_empty: "📦 انبار خالی است. مواد پایه را از تأمین‌کننده‌ها بخرید یا خودتان تولید کنید."
-  warehouse_hint: "هر چه شرکت می‌خرد، تولید می‌کند یا می‌فروشد از همین انبار می‌گذرد. از دکمه‌های زیر به خط تولید، طراحی، آزمایشگاه و عرضه‌ها بروید."
   suppliers_title: "🚚 تأمین‌کننده‌های {city}"
   supply_line: "• {component} - {supplier} - {price} برای هر واحد - موجودی {stock} واحد"
   supply_bought: "✅ {qty} واحد {component} به انبار رسید و {total} از حساب شرکت پرداخت شد."
@@ -1991,6 +2054,7 @@ production:
     published: "🌐 منتشرشده: همه آزادانه از آن استفاده می‌کنند و این تصمیم برگشت‌پذیر نیست."
   tech_sold: "📜 لایسنس‌های فروخته‌شده: {count}"
   tech_blocked:
+    not_cleared: "🛡 این فناوری نظامی است و فقط شرکتی که مجوز دفاعی دارد تحقیقش می‌کند."
     busy: "⏳ آزمایشگاه همین حالا سرگرم تحقیق دیگری است؛ هر بار یک تحقیق."
     wrong_type: "🏷 این نوع شرکت نمی‌تواند این فناوری را تحقیق کند."
     skill: "🎓 کسی در شرکت {skill} سطح {level} ندارد. کارمندی با این مهارت استخدام کنید یا خودتان آموزش ببینید."
@@ -2018,7 +2082,6 @@ production:
   studio_new: "برای طرح تازه، نوع کالا را انتخاب کنید:"
   studio_no_kinds: "این نوع شرکت کالایی طراحی نمی‌کند."
   studio_at_max: "شرکت شما {max} طرح دارد و بیش از این نمی‌تواند داشته باشد."
-  studio_hint: "طرح را جای‌به‌جای با قطعه‌ها پر می‌کنید؛ هر قطعه‌ای که فناوری لازم دارد، فقط با آن فناوری یا لایسنسش انتخاب می‌شود. طرح مال شرکت است و دیگران فقط ویژگی‌های آشکار محصول را می‌بینند."
   design_title: "📐 {name} - {item}"
   design_state:
     draft: "✏️ پیش‌نویس"
@@ -2109,6 +2172,7 @@ production:
     published: "🌐 شرکت {company} فناوری {tech} را برای همهٔ شرکت‌ها منتشر کرد."
     launched: "📦 شرکت {company} محصول تازه‌اش، {design} ({item})، را در {city} عرضه کرد."
   button:
+    stock_up: "🛒 خرید مواد کم‌وکسر - {total}"
     warehouse: "🏭 تولید و انبار"
     goods: "🏭 کالای شرکت‌ها"
     sell: "💰 فروش {good}"
@@ -2190,6 +2254,9 @@ production:
 
 # نام قطعه‌ها و مواد، به کد محتوا (configs/content/items.yml).
 component:
+  copper_wire: سیم مسی
+  resin: رزین اپوکسی
+  circuit_board: برد مدار
   diesel: گازوئیل
   seed_grain: بذر غلات
   lithium_salt: نمک لیتیم
@@ -2253,6 +2320,7 @@ component:
 
 # نام فناوری‌ها، به کد محتوا (configs/content/production.yml).
 technology:
+  vehicle_engineering: مهندسی خودرو
   semiconductors: نیمه‌رساناها
   microchips: ریزتراشه‌ها
   batteries: شیمی باتری
@@ -2271,6 +2339,7 @@ technology:
 
 # نام تأمین‌کننده‌ها، به کد محتوا (configs/content/production.yml).
 supplier:
+  electronics_wholesaler: عمده‌فروشی قطعات الکترونیکی
   industrial_supplier: تأمین‌کنندهٔ صنعتی
   farm_supply: فروشگاه لوازم کشاورزی
   wholesale_market: بازار عمده‌فروشی
@@ -2444,6 +2513,7 @@ military:
     times: "{value} برابر"
     decimal_point: "٫"
   refused:
+    licence_state: "🛡 تصمیم این مجوز پیش‌تر گرفته شده است."
     not_found: "این کالا دیگر عرضه نمی‌شود یا هرگز عرضه نشده بود."
     not_holder: "تنها {office} {country} می‌تواند این کار را انجام دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
     not_arms: "این کالا تجهیزات نظامی نیست؛ دولت فقط تسلیحات می‌خرد."
@@ -3003,6 +3073,7 @@ faction:
 
 # دسته‌های شغلی (configs/content/jobs.yml).
 career_category:
+  military: نظامی
   commerce: بازرگانی
   food: خوراک
   transport: حمل‌ونقل
@@ -3353,3 +3424,55 @@ achievement:
     name: منتخب مردم
   lawmaker:
     name: قانون‌گذار
+
+
+defence:
+  status:
+    pending: "⏳ منتظر تصمیم وزیر دفاع"
+    active: "✅ معتبر"
+    revoking: "⚠️ لغو شده - تا ساعت {time} معتبر است"
+    revoked: "❌ لغو شده"
+    rejected: "❌ رد شده"
+  kind:
+    manufacturer: "سازندهٔ تسلیحات"
+    contractor: "پیمانکار دفاعی"
+  company_title: "🛡 مجوز دفاعی {name}"
+  company_none: "این شرکت هنوز مجوز دفاعی ندارد."
+  company_manufacturer: "شرکت صنایع دفاعی فقط با مجوز دفاعی کار می‌کند؛ این مجوز اجازه می‌دهد فناوری نظامی را تحقیق کند، لایسنسش را بخرد و تسلیحات بسازد."
+  company_contractor: "شرکتی که در فناوری پیشرفته است می‌تواند پیمانکار ارتش شود: با مجوز پیمانکاری دفاعی فناوری‌های نظامی را تحقیق می‌کند و لایسنسشان را می‌خرد، و صاحبش می‌تواند شرکت صنایع دفاعی ثبت کند. وزیر دفاع درخواست را تأیید یا رد می‌کند."
+  standing_title: "📊 جایگاه فناوری شرکت:"
+  standing_techs: "{mark} دست‌کم {min} فناوری از آن خود شرکت - دارید: {have}"
+  standing_tier: "{mark} فناوری سطح {min} یا بالاتر - بالاترین سطح شما: {have}"
+  apply_how: "شرکت شما شرایط را دارد. با دکمهٔ زیر درخواست را برای وزیر دفاع بفرستید."
+  apply_not_yet: "هنوز شرایط درخواست را ندارید؛ در آزمایشگاه فناوری‌های بیشتری تحقیق کنید."
+  applied: "✅ درخواست برای وزیر دفاع فرستاده شد. تصمیمش را خبرتان می‌کنیم."
+  no_minister: "⏳ صندلی وزیر دفاع الان خالی است؛ درخواست می‌ماند تا کسی منصوب شود."
+  button:
+    apply: "🛡 درخواست مجوز پیمانکاری دفاعی"
+    registry: "🛡 مجوزهای دفاعی"
+    company: "🛡 مجوز دفاعی شرکت"
+    approve: "✅ تأیید {company}"
+    reject: "❌ رد"
+    revoke: "⛔ لغو مجوز {company}"
+    revoke_confirm: "⛔ بله، لغو شود"
+  revoke_confirm: "⛔ مجوز دفاعی {company} را لغو می‌کنید؟ لغو همین حالا اعلام می‌شود و مجوز {notice} دیگر از اعتبار می‌افتد."
+  registry_title: "🛡 مجوزهای دفاعی {country}"
+  registry_pending: "⏳ درخواست‌های منتظر:"
+  registry_in_force: "✅ مجوزهای معتبر:"
+  registry_ended: "🗄 مجوزهای پایان‌یافته:"
+  registry_line: "• {company} ({type}) - {kind} - {status}"
+  registry_none: "هنوز هیچ مجوز دفاعی‌ای ثبت نشده است."
+  registry_hint: "مجوزهای دفاعی عمومی‌اند. وزیر دفاع درخواست‌ها را تأیید یا رد می‌کند و می‌تواند مجوزی را با اطلاع قبلی لغو کند."
+  verdict:
+    approve: "✅ مجوز پیمانکاری دفاعی {company} صادر شد."
+    reject: "❌ درخواست {company} رد شد."
+    revoke: "⛔ مجوز دفاعی {company} لغو شد."
+  notice:
+    applied: "🛡 شرکت {company} در {country} درخواست مجوز پیمانکاری دفاعی داده و منتظر تصمیم شماست."
+    approved: "✅ وزیر دفاع مجوز پیمانکاری دفاعی {company} را تأیید کرد."
+    rejected: "❌ وزیر دفاع درخواست مجوز دفاعی {company} را رد کرد."
+    revoked: "⛔ وزیر دفاع مجوز دفاعی {company} را لغو کرد؛ مجوز ساعت {time} از اعتبار می‌افتد."
+  announce:
+    granted: "🛡 شرکت {company} مجوز پیمانکاری دفاعی {country} را گرفت."
+    revoked: "⛔ مجوز دفاعی شرکت {company} در {country} لغو شد و ساعت {time} از اعتبار می‌افتد."
+  ministry_pending: "🛡 درخواست‌های مجوز دفاعی منتظر تصمیم: {count}"

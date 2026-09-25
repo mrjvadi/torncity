@@ -94,6 +94,9 @@ type MinistryView struct {
 	// CanProcure is the viewer who buys arms for the state.
 	CanProcure bool
 	Notice     string
+	// PendingLicences is how many defence licence applications wait for
+	// the minister (docs/adr/0022, section 2.14).
+	PendingLicences int
 }
 
 // armsExportsKey words the arms export policy.
@@ -164,9 +167,15 @@ func Ministry(c Context, v MinistryView) *presenter.Response {
 	sanctions, _ := keyboards.Button(c.T("diplomacy.button.sanctions", nil), AddrSanctions, v.Country.Code)
 	treaties, _ := keyboards.Button(c.T("diplomacy.button.treaties", nil), AddrTreaties, v.Country.Code)
 	kb.Row(sanctions, treaties)
-	kb.Add(c.T("military.button.war", nil), AddrWarBoard, v.Country.Code)
+	war, _ := keyboards.Button(c.T("military.button.war", nil), AddrWarBoard, v.Country.Code)
+	licences, _ := keyboards.Button(c.T("defence.button.registry", nil), AddrLicences, v.Country.Code)
+	kb.Row(war, licences)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrGovCity, RefreshData: keyboards.Data(AddrMinistry, v.Country.Code)}))
-	return c.respond(paragraphs(body(head...), body(offices...), body(budget...), body(forces...),
+	pending := ""
+	if v.PendingLicences > 0 {
+		pending = c.T("defence.ministry_pending", map[string]any{"count": FormatNumber(c, int64(v.PendingLicences))})
+	}
+	return c.respond(paragraphs(body(head...), body(offices...), body(budget...), body(forces...), pending,
 		c.T("military.ministry.footer", nil)), kb.Build())
 }
 
@@ -587,6 +596,9 @@ const (
 	MilitaryRefusedStock     = "stock"
 	MilitaryRefusedCity      = "city"
 	MilitaryRefusedNoCountry = "no_country"
+	// MilitaryRefusedLicenceState is a verdict on a licence that is not
+	// in a state for it: decided already, or revoked already.
+	MilitaryRefusedLicenceState = "licence_state"
 )
 
 // MilitaryRefusalView is a refused military command.

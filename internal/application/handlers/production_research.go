@@ -66,11 +66,17 @@ func techState(f *floor, running *application.Research, code string) string {
 }
 
 // researchStanding is the rules' view of a company for research.
-func (h *ProductionHandler) researchStanding(ctx context.Context, tx application.Tx, f *floor, running *application.Research,
+func (h *ProductionHandler) researchStanding(ctx context.Context, tx application.Tx, snap *content.Snapshot, f *floor,
+	running *application.Research,
 ) (technology.Standing, error) {
+	buyer, err := f.buyer(ctx, tx, snap, h.now())
+	if err != nil {
+		return technology.Standing{}, err
+	}
 	levels := map[string]int{}
 	var firstErr error
 	s := technology.Standing{CompanyType: f.c.TypeCode, Owned: f.ownSet, Published: f.pubSet, Researching: running != nil,
+		Buyer: buyer,
 		SkillLevel: func(skill string) int {
 			if l, ok := levels[skill]; ok {
 				return l
@@ -98,6 +104,8 @@ func blockedKind(err error) string {
 		return screens.ProductionRefusedSkill
 	case stderrors.Is(err, technology.ErrAlreadyOwned):
 		return screens.ProductionRefusedOwned
+	case stderrors.Is(err, technology.ErrNotCleared):
+		return screens.ProductionRefusedNotCleared
 	}
 	return screens.ProductionRefusedPrerequisite
 }
@@ -146,14 +154,33 @@ func (h *ProductionHandler) Lab(ctx context.Context, meta envelope.Metadata, req
 		for _, t := range f.owned {
 			owned[t.Tech] = t
 		}
-		st, err := h.researchStanding(ctx, tx, f, running)
+		stg, err := h.stageOf(ctx, tx, snap, f)
 		if err != nil {
 			return err
 		}
+		st := stg.standing
 		needed := techsNeeded(snap, c.TypeCode)
+		// Staged, basic first: what the company may use or research now,
+		// and what is one step beyond; the rest is counted, not shown
+		// (docs/adr/0021, section 14).
+		var codes []string
 		for _, def := range snap.Technologies() {
+			codes = append(codes, def.Code)
+		}
+		for _, code := range byTier(snap, codes) {
+			def, _ := snap.Technology(code)
 			if !hasCode(def.CompanyTypes, c.TypeCode) && !f.ownSet.Has(def.Code) && !needed[def.Code] {
 				continue
+			}
+			usable := f.access.Allows(def.Code) || (running != nil && running.Tech == def.Code)
+			if !stg.labShown(def.Tech(), usable) {
+				if ctl := def.Tech().Control; !ctl.Restricted || technology.Cleared(ctl, st.Buyer) == nil {
+					view.Hidden++
+				}
+				continue
+			}
+			if err := *stg.err; err != nil {
+				return err
 			}
 			line := screens.TechLine{Tech: named(def.Code, def.Name), State: techState(f, running, def.Code), Cost: def.Cost}
 			if t, ok := owned[def.Code]; ok {
@@ -249,7 +276,7 @@ func (h *ProductionHandler) techView(ctx context.Context, tx application.Tx, sna
 			return v, f, err
 		}
 	case screens.TechAvailable:
-		st, err := h.researchStanding(ctx, tx, f, running)
+		st, err := h.researchStanding(ctx, tx, snap, f, running)
 		if err != nil {
 			return v, f, err
 		}
@@ -345,7 +372,7 @@ func (h *ProductionHandler) Research(ctx context.Context, meta envelope.Metadata
 		if err != nil {
 			return err
 		}
-		st, err := h.researchStanding(ctx, tx, f, running)
+		st, err := h.researchStanding(ctx, tx, snap, f, running)
 		if err != nil {
 			return err
 		}
@@ -604,8 +631,11 @@ func (h *ProductionHandler) License(ctx context.Context, meta envelope.Metadata,
 			return refuseProduction(screens.ProductionRefusedNotForSale, c, snap).back(back...)
 		}
 		// Export control: the one place a license sale is cleared.
-		if err := technology.Cleared(def.Tech().Control, technology.Buyer{Kind: application.OrgCompany,
-			Sector: f.def.SectorCode()}); err != nil {
+		buyer, err := f.buyer(ctx, tx, snap, h.now())
+		if err != nil {
+			return err
+		}
+		if err := technology.Cleared(def.Tech().Control, buyer); err != nil {
 			return refuseProduction(screens.ProductionRefusedNotCleared, c, snap).back(back...)
 		}
 		// Across a border (docs/adr/0022): a technology ban between the two

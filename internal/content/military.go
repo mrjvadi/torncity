@@ -209,10 +209,10 @@ func (p *Pack) validateMilitary(problems *[]error) {
 	}
 	for code := range actions {
 		switch code {
-		case ActionProcure, ActionSanction, ActionTreaty, ActionWar:
+		case ActionProcure, ActionSanction, ActionTreaty, ActionWar, ActionDefenceLicence:
 		default:
 			if !commands[code] {
-				bad("action %q is implemented by nothing: not procure, sanction, treaty or a branch's command", code)
+				bad("action %q is implemented by nothing: not procure, sanction, treaty, war, the defence licence or a branch's command", code)
 			}
 		}
 	}

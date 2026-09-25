@@ -218,6 +218,12 @@ To cancel, send "cancel".
 ━━━ question · company.buy · reply box ━━━
 Quantity
 
+━━━ announcement · a contractor licence granted ━━━
+🛡 Aria Tech was granted a defence contractor licence of The Commonwealth.
+
+━━━ announcement · a defence licence revoked ━━━
+⛔ The defence licence of Alborz Defence in The Commonwealth was revoked; it lapses at 11:05.
+
 ━━━ announcement · arms acquired ━━━
 🎖 New arms for The Commonwealth: Stealth fighters (a few).
 

@@ -117,6 +117,10 @@ type LedgerVerification struct {
 	// StageFInvariants their checks (ledger_admin_stage_f.go).
 	StageF bool
 	StageFInvariants
+
+	// DefenceInvariants are the armed forces' wages
+	// (ledger_admin_defence.go); they need nothing but the ledger.
+	DefenceInvariants
 }
 
 // MilitaryInvariants are the armed forces' checks
@@ -212,7 +216,8 @@ type DriftedStack struct {
 func (v LedgerVerification) OK() bool {
 	return v.LedgerSum == "0" && len(v.Unbalanced) == 0 && len(v.Drifted) == 0 &&
 		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok() && v.ProductionInvariants.ok() &&
-		v.MilitaryInvariants.ok() && v.WarInvariants.ok() && v.StageEInvariants.ok() && v.StageFInvariants.ok()
+		v.MilitaryInvariants.ok() && v.WarInvariants.ok() && v.StageEInvariants.ok() && v.StageFInvariants.ok() &&
+		v.DefenceInvariants.ok()
 }
 
 // VerifyLedger runs the three invariants of docs/adr/0009-economic-control.md
@@ -328,6 +333,9 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 		if err := a.verifyStageF(ctx, &v); err != nil {
 			return v, err
 		}
+	}
+	if err := a.verifyDefence(ctx, &v); err != nil {
+		return v, err
 	}
 	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.companies') IS NOT NULL`).Scan(&v.Companies); err != nil {
 		return v, fmt.Errorf("postgres: looking for companies: %w", err)

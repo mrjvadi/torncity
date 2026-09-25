@@ -198,10 +198,19 @@ func (h *ProductionHandler) Studio(ctx context.Context, meta envelope.Metadata, 
 			view.Designs = append(view.Designs, screens.DesignLine{No: d.No, Name: d.Name, Item: itemNamed(snap, d.Item),
 				Status: d.Status, Origin: d.Origin})
 		}
-		for _, d := range snap.DesignableItems(c.TypeCode) {
-			view.Kinds = append(view.Kinds, named(d.Code, d.Name))
+		// Staged: what the company may design now, and what is one step
+		// away with the way in; the rest waits (docs/adr/0021, section 14).
+		f, err := readFloor(ctx, tx, snap, c)
+		if err != nil {
+			return err
 		}
-		return nil
+		st, err := h.stageOf(ctx, tx, snap, f)
+		if err != nil {
+			return err
+		}
+		view.Kinds, view.Next, view.Hidden, err = h.studioKinds(snap, f, st)
+		view.CanResearch = company.RoleOf(p.ID, c.OwnerID, c.ManagerID).Can(company.RightResearch)
+		return err
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
@@ -275,6 +284,12 @@ func (h *ProductionHandler) DesignNew(ctx context.Context, meta envelope.Metadat
 		}
 		f, err := readFloor(ctx, tx, snap, c)
 		if err != nil {
+			return err
+		}
+		// A good the company may not design yet — its own technology, or
+		// no part it may design with in a slot the design must fill — is
+		// refused, naming what it lacks.
+		if err := h.designGate(snap, f, def, a); err != nil {
 			return err
 		}
 		if err := h.checkEngineer(ctx, tx, snap, f, a); err != nil {
@@ -502,6 +517,15 @@ func (h *ProductionHandler) DesignFinal(ctx context.Context, meta envelope.Metad
 		}
 		if err := h.checkEngineer(ctx, tx, snap, f, a); err != nil {
 			return err
+		}
+		if def, ok := snap.ItemDef(d.Item); ok {
+			if err := h.designGate(snap, f, def, a); err != nil {
+				var r *productionRefusal
+				if stderrors.As(err, &r) {
+					r.back(back...)
+				}
+				return err
+			}
 		}
 		err = item.ValidateDesign(a, domainDesign(*d), snap.Components(), f.access)
 		switch {

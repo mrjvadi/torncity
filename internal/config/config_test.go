@@ -354,12 +354,15 @@ company:
   max_designs: 21
   max_listings: 11
   design_min_skill: 2
+  quick_order_units: 6
   reverse_time: 5h
 military:
   period: 25h
   readiness_loss_bps: 1001
   readiness_recovery_bps: 501
   reference_radar_km: 151
+  licence_revoke_notice: 25h
+  ended_licences_shown: 6
 diplomacy:
   sanction_notice: 2h
   sanction_min_duration: 25h
@@ -547,11 +550,14 @@ var envOverrides = map[string]string{
 	"TORN_COMPANY_MAX_DESIGNS":                "22",
 	"TORN_COMPANY_MAX_LISTINGS":               "12",
 	"TORN_COMPANY_DESIGN_MIN_SKILL":           "3",
+	"TORN_COMPANY_QUICK_ORDER_UNITS":          "7",
 	"TORN_COMPANY_REVERSE_TIME":               "7h",
 	"TORN_MILITARY_PERIOD":                    "26h",
 	"TORN_MILITARY_READINESS_LOSS_BPS":        "1002",
 	"TORN_MILITARY_READINESS_RECOVERY_BPS":    "502",
 	"TORN_MILITARY_REFERENCE_RADAR_KM":        "152",
+	"TORN_MILITARY_LICENCE_REVOKE_NOTICE":     "26h",
+	"TORN_MILITARY_ENDED_LICENCES_SHOWN":      "7",
 	"TORN_DIPLOMACY_SANCTION_NOTICE":          "3h",
 	"TORN_DIPLOMACY_SANCTION_MIN_DURATION":    "26h",
 	"TORN_DIPLOMACY_TREATY_OFFER_TTL":         "74h",

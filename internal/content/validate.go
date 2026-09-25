@@ -184,6 +184,7 @@ func (p *Pack) Validate() error {
 	// is made, and the NPC suppliers of basic inputs.
 	p.validateProduction(&problems)
 	p.validateMilitary(&problems)
+	p.validateDefenceLicence(&problems)
 	p.validateWar(&problems)
 	p.validateHealth(&problems)
 	p.validateMissions(&problems)

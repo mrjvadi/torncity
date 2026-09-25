@@ -191,4 +191,9 @@ func dropProduction(p *Pack) {
 	for i := range p.Components {
 		p.Components[i].Production, p.Components[i].RequiresTechnology = nil, nil
 	}
+	for i := range p.Items {
+		p.Items[i].RequiresTechnology = nil
+	}
+	// The defence licence names the armed forces' career.
+	p.DefenceLicence = nil
 }

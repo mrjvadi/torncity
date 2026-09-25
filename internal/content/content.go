@@ -248,6 +248,9 @@ type Pack struct {
 	SanctionGrounds   []string
 	// War is military.yml's war section, at most one; see war.go.
 	War []WarDef
+	// DefenceLicence is military.yml's defence_licence section, at most
+	// one; see defence_licence.go.
+	DefenceLicence []DefenceLicenceDef
 
 	// Stage E (docs/adr/0023-health-missions-factions.md): health.yml's
 	// health section, at most one (health.go); the mission boards and the

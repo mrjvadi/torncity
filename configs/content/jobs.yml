@@ -21,6 +21,12 @@
 #   category    open vocabulary, for grouping.
 #   cities      city codes whose base employer hires into this career.
 #               Omitted means every city.
+#   paid_by     optional: defence_fund makes it a career of the armed
+#               forces — the employer is the state, the wage comes from the
+#               defence fund of the country the job's city belongs to
+#               (military_wage), never more than the fund holds, and a shift
+#               is refused while the fund cannot pay one. Omitted: the city's
+#               base employer pays (docs/adr/0022, section 2.14).
 #   tiers       from the most junior up. Each:
 #     rank                     entry | skilled | senior | specialist |
 #                              manager | executive | owner. Must rise.
@@ -353,3 +359,89 @@ careers:
         shift_duration: 8h
         xp_per_shift: 36
         skill_xp_per_shift: [{skill: finance, xp: 45}, {skill: management, xp: 25}]
+
+  # The armed forces (docs/adr/0022, section 2.14). A soldier serves the
+  # country: the state employs them, the defence fund pays them, and their
+  # duty is worked at the barracks. The ranks follow the common real-world
+  # ladder — enlisted, a non-commissioned officer, then commissioned
+  # officers from lieutenant to general — and an officer's commission needs
+  # officer training. A captain or above may found a defence company
+  # (military.yml defence_licence).
+  - code: armed_forces
+    name: Armed Forces
+    category: military
+    paid_by: defence_fund
+    tiers:
+      - rank: entry
+        title: Private
+        min_level: 1
+        base_salary: 140
+        energy_cost: 20
+        shift_duration: 6h
+        xp_per_shift: 12
+        skill_xp_per_shift: [{skill: logistics, xp: 10}, {skill: driving, xp: 5}]
+        promotion: {min_performance: 55, min_time_in_tier: 24h, min_shifts: 6}
+      - rank: skilled
+        title: Sergeant
+        min_level: 3
+        required_skills: [{skill: logistics, level: 2}]
+        base_salary: 220
+        energy_cost: 20
+        shift_duration: 6h
+        xp_per_shift: 16
+        skill_xp_per_shift: [{skill: logistics, xp: 15}, {skill: management, xp: 5}]
+        promotion: {min_performance: 60, min_time_in_tier: 48h, min_shifts: 10}
+      - rank: senior
+        title: Lieutenant
+        min_level: 5
+        required_skills: [{skill: management, level: 2}]
+        required_certifications: [officer_training]
+        base_salary: 340
+        energy_cost: 20
+        shift_duration: 8h
+        xp_per_shift: 22
+        skill_xp_per_shift: [{skill: management, xp: 20}, {skill: logistics, xp: 10}]
+        promotion: {min_performance: 65, min_time_in_tier: 72h, min_shifts: 12}
+      - rank: specialist
+        title: Captain
+        min_level: 8
+        required_skills: [{skill: management, level: 5}]
+        required_certifications: [officer_training]
+        base_salary: 480
+        energy_cost: 20
+        shift_duration: 8h
+        xp_per_shift: 28
+        skill_xp_per_shift: [{skill: management, xp: 30}, {skill: logistics, xp: 10}]
+        promotion: {min_performance: 70, min_time_in_tier: 96h, min_shifts: 15}
+      - rank: manager
+        title: Major
+        min_level: 12
+        required_skills: [{skill: management, level: 9}, {skill: logistics, level: 5}]
+        required_certifications: [officer_training]
+        base_salary: 650
+        energy_cost: 25
+        shift_duration: 8h
+        xp_per_shift: 34
+        skill_xp_per_shift: [{skill: management, xp: 40}, {skill: logistics, xp: 15}]
+        promotion: {min_performance: 72, min_time_in_tier: 120h, min_shifts: 18}
+      - rank: executive
+        title: Colonel
+        min_level: 16
+        required_skills: [{skill: management, level: 13}]
+        required_certifications: [officer_training]
+        base_salary: 850
+        energy_cost: 25
+        shift_duration: 8h
+        xp_per_shift: 40
+        skill_xp_per_shift: [{skill: management, xp: 50}]
+        promotion: {min_performance: 75, min_time_in_tier: 168h, min_shifts: 24}
+      - rank: owner
+        title: General
+        min_level: 20
+        required_skills: [{skill: management, level: 18}]
+        required_certifications: [officer_training]
+        base_salary: 1100
+        energy_cost: 25
+        shift_duration: 8h
+        xp_per_shift: 46
+        skill_xp_per_shift: [{skill: management, xp: 60}]

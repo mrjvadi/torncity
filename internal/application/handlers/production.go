@@ -16,6 +16,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/company"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/item"
+	"github.com/mrjvadi/torncity/internal/domain/production"
 	"github.com/mrjvadi/torncity/internal/domain/shop"
 	"github.com/mrjvadi/torncity/internal/domain/technology"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -43,6 +44,10 @@ type ProductionRules struct {
 	// Citizens is citizen labour: the openings no player has taken count
 	// as crew for as many citizens as the company can pay for a period.
 	Citizens company.CitizenRules
+	// QuickUnits is a quick order's size: the one-tap order the next step
+	// offers, and the size an order screen opens at (docs/adr/0021,
+	// section 14). Below one counts as one.
+	QuickUnits int
 }
 
 // ProductionHandler serves the production economy
@@ -254,6 +259,16 @@ type floor struct {
 	// withCitizens, which production orders call before sizing a crew.
 	citizens int
 	skills   map[string]map[string]int
+	// sector is the company's sector as export control reads it, once
+	// sectorRead (production_staging.go).
+	sector     string
+	sectorRead bool
+	// readOnly marks a floor only read, never changed, in its unit of
+	// work — the next step's (production_guide.go): its crew and its stock
+	// are read once and kept.
+	readOnly     bool
+	citizensRead bool
+	stockKept    production.Stock
 }
 
 // readFloor reads a company's floor.
@@ -432,7 +447,11 @@ func (h *ProductionHandler) warehouseWith(ctx context.Context, meta envelope.Met
 		}
 		view.Researching = running != nil
 		listings, err := tx.Production().CompanyListings(ctx, c.ID)
+		if err != nil {
+			return err
+		}
 		view.Listings = len(listings)
+		view.Next, err = h.nextStep(ctx, tx, snap, c, view.CanResearch)
 		return err
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
@@ -660,58 +679,16 @@ func (h *ProductionHandler) Supply(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		code := strings.TrimSpace(req.Component)
-		var (
-			sp    content.SupplierDef
-			sh    content.SupplyShelfDef
-			found bool
-		)
-		for _, s := range snap.CitySuppliers(city.Code) {
-			if shelf, ok := s.Shelf(code); ok {
-				sp, sh, found = s, shelf, true
-				break
-			}
-		}
+		sp, sh, found := supplierOf(snap, city.Code, code)
 		if !found {
 			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrSuppliers, c.Code)
-		}
-		if qty > h.rules.Limits.Max.Minor()/max(sh.Price, 1) {
-			return refuseProduction(screens.ProductionRefusedAmount, c, snap).back(screens.AddrSuppliers, c.Code)
-		}
-		now := h.now()
-		stock, row, err := h.shelf(ctx, tx, city.ID, sp, sh, now)
-		if err != nil {
-			return err
-		}
-		if stock < qty {
-			r := refuseProduction(screens.ProductionRefusedSupplierEmpty, c, snap).back(screens.AddrSuppliers, c.Code)
-			r.view.Max = int(stock)
-			return r
 		}
 		f, err := readFloor(ctx, tx, snap, c)
 		if err != nil {
 			return err
 		}
-		total := money.FromMinor(qty * sh.Price)
-		txID, err := h.spend(ctx, tx, snap, f, application.ReasonSupplierPurchase, application.SystemSinkAccountID, total, now)
+		total, err := h.supplyOnce(ctx, tx, snap, f, p, city, sp, sh, qty, h.now(), screens.AddrSuppliers, c.Code)
 		if err != nil {
-			return err
-		}
-		row.Stock -= qty
-		if err := tx.Shops().SaveShelf(ctx, *row); err != nil {
-			return err
-		}
-		purchase := application.SupplyPurchase{ID: h.ids.NewID(), CompanyID: c.ID, CityID: city.ID, Supplier: sp.Code,
-			Component: code, Qty: qty, UnitPrice: sh.Price, Total: total.Minor(), LedgerTransactionID: txID, BoughtBy: p.ID, At: now}
-		if err := tx.Production().RecordSupply(ctx, purchase); err != nil {
-			return err
-		}
-		org := application.CompanyOrg(c.ID)
-		if err := tx.Items().LockOrg(ctx, org); err != nil {
-			return err
-		}
-		if err := tx.Items().Move(ctx, application.ItemMove{ID: h.ids.NewID(), Item: code, Qty: qty, ToOrg: org,
-			ToHolding: application.HoldWarehouse, Reason: application.ItemSupplied, ReferenceType: "supply_purchases",
-			ReferenceID: purchase.ID, At: now}); err != nil {
 			return err
 		}
 		comp, _ := snap.ComponentDef(code)
@@ -725,6 +702,69 @@ func (h *ProductionHandler) Supply(ctx context.Context, meta envelope.Metadata, 
 		bought = nil
 	}
 	return h.suppliersWith(ctx, meta, req, bought)
+}
+
+// supplierOf finds the supplier of a city that sells a component, and its
+// shelf.
+func supplierOf(snap *content.Snapshot, cityCode, component string) (content.SupplierDef, content.SupplyShelfDef, bool) {
+	for _, s := range snap.CitySuppliers(cityCode) {
+		if shelf, ok := s.Shelf(component); ok {
+			return s, shelf, true
+		}
+	}
+	return content.SupplierDef{}, content.SupplyShelfDef{}, false
+}
+
+// supplyOnce buys qty of a shelf's component for a company: the money out of
+// its free money (supplier_purchase, a drain), the shelf's stock down, the
+// purchase recorded and the goods into its warehouse (supplied). A refusal
+// leads back to back.
+func (h *ProductionHandler) supplyOnce(ctx context.Context, tx application.Tx, snap *content.Snapshot, f *floor,
+	p *application.Player, city *application.City, sp content.SupplierDef, sh content.SupplyShelfDef, qty int64,
+	now time.Time, back ...string,
+) (money.Amount, error) {
+	c := f.c
+	if qty > h.rules.Limits.Max.Minor()/max(sh.Price, 1) {
+		return money.Amount{}, refuseProduction(screens.ProductionRefusedAmount, c, snap).back(back...)
+	}
+	stock, row, err := h.shelf(ctx, tx, city.ID, sp, sh, now)
+	if err != nil {
+		return money.Amount{}, err
+	}
+	if stock < qty {
+		r := refuseProduction(screens.ProductionRefusedSupplierEmpty, c, snap).back(back...)
+		r.view.Max = int(stock)
+		return money.Amount{}, r
+	}
+	total := money.FromMinor(qty * sh.Price)
+	txID, err := h.spend(ctx, tx, snap, f, application.ReasonSupplierPurchase, application.SystemSinkAccountID, total, now)
+	if err != nil {
+		var r *productionRefusal
+		if stderrors.As(err, &r) {
+			r.back(back...)
+		}
+		return money.Amount{}, err
+	}
+	row.Stock -= qty
+	if err := tx.Shops().SaveShelf(ctx, *row); err != nil {
+		return money.Amount{}, err
+	}
+	purchase := application.SupplyPurchase{ID: h.ids.NewID(), CompanyID: c.ID, CityID: city.ID, Supplier: sp.Code,
+		Component: sh.Component, Qty: qty, UnitPrice: sh.Price, Total: total.Minor(), LedgerTransactionID: txID,
+		BoughtBy: p.ID, At: now}
+	if err := tx.Production().RecordSupply(ctx, purchase); err != nil {
+		return money.Amount{}, err
+	}
+	org := application.CompanyOrg(c.ID)
+	if err := tx.Items().LockOrg(ctx, org); err != nil {
+		return money.Amount{}, err
+	}
+	if err := tx.Items().Move(ctx, application.ItemMove{ID: h.ids.NewID(), Item: sh.Component, Qty: qty, ToOrg: org,
+		ToHolding: application.HoldWarehouse, Reason: application.ItemSupplied, ReferenceType: "supply_purchases",
+		ReferenceID: purchase.ID, At: now}); err != nil {
+		return money.Amount{}, err
+	}
+	return total, nil
 }
 
 // sortedTechs orders technologies as the tree lists them.
@@ -755,9 +795,10 @@ func internalf(msg string) error { return errors.Internal(stderrors.New("handler
 // floor's crew: as many as its free money pays for a full period, the same
 // rule the period's settlement pays them by.
 func (h *ProductionHandler) withCitizens(ctx context.Context, tx application.Tx, f *floor) error {
-	if h.rules.Citizens.Validate() != nil {
+	if h.rules.Citizens.Validate() != nil || (f.readOnly && f.citizensRead) {
 		return nil
 	}
+	f.citizensRead = true
 	vacancies, err := citizenVacancies(ctx, tx, f.c.ID)
 	if err != nil || len(vacancies) == 0 {
 		return err

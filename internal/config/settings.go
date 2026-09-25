@@ -253,6 +253,7 @@ type companySettings struct {
 	MaxDesigns             *int    `yaml:"max_designs"`
 	MaxListings            *int    `yaml:"max_listings"`
 	DesignMinSkill         *int    `yaml:"design_min_skill"`
+	QuickOrderUnits        *int    `yaml:"quick_order_units"`
 	ReverseTime            *string `yaml:"reverse_time"`
 }
 
@@ -261,6 +262,8 @@ type militarySettings struct {
 	ReadinessLossBPS     *int    `yaml:"readiness_loss_bps"`
 	ReadinessRecoveryBPS *int    `yaml:"readiness_recovery_bps"`
 	ReferenceRadarKM     *int    `yaml:"reference_radar_km"`
+	LicenceRevokeNotice  *string `yaml:"licence_revoke_notice"`
+	EndedLicencesShown   *int    `yaml:"ended_licences_shown"`
 }
 
 type warSettings struct {
@@ -953,6 +956,9 @@ var settings = []setting{
 	limitSetting("company", "design_min_skill",
 		func(c *Config) *int { return &c.Company.DesignMinSkill },
 		func(f *fileConfig) *int { return f.Company.DesignMinSkill }),
+	limitSetting("company", "quick_order_units",
+		func(c *Config) *int { return &c.Company.QuickOrderUnits },
+		func(f *fileConfig) *int { return f.Company.QuickOrderUnits }),
 	durationSetting("company", "reverse_time",
 		func(c *Config) *time.Duration { return &c.Company.ReverseTime },
 		func(f *fileConfig) *string { return f.Company.ReverseTime }),
@@ -969,6 +975,12 @@ var settings = []setting{
 	limitSetting("military", "reference_radar_km",
 		func(c *Config) *int { return &c.Military.ReferenceRadarKM },
 		func(f *fileConfig) *int { return f.Military.ReferenceRadarKM }),
+	durationSetting("military", "licence_revoke_notice",
+		func(c *Config) *time.Duration { return &c.Military.LicenceRevokeNotice },
+		func(f *fileConfig) *string { return f.Military.LicenceRevokeNotice }),
+	limitSetting("military", "ended_licences_shown",
+		func(c *Config) *int { return &c.Military.EndedLicencesShown },
+		func(f *fileConfig) *int { return f.Military.EndedLicencesShown }),
 
 	durationSetting("diplomacy", "sanction_notice",
 		func(c *Config) *time.Duration { return &c.Diplomacy.SanctionNotice },

@@ -20,6 +20,7 @@ package item
 import (
 	"errors"
 	"fmt"
+	"sort"
 )
 
 // Sentinel errors from archetype validation, one per load-time rule in
@@ -383,6 +384,16 @@ func NewSet(codes ...string) Set {
 func (s Set) Has(code string) bool {
 	_, ok := s[code]
 	return ok
+}
+
+// SortedCodes lists a set's codes in order.
+func SortedCodes(s Set) []string {
+	out := make([]string, 0, len(s))
+	for c := range s {
+		out = append(out, c)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // Vocabulary is what an archetype may refer to: the component categories that

@@ -218,6 +218,12 @@
 ━━━ question · company.buy · reply box ━━━
 تعداد
 
+━━━ announcement · a contractor licence granted ━━━
+🛡 شرکت فناوران آریا مجوز پیمانکاری دفاعی مشترک‌المنافع را گرفت.
+
+━━━ announcement · a defence licence revoked ━━━
+⛔ مجوز دفاعی شرکت صنایع دفاعی البرز در مشترک‌المنافع لغو شد و ساعت ۱۱:۰۵ از اعتبار می‌افتد.
+
 ━━━ announcement · arms acquired ━━━
 🎖 تسلیحات تازه برای مشترک‌المنافع: جنگنده‌های رادارگریز (معدودی).
 

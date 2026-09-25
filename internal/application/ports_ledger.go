@@ -347,10 +347,22 @@ const (
 	ReasonVehicleRepair Reason = "vehicle_repair"
 )
 
+// The armed forces as an employer (docs/adr/0022-military-and-diplomacy.md
+// section 2.14): a soldier's shift is paid by the state.
+const (
+	// ReasonMilitaryWage pays a shift of the armed forces from the defence
+	// fund of the country the job's city belongs to into the soldier's cash
+	// (a transfer), never more than the fund holds; income tax is withheld
+	// as for any wage (ReasonIncomeTax).
+	ReasonMilitaryWage Reason = "military_wage"
+)
+
 var knownReasons = map[Reason]struct{}{
 	ReasonBudgetSpending: {}, ReasonDefenceContribution: {}, ReasonPropertyPurchase: {}, ReasonPropertySale: {},
 	ReasonPropertyTax: {}, ReasonPropertyUpkeep: {}, ReasonRent: {}, ReasonBorderTariff: {}, ReasonFuel: {},
 	ReasonVehicleRepair: {},
+
+	ReasonMilitaryWage: {},
 
 	ReasonNPCPurchase: {}, ReasonMissionReward: {}, ReasonEventReward: {},
 	ReasonAchievementReward: {}, ReasonBaseEmployerSalary: {}, ReasonAdminGrant: {},

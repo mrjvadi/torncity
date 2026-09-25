@@ -177,13 +177,16 @@
 • دفترداری - ۱٬۲۰۰ نیل - ۴ دقیقه
 • مبانی برنامه‌نویسی - ۲٬۰۰۰ نیل - ۶ دقیقه
 🔒 مدیریت فروشگاه - ۲٬۸۰۰ نیل - ۸ دقیقه - از سطح ۴
-• کلاس شبانهٔ حسابداری - ۴۰۰ نیل - ۲ دقیقه
+🔒 دورهٔ افسری - ۲٬۵۰۰ نیل - ۱۲ دقیقه - از سطح ۴
+
+صفحهٔ ۱ از ۲
   ───
   [📖 گواهینامهٔ رانندگی] → education:view:driving_licence
   [📖 دفترداری] → education:view:bookkeeping
   [📖 مبانی برنامه‌نویسی] → education:view:programming_fundamentals
   [📖 مدیریت فروشگاه] → education:view:retail_management
-  [📖 کلاس شبانهٔ حسابداری] → education:view:evening_accounting
+  [📖 دورهٔ افسری] → education:view:officer_training
+  [بعدی ⬅️] → education:list:2
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:list:1
 
 ━━━ Profile after the course ━━━

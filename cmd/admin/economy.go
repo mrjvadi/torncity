@@ -187,6 +187,10 @@ func economyVerify(ctx context.Context, args []string) error {
 			mark(w.RepairLedger == w.RepairRows), w.RepairLedger, w.RepairRows)
 	}
 
+	d := v.DefenceInvariants
+	fmt.Printf("%s  every military wage left a defence fund for a soldier's cash (%d stray legs), and matches the shifts it paid (%d = %d)\n",
+		mark(d.StrayWageLegs == 0 && d.WageLedger == d.WageRows), d.StrayWageLegs, d.WageLedger, d.WageRows)
+
 	capsOK := true
 	if v.StageE {
 		s := v.StageEInvariants

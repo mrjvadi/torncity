@@ -252,6 +252,9 @@ type CompanyTypeLine struct {
 	Type Named
 	// Fee is the registration fee in the city now; Upkeep one period's.
 	Fee, Upkeep int64
+	// Licensed is a kind of the defence sector: founding one needs a
+	// defence licence (docs/adr/0022, section 2.14).
+	Licensed bool
 }
 
 // CompanyTypesView is the kinds of business a player may found in their
@@ -275,9 +278,13 @@ func CompanyTypes(c Context, v CompanyTypesView) *presenter.Response {
 	lines := make([]string, 0, len(v.Types))
 	buttons := make([]presenter.Button, 0, len(v.Types))
 	for _, t := range v.Types {
-		lines = append(lines, c.T("company.type_line", map[string]any{
+		line := c.T("company.type_line", map[string]any{
 			"type": c.CompanyTypeName(t.Type), "fee": FormatMoney(c, t.Fee), "upkeep": FormatMoney(c, t.Upkeep),
-		}))
+		})
+		if t.Licensed {
+			line += c.T("company.type_line_licensed", nil)
+		}
+		lines = append(lines, line)
 		if btn, ok := keyboards.Button(c.T("company.button.type", map[string]any{"type": c.CompanyTypeName(t.Type)}),
 			AddrCompanyType, t.Type.Code); ok {
 			buttons = append(buttons, btn)
@@ -305,6 +312,9 @@ const (
 	CompanyBlockedLimit   = "limit"
 	CompanyBlockedNoPlace = "no_place"
 	CompanyBlockedNoCity  = "no_city"
+	// CompanyBlockedDefence is a kind of the defence sector the player
+	// holds no defence licence for (docs/adr/0022, section 2.14).
+	CompanyBlockedDefence = "defence"
 )
 
 // CompanyTypeView is one kind of business in detail, with the way to found
@@ -329,6 +339,9 @@ type CompanyTypeView struct {
 	// Blocked says why founding is not open.
 	Blocked string
 	Max     int
+	// Rank is the lowest rank of the armed forces that may found a kind of
+	// the defence sector, for the defence block.
+	Rank JobRef
 }
 
 // CompanyTypeDetail renders one kind of business.
@@ -356,6 +369,11 @@ func CompanyTypeDetail(c Context, v CompanyTypeView) *presenter.Response {
 		how = c.T("company.type_no_place", map[string]any{"place": c.SpotName(v.Place), "city": c.CityName(v.CityCode, v.City)})
 	case v.Blocked == CompanyBlockedNoCity:
 		how = c.T("company.no_city", nil)
+	case v.Blocked == CompanyBlockedDefence:
+		how = body(c.T("company.type_defence", map[string]any{"type": c.CompanyTypeName(v.Type)}),
+			c.T("company.type_defence_rank", map[string]any{"rank": c.jobTitle(v.Rank), "career": c.jobCareer(v.Rank)}),
+			c.T("company.type_defence_contractor", nil))
+		kb.Add(c.T("job.button.openings", nil), AddrJobList)
 	case v.Way != nil:
 		how = c.T("company.found_at_city_hall", map[string]any{"place": c.SpotName(v.Way.Place)})
 		c.wayButton(kb, v.Way, "company.type", v.Type.Code)
@@ -487,6 +505,41 @@ type CompanyManageView struct {
 	NextAt time.Time
 	NextIn time.Duration
 	Notice *CompanyNotice
+	// Step is the one step its floor should take next, for a company that
+	// designs or makes goods (docs/adr/0021, section 14).
+	Step *NextStep
+	// Defence is where it stands on a defence licence, nil when licences
+	// do not concern it (docs/adr/0022, section 2.14).
+	Defence *DefenceBadge
+}
+
+// DefenceBadge is a company's defence licence as its management screen shows
+// it: its status, or that it may apply for a contractor licence.
+type DefenceBadge struct {
+	// Status is the licence's (pending, active, revoking, revoked,
+	// rejected), "" for none.
+	Status string
+	// Contractor is a civilian company's contractor licence.
+	Contractor bool
+	// Eligible is a civilian company whose standing in technology lets it
+	// apply now.
+	Eligible bool
+	// EffectiveAt is when a revocation takes effect.
+	EffectiveAt time.Time
+}
+
+// defenceLine is the licence's line on the management screen.
+func (c Context) defenceLine(b *DefenceBadge) string {
+	if b == nil {
+		return ""
+	}
+	if b.Status == "" {
+		if b.Eligible {
+			return c.T("company.defence_badge.eligible", nil)
+		}
+		return ""
+	}
+	return c.T("company.defence_badge."+b.Status, map[string]any{"time": FormatClock(c, b.EffectiveAt)})
 }
 
 // CompanyManage renders a company's management screen.
@@ -535,6 +588,7 @@ func CompanyManage(c Context, v CompanyManageView) *presenter.Response {
 	}
 
 	kb := keyboards.New()
+	step := c.nextStep(kb, v.Ref.Code, v.Step)
 	var row []presenter.Button
 	for _, m := range []string{MethodCash, MethodCard} {
 		if btn, ok := askButton(c.T("company.button.deposit_"+m, nil), commandCompanyDeposit, v.Ref.Code, m); ok {
@@ -572,6 +626,11 @@ func CompanyManage(c Context, v CompanyManageView) *presenter.Response {
 			kb.Row(btn)
 		}
 	}
+	if b := v.Defence; b != nil && v.Owner && (b.Status != "" || b.Eligible) {
+		if btn, ok := keyboards.Button(c.T("company.button.defence", nil), AddrCompanyDefence, v.Ref.Code); ok {
+			kb.Row(btn)
+		}
+	}
 	auto, label := CompanyAutoOn, "company.button.auto_on"
 	if v.AutoAccept {
 		auto, label = CompanyAutoOff, "company.button.auto_off"
@@ -588,8 +647,9 @@ func CompanyManage(c Context, v CompanyManageView) *presenter.Response {
 	return c.respond(paragraphs(
 		c.companyNotice(v.Notice),
 		body(c.T("company.manage_title", map[string]any{"name": v.Ref.Name}),
-			c.T("company.type_code", map[string]any{"type": c.CompanyTypeName(v.Ref.Type), "code": v.Ref.Code})),
-		body(books...), body(running...), last, next,
+			c.T("company.type_code", map[string]any{"type": c.CompanyTypeName(v.Ref.Type), "code": v.Ref.Code}),
+			c.defenceLine(v.Defence)),
+		step, body(books...), body(running...), last, next,
 	), kb.Build()).MarkPrivate()
 }
 

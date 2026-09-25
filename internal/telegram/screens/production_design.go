@@ -33,8 +33,16 @@ type DesignLine struct {
 type StudioView struct {
 	Ref     CompanyRef
 	Designs []DesignLine
-	// Kinds are the goods the company may design.
-	Kinds []Named
+	// Kinds are the goods the company may design now; Next those one
+	// research or one license away, each with the way in. Hidden is set
+	// when goods further away are kept out of sight until then
+	// (docs/adr/0021, section 14).
+	Kinds  []Named
+	Next   []StudioKind
+	Hidden bool
+	// CanResearch is the owner, who alone runs the lab: the locked goods
+	// lead there.
+	CanResearch bool
 	// Skill is the craft the best designer is measured in, per kind; the
 	// studio shows the company's best level and the level needed.
 	Need int
@@ -70,7 +78,8 @@ func Studio(c Context, v StudioView) *presenter.Response {
 	}
 	kb.Grid(2, open...)
 	start := ""
-	if v.CanDesign && len(v.Kinds) > 0 {
+	switch {
+	case v.CanDesign && len(v.Kinds) > 0:
 		start = c.T("production.studio_new", nil)
 		var kinds []presenter.Button
 		for _, k := range v.Kinds {
@@ -80,13 +89,31 @@ func Studio(c Context, v StudioView) *presenter.Response {
 			}
 		}
 		kb.Grid(3, kinds...)
-	} else if len(v.Kinds) == 0 {
+	case len(v.Kinds) == 0 && len(v.Next) == 0:
 		start = c.T("production.studio_no_kinds", nil)
-	} else {
+	case len(v.Kinds) == 0:
+		start = c.T("production.studio_none_ready", nil)
+	default:
 		start = c.T("production.studio_at_max", map[string]any{"max": FormatNumber(c, int64(v.Max))})
 	}
+	next := ""
+	if len(v.Next) > 0 {
+		lines := []string{c.T("production.studio_next", nil)}
+		for _, k := range v.Next {
+			lines = append(lines, c.T("production.studio_next_line", map[string]any{"item": c.ItemName(k.Item),
+				"hint": c.unlockHint(k.Steps)}))
+		}
+		next = body(lines...)
+		if v.CanResearch {
+			kb.Add(c.T("production.button.lab", nil), AddrLab, v.Ref.Code)
+		}
+	}
+	later := ""
+	if v.Hidden {
+		later = c.T("production.studio_later", nil)
+	}
 	c.productionNav(kb, []string{AddrWarehouse, v.Ref.Code}, AddrStudio, v.Ref.Code)
-	return c.respond(paragraphs(head, list, start, c.T("production.studio_hint", nil)), kb.Build())
+	return c.respond(paragraphs(head, list, start, next, later), kb.Build())
 }
 
 // SlotLine is one slot of a design as the editor shows it.

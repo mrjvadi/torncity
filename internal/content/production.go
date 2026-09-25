@@ -347,6 +347,11 @@ func (p *Pack) validateProduction(problems *[]error) {
 	}
 	for i, d := range p.Items {
 		validateControl(d.ExportControl, fmt.Sprintf("items[%d] %q", i, d.Code), bad)
+		for _, tech := range d.RequiresTechnology {
+			if !techCodes[tech] {
+				bad("items[%d] %q requires unknown technology %q", i, d.Code, tech)
+			}
+		}
 	}
 	for _, t := range p.CompanyTypes {
 		if t.Sector != "" && !transportCodePattern.MatchString(t.Sector) {
@@ -593,6 +598,18 @@ func (s *Snapshot) SlotCandidates(a item.Archetype, slot string) []ComponentDef 
 	}
 	return out
 }
+
+// TechTree is the technology tree as the rules take it, by code.
+func (s *Snapshot) TechTree() technology.Tree {
+	out := make(technology.Tree, len(s.production.techByCode))
+	for code, t := range s.production.techByCode {
+		out[code] = t.Tech()
+	}
+	return out
+}
+
+// TechTiers is every technology's tier: how deep in the tree it sits.
+func (s *Snapshot) TechTiers() map[string]int { return technology.Tiers(s.TechTree()) }
 
 // ResearchTime is a technology's research time, GAME time.
 func (d TechnologyDef) ResearchTime() time.Duration {

@@ -185,7 +185,7 @@ components:
     base_price: 900
     attributes: {quality: 60, accuracy: 7000}
     requires_technology: [radar_systems]
-    production: {method: assemble, by: [defence_electronics, land_systems], inputs: [{component: chipset, quantity: 3}], batch: 1, skill: engineering}
+    production: {method: assemble, by: [defence_electronics, land_systems, tech_studio], inputs: [{component: chipset, quantity: 3}], batch: 1, skill: engineering}
 
   # --- Air defence and missiles --------------------------------------------
   - code: short_interceptor
@@ -661,7 +661,10 @@ technologies:
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: radar_absorbent_materials, name: Radar-absorbent materials, requires: [stealth_shaping], cost: 300000, time: 24h, company_types: [aerospace], skill: engineering, level: 6,
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
-  - {code: radar_systems, name: Radar systems, cost: 120000, time: 12h, company_types: [defence_electronics, aerospace], skill: engineering, level: 3,
+  # A tech studio licensed as a defence contractor may research the two
+  # electronic technologies of the tree (docs/adr/0022, section 2.14); an
+  # unlicensed one never sees them.
+  - {code: radar_systems, name: Radar systems, cost: 120000, time: 12h, company_types: [defence_electronics, aerospace, tech_studio], skill: engineering, level: 3,
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: aesa_radar, name: Active electronically scanned array, requires: [radar_systems], cost: 350000, time: 30h, company_types: [defence_electronics], skill: engineering, level: 6,
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
@@ -671,7 +674,7 @@ technologies:
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: rocketry, name: Rocketry, cost: 150000, time: 18h, company_types: [missile_works], skill: engineering, level: 4,
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
-  - {code: missile_guidance, name: Missile guidance, cost: 200000, time: 24h, company_types: [missile_works, defence_electronics], skill: engineering, level: 5,
+  - {code: missile_guidance, name: Missile guidance, cost: 200000, time: 24h, company_types: [missile_works, defence_electronics, tech_studio], skill: engineering, level: 5,
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: naval_architecture, name: Naval architecture, cost: 150000, time: 18h, company_types: [shipyard], skill: engineering, level: 3,
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}

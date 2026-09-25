@@ -533,6 +533,11 @@ company:
   design_min_skill: 1
   # How long taking a bought sample apart takes, GAME time.
   reverse_time: 6h
+  # A quick order's size (docs/adr/0021, section 14): the one-tap order a
+  # company's next step offers, and the size an order screen opens at —
+  # units of a product, batches of a component — or what the warehouse can
+  # cover when that is less.
+  quick_order_units: 5
 
 # The armed forces (docs/adr/0022-military-and-diplomacy.md). Who decides a
 # country's budget and who buys its arms are offices (governance.yml); what
@@ -549,6 +554,13 @@ military:
   # The radar the forces screen measures each design against: the km at
   # which it finds a 1 m² target.
   reference_radar_km: 150
+  # How long a defence licence the defence minister revokes stays in force,
+  # REAL time: the company is told and announced at once, and the licence
+  # lapses when this runs out (docs/adr/0022, section 2.14).
+  licence_revoke_notice: 24h
+  # How many ended defence licences (revoked, rejected) the public registry
+  # lists under the applications and the licences in force, newest first.
+  ended_licences_shown: 5
 
 # Sanctions and treaties. Every duration here is REAL time: a promise to
 # players, like a lever's notice (docs/adr/0018-game-clock.md).

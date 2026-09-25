@@ -16,6 +16,8 @@ func companyRules(c config.Company, limits bank.Limits) handlers.CompanyRules {
 		MaxOpenings: c.MaxOpenings, PriceStepBPS: c.PriceStepBPS, Limits: limits,
 		Citizens:              citizenRules(c),
 		CitizenLabourShareBPS: c.CitizenLabourShareBPS,
+		MaxRunningOrders:      c.MaxRunningOrders,
+		QuickUnits:            c.QuickOrderUnits,
 	}
 }
 
@@ -45,6 +47,7 @@ func (h phaseHandlers) bindCompanies() map[string]commandFunc {
 		"company.fire":     decoded(c.Fire),
 		"company.opening":  decoded(c.Opening),
 		"company.apply":    decoded(c.Apply),
+		"company.defence":  decoded(c.Defence),
 		// The scheduler's: a city's company period ending.
 		"company.settle": decoded(c.Settle),
 	}
@@ -56,7 +59,7 @@ func productionRules(c config.Company, limits bank.Limits) handlers.ProductionRu
 	return handlers.ProductionRules{
 		MaxRunningOrders: c.MaxRunningOrders, MaxDesigns: c.MaxDesigns, MaxListings: c.MaxListings,
 		DesignMinSkill: c.DesignMinSkill, ReverseTime: c.ReverseTime, NameMin: c.NameMinLength, NameMax: c.NameMaxLength,
-		Limits: limits, Citizens: citizenRules(c),
+		Limits: limits, Citizens: citizenRules(c), QuickUnits: c.QuickOrderUnits,
 	}
 }
 
@@ -92,6 +95,7 @@ func (h phaseHandlers) bindProduction() map[string]commandFunc {
 		"company.unlist":    decoded(p.Unlist),
 		"company.goods":     bare(p.Goods),
 		"company.buy":       decoded(p.Buy),
+		"company.stockup":   decoded(p.StockUp),
 		// The scheduler's: a research, an order, a reverse engineering done.
 		"company.researched": decoded(p.Researched),
 		"company.produced":   decoded(p.Produced),

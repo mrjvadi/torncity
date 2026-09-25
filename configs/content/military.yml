@@ -181,3 +181,31 @@ war:
     vacate: [mayor, deputy_mayor, police_chief, deputy_police_chief, city_council]
     governor: military_governor
   preview_samples: 12
+
+# ---------------------------------------------------------------------------
+# defence_licence — who may make arms (docs/adr/0022, section 2.14). In the
+# real world arms are made by people the state trusts: its own officers, or
+# firms whose technology the armed forces rely on. So a company of `sector`
+# (companies.yml) is founded only by
+#   - a serving member of `career` (jobs.yml, paid by the defence fund) of
+#     `min_rank` or above, or
+#   - the owner of a company holding a defence contractor licence.
+# A civilian company applies for a contractor licence once it owns at least
+# `contractor.min_technologies` technologies, the deepest of them at least
+# `contractor.min_tier` deep in the tree (a root technology is tier 1); the
+# defence minister (governance.yml country.defence_licence) approves or
+# rejects it, and may revoke any licence with notice (config.yml
+# military.licence_revoke_notice). A licensed contractor may research and
+# license the technologies export control keeps for the defence sector; an
+# unlicensed company may not. Every licence is public.
+#   sector      the sector of business a licence guards.
+#   career      the armed forces' career code.
+#   min_rank    the lowest rank of it (entry, skilled, senior, specialist,
+#               manager, executive, owner) that may found a defence company.
+#   contractor  {min_technologies, min_tier}.
+# ---------------------------------------------------------------------------
+defence_licence:
+  sector: defence
+  career: armed_forces
+  min_rank: specialist
+  contractor: {min_technologies: 3, min_tier: 2}

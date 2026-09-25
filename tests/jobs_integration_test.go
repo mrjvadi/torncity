@@ -107,6 +107,18 @@ func purgeWorkFor(t *testing.T, pool *postgres.Pool, playerID string) {
 	}
 }
 
+// enlistAs puts a player in the armed forces (jobs.yml armed_forces) of a
+// city at a tier, as if they had served up to it.
+func enlistAs(t *testing.T, pool *postgres.Pool, playerID, cityID string, tier int) {
+	t.Helper()
+	if _, err := pool.Raw().Exec(testCtx(t),
+		`INSERT INTO employments (id, player_id, career_code, city_id, tier, rate, performance, tier_since, hired_at, updated_at)
+		 VALUES (gen_random_uuid(), $1::uuid, 'armed_forces', $2::uuid, $3, 140, 50, now(), now(), now())`,
+		playerID, cityID, tier); err != nil {
+		t.Fatalf("enlisting a player: %v", err)
+	}
+}
+
 // TestWorkAndStudyEndToEnd runs a career and a course through the real stack
 // and then checks the ledger's invariants.
 func TestWorkAndStudyEndToEnd(t *testing.T) {

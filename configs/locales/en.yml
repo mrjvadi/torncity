@@ -623,6 +623,7 @@ pay:
 # arrives formatted through format.money. A position's title is
 # career.<code>.<rank>; a career's name is career.<code>.name.
 job:
+  army_cannot_pay: "🪖 The country's defence fund cannot pay one shift right now, so your duty did not start. Try again once the defence budget comes in."
   status_title: "💼 My job"
   none: You do not have a job yet. See what the employers in your city are offering under “Job openings”.
   position: "💼 {title} - {career}"
@@ -780,6 +781,15 @@ institution:
 # Career names and position titles, keyed on content codes
 # (configs/content/jobs.yml). A missing entry falls back to the authored name.
 career:
+  armed_forces:
+    name: Armed Forces
+    entry: Private
+    skilled: Sergeant
+    senior: Lieutenant
+    specialist: Captain
+    manager: Major
+    executive: Colonel
+    owner: General
   retail:
     name: Retail
     entry: Sales Trainee
@@ -823,6 +833,7 @@ career:
 
 # Course names, keyed on content codes (configs/content/education.yml).
 course:
+  officer_training: Officer Training
   first_aid: First Aid
   driving_licence: Driving Licence
   bookkeeping: Bookkeeping
@@ -1033,6 +1044,7 @@ crime_tier:
 
 # Places inside a city, keyed on the venue's content code (crimes.yml).
 venue:
+  barracks: Barracks
   city_centre: city centre
   bus_terminal: bus terminal
   train_station: train station
@@ -1304,6 +1316,8 @@ item_category:
 
 # Goods, keyed on their content code (configs/content/items.yml).
 item_name:
+  led_torch: LED torch
+  pocket_radio: Pocket radio
   car: Car
   motorbike: Motorbike
   bread: Bread
@@ -1628,6 +1642,17 @@ election:
 # Player companies (internal/telegram/screens/companies.go,
 # docs/adr/0020-companies.md). A kind of business is company_type.<code>.
 company:
+  type_line_licensed: " - 🛡 needs a defence licence"
+  type_defence: "🛡 {type} is a defence business, registered only under a defence licence. Take one of two paths:"
+  type_defence_rank: "• serve in the {career} and reach the rank of {rank} at least;"
+  type_defence_contractor: "• own a company that holds a defence contractor licence."
+  defence_badge:
+    eligible: "🛡 Your company may apply for a defence contractor licence."
+    pending: "🛡 The defence licence application waits for the defence minister."
+    active: "🛡 Defence licence: in force"
+    revoking: "🛡 The defence licence was revoked and lapses at {time}."
+    revoked: "🛡 The defence licence was revoked."
+    rejected: "🛡 The defence licence application was rejected."
   # What a player types to say the company has no manager (alternatives
   # separated by «|»).
   none_words: "none | nobody"
@@ -1748,6 +1773,7 @@ company:
   report_debt: "⚠️ The company owes {amount} of upkeep. If it is not paid within {left} more periods, the company is dissolved; put money into its account."
   report_dissolved: "🔒 The company could not pay its upkeep for several periods in a row and was dissolved."
   button:
+    defence: "🛡 Defence licence"
     company: "🏢 {name}"
     register: "➕ Register a company"
     mine: "💼 My companies"
@@ -1781,6 +1807,7 @@ company:
     job: "✅ {title} at {company}"
     job_locked: "🔒 {title} at {company}"
   refused:
+    defence: "🛡 This is a defence company and is registered only under a defence licence: a high enough rank in the armed forces, or a company holding a defence contractor licence."
     not_found: No such company was found.
     not_allowed: "You are not allowed to do that at {name}."
     dissolved: "{name} has closed."
@@ -1836,6 +1863,43 @@ company_type:
 # suppliers under supplier, design slots under design_slot and attributes
 # under attribute.
 production:
+  warehouse_empty_short: "📦 The warehouse is empty."
+  list_and: " and "
+  unlock:
+    research: "To open it, research {techs} first."
+    license: "To open it, buy a license for {techs}."
+    both: "To open it, research {research} first and buy a license for {license}."
+  step_title: "🧭 Next step:"
+  step:
+    design_first: "Design your first product: start with something simple."
+    design_draft: "The design «{name}» is half done: complete it and finalise it."
+    sell: "You have {good} in the warehouse: list it so players and companies can buy it."
+    produce: "The inputs are ready: make {qty} {good}."
+    producing: "{qty} {good} are being made and will be ready at {time} - {duration} from now."
+    supply: "To make {good}, buy its inputs from the supplier in one go: {total} in all."
+    buy_goods: "To make {good} you need {component}, which other companies make: buy it from the company goods."
+    research: "To grow, research {tech}: it opens {item}."
+    design_next: "You can design {item} now."
+  step_button:
+    design_first: "📐 Design a first product"
+    design_draft: "📐 Continue {name}"
+    sell: "💰 Sell {good}"
+    produce: "⚙️ Make {qty} {good}"
+    supply: "🛒 Buy the inputs - {total}"
+    research: "🔬 Research {tech}"
+    design_next: "📐 Design {item}"
+  studio_none_ready: "Nothing is ready to design yet: the goods below open with one step."
+  studio_next: "🔒 One step away:"
+  studio_next_line: "🔒 {item}: {hint}"
+  studio_later: "🔭 More advanced goods open after these."
+  lab_later: "🔭 {count} more advanced technologies open after these."
+  orders_locked: "🔒 One step away:"
+  orders_locked_line: "🔒 {good}: {hint}"
+  short_source:
+    supplier: "• {component}: {qty} short - a supplier sells it"
+    made: "• {component}: {qty} short - you make it yourselves"
+    companies: "• {component}: {qty} short - buy it from the company goods"
+  stock_up_done: "✅ The missing inputs were bought from the supplier and {total} paid from the company's account."
   good_designed: "{design} ({item})"
   list_separator: ", "
   available: "💵 Company's free money: {amount}"
@@ -1847,7 +1911,6 @@ production:
   stock_line_pieces: "📦 {good} - {qty} pieces - quality {quality}"
   stock_listed: " - {qty} listed"
   warehouse_empty: "📦 The warehouse is empty. Buy basic inputs from the suppliers, or make your own."
-  warehouse_hint: "Everything the company buys, makes or sells passes through this warehouse. The buttons below lead to the floor, the studio, the lab and your listings."
   suppliers_title: "🚚 Suppliers in {city}"
   supply_line: "• {component} - {supplier} - {price} a unit - {stock} units in stock"
   supply_bought: "✅ {qty} units of {component} reached the warehouse; {total} was paid from the company's account."
@@ -1887,6 +1950,7 @@ production:
     published: "🌐 Published: everyone uses it freely, and that cannot be undone."
   tech_sold: "📜 Licenses sold: {count}"
   tech_blocked:
+    not_cleared: "🛡 This is a military technology: only a company holding a defence licence researches it."
     busy: "⏳ The lab is busy with another research; one at a time."
     wrong_type: "🏷 This kind of company cannot research this technology."
     skill: "🎓 Nobody in the company has {skill} at level {level}. Hire someone with the skill, or train yourself."
@@ -1914,7 +1978,6 @@ production:
   studio_new: "To start a design, choose the kind of good:"
   studio_no_kinds: "This kind of company designs no goods."
   studio_at_max: "Your company has {max} designs and cannot have more."
-  studio_hint: "You fill a design slot by slot with components; one that needs a technology can only be chosen with that technology or its license. A design is the company's own; others only see the product's visible attributes."
   design_title: "📐 {name} - {item}"
   design_state:
     draft: "✏️ Draft"
@@ -2005,6 +2068,7 @@ production:
     published: "🌐 {company} published {tech} for every company."
     launched: "📦 {company} launched its new product, {design} ({item}), in {city}."
   button:
+    stock_up: "🛒 Buy what is missing - {total}"
     warehouse: "🏭 Production and warehouse"
     goods: "🏭 Company goods"
     sell: "💰 Sell {good}"
@@ -2086,6 +2150,9 @@ production:
 
 # Components and materials, by content code (configs/content/items.yml).
 component:
+  copper_wire: Copper wire
+  resin: Epoxy resin
+  circuit_board: Circuit board
   diesel: Diesel fuel
   seed_grain: Seed grain
   lithium_salt: Lithium salt
@@ -2149,6 +2216,7 @@ component:
 
 # Technologies, by content code (configs/content/production.yml).
 technology:
+  vehicle_engineering: Vehicle engineering
   semiconductors: Semiconductors
   microchips: Microchips
   batteries: Battery chemistry
@@ -2167,6 +2235,7 @@ technology:
 
 # Suppliers, by content code (configs/content/production.yml).
 supplier:
+  electronics_wholesaler: Electronics wholesaler
   industrial_supplier: Industrial supplier
   farm_supply: Farm supply store
   wholesale_market: Wholesale market
@@ -2340,6 +2409,7 @@ military:
     times: "×{value}"
     decimal_point: "."
   refused:
+    licence_state: "🛡 This licence was decided already."
     not_found: "That is not for sale any more, or never was."
     not_holder: "Only the {office} of {country} can do that. If you held that office, you may have been replaced."
     not_arms: "That is not military equipment: a state buys arms only."
@@ -2899,6 +2969,7 @@ faction:
 
 # Career categories (configs/content/jobs.yml).
 career_category:
+  military: Military
   commerce: commerce
   food: food
   transport: transport
@@ -3237,3 +3308,55 @@ achievement:
     name: Elected
   lawmaker:
     name: Lawmaker
+
+
+defence:
+  status:
+    pending: "⏳ waiting for the defence minister"
+    active: "✅ in force"
+    revoking: "⚠️ revoked - in force until {time}"
+    revoked: "❌ revoked"
+    rejected: "❌ rejected"
+  kind:
+    manufacturer: "arms maker"
+    contractor: "defence contractor"
+  company_title: "🛡 Defence licence of {name}"
+  company_none: "This company holds no defence licence yet."
+  company_manufacturer: "A defence company works only under a defence licence: it lets the company research military technology, buy its licenses and make arms."
+  company_contractor: "A company advanced in technology can become a contractor to the armed forces: under a defence contractor licence it researches military technologies and buys their licenses, and its owner may register a defence company. The defence minister approves or rejects the application."
+  standing_title: "📊 The company's standing in technology:"
+  standing_techs: "{mark} at least {min} technologies of its own - you have {have}"
+  standing_tier: "{mark} a technology of tier {min} or above - your highest: {have}"
+  apply_how: "Your company qualifies. Send the application to the defence minister with the button below."
+  apply_not_yet: "You do not qualify yet: research more technologies in the lab."
+  applied: "✅ The application went to the defence minister. We will tell you the decision."
+  no_minister: "⏳ The defence minister's seat is empty right now: the application waits until someone is appointed."
+  button:
+    apply: "🛡 Apply for a defence contractor licence"
+    registry: "🛡 Defence licences"
+    company: "🛡 The company's defence licence"
+    approve: "✅ Approve {company}"
+    reject: "❌ Reject"
+    revoke: "⛔ Revoke {company}'s licence"
+    revoke_confirm: "⛔ Yes, revoke it"
+  revoke_confirm: "⛔ Revoke the defence licence of {company}? The revocation is announced now and the licence lapses {notice} from now."
+  registry_title: "🛡 Defence licences of {country}"
+  registry_pending: "⏳ Applications waiting:"
+  registry_in_force: "✅ Licences in force:"
+  registry_ended: "🗄 Ended licences:"
+  registry_line: "• {company} ({type}) - {kind} - {status}"
+  registry_none: "No defence licence has been recorded yet."
+  registry_hint: "Defence licences are public. The defence minister approves or rejects applications and may revoke a licence with notice."
+  verdict:
+    approve: "✅ {company} was granted a defence contractor licence."
+    reject: "❌ The application of {company} was rejected."
+    revoke: "⛔ The defence licence of {company} was revoked."
+  notice:
+    applied: "🛡 {company} in {country} applied for a defence contractor licence and waits for your decision."
+    approved: "✅ The defence minister approved the defence contractor licence of {company}."
+    rejected: "❌ The defence minister rejected the defence licence application of {company}."
+    revoked: "⛔ The defence minister revoked the defence licence of {company}; it lapses at {time}."
+  announce:
+    granted: "🛡 {company} was granted a defence contractor licence of {country}."
+    revoked: "⛔ The defence licence of {company} in {country} was revoked; it lapses at {time}."
+  ministry_pending: "🛡 Defence licence applications waiting: {count}"

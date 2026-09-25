@@ -148,6 +148,10 @@ func (p *Pack) validateCareers(cities, certifying map[string]bool, problems *[]e
 					ErrUnknownCareerCity, c.Code, city))
 			}
 		}
+		if c.PaidBy != "" && c.PaidBy != PaidByDefenceFund {
+			*problems = append(*problems, fmt.Errorf("%w: %s: career %q is paid by %q, not the base employer or %q",
+				ErrInvalidCareerContent, where, c.Code, c.PaidBy, PaidByDefenceFund))
+		}
 		for j, t := range c.Tiers {
 			for _, cert := range t.RequiredCertifications {
 				if !certifying[cert] {

@@ -8,8 +8,6 @@ In the warehouse:
 📦 Chipset - 12 units
 📦 Diesel fuel - 40 units
 📦 Nil Mobile X (Phone) - 4 pieces - quality 63 - 2 listed
-
-Everything the company buys, makes or sells passes through this warehouse. The buttons below lead to the floor, the studio, the lab and your listings.
   ───
   [💰 Sell Chipset] → company:sell:Q7M2K9B:chipset   │   [💰 Sell Diesel fuel] → company:sell:Q7M2K9B:diesel
   [💰 Sell Nil Mobile X (Phone)] → company:sell:Q7M2K9B:d12
@@ -24,8 +22,6 @@ Everything the company buys, makes or sells passes through this warehouse. The b
 ⚙️ Production orders running: 0 - open listings: 0
 
 📦 The warehouse is empty. Buy basic inputs from the suppliers, or make your own.
-
-Everything the company buys, makes or sells passes through this warehouse. The buttons below lead to the floor, the studio, the lab and your listings.
   ───
   [🚚 Suppliers] → company:suppliers:H4T8W2C   │   [⚙️ Production floor] → company:orders:H4T8W2C
   [📐 Design studio] → company:studio:H4T8W2C   │   [🔍 Reverse engineering] → company:relab:H4T8W2C
@@ -275,8 +271,6 @@ You research each technology once and the company owns it. Keep it private, sell
 ✏️ Design no. 14 - Phone - draft
 
 To start a design, choose the kind of good:
-
-You fill a design slot by slot with components; one that needs a technology can only be chosen with that technology or its license. A design is the company's own; others only see the product's visible attributes.
   ───
   [📐 Nil Mobile X] → company:design:12   │   [📐 Design no. 14] → company:design:14
   [➕ Phone] → company:dnew:Q7M2K9B:phone   │   [➕ Car stereo] → company:dnew:Q7M2K9B:car_stereo   │   [➕ Wristwatch] → company:dnew:Q7M2K9B:watch
@@ -290,8 +284,6 @@ You fill a design slot by slot with components; one that needs a technology can 
 🔍 Nil Mobile X - Phone - reverse engineered copy
 
 Your company has 2 designs and cannot have more.
-
-You fill a design slot by slot with components; one that needs a technology can only be chosen with that technology or its license. A design is the company's own; others only see the product's visible attributes.
   ───
   [📐 Nil Mobile X] → company:design:12   │   [📐 Nil Mobile X] → company:design:15
   [🔙 Back] → company:warehouse:Q7M2K9B   │   [🔄 Refresh] → company:studio:Q7M2K9B

@@ -227,6 +227,9 @@ company_types:
     price_min_bps: 6000
     price_max_bps: 20000
     elasticity_bps: 9000
+    # Electronics, step by step: circuit boards and simple gadgets first;
+    # a phone once its engineers have researched microchips and batteries.
+    produces: [gadget, device]
 
   - code: factory
     name: Factory

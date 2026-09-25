@@ -662,7 +662,11 @@ func (h *ProductionHandler) buy(ctx context.Context, tx application.Tx, snap *co
 		if err != nil {
 			return err
 		}
-		who = technology.Buyer{Kind: application.OrgCompany, Sector: def.SectorCode()}
+		sector, err := companySector(ctx, tx, snap, *buyer, def, h.now())
+		if err != nil {
+			return err
+		}
+		who = technology.Buyer{Kind: application.OrgCompany, Sector: sector}
 	}
 	if err := technology.Cleared(control, who); err != nil {
 		return refuseProduction(screens.ProductionRefusedNotCleared, nil, snap).back(back...)

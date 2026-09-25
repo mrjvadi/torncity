@@ -14,6 +14,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/production"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
+	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
@@ -68,6 +69,21 @@ func (h *ProductionHandler) target(ctx context.Context, tx application.Tx, snap 
 		}
 		if !f.def.Makes(a.Code) {
 			return orderTarget{}, refuseProduction(screens.ProductionRefusedWrongType, c, snap).back(back...)
+		}
+		// Arms are made under a defence licence in force
+		// (docs/adr/0022, section 2.14): a company whose licence lapsed
+		// keeps its designs but orders no more of an export-controlled
+		// good.
+		if def, ok := snap.ItemDef(d.Item); ok && def.ExportControl.Control().Restricted {
+			if lic, ok := snap.DefenceLicence(); ok {
+				buyer, err := f.buyer(ctx, tx, snap, h.now())
+				if err != nil {
+					return orderTarget{}, err
+				}
+				if buyer.Sector != lic.Sector {
+					return orderTarget{}, refuseProduction(screens.ProductionRefusedNotCleared, c, snap).back(back...)
+				}
+			}
 		}
 		return orderTarget{good: designGood(snap, *d), kind: application.OrderKindDesign, design: d, archetype: a,
 			plan: domainDesign(*d), output: d.Item, skill: a.ReverseSkill}, nil
@@ -157,6 +173,13 @@ func (h *ProductionHandler) Orders(ctx context.Context, meta envelope.Metadata, 
 		if view.Targets, err = h.targets(ctx, tx, snap, f); err != nil {
 			return err
 		}
+		st, err := h.stageOf(ctx, tx, snap, f)
+		if err != nil {
+			return err
+		}
+		if view.Locked, err = h.lockedComponents(snap, f, st); err != nil {
+			return err
+		}
 		orders, err := tx.Production().Orders(ctx, c.ID, 10)
 		if err != nil {
 			return err
@@ -216,8 +239,16 @@ func (h *ProductionHandler) planOrder(ctx context.Context, tx application.Tx, sn
 	}
 	out := plan{target: t, crew: f.crew()}
 	var err error
-	if out.stock, err = warehouseStock(ctx, tx, f.c.ID); err != nil {
-		return out, err
+	switch {
+	case f.readOnly && f.stockKept != nil:
+		out.stock = f.stockKept
+	default:
+		if out.stock, err = warehouseStock(ctx, tx, f.c.ID); err != nil {
+			return out, err
+		}
+		if f.readOnly {
+			f.stockKept = out.stock
+		}
 	}
 	if out.per, err = item.DeriveRecipe(t.plan); err != nil {
 		return out, errors.Internal(err)
@@ -328,6 +359,16 @@ func (h *ProductionHandler) Produce(ctx context.Context, meta envelope.Metadata,
 		if err != nil {
 			return err
 		}
+		if qty == 0 {
+			// No size asked: the screen opens at a quick order — what the
+			// warehouse can cover, up to the quick size — so one more tap
+			// places it (docs/adr/0021, section 14).
+			probe, err := h.planOrder(ctx, tx, snap, f, t, 0)
+			if err != nil {
+				return err
+			}
+			qty = h.quickQty(probe.maxOrder())
+		}
 		org := application.CompanyOrg(c.ID)
 		if place {
 			if err := tx.Items().LockOrg(ctx, org); err != nil {
@@ -341,6 +382,9 @@ func (h *ProductionHandler) Produce(ctx context.Context, meta envelope.Metadata,
 		now := h.now()
 		if !place || pl.short != nil {
 			view = h.produceView(snap, c, pl, qty, now)
+			if err := h.sourceShortages(ctx, tx, snap, f, &view, now); err != nil {
+				return err
+			}
 			if place && pl.short != nil {
 				r := refuseProduction(screens.ProductionRefusedShortage, c, snap).back(screens.AddrProduce, c.Code, t.good.TargetArg())
 				r.view.Shortages = view.Short
@@ -516,4 +560,135 @@ func (h *ProductionHandler) Produced(ctx context.Context, meta envelope.Metadata
 		}
 		return appendCompanyEvent(ctx, tx, meta, "product_launched", c.ID, payload)
 	})
+}
+
+// quickQty is a quick order's size: the quick size, or what the warehouse
+// can cover when that is less but something.
+func (h *ProductionHandler) quickQty(most int64) int64 {
+	q := int64(max(h.rules.QuickUnits, 1))
+	if most >= 1 && most < q {
+		return most
+	}
+	return q
+}
+
+// sourceShortages says where each input an order is short of comes from —
+// a supplier of the city, the company's own floor, or other companies — and,
+// when the suppliers sell every one of them now, what buying them all costs:
+// the one-tap purchase the screen offers.
+func (h *ProductionHandler) sourceShortages(ctx context.Context, tx application.Tx, snap *content.Snapshot, f *floor,
+	v *screens.ProduceView, now time.Time,
+) error {
+	if len(v.Short) == 0 {
+		return nil
+	}
+	city, err := h.cities.ByID(ctx, f.c.CityID)
+	if err != nil {
+		return err
+	}
+	var total int64
+	all := true
+	for i, s := range v.Short {
+		lack := s.Need - s.Have
+		if sp, sh, ok := supplierOf(snap, city.Code, s.Component.Code); ok {
+			stock, _, err := h.shelf(ctx, tx, city.ID, sp, sh, now)
+			if err != nil {
+				return err
+			}
+			if stock >= lack {
+				v.Short[i].Source = screens.ShortFromSupplier
+				total += lack * sh.Price
+				continue
+			}
+		}
+		all = false
+		if comp, ok := snap.ComponentDef(s.Component.Code); ok && comp.Production != nil && hasCode(comp.Production.By, f.c.TypeCode) &&
+			item.CanManufacture(comp.Component(), f.access) == nil {
+			v.Short[i].Source = screens.ShortMadeHere
+			continue
+		}
+		v.Short[i].Source = screens.ShortFromCompanies
+	}
+	if all {
+		v.StockUp = total
+	}
+	return nil
+}
+
+// StockUp handles company.stockup: in one tap, every input an order of qty
+// is short of, bought from the city's suppliers — all of them in one
+// transaction, or none — and the order's plan shown ready to place.
+func (h *ProductionHandler) StockUp(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+	if err := validatePlayerMeta(meta); err != nil {
+		return nil, err
+	}
+	qty, ok := quantityArg(req.Qty)
+	if !ok {
+		req.Qty = ""
+		return h.Produce(ctx, meta, req)
+	}
+	snap := h.content.Current()
+	lang := meta.Language
+	var view screens.ProduceView
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, err := h.player(ctx, tx, meta, &lang)
+		if err != nil {
+			return err
+		}
+		fresh, err := h.reserve(ctx, tx, p.ID, meta)
+		if err != nil {
+			return err
+		}
+		c, err := h.managed(ctx, tx, snap, p, req.code(), company.RightProduce)
+		if err != nil {
+			return err
+		}
+		f, err := readFloor(ctx, tx, snap, c)
+		if err != nil {
+			return err
+		}
+		t, err := h.target(ctx, tx, snap, f, req.Target)
+		if err != nil {
+			return err
+		}
+		if err := tx.Items().LockOrg(ctx, application.CompanyOrg(c.ID)); err != nil {
+			return err
+		}
+		now := h.now()
+		pl, err := h.planOrder(ctx, tx, snap, f, t, qty)
+		if err != nil {
+			return err
+		}
+		var bought money.Amount
+		if fresh && pl.short != nil {
+			city, err := h.cities.ByID(ctx, c.CityID)
+			if err != nil {
+				return err
+			}
+			back := []string{screens.AddrProduce, c.Code, t.good.TargetArg()}
+			for _, s := range pl.short.Shortages {
+				sp, sh, ok := supplierOf(snap, city.Code, s.Component)
+				if !ok {
+					return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(back...)
+				}
+				paid, err := h.supplyOnce(ctx, tx, snap, f, p, city, sp, sh, s.Need-s.Have, now, back...)
+				if err != nil {
+					return err
+				}
+				if bought, err = bought.Add(paid); err != nil {
+					return errors.Internal(err)
+				}
+			}
+			if pl, err = h.planOrder(ctx, tx, snap, f, t, qty); err != nil {
+				return err
+			}
+		}
+		view = h.produceView(snap, c, pl, qty, now)
+		view.Bought = bought.Minor()
+		return h.sourceShortages(ctx, tx, snap, f, &view, now)
+	})
+	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
+		return resp, err
+	}
+	return screens.Produce(h.screen(meta, lang), view), nil
 }

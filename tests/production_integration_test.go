@@ -315,17 +315,17 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 		t.Errorf("tech_published events = %d, want 1 for the group line", n)
 	}
 
-	// --- 3. B cannot design with a chipset until it holds a license. -------
+	// --- 3. B cannot design a phone until it holds a license. -------------
+	// Staged (docs/adr/0021, section 14): the studio shows the phone one
+	// step away — the license on offer — and a new design of it is refused,
+	// naming what it lacks.
+	resp, err = prod.Studio(ctx, metaAs(ownerB, "company.studio"), handlers.ProductionRequest{Company: b.code})
+	ok("B's studio", resp, err, "production.studio_next")
 	resp, err = prod.DesignNew(ctx, metaAs(ownerB, "company.dnew"), handlers.ProductionRequest{Company: b.code, Item: "phone"})
-	ok("new phone design", resp, err)
-	var designNo int64
-	var designID string
-	if err := pool.Raw().QueryRow(ctx, `SELECT no, id::text FROM product_designs WHERE company_id = $1::uuid`, b.id).Scan(&designNo, &designID); err != nil {
-		t.Fatal(err)
+	ok("a phone without the technology", resp, err, "production.refused.tech_locked")
+	if n := countRows(t, pool, `SELECT count(*) FROM product_designs WHERE company_id = $1::uuid`, b.id); n != 0 {
+		t.Fatalf("a refused design left %d drafts", n)
 	}
-	no := strconv.FormatInt(designNo, 10)
-	resp, err = prod.DesignFill(ctx, metaAs(ownerB, "company.dfill"), handlers.ProductionRequest{No: no, Slot: "board", Component: "chipset"})
-	ok("chipset without the technology", resp, err, "production.refused.tech_locked")
 	aBefore, bBefore := treasury(a.id), treasury(b.id)
 	licensePress := metaAs(ownerB, "company.license")
 	for range 2 {
@@ -344,6 +344,14 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 	}
 
 	// --- 4. B designs the phone. ------------------------------------------
+	resp, err = prod.DesignNew(ctx, metaAs(ownerB, "company.dnew"), handlers.ProductionRequest{Company: b.code, Item: "phone"})
+	ok("new phone design", resp, err)
+	var designNo int64
+	var designID string
+	if err := pool.Raw().QueryRow(ctx, `SELECT no, id::text FROM product_designs WHERE company_id = $1::uuid`, b.id).Scan(&designNo, &designID); err != nil {
+		t.Fatal(err)
+	}
+	no := strconv.FormatInt(designNo, 10)
 	for slot, comp := range map[string]string{"board": "chipset", "power": "cell", "shell": "plastic_case"} {
 		resp, err = prod.DesignFill(ctx, metaAs(ownerB, "company.dfill"), handlers.ProductionRequest{No: no, Slot: slot, Component: comp})
 		ok("fill "+slot, resp, err)

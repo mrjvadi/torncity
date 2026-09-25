@@ -64,6 +64,10 @@ type Snapshot struct {
 
 	// Military and diplomacy; see military.go.
 	military militaryContent
+	// defenceLicence is military.yml's defence_licence, nil without one;
+	// defenceRankTier the armed forces' tier its min_rank names.
+	defenceLicence  *DefenceLicenceDef
+	defenceRankTier int
 	// war is military.yml's war section, nil without one; see war.go.
 	war *WarDef
 
@@ -143,6 +147,7 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	snap.buildCompanies(p)
 	snap.buildProduction(p)
 	snap.buildMilitary(p)
+	snap.buildDefenceLicence(p)
 	if len(p.War) > 0 {
 		w := p.War[0]
 		snap.war = &w

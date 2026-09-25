@@ -16,6 +16,7 @@
 • منطقهٔ صنعتی - ۳۰ ثانیه پیاده‌روی
 • زمین‌های کشاورزی - ۴۰ ثانیه پیاده‌روی
 • بیمارستان - ۲۰ ثانیه پیاده‌روی - داروخانه
+• پادگان - ۳۰ ثانیه پیاده‌روی
 • محلهٔ مسکونی - ۲۵ ثانیه پیاده‌روی - سمساری
 • پارک شهر - ۱۵ ثانیه پیاده‌روی
 
@@ -26,7 +27,8 @@
   [🚶 کلانتری] → place:go:police_station   │   [🚶 پایانهٔ اتوبوس] → place:go:bus_terminal
   [🚶 ایستگاه قطار] → place:go:train_station   │   [🚶 منطقهٔ صنعتی] → place:go:industrial_zone
   [🚶 زمین‌های کشاورزی] → place:go:farmland   │   [🚶 بیمارستان] → place:go:hospital
-  [🚶 محلهٔ مسکونی] → place:go:residential_area   │   [🚶 پارک شهر] → place:go:park
+  [🚶 پادگان] → place:go:barracks   │   [🚶 محلهٔ مسکونی] → place:go:residential_area
+  [🚶 پارک شهر] → place:go:park
   [🛒 مغازه‌های اینجا] → shop:list:city_centre   │   [🛒 مغازه‌های بازار] → place:go:bazaar:shop.list:bazaar
   [🛒 مغازه‌های منطقهٔ تجاری] → place:go:business_district:shop.list:business_district   │   [🛒 مغازه‌های بیمارستان] → place:go:hospital:shop.list:hospital
   [🛒 مغازه‌های محلهٔ مسکونی] → place:go:residential_area:shop.list:residential_area
@@ -61,6 +63,7 @@
 • منطقهٔ صنعتی - ۳۰ ثانیه پیاده‌روی
 • زمین‌های کشاورزی - ۴۰ ثانیه پیاده‌روی
 • بیمارستان - ۲۰ ثانیه پیاده‌روی - داروخانه
+• پادگان - ۳۰ ثانیه پیاده‌روی
 • محلهٔ مسکونی - ۲۵ ثانیه پیاده‌روی - سمساری
 • پارک شهر - ۱۵ ثانیه پیاده‌روی
 
@@ -97,6 +100,7 @@
 • منطقهٔ صنعتی - ۳۰ ثانیه پیاده‌روی
 • زمین‌های کشاورزی - ۴۰ ثانیه پیاده‌روی
 • بیمارستان - ۲۰ ثانیه پیاده‌روی - داروخانه
+• پادگان - ۳۰ ثانیه پیاده‌روی
 • محلهٔ مسکونی - ۲۵ ثانیه پیاده‌روی - سمساری
 • پارک شهر - ۱۵ ثانیه پیاده‌روی
 
@@ -107,7 +111,8 @@
   [🚶 کلانتری] → place:go:police_station   │   [🚶 پایانهٔ اتوبوس] → place:go:bus_terminal
   [🚶 ایستگاه قطار] → place:go:train_station   │   [🚶 منطقهٔ صنعتی] → place:go:industrial_zone
   [🚶 زمین‌های کشاورزی] → place:go:farmland   │   [🚶 بیمارستان] → place:go:hospital
-  [🚶 محلهٔ مسکونی] → place:go:residential_area   │   [🚶 پارک شهر] → place:go:park
+  [🚶 پادگان] → place:go:barracks   │   [🚶 محلهٔ مسکونی] → place:go:residential_area
+  [🚶 پارک شهر] → place:go:park
   [🛒 مغازه‌های مرکز شهر] → place:go:city_centre:shop.list:city_centre   │   [🛒 مغازه‌های اینجا] → shop:list:bazaar
   [🛒 مغازه‌های منطقهٔ تجاری] → place:go:business_district:shop.list:business_district   │   [🛒 مغازه‌های بیمارستان] → place:go:hospital:shop.list:hospital
   [🛒 مغازه‌های محلهٔ مسکونی] → place:go:residential_area:shop.list:residential_area
@@ -134,6 +139,7 @@
 • منطقهٔ صنعتی - ۳۰ ثانیه پیاده‌روی
 • زمین‌های کشاورزی - ۴۰ ثانیه پیاده‌روی
 • بیمارستان - ۲۰ ثانیه پیاده‌روی - داروخانه
+• پادگان - ۳۰ ثانیه پیاده‌روی
 • محلهٔ مسکونی - ۲۵ ثانیه پیاده‌روی - سمساری
 • پارک شهر - ۱۵ ثانیه پیاده‌روی
 
@@ -144,7 +150,8 @@
   [🚶 کلانتری] → place:go:police_station   │   [🚶 پایانهٔ اتوبوس] → place:go:bus_terminal
   [🚶 ایستگاه قطار] → place:go:train_station   │   [🚶 منطقهٔ صنعتی] → place:go:industrial_zone
   [🚶 زمین‌های کشاورزی] → place:go:farmland   │   [🚶 بیمارستان] → place:go:hospital
-  [🚶 محلهٔ مسکونی] → place:go:residential_area   │   [🚶 پارک شهر] → place:go:park
+  [🚶 پادگان] → place:go:barracks   │   [🚶 محلهٔ مسکونی] → place:go:residential_area
+  [🚶 پارک شهر] → place:go:park
   [🛒 مغازه‌های مرکز شهر] → place:go:city_centre:shop.list:city_centre   │   [🛒 مغازه‌های اینجا] → shop:list:bazaar
   [🛒 مغازه‌های منطقهٔ تجاری] → place:go:business_district:shop.list:business_district   │   [🛒 مغازه‌های بیمارستان] → place:go:hospital:shop.list:hospital
   [🛒 مغازه‌های محلهٔ مسکونی] → place:go:residential_area:shop.list:residential_area

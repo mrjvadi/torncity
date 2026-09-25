@@ -93,14 +93,15 @@ type file struct {
 	Technologies   []TechnologyDef    `yaml:"technologies"`
 	Suppliers      []SupplierDef      `yaml:"suppliers"`
 
-	Actions           []ActionDef       `yaml:"actions"`
-	Branches          []BranchDef       `yaml:"branches"`
-	ForceClasses      []ForceClassDef   `yaml:"force_classes"`
-	MilitaryClearance []string          `yaml:"military_clearance"`
-	StrengthBands     []StrengthBandDef `yaml:"strength_bands"`
-	TreatyTypes       []TreatyTypeDef   `yaml:"treaty_types"`
-	SanctionGrounds   []string          `yaml:"sanction_grounds"`
-	War               *WarDef           `yaml:"war"`
+	Actions           []ActionDef        `yaml:"actions"`
+	Branches          []BranchDef        `yaml:"branches"`
+	ForceClasses      []ForceClassDef    `yaml:"force_classes"`
+	MilitaryClearance []string           `yaml:"military_clearance"`
+	StrengthBands     []StrengthBandDef  `yaml:"strength_bands"`
+	TreatyTypes       []TreatyTypeDef    `yaml:"treaty_types"`
+	SanctionGrounds   []string           `yaml:"sanction_grounds"`
+	War               *WarDef            `yaml:"war"`
+	DefenceLicence    *DefenceLicenceDef `yaml:"defence_licence"`
 
 	Health        *HealthDef        `yaml:"health"`
 	MissionBoards []MissionBoardDef `yaml:"mission_boards"`
@@ -220,6 +221,9 @@ func Load(dir string) (*Pack, error) {
 		pack.SanctionGrounds = append(pack.SanctionGrounds, doc.SanctionGrounds...)
 		if doc.War != nil {
 			pack.War = append(pack.War, *doc.War)
+		}
+		if doc.DefenceLicence != nil {
+			pack.DefenceLicence = append(pack.DefenceLicence, *doc.DefenceLicence)
 		}
 		if doc.Health != nil {
 			pack.Health = append(pack.Health, *doc.Health)

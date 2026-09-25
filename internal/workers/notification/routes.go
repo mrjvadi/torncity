@@ -117,6 +117,8 @@ func Routes() []Route {
 
 		// The armed forces, diplomacy and appointments: see military.go.
 		{Domain: "military", Event: "arrived", Render: renderMoveArrived},
+		{Domain: "military", Event: "licence_applied", Render: renderLicence("licence_applied")},
+		{Domain: "military", Event: "licence_decided", Render: renderLicence("licence_decided")},
 		{Domain: "diplomacy", Event: "treaty_proposed", Render: renderTreatyProposed},
 		{Domain: "governance", Event: "appointed", Render: renderOffice(false)},
 		{Domain: "governance", Event: "dismissed", Render: renderOffice(true)},
@@ -170,6 +172,8 @@ func Routes() []Route {
 		{Domain: "company", Event: "tech_published", Name: "announce", Announce: techPublishedAnnouncement},
 		{Domain: "company", Event: "product_launched", Name: "announce", Announce: productLaunchedAnnouncement},
 		{Domain: "military", Event: "procured", Name: "announce", Announce: procuredAnnouncement},
+		{Domain: "military", Event: "licence_granted", Name: "announce", Announce: licenceAnnouncement("granted")},
+		{Domain: "military", Event: "licence_revoked", Name: "announce", Announce: licenceAnnouncement("revoked")},
 		{Domain: "diplomacy", Event: "sanction_imposed", Name: "announce", Announce: sanctionImposedAnnouncement},
 		{Domain: "diplomacy", Event: "sanction_lifted", Name: "announce", Announce: sanctionLiftedAnnouncement},
 		{Domain: "diplomacy", Event: "treaty_signed", Name: "announce", Announce: treatySignedAnnouncement},

@@ -121,6 +121,17 @@ courses:
     skill_rewards: [{skill: programming, xp: 1500}, {skill: engineering, xp: 600}]
     certifies: true
 
+  # Officer school: the commission a lieutenant of the armed forces needs
+  # (jobs.yml armed_forces). Taught at the training centre, like a licence.
+  - code: officer_training
+    name: Officer Training
+    institution: training_center
+    cost: 2500
+    duration: 12h
+    min_level: 4
+    skill_rewards: [{skill: management, xp: 300}, {skill: logistics, xp: 150}]
+    certifies: true
+
   # Not a qualification: a short evening class that only trains a skill.
   - code: evening_accounting
     name: Evening Class in Accounting

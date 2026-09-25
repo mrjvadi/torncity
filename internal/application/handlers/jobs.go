@@ -47,7 +47,11 @@ type QuitRequest struct {
 // treasury instead, as a transfer (ReasonCompanyWage, payWage): the shift
 // sets its wage aside when it starts, so it cannot start at a company that
 // has not got it, and is always paid when it ends
-// (docs/adr/0020-companies.md).
+// (docs/adr/0020-companies.md). A career of the armed forces (jobs.yml
+// paid_by: defence_fund) is paid from the defence fund of the country the
+// job's city belongs to (ReasonMilitaryWage, a transfer): a duty the fund
+// cannot pay one shift of does not start, and a shift is never paid more
+// than the fund holds when it ends (docs/adr/0022, section 2.14).
 //
 // # What the city decides
 //
@@ -669,6 +673,18 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 				return r
 			}
 			employer.company = co
+		} else if def.Military() {
+			// The armed forces pay from the defence fund of the country
+			// the job's city belongs to: a duty the fund cannot pay one
+			// shift of does not start (docs/adr/0022, section 2.14).
+			reserve = max(emp.Rate, pol.MinimumWage.Minor())
+			fund, err := defenceFundOf(ctx, tx, emp.CityID)
+			if err != nil {
+				return err
+			}
+			if fund == nil || fund.Balance.Minor() < reserve {
+				return refuse(screens.RefusalArmyCannotPay, nil)
+			}
 		}
 		// A shift is worked at the workplace: the place of the company's
 		// kind of business, or of the career's category (places.yml
@@ -998,7 +1014,7 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 		}
 		// The payroll row and both ledger transactions carry the session's
 		// id: one shift, one payment, whatever is delivered twice.
-		pay, err := h.payWage(ctx, tx, playerID, s.residence, emp.CityID, *session, res.Pay, pol)
+		pay, err := h.payWage(ctx, tx, playerID, s.residence, emp.CityID, *session, res.Pay, pol, def.Military())
 		if err != nil {
 			return err
 		}
@@ -1148,7 +1164,7 @@ type wage struct {
 // them. A zero wage (a policy of zero minimum wage and a tired shift can
 // floor to nothing) moves no money.
 func (h *JobsHandler) payWage(ctx context.Context, tx application.Tx, playerID, residence, jobCityID string,
-	session application.ShiftSession, pay money.Amount, jobPolicy labourPolicy,
+	session application.ShiftSession, pay money.Amount, jobPolicy labourPolicy, military bool,
 ) (wage, error) {
 	shiftID := session.ID
 	taxBPS := 0
@@ -1183,6 +1199,24 @@ func (h *JobsHandler) payWage(ctx context.Context, tx application.Tx, playerID, 
 			// Only a bug elsewhere gets here; never overdraw a company.
 			pay = from.Balance
 		}
+	} else if military {
+		// The armed forces pay what the shift was promised when it began,
+		// never more than the defence fund holds now: the fund is the
+		// country's, and its upkeep and purchases draw on it too.
+		if pay.Minor() > session.WageReserved {
+			pay = money.FromMinor(session.WageReserved)
+		}
+		fund, err := defenceFundOf(ctx, tx, jobCityID)
+		if err != nil {
+			return wage{}, err
+		}
+		if fund == nil {
+			return wage{}, nil
+		}
+		from = *fund
+		if pay.Minor() > from.Balance.Minor() {
+			pay = from.Balance
+		}
 	}
 	payments, err := job.Payroll([]job.Employee{{ID: playerID, ShiftPay: pay}},
 		job.Period{Start: now, End: now.Add(time.Nanosecond)}, taxBPS)
@@ -1203,8 +1237,11 @@ func (h *JobsHandler) payWage(ctx context.Context, tx application.Tx, playerID, 
 		return wage{}, errors.Internal(err)
 	}
 	reason, payer := application.ReasonBaseEmployerSalary, application.SystemSourceAccountID
-	if session.CompanyID != "" {
+	switch {
+	case session.CompanyID != "":
 		reason, payer = application.ReasonCompanyWage, from.ID
+	case military:
+		reason, payer = application.ReasonMilitaryWage, from.ID
 	}
 	if w.transactionID, err = ledger.Post(ctx, application.LedgerTransaction{
 		Reason:        reason,
@@ -1242,6 +1279,20 @@ func (h *JobsHandler) payWage(ctx context.Context, tx application.Tx, playerID, 
 		return wage{}, err
 	}
 	return w, nil
+}
+
+// defenceFundOf is the defence fund of the country a city belongs to, nil
+// for a city of no country.
+func defenceFundOf(ctx context.Context, tx application.Tx, cityID string) (*application.Account, error) {
+	country, err := tx.Diplomacy().CountryOfCity(ctx, cityID)
+	if err != nil || country == "" {
+		return nil, err
+	}
+	fund, err := tx.Ledger().AccountFor(ctx, application.AccountDefenceFund, country)
+	if err != nil {
+		return nil, err
+	}
+	return &fund, nil
 }
 
 // Promote handles job.promote: stepping up one position once it is earned.

@@ -130,6 +130,15 @@ places:
     work_categories: [medical]
     opportunity_bps: 5000
     security: 8
+  # The garrison of the armed forces: soldiers work their duty here
+  # (jobs.yml armed_forces). Guarded, and nobody's pocket is picked at the
+  # gate.
+  - code: barracks
+    name: Barracks
+    move_time: 30m
+    work_categories: [military]
+    opportunity_bps: 1000
+    security: 45
   - code: residential_area
     name: Residential area
     move_time: 25m

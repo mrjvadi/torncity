@@ -7,6 +7,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/production"
+	"github.com/mrjvadi/torncity/internal/domain/technology"
 )
 
 // Every component a company makes plans as an order of the production rules
@@ -146,5 +147,69 @@ func TestProductionValidation(t *testing.T) {
 				t.Fatalf("Validate() = %v, want %q", err, tc.want)
 			}
 		})
+	}
+}
+
+// The shipped tree stages a new tech studio (docs/adr/0021, section 14): its
+// basic gadgets are open at once, a phone is two researches away and hidden,
+// and after semiconductors the phone is one step away — microchips and
+// battery chemistry, both of which the studio may research.
+func TestShippedStaging(t *testing.T) {
+	snap, err := BuildSnapshot(1, shippedPack(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	comps, tree := snap.Components(), snap.TechTree()
+	fresh := technology.Standing{CompanyType: "tech_studio", Owned: item.NewSet(), Published: item.NewSet(),
+		Buyer: technology.Buyer{Kind: "company", Sector: "civilian"}}
+	reach := func(code string, s technology.Standing) (technology.Reach, []technology.Step) {
+		t.Helper()
+		def, ok := snap.ItemDef(code)
+		if !ok {
+			t.Fatalf("no item %s", code)
+		}
+		a, _ := snap.Archetype(def.Archetype)
+		access := technology.Access(item.SortedCodes(s.Owned), nil, nil)
+		missing, possible := item.DesignGaps(a, def.RequiresTechnology, comps, access)
+		if !possible {
+			t.Fatalf("%s cannot be designed at all", code)
+		}
+		return technology.Assess(missing, tree, s, nil)
+	}
+	designable := map[string]bool{}
+	for _, d := range snap.DesignableItems("tech_studio") {
+		designable[d.Code] = true
+	}
+	for _, code := range []string{"led_torch", "pocket_radio", "phone"} {
+		if !designable[code] {
+			t.Fatalf("a tech studio does not design %s", code)
+		}
+	}
+	if r, _ := reach("led_torch", fresh); r != technology.Ready {
+		t.Errorf("a new studio and a torch: %v, want ready", r)
+	}
+	if r, _ := reach("phone", fresh); r != technology.Far {
+		t.Errorf("a new studio and a phone: %v, want far", r)
+	}
+	semis := fresh
+	semis.Owned = item.NewSet("semiconductors")
+	if r, steps := reach("phone", semis); r != technology.Next || len(steps) != 2 {
+		t.Errorf("a studio with semiconductors and a phone: %v %v, want two steps", r, steps)
+	}
+	all := fresh
+	all.Owned = item.NewSet("semiconductors", "microchips", "batteries")
+	if r, _ := reach("phone", all); r != technology.Ready {
+		t.Errorf("a studio with the chain and a phone: %v, want ready", r)
+	}
+	// A factory needs vehicle engineering for a car, one step away.
+	factory := fresh
+	factory.CompanyType = "factory"
+	if r, steps := reach("car", factory); r != technology.Next || len(steps) != 1 || steps[0].Tech != "vehicle_engineering" {
+		t.Errorf("a new factory and a car: %v %v", r, steps)
+	}
+	// The defence licence: a captain of the armed forces.
+	d, ok := snap.DefenceLicence()
+	if !ok || d.Sector != "defence" || snap.DefenceRankTier() != 3 {
+		t.Errorf("defence licence %+v, rank tier %d", d, snap.DefenceRankTier())
 	}
 }

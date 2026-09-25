@@ -22,19 +22,22 @@ import (
 
 // Callback addresses of the production screens.
 const (
-	AddrWarehouse    = "company:warehouse"
-	AddrSuppliers    = "company:suppliers"
-	AddrSupply       = "company:supply"
-	AddrLab          = "company:lab"
-	AddrResearch     = "company:research"
-	AddrTechMode     = "company:techmode"
-	AddrLicense      = "company:license"
-	AddrStudio       = "company:studio"
-	AddrDesignNew    = "company:dnew"
-	AddrDesign       = "company:design"
-	AddrDesignFill   = "company:dfill"
-	AddrDesignFinal  = "company:dfinal"
-	AddrProduce      = "company:produce"
+	AddrWarehouse   = "company:warehouse"
+	AddrSuppliers   = "company:suppliers"
+	AddrSupply      = "company:supply"
+	AddrLab         = "company:lab"
+	AddrResearch    = "company:research"
+	AddrTechMode    = "company:techmode"
+	AddrLicense     = "company:license"
+	AddrStudio      = "company:studio"
+	AddrDesignNew   = "company:dnew"
+	AddrDesign      = "company:design"
+	AddrDesignFill  = "company:dfill"
+	AddrDesignFinal = "company:dfinal"
+	AddrProduce     = "company:produce"
+	// AddrStockUp buys, in one tap, the inputs an order is short of from
+	// the city's suppliers (docs/adr/0021, section 14).
+	AddrStockUp      = "company:stockup"
 	AddrOrders       = "company:orders"
 	AddrReverseLab   = "company:relab"
 	AddrReverse      = "company:reverse"
@@ -162,6 +165,8 @@ type WarehouseView struct {
 	// CanResearch is the owner, who alone runs the lab.
 	CanResearch bool
 	Notice      string
+	// Next is the one step the floor should take next.
+	Next *NextStep
 }
 
 // Warehouse renders a company's warehouse, the hub of its floor.
@@ -194,10 +199,15 @@ func Warehouse(c Context, v WarehouseView) *presenter.Response {
 		}
 	}
 	stock := body(append([]string{c.T("production.warehouse_stock", nil)}, lines...)...)
-	if len(lines) == 0 {
+	switch {
+	case len(lines) == 0 && v.Next != nil:
+		// The next step says what to do about it.
+		stock = c.T("production.warehouse_empty_short", nil)
+	case len(lines) == 0:
 		stock = c.T("production.warehouse_empty", nil)
 	}
 	kb := keyboards.New()
+	next := c.nextStep(kb, v.Ref.Code, v.Next)
 	kb.Grid(2, sell...)
 	var hub []presenter.Button
 	add := func(key string, parts ...string) {
@@ -215,7 +225,7 @@ func Warehouse(c Context, v WarehouseView) *presenter.Response {
 	add("production.button.listings", AddrListings, v.Ref.Code)
 	kb.Grid(2, hub...)
 	c.productionNav(kb, []string{AddrCompanyManage, v.Ref.Code}, AddrWarehouse, v.Ref.Code)
-	return c.respond(paragraphs(v.Notice, head, stock, c.T("production.warehouse_hint", nil)), kb.Build())
+	return c.respond(paragraphs(v.Notice, head, next, stock), kb.Build())
 }
 
 // ---------------------------------------------------------------------------
@@ -336,6 +346,28 @@ type Shortage struct {
 	Component Named
 	Need      int64
 	Have      int64
+	// Source is where the company gets it: ShortFromSupplier,
+	// ShortMadeHere or ShortFromCompanies.
+	Source string
+}
+
+// Where a short input comes from.
+const (
+	// ShortFromSupplier: an NPC supplier of the company's city sells it.
+	ShortFromSupplier = "supplier"
+	// ShortMadeHere: the company makes it on its own floor.
+	ShortMadeHere = "made"
+	// ShortFromCompanies: other companies make it; buy it from their goods.
+	ShortFromCompanies = "companies"
+)
+
+// sourceKey is the locale key of a shortage's source.
+func (s Shortage) sourceKey() string {
+	switch s.Source {
+	case ShortFromSupplier, ShortMadeHere:
+		return s.Source
+	}
+	return ShortFromCompanies
 }
 
 // ProductionRefusalView is a refused production command.

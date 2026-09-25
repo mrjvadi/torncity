@@ -189,6 +189,12 @@ type ItemDef struct {
 	// Vehicle makes the good a car or a motorbike its owner drives
 	// (vehicle.go; docs/adr/0024).
 	Vehicle *VehicleDef `yaml:"vehicle,omitempty" json:"vehicle,omitempty"`
+	// RequiresTechnology lists what a company must know (production.yml
+	// technologies) to start a new design of this good at all — a car
+	// needs vehicle engineering whatever steel it is made of. It never
+	// gates making a design a company already holds, nor buying or using
+	// one (docs/adr/0021, section 14).
+	RequiresTechnology []string `yaml:"requires_technology,omitempty" json:"requires_technology,omitempty"`
 }
 
 func boolOr(p *bool, def bool) bool {

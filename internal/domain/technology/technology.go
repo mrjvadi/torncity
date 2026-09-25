@@ -234,6 +234,11 @@ type Standing struct {
 	Researching bool
 	// SkillLevel returns its best member's level in a skill.
 	SkillLevel func(skill string) int
+	// Buyer is the company as export control sees it: a restricted
+	// technology is researched only by a company its control clears — a
+	// defence company, or a civilian one licensed as a defence contractor
+	// (docs/adr/0022-military-and-diplomacy.md, section 2.14).
+	Buyer Buyer
 }
 
 func (s Standing) unlocked(code string) bool { return s.Owned.Has(code) || s.Published.Has(code) }
@@ -267,6 +272,9 @@ func CanResearch(t Tech, s Standing) error {
 	}
 	if !allowed {
 		return fmt.Errorf("%w: %q by %q", ErrWrongCompanyType, t.Code, s.CompanyType)
+	}
+	if !s.cleared(t) {
+		return fmt.Errorf("%w: research of %q", ErrNotCleared, t.Code)
 	}
 	if missing := s.Missing(t); len(missing) > 0 {
 		return fmt.Errorf("%w: %q needs %q", ErrPrerequisiteMissing, t.Code, missing[0])

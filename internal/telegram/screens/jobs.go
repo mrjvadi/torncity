@@ -709,6 +709,10 @@ const (
 	// RefusalShiftInProgress is a player at work asking for something a
 	// running shift rules out: another shift, a promotion, leaving the job.
 	RefusalShiftInProgress = "shift_in_progress"
+	// RefusalArmyCannotPay is a soldier's duty refused because the
+	// country's defence fund cannot pay one shift (docs/adr/0022, section
+	// 2.14).
+	RefusalArmyCannotPay = "army_cannot_pay"
 )
 
 // RefusalView is a work or study request that was refused, with the reasons.
@@ -740,6 +744,7 @@ var refusals = map[string]struct{ key, label, addr string }{
 	RefusalCourseNotFound:     {"education.not_found", "education.button.open", AddrEducation},
 	RefusalCannotAfford:       {"education.cannot_afford", "education.button.open", AddrEducation},
 	RefusalShiftInProgress:    {"job.at_work", "job.button.my_job", AddrJobStatus},
+	RefusalArmyCannotPay:      {"job.army_cannot_pay", "job.button.my_job", AddrJobStatus},
 }
 
 // Refusal renders a refused work or study request.

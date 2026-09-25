@@ -105,6 +105,11 @@ func transportPack(t *testing.T) *content.Pack {
 	for i := range pack.Components {
 		pack.Components[i].Production, pack.Components[i].RequiresTechnology = nil, nil
 	}
+	for i := range pack.Items {
+		pack.Items[i].RequiresTechnology = nil
+	}
+	// The defence licence names the armed forces' career.
+	pack.DefenceLicence = nil
 	// Work accidents and missions of work shifts name career categories.
 	for i := range pack.Health {
 		pack.Health[i].Injuries.Work = nil

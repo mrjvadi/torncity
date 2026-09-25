@@ -702,6 +702,11 @@ offices:
 #   held_by       the office that takes it, at the same level.
 actions:
   - {code: country.procure,             jurisdiction: country, held_by: defence_minister}
+  # Defence licences (docs/adr/0022, section 2.14): approving a civilian
+  # company's contractor application, rejecting it, and revoking a licence
+  # with notice. The minister has no deputy: while the seat is empty,
+  # applications wait.
+  - {code: country.defence_licence,     jurisdiction: country, held_by: defence_minister}
   - {code: country.command_ground,      jurisdiction: country, held_by: ground_forces_commander}
   - {code: country.command_air,         jurisdiction: country, held_by: air_force_commander}
   - {code: country.command_navy,        jurisdiction: country, held_by: navy_commander}

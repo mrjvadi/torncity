@@ -44,6 +44,9 @@ type LabView struct {
 	// Running is the research running now, if any.
 	Running *ResearchLine
 	Techs   []TechLine
+	// Hidden is how many technologies further away are kept out of sight
+	// until the company comes closer (docs/adr/0021, section 14).
+	Hidden int
 }
 
 // ResearchLine is a research running.
@@ -92,10 +95,14 @@ func Lab(c Context, v LabView) *presenter.Response {
 	if len(lines) == 0 {
 		tree = c.T("production.lab_none", nil)
 	}
+	later := ""
+	if v.Hidden > 0 {
+		later = c.T("production.lab_later", map[string]any{"count": FormatNumber(c, int64(v.Hidden))})
+	}
 	kb := keyboards.New()
 	kb.Grid(2, buttons...)
 	c.productionNav(kb, []string{AddrWarehouse, v.Ref.Code}, AddrLab, v.Ref.Code)
-	return c.respond(paragraphs(head, running, tree, c.T("production.lab_hint", nil)), kb.Build())
+	return c.respond(paragraphs(head, running, tree, later, c.T("production.lab_hint", nil)), kb.Build())
 }
 
 // TechOffer is another company that owns a technology, as a would-be

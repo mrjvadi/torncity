@@ -16,6 +16,7 @@ Places in the city:
 • industrial zone - 30s walk
 • farmland - 40s walk
 • hospital - 20s walk - Pharmacy
+• Barracks - 30s walk
 • residential area - 25s walk - Pawnshop
 • city park - 15s walk
 
@@ -26,7 +27,8 @@ Tap a place to walk there. Everything is done at its own place.
   [🚶 police station] → place:go:police_station   │   [🚶 bus terminal] → place:go:bus_terminal
   [🚶 train station] → place:go:train_station   │   [🚶 industrial zone] → place:go:industrial_zone
   [🚶 farmland] → place:go:farmland   │   [🚶 hospital] → place:go:hospital
-  [🚶 residential area] → place:go:residential_area   │   [🚶 city park] → place:go:park
+  [🚶 Barracks] → place:go:barracks   │   [🚶 residential area] → place:go:residential_area
+  [🚶 city park] → place:go:park
   [🛒 Shops here] → shop:list:city_centre   │   [🛒 Shops at the bazaar] → place:go:bazaar:shop.list:bazaar
   [🛒 Shops at the business district] → place:go:business_district:shop.list:business_district   │   [🛒 Shops at the hospital] → place:go:hospital:shop.list:hospital
   [🛒 Shops at the residential area] → place:go:residential_area:shop.list:residential_area
@@ -61,6 +63,7 @@ Places in the city:
 • industrial zone - 30s walk
 • farmland - 40s walk
 • hospital - 20s walk - Pharmacy
+• Barracks - 30s walk
 • residential area - 25s walk - Pawnshop
 • city park - 15s walk
 
@@ -97,6 +100,7 @@ Places in the city:
 • industrial zone - 30s walk
 • farmland - 40s walk
 • hospital - 20s walk - Pharmacy
+• Barracks - 30s walk
 • residential area - 25s walk - Pawnshop
 • city park - 15s walk
 
@@ -107,7 +111,8 @@ Tap a place to walk there. Everything is done at its own place.
   [🚶 police station] → place:go:police_station   │   [🚶 bus terminal] → place:go:bus_terminal
   [🚶 train station] → place:go:train_station   │   [🚶 industrial zone] → place:go:industrial_zone
   [🚶 farmland] → place:go:farmland   │   [🚶 hospital] → place:go:hospital
-  [🚶 residential area] → place:go:residential_area   │   [🚶 city park] → place:go:park
+  [🚶 Barracks] → place:go:barracks   │   [🚶 residential area] → place:go:residential_area
+  [🚶 city park] → place:go:park
   [🛒 Shops at the city centre] → place:go:city_centre:shop.list:city_centre   │   [🛒 Shops here] → shop:list:bazaar
   [🛒 Shops at the business district] → place:go:business_district:shop.list:business_district   │   [🛒 Shops at the hospital] → place:go:hospital:shop.list:hospital
   [🛒 Shops at the residential area] → place:go:residential_area:shop.list:residential_area
@@ -134,6 +139,7 @@ Places in the city:
 • industrial zone - 30s walk
 • farmland - 40s walk
 • hospital - 20s walk - Pharmacy
+• Barracks - 30s walk
 • residential area - 25s walk - Pawnshop
 • city park - 15s walk
 
@@ -144,7 +150,8 @@ Tap a place to walk there. Everything is done at its own place.
   [🚶 police station] → place:go:police_station   │   [🚶 bus terminal] → place:go:bus_terminal
   [🚶 train station] → place:go:train_station   │   [🚶 industrial zone] → place:go:industrial_zone
   [🚶 farmland] → place:go:farmland   │   [🚶 hospital] → place:go:hospital
-  [🚶 residential area] → place:go:residential_area   │   [🚶 city park] → place:go:park
+  [🚶 Barracks] → place:go:barracks   │   [🚶 residential area] → place:go:residential_area
+  [🚶 city park] → place:go:park
   [🛒 Shops at the city centre] → place:go:city_centre:shop.list:city_centre   │   [🛒 Shops here] → shop:list:bazaar
   [🛒 Shops at the business district] → place:go:business_district:shop.list:business_district   │   [🛒 Shops at the hospital] → place:go:hospital:shop.list:hospital
   [🛒 Shops at the residential area] → place:go:residential_area:shop.list:residential_area

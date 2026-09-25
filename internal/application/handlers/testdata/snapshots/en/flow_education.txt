@@ -177,13 +177,16 @@ Courses you can take here:
 • Bookkeeping - 1,200 Nil - 4m
 • Programming Fundamentals - 2,000 Nil - 6m
 🔒 Retail Management - 2,800 Nil - 8m - from level 4
-• Evening Class in Accounting - 400 Nil - 2m
+🔒 Officer Training - 2,500 Nil - 12m - from level 4
+
+Page 1 of 2
   ───
   [📖 Driving Licence] → education:view:driving_licence
   [📖 Bookkeeping] → education:view:bookkeeping
   [📖 Programming Fundamentals] → education:view:programming_fundamentals
   [📖 Retail Management] → education:view:retail_management
-  [📖 Evening Class in Accounting] → education:view:evening_accounting
+  [📖 Officer Training] → education:view:officer_training
+  [Next ➡️] → education:list:2
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
 
 ━━━ Profile after the course ━━━

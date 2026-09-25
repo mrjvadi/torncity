@@ -122,6 +122,11 @@ func purgeMilitary(t *testing.T, pool *postgres.Pool, countries []string, player
 		{`DELETE FROM accounts WHERE kind IN ('state_treasury', 'defence_fund') AND owner_id = ANY($1::uuid[])`, countries},
 		{`UPDATE offices SET holder_player_id = NULL, acquired_by = NULL, term_ends_at = NULL, since = now()
 		   WHERE holder_player_id = ANY($1::uuid[])`, players},
+		// A minister's decisions stay on the licences they decided, nameless.
+		{`UPDATE defence_licences SET decided_by = CASE WHEN decided_by = ANY($1::uuid[]) THEN NULL ELSE decided_by END,
+		        revoked_by = CASE WHEN revoked_by = ANY($1::uuid[]) THEN NULL ELSE revoked_by END,
+		        applied_by = CASE WHEN applied_by = ANY($1::uuid[]) THEN NULL ELSE applied_by END
+		  WHERE decided_by = ANY($1::uuid[]) OR revoked_by = ANY($1::uuid[]) OR applied_by = ANY($1::uuid[])`, players},
 		{`DELETE FROM outbox WHERE subject LIKE 'game.event.military.%' OR subject LIKE 'game.event.diplomacy.%'
 		     OR subject LIKE 'game.event.governance.appointed%' OR subject LIKE 'game.event.governance.dismissed%'`, nil},
 		{`ALTER TABLE diplomacy_events ENABLE TRIGGER diplomacy_events_append_only`, nil},
@@ -237,6 +242,11 @@ func TestStealthFighterProcuredStationedAndKept(t *testing.T) {
 	t.Cleanup(func() { purgeMilitary(t, pool, []string{home, far}, ids) })
 	grantCash(t, pool, maker.ID, 2_500_000)
 	grantCash(t, pool, radarMaker.ID, 600_000)
+	// Arms are made by people the state trusts (docs/adr/0022, section
+	// 2.14): both founders are serving captains.
+	for _, p := range []*application.Player{maker, radarMaker} {
+		enlistAs(t, pool, p.ID, city.ID, 3)
+	}
 	grantCash(t, pool, stranger.ID, 100_000)
 	for p, level := range map[*application.Player]int{maker: 7, radarMaker: 5} {
 		if _, err := pool.Raw().Exec(ctx,

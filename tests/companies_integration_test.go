@@ -95,6 +95,8 @@ func purgeCompaniesOf(t *testing.T, pool *postgres.Pool, cityID string, owners .
 		{`DELETE FROM company_periods WHERE company_id IN (SELECT id FROM purge_co)`, nil},
 		{`DELETE FROM company_shareholders WHERE company_id IN (SELECT id FROM purge_co)`, nil},
 		{`DELETE FROM outbox WHERE payload->>'company_id' IN (SELECT id::text FROM purge_co)`, nil},
+		{`DELETE FROM outbox WHERE payload->>'company_code' IN (SELECT code FROM companies WHERE id IN (SELECT id FROM purge_co))`, nil},
+		{`DELETE FROM defence_licences WHERE company_id IN (SELECT id FROM purge_co)`, nil},
 		{`DELETE FROM companies WHERE id IN (SELECT id FROM purge_co)`, nil},
 		{`DELETE FROM company_market_periods WHERE city_id = $1::uuid`, city},
 		{`UPDATE company_markets SET action_id = NULL, next_at = NULL WHERE city_id = $1::uuid`, city},
