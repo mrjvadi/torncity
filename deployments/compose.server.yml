@@ -14,6 +14,8 @@
 #     can reach it by container name.
 #  4. The web panel joins that network too, as tc-panel, for the host's
 #     reverse proxy.
+#  5. So do the game client API (tc-clientapi) and the realtime server
+#     (tc-centrifugo).
 services:
   telegram-bot-api:
     # Disabled here: the host's existing server is used instead. Compose has no
@@ -39,6 +41,23 @@ services:
       TORN_PANEL_LISTEN: "0.0.0.0:8080"
       TORN_PANEL_PUBLIC_URL: "https://panelomm.ir404.site"
       TORN_PANEL_TRUSTED_PROXIES: "172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
+
+  # The game client API and the realtime server join the same network, as
+  # tc-clientapi and tc-centrifugo, for the host's reverse proxy to expose
+  # later (not configured here). Peers on the docker networks may name the
+  # client for rate limiting (X-Forwarded-For).
+  clientapi:
+    networks:
+      botapi:
+        aliases: ["tc-clientapi"]
+    environment:
+      TORN_CLIENT_LISTEN: "0.0.0.0:8081"
+      TORN_CLIENT_TRUSTED_PROXIES: "172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
+
+  centrifugo:
+    networks:
+      botapi:
+        aliases: ["tc-centrifugo"]
 
 networks:
   botapi:

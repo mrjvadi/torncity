@@ -1,0 +1,57 @@
+{
+  "log": {
+    "level": "info"
+  },
+  "health": {
+    "enabled": true
+  },
+  "admin": {
+    "enabled": false
+  },
+  "channel": {
+    "namespaces": [
+      {
+        "name": "player",
+        "history_size": 20,
+        "history_ttl": "300s",
+        "force_recovery": true,
+        "allow_subscribe_for_client": false,
+        "allow_subscribe_for_anonymous": false,
+        "allow_publish_for_client": false,
+        "allow_publish_for_subscriber": false,
+        "allow_history_for_client": false,
+        "allow_history_for_subscriber": false,
+        "allow_presence_for_client": false,
+        "allow_presence_for_subscriber": false
+      },
+      {
+        "name": "city",
+        "history_size": 20,
+        "history_ttl": "300s",
+        "force_recovery": true,
+        "allow_subscribe_for_client": false,
+        "allow_subscribe_for_anonymous": false,
+        "allow_publish_for_client": false,
+        "allow_publish_for_subscriber": false,
+        "allow_history_for_client": false,
+        "allow_history_for_subscriber": true,
+        "allow_presence_for_client": false,
+        "allow_presence_for_subscriber": false
+      },
+      {
+        "name": "panel",
+        "presence": false,
+        "join_leave": false,
+        "history_size": 0,
+        "allow_subscribe_for_client": false,
+        "allow_subscribe_for_anonymous": false,
+        "allow_publish_for_client": false,
+        "allow_publish_for_subscriber": false,
+        "allow_history_for_client": false,
+        "allow_history_for_subscriber": false,
+        "allow_presence_for_client": false,
+        "allow_presence_for_subscriber": false
+      }
+    ]
+  }
+}

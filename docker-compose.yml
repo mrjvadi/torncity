@@ -203,6 +203,66 @@ services:
       retries: 3
     restart: unless-stopped
 
+  # The game client API (cmd/clientapi, api/client-api.md): the HTTP JSON
+  # edge a native or Telegram Mini App client plays through. It publishes
+  # commands to the same stream the gateway does and issues the realtime
+  # server's tokens. Loopback only on the host; public exposure is the
+  # reverse proxy's (deployments/compose.server.yml).
+  clientapi:
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: "0.25"
+    build: {context: ., dockerfile: deployments/Dockerfile, args: {CMD: clientapi}}
+    working_dir: /srv
+    volumes: ["./configs:/srv/configs:ro"]
+    env_file: [.env]
+    environment:
+      TORN_CLIENT_LISTEN: "0.0.0.0:8081"
+    ports: ["127.0.0.1:58091:8081"]
+    networks:
+      default:
+        aliases: ["tc-clientapi"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      nats: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://127.0.0.1:8081/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  # The realtime server (Centrifugo v6): game clients hold a WebSocket to
+  # it and receive their notices and their city's announcements
+  # (deployments/centrifugo/config.json). Only the server API key publishes
+  # (the client API, the notifier, the panel); clients only subscribe, with
+  # tokens the client API signs. The admin UI is off.
+  centrifugo:
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: "0.25"
+    image: centrifugo/centrifugo:v6.7.0
+    command: ["centrifugo", "--config", "/centrifugo/config.json"]
+    volumes: ["./deployments/centrifugo/config.json:/centrifugo/config.json:ro"]
+    environment:
+      CENTRIFUGO_HTTP_API_KEY: "${CENTRIFUGO_API_KEY:-}"
+      CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY: "${CENTRIFUGO_TOKEN_HMAC_SECRET:-}"
+      # Browser origins allowed to open a WebSocket, space-separated (the
+      # Mini App's, the panel's). A connection with no Origin (a native
+      # client) is always allowed.
+      CENTRIFUGO_CLIENT_ALLOWED_ORIGINS: "${CENTRIFUGO_ALLOWED_ORIGINS:-}"
+    ports: ["127.0.0.1:58092:8000"]
+    networks:
+      default:
+        aliases: ["tc-centrifugo"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
   # One-shot operator tool: migrations and content loads.
   #   docker compose --profile tools run --rm admin migrate
   #   docker compose --profile tools run --rm admin content load --reason "..."
