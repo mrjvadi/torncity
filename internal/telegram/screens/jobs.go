@@ -242,7 +242,8 @@ func renderJobStatus(c Context, v JobStatusView) *presenter.Response {
 		openings, _ := keyboards.Button(c.T("job.button.openings", nil), AddrJobList)
 		kb.Row(openings)
 		kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrJobStatus}))
-		return c.respond(paragraphs(c.T("job.status_title", nil), c.T("job.none", nil)), kb.Build())
+		title := htmlBold(htmlEscape(c.T("job.status_title", nil)))
+		return c.respond(paragraphs(title, htmlEscape(c.T("job.none", nil))), kb.Build()).AsHTML()
 	}
 
 	var employer string
@@ -268,13 +269,23 @@ func renderJobStatus(c Context, v JobStatusView) *presenter.Response {
 	var promotion string
 	switch {
 	case v.TopTier:
-		promotion = c.T("job.promotion_top", nil)
+		promotion = htmlEscape(c.T("job.promotion_top", nil))
 	case v.PromotionReady:
-		promotion = c.T("job.promotion_ready", map[string]any{"title": c.jobTitle(v.Next)})
+		promotion = htmlEscape(c.T("job.promotion_ready", map[string]any{"title": c.jobTitle(v.Next)}))
 	default:
-		promotion = body(append([]string{
-			c.T("job.promotion_next", map[string]any{"title": c.jobTitle(v.Next)}),
-		}, c.requirementLines(v.Missing)...)...)
+		// The requirements still missing are detail under the one fact that
+		// matters at a glance — which position is next — so they collapse;
+		// a player deciding whether to keep at it reads the headline first.
+		next := htmlEscape(c.T("job.promotion_next", map[string]any{"title": c.jobTitle(v.Next)}))
+		missing := c.requirementLines(v.Missing)
+		if len(missing) > 0 {
+			escaped := make([]string, len(missing))
+			for i, line := range missing {
+				escaped[i] = htmlEscape(line)
+			}
+			next = body(next, htmlExpandableQuote(body(escaped...)))
+		}
+		promotion = next
 	}
 
 	var where string
@@ -318,7 +329,8 @@ func renderJobStatus(c Context, v JobStatusView) *presenter.Response {
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrJobStatus}))
 
-	return c.respond(paragraphs(c.T("job.status_title", nil), details, where, promotion), kb.Build())
+	title := htmlBold(htmlEscape(c.T("job.status_title", nil)))
+	return c.respond(paragraphs(title, htmlEscape(details), htmlEscape(where), promotion), kb.Build()).AsHTML()
 }
 
 // JobOpening is one position offered in the city.

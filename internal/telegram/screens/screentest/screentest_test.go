@@ -45,8 +45,8 @@ func TestStripHTMLForLint(t *testing.T) {
 		{"5 &lt; 10 &gt; 3", "5 < 10 > 3"},
 		{`<a href="https://t.me">link</a>`, "link"},
 	} {
-		if got := stripHTMLForLint(tt.text); got != tt.want {
-			t.Errorf("stripHTMLForLint(%q) = %q, want %q", tt.text, got, tt.want)
+		if got := StripHTMLForLint(tt.text); got != tt.want {
+			t.Errorf("StripHTMLForLint(%q) = %q, want %q", tt.text, got, tt.want)
 		}
 	}
 }

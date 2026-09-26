@@ -127,7 +127,7 @@ func (b *Book) Add(title string, resp *presenter.Response) {
 			// what the player actually reads, tags stripped and entities
 			// decoded, so the prose rules below judge the same words a
 			// plain-text screen would show.
-			text = stripHTMLForLint(text)
+			text = StripHTMLForLint(text)
 		}
 		for _, p := range Problems(b.lang, text, b.allowed...) {
 			b.problems = append(b.problems, title+": "+p)
@@ -232,13 +232,13 @@ func ValidTelegramHTML(text string) error {
 	return nil
 }
 
-// stripHTMLForLint returns text with every tag removed and every entity
+// StripHTMLForLint returns text with every tag removed and every entity
 // ValidTelegramHTML accepts decoded back to the character it stands for, so
 // the prose lint below judges the words a player reads, not the markup
 // around them. It assumes text already passed ValidTelegramHTML; called on
 // text that has not, it may strip more or less than a real HTML parser
 // would.
-func stripHTMLForLint(text string) string {
+func StripHTMLForLint(text string) string {
 	var b strings.Builder
 	inTag := false
 	for i := 0; i < len(text); i++ {
