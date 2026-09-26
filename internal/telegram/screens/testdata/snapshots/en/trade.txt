@@ -1,6 +1,6 @@
 ━━━ Market ━━━
 (edits message 42)
-🏪 Market of Ostmarch
+<b>🏪 Market of Ostmarch</b>
 
 • Bread - buyers offer: 35 Nil - sellers ask: 42 Nil
 • Bandage - buyers offer: nobody yet - sellers ask: 90 Nil
@@ -13,7 +13,7 @@
 
 ━━━ Market · empty, from across town ━━━
 (edits message 42)
-🏪 Market of Ostmarch
+<b>🏪 Market of Ostmarch</b>
 
 Nobody is buying or selling here right now.
 
@@ -25,7 +25,7 @@ Nobody is buying or selling here right now.
 
 ━━━ Book · bread, at the market, holding some ━━━
 (edits message 42)
-🏪 Bread - market of Ostmarch
+<b>🏪 Bread - market of Ostmarch</b>
 
 For sale:
 • 10 at 42 Nil
@@ -34,8 +34,8 @@ For sale:
 Wanted:
 • 6 at 35 Nil
 
-Latest trades:
-• 2 at 40 Nil - 14:30
+<blockquote expandable>Latest trades:
+• 2 at 40 Nil - 14:30</blockquote>
 
 🎒 You have 3.
 🧾 The seller pays the market fee, set by the city.
@@ -48,7 +48,7 @@ Latest trades:
 
 ━━━ Book · nothing on it, from across town ━━━
 (edits message 42)
-🏪 Bread - market of Ostmarch
+<b>🏪 Bread - market of Ostmarch</b>
 
 For sale:
 • nothing
