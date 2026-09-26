@@ -134,14 +134,14 @@ func (g *gateway) botUsername(ctx context.Context, botKey string, api *client.Cl
 // notice addressed to a group — a bot link recorded before group play was
 // understood — is delivered to the player's private chat instead, never to the
 // room.
-func (g *gateway) render(ctx context.Context, api *client.Client, botKey string, meta envelope.Metadata, resp *presenter.Response, priority lane, log *slog.Logger) error {
+func (g *gateway) render(ctx context.Context, api *client.Client, botKey string, meta envelope.Metadata, resp *presenter.Response, priority lane, log *slog.Logger) (int64, error) {
 	if resp.Type == presenter.ActionAnswerCallback {
-		return g.groupRenderer().Answer(ctx, api, meta, resp)
+		return 0, g.groupRenderer().Answer(ctx, api, meta, resp)
 	}
 	if resp.Photo != nil && priority == laneDirect {
 		sent, err := g.renderPhoto(ctx, api, botKey, meta, resp, log)
 		if err != nil || sent {
-			return err
+			return 0, err
 		}
 		// No photo to send: the card goes out as text, a new message.
 		text := *resp
@@ -156,7 +156,7 @@ func (g *gateway) render(ctx context.Context, api *client.Client, botKey string,
 
 	if priority == laneNotice && groups.IsGroupChat(meta.ChatType, meta.TelegramChatID) {
 		if meta.TelegramUserID <= 0 {
-			return groups.ErrNoReceiver
+			return 0, groups.ErrNoReceiver
 		}
 		meta.TelegramChatID = meta.TelegramUserID
 		meta.ChatType = chatTypePrivate
@@ -176,7 +176,9 @@ func (g *gateway) render(ctx context.Context, api *client.Client, botKey string,
 		log.Info("group response rendered",
 			slog.String("route", out.Route), slog.String("notes", strings.Join(out.Notes, "; ")))
 	}
-	return err
+	// A group's own render never hands back a message id: the badge that
+	// needs one is a private notice and never reaches this branch.
+	return 0, err
 }
 
 // chatTypePrivate is Telegram's chat type for a one-to-one chat with the bot.
@@ -378,7 +380,7 @@ func (g *gateway) onMembership(ctx context.Context, bot application.Bot, change 
 
 	ctx, cancel := context.WithTimeout(ctx, g.cfg.Gateway.ShutdownTimeout)
 	defer cancel()
-	if err := g.send(ctx, api, bot.BotKey, meta, resp, laneDirect, log); err != nil {
+	if _, err := g.send(ctx, api, bot.BotKey, meta, resp, laneDirect, log); err != nil {
 		log.Warn("cannot greet the group", append(attrs, slog.String("error", err.Error()))...)
 	}
 }

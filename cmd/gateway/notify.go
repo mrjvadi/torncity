@@ -89,11 +89,15 @@ func (g *gateway) deliverNotice(data []byte) notification.Receipt {
 	ctx, cancel := context.WithDeadline(context.Background(), deadline)
 	defer cancel()
 
-	// A notice always sends a new message. The screen already says so; this
-	// makes sure a malformed one cannot edit a message the player is reading.
+	// A notice sends a new message unless it explicitly opted into editing
+	// one (Notice.Edit) and named it (ActionEditMessage with a message id):
+	// otherwise it cannot edit a message the player is reading, even if it
+	// is malformed.
 	resp := notice.Response
-	resp.Type = presenter.ActionSendMessage
-	resp.MessageID = 0
+	if !notice.Edit || resp.Type != presenter.ActionEditMessage || resp.MessageID == 0 {
+		resp.Type = presenter.ActionSendMessage
+		resp.MessageID = 0
+	}
 
 	priority := laneNotice
 	if notice.Announcement {
@@ -101,8 +105,11 @@ func (g *gateway) deliverNotice(data []byte) notification.Receipt {
 		priority = laneAnnounce
 		resp.Keyboard = nil
 	}
-	err := g.sendNoticeViaFleet(ctx, botKey, meta, &resp, priority, log)
+	messageID, err := g.sendNoticeViaFleet(ctx, botKey, meta, &resp, priority, log)
 	receipt := noticeReceipt(ctx, err)
+	if receipt.Outcome == notification.OutcomeDelivered && resp.Type == presenter.ActionSendMessage {
+		receipt.MessageID = messageID
+	}
 
 	switch receipt.Outcome {
 	case notification.OutcomeDelivered:
@@ -118,10 +125,10 @@ func (g *gateway) deliverNotice(data []byte) notification.Receipt {
 }
 
 // sendNoticeViaFleet sends a notice through the named bot at notice priority.
-func (g *gateway) sendNoticeViaFleet(ctx context.Context, botKey string, meta envelope.Metadata, resp *presenter.Response, priority lane, log *slog.Logger) error {
+func (g *gateway) sendNoticeViaFleet(ctx context.Context, botKey string, meta envelope.Metadata, resp *presenter.Response, priority lane, log *slog.Logger) (int64, error) {
 	api, err := g.fleet.ClientFor(botKey)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	return g.send(ctx, api, botKey, meta, resp, priority, log)
 }

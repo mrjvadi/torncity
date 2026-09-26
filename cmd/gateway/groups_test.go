@@ -168,7 +168,8 @@ func sendThrough(t *testing.T, g *gateway, botKey string, meta envelope.Metadata
 	if err != nil {
 		t.Fatal(err)
 	}
-	return g.send(context.Background(), api, botKey, meta, resp, laneDirect, g.logger)
+	_, err = g.send(context.Background(), api, botKey, meta, resp, laneDirect, g.logger)
+	return err
 }
 
 func groupCommandMeta() envelope.Metadata {
@@ -443,7 +444,7 @@ func TestNoticeAddressedToAGroupGoesPrivate(t *testing.T) {
 	g, _ := groupTestGateway(t, api)
 	botAPI, _ := g.fleet.ClientFor("bot01")
 	meta := groupCommandMeta()
-	if err := g.send(context.Background(), botAPI, "bot01", meta, presenter.Message(privateText, nil), laneNotice, g.logger); err != nil {
+	if _, err := g.send(context.Background(), botAPI, "bot01", meta, presenter.Message(privateText, nil), laneNotice, g.logger); err != nil {
 		t.Fatal(err)
 	}
 	sends := api.byMethod("sendMessage")

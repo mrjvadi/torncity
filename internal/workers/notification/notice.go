@@ -36,9 +36,20 @@ type Notice struct {
 	// on any host running NTP.
 	DeliverBy time.Time `json:"deliver_by"`
 
-	// Response is the screen to send. It is always a new message: a notice
-	// never edits.
+	// Response is the screen to send. By default it is always a new
+	// message, whatever its own Type says: a notice sent without Edit set
+	// cannot turn into a silent edit of whatever the player is looking at.
 	Response presenter.Response `json:"response"`
+
+	// Edit allows Response to edit the message it names (Response.MessageID)
+	// instead of always sending a new one, when Response.Type is itself
+	// ActionEditMessage. It exists for exactly one caller today: the inbox
+	// badge (internal/workers/notification/badge.go), which must update the
+	// one message its count is shown on rather than post a new one every
+	// time. Every other notice leaves it false, and the gateway enforces
+	// that default (cmd/gateway/notify.go) so a malformed notice can never
+	// edit a message the player is reading.
+	Edit bool `json:"edit,omitempty"`
 
 	// Announcement marks a public line for a group chat (announce.go). A
 	// notice addressed to a group is otherwise delivered to the player's
@@ -78,4 +89,10 @@ type Receipt struct {
 	Outcome Outcome `json:"outcome"`
 	// Detail is for the log line, never for a player. It carries no token.
 	Detail string `json:"detail,omitempty"`
+	// MessageID is the id Telegram assigned a message this notice SENT
+	// (never an edit, which already names the id it targeted). It is how
+	// the inbox badge learns what to edit next time; every other notice
+	// ignores it. Zero unless Outcome is OutcomeDelivered and Response.Type
+	// was ActionSendMessage.
+	MessageID int64 `json:"message_id,omitempty"`
 }

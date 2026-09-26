@@ -866,7 +866,7 @@ func (g *gateway) deliverViaFleet(ctx context.Context, bot application.Bot, meta
 	}
 	ctx, cancel := context.WithTimeout(ctx, g.cfg.Gateway.ShutdownTimeout)
 	defer cancel()
-	if err := g.send(ctx, api, bot.BotKey, meta, resp, laneDirect, log); err != nil {
+	if _, err := g.send(ctx, api, bot.BotKey, meta, resp, laneDirect, log); err != nil {
 		log.Error("cannot deliver the help reply",
 			slog.String("action", string(resp.Type)), slog.String("error", err.Error()))
 	}
@@ -918,7 +918,7 @@ func (g *gateway) onResponse(msg *natsgo.Msg) {
 	ctx, cancel := context.WithTimeout(context.Background(), g.cfg.Gateway.ShutdownTimeout)
 	defer cancel()
 
-	if err := g.send(ctx, api, botKey, meta, &resp, laneDirect, log); err != nil {
+	if _, err := g.send(ctx, api, botKey, meta, &resp, laneDirect, log); err != nil {
 		log.Error("cannot deliver the response",
 			slog.String("action", string(resp.Type)), slog.String("error", err.Error()))
 		return
@@ -933,6 +933,10 @@ func (g *gateway) onResponse(msg *natsgo.Msg) {
 // recorded is actually observed by the retry rather than stepped over. A
 // notice also waits, before every attempt, for the bot's direct replies to go
 // first; see priorityLanes.
+// send performs one Bot API call, paced by the bot's own limiter, and
+// reports the id of a message it SENT (never an edit): only the inbox badge
+// (internal/workers/notification/badge.go) reads it, to learn what to edit
+// next time.
 func (g *gateway) send(
 	ctx context.Context,
 	api *client.Client,
@@ -941,7 +945,7 @@ func (g *gateway) send(
 	resp *presenter.Response,
 	priority lane,
 	log *slog.Logger,
-) error {
+) (int64, error) {
 	if priority == laneDirect {
 		defer g.lanes.enterDirect(botKey)()
 	}
@@ -951,16 +955,16 @@ func (g *gateway) send(
 	for attempt := 1; attempt <= g.cfg.Gateway.SendAttempts; attempt++ {
 		if priority != laneDirect {
 			if err := g.lanes.yield(ctx, botKey); err != nil {
-				return err
+				return 0, err
 			}
 		}
 		if err := g.limiter.Wait(ctx, botKey); err != nil {
-			return err
+			return 0, err
 		}
 
-		err := g.render(ctx, api, botKey, meta, resp, priority, log)
+		messageID, err := g.render(ctx, api, botKey, meta, resp, priority, log)
 		if err == nil {
-			return nil
+			return messageID, nil
 		}
 		lastErr = err
 
@@ -975,17 +979,18 @@ func (g *gateway) send(
 				slog.Int("attempt", attempt))
 			continue
 		}
-		return err
+		return 0, err
 	}
 
-	return lastErr
+	return 0, lastErr
 }
 
-// render maps a presentation model onto one Bot API method.
-func render(ctx context.Context, api *client.Client, meta envelope.Metadata, resp *presenter.Response) error {
-	err := renderResponse(ctx, api, meta, resp)
+// render maps a presentation model onto one Bot API method, reporting the id
+// of a message it SENT (0 for an edit, an answered callback, or a failure).
+func render(ctx context.Context, api *client.Client, meta envelope.Metadata, resp *presenter.Response) (int64, error) {
+	messageID, err := renderResponse(ctx, api, meta, resp)
 	acknowledgeCallback(ctx, api, meta, resp)
-	return err
+	return messageID, err
 }
 
 // acknowledgeCallback answers the callback query behind a button press.
@@ -1011,11 +1016,10 @@ func isNotModified(err error) bool {
 		strings.Contains(apiErr.Description, "message is not modified")
 }
 
-func renderResponse(ctx context.Context, api *client.Client, meta envelope.Metadata, resp *presenter.Response) error {
+func renderResponse(ctx context.Context, api *client.Client, meta envelope.Metadata, resp *presenter.Response) (int64, error) {
 	switch resp.Type {
 	case presenter.ActionSendMessage:
-		_, err := api.SendMessage(ctx, meta.TelegramChatID, resp.Text, inlineKeyboard(resp.Keyboard))
-		return err
+		return api.SendMessage(ctx, meta.TelegramChatID, resp.Text, inlineKeyboard(resp.Keyboard))
 
 	case presenter.ActionEditMessage:
 		messageID := resp.MessageID
@@ -1031,19 +1035,19 @@ func renderResponse(ctx context.Context, api *client.Client, meta envelope.Metad
 			// already exactly right, so it is success, not a failure.
 			err = nil
 		}
-		return err
+		return 0, err
 
 	case presenter.ActionAnswerCallback:
 		if meta.CallbackQueryID == nil {
-			return fmt.Errorf("gateway: answer_callback response for an update that is not a callback query")
+			return 0, fmt.Errorf("gateway: answer_callback response for an update that is not a callback query")
 		}
-		return api.AnswerCallbackQuery(ctx, *meta.CallbackQueryID, resp.Text)
+		return 0, api.AnswerCallbackQuery(ctx, *meta.CallbackQueryID, resp.Text)
 
 	default:
 		// Phase 0 renders three actions. The rest are declared in the
 		// presenter for later phases, and an unknown one is reported rather
 		// than silently dropped.
-		return fmt.Errorf("gateway: response action %q is not rendered in this phase", resp.Type)
+		return 0, fmt.Errorf("gateway: response action %q is not rendered in this phase", resp.Type)
 	}
 }
 
