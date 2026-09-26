@@ -91,10 +91,21 @@ type TechnologyDef struct {
 	Level int    `yaml:"level,omitempty" json:"level,omitempty"`
 	// ExportControl restricts who may buy a license for it.
 	ExportControl *ExportControlDef `yaml:"export_control,omitempty" json:"export_control,omitempty"`
-	// Effects are what owning it does, as named values any later system
-	// reads — a radar's detection range, a hull's radar cross-section:
-	// open-ended targets, the item effect operations. Nothing applies them
-	// yet; they are carried and validated so the content can be written.
+	// Family and Generation make this technology one level of a series a
+	// company researches one after another — radar_systems (generation 1,
+	// omitted), radar_systems_ii (family: radar_systems, generation: 2),
+	// radar_systems_iii (generation: 3) — instead of a stand-alone
+	// technology. A component still names generation 1 in its
+	// requires_technology; a later generation is not a new gate, it is a
+	// better one (technology.EffectsFor).
+	Family     string `yaml:"family,omitempty" json:"family,omitempty"`
+	Generation int    `yaml:"generation,omitempty" json:"generation,omitempty"`
+	// Effects are what owning this generation adds to the attributes of
+	// whatever it gates — a radar's detection range, a hull's radar cross
+	// section: open-ended targets, the item effect operations
+	// (technology.EffectsFor applies them to a design's computed
+	// attributes). Diminishing returns and a family-wide cap are enforced by
+	// technology.ValidateTree, not chosen by content.
 	Effects []EffectDef `yaml:"effects,omitempty" json:"effects,omitempty"`
 }
 
@@ -137,7 +148,7 @@ func (d TechnologyDef) Tech() technology.Tech {
 	t, _ := optionalDuration(d.Time)
 	return technology.Tech{Code: d.Code, Requires: append([]string(nil), d.Requires...), Cost: d.Cost, Time: t,
 		CompanyTypes: append([]string(nil), d.CompanyTypes...), Skill: d.Skill, Level: d.Level,
-		Control: d.ExportControl.Control()}
+		Control: d.ExportControl.Control(), Family: d.Family, Generation: d.Generation, Effects: d.TechEffects()}
 }
 
 // TechEffects converts the technology's effects.
@@ -271,11 +282,6 @@ func (p *Pack) validateProduction(problems *[]error) {
 		techs = append(techs, d.Tech())
 		techCodes[d.Code] = true
 		validateControl(d.ExportControl, fmt.Sprintf("technologies[%d] %q", i, d.Code), bad)
-		for _, e := range d.TechEffects() {
-			if err := item.ValidateEffect(e); err != nil {
-				bad("technologies[%d] %q effect: %v", i, d.Code, err)
-			}
-		}
 	}
 	if err := technology.ValidateTree(techs, technology.Vocabulary{CompanyTypes: companyTypes, Skills: skills}); err != nil {
 		bad("%v", err)
