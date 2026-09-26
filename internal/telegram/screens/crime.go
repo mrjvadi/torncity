@@ -213,6 +213,10 @@ type CrimeHubView struct {
 // CrimeHub renders the hub: where the player is, their nerve, heat and
 // criminal rank, what holds them back, and the categories of crime.
 func CrimeHub(c Context, v CrimeHubView) *presenter.Response {
+	return c.withView(renderCrimeHub(c, v), ScreenCrimeHub, v)
+}
+
+func renderCrimeHub(c Context, v CrimeHubView) *presenter.Response {
 	var where string
 	switch {
 	case v.Travelling:
@@ -279,6 +283,10 @@ type CrimeListView struct {
 
 // CrimeList renders a category's crimes, each a button to its details.
 func CrimeList(c Context, v CrimeListView) *presenter.Response {
+	return c.withView(renderCrimeList(c, v), ScreenCrimeList, v)
+}
+
+func renderCrimeList(c Context, v CrimeListView) *presenter.Response {
 	lines := make([]string, 0, len(v.Crimes))
 	buttons := make([]presenter.Button, 0, len(v.Crimes))
 	for _, cr := range v.Crimes {
@@ -393,6 +401,10 @@ func (c Context) oddsLines(o OddsView) []string {
 // CrimeDetail renders one crime: its cost, odds, risks and requirements, and
 // — only when everything is in order — the button that commits it.
 func CrimeDetail(c Context, v CrimeDetailView) *presenter.Response {
+	return c.withView(renderCrimeDetail(c, v), ScreenCrimeDetail, v)
+}
+
+func renderCrimeDetail(c Context, v CrimeDetailView) *presenter.Response {
 	facts := []string{
 		c.T("crime.view_category", map[string]any{"category": c.CrimeCategoryName(v.Category)}),
 		c.T("crime.view_nerve", map[string]any{"nerve": FormatNumber(c, int64(v.Nerve))}),
@@ -536,6 +548,10 @@ const (
 // tells the room what happened and leaves every sum out; the thief's take
 // reaches them privately as a notice.
 func CrimeResult(c Context, v CrimeResultView) *presenter.Response {
+	return c.withView(renderCrimeResult(c, v), ScreenCrimeResult, v)
+}
+
+func renderCrimeResult(c Context, v CrimeResultView) *presenter.Response {
 	args := map[string]any{
 		"player": v.Player,
 		"crime":  c.CrimeName(v.Crime),
@@ -680,6 +696,10 @@ type CrimeStartedView struct {
 // CrimeStarted renders the start of a timed crime. Its outcome arrives as a
 // private notice when it ends.
 func CrimeStarted(c Context, v CrimeStartedView) *presenter.Response {
+	return c.withView(renderCrimeStarted(c, v), ScreenCrimeStarted, v)
+}
+
+func renderCrimeStarted(c Context, v CrimeStartedView) *presenter.Response {
 	head := c.T("crime.started", map[string]any{
 		"player": v.Player, "crime": c.CrimeName(v.Crime), "venue": c.VenueName(v.Venue),
 		"duration": FormatDuration(c, v.Duration)})
@@ -717,6 +737,10 @@ type CrimeRecordView struct {
 // CrimeRecord renders the record. A group sees the counts and the recent
 // attempts; the unpaid sums are the player's own.
 func CrimeRecord(c Context, v CrimeRecordView) *presenter.Response {
+	return c.withView(renderCrimeRecord(c, v), ScreenCrimeRecord, v)
+}
+
+func renderCrimeRecord(c Context, v CrimeRecordView) *presenter.Response {
 	counts := c.T("crime.record_counts", map[string]any{
 		"attempts": FormatNumber(c, int64(v.Attempts)), "successes": FormatNumber(c, int64(v.Successes)),
 		"arrests": FormatNumber(c, int64(v.Arrests)), "convictions": FormatNumber(c, int64(v.Convictions))})
@@ -761,6 +785,10 @@ type JailView struct {
 
 // Jail renders the jail screen: the time left and the bail button.
 func Jail(c Context, v JailView) *presenter.Response {
+	return c.withView(renderJail(c, v), ScreenJail, v)
+}
+
+func renderJail(c Context, v JailView) *presenter.Response {
 	kb := keyboards.New()
 	if !v.InJail {
 		hub, _ := keyboards.Button(c.T("crime.button.hub", nil), AddrCrimeHub)
@@ -801,6 +829,10 @@ type BailedView struct {
 // Bailed renders a release on bail. A group reads that the player walked
 // out; the sum is theirs.
 func Bailed(c Context, v BailedView) *presenter.Response {
+	return c.withView(renderBailed(c, v), ScreenBailed, v)
+}
+
+func renderBailed(c Context, v BailedView) *presenter.Response {
 	text := body(c.T("crime.bailed", map[string]any{"bail": FormatMoney(c, v.Bail)}), c.paidLine(v.Method))
 	if c.Shared {
 		text = c.T("crime.bailed_public", map[string]any{"player": v.Player})
@@ -841,6 +873,10 @@ type VictimNoticeView struct {
 // VictimNotice tells a player they were robbed, and offers the report. It is
 // private: nobody else learns that they were robbed or of how much.
 func VictimNotice(c Context, v VictimNoticeView) *presenter.Response {
+	return c.withView(renderVictimNotice(c, v), ScreenVictimNotice, v)
+}
+
+func renderVictimNotice(c Context, v VictimNoticeView) *presenter.Response {
 	head := c.T("crime.victim.head", map[string]any{
 		"crime": c.CrimeName(v.Crime), "venue": c.VenueName(v.Venue), "city": c.CityName(v.CityCode, v.City),
 		"amount": FormatMoney(c, v.Amount)})
@@ -878,6 +914,10 @@ type ReportConfirmView struct {
 
 // ReportConfirm renders the report's confirmation, with its fee.
 func ReportConfirm(c Context, v ReportConfirmView) *presenter.Response {
+	return c.withView(renderReportConfirm(c, v), ScreenReportConfirm, v)
+}
+
+func renderReportConfirm(c Context, v ReportConfirmView) *presenter.Response {
 	key := "crime.report.confirm"
 	if v.Fee == 0 {
 		key = "crime.report.confirm_free"
@@ -935,6 +975,10 @@ type CasesView struct{ Cases []CaseLine }
 
 // Cases renders the victim's reports. Private: what they lost is theirs.
 func Cases(c Context, v CasesView) *presenter.Response {
+	return c.withView(renderCases(c, v), ScreenCases, v)
+}
+
+func renderCases(c Context, v CasesView) *presenter.Response {
 	lines := make([]string, 0, len(v.Cases))
 	for _, k := range v.Cases {
 		args := map[string]any{
@@ -977,6 +1021,10 @@ type CaseOutcomeView struct {
 
 // CaseSolvedNotice tells a victim how their case ended.
 func CaseSolvedNotice(c Context, v CaseOutcomeView) *presenter.Response {
+	return c.withView(renderCaseSolvedNotice(c, v), ScreenCaseSolvedNotice, v)
+}
+
+func renderCaseSolvedNotice(c Context, v CaseOutcomeView) *presenter.Response {
 	args := map[string]any{
 		"crime": c.CrimeName(v.Crime), "city": c.CityName(v.CityCode, v.City),
 		"thief": v.Thief, "code": v.ThiefCode, "restored": FormatMoney(c, v.Restored),
@@ -1000,6 +1048,10 @@ func CaseSolvedNotice(c Context, v CaseOutcomeView) *presenter.Response {
 
 // ConvictedNotice tells a thief a reported theft was traced to them.
 func ConvictedNotice(c Context, v CaseOutcomeView) *presenter.Response {
+	return c.withView(renderConvictedNotice(c, v), ScreenConvictedNotice, v)
+}
+
+func renderConvictedNotice(c Context, v CaseOutcomeView) *presenter.Response {
 	lines := []string{c.T("crime.convicted", map[string]any{
 		"crime": c.CrimeName(v.Crime), "city": c.CityName(v.CityCode, v.City),
 		"restored": FormatMoney(c, v.Restored), "fine": FormatMoney(c, v.FinePaid),
@@ -1073,6 +1125,10 @@ var crimeRefusals = map[string]struct{ key, label, addr string }{
 
 // CrimeRefusal renders a refused crime request.
 func CrimeRefusal(c Context, v CrimeRefusalView) *presenter.Response {
+	return c.withView(renderCrimeRefusal(c, v), ScreenCrimeRefusal, v)
+}
+
+func renderCrimeRefusal(c Context, v CrimeRefusalView) *presenter.Response {
 	r, ok := crimeRefusals[v.Kind]
 	if !ok {
 		return Error(c, nil)

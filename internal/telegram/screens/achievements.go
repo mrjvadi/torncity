@@ -34,6 +34,10 @@ type AchievementsView struct {
 
 // Achievements renders the player's achievements.
 func Achievements(c Context, v AchievementsView) *presenter.Response {
+	return c.withView(renderAchievements(c, v), ScreenAchievements, v)
+}
+
+func renderAchievements(c Context, v AchievementsView) *presenter.Response {
 	kb := keyboards.New()
 	var earned, open []string
 	for _, l := range v.Lines {
@@ -75,6 +79,10 @@ type AchievementNoticeView struct {
 
 // AchievementNotice tells a player they earned an achievement.
 func AchievementNotice(c Context, v AchievementNoticeView) *presenter.Response {
+	return c.withView(renderAchievementNotice(c, v), ScreenAchievementNotice, v)
+}
+
+func renderAchievementNotice(c Context, v AchievementNoticeView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Add(c.T("achievement.button.list", nil), AddrAchievements)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))

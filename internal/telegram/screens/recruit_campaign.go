@@ -91,6 +91,10 @@ func (c Context) candidateLine(l RecruitCandidateLine) string {
 // RecruitCampaign renders a campaign: where it runs, its offer and its
 // candidates, each pending one with a button to hire and one to turn down.
 func RecruitCampaign(c Context, v RecruitCampaignView) *presenter.Response {
+	return c.withView(renderRecruitCampaign(c, v), ScreenRecruitCampaign, v)
+}
+
+func renderRecruitCampaign(c Context, v RecruitCampaignView) *presenter.Response {
 	no := strconv.FormatInt(v.Line.No, 10)
 	notice := ""
 	if v.Notice != "" {

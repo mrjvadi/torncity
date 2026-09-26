@@ -39,6 +39,10 @@ type SkillsView struct {
 // has any XP, and until then the screen says in one line how skills are
 // gained.
 func Skills(c Context, v SkillsView) *presenter.Response {
+	return c.withView(renderSkills(c, v), ScreenSkills, v)
+}
+
+func renderSkills(c Context, v SkillsView) *presenter.Response {
 	rows := make([]string, 0, len(v.Lines))
 	for _, line := range v.Lines {
 		if !line.trained() {

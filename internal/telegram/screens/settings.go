@@ -36,6 +36,10 @@ var settingRows = []settingRow{
 
 // Settings renders the settings screen.
 func Settings(c Context, v SettingsView) *presenter.Response {
+	return c.withView(renderSettings(c, v), ScreenSettings, v)
+}
+
+func renderSettings(c Context, v SettingsView) *presenter.Response {
 	kb := keyboards.New()
 
 	lines := make([]string, 0, len(settingRows))

@@ -155,6 +155,10 @@ type TravelCheckoutView struct {
 // player agreed to, and the method; the departure re-prices and honours or
 // re-quotes, as a mode button does. Balances appear only outside a group.
 func TravelCheckout(c Context, v TravelCheckoutView) *presenter.Response {
+	return c.withView(renderTravelCheckout(c, v), ScreenTravelCheckout, v)
+}
+
+func renderTravelCheckout(c Context, v TravelCheckoutView) *presenter.Response {
 	mode := c.ModeName(v.ModeCode, v.ModeName)
 	fareKey := "travel.checkout_fare"
 	if v.Busy {
@@ -219,6 +223,10 @@ type TravelStartedView struct {
 // Its refresh button opens the journey itself, so there is no separate
 // "my journey" button: two buttons with one destination is one too many.
 func TravelStarted(c Context, v TravelStartedView) *presenter.Response {
+	return c.withView(renderTravelStarted(c, v), ScreenTravelStarted, v)
+}
+
+func renderTravelStarted(c Context, v TravelStartedView) *presenter.Response {
 	var fare string
 	if v.Fare > 0 {
 		fare = c.T("travel.started_fare", map[string]any{"fare": FormatMoney(c, v.Fare)})
@@ -306,6 +314,10 @@ type TravelArrivedView struct {
 
 // TravelArrived renders the arrival notification.
 func TravelArrived(c Context, v TravelArrivedView) *presenter.Response {
+	return c.withView(renderTravelArrived(c, v), ScreenTravelArrived, v)
+}
+
+func renderTravelArrived(c Context, v TravelArrivedView) *presenter.Response {
 	var xp string
 	if v.XP > 0 {
 		xp = c.T("travel.arrived_xp", map[string]any{"xp": FormatNumber(c, v.XP)})

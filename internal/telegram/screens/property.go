@@ -85,6 +85,10 @@ func (c Context) offerLine(o PropertyOfferLine) string {
 
 // PropertyMarket renders a city's property market.
 func PropertyMarket(c Context, v PropertyMarketView) *presenter.Response {
+	return c.withView(renderPropertyMarket(c, v), ScreenPropertyMarket, v)
+}
+
+func renderPropertyMarket(c Context, v PropertyMarketView) *presenter.Response {
 	kb := keyboards.New()
 	if v.NoCity {
 		kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap}))
@@ -147,6 +151,10 @@ type PropertyTypeView struct {
 
 // PropertyType renders one kind of property.
 func PropertyType(c Context, v PropertyTypeView) *presenter.Response {
+	return c.withView(renderPropertyType(c, v), ScreenPropertyType, v)
+}
+
+func renderPropertyType(c Context, v PropertyTypeView) *presenter.Response {
 	kb := keyboards.New()
 	var notice string
 	if v.Bought > 0 {
@@ -200,6 +208,10 @@ type PropertyOfferView struct {
 
 // PropertyOffer renders one offer.
 func PropertyOffer(c Context, v PropertyOfferView) *presenter.Response {
+	return c.withView(renderPropertyOffer(c, v), ScreenPropertyOffer, v)
+}
+
+func renderPropertyOffer(c Context, v PropertyOfferView) *presenter.Response {
 	kb := keyboards.New()
 	o := v.Offer
 	no := strconv.FormatInt(o.No, 10)
@@ -315,6 +327,10 @@ func (c Context) ownedLine(p PropertyLine) string {
 
 // PropertyMine renders the viewer's property.
 func PropertyMine(c Context, v PropertyMineView) *presenter.Response {
+	return c.withView(renderPropertyMine(c, v), ScreenPropertyMine, v)
+}
+
+func renderPropertyMine(c Context, v PropertyMineView) *presenter.Response {
 	kb := keyboards.New()
 	var notice string
 	if v.Notice != "" {
@@ -373,6 +389,10 @@ type PropertyView struct {
 
 // Property renders one of the viewer's properties.
 func Property(c Context, v PropertyView) *presenter.Response {
+	return c.withView(renderProperty(c, v), ScreenProperty, v)
+}
+
+func renderProperty(c Context, v PropertyView) *presenter.Response {
 	kb := keyboards.New()
 	p := v.Property
 	no := strconv.FormatInt(p.No, 10)
@@ -412,6 +432,10 @@ type PropertyLeaveView struct {
 
 // PropertyLeave asks to confirm leaving.
 func PropertyLeave(c Context, v PropertyLeaveView) *presenter.Response {
+	return c.withView(renderPropertyLeave(c, v), ScreenPropertyLeave, v)
+}
+
+func renderPropertyLeave(c Context, v PropertyLeaveView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Add(c.T("property.button.leave_confirm", nil), AddrPropertyLeave, strconv.FormatInt(v.LeaseNo, 10), PropertyYes)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrPropertyMine}))
@@ -449,6 +473,10 @@ type PropertyRefusalView struct {
 
 // PropertyRefusal renders a refused request.
 func PropertyRefusal(c Context, v PropertyRefusalView) *presenter.Response {
+	return c.withView(renderPropertyRefusal(c, v), ScreenPropertyRefusal, v)
+}
+
+func renderPropertyRefusal(c Context, v PropertyRefusalView) *presenter.Response {
 	kb := keyboards.New()
 	back := AddrPropertyMine
 	if len(v.Back) > 0 {
@@ -472,6 +500,10 @@ type PropertyNoticeView struct {
 
 // PropertyNotice renders a notice.
 func PropertyNotice(c Context, v PropertyNoticeView) *presenter.Response {
+	return c.withView(renderPropertyNotice(c, v), ScreenPropertyNotice, v)
+}
+
+func renderPropertyNotice(c Context, v PropertyNoticeView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Add(c.T("property.button.mine", nil), AddrPropertyMine)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))

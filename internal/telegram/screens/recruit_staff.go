@@ -75,6 +75,10 @@ func (c Context) specialistLine(l SpecialistLine) string {
 // Specialists renders a company's specialists, each with the owner's
 // choices: renew a completed contract, match the market, part ways.
 func Specialists(c Context, v SpecialistsView) *presenter.Response {
+	return c.withView(renderSpecialists(c, v), ScreenSpecialists, v)
+}
+
+func renderSpecialists(c Context, v SpecialistsView) *presenter.Response {
 	notice := ""
 	if v.Notice != "" {
 		notice = c.T("recruit.staff_notice."+v.Notice, map[string]any{"name": c.SpecialistName(v.NoticeSeed)})
@@ -145,6 +149,10 @@ type RecruitRefusalView struct {
 
 // RecruitRefusal renders a refused recruitment command.
 func RecruitRefusal(c Context, v RecruitRefusalView) *presenter.Response {
+	return c.withView(renderRecruitRefusal(c, v), ScreenRecruitRefusal, v)
+}
+
+func renderRecruitRefusal(c Context, v RecruitRefusalView) *presenter.Response {
 	text := c.T("recruit.refused."+v.Kind, map[string]any{"name": v.Ref.Name, "need": FormatMoney(c, v.Need),
 		"money": FormatMoney(c, v.Have), "max": FormatNumber(c, int64(v.Max)), "person": c.SpecialistName(v.NameSeed)})
 	back := v.Back
@@ -189,6 +197,10 @@ type RecruitNoticeView struct {
 
 // RecruitNotice renders a recruitment notice.
 func RecruitNotice(c Context, v RecruitNoticeView) *presenter.Response {
+	return c.withView(renderRecruitNotice(c, v), ScreenRecruitNotice, v)
+}
+
+func renderRecruitNotice(c Context, v RecruitNoticeView) *presenter.Response {
 	args := map[string]any{"company": v.Company.Name, "no": FormatNumber(c, v.CampaignNo),
 		"count": FormatNumber(c, int64(v.Count)), "name": c.SpecialistName(v.NameSeed),
 		"what": c.skillLevel(v.Skill, v.Level), "amount": FormatMoney(c, v.Amount)}

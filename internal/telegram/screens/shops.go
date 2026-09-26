@@ -42,6 +42,10 @@ type ShopsView struct {
 
 // Shops renders the shops of the city.
 func Shops(c Context, v ShopsView) *presenter.Response {
+	return c.withView(renderShops(c, v), ScreenShops, v)
+}
+
+func renderShops(c Context, v ShopsView) *presenter.Response {
 	kb := keyboards.New()
 	var lines []string
 	city := c.CityName(v.CityCode, v.City)
@@ -107,6 +111,10 @@ type ShopView struct {
 // ShopDetail renders a shop's shelves, with a buy button per good in stock
 // when the player stands at the counter.
 func ShopDetail(c Context, v ShopView) *presenter.Response {
+	return c.withView(renderShopDetail(c, v), ScreenShopDetail, v)
+}
+
+func renderShopDetail(c Context, v ShopView) *presenter.Response {
 	kb := keyboards.New()
 	lines := make([]string, 0, len(v.Shelves))
 	var buttons []presenter.Button
@@ -169,6 +177,10 @@ var shopQtyChoices = []int64{1, 5, 10}
 
 // ShopCheckout renders the checkout.
 func ShopCheckout(c Context, v ShopCheckoutView) *presenter.Response {
+	return c.withView(renderShopCheckout(c, v), ScreenShopCheckout, v)
+}
+
+func renderShopCheckout(c Context, v ShopCheckoutView) *presenter.Response {
 	name := c.ItemName(v.Item)
 	facts := []string{
 		c.T("shop.checkout_item", map[string]any{"item": name, "qty": FormatNumber(c, v.Qty), "unit": FormatMoney(c, v.Unit)}),
@@ -217,6 +229,10 @@ type ShopBoughtView struct {
 
 // ShopBought renders a purchase.
 func ShopBought(c Context, v ShopBoughtView) *presenter.Response {
+	return c.withView(renderShopBought(c, v), ScreenShopBought, v)
+}
+
+func renderShopBought(c Context, v ShopBoughtView) *presenter.Response {
 	lines := []string{c.T("shop.bought", map[string]any{
 		"item": c.ItemName(v.Item), "qty": FormatNumber(c, v.Qty), "total": FormatMoney(c, v.Total+v.Tax),
 	})}
@@ -247,6 +263,10 @@ type SellOffersView struct {
 
 // SellOffers renders the shops that buy a good.
 func SellOffers(c Context, v SellOffersView) *presenter.Response {
+	return c.withView(renderSellOffers(c, v), ScreenSellOffers, v)
+}
+
+func renderSellOffers(c Context, v SellOffersView) *presenter.Response {
 	kb := keyboards.New()
 	lines := []string{c.T("shop.offers_title", map[string]any{"item": c.ItemName(v.Item)})}
 	if len(v.Offers) == 0 {
@@ -274,6 +294,10 @@ type ShopSoldView struct {
 
 // ShopSold renders a sale to a shop.
 func ShopSold(c Context, v ShopSoldView) *presenter.Response {
+	return c.withView(renderShopSold(c, v), ScreenShopSold, v)
+}
+
+func renderShopSold(c Context, v ShopSoldView) *presenter.Response {
 	kb := keyboards.New()
 	bag, _ := keyboards.Button(c.T("item.button.bag", nil), AddrInventory)
 	kb.Row(bag)
@@ -303,6 +327,10 @@ type ShopRefusalView struct {
 
 // ShopRefusal renders a refused shop request.
 func ShopRefusal(c Context, v ShopRefusalView) *presenter.Response {
+	return c.withView(renderShopRefusal(c, v), ScreenShopRefusal, v)
+}
+
+func renderShopRefusal(c Context, v ShopRefusalView) *presenter.Response {
 	lines := []string{c.T("shop.refused."+v.Kind, map[string]any{
 		"shop": c.ShopName(v.Shop), "item": c.ItemName(v.Item), "stock": FormatNumber(c, v.Stock),
 	})}

@@ -196,6 +196,10 @@ func (c Context) billStatus(v BillView) string {
 
 // Bills renders the proposals of the player's places.
 func Bills(c Context, v BillsView) *presenter.Response {
+	return c.withView(renderBills(c, v), ScreenBills, v)
+}
+
+func renderBills(c Context, v BillsView) *presenter.Response {
 	kb := keyboards.New()
 	lines := []string{c.T("legislature.list_title", nil)}
 	if len(v.Bills) == 0 {
@@ -216,6 +220,10 @@ func Bills(c Context, v BillsView) *presenter.Response {
 
 // Bill renders one proposal.
 func Bill(c Context, v BillView) *presenter.Response {
+	return c.withView(renderBill(c, v), ScreenBill, v)
+}
+
+func renderBill(c Context, v BillView) *presenter.Response {
 	kb := keyboards.New()
 	no := strconv.FormatInt(v.No, 10)
 	var notice string
@@ -269,6 +277,10 @@ func Bill(c Context, v BillView) *presenter.Response {
 
 // BillRefusal renders a refused request.
 func BillRefusal(c Context, v BillRefusalView) *presenter.Response {
+	return c.withView(renderBillRefusal(c, v), ScreenBillRefusal, v)
+}
+
+func renderBillRefusal(c Context, v BillRefusalView) *presenter.Response {
 	kb := keyboards.New()
 	back := AddrBills
 	if v.No > 0 {
@@ -303,6 +315,10 @@ func lapseOr(why string) string {
 
 // BillDecidedNotice tells the member who proposed it how it went.
 func BillDecidedNotice(c Context, v BillView) *presenter.Response {
+	return c.withView(renderBillDecidedNotice(c, v), ScreenBillDecidedNotice, v)
+}
+
+func renderBillDecidedNotice(c Context, v BillView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Add(c.T("legislature.button.view", map[string]any{"no": FormatNumber(c, v.No)}), AddrBill,
 		strconv.FormatInt(v.No, 10))

@@ -102,6 +102,10 @@ type HospitalView struct {
 
 // Hospital renders the hospital screen.
 func Hospital(c Context, v HospitalView) *presenter.Response {
+	return c.withView(renderHospital(c, v), ScreenHospital, v)
+}
+
+func renderHospital(c Context, v HospitalView) *presenter.Response {
 	kb := keyboards.New()
 	healthLine := c.T("health.health_line", map[string]any{"health": FormatNumber(c, int64(v.Health)),
 		"max": FormatNumber(c, int64(v.Max))})
@@ -192,6 +196,10 @@ type TreatConfirmView struct {
 
 // TreatConfirm renders a treatment's price and the ways to pay it.
 func TreatConfirm(c Context, v TreatConfirmView) *presenter.Response {
+	return c.withView(renderTreatConfirm(c, v), ScreenTreatConfirm, v)
+}
+
+func renderTreatConfirm(c Context, v TreatConfirmView) *presenter.Response {
 	text := body(
 		c.T("health.confirm", map[string]any{"provider": c.providerName(v.Option), "price": FormatMoney(c, v.Option.Price),
 			"saves": FormatDuration(c, v.Option.Saves), "remaining": FormatDuration(c, v.Remaining)}),
@@ -234,6 +242,10 @@ type TreatedView struct {
 
 // Treated renders a treatment given.
 func Treated(c Context, v TreatedView) *presenter.Response {
+	return c.withView(renderTreated(c, v), ScreenTreated, v)
+}
+
+func renderTreated(c Context, v TreatedView) *presenter.Response {
 	lines := []string{c.T("health.treated", map[string]any{"provider": c.providerName(v.Option),
 		"saved": FormatDuration(c, v.Saved)})}
 	if v.Paid > 0 {
@@ -266,6 +278,10 @@ type ClinicDeskView struct {
 
 // ClinicDesk renders a clinic's desk.
 func ClinicDesk(c Context, v ClinicDeskView) *presenter.Response {
+	return c.withView(renderClinicDesk(c, v), ScreenClinicDesk, v)
+}
+
+func renderClinicDesk(c Context, v ClinicDeskView) *presenter.Response {
 	status := c.T("health.desk.closed", nil)
 	if v.Open {
 		status = c.T("health.desk.open", nil)
@@ -314,6 +330,10 @@ type HospitalisedNoticeView struct {
 
 // HospitalisedNotice tells a player they were taken to hospital.
 func HospitalisedNotice(c Context, v HospitalisedNoticeView) *presenter.Response {
+	return c.withView(renderHospitalisedNotice(c, v), ScreenHospitalisedNotice, v)
+}
+
+func renderHospitalisedNotice(c Context, v HospitalisedNoticeView) *presenter.Response {
 	kb := keyboards.New()
 	if btn, ok := keyboards.Button(c.T("health.button.hospital", nil), AddrHospital); ok {
 		kb.Row(btn)
@@ -352,6 +372,10 @@ type ClinicTreatedNoticeView struct {
 
 // ClinicTreatedNotice tells a clinic's owner it treated a patient.
 func ClinicTreatedNotice(c Context, v ClinicTreatedNoticeView) *presenter.Response {
+	return c.withView(renderClinicTreatedNotice(c, v), ScreenClinicTreatedNotice, v)
+}
+
+func renderClinicTreatedNotice(c Context, v ClinicTreatedNoticeView) *presenter.Response {
 	kb := keyboards.New()
 	if btn, ok := keyboards.Button(c.T("health.button.desk", nil), AddrClinicDesk, v.Ref.Code); ok {
 		kb.Row(btn)
@@ -384,6 +408,10 @@ type HealthRefusalView struct{ Kind string }
 
 // HealthRefusal renders a refused health request, with the way back.
 func HealthRefusal(c Context, v HealthRefusalView) *presenter.Response {
+	return c.withView(renderHealthRefusal(c, v), ScreenHealthRefusal, v)
+}
+
+func renderHealthRefusal(c Context, v HealthRefusalView) *presenter.Response {
 	kb := keyboards.New()
 	if btn, ok := keyboards.Button(c.T("health.button.hospital", nil), AddrHospital); ok {
 		kb.Row(btn)

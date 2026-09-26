@@ -116,6 +116,10 @@ func sanctionLines(c Context, s SanctionLine, imposed bool) []string {
 
 // Sanctions renders a country's sanctions board.
 func Sanctions(c Context, v SanctionsView) *presenter.Response {
+	return c.withView(renderSanctions(c, v), ScreenSanctions, v)
+}
+
+func renderSanctions(c Context, v SanctionsView) *presenter.Response {
 	blocks := []string{}
 	if v.Notice != "" {
 		blocks = append(blocks, v.Notice)
@@ -187,6 +191,10 @@ type ImposeView struct {
 
 // Impose renders the impose flow.
 func Impose(c Context, v ImposeView) *presenter.Response {
+	return c.withView(renderImpose(c, v), ScreenImpose, v)
+}
+
+func renderImpose(c Context, v ImposeView) *presenter.Response {
 	kb := keyboards.New()
 	lines := []string{c.T("diplomacy.impose.title", map[string]any{"country": c.PlaceName(v.Country)})}
 	back := keyboards.Data(AddrSanctions, v.Country.Code)
@@ -248,6 +256,10 @@ type LiftView struct {
 
 // Lift renders the confirmation of lifting a sanction.
 func Lift(c Context, v LiftView) *presenter.Response {
+	return c.withView(renderLift(c, v), ScreenLift, v)
+}
+
+func renderLift(c Context, v LiftView) *presenter.Response {
 	s := v.Sanction
 	kb := keyboards.New()
 	kb.Add(c.T("diplomacy.button.confirm_lift", nil), AddrLift, strconv.FormatInt(s.No, 10), DiplomacyConfirm)
@@ -282,6 +294,10 @@ type TreatiesView struct {
 
 // Treaties renders a country's treaties board.
 func Treaties(c Context, v TreatiesView) *presenter.Response {
+	return c.withView(renderTreaties(c, v), ScreenTreaties, v)
+}
+
+func renderTreaties(c Context, v TreatiesView) *presenter.Response {
 	blocks := []string{}
 	if v.Notice != "" {
 		blocks = append(blocks, v.Notice)
@@ -345,6 +361,10 @@ type ProposeView struct {
 
 // Propose renders the propose flow.
 func Propose(c Context, v ProposeView) *presenter.Response {
+	return c.withView(renderPropose(c, v), ScreenPropose, v)
+}
+
+func renderPropose(c Context, v ProposeView) *presenter.Response {
 	kb := keyboards.New()
 	lines := []string{c.T("diplomacy.propose.title", map[string]any{"country": c.PlaceName(v.Country)})}
 	back := keyboards.Data(AddrTreaties, v.Country.Code)
@@ -382,6 +402,10 @@ type EndTreatyView struct {
 
 // EndTreaty renders the confirmation of withdrawing or ending a treaty.
 func EndTreaty(c Context, v EndTreatyView) *presenter.Response {
+	return c.withView(renderEndTreaty(c, v), ScreenEndTreaty, v)
+}
+
+func renderEndTreaty(c Context, v EndTreatyView) *presenter.Response {
 	t := v.Treaty
 	key, button := "diplomacy.end.confirm_terminate", "diplomacy.button.confirm_terminate"
 	if t.Status == "proposed" {
@@ -419,6 +443,10 @@ type DiplomacyHistoryView struct {
 
 // DiplomacyHistory renders the public record.
 func DiplomacyHistory(c Context, v DiplomacyHistoryView) *presenter.Response {
+	return c.withView(renderDiplomacyHistory(c, v), ScreenDiplomacyHistory, v)
+}
+
+func renderDiplomacyHistory(c Context, v DiplomacyHistoryView) *presenter.Response {
 	lines := []string{c.T("diplomacy.history.title", map[string]any{"country": c.PlaceName(v.Country)})}
 	if len(v.Entries) == 0 {
 		lines = append(lines, c.T("diplomacy.history.empty", nil))
@@ -463,6 +491,10 @@ type DiplomacyRefusalView struct {
 
 // DiplomacyRefusal renders a refused diplomacy command.
 func DiplomacyRefusal(c Context, v DiplomacyRefusalView) *presenter.Response {
+	return c.withView(renderDiplomacyRefusal(c, v), ScreenDiplomacyRefusal, v)
+}
+
+func renderDiplomacyRefusal(c Context, v DiplomacyRefusalView) *presenter.Response {
 	kb := keyboards.New()
 	back := AddrGovCity
 	if v.Country.Code != "" {
@@ -487,6 +519,10 @@ type SanctionBlockedView struct {
 // SanctionBlocked renders the refusal every blocked cross-border action
 // answers with: which measure of whose sanction on whom.
 func SanctionBlocked(c Context, v SanctionBlockedView) *presenter.Response {
+	return c.withView(renderSanctionBlocked(c, v), ScreenSanctionBlocked, v)
+}
+
+func renderSanctionBlocked(c Context, v SanctionBlockedView) *presenter.Response {
 	kb := keyboards.New()
 	sanctions, _ := keyboards.Button(c.T("diplomacy.button.sanctions", nil), AddrSanctions, v.Imposer.Code)
 	kb.Row(sanctions)
@@ -511,6 +547,10 @@ type TreatyNoticeView struct {
 
 // TreatyProposedNotice tells the partner's foreign minister of a proposal.
 func TreatyProposedNotice(c Context, v TreatyNoticeView) *presenter.Response {
+	return c.withView(renderTreatyProposedNotice(c, v), ScreenTreatyProposedNotice, v)
+}
+
+func renderTreatyProposedNotice(c Context, v TreatyNoticeView) *presenter.Response {
 	kb := keyboards.New()
 	no := strconv.FormatInt(v.No, 10)
 	args := map[string]any{"no": v.No, "kind": c.TreatyName(v.Kind), "country": c.PlaceName(v.Other), "in": FormatSpan(c, v.TTL)}

@@ -77,6 +77,10 @@ type AppointView struct {
 
 // AppointConfirm renders the confirmation of an appointment.
 func AppointConfirm(c Context, v AppointView) *presenter.Response {
+	return c.withView(renderAppointConfirm(c, v), ScreenAppointConfirm, v)
+}
+
+func renderAppointConfirm(c Context, v AppointView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Add(c.T("gov.button.confirm_appoint", nil), AddrGovSeat, v.Office, v.Place.Code, v.Player.Code)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrGovOffice}))
@@ -94,6 +98,10 @@ type DismissView struct {
 
 // DismissConfirm renders the confirmation of a removal.
 func DismissConfirm(c Context, v DismissView) *presenter.Response {
+	return c.withView(renderDismissConfirm(c, v), ScreenDismissConfirm, v)
+}
+
+func renderDismissConfirm(c Context, v DismissView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Add(c.T("gov.button.confirm_dismiss", nil), AddrGovUnseat, v.Office, v.Place.Code, strconv.Itoa(v.Seat))
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrGovOffice}))
@@ -113,6 +121,10 @@ type AppointDoneView struct {
 
 // AppointDone renders an appointment or a removal made.
 func AppointDone(c Context, v AppointDoneView) *presenter.Response {
+	return c.withView(renderAppointDone(c, v), ScreenAppointDone, v)
+}
+
+func renderAppointDone(c Context, v AppointDoneView) *presenter.Response {
 	key := "gov.appoint.done"
 	if v.Dismissed {
 		key = "gov.dismiss.done"
@@ -145,6 +157,10 @@ type AppointRefusalView struct {
 
 // AppointRefusal renders a refused appointment or removal.
 func AppointRefusal(c Context, v AppointRefusalView) *presenter.Response {
+	return c.withView(renderAppointRefusal(c, v), ScreenAppointRefusal, v)
+}
+
+func renderAppointRefusal(c Context, v AppointRefusalView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrGovOffice}))
 	if v.Err != nil {
@@ -168,6 +184,10 @@ type OfficeNoticeView struct {
 
 // OfficeNotice tells a player they were appointed to or removed from office.
 func OfficeNotice(c Context, v OfficeNoticeView) *presenter.Response {
+	return c.withView(renderOfficeNotice(c, v), ScreenOfficeNotice, v)
+}
+
+func renderOfficeNotice(c Context, v OfficeNoticeView) *presenter.Response {
 	key := "gov.appoint.notice"
 	if v.Dismissed {
 		key = "gov.dismiss.notice"

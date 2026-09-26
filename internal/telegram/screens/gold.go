@@ -43,6 +43,10 @@ type GoldView struct {
 
 // Gold renders the gold dealer.
 func Gold(c Context, v GoldView) *presenter.Response {
+	return c.withView(renderGold(c, v), ScreenGold, v)
+}
+
+func renderGold(c Context, v GoldView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("gold.notice."+v.Notice, moneyArgs(c, v.NoticeArgs))
@@ -106,6 +110,10 @@ type GoldTradeView struct {
 // GoldTrade renders a purchase's price with the ways to pay, or a sale's
 // confirmation.
 func GoldTrade(c Context, v GoldTradeView) *presenter.Response {
+	return c.withView(renderGoldTrade(c, v), ScreenGoldTrade, v)
+}
+
+func renderGoldTrade(c Context, v GoldTradeView) *presenter.Response {
 	args := map[string]any{"grams": FormatNumber(c, v.Grams), "price": FormatMoney(c, v.Price),
 		"total": FormatMoney(c, v.Total)}
 	kb := keyboards.New()

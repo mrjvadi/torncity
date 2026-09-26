@@ -174,6 +174,10 @@ func (c Context) campaignLine(l RecruitCampaignLine) string {
 
 // RecruitHub renders a company's recruitment hub.
 func RecruitHub(c Context, v RecruitHubView) *presenter.Response {
+	return c.withView(renderRecruitHub(c, v), ScreenRecruitHub, v)
+}
+
+func renderRecruitHub(c Context, v RecruitHubView) *presenter.Response {
 	head := body(c.T("recruit.hub_title", map[string]any{"name": v.Ref.Name}),
 		c.T("recruit.hub_staff", map[string]any{"staff": FormatNumber(c, int64(v.Staff)), "max": FormatNumber(c, int64(v.MaxStaff))}))
 	kb := keyboards.New()

@@ -76,6 +76,10 @@ type FactionListView struct {
 
 // FactionList renders the factions of a city.
 func FactionList(c Context, v FactionListView) *presenter.Response {
+	return c.withView(renderFactionList(c, v), ScreenFactionList, v)
+}
+
+func renderFactionList(c Context, v FactionListView) *presenter.Response {
 	title := c.T("faction.list_title", nil)
 	if v.City != "" {
 		title = c.T("faction.list_title_city", map[string]any{"city": c.CityName(v.CityCode, v.City)})
@@ -127,6 +131,10 @@ type FactionPageView struct {
 
 // FactionPage renders a faction's public page.
 func FactionPage(c Context, v FactionPageView) *presenter.Response {
+	return c.withView(renderFactionPage(c, v), ScreenFactionPage, v)
+}
+
+func renderFactionPage(c Context, v FactionPageView) *presenter.Response {
 	lines := []string{c.T("faction.page_city", map[string]any{"city": c.CityName(v.CityCode, v.City)}),
 		c.T("faction.page_members", map[string]any{"count": FormatNumber(c, int64(len(v.Members)))})}
 	for _, m := range v.Members {
@@ -162,6 +170,10 @@ type FactionFoundView struct {
 
 // FactionFound renders founding a faction.
 func FactionFound(c Context, v FactionFoundView) *presenter.Response {
+	return c.withView(renderFactionFound(c, v), ScreenFactionFound, v)
+}
+
+func renderFactionFound(c Context, v FactionFoundView) *presenter.Response {
 	text := body(c.T("faction.found_title", nil),
 		c.T("faction.found_fee", map[string]any{"fee": FormatMoney(c, v.Fee), "city": c.CityName(v.CityCode, v.City)}),
 		c.T("faction.found_rules", map[string]any{"min": FormatNumber(c, int64(v.NameMin)), "max": FormatNumber(c, int64(v.NameMax))}))
@@ -193,6 +205,10 @@ type FactionFoundedView struct {
 
 // FactionFounded renders a faction founded.
 func FactionFounded(c Context, v FactionFoundedView) *presenter.Response {
+	return c.withView(renderFactionFounded(c, v), ScreenFactionFounded, v)
+}
+
+func renderFactionFounded(c Context, v FactionFoundedView) *presenter.Response {
 	lines := []string{c.T("faction.founded", map[string]any{"faction": c.factionName(v.Ref),
 		"city": c.CityName(v.CityCode, v.City)})}
 	if v.Fee > 0 {
@@ -230,6 +246,10 @@ func hasRight(rights []string, r string) bool {
 
 // FactionHome renders a member's faction screen.
 func FactionHome(c Context, v FactionHomeView) *presenter.Response {
+	return c.withView(renderFactionHome(c, v), ScreenFactionHome, v)
+}
+
+func renderFactionHome(c Context, v FactionHomeView) *presenter.Response {
 	lines := []string{
 		c.T("faction.home_rank", map[string]any{"rank": c.rankName(v.Rank)}),
 		c.T("faction.page_city", map[string]any{"city": c.CityName(v.CityCode, v.City)}),
@@ -284,6 +304,10 @@ type FactionMembersView struct {
 // FactionMembers renders a faction's members, with the buttons the viewer's
 // rank allows on each.
 func FactionMembers(c Context, v FactionMembersView) *presenter.Response {
+	return c.withView(renderFactionMembers(c, v), ScreenFactionMembers, v)
+}
+
+func renderFactionMembers(c Context, v FactionMembersView) *presenter.Response {
 	kb := keyboards.New()
 	lines := []string{c.T("faction.members_count", map[string]any{"count": FormatNumber(c, int64(len(v.Members))),
 		"max": FormatNumber(c, int64(v.Max))})}
@@ -369,6 +393,10 @@ type FactionAnsweredView struct {
 
 // FactionAnswered renders an answer given.
 func FactionAnswered(c Context, v FactionAnsweredView) *presenter.Response {
+	return c.withView(renderFactionAnswered(c, v), ScreenFactionAnswered, v)
+}
+
+func renderFactionAnswered(c Context, v FactionAnsweredView) *presenter.Response {
 	key := "faction.answered." + v.Kind + "_"
 	if v.Accepted {
 		key += "accepted"
@@ -403,6 +431,10 @@ type FactionConfirmView struct {
 
 // FactionConfirm renders a confirmation.
 func FactionConfirm(c Context, v FactionConfirmView) *presenter.Response {
+	return c.withView(renderFactionConfirm(c, v), ScreenFactionConfirm, v)
+}
+
+func renderFactionConfirm(c Context, v FactionConfirmView) *presenter.Response {
 	args := map[string]any{"faction": c.factionName(v.Ref), "player": c.govPlayer(&v.Player)}
 	kb := keyboards.New()
 	var addr []string
@@ -430,6 +462,10 @@ type FactionLeftView struct {
 
 // FactionLeft renders leaving a faction.
 func FactionLeft(c Context, v FactionLeftView) *presenter.Response {
+	return c.withView(renderFactionLeft(c, v), ScreenFactionLeft, v)
+}
+
+func renderFactionLeft(c Context, v FactionLeftView) *presenter.Response {
 	args := map[string]any{"faction": c.factionName(v.Ref), "amount": FormatMoney(c, v.PaidOut)}
 	lines := []string{c.T("faction.left", args)}
 	if v.Disbanded {
@@ -449,6 +485,10 @@ type FactionLinkedView struct{ Ref FactionRef }
 
 // FactionLinked renders a faction tied to the group it was sent in.
 func FactionLinked(c Context, v FactionLinkedView) *presenter.Response {
+	return c.withView(renderFactionLinked(c, v), ScreenFactionLinked, v)
+}
+
+func renderFactionLinked(c Context, v FactionLinkedView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Add(c.T("faction.button.crime", nil), AddrFactionCrime)
 	return c.respond(c.T("faction.linked", map[string]any{"faction": c.factionName(v.Ref)}), kb.Build())
@@ -474,6 +514,10 @@ type FactionBankView struct {
 
 // FactionBank renders a faction's bank.
 func FactionBank(c Context, v FactionBankView) *presenter.Response {
+	return c.withView(renderFactionBank(c, v), ScreenFactionBank, v)
+}
+
+func renderFactionBank(c Context, v FactionBankView) *presenter.Response {
 	var done string
 	if v.Done != nil {
 		if v.Done.Deposit {
@@ -580,6 +624,10 @@ type FactionCrimeView struct {
 
 // FactionCrime renders the organised crime board.
 func FactionCrime(c Context, v FactionCrimeView) *presenter.Response {
+	return c.withView(renderFactionCrime(c, v), ScreenFactionCrime, v)
+}
+
+func renderFactionCrime(c Context, v FactionCrimeView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("faction.crime_notice."+v.Notice, nil)
@@ -665,6 +713,10 @@ type FactionRefusalView struct {
 
 // FactionRefusal renders a refused faction request.
 func FactionRefusal(c Context, v FactionRefusalView) *presenter.Response {
+	return c.withView(renderFactionRefusal(c, v), ScreenFactionRefusal, v)
+}
+
+func renderFactionRefusal(c Context, v FactionRefusalView) *presenter.Response {
 	text := c.T("faction.refused."+v.Kind, map[string]any{"min": FormatNumber(c, int64(v.Min)),
 		"max": FormatNumber(c, int64(v.Max)), "amount": FormatMoney(c, v.Amount), "balance": FormatMoney(c, v.Balance),
 		"need": FormatNumber(c, int64(v.Need)), "have": FormatNumber(c, int64(v.Have)), "level": FormatNumber(c, int64(v.Level))})
@@ -694,6 +746,10 @@ type FactionRequestNoticeView struct {
 // FactionRequestNotice tells a player they were invited, or an officer
 // that someone applied, with the buttons to answer.
 func FactionRequestNotice(c Context, v FactionRequestNoticeView) *presenter.Response {
+	return c.withView(renderFactionRequestNotice(c, v), ScreenFactionRequestNotice, v)
+}
+
+func renderFactionRequestNotice(c Context, v FactionRequestNoticeView) *presenter.Response {
 	no := strconv.FormatInt(v.No, 10)
 	kb := keyboards.New()
 	yes, _ := keyboards.Button(c.T("faction.button.accept", nil), AddrFactionAnswer, no, FactionAccept)
@@ -705,6 +761,10 @@ func FactionRequestNotice(c Context, v FactionRequestNoticeView) *presenter.Resp
 
 // FactionAnswerNotice tells the other side how a request was answered.
 func FactionAnswerNotice(c Context, v FactionAnsweredView) *presenter.Response {
+	return c.withView(renderFactionAnswerNotice(c, v), ScreenFactionAnswerNotice, v)
+}
+
+func renderFactionAnswerNotice(c Context, v FactionAnsweredView) *presenter.Response {
 	key := "faction.notice.answer_" + v.Kind + "_declined"
 	if v.Accepted {
 		key = "faction.notice.answer_" + v.Kind + "_accepted"
@@ -743,6 +803,10 @@ type FactionCrimeNoticeView struct {
 
 // FactionCrimeNotice tells a crew member how an organised crime ended.
 func FactionCrimeNotice(c Context, v FactionCrimeNoticeView) *presenter.Response {
+	return c.withView(renderFactionCrimeNotice(c, v), ScreenFactionCrimeNotice, v)
+}
+
+func renderFactionCrimeNotice(c Context, v FactionCrimeNoticeView) *presenter.Response {
 	args := map[string]any{"crime": c.CrimeName(v.Crime), "faction": c.factionName(v.Ref),
 		"share": FormatMoney(c, v.Share), "take": FormatMoney(c, v.Take), "cut": FormatMoney(c, v.Cut),
 		"xp": FormatNumber(c, v.XP)}

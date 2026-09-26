@@ -28,6 +28,10 @@ type DeviceLinkView struct {
 
 // DeviceLink renders a link code and how to use it.
 func DeviceLink(c Context, v DeviceLinkView) *presenter.Response {
+	return c.withView(renderDeviceLink(c, v), ScreenDeviceLink, v)
+}
+
+func renderDeviceLink(c Context, v DeviceLinkView) *presenter.Response {
 	kb := keyboards.New()
 	devices, _ := keyboards.Button(c.T("device.button.list", nil), AddrDeviceList)
 	kb.Row(devices)
@@ -63,6 +67,10 @@ type DevicesView struct {
 
 // Devices renders the linked clients, each with a button that signs it out.
 func Devices(c Context, v DevicesView) *presenter.Response {
+	return c.withView(renderDevices(c, v), ScreenDevices, v)
+}
+
+func renderDevices(c Context, v DevicesView) *presenter.Response {
 	kb := keyboards.New()
 	lines := make([]string, 0, len(v.Devices))
 	for _, d := range v.Devices {

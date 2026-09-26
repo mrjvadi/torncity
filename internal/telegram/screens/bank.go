@@ -244,6 +244,10 @@ type PayView struct {
 // what fee, both balances, and amounts for each way. Cash is offered only
 // when the two are together.
 func Pay(c Context, v PayView) *presenter.Response {
+	return c.withView(renderPay(c, v), ScreenPay, v)
+}
+
+func renderPay(c Context, v PayView) *presenter.Response {
 	name := c.playerName(v.PayeeName)
 	kb := keyboards.New()
 
@@ -380,6 +384,10 @@ type PayConfirmView struct {
 // amount, the fee and the total, and what is left afterwards. The funds were
 // checked before this screen was shown.
 func PayConfirm(c Context, v PayConfirmView) *presenter.Response {
+	return c.withView(renderPayConfirm(c, v), ScreenPayConfirm, v)
+}
+
+func renderPayConfirm(c Context, v PayConfirmView) *presenter.Response {
 	args := map[string]any{
 		"player": c.playerName(v.PayeeName),
 		"amount": FormatMoney(c, v.Amount),
@@ -445,6 +453,10 @@ type PaySentView struct {
 
 // PaySent confirms a payment to the payer.
 func PaySent(c Context, v PaySentView) *presenter.Response {
+	return c.withView(renderPaySent(c, v), ScreenPaySent, v)
+}
+
+func renderPaySent(c Context, v PaySentView) *presenter.Response {
 	args := map[string]any{
 		"player": c.playerName(v.PayeeName),
 		"amount": FormatMoney(c, v.Amount),
@@ -497,6 +509,10 @@ type PaymentNoticeView struct {
 // PaymentNotice renders the notification a payment sends to its payee. It
 // always sends; see notification.go.
 func PaymentNotice(c Context, v PaymentNoticeView) *presenter.Response {
+	return c.withView(renderPaymentNotice(c, v), ScreenPaymentNotice, v)
+}
+
+func renderPaymentNotice(c Context, v PaymentNoticeView) *presenter.Response {
 	args := map[string]any{
 		"player": c.playerName(v.PayerName),
 		"amount": FormatMoney(c, v.Amount),

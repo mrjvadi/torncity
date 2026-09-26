@@ -51,6 +51,10 @@ type BudgetView struct {
 
 // Budget renders a city's budget.
 func Budget(c Context, v BudgetView) *presenter.Response {
+	return c.withView(renderBudget(c, v), ScreenBudget, v)
+}
+
+func renderBudget(c Context, v BudgetView) *presenter.Response {
 	kb := keyboards.New()
 	if v.NoCity {
 		kb.Nav(c.nav(keyboards.Nav{BackData: AddrGovCity}))

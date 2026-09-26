@@ -104,6 +104,10 @@ type PaymentDeclinedView struct {
 // PaymentDeclined renders a refused charge: what it costs, both balances and
 // the way back. It names the player's money, so it is private.
 func PaymentDeclined(c Context, v PaymentDeclinedView) *presenter.Response {
+	return c.withView(renderPaymentDeclined(c, v), ScreenPaymentDeclined, v)
+}
+
+func renderPaymentDeclined(c Context, v PaymentDeclinedView) *presenter.Response {
 	lines := []string{
 		c.T("payment.declined", map[string]any{
 			"amount": FormatMoney(c, v.Amount),

@@ -59,6 +59,10 @@ func (c Context) auctionLine(a AuctionLine) string {
 
 // Auctions renders a city's open auctions.
 func Auctions(c Context, v AuctionsView) *presenter.Response {
+	return c.withView(renderAuctions(c, v), ScreenAuctions, v)
+}
+
+func renderAuctions(c Context, v AuctionsView) *presenter.Response {
 	kb := keyboards.New()
 	lines := []string{}
 	if len(v.Auctions) == 0 {
@@ -102,6 +106,10 @@ type AuctionView struct {
 
 // AuctionDetail renders one auction.
 func AuctionDetail(c Context, v AuctionView) *presenter.Response {
+	return c.withView(renderAuctionDetail(c, v), ScreenAuctionDetail, v)
+}
+
+func renderAuctionDetail(c Context, v AuctionView) *presenter.Response {
 	a := v.Line
 	lines := []string{
 		c.T("auction.item", map[string]any{"item": c.ItemName(a.Item), "quality": FormatNumber(c, int64(a.Quality))}),
@@ -152,6 +160,10 @@ type AuctionNewView struct {
 
 // AuctionNew renders the choice of a reserve and a length for a piece.
 func AuctionNew(c Context, v AuctionNewView) *presenter.Response {
+	return c.withView(renderAuctionNew(c, v), ScreenAuctionNew, v)
+}
+
+func renderAuctionNew(c Context, v AuctionNewView) *presenter.Response {
 	kb := keyboards.New()
 	for i, d := range v.Durations {
 		var row []presenter.Button
@@ -182,6 +194,10 @@ type AuctionOpenedView struct {
 
 // AuctionOpened renders an auction opened.
 func AuctionOpened(c Context, v AuctionOpenedView) *presenter.Response {
+	return c.withView(renderAuctionOpened(c, v), ScreenAuctionOpened, v)
+}
+
+func renderAuctionOpened(c Context, v AuctionOpenedView) *presenter.Response {
 	kb := keyboards.New()
 	open, _ := keyboards.Button(c.T("auction.button.open", map[string]any{"no": FormatNumber(c, v.No)}), AddrAuction, strconv.FormatInt(v.No, 10))
 	kb.Row(open)
@@ -204,6 +220,10 @@ type BidPlacedView struct {
 
 // BidPlaced renders a bid.
 func BidPlaced(c Context, v BidPlacedView) *presenter.Response {
+	return c.withView(renderBidPlaced(c, v), ScreenBidPlaced, v)
+}
+
+func renderBidPlaced(c Context, v BidPlacedView) *presenter.Response {
 	kb := keyboards.New()
 	open, _ := keyboards.Button(c.T("auction.button.open", map[string]any{"no": FormatNumber(c, v.No)}), AddrAuction, strconv.FormatInt(v.No, 10))
 	kb.Row(open)
@@ -223,6 +243,10 @@ type MyAuctionsView struct {
 
 // MyAuctions renders the player's auctions and bids. Private.
 func MyAuctions(c Context, v MyAuctionsView) *presenter.Response {
+	return c.withView(renderMyAuctions(c, v), ScreenMyAuctions, v)
+}
+
+func renderMyAuctions(c Context, v MyAuctionsView) *presenter.Response {
 	kb := keyboards.New()
 	lines := []string{c.T("auction.mine_title", nil)}
 	if len(v.Auctions) == 0 {
@@ -262,6 +286,10 @@ type AuctionNoticeView struct {
 
 // AuctionNotice tells a player about an auction they sell or bid on.
 func AuctionNotice(c Context, v AuctionNoticeView) *presenter.Response {
+	return c.withView(renderAuctionNotice(c, v), ScreenAuctionNotice, v)
+}
+
+func renderAuctionNotice(c Context, v AuctionNoticeView) *presenter.Response {
 	kb := keyboards.New()
 	if v.Kind == "outbid" {
 		if btn, ok := keyboards.Button(c.T("auction.button.open", map[string]any{"no": FormatNumber(c, v.No)}),
@@ -299,6 +327,10 @@ type AuctionRefusalView struct {
 
 // AuctionRefusal renders a refused auction request.
 func AuctionRefusal(c Context, v AuctionRefusalView) *presenter.Response {
+	return c.withView(renderAuctionRefusal(c, v), ScreenAuctionRefusal, v)
+}
+
+func renderAuctionRefusal(c Context, v AuctionRefusalView) *presenter.Response {
 	kb := keyboards.New()
 	if v.No > 0 {
 		if btn, ok := keyboards.Button(c.T("auction.button.open", map[string]any{"no": FormatNumber(c, v.No)}),

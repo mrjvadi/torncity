@@ -129,6 +129,10 @@ func (c Context) draftSummary(v RecruitDraftView) string {
 
 // RecruitDraft renders the campaign builder at one of its sections.
 func RecruitDraft(c Context, v RecruitDraftView) *presenter.Response {
+	return c.withView(renderRecruitDraft(c, v), ScreenRecruitDraft, v)
+}
+
+func renderRecruitDraft(c Context, v RecruitDraftView) *presenter.Response {
 	no := strconv.FormatInt(v.No, 10)
 	head := body(c.T("recruit.draft_title", map[string]any{"no": FormatNumber(c, v.No), "name": v.Ref.Name}),
 		c.T("recruit.draft_section."+sectionKey(v.Section), nil))

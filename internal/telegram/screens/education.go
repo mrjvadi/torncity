@@ -56,6 +56,10 @@ type EducationView struct {
 
 // Education renders the study hub.
 func Education(c Context, v EducationView) *presenter.Response {
+	return c.withView(renderEducation(c, v), ScreenEducation, v)
+}
+
+func renderEducation(c Context, v EducationView) *presenter.Response {
 	var current string
 	if v.Current != nil {
 		progress := c.T("education.progress_finishing", nil)
@@ -153,6 +157,10 @@ type CourseDetailView struct {
 // CourseDetail renders a course: what it costs and takes, what it gives, what
 // it asks for, and — only when the enrolment would be accepted — the button.
 func CourseDetail(c Context, v CourseDetailView) *presenter.Response {
+	return c.withView(renderCourseDetail(c, v), ScreenCourseDetail, v)
+}
+
+func renderCourseDetail(c Context, v CourseDetailView) *presenter.Response {
 	facts := []string{
 		c.T("education.institution", map[string]any{"institution": c.T("institution."+v.Institution, nil)}),
 	}
@@ -234,6 +242,10 @@ func (c Context) paidLine(method string) string {
 
 // Enrolled renders an enrolment.
 func Enrolled(c Context, v EnrolledView) *presenter.Response {
+	return c.withView(renderEnrolled(c, v), ScreenEnrolled, v)
+}
+
+func renderEnrolled(c Context, v EnrolledView) *presenter.Response {
 	kb := keyboards.New()
 	edu, _ := keyboards.Button(c.T("education.button.open", nil), AddrEducation)
 	kb.Row(edu)
@@ -255,6 +267,10 @@ type CourseCompletedView struct {
 // CourseCompleted renders the notice a finished course sends. Like the
 // arrival notice it always SENDS: the player did not press anything.
 func CourseCompleted(c Context, v CourseCompletedView) *presenter.Response {
+	return c.withView(renderCourseCompleted(c, v), ScreenCourseCompleted, v)
+}
+
+func renderCourseCompleted(c Context, v CourseCompletedView) *presenter.Response {
 	lines := []string{c.T("education.completed", map[string]any{"course": c.course(v.Course)})}
 	if v.Certified {
 		lines = append(lines, c.T("education.completed_certificate", map[string]any{"course": c.course(v.Course)}))

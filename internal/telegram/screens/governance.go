@@ -393,6 +393,10 @@ func leverAddr(action string, l GovLever, p GovPlace, value ...int64) []string {
 
 // CityGovernance renders a city's offices and policies.
 func CityGovernance(c Context, v CityGovView) *presenter.Response {
+	return c.withView(renderCityGovernance(c, v), ScreenCityGovernance, v)
+}
+
+func renderCityGovernance(c Context, v CityGovView) *presenter.Response {
 	kb := keyboards.New()
 	if v.NoCity {
 		kb.Add(c.T("button.map", nil), AddrMap)
@@ -491,6 +495,10 @@ func govLeverLines(c Context, l GovLever) []string {
 
 // MyOffice renders the viewer's offices and the policies they can change.
 func MyOffice(c Context, v MyOfficeView) *presenter.Response {
+	return c.withView(renderMyOffice(c, v), ScreenMyOffice, v)
+}
+
+func renderMyOffice(c Context, v MyOfficeView) *presenter.Response {
 	kb := keyboards.New()
 	blocks := []string{c.T("gov.mine.title", nil)}
 
@@ -544,6 +552,10 @@ func MyOffice(c Context, v MyOfficeView) *presenter.Response {
 // LeverEdit renders one policy the viewer may change, the value they are
 // proposing, and the buttons that move it.
 func LeverEdit(c Context, v LeverEditView) *presenter.Response {
+	return c.withView(renderLeverEdit(c, v), ScreenLeverEdit, v)
+}
+
+func renderLeverEdit(c Context, v LeverEditView) *presenter.Response {
 	l := v.Lever
 	format := func(x int64) string { return FormatPolicyValue(c, l.Code, l.Type, x) }
 	kb := keyboards.New()
@@ -655,6 +667,10 @@ func LeverEdit(c Context, v LeverEditView) *presenter.Response {
 // PolicyConfirm asks the office holder to confirm one change before it is
 // announced.
 func PolicyConfirm(c Context, v PolicyConfirmView) *presenter.Response {
+	return c.withView(renderPolicyConfirm(c, v), ScreenPolicyConfirm, v)
+}
+
+func renderPolicyConfirm(c Context, v PolicyConfirmView) *presenter.Response {
 	l := v.Lever
 	text := paragraphs(
 		c.T("gov.confirm.title", nil),
@@ -678,6 +694,10 @@ func PolicyConfirm(c Context, v PolicyConfirmView) *presenter.Response {
 
 // PolicyAnnounced reports a change that was just announced.
 func PolicyAnnounced(c Context, v PolicyAnnouncedView) *presenter.Response {
+	return c.withView(renderPolicyAnnounced(c, v), ScreenPolicyAnnounced, v)
+}
+
+func renderPolicyAnnounced(c Context, v PolicyAnnouncedView) *presenter.Response {
 	l := v.Lever
 	text := paragraphs(
 		c.T("gov.announced.title", nil),
@@ -729,6 +749,10 @@ type AllocationEditView struct {
 
 // AllocationEdit renders the allocation editor.
 func AllocationEdit(c Context, v AllocationEditView) *presenter.Response {
+	return c.withView(renderAllocationEdit(c, v), ScreenAllocationEdit, v)
+}
+
+func renderAllocationEdit(c Context, v AllocationEditView) *presenter.Response {
 	l := v.Lever
 	kb := keyboards.New()
 	head := []string{c.T("gov.edit.title", map[string]any{"lever": c.LeverName(l.Code), "place": c.PlaceName(v.Place)})}
@@ -798,6 +822,10 @@ type AllocationConfirmView struct {
 
 // AllocationConfirm asks the holder to confirm an allocation.
 func AllocationConfirm(c Context, v AllocationConfirmView) *presenter.Response {
+	return c.withView(renderAllocationConfirm(c, v), ScreenAllocationConfirm, v)
+}
+
+func renderAllocationConfirm(c Context, v AllocationConfirmView) *presenter.Response {
 	l := v.Lever
 	notice := c.confirmNotice(l, v.VoteBy)
 	text := paragraphs(
@@ -820,6 +848,10 @@ func AllocationConfirm(c Context, v AllocationConfirmView) *presenter.Response {
 
 // GovHistory renders one page of a city's public record of changes.
 func GovHistory(c Context, v GovHistoryView) *presenter.Response {
+	return c.withView(renderGovHistory(c, v), ScreenGovHistory, v)
+}
+
+func renderGovHistory(c Context, v GovHistoryView) *presenter.Response {
 	blocks := []string{c.T("gov.history.title", map[string]any{"city": c.PlaceName(v.City)})}
 	if len(v.Entries) == 0 {
 		blocks = append(blocks, c.T("gov.history.empty", nil))
@@ -862,6 +894,10 @@ func GovHistory(c Context, v GovHistoryView) *presenter.Response {
 // PolicyRefused renders a governance refusal, with the way back to where the
 // player came from.
 func PolicyRefused(c Context, v PolicyRefusalView) *presenter.Response {
+	return c.withView(renderPolicyRefused(c, v), ScreenPolicyRefused, v)
+}
+
+func renderPolicyRefused(c Context, v PolicyRefusalView) *presenter.Response {
 	key, args, ok := governanceRefusal(c, v.Err, v.Lever, v.Now)
 	if !ok {
 		return Error(c, v.Err)

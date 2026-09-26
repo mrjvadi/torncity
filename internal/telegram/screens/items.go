@@ -225,6 +225,10 @@ func joinWith(c Context, names []string) string {
 
 // ItemDetail renders one good or piece and what can be done with it.
 func ItemDetail(c Context, v ItemDetailView) *presenter.Response {
+	return c.withView(renderItemDetail(c, v), ScreenItemDetail, v)
+}
+
+func renderItemDetail(c Context, v ItemDetailView) *presenter.Response {
 	name := c.ItemName(v.Item)
 	facts := []string{c.T("item.category", map[string]any{"category": c.itemCategory(v.Category)})}
 	if v.Piece {
@@ -318,6 +322,10 @@ type ItemUsedView struct {
 
 // ItemUsed renders a use.
 func ItemUsed(c Context, v ItemUsedView) *presenter.Response {
+	return c.withView(renderItemUsed(c, v), ScreenItemUsed, v)
+}
+
+func renderItemUsed(c Context, v ItemUsedView) *presenter.Response {
 	lines := []string{c.T("item.used", map[string]any{"item": c.ItemName(v.Item)})}
 	for _, ch := range v.Changes {
 		lines = append(lines, c.T("item.changed", map[string]any{
@@ -344,6 +352,10 @@ type ItemGivenView struct {
 
 // ItemGiven renders a gift.
 func ItemGiven(c Context, v ItemGivenView) *presenter.Response {
+	return c.withView(renderItemGiven(c, v), ScreenItemGiven, v)
+}
+
+func renderItemGiven(c Context, v ItemGivenView) *presenter.Response {
 	kb := keyboards.New()
 	bag, _ := keyboards.Button(c.T("item.button.bag", nil), AddrInventory)
 	kb.Row(bag)
@@ -368,6 +380,10 @@ type ItemDroppedView struct {
 
 // DropConfirm asks before a good is thrown away.
 func DropConfirm(c Context, v ItemDroppedView) *presenter.Response {
+	return c.withView(renderDropConfirm(c, v), ScreenDropConfirm, v)
+}
+
+func renderDropConfirm(c Context, v ItemDroppedView) *presenter.Response {
 	kb := keyboards.New()
 	if btn, ok := keyboards.Button(c.T("item.button.drop_confirm", nil), AddrItemDrop, v.Ref, DropConfirmation, v.Nonce); ok {
 		kb.Row(btn)
@@ -378,6 +394,10 @@ func DropConfirm(c Context, v ItemDroppedView) *presenter.Response {
 
 // ItemDropped renders a drop.
 func ItemDropped(c Context, v ItemDroppedView) *presenter.Response {
+	return c.withView(renderItemDropped(c, v), ScreenItemDropped, v)
+}
+
+func renderItemDropped(c Context, v ItemDroppedView) *presenter.Response {
 	kb := keyboards.New()
 	bag, _ := keyboards.Button(c.T("item.button.bag", nil), AddrInventory)
 	kb.Row(bag)
@@ -406,6 +426,10 @@ type ItemRefusalView struct {
 
 // ItemRefusal renders a refused request about a good.
 func ItemRefusal(c Context, v ItemRefusalView) *presenter.Response {
+	return c.withView(renderItemRefusal(c, v), ScreenItemRefusal, v)
+}
+
+func renderItemRefusal(c Context, v ItemRefusalView) *presenter.Response {
 	lines := []string{c.T("item.refused."+v.Kind, map[string]any{
 		"item": c.ItemName(v.Item), "duration": FormatDuration(c, v.Wait),
 	})}

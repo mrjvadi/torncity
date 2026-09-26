@@ -164,6 +164,10 @@ type MissionBoardView struct {
 
 // MissionBoard renders a city's boards, or one board.
 func MissionBoard(c Context, v MissionBoardView) *presenter.Response {
+	return c.withView(renderMissionBoard(c, v), ScreenMissionBoard, v)
+}
+
+func renderMissionBoard(c Context, v MissionBoardView) *presenter.Response {
 	kb := keyboards.New()
 	city := c.CityName(v.CityCode, v.City)
 	if v.Board == nil {
@@ -224,6 +228,10 @@ type MissionView struct {
 
 // Mission renders one mission.
 func Mission(c Context, v MissionView) *presenter.Response {
+	return c.withView(renderMission(c, v), ScreenMission, v)
+}
+
+func renderMission(c Context, v MissionView) *presenter.Response {
 	kb := keyboards.New()
 	if v.Abandoning {
 		no := strconv.FormatInt(v.No, 10)
@@ -302,6 +310,10 @@ type MissionsMineView struct {
 
 // MissionsMine renders the player's missions.
 func MissionsMine(c Context, v MissionsMineView) *presenter.Response {
+	return c.withView(renderMissionsMine(c, v), ScreenMissionsMine, v)
+}
+
+func renderMissionsMine(c Context, v MissionsMineView) *presenter.Response {
 	kb := keyboards.New()
 	var notice string
 	if n := v.Notice; n != nil {
@@ -366,6 +378,10 @@ type MissionCompletedView struct {
 
 // MissionCompletedNotice tells a player a mission is complete and paid.
 func MissionCompletedNotice(c Context, v MissionCompletedView) *presenter.Response {
+	return c.withView(renderMissionCompletedNotice(c, v), ScreenMissionCompletedNotice, v)
+}
+
+func renderMissionCompletedNotice(c Context, v MissionCompletedView) *presenter.Response {
 	lines := []string{c.T("mission.completed", map[string]any{"mission": c.MissionName(v.Mission)})}
 	if v.Cash > 0 {
 		lines = append(lines, c.T("mission.paid", map[string]any{"cash": FormatMoney(c, v.Cash)}))
@@ -405,6 +421,10 @@ type MissionRefusalView struct {
 
 // MissionRefusal renders a refused mission request.
 func MissionRefusal(c Context, v MissionRefusalView) *presenter.Response {
+	return c.withView(renderMissionRefusal(c, v), ScreenMissionRefusal, v)
+}
+
+func renderMissionRefusal(c Context, v MissionRefusalView) *presenter.Response {
 	text := c.T("mission.refused."+v.Kind, nil)
 	if v.Kind == MissionRefusedBlocked {
 		text = c.blockedLine(v.Blocked, v.Wait, v.Level, v.Max)

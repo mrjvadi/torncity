@@ -188,6 +188,10 @@ type WalkStartedView struct {
 
 // WalkStarted renders a walk under way.
 func WalkStarted(c Context, v WalkStartedView) *presenter.Response {
+	return c.withView(renderWalkStarted(c, v), ScreenWalkStarted, v)
+}
+
+func renderWalkStarted(c Context, v WalkStartedView) *presenter.Response {
 	lines := []string{
 		c.T("place.walk_started", map[string]any{
 			"place": c.SpotName(v.To), "duration": FormatDuration(c, v.Duration),
@@ -261,6 +265,10 @@ func goThenButton(label, place, then string, args ...string) (presenter.Button, 
 // NotHere renders a request made at the wrong place, with the walk to the
 // right one a press away.
 func NotHere(c Context, v NotHereView) *presenter.Response {
+	return c.withView(renderNotHere(c, v), ScreenNotHere, v)
+}
+
+func renderNotHere(c Context, v NotHereView) *presenter.Response {
 	kb := keyboards.New()
 	if v.Walking {
 		if btn, ok := keyboards.Button(c.T("button.map", nil), AddrMap); ok {

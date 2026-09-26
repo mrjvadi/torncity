@@ -79,6 +79,10 @@ type SearchView struct {
 // with the Telegram id: a screen is screenshotted and forwarded, and a
 // Telegram id is a fact about a person's account, not about their game.
 func Search(c Context, v SearchView) *presenter.Response {
+	return c.withView(renderSearch(c, v), ScreenSearch, v)
+}
+
+func renderSearch(c Context, v SearchView) *presenter.Response {
 	kb := keyboards.New()
 
 	var text string
@@ -156,6 +160,10 @@ type FriendsView struct {
 
 // Friends renders the friend list.
 func Friends(c Context, v FriendsView) *presenter.Response {
+	return c.withView(renderFriends(c, v), ScreenFriends, v)
+}
+
+func renderFriends(c Context, v FriendsView) *presenter.Response {
 	kb := keyboards.New()
 
 	var content string

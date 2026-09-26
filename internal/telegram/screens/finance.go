@@ -130,6 +130,10 @@ type FinanceHubView struct {
 
 // FinanceHub renders the national bank.
 func FinanceHub(c Context, v FinanceHubView) *presenter.Response {
+	return c.withView(renderFinanceHub(c, v), ScreenFinanceHub, v)
+}
+
+func renderFinanceHub(c Context, v FinanceHubView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("finance.notice."+v.Notice, moneyArgs(c, v.Args))
@@ -271,6 +275,10 @@ func (c Context) pledgeName(p PledgeLine) string {
 
 // LoanOffer renders a product's offer.
 func LoanOffer(c Context, v LoanOfferView) *presenter.Response {
+	return c.withView(renderLoanOffer(c, v), ScreenLoanOffer, v)
+}
+
+func renderLoanOffer(c Context, v LoanOfferView) *presenter.Response {
 	lines := []string{
 		c.T("finance.offer.title", map[string]any{"product": c.LoanProductName(v.Product)}),
 		c.T("finance.offer.kind."+v.Kind, nil),
@@ -326,6 +334,10 @@ type LoanConfirmView struct {
 
 // LoanConfirm renders the terms of a loan with the button that takes it.
 func LoanConfirm(c Context, v LoanConfirmView) *presenter.Response {
+	return c.withView(renderLoanConfirm(c, v), ScreenLoanConfirm, v)
+}
+
+func renderLoanConfirm(c Context, v LoanConfirmView) *presenter.Response {
 	lines := []string{
 		c.T("finance.confirm.title", map[string]any{"product": c.LoanProductName(v.Product)}),
 		c.T("finance.confirm.terms", map[string]any{"amount": FormatMoney(c, v.Amount), "term": FormatNumber(c, v.Term),
@@ -370,6 +382,10 @@ type LoanDetailView struct {
 // LoanDetail renders one loan: its terms, what is paid and owed, and the
 // payoff.
 func LoanDetail(c Context, v LoanDetailView) *presenter.Response {
+	return c.withView(renderLoanDetail(c, v), ScreenLoanDetail, v)
+}
+
+func renderLoanDetail(c Context, v LoanDetailView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("finance.notice."+v.Notice, moneyArgs(c, v.NoticeArgs))
@@ -436,6 +452,10 @@ type SavingsView struct {
 
 // Savings renders a savings account.
 func Savings(c Context, v SavingsView) *presenter.Response {
+	return c.withView(renderSavings(c, v), ScreenSavings, v)
+}
+
+func renderSavings(c Context, v SavingsView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("finance.notice."+v.Notice, moneyArgs(c, v.NoticeArgs))
@@ -521,6 +541,10 @@ type InsuranceView struct {
 // Insurance renders the insurance counter: products and the player's
 // policies.
 func Insurance(c Context, v InsuranceView) *presenter.Response {
+	return c.withView(renderInsurance(c, v), ScreenInsurance, v)
+}
+
+func renderInsurance(c Context, v InsuranceView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("finance.notice."+v.Notice, moneyArgs(c, v.NoticeArgs))
@@ -604,6 +628,10 @@ type InsureConfirmView struct {
 
 // InsureConfirm renders a policy's price with the ways to pay it.
 func InsureConfirm(c Context, v InsureConfirmView) *presenter.Response {
+	return c.withView(renderInsureConfirm(c, v), ScreenInsureConfirm, v)
+}
+
+func renderInsureConfirm(c Context, v InsureConfirmView) *presenter.Response {
 	lines := []string{
 		c.T("finance.insure.title", map[string]any{"product": c.InsuranceProductName(v.Product)}),
 		c.T("finance.insure.terms", map[string]any{"premium": FormatMoney(c, v.Premium),
@@ -669,6 +697,10 @@ type FinanceRefusalView struct {
 
 // FinanceRefusal renders a refusal.
 func FinanceRefusal(c Context, v FinanceRefusalView) *presenter.Response {
+	return c.withView(renderFinanceRefusal(c, v), ScreenFinanceRefusal, v)
+}
+
+func renderFinanceRefusal(c Context, v FinanceRefusalView) *presenter.Response {
 	text := c.T("finance.refused."+v.Kind, map[string]any{"amount": FormatMoney(c, v.Amount),
 		"score": FormatNumber(c, v.Score), "count": FormatNumber(c, v.Count), "wait": FormatDuration(c, v.Wait)})
 	kb := keyboards.New()
@@ -696,6 +728,10 @@ type FinanceNoticeView struct {
 
 // FinanceNotice renders a notice of the bank or the insurance fund.
 func FinanceNotice(c Context, v FinanceNoticeView) *presenter.Response {
+	return c.withView(renderFinanceNotice(c, v), ScreenFinanceNotice, v)
+}
+
+func renderFinanceNotice(c Context, v FinanceNoticeView) *presenter.Response {
 	args := map[string]any{"no": FormatNumber(c, v.No), "amount": FormatMoney(c, v.Amount),
 		"other": FormatMoney(c, v.Other), "count": FormatNumber(c, v.Count), "time": FormatClock(c, v.At)}
 	switch v.Kind {

@@ -111,6 +111,10 @@ func (c Context) electionLine(l ElectionLine) string {
 
 // Elections renders the list.
 func Elections(c Context, v ElectionsView) *presenter.Response {
+	return c.withView(renderElections(c, v), ScreenElections, v)
+}
+
+func renderElections(c Context, v ElectionsView) *presenter.Response {
 	kb := keyboards.New()
 	if v.NoCity {
 		kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap}))
@@ -173,6 +177,10 @@ type ElectionView struct {
 
 // Election renders one election.
 func Election(c Context, v ElectionView) *presenter.Response {
+	return c.withView(renderElection(c, v), ScreenElection, v)
+}
+
+func renderElection(c Context, v ElectionView) *presenter.Response {
 	facts := []string{c.T("election.seats", map[string]any{"seats": FormatNumber(c, int64(v.Seats))})}
 	switch v.Phase {
 	case ElectionCandidacy:
@@ -277,6 +285,10 @@ type StoodView struct {
 
 // Stood renders a candidacy registered.
 func Stood(c Context, v StoodView) *presenter.Response {
+	return c.withView(renderStood(c, v), ScreenStood, v)
+}
+
+func renderStood(c Context, v StoodView) *presenter.Response {
 	lines := []string{c.T("election.stood", map[string]any{"election": c.electionTitle(v.Office, v.Place)})}
 	if v.Deposit > 0 {
 		lines = append(lines, c.T("election.stood_deposit", map[string]any{"deposit": FormatMoney(c, v.Deposit)}), c.paidLine(v.Method))
@@ -303,6 +315,10 @@ type VotedView struct {
 // Voted renders a vote cast. It is private: whom a player voted for is
 // theirs alone.
 func Voted(c Context, v VotedView) *presenter.Response {
+	return c.withView(renderVoted(c, v), ScreenVoted, v)
+}
+
+func renderVoted(c Context, v VotedView) *presenter.Response {
 	kb := keyboards.New()
 	if btn, ok := keyboards.Button(c.T("election.button.back", nil), AddrElection, strconv.FormatInt(v.No, 10)); ok {
 		kb.Row(btn)
@@ -334,6 +350,10 @@ type ElectionRefusalView struct {
 
 // ElectionRefusal renders a refused election request.
 func ElectionRefusal(c Context, v ElectionRefusalView) *presenter.Response {
+	return c.withView(renderElectionRefusal(c, v), ScreenElectionRefusal, v)
+}
+
+func renderElectionRefusal(c Context, v ElectionRefusalView) *presenter.Response {
 	kb := keyboards.New()
 	if v.No > 0 {
 		if btn, ok := keyboards.Button(c.T("election.button.back", nil), AddrElection, strconv.FormatInt(v.No, 10)); ok {
@@ -361,6 +381,10 @@ type ElectionResultView struct {
 
 // ElectionResultNotice tells a candidate how their election went.
 func ElectionResultNotice(c Context, v ElectionResultView) *presenter.Response {
+	return c.withView(renderElectionResultNotice(c, v), ScreenElectionResultNotice, v)
+}
+
+func renderElectionResultNotice(c Context, v ElectionResultView) *presenter.Response {
 	args := map[string]any{"election": c.electionTitle(v.Office, v.Place), "votes": FormatNumber(c, v.Votes),
 		"cast": FormatNumber(c, v.Cast), "deposit": FormatMoney(c, v.Deposit)}
 	key := "election.notice.lost"

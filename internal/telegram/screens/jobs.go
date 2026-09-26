@@ -359,6 +359,10 @@ type JobOpeningsView struct {
 // JobOpenings renders the openings. Each opening is a button leading to its
 // details, where the requirements are spelled out and the application made.
 func JobOpenings(c Context, v JobOpeningsView) *presenter.Response {
+	return c.withView(renderJobOpenings(c, v), ScreenJobOpenings, v)
+}
+
+func renderJobOpenings(c Context, v JobOpeningsView) *presenter.Response {
 	kb := keyboards.New()
 	title := c.T("job.openings_title", map[string]any{"city": c.CityName(v.CityCode, v.City)})
 	if v.Travelling {
@@ -464,6 +468,10 @@ type JobDetailView struct {
 // JobDetail renders one opening: what it pays and costs, what it asks for,
 // and — only when every requirement is met — the button that applies.
 func JobDetail(c Context, v JobDetailView) *presenter.Response {
+	return c.withView(renderJobDetail(c, v), ScreenJobDetail, v)
+}
+
+func renderJobDetail(c Context, v JobDetailView) *presenter.Response {
 	reqs := c.T("job.requirements_none", nil)
 	if lines := c.requirementLines(v.Requirements); len(lines) > 0 {
 		reqs = body(append([]string{c.T("job.requirements", nil)}, lines...)...)
@@ -504,6 +512,10 @@ type JobHiredView struct {
 
 // JobHired renders the new job.
 func JobHired(c Context, v JobHiredView) *presenter.Response {
+	return c.withView(renderJobHired(c, v), ScreenJobHired, v)
+}
+
+func renderJobHired(c Context, v JobHiredView) *presenter.Response {
 	key := "job.hired"
 	if v.Employer != "" {
 		key = "company.hired"
@@ -554,6 +566,10 @@ type ShiftStartedView struct {
 // ShiftStarted renders the start of a shift. Nothing is paid yet: the pay,
 // XP and performance arrive as a notice when the shift ends.
 func ShiftStarted(c Context, v ShiftStartedView) *presenter.Response {
+	return c.withView(renderShiftStarted(c, v), ScreenShiftStarted, v)
+}
+
+func renderShiftStarted(c Context, v ShiftStartedView) *presenter.Response {
 	lines := []string{
 		c.T("job.shift_started", map[string]any{
 			"title":    c.jobTitle(v.Job),
@@ -592,6 +608,10 @@ type ShiftWorkedView struct {
 
 // ShiftWorked renders a shift's outcome.
 func ShiftWorked(c Context, v ShiftWorkedView) *presenter.Response {
+	return c.withView(renderShiftWorked(c, v), ScreenShiftWorked, v)
+}
+
+func renderShiftWorked(c Context, v ShiftWorkedView) *presenter.Response {
 	var pay string
 	if v.Tax > 0 {
 		pay = c.T("job.shift_pay", map[string]any{
@@ -670,6 +690,10 @@ type JobPromotedView struct {
 
 // JobPromoted renders a promotion.
 func JobPromoted(c Context, v JobPromotedView) *presenter.Response {
+	return c.withView(renderJobPromoted(c, v), ScreenJobPromoted, v)
+}
+
+func renderJobPromoted(c Context, v JobPromotedView) *presenter.Response {
 	kb := keyboards.New()
 	mine, _ := keyboards.Button(c.T("job.button.my_job", nil), AddrJobStatus)
 	kb.Row(mine)
@@ -753,6 +777,10 @@ var refusals = map[string]struct{ key, label, addr string }{
 
 // Refusal renders a refused work or study request.
 func Refusal(c Context, v RefusalView) *presenter.Response {
+	return c.withView(renderRefusal(c, v), ScreenRefusal, v)
+}
+
+func renderRefusal(c Context, v RefusalView) *presenter.Response {
 	r, ok := refusals[v.Kind]
 	if !ok {
 		return Error(c, nil)

@@ -55,6 +55,10 @@ func (c Context) priceOrNone(v int64) string {
 
 // Market renders a city's books.
 func Market(c Context, v MarketView) *presenter.Response {
+	return c.withView(renderMarket(c, v), ScreenMarket, v)
+}
+
+func renderMarket(c Context, v MarketView) *presenter.Response {
 	kb := keyboards.New()
 	lines := []string{}
 	if len(v.Books) == 0 {
@@ -123,6 +127,10 @@ type BookView struct {
 // the best ask and at the reference price, and for a holder a sell button at
 // the best bid and at the reference and ten percent above.
 func Book(c Context, v BookView) *presenter.Response {
+	return c.withView(renderBook(c, v), ScreenBook, v)
+}
+
+func renderBook(c Context, v BookView) *presenter.Response {
 	name := c.ItemName(v.Item)
 	var asks, bids, trades []string
 	asks = append(asks, c.T("market.asks", nil))
@@ -220,6 +228,10 @@ type MarketCheckoutView struct {
 // MarketCheckout renders a buy order's checkout: what is set aside, and a
 // button per way to pay it.
 func MarketCheckout(c Context, v MarketCheckoutView) *presenter.Response {
+	return c.withView(renderMarketCheckout(c, v), ScreenMarketCheckout, v)
+}
+
+func renderMarketCheckout(c Context, v MarketCheckoutView) *presenter.Response {
 	kb := keyboards.New()
 	var pay string
 	if len(v.Payment.Usable) > 0 {
@@ -263,6 +275,10 @@ type OrderPlacedView struct {
 
 // OrderPlaced renders an order placed.
 func OrderPlaced(c Context, v OrderPlacedView) *presenter.Response {
+	return c.withView(renderOrderPlaced(c, v), ScreenOrderPlaced, v)
+}
+
+func renderOrderPlaced(c Context, v OrderPlacedView) *presenter.Response {
 	args := map[string]any{
 		"item": c.ItemName(v.Item), "qty": FormatNumber(c, v.Qty), "price": FormatMoney(c, v.Price),
 		"filled": FormatNumber(c, v.Filled), "no": FormatNumber(c, v.No),
@@ -304,6 +320,10 @@ type OrderCancelledView struct {
 
 // OrderCancelled renders a cancel.
 func OrderCancelled(c Context, v OrderCancelledView) *presenter.Response {
+	return c.withView(renderOrderCancelled(c, v), ScreenOrderCancelled, v)
+}
+
+func renderOrderCancelled(c Context, v OrderCancelledView) *presenter.Response {
 	key := "market.cancelled_sell"
 	if v.Side == SideBuy {
 		key = "market.cancelled_buy"
@@ -337,6 +357,10 @@ type MyOrdersView struct {
 // MyOrders renders the player's orders, with a cancel button per open one.
 // It lists what the player trades, so it is private.
 func MyOrders(c Context, v MyOrdersView) *presenter.Response {
+	return c.withView(renderMyOrders(c, v), ScreenMyOrders, v)
+}
+
+func renderMyOrders(c Context, v MyOrdersView) *presenter.Response {
 	kb := keyboards.New()
 	lines := []string{c.T("market.mine_title", nil)}
 	if len(v.Orders) == 0 {
@@ -370,6 +394,10 @@ type MarketFilledView struct {
 
 // MarketFilledNotice tells an order's owner it traded.
 func MarketFilledNotice(c Context, v MarketFilledView) *presenter.Response {
+	return c.withView(renderMarketFilledNotice(c, v), ScreenMarketFilledNotice, v)
+}
+
+func renderMarketFilledNotice(c Context, v MarketFilledView) *presenter.Response {
 	key := "market.notice_sold"
 	if v.Side == SideBuy {
 		key = "market.notice_bought"
@@ -412,6 +440,10 @@ type MarketRefusalView struct {
 
 // MarketRefusal renders a refused market request.
 func MarketRefusal(c Context, v MarketRefusalView) *presenter.Response {
+	return c.withView(renderMarketRefusal(c, v), ScreenMarketRefusal, v)
+}
+
+func renderMarketRefusal(c Context, v MarketRefusalView) *presenter.Response {
 	kb := keyboards.New()
 	market, _ := keyboards.Button(c.T("market.button.market", nil), AddrMarket)
 	kb.Row(market)

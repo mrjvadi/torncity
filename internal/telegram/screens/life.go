@@ -283,6 +283,10 @@ func (c Context) cardName(v CardView) string {
 
 // Card renders a player's card.
 func Card(c Context, v CardView) *presenter.Response {
+	return c.withView(renderCard(c, v), ScreenCard, v)
+}
+
+func renderCard(c Context, v CardView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("life.notice."+v.Notice, nil)
@@ -413,6 +417,10 @@ func (c Context) historyLine(l HistoryLine) string {
 
 // History renders a page of a life history.
 func History(c Context, v HistoryView) *presenter.Response {
+	return c.withView(renderHistory(c, v), ScreenHistory, v)
+}
+
+func renderHistory(c Context, v HistoryView) *presenter.Response {
 	title := c.T("life.history_title_mine", nil)
 	if !v.Self {
 		title = c.T("life.history_title", map[string]any{"player": c.playerName(v.Name)})
@@ -456,6 +464,10 @@ type AvatarChoice struct {
 
 // Avatars renders the choice of avatar.
 func Avatars(c Context, v AvatarsView) *presenter.Response {
+	return c.withView(renderAvatars(c, v), ScreenAvatars, v)
+}
+
+func renderAvatars(c Context, v AvatarsView) *presenter.Response {
 	current := c.T("life.avatar_none", nil)
 	switch {
 	case v.Current.Photo:
@@ -492,6 +504,10 @@ type SleepPayView struct {
 
 // SleepPay renders the price of a night and how to pay it.
 func SleepPay(c Context, v SleepPayView) *presenter.Response {
+	return c.withView(renderSleepPay(c, v), ScreenSleepPay, v)
+}
+
+func renderSleepPay(c Context, v SleepPayView) *presenter.Response {
 	text := body(c.T("life.sleep_pay", map[string]any{"spot": c.SleepSpotName(v.Spot),
 		"price": FormatMoney(c, v.Payment.Amount), "rest": FormatNumber(c, int64(v.Rest))}), c.paymentNote(v.Payment))
 	kb := keyboards.New()
@@ -524,6 +540,10 @@ type LifeRefusalView struct {
 
 // LifeRefusal renders a refusal of life.
 func LifeRefusal(c Context, v LifeRefusalView) *presenter.Response {
+	return c.withView(renderLifeRefusal(c, v), ScreenLifeRefusal, v)
+}
+
+func renderLifeRefusal(c Context, v LifeRefusalView) *presenter.Response {
 	text := c.T("life.refused."+v.Kind, map[string]any{"wait": FormatDuration(c, v.Wait),
 		"min": FormatNumber(c, int64(v.Min)), "max": FormatNumber(c, int64(v.Max))})
 	kb := keyboards.New()
@@ -598,6 +618,10 @@ func (c Context) boardLine(board string, l BoardLine) string {
 
 // Leaderboard renders one board, and the way to the others.
 func Leaderboard(c Context, v BoardView) *presenter.Response {
+	return c.withView(renderLeaderboard(c, v), ScreenLeaderboard, v)
+}
+
+func renderLeaderboard(c Context, v BoardView) *presenter.Response {
 	title := c.T("life.board."+v.Board+"_title", nil)
 	var lines []string
 	for _, l := range v.Lines {
@@ -640,6 +664,10 @@ type RankNoticeView struct {
 
 // RankNotice tells a player their rank rose or fell.
 func RankNotice(c Context, v RankNoticeView) *presenter.Response {
+	return c.withView(renderRankNotice(c, v), ScreenRankNotice, v)
+}
+
+func renderRankNotice(c Context, v RankNoticeView) *presenter.Response {
 	key := "life.rank_down_notice"
 	if v.Up {
 		key = "life.rank_up_notice"

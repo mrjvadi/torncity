@@ -67,6 +67,10 @@ type ExchangeView struct {
 // Exchange renders the listed companies. It shows no one's money: market
 // data is public.
 func Exchange(c Context, v ExchangeView) *presenter.Response {
+	return c.withView(renderExchange(c, v), ScreenExchange, v)
+}
+
+func renderExchange(c Context, v ExchangeView) *presenter.Response {
 	lines := []string{c.T("stock.exchange_title", nil)}
 	kb := keyboards.New()
 	var buttons []presenter.Button
@@ -127,6 +131,10 @@ type StockView struct {
 // trades, and — in the player's own chat — their holding and the orders
 // they may place.
 func Stock(c Context, v StockView) *presenter.Response {
+	return c.withView(renderStock(c, v), ScreenStock, v)
+}
+
+func renderStock(c Context, v StockView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("stock.notice."+v.Notice, moneyArgs(c, v.NoticeArgs))
@@ -225,6 +233,10 @@ type StockOrderView struct {
 
 // StockOrder renders an order: its confirmation, or what became of it.
 func StockOrder(c Context, v StockOrderView) *presenter.Response {
+	return c.withView(renderStockOrder(c, v), ScreenStockOrder, v)
+}
+
+func renderStockOrder(c Context, v StockOrderView) *presenter.Response {
 	args := map[string]any{"company": c.companyName(v.Company), "qty": FormatNumber(c, v.Qty),
 		"price": FormatMoney(c, v.Price), "reserve": FormatMoney(c, v.Reserve), "bank": FormatMoney(c, v.Bank),
 		"fee": PercentFromBPS(c, int(v.FeeBPS)), "no": FormatNumber(c, v.No), "filled": FormatNumber(c, v.Filled),
@@ -291,6 +303,10 @@ type PortfolioView struct {
 
 // Portfolio renders a player's shares, gold, savings and open orders.
 func Portfolio(c Context, v PortfolioView) *presenter.Response {
+	return c.withView(renderPortfolio(c, v), ScreenPortfolio, v)
+}
+
+func renderPortfolio(c Context, v PortfolioView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("stock.notice."+v.Notice, moneyArgs(c, v.NoticeArgs))
@@ -359,6 +375,10 @@ type ListingView struct {
 
 // Listing renders the listing of a company on the exchange.
 func Listing(c Context, v ListingView) *presenter.Response {
+	return c.withView(renderListing(c, v), ScreenListing, v)
+}
+
+func renderListing(c Context, v ListingView) *presenter.Response {
 	lines := []string{
 		c.T("stock.ipo.title", map[string]any{"company": c.companyName(v.Company)}),
 		c.T("stock.ipo.rules", map[string]any{"age": FormatDuration(c, v.MinAge), "revenue": FormatMoney(c, v.MinRevenue),
@@ -413,6 +433,10 @@ type DividendView struct {
 
 // Dividend renders a dividend: the choices, its confirmation or what it paid.
 func Dividend(c Context, v DividendView) *presenter.Response {
+	return c.withView(renderDividend(c, v), ScreenDividend, v)
+}
+
+func renderDividend(c Context, v DividendView) *presenter.Response {
 	lines := []string{
 		c.T("stock.dividend.title", map[string]any{"company": c.companyName(v.Company)}),
 		c.T("stock.dividend.free", map[string]any{"free": FormatMoney(c, v.Free), "tax": PercentFromBPS(c, int(v.TaxBPS)),
@@ -462,6 +486,10 @@ type StockNoticeView struct {
 
 // StockNotice renders a notice of the exchange.
 func StockNotice(c Context, v StockNoticeView) *presenter.Response {
+	return c.withView(renderStockNotice(c, v), ScreenStockNotice, v)
+}
+
+func renderStockNotice(c Context, v StockNoticeView) *presenter.Response {
 	key := "stock.event." + v.Kind
 	if v.Kind == "filled" {
 		key += "_" + v.Side
