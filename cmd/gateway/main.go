@@ -1019,7 +1019,7 @@ func isNotModified(err error) bool {
 func renderResponse(ctx context.Context, api *client.Client, meta envelope.Metadata, resp *presenter.Response) (int64, error) {
 	switch resp.Type {
 	case presenter.ActionSendMessage:
-		return api.SendMessage(ctx, meta.TelegramChatID, resp.Text, inlineKeyboard(resp.Keyboard))
+		return api.SendMessage(ctx, meta.TelegramChatID, resp.Text, inlineKeyboard(resp.Keyboard), parseModeOf(resp))
 
 	case presenter.ActionEditMessage:
 		messageID := resp.MessageID
@@ -1028,7 +1028,7 @@ func renderResponse(ctx context.Context, api *client.Client, meta envelope.Metad
 			// acted on is the one to edit.
 			messageID = meta.TelegramMessageID
 		}
-		err := api.EditMessageText(ctx, meta.TelegramChatID, messageID, resp.Text, inlineKeyboard(resp.Keyboard))
+		err := api.EditMessageText(ctx, meta.TelegramChatID, messageID, resp.Text, inlineKeyboard(resp.Keyboard), parseModeOf(resp))
 		if isNotModified(err) {
 			// Refresh pressed on a screen whose contents have not changed.
 			// Telegram reports that as a 400, but the player's screen is
@@ -1055,6 +1055,16 @@ func renderResponse(ctx context.Context, api *client.Client, meta envelope.Metad
 //
 // It returns nil, not an empty markup, when there are no buttons: an empty
 // inline_keyboard is a valid object that Telegram renders as a blank strip.
+// parseModeOf is the parse_mode Telegram is told to read resp.Text with:
+// "HTML" for a screen that opted in (presenter.Response.HTML), "" — plain
+// text, every screen until now — otherwise.
+func parseModeOf(resp *presenter.Response) string {
+	if resp != nil && resp.HTML {
+		return "HTML"
+	}
+	return ""
+}
+
 func inlineKeyboard(kb *presenter.Keyboard) any {
 	return groups.Markup(kb)
 }
