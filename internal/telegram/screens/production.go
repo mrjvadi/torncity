@@ -47,6 +47,15 @@ const (
 	AddrUnlist       = "company:unlist"
 	AddrCompanyGoods = "company:goods"
 	AddrCompanyBuy   = "company:buy"
+
+	// Product generations: revising a design into its next version, retiring
+	// one, running an improvement project on one, and retrofitting an
+	// existing unit with an upgrade kit.
+	AddrDesignRevise     = "company:drevise"
+	AddrDesignRetire     = "company:dretire"
+	AddrImprovementStart = "company:improve"
+	AddrImprovementAttr  = "company:iattr"
+	AddrRetrofit         = "company:retrofit"
 )
 
 // The commands a «✏️» button of the production screens asks a typed value

@@ -173,7 +173,13 @@ type DesignView struct {
 	// Locked are the technologies a draft's components need and the
 	// company lacks.
 	Locked []Named
-	Notice string
+	// Version is this design's generation within its lineage, 1 for the
+	// first ever authored. PrevAttributes, when non-nil, are the version
+	// before's computed attributes, for the ▲▼ delta a revision's page
+	// shows next to each number.
+	Version        int64
+	PrevAttributes map[string]int64
+	Notice         string
 }
 
 // Design renders a design.
@@ -185,6 +191,9 @@ func Design(c Context, v DesignView) *presenter.Response {
 	}
 	head := body(c.T("production.design_title", map[string]any{"name": name, "item": c.ItemName(v.Item)}),
 		c.T("production.design_state."+v.Status, nil))
+	if v.Version > 1 {
+		head = body(head, c.T("production.design_version", map[string]any{"version": FormatNumber(c, v.Version)}))
+	}
 	if v.Origin == DesignReverseEngineered {
 		head = body(head, c.T("production.design_copy", map[string]any{"source": v.Source,
 			"loss": PercentFromBPS(c, int(v.QualityLossBPS)), "overhead": PercentFromBPS(c, int(v.OverheadBPS))}))
@@ -261,7 +270,17 @@ func Design(c Context, v DesignView) *presenter.Response {
 		if a.Observable {
 			key = "production.attribute_public"
 		}
-		attrs = append(attrs, c.T(key, map[string]any{"name": c.AttributeName(a.Name), "value": FormatNumber(c, a.Value)}))
+		args := map[string]any{"name": c.AttributeName(a.Name), "value": FormatNumber(c, a.Value)}
+		if prev, ok := v.PrevAttributes[a.Name]; ok && prev != a.Value {
+			arrow := "▲"
+			diff := a.Value - prev
+			if diff < 0 {
+				arrow, diff = "▼", -diff
+			}
+			key += "_delta"
+			args["delta"] = arrow + FormatNumber(c, diff)
+		}
+		attrs = append(attrs, c.T(key, args))
 	}
 	numbers := body(append(attrs, c.T("production.cost_floor", map[string]any{"cost": FormatMoney(c, v.CostFloor)}))...)
 	status := ""
@@ -291,6 +310,18 @@ func Design(c Context, v DesignView) *presenter.Response {
 	}
 	if v.Status == DesignFinal {
 		kb.Add(c.T("production.button.produce_design", nil), AddrProduce, v.Ref.Code, DesignTarget(v.No))
+		kb.Add(c.T("production.button.kit", nil), AddrProduceKit, v.Ref.Code, DesignTarget(v.No))
+		var row []presenter.Button
+		if btn, ok := keyboards.Button(c.T("production.button.revise", nil), AddrDesignRevise, no); ok {
+			row = append(row, btn)
+		}
+		if btn, ok := keyboards.Button(c.T("production.button.improve", nil), AddrImprovementStart, no); ok {
+			row = append(row, btn)
+		}
+		kb.Row(row...)
+		if btn, ok := keyboards.Button(c.T("production.button.retire", nil), AddrDesignRetire, no); ok {
+			kb.Row(btn)
+		}
 	}
 	back := []string{AddrStudio, v.Ref.Code}
 	refresh := []string{AddrDesign, no}
