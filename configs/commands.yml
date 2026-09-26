@@ -237,6 +237,11 @@ commands:
   company.dqty: {channel: private}
   company.dname: {channel: private}
   company.dfinal: {channel: private}
+  company.drevise: {channel: private}
+  company.dretire: {channel: private}
+  company.improve: {channel: private}
+  company.kit: {channel: private}
+  company.retrofit: {channel: private}
   company.produce: {channel: private}
   company.orders: {channel: private}
   company.relab: {channel: private}

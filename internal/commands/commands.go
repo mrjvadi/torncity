@@ -273,6 +273,17 @@ var all = []Subscription{
 	{Domain: "company", Action: "researched", Origin: FromScheduler},
 	{Domain: "company", Action: "produced", Origin: FromScheduler},
 	{Domain: "company", Action: "reversed", Origin: FromScheduler},
+	// Product generations (docs/adr/0021, generations addendum): revising a
+	// design, retiring one, an upgrade-kit order, an improvement project and
+	// a retrofit — the last three finish from the scheduler.
+	{Domain: "company", Action: "drevise", Origin: FromPlayer},
+	{Domain: "company", Action: "dretire", Origin: FromPlayer},
+	{Domain: "company", Action: "kit", Origin: FromPlayer},
+	{Domain: "company", Action: "improve", Origin: FromPlayer},
+	{Domain: "company", Action: "retrofit", Origin: FromPlayer},
+	{Domain: "company", Action: "kit_produced", Origin: FromScheduler},
+	{Domain: "company", Action: "improved", Origin: FromScheduler},
+	{Domain: "company", Action: "retrofitted", Origin: FromScheduler},
 	// Specialist recruitment (docs/adr/0027): the hub, the campaign
 	// builder, posting, a campaign and its candidates, the company's
 	// specialists; and a campaign's check from the scheduler.
