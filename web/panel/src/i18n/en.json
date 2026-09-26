@@ -507,6 +507,7 @@
   "kpi.open_flags": "Open flags",
   "kpi.players": "Players",
   "kpi.price_index": "Price index",
+  "kpi.telegram_play": "Telegram play",
   "kpi.wars": "Wars",
   "live.new_flag": "New watch flag: {player}",
   "live.new_hold": "Payment #{no} held for review",

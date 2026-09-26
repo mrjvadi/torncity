@@ -507,6 +507,7 @@
   "kpi.open_flags": "پرچم‌های باز",
   "kpi.players": "بازیکنان",
   "kpi.price_index": "شاخص قیمت",
+  "kpi.telegram_play": "بازی در تلگرام",
   "kpi.wars": "جنگ‌ها",
   "live.new_flag": "پرچم تازه: {player}",
   "live.new_hold": "پرداخت #{no} برای بررسی نگه داشته شد",

@@ -6,7 +6,7 @@ import { Card, ErrorBox, Grid, Loading, Money, PageHeader, Ref, Status, When } f
 import { useI18n, type Key } from '../i18n/index.tsx';
 import { foldSeries } from '../lib/chart.ts';
 import { useLive } from '../lib/live.tsx';
-import type { EconomySeries, Rec, Series } from '../lib/types.ts';
+import type { EconomySeries, Rec, Series, SwitchesView } from '../lib/types.ts';
 import { useLoad } from '../lib/useLoad.ts';
 
 // The dashboard: the world's figures now (pushed live, or polled), how the
@@ -22,6 +22,7 @@ export function Overview() {
   const [days, setDays] = useState(30);
   const live = useLive();
   const kpiLoad = useLoad<Rec>('/api/kpis');
+  const switchesLoad = useLoad<SwitchesView>('/api/switches');
   const econ = useLoad<EconomySeries>(`/api/series/economy?days=${days}`);
   const newPlayers = useLoad<Series>(`/api/series/players.new?days=${days}`);
 
@@ -38,6 +39,7 @@ export function Overview() {
   const joined = newPlayers.data?.lines[0]?.values ?? [];
   const priceIdx = (e?.price_index_bps ?? []).filter((v) => v > 0);
   const health = typeof k?.health === 'string' ? k.health : null;
+  const telegramPlay = switchesLoad.data?.switches.find((s) => s.key === 'telegram_play')?.effective ?? null;
 
   return (
     <>
@@ -69,6 +71,8 @@ export function Overview() {
           <Stat label={t('kpi.backlog')} value={nc(num(k, 'outbox_pending') + num(k, 'actions_overdue'))}
             tone={num(k, 'actions_stuck') + num(k, 'actions_failed') > 0 ? 'bad' : undefined}
             hint={t('kpi.failed_actions', { n: num(k, 'actions_failed') })} href="#/system" />
+          <Stat label={t('kpi.telegram_play')} value={telegramPlay ? <Status value={telegramPlay} /> : '—'}
+            tone={telegramPlay && telegramPlay !== 'on' ? 'warn' : undefined} href="#/system/switches" />
         </StatGrid>
       )}
       <Grid>
