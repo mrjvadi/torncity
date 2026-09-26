@@ -582,7 +582,7 @@
 آزاد هستید. کسی شما را نگه نداشته است.
   ───
   [🕶 دنیای زیرزمینی] → crime:hub
-  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → crime:jail
+  [🔙 بازگشت] → crime:hub   │   [🔄 به‌روزرسانی] → crime:jail
 
 ━━━ Bailed · as the player reads it ━━━
 (edits message 42)

@@ -582,7 +582,7 @@ While in jail you cannot commit crimes, travel, work a shift or withdraw from th
 You are free. Nobody is holding you.
   ───
   [🕶 Underworld] → crime:hub
-  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → crime:jail
+  [🔙 Back] → crime:hub   │   [🔄 Refresh] → crime:jail
 
 ━━━ Bailed · as the player reads it ━━━
 (edits message 42)

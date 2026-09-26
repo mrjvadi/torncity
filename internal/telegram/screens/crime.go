@@ -793,7 +793,12 @@ func renderJail(c Context, v JailView) *presenter.Response {
 	if !v.InJail {
 		hub, _ := keyboards.Button(c.T("crime.button.hub", nil), AddrCrimeHub)
 		kb.Row(hub)
-		kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrCrimeJail}))
+		// Both branches of this screen are reached from the crime hub (a free
+		// player checking the jail, or a player serving time), and both
+		// already offer the same hub button above; Back must agree with it
+		// instead of sending a free player to the profile while a jailed one
+		// goes to the hub.
+		kb.Nav(c.nav(keyboards.Nav{BackData: AddrCrimeHub, RefreshData: AddrCrimeJail}))
 		return c.respond(paragraphs(c.T("crime.jail_title", nil), c.T("crime.jail_free", nil)), kb.Build())
 	}
 	reason := c.T("crime.jail_reason."+v.Reason, nil)
