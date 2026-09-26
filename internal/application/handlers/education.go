@@ -513,6 +513,83 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 	return screens.CourseDetail(h.screen(meta, lang), view), nil
 }
 
+// enrollPlan is what enrollPlan computes: the course a player is eligible to
+// join right now, priced and scheduled.
+type enrollPlan struct {
+	def       content.CourseDef
+	course    education.Course
+	current   *application.Enrollment
+	enrolment education.Enrollment
+	fee       money.Amount
+}
+
+// enrollPlan resolves the course code a player asked to enrol in: applies
+// any city subsidy and the player's own intelligence to its duration, and
+// checks every requirement (standing, seats, the institution's place, an
+// enrolment already under way) before pricing and scheduling it. Its error
+// is either what Enroll itself returns unchanged (a refusal built with
+// refuse, or errors.Internal) or a failure of one of the reads it makes.
+func (h *EducationHandler) enrollPlan(ctx context.Context, tx application.Tx, snap *content.Snapshot,
+	p *application.Player, code string, now time.Time,
+) (enrollPlan, error) {
+	var plan enrollPlan
+	s, err := loadStanding(ctx, tx, p, now)
+	if err != nil {
+		return plan, err
+	}
+	here, err := h.hereCode(ctx, s)
+	if err != nil {
+		return plan, err
+	}
+	def, course, err := h.course(ctx, snap, code, s, here)
+	if err != nil {
+		return plan, err
+	}
+	if course, err = h.subsidised(ctx, tx, p, course); err != nil {
+		return plan, err
+	}
+	if course, err = smarterCourse(ctx, tx, snap, p.ID, course); err != nil {
+		return plan, err
+	}
+	current, err := activeEnrollment(ctx, tx, p.ID)
+	if err != nil {
+		return plan, err
+	}
+	seats, err := tx.Education().SeatsTaken(ctx, course.Code)
+	if err != nil {
+		return plan, err
+	}
+	// A prisoner cannot start a course: it could not advance anyway.
+	if err := RefuseJailed(ctx, tx, p.ID, now); err != nil {
+		return plan, err
+	}
+	// A course is joined where it is taught: at the city place of its
+	// institution (the university quarter). Nowhere to go — a city
+	// without the place, content without places — joins from anywhere.
+	w, err := locate(ctx, tx, h.cities, snap, p)
+	if err != nil {
+		return plan, err
+	}
+	if err := needService(w, snap, place.Service(course.Institution), h.scale, now); err != nil {
+		return plan, thenFor(err, "education.view", course.Code)
+	}
+	enrolment, fee, err := education.Enroll(course, s.applicant(here, current), seats, now, h.scale)
+	if err != nil {
+		if missing, ok := shortfalls(snap, err, application.City{}); ok {
+			for i := range missing {
+				if missing[i].Kind == screens.ReqAlreadyEnrolled && current != nil {
+					ref := courseRef(snap, current.CourseCode)
+					missing[i].CourseCode, missing[i].CourseName = ref.Code, ref.Name
+				}
+			}
+			return plan, refuse(screens.RefusalCourseRequirements, missing)
+		}
+		return plan, errors.Internal(err)
+	}
+	plan.def, plan.course, plan.current, plan.enrolment, plan.fee = def, course, current, enrolment, fee
+	return plan, nil
+}
+
 // Enroll handles education.enroll: the fee, the enrolment and its scheduled
 // completion, in one transaction.
 func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, req CourseRequest) (*presenter.Response, error) {
@@ -549,67 +626,18 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 		}
 
 		now := h.now()
-		s, err := loadStanding(ctx, tx, p, now)
+		plan, err := h.enrollPlan(ctx, tx, snap, p, req.Course, now)
 		if err != nil {
 			return err
-		}
-		here, err := h.hereCode(ctx, s)
-		if err != nil {
-			return err
-		}
-		def, course, err := h.course(ctx, snap, req.Course, s, here)
-		if err != nil {
-			return err
-		}
-		if course, err = h.subsidised(ctx, tx, p, course); err != nil {
-			return err
-		}
-		if course, err = smarterCourse(ctx, tx, snap, p.ID, course); err != nil {
-			return err
-		}
-		current, err := activeEnrollment(ctx, tx, p.ID)
-		if err != nil {
-			return err
-		}
-		seats, err := tx.Education().SeatsTaken(ctx, course.Code)
-		if err != nil {
-			return err
-		}
-		// A prisoner cannot start a course: it could not advance anyway.
-		if err := RefuseJailed(ctx, tx, p.ID, now); err != nil {
-			return err
-		}
-		// A course is joined where it is taught: at the city place of its
-		// institution (the university quarter). Nowhere to go — a city
-		// without the place, content without places — joins from anywhere.
-		w, err := locate(ctx, tx, h.cities, snap, p)
-		if err != nil {
-			return err
-		}
-		if err := needService(w, snap, place.Service(course.Institution), h.scale, now); err != nil {
-			return thenFor(err, "education.view", course.Code)
-		}
-		enrolment, fee, err := education.Enroll(course, s.applicant(here, current), seats, now, h.scale)
-		if err != nil {
-			if missing, ok := shortfalls(snap, err, application.City{}); ok {
-				for i := range missing {
-					if missing[i].Kind == screens.ReqAlreadyEnrolled && current != nil {
-						ref := courseRef(snap, current.CourseCode)
-						missing[i].CourseCode, missing[i].CourseName = ref.Code, ref.Name
-					}
-				}
-				return refuse(screens.RefusalCourseRequirements, missing)
-			}
-			return errors.Internal(err)
 		}
 
 		enrollmentID := h.ids.NewID()
 		actionID := h.ids.NewID()
-		if err := h.chargeFee(ctx, tx, snap, p.ID, course.Code, enrollmentID, fee, method, now); err != nil {
+		if err := h.chargeFee(ctx, tx, snap, p.ID, plan.course.Code, enrollmentID, plan.fee, method, now); err != nil {
 			return err
 		}
 		payload, err := json.Marshal(EducationActionPayload{
-			EnrollmentID: enrollmentID, PlayerID: p.ID, CourseCode: course.Code,
+			EnrollmentID: enrollmentID, PlayerID: p.ID, CourseCode: plan.course.Code,
 		})
 		if err != nil {
 			return err
@@ -624,20 +652,20 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 			ReferenceType: "enrollments",
 			ReferenceID:   enrollmentID,
 			Payload:       payload,
-			StartedAt:     enrolment.StartedAt,
-			FinishAt:      enrolment.CompletesAt,
+			StartedAt:     plan.enrolment.StartedAt,
+			FinishAt:      plan.enrolment.CompletesAt,
 		}); err != nil {
 			return err
 		}
 		if err := tx.Education().Enroll(ctx, application.Enrollment{
 			ID:           enrollmentID,
 			PlayerID:     p.ID,
-			CourseCode:   course.Code,
+			CourseCode:   plan.course.Code,
 			GameActionID: actionID,
 			Status:       application.EnrollmentInProgress,
-			Fee:          fee.Minor(),
-			StartedAt:    enrolment.StartedAt,
-			CompletesAt:  enrolment.CompletesAt,
+			Fee:          plan.fee.Minor(),
+			StartedAt:    plan.enrolment.StartedAt,
+			CompletesAt:  plan.enrolment.CompletesAt,
 		}); err != nil {
 			if isSentinel(err, application.ErrAlreadyEnrolled) {
 				return refuse(screens.RefusalCourseRequirements, []screens.Requirement{{Kind: screens.ReqAlreadyEnrolled}})
@@ -647,18 +675,18 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 		if err := appendEducationEvent(ctx, tx, meta, "enrolled", enrollmentID, map[string]any{
 			"enrollment_id":   enrollmentID,
 			"player_id":       p.ID,
-			"course":          course.Code,
-			"fee":             fee.Minor(),
-			"completes_at":    enrolment.CompletesAt,
+			"course":          plan.course.Code,
+			"fee":             plan.fee.Minor(),
+			"completes_at":    plan.enrolment.CompletesAt,
 			"content_version": snap.Version(),
 		}); err != nil {
 			return err
 		}
 		view = screens.EnrolledView{
-			Course:   screens.CourseRef{Code: def.Code, Name: def.Name},
-			Duration: enrolment.CompletesAt.Sub(enrolment.StartedAt),
-			EndsAt:   enrolment.CompletesAt,
-			Fee:      fee.Minor(),
+			Course:   screens.CourseRef{Code: plan.def.Code, Name: plan.def.Name},
+			Duration: plan.enrolment.CompletesAt.Sub(plan.enrolment.StartedAt),
+			EndsAt:   plan.enrolment.CompletesAt,
+			Fee:      plan.fee.Minor(),
 			Method:   string(method),
 		}
 		return nil
