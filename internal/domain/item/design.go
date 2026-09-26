@@ -32,6 +32,10 @@ var (
 
 	// ErrUnknownOrigin means a design's origin is not one of the known ones.
 	ErrUnknownOrigin = errors.New("item: unknown design origin")
+
+	// ErrInvalidVersion means a design's version number is negative or above
+	// MaxVersion.
+	ErrInvalidVersion = errors.New("item: invalid design version")
 )
 
 // Bounds on a design's degradation, in basis points.
@@ -44,6 +48,8 @@ const (
 	// MaxOverheadBPS caps extra input consumption at ten times the
 	// original, which also bounds recipe arithmetic.
 	MaxOverheadBPS = 90_000
+	// MaxVersion bounds a design's generation number within its lineage.
+	MaxVersion = 1_000
 )
 
 // Origin records how a design came to exist.
@@ -94,6 +100,30 @@ type Design struct {
 	// copier never quite knows why the original used what it did. Zero for
 	// an authored design.
 	OverheadBPS int64
+
+	// LineageID groups every version of "the same design" — v1, v2, v3… —
+	// under one identity, so a product keeps its name and its history across
+	// revisions (docs/adr/0021 §14 extended: generations). Empty means the
+	// design is its own lineage's first version; Revise fills it in.
+	LineageID string
+	// Version is the design's generation within its lineage, 1 for the
+	// first. ParentID is the design Version-1 was revised from, empty for
+	// version 1 and for a reverse-engineered design (whose lineage is its
+	// own; see reverse.go — reverse engineering never joins the original's
+	// lineage, it only copies its bill of materials).
+	Version  int
+	ParentID string
+	// Improvements is what incremental R&D (an improvement project) has
+	// added on top of this version's structural attributes, by attribute
+	// name, in the same basis points ApplyEffects reads: a "block upgrade"
+	// that changed no slot. Nil for a version with none.
+	Improvements map[string]int64
+	// Retired marks a version the company no longer offers for production —
+	// existing production orders already running still finish, held and
+	// produced instances are unaffected, but production.PlanOrder refuses a
+	// new order against it. A retired version may still be revised further
+	// and still be reverse engineered.
+	Retired bool
 }
 
 // ValidateStructure checks a design against its archetype and a component
@@ -122,6 +152,9 @@ func ValidateStructure(a Archetype, d Design, components Components) error {
 	}
 	if d.OverheadBPS < 0 || d.OverheadBPS > MaxOverheadBPS {
 		fail(ErrInvalidDegradation, "overhead %d bps", d.OverheadBPS)
+	}
+	if d.Version < 0 || d.Version > MaxVersion {
+		fail(ErrInvalidVersion, "version %d", d.Version)
 	}
 
 	for _, name := range sortedKeys(d.Fills) {

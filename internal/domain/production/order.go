@@ -63,6 +63,13 @@ var (
 
 	// ErrTooLong means an order would take longer than MaxOrderDuration.
 	ErrTooLong = errors.New("production: order would take longer than MaxOrderDuration")
+
+	// ErrDesignRetired means the order's design is retired: the company
+	// marked it obsolete and stopped offering it for new production. Units
+	// already made, and units a retrofit kit upgrades to a later version,
+	// are unaffected — only placing a NEW order against the retired version
+	// itself is refused.
+	ErrDesignRetired = errors.New("production: design is retired and no longer producible")
 )
 
 // Bounds that keep every order's arithmetic inside int64 by construction and
@@ -197,6 +204,9 @@ func PlanOrder(req Request, profile Profile, stock Stock) (Plan, error) {
 	}
 	if err := item.ValidateStructure(a, req.Design, req.Components); err != nil {
 		return Plan{}, err
+	}
+	if req.Design.Retired {
+		return Plan{}, fmt.Errorf("%w: %s", ErrDesignRetired, req.Design.ID)
 	}
 	if req.Quantity < 1 || req.Quantity > MaxOrderQuantity {
 		return Plan{}, fmt.Errorf("%w: %d", ErrInvalidQuantity, req.Quantity)

@@ -361,3 +361,18 @@ func TestConsumedEqualsRecipeTimesQuantity(t *testing.T) {
 		}
 	}
 }
+
+// TestPlanOrderRefusesRetiredDesign: a design the company retired is no
+// longer producible — new production stops, but nothing about existing
+// stock or PlanOrder's other checks changes.
+func TestPlanOrderRefusesRetiredDesign(t *testing.T) {
+	d := breadDesign(500, 300, 5)
+	d.ID = "bread-v1"
+	d.Retired = true
+	req := Request{Archetype: breadArchetype(), Design: d, Components: components(), Quantity: 10, Workers: 2}
+	stock := Stock{"flour_whole": 20_000, "water_tap": 12_000, "salt_sea": 1_000}
+	_, err := PlanOrder(req, formulateProfile, stock)
+	if !errors.Is(err, ErrDesignRetired) {
+		t.Fatalf("err = %v, want ErrDesignRetired", err)
+	}
+}
