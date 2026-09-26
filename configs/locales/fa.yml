@@ -2132,6 +2132,7 @@ production:
     retired: "🗄 کنار گذاشته"
   design_copy: "🔍 کپی از «{source}» با مهندسی معکوس - کیفیت {loss}٪ کمتر - مصرف مواد {overhead}٪ بیشتر"
   design_version: "نسخهٔ {version}"
+  revision_name: "{base} - نسخهٔ {version}"
   slot_empty: "⬜ {slot}: خالی"
   slot_optional: "▫️ {slot}: خالی (اختیاری)"
   slot_filled: "🟩 {slot}: {component} - {qty}"
@@ -2488,6 +2489,8 @@ lever_label:
       v1: "دولت خودی و شریکان پیمانی"
       v2: "هر دولتی که زیر تحریم تسلیحاتی نیست"
 military:
+  kit_plan: "🧰 خرید کیت ارتقا: مقدار و شمارهٔ عرضه را با تأیید بفرستید."
+  kit_bought: "🧰 کیت ارتقا از {seller} خریداری شد و به انبار کشور رسید."
   branch_name:
     ground: "نیروی زمینی"
     air: "نیروی هوایی"

@@ -2028,6 +2028,7 @@ production:
     retired: "🗄 Retired"
   design_copy: "🔍 Copied from \"{source}\" by reverse engineering - {loss}% lower quality - {overhead}% more materials"
   design_version: "Version {version}"
+  revision_name: "{base} - version {version}"
   slot_empty: "⬜ {slot}: empty"
   slot_optional: "▫️ {slot}: empty (optional)"
   slot_filled: "🟩 {slot}: {component} - {qty}"
@@ -2384,6 +2385,8 @@ lever_label:
       v1: "own state and treaty partners"
       v2: "any state not under embargo"
 military:
+  kit_plan: "🧰 Buying upgrade kits: send the listing number and quantity, confirmed."
+  kit_bought: "🧰 Upgrade kits bought from {seller} and delivered to the state's warehouse."
   branch_name:
     ground: "Ground forces"
     air: "Air force"

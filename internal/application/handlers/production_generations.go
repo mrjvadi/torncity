@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"maps"
 	"strings"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
+	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
@@ -22,14 +22,27 @@ import (
 // improvement project.
 const improvementReference = "design_improvement_projects"
 
-// baseDesignName strips a previous " - نسخهٔ N" suffix, so revising a
-// revision or improving an improved design never compounds "- نسخهٔ ۲ -
-// نسخهٔ ۳" into its name: every version's name reads the same lineage.
-func baseDesignName(name string) string {
-	if i := strings.Index(name, " - نسخهٔ "); i >= 0 {
-		return name[:i]
+// lineageBaseName is the name the lineage's first version was given: every
+// later version's name is built from THIS, never from the immediate
+// parent's already-suffixed name, so revising a revision or improving an
+// improved design never compounds "- نسخهٔ ۲ - نسخهٔ ۳" — and never has to
+// parse a rendered, language-specific suffix back out of a name to avoid it.
+func lineageBaseName(ctx context.Context, tx application.Tx, d application.Design) string {
+	head := lineageOf(d)
+	if head == d.ID {
+		return d.Name
 	}
-	return name
+	root, err := tx.Production().DesignByID(ctx, head)
+	if err != nil {
+		return d.Name
+	}
+	return root.Name
+}
+
+// revisionName is a lineage's base name with the current version appended,
+// in the player's language (configs/locales production.revision_name).
+func revisionName(c screens.Context, base string, version int64) string {
+	return c.T("production.revision_name", map[string]any{"base": base, "version": screens.FormatNumber(c, version)})
 }
 
 // Product generations (the owner's 2026 request, on top of ADR
@@ -155,7 +168,7 @@ func (h *ProductionHandler) DesignRevise(ctx context.Context, meta envelope.Meta
 			version = 1
 		}
 		version++
-		name := fmt.Sprintf("%s - نسخهٔ %d", baseDesignName(d.Name), version)
+		name := revisionName(h.screen(meta, lang), lineageBaseName(ctx, tx, *d), version)
 		next := application.Design{ID: h.ids.NewID(), CompanyID: c.ID, Item: d.Item, Archetype: d.Archetype,
 			Name: name, NameKey: company.NameKey(name), Origin: d.Origin, Status: application.DesignDraft,
 			Fills: maps.Clone(d.Fills), QualityLossBPS: d.QualityLossBPS, OverheadBPS: d.OverheadBPS,
@@ -357,7 +370,7 @@ func (h *ProductionHandler) Improved(ctx context.Context, meta envelope.Metadata
 		if err != nil {
 			return errors.Internal(err)
 		}
-		name := fmt.Sprintf("%s - نسخهٔ %d", baseDesignName(parent.Name), next.Version)
+		name := revisionName(h.screen(meta, i18n.DefaultLanguage), lineageBaseName(ctx, tx, *parent), int64(next.Version))
 		result := application.Design{ID: h.ids.NewID(), CompanyID: c.ID, Item: parent.Item, Archetype: parent.Archetype,
 			Name: name, NameKey: company.NameKey(name), Origin: string(item.OriginAuthored), Status: application.DesignFinal,
 			Fills: storedFills(next.Fills), QualityLossBPS: next.QualityLossBPS, OverheadBPS: next.OverheadBPS,

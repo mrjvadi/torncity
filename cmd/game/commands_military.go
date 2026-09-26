@@ -1,15 +1,20 @@
 package main
 
 import (
+	"time"
+
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
 )
 
 // militaryRules is the armed forces' tuning from the configuration.
-func militaryRules(c config.Military) handlers.MilitaryRules {
+// retrofitTime (company.retrofit_time) is shared with the production
+// economy's own retrofit handler: applying an upgrade kit takes the same
+// time whether the unit is a company's good or a state's asset.
+func militaryRules(c config.Military, retrofitTime time.Duration) handlers.MilitaryRules {
 	return handlers.MilitaryRules{Period: c.Period, ReadinessLossBPS: int64(c.ReadinessLossBPS),
 		ReadinessRecoveryBPS: int64(c.ReadinessRecoveryBPS), ReferenceRadarKM: int64(c.ReferenceRadarKM),
-		LicenceRevokeNotice: c.LicenceRevokeNotice, EndedLicencesShown: c.EndedLicencesShown}
+		LicenceRevokeNotice: c.LicenceRevokeNotice, EndedLicencesShown: c.EndedLicencesShown, RetrofitTime: retrofitTime}
 }
 
 // diplomacyRules is diplomacy's tuning from the configuration.
@@ -37,7 +42,12 @@ func (h phaseHandlers) bindMilitary() map[string]commandFunc {
 		"military.buy":      decoded(m.ArmsBuy),
 		"military.licences": decoded(m.Licences),
 		"military.licence":  decoded(m.Licence),
-		// The scheduler's: a defence period ending, equipment landing.
+		"military.kitbuy":   decoded(m.ProcureKit),
+		"military.retrofit": decoded(m.RetrofitState),
+		// The scheduler's: a defence period ending, equipment landing. A
+		// state's retrofit finishes through company.retrofitted, the same
+		// production-economy handler a company's own retrofit does
+		// (Retrofitted is already generic to which org kind it moved).
 		"military.settle": decoded(m.Settle),
 		"military.arrive": decoded(m.Arrive),
 

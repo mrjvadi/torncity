@@ -38,6 +38,10 @@ type MilitaryRules struct {
 	// how many ended licences the registry lists.
 	LicenceRevokeNotice time.Duration
 	EndedLicencesShown  int
+	// RetrofitTime is applying one upgrade kit to one state asset, GAME
+	// time (config company.retrofit_time — shared with the production
+	// economy's own retrofit, since it is the same work either way).
+	RetrofitTime time.Duration
 }
 
 // MilitaryHandler serves the armed forces

@@ -410,7 +410,7 @@ The amount goes from 50 g to 500 g; after choosing, type the amount.
   [🧰 Build an upgrade kit] → company:kit:Q7M2K9B:d12
   [✏️ New version] → company:drevise:12
   [🔧 Improve Battery life] → company:improve:12:battery_life   │   [🔧 Improve Quality] → company:improve:12:quality
-  [🗄 Retire this version] → company:dretire:12
+  [🗄 Retire this version] → company:dretire:12:yes
   [🔙 Back] → company:studio:Q7M2K9B   │   [🔄 Refresh] → company:design:12
 
 ━━━ Design · a reverse engineered copy ━━━
@@ -431,7 +431,7 @@ The amount goes from 50 g to 500 g; after choosing, type the amount.
   [🧰 Build an upgrade kit] → company:kit:H4T8W2C:d15
   [✏️ New version] → company:drevise:15
   [🔧 Improve Battery life] → company:improve:15:battery_life   │   [🔧 Improve Quality] → company:improve:15:quality
-  [🗄 Retire this version] → company:dretire:15
+  [🗄 Retire this version] → company:dretire:15:yes
   [🔙 Back] → company:studio:H4T8W2C   │   [🔄 Refresh] → company:design:15
 
 ━━━ Floor · targets and orders ━━━

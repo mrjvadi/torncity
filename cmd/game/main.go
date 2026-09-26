@@ -350,7 +350,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// treaty types are content; who decides is an office; the defence
 	// period runs on the game clock, every diplomatic promise on real time.
 	h.military = handlers.NewMilitaryHandler(uow, uuidGenerator{}, messages, registry, cities,
-		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), militaryRules(cfg.Military),
+		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), militaryRules(cfg.Military, cfg.Company.RetrofitTime),
 		cfg.Game.IdempotencyTTL, nil)
 	h.diplomacy = handlers.NewDiplomacyHandler(uow, uuidGenerator{}, messages, registry, diplomacyRules(cfg.Diplomacy),
 		cfg.Game.IdempotencyTTL, nil)

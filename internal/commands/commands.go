@@ -313,6 +313,12 @@ var all = []Subscription{
 	{Domain: "military", Action: "buy", Origin: FromPlayer},
 	{Domain: "military", Action: "licences", Origin: FromPlayer},
 	{Domain: "military", Action: "licence", Origin: FromPlayer},
+	// Product generations (docs/adr/0021, generations addendum): the
+	// defence minister buys upgrade kits, a branch's commander retrofits a
+	// state asset with one; the retrofit itself finishes through
+	// company.retrofitted (the production economy's own handler).
+	{Domain: "military", Action: "kitbuy", Origin: FromPlayer},
+	{Domain: "military", Action: "retrofit", Origin: FromPlayer},
 	{Domain: "military", Action: "settle", Origin: FromScheduler},
 	{Domain: "military", Action: "arrive", Origin: FromScheduler},
 

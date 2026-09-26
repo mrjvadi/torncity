@@ -322,7 +322,7 @@ func Design(c Context, v DesignView) *presenter.Response {
 			}
 		}
 		kb.Grid(2, improve...)
-		if btn, ok := keyboards.Button(c.T("production.button.retire", nil), AddrDesignRetire, no); ok {
+		if btn, ok := keyboards.Button(c.T("production.button.retire", nil), AddrDesignRetire, no, ProductionConfirm); ok {
 			kb.Row(btn)
 		}
 	}

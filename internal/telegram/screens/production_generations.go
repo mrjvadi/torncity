@@ -76,3 +76,21 @@ func Retrofit(c Context, v RetrofitView) *presenter.Response {
 	c.productionNav(kb, []string{AddrOrders, v.Ref.Code})
 	return c.respond(text, kb.Build())
 }
+
+// KitPurchaseView is the defence minister's plan or result of buying
+// upgrade kits from a contractor.
+type KitPurchaseView struct {
+	Bought bool
+	Seller string
+	Country string
+}
+
+// KitPurchase renders it.
+func KitPurchase(c Context, v KitPurchaseView) *presenter.Response {
+	kb := keyboards.New()
+	kb.Add(c.T("military.button.procure", nil), AddrProcure, v.Country)
+	if v.Bought {
+		return c.respond(c.T("military.kit_bought", map[string]any{"seller": v.Seller}), kb.Build())
+	}
+	return c.respond(c.T("military.kit_plan", nil), kb.Build())
+}

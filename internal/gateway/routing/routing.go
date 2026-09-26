@@ -549,6 +549,17 @@ var argNames = map[string][]string{
 	"company.stockup":   {"company", "target", "qty"},
 	"company.defence":   {"company", "confirm"},
 
+	// Product generations: revising a design and retiring one name the
+	// design's number; a kit order looks exactly like an order
+	// (company.produce); an improvement project's second argument is the
+	// attribute chosen; a retrofit names the kit's serial and the target
+	// unit's serial the same way a sale names a piece's (company.reverse).
+	"company.drevise":  {"no"},
+	"company.dretire":  {"no", "confirm"},
+	"company.kit":      {"company", "target", "qty", "confirm"},
+	"company.improve":  {"no", "slot", "confirm"},
+	"company.retrofit": {"company", "item", "serial", "confirm"},
+
 	// Specialist recruitment (docs/adr/0027). A campaign, a candidate and a
 	// specialist are public numbers; a skill and a city are content codes;
 	// a preset is its index; amounts are typed.
@@ -579,6 +590,8 @@ var argNames = map[string][]string{
 	"military.buy":        {"country", "no", "qty", "confirm"},
 	"military.licences":   {"country"},
 	"military.licence":    {"no", "verdict", "confirm"},
+	"military.kitbuy":     {"country", "no", "qty", "confirm"},
+	"military.retrofit":   {"country", "target", "city", "confirm"},
 	"diplomacy.sanctions": {"country"},
 	"diplomacy.impose":    {"target", "mask", "ground", "confirm"},
 	"diplomacy.lift":      {"no", "confirm"},

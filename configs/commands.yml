@@ -289,6 +289,8 @@ commands:
   # 2.14).
   military.licences: {channel: both}
   military.licence: {channel: private}
+  military.kitbuy: {channel: private}
+  military.retrofit: {channel: private}
 
   # Diplomacy is public business: the sanctions and treaties boards and the
   # record read anywhere. Imposing, lifting, proposing, answering and ending
