@@ -1,6 +1,6 @@
 ━━━ /study ━━━
 (sends)
-🎓 Education
+<b>🎓 Education</b>
 
 Courses you can take here:
 • First Aid - 600 Nil - 2m
@@ -70,7 +70,7 @@ The course finishes on its own, and you will be notified.
 
 ━━━ Studying ━━━
 (edits message 42)
-🎓 Education
+<b>🎓 Education</b>
 
 📖 Studying: First Aid
 ⏳ Finishing any moment now.
@@ -169,7 +169,7 @@ You cannot enrol in this course yet:
 
 ━━━ Study after the course ━━━
 (edits message 42)
-🎓 Education
+<b>🎓 Education</b>
 
 📜 Certificates: First Aid
 
