@@ -215,10 +215,6 @@ type Pack struct {
 	Items               []ItemDef
 	Shops               []ShopDef
 
-	// Elections (governance.yml elections): how each elected office is
-	// elected. See election.go.
-	Elections []ElectionDef
-
 	// Companies (companies.yml): the kinds of business a player may found,
 	// each city's NPC market, what its population buys per category, and
 	// the words no company name may contain. See company.go.

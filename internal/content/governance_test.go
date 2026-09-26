@@ -125,10 +125,42 @@ func TestStructuredDefaultRoundTripsAsJSON(t *testing.T) {
 
 func intp(v int) *int { return &v }
 
+// electionLawBounds is a usable ElectionLawBounds for a test fixture.
+func electionLawBounds() *ElectionLawBounds {
+	return &ElectionLawBounds{
+		CandidacyHours:         FieldBound{Min: 6, Max: 336},
+		VotingHours:            FieldBound{Min: 6, Max: 336},
+		MinLevel:               FieldBound{Min: 0, Max: 50},
+		MinResidencyHours:      FieldBound{Min: 0, Max: 2160},
+		VoterMinResidencyHours: FieldBound{Min: 0, Max: 720},
+		Deposit:                FieldBound{Min: 0, Max: 20000},
+		RefundShareBPS:         FieldBound{Min: 0, Max: 10000},
+		ReopenAfterHours:       FieldBound{Min: 24, Max: 2160},
+		EndorsementsRequired:   FieldBound{Min: 0, Max: 100},
+		TermLimitConsecutive:   FieldBound{Min: 0, Max: 6},
+		TermLimitTotal:         FieldBound{Min: 0, Max: 12},
+		MinAge:                 FieldBound{Min: 0, Max: 99},
+		EndorsementsMaxBPS:     2000,
+		ExclusionMaxBPS:        3000,
+	}
+}
+
+// electionLawDoc is a usable election_law default document for a test
+// fixture: every election.Fields key, well inside electionLawBounds.
+func electionLawDoc() map[string]any {
+	return map[string]any{
+		"candidacy_hours": 48, "voting_hours": 48, "min_level": 5, "min_residency_hours": 168,
+		"clean_record": 1, "voter_min_residency_hours": 24, "deposit": 5000, "refund_share_bps": 1000,
+		"reopen_after_hours": 168, "endorsements_required": 0, "term_limit_consecutive": 0,
+		"term_limit_total": 0, "education_rank": 0, "min_age": 0,
+	}
+}
+
 // governedPack is validPack plus a small, valid constitution: every level,
 // a union above the country, one city lever whose default comes from each
 // city's tax rate, one country lever, a mayor with a deputy, a council that
-// votes, and a president.
+// votes, and a president — each elected office with the election_law lever
+// election law now requires.
 func governedPack() *Pack {
 	p := validPack()
 	p.Levels = []LevelDef{
@@ -161,6 +193,24 @@ func governedPack() *Pack {
 			Default: 0, Min: i64(0), Max: i64(2500),
 			HeldBy: "president", ChangeCooldown: "168h", Notice: "0s",
 		},
+		// Election law: the city council decides the city offices' law, and
+		// (with no parliament in this minimal fixture) the president decides
+		// its own, exactly as any other office may hold a lever naming it.
+		{
+			Code: "city.election_law.mayor", Jurisdiction: CityLevel, Type: LeverElectionLaw,
+			Default: electionLawDoc(), Bounds: electionLawBounds(),
+			HeldBy: "city_council", DecisionRule: DecisionMajority, ChangeCooldown: "24h", Notice: "24h",
+		},
+		{
+			Code: "city.election_law.city_council", Jurisdiction: CityLevel, Type: LeverElectionLaw,
+			Default: electionLawDoc(), Bounds: electionLawBounds(),
+			HeldBy: "city_council", DecisionRule: DecisionMajority, ChangeCooldown: "24h", Notice: "24h",
+		},
+		{
+			Code: "country.election_law.president", Jurisdiction: CountryLevel, Type: LeverElectionLaw,
+			Default: electionLawDoc(), Bounds: electionLawBounds(),
+			HeldBy: "president", ChangeCooldown: "24h", Notice: "24h",
+		},
 	}
 	p.Offices = []OfficeDef{
 		{
@@ -175,11 +225,12 @@ func governedPack() *Pack {
 		},
 		{
 			Code: "city_council", Jurisdiction: CityLevel, Seats: 5, AcquiredBy: AcquiredByElection,
-			Levers: []string{"city.bylaw"}, VetoOver: []string{"mayor"},
+			Levers:   []string{"city.bylaw", "city.election_law.mayor", "city.election_law.city_council"},
+			VetoOver: []string{"mayor"},
 		},
 		{
 			Code: "president", Jurisdiction: CountryLevel, Seats: 1, AcquiredBy: AcquiredByElection,
-			Levers: []string{"country.border_tariff"}, VetoOver: []string{"city.tax_rate"},
+			Levers: []string{"country.border_tariff", "country.election_law.president"}, VetoOver: []string{"city.tax_rate"},
 		},
 	}
 	return p

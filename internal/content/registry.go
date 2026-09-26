@@ -52,9 +52,6 @@ type Snapshot struct {
 	// Items and shops; see items.go.
 	items itemContent
 
-	// Elections by office; see election.go.
-	elections map[string]ElectionDef
-
 	// Companies; see company.go.
 	companies companyContent
 
@@ -151,7 +148,6 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	snap.buildPayments(p)
 	snap.buildPlaces(p)
 	snap.buildItems(p)
-	snap.buildElections(p)
 	snap.buildCompanies(p)
 	snap.buildProduction(p)
 	snap.buildMilitary(p)

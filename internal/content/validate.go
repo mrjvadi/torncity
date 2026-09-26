@@ -173,9 +173,6 @@ func (p *Pack) Validate() error {
 	// Items: components, archetypes, goods and the shops that sell them.
 	p.validateItems(&problems)
 
-	// Elections: how each elected office is elected.
-	p.validateElections(&problems)
-
 	// Companies: kinds of business against careers and places, and each
 	// city's NPC market.
 	p.validateCompanies(&problems)

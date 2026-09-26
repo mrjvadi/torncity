@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/mrjvadi/torncity/internal/domain/election"
 	"github.com/mrjvadi/torncity/internal/domain/world"
 )
 
@@ -78,7 +79,13 @@ var (
 	ErrLeverCodePrefix = errors.New("content: lever code must start with its jurisdiction level")
 
 	// ErrInvalidLeverType means a type outside the closed set.
-	ErrInvalidLeverType = errors.New("content: lever type must be bps, money, int, bool, enum, map or allocation")
+	ErrInvalidLeverType = errors.New(
+		"content: lever type must be bps, money, int, bool, enum, map, allocation or election_law")
+
+	// ErrInvalidElectionLaw means an election_law lever's code, bounds,
+	// education options or default document do not fit an elected office's
+	// law (internal/domain/election.Fields).
+	ErrInvalidElectionLaw = errors.New("content: invalid election law")
 
 	// ErrLeverBoundRequired means a scalar lever omitted default, min or max,
 	// or gave a default that is not a whole number. All three are required
@@ -181,6 +188,7 @@ func (p *Pack) validateGovernance(problems *[]error) {
 	leverCodes := p.validateLevers(levels, offices, problems)
 	p.validateOfficeLinks(offices, leverCodes, problems)
 	p.validateActions(levels, offices, problems)
+	p.validateElectionLawCoverage(offices, problems)
 }
 
 // validateLevels checks the level list and returns the valid ones by code.
@@ -434,6 +442,9 @@ func (p *Pack) validateLevers(levels map[string]LevelDef, offices map[string]Off
 			p.validateLeverBounds(l, name, problems)
 		case ValueKindStructured:
 			validateStructuredLever(l, name, problems)
+			if l.IsElectionLaw() {
+				validateElectionLawLever(l, name, offices, problems)
+			}
 		default:
 			*problems = append(*problems, fmt.Errorf("%w: %s has %q", ErrInvalidLeverType, name, l.Type))
 		}
@@ -677,6 +688,9 @@ func validateStructuredLever(l LeverDef, name string, problems *[]error) {
 	if l.Type != LeverAllocation && len(l.Categories) > 0 {
 		bad("is a %s lever and takes no categories", l.Type)
 	}
+	if l.Type != LeverElectionLaw && (len(l.EducationOptions) > 0 || l.Bounds != nil) {
+		bad("is a %s lever and takes no education_options or bounds", l.Type)
+	}
 
 	switch l.Type {
 	case LeverBool:
@@ -706,6 +720,15 @@ func validateStructuredLever(l LeverDef, name string, problems *[]error) {
 			if s, ok := v.(string); !ok || !contains(l.Options, s) {
 				bad("default maps %q to %v, which is not one of %v", k, v, l.Options)
 			}
+		}
+	case LeverElectionLaw:
+		doc, ok := l.DefaultElectionLawDoc()
+		if !ok {
+			bad("default %v is not a mapping of election law fields to whole numbers", l.Default)
+			return
+		}
+		if err := election.ValidateFields(doc); err != nil {
+			bad("%v", err)
 		}
 	case LeverAllocation:
 		if !distinct(l.Categories) {
@@ -909,4 +932,98 @@ func (p *Pack) Office(code string) (OfficeDef, bool) {
 		}
 	}
 	return OfficeDef{}, false
+}
+
+// validateElectionLawLever checks one election_law lever on its own: its
+// code names a declared, elected office of the same jurisdiction, its
+// education options are distinct, its bounds are present and every field's
+// min does not exceed its max, and its default lies inside those bounds.
+func validateElectionLawLever(l LeverDef, name string, offices map[string]OfficeDef, problems *[]error) {
+	bad := func(format string, args ...any) {
+		*problems = append(*problems, fmt.Errorf("%w: %s "+format, append([]any{ErrInvalidElectionLaw, name}, args...)...))
+	}
+	office := l.ElectionLawOffice()
+	if office == "" {
+		bad("its code must be %q, naming the office it elects", l.Jurisdiction+".election_law.<office>")
+		return
+	}
+	if o, ok := offices[office]; !ok {
+		bad("names office %q, which is not declared", office)
+	} else if o.AcquiredBy != AcquiredByElection {
+		bad("names office %q, which is acquired by %s, not by election", office, o.AcquiredBy)
+	} else if o.Jurisdiction != l.Jurisdiction {
+		bad("is a %s lever for office %q, a %s office", l.Jurisdiction, office, o.Jurisdiction)
+	}
+
+	if !distinctOrEmpty(l.EducationOptions) {
+		bad("education_options must be distinct and non-empty")
+	}
+	for _, c := range l.EducationOptions {
+		if c == "none" {
+			bad(`education_options must not list "none": rank 0 always means none`)
+		}
+	}
+
+	if l.Bounds == nil {
+		bad("needs bounds, so a legislature can never lock every resident out")
+		return
+	}
+	if l.Bounds.EndorsementsMaxBPS < 0 || l.Bounds.EndorsementsMaxBPS > 10_000 {
+		bad("endorsements_max_bps %d is outside 0..10000", l.Bounds.EndorsementsMaxBPS)
+	}
+	if l.Bounds.ExclusionMaxBPS < 0 || l.Bounds.ExclusionMaxBPS > 10_000 {
+		bad("exclusion_max_bps %d is outside 0..10000", l.Bounds.ExclusionMaxBPS)
+	}
+	doc, ok := l.DefaultElectionLawDoc()
+	if !ok {
+		return // already reported by validateStructuredLever
+	}
+	for _, field := range election.Fields {
+		lo, hi, _ := l.Bounds.Bound(field, l.EducationOptions)
+		if lo > hi {
+			bad("field %q has min %d above max %d", field, lo, hi)
+			continue
+		}
+		if v := doc[field]; v < lo || v > hi {
+			bad("field %q default %d is outside [%d, %d]", field, v, lo, hi)
+		}
+	}
+}
+
+// distinctOrEmpty is like distinct but also accepts an empty list: an office
+// may require no certificate for any rank above "none".
+func distinctOrEmpty(list []string) bool {
+	if len(list) == 0 {
+		return true
+	}
+	return distinct(list)
+}
+
+// validateElectionLawCoverage checks that every office acquired by election
+// has exactly one election_law lever, and that no election_law lever names
+// an office that is not declared and acquired by election (the per-lever
+// check above already reports the latter; this also catches an elected
+// office with NONE, or with two).
+func (p *Pack) validateElectionLawCoverage(offices map[string]OfficeDef, problems *[]error) {
+	byOffice := map[string]int{}
+	for _, l := range p.Levers {
+		if l.IsElectionLaw() {
+			if office := l.ElectionLawOffice(); office != "" {
+				byOffice[office]++
+			}
+		}
+	}
+	for _, o := range offices {
+		if o.AcquiredBy != AcquiredByElection {
+			continue
+		}
+		switch byOffice[o.Code] {
+		case 1:
+		case 0:
+			*problems = append(*problems, fmt.Errorf("%w: elected office %q has no election_law lever", ErrInvalidElectionLaw, o.Code))
+		default:
+			*problems = append(*problems, fmt.Errorf("%w: elected office %q has %d election_law levers, want one",
+				ErrInvalidElectionLaw, o.Code, byOffice[o.Code]))
+		}
+	}
 }

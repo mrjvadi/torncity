@@ -82,8 +82,6 @@ type file struct {
 	Items               []ItemDef      `yaml:"items"`
 	Shops               []ShopDef      `yaml:"shops"`
 
-	Elections []ElectionDef `yaml:"elections"`
-
 	CompanyTypes         []CompanyTypeDef   `yaml:"company_types"`
 	CompanyMarkets       []CompanyMarketDef `yaml:"company_markets"`
 	CompanyDemand        []CompanyDemandDef `yaml:"company_demand"`
@@ -210,7 +208,6 @@ func Load(dir string) (*Pack, error) {
 		pack.Archetypes = append(pack.Archetypes, doc.Archetypes...)
 		pack.Items = append(pack.Items, doc.Items...)
 		pack.Shops = append(pack.Shops, doc.Shops...)
-		pack.Elections = append(pack.Elections, doc.Elections...)
 		pack.CompanyTypes = append(pack.CompanyTypes, doc.CompanyTypes...)
 		pack.CompanyMarkets = append(pack.CompanyMarkets, doc.CompanyMarkets...)
 		pack.CompanyDemand = append(pack.CompanyDemand, doc.CompanyDemand...)

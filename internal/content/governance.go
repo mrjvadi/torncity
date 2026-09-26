@@ -77,6 +77,14 @@ const (
 	// LeverAllocation divides a whole (10000 bps) among `categories`: a
 	// budget. default: a mapping of category to bps summing to 10000.
 	LeverAllocation = "allocation"
+	// LeverElectionLaw is one elected office's election law (ADR 0015
+	// section 2; internal/domain/election.Fields): who may stand and vote,
+	// and how the count runs. Unlike bool, enum and map it HAS behaviour: the
+	// resolver answers it and the legislature changes it, one field at a
+	// time, like an allocation's shares. default: a mapping with exactly
+	// election.Fields as keys. Only an office acquired_by: election may have
+	// one, exactly one, at a lever code of `<jurisdiction>.election_law.<office>`.
+	LeverElectionLaw = "election_law"
 )
 
 // Value kinds: where a lever's value is stored. A scalar lever's value is an
@@ -92,7 +100,7 @@ func LeverValueKind(leverType string) string {
 	switch leverType {
 	case LeverBPS, LeverMoney, LeverInt:
 		return ValueKindScalar
-	case LeverBool, LeverEnum, LeverMap, LeverAllocation:
+	case LeverBool, LeverEnum, LeverMap, LeverAllocation, LeverElectionLaw:
 		return ValueKindStructured
 	}
 	return ""
@@ -280,6 +288,91 @@ type LeverDef struct {
 	// change that moves the value by more than this much; smaller changes
 	// the holder decides alone. Omitted: every change is confirmed.
 	ConfirmAbove *int64 `yaml:"confirm_above"`
+
+	// EducationOptions lists, election_law only, the certificates (course
+	// codes of education.yml courses with certifies: true) this office's law
+	// may require, in ascending rank; rank 0, "none", is implicit and never
+	// listed. A candidate's education_rank field names the least rank of a
+	// certificate they must hold among these.
+	EducationOptions []string `yaml:"education_options"`
+	// Bounds is, election_law only, the safety bounds the operator sets so
+	// that a legislature can never lock every resident out of the office
+	// (ADR 0015 section 2).
+	Bounds *ElectionLawBounds `yaml:"bounds"`
+}
+
+// ElectionLawBounds bounds every field of an election_law lever, and the
+// two safety valves that look past a single field at the whole law: a
+// legislature may set each field anywhere in its own [min, max], but an
+// endorsements_required beyond EndorsementsMaxBPS of a jurisdiction's
+// residents, or a law application.CheckElectionLawExclusion estimates would
+// leave more than ExclusionMaxBPS of residents unable to stand, is refused
+// however the fields alone would allow it.
+type ElectionLawBounds struct {
+	CandidacyHours         FieldBound `yaml:"candidacy_hours"`
+	VotingHours            FieldBound `yaml:"voting_hours"`
+	MinLevel               FieldBound `yaml:"min_level"`
+	MinResidencyHours      FieldBound `yaml:"min_residency_hours"`
+	VoterMinResidencyHours FieldBound `yaml:"voter_min_residency_hours"`
+	Deposit                FieldBound `yaml:"deposit"`
+	RefundShareBPS         FieldBound `yaml:"refund_share_bps"`
+	ReopenAfterHours       FieldBound `yaml:"reopen_after_hours"`
+	EndorsementsRequired   FieldBound `yaml:"endorsements_required"`
+	TermLimitConsecutive   FieldBound `yaml:"term_limit_consecutive"`
+	TermLimitTotal         FieldBound `yaml:"term_limit_total"`
+	MinAge                 FieldBound `yaml:"min_age"`
+	// EndorsementsMaxBPS caps endorsements_required at this share of the
+	// jurisdiction's residents (10000 = all of them), on top of its own
+	// [min, max] above.
+	EndorsementsMaxBPS int64 `yaml:"endorsements_max_bps"`
+	// ExclusionMaxBPS is the greatest share of residents an election law may
+	// estimate to exclude from standing at once.
+	ExclusionMaxBPS int64 `yaml:"exclusion_max_bps"`
+}
+
+// FieldBound is one field's [min, max] within an ElectionLawBounds. Both are
+// required; zero is a meaningful value for each (a field that may not move
+// at all still has a min and a max, both zero).
+type FieldBound struct {
+	Min int64 `yaml:"min"`
+	Max int64 `yaml:"max"`
+}
+
+// Bound looks a field up by code (an election.Field* constant), the
+// derived bound for clean_record (always 0..1) and education_rank (always
+// 0..len(EducationOptions)), or ok false for an unknown field.
+func (b ElectionLawBounds) Bound(field string, educationOptions []string) (lo, hi int64, ok bool) {
+	switch field {
+	case "candidacy_hours":
+		return b.CandidacyHours.Min, b.CandidacyHours.Max, true
+	case "voting_hours":
+		return b.VotingHours.Min, b.VotingHours.Max, true
+	case "min_level":
+		return b.MinLevel.Min, b.MinLevel.Max, true
+	case "min_residency_hours":
+		return b.MinResidencyHours.Min, b.MinResidencyHours.Max, true
+	case "clean_record":
+		return 0, 1, true
+	case "voter_min_residency_hours":
+		return b.VoterMinResidencyHours.Min, b.VoterMinResidencyHours.Max, true
+	case "deposit":
+		return b.Deposit.Min, b.Deposit.Max, true
+	case "refund_share_bps":
+		return b.RefundShareBPS.Min, b.RefundShareBPS.Max, true
+	case "reopen_after_hours":
+		return b.ReopenAfterHours.Min, b.ReopenAfterHours.Max, true
+	case "endorsements_required":
+		return b.EndorsementsRequired.Min, b.EndorsementsRequired.Max, true
+	case "term_limit_consecutive":
+		return b.TermLimitConsecutive.Min, b.TermLimitConsecutive.Max, true
+	case "term_limit_total":
+		return b.TermLimitTotal.Min, b.TermLimitTotal.Max, true
+	case "education_rank":
+		return 0, int64(len(educationOptions)), true
+	case "min_age":
+		return b.MinAge.Min, b.MinAge.Max, true
+	}
+	return 0, 0, false
 }
 
 // ConfirmRule is the confirming body's rule with the default applied, ""
@@ -304,6 +397,38 @@ func (l LeverDef) Rule() string {
 
 // ValueKind is scalar or structured, from the type; "" for an unknown type.
 func (l LeverDef) ValueKind() string { return LeverValueKind(l.Type) }
+
+// IsElectionLaw reports whether the lever is one office's election law.
+func (l LeverDef) IsElectionLaw() bool { return l.Type == LeverElectionLaw }
+
+// ElectionLawOffice is the office code an election_law lever's code names:
+// "<jurisdiction>.election_law.<office>". "" for a lever whose code does not
+// fit that shape (Validate refuses such a lever).
+func (l LeverDef) ElectionLawOffice() string {
+	prefix := l.Jurisdiction + ".election_law."
+	if !l.IsElectionLaw() || !strings.HasPrefix(l.Code, prefix) {
+		return ""
+	}
+	return strings.TrimPrefix(l.Code, prefix)
+}
+
+// DefaultElectionLawDoc reads an election_law lever's default as a document
+// of int64 fields, in the shape election.ValidateFields checks.
+func (l LeverDef) DefaultElectionLawDoc() (map[string]int64, bool) {
+	m, ok := asMap(l.Default)
+	if !ok {
+		return nil, false
+	}
+	out := make(map[string]int64, len(m))
+	for k, v := range m {
+		n, whole := integer(v)
+		if !whole {
+			return nil, false
+		}
+		out[k] = n
+	}
+	return out, true
+}
 
 // DefaultValue is a scalar lever's default, zero when it is not an integer
 // (which Validate refuses).
