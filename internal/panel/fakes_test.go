@@ -244,3 +244,13 @@ func (b *fakeBackend) Broadcast(context.Context, Message, operator.Actor) (int, 
 func (b *fakeBackend) Audit(context.Context, string, int) ([]postgres.AuditLine, error) {
 	return nil, nil
 }
+
+func (b *fakeBackend) Switches(context.Context) (SwitchesView, error) {
+	return SwitchesView{Switches: []SwitchStatus{}}, nil
+}
+func (b *fakeBackend) SetSwitch(_ context.Context, key, value string, _ operator.Actor) (postgres.SwitchState, error) {
+	return postgres.SwitchState{Key: key, Value: value}, nil
+}
+func (b *fakeBackend) SwitchHistory(context.Context, int) ([]postgres.SwitchHistoryEntry, error) {
+	return nil, nil
+}

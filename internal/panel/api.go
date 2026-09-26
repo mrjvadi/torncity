@@ -39,6 +39,8 @@ func (s *Server) routes() {
 	m.HandleFunc("GET /api/watch/flags/{no}", s.read(s.flag))
 	m.HandleFunc("GET /api/watch/holds", s.read(s.holds))
 	m.HandleFunc("GET /api/audit", s.read(s.audit))
+	m.HandleFunc("GET /api/switches", s.read(s.switchesView))
+	m.HandleFunc("GET /api/switches/history", s.read(s.switchHistory))
 
 	m.HandleFunc("POST /api/cities/{code}/groups/link", s.mutation("group.link", s.linkGroup))
 	m.HandleFunc("POST /api/cities/{code}/groups/unlink", s.mutation("group.unlink", s.unlinkGroup))
@@ -54,6 +56,7 @@ func (s *Server) routes() {
 	m.HandleFunc("POST /api/watch/holds/{no}/return", s.mutation("watch.return", s.settle(false)))
 	m.HandleFunc("POST /api/announce", s.mutation("announce", s.announce))
 	m.HandleFunc("POST /api/broadcast", s.mutation("broadcast", s.broadcast))
+	m.HandleFunc("POST /api/switches/{key}", s.mutation("switch.set", s.setSwitch))
 
 	s.consoleRoutes(m)
 
@@ -263,6 +266,16 @@ func (s *Server) audit(r *http.Request) (any, error) {
 		return nil, bad("action is too long")
 	}
 	return nonNil(s.backend.Audit(r.Context(), prefix, limit))
+}
+
+func (s *Server) switchesView(r *http.Request) (any, error) { return s.backend.Switches(r.Context()) }
+
+func (s *Server) switchHistory(r *http.Request) (any, error) {
+	limit, err := intQuery(r, "limit", 50, 1, 200)
+	if err != nil {
+		return nil, err
+	}
+	return nonNil(s.backend.SwitchHistory(r.Context(), limit))
 }
 
 // nonNil answers an empty list as [] rather than null.

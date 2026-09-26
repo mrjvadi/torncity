@@ -273,3 +273,32 @@ func (s *Server) broadcast(ctx context.Context, _ *http.Request, body json.RawMe
 	}
 	return http.StatusOK, map[string]any{"players": n, "only": m.Only}, nil
 }
+
+// setSwitch flips one operator switch (migrations/0041_runtime_switches).
+// Confirm must repeat the switch's own key, the way loadContent's Confirm
+// repeats a checksum: the operator types the name of the thing they are
+// about to change, so a hasty click on the wrong row cannot flip it.
+func (s *Server) setSwitch(ctx context.Context, r *http.Request, body json.RawMessage, a operator.Actor) (int, any, error) {
+	key := strings.TrimSpace(r.PathValue("key"))
+	if key == "" {
+		return 0, nil, bad("name the switch")
+	}
+	var c struct {
+		Value   string `json:"value"`
+		Confirm string `json:"confirm"`
+	}
+	if err := strict(body, &c); err != nil {
+		return 0, nil, err
+	}
+	if c.Confirm != key {
+		return 0, nil, bad("type %q to confirm this change", key)
+	}
+	if strings.TrimSpace(c.Value) == "" {
+		return 0, nil, bad("a value is required")
+	}
+	st, err := s.backend.SetSwitch(ctx, key, strings.TrimSpace(c.Value), a)
+	if err != nil {
+		return 0, nil, err
+	}
+	return http.StatusOK, st, nil
+}

@@ -10,6 +10,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/operator"
 	"github.com/mrjvadi/torncity/internal/shared/playercode"
+	"github.com/mrjvadi/torncity/internal/switches"
 )
 
 // PG is the Backend over the game's database.
@@ -20,6 +21,13 @@ type PG struct {
 	ContentDir string
 	// Config gives the daily caps the ledger checks compare against.
 	Config *config.Config
+	// SwitchCache, when set (cmd/panel/main.go wires it over REDIS_URL), is
+	// the same switches.Reader the gateway reads through, so System >
+	// Switches can show the value the gateway is actually acting on and its
+	// cache age rather than only the database's own current row. Nil is
+	// fine: Switches then reports the database value as "effective" with no
+	// age, which is what the gateway falls back to on a cache miss anyway.
+	SwitchCache *switches.Reader
 
 	cache snapCache
 }
@@ -59,7 +67,9 @@ func (p *PG) Overview(ctx context.Context, days int, now time.Time) (Overview, e
 		return Overview{}, err
 	}
 	return Overview{Days: days, Since: d.Since, Supply: flows(d.Supply), Total: d.Total, Faucets: flows(d.Faucets),
-		Drains: flows(d.Drains), PriceIndex: d.PriceIndex, PriorIndex: d.PriorIndex, Counts: counts}, nil
+		Drains: flows(d.Drains), PriceIndex: d.PriceIndex, PriorIndex: d.PriorIndex, Counts: counts,
+		TelegramPlay:    p.switchValue(ctx, switches.KeyTelegramPlay, switches.PlayOn),
+		TelegramNotices: p.switchValue(ctx, switches.KeyTelegramNotices, switches.NoticesOn)}, nil
 }
 
 // SearchPlayers finds players.

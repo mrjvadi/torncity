@@ -47,6 +47,13 @@ type Backend interface {
 	Announce(ctx context.Context, m Message, a operator.Actor) (Announced, error)
 	Broadcast(ctx context.Context, m Message, a operator.Actor) (int, error)
 	Audit(ctx context.Context, prefix string, limit int) ([]postgres.AuditLine, error)
+
+	// Switches is the operator's runtime switches (migrations/0041): System
+	// > Switches reads them with SwitchStatus (its cache health line too),
+	// changes one with SetSwitch, and lists past changes with SwitchHistory.
+	Switches(ctx context.Context) (SwitchesView, error)
+	SetSwitch(ctx context.Context, key, value string, a operator.Actor) (postgres.SwitchState, error)
+	SwitchHistory(ctx context.Context, limit int) ([]postgres.SwitchHistoryEntry, error)
 }
 
 // Flow is one reason's (or kind's) money.
@@ -66,6 +73,36 @@ type Overview struct {
 	PriceIndex int64                `json:"price_index_bps"`
 	PriorIndex int64                `json:"prior_index_bps"`
 	Counts     postgres.PanelCounts `json:"counts"`
+	// TelegramPlay and TelegramNotices are switch.telegram_play and
+	// switch.telegram_notices' effective values, shown prominently on the
+	// Overview so an operator sees at a glance whether Telegram play is on.
+	TelegramPlay    string `json:"telegram_play"`
+	TelegramNotices string `json:"telegram_notices"`
+}
+
+// SwitchStatus is one switch's row (migrations/0041) plus the health line
+// System > Switches and `admin switch list` both show: the value the
+// gateway is actually acting on right now and how stale that cached answer
+// is. CacheAgeSeconds is nil when there is nothing cached to report (no
+// change has been made yet, or the panel has no Redis of its own to check
+// with) — the row above is then the database's own current value, which the
+// gateway still reads correctly, just possibly not yet.
+type SwitchStatus struct {
+	postgres.SwitchState
+	Effective       string   `json:"effective"`
+	CacheAgeSeconds *float64 `json:"cache_age_seconds,omitempty"`
+}
+
+// SwitchesView is what System > Switches reads in one call: every switch's
+// status, and the web game's Mini App URL as configured (client.mini_app_url
+// is read-only from configs/config.yml; it is shown here, never edited).
+type SwitchesView struct {
+	Switches   []SwitchStatus `json:"switches"`
+	MiniAppURL string         `json:"mini_app_url"`
+	// MiniAppURLMissing warns the operator that turning telegram_play off
+	// would show players a redirect with no button, because
+	// client.mini_app_url is still empty.
+	MiniAppURLMissing bool `json:"mini_app_url_missing"`
 }
 
 // PlayerDetail is one player.
