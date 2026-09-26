@@ -55,17 +55,27 @@ func switchCommand(ctx context.Context, args []string) error {
 }
 
 func switchSetCommand(ctx context.Context, args []string) error {
+	// NAME and VALUE are positional and come first (admin switch set
+	// telegram_play off --reason ...); Go's flag package stops parsing
+	// flags at the first non-flag argument, so they are taken off args by
+	// hand before fs.Parse ever sees the rest, rather than trying to read
+	// them back out of fs.Args() afterwards.
+	if len(args) < 2 || strings.HasPrefix(args[0], "-") || strings.HasPrefix(args[1], "-") {
+		switchUsage()
+		return errors.New("switch set: a switch NAME and VALUE are required, before any flag")
+	}
+	key, value := strings.TrimSpace(args[0]), strings.TrimSpace(args[1])
+
 	fs := flag.NewFlagSet("switch set", flag.ExitOnError)
 	fs.Usage = switchUsage
 	reason := fs.String("reason", "", "why, recorded in the audit row")
 	opFlags := addOperatorFlags(fs)
-	if err := fs.Parse(args); err != nil {
+	if err := fs.Parse(args[2:]); err != nil {
 		return err
 	}
-	rest := fs.Args()
-	if len(rest) != 2 {
+	if len(fs.Args()) > 0 {
 		switchUsage()
-		return errors.New("switch set: a switch NAME and VALUE are required")
+		return fmt.Errorf("switch set: unexpected argument %q", fs.Args()[0])
 	}
 	if strings.TrimSpace(*reason) == "" {
 		return errors.New("switch set: --reason is required")
@@ -80,8 +90,7 @@ func switchSetCommand(ctx context.Context, args []string) error {
 	}
 	defer pool.Close()
 
-	st, err := operator.Ops{Pool: pool}.SetSwitch(ctx, strings.TrimSpace(rest[0]), strings.TrimSpace(rest[1]),
-		operator.Actor{Name: who, Reason: *reason})
+	st, err := operator.Ops{Pool: pool}.SetSwitch(ctx, key, value, operator.Actor{Name: who, Reason: *reason})
 	if err != nil {
 		return err
 	}
@@ -105,16 +114,18 @@ func switchListCommand(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
-	if len(rows) == 0 {
-		fmt.Println("no switch has ever been set; every switch is at its built-in default " +
-			"(telegram_play=on, telegram_notices=on)")
-		return nil
-	}
+	rows = withKnownDefaults(rows)
 
 	reader := switchHealthReader(ctx, pool)
 	for _, s := range rows {
-		fmt.Printf("%-20s %-12s by %-16s %s\n", s.Key, s.Value, s.ChangedBy, s.ChangedAt.UTC().Format(time.RFC3339))
-		fmt.Printf("%-20s reason: %s\n", "", s.Reason)
+		when := "never set; at its built-in default"
+		if !s.ChangedAt.IsZero() {
+			when = fmt.Sprintf("by %s, %s", s.ChangedBy, s.ChangedAt.UTC().Format(time.RFC3339))
+		}
+		fmt.Printf("%-20s %-12s %s\n", s.Key, s.Value, when)
+		if s.Reason != "" {
+			fmt.Printf("%-20s reason: %s\n", "", s.Reason)
+		}
 		if reader == nil {
 			continue
 		}
@@ -158,4 +169,29 @@ type switchSource struct{ ops *postgres.SwitchOps }
 
 func (s switchSource) Get(ctx context.Context, key string) (string, bool, error) {
 	return s.ops.Get(ctx, key)
+}
+
+// knownSwitches are always listed, at their built-in default, even before
+// their first change — the same guarantee internal/panel's System > Switches
+// page makes, so `switch list` never leaves an operator wondering whether a
+// switch this feature ships is simply not shown yet or genuinely untouched.
+var knownSwitches = []struct{ key, def string }{
+	{switches.KeyTelegramPlay, switches.PlayOn},
+	{switches.KeyTelegramNotices, switches.NoticesOn},
+}
+
+// withKnownDefaults fills in any of knownSwitches missing from rows, at its
+// default, changed_by/changed_at/reason left empty (never set).
+func withKnownDefaults(rows []postgres.SwitchState) []postgres.SwitchState {
+	have := make(map[string]bool, len(rows))
+	for _, r := range rows {
+		have[r.Key] = true
+	}
+	out := rows
+	for _, k := range knownSwitches {
+		if !have[k.key] {
+			out = append(out, postgres.SwitchState{Key: k.key, Value: k.def})
+		}
+	}
+	return out
 }
