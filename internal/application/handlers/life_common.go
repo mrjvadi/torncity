@@ -60,8 +60,18 @@ func lifeDefaults(def content.LifeDef, playerID string, bornAt, now time.Time) a
 // caught-up life before it is written (a meal, a night's sleep, a shift's
 // stress). It returns nil when the content has no life or the transaction
 // no life repository.
+//
+// meta and hungerAlertCooldown are for exactly one thing: the urgent "you
+// are hungry" notice (life.hunger_low), fired here — where hunger is caught
+// up for EVERY handler, lazily, whichever one happens to be looked at next —
+// rather than by any one of them. meta is the caller's own inbound request,
+// the same one every other event this call may append rides on
+// (judgeRank does the same for life.rank_changed); hungerAlertCooldown is
+// notifications.hunger_alert_cooldown, threaded in by whichever handler was
+// built WithHungerAlert.
 func touchLife(ctx context.Context, tx application.Tx, snap *content.Snapshot, scale gametime.Scale,
-	p *application.Player, now time.Time, change func(*lifeNow),
+	p *application.Player, now time.Time, meta envelope.Metadata, hungerAlertCooldown time.Duration,
+	change func(*lifeNow),
 ) (*lifeNow, error) {
 	def, ok := snap.Life()
 	if !ok || tx.Life() == nil || scale.Validate() != nil {
@@ -90,6 +100,15 @@ func touchLife(ctx context.Context, tx application.Tx, snap *content.Snapshot, s
 	l := &lifeNow{row: row, stats: stats, factors: factors}
 	l.needs = row.Needs().At(now, scale, def.Drift(), stats.Happiness)
 	cond := def.Condition()
+
+	// The drift alone — before change touches anything, a meal included —
+	// is what "since you were last looked at, you went hungry" means. row
+	// still holds the value as of the last touch, so this is the one place
+	// that can tell a crossing from a level that was already high.
+	if err := alertHunger(ctx, tx, meta, cond, row, l.needs.Hunger, now, hungerAlertCooldown); err != nil {
+		return nil, err
+	}
+
 	pressing := len(cond.Effects(l.needs, stats.Happiness).Pressing)
 	target := def.MoodRules().Target(life.Life{Home: factors.Home, Friends: factors.Friends, Faction: factors.Faction,
 		Achievements: factors.Achievements}, pressing)
@@ -117,6 +136,29 @@ func touchLife(ctx context.Context, tx application.Tx, snap *content.Snapshot, s
 	}
 	stats.RegenBPS = l.effects.BodyBPS
 	return l, nil
+}
+
+// alertHunger appends life.hunger_low the first time hunger crosses the
+// content-defined High threshold (life.yml needs.high) since it was last
+// below it, subject to cooldown: a hunger sitting right at the line must not
+// resend it on every command that happens to catch the life up. cooldown
+// zero — a handler never built WithHungerAlert — disables the cooldown check
+// but not the crossing itself, so every caller of touchLife still notices a
+// genuine crossing; only cmd/game's real wiring sets it.
+func alertHunger(ctx context.Context, tx application.Tx, meta envelope.Metadata, cond life.Condition,
+	row *application.PlayerLife, hunger int64, now time.Time, cooldown time.Duration,
+) error {
+	threshold := int64(cond.High) * life.Milli
+	if row.Hunger >= threshold || hunger < threshold {
+		// Already pressing before this touch, or not pressing now: no
+		// crossing happened just now.
+		return nil
+	}
+	if cooldown > 0 && row.HungerAlertAt != nil && now.Sub(*row.HungerAlertAt) < cooldown {
+		return nil
+	}
+	row.HungerAlertAt = &now
+	return appendDomainEvent(ctx, tx, meta, "life", "hunger_low", row.PlayerID, map[string]any{"player_id": row.PlayerID})
 }
 
 // lifeEffects is what a player's condition does to what they are about to

@@ -680,6 +680,22 @@ func renderRankNotice(c Context, v RankNoticeView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
+// HungerNotice is the one urgent need alert this feature adds
+// (life_common.go's alertHunger): always instant, by
+// configs/notifications/delivery.yml. It carries no numbers — a player who
+// wants their exact hunger opens /life — only a nudge and a way to act on it
+// at once: eat something already carried, or go buy food in the city.
+func HungerNotice(c Context) *presenter.Response {
+	return c.withView(renderHungerNotice(c), ScreenHungerNotice, nil)
+}
+
+func renderHungerNotice(c Context) *presenter.Response {
+	kb := keyboards.New()
+	kb.Add(c.T("life.hunger_low.eat_button", nil), AddrInventory)
+	kb.Add(c.T("life.hunger_low.shop_button", nil), AddrShops)
+	return c.respond(c.T("life.hunger_low.text", nil), kb.Build())
+}
+
 // lifeLines are the profile's rank, age and needs.
 func lifeLines(c Context, rank *RankRef, age int, stage Named) string {
 	var lines []string

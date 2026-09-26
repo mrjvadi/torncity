@@ -49,6 +49,17 @@ type InventoryHandler struct {
 	pageSize       int
 	idempotencyTTL time.Duration
 	now            func() time.Time
+	// hungerAlertCooldown, set by WithHungerAlert, is
+	// notifications.hunger_alert_cooldown; zero still notices a hunger
+	// crossing, just with no cooldown between repeats.
+	hungerAlertCooldown time.Duration
+}
+
+// WithHungerAlert sets the real-time cooldown between two "you are hungry"
+// instant notices to the same player (life_common.go's alertHunger).
+func (h *InventoryHandler) WithHungerAlert(cooldown time.Duration) *InventoryHandler {
+	h.hungerAlertCooldown = cooldown
+	return h
 }
 
 // NewInventoryHandler wires the handler. A missing dependency is a wiring
@@ -415,7 +426,7 @@ func (h *InventoryHandler) Use(ctx context.Context, meta envelope.Metadata, req 
 		var lived *lifeNow
 		for _, e := range rules.Effects {
 			if inventory.NeedTarget(e.Target) && lived == nil {
-				if lived, err = touchLife(ctx, tx, snap, h.scale, p, now, nil); err != nil {
+				if lived, err = touchLife(ctx, tx, snap, h.scale, p, now, meta, h.hungerAlertCooldown, nil); err != nil {
 					return err
 				}
 				if lived != nil {

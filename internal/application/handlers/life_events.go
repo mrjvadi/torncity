@@ -270,7 +270,7 @@ func (h *LifeHandler) touch(ctx context.Context, tx application.Tx, snap *conten
 	}
 	effect := def.Event(t.event)
 	mind := def.Mind()
-	l, err := touchLife(ctx, tx, snap, h.scale, p, now, func(l *lifeNow) {
+	l, err := touchLife(ctx, tx, snap, h.scale, p, now, meta, h.hungerAlertCooldown, func(l *lifeNow) {
 		if t.event != "" {
 			l.needs = l.needs.Change(0, 0, effect.Stress)
 			l.happiness += effect.Happiness

@@ -328,6 +328,9 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		gametime.Scale(cfg.Game.TimeScale), cfg.Crime, cfg.Trade, cfg.Game.IdempotencyTTL)
 	// The watch checks every market trade (docs/adr/0023).
 	h.goods.market.WithWatch(watchThresholds(cfg.AntiCheat))
+	// A meal touches the life (docs/adr/0025): the urgent "you are hungry"
+	// notice's own cooldown.
+	h.goods.inventory.WithHungerAlert(cfg.Notifications.HungerAlertCooldown)
 
 	// Companies: kinds of business and each city's market are content read
 	// from the live registry; what a city charges a company only through
@@ -366,6 +369,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.stageE.health = handlers.NewHealthHandler(uow, uuidGenerator{}, messages, registry, cities,
 		gametime.Scale(cfg.Game.TimeScale), bankLimits, cfg.Game.IdempotencyTTL, nil)
 	h.profile.WithHealth(gametime.Scale(cfg.Game.TimeScale))
+	h.profile.WithHungerAlert(cfg.Notifications.HungerAlertCooldown)
 	// Factions: what founding one costs and the organised crimes are
 	// content; an organised crime runs through the crime engine.
 	h.stageE.factions = handlers.NewFactionsHandler(uow, uuidGenerator{}, messages, registry, cities,
@@ -393,7 +397,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			ForeclosurePeriods: cfg.Property.ForeclosurePeriods, EvictionPeriods: cfg.Property.EvictionPeriods,
 			MaxOwned: cfg.Property.MaxOwned, MaxPrice: cfg.Property.MaxPrice, MaxRent: cfg.Property.MaxRent,
 			RestCooldown: cfg.Property.RestCooldown, ListSize: handlers.DefaultPageSize},
-		cfg.Game.IdempotencyTTL, nil)
+		cfg.Game.IdempotencyTTL, nil).WithHungerAlert(cfg.Notifications.HungerAlertCooldown)
 	h.stageF.city = handlers.NewCityHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.City.Period,
 		cfg.Game.IdempotencyTTL, nil).WithProperty(h.stageF.property)
@@ -402,7 +406,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// Stage G1 (docs/adr/0025): a character's life; the leaderboards on
 	// the game clock.
 	h.stageG1.life = handlers.NewLifeHandler(uow, uuidGenerator{}, messages, registry, cities,
-		postgres.NewPlayerSearchRepository(pool), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL, nil)
+		postgres.NewPlayerSearchRepository(pool), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL, nil).
+		WithHungerAlert(cfg.Notifications.HungerAlertCooldown)
 	// The notification inbox (docs: /inbox, migrations/0037): what
 	// cmd/notifier stored instead of flooding a player with messages.
 	h.inbox.inbox = handlers.NewInboxHandler(uow, messages,

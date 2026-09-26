@@ -69,6 +69,10 @@ type ProfileHandler struct {
 	// scale, when set by WithHealth, lets the profile show health as the
 	// game clock has brought it back, and a hospital stay (docs/adr/0023).
 	scale gametime.Scale
+	// hungerAlertCooldown, set by WithHungerAlert, is
+	// notifications.hunger_alert_cooldown; zero still notices a hunger
+	// crossing, just with no cooldown between repeats.
+	hungerAlertCooldown time.Duration
 }
 
 // NewProfileHandler wires the handler.
@@ -144,6 +148,13 @@ func (h *ProfileHandler) WithWork(source ContentSource, policy application.Polic
 // their hospital stay.
 func (h *ProfileHandler) WithHealth(scale gametime.Scale) *ProfileHandler {
 	h.scale = scale
+	return h
+}
+
+// WithHungerAlert sets the real-time cooldown between two "you are hungry"
+// instant notices to the same player (life_common.go's alertHunger).
+func (h *ProfileHandler) WithHungerAlert(cooldown time.Duration) *ProfileHandler {
+	h.hungerAlertCooldown = cooldown
 	return h
 }
 
@@ -357,7 +368,7 @@ func (h *ProfileHandler) life(ctx context.Context, tx application.Tx, p *applica
 		return nil
 	}
 	now := h.now()
-	l, err := touchLife(ctx, tx, snap, h.scale, p, now, nil)
+	l, err := touchLife(ctx, tx, snap, h.scale, p, now, meta, h.hungerAlertCooldown, nil)
 	if err != nil || l == nil {
 		return err
 	}

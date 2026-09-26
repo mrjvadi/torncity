@@ -47,6 +47,17 @@ type PropertyHandler struct {
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
+	// hungerAlertCooldown, set by WithHungerAlert, is
+	// notifications.hunger_alert_cooldown; zero still notices a hunger
+	// crossing, just with no cooldown between repeats.
+	hungerAlertCooldown time.Duration
+}
+
+// WithHungerAlert sets the real-time cooldown between two "you are hungry"
+// instant notices to the same player (life_common.go's alertHunger).
+func (h *PropertyHandler) WithHungerAlert(cooldown time.Duration) *PropertyHandler {
+	h.hungerAlertCooldown = cooldown
+	return h
 }
 
 // PropertyRules is the tuning of property (config property.*).
@@ -1300,7 +1311,7 @@ func (h *PropertyHandler) Rest(ctx context.Context, meta envelope.Metadata) (*pr
 		// docs/adr/0025).
 		if def, ok := snap.Life(); ok {
 			home := def.Sleep.Home
-			l, err := touchLife(ctx, tx, snap, h.scale, p, now, func(l *lifeNow) {
+			l, err := touchLife(ctx, tx, snap, h.scale, p, now, meta, h.hungerAlertCooldown, func(l *lifeNow) {
 				before := l.needs.Sleep
 				l.needs = l.needs.Change(0, -home.Rest, -home.Relief)
 				rested = int((before - l.needs.Sleep + life.Milli/2) / life.Milli)

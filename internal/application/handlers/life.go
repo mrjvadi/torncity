@@ -37,6 +37,17 @@ type LifeHandler struct {
 	scale          gametime.Scale
 	idempotencyTTL time.Duration
 	now            func() time.Time
+	// hungerAlertCooldown is notifications.hunger_alert_cooldown, set by
+	// WithHungerAlert; zero (never set) still notices a hunger crossing,
+	// just with no cooldown between repeats.
+	hungerAlertCooldown time.Duration
+}
+
+// WithHungerAlert sets the real-time cooldown between two "you are hungry"
+// instant notices to the same player (life_common.go's alertHunger).
+func (h *LifeHandler) WithHungerAlert(cooldown time.Duration) *LifeHandler {
+	h.hungerAlertCooldown = cooldown
+	return h
 }
 
 // NewLifeHandler builds the handler.
@@ -152,7 +163,7 @@ func (h *LifeHandler) me(ctx context.Context, meta envelope.Metadata, notice str
 			return err
 		}
 		now := h.now()
-		l, err := touchLife(ctx, tx, snap, h.scale, p, now, nil)
+		l, err := touchLife(ctx, tx, snap, h.scale, p, now, meta, h.hungerAlertCooldown, nil)
 		if err != nil || l == nil {
 			return err
 		}
@@ -347,7 +358,7 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 		if err := tx.Life().RecordSleep(ctx, night); err != nil {
 			return err
 		}
-		if _, err := touchLife(ctx, tx, snap, h.scale, p, now, func(l *lifeNow) {
+		if _, err := touchLife(ctx, tx, snap, h.scale, p, now, meta, h.hungerAlertCooldown, func(l *lifeNow) {
 			l.needs = l.needs.Change(0, -spot.Rest, -spot.Relief)
 			l.row.LastSleepAt = &now
 		}); err != nil {

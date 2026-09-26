@@ -49,8 +49,13 @@ type PlayerLife struct {
 	Bio         string
 	Avatar      string
 	LastSleepAt *time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	// HungerAlertAt is when the urgent "you are hungry" notice
+	// (life.hunger_low) last fired for this player, the cooldown
+	// notifications.hunger_alert_cooldown measures from
+	// (internal/application/handlers/life_common.go). Nil: never.
+	HungerAlertAt *time.Time
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 // Needs is the row's needs as the domain takes them.

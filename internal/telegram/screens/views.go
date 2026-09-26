@@ -172,13 +172,14 @@ const (
 	ScreenBillDecidedNotice = "bill_decided_notice"
 
 	// A character's life and legacy (life.go).
-	ScreenCard        = "card"
-	ScreenHistory     = "history"
-	ScreenAvatars     = "avatars"
-	ScreenSleepPay    = "sleep_pay"
-	ScreenLifeRefusal = "life_refusal"
-	ScreenLeaderboard = "leaderboard"
-	ScreenRankNotice  = "rank_notice"
+	ScreenCard         = "card"
+	ScreenHistory      = "history"
+	ScreenAvatars      = "avatars"
+	ScreenSleepPay     = "sleep_pay"
+	ScreenLifeRefusal  = "life_refusal"
+	ScreenLeaderboard  = "leaderboard"
+	ScreenRankNotice   = "rank_notice"
+	ScreenHungerNotice = "hunger_notice"
 
 	// The item market (market.go).
 	ScreenMarket             = "market"

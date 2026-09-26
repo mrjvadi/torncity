@@ -30,20 +30,20 @@ func NewLifeRepository(p *Pool) *LifeRepository { return &LifeRepository{q: p.sh
 
 const lifeColumns = `player_id::text, born_at, hunger, sleep, stress, needs_at, happiness_at, intelligence,
 	COALESCE(rank, ''), rank_since, net_worth, net_worth_at, equity, COALESCE(bio, ''), COALESCE(avatar, ''),
-	last_sleep_at, created_at, updated_at`
+	last_sleep_at, hunger_alert_at, created_at, updated_at`
 
 func scanLife(row pgx.Row) (*application.PlayerLife, error) {
 	var l application.PlayerLife
 	var hunger, sleep, stress int
 	if err := row.Scan(&l.PlayerID, &l.BornAt, &hunger, &sleep, &stress, &l.NeedsAt, &l.HappinessAt, &l.Intelligence,
-		&l.Rank, &l.RankSince, &l.NetWorth, &l.NetWorthAt, &l.Equity, &l.Bio, &l.Avatar, &l.LastSleepAt, &l.CreatedAt,
-		&l.UpdatedAt); err != nil {
+		&l.Rank, &l.RankSince, &l.NetWorth, &l.NetWorthAt, &l.Equity, &l.Bio, &l.Avatar, &l.LastSleepAt, &l.HungerAlertAt,
+		&l.CreatedAt, &l.UpdatedAt); err != nil {
 		return nil, err
 	}
 	l.Hunger, l.Sleep, l.Stress = int64(hunger), int64(sleep), int64(stress)
 	l.BornAt, l.NeedsAt, l.HappinessAt = l.BornAt.UTC(), l.NeedsAt.UTC(), l.HappinessAt.UTC()
 	l.CreatedAt, l.UpdatedAt = l.CreatedAt.UTC(), l.UpdatedAt.UTC()
-	for _, t := range []**time.Time{&l.RankSince, &l.NetWorthAt, &l.LastSleepAt} {
+	for _, t := range []**time.Time{&l.RankSince, &l.NetWorthAt, &l.LastSleepAt, &l.HungerAlertAt} {
 		if *t != nil {
 			v := (**t).UTC()
 			*t = &v
@@ -103,11 +103,11 @@ func (r *LifeRepository) Save(ctx context.Context, l application.PlayerLife) err
 	if _, err := r.q.Exec(ctx, `
 		UPDATE player_life SET hunger = $2, sleep = $3, stress = $4, needs_at = $5, happiness_at = $6,
 		       intelligence = $7, rank = $8, rank_since = $9, net_worth = $10, net_worth_at = $11, equity = $12,
-		       bio = $13, avatar = $14, last_sleep_at = $15, updated_at = $16
+		       bio = $13, avatar = $14, last_sleep_at = $15, hunger_alert_at = $16, updated_at = $17
 		 WHERE player_id = $1::uuid`,
 		l.PlayerID, clampNeed(l.Hunger), clampNeed(l.Sleep), clampNeed(l.Stress), l.NeedsAt.UTC(), l.HappinessAt.UTC(),
 		l.Intelligence, rank, l.RankSince, l.NetWorth, l.NetWorthAt, l.Equity, bio, avatar, l.LastSleepAt,
-		l.UpdatedAt.UTC()); err != nil {
+		l.HungerAlertAt, l.UpdatedAt.UTC()); err != nil {
 		return fmt.Errorf("postgres: saving a life: %w", err)
 	}
 	return nil

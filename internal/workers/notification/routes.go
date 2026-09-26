@@ -162,6 +162,10 @@ func Routes() []Route {
 		{Domain: "achievement", Event: "awarded", Render: renderAchievement},
 		// A character's life: see life.go.
 		{Domain: "life", Event: "rank_changed", Render: renderRankChanged},
+		// The one urgent need alert this feature adds (docs/adr/0025's
+		// needs, life_common.go's alertHunger): always instant, by
+		// configs/notifications/delivery.yml.
+		{Domain: "life", Event: "hunger_low", Render: renderHungerLow},
 		// Finance: see finance.go.
 		{Domain: "loan", Event: "due", Render: renderFinanceNotice},
 		{Domain: "loan", Event: "missed", Render: renderFinanceNotice},
