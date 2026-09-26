@@ -204,10 +204,22 @@ func CompanyPage(c Context, v CompanyPageView) *presenter.Response {
 		c.companyRating(v.Stars, v.Rated),
 	)
 	kb := keyboards.New()
+	// The manage button, when it is the player's own company, is added
+	// before hiring's job-ad buttons: the primary reason an owner opens
+	// their own page is to run it, not to apply to it.
+	if v.CanManage && !v.Dissolved {
+		if btn, ok := keyboards.Button(c.T("company.button.manage", nil), AddrCompanyManage, v.Ref.Code); ok {
+			kb.Row(btn)
+		}
+	}
 	var hiring string
 	if v.Dissolved {
-		hiring = c.T("company.dissolved", nil)
+		hiring = htmlEscape(c.T("company.dissolved", nil))
 	} else if len(v.Openings) > 0 {
+		// The page itself says only that it is hiring, and for how many
+		// positions; the wage and the free-spot count for each one — an
+		// applicant's decision, not a fact about the company — are one tap
+		// away instead of the reason the whole page reads like a job board.
 		lines := []string{c.T("company.hiring", nil)}
 		var buttons []presenter.Button
 		for _, o := range v.Openings {
@@ -220,13 +232,9 @@ func CompanyPage(c Context, v CompanyPageView) *presenter.Response {
 				buttons = append(buttons, btn)
 			}
 		}
-		hiring = body(lines...)
+		summary := htmlEscape(c.T("company.hiring_summary", map[string]any{"count": FormatNumber(c, int64(len(v.Openings)))}))
+		hiring = body(summary, htmlExpandableQuote(htmlEscape(body(lines...))))
 		kb.Grid(2, buttons...)
-	}
-	if v.CanManage && !v.Dissolved {
-		if btn, ok := keyboards.Button(c.T("company.button.manage", nil), AddrCompanyManage, v.Ref.Code); ok {
-			kb.Row(btn)
-		}
 	}
 	var makes string
 	if len(v.Products) > 0 {
@@ -244,7 +252,8 @@ func CompanyPage(c Context, v CompanyPageView) *presenter.Response {
 		makes = body(makes, c.T("production.page_published", map[string]any{"techs": c.list(names)}))
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrCompanies, RefreshData: keyboards.Data(AddrCompany, v.Ref.Code)}))
-	return c.respond(paragraphs(c.T("company.title", map[string]any{"name": v.Ref.Name}), body(facts...), makes, hiring), kb.Build())
+	title := htmlBold(htmlEscape(c.T("company.title", map[string]any{"name": v.Ref.Name})))
+	return c.respond(paragraphs(title, htmlEscape(body(facts...)), htmlEscape(makes), hiring), kb.Build()).AsHTML()
 }
 
 // CompanyTypeLine is one kind of business a player may found.
