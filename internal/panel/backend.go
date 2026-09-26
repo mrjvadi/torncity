@@ -73,11 +73,6 @@ type Overview struct {
 	PriceIndex int64                `json:"price_index_bps"`
 	PriorIndex int64                `json:"prior_index_bps"`
 	Counts     postgres.PanelCounts `json:"counts"`
-	// TelegramPlay and TelegramNotices are switch.telegram_play and
-	// switch.telegram_notices' effective values, shown prominently on the
-	// Overview so an operator sees at a glance whether Telegram play is on.
-	TelegramPlay    string `json:"telegram_play"`
-	TelegramNotices string `json:"telegram_notices"`
 }
 
 // SwitchStatus is one switch's row plus the health line System > Switches

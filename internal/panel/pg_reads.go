@@ -67,9 +67,7 @@ func (p *PG) Overview(ctx context.Context, days int, now time.Time) (Overview, e
 		return Overview{}, err
 	}
 	return Overview{Days: days, Since: d.Since, Supply: flows(d.Supply), Total: d.Total, Faucets: flows(d.Faucets),
-		Drains: flows(d.Drains), PriceIndex: d.PriceIndex, PriorIndex: d.PriorIndex, Counts: counts,
-		TelegramPlay:    p.switchValue(ctx, switches.KeyTelegramPlay, switches.PlayOn),
-		TelegramNotices: p.switchValue(ctx, switches.KeyTelegramNotices, switches.NoticesOn)}, nil
+		Drains: flows(d.Drains), PriceIndex: d.PriceIndex, PriorIndex: d.PriorIndex, Counts: counts}, nil
 }
 
 // SearchPlayers finds players.
