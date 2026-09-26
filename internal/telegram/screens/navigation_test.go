@@ -63,22 +63,16 @@ import (
 //
 // Coordination: production, companies, military, war and defence (recruit
 // and staging are the companies area's hiring and manufacturing flows) were
-// being rewritten by other agents when this audit was written and merged to
-// main only after it (1b908a3); elections, governance and diplomacy belong
-// to the election-law agent. The dead-button check above still runs on every
-// area without exception — a removed command is a removed command regardless
-// of who owns the screen — but the back-consistency check logs, rather than
-// fails, a family in deferredAreas: those screens have not been read closely
-// enough yet to tell a real bug from one more multi-step wizard (see
-// knownVariants below for what that looks like once it HAS been read). Spot
-// checks while writing this test (military's Station wizard, several of
-// production's confirm steps) found the same shape every verified case did:
-// legitimate, not a bug. Re-run with deferredAreas emptied after rebasing
-// onto the merged work and onto election law, and fix or allowlist whatever
-// it still reports.
+// being rewritten by other agents when this audit was first written, and
+// merged to main only after (1b908a3) — every one of them has since been
+// read line by line and its findings resolved into knownVariants below, the
+// same as every other area. elections, governance, diplomacy and
+// appointments still belong to the election-law agent and stay deferred
+// until that merges; the dead-button check above still runs on them without
+// exception (a removed command is a removed command regardless of who owns
+// the screen), but the back-consistency check logs rather than fails a
+// family in deferredAreas until it too can be read the same way.
 var deferredAreas = map[string]bool{
-	"companies": true, "production": true, "recruit": true, "staging": true,
-	"military": true, "war": true,
 	"elections": true, "governance": true, "diplomacy": true, "appointments": true,
 }
 
@@ -117,7 +111,72 @@ var knownVariants = map[string]string{
 	// and AuctionOpened (done: back to the auction house) all title their
 	// samples "Auction · ...".
 	"trade/Auction": "AuctionDetail and AuctionOpened back to the auction house; AuctionNew backs to the inventory item it lists",
+
+	// Read once production/companies/military/war merged (1b908a3). Every
+	// one of these follows a shape already documented above, several times
+	// over: a wizard's overview step backs to its real parent, and a step
+	// deeper in — a confirmation, a chosen slot, a chosen target — backs to
+	// the overview instead, because cancelling it returns to the screen it
+	// was reached from, not further back than that.
+
+	// CompanyRefusal switches on Kind: a refusal with no company context
+	// backs to the registry, most back to the company's public page, and a
+	// few (wrong price, not the owner) back to Manage instead.
+	"companies/Company refused": "CompanyRefusal backs to the registry, the company's page, or Manage, depending on which refusal it is",
+	// CompanyTypes (the kinds of business: back to the registry),
+	// CompanyTypeDetail (one kind: back to itself is never seen here) and
+	// CompanyFounded (done: back to the registry) all title their samples
+	// "Register · ...", in both the companies and the staging areas (the
+	// same functions, exercised with defence-sector fixtures there).
+	"companies/Register": "CompanyTypes and CompanyFounded back to the registry; CompanyTypeDetail is the step between them",
+	"staging/Register":   "CompanyTypes and CompanyFounded back to the registry; CompanyTypeDetail is the step between them",
+	// CompanyStaff backs to Manage normally; its own firing-confirmation
+	// state backs to itself (cancel returns to the staff list, not past it).
+	"companies/Staff": "the normal staff list backs to Manage; the firing-confirmation state backs to the staff list itself",
+	// Design backs to the studio normally; choosing one slot's component
+	// backs to the design's own page instead of past it to the studio.
+	"production/Design": "the design page backs to the studio; choosing a slot's component backs to the design page itself",
+	// Produce backs to the orders list while planning, and to the warehouse
+	// once the order is placed — a placed order is followed up for on the
+	// warehouse's own screen, not the planning list it no longer belongs on.
+	"production/Produce": "planning an order backs to the orders list; a placed order backs to the warehouse",
+	// ProductionRefusal backs to the player's companies with no company
+	// context, or to that company's warehouse with one, the same shape as
+	// property/Refused and companies/Company refused above.
+	"production/Refused": "ProductionRefusal backs to the player's companies, or to the company's warehouse, depending on context",
+	// ReverseLab backs to the warehouse normally; its own take-it-apart
+	// confirmation backs to itself.
+	"production/Reverse lab": "the normal view backs to the warehouse; the take-it-apart confirmation backs to itself",
+	// RecruitHub backs to Manage. RecruitDraft's own overview (no section
+	// chosen) backs to the recruitment hub; editing one section of the
+	// draft backs to the draft's overview instead.
+	"recruit/Recruitment": "RecruitHub backs to Manage; the draft's overview backs to the hub; editing one section backs to the draft's overview",
+	// RecruitRefusal backs to the player's companies with no company
+	// context, or to that company's recruitment hub with one.
+	"recruit/Recruitment refusal": "RecruitRefusal backs to the player's companies, or to the company's recruitment hub, depending on context",
+	// Procure (the minister's list of offers: back to the ministry) and
+	// ArmsBuy (buying one: back to Procure) both title their samples
+	// "Procurement · ...".
+	"military/Procurement": "Procure backs to the ministry; ArmsBuy backs to Procure",
+	// MilitaryRefusal backs to city hall with no country context, or to
+	// that country's ministry with one, the same shape as the other
+	// Kind-switched refusals above.
+	"military/Refused": "MilitaryRefusal backs to city hall, or to the country's ministry, depending on context",
+	// Station's later wizard steps reuse the same command with fewer
+	// arguments as the step before them; only its first step backs to the
+	// branch.
+	"military/Station": "the first step backs to the branch; later steps back to the step before them, the same command with fewer arguments",
+	// Licences backs to the ministry normally; its own revoke confirmation
+	// backs to itself.
+	"staging/Registry": "the normal list backs to the ministry; the revoke confirmation backs to itself",
+	// Declare backs to the war board while choosing a target; once one is
+	// chosen (picking the ground, confirming) it backs to itself instead.
+	"war/Declare": "choosing a target backs to the war board; the steps after backs to Declare itself",
+	// WarLaunch backs to the chosen target while choosing an objective;
+	// once one is chosen (how many, confirming) it backs to itself instead.
+	"war/Launch": "choosing an objective backs to the target; the steps after back to Launch itself",
 }
+
 func TestNavigationAudit(t *testing.T) {
 	cat := catalogue(t)
 	for _, lang := range cat.Languages() {
