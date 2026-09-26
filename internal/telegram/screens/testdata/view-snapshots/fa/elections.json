@@ -1,0 +1,752 @@
+[
+  {
+    "title": "Elections",
+    "screen": "elections",
+    "view": {
+      "elections": [
+        {
+          "candidates": 2,
+          "elected": null,
+          "ends_at": null,
+          "no": 4,
+          "office": "mayor",
+          "phase": "candidacy",
+          "place": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "remaining_seconds": 111600,
+          "seats": 1
+        },
+        {
+          "candidates": 6,
+          "elected": null,
+          "ends_at": null,
+          "no": 5,
+          "office": "city_council",
+          "phase": "voting",
+          "place": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "remaining_seconds": 43200,
+          "seats": 5
+        },
+        {
+          "candidates": 0,
+          "elected": null,
+          "ends_at": null,
+          "no": 2,
+          "office": "president",
+          "phase": "counting",
+          "place": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "remaining_seconds": 0,
+          "seats": 1
+        },
+        {
+          "candidates": 0,
+          "elected": [
+            {
+              "code": "B3C4D5F",
+              "name": "کاوه"
+            }
+          ],
+          "ends_at": null,
+          "no": 1,
+          "office": "mayor",
+          "phase": "counted",
+          "place": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "remaining_seconds": 0,
+          "seats": 1
+        },
+        {
+          "candidates": 0,
+          "elected": null,
+          "ends_at": null,
+          "no": 3,
+          "office": "city_council",
+          "phase": "counted",
+          "place": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "remaining_seconds": 0,
+          "seats": 5
+        }
+      ],
+      "no_city": false,
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Elections · none yet",
+    "screen": "elections",
+    "view": {
+      "elections": null,
+      "no_city": false,
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Elections · not in a city",
+    "screen": "elections",
+    "view": {
+      "elections": null,
+      "no_city": true,
+      "place": {
+        "code": "",
+        "kind": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "Election · taking candidates, you may stand",
+    "screen": "election",
+    "view": {
+      "can_stand": true,
+      "can_vote": false,
+      "candidacy_ends_at": "2026-09-24T18:05:00Z",
+      "candidates": [
+        {
+          "counted": false,
+          "elected": false,
+          "mine": false,
+          "player": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "votes": 0
+        }
+      ],
+      "deposit": 5000,
+      "min_level": 5,
+      "no": 4,
+      "nonce": "0a1b2c3d4e70",
+      "office": "mayor",
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 5000,
+        "bank": 20000,
+        "cash": 8000,
+        "usable": [
+          "cash",
+          "card"
+        ]
+      },
+      "phase": "candidacy",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "refund_share_bps": 1000,
+      "remaining_seconds": 111600,
+      "seats": 1,
+      "stand_blocked": "",
+      "standing": false,
+      "vote_blocked": "",
+      "voted": false,
+      "votes_cast": 0,
+      "voting_ends_at": "2026-09-26T18:05:00Z"
+    }
+  },
+  {
+    "title": "Election · taking candidates, level too low",
+    "screen": "election",
+    "view": {
+      "can_stand": false,
+      "can_vote": false,
+      "candidacy_ends_at": "2026-09-24T18:05:00Z",
+      "candidates": [
+        {
+          "counted": false,
+          "elected": false,
+          "mine": false,
+          "player": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "votes": 0
+        }
+      ],
+      "deposit": 5000,
+      "min_level": 5,
+      "no": 4,
+      "nonce": "0a1b2c3d4e70",
+      "office": "mayor",
+      "payment": null,
+      "phase": "candidacy",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "refund_share_bps": 1000,
+      "remaining_seconds": 111600,
+      "seats": 1,
+      "stand_blocked": "level",
+      "standing": false,
+      "vote_blocked": "",
+      "voted": false,
+      "votes_cast": 0,
+      "voting_ends_at": "2026-09-26T18:05:00Z"
+    }
+  },
+  {
+    "title": "Election · you are standing",
+    "screen": "election",
+    "view": {
+      "can_stand": false,
+      "can_vote": false,
+      "candidacy_ends_at": "2026-09-24T18:05:00Z",
+      "candidates": [
+        {
+          "counted": false,
+          "elected": false,
+          "mine": false,
+          "player": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "votes": 0
+        },
+        {
+          "counted": false,
+          "elected": false,
+          "mine": true,
+          "player": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "votes": 0
+        }
+      ],
+      "deposit": 5000,
+      "min_level": 5,
+      "no": 4,
+      "nonce": "0a1b2c3d4e70",
+      "office": "mayor",
+      "payment": null,
+      "phase": "candidacy",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "refund_share_bps": 1000,
+      "remaining_seconds": 111600,
+      "seats": 1,
+      "stand_blocked": "",
+      "standing": true,
+      "vote_blocked": "",
+      "voted": false,
+      "votes_cast": 0,
+      "voting_ends_at": "2026-09-26T18:05:00Z"
+    }
+  },
+  {
+    "title": "Election · voting",
+    "screen": "election",
+    "view": {
+      "can_stand": false,
+      "can_vote": true,
+      "candidacy_ends_at": "2026-09-21T23:05:00Z",
+      "candidates": [
+        {
+          "counted": false,
+          "elected": false,
+          "mine": false,
+          "player": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "votes": 0
+        },
+        {
+          "counted": false,
+          "elected": false,
+          "mine": true,
+          "player": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "votes": 0
+        },
+        {
+          "counted": false,
+          "elected": false,
+          "mine": false,
+          "player": {
+            "code": "N1L0F4R",
+            "name": "نیلوفر"
+          },
+          "votes": 0
+        }
+      ],
+      "deposit": 0,
+      "min_level": 0,
+      "no": 5,
+      "nonce": "0a1b2c3d4e71",
+      "office": "city_council",
+      "payment": null,
+      "phase": "voting",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "refund_share_bps": 0,
+      "remaining_seconds": 43200,
+      "seats": 5,
+      "stand_blocked": "",
+      "standing": false,
+      "vote_blocked": "",
+      "voted": false,
+      "votes_cast": 0,
+      "voting_ends_at": "2026-09-23T23:05:00Z"
+    }
+  },
+  {
+    "title": "Election · voted",
+    "screen": "election",
+    "view": {
+      "can_stand": false,
+      "can_vote": false,
+      "candidacy_ends_at": "2026-09-21T23:05:00Z",
+      "candidates": [
+        {
+          "counted": false,
+          "elected": false,
+          "mine": false,
+          "player": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "votes": 0
+        },
+        {
+          "counted": false,
+          "elected": false,
+          "mine": true,
+          "player": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "votes": 0
+        },
+        {
+          "counted": false,
+          "elected": false,
+          "mine": false,
+          "player": {
+            "code": "N1L0F4R",
+            "name": "نیلوفر"
+          },
+          "votes": 0
+        }
+      ],
+      "deposit": 0,
+      "min_level": 0,
+      "no": 5,
+      "nonce": "0a1b2c3d4e71",
+      "office": "city_council",
+      "payment": null,
+      "phase": "voting",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "refund_share_bps": 0,
+      "remaining_seconds": 43200,
+      "seats": 5,
+      "stand_blocked": "",
+      "standing": false,
+      "vote_blocked": "",
+      "voted": true,
+      "votes_cast": 0,
+      "voting_ends_at": "2026-09-23T23:05:00Z"
+    }
+  },
+  {
+    "title": "Election · voting, too new to vote",
+    "screen": "election",
+    "view": {
+      "can_stand": false,
+      "can_vote": false,
+      "candidacy_ends_at": "2026-09-21T23:05:00Z",
+      "candidates": [
+        {
+          "counted": false,
+          "elected": false,
+          "mine": false,
+          "player": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "votes": 0
+        },
+        {
+          "counted": false,
+          "elected": false,
+          "mine": true,
+          "player": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "votes": 0
+        },
+        {
+          "counted": false,
+          "elected": false,
+          "mine": false,
+          "player": {
+            "code": "N1L0F4R",
+            "name": "نیلوفر"
+          },
+          "votes": 0
+        }
+      ],
+      "deposit": 0,
+      "min_level": 0,
+      "no": 5,
+      "nonce": "0a1b2c3d4e71",
+      "office": "city_council",
+      "payment": null,
+      "phase": "voting",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "refund_share_bps": 0,
+      "remaining_seconds": 43200,
+      "seats": 5,
+      "stand_blocked": "",
+      "standing": false,
+      "vote_blocked": "too_new",
+      "voted": false,
+      "votes_cast": 0,
+      "voting_ends_at": "2026-09-23T23:05:00Z"
+    }
+  },
+  {
+    "title": "Election · counting",
+    "screen": "election",
+    "view": {
+      "can_stand": false,
+      "can_vote": false,
+      "candidacy_ends_at": null,
+      "candidates": [
+        {
+          "counted": false,
+          "elected": false,
+          "mine": false,
+          "player": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "votes": 0
+        }
+      ],
+      "deposit": 0,
+      "min_level": 0,
+      "no": 2,
+      "nonce": "",
+      "office": "president",
+      "payment": null,
+      "phase": "counting",
+      "place": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "refund_share_bps": 0,
+      "remaining_seconds": 0,
+      "seats": 1,
+      "stand_blocked": "",
+      "standing": false,
+      "vote_blocked": "",
+      "voted": false,
+      "votes_cast": 0,
+      "voting_ends_at": null
+    }
+  },
+  {
+    "title": "Stood",
+    "screen": "stood",
+    "view": {
+      "deposit": 5000,
+      "method": "card",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "voting_at": "2026-09-24T18:05:00Z",
+      "voting_in_seconds": 111600
+    }
+  },
+  {
+    "title": "Voted",
+    "screen": "voted",
+    "view": {
+      "candidate": {
+        "code": "B3C4D5F",
+        "name": "کاوه"
+      },
+      "count_at": "2026-09-23T23:05:00Z",
+      "count_in_seconds": 43200,
+      "no": 5,
+      "office": "city_council",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Election refused · none",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "none",
+      "no": 0,
+      "office": "",
+      "place": {
+        "code": "",
+        "kind": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "Election refused · not_candidacy",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "not_candidacy",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Election refused · not_voting",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "not_voting",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Election refused · away",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "away",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Election refused · no_candidate",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "no_candidate",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Election refused · not_resident",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "not_resident",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Election refused · too_new",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "too_new",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Election refused · level",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "level",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Election refused · record",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "record",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Election refused · jailed",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "jailed",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Election refused · standing",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "standing",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Election refused · voted",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "voted",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Election refused · incompatible",
+    "screen": "election_refusal",
+    "view": {
+      "kind": "incompatible",
+      "no": 4,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Notice · elected",
+    "screen": "election_result_notice",
+    "view": {
+      "cast": 23,
+      "deposit": 5000,
+      "deposit_returned": true,
+      "elected": true,
+      "no": 1,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "votes": 15
+    }
+  },
+  {
+    "title": "Notice · not elected, deposit kept",
+    "screen": "election_result_notice",
+    "view": {
+      "cast": 23,
+      "deposit": 5000,
+      "deposit_returned": false,
+      "elected": false,
+      "no": 1,
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "votes": 1
+    }
+  }
+]

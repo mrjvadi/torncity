@@ -1,0 +1,78 @@
+[
+  {
+    "title": "Achievements · two earned",
+    "screen": "achievements",
+    "view": {
+      "lines": [
+        {
+          "achievement": {
+            "code": "first_shift",
+            "name": "First day at work"
+          },
+          "cash": 100,
+          "count": 1,
+          "done": 1,
+          "earned": true,
+          "reward": 100
+        },
+        {
+          "achievement": {
+            "code": "homeowner",
+            "name": "Homeowner"
+          },
+          "cash": 500,
+          "count": 1,
+          "done": 1,
+          "earned": true,
+          "reward": 500
+        },
+        {
+          "achievement": {
+            "code": "ten_crimes",
+            "name": "Career criminal"
+          },
+          "cash": 0,
+          "count": 10,
+          "done": 4,
+          "earned": false,
+          "reward": 500
+        },
+        {
+          "achievement": {
+            "code": "hard_worker",
+            "name": "Hard worker"
+          },
+          "cash": 0,
+          "count": 25,
+          "done": 3,
+          "earned": false,
+          "reward": 0
+        }
+      ]
+    }
+  },
+  {
+    "title": "Notice · earned, paid",
+    "screen": "achievement_notice",
+    "view": {
+      "achievement": {
+        "code": "homeowner",
+        "name": "Homeowner"
+      },
+      "cash": 500,
+      "withheld": 0
+    }
+  },
+  {
+    "title": "Notice · earned, the cap kept some",
+    "screen": "achievement_notice",
+    "view": {
+      "achievement": {
+        "code": "first_shift",
+        "name": "First day at work"
+      },
+      "cash": 40,
+      "withheld": 60
+    }
+  }
+]

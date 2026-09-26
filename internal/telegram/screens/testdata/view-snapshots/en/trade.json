@@ -1,0 +1,788 @@
+[
+  {
+    "title": "Market",
+    "screen": "market",
+    "view": {
+      "at_market": true,
+      "books": [
+        {
+          "best_ask": 42,
+          "best_bid": 35,
+          "item": {
+            "code": "bread",
+            "name": "Bread"
+          },
+          "last": 40
+        },
+        {
+          "best_ask": 90,
+          "best_bid": 0,
+          "item": {
+            "code": "bandage",
+            "name": "Bandage"
+          },
+          "last": 0
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "way": null,
+      "yours": [
+        {
+          "code": "lockpick_set",
+          "name": "Lockpick set"
+        }
+      ]
+    }
+  },
+  {
+    "title": "Market · empty, from across town",
+    "screen": "market",
+    "view": {
+      "at_market": false,
+      "books": null,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "way": null,
+      "yours": null
+    }
+  },
+  {
+    "title": "Book · bread, at the market, holding some",
+    "screen": "book",
+    "view": {
+      "asks": [
+        {
+          "price": 42,
+          "qty": 10
+        },
+        {
+          "price": 45,
+          "qty": 4
+        }
+      ],
+      "at_market": true,
+      "bids": [
+        {
+          "price": 35,
+          "qty": 6
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "holding": 3,
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "nonce": "0a1b2c3d4e62",
+      "reference": 40,
+      "trades": [
+        {
+          "at": "2026-09-23T11:00:00Z",
+          "price": 40,
+          "qty": 2
+        }
+      ],
+      "way": null
+    }
+  },
+  {
+    "title": "Book · nothing on it, from across town",
+    "screen": "book",
+    "view": {
+      "asks": null,
+      "at_market": false,
+      "bids": null,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "holding": 0,
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "nonce": "0a1b2c3d4e62",
+      "reference": 40,
+      "trades": null,
+      "way": null
+    }
+  },
+  {
+    "title": "Checkout · a buy order",
+    "screen": "market_checkout",
+    "view": {
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "nonce": "0a1b2c3d4e63",
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 42,
+        "bank": 10,
+        "cash": 500,
+        "usable": [
+          "cash"
+        ]
+      },
+      "price": 42,
+      "qty": 1,
+      "reserve": 42
+    }
+  },
+  {
+    "title": "Placed · a buy, filled at once",
+    "screen": "order_placed",
+    "view": {
+      "embargoed": 0,
+      "expires_at": null,
+      "filled": 1,
+      "got": 0,
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "method": "cash",
+      "no": 41,
+      "price": 42,
+      "qty": 1,
+      "rests": false,
+      "side": "buy",
+      "spent": 42
+    }
+  },
+  {
+    "title": "Placed · a sell, resting",
+    "screen": "order_placed",
+    "view": {
+      "embargoed": 0,
+      "expires_at": "2026-09-23T13:53:00Z",
+      "filled": 1,
+      "got": 43,
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "method": "",
+      "no": 42,
+      "price": 44,
+      "qty": 3,
+      "rests": true,
+      "side": "sell",
+      "spent": 0
+    }
+  },
+  {
+    "title": "Cancelled · a buy",
+    "screen": "order_cancelled",
+    "view": {
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "left": 2,
+      "no": 41,
+      "refund": 84,
+      "side": "buy"
+    }
+  },
+  {
+    "title": "Cancelled · a sell",
+    "screen": "order_cancelled",
+    "view": {
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "left": 2,
+      "no": 42,
+      "refund": 0,
+      "side": "sell"
+    }
+  },
+  {
+    "title": "My orders",
+    "screen": "my_orders",
+    "view": {
+      "orders": [
+        {
+          "city": "Ostmarch",
+          "city_code": "ostmarch",
+          "expires_at": null,
+          "filled": 1,
+          "item": {
+            "code": "bread",
+            "name": "Bread"
+          },
+          "no": 42,
+          "price": 44,
+          "qty": 3,
+          "side": "sell",
+          "status": "open"
+        },
+        {
+          "city": "Ostmarch",
+          "city_code": "ostmarch",
+          "expires_at": null,
+          "filled": 1,
+          "item": {
+            "code": "bread",
+            "name": "Bread"
+          },
+          "no": 41,
+          "price": 42,
+          "qty": 1,
+          "side": "buy",
+          "status": "filled"
+        },
+        {
+          "city": "Brennhaven",
+          "city_code": "brennhaven",
+          "expires_at": null,
+          "filled": 0,
+          "item": {
+            "code": "bandage",
+            "name": "Bandage"
+          },
+          "no": 17,
+          "price": 80,
+          "qty": 2,
+          "side": "buy",
+          "status": "expired"
+        }
+      ]
+    }
+  },
+  {
+    "title": "My orders · none",
+    "screen": "my_orders",
+    "view": {
+      "orders": null
+    }
+  },
+  {
+    "title": "Notice · your sell order filled",
+    "screen": "market_filled_notice",
+    "view": {
+      "amount": 88,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "fee": 2,
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "price": 44,
+      "qty": 2,
+      "side": "sell"
+    }
+  },
+  {
+    "title": "Notice · your buy order filled",
+    "screen": "market_filled_notice",
+    "view": {
+      "amount": 88,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "fee": 0,
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "price": 44,
+      "qty": 2,
+      "side": "buy"
+    }
+  },
+  {
+    "title": "Market refused · not traded",
+    "screen": "market_refusal",
+    "view": {
+      "count": 0,
+      "item": {
+        "code": "lockpick_set",
+        "name": "Lockpick set"
+      },
+      "kind": "not_traded"
+    }
+  },
+  {
+    "title": "Market refused · too big",
+    "screen": "market_refusal",
+    "view": {
+      "count": 0,
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "kind": "too_big"
+    }
+  },
+  {
+    "title": "Market refused · too many open",
+    "screen": "market_refusal",
+    "view": {
+      "count": 20,
+      "item": {
+        "code": "",
+        "name": ""
+      },
+      "kind": "too_many"
+    }
+  },
+  {
+    "title": "Market refused · not enough",
+    "screen": "market_refusal",
+    "view": {
+      "count": 0,
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "kind": "not_enough"
+    }
+  },
+  {
+    "title": "Market refused · no such order",
+    "screen": "market_refusal",
+    "view": {
+      "count": 0,
+      "item": {
+        "code": "",
+        "name": ""
+      },
+      "kind": "no_order"
+    }
+  },
+  {
+    "title": "Market refused · order closed",
+    "screen": "market_refusal",
+    "view": {
+      "count": 0,
+      "item": {
+        "code": "",
+        "name": ""
+      },
+      "kind": "closed"
+    }
+  },
+  {
+    "title": "Auction house",
+    "screen": "auctions",
+    "view": {
+      "at_house": true,
+      "auctions": [
+        {
+          "ends_at": null,
+          "high_bid": 2600,
+          "item": {
+            "code": "phone",
+            "name": "Phone"
+          },
+          "leading": true,
+          "mine": false,
+          "no": 7,
+          "quality": 72,
+          "remaining_seconds": 2400,
+          "reserve": 1250,
+          "status": "open"
+        },
+        {
+          "ends_at": null,
+          "high_bid": 0,
+          "item": {
+            "code": "watch",
+            "name": "Wristwatch"
+          },
+          "leading": false,
+          "mine": false,
+          "no": 8,
+          "quality": 55,
+          "remaining_seconds": 180,
+          "reserve": 800,
+          "status": "open"
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "way": null
+    }
+  },
+  {
+    "title": "Auction house · none, from across town",
+    "screen": "auctions",
+    "view": {
+      "at_house": false,
+      "auctions": null,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "way": null
+    }
+  },
+  {
+    "title": "Auction · open to bid",
+    "screen": "auction_detail",
+    "view": {
+      "bids": 0,
+      "line": {
+        "ends_at": null,
+        "high_bid": 0,
+        "item": {
+          "code": "watch",
+          "name": "Wristwatch"
+        },
+        "leading": false,
+        "mine": false,
+        "no": 8,
+        "quality": 55,
+        "remaining_seconds": 180,
+        "reserve": 800,
+        "status": "open"
+      },
+      "min_next": 800,
+      "nonce": "0a1b2c3d4e64",
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 800,
+        "bank": 5000,
+        "cash": 1000,
+        "usable": [
+          "cash",
+          "card"
+        ]
+      },
+      "seller": "Kaveh"
+    }
+  },
+  {
+    "title": "Auction · your bid leads",
+    "screen": "auction_detail",
+    "view": {
+      "bids": 3,
+      "line": {
+        "ends_at": null,
+        "high_bid": 2600,
+        "item": {
+          "code": "phone",
+          "name": "Phone"
+        },
+        "leading": true,
+        "mine": false,
+        "no": 7,
+        "quality": 72,
+        "remaining_seconds": 2400,
+        "reserve": 1250,
+        "status": "open"
+      },
+      "min_next": 2730,
+      "nonce": "",
+      "payment": null,
+      "seller": "Kaveh"
+    }
+  },
+  {
+    "title": "Auction · your own",
+    "screen": "auction_detail",
+    "view": {
+      "bids": 3,
+      "line": {
+        "ends_at": null,
+        "high_bid": 2600,
+        "item": {
+          "code": "phone",
+          "name": "Phone"
+        },
+        "leading": false,
+        "mine": true,
+        "no": 7,
+        "quality": 72,
+        "remaining_seconds": 2400,
+        "reserve": 1250,
+        "status": "open"
+      },
+      "min_next": 2730,
+      "nonce": "",
+      "payment": null,
+      "seller": "Sara"
+    }
+  },
+  {
+    "title": "Auction · over",
+    "screen": "auction_detail",
+    "view": {
+      "bids": 3,
+      "line": {
+        "ends_at": null,
+        "high_bid": 2600,
+        "item": {
+          "code": "phone",
+          "name": "Phone"
+        },
+        "leading": false,
+        "mine": false,
+        "no": 7,
+        "quality": 72,
+        "remaining_seconds": 2400,
+        "reserve": 1250,
+        "status": "sold"
+      },
+      "min_next": 0,
+      "nonce": "",
+      "payment": null,
+      "seller": "Kaveh"
+    }
+  },
+  {
+    "title": "Auction · put a phone up",
+    "screen": "auction_new",
+    "view": {
+      "durations": [
+        60,
+        360,
+        1440
+      ],
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "nonce": "0a1b2c3d4e65",
+      "quality": 72,
+      "ref": "F0E1D2C3B4",
+      "reserves": [
+        1250,
+        2500,
+        3750
+      ]
+    }
+  },
+  {
+    "title": "Auction · opened",
+    "screen": "auction_opened",
+    "view": {
+      "duration_seconds": 360,
+      "ends_at": "2026-09-23T11:11:00Z",
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "no": 9,
+      "reserve": 2500
+    }
+  },
+  {
+    "title": "Bid · placed",
+    "screen": "bid_placed",
+    "view": {
+      "amount": 800,
+      "ends_at": "2026-09-23T11:08:00Z",
+      "item": {
+        "code": "watch",
+        "name": "Wristwatch"
+      },
+      "method": "card",
+      "no": 8
+    }
+  },
+  {
+    "title": "My auctions",
+    "screen": "my_auctions",
+    "view": {
+      "auctions": [
+        {
+          "ends_at": null,
+          "high_bid": 2600,
+          "item": {
+            "code": "phone",
+            "name": "Phone"
+          },
+          "leading": false,
+          "mine": true,
+          "no": 7,
+          "quality": 72,
+          "remaining_seconds": 2400,
+          "reserve": 1250,
+          "status": "open"
+        },
+        {
+          "ends_at": null,
+          "high_bid": 2600,
+          "item": {
+            "code": "phone",
+            "name": "Phone"
+          },
+          "leading": true,
+          "mine": false,
+          "no": 7,
+          "quality": 72,
+          "remaining_seconds": 2400,
+          "reserve": 1250,
+          "status": "open"
+        },
+        {
+          "ends_at": null,
+          "high_bid": 900,
+          "item": {
+            "code": "phone",
+            "name": "Phone"
+          },
+          "leading": false,
+          "mine": false,
+          "no": 3,
+          "quality": 40,
+          "remaining_seconds": 0,
+          "reserve": 700,
+          "status": "sold"
+        }
+      ]
+    }
+  },
+  {
+    "title": "My auctions · none",
+    "screen": "my_auctions",
+    "view": {
+      "auctions": null
+    }
+  },
+  {
+    "title": "Notice · auction outbid",
+    "screen": "auction_notice",
+    "view": {
+      "amount": 2600,
+      "fee": 130,
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "kind": "outbid",
+      "no": 7
+    }
+  },
+  {
+    "title": "Notice · auction won",
+    "screen": "auction_notice",
+    "view": {
+      "amount": 2600,
+      "fee": 130,
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "kind": "won",
+      "no": 7
+    }
+  },
+  {
+    "title": "Notice · auction sold",
+    "screen": "auction_notice",
+    "view": {
+      "amount": 2600,
+      "fee": 130,
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "kind": "sold",
+      "no": 7
+    }
+  },
+  {
+    "title": "Notice · auction unsold",
+    "screen": "auction_notice",
+    "view": {
+      "amount": 2600,
+      "fee": 130,
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "kind": "unsold",
+      "no": 7
+    }
+  },
+  {
+    "title": "Auction refused · no such auction",
+    "screen": "auction_refusal",
+    "view": {
+      "count": 0,
+      "kind": "none",
+      "min_next": 0,
+      "no": 0
+    }
+  },
+  {
+    "title": "Auction refused · over",
+    "screen": "auction_refusal",
+    "view": {
+      "count": 0,
+      "kind": "closed",
+      "min_next": 0,
+      "no": 7
+    }
+  },
+  {
+    "title": "Auction refused · bid too low",
+    "screen": "auction_refusal",
+    "view": {
+      "count": 0,
+      "kind": "too_low",
+      "min_next": 2730,
+      "no": 7
+    }
+  },
+  {
+    "title": "Auction refused · your own",
+    "screen": "auction_refusal",
+    "view": {
+      "count": 0,
+      "kind": "own",
+      "min_next": 0,
+      "no": 7
+    }
+  },
+  {
+    "title": "Auction refused · already leading",
+    "screen": "auction_refusal",
+    "view": {
+      "count": 0,
+      "kind": "leading",
+      "min_next": 0,
+      "no": 7
+    }
+  },
+  {
+    "title": "Auction refused · not carried",
+    "screen": "auction_refusal",
+    "view": {
+      "count": 0,
+      "kind": "not_held",
+      "min_next": 0,
+      "no": 0
+    }
+  },
+  {
+    "title": "Auction refused · too many open",
+    "screen": "auction_refusal",
+    "view": {
+      "count": 5,
+      "kind": "too_many",
+      "min_next": 0,
+      "no": 0
+    }
+  },
+  {
+    "title": "Auction refused · not a piece",
+    "screen": "auction_refusal",
+    "view": {
+      "count": 0,
+      "kind": "not_sellable",
+      "min_next": 0,
+      "no": 0
+    }
+  }
+]

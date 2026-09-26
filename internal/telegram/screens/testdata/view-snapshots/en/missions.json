@@ -1,0 +1,730 @@
+[
+  {
+    "title": "Boards · the city's",
+    "screen": "mission_board",
+    "view": {
+      "board": null,
+      "boards": [
+        {
+          "code": "city_hall",
+          "name": "Civic noticeboard",
+          "place": {
+            "code": "city_hall",
+            "name": "Civic centre"
+          }
+        },
+        {
+          "code": "police",
+          "name": "Police board",
+          "place": {
+            "code": "police_station",
+            "name": "Police station"
+          }
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "here": false,
+      "missions": null
+    }
+  },
+  {
+    "title": "Board · at the civic centre",
+    "screen": "mission_board",
+    "view": {
+      "board": {
+        "code": "city_hall",
+        "name": "Civic noticeboard",
+        "place": {
+          "code": "city_hall",
+          "name": "Civic centre"
+        }
+      },
+      "boards": null,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "here": true,
+      "missions": [
+        {
+          "blocked": "",
+          "mission": {
+            "code": "first_steps",
+            "name": "First steps"
+          },
+          "repeatable": false,
+          "reward": {
+            "cash": 300,
+            "items": [
+              {
+                "item": {
+                  "code": "sandwich",
+                  "name": "Sandwich"
+                },
+                "qty": 2
+              }
+            ],
+            "xp": 40
+          },
+          "wait_seconds": 0
+        },
+        {
+          "blocked": "requires",
+          "mission": {
+            "code": "study_up",
+            "name": "Back to school"
+          },
+          "repeatable": false,
+          "reward": {
+            "cash": 500,
+            "items": null,
+            "xp": 60
+          },
+          "wait_seconds": 0
+        },
+        {
+          "blocked": "cooldown",
+          "mission": {
+            "code": "city_courier",
+            "name": "City courier"
+          },
+          "repeatable": true,
+          "reward": {
+            "cash": 250,
+            "items": null,
+            "xp": 25
+          },
+          "wait_seconds": 840
+        },
+        {
+          "blocked": "active",
+          "mission": {
+            "code": "medicine_drive",
+            "name": "Medicine drive"
+          },
+          "repeatable": true,
+          "reward": {
+            "cash": 450,
+            "items": null,
+            "xp": 30
+          },
+          "wait_seconds": 0
+        }
+      ]
+    }
+  },
+  {
+    "title": "Mission · open to take",
+    "screen": "mission",
+    "view": {
+      "abandoning": false,
+      "blocked": "",
+      "board": {
+        "code": "city_hall",
+        "name": "Civic noticeboard",
+        "place": {
+          "code": "city_hall",
+          "name": "Civic centre"
+        }
+      },
+      "cooldown_seconds": 0,
+      "max": 5,
+      "min_level": 1,
+      "mission": {
+        "code": "first_steps",
+        "name": "First steps"
+      },
+      "no": 0,
+      "objectives": [
+        {
+          "count": 2,
+          "done": 0,
+          "kind": "work_shift",
+          "target": {
+            "code": "",
+            "kind": "",
+            "name": ""
+          }
+        },
+        {
+          "count": 1,
+          "done": 0,
+          "kind": "buy_item",
+          "target": {
+            "code": "bandage",
+            "kind": "item",
+            "name": "Bandage"
+          }
+        }
+      ],
+      "repeatable": false,
+      "requires": null,
+      "reward": {
+        "cash": 300,
+        "items": [
+          {
+            "item": {
+              "code": "sandwich",
+              "name": "Sandwich"
+            },
+            "qty": 2
+          }
+        ],
+        "xp": 40
+      },
+      "time_limit_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Mission · daily, on its cooldown",
+    "screen": "mission",
+    "view": {
+      "abandoning": false,
+      "blocked": "cooldown",
+      "board": {
+        "code": "city_hall",
+        "name": "Civic noticeboard",
+        "place": {
+          "code": "city_hall",
+          "name": "Civic centre"
+        }
+      },
+      "cooldown_seconds": 1440,
+      "max": 5,
+      "min_level": 2,
+      "mission": {
+        "code": "city_courier",
+        "name": "City courier"
+      },
+      "no": 0,
+      "objectives": [
+        {
+          "count": 1,
+          "done": 0,
+          "kind": "travel",
+          "target": {
+            "code": "",
+            "kind": "",
+            "name": ""
+          }
+        }
+      ],
+      "repeatable": true,
+      "requires": null,
+      "reward": {
+        "cash": 250,
+        "items": null,
+        "xp": 25
+      },
+      "time_limit_seconds": 720,
+      "wait_seconds": 840
+    }
+  },
+  {
+    "title": "Mission · after another",
+    "screen": "mission",
+    "view": {
+      "abandoning": false,
+      "blocked": "requires",
+      "board": {
+        "code": "city_hall",
+        "name": "Civic noticeboard",
+        "place": {
+          "code": "city_hall",
+          "name": "Civic centre"
+        }
+      },
+      "cooldown_seconds": 0,
+      "max": 5,
+      "min_level": 0,
+      "mission": {
+        "code": "study_up",
+        "name": "Back to school"
+      },
+      "no": 0,
+      "objectives": [
+        {
+          "count": 1,
+          "done": 0,
+          "kind": "course",
+          "target": {
+            "code": "",
+            "kind": "",
+            "name": ""
+          }
+        }
+      ],
+      "repeatable": false,
+      "requires": [
+        {
+          "code": "first_steps",
+          "name": "First steps"
+        }
+      ],
+      "reward": {
+        "cash": 500,
+        "items": null,
+        "xp": 60
+      },
+      "time_limit_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Mission · too many in hand",
+    "screen": "mission",
+    "view": {
+      "abandoning": false,
+      "blocked": "too_many",
+      "board": {
+        "code": "city_hall",
+        "name": "Civic noticeboard",
+        "place": {
+          "code": "city_hall",
+          "name": "Civic centre"
+        }
+      },
+      "cooldown_seconds": 1440,
+      "max": 5,
+      "min_level": 0,
+      "mission": {
+        "code": "medicine_drive",
+        "name": "Medicine drive"
+      },
+      "no": 0,
+      "objectives": [
+        {
+          "count": 3,
+          "done": 0,
+          "kind": "deliver",
+          "target": {
+            "code": "bandage",
+            "kind": "item",
+            "name": "Bandage"
+          }
+        }
+      ],
+      "repeatable": true,
+      "requires": null,
+      "reward": {
+        "cash": 450,
+        "items": null,
+        "xp": 30
+      },
+      "time_limit_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Mission · giving it up",
+    "screen": "mission",
+    "view": {
+      "abandoning": true,
+      "blocked": "",
+      "board": {
+        "code": "",
+        "name": "",
+        "place": {
+          "code": "",
+          "name": ""
+        }
+      },
+      "cooldown_seconds": 0,
+      "max": 0,
+      "min_level": 0,
+      "mission": {
+        "code": "medicine_drive",
+        "name": "Medicine drive"
+      },
+      "no": 17,
+      "objectives": null,
+      "repeatable": false,
+      "requires": null,
+      "reward": {
+        "cash": 0,
+        "items": null,
+        "xp": 0
+      },
+      "time_limit_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Mine · two in hand, one done lately",
+    "screen": "missions_mine",
+    "view": {
+      "active": [
+        {
+          "cash": 0,
+          "deliver": true,
+          "left_seconds": 0,
+          "mission": {
+            "code": "medicine_drive",
+            "name": "Medicine drive"
+          },
+          "no": 17,
+          "objectives": [
+            {
+              "count": 3,
+              "done": 2,
+              "kind": "deliver",
+              "target": {
+                "code": "bandage",
+                "kind": "item",
+                "name": "Bandage"
+              }
+            }
+          ],
+          "status": "active",
+          "withheld": 0
+        },
+        {
+          "cash": 0,
+          "deliver": false,
+          "left_seconds": 540,
+          "mission": {
+            "code": "road_watch",
+            "name": "Road watch"
+          },
+          "no": 18,
+          "objectives": [
+            {
+              "count": 2,
+              "done": 1,
+              "kind": "work_shift",
+              "target": {
+                "code": "transport",
+                "kind": "career_category",
+                "name": ""
+              }
+            },
+            {
+              "count": 1,
+              "done": 1,
+              "kind": "travel",
+              "target": {
+                "code": "brennhaven",
+                "kind": "city",
+                "name": "Brennhaven"
+              }
+            },
+            {
+              "count": 2,
+              "done": 0,
+              "kind": "use_item",
+              "target": {
+                "code": "medicine",
+                "kind": "item_category",
+                "name": ""
+              }
+            },
+            {
+              "count": 3,
+              "done": 0,
+              "kind": "crime",
+              "target": {
+                "code": "petty_theft",
+                "kind": "crime_category",
+                "name": "Petty theft"
+              }
+            },
+            {
+              "count": 3,
+              "done": 2,
+              "kind": "sell_item",
+              "target": {
+                "code": "",
+                "kind": "",
+                "name": ""
+              }
+            },
+            {
+              "count": 1,
+              "done": 0,
+              "kind": "course",
+              "target": {
+                "code": "first_aid",
+                "kind": "course",
+                "name": "First aid"
+              }
+            }
+          ],
+          "status": "active",
+          "withheld": 0
+        }
+      ],
+      "max": 5,
+      "notice": {
+        "cash": 0,
+        "kind": "delivered",
+        "mission": {
+          "code": "medicine_drive",
+          "name": "Medicine drive"
+        },
+        "qty": 2,
+        "withheld": 0,
+        "xp": 0
+      },
+      "recent": [
+        {
+          "cash": 300,
+          "deliver": false,
+          "left_seconds": 0,
+          "mission": {
+            "code": "first_steps",
+            "name": "First steps"
+          },
+          "no": 0,
+          "objectives": null,
+          "status": "completed",
+          "withheld": 0
+        },
+        {
+          "cash": 0,
+          "deliver": false,
+          "left_seconds": 0,
+          "mission": {
+            "code": "city_courier",
+            "name": "City courier"
+          },
+          "no": 0,
+          "objectives": null,
+          "status": "expired",
+          "withheld": 0
+        }
+      ]
+    }
+  },
+  {
+    "title": "Mine · completed, a cap kept some back",
+    "screen": "missions_mine",
+    "view": {
+      "active": null,
+      "max": 5,
+      "notice": {
+        "cash": 150,
+        "kind": "completed",
+        "mission": {
+          "code": "medicine_drive",
+          "name": "Medicine drive"
+        },
+        "qty": 0,
+        "withheld": 300,
+        "xp": 30
+      },
+      "recent": null
+    }
+  },
+  {
+    "title": "Mine · just taken",
+    "screen": "missions_mine",
+    "view": {
+      "active": [
+        {
+          "cash": 0,
+          "deliver": false,
+          "left_seconds": 0,
+          "mission": {
+            "code": "first_steps",
+            "name": "First steps"
+          },
+          "no": 19,
+          "objectives": [
+            {
+              "count": 2,
+              "done": 0,
+              "kind": "work_shift",
+              "target": {
+                "code": "",
+                "kind": "",
+                "name": ""
+              }
+            },
+            {
+              "count": 1,
+              "done": 0,
+              "kind": "buy_item",
+              "target": {
+                "code": "bandage",
+                "kind": "item",
+                "name": "Bandage"
+              }
+            }
+          ],
+          "status": "active",
+          "withheld": 0
+        }
+      ],
+      "max": 5,
+      "notice": {
+        "cash": 0,
+        "kind": "accepted",
+        "mission": {
+          "code": "first_steps",
+          "name": "First steps"
+        },
+        "qty": 0,
+        "withheld": 0,
+        "xp": 0
+      },
+      "recent": null
+    }
+  },
+  {
+    "title": "Notice · a mission completed",
+    "screen": "mission_completed_notice",
+    "view": {
+      "cash": 300,
+      "items": [
+        {
+          "item": {
+            "code": "sandwich",
+            "name": "Sandwich"
+          },
+          "qty": 2
+        }
+      ],
+      "mission": {
+        "code": "first_steps",
+        "name": "First steps"
+      },
+      "withheld": 0,
+      "xp": 40
+    }
+  },
+  {
+    "title": "Notice · completed, capped",
+    "screen": "mission_completed_notice",
+    "view": {
+      "cash": 150,
+      "items": [
+        {
+          "item": {
+            "code": "bandage",
+            "name": "Bandage"
+          },
+          "qty": 1
+        }
+      ],
+      "mission": {
+        "code": "medicine_drive",
+        "name": "Medicine drive"
+      },
+      "withheld": 300,
+      "xp": 30
+    }
+  },
+  {
+    "title": "Refused · not_found",
+    "screen": "mission_refusal",
+    "view": {
+      "blocked": "",
+      "kind": "not_found",
+      "level": 0,
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · not_here",
+    "screen": "mission_refusal",
+    "view": {
+      "blocked": "",
+      "kind": "not_here",
+      "level": 0,
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · not_active",
+    "screen": "mission_refusal",
+    "view": {
+      "blocked": "",
+      "kind": "not_active",
+      "level": 0,
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · expired",
+    "screen": "mission_refusal",
+    "view": {
+      "blocked": "",
+      "kind": "expired",
+      "level": 0,
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · nothing_to_deliver",
+    "screen": "mission_refusal",
+    "view": {
+      "blocked": "",
+      "kind": "nothing_to_deliver",
+      "level": 0,
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · level",
+    "screen": "mission_refusal",
+    "view": {
+      "blocked": "level",
+      "kind": "blocked",
+      "level": 2,
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Not here · take it at the board",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": null,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "here": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "mode": "",
+      "need": "place.need.board",
+      "need_args": {
+        "board": "Civic noticeboard"
+      },
+      "place": {
+        "code": "city_hall",
+        "name": "Civic centre"
+      },
+      "remaining_seconds": 0,
+      "shop": {
+        "code": "",
+        "name": ""
+      },
+      "then": "mission.board",
+      "then_args": [
+        "city_hall"
+      ],
+      "walk_seconds": 10,
+      "walking": false
+    }
+  },
+  {
+    "title": "Pay · held for review",
+    "screen": "pay_sent",
+    "view": {
+      "amount": 80000,
+      "fee": 400,
+      "held": true,
+      "method": "card",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh"
+    }
+  }
+]

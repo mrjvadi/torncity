@@ -1,0 +1,1167 @@
+[
+  {
+    "title": "My job · unemployed",
+    "screen": "job_status",
+    "view": {
+      "at_workplace": false,
+      "city": "",
+      "city_code": "",
+      "employed": false,
+      "employer": "",
+      "energy": 0,
+      "energy_cost": 0,
+      "job": {
+        "career_code": "",
+        "career_name": "",
+        "rank": "",
+        "title": ""
+      },
+      "max_energy": 0,
+      "missing": null,
+      "next": {
+        "career_code": "",
+        "career_name": "",
+        "rank": "",
+        "title": ""
+      },
+      "pay": 0,
+      "performance": 0,
+      "promotion_ready": false,
+      "shift": null,
+      "shift_length_seconds": 0,
+      "shifts_in_tier": 0,
+      "top_tier": false,
+      "total_earned": 0,
+      "walk_to_work_seconds": 0,
+      "workplace": {
+        "code": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "My job · at work, working toward a promotion",
+    "screen": "job_status",
+    "view": {
+      "at_workplace": true,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": true,
+      "employer": "",
+      "energy": 70,
+      "energy_cost": 15,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Sales Trainee"
+      },
+      "max_energy": 100,
+      "missing": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 53,
+          "kind": "performance",
+          "met": false,
+          "need": 55,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "time",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 25200
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 4,
+          "kind": "shifts",
+          "met": false,
+          "need": 6,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 2,
+          "kind": "level",
+          "met": false,
+          "need": 3,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 1,
+          "kind": "skill",
+          "met": false,
+          "need": 2,
+          "skill": "management",
+          "wait_seconds": 0
+        }
+      ],
+      "next": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "skilled",
+        "title": "Sales Associate"
+      },
+      "pay": 120,
+      "performance": 53,
+      "promotion_ready": false,
+      "shift": null,
+      "shift_length_seconds": 0,
+      "shifts_in_tier": 4,
+      "top_tier": false,
+      "total_earned": 456,
+      "walk_to_work_seconds": 0,
+      "workplace": {
+        "code": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "My job · promotion ready",
+    "screen": "job_status",
+    "view": {
+      "at_workplace": true,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": true,
+      "employer": "",
+      "energy": 70,
+      "energy_cost": 15,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Sales Trainee"
+      },
+      "max_energy": 100,
+      "missing": null,
+      "next": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "skilled",
+        "title": "Sales Associate"
+      },
+      "pay": 120,
+      "performance": 61,
+      "promotion_ready": true,
+      "shift": null,
+      "shift_length_seconds": 0,
+      "shifts_in_tier": 7,
+      "top_tier": false,
+      "total_earned": 456,
+      "walk_to_work_seconds": 0,
+      "workplace": {
+        "code": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "My job · away from the workplace",
+    "screen": "job_status",
+    "view": {
+      "at_workplace": false,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": true,
+      "employer": "",
+      "energy": 70,
+      "energy_cost": 15,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Sales Trainee"
+      },
+      "max_energy": 100,
+      "missing": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 53,
+          "kind": "performance",
+          "met": false,
+          "need": 55,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "time",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 25200
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 4,
+          "kind": "shifts",
+          "met": false,
+          "need": 6,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 2,
+          "kind": "level",
+          "met": false,
+          "need": 3,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 1,
+          "kind": "skill",
+          "met": false,
+          "need": 2,
+          "skill": "management",
+          "wait_seconds": 0
+        }
+      ],
+      "next": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "skilled",
+        "title": "Sales Associate"
+      },
+      "pay": 120,
+      "performance": 53,
+      "promotion_ready": false,
+      "shift": null,
+      "shift_length_seconds": 0,
+      "shifts_in_tier": 4,
+      "top_tier": false,
+      "total_earned": 456,
+      "walk_to_work_seconds": 0,
+      "workplace": {
+        "code": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "My job · on a shift",
+    "screen": "job_status",
+    "view": {
+      "at_workplace": true,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": true,
+      "employer": "",
+      "energy": 70,
+      "energy_cost": 15,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Sales Trainee"
+      },
+      "max_energy": 100,
+      "missing": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 53,
+          "kind": "performance",
+          "met": false,
+          "need": 55,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "time",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 25200
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 4,
+          "kind": "shifts",
+          "met": false,
+          "need": 6,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 2,
+          "kind": "level",
+          "met": false,
+          "need": 3,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 1,
+          "kind": "skill",
+          "met": false,
+          "need": 2,
+          "skill": "management",
+          "wait_seconds": 0
+        }
+      ],
+      "next": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "skilled",
+        "title": "Sales Associate"
+      },
+      "pay": 120,
+      "performance": 53,
+      "promotion_ready": false,
+      "shift": {
+        "ends_at": "2026-09-23T11:08:00Z",
+        "remaining_seconds": 180
+      },
+      "shift_length_seconds": 240,
+      "shifts_in_tier": 4,
+      "top_tier": false,
+      "total_earned": 456,
+      "walk_to_work_seconds": 0,
+      "workplace": {
+        "code": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "My job · shift over, pay on its way",
+    "screen": "job_status",
+    "view": {
+      "at_workplace": true,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": true,
+      "employer": "",
+      "energy": 70,
+      "energy_cost": 15,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Sales Trainee"
+      },
+      "max_energy": 100,
+      "missing": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 53,
+          "kind": "performance",
+          "met": false,
+          "need": 55,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "time",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 25200
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 4,
+          "kind": "shifts",
+          "met": false,
+          "need": 6,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 2,
+          "kind": "level",
+          "met": false,
+          "need": 3,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 1,
+          "kind": "skill",
+          "met": false,
+          "need": 2,
+          "skill": "management",
+          "wait_seconds": 0
+        }
+      ],
+      "next": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "skilled",
+        "title": "Sales Associate"
+      },
+      "pay": 120,
+      "performance": 53,
+      "promotion_ready": false,
+      "shift": {
+        "ends_at": "2026-09-23T11:05:00Z",
+        "remaining_seconds": 10
+      },
+      "shift_length_seconds": 240,
+      "shifts_in_tier": 4,
+      "top_tier": false,
+      "total_earned": 456,
+      "walk_to_work_seconds": 0,
+      "workplace": {
+        "code": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "Shift started",
+    "screen": "shift_started",
+    "view": {
+      "duration_seconds": 240,
+      "ends_at": "2026-09-23T11:09:00Z",
+      "energy": 55,
+      "fatigue_bps": 10000,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Sales Trainee"
+      },
+      "max_energy": 100
+    }
+  },
+  {
+    "title": "Shift started · tired",
+    "screen": "shift_started",
+    "view": {
+      "duration_seconds": 240,
+      "ends_at": "2026-09-23T11:09:00Z",
+      "energy": 10,
+      "fatigue_bps": 7000,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Sales Trainee"
+      },
+      "max_energy": 100
+    }
+  },
+  {
+    "title": "My job · top of the career",
+    "screen": "job_status",
+    "view": {
+      "at_workplace": true,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": true,
+      "employer": "",
+      "energy": 70,
+      "energy_cost": 15,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "manager",
+        "title": "Store Manager"
+      },
+      "max_energy": 100,
+      "missing": null,
+      "next": {
+        "career_code": "",
+        "career_name": "",
+        "rank": "",
+        "title": ""
+      },
+      "pay": 480,
+      "performance": 53,
+      "promotion_ready": false,
+      "shift": null,
+      "shift_length_seconds": 0,
+      "shifts_in_tier": 4,
+      "top_tier": true,
+      "total_earned": 456,
+      "walk_to_work_seconds": 0,
+      "workplace": {
+        "code": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "Job openings (page 1 of 2)",
+    "screen": "job_openings",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "companies": null,
+      "current": {
+        "career_code": "",
+        "career_name": "",
+        "rank": "",
+        "title": ""
+      },
+      "employed": false,
+      "openings": [
+        {
+          "eligible": true,
+          "job": {
+            "career_code": "retail",
+            "career_name": "Retail",
+            "rank": "entry",
+            "title": "Sales Trainee"
+          },
+          "pay": 120
+        },
+        {
+          "eligible": true,
+          "job": {
+            "career_code": "logistics",
+            "career_name": "Logistics",
+            "rank": "entry",
+            "title": "Courier"
+          },
+          "pay": 130
+        },
+        {
+          "eligible": false,
+          "job": {
+            "career_code": "technology",
+            "career_name": "Technology",
+            "rank": "entry",
+            "title": "Junior Developer"
+          },
+          "pay": 260
+        },
+        {
+          "eligible": false,
+          "job": {
+            "career_code": "healthcare",
+            "career_name": "Healthcare",
+            "rank": "entry",
+            "title": "Care Assistant"
+          },
+          "pay": 150
+        }
+      ],
+      "page": 1,
+      "pages": 2,
+      "travelling": false
+    }
+  },
+  {
+    "title": "Job openings · already employed",
+    "screen": "job_openings",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "companies": null,
+      "current": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Sales Trainee"
+      },
+      "employed": true,
+      "openings": [
+        {
+          "eligible": true,
+          "job": {
+            "career_code": "logistics",
+            "career_name": "Logistics",
+            "rank": "entry",
+            "title": "Courier"
+          },
+          "pay": 130
+        },
+        {
+          "eligible": false,
+          "job": {
+            "career_code": "technology",
+            "career_name": "Technology",
+            "rank": "entry",
+            "title": "Junior Developer"
+          },
+          "pay": 260
+        }
+      ],
+      "page": 1,
+      "pages": 1,
+      "travelling": false
+    }
+  },
+  {
+    "title": "Job openings · nobody is hiring",
+    "screen": "job_openings",
+    "view": {
+      "city": "Vantor Reach",
+      "city_code": "vantor_reach",
+      "companies": null,
+      "current": {
+        "career_code": "",
+        "career_name": "",
+        "rank": "",
+        "title": ""
+      },
+      "employed": false,
+      "openings": null,
+      "page": 1,
+      "pages": 1,
+      "travelling": false
+    }
+  },
+  {
+    "title": "Job openings · while travelling",
+    "screen": "job_openings",
+    "view": {
+      "city": "",
+      "city_code": "",
+      "companies": null,
+      "current": {
+        "career_code": "",
+        "career_name": "",
+        "rank": "",
+        "title": ""
+      },
+      "employed": false,
+      "openings": null,
+      "page": 0,
+      "pages": 0,
+      "travelling": true
+    }
+  },
+  {
+    "title": "Job detail · can apply",
+    "screen": "job_detail",
+    "view": {
+      "can_apply": true,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": false,
+      "energy_cost": 15,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Sales Trainee"
+      },
+      "pay": 120,
+      "requirements": [
+        {
+          "city": "Ostmarch",
+          "city_code": "ostmarch",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "residence",
+          "met": true,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        }
+      ]
+    }
+  },
+  {
+    "title": "Job detail · requirements not met",
+    "screen": "job_detail",
+    "view": {
+      "can_apply": false,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": false,
+      "energy_cost": 20,
+      "job": {
+        "career_code": "technology",
+        "career_name": "Technology",
+        "rank": "entry",
+        "title": "Junior Developer"
+      },
+      "pay": 260,
+      "requirements": [
+        {
+          "city": "Ostmarch",
+          "city_code": "ostmarch",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "residence",
+          "met": true,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 2,
+          "kind": "level",
+          "met": false,
+          "need": 3,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 2,
+          "kind": "skill",
+          "met": true,
+          "need": 1,
+          "skill": "programming",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "programming_fundamentals",
+          "course_name": "Programming Fundamentals",
+          "have": 0,
+          "kind": "certificate",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        }
+      ]
+    }
+  },
+  {
+    "title": "Job detail · not a resident",
+    "screen": "job_detail",
+    "view": {
+      "can_apply": false,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": false,
+      "energy_cost": 15,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Sales Trainee"
+      },
+      "pay": 120,
+      "requirements": [
+        {
+          "city": "Ostmarch",
+          "city_code": "ostmarch",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "residence",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        }
+      ]
+    }
+  },
+  {
+    "title": "Job detail · already employed",
+    "screen": "job_detail",
+    "view": {
+      "can_apply": false,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": true,
+      "energy_cost": 20,
+      "job": {
+        "career_code": "logistics",
+        "career_name": "Logistics",
+        "rank": "entry",
+        "title": "Courier"
+      },
+      "pay": 130,
+      "requirements": null
+    }
+  },
+  {
+    "title": "Hired",
+    "screen": "job_hired",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employer": "",
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Sales Trainee"
+      },
+      "pay": 120
+    }
+  },
+  {
+    "title": "Shift done · taxed, skill levelled",
+    "screen": "shift_worked",
+    "view": {
+      "energy": 55,
+      "fatigue_bps": 0,
+      "gross": 120,
+      "injury": null,
+      "level": 0,
+      "max_energy": 100,
+      "net": 114,
+      "performance": 54,
+      "performance_delta": 1,
+      "skills": [
+        {
+          "level": 2,
+          "skill": "management",
+          "xp": 15
+        }
+      ],
+      "tax": 6,
+      "xp": 10
+    }
+  },
+  {
+    "title": "Shift done · untaxed, levelled up",
+    "screen": "shift_worked",
+    "view": {
+      "energy": 30,
+      "fatigue_bps": 0,
+      "gross": 190,
+      "injury": null,
+      "level": 4,
+      "max_energy": 100,
+      "net": 190,
+      "performance": 62,
+      "performance_delta": 0,
+      "skills": [
+        {
+          "level": 0,
+          "skill": "management",
+          "xp": 20
+        }
+      ],
+      "tax": 0,
+      "xp": 14
+    }
+  },
+  {
+    "title": "Shift done · tired, performance fell",
+    "screen": "shift_worked",
+    "view": {
+      "energy": 10,
+      "fatigue_bps": 7000,
+      "gross": 84,
+      "injury": null,
+      "level": 0,
+      "max_energy": 100,
+      "net": 80,
+      "performance": 50,
+      "performance_delta": -2,
+      "skills": null,
+      "tax": 4,
+      "xp": 10
+    }
+  },
+  {
+    "title": "Promoted",
+    "screen": "job_promoted",
+    "view": {
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "skilled",
+        "title": "Sales Associate"
+      },
+      "pay": 190
+    }
+  },
+  {
+    "title": "Refusal · application refused",
+    "screen": "refusal",
+    "view": {
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "ends_at": null,
+      "fee": 0,
+      "kind": "job_requirements",
+      "missing": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 2,
+          "kind": "level",
+          "met": false,
+          "need": 3,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "programming_fundamentals",
+          "course_name": "Programming Fundamentals",
+          "have": 0,
+          "kind": "certificate",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "Ostmarch",
+          "city_code": "ostmarch",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "residence",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        }
+      ],
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refusal · promotion refused",
+    "screen": "refusal",
+    "view": {
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "ends_at": null,
+      "fee": 0,
+      "kind": "promotion",
+      "missing": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 53,
+          "kind": "performance",
+          "met": false,
+          "need": 55,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "time",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 25200
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 4,
+          "kind": "shifts",
+          "met": false,
+          "need": 6,
+          "skill": "",
+          "wait_seconds": 0
+        }
+      ],
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refusal · promotion refused at the top",
+    "screen": "refusal",
+    "view": {
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "ends_at": null,
+      "fee": 0,
+      "kind": "promotion",
+      "missing": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "top",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        }
+      ],
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refusal · not employed",
+    "screen": "refusal",
+    "view": {
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "ends_at": null,
+      "fee": 0,
+      "kind": "not_employed",
+      "missing": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refusal · already employed",
+    "screen": "refusal",
+    "view": {
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "ends_at": null,
+      "fee": 0,
+      "kind": "already_employed",
+      "missing": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refusal · job not offered here",
+    "screen": "refusal",
+    "view": {
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "ends_at": null,
+      "fee": 0,
+      "kind": "job_not_offered",
+      "missing": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refusal · not at the workplace",
+    "screen": "refusal",
+    "view": {
+      "cash": 0,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "ends_at": null,
+      "fee": 0,
+      "kind": "not_at_workplace",
+      "missing": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refusal · already on a shift",
+    "screen": "refusal",
+    "view": {
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "ends_at": "2026-09-23T11:08:00Z",
+      "fee": 0,
+      "kind": "shift_in_progress",
+      "missing": null,
+      "wait_seconds": 180
+    }
+  },
+  {
+    "title": "Refusal · already on a shift, ending",
+    "screen": "refusal",
+    "view": {
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "ends_at": "2026-09-23T11:05:00Z",
+      "fee": 0,
+      "kind": "shift_in_progress",
+      "missing": null,
+      "wait_seconds": 5
+    }
+  }
+]

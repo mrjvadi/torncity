@@ -1,0 +1,709 @@
+[
+  {
+    "title": "Hospital · well, resting back to full",
+    "screen": "hospital",
+    "view": {
+      "cause": "",
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "city_hospital": null,
+      "clinics": [
+        {
+          "can_treat": true,
+          "clinic": {
+            "code": "C1N1C2A",
+            "name": "شفا",
+            "type": {
+              "code": "clinic",
+              "name": "Clinic"
+            }
+          },
+          "doctor": 12,
+          "open": true,
+          "price": 1200,
+          "provider": "clinic",
+          "saves_seconds": 270,
+          "stock": 18
+        },
+        {
+          "can_treat": false,
+          "clinic": {
+            "code": "M3D1C4L",
+            "name": "تعمیرگاه نیلوفر",
+            "type": {
+              "code": "",
+              "name": ""
+            }
+          },
+          "doctor": 1,
+          "open": false,
+          "price": 500,
+          "provider": "clinic",
+          "saves_seconds": 0,
+          "stock": 0
+        }
+      ],
+      "ends_at": null,
+      "full_in_seconds": 420,
+      "health": 72,
+      "in_hospital": false,
+      "max": 100,
+      "remaining_seconds": 0,
+      "treated": false,
+      "treated_by": {
+        "can_treat": false,
+        "clinic": {
+          "code": "",
+          "name": "",
+          "type": {
+            "code": "",
+            "name": ""
+          }
+        },
+        "doctor": 0,
+        "open": false,
+        "price": 0,
+        "provider": "",
+        "saves_seconds": 0,
+        "stock": 0
+      }
+    }
+  },
+  {
+    "title": "Hospital · in hospital, three ways to be treated",
+    "screen": "hospital",
+    "view": {
+      "cause": "crime",
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "city_hospital": {
+        "can_treat": true,
+        "clinic": {
+          "code": "",
+          "name": "",
+          "type": {
+            "code": "",
+            "name": ""
+          }
+        },
+        "doctor": 0,
+        "open": true,
+        "price": 750,
+        "provider": "city",
+        "saves_seconds": 126,
+        "stock": 0
+      },
+      "clinics": [
+        {
+          "can_treat": true,
+          "clinic": {
+            "code": "C1N1C2A",
+            "name": "شفا",
+            "type": {
+              "code": "clinic",
+              "name": "Clinic"
+            }
+          },
+          "doctor": 12,
+          "open": true,
+          "price": 1200,
+          "provider": "clinic",
+          "saves_seconds": 270,
+          "stock": 18
+        },
+        {
+          "can_treat": false,
+          "clinic": {
+            "code": "D4R0B8K",
+            "name": "نان و شیرینی کاوه",
+            "type": {
+              "code": "",
+              "name": ""
+            }
+          },
+          "doctor": 3,
+          "open": true,
+          "price": 900,
+          "provider": "clinic",
+          "saves_seconds": 0,
+          "stock": 0
+        },
+        {
+          "can_treat": false,
+          "clinic": {
+            "code": "M3D1C4L",
+            "name": "تعمیرگاه نیلوفر",
+            "type": {
+              "code": "",
+              "name": ""
+            }
+          },
+          "doctor": 1,
+          "open": false,
+          "price": 500,
+          "provider": "clinic",
+          "saves_seconds": 0,
+          "stock": 0
+        }
+      ],
+      "ends_at": "2026-09-23T11:11:00Z",
+      "full_in_seconds": 0,
+      "health": 23,
+      "in_hospital": true,
+      "max": 100,
+      "remaining_seconds": 360,
+      "treated": false,
+      "treated_by": {
+        "can_treat": false,
+        "clinic": {
+          "code": "",
+          "name": "",
+          "type": {
+            "code": "",
+            "name": ""
+          }
+        },
+        "doctor": 0,
+        "open": false,
+        "price": 0,
+        "provider": "",
+        "saves_seconds": 0,
+        "stock": 0
+      }
+    }
+  },
+  {
+    "title": "Hospital · treated, resting",
+    "screen": "hospital",
+    "view": {
+      "cause": "war",
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "city_hospital": null,
+      "clinics": null,
+      "ends_at": "2026-09-23T11:06:30Z",
+      "full_in_seconds": 0,
+      "health": 41,
+      "in_hospital": true,
+      "max": 100,
+      "remaining_seconds": 90,
+      "treated": true,
+      "treated_by": {
+        "can_treat": true,
+        "clinic": {
+          "code": "C1N1C2A",
+          "name": "شفا",
+          "type": {
+            "code": "clinic",
+            "name": "Clinic"
+          }
+        },
+        "doctor": 12,
+        "open": true,
+        "price": 1200,
+        "provider": "clinic",
+        "saves_seconds": 270,
+        "stock": 18
+      }
+    }
+  },
+  {
+    "title": "Hospital · full health, nowhere",
+    "screen": "hospital",
+    "view": {
+      "cause": "",
+      "city": "",
+      "city_code": "",
+      "city_hospital": null,
+      "clinics": null,
+      "ends_at": null,
+      "full_in_seconds": 0,
+      "health": 100,
+      "in_hospital": false,
+      "max": 100,
+      "remaining_seconds": 0,
+      "treated": false,
+      "treated_by": {
+        "can_treat": false,
+        "clinic": {
+          "code": "",
+          "name": "",
+          "type": {
+            "code": "",
+            "name": ""
+          }
+        },
+        "doctor": 0,
+        "open": false,
+        "price": 0,
+        "provider": "",
+        "saves_seconds": 0,
+        "stock": 0
+      }
+    }
+  },
+  {
+    "title": "Treat · confirm at a clinic",
+    "screen": "treat_confirm",
+    "view": {
+      "ends_at": "2026-09-23T11:06:30Z",
+      "option": {
+        "can_treat": true,
+        "clinic": {
+          "code": "C1N1C2A",
+          "name": "شفا",
+          "type": {
+            "code": "clinic",
+            "name": "Clinic"
+          }
+        },
+        "doctor": 12,
+        "open": true,
+        "price": 1200,
+        "provider": "clinic",
+        "saves_seconds": 270,
+        "stock": 18
+      },
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 1200,
+        "bank": 52000,
+        "cash": 3400,
+        "usable": [
+          "cash",
+          "card"
+        ]
+      },
+      "remaining_seconds": 360
+    }
+  },
+  {
+    "title": "Treat · confirm, cannot afford",
+    "screen": "treat_confirm",
+    "view": {
+      "ends_at": "2026-09-23T11:09:00Z",
+      "option": {
+        "can_treat": true,
+        "clinic": {
+          "code": "",
+          "name": "",
+          "type": {
+            "code": "",
+            "name": ""
+          }
+        },
+        "doctor": 0,
+        "open": true,
+        "price": 750,
+        "provider": "city",
+        "saves_seconds": 126,
+        "stock": 0
+      },
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 750,
+        "bank": 0,
+        "cash": 100,
+        "usable": null
+      },
+      "remaining_seconds": 360
+    }
+  },
+  {
+    "title": "Treat · confirm, a free clinic",
+    "screen": "treat_confirm",
+    "view": {
+      "ends_at": "2026-09-23T11:06:30Z",
+      "option": {
+        "can_treat": true,
+        "clinic": {
+          "code": "C1N1C2A",
+          "name": "شفا",
+          "type": {
+            "code": "clinic",
+            "name": "Clinic"
+          }
+        },
+        "doctor": 12,
+        "open": true,
+        "price": 0,
+        "provider": "clinic",
+        "saves_seconds": 270,
+        "stock": 18
+      },
+      "payment": null,
+      "remaining_seconds": 360
+    }
+  },
+  {
+    "title": "Treat · treated at a clinic",
+    "screen": "treated",
+    "view": {
+      "ends_at": "2026-09-23T11:06:30Z",
+      "method": "card",
+      "option": {
+        "can_treat": true,
+        "clinic": {
+          "code": "C1N1C2A",
+          "name": "شفا",
+          "type": {
+            "code": "clinic",
+            "name": "Clinic"
+          }
+        },
+        "doctor": 12,
+        "open": true,
+        "price": 1200,
+        "provider": "clinic",
+        "saves_seconds": 270,
+        "stock": 18
+      },
+      "paid": 1200,
+      "remaining_seconds": 90,
+      "saved_seconds": 270
+    }
+  },
+  {
+    "title": "Clinic desk · open, stocked",
+    "screen": "clinic_desk",
+    "view": {
+      "doctor": 12,
+      "earned": 10800,
+      "open": true,
+      "price": 1200,
+      "reduction_bps": 7300,
+      "ref": {
+        "code": "C1N1C2A",
+        "name": "شفا",
+        "type": {
+          "code": "clinic",
+          "name": "Clinic"
+        }
+      },
+      "stock": 18,
+      "stocked": true,
+      "treated": 9,
+      "units": 1
+    }
+  },
+  {
+    "title": "Clinic desk · closed, no medicine",
+    "screen": "clinic_desk",
+    "view": {
+      "doctor": 0,
+      "earned": 0,
+      "open": false,
+      "price": 0,
+      "reduction_bps": 5500,
+      "ref": {
+        "code": "C1N1C2A",
+        "name": "شفا",
+        "type": {
+          "code": "clinic",
+          "name": "Clinic"
+        }
+      },
+      "stock": 0,
+      "stocked": false,
+      "treated": 0,
+      "units": 1
+    }
+  },
+  {
+    "title": "Notice · taken to hospital",
+    "screen": "hospitalised_notice",
+    "view": {
+      "cause": "work",
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "damage": 31,
+      "ends_at": "2026-09-23T11:11:00Z",
+      "health": 14,
+      "max": 100,
+      "remaining_seconds": 360
+    }
+  },
+  {
+    "title": "Notice · the clinic treated a patient",
+    "screen": "clinic_treated_notice",
+    "view": {
+      "item": {
+        "code": "bandage",
+        "name": "Bandage"
+      },
+      "patient": "کاوه",
+      "price": 1200,
+      "ref": {
+        "code": "C1N1C2A",
+        "name": "شفا",
+        "type": {
+          "code": "clinic",
+          "name": "Clinic"
+        }
+      },
+      "saved_seconds": 240,
+      "units": 1
+    }
+  },
+  {
+    "title": "Refused · no_hospitals",
+    "screen": "health_refusal",
+    "view": {
+      "kind": "no_hospitals"
+    }
+  },
+  {
+    "title": "Refused · not_hospitalised",
+    "screen": "health_refusal",
+    "view": {
+      "kind": "not_hospitalised"
+    }
+  },
+  {
+    "title": "Refused · treated",
+    "screen": "health_refusal",
+    "view": {
+      "kind": "treated"
+    }
+  },
+  {
+    "title": "Refused · no_clinic",
+    "screen": "health_refusal",
+    "view": {
+      "kind": "no_clinic"
+    }
+  },
+  {
+    "title": "Refused · elsewhere",
+    "screen": "health_refusal",
+    "view": {
+      "kind": "elsewhere"
+    }
+  },
+  {
+    "title": "Refused · closed",
+    "screen": "health_refusal",
+    "view": {
+      "kind": "closed"
+    }
+  },
+  {
+    "title": "Refused · no_medicine",
+    "screen": "health_refusal",
+    "view": {
+      "kind": "no_medicine"
+    }
+  },
+  {
+    "title": "Refused · not_yours",
+    "screen": "health_refusal",
+    "view": {
+      "kind": "not_yours"
+    }
+  },
+  {
+    "title": "Crime · caught and hurt, off to hospital",
+    "screen": "crime_result",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confiscated": null,
+      "crime": {
+        "code": "home_burglary",
+        "name": "Home burglary"
+      },
+      "criminal_xp": 0,
+      "dry_spell": false,
+      "fine": 0,
+      "fine_paid": 0,
+      "heat": {
+        "heat": 31,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "injury": {
+        "damage": 45,
+        "ends_at": "2026-09-23T11:11:00Z",
+        "health": 12,
+        "hospital": true,
+        "max": 100
+      },
+      "jail": {
+        "crime": {
+          "code": "",
+          "name": ""
+        },
+        "ends_at": "2026-09-23T11:14:00Z",
+        "remaining_seconds": 540
+      },
+      "level": 0,
+      "loot": null,
+      "nerve": {
+        "full_in_seconds": 0,
+        "max": 0,
+        "nerve": 0
+      },
+      "notice": true,
+      "player": "سارا",
+      "result": "caught",
+      "skills": null,
+      "stolen": null,
+      "take": 0,
+      "venue": {
+        "code": "residential_area",
+        "name": "Residential area"
+      },
+      "victim_player": false,
+      "xp": 0
+    }
+  },
+  {
+    "title": "Crime · escaped with a scratch",
+    "screen": "crime_result",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confiscated": null,
+      "crime": {
+        "code": "home_burglary",
+        "name": "Home burglary"
+      },
+      "criminal_xp": 0,
+      "dry_spell": false,
+      "fine": 0,
+      "fine_paid": 0,
+      "heat": {
+        "heat": 31,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "injury": {
+        "damage": 12,
+        "ends_at": null,
+        "health": 58,
+        "hospital": false,
+        "max": 100
+      },
+      "jail": null,
+      "level": 0,
+      "loot": null,
+      "nerve": {
+        "full_in_seconds": 2400,
+        "max": 20,
+        "nerve": 6
+      },
+      "notice": false,
+      "player": "سارا",
+      "result": "escaped",
+      "skills": null,
+      "stolen": null,
+      "take": 0,
+      "venue": {
+        "code": "residential_area",
+        "name": "Residential area"
+      },
+      "victim_player": false,
+      "xp": 0
+    }
+  },
+  {
+    "title": "Crime · refused, in hospital",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "hospital",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 300,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Shift · an accident at work",
+    "screen": "shift_worked",
+    "view": {
+      "energy": 60,
+      "fatigue_bps": 0,
+      "gross": 180,
+      "injury": {
+        "damage": 45,
+        "ends_at": "2026-09-23T11:11:00Z",
+        "health": 12,
+        "hospital": true,
+        "max": 100
+      },
+      "level": 0,
+      "max_energy": 100,
+      "net": 162,
+      "performance": 64,
+      "performance_delta": 2,
+      "skills": null,
+      "tax": 18,
+      "xp": 12
+    }
+  },
+  {
+    "title": "Profile · in hospital",
+    "screen": "profile",
+    "view": {
+      "achievements": 0,
+      "age": 0,
+      "avatar": "",
+      "bank": 18000,
+      "cash": 2400,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "code": "K7Q2M9A",
+      "energy": 70,
+      "energy_full_in_seconds": 0,
+      "health": 34,
+      "hospital": {
+        "city": "Ostmarch",
+        "city_code": "ostmarch",
+        "ends_at": "2026-09-23T11:09:00Z",
+        "remaining_seconds": 240
+      },
+      "jail": null,
+      "level": 4,
+      "max_energy": 100,
+      "max_health": 100,
+      "name": "سارا",
+      "needs": null,
+      "next_level_xp": 750,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "rank": null,
+      "stage": {
+        "code": "",
+        "name": ""
+      },
+      "travel_remaining_seconds": 0,
+      "travel_to": "",
+      "travel_to_code": "",
+      "travelling": false,
+      "walk": null,
+      "work": {
+        "certificates": 0,
+        "course": null,
+        "job": null
+      },
+      "xp": 520
+    }
+  }
+]

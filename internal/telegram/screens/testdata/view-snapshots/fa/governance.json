@@ -1,0 +1,1386 @@
+[
+  {
+    "title": "City hall",
+    "screen": "city_governance",
+    "view": {
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "holds_office": true,
+      "no_city": false,
+      "sections": [
+        {
+          "levers": [
+            {
+              "allocation": null,
+              "categories": null,
+              "code": "city.tax_rate",
+              "confirm_by": "",
+              "cooldown_seconds": 259200,
+              "default": 450,
+              "from_office": true,
+              "held_by": "mayor",
+              "max": 2500,
+              "min": 0,
+              "notice_seconds": 86400,
+              "pending": {
+                "allocation": null,
+                "by": {
+                  "code": "K7Q2M9A",
+                  "name": "سارا"
+                },
+                "in_seconds": 82800,
+                "value": 800
+              },
+              "set_by": {
+                "code": "K7Q2M9A",
+                "name": "سارا"
+              },
+              "type": "bps",
+              "value": 450,
+              "vote": false
+            },
+            {
+              "allocation": null,
+              "categories": null,
+              "code": "city.immigration_fee",
+              "confirm_by": "",
+              "cooldown_seconds": 259200,
+              "default": 0,
+              "from_office": false,
+              "held_by": "mayor",
+              "max": 100000,
+              "min": 0,
+              "notice_seconds": 86400,
+              "pending": null,
+              "set_by": null,
+              "type": "money",
+              "value": 1500,
+              "vote": false
+            },
+            {
+              "allocation": null,
+              "categories": null,
+              "code": "city.minimum_wage",
+              "confirm_by": "",
+              "cooldown_seconds": 259200,
+              "default": 100,
+              "from_office": false,
+              "held_by": "mayor",
+              "max": 10000,
+              "min": 0,
+              "notice_seconds": 86400,
+              "pending": null,
+              "set_by": null,
+              "type": "money",
+              "value": 100,
+              "vote": false
+            },
+            {
+              "allocation": null,
+              "categories": null,
+              "code": "city.shift_window_hours",
+              "confirm_by": "",
+              "cooldown_seconds": 259200,
+              "default": 24,
+              "from_office": false,
+              "held_by": "mayor",
+              "max": 72,
+              "min": 6,
+              "notice_seconds": 86400,
+              "pending": null,
+              "set_by": null,
+              "type": "int",
+              "value": 24,
+              "vote": false
+            }
+          ],
+          "offices": [
+            {
+              "acting": null,
+              "acting_code": "",
+              "code": "mayor",
+              "holders": [
+                {
+                  "code": "K7Q2M9A",
+                  "name": "سارا"
+                }
+              ],
+              "seats": 1
+            },
+            {
+              "acting": null,
+              "acting_code": "",
+              "code": "deputy_mayor",
+              "holders": null,
+              "seats": 1
+            },
+            {
+              "acting": null,
+              "acting_code": "",
+              "code": "city_council",
+              "holders": [
+                {
+                  "code": "B3C4D5F",
+                  "name": "کاوه"
+                },
+                {
+                  "code": "N1L0F4R",
+                  "name": "نیلوفر"
+                }
+              ],
+              "seats": 5
+            }
+          ],
+          "place": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          }
+        },
+        {
+          "levers": [
+            {
+              "allocation": null,
+              "categories": null,
+              "code": "country.border_tariff",
+              "confirm_by": "parliament",
+              "cooldown_seconds": 604800,
+              "default": 0,
+              "from_office": false,
+              "held_by": "president",
+              "max": 2500,
+              "min": 0,
+              "notice_seconds": 259200,
+              "pending": null,
+              "set_by": null,
+              "type": "bps",
+              "value": 0,
+              "vote": false
+            }
+          ],
+          "offices": [
+            {
+              "acting": null,
+              "acting_code": "",
+              "code": "president",
+              "holders": null,
+              "seats": 1
+            }
+          ],
+          "place": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "City hall · a deputy is acting",
+    "screen": "city_governance",
+    "view": {
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "holds_office": false,
+      "no_city": false,
+      "sections": [
+        {
+          "levers": null,
+          "offices": [
+            {
+              "acting": [
+                {
+                  "code": "B3C4D5F",
+                  "name": "کاوه"
+                }
+              ],
+              "acting_code": "deputy_mayor",
+              "code": "mayor",
+              "holders": null,
+              "seats": 1
+            }
+          ],
+          "place": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "City hall · not in any city",
+    "screen": "city_governance",
+    "view": {
+      "city": {
+        "code": "",
+        "kind": "",
+        "name": ""
+      },
+      "holds_office": false,
+      "no_city": true,
+      "sections": null
+    }
+  },
+  {
+    "title": "My office",
+    "screen": "my_office",
+    "view": {
+      "seats": [
+        {
+          "acting_for": "mayor",
+          "appointees": null,
+          "levers": [
+            {
+              "allocation": null,
+              "categories": null,
+              "code": "city.tax_rate",
+              "confirm_by": "",
+              "cooldown_seconds": 259200,
+              "default": 450,
+              "from_office": true,
+              "held_by": "mayor",
+              "max": 2500,
+              "min": 0,
+              "notice_seconds": 86400,
+              "pending": {
+                "allocation": null,
+                "by": {
+                  "code": "K7Q2M9A",
+                  "name": "سارا"
+                },
+                "in_seconds": 82800,
+                "value": 800
+              },
+              "set_by": {
+                "code": "K7Q2M9A",
+                "name": "سارا"
+              },
+              "type": "bps",
+              "value": 450,
+              "vote": false
+            },
+            {
+              "allocation": null,
+              "categories": null,
+              "code": "city.immigration_fee",
+              "confirm_by": "",
+              "cooldown_seconds": 259200,
+              "default": 0,
+              "from_office": false,
+              "held_by": "mayor",
+              "max": 100000,
+              "min": 0,
+              "notice_seconds": 86400,
+              "pending": null,
+              "set_by": null,
+              "type": "money",
+              "value": 1500,
+              "vote": false
+            }
+          ],
+          "office": "deputy_mayor",
+          "place": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "vote_levers": null
+        },
+        {
+          "acting_for": "",
+          "appointees": null,
+          "levers": [
+            {
+              "allocation": null,
+              "categories": null,
+              "code": "country.border_tariff",
+              "confirm_by": "parliament",
+              "cooldown_seconds": 604800,
+              "default": 0,
+              "from_office": false,
+              "held_by": "president",
+              "max": 2500,
+              "min": 0,
+              "notice_seconds": 259200,
+              "pending": null,
+              "set_by": null,
+              "type": "bps",
+              "value": 0,
+              "vote": false
+            }
+          ],
+          "office": "president",
+          "place": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "vote_levers": null
+        },
+        {
+          "acting_for": "",
+          "appointees": null,
+          "levers": null,
+          "office": "city_council",
+          "place": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "vote_levers": [
+            {
+              "allocation": null,
+              "categories": null,
+              "code": "city.property_tax",
+              "confirm_by": "",
+              "cooldown_seconds": 259200,
+              "default": 20,
+              "from_office": false,
+              "held_by": "city_council",
+              "max": 200,
+              "min": 0,
+              "notice_seconds": 86400,
+              "pending": null,
+              "set_by": null,
+              "type": "bps",
+              "value": 20,
+              "vote": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "title": "My office · none",
+    "screen": "my_office",
+    "view": {
+      "seats": null
+    }
+  },
+  {
+    "title": "Change a policy · percentage",
+    "screen": "lever_edit",
+    "view": {
+      "coarse_step": 250,
+      "draft": 800,
+      "fine_step": 25,
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "next_change_in_seconds": 0,
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Change a policy · money",
+    "screen": "lever_edit",
+    "view": {
+      "coarse_step": 10000,
+      "draft": 1500,
+      "fine_step": 1000,
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.immigration_fee",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 0,
+        "from_office": false,
+        "held_by": "mayor",
+        "max": 100000,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": null,
+        "set_by": null,
+        "type": "money",
+        "value": 1500,
+        "vote": false
+      },
+      "next_change_in_seconds": 0,
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Change a policy · waiting for the cooldown",
+    "screen": "lever_edit",
+    "view": {
+      "coarse_step": 250,
+      "draft": 800,
+      "fine_step": 25,
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "next_change_in_seconds": 180000,
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Change a policy · a choice (arms exports)",
+    "screen": "lever_edit",
+    "view": {
+      "coarse_step": 0,
+      "draft": 2,
+      "fine_step": 1,
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "country.arms_exports",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 1,
+        "from_office": false,
+        "held_by": "defence_minister",
+        "max": 2,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": null,
+        "set_by": null,
+        "type": "int",
+        "value": 1,
+        "vote": false
+      },
+      "next_change_in_seconds": 0,
+      "place": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      }
+    }
+  },
+  {
+    "title": "Change a policy · a choice confirmed",
+    "screen": "policy_confirm",
+    "view": {
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "country.arms_exports",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 1,
+        "from_office": false,
+        "held_by": "defence_minister",
+        "max": 2,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": null,
+        "set_by": null,
+        "type": "int",
+        "value": 1,
+        "vote": false
+      },
+      "new_value": 2,
+      "place": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "vote_by": ""
+    }
+  },
+  {
+    "title": "Change a policy · confirm",
+    "screen": "policy_confirm",
+    "view": {
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "new_value": 825,
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "vote_by": ""
+    }
+  },
+  {
+    "title": "Change a policy · announced",
+    "screen": "policy_announced",
+    "view": {
+      "in_seconds": 86400,
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "new": 825,
+      "new_allocation": null,
+      "old": 450,
+      "old_allocation": null,
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Policy history (page 1 of 2)",
+    "screen": "gov_history",
+    "view": {
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "entries": [
+        {
+          "ago_seconds": 10800,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "effective_in_seconds": 75600,
+          "lever": "city.tax_rate",
+          "new": 800,
+          "office": "mayor",
+          "old": 450,
+          "place": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "type": "bps"
+        },
+        {
+          "ago_seconds": 180000,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "effective_in_seconds": 0,
+          "lever": "city.minimum_wage",
+          "new": 150,
+          "office": "mayor",
+          "old": 100,
+          "place": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "type": "money"
+        },
+        {
+          "ago_seconds": 288000,
+          "by": null,
+          "effective_in_seconds": 0,
+          "lever": "country.border_tariff",
+          "new": 250,
+          "office": "president",
+          "old": 0,
+          "place": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "type": "bps"
+        }
+      ],
+      "page": 1,
+      "pages": 2
+    }
+  },
+  {
+    "title": "Policy history · empty",
+    "screen": "gov_history",
+    "view": {
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "entries": null,
+      "page": 1,
+      "pages": 1
+    }
+  },
+  {
+    "title": "Refusal · not the holder",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "UNAUTHORIZED",
+        "details": {
+          "office": "mayor"
+        },
+        "message": "only the office holder can change that"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · decided by a vote",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "UNAUTHORIZED",
+        "details": {
+          "body": "city_council"
+        },
+        "message": "that decision requires a vote"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · out of range",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "INVALID_INPUT",
+        "details": null,
+        "message": "that value is outside the allowed range"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · cooldown",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "COOLDOWN",
+        "details": {
+          "available_at": "2026-09-24T18:00:00Z"
+        },
+        "message": "that policy changed too recently"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · cooldown, time unknown",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "COOLDOWN",
+        "details": null,
+        "message": "that policy changed too recently"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · unsupported",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "INVALID_INPUT",
+        "details": null,
+        "message": "that kind of policy is not supported yet"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · unknown policy",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "NOT_FOUND",
+        "details": null,
+        "message": "no such policy"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · unknown place",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "NOT_FOUND",
+        "details": null,
+        "message": "no such place"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · wrong place",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "INVALID_INPUT",
+        "details": null,
+        "message": "that does not apply here"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · office not found",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "NOT_FOUND",
+        "details": null,
+        "message": "no such office"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · office occupied",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "CONFLICT",
+        "details": null,
+        "message": "that office is already held"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · office vacant",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "CONFLICT",
+        "details": null,
+        "message": "that office is already vacant"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · already holds it",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "CONFLICT",
+        "details": null,
+        "message": "already holds that office"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · incompatible offices",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "CONFLICT",
+        "details": null,
+        "message": "cannot hold both offices"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": {
+          "allocation": null,
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "in_seconds": 82800,
+          "value": 800
+        },
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": "2026-09-23T12:00:00Z",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · out of range, lever unknown",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "INVALID_INPUT",
+        "details": null,
+        "message": "that value is outside the allowed range"
+      },
+      "lever": null,
+      "now": "2026-09-23T12:00:00Z",
+      "place": null
+    }
+  }
+]

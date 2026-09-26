@@ -1,0 +1,2281 @@
+[
+  {
+    "title": "Hub · at the train station",
+    "screen": "crime_hub",
+    "view": {
+      "busy": null,
+      "categories": [
+        {
+          "code": "petty_theft",
+          "name": "Petty theft"
+        },
+        {
+          "code": "street_crime",
+          "name": "Street crime"
+        },
+        {
+          "code": "burglary",
+          "name": "Burglary"
+        },
+        {
+          "code": "fraud",
+          "name": "Fraud"
+        },
+        {
+          "code": "smuggling",
+          "name": "Smuggling"
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "heat": {
+        "heat": 23,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "jail": null,
+      "nerve": {
+        "full_in_seconds": 1800,
+        "max": 20,
+        "nerve": 14
+      },
+      "tier": {
+        "next": {
+          "code": "hustler",
+          "name": "Hustler"
+        },
+        "next_xp": 150,
+        "tier": {
+          "code": "novice",
+          "name": "Novice"
+        },
+        "xp": 96
+      },
+      "travelling": false,
+      "venue": {
+        "code": "train_station",
+        "name": "Train station"
+      }
+    }
+  },
+  {
+    "title": "Hub · clean, full of nerve",
+    "screen": "crime_hub",
+    "view": {
+      "busy": null,
+      "categories": [
+        {
+          "code": "petty_theft",
+          "name": "Petty theft"
+        },
+        {
+          "code": "street_crime",
+          "name": "Street crime"
+        },
+        {
+          "code": "burglary",
+          "name": "Burglary"
+        },
+        {
+          "code": "fraud",
+          "name": "Fraud"
+        },
+        {
+          "code": "smuggling",
+          "name": "Smuggling"
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "heat": {
+        "heat": 0,
+        "max": 100,
+        "stars": 5,
+        "wanted": 0
+      },
+      "jail": null,
+      "nerve": {
+        "full_in_seconds": 0,
+        "max": 20,
+        "nerve": 20
+      },
+      "tier": {
+        "next": {
+          "code": "",
+          "name": ""
+        },
+        "next_xp": 0,
+        "tier": {
+          "code": "professional",
+          "name": "Professional"
+        },
+        "xp": 1200
+      },
+      "travelling": false,
+      "venue": {
+        "code": "city_centre",
+        "name": "City centre"
+      }
+    }
+  },
+  {
+    "title": "Hub · in jail",
+    "screen": "crime_hub",
+    "view": {
+      "busy": null,
+      "categories": [
+        {
+          "code": "petty_theft",
+          "name": "Petty theft"
+        },
+        {
+          "code": "street_crime",
+          "name": "Street crime"
+        },
+        {
+          "code": "burglary",
+          "name": "Burglary"
+        },
+        {
+          "code": "fraud",
+          "name": "Fraud"
+        },
+        {
+          "code": "smuggling",
+          "name": "Smuggling"
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "heat": {
+        "heat": 23,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "jail": {
+        "crime": {
+          "code": "",
+          "name": ""
+        },
+        "ends_at": "2026-09-23T12:40:00Z",
+        "remaining_seconds": 5700
+      },
+      "nerve": {
+        "full_in_seconds": 1800,
+        "max": 20,
+        "nerve": 14
+      },
+      "tier": {
+        "next": {
+          "code": "hustler",
+          "name": "Hustler"
+        },
+        "next_xp": 150,
+        "tier": {
+          "code": "novice",
+          "name": "Novice"
+        },
+        "xp": 96
+      },
+      "travelling": false,
+      "venue": {
+        "code": "city_centre",
+        "name": "City centre"
+      }
+    }
+  },
+  {
+    "title": "Hub · a burglary under way",
+    "screen": "crime_hub",
+    "view": {
+      "busy": {
+        "crime": {
+          "code": "home_burglary",
+          "name": "Home burglary"
+        },
+        "ends_at": "2026-09-23T11:06:30Z",
+        "remaining_seconds": 90
+      },
+      "categories": [
+        {
+          "code": "petty_theft",
+          "name": "Petty theft"
+        },
+        {
+          "code": "street_crime",
+          "name": "Street crime"
+        },
+        {
+          "code": "burglary",
+          "name": "Burglary"
+        },
+        {
+          "code": "fraud",
+          "name": "Fraud"
+        },
+        {
+          "code": "smuggling",
+          "name": "Smuggling"
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "heat": {
+        "heat": 23,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "jail": null,
+      "nerve": {
+        "full_in_seconds": 1800,
+        "max": 20,
+        "nerve": 14
+      },
+      "tier": {
+        "next": {
+          "code": "hustler",
+          "name": "Hustler"
+        },
+        "next_xp": 150,
+        "tier": {
+          "code": "novice",
+          "name": "Novice"
+        },
+        "xp": 96
+      },
+      "travelling": false,
+      "venue": {
+        "code": "city_centre",
+        "name": "City centre"
+      }
+    }
+  },
+  {
+    "title": "Hub · on the road",
+    "screen": "crime_hub",
+    "view": {
+      "busy": null,
+      "categories": null,
+      "city": "",
+      "city_code": "",
+      "heat": {
+        "heat": 23,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "jail": null,
+      "nerve": {
+        "full_in_seconds": 1800,
+        "max": 20,
+        "nerve": 14
+      },
+      "tier": {
+        "next": {
+          "code": "hustler",
+          "name": "Hustler"
+        },
+        "next_xp": 150,
+        "tier": {
+          "code": "novice",
+          "name": "Novice"
+        },
+        "xp": 96
+      },
+      "travelling": true,
+      "venue": {
+        "code": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "List · petty theft",
+    "screen": "crime_list",
+    "view": {
+      "category": {
+        "code": "petty_theft",
+        "name": "Petty theft"
+      },
+      "crimes": [
+        {
+          "crime": {
+            "code": "pickpocketing",
+            "name": "Pickpocketing"
+          },
+          "duration_seconds": 0,
+          "eligible": true,
+          "nerve": 2
+        },
+        {
+          "crime": {
+            "code": "shoplifting",
+            "name": "Shoplifting"
+          },
+          "duration_seconds": 0,
+          "eligible": false,
+          "nerve": 2
+        }
+      ],
+      "page": 1,
+      "pages": 1
+    }
+  },
+  {
+    "title": "List · burglary, a timed crime",
+    "screen": "crime_list",
+    "view": {
+      "category": {
+        "code": "burglary",
+        "name": "Burglary"
+      },
+      "crimes": [
+        {
+          "crime": {
+            "code": "home_burglary",
+            "name": "Home burglary"
+          },
+          "duration_seconds": 120,
+          "eligible": false,
+          "nerve": 6
+        }
+      ],
+      "page": 1,
+      "pages": 1
+    }
+  },
+  {
+    "title": "Crime · pickpocketing, ready",
+    "screen": "crime_detail",
+    "view": {
+      "blocked": "",
+      "can_commit": true,
+      "category": {
+        "code": "petty_theft",
+        "name": "Petty theft"
+      },
+      "chance_bps": 5160,
+      "cooldown_left_seconds": 0,
+      "cooldown_seconds": 0,
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "duration_seconds": 0,
+      "fine_max": 400,
+      "fine_min": 100,
+      "gear_catch_bps": 0,
+      "gear_reward_bps": 0,
+      "gear_solve_bps": 0,
+      "gear_witness_bps": 0,
+      "have": 0,
+      "hits_np_cs": true,
+      "hits_players": true,
+      "jail_max_seconds": 360,
+      "jail_min_seconds": 120,
+      "max_take": 90,
+      "min_take": 15,
+      "need": 0,
+      "nerve": 2,
+      "nonce": "a1b2c3d4e5f6",
+      "odds": {
+        "awareness": 0,
+        "base": 0,
+        "gear": 0,
+        "heat": 0,
+        "skill": 0
+      },
+      "requirements": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "facility": "",
+          "have": 0,
+          "have_tier": {
+            "code": "",
+            "name": ""
+          },
+          "here": {
+            "code": "train_station",
+            "name": "Train station"
+          },
+          "kind": "venue",
+          "met": true,
+          "need": 0,
+          "skill": "",
+          "tier": {
+            "code": "",
+            "name": ""
+          },
+          "tool": {
+            "code": "",
+            "name": ""
+          },
+          "venues": [
+            {
+              "code": "city_centre",
+              "name": "City centre"
+            },
+            {
+              "code": "bus_terminal",
+              "name": "Bus terminal"
+            },
+            {
+              "code": "train_station",
+              "name": "Train station"
+            },
+            {
+              "code": "airport",
+              "name": "Airport"
+            }
+          ],
+          "wait_seconds": 0
+        }
+      ],
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Crime · home burglary, out of reach",
+    "screen": "crime_detail",
+    "view": {
+      "blocked": "",
+      "can_commit": false,
+      "category": {
+        "code": "burglary",
+        "name": "Burglary"
+      },
+      "chance_bps": 3200,
+      "cooldown_left_seconds": 0,
+      "cooldown_seconds": 0,
+      "crime": {
+        "code": "home_burglary",
+        "name": "Home burglary"
+      },
+      "duration_seconds": 120,
+      "fine_max": 2000,
+      "fine_min": 500,
+      "gear_catch_bps": 0,
+      "gear_reward_bps": 0,
+      "gear_solve_bps": 0,
+      "gear_witness_bps": 0,
+      "have": 0,
+      "hits_np_cs": true,
+      "hits_players": false,
+      "jail_max_seconds": 1440,
+      "jail_min_seconds": 480,
+      "max_take": 2500,
+      "min_take": 500,
+      "need": 0,
+      "nerve": 6,
+      "nonce": "",
+      "odds": {
+        "awareness": 0,
+        "base": 0,
+        "gear": 0,
+        "heat": 0,
+        "skill": 0
+      },
+      "requirements": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "facility": "",
+          "have": 3,
+          "have_tier": {
+            "code": "",
+            "name": ""
+          },
+          "here": {
+            "code": "",
+            "name": ""
+          },
+          "kind": "level",
+          "met": false,
+          "need": 5,
+          "skill": "",
+          "tier": {
+            "code": "",
+            "name": ""
+          },
+          "tool": {
+            "code": "",
+            "name": ""
+          },
+          "venues": null,
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "facility": "",
+          "have": 0,
+          "have_tier": {
+            "code": "novice",
+            "name": "Novice"
+          },
+          "here": {
+            "code": "",
+            "name": ""
+          },
+          "kind": "crime_tier",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "tier": {
+            "code": "hustler",
+            "name": "Hustler"
+          },
+          "tool": {
+            "code": "",
+            "name": ""
+          },
+          "venues": null,
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "facility": "",
+          "have": 1,
+          "have_tier": {
+            "code": "",
+            "name": ""
+          },
+          "here": {
+            "code": "",
+            "name": ""
+          },
+          "kind": "skill",
+          "met": false,
+          "need": 3,
+          "skill": "lockpicking",
+          "tier": {
+            "code": "",
+            "name": ""
+          },
+          "tool": {
+            "code": "",
+            "name": ""
+          },
+          "venues": null,
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "facility": "",
+          "have": 4,
+          "have_tier": {
+            "code": "",
+            "name": ""
+          },
+          "here": {
+            "code": "",
+            "name": ""
+          },
+          "kind": "skill",
+          "met": true,
+          "need": 2,
+          "skill": "stealth",
+          "tier": {
+            "code": "",
+            "name": ""
+          },
+          "tool": {
+            "code": "",
+            "name": ""
+          },
+          "venues": null,
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "facility": "",
+          "have": 0,
+          "have_tier": {
+            "code": "",
+            "name": ""
+          },
+          "here": {
+            "code": "train_station",
+            "name": "Train station"
+          },
+          "kind": "venue",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "tier": {
+            "code": "",
+            "name": ""
+          },
+          "tool": {
+            "code": "",
+            "name": ""
+          },
+          "venues": [
+            {
+              "code": "city_centre",
+              "name": "City centre"
+            }
+          ],
+          "wait_seconds": 0
+        }
+      ],
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Crime · smuggling needs a rail station",
+    "screen": "crime_detail",
+    "view": {
+      "blocked": "",
+      "can_commit": false,
+      "category": {
+        "code": "smuggling",
+        "name": "Smuggling"
+      },
+      "chance_bps": 4100,
+      "cooldown_left_seconds": 0,
+      "cooldown_seconds": 0,
+      "crime": {
+        "code": "goods_smuggling",
+        "name": "Smuggling small goods"
+      },
+      "duration_seconds": 240,
+      "fine_max": 4000,
+      "fine_min": 1000,
+      "gear_catch_bps": 0,
+      "gear_reward_bps": 0,
+      "gear_solve_bps": 0,
+      "gear_witness_bps": 0,
+      "have": 0,
+      "hits_np_cs": true,
+      "hits_players": false,
+      "jail_max_seconds": 2160,
+      "jail_min_seconds": 720,
+      "max_take": 5000,
+      "min_take": 1500,
+      "need": 0,
+      "nerve": 8,
+      "nonce": "",
+      "odds": {
+        "awareness": 0,
+        "base": 0,
+        "gear": 0,
+        "heat": 0,
+        "skill": 0
+      },
+      "requirements": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "facility": "rail_station",
+          "have": 0,
+          "have_tier": {
+            "code": "",
+            "name": ""
+          },
+          "here": {
+            "code": "",
+            "name": ""
+          },
+          "kind": "facility",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "tier": {
+            "code": "",
+            "name": ""
+          },
+          "tool": {
+            "code": "",
+            "name": ""
+          },
+          "venues": null,
+          "wait_seconds": 0
+        }
+      ],
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Crime · not enough nerve",
+    "screen": "crime_detail",
+    "view": {
+      "blocked": "nerve",
+      "can_commit": false,
+      "category": {
+        "code": "fraud",
+        "name": "Fraud"
+      },
+      "chance_bps": 5500,
+      "cooldown_left_seconds": 0,
+      "cooldown_seconds": 0,
+      "crime": {
+        "code": "street_scam",
+        "name": "Street scam"
+      },
+      "duration_seconds": 20,
+      "fine_max": 600,
+      "fine_min": 150,
+      "gear_catch_bps": 0,
+      "gear_reward_bps": 0,
+      "gear_solve_bps": 0,
+      "gear_witness_bps": 0,
+      "have": 1,
+      "hits_np_cs": true,
+      "hits_players": false,
+      "jail_max_seconds": 360,
+      "jail_min_seconds": 120,
+      "max_take": 400,
+      "min_take": 80,
+      "need": 3,
+      "nerve": 3,
+      "nonce": "",
+      "odds": {
+        "awareness": 0,
+        "base": 0,
+        "gear": 0,
+        "heat": 0,
+        "skill": 0
+      },
+      "requirements": null,
+      "wait_seconds": 600
+    }
+  },
+  {
+    "title": "Crime · home burglary with tools, odds taken apart",
+    "screen": "crime_detail",
+    "view": {
+      "blocked": "",
+      "can_commit": true,
+      "category": {
+        "code": "burglary",
+        "name": "Burglary"
+      },
+      "chance_bps": 6200,
+      "cooldown_left_seconds": 0,
+      "cooldown_seconds": 7200,
+      "crime": {
+        "code": "home_burglary",
+        "name": "Home burglary"
+      },
+      "duration_seconds": 120,
+      "fine_max": 2000,
+      "fine_min": 500,
+      "gear_catch_bps": -500,
+      "gear_reward_bps": 1000,
+      "gear_solve_bps": -1000,
+      "gear_witness_bps": 0,
+      "have": 0,
+      "hits_np_cs": true,
+      "hits_players": false,
+      "jail_max_seconds": 1440,
+      "jail_min_seconds": 480,
+      "max_take": 2500,
+      "min_take": 500,
+      "need": 0,
+      "nerve": 5,
+      "nonce": "a1b2c3d4e5f7",
+      "odds": {
+        "awareness": -300,
+        "base": 4500,
+        "gear": 1000,
+        "heat": -200,
+        "skill": 1200
+      },
+      "requirements": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "facility": "",
+          "have": 0,
+          "have_tier": {
+            "code": "",
+            "name": ""
+          },
+          "here": {
+            "code": "",
+            "name": ""
+          },
+          "kind": "tool",
+          "met": true,
+          "need": 0,
+          "skill": "",
+          "tier": {
+            "code": "",
+            "name": ""
+          },
+          "tool": {
+            "code": "lockpick_set",
+            "name": "Lockpick set"
+          },
+          "venues": null,
+          "wait_seconds": 0
+        }
+      ],
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Crime · resting after the last one",
+    "screen": "crime_detail",
+    "view": {
+      "blocked": "cooldown",
+      "can_commit": false,
+      "category": {
+        "code": "burglary",
+        "name": "Burglary"
+      },
+      "chance_bps": 3200,
+      "cooldown_left_seconds": 4500,
+      "cooldown_seconds": 7200,
+      "crime": {
+        "code": "home_burglary",
+        "name": "Home burglary"
+      },
+      "duration_seconds": 120,
+      "fine_max": 2000,
+      "fine_min": 500,
+      "gear_catch_bps": 0,
+      "gear_reward_bps": 0,
+      "gear_solve_bps": 0,
+      "gear_witness_bps": 0,
+      "have": 0,
+      "hits_np_cs": true,
+      "hits_players": false,
+      "jail_max_seconds": 1440,
+      "jail_min_seconds": 480,
+      "max_take": 2500,
+      "min_take": 500,
+      "need": 0,
+      "nerve": 6,
+      "nonce": "",
+      "odds": {
+        "awareness": 0,
+        "base": 0,
+        "gear": 0,
+        "heat": 0,
+        "skill": 0
+      },
+      "requirements": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "facility": "",
+          "have": 0,
+          "have_tier": {
+            "code": "",
+            "name": ""
+          },
+          "here": {
+            "code": "",
+            "name": ""
+          },
+          "kind": "tool",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "tier": {
+            "code": "",
+            "name": ""
+          },
+          "tool": {
+            "code": "lockpick_set",
+            "name": "Lockpick set"
+          },
+          "venues": null,
+          "wait_seconds": 0
+        }
+      ],
+      "wait_seconds": 4500
+    }
+  },
+  {
+    "title": "Crime · from a cell",
+    "screen": "crime_detail",
+    "view": {
+      "blocked": "jail",
+      "can_commit": false,
+      "category": {
+        "code": "petty_theft",
+        "name": "Petty theft"
+      },
+      "chance_bps": 6000,
+      "cooldown_left_seconds": 0,
+      "cooldown_seconds": 0,
+      "crime": {
+        "code": "shoplifting",
+        "name": "Shoplifting"
+      },
+      "duration_seconds": 0,
+      "fine_max": 200,
+      "fine_min": 50,
+      "gear_catch_bps": 0,
+      "gear_reward_bps": 0,
+      "gear_solve_bps": 0,
+      "gear_witness_bps": 0,
+      "have": 0,
+      "hits_np_cs": true,
+      "hits_players": false,
+      "jail_max_seconds": 180,
+      "jail_min_seconds": 60,
+      "max_take": 120,
+      "min_take": 20,
+      "need": 0,
+      "nerve": 2,
+      "nonce": "",
+      "odds": {
+        "awareness": 0,
+        "base": 0,
+        "gear": 0,
+        "heat": 0,
+        "skill": 0
+      },
+      "requirements": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Result · a pocket picked, as the thief reads it",
+    "screen": "crime_result",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confiscated": null,
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "criminal_xp": 8,
+      "dry_spell": false,
+      "fine": 0,
+      "fine_paid": 0,
+      "heat": {
+        "heat": 23,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "injury": null,
+      "jail": null,
+      "level": 0,
+      "loot": null,
+      "nerve": {
+        "full_in_seconds": 1800,
+        "max": 20,
+        "nerve": 14
+      },
+      "notice": false,
+      "player": "سارا",
+      "result": "succeeded",
+      "skills": [
+        {
+          "level": 2,
+          "skill": "stealth",
+          "xp": 12
+        }
+      ],
+      "stolen": null,
+      "take": 1500,
+      "venue": {
+        "code": "train_station",
+        "name": "Train station"
+      },
+      "victim_player": true,
+      "xp": 5
+    }
+  },
+  {
+    "title": "Result · empty pockets",
+    "screen": "crime_result",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confiscated": null,
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "criminal_xp": 8,
+      "dry_spell": false,
+      "fine": 0,
+      "fine_paid": 0,
+      "heat": {
+        "heat": 23,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "injury": null,
+      "jail": null,
+      "level": 0,
+      "loot": null,
+      "nerve": {
+        "full_in_seconds": 1800,
+        "max": 20,
+        "nerve": 14
+      },
+      "notice": false,
+      "player": "سارا",
+      "result": "succeeded",
+      "skills": [
+        {
+          "level": 2,
+          "skill": "stealth",
+          "xp": 12
+        }
+      ],
+      "stolen": null,
+      "take": 0,
+      "venue": {
+        "code": "train_station",
+        "name": "Train station"
+      },
+      "victim_player": true,
+      "xp": 5
+    }
+  },
+  {
+    "title": "Result · a shop's till",
+    "screen": "crime_result",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confiscated": null,
+      "crime": {
+        "code": "shoplifting",
+        "name": "Shoplifting"
+      },
+      "criminal_xp": 8,
+      "dry_spell": false,
+      "fine": 0,
+      "fine_paid": 0,
+      "heat": {
+        "heat": 23,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "injury": null,
+      "jail": null,
+      "level": 0,
+      "loot": null,
+      "nerve": {
+        "full_in_seconds": 1800,
+        "max": 20,
+        "nerve": 14
+      },
+      "notice": false,
+      "player": "سارا",
+      "result": "succeeded",
+      "skills": [
+        {
+          "level": 2,
+          "skill": "stealth",
+          "xp": 12
+        }
+      ],
+      "stolen": null,
+      "take": 64,
+      "venue": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "victim_player": false,
+      "xp": 5
+    }
+  },
+  {
+    "title": "Result · the city bled dry for today",
+    "screen": "crime_result",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confiscated": null,
+      "crime": {
+        "code": "shoplifting",
+        "name": "Shoplifting"
+      },
+      "criminal_xp": 8,
+      "dry_spell": true,
+      "fine": 0,
+      "fine_paid": 0,
+      "heat": {
+        "heat": 23,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "injury": null,
+      "jail": null,
+      "level": 0,
+      "loot": null,
+      "nerve": {
+        "full_in_seconds": 1800,
+        "max": 20,
+        "nerve": 14
+      },
+      "notice": false,
+      "player": "سارا",
+      "result": "succeeded",
+      "skills": [
+        {
+          "level": 2,
+          "skill": "stealth",
+          "xp": 12
+        }
+      ],
+      "stolen": null,
+      "take": 0,
+      "venue": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "victim_player": false,
+      "xp": 5
+    }
+  },
+  {
+    "title": "Result · caught, the fine not fully paid",
+    "screen": "crime_result",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confiscated": null,
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "criminal_xp": 0,
+      "dry_spell": false,
+      "fine": 300,
+      "fine_paid": 120,
+      "heat": {
+        "heat": 31,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "injury": null,
+      "jail": {
+        "crime": {
+          "code": "",
+          "name": ""
+        },
+        "ends_at": "2026-09-23T11:09:00Z",
+        "remaining_seconds": 240
+      },
+      "level": 0,
+      "loot": null,
+      "nerve": {
+        "full_in_seconds": 0,
+        "max": 0,
+        "nerve": 0
+      },
+      "notice": false,
+      "player": "سارا",
+      "result": "caught",
+      "skills": null,
+      "stolen": null,
+      "take": 0,
+      "venue": {
+        "code": "train_station",
+        "name": "Train station"
+      },
+      "victim_player": false,
+      "xp": 0
+    }
+  },
+  {
+    "title": "Notice · a burglary ended in an arrest",
+    "screen": "crime_result",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confiscated": null,
+      "crime": {
+        "code": "home_burglary",
+        "name": "Home burglary"
+      },
+      "criminal_xp": 0,
+      "dry_spell": false,
+      "fine": 300,
+      "fine_paid": 300,
+      "heat": {
+        "heat": 31,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "injury": null,
+      "jail": {
+        "crime": {
+          "code": "",
+          "name": ""
+        },
+        "ends_at": "2026-09-23T11:09:00Z",
+        "remaining_seconds": 240
+      },
+      "level": 0,
+      "loot": null,
+      "nerve": {
+        "full_in_seconds": 0,
+        "max": 0,
+        "nerve": 0
+      },
+      "notice": true,
+      "player": "سارا",
+      "result": "caught",
+      "skills": null,
+      "stolen": null,
+      "take": 0,
+      "venue": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "victim_player": false,
+      "xp": 0
+    }
+  },
+  {
+    "title": "Result · a till and loot",
+    "screen": "crime_result",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confiscated": null,
+      "crime": {
+        "code": "shoplifting",
+        "name": "Shoplifting"
+      },
+      "criminal_xp": 8,
+      "dry_spell": false,
+      "fine": 0,
+      "fine_paid": 0,
+      "heat": {
+        "heat": 23,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "injury": null,
+      "jail": null,
+      "level": 0,
+      "loot": [
+        {
+          "item": {
+            "code": "phone",
+            "name": "Phone"
+          },
+          "qty": 1
+        },
+        {
+          "item": {
+            "code": "jewellery",
+            "name": "Jewellery"
+          },
+          "qty": 2
+        }
+      ],
+      "nerve": {
+        "full_in_seconds": 1800,
+        "max": 20,
+        "nerve": 14
+      },
+      "notice": false,
+      "player": "سارا",
+      "result": "succeeded",
+      "skills": [
+        {
+          "level": 2,
+          "skill": "stealth",
+          "xp": 12
+        }
+      ],
+      "stolen": null,
+      "take": 64,
+      "venue": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "victim_player": false,
+      "xp": 5
+    }
+  },
+  {
+    "title": "Result · a pocket picked and a watch taken",
+    "screen": "crime_result",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confiscated": null,
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "criminal_xp": 8,
+      "dry_spell": false,
+      "fine": 0,
+      "fine_paid": 0,
+      "heat": {
+        "heat": 23,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "injury": null,
+      "jail": null,
+      "level": 0,
+      "loot": null,
+      "nerve": {
+        "full_in_seconds": 1800,
+        "max": 20,
+        "nerve": 14
+      },
+      "notice": false,
+      "player": "سارا",
+      "result": "succeeded",
+      "skills": [
+        {
+          "level": 2,
+          "skill": "stealth",
+          "xp": 12
+        }
+      ],
+      "stolen": {
+        "code": "watch",
+        "name": "Wristwatch"
+      },
+      "take": 1500,
+      "venue": {
+        "code": "train_station",
+        "name": "Train station"
+      },
+      "victim_player": true,
+      "xp": 5
+    }
+  },
+  {
+    "title": "Result · caught, the tools kept as evidence",
+    "screen": "crime_result",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confiscated": [
+        {
+          "code": "lockpick_set",
+          "name": "Lockpick set"
+        },
+        {
+          "code": "crowbar",
+          "name": "Crowbar"
+        }
+      ],
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "criminal_xp": 0,
+      "dry_spell": false,
+      "fine": 300,
+      "fine_paid": 300,
+      "heat": {
+        "heat": 31,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "injury": null,
+      "jail": {
+        "crime": {
+          "code": "",
+          "name": ""
+        },
+        "ends_at": "2026-09-23T11:09:00Z",
+        "remaining_seconds": 240
+      },
+      "level": 0,
+      "loot": null,
+      "nerve": {
+        "full_in_seconds": 0,
+        "max": 0,
+        "nerve": 0
+      },
+      "notice": false,
+      "player": "سارا",
+      "result": "caught",
+      "skills": null,
+      "stolen": null,
+      "take": 0,
+      "venue": {
+        "code": "train_station",
+        "name": "Train station"
+      },
+      "victim_player": false,
+      "xp": 0
+    }
+  },
+  {
+    "title": "Notice · the take, told privately",
+    "screen": "crime_result",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confiscated": null,
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "criminal_xp": 8,
+      "dry_spell": false,
+      "fine": 0,
+      "fine_paid": 0,
+      "heat": {
+        "heat": 23,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "injury": null,
+      "jail": null,
+      "level": 0,
+      "loot": null,
+      "nerve": {
+        "full_in_seconds": 1800,
+        "max": 20,
+        "nerve": 14
+      },
+      "notice": true,
+      "player": "سارا",
+      "result": "succeeded",
+      "skills": [
+        {
+          "level": 2,
+          "skill": "stealth",
+          "xp": 12
+        }
+      ],
+      "stolen": null,
+      "take": 1500,
+      "venue": {
+        "code": "train_station",
+        "name": "Train station"
+      },
+      "victim_player": true,
+      "xp": 5
+    }
+  },
+  {
+    "title": "Record · as the player reads it",
+    "screen": "crime_record",
+    "view": {
+      "arrests": 3,
+      "attempts": 12,
+      "convictions": 1,
+      "heat": {
+        "heat": 23,
+        "max": 100,
+        "stars": 5,
+        "wanted": 2
+      },
+      "nerve": {
+        "full_in_seconds": 1800,
+        "max": 20,
+        "nerve": 14
+      },
+      "recent": [
+        {
+          "at": null,
+          "crime": {
+            "code": "home_burglary",
+            "name": "Home burglary"
+          },
+          "result": "in_progress"
+        },
+        {
+          "at": null,
+          "crime": {
+            "code": "pickpocketing",
+            "name": "Pickpocketing"
+          },
+          "result": "succeeded"
+        },
+        {
+          "at": null,
+          "crime": {
+            "code": "shoplifting",
+            "name": "Shoplifting"
+          },
+          "result": "escaped"
+        },
+        {
+          "at": null,
+          "crime": {
+            "code": "pickpocketing",
+            "name": "Pickpocketing"
+          },
+          "result": "caught"
+        }
+      ],
+      "successes": 8,
+      "tier": {
+        "next": {
+          "code": "hustler",
+          "name": "Hustler"
+        },
+        "next_xp": 150,
+        "tier": {
+          "code": "novice",
+          "name": "Novice"
+        },
+        "xp": 96
+      },
+      "unpaid_fines": 250,
+      "unpaid_restitution": 400
+    }
+  },
+  {
+    "title": "Record · clean",
+    "screen": "crime_record",
+    "view": {
+      "arrests": 0,
+      "attempts": 0,
+      "convictions": 0,
+      "heat": {
+        "heat": 0,
+        "max": 100,
+        "stars": 5,
+        "wanted": 0
+      },
+      "nerve": {
+        "full_in_seconds": 0,
+        "max": 20,
+        "nerve": 20
+      },
+      "recent": null,
+      "successes": 0,
+      "tier": {
+        "next": {
+          "code": "hustler",
+          "name": "Hustler"
+        },
+        "next_xp": 150,
+        "tier": {
+          "code": "novice",
+          "name": "Novice"
+        },
+        "xp": 0
+      },
+      "unpaid_fines": 0,
+      "unpaid_restitution": 0
+    }
+  },
+  {
+    "title": "Jail · serving, with bail",
+    "screen": "jail",
+    "view": {
+      "bail": 3960,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "ends_at": "2026-09-23T12:40:00Z",
+      "in_jail": true,
+      "nonce": "f00dfeed0001",
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 3960,
+        "bank": 12000,
+        "cash": 5000,
+        "usable": [
+          "cash",
+          "card"
+        ]
+      },
+      "reason": "conviction",
+      "remaining_seconds": 5700
+    }
+  },
+  {
+    "title": "Jail · serving, nothing covers the bail",
+    "screen": "jail",
+    "view": {
+      "bail": 3960,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "ends_at": "2026-09-23T11:25:00Z",
+      "in_jail": true,
+      "nonce": "f00dfeed0003",
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 3960,
+        "bank": 100,
+        "cash": 40,
+        "usable": null
+      },
+      "reason": "arrest",
+      "remaining_seconds": 1200
+    }
+  },
+  {
+    "title": "Jail · free",
+    "screen": "jail",
+    "view": {
+      "bail": 0,
+      "city": "",
+      "city_code": "",
+      "ends_at": null,
+      "in_jail": false,
+      "nonce": "",
+      "payment": null,
+      "reason": "",
+      "remaining_seconds": 0
+    }
+  },
+  {
+    "title": "Bailed · as the player reads it",
+    "screen": "bailed",
+    "view": {
+      "bail": 3960,
+      "method": "card",
+      "player": "سارا"
+    }
+  },
+  {
+    "title": "Notice · your pocket was picked",
+    "screen": "victim_notice",
+    "view": {
+      "amount": 1500,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "crime_id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+      "item": null,
+      "report_fee": 200,
+      "report_within_seconds": 86400,
+      "thief_code": "",
+      "thief_name": "",
+      "venue": {
+        "code": "train_station",
+        "name": "Train station"
+      }
+    }
+  },
+  {
+    "title": "Notice · your pocket was picked, and a witness saw who",
+    "screen": "victim_notice",
+    "view": {
+      "amount": 1500,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "crime_id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+      "item": null,
+      "report_fee": 200,
+      "report_within_seconds": 86400,
+      "thief_code": "B3C4D5F",
+      "thief_name": "کاوه",
+      "venue": {
+        "code": "train_station",
+        "name": "Train station"
+      }
+    }
+  },
+  {
+    "title": "Notice · your pocket was picked and your watch taken",
+    "screen": "victim_notice",
+    "view": {
+      "amount": 1500,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "crime_id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+      "item": {
+        "code": "watch",
+        "name": "Wristwatch"
+      },
+      "report_fee": 200,
+      "report_within_seconds": 86400,
+      "thief_code": "",
+      "thief_name": "",
+      "venue": {
+        "code": "train_station",
+        "name": "Train station"
+      }
+    }
+  },
+  {
+    "title": "Report · confirm",
+    "screen": "report_confirm",
+    "view": {
+      "amount": 1500,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "crime_id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+      "fee": 200,
+      "investigation_seconds": 360,
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 200,
+        "bank": 3000,
+        "cash": 900,
+        "usable": [
+          "cash",
+          "card"
+        ]
+      },
+      "report_within_seconds": 85200
+    }
+  },
+  {
+    "title": "Report · confirm, no fee in this city",
+    "screen": "report_confirm",
+    "view": {
+      "amount": 1500,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "crime_id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+      "fee": 0,
+      "investigation_seconds": 360,
+      "payment": null,
+      "report_within_seconds": 85200
+    }
+  },
+  {
+    "title": "Cases",
+    "screen": "cases",
+    "view": {
+      "cases": [
+        {
+          "amount": 1500,
+          "city": "Ostmarch",
+          "city_code": "ostmarch",
+          "crime": {
+            "code": "pickpocketing",
+            "name": "Pickpocketing"
+          },
+          "remaining_seconds": 240,
+          "restored": 0,
+          "status": "investigating",
+          "thief": ""
+        },
+        {
+          "amount": 300,
+          "city": "Brennhaven",
+          "city_code": "brennhaven",
+          "crime": {
+            "code": "pickpocketing",
+            "name": "Pickpocketing"
+          },
+          "remaining_seconds": 10,
+          "restored": 0,
+          "status": "investigating",
+          "thief": ""
+        },
+        {
+          "amount": 800,
+          "city": "Ostmarch",
+          "city_code": "ostmarch",
+          "crime": {
+            "code": "pickpocketing",
+            "name": "Pickpocketing"
+          },
+          "remaining_seconds": 0,
+          "restored": 800,
+          "status": "solved",
+          "thief": "کاوه"
+        },
+        {
+          "amount": 120,
+          "city": "Calderis",
+          "city_code": "calderis",
+          "crime": {
+            "code": "pickpocketing",
+            "name": "Pickpocketing"
+          },
+          "remaining_seconds": 0,
+          "restored": 0,
+          "status": "unsolved",
+          "thief": ""
+        }
+      ]
+    }
+  },
+  {
+    "title": "Cases · none",
+    "screen": "cases",
+    "view": {
+      "cases": null
+    }
+  },
+  {
+    "title": "Notice · case solved, part of it recovered",
+    "screen": "case_solved_notice",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "fine": 300,
+      "fine_paid": 0,
+      "restored": 1100,
+      "returned": null,
+      "shortfall": 400,
+      "solved": true,
+      "stolen": 1500,
+      "term_seconds": 240,
+      "thief": "کاوه",
+      "thief_code": "B3C4D5F"
+    }
+  },
+  {
+    "title": "Notice · case closed",
+    "screen": "case_solved_notice",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "fine": 300,
+      "fine_paid": 0,
+      "restored": 1100,
+      "returned": null,
+      "shortfall": 400,
+      "solved": false,
+      "stolen": 1500,
+      "term_seconds": 240,
+      "thief": "کاوه",
+      "thief_code": "B3C4D5F"
+    }
+  },
+  {
+    "title": "Notice · case solved, the watch returned",
+    "screen": "case_solved_notice",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "fine": 300,
+      "fine_paid": 0,
+      "restored": 1100,
+      "returned": {
+        "code": "watch",
+        "name": "Wristwatch"
+      },
+      "shortfall": 400,
+      "solved": true,
+      "stolen": 1500,
+      "term_seconds": 240,
+      "thief": "کاوه",
+      "thief_code": "B3C4D5F"
+    }
+  },
+  {
+    "title": "Notice · convicted",
+    "screen": "convicted_notice",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "crime": {
+        "code": "pickpocketing",
+        "name": "Pickpocketing"
+      },
+      "fine": 300,
+      "fine_paid": 0,
+      "restored": 1100,
+      "returned": null,
+      "shortfall": 400,
+      "solved": true,
+      "stolen": 1500,
+      "term_seconds": 240,
+      "thief": "کاوه",
+      "thief_code": "B3C4D5F"
+    }
+  },
+  {
+    "title": "Refused · requirements",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "home_burglary",
+        "name": "Home burglary"
+      },
+      "have": 0,
+      "kind": "requirements",
+      "missing": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "facility": "",
+          "have": 3,
+          "have_tier": {
+            "code": "",
+            "name": ""
+          },
+          "here": {
+            "code": "",
+            "name": ""
+          },
+          "kind": "level",
+          "met": false,
+          "need": 5,
+          "skill": "",
+          "tier": {
+            "code": "",
+            "name": ""
+          },
+          "tool": {
+            "code": "",
+            "name": ""
+          },
+          "venues": null,
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "facility": "",
+          "have": 0,
+          "have_tier": {
+            "code": "novice",
+            "name": "Novice"
+          },
+          "here": {
+            "code": "",
+            "name": ""
+          },
+          "kind": "crime_tier",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "tier": {
+            "code": "hustler",
+            "name": "Hustler"
+          },
+          "tool": {
+            "code": "",
+            "name": ""
+          },
+          "venues": null,
+          "wait_seconds": 0
+        }
+      ],
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · not enough nerve",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "home_burglary",
+        "name": "Home burglary"
+      },
+      "have": 2,
+      "kind": "nerve",
+      "missing": null,
+      "need": 6,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · in jail",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "jail",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 2520,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · busy",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "busy",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · at work",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "work",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · travelling",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "travelling",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · nowhere",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "nowhere",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · nobody around",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "no_victim",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · no such crime",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "not_found",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · not your theft",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "not_yours",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · report window passed",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "expired",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · nothing stolen",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "nothing_stolen",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · cannot afford",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 3960,
+      "cash": 1200,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "cannot_afford",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · not in jail",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "have": 0,
+      "kind": "not_jailed",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · resting after the last one",
+    "screen": "crime_refusal",
+    "view": {
+      "amount": 0,
+      "cash": 0,
+      "crime": {
+        "code": "home_burglary",
+        "name": "Home burglary"
+      },
+      "have": 0,
+      "kind": "cooldown",
+      "missing": null,
+      "need": 0,
+      "remaining_seconds": 0,
+      "wait_seconds": 4500
+    }
+  }
+]

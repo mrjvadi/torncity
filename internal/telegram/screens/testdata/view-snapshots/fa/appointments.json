@@ -1,0 +1,212 @@
+[
+  {
+    "title": "My office · the president appoints",
+    "screen": "my_office",
+    "view": {
+      "seats": [
+        {
+          "acting_for": "",
+          "appointees": [
+            {
+              "can_appoint": false,
+              "can_dismiss": true,
+              "holder": {
+                "code": "K7Q2M9A",
+                "name": "سارا"
+              },
+              "office": "defence_minister",
+              "place": {
+                "code": "default_country",
+                "kind": "country",
+                "name": "The Commonwealth"
+              },
+              "seat": 1
+            },
+            {
+              "can_appoint": true,
+              "can_dismiss": false,
+              "holder": null,
+              "office": "chief_of_general_staff",
+              "place": {
+                "code": "default_country",
+                "kind": "country",
+                "name": "The Commonwealth"
+              },
+              "seat": 1
+            },
+            {
+              "can_appoint": true,
+              "can_dismiss": false,
+              "holder": null,
+              "office": "foreign_minister",
+              "place": {
+                "code": "default_country",
+                "kind": "country",
+                "name": "The Commonwealth"
+              },
+              "seat": 1
+            }
+          ],
+          "levers": null,
+          "office": "president",
+          "place": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "vote_levers": null
+        }
+      ]
+    }
+  },
+  {
+    "title": "Appoint · confirm",
+    "screen": "appoint_confirm",
+    "view": {
+      "office": "defence_minister",
+      "place": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "player": {
+        "code": "N1L0F4R",
+        "name": "نیلوفر"
+      }
+    }
+  },
+  {
+    "title": "Appoint · done",
+    "screen": "appoint_done",
+    "view": {
+      "dismissed": false,
+      "office": "air_force_commander",
+      "place": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "player": {
+        "code": "N1L0F4R",
+        "name": "نیلوفر"
+      },
+      "term_ends_in_seconds": 0
+    }
+  },
+  {
+    "title": "Appoint · done, a city office with a term",
+    "screen": "appoint_done",
+    "view": {
+      "dismissed": false,
+      "office": "police_chief",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "player": {
+        "code": "N1L0F4R",
+        "name": "نیلوفر"
+      },
+      "term_ends_in_seconds": 2592000
+    }
+  },
+  {
+    "title": "Dismiss · confirm",
+    "screen": "dismiss_confirm",
+    "view": {
+      "holder": {
+        "code": "K7Q2M9A",
+        "name": "سارا"
+      },
+      "office": "defence_minister",
+      "place": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "seat": 1
+    }
+  },
+  {
+    "title": "Dismiss · done",
+    "screen": "appoint_done",
+    "view": {
+      "dismissed": true,
+      "office": "defence_minister",
+      "place": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "player": {
+        "code": "K7Q2M9A",
+        "name": "سارا"
+      },
+      "term_ends_in_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · not_appointer",
+    "screen": "appoint_refusal",
+    "view": {
+      "err": null,
+      "kind": "not_appointer",
+      "office": "chief_of_general_staff"
+    }
+  },
+  {
+    "title": "Refused · no_player",
+    "screen": "appoint_refusal",
+    "view": {
+      "err": null,
+      "kind": "no_player",
+      "office": ""
+    }
+  },
+  {
+    "title": "Refused · no_seat",
+    "screen": "appoint_refusal",
+    "view": {
+      "err": null,
+      "kind": "no_seat",
+      "office": "defence_minister"
+    }
+  },
+  {
+    "title": "Notice · appointed",
+    "screen": "office_notice",
+    "view": {
+      "by": {
+        "code": "B3C4D5F",
+        "name": "کاوه"
+      },
+      "by_office": "president",
+      "dismissed": false,
+      "office": "defence_minister",
+      "place": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      }
+    }
+  },
+  {
+    "title": "Notice · removed",
+    "screen": "office_notice",
+    "view": {
+      "by": {
+        "code": "B3C4D5F",
+        "name": "کاوه"
+      },
+      "by_office": "president",
+      "dismissed": true,
+      "office": "defence_minister",
+      "place": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      }
+    }
+  }
+]

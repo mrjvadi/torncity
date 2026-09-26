@@ -1,0 +1,575 @@
+[
+  {
+    "title": "City map · at the bazaar, among its shops",
+    "screen": "city_map",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "here": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "no_city": false,
+      "others": 0,
+      "places": [
+        {
+          "departures": null,
+          "energy": 0,
+          "here": false,
+          "place": {
+            "code": "city_centre",
+            "name": "City centre"
+          },
+          "services": null,
+          "shops": null,
+          "walk_seconds": 10
+        },
+        {
+          "departures": null,
+          "energy": 0,
+          "here": true,
+          "place": {
+            "code": "bazaar",
+            "name": "Bazaar"
+          },
+          "services": [
+            "market"
+          ],
+          "shops": [
+            {
+              "code": "grocery",
+              "name": "Grocery"
+            },
+            {
+              "code": "hardware_store",
+              "name": "Hardware store"
+            },
+            {
+              "code": "outfitter",
+              "name": "Outfitter"
+            }
+          ],
+          "walk_seconds": 15
+        },
+        {
+          "departures": null,
+          "energy": 0,
+          "here": false,
+          "place": {
+            "code": "business_district",
+            "name": "Business district"
+          },
+          "services": [
+            "bank",
+            "auction_house"
+          ],
+          "shops": null,
+          "walk_seconds": 15
+        },
+        {
+          "departures": null,
+          "energy": 0,
+          "here": false,
+          "place": {
+            "code": "university",
+            "name": "University quarter"
+          },
+          "services": [
+            "university",
+            "training_center"
+          ],
+          "shops": null,
+          "walk_seconds": 20
+        },
+        {
+          "departures": null,
+          "energy": 0,
+          "here": false,
+          "place": {
+            "code": "police_station",
+            "name": "Police station"
+          },
+          "services": [
+            "police"
+          ],
+          "shops": null,
+          "walk_seconds": 15
+        },
+        {
+          "departures": [
+            "train"
+          ],
+          "energy": 0,
+          "here": false,
+          "place": {
+            "code": "train_station",
+            "name": "Train station"
+          },
+          "services": null,
+          "shops": null,
+          "walk_seconds": 20
+        },
+        {
+          "departures": [
+            "flight"
+          ],
+          "energy": 2,
+          "here": false,
+          "place": {
+            "code": "airport",
+            "name": "Airport"
+          },
+          "services": null,
+          "shops": null,
+          "walk_seconds": 45
+        }
+      ],
+      "travelling": false,
+      "travelling_to": "",
+      "travelling_to_code": "",
+      "walking": null
+    }
+  },
+  {
+    "title": "City map · on the way",
+    "screen": "city_map",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "here": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "no_city": false,
+      "others": 0,
+      "places": [
+        {
+          "departures": null,
+          "energy": 0,
+          "here": true,
+          "place": {
+            "code": "city_centre",
+            "name": "City centre"
+          },
+          "services": null,
+          "shops": null,
+          "walk_seconds": 10
+        },
+        {
+          "departures": null,
+          "energy": 0,
+          "here": false,
+          "place": {
+            "code": "bazaar",
+            "name": "Bazaar"
+          },
+          "services": [
+            "market"
+          ],
+          "shops": [
+            {
+              "code": "grocery",
+              "name": "Grocery"
+            },
+            {
+              "code": "hardware_store",
+              "name": "Hardware store"
+            },
+            {
+              "code": "outfitter",
+              "name": "Outfitter"
+            }
+          ],
+          "walk_seconds": 15
+        },
+        {
+          "departures": null,
+          "energy": 0,
+          "here": false,
+          "place": {
+            "code": "business_district",
+            "name": "Business district"
+          },
+          "services": [
+            "bank",
+            "auction_house"
+          ],
+          "shops": null,
+          "walk_seconds": 15
+        },
+        {
+          "departures": null,
+          "energy": 0,
+          "here": false,
+          "place": {
+            "code": "university",
+            "name": "University quarter"
+          },
+          "services": [
+            "university",
+            "training_center"
+          ],
+          "shops": null,
+          "walk_seconds": 20
+        },
+        {
+          "departures": null,
+          "energy": 0,
+          "here": false,
+          "place": {
+            "code": "police_station",
+            "name": "Police station"
+          },
+          "services": [
+            "police"
+          ],
+          "shops": null,
+          "walk_seconds": 15
+        },
+        {
+          "departures": [
+            "train"
+          ],
+          "energy": 0,
+          "here": false,
+          "place": {
+            "code": "train_station",
+            "name": "Train station"
+          },
+          "services": null,
+          "shops": null,
+          "walk_seconds": 20
+        },
+        {
+          "departures": [
+            "flight"
+          ],
+          "energy": 2,
+          "here": false,
+          "place": {
+            "code": "airport",
+            "name": "Airport"
+          },
+          "services": null,
+          "shops": null,
+          "walk_seconds": 45
+        }
+      ],
+      "travelling": false,
+      "travelling_to": "",
+      "travelling_to_code": "",
+      "walking": {
+        "arrives_at": "2026-09-23T11:05:09Z",
+        "remaining_seconds": 9,
+        "to": {
+          "code": "bazaar",
+          "name": "Bazaar"
+        }
+      }
+    }
+  },
+  {
+    "title": "City map · on a journey",
+    "screen": "city_map",
+    "view": {
+      "city": "",
+      "city_code": "",
+      "here": {
+        "code": "",
+        "name": ""
+      },
+      "no_city": false,
+      "others": 0,
+      "places": null,
+      "travelling": true,
+      "travelling_to": "Brennhaven",
+      "travelling_to_code": "brennhaven",
+      "walking": null
+    }
+  },
+  {
+    "title": "City map · nowhere yet",
+    "screen": "city_map",
+    "view": {
+      "city": "",
+      "city_code": "",
+      "here": {
+        "code": "",
+        "name": ""
+      },
+      "no_city": true,
+      "others": 0,
+      "places": null,
+      "travelling": false,
+      "travelling_to": "",
+      "travelling_to_code": "",
+      "walking": null
+    }
+  },
+  {
+    "title": "Walk · started",
+    "screen": "walk_started",
+    "view": {
+      "arrives_at": "2026-09-23T11:05:45Z",
+      "duration_seconds": 45,
+      "energy": 2,
+      "from": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "then": "",
+      "to": {
+        "code": "airport",
+        "name": "Airport"
+      }
+    }
+  },
+  {
+    "title": "Not here · the bank",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": null,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "here": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "mode": "",
+      "need": "place.need.bank",
+      "need_args": null,
+      "place": {
+        "code": "business_district",
+        "name": "Business district"
+      },
+      "remaining_seconds": 0,
+      "shop": {
+        "code": "",
+        "name": ""
+      },
+      "then": "",
+      "then_args": null,
+      "walk_seconds": 15,
+      "walking": false
+    }
+  },
+  {
+    "title": "Not here · the market",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": null,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "here": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "mode": "",
+      "need": "place.need.market",
+      "need_args": null,
+      "place": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "remaining_seconds": 0,
+      "shop": {
+        "code": "",
+        "name": ""
+      },
+      "then": "",
+      "then_args": null,
+      "walk_seconds": 15,
+      "walking": false
+    }
+  },
+  {
+    "title": "Not here · a course",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": null,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "here": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "mode": "",
+      "need": "place.need.university",
+      "need_args": null,
+      "place": {
+        "code": "university",
+        "name": "University quarter"
+      },
+      "remaining_seconds": 0,
+      "shop": {
+        "code": "",
+        "name": ""
+      },
+      "then": "",
+      "then_args": null,
+      "walk_seconds": 20,
+      "walking": false
+    }
+  },
+  {
+    "title": "Not here · the police",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": null,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "here": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "mode": "",
+      "need": "place.need.police",
+      "need_args": null,
+      "place": {
+        "code": "police_station",
+        "name": "Police station"
+      },
+      "remaining_seconds": 0,
+      "shop": {
+        "code": "",
+        "name": ""
+      },
+      "then": "",
+      "then_args": null,
+      "walk_seconds": 15,
+      "walking": false
+    }
+  },
+  {
+    "title": "Not here · a departure",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": null,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "here": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "mode": "train",
+      "need": "place.need.departure",
+      "need_args": null,
+      "place": {
+        "code": "train_station",
+        "name": "Train station"
+      },
+      "remaining_seconds": 0,
+      "shop": {
+        "code": "",
+        "name": ""
+      },
+      "then": "",
+      "then_args": null,
+      "walk_seconds": 20,
+      "walking": false
+    }
+  },
+  {
+    "title": "Not here · a shop",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": null,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "here": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "mode": "",
+      "need": "place.need.shop",
+      "need_args": null,
+      "place": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "remaining_seconds": 0,
+      "shop": {
+        "code": "hardware_store",
+        "name": "Hardware store"
+      },
+      "then": "",
+      "then_args": null,
+      "walk_seconds": 15,
+      "walking": false
+    }
+  },
+  {
+    "title": "Not here · a crime",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": null,
+      "crime": {
+        "code": "home_burglary",
+        "name": "Home burglary"
+      },
+      "here": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "mode": "",
+      "need": "place.need.crime",
+      "need_args": null,
+      "place": {
+        "code": "residential_area",
+        "name": "Residential area"
+      },
+      "remaining_seconds": 0,
+      "shop": {
+        "code": "",
+        "name": ""
+      },
+      "then": "",
+      "then_args": null,
+      "walk_seconds": 25,
+      "walking": false
+    }
+  },
+  {
+    "title": "Not here · still walking",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": "2026-09-23T11:05:07Z",
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "here": {
+        "code": "",
+        "name": ""
+      },
+      "mode": "",
+      "need": "",
+      "need_args": null,
+      "place": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "remaining_seconds": 7,
+      "shop": {
+        "code": "",
+        "name": ""
+      },
+      "then": "",
+      "then_args": null,
+      "walk_seconds": 0,
+      "walking": true
+    }
+  }
+]

@@ -1,0 +1,1215 @@
+[
+  {
+    "title": "List · a city's factions, the viewer in none",
+    "screen": "faction_list",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "factions": [
+        {
+          "members": 7,
+          "ref": {
+            "code": "L10N5ZA",
+            "name": "Northern Lions"
+          }
+        },
+        {
+          "members": 3,
+          "ref": {
+            "code": "SH4D3SB",
+            "name": "The Shades"
+          }
+        }
+      ],
+      "fee": 50000,
+      "mine": null
+    }
+  },
+  {
+    "title": "List · empty, the viewer a member",
+    "screen": "faction_list",
+    "view": {
+      "city": "Kessmoor",
+      "city_code": "kessmoor",
+      "factions": null,
+      "fee": 0,
+      "mine": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Page · as an outsider",
+    "screen": "faction_page",
+    "view": {
+      "can_apply": true,
+      "can_link": false,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "linked": true,
+      "members": [
+        {
+          "can_demote": false,
+          "can_kick": false,
+          "can_lead": false,
+          "can_promote": false,
+          "player": {
+            "code": "K7Q2M9A",
+            "name": "Sara"
+          },
+          "rank": "leader",
+          "self": false
+        },
+        {
+          "can_demote": false,
+          "can_kick": false,
+          "can_lead": false,
+          "can_promote": false,
+          "player": {
+            "code": "B3C4D5F",
+            "name": "Kaveh"
+          },
+          "rank": "officer",
+          "self": false
+        },
+        {
+          "can_demote": false,
+          "can_kick": false,
+          "can_lead": false,
+          "can_promote": false,
+          "player": {
+            "code": "N1L0F4R",
+            "name": "Nilou"
+          },
+          "rank": "member",
+          "self": false
+        }
+      ],
+      "mine": false,
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Found · the fee and the ways to pay",
+    "screen": "faction_found",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "fee": 50000,
+      "name_max": 24,
+      "name_min": 3,
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 50000,
+        "bank": 90000,
+        "cash": 1200,
+        "usable": [
+          "card"
+        ]
+      }
+    }
+  },
+  {
+    "title": "Founded",
+    "screen": "faction_founded",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "fee": 50000,
+      "method": "card",
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Home · the leader, a crew gathering",
+    "screen": "faction_home",
+    "view": {
+      "applications": 2,
+      "bank": 184500,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "linked": false,
+      "max_members": 30,
+      "members": 7,
+      "operation": {
+        "at": "2026-09-23T11:06:30Z",
+        "chance_bps": 0,
+        "city": "Ostmarch",
+        "city_code": "ostmarch",
+        "crew": [
+          {
+            "can_demote": false,
+            "can_kick": false,
+            "can_lead": false,
+            "can_promote": false,
+            "player": {
+              "code": "K7Q2M9A",
+              "name": "Sara"
+            },
+            "rank": "leader",
+            "self": false
+          }
+        ],
+        "crime": {
+          "code": "warehouse_heist",
+          "name": "Warehouse heist"
+        },
+        "expired": false,
+        "left_seconds": 90,
+        "max": 5,
+        "min": 2,
+        "nerve": 5,
+        "no": 4,
+        "place": {
+          "code": "industrial_zone",
+          "name": "Industrial zone"
+        },
+        "status": "gathering"
+      },
+      "rank": "leader",
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      },
+      "rights": [
+        "invite",
+        "decide",
+        "kick",
+        "promote",
+        "deposit",
+        "withdraw",
+        "link",
+        "plan",
+        "launch",
+        "join"
+      ]
+    }
+  },
+  {
+    "title": "Home · a member, linked",
+    "screen": "faction_home",
+    "view": {
+      "applications": 0,
+      "bank": 184500,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "linked": true,
+      "max_members": 30,
+      "members": 7,
+      "operation": null,
+      "rank": "member",
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      },
+      "rights": [
+        "deposit",
+        "join"
+      ]
+    }
+  },
+  {
+    "title": "Members · the leader's view",
+    "screen": "faction_members",
+    "view": {
+      "can_invite": true,
+      "max": 30,
+      "members": [
+        {
+          "can_demote": false,
+          "can_kick": false,
+          "can_lead": false,
+          "can_promote": false,
+          "player": {
+            "code": "K7Q2M9A",
+            "name": "Sara"
+          },
+          "rank": "leader",
+          "self": true
+        },
+        {
+          "can_demote": true,
+          "can_kick": true,
+          "can_lead": true,
+          "can_promote": false,
+          "player": {
+            "code": "B3C4D5F",
+            "name": "Kaveh"
+          },
+          "rank": "officer",
+          "self": false
+        },
+        {
+          "can_demote": false,
+          "can_kick": true,
+          "can_lead": true,
+          "can_promote": true,
+          "player": {
+            "code": "N1L0F4R",
+            "name": "Nilou"
+          },
+          "rank": "member",
+          "self": false
+        }
+      ],
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      },
+      "requests": [
+        {
+          "can_decide": true,
+          "kind": "apply",
+          "no": 12,
+          "player": {
+            "code": "A2R4S6H",
+            "name": "Arash"
+          }
+        },
+        {
+          "can_decide": false,
+          "kind": "invite",
+          "no": 13,
+          "player": {
+            "code": "D4R4X1Y",
+            "name": "Dara"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "Answered · joined by invitation",
+    "screen": "faction_answered",
+    "view": {
+      "accepted": true,
+      "kind": "invite",
+      "player": {
+        "code": "K7Q2M9A",
+        "name": "Sara"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Answered · an application turned down",
+    "screen": "faction_answered",
+    "view": {
+      "accepted": false,
+      "kind": "apply",
+      "player": {
+        "code": "N1L0F4R",
+        "name": "Nilou"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Confirm · kick",
+    "screen": "faction_confirm",
+    "view": {
+      "kind": "kick",
+      "player": {
+        "code": "B3C4D5F",
+        "name": "Kaveh"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Confirm · lead",
+    "screen": "faction_confirm",
+    "view": {
+      "kind": "lead",
+      "player": {
+        "code": "B3C4D5F",
+        "name": "Kaveh"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Confirm · leave",
+    "screen": "faction_confirm",
+    "view": {
+      "kind": "leave",
+      "player": {
+        "code": "B3C4D5F",
+        "name": "Kaveh"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Confirm · disband",
+    "screen": "faction_confirm",
+    "view": {
+      "kind": "disband",
+      "player": {
+        "code": "B3C4D5F",
+        "name": "Kaveh"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Left",
+    "screen": "faction_left",
+    "view": {
+      "disbanded": false,
+      "paid_out": 0,
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Disbanded, the bank paid out",
+    "screen": "faction_left",
+    "view": {
+      "disbanded": true,
+      "paid_out": 12000,
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Bank · an officer after a deposit",
+    "screen": "faction_bank",
+    "view": {
+      "balance": 194500,
+      "bank_balance": 42000,
+      "can_deposit": true,
+      "can_withdraw": true,
+      "cash": 3000,
+      "done": {
+        "amount": 10000,
+        "deposit": true,
+        "method": "cash"
+      },
+      "max": 10000000,
+      "methods": [
+        "cash",
+        "card"
+      ],
+      "min": 100,
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Bank · a member after nothing",
+    "screen": "faction_bank",
+    "view": {
+      "balance": 194500,
+      "bank_balance": 42000,
+      "can_deposit": true,
+      "can_withdraw": false,
+      "cash": 3000,
+      "done": null,
+      "max": 10000000,
+      "methods": [
+        "cash",
+        "card"
+      ],
+      "min": 100,
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Crime · nothing under way, an officer",
+    "screen": "faction_crime",
+    "view": {
+      "can_join": true,
+      "can_launch": true,
+      "can_plan": true,
+      "crimes": [
+        {
+          "crime": {
+            "code": "warehouse_heist",
+            "name": "Warehouse heist"
+          },
+          "duration_seconds": 180,
+          "max": 5,
+          "min": 2,
+          "min_level": 3,
+          "nerve": 5,
+          "places": [
+            {
+              "code": "industrial_zone",
+              "name": "Industrial zone"
+            }
+          ]
+        },
+        {
+          "crime": {
+            "code": "armoured_van_job",
+            "name": "Armoured van job"
+          },
+          "duration_seconds": 240,
+          "max": 6,
+          "min": 3,
+          "min_level": 5,
+          "nerve": 8,
+          "places": [
+            {
+              "code": "business_district",
+              "name": "Business district"
+            }
+          ]
+        }
+      ],
+      "cut_bps": 1500,
+      "in_crew": false,
+      "notice": "",
+      "operation": null,
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Crime · planned, a member may join",
+    "screen": "faction_crime",
+    "view": {
+      "can_join": true,
+      "can_launch": false,
+      "can_plan": false,
+      "crimes": null,
+      "cut_bps": 1500,
+      "in_crew": false,
+      "notice": "planned",
+      "operation": {
+        "at": "2026-09-23T11:06:30Z",
+        "chance_bps": 0,
+        "city": "Ostmarch",
+        "city_code": "ostmarch",
+        "crew": [
+          {
+            "can_demote": false,
+            "can_kick": false,
+            "can_lead": false,
+            "can_promote": false,
+            "player": {
+              "code": "K7Q2M9A",
+              "name": "Sara"
+            },
+            "rank": "leader",
+            "self": false
+          }
+        ],
+        "crime": {
+          "code": "warehouse_heist",
+          "name": "Warehouse heist"
+        },
+        "expired": false,
+        "left_seconds": 90,
+        "max": 5,
+        "min": 2,
+        "nerve": 5,
+        "no": 4,
+        "place": {
+          "code": "industrial_zone",
+          "name": "Industrial zone"
+        },
+        "status": "gathering"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Crime · the crew ready, the leader",
+    "screen": "faction_crime",
+    "view": {
+      "can_join": true,
+      "can_launch": true,
+      "can_plan": true,
+      "crimes": null,
+      "cut_bps": 1500,
+      "in_crew": true,
+      "notice": "joined",
+      "operation": {
+        "at": "2026-09-23T11:06:30Z",
+        "chance_bps": 0,
+        "city": "Ostmarch",
+        "city_code": "ostmarch",
+        "crew": [
+          {
+            "can_demote": false,
+            "can_kick": false,
+            "can_lead": false,
+            "can_promote": false,
+            "player": {
+              "code": "K7Q2M9A",
+              "name": "Sara"
+            },
+            "rank": "leader",
+            "self": false
+          },
+          {
+            "can_demote": false,
+            "can_kick": false,
+            "can_lead": false,
+            "can_promote": false,
+            "player": {
+              "code": "B3C4D5F",
+              "name": "Kaveh"
+            },
+            "rank": "officer",
+            "self": false
+          }
+        ],
+        "crime": {
+          "code": "warehouse_heist",
+          "name": "Warehouse heist"
+        },
+        "expired": false,
+        "left_seconds": 90,
+        "max": 5,
+        "min": 2,
+        "nerve": 5,
+        "no": 4,
+        "place": {
+          "code": "industrial_zone",
+          "name": "Industrial zone"
+        },
+        "status": "gathering"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Refused · none",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "none",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · not_member",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "not_member",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · rank",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "rank",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · not_found",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "not_found",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · already_member",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "already_member",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · name_taken",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "name_taken",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · not_group",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "not_group",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · group_taken",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "group_taken",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · no_player",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "no_player",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · theirs",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "theirs",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · pending_full",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "pending_full",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · pending",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "pending",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · request_gone",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "request_gone",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · not_yours",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "not_yours",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · not_in_it",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "not_in_it",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · on_a_job",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "on_a_job",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · leader_leaving",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "leader_leaving",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · no_such_crime",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "no_such_crime",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · operation_open",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "operation_open",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · no_place_here",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "no_place_here",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · no_operation",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "no_operation",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · crew_full",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "crew_full",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · elsewhere",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "elsewhere",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · a name",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "name",
+      "level": 0,
+      "max": 24,
+      "min": 3,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · the bank short",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 50000,
+      "balance": 12000,
+      "have": 0,
+      "kind": "bank_short",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · full",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "full",
+      "level": 0,
+      "max": 30,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · level",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 0,
+      "kind": "level",
+      "level": 5,
+      "max": 0,
+      "min": 0,
+      "need": 0
+    }
+  },
+  {
+    "title": "Refused · crew short",
+    "screen": "faction_refusal",
+    "view": {
+      "amount": 0,
+      "balance": 0,
+      "have": 2,
+      "kind": "crew_short",
+      "level": 0,
+      "max": 0,
+      "min": 0,
+      "need": 3
+    }
+  },
+  {
+    "title": "Not here · the crew gathers elsewhere",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": null,
+      "crime": {
+        "code": "warehouse_heist",
+        "name": "Warehouse heist"
+      },
+      "here": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "mode": "",
+      "need": "place.need.heist",
+      "need_args": null,
+      "place": {
+        "code": "industrial_zone",
+        "name": "Industrial zone"
+      },
+      "remaining_seconds": 0,
+      "shop": {
+        "code": "",
+        "name": ""
+      },
+      "then": "faction.crime",
+      "then_args": null,
+      "walk_seconds": 30,
+      "walking": false
+    }
+  },
+  {
+    "title": "Notice · invited",
+    "screen": "faction_request_notice",
+    "view": {
+      "kind": "invite",
+      "no": 13,
+      "player": {
+        "code": "K7Q2M9A",
+        "name": "Sara"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Notice · an application",
+    "screen": "faction_request_notice",
+    "view": {
+      "kind": "apply",
+      "no": 12,
+      "player": {
+        "code": "N1L0F4R",
+        "name": "Nilou"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Notice · the invitation accepted",
+    "screen": "faction_answer_notice",
+    "view": {
+      "accepted": true,
+      "kind": "invite",
+      "player": {
+        "code": "N1L0F4R",
+        "name": "Nilou"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Notice · the application accepted",
+    "screen": "faction_answer_notice",
+    "view": {
+      "accepted": true,
+      "kind": "apply",
+      "player": {
+        "code": "N1L0F4R",
+        "name": "Nilou"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Notice · the application declined",
+    "screen": "faction_answer_notice",
+    "view": {
+      "accepted": false,
+      "kind": "apply",
+      "player": {
+        "code": "N1L0F4R",
+        "name": "Nilou"
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      }
+    }
+  },
+  {
+    "title": "Notice · the job went to plan",
+    "screen": "faction_crime_notice",
+    "view": {
+      "crime": {
+        "code": "warehouse_heist",
+        "name": "Warehouse heist"
+      },
+      "cut": 1170,
+      "fine": 0,
+      "fine_paid": 0,
+      "injury": null,
+      "jail": null,
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      },
+      "result": "succeeded",
+      "share": 2210,
+      "take": 7800,
+      "xp": 30
+    }
+  },
+  {
+    "title": "Notice · caught and hurt",
+    "screen": "faction_crime_notice",
+    "view": {
+      "crime": {
+        "code": "armoured_van_job",
+        "name": "Armoured van job"
+      },
+      "cut": 0,
+      "fine": 2400,
+      "fine_paid": 1000,
+      "injury": {
+        "damage": 44,
+        "ends_at": "2026-09-23T11:12:00Z",
+        "health": 18,
+        "hospital": true,
+        "max": 100
+      },
+      "jail": {
+        "crime": {
+          "code": "",
+          "name": ""
+        },
+        "ends_at": "2026-09-23T11:23:00Z",
+        "remaining_seconds": 1080
+      },
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      },
+      "result": "caught",
+      "share": 0,
+      "take": 0,
+      "xp": 0
+    }
+  },
+  {
+    "title": "Notice · escaped",
+    "screen": "faction_crime_notice",
+    "view": {
+      "crime": {
+        "code": "warehouse_heist",
+        "name": "Warehouse heist"
+      },
+      "cut": 0,
+      "fine": 0,
+      "fine_paid": 0,
+      "injury": {
+        "damage": 12,
+        "ends_at": null,
+        "health": 70,
+        "hospital": false,
+        "max": 100
+      },
+      "jail": null,
+      "ref": {
+        "code": "L10N5ZA",
+        "name": "Northern Lions"
+      },
+      "result": "escaped",
+      "share": 0,
+      "take": 0,
+      "xp": 0
+    }
+  }
+]

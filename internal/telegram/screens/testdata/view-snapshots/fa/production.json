@@ -1,0 +1,27 @@
+[
+  {
+    "title": "Bag · a phone a company made",
+    "screen": "inventory",
+    "view": {
+      "in_escrow": 0,
+      "lines": [
+        {
+          "category": "electronics",
+          "design": "نیل موبایل ایکس",
+          "durability": 0,
+          "item": {
+            "code": "phone",
+            "name": "Phone"
+          },
+          "qty": 1,
+          "quality": 61,
+          "serial": "A1B2C3D4E5",
+          "uses_left": 0
+        }
+      ],
+      "page": 1,
+      "pages": 1,
+      "total": 1
+    }
+  }
+]

@@ -1,0 +1,2001 @@
+[
+  {
+    "title": "Recruitment · the hub",
+    "screen": "recruit_hub",
+    "view": {
+      "campaigns": [
+        {
+          "cities": 3,
+          "hired": 1,
+          "level": 3,
+          "next_at": "2026-09-23T11:11:00Z",
+          "no": 14,
+          "pending": 2,
+          "positions": 2,
+          "skill": "engineering",
+          "status": "running"
+        },
+        {
+          "cities": 0,
+          "hired": 0,
+          "level": 2,
+          "next_at": null,
+          "no": 15,
+          "pending": 0,
+          "positions": 0,
+          "skill": "medicine",
+          "status": "draft"
+        },
+        {
+          "cities": 1,
+          "hired": 0,
+          "level": 1,
+          "next_at": null,
+          "no": 9,
+          "pending": 0,
+          "positions": 1,
+          "skill": "programming",
+          "status": "ended"
+        }
+      ],
+      "max_campaign": 2,
+      "max_staff": 10,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "running": 1,
+      "staff": 1
+    }
+  },
+  {
+    "title": "Recruitment · no campaign yet",
+    "screen": "recruit_hub",
+    "view": {
+      "campaigns": null,
+      "max_campaign": 2,
+      "max_staff": 10,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "running": 0,
+      "staff": 0
+    }
+  },
+  {
+    "title": "Recruitment · a new draft",
+    "screen": "recruit_draft",
+    "view": {
+      "ad_fee": 1500,
+      "auto": false,
+      "available": 52000,
+      "chance_bps": 4200,
+      "checks": 4,
+      "cities": [
+        {
+          "abroad": false,
+          "code": "ostmarch",
+          "name": "Ostmarch",
+          "on": true
+        },
+        {
+          "abroad": false,
+          "code": "fenwick_span",
+          "name": "Fenwick Span",
+          "on": true
+        },
+        {
+          "abroad": true,
+          "code": "calderis",
+          "name": "Calderis",
+          "on": false
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confirm": false,
+      "every_seconds": 360,
+      "housing": 33,
+      "level": 3,
+      "market": 264,
+      "max_level": 18,
+      "max_positions": 5,
+      "no": 14,
+      "notice": "created",
+      "positions": 1,
+      "presets": {
+        "housing": [
+          0,
+          33,
+          66
+        ],
+        "relocation": [
+          0,
+          1000,
+          2500
+        ],
+        "salary": [
+          250,
+          290,
+          343
+        ],
+        "shares": [
+          0,
+          10,
+          25,
+          50
+        ],
+        "signing": [
+          0,
+          330,
+          990
+        ],
+        "terms": [
+          5,
+          10,
+          20
+        ]
+      },
+      "reach": 41,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "relocation": 1000,
+      "salary": 330,
+      "section": "",
+      "share_value": 0,
+      "shares": 0,
+      "signing": 330,
+      "skill": "engineering",
+      "skills": [
+        "engineering",
+        "programming",
+        "medicine",
+        "management",
+        "finance",
+        "mechanics"
+      ],
+      "term": 10
+    }
+  },
+  {
+    "title": "Recruitment · the builder, skill",
+    "screen": "recruit_draft",
+    "view": {
+      "ad_fee": 1500,
+      "auto": false,
+      "available": 52000,
+      "chance_bps": 4200,
+      "checks": 4,
+      "cities": [
+        {
+          "abroad": false,
+          "code": "ostmarch",
+          "name": "Ostmarch",
+          "on": true
+        },
+        {
+          "abroad": false,
+          "code": "fenwick_span",
+          "name": "Fenwick Span",
+          "on": true
+        },
+        {
+          "abroad": true,
+          "code": "calderis",
+          "name": "Calderis",
+          "on": false
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confirm": false,
+      "every_seconds": 360,
+      "housing": 33,
+      "level": 3,
+      "market": 264,
+      "max_level": 18,
+      "max_positions": 5,
+      "no": 14,
+      "notice": "set",
+      "positions": 1,
+      "presets": {
+        "housing": [
+          0,
+          33,
+          66
+        ],
+        "relocation": [
+          0,
+          1000,
+          2500
+        ],
+        "salary": [
+          250,
+          290,
+          343
+        ],
+        "shares": [
+          0,
+          10,
+          25,
+          50
+        ],
+        "signing": [
+          0,
+          330,
+          990
+        ],
+        "terms": [
+          5,
+          10,
+          20
+        ]
+      },
+      "reach": 41,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "relocation": 1000,
+      "salary": 330,
+      "section": "skill",
+      "share_value": 0,
+      "shares": 0,
+      "signing": 330,
+      "skill": "engineering",
+      "skills": [
+        "engineering",
+        "programming",
+        "medicine",
+        "management",
+        "finance",
+        "mechanics"
+      ],
+      "term": 10
+    }
+  },
+  {
+    "title": "Recruitment · the builder, cities",
+    "screen": "recruit_draft",
+    "view": {
+      "ad_fee": 1500,
+      "auto": false,
+      "available": 52000,
+      "chance_bps": 4200,
+      "checks": 4,
+      "cities": [
+        {
+          "abroad": false,
+          "code": "ostmarch",
+          "name": "Ostmarch",
+          "on": true
+        },
+        {
+          "abroad": false,
+          "code": "fenwick_span",
+          "name": "Fenwick Span",
+          "on": true
+        },
+        {
+          "abroad": true,
+          "code": "calderis",
+          "name": "Calderis",
+          "on": false
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confirm": false,
+      "every_seconds": 360,
+      "housing": 33,
+      "level": 3,
+      "market": 264,
+      "max_level": 18,
+      "max_positions": 5,
+      "no": 14,
+      "notice": "set",
+      "positions": 1,
+      "presets": {
+        "housing": [
+          0,
+          33,
+          66
+        ],
+        "relocation": [
+          0,
+          1000,
+          2500
+        ],
+        "salary": [
+          250,
+          290,
+          343
+        ],
+        "shares": [
+          0,
+          10,
+          25,
+          50
+        ],
+        "signing": [
+          0,
+          330,
+          990
+        ],
+        "terms": [
+          5,
+          10,
+          20
+        ]
+      },
+      "reach": 41,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "relocation": 1000,
+      "salary": 330,
+      "section": "cities",
+      "share_value": 0,
+      "shares": 0,
+      "signing": 330,
+      "skill": "engineering",
+      "skills": [
+        "engineering",
+        "programming",
+        "medicine",
+        "management",
+        "finance",
+        "mechanics"
+      ],
+      "term": 10
+    }
+  },
+  {
+    "title": "Recruitment · the builder, pay",
+    "screen": "recruit_draft",
+    "view": {
+      "ad_fee": 1500,
+      "auto": false,
+      "available": 52000,
+      "chance_bps": 4200,
+      "checks": 4,
+      "cities": [
+        {
+          "abroad": false,
+          "code": "ostmarch",
+          "name": "Ostmarch",
+          "on": true
+        },
+        {
+          "abroad": false,
+          "code": "fenwick_span",
+          "name": "Fenwick Span",
+          "on": true
+        },
+        {
+          "abroad": true,
+          "code": "calderis",
+          "name": "Calderis",
+          "on": false
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confirm": false,
+      "every_seconds": 360,
+      "housing": 33,
+      "level": 3,
+      "market": 264,
+      "max_level": 18,
+      "max_positions": 5,
+      "no": 14,
+      "notice": "set",
+      "positions": 1,
+      "presets": {
+        "housing": [
+          0,
+          33,
+          66
+        ],
+        "relocation": [
+          0,
+          1000,
+          2500
+        ],
+        "salary": [
+          250,
+          290,
+          343
+        ],
+        "shares": [
+          0,
+          10,
+          25,
+          50
+        ],
+        "signing": [
+          0,
+          330,
+          990
+        ],
+        "terms": [
+          5,
+          10,
+          20
+        ]
+      },
+      "reach": 41,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "relocation": 1000,
+      "salary": 330,
+      "section": "pay",
+      "share_value": 0,
+      "shares": 0,
+      "signing": 330,
+      "skill": "engineering",
+      "skills": [
+        "engineering",
+        "programming",
+        "medicine",
+        "management",
+        "finance",
+        "mechanics"
+      ],
+      "term": 10
+    }
+  },
+  {
+    "title": "Recruitment · the builder, terms",
+    "screen": "recruit_draft",
+    "view": {
+      "ad_fee": 1500,
+      "auto": true,
+      "available": 52000,
+      "chance_bps": 4200,
+      "checks": 4,
+      "cities": [
+        {
+          "abroad": false,
+          "code": "ostmarch",
+          "name": "Ostmarch",
+          "on": true
+        },
+        {
+          "abroad": false,
+          "code": "fenwick_span",
+          "name": "Fenwick Span",
+          "on": true
+        },
+        {
+          "abroad": true,
+          "code": "calderis",
+          "name": "Calderis",
+          "on": false
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confirm": false,
+      "every_seconds": 360,
+      "housing": 33,
+      "level": 3,
+      "market": 264,
+      "max_level": 18,
+      "max_positions": 5,
+      "no": 14,
+      "notice": "set",
+      "positions": 1,
+      "presets": {
+        "housing": [
+          0,
+          33,
+          66
+        ],
+        "relocation": [
+          0,
+          1000,
+          2500
+        ],
+        "salary": [
+          250,
+          290,
+          343
+        ],
+        "shares": [
+          0,
+          10,
+          25,
+          50
+        ],
+        "signing": [
+          0,
+          330,
+          990
+        ],
+        "terms": [
+          5,
+          10,
+          20
+        ]
+      },
+      "reach": 41,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "relocation": 1000,
+      "salary": 330,
+      "section": "terms",
+      "share_value": 4200,
+      "shares": 25,
+      "signing": 330,
+      "skill": "engineering",
+      "skills": [
+        "engineering",
+        "programming",
+        "medicine",
+        "management",
+        "finance",
+        "mechanics"
+      ],
+      "term": 10
+    }
+  },
+  {
+    "title": "Recruitment · post, confirm",
+    "screen": "recruit_draft",
+    "view": {
+      "ad_fee": 1500,
+      "auto": false,
+      "available": 52000,
+      "chance_bps": 4200,
+      "checks": 4,
+      "cities": [
+        {
+          "abroad": false,
+          "code": "ostmarch",
+          "name": "Ostmarch",
+          "on": true
+        },
+        {
+          "abroad": false,
+          "code": "fenwick_span",
+          "name": "Fenwick Span",
+          "on": true
+        },
+        {
+          "abroad": true,
+          "code": "calderis",
+          "name": "Calderis",
+          "on": false
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confirm": true,
+      "every_seconds": 360,
+      "housing": 33,
+      "level": 3,
+      "market": 264,
+      "max_level": 18,
+      "max_positions": 5,
+      "no": 14,
+      "notice": "",
+      "positions": 1,
+      "presets": {
+        "housing": [
+          0,
+          33,
+          66
+        ],
+        "relocation": [
+          0,
+          1000,
+          2500
+        ],
+        "salary": [
+          250,
+          290,
+          343
+        ],
+        "shares": [
+          0,
+          10,
+          25,
+          50
+        ],
+        "signing": [
+          0,
+          330,
+          990
+        ],
+        "terms": [
+          5,
+          10,
+          20
+        ]
+      },
+      "reach": 41,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "relocation": 1000,
+      "salary": 330,
+      "section": "",
+      "share_value": 0,
+      "shares": 0,
+      "signing": 330,
+      "skill": "engineering",
+      "skills": [
+        "engineering",
+        "programming",
+        "medicine",
+        "management",
+        "finance",
+        "mechanics"
+      ],
+      "term": 10
+    }
+  },
+  {
+    "title": "Recruitment · a draft with no city",
+    "screen": "recruit_draft",
+    "view": {
+      "ad_fee": 1500,
+      "auto": false,
+      "available": 52000,
+      "chance_bps": 0,
+      "checks": 4,
+      "cities": null,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "confirm": false,
+      "every_seconds": 360,
+      "housing": 33,
+      "level": 3,
+      "market": 264,
+      "max_level": 18,
+      "max_positions": 5,
+      "no": 14,
+      "notice": "",
+      "positions": 1,
+      "presets": {
+        "housing": [
+          0,
+          33,
+          66
+        ],
+        "relocation": [
+          0,
+          1000,
+          2500
+        ],
+        "salary": [
+          250,
+          290,
+          343
+        ],
+        "shares": [
+          0,
+          10,
+          25,
+          50
+        ],
+        "signing": [
+          0,
+          330,
+          990
+        ],
+        "terms": [
+          5,
+          10,
+          20
+        ]
+      },
+      "reach": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "relocation": 1000,
+      "salary": 330,
+      "section": "",
+      "share_value": 0,
+      "shares": 0,
+      "signing": 330,
+      "skill": "engineering",
+      "skills": [
+        "engineering",
+        "programming",
+        "medicine",
+        "management",
+        "finance",
+        "mechanics"
+      ],
+      "term": 10
+    }
+  },
+  {
+    "title": "Campaign · running, candidates waiting",
+    "screen": "recruit_campaign",
+    "view": {
+      "ad_fee": 3000,
+      "auto": false,
+      "available": 48000,
+      "candidates": [
+        {
+          "abroad": false,
+          "cost": 1330,
+          "expected": 520,
+          "expires_at": "2026-09-23T11:29:00Z",
+          "home": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "level": 4,
+          "name_seed": 7,
+          "no": 31,
+          "skill": "engineering",
+          "status": "pending"
+        },
+        {
+          "abroad": false,
+          "cost": 330,
+          "expected": 290,
+          "expires_at": "2026-09-23T11:25:00Z",
+          "home": {
+            "code": "ostmarch",
+            "name": "Ostmarch"
+          },
+          "level": 3,
+          "name_seed": 52,
+          "no": 32,
+          "skill": "engineering",
+          "status": "pending"
+        },
+        {
+          "abroad": true,
+          "cost": 0,
+          "expected": 610,
+          "expires_at": null,
+          "home": {
+            "code": "calderis",
+            "name": "Calderis"
+          },
+          "level": 3,
+          "name_seed": 3,
+          "no": 29,
+          "skill": "engineering",
+          "status": "hired"
+        },
+        {
+          "abroad": false,
+          "cost": 0,
+          "expected": 700,
+          "expires_at": null,
+          "home": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "level": 5,
+          "name_seed": 88,
+          "no": 27,
+          "skill": "engineering",
+          "status": "expired"
+        },
+        {
+          "abroad": false,
+          "cost": 0,
+          "expected": 410,
+          "expires_at": null,
+          "home": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "level": 3,
+          "name_seed": 120,
+          "no": 26,
+          "skill": "engineering",
+          "status": "rejected"
+        }
+      ],
+      "checks_left": 2,
+      "cities": [
+        {
+          "code": "fenwick_span",
+          "name": "Fenwick Span"
+        },
+        {
+          "code": "ostmarch",
+          "name": "Ostmarch"
+        }
+      ],
+      "confirm_cancel": false,
+      "line": {
+        "cities": 2,
+        "hired": 1,
+        "level": 3,
+        "next_at": "2026-09-23T11:11:00Z",
+        "no": 14,
+        "pending": 0,
+        "positions": 2,
+        "skill": "engineering",
+        "status": "running"
+      },
+      "notice": "posted",
+      "notice_seed": 0,
+      "offer": {
+        "housing": 33,
+        "relocation": 1000,
+        "salary": 330,
+        "shares": 25,
+        "signing": 330,
+        "term": 10
+      },
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Campaign · one hired",
+    "screen": "recruit_campaign",
+    "view": {
+      "ad_fee": 3000,
+      "auto": false,
+      "available": 48000,
+      "candidates": [
+        {
+          "abroad": false,
+          "cost": 1330,
+          "expected": 520,
+          "expires_at": "2026-09-23T11:29:00Z",
+          "home": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "level": 4,
+          "name_seed": 7,
+          "no": 31,
+          "skill": "engineering",
+          "status": "pending"
+        },
+        {
+          "abroad": false,
+          "cost": 330,
+          "expected": 290,
+          "expires_at": "2026-09-23T11:25:00Z",
+          "home": {
+            "code": "ostmarch",
+            "name": "Ostmarch"
+          },
+          "level": 3,
+          "name_seed": 52,
+          "no": 32,
+          "skill": "engineering",
+          "status": "pending"
+        },
+        {
+          "abroad": true,
+          "cost": 0,
+          "expected": 610,
+          "expires_at": null,
+          "home": {
+            "code": "calderis",
+            "name": "Calderis"
+          },
+          "level": 3,
+          "name_seed": 3,
+          "no": 29,
+          "skill": "engineering",
+          "status": "hired"
+        },
+        {
+          "abroad": false,
+          "cost": 0,
+          "expected": 700,
+          "expires_at": null,
+          "home": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "level": 5,
+          "name_seed": 88,
+          "no": 27,
+          "skill": "engineering",
+          "status": "expired"
+        },
+        {
+          "abroad": false,
+          "cost": 0,
+          "expected": 410,
+          "expires_at": null,
+          "home": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "level": 3,
+          "name_seed": 120,
+          "no": 26,
+          "skill": "engineering",
+          "status": "rejected"
+        }
+      ],
+      "checks_left": 2,
+      "cities": [
+        {
+          "code": "fenwick_span",
+          "name": "Fenwick Span"
+        },
+        {
+          "code": "ostmarch",
+          "name": "Ostmarch"
+        }
+      ],
+      "confirm_cancel": false,
+      "line": {
+        "cities": 2,
+        "hired": 1,
+        "level": 3,
+        "next_at": "2026-09-23T11:11:00Z",
+        "no": 14,
+        "pending": 0,
+        "positions": 2,
+        "skill": "engineering",
+        "status": "running"
+      },
+      "notice": "hired",
+      "notice_seed": 7,
+      "offer": {
+        "housing": 33,
+        "relocation": 1000,
+        "salary": 330,
+        "shares": 25,
+        "signing": 330,
+        "term": 10
+      },
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Campaign · stop, confirm",
+    "screen": "recruit_campaign",
+    "view": {
+      "ad_fee": 3000,
+      "auto": false,
+      "available": 48000,
+      "candidates": [
+        {
+          "abroad": false,
+          "cost": 1330,
+          "expected": 520,
+          "expires_at": "2026-09-23T11:29:00Z",
+          "home": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "level": 4,
+          "name_seed": 7,
+          "no": 31,
+          "skill": "engineering",
+          "status": "pending"
+        },
+        {
+          "abroad": false,
+          "cost": 330,
+          "expected": 290,
+          "expires_at": "2026-09-23T11:25:00Z",
+          "home": {
+            "code": "ostmarch",
+            "name": "Ostmarch"
+          },
+          "level": 3,
+          "name_seed": 52,
+          "no": 32,
+          "skill": "engineering",
+          "status": "pending"
+        },
+        {
+          "abroad": true,
+          "cost": 0,
+          "expected": 610,
+          "expires_at": null,
+          "home": {
+            "code": "calderis",
+            "name": "Calderis"
+          },
+          "level": 3,
+          "name_seed": 3,
+          "no": 29,
+          "skill": "engineering",
+          "status": "hired"
+        },
+        {
+          "abroad": false,
+          "cost": 0,
+          "expected": 700,
+          "expires_at": null,
+          "home": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "level": 5,
+          "name_seed": 88,
+          "no": 27,
+          "skill": "engineering",
+          "status": "expired"
+        },
+        {
+          "abroad": false,
+          "cost": 0,
+          "expected": 410,
+          "expires_at": null,
+          "home": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "level": 3,
+          "name_seed": 120,
+          "no": 26,
+          "skill": "engineering",
+          "status": "rejected"
+        }
+      ],
+      "checks_left": 2,
+      "cities": [
+        {
+          "code": "fenwick_span",
+          "name": "Fenwick Span"
+        },
+        {
+          "code": "ostmarch",
+          "name": "Ostmarch"
+        }
+      ],
+      "confirm_cancel": true,
+      "line": {
+        "cities": 2,
+        "hired": 1,
+        "level": 3,
+        "next_at": "2026-09-23T11:11:00Z",
+        "no": 14,
+        "pending": 0,
+        "positions": 2,
+        "skill": "engineering",
+        "status": "running"
+      },
+      "notice": "",
+      "notice_seed": 0,
+      "offer": {
+        "housing": 33,
+        "relocation": 1000,
+        "salary": 330,
+        "shares": 25,
+        "signing": 330,
+        "term": 10
+      },
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Campaign · over, nobody answered",
+    "screen": "recruit_campaign",
+    "view": {
+      "ad_fee": 1500,
+      "auto": false,
+      "available": 48000,
+      "candidates": null,
+      "checks_left": 0,
+      "cities": [
+        {
+          "code": "ostmarch",
+          "name": "Ostmarch"
+        }
+      ],
+      "confirm_cancel": false,
+      "line": {
+        "cities": 1,
+        "hired": 0,
+        "level": 1,
+        "next_at": null,
+        "no": 9,
+        "pending": 0,
+        "positions": 1,
+        "skill": "programming",
+        "status": "ended"
+      },
+      "notice": "",
+      "notice_seed": 0,
+      "offer": {
+        "housing": 0,
+        "relocation": 0,
+        "salary": 250,
+        "shares": 0,
+        "signing": 0,
+        "term": 5
+      },
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Campaign · filled by auto-hire",
+    "screen": "recruit_campaign",
+    "view": {
+      "ad_fee": 1500,
+      "auto": true,
+      "available": 48000,
+      "candidates": null,
+      "checks_left": 0,
+      "cities": [
+        {
+          "code": "ostmarch",
+          "name": "Ostmarch"
+        }
+      ],
+      "confirm_cancel": false,
+      "line": {
+        "cities": 1,
+        "hired": 1,
+        "level": 1,
+        "next_at": null,
+        "no": 9,
+        "pending": 0,
+        "positions": 1,
+        "skill": "programming",
+        "status": "filled"
+      },
+      "notice": "",
+      "notice_seed": 0,
+      "offer": {
+        "housing": 0,
+        "relocation": 0,
+        "salary": 250,
+        "shares": 0,
+        "signing": 0,
+        "term": 5
+      },
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Specialists · the list",
+    "screen": "specialists",
+    "view": {
+      "confirm": null,
+      "confirm_act": "",
+      "lines": [
+        {
+          "expiring": false,
+          "home": {
+            "code": "calderis",
+            "name": "Calderis"
+          },
+          "housing": 33,
+          "level": 3,
+          "market_due": 363,
+          "name_seed": 3,
+          "no": 5,
+          "salary": 330,
+          "served": 4,
+          "shares": 25,
+          "skill": "engineering",
+          "term": 10,
+          "underpaid": false,
+          "underpaid_left": 0,
+          "unpaid_left": 0
+        },
+        {
+          "expiring": false,
+          "home": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "housing": 0,
+          "level": 2,
+          "market_due": 420,
+          "name_seed": 44,
+          "no": 6,
+          "salary": 300,
+          "served": 3,
+          "shares": 0,
+          "skill": "medicine",
+          "term": 10,
+          "underpaid": true,
+          "underpaid_left": 1,
+          "unpaid_left": 0
+        },
+        {
+          "expiring": true,
+          "home": {
+            "code": "ostmarch",
+            "name": "Ostmarch"
+          },
+          "housing": 0,
+          "level": 5,
+          "market_due": 700,
+          "name_seed": 9,
+          "no": 7,
+          "salary": 700,
+          "served": 5,
+          "shares": 0,
+          "skill": "programming",
+          "term": 5,
+          "underpaid": false,
+          "underpaid_left": 0,
+          "unpaid_left": 1
+        }
+      ],
+      "max": 10,
+      "notice": "",
+      "notice_seed": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Specialists · a contract renewed",
+    "screen": "specialists",
+    "view": {
+      "confirm": null,
+      "confirm_act": "",
+      "lines": [
+        {
+          "expiring": false,
+          "home": {
+            "code": "calderis",
+            "name": "Calderis"
+          },
+          "housing": 33,
+          "level": 3,
+          "market_due": 363,
+          "name_seed": 3,
+          "no": 5,
+          "salary": 330,
+          "served": 4,
+          "shares": 25,
+          "skill": "engineering",
+          "term": 10,
+          "underpaid": false,
+          "underpaid_left": 0,
+          "unpaid_left": 0
+        },
+        {
+          "expiring": false,
+          "home": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "housing": 0,
+          "level": 2,
+          "market_due": 420,
+          "name_seed": 44,
+          "no": 6,
+          "salary": 300,
+          "served": 3,
+          "shares": 0,
+          "skill": "medicine",
+          "term": 10,
+          "underpaid": true,
+          "underpaid_left": 1,
+          "unpaid_left": 0
+        },
+        {
+          "expiring": true,
+          "home": {
+            "code": "ostmarch",
+            "name": "Ostmarch"
+          },
+          "housing": 0,
+          "level": 5,
+          "market_due": 700,
+          "name_seed": 9,
+          "no": 7,
+          "salary": 700,
+          "served": 5,
+          "shares": 0,
+          "skill": "programming",
+          "term": 5,
+          "underpaid": false,
+          "underpaid_left": 0,
+          "unpaid_left": 1
+        }
+      ],
+      "max": 10,
+      "notice": "renewed",
+      "notice_seed": 9,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Specialists · part ways, confirm",
+    "screen": "specialists",
+    "view": {
+      "confirm": {
+        "expiring": false,
+        "home": {
+          "code": "fenwick_span",
+          "name": "Fenwick Span"
+        },
+        "housing": 0,
+        "level": 2,
+        "market_due": 420,
+        "name_seed": 44,
+        "no": 6,
+        "salary": 300,
+        "served": 3,
+        "shares": 0,
+        "skill": "medicine",
+        "term": 10,
+        "underpaid": true,
+        "underpaid_left": 1,
+        "unpaid_left": 0
+      },
+      "confirm_act": "dismiss",
+      "lines": [
+        {
+          "expiring": false,
+          "home": {
+            "code": "calderis",
+            "name": "Calderis"
+          },
+          "housing": 33,
+          "level": 3,
+          "market_due": 363,
+          "name_seed": 3,
+          "no": 5,
+          "salary": 330,
+          "served": 4,
+          "shares": 25,
+          "skill": "engineering",
+          "term": 10,
+          "underpaid": false,
+          "underpaid_left": 0,
+          "unpaid_left": 0
+        },
+        {
+          "expiring": false,
+          "home": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "housing": 0,
+          "level": 2,
+          "market_due": 420,
+          "name_seed": 44,
+          "no": 6,
+          "salary": 300,
+          "served": 3,
+          "shares": 0,
+          "skill": "medicine",
+          "term": 10,
+          "underpaid": true,
+          "underpaid_left": 1,
+          "unpaid_left": 0
+        },
+        {
+          "expiring": true,
+          "home": {
+            "code": "ostmarch",
+            "name": "Ostmarch"
+          },
+          "housing": 0,
+          "level": 5,
+          "market_due": 700,
+          "name_seed": 9,
+          "no": 7,
+          "salary": 700,
+          "served": 5,
+          "shares": 0,
+          "skill": "programming",
+          "term": 5,
+          "underpaid": false,
+          "underpaid_left": 0,
+          "unpaid_left": 1
+        }
+      ],
+      "max": 10,
+      "notice": "",
+      "notice_seed": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Specialists · none yet",
+    "screen": "specialists",
+    "view": {
+      "confirm": null,
+      "confirm_act": "",
+      "lines": null,
+      "max": 10,
+      "notice": "",
+      "notice_seed": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Recruitment refusal · funds",
+    "screen": "recruit_refusal",
+    "view": {
+      "back": null,
+      "have": 1200,
+      "kind": "funds",
+      "max": 0,
+      "name_seed": 0,
+      "need": 3000,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Recruitment refusal · campaigns",
+    "screen": "recruit_refusal",
+    "view": {
+      "back": null,
+      "have": 0,
+      "kind": "campaigns",
+      "max": 2,
+      "name_seed": 0,
+      "need": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Recruitment refusal · staff",
+    "screen": "recruit_refusal",
+    "view": {
+      "back": null,
+      "have": 0,
+      "kind": "staff",
+      "max": 10,
+      "name_seed": 0,
+      "need": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Recruitment refusal · no_cities",
+    "screen": "recruit_refusal",
+    "view": {
+      "back": null,
+      "have": 0,
+      "kind": "no_cities",
+      "max": 0,
+      "name_seed": 0,
+      "need": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Recruitment refusal · no_skill",
+    "screen": "recruit_refusal",
+    "view": {
+      "back": null,
+      "have": 0,
+      "kind": "no_skill",
+      "max": 0,
+      "name_seed": 0,
+      "need": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Recruitment refusal · finished",
+    "screen": "recruit_refusal",
+    "view": {
+      "back": null,
+      "have": 0,
+      "kind": "finished",
+      "max": 0,
+      "name_seed": 0,
+      "need": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Recruitment refusal · gone",
+    "screen": "recruit_refusal",
+    "view": {
+      "back": null,
+      "have": 0,
+      "kind": "gone",
+      "max": 0,
+      "name_seed": 7,
+      "need": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Recruitment refusal · posted",
+    "screen": "recruit_refusal",
+    "view": {
+      "back": null,
+      "have": 0,
+      "kind": "posted",
+      "max": 0,
+      "name_seed": 0,
+      "need": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Recruitment refusal · amount",
+    "screen": "recruit_refusal",
+    "view": {
+      "back": null,
+      "have": 0,
+      "kind": "amount",
+      "max": 0,
+      "name_seed": 0,
+      "need": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Recruitment refusal · filled",
+    "screen": "recruit_refusal",
+    "view": {
+      "back": null,
+      "have": 0,
+      "kind": "filled",
+      "max": 0,
+      "name_seed": 0,
+      "need": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Recruitment refusal · not_now",
+    "screen": "recruit_refusal",
+    "view": {
+      "back": null,
+      "have": 0,
+      "kind": "not_now",
+      "max": 0,
+      "name_seed": 0,
+      "need": 0,
+      "ref": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      }
+    }
+  },
+  {
+    "title": "Recruitment refusal · not_found",
+    "screen": "recruit_refusal",
+    "view": {
+      "back": null,
+      "have": 0,
+      "kind": "not_found",
+      "max": 0,
+      "name_seed": 0,
+      "need": 0,
+      "ref": {
+        "code": "",
+        "name": "",
+        "type": {
+          "code": "",
+          "name": ""
+        }
+      }
+    }
+  },
+  {
+    "title": "Notice · applied ",
+    "screen": "recruit_notice",
+    "view": {
+      "amount": 0,
+      "campaign_no": 14,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "count": 3,
+      "kind": "applied",
+      "level": 4,
+      "name_seed": 7,
+      "reason": "",
+      "skill": "engineering"
+    }
+  },
+  {
+    "title": "Notice · hired ",
+    "screen": "recruit_notice",
+    "view": {
+      "amount": 0,
+      "campaign_no": 14,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "count": 0,
+      "kind": "hired",
+      "level": 4,
+      "name_seed": 7,
+      "reason": "",
+      "skill": "engineering"
+    }
+  },
+  {
+    "title": "Notice · ended ",
+    "screen": "recruit_notice",
+    "view": {
+      "amount": 0,
+      "campaign_no": 14,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "count": 0,
+      "kind": "ended",
+      "level": 4,
+      "name_seed": 7,
+      "reason": "",
+      "skill": "engineering"
+    }
+  },
+  {
+    "title": "Notice · filled ",
+    "screen": "recruit_notice",
+    "view": {
+      "amount": 0,
+      "campaign_no": 14,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "count": 0,
+      "kind": "filled",
+      "level": 4,
+      "name_seed": 7,
+      "reason": "",
+      "skill": "engineering"
+    }
+  },
+  {
+    "title": "Notice · unpaid ",
+    "screen": "recruit_notice",
+    "view": {
+      "amount": 0,
+      "campaign_no": 14,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "count": 0,
+      "kind": "unpaid",
+      "level": 4,
+      "name_seed": 7,
+      "reason": "",
+      "skill": "engineering"
+    }
+  },
+  {
+    "title": "Notice · completed ",
+    "screen": "recruit_notice",
+    "view": {
+      "amount": 5250,
+      "campaign_no": 14,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "count": 0,
+      "kind": "completed",
+      "level": 4,
+      "name_seed": 7,
+      "reason": "",
+      "skill": "engineering"
+    }
+  },
+  {
+    "title": "Notice · completed ",
+    "screen": "recruit_notice",
+    "view": {
+      "amount": 0,
+      "campaign_no": 14,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "count": 0,
+      "kind": "completed",
+      "level": 4,
+      "name_seed": 7,
+      "reason": "",
+      "skill": "engineering"
+    }
+  },
+  {
+    "title": "Notice · left unpaid",
+    "screen": "recruit_notice",
+    "view": {
+      "amount": 0,
+      "campaign_no": 14,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "count": 0,
+      "kind": "left",
+      "level": 4,
+      "name_seed": 7,
+      "reason": "unpaid",
+      "skill": "engineering"
+    }
+  },
+  {
+    "title": "Notice · left poached",
+    "screen": "recruit_notice",
+    "view": {
+      "amount": 0,
+      "campaign_no": 14,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "count": 0,
+      "kind": "left",
+      "level": 4,
+      "name_seed": 7,
+      "reason": "poached",
+      "skill": "engineering"
+    }
+  },
+  {
+    "title": "Notice · left contract_end",
+    "screen": "recruit_notice",
+    "view": {
+      "amount": 0,
+      "campaign_no": 14,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "count": 0,
+      "kind": "left",
+      "level": 4,
+      "name_seed": 7,
+      "reason": "contract_end",
+      "skill": "engineering"
+    }
+  },
+  {
+    "title": "Notice · left company_closed",
+    "screen": "recruit_notice",
+    "view": {
+      "amount": 0,
+      "campaign_no": 14,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "Nilou Industries",
+        "type": {
+          "code": "tech_studio",
+          "name": "Technology studio"
+        }
+      },
+      "count": 0,
+      "kind": "left",
+      "level": 4,
+      "name_seed": 7,
+      "reason": "company_closed",
+      "skill": "engineering"
+    }
+  }
+]

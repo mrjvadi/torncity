@@ -1,0 +1,136 @@
+[
+  {
+    "title": "Search · found by username",
+    "screen": "search",
+    "view": {
+      "by": "username",
+      "found": {
+        "code": "B3C4D5F",
+        "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+        "name": "کاوه",
+        "self": false
+      },
+      "help": false,
+      "query": "@kaveh"
+    }
+  },
+  {
+    "title": "Search · found a player with no name",
+    "screen": "search",
+    "view": {
+      "by": "code",
+      "found": {
+        "code": "B3C4D5F",
+        "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+        "name": "",
+        "self": false
+      },
+      "help": false,
+      "query": "B3C4D5F"
+    }
+  },
+  {
+    "title": "Search · found yourself",
+    "screen": "search",
+    "view": {
+      "by": "code",
+      "found": {
+        "code": "K7Q2M9A",
+        "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+        "name": "سارا",
+        "self": true
+      },
+      "help": false,
+      "query": "K7Q2M9A"
+    }
+  },
+  {
+    "title": "Search · username not found",
+    "screen": "search",
+    "view": {
+      "by": "username",
+      "found": null,
+      "help": false,
+      "query": "@kaveh"
+    }
+  },
+  {
+    "title": "Search · code not found",
+    "screen": "search",
+    "view": {
+      "by": "code",
+      "found": null,
+      "help": false,
+      "query": "B3C4D5F"
+    }
+  },
+  {
+    "title": "Search · Telegram id not found",
+    "screen": "search",
+    "view": {
+      "by": "telegram_id",
+      "found": null,
+      "help": false,
+      "query": ""
+    }
+  },
+  {
+    "title": "Search · how to search",
+    "screen": "search",
+    "view": {
+      "by": "",
+      "found": null,
+      "help": true,
+      "query": ""
+    }
+  },
+  {
+    "title": "Friends (page 1 of 2)",
+    "screen": "friends",
+    "view": {
+      "friends": [
+        {
+          "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+          "incoming": false,
+          "name": "کاوه",
+          "status": "accepted"
+        },
+        {
+          "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+          "incoming": true,
+          "name": "نیلوفر",
+          "status": "pending"
+        },
+        {
+          "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+          "incoming": false,
+          "name": "",
+          "status": "pending"
+        },
+        {
+          "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+          "incoming": false,
+          "name": "کاوه",
+          "status": "pending"
+        },
+        {
+          "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+          "incoming": false,
+          "name": "کاوه",
+          "status": "blocked"
+        }
+      ],
+      "page": 1,
+      "pages": 2
+    }
+  },
+  {
+    "title": "Friends · none yet",
+    "screen": "friends",
+    "view": {
+      "friends": null,
+      "page": 1,
+      "pages": 1
+    }
+  }
+]

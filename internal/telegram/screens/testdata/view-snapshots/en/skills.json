@@ -1,0 +1,49 @@
+[
+  {
+    "title": "Skills",
+    "screen": "skills",
+    "view": {
+      "lines": [
+        {
+          "code": "management",
+          "level": 2,
+          "max": false,
+          "next": 600,
+          "percent": 33,
+          "xp": 400
+        },
+        {
+          "code": "programming",
+          "level": 1,
+          "max": false,
+          "next": 300,
+          "percent": 40,
+          "xp": 120
+        },
+        {
+          "code": "cooking",
+          "level": 10,
+          "max": true,
+          "next": 0,
+          "percent": 0,
+          "xp": 9000
+        },
+        {
+          "code": "driving",
+          "level": 0,
+          "max": false,
+          "next": 0,
+          "percent": 0,
+          "xp": 0
+        }
+      ]
+    }
+  },
+  {
+    "title": "Skills · nothing trained yet",
+    "screen": "skills",
+    "view": {
+      "lines": null
+    }
+  }
+]

@@ -1,0 +1,1093 @@
+[
+  {
+    "title": "Budget · the mayor's view",
+    "screen": "budget",
+    "view": {
+      "allocation": {
+        "defence": 1000,
+        "police": 3000,
+        "transit": 2000
+      },
+      "can_propose": true,
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "last": {
+        "lines": [
+          {
+            "code": "police",
+            "effect": "investigation",
+            "effect_bps": 180,
+            "spent": 1800
+          },
+          {
+            "code": "transit",
+            "effect": "transit_fare",
+            "effect_bps": 480,
+            "spent": 1200
+          },
+          {
+            "code": "defence",
+            "effect": "defence_fund",
+            "effect_bps": 0,
+            "spent": 600
+          },
+          {
+            "code": "hospital",
+            "effect": "hospital_price",
+            "effect_bps": 0,
+            "spent": 0
+          }
+        ],
+        "spendable": 6000,
+        "spent": 4200
+      },
+      "lever": "city.budget",
+      "next_at": "2026-09-23T11:19:00Z",
+      "next_in_seconds": 840,
+      "no_city": false,
+      "order": [
+        "police",
+        "hospital",
+        "transit",
+        "education",
+        "infrastructure",
+        "marketing",
+        "defence"
+      ],
+      "pending": null,
+      "pending_in_seconds": 0,
+      "spend_share_bps": 2000,
+      "treasury": 30000
+    }
+  },
+  {
+    "title": "Budget · nothing allocated, no period yet",
+    "screen": "budget",
+    "view": {
+      "allocation": null,
+      "can_propose": false,
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "last": null,
+      "lever": "city.budget",
+      "next_at": null,
+      "next_in_seconds": 0,
+      "no_city": false,
+      "order": [
+        "police",
+        "hospital",
+        "transit",
+        "education",
+        "infrastructure",
+        "marketing",
+        "defence"
+      ],
+      "pending": null,
+      "pending_in_seconds": 0,
+      "spend_share_bps": 2000,
+      "treasury": 1200
+    }
+  },
+  {
+    "title": "Budget · in no city",
+    "screen": "budget",
+    "view": {
+      "allocation": null,
+      "can_propose": false,
+      "city": {
+        "code": "",
+        "kind": "",
+        "name": ""
+      },
+      "last": null,
+      "lever": "",
+      "next_at": null,
+      "next_in_seconds": 0,
+      "no_city": true,
+      "order": null,
+      "pending": null,
+      "pending_in_seconds": 0,
+      "spend_share_bps": 0,
+      "treasury": 0
+    }
+  },
+  {
+    "title": "Allocation · editing the budget",
+    "screen": "allocation_edit",
+    "view": {
+      "changed": true,
+      "draft": "6410002",
+      "lever": {
+        "allocation": {
+          "defence": 1000,
+          "police": 3000,
+          "transit": 2000
+        },
+        "categories": [
+          "police",
+          "hospital",
+          "transit",
+          "education",
+          "infrastructure",
+          "marketing",
+          "defence"
+        ],
+        "code": "city.budget",
+        "confirm_by": "city_council",
+        "cooldown_seconds": 259200,
+        "default": 0,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 0,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": null,
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "allocation",
+        "value": 0,
+        "vote": false
+      },
+      "lines": [
+        {
+          "code": "police",
+          "down": "5400002",
+          "share": 3000,
+          "up": "6400001"
+        },
+        {
+          "code": "hospital",
+          "down": "",
+          "share": 0,
+          "up": "6400001"
+        },
+        {
+          "code": "transit",
+          "down": "5400002",
+          "share": 2000,
+          "up": "6400001"
+        },
+        {
+          "code": "education",
+          "down": "5400002",
+          "share": 500,
+          "up": "6400001"
+        },
+        {
+          "code": "infrastructure",
+          "down": "",
+          "share": 0,
+          "up": "6400001"
+        },
+        {
+          "code": "marketing",
+          "down": "",
+          "share": 0,
+          "up": "6400001"
+        },
+        {
+          "code": "defence",
+          "down": "5400002",
+          "share": 1000,
+          "up": "6400001"
+        }
+      ],
+      "next_change_in_seconds": 0,
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "spend_share_bps": 2000,
+      "total": 6500
+    }
+  },
+  {
+    "title": "Allocation · waiting for the cooldown",
+    "screen": "allocation_edit",
+    "view": {
+      "changed": false,
+      "draft": "6400002",
+      "lever": {
+        "allocation": {
+          "defence": 1000,
+          "police": 3000,
+          "transit": 2000
+        },
+        "categories": [
+          "police",
+          "hospital",
+          "transit",
+          "education",
+          "infrastructure",
+          "marketing",
+          "defence"
+        ],
+        "code": "city.budget",
+        "confirm_by": "city_council",
+        "cooldown_seconds": 259200,
+        "default": 0,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 0,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": null,
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "allocation",
+        "value": 0,
+        "vote": false
+      },
+      "lines": null,
+      "next_change_in_seconds": 144000,
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "spend_share_bps": 2000,
+      "total": 0
+    }
+  },
+  {
+    "title": "Allocation · confirm, to the council",
+    "screen": "allocation_confirm",
+    "view": {
+      "draft": "6410002",
+      "lever": {
+        "allocation": {
+          "defence": 1000,
+          "police": 3000,
+          "transit": 2000
+        },
+        "categories": [
+          "police",
+          "hospital",
+          "transit",
+          "education",
+          "infrastructure",
+          "marketing",
+          "defence"
+        ],
+        "code": "city.budget",
+        "confirm_by": "city_council",
+        "cooldown_seconds": 259200,
+        "default": 0,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 0,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": null,
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "allocation",
+        "value": 0,
+        "vote": false
+      },
+      "new": {
+        "defence": 1000,
+        "education": 500,
+        "police": 3000,
+        "transit": 2000
+      },
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "vote_by": "city_council"
+    }
+  },
+  {
+    "title": "Allocation · confirm, announced at once",
+    "screen": "allocation_confirm",
+    "view": {
+      "draft": "6410002",
+      "lever": {
+        "allocation": {
+          "defence": 1000,
+          "police": 3000,
+          "transit": 2000
+        },
+        "categories": [
+          "police",
+          "hospital",
+          "transit",
+          "education",
+          "infrastructure",
+          "marketing",
+          "defence"
+        ],
+        "code": "city.budget",
+        "confirm_by": "city_council",
+        "cooldown_seconds": 259200,
+        "default": 0,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 0,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": null,
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "allocation",
+        "value": 0,
+        "vote": false
+      },
+      "new": {
+        "defence": 1000,
+        "education": 500,
+        "police": 3000,
+        "transit": 2000
+      },
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "vote_by": ""
+    }
+  },
+  {
+    "title": "Allocation · announced",
+    "screen": "policy_announced",
+    "view": {
+      "in_seconds": 86400,
+      "lever": {
+        "allocation": {
+          "defence": 1000,
+          "police": 3000,
+          "transit": 2000
+        },
+        "categories": [
+          "police",
+          "hospital",
+          "transit",
+          "education",
+          "infrastructure",
+          "marketing",
+          "defence"
+        ],
+        "code": "city.budget",
+        "confirm_by": "city_council",
+        "cooldown_seconds": 259200,
+        "default": 0,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 0,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": null,
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "allocation",
+        "value": 0,
+        "vote": false
+      },
+      "new": 0,
+      "new_allocation": {
+        "defence": 1000,
+        "education": 500,
+        "police": 3000,
+        "transit": 2000
+      },
+      "old": 0,
+      "old_allocation": {
+        "defence": 1000,
+        "police": 3000,
+        "transit": 2000
+      },
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Tax · a large change goes to the council",
+    "screen": "policy_confirm",
+    "view": {
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "city_council",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": false,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": null,
+        "set_by": null,
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "new_value": 1200,
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "vote_by": "city_council"
+    }
+  },
+  {
+    "title": "Refusal · needs the council",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "UNAUTHORIZED",
+        "details": {
+          "body": "city_council"
+        },
+        "message": "that change must be confirmed by a vote"
+      },
+      "lever": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.tax_rate",
+        "confirm_by": "city_council",
+        "cooldown_seconds": 259200,
+        "default": 450,
+        "from_office": false,
+        "held_by": "mayor",
+        "max": 2500,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": null,
+        "set_by": null,
+        "type": "bps",
+        "value": 450,
+        "vote": false
+      },
+      "now": null,
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Refusal · an allocation beyond the whole",
+    "screen": "policy_refused",
+    "view": {
+      "err": {
+        "code": "INVALID_INPUT",
+        "details": null,
+        "message": "that division of the budget is not allowed"
+      },
+      "lever": {
+        "allocation": {
+          "defence": 1000,
+          "police": 3000,
+          "transit": 2000
+        },
+        "categories": [
+          "police",
+          "hospital",
+          "transit",
+          "education",
+          "infrastructure",
+          "marketing",
+          "defence"
+        ],
+        "code": "city.budget",
+        "confirm_by": "city_council",
+        "cooldown_seconds": 259200,
+        "default": 0,
+        "from_office": true,
+        "held_by": "mayor",
+        "max": 0,
+        "min": 0,
+        "notice_seconds": 86400,
+        "pending": null,
+        "set_by": {
+          "code": "K7Q2M9A",
+          "name": "سارا"
+        },
+        "type": "allocation",
+        "value": 0,
+        "vote": false
+      },
+      "now": null,
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      }
+    }
+  },
+  {
+    "title": "Proposal · a councillor may vote",
+    "screen": "bill",
+    "view": {
+      "body": "city_council",
+      "by": {
+        "code": "K7Q2M9A",
+        "name": "سارا"
+      },
+      "can_vote": true,
+      "closes_at": "2026-09-25T10:05:00Z",
+      "decided_ago_seconds": 0,
+      "held": 3,
+      "lapsed_why": "",
+      "nay": 0,
+      "needs": 2,
+      "no": 12,
+      "notice": "",
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "quorum": "",
+      "remaining_seconds": 169200,
+      "rule": "majority",
+      "seats": 5,
+      "status": "open",
+      "subject": {
+        "allocation": {
+          "defence": 1000,
+          "education": 500,
+          "police": 3000,
+          "transit": 2000
+        },
+        "categories": [
+          "police",
+          "hospital",
+          "transit",
+          "education",
+          "infrastructure",
+          "marketing",
+          "defence"
+        ],
+        "code": "city.budget",
+        "kind": "lever",
+        "lever_type": "allocation",
+        "target": null,
+        "value": 0
+      },
+      "threshold": "",
+      "votes": [
+        {
+          "player": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "yes": true
+        }
+      ],
+      "yes": 1
+    }
+  },
+  {
+    "title": "Proposal · just submitted",
+    "screen": "bill",
+    "view": {
+      "body": "city_council",
+      "by": {
+        "code": "K7Q2M9A",
+        "name": "سارا"
+      },
+      "can_vote": false,
+      "closes_at": "2026-09-25T10:05:00Z",
+      "decided_ago_seconds": 0,
+      "held": 3,
+      "lapsed_why": "",
+      "nay": 0,
+      "needs": 2,
+      "no": 12,
+      "notice": "submitted",
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "quorum": "",
+      "remaining_seconds": 169200,
+      "rule": "majority",
+      "seats": 5,
+      "status": "open",
+      "subject": {
+        "allocation": {
+          "defence": 1000,
+          "education": 500,
+          "police": 3000,
+          "transit": 2000
+        },
+        "categories": [
+          "police",
+          "hospital",
+          "transit",
+          "education",
+          "infrastructure",
+          "marketing",
+          "defence"
+        ],
+        "code": "city.budget",
+        "kind": "lever",
+        "lever_type": "allocation",
+        "target": null,
+        "value": 0
+      },
+      "threshold": "",
+      "votes": null,
+      "yes": 0
+    }
+  },
+  {
+    "title": "Proposal · passed by the vote just cast",
+    "screen": "bill",
+    "view": {
+      "body": "city_council",
+      "by": {
+        "code": "K7Q2M9A",
+        "name": "سارا"
+      },
+      "can_vote": false,
+      "closes_at": "2026-09-25T10:05:00Z",
+      "decided_ago_seconds": 0,
+      "held": 3,
+      "lapsed_why": "",
+      "nay": 1,
+      "needs": 2,
+      "no": 12,
+      "notice": "voted",
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "quorum": "",
+      "remaining_seconds": 169200,
+      "rule": "majority",
+      "seats": 5,
+      "status": "passed",
+      "subject": {
+        "allocation": {
+          "defence": 1000,
+          "education": 500,
+          "police": 3000,
+          "transit": 2000
+        },
+        "categories": [
+          "police",
+          "hospital",
+          "transit",
+          "education",
+          "infrastructure",
+          "marketing",
+          "defence"
+        ],
+        "code": "city.budget",
+        "kind": "lever",
+        "lever_type": "allocation",
+        "target": null,
+        "value": 0
+      },
+      "threshold": "",
+      "votes": [
+        {
+          "player": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "yes": true
+        },
+        {
+          "player": {
+            "code": "N1L0F4R",
+            "name": "نیلوفر"
+          },
+          "yes": true
+        },
+        {
+          "player": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "yes": false
+        }
+      ],
+      "yes": 2
+    }
+  },
+  {
+    "title": "Proposal · passed but lapsed",
+    "screen": "bill",
+    "view": {
+      "body": "city_council",
+      "by": {
+        "code": "N1L0F4R",
+        "name": "نیلوفر"
+      },
+      "can_vote": false,
+      "closes_at": null,
+      "decided_ago_seconds": 0,
+      "held": 5,
+      "lapsed_why": "cooldown",
+      "nay": 0,
+      "needs": 3,
+      "no": 14,
+      "notice": "",
+      "office": "city_council",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "quorum": "1/2",
+      "remaining_seconds": 0,
+      "rule": "majority",
+      "seats": 5,
+      "status": "lapsed",
+      "subject": {
+        "allocation": null,
+        "categories": null,
+        "code": "city.property_tax",
+        "kind": "lever",
+        "lever_type": "bps",
+        "target": null,
+        "value": 50
+      },
+      "threshold": "",
+      "votes": null,
+      "yes": 3
+    }
+  },
+  {
+    "title": "Proposals · the list",
+    "screen": "bills",
+    "view": {
+      "bills": [
+        {
+          "body": "city_council",
+          "by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "can_vote": true,
+          "closes_at": "2026-09-25T10:05:00Z",
+          "decided_ago_seconds": 0,
+          "held": 3,
+          "lapsed_why": "",
+          "nay": 0,
+          "needs": 2,
+          "no": 12,
+          "notice": "",
+          "office": "mayor",
+          "place": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "quorum": "",
+          "remaining_seconds": 169200,
+          "rule": "majority",
+          "seats": 5,
+          "status": "open",
+          "subject": {
+            "allocation": {
+              "defence": 1000,
+              "education": 500,
+              "police": 3000,
+              "transit": 2000
+            },
+            "categories": [
+              "police",
+              "hospital",
+              "transit",
+              "education",
+              "infrastructure",
+              "marketing",
+              "defence"
+            ],
+            "code": "city.budget",
+            "kind": "lever",
+            "lever_type": "allocation",
+            "target": null,
+            "value": 0
+          },
+          "threshold": "",
+          "votes": [
+            {
+              "player": {
+                "code": "B3C4D5F",
+                "name": "کاوه"
+              },
+              "yes": true
+            }
+          ],
+          "yes": 1
+        },
+        {
+          "body": "parliament",
+          "by": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "can_vote": false,
+          "closes_at": null,
+          "decided_ago_seconds": 0,
+          "held": 6,
+          "lapsed_why": "",
+          "nay": 3,
+          "needs": 4,
+          "no": 13,
+          "notice": "",
+          "office": "president",
+          "place": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "quorum": "1/2",
+          "remaining_seconds": 0,
+          "rule": "supermajority",
+          "seats": 9,
+          "status": "failed",
+          "subject": {
+            "allocation": null,
+            "categories": null,
+            "code": "country.war",
+            "kind": "action",
+            "lever_type": "",
+            "target": {
+              "code": "vantor_federation",
+              "kind": "country",
+              "name": "Vantor Federation"
+            },
+            "value": 0
+          },
+          "threshold": "2/3",
+          "votes": null,
+          "yes": 2
+        },
+        {
+          "body": "city_council",
+          "by": {
+            "code": "N1L0F4R",
+            "name": "نیلوفر"
+          },
+          "can_vote": false,
+          "closes_at": null,
+          "decided_ago_seconds": 0,
+          "held": 5,
+          "lapsed_why": "cooldown",
+          "nay": 0,
+          "needs": 3,
+          "no": 14,
+          "notice": "",
+          "office": "city_council",
+          "place": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "quorum": "1/2",
+          "remaining_seconds": 0,
+          "rule": "majority",
+          "seats": 5,
+          "status": "lapsed",
+          "subject": {
+            "allocation": null,
+            "categories": null,
+            "code": "city.property_tax",
+            "kind": "lever",
+            "lever_type": "bps",
+            "target": null,
+            "value": 50
+          },
+          "threshold": "",
+          "votes": null,
+          "yes": 3
+        }
+      ]
+    }
+  },
+  {
+    "title": "Proposals · none",
+    "screen": "bills",
+    "view": {
+      "bills": null
+    }
+  },
+  {
+    "title": "Refused · not_found",
+    "screen": "bill_refusal",
+    "view": {
+      "body": "city_council",
+      "kind": "not_found",
+      "no": 12
+    }
+  },
+  {
+    "title": "Refused · not_member",
+    "screen": "bill_refusal",
+    "view": {
+      "body": "city_council",
+      "kind": "not_member",
+      "no": 12
+    }
+  },
+  {
+    "title": "Refused · under_way",
+    "screen": "bill_refusal",
+    "view": {
+      "body": "city_council",
+      "kind": "under_way",
+      "no": 12
+    }
+  },
+  {
+    "title": "Notice · your proposal passed",
+    "screen": "bill_decided_notice",
+    "view": {
+      "body": "city_council",
+      "by": {
+        "code": "K7Q2M9A",
+        "name": "سارا"
+      },
+      "can_vote": false,
+      "closes_at": "2026-09-25T10:05:00Z",
+      "decided_ago_seconds": 0,
+      "held": 3,
+      "lapsed_why": "",
+      "nay": 1,
+      "needs": 2,
+      "no": 12,
+      "notice": "voted",
+      "office": "mayor",
+      "place": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "quorum": "",
+      "remaining_seconds": 169200,
+      "rule": "majority",
+      "seats": 5,
+      "status": "passed",
+      "subject": {
+        "allocation": {
+          "defence": 1000,
+          "education": 500,
+          "police": 3000,
+          "transit": 2000
+        },
+        "categories": [
+          "police",
+          "hospital",
+          "transit",
+          "education",
+          "infrastructure",
+          "marketing",
+          "defence"
+        ],
+        "code": "city.budget",
+        "kind": "lever",
+        "lever_type": "allocation",
+        "target": null,
+        "value": 0
+      },
+      "threshold": "",
+      "votes": [
+        {
+          "player": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "yes": true
+        },
+        {
+          "player": {
+            "code": "N1L0F4R",
+            "name": "نیلوفر"
+          },
+          "yes": true
+        },
+        {
+          "player": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "yes": false
+        }
+      ],
+      "yes": 2
+    }
+  },
+  {
+    "title": "Notice · your proposal was rejected",
+    "screen": "bill_decided_notice",
+    "view": {
+      "body": "parliament",
+      "by": {
+        "code": "B3C4D5F",
+        "name": "کاوه"
+      },
+      "can_vote": false,
+      "closes_at": null,
+      "decided_ago_seconds": 0,
+      "held": 6,
+      "lapsed_why": "",
+      "nay": 3,
+      "needs": 4,
+      "no": 13,
+      "notice": "",
+      "office": "president",
+      "place": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "quorum": "1/2",
+      "remaining_seconds": 0,
+      "rule": "supermajority",
+      "seats": 9,
+      "status": "failed",
+      "subject": {
+        "allocation": null,
+        "categories": null,
+        "code": "country.war",
+        "kind": "action",
+        "lever_type": "",
+        "target": {
+          "code": "vantor_federation",
+          "kind": "country",
+          "name": "Vantor Federation"
+        },
+        "value": 0
+      },
+      "threshold": "2/3",
+      "votes": null,
+      "yes": 2
+    }
+  }
+]

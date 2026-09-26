@@ -1,0 +1,761 @@
+[
+  {
+    "title": "Bag",
+    "screen": "inventory",
+    "view": {
+      "in_escrow": 2,
+      "lines": [
+        {
+          "category": "food",
+          "design": "",
+          "durability": 0,
+          "item": {
+            "code": "bread",
+            "name": "Bread"
+          },
+          "qty": 3,
+          "quality": 0,
+          "serial": "",
+          "uses_left": 0
+        },
+        {
+          "category": "medicine",
+          "design": "",
+          "durability": 0,
+          "item": {
+            "code": "bandage",
+            "name": "Bandage"
+          },
+          "qty": 1,
+          "quality": 0,
+          "serial": "",
+          "uses_left": 0
+        },
+        {
+          "category": "gear",
+          "design": "",
+          "durability": 10,
+          "item": {
+            "code": "lockpick_set",
+            "name": "Lockpick set"
+          },
+          "qty": 0,
+          "quality": 62,
+          "serial": "A1B2C3D4E5",
+          "uses_left": 7
+        },
+        {
+          "category": "electronics",
+          "design": "",
+          "durability": 0,
+          "item": {
+            "code": "phone",
+            "name": "Phone"
+          },
+          "qty": 0,
+          "quality": 55,
+          "serial": "F0E1D2C3B4",
+          "uses_left": 0
+        }
+      ],
+      "page": 1,
+      "pages": 1,
+      "total": 4
+    }
+  },
+  {
+    "title": "Bag · empty",
+    "screen": "inventory",
+    "view": {
+      "in_escrow": 0,
+      "lines": null,
+      "page": 1,
+      "pages": 1,
+      "total": 0
+    }
+  },
+  {
+    "title": "Item · bread, a friend here",
+    "screen": "item_detail",
+    "view": {
+      "category": "food",
+      "cooldown_seconds": 1800,
+      "cooling_for_seconds": 0,
+      "durability": 0,
+      "effects": [
+        {
+          "op": "add",
+          "target": "energy",
+          "value": 10
+        },
+        {
+          "op": "add",
+          "target": "happiness",
+          "value": 2
+        }
+      ],
+      "gear": null,
+      "give_to": [
+        {
+          "code": "B3C4D5F",
+          "name": "Kaveh"
+        }
+      ],
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "nonce": "0a1b2c3d4e5f",
+      "piece": false,
+      "qty": 3,
+      "quality": 0,
+      "ready_at": null,
+      "ref": "bread",
+      "tradeable": true,
+      "usable": true,
+      "uses_left": 0,
+      "worth": 40
+    }
+  },
+  {
+    "title": "Item · bandage, still cooling",
+    "screen": "item_detail",
+    "view": {
+      "category": "medicine",
+      "cooldown_seconds": 3600,
+      "cooling_for_seconds": 720,
+      "durability": 0,
+      "effects": [
+        {
+          "op": "add",
+          "target": "health",
+          "value": 15
+        }
+      ],
+      "gear": null,
+      "give_to": null,
+      "item": {
+        "code": "bandage",
+        "name": "Bandage"
+      },
+      "nonce": "",
+      "piece": false,
+      "qty": 1,
+      "quality": 0,
+      "ready_at": "2026-09-23T11:17:00Z",
+      "ref": "bandage",
+      "tradeable": true,
+      "usable": true,
+      "uses_left": 0,
+      "worth": 80
+    }
+  },
+  {
+    "title": "Item · a lockpick set",
+    "screen": "item_detail",
+    "view": {
+      "category": "gear",
+      "cooldown_seconds": 0,
+      "cooling_for_seconds": 0,
+      "durability": 10,
+      "effects": null,
+      "gear": {
+        "catch_bps": -300,
+        "categories": null,
+        "confiscated": true,
+        "crimes": [
+          {
+            "code": "home_burglary",
+            "name": "Home burglary"
+          },
+          {
+            "code": "car_break_in",
+            "name": "Car break-in"
+          }
+        ],
+        "nerve": -1,
+        "reward_bps": 0,
+        "solve_bps": 0,
+        "success_bps": 1000,
+        "witness_bps": 0
+      },
+      "give_to": null,
+      "item": {
+        "code": "lockpick_set",
+        "name": "Lockpick set"
+      },
+      "nonce": "",
+      "piece": true,
+      "qty": 0,
+      "quality": 62,
+      "ready_at": null,
+      "ref": "A1B2C3D4E5",
+      "tradeable": true,
+      "usable": false,
+      "uses_left": 7,
+      "worth": 600
+    }
+  },
+  {
+    "title": "Used · bread",
+    "screen": "item_used",
+    "view": {
+      "changes": [
+        {
+          "after": 50,
+          "before": 40,
+          "max": 100,
+          "target": "energy"
+        }
+      ],
+      "cooldown_seconds": 1800,
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "left": 2,
+      "ready_at": "2026-09-23T11:35:00Z"
+    }
+  },
+  {
+    "title": "Given · bread to a friend",
+    "screen": "item_given",
+    "view": {
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "to": {
+        "code": "B3C4D5F",
+        "name": "Kaveh"
+      }
+    }
+  },
+  {
+    "title": "Drop · are you sure",
+    "screen": "drop_confirm",
+    "view": {
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "nonce": "0a1b2c3d4e60",
+      "ref": "F0E1D2C3B4"
+    }
+  },
+  {
+    "title": "Drop · done",
+    "screen": "item_dropped",
+    "view": {
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "nonce": "",
+      "ref": ""
+    }
+  },
+  {
+    "title": "Item refused · not carried",
+    "screen": "item_refusal",
+    "view": {
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "kind": "not_held",
+      "ready_at": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Item refused · not usable",
+    "screen": "item_refusal",
+    "view": {
+      "item": {
+        "code": "lockpick_set",
+        "name": "Lockpick set"
+      },
+      "kind": "not_usable",
+      "ready_at": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Item refused · still cooling",
+    "screen": "item_refusal",
+    "view": {
+      "item": {
+        "code": "bandage",
+        "name": "Bandage"
+      },
+      "kind": "cooling",
+      "ready_at": "2026-09-23T11:17:00Z",
+      "wait_seconds": 720
+    }
+  },
+  {
+    "title": "Item refused · no effect",
+    "screen": "item_refusal",
+    "view": {
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "kind": "no_effect",
+      "ready_at": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Item refused · not tradeable",
+    "screen": "item_refusal",
+    "view": {
+      "item": {
+        "code": "lockpick_set",
+        "name": "Lockpick set"
+      },
+      "kind": "not_tradeable",
+      "ready_at": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Item refused · not together",
+    "screen": "item_refusal",
+    "view": {
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "kind": "not_together",
+      "ready_at": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Shops",
+    "screen": "shops",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "place": null,
+      "shops": [
+        {
+          "here": true,
+          "place": {
+            "code": "bazaar",
+            "name": "Bazaar"
+          },
+          "shop": {
+            "code": "grocery",
+            "name": "Grocery"
+          }
+        },
+        {
+          "here": true,
+          "place": {
+            "code": "bazaar",
+            "name": "Bazaar"
+          },
+          "shop": {
+            "code": "hardware_store",
+            "name": "Hardware store"
+          }
+        },
+        {
+          "here": false,
+          "place": {
+            "code": "residential_area",
+            "name": "Residential area"
+          },
+          "shop": {
+            "code": "pawnshop",
+            "name": "Pawnshop"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "Shops · none",
+    "screen": "shops",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "place": null,
+      "shops": null
+    }
+  },
+  {
+    "title": "Shops · at one place",
+    "screen": "shops",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "place": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "shops": [
+        {
+          "here": false,
+          "place": {
+            "code": "bazaar",
+            "name": "Bazaar"
+          },
+          "shop": {
+            "code": "grocery",
+            "name": "Grocery"
+          }
+        },
+        {
+          "here": false,
+          "place": {
+            "code": "bazaar",
+            "name": "Bazaar"
+          },
+          "shop": {
+            "code": "hardware_store",
+            "name": "Hardware store"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "Shop · at the counter",
+    "screen": "shop_detail",
+    "view": {
+      "here": true,
+      "place": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "shelves": [
+        {
+          "busy": false,
+          "buyback": 300,
+          "item": {
+            "code": "lockpick_set",
+            "name": "Lockpick set"
+          },
+          "next_restock": null,
+          "price": 600,
+          "stock": 4
+        },
+        {
+          "busy": true,
+          "buyback": 0,
+          "item": {
+            "code": "crowbar",
+            "name": "Crowbar"
+          },
+          "next_restock": null,
+          "price": 390,
+          "stock": 2
+        },
+        {
+          "busy": false,
+          "buyback": 0,
+          "item": {
+            "code": "gloves",
+            "name": "Pair of gloves"
+          },
+          "next_restock": "2026-09-23T11:25:00Z",
+          "price": 120,
+          "stock": 0
+        }
+      ],
+      "shop": {
+        "code": "hardware_store",
+        "name": "Hardware store"
+      },
+      "tax_bps": 500,
+      "walk_seconds": 0
+    }
+  },
+  {
+    "title": "Shop · from across town",
+    "screen": "shop_detail",
+    "view": {
+      "here": false,
+      "place": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "shelves": [
+        {
+          "busy": false,
+          "buyback": 300,
+          "item": {
+            "code": "lockpick_set",
+            "name": "Lockpick set"
+          },
+          "next_restock": null,
+          "price": 600,
+          "stock": 4
+        },
+        {
+          "busy": true,
+          "buyback": 0,
+          "item": {
+            "code": "crowbar",
+            "name": "Crowbar"
+          },
+          "next_restock": null,
+          "price": 390,
+          "stock": 2
+        },
+        {
+          "busy": false,
+          "buyback": 0,
+          "item": {
+            "code": "gloves",
+            "name": "Pair of gloves"
+          },
+          "next_restock": "2026-09-23T11:25:00Z",
+          "price": 120,
+          "stock": 0
+        }
+      ],
+      "shop": {
+        "code": "hardware_store",
+        "name": "Hardware store"
+      },
+      "tax_bps": 500,
+      "walk_seconds": 15
+    }
+  },
+  {
+    "title": "Checkout · both ways cover it",
+    "screen": "shop_checkout",
+    "view": {
+      "item": {
+        "code": "lockpick_set",
+        "name": "Lockpick set"
+      },
+      "nonce": "0a1b2c3d4e61",
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 630,
+        "bank": 9000,
+        "cash": 2000,
+        "usable": [
+          "cash",
+          "card"
+        ]
+      },
+      "qty": 1,
+      "shop": {
+        "code": "hardware_store",
+        "name": "Hardware store"
+      },
+      "stock": 4,
+      "tax": 30,
+      "tax_bps": 500,
+      "total": 630,
+      "unit": 600
+    }
+  },
+  {
+    "title": "Checkout · neither covers it",
+    "screen": "shop_checkout",
+    "view": {
+      "item": {
+        "code": "lockpick_set",
+        "name": "Lockpick set"
+      },
+      "nonce": "",
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 630,
+        "bank": 200,
+        "cash": 100,
+        "usable": null
+      },
+      "qty": 1,
+      "shop": {
+        "code": "hardware_store",
+        "name": "Hardware store"
+      },
+      "stock": 4,
+      "tax": 30,
+      "tax_bps": 500,
+      "total": 630,
+      "unit": 600
+    }
+  },
+  {
+    "title": "Bought · with tax",
+    "screen": "shop_bought",
+    "view": {
+      "item": {
+        "code": "lockpick_set",
+        "name": "Lockpick set"
+      },
+      "method": "card",
+      "qty": 1,
+      "shop": {
+        "code": "hardware_store",
+        "name": "Hardware store"
+      },
+      "tax": 30,
+      "total": 630
+    }
+  },
+  {
+    "title": "Sell · who buys a phone",
+    "screen": "sell_offers",
+    "view": {
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "offers": [
+        {
+          "place": {
+            "code": "residential_area",
+            "name": "Residential area"
+          },
+          "price": 1100,
+          "shop": {
+            "code": "pawnshop",
+            "name": "Pawnshop"
+          }
+        },
+        {
+          "place": {
+            "code": "business_district",
+            "name": "Business district"
+          },
+          "price": 1250,
+          "shop": {
+            "code": "electronics_store",
+            "name": "Electronics store"
+          }
+        }
+      ],
+      "ref": "F0E1D2C3B4"
+    }
+  },
+  {
+    "title": "Sell · nobody buys it",
+    "screen": "sell_offers",
+    "view": {
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "offers": null,
+      "ref": "bread"
+    }
+  },
+  {
+    "title": "Sold · a phone to the pawnshop",
+    "screen": "shop_sold",
+    "view": {
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "left": 0,
+      "price": 1100,
+      "shop": {
+        "code": "pawnshop",
+        "name": "Pawnshop"
+      }
+    }
+  },
+  {
+    "title": "Shop refused · no such shop",
+    "screen": "shop_refusal",
+    "view": {
+      "item": {
+        "code": "",
+        "name": ""
+      },
+      "kind": "no_shop",
+      "next_restock": null,
+      "shop": {
+        "code": "",
+        "name": ""
+      },
+      "stock": 0
+    }
+  },
+  {
+    "title": "Shop refused · not sold here",
+    "screen": "shop_refusal",
+    "view": {
+      "item": {
+        "code": "lockpick_set",
+        "name": "Lockpick set"
+      },
+      "kind": "not_sold",
+      "next_restock": null,
+      "shop": {
+        "code": "grocery",
+        "name": "Grocery"
+      },
+      "stock": 0
+    }
+  },
+  {
+    "title": "Shop refused · sold out",
+    "screen": "shop_refusal",
+    "view": {
+      "item": {
+        "code": "lockpick_set",
+        "name": "Lockpick set"
+      },
+      "kind": "sold_out",
+      "next_restock": "2026-09-23T11:25:00Z",
+      "shop": {
+        "code": "hardware_store",
+        "name": "Hardware store"
+      },
+      "stock": 0
+    }
+  },
+  {
+    "title": "Shop refused · not carried",
+    "screen": "shop_refusal",
+    "view": {
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "kind": "not_held",
+      "next_restock": null,
+      "shop": {
+        "code": "pawnshop",
+        "name": "Pawnshop"
+      },
+      "stock": 0
+    }
+  },
+  {
+    "title": "Shop refused · not bought back",
+    "screen": "shop_refusal",
+    "view": {
+      "item": {
+        "code": "phone",
+        "name": "Phone"
+      },
+      "kind": "no_buyback",
+      "next_restock": null,
+      "shop": {
+        "code": "grocery",
+        "name": "Grocery"
+      },
+      "stock": 0
+    }
+  }
+]

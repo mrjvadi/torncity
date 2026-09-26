@@ -1,0 +1,681 @@
+[
+  {
+    "title": "Bank · in a city with a withdrawal fee",
+    "screen": "bank",
+    "view": {
+      "bank": 240000,
+      "can_deposit": true,
+      "can_withdraw": true,
+      "cash": 12850,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "deposits": [
+        {
+          "all": false,
+          "amount": 1000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 5000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 10000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 12850,
+          "nonce": "n4Rt"
+        }
+      ],
+      "jailed": false,
+      "no_city": false,
+      "notice": "",
+      "travelling": false,
+      "withdrawal_fee_bps": 150,
+      "withdrawals": [
+        {
+          "all": false,
+          "amount": 10000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 50000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 100000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 236453,
+          "nonce": "n4Rt"
+        }
+      ]
+    }
+  },
+  {
+    "title": "Bank · after a deposit, no fees",
+    "screen": "bank",
+    "view": {
+      "bank": 245000,
+      "can_deposit": true,
+      "can_withdraw": true,
+      "cash": 7850,
+      "city": "Brennhaven",
+      "city_code": "brennhaven",
+      "deposits": [
+        {
+          "all": false,
+          "amount": 1000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 5000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 7850,
+          "nonce": "n4Rt"
+        }
+      ],
+      "jailed": false,
+      "no_city": false,
+      "notice": "✅ 5,000 Nil deposited into your bank account.",
+      "travelling": false,
+      "withdrawal_fee_bps": 0,
+      "withdrawals": [
+        {
+          "all": false,
+          "amount": 10000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 50000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 100000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 245000,
+          "nonce": "n4Rt"
+        }
+      ]
+    }
+  },
+  {
+    "title": "Bank · after a withdrawal with a fee",
+    "screen": "bank",
+    "view": {
+      "bank": 234925,
+      "can_deposit": true,
+      "can_withdraw": true,
+      "cash": 17850,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "deposits": [
+        {
+          "all": false,
+          "amount": 1000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 5000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 10000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 17850,
+          "nonce": "n4Rt"
+        }
+      ],
+      "jailed": false,
+      "no_city": false,
+      "notice": "✅ You withdrew 5,000 Nil in cash, and a fee of 75 Nil was taken from your bank.",
+      "travelling": false,
+      "withdrawal_fee_bps": 150,
+      "withdrawals": [
+        {
+          "all": false,
+          "amount": 10000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 50000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 100000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 231453,
+          "nonce": "n4Rt"
+        }
+      ]
+    }
+  },
+  {
+    "title": "Bank · after a free withdrawal, the bank emptied",
+    "screen": "bank",
+    "view": {
+      "bank": 0,
+      "can_deposit": true,
+      "can_withdraw": false,
+      "cash": 1000,
+      "city": "Brennhaven",
+      "city_code": "brennhaven",
+      "deposits": [
+        {
+          "all": false,
+          "amount": 1000,
+          "nonce": "n4Rt"
+        }
+      ],
+      "jailed": false,
+      "no_city": false,
+      "notice": "✅ You withdrew 1,000 Nil in cash.",
+      "travelling": false,
+      "withdrawal_fee_bps": 0,
+      "withdrawals": null
+    }
+  },
+  {
+    "title": "Bank · in jail",
+    "screen": "bank",
+    "view": {
+      "bank": 240000,
+      "can_deposit": true,
+      "can_withdraw": false,
+      "cash": 850,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "deposits": [
+        {
+          "all": true,
+          "amount": 850,
+          "nonce": "n4Rt"
+        }
+      ],
+      "jailed": true,
+      "no_city": false,
+      "notice": "",
+      "travelling": false,
+      "withdrawal_fee_bps": 150,
+      "withdrawals": null
+    }
+  },
+  {
+    "title": "Bank · nothing to move",
+    "screen": "bank",
+    "view": {
+      "bank": 0,
+      "can_deposit": false,
+      "can_withdraw": false,
+      "cash": 0,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "deposits": null,
+      "jailed": false,
+      "no_city": false,
+      "notice": "",
+      "travelling": false,
+      "withdrawal_fee_bps": 150,
+      "withdrawals": null
+    }
+  },
+  {
+    "title": "Bank · while travelling",
+    "screen": "bank",
+    "view": {
+      "bank": 240000,
+      "can_deposit": false,
+      "can_withdraw": false,
+      "cash": 4440,
+      "city": "",
+      "city_code": "",
+      "deposits": null,
+      "jailed": false,
+      "no_city": false,
+      "notice": "",
+      "travelling": true,
+      "withdrawal_fee_bps": 0,
+      "withdrawals": null
+    }
+  },
+  {
+    "title": "Bank · not in any city",
+    "screen": "bank",
+    "view": {
+      "bank": 0,
+      "can_deposit": false,
+      "can_withdraw": false,
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "deposits": null,
+      "jailed": false,
+      "no_city": true,
+      "notice": "",
+      "travelling": false,
+      "withdrawal_fee_bps": 0,
+      "withdrawals": null
+    }
+  },
+  {
+    "title": "Pay · both in the same city",
+    "screen": "pay",
+    "view": {
+      "bank": 240000,
+      "can_card": true,
+      "can_cash": true,
+      "card_fee_bps": 100,
+      "card_options": [
+        {
+          "all": false,
+          "amount": 10000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 50000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 100000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 237623,
+          "nonce": "n4Rt"
+        }
+      ],
+      "cash": 12850,
+      "cash_options": [
+        {
+          "all": false,
+          "amount": 1000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 5000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 10000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 12850,
+          "nonce": "n4Rt"
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "notice": "",
+      "origin": "",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh",
+      "payer_city": "Ostmarch",
+      "payer_city_code": "ostmarch",
+      "together": true
+    }
+  },
+  {
+    "title": "Pay · started in a group",
+    "screen": "pay",
+    "view": {
+      "bank": 3000,
+      "can_card": true,
+      "can_cash": true,
+      "card_fee_bps": 100,
+      "card_options": [
+        {
+          "all": false,
+          "amount": 1000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 2970,
+          "nonce": "n4Rt"
+        }
+      ],
+      "cash": 850,
+      "cash_options": [
+        {
+          "all": true,
+          "amount": 850,
+          "nonce": "n4Rt"
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "notice": "",
+      "origin": "-1001234567890",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh",
+      "payer_city": "Ostmarch",
+      "payer_city_code": "ostmarch",
+      "together": true
+    }
+  },
+  {
+    "title": "Pay · apart, free card payments",
+    "screen": "pay",
+    "view": {
+      "bank": 240000,
+      "can_card": true,
+      "can_cash": false,
+      "card_fee_bps": 0,
+      "card_options": [
+        {
+          "all": false,
+          "amount": 10000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 50000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 100000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 240000,
+          "nonce": "n4Rt"
+        }
+      ],
+      "cash": 12850,
+      "cash_options": null,
+      "city": "",
+      "city_code": "",
+      "notice": "",
+      "origin": "",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh",
+      "payer_city": "Brennhaven",
+      "payer_city_code": "brennhaven",
+      "together": false
+    }
+  },
+  {
+    "title": "Pay · a refusal brought you back",
+    "screen": "pay",
+    "view": {
+      "bank": 240000,
+      "can_card": true,
+      "can_cash": false,
+      "card_fee_bps": 100,
+      "card_options": [
+        {
+          "all": false,
+          "amount": 10000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 50000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 100000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 237623,
+          "nonce": "n4Rt"
+        }
+      ],
+      "cash": 12850,
+      "cash_options": null,
+      "city": "",
+      "city_code": "",
+      "notice": "Kaveh is not here with you, so you cannot hand over cash. Send the money by card instead — card payments work from anywhere.",
+      "origin": "",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh",
+      "payer_city": "Ostmarch",
+      "payer_city_code": "ostmarch",
+      "together": false
+    }
+  },
+  {
+    "title": "Pay · not enough cash, checked before confirming",
+    "screen": "pay",
+    "view": {
+      "bank": 240000,
+      "can_card": true,
+      "can_cash": true,
+      "card_fee_bps": 100,
+      "card_options": [
+        {
+          "all": false,
+          "amount": 10000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 50000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": false,
+          "amount": 100000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 237623,
+          "nonce": "n4Rt"
+        }
+      ],
+      "cash": 850,
+      "cash_options": [
+        {
+          "all": true,
+          "amount": 850,
+          "nonce": "n4Rt"
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "notice": "💵 Not enough cash: this needs 5,000 Nil and you carry 850 Nil. Choose a smaller amount or pay by card.",
+      "origin": "",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh",
+      "payer_city": "Ostmarch",
+      "payer_city_code": "ostmarch",
+      "together": true
+    }
+  },
+  {
+    "title": "Pay · not enough in the bank with the fee",
+    "screen": "pay",
+    "view": {
+      "bank": 3000,
+      "can_card": true,
+      "can_cash": false,
+      "card_fee_bps": 100,
+      "card_options": [
+        {
+          "all": false,
+          "amount": 1000,
+          "nonce": "n4Rt"
+        },
+        {
+          "all": true,
+          "amount": 2970,
+          "nonce": "n4Rt"
+        }
+      ],
+      "cash": 0,
+      "cash_options": null,
+      "city": "",
+      "city_code": "",
+      "notice": "🏦 Not enough in your bank: with the fee this needs 5,050 Nil and you have 3,000 Nil. Choose a smaller amount.",
+      "origin": "",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh",
+      "payer_city": "Ostmarch",
+      "payer_city_code": "ostmarch",
+      "together": false
+    }
+  },
+  {
+    "title": "Pay · nothing to pay with",
+    "screen": "pay",
+    "view": {
+      "bank": 0,
+      "can_card": false,
+      "can_cash": false,
+      "card_fee_bps": 100,
+      "card_options": null,
+      "cash": 0,
+      "cash_options": null,
+      "city": "",
+      "city_code": "",
+      "notice": "",
+      "origin": "",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh",
+      "payer_city": "Ostmarch",
+      "payer_city_code": "ostmarch",
+      "together": false
+    }
+  },
+  {
+    "title": "Pay · confirm cash",
+    "screen": "pay_confirm",
+    "view": {
+      "after": 7850,
+      "amount": 5000,
+      "fee": 0,
+      "method": "cash",
+      "nonce": "n4Rt",
+      "origin": "",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh",
+      "total": 5000
+    }
+  },
+  {
+    "title": "Pay · confirm card, no fee",
+    "screen": "pay_confirm",
+    "view": {
+      "after": 235000,
+      "amount": 5000,
+      "fee": 0,
+      "method": "card",
+      "nonce": "n4Rt",
+      "origin": "",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh",
+      "total": 5000
+    }
+  },
+  {
+    "title": "Pay · confirm card with fee, started in a group",
+    "screen": "pay_confirm",
+    "view": {
+      "after": 219800,
+      "amount": 20000,
+      "fee": 200,
+      "method": "card",
+      "nonce": "n4Rt",
+      "origin": "-1001234567890",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh",
+      "total": 20200
+    }
+  },
+  {
+    "title": "Pay · sent cash",
+    "screen": "pay_sent",
+    "view": {
+      "amount": 5000,
+      "fee": 0,
+      "held": false,
+      "method": "cash",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh"
+    }
+  },
+  {
+    "title": "Pay · sent card",
+    "screen": "pay_sent",
+    "view": {
+      "amount": 5000,
+      "fee": 0,
+      "held": false,
+      "method": "card",
+      "payee_code": "B3C4D5F",
+      "payee_name": "Kaveh"
+    }
+  },
+  {
+    "title": "Pay · sent card with fee",
+    "screen": "pay_sent",
+    "view": {
+      "amount": 20000,
+      "fee": 200,
+      "held": false,
+      "method": "card",
+      "payee_code": "B3C4D5F",
+      "payee_name": ""
+    }
+  },
+  {
+    "title": "Notice · received cash",
+    "screen": "payment_notice",
+    "view": {
+      "amount": 5000,
+      "method": "cash",
+      "payer_code": "B3C4D5F",
+      "payer_name": "Kaveh"
+    }
+  },
+  {
+    "title": "Notice · received by card",
+    "screen": "payment_notice",
+    "view": {
+      "amount": 20000,
+      "method": "card",
+      "payer_code": "B3C4D5F",
+      "payer_name": "Kaveh"
+    }
+  }
+]

@@ -1,0 +1,1034 @@
+[
+  {
+    "title": "Market · a city's registry and its owners' offers",
+    "screen": "property_market",
+    "view": {
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "no_city": false,
+      "offers": [
+        {
+          "kind": "sale",
+          "mine": false,
+          "no": 7,
+          "price": 210000,
+          "property_no": 12,
+          "seller": {
+            "code": "B3C4D5F",
+            "name": "Kaveh"
+          },
+          "type": {
+            "code": "family_house",
+            "name": "Family house"
+          }
+        },
+        {
+          "kind": "rent",
+          "mine": false,
+          "no": 8,
+          "price": 900,
+          "property_no": 15,
+          "seller": {
+            "code": "N1L0F4R",
+            "name": "Nilou"
+          },
+          "type": {
+            "code": "studio",
+            "name": "Studio flat"
+          }
+        }
+      ],
+      "types": [
+        {
+          "home": true,
+          "kind": "apartment",
+          "left": 28,
+          "price": 46350,
+          "quality": 2,
+          "size": 35,
+          "type": {
+            "code": "studio",
+            "name": "Studio flat"
+          }
+        },
+        {
+          "home": true,
+          "kind": "house",
+          "left": 8,
+          "price": 180000,
+          "quality": 3,
+          "size": 140,
+          "type": {
+            "code": "family_house",
+            "name": "Family house"
+          }
+        },
+        {
+          "home": false,
+          "kind": "shop",
+          "left": 0,
+          "price": 120000,
+          "quality": 3,
+          "size": 60,
+          "type": {
+            "code": "shop_unit",
+            "name": "Shop premises"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "Market · on the road",
+    "screen": "property_market",
+    "view": {
+      "city": {
+        "code": "",
+        "kind": "",
+        "name": ""
+      },
+      "no_city": true,
+      "offers": null,
+      "types": null
+    }
+  },
+  {
+    "title": "Type · at the land registry, the card pays",
+    "screen": "property_type",
+    "view": {
+      "blocked": "",
+      "bought": 0,
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "home": true,
+      "kind": "apartment",
+      "left": 28,
+      "max": 5,
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 46350,
+        "bank": 80000,
+        "cash": 1200,
+        "usable": [
+          "card"
+        ]
+      },
+      "place": {
+        "code": "residential_area",
+        "name": "Residential area"
+      },
+      "price": 46350,
+      "quality": 2,
+      "rest_energy": 25,
+      "size": 35,
+      "tax_bps": 20,
+      "type": {
+        "code": "studio",
+        "name": "Studio flat"
+      },
+      "upkeep": 40,
+      "way": null
+    }
+  },
+  {
+    "title": "Type · elsewhere in the city",
+    "screen": "property_type",
+    "view": {
+      "blocked": "",
+      "bought": 0,
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "home": true,
+      "kind": "apartment",
+      "left": 28,
+      "max": 5,
+      "payment": null,
+      "place": {
+        "code": "residential_area",
+        "name": "Residential area"
+      },
+      "price": 46350,
+      "quality": 2,
+      "rest_energy": 25,
+      "size": 35,
+      "tax_bps": 20,
+      "type": {
+        "code": "studio",
+        "name": "Studio flat"
+      },
+      "upkeep": 40,
+      "way": {
+        "place": {
+          "code": "city_hall",
+          "name": "City hall"
+        },
+        "walk_seconds": 12
+      }
+    }
+  },
+  {
+    "title": "Type · sold out",
+    "screen": "property_type",
+    "view": {
+      "blocked": "sold_out",
+      "bought": 0,
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "home": true,
+      "kind": "apartment",
+      "left": 0,
+      "max": 5,
+      "payment": null,
+      "place": {
+        "code": "residential_area",
+        "name": "Residential area"
+      },
+      "price": 46350,
+      "quality": 2,
+      "rest_energy": 25,
+      "size": 35,
+      "tax_bps": 20,
+      "type": {
+        "code": "studio",
+        "name": "Studio flat"
+      },
+      "upkeep": 40,
+      "way": null
+    }
+  },
+  {
+    "title": "Type · just bought, now at the limit",
+    "screen": "property_type",
+    "view": {
+      "blocked": "too_many",
+      "bought": 16,
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "home": true,
+      "kind": "apartment",
+      "left": 28,
+      "max": 5,
+      "payment": null,
+      "place": {
+        "code": "residential_area",
+        "name": "Residential area"
+      },
+      "price": 46350,
+      "quality": 2,
+      "rest_energy": 25,
+      "size": 35,
+      "tax_bps": 20,
+      "type": {
+        "code": "studio",
+        "name": "Studio flat"
+      },
+      "upkeep": 40,
+      "way": null
+    }
+  },
+  {
+    "title": "Offer · to let, at the registry",
+    "screen": "property_offer",
+    "view": {
+      "blocked": "",
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "home": true,
+      "kind": "apartment",
+      "max": 0,
+      "offer": {
+        "kind": "rent",
+        "mine": false,
+        "no": 8,
+        "price": 900,
+        "property_no": 15,
+        "seller": {
+          "code": "N1L0F4R",
+          "name": "Nilou"
+        },
+        "type": {
+          "code": "studio",
+          "name": "Studio flat"
+        }
+      },
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 900,
+        "bank": 80000,
+        "cash": 1200,
+        "usable": [
+          "cash",
+          "card"
+        ]
+      },
+      "quality": 2,
+      "size": 35,
+      "upkeep": 40,
+      "way": null
+    }
+  },
+  {
+    "title": "Offer · for sale, already renting elsewhere",
+    "screen": "property_offer",
+    "view": {
+      "blocked": "too_many",
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "home": true,
+      "kind": "house",
+      "max": 5,
+      "offer": {
+        "kind": "sale",
+        "mine": false,
+        "no": 7,
+        "price": 210000,
+        "property_no": 12,
+        "seller": {
+          "code": "B3C4D5F",
+          "name": "Kaveh"
+        },
+        "type": {
+          "code": "family_house",
+          "name": "Family house"
+        }
+      },
+      "payment": null,
+      "quality": 3,
+      "size": 140,
+      "upkeep": 160,
+      "way": null
+    }
+  },
+  {
+    "title": "Offer · your own",
+    "screen": "property_offer",
+    "view": {
+      "blocked": "own",
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "home": true,
+      "kind": "house",
+      "max": 0,
+      "offer": {
+        "kind": "sale",
+        "mine": true,
+        "no": 7,
+        "price": 210000,
+        "property_no": 12,
+        "seller": {
+          "code": "B3C4D5F",
+          "name": "Kaveh"
+        },
+        "type": {
+          "code": "family_house",
+          "name": "Family house"
+        }
+      },
+      "payment": null,
+      "quality": 3,
+      "size": 140,
+      "upkeep": 160,
+      "way": null
+    }
+  },
+  {
+    "title": "Mine · a home to rest at",
+    "screen": "property_mine",
+    "view": {
+      "can_rest": true,
+      "grace": 3,
+      "notice": "",
+      "notice_args": null,
+      "owned": [
+        {
+          "arrears": 0,
+          "city": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "debt": 0,
+          "home": true,
+          "kind": "apartment",
+          "no": 16,
+          "offer": null,
+          "quality": 2,
+          "rent": 0,
+          "size": 35,
+          "tenant": null,
+          "type": {
+            "code": "studio",
+            "name": "Studio flat"
+          },
+          "unpaid_periods": 0,
+          "value": 46350
+        },
+        {
+          "arrears": 0,
+          "city": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "debt": 0,
+          "home": true,
+          "kind": "house",
+          "no": 12,
+          "offer": null,
+          "quality": 3,
+          "rent": 1500,
+          "size": 140,
+          "tenant": {
+            "code": "B3C4D5F",
+            "name": "Kaveh"
+          },
+          "type": {
+            "code": "family_house",
+            "name": "Family house"
+          },
+          "unpaid_periods": 0,
+          "value": 180000
+        },
+        {
+          "arrears": 0,
+          "city": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "debt": 460,
+          "home": false,
+          "kind": "shop",
+          "no": 21,
+          "offer": null,
+          "quality": 3,
+          "rent": 0,
+          "size": 60,
+          "tenant": null,
+          "type": {
+            "code": "shop_unit",
+            "name": "Shop premises"
+          },
+          "unpaid_periods": 2,
+          "value": 120000
+        },
+        {
+          "arrears": 0,
+          "city": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "debt": 0,
+          "home": true,
+          "kind": "apartment",
+          "no": 22,
+          "offer": {
+            "kind": "rent",
+            "mine": false,
+            "no": 9,
+            "price": 850,
+            "property_no": 0,
+            "seller": {
+              "code": "",
+              "name": ""
+            },
+            "type": {
+              "code": "",
+              "name": ""
+            }
+          },
+          "quality": 2,
+          "rent": 0,
+          "size": 35,
+          "tenant": null,
+          "type": {
+            "code": "studio",
+            "name": "Studio flat"
+          },
+          "unpaid_periods": 0,
+          "value": 45000
+        }
+      ],
+      "rented": null,
+      "residence": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "rest_energy": 25,
+      "rest_in_seconds": 0
+    }
+  },
+  {
+    "title": "Mine · rested, renting from another",
+    "screen": "property_mine",
+    "view": {
+      "can_rest": true,
+      "grace": 3,
+      "notice": "rested",
+      "notice_args": {
+        "energy": 25,
+        "rest": 60
+      },
+      "owned": null,
+      "rented": {
+        "arrears": 1,
+        "landlord": {
+          "code": "N1L0F4R",
+          "name": "Nilou"
+        },
+        "lease_no": 4,
+        "property": {
+          "arrears": 0,
+          "city": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "debt": 0,
+          "home": false,
+          "kind": "",
+          "no": 15,
+          "offer": null,
+          "quality": 0,
+          "rent": 0,
+          "size": 0,
+          "tenant": null,
+          "type": {
+            "code": "studio",
+            "name": "Studio flat"
+          },
+          "unpaid_periods": 0,
+          "value": 0
+        },
+        "rent": 900
+      },
+      "residence": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "rest_energy": 25,
+      "rest_in_seconds": 420
+    }
+  },
+  {
+    "title": "Mine · nothing yet",
+    "screen": "property_mine",
+    "view": {
+      "can_rest": false,
+      "grace": 3,
+      "notice": "",
+      "notice_args": null,
+      "owned": null,
+      "rented": null,
+      "residence": {
+        "code": "",
+        "kind": "",
+        "name": ""
+      },
+      "rest_energy": 0,
+      "rest_in_seconds": 0
+    }
+  },
+  {
+    "title": "Mine · just rented",
+    "screen": "property_mine",
+    "view": {
+      "can_rest": false,
+      "grace": 3,
+      "notice": "rented",
+      "notice_args": null,
+      "owned": null,
+      "rented": {
+        "arrears": 0,
+        "landlord": {
+          "code": "N1L0F4R",
+          "name": "Nilou"
+        },
+        "lease_no": 4,
+        "property": {
+          "arrears": 0,
+          "city": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "debt": 0,
+          "home": false,
+          "kind": "",
+          "no": 15,
+          "offer": null,
+          "quality": 0,
+          "rent": 0,
+          "size": 0,
+          "tenant": null,
+          "type": {
+            "code": "studio",
+            "name": "Studio flat"
+          },
+          "unpaid_periods": 0,
+          "value": 0
+        },
+        "rent": 900
+      },
+      "residence": {
+        "code": "",
+        "kind": "",
+        "name": ""
+      },
+      "rest_energy": 0,
+      "rest_in_seconds": 0
+    }
+  },
+  {
+    "title": "Property · free to offer",
+    "screen": "property",
+    "view": {
+      "max_price": 100000000,
+      "max_rent": 1000000,
+      "notice": "",
+      "place": {
+        "code": "residential_area",
+        "name": "Residential area"
+      },
+      "property": {
+        "arrears": 0,
+        "city": {
+          "code": "ostmarch",
+          "kind": "city",
+          "name": "Ostmarch"
+        },
+        "debt": 0,
+        "home": true,
+        "kind": "apartment",
+        "no": 16,
+        "offer": null,
+        "quality": 2,
+        "rent": 0,
+        "size": 35,
+        "tenant": null,
+        "type": {
+          "code": "studio",
+          "name": "Studio flat"
+        },
+        "unpaid_periods": 0,
+        "value": 46350
+      },
+      "tax_bps": 20,
+      "upkeep": 40
+    }
+  },
+  {
+    "title": "Property · offered to let",
+    "screen": "property",
+    "view": {
+      "max_price": 0,
+      "max_rent": 0,
+      "notice": "listed",
+      "place": {
+        "code": "residential_area",
+        "name": "Residential area"
+      },
+      "property": {
+        "arrears": 0,
+        "city": {
+          "code": "ostmarch",
+          "kind": "city",
+          "name": "Ostmarch"
+        },
+        "debt": 0,
+        "home": true,
+        "kind": "apartment",
+        "no": 22,
+        "offer": {
+          "kind": "rent",
+          "mine": false,
+          "no": 9,
+          "price": 850,
+          "property_no": 0,
+          "seller": {
+            "code": "",
+            "name": ""
+          },
+          "type": {
+            "code": "",
+            "name": ""
+          }
+        },
+        "quality": 2,
+        "rent": 0,
+        "size": 35,
+        "tenant": null,
+        "type": {
+          "code": "studio",
+          "name": "Studio flat"
+        },
+        "unpaid_periods": 0,
+        "value": 45000
+      },
+      "tax_bps": 20,
+      "upkeep": 40
+    }
+  },
+  {
+    "title": "Property · in debt",
+    "screen": "property",
+    "view": {
+      "max_price": 0,
+      "max_rent": 0,
+      "notice": "",
+      "place": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "property": {
+        "arrears": 0,
+        "city": {
+          "code": "ostmarch",
+          "kind": "city",
+          "name": "Ostmarch"
+        },
+        "debt": 460,
+        "home": false,
+        "kind": "shop",
+        "no": 21,
+        "offer": null,
+        "quality": 3,
+        "rent": 0,
+        "size": 60,
+        "tenant": null,
+        "type": {
+          "code": "shop_unit",
+          "name": "Shop premises"
+        },
+        "unpaid_periods": 2,
+        "value": 120000
+      },
+      "tax_bps": 20,
+      "upkeep": 120
+    }
+  },
+  {
+    "title": "Leave · confirm",
+    "screen": "property_leave",
+    "view": {
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "lease_no": 4,
+      "type": {
+        "code": "studio",
+        "name": "Studio flat"
+      }
+    }
+  },
+  {
+    "title": "Refused · not_found",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "not_found",
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · not_yours",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "not_yours",
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · sold_out",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "sold_out",
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · taken",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "taken",
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · own",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "own",
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · renting",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "renting",
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · let",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "let",
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · offered",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "offered",
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · in_debt",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "in_debt",
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · no_home",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "no_home",
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · not_in_city",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "not_in_city",
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · too many",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "too_many",
+      "max": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · price above the ceiling",
+    "screen": "property_refusal",
+    "view": {
+      "back": [
+        "property:view",
+        "16"
+      ],
+      "kind": "price",
+      "max": 1000000,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · rested lately",
+    "screen": "property_refusal",
+    "view": {
+      "back": null,
+      "kind": "too_soon",
+      "max": 0,
+      "wait_seconds": 360
+    }
+  },
+  {
+    "title": "Notice · sold",
+    "screen": "property_notice",
+    "view": {
+      "amount": 205800,
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "kind": "sold",
+      "no": 12,
+      "player": {
+        "code": "B3C4D5F",
+        "name": "Kaveh"
+      },
+      "type": {
+        "code": "family_house",
+        "name": "Family house"
+      }
+    }
+  },
+  {
+    "title": "Notice · let",
+    "screen": "property_notice",
+    "view": {
+      "amount": 205800,
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "kind": "let",
+      "no": 12,
+      "player": {
+        "code": "B3C4D5F",
+        "name": "Kaveh"
+      },
+      "type": {
+        "code": "family_house",
+        "name": "Family house"
+      }
+    }
+  },
+  {
+    "title": "Notice · tenant_left",
+    "screen": "property_notice",
+    "view": {
+      "amount": 205800,
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "kind": "tenant_left",
+      "no": 12,
+      "player": {
+        "code": "B3C4D5F",
+        "name": "Kaveh"
+      },
+      "type": {
+        "code": "family_house",
+        "name": "Family house"
+      }
+    }
+  },
+  {
+    "title": "Notice · foreclosed",
+    "screen": "property_notice",
+    "view": {
+      "amount": 205800,
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "kind": "foreclosed",
+      "no": 12,
+      "player": {
+        "code": "B3C4D5F",
+        "name": "Kaveh"
+      },
+      "type": {
+        "code": "family_house",
+        "name": "Family house"
+      }
+    }
+  },
+  {
+    "title": "Notice · evicted",
+    "screen": "property_notice",
+    "view": {
+      "amount": 205800,
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "kind": "evicted",
+      "no": 12,
+      "player": {
+        "code": "B3C4D5F",
+        "name": "Kaveh"
+      },
+      "type": {
+        "code": "family_house",
+        "name": "Family house"
+      }
+    }
+  },
+  {
+    "title": "Notice · evicted_tenant",
+    "screen": "property_notice",
+    "view": {
+      "amount": 205800,
+      "city": {
+        "code": "ostmarch",
+        "kind": "city",
+        "name": "Ostmarch"
+      },
+      "kind": "evicted_tenant",
+      "no": 12,
+      "player": {
+        "code": "B3C4D5F",
+        "name": "Kaveh"
+      },
+      "type": {
+        "code": "family_house",
+        "name": "Family house"
+      }
+    }
+  }
+]

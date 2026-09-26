@@ -1,0 +1,469 @@
+[
+  {
+    "title": "Profile · a brand-new player (/start)",
+    "screen": "profile",
+    "view": {
+      "achievements": 0,
+      "age": 0,
+      "avatar": "",
+      "bank": 0,
+      "cash": 5000,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "code": "K7Q2M9A",
+      "energy": 100,
+      "energy_full_in_seconds": 0,
+      "health": 100,
+      "hospital": null,
+      "jail": null,
+      "level": 1,
+      "max_energy": 100,
+      "max_health": 100,
+      "name": "",
+      "needs": null,
+      "next_level_xp": 50,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "rank": null,
+      "stage": {
+        "code": "",
+        "name": ""
+      },
+      "travel_remaining_seconds": 0,
+      "travel_to": "",
+      "travel_to_code": "",
+      "travelling": false,
+      "walk": null,
+      "work": {
+        "certificates": 0,
+        "course": null,
+        "job": null
+      },
+      "xp": 0
+    }
+  },
+  {
+    "title": "Profile · an established player with a job and a course",
+    "screen": "profile",
+    "view": {
+      "achievements": 0,
+      "age": 20,
+      "avatar": "🦊",
+      "bank": 240000,
+      "cash": 12850,
+      "city": "Brennhaven",
+      "city_code": "brennhaven",
+      "code": "K7Q2M9A",
+      "energy": 64,
+      "energy_full_in_seconds": 3240,
+      "health": 92,
+      "hospital": null,
+      "jail": null,
+      "level": 7,
+      "max_energy": 100,
+      "max_health": 100,
+      "name": "سارا",
+      "needs": {
+        "body_bps": 10000,
+        "happiness": 68,
+        "hunger": 22,
+        "pressing": null,
+        "sleep": 35,
+        "stress": 12,
+        "xpbps": 10000
+      },
+      "next_level_xp": 2800,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "rank": {
+        "code": "breadwinner",
+        "emoji": "🍞",
+        "name": "Breadwinner"
+      },
+      "stage": {
+        "code": "youth",
+        "name": "Youth"
+      },
+      "travel_remaining_seconds": 0,
+      "travel_to": "",
+      "travel_to_code": "",
+      "travelling": false,
+      "walk": null,
+      "work": {
+        "certificates": 2,
+        "course": {
+          "course": {
+            "code": "bookkeeping",
+            "name": "Bookkeeping"
+          },
+          "paused": false,
+          "remaining_seconds": 5700
+        },
+        "job": {
+          "city": "Brennhaven",
+          "city_code": "brennhaven",
+          "job": {
+            "career_code": "retail",
+            "career_name": "",
+            "rank": "skilled",
+            "title": "Sales Associate"
+          },
+          "pay": 190,
+          "shift_ends_in_seconds": 0
+        }
+      },
+      "xp": 2340
+    }
+  },
+  {
+    "title": "Profile · on a shift",
+    "screen": "profile",
+    "view": {
+      "achievements": 0,
+      "age": 20,
+      "avatar": "",
+      "bank": 240000,
+      "cash": 12850,
+      "city": "Brennhaven",
+      "city_code": "brennhaven",
+      "code": "K7Q2M9A",
+      "energy": 49,
+      "energy_full_in_seconds": 5400,
+      "health": 92,
+      "hospital": null,
+      "jail": null,
+      "level": 7,
+      "max_energy": 100,
+      "max_health": 100,
+      "name": "سارا",
+      "needs": {
+        "body_bps": 9200,
+        "happiness": 51,
+        "hunger": 78,
+        "pressing": [
+          "hunger"
+        ],
+        "sleep": 55,
+        "stress": 40,
+        "xpbps": 10000
+      },
+      "next_level_xp": 2800,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "rank": {
+        "code": "breadwinner",
+        "emoji": "🍞",
+        "name": "Breadwinner"
+      },
+      "stage": {
+        "code": "youth",
+        "name": "Youth"
+      },
+      "travel_remaining_seconds": 0,
+      "travel_to": "",
+      "travel_to_code": "",
+      "travelling": false,
+      "walk": null,
+      "work": {
+        "certificates": 0,
+        "course": null,
+        "job": {
+          "city": "Brennhaven",
+          "city_code": "brennhaven",
+          "job": {
+            "career_code": "retail",
+            "career_name": "",
+            "rank": "skilled",
+            "title": "Sales Associate"
+          },
+          "pay": 190,
+          "shift_ends_in_seconds": 1500
+        }
+      },
+      "xp": 2340
+    }
+  },
+  {
+    "title": "Profile · travelling",
+    "screen": "profile",
+    "view": {
+      "achievements": 0,
+      "age": 0,
+      "avatar": "",
+      "bank": 0,
+      "cash": 4440,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "code": "K7Q2M9A",
+      "energy": 82,
+      "energy_full_in_seconds": 1080,
+      "health": 100,
+      "hospital": null,
+      "jail": null,
+      "level": 2,
+      "max_energy": 100,
+      "max_health": 100,
+      "name": "سارا",
+      "needs": null,
+      "next_level_xp": 150,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "rank": null,
+      "stage": {
+        "code": "",
+        "name": ""
+      },
+      "travel_remaining_seconds": 8100,
+      "travel_to": "Brennhaven",
+      "travel_to_code": "brennhaven",
+      "travelling": true,
+      "walk": null,
+      "work": {
+        "certificates": 0,
+        "course": null,
+        "job": {
+          "city": "Ostmarch",
+          "city_code": "ostmarch",
+          "job": {
+            "career_code": "logistics",
+            "career_name": "",
+            "rank": "entry",
+            "title": "Courier"
+          },
+          "pay": 130,
+          "shift_ends_in_seconds": 0
+        }
+      },
+      "xp": 60
+    }
+  },
+  {
+    "title": "Profile · not in any city yet",
+    "screen": "profile",
+    "view": {
+      "achievements": 0,
+      "age": 0,
+      "avatar": "",
+      "bank": 0,
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "code": "",
+      "energy": 100,
+      "energy_full_in_seconds": 0,
+      "health": 100,
+      "hospital": null,
+      "jail": null,
+      "level": 1,
+      "max_energy": 100,
+      "max_health": 100,
+      "name": "سارا",
+      "needs": null,
+      "next_level_xp": 50,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "rank": null,
+      "stage": {
+        "code": "",
+        "name": ""
+      },
+      "travel_remaining_seconds": 0,
+      "travel_to": "",
+      "travel_to_code": "",
+      "travelling": false,
+      "walk": null,
+      "work": null,
+      "xp": 0
+    }
+  },
+  {
+    "title": "Profile · top level",
+    "screen": "profile",
+    "view": {
+      "achievements": 0,
+      "age": 0,
+      "avatar": "",
+      "bank": 98400000,
+      "cash": 1250000,
+      "city": "Calderis",
+      "city_code": "calderis",
+      "code": "K7Q2M9A",
+      "energy": 100,
+      "energy_full_in_seconds": 0,
+      "health": 100,
+      "hospital": null,
+      "jail": null,
+      "level": 100,
+      "max_energy": 100,
+      "max_health": 100,
+      "name": "سارا",
+      "needs": null,
+      "next_level_xp": 0,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "rank": null,
+      "stage": {
+        "code": "",
+        "name": ""
+      },
+      "travel_remaining_seconds": 0,
+      "travel_to": "",
+      "travel_to_code": "",
+      "travelling": false,
+      "walk": null,
+      "work": null,
+      "xp": 9999999
+    }
+  },
+  {
+    "title": "Dashboard",
+    "screen": "dashboard",
+    "view": {
+      "bank": 12000,
+      "cash": 5000,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "energy": 40,
+      "jail": null,
+      "level": 3,
+      "max_energy": 100,
+      "name": "سارا",
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "travelling": false,
+      "walk": null
+    }
+  },
+  {
+    "title": "Profile · in jail, the course paused",
+    "screen": "profile",
+    "view": {
+      "achievements": 0,
+      "age": 0,
+      "avatar": "",
+      "bank": 240000,
+      "cash": 850,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "code": "K7Q2M9A",
+      "energy": 64,
+      "energy_full_in_seconds": 3240,
+      "health": 92,
+      "hospital": null,
+      "jail": {
+        "city": "Ostmarch",
+        "city_code": "ostmarch",
+        "ends_at": "2026-09-23T12:40:00Z",
+        "remaining_seconds": 5700
+      },
+      "level": 7,
+      "max_energy": 100,
+      "max_health": 100,
+      "name": "سارا",
+      "needs": null,
+      "next_level_xp": 2800,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "rank": null,
+      "stage": {
+        "code": "",
+        "name": ""
+      },
+      "travel_remaining_seconds": 0,
+      "travel_to": "",
+      "travel_to_code": "",
+      "travelling": false,
+      "walk": null,
+      "work": {
+        "certificates": 0,
+        "course": {
+          "course": {
+            "code": "bookkeeping",
+            "name": "Bookkeeping"
+          },
+          "paused": true,
+          "remaining_seconds": 2400
+        },
+        "job": {
+          "city": "Ostmarch",
+          "city_code": "ostmarch",
+          "job": {
+            "career_code": "retail",
+            "career_name": "",
+            "rank": "skilled",
+            "title": "Sales Associate"
+          },
+          "pay": 190,
+          "shift_ends_in_seconds": 0
+        }
+      },
+      "xp": 2340
+    }
+  },
+  {
+    "title": "Dashboard · in jail",
+    "screen": "dashboard",
+    "view": {
+      "bank": 12000,
+      "cash": 5000,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "energy": 40,
+      "jail": {
+        "city": "Ostmarch",
+        "city_code": "ostmarch",
+        "ends_at": "2026-09-23T12:40:00Z",
+        "remaining_seconds": 5700
+      },
+      "level": 3,
+      "max_energy": 100,
+      "name": "سارا",
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "travelling": false,
+      "walk": null
+    }
+  },
+  {
+    "title": "Settings",
+    "screen": "settings",
+    "view": {
+      "language": "fa",
+      "language_changed": false,
+      "languages": [
+        "en",
+        "fa"
+      ]
+    }
+  },
+  {
+    "title": "Settings · just changed the language",
+    "screen": "settings",
+    "view": {
+      "language": "fa",
+      "language_changed": true,
+      "languages": [
+        "en",
+        "fa"
+      ]
+    }
+  }
+]

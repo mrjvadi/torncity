@@ -1,0 +1,2325 @@
+[
+  {
+    "title": "Bank · the national bank with offers and loans",
+    "screen": "finance_hub",
+    "view": {
+      "args": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "credit": {
+        "debt_bps": 7500,
+        "defaults": 0,
+        "history_bps": 4000,
+        "income_bps": 6500,
+        "max": 850,
+        "min": 300,
+        "missed": 1,
+        "new_credit_bps": 7500,
+        "payment_bps": 9000,
+        "score": 672,
+        "worth_bps": 3000
+      },
+      "lendable": 800000,
+      "loans": [
+        {
+          "arrears": 0,
+          "company": {
+            "code": "",
+            "name": ""
+          },
+          "left": 12,
+          "next": 1786,
+          "no": 12,
+          "owed": 21430,
+          "product": {
+            "code": "personal",
+            "name": "Personal loan"
+          },
+          "status": "active"
+        },
+        {
+          "arrears": 0,
+          "company": {
+            "code": "Q7M2K9B",
+            "name": "نان و شیرینی کاوه"
+          },
+          "left": 11,
+          "next": 3900,
+          "no": 9,
+          "owed": 42000,
+          "product": {
+            "code": "business",
+            "name": "Business loan"
+          },
+          "status": "active"
+        },
+        {
+          "arrears": 0,
+          "company": {
+            "code": "",
+            "name": ""
+          },
+          "left": 0,
+          "next": 0,
+          "no": 4,
+          "owed": 0,
+          "product": {
+            "code": "personal",
+            "name": "Personal loan"
+          },
+          "status": "repaid"
+        }
+      ],
+      "next_at": "2026-09-23T11:23:00Z",
+      "notice": "",
+      "policy_bps": 1500,
+      "products": [
+        {
+          "kind": "player",
+          "limit": 40000,
+          "min_score": 500,
+          "product": {
+            "code": "personal",
+            "name": "Personal loan"
+          },
+          "rate_bps": 2600
+        },
+        {
+          "kind": "mortgage",
+          "limit": 320000,
+          "min_score": 560,
+          "product": {
+            "code": "mortgage",
+            "name": "Mortgage"
+          },
+          "rate_bps": 2100
+        },
+        {
+          "kind": "company",
+          "limit": 0,
+          "min_score": 700,
+          "product": {
+            "code": "business",
+            "name": "Business loan"
+          },
+          "rate_bps": 2300
+        }
+      ],
+      "savings": 15000,
+      "savings_bps": 900
+    }
+  },
+  {
+    "title": "Bank · a newcomer, the bank run dry",
+    "screen": "finance_hub",
+    "view": {
+      "args": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "credit": {
+        "debt_bps": 10000,
+        "defaults": 0,
+        "history_bps": 0,
+        "income_bps": 0,
+        "max": 850,
+        "min": 300,
+        "missed": 0,
+        "new_credit_bps": 0,
+        "payment_bps": 6000,
+        "score": 541,
+        "worth_bps": 0
+      },
+      "lendable": 0,
+      "loans": null,
+      "next_at": null,
+      "notice": "",
+      "policy_bps": 1500,
+      "products": [
+        {
+          "kind": "player",
+          "limit": 10000,
+          "min_score": 500,
+          "product": {
+            "code": "personal",
+            "name": "Personal loan"
+          },
+          "rate_bps": 3600
+        },
+        {
+          "kind": "mortgage",
+          "limit": 0,
+          "min_score": 560,
+          "product": {
+            "code": "mortgage",
+            "name": "Mortgage"
+          },
+          "rate_bps": 3100
+        }
+      ],
+      "savings": 0,
+      "savings_bps": 0
+    }
+  },
+  {
+    "title": "Bank · just borrowed",
+    "screen": "finance_hub",
+    "view": {
+      "args": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "credit": {
+        "debt_bps": 10000,
+        "defaults": 0,
+        "history_bps": 0,
+        "income_bps": 0,
+        "max": 850,
+        "min": 300,
+        "missed": 0,
+        "new_credit_bps": 0,
+        "payment_bps": 6000,
+        "score": 541,
+        "worth_bps": 0
+      },
+      "lendable": 50000,
+      "loans": null,
+      "next_at": null,
+      "notice": "taken",
+      "policy_bps": 1500,
+      "products": [
+        {
+          "kind": "player",
+          "limit": 10000,
+          "min_score": 500,
+          "product": {
+            "code": "personal",
+            "name": "Personal loan"
+          },
+          "rate_bps": 3600
+        },
+        {
+          "kind": "mortgage",
+          "limit": 0,
+          "min_score": 560,
+          "product": {
+            "code": "mortgage",
+            "name": "Mortgage"
+          },
+          "rate_bps": 3100
+        }
+      ],
+      "savings": 0,
+      "savings_bps": 0
+    }
+  },
+  {
+    "title": "Loan offer · a personal loan's amounts and terms",
+    "screen": "loan_offer",
+    "view": {
+      "default_after": 4,
+      "kind": "player",
+      "late_fee_bps": 500,
+      "limit": 40000,
+      "options": [
+        {
+          "amount": 10000,
+          "instalment": 1500,
+          "term": 7
+        },
+        {
+          "amount": 10000,
+          "instalment": 786,
+          "term": 14
+        },
+        {
+          "amount": 40000,
+          "instalment": 1786,
+          "term": 28
+        }
+      ],
+      "pledge": null,
+      "pledges": null,
+      "product": {
+        "code": "personal",
+        "name": "Personal loan"
+      },
+      "rate_bps": 2600,
+      "terms": [
+        7,
+        14,
+        28
+      ]
+    }
+  },
+  {
+    "title": "Loan offer · a mortgage, choosing the property",
+    "screen": "loan_offer",
+    "view": {
+      "default_after": 4,
+      "kind": "mortgage",
+      "late_fee_bps": 300,
+      "limit": 320000,
+      "options": null,
+      "pledge": null,
+      "pledges": [
+        {
+          "city": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "code": "",
+          "limit": 25000,
+          "no": 3,
+          "type": {
+            "code": "studio",
+            "name": "Studio flat"
+          },
+          "value": 46350
+        }
+      ],
+      "product": {
+        "code": "mortgage",
+        "name": "Mortgage"
+      },
+      "rate_bps": 2100,
+      "terms": null
+    }
+  },
+  {
+    "title": "Loan offer · a mortgage against a home",
+    "screen": "loan_offer",
+    "view": {
+      "default_after": 4,
+      "kind": "mortgage",
+      "late_fee_bps": 300,
+      "limit": 25000,
+      "options": [
+        {
+          "amount": 25000,
+          "instalment": 1015,
+          "term": 28
+        }
+      ],
+      "pledge": {
+        "city": {
+          "code": "ostmarch",
+          "kind": "city",
+          "name": "Ostmarch"
+        },
+        "code": "",
+        "limit": 25000,
+        "no": 3,
+        "type": {
+          "code": "studio",
+          "name": "Studio flat"
+        },
+        "value": 46350
+      },
+      "pledges": [
+        {
+          "city": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "code": "",
+          "limit": 25000,
+          "no": 3,
+          "type": {
+            "code": "studio",
+            "name": "Studio flat"
+          },
+          "value": 46350
+        }
+      ],
+      "product": {
+        "code": "mortgage",
+        "name": "Mortgage"
+      },
+      "rate_bps": 2100,
+      "terms": null
+    }
+  },
+  {
+    "title": "Loan offer · nothing left to lend",
+    "screen": "loan_offer",
+    "view": {
+      "default_after": 4,
+      "kind": "player",
+      "late_fee_bps": 500,
+      "limit": 0,
+      "options": null,
+      "pledge": null,
+      "pledges": null,
+      "product": {
+        "code": "personal",
+        "name": "Personal loan"
+      },
+      "rate_bps": 2600,
+      "terms": null
+    }
+  },
+  {
+    "title": "Loan · confirming the terms",
+    "screen": "loan_confirm",
+    "view": {
+      "amount": 40000,
+      "first_at": "2026-09-23T11:23:00Z",
+      "instalment": 1628,
+      "interest": 5600,
+      "nonce": "a1b2c3d4e5f6",
+      "pledge": null,
+      "product": {
+        "code": "personal",
+        "name": "Personal loan"
+      },
+      "rate_bps": 2600,
+      "term": 28,
+      "total": 45600
+    }
+  },
+  {
+    "title": "Loan · one in arrears",
+    "screen": "loan_detail",
+    "view": {
+      "confirm_open": false,
+      "fees_due": 89,
+      "interest": 5600,
+      "loan": {
+        "arrears": 1,
+        "company": {
+          "code": "",
+          "name": ""
+        },
+        "left": 12,
+        "next": 1786,
+        "no": 12,
+        "owed": 21430,
+        "product": {
+          "code": "personal",
+          "name": "Personal loan"
+        },
+        "status": "active"
+      },
+      "missed": 1,
+      "next_at": "2026-09-23T11:23:00Z",
+      "nonce": "",
+      "notice": "",
+      "notice_args": null,
+      "opened_at": "2026-09-23T05:05:00Z",
+      "paid": 15,
+      "payoff": 21430,
+      "periods": 28,
+      "pledge": null,
+      "principal": 40000,
+      "rate_bps": 2600,
+      "recovered": 0,
+      "written_off": 0
+    }
+  },
+  {
+    "title": "Loan · confirming a payoff",
+    "screen": "loan_detail",
+    "view": {
+      "confirm_open": true,
+      "fees_due": 89,
+      "interest": 5600,
+      "loan": {
+        "arrears": 1,
+        "company": {
+          "code": "",
+          "name": ""
+        },
+        "left": 12,
+        "next": 1786,
+        "no": 12,
+        "owed": 21430,
+        "product": {
+          "code": "personal",
+          "name": "Personal loan"
+        },
+        "status": "active"
+      },
+      "missed": 1,
+      "next_at": "2026-09-23T11:23:00Z",
+      "nonce": "f6e5d4c3b2a1",
+      "notice": "",
+      "notice_args": null,
+      "opened_at": "2026-09-23T05:05:00Z",
+      "paid": 15,
+      "payoff": 21430,
+      "periods": 28,
+      "pledge": null,
+      "principal": 40000,
+      "rate_bps": 2600,
+      "recovered": 0,
+      "written_off": 0
+    }
+  },
+  {
+    "title": "Loan · a defaulted mortgage",
+    "screen": "loan_detail",
+    "view": {
+      "confirm_open": false,
+      "fees_due": 0,
+      "interest": 2500,
+      "loan": {
+        "arrears": 0,
+        "company": {
+          "code": "",
+          "name": ""
+        },
+        "left": 0,
+        "next": 0,
+        "no": 7,
+        "owed": 0,
+        "product": {
+          "code": "mortgage",
+          "name": "Mortgage"
+        },
+        "status": "defaulted"
+      },
+      "missed": 4,
+      "next_at": null,
+      "nonce": "",
+      "notice": "",
+      "notice_args": null,
+      "opened_at": "2026-09-20T11:05:00Z",
+      "paid": 6,
+      "payoff": 0,
+      "periods": 28,
+      "pledge": {
+        "city": {
+          "code": "ostmarch",
+          "kind": "city",
+          "name": "Ostmarch"
+        },
+        "code": "",
+        "limit": 25000,
+        "no": 3,
+        "type": {
+          "code": "studio",
+          "name": "Studio flat"
+        },
+        "value": 46350
+      },
+      "principal": 25000,
+      "rate_bps": 2100,
+      "recovered": 18000,
+      "written_off": 1200
+    }
+  },
+  {
+    "title": "Loan · paid off",
+    "screen": "loan_detail",
+    "view": {
+      "confirm_open": false,
+      "fees_due": 0,
+      "interest": 350,
+      "loan": {
+        "arrears": 0,
+        "company": {
+          "code": "",
+          "name": ""
+        },
+        "left": 0,
+        "next": 0,
+        "no": 4,
+        "owed": 0,
+        "product": {
+          "code": "personal",
+          "name": "Personal loan"
+        },
+        "status": "repaid"
+      },
+      "missed": 0,
+      "next_at": null,
+      "nonce": "",
+      "notice": "paid_off",
+      "notice_args": null,
+      "opened_at": "2026-09-22T05:05:00Z",
+      "paid": 7,
+      "payoff": 0,
+      "periods": 7,
+      "pledge": null,
+      "principal": 10000,
+      "rate_bps": 2600,
+      "recovered": 0,
+      "written_off": 0
+    }
+  },
+  {
+    "title": "Savings · an account",
+    "screen": "savings",
+    "view": {
+      "balance": 15000,
+      "bank": 21000,
+      "deposits": [
+        5250,
+        10500,
+        21000
+      ],
+      "earned": 480,
+      "next": 25,
+      "next_at": "2026-09-23T11:23:00Z",
+      "notice": "",
+      "notice_args": null,
+      "rate_bps": 900,
+      "withdrawals": [
+        3750,
+        7500,
+        15000
+      ]
+    }
+  },
+  {
+    "title": "Savings · just deposited",
+    "screen": "savings",
+    "view": {
+      "balance": 20000,
+      "bank": 16000,
+      "deposits": [
+        4000,
+        8000,
+        16000
+      ],
+      "earned": 0,
+      "next": 0,
+      "next_at": null,
+      "notice": "deposited",
+      "notice_args": {
+        "amount": 5000
+      },
+      "rate_bps": 900,
+      "withdrawals": [
+        5000,
+        10000,
+        20000
+      ]
+    }
+  },
+  {
+    "title": "Refused · no_bank",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "no_bank",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · too_many",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "too_many",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · bank_dry",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "bank_dry",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · amount",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "amount",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · pledge",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "pledge",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · not_owner",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "not_owner",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · short",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "short",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · savings_cap",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "savings_cap",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · no_product",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "no_product",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · held",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "held",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · pledged",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "pledged",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · not_listed",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "not_listed",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · listed",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "listed",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · too_young",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "too_young",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · too_small",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "too_small",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · in_debt",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "in_debt",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · bad_float",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "bad_float",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · no_shares",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "no_shares",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · no_money",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "no_money",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · too_many_orders",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "too_many_orders",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · order",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "order",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · gold_stock",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "gold_stock",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · gold_held",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "gold_held",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · not_yours",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "not_yours",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · own_company",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "own_company",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · fund_closed",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "fund_closed",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · no_player",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 40000,
+      "back": null,
+      "count": 2,
+      "kind": "no_player",
+      "score": 0,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · score",
+    "screen": "finance_refusal",
+    "view": {
+      "amount": 0,
+      "back": null,
+      "count": 0,
+      "kind": "score",
+      "score": 600,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Notice · an instalment due, not covered",
+    "screen": "finance_notice",
+    "view": {
+      "amount": 1786,
+      "at": "2026-09-23T11:23:00Z",
+      "count": 0,
+      "kind": "due",
+      "no": 12,
+      "other": 900,
+      "pledge": null,
+      "product": {
+        "code": "personal",
+        "name": "Personal loan"
+      }
+    }
+  },
+  {
+    "title": "Notice · an instalment missed",
+    "screen": "finance_notice",
+    "view": {
+      "amount": 1786,
+      "at": null,
+      "count": 2,
+      "kind": "missed",
+      "no": 12,
+      "other": 89,
+      "pledge": null,
+      "product": {
+        "code": "personal",
+        "name": "Personal loan"
+      }
+    }
+  },
+  {
+    "title": "Notice · a mortgage defaulted, its home taken",
+    "screen": "finance_notice",
+    "view": {
+      "amount": 1200,
+      "at": null,
+      "count": 0,
+      "kind": "defaulted",
+      "no": 7,
+      "other": 18000,
+      "pledge": {
+        "city": {
+          "code": "ostmarch",
+          "kind": "city",
+          "name": "Ostmarch"
+        },
+        "code": "",
+        "limit": 25000,
+        "no": 3,
+        "type": {
+          "code": "studio",
+          "name": "Studio flat"
+        },
+        "value": 46350
+      },
+      "product": {
+        "code": "mortgage",
+        "name": "Mortgage"
+      }
+    }
+  },
+  {
+    "title": "Notice · a loan repaid",
+    "screen": "finance_notice",
+    "view": {
+      "amount": 10350,
+      "at": null,
+      "count": 0,
+      "kind": "repaid",
+      "no": 4,
+      "other": 0,
+      "pledge": null,
+      "product": {
+        "code": "personal",
+        "name": "Personal loan"
+      }
+    }
+  },
+  {
+    "title": "Insurance · nothing held yet",
+    "screen": "insurance",
+    "view": {
+      "cancel": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "fund": 84000,
+      "notice": "",
+      "notice_args": null,
+      "policies": null,
+      "products": [
+        {
+          "cover_bps": 8000,
+          "covers": "hospital",
+          "held": false,
+          "max_claim": 5000,
+          "prem_bps": 0,
+          "premium": 40,
+          "product": {
+            "code": "health",
+            "name": "Health insurance"
+          },
+          "targets": null,
+          "waiting_seconds": 1440
+        },
+        {
+          "cover_bps": 7000,
+          "covers": "war_damage",
+          "held": false,
+          "max_claim": 250000,
+          "prem_bps": 8,
+          "premium": 20,
+          "product": {
+            "code": "property",
+            "name": "Property insurance"
+          },
+          "targets": [
+            {
+              "city": {
+                "code": "ostmarch",
+                "kind": "city",
+                "name": "Ostmarch"
+              },
+              "code": "",
+              "limit": 0,
+              "no": 3,
+              "type": {
+                "code": "studio",
+                "name": "Studio flat"
+              },
+              "value": 46350
+            }
+          ],
+          "waiting_seconds": 2880
+        }
+      ]
+    }
+  },
+  {
+    "title": "Insurance · two policies and a lapsed one",
+    "screen": "insurance",
+    "view": {
+      "cancel": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "fund": 84000,
+      "notice": "insured",
+      "notice_args": null,
+      "policies": [
+        {
+          "claimable": true,
+          "covers": "hospital",
+          "from": "2026-09-23T11:05:00Z",
+          "no": 5,
+          "paid": 3200,
+          "premium": 40,
+          "product": {
+            "code": "health",
+            "name": "Health insurance"
+          },
+          "property": null,
+          "reason": "",
+          "started": null,
+          "status": "active"
+        },
+        {
+          "claimable": false,
+          "covers": "war_damage",
+          "from": "2026-09-23T11:25:00Z",
+          "no": 6,
+          "paid": 0,
+          "premium": 57,
+          "product": {
+            "code": "property",
+            "name": "Property insurance"
+          },
+          "property": {
+            "city": {
+              "code": "ostmarch",
+              "kind": "city",
+              "name": "Ostmarch"
+            },
+            "code": "",
+            "limit": 0,
+            "no": 3,
+            "type": {
+              "code": "studio",
+              "name": "Studio flat"
+            },
+            "value": 46350
+          },
+          "reason": "",
+          "started": null,
+          "status": "active"
+        },
+        {
+          "claimable": false,
+          "covers": "hospital",
+          "from": null,
+          "no": 2,
+          "paid": 0,
+          "premium": 0,
+          "product": {
+            "code": "health",
+            "name": "Health insurance"
+          },
+          "property": null,
+          "reason": "lapsed",
+          "started": null,
+          "status": "ended"
+        }
+      ],
+      "products": [
+        {
+          "cover_bps": 8000,
+          "covers": "hospital",
+          "held": true,
+          "max_claim": 5000,
+          "prem_bps": 0,
+          "premium": 40,
+          "product": {
+            "code": "health",
+            "name": "Health insurance"
+          },
+          "targets": null,
+          "waiting_seconds": 1440
+        },
+        {
+          "cover_bps": 7000,
+          "covers": "war_damage",
+          "held": false,
+          "max_claim": 250000,
+          "prem_bps": 8,
+          "premium": 20,
+          "product": {
+            "code": "property",
+            "name": "Property insurance"
+          },
+          "targets": null,
+          "waiting_seconds": 2880
+        }
+      ]
+    }
+  },
+  {
+    "title": "Insurance · cancelling a policy",
+    "screen": "insurance",
+    "view": {
+      "cancel": {
+        "claimable": true,
+        "covers": "hospital",
+        "from": "2026-09-23T11:05:00Z",
+        "no": 5,
+        "paid": 3200,
+        "premium": 40,
+        "product": {
+          "code": "health",
+          "name": "Health insurance"
+        },
+        "property": null,
+        "reason": "",
+        "started": null,
+        "status": "active"
+      },
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "fund": 84000,
+      "notice": "",
+      "notice_args": null,
+      "policies": [
+        {
+          "claimable": true,
+          "covers": "hospital",
+          "from": "2026-09-23T11:05:00Z",
+          "no": 5,
+          "paid": 3200,
+          "premium": 40,
+          "product": {
+            "code": "health",
+            "name": "Health insurance"
+          },
+          "property": null,
+          "reason": "",
+          "started": null,
+          "status": "active"
+        },
+        {
+          "claimable": false,
+          "covers": "war_damage",
+          "from": "2026-09-23T11:25:00Z",
+          "no": 6,
+          "paid": 0,
+          "premium": 57,
+          "product": {
+            "code": "property",
+            "name": "Property insurance"
+          },
+          "property": {
+            "city": {
+              "code": "ostmarch",
+              "kind": "city",
+              "name": "Ostmarch"
+            },
+            "code": "",
+            "limit": 0,
+            "no": 3,
+            "type": {
+              "code": "studio",
+              "name": "Studio flat"
+            },
+            "value": 46350
+          },
+          "reason": "",
+          "started": null,
+          "status": "active"
+        },
+        {
+          "claimable": false,
+          "covers": "hospital",
+          "from": null,
+          "no": 2,
+          "paid": 0,
+          "premium": 0,
+          "product": {
+            "code": "health",
+            "name": "Health insurance"
+          },
+          "property": null,
+          "reason": "lapsed",
+          "started": null,
+          "status": "ended"
+        }
+      ],
+      "products": [
+        {
+          "cover_bps": 8000,
+          "covers": "hospital",
+          "held": true,
+          "max_claim": 5000,
+          "prem_bps": 0,
+          "premium": 40,
+          "product": {
+            "code": "health",
+            "name": "Health insurance"
+          },
+          "targets": null,
+          "waiting_seconds": 1440
+        },
+        {
+          "cover_bps": 7000,
+          "covers": "war_damage",
+          "held": false,
+          "max_claim": 250000,
+          "prem_bps": 8,
+          "premium": 20,
+          "product": {
+            "code": "property",
+            "name": "Property insurance"
+          },
+          "targets": null,
+          "waiting_seconds": 2880
+        }
+      ]
+    }
+  },
+  {
+    "title": "Insurance · buying health cover",
+    "screen": "insure_confirm",
+    "view": {
+      "cover_bps": 8000,
+      "covers": "hospital",
+      "max_claim": 5000,
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 40,
+        "bank": 21000,
+        "cash": 900,
+        "usable": [
+          "cash",
+          "card"
+        ]
+      },
+      "premium": 40,
+      "product": {
+        "code": "health",
+        "name": "Health insurance"
+      },
+      "property": null,
+      "waiting_seconds": 1440
+    }
+  },
+  {
+    "title": "Insurance · insuring a home",
+    "screen": "insure_confirm",
+    "view": {
+      "cover_bps": 7000,
+      "covers": "war_damage",
+      "max_claim": 250000,
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 57,
+        "bank": 21000,
+        "cash": 10,
+        "usable": [
+          "card"
+        ]
+      },
+      "premium": 57,
+      "product": {
+        "code": "property",
+        "name": "Property insurance"
+      },
+      "property": {
+        "city": {
+          "code": "ostmarch",
+          "kind": "city",
+          "name": "Ostmarch"
+        },
+        "code": "",
+        "limit": 0,
+        "no": 3,
+        "type": {
+          "code": "studio",
+          "name": "Studio flat"
+        },
+        "value": 46350
+      },
+      "waiting_seconds": 2880
+    }
+  },
+  {
+    "title": "Notice · a claim paid",
+    "screen": "finance_notice",
+    "view": {
+      "amount": 1440,
+      "at": null,
+      "count": 0,
+      "kind": "claimed",
+      "no": 5,
+      "other": 1440,
+      "pledge": null,
+      "product": {
+        "code": "health",
+        "name": "Health insurance"
+      }
+    }
+  },
+  {
+    "title": "Notice · a policy lapsed",
+    "screen": "finance_notice",
+    "view": {
+      "amount": 40,
+      "at": null,
+      "count": 0,
+      "kind": "lapsed",
+      "no": 5,
+      "other": 0,
+      "pledge": null,
+      "product": {
+        "code": "health",
+        "name": "Health insurance"
+      }
+    }
+  },
+  {
+    "title": "Notice · a policy's property gone",
+    "screen": "finance_notice",
+    "view": {
+      "amount": 0,
+      "at": null,
+      "count": 0,
+      "kind": "gone",
+      "no": 6,
+      "other": 0,
+      "pledge": null,
+      "product": {
+        "code": "property",
+        "name": "Property insurance"
+      }
+    }
+  },
+  {
+    "title": "Exchange · two listed companies",
+    "screen": "exchange",
+    "view": {
+      "lines": [
+        {
+          "cap": 132000,
+          "city": {
+            "code": "brennhaven",
+            "kind": "city",
+            "name": "Brennhaven"
+          },
+          "company": {
+            "code": "Q7M2K9B",
+            "name": "نان و شیرینی کاوه"
+          },
+          "prev": 120,
+          "price": 132,
+          "type": {
+            "code": "grocery",
+            "name": "Grocery store"
+          },
+          "volume": 240
+        },
+        {
+          "cap": 88000,
+          "city": {
+            "code": "ostmarch",
+            "kind": "city",
+            "name": "Ostmarch"
+          },
+          "company": {
+            "code": "H4T8W2C",
+            "name": "تعمیرگاه نیلوفر"
+          },
+          "prev": 95,
+          "price": 88,
+          "type": {
+            "code": "repair_workshop",
+            "name": "Repair workshop"
+          },
+          "volume": 0
+        }
+      ]
+    }
+  },
+  {
+    "title": "Exchange · nothing listed yet",
+    "screen": "exchange",
+    "view": {
+      "lines": null
+    }
+  },
+  {
+    "title": "Stock · a listed company, holding some",
+    "screen": "stock",
+    "view": {
+      "asks": [
+        {
+          "price": 135,
+          "qty": 40
+        },
+        {
+          "price": 140,
+          "qty": 100
+        }
+      ],
+      "bids": [
+        {
+          "price": 128,
+          "qty": 25
+        }
+      ],
+      "book": 96,
+      "buys": [
+        {
+          "price": 125,
+          "qty": 1
+        },
+        {
+          "price": 132,
+          "qty": 1
+        },
+        {
+          "price": 139,
+          "qty": 1
+        },
+        {
+          "price": 132,
+          "qty": 10
+        }
+      ],
+      "city": {
+        "code": "brennhaven",
+        "kind": "city",
+        "name": "Brennhaven"
+      },
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "controller": "کاوه",
+      "cost": 7200,
+      "fee_bps": 0,
+      "holding": 60,
+      "ipo": 110,
+      "last_div": 4,
+      "listed": true,
+      "locked": 10,
+      "notice": "",
+      "notice_args": null,
+      "owner": false,
+      "prev": 120,
+      "price": 132,
+      "sells": [
+        {
+          "price": 125,
+          "qty": 1
+        },
+        {
+          "price": 132,
+          "qty": 1
+        },
+        {
+          "price": 139,
+          "qty": 1
+        },
+        {
+          "price": 132,
+          "qty": 10
+        }
+      ],
+      "total": 1000,
+      "trades": [
+        {
+          "at": "2026-09-23T10:50:00Z",
+          "price": 132,
+          "qty": 10
+        },
+        {
+          "at": "2026-09-23T10:45:00Z",
+          "price": 120,
+          "qty": 50
+        }
+      ],
+      "type": {
+        "code": "grocery",
+        "name": "Grocery store"
+      }
+    }
+  },
+  {
+    "title": "Stock · the owner's unlisted company",
+    "screen": "stock",
+    "view": {
+      "asks": null,
+      "bids": null,
+      "book": 96,
+      "buys": null,
+      "city": {
+        "code": "brennhaven",
+        "kind": "city",
+        "name": "Brennhaven"
+      },
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "controller": "سارا",
+      "cost": 0,
+      "fee_bps": 0,
+      "holding": 1000,
+      "ipo": 0,
+      "last_div": 0,
+      "listed": false,
+      "locked": 0,
+      "notice": "",
+      "notice_args": null,
+      "owner": true,
+      "prev": 0,
+      "price": 96,
+      "sells": null,
+      "total": 1000,
+      "trades": null,
+      "type": {
+        "code": "grocery",
+        "name": "Grocery store"
+      }
+    }
+  },
+  {
+    "title": "Order · confirming a buy",
+    "screen": "stock_order",
+    "view": {
+      "bank": 21000,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "expires_at": null,
+      "fee_bps": 200,
+      "filled": 0,
+      "got": 0,
+      "no": 0,
+      "nonce": "a1b2c3d4e5f6",
+      "placed": false,
+      "price": 132,
+      "qty": 10,
+      "reserve": 1320,
+      "rests": false,
+      "side": "buy",
+      "spent": 0
+    }
+  },
+  {
+    "title": "Order · confirming a sell",
+    "screen": "stock_order",
+    "view": {
+      "bank": 0,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "expires_at": null,
+      "fee_bps": 200,
+      "filled": 0,
+      "got": 0,
+      "no": 0,
+      "nonce": "a1b2c3d4e5f6",
+      "placed": false,
+      "price": 139,
+      "qty": 10,
+      "reserve": 0,
+      "rests": false,
+      "side": "sell",
+      "spent": 0
+    }
+  },
+  {
+    "title": "Order · a buy partly filled, the rest resting",
+    "screen": "stock_order",
+    "view": {
+      "bank": 0,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "expires_at": "2026-09-30T11:05:00Z",
+      "fee_bps": 0,
+      "filled": 40,
+      "got": 0,
+      "no": 31,
+      "nonce": "",
+      "placed": true,
+      "price": 132,
+      "qty": 50,
+      "reserve": 0,
+      "rests": true,
+      "side": "buy",
+      "spent": 5280
+    }
+  },
+  {
+    "title": "Order · a sell filled at once",
+    "screen": "stock_order",
+    "view": {
+      "bank": 0,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "expires_at": null,
+      "fee_bps": 0,
+      "filled": 10,
+      "got": 1254,
+      "no": 32,
+      "nonce": "",
+      "placed": true,
+      "price": 128,
+      "qty": 10,
+      "reserve": 0,
+      "rests": false,
+      "side": "sell",
+      "spent": 0
+    }
+  },
+  {
+    "title": "Portfolio · shares, gold, savings and orders",
+    "screen": "portfolio",
+    "view": {
+      "gain": 2120,
+      "gold": 25,
+      "gold_val": 19500,
+      "holdings": [
+        {
+          "company": {
+            "code": "Q7M2K9B",
+            "name": "نان و شیرینی کاوه"
+          },
+          "cost": 7200,
+          "listed": true,
+          "locked": 0,
+          "price": 132,
+          "shares": 60,
+          "value": 7920
+        },
+        {
+          "company": {
+            "code": "H4T8W2C",
+            "name": "تعمیرگاه نیلوفر"
+          },
+          "cost": 0,
+          "listed": false,
+          "locked": 0,
+          "price": 12,
+          "shares": 1000,
+          "value": 12000
+        }
+      ],
+      "notice": "",
+      "notice_args": null,
+      "orders": [
+        {
+          "company": {
+            "code": "Q7M2K9B",
+            "name": "نان و شیرینی کاوه"
+          },
+          "filled": 40,
+          "no": 31,
+          "price": 132,
+          "qty": 50,
+          "side": "buy"
+        },
+        {
+          "company": {
+            "code": "Q7M2K9B",
+            "name": "نان و شیرینی کاوه"
+          },
+          "filled": 0,
+          "no": 33,
+          "price": 150,
+          "qty": 10,
+          "side": "sell"
+        }
+      ],
+      "savings": 15000,
+      "value": 54420
+    }
+  },
+  {
+    "title": "Portfolio · an investor at a loss",
+    "screen": "portfolio",
+    "view": {
+      "gain": -800,
+      "gold": 10,
+      "gold_val": 7200,
+      "holdings": null,
+      "notice": "cancelled",
+      "notice_args": {
+        "no": 33
+      },
+      "orders": null,
+      "savings": 0,
+      "value": 7200
+    }
+  },
+  {
+    "title": "Listing · choosing the float and the price",
+    "screen": "listing",
+    "view": {
+      "age_seconds": 0,
+      "book": 96,
+      "chosen": null,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "fee": 5000,
+      "floats": [
+        {
+          "price": 1000,
+          "qty": 100
+        },
+        {
+          "price": 2500,
+          "qty": 250
+        },
+        {
+          "price": 4900,
+          "qty": 490
+        }
+      ],
+      "min_age_seconds": 4320,
+      "min_revenue": 5000,
+      "nonce": "",
+      "prices": [
+        {
+          "price": 96,
+          "qty": 10000
+        },
+        {
+          "price": 120,
+          "qty": 12500
+        },
+        {
+          "price": 144,
+          "qty": 15000
+        }
+      ],
+      "refused": "",
+      "revenue": 18400,
+      "total": 1000
+    }
+  },
+  {
+    "title": "Listing · confirming",
+    "screen": "listing",
+    "view": {
+      "age_seconds": 0,
+      "book": 96,
+      "chosen": {
+        "price": 120,
+        "qty": 250
+      },
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "fee": 5000,
+      "floats": [
+        {
+          "price": 1000,
+          "qty": 100
+        },
+        {
+          "price": 2500,
+          "qty": 250
+        },
+        {
+          "price": 4900,
+          "qty": 490
+        }
+      ],
+      "min_age_seconds": 4320,
+      "min_revenue": 5000,
+      "nonce": "a1b2c3d4e5f6",
+      "prices": [
+        {
+          "price": 96,
+          "qty": 10000
+        },
+        {
+          "price": 120,
+          "qty": 12500
+        },
+        {
+          "price": 144,
+          "qty": 15000
+        }
+      ],
+      "refused": "",
+      "revenue": 18400,
+      "total": 1000
+    }
+  },
+  {
+    "title": "Listing · too young",
+    "screen": "listing",
+    "view": {
+      "age_seconds": 1800,
+      "book": 96,
+      "chosen": null,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "fee": 5000,
+      "floats": [
+        {
+          "price": 1000,
+          "qty": 100
+        },
+        {
+          "price": 2500,
+          "qty": 250
+        },
+        {
+          "price": 4900,
+          "qty": 490
+        }
+      ],
+      "min_age_seconds": 4320,
+      "min_revenue": 5000,
+      "nonce": "",
+      "prices": [
+        {
+          "price": 96,
+          "qty": 10000
+        },
+        {
+          "price": 120,
+          "qty": 12500
+        },
+        {
+          "price": 144,
+          "qty": 15000
+        }
+      ],
+      "refused": "too_young",
+      "revenue": 18400,
+      "total": 1000
+    }
+  },
+  {
+    "title": "Listing · not earned enough",
+    "screen": "listing",
+    "view": {
+      "age_seconds": 0,
+      "book": 96,
+      "chosen": null,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "fee": 5000,
+      "floats": [
+        {
+          "price": 1000,
+          "qty": 100
+        },
+        {
+          "price": 2500,
+          "qty": 250
+        },
+        {
+          "price": 4900,
+          "qty": 490
+        }
+      ],
+      "min_age_seconds": 4320,
+      "min_revenue": 5000,
+      "nonce": "",
+      "prices": [
+        {
+          "price": 96,
+          "qty": 10000
+        },
+        {
+          "price": 120,
+          "qty": 12500
+        },
+        {
+          "price": 144,
+          "qty": 15000
+        }
+      ],
+      "refused": "too_small",
+      "revenue": 1200,
+      "total": 1000
+    }
+  },
+  {
+    "title": "Dividend · choosing",
+    "screen": "dividend",
+    "view": {
+      "chosen": null,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "free": 42000,
+      "holders": 0,
+      "nonce": "",
+      "options": [
+        {
+          "price": 4200,
+          "qty": 3
+        },
+        {
+          "price": 10500,
+          "qty": 9
+        },
+        {
+          "price": 21000,
+          "qty": 18
+        }
+      ],
+      "paid": 0,
+      "per_share": 0,
+      "refused": "",
+      "tax_bps": 1000,
+      "total": 1000
+    }
+  },
+  {
+    "title": "Dividend · confirming",
+    "screen": "dividend",
+    "view": {
+      "chosen": {
+        "price": 10500,
+        "qty": 9
+      },
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "free": 42000,
+      "holders": 0,
+      "nonce": "a1b2c3d4e5f6",
+      "options": [
+        {
+          "price": 4200,
+          "qty": 3
+        },
+        {
+          "price": 10500,
+          "qty": 9
+        },
+        {
+          "price": 21000,
+          "qty": 18
+        }
+      ],
+      "paid": 0,
+      "per_share": 0,
+      "refused": "",
+      "tax_bps": 1000,
+      "total": 1000
+    }
+  },
+  {
+    "title": "Dividend · paid",
+    "screen": "dividend",
+    "view": {
+      "chosen": null,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "free": 31500,
+      "holders": 4,
+      "nonce": "",
+      "options": [
+        {
+          "price": 4200,
+          "qty": 3
+        },
+        {
+          "price": 10500,
+          "qty": 9
+        },
+        {
+          "price": 21000,
+          "qty": 18
+        }
+      ],
+      "paid": 9000,
+      "per_share": 9,
+      "refused": "",
+      "tax_bps": 1000,
+      "total": 1000
+    }
+  },
+  {
+    "title": "Dividend · a company in debt",
+    "screen": "dividend",
+    "view": {
+      "chosen": null,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "free": 0,
+      "holders": 0,
+      "nonce": "",
+      "options": null,
+      "paid": 0,
+      "per_share": 0,
+      "refused": "in_debt",
+      "tax_bps": 1000,
+      "total": 1000
+    }
+  },
+  {
+    "title": "Notice · a buy order filled",
+    "screen": "stock_notice",
+    "view": {
+      "amount": 1320,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "kind": "filled",
+      "player": "",
+      "price": 132,
+      "qty": 10,
+      "side": "buy"
+    }
+  },
+  {
+    "title": "Notice · a sell order filled",
+    "screen": "stock_notice",
+    "view": {
+      "amount": 1294,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "kind": "filled",
+      "player": "",
+      "price": 132,
+      "qty": 10,
+      "side": "sell"
+    }
+  },
+  {
+    "title": "Notice · a dividend received",
+    "screen": "stock_notice",
+    "view": {
+      "amount": 540,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "kind": "dividend",
+      "player": "",
+      "price": 9,
+      "qty": 60,
+      "side": ""
+    }
+  },
+  {
+    "title": "Notice · control taken",
+    "screen": "stock_notice",
+    "view": {
+      "amount": 0,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "kind": "takeover",
+      "player": "",
+      "price": 0,
+      "qty": 510,
+      "side": ""
+    }
+  },
+  {
+    "title": "Notice · control lost",
+    "screen": "stock_notice",
+    "view": {
+      "amount": 0,
+      "company": {
+        "code": "Q7M2K9B",
+        "name": "نان و شیرینی کاوه"
+      },
+      "kind": "takeover_lost",
+      "player": "",
+      "price": 0,
+      "qty": 510,
+      "side": ""
+    }
+  },
+  {
+    "title": "Gold · the dealer, holding some",
+    "screen": "gold",
+    "view": {
+      "buy": 824,
+      "cost": 19800,
+      "grams": 25,
+      "history": [
+        {
+          "at": "2026-09-23T10:41:00Z",
+          "price": 800
+        },
+        {
+          "at": "2026-09-23T10:17:00Z",
+          "price": 780
+        },
+        {
+          "at": "2026-09-23T09:53:00Z",
+          "price": 792
+        }
+      ],
+      "mid": 800,
+      "next_at": "2026-09-23T11:29:00Z",
+      "notice": "",
+      "notice_args": null,
+      "options": [
+        1,
+        10,
+        50,
+        100
+      ],
+      "prev": 780,
+      "sell": 776,
+      "stock": 498750
+    }
+  },
+  {
+    "title": "Gold · just bought",
+    "screen": "gold",
+    "view": {
+      "buy": 824,
+      "cost": 19800,
+      "grams": 25,
+      "history": [
+        {
+          "at": "2026-09-23T10:41:00Z",
+          "price": 800
+        },
+        {
+          "at": "2026-09-23T10:17:00Z",
+          "price": 780
+        },
+        {
+          "at": "2026-09-23T09:53:00Z",
+          "price": 792
+        }
+      ],
+      "mid": 800,
+      "next_at": "2026-09-23T11:29:00Z",
+      "notice": "buy_done",
+      "notice_args": {
+        "grams": 10,
+        "total": 8240
+      },
+      "options": [
+        1,
+        10,
+        50,
+        100
+      ],
+      "prev": 780,
+      "sell": 776,
+      "stock": 498750
+    }
+  },
+  {
+    "title": "Gold · buying, the ways to pay",
+    "screen": "gold_trade",
+    "view": {
+      "grams": 10,
+      "nonce": "a1b2c3d4e5f6",
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 8240,
+        "bank": 21000,
+        "cash": 9000,
+        "usable": [
+          "cash",
+          "card"
+        ]
+      },
+      "price": 824,
+      "side": "buy",
+      "total": 8240
+    }
+  },
+  {
+    "title": "Gold · selling",
+    "screen": "gold_trade",
+    "view": {
+      "grams": 10,
+      "nonce": "a1b2c3d4e5f6",
+      "payment": {
+        "accepted": null,
+        "amount": 0,
+        "bank": 0,
+        "cash": 0,
+        "usable": null
+      },
+      "price": 776,
+      "side": "sell",
+      "total": 7760
+    }
+  }
+]

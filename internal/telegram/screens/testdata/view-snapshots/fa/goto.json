@@ -1,0 +1,460 @@
+[
+  {
+    "title": "Profile · standing at a place",
+    "screen": "profile",
+    "view": {
+      "achievements": 0,
+      "age": 0,
+      "avatar": "",
+      "bank": 12000,
+      "cash": 5000,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "code": "K7Q2M9A",
+      "energy": 85,
+      "energy_full_in_seconds": 2700,
+      "health": 100,
+      "hospital": null,
+      "jail": null,
+      "level": 3,
+      "max_energy": 100,
+      "max_health": 100,
+      "name": "سارا",
+      "needs": null,
+      "next_level_xp": 300,
+      "place": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "rank": null,
+      "stage": {
+        "code": "",
+        "name": ""
+      },
+      "travel_remaining_seconds": 0,
+      "travel_to": "",
+      "travel_to_code": "",
+      "travelling": false,
+      "walk": null,
+      "work": {
+        "certificates": 0,
+        "course": null,
+        "job": {
+          "city": "Ostmarch",
+          "city_code": "ostmarch",
+          "job": {
+            "career_code": "retail",
+            "career_name": "",
+            "rank": "entry",
+            "title": "Trainee Sales Assistant"
+          },
+          "pay": 120,
+          "shift_ends_in_seconds": 0
+        }
+      },
+      "xp": 140
+    }
+  },
+  {
+    "title": "Profile · walking to a place",
+    "screen": "profile",
+    "view": {
+      "achievements": 0,
+      "age": 0,
+      "avatar": "",
+      "bank": 12000,
+      "cash": 5000,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "code": "K7Q2M9A",
+      "energy": 85,
+      "energy_full_in_seconds": 2700,
+      "health": 100,
+      "hospital": null,
+      "jail": null,
+      "level": 3,
+      "max_energy": 100,
+      "max_health": 100,
+      "name": "سارا",
+      "needs": null,
+      "next_level_xp": 300,
+      "place": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "rank": null,
+      "stage": {
+        "code": "",
+        "name": ""
+      },
+      "travel_remaining_seconds": 0,
+      "travel_to": "",
+      "travel_to_code": "",
+      "travelling": false,
+      "walk": {
+        "arrives_at": "2026-09-23T11:05:12Z",
+        "remaining_seconds": 12,
+        "to": {
+          "code": "business_district",
+          "name": "Business district"
+        }
+      },
+      "work": {
+        "certificates": 0,
+        "course": null,
+        "job": {
+          "city": "Ostmarch",
+          "city_code": "ostmarch",
+          "job": {
+            "career_code": "retail",
+            "career_name": "",
+            "rank": "entry",
+            "title": "Trainee Sales Assistant"
+          },
+          "pay": 120,
+          "shift_ends_in_seconds": 0
+        }
+      },
+      "xp": 140
+    }
+  },
+  {
+    "title": "Dashboard · standing at a place",
+    "screen": "dashboard",
+    "view": {
+      "bank": 12000,
+      "cash": 5000,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "energy": 85,
+      "jail": null,
+      "level": 3,
+      "max_energy": 100,
+      "name": "سارا",
+      "place": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "travelling": false,
+      "walk": null
+    }
+  },
+  {
+    "title": "Dashboard · walking",
+    "screen": "dashboard",
+    "view": {
+      "bank": 12000,
+      "cash": 5000,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "energy": 85,
+      "jail": null,
+      "level": 3,
+      "max_energy": 100,
+      "name": "سارا",
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "travelling": false,
+      "walk": {
+        "arrives_at": "2026-09-23T11:05:20Z",
+        "remaining_seconds": 20,
+        "to": {
+          "code": "university",
+          "name": "University quarter"
+        }
+      }
+    }
+  },
+  {
+    "title": "My job · away from the workplace",
+    "screen": "job_status",
+    "view": {
+      "at_workplace": true,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": true,
+      "employer": "",
+      "energy": 85,
+      "energy_cost": 15,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Trainee Sales Assistant"
+      },
+      "max_energy": 100,
+      "missing": null,
+      "next": {
+        "career_code": "retail",
+        "career_name": "",
+        "rank": "skilled",
+        "title": "Sales Associate"
+      },
+      "pay": 120,
+      "performance": 50,
+      "promotion_ready": false,
+      "shift": null,
+      "shift_length_seconds": 240,
+      "shifts_in_tier": 0,
+      "top_tier": false,
+      "total_earned": 0,
+      "walk_to_work_seconds": 15,
+      "workplace": {
+        "code": "business_district",
+        "name": "Business district"
+      }
+    }
+  },
+  {
+    "title": "My job · at the workplace",
+    "screen": "job_status",
+    "view": {
+      "at_workplace": true,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": true,
+      "employer": "",
+      "energy": 85,
+      "energy_cost": 15,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Trainee Sales Assistant"
+      },
+      "max_energy": 100,
+      "missing": null,
+      "next": {
+        "career_code": "retail",
+        "career_name": "",
+        "rank": "skilled",
+        "title": "Sales Associate"
+      },
+      "pay": 120,
+      "performance": 50,
+      "promotion_ready": false,
+      "shift": null,
+      "shift_length_seconds": 240,
+      "shifts_in_tier": 0,
+      "top_tier": false,
+      "total_earned": 0,
+      "walk_to_work_seconds": 0,
+      "workplace": {
+        "code": "business_district",
+        "name": "Business district"
+      }
+    }
+  },
+  {
+    "title": "Walk · to work, the shift starts on arrival",
+    "screen": "walk_started",
+    "view": {
+      "arrives_at": "2026-09-23T11:05:15Z",
+      "duration_seconds": 15,
+      "energy": 0,
+      "from": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "then": "place.then.work",
+      "to": {
+        "code": "business_district",
+        "name": "Business district"
+      }
+    }
+  },
+  {
+    "title": "Walk · to a page that opens on arrival",
+    "screen": "walk_started",
+    "view": {
+      "arrives_at": "2026-09-23T11:05:20Z",
+      "duration_seconds": 20,
+      "energy": 0,
+      "from": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "then": "place.then.open",
+      "to": {
+        "code": "university",
+        "name": "University quarter"
+      }
+    }
+  },
+  {
+    "title": "Not here · a course, walk and come back to it",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": null,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "here": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "mode": "",
+      "need": "place.need.university",
+      "need_args": null,
+      "place": {
+        "code": "university",
+        "name": "University quarter"
+      },
+      "remaining_seconds": 0,
+      "shop": {
+        "code": "",
+        "name": ""
+      },
+      "then": "education.view",
+      "then_args": [
+        "first_aid"
+      ],
+      "walk_seconds": 20,
+      "walking": false
+    }
+  },
+  {
+    "title": "Not here · a shop, walk and come back to it",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": null,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "here": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "mode": "",
+      "need": "place.need.shop",
+      "need_args": null,
+      "place": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "remaining_seconds": 0,
+      "shop": {
+        "code": "hardware_store",
+        "name": "Hardware store"
+      },
+      "then": "shop.view",
+      "then_args": [
+        "hardware_store"
+      ],
+      "walk_seconds": 15,
+      "walking": false
+    }
+  },
+  {
+    "title": "Not here · a departure, walk and choose again",
+    "screen": "not_here",
+    "view": {
+      "arrives_at": null,
+      "crime": {
+        "code": "",
+        "name": ""
+      },
+      "here": {
+        "code": "city_centre",
+        "name": "City centre"
+      },
+      "mode": "train",
+      "need": "place.need.departure",
+      "need_args": null,
+      "place": {
+        "code": "train_station",
+        "name": "Train station"
+      },
+      "remaining_seconds": 0,
+      "shop": {
+        "code": "",
+        "name": ""
+      },
+      "then": "travel.options",
+      "then_args": [
+        "brennhaven"
+      ],
+      "walk_seconds": 20,
+      "walking": false
+    }
+  },
+  {
+    "title": "Shop · away from the counter",
+    "screen": "shop_detail",
+    "view": {
+      "here": false,
+      "place": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      },
+      "shelves": [
+        {
+          "busy": false,
+          "buyback": 0,
+          "item": {
+            "code": "lockpick_set",
+            "name": "Lockpick set"
+          },
+          "next_restock": null,
+          "price": 450,
+          "stock": 4
+        }
+      ],
+      "shop": {
+        "code": "hardware_store",
+        "name": "Hardware store"
+      },
+      "tax_bps": 0,
+      "walk_seconds": 15
+    }
+  },
+  {
+    "title": "Market · away from the market",
+    "screen": "market",
+    "view": {
+      "at_market": false,
+      "books": [
+        {
+          "best_ask": 22,
+          "best_bid": 18,
+          "item": {
+            "code": "bread",
+            "name": "Bread"
+          },
+          "last": 20
+        }
+      ],
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "way": {
+        "place": {
+          "code": "bazaar",
+          "name": "Bazaar"
+        },
+        "walk_seconds": 15
+      },
+      "yours": null
+    }
+  },
+  {
+    "title": "Auctions · away from the auction house",
+    "screen": "auctions",
+    "view": {
+      "at_house": false,
+      "auctions": null,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "way": {
+        "place": {
+          "code": "business_district",
+          "name": "Business district"
+        },
+        "walk_seconds": 15
+      }
+    }
+  }
+]

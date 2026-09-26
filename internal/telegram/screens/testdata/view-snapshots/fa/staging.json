@@ -1,0 +1,57 @@
+[
+  {
+    "title": "Job refused · the defence fund cannot pay",
+    "screen": "refusal",
+    "view": {
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "ends_at": null,
+      "fee": 0,
+      "kind": "army_cannot_pay",
+      "missing": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Job openings · the armed forces",
+    "screen": "job_openings",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "companies": null,
+      "current": {
+        "career_code": "",
+        "career_name": "",
+        "rank": "",
+        "title": ""
+      },
+      "employed": false,
+      "openings": [
+        {
+          "eligible": true,
+          "job": {
+            "career_code": "armed_forces",
+            "career_name": "Armed Forces",
+            "rank": "entry",
+            "title": "Private"
+          },
+          "pay": 140
+        },
+        {
+          "eligible": true,
+          "job": {
+            "career_code": "retail",
+            "career_name": "Retail",
+            "rank": "entry",
+            "title": "Sales Trainee"
+          },
+          "pay": 120
+        }
+      ],
+      "page": 1,
+      "pages": 1,
+      "travelling": false
+    }
+  }
+]

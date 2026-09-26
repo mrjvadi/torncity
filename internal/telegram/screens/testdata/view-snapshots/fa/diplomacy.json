@@ -1,0 +1,1019 @@
+[
+  {
+    "title": "Sanctions · the president's board",
+    "screen": "sanctions",
+    "view": {
+      "can_impose": true,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "imposed": [
+        {
+          "by": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "ground": "aggression",
+          "imposer": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "in_force_in_seconds": 0,
+          "liftable": true,
+          "liftable_in_seconds": 0,
+          "measures": [
+            "trade",
+            "arms",
+            "travel"
+          ],
+          "no": 3,
+          "office": "president",
+          "since_seconds": 180000,
+          "target": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          }
+        }
+      ],
+      "notice": "",
+      "suffered": [
+        {
+          "by": null,
+          "ground": "retaliation",
+          "imposer": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "in_force_in_seconds": 2400,
+          "liftable": false,
+          "liftable_in_seconds": 0,
+          "measures": [
+            "financial"
+          ],
+          "no": 4,
+          "office": "president",
+          "since_seconds": 0,
+          "target": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "Sanctions · too young to lift",
+    "screen": "sanctions",
+    "view": {
+      "can_impose": true,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "imposed": [
+        {
+          "by": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "ground": "aggression",
+          "imposer": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "in_force_in_seconds": 0,
+          "liftable": false,
+          "liftable_in_seconds": 72000,
+          "measures": [
+            "trade",
+            "arms",
+            "travel"
+          ],
+          "no": 3,
+          "office": "president",
+          "since_seconds": 180000,
+          "target": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          }
+        }
+      ],
+      "notice": "",
+      "suffered": null
+    }
+  },
+  {
+    "title": "Sanctions · none",
+    "screen": "sanctions",
+    "view": {
+      "can_impose": false,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "imposed": null,
+      "notice": "",
+      "suffered": null
+    }
+  },
+  {
+    "title": "Impose · choose the country",
+    "screen": "impose",
+    "view": {
+      "chosen": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "ground": "",
+      "grounds": null,
+      "mask": 0,
+      "measures": null,
+      "min_duration_seconds": 0,
+      "notice_seconds": 0,
+      "target": null,
+      "targets": [
+        {
+          "code": "vantor_federation",
+          "kind": "country",
+          "name": "Vantor Federation"
+        }
+      ]
+    }
+  },
+  {
+    "title": "Impose · choose the measures",
+    "screen": "impose",
+    "view": {
+      "chosen": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "ground": "",
+      "grounds": null,
+      "mask": 1,
+      "measures": [
+        {
+          "code": "trade",
+          "mask": 0,
+          "on": true
+        },
+        {
+          "code": "arms",
+          "mask": 3,
+          "on": false
+        },
+        {
+          "code": "technology",
+          "mask": 5,
+          "on": false
+        },
+        {
+          "code": "travel",
+          "mask": 9,
+          "on": false
+        },
+        {
+          "code": "financial",
+          "mask": 17,
+          "on": false
+        }
+      ],
+      "min_duration_seconds": 0,
+      "notice_seconds": 0,
+      "target": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      },
+      "targets": null
+    }
+  },
+  {
+    "title": "Impose · choose the ground",
+    "screen": "impose",
+    "view": {
+      "chosen": [
+        "trade",
+        "arms"
+      ],
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "ground": "",
+      "grounds": [
+        "aggression",
+        "proliferation",
+        "terrorism",
+        "human_rights",
+        "unfair_trade",
+        "retaliation"
+      ],
+      "mask": 3,
+      "measures": null,
+      "min_duration_seconds": 0,
+      "notice_seconds": 0,
+      "target": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      },
+      "targets": null
+    }
+  },
+  {
+    "title": "Impose · confirm",
+    "screen": "impose",
+    "view": {
+      "chosen": [
+        "trade",
+        "arms"
+      ],
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "ground": "proliferation",
+      "grounds": null,
+      "mask": 3,
+      "measures": null,
+      "min_duration_seconds": 86400,
+      "notice_seconds": 3600,
+      "target": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      },
+      "targets": null
+    }
+  },
+  {
+    "title": "Lift · confirm",
+    "screen": "lift",
+    "view": {
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "sanction": {
+        "by": {
+          "code": "B3C4D5F",
+          "name": "کاوه"
+        },
+        "ground": "aggression",
+        "imposer": {
+          "code": "default_country",
+          "kind": "country",
+          "name": "The Commonwealth"
+        },
+        "in_force_in_seconds": 0,
+        "liftable": false,
+        "liftable_in_seconds": 72000,
+        "measures": [
+          "trade",
+          "arms",
+          "travel"
+        ],
+        "no": 3,
+        "office": "president",
+        "since_seconds": 180000,
+        "target": {
+          "code": "vantor_federation",
+          "kind": "country",
+          "name": "Vantor Federation"
+        }
+      }
+    }
+  },
+  {
+    "title": "Treaties · the foreign minister's board",
+    "screen": "treaties",
+    "view": {
+      "can_act": true,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "notice": "",
+      "treaties": [
+        {
+          "expires_in_seconds": 252000,
+          "incoming": true,
+          "kind": {
+            "code": "alliance",
+            "name": "Military alliance"
+          },
+          "no": 5,
+          "other": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "since_seconds": 0,
+          "status": "proposed"
+        },
+        {
+          "expires_in_seconds": 108000,
+          "incoming": false,
+          "kind": {
+            "code": "trade_agreement",
+            "name": "Trade agreement"
+          },
+          "no": 6,
+          "other": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "since_seconds": 0,
+          "status": "proposed"
+        },
+        {
+          "expires_in_seconds": 0,
+          "incoming": false,
+          "kind": {
+            "code": "non_aggression",
+            "name": "Non-aggression pact"
+          },
+          "no": 2,
+          "other": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "since_seconds": 345600,
+          "status": "active"
+        },
+        {
+          "expires_in_seconds": 0,
+          "incoming": false,
+          "kind": {
+            "code": "trade_agreement",
+            "name": "Trade agreement"
+          },
+          "no": 1,
+          "other": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "since_seconds": 18000,
+          "status": "declined"
+        },
+        {
+          "expires_in_seconds": 0,
+          "incoming": false,
+          "kind": {
+            "code": "alliance",
+            "name": "Military alliance"
+          },
+          "no": 7,
+          "other": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "since_seconds": 93600,
+          "status": "expired"
+        },
+        {
+          "expires_in_seconds": 0,
+          "incoming": false,
+          "kind": {
+            "code": "non_aggression",
+            "name": "Non-aggression pact"
+          },
+          "no": 8,
+          "other": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "since_seconds": 7200,
+          "status": "withdrawn"
+        },
+        {
+          "expires_in_seconds": 0,
+          "incoming": false,
+          "kind": {
+            "code": "trade_agreement",
+            "name": "Trade agreement"
+          },
+          "no": 9,
+          "other": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "since_seconds": 176400,
+          "status": "terminated"
+        }
+      ]
+    }
+  },
+  {
+    "title": "Treaties · none",
+    "screen": "treaties",
+    "view": {
+      "can_act": false,
+      "country": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      },
+      "notice": "",
+      "treaties": null
+    }
+  },
+  {
+    "title": "Propose · choose the country",
+    "screen": "propose",
+    "view": {
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "kind": null,
+      "kinds": null,
+      "partner": null,
+      "partners": [
+        {
+          "code": "vantor_federation",
+          "kind": "country",
+          "name": "Vantor Federation"
+        }
+      ],
+      "ttl_seconds": 0
+    }
+  },
+  {
+    "title": "Propose · choose the kind",
+    "screen": "propose",
+    "view": {
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "kind": null,
+      "kinds": [
+        {
+          "code": "alliance",
+          "name": "Military alliance"
+        },
+        {
+          "code": "non_aggression",
+          "name": "Non-aggression pact"
+        },
+        {
+          "code": "trade_agreement",
+          "name": "Trade agreement"
+        }
+      ],
+      "partner": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      },
+      "partners": null,
+      "ttl_seconds": 0
+    }
+  },
+  {
+    "title": "Propose · confirm",
+    "screen": "propose",
+    "view": {
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "kind": {
+        "code": "alliance",
+        "name": "Military alliance"
+      },
+      "kinds": null,
+      "partner": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      },
+      "partners": null,
+      "ttl_seconds": 259200
+    }
+  },
+  {
+    "title": "End · withdraw a proposal",
+    "screen": "end_treaty",
+    "view": {
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "treaty": {
+        "expires_in_seconds": 108000,
+        "incoming": false,
+        "kind": {
+          "code": "trade_agreement",
+          "name": "Trade agreement"
+        },
+        "no": 6,
+        "other": {
+          "code": "vantor_federation",
+          "kind": "country",
+          "name": "Vantor Federation"
+        },
+        "since_seconds": 0,
+        "status": "proposed"
+      }
+    }
+  },
+  {
+    "title": "End · end a treaty",
+    "screen": "end_treaty",
+    "view": {
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "treaty": {
+        "expires_in_seconds": 0,
+        "incoming": false,
+        "kind": {
+          "code": "non_aggression",
+          "name": "Non-aggression pact"
+        },
+        "no": 2,
+        "other": {
+          "code": "vantor_federation",
+          "kind": "country",
+          "name": "Vantor Federation"
+        },
+        "since_seconds": 345600,
+        "status": "active"
+      }
+    }
+  },
+  {
+    "title": "Record · a page",
+    "screen": "diplomacy_history",
+    "view": {
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "entries": [
+        {
+          "ago_seconds": 180000,
+          "by": {
+            "code": "B3C4D5F",
+            "name": "کاوه"
+          },
+          "country": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "ground": "aggression",
+          "kind": "sanction_imposed",
+          "measures": [
+            "trade",
+            "arms"
+          ],
+          "no": 3,
+          "office": "president",
+          "other": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "treaty": {
+            "code": "",
+            "name": ""
+          }
+        },
+        {
+          "ago_seconds": 10800,
+          "by": null,
+          "country": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "ground": "",
+          "kind": "sanction_lifted",
+          "measures": null,
+          "no": 2,
+          "office": "president",
+          "other": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "treaty": {
+            "code": "",
+            "name": ""
+          }
+        },
+        {
+          "ago_seconds": 7200,
+          "by": null,
+          "country": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "ground": "",
+          "kind": "treaty_proposed",
+          "measures": null,
+          "no": 5,
+          "office": "",
+          "other": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "treaty": {
+            "code": "alliance",
+            "name": "Military alliance"
+          }
+        },
+        {
+          "ago_seconds": 345600,
+          "by": {
+            "code": "N1L0F4R",
+            "name": "نیلوفر"
+          },
+          "country": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "ground": "",
+          "kind": "treaty_signed",
+          "measures": null,
+          "no": 2,
+          "office": "foreign_minister",
+          "other": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "treaty": {
+            "code": "non_aggression",
+            "name": "Non-aggression pact"
+          }
+        },
+        {
+          "ago_seconds": 18000,
+          "by": null,
+          "country": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "ground": "",
+          "kind": "treaty_declined",
+          "measures": null,
+          "no": 1,
+          "office": "",
+          "other": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "treaty": {
+            "code": "trade_agreement",
+            "name": "Trade agreement"
+          }
+        },
+        {
+          "ago_seconds": 7200,
+          "by": null,
+          "country": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "ground": "",
+          "kind": "treaty_withdrawn",
+          "measures": null,
+          "no": 8,
+          "office": "",
+          "other": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "treaty": {
+            "code": "non_aggression",
+            "name": "Non-aggression pact"
+          }
+        },
+        {
+          "ago_seconds": 176400,
+          "by": null,
+          "country": {
+            "code": "vantor_federation",
+            "kind": "country",
+            "name": "Vantor Federation"
+          },
+          "ground": "",
+          "kind": "treaty_terminated",
+          "measures": null,
+          "no": 9,
+          "office": "",
+          "other": {
+            "code": "default_country",
+            "kind": "country",
+            "name": "The Commonwealth"
+          },
+          "treaty": {
+            "code": "trade_agreement",
+            "name": "Trade agreement"
+          }
+        }
+      ],
+      "page": 1,
+      "pages": 2
+    }
+  },
+  {
+    "title": "Record · empty",
+    "screen": "diplomacy_history",
+    "view": {
+      "country": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      },
+      "entries": null,
+      "page": 1,
+      "pages": 1
+    }
+  },
+  {
+    "title": "Refused · not_holder",
+    "screen": "diplomacy_refusal",
+    "view": {
+      "back": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "in_seconds": 0,
+      "kind": "not_holder",
+      "office": "president"
+    }
+  },
+  {
+    "title": "Refused · too_soon",
+    "screen": "diplomacy_refusal",
+    "view": {
+      "back": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "in_seconds": 72000,
+      "kind": "too_soon",
+      "office": ""
+    }
+  },
+  {
+    "title": "Refused · standing",
+    "screen": "diplomacy_refusal",
+    "view": {
+      "back": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "in_seconds": 0,
+      "kind": "standing",
+      "office": ""
+    }
+  },
+  {
+    "title": "Refused · self",
+    "screen": "diplomacy_refusal",
+    "view": {
+      "back": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "in_seconds": 0,
+      "kind": "self",
+      "office": ""
+    }
+  },
+  {
+    "title": "Refused · open",
+    "screen": "diplomacy_refusal",
+    "view": {
+      "back": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "in_seconds": 0,
+      "kind": "open",
+      "office": ""
+    }
+  },
+  {
+    "title": "Refused · state",
+    "screen": "diplomacy_refusal",
+    "view": {
+      "back": null,
+      "country": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "in_seconds": 0,
+      "kind": "state",
+      "office": ""
+    }
+  },
+  {
+    "title": "Refused · not_found",
+    "screen": "diplomacy_refusal",
+    "view": {
+      "back": null,
+      "country": {
+        "code": "",
+        "kind": "",
+        "name": ""
+      },
+      "in_seconds": 0,
+      "kind": "not_found",
+      "office": ""
+    }
+  },
+  {
+    "title": "Refused · no_country",
+    "screen": "diplomacy_refusal",
+    "view": {
+      "back": null,
+      "country": {
+        "code": "",
+        "kind": "",
+        "name": ""
+      },
+      "in_seconds": 0,
+      "kind": "no_country",
+      "office": ""
+    }
+  },
+  {
+    "title": "Blocked · trade",
+    "screen": "sanction_blocked",
+    "view": {
+      "back": [
+        "market:list"
+      ],
+      "imposer": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "measure": "trade",
+      "target": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      }
+    }
+  },
+  {
+    "title": "Blocked · arms",
+    "screen": "sanction_blocked",
+    "view": {
+      "back": [
+        "market:list"
+      ],
+      "imposer": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "measure": "arms",
+      "target": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      }
+    }
+  },
+  {
+    "title": "Blocked · technology",
+    "screen": "sanction_blocked",
+    "view": {
+      "back": [
+        "market:list"
+      ],
+      "imposer": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "measure": "technology",
+      "target": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      }
+    }
+  },
+  {
+    "title": "Blocked · travel",
+    "screen": "sanction_blocked",
+    "view": {
+      "back": [
+        "market:list"
+      ],
+      "imposer": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "measure": "travel",
+      "target": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      }
+    }
+  },
+  {
+    "title": "Blocked · financial",
+    "screen": "sanction_blocked",
+    "view": {
+      "back": [
+        "market:list"
+      ],
+      "imposer": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "measure": "financial",
+      "target": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      }
+    }
+  },
+  {
+    "title": "Notice · a treaty proposed to us",
+    "screen": "treaty_proposed_notice",
+    "view": {
+      "country": {
+        "code": "vantor_federation",
+        "kind": "country",
+        "name": "Vantor Federation"
+      },
+      "kind": {
+        "code": "alliance",
+        "name": "Military alliance"
+      },
+      "no": 5,
+      "other": {
+        "code": "default_country",
+        "kind": "country",
+        "name": "The Commonwealth"
+      },
+      "ttl_seconds": 259200
+    }
+  }
+]

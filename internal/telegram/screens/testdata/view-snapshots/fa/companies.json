@@ -1,0 +1,102 @@
+[
+  {
+    "title": "Hired on applying",
+    "screen": "job_hired",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employer": "نان و شیرینی کاوه",
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Shop Assistant"
+      },
+      "pay": 150
+    }
+  },
+  {
+    "title": "Job openings · with a company's",
+    "screen": "job_openings",
+    "view": {
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "companies": [
+        {
+          "company": "نان و شیرینی کاوه",
+          "eligible": true,
+          "job": {
+            "career_code": "retail",
+            "career_name": "Retail",
+            "rank": "entry",
+            "title": "Shop Assistant"
+          },
+          "no": 12,
+          "pay": 150
+        }
+      ],
+      "current": {
+        "career_code": "",
+        "career_name": "",
+        "rank": "",
+        "title": ""
+      },
+      "employed": false,
+      "openings": [
+        {
+          "eligible": true,
+          "job": {
+            "career_code": "retail",
+            "career_name": "Retail",
+            "rank": "entry",
+            "title": "Shop Assistant"
+          },
+          "pay": 120
+        }
+      ],
+      "page": 1,
+      "pages": 1,
+      "travelling": false
+    }
+  },
+  {
+    "title": "My job · at a company",
+    "screen": "job_status",
+    "view": {
+      "at_workplace": true,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "employed": true,
+      "employer": "نان و شیرینی کاوه",
+      "energy": 80,
+      "energy_cost": 10,
+      "job": {
+        "career_code": "retail",
+        "career_name": "Retail",
+        "rank": "entry",
+        "title": "Shop Assistant"
+      },
+      "max_energy": 100,
+      "missing": null,
+      "next": {
+        "career_code": "",
+        "career_name": "",
+        "rank": "",
+        "title": ""
+      },
+      "pay": 150,
+      "performance": 52,
+      "promotion_ready": false,
+      "shift": null,
+      "shift_length_seconds": 240,
+      "shifts_in_tier": 0,
+      "top_tier": true,
+      "total_earned": 0,
+      "walk_to_work_seconds": 0,
+      "workplace": {
+        "code": "bazaar",
+        "name": "Bazaar"
+      }
+    }
+  }
+]

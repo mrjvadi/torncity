@@ -1,0 +1,442 @@
+[
+  {
+    "title": "Map · destinations from here (page 1 of 2)",
+    "screen": "cities",
+    "view": {
+      "destinations": [
+        {
+          "code": "fenwick_span",
+          "distance_km": 120,
+          "name": "Fenwick Span"
+        },
+        {
+          "code": "aldrin_hollow",
+          "distance_km": 340,
+          "name": "Aldrin Hollow"
+        },
+        {
+          "code": "brennhaven",
+          "distance_km": 1260,
+          "name": "Brennhaven"
+        }
+      ],
+      "origin": "Ostmarch",
+      "origin_code": "ostmarch",
+      "page": 1,
+      "pages": 2,
+      "travelling": false,
+      "travelling_to": "",
+      "travelling_to_code": ""
+    }
+  },
+  {
+    "title": "Map · no routes from here",
+    "screen": "cities",
+    "view": {
+      "destinations": null,
+      "origin": "Vantor Reach",
+      "origin_code": "vantor_reach",
+      "page": 1,
+      "pages": 1,
+      "travelling": false,
+      "travelling_to": "",
+      "travelling_to_code": ""
+    }
+  },
+  {
+    "title": "Map · not in any city",
+    "screen": "cities",
+    "view": {
+      "destinations": null,
+      "origin": "",
+      "origin_code": "",
+      "page": 1,
+      "pages": 1,
+      "travelling": false,
+      "travelling_to": "",
+      "travelling_to_code": ""
+    }
+  },
+  {
+    "title": "Map · while travelling",
+    "screen": "cities",
+    "view": {
+      "destinations": null,
+      "origin": "Ostmarch",
+      "origin_code": "ostmarch",
+      "page": 1,
+      "pages": 1,
+      "travelling": true,
+      "travelling_to": "Brennhaven",
+      "travelling_to_code": "brennhaven"
+    }
+  },
+  {
+    "title": "Travel options",
+    "screen": "travel_options",
+    "view": {
+      "cash": 5000,
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "options": [
+        {
+          "busy": false,
+          "condition": 0,
+          "energy": 8,
+          "fare": 0,
+          "mode_code": "bus",
+          "mode_name": "Bus",
+          "vehicle": null,
+          "wait_seconds": 750
+        },
+        {
+          "busy": false,
+          "condition": 0,
+          "energy": 14,
+          "fare": 6300,
+          "mode_code": "car",
+          "mode_name": "Car",
+          "vehicle": null,
+          "wait_seconds": 420
+        },
+        {
+          "busy": true,
+          "condition": 0,
+          "energy": 6,
+          "fare": 7720,
+          "mode_code": "train",
+          "mode_name": "Train",
+          "vehicle": null,
+          "wait_seconds": 240
+        },
+        {
+          "busy": false,
+          "condition": 0,
+          "energy": 4,
+          "fare": 10480,
+          "mode_code": "flight",
+          "mode_name": "Flight",
+          "vehicle": null,
+          "wait_seconds": 120
+        }
+      ],
+      "requoted": false,
+      "to": "Brennhaven",
+      "to_code": "brennhaven"
+    }
+  },
+  {
+    "title": "Travel options · in your own car",
+    "screen": "travel_options",
+    "view": {
+      "cash": 5000,
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "options": [
+        {
+          "busy": false,
+          "condition": 0,
+          "energy": 8,
+          "fare": 1140,
+          "mode_code": "bus",
+          "mode_name": "Bus",
+          "vehicle": null,
+          "wait_seconds": 750
+        },
+        {
+          "busy": false,
+          "condition": 8700,
+          "energy": 14,
+          "fare": 2520,
+          "mode_code": "car",
+          "mode_name": "Car",
+          "vehicle": {
+            "code": "car",
+            "name": "Car"
+          },
+          "wait_seconds": 420
+        }
+      ],
+      "requoted": false,
+      "to": "Brennhaven",
+      "to_code": "brennhaven"
+    }
+  },
+  {
+    "title": "Travel options · the fare changed before departure",
+    "screen": "travel_options",
+    "view": {
+      "cash": 5000,
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "options": [
+        {
+          "busy": true,
+          "condition": 0,
+          "energy": 6,
+          "fare": 8490,
+          "mode_code": "train",
+          "mode_name": "Train",
+          "vehicle": null,
+          "wait_seconds": 240
+        }
+      ],
+      "requoted": true,
+      "to": "Brennhaven",
+      "to_code": "brennhaven"
+    }
+  },
+  {
+    "title": "Travel · pay for the chosen mode, both ways",
+    "screen": "travel_checkout",
+    "view": {
+      "busy": false,
+      "energy": 6,
+      "fare": 7720,
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "mode_code": "train",
+      "mode_name": "Train",
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 7720,
+        "bank": 25000,
+        "cash": 9000,
+        "usable": [
+          "cash",
+          "card"
+        ]
+      },
+      "to": "Brennhaven",
+      "to_code": "brennhaven",
+      "wait_seconds": 240
+    }
+  },
+  {
+    "title": "Travel · pay for the chosen mode, card only covers it",
+    "screen": "travel_checkout",
+    "view": {
+      "busy": true,
+      "energy": 4,
+      "fare": 10480,
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "mode_code": "flight",
+      "mode_name": "Flight",
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 10480,
+        "bank": 25000,
+        "cash": 105,
+        "usable": [
+          "card"
+        ]
+      },
+      "to": "Brennhaven",
+      "to_code": "brennhaven",
+      "wait_seconds": 120
+    }
+  },
+  {
+    "title": "Travel · a cash-only mode",
+    "screen": "travel_checkout",
+    "view": {
+      "busy": false,
+      "energy": 8,
+      "fare": 300,
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "mode_code": "bus",
+      "mode_name": "Bus",
+      "payment": {
+        "accepted": [
+          "cash"
+        ],
+        "amount": 300,
+        "bank": 100,
+        "cash": 900,
+        "usable": [
+          "cash"
+        ]
+      },
+      "to": "Fenwick Span",
+      "to_code": "fenwick_span",
+      "wait_seconds": 5700
+    }
+  },
+  {
+    "title": "Travel · nothing covers the fare",
+    "screen": "travel_checkout",
+    "view": {
+      "busy": false,
+      "energy": 4,
+      "fare": 10480,
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "mode_code": "flight",
+      "mode_name": "Flight",
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 10480,
+        "bank": 1500,
+        "cash": 3200,
+        "usable": null
+      },
+      "to": "Brennhaven",
+      "to_code": "brennhaven",
+      "wait_seconds": 120
+    }
+  },
+  {
+    "title": "Payment · declined, both balances",
+    "screen": "payment_declined",
+    "view": {
+      "accepted": [
+        "cash",
+        "card"
+      ],
+      "amount": 10480,
+      "back_addr": [
+        "travel:options",
+        "brennhaven"
+      ],
+      "back_label": "button.travel_options",
+      "bank": 1500,
+      "cash": 3200
+    }
+  },
+  {
+    "title": "Payment · declined, cash only here",
+    "screen": "payment_declined",
+    "view": {
+      "accepted": [
+        "cash"
+      ],
+      "amount": 300,
+      "back_addr": [
+        "travel:options",
+        "fenwick_span"
+      ],
+      "back_label": "button.travel_options",
+      "bank": 25000,
+      "cash": 100
+    }
+  },
+  {
+    "title": "Travel · departed, paid fare",
+    "screen": "travel_started",
+    "view": {
+      "arrives_at": null,
+      "duration_seconds": 240,
+      "energy": 6,
+      "fare": 7720,
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "mode_code": "train",
+      "mode_name": "Train",
+      "to": "Brennhaven",
+      "to_code": "brennhaven"
+    }
+  },
+  {
+    "title": "Travel · departed, free",
+    "screen": "travel_started",
+    "view": {
+      "arrives_at": null,
+      "duration_seconds": 5700,
+      "energy": 8,
+      "fare": 0,
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "mode_code": "bus",
+      "mode_name": "Bus",
+      "to": "Fenwick Span",
+      "to_code": "fenwick_span"
+    }
+  },
+  {
+    "title": "Travel · on the way",
+    "screen": "travel_status",
+    "view": {
+      "arrives_at": null,
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "mode_code": "train",
+      "mode_name": "Train",
+      "remaining_seconds": 8100,
+      "to": "Brennhaven",
+      "to_code": "brennhaven"
+    }
+  },
+  {
+    "title": "Travel · departed, with the arrival time",
+    "screen": "travel_started",
+    "view": {
+      "arrives_at": "2026-09-23T11:09:00Z",
+      "duration_seconds": 240,
+      "energy": 6,
+      "fare": 7720,
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "mode_code": "train",
+      "mode_name": "Train",
+      "to": "Brennhaven",
+      "to_code": "brennhaven"
+    }
+  },
+  {
+    "title": "Travel · on the way, with the arrival time",
+    "screen": "travel_status",
+    "view": {
+      "arrives_at": "2026-09-23T13:20:00Z",
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "mode_code": "train",
+      "mode_name": "Train",
+      "remaining_seconds": 8100,
+      "to": "Brennhaven",
+      "to_code": "brennhaven"
+    }
+  },
+  {
+    "title": "Travel · arriving any moment",
+    "screen": "travel_status",
+    "view": {
+      "arrives_at": null,
+      "from": "Ostmarch",
+      "from_code": "ostmarch",
+      "mode_code": "bus",
+      "mode_name": "",
+      "remaining_seconds": 20,
+      "to": "Brennhaven",
+      "to_code": "brennhaven"
+    }
+  },
+  {
+    "title": "Travel · arrived (reply)",
+    "screen": "travel_arrived",
+    "view": {
+      "city": "Brennhaven",
+      "city_code": "brennhaven",
+      "xp": 25
+    }
+  },
+  {
+    "title": "Notice · arrived and levelled up",
+    "screen": "travel_arrived",
+    "view": {
+      "city": "Brennhaven",
+      "city_code": "brennhaven",
+      "xp": 1250
+    }
+  }
+]

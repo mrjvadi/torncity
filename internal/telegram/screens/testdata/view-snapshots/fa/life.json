@@ -1,0 +1,820 @@
+[
+  {
+    "title": "Life · a calm day, a hostel down the road",
+    "screen": "life",
+    "view": {
+      "age": 20,
+      "course_bps": 180,
+      "home": false,
+      "intelligence": 18,
+      "intelligence_max": 200,
+      "needs": {
+        "body_bps": 10000,
+        "happiness": 68,
+        "hunger": 22,
+        "pressing": null,
+        "sleep": 35,
+        "stress": 12,
+        "xpbps": 10000
+      },
+      "next": {
+        "code": "trader",
+        "emoji": "🛍",
+        "name": "Trader"
+      },
+      "next_need": 18500,
+      "notice": "",
+      "notice_args": null,
+      "rank": {
+        "code": "breadwinner",
+        "emoji": "🍞",
+        "name": "Breadwinner"
+      },
+      "skill_bps": 180,
+      "sleep_in_seconds": 0,
+      "spots": [
+        {
+          "place": {
+            "code": "residential_area",
+            "name": "Residential area"
+          },
+          "price": 150,
+          "relief": 8,
+          "rest": 55,
+          "spot": {
+            "code": "hostel",
+            "name": "Hostel bed"
+          },
+          "way": {
+            "place": {
+              "code": "residential_area",
+              "name": "Residential area"
+            },
+            "walk_seconds": 25
+          }
+        },
+        {
+          "place": {
+            "code": "park",
+            "name": "City park"
+          },
+          "price": 0,
+          "relief": -3,
+          "rest": 30,
+          "spot": {
+            "code": "bench",
+            "name": "Park bench"
+          },
+          "way": null
+        }
+      ],
+      "stage": {
+        "code": "youth",
+        "name": "Youth"
+      },
+      "worth": {
+        "bank": 21000,
+        "cash": 4200,
+        "debts": 0,
+        "equity": 3500,
+        "escrow": 0,
+        "gold": 1600,
+        "goods": 2800,
+        "loans": 0,
+        "property": 0,
+        "savings": 5000,
+        "total": 38100
+      }
+    }
+  },
+  {
+    "title": "Life · hungry, tired and stressed, with a home",
+    "screen": "life",
+    "view": {
+      "age": 20,
+      "course_bps": 180,
+      "home": true,
+      "intelligence": 18,
+      "intelligence_max": 200,
+      "needs": {
+        "body_bps": 6900,
+        "happiness": 24,
+        "hunger": 84,
+        "pressing": [
+          "hunger",
+          "sleep",
+          "stress"
+        ],
+        "sleep": 93,
+        "stress": 71,
+        "xpbps": 9000
+      },
+      "next": {
+        "code": "comfortable",
+        "emoji": "🏡",
+        "name": "Comfortable"
+      },
+      "next_need": 91210,
+      "notice": "",
+      "notice_args": null,
+      "rank": {
+        "code": "trader",
+        "emoji": "🛍",
+        "name": "Trader"
+      },
+      "skill_bps": 180,
+      "sleep_in_seconds": 0,
+      "spots": null,
+      "stage": {
+        "code": "youth",
+        "name": "Youth"
+      },
+      "worth": {
+        "bank": 12000,
+        "cash": 900,
+        "debts": 460,
+        "equity": 0,
+        "escrow": 0,
+        "gold": 0,
+        "goods": 0,
+        "loans": 12000,
+        "property": 46350,
+        "savings": 0,
+        "total": 46790
+      }
+    }
+  },
+  {
+    "title": "Life · just slept on a bench",
+    "screen": "life",
+    "view": {
+      "age": 20,
+      "course_bps": 180,
+      "home": false,
+      "intelligence": 18,
+      "intelligence_max": 200,
+      "needs": {
+        "body_bps": 10000,
+        "happiness": 68,
+        "hunger": 22,
+        "pressing": null,
+        "sleep": 5,
+        "stress": 12,
+        "xpbps": 10000
+      },
+      "next": {
+        "code": "trader",
+        "emoji": "🛍",
+        "name": "Trader"
+      },
+      "next_need": 18500,
+      "notice": "slept",
+      "notice_args": {
+        "rest": 30,
+        "spot": "نیمکت پارک"
+      },
+      "rank": {
+        "code": "breadwinner",
+        "emoji": "🍞",
+        "name": "Breadwinner"
+      },
+      "skill_bps": 180,
+      "sleep_in_seconds": 420,
+      "spots": [
+        {
+          "place": {
+            "code": "residential_area",
+            "name": "Residential area"
+          },
+          "price": 150,
+          "relief": 8,
+          "rest": 55,
+          "spot": {
+            "code": "hostel",
+            "name": "Hostel bed"
+          },
+          "way": {
+            "place": {
+              "code": "residential_area",
+              "name": "Residential area"
+            },
+            "walk_seconds": 25
+          }
+        },
+        {
+          "place": {
+            "code": "park",
+            "name": "City park"
+          },
+          "price": 0,
+          "relief": -3,
+          "rest": 30,
+          "spot": {
+            "code": "bench",
+            "name": "Park bench"
+          },
+          "way": null
+        }
+      ],
+      "stage": {
+        "code": "youth",
+        "name": "Youth"
+      },
+      "worth": {
+        "bank": 21000,
+        "cash": 4200,
+        "debts": 0,
+        "equity": 3500,
+        "escrow": 0,
+        "gold": 1600,
+        "goods": 2800,
+        "loans": 0,
+        "property": 0,
+        "savings": 5000,
+        "total": 38100
+      }
+    }
+  },
+  {
+    "title": "Card · my own, with an avatar and a bio",
+    "screen": "card",
+    "view": {
+      "achievements": 3,
+      "age": 20,
+      "avatar": {
+        "code": "fox",
+        "emoji": "🦊",
+        "photo": false
+      },
+      "bio": "عاشق سفر و کتاب؛ روزی شرکت خودم را می‌سازم",
+      "code": "K7Q2M9A",
+      "entries": 9,
+      "joined_at": "2026-08-24T11:05:00Z",
+      "level": 7,
+      "name": "سارا",
+      "notice": "",
+      "photo": null,
+      "rank": {
+        "code": "breadwinner",
+        "emoji": "🍞",
+        "name": "Breadwinner"
+      },
+      "self": true,
+      "stage": {
+        "code": "youth",
+        "name": "Youth"
+      }
+    }
+  },
+  {
+    "title": "Card · my own, nothing written yet",
+    "screen": "card",
+    "view": {
+      "achievements": 0,
+      "age": 18,
+      "avatar": {
+        "code": "",
+        "emoji": "",
+        "photo": false
+      },
+      "bio": "",
+      "code": "K7Q2M9A",
+      "entries": 0,
+      "joined_at": "2026-09-23T11:05:00Z",
+      "level": 1,
+      "name": "سارا",
+      "notice": "avatar",
+      "photo": null,
+      "rank": {
+        "code": "newcomer",
+        "emoji": "🌱",
+        "name": "Newcomer"
+      },
+      "self": true,
+      "stage": {
+        "code": "youth",
+        "name": "Youth"
+      }
+    }
+  },
+  {
+    "title": "Card · with a Telegram photo",
+    "screen": "card",
+    "view": {
+      "achievements": 5,
+      "age": 23,
+      "avatar": {
+        "code": "",
+        "emoji": "",
+        "photo": true
+      },
+      "bio": "",
+      "code": "B3C4D5F",
+      "entries": 14,
+      "joined_at": null,
+      "level": 12,
+      "name": "کاوه",
+      "notice": "",
+      "photo": {
+        "file_id": "",
+        "player_id": "cfaebd97-b816-43a8-aff9-3798555dd818",
+        "user_id": 1234
+      },
+      "rank": {
+        "code": "trader",
+        "emoji": "🛍",
+        "name": "Trader"
+      },
+      "self": false,
+      "stage": {
+        "code": "youth",
+        "name": "Youth"
+      }
+    }
+  },
+  {
+    "title": "History · mine, page 1 of 2",
+    "screen": "history",
+    "view": {
+      "code": "K7Q2M9A",
+      "lines": [
+        {
+          "amount": 16200,
+          "at": "2026-09-23T11:05:00Z",
+          "backfilled": false,
+          "code": "breadwinner",
+          "kind": "rank_up",
+          "name": "Breadwinner",
+          "number": 0,
+          "place": {
+            "code": "",
+            "name": ""
+          },
+          "place_kind": "",
+          "private": false,
+          "sub": "newcomer",
+          "sub_name": ""
+        },
+        {
+          "amount": 0,
+          "at": "2026-09-22T11:05:00Z",
+          "backfilled": false,
+          "code": "first_shift",
+          "kind": "achievement",
+          "name": "First day at work",
+          "number": 0,
+          "place": {
+            "code": "",
+            "name": ""
+          },
+          "place_kind": "",
+          "private": false,
+          "sub": "",
+          "sub_name": ""
+        },
+        {
+          "amount": 0,
+          "at": "2026-09-21T11:05:00Z",
+          "backfilled": false,
+          "code": "",
+          "kind": "hospitalised",
+          "name": "",
+          "number": 0,
+          "place": {
+            "code": "ostmarch",
+            "name": "Ostmarch"
+          },
+          "place_kind": "",
+          "private": true,
+          "sub": "",
+          "sub_name": ""
+        },
+        {
+          "amount": 0,
+          "at": "2026-09-20T11:05:00Z",
+          "backfilled": false,
+          "code": "bookkeeping",
+          "kind": "certificate",
+          "name": "Bookkeeping",
+          "number": 0,
+          "place": {
+            "code": "",
+            "name": ""
+          },
+          "place_kind": "",
+          "private": false,
+          "sub": "",
+          "sub_name": ""
+        },
+        {
+          "amount": 0,
+          "at": "2026-09-19T11:05:00Z",
+          "backfilled": false,
+          "code": "retail",
+          "kind": "promoted",
+          "name": "Sales Associate",
+          "number": 0,
+          "place": {
+            "code": "",
+            "name": ""
+          },
+          "place_kind": "",
+          "private": false,
+          "sub": "skilled",
+          "sub_name": ""
+        },
+        {
+          "amount": 46350,
+          "at": "2026-09-18T11:05:00Z",
+          "backfilled": false,
+          "code": "studio",
+          "kind": "property_bought",
+          "name": "Studio flat",
+          "number": 0,
+          "place": {
+            "code": "ostmarch",
+            "name": "Ostmarch"
+          },
+          "place_kind": "",
+          "private": false,
+          "sub": "",
+          "sub_name": ""
+        },
+        {
+          "amount": 0,
+          "at": "2026-09-15T11:05:00Z",
+          "backfilled": false,
+          "code": "retail",
+          "kind": "first_job",
+          "name": "Cashier",
+          "number": 0,
+          "place": {
+            "code": "ostmarch",
+            "name": "Ostmarch"
+          },
+          "place_kind": "",
+          "private": false,
+          "sub": "entry",
+          "sub_name": ""
+        },
+        {
+          "amount": 0,
+          "at": "2026-09-14T11:05:00Z",
+          "backfilled": true,
+          "code": "",
+          "kind": "joined",
+          "name": "",
+          "number": 0,
+          "place": {
+            "code": "",
+            "name": ""
+          },
+          "place_kind": "",
+          "private": false,
+          "sub": "",
+          "sub_name": ""
+        }
+      ],
+      "name": "سارا",
+      "page": 1,
+      "pages": 2,
+      "self": true,
+      "total": 12
+    }
+  },
+  {
+    "title": "History · nothing yet",
+    "screen": "history",
+    "view": {
+      "code": "K7Q2M9A",
+      "lines": null,
+      "name": "سارا",
+      "page": 1,
+      "pages": 1,
+      "self": true,
+      "total": 0
+    }
+  },
+  {
+    "title": "Avatars · choosing",
+    "screen": "avatars",
+    "view": {
+      "avatars": [
+        {
+          "code": "fox",
+          "emoji": "🦊",
+          "name": "Fox"
+        },
+        {
+          "code": "lion",
+          "emoji": "🦁",
+          "name": "Lion"
+        },
+        {
+          "code": "owl",
+          "emoji": "🦉",
+          "name": "Owl"
+        },
+        {
+          "code": "wolf",
+          "emoji": "🐺",
+          "name": "Wolf"
+        },
+        {
+          "code": "tulip",
+          "emoji": "🌷",
+          "name": "Tulip"
+        }
+      ],
+      "current": {
+        "code": "fox",
+        "emoji": "🦊",
+        "photo": false
+      }
+    }
+  },
+  {
+    "title": "Sleep · a hostel bed, paid by cash or card",
+    "screen": "sleep_pay",
+    "view": {
+      "payment": {
+        "accepted": [
+          "cash",
+          "card"
+        ],
+        "amount": 150,
+        "bank": 21000,
+        "cash": 4200,
+        "usable": [
+          "cash",
+          "card"
+        ]
+      },
+      "relief": 8,
+      "rest": 55,
+      "spot": {
+        "code": "hostel",
+        "name": "Hostel bed"
+      }
+    }
+  },
+  {
+    "title": "Refused · bio_length",
+    "screen": "life_refusal",
+    "view": {
+      "kind": "bio_length",
+      "max": 140,
+      "min": 3,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · bio_link",
+    "screen": "life_refusal",
+    "view": {
+      "kind": "bio_link",
+      "max": 140,
+      "min": 3,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · bio_blocked",
+    "screen": "life_refusal",
+    "view": {
+      "kind": "bio_blocked",
+      "max": 140,
+      "min": 3,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · bio_chars",
+    "screen": "life_refusal",
+    "view": {
+      "kind": "bio_chars",
+      "max": 140,
+      "min": 3,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · no_spot",
+    "screen": "life_refusal",
+    "view": {
+      "kind": "no_spot",
+      "max": 140,
+      "min": 3,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · no_avatar",
+    "screen": "life_refusal",
+    "view": {
+      "kind": "no_avatar",
+      "max": 140,
+      "min": 3,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · no_player",
+    "screen": "life_refusal",
+    "view": {
+      "kind": "no_player",
+      "max": 140,
+      "min": 3,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · no_city",
+    "screen": "life_refusal",
+    "view": {
+      "kind": "no_city",
+      "max": 140,
+      "min": 3,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refused · slept lately",
+    "screen": "life_refusal",
+    "view": {
+      "kind": "too_soon",
+      "max": 0,
+      "min": 0,
+      "wait_seconds": 360
+    }
+  },
+  {
+    "title": "Top · the biggest companies",
+    "screen": "leaderboard",
+    "view": {
+      "at": "2026-09-23T10:25:00Z",
+      "board": "companies",
+      "lines": [
+        {
+          "city": {
+            "code": "brennhaven",
+            "name": "Brennhaven"
+          },
+          "code": "Q7M2K9B",
+          "extra": 0,
+          "extra2": 0,
+          "mine": false,
+          "name": "نان و شیرینی کاوه",
+          "position": 1,
+          "tag": "grocery",
+          "tag_name": "Grocery store",
+          "value": 840000
+        },
+        {
+          "city": {
+            "code": "ostmarch",
+            "name": "Ostmarch"
+          },
+          "code": "H4T8W2C",
+          "extra": 0,
+          "extra2": 0,
+          "mine": false,
+          "name": "تعمیرگاه نیلوفر",
+          "position": 2,
+          "tag": "repair_workshop",
+          "tag_name": "Repair workshop",
+          "value": 212000
+        }
+      ],
+      "ranks": null
+    }
+  },
+  {
+    "title": "Top · the best cities",
+    "screen": "leaderboard",
+    "view": {
+      "at": "2026-09-23T10:25:00Z",
+      "board": "cities",
+      "lines": [
+        {
+          "city": {
+            "code": "",
+            "name": ""
+          },
+          "code": "brennhaven",
+          "extra": 52,
+          "extra2": 9,
+          "mine": false,
+          "name": "Brennhaven",
+          "position": 1,
+          "tag": "",
+          "tag_name": "",
+          "value": 94500
+        },
+        {
+          "city": {
+            "code": "",
+            "name": ""
+          },
+          "code": "ostmarch",
+          "extra": 38,
+          "extra2": 4,
+          "mine": false,
+          "name": "Ostmarch",
+          "position": 2,
+          "tag": "",
+          "tag_name": "",
+          "value": 61200
+        }
+      ],
+      "ranks": null
+    }
+  },
+  {
+    "title": "Top · the hardest workers",
+    "screen": "leaderboard",
+    "view": {
+      "at": "2026-09-23T10:25:00Z",
+      "board": "workers",
+      "lines": [
+        {
+          "city": {
+            "code": "",
+            "name": ""
+          },
+          "code": "B3C4D5F",
+          "extra": 88,
+          "extra2": 0,
+          "mine": false,
+          "name": "کاوه",
+          "position": 1,
+          "tag": "retail",
+          "tag_name": "Retail",
+          "value": 212
+        },
+        {
+          "city": {
+            "code": "",
+            "name": ""
+          },
+          "code": "K7Q2M9A",
+          "extra": 0,
+          "extra2": 0,
+          "mine": true,
+          "name": "سارا",
+          "position": 2,
+          "tag": "",
+          "tag_name": "",
+          "value": 64
+        }
+      ],
+      "ranks": null
+    }
+  },
+  {
+    "title": "Top · investors, before the first refresh",
+    "screen": "leaderboard",
+    "view": {
+      "at": null,
+      "board": "investors",
+      "lines": null,
+      "ranks": null
+    }
+  },
+  {
+    "title": "Notice · rank up",
+    "screen": "rank_notice",
+    "view": {
+      "from": {
+        "code": "breadwinner",
+        "emoji": "🍞",
+        "name": "Breadwinner"
+      },
+      "rank": {
+        "code": "trader",
+        "emoji": "🛍",
+        "name": "Trader"
+      },
+      "up": true,
+      "worth": 51200
+    }
+  },
+  {
+    "title": "Notice · rank down",
+    "screen": "rank_notice",
+    "view": {
+      "from": {
+        "code": "trader",
+        "emoji": "🛍",
+        "name": "Trader"
+      },
+      "rank": {
+        "code": "breadwinner",
+        "emoji": "🍞",
+        "name": "Breadwinner"
+      },
+      "up": false,
+      "worth": 44100
+    }
+  }
+]

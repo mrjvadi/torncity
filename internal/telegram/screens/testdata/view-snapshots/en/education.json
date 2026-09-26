@@ -1,0 +1,455 @@
+[
+  {
+    "title": "Education · courses on offer (page 1 of 2)",
+    "screen": "education",
+    "view": {
+      "certificates": null,
+      "courses": [
+        {
+          "course": {
+            "code": "first_aid",
+            "name": "First Aid"
+          },
+          "duration_seconds": 7200,
+          "eligible": true,
+          "fee": 600,
+          "min_level": 1
+        },
+        {
+          "course": {
+            "code": "evening_accounting",
+            "name": "Evening Class in Accounting"
+          },
+          "duration_seconds": 5400,
+          "eligible": true,
+          "fee": 400,
+          "min_level": 1
+        },
+        {
+          "course": {
+            "code": "retail_management",
+            "name": "Retail Management"
+          },
+          "duration_seconds": 28800,
+          "eligible": false,
+          "fee": 2800,
+          "min_level": 4
+        }
+      ],
+      "current": null,
+      "page": 1,
+      "pages": 2
+    }
+  },
+  {
+    "title": "Education · studying, with certificates",
+    "screen": "education",
+    "view": {
+      "certificates": [
+        {
+          "code": "first_aid",
+          "name": "First Aid"
+        },
+        {
+          "code": "driving_licence",
+          "name": "Driving Licence"
+        }
+      ],
+      "courses": [
+        {
+          "course": {
+            "code": "retail_management",
+            "name": "Retail Management"
+          },
+          "duration_seconds": 28800,
+          "eligible": false,
+          "fee": 2800,
+          "min_level": 4
+        }
+      ],
+      "current": {
+        "course": {
+          "code": "bookkeeping",
+          "name": "Bookkeeping"
+        },
+        "ends_at": "2026-09-23T12:40:00Z",
+        "paused": false,
+        "percent": 60,
+        "remaining_seconds": 5700
+      },
+      "page": 1,
+      "pages": 1
+    }
+  },
+  {
+    "title": "Education · the course paused in jail",
+    "screen": "education",
+    "view": {
+      "certificates": null,
+      "courses": [
+        {
+          "course": {
+            "code": "retail_management",
+            "name": "Retail Management"
+          },
+          "duration_seconds": 28800,
+          "eligible": false,
+          "fee": 2800,
+          "min_level": 4
+        }
+      ],
+      "current": {
+        "course": {
+          "code": "bookkeeping",
+          "name": "Bookkeeping"
+        },
+        "ends_at": "2026-09-23T11:45:00Z",
+        "paused": true,
+        "percent": 60,
+        "remaining_seconds": 2400
+      },
+      "page": 1,
+      "pages": 1
+    }
+  },
+  {
+    "title": "Education · course finishing",
+    "screen": "education",
+    "view": {
+      "certificates": null,
+      "courses": null,
+      "current": {
+        "course": {
+          "code": "bookkeeping",
+          "name": "Bookkeeping"
+        },
+        "ends_at": null,
+        "paused": false,
+        "percent": 99,
+        "remaining_seconds": 30
+      },
+      "page": 1,
+      "pages": 1
+    }
+  },
+  {
+    "title": "Education · nothing new here",
+    "screen": "education",
+    "view": {
+      "certificates": null,
+      "courses": null,
+      "current": null,
+      "page": 1,
+      "pages": 1
+    }
+  },
+  {
+    "title": "Course · can enrol",
+    "screen": "course_detail",
+    "view": {
+      "can_enrol": true,
+      "certifies": true,
+      "city": "",
+      "city_code": "",
+      "course": {
+        "code": "first_aid",
+        "name": "First Aid"
+      },
+      "duration_seconds": 7200,
+      "fee": 600,
+      "institution": "training_center",
+      "limited": false,
+      "payment": null,
+      "requirements": null,
+      "seats_left": 0,
+      "skills": [
+        {
+          "level": 0,
+          "skill": "medicine",
+          "xp": 120
+        }
+      ]
+    }
+  },
+  {
+    "title": "Course · requirements not met",
+    "screen": "course_detail",
+    "view": {
+      "can_enrol": false,
+      "certifies": true,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "course": {
+        "code": "software_engineering",
+        "name": "Software Engineering Degree"
+      },
+      "duration_seconds": 172800,
+      "fee": 9000,
+      "institution": "university",
+      "limited": true,
+      "payment": null,
+      "requirements": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 5,
+          "kind": "level",
+          "met": false,
+          "need": 7,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "programming_fundamentals",
+          "course_name": "Programming Fundamentals",
+          "have": 0,
+          "kind": "certificate",
+          "met": true,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        }
+      ],
+      "seats_left": 12,
+      "skills": [
+        {
+          "level": 0,
+          "skill": "programming",
+          "xp": 900
+        },
+        {
+          "level": 0,
+          "skill": "engineering",
+          "xp": 300
+        }
+      ]
+    }
+  },
+  {
+    "title": "Course · taught elsewhere, full",
+    "screen": "course_detail",
+    "view": {
+      "can_enrol": false,
+      "certifies": true,
+      "city": "Fenwick Span",
+      "city_code": "fenwick_span",
+      "course": {
+        "code": "nursing",
+        "name": "Nursing Diploma"
+      },
+      "duration_seconds": 86400,
+      "fee": 6000,
+      "institution": "university",
+      "limited": true,
+      "payment": null,
+      "requirements": [
+        {
+          "city": "Fenwick Span",
+          "city_code": "fenwick_span",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "course_city",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "course_full",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        }
+      ],
+      "seats_left": 0,
+      "skills": [
+        {
+          "level": 0,
+          "skill": "medicine",
+          "xp": 600
+        }
+      ]
+    }
+  },
+  {
+    "title": "Course · already certified, already studying",
+    "screen": "course_detail",
+    "view": {
+      "can_enrol": false,
+      "certifies": true,
+      "city": "",
+      "city_code": "",
+      "course": {
+        "code": "first_aid",
+        "name": "First Aid"
+      },
+      "duration_seconds": 7200,
+      "fee": 600,
+      "institution": "company",
+      "limited": false,
+      "payment": null,
+      "requirements": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 0,
+          "kind": "already_certified",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "bookkeeping",
+          "course_name": "Bookkeeping",
+          "have": 0,
+          "kind": "already_enrolled",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        }
+      ],
+      "seats_left": 0,
+      "skills": [
+        {
+          "level": 0,
+          "skill": "medicine",
+          "xp": 120
+        }
+      ]
+    }
+  },
+  {
+    "title": "Enrolled",
+    "screen": "enrolled",
+    "view": {
+      "course": {
+        "code": "first_aid",
+        "name": "First Aid"
+      },
+      "duration_seconds": 7200,
+      "ends_at": "2026-09-23T13:05:00Z",
+      "fee": 600,
+      "method": ""
+    }
+  },
+  {
+    "title": "Notice · course completed",
+    "screen": "course_completed",
+    "view": {
+      "certified": true,
+      "course": {
+        "code": "first_aid",
+        "name": "First Aid"
+      },
+      "skills": [
+        {
+          "level": 2,
+          "skill": "medicine",
+          "xp": 120
+        }
+      ]
+    }
+  },
+  {
+    "title": "Notice · course completed, no certificate",
+    "screen": "course_completed",
+    "view": {
+      "certified": false,
+      "course": {
+        "code": "evening_accounting",
+        "name": "Evening Class in Accounting"
+      },
+      "skills": [
+        {
+          "level": 0,
+          "skill": "finance",
+          "xp": 80
+        }
+      ]
+    }
+  },
+  {
+    "title": "Refusal · enrolment refused",
+    "screen": "refusal",
+    "view": {
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "ends_at": null,
+      "fee": 0,
+      "kind": "course_requirements",
+      "missing": [
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "",
+          "course_name": "",
+          "have": 2,
+          "kind": "level",
+          "met": false,
+          "need": 4,
+          "skill": "",
+          "wait_seconds": 0
+        },
+        {
+          "city": "",
+          "city_code": "",
+          "course_code": "first_aid",
+          "course_name": "First Aid",
+          "have": 0,
+          "kind": "certificate",
+          "met": false,
+          "need": 0,
+          "skill": "",
+          "wait_seconds": 0
+        }
+      ],
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refusal · course not offered here",
+    "screen": "refusal",
+    "view": {
+      "cash": 0,
+      "city": "",
+      "city_code": "",
+      "ends_at": null,
+      "fee": 0,
+      "kind": "course_not_found",
+      "missing": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Refusal · cannot afford the fee",
+    "screen": "refusal",
+    "view": {
+      "cash": 1250,
+      "city": "",
+      "city_code": "",
+      "ends_at": null,
+      "fee": 2800,
+      "kind": "cannot_afford",
+      "missing": null,
+      "wait_seconds": 0
+    }
+  }
+]
