@@ -115,7 +115,20 @@ func NewBook(lang string, allowed ...string) *Book {
 // Add renders one screen under a heading and lints what a player sees.
 func (b *Book) Add(title string, resp *presenter.Response) {
 	b.sections = append(b.sections, "━━━ "+title+" ━━━\n"+Transcript(resp))
-	for _, text := range Visible(resp) {
+	if resp != nil && resp.HTML {
+		if err := ValidTelegramHTML(resp.Text); err != nil {
+			b.problems = append(b.problems, title+": "+err.Error())
+		}
+	}
+	for i, text := range Visible(resp) {
+		if i == 0 && resp != nil && resp.HTML {
+			// The main text, and only it, is HTML when the response opts in
+			// (a button's label is never parsed as HTML by Telegram): lint
+			// what the player actually reads, tags stripped and entities
+			// decoded, so the prose rules below judge the same words a
+			// plain-text screen would show.
+			text = stripHTMLForLint(text)
+		}
 		for _, p := range Problems(b.lang, text, b.allowed...) {
 			b.problems = append(b.problems, title+": "+p)
 		}
@@ -145,6 +158,100 @@ func (b *Book) Check(t *testing.T, dir, name string) {
 		t.Errorf("[%s] %s", b.lang, p)
 	}
 	Golden(t, filepath.Join(dir, b.lang, name+".txt"), b.String())
+}
+
+// telegramHTMLTags are the tag names Telegram's HTML parse mode recognises
+// (core.telegram.org/bots/api, "Formatting options" — "span" only inside a
+// class="tg-spoiler" attribute, which this does not distinguish because a
+// span with no other purpose is not otherwise legal here). Anything else,
+// or a tag list this constant has fallen behind, fails ValidTelegramHTML
+// rather than reaching a player unrecognised.
+var telegramHTMLTags = map[string]bool{
+	"b": true, "strong": true, "i": true, "em": true, "u": true, "ins": true,
+	"s": true, "strike": true, "del": true, "span": true, "tg-spoiler": true,
+	"a": true, "tg-emoji": true, "code": true, "pre": true, "blockquote": true,
+}
+
+// ValidTelegramHTML reports the first way text would fail Telegram's HTML
+// parse mode: a tag Telegram does not recognise, a tag opened but never
+// closed (or closed in the wrong order), or a bare "&", "<" or ">" that
+// reached here unescaped — Telegram rejects the WHOLE message for any one
+// of these, so a screen that gets this wrong does not render at all, rather
+// than rendering wrong.
+func ValidTelegramHTML(text string) error {
+	var stack []string
+	i := 0
+	for i < len(text) {
+		switch text[i] {
+		case '<':
+			end := strings.IndexByte(text[i:], '>')
+			if end < 0 {
+				return fmt.Errorf("an unterminated tag: %q", text[i:])
+			}
+			inner := text[i+1 : i+end]
+			closing := strings.HasPrefix(inner, "/")
+			name := strings.TrimPrefix(inner, "/")
+			if sp := strings.IndexAny(name, " \t"); sp >= 0 {
+				name = name[:sp]
+			}
+			name = strings.ToLower(name)
+			if !telegramHTMLTags[name] {
+				return fmt.Errorf("a tag Telegram does not accept: %q", name)
+			}
+			if closing {
+				if len(stack) == 0 || stack[len(stack)-1] != name {
+					return fmt.Errorf("</%s> does not close the tag it is inside", name)
+				}
+				stack = stack[:len(stack)-1]
+			} else {
+				stack = append(stack, name)
+			}
+			i += end + 1
+		case '>':
+			return fmt.Errorf("an unescaped %q; it must be &gt;", ">")
+		case '&':
+			matched := false
+			for _, entity := range []string{"amp;", "lt;", "gt;", "quot;", "#39;"} {
+				if strings.HasPrefix(text[i+1:], entity) {
+					matched = true
+					i += len(entity)
+					break
+				}
+			}
+			if !matched {
+				return fmt.Errorf("an unescaped %q; it must be &amp;", "&")
+			}
+			i++
+		default:
+			i++
+		}
+	}
+	if len(stack) > 0 {
+		return fmt.Errorf("%d tag(s) never closed: %s", len(stack), strings.Join(stack, ", "))
+	}
+	return nil
+}
+
+// stripHTMLForLint returns text with every tag removed and every entity
+// ValidTelegramHTML accepts decoded back to the character it stands for, so
+// the prose lint below judges the words a player reads, not the markup
+// around them. It assumes text already passed ValidTelegramHTML; called on
+// text that has not, it may strip more or less than a real HTML parser
+// would.
+func stripHTMLForLint(text string) string {
+	var b strings.Builder
+	inTag := false
+	for i := 0; i < len(text); i++ {
+		switch {
+		case text[i] == '<':
+			inTag = true
+		case text[i] == '>' && inTag:
+			inTag = false
+		case !inTag:
+			b.WriteByte(text[i])
+		}
+	}
+	return strings.NewReplacer("&amp;", "&", "&lt;", "<", "&gt;", ">", "&quot;", `"`, "&#39;", "'").Replace(b.String())
 }
 
 // Golden compares got with the file at path, or writes it under -update.

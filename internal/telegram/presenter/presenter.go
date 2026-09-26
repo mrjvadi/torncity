@@ -56,6 +56,17 @@ type Response struct {
 	// In a private chat the flag changes nothing.
 	Private bool `json:"private,omitempty"`
 
+	// HTML says Text carries Telegram's HTML formatting (a bold title, an
+	// expandable blockquote around a long detail) rather than plain text.
+	// The zero value is plain text — every screen that does not opt in is
+	// sent exactly as it always was. A screen that sets it must have run
+	// every substituted value through an escaping helper first
+	// (internal/telegram/screens' html.go): the gateway sends Text to
+	// Telegram with parse_mode HTML verbatim, and Telegram refuses the
+	// whole message over one unescaped "&", "<" or ">", or one tag it does
+	// not recognise.
+	HTML bool `json:"html,omitempty"`
+
 	// Resume are the arguments that reopen this very screen, in the order
 	// the command takes them: for a payment, the payee's public code and
 	// the amount. When a private screen asked for in a group cannot be
@@ -95,6 +106,16 @@ type Photo struct {
 func (r *Response) MarkPrivate() *Response {
 	if r != nil {
 		r.Private = true
+	}
+	return r
+}
+
+// AsHTML declares that Text is already Telegram HTML, and returns it so a
+// constructor can be wrapped: presenter.Message(t, kb).AsHTML(). The caller
+// has already escaped every value it substituted (see HTML's own doc).
+func (r *Response) AsHTML() *Response {
+	if r != nil {
+		r.HTML = true
 	}
 	return r
 }
