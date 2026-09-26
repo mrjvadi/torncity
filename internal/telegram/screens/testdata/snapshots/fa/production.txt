@@ -408,7 +408,8 @@
   ───
   [⚙️ تولید این محصول] → company:produce:Q7M2K9B:d12
   [🧰 ساخت کیت ارتقا] → company:kit:Q7M2K9B:d12
-  [✏️ نسخهٔ جدید] → company:drevise:12   │   [🔧 پروژهٔ بهبود] → company:improve:12
+  [✏️ نسخهٔ جدید] → company:drevise:12
+  [🔧 بهبود عمر باتری] → company:improve:12:battery_life   │   [🔧 بهبود کیفیت] → company:improve:12:quality
   [🗄 کنار گذاشتن این نسخه] → company:dretire:12
   [🔙 بازگشت] → company:studio:Q7M2K9B   │   [🔄 به‌روزرسانی] → company:design:12
 
@@ -428,7 +429,8 @@
   ───
   [⚙️ تولید این محصول] → company:produce:H4T8W2C:d15
   [🧰 ساخت کیت ارتقا] → company:kit:H4T8W2C:d15
-  [✏️ نسخهٔ جدید] → company:drevise:15   │   [🔧 پروژهٔ بهبود] → company:improve:15
+  [✏️ نسخهٔ جدید] → company:drevise:15
+  [🔧 بهبود عمر باتری] → company:improve:15:battery_life   │   [🔧 بهبود کیفیت] → company:improve:15:quality
   [🗄 کنار گذاشتن این نسخه] → company:dretire:15
   [🔙 بازگشت] → company:studio:H4T8W2C   │   [🔄 به‌روزرسانی] → company:design:15
 

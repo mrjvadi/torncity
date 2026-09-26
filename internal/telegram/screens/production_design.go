@@ -311,14 +311,17 @@ func Design(c Context, v DesignView) *presenter.Response {
 	if v.Status == DesignFinal {
 		kb.Add(c.T("production.button.produce_design", nil), AddrProduce, v.Ref.Code, DesignTarget(v.No))
 		kb.Add(c.T("production.button.kit", nil), AddrProduceKit, v.Ref.Code, DesignTarget(v.No))
-		var row []presenter.Button
 		if btn, ok := keyboards.Button(c.T("production.button.revise", nil), AddrDesignRevise, no); ok {
-			row = append(row, btn)
+			kb.Row(btn)
 		}
-		if btn, ok := keyboards.Button(c.T("production.button.improve", nil), AddrImprovementStart, no); ok {
-			row = append(row, btn)
+		var improve []presenter.Button
+		for _, a := range v.Attributes {
+			if btn, ok := keyboards.Button(c.T("production.button.improve", map[string]any{"name": c.AttributeName(a.Name)}),
+				AddrImprovementStart, no, a.Name); ok {
+				improve = append(improve, btn)
+			}
 		}
-		kb.Row(row...)
+		kb.Grid(2, improve...)
 		if btn, ok := keyboards.Button(c.T("production.button.retire", nil), AddrDesignRetire, no); ok {
 			kb.Row(btn)
 		}
