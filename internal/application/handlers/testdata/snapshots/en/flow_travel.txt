@@ -1,6 +1,6 @@
 ━━━ Map ━━━
 (edits message 42)
-🗺 Map of Ostmarch
+<b>🗺 Map of Ostmarch</b>
 
 📍 You are at the city centre.
 
@@ -203,7 +203,7 @@ Travelling by: Train
 
 ━━━ Map of Brennhaven, off the train ━━━
 (edits message 42)
-🗺 Map of Brennhaven
+<b>🗺 Map of Brennhaven</b>
 
 📍 You are at the train station.
 

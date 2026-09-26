@@ -206,7 +206,7 @@ One press walks you to the train station (20s) and opens this page again there.
 
 ━━━ Shop · away from the counter ━━━
 (edits message 42)
-🛒 Hardware store - at the bazaar
+<b>🛒 Hardware store - at the bazaar</b>
 
 • Lockpick set - 450 Nil - 4 in stock
 

@@ -82,7 +82,7 @@ func renderShops(c Context, v ShopsView) *presenter.Response {
 	bag, _ := keyboards.Button(c.T("item.button.bag", nil), AddrInventory)
 	kb.Row(bag)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap, RefreshData: refresh}))
-	return c.respond(paragraphs(title, body(lines...)), kb.Build())
+	return c.respond(paragraphs(htmlBold(htmlEscape(title)), htmlEscape(body(lines...))), kb.Build()).AsHTML()
 }
 
 // ShelfLine is one good on a shelf, priced now.
@@ -152,10 +152,10 @@ func renderShopDetail(c Context, v ShopView) *presenter.Response {
 		tax = c.T("shop.tax", map[string]any{"pct": PercentFromBPS(c, v.TaxBPS)})
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrShops, RefreshData: keyboards.Data(AddrShop, v.Shop.Code)}))
+	title := htmlBold(htmlEscape(c.T("shop.detail_title", map[string]any{"shop": c.ShopName(v.Shop), "place": c.SpotName(v.Place)})))
 	return c.respond(paragraphs(
-		c.T("shop.detail_title", map[string]any{"shop": c.ShopName(v.Shop), "place": c.SpotName(v.Place)}),
-		body(lines...), body(where, tax),
-	), kb.Build())
+		title, htmlEscape(body(lines...)), htmlEscape(body(where, tax)),
+	), kb.Build()).AsHTML()
 }
 
 // ShopCheckoutView is the price of a purchase and the ways to pay it.

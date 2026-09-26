@@ -99,11 +99,13 @@ func renderCityMap(c Context, v CityMapView) *presenter.Response {
 		journey, _ := keyboards.Button(c.T("button.journey", nil), AddrTravelStatus)
 		kb.Row(journey)
 		kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrMap}))
-		return c.respond(paragraphs(c.T("map.title", nil),
-			c.T("map.travelling", map[string]any{"city": c.CityName(v.TravellingToCode, v.TravellingTo)})), kb.Build())
+		title := htmlBold(htmlEscape(c.T("map.title", nil)))
+		return c.respond(paragraphs(title,
+			htmlEscape(c.T("map.travelling", map[string]any{"city": c.CityName(v.TravellingToCode, v.TravellingTo)}))), kb.Build()).AsHTML()
 	case v.NoCity:
 		kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrMap}))
-		return c.respond(paragraphs(c.T("map.title", nil), c.T("map.no_city", nil)), kb.Build())
+		title := htmlBold(htmlEscape(c.T("map.title", nil)))
+		return c.respond(paragraphs(title, htmlEscape(c.T("map.no_city", nil))), kb.Build()).AsHTML()
 	}
 
 	city := c.CityName(v.CityCode, v.City)
@@ -172,7 +174,9 @@ func renderCityMap(c Context, v CityMapView) *presenter.Response {
 		kb.Row(btn)
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrMap}))
-	return c.respond(paragraphs(c.T("place.title", map[string]any{"city": city}), where, list, c.T("place.hint", nil)), kb.Build())
+	title := htmlBold(htmlEscape(c.T("place.title", map[string]any{"city": city})))
+	return c.respond(paragraphs(title, htmlEscape(where), htmlEscape(list), htmlEscape(c.T("place.hint", nil))),
+		kb.Build()).AsHTML()
 }
 
 // WalkStartedView is a walk that has begun.

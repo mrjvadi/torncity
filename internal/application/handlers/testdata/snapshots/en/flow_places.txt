@@ -1,6 +1,6 @@
 ━━━ /map ━━━
 (sends)
-🗺 Map of Ostmarch
+<b>🗺 Map of Ostmarch</b>
 
 📍 You are at the city centre.
 
@@ -46,7 +46,7 @@ Tap a place to walk there. Everything is done at its own place.
 
 ━━━ The map on the way ━━━
 (edits message 42)
-🗺 Map of Ostmarch
+<b>🗺 Map of Ostmarch</b>
 
 🚶 On your way to the bazaar - 10s left
 🕒 Arriving at 12:00
@@ -83,7 +83,7 @@ Tap a place to walk there. Everything is done at its own place.
 
 ━━━ At the bazaar ━━━
 (edits message 42)
-🗺 Map of Ostmarch
+<b>🗺 Map of Ostmarch</b>
 
 📍 You are at the bazaar.
 👥 Other players here: 1
@@ -122,7 +122,7 @@ Tap a place to walk there. Everything is done at its own place.
 
 ━━━ Walk to where you stand ━━━
 (edits message 42)
-🗺 Map of Ostmarch
+<b>🗺 Map of Ostmarch</b>
 
 📍 You are at the bazaar.
 👥 Other players here: 1

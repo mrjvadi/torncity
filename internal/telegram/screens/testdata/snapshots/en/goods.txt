@@ -165,7 +165,7 @@ Lockpick set cannot change hands.
 
 ━━━ Shops ━━━
 (edits message 42)
-🛒 Shops of Ostmarch
+<b>🛒 Shops of Ostmarch</b>
 
 • Grocery - here
 • Hardware store - here
@@ -178,7 +178,7 @@ Lockpick set cannot change hands.
 
 ━━━ Shops · none ━━━
 (edits message 42)
-🛒 Shops of Ostmarch
+<b>🛒 Shops of Ostmarch</b>
 
 This city has no shops yet.
   ───
@@ -187,7 +187,7 @@ This city has no shops yet.
 
 ━━━ Shops · at one place ━━━
 (edits message 42)
-🛒 Shops at the bazaar, Ostmarch
+<b>🛒 Shops at the bazaar, Ostmarch</b>
 
 • Grocery - at the bazaar
 • Hardware store - at the bazaar
@@ -199,7 +199,7 @@ This city has no shops yet.
 
 ━━━ Shop · at the counter ━━━
 (edits message 42)
-🛒 Hardware store - at the bazaar
+<b>🛒 Hardware store - at the bazaar</b>
 
 • Lockpick set - 600 Nil - 4 in stock - buys at 300 Nil
 • Crowbar - 390 Nil (in demand) - 2 in stock
@@ -213,7 +213,7 @@ This city has no shops yet.
 
 ━━━ Shop · from across town ━━━
 (edits message 42)
-🛒 Hardware store - at the bazaar
+<b>🛒 Hardware store - at the bazaar</b>
 
 • Lockpick set - 600 Nil - 4 in stock - buys at 300 Nil
 • Crowbar - 390 Nil (in demand) - 2 in stock

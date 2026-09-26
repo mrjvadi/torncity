@@ -1,6 +1,6 @@
 ━━━ City map · at the centre, with company ━━━
 (edits message 42)
-🗺 Map of Ostmarch
+<b>🗺 Map of Ostmarch</b>
 
 📍 You are at the city centre.
 👥 Other players here: 3
@@ -26,7 +26,7 @@ Tap a place to walk there. Everything is done at its own place.
 
 ━━━ City map · at the bazaar, among its shops ━━━
 (edits message 42)
-🗺 Map of Ostmarch
+<b>🗺 Map of Ostmarch</b>
 
 📍 You are at the bazaar.
 
@@ -51,7 +51,7 @@ Tap a place to walk there. Everything is done at its own place.
 
 ━━━ City map · on the way ━━━
 (edits message 42)
-🗺 Map of Ostmarch
+<b>🗺 Map of Ostmarch</b>
 
 🚶 On your way to the bazaar - 9s left
 🕒 Arriving at 14:35
@@ -73,7 +73,7 @@ Tap a place to walk there. Everything is done at its own place.
 
 ━━━ City map · on a journey ━━━
 (edits message 42)
-🗺 Map
+<b>🗺 Map</b>
 
 🧭 You are on the way to Brennhaven. You can start a new journey once you arrive.
   ───
@@ -82,7 +82,7 @@ Tap a place to walk there. Everything is done at its own place.
 
 ━━━ City map · nowhere yet ━━━
 (edits message 42)
-🗺 Map
+<b>🗺 Map</b>
 
 You have not settled in a city yet. Once you do, your travel destinations appear here.
   ───
