@@ -48,6 +48,14 @@ var (
 	// ever be researched.
 	ErrCycle = errors.New("technology: prerequisites form a cycle")
 
+	// ErrInvalidGeneration means a technology's Family/Generation/Effects
+	// break a rule of a leveled series: a generation without a family or a
+	// family member without a generation, a gap or a repeat in a family's
+	// generations, a generation that does not require the one before it, an
+	// effect that grows instead of diminishing from one generation to the
+	// next, or a family's cumulative effect on one target past its cap.
+	ErrInvalidGeneration = errors.New("technology: invalid technology generation")
+
 	// ErrAlreadyOwned means the company owns the technology already.
 	ErrAlreadyOwned = errors.New("technology: already owned")
 	// ErrPrerequisiteMissing means a prerequisite is neither owned by the
@@ -83,6 +91,13 @@ const (
 	MaxResearchTime = 365 * 24 * time.Hour
 	// MaxCost bounds a research cost, minor units.
 	MaxCost = 1_000_000_000_000
+	// MaxGeneration bounds how many levels one family may have.
+	MaxGeneration = 20
+	// MaxCumulativeEffectBPS bounds how far, in total across every
+	// generation of one family, an effect may move one target: 6000 basis
+	// points is at most a ±60% change from the family's generation 1 no
+	// matter how many generations it eventually has.
+	MaxCumulativeEffectBPS = 6_000
 )
 
 // Tech is one technology of the tree. It is content.
@@ -104,6 +119,25 @@ type Tech struct {
 	Level int
 	// Control is export control on its licenses.
 	Control Control
+
+	// Family and Generation make this technology one level of a series a
+	// company researches one after another — radar_systems (generation 1),
+	// radar_systems_ii (2), radar_systems_iii (3) — instead of one
+	// stand-alone technology. Family is empty for a technology with no
+	// generations of its own; Generation is then 0. A company that owns a
+	// later generation gates the same components the family's generation 1
+	// gates (RequiresTechnology on a component still names generation 1, so
+	// existing content and designs need no change) but builds them better:
+	// Effects apply when the company's held generation exceeds the one a
+	// used component actually requires (see EffectsFor).
+	Family     string
+	Generation int
+	// Effects are what owning this generation adds to the attributes of
+	// whatever it gates, on top of the generation before it: diminishing
+	// (ValidateTree refuses a later generation's effect on the same target
+	// growing past the one before it) and capped across the whole family
+	// (MaxCumulativeEffectBPS).
+	Effects []item.Effect
 }
 
 // Tree is the whole technology tree, keyed by code.
@@ -153,7 +187,19 @@ func ValidateTree(techs []Tech, vocab Vocabulary) error {
 		if t.Level < 0 || t.Level > item.MaxSkillLevel || (t.Skill == "" && t.Level != 0) {
 			fail(ErrInvalidTech, "%q skill level %d", t.Code, t.Level)
 		}
+		if (t.Family == "") != (t.Generation == 0) {
+			fail(ErrInvalidGeneration, "%q has family %q and generation %d", t.Code, t.Family, t.Generation)
+		}
+		if t.Generation < 0 || t.Generation > MaxGeneration {
+			fail(ErrInvalidGeneration, "%q generation %d", t.Code, t.Generation)
+		}
+		for _, e := range t.Effects {
+			if err := item.ValidateEffect(e); err != nil {
+				fail(ErrInvalidGeneration, "%q effect: %v", t.Code, err)
+			}
+		}
 	}
+	validateGenerations(techs, fail)
 	for _, t := range techs {
 		seen := map[string]bool{}
 		for _, r := range t.Requires {
@@ -217,6 +263,107 @@ func sortedCodes(tree Tree) []string {
 	out := make([]string, 0, len(tree))
 	for c := range tree {
 		out = append(out, c)
+	}
+	sort.Strings(out)
+	return out
+}
+
+// validateGenerations applies the family/generation rules: every generation
+// from 1 to the family's size is declared exactly once, each one after the
+// first requires the one before it, and an effect on one target neither
+// grows from one generation to the next nor exceeds the family's cumulative
+// cap on that target.
+func validateGenerations(techs []Tech, fail func(error, string, ...any)) {
+	families := map[string][]Tech{}
+	for _, t := range techs {
+		if t.Family != "" {
+			families[t.Family] = append(families[t.Family], t)
+		}
+	}
+	for _, fam := range sortedFamilies(families) {
+		members := families[fam]
+		byGen := map[int]Tech{}
+		for _, m := range members {
+			if other, dup := byGen[m.Generation]; dup {
+				fail(ErrInvalidGeneration, "family %q generation %d is both %q and %q", fam, m.Generation, other.Code, m.Code)
+				continue
+			}
+			byGen[m.Generation] = m
+		}
+		for g := 1; g <= len(members); g++ {
+			if _, ok := byGen[g]; !ok {
+				fail(ErrInvalidGeneration, "family %q has no generation %d", fam, g)
+			}
+		}
+		cumulative := map[string]int64{}
+		for g := 1; g <= len(members); g++ {
+			cur, ok := byGen[g]
+			if !ok {
+				continue
+			}
+			if g > 1 {
+				if prev, ok := byGen[g-1]; ok {
+					if !containsCode(cur.Requires, prev.Code) {
+						fail(ErrInvalidGeneration, "family %q generation %d (%q) must require generation %d (%q)",
+							fam, g, cur.Code, g-1, prev.Code)
+					}
+					prevDeltas := effectDeltas(prev.Effects)
+					for target, cd := range effectDeltas(cur.Effects) {
+						if pd, ok := prevDeltas[target]; ok && absInt64(cd) > absInt64(pd) {
+							fail(ErrInvalidGeneration, "family %q generation %d effect on %q (%+d) does not diminish from generation %d's (%+d)",
+								fam, g, target, cd, g-1, pd)
+						}
+					}
+				}
+			}
+			for target, d := range effectDeltas(cur.Effects) {
+				cumulative[target] += absInt64(d)
+				if cumulative[target] > MaxCumulativeEffectBPS {
+					fail(ErrInvalidGeneration, "family %q target %q cumulative effect %d bps exceeds the cap %d",
+						fam, target, cumulative[target], MaxCumulativeEffectBPS)
+				}
+			}
+		}
+	}
+}
+
+// effectDeltas is how far each target an add or multiply effect moves it,
+// signed: Value for add, Value−BPS for multiply. A cap has no size of its
+// own and is left out, so it plays no part in the diminishing-returns or
+// cumulative-cap checks.
+func effectDeltas(effects []item.Effect) map[string]int64 {
+	out := make(map[string]int64, len(effects))
+	for _, e := range effects {
+		switch e.Op {
+		case item.EffectAdd:
+			out[e.Target] += e.Value
+		case item.EffectMultiply:
+			out[e.Target] += e.Value - item.BPS
+		}
+	}
+	return out
+}
+
+func absInt64(v int64) int64 {
+	if v < 0 {
+		return -v
+	}
+	return v
+}
+
+func containsCode(codes []string, code string) bool {
+	for _, c := range codes {
+		if c == code {
+			return true
+		}
+	}
+	return false
+}
+
+func sortedFamilies(families map[string][]Tech) []string {
+	out := make([]string, 0, len(families))
+	for f := range families {
+		out = append(out, f)
 	}
 	sort.Strings(out)
 	return out
