@@ -103,3 +103,18 @@ func (g *gateway) sendRedirect(ctx context.Context, bot application.Bot, meta en
 	}
 	g.reply(ctx, bot, meta, screens.Redirect(c, webAppURL, groupLink), log)
 }
+
+// noticesSuppressed reports whether the operator switch telegram_notices is
+// off (notify.go's deliverNotice checks this before sending): a Telegram
+// notice is skipped, not retried, while it is.
+func (g *gateway) noticesSuppressed(ctx context.Context, log *slog.Logger) bool {
+	if g.switches == nil {
+		return false
+	}
+	mode, _, err := g.switches.Get(ctx, switches.KeyTelegramNotices, switches.NoticesOn)
+	if err != nil {
+		log.Warn("switch telegram_notices unavailable, sending the notice", slog.String("error", err.Error()))
+		return false
+	}
+	return mode == switches.NoticesOff
+}

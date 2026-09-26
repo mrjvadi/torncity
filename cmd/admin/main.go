@@ -70,6 +70,8 @@ func main() {
 		err = lifeCommand(ctx, os.Args[2:])
 	case "panel":
 		err = panelCommand(ctx, os.Args[2:])
+	case "switch":
+		err = switchCommand(ctx, os.Args[2:])
 	default:
 		usage()
 		os.Exit(2)
@@ -100,6 +102,7 @@ func usage() {
   announce      post an operator's text in every city's groups (audited)
   life          backfill players' life histories from older records (audited)
   panel         the web panel's operator accounts (see: admin panel user)
+  switch        runtime switches: telegram_play, telegram_notices (see: admin switch)
 
 DATABASE_URL must be set, except for `+"`admin content validate`"+`, which
 reads files only.

@@ -335,6 +335,10 @@ func (w *Worker) deliver(
 			log.Info("notification delivered", slog.String("bot_id", link.BotID))
 			return true, nil
 
+		case OutcomeSuppressed:
+			log.Info("notification suppressed: telegram_notices is off", slog.String("bot_id", link.BotID))
+			return true, nil
+
 		case OutcomeUnreachable:
 			log.Info("the player cannot be reached through this bot; trying the next",
 				slog.String("bot_id", link.BotID), slog.String("detail", receipt.Detail))

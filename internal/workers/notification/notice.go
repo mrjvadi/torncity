@@ -82,6 +82,12 @@ const (
 	// OutcomeFailed is every other failure: the Bot API is down, a request
 	// timed out, the notice was malformed. It may succeed later.
 	OutcomeFailed Outcome = "failed"
+
+	// OutcomeSuppressed means nothing was sent on purpose: the operator
+	// switch telegram_notices is off (internal/switches). It is not a
+	// failure — retrying would only try the same switch again — so it is
+	// treated as delivered by the caller and the event is acknowledged.
+	OutcomeSuppressed Outcome = "suppressed"
 )
 
 // Receipt is the gateway's answer to a notice.

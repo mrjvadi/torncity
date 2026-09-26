@@ -89,6 +89,10 @@ func (g *gateway) deliverNotice(data []byte) notification.Receipt {
 	ctx, cancel := context.WithDeadline(context.Background(), deadline)
 	defer cancel()
 
+	if g.noticesSuppressed(ctx, log) {
+		return notification.Receipt{Outcome: notification.OutcomeSuppressed}
+	}
+
 	// A notice sends a new message unless it explicitly opted into editing
 	// one (Notice.Edit) and named it (ActionEditMessage with a message id):
 	// otherwise it cannot edit a message the player is reading, even if it
