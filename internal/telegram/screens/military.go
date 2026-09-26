@@ -131,8 +131,12 @@ func Ministry(c Context, v MinistryView) *presenter.Response {
 		}),
 		c.T("military.ministry.exports", map[string]any{"policy": c.T(armsExportsKey(v.ArmsExports), nil)}),
 	}
+	// The last settled period is history, the same as a company's own
+	// period recap (CompanyManage) — collapsed so the current budget is
+	// what the screen opens on.
+	var lastPeriod []string
 	if v.Last != nil {
-		budget = append(budget, c.T("military.ministry.last", map[string]any{
+		lastPeriod = append(lastPeriod, c.T("military.ministry.last", map[string]any{
 			"levy": FormatMoney(c, v.Last.Levy), "appropriation": FormatMoney(c, v.Last.Appropriation)}))
 		if v.Cleared {
 			key := "military.ministry.upkeep_paid"
@@ -140,7 +144,7 @@ func Ministry(c Context, v MinistryView) *presenter.Response {
 				key = "military.ministry.upkeep_short"
 			}
 			if v.Last.UpkeepDue > 0 {
-				budget = append(budget, c.T(key, map[string]any{
+				lastPeriod = append(lastPeriod, c.T(key, map[string]any{
 					"paid": FormatMoney(c, v.Last.UpkeepPaid), "due": FormatMoney(c, v.Last.UpkeepDue)}))
 			}
 		}
@@ -175,8 +179,22 @@ func Ministry(c Context, v MinistryView) *presenter.Response {
 	if v.PendingLicences > 0 {
 		pending = c.T("defence.ministry_pending", map[string]any{"count": FormatNumber(c, int64(v.PendingLicences))})
 	}
-	return c.respond(paragraphs(body(head...), body(offices...), body(budget...), body(forces...), pending,
-		c.T("military.ministry.footer", nil)), kb.Build())
+	var quotedLast string
+	if len(lastPeriod) > 0 {
+		quotedLast = htmlExpandableQuote(htmlEscape(body(lastPeriod...)))
+	}
+	// head's own last line is the title (see its construction above, a
+	// notice, when there is one, comes before it as its own line); only the
+	// title itself is bolded, so each line is escaped on its own before the
+	// title's tags go on, rather than escaping the joined result.
+	headEscaped := make([]string, len(head))
+	for i, line := range head {
+		headEscaped[i] = htmlEscape(line)
+	}
+	headEscaped[len(headEscaped)-1] = htmlBold(headEscaped[len(headEscaped)-1])
+	return c.respond(paragraphs(body(headEscaped...), htmlEscape(body(offices...)), htmlEscape(body(budget...)),
+		quotedLast, htmlEscape(body(forces...)), htmlEscape(pending),
+		htmlEscape(c.T("military.ministry.footer", nil))), kb.Build()).AsHTML()
 }
 
 // forceLines lists classes by branch: a band to everyone, the exact count

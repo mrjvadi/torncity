@@ -1,6 +1,6 @@
 ━━━ Ministry · the defence minister ━━━
 (edits message 42)
-🎖 Ministry of Defence of The Commonwealth
+<b>🎖 Ministry of Defence of The Commonwealth</b>
 
 Offices:
 • President: Kaveh (B3C4D5F)
@@ -15,9 +15,10 @@ Budget:
 🛡 Defence fund: 96,300 Nil
 📊 Cities pay 10% of their revenue to the nation; 30% of that goes to defence.
 🚢 Export policy: arms go to our state and to treaty partners.
-📅 Last period: 12,400 Nil came in from the cities, 3,720 Nil of it to defence.
-🔧 Upkeep paid in full: 1,290 Nil.
 ⏳ The next defence period ends in 17m, at 14:52.
+
+<blockquote expandable>📅 Last period: 12,400 Nil came in from the cities, 3,720 Nil of it to defence.
+🔧 Upkeep paid in full: 1,290 Nil.</blockquote>
 
 Forces:
 ▪️ Ground forces
@@ -39,7 +40,7 @@ The minister buys arms from defence companies with the defence fund, and the com
 
 ━━━ Ministry · as a group reads it ━━━
 (edits message 42)
-🎖 Ministry of Defence of The Commonwealth
+<b>🎖 Ministry of Defence of The Commonwealth</b>
 
 Offices:
 • President: Kaveh (B3C4D5F)
@@ -54,8 +55,9 @@ Budget:
 🛡 Defence fund: 96,300 Nil
 📊 Cities pay 10% of their revenue to the nation; 30% of that goes to defence.
 🚢 Export policy: arms go to our state and to treaty partners.
-📅 Last period: 12,400 Nil came in from the cities, 3,720 Nil of it to defence.
 ⏳ The next defence period ends in 17m, at 14:52.
+
+<blockquote expandable>📅 Last period: 12,400 Nil came in from the cities, 3,720 Nil of it to defence.</blockquote>
 
 Forces:
 ▪️ Ground forces
@@ -75,7 +77,7 @@ The minister buys arms from defence companies with the defence fund, and the com
 
 ━━━ Ministry · upkeep short, no forces yet ━━━
 (edits message 42)
-🎖 Ministry of Defence of The Commonwealth
+<b>🎖 Ministry of Defence of The Commonwealth</b>
 
 Offices:
 • President: Kaveh (B3C4D5F)
@@ -90,9 +92,10 @@ Budget:
 🛡 Defence fund: 96,300 Nil
 📊 Cities pay 10% of their revenue to the nation; 30% of that goes to defence.
 🚢 Export policy: arms go to our state and to treaty partners.
-📅 Last period: 800 Nil came in from the cities, 240 Nil of it to defence.
-⚠️ Upkeep short: 240 Nil of 1,290 Nil paid, and readiness fell.
 ⏳ The next defence period ends in 17m, at 14:52.
+
+<blockquote expandable>📅 Last period: 800 Nil came in from the cities, 240 Nil of it to defence.
+⚠️ Upkeep short: 240 Nil of 1,290 Nil paid, and readiness fell.</blockquote>
 
 Forces:
 No equipment in service yet.

@@ -1,6 +1,6 @@
 ━━━ /bank ━━━
 (sends)
-🏦 Bank - Ostmarch branch
+<b>🏦 Bank - Ostmarch branch</b>
 
 💵 Cash: 5,000 Nil
 🏦 Bank balance: 0 Nil
@@ -20,7 +20,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 (edits message 42)
 ✅ 1,000 Nil deposited into your bank account.
 
-🏦 Bank - Ostmarch branch
+<b>🏦 Bank - Ostmarch branch</b>
 
 💵 Cash: 4,000 Nil
 🏦 Bank balance: 1,000 Nil
@@ -41,7 +41,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 (edits message 42)
 ✅ You withdrew 985 Nil in cash, and a fee of 15 Nil was taken from your bank.
 
-🏦 Bank - Ostmarch branch
+<b>🏦 Bank - Ostmarch branch</b>
 
 💵 Cash: 4,985 Nil
 🏦 Bank balance: 0 Nil
