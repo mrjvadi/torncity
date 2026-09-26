@@ -152,14 +152,14 @@ Answer (a real `bank.show`, English):
     "withdrawals": null, "can_deposit": true, "can_withdraw": true, "notice": ""
   },
   "actions": [
-    {"label": "📥 Deposit 100,000 Nil", "command": "bank.deposit", "args": {"amount": "100000", "nonce": "n1"}, "row": 0},
-    {"label": "📥 Deposit all - 125,000 Nil", "command": "bank.deposit", "args": {"amount": "125000", "nonce": "n2"}, "row": 0},
-    {"label": "✏️ Deposit any amount", "command": "bank.deposit", "input": {"field": "amount"}, "row": 1},
-    {"label": "✏️ Withdraw any amount", "command": "bank.withdraw", "input": {"field": "amount"}, "row": 2},
-    {"label": "💸 Pay a player", "command": "bank.pay", "row": 3},
-    {"label": "🏛 National bank", "command": "loan.hub", "row": 3},
-    {"label": "🔙 Back", "command": "player.profile.get", "row": 4},
-    {"label": "🔄 Refresh", "command": "bank.show", "row": 4}
+    {"label": "📥 Deposit 100,000 Nil", "command": "bank.deposit", "args": {"amount": "100000", "nonce": "n1"}, "row": 0, "kind": "primary", "icon": "action:deposit"},
+    {"label": "📥 Deposit all - 125,000 Nil", "command": "bank.deposit", "args": {"amount": "125000", "nonce": "n2"}, "row": 0, "kind": "primary", "icon": "action:deposit"},
+    {"label": "✏️ Deposit any amount", "command": "bank.deposit", "input": {"field": "amount"}, "row": 1, "kind": "primary", "icon": "action:deposit"},
+    {"label": "✏️ Withdraw any amount", "command": "bank.withdraw", "input": {"field": "amount"}, "row": 2, "kind": "primary", "icon": "action:withdraw"},
+    {"label": "💸 Pay a player", "command": "bank.pay", "row": 3, "kind": "primary", "icon": "action:pay", "group": "bank_pay"},
+    {"label": "🏛 National bank", "command": "loan.hub", "row": 3, "kind": "navigation", "icon": "action:loan"},
+    {"label": "🔙 Back", "command": "player.profile.get", "row": 4, "kind": "navigation", "icon": "action:player"},
+    {"label": "🔄 Refresh", "command": "bank.show", "row": 4, "kind": "navigation", "icon": "action:bank"}
   ]
 }
 ```
@@ -183,6 +183,16 @@ data by the same parser the gateway reads a pressed button with, so sending
 | `input` | `{"field": "amount", "text": false}` — the button asks for a value: ask the player, put the answer in `args[field]` and send. `text: true` means words (a name), otherwise an amount. |
 | `url` | a link button (no command) |
 | `row` | the keyboard row, from 0 |
+| `kind` | how to draw it: `primary`, `secondary`, `danger`, `navigation`, `back` or `confirm` |
+| `icon` | a stable asset key (`action:deposit`, `nav:profile`…) the client maps to its own picture |
+| `group` | present only for a step of a multi-step flow (a wizard, a proposal and its answer); steps sharing a `group` value belong together |
+
+`kind`, `icon` and `group` come from `configs/actions.yml`, keyed by
+`command` — the same table for every client, so a native build and the
+Telegram keyboard always agree on what a button *means* even though only the
+native build draws it differently. A command the file does not mention gets
+the table's default (`secondary`, `action:default`). A `url` button (no
+`command`) carries none of the three: it is a plain link.
 
 Buttons whose command the game no longer serves are left out.
 
@@ -284,6 +294,35 @@ Start a journey with `travel.start {city: to_code, mode: mode_code, max: fare}`.
 
 New fields may be added to any view; a client must ignore keys it does not
 know. Renaming or removing one is a new API version.
+
+### 3.1 Every other screen
+
+The screens above are the ones a client is likely to start from. Past them,
+almost every screen the game renders carries a view of its own: crime,
+travel, work, education, skills, the social graph, shops, the item and stock
+markets, auctions, property, elections, factions, finance (loans, savings,
+insurance), the gold exchange, player-held offices (governance, the
+legislature, appointments), diplomacy, health, missions, specialist
+recruitment, achievements, linked devices, settings and a character's life
+and legacy.
+
+The **screen name** is one of the `Screen*` constants in
+`internal/telegram/screens/views.go` (the single source of truth — a name is
+never renamed once shipped, only added to); its **shape** is exactly the
+corresponding `XxxView` Go struct in that package, encoded with the rules
+above (a `CrimeHubView` becomes the `crime_hub` screen's view, field by
+field). A screen not reached from a client yet — currently the production,
+company, military and war screens — carries no view; its `screen` is still
+its command's name and its `text` is still the full Telegram rendering, so a
+client can show it as plain text until its view lands.
+
+Worked examples of every wired screen, in every field combination the game's
+own tests cover, live in
+`internal/telegram/screens/testdata/view-snapshots/<language>/<area>.json` —
+the same golden files that guard this contract in CI. A screen shown to a
+Telegram group carries no view (money and identity stay out of a shared
+chat); the client-only channel never has this problem, since a client always
+counts as the player's private chat (section 2).
 
 ---
 
