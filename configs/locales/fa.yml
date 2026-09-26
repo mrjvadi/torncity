@@ -1828,6 +1828,9 @@ company:
   manager: "🧑‍💼 مدیر: {player}"
   staff: "👥 کارکنان: {staff} از {max}"
   dissolved: "🔒 این شرکت بسته شده است."
+  # hiring_summary is the one line the company's page shows; hiring and
+  # hiring_line are the detail inside the expandable quote under it.
+  hiring_summary: "💼 در حال استخدام برای {count} جایگاه"
   hiring: "💼 استخدام می‌کند:"
   hiring_line: "💼 {title} ({career}) - {wage} برای هر شیفت - {free} جای خالی"
   register_heading: "🏢 ثبت شرکت"

@@ -780,7 +780,7 @@
 
 ━━━ Company page · products and published technologies ━━━
 (edits message 42)
-🏢 صنایع نیلوفر
+<b>🏢 صنایع نیلوفر</b>
 
 🏷 کارخانه - کد ⁨Q7M2K9B⁩
 📍 منطقهٔ صنعتی - استمارچ

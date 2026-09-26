@@ -1715,6 +1715,9 @@ company:
   manager: "🧑‍💼 Manager: {player}"
   staff: "👥 Staff: {staff} of {max}"
   dissolved: "🔒 This company has closed."
+  # hiring_summary is the one line the company's page shows; hiring and
+  # hiring_line are the detail inside the expandable quote under it.
+  hiring_summary: "💼 Hiring for {count} position(s)"
   hiring: "💼 Hiring:"
   hiring_line: "💼 {title} ({career}) - {wage} per shift - {free} open"
   register_heading: "🏢 Register a company"

@@ -44,7 +44,7 @@ You are travelling. Once you arrive, that city's companies are listed here.
 
 ━━━ Company · its page, to its owner ━━━
 (edits message 42)
-🏢 Kaveh Bakery
+<b>🏢 Kaveh Bakery</b>
 
 🏷 Grocery store - code Q7M2K9B
 📍 bazaar - Ostmarch
@@ -53,16 +53,17 @@ You are travelling. Once you arrive, that city's companies are listed here.
 👥 Staff: 3 of 5
 ⭐ Rated 4 of 5
 
-💼 Hiring:
-💼 Sales Trainee (Retail) - 150 Nil per shift - 1 open
+💼 Hiring for 1 position(s)
+<blockquote expandable>💼 Hiring:
+💼 Sales Trainee (Retail) - 150 Nil per shift - 1 open</blockquote>
   ───
-  [💼 Sales Trainee] → company:opening:12
   [⚙️ Manage the company] → company:manage:Q7M2K9B
+  [💼 Sales Trainee] → company:opening:12
   [🔙 Back] → company:list   │   [🔄 Refresh] → company:view:Q7M2K9B
 
 ━━━ Company · its page, in a group ━━━
 (edits message 42)
-🏢 Kaveh Bakery
+<b>🏢 Kaveh Bakery</b>
 
 🏷 Grocery store - code Q7M2K9B
 📍 bazaar - Ostmarch
@@ -71,15 +72,16 @@ You are travelling. Once you arrive, that city's companies are listed here.
 👥 Staff: 3 of 5
 ⭐ Rated 4 of 5
 
-💼 Hiring:
-💼 Sales Trainee (Retail) - 150 Nil per shift - 1 open
+💼 Hiring for 1 position(s)
+<blockquote expandable>💼 Hiring:
+💼 Sales Trainee (Retail) - 150 Nil per shift - 1 open</blockquote>
   ───
   [💼 Sales Trainee] → company:opening:12
   [🔙 Back] → company:list   │   [🔄 Refresh] → company:view:Q7M2K9B
 
 ━━━ Company · a new company's page ━━━
 (edits message 42)
-🏢 Nilou Repairs
+<b>🏢 Nilou Repairs</b>
 
 🏷 Repair workshop - code H4T8W2C
 📍 industrial zone - Ostmarch
@@ -91,7 +93,7 @@ You are travelling. Once you arrive, that city's companies are listed here.
 
 ━━━ Company · closed ━━━
 (edits message 42)
-🏢 Nilou Repairs
+<b>🏢 Nilou Repairs</b>
 
 🏷 Repair workshop - code H4T8W2C
 📍 industrial zone - Ostmarch

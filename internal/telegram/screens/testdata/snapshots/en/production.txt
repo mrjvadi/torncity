@@ -780,7 +780,7 @@ A design's name is 3 to 24 characters. Send it again.
 
 ━━━ Company page · products and published technologies ━━━
 (edits message 42)
-🏢 Nilou Industries
+<b>🏢 Nilou Industries</b>
 
 🏷 Factory - code Q7M2K9B
 📍 industrial zone - Ostmarch
