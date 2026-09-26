@@ -129,7 +129,7 @@ func withTerms(p Person, consecutive, total int) Person {
 	p.ConsecutiveTerms, p.TotalTerms = consecutive, total
 	return p
 }
-func withAge(p Person, age int) Person       { p.Age = age; return p }
+func withAge(p Person, age int) Person        { p.Age = age; return p }
 func withEducation(p Person, rank int) Person { p.EducationRank = rank; return p }
 
 func TestCountFillsSeatsInOrder(t *testing.T) {

@@ -332,3 +332,103 @@ func Refunded(r Rules, votes, cast int64) bool {
 	}
 	return votes*10_000 >= cast*int64(r.RefundShareBPS)
 }
+
+// Election law fields: the keys of the document an election_law policy
+// lever holds (application.LeverDefinition.DefaultElectionLaw,
+// application.PolicySetting.ElectionLaw). One office's whole election law is
+// one such document; the legislature amends it one field at a time, in this
+// order. Every value is a whole number: hours for a duration, minor units
+// for the deposit, 0/1 for a yes/no, an index into the office's
+// education_options for the certificate required, 0 for "none needed".
+const (
+	FieldCandidacyHours         = "candidacy_hours"
+	FieldVotingHours            = "voting_hours"
+	FieldMinLevel               = "min_level"
+	FieldMinResidencyHours      = "min_residency_hours"
+	FieldCleanRecord            = "clean_record"
+	FieldVoterMinResidencyHours = "voter_min_residency_hours"
+	FieldDeposit                = "deposit"
+	FieldRefundShareBPS         = "refund_share_bps"
+	FieldReopenAfterHours       = "reopen_after_hours"
+	FieldEndorsementsRequired   = "endorsements_required"
+	FieldTermLimitConsecutive   = "term_limit_consecutive"
+	FieldTermLimitTotal         = "term_limit_total"
+	FieldEducationRank          = "education_rank"
+	FieldMinAge                 = "min_age"
+)
+
+// Fields lists every field of an election law document, in the order the
+// legislature amends and the screens show them. A document is valid only
+// with exactly these keys (ValidateFields).
+var Fields = []string{
+	FieldCandidacyHours, FieldVotingHours, FieldMinLevel, FieldMinResidencyHours, FieldCleanRecord,
+	FieldVoterMinResidencyHours, FieldDeposit, FieldRefundShareBPS, FieldReopenAfterHours,
+	FieldEndorsementsRequired, FieldTermLimitConsecutive, FieldTermLimitTotal, FieldEducationRank, FieldMinAge,
+}
+
+// ErrInvalidFields means an election law document is missing a field, has
+// one it should not, or cannot be turned into usable rules.
+var ErrInvalidFields = errors.New("election: invalid election law fields")
+
+// ValidateFields checks that doc has exactly the keys Fields lists, and that
+// the rules they make are usable (RulesFromFields(doc).Validate()).
+func ValidateFields(doc map[string]int64) error {
+	if len(doc) != len(Fields) {
+		return fmt.Errorf("%w: has %d fields, want %d", ErrInvalidFields, len(doc), len(Fields))
+	}
+	for _, f := range Fields {
+		if _, ok := doc[f]; !ok {
+			return fmt.Errorf("%w: missing %q", ErrInvalidFields, f)
+		}
+	}
+	return RulesFromFields(doc).Validate()
+}
+
+// RulesFromFields turns an election law document into Rules: hours become
+// durations, and the deposit minor units become money.
+func RulesFromFields(doc map[string]int64) Rules {
+	return Rules{
+		Candidacy:            time.Duration(doc[FieldCandidacyHours]) * time.Hour,
+		Voting:               time.Duration(doc[FieldVotingHours]) * time.Hour,
+		MinLevel:             int(doc[FieldMinLevel]),
+		MinResidency:         time.Duration(doc[FieldMinResidencyHours]) * time.Hour,
+		CleanRecord:          doc[FieldCleanRecord] != 0,
+		VoterMinResidency:    time.Duration(doc[FieldVoterMinResidencyHours]) * time.Hour,
+		Deposit:              money.FromMinor(doc[FieldDeposit]),
+		RefundShareBPS:       int(doc[FieldRefundShareBPS]),
+		ReopenAfter:          time.Duration(doc[FieldReopenAfterHours]) * time.Hour,
+		Endorsements:         int(doc[FieldEndorsementsRequired]),
+		TermLimitConsecutive: int(doc[FieldTermLimitConsecutive]),
+		TermLimitTotal:       int(doc[FieldTermLimitTotal]),
+		EducationRank:        int(doc[FieldEducationRank]),
+		MinAge:               int(doc[FieldMinAge]),
+	}
+}
+
+// FieldsFromRules is the inverse of RulesFromFields: a full election law
+// document from Rules, for building a lever's default from content.
+func FieldsFromRules(r Rules) map[string]int64 {
+	return map[string]int64{
+		FieldCandidacyHours:         int64(r.Candidacy / time.Hour),
+		FieldVotingHours:            int64(r.Voting / time.Hour),
+		FieldMinLevel:               int64(r.MinLevel),
+		FieldMinResidencyHours:      int64(r.MinResidency / time.Hour),
+		FieldCleanRecord:            boolInt(r.CleanRecord),
+		FieldVoterMinResidencyHours: int64(r.VoterMinResidency / time.Hour),
+		FieldDeposit:                r.Deposit.Minor(),
+		FieldRefundShareBPS:         int64(r.RefundShareBPS),
+		FieldReopenAfterHours:       int64(r.ReopenAfter / time.Hour),
+		FieldEndorsementsRequired:   int64(r.Endorsements),
+		FieldTermLimitConsecutive:   int64(r.TermLimitConsecutive),
+		FieldTermLimitTotal:         int64(r.TermLimitTotal),
+		FieldEducationRank:          int64(r.EducationRank),
+		FieldMinAge:                 int64(r.MinAge),
+	}
+}
+
+func boolInt(b bool) int64 {
+	if b {
+		return 1
+	}
+	return 0
+}
