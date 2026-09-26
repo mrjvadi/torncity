@@ -18,7 +18,7 @@ import (
 // satisfies it; tests hand in a fake that records every call.
 type API interface {
 	SendMessageWith(ctx context.Context, chatID int64, text string, replyMarkup any, opts client.SendOptions) (*client.Message, error)
-	EditMessageText(ctx context.Context, chatID, messageID int64, text string, replyMarkup any) error
+	EditMessageText(ctx context.Context, chatID, messageID int64, text string, replyMarkup any, parseMode string) error
 	AnswerCallback(ctx context.Context, answer client.CallbackAnswer) error
 }
 
@@ -188,15 +188,27 @@ func (r *Renderer) public(ctx context.Context, api API, bot Bot, meta envelope.M
 			messageID = meta.TelegramMessageID
 		}
 		if messageID != 0 {
-			err := api.EditMessageText(ctx, meta.TelegramChatID, messageID, resp.Text, markup)
+			err := api.EditMessageText(ctx, meta.TelegramChatID, messageID, resp.Text, markup, parseModeOf(resp))
 			if isNotModified(err) {
 				err = nil
 			}
 			return out, err
 		}
 	}
-	_, err := api.SendMessageWith(ctx, meta.TelegramChatID, resp.Text, markup, replyTo(meta))
+	opts := replyTo(meta)
+	opts.ParseMode = parseModeOf(resp)
+	_, err := api.SendMessageWith(ctx, meta.TelegramChatID, resp.Text, markup, opts)
 	return out, err
+}
+
+// parseModeOf is the parse_mode Telegram is told to read resp.Text with:
+// "HTML" for a screen that opted in (presenter.Response.HTML), "" — plain
+// text, every screen until now — otherwise.
+func parseModeOf(resp *presenter.Response) string {
+	if resp != nil && resp.HTML {
+		return "HTML"
+	}
+	return ""
 }
 
 // replyTo answers a typed command in a group as a reply to the player's own
@@ -220,7 +232,7 @@ func (r *Renderer) direct(ctx context.Context, api API, bot Bot, meta envelope.M
 		return out, ErrNoReceiver
 	}
 	// A private chat holds one player, so its buttons need no owner.
-	_, err := api.SendMessageWith(ctx, user, resp.Text, Markup(resp.Keyboard), client.SendOptions{})
+	_, err := api.SendMessageWith(ctx, user, resp.Text, Markup(resp.Keyboard), client.SendOptions{ParseMode: parseModeOf(resp)})
 	if err != nil && (isFlood(err) || !isUnreachable(err)) {
 		return out, err
 	}

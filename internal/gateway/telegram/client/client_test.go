@@ -77,7 +77,7 @@ func TestSendMessageRoundTrip(t *testing.T) {
 	})
 
 	markup := map[string]any{"inline_keyboard": [][]any{}}
-	id, err := c.SendMessage(context.Background(), 77, "hello", markup)
+	id, err := c.SendMessage(context.Background(), 77, "hello", markup, "")
 	if err != nil {
 		t.Fatalf("SendMessage: %v", err)
 	}
@@ -192,7 +192,7 @@ func TestAPIErrorFromNotOK(t *testing.T) {
 		io.WriteString(w, `{"ok":false,"error_code":400,"description":"Bad Request: chat not found"}`)
 	})
 
-	_, err := c.SendMessage(context.Background(), 1, "x", nil)
+	_, err := c.SendMessage(context.Background(), 1, "x", nil, "")
 	var apiErr *APIError
 	if !errors.As(err, &apiErr) {
 		t.Fatalf("got %T (%v), want *APIError", err, err)
@@ -286,7 +286,7 @@ func TestFloodWait(t *testing.T) {
 				io.WriteString(w, tt.body)
 			})
 
-			_, err := c.SendMessage(context.Background(), 1, "x", nil)
+			_, err := c.SendMessage(context.Background(), 1, "x", nil, "")
 			var flood *FloodWaitError
 			if !errors.As(err, &flood) {
 				t.Fatalf("got %T (%v), want *FloodWaitError", err, err)
@@ -327,11 +327,11 @@ func TestErrorsNeverContainToken(t *testing.T) {
 		call func() error
 	}{
 		{"transport failure", func() error {
-			_, err := deadClient.SendMessage(context.Background(), 1, "x", nil)
+			_, err := deadClient.SendMessage(context.Background(), 1, "x", nil, "")
 			return err
 		}},
 		{"api error echoing the token", func() error {
-			_, err := echoClient.SendMessage(context.Background(), 1, "x", nil)
+			_, err := echoClient.SendMessage(context.Background(), 1, "x", nil, "")
 			return err
 		}},
 		{"getMe against a dead server", func() error {
@@ -406,7 +406,7 @@ func TestEditMessageTextAndAnswerCallbackQuery(t *testing.T) {
 		io.WriteString(w, `{"ok":true,"result":true}`)
 	})
 
-	if err := c.EditMessageText(context.Background(), 5, 6, "updated", nil); err != nil {
+	if err := c.EditMessageText(context.Background(), 5, 6, "updated", nil, ""); err != nil {
 		t.Fatalf("EditMessageText: %v", err)
 	}
 	if err := c.AnswerCallbackQuery(context.Background(), "cb-1", "done"); err != nil {
@@ -424,6 +424,69 @@ func TestEditMessageTextAndAnswerCallbackQuery(t *testing.T) {
 	}
 	if bodies[1]["callback_query_id"] != "cb-1" {
 		t.Errorf("callback_query_id = %v", bodies[1]["callback_query_id"])
+	}
+}
+
+// TestBadHTMLFallsBackToPlainText proves the one thing that must never
+// happen: a screen's own HTML mistake reaching a player as nothing at all.
+// Telegram's refusal of unparseable entities is retried once, in plain text
+// with the tags stripped and the entities decoded, so the player still
+// reads the screen — a title without its bold, not a missing message.
+func TestBadHTMLFallsBackToPlainText(t *testing.T) {
+	var bodies []map[string]any
+	attempt := 0
+
+	c, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		raw, _ := io.ReadAll(r.Body)
+		var body map[string]any
+		_ = json.Unmarshal(raw, &body)
+		bodies = append(bodies, body)
+		attempt++
+		if attempt == 1 {
+			w.WriteHeader(http.StatusBadRequest)
+			io.WriteString(w, `{"ok":false,"error_code":400,"description":"Bad Request: can't parse entities: Unsupported start tag \"x\""}`)
+			return
+		}
+		io.WriteString(w, `{"ok":true,"result":{"message_id":1,"date":1,"chat":{"id":7,"type":"private"},"text":"hi"}}`)
+	})
+
+	id, err := c.SendMessage(context.Background(), 7, "<b>Ada &amp; Sons</b>", nil, "HTML")
+	if err != nil {
+		t.Fatalf("SendMessage: %v", err)
+	}
+	if id != 1 {
+		t.Errorf("message id = %d, want 1", id)
+	}
+	if len(bodies) != 2 {
+		t.Fatalf("attempts = %d, want 2 (the HTML try, then the plain-text fallback)", len(bodies))
+	}
+	if bodies[0]["parse_mode"] != "HTML" {
+		t.Errorf("first attempt parse_mode = %v, want HTML", bodies[0]["parse_mode"])
+	}
+	if _, ok := bodies[1]["parse_mode"]; ok {
+		t.Errorf("fallback attempt still sets parse_mode: %v", bodies[1]["parse_mode"])
+	}
+	if bodies[1]["text"] != "Ada & Sons" {
+		t.Errorf("fallback text = %q, want the tags stripped and the entity decoded: %q", bodies[1]["text"], "Ada & Sons")
+	}
+
+	// EditMessageText and SendMessageWith fall back the same way.
+	attempt = 0
+	bodies = nil
+	if err := c.EditMessageText(context.Background(), 7, 1, "<b>bad</b>", nil, "HTML"); err != nil {
+		t.Fatalf("EditMessageText: %v", err)
+	}
+	if len(bodies) != 2 || bodies[1]["text"] != "bad" {
+		t.Errorf("EditMessageText did not fall back to plain text: %v", bodies)
+	}
+
+	attempt = 0
+	bodies = nil
+	if _, err := c.SendMessageWith(context.Background(), 7, "<b>bad</b>", nil, SendOptions{ParseMode: "HTML"}); err != nil {
+		t.Fatalf("SendMessageWith: %v", err)
+	}
+	if len(bodies) != 2 || bodies[1]["text"] != "bad" {
+		t.Errorf("SendMessageWith did not fall back to plain text: %v", bodies)
 	}
 }
 
@@ -480,7 +543,7 @@ func TestUndecodableBody(t *testing.T) {
 		io.WriteString(w, "<html>bad gateway</html>")
 	})
 
-	_, err := c.SendMessage(context.Background(), 1, "x", nil)
+	_, err := c.SendMessage(context.Background(), 1, "x", nil, "")
 	if err == nil {
 		t.Fatal("expected an error")
 	}

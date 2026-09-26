@@ -16,29 +16,40 @@ type ReplyParameters struct {
 }
 
 // SendOptions are the optional parts of sendMessage that SendMessage leaves
-// out.
+// out. ParseMode is "HTML" for a screen that opted into Telegram's HTML
+// formatting (presenter.Response.HTML) or "" for plain text.
 type SendOptions struct {
 	ReplyParameters *ReplyParameters
+	ParseMode       string
 }
 
 type sendMessageWithRequest struct {
 	ChatID          int64            `json:"chat_id"`
 	Text            string           `json:"text"`
+	ParseMode       string           `json:"parse_mode,omitempty"`
 	ReplyMarkup     any              `json:"reply_markup,omitempty"`
 	ReplyParameters *ReplyParameters `json:"reply_parameters,omitempty"`
 }
 
 // SendMessageWith is SendMessage with reply parameters, and it returns the
-// whole sent message rather than its id.
+// whole sent message rather than its id. A malformed-entity refusal falls
+// back to plain text with the tags stripped, exactly as SendMessage's.
 func (c *Client) SendMessageWith(ctx context.Context, chatID int64, text string, replyMarkup any, opts SendOptions) (*Message, error) {
 	body := sendMessageWithRequest{
 		ChatID:          chatID,
 		Text:            text,
+		ParseMode:       opts.ParseMode,
 		ReplyMarkup:     replyMarkup,
 		ReplyParameters: opts.ReplyParameters,
 	}
 	var sent Message
-	if err := c.do(ctx, c.httpClient, "sendMessage", nil, body, &sent); err != nil {
+	err := c.do(ctx, c.httpClient, "sendMessage", nil, body, &sent)
+	if isBadEntities(err) {
+		body.Text, body.ParseMode = stripHTML(text), ""
+		c.logBadEntities("sendMessage", err)
+		err = c.do(ctx, c.httpClient, "sendMessage", nil, body, &sent)
+	}
+	if err != nil {
 		return nil, err
 	}
 	return &sent, nil

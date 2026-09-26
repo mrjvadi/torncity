@@ -24,6 +24,7 @@ type call struct {
 	opts      client.SendOptions
 	messageID int64
 	answer    client.CallbackAnswer
+	parseMode string
 }
 
 // fakeAPI records every Bot API call. onSend, when set, decides sendMessage's
@@ -49,8 +50,8 @@ func (f *fakeAPI) SendMessageWith(_ context.Context, chatID int64, text string, 
 	return &client.Message{MessageID: 100, Chat: client.Chat{ID: chatID}}, nil
 }
 
-func (f *fakeAPI) EditMessageText(_ context.Context, chatID, messageID int64, text string, markup any) error {
-	f.record(call{method: "editMessageText", chatID: chatID, messageID: messageID, text: text, markup: markup})
+func (f *fakeAPI) EditMessageText(_ context.Context, chatID, messageID int64, text string, markup any, parseMode string) error {
+	f.record(call{method: "editMessageText", chatID: chatID, messageID: messageID, text: text, markup: markup, parseMode: parseMode})
 	return nil
 }
 
