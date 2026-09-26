@@ -27,6 +27,11 @@ const (
 	// ReverseActionType is a reverse engineering finishing:
 	// company.reversed.
 	ReverseActionType = "reverse_engineering"
+	// ImprovementActionType is an improvement project finishing:
+	// company.improved.
+	ImprovementActionType = "design_improvement"
+	// RetrofitActionType is a retrofit job finishing: company.retrofitted.
+	RetrofitActionType = "retrofit"
 )
 
 // Statuses and kinds as the tables spell them.
@@ -38,14 +43,21 @@ const (
 	ResearchRunning = "running"
 	ResearchDone    = "done"
 
-	OrderKindDesign    = "design"
-	OrderKindComponent = "component"
-	OrderRunning       = "running"
-	OrderDone          = "done"
+	OrderKindDesign     = "design"
+	OrderKindComponent  = "component"
+	OrderKindUpgradeKit = "upgrade_kit"
+	OrderRunning        = "running"
+	OrderDone           = "done"
 
 	ReverseRunning   = "running"
 	ReverseSucceeded = "succeeded"
 	ReverseFailed    = "failed"
+
+	ImprovementRunning = "running"
+	ImprovementDone    = "done"
+
+	RetrofitRunning = "running"
+	RetrofitDone    = "done"
 
 	ListingOpen      = "open"
 	ListingSold      = "sold"
@@ -144,6 +156,9 @@ type ProductionOrder struct {
 	CompanyID string
 	Kind      string
 	DesignID  string
+	// TargetDesignID is set only for Kind == OrderKindUpgradeKit: the
+	// version the kits this order builds will retrofit a unit to.
+	TargetDesignID string
 	// Output is the item or component code that comes out.
 	Output string
 	// Quantity is units (a design) or batches (a component) ordered;
@@ -183,6 +198,48 @@ type ReverseJob struct {
 	StartedAt      time.Time
 	FinishAt       time.Time
 	CompletedAt    *time.Time
+}
+
+// DesignImprovement is one design_improvement_projects row: a company
+// running one improvement project on one version of its lineage
+// (internal/domain/item.ApplyImprovement), which produces the next version
+// (ResultDesignID) when it completes.
+type DesignImprovement struct {
+	ID                  string
+	No                  int64
+	CompanyID           string
+	DesignID            string
+	Attribute           string
+	GainedBPS           int64
+	Cost                int64
+	LedgerTransactionID string
+	Status              string
+	ResultDesignID      string
+	GameActionID        string
+	StartedBy           string
+	StartedAt           time.Time
+	FinishAt            time.Time
+	CompletedAt         *time.Time
+}
+
+// RetrofitJob is one retrofit_jobs row: applying one upgrade kit to one
+// existing instance (internal/domain/item.Retrofit), moving it from
+// FromDesignID to ToDesignID in place.
+type RetrofitJob struct {
+	ID           string
+	No           int64
+	OrgKind      string
+	OrgID        string
+	PieceID      string
+	KitPieceID   string
+	FromDesignID string
+	ToDesignID   string
+	Status       string
+	GameActionID string
+	StartedBy    string
+	StartedAt    time.Time
+	FinishAt     time.Time
+	CompletedAt  *time.Time
 }
 
 // Listing is one company_listings row.
@@ -332,6 +389,27 @@ type ProductionRepository interface {
 	RecordSale(ctx context.Context, s CompanySale) error
 	// RecordSupply appends a purchase from a supplier.
 	RecordSupply(ctx context.Context, s SupplyPurchase) error
+
+	// StartImprovement records a running improvement project. A project
+	// already running for the company is ErrImprovementBusy.
+	StartImprovement(ctx context.Context, p DesignImprovement) error
+	// Improvement reads one improvement project, locked, or
+	// ErrImprovementNotFound.
+	Improvement(ctx context.Context, id string) (*DesignImprovement, error)
+	// RunningImprovement reads the company's running improvement project,
+	// or nil.
+	RunningImprovement(ctx context.Context, companyID string) (*DesignImprovement, error)
+	// FinishImprovement records an improvement project's result.
+	FinishImprovement(ctx context.Context, id, resultDesignID string, gainedBPS int64, at time.Time) error
+
+	// StartRetrofit records a running retrofit job. A unit already under a
+	// running retrofit is ErrRetrofitBusy; a kit already spent on another
+	// job is ErrRetrofitKitSpent.
+	StartRetrofit(ctx context.Context, j RetrofitJob) error
+	// Retrofit reads one retrofit job, locked, or ErrRetrofitNotFound.
+	Retrofit(ctx context.Context, id string) (*RetrofitJob, error)
+	// FinishRetrofit marks a retrofit job done.
+	FinishRetrofit(ctx context.Context, id string, at time.Time) error
 }
 
 // Production sentinels.
@@ -358,4 +436,14 @@ var (
 		"application.ErrListingNotFound", "no such listing")
 	ErrListingOpen = errors.Sentinel(errors.CodeConflict,
 		"application.ErrListingOpen", "that good is listed already")
+	ErrImprovementBusy = errors.Sentinel(errors.CodeConflict,
+		"application.ErrImprovementBusy", "the company is running an improvement project already")
+	ErrImprovementNotFound = errors.Sentinel(errors.CodeNotFound,
+		"application.ErrImprovementNotFound", "no such improvement project")
+	ErrRetrofitBusy = errors.Sentinel(errors.CodeConflict,
+		"application.ErrRetrofitBusy", "that unit is already being retrofitted")
+	ErrRetrofitKitSpent = errors.Sentinel(errors.CodeConflict,
+		"application.ErrRetrofitKitSpent", "that upgrade kit was used already")
+	ErrRetrofitNotFound = errors.Sentinel(errors.CodeNotFound,
+		"application.ErrRetrofitNotFound", "no such retrofit job")
 )

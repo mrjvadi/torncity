@@ -20,6 +20,10 @@ const (
 	companyResearchOnceIdx       = "company_research_once_idx"
 	technologyLicensesOnceKey    = "technology_licenses_once_key"
 	companyListingsOneOpenIdx    = "company_listings_one_open_idx"
+	// Constraint names from migrations/0036_generations.up.sql.
+	designImprovementOneRunningIdx = "design_improvement_projects_one_running_idx"
+	retrofitJobsOneRunningIdx      = "retrofit_jobs_one_running_idx"
+	retrofitJobsKitKey             = "retrofit_jobs_kit_key"
 )
 
 // ProductionRepository implements application.ProductionRepository over the
@@ -442,7 +446,7 @@ func (r *ProductionRepository) LicensesSold(ctx context.Context, companyID, tech
 
 const productionOrderColumns = `id::text, no, company_id::text, kind, COALESCE(design_id::text, ''), output_code, quantity,
 	output_qty, workers, input_quality, skill_level, consumed, status, COALESCE(quality, 0), game_action_id::text,
-	COALESCE(placed_by::text, ''), started_at, finish_at, completed_at`
+	COALESCE(placed_by::text, ''), started_at, finish_at, completed_at, COALESCE(target_design_id::text, '')`
 
 func scanProductionOrder(row pgx.Row) (*application.ProductionOrder, error) {
 	var (
@@ -451,7 +455,7 @@ func scanProductionOrder(row pgx.Row) (*application.ProductionOrder, error) {
 	)
 	if err := row.Scan(&o.ID, &o.No, &o.CompanyID, &o.Kind, &o.DesignID, &o.Output, &o.Quantity, &o.OutputQty,
 		&o.Workers, &o.InputQuality, &o.SkillLevel, &consumed, &o.Status, &o.Quality, &o.GameActionID, &o.PlacedBy,
-		&o.StartedAt, &o.FinishAt, &o.CompletedAt); err != nil {
+		&o.StartedAt, &o.FinishAt, &o.CompletedAt, &o.TargetDesignID); err != nil {
 		return nil, err
 	}
 	o.Consumed = map[string]int64{}
@@ -473,13 +477,13 @@ func (r *ProductionRepository) PlaceOrder(ctx context.Context, o application.Pro
 	if err := r.q.QueryRow(ctx,
 		`INSERT INTO production_orders (id, company_id, kind, design_id, output_code, quantity, output_qty, workers,
 		                                input_quality, skill_level, consumed, status, game_action_id, placed_by,
-		                                started_at, finish_at)
+		                                started_at, finish_at, target_design_id)
 		 VALUES ($1::uuid, $2::uuid, $3, $4::uuid, $5, $6, $7, $8, $9, $10, $11::jsonb, 'running', $12::uuid, $13::uuid,
-		         $14, $15)
+		         $14, $15, $16::uuid)
 		 RETURNING no`,
 		o.ID, o.CompanyID, o.Kind, nullableUUID(o.DesignID), o.Output, o.Quantity, o.OutputQty, o.Workers,
 		o.InputQuality, o.SkillLevel, string(consumed), o.GameActionID, nullableUUID(o.PlacedBy), o.StartedAt.UTC(),
-		o.FinishAt.UTC()).Scan(&o.No); err != nil {
+		o.FinishAt.UTC(), nullableUUID(o.TargetDesignID)).Scan(&o.No); err != nil {
 		return o, fmt.Errorf("postgres: placing a production order: %w", err)
 	}
 	o.Status = application.OrderRunning
@@ -626,6 +630,139 @@ func (r *ProductionRepository) FinishReverse(ctx context.Context, id, status, re
 		  WHERE id = $1::uuid AND status = 'running'`,
 		id, status, nullableUUID(resultDesignID), at.UTC()); err != nil {
 		return fmt.Errorf("postgres: finishing reverse engineering: %w", err)
+	}
+	return nil
+}
+
+// ---------------------------------------------------------------------------
+// Improvement projects (migrations/0036_generations).
+
+const improvementColumns = `id::text, no, company_id::text, design_id::text, attribute, gained_bps, cost,
+	COALESCE(ledger_transaction_id::text, ''), status, COALESCE(result_design_id::text, ''), game_action_id::text,
+	COALESCE(started_by::text, ''), started_at, finish_at, completed_at`
+
+func scanImprovement(row pgx.Row) (*application.DesignImprovement, error) {
+	var p application.DesignImprovement
+	if err := row.Scan(&p.ID, &p.No, &p.CompanyID, &p.DesignID, &p.Attribute, &p.GainedBPS, &p.Cost,
+		&p.LedgerTransactionID, &p.Status, &p.ResultDesignID, &p.GameActionID, &p.StartedBy, &p.StartedAt,
+		&p.FinishAt, &p.CompletedAt); err != nil {
+		return nil, err
+	}
+	p.StartedAt, p.FinishAt, p.CompletedAt = p.StartedAt.UTC(), p.FinishAt.UTC(), utcPtr(p.CompletedAt)
+	return &p, nil
+}
+
+// StartImprovement records a running improvement project.
+func (r *ProductionRepository) StartImprovement(ctx context.Context, p application.DesignImprovement) error {
+	_, err := r.q.Exec(ctx,
+		`INSERT INTO design_improvement_projects (id, company_id, design_id, attribute, gained_bps, cost,
+		                                          ledger_transaction_id, status, game_action_id, started_by,
+		                                          started_at, finish_at)
+		 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7::uuid, 'running', $8::uuid, $9::uuid, $10, $11)`,
+		p.ID, p.CompanyID, p.DesignID, p.Attribute, p.GainedBPS, p.Cost, nullableUUID(p.LedgerTransactionID),
+		p.GameActionID, nullableUUID(p.StartedBy), p.StartedAt.UTC(), p.FinishAt.UTC())
+	switch {
+	case violates(err, sqlstateUniqueViolation, designImprovementOneRunningIdx):
+		return application.ErrImprovementBusy
+	case err != nil:
+		return fmt.Errorf("postgres: starting an improvement project: %w", err)
+	}
+	return nil
+}
+
+// Improvement reads one improvement project, locked.
+func (r *ProductionRepository) Improvement(ctx context.Context, id string) (*application.DesignImprovement, error) {
+	p, err := scanImprovement(r.q.QueryRow(ctx,
+		`SELECT `+improvementColumns+` FROM design_improvement_projects WHERE id = $1::uuid FOR UPDATE`, id))
+	switch {
+	case errors.Is(err, pgx.ErrNoRows), isInvalidUUIDText(err):
+		return nil, application.ErrImprovementNotFound
+	case err != nil:
+		return nil, fmt.Errorf("postgres: reading an improvement project: %w", err)
+	}
+	return p, nil
+}
+
+// RunningImprovement reads a company's running improvement project, or nil.
+func (r *ProductionRepository) RunningImprovement(ctx context.Context, companyID string) (*application.DesignImprovement, error) {
+	p, err := scanImprovement(r.q.QueryRow(ctx,
+		`SELECT `+improvementColumns+` FROM design_improvement_projects WHERE company_id = $1::uuid AND status = 'running'`,
+		companyID))
+	switch {
+	case errors.Is(err, pgx.ErrNoRows), isInvalidUUIDText(err):
+		return nil, nil
+	case err != nil:
+		return nil, fmt.Errorf("postgres: reading a running improvement project: %w", err)
+	}
+	return p, nil
+}
+
+// FinishImprovement records an improvement project's result.
+func (r *ProductionRepository) FinishImprovement(ctx context.Context, id, resultDesignID string, gainedBPS int64, at time.Time) error {
+	if _, err := r.q.Exec(ctx,
+		`UPDATE design_improvement_projects SET status = 'done', result_design_id = $2::uuid, gained_bps = $3,
+		        completed_at = $4
+		  WHERE id = $1::uuid AND status = 'running'`,
+		id, resultDesignID, gainedBPS, at.UTC()); err != nil {
+		return fmt.Errorf("postgres: finishing an improvement project: %w", err)
+	}
+	return nil
+}
+
+// ---------------------------------------------------------------------------
+// Retrofit (migrations/0036_generations).
+
+const retrofitColumns = `id::text, no, org_kind, org_id::text, piece_id::text, kit_piece_id::text,
+	from_design_id::text, to_design_id::text, status, game_action_id::text, COALESCE(started_by::text, ''),
+	started_at, finish_at, completed_at`
+
+func scanRetrofit(row pgx.Row) (*application.RetrofitJob, error) {
+	var j application.RetrofitJob
+	if err := row.Scan(&j.ID, &j.No, &j.OrgKind, &j.OrgID, &j.PieceID, &j.KitPieceID, &j.FromDesignID, &j.ToDesignID,
+		&j.Status, &j.GameActionID, &j.StartedBy, &j.StartedAt, &j.FinishAt, &j.CompletedAt); err != nil {
+		return nil, err
+	}
+	j.StartedAt, j.FinishAt, j.CompletedAt = j.StartedAt.UTC(), j.FinishAt.UTC(), utcPtr(j.CompletedAt)
+	return &j, nil
+}
+
+// StartRetrofit records a running retrofit job.
+func (r *ProductionRepository) StartRetrofit(ctx context.Context, j application.RetrofitJob) error {
+	_, err := r.q.Exec(ctx,
+		`INSERT INTO retrofit_jobs (id, org_kind, org_id, piece_id, kit_piece_id, from_design_id, to_design_id,
+		                           status, game_action_id, started_by, started_at, finish_at)
+		 VALUES ($1::uuid, $2, $3::uuid, $4::uuid, $5::uuid, $6::uuid, $7::uuid, 'running', $8::uuid, $9::uuid, $10, $11)`,
+		j.ID, j.OrgKind, j.OrgID, j.PieceID, j.KitPieceID, j.FromDesignID, j.ToDesignID, j.GameActionID,
+		nullableUUID(j.StartedBy), j.StartedAt.UTC(), j.FinishAt.UTC())
+	switch {
+	case violates(err, sqlstateUniqueViolation, retrofitJobsOneRunningIdx):
+		return application.ErrRetrofitBusy
+	case violates(err, sqlstateUniqueViolation, retrofitJobsKitKey):
+		return application.ErrRetrofitKitSpent
+	case err != nil:
+		return fmt.Errorf("postgres: starting a retrofit job: %w", err)
+	}
+	return nil
+}
+
+// Retrofit reads one retrofit job, locked.
+func (r *ProductionRepository) Retrofit(ctx context.Context, id string) (*application.RetrofitJob, error) {
+	j, err := scanRetrofit(r.q.QueryRow(ctx, `SELECT `+retrofitColumns+` FROM retrofit_jobs WHERE id = $1::uuid FOR UPDATE`, id))
+	switch {
+	case errors.Is(err, pgx.ErrNoRows), isInvalidUUIDText(err):
+		return nil, application.ErrRetrofitNotFound
+	case err != nil:
+		return nil, fmt.Errorf("postgres: reading a retrofit job: %w", err)
+	}
+	return j, nil
+}
+
+// FinishRetrofit marks a retrofit job done.
+func (r *ProductionRepository) FinishRetrofit(ctx context.Context, id string, at time.Time) error {
+	if _, err := r.q.Exec(ctx,
+		`UPDATE retrofit_jobs SET status = 'done', completed_at = $2 WHERE id = $1::uuid AND status = 'running'`,
+		id, at.UTC()); err != nil {
+		return fmt.Errorf("postgres: finishing a retrofit job: %w", err)
 	}
 	return nil
 }

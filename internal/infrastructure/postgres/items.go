@@ -292,6 +292,16 @@ func (r *ItemRepository) SetUses(ctx context.Context, pieceID string, uses int) 
 	return nil
 }
 
+// SetDesignID moves a piece to a later design version in place (a
+// retrofit): everything else about the row — holder, holding, quality — is
+// untouched.
+func (r *ItemRepository) SetDesignID(ctx context.Context, pieceID, designID string) error {
+	if _, err := r.q.Exec(ctx, `UPDATE item_pieces SET design_id = $2::uuid WHERE id = $1::uuid`, pieceID, designID); err != nil {
+		return fmt.Errorf("postgres: retrofitting a piece: %w", err)
+	}
+	return nil
+}
+
 // LastUsed reads a cooldown group's last use.
 func (r *ItemRepository) LastUsed(ctx context.Context, playerID, group string) (time.Time, error) {
 	var at time.Time

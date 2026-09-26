@@ -245,6 +245,10 @@ const (
 	// ReasonTechnologyLicense pays a technology's owner for a license, from
 	// the licensee company's treasury to the licensor's.
 	ReasonTechnologyLicense Reason = "technology_license"
+	// ReasonDesignImprovement pays an improvement project's flat fee from a
+	// company's treasury to system_sink (docs/adr/0021, generations
+	// addendum): a drain, the same shape as ReasonResearch.
+	ReasonDesignImprovement Reason = "design_improvement"
 	// ReasonCompanySale pays a company for goods it listed, from the
 	// buyer — a player's cash or card, or a company's treasury — to its
 	// treasury.
@@ -492,6 +496,7 @@ var knownReasons = map[Reason]struct{}{
 	ReasonCorporateTax: {}, ReasonCompanyWage: {}, ReasonCitizenWage: {},
 
 	ReasonResearch: {}, ReasonSupplierPurchase: {}, ReasonTechnologyLicense: {}, ReasonCompanySale: {},
+	ReasonDesignImprovement: {},
 
 	ReasonNationalLevy: {}, ReasonDefenceAppropriation: {}, ReasonArmsProcurement: {}, ReasonMilitaryUpkeep: {},
 

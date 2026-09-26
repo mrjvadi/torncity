@@ -115,6 +115,12 @@ const (
 	// munition or missile spent on a strike.
 	ItemDestroyed ItemReason = "destroyed"
 	ItemExpended  ItemReason = "expended"
+
+	// ItemRetrofitKit is an end: an upgrade kit consumed applying a retrofit
+	// job (migration 0036_generations) — the kit is destroyed exactly as a
+	// reverse engineering sample is, whether the target unit ends up
+	// upgraded or (never: retrofit does not fail) not.
+	ItemRetrofitKit ItemReason = "retrofit_kit"
 )
 
 var itemReasons = map[ItemReason]bool{
@@ -127,6 +133,7 @@ var itemReasons = map[ItemReason]bool{
 	ItemListingEscrow: true, ItemListingRelease: true, ItemCompanySale: true,
 	ItemProcured:  true,
 	ItemDestroyed: true, ItemExpended: true,
+	ItemRetrofitKit: true,
 }
 
 // Known reports whether r is in the closed set.
@@ -216,6 +223,11 @@ type ItemRepository interface {
 	Move(ctx context.Context, m ItemMove) error
 	// SetUses records what is left of a piece that wears.
 	SetUses(ctx context.Context, pieceID string, uses int) error
+	// SetDesignID moves a piece to a later version of the design it was
+	// built from, in place (a retrofit — internal/domain/item.Retrofit):
+	// nothing else about the piece changes, so its holder, holding and
+	// quality carry over untouched.
+	SetDesignID(ctx context.Context, pieceID, designID string) error
 
 	// LockOrg serialises every change to one organisation's goods, as
 	// LockOwner does a player's.
