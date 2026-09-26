@@ -47,3 +47,19 @@ func htmlBold(escaped string) string {
 func htmlExpandableQuote(escaped string) string {
 	return "<blockquote expandable>" + escaped + "</blockquote>"
 }
+
+// boldFirst escapes every line of lines and bolds the first one, for a
+// screen that builds its title as lines[0] of a slice it later joins with
+// body — most of them build a separate title string instead, but a few
+// (the mission board among them) do not, and rebuilding them just to
+// separate the title out is a larger, riskier diff than this.
+func boldFirst(lines []string) []string {
+	out := make([]string, len(lines))
+	for i, line := range lines {
+		out[i] = htmlEscape(line)
+	}
+	if len(out) > 0 {
+		out[0] = htmlBold(out[0])
+	}
+	return out
+}

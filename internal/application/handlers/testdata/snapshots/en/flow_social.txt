@@ -1,6 +1,6 @@
 ━━━ /social ━━━
 (sends)
-👥 Friends
+<b>👥 Friends</b>
 
 You have no friends yet.
 To find a player, send their Telegram username or player code, for example /social @username
@@ -36,7 +36,7 @@ Search by one of these:
 
 ━━━ My list: the request I sent ━━━
 (sends)
-👥 Friends
+<b>👥 Friends</b>
 
 • Kaveh - waiting for their reply
   ───
@@ -44,7 +44,7 @@ Search by one of these:
 
 ━━━ The friend's list ━━━
 (sends)
-👥 Friends
+<b>👥 Friends</b>
 
 • Sara - wants to be your friend
   ───
@@ -59,7 +59,7 @@ Search by one of these:
 
 ━━━ Friends ━━━
 (edits message 42)
-👥 Friends
+<b>👥 Friends</b>
 
 • Kaveh
   ───

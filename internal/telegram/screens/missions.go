@@ -181,7 +181,7 @@ func renderMissionBoard(c Context, v MissionBoardView) *presenter.Response {
 		}
 		kb.Add(c.T("mission.button.mine", nil), AddrMissions)
 		kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrMissionBoard}))
-		return c.respond(body(lines...), kb.Build())
+		return c.respond(body(boldFirst(lines)...), kb.Build()).AsHTML()
 	}
 	b := *v.Board
 	lines := []string{c.T("mission.board_title", map[string]any{"board": c.boardName(b), "city": city})}
@@ -202,7 +202,11 @@ func renderMissionBoard(c Context, v MissionBoardView) *presenter.Response {
 	}
 	kb.Add(c.T("mission.button.mine", nil), AddrMissions)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMissionBoard, RefreshData: keyboards.Data(AddrMissionBoard, b.Code)}))
-	return c.respond(paragraphs(body(lines...), body(list...)), kb.Build())
+	escapedList := make([]string, len(list))
+	for i, line := range list {
+		escapedList[i] = htmlEscape(line)
+	}
+	return c.respond(paragraphs(body(boldFirst(lines)...), body(escapedList...)), kb.Build()).AsHTML()
 }
 
 // MissionView is one mission, or the question of giving it up.

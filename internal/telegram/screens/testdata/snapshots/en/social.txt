@@ -61,7 +61,7 @@ Search by one of these:
 
 ━━━ Friends (page 1 of 2) ━━━
 (edits message 42)
-👥 Friends
+<b>👥 Friends</b>
 
 • Kaveh
 • Nilou - wants to be your friend
@@ -77,7 +77,7 @@ Page 1 of 2
 
 ━━━ Friends · none yet ━━━
 (edits message 42)
-👥 Friends
+<b>👥 Friends</b>
 
 You have no friends yet.
 To find a player, send their Telegram username or player code, for example /social @username

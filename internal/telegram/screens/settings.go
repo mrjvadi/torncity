@@ -53,7 +53,8 @@ func renderSettings(c Context, v SettingsView) *presenter.Response {
 	}
 
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrSettings}))
-	return c.respond(paragraphs(c.T("settings.title", nil), confirmation, body(lines...)), kb.Build())
+	title := htmlBold(htmlEscape(c.T("settings.title", nil)))
+	return c.respond(paragraphs(title, htmlEscape(confirmation), htmlEscape(body(lines...))), kb.Build()).AsHTML()
 }
 
 // languageSetting states the current language and offers every other one.

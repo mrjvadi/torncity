@@ -1,23 +1,23 @@
 ━━━ Achievements · two earned ━━━
 (edits message 42)
-🏅 Your achievements: 2 of 4
+<b>🏅 Your achievements: 2 of 4</b>
 
 ✅ First day at work
 ✅ Homeowner
 
-▫️ Career criminal - 4 of 10 - reward 500 Nil
-▫️ Hard worker - 3 of 25
+<blockquote expandable>▫️ Career criminal - 4 of 10 - reward 500 Nil
+▫️ Hard worker - 3 of 25</blockquote>
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → achievement:list
 
 ━━━ Achievements · none yet ━━━
 (edits message 42)
-🏅 Your achievements: 0 of 2
+<b>🏅 Your achievements: 0 of 2</b>
 
 You have not earned an achievement yet.
 
-▫️ Career criminal - 4 of 10 - reward 500 Nil
-▫️ Hard worker - 3 of 25
+<blockquote expandable>▫️ Career criminal - 4 of 10 - reward 500 Nil
+▫️ Hard worker - 3 of 25</blockquote>
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → achievement:list
 

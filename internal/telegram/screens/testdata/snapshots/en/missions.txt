@@ -1,6 +1,6 @@
 ━━━ Boards · the city's ━━━
 (edits message 42)
-📋 Mission boards of Ostmarch
+<b>📋 Mission boards of Ostmarch</b>
 • Civic noticeboard - at the civic centre
 • Police board - at the police station
   ───
@@ -11,7 +11,7 @@
 
 ━━━ Board · at the civic centre ━━━
 (edits message 42)
-📋 Civic noticeboard - Ostmarch
+<b>📋 Civic noticeboard - Ostmarch</b>
 
 • First steps - 🎁 Reward: 300 Nil, 40 XP, 2 Sandwich
 • Back to school - 🎁 Reward: 500 Nil, 60 XP
@@ -30,7 +30,7 @@
 
 ━━━ Board · read in a group, elsewhere ━━━
 (edits message 42)
-📋 Police board - Ostmarch
+<b>📋 Police board - Ostmarch</b>
 You take a mission at the police station.
 
 • Road watch - 🎁 Reward: 600 Nil, 50 XP

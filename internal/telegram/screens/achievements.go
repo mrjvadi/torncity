@@ -55,10 +55,16 @@ func renderAchievements(c Context, v AchievementsView) *presenter.Response {
 	if len(earned) == 0 {
 		earned = append(earned, c.T("achievement.none_yet", nil))
 	}
-	head := c.T("achievement.title", map[string]any{"earned": FormatNumber(c, int64(countEarned(v.Lines))),
-		"all": FormatNumber(c, int64(len(v.Lines)))})
+	head := htmlBold(htmlEscape(c.T("achievement.title", map[string]any{"earned": FormatNumber(c, int64(countEarned(v.Lines))),
+		"all": FormatNumber(c, int64(len(v.Lines)))})))
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrAchievements}))
-	return c.respond(paragraphs(head, body(earned...), body(open...)), kb.Build())
+	// What is earned is the accomplishment and stays in view; what is still
+	// open is a longer reference list, collapsed under it.
+	var quotedOpen string
+	if len(open) > 0 {
+		quotedOpen = htmlExpandableQuote(htmlEscape(body(open...)))
+	}
+	return c.respond(paragraphs(head, htmlEscape(body(earned...)), quotedOpen), kb.Build()).AsHTML()
 }
 
 func countEarned(lines []AchievementLine) int {

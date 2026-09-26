@@ -197,7 +197,8 @@ func renderFriends(c Context, v FriendsView) *presenter.Response {
 		HasNext: len(v.Friends) > 0 && pageOrOne(v.Page) < v.Pages,
 	}))
 
-	return c.respond(paragraphs(c.T("social.friends.title", nil), content), kb.Build())
+	title := htmlBold(htmlEscape(c.T("social.friends.title", nil)))
+	return c.respond(paragraphs(title, htmlEscape(content)), kb.Build()).AsHTML()
 }
 
 // FriendRequested renders the confirmation of a sent request.

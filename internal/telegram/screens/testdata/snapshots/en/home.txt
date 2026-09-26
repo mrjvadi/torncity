@@ -277,7 +277,7 @@ The game is played with the buttons. You can also send these words, with or with
 
 ━━━ Settings ━━━
 (edits message 42)
-⚙️ Settings
+<b>⚙️ Settings</b>
 
 🌐 Game language: English
   ───
@@ -286,7 +286,7 @@ The game is played with the buttons. You can also send these words, with or with
 
 ━━━ Settings · just changed the language ━━━
 (edits message 42)
-⚙️ Settings
+<b>⚙️ Settings</b>
 
 ✅ The game language is now English.
 
