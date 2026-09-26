@@ -41,22 +41,28 @@ func NewProductionRepository(p *Pool) *ProductionRepository {
 
 const designColumns = `id::text, no, company_id::text, item_code, archetype, COALESCE(name, ''), COALESCE(name_key, ''),
 	origin, status, fills, quality_loss_bps, overhead_bps, COALESCE(source_design_id::text, ''),
-	COALESCE(created_by::text, ''), created_at, updated_at, finalized_at`
+	COALESCE(created_by::text, ''), created_at, updated_at, finalized_at,
+	lineage_id::text, version, COALESCE(parent_design_id::text, ''), improvements`
 
 func scanDesign(row pgx.Row) (*application.Design, error) {
 	var (
-		d     application.Design
-		fills []byte
+		d            application.Design
+		fills, impBs []byte
 	)
 	if err := row.Scan(&d.ID, &d.No, &d.CompanyID, &d.Item, &d.Archetype, &d.Name, &d.NameKey, &d.Origin, &d.Status,
 		&fills, &d.QualityLossBPS, &d.OverheadBPS, &d.SourceDesignID, &d.CreatedBy, &d.CreatedAt, &d.UpdatedAt,
-		&d.FinalizedAt); err != nil {
+		&d.FinalizedAt, &d.LineageID, &d.Version, &d.ParentID, &impBs); err != nil {
 		return nil, err
 	}
 	d.Fills = map[string]application.DesignFill{}
 	if len(fills) > 0 {
 		if err := json.Unmarshal(fills, &d.Fills); err != nil {
 			return nil, fmt.Errorf("design %s fills: %w", d.ID, err)
+		}
+	}
+	if len(impBs) > 0 {
+		if err := json.Unmarshal(impBs, &d.Improvements); err != nil {
+			return nil, fmt.Errorf("design %s improvements: %w", d.ID, err)
 		}
 	}
 	d.CreatedAt, d.UpdatedAt, d.FinalizedAt = d.CreatedAt.UTC(), d.UpdatedAt.UTC(), utcPtr(d.FinalizedAt)
@@ -82,21 +88,35 @@ func fillsJSON(f map[string]application.DesignFill) (string, error) {
 	return string(raw), err
 }
 
-// CreateDesign inserts a design.
+// CreateDesign inserts a design: version 1 of a fresh lineage when d.ParentID
+// is empty, or the next version of d.LineageID's when a caller building a
+// revision (item.Revise, item.ApplyImprovement) filled ParentID/LineageID/
+// Version in first.
 func (r *ProductionRepository) CreateDesign(ctx context.Context, d application.Design) (application.Design, error) {
 	fills, err := fillsJSON(d.Fills)
+	if err != nil {
+		return d, err
+	}
+	if d.LineageID == "" {
+		d.LineageID = d.ID
+	}
+	if d.Version == 0 {
+		d.Version = 1
+	}
+	improvements, err := json.Marshal(d.Improvements)
 	if err != nil {
 		return d, err
 	}
 	err = r.q.QueryRow(ctx,
 		`INSERT INTO product_designs (id, company_id, item_code, archetype, name, name_key, origin, status, fills,
 		                              quality_loss_bps, overhead_bps, source_design_id, created_by, created_at,
-		                              updated_at, finalized_at)
-		 VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11, $12::uuid, $13::uuid, $14, $14, $15)
+		                              updated_at, finalized_at, lineage_id, version, parent_design_id, improvements)
+		 VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11, $12::uuid, $13::uuid, $14, $14, $15,
+		         $16::uuid, $17, $18::uuid, $19::jsonb)
 		 RETURNING no`,
 		d.ID, d.CompanyID, d.Item, d.Archetype, nullableText(d.Name), nullableText(d.NameKey), d.Origin, d.Status, fills,
 		d.QualityLossBPS, d.OverheadBPS, nullableUUID(d.SourceDesignID), nullableUUID(d.CreatedBy), d.CreatedAt.UTC(),
-		utcPtr(d.FinalizedAt)).Scan(&d.No)
+		utcPtr(d.FinalizedAt), d.LineageID, d.Version, nullableUUID(d.ParentID), improvements).Scan(&d.No)
 	switch {
 	case violates(err, sqlstateUniqueViolation, productDesignsNameIdx):
 		return d, application.ErrDesignNameTaken

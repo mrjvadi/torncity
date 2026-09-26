@@ -75,10 +75,20 @@ type Design struct {
 	QualityLossBPS int64
 	OverheadBPS    int64
 	SourceDesignID string
-	CreatedBy      string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	FinalizedAt    *time.Time
+	// LineageID groups every version of this design; a version 1 design is
+	// its own lineage's head (LineageID == ID). Version is 1-based;
+	// ParentID is the design this one was revised from (empty for version
+	// 1). Improvements is what improvement projects have added to this
+	// version's attributes since its last structural revision, by attribute
+	// name, in basis points (internal/domain/item.ApplyImprovement).
+	LineageID    string
+	Version      int64
+	ParentID     string
+	Improvements map[string]int64
+	CreatedBy    string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	FinalizedAt  *time.Time
 }
 
 // Research is one company_research row.
