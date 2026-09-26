@@ -1,0 +1,61 @@
+# Which private notice sends at once (its own Telegram message, as every
+# notice did before the inbox badge existed) and which is stored and counted
+# on the player's one badge message instead. Read and validated by
+# cmd/notifier at startup (internal/workers/notification.LoadDeliveryModes);
+# a typo here is fatal there, the same as a broken configs/content/*.yml —
+# better a notifier that refuses to start than one that silently buries
+# reports a player must see at once.
+#
+# This is about PRIVATE notices only (a Route with a Render function). A
+# public line in a city's group (a Route with an Announce function — a war
+# declared, a player jailed) always posts to the group at once; there is no
+# badge in a group, so it is not listed here at all.
+#
+# default_mode is what every kind not named below gets: "inbox" is the whole
+# point of this feature — most reports pile up quietly instead of flooding
+# the player. categories gives every domain's inbox category when a kind
+# does not name its own; the /inbox screen groups by this, and its own
+# label is configs/locales/*.yml's inbox.category.<code>. An operator adds a
+# kind, changes a mode or a category here and restarts cmd/notifier; nothing
+# is redeployed for that.
+
+default_mode: inbox
+
+categories:
+  travel: travel
+  bank: finance
+  loan: finance
+  insurance: finance
+  stock: finance
+  social: social
+  faction: social
+  education: education
+  job: jobs
+  crime: crime
+  inventory: market
+  market: market
+  auction: market
+  election: government
+  governance: government
+  legislature: government
+  admin: government
+  company: companies
+  military: war
+  diplomacy: war
+  war: war
+  health: health
+  life: life
+  mission: missions
+  achievement: achievements
+  property: property
+
+kinds:
+  # Urgent: the player must see these at once, exactly as before this
+  # feature. Everything else defaults to "inbox".
+  - {domain: health, event: hospitalised, mode: instant}
+  - {domain: health, event: discharged, mode: instant}
+  - {domain: crime, event: victimised, mode: instant}
+  - {domain: crime, event: convicted, mode: instant}
+  - {domain: bank, event: payment_received, mode: instant}
+  - {domain: war, event: city_struck, mode: instant}
+  - {domain: life, event: hunger_low, mode: instant}

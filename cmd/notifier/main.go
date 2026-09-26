@@ -48,6 +48,12 @@ const (
 	// defaults cmd/game uses; see there.
 	defaultLocalesDir = "configs/locales"
 	defaultConfigPath = config.DefaultPath
+
+	// defaultDeliveryModesPath is which notification kind sends at once and
+	// which joins the inbox badge (notification.DeliveryModes): content, not
+	// tuning, so it is its own file rather than a config.yml key — an
+	// operator edits it exactly like configs/content/*.yml.
+	defaultDeliveryModesPath = "configs/notifications/delivery.yml"
 )
 
 func main() {
@@ -78,26 +84,31 @@ func main() {
 // env is the bootstrap: what must be known before the configuration file can
 // be read (ADR 0002).
 type env struct {
-	databaseURL string
-	natsURL     string
-	logLevel    string
-	localesDir  string
-	configPath  string
+	databaseURL       string
+	natsURL           string
+	logLevel          string
+	localesDir        string
+	configPath        string
+	deliveryModesPath string
 }
 
 func loadEnv() (env, error) {
 	e := env{
-		databaseURL: os.Getenv("DATABASE_URL"),
-		natsURL:     os.Getenv("NATS_URL"),
-		logLevel:    os.Getenv("LOG_LEVEL"),
-		localesDir:  os.Getenv("TORN_LOCALES_DIR"),
-		configPath:  os.Getenv("TORN_CONFIG"),
+		databaseURL:       os.Getenv("DATABASE_URL"),
+		natsURL:           os.Getenv("NATS_URL"),
+		logLevel:          os.Getenv("LOG_LEVEL"),
+		localesDir:        os.Getenv("TORN_LOCALES_DIR"),
+		configPath:        os.Getenv("TORN_CONFIG"),
+		deliveryModesPath: os.Getenv("TORN_NOTIFICATIONS_DELIVERY_FILE"),
 	}
 	if e.localesDir == "" {
 		e.localesDir = defaultLocalesDir
 	}
 	if e.configPath == "" {
 		e.configPath = defaultConfigPath
+	}
+	if e.deliveryModesPath == "" {
+		e.deliveryModesPath = defaultDeliveryModesPath
 	}
 
 	var missing []string
@@ -174,6 +185,18 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 
 	players := postgres.NewPlayerRepository(pool, cfg.Player.DefaultLanguage)
 
+	// The inbox badge (migrations/0037_notification_inbox): which kind
+	// sends at once and which joins the badge is content, and a broken file
+	// is fatal at startup, the same as configs/content/*.yml — a typo that
+	// silently sent every notice into the inbox would bury the ones a
+	// player must see at once, and nobody would notice until someone
+	// complained about never being told they were attacked.
+	deliveryModes, err := notification.LoadDeliveryModes(e.deliveryModesPath)
+	if err != nil {
+		return fmt.Errorf("notifier: load delivery modes from %s: %w", e.deliveryModesPath, err)
+	}
+	playerInbox := postgres.NewPlayerInboxRepository(pool)
+
 	// Game clients (api/client-api.md): notices and city announcements are
 	// also published to the realtime server when its API key is set. A
 	// failure there is logged and never holds up a Telegram notice.
@@ -209,6 +232,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 
 		Realtime:          realtime,
 		RealtimeLanguages: languages,
+
+		PlayerInbox:   playerInbox,
+		DeliveryModes: deliveryModes,
+		EditThrottle:  cfg.Notifications.EditThrottle,
 	})
 	if err != nil {
 		return err
@@ -234,8 +261,35 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		logger.Info("consuming", slog.String("subject", route.Subject()), slog.String("consumer", route.Durable()))
 	}
 
+	// The inbox badge's own timers: nothing arriving is what a 24h-unread
+	// reminder and retention pruning are about, so both run on a plain
+	// ticker rather than reacting to an event, the way announce.go and the
+	// scheduler package's own timers do for the same reason.
+	var timers sync.WaitGroup
+	stopTimers := make(chan struct{})
+	timers.Add(2)
+	go func() {
+		defer timers.Done()
+		runTicker(stopTimers, cfg.Notifications.ReminderCheckInterval, func() {
+			worker.SendDueReminders(ctx, cfg.Notifications.ReminderDelay, reminderBatchSize)
+		})
+	}()
+	go func() {
+		defer timers.Done()
+		runTicker(stopTimers, cfg.Notifications.PruneInterval, func() {
+			before := time.Now().UTC().Add(-cfg.Notifications.Retention)
+			if n, err := playerInbox.Prune(ctx, before); err != nil {
+				logger.Warn("cannot prune old read notifications", slog.String("error", err.Error()))
+			} else if n > 0 {
+				logger.Info("pruned old read notifications", slog.Int64("count", n))
+			}
+		})
+	}()
+
 	<-ctx.Done()
 	logger.Info("shutdown signal received, draining")
+	close(stopTimers)
+	timers.Wait()
 
 	done := make(chan struct{})
 	go func() {
@@ -249,6 +303,31 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		logger.Warn("drain timed out, closing anyway", slog.Duration("timeout", tuning.ShutdownTimeout))
 	}
 	return nil
+}
+
+// reminderBatchSize bounds one poll's worth of 24h-unread reminders, so one
+// slow tick cannot hold the ticker's own timer past its next firing.
+const reminderBatchSize = 200
+
+// runTicker calls fn every interval until stop is closed, fn first after one
+// interval has passed (not immediately: a restart should not resend every
+// timer's work at once). interval <= 0 disables the timer entirely, which is
+// what a zero config value should do rather than busy-loop.
+func runTicker(stop <-chan struct{}, interval time.Duration, fn func()) {
+	if interval <= 0 {
+		<-stop
+		return
+	}
+	t := time.NewTicker(interval)
+	defer t.Stop()
+	for {
+		select {
+		case <-stop:
+			return
+		case <-t.C:
+			fn()
+		}
+	}
 }
 
 // natsSender is the request half of the notice contract; the gateway's
