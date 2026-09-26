@@ -583,9 +583,14 @@ func CompanyManage(c Context, v CompanyManageView) *presenter.Response {
 	} else {
 		running = append(running, c.T("company.auto_off", nil))
 	}
+	// last collapses into an expandable quote below only when there is a
+	// real recap to hide; "nothing settled yet" is one short line and stays
+	// in plain view rather than being something to tap open onto itself.
 	var last string
+	var hasLast bool
 	if v.Last != nil {
 		last = c.companyPeriodLines(*v.Last, true)
+		hasLast = true
 	} else {
 		last = c.T("company.no_period", nil)
 	}
@@ -654,13 +659,20 @@ func CompanyManage(c Context, v CompanyManageView) *presenter.Response {
 		kb.Row(manager, closing)
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrCompany, v.Ref.Code), RefreshData: keyboards.Data(AddrCompanyManage, v.Ref.Code)}))
+	// The last settled period is history, not a decision the player is
+	// making right now — it collapses so the screen opens on what is
+	// current (the books, the staff, the price) rather than under it.
+	quotedLast := htmlEscape(last)
+	if hasLast {
+		quotedLast = htmlExpandableQuote(quotedLast)
+	}
 	return c.respond(paragraphs(
-		c.companyNotice(v.Notice),
-		body(c.T("company.manage_title", map[string]any{"name": v.Ref.Name}),
-			c.T("company.type_code", map[string]any{"type": c.CompanyTypeName(v.Ref.Type), "code": v.Ref.Code}),
-			c.defenceLine(v.Defence)),
-		step, body(books...), body(running...), last, next,
-	), kb.Build()).MarkPrivate()
+		htmlEscape(c.companyNotice(v.Notice)),
+		body(htmlBold(htmlEscape(c.T("company.manage_title", map[string]any{"name": v.Ref.Name}))),
+			htmlEscape(c.T("company.type_code", map[string]any{"type": c.CompanyTypeName(v.Ref.Type), "code": v.Ref.Code})),
+			htmlEscape(c.defenceLine(v.Defence))),
+		htmlEscape(step), htmlEscape(body(books...)), htmlEscape(body(running...)), quotedLast, htmlEscape(next),
+	), kb.Build()).MarkPrivate().AsHTML()
 }
 
 // companyPeriodLines renders a settled period's books.

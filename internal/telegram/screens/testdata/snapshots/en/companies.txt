@@ -214,7 +214,7 @@ Now put money into the company's account and post a job opening; from the next p
 
 ━━━ Manage · the owner's screen ━━━
 (edits message 42) (private in groups)
-⚙️ Managing Kaveh Bakery
+<b>⚙️ Managing Kaveh Bakery</b>
 🏷 Grocery store - code Q7M2K9B
 
 💰 Company balance: 18,400 Nil
@@ -228,11 +228,11 @@ Now put money into the company's account and post a job opening; from the next p
 🧑‍💼 Manager: Kaveh (B3C4D5F)
 🤝 You accept or reject every application yourself.
 
-📊 Last period:
+<blockquote expandable>📊 Last period:
 💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
 💸 Wages: 600 Nil - upkeep: 500 Nil
 📦 Sold 180 of 186 units asked for - capacity 180 units
-⭐ Quality 100% - 4 shifts worked
+⭐ Quality 100% - 4 shifts worked</blockquote>
 
 🕒 Next settlement: 14:52 - in 17m
   ───
@@ -248,7 +248,7 @@ Now put money into the company's account and post a job opening; from the next p
 
 ━━━ Manage · citizens on the openings ━━━
 (edits message 42) (private in groups)
-⚙️ Managing Kaveh Bakery
+<b>⚙️ Managing Kaveh Bakery</b>
 🏷 Grocery store - code Q7M2K9B
 
 💰 Company balance: 18,400 Nil
@@ -263,11 +263,11 @@ Now put money into the company's account and post a job opening; from the next p
 🧑‍💼 Manager: Kaveh (B3C4D5F)
 🤝 You accept or reject every application yourself.
 
-📊 Last period:
+<blockquote expandable>📊 Last period:
 💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
 💸 Wages: 600 Nil - upkeep: 500 Nil
 📦 Sold 180 of 186 units asked for - capacity 180 units
-⭐ Quality 100% - 4 shifts worked
+⭐ Quality 100% - 4 shifts worked</blockquote>
 
 🕒 Next settlement: 14:52 - in 17m
   ───
@@ -283,7 +283,7 @@ Now put money into the company's account and post a job opening; from the next p
 
 ━━━ Manage · openings the company cannot pay citizens for ━━━
 (edits message 42) (private in groups)
-⚙️ Managing Kaveh Bakery
+<b>⚙️ Managing Kaveh Bakery</b>
 🏷 Grocery store - code Q7M2K9B
 
 💰 Company balance: 18,400 Nil
@@ -298,11 +298,11 @@ Now put money into the company's account and post a job opening; from the next p
 🧑‍💼 Manager: Kaveh (B3C4D5F)
 🤝 You accept or reject every application yourself.
 
-📊 Last period:
+<blockquote expandable>📊 Last period:
 💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
 💸 Wages: 600 Nil - upkeep: 500 Nil
 📦 Sold 180 of 186 units asked for - capacity 180 units
-⭐ Quality 100% - 4 shifts worked
+⭐ Quality 100% - 4 shifts worked</blockquote>
 
 🕒 Next settlement: 14:52 - in 17m
   ───
@@ -320,7 +320,7 @@ Now put money into the company's account and post a job opening; from the next p
 (edits message 42) (private in groups)
 📤 5,000 Nil withdrawn: 500 Nil corporate tax, and 4,500 Nil into your bank account.
 
-⚙️ Managing Kaveh Bakery
+<b>⚙️ Managing Kaveh Bakery</b>
 🏷 Grocery store - code Q7M2K9B
 
 💰 Company balance: 18,400 Nil
@@ -334,11 +334,11 @@ Now put money into the company's account and post a job opening; from the next p
 🧑‍💼 Manager: Kaveh (B3C4D5F)
 🤝 You accept or reject every application yourself.
 
-📊 Last period:
+<blockquote expandable>📊 Last period:
 💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
 💸 Wages: 600 Nil - upkeep: 500 Nil
 📦 Sold 180 of 186 units asked for - capacity 180 units
-⭐ Quality 100% - 4 shifts worked
+⭐ Quality 100% - 4 shifts worked</blockquote>
 
 🕒 Next settlement: 14:52 - in 17m
   ───
@@ -356,7 +356,7 @@ Now put money into the company's account and post a job opening; from the next p
 (edits message 42) (private in groups)
 📥 10,000 Nil went into the company's account.
 
-⚙️ Managing Kaveh Bakery
+<b>⚙️ Managing Kaveh Bakery</b>
 🏷 Grocery store - code Q7M2K9B
 
 💰 Company balance: 18,400 Nil
@@ -370,11 +370,11 @@ Now put money into the company's account and post a job opening; from the next p
 🧑‍💼 Manager: Kaveh (B3C4D5F)
 🤝 You accept or reject every application yourself.
 
-📊 Last period:
+<blockquote expandable>📊 Last period:
 💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
 💸 Wages: 600 Nil - upkeep: 500 Nil
 📦 Sold 180 of 186 units asked for - capacity 180 units
-⭐ Quality 100% - 4 shifts worked
+⭐ Quality 100% - 4 shifts worked</blockquote>
 
 🕒 Next settlement: 14:52 - in 17m
   ───
@@ -392,7 +392,7 @@ Now put money into the company's account and post a job opening; from the next p
 (edits message 42) (private in groups)
 🤝 From now on qualified applicants are hired automatically.
 
-⚙️ Managing Kaveh Bakery
+<b>⚙️ Managing Kaveh Bakery</b>
 🏷 Grocery store - code Q7M2K9B
 
 💰 Company balance: 0 Nil

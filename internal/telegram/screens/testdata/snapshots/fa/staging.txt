@@ -278,7 +278,7 @@
 
 ━━━ Manage · a tech studio that may apply ━━━
 (edits message 42) (private in groups)
-⚙️ مدیریت فناوران آریا
+<b>⚙️ مدیریت فناوران آریا</b>
 🏷 استودیوی فناوری - کد ⁨T3C5T8D⁩
 🛡 شرکت شما می‌تواند برای مجوز پیمانکاری دفاعی درخواست بدهد.
 
@@ -309,7 +309,7 @@
 
 ━━━ Manage · a defence company, its licence revoked ━━━
 (edits message 42) (private in groups)
-⚙️ مدیریت صنایع دفاعی البرز
+<b>⚙️ مدیریت صنایع دفاعی البرز</b>
 🏷 صنایع هوافضا - کد ⁨D3F2N5S⁩
 🛡 مجوز دفاعی لغو شده و ساعت ⁨14⁩:⁨35⁩ از اعتبار می‌افتد.
 

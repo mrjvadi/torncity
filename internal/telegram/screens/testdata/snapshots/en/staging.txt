@@ -278,7 +278,7 @@ You can design Phone now.
 
 ━━━ Manage · a tech studio that may apply ━━━
 (edits message 42) (private in groups)
-⚙️ Managing Aria Tech
+<b>⚙️ Managing Aria Tech</b>
 🏷 Tech studio - code T3C5T8D
 🛡 Your company may apply for a defence contractor licence.
 
@@ -309,7 +309,7 @@ To grow, research Microchips: it opens Phone.
 
 ━━━ Manage · a defence company, its licence revoked ━━━
 (edits message 42) (private in groups)
-⚙️ Managing Alborz Defence
+<b>⚙️ Managing Alborz Defence</b>
 🏷 Aerospace manufacturer - code D3F2N5S
 🛡 The defence licence was revoked and lapses at 14:35.
 
