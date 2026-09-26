@@ -3578,6 +3578,45 @@ defence:
     revoked: "⛔ مجوز دفاعی شرکت {company} در {country} لغو شد و ساعت {time} از اعتبار می‌افتد."
   ministry_pending: "🛡 درخواست‌های مجوز دفاعی منتظر تصمیم: {count}"
 
+# The notification inbox (migrations/0037_notification_inbox): the badge
+# message («📬 …») cmd/notifier edits in place as reports pile up, /inbox
+# itself grouped by category, and the 24h-unread reminder. A hunger notice
+# and the like still arrive at once; this is only for what waits.
+inbox:
+  badge:
+    empty: "📭 اعلان جدیدی ندارید."
+    title: "📬 {count} اعلان جدید دارید:"
+    category_line: "  • {category}: {count}"
+    teaser_line: "  ˒ {text}"
+    open_button: "📬 دیدن اعلان‌ها"
+  hub:
+    empty: "📭 صندوق اعلان‌هایتان خالی است."
+    title: "📬 {count} اعلان تازه رسیده بود:"
+    category_line: "• {category}: {count}"
+    open_button: "{category} ({count})"
+    read_all_button: "✅ خواندن همه"
+  category_title: "📂 {category}"
+  category_empty: "چیزی در این دسته نیست."
+  item_line: "▫️ {text} - {ago} پیش"
+  open_item_button: "🔗 مورد {n}"
+  reminder: "📬 {count} اعلان خوانده‌نشده در صندوقتان منتظر شماست."
+  category:
+    companies: "🏢 شرکت‌ها"
+    finance: "💰 مالی"
+    jobs: "💼 شغل"
+    market: "🛍 بازار"
+    government: "🏛 حکومت"
+    war: "⚔️ جنگ"
+    social: "👥 اجتماعی"
+    health: "❤️ سلامت"
+    crime: "🕵️ خلاف"
+    travel: "🧭 سفر"
+    education: "📖 آموزش"
+    property: "🏠 املاک"
+    achievements: "🏅 دستاوردها"
+    missions: "🎯 مأموریت‌ها"
+    life: "🧬 زندگی"
+
 # A character's life (docs/adr/0025-life-and-legacy.md): «🧬 زندگی من», the
 # player card, the life history, sleeping, the leaderboards.
 life:
@@ -3730,6 +3769,10 @@ life:
     investors_hint: "سود سبد سرمایهٔ هر بازیکن از جدول قبل تا امروز: سهام به قیمت بازار، طلا و پس‌انداز، منهای آنچه در آن‌ها گذاشته است."
   rank_up_notice: "{emoji} تبریک! رتبهٔ شما از {from} به {rank} رسید. دارایی خالص شما {worth} است."
   rank_down_notice: "{emoji} رتبهٔ شما از {from} به {rank} رسید. دارایی خالص شما {worth} است؛ با کار و سرمایه‌گذاری دوباره بالا می‌روید."
+  hunger_low:
+    text: "🍽 شکم‌تان دارد اعتراض می‌کند! یک لقمه بخورید تا دوباره سرحال شوید."
+    eat_button: "🎒 خوردن از کوله"
+    shop_button: "🛒 خرید غذا"
   rank:
     newcomer: تازه‌کار
     breadwinner: نان‌آور

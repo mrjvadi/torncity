@@ -3454,6 +3454,45 @@ defence:
     revoked: "⛔ The defence licence of {company} in {country} was revoked; it lapses at {time}."
   ministry_pending: "🛡 Defence licence applications waiting: {count}"
 
+# The notification inbox (migrations/0037_notification_inbox): the badge
+# message («📬 …») cmd/notifier edits in place as reports pile up, /inbox
+# itself grouped by category, and the 24h-unread reminder. A hunger notice
+# and the like still arrive at once; this is only for what waits.
+inbox:
+  badge:
+    empty: "📭 No new notifications."
+    title: "📬 You have {count} new notifications:"
+    category_line: "  • {category}: {count}"
+    teaser_line: "  ˒ {text}"
+    open_button: "📬 Open notifications"
+  hub:
+    empty: "📭 Your inbox is empty."
+    title: "📬 {count} notifications came in:"
+    category_line: "• {category}: {count}"
+    open_button: "{category} ({count})"
+    read_all_button: "✅ Mark all read"
+  category_title: "📂 {category}"
+  category_empty: "Nothing in this category."
+  item_line: "▫️ {text} - {ago} ago"
+  open_item_button: "🔗 Item {n}"
+  reminder: "📬 {count} unread notifications are waiting for you."
+  category:
+    companies: "🏢 Companies"
+    finance: "💰 Finance"
+    jobs: "💼 Jobs"
+    market: "🛍 Market"
+    government: "🏛 Government"
+    war: "⚔️ War"
+    social: "👥 Social"
+    health: "❤️ Health"
+    crime: "🕵️ Crime"
+    travel: "🧭 Travel"
+    education: "📖 Education"
+    property: "🏠 Property"
+    achievements: "🏅 Achievements"
+    missions: "🎯 Missions"
+    life: "🧬 Life"
+
 # A character's life (docs/adr/0025-life-and-legacy.md).
 life:
   title: "🧬 Your life"
@@ -3605,6 +3644,10 @@ life:
     investors_hint: "What each player's portfolio — shares at market price, gold and savings, less what they put in — gained since the last board."
   rank_up_notice: "{emoji} Congratulations! Your rank rose from {from} to {rank}. You are worth {worth}."
   rank_down_notice: "{emoji} Your rank went from {from} to {rank}. You are worth {worth}; work and investing bring it back."
+  hunger_low:
+    text: "🍽 Your stomach's staging a protest! Grab a bite and get your spark back."
+    eat_button: "🎒 Eat from my bag"
+    shop_button: "🛒 Buy food"
   rank:
     newcomer: Newcomer
     breadwinner: Breadwinner

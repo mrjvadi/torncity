@@ -54,6 +54,7 @@ func InboxBadge(c Context, v InboxBadgeView) *presenter.Response {
 func renderInboxBadge(c Context, v InboxBadgeView) *presenter.Response {
 	kb := keyboards.New()
 	if v.Unread == 0 {
+		kb.Add(c.T("button.back", nil), AddrHome)
 		return c.respond(c.T("inbox.badge.empty", nil), kb.Build()).MarkPrivate()
 	}
 	lines := []string{c.T("inbox.badge.title", map[string]any{"count": v.Unread})}

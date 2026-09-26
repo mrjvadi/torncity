@@ -127,6 +127,8 @@ func lifeSnapshots(c Context, who people, add func(string, *presenter.Response))
 
 	add("Notice · rank up", RankNotice(sent(c), RankNoticeView{Rank: trader, From: breadwinner, Up: true, Worth: 51200}))
 	add("Notice · rank down", RankNotice(sent(c), RankNoticeView{Rank: breadwinner, From: trader, Worth: 44100}))
+
+	add("Notice · you are hungry", HungerNotice(sent(c)))
 }
 
 // bioFor is a sample bio in the language of the screen.

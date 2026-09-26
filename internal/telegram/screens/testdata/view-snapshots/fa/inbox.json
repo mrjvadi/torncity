@@ -1,0 +1,107 @@
+[
+  {
+    "title": "Badge · no new notifications",
+    "screen": "inbox_badge",
+    "view": {
+      "categories": null,
+      "teaser": null,
+      "unread": 0
+    }
+  },
+  {
+    "title": "Badge · a few, across categories",
+    "screen": "inbox_badge",
+    "view": {
+      "categories": [
+        {
+          "category": "companies",
+          "count": 2
+        },
+        {
+          "category": "finance",
+          "count": 2
+        },
+        {
+          "category": "market",
+          "count": 1
+        }
+      ],
+      "teaser": [
+        "دورهٔ شرکت شما تسویه شد: سود ۴۲۰۰۰.",
+        "سفارش بازار شما برای «صفحهٔ فولاد» تکمیل شد."
+      ],
+      "unread": 5
+    }
+  },
+  {
+    "title": "Hub · empty",
+    "screen": "inbox_hub",
+    "view": {
+      "categories": null,
+      "total": 0
+    }
+  },
+  {
+    "title": "Hub · grouped by category",
+    "screen": "inbox_hub",
+    "view": {
+      "categories": [
+        {
+          "category": "companies",
+          "count": 2
+        },
+        {
+          "category": "finance",
+          "count": 2
+        },
+        {
+          "category": "market",
+          "count": 1
+        },
+        {
+          "category": "government",
+          "count": 1
+        }
+      ],
+      "total": 6
+    }
+  },
+  {
+    "title": "Category · a page of items",
+    "screen": "inbox_category",
+    "view": {
+      "category": "finance",
+      "items": [
+        {
+          "ago_seconds": 300,
+          "link_addr": "",
+          "text": "حقوق شما به مبلغ ۱۲۰۰ پرداخت شد."
+        },
+        {
+          "ago_seconds": 10800,
+          "link_addr": "loan:hub",
+          "text": "قسط وام شما به مبلغ ۸۰۰ فردا سررسید می‌شود."
+        }
+      ],
+      "page": 1,
+      "total_pages": 2
+    }
+  },
+  {
+    "title": "Category · empty",
+    "screen": "inbox_category",
+    "view": {
+      "category": "market",
+      "items": null,
+      "page": 1,
+      "total_pages": 1
+    }
+  },
+  {
+    "title": "Reminder · unread for a day",
+    "screen": "inbox_reminder",
+    "view": {
+      "unread": 4
+    }
+  }
+]

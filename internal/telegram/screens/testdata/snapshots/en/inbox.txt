@@ -1,0 +1,60 @@
+━━━ Badge · no new notifications ━━━
+(sends) (private in groups)
+📭 No new notifications.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Badge · a few, across categories ━━━
+(sends) (private in groups)
+📬 You have 5 new notifications:
+  • 🏢 Companies: 2
+  • 💰 Finance: 2
+  • 🛍 Market: 1
+  ˒ Your company's period settled: profit 42,000.
+  ˒ Your market order for Steel Plate filled.
+  ───
+  [📬 Open notifications] → inbox:show
+
+━━━ Hub · empty ━━━
+(sends) (private in groups)
+📭 Your inbox is empty.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → inbox:show
+
+━━━ Hub · grouped by category ━━━
+(sends) (private in groups)
+📬 6 notifications came in:
+• 🏢 Companies: 2
+• 💰 Finance: 2
+• 🛍 Market: 1
+• 🏛 Government: 1
+  ───
+  [🏢 Companies (2)] → inbox:category:companies:1
+  [💰 Finance (2)] → inbox:category:finance:1
+  [🛍 Market (1)] → inbox:category:market:1
+  [🏛 Government (1)] → inbox:category:government:1
+  [✅ Mark all read] → inbox:read_all
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → inbox:show
+
+━━━ Category · a page of items ━━━
+(sends) (private in groups)
+📂 💰 Finance
+▫️ Your salary of 1,200 was paid. - 5m ago
+▫️ A loan payment of 800 is due tomorrow. - 3h ago
+  ───
+  [🔗 Item 2] → loan:hub
+  [Next ➡️] → inbox:category:finance:2
+  [🔙 Back] → inbox:show   │   [🔄 Refresh] → inbox:category:finance:1
+
+━━━ Category · empty ━━━
+(sends) (private in groups)
+📂 🛍 Market
+Nothing in this category.
+  ───
+  [🔙 Back] → inbox:show   │   [🔄 Refresh] → inbox:category:market:1
+
+━━━ Reminder · unread for a day ━━━
+(sends) (private in groups)
+📬 4 unread notifications are waiting for you.
+  ───
+  [📬 Open notifications] → inbox:show

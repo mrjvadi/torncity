@@ -1,0 +1,60 @@
+━━━ Badge · no new notifications ━━━
+(sends) (private in groups)
+📭 اعلان جدیدی ندارید.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Badge · a few, across categories ━━━
+(sends) (private in groups)
+📬 ۵ اعلان جدید دارید:
+  • 🏢 شرکت‌ها: ۲
+  • 💰 مالی: ۲
+  • 🛍 بازار: ۱
+  ˒ دورهٔ شرکت شما تسویه شد: سود ۴۲۰۰۰.
+  ˒ سفارش بازار شما برای «صفحهٔ فولاد» تکمیل شد.
+  ───
+  [📬 دیدن اعلان‌ها] → inbox:show
+
+━━━ Hub · empty ━━━
+(sends) (private in groups)
+📭 صندوق اعلان‌هایتان خالی است.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → inbox:show
+
+━━━ Hub · grouped by category ━━━
+(sends) (private in groups)
+📬 ۶ اعلان تازه رسیده بود:
+• 🏢 شرکت‌ها: ۲
+• 💰 مالی: ۲
+• 🛍 بازار: ۱
+• 🏛 حکومت: ۱
+  ───
+  [🏢 شرکت‌ها (۲)] → inbox:category:companies:1
+  [💰 مالی (۲)] → inbox:category:finance:1
+  [🛍 بازار (۱)] → inbox:category:market:1
+  [🏛 حکومت (۱)] → inbox:category:government:1
+  [✅ خواندن همه] → inbox:read_all
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → inbox:show
+
+━━━ Category · a page of items ━━━
+(sends) (private in groups)
+📂 💰 مالی
+▫️ حقوق شما به مبلغ ۱۲۰۰ پرداخت شد. - ۵ دقیقه پیش
+▫️ قسط وام شما به مبلغ ۸۰۰ فردا سررسید می‌شود. - ۳ ساعت پیش
+  ───
+  [🔗 مورد ۲] → loan:hub
+  [بعدی ⬅️] → inbox:category:finance:2
+  [🔙 بازگشت] → inbox:show   │   [🔄 به‌روزرسانی] → inbox:category:finance:1
+
+━━━ Category · empty ━━━
+(sends) (private in groups)
+📂 🛍 بازار
+چیزی در این دسته نیست.
+  ───
+  [🔙 بازگشت] → inbox:show   │   [🔄 به‌روزرسانی] → inbox:category:market:1
+
+━━━ Reminder · unread for a day ━━━
+(sends) (private in groups)
+📬 ۴ اعلان خوانده‌نشده در صندوقتان منتظر شماست.
+  ───
+  [📬 دیدن اعلان‌ها] → inbox:show

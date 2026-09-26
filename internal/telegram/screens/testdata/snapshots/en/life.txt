@@ -371,3 +371,10 @@ What each player's portfolio — shares at market price, gold and savings, less 
   ───
   [🧬 My life] → life:me
   [🔙 Back] → player:profile.get
+
+━━━ Notice · you are hungry ━━━
+(sends)
+🍽 Your stomach's staging a protest! Grab a bite and get your spark back.
+  ───
+  [🎒 Eat from my bag] → inventory:show
+  [🛒 Buy food] → shop:list

@@ -816,5 +816,10 @@
       "up": false,
       "worth": 44100
     }
+  },
+  {
+    "title": "Notice · you are hungry",
+    "screen": "hunger_notice",
+    "view": null
   }
 ]

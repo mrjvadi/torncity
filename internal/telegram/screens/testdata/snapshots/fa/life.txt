@@ -371,3 +371,10 @@
   ───
   [🧬 زندگی من] → life:me
   [🔙 بازگشت] → player:profile.get
+
+━━━ Notice · you are hungry ━━━
+(sends)
+🍽 شکم‌تان دارد اعتراض می‌کند! یک لقمه بخورید تا دوباره سرحال شوید.
+  ───
+  [🎒 خوردن از کوله] → inventory:show
+  [🛒 خرید غذا] → shop:list
