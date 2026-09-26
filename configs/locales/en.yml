@@ -2260,21 +2260,50 @@ component:
 # Technologies, by content code (configs/content/production.yml).
 technology:
   vehicle_engineering: Vehicle engineering
+  vehicle_engineering_ii: "Vehicle engineering II (unibody chassis)"
+  vehicle_engineering_iii: "Vehicle engineering III (composite chassis)"
   semiconductors: Semiconductors
+  semiconductors_ii: "Semiconductors II (28nm)"
+  semiconductors_iii: "Semiconductors III (14nm FinFET)"
   microchips: Microchips
+  microchips_ii: "Microchips II (multi-core)"
+  microchips_iii: "Microchips III (on-chip AI)"
   batteries: Battery chemistry
+  batteries_ii: "Battery chemistry II (lithium-polymer)"
+  batteries_iii: "Battery chemistry III (solid-state)"
   aerospace_engineering: "Aerospace engineering"
+  aerospace_engineering_ii: "Aerospace engineering II (composite airframes)"
+  aerospace_engineering_iii: "Aerospace engineering III (advanced aerodynamics)"
   jet_propulsion: "Jet propulsion"
+  jet_propulsion_ii: "Jet propulsion II (low-bypass turbofan)"
+  jet_propulsion_iii: "Jet propulsion III (afterburner and supercruise)"
   stealth_shaping: "Stealth shaping"
+  stealth_shaping_ii: "Stealth shaping II"
+  stealth_shaping_iii: "Stealth shaping III (advanced geometry)"
   radar_absorbent_materials: "Radar-absorbent materials"
+  radar_absorbent_materials_ii: "Radar-absorbent materials II (broadband)"
+  radar_absorbent_materials_iii: "Radar-absorbent materials III (metamaterials)"
   radar_systems: "Radar systems"
+  radar_systems_ii: "Radar systems II"
+  radar_systems_iii: "Radar systems III"
   aesa_radar: "Active electronically scanned array"
+  aesa_radar_ii: "Active electronically scanned array II (gallium nitride)"
   vhf_radar: "Long-wave counter-stealth radar"
+  vhf_radar_ii: "Long-wave counter-stealth radar II (digital)"
   armour_systems: "Armour systems"
+  armour_systems_ii: "Armour systems II (composite laminate)"
+  armour_systems_iii: "Armour systems III (explosive reactive)"
   rocketry: "Rocketry"
+  rocketry_ii: "Rocketry II (staged motors)"
+  rocketry_iii: "Rocketry III (advanced composite propellant)"
   missile_guidance: "Missile guidance"
+  missile_guidance_ii: "Missile guidance II"
   naval_architecture: "Naval architecture"
+  naval_architecture_ii: "Naval architecture II (hull hydrodynamics)"
+  naval_architecture_iii: "Naval architecture III"
   submarine_technology: "Submarine technology"
+  submarine_technology_ii: "Submarine technology II (air-independent propulsion)"
+  submarine_technology_iii: "Submarine technology III"
 
 # Suppliers, by content code (configs/content/production.yml).
 supplier:

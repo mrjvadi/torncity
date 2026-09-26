@@ -65,6 +65,33 @@ technologies:
     company_types: [factory, tech_studio]
     skill: engineering
     level: 1
+    family: semiconductors
+    generation: 1
+  # Generations of the same gate (chipset also requires semiconductors,
+  # below): a process shrink never opens a new part, it makes every chipset
+  # already being made better — same mechanism as radar_systems.
+  - code: semiconductors_ii
+    name: Semiconductors II (28nm)
+    requires: [semiconductors]
+    cost: 70000
+    time: 16h
+    company_types: [factory, tech_studio]
+    skill: engineering
+    level: 3
+    family: semiconductors
+    generation: 2
+    effects: [{target: quality, op: multiply, value: 11200}]
+  - code: semiconductors_iii
+    name: Semiconductors III (14nm FinFET)
+    requires: [semiconductors_ii]
+    cost: 140000
+    time: 28h
+    company_types: [factory, tech_studio]
+    skill: engineering
+    level: 5
+    family: semiconductors
+    generation: 3
+    effects: [{target: quality, op: multiply, value: 10700}]
   - code: microchips
     name: Microchips
     requires: [semiconductors]
@@ -73,6 +100,30 @@ technologies:
     company_types: [factory, tech_studio]
     skill: engineering
     level: 2
+    family: microchips
+    generation: 1
+  - code: microchips_ii
+    name: Microchips II (multi-core architecture)
+    requires: [microchips]
+    cost: 100000
+    time: 20h
+    company_types: [factory, tech_studio]
+    skill: engineering
+    level: 4
+    family: microchips
+    generation: 2
+    effects: [{target: quality, op: multiply, value: 11400}]
+  - code: microchips_iii
+    name: Microchips III (on-chip AI accelerator)
+    requires: [microchips_ii]
+    cost: 180000
+    time: 32h
+    company_types: [factory, tech_studio]
+    skill: engineering
+    level: 6
+    family: microchips
+    generation: 3
+    effects: [{target: quality, op: multiply, value: 10800}]
   - code: batteries
     name: Battery chemistry
     cost: 25000
@@ -80,8 +131,40 @@ technologies:
     company_types: [factory, tech_studio]
     skill: engineering
     level: 1
+    family: batteries
+    generation: 1
+  - code: batteries_ii
+    name: Battery chemistry II (lithium-polymer)
+    requires: [batteries]
+    cost: 55000
+    time: 14h
+    company_types: [factory, tech_studio]
+    skill: engineering
+    level: 3
+    family: batteries
+    generation: 2
+    effects: [{target: capacity, op: multiply, value: 11500}]
+  - code: batteries_iii
+    name: Battery chemistry III (solid-state)
+    requires: [batteries_ii]
+    cost: 110000
+    time: 24h
+    company_types: [factory, tech_studio]
+    skill: engineering
+    level: 5
+    family: batteries
+    generation: 3
+    effects: [{target: capacity, op: multiply, value: 11000}]
   # A factory's first step up from tools and clothes: cars and motorbikes
-  # (items.yml requires_technology).
+  # (items.yml requires_technology). This is the one family in this file that
+  # gates a GOOD, not a component (items.yml requires_technology is on the
+  # car/motorbike item, not on steel or casing): its generations still exist
+  # for a company to research and show in the tree, but today have no
+  # component attribute to lift — the vehicle archetype (items.yml) computes
+  # only quality from generic steel and casing. A later content pass that
+  # gives vehicles a real engine slot is what would let vehicle_engineering
+  # II/III move a "speed" attribute the way jet_propulsion moves an
+  # aircraft's.
   - code: vehicle_engineering
     name: Vehicle engineering
     cost: 40000
@@ -89,6 +172,28 @@ technologies:
     company_types: [factory]
     skill: engineering
     level: 1
+    family: vehicle_engineering
+    generation: 1
+  - code: vehicle_engineering_ii
+    name: Vehicle engineering II (unibody chassis)
+    requires: [vehicle_engineering]
+    cost: 80000
+    time: 16h
+    company_types: [factory]
+    skill: engineering
+    level: 3
+    family: vehicle_engineering
+    generation: 2
+  - code: vehicle_engineering_iii
+    name: Vehicle engineering III (lightweight composite chassis)
+    requires: [vehicle_engineering_ii]
+    cost: 150000
+    time: 26h
+    company_types: [factory]
+    skill: engineering
+    level: 5
+    family: vehicle_engineering
+    generation: 3
 
 suppliers:
   - code: industrial_supplier

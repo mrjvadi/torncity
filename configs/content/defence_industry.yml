@@ -654,12 +654,56 @@ technologies:
   # company may license it, and across a border only where the licensor's
   # country allows arms exports to the licensee's (ADR 0022).
   - {code: aerospace_engineering, name: Aerospace engineering, cost: 120000, time: 12h, company_types: [aerospace], skill: engineering, level: 3,
+     family: aerospace_engineering, generation: 1,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: aerospace_engineering_ii, name: Aerospace engineering II (composite airframes), requires: [aerospace_engineering],
+     cost: 260000, time: 24h, company_types: [aerospace], skill: engineering, level: 5,
+     family: aerospace_engineering, generation: 2,
+     effects: [{target: range, op: multiply, value: 11200}],
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: aerospace_engineering_iii, name: Aerospace engineering III (advanced aerodynamics), requires: [aerospace_engineering_ii],
+     cost: 480000, time: 40h, company_types: [aerospace], skill: engineering, level: 7,
+     family: aerospace_engineering, generation: 3,
+     effects: [{target: range, op: multiply, value: 10700}],
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: jet_propulsion, name: Jet propulsion, requires: [aerospace_engineering], cost: 180000, time: 18h, company_types: [aerospace, missile_works], skill: engineering, level: 4,
+     family: jet_propulsion, generation: 1,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: jet_propulsion_ii, name: Jet propulsion II (low-bypass turbofan), requires: [jet_propulsion],
+     cost: 320000, time: 28h, company_types: [aerospace, missile_works], skill: engineering, level: 6,
+     family: jet_propulsion, generation: 2,
+     effects: [{target: speed, op: multiply, value: 11200}],
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: jet_propulsion_iii, name: Jet propulsion III (afterburner and supercruise), requires: [jet_propulsion_ii],
+     cost: 560000, time: 44h, company_types: [aerospace, missile_works], skill: engineering, level: 8,
+     family: jet_propulsion, generation: 3,
+     effects: [{target: speed, op: multiply, value: 10800}],
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: stealth_shaping, name: Stealth shaping, requires: [aerospace_engineering], cost: 400000, time: 36h, company_types: [aerospace], skill: engineering, level: 6,
+     family: stealth_shaping, generation: 1,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: stealth_shaping_ii, name: Stealth shaping II, requires: [stealth_shaping],
+     cost: 700000, time: 54h, company_types: [aerospace], skill: engineering, level: 8,
+     family: stealth_shaping, generation: 2,
+     effects: [{target: rcs, op: multiply, value: 8000}],
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: stealth_shaping_iii, name: Stealth shaping III (advanced geometry), requires: [stealth_shaping_ii],
+     cost: 1200000, time: 80h, company_types: [aerospace], skill: engineering, level: 10,
+     family: stealth_shaping, generation: 3,
+     effects: [{target: rcs, op: multiply, value: 8800}],
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: radar_absorbent_materials, name: Radar-absorbent materials, requires: [stealth_shaping], cost: 300000, time: 24h, company_types: [aerospace], skill: engineering, level: 6,
+     family: radar_absorbent_materials, generation: 1,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: radar_absorbent_materials_ii, name: Radar-absorbent materials II (broadband), requires: [radar_absorbent_materials],
+     cost: 520000, time: 36h, company_types: [aerospace], skill: engineering, level: 8,
+     family: radar_absorbent_materials, generation: 2,
+     effects: [{target: rcs, op: multiply, value: 8500}],
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: radar_absorbent_materials_iii, name: Radar-absorbent materials III (metamaterials), requires: [radar_absorbent_materials_ii],
+     cost: 900000, time: 56h, company_types: [aerospace], skill: engineering, level: 10,
+     family: radar_absorbent_materials, generation: 3,
+     effects: [{target: rcs, op: multiply, value: 9100}],
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   # A tech studio licensed as a defence contractor may research the two
   # electronic technologies of the tree (docs/adr/0022, section 2.14); an
@@ -681,12 +725,46 @@ technologies:
      effects: [{target: detection_range, op: multiply, value: 10800}],
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: aesa_radar, name: Active electronically scanned array, requires: [radar_systems], cost: 350000, time: 30h, company_types: [defence_electronics], skill: engineering, level: 6,
+     family: aesa_radar, generation: 1,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: aesa_radar_ii, name: Active electronically scanned array II (gallium nitride), requires: [aesa_radar],
+     cost: 620000, time: 46h, company_types: [defence_electronics], skill: engineering, level: 8,
+     family: aesa_radar, generation: 2,
+     effects: [{target: detection_range, op: multiply, value: 11800}],
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: vhf_radar, name: Long-wave counter-stealth radar, requires: [radar_systems], cost: 200000, time: 18h, company_types: [defence_electronics], skill: engineering, level: 4,
+     family: vhf_radar, generation: 1,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: vhf_radar_ii, name: Long-wave counter-stealth radar II (digital), requires: [vhf_radar],
+     cost: 360000, time: 30h, company_types: [defence_electronics], skill: engineering, level: 6,
+     family: vhf_radar, generation: 2,
+     effects: [{target: detection_range, op: multiply, value: 11500}],
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: armour_systems, name: Armour systems, cost: 100000, time: 12h, company_types: [land_systems], skill: engineering, level: 3,
+     family: armour_systems, generation: 1,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: armour_systems_ii, name: Armour systems II (composite laminate), requires: [armour_systems],
+     cost: 220000, time: 22h, company_types: [land_systems], skill: engineering, level: 5,
+     family: armour_systems, generation: 2,
+     effects: [{target: armour, op: multiply, value: 11600}],
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: armour_systems_iii, name: Armour systems III (explosive reactive armour), requires: [armour_systems_ii],
+     cost: 400000, time: 34h, company_types: [land_systems], skill: engineering, level: 7,
+     family: armour_systems, generation: 3,
+     effects: [{target: armour, op: multiply, value: 11000}],
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: rocketry, name: Rocketry, cost: 150000, time: 18h, company_types: [missile_works], skill: engineering, level: 4,
+     family: rocketry, generation: 1,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: rocketry_ii, name: Rocketry II (staged motors), requires: [rocketry],
+     cost: 280000, time: 26h, company_types: [missile_works], skill: engineering, level: 6,
+     family: rocketry, generation: 2,
+     effects: [{target: range, op: multiply, value: 12000}],
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: rocketry_iii, name: Rocketry III (advanced composite propellant), requires: [rocketry_ii],
+     cost: 500000, time: 40h, company_types: [missile_works], skill: engineering, level: 8,
+     family: rocketry, generation: 3,
+     effects: [{target: range, op: multiply, value: 11200}],
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: missile_guidance, name: Missile guidance, cost: 200000, time: 24h, company_types: [missile_works, defence_electronics, tech_studio], skill: engineering, level: 5,
      family: missile_guidance, generation: 1,
@@ -697,8 +775,30 @@ technologies:
      effects: [{target: accuracy, op: multiply, value: 11200}],
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: naval_architecture, name: Naval architecture, cost: 150000, time: 18h, company_types: [shipyard], skill: engineering, level: 3,
+     family: naval_architecture, generation: 1,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: naval_architecture_ii, name: Naval architecture II (hull hydrodynamics), requires: [naval_architecture],
+     cost: 300000, time: 28h, company_types: [shipyard], skill: engineering, level: 5,
+     family: naval_architecture, generation: 2,
+     effects: [{target: range, op: multiply, value: 11400}],
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: naval_architecture_iii, name: Naval architecture III, requires: [naval_architecture_ii],
+     cost: 520000, time: 42h, company_types: [shipyard], skill: engineering, level: 7,
+     family: naval_architecture, generation: 3,
+     effects: [{target: range, op: multiply, value: 10800}],
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
   - {code: submarine_technology, name: Submarine technology, requires: [naval_architecture], cost: 400000, time: 36h, company_types: [shipyard], skill: engineering, level: 6,
+     family: submarine_technology, generation: 1,
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: submarine_technology_ii, name: Submarine technology II (air-independent propulsion), requires: [submarine_technology],
+     cost: 720000, time: 52h, company_types: [shipyard], skill: engineering, level: 8,
+     family: submarine_technology, generation: 2,
+     effects: [{target: range, op: multiply, value: 12500}],
+     export_control: {restricted: true, buyer_classes: ["company:defence"]}}
+  - {code: submarine_technology_iii, name: Submarine technology III, requires: [submarine_technology_ii],
+     cost: 1300000, time: 76h, company_types: [shipyard], skill: engineering, level: 10,
+     family: submarine_technology, generation: 3,
+     effects: [{target: range, op: multiply, value: 11200}],
      export_control: {restricted: true, buyer_classes: ["company:defence"]}}
 
 suppliers:

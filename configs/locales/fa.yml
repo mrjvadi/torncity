@@ -2364,21 +2364,50 @@ component:
 # نام فناوری‌ها، به کد محتوا (configs/content/production.yml).
 technology:
   vehicle_engineering: مهندسی خودرو
+  vehicle_engineering_ii: "مهندسی خودرو نسل دوم - شاسی یکپارچه"
+  vehicle_engineering_iii: "مهندسی خودرو نسل سوم - شاسی کامپوزیتی"
   semiconductors: نیمه‌رساناها
+  semiconductors_ii: "نیمه‌رساناها نسل دوم - فرایند ۲۸ نانومتری"
+  semiconductors_iii: "نیمه‌رساناها نسل سوم - فرایند ۱۴ نانومتری فین‌فت"
   microchips: ریزتراشه‌ها
+  microchips_ii: "ریزتراشه‌ها نسل دوم - معماری چندهسته‌ای"
+  microchips_iii: "ریزتراشه‌ها نسل سوم - شتاب‌دهندهٔ هوش مصنوعی روی‌تراشه"
   batteries: شیمی باتری
+  batteries_ii: "شیمی باتری نسل دوم - لیتیوم-پلیمر"
+  batteries_iii: "شیمی باتری نسل سوم - حالت‌جامد"
   aerospace_engineering: "مهندسی هوافضا"
+  aerospace_engineering_ii: "مهندسی هوافضا نسل دوم - بدنهٔ کامپوزیتی"
+  aerospace_engineering_iii: "مهندسی هوافضا نسل سوم - آیرودینامیک پیشرفته"
   jet_propulsion: "پیشرانش جت"
+  jet_propulsion_ii: "پیشرانش جت نسل دوم - توربوفن دوردهٔ پایین"
+  jet_propulsion_iii: "پیشرانش جت نسل سوم - پس‌سوز و ابرکروز"
   stealth_shaping: "طراحی رادارگریز"
+  stealth_shaping_ii: "طراحی رادارگریز نسل دوم"
+  stealth_shaping_iii: "طراحی رادارگریز نسل سوم - هندسهٔ پیشرفته"
   radar_absorbent_materials: "مواد جاذب امواج رادار"
+  radar_absorbent_materials_ii: "مواد جاذب امواج رادار نسل دوم - فراپهن‌باند"
+  radar_absorbent_materials_iii: "مواد جاذب امواج رادار نسل سوم - فراماده"
   radar_systems: "سامانه‌های راداری"
+  radar_systems_ii: "سامانه‌های راداری نسل دوم"
+  radar_systems_iii: "سامانه‌های راداری نسل سوم"
   aesa_radar: "رادار آرایه‌فازی فعال"
+  aesa_radar_ii: "رادار آرایه‌فازی فعال نسل دوم - مبتنی بر گالیم نیترید"
   vhf_radar: "رادار موج بلند ضدرادارگریز"
+  vhf_radar_ii: "رادار موج بلند ضدرادارگریز نسل دوم - دیجیتال"
   armour_systems: "سامانه‌های زرهی"
+  armour_systems_ii: "سامانه‌های زرهی نسل دوم - زرهٔ کامپوزیتی لایه‌ای"
+  armour_systems_iii: "سامانه‌های زرهی نسل سوم - زرهٔ واکنشی انفجاری"
   rocketry: "راکت‌سازی"
+  rocketry_ii: "راکت‌سازی نسل دوم - موتور چندمرحله‌ای"
+  rocketry_iii: "راکت‌سازی نسل سوم - سوخت کامپوزیت پیشرفته"
   missile_guidance: "هدایت موشک"
+  missile_guidance_ii: "هدایت موشک نسل دوم"
   naval_architecture: "معماری دریایی"
+  naval_architecture_ii: "معماری دریایی نسل دوم - بدنهٔ کم‌مقاومت"
+  naval_architecture_iii: "معماری دریایی نسل سوم"
   submarine_technology: "فناوری زیردریایی"
+  submarine_technology_ii: "فناوری زیردریایی نسل دوم - پیشرانش مستقل از هوا"
+  submarine_technology_iii: "فناوری زیردریایی نسل سوم"
 
 # نام تأمین‌کننده‌ها، به کد محتوا (configs/content/production.yml).
 supplier:
