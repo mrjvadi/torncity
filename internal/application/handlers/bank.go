@@ -686,6 +686,74 @@ func notTogether(c screens.Context, payee string) string {
 	return c.T("pay.not_together", map[string]any{"player": payee})
 }
 
+// paySendQuote is what payQuote resolves for a bank.pay.send: who is being
+// paid, from which of the payer's accounts to which of the payee's, and the
+// quoted amount and fee.
+type paySendQuote struct {
+	payee    *application.Player
+	reason   application.Reason
+	from, to application.Account
+	quote    bank.Quote
+	feeCity  string
+}
+
+// payQuote resolves the payee, checks under the row locks PaySend holds that
+// these two players may pay each other this way — together for cash, not
+// sanctioned against each other for a card — and prices the payment: face
+// value in cash, or with the payer's city's card fee added by card. It also
+// checks the payer can afford the quote, so a caller that gets a nil error
+// back has a payment it may settle.
+func (h *BankHandler) payQuote(ctx context.Context, tx application.Tx, p *application.Player, method bank.Method,
+	amount money.Amount, req PayRequest, now time.Time,
+) (paySendQuote, error) {
+	var q paySendQuote
+	payee, err := h.payee(ctx, tx, req)
+	if err != nil {
+		return q, err
+	}
+	if payee.ID == p.ID {
+		return q, application.ErrSelfPayment
+	}
+	here, err := h.lockPresence(ctx, tx, p.ID, payee.ID)
+	if err != nil {
+		return q, err
+	}
+	if err := bank.CheckPayment(p.ID, payee.ID, method, presence(here[0]), presence(here[1])); err != nil {
+		return q, paymentRefusal(err)
+	}
+
+	payerCash, payerBank, err := playerAccounts(ctx, tx.Ledger(), p.ID)
+	if err != nil {
+		return q, err
+	}
+	payeeCash, payeeBank, err := playerAccounts(ctx, tx.Ledger(), payee.ID)
+	if err != nil {
+		return q, err
+	}
+
+	q.payee = payee
+	q.reason, q.from, q.to = application.ReasonCashPayment, payerCash, payeeCash
+	q.quote = bank.Quote{Amount: amount, Total: amount}
+	if method == bank.MethodCard {
+		if err := playersSanctioned(ctx, tx, diplomacy.Financial, p.ID, payee.ID, now, screens.AddrBank); err != nil {
+			return q, err
+		}
+		q.reason, q.from, q.to = application.ReasonCardPayment, payerBank, payeeBank
+		feeBPS, city, err := h.cardFee(ctx, here[0])
+		if err != nil {
+			return q, err
+		}
+		q.feeCity = city.ID
+		if q.quote, err = bank.QuoteFor(amount, feeBPS); err != nil {
+			return q, errors.Internal(err)
+		}
+	}
+	if err := checkFunds(q.from, q.quote, method == bank.MethodCash); err != nil {
+		return q, err
+	}
+	return q, nil
+}
+
 // PaySend handles bank.pay.send: the payment itself.
 //
 // Cash passes from hand to hand, so both players must be in the same city
@@ -728,53 +796,11 @@ func (h *BankHandler) PaySend(ctx context.Context, meta envelope.Metadata, req P
 			return nil
 		}
 
-		payee, err := h.payee(ctx, tx, req)
+		q, err := h.payQuote(ctx, tx, p, method, amount, req, h.now())
 		if err != nil {
 			return err
 		}
-		if payee.ID == p.ID {
-			return application.ErrSelfPayment
-		}
-		here, err := h.lockPresence(ctx, tx, p.ID, payee.ID)
-		if err != nil {
-			return err
-		}
-		if err := bank.CheckPayment(p.ID, payee.ID, method, presence(here[0]), presence(here[1])); err != nil {
-			return paymentRefusal(err)
-		}
-
-		payerCash, payerBank, err := playerAccounts(ctx, tx.Ledger(), p.ID)
-		if err != nil {
-			return err
-		}
-		payeeCash, payeeBank, err := playerAccounts(ctx, tx.Ledger(), payee.ID)
-		if err != nil {
-			return err
-		}
-
-		var (
-			reason   = application.ReasonCashPayment
-			from, to = payerCash, payeeCash
-			quote    = bank.Quote{Amount: amount, Total: amount}
-			feeCity  string
-		)
-		if method == bank.MethodCard {
-			if err := playersSanctioned(ctx, tx, diplomacy.Financial, p.ID, payee.ID, h.now(), screens.AddrBank); err != nil {
-				return err
-			}
-			reason, from, to = application.ReasonCardPayment, payerBank, payeeBank
-			feeBPS, city, err := h.cardFee(ctx, here[0])
-			if err != nil {
-				return err
-			}
-			feeCity = city.ID
-			if quote, err = bank.QuoteFor(amount, feeBPS); err != nil {
-				return errors.Internal(err)
-			}
-		}
-		if err := checkFunds(from, quote, method == bank.MethodCash); err != nil {
-			return err
-		}
+		payee, from, to, reason, quote, feeCity := q.payee, q.from, q.to, q.reason, q.quote, q.feeCity
 
 		// The watch (docs/adr/0023): a payment that makes a pattern is
 		// flagged; one above the threshold between accounts a flag links
