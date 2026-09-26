@@ -486,6 +486,12 @@ var all = []Subscription{
 	{Domain: "device", Action: "link", Origin: FromPlayer},
 	{Domain: "device", Action: "list", Origin: FromPlayer},
 	{Domain: "device", Action: "revoke", Origin: FromPlayer},
+
+	// The notification inbox (migrations/0037_notification_inbox): what
+	// cmd/notifier stored instead of flooding a player with messages.
+	{Domain: "inbox", Action: "show", Origin: FromPlayer},
+	{Domain: "inbox", Action: "category", Origin: FromPlayer},
+	{Domain: "inbox", Action: "read_all", Origin: FromPlayer},
 }
 
 // All returns every subscription. The slice is a copy.

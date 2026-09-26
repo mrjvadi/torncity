@@ -436,6 +436,11 @@ var argNames = map[string][]string{
 	"device.list":   {},
 	"device.revoke": {"device"},
 
+	// The notification inbox (migrations/0037_notification_inbox).
+	"inbox.show":     {},
+	"inbox.category": {"category", "page"},
+	"inbox.read_all": {},
+
 	"job.status":       {},
 	"job.list":         {"page"},
 	"job.view":         {"role"},

@@ -57,6 +57,8 @@ type phaseHandlers struct {
 	stageG2 financeHandlers
 
 	clients deviceHandlers
+
+	inbox inboxHandlers
 }
 
 // bind maps every subscribed command to the handler method that serves it.
@@ -274,6 +276,9 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		bound[command] = fn
 	}
 	for command, fn := range h.bindDevices() {
+		bound[command] = fn
+	}
+	for command, fn := range h.bindInbox() {
 		bound[command] = fn
 	}
 	return bound

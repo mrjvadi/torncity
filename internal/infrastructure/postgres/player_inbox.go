@@ -248,6 +248,19 @@ UPDATE player_notifications SET read_at = $2 WHERE player_id = $1::uuid AND read
 	return int(tag.RowsAffected()), nil
 }
 
+// ClearBadge zeroes the player's badge, a no-op when there is no row yet.
+func (r *PlayerInboxRepository) ClearBadge(ctx context.Context, playerID string) error {
+	if !validUUID(playerID) {
+		return nil
+	}
+	if _, err := r.q.Exec(ctx, `
+UPDATE player_inbox_badges SET unread_count = 0, telegram_message_id = 0, updated_at = $2
+ WHERE player_id = $1::uuid`, playerID, time.Now().UTC()); err != nil {
+		return fmt.Errorf("postgres: clearing the inbox badge of player %s: %w", playerID, err)
+	}
+	return nil
+}
+
 // scanItems runs a query returning the notification item columns in the
 // fixed order every caller above uses, and scans every row.
 func (r *PlayerInboxRepository) scanItems(ctx context.Context, sql string, args ...any) ([]application.NotificationItem, error) {

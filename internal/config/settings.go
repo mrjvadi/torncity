@@ -52,7 +52,8 @@ type fileConfig struct {
 	Factions   factionsSettings   `yaml:"factions"`
 	AntiCheat  antiCheatSettings  `yaml:"anticheat"`
 	Input      inputSettings      `yaml:"input"`
-	Announce   announceSettings   `yaml:"announce"`
+	Announce      announceSettings      `yaml:"announce"`
+	Notifications notificationsSettings `yaml:"notifications"`
 
 	Legislature  legislatureSettings  `yaml:"legislature"`
 	City         citySettings         `yaml:"city"`
@@ -200,6 +201,16 @@ type inputSettings struct {
 type announceSettings struct {
 	Window       *string `yaml:"window"`
 	MaxPerWindow *int    `yaml:"max_per_window"`
+}
+
+type notificationsSettings struct {
+	InboxPageSize         *int    `yaml:"inbox_page_size"`
+	EditThrottle          *string `yaml:"edit_throttle"`
+	ReminderDelay         *string `yaml:"reminder_delay"`
+	ReminderCheckInterval *string `yaml:"reminder_check_interval"`
+	Retention             *string `yaml:"retention"`
+	PruneInterval         *string `yaml:"prune_interval"`
+	HungerAlertCooldown   *string `yaml:"hunger_alert_cooldown"`
 }
 
 type governanceSettings struct {
@@ -1163,4 +1174,26 @@ var coreSettings = []setting{
 	limitSetting("announce", "max_per_window",
 		func(c *Config) *int { return &c.Announce.MaxPerWindow },
 		func(f *fileConfig) *int { return f.Announce.MaxPerWindow }),
+
+	limitSetting("notifications", "inbox_page_size",
+		func(c *Config) *int { return &c.Notifications.InboxPageSize },
+		func(f *fileConfig) *int { return f.Notifications.InboxPageSize }),
+	durationSetting("notifications", "edit_throttle",
+		func(c *Config) *time.Duration { return &c.Notifications.EditThrottle },
+		func(f *fileConfig) *string { return f.Notifications.EditThrottle }),
+	durationSetting("notifications", "reminder_delay",
+		func(c *Config) *time.Duration { return &c.Notifications.ReminderDelay },
+		func(f *fileConfig) *string { return f.Notifications.ReminderDelay }),
+	durationSetting("notifications", "reminder_check_interval",
+		func(c *Config) *time.Duration { return &c.Notifications.ReminderCheckInterval },
+		func(f *fileConfig) *string { return f.Notifications.ReminderCheckInterval }),
+	durationSetting("notifications", "retention",
+		func(c *Config) *time.Duration { return &c.Notifications.Retention },
+		func(f *fileConfig) *string { return f.Notifications.Retention }),
+	durationSetting("notifications", "prune_interval",
+		func(c *Config) *time.Duration { return &c.Notifications.PruneInterval },
+		func(f *fileConfig) *string { return f.Notifications.PruneInterval }),
+	durationSetting("notifications", "hunger_alert_cooldown",
+		func(c *Config) *time.Duration { return &c.Notifications.HungerAlertCooldown },
+		func(f *fileConfig) *string { return f.Notifications.HungerAlertCooldown }),
 }

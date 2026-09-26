@@ -370,6 +370,13 @@ commands:
   device.list: {channel: private}
   device.revoke: {channel: private}
 
+  # The notification inbox: a personal screen, PV only (group-first rule —
+  # only personal screens go to private chat). A player who presses the
+  # badge's "open" button in a group is sent to their PV instead.
+  inbox.show: {channel: private}
+  inbox.category: {channel: private}
+  inbox.read_all: {channel: private}
+
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the
 # commands listed here may ask. field is the payload field the typed text

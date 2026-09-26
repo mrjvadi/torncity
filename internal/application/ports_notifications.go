@@ -76,6 +76,17 @@ type NotificationInboxRepository interface {
 	List(ctx context.Context, playerID, category string, page, pageSize int) ([]NotificationItem, int, error)
 	// MarkAllRead marks every unread item read and reports how many changed.
 	MarkAllRead(ctx context.Context, playerID string) (int, error)
+	// ClearBadge zeroes the player's badge (unread_count and
+	// telegram_message_id), a no-op when there is no badge row yet. It is
+	// called alongside MarkAllRead: the item that was on screen when the
+	// player opened /inbox already turned into the hub itself (the response
+	// edits whatever message they acted on), so the badge as such no longer
+	// exists; a notice that opened /inbox some other way leaves whatever
+	// Telegram message it last showed stale on screen, but the SYSTEM's
+	// idea of the badge is cleared either way, so the next inbox-mode
+	// notice sends a fresh one rather than editing a message that has
+	// nothing to do with the count it would show.
+	ClearBadge(ctx context.Context, playerID string) error
 }
 
 // The types below are the write side cmd/notifier uses

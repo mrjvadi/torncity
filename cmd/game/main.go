@@ -403,6 +403,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// the game clock.
 	h.stageG1.life = handlers.NewLifeHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPlayerSearchRepository(pool), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL, nil)
+	// The notification inbox (docs: /inbox, migrations/0037): what
+	// cmd/notifier stored instead of flooding a player with messages.
+	h.inbox.inbox = handlers.NewInboxHandler(uow, messages,
+		handlers.InboxRules{PageSize: cfg.Notifications.InboxPageSize}, nil)
 	// Stage G2 (docs/adr/0026): finance, on its own game clock.
 	h.stageG2.finance = handlers.NewFinanceHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale),

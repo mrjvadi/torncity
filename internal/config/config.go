@@ -219,6 +219,12 @@ type Config struct {
 	// the notifier publish through; see client.go.
 	Client   Client
 	Realtime Realtime
+
+	// Notifications is the inbox badge (migrations/0037_notification_
+	// inbox): which of cmd/notifier's own tuning is not content (delivery
+	// mode per kind lives in configs/notifications/delivery.yml instead;
+	// see internal/workers/notification.DeliveryModes).
+	Notifications Notifications
 }
 
 // Postgres bounds every service's connection pool.
@@ -471,6 +477,40 @@ type Announce struct {
 	// the next line that goes out.
 	Window       time.Duration // announce.window
 	MaxPerWindow int           // announce.max_per_window
+}
+
+// Notifications tunes the inbox badge (migrations/0037_notification_inbox)
+// and the one urgent need alert this feature adds (hunger). Which
+// notification KIND sends at once instead of joining the badge is content,
+// not tuning — configs/notifications/delivery.yml — so an operator changes
+// it without touching this file.
+type Notifications struct {
+	// InboxPageSize is how many items one /inbox category page shows.
+	InboxPageSize int // notifications.inbox_page_size
+
+	// EditThrottle is the least real time between two edits of one
+	// player's badge message; an item that arrives sooner only updates the
+	// stored count, and the next edit (or the player opening /inbox)
+	// catches the message up.
+	EditThrottle time.Duration // notifications.edit_throttle
+
+	// ReminderDelay is how long a badge may sit unread before the 24h nudge
+	// fires; ReminderCheckInterval is how often cmd/notifier looks for one
+	// due. Both are REAL time — a policy's notice and cooldown, never game
+	// time (see game.time_scale).
+	ReminderDelay         time.Duration // notifications.reminder_delay
+	ReminderCheckInterval time.Duration // notifications.reminder_check_interval
+
+	// Retention is how long a READ item is kept before PruneInterval's
+	// sweep removes it.
+	Retention     time.Duration // notifications.retention
+	PruneInterval time.Duration // notifications.prune_interval
+
+	// HungerAlertCooldown is the least real time between two "you are
+	// hungry" instant notices to the same player, so a hunger hovering at
+	// the content-defined threshold (life.yml needs.high) cannot resend it
+	// every time a command happens to catch the life up.
+	HungerAlertCooldown time.Duration // notifications.hunger_alert_cooldown
 }
 
 // Governance is the tuning of the office holder's screens
@@ -992,6 +1032,15 @@ func Defaults() *Config {
 		Announce: Announce{
 			Window:       time.Minute,
 			MaxPerWindow: 6,
+		},
+		Notifications: Notifications{
+			InboxPageSize:         5,
+			EditThrottle:          8 * time.Second,
+			ReminderDelay:         24 * time.Hour,
+			ReminderCheckInterval: 15 * time.Minute,
+			Retention:             30 * 24 * time.Hour,
+			PruneInterval:         24 * time.Hour,
+			HungerAlertCooldown:   2 * time.Hour,
 		},
 		Governance: Governance{
 			FineStepDivisor:   100,

@@ -701,6 +701,32 @@ announce:
   window: 1m
   max_per_window: 6
 
+# The inbox badge (migrations/0037_notification_inbox): most notices are
+# stored and counted on one Telegram message instead of arriving as their
+# own. WHICH notification kind sends at once instead is content, not here —
+# configs/notifications/delivery.yml — so an operator changes it without
+# touching this file. Every value below is REAL time (a policy's notice and
+# cooldown, never game.time_scale).
+notifications:
+  # /inbox category page size.
+  inbox_page_size: 5
+  # Least real time between two edits of one player's badge message; a
+  # burst inside this window updates only the stored count, and the next
+  # edit (or the player opening /inbox) catches the message up.
+  edit_throttle: 8s
+  # How long a badge may sit unread before the 24h nudge fires, and how
+  # often cmd/notifier looks for one due.
+  reminder_delay: 24h
+  reminder_check_interval: 15m
+  # How long a READ item is kept before the sweep removes it, and how often
+  # that sweep runs.
+  retention: 720h
+  prune_interval: 24h
+  # Least real time between two "you are hungry" instant notices to the
+  # same player, so a hunger hovering at life.yml's needs.high threshold
+  # cannot resend it on every command that happens to catch the life up.
+  hunger_alert_cooldown: 2h
+
 # Votes of a body (docs/adr/0024-property-and-politics.md): a council
 # confirming a mayor's budget or a large tax change, a national assembly
 # approving a declaration of war. Which bodies confirm what is content

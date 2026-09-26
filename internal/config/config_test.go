@@ -417,6 +417,14 @@ input:
 announce:
   window: 2m
   max_per_window: 7
+notifications:
+  inbox_page_size: 9
+  edit_throttle: 11s
+  reminder_delay: 30h
+  reminder_check_interval: 20m
+  retention: 800h
+  prune_interval: 30h
+  hunger_alert_cooldown: 3h
 legislature:
   vote_window: 49h
   list_size: 9
@@ -557,6 +565,14 @@ var envOverrides = map[string]string{
 
 	"TORN_ANNOUNCE_WINDOW":         "3m",
 	"TORN_ANNOUNCE_MAX_PER_WINDOW": "8",
+
+	"TORN_NOTIFICATIONS_INBOX_PAGE_SIZE":         "10",
+	"TORN_NOTIFICATIONS_EDIT_THROTTLE":           "12s",
+	"TORN_NOTIFICATIONS_REMINDER_DELAY":          "31h",
+	"TORN_NOTIFICATIONS_REMINDER_CHECK_INTERVAL": "21m",
+	"TORN_NOTIFICATIONS_RETENTION":               "810h",
+	"TORN_NOTIFICATIONS_PRUNE_INTERVAL":          "31h",
+	"TORN_NOTIFICATIONS_HUNGER_ALERT_COOLDOWN":   "4h",
 
 	"TORN_GOVERNANCE_FINE_STEP_DIVISOR":   "102",
 	"TORN_GOVERNANCE_COARSE_STEP_DIVISOR": "12",
