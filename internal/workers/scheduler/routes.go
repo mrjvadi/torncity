@@ -158,7 +158,7 @@ var routes = map[string]Route{
 	ActionTypeImprovement: {Domain: "company", Action: "improved"},
 	ActionTypeUpgradeKit:  {Domain: "company", Action: "kit_produced"},
 	ActionTypeRetrofit:    {Domain: "company", Action: "retrofitted"},
-	ActionTypeReverse:    {Domain: "company", Action: "reversed"},
+	ActionTypeReverse:     {Domain: "company", Action: "reversed"},
 
 	ActionTypeMilitaryPeriod: {Domain: "military", Action: "settle"},
 	ActionTypeMilitaryMove:   {Domain: "military", Action: "arrive"},
