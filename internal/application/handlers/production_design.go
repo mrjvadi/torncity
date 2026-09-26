@@ -26,9 +26,16 @@ import (
 // domainDesign is a stored design as the item rules take it.
 func domainDesign(d application.Design) item.Design {
 	out := item.Design{ID: d.ID, Archetype: d.Archetype, Fills: map[string]item.Fill{}, Origin: item.Origin(d.Origin),
-		QualityLossBPS: d.QualityLossBPS, OverheadBPS: d.OverheadBPS}
+		QualityLossBPS: d.QualityLossBPS, OverheadBPS: d.OverheadBPS, LineageID: d.LineageID, Version: int(d.Version),
+		ParentID: d.ParentID, Retired: d.Status == application.DesignRetired}
 	for slot, f := range d.Fills {
 		out.Fills[slot] = item.Fill{Component: f.Component, Quantity: f.Quantity}
+	}
+	if len(d.Improvements) > 0 {
+		out.Improvements = make(map[string]int64, len(d.Improvements))
+		for k, v := range d.Improvements {
+			out.Improvements[k] = v
+		}
 	}
 	return out
 }

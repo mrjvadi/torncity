@@ -32,6 +32,11 @@ const (
 	ImprovementActionType = "design_improvement"
 	// RetrofitActionType is a retrofit job finishing: company.retrofitted.
 	RetrofitActionType = "retrofit"
+	// KitActionType is an upgrade-kit order finishing: company.kit_produced.
+	// A separate type from ProductionActionType because it completes
+	// differently (KitProduced, not Produced): its output is spare units of
+	// the target design, not goods for sale.
+	KitActionType = "upgrade_kit"
 )
 
 // Statuses and kinds as the tables spell them.

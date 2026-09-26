@@ -586,6 +586,221 @@ func (h *ProductionHandler) Produced(ctx context.Context, meta envelope.Metadata
 	})
 }
 
+// ProduceKit handles company.kit: the plan of an upgrade-kit order for one of
+// the company's own final designs — its inputs, what the warehouse holds,
+// its time for the crew, exactly like Produce — and, confirmed, placing it as
+// kind OrderKindUpgradeKit with TargetDesignID set, so a retrofit later
+// knows which version a kit's output upgrades a unit to.
+func (h *ProductionHandler) ProduceKit(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+	if err := validatePlayerMeta(meta); err != nil {
+		return nil, err
+	}
+	qty := int64(0)
+	if strings.TrimSpace(req.Qty) != "" {
+		var ok bool
+		if qty, ok = quantityArg(req.Qty); !ok {
+			qty = -1
+		}
+	}
+	snap := h.content.Current()
+	lang := meta.Language
+	var view screens.ProduceView
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, err := h.player(ctx, tx, meta, &lang)
+		if err != nil {
+			return err
+		}
+		place := req.confirmed() && qty > 0
+		if place {
+			fresh, err := h.reserve(ctx, tx, p.ID, meta)
+			if err != nil {
+				return err
+			}
+			if !fresh {
+				place = false
+			}
+		}
+		c, err := h.managed(ctx, tx, snap, p, req.code(), company.RightProduce)
+		if err != nil {
+			return err
+		}
+		if qty < 0 {
+			return refuseProduction(screens.ProductionRefusedAmount, c, snap).back(screens.AddrProduceKit, c.Code, req.Target)
+		}
+		f, err := readFloor(ctx, tx, snap, c)
+		if err != nil {
+			return err
+		}
+		t, err := h.kitTarget(ctx, tx, snap, f, req.Target)
+		if err != nil {
+			return err
+		}
+		if qty == 0 {
+			probe, err := h.planOrder(ctx, tx, snap, f, t, 0)
+			if err != nil {
+				return err
+			}
+			qty = h.quickQty(probe.maxOrder())
+		}
+		org := application.CompanyOrg(c.ID)
+		if place {
+			if err := tx.Items().LockOrg(ctx, org); err != nil {
+				return err
+			}
+		}
+		pl, err := h.planOrder(ctx, tx, snap, f, t, qty)
+		if err != nil {
+			return err
+		}
+		now := h.now()
+		if !place || pl.short != nil {
+			view = h.produceView(snap, c, pl, qty, now)
+			view.Addr = screens.AddrProduceKit
+			if err := h.sourceShortages(ctx, tx, snap, f, &view, now); err != nil {
+				return err
+			}
+			if place && pl.short != nil {
+				r := refuseProduction(screens.ProductionRefusedShortage, c, snap).back(screens.AddrProduceKit, c.Code, t.good.TargetArg())
+				r.view.Shortages = view.Short
+				return r
+			}
+			return nil
+		}
+		running, err := tx.Production().RunningOrders(ctx, c.ID)
+		if err != nil {
+			return err
+		}
+		if running >= h.rules.MaxRunningOrders {
+			r := refuseProduction(screens.ProductionRefusedMaxOrders, c, snap).back(screens.AddrOrders, c.Code)
+			r.view.Max = h.rules.MaxRunningOrders
+			return r
+		}
+		quality := map[string]int{}
+		for _, in := range pl.plan.Consumed {
+			comp, _ := snap.ComponentDef(in.Component)
+			quality[in.Component] = comp.Quality()
+		}
+		inputQuality, err := production.InputQuality(pl.plan.Consumed, quality)
+		if err != nil {
+			return errors.Internal(err)
+		}
+		skill, _, err := f.best(ctx, tx, t.skill)
+		if err != nil {
+			return err
+		}
+		id := h.ids.NewID()
+		finish := now.Add(h.scale.RealWait(pl.plan.Duration))
+		actionID, err := h.schedule(ctx, tx, application.KitActionType, productionReference, id, c.ID, now, finish)
+		if err != nil {
+			return err
+		}
+		consumed := map[string]int64{}
+		for _, in := range pl.plan.Consumed {
+			consumed[in.Component] = in.Quantity
+		}
+		o := application.ProductionOrder{ID: id, CompanyID: c.ID, Kind: application.OrderKindUpgradeKit, Output: t.output,
+			TargetDesignID: t.design.ID, Quantity: qty, OutputQty: pl.plan.Output, Workers: pl.crew,
+			InputQuality: inputQuality, SkillLevel: skill, Consumed: consumed, GameActionID: actionID, PlacedBy: p.ID,
+			StartedAt: now, FinishAt: finish}
+		if o, err = tx.Production().PlaceOrder(ctx, o); err != nil {
+			return err
+		}
+		for _, in := range pl.plan.Consumed {
+			if err := tx.Items().Move(ctx, application.ItemMove{ID: h.ids.NewID(), Item: in.Component, Qty: in.Quantity,
+				FromOrg: org, FromHolding: application.HoldWarehouse, Reason: application.ItemProductionInput,
+				ReferenceType: productionReference, ReferenceID: id, At: now}); err != nil {
+				return err
+			}
+		}
+		view = h.produceView(snap, c, pl, qty, now)
+		view.Addr = screens.AddrProduceKit
+		view.Placed = &screens.ProductionLine{No: o.No, Good: t.good, Output: o.OutputQty, FinishAt: finish,
+			Left: countdownTo(finish, now)}
+		return nil
+	})
+	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
+		return resp, err
+	}
+	return screens.Produce(h.screen(meta, lang), view), nil
+}
+
+// KitProduced handles company.kit_produced from the SCHEDULER: an
+// upgrade-kit order finishing exactly like Produced, except its output
+// pieces carry the TARGET design (they are spare units of it, built to be
+// cannibalized by a retrofit — see Retrofitted) rather than being offered
+// for sale.
+func (h *ProductionHandler) KitProduced(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+	in, err := productionPayload(meta, req)
+	if err != nil {
+		return nil, err
+	}
+	snap := h.content.Current()
+	return nil, h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		o, err := tx.Production().Order(ctx, in.ID)
+		if isSentinel(err, application.ErrProductionOrderNotFound) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if o.Status != application.OrderRunning || (req.ActionID != "" && o.GameActionID != req.ActionID) {
+			return nil
+		}
+		now := h.now()
+		if now.Before(o.FinishAt) {
+			return internalf("an upgrade-kit order finished before its time")
+		}
+		c, err := tx.Companies().Lock(ctx, o.CompanyID)
+		if err != nil {
+			return err
+		}
+		org := application.CompanyOrg(c.ID)
+		if err := tx.Items().LockOrg(ctx, org); err != nil {
+			return err
+		}
+		design, err := tx.Production().DesignByID(ctx, o.TargetDesignID)
+		if err != nil {
+			return err
+		}
+		arch, ok := snap.Archetype(design.Archetype)
+		if !ok {
+			return internalf("a design of an archetype the content does not have: " + design.Archetype)
+		}
+		def, _ := snap.ItemDef(o.Output)
+		roll := func(i int) (int, error) {
+			return production.RollQuality(production.QualityInputs{InputQuality: o.InputQuality, WorkerSkill: o.SkillLevel,
+				DesignQualityLossBPS: design.QualityLossBPS}, rollFrom(o.ID, i))
+		}
+		for i := int64(0); i < o.OutputQty; i++ {
+			q, err := roll(int(i))
+			if err != nil {
+				return errors.Internal(err)
+			}
+			inst, err := item.NewInstance(arch, newSerial(h.ids), design.ID, q, item.Provenance{ProductionOrderID: o.ID})
+			if err != nil {
+				return errors.Internal(err)
+			}
+			if err := tx.Items().CreatePiece(ctx, application.Piece{ID: h.ids.NewID(), Serial: inst.Serial, Item: o.Output,
+				Archetype: inst.Archetype, Quality: inst.Quality, UsesLeft: def.Durability, Org: org,
+				Holding: application.HoldWarehouse, DesignID: design.ID, Origin: application.OriginProduction,
+				OriginRef: o.ID, CreatedAt: now}, application.ItemMove{ID: h.ids.NewID(), Item: o.Output, Qty: 1,
+				ToOrg: org, ToHolding: application.HoldWarehouse, Reason: application.ItemProduced,
+				ReferenceType: productionReference, ReferenceID: o.ID, At: now}); err != nil {
+				return err
+			}
+		}
+		if err := tx.Production().FinishOrder(ctx, o.ID, 0, now); err != nil {
+			return err
+		}
+		if !c.Active() {
+			return nil
+		}
+		return appendCompanyEvent(ctx, tx, meta, "kit_produced", c.ID, map[string]any{"company_id": c.ID, "code": c.Code,
+			"name": c.Name, "owner_id": c.OwnerID, "item": o.Output, "qty": o.OutputQty, "design_no": design.No,
+			"design": design.Name})
+	})
+}
+
 // quickQty is a quick order's size: the quick size, or what the warehouse
 // can cover when that is less but something.
 func (h *ProductionHandler) quickQty(most int64) int64 {

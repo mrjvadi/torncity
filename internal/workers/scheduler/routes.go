@@ -88,6 +88,13 @@ const (
 	ActionTypeProduction = "production_order"
 	ActionTypeReverse    = "reverse_engineering"
 
+	// Product generations (docs/adr/0021, generations addendum): an
+	// improvement project, an upgrade-kit order and a retrofit job reaching
+	// their end.
+	ActionTypeImprovement = "design_improvement"
+	ActionTypeUpgradeKit  = "upgrade_kit"
+	ActionTypeRetrofit    = "retrofit"
+
 	// The armed forces (docs/adr/0022): a country's defence period ending,
 	// and equipment reaching its garrison.
 	ActionTypeMilitaryPeriod = "military_period"
@@ -147,6 +154,10 @@ var routes = map[string]Route{
 
 	ActionTypeResearch:   {Domain: "company", Action: "researched"},
 	ActionTypeProduction: {Domain: "company", Action: "produced"},
+
+	ActionTypeImprovement: {Domain: "company", Action: "improved"},
+	ActionTypeUpgradeKit:  {Domain: "company", Action: "kit_produced"},
+	ActionTypeRetrofit:    {Domain: "company", Action: "retrofitted"},
 	ActionTypeReverse:    {Domain: "company", Action: "reversed"},
 
 	ActionTypeMilitaryPeriod: {Domain: "military", Action: "settle"},
