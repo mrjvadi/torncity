@@ -130,7 +130,9 @@ func renderEducation(c Context, v EducationView) *presenter.Response {
 		HasNext:  v.Page < v.Pages,
 		BackData: AddrHome,
 	}))
-	return c.respond(paragraphs(c.T("education.title", nil), current, certificates, offer, indicator), kb.Build())
+	title := htmlBold(htmlEscape(c.T("education.title", nil)))
+	return c.respond(paragraphs(title, htmlEscape(current), htmlEscape(certificates), htmlEscape(offer),
+		htmlEscape(indicator)), kb.Build()).AsHTML()
 }
 
 // CourseDetailView is one course in detail.

@@ -1,6 +1,6 @@
 ━━━ Map · destinations from here (page 1 of 2) ━━━
 (edits message 42)
-🧭 Travel to another city
+<b>🧭 Travel to another city</b>
 
 📍 You are in Ostmarch.
 
@@ -19,7 +19,7 @@ Page 1 of 2
 
 ━━━ Map · no routes from here ━━━
 (edits message 42)
-🧭 Travel to another city
+<b>🧭 Travel to another city</b>
 
 📍 You are in Vantor Reach.
 
@@ -29,7 +29,7 @@ There is no route from here to another city yet. Check again later with “Refre
 
 ━━━ Map · not in any city ━━━
 (edits message 42)
-🧭 Travel to another city
+<b>🧭 Travel to another city</b>
 
 You have not settled in a city yet. Once you do, your travel destinations appear here.
   ───
@@ -37,7 +37,7 @@ You have not settled in a city yet. Once you do, your travel destinations appear
 
 ━━━ Map · while travelling ━━━
 (edits message 42)
-🧭 Travel to another city
+<b>🧭 Travel to another city</b>
 
 🧭 You are on the way to Brennhaven. You can start a new journey once you arrive.
   ───

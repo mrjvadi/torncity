@@ -1,6 +1,6 @@
 ━━━ Education · courses on offer (page 1 of 2) ━━━
 (edits message 42)
-🎓 Education
+<b>🎓 Education</b>
 
 Courses you can take here:
 • First Aid - 600 Nil - 2h
@@ -17,7 +17,7 @@ Page 1 of 2
 
 ━━━ Education · studying, with certificates ━━━
 (edits message 42)
-🎓 Education
+<b>🎓 Education</b>
 
 📖 Studying: Bookkeeping
 ⏳ 60% done - 1h 35m to go
@@ -33,7 +33,7 @@ Courses you can take here:
 
 ━━━ Education · the course paused in jail ━━━
 (edits message 42)
-🎓 Education
+<b>🎓 Education</b>
 
 📖 Studying: Bookkeeping
 ⏸ Paused (in jail): 60% done, 40m left. It carries on from here once you are free.
@@ -46,7 +46,7 @@ Courses you can take here:
 
 ━━━ Education · course finishing ━━━
 (edits message 42)
-🎓 Education
+<b>🎓 Education</b>
 
 📖 Studying: Bookkeeping
 ⏳ Finishing any moment now.
@@ -57,7 +57,7 @@ There are no new courses for you here right now. More open up as you earn certif
 
 ━━━ Education · nothing new here ━━━
 (edits message 42)
-🎓 Education
+<b>🎓 Education</b>
 
 There are no new courses for you here right now. More open up as you earn certificates and levels, and in other cities.
   ───
