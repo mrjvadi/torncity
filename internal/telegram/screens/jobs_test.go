@@ -9,6 +9,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
+	"github.com/mrjvadi/torncity/internal/telegram/screens/screentest"
 )
 
 // Every shipped career, position and course has a display name in every
@@ -156,10 +157,18 @@ func stripCallbacks(s string) string {
 }
 
 // workTranscript is the text and every button as "[label|address]", one per
-// line, so a test can check both what is read and where it leads.
+// line, so a test can check both what is read and where it leads. The text
+// is tags-stripped first when the screen opted into HTML (presenter.
+// Response.HTML): what this file's lints judge is what a player reads, not
+// the markup around it — screentest.ValidTelegramHTML, run on every
+// snapshot fixture, is what judges the markup itself.
 func workTranscript(resp *presenter.Response) string {
 	var b strings.Builder
-	b.WriteString(resp.Text)
+	text := resp.Text
+	if resp.HTML {
+		text = screentest.StripHTMLForLint(text)
+	}
+	b.WriteString(text)
 	if resp.Keyboard != nil {
 		for _, row := range resp.Keyboard.Rows {
 			for _, btn := range row {

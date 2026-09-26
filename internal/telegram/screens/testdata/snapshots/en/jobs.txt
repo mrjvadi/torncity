@@ -1,6 +1,6 @@
 ━━━ My job · unemployed ━━━
 (edits message 42)
-💼 My job
+<b>💼 My job</b>
 
 You do not have a job yet. See what the employers in your city are offering under “Job openings”.
   ───
@@ -9,7 +9,7 @@ You do not have a job yet. See what the employers in your city are offering unde
 
 ━━━ My job · at work, working toward a promotion ━━━
 (edits message 42)
-💼 My job
+<b>💼 My job</b>
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
@@ -21,11 +21,11 @@ You do not have a job yet. See what the employers in your city are offering unde
 
 ⬆️ Next position: Sales Associate
 Still needed for a promotion:
-❌ Performance 55 (yours is 53)
+<blockquote expandable>❌ Performance 55 (yours is 53)
 ❌ 7h more in this position
 ❌ 6 shifts in this position (you have 4)
 ❌ Level 3 (you are level 2)
-❌ Management level 2 (you have 1)
+❌ Management level 2 (you have 1)</blockquote>
   ───
   [🛠 Start a shift] → job:work
   [🚪 Leave job] → job:quit
@@ -33,7 +33,7 @@ Still needed for a promotion:
 
 ━━━ My job · promotion ready ━━━
 (edits message 42)
-💼 My job
+<b>💼 My job</b>
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
@@ -52,7 +52,7 @@ Still needed for a promotion:
 
 ━━━ My job · away from the workplace ━━━
 (edits message 42)
-💼 My job
+<b>💼 My job</b>
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
@@ -66,18 +66,18 @@ Still needed for a promotion:
 
 ⬆️ Next position: Sales Associate
 Still needed for a promotion:
-❌ Performance 55 (yours is 53)
+<blockquote expandable>❌ Performance 55 (yours is 53)
 ❌ 7h more in this position
 ❌ 6 shifts in this position (you have 4)
 ❌ Level 3 (you are level 2)
-❌ Management level 2 (you have 1)
+❌ Management level 2 (you have 1)</blockquote>
   ───
   [🚪 Leave job] → job:quit
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
 
 ━━━ My job · on a shift ━━━
 (edits message 42)
-💼 My job
+<b>💼 My job</b>
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
@@ -93,17 +93,17 @@ Still needed for a promotion:
 
 ⬆️ Next position: Sales Associate
 Still needed for a promotion:
-❌ Performance 55 (yours is 53)
+<blockquote expandable>❌ Performance 55 (yours is 53)
 ❌ 7h more in this position
 ❌ 6 shifts in this position (you have 4)
 ❌ Level 3 (you are level 2)
-❌ Management level 2 (you have 1)
+❌ Management level 2 (you have 1)</blockquote>
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
 
 ━━━ My job · shift over, pay on its way ━━━
 (edits message 42)
-💼 My job
+<b>💼 My job</b>
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
@@ -118,11 +118,11 @@ Still needed for a promotion:
 
 ⬆️ Next position: Sales Associate
 Still needed for a promotion:
-❌ Performance 55 (yours is 53)
+<blockquote expandable>❌ Performance 55 (yours is 53)
 ❌ 7h more in this position
 ❌ 6 shifts in this position (you have 4)
 ❌ Level 3 (you are level 2)
-❌ Management level 2 (you have 1)
+❌ Management level 2 (you have 1)</blockquote>
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → job:status
 
@@ -152,7 +152,7 @@ Your pay, XP and performance are settled when the shift ends, and you will be no
 
 ━━━ My job · top of the career ━━━
 (edits message 42)
-💼 My job
+<b>💼 My job</b>
 
 💼 Store Manager - Retail
 📍 Workplace: Ostmarch

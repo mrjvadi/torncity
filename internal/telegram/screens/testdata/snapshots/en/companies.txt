@@ -902,7 +902,7 @@ Type the amount as a number, for example 5000.
 
 ━━━ My job · at a company ━━━
 (edits message 42)
-💼 My job
+<b>💼 My job</b>
 
 💼 Sales Trainee - Retail
 🏢 Employer: Kaveh Bakery

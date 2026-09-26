@@ -117,7 +117,7 @@
 
 ━━━ My job · away from the workplace ━━━
 (edits message 42)
-💼 My job
+<b>💼 My job</b>
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
@@ -139,7 +139,7 @@ Still needed for a promotion:
 
 ━━━ My job · at the workplace ━━━
 (edits message 42)
-💼 My job
+<b>💼 My job</b>
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
