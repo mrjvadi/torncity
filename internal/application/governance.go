@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/domain/election"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 )
 
@@ -42,6 +43,12 @@ const ValueKindStructured = "structured"
 // categories: a budget. Its value is a share per category; the shares sum to
 // at most the whole, and what is not allocated is not spent.
 const LeverAllocation = "allocation"
+
+// LeverElectionLaw is one elected office's election law
+// (internal/domain/election.Fields, docs/adr/0015 section 2). Like an
+// allocation it is structured but HAS behaviour: the resolver answers it and
+// the legislature changes it.
+const LeverElectionLaw = "election_law"
 
 // AllocationWhole is the whole an allocation divides, in basis points.
 const AllocationWhole = 10000
@@ -94,6 +101,18 @@ var (
 	// than the whole.
 	ErrInvalidAllocation = errors.Sentinel(errors.CodeInvalidInput,
 		"application.ErrInvalidAllocation", "that division of the budget is not allowed")
+
+	// ErrInvalidElectionLaw means an election law document holds a field
+	// outside its bound, a field the lever does not have, or a value that
+	// makes no usable election rules.
+	ErrInvalidElectionLaw = errors.Sentinel(errors.CodeInvalidInput,
+		"application.ErrInvalidElectionLaw", "that election law is not allowed")
+
+	// ErrElectionLawExclusion means a proposed election law would, by the
+	// operator's estimate, leave more than ElectionLawBounds.ExclusionMaxBPS
+	// of a jurisdiction's residents unable to stand.
+	ErrElectionLawExclusion = errors.Sentinel(errors.CodeInvalidInput,
+		"application.ErrElectionLawExclusion", "that law would exclude too many residents")
 
 	// ErrNotOfficeHolder means the caller does not hold the office acting for
 	// the lever in that jurisdiction: not its holder, nor — while it is
@@ -164,6 +183,12 @@ type LeverDefinition struct {
 	Categories        []string
 	DefaultAllocation map[string]int64
 
+	// EducationOptions, DefaultElectionLaw and ElectionLawBounds apply only
+	// to an election_law lever (LeverElectionLaw); see CheckElectionLaw.
+	EducationOptions   []string
+	DefaultElectionLaw map[string]int64
+	ElectionLawBounds  ElectionLawBounds
+
 	// RequiresConfirmationBy is the body whose vote confirms a change, with
 	// its rule, threshold and quorum; empty for none. ConfirmAbove, when
 	// set, spares a change of at most that much from it.
@@ -174,6 +199,36 @@ type LeverDefinition struct {
 
 // IsAllocation reports whether the lever divides a budget.
 func (l LeverDefinition) IsAllocation() bool { return l.Type == LeverAllocation }
+
+// IsElectionLaw reports whether the lever is one office's election law.
+func (l LeverDefinition) IsElectionLaw() bool { return l.Type == LeverElectionLaw }
+
+// HasDocument reports whether the lever's value is a document (a
+// map[string]int64) rather than one scalar integer: an allocation or an
+// election law. Both are carried in PolicySetting.Allocation /
+// ProposedValue.Allocation for allocation, and in their ElectionLaw twin for
+// election law, never the plain scalar Value.
+func (l LeverDefinition) HasDocument() bool { return l.IsAllocation() || l.IsElectionLaw() }
+
+// FieldBound is one election-law field's [min, max].
+type FieldBound struct{ Min, Max int64 }
+
+// ElectionLawBounds are the operator's safety bounds on an election_law
+// lever (docs/adr/0015 section 2): every field stays inside its own bound
+// however the legislature votes, endorsements_required may never ask more
+// than EndorsementsMaxBPS of a jurisdiction's residents, and
+// CheckElectionLawExclusion refuses a law estimated to leave more than
+// ExclusionMaxBPS of residents unable to stand.
+type ElectionLawBounds struct {
+	Fields                              map[string]FieldBound
+	EndorsementsMaxBPS, ExclusionMaxBPS int64
+}
+
+// Bound looks up one field's bound.
+func (b ElectionLawBounds) Bound(field string) (FieldBound, bool) {
+	fb, ok := b.Fields[field]
+	return fb, ok
+}
 
 // ByVote reports whether the lever is decided by a vote of the body holding
 // it.
@@ -240,8 +295,11 @@ type PolicySetting struct {
 	JurisdictionID string
 	LeverCode      string
 	Value          int64
-	// Allocation is an allocation lever's shares; nil for a scalar.
+	// Allocation is an allocation lever's shares; ElectionLaw an election
+	// law's fields (internal/domain/election.Fields); nil for a scalar or
+	// for the other document kind.
 	Allocation    map[string]int64
+	ElectionLaw   map[string]int64
 	SetByPlayerID string
 	// OfficeID is the seat the change was made from.
 	OfficeID    string
@@ -298,9 +356,11 @@ type PolicyValue struct {
 	Type           string
 	Value          int64
 	// Allocation is an allocation lever's shares in force, a category
-	// missing from it having none; nil for a scalar lever.
-	Allocation map[string]int64
-	Source     PolicySource
+	// missing from it having none; ElectionLaw an election law's fields in
+	// force. nil for a scalar lever or for the other document kind.
+	Allocation  map[string]int64
+	ElectionLaw map[string]int64
+	Source      PolicySource
 	// InForce is the setting whose value applies, nil for a default.
 	InForce *PolicySetting
 	// Pending is the next announced change still inside its notice, if any.
@@ -322,9 +382,11 @@ type PolicyChange struct {
 	Setting    PolicySetting
 	OfficeCode string
 	// OldValue is the value in force when the change was made;
-	// OldAllocation the shares, for an allocation lever.
-	OldValue      int64
-	OldAllocation map[string]int64
+	// OldAllocation the shares, for an allocation lever; OldElectionLaw the
+	// fields, for an election law.
+	OldValue       int64
+	OldAllocation  map[string]int64
+	OldElectionLaw map[string]int64
 }
 
 // PolicyReader is the ONE way code reads a policy value.
@@ -438,6 +500,23 @@ func ResolvePolicy(in PolicyInputs, now time.Time) PolicyValue {
 		return v
 	}
 
+	if in.Lever.IsElectionLaw() {
+		// An election law's value is its fields, exactly like an
+		// allocation's shares: one set under older content that no longer
+		// fits (a field's bound narrowed since) never escapes the lever as
+		// it stands.
+		v.Value = 0
+		v.ElectionLaw = copyAllocation(in.Lever.DefaultElectionLaw)
+		if v.InForce != nil {
+			if CheckElectionLaw(in.Lever, v.InForce.ElectionLaw) == nil {
+				v.ElectionLaw = copyAllocation(v.InForce.ElectionLaw)
+			} else {
+				v.Clamped = true
+			}
+		}
+		return v
+	}
+
 	switch {
 	case v.Value < in.Lever.Min:
 		v.Value, v.Clamped = in.Lever.Min, true
@@ -521,6 +600,54 @@ func CheckAllocation(l LeverDefinition, shares map[string]int64) error {
 	return nil
 }
 
+// CheckElectionLaw refuses an election law document that is not exactly
+// election.Fields, does not make usable election rules
+// (election.ValidateFields), or moves a field outside the lever's bound.
+// This is the STATIC part of the operator's safety valve (docs/adr/0015
+// section 2): every field stays inside its own [min, max] and
+// endorsements_required inside its own numeric ceiling, whoever proposes it
+// and however many residents there are. The DYNAMIC part — a share of
+// residents — needs a resident count the resolver does not have, and is
+// CheckElectionLawExclusion's job, run by the caller that has one.
+func CheckElectionLaw(l LeverDefinition, doc map[string]int64) error {
+	if err := election.ValidateFields(doc); err != nil {
+		return ErrInvalidElectionLaw.WithCause(err)
+	}
+	for field, v := range doc {
+		fb, ok := l.ElectionLawBounds.Bound(field)
+		if !ok {
+			return ErrInvalidElectionLaw.WithDetail("field", field)
+		}
+		if v < fb.Min || v > fb.Max {
+			return ErrInvalidElectionLaw.WithDetail("field", field).WithDetail("min", fb.Min).
+				WithDetail("max", fb.Max).WithDetail("value", v)
+		}
+	}
+	return nil
+}
+
+// CheckElectionLawExclusion refuses a proposed election law whose
+// endorsements_required asks more than ElectionLawBounds.EndorsementsMaxBPS
+// of residents (a share of the jurisdiction's residents), given how many
+// there are. residents is the operator's own
+// estimate (a city's declared population, or a country's cities' sum); zero
+// residents skips the check (nothing to divide by is not a violation).
+//
+// It is not run by SetPolicy or ApplyVotedPolicy: it needs a number the
+// resolver never reads, so the handler opening the proposal calls it first,
+// alongside CheckElectionLaw which l's own bounds already ran.
+func CheckElectionLawExclusion(l LeverDefinition, doc map[string]int64, residents int64) error {
+	if residents <= 0 {
+		return nil
+	}
+	need := doc[election.FieldEndorsementsRequired]
+	if need*10_000 > residents*l.ElectionLawBounds.EndorsementsMaxBPS {
+		return ErrElectionLawExclusion.WithDetail("field", election.FieldEndorsementsRequired).
+			WithDetail("residents", residents).WithDetail("required", need)
+	}
+	return nil
+}
+
 // SameAllocation reports whether two allocations give every category the
 // same share.
 func SameAllocation(a, b map[string]int64) bool {
@@ -540,7 +667,7 @@ func SameAllocation(a, b map[string]int64) bool {
 // CheckLeverSupported refuses a structured lever with no behaviour yet: a
 // yes/no, a choice or a table. Scalars and allocations are usable.
 func CheckLeverSupported(l LeverDefinition) error {
-	if l.ValueKind != ValueKindScalar && !l.IsAllocation() {
+	if l.ValueKind != ValueKindScalar && !l.HasDocument() {
 		return ErrLeverKindUnsupported.WithCause(fmt.Errorf("lever %s is of type %s (%s), which has no behaviour yet",
 			l.Code, l.Type, l.ValueKind))
 	}
@@ -548,10 +675,11 @@ func CheckLeverSupported(l LeverDefinition) error {
 }
 
 // ProposedValue is a value proposed for a lever: an integer for a scalar
-// lever, shares for an allocation.
+// lever, shares for an allocation, fields for an election law.
 type ProposedValue struct {
-	Value      int64
-	Allocation map[string]int64
+	Value       int64
+	Allocation  map[string]int64
+	ElectionLaw map[string]int64
 }
 
 // SetPolicy changes a scalar lever on behalf of the player who holds the
@@ -644,16 +772,24 @@ func lockPolicy(ctx context.Context, tx Tx, jurisdictionID, leverCode string, no
 // checkProposed refuses a value outside the lever's bounds, or shares its
 // allocation may not hold, and a change inside the cooldown.
 func checkProposed(in PolicyInputs, v ProposedValue, now time.Time) error {
-	if in.Lever.IsAllocation() != (v.Allocation != nil) {
-		// A number for an allocation, or shares for a number: never a
-		// value of this lever.
-		return ErrInvalidAllocation.WithDetail("lever", in.Lever.Code)
-	}
-	if in.Lever.IsAllocation() {
+	switch {
+	case in.Lever.IsAllocation():
+		if v.Allocation == nil || v.ElectionLaw != nil {
+			return ErrInvalidAllocation.WithDetail("lever", in.Lever.Code)
+		}
 		if err := CheckAllocation(in.Lever, v.Allocation); err != nil {
 			return err
 		}
-	} else if v.Value < in.Lever.Min || v.Value > in.Lever.Max {
+	case in.Lever.IsElectionLaw():
+		if v.ElectionLaw == nil || v.Allocation != nil {
+			return ErrInvalidElectionLaw.WithDetail("lever", in.Lever.Code)
+		}
+		if err := CheckElectionLaw(in.Lever, v.ElectionLaw); err != nil {
+			return err
+		}
+	case v.Allocation != nil || v.ElectionLaw != nil:
+		return ErrInvalidAllocation.WithDetail("lever", in.Lever.Code)
+	case v.Value < in.Lever.Min || v.Value > in.Lever.Max:
 		return ErrPolicyOutOfBounds.
 			WithDetail("min", in.Lever.Min).WithDetail("max", in.Lever.Max).WithDetail("value", v.Value)
 	}
@@ -717,10 +853,16 @@ func recordChange(ctx context.Context, tx Tx, in PolicyInputs, current PolicyVal
 		EffectiveAt:    now.Add(in.Lever.Notice),
 	}
 	change := PolicyChange{Setting: setting, OfficeCode: officeCode, OldValue: current.Value}
-	if in.Lever.IsAllocation() {
+	switch {
+	case in.Lever.IsAllocation():
 		change.Setting.Value = 0
 		change.Setting.Allocation = copyAllocation(v.Allocation)
 		change.OldAllocation = copyAllocation(current.Allocation)
+		change.OldValue = 0
+	case in.Lever.IsElectionLaw():
+		change.Setting.Value = 0
+		change.Setting.ElectionLaw = copyAllocation(v.ElectionLaw)
+		change.OldElectionLaw = copyAllocation(current.ElectionLaw)
 		change.OldValue = 0
 	}
 	return tx.Governance().RecordPolicy(ctx, change)
