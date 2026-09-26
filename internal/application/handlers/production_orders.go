@@ -48,6 +48,21 @@ type orderTarget struct {
 // target resolves a production target of a company: «d12», one of its final
 // designs, or the code of a component its kind makes and it may make.
 func (h *ProductionHandler) target(ctx context.Context, tx application.Tx, snap *content.Snapshot, f *floor, raw string) (orderTarget, error) {
+	return h.targetOf(ctx, tx, snap, f, raw, false)
+}
+
+// kitTarget resolves an UPGRADE KIT order's target: «d12», one of the
+// company's own final designs, and only that — a kit is built for a specific
+// version of the company's own product line, never for a component. Its
+// archetype, recipe and cost are the design's own (retrofit is refitting
+// with a fresh build's worth of parts, docs/adr/0021 generations addendum);
+// what makes the order a kit is only its kind and TargetDesignID, both set
+// by the caller.
+func (h *ProductionHandler) kitTarget(ctx context.Context, tx application.Tx, snap *content.Snapshot, f *floor, raw string) (orderTarget, error) {
+	return h.targetOf(ctx, tx, snap, f, raw, true)
+}
+
+func (h *ProductionHandler) targetOf(ctx context.Context, tx application.Tx, snap *content.Snapshot, f *floor, raw string, forKit bool) (orderTarget, error) {
 	raw = strings.TrimSpace(raw)
 	c := f.c
 	back := []string{screens.AddrOrders, c.Code}
@@ -85,8 +100,17 @@ func (h *ProductionHandler) target(ctx context.Context, tx application.Tx, snap 
 				}
 			}
 		}
-		return orderTarget{good: designGood(snap, *d), kind: application.OrderKindDesign, design: d, archetype: a,
+		kind := application.OrderKindDesign
+		if forKit {
+			kind = application.OrderKindUpgradeKit
+		}
+		return orderTarget{good: designGood(snap, *d), kind: kind, design: d, archetype: a,
 			plan: domainDesign(*d), output: d.Item, skill: a.ReverseSkill}, nil
+	}
+	if forKit {
+		// A kit is built for a specific version of the company's own
+		// product line; a component has no version to retrofit anything to.
+		return orderTarget{}, refuseProduction(screens.ProductionRefusedWrongType, c, snap).back(back...)
 	}
 	a, plan, def, ok := snap.ComponentRecipe(raw)
 	if !ok || !hasCode(def.By, c.TypeCode) {
