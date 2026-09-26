@@ -204,7 +204,11 @@ func TestProductGenerationsCivilian(t *testing.T) {
 
 	// --- 3. Grant materials directly (the supply chain is proved
 	// elsewhere) and produce one phone (v1). -------------------------------
-	grantMaterials := func() { grantStock(t, pool, companyID, "chipset", 1); grantStock(t, pool, companyID, "cell", 1); grantStock(t, pool, companyID, "plastic_case", 1) }
+	grantMaterials := func() {
+		grantStock(t, pool, companyID, "chipset", 1)
+		grantStock(t, pool, companyID, "cell", 1)
+		grantStock(t, pool, companyID, "plastic_case", 1)
+	}
 	grantMaterials()
 	resp, err = prod.Produce(ctx, metaAs(owner, "company.produce"), handlers.ProductionRequest{Company: companyCode,
 		Target: "d" + no, Qty: "1", Confirm: "yes"})

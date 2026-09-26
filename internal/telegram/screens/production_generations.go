@@ -20,8 +20,8 @@ type ImprovementView struct {
 	Attribute Named
 	// GainBPS is what the project would add, in basis points, before it is
 	// capped (item.NextImprovementBPS).
-	GainBPS int64
-	Cost    int64
+	GainBPS  int64
+	Cost     int64
 	Duration time.Duration
 	FinishAt time.Time
 	// Started is set once the project is running.
@@ -80,8 +80,8 @@ func Retrofit(c Context, v RetrofitView) *presenter.Response {
 // KitPurchaseView is the defence minister's plan or result of buying
 // upgrade kits from a contractor.
 type KitPurchaseView struct {
-	Bought bool
-	Seller string
+	Bought  bool
+	Seller  string
 	Country string
 }
 

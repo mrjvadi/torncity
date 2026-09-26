@@ -118,6 +118,7 @@ var knownVariants = map[string]string{
 	// samples "Auction · ...".
 	"trade/Auction": "AuctionDetail and AuctionOpened back to the auction house; AuctionNew backs to the inventory item it lists",
 }
+
 func TestNavigationAudit(t *testing.T) {
 	cat := catalogue(t)
 	for _, lang := range cat.Languages() {

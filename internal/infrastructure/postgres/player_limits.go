@@ -19,7 +19,9 @@ var _ application.PlayerLimitRepository = (*PlayerLimitRepository)(nil)
 
 // NewPlayerLimitRepository returns the player limits over the pool, for the
 // admin tool. Inside a unit of work, use Tx.PlayerLimits.
-func NewPlayerLimitRepository(p *Pool) *PlayerLimitRepository { return &PlayerLimitRepository{q: p.shared()} }
+func NewPlayerLimitRepository(p *Pool) *PlayerLimitRepository {
+	return &PlayerLimitRepository{q: p.shared()}
+}
 
 const getPlayerLimit = `
 	SELECT player_id::text, max_companies, unlimited, granted_by, reason, created_at, updated_at
