@@ -48,6 +48,12 @@ func TestPanelConsoleOverHTTP(t *testing.T) {
 			_, _ = pool.Raw().Exec(bg, q, user)
 		}
 	})
+	// The content section below reads the active pack: load the shipped one
+	// rather than rely on an earlier test having loaded it (those that do
+	// are skipped without Redis, as in CI). The baseline puts back whatever
+	// was active before.
+	recordContentBaseline(t, pool)
+	applyContent(t, pool, shippedPack(t), "panel console integration test")
 	p := insertPlayer(t, pool)
 	var city, country string
 	_ = pool.Raw().QueryRow(ctx, `SELECT c.code, k.code FROM cities c JOIN jurisdictions j ON j.id = c.jurisdiction_id
