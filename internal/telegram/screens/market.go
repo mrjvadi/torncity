@@ -91,8 +91,8 @@ func renderMarket(c Context, v MarketView) *presenter.Response {
 		c.wayButton(kb, v.Way, "market.list")
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap, RefreshData: AddrMarket}))
-	return c.respond(paragraphs(c.T("market.title", map[string]any{"city": c.CityName(v.CityCode, v.City)}),
-		body(lines...), where), kb.Build())
+	title := htmlBold(htmlEscape(c.T("market.title", map[string]any{"city": c.CityName(v.CityCode, v.City)})))
+	return c.respond(paragraphs(title, htmlEscape(body(lines...)), htmlEscape(where)), kb.Build()).AsHTML()
 }
 
 // BookLevel is one price on a side of a book and how much rests there.
@@ -210,10 +210,17 @@ func renderBook(c Context, v BookView) *presenter.Response {
 	mine, _ := keyboards.Button(c.T("market.button.mine", nil), AddrMarketMine)
 	kb.Row(mine)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMarket, RefreshData: keyboards.Data(AddrMarketBook, item)}))
+	title := htmlBold(htmlEscape(c.T("market.book_title", map[string]any{"item": name, "city": c.CityName(v.CityCode, v.City)})))
+	// The order book (asks/bids) is what a buy or sell price is decided
+	// against, so it stays in view; recent trades are a record of what
+	// already happened, collapsed under it.
+	var quotedTrades string
+	if len(trades) > 0 {
+		quotedTrades = htmlExpandableQuote(htmlEscape(body(trades...)))
+	}
 	return c.respond(paragraphs(
-		c.T("market.book_title", map[string]any{"item": name, "city": c.CityName(v.CityCode, v.City)}),
-		body(asks...), body(bids...), body(trades...), body(footer...),
-	), kb.Build())
+		title, htmlEscape(body(asks...)), htmlEscape(body(bids...)), quotedTrades, htmlEscape(body(footer...)),
+	), kb.Build()).AsHTML()
 }
 
 // MarketCheckoutView is a buy order's escrow and the ways to pay it.

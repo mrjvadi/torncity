@@ -217,7 +217,7 @@ One press walks you to the train station (20s) and opens this page again there.
 
 ━━━ Market · away from the market ━━━
 (edits message 42)
-🏪 Market of Ostmarch
+<b>🏪 Market of Ostmarch</b>
 
 • Bread - buyers offer: 18 Nil - sellers ask: 22 Nil
 
