@@ -78,6 +78,60 @@ func TestEligibility(t *testing.T) {
 	}
 }
 
+func TestElectionLawEligibility(t *testing.T) {
+	lawful := rules
+	lawful.Endorsements, lawful.TermLimitConsecutive, lawful.TermLimitTotal = 5, 2, 4
+	lawful.EducationRank, lawful.MinAge = 1, 18
+
+	// qualified meets every requirement of lawful; each case below relaxes
+	// exactly one field.
+	qualified := Person{Resident: true, ResidentFor: 200 * time.Hour, Level: 6,
+		Endorsements: 5, EducationRank: 1, Age: 18}
+	if err := CanStand(lawful, qualified); err != nil {
+		t.Fatalf("a fully qualified candidate was refused: %v", err)
+	}
+
+	for _, tc := range []struct {
+		name string
+		p    Person
+		why  string
+	}{
+		{"too young", withAge(qualified, 17), WhyAge},
+		{"no certificate", withEducation(qualified, 0), WhyEducation},
+		{"hit the consecutive limit", withTerms(qualified, 2, 2), WhyTermLimit},
+		{"hit the total limit", withTerms(qualified, 1, 4), WhyTermLimit},
+		{"under both term limits", withTerms(qualified, 1, 3), ""},
+		{"too few endorsements", withEndorsements(qualified, 4), WhyEndorsements},
+		{"exactly enough endorsements", withEndorsements(qualified, 5), ""},
+	} {
+		err := CanStand(lawful, tc.p)
+		if tc.why == "" {
+			if err != nil {
+				t.Errorf("%s: CanStand = %v, want nil", tc.name, err)
+			}
+			continue
+		}
+		var r Refusal
+		if !errors.As(err, &r) || r.Why != tc.why {
+			t.Errorf("%s: CanStand = %v, want %s", tc.name, err, tc.why)
+		}
+	}
+
+	// With no election law fields set (the zero value), nobody is refused on
+	// their account.
+	if err := CanStand(rules, Person{Resident: true, ResidentFor: 200 * time.Hour, Level: 6}); err != nil {
+		t.Fatalf("with no endorsements, term limit, education or age rule, CanStand = %v, want nil", err)
+	}
+}
+
+func withEndorsements(p Person, n int) Person { p.Endorsements = n; return p }
+func withTerms(p Person, consecutive, total int) Person {
+	p.ConsecutiveTerms, p.TotalTerms = consecutive, total
+	return p
+}
+func withAge(p Person, age int) Person       { p.Age = age; return p }
+func withEducation(p Person, rank int) Person { p.EducationRank = rank; return p }
+
 func TestCountFillsSeatsInOrder(t *testing.T) {
 	t0 := time.Date(2026, 9, 1, 12, 0, 0, 0, time.UTC)
 	res := Count([]Candidate{
