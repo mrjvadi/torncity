@@ -145,6 +145,7 @@ const valueFa: Record<string, string> = {
   conquest: 'فتح', insolvent: 'ورشکستگی', operator: 'به حکم اپراتور', resigned: 'استعفا', fired: 'اخراج', company_closed: 'تعطیلی شرکت',
   left: 'ترک', evicted: 'تخلیه', hospital: 'بیمارستان', war_damage: 'خسارت جنگ', opened: 'گشایش', on_time: 'به‌موقع', missed: 'معوق',
   default: 'نکول', true: 'بله', false: 'خیر', ok: 'سالم', lagging: 'با تأخیر', degraded: 'مختل', down: 'از کار افتاده',
+  on: 'روشن', off: 'خاموش', groups_off: 'فقط گروه‌ها خاموش',
   attacker: 'مهاجم', defender: 'مدافع', player: 'بازیکن', company: 'شرکت', npc: 'شهروند', business: 'کسب‌وکار', property: 'ملک',
   carried: 'همراه', escrow: 'امانی', gone: 'از بین رفته', warehouse: 'انبار', listed: 'عرضه‌شده', supply: 'تأمین', loot: 'غنیمت',
   grant: 'اعطا', production: 'تولید', mission: 'مأموریت', event: 'رویداد', achievement: 'دستاورد', admin: 'اپراتور',

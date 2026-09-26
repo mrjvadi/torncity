@@ -381,6 +381,34 @@ export interface SystemStatus {
   nats?: NATSStatus;
 }
 
+// SwitchStatus is one operator switch's row (migrations/0041), plus the
+// value the gateway is actually acting on and how stale that cached answer
+// is (undefined: nothing cached to report, or the panel has no Redis of its
+// own — the row's own value is then what the gateway falls back to anyway).
+export interface SwitchStatus {
+  key: string;
+  value: string;
+  changed_by: string;
+  changed_at: string;
+  reason: string;
+  effective: string;
+  cache_age_seconds?: number;
+}
+
+export interface SwitchesView {
+  switches: SwitchStatus[];
+  mini_app_url: string;
+  mini_app_url_missing: boolean;
+}
+
+export interface SwitchHistoryEntry {
+  at: string;
+  actor: string;
+  reason: string;
+  key: string;
+  value: string;
+}
+
 export interface SessionLine {
   id: string;
   created_at: string;

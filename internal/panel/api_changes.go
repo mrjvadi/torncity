@@ -290,8 +290,8 @@ func (s *Server) setSwitch(ctx context.Context, r *http.Request, body json.RawMe
 	if err := strict(body, &c); err != nil {
 		return 0, nil, err
 	}
-	if c.Confirm != key {
-		return 0, nil, bad("type %q to confirm this change", key)
+	if !strings.EqualFold(strings.TrimSpace(c.Confirm), key) {
+		return 0, nil, bad("type the switch's name to confirm")
 	}
 	if strings.TrimSpace(c.Value) == "" {
 		return 0, nil, bad("a value is required")

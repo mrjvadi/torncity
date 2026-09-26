@@ -218,6 +218,7 @@ const TONES: Record<string, Tone> = {
   withdrawn: 'neutral', abandoned: 'neutral', unsold: 'neutral', unsolved: 'neutral', ended: 'neutral', lapsed: 'neutral',
   escaped: 'warn', terminated: 'bad', called_off: 'neutral', deleted: 'bad', vacant: 'warn', cleared: 'neutral', returned: 'neutral',
   insolvent: 'bad', missed: 'bad', on_time: 'ok', default: 'bad',
+  on: 'ok', off: 'bad', groups_off: 'warn',
 };
 
 // Status is a status-like value as a badge, in words where there are some.

@@ -80,15 +80,21 @@ type Overview struct {
 	TelegramNotices string `json:"telegram_notices"`
 }
 
-// SwitchStatus is one switch's row (migrations/0041) plus the health line
-// System > Switches and `admin switch list` both show: the value the
-// gateway is actually acting on right now and how stale that cached answer
-// is. CacheAgeSeconds is nil when there is nothing cached to report (no
-// change has been made yet, or the panel has no Redis of its own to check
-// with) — the row above is then the database's own current value, which the
-// gateway still reads correctly, just possibly not yet.
+// SwitchStatus is one switch's row plus the health line System > Switches
+// and `admin switch list` both show. ChangedBy, ChangedAt and Reason are
+// empty for a switch nobody has ever set — telegram_play and
+// telegram_notices are always listed, at their built-in default, even
+// before their first change, so the page can turn them on the very first
+// time. CacheAgeSeconds is nil when there is nothing cached to report (never
+// set, or the panel has no Redis of its own to check with) — Effective is
+// then the database's own current value, which is what the gateway falls
+// back to on a cache miss anyway.
 type SwitchStatus struct {
-	postgres.SwitchState
+	Key             string   `json:"key"`
+	Value           string   `json:"value"`
+	ChangedBy       string   `json:"changed_by,omitempty"`
+	ChangedAt       string   `json:"changed_at,omitempty"`
+	Reason          string   `json:"reason,omitempty"`
 	Effective       string   `json:"effective"`
 	CacheAgeSeconds *float64 `json:"cache_age_seconds,omitempty"`
 }
