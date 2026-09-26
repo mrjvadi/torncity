@@ -100,6 +100,7 @@ type gatewaySettings struct {
 	PollErrorBackoff *string `yaml:"poll_error_backoff"`
 	ShutdownTimeout  *string `yaml:"shutdown_timeout"`
 	SendAttempts     *int    `yaml:"send_attempts"`
+	RedirectCooldown *string `yaml:"redirect_cooldown"`
 }
 
 type leaseSettings struct {
@@ -648,6 +649,9 @@ var coreSettings = []setting{
 	limitSetting("gateway", "send_attempts",
 		func(c *Config) *int { return &c.Gateway.SendAttempts },
 		func(f *fileConfig) *int { return f.Gateway.SendAttempts }),
+	durationSetting("gateway", "redirect_cooldown",
+		func(c *Config) *time.Duration { return &c.Gateway.RedirectCooldown },
+		func(f *fileConfig) *string { return f.Gateway.RedirectCooldown }),
 
 	durationSetting("lease", "ttl",
 		func(c *Config) *time.Duration { return &c.Lease.TTL },

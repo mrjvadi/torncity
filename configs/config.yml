@@ -36,6 +36,12 @@ gateway:
   # retry; setting it to 1 removes the flood-wait recovery.
   send_attempts: 2
 
+  # How often one Telegram user is answered with the "play on the web"
+  # redirect while switch.telegram_play is off, rather than silently ignored.
+  # A player mashing a stale button gets one message per cooldown, not a
+  # flood of identical ones.
+  redirect_cooldown: 1m
+
 # The per-bot lease: which gateway instance has the exclusive right to poll a
 # given bot. Two instances polling one bot lose updates rather than duplicating
 # them, because each getUpdates acknowledges the other's.
@@ -823,6 +829,11 @@ panel:
   # How long a gateway trusts its cached copy of a player's mute or ban, so
   # a moderation takes effect within this long without a query per command.
   moderation_cache_ttl: 30s
+  # How long a gateway trusts its cached copy of an operator switch
+  # (switch.telegram_play, switch.telegram_notices), so a change on the
+  # System > Switches page takes effect within this long without a query per
+  # command.
+  switch_cache_ttl: 15s
   # The live feed: new audit rows, flags and holds are looked for every
   # feed_interval, and the dashboard's figures pushed every kpi_interval.
   feed_interval: 3s

@@ -245,6 +245,11 @@ type Gateway struct {
 	PollErrorBackoff time.Duration // gateway.poll_error_backoff
 	ShutdownTimeout  time.Duration // gateway.shutdown_timeout
 	SendAttempts     int           // gateway.send_attempts
+	// RedirectCooldown is how often one Telegram user is answered with the
+	// "play on the web" redirect (switch.telegram_play off) rather than
+	// silently dropped: a player pressing a stale button many times gets one
+	// message per cooldown, not a flood.
+	RedirectCooldown time.Duration // gateway.redirect_cooldown
 }
 
 // Lease governs the exclusive right to poll one bot.
@@ -865,6 +870,7 @@ func Defaults() *Config {
 			PollErrorBackoff: 2 * time.Second,
 			ShutdownTimeout:  20 * time.Second,
 			SendAttempts:     2,
+			RedirectCooldown: time.Minute,
 		},
 		Lease: Lease{
 			TTL:            30 * time.Second,

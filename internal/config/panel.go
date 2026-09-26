@@ -33,6 +33,11 @@ type Panel struct {
 	ReadTimeout          time.Duration // panel.read_timeout
 	ExportMaxRows        int           // panel.export_max_rows
 	ModerationCacheTTL   time.Duration // panel.moderation_cache_ttl
+	// SwitchCacheTTL is how long a gateway trusts its cached copy of an
+	// operator switch (migrations/0041_runtime_switches), so a switch takes
+	// effect within this long without a query per command. Same shape as
+	// ModerationCacheTTL and read by the same kind of checker.
+	SwitchCacheTTL       time.Duration // panel.switch_cache_ttl
 	FeedInterval         time.Duration // panel.feed_interval
 	KPIInterval          time.Duration // panel.kpi_interval
 	RealtimeAPIURL       string        // panel.realtime_api_url
@@ -61,6 +66,7 @@ type panelSettings struct {
 	ReadTimeout          *string `yaml:"read_timeout"`
 	ExportMaxRows        *int    `yaml:"export_max_rows"`
 	ModerationCacheTTL   *string `yaml:"moderation_cache_ttl"`
+	SwitchCacheTTL       *string `yaml:"switch_cache_ttl"`
 	FeedInterval         *string `yaml:"feed_interval"`
 	KPIInterval          *string `yaml:"kpi_interval"`
 	RealtimeAPIURL       *string `yaml:"realtime_api_url"`
@@ -91,6 +97,7 @@ func defaultPanel() Panel {
 		ReadTimeout:          8 * time.Second,
 		ExportMaxRows:        10000,
 		ModerationCacheTTL:   30 * time.Second,
+		SwitchCacheTTL:       15 * time.Second,
 		FeedInterval:         3 * time.Second,
 		KPIInterval:          30 * time.Second,
 		RealtimeAPIURL:       "http://tc-centrifugo:8000/api",
@@ -187,6 +194,9 @@ func panelSettingsTable() []setting {
 		durationSetting("panel", "moderation_cache_ttl",
 			func(c *Config) *time.Duration { return &c.Panel.ModerationCacheTTL },
 			func(f *fileConfig) *string { return f.Panel.ModerationCacheTTL }),
+		durationSetting("panel", "switch_cache_ttl",
+			func(c *Config) *time.Duration { return &c.Panel.SwitchCacheTTL },
+			func(f *fileConfig) *string { return f.Panel.SwitchCacheTTL }),
 		durationSetting("panel", "feed_interval",
 			func(c *Config) *time.Duration { return &c.Panel.FeedInterval },
 			func(f *fileConfig) *string { return f.Panel.FeedInterval }),
