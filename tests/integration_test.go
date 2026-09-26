@@ -230,6 +230,19 @@ func deletePlayer(t *testing.T, pool *postgres.Pool, playerID string) {
 	if err := raw.QueryRow(ctx, `SELECT to_regclass('public.player_life') IS NOT NULL`).Scan(&lives); err == nil && lives {
 		purgeLife(t, pool, playerID)
 	}
+	// The notification inbox (migrations/0037): neither table is
+	// append-only, so a plain delete is enough, no trigger to disable.
+	var inbox bool
+	if err := raw.QueryRow(ctx, `SELECT to_regclass('public.player_notifications') IS NOT NULL`).Scan(&inbox); err == nil && inbox {
+		for _, stmt := range []string{
+			`DELETE FROM player_notifications WHERE player_id = $1::uuid`,
+			`DELETE FROM player_inbox_badges WHERE player_id = $1::uuid`,
+		} {
+			if _, err := raw.Exec(ctx, stmt, playerID); err != nil {
+				t.Errorf("cleanup %q: %v", stmt, err)
+			}
+		}
+	}
 	for _, stmt := range []string{
 		`DELETE FROM idempotency_keys WHERE player_id = $1::uuid`,
 		`DELETE FROM player_bot_links WHERE player_id = $1::uuid`,

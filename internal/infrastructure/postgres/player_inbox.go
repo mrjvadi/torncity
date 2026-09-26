@@ -31,7 +31,9 @@ type PlayerInboxRepository struct {
 
 // NewPlayerInboxRepository returns a repository over the pool, for
 // cmd/notifier, which holds no unit of work.
-func NewPlayerInboxRepository(p *Pool) *PlayerInboxRepository { return &PlayerInboxRepository{q: p.shared()} }
+func NewPlayerInboxRepository(p *Pool) *PlayerInboxRepository {
+	return &PlayerInboxRepository{q: p.shared()}
+}
 
 var _ application.NotificationInboxRepository = (*PlayerInboxRepository)(nil)
 

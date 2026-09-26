@@ -278,3 +278,6 @@ commands:
   device.link: {kind: primary, icon: "action:link"}
   device.list: {kind: navigation, icon: "action:device"}
   device.revoke: {kind: danger, icon: "action:device"}
+  inbox.show: {kind: navigation, icon: "action:inbox"}
+  inbox.category: {kind: navigation, icon: "action:inbox"}
+  inbox.read_all: {kind: secondary, icon: "action:mark_read"}

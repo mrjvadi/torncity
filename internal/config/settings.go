@@ -26,32 +26,32 @@ import (
 // second is a validation error, and conflating them would turn a typo into an
 // unbounded timeout.
 type fileConfig struct {
-	Gateway    gatewaySettings    `yaml:"gateway"`
-	Lease      leaseSettings      `yaml:"lease"`
-	RateLimit  ratelimitSettings  `yaml:"ratelimit"`
-	Telegram   telegramSettings   `yaml:"telegram"`
-	Groups     groupsSettings     `yaml:"groups"`
-	Menu       menuSettings       `yaml:"menu"`
-	Dedup      dedupSettings      `yaml:"dedup"`
-	NATS       natsSettings       `yaml:"nats"`
-	Worker     workerSettings     `yaml:"worker"`
-	Scheduler  schedulerSettings  `yaml:"scheduler"`
-	Notifier   notifierSettings   `yaml:"notifier"`
-	Game       gameSettings       `yaml:"game"`
-	Travel     travelSettings     `yaml:"travel"`
-	Player     playerSettings     `yaml:"player"`
-	Economy    economySettings    `yaml:"economy"`
-	Governance governanceSettings `yaml:"governance"`
-	Crime      crimeSettings      `yaml:"crime"`
-	Trade      tradeSettings      `yaml:"trade"`
-	Company    companySettings    `yaml:"company"`
-	Military   militarySettings   `yaml:"military"`
-	Diplomacy  diplomacySettings  `yaml:"diplomacy"`
-	War        warSettings        `yaml:"war"`
-	Missions   missionsSettings   `yaml:"missions"`
-	Factions   factionsSettings   `yaml:"factions"`
-	AntiCheat  antiCheatSettings  `yaml:"anticheat"`
-	Input      inputSettings      `yaml:"input"`
+	Gateway       gatewaySettings       `yaml:"gateway"`
+	Lease         leaseSettings         `yaml:"lease"`
+	RateLimit     ratelimitSettings     `yaml:"ratelimit"`
+	Telegram      telegramSettings      `yaml:"telegram"`
+	Groups        groupsSettings        `yaml:"groups"`
+	Menu          menuSettings          `yaml:"menu"`
+	Dedup         dedupSettings         `yaml:"dedup"`
+	NATS          natsSettings          `yaml:"nats"`
+	Worker        workerSettings        `yaml:"worker"`
+	Scheduler     schedulerSettings     `yaml:"scheduler"`
+	Notifier      notifierSettings      `yaml:"notifier"`
+	Game          gameSettings          `yaml:"game"`
+	Travel        travelSettings        `yaml:"travel"`
+	Player        playerSettings        `yaml:"player"`
+	Economy       economySettings       `yaml:"economy"`
+	Governance    governanceSettings    `yaml:"governance"`
+	Crime         crimeSettings         `yaml:"crime"`
+	Trade         tradeSettings         `yaml:"trade"`
+	Company       companySettings       `yaml:"company"`
+	Military      militarySettings      `yaml:"military"`
+	Diplomacy     diplomacySettings     `yaml:"diplomacy"`
+	War           warSettings           `yaml:"war"`
+	Missions      missionsSettings      `yaml:"missions"`
+	Factions      factionsSettings      `yaml:"factions"`
+	AntiCheat     antiCheatSettings     `yaml:"anticheat"`
+	Input         inputSettings         `yaml:"input"`
 	Announce      announceSettings      `yaml:"announce"`
 	Notifications notificationsSettings `yaml:"notifications"`
 
