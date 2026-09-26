@@ -136,6 +136,11 @@ commands:
   company.studio: {kind: primary, icon: "action:studio"}
   company.dnew: {kind: primary, icon: "action:company", group: "company_design"}
   company.design: {kind: primary, icon: "action:design", group: "company_design"}
+  company.drevise: {kind: primary, icon: "action:revise", group: "company_design"}
+  company.dretire: {kind: danger, icon: "action:retire", group: "company_design"}
+  company.improve: {kind: primary, icon: "action:improve", group: "company_design"}
+  company.kit: {kind: primary, icon: "action:upgrade_kit", group: "company_design"}
+  company.retrofit: {kind: primary, icon: "action:retrofit", group: "company_design"}
   company.dfill: {kind: primary, icon: "action:company", group: "company_design"}
   company.dqty: {kind: primary, icon: "action:company", group: "company_design"}
   company.dname: {kind: primary, icon: "action:company", group: "company_design"}
@@ -168,6 +173,8 @@ commands:
   military.station: {kind: primary, icon: "action:station"}
   military.procure: {kind: primary, icon: "action:procure"}
   military.buy: {kind: primary, icon: "action:buy"}
+  military.kitbuy: {kind: primary, icon: "action:upgrade_kit"}
+  military.retrofit: {kind: primary, icon: "action:retrofit"}
   military.licences: {kind: navigation, icon: "action:military"}
   military.licence: {kind: primary, icon: "action:license"}
   diplomacy.sanctions: {kind: navigation, icon: "action:diplomacy"}
