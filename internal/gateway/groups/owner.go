@@ -85,12 +85,16 @@ func Markup(kb *presenter.Keyboard) any {
 		return nil
 	}
 
+	type webApp struct {
+		URL string `json:"url"`
+	}
 	type button struct {
-		Text         string `json:"text"`
-		CallbackData string `json:"callback_data,omitempty"`
-		URL          string `json:"url,omitempty"`
-		// Style colours the button (Bot API 9.4); see style.go. A URL button
-		// is never coloured — a card, not an action.
+		Text         string  `json:"text"`
+		CallbackData string  `json:"callback_data,omitempty"`
+		URL          string  `json:"url,omitempty"`
+		WebApp       *webApp `json:"web_app,omitempty"`
+		// Style colours the button (Bot API 9.4); see style.go. A URL or
+		// web app button is never coloured — a card, not an action.
 		Style string `json:"style,omitempty"`
 	}
 
@@ -98,11 +102,15 @@ func Markup(kb *presenter.Keyboard) any {
 	for _, row := range kb.Rows {
 		out := make([]button, 0, len(row))
 		for _, b := range row {
+			var wa *webApp
+			if b.WebAppURL != "" {
+				wa = &webApp{URL: b.WebAppURL}
+			}
 			style := ""
-			if b.URL == "" {
+			if b.URL == "" && wa == nil {
 				style = buttonStyle(CallbackCommand(b.CallbackData))
 			}
-			out = append(out, button{Text: b.Text, CallbackData: b.CallbackData, URL: b.URL, Style: style})
+			out = append(out, button{Text: b.Text, CallbackData: b.CallbackData, URL: b.URL, WebApp: wa, Style: style})
 		}
 		rows = append(rows, out)
 	}

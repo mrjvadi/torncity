@@ -32,6 +32,13 @@ type Button struct {
 	Text         string `json:"text"`
 	CallbackData string `json:"callback_data,omitempty"`
 	URL          string `json:"url,omitempty"`
+	// WebAppURL opens a Telegram Mini App in place, instead of following a
+	// link. The Bot API allows this only in a private chat
+	// (core.telegram.org/bots/api#inlinekeyboardbutton); a button meant for
+	// a group uses URL with a t.me/<bot>?startapp= link instead
+	// (internal/gateway/groups.MiniAppDeepLink), which opens the same Mini
+	// App from anywhere.
+	WebAppURL string `json:"web_app_url,omitempty"`
 }
 
 // Keyboard is a grid of buttons, outer slice is rows.

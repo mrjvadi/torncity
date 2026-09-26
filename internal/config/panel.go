@@ -30,9 +30,9 @@ type Panel struct {
 	TOTPIssuer         string        // panel.totp_issuer
 	RequestTimeout     time.Duration // panel.request_timeout
 	// The console's reads and live feed.
-	ReadTimeout          time.Duration // panel.read_timeout
-	ExportMaxRows        int           // panel.export_max_rows
-	ModerationCacheTTL   time.Duration // panel.moderation_cache_ttl
+	ReadTimeout        time.Duration // panel.read_timeout
+	ExportMaxRows      int           // panel.export_max_rows
+	ModerationCacheTTL time.Duration // panel.moderation_cache_ttl
 	// SwitchCacheTTL is how long a gateway trusts its cached copy of an
 	// operator switch (migrations/0041_runtime_switches), so a switch takes
 	// effect within this long without a query per command. Same shape as

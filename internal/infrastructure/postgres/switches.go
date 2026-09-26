@@ -32,11 +32,11 @@ type SwitchChange struct {
 
 // SwitchState is one switch's current row.
 type SwitchState struct {
-	Key        string    `json:"key"`
-	Value      string    `json:"value"`
-	ChangedBy  string    `json:"changed_by"`
-	ChangedAt  time.Time `json:"changed_at"`
-	Reason     string    `json:"reason"`
+	Key       string    `json:"key"`
+	Value     string    `json:"value"`
+	ChangedBy string    `json:"changed_by"`
+	ChangedAt time.Time `json:"changed_at"`
+	Reason    string    `json:"reason"`
 }
 
 // Set stores key's new value, audited. It upserts: the first time a switch
@@ -100,11 +100,11 @@ func (o *SwitchOps) List(ctx context.Context) ([]SwitchState, error) {
 
 // SwitchHistoryEntry is one past change to a switch, read from audit_logs.
 type SwitchHistoryEntry struct {
-	At     time.Time      `json:"at"`
-	Actor  string         `json:"actor"`
-	Reason string         `json:"reason"`
-	Key    string         `json:"key"`
-	Value  string         `json:"value"`
+	At     time.Time `json:"at"`
+	Actor  string    `json:"actor"`
+	Reason string    `json:"reason"`
+	Key    string    `json:"key"`
+	Value  string    `json:"value"`
 }
 
 // History returns the most recent switch changes, newest first, at most

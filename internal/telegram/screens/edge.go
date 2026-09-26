@@ -35,6 +35,26 @@ func GroupOnly(c Context, city string) *presenter.Response {
 	return presenter.Message(text, kb.Build())
 }
 
+// Redirect answers a command while the operator switch telegram_play is off
+// (internal/switches): play has moved to the web game, with a button that
+// opens it. webAppURL is client.mini_app_url, for a private chat's `web_app`
+// button; groupLink is a t.me/<bot>?startapp= link for a group's `url`
+// button instead, since Telegram allows `web_app` only in a private chat.
+// The caller passes exactly one of the two, matching the chat the command
+// came from; with neither, the notice has no button — client.mini_app_url is
+// not configured yet, which the operator panel warns about separately.
+func Redirect(c Context, webAppURL, groupLink string) *presenter.Response {
+	text := c.T("switch.redirect.text", nil)
+	var kb *presenter.Keyboard
+	switch {
+	case groupLink != "":
+		kb = &presenter.Keyboard{Rows: [][]presenter.Button{{{Text: c.T("switch.redirect.button", nil), URL: groupLink}}}}
+	case webAppURL != "":
+		kb = &presenter.Keyboard{Rows: [][]presenter.Button{{{Text: c.T("switch.redirect.button", nil), WebAppURL: webAppURL}}}}
+	}
+	return presenter.Message(text, kb)
+}
+
 // AddrAsk is the callback address of a button that asks the player to type a
 // value: "ask:<command>[:<arg>...]" (internal/gateway/input). The command
 // must be listed under input in configs/commands.yml.

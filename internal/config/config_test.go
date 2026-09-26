@@ -236,6 +236,7 @@ gateway:
   poll_error_backoff: 3s
   shutdown_timeout: 21s
   send_attempts: 4
+  redirect_cooldown: 90s
 lease:
   ttl: 31s
   renew_divisor: 4
@@ -462,6 +463,7 @@ panel:
   read_timeout: 9s
   export_max_rows: 10001
   moderation_cache_ttl: 31s
+  switch_cache_ttl: 16s
   feed_interval: 4s
   kpi_interval: 31s
   realtime_api_url: http://centrifugo.test:8000/api
@@ -497,6 +499,7 @@ var envOverrides = map[string]string{
 	"TORN_GATEWAY_POLL_ERROR_BACKOFF": "4s",
 	"TORN_GATEWAY_SHUTDOWN_TIMEOUT":   "23s",
 	"TORN_GATEWAY_SEND_ATTEMPTS":      "5",
+	"TORN_GATEWAY_REDIRECT_COOLDOWN":  "91s",
 
 	"TORN_LEASE_TTL":             "33s",
 	"TORN_LEASE_RENEW_DIVISOR":   "5",
@@ -708,6 +711,7 @@ var envOverrides = map[string]string{
 	"TORN_PANEL_READ_TIMEOUT":                 "10s",
 	"TORN_PANEL_EXPORT_MAX_ROWS":              "10002",
 	"TORN_PANEL_MODERATION_CACHE_TTL":         "32s",
+	"TORN_PANEL_SWITCH_CACHE_TTL":             "17s",
 	"TORN_PANEL_FEED_INTERVAL":                "5s",
 	"TORN_PANEL_KPI_INTERVAL":                 "32s",
 	"TORN_PANEL_REALTIME_API_URL":             "http://centrifugo.env:8000/api",

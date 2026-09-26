@@ -194,6 +194,27 @@ func DeepLink(username, payload string) string {
 	return telegramLinkBase + username + "?start=" + payload
 }
 
+// MiniAppDeepLink is the link that opens the bot's Mini App: a `url` button
+// works with it in a group, where a `web_app` button is not allowed
+// (core.telegram.org/bots/api#inlinekeyboardbutton). "t.me/<bot>?startapp="
+// opens the bot's own Mini App (core.telegram.org/api/links), the one
+// registered as its Main Mini App — no app short name needed, unlike a
+// direct link to one of several named apps. It is empty when the bot's
+// username is unknown, exactly like DeepLink.
+func MiniAppDeepLink(username string) string {
+	username = strings.TrimPrefix(strings.TrimSpace(username), "@")
+	if username == "" {
+		return ""
+	}
+	return telegramLinkBase + username + "?startapp=" + miniAppStartParam
+}
+
+// miniAppStartParam is the start_param a redirect's Mini App link carries.
+// It is not read by the bot; it exists so the Mini App itself can tell, from
+// tgWebAppStartParam, that it was opened from this redirect rather than
+// picked from the attachment menu.
+const miniAppStartParam = "redirect"
+
 func payloadByte(b byte) bool {
 	return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9') || b == '_' || b == '-'
 }

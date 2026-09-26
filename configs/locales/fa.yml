@@ -1323,6 +1323,13 @@ channel:
   group_only: "👥 این کار فقط در گروه ممکن است. در گروه شهرتان دوباره بفرستید."
   group_only_city: "👥 این کار فقط در گروه ممکن است. در گروه شهر {city} دوباره بفرستید."
 
+# switch.* — سوییچ عملیاتی telegram_play (internal/switches). این بلاک مخصوص
+# همین قابلیت است؛ لطفاً کلیدهای جدید را همین‌جا اضافه کنید.
+switch:
+  redirect:
+    text: "🌐 بازی در تلگرام فعلاً به نسخهٔ وب منتقل شده. برای ادامه، دکمهٔ زیر را بزنید."
+    button: "🌐 ورود به بازی وب"
+
 # Free-text input (internal/gateway/input): a «✏️» button asks a question and
 # the player's next message answers it. prompt.<command> is the question for
 # one command (dots written as «_»), placeholder.<command> the grey text in the

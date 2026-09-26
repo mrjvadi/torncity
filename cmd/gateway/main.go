@@ -59,6 +59,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/money"
+	"github.com/mrjvadi/torncity/internal/switches"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -381,6 +382,9 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	gw.photos = postgres.NewLifeRepository(pool)
 	gw.moderation = &moderation.Checker{Source: moderationSource{postgres.NewModerationReader(pool)},
 		Cache: infraredis.NewModerationCache(rdb), TTL: cfg.Panel.ModerationCacheTTL}
+	gw.switches = &switches.Reader{Source: switchSource{postgres.NewSwitchOps(pool)},
+		Cache: infraredis.NewSwitchCache(rdb), TTL: cfg.Panel.SwitchCacheTTL}
+	gw.redirectGate = infraredis.NewRedirectGate(rdb)
 
 	// Commands typed without a slash, in every language. A collision is
 	// logged and the word left out; the rest work.
@@ -504,6 +508,13 @@ type gateway struct {
 	// moderation drops the commands of a muted (in groups) or banned player
 	// (moderation.go). Nil lets every command through.
 	moderation *moderation.Checker
+
+	// switches answers the operator switch telegram_play (switch.go). Nil
+	// lets every command through, same as moderation's nil.
+	switches *switches.Reader
+	// redirectGate paces the redirect notice per Telegram user
+	// (gateway.redirect_cooldown). Nil sends it every time.
+	redirectGate redirectGate
 
 	// aliases are the commands players type without a slash, in every
 	// language (command_alias in the locales); policy is configs/commands.yml,
@@ -761,6 +772,13 @@ func (g *gateway) handleUpdate(ctx context.Context, bot application.Bot, update 
 	if err != nil {
 		log.Warn("command is not routable",
 			append(metaAttrs(meta), slog.String("command", command), slog.String("error", err.Error()))...)
+		return
+	}
+
+	// The operator switch telegram_play: off, this command is answered with
+	// a redirect to the web game instead of being published. See switch.go
+	// for the few commands (/start, device linking) this does not touch.
+	if g.redirected(ctx, bot, meta, command, log) {
 		return
 	}
 

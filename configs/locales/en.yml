@@ -1220,6 +1220,13 @@ channel:
   group_only: "👥 This can only be done in a group. Send it again in your city's group."
   group_only_city: "👥 This can only be done in a group. Send it again in the {city} group."
 
+# switch.* — the operator switch telegram_play (internal/switches). Owned by
+# this feature; please keep additions inside this block.
+switch:
+  redirect:
+    text: "🌐 Playing here has moved to the web game. Tap below to jump back in."
+    button: "🌐 Open the web game"
+
 # Free-text input; see fa.yml.
 input:
   prompt:
