@@ -892,6 +892,21 @@ offices:
     deputy: president
     levers: []
 
+  # The election commission (docs/adr/0015 section 2, "candidate vetting by
+  # an election commission"): during an election's candidacy window it may
+  # approve or disqualify a candidacy, in public and with a reason. While
+  # nobody holds it every candidacy is auto-approved — a vacant office never
+  # blocks the game. It is appointed, never elected, and incompatible with
+  # every office an election fills: a candidate does not vet their own race.
+  - code: election_commissioner
+    jurisdiction: country
+    seats: 1
+    acquired_by: appointment
+    appointed_by: president
+    can_be_removed_by: [president, operator]
+    levers: []
+    incompatible_with: [president, parliament, mayor, city_council]
+
 # ---------------------------------------------------------------------------
 # actions — decisions that are not a value: buying arms, commanding a branch,
 # sanctioning a country, concluding a treaty. Like a lever, each is held by
