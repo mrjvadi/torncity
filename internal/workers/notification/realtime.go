@@ -43,6 +43,16 @@ type RealtimeAnnouncement struct {
 	Texts map[string]string `json:"texts,omitempty"`
 }
 
+// RealtimeInboxUpdate is what a player's channel carries when an inbox-mode
+// notice changes their unread count. It is deliberately the count and
+// nothing else: a game client shows a bell badge from this alone, never a
+// mirrored inbox of its own — the content stays behind /inbox in Telegram,
+// which is where a player reads it.
+type RealtimeInboxUpdate struct {
+	Type   string `json:"type"` // "inbox"
+	Unread int    `json:"unread"`
+}
+
 // The channels, spelled as internal/infrastructure/centrifugo spells them
 // (not imported: this package knows the realtime server only through the
 // Realtime port).
@@ -60,6 +70,20 @@ func (w *Worker) publishNotice(ctx context.Context, route Route, meta envelope.M
 	key := meta.MessageID() + ":" + route.Durable()
 	if err := w.cfg.Realtime.Publish(ctx, playerChannel(playerID), msg, key); err != nil {
 		log.Warn("cannot publish the notice to the realtime server", slog.String("error", err.Error()))
+	}
+}
+
+// publishInboxUpdate tells the player's realtime channel their unread count
+// changed, for the bell badge (api/client-api.md); the inbox item's content
+// is never published here, only the count.
+func (w *Worker) publishInboxUpdate(ctx context.Context, meta envelope.Metadata, playerID string, unread int, log *slog.Logger) {
+	if w.cfg.Realtime == nil {
+		return
+	}
+	msg := RealtimeInboxUpdate{Type: "inbox", Unread: unread}
+	key := meta.MessageID() + ":inbox"
+	if err := w.cfg.Realtime.Publish(ctx, playerChannel(playerID), msg, key); err != nil {
+		log.Warn("cannot publish the inbox update to the realtime server", slog.String("error", err.Error()))
 	}
 }
 

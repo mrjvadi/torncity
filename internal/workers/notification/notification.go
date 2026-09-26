@@ -136,6 +136,16 @@ type Config struct {
 	// languages an announcement is written in there, the default first.
 	Realtime          Realtime
 	RealtimeLanguages []string
+
+	// PlayerInbox, DeliveryModes and EditThrottle are the notification
+	// inbox (badge.go): what stores a notice and counts it on the badge,
+	// which kind sends at once instead, and how often the badge message may
+	// be edited. PlayerInbox nil — the zero Config, every existing test —
+	// keeps every notice's delivery exactly as it was before this feature:
+	// sent at once, nothing stored, no badge. See Worker.classify.
+	PlayerInbox   PlayerInbox
+	DeliveryModes *DeliveryModes
+	EditThrottle  time.Duration
 }
 
 // Worker turns events into notices.
@@ -232,6 +242,18 @@ func (w *Worker) Handle(ctx context.Context, route Route, env *envelope.Envelope
 	lang := handlers.RenderLanguage(meta, player)
 	resp := draft.Screen(screens.Context{Msgs: w.cfg.Msgs, Lang: lang})
 
+	if w.cfg.PlayerInbox != nil {
+		if mode, category := w.classify(route); mode == ModeInbox {
+			if err := w.storeInboxItem(ctx, route, meta, draft, player, lang, category, log); err != nil {
+				return err
+			}
+			if _, err := w.cfg.Inbox.MarkProcessed(ctx, meta.MessageID(), consumer); err != nil {
+				log.Warn("cannot record the notification in the inbox", slog.String("error", err.Error()))
+			}
+			return nil
+		}
+	}
+
 	delivered, err := w.deliver(ctx, now, meta, player, lang, resp, log)
 	if err != nil {
 		return err
@@ -240,12 +262,30 @@ func (w *Worker) Handle(ctx context.Context, route Route, env *envelope.Envelope
 		log.Warn("no bot can reach the player; the notification is dropped")
 	}
 	w.publishNotice(ctx, route, meta, player.ID, resp, log)
+	if w.cfg.PlayerInbox != nil {
+		// Told at once; also kept in the player's history, already read
+		// (see the package doc on badge.go). Best effort: the notice itself
+		// already went out, and a lost archive row is not worth retrying
+		// the whole event for.
+		_, category := w.classify(route)
+		w.archiveInstant(ctx, route, meta, draft, player, category, log)
+	}
 
 	// After success, never before; see the package doc.
 	if _, err := w.cfg.Inbox.MarkProcessed(ctx, meta.MessageID(), consumer); err != nil {
 		log.Warn("cannot record the notification in the inbox", slog.String("error", err.Error()))
 	}
 	return nil
+}
+
+// classify is the delivery mode and inbox category of route, honouring
+// Config.DeliveryModes when it is set and defaulting to ModeInstant — every
+// notice sent at once, as before this feature — otherwise.
+func (w *Worker) classify(route Route) (Mode, string) {
+	if w.cfg.DeliveryModes == nil {
+		return ModeInstant, route.Domain
+	}
+	return w.cfg.DeliveryModes.Classify(route.Domain, route.Event)
 }
 
 // deliver tries the player's reachable links in order until one delivers.

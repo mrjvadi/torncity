@@ -71,6 +71,14 @@ type Deps struct {
 type Draft struct {
 	PlayerID string
 	Screen   func(c screens.Context) *presenter.Response
+
+	// Link is a callback address (keyboards.Data) the inbox item's "open"
+	// button replays, for a notice with a screen of its own worth pointing
+	// at (a company's period report opens that company). Empty is common
+	// and fine: the item simply has no button beyond the category list's
+	// own navigation. Only read for a route classified ModeInbox
+	// (badge.go); an instant notice's own keyboard already does this job.
+	Link string
 }
 
 // Routes is the table. Add a row here, and a renderer below, for every new
