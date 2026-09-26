@@ -1,0 +1,273 @@
+# Semantic metadata for every player command's button, so a game client
+# (cmd/clientapi, the Godot client) can draw a real UI instead of a row of
+# Telegram-shaped text buttons.
+#
+# internal/clientapi/actions.go turns a screen's Telegram keyboard into
+# actions {label, command, args}; it looks the command up here and adds:
+#
+#   kind:  how the client should draw the button.
+#     primary    the main thing to do here (deposit, buy, commit the crime)
+#     secondary  any other ordinary action
+#     danger     ends or loses something (quit, leave, cancel, kick, drop)
+#     navigation opens a screen; no state changes (list, view, show, mine)
+#     confirm    answers a yes/no the game is waiting on (accept, decide)
+#   icon:  a stable asset key. The client owns the actual picture; this is
+#     only the lookup key, so the game may reuse one icon (action:deposit)
+#     across several domains (bank, company treasury, savings) rather than
+#     mint a new asset for each.
+#   group: optional. Steps of one flow that a client may want to present
+#     together (a wizard, a proposal and its answer) share a group name.
+#
+# A command not listed here (there should be none: a test in
+# internal/clientapi holds this file to internal/commands' player table)
+# gets `defaults` below, so a client never receives an action with no kind
+# or icon.
+#
+# There is no "back" entry in this file: nothing in the command table is a
+# dedicated back button. A screen's own list/hub/view command (already
+# `navigation` here) is what a "back to X" button on a deeper screen sends,
+# so the client renders it as `navigation` there too.
+
+defaults:
+  kind: secondary
+  icon: "action:default"
+
+commands:
+  player.profile.get: {kind: navigation, icon: "action:player"}
+  player.settings: {kind: navigation, icon: "action:player"}
+  player.language.set: {kind: primary, icon: "action:language"}
+  travel.start: {kind: primary, icon: "action:travel"}
+  travel.options: {kind: primary, icon: "action:travel"}
+  travel.status: {kind: navigation, icon: "action:travel"}
+  skills.list: {kind: navigation, icon: "action:skills"}
+  map.list: {kind: navigation, icon: "action:map"}
+  map.cities: {kind: navigation, icon: "action:map"}
+  place.go: {kind: primary, icon: "action:travel"}
+  social.search: {kind: navigation, icon: "action:social"}
+  social.friend.add: {kind: primary, icon: "action:social"}
+  social.friend.accept: {kind: primary, icon: "action:accept"}
+  social.friend.list: {kind: navigation, icon: "action:social"}
+  bank.show: {kind: navigation, icon: "action:bank"}
+  bank.deposit: {kind: primary, icon: "action:deposit"}
+  bank.withdraw: {kind: primary, icon: "action:withdraw"}
+  bank.pay: {kind: primary, icon: "action:pay", group: "bank_pay"}
+  bank.pay.send: {kind: primary, icon: "action:bank", group: "bank_pay"}
+  gov.city: {kind: navigation, icon: "action:gov"}
+  gov.history: {kind: navigation, icon: "action:gov"}
+  gov.office: {kind: navigation, icon: "action:gov"}
+  gov.lever: {kind: primary, icon: "action:lever"}
+  gov.confirm: {kind: confirm, icon: "action:gov"}
+  gov.set: {kind: primary, icon: "action:set"}
+  gov.appoint: {kind: primary, icon: "action:appoint"}
+  gov.seat: {kind: primary, icon: "action:seat"}
+  gov.dismiss: {kind: danger, icon: "action:dismiss"}
+  gov.unseat: {kind: danger, icon: "action:gov"}
+  job.status: {kind: navigation, icon: "action:job"}
+  job.list: {kind: navigation, icon: "action:job"}
+  job.view: {kind: navigation, icon: "action:job"}
+  job.apply: {kind: primary, icon: "action:apply"}
+  job.work: {kind: primary, icon: "action:work"}
+  job.promote: {kind: primary, icon: "action:promote"}
+  job.quit: {kind: danger, icon: "action:quit"}
+  education.list: {kind: navigation, icon: "action:education"}
+  education.view: {kind: navigation, icon: "action:education"}
+  education.enroll: {kind: primary, icon: "action:enroll"}
+  crime.hub: {kind: navigation, icon: "action:crime"}
+  crime.list: {kind: navigation, icon: "action:crime"}
+  crime.view: {kind: navigation, icon: "action:crime"}
+  crime.commit: {kind: primary, icon: "action:commit"}
+  crime.record: {kind: navigation, icon: "action:crime"}
+  crime.jail: {kind: primary, icon: "action:crime"}
+  crime.bail: {kind: primary, icon: "action:bail"}
+  crime.report: {kind: primary, icon: "action:report"}
+  crime.cases: {kind: navigation, icon: "action:crime"}
+  inventory.show: {kind: navigation, icon: "action:inventory"}
+  inventory.item: {kind: primary, icon: "action:inventory"}
+  inventory.use: {kind: primary, icon: "action:use"}
+  inventory.give: {kind: primary, icon: "action:give"}
+  inventory.drop: {kind: danger, icon: "action:drop"}
+  shop.list: {kind: navigation, icon: "action:shop"}
+  shop.view: {kind: navigation, icon: "action:shop"}
+  shop.buy: {kind: primary, icon: "action:buy"}
+  shop.offers: {kind: navigation, icon: "action:shop"}
+  shop.sell: {kind: primary, icon: "action:sell"}
+  market.list: {kind: navigation, icon: "action:market"}
+  market.book: {kind: primary, icon: "action:market"}
+  market.order: {kind: primary, icon: "action:market"}
+  market.cancel: {kind: danger, icon: "action:cancel"}
+  market.mine: {kind: navigation, icon: "action:market"}
+  auction.list: {kind: navigation, icon: "action:auction"}
+  auction.view: {kind: navigation, icon: "action:auction"}
+  auction.new: {kind: primary, icon: "action:auction"}
+  auction.bid: {kind: primary, icon: "action:auction"}
+  auction.mine: {kind: navigation, icon: "action:auction"}
+  election.list: {kind: navigation, icon: "action:election"}
+  election.view: {kind: navigation, icon: "action:election"}
+  election.stand: {kind: primary, icon: "action:stand"}
+  election.vote: {kind: primary, icon: "action:vote"}
+  company.list: {kind: navigation, icon: "action:company"}
+  company.view: {kind: navigation, icon: "action:company"}
+  company.register: {kind: primary, icon: "action:register"}
+  company.type: {kind: navigation, icon: "action:company"}
+  company.found: {kind: primary, icon: "action:found"}
+  company.mine: {kind: navigation, icon: "action:company"}
+  company.manage: {kind: primary, icon: "action:manage"}
+  company.deposit: {kind: primary, icon: "action:deposit"}
+  company.withdraw: {kind: primary, icon: "action:withdraw"}
+  company.price: {kind: primary, icon: "action:price"}
+  company.auto: {kind: primary, icon: "action:auto"}
+  company.manager: {kind: navigation, icon: "action:company"}
+  company.close: {kind: danger, icon: "action:close"}
+  company.openings: {kind: navigation, icon: "action:company"}
+  company.post: {kind: primary, icon: "action:post"}
+  company.slots: {kind: navigation, icon: "action:company"}
+  company.staff: {kind: primary, icon: "action:staff"}
+  company.decide: {kind: confirm, icon: "action:decide"}
+  company.fire: {kind: danger, icon: "action:fire"}
+  company.opening: {kind: primary, icon: "action:company"}
+  company.apply: {kind: primary, icon: "action:apply"}
+  company.warehouse: {kind: navigation, icon: "action:company"}
+  company.suppliers: {kind: navigation, icon: "action:company"}
+  company.supply: {kind: primary, icon: "action:supply"}
+  company.lab: {kind: navigation, icon: "action:company"}
+  company.research: {kind: primary, icon: "action:research"}
+  company.techmode: {kind: navigation, icon: "action:company"}
+  company.license: {kind: primary, icon: "action:license"}
+  company.studio: {kind: primary, icon: "action:studio"}
+  company.dnew: {kind: primary, icon: "action:company", group: "company_design"}
+  company.design: {kind: primary, icon: "action:design", group: "company_design"}
+  company.dfill: {kind: primary, icon: "action:company", group: "company_design"}
+  company.dqty: {kind: primary, icon: "action:company", group: "company_design"}
+  company.dname: {kind: primary, icon: "action:company", group: "company_design"}
+  company.dfinal: {kind: primary, icon: "action:company", group: "company_design"}
+  company.produce: {kind: primary, icon: "action:produce"}
+  company.orders: {kind: navigation, icon: "action:company"}
+  company.relab: {kind: primary, icon: "action:company"}
+  company.reverse: {kind: primary, icon: "action:reverse"}
+  company.sell: {kind: primary, icon: "action:sell"}
+  company.listings: {kind: navigation, icon: "action:company"}
+  company.unlist: {kind: danger, icon: "action:company"}
+  company.goods: {kind: primary, icon: "action:goods"}
+  company.buy: {kind: primary, icon: "action:buy"}
+  company.stockup: {kind: primary, icon: "action:stockup"}
+  company.defence: {kind: primary, icon: "action:company"}
+  company.recruit: {kind: primary, icon: "action:recruit"}
+  company.rnew: {kind: primary, icon: "action:company", group: "recruit_campaign"}
+  company.rdraft: {kind: primary, icon: "action:company", group: "recruit_campaign"}
+  company.rset: {kind: primary, icon: "action:company", group: "recruit_campaign"}
+  company.ramount: {kind: primary, icon: "action:company", group: "recruit_campaign"}
+  company.rpost: {kind: primary, icon: "action:company", group: "recruit_campaign"}
+  company.rcamp: {kind: primary, icon: "action:company", group: "recruit_campaign"}
+  company.rdecide: {kind: primary, icon: "action:company", group: "recruit_campaign"}
+  company.rcancel: {kind: primary, icon: "action:company", group: "recruit_campaign"}
+  company.npcs: {kind: navigation, icon: "action:company"}
+  company.npc: {kind: primary, icon: "action:npc"}
+  military.ministry: {kind: navigation, icon: "action:military"}
+  military.forces: {kind: navigation, icon: "action:military"}
+  military.branch: {kind: navigation, icon: "action:military"}
+  military.station: {kind: primary, icon: "action:station"}
+  military.procure: {kind: primary, icon: "action:procure"}
+  military.buy: {kind: primary, icon: "action:buy"}
+  military.licences: {kind: navigation, icon: "action:military"}
+  military.licence: {kind: primary, icon: "action:license"}
+  diplomacy.sanctions: {kind: navigation, icon: "action:diplomacy"}
+  diplomacy.impose: {kind: primary, icon: "action:impose"}
+  diplomacy.lift: {kind: primary, icon: "action:lift"}
+  diplomacy.treaties: {kind: navigation, icon: "action:diplomacy"}
+  diplomacy.propose: {kind: primary, icon: "action:propose", group: "diplomacy_proposal"}
+  diplomacy.answer: {kind: confirm, icon: "action:diplomacy", group: "diplomacy_proposal"}
+  diplomacy.end: {kind: primary, icon: "action:end"}
+  diplomacy.history: {kind: navigation, icon: "action:diplomacy"}
+  war.board: {kind: navigation, icon: "action:war"}
+  war.declare: {kind: primary, icon: "action:declare"}
+  war.join: {kind: primary, icon: "action:join"}
+  war.propose: {kind: primary, icon: "action:propose", group: "war_proposal"}
+  war.answer: {kind: confirm, icon: "action:war", group: "war_proposal"}
+  war.resume: {kind: navigation, icon: "action:war"}
+  war.room: {kind: navigation, icon: "action:war"}
+  war.target: {kind: primary, icon: "action:target"}
+  war.launch: {kind: primary, icon: "action:launch"}
+  health.hospital: {kind: navigation, icon: "action:health"}
+  health.treat: {kind: primary, icon: "action:treat"}
+  health.clinic: {kind: navigation, icon: "action:health"}
+  health.price: {kind: primary, icon: "action:price"}
+  health.open: {kind: navigation, icon: "action:health"}
+  faction.list: {kind: navigation, icon: "action:faction"}
+  faction.view: {kind: navigation, icon: "action:faction"}
+  faction.found: {kind: primary, icon: "action:found"}
+  faction.mine: {kind: navigation, icon: "action:faction"}
+  faction.members: {kind: navigation, icon: "action:faction"}
+  faction.invite: {kind: primary, icon: "action:invite"}
+  faction.apply: {kind: primary, icon: "action:apply"}
+  faction.answer: {kind: confirm, icon: "action:faction"}
+  faction.kick: {kind: danger, icon: "action:kick"}
+  faction.rank: {kind: navigation, icon: "action:faction"}
+  faction.leave: {kind: danger, icon: "action:faction"}
+  faction.bank: {kind: navigation, icon: "action:faction"}
+  faction.deposit: {kind: primary, icon: "action:deposit"}
+  faction.withdraw: {kind: primary, icon: "action:withdraw"}
+  faction.link: {kind: primary, icon: "action:link"}
+  faction.crime: {kind: primary, icon: "action:faction"}
+  faction.plan: {kind: primary, icon: "action:faction"}
+  faction.join: {kind: primary, icon: "action:join"}
+  faction.launch: {kind: primary, icon: "action:launch"}
+  faction.calloff: {kind: danger, icon: "action:faction"}
+  mission.board: {kind: navigation, icon: "action:mission"}
+  mission.view: {kind: navigation, icon: "action:mission"}
+  mission.accept: {kind: primary, icon: "action:accept"}
+  mission.mine: {kind: navigation, icon: "action:mission"}
+  mission.deliver: {kind: primary, icon: "action:mission"}
+  mission.abandon: {kind: danger, icon: "action:mission"}
+  gov.alloc: {kind: primary, icon: "action:allocate", group: "budget_allocation"}
+  gov.allocok: {kind: confirm, icon: "action:gov", group: "budget_allocation"}
+  gov.allocset: {kind: primary, icon: "action:allocate", group: "budget_allocation"}
+  law.list: {kind: navigation, icon: "action:law"}
+  law.view: {kind: navigation, icon: "action:law"}
+  law.vote: {kind: primary, icon: "action:vote"}
+  city.budget: {kind: primary, icon: "action:city"}
+  property.list: {kind: navigation, icon: "action:property"}
+  property.type: {kind: navigation, icon: "action:property"}
+  property.purchase: {kind: primary, icon: "action:buy"}
+  property.mine: {kind: navigation, icon: "action:property"}
+  property.view: {kind: navigation, icon: "action:property"}
+  property.sell: {kind: primary, icon: "action:sell"}
+  property.let: {kind: primary, icon: "action:let"}
+  property.cancel: {kind: danger, icon: "action:cancel"}
+  property.offer: {kind: primary, icon: "action:offer"}
+  property.buy: {kind: primary, icon: "action:buy"}
+  property.rent: {kind: primary, icon: "action:rent"}
+  property.leave: {kind: danger, icon: "action:property"}
+  property.rest: {kind: primary, icon: "action:property"}
+  achievement.list: {kind: navigation, icon: "action:achievement"}
+  life.me: {kind: navigation, icon: "action:life"}
+  life.card: {kind: primary, icon: "action:card"}
+  life.history: {kind: navigation, icon: "action:life"}
+  life.bio: {kind: primary, icon: "action:bio"}
+  life.avatar: {kind: primary, icon: "action:avatar"}
+  life.sleep: {kind: primary, icon: "action:sleep"}
+  life.top: {kind: primary, icon: "action:top"}
+  loan.hub: {kind: navigation, icon: "action:loan"}
+  loan.offer: {kind: primary, icon: "action:offer"}
+  loan.take: {kind: primary, icon: "action:take"}
+  loan.view: {kind: navigation, icon: "action:loan"}
+  loan.repay: {kind: primary, icon: "action:repay"}
+  save.show: {kind: navigation, icon: "action:save"}
+  save.deposit: {kind: primary, icon: "action:deposit"}
+  save.withdraw: {kind: primary, icon: "action:withdraw"}
+  insure.list: {kind: navigation, icon: "action:insure"}
+  insure.buy: {kind: primary, icon: "action:buy"}
+  insure.cancel: {kind: danger, icon: "action:cancel"}
+  stock.list: {kind: navigation, icon: "action:stock"}
+  stock.view: {kind: navigation, icon: "action:stock"}
+  stock.buy: {kind: primary, icon: "action:buy"}
+  stock.sell: {kind: primary, icon: "action:sell"}
+  stock.cancel: {kind: danger, icon: "action:cancel"}
+  stock.mine: {kind: navigation, icon: "action:stock"}
+  stock.ipo: {kind: primary, icon: "action:ipo"}
+  stock.dividend: {kind: primary, icon: "action:dividend"}
+  gold.show: {kind: navigation, icon: "action:gold"}
+  gold.buy: {kind: primary, icon: "action:buy"}
+  gold.sell: {kind: primary, icon: "action:sell"}
+  device.link: {kind: primary, icon: "action:link"}
+  device.list: {kind: navigation, icon: "action:device"}
+  device.revoke: {kind: danger, icon: "action:device"}

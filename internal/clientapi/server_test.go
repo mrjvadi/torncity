@@ -27,6 +27,15 @@ func loadPolicy(t *testing.T) *groups.Policy {
 	return p
 }
 
+func loadActionMeta(t *testing.T) *ActionMetadata {
+	t.Helper()
+	m, err := LoadActionMetadata("../../configs/actions.yml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return m
+}
+
 func TestActionsTranslateTheKeyboard(t *testing.T) {
 	kb := &presenter.Keyboard{Rows: [][]presenter.Button{
 		{{Text: "Map", CallbackData: "map:list"}, {Text: "Bazaar", CallbackData: "place:go:bazaar"}},
@@ -34,13 +43,13 @@ func TestActionsTranslateTheKeyboard(t *testing.T) {
 		{{Text: "Mine", CallbackData: "-2s:bank:show"}, {Text: "Site", URL: "https://example.com"}},
 		{{Text: "Stale", CallbackData: "nosuch:thing"}, {Text: "Evil", CallbackData: "bank:show:<script>"}},
 	}}
-	got := Actions(kb, loadPolicy(t))
+	got := Actions(kb, loadPolicy(t), loadActionMeta(t))
 	want := []Action{
-		{Label: "Map", Command: "map.list", Row: 0},
-		{Label: "Bazaar", Command: "place.go", Args: map[string]any{"place": "bazaar"}, Row: 0},
-		{Label: "Deposit…", Command: "bank.deposit", Args: map[string]any{}, Input: &ActionInput{Field: "amount"}, Row: 1},
-		{Label: "Pay…", Command: "bank.pay", Args: map[string]any{"to": "K7Q2M9A", "method": "card"}, Input: &ActionInput{Field: "amount"}, Row: 1},
-		{Label: "Mine", Command: "bank.show", Row: 2},
+		{Label: "Map", Command: "map.list", Row: 0, Kind: KindNavigation, Icon: "action:map"},
+		{Label: "Bazaar", Command: "place.go", Args: map[string]any{"place": "bazaar"}, Row: 0, Kind: KindPrimary, Icon: "action:travel"},
+		{Label: "Deposit…", Command: "bank.deposit", Args: map[string]any{}, Input: &ActionInput{Field: "amount"}, Row: 1, Kind: KindPrimary, Icon: "action:deposit"},
+		{Label: "Pay…", Command: "bank.pay", Args: map[string]any{"to": "K7Q2M9A", "method": "card"}, Input: &ActionInput{Field: "amount"}, Row: 1, Kind: KindPrimary, Icon: "action:pay", Group: "bank_pay"},
+		{Label: "Mine", Command: "bank.show", Row: 2, Kind: KindNavigation, Icon: "action:bank"},
 		{Label: "Site", URL: "https://example.com", Row: 2},
 	}
 	gb, _ := json.Marshal(got)
@@ -112,7 +121,7 @@ func newAPIFixture(t *testing.T) *apiFixture {
 	}}).MarkPrivate(), "bank", struct{ Cash int }{5})}
 	s := NewServer(ServerConfig{
 		Auth: af.auth,
-		Bridge: &Bridge{Bus: bus, Policy: loadPolicy(t), Timeout: 200 * time.Millisecond, InstanceID: "clientapi-test",
+		Bridge: &Bridge{Bus: bus, Policy: loadPolicy(t), ActionMeta: loadActionMeta(t), Timeout: 200 * time.Millisecond, InstanceID: "clientapi-test",
 			NewID: gen.next, Now: af.clock.now},
 		World:  fakeWorld{city: "tehran"},
 		Limits: &memLimits{counts: map[string]int{}}, Realtime: centrifugo.NewTokens("rt-secret", 15*time.Minute),
@@ -174,7 +183,8 @@ func TestLinkThenCommandRoundTrip(t *testing.T) {
 		t.Errorf("view = %v", screen["view"])
 	}
 	actions, _ := screen["actions"].([]any)
-	if len(actions) != 1 || actions[0].(map[string]any)["command"] != "bank.deposit" {
+	a0, _ := actions[0].(map[string]any)
+	if len(actions) != 1 || a0["command"] != "bank.deposit" || a0["kind"] != "primary" || a0["icon"] != "action:deposit" {
 		t.Errorf("actions = %v", screen["actions"])
 	}
 

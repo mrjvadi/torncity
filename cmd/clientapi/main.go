@@ -45,6 +45,7 @@ import (
 const (
 	defaultLocalesDir = "configs/locales"
 	commandsFile      = "commands.yml"
+	actionsFile       = "actions.yml"
 )
 
 func main() {
@@ -75,6 +76,7 @@ type env struct {
 	databaseURL, redisURL, natsURL string
 	configPath, localesDir         string
 	commandsPath                   string
+	actionsPath                    string
 	logLevel                       string
 	instanceID                     string
 	jwtSecret                      string
@@ -89,6 +91,7 @@ func loadEnv() (env, error) {
 		configPath:     os.Getenv("TORN_CONFIG"),
 		localesDir:     os.Getenv("TORN_LOCALES_DIR"),
 		commandsPath:   os.Getenv("TORN_COMMANDS"),
+		actionsPath:    os.Getenv("TORN_ACTIONS"),
 		logLevel:       os.Getenv("LOG_LEVEL"),
 		instanceID:     os.Getenv("CLIENTAPI_INSTANCE_ID"),
 		jwtSecret:      os.Getenv("CLIENT_JWT_SECRET"),
@@ -102,6 +105,9 @@ func loadEnv() (env, error) {
 	}
 	if e.commandsPath == "" {
 		e.commandsPath = filepath.Join(filepath.Dir(e.configPath), commandsFile)
+	}
+	if e.actionsPath == "" {
+		e.actionsPath = filepath.Join(filepath.Dir(e.configPath), actionsFile)
 	}
 	if e.instanceID == "" {
 		host, _ := os.Hostname()
@@ -165,6 +171,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	if err != nil {
 		return fmt.Errorf("clientapi: load the command table from %s: %w", e.commandsPath, err)
 	}
+	actionMeta, err := clientapi.LoadActionMetadata(e.actionsPath)
+	if err != nil {
+		return fmt.Errorf("clientapi: load the action table from %s: %w", e.actionsPath, err)
+	}
 	registry := content.NewRegistry()
 	contentStore := postgres.NewContentStore(pool)
 	reloadContent(ctx, contentStore, registry, logger)
@@ -223,6 +233,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		Auth: auth,
 		Bridge: &clientapi.Bridge{
 			Bus: clientapi.NewNATSBus(conn.Raw(), infranats.NewPublisher(conn)), Policy: policy,
+			ActionMeta:         actionMeta,
 			AllowGroupCommands: cfg.Client.GroupCommands == config.GroupCommandsAllow,
 			Timeout:            cfg.Client.CommandTimeout, InstanceID: e.instanceID, NewID: clientapi.NewID, Now: time.Now,
 			Moderation: &moderation.Checker{Source: moderationSource{postgres.NewModerationReader(pool)},

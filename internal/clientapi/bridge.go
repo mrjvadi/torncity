@@ -111,6 +111,10 @@ var idempotencyKeyPattern = regexp.MustCompile(`^[A-Za-z0-9_.:-]{1,64}$`)
 type Bridge struct {
 	Bus    Bus
 	Policy *groups.Policy
+	// ActionMeta is configs/actions.yml, loaded: the kind, icon and group
+	// each action carries for a client that draws its own UI. Nil gives
+	// every action the safe default (ActionMetadata.Of).
+	ActionMeta *ActionMetadata
 	// AllowGroupCommands is client.group_commands = allow.
 	AllowGroupCommands bool
 	// Moderation refuses a banned player's commands, as the gateway does.
@@ -208,13 +212,13 @@ func (b *Bridge) Run(ctx context.Context, pr Principal, req CommandRequest) (Scr
 	if err := reply.Decode(&resp); err != nil {
 		return Screen{}, fmt.Errorf("clientapi: the response is not a screen: %w", err)
 	}
-	out := ScreenOf(&resp, command, b.Policy)
+	out := ScreenOf(&resp, command, b.Policy, b.ActionMeta)
 	out.RequestID = requestID
 	return out, nil
 }
 
 // ScreenOf is what the client is shown for a response.
-func ScreenOf(resp *presenter.Response, command string, policy *groups.Policy) Screen {
+func ScreenOf(resp *presenter.Response, command string, policy *groups.Policy, meta *ActionMetadata) Screen {
 	if resp.Type == presenter.ActionAnswerCallback {
 		return Screen{OK: true, Screen: "notice", Actions: []Action{},
 			Notice: &Notice{Text: resp.Text, Alert: resp.Alert}}
@@ -223,7 +227,7 @@ func ScreenOf(resp *presenter.Response, command string, policy *groups.Policy) S
 	if screen == "" {
 		screen = command
 	}
-	return Screen{OK: true, Screen: screen, Text: resp.Text, View: resp.View, Actions: Actions(resp.Keyboard, policy)}
+	return Screen{OK: true, Screen: screen, Text: resp.Text, View: resp.View, Actions: Actions(resp.Keyboard, policy, meta)}
 }
 
 // NormalizeArgs turns a client's arguments into the payload a command takes:
