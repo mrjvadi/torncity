@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"strings"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
@@ -11,9 +12,25 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/technology"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/shared/errors"
+	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
+
+// improvementReference is the journal and ledger reference_type of an
+// improvement project.
+const improvementReference = "design_improvement_projects"
+
+// baseDesignName strips a previous " - نسخهٔ N" suffix, so revising a
+// revision or improving an improved design never compounds "- نسخهٔ ۲ -
+// نسخهٔ ۳" into its name: every version's name reads the same lineage.
+func baseDesignName(name string) string {
+	if i := strings.Index(name, " - نسخهٔ "); i >= 0 {
+		return name[:i]
+	}
+	return name
+}
 
 // Product generations (the owner's 2026 request, on top of ADR
 // 0021-production-economy.md): a design's lineage of versions, an
@@ -138,7 +155,7 @@ func (h *ProductionHandler) DesignRevise(ctx context.Context, meta envelope.Meta
 			version = 1
 		}
 		version++
-		name := fmt.Sprintf("%s - نسخهٔ %d", d.Name, version)
+		name := fmt.Sprintf("%s - نسخهٔ %d", baseDesignName(d.Name), version)
 		next := application.Design{ID: h.ids.NewID(), CompanyID: c.ID, Item: d.Item, Archetype: d.Archetype,
 			Name: name, NameKey: company.NameKey(name), Origin: d.Origin, Status: application.DesignDraft,
 			Fills: maps.Clone(d.Fills), QualityLossBPS: d.QualityLossBPS, OverheadBPS: d.OverheadBPS,
@@ -203,4 +220,158 @@ func (h *ProductionHandler) DesignRetire(ctx context.Context, meta envelope.Meta
 		return resp, err
 	}
 	return screens.Design(h.screen(meta, lang), view), nil
+}
+
+// ImprovementStart handles company.improve: the plan of an improvement
+// project on one attribute of one final design of the company's own — its
+// estimated gain (item.NextImprovementBPS), its flat cost and its time — and,
+// confirmed, starting it. One project runs at a time per company, like
+// research; it completes from the scheduler (Improved) producing the next
+// version of the design's lineage.
+func (h *ProductionHandler) ImprovementStart(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+	if err := validatePlayerMeta(meta); err != nil {
+		return nil, err
+	}
+	snap := h.content.Current()
+	lang := meta.Language
+	var view screens.ImprovementView
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, err := h.player(ctx, tx, meta, &lang)
+		if err != nil {
+			return err
+		}
+		place := req.confirmed()
+		if place {
+			fresh, err := h.reserve(ctx, tx, p.ID, meta)
+			if err != nil {
+				return err
+			}
+			if !fresh {
+				place = false
+			}
+		}
+		d, c, err := h.designOf(ctx, tx, snap, p, req.No, false)
+		if err != nil {
+			return err
+		}
+		if d.Status != application.DesignFinal {
+			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrStudio, c.Code)
+		}
+		attribute := strings.TrimSpace(req.Slot)
+		a, ok := snap.Archetype(d.Archetype)
+		found := false
+		for _, at := range a.Attributes {
+			if at.Name == attribute {
+				found = true
+				break
+			}
+		}
+		if !ok || attribute == "" || !found {
+			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrDesign, req.No)
+		}
+		gained, err := item.NextImprovementBPS(domainDesign(*d).Improvements[attribute])
+		if err != nil {
+			return refuseProduction(screens.ProductionRefusedImprovementCapped, c, snap).back(screens.AddrDesign, req.No)
+		}
+		view = screens.ImprovementView{Ref: companyRef(snap, *c), No: d.No, Design: designGood(snap, *d),
+			Attribute: named(attribute, attribute), GainBPS: gained, Cost: h.rules.ImprovementCost,
+			Duration: h.scale.RealWait(h.rules.ImprovementTime)}
+		if !place {
+			return nil
+		}
+		running, err := tx.Production().RunningImprovement(ctx, c.ID)
+		if err != nil {
+			return err
+		}
+		if running != nil {
+			return refuseProduction(screens.ProductionRefusedImprovementBusy, c, snap).back(screens.AddrDesign, req.No)
+		}
+		f, err := readFloor(ctx, tx, snap, c)
+		if err != nil {
+			return err
+		}
+		now := h.now()
+		txID, err := h.spend(ctx, tx, snap, f, application.ReasonDesignImprovement, application.SystemSinkAccountID,
+			money.FromMinor(h.rules.ImprovementCost), now)
+		if err != nil {
+			return err
+		}
+		finish := now.Add(h.scale.RealWait(h.rules.ImprovementTime))
+		id := h.ids.NewID()
+		actionID, err := h.schedule(ctx, tx, application.ImprovementActionType, improvementReference, id, c.ID, now, finish)
+		if err != nil {
+			return err
+		}
+		if err := tx.Production().StartImprovement(ctx, application.DesignImprovement{ID: id, CompanyID: c.ID,
+			DesignID: d.ID, Attribute: attribute, GainedBPS: gained, Cost: h.rules.ImprovementCost,
+			LedgerTransactionID: txID, GameActionID: actionID, StartedBy: p.ID, StartedAt: now, FinishAt: finish}); err != nil {
+			return err
+		}
+		view.Started, view.FinishAt = true, finish
+		return nil
+	})
+	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
+		return resp, err
+	}
+	return screens.Improvement(h.screen(meta, lang), view), nil
+}
+
+// Improved handles company.improved from the SCHEDULER: an improvement
+// project finishing exactly once. Its result is the next version of the
+// design's lineage, same fills, its Improvements raised by the project's
+// already-known gain (item.ApplyImprovement) — deterministic, so a replayed
+// completion (blocked by the row's own status check below) would compute the
+// identical result anyway.
+func (h *ProductionHandler) Improved(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+	in, err := productionPayload(meta, req)
+	if err != nil {
+		return nil, err
+	}
+	return nil, h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		row, err := tx.Production().Improvement(ctx, in.ID)
+		if isSentinel(err, application.ErrImprovementNotFound) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if row.Status != application.ImprovementRunning || (req.ActionID != "" && row.GameActionID != req.ActionID) {
+			return nil
+		}
+		now := h.now()
+		if now.Before(row.FinishAt) {
+			return internalf("an improvement project finished before its time")
+		}
+		c, err := tx.Companies().Lock(ctx, row.CompanyID)
+		if err != nil {
+			return err
+		}
+		parent, err := tx.Production().DesignByID(ctx, row.DesignID)
+		if err != nil {
+			return err
+		}
+		if !c.Active() {
+			return tx.Production().FinishImprovement(ctx, row.ID, "", 0, now)
+		}
+		next, gained, err := item.ApplyImprovement(domainDesign(*parent), row.Attribute)
+		if err != nil {
+			return errors.Internal(err)
+		}
+		name := fmt.Sprintf("%s - نسخهٔ %d", baseDesignName(parent.Name), next.Version)
+		result := application.Design{ID: h.ids.NewID(), CompanyID: c.ID, Item: parent.Item, Archetype: parent.Archetype,
+			Name: name, NameKey: company.NameKey(name), Origin: string(item.OriginAuthored), Status: application.DesignFinal,
+			Fills: storedFills(next.Fills), QualityLossBPS: next.QualityLossBPS, OverheadBPS: next.OverheadBPS,
+			LineageID: next.LineageID, Version: int64(next.Version), ParentID: next.ParentID, Improvements: next.Improvements,
+			CreatedBy: row.StartedBy, CreatedAt: now, FinalizedAt: &now}
+		result, err = tx.Production().CreateDesign(ctx, result)
+		if err != nil {
+			return err
+		}
+		if err := tx.Production().FinishImprovement(ctx, row.ID, result.ID, gained, now); err != nil {
+			return err
+		}
+		return appendCompanyEvent(ctx, tx, meta, "improved", c.ID, map[string]any{"company_id": c.ID, "code": c.Code,
+			"name": c.Name, "owner_id": c.OwnerID, "item": parent.Item, "attribute": row.Attribute,
+			"design_no": result.No, "design": result.Name})
+	})
 }

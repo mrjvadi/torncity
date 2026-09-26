@@ -37,6 +37,12 @@ type ProductionRules struct {
 	DesignMinSkill   int
 	// ReverseTime is taking a sample apart, GAME time.
 	ReverseTime time.Duration
+	// ImprovementTime is one improvement project, GAME time; ImprovementCost
+	// its flat fee, minor units. RetrofitTime is applying one upgrade kit to
+	// one unit, GAME time.
+	ImprovementTime time.Duration
+	ImprovementCost int64
+	RetrofitTime    time.Duration
 	// NameMin and NameMax bound a design's name, like a company's.
 	NameMin, NameMax int
 	// Limits bounds a license price and an amount bought.

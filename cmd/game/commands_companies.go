@@ -60,6 +60,7 @@ func productionRules(c config.Company, limits bank.Limits) handlers.ProductionRu
 		MaxRunningOrders: c.MaxRunningOrders, MaxDesigns: c.MaxDesigns, MaxListings: c.MaxListings,
 		DesignMinSkill: c.DesignMinSkill, ReverseTime: c.ReverseTime, NameMin: c.NameMinLength, NameMax: c.NameMaxLength,
 		Limits: limits, Citizens: citizenRules(c), QuickUnits: c.QuickOrderUnits,
+		ImprovementTime: c.ImprovementTime, ImprovementCost: c.ImprovementCost, RetrofitTime: c.RetrofitTime,
 	}
 }
 
@@ -99,11 +100,13 @@ func (h phaseHandlers) bindProduction() map[string]commandFunc {
 		"company.kit":       decoded(p.ProduceKit),
 		"company.drevise":   decoded(p.DesignRevise),
 		"company.dretire":   decoded(p.DesignRetire),
+		"company.improve":   decoded(p.ImprovementStart),
 		// The scheduler's: a research, an order, a reverse engineering done.
 		"company.researched":   decoded(p.Researched),
 		"company.produced":     decoded(p.Produced),
 		"company.reversed":     decoded(p.Reversed),
 		"company.kit_produced": decoded(p.KitProduced),
+		"company.improved":     decoded(p.Improved),
 	}
 }
 

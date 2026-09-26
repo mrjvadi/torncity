@@ -2203,6 +2203,10 @@ production:
     away: "📍 To buy this, you must be in {city}."
     own_listing: "🏷 This is your own company's listing."
     too_long: "⏱ This order would take too long; order fewer."
+    improvement_busy: "⏳ The company is already running an improvement project; one at a time."
+    improvement_capped: "🔧 This attribute is already at this version's improvement cap; design a new version to go further."
+    not_same_lineage: "🧰 This kit was not built for this product."
+    retrofit_busy: "🧰 This unit is already being retrofitted."
 
 # Components and materials, by content code (configs/content/items.yml).
 component:

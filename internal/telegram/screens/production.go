@@ -349,6 +349,15 @@ const (
 	ProductionRefusedAway          = "away"
 	ProductionRefusedOwnListing    = "own_listing"
 	ProductionRefusedTooLong       = "too_long"
+	// ProductionRefusedImprovementBusy means the company is already running
+	// an improvement project; ProductionRefusedImprovementCapped means the
+	// attribute chosen has already gained the most an improvement project
+	// may add to this version (item.NextImprovementBPS) — a revision, not
+	// another project, is what raises the cap.
+	ProductionRefusedImprovementBusy   = "improvement_busy"
+	ProductionRefusedImprovementCapped = "improvement_capped"
+	ProductionRefusedNotSameLineage    = "not_same_lineage"
+	ProductionRefusedRetrofitBusy      = "retrofit_busy"
 )
 
 // Shortage is one input an order is short of.
