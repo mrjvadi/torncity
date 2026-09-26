@@ -108,7 +108,8 @@ func renderMap(c Context, v MapView) *presenter.Response {
 	}
 	kb.Nav(c.nav(nav))
 
-	return c.respond(paragraphs(c.T("map.cities_title", nil), content), kb.Build())
+	title := htmlBold(htmlEscape(c.T("map.cities_title", nil)))
+	return c.respond(paragraphs(title, htmlEscape(content)), kb.Build()).AsHTML()
 }
 
 // pageIndicator says where in a list the player is, and says nothing at all
