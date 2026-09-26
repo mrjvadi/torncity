@@ -38,6 +38,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
+	"github.com/mrjvadi/torncity/internal/clientapi"
 	"github.com/mrjvadi/torncity/internal/config"
 	gwcontext "github.com/mrjvadi/torncity/internal/gateway/context"
 	"github.com/mrjvadi/torncity/internal/gateway/dedup"
@@ -90,6 +91,13 @@ const (
 	// commandsFile is the per-command table the gateway enforces, read from
 	// the configuration's directory.
 	commandsFile = "commands.yml"
+
+	// actionsFile is configs/actions.yml: the same per-command kind
+	// (primary, danger, confirm, ...) the Godot client draws its buttons
+	// from (internal/clientapi), read here only for the Telegram button
+	// colour it drives (internal/gateway/groups/style.go). Beside the
+	// configuration unless TORN_ACTIONS says otherwise.
+	actionsFile = "actions.yml"
 )
 
 func main() {
@@ -137,6 +145,8 @@ type env struct {
 	// runs. It sits beside the configuration file unless TORN_COMMANDS says
 	// otherwise.
 	commandsPath string
+	// actionsPath is configs/actions.yml; see actionsFile.
+	actionsPath string
 }
 
 func loadEnv() (env, error) {
@@ -159,6 +169,10 @@ func loadEnv() (env, error) {
 	e.commandsPath = os.Getenv("TORN_COMMANDS")
 	if e.commandsPath == "" {
 		e.commandsPath = filepath.Join(filepath.Dir(e.configPath), commandsFile)
+	}
+	e.actionsPath = os.Getenv("TORN_ACTIONS")
+	if e.actionsPath == "" {
+		e.actionsPath = filepath.Join(filepath.Dir(e.configPath), actionsFile)
 	}
 
 	var missing []string
@@ -345,6 +359,21 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	if missing := gw.policy.Missing(); len(missing) > 0 {
 		logger.Error("commands.yml has no line for these commands; they run anywhere",
 			slog.String("commands", strings.Join(missing, ",")))
+	}
+
+	// Button colour (configs/actions.yml, internal/gateway/groups/style.go).
+	// Unlike commands.yml this is cosmetic, not a routing rule: a table that
+	// will not load at all leaves every button in Telegram's plain style
+	// rather than failing the gateway. A table that loads with a few bad
+	// lines (aerr non-nil, actionMeta non-nil: ParseActionMetadata drops only
+	// the lines it could not read) still colours everything else.
+	actionMeta, aerr := clientapi.LoadActionMetadata(e.actionsPath)
+	if aerr != nil {
+		logger.Error("actions.yml had problems loading; some buttons may not be coloured",
+			slog.String("path", e.actionsPath), slog.String("error", aerr.Error()))
+	}
+	if actionMeta != nil {
+		groups.SetKindResolver(func(command string) string { return actionMeta.Of(command).Kind })
 	}
 	gw.inputs = infraredis.NewInputStore(rdb)
 	gw.links = infraredis.NewLinkStore(rdb)

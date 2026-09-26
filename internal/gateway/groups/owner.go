@@ -89,13 +89,20 @@ func Markup(kb *presenter.Keyboard) any {
 		Text         string `json:"text"`
 		CallbackData string `json:"callback_data,omitempty"`
 		URL          string `json:"url,omitempty"`
+		// Style colours the button (Bot API 9.4); see style.go. A URL button
+		// is never coloured — a card, not an action.
+		Style string `json:"style,omitempty"`
 	}
 
 	rows := make([][]button, 0, len(kb.Rows))
 	for _, row := range kb.Rows {
 		out := make([]button, 0, len(row))
 		for _, b := range row {
-			out = append(out, button{Text: b.Text, CallbackData: b.CallbackData, URL: b.URL})
+			style := ""
+			if b.URL == "" {
+				style = buttonStyle(CallbackCommand(b.CallbackData))
+			}
+			out = append(out, button{Text: b.Text, CallbackData: b.CallbackData, URL: b.URL, Style: style})
 		}
 		rows = append(rows, out)
 	}
