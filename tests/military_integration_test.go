@@ -101,7 +101,9 @@ func purgeMilitary(t *testing.T, pool *postgres.Pool, countries []string, player
 		{`CREATE TEMP TABLE purge_maction ON COMMIT DROP AS
 		   SELECT action_id AS id FROM military_clocks WHERE country_id = ANY($1::uuid[]) AND action_id IS NOT NULL
 		   UNION SELECT game_action_id FROM military_moves WHERE country_id = ANY($1::uuid[])
-		   UNION SELECT id FROM game_actions WHERE action_type = 'military_period' AND reference_id = ANY($1::uuid[])`, countries},
+		   UNION SELECT id FROM game_actions WHERE action_type = 'military_period' AND reference_id = ANY($1::uuid[])
+		   UNION SELECT game_action_id FROM retrofit_jobs WHERE org_kind = 'state' AND org_id = ANY($1::uuid[])`, countries},
+		{`DELETE FROM retrofit_jobs WHERE org_kind = 'state' AND org_id = ANY($1::uuid[])`, countries},
 		{`DELETE FROM military_assets WHERE country_id = ANY($1::uuid[])`, countries},
 		{`DELETE FROM military_moves WHERE country_id = ANY($1::uuid[])`, countries},
 		{`DELETE FROM procurements WHERE country_id = ANY($1::uuid[])`, countries},
