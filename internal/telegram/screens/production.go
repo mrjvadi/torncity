@@ -35,6 +35,7 @@ const (
 	AddrDesignFill  = "company:dfill"
 	AddrDesignFinal = "company:dfinal"
 	AddrProduce     = "company:produce"
+	AddrProduceKit  = "company:kit"
 	// AddrStockUp buys, in one tap, the inputs an order is short of from
 	// the city's suppliers (docs/adr/0021, section 14).
 	AddrStockUp      = "company:stockup"

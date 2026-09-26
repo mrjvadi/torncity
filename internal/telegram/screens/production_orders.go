@@ -111,7 +111,13 @@ var ProducePresets = []int64{1, 5, 10}
 
 // ProduceView is the plan of an order of one target.
 type ProduceView struct {
-	Ref    CompanyRef
+	Ref CompanyRef
+	// Addr is the command a size or confirm button calls; empty means
+	// AddrProduce. An upgrade-kit order (AddrProduceKit) reuses this same
+	// screen — a kit's plan reads exactly like an order's, because it is
+	// one: the design's own recipe, refitted onto an existing unit instead
+	// of sold as a new one.
+	Addr   string
 	Target ProduceTarget
 	// Qty is the order size planned; zero before one is chosen.
 	Qty    int64
@@ -140,6 +146,10 @@ type ProduceView struct {
 func Produce(c Context, v ProduceView) *presenter.Response {
 	good := c.GoodName(v.Target.Good)
 	target := v.Target.Good.target()
+	addr := v.Addr
+	if addr == "" {
+		addr = AddrProduce
+	}
 	if p := v.Placed; p != nil {
 		text := paragraphs(c.T("production.placed", map[string]any{"no": FormatNumber(c, p.No), "good": good,
 			"qty": FormatNumber(c, p.Output), "time": FormatClock(c, p.FinishAt), "duration": FormatDuration(c, p.Left)}),
@@ -186,7 +196,7 @@ func Produce(c Context, v ProduceView) *presenter.Response {
 			"duration": FormatDuration(c, v.Duration), "crew": FormatNumber(c, int64(v.Crew))}),
 			c.T("production.plan_consumes", nil))
 		kb.Add(c.T("production.button.start_order", map[string]any{"qty": FormatNumber(c, v.Output)}),
-			AddrProduce, v.Ref.Code, target, strconv.FormatInt(v.Qty, 10), ProductionConfirm)
+			addr, v.Ref.Code, target, strconv.FormatInt(v.Qty, 10), ProductionConfirm)
 	default:
 		plan = c.T("production.plan_choose", map[string]any{"max": FormatNumber(c, v.MaxQty)})
 	}
@@ -196,13 +206,13 @@ func Produce(c Context, v ProduceView) *presenter.Response {
 		if v.Target.Batch > 0 {
 			label = c.T("production.button.size_batch", map[string]any{"qty": FormatNumber(c, q)})
 		}
-		if btn, ok := keyboards.Button(label, AddrProduce, v.Ref.Code, target, strconv.FormatInt(q, 10)); ok {
+		if btn, ok := keyboards.Button(label, addr, v.Ref.Code, target, strconv.FormatInt(q, 10)); ok {
 			sizes = append(sizes, btn)
 		}
 	}
 	if v.MaxQty > 0 && !contains64(ProducePresets, v.MaxQty) {
 		if btn, ok := keyboards.Button(c.T("production.button.size_max", map[string]any{"qty": FormatNumber(c, v.MaxQty)}),
-			AddrProduce, v.Ref.Code, target, strconv.FormatInt(v.MaxQty, 10)); ok {
+			addr, v.Ref.Code, target, strconv.FormatInt(v.MaxQty, 10)); ok {
 			sizes = append(sizes, btn)
 		}
 	}
