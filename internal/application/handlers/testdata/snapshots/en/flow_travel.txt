@@ -157,7 +157,7 @@ Travelling by: Train
 
 ━━━ Bank on the road ━━━
 (edits message 42)
-🏦 Bank
+<b>🏦 Bank</b>
 
 💵 Cash: 4,580 Nil
 🏦 Bank balance: 0 Nil

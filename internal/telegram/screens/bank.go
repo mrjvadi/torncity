@@ -136,13 +136,13 @@ func renderBank(c Context, v BankView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrBank}))
 
 	text := paragraphs(
-		v.Notice,
-		title,
-		body(balances, terms),
-		hint,
-		c.T("bank.pay_hint", nil),
+		htmlEscape(v.Notice),
+		htmlBold(htmlEscape(title)),
+		htmlEscape(body(balances, terms)),
+		htmlEscape(hint),
+		htmlEscape(c.T("bank.pay_hint", nil)),
 	)
-	return c.respond(text, kb.Build())
+	return c.respond(text, kb.Build()).AsHTML()
 }
 
 // The commands a «✏️ مبلغ دلخواه» button asks an amount for; each is listed

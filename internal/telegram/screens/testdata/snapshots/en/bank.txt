@@ -1,6 +1,6 @@
 ━━━ Bank · in a city with a withdrawal fee ━━━
 (edits message 42)
-🏦 Bank - Ostmarch branch
+<b>🏦 Bank - Ostmarch branch</b>
 
 💵 Cash: 12,850 Nil
 🏦 Bank balance: 240,000 Nil
@@ -23,7 +23,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 (edits message 42)
 ✅ 5,000 Nil deposited into your bank account.
 
-🏦 Bank - Brennhaven branch
+<b>🏦 Bank - Brennhaven branch</b>
 
 💵 Cash: 7,850 Nil
 🏦 Bank balance: 245,000 Nil
@@ -46,7 +46,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 (edits message 42)
 ✅ You withdrew 5,000 Nil in cash, and a fee of 75 Nil was taken from your bank.
 
-🏦 Bank - Ostmarch branch
+<b>🏦 Bank - Ostmarch branch</b>
 
 💵 Cash: 17,850 Nil
 🏦 Bank balance: 234,925 Nil
@@ -69,7 +69,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 (edits message 42)
 ✅ You withdrew 1,000 Nil in cash.
 
-🏦 Bank - Brennhaven branch
+<b>🏦 Bank - Brennhaven branch</b>
 
 💵 Cash: 1,000 Nil
 🏦 Bank balance: 0 Nil
@@ -87,7 +87,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 
 ━━━ Bank · in jail ━━━
 (edits message 42)
-🏦 Bank - Ostmarch branch
+<b>🏦 Bank - Ostmarch branch</b>
 
 💵 Cash: 850 Nil
 🏦 Bank balance: 240,000 Nil
@@ -105,7 +105,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 
 ━━━ Bank · nothing to move ━━━
 (edits message 42)
-🏦 Bank - Ostmarch branch
+<b>🏦 Bank - Ostmarch branch</b>
 
 💵 Cash: 0 Nil
 🏦 Bank balance: 0 Nil
@@ -121,7 +121,7 @@ Withdrawals here carry a fee of 1.5%, taken from your bank on top of the amount;
 
 ━━━ Bank · while travelling ━━━
 (edits message 42)
-🏦 Bank
+<b>🏦 Bank</b>
 
 💵 Cash: 4,440 Nil
 🏦 Bank balance: 240,000 Nil
@@ -134,7 +134,7 @@ Withdrawals here carry a fee of 1.5%, taken from your bank on top of the amount;
 
 ━━━ Bank · not in any city ━━━
 (edits message 42)
-🏦 Bank
+<b>🏦 Bank</b>
 
 💵 Cash: 0 Nil
 🏦 Bank balance: 0 Nil
