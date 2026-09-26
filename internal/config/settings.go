@@ -267,6 +267,11 @@ type companySettings struct {
 	DesignMinSkill         *int    `yaml:"design_min_skill"`
 	QuickOrderUnits        *int    `yaml:"quick_order_units"`
 	ReverseTime            *string `yaml:"reverse_time"`
+	ImprovementTime        *string `yaml:"improvement_time"`
+	ImprovementCost        *int64  `yaml:"improvement_cost"`
+	RetrofitTime           *string `yaml:"retrofit_time"`
+	ObsolescenceDecayBPS   *int    `yaml:"obsolescence_decay_bps"`
+	ObsolescenceFloorBPS   *int    `yaml:"obsolescence_floor_bps"`
 	RecruitCheckEvery      *string `yaml:"recruit_check_every"`
 	RecruitChecks          *int    `yaml:"recruit_checks"`
 	RecruitMaxCampaigns    *int    `yaml:"recruit_max_campaigns"`
@@ -994,6 +999,21 @@ var coreSettings = []setting{
 	durationSetting("company", "reverse_time",
 		func(c *Config) *time.Duration { return &c.Company.ReverseTime },
 		func(f *fileConfig) *string { return f.Company.ReverseTime }),
+	durationSetting("company", "improvement_time",
+		func(c *Config) *time.Duration { return &c.Company.ImprovementTime },
+		func(f *fileConfig) *string { return f.Company.ImprovementTime }),
+	moneySetting("company", "improvement_cost",
+		func(c *Config) *int64 { return &c.Company.ImprovementCost },
+		func(f *fileConfig) *int64 { return f.Company.ImprovementCost }),
+	durationSetting("company", "retrofit_time",
+		func(c *Config) *time.Duration { return &c.Company.RetrofitTime },
+		func(f *fileConfig) *string { return f.Company.RetrofitTime }),
+	limitSetting("company", "obsolescence_decay_bps",
+		func(c *Config) *int { return &c.Company.ObsolescenceDecayBPS },
+		func(f *fileConfig) *int { return f.Company.ObsolescenceDecayBPS }),
+	limitSetting("company", "obsolescence_floor_bps",
+		func(c *Config) *int { return &c.Company.ObsolescenceFloorBPS },
+		func(f *fileConfig) *int { return f.Company.ObsolescenceFloorBPS }),
 	durationSetting("company", "recruit_check_every",
 		func(c *Config) *time.Duration { return &c.Company.RecruitCheckEvery },
 		func(f *fileConfig) *string { return f.Company.RecruitCheckEvery }),

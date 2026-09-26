@@ -357,6 +357,11 @@ company:
   design_min_skill: 2
   quick_order_units: 6
   reverse_time: 5h
+  improvement_time: 3h
+  improvement_cost: 20001
+  retrofit_time: 90m
+  obsolescence_decay_bps: 801
+  obsolescence_floor_bps: 3001
   recruit_check_every: 5h
   recruit_checks: 5
   recruit_max_campaigns: 3
@@ -611,6 +616,11 @@ var envOverrides = map[string]string{
 	"TORN_COMPANY_DESIGN_MIN_SKILL":           "3",
 	"TORN_COMPANY_QUICK_ORDER_UNITS":          "7",
 	"TORN_COMPANY_REVERSE_TIME":               "7h",
+	"TORN_COMPANY_IMPROVEMENT_TIME":           "5h",
+	"TORN_COMPANY_IMPROVEMENT_COST":           "20002",
+	"TORN_COMPANY_RETROFIT_TIME":              "3h",
+	"TORN_COMPANY_OBSOLESCENCE_DECAY_BPS":     "802",
+	"TORN_COMPANY_OBSOLESCENCE_FLOOR_BPS":     "3002",
 	"TORN_COMPANY_RECRUIT_CHECK_EVERY":        "7h",
 	"TORN_COMPANY_RECRUIT_CHECKS":             "6",
 	"TORN_COMPANY_RECRUIT_MAX_CAMPAIGNS":      "4",

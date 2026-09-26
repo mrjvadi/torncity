@@ -544,6 +544,17 @@ company:
   # units of a product, batches of a component — or what the warehouse can
   # cover when that is less.
   quick_order_units: 5
+  # Product generations: how long one improvement project takes, GAME time,
+  # and its flat fee, minor units (docs/adr/0021, generations addendum);
+  # how long applying one retrofit kit to one unit takes, GAME time.
+  improvement_time: 4h
+  improvement_cost: 20000
+  retrofit_time: 2h
+  # How many basis points of market value a design version loses per
+  # generation the newest of its lineage is ahead of it, and the least it
+  # may ever fall to.
+  obsolescence_decay_bps: 800
+  obsolescence_floor_bps: 3000
   # Specialist recruitment (docs/adr/0027): who the NPC specialists are and
   # what they expect is content (recruitment.yml); how a campaign runs is
   # here. GAME time between two checks of a campaign, and the checks one

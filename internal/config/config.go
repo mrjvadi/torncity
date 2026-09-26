@@ -616,6 +616,26 @@ type Company struct {
 	// ReverseTime is how long taking a sample apart takes, GAME time.
 	ReverseTime time.Duration // company.reverse_time
 
+	// Product generations (the owner's 2026 request: keep making new
+	// versions, keep researching better ones).
+	//
+	// ImprovementTime is how long one improvement project takes, GAME time;
+	// ImprovementCost is its flat fee, minor units, paid whatever attribute
+	// is chosen (internal/domain/item.NextImprovementBPS bounds what it
+	// buys, not what it costs).
+	ImprovementTime time.Duration // company.improvement_time
+	ImprovementCost int64         // company.improvement_cost
+	// RetrofitTime is how long applying one upgrade kit to one unit takes,
+	// GAME time.
+	RetrofitTime time.Duration // company.retrofit_time
+	// ObsolescenceDecayBPS is how many basis points of market value a
+	// design version loses for every generation the newest of its lineage
+	// is ahead of it; ObsolescenceFloorBPS is the least it may ever fall to
+	// (internal/domain/item.ObsolescenceFactorBPS enforces both as bounds,
+	// not as a formula content or config could distort).
+	ObsolescenceDecayBPS int // company.obsolescence_decay_bps
+	ObsolescenceFloorBPS int // company.obsolescence_floor_bps
+
 	// Specialist recruitment (docs/adr/0027-specialist-recruitment.md).
 	//
 	// RecruitCheckEvery is the GAME time between two checks of a campaign,
@@ -904,6 +924,11 @@ func Defaults() *Config {
 			DesignMinSkill:         1,
 			QuickOrderUnits:        5,
 			ReverseTime:            6 * time.Hour,
+			ImprovementTime:        4 * time.Hour,
+			ImprovementCost:        20000,
+			RetrofitTime:           2 * time.Hour,
+			ObsolescenceDecayBPS:   800,
+			ObsolescenceFloorBPS:   3000,
 			RecruitCheckEvery:      6 * time.Hour,
 			RecruitChecks:          4,
 			RecruitMaxCampaigns:    2,
@@ -1168,6 +1193,12 @@ func (c *Config) Validate() error {
 	}
 	if c.Company.PriceStepBPS > 10000 {
 		return fmt.Errorf("%w: company.price_step_bps is %d", ErrNotPositive, c.Company.PriceStepBPS)
+	}
+	if c.Company.ObsolescenceDecayBPS > 10000 {
+		return fmt.Errorf("%w: company.obsolescence_decay_bps is %d", ErrNotPositive, c.Company.ObsolescenceDecayBPS)
+	}
+	if c.Company.ObsolescenceFloorBPS > 10000 {
+		return fmt.Errorf("%w: company.obsolescence_floor_bps is %d", ErrNotPositive, c.Company.ObsolescenceFloorBPS)
 	}
 	if step := c.Governance.AllocationStepBPS; step > 10000 || 10000%step != 0 || 10000/step > 35 {
 		return fmt.Errorf("%w: governance.allocation_step_bps is %d; it must divide 10000 into at most 35 steps",
