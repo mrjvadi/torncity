@@ -1,6 +1,6 @@
 ━━━ Hospital · well, resting back to full ━━━
 (edits message 42) (private in groups)
-🏥 Hospital
+<b>🏥 Hospital</b>
 
 ❤️ Health: 72 of 100
 
@@ -15,7 +15,7 @@
 
 ━━━ Hospital · in hospital, three ways to be treated ━━━
 (edits message 42) (private in groups)
-🏥 Hospital
+<b>🏥 Hospital</b>
 
 ❤️ Health: 23 of 100
 
@@ -36,7 +36,7 @@ Discharged at 14:41
 
 ━━━ Hospital · treated, resting ━━━
 (edits message 42) (private in groups)
-🏥 Hospital
+<b>🏥 Hospital</b>
 
 ❤️ Health: 41 of 100
 
@@ -51,7 +51,7 @@ Discharged at 14:36
 
 ━━━ Hospital · full health, nowhere ━━━
 (edits message 42) (private in groups)
-🏥 Hospital
+<b>🏥 Hospital</b>
 
 ❤️ Health: 100 of 100
 

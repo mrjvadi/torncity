@@ -1,6 +1,6 @@
 ━━━ Hub · at the train station ━━━
 (sends)
-🕶 The underworld
+<b>🕶 The underworld</b>
 
 📍 train station, Ostmarch
 🔥 Nerve: 14 of 20 - full in 30m
@@ -17,7 +17,7 @@ Choose a kind of crime:
 
 ━━━ Hub · clean, full of nerve ━━━
 (edits message 42)
-🕶 The underworld
+<b>🕶 The underworld</b>
 
 📍 city centre, Ostmarch
 🔥 Nerve: 20 of 20
@@ -34,7 +34,7 @@ Choose a kind of crime:
 
 ━━━ Hub · in jail ━━━
 (edits message 42)
-🕶 The underworld
+<b>🕶 The underworld</b>
 
 📍 city centre, Ostmarch
 🔥 Nerve: 14 of 20 - full in 30m
@@ -53,7 +53,7 @@ Choose a kind of crime:
 
 ━━━ Hub · a burglary under way ━━━
 (edits message 42)
-🕶 The underworld
+<b>🕶 The underworld</b>
 
 📍 city centre, Ostmarch
 🔥 Nerve: 14 of 20 - full in 30m
@@ -73,7 +73,7 @@ Choose a kind of crime:
 
 ━━━ Hub · on the road ━━━
 (edits message 42)
-🕶 The underworld
+<b>🕶 The underworld</b>
 
 🧭 You are on the road; crime waits until you arrive.
 🔥 Nerve: 14 of 20 - full in 30m

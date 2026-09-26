@@ -260,7 +260,8 @@ func renderCrimeHub(c Context, v CrimeHubView) *presenter.Response {
 	if len(v.Categories) > 0 && v.Jail == nil {
 		choose = c.T("crime.choose_category", nil)
 	}
-	return c.respond(paragraphs(c.T("crime.hub_title", nil), facts, state, choose), kb.Build())
+	title := htmlBold(htmlEscape(c.T("crime.hub_title", nil)))
+	return c.respond(paragraphs(title, htmlEscape(facts), htmlEscape(state), htmlEscape(choose)), kb.Build()).AsHTML()
 }
 
 // CrimeLine is one crime in a category's list.

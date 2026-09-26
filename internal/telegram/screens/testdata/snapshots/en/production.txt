@@ -656,7 +656,7 @@ The companies of this city list nothing for now.
 
 ━━━ Bag · a phone a company made ━━━
 (edits message 42)
-🎒 Your bag
+<b>🎒 Your bag</b>
 
 • Nil Mobile X (Phone) - quality 61
   ───

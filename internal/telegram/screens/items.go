@@ -119,7 +119,8 @@ func renderInventory(c Context, v InventoryView) *presenter.Response {
 		Prefix: AddrInventory, Page: v.Page, HasPrev: pageOrOne(v.Page) > 1, HasNext: pageOrOne(v.Page) < v.Pages,
 		BackData: AddrHome,
 	}))
-	return c.respond(paragraphs(c.T("item.bag_title", nil), content, escrow), kb.Build())
+	title := htmlBold(htmlEscape(c.T("item.bag_title", nil)))
+	return c.respond(paragraphs(title, htmlEscape(content), htmlEscape(escrow)), kb.Build()).AsHTML()
 }
 
 // EffectLine is one effect of using a good.

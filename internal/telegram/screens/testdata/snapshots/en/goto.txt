@@ -256,7 +256,7 @@ What was taken has been sent to them privately.
 
 ━━━ Crime hub · as the group sees it ━━━
 (edits message 42)
-🕶 The underworld
+<b>🕶 The underworld</b>
 
 📍 bazaar, Ostmarch
 🔥 Nerve: 8 of 10

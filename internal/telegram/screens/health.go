@@ -155,7 +155,9 @@ func renderHospital(c Context, v HospitalView) *presenter.Response {
 		care = body(lines...)
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrHospital}))
-	return c.respond(paragraphs(c.T("health.title", nil), healthLine, state, care), kb.Build()).MarkPrivate()
+	title := htmlBold(htmlEscape(c.T("health.title", nil)))
+	return c.respond(paragraphs(title, htmlEscape(healthLine), htmlEscape(state), htmlEscape(care)), kb.Build()).
+		MarkPrivate().AsHTML()
 }
 
 // treatLine is one offer, for a patient.

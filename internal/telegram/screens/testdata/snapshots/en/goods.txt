@@ -1,6 +1,6 @@
 ━━━ Bag ━━━
 (edits message 42)
-🎒 Your bag
+<b>🎒 Your bag</b>
 
 • Bread - 3
 • Bandage - 1
@@ -16,7 +16,7 @@
 
 ━━━ Bag · empty ━━━
 (edits message 42)
-🎒 Your bag
+<b>🎒 Your bag</b>
 
 Your bag is empty. The city's shops sell food, medicine and tools.
   ───
