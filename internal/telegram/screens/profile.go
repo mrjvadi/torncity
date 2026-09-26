@@ -413,45 +413,49 @@ func hubKeyboard(c Context, hasCity, travelling, jailed bool, work *ProfileWork)
 	} else {
 		kb.Row(job)
 	}
+	if c.Shared && !travelling && !jailed {
+		// In a group the home screen is a public square, and crime is what
+		// is played there (configs/commands.yml keeps the private-chat
+		// buttons below off its timeline) — the group's main activity, right
+		// under the row that already says where the player is and what they
+		// do, not after every other section.
+		kb.Add(c.T("crime.button.hub", nil), AddrCrimeHub)
+	}
 
+	// The daily loop: study for a promotion, bank the pay.
 	study, _ := keyboards.Button(c.T("education.button.open", nil), AddrEducation)
 	bank, _ := keyboards.Button(c.T("button.bank", nil), AddrBank)
 	kb.Row(study, bank)
 
-	skills, _ := keyboards.Button(c.T("button.skills", nil), AddrSkills)
-	social, _ := keyboards.Button(c.T("button.social", nil), AddrFriendList)
-	kb.Row(skills, social)
-
-	// Stage E (docs/adr/0023): missions and the player's faction.
-	missions, _ := keyboards.Button(c.T("mission.button.mine", nil), AddrMissions)
-	factionBtn, _ := keyboards.Button(c.T("faction.button.mine", nil), AddrFactionMine)
-	kb.Row(missions, factionBtn)
-
-	// Stage G1 (docs/adr/0025): the player's life, and the leaderboards.
-	lifeBtn, _ := keyboards.Button(c.T("life.button.open", nil), AddrLife)
-	topBtn, _ := keyboards.Button(c.T("life.button.top", nil), AddrLifeTop)
-	kb.Row(lifeBtn, topBtn)
-
-	// Stage F (docs/adr/0024): the player's property and home, and their
-	// achievements.
+	// What the player owns: their home, and the city's shops for the rest.
 	homeBtn, _ := keyboards.Button(c.T("property.button.mine", nil), AddrPropertyMine)
-	achBtn, _ := keyboards.Button(c.T("achievement.button.list", nil), AddrAchievements)
-	kb.Row(homeBtn, achBtn)
-	// The city's shops, a press from home (the bag has them too).
 	shopsBtn, _ := keyboards.Button(c.T("shop.button.shops", nil), AddrShops)
-	kb.Row(shopsBtn)
+	kb.Row(homeBtn, shopsBtn)
 
 	if hasCity && !travelling && !jailed {
+		// The city's own institutions: its offices and policies, and the
+		// companies it hosts.
 		city, _ := keyboards.Button(c.T("gov.button.city", nil), AddrGovCity)
 		companies, _ := keyboards.Button(c.T("company.button.registry", nil), AddrCompanies)
 		kb.Row(city, companies)
 	}
-	if c.Shared && !travelling && !jailed {
-		// In a group the home screen is a public square: crime is what is
-		// played here (configs/commands.yml), and the gateway keeps the
-		// private-chat buttons above off the group's timeline.
-		kb.Add(c.T("crime.button.hub", nil), AddrCrimeHub)
-	}
+
+	// Other players: friends, the player's faction, and missions run with
+	// either.
+	social, _ := keyboards.Button(c.T("button.social", nil), AddrFriendList)
+	factionBtn, _ := keyboards.Button(c.T("faction.button.mine", nil), AddrFactionMine)
+	kb.Row(social, factionBtn)
+	missions, _ := keyboards.Button(c.T("mission.button.mine", nil), AddrMissions)
+	kb.Row(missions)
+
+	// The player themself: skills, their life story, achievements and the
+	// leaderboards.
+	skills, _ := keyboards.Button(c.T("button.skills", nil), AddrSkills)
+	lifeBtn, _ := keyboards.Button(c.T("life.button.open", nil), AddrLife)
+	kb.Row(skills, lifeBtn)
+	achBtn, _ := keyboards.Button(c.T("achievement.button.list", nil), AddrAchievements)
+	topBtn, _ := keyboards.Button(c.T("life.button.top", nil), AddrLifeTop)
+	kb.Row(achBtn, topBtn)
 
 	settings, _ := keyboards.Button(c.T("button.settings", nil), AddrSettings)
 	refresh, _ := keyboards.Button(c.T("button.refresh", nil), AddrProfile)

@@ -67,12 +67,12 @@ Requirements:
   ───
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ My job ━━━
@@ -130,12 +130,12 @@ Still needed for a promotion:
   ───
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ My job at the workplace ━━━
@@ -195,12 +195,12 @@ Your pay, XP and performance are settled when the shift ends, and you will be no
   ───
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ My job during the shift ━━━

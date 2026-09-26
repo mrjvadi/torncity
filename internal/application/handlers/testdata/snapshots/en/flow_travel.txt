@@ -139,11 +139,11 @@ Travelling by: Train
   ───
   [🧭 My journey] → travel:status   │   [💼 Job openings] → job:list
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Map on the road ━━━
@@ -193,12 +193,12 @@ Travelling by: Train
   ───
   [🗺 Map] → map:list   │   [💼 Job openings] → job:list
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Map of Brennhaven, off the train ━━━

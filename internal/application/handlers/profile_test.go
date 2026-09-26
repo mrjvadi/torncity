@@ -551,9 +551,11 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 	// this test creates is brand new, has no city and only the placeholder
 	// name, so the screen asks for the welcome, then level, energy and
 	// health, then cash and bank balance, and no name or city line. With no
-	// city there is nowhere to travel, so the keyboard offers the job,
-	// study, the bank, skills, friends, settings and refresh — no map and
-	// no city hall.
+	// city there is nowhere to travel and no city hall, so the keyboard
+	// offers, in the hub's own section order: the job; study and the bank;
+	// the player's property and the shops; friends and the faction, then
+	// missions; skills and life, achievements and the leaderboard; settings
+	// and refresh.
 	want := []string{
 		"profile.body",
 		"profile.level",
@@ -566,15 +568,15 @@ func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
 		"job.button.my_job",
 		"education.button.open",
 		"button.bank",
-		"button.skills",
-		"button.social",
-		"mission.button.mine",
-		"faction.button.mine",
-		"life.button.open",
-		"life.button.top",
 		"property.button.mine",
-		"achievement.button.list",
 		"shop.button.shops",
+		"button.social",
+		"faction.button.mine",
+		"mission.button.mine",
+		"button.skills",
+		"life.button.open",
+		"achievement.button.list",
+		"life.button.top",
 		"button.settings",
 		"button.refresh",
 	}

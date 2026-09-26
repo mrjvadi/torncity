@@ -16,12 +16,12 @@
   ───
   [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
-  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
-  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
-  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
-  [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
-  [🛒 مغازه‌ها] → shop:list
+  [🏠 املاک من] → property:mine   │   [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
+  [👥 دوستان] → social:friend.list   │   [🏴 جناح من] → faction:mine
+  [📋 مأموریت‌های من] → mission:mine
+  [🛠 مهارت‌ها] → skills:list   │   [🧬 زندگی من] → life:me
+  [🏅 دستاوردها] → achievement:list   │   [🏆 برترین‌ها] → life:top
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ Profile · walking to a place ━━━
@@ -43,12 +43,12 @@
   ───
   [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
-  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
-  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
-  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
-  [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
-  [🛒 مغازه‌ها] → shop:list
+  [🏠 املاک من] → property:mine   │   [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
+  [👥 دوستان] → social:friend.list   │   [🏴 جناح من] → faction:mine
+  [📋 مأموریت‌های من] → mission:mine
+  [🛠 مهارت‌ها] → skills:list   │   [🧬 زندگی من] → life:me
+  [🏅 دستاوردها] → achievement:list   │   [🏆 برترین‌ها] → life:top
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ Profile · in a group, as the group sees it ━━━
@@ -65,10 +65,10 @@
 🆔 کد بازیکن: ⁨K7Q2M9A⁩
   ───
   [🗺 نقشه] → map:list
-  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
-  [🏅 دستاوردها] → achievement:list
-  [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
   [🕶 دنیای زیرزمینی] → crime:hub
+  [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
+  [🧬 زندگی من] → life:me
+  [🏅 دستاوردها] → achievement:list   │   [🏆 برترین‌ها] → life:top
   [🔒 ادامه در پی‌وی] → https://t.me/torn_bot
   [🔄 به‌روزرسانی] → player:profile.get
 
@@ -85,12 +85,12 @@
   ───
   [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
-  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
-  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
-  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
-  [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
-  [🛒 مغازه‌ها] → shop:list
+  [🏠 املاک من] → property:mine   │   [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
+  [👥 دوستان] → social:friend.list   │   [🏴 جناح من] → faction:mine
+  [📋 مأموریت‌های من] → mission:mine
+  [🛠 مهارت‌ها] → skills:list   │   [🧬 زندگی من] → life:me
+  [🏅 دستاوردها] → achievement:list   │   [🏆 برترین‌ها] → life:top
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ Dashboard · walking ━━━
@@ -107,12 +107,12 @@
   ───
   [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
-  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
-  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
-  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
-  [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
-  [🛒 مغازه‌ها] → shop:list
+  [🏠 املاک من] → property:mine   │   [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
+  [👥 دوستان] → social:friend.list   │   [🏴 جناح من] → faction:mine
+  [📋 مأموریت‌های من] → mission:mine
+  [🛠 مهارت‌ها] → skills:list   │   [🧬 زندگی من] → life:me
+  [🏅 دستاوردها] → achievement:list   │   [🏆 برترین‌ها] → life:top
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ My job · away from the workplace ━━━

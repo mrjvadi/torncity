@@ -67,12 +67,12 @@
   ───
   [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
-  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
-  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
-  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
-  [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
-  [🛒 مغازه‌ها] → shop:list
+  [🏠 املاک من] → property:mine   │   [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
+  [👥 دوستان] → social:friend.list   │   [🏴 جناح من] → faction:mine
+  [📋 مأموریت‌های من] → mission:mine
+  [🛠 مهارت‌ها] → skills:list   │   [🧬 زندگی من] → life:me
+  [🏅 دستاوردها] → achievement:list   │   [🏆 برترین‌ها] → life:top
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ My job ━━━
@@ -130,12 +130,12 @@
   ───
   [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
-  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
-  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
-  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
-  [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
-  [🛒 مغازه‌ها] → shop:list
+  [🏠 املاک من] → property:mine   │   [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
+  [👥 دوستان] → social:friend.list   │   [🏴 جناح من] → faction:mine
+  [📋 مأموریت‌های من] → mission:mine
+  [🛠 مهارت‌ها] → skills:list   │   [🧬 زندگی من] → life:me
+  [🏅 دستاوردها] → achievement:list   │   [🏆 برترین‌ها] → life:top
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ My job at the workplace ━━━
@@ -195,12 +195,12 @@
   ───
   [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
-  [🛠 مهارت‌ها] → skills:list   │   [👥 دوستان] → social:friend.list
-  [📋 مأموریت‌های من] → mission:mine   │   [🏴 جناح من] → faction:mine
-  [🧬 زندگی من] → life:me   │   [🏆 برترین‌ها] → life:top
-  [🏠 املاک من] → property:mine   │   [🏅 دستاوردها] → achievement:list
-  [🛒 مغازه‌ها] → shop:list
+  [🏠 املاک من] → property:mine   │   [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
+  [👥 دوستان] → social:friend.list   │   [🏴 جناح من] → faction:mine
+  [📋 مأموریت‌های من] → mission:mine
+  [🛠 مهارت‌ها] → skills:list   │   [🧬 زندگی من] → life:me
+  [🏅 دستاوردها] → achievement:list   │   [🏆 برترین‌ها] → life:top
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ My job during the shift ━━━

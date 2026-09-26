@@ -19,12 +19,12 @@ Friends can find you by sending "find K7Q2M9A".
   ───
   [🗺 Map] → map:list   │   [💼 Job openings] → job:list
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Profile · an established player with a job and a course ━━━
@@ -54,12 +54,12 @@ Friends can find you by sending "find K7Q2M9A".
   ───
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Profile · on a shift ━━━
@@ -90,12 +90,12 @@ Friends can find you by sending "find K7Q2M9A".
   ───
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Profile · travelling ━━━
@@ -116,11 +116,11 @@ Friends can find you by sending "find K7Q2M9A".
   ───
   [🧭 My journey] → travel:status   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Profile · not in any city yet ━━━
@@ -139,11 +139,11 @@ This is your home: your condition, your money and your work at a glance. Use the
   ───
   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Profile · top level ━━━
@@ -162,12 +162,12 @@ This is your home: your condition, your money and your work at a glance. Use the
   ───
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Dashboard ━━━
@@ -183,12 +183,12 @@ This is your home: your condition, your money and your work at a glance. Use the
   ───
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Profile · in jail, the course paused ━━━
@@ -214,11 +214,11 @@ Until you are free you cannot travel, work a shift, withdraw from the bank or st
   ───
   [⛓ Jail] → crime:jail   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Dashboard · in jail ━━━
@@ -238,11 +238,11 @@ Until you are free you cannot travel, work a shift, withdraw from the bank or st
   ───
   [⛓ Jail] → crime:jail   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🛠 Skills] → skills:list   │   [👥 Friends] → social:friend.list
-  [📋 My missions] → mission:mine   │   [🏴 My faction] → faction:mine
-  [🧬 My life] → life:me   │   [🏆 Leaderboards] → life:top
-  [🏠 My property] → property:mine   │   [🏅 Achievements] → achievement:list
-  [🛒 Shops] → shop:list
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
 ━━━ Help · an unknown command ━━━
