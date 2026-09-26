@@ -386,3 +386,7 @@ func (t *fakeTx) Stocks() application.StockRepository { return nil }
 func (t *fakeTx) Recruitment() application.RecruitRepository {
 	return noRecruitment{}
 }
+
+// The inbox (migrations/0037): nothing stored in these handler tests, which
+// predate it and never assert on it.
+func (t *fakeTx) Notifications() application.NotificationInboxRepository { return nil }

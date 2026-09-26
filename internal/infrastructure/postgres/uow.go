@@ -263,3 +263,9 @@ func (t *tx) Stocks() application.StockRepository { return &StockRepository{q: t
 
 // Recruitment returns specialist recruitment (migration 0031).
 func (t *tx) Recruitment() application.RecruitRepository { return &RecruitRepository{q: t.q} }
+
+// Notifications returns the /inbox screen's stored notifications and badge
+// (migration 0037).
+func (t *tx) Notifications() application.NotificationInboxRepository {
+	return &PlayerInboxRepository{q: t.q}
+}

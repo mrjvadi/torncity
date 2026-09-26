@@ -199,6 +199,14 @@ type Tx interface {
 	// specialists, companies' campaigns, candidates and the specialists
 	// they hired, with their pay; see ports_recruit.go.
 	Recruitment() RecruitRepository
+
+	// Notifications is the /inbox screen's own state: a player's stored
+	// notifications and the one badge message their count is edited onto
+	// (migrations/0037_notification_inbox). cmd/notifier writes the same
+	// tables outside any unit of work — it is not a game command, and a
+	// Telegram send cannot roll back with one; see
+	// internal/workers/notification and postgres.PlayerInboxRepository.
+	Notifications() NotificationInboxRepository
 }
 
 // UnitOfWork runs fn inside a single database transaction.
