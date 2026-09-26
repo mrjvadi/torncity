@@ -15,6 +15,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/commands"
 	"github.com/mrjvadi/torncity/internal/gateway/groups"
+	"github.com/mrjvadi/torncity/internal/gateway/moderation"
 	"github.com/mrjvadi/torncity/internal/gateway/routing"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
@@ -92,6 +93,9 @@ var (
 	ErrUnknownCommand = errors.New("clientapi: no such command")
 	ErrGroupOnly      = errors.New("clientapi: this command is played in a Telegram group")
 	ErrBadArgs        = errors.New("clientapi: the arguments are not usable")
+	// ErrBanned refuses a command from a player an operator has banned
+	// (internal/gateway/moderation).
+	ErrBanned = errors.New("clientapi: this account is banned")
 )
 
 // Limits on what a command may carry.
@@ -109,10 +113,13 @@ type Bridge struct {
 	Policy *groups.Policy
 	// AllowGroupCommands is client.group_commands = allow.
 	AllowGroupCommands bool
-	Timeout            time.Duration
-	InstanceID         string
-	NewID              func() string
-	Now                func() time.Time
+	// Moderation refuses a banned player's commands, as the gateway does.
+	// Nil lets every command through; so does a failure to read it.
+	Moderation *moderation.Checker
+	Timeout    time.Duration
+	InstanceID string
+	NewID      func() string
+	Now        func() time.Time
 }
 
 // Screen is the answer to a command.
@@ -149,6 +156,9 @@ func (b *Bridge) Run(ctx context.Context, pr Principal, req CommandRequest) (Scr
 	}
 	if pr.BotID == "" {
 		return Screen{}, ErrNoBot
+	}
+	if v, err := b.Moderation.Blocks(ctx, pr.TelegramUserID, false); err == nil && v == moderation.Banned {
+		return Screen{}, ErrBanned
 	}
 	payload, err := NormalizeArgs(req.Args)
 	if err != nil {

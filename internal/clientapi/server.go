@@ -337,6 +337,8 @@ func classify(err error) (int, string) {
 		return http.StatusBadRequest, "unknown_command"
 	case errors.Is(err, ErrGroupOnly):
 		return http.StatusForbidden, "group_only"
+	case errors.Is(err, ErrBanned):
+		return http.StatusForbidden, "banned"
 	case errors.Is(err, errForbiddenChannel):
 		return http.StatusForbidden, "forbidden_channel"
 	case errors.Is(err, ErrNoBot):

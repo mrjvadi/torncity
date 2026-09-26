@@ -23,7 +23,11 @@ import (
 // operator.
 func TestPanelViewsRun(t *testing.T) {
 	pool := requirePostgres(t)
-	ctx := testCtx(t)
+	// Every view, scope, filter and sort runs here — well over a thousand
+	// statements — so the whole walk gets a budget of its own rather than
+	// one command's testTimeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
 	cfg := config.Defaults()
 	pg := &panel.PG{Pool: pool, Ops: operator.Ops{Pool: pool, Language: "fa"}, ContentDir: "../configs/content", Config: cfg}
 	player := insertPlayer(t, pool)

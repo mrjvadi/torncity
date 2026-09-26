@@ -380,6 +380,7 @@ delivery.
 | 401 | `invalid_refresh_token` | refresh token unknown, expired or of a signed-out device |
 | 401 | `refresh_token_reused` | refresh token used twice: the device is signed out |
 | 403 | `group_only` | the command is played in a Telegram group (localized message) |
+| 403 | `banned` | an operator has banned this account; commands are refused until it is lifted |
 | 403 | `forbidden_channel` | not the player's city channel |
 | 404 | `not_found` | |
 | 409 | `relink` | the device's bot is gone; link again |

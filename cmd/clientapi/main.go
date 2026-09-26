@@ -30,6 +30,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/gateway/groups"
 	"github.com/mrjvadi/torncity/internal/gateway/identity/firstcontact"
+	"github.com/mrjvadi/torncity/internal/gateway/moderation"
 	"github.com/mrjvadi/torncity/internal/infrastructure/centrifugo"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
@@ -224,6 +225,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			Bus: clientapi.NewNATSBus(conn.Raw(), infranats.NewPublisher(conn)), Policy: policy,
 			AllowGroupCommands: cfg.Client.GroupCommands == config.GroupCommandsAllow,
 			Timeout:            cfg.Client.CommandTimeout, InstanceID: e.instanceID, NewID: clientapi.NewID, Now: time.Now,
+			Moderation: &moderation.Checker{Source: moderationSource{postgres.NewModerationReader(pool)},
+				Cache: infraredis.NewModerationCache(rdb), TTL: cfg.Panel.ModerationCacheTTL},
 		},
 		World: &clientapi.World{Players: players, Cities: postgres.NewCityRepository(pool), Content: registry,
 			Msgs: catalog, Realtime: tokens.Enabled(), Now: time.Now},
@@ -316,4 +319,13 @@ func (c *botCache) get(ctx context.Context) ([]clientapi.BotCredential, error) {
 	}
 	c.bots, c.at = out, time.Now()
 	return out, nil
+}
+
+// moderationSource adapts the database's read to the checker, as the
+// gateway's does (cmd/gateway/moderation.go).
+type moderationSource struct{ r *postgres.ModerationReader }
+
+func (s moderationSource) Standing(ctx context.Context, id int64, now time.Time) (moderation.Standing, error) {
+	st, err := s.r.Standing(ctx, id, now)
+	return moderation.Standing{Muted: st.Muted, Banned: st.Banned, Until: st.Until}, err
 }
