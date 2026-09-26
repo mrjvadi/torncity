@@ -133,6 +133,11 @@ type LedgerVerification struct {
 	Recruit bool
 	RecruitInvariants
 
+	// Generations is whether product generations' tables exist (migration
+	// 0036); GenerationsInvariants their checks (ledger_admin_generations.go).
+	Generations bool
+	GenerationsInvariants
+
 	// DefenceInvariants are the armed forces' wages
 	// (ledger_admin_defence.go); they need nothing but the ledger.
 	DefenceInvariants
@@ -233,7 +238,7 @@ func (v LedgerVerification) OK() bool {
 		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok() && v.ProductionInvariants.ok() &&
 		v.MilitaryInvariants.ok() && v.WarInvariants.ok() && v.StageEInvariants.ok() && v.StageFInvariants.ok() &&
 		v.DefenceInvariants.ok() && v.LifeInvariants.ok() && v.FinanceInvariants.ok() &&
-		v.RecruitInvariants.ok()
+		v.RecruitInvariants.ok() && v.GenerationsInvariants.ok()
 }
 
 // VerifyLedger runs the three invariants of docs/adr/0009-economic-control.md
@@ -371,6 +376,14 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 	}
 	if v.Recruit {
 		if err := a.verifyRecruit(ctx, &v); err != nil {
+			return v, err
+		}
+	}
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.retrofit_jobs') IS NOT NULL`).Scan(&v.Generations); err != nil {
+		return v, fmt.Errorf("postgres: looking for product generations: %w", err)
+	}
+	if v.Generations {
+		if err := a.verifyGenerations(ctx, &v); err != nil {
 			return v, err
 		}
 	}

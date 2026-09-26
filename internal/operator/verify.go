@@ -162,7 +162,21 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 	if v.Recruit {
 		recruitChecks(&out, v.RecruitInvariants)
 	}
+	if v.Generations {
+		generationsChecks(&out, v.GenerationsInvariants)
+	}
 	return out
+}
+
+// generationsChecks are product generations' invariants (migration
+// 0036_generations): an upgrade kit is consumed exactly once, the moment its
+// retrofit job starts.
+func generationsChecks(out *checks, g postgres.GenerationsInvariants) {
+	line := func(ok bool, format string, args ...any) { out.add(ok, fmt.Sprintf(format, args...)) }
+	line(g.KitsReused == 0, "every upgrade kit is used by at most one retrofit (%d reused)", g.KitsReused)
+	line(g.KitsNotGone == 0, "every started retrofit's kit left the warehouse (%d still there)", g.KitsNotGone)
+	line(g.KitsUnjournalled == 0, "every kit's consumption is in the item journal (%d missing)", g.KitsUnjournalled)
+	line(g.PiecesNotRetrofitted == 0, "every done retrofit's unit stands at its target design (%d do not)", g.PiecesNotRetrofitted)
 }
 
 // recruitChecks are specialist recruitment's invariants
