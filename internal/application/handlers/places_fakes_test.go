@@ -219,6 +219,13 @@ func (f *fakeItems) SetUses(_ context.Context, id string, uses int) error {
 	return nil
 }
 
+func (f *fakeItems) SetDesignID(_ context.Context, id, designID string) error {
+	p := f.pieces[id]
+	p.DesignID = designID
+	f.pieces[id] = p
+	return nil
+}
+
 func (f *fakeItems) LastUsed(_ context.Context, playerID, group string) (time.Time, error) {
 	return f.used[playerID+"|"+group], nil
 }

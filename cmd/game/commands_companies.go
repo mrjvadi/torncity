@@ -101,12 +101,14 @@ func (h phaseHandlers) bindProduction() map[string]commandFunc {
 		"company.drevise":   decoded(p.DesignRevise),
 		"company.dretire":   decoded(p.DesignRetire),
 		"company.improve":   decoded(p.ImprovementStart),
+		"company.retrofit":  decoded(p.RetrofitStart),
 		// The scheduler's: a research, an order, a reverse engineering done.
 		"company.researched":   decoded(p.Researched),
 		"company.produced":     decoded(p.Produced),
 		"company.reversed":     decoded(p.Reversed),
 		"company.kit_produced": decoded(p.KitProduced),
 		"company.improved":     decoded(p.Improved),
+		"company.retrofitted":  decoded(p.Retrofitted),
 	}
 }
 

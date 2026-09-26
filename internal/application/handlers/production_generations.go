@@ -375,3 +375,194 @@ func (h *ProductionHandler) Improved(ctx context.Context, meta envelope.Metadata
 			"design_no": result.No, "design": result.Name})
 	})
 }
+
+// retrofitReference is the journal and ledger reference_type of a retrofit
+// job.
+const retrofitReference = "retrofit_jobs"
+
+// domainInstance is a held piece as the item rules take it — just enough for
+// item.Retrofit, which only reads DesignID.
+func domainInstance(p application.Piece) item.Instance {
+	return item.Instance{Serial: p.Serial, Archetype: p.Archetype, DesignID: p.DesignID, Quality: p.Quality,
+		Provenance: item.Provenance{ProductionOrderID: p.OriginRef}}
+}
+
+// retrofitPlan is what a retrofit job would do, resolved and checked but not
+// yet started.
+type retrofitPlan struct {
+	kit, target       *application.Piece
+	current, toDesign *application.Design
+	good              screens.Good
+}
+
+// planRetrofit resolves and checks a kit and a target piece an org holds: the
+// kit must be an upgrade kit's own output, still in the warehouse; the target
+// must be in the warehouse at an earlier version of the same lineage
+// (item.Retrofit). Both pieces must belong to org.
+func planRetrofit(ctx context.Context, tx application.Tx, snap *content.Snapshot, org application.Org, kitSerial, targetSerial string,
+) (retrofitPlan, error) {
+	var plan retrofitPlan
+	kit, err := tx.Items().PieceBySerial(ctx, kitSerial)
+	if isSentinel(err, application.ErrPieceNotFound) {
+		return plan, refuseProduction(screens.ProductionRefusedNotFound, nil, snap)
+	}
+	if err != nil {
+		return plan, err
+	}
+	if kit.Org != org || kit.Holding != application.HoldWarehouse {
+		return plan, refuseProduction(screens.ProductionRefusedNotFound, nil, snap)
+	}
+	order, err := tx.Production().Order(ctx, kit.OriginRef)
+	if isSentinel(err, application.ErrProductionOrderNotFound) || (err == nil && order.Kind != application.OrderKindUpgradeKit) {
+		return plan, refuseProduction(screens.ProductionRefusedNotSameLineage, nil, snap)
+	}
+	if err != nil {
+		return plan, err
+	}
+	toDesign, err := tx.Production().DesignByID(ctx, order.TargetDesignID)
+	if err != nil {
+		return plan, err
+	}
+	target, err := tx.Items().PieceBySerial(ctx, targetSerial)
+	if isSentinel(err, application.ErrPieceNotFound) {
+		return plan, refuseProduction(screens.ProductionRefusedNotFound, nil, snap)
+	}
+	if err != nil {
+		return plan, err
+	}
+	if target.Org != org || target.Holding != application.HoldWarehouse {
+		return plan, refuseProduction(screens.ProductionRefusedNotFound, nil, snap)
+	}
+	current, err := tx.Production().DesignByID(ctx, target.DesignID)
+	if err != nil {
+		return plan, err
+	}
+	if _, err := item.Retrofit(domainInstance(*target), domainDesign(*current), domainDesign(*toDesign)); err != nil {
+		return plan, refuseProduction(screens.ProductionRefusedNotSameLineage, nil, snap)
+	}
+	plan.kit, plan.target, plan.current, plan.toDesign = kit, target, current, toDesign
+	plan.good = designGood(snap, *toDesign)
+	return plan, nil
+}
+
+// RetrofitStart handles company.retrofit: the plan of retrofitting one of the
+// company's own units with one of its own upgrade kits, and, confirmed,
+// starting it. Exactly one retrofit runs on a unit at a time; the kit is
+// consumed the moment the job starts (like a reverse-engineering sample),
+// whether or not anything else about the unit changes yet — the retrofit
+// itself finishes from the scheduler (Retrofitted).
+func (h *ProductionHandler) RetrofitStart(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+	if err := validatePlayerMeta(meta); err != nil {
+		return nil, err
+	}
+	snap := h.content.Current()
+	lang := meta.Language
+	var view screens.RetrofitView
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, err := h.player(ctx, tx, meta, &lang)
+		if err != nil {
+			return err
+		}
+		place := req.confirmed() && req.Item != "" && req.Serial != ""
+		if place {
+			fresh, err := h.reserve(ctx, tx, p.ID, meta)
+			if err != nil {
+				return err
+			}
+			if !fresh {
+				place = false
+			}
+		}
+		c, err := h.managed(ctx, tx, snap, p, req.code(), company.RightProduce)
+		if err != nil {
+			return err
+		}
+		org := application.CompanyOrg(c.ID)
+		if err := tx.Items().LockOrg(ctx, org); err != nil {
+			return err
+		}
+		plan, err := planRetrofit(ctx, tx, snap, org, req.Item, req.Serial)
+		if err != nil {
+			return err
+		}
+		view = screens.RetrofitView{Ref: companyRef(snap, *c), Good: plan.good, FromVer: max(plan.current.Version, 1),
+			ToVer: plan.toDesign.Version, Duration: h.scale.RealWait(h.rules.RetrofitTime)}
+		if !place {
+			return nil
+		}
+		now := h.now()
+		id := h.ids.NewID()
+		finish := now.Add(h.scale.RealWait(h.rules.RetrofitTime))
+		actionID, err := h.schedule(ctx, tx, application.RetrofitActionType, retrofitReference, id, c.ID, now, finish)
+		if err != nil {
+			return err
+		}
+		if err := tx.Production().StartRetrofit(ctx, application.RetrofitJob{ID: id, OrgKind: org.Kind, OrgID: org.ID,
+			PieceID: plan.target.ID, KitPieceID: plan.kit.ID, FromDesignID: plan.current.ID, ToDesignID: plan.toDesign.ID,
+			GameActionID: actionID, StartedBy: p.ID, StartedAt: now, FinishAt: finish}); err != nil {
+			if isSentinel(err, application.ErrRetrofitBusy) {
+				return refuseProduction(screens.ProductionRefusedRetrofitBusy, c, snap)
+			}
+			return err
+		}
+		// The kit is consumed now, whether or not the retrofit has finished.
+		if err := tx.Items().Move(ctx, application.ItemMove{ID: h.ids.NewID(), Item: plan.kit.Item, PieceID: plan.kit.ID,
+			Qty: 1, FromOrg: org, FromHolding: application.HoldWarehouse, Reason: application.ItemRetrofitKit,
+			ReferenceType: retrofitReference, ReferenceID: id, At: now}); err != nil {
+			return err
+		}
+		view.Started, view.FinishAt = true, finish
+		return nil
+	})
+	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
+		return resp, err
+	}
+	return screens.Retrofit(h.screen(meta, lang), view), nil
+}
+
+// Retrofitted handles company.retrofitted from the SCHEDULER: a retrofit job
+// finishing exactly once. Its one write is item_pieces.design_id, so the
+// unit's attributes, market value and — for a military asset — a war
+// strike's inputs are all read fresh off it from this moment on, with
+// nothing else to update anywhere.
+func (h *ProductionHandler) Retrofitted(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+	in, err := productionPayload(meta, req)
+	if err != nil {
+		return nil, err
+	}
+	return nil, h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		row, err := tx.Production().Retrofit(ctx, in.ID)
+		if isSentinel(err, application.ErrRetrofitNotFound) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if row.Status != application.RetrofitRunning || (req.ActionID != "" && row.GameActionID != req.ActionID) {
+			return nil
+		}
+		now := h.now()
+		if now.Before(row.FinishAt) {
+			return internalf("a retrofit job finished before its time")
+		}
+		if err := tx.Items().SetDesignID(ctx, row.PieceID, row.ToDesignID); err != nil {
+			return err
+		}
+		if err := tx.Production().FinishRetrofit(ctx, row.ID, now); err != nil {
+			return err
+		}
+		if row.OrgKind != application.OrgCompany {
+			return nil
+		}
+		c, err := tx.Companies().Lock(ctx, row.OrgID)
+		if err != nil || !c.Active() {
+			return err
+		}
+		to, err := tx.Production().DesignByID(ctx, row.ToDesignID)
+		if err != nil {
+			return err
+		}
+		return appendCompanyEvent(ctx, tx, meta, "retrofitted", c.ID, map[string]any{"company_id": c.ID, "code": c.Code,
+			"name": c.Name, "owner_id": c.OwnerID, "item": to.Item, "design_no": to.No, "design": to.Name})
+	})
+}
