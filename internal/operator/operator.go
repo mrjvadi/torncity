@@ -103,6 +103,65 @@ func (o Ops) ClearFlag(ctx context.Context, no int64, actor Actor) error {
 	return postgres.NewWatchRepository(o.Pool).Clear(ctx, no, "admin:"+actor.Name, actor.Reason, actor.At)
 }
 
+// PlayerLimit is what an operator's grant did to a player's company-count
+// cap: a numeric cap, unlimited founding, or Cleared (the config default
+// applies again).
+type PlayerLimit struct {
+	PlayerID, Label string
+	MaxCompanies    *int
+	Unlimited       bool
+	Cleared         bool
+}
+
+// SetCompanyLimit overrides how many companies a player may own
+// (migrations/0032_player_limits, docs/adr/0020-companies.md): a numeric
+// cap when companies is not nil, unlimited founding when unlimited is true,
+// or — when neither is given — clears the override and restores the config
+// default (company.max_per_player). companies and unlimited are mutually
+// exclusive; passing both is a numeric cap, since unlimited wins only when
+// companies is nil.
+func (o Ops) SetCompanyLimit(ctx context.Context, playerCode string, companies *int, unlimited bool, actor Actor) (PlayerLimit, error) {
+	actor, err := actor.check()
+	if err != nil {
+		return PlayerLimit{}, err
+	}
+	if companies != nil && *companies < 1 {
+		return PlayerLimit{}, errors.New("operator: a company limit must be at least 1")
+	}
+	admin := postgres.NewEconomyAdmin(o.Pool)
+	playerID, label, err := admin.PlayerByCode(ctx, playerCode)
+	if err != nil {
+		return PlayerLimit{}, err
+	}
+	clear := companies == nil && !unlimited
+	result := PlayerLimit{PlayerID: playerID, Label: label, MaxCompanies: companies, Unlimited: unlimited && companies == nil, Cleared: clear}
+
+	action, newValue := "player.limit.clear", map[string]any{"player": playerID}
+	switch {
+	case clear:
+	case result.Unlimited:
+		action, newValue["unlimited"] = "player.limit.set", true
+	default:
+		action, newValue["max_companies"] = "player.limit.set", *companies
+	}
+	if err := admin.AppendAudit(ctx, postgres.AuditEntry{Actor: actor.Name, Action: action, TargetType: "player_limits",
+		NewValue: newValue, Reason: actor.Reason, At: actor.At}); err != nil {
+		return PlayerLimit{}, err
+	}
+
+	limits := postgres.NewPlayerLimitRepository(o.Pool)
+	if clear {
+		if err := limits.Clear(ctx, playerID); err != nil {
+			return PlayerLimit{}, err
+		}
+		return result, nil
+	}
+	if err := limits.Set(ctx, playerID, companies, result.Unlimited, "admin:"+actor.Name, actor.Reason, actor.At); err != nil {
+		return PlayerLimit{}, err
+	}
+	return result, nil
+}
+
 // SettleHold pays a held payment on to its payee (release) or gives it back
 // to its payer.
 func (o Ops) SettleHold(ctx context.Context, no int64, release bool, actor Actor) (application.PaymentHold, error) {

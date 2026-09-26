@@ -517,7 +517,16 @@ func (h *CompaniesHandler) Register(ctx context.Context, meta envelope.Metadata)
 			view.NoCity = true
 			return nil
 		}
-		view.CityCode, view.City, view.Max = city.Code, city.Name, h.rules.MaxPerPlayer
+		view.CityCode, view.City = city.Code, city.Name
+		max, unlimited, err := h.effectiveMaxCompanies(ctx, tx, p.ID)
+		if err != nil {
+			return err
+		}
+		if !unlimited {
+			// Max left at zero reads as unlimited to the screen (below),
+			// which never shows "at limit" for a Max of zero or less.
+			view.Max = max
+		}
 		if view.Owned, err = tx.Companies().OwnedCount(ctx, p.ID); err != nil {
 			return err
 		}
@@ -558,11 +567,39 @@ type foundable struct {
 	fee     money.Amount
 	blocked string
 	where   whereabouts
+	// max and unlimited are the player's effective company cap
+	// (effectiveMaxCompanies): an operator's override when they have one,
+	// otherwise the config default. unlimited makes max meaningless.
+	max       int
+	unlimited bool
 	// basis is what a defence company's licence rests on; rank the lowest
 	// rank of the armed forces that may found one, for the block
 	// (docs/adr/0022, section 2.14).
 	basis military.Basis
 	rank  screens.JobRef
+}
+
+// effectiveMaxCompanies is how many active companies a player may own: an
+// operator's override (migrations/0032_player_limits, `admin player
+// limit`) when they have one, otherwise the config default
+// (company.max_per_player). unlimited makes max meaningless — the player
+// may found as many as they like.
+func (h *CompaniesHandler) effectiveMaxCompanies(ctx context.Context, tx application.Tx, playerID string) (max int, unlimited bool, err error) {
+	l, err := tx.PlayerLimits().Get(ctx, playerID)
+	switch {
+	case isSentinel(err, application.ErrNoPlayerLimit):
+		return h.rules.MaxPerPlayer, false, nil
+	case err != nil:
+		return 0, false, err
+	case l.Unlimited:
+		return 0, true, nil
+	case l.MaxCompanies != nil:
+		return *l.MaxCompanies, false, nil
+	default:
+		// Unreachable while the migration's consistency CHECK holds; the
+		// config default is the safe fallback rather than a panic.
+		return h.rules.MaxPerPlayer, false, nil
+	}
 }
 
 // foundability works out whether p may found a company of kind code here.
@@ -595,7 +632,11 @@ func (h *CompaniesHandler) foundability(ctx context.Context, tx application.Tx, 
 	if err != nil {
 		return f, err
 	}
-	if owned >= h.rules.MaxPerPlayer {
+	f.max, f.unlimited, err = h.effectiveMaxCompanies(ctx, tx, p.ID)
+	if err != nil {
+		return f, err
+	}
+	if !f.unlimited && owned >= f.max {
 		f.blocked = screens.CompanyBlockedLimit
 	}
 	if err := h.defenceGate(ctx, tx, snap, def, p, &f); err != nil {
@@ -644,7 +685,7 @@ func (h *CompaniesHandler) typeView(ctx context.Context, tx application.Tx, snap
 	v := screens.CompanyTypeView{
 		Type: screens.Named{Code: f.def.Code, Name: f.def.Name}, Place: placeNamed(snap, f.def.Place),
 		Fee: f.fee.Minor(), Upkeep: f.def.Upkeep, MaxStaff: f.def.MaxStaff, Period: h.periodWait(),
-		NameMin: h.rules.NameMin, NameMax: h.rules.NameMax, Blocked: f.blocked, Max: h.rules.MaxPerPlayer,
+		NameMin: h.rules.NameMin, NameMax: h.rules.NameMax, Blocked: f.blocked, Max: f.max,
 		Rank: f.rank,
 	}
 	for _, c := range f.def.Careers {
@@ -725,7 +766,7 @@ func (h *CompaniesHandler) Found(ctx context.Context, meta envelope.Metadata, re
 		switch f.blocked {
 		case screens.CompanyBlockedLimit:
 			r := refuseCompany(screens.CompanyRefusedLimit, nil, snap)
-			r.view.Max = int64(h.rules.MaxPerPlayer)
+			r.view.Max = int64(f.max)
 			return r
 		case screens.CompanyBlockedNoPlace:
 			return refuseCompany(screens.CompanyRefusedNoPlace, nil, snap)

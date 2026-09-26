@@ -260,6 +260,16 @@ func (t *fakeTx) Auctions() application.AuctionRepository   { return nil }
 func (t *fakeTx) Elections() application.ElectionRepository { return nil }
 func (t *fakeTx) Companies() application.CompanyRepository  { return noCompanies{} }
 
+// PlayerLimits is a controllable operator override, for the company-cap
+// tests (companies_test.go); every other test sees no override, since the
+// field is nil until a test sets it.
+func (t *fakeTx) PlayerLimits() application.PlayerLimitRepository {
+	if t.limits == nil {
+		t.limits = &fakePlayerLimits{}
+	}
+	return t.limits
+}
+
 // noDiplomacy is a world of one country with no sanctions and no treaties:
 // every cross-border check passes because no border is crossed.
 type noDiplomacy struct{}

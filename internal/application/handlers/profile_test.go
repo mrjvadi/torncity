@@ -168,6 +168,10 @@ type fakeTx struct {
 	// places_fakes_test.go.
 	places *fakePlaces
 	items  *fakeItems
+	// limits is an operator's override of a player's company cap; see
+	// companies_fakes_test.go. Left nil (no override) unless a test sets
+	// it.
+	limits *fakePlayerLimits
 }
 
 // newFakeTx returns a transaction whose every repository is empty.

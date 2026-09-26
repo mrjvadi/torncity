@@ -12,6 +12,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
+	"github.com/mrjvadi/torncity/internal/operator"
 )
 
 // The operator's panel (docs/adr/0024-property-and-politics.md): the
@@ -27,6 +28,11 @@ func panelUsage() {
                           reason, and the price index against the N days before
   admin player CODE       one player: balances, where they are, residence,
                           job, companies, homes, offices, open watch flags
+  admin player limit --player CODE (--companies N | --unlimited | --clear)
+                    --reason "..." [--by NAME]
+                          override how many companies a player may own, or
+                          clear the override to restore the config default
+                          (company.max_per_player); audited
   admin city show --city CODE
                           one city: treasury, budget allocation and the last
                           period's spending, people, companies, homes, damage,
@@ -118,6 +124,9 @@ func abs(v int64) int64 {
 }
 
 func playerCommand(ctx context.Context, args []string) error {
+	if len(args) > 0 && args[0] == "limit" {
+		return playerLimitCommand(ctx, args[1:])
+	}
 	if len(args) != 1 || strings.HasPrefix(args[0], "-") {
 		panelUsage()
 		os.Exit(2)
@@ -177,6 +186,88 @@ func or(s, empty string) string {
 		return empty
 	}
 	return s
+}
+
+// playerLimitCommand overrides, or clears, how many companies a player may
+// own (migrations/0032_player_limits). The logic is
+// internal/operator.Ops.SetCompanyLimit, so the web panel can call the same
+// audited action later.
+func playerLimitCommand(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("player limit", flag.ExitOnError)
+	fs.Usage = func() {
+		fmt.Fprint(os.Stderr, `usage: admin player limit --player CODE (--companies N | --unlimited | --clear)
+                         --reason "..." [--by NAME]
+
+  --player CODE   the player's code
+  --companies N   grant a cap of N companies (N >= 1)
+  --unlimited     grant unlimited companies (for example, the owner)
+  --clear         remove the override; company.max_per_player applies again
+  --reason        why, recorded in the audit row
+  --by            who is running this (see: admin --help)
+
+Exactly one of --companies, --unlimited or --clear must be given.
+DATABASE_URL must be set.
+`)
+	}
+	player := fs.String("player", "", "the player's code")
+	companies := fs.Int("companies", 0, "the company cap to grant")
+	unlimited := fs.Bool("unlimited", false, "grant unlimited companies")
+	clear := fs.Bool("clear", false, "clear the override, restoring the config default")
+	reason := fs.String("reason", "", "why, recorded in the audit row")
+	opFlags := addOperatorFlags(fs)
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if strings.TrimSpace(*player) == "" {
+		fs.Usage()
+		return errors.New("player limit: --player CODE is required")
+	}
+	chosen := 0
+	if *companies > 0 {
+		chosen++
+	}
+	if *unlimited {
+		chosen++
+	}
+	if *clear {
+		chosen++
+	}
+	if chosen != 1 {
+		fs.Usage()
+		return errors.New("player limit: pass exactly one of --companies N, --unlimited or --clear")
+	}
+	if strings.TrimSpace(*reason) == "" {
+		return errors.New("player limit: --reason is required")
+	}
+	operatorName, err := opFlags.resolve("player limit", os.LookupEnv)
+	if err != nil {
+		return err
+	}
+	pool, err := contentPool(ctx)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
+	var companyCap *int
+	if *companies > 0 {
+		n := *companies
+		companyCap = &n
+	}
+	res, err := operator.Ops{Pool: pool}.SetCompanyLimit(ctx, *player, companyCap, *unlimited,
+		operator.Actor{Name: operatorName, Reason: *reason})
+	if err != nil {
+		return err
+	}
+	switch {
+	case res.Cleared:
+		fmt.Printf("player limit: cleared %s's override; the config default applies\n", res.Label)
+	case res.Unlimited:
+		fmt.Printf("player limit: %s may found unlimited companies\n", res.Label)
+	default:
+		fmt.Printf("player limit: %s may found up to %d companies\n", res.Label, *res.MaxCompanies)
+	}
+	return nil
 }
 
 func cityShow(ctx context.Context, args []string) error {

@@ -94,3 +94,31 @@ func (noCompanies) RecordPeriod(context.Context, application.CompanyPeriod) erro
 func (noCompanies) LastPeriod(context.Context, string) (*application.CompanyPeriod, error) {
 	return nil, application.ErrNoCompanyPeriod
 }
+
+// fakePlayerLimits is a controllable operator override of one player's
+// company cap (migrations/0032_player_limits), for
+// TestEffectiveMaxCompanies. A zero value has no override, like a player
+// nobody has ever granted one.
+type fakePlayerLimits struct {
+	limit *application.PlayerLimit
+}
+
+var _ application.PlayerLimitRepository = (*fakePlayerLimits)(nil)
+
+func (f *fakePlayerLimits) Get(context.Context, string) (*application.PlayerLimit, error) {
+	if f.limit == nil {
+		return nil, application.ErrNoPlayerLimit
+	}
+	return f.limit, nil
+}
+
+func (f *fakePlayerLimits) Set(_ context.Context, playerID string, maxCompanies *int, unlimited bool, grantedBy, reason string, now time.Time) error {
+	f.limit = &application.PlayerLimit{PlayerID: playerID, MaxCompanies: maxCompanies, Unlimited: unlimited,
+		GrantedBy: grantedBy, Reason: reason, CreatedAt: now, UpdatedAt: now}
+	return nil
+}
+
+func (f *fakePlayerLimits) Clear(context.Context, string) error {
+	f.limit = nil
+	return nil
+}

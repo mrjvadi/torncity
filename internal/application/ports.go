@@ -137,6 +137,10 @@ type Tx interface {
 	// money that moved for it; see ports_companies.go.
 	Companies() CompanyRepository
 
+	// PlayerLimits holds an operator's per-player overrides of tuning caps
+	// — today, the company-count cap; see ports_player_limits.go.
+	PlayerLimits() PlayerLimitRepository
+
 	// Production holds the production economy — designs, research and
 	// licenses, orders, reverse engineering, listings — so each changes
 	// with the goods and money that moved for it; see ports_production.go.
