@@ -31,7 +31,8 @@ func (s Standing) LevelOf(tree Tree, family string) int {
 
 // EffectsFor returns the effects that apply to a design's computed
 // attributes: from every technology the standing has unlocked, restricted to
-// technologies that gate a component the design actually uses (so a radar
+// technologies that gate a component the design actually uses, and their
+// prerequisites (so a radar
 // generation helps a radar design, never an unrelated one that happens to
 // share an attribute name) and, for a technology that belongs to a family,
 // every generation of that family up to the standing's current level — not
@@ -50,12 +51,19 @@ func EffectsFor(d item.Design, components item.Components, tree Tree, s Standing
 		if !ok {
 			continue
 		}
-		for _, techCode := range c.RequiresTechnology {
+		// A gate's prerequisites count too, transitively: a chipset gated
+		// by microchips is made better by the semiconductor process under
+		// it, without semiconductors having to gate the part itself.
+		queue := append([]string(nil), c.RequiresTechnology...)
+		for len(queue) > 0 {
+			techCode := queue[0]
+			queue = queue[1:]
 			gate, ok := tree[techCode]
 			if !ok || seen[techCode] {
 				continue
 			}
 			seen[techCode] = true
+			queue = append(queue, gate.Requires...)
 			if s.unlocked(techCode) {
 				out = append(out, gate.Effects...)
 			}

@@ -67,9 +67,10 @@ technologies:
     level: 1
     family: semiconductors
     generation: 1
-  # Generations of the same gate (chipset also requires semiconductors,
-  # below): a process shrink never opens a new part, it makes every chipset
-  # already being made better — same mechanism as radar_systems.
+  # Generations of the process under microchips: a process shrink never
+  # opens a new part; it makes every chipset already being made better,
+  # since a gate's prerequisites count toward a design's effects
+  # (technology.EffectsFor) — same mechanism as radar_systems.
   - code: semiconductors_ii
     name: Semiconductors II (28nm)
     requires: [semiconductors]

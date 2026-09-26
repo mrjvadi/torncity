@@ -114,9 +114,10 @@ func purgeWar(t *testing.T, pool *postgres.Pool, countries []string, companyID s
 func warDesign(t *testing.T, pool *postgres.Pool, companyID, item, archetype, fills string) string {
 	t.Helper()
 	var id string
-	if err := pool.Raw().QueryRow(testCtx(t), `INSERT INTO product_designs (id, company_id, item_code, archetype, name, name_key,
-	        origin, status, fills, created_at, updated_at, finalized_at)
-	  VALUES (gen_random_uuid(), $1::uuid, $2, $3, $2, $2, 'authored', 'final', $4::jsonb, now(), now(), now())
+	if err := pool.Raw().QueryRow(testCtx(t), `WITH g AS (SELECT gen_random_uuid() AS id)
+	  INSERT INTO product_designs (id, company_id, item_code, archetype, name, name_key,
+	        origin, status, fills, created_at, updated_at, finalized_at, lineage_id)
+	  SELECT g.id, $1::uuid, $2, $3, $2, $2, 'authored', 'final', $4::jsonb, now(), now(), now(), g.id FROM g
 	  RETURNING id::text`, companyID, item, archetype, fills).Scan(&id); err != nil {
 		t.Fatalf("design %s: %v", item, err)
 	}

@@ -181,7 +181,7 @@ components:
     category: circuit
     base_price: 400
     attributes: {quality: 60}
-    requires_technology: [semiconductors, microchips]
+    requires_technology: [microchips]
     production: {method: assemble, by: [factory, tech_studio], inputs: [{component: silica, quantity: 3}, {component: diesel, quantity: 1}], batch: 1, skill: engineering}
   - code: cell
     name: Battery cell

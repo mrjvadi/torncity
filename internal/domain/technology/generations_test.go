@@ -147,3 +147,25 @@ func TestLevelOf(t *testing.T) {
 		t.Fatalf("LevelOf of unknown family = %d, want 0", got)
 	}
 }
+
+// A gate's prerequisites count: a design whose part is gated by a
+// technology built on another family's process is made better by that
+// process's generations, though the process gates no part itself.
+func TestEffectsForCountsPrerequisites(t *testing.T) {
+	tree := Tree{
+		"process": {Code: "process", Family: "process", Generation: 1},
+		"process_ii": {Code: "process_ii", Family: "process", Generation: 2, Requires: []string{"process"},
+			Effects: []item.Effect{{Target: "quality", Op: item.EffectMultiply, Value: 11000}}},
+		"chips": {Code: "chips", Requires: []string{"process"}},
+	}
+	d := item.Design{ID: "phone", Archetype: "phone", Fills: map[string]item.Fill{"board": {Component: "chipset", Quantity: 1}}}
+	components := item.Components{"chipset": {Code: "chipset", Category: "circuit", RequiresTechnology: []string{"chips"}}}
+
+	if effs := EffectsFor(d, components, tree, Standing{Owned: item.NewSet("process", "chips")}); len(effs) != 0 {
+		t.Fatalf("generation 1 of the process: effects = %v, want none", effs)
+	}
+	effs := EffectsFor(d, components, tree, Standing{Owned: item.NewSet("process", "process_ii", "chips")})
+	if len(effs) != 1 || effs[0].Value != 11000 {
+		t.Fatalf("generation 2 of the process: effects = %v, want its one effect", effs)
+	}
+}
