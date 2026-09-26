@@ -46,8 +46,9 @@ func (c Context) zone() *time.Location {
 }
 
 // FormatClock renders the time of day of t in this context's zone and
-// language: "14:32" in English, "۱۴:۳۲" in Persian. A zero t renders empty,
-// so a screen given no instant shows no clock.
+// language: "14:32" in both English and Persian, since numbers are always
+// written in Western digits. A zero t renders empty, so a screen given no
+// instant shows no clock.
 func FormatClock(c Context, t time.Time) string {
 	if t.IsZero() {
 		return ""

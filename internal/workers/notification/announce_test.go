@@ -109,7 +109,7 @@ func TestABusyGroupIsNotFlooded(t *testing.T) {
 		t.Fatal(err)
 	}
 	last := r.sender.sent[len(r.sender.sent)-1].notice.Response.Text
-	if !strings.Contains(last, "۲") {
+	if !strings.Contains(last, "2") {
 		t.Errorf("the next line does not count the two held back: %q", last)
 	}
 }

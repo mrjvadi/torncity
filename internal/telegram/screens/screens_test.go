@@ -537,8 +537,8 @@ func TestFormatNumber(t *testing.T) {
 	}{
 		{"en", 0, "0"}, {"en", 7, "7"}, {"en", 999, "999"}, {"en", 1000, "1,000"}, {"en", 12500, "12,500"},
 		{"en", 1234567, "1,234,567"}, {"en", -4200, "-4,200"},
-		// Persian digits and the Persian thousands separator, from fa.yml.
-		{"fa", 0, "۰"}, {"fa", 12500, "۱۲٬۵۰۰"}, {"fa", 1234567, "۱٬۲۳۴٬۵۶۷"},
+		// Western digits in Persian too, from fa.yml.
+		{"fa", 0, "0"}, {"fa", 12500, "12,500"}, {"fa", 1234567, "1,234,567"},
 		// No catalogue: ASCII, never a key.
 		{"", 12500, "12,500"},
 	} {
@@ -734,8 +734,8 @@ func TestPercentFromBPS(t *testing.T) {
 		{"en", 1205, "12.05"},
 		{"en", 10000, "100"},
 		{"en", -5, "0"},
-		{"fa", 750, "۷٫۵"},
-		{"fa", 1205, "۱۲٫۰۵"},
+		{"fa", 750, "7.5"},
+		{"fa", 1205, "12.05"},
 	}
 	for _, tt := range tests {
 		if got := PercentFromBPS(ctx(t, tt.lang, 0), tt.bps); got != tt.want {
@@ -759,9 +759,9 @@ func TestFormatDuration(t *testing.T) {
 		// Zero or less still reads as some time to come, never as nothing.
 		{"en", 0, "1s"},
 		{"en", -time.Hour, "1s"},
-		{"fa", 135 * time.Minute, "۲ ساعت و ۱۵ دقیقه"},
-		{"fa", 2 * time.Hour, "۲ ساعت"},
-		{"fa", 35 * time.Minute, "۳۵ دقیقه"},
+		{"fa", 135 * time.Minute, "2 ساعت و 15 دقیقه"},
+		{"fa", 2 * time.Hour, "2 ساعت"},
+		{"fa", 35 * time.Minute, "35 دقیقه"},
 	} {
 		if got := FormatDuration(ctx(t, tt.lang, 0), tt.d); got != tt.want {
 			t.Errorf("%s: FormatDuration(%s) = %q, want %q", tt.lang, tt.d, got, tt.want)

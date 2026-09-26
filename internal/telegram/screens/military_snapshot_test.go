@@ -25,7 +25,7 @@ var (
 // militaryNames are sample names, the way players name their companies and
 // designs.
 var militaryNames = map[string]struct{ aero, rival, stealth, fighter, sam string }{
-	"fa": {aero: "صنایع هوایی سیمرغ", rival: "کارخانهٔ کاوه", stealth: "سیمرغ ۵", fighter: "شاهین", sam: "سپهر"},
+	"fa": {aero: "صنایع هوایی سیمرغ", rival: "کارخانهٔ کاوه", stealth: "سیمرغ 5", fighter: "شاهین", sam: "سپهر"},
 	"en": {aero: "Simorgh Aerospace", rival: "Kaveh Works", stealth: "Simorgh 5", fighter: "Falcon", sam: "Sepehr"},
 }
 

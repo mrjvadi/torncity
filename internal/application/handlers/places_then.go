@@ -24,8 +24,8 @@ import (
 // A service is found at its place, so a player elsewhere in the city has to
 // walk there first. Instead of telling them to open the map, the game offers
 // ONE press that walks there and then does what they asked: the job screen's
-// «🛠 شروع شیفت (۱۵ ثانیه پیاده‌روی تا محل کار + ۴ دقیقه کار)», a course's
-// «🚶 رفتن به دانشگاه - ۲۰ ثانیه». The mechanism is the same for every
+// «🛠 شروع شیفت (15 ثانیه پیاده‌روی تا محل کار + 4 دقیقه کار)», a course's
+// «🚶 رفتن به دانشگاه - 20 ثانیه». The mechanism is the same for every
 // feature:
 //
 //   - the walk is an ordinary walk (place.go): timed on the game clock, one

@@ -33,7 +33,7 @@
 ━━━ Appoint · done, a city office with a term ━━━
 (edits message 42)
 ✅ ⁨نیلوفر (⁨N1L0F4R⁩)⁩ اکنون رئیس پلیس استمارچ است.
-دورهٔ این منصب ۳۰ روز است.
+دورهٔ این منصب ⁨30 روز⁩ است.
   ───
   [🏛 منصب من] → gov:office
   [🔙 بازگشت] → gov:city

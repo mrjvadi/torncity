@@ -43,14 +43,14 @@
 #   withdraw        برداشت                 📤
 #   job             شغل / شغل من            💼       «فرصت‌های شغلی» = job openings; «شیفت» = a shift of work
 #   pay per shift   دستمزد هر شیفت          💰
-#   performance     عملکرد                 📈       «۵۳ از ۱۰۰»
+#   performance     عملکرد                 📈       «53 از 100»
 #   promotion       ارتقا                  ⬆️
 #   education       آموزش                  🎓       «دوره» = course, «شهریه» = fee, «ثبت‌نام» = enrol
 #   course          دوره                   📖
 #   certificate     مدرک                   📜
 #   office          منصب / مناصب            🏛       «سیاست» = policy
 #   back            بازگشت                 🔙       every screen has one, except the profile itself
-#   currency        نیل (Nil، پول بازی)             always through format.money: «۵٬۰۰۰ نیل»
+#   currency        نیل (Nil، پول بازی)             always through format.money: «5,000 نیل»
 #
 # Voice: address the player as «شما», polite and direct. No exclamation marks
 # except in the one-time welcome. At most one emoji per line, at the head of
@@ -58,21 +58,22 @@
 # reads: a title line, then the facts, then one hint.
 #
 # Separator: facts that share one line are separated by « - », a plain
-# hyphen with ONE SPACE ON EACH SIDE: «📖 دوره - ۲ ساعت مانده». Never «·»
+# hyphen with ONE SPACE ON EACH SIDE: «📖 دوره - 2 ساعت مانده». Never «·»
 # (it reads like a decimal mark beside Persian digits), and never a hyphen
 # touching a number, which reads as a minus sign. The snapshot lint
 # (screens/screentest) fails the build on either.
 #
 # Commands: a Persian screen never shows English command syntax. Where a
 # screen tells the player what to type, it uses the Persian word from
-# command_alias below («واریز ۵۰۰۰»), or better, a button.
+# command_alias below («واریز 5000»), or better, a button.
 #
 # Numbers: never type a number into a message. The code writes every number
-# in Persian digits with «٬» between thousands and «٫» as the decimal mark
-# (format.digits, format.group_separator, format.decimal_separator), and turns
-# durations into «۲ ساعت و ۱۵ دقیقه» through format.duration_*. A count out of
-# a maximum reads «{energy} از {max_energy}». Percent is written «٪» after the
-# number.
+# in Western digits with «,» between thousands and «.» as the decimal mark
+# (format.digits, format.group_separator, format.decimal_separator) — a
+# Persian sentence still reads its numbers the way every Persian app on a
+# player's phone already does. This turns durations into
+# «2 ساعت و 15 دقیقه» through format.duration_*. A count out of a maximum
+# reads «{energy} از {max_energy}». Percent is written «٪» after the number.
 #
 # Always use the نیم‌فاصله (ZWNJ) where Persian needs it: «می‌توانید»،
 # «مهارت‌ها»، «به‌روزرسانی»، «دست‌به‌دست».
@@ -246,8 +247,8 @@ help:
     • نقشه - نقشهٔ شهر شما و رفتن به جاهای آن
     • شغل - شغل من؛ «استخدام» فرصت‌های شغلی است
     • آموزش - دوره‌ها
-    • بانک - موجودی؛ «واریز ۵۰۰۰» و «برداشت ۵۰۰۰»
-    • پرداخت - پول دادن به بازیکن دیگر؛ در گروه، روی پیام او «پرداخت ۵۰۰۰» را پاسخ بدهید
+    • بانک - موجودی؛ «واریز 5000» و «برداشت 5000»
+    • پرداخت - پول دادن به بازیکن دیگر؛ در گروه، روی پیام او «پرداخت 5000» را پاسخ بدهید
     • مهارت‌ها
     • دوستان - و «پیدا» با کد بازیکن یا نام کاربری
     • شهر - مناصب و سیاست‌های شهر؛ «منصب» منصب شما
@@ -325,9 +326,16 @@ format:
   # How numbers are written: the ten digits from zero to nine, the mark
   # between groups of three digits, and the decimal mark. The code writes
   # every number through these; never type digits into a message by hand.
-  digits: "۰۱۲۳۴۵۶۷۸۹"
-  group_separator: "٬"
-  decimal_separator: "٫"
+  #
+  # Western (ASCII) digits and Western separators, by product decision: a
+  # Persian sentence with Persian digits still has to be compared, copied and
+  # typed back by a player on an ordinary keyboard, and every Persian app a
+  # player already uses for money (banking, e-commerce, ride-hailing) shows
+  # amounts in Western digits with a comma. Matching that is what reads as
+  # native, not the Perso-Arabic digit shapes.
+  digits: "0123456789"
+  group_separator: ","
+  decimal_separator: "."
   duration_hm: "{hours} ساعت و {minutes} دقیقه"
   duration_h: "{hours} ساعت"
   duration_m: "{minutes} دقیقه"
@@ -510,7 +518,7 @@ gov:
     not_holder: "تنها {office} می‌تواند این سیاست را تغییر دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
     requires_vote: این سیاست با رأی {office} تعیین می‌شود و تنها اعضای آن می‌توانند تغییرش را پیشنهاد دهند.
     requires_confirmation: این تغییر پیش از اجرا باید به تأیید {office} برسد.
-    invalid_allocation: "این تقسیم مجاز نیست: فقط خطوط همین بودجه سهم می‌گیرند و جمع سهم‌ها حداکثر ۱۰۰٪ است."
+    invalid_allocation: "این تقسیم مجاز نیست: فقط خطوط همین بودجه سهم می‌گیرند و جمع سهم‌ها حداکثر 100٪ است."
     out_of_range: "این مقدار بیرون از بازهٔ مجاز {min} تا {max} است. مقداری در همین بازه انتخاب کنید."
     out_of_range_plain: "این مقدار بیرون از بازهٔ مجاز است. مقداری در بازهٔ مجاز انتخاب کنید."
     cooldown: این سیاست به‌تازگی تغییر کرده است. {wait} دیگر می‌توانید دوباره تغییرش دهید.
@@ -663,7 +671,7 @@ bank:
   closed_travelling: "🧭 در سفر هستید؛ واریز و برداشت پس از رسیدن به شهر ممکن است. پرداخت کارتی از همه‌جا انجام می‌شود."
   closed_no_city: "هنوز در هیچ شهری مستقر نشده‌اید، پس بانکی در دسترس نیست."
   hint: "مبلغ را از دکمه‌ها انتخاب کنید؛ برای هر مبلغ دیگری، دکمهٔ «مبلغ دلخواه» را بزنید و مبلغ را بنویسید."
-  pay_hint: "💸 برای پول دادن به بازیکن دیگر، در گروه روی پیام او «پرداخت ۵۰۰۰» را پاسخ بدهید، یا دکمهٔ «پرداخت به بازیکن» را بزنید."
+  pay_hint: "💸 برای پول دادن به بازیکن دیگر، در گروه روی پیام او «پرداخت 5000» را پاسخ بدهید، یا دکمهٔ «پرداخت به بازیکن» را بزنید."
   nothing_to_deposit: "📥 پول نقدی برای واریز همراه ندارید."
   nothing_to_withdraw: "📤 موجودی بانک برای برداشت کافی نیست."
   jailed_no_withdrawal: "⛓ در زندان نمی‌توانید از بانک برداشت کنید؛ واریز ممکن است."
@@ -675,7 +683,7 @@ bank:
     not_together: "پول نقد را فقط به بازیکنی می‌توانید بدهید که با شما در یک شهر است. به‌جای آن با کارت پرداخت کنید؛ پرداخت کارتی از همه‌جا ممکن است."
     self_payment: نمی‌توانید به خودتان پرداخت کنید.
     payee_not_found: "بازیکنی برای پرداخت پیدا نشد. نام کاربری یا کد بازیکن را بررسی کنید و دوباره امتحان کنید."
-    invalid_amount: "مبلغ را فقط به عدد بنویسید؛ مثلاً «واریز ۵۰۰۰»."
+    invalid_amount: "مبلغ را فقط به عدد بنویسید؛ مثلاً «واریز 5000»."
     below_minimum: کمترین مبلغ مجاز {min} است.
     above_maximum: بیشترین مبلغ مجاز در هر بار {max} است.
     not_enough_cash: "پول نقد کافی ندارید. پول نقد همراه شما: {available}"
@@ -689,7 +697,7 @@ bank:
 pay:
   help: |-
     💸 پرداخت به بازیکن دیگر
-    • در گروه: روی پیام او «پرداخت ۵۰۰۰» را پاسخ بدهید.
+    • در گروه: روی پیام او «پرداخت 5000» را پاسخ بدهید.
     • اینجا: «پرداخت» را با نام کاربری یا کد بازیکن او بفرستید؛ مثلاً «پرداخت @username» یا «پرداخت K7Q2M9A».
     پول نقد فقط وقتی دست‌به‌دست می‌شود که هر دو در یک شهر باشید؛ پرداخت کارتی از همه‌جا ممکن است.
   title: "💸 پرداخت به {player}"
@@ -1251,7 +1259,7 @@ place:
 # Commands typed without a slash (internal/gateway/routing/alias.go). The key
 # is the slash-command a word stands for: crime is "/crime", bank.deposit is
 # "/bank deposit". Several words are separated by «|». What follows the word
-# is read as the command's arguments: «واریز ۵۰۰۰» is a deposit of 5000. Every
+# is read as the command's arguments: «واریز 5000» is a deposit of 5000. Every
 # language's words work for everyone, so a word here must not mean another
 # command in another locale (a test checks). help and cancel are answered by
 # the gateway itself: the help screen, and dropping a question the bot asked.
@@ -1631,9 +1639,9 @@ market:
     book: "🏪 {item}"
     mine: "📋 سفارش‌های من"
     back_to_book: "🏪 بازگشت به دفتر سفارش"
-    buy_at: "🛒 خرید ۱ عدد به {price}"
+    buy_at: "🛒 خرید 1 عدد به {price}"
     bid_at: "🛒 پیشنهاد {price}"
-    sell_at: "💰 فروش ۱ عدد به {price}"
+    sell_at: "💰 فروش 1 عدد به {price}"
     ask_at: "💰 فروش به {price}"
     ask_all: "💰 فروش همهٔ {qty} عدد به {price}"
     cancel: "❌ لغو سفارش {no}"
@@ -1985,7 +1993,7 @@ company:
     application_gone: "این درخواست دیگر منتظر پاسخ نیست."
     away: "📍 برای این کار باید در {city} باشید."
     cash_away: "💵 پول نقد را فقط وقتی در {city} هستید می‌توانید به حساب شرکت بریزید؛ از هر جا با کارت واریز کنید."
-    invalid_amount: "مبلغ را به عدد بنویسید؛ مثلاً ۵۰۰۰."
+    invalid_amount: "مبلغ را به عدد بنویسید؛ مثلاً 5000."
 
 # نام انواع شرکت، به کد محتوا (configs/content/companies.yml).
 company_type:
@@ -2299,7 +2307,7 @@ production:
     stock: "📦 این مقدار در انبار یا در عرضه نیست؛ حداکثر {max} واحد."
     not_cleared: "🚫 این کالا یا فناوری به شما فروخته نمی‌شود."
     supplier_empty: "🚚 تأمین‌کننده الان فقط {max} واحد دارد؛ مقدار کمتری بخرید یا صبر کنید دوباره پر شود."
-    amount: "مقدار را به عدد بنویسید؛ مثلاً ۲۵."
+    amount: "مقدار را به عدد بنویسید؛ مثلاً 25."
     published: "🌐 این فناوری منتشر شده و منتشرشده می‌ماند."
     not_for_sale: "📜 صاحب این فناوری لایسنسش را نمی‌فروشد."
     licensed: "📜 شما همین حالا می‌توانید از این فناوری استفاده کنید."
@@ -3285,7 +3293,7 @@ mission:
 # Votes of a body (docs/adr/0024-property-and-politics.md): a council
 # confirming the mayor's budget, a parliament approving a declaration of war,
 # a council setting a policy it holds. Terms: proposal «طرح» ⚖️ (numbered
-# «طرح #۱۲»), vote «رأی»، yes «موافق»، no «مخالف»، passed «تصویب شد»، failed
+# «طرح #12»), vote «رأی»، yes «موافق»، no «مخالف»، passed «تصویب شد»، failed
 # «رد شد»؛ a passed proposal that could not be applied «اجرا نشد». A
 # legislator's vote is public record.
 legislature:
@@ -3383,7 +3391,7 @@ budget_line:
   defence: سهم دفاعی
 
 # Property (docs/adr/0024-property-and-politics.md). Terms: property «ملک» 🏠
-# (numbered «ملک #۱۲»), home «خانه»، the land registry «ثبت اسناد» at city
+# (numbered «ملک #12»), home «خانه»، the land registry «ثبت اسناد» at city
 # hall، offer «آگهی» (for sale «فروش»، to let «اجاره»)، rent «اجاره‌بها»،
 # tenant «مستأجر»، landlord «موجر»، owner «مالک»، upkeep «هزینهٔ نگهداری»،
 # debt «بدهی»، repossessed «مصادره»، evicted «تخلیه».

@@ -201,11 +201,15 @@ var (
 	playerCode = regexp.MustCompile(`\b[0-9A-Z]{7}\b`)
 	// username is a Telegram username echoed back, which is the player's own
 	// spelling.
-	username    = regexp.MustCompile(`@[A-Za-z0-9_]+`)
-	latinWord   = regexp.MustCompile(`[A-Za-z]{2,}`)
-	asciiDigits = regexp.MustCompile(`[0-9]+`)
-	blankValue  = regexp.MustCompile(`: *$|\(\s*\)|« *»|“ *”|  \S| $`)
-	bareBullet  = regexp.MustCompile(`^\s*•\s*$`)
+	username  = regexp.MustCompile(`@[A-Za-z0-9_]+`)
+	latinWord = regexp.MustCompile(`[A-Za-z]{2,}`)
+	// persianDigits catches the old Perso-Arabic digit shapes (both the
+	// Arabic-Indic and the Extended Arabic-Indic block). Every number is now
+	// written in Western digits, in every language, so their presence in fa
+	// text means something bypassed format.digits.
+	persianDigits = regexp.MustCompile(`[\x{0660}-\x{0669}\x{06F0}-\x{06F9}]+`)
+	blankValue    = regexp.MustCompile(`: *$|\(\s*\)|« *»|“ *”|  \S| $`)
+	bareBullet    = regexp.MustCompile(`^\s*•\s*$`)
 	// middleDot is the old separator between facts on one line. Beside
 	// Persian digits it reads as a decimal mark; « - » replaced it.
 	middleDot = regexp.MustCompile(`·`)
@@ -283,8 +287,8 @@ func Problems(lang, text string, allowed ...string) []string {
 		if m := latinWord.FindString(prose); m != "" {
 			add("a Latin word %q in Persian text %q", m, text)
 		}
-		if m := asciiDigits.FindString(prose); m != "" {
-			add("ASCII digits %q in Persian text %q", m, text)
+		if m := persianDigits.FindString(prose); m != "" {
+			add("Persian digits %q in Persian text %q; numbers are written in Western digits (format.digits)", m, text)
 		}
 		if strings.Contains(prose, "%") {
 			add("an ASCII percent sign in Persian text %q", text)
