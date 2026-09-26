@@ -20,10 +20,10 @@ type inboxSampleText struct{ periodSettled, marketFilled, salaryPaid, loanDue st
 
 var inboxSamples = map[string]inboxSampleText{
 	"fa": {
-		periodSettled: "دورهٔ شرکت شما تسویه شد: سود ۴۲۰۰۰.",
+		periodSettled: "دورهٔ شرکت شما تسویه شد: سود 42,000.",
 		marketFilled:  "سفارش بازار شما برای «صفحهٔ فولاد» تکمیل شد.",
-		salaryPaid:    "حقوق شما به مبلغ ۱۲۰۰ پرداخت شد.",
-		loanDue:       "قسط وام شما به مبلغ ۸۰۰ فردا سررسید می‌شود.",
+		salaryPaid:    "حقوق شما به مبلغ 1,200 پرداخت شد.",
+		loanDue:       "قسط وام شما به مبلغ 800 فردا سررسید می‌شود.",
 	},
 	"en": {
 		periodSettled: "Your company's period settled: profit 42,000.",

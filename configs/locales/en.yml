@@ -3463,7 +3463,7 @@ inbox:
     empty: "📭 No new notifications."
     title: "📬 You have {count} new notifications:"
     category_line: "  • {category}: {count}"
-    teaser_line: "  ˒ {text}"
+    teaser_line: "  ↳ {text}"
     open_button: "📬 Open notifications"
   hub:
     empty: "📭 Your inbox is empty."

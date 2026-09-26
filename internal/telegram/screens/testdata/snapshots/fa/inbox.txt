@@ -6,12 +6,12 @@
 
 ━━━ Badge · a few, across categories ━━━
 (sends) (private in groups)
-📬 ۵ اعلان جدید دارید:
-  • 🏢 شرکت‌ها: ۲
-  • 💰 مالی: ۲
-  • 🛍 بازار: ۱
-  ˒ دورهٔ شرکت شما تسویه شد: سود ۴۲۰۰۰.
-  ˒ سفارش بازار شما برای «صفحهٔ فولاد» تکمیل شد.
+📬 5 اعلان جدید دارید:
+  • 🏢 شرکت‌ها: 2
+  • 💰 مالی: 2
+  • 🛍 بازار: 1
+  ↳ ⁨دورهٔ شرکت شما تسویه شد: سود 42,000.⁩
+  ↳ سفارش بازار شما برای «صفحهٔ فولاد» تکمیل شد.
   ───
   [📬 دیدن اعلان‌ها] → inbox:show
 
@@ -23,26 +23,26 @@
 
 ━━━ Hub · grouped by category ━━━
 (sends) (private in groups)
-📬 ۶ اعلان تازه رسیده بود:
-• 🏢 شرکت‌ها: ۲
-• 💰 مالی: ۲
-• 🛍 بازار: ۱
-• 🏛 حکومت: ۱
+📬 6 اعلان خوانده‌نشده:
+• 🏢 شرکت‌ها: 2
+• 💰 مالی: 2
+• 🛍 بازار: 1
+• 🏛 حکومت: 1
   ───
-  [🏢 شرکت‌ها (۲)] → inbox:category:companies:1
-  [💰 مالی (۲)] → inbox:category:finance:1
-  [🛍 بازار (۱)] → inbox:category:market:1
-  [🏛 حکومت (۱)] → inbox:category:government:1
+  [🏢 شرکت‌ها (2)] → inbox:category:companies:1
+  [💰 مالی (2)] → inbox:category:finance:1
+  [🛍 بازار (1)] → inbox:category:market:1
+  [🏛 حکومت (1)] → inbox:category:government:1
   [✅ خواندن همه] → inbox:read_all
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → inbox:show
 
 ━━━ Category · a page of items ━━━
 (sends) (private in groups)
 📂 💰 مالی
-▫️ حقوق شما به مبلغ ۱۲۰۰ پرداخت شد. - ۵ دقیقه پیش
-▫️ قسط وام شما به مبلغ ۸۰۰ فردا سررسید می‌شود. - ۳ ساعت پیش
+▫️ ⁨حقوق شما به مبلغ 1,200 پرداخت شد.⁩ - ⁨5 دقیقه⁩ پیش
+▫️ ⁨قسط وام شما به مبلغ 800 فردا سررسید می‌شود.⁩ - ⁨3 ساعت⁩ پیش
   ───
-  [🔗 مورد ۲] → loan:hub
+  [🔗 مورد 2] → loan:hub
   [بعدی ⬅️] → inbox:category:finance:2
   [🔙 بازگشت] → inbox:show   │   [🔄 به‌روزرسانی] → inbox:category:finance:1
 
@@ -55,6 +55,6 @@
 
 ━━━ Reminder · unread for a day ━━━
 (sends) (private in groups)
-📬 ۴ اعلان خوانده‌نشده در صندوقتان منتظر شماست.
+📬 4 اعلان خوانده‌نشده در صندوقتان منتظر شماست.
   ───
   [📬 دیدن اعلان‌ها] → inbox:show

@@ -3587,11 +3587,11 @@ inbox:
     empty: "📭 اعلان جدیدی ندارید."
     title: "📬 {count} اعلان جدید دارید:"
     category_line: "  • {category}: {count}"
-    teaser_line: "  ˒ {text}"
+    teaser_line: "  ↳ {text}"
     open_button: "📬 دیدن اعلان‌ها"
   hub:
     empty: "📭 صندوق اعلان‌هایتان خالی است."
-    title: "📬 {count} اعلان تازه رسیده بود:"
+    title: "📬 {count} اعلان خوانده‌نشده:"
     category_line: "• {category}: {count}"
     open_button: "{category} ({count})"
     read_all_button: "✅ خواندن همه"

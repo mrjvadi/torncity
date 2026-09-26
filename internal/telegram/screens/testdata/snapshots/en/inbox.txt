@@ -10,8 +10,8 @@
   • 🏢 Companies: 2
   • 💰 Finance: 2
   • 🛍 Market: 1
-  ˒ Your company's period settled: profit 42,000.
-  ˒ Your market order for Steel Plate filled.
+  ↳ Your company's period settled: profit 42,000.
+  ↳ Your market order for Steel Plate filled.
   ───
   [📬 Open notifications] → inbox:show
 
