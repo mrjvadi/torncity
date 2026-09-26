@@ -73,7 +73,9 @@ func purgeProductionOf(t *testing.T, pool *postgres.Pool, cityID string, owners 
 		{`CREATE TEMP TABLE purge_paction ON COMMIT DROP AS
 		   SELECT game_action_id AS id FROM company_research WHERE company_id IN (SELECT id FROM purge_pco)
 		   UNION SELECT game_action_id FROM production_orders WHERE company_id IN (SELECT id FROM purge_pco)
-		   UNION SELECT game_action_id FROM reverse_jobs WHERE company_id IN (SELECT id FROM purge_pco)`, nil},
+		   UNION SELECT game_action_id FROM reverse_jobs WHERE company_id IN (SELECT id FROM purge_pco)
+		   UNION SELECT game_action_id FROM design_improvement_projects WHERE company_id IN (SELECT id FROM purge_pco)
+		   UNION SELECT game_action_id FROM retrofit_jobs WHERE org_kind = 'company' AND org_id IN (SELECT id FROM purge_pco)`, nil},
 		{`ALTER TABLE item_movements DISABLE TRIGGER item_movements_append_only`, nil},
 		{`ALTER TABLE company_sales DISABLE TRIGGER company_sales_append_only`, nil},
 		{`ALTER TABLE technology_licenses DISABLE TRIGGER technology_licenses_append_only`, nil},
@@ -81,6 +83,8 @@ func purgeProductionOf(t *testing.T, pool *postgres.Pool, cityID string, owners 
 		{`DELETE FROM company_sales WHERE company_id IN (SELECT id FROM purge_pco) OR buyer_org_id IN (SELECT id FROM purge_pco)`, nil},
 		{`DELETE FROM company_listings WHERE company_id IN (SELECT id FROM purge_pco)`, nil},
 		{`DELETE FROM reverse_jobs WHERE company_id IN (SELECT id FROM purge_pco)`, nil},
+		{`DELETE FROM retrofit_jobs WHERE org_kind = 'company' AND org_id IN (SELECT id FROM purge_pco)`, nil},
+		{`DELETE FROM design_improvement_projects WHERE company_id IN (SELECT id FROM purge_pco)`, nil},
 		{`DELETE FROM production_orders WHERE company_id IN (SELECT id FROM purge_pco)`, nil},
 		{`DELETE FROM technology_licenses WHERE licensor_company_id IN (SELECT id FROM purge_pco)
 		     OR licensee_company_id IN (SELECT id FROM purge_pco)`, nil},
@@ -92,7 +96,8 @@ func purgeProductionOf(t *testing.T, pool *postgres.Pool, cityID string, owners 
 		     OR piece_id IN (SELECT id FROM purge_ppiece)`, nil},
 		{`DELETE FROM item_pieces WHERE id IN (SELECT id FROM purge_ppiece)`, nil},
 		{`DELETE FROM org_stacks WHERE org_id IN (SELECT id FROM purge_pco)`, nil},
-		{`DELETE FROM product_designs WHERE id IN (SELECT id FROM purge_pdesign) AND origin = 'reverse_engineered'`, nil},
+		{`DELETE FROM product_designs WHERE id IN (SELECT id FROM purge_pdesign)
+		     AND (origin = 'reverse_engineered' OR parent_design_id IS NOT NULL)`, nil},
 		{`DELETE FROM product_designs WHERE id IN (SELECT id FROM purge_pdesign)`, nil},
 		{`DELETE FROM shop_shelves WHERE city_id = $1::uuid AND shop_code LIKE 'supplier:%'`, city},
 		{`ALTER TABLE item_movements ENABLE TRIGGER item_movements_append_only`, nil},
