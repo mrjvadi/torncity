@@ -54,7 +54,7 @@ func NormalizeLinkCode(s string) string {
 	var b strings.Builder
 	for _, r := range s {
 		switch {
-		case r == ' ' || r == '-' || r == '‌':
+		case r == ' ' || r == '-' || r == '\u200c' || isInvisibleMark(r):
 			continue
 		case r >= '۰' && r <= '۹':
 			r = '0' + (r - '۰')
@@ -195,4 +195,19 @@ func (c *Client) allow(ctx context.Context, key string, limit int, window time.D
 		return false, fmt.Errorf("redis: counting %s: %w", key, err)
 	}
 	return n <= int64(limit), nil
+}
+
+// isInvisibleMark reports a character that has no width of its own: the
+// bidi controls a chat app wraps a Latin run in inside right-to-left text
+// (and copies along with it), and the byte-order mark.
+func isInvisibleMark(r rune) bool {
+	switch {
+	case r == '\u200e' || r == '\u200f' || r == '\ufeff':
+		return true
+	case r >= '\u202a' && r <= '\u202e':
+		return true
+	case r >= '\u2066' && r <= '\u2069':
+		return true
+	}
+	return false
 }

@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"strings"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
@@ -36,16 +37,22 @@ func renderDeviceLink(c Context, v DeviceLinkView) *presenter.Response {
 	devices, _ := keyboards.Button(c.T("device.button.list", nil), AddrDeviceList)
 	kb.Row(devices)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
+	// The code is shown in monospace, which Telegram copies on a tap, and
+	// bare: the bidi isolates the catalogue wraps a Latin run in would be
+	// copied with it, and a code nine or ten characters long is refused.
+	code := htmlEscape(v.Code)
+	line := strings.ReplaceAll(htmlEscape(c.T("device.link_code", map[string]any{"code": v.Code})),
+		"\u2068"+code+"\u2069", "<code>"+code+"</code>")
 	text := paragraphs(
-		c.T("device.link_title", nil),
-		c.T("device.link_code", map[string]any{"code": v.Code}),
-		body(
+		htmlBold(htmlEscape(c.T("device.link_title", nil))),
+		line,
+		htmlEscape(body(
 			c.T("device.link_valid", map[string]any{"valid": FormatDuration(c, v.Valid)}),
 			clockLine(c, "device.link_until", v.ExpiresAt),
-		),
-		c.T("device.link_help", nil),
+		)),
+		htmlEscape(c.T("device.link_help", nil)),
 	)
-	return c.respond(text, kb.Build()).MarkPrivate()
+	return c.respond(text, kb.Build()).MarkPrivate().AsHTML()
 }
 
 // DeviceLine is one linked client.
