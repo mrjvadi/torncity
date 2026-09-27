@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
@@ -90,6 +91,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/v1/command", s.authed(s.command))
 	mux.HandleFunc("GET /api/v1/bootstrap", s.authed(s.bootstrap))
 	mux.HandleFunc("GET /api/v1/content", s.authed(s.content))
+	mux.HandleFunc("POST /api/v1/client-log", s.clientLog)
 	mux.HandleFunc("GET /api/v1/world/city", s.authed(s.cityWorld))
 	mux.HandleFunc("GET /api/v1/realtime/token", s.authed(s.realtimeToken))
 	mux.HandleFunc("GET /api/v1/realtime/subscribe", s.authed(s.realtimeSubscribe))
@@ -225,6 +227,41 @@ func (s *Server) bootstrap(w http.ResponseWriter, r *http.Request, pr Principal)
 		return
 	}
 	writeJSON(w, http.StatusOK, b)
+}
+
+// clientLog takes what a web client could not say any other way: a script
+// error, a lost WebGL context, how far it got before it stopped. It is
+// logged for the operator, unauthenticated (a client that cannot start
+// cannot sign in), bounded per address and in size, and never stored.
+func (s *Server) clientLog(w http.ResponseWriter, r *http.Request) {
+	ok, err := s.cfg.Limits.Allow(r.Context(), "client-log:"+s.clientIP(r), 120, time.Minute)
+	if err != nil || !ok {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	body, _ := io.ReadAll(io.LimitReader(r.Body, 4096))
+	var entry struct {
+		Kind    string `json:"kind"`
+		Message string `json:"message"`
+		Agent   string `json:"agent"`
+		Page    string `json:"page"`
+		Session string `json:"session"`
+	}
+	if json.Unmarshal(body, &entry) != nil {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	clip := func(v string, n int) string {
+		if len(v) > n {
+			return v[:n]
+		}
+		return v
+	}
+	s.cfg.Logger.Warn("client log", slog.String("kind", clip(entry.Kind, 32)),
+		slog.String("message", clip(entry.Message, 1500)), slog.String("agent", clip(entry.Agent, 300)),
+		slog.String("page", clip(entry.Page, 200)), slog.String("session", clip(entry.Session, 40)),
+		slog.String("ip", s.clientIP(r)))
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // content answers the content catalogue, or only its version when the

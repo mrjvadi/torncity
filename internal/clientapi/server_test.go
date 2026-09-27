@@ -347,3 +347,20 @@ func TestPreflightAllowsTheHeadersAsked(t *testing.T) {
 		t.Fatalf("another origin was allowed: %v", resp.Header)
 	}
 }
+
+// A web client that cannot start reports what stopped it; the log takes any
+// well-formed report without a sign-in and answers with nothing.
+func TestClientLogTakesAReport(t *testing.T) {
+	f := newAPIFixture(t)
+	req, _ := http.NewRequest(http.MethodPost, f.srv.URL+"/api/v1/client-log",
+		bytes.NewReader([]byte(`{"kind":"webglcontextlost","message":"lost","agent":"iPhone"}`)))
+	req.Header.Set("Content-Type", "text/plain")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusNoContent {
+		t.Fatalf("status %d", resp.StatusCode)
+	}
+}
