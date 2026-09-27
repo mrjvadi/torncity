@@ -25,6 +25,9 @@ type DeviceLinkView struct {
 	ExpiresAt time.Time
 	// Valid is how long the code works, from now.
 	Valid time.Duration
+	// MiniAppURL is the web game, opened in place as a Telegram Mini App
+	// (signed in by Telegram, no code needed); empty for none.
+	MiniAppURL string
 }
 
 // DeviceLink renders a link code and how to use it.
@@ -52,7 +55,12 @@ func renderDeviceLink(c Context, v DeviceLinkView) *presenter.Response {
 		)),
 		htmlEscape(c.T("device.link_help", nil)),
 	)
-	return c.respond(text, kb.Build()).MarkPrivate().AsHTML()
+	markup := kb.Build()
+	if v.MiniAppURL != "" {
+		play := presenter.Button{Text: c.T("device.button.play", nil), WebAppURL: v.MiniAppURL}
+		markup.Rows = append([][]presenter.Button{{play}}, markup.Rows...)
+	}
+	return c.respond(text, markup).MarkPrivate().AsHTML()
 }
 
 // DeviceLine is one linked client.

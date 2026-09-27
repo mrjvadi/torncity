@@ -425,12 +425,13 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	}
 	defer func() { _ = rdb.Close() }()
 	h.clients.devices, err = handlers.NewDevicesHandler(handlers.DevicesConfig{
-		Msgs:    messages,
-		Players: postgres.NewPlayerRepository(pool, cfg.Player.DefaultLanguage),
-		Codes:   infraredis.NewClientLinkCodes(rdb),
-		Devices: postgres.NewClientDevices(pool),
-		CodeTTL: cfg.Client.LinkCodeTTL,
-		PerHour: cfg.Client.LinkCodesPerHour,
+		Msgs:       messages,
+		Players:    postgres.NewPlayerRepository(pool, cfg.Player.DefaultLanguage),
+		Codes:      infraredis.NewClientLinkCodes(rdb),
+		Devices:    postgres.NewClientDevices(pool),
+		CodeTTL:    cfg.Client.LinkCodeTTL,
+		PerHour:    cfg.Client.LinkCodesPerHour,
+		MiniAppURL: cfg.Client.MiniAppURL,
 	})
 	if err != nil {
 		return err

@@ -24,6 +24,7 @@ type DevicesHandler struct {
 	devices application.ClientDevices
 	codeTTL time.Duration
 	perHour int
+	miniApp string
 	now     func() time.Time
 }
 
@@ -41,7 +42,10 @@ type DevicesConfig struct {
 	Devices application.ClientDevices
 	CodeTTL time.Duration
 	PerHour int
-	Now     func() time.Time
+	// MiniAppURL is client.mini_app_url: the web game the link screen also
+	// opens in place, as a Telegram Mini App. Empty: no such button.
+	MiniAppURL string
+	Now        func() time.Time
 }
 
 // NewDevicesHandler builds the handler.
@@ -53,7 +57,7 @@ func NewDevicesHandler(cfg DevicesConfig) (*DevicesHandler, error) {
 		cfg.Now = time.Now
 	}
 	return &DevicesHandler{msgs: cfg.Msgs, players: cfg.Players, codes: cfg.Codes, devices: cfg.Devices,
-		codeTTL: cfg.CodeTTL, perHour: cfg.PerHour, now: cfg.Now}, nil
+		codeTTL: cfg.CodeTTL, perHour: cfg.PerHour, miniApp: cfg.MiniAppURL, now: cfg.Now}, nil
 }
 
 // DeviceRevokeRequest is the payload of device.revoke.
@@ -90,7 +94,8 @@ func (h *DevicesHandler) Link(ctx context.Context, meta envelope.Metadata) (*pre
 	if valid <= 0 || valid > h.codeTTL {
 		valid = h.codeTTL
 	}
-	return screens.DeviceLink(c, screens.DeviceLinkView{Code: code.Code, ExpiresAt: code.ExpiresAt, Valid: valid}), nil
+	return screens.DeviceLink(c, screens.DeviceLinkView{Code: code.Code, ExpiresAt: code.ExpiresAt, Valid: valid,
+		MiniAppURL: h.miniApp}), nil
 }
 
 // List shows the linked clients.

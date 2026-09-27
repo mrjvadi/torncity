@@ -4163,6 +4163,7 @@ device:
     revoked: "✅ That client is signed out."
     gone: "That client was already signed out."
   button:
+    play: "🎮 Play the web game"
     link: "➕ Link a client"
     list: "📱 Linked clients"
     revoke: "🚫 Sign out {name}"
