@@ -437,7 +437,16 @@ func (s *Server) cors(next http.Handler) http.Handler {
 			w.Header().Set("Vary", "Origin")
 			if r.Method == http.MethodOptions {
 				w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
-				w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+				// A browser engine may ask for more than these two (Godot's
+				// web build sends User-Agent and Accept-Encoding with every
+				// request), and a refused preflight fails the request before
+				// it is sent. The origin is the Mini App's own and no
+				// credentials travel, so the headers it asks for are allowed.
+				allow := "Authorization, Content-Type"
+				if asked := r.Header.Get("Access-Control-Request-Headers"); asked != "" && len(asked) <= 512 {
+					allow = asked
+				}
+				w.Header().Set("Access-Control-Allow-Headers", allow)
 				w.Header().Set("Access-Control-Max-Age", "600")
 				w.WriteHeader(http.StatusNoContent)
 				return

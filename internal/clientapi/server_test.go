@@ -319,3 +319,31 @@ func TestRealtimeTokens(t *testing.T) {
 		}
 	}
 }
+
+// A preflight asking for headers a browser engine adds (Godot's web build
+// sends User-Agent and Accept-Encoding) is allowed them, from the Mini
+// App's origin only.
+func TestPreflightAllowsTheHeadersAsked(t *testing.T) {
+	s := NewServer(ServerConfig{AllowedOrigin: "https://play.example.test"})
+	srv := httptest.NewServer(s.Handler())
+	t.Cleanup(srv.Close)
+	ask := func(origin string) *http.Response {
+		req, _ := http.NewRequest(http.MethodOptions, srv.URL+"/api/v1/auth/link", nil)
+		req.Header.Set("Origin", origin)
+		req.Header.Set("Access-Control-Request-Method", "POST")
+		req.Header.Set("Access-Control-Request-Headers", "content-type,user-agent,accept-encoding")
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		return resp
+	}
+	resp := ask("https://play.example.test")
+	if resp.StatusCode != http.StatusNoContent || resp.Header.Get("Access-Control-Allow-Headers") != "content-type,user-agent,accept-encoding" {
+		t.Fatalf("own origin: %d %v", resp.StatusCode, resp.Header)
+	}
+	if resp := ask("https://evil.example.test"); resp.Header.Get("Access-Control-Allow-Origin") != "" {
+		t.Fatalf("another origin was allowed: %v", resp.Header)
+	}
+}
