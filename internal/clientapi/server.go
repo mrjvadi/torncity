@@ -39,6 +39,8 @@ type RealtimeTokens interface {
 type Places interface {
 	Bootstrap(ctx context.Context, pr Principal) (Bootstrap, error)
 	CityCode(ctx context.Context, playerID string) (string, error)
+	Catalogue(since string) ContentCatalogue
+	CityWorld(ctx context.Context, code string) (CityWorld, error)
 }
 
 // ServerConfig is what NewServer needs.
@@ -87,6 +89,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/v1/auth/logout", s.authed(s.logout))
 	mux.HandleFunc("POST /api/v1/command", s.authed(s.command))
 	mux.HandleFunc("GET /api/v1/bootstrap", s.authed(s.bootstrap))
+	mux.HandleFunc("GET /api/v1/content", s.authed(s.content))
+	mux.HandleFunc("GET /api/v1/world/city", s.authed(s.cityWorld))
 	mux.HandleFunc("GET /api/v1/realtime/token", s.authed(s.realtimeToken))
 	mux.HandleFunc("GET /api/v1/realtime/subscribe", s.authed(s.realtimeSubscribe))
 	return s.cors(mux)
@@ -221,6 +225,31 @@ func (s *Server) bootstrap(w http.ResponseWriter, r *http.Request, pr Principal)
 		return
 	}
 	writeJSON(w, http.StatusOK, b)
+}
+
+// content answers the content catalogue, or only its version when the
+// client's copy is current (?since=).
+func (s *Server) content(w http.ResponseWriter, r *http.Request, _ Principal) {
+	writeJSON(w, http.StatusOK, s.cfg.World.Catalogue(r.URL.Query().Get("since")))
+}
+
+// cityWorld answers a city's map: the one named, else the player's own.
+func (s *Server) cityWorld(w http.ResponseWriter, r *http.Request, pr Principal) {
+	code := strings.TrimSpace(r.URL.Query().Get("code"))
+	if code == "" {
+		c, err := s.cfg.World.CityCode(r.Context(), pr.PlayerID)
+		if err != nil {
+			s.fail(w, r, pr.Lang, err)
+			return
+		}
+		code = c
+	}
+	world, err := s.cfg.World.CityWorld(r.Context(), code)
+	if err != nil {
+		s.fail(w, r, pr.Lang, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, world)
 }
 
 // RealtimeToken is the answer of the realtime endpoints.

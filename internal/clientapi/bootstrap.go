@@ -54,12 +54,15 @@ type Catalogue interface {
 
 // World assembles the bootstrap and answers where a player is.
 type World struct {
-	Players  Players
-	Cities   Cities
-	Content  *content.Registry
-	Msgs     Catalogue
-	Realtime bool
-	Now      func() time.Time
+	Players Players
+	Cities  Cities
+	// CityCodes and Companies draw the city map (worldmap.go).
+	CityCodes CityDirectory
+	Companies CompanyDirectory
+	Content   *content.Registry
+	Msgs      Catalogue
+	Realtime  bool
+	Now       func() time.Time
 }
 
 // CityCode is the code of the city the player is in, empty when none.

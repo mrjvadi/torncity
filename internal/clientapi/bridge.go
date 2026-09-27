@@ -148,6 +148,7 @@ type Notice struct {
 // Run runs one command for the principal.
 func (b *Bridge) Run(ctx context.Context, pr Principal, req CommandRequest) (Screen, error) {
 	command := strings.TrimSpace(req.Command)
+	command, req.Args = clientAlias(command, req.Args)
 	if !commands.FromPlayerCommand(command) {
 		return Screen{}, ErrUnknownCommand
 	}
@@ -292,4 +293,19 @@ func scalar(raw json.RawMessage) (string, error) {
 		return "", ErrBadArgs
 	}
 	return n.String(), nil
+}
+
+// clientAlias maps a command a client sends by the client contract's name
+// onto the game's own: the city map's company plot sends company.show {id}
+// (docs/architecture.md in the client), which the game serves as
+// company.view {code}.
+func clientAlias(command string, args map[string]json.RawMessage) (string, map[string]json.RawMessage) {
+	if command == "company.show" {
+		out := map[string]json.RawMessage{}
+		if id, ok := args["id"]; ok {
+			out["code"] = id
+		}
+		return "company.view", out
+	}
+	return command, args
 }

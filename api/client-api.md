@@ -349,6 +349,49 @@ current city. `realtime` says whether section 5 is available.
 
 ---
 
+### 4.1 Content catalogue — `GET /api/v1/content?since=<version>`
+
+Every content entry a client may have to draw, by table, with its name in
+every language and the asset keys its art is looked up by
+(`internal/clientapi/catalogue.go`). Tables: `city`, `place`,
+`company_type`, `item`, `component`, `mode`, `crime`, `course`, `skill`,
+`technology`, `military_unit`. `asset.icon` is always `<table>:<code>`;
+`asset.model` is set for tables drawn as buildings or vehicles (`place`,
+`company_type`, `mode`, `military_unit`). Items, components, crimes, skills
+and company types carry a `category`, places `kind: place`, military units
+their branch as `category`, for fallback art.
+
+```json
+{"version": "v42", "langs": ["en", "fa"],
+ "entries": {"place": [{"code": "bazaar", "name": {"en": "Bazaar", "fa": "بازار"},
+                        "asset": {"model": "place:bazaar", "icon": "place:bazaar"}, "kind": "place"}], "...": []}}
+```
+
+With `?since=` naming the current version the answer is only
+`{"version": "v42", "unchanged": true}`.
+
+### 4.2 City map — `GET /api/v1/world/city?code=<city>`
+
+A city's map, the player's own city when `code` is left out
+(`internal/clientapi/worldmap.go`). The game knows places by walk time, not
+position, so the server lays the map out the same way for every client:
+2×2 lots between one-cell roads, filled from the centre out — the city's
+places nearest walk first (the city centre in the middle, the airport on
+the outskirts), then its companies oldest first, then greens and plazas.
+
+```json
+{"city": "ostmarch", "version": 2934512, "grid": {"w": 16, "h": 16},
+ "water": {"side": "south", "width": 6}, "roads": [[0, 0], [1, 0]],
+ "plots": [{"id": "company:Q7M2K9B", "x": 4, "y": 7, "w": 2, "h": 2, "kind": "company",
+            "model": "company:factory", "rot": 0,
+            "ref": {"table": "company_type", "code": "factory", "company_id": "Q7M2K9B", "owner": "Sara"},
+            "name": {"en": "Alborz Steel", "fa": "Alborz Steel"}}]}
+```
+
+Kinds: `place`, `company`, `decor`. `version` changes whenever a plot does.
+A company plot's tap sends `company.show {id}`, which the API serves as
+`company.view {code}`.
+
 ## 5. Realtime
 
 Centrifugo v6 (<https://centrifugal.dev/docs>), WebSocket endpoint

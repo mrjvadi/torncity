@@ -251,7 +251,9 @@ func (a *handoffAPI) SendMessageWith(_ context.Context, chatID int64, _ string, 
 	return &client.Message{MessageID: 9}, nil
 }
 
-func (a *handoffAPI) EditMessageText(context.Context, int64, int64, string, any) error { return nil }
+func (a *handoffAPI) EditMessageText(context.Context, int64, int64, string, any, string) error {
+	return nil
+}
 
 func (a *handoffAPI) AnswerCallback(context.Context, client.CallbackAnswer) error { return nil }
 

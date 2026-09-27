@@ -105,6 +105,15 @@ func (w fakeWorld) Bootstrap(_ context.Context, pr Principal) (Bootstrap, error)
 	return Bootstrap{Player: BootstrapPlayer{ID: pr.PlayerID, CityCode: w.city}}, nil
 }
 func (w fakeWorld) CityCode(context.Context, string) (string, error) { return w.city, nil }
+func (w fakeWorld) Catalogue(since string) ContentCatalogue {
+	if since == "v7" {
+		return ContentCatalogue{Version: "v7", Unchanged: true}
+	}
+	return ContentCatalogue{Version: "v7", Langs: []string{"en"}}
+}
+func (w fakeWorld) CityWorld(_ context.Context, code string) (CityWorld, error) {
+	return layOut(code, []WorldPlot{{ID: "place:bazaar", Kind: "place", Model: "place:bazaar"}}), nil
+}
 
 type apiFixture struct {
 	*authFixture
