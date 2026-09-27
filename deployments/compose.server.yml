@@ -16,6 +16,8 @@
 #     reverse proxy.
 #  5. So do the game client API (tc-clientapi) and the realtime server
 #     (tc-centrifugo).
+#  6. The game client's web build is served by a small static server, tc-web,
+#     from files on the host (WEB_ROOT), outside the repository.
 services:
   telegram-bot-api:
     # Disabled here: the host's existing server is used instead. Compose has no
@@ -63,3 +65,28 @@ networks:
   botapi:
     external: true
     name: antispam_default
+
+  web:
+    image: caddy:2-alpine
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: "0.25"
+    pids_limit: 64
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+    volumes:
+      - ./deployments/web/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${WEB_ROOT:-/opt/torncity-web}:/srv:ro
+    tmpfs: ["/data", "/config"]
+    ports: ["127.0.0.1:58093:8080"]
+    networks:
+      botapi:
+        aliases: ["tc-web"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped

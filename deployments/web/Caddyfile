@@ -1,0 +1,39 @@
+# The web build of the game client (the Godot export) and its art, served
+# as static files. The host's reverse proxy fronts this as tc-web; the
+# files live on the host, outside the repository (WEB_ROOT, default
+# /opt/torncity-web): site/ holds the export, assets/ the art manifest and
+# the content-addressed art files.
+{
+	admin off
+	auto_https off
+	persist_config off
+}
+
+:8080 {
+	root * /srv/site
+	encode zstd gzip
+
+	# The art: content-addressed, so cached forever, and readable from any
+	# page (the Mini App's origin may differ). The manifest names the
+	# current files, so it is never cached.
+	handle_path /assets/* {
+		root * /srv/assets
+		@manifest path /manifest.json
+		header @manifest Cache-Control "no-cache"
+		header -Last-Modified
+		header Cache-Control "public, max-age=31536000, immutable"
+		header Access-Control-Allow-Origin "*"
+		file_server {
+			precompressed br gzip
+		}
+	}
+
+	# The export's own files keep their names between builds: always
+	# revalidated, so a new build reaches players on their next load.
+	header Cache-Control "no-cache"
+	header X-Content-Type-Options "nosniff"
+	header Referrer-Policy "strict-origin-when-cross-origin"
+	file_server {
+		precompressed br gzip
+	}
+}
