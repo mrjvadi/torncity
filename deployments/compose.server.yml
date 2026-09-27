@@ -61,11 +61,6 @@ services:
       botapi:
         aliases: ["tc-centrifugo"]
 
-networks:
-  botapi:
-    external: true
-    name: antispam_default
-
   web:
     image: caddy:2-alpine
     mem_limit: 64m
@@ -90,3 +85,8 @@ networks:
       timeout: 3s
       retries: 3
     restart: unless-stopped
+
+networks:
+  botapi:
+    external: true
+    name: antispam_default
