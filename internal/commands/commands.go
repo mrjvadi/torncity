@@ -408,6 +408,11 @@ var all = []Subscription{
 	{Domain: "gov", Action: "alloc", Origin: FromPlayer},
 	{Domain: "gov", Action: "allocok", Origin: FromPlayer},
 	{Domain: "gov", Action: "allocset", Origin: FromPlayer},
+
+	// Group founding (docs/adr/0028-world-and-settlements.md section 3): a
+	// group's own /found command, answered where it was sent — a village
+	// only ever lands in the group that founded it.
+	{Domain: "settlement", Action: "found", Origin: FromPlayer},
 	{Domain: "law", Action: "list", Origin: FromPlayer},
 	{Domain: "law", Action: "view", Origin: FromPlayer},
 	{Domain: "law", Action: "vote", Origin: FromPlayer},

@@ -28,9 +28,10 @@ type phaseHandlers struct {
 	skills   *handlers.SkillsHandler
 	social   *handlers.SocialHandler
 	worldMap *handlers.MapHandler
-	settings *handlers.SettingsHandler
-	bank     *handlers.BankHandler
-	gov      *handlers.GovernanceHandler
+	settings    *handlers.SettingsHandler
+	bank        *handlers.BankHandler
+	gov         *handlers.GovernanceHandler
+	settlements *handlers.SettlementsHandler
 
 	jobs      *handlers.JobsHandler
 	education *handlers.EducationHandler
@@ -237,6 +238,10 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 				return nil, err
 			}
 			return h.gov.Set(ctx, env.Metadata, req)
+		},
+
+		"settlement.found": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.settlements.Found(ctx, env.Metadata)
 		},
 	}
 	// Work and study are bound in commands_work.go.

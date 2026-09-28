@@ -38,6 +38,15 @@ var taxReadAllowed = []string{
 	"internal/domain/world/",
 	"internal/infrastructure/postgres/content.go",
 	"internal/infrastructure/postgres/governance.go",
+	// A founded settlement (ADR 0028 section 3.1) writes the NOT NULL
+	// cities.tax_rate_bps column once, at founding, to a fixed placeholder
+	// (0): a village or town is not city.tax_rate's per-city default source
+	// (city_default is set only on that lever, and only a city-tier
+	// jurisdiction is ever asked for it) — its own tax policy is
+	// village.local_levy/town.local_levy, read the same resolver way
+	// everything else is. This stores the column's required value; it
+	// never acts on it.
+	"internal/infrastructure/postgres/settlements.go",
 }
 
 // TestTaxRateIsReadOnlyThroughTheResolver fails when production code outside

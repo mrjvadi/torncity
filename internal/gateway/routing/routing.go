@@ -441,6 +441,10 @@ var argNames = map[string][]string{
 	"inbox.category": {"category", "page"},
 	"inbox.read_all": {},
 
+	// Group founding (docs/adr/0028-world-and-settlements.md section 3)
+	// takes nothing: the game, not the group, chooses the spot.
+	"settlement.found": {},
+
 	"job.status":       {},
 	"job.list":         {"page"},
 	"job.view":         {"role"},

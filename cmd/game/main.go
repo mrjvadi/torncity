@@ -37,6 +37,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/bank"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
+	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
+	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	infraredis "github.com/mrjvadi/torncity/internal/infrastructure/redis"
@@ -74,6 +76,16 @@ const (
 	// budget, the idempotency TTL and the language a new account gets are all
 	// inside it, not in this binary.
 	defaultConfigPath = config.DefaultPath
+
+	// defaultContentDir is where the authored content — including
+	// world.yml, docs/adr/0028-world-and-settlements.md section 2 — is read
+	// from when TORN_CONTENT_DIR does not say otherwise, the same variable
+	// and default `admin content load` and cmd/panel already use. World
+	// generation content is read directly from these files rather than
+	// through the database content-version pipeline: a planet is
+	// regenerated from its seed and this content at process start and held
+	// in memory (application.WorldCache), never stored tile by tile.
+	defaultContentDir = "configs/content"
 )
 
 func main() {
@@ -115,6 +127,7 @@ type env struct {
 	logLevel   string
 	localesDir string
 	configPath string
+	contentDir string
 }
 
 func loadEnv() (env, error) {
@@ -125,12 +138,16 @@ func loadEnv() (env, error) {
 		logLevel:    os.Getenv("LOG_LEVEL"),
 		localesDir:  os.Getenv("TORN_LOCALES_DIR"),
 		configPath:  os.Getenv("TORN_CONFIG"),
+		contentDir:  os.Getenv("TORN_CONTENT_DIR"),
 	}
 	if e.localesDir == "" {
 		e.localesDir = defaultLocalesDir
 	}
 	if e.configPath == "" {
 		e.configPath = defaultConfigPath
+	}
+	if e.contentDir == "" {
+		e.contentDir = defaultContentDir
 	}
 
 	var missing []string
@@ -164,6 +181,41 @@ func metaAttrs(meta envelope.Metadata) []any {
 		slog.String("trace_id", meta.TraceID),
 		slog.String("request_id", meta.RequestID),
 		slog.String("bot_id", meta.BotID),
+	}
+}
+
+// worldGenParams converts config.WorldGen — plain ints/float64s, because
+// internal/config imports no internal/domain package (see WorldGen's own
+// doc comment) — into the typed worldgen.Params the generator actually
+// takes. Mirrors cmd/worldpreview's own copy of the same conversion: each
+// process that calls worldgen.Generate makes it, by the design WorldGen's
+// doc comment states.
+func worldGenParams(wg config.WorldGen) worldgen.Params {
+	return worldgen.Params{
+		CellCount:              wg.CellCount,
+		NeighborK:              wg.NeighborK,
+		PlateCount:             wg.PlateCount,
+		OceanicPlateFraction:   worldgen.Permille(wg.OceanicPlateFraction),
+		LandFraction:           worldgen.Permille(wg.LandFraction),
+		NoiseOctaves:           wg.NoiseOctaves,
+		NoiseBaseFrequency:     wg.NoiseBaseFrequency,
+		NoisePersistence:       worldgen.Permille(wg.NoisePersistence),
+		WarpAmplitude:          wg.WarpAmplitude,
+		WarpFrequency:          wg.WarpFrequency,
+		BoundaryInfluenceSteps: wg.BoundaryInfluenceSteps,
+		MoistureBands:          wg.MoistureBands,
+		RiverFlowThreshold:     wg.RiverFlowThreshold,
+		LakeMinDepth:           worldgen.Elevation(wg.LakeMinDepth),
+		LakeMinAreaCells:       wg.LakeMinAreaCells,
+
+		PlanetRadiusKm:              wg.PlanetRadiusKm,
+		ChunkBaseLOD:                int8(wg.ChunkBaseLOD),
+		ChunkTileEdge:               wg.ChunkTileEdge,
+		ChunkDetailFrequency:        wg.ChunkDetailFrequency,
+		ChunkDetailAmplitude:        worldgen.Elevation(wg.ChunkDetailAmplitude),
+		ChunkStreamFrequency:        wg.ChunkStreamFrequency,
+		ChunkStreamAmplitude:        worldgen.Elevation(wg.ChunkStreamAmplitude),
+		ChunkDepositTilesPerDeposit: wg.ChunkDepositTilesPerDeposit,
 	}
 }
 
@@ -228,6 +280,22 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// idempotency key and outbox record or not at all.
 	cities := postgres.NewCityCache(pool, cfg.Game.ContentReloadInterval)
 	travels := postgres.NewTravelRepository(pool)
+
+	// The generated planet (docs/adr/0028-world-and-settlements.md section
+	// 2): world-gen content read straight from the files (never through the
+	// database content-version pipeline — a planet's terrain is a pure
+	// function of its seed and this content, recomputed here and cached in
+	// memory, not stored), and the world registry's active row, regenerated
+	// on first use and on every later change of which world is active.
+	wgPack, err := content.LoadWorldGen(e.contentDir)
+	if err != nil {
+		return fmt.Errorf("game: loading world generation content from %s: %w", e.contentDir, err)
+	}
+	wgContent, err := wgPack.ToContent()
+	if err != nil {
+		return fmt.Errorf("game: world generation content: %w", err)
+	}
+	worldCache := application.NewWorldCache(postgres.NewWorldRepository(pool), worldGenParams(cfg.WorldGen), wgContent)
 
 	// Every handler is given the store, not the catalogue it currently
 	// holds: reloading the text then becomes a pointer swap inside the
@@ -303,6 +371,21 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			},
 			handlers.DefaultPageSize,
 			cfg.Game.IdempotencyTTL,
+			nil,
+		),
+		settlements: handlers.NewSettlementsHandler(
+			uow,
+			uuidGenerator{},
+			messages,
+			worldCache,
+			wsettle.Params{
+				MinSpawnDistanceKm: cfg.Settlement.MinSpawnDistanceKm,
+				ThreatRadiusKm:     cfg.Settlement.ThreatRadiusKm,
+				SearchMaxCells:     cfg.Settlement.SearchMaxCells,
+				SearchMaxAttempts:  cfg.Settlement.SearchMaxAttempts,
+			},
+			cfg.Settlement.ProtectionWindow,
+			cfg.Settlement.VillageGridLots,
 			nil,
 		),
 	}

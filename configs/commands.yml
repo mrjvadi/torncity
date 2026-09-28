@@ -377,6 +377,11 @@ commands:
   inbox.category: {channel: private}
   inbox.read_all: {channel: private}
 
+  # Group founding (docs/adr/0028-world-and-settlements.md section 3): a
+  # civic act the whole group decides and sees, never private — the same
+  # rule crime.* above already follows.
+  settlement.found: {channel: group}
+
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the
 # commands listed here may ask. field is the payload field the typed text

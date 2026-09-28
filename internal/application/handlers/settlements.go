@@ -83,11 +83,34 @@ func (h *SettlementsHandler) screen(meta envelope.Metadata, lang string) screens
 	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
 }
 
+// viewer reads the player who sent the command, the same short read-only
+// unit of work every other handler's own viewer helper uses.
+func (h *SettlementsHandler) viewer(ctx context.Context, meta envelope.Metadata) (*application.Player, string, error) {
+	if err := validPlayerRequest(meta); err != nil {
+		return nil, meta.Language, err
+	}
+	var p *application.Player
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		var err error
+		p, err = tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
+		return err
+	})
+	if err != nil {
+		return nil, meta.Language, err
+	}
+	return p, RenderLanguage(meta, p), nil
+}
+
 // Found handles the founding command. It is idempotent under at-least-once
 // delivery: a second arrival for the same Telegram chat is answered from the
 // settlement that already exists (application.ErrGroupAlreadyFounded,
 // backed by migration 0042's own unique index), never a second village.
-func (h *SettlementsHandler) Found(ctx context.Context, playerID string, meta envelope.Metadata, lang string) (*presenter.Response, error) {
+func (h *SettlementsHandler) Found(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+	p, lang, err := h.viewer(ctx, meta)
+	if err != nil {
+		return nil, err
+	}
+	playerID := p.ID
 	c := h.screen(meta, lang)
 	if !meta.InGroup() {
 		return screens.SettlementRefusal(c, screens.SettlementRefusalView{Kind: "group_only"}), nil
