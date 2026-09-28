@@ -212,6 +212,7 @@ type notificationsSettings struct {
 	Retention             *string `yaml:"retention"`
 	PruneInterval         *string `yaml:"prune_interval"`
 	HungerAlertCooldown   *string `yaml:"hunger_alert_cooldown"`
+	VitalsMinInterval     *string `yaml:"vitals_min_interval"`
 }
 
 type governanceSettings struct {
@@ -1200,4 +1201,7 @@ var coreSettings = []setting{
 	durationSetting("notifications", "hunger_alert_cooldown",
 		func(c *Config) *time.Duration { return &c.Notifications.HungerAlertCooldown },
 		func(f *fileConfig) *string { return f.Notifications.HungerAlertCooldown }),
+	durationSetting("notifications", "vitals_min_interval",
+		func(c *Config) *time.Duration { return &c.Notifications.VitalsMinInterval },
+		func(f *fileConfig) *string { return f.Notifications.VitalsMinInterval }),
 }

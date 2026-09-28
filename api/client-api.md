@@ -432,6 +432,21 @@ payment received, a shift paid…), as well as to Telegram:
 `kind` is the game event (`domain.event`); `text` is localized for the player;
 `screen`/`view` are present when the notice's screen has a view.
 
+Also on `player:<id>` — a HUD snapshot, sent again (debounced,
+`notifications.vitals_min_interval`, 2s) whenever a notice's event may have
+changed it, from any source (Telegram or a client):
+
+```json
+{"type": "vitals", "cash": 125000, "bank": 480000, "energy": 80, "max_energy": 100,
+ "health": 100, "max_health": 100, "xp": 420, "level": 3, "unread": 2}
+```
+
+A full snapshot, not a diff: a client always replaces what it has with the
+latest one, so an out-of-order delivery costs nothing. It is best effort,
+like everything in this section — a client also learns these numbers from
+every command's own `view` and from `bootstrap`/polling, so a missed or
+delayed `vitals` publication is never the only way to find out.
+
 On `city:<code>` — the city's public announcements (arrivals, jailings,
 companies founded, elections, strikes…):
 

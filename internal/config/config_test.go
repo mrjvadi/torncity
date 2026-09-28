@@ -426,6 +426,7 @@ notifications:
   retention: 800h
   prune_interval: 30h
   hunger_alert_cooldown: 3h
+  vitals_min_interval: 4s
 legislature:
   vote_window: 49h
   list_size: 9
@@ -576,6 +577,7 @@ var envOverrides = map[string]string{
 	"TORN_NOTIFICATIONS_RETENTION":               "810h",
 	"TORN_NOTIFICATIONS_PRUNE_INTERVAL":          "31h",
 	"TORN_NOTIFICATIONS_HUNGER_ALERT_COOLDOWN":   "4h",
+	"TORN_NOTIFICATIONS_VITALS_MIN_INTERVAL":     "5s",
 
 	"TORN_GOVERNANCE_FINE_STEP_DIVISOR":   "102",
 	"TORN_GOVERNANCE_COARSE_STEP_DIVISOR": "12",

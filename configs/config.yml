@@ -732,6 +732,10 @@ notifications:
   # same player, so a hunger hovering at life.yml's needs.high threshold
   # cannot resend it on every command that happens to catch the life up.
   hunger_alert_cooldown: 2h
+  # Least real time between two realtime vitals reads (cash, bank, energy,
+  # health, xp, level, unread) for the same player, api/client-api.md
+  # section 5: a burst of notices for one player publishes at most one.
+  vitals_min_interval: 2s
 
 # Votes of a body (docs/adr/0024-property-and-politics.md): a council
 # confirming a mayor's budget or a large tax change, a national assembly

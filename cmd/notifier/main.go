@@ -201,6 +201,9 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// also published to the realtime server when its API key is set. A
 	// failure there is logged and never holds up a Telegram notice.
 	var realtime notification.Realtime
+	// vitals is only worth wiring when something will publish it; without a
+	// realtime server there is nobody to send a HUD snapshot to.
+	var vitals notification.VitalsReader
 	languages := []string{cfg.Player.DefaultLanguage}
 	for _, lang := range catalog.Languages() {
 		if lang != cfg.Player.DefaultLanguage {
@@ -210,6 +213,15 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	if key := os.Getenv("CENTRIFUGO_API_KEY"); key != "" {
 		realtime = centrifugo.NewPublisher(cfg.Realtime.APIURL, key, cfg.Realtime.PublishTimeout)
 		logger.Info("publishing notices to the realtime server", slog.String("api_url", cfg.Realtime.APIURL))
+		// Cash, bank, energy, health, xp and level, read the same way
+		// player.profile.get and bank.show already do (postgres.StatsRepository,
+		// postgres.LedgerRepository); unread from the inbox this notifier
+		// already reads for the badge. See internal/workers/notification/vitals.go.
+		vitals = notification.DefaultVitals{
+			Stats:  postgres.NewStatsRepository(pool),
+			Ledger: postgres.NewLedgerRepository(pool),
+			Inbox:  playerInbox,
+		}
 	} else {
 		logger.Info("CENTRIFUGO_API_KEY is not set; notices go to Telegram only")
 	}
@@ -232,6 +244,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 
 		Realtime:          realtime,
 		RealtimeLanguages: languages,
+		Vitals:            vitals,
+		VitalsMinInterval: cfg.Notifications.VitalsMinInterval,
 
 		PlayerInbox:   playerInbox,
 		DeliveryModes: deliveryModes,

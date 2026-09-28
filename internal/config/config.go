@@ -516,6 +516,16 @@ type Notifications struct {
 	// the content-defined threshold (life.yml needs.high) cannot resend it
 	// every time a command happens to catch the life up.
 	HungerAlertCooldown time.Duration // notifications.hunger_alert_cooldown
+
+	// VitalsMinInterval bounds how often cmd/notifier reads and publishes
+	// one player's realtime vitals snapshot (cash, bank, energy, health,
+	// xp, level, unread — api/client-api.md section 5): at most once per
+	// this long, even when several events for the same player land inside
+	// it. A player mid-crime-spree or travelling with a crew fires many
+	// notices in a burst; without this, each one would cost a stats read
+	// and two ledger reads for a number a client is about to overwrite
+	// again a moment later.
+	VitalsMinInterval time.Duration // notifications.vitals_min_interval
 }
 
 // Governance is the tuning of the office holder's screens
@@ -1047,6 +1057,7 @@ func Defaults() *Config {
 			Retention:             30 * 24 * time.Hour,
 			PruneInterval:         24 * time.Hour,
 			HungerAlertCooldown:   2 * time.Hour,
+			VitalsMinInterval:     2 * time.Second,
 		},
 		Governance: Governance{
 			FineStepDivisor:   100,

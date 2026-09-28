@@ -43,6 +43,23 @@ type RealtimeAnnouncement struct {
 	Texts map[string]string `json:"texts,omitempty"`
 }
 
+// RealtimeVitals is what a player's channel carries as their HUD numbers
+// change: a full snapshot, not a diff, so a client always replaces what it
+// has with the latest one and an out-of-order delivery costs nothing. See
+// vitals.go for where it comes from and how often it is sent.
+type RealtimeVitals struct {
+	Type      string `json:"type"` // "vitals"
+	Cash      int64  `json:"cash"`
+	Bank      int64  `json:"bank"`
+	Energy    int    `json:"energy"`
+	MaxEnergy int    `json:"max_energy"`
+	Health    int    `json:"health"`
+	MaxHealth int    `json:"max_health"`
+	XP        int64  `json:"xp"`
+	Level     int    `json:"level"`
+	Unread    int    `json:"unread"`
+}
+
 // RealtimeInboxUpdate is what a player's channel carries when an inbox-mode
 // notice changes their unread count. It is deliberately the count and
 // nothing else: a game client shows a bell badge from this alone, never a

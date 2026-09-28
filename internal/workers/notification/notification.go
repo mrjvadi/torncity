@@ -137,6 +137,15 @@ type Config struct {
 	Realtime          Realtime
 	RealtimeLanguages []string
 
+	// Vitals, when set (and Realtime is too), also publishes a player's HUD
+	// snapshot — cash, bank, energy, health, xp, level, unread — to their
+	// realtime channel on every notice, at most once every
+	// VitalsMinInterval (vitals.go). Nil publishes none: an existing
+	// deployment or test that does not set it behaves exactly as before
+	// this feature.
+	Vitals            VitalsReader
+	VitalsMinInterval time.Duration
+
 	// PlayerInbox, DeliveryModes and EditThrottle are the notification
 	// inbox (badge.go): what stores a notice and counts it on the badge,
 	// which kind sends at once instead, and how often the badge message may
@@ -152,6 +161,7 @@ type Config struct {
 type Worker struct {
 	cfg      Config
 	throttle *throttle
+	vitals   *vitalsDebounce
 }
 
 // New validates cfg and returns a worker.
@@ -170,9 +180,16 @@ func New(cfg Config) (*Worker, error) {
 	if cfg.Now == nil {
 		cfg.Now = time.Now
 	}
-	return &Worker{cfg: cfg, throttle: &throttle{
-		window: cfg.AnnounceWindow, max: cfg.AnnounceMax, groups: map[int64]*groupWindow{},
-	}}, nil
+	if cfg.VitalsMinInterval <= 0 {
+		cfg.VitalsMinInterval = 2 * time.Second
+	}
+	return &Worker{
+		cfg: cfg,
+		throttle: &throttle{
+			window: cfg.AnnounceWindow, max: cfg.AnnounceMax, groups: map[int64]*groupWindow{},
+		},
+		vitals: newVitalsDebounce(cfg.VitalsMinInterval),
+	}, nil
 }
 
 // Handle processes one delivery of one route's event.
@@ -238,6 +255,12 @@ func (w *Worker) Handle(ctx context.Context, route Route, env *envelope.Envelope
 		log.Error("cannot read the player", slog.String("error", err.Error()))
 		return err
 	}
+
+	// Best effort, debounced, and independent of everything below: whether
+	// this notice is instant or joins the inbox, whether delivery to
+	// Telegram succeeds or not, a client watching the player's realtime
+	// channel gets a fresh HUD snapshot (vitals.go).
+	w.publishVitals(ctx, now, player.ID, log)
 
 	lang := handlers.RenderLanguage(meta, player)
 	resp := draft.Screen(screens.Context{Msgs: w.cfg.Msgs, Lang: lang})
