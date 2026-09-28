@@ -39,12 +39,12 @@ import "math"
 // prior art (and hardware) to cross-check against if this ever needs a
 // non-Go port.
 const (
-	FacePX int8 = iota // +X
-	FaceNX              // -X
-	FacePY              // +Y
-	FaceNY              // -Y
-	FacePZ              // +Z
-	FaceNZ              // -Z
+	FacePX   int8 = iota // +X
+	FaceNX               // -X
+	FacePY               // +Y
+	FaceNY               // -Y
+	FacePZ               // +Z
+	FaceNZ               // -Z
 	numFaces = 6
 )
 
@@ -347,11 +347,29 @@ func (a ChunkAddr) Neighbors8() [8]ChunkAddr {
 // automatically seamless within one face, by construction, not by
 // approximation.
 func (a ChunkAddr) TileFlatUV(tileEdge, i, j int) (u, v float64) {
+	return a.TileFlatUVFrac(tileEdge, float64(i), float64(j))
+}
+
+// TileFlatUVFrac is TileFlatUV for a fractional tile position — i=-0.5 or
+// i=float64(tileEdge)-0.5, for instance, is exactly the chunk's own left or
+// right boundary rather than a tile centre. Used for tracing a chunk's
+// exact edge (the preview CLI's chunk-grid overlay) rather than sampling
+// its tiles.
+func (a ChunkAddr) TileFlatUVFrac(tileEdge int, i, j float64) (u, v float64) {
 	chunkSize := chunkFlatSize(a.LOD)
 	tileSize := chunkSize / float64(tileEdge)
-	u = -1 + chunkSize*float64(a.X) + tileSize*(float64(i)+0.5)
-	v = -1 + chunkSize*float64(a.Y) + tileSize*(float64(j)+0.5)
+	u = -1 + chunkSize*float64(a.X) + tileSize*(i+0.5)
+	v = -1 + chunkSize*float64(a.Y) + tileSize*(j+0.5)
 	return
+}
+
+// FaceDirection exposes the cube-sphere face formula for callers outside
+// this package that need to project a raw flat (face,u,v) coordinate
+// themselves (the preview CLI's chunk-grid overlay draws a chunk's exact
+// boundary, not just its tile centres) instead of re-deriving the same
+// tangent-adjusted cube-face math from scratch.
+func FaceDirection(face int8, u, v float64) (x, y, z float64) {
+	return faceDirection(face, u, v)
 }
 
 // TileUnitSpherePoint is TileFlatUV projected onto the unit sphere — the

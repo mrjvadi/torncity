@@ -31,13 +31,15 @@ func main() {
 	outDir := flag.String("out", "", "output directory for the PNGs, summary.json and legend.txt (required)")
 	width := flag.Int("width", 1600, "output image width in pixels")
 	height := flag.Int("height", 800, "output image height in pixels")
+	zoom := flag.Bool("zoom", false, "also render the chunk zoom preview (world+grid, a mid-LOD region, one base chunk's tiles)")
+	zoomOut := flag.String("zoom-out", "/tmp/claude-1000/world/chunks", "output directory for the --zoom renders")
 	flag.Parse()
 
 	if *outDir == "" {
 		fmt.Fprintln(os.Stderr, "worldpreview: --out is required")
 		os.Exit(2)
 	}
-	if err := run(*seed, *cells, *contentDir, *configPath, *outDir, *width, *height); err != nil {
+	if err := run(*seed, *cells, *contentDir, *configPath, *outDir, *width, *height, *zoom, *zoomOut); err != nil {
 		fmt.Fprintln(os.Stderr, "worldpreview:", err)
 		os.Exit(1)
 	}
@@ -76,7 +78,7 @@ func worldGenParams(wg config.WorldGen) worldgen.Params {
 	}
 }
 
-func run(seed uint64, cellOverride int, contentDir, configPath, outDir string, width, height int) error {
+func run(seed uint64, cellOverride int, contentDir, configPath, outDir string, width, height int, zoom bool, zoomOutDir string) error {
 	pack, err := content.LoadWorldGen(contentDir)
 	if err != nil {
 		return fmt.Errorf("loading world content: %w", err)
@@ -151,5 +153,13 @@ func run(seed uint64, cellOverride int, contentDir, configPath, outDir string, w
 	fmt.Printf("seed=%d cells=%d generation=%s heap_delta=%.1fMB land=%.1f%%\n",
 		seed, params.CellCount, elapsed, heapDeltaMB, summary.LandPercent)
 	fmt.Println(string(summaryJSON))
+
+	if zoom {
+		zoomStart := time.Now()
+		if err := runZoomPreview(w, zoomOutDir); err != nil {
+			return fmt.Errorf("zoom preview: %w", err)
+		}
+		fmt.Printf("zoom preview written to %s in %s\n", zoomOutDir, time.Since(zoomStart))
+	}
 	return nil
 }
