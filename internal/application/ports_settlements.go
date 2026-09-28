@@ -138,8 +138,8 @@ type Founding struct {
 	// jurisdiction sits under (governance.yml declares the level's allowed
 	// parents; today every founded village sits under the one playable
 	// country, content code default_country — DefaultFoundingCountryCode).
-	CountryCode string
-	FounderPlayerID       string
+	CountryCode     string
+	FounderPlayerID string
 	// FoundedByGroupChatID is the Telegram chat that founded it (negative,
 	// like every group chat id in this codebase).
 	FoundedByGroupChatID int64

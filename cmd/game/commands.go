@@ -23,11 +23,11 @@ type commandFunc func(ctx context.Context, env *envelope.Envelope) (*presenter.R
 
 // phaseHandlers is every use case this process serves.
 type phaseHandlers struct {
-	profile  *handlers.ProfileHandler
-	travel   *handlers.TravelHandler
-	skills   *handlers.SkillsHandler
-	social   *handlers.SocialHandler
-	worldMap *handlers.MapHandler
+	profile     *handlers.ProfileHandler
+	travel      *handlers.TravelHandler
+	skills      *handlers.SkillsHandler
+	social      *handlers.SocialHandler
+	worldMap    *handlers.MapHandler
 	settings    *handlers.SettingsHandler
 	bank        *handlers.BankHandler
 	gov         *handlers.GovernanceHandler
