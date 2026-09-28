@@ -80,11 +80,39 @@ func findRiverMouthNearMountains(w *worldgen.World) (int32, bool) {
 		if len(riv.Cells) == 0 {
 			continue
 		}
-		mouth := riv.Cells[len(riv.Cells)-1]
-		maxElev := nearbyMaxElevation(w, mouth, 6)
-		if maxElev > bestElev {
-			bestElev = maxElev
-			best = mouth
+		// Search the lower half of the river (closer to the sea, so the
+		// render still reads as a "river mouth") but require the cell
+		// itself to still be LAND: the mouth cell itself is, by
+		// definition, right at sea level and often already ocean, whose
+		// chunk would show nothing but flat coast — the more useful
+		// anchor for actually looking at hill/stream/deposit detail is
+		// the lowest-elevation LAND cell that still has real elevation
+		// nearby, i.e. where the valley is about to open onto the coast.
+		for idx := len(riv.Cells) / 2; idx < len(riv.Cells); idx++ {
+			cell := riv.Cells[idx]
+			if w.Cells[cell].Elevation <= 0 {
+				continue
+			}
+			maxElev := nearbyMaxElevation(w, cell, 6)
+			if maxElev > bestElev {
+				bestElev = maxElev
+				best = cell
+			}
+		}
+	}
+	if best < 0 {
+		// Every river's lower half was entirely at/below sea level (a very
+		// short river) — fall back to the plain mouth-cell search.
+		for _, riv := range w.Rivers {
+			if len(riv.Cells) == 0 {
+				continue
+			}
+			mouth := riv.Cells[len(riv.Cells)-1]
+			maxElev := nearbyMaxElevation(w, mouth, 6)
+			if maxElev > bestElev {
+				bestElev = maxElev
+				best = mouth
+			}
 		}
 	}
 	return best, best >= 0
