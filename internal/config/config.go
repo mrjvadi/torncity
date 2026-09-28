@@ -225,6 +225,14 @@ type Config struct {
 	// mode per kind lives in configs/notifications/delivery.yml instead;
 	// see internal/workers/notification.DeliveryModes).
 	Notifications Notifications
+
+	// WorldGen is the world generator's tuning (internal/domain/worldgen.
+	// Params): how many cells, how much land, how the noise and climate
+	// simulations are shaped. What biomes and resources exist, and the
+	// geology that places them, is CONTENT (configs/content/world.yml,
+	// docs/adr/0004-content-system.md's distinction); these are the
+	// coefficients that content, not a code change, should be able to move.
+	WorldGen WorldGen
 }
 
 // Postgres bounds every service's connection pool.
@@ -526,6 +534,30 @@ type Notifications struct {
 	// and two ledger reads for a number a client is about to overwrite
 	// again a moment later.
 	VitalsMinInterval time.Duration // notifications.vitals_min_interval
+}
+
+// WorldGen is the world generator's tuning
+// (internal/domain/worldgen.Params). Field-for-field the same values, in
+// the same units (Permille fields are parts-per-1000 ints, matching the
+// domain type of the same name) — this struct exists only because
+// internal/config stays free of any internal/domain import (no other
+// section here imports one either), so the CLI/service that actually calls
+// worldgen.Generate copies these into a worldgen.Params itself.
+type WorldGen struct {
+	CellCount              int     // worldgen.cell_count
+	NeighborK              int     // worldgen.neighbor_k
+	PlateCount             int     // worldgen.plate_count
+	OceanicPlateFraction   int     // worldgen.oceanic_plate_fraction_permille
+	LandFraction           int     // worldgen.land_fraction_permille
+	NoiseOctaves           int     // worldgen.noise_octaves
+	NoiseBaseFrequency     float64 // worldgen.noise_base_frequency
+	NoisePersistence       int     // worldgen.noise_persistence_permille
+	WarpAmplitude          float64 // worldgen.warp_amplitude
+	WarpFrequency          float64 // worldgen.warp_frequency
+	BoundaryInfluenceSteps int     // worldgen.boundary_influence_steps
+	MoistureBands          int     // worldgen.moisture_bands
+	RiverFlowThreshold     int     // worldgen.river_flow_threshold
+	LakeMinDepth           int     // worldgen.lake_min_depth
 }
 
 // Governance is the tuning of the office holder's screens
@@ -1059,6 +1091,22 @@ func Defaults() *Config {
 			HungerAlertCooldown:   2 * time.Hour,
 			VitalsMinInterval:     2 * time.Second,
 		},
+		WorldGen: WorldGen{
+			CellCount:              40_000,
+			NeighborK:              6,
+			PlateCount:             16,
+			OceanicPlateFraction:   550,
+			LandFraction:           450,
+			NoiseOctaves:           6,
+			NoiseBaseFrequency:     2.0,
+			NoisePersistence:       520,
+			WarpAmplitude:          0.45,
+			WarpFrequency:          1.1,
+			BoundaryInfluenceSteps: 9,
+			MoistureBands:          90,
+			RiverFlowThreshold:     12,
+			LakeMinDepth:           40,
+		},
 		Governance: Governance{
 			FineStepDivisor:   100,
 			CoarseStepDivisor: 10,
@@ -1382,6 +1430,16 @@ func parseInt(field, raw string) (int, error) {
 	v, err := strconv.Atoi(strings.TrimSpace(raw))
 	if err != nil {
 		return 0, fmt.Errorf("%w: %s: %q is not a whole number", ErrInvalidValue, field, raw)
+	}
+	return v, nil
+}
+
+// parseFloat reads a decimal number, for the handful of worldgen fields a
+// whole number cannot express (a noise frequency, a domain-warp amplitude).
+func parseFloat(field, raw string) (float64, error) {
+	v, err := strconv.ParseFloat(strings.TrimSpace(raw), 64)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %s: %q is not a number", ErrInvalidValue, field, raw)
 	}
 	return v, nil
 }

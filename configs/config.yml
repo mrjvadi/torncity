@@ -896,3 +896,48 @@ client:
 realtime:
   api_url: http://tc-centrifugo:8000/api
   publish_timeout: 2s
+
+# The world generator (internal/domain/worldgen; the project report at
+# docs/adr proposes the schema for what gets stored). What biomes and
+# resources exist, and the geology that places them, is CONTENT
+# (configs/content/world.yml) — these are the coefficients that shape the
+# planet a seed produces, not what it is made of.
+worldgen:
+  # How many mesh cells cover the sphere, and how many of them each connect
+  # to (a k-nearest-neighbour graph approximating hexagonal adjacency).
+  # Generation time and memory both scale with cell_count.
+  cell_count: 40000
+  neighbor_k: 6
+  # How many tectonic plates the mesh is partitioned into, and what share of
+  # them are oceanic (permille) rather than continental.
+  plate_count: 16
+  oceanic_plate_fraction_permille: 550
+  # The target share of cells that end up above sea level, permille. 450
+  # (45%) rather than Earth's own ~29%: the world exists for Telegram
+  # groups to settle on, so more land means more room for groups.
+  land_fraction_permille: 450
+  # Elevation noise: how many octaves are summed, the coarsest octave's
+  # spatial frequency, and the amplitude multiplier each further octave
+  # contributes (permille; 500 = half the amplitude of the octave before).
+  noise_octaves: 6
+  noise_base_frequency: 2.0
+  noise_persistence_permille: 520
+  # Domain warp applied to the sampling coordinates before reading the
+  # elevation noise field, so a coastline or mountain range does not trace
+  # the smooth geometric shape of the plate boundary that produced it.
+  # warp_amplitude is in sphere-coordinate units (roughly -1..1 per axis);
+  # warp_frequency is in the same units as noise_base_frequency.
+  warp_amplitude: 0.45
+  warp_frequency: 1.1
+  # How many graph-steps a plate boundary's effect (mountain building,
+  # rifting) reaches before decaying to zero.
+  boundary_influence_steps: 9
+  # How many latitude bands the prevailing-wind/moisture simulation divides
+  # the sphere into. More bands approximate the Hadley/Ferrel/polar
+  # circulation cells more finely, at the cost of generation time.
+  moisture_bands: 90
+  # The minimum flow accumulation (a cell count) before a cell is
+  # classified as carrying a river, and the minimum fill depth (elevation
+  # units) before a filled depression is rendered as a lake.
+  river_flow_threshold: 12
+  lake_min_depth: 40

@@ -490,6 +490,21 @@ client:
 realtime:
   api_url: http://realtime.example.test:8000/api
   publish_timeout: 3s
+worldgen:
+  cell_count: 41000
+  neighbor_k: 7
+  plate_count: 17
+  oceanic_plate_fraction_permille: 551
+  land_fraction_permille: 451
+  noise_octaves: 7
+  noise_base_frequency: 2.1
+  noise_persistence_permille: 521
+  warp_amplitude: 0.46
+  warp_frequency: 1.11
+  boundary_influence_steps: 10
+  moisture_bands: 91
+  river_flow_threshold: 13
+  lake_min_depth: 41
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -737,6 +752,21 @@ var envOverrides = map[string]string{
 	"TORN_CLIENT_MINI_APP_URL":                "https://play2.example.test",
 	"TORN_REALTIME_API_URL":                   "http://realtime2.example.test:8000/api",
 	"TORN_REALTIME_PUBLISH_TIMEOUT":           "4s",
+
+	"TORN_WORLDGEN_CELL_COUNT":                      "42000",
+	"TORN_WORLDGEN_NEIGHBOR_K":                      "8",
+	"TORN_WORLDGEN_PLATE_COUNT":                     "18",
+	"TORN_WORLDGEN_OCEANIC_PLATE_FRACTION_PERMILLE": "552",
+	"TORN_WORLDGEN_LAND_FRACTION_PERMILLE":          "452",
+	"TORN_WORLDGEN_NOISE_OCTAVES":                   "8",
+	"TORN_WORLDGEN_NOISE_BASE_FREQUENCY":            "2.2",
+	"TORN_WORLDGEN_NOISE_PERSISTENCE_PERMILLE":      "522",
+	"TORN_WORLDGEN_WARP_AMPLITUDE":                  "0.47",
+	"TORN_WORLDGEN_WARP_FREQUENCY":                  "1.12",
+	"TORN_WORLDGEN_BOUNDARY_INFLUENCE_STEPS":        "11",
+	"TORN_WORLDGEN_MOISTURE_BANDS":                  "92",
+	"TORN_WORLDGEN_RIVER_FLOW_THRESHOLD":            "14",
+	"TORN_WORLDGEN_LAKE_MIN_DEPTH":                  "42",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,
