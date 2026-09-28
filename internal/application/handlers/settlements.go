@@ -43,8 +43,8 @@ type SettlementsHandler struct {
 func NewSettlementsHandler(uow application.UnitOfWork, ids IDGenerator, msgs Translator, worlds *application.WorldCache,
 	spawnParams wsettle.Params, protectionWindow time.Duration, villageGridLots int, now func() time.Time,
 ) *SettlementsHandler {
-	if uow == nil || ids == nil || msgs == nil || worlds == nil {
-		panic("handlers: NewSettlementsHandler requires a unit of work, an id generator, a translator and a world cache")
+	if uow == nil || ids == nil || worlds == nil {
+		panic("handlers: NewSettlementsHandler requires a unit of work, an id generator and a world cache")
 	}
 	if protectionWindow <= 0 || villageGridLots < 2 {
 		panic("handlers: NewSettlementsHandler requires a positive protection window and a village grid of at least 2 lots")
