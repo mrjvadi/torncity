@@ -60,6 +60,19 @@ type World struct {
 
 	mesh  *Mesh
 	index *nearestIndex
+
+	// chunkDetailNoise/chunkStreamNoise are the two local, chunk-scale noise
+	// fields GenerateChunk (chunk.go) samples on top of the coarse fields
+	// above. Built once here (not lazily on first chunk request) so that
+	// every field of World is fully populated before Generate returns and
+	// GenerateChunk only ever READS from World afterwards — the same
+	// "build once, read concurrently" shape as the noise fields
+	// elevation.go/climate.go already build once per call to Generate and
+	// never mutate again, which is what lets many chunks be generated
+	// concurrently off one shared *World (see the project report's
+	// performance section).
+	chunkDetailNoise *noiseField
+	chunkStreamNoise *noiseField
 }
 
 // Generate builds a whole planet from a seed, tuning parameters and authored
@@ -133,6 +146,12 @@ func Generate(seed uint64, params Params, content Content) (*World, error) {
 	}), 10, "names:mountain")
 	rivers := extractRivers(mesh, hy, flow, nameRand, content, 12)
 
+	// Chunk-scale detail fields (chunk.go): independent noise streams, same
+	// derivation as every other named field in noise.go, sampled only when
+	// a chunk is actually generated.
+	chunkDetail := newNoiseField(seed, "chunk:detail", 4, params.ChunkDetailFrequency, 500, 0, 1)
+	chunkStream := newNoiseField(seed, "chunk:stream", 3, params.ChunkStreamFrequency, 500, 0, 1)
+
 	w := &World{
 		Seed:             seed,
 		GeneratorVersion: GeneratorVersion,
@@ -146,6 +165,8 @@ func Generate(seed uint64, params Params, content Content) (*World, error) {
 		MountainRanges:   mountainRanges,
 		Rivers:           rivers,
 		mesh:             mesh,
+		chunkDetailNoise: chunkDetail,
+		chunkStreamNoise: chunkStream,
 	}
 	return w, nil
 }

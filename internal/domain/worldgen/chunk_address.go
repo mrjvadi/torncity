@@ -334,3 +334,31 @@ func (a ChunkAddr) Neighbors8() [8]ChunkAddr {
 		a.Neighbor(0, -1), a.Neighbor(-1, -1), a.Neighbor(-1, 0), a.Neighbor(-1, 1),
 	}
 }
+
+// TileFlatUV returns local tile (i,j)'s centre, in addr's face's flat
+// [-1,1] coordinate space, for a chunk subdivided into tileEdge x tileEdge
+// tiles. i and j need not be in [0,tileEdge): a value outside that range is
+// a GHOST tile one or more tile-widths past addr's own edge — exactly what
+// chunk.go samples for edge-blending/continuity checks (see
+// TestChunkAddr_TileGhostConvergesToNeighborNative). Because this is a pure
+// affine function of the GLOBAL tile index (addr.X*tileEdge+i), two chunks
+// that are exact quadtree siblings tile this coordinate space with no gap
+// and no overlap: chunk.go's per-tile terrain sampling is therefore
+// automatically seamless within one face, by construction, not by
+// approximation.
+func (a ChunkAddr) TileFlatUV(tileEdge, i, j int) (u, v float64) {
+	chunkSize := chunkFlatSize(a.LOD)
+	tileSize := chunkSize / float64(tileEdge)
+	u = -1 + chunkSize*float64(a.X) + tileSize*(float64(i)+0.5)
+	v = -1 + chunkSize*float64(a.Y) + tileSize*(float64(j)+0.5)
+	return
+}
+
+// TileUnitSpherePoint is TileFlatUV projected onto the unit sphere — the
+// exact 3D point chunk.go samples every coarse and local field at for tile
+// (i,j).
+func (a ChunkAddr) TileUnitSpherePoint(tileEdge, i, j int) (x, y, z float64) {
+	u, v := a.TileFlatUV(tileEdge, i, j)
+	dx, dy, dz := faceDirection(a.Face, u, v)
+	return normalize3(dx, dy, dz)
+}
