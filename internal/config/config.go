@@ -558,6 +558,7 @@ type WorldGen struct {
 	MoistureBands          int     // worldgen.moisture_bands
 	RiverFlowThreshold     int     // worldgen.river_flow_threshold
 	LakeMinDepth           int     // worldgen.lake_min_depth
+	LakeMinAreaCells       int     // worldgen.lake_min_area_cells
 }
 
 // Governance is the tuning of the office holder's screens
@@ -1106,6 +1107,7 @@ func Defaults() *Config {
 			MoistureBands:          90,
 			RiverFlowThreshold:     12,
 			LakeMinDepth:           40,
+			LakeMinAreaCells:       20,
 		},
 		Governance: Governance{
 			FineStepDivisor:   100,

@@ -937,7 +937,13 @@ worldgen:
   # circulation cells more finely, at the cost of generation time.
   moisture_bands: 90
   # The minimum flow accumulation (a cell count) before a cell is
-  # classified as carrying a river, and the minimum fill depth (elevation
-  # units) before a filled depression is rendered as a lake.
+  # classified as carrying a river. A filled depression (priority-flood
+  # fills every one it finds, however small, to keep the drainage network
+  # free of dead ends) is only rendered as a lake, rather than just being
+  # part of the terrain a river flows through, when it clears BOTH the
+  # minimum fill depth (elevation units) and the minimum area (cells) below
+  # — area is what keeps the map to a handful of notable lakes instead of
+  # every small filled dip.
   river_flow_threshold: 12
   lake_min_depth: 40
+  lake_min_area_cells: 20

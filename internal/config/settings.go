@@ -237,6 +237,7 @@ type worldgenSettings struct {
 	MoistureBands          *int     `yaml:"moisture_bands"`
 	RiverFlowThreshold     *int     `yaml:"river_flow_threshold"`
 	LakeMinDepth           *int     `yaml:"lake_min_depth"`
+	LakeMinAreaCells       *int     `yaml:"lake_min_area_cells"`
 }
 
 type crimeSettings struct {
@@ -908,6 +909,9 @@ var coreSettings = []setting{
 	limitSetting("worldgen", "lake_min_depth",
 		func(c *Config) *int { return &c.WorldGen.LakeMinDepth },
 		func(f *fileConfig) *int { return f.WorldGen.LakeMinDepth }),
+	limitSetting("worldgen", "lake_min_area_cells",
+		func(c *Config) *int { return &c.WorldGen.LakeMinAreaCells },
+		func(f *fileConfig) *int { return f.WorldGen.LakeMinAreaCells }),
 
 	durationSetting("legislature", "vote_window",
 		func(c *Config) *time.Duration { return &c.Legislature.VoteWindow },

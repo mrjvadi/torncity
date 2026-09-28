@@ -505,6 +505,7 @@ worldgen:
   moisture_bands: 91
   river_flow_threshold: 13
   lake_min_depth: 41
+  lake_min_area_cells: 21
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -767,6 +768,7 @@ var envOverrides = map[string]string{
 	"TORN_WORLDGEN_MOISTURE_BANDS":                  "92",
 	"TORN_WORLDGEN_RIVER_FLOW_THRESHOLD":            "14",
 	"TORN_WORLDGEN_LAKE_MIN_DEPTH":                  "42",
+	"TORN_WORLDGEN_LAKE_MIN_AREA_CELLS":             "22",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

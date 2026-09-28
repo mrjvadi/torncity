@@ -52,21 +52,33 @@ type pixelGrids struct {
 	sampleWidth, sampleHeight int
 	nearestCell               []int32
 	elevation                 []float64
+	// shading is a blurred copy of elevation, read only by hillshade — see
+	// buildPixelGrids for why the two must not be the same array.
+	shading []float64
 }
 
 // querySampleSize picks the query grid's resolution: enough to sample every
-// mesh cell at least a couple of times over, capped so an unusually large
+// mesh cell at least a several times over, capped so an unusually large
 // --cells value cannot make the query grid bigger than the output image
 // itself (querying at a finer resolution than the image displays would be
 // pure waste).
+//
+// OVERSAMPLING FACTOR, AND WHY IT IS LARGER THAN A CELL COUNT ALONE
+// SUGGESTS. An earlier version of this function sampled at only ~3x the
+// mesh's own angular density, reasoning that the mesh has no more real
+// detail than that to show. That held for the original single-octave-ish
+// noise, but elevation.go's noise is now MULTI-OCTAVE FastNoiseLite FBm
+// with a domain warp on top (see internal/domain/worldgen/noise.go): its
+// finest octave and its warp both add texture at a spatial frequency well
+// above the mesh's own average cell size, on purpose — that is what a
+// fractal noise field is for. Querying that field below its own Nyquist
+// rate doesn't lose detail cleanly, it ALIASES: the classic symptom is
+// regular, geometric-looking dashed or hatched patterns appearing in
+// otherwise smooth areas (open ocean in this renderer's case), which is
+// exactly the artifact this factor was raised to fix. 8x, not 3x.
 func querySampleSize(cellCount, width, height int) (int, int) {
-	// Surface area of a unit sphere is 4*pi; a cell's average angular size
-	// in degrees follows from dividing that area by cellCount. Sampling at
-	// roughly 3x that angular density (a factor found by looking at
-	// renders, not derived) keeps coastlines and rivers crisp without
-	// oversampling into wasted queries.
 	avgCellDeg := 180 / math.Sqrt(float64(cellCount)/math.Pi)
-	sw := int(3 * 360 / avgCellDeg)
+	sw := int(8 * 360 / avgCellDeg)
 	sh := sw / 2
 	if sw > width {
 		sw = width
@@ -108,7 +120,55 @@ func buildPixelGrids(w *worldgen.World, width, height int) *pixelGrids {
 			}
 		}
 	}
+
+	g.shading = boxBlur(g.elevation, sw, sh, 2)
 	return g
+}
+
+// boxBlur returns a copy of elev averaged over a (2*radius+1)^2 box around
+// each sample, wrapping horizontally (the map is a full circle in
+// longitude) and clamping vertically (the poles are not).
+//
+// WHY HILLSHADE NEEDS THIS AND ELEVATION DOES NOT. Elevation's noise
+// (internal/domain/worldgen/noise.go) is deliberately fractal: several
+// octaves, the finest well above the query grid's own sampling rate (see
+// querySampleSize's doc comment on oversampling). That is fine for a COLOUR
+// decision — ocean depth tint, the snow/rock line — which only cares about
+// the value at one point. hillshade instead differentiates ADJACENT
+// samples to find a slope, and differentiating a signal that has real
+// content above the sampling grid's Nyquist rate does not average that
+// content away, it ALIASES it: the classic symptom is a regular,
+// geometric-looking dashed or woven pattern appearing across otherwise
+// smooth areas (open ocean, in this renderer's renders), which is exactly
+// the artifact a first look at the fine-detail-noise renders showed. A
+// small box blur is a cheap low-pass filter: it removes exactly the
+// above-Nyquist content that was aliasing, while leaving the large-scale
+// slope (a mountain belt rising over dozens of cells) that hillshade is
+// actually meant to show untouched.
+func boxBlur(elev []float64, width, height, radius int) []float64 {
+	out := make([]float64, len(elev))
+	for py := 0; py < height; py++ {
+		y0, y1 := py-radius, py+radius
+		if y0 < 0 {
+			y0 = 0
+		}
+		if y1 >= height {
+			y1 = height - 1
+		}
+		for px := 0; px < width; px++ {
+			var sum float64
+			var n int
+			for dx := -radius; dx <= radius; dx++ {
+				x := ((px+dx)%width + width) % width
+				for y := y0; y <= y1; y++ {
+					sum += elev[y*width+x]
+					n++
+				}
+			}
+			out[py*width+px] = sum / float64(n)
+		}
+	}
+	return out
 }
 
 // sampleCoords maps an output-image pixel to its query-grid sample
@@ -229,7 +289,7 @@ func renderReliefBiome(w *worldgen.World, g *pixelGrids, width, height int, path
 			cellID := g.nearestCell[idx]
 			cell := w.Cells[cellID]
 			smoothElev := elev[idx]
-			shade := hillshade(elev, g.sampleWidth, g.sampleHeight, sx, sy)
+			shade := hillshade(g.shading, g.sampleWidth, g.sampleHeight, sx, sy)
 
 			var base color.RGBA
 			if cell.IsOcean {
@@ -262,14 +322,13 @@ func renderReliefBiome(w *worldgen.World, g *pixelGrids, width, height int, path
 // renderResources draws a muted grey relief (so land/ocean/mountains are
 // still legible) with a coloured dot per deposit.
 func renderResources(w *worldgen.World, g *pixelGrids, width, height int, path string) error {
-	elev := g.elevation
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	for py := 0; py < height; py++ {
 		for px := 0; px < width; px++ {
 			sx, sy, idx := g.sampleCoords(px, py, width, height)
 			cellID := g.nearestCell[idx]
-			shade := hillshade(elev, g.sampleWidth, g.sampleHeight, sx, sy)
+			shade := hillshade(g.shading, g.sampleWidth, g.sampleHeight, sx, sy)
 			var base color.RGBA
 			if w.Cells[cellID].IsOcean {
 				base = color.RGBA{0x24, 0x38, 0x48, 255}
@@ -298,14 +357,13 @@ func renderResources(w *worldgen.World, g *pixelGrids, width, height int, path s
 // (the actual names are written to legend.txt — see the project report for
 // why this tool does not draw label text on the image itself).
 func renderPolitical(w *worldgen.World, g *pixelGrids, width, height int, path string) error {
-	elev := g.elevation
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	for py := 0; py < height; py++ {
 		for px := 0; px < width; px++ {
 			sx, sy, idx := g.sampleCoords(px, py, width, height)
 			cellID := g.nearestCell[idx]
-			shade := hillshade(elev, g.sampleWidth, g.sampleHeight, sx, sy)
+			shade := hillshade(g.shading, g.sampleWidth, g.sampleHeight, sx, sy)
 			var base color.RGBA
 			if w.Cells[cellID].IsOcean {
 				base = color.RGBA{0x2c, 0x44, 0x55, 255}

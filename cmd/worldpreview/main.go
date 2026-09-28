@@ -63,6 +63,7 @@ func worldGenParams(wg config.WorldGen) worldgen.Params {
 		MoistureBands:          wg.MoistureBands,
 		RiverFlowThreshold:     wg.RiverFlowThreshold,
 		LakeMinDepth:           worldgen.Elevation(wg.LakeMinDepth),
+		LakeMinAreaCells:       wg.LakeMinAreaCells,
 	}
 }
 
