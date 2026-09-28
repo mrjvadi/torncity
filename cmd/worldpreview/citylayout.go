@@ -22,9 +22,19 @@ import "sort"
 // cityTile is one lot's terrain, exactly enough for layout to decide roads
 // and placements: whether it can be built on at all, and the handful of
 // special conditions (coast, a deposit) a building type might want.
+//
+// WATER VS IMPASSABLE. At lot scale (~30m/lot, see export_city.go's
+// lotMeters) a thin stream or narrow river is only a few lots wide — a real
+// road bridges that, it does not detour around it. Water alone therefore
+// only ever means "wet, never buildable"; Impassable is the separate,
+// stronger flag ("also never crossable by a road without a bridge") set for
+// a lake, ocean or a river too wide to bridge. A bridgeable water tile has
+// Water=true, Impassable=false; a lake/ocean/wide-river tile has both true.
+// See traceRoads below for how the two are actually used.
 type cityTile struct {
-	Water        bool // river, stream, lake or ocean tile: never buildable, never a road
-	Steep        bool // local elevation gradient too high to build on
+	Water        bool // river, stream, lake or ocean tile: never buildable
+	Impassable   bool // lake, ocean, or a river too wide to bridge: also never crossable by a road
+	Steep        bool // local elevation gradient too high to build on or road across
 	Coast        bool // borders an ocean tile just outside this tile
 	Deposit      bool // a resource deposit is exactly on this tile
 	ResourceCode string
@@ -44,11 +54,13 @@ type cityLot struct {
 }
 
 // cityLayout is layoutCity's result: the road tiles (local grid
-// coordinates) and every placed building.
+// coordinates), which of those road tiles are bridges over a thin water
+// crossing, and every placed building.
 type cityLayout struct {
-	Size  int
-	Roads [][2]int
-	Lots  []cityLot
+	Size    int
+	Roads   [][2]int
+	Bridges [][2]int // subset of Roads that cross a bridgeable water tile
+	Lots    []cityLot
 }
 
 // footprintSpec is one building type's shape and how many the layout tries
@@ -210,7 +222,16 @@ func layoutCity(size int, tiles []cityTile) cityLayout {
 		return roads[i][0] < roads[j][0]
 	})
 
-	return cityLayout{Size: size, Roads: roads, Lots: lots}
+	// A road tile that landed on a (necessarily bridgeable, since traceRoads
+	// only ever jogs away from an Impassable one) water tile is a bridge.
+	var bridges [][2]int
+	for _, r := range roads {
+		if tiles[at(r[0], r[1])].Water {
+			bridges = append(bridges, r)
+		}
+	}
+
+	return cityLayout{Size: size, Roads: roads, Bridges: bridges, Lots: lots}
 }
 
 // roadLineIndices picks roadSpacing-apart grid lines inside [0,size), always
@@ -234,15 +255,21 @@ func roadLineIndices(size int) []int {
 
 // traceRoads walks each nominal road line across the grid, jogging it
 // sideways (within a small search radius) wherever the terrain under it is
-// water or too steep to grade a road across — ADR 0028 §6.2's roads are
-// "near-free", not free: a straight line the terrain won't allow simply
-// is not built there, the same way a real road bends around a stream. Ties
-// (the line's own row/column, then the nearest neighbour) resolve toward
-// the original line, so a road only ever jogs as far as it has to.
+// IMPASSABLE (a lake, ocean, wide river, or too steep to grade a road
+// across) — ADR 0028 §6.2's roads are "near-free", not free: a straight
+// line the terrain won't allow simply is not built there, the same way a
+// real road bends around a lake. A plain WATER tile that is not Impassable
+// (a thin, bridgeable stream or narrow river) does NOT force a jog: the
+// road crosses it in a straight line and that crossing is reported back as
+// a bridge (layoutCity, below) — correct at lot scale, where a stream is
+// only a few lots wide, unlike the old rule (jog around ANY water) that was
+// calibrated for a whole ~305m tile of water. Ties (the line's own
+// row/column, then the nearest neighbour) resolve toward the original
+// line, so a road only ever jogs as far as it has to.
 func traceRoads(size int, tiles []cityTile, hLines []int) (rowAt, colAt []int) {
 	at := func(x, y int) int { return y*size + x }
 	ok := func(x, y int) bool {
-		return x >= 0 && y >= 0 && x < size && y < size && !tiles[at(x, y)].Water && !tiles[at(x, y)].Steep
+		return x >= 0 && y >= 0 && x < size && y < size && !tiles[at(x, y)].Impassable && !tiles[at(x, y)].Steep
 	}
 
 	// One shared nominal line serves both axes on a square grid (the same
