@@ -33,13 +33,15 @@ func main() {
 	height := flag.Int("height", 800, "output image height in pixels")
 	zoom := flag.Bool("zoom", false, "also render the chunk zoom preview (world+grid, a mid-LOD region, one base chunk's tiles)")
 	zoomOut := flag.String("zoom-out", "/tmp/claude-1000/world/chunks", "output directory for the --zoom renders")
+	exportCity := flag.Bool("export-city", false, "export one demo city site (3x3 chunks of terrain + a 15x15 city layout) as JSON, for the web demo")
+	exportCityOut := flag.String("export-city-out", "/tmp/claude-1000/world/city/city.json", "output path for --export-city's JSON")
 	flag.Parse()
 
 	if *outDir == "" {
 		fmt.Fprintln(os.Stderr, "worldpreview: --out is required")
 		os.Exit(2)
 	}
-	if err := run(*seed, *cells, *contentDir, *configPath, *outDir, *width, *height, *zoom, *zoomOut); err != nil {
+	if err := run(*seed, *cells, *contentDir, *configPath, *outDir, *width, *height, *zoom, *zoomOut, *exportCity, *exportCityOut); err != nil {
 		fmt.Fprintln(os.Stderr, "worldpreview:", err)
 		os.Exit(1)
 	}
@@ -78,7 +80,7 @@ func worldGenParams(wg config.WorldGen) worldgen.Params {
 	}
 }
 
-func run(seed uint64, cellOverride int, contentDir, configPath, outDir string, width, height int, zoom bool, zoomOutDir string) error {
+func run(seed uint64, cellOverride int, contentDir, configPath, outDir string, width, height int, zoom bool, zoomOutDir string, exportCity bool, exportCityOut string) error {
 	pack, err := content.LoadWorldGen(contentDir)
 	if err != nil {
 		return fmt.Errorf("loading world content: %w", err)
@@ -160,6 +162,14 @@ func run(seed uint64, cellOverride int, contentDir, configPath, outDir string, w
 			return fmt.Errorf("zoom preview: %w", err)
 		}
 		fmt.Printf("zoom preview written to %s in %s\n", zoomOutDir, time.Since(zoomStart))
+	}
+
+	if exportCity {
+		exportStart := time.Now()
+		if err := runExportCity(w, exportCityOut); err != nil {
+			return fmt.Errorf("export-city: %w", err)
+		}
+		fmt.Printf("export-city written in %s\n", time.Since(exportStart))
 	}
 	return nil
 }
