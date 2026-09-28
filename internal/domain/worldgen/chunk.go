@@ -269,16 +269,32 @@ func (w *World) GenerateChunk(addr ChunkAddr) (*Chunk, error) {
 
 			// Climate jitter: a small, independent noise field perturbing
 			// the INTERPOLATED temperature/precipitation before
-			// classification (not the coarse cells themselves), at every
-			// LOD. Without it, classifyLandBiome's box-distance boundary
-			// is still a perfectly smooth curve through the interpolated
-			// climate field — correct, but visibly too clean next to real
-			// terrain. This is what breaks it into an organic, slightly
-			// wandering border instead, the same role the elevation warp
-			// noise plays for a coastline (noise.go).
-			jitter := w.chunkClimateNoise.Sample3(x, y, z)
-			temp += jitter * climateJitterTempAmplitude
-			precip += jitter * climateJitterPrecipAmplitude
+			// classification (not the coarse cells themselves). Without
+			// it, classifyLandBiome's box-distance boundary is still a
+			// perfectly smooth curve through the interpolated climate
+			// field — correct, but visibly too clean next to real terrain.
+			// This is what breaks it into an organic, slightly wandering
+			// border instead, the same role the elevation warp noise plays
+			// for a coastline (noise.go).
+			//
+			// BASE LOD ONLY. climateJitterFrequency is a fixed real-world
+			// wavelength (a few km, chosen to look organic against a
+			// ~305m BASE tile). A coarser LOD's tile is physically LARGER
+			// (each LOD halves resolution), so at some coarse LOD the
+			// jitter's own wavelength stops being large relative to the
+			// tile spacing and starts aliasing again — the same undersampling
+			// bug fixed for elevation/stream detail above, just recurring
+			// one LOD level up instead of within one chunk. The coarse
+			// mesh's own IDW interpolation (sampleCoarseAmong) already
+			// gives every LOD an organically-curved (non-polygon) border
+			// on its own; jitter only ever adds a further wobble on top of
+			// that, so simply skipping it off the base LOD is a correct
+			// simplification, not a lost fix.
+			if isBase {
+				jitter := w.chunkClimateNoise.Sample3(x, y, z)
+				temp += jitter * climateJitterTempAmplitude
+				precip += jitter * climateJitterPrecipAmplitude
+			}
 
 			e16 := clampInt16(quantize(elev))
 			isOcean := e16 <= 0
