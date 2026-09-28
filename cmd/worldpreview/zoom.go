@@ -7,39 +7,43 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 )
 
 // This file is the chunk zoom preview: three renders at one interesting
-// location (a river mouth next to mountains, found automatically — see
-// findRiverMouthNearMountains) meant to be looked at TOGETHER, to confirm
-// zooming from the whole world down to one chunk's tiles stays consistent:
+// location (a hill next to a stream, found automatically — see
+// findGoodChunkAnchor) meant to be looked at TOGETHER, to confirm zooming
+// from the whole world down to one chunk's tiles stays consistent AND that
+// a close-up actually looks like local terrain, not a flat colour swatch:
 //
 //  1. relief_biome.png's own equirectangular map, with the chunk grid at a
 //     coarse LOD drawn over it.
 //  2. a face region around the location at a mid LOD, each chunk's own
-//     (coarse-sampled) tile grid laid out edge to edge.
-//  3. one base-LOD chunk's full tile grid — the actual gameplay-resolution
-//     data: hills, a stream if one runs through it, deposit markers.
+//     (coarse-sampled, still hillshaded and organically-classified) tile
+//     grid laid out edge to edge.
+//  3. one base-LOD chunk's full tile grid, rendered large — the actual
+//     gameplay-resolution data: hills, a stream, deposit markers.
+//
+// All three use the SAME relief style renderReliefBiome (render.go) does —
+// hillshaded biome colour, ocean tinted by depth, a rock/snow band on high
+// ground — via the shared tileBaseColor below, so the three images read as
+// one map zooming in rather than three different rendering styles.
 //
 // VISUAL ONLY, same as render.go: nothing here feeds back into generation.
 
-// overviewGridLOD/midLOD are the two non-base LODs shown; midLOD is
-// ChunkBaseLOD-4 (chunks ~16x wider than a base chunk — enough chunks
-// around the target to see structure, not so many the crop is the whole
-// continent) computed relative to the world's own ChunkBaseLOD rather than
-// hardcoded, so a --cells or config change that moves ChunkBaseLOD doesn't
-// silently break the crop.
+// overviewGridLOD is the coarse LOD the whole-world image's grid overlay is
+// drawn at.
 const overviewGridLOD = 5
 
 func runZoomPreview(w *worldgen.World, outDir string) error {
-	mouthCell, ok := findRiverMouthNearMountains(w)
+	baseAddr, ok := findGoodChunkAnchor(w)
 	if !ok {
-		return fmt.Errorf("zoom: no river with cells found to anchor the zoom location on")
+		return fmt.Errorf("zoom: could not find a chunk with both hills and a stream to anchor the zoom location on")
 	}
-	p := w.Cells[mouthCell].Point
-	fmt.Printf("zoom: anchoring at lat=%.2f lon=%.2f (river mouth near the highest nearby elevation found)\n", p.LatDeg, p.LonDeg)
+	latDeg, lonDeg := baseAddr.LatLon()
+	fmt.Printf("zoom: anchoring at lat=%.2f lon=%.2f (base chunk %+v, chosen for visible hills + a stream)\n", latDeg, lonDeg, baseAddr)
 
 	if err := os.MkdirAll(outDir, 0o755); err != nil {
 		return fmt.Errorf("creating %s: %w", outDir, err)
@@ -50,8 +54,19 @@ func runZoomPreview(w *worldgen.World, outDir string) error {
 	if midLOD < overviewGridLOD+1 {
 		midLOD = overviewGridLOD + 1
 	}
-	baseAddr := worldgen.ChunkOfLatLon(baseLOD, p.LatDeg, p.LonDeg)
-	midAddr := worldgen.ChunkOfLatLon(midLOD, p.LatDeg, p.LonDeg)
+	// Walk up the quadtree from the chosen base chunk rather than
+	// re-deriving the mid-LOD address independently from lat/lon: Parent()
+	// guarantees the mid-LOD chunk's footprint actually CONTAINS the base
+	// chunk, which an independent lookup could occasionally miss by one
+	// chunk right at a boundary.
+	midAddr := baseAddr
+	for midAddr.LOD > midLOD {
+		p, ok := midAddr.Parent()
+		if !ok {
+			break
+		}
+		midAddr = p
+	}
 
 	if err := renderWorldWithChunkGrid(w, filepath.Join(outDir, "1_world_chunk_grid.png")); err != nil {
 		return fmt.Errorf("world+grid: %w", err)
@@ -62,83 +77,86 @@ func runZoomPreview(w *worldgen.World, outDir string) error {
 	if err := renderBaseChunk(w, baseAddr, filepath.Join(outDir, "3_base_chunk_tiles.png")); err != nil {
 		return fmt.Errorf("base chunk: %w", err)
 	}
+	if err := writeZoomLegend(w, filepath.Join(outDir, "legend.txt")); err != nil {
+		return fmt.Errorf("writing legend: %w", err)
+	}
 
 	fmt.Printf("zoom: base chunk = %+v (mid LOD %d addr = %+v)\n", baseAddr, midLOD, midAddr)
 	return nil
 }
 
-// findRiverMouthNearMountains scans every named river's mouth (its last
-// cell, where it reaches the sea) and keeps the one with the highest
-// elevation reachable within a few graph-hops — a cheap, deterministic
-// stand-in for "looks like a river running out of a mountain range", good
-// enough to pick a visually interesting, reproducible location without a
-// human choosing one by hand.
-func findRiverMouthNearMountains(w *worldgen.World) (int32, bool) {
-	best := int32(-1)
-	bestElev := int32(math.MinInt32)
-	for _, riv := range w.Rivers {
-		if len(riv.Cells) == 0 {
-			continue
-		}
-		// Search the lower half of the river (closer to the sea, so the
-		// render still reads as a "river mouth") but require the cell
-		// itself to still be LAND: the mouth cell itself is, by
-		// definition, right at sea level and often already ocean, whose
-		// chunk would show nothing but flat coast — the more useful
-		// anchor for actually looking at hill/stream/deposit detail is
-		// the lowest-elevation LAND cell that still has real elevation
-		// nearby, i.e. where the valley is about to open onto the coast.
-		for idx := len(riv.Cells) / 2; idx < len(riv.Cells); idx++ {
-			cell := riv.Cells[idx]
-			if w.Cells[cell].Elevation <= 0 {
-				continue
-			}
-			maxElev := nearbyMaxElevation(w, cell, 6)
-			if maxElev > bestElev {
-				bestElev = maxElev
-				best = cell
-			}
-		}
-	}
-	if best < 0 {
-		// Every river's lower half was entirely at/below sea level (a very
-		// short river) — fall back to the plain mouth-cell search.
-		for _, riv := range w.Rivers {
-			if len(riv.Cells) == 0 {
-				continue
-			}
-			mouth := riv.Cells[len(riv.Cells)-1]
-			maxElev := nearbyMaxElevation(w, mouth, 6)
-			if maxElev > bestElev {
-				bestElev = maxElev
-				best = mouth
-			}
-		}
-	}
-	return best, best >= 0
-}
+// findGoodChunkAnchor looks for a base-LOD chunk that actually shows what
+// this preview exists to check: real elevation relief AND a stream tile,
+// inside the SAME chunk. It searches candidate chunks along every named
+// river (only land cells — a river's mouth is at sea level, at or past the
+// coastline, and its own chunk usually shows nothing but flat coast) and
+// scores each candidate by (has a stream tile, elevation range) — hills and
+// a stream both need to have actually come out of GenerateChunk, not just
+// be plausible from the coarse mesh, so this generates and scores real
+// candidate chunks rather than guessing from cell data alone.
+func findGoodChunkAnchor(w *worldgen.World) (worldgen.ChunkAddr, bool) {
+	baseLOD := w.Params.ChunkBaseLOD
+	tried := make(map[worldgen.ChunkAddr]bool)
 
-func nearbyMaxElevation(w *worldgen.World, start int32, hops int) int32 {
-	visited := map[int32]bool{start: true}
-	frontier := []int32{start}
-	maxElev := int32(w.Cells[start].Elevation)
-	for h := 0; h < hops && len(frontier) > 0; h++ {
-		var next []int32
-		for _, c := range frontier {
-			for _, n := range w.Neighbors(c) {
-				if visited[n] {
-					continue
+	type candidate struct {
+		addr      worldgen.ChunkAddr
+		hasStream bool
+		elevRange int
+	}
+	var candidates []candidate
+	const maxCandidates = 400
+
+	for _, riv := range w.Rivers {
+		for _, cell := range riv.Cells {
+			if w.Cells[cell].Elevation <= 0 {
+				continue // at/below sea level: skip, see doc comment
+			}
+			p := w.Cells[cell].Point
+			addr := worldgen.ChunkOfLatLon(baseLOD, p.LatDeg, p.LonDeg)
+			if tried[addr] {
+				continue
+			}
+			tried[addr] = true
+
+			c, err := w.GenerateChunk(addr)
+			if err != nil {
+				continue
+			}
+			minE, maxE := int16(1<<15-1), int16(-1<<15)
+			hasStream := false
+			for _, t := range c.Tiles {
+				if t.Elevation < minE {
+					minE = t.Elevation
 				}
-				visited[n] = true
-				if e := int32(w.Cells[n].Elevation); e > maxElev {
-					maxElev = e
+				if t.Elevation > maxE {
+					maxE = t.Elevation
 				}
-				next = append(next, n)
+				if t.IsStream() {
+					hasStream = true
+				}
+			}
+			candidates = append(candidates, candidate{addr, hasStream, int(maxE - minE)})
+			if len(candidates) >= maxCandidates {
+				break
 			}
 		}
-		frontier = next
+		if len(candidates) >= maxCandidates {
+			break
+		}
 	}
-	return maxElev
+	if len(candidates) == 0 {
+		return worldgen.ChunkAddr{}, false
+	}
+
+	best := candidates[0]
+	for _, c := range candidates[1:] {
+		betterStream := c.hasStream && !best.hasStream
+		sameStream := c.hasStream == best.hasStream
+		if betterStream || (sameStream && c.elevRange > best.elevRange) {
+			best = c
+		}
+	}
+	return best.addr, true
 }
 
 // renderWorldWithChunkGrid draws the same relief/biome map render.go's main
@@ -206,9 +224,9 @@ func drawChunkGridOverlay(w *worldgen.World, img *image.RGBA, width, height int,
 
 // drawChunkEdge draws the edge of addr's footprint facing (dx,dy) (one of
 // the 4 cardinal directions) by sampling points along it in the chunk's own
-// flat coordinate space, via ChunkAddr.TileFlatUV pushed to the tile grid's
-// very edge (i or j = -0.5 or tileEdge-0.5, i.e. the true chunk boundary
-// rather than a tile centre).
+// flat coordinate space, via ChunkAddr.TileFlatUVFrac pushed to the tile
+// grid's very edge (i or j = -0.5 or tileEdge-0.5, i.e. the true chunk
+// boundary rather than a tile centre).
 func drawChunkEdge(w *worldgen.World, img *image.RGBA, width, height int, addr worldgen.ChunkAddr, dx, dy int, samples int, c color.RGBA) {
 	for s := 0; s <= samples; s++ {
 		t := float64(s) / float64(samples)
@@ -251,45 +269,67 @@ func clampF(v, lo, hi float64) float64 {
 // renderMidLODRegion renders a window of chunks around centre at their own
 // LOD, each chunk's coarse-sampled tile grid laid out edge to edge (a
 // simple 2D grid in chunk-space, ignoring sphere curvature — accurate
-// enough over the handful-of-chunks span this window covers) with grid
-// lines between chunks.
+// enough over the handful-of-chunks span this window covers), hillshaded
+// as ONE COMBINED elevation field across the whole window (not chunk by
+// chunk) so the relief reads continuously across a chunk boundary instead
+// of each chunk showing its own independently-lit patch.
 func renderMidLODRegion(w *worldgen.World, center worldgen.ChunkAddr, path string) error {
 	const windowChunks = 6 // (2*windowChunks+1)^2 chunks
 	edge := w.Params.ChunkTileEdge
 	span := 2*windowChunks + 1
-	width := span * edge
-	height := span * edge
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	gridW := span * edge
+	gridH := span * edge
+
+	tiles := make([][]worldgen.ChunkTile, span*span) // index by (cyi*span+cxi)
+	elev := make([]float64, gridW*gridH)
 
 	for cy := -windowChunks; cy <= windowChunks; cy++ {
 		for cx := -windowChunks; cx <= windowChunks; cx++ {
-			addr := center
-			// Walk chunk-by-chunk via Neighbor rather than adding to X/Y
-			// directly, so a window that spans a cube face edge is still
-			// correct.
-			addr = walkChunks(addr, cx, cy)
+			addr := walkChunks(center, cx, cy)
 			c, err := w.GenerateChunk(addr)
 			if err != nil {
 				return err
 			}
-			ox := (cx + windowChunks) * edge
-			oy := (windowChunks - cy) * edge
-			drawChunkTiles(w, img, c, ox, oy, 1)
+			cxi, cyi := cx+windowChunks, windowChunks-cy
+			tiles[cyi*span+cxi] = c.Tiles
+			ox, oy := cxi*edge, cyi*edge
+			for j := 0; j < edge; j++ {
+				for i := 0; i < edge; i++ {
+					elev[(oy+j)*gridW+(ox+i)] = float64(c.TileAt(i, j).Elevation)
+				}
+			}
+		}
+	}
+
+	const scale = 1
+	img := image.NewRGBA(image.Rect(0, 0, gridW*scale, gridH*scale))
+	for cyi := 0; cyi < span; cyi++ {
+		for cxi := 0; cxi < span; cxi++ {
+			t := tiles[cyi*span+cxi]
+			ox, oy := cxi*edge, cyi*edge
+			for j := 0; j < edge; j++ {
+				for i := 0; i < edge; i++ {
+					gx, gy := ox+i, oy+j
+					shade := hillshade(elev, gridW, gridH, gx, gy)
+					base := tileBaseColor(w, t[j*edge+i])
+					img.Set(gx, gy, scaleColor(base, shade))
+				}
+			}
 		}
 	}
 
 	// Chunk boundary lines over the tile grid.
-	gridColor := color.RGBA{255, 210, 0, 160}
+	gridColor := color.RGBA{255, 210, 0, 140}
 	for k := 0; k <= span; k++ {
 		x := k * edge
-		if x < width {
-			for y := 0; y < height; y++ {
+		if x < gridW {
+			for y := 0; y < gridH; y++ {
 				img.Set(x, y, gridColor)
 			}
 		}
 		y := k * edge
-		if y < height {
-			for x := 0; x < width; x++ {
+		if y < gridH {
+			for x := 0; x < gridW; x++ {
 				img.Set(x, y, gridColor)
 			}
 		}
@@ -314,18 +354,39 @@ func walkChunks(addr worldgen.ChunkAddr, dx, dy int) worldgen.ChunkAddr {
 	return addr
 }
 
-// renderBaseChunk renders one base-LOD chunk's full tile grid at
-// gameplay resolution: elevation-shaded biome colour, streams and lakes in
-// blue, a marker dot on every exact deposit tile.
+// baseChunkRenderScale upscales each 305m tile to a visible block: 32
+// tiles x 16px = 512px, matching the "render the base chunk larger" ask.
+const baseChunkRenderScale = 16
+
+// renderBaseChunk renders one base-LOD chunk's full tile grid at gameplay
+// resolution, in the same hillshaded relief/biome style as the other two
+// zoom renders: streams and lakes tinted blue, a marker dot + legend for
+// every exact deposit tile.
 func renderBaseChunk(w *worldgen.World, addr worldgen.ChunkAddr, path string) error {
 	c, err := w.GenerateChunk(addr)
 	if err != nil {
 		return err
 	}
 	edge := w.Params.ChunkTileEdge
-	const scale = 12 // upscale so 32x32 tiles are actually visible
+
+	elev := make([]float64, edge*edge)
+	for i, t := range c.Tiles {
+		elev[i] = float64(t.Elevation)
+	}
+
+	scale := baseChunkRenderScale
 	img := image.NewRGBA(image.Rect(0, 0, edge*scale, edge*scale))
-	drawChunkTiles(w, img, c, 0, 0, scale)
+	for j := 0; j < edge; j++ {
+		for i := 0; i < edge; i++ {
+			shade := hillshade(elev, edge, edge, i, j)
+			base := scaleColor(tileBaseColor(w, c.TileAt(i, j)), shade)
+			for py := 0; py < scale; py++ {
+				for px := 0; px < scale; px++ {
+					img.Set(i*scale+px, j*scale+py, base)
+				}
+			}
+		}
+	}
 
 	resourceColor := make(map[string]color.RGBA, len(w.Content.Resources))
 	for _, r := range w.Content.Resources {
@@ -334,46 +395,61 @@ func renderBaseChunk(w *worldgen.World, addr worldgen.ChunkAddr, path string) er
 	for _, d := range c.Deposits {
 		cx := int(d.TileX)*scale + scale/2
 		cy := int(d.TileY)*scale + scale/2
+		// A dark outline ring then the resource's own colour on top, so a
+		// marker stays visible against a similarly-coloured tile under it.
+		drawDot(img, cx, cy, scale/2+2, color.RGBA{0x20, 0x14, 0x10, 255})
 		drawDot(img, cx, cy, scale/2, resourceColor[d.ResourceCode])
 	}
 
 	return savePNG(img, path)
 }
 
-// drawChunkTiles paints c's tile grid into img starting at (ox,oy), each
-// tile drawn as a scale x scale block.
-func drawChunkTiles(w *worldgen.World, img *image.RGBA, c *worldgen.Chunk, ox, oy, scale int) {
-	streamColor := color.RGBA{0x5a, 0xa8, 0xdd, 255}
-	for j := 0; j < c.TileEdge; j++ {
-		for i := 0; i < c.TileEdge; i++ {
-			t := c.TileAt(i, j)
-			var base color.RGBA
-			switch {
-			case t.IsOcean():
-				depthT := clamp01(-float64(t.Elevation) / 4500)
-				base = mixColor(color.RGBA{0x3a, 0x7d, 0xb3, 255}, color.RGBA{0x0d, 0x1d, 0x2c, 255}, depthT)
-			case t.IsStream(), t.IsLake():
-				base = streamColor
-			default:
-				base = hexColor(w.Content.Biomes[t.Biome].ColorHex, defaultGrey)
-				switch {
-				case t.Elevation > 4200:
-					tt := clamp01((float64(t.Elevation) - 4200) / 1600)
-					base = mixColor(bareRock, snowWhite, tt)
-				case t.Elevation > 2600:
-					tt := clamp01((float64(t.Elevation) - 2600) / 1600)
-					base = mixColor(base, bareRock, tt)
-				}
-			}
-			for py := 0; py < scale; py++ {
-				for px := 0; px < scale; px++ {
-					x, y := ox+i*scale+px, oy+j*scale+py
-					if x < 0 || y < 0 || x >= img.Bounds().Dx() || y >= img.Bounds().Dy() {
-						continue
-					}
-					img.Set(x, y, base)
-				}
-			}
+// tileBaseColor is renderReliefBiome's (render.go) colour formula, applied
+// to one tile instead of one coarse cell: ocean tinted by depth, a stream
+// or lake tinted blue, land tinted by its biome with a rock/snow band on
+// high ground. Shared by renderMidLODRegion and renderBaseChunk so every
+// zoom render reads as the same map at a different zoom level, not three
+// different styles.
+func tileBaseColor(w *worldgen.World, t worldgen.ChunkTile) color.RGBA {
+	switch {
+	case t.IsOcean():
+		oceanBiome := w.Content.Biomes[t.Biome]
+		shallow := hexColor(oceanBiome.ColorHex, color.RGBA{0x1a, 0x4d, 0x73, 255})
+		deep := scaleColor(shallow, 0.35)
+		depthT := clamp01(-float64(t.Elevation) / 4500)
+		return mixColor(shallow, deep, depthT)
+	case t.IsStream():
+		return color.RGBA{0x5a, 0xa8, 0xdd, 255}
+	case t.IsLake():
+		lakeBiome := w.Content.Biomes[t.Biome]
+		return hexColor(lakeBiome.ColorHex, color.RGBA{0x2a, 0x6d, 0x93, 255})
+	default:
+		base := hexColor(w.Content.Biomes[t.Biome].ColorHex, defaultGrey)
+		switch {
+		case t.Elevation > snowlineElevation:
+			tt := clamp01((float64(t.Elevation) - snowlineElevation) / 1600)
+			base = mixColor(bareRock, snowWhite, tt)
+		case t.Elevation > rocklineElevation:
+			tt := clamp01((float64(t.Elevation) - rocklineElevation) / (snowlineElevation - rocklineElevation))
+			base = mixColor(base, bareRock, tt)
 		}
+		return base
 	}
+}
+
+// writeZoomLegend writes the resource-code -> colour key for
+// 3_base_chunk_tiles.png's deposit dots, the same text-companion
+// convention legend.go already uses for the whole-world preview (stdlib
+// image/png has no font rendering, so a label lives in a plain-text
+// companion instead of on the image).
+func writeZoomLegend(w *worldgen.World, path string) error {
+	var b strings.Builder
+	b.WriteString("Deposit marker colours (3_base_chunk_tiles.png)\n")
+	for _, r := range w.Content.Resources {
+		fmt.Fprintf(&b, "  %-16s #%s\n", r.Code, r.ColorHex)
+	}
+	b.WriteString("\nRelief style: hillshaded biome colour (land), depth-tinted blue (ocean),\n")
+	b.WriteString("light blue (stream/lake), bare rock then snow above the rockline/snowline —\n")
+	b.WriteString("the same palette as ../relief_biome.png.\n")
+	return os.WriteFile(path, []byte(b.String()), 0o644)
 }

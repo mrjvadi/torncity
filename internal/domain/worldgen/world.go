@@ -71,8 +71,9 @@ type World struct {
 	// never mutate again, which is what lets many chunks be generated
 	// concurrently off one shared *World (see the project report's
 	// performance section).
-	chunkDetailNoise *noiseField
-	chunkStreamNoise *noiseField
+	chunkDetailNoise  *noiseField
+	chunkStreamNoise  *noiseField
+	chunkClimateNoise *noiseField
 }
 
 // Generate builds a whole planet from a seed, tuning parameters and authored
@@ -151,22 +152,24 @@ func Generate(seed uint64, params Params, content Content) (*World, error) {
 	// a chunk is actually generated.
 	chunkDetail := newNoiseField(seed, "chunk:detail", 4, params.ChunkDetailFrequency, 500, 0, 1)
 	chunkStream := newNoiseField(seed, "chunk:stream", 3, params.ChunkStreamFrequency, 500, 0, 1)
+	chunkClimate := newNoiseField(seed, "chunk:climate", 2, climateJitterFrequency, 500, 0, 1)
 
 	w := &World{
-		Seed:             seed,
-		GeneratorVersion: GeneratorVersion,
-		Params:           params,
-		Content:          content,
-		Cells:            cells,
-		Plates:           plates,
-		Deposits:         deposits,
-		Continents:       continents,
-		Seas:             seas,
-		MountainRanges:   mountainRanges,
-		Rivers:           rivers,
-		mesh:             mesh,
-		chunkDetailNoise: chunkDetail,
-		chunkStreamNoise: chunkStream,
+		Seed:              seed,
+		GeneratorVersion:  GeneratorVersion,
+		Params:            params,
+		Content:           content,
+		Cells:             cells,
+		Plates:            plates,
+		Deposits:          deposits,
+		Continents:        continents,
+		Seas:              seas,
+		MountainRanges:    mountainRanges,
+		Rivers:            rivers,
+		mesh:              mesh,
+		chunkDetailNoise:  chunkDetail,
+		chunkStreamNoise:  chunkStream,
+		chunkClimateNoise: chunkClimate,
 	}
 	return w, nil
 }

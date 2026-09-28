@@ -29,6 +29,23 @@ import "math"
 // (coastlines, mountain ranges) a chunk is supposed to still track.
 const idwK = 4
 
+// climateJitterFrequency/climateJitterTempAmplitude/climateJitterPrecipAmplitude
+// tune the organic-border noise described on coarseSample's doc comment.
+// Fixed constants, not exposed through Params/config: unlike every tunable
+// in params.go, this noise has no gameplay weight of its own (it never
+// changes WHICH biomes exist or their climate ranges, only where the
+// border between two already-decided neighbours wobbles by a fraction of
+// a coarse cell) — the same category ADR 0028 puts decoration/skin noise
+// in, which the project explicitly does not require to be content-tunable.
+// The frequency is deliberately higher than NoiseBaseFrequency (climate.go)
+// so the wobble reads as texture at chunk scale, not a second, competing
+// climate signal at coarse-mesh scale.
+const (
+	climateJitterFrequency       = 30.0
+	climateJitterTempAmplitude   = 250.0 // centi-degrees C
+	climateJitterPrecipAmplitude = 200.0 // mm/year
+)
+
 // ChunkTile is one tile's full generated state, compact by design: a whole
 // base chunk (32x32 by default) is meant to move over the wire and sit in
 // an LRU cache across many replicas (see chunk_cache.go, chunk_codec.go).
@@ -93,15 +110,23 @@ type Chunk struct {
 func (c *Chunk) TileAt(i, j int) ChunkTile { return c.Tiles[j*c.TileEdge+i] }
 
 // coarseSample is one tile's inverse-distance-weighted blend of the coarse
-// mesh's fields at a point, plus the single nearest cell's discrete fields
-// (biome, ocean/lake — blending a biome INDEX numerically would be
-// nonsensical, so those come from the single closest coarse cell instead,
-// the same convention biome.go's own classification already treats as the
-// right answer for "not exactly on a sample point").
+// mesh's fields at a point. Every field here is genuinely BLENDED, never
+// copied from a single nearest cell: a tile's biome is later classified
+// (classifyLandBiome) from the blended temperature/precipitation, not
+// copied from whichever coarse cell happens to be closest — that
+// nearest-cell shortcut is exactly what made an early version of this
+// package's chunk renders look like flat Voronoi polygons of the coarse
+// mesh instead of organic terrain (see the project report). Blending first
+// and classifying second means a tile near the boundary between two
+// coarse cells' climates gets an intermediate temperature/precipitation
+// and is classified accordingly — a smooth, physically-motivated border,
+// not a hard cell-ownership edge.
 type coarseSample struct {
-	elevation float64
-	riverFlow float64
-	nearest   int32 // nearest coarse cell id, for biome/ocean/lake
+	elevation     float64
+	temperature   float64
+	precipitation float64
+	riverFlow     float64
+	lakeWeight    float64 // 0..1, the IDW-blended share of nearby cells that are a lake
 }
 
 // chunkCandidateK is how many coarse cells sampleCoarseAmong is handed as
@@ -162,20 +187,28 @@ func (w *World) sampleCoarseAmong(candidates []int32, ranked []candDist, x, y, z
 	}
 	sortCandidates(ranked, keep)
 
-	var wSum, elevSum, flowSum float64
+	var wSum, elevSum, tempSum, precipSum, flowSum, lakeSum float64
 	for k := 0; k < keep; k++ {
 		d2 := ranked[k].d2
 		// Inverse-distance weight, epsilon-guarded so a sample that lands
 		// exactly on a coarse cell's own point doesn't divide by zero.
 		wt := 1 / (d2 + 1e-12)
 		wSum += wt
-		elevSum += wt * float64(w.Cells[ranked[k].idx].Elevation)
-		flowSum += wt * float64(w.Cells[ranked[k].idx].RiverFlow)
+		cell := w.Cells[ranked[k].idx]
+		elevSum += wt * float64(cell.Elevation)
+		tempSum += wt * float64(cell.Temperature)
+		precipSum += wt * float64(cell.Precipitation)
+		flowSum += wt * float64(cell.RiverFlow)
+		if cell.IsLake {
+			lakeSum += wt
+		}
 	}
 	return coarseSample{
-		elevation: elevSum / wSum,
-		riverFlow: flowSum / wSum,
-		nearest:   ranked[0].idx,
+		elevation:     elevSum / wSum,
+		temperature:   tempSum / wSum,
+		precipitation: precipSum / wSum,
+		riverFlow:     flowSum / wSum,
+		lakeWeight:    lakeSum / wSum,
 	}
 }
 
@@ -193,6 +226,7 @@ func (w *World) GenerateChunk(addr ChunkAddr) (*Chunk, error) {
 
 	candidates := w.coarseCandidates(addr)
 	ranked := make([]candDist, len(candidates))
+	boxes, oceanIdx, lakeIdx := biomeBoxes(w.Content)
 
 	tiles := make([]ChunkTile, edge*edge)
 	for j := 0; j < edge; j++ {
@@ -201,6 +235,8 @@ func (w *World) GenerateChunk(addr ChunkAddr) (*Chunk, error) {
 			cs := w.sampleCoarseAmong(candidates, ranked, x, y, z)
 
 			elev := cs.elevation
+			temp := cs.temperature
+			precip := cs.precipitation
 			var stream bool
 			if isBase {
 				detail := w.chunkDetailNoise.Sample3(x, y, z)
@@ -219,16 +255,33 @@ func (w *World) GenerateChunk(addr ChunkAddr) (*Chunk, error) {
 				}
 			}
 
-			e16 := clampInt16(quantize(elev))
-			nearest := w.Cells[cs.nearest]
+			// Climate jitter: a small, independent noise field perturbing
+			// the INTERPOLATED temperature/precipitation before
+			// classification (not the coarse cells themselves), at every
+			// LOD. Without it, classifyLandBiome's box-distance boundary
+			// is still a perfectly smooth curve through the interpolated
+			// climate field — correct, but visibly too clean next to real
+			// terrain. This is what breaks it into an organic, slightly
+			// wandering border instead, the same role the elevation warp
+			// noise plays for a coastline (noise.go).
+			jitter := w.chunkClimateNoise.Sample3(x, y, z)
+			temp += jitter * climateJitterTempAmplitude
+			precip += jitter * climateJitterPrecipAmplitude
 
-			var flags uint8
+			e16 := clampInt16(quantize(elev))
 			isOcean := e16 <= 0
-			if isOcean {
+
+			var biome uint8
+			var flags uint8
+			switch {
+			case isOcean:
 				flags |= tileFlagOcean
-			}
-			if nearest.IsLake && !isOcean {
+				biome = uint8(oceanIdx)
+			case cs.lakeWeight > 0.5:
 				flags |= tileFlagLake
+				biome = uint8(lakeIdx)
+			default:
+				biome = classifyLandBiome(Temp(quantize(temp)), Precip(quantize(precip)), boxes)
 			}
 			if stream && !isOcean {
 				flags |= tileFlagStream
@@ -236,7 +289,7 @@ func (w *World) GenerateChunk(addr ChunkAddr) (*Chunk, error) {
 
 			tiles[j*edge+i] = ChunkTile{
 				Elevation: e16,
-				Biome:     nearest.BiomeIdx,
+				Biome:     biome,
 				Flags:     flags,
 			}
 		}
