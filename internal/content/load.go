@@ -121,6 +121,19 @@ type file struct {
 	Finance *FinanceDef `yaml:"finance"`
 
 	Recruitment *RecruitmentDef `yaml:"recruitment"`
+
+	// World generation (world.yml): the biomes, resource-geology rules and
+	// naming material worldgen.Generate reads. See worldgen.go. These are
+	// declared here — alongside every other content type — only so the
+	// shared strict decoder (KnownFields(true) below) does not reject
+	// world.yml as an unrecognised file; Load does not otherwise treat them
+	// specially, and LoadWorldGen (worldgen.go) is the function that
+	// actually turns them into worldgen.Content for a caller that wants a
+	// world.
+	Biomes          []BiomeDef          `yaml:"biomes"`
+	Resources       []ResourceDef       `yaml:"resources"`
+	NameSyllables   []NameSyllableDef   `yaml:"name_syllables"`
+	NamingTemplates *NamingTemplatesDef `yaml:"naming_templates"`
 }
 
 // Load reads every content file in dir and returns them as one pack.
@@ -256,6 +269,12 @@ func Load(dir string) (*Pack, error) {
 		}
 		if doc.Recruitment != nil {
 			pack.Recruitment = append(pack.Recruitment, *doc.Recruitment)
+		}
+		pack.Biomes = append(pack.Biomes, doc.Biomes...)
+		pack.Resources = append(pack.Resources, doc.Resources...)
+		pack.NameSyllables = append(pack.NameSyllables, doc.NameSyllables...)
+		if doc.NamingTemplates != nil {
+			pack.NamingTemplates = append(pack.NamingTemplates, *doc.NamingTemplates)
 		}
 	}
 

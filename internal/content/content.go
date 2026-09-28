@@ -281,6 +281,16 @@ type Pack struct {
 	// (recruitment.go; docs/adr/0027-specialist-recruitment.md).
 	Recruitment []RecruitmentDef
 
+	// world.yml: world generation content (worldgen.go). LoadWorldGen is
+	// the function a caller actually generating a world uses; these fields
+	// exist on Pack only so Load (the shared, ADR-0004 loader every other
+	// content file goes through) carries world.yml's content instead of
+	// rejecting the file as unrecognised.
+	Biomes          []BiomeDef
+	Resources       []ResourceDef
+	NameSyllables   []NameSyllableDef
+	NamingTemplates []NamingTemplatesDef
+
 	// Checksum is a digest over the source files, in hex. It is what answers
 	// "is the checkout in front of me the content production is running?"
 	// It is empty for a pack that was assembled in code rather than read from
