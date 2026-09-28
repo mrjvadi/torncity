@@ -116,7 +116,14 @@ const (
 	baseRainoutFraction = 0.16   // fraction of carried moisture rained out per hop over land
 	orographicFactor    = 1.1    // extra rain per unit of uphill elevation gain
 	leeShadowFloor      = 0.10   // minimum rainout fraction even in a deep rain shadow
-	continentalFloor    = 320.0  // minimum precipitation far from any moisture source (outside the subtropical belt)
+	continentalFloor    = 500.0  // minimum precipitation far from any moisture source (outside the subtropical belt)
+
+	// precipVarianceAmplitude is how far localVariance (see computeMoisture)
+	// can push a cell's recorded precipitation up or down from the sweep's
+	// own value. Comparable to the gap between adjacent biome boxes in
+	// world.yml on purpose: enough to let neighbouring cells at "the same"
+	// background level land in different, adjoining biomes.
+	precipVarianceAmplitude = 480.0
 
 	// subtropicalDryPeakZ2/subtropicalDryHalfWidthZ2 model the descending,
 	// warming, drying air of the Hadley cell — the actual cause of Earth's
@@ -137,7 +144,7 @@ const (
 	// advection alone would produce. Without it the tropics come out as
 	// savanna almost everywhere, with true rainforest confined to whatever
 	// happens to catch a strong orographic bonus.
-	equatorialWetHalfWidthZ2  = 0.10
+	equatorialWetHalfWidthZ2   = 0.10
 	equatorialWetBoostStrength = 1.0 // supply multiplier added at the equator itself
 )
 
@@ -184,6 +191,10 @@ func computeMoisture(mesh *Mesh, elevation []int32, params Params, seed uint64) 
 	n := mesh.Len()
 	precip := make([]Precip, n)
 	climateWarp := newClimateWarpField(seed)
+	// See its use, below: breaks up the flat precipitation "plateau" a
+	// continental interior otherwise settles into, so it spreads across
+	// several neighbouring biome categories instead of one swallowing it.
+	localVariance := newNoiseField(seed, "precip_variance", 3, 3.2, 550, 0.3, 0.7)
 
 	// Band membership and sweep direction use the TRUE Z, never the warped
 	// one: which wind band a cell physically sits in, and which way that
@@ -260,10 +271,11 @@ func computeMoisture(mesh *Mesh, elevation []int32, params Params, seed uint64) 
 				}
 				gain := elevation[c] - prevSurface
 				rainout := baseRainoutFraction
+				shadow := 1.0
 				if gain > 0 {
 					rainout += float64(gain) / 1000 * orographicFactor
 				} else {
-					shadow := 1.0 + float64(gain)/1500 // gain negative -> shrinks factor
+					shadow = 1.0 + float64(gain)/1500 // gain negative -> shrinks factor
 					if shadow < leeShadowFloor {
 						shadow = leeShadowFloor
 					}
@@ -274,14 +286,22 @@ func computeMoisture(mesh *Mesh, elevation []int32, params Params, seed uint64) 
 				}
 
 				// The floor a cell's moisture cannot decay below is itself
-				// reduced inside the subtropical dry belt: plain distance
+				// reduced inside the subtropical dry belt — plain distance
 				// from the ocean caps out at an unremarkable steppe-level
 				// minimum everywhere EXCEPT there, where the descending-air
 				// effect keeps the whole interior arid (the real difference
 				// between, say, central Kazakhstan — steppe — and the
-				// interior Sahara — desert — despite both being far
-				// inland).
-				floorHere := continentalFloor * subtropicalAridity(warpedZ(climateWarp, mesh.Points[c]))
+				// interior Sahara — desert — despite both being far inland)
+				// — AND by the SAME lee-shadow factor that just reduced
+				// this step's rainout. Without that second reduction, once
+				// continentalFloor is high enough to put most of a
+				// continent's interior in forest range (see its own doc),
+				// the floor silently overrode the rain-shadow mechanism
+				// outside the subtropical belt: a lee slope's `rain` could
+				// be tiny, but max(rain, floorHere) still reported the
+				// full, un-shadowed floor, so no rain-shadow desert could
+				// ever form except inside the subtropical belt specifically.
+				floorHere := continentalFloor * subtropicalAridity(warpedZ(climateWarp, mesh.Points[c])) * shadow
 
 				rain := moisture * rainout
 				moisture -= rain
@@ -305,6 +325,24 @@ func computeMoisture(mesh *Mesh, elevation []int32, params Params, seed uint64) 
 					p = floorHere
 				}
 				if lap == 1 {
+					// A great many interior land cells sit at or very near
+					// the exact same value (whichever of floorHere or a
+					// near-floor rain amount is larger, hop after hop, once
+					// the sweep has decayed to it) — a real hydrological
+					// effect (continental interiors really do have a broad
+					// "background" precipitation level), but a perfectly
+					// flat plateau of thousands of cells all identical
+					// makes one single biome box swallow most of a
+					// continent's interior regardless of where its
+					// boundaries are drawn. localVariance adds the kind of
+					// small-scale spatial texture real precipitation always
+					// has (local terrain, soil, microclimate) so nearby
+					// cells at "the same" background level still spread
+					// across neighbouring biome categories organically.
+					p += localVariance.Sample3(mesh.Points[c].X, mesh.Points[c].Y, mesh.Points[c].Z) * precipVarianceAmplitude
+					if p < 0 {
+						p = 0
+					}
 					precip[c] = Precip(quantize(p))
 				}
 				prevElev = elevation[c]

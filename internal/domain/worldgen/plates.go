@@ -210,21 +210,40 @@ func shuffledRange(r *Rand, n int) []int {
 
 // boundaryInfo is what a cell knows about the nearest plate boundary to it.
 type boundaryInfo struct {
-	Kind       BoundaryKind
-	StepsAway  int // 0 = this cell touches the boundary directly
-	OwnType    PlateType
-	OtherType  PlateType
-	IsBoundary bool
+	Kind      BoundaryKind
+	StepsAway int // 0 = this cell touches the boundary directly; bounds how
+	// far computeBoundaries' flood travels, nothing else — see RealDistance
+	// for the value elevation.go actually shapes relief from.
+	// RealDistance is the summed CHORD length (unit-sphere units) along the
+	// BFS tree back to the boundary cell that reached this one — a real,
+	// continuous distance, not an integer hop count. StepsAway still bounds
+	// how far the flood travels (an integer is the natural thing to compare
+	// against a step budget); RealDistance is what elevation.go actually
+	// warps and decays smoothly, which a hop count cannot be without
+	// producing visible terracing (every cell at the same hop count getting
+	// the exact same relief, regardless of how far it really is).
+	RealDistance float64
+	OwnType      PlateType
+	OtherType    PlateType
+	IsBoundary   bool
 }
 
 // computeBoundaries finds every boundary edge (a cell adjacent to a
 // different plate) and propagates its classification inward by multi-source
 // BFS, so every cell — not just the ones directly on a boundary — knows how
-// far it is from the nearest one and what kind it is. elevation.go uses this
-// to build mountain belts, trenches, rifts and volcanic arcs that fade out
-// smoothly away from the boundary that caused them, instead of a one-cell-
-// wide ridge.
-func computeBoundaries(mesh *Mesh, plates []Plate, plateOf []int16, maxSteps int) []boundaryInfo {
+// far it is from the nearest one, by real (chord) distance as well as hop
+// count, and what kind it is. elevation.go uses this to build mountain
+// belts, trenches, rifts and volcanic arcs that fade out smoothly away from
+// the boundary that caused them, instead of a one-cell-wide ridge — and,
+// critically, to fade out by REAL distance rather than by hop count, which
+// is what let a long, roughly-straight plate boundary uplift or subside a
+// whole cell-count-wide PARALLEL STRIP in a straight line: every cell at
+// hop-count 3, say, got the identical relief regardless of how far from the
+// boundary it actually sat. maxRealDistance is the second return: the
+// largest real distance the flood actually reached at its hop-count bound,
+// which elevation.go uses to normalize RealDistance into the same 0..1
+// range StepsAway/maxSteps used to be.
+func computeBoundaries(mesh *Mesh, plates []Plate, plateOf []int16, maxSteps int) ([]boundaryInfo, float64) {
 	n := mesh.Len()
 	info := make([]boundaryInfo, n)
 	for i := range info {
@@ -268,24 +287,37 @@ func computeBoundaries(mesh *Mesh, plates []Plate, plateOf []int16, maxSteps int
 		}
 	}
 
+	maxRealDistance := 0.0
 	for head := 0; head < len(queue); head++ {
 		c := queue[head]
 		cur := info[c]
 		if cur.StepsAway >= maxSteps {
 			continue
 		}
+		cp := mesh.Points[c]
 		for _, nb := range mesh.Neighbors(int(c)) {
 			if info[nb].StepsAway == -1 {
+				nbp := mesh.Points[nb]
+				dx, dy, dz := nbp.X-cp.X, nbp.Y-cp.Y, nbp.Z-cp.Z
+				step := math.Sqrt(dx*dx + dy*dy + dz*dz)
+				rd := cur.RealDistance + step
 				info[nb] = boundaryInfo{
-					Kind:      cur.Kind,
-					StepsAway: cur.StepsAway + 1,
-					OwnType:   plates[plateOf[nb]].Type,
-					OtherType: cur.OtherType,
+					Kind:         cur.Kind,
+					StepsAway:    cur.StepsAway + 1,
+					RealDistance: rd,
+					OwnType:      plates[plateOf[nb]].Type,
+					OtherType:    cur.OtherType,
+				}
+				if rd > maxRealDistance {
+					maxRealDistance = rd
 				}
 				queue = append(queue, nb)
 			}
 		}
 	}
+	if maxRealDistance <= 0 {
+		maxRealDistance = 1 // degenerate mesh guard; avoids a division by zero downstream
+	}
 
-	return info
+	return info, maxRealDistance
 }

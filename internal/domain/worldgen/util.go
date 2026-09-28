@@ -14,6 +14,25 @@ func quantize(x float64) int32 {
 	return int32(math.Floor(x + 0.5))
 }
 
+// smoothstep is the standard 3t^2-2t^3 ease curve, clamped to t in [0,1]
+// first: 0 at t<=0, 1 at t>=1, a continuous S-curve with zero derivative at
+// both ends between them. Used wherever this package needs a soft falloff
+// (a plate boundary's relief fading with distance, geology.go's category
+// scores) instead of a hard linear ramp or, worse, a ramp that only takes a
+// handful of discrete values because it was driven by an integer graph-hop
+// count — the visible symptom of the latter is banding/terracing, since
+// every cell at the same hop count gets the exact same value regardless of
+// how far it really is. Only +, -, * and comparison: portable.
+func smoothstep(t float64) float64 {
+	if t <= 0 {
+		return 0
+	}
+	if t >= 1 {
+		return 1
+	}
+	return t * t * (3 - 2*t)
+}
+
 // pseudoAngle returns a value in [0,4) that increases monotonically with the
 // true counter-clockwise angle of (x,y) around the origin (as seen from
 // +z, the same convention atan2 uses) without calling atan2 or any other

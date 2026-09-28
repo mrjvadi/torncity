@@ -78,9 +78,9 @@ func Generate(seed uint64, params Params, content Content) (*World, error) {
 	mesh := buildMesh(params.CellCount, params.NeighborK)
 
 	plates, plateOf := assignPlates(mesh, params, root)
-	boundaries := computeBoundaries(mesh, plates, plateOf, params.BoundaryInfluenceSteps)
+	boundaries, maxBoundaryDistance := computeBoundaries(mesh, plates, plateOf, params.BoundaryInfluenceSteps)
 
-	rawElev, seaLevelRaw := computeElevation(mesh, plates, plateOf, boundaries, params, seed)
+	rawElev, seaLevelRaw := computeElevation(mesh, plates, plateOf, boundaries, maxBoundaryDistance, params, seed)
 	elevation := make([]int32, mesh.Len())
 	for c, v := range rawElev {
 		elevation[c] = quantize(v - seaLevelRaw)
@@ -248,9 +248,16 @@ func (w *World) Fingerprint() uint64 {
 // Summary is the small, JSON-friendly report the preview CLI prints: land
 // percentage, biome mix, resource counts, longest rivers.
 type Summary struct {
-	CellCount        int                `json:"cell_count"`
-	LandPercent      float64            `json:"land_percent"`
+	CellCount   int     `json:"cell_count"`
+	LandPercent float64 `json:"land_percent"`
+	// BiomePercent is each biome's share of EVERY cell, ocean included (so
+	// the whole map's shares sum to 100). LandBiomePercent is the same
+	// biomes' share of LAND cells only (ocean excluded from the
+	// denominator) — the number a "forest is 30% of land" kind of target
+	// actually means, and what BiomePercent alone cannot answer without
+	// also knowing LandPercent.
 	BiomePercent     map[string]float64 `json:"biome_percent"`
+	LandBiomePercent map[string]float64 `json:"land_biome_percent"`
 	ResourceDeposits map[string]int     `json:"resource_deposits"`
 	Continents       []string           `json:"continents"`
 	Seas             []string           `json:"seas"`
@@ -279,8 +286,12 @@ func (w *World) BuildSummary() Summary {
 	}
 
 	biomePercent := make(map[string]float64, len(biomeCount))
+	landBiomePercent := make(map[string]float64, len(biomeCount))
 	for code, n := range biomeCount {
 		biomePercent[code] = 100 * float64(n) / float64(len(w.Cells))
+		if land > 0 {
+			landBiomePercent[code] = 100 * float64(n) / float64(land)
+		}
 	}
 
 	deposits := make(map[string]int)
@@ -305,6 +316,7 @@ func (w *World) BuildSummary() Summary {
 		CellCount:        len(w.Cells),
 		LandPercent:      100 * float64(land) / float64(len(w.Cells)),
 		BiomePercent:     biomePercent,
+		LandBiomePercent: landBiomePercent,
 		ResourceDeposits: deposits,
 		Continents:       names(w.Continents),
 		Seas:             names(w.Seas),

@@ -96,8 +96,8 @@ func TestHydrology_EveryCellDrainsToTheSea(t *testing.T) {
 	mesh := buildMesh(params.CellCount, params.NeighborK)
 	r := NewRand(5)
 	plates, plateOf := assignPlates(mesh, params, r)
-	boundaries := computeBoundaries(mesh, plates, plateOf, params.BoundaryInfluenceSteps)
-	rawElev, seaLevel := computeElevation(mesh, plates, plateOf, boundaries, params, 5)
+	boundaries, maxBoundaryDistance := computeBoundaries(mesh, plates, plateOf, params.BoundaryInfluenceSteps)
+	rawElev, seaLevel := computeElevation(mesh, plates, plateOf, boundaries, maxBoundaryDistance, params, 5)
 	elevation := make([]int32, mesh.Len())
 	for c, v := range rawElev {
 		elevation[c] = quantize(v - seaLevel)
@@ -195,6 +195,39 @@ func TestGenerate_DesertsInSubtropicsAndRainShadow(t *testing.T) {
 	}
 }
 
+// TestGenerate_BiomeShareIsEarthLike guards against forest all but
+// disappearing (an earlier round of tuning had it under 1% of the map) or
+// desert swallowing most of the land (the complaint that started this
+// round's tuning) ever regressing silently. The bounds are deliberately
+// generous — real seed-to-seed variance in continent shape and latitude
+// spread is wide, and this is a regression guard against a badly broken
+// balance, not an assertion that every seed hits the same number.
+func TestGenerate_BiomeShareIsEarthLike(t *testing.T) {
+	content := sampleContent()
+	params := DefaultParams()
+	w, err := Generate(11, params, content)
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	s := w.BuildSummary()
+
+	forest := s.LandBiomePercent["boreal_forest"] + s.LandBiomePercent["temperate_forest"] +
+		s.LandBiomePercent["temperate_rainforest"] + s.LandBiomePercent["tropical_rainforest"]
+	grassSavanna := s.LandBiomePercent["temperate_grassland"] + s.LandBiomePercent["tropical_savanna"]
+	desert := s.LandBiomePercent["desert"]
+	t.Logf("of land: forest=%.1f%% grass+savanna=%.1f%% desert=%.1f%%", forest, grassSavanna, desert)
+
+	if forest < 15 {
+		t.Errorf("forest is %.1f%% of land, want at least 15%% (target 25-30%%)", forest)
+	}
+	if desert > 35 {
+		t.Errorf("desert is %.1f%% of land, want at most 35%% (target 15-20%%)", desert)
+	}
+	if grassSavanna > 70 {
+		t.Errorf("grassland+savanna is %.1f%% of land, want at most 70%% (target ~25%%)", grassSavanna)
+	}
+}
+
 // TestGenerate_CoastlinesDoNotTracePlateBoundaries guards the fix in
 // elevation.go: land and sea must come from the continuous continentality
 // field (plate type as a low-weight bias plus large-scale warped noise),
@@ -239,8 +272,14 @@ func TestGenerate_CoastlinesDoNotTracePlateBoundaries(t *testing.T) {
 	}
 	frac := float64(coastAndPlateBoundary) / float64(coastEdges)
 	t.Logf("%d/%d (%.1f%%) of coastline edges are also plate-boundary edges", coastAndPlateBoundary, coastEdges, frac*100)
-	if frac > 0.35 {
-		t.Fatalf("%.1f%% of the coastline follows a plate boundary; want well under 35%%, "+
+	// Tightened from an initial 35% (measured 20.9% before boundary relief
+	// was warped and scaled by distance from the base field's own sea
+	// level) to 22% (measured 14.9% after) — a real margin above the
+	// current measurement, not a rubber-stamped ceiling, so a future
+	// regression toward straighter coastlines still fails this test before
+	// it needs a human to eyeball a render to notice.
+	if frac > 0.22 {
+		t.Fatalf("%.1f%% of the coastline follows a plate boundary; want well under 22%%, "+
 			"land/sea should come from the continentality noise field, not from plate type", frac*100)
 	}
 }
