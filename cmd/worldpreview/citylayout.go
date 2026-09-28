@@ -332,13 +332,34 @@ func anyCornerCoast(tiles []cityTile, size, x, y, w, h int) bool {
 	return false
 }
 
+// anyCornerDeposit reports whether a Deposit-flagged lot exists within
+// spec's own w x h footprint at (x,y), widened by depositSearchMarginLots
+// (export_city.go) on every side. A coarse-mesh deposit's exact lot
+// footprint (export_city.go's cityTileFromFine) is itself only
+// lotsPerTile lots wide, so a mine/well built a few lots off to the side
+// should still count as "near" it rather than needing to land exactly
+// inside the footprint.
 func anyCornerDeposit(tiles []cityTile, size, x, y, w, h int) bool {
 	if x+w > size || y+h > size {
 		return false
 	}
-	for dy := 0; dy < h; dy++ {
-		for dx := 0; dx < w; dx++ {
-			if tiles[(y+dy)*size+(x+dx)].Deposit {
+	x0, y0 := x-depositSearchMarginLots, y-depositSearchMarginLots
+	x1, y1 := x+w+depositSearchMarginLots, y+h+depositSearchMarginLots
+	if x0 < 0 {
+		x0 = 0
+	}
+	if y0 < 0 {
+		y0 = 0
+	}
+	if x1 > size {
+		x1 = size
+	}
+	if y1 > size {
+		y1 = size
+	}
+	for dy := y0; dy < y1; dy++ {
+		for dx := x0; dx < x1; dx++ {
+			if tiles[dy*size+dx].Deposit {
 				return true
 			}
 		}

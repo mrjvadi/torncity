@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -11,17 +13,84 @@ import (
 
 // This file is the DEMO export path (--export-city): picks one city site
 // deterministically from an already-generated World, exports the 3x3-chunk
-// neighbourhood of terrain around it as compact JSON, and lays a 15x15 city
-// out on the centre chunk's flattest window (citylayout.go). It exists so
-// the web client can render one real settlement sitting on real generated
-// terrain, in a browser, with no server and no database — see the project
-// report for why this is demo-only scaffolding, not ADR 0028 §6's real
-// placement system.
+// neighbourhood of terrain around it as compact JSON, and lays a city out on
+// real ground as the web client's --export-city demo consumes it. See the
+// project report for why this is demo-only scaffolding, not ADR 0028 §6's
+// real placement system.
+//
+// TWO RESOLUTIONS, ON PURPOSE. A base terrain TILE (worldgen.Params.
+// TileMeters, ~305m) and a settlement LOT (lotMeters below, ~30.5m — a
+// tenth of a tile) are different things: a tile is the finest terrain the
+// world generator itself resolves; a lot is the finest unit a building
+// actually occupies (ADR 0028 §4/§6). An earlier version of this export
+// conflated the two — it laid the city out directly on tiles, which made
+// every building ~305m wide and a 15x15 city ~4.5km across. This version
+// exports BOTH grids, at their own native resolution, so the web client can
+// render real tile-scale terrain as the far backdrop (coarseGrid below,
+// unchanged in shape from before, just documented and renamed for clarity)
+// and a real lot-scale settlement in the middle of it (fineGrid,
+// worldgen.SampleFineLatLon's new sampling layer — see internal/domain/
+// worldgen/fine.go).
+//
+// CUBE-SPHERE PLACEMENT, NOT EQUIRECTANGULAR. Converting a fine lot
+// coordinate to lat/lon here reuses the SAME cube-sphere projection
+// chunk_address.go's TileFlatUVFrac/FaceDirection already use for a tile,
+// evaluated at a fractional, possibly-ghost (see TileFlatUVFrac's own doc)
+// tile coordinate local to the city's own centre chunk — not a flat
+// equirectangular metres-per-degree approximation. This is more accurate
+// over the fine grid's few-km extent (no seam mismatch against the coarse
+// grid it sits inside) and was no more code than the simpler approximation
+// would have been, since the exact machinery already existed. It shares the
+// package's usual VISUAL/QUERY caveat (sin/cos, tan/atan): fine outside a
+// few tiles of a genuine cube-face edge or corner, which this demo's export
+// window never approaches for an ordinary city site.
 
-// citySize is the city tier's own grid (ADR 0028 §4's table: village 5x5,
-// town 9x9, city 15x15) — the demo always shows the biggest tier, since
-// that is what best shows off a settlement on real terrain.
+// citySize is the city tier's own LOT grid (ADR 0028 §4's table: village
+// 5x5, town 9x9, city 15x15 LOTS — now genuinely lot-scale, ~457m for a
+// city, not the ~4.5km an earlier tile-scale version of this export
+// produced). The demo always shows the biggest tier.
 const citySize = 15
+
+// lotsPerTile is how many settlement lots make up one base terrain tile
+// along an edge — the ADR 0028 default (~30.5m lots inside a ~305m tile).
+// lotMeters is computed FROM Params.TileMeters, never hardcoded, so it
+// tracks PlanetRadiusKm/ChunkBaseLOD/ChunkTileEdge if those ever change.
+const lotsPerTile = 10
+
+// flatSearchTiles is bestCityWindow's own search-window size, in base TILES
+// (~305m each) — deliberately decoupled from citySize (a LOT count, above):
+// this only picks a generously flat, buildable ~4.5km neighbourhood
+// (scoreCitySite already required at least this much of a flat run to
+// consider the site at all) for the much smaller, real lot-scale city core
+// to sit in the MIDDLE of, with room to spare on every side.
+const flatSearchTiles = 15
+
+// fineMarginMeters is how far past the city's own citySize x citySize lot
+// core the fine grid extends on every side, so the web client has real
+// lot-resolution terrain to render right up to (and a little past) the
+// player's view of the city, instead of a hard fine/coarse seam sitting
+// inside it. ~1.2km keeps the fine grid's own byte cost (see runExportCity's
+// logged size) comfortably under a few hundred KB even packed generously;
+// see this file's byte-budget notes on Elevation encoding below.
+const fineMarginMeters = 1200.0
+
+// fineSteepDeltaM is the lot-scale unbuildable-slope threshold: an
+// elevation change of this many units (loosely metre-scaled — see
+// worldgen.Elevation's own doc comment in params.go) between two ADJACENT
+// lots (~lotMeters apart) reads as too steep to build on or road across.
+// Modelled on an unbuildable ~26% grade over one lot: 0.26 * lotMeters
+// (~30.5m at defaults) ~= 8. The OLD tile-scale steepElevationDelta (below,
+// still used for the coarse grid's own flat-window search) is meaningless
+// here: a 220-unit jump was calibrated for two points ~305m apart, ten
+// times further apart than two adjacent lots, so the same number would
+// almost never trigger at lot scale even on real hillsides.
+const fineSteepDeltaM = 8.0
+
+// depositSearchMarginLots widens anyCornerDeposit's own building-footprint
+// search (citylayout.go) by this many lots on every side, so a mine/well
+// still finds a coarse-mesh deposit's (tile-resolution) footprint from a
+// few lots away rather than needing a building to land exactly inside it.
+const depositSearchMarginLots = 3
 
 // exportChunkTiles is the export window: 3x3 base chunks around the chosen
 // site (the task's own spec), giving the client a full chunk of margin on
@@ -33,32 +102,39 @@ type cityExport struct {
 	Seed             uint64  `json:"seed"`
 	GeneratorVersion int     `json:"generatorVersion"`
 	TileMeters       float64 `json:"tileMeters"`
-	ChunkTileEdge    int     `json:"chunkTileEdge"`
+	// LotMeters is Params.TileMeters()/lotsPerTile — a settlement lot's real
+	// width/height in metres (~30.5m at DefaultParams), the unit every
+	// fineGrid/city coordinate below is expressed in.
+	LotMeters     float64 `json:"lotMeters"`
+	ChunkTileEdge int     `json:"chunkTileEdge"`
+	LotsPerTile   int     `json:"lotsPerTile"`
 
 	CenterChunk chunkAddrJSON `json:"centerChunk"`
 	LatDeg      float64       `json:"latDeg"`
 	LonDeg      float64       `json:"lonDeg"`
 
-	Grid struct {
-		W int `json:"w"`
-		H int `json:"h"`
-	} `json:"grid"`
+	// CoarseGrid is the FAR-LOD backdrop: base terrain TILE resolution
+	// (~305m/cell, worldgen.Params.TileMeters), the same 3x3-chunk window
+	// this export has always covered. The web client renders this as the
+	// countryside the fine-resolution city sits inside, and blends the two
+	// at the fine grid's own edge.
+	CoarseGrid coarseGridJSON `json:"coarseGrid"`
 
-	// Elevation/Biome/Flags are row-major, W*H long, origin at the export
-	// window's own north-west corner — the same flat-array shape chunk.go's
-	// own Chunk.Tiles uses, just stitched across the 3x3 window so the
-	// client draws one seamless mesh instead of 9 independently-lit ones.
-	// Biome/Flags are Go []byte, which encoding/json marshals as a base64
-	// string, not a JSON array — free compaction (9216 bytes become a
-	// ~12KB string instead of ~30KB of comma-separated small integers) the
-	// client undoes with one atob()+Uint8Array, not a format to hand-roll.
-	Elevation []int16 `json:"elevation"`
-	Biome     []uint8 `json:"biome"`
-	Flags     []uint8 `json:"flags"`
+	// FineGrid is the NEAR-LOD settlement window: LOT resolution
+	// (~30.5m/cell, LotMeters), sampled with worldgen.SampleFineLatLon
+	// rather than read off CoarseGrid, so a stream reads as a few lots wide
+	// instead of a whole tile and the city's own buildings sit at their
+	// real ~30m scale.
+	FineGrid fineGridJSON `json:"fineGrid"`
 
 	BiomeLegend    []biomeLegendEntry    `json:"biomeLegend"`
 	ResourceLegend []resourceLegendEntry `json:"resourceLegend"`
-	Deposits       []depositJSON         `json:"deposits"`
+	// Deposits is the coarse-mesh deposit list, in CoarseGrid's own TILE
+	// coordinate space — unchanged from before. FineGrid's per-lot Deposit
+	// flag (used for the city's mine/well placement) is derived FROM this
+	// list, not exported separately: cityTileFromFine (below) converts
+	// each entry's tile coordinate into its lot-coordinate footprint.
+	Deposits []depositJSON `json:"deposits"`
 
 	City citySummaryJSON `json:"city"`
 
@@ -89,13 +165,76 @@ type depositJSON struct {
 	ResourceCode string `json:"resource"`
 }
 
+// coarseGridJSON is TILE-resolution terrain (~305m/cell), row-major, origin
+// at the export window's own north-west corner.
+//
+// BYTE BUDGET. Elevation is packed as little-endian int16 PAIRS into a
+// []byte (2 bytes/tile) rather than a raw JSON number array: encoding/json
+// marshals a []byte as a base64 STRING automatically, the same free
+// compaction Biome/Flags already used before this export had a fine grid at
+// all (a few thousand small integers as comma-separated JSON text costs
+// roughly 4-5 bytes each; base64 of 2 raw bytes costs roughly 2.7). Decode
+// on the client: atob() -> Uint8Array -> a DataView reading int16LE pairs
+// (or equivalently a Int16Array over an even-byte-aligned copy, respecting
+// platform endianness — DataView.getInt16(i*2, true) is the simplest
+// portable choice). Biome/Flags keep their original encoding: one byte
+// each, already free via the same []byte-is-base64 trick.
+type coarseGridJSON struct {
+	W int `json:"w"`
+	H int `json:"h"`
+	// Elevation is W*H little-endian int16 values (see packInt16LE), base64
+	// via encoding/json's []byte handling.
+	Elevation []byte `json:"elevation"`
+	Biome     []byte `json:"biome"`
+	Flags     []byte `json:"flags"`
+}
+
+// fineGridJSON is LOT-resolution terrain (~30.5m/cell, LotMeters), row-major,
+// sampled with worldgen.SampleFineLatLon.
+//
+// PLACEMENT. OriginTileX/OriginTileY locate the fine grid's own north-west
+// LOT inside CoarseGrid's own TILE coordinate space (fractional: a lot is a
+// tenth of a tile, so this is almost never a whole number) — the client
+// places the fine mesh against the coarse one using the SAME coordinate
+// space both grids already share, rather than a second, independent
+// lat/lon placement that could drift out of registration with the coarse
+// grid by a pixel at the seam.
+//
+// STREAM/RIVER GEOMETRY. WaterKind's fine-resolution raster IS the
+// channel's geometry (a mask a few lots wide, per fine.go's own narrow
+// isoline band) — no separate vector polyline is exported; the client
+// traces/meshes the WaterKind==1/2 cells into a ribbon directly.
+type fineGridJSON struct {
+	OriginTileX float64 `json:"originTileX"`
+	OriginTileY float64 `json:"originTileY"`
+	W           int     `json:"w"` // lot counts
+	H           int     `json:"h"`
+	// Elevation is W*H little-endian int16 values, same encoding as
+	// coarseGridJSON.Elevation (see its doc comment) — worldgen.FineSample.
+	// ElevationM is an unclamped float64; export rounds and clamps to
+	// int16 range the same way chunk.go's own tile export already does.
+	Elevation []byte `json:"elevation"`
+	Biome     []byte `json:"biome"`
+	// WaterKind is one byte/lot: 0 none, 1 stream, 2 river, 3 lake, 4
+	// ocean — a strict superset of worldgen.StreamKind (which only knows
+	// stream/river; lake/ocean come from FineSample.IsLake/IsOcean).
+	WaterKind []byte `json:"waterKind"`
+}
+
 type citySummaryJSON struct {
-	OriginX int             `json:"originX"` // top-left of the city's local grid, in the export's own tile coordinates
-	OriginY int             `json:"originY"`
-	Size    int             `json:"size"`
-	Roads   [][2]int        `json:"roads"` // local (0..size-1) coordinates
-	Lots    []cityLotJSON   `json:"lots"`
-	Counts  map[string]int  `json:"counts"`
+	// OriginX/OriginY are the city's citySize x citySize lot core's
+	// top-left corner, in FineGrid's own LOCAL lot-index space (0..W-1,
+	// 0..H-1) — NOT CoarseGrid's tile space (contrast the top-level
+	// Deposits list, still tile-space). Roads/Lots/Bridges below are all in
+	// the city's OWN local (0..size-1) coordinates; add OriginX/OriginY to
+	// place them inside FineGrid.
+	OriginX int            `json:"originX"`
+	OriginY int            `json:"originY"`
+	Size    int            `json:"size"` // lots per side (== citySize)
+	Roads   [][2]int       `json:"roads"`
+	Bridges [][2]int       `json:"bridges"` // subset of Roads crossing a bridgeable water lot
+	Lots    []cityLotJSON  `json:"lots"`
+	Counts  map[string]int `json:"counts"`
 }
 
 type cityLotJSON struct {
@@ -139,7 +278,9 @@ func runExportCity(w *worldgen.World, outPath string) error {
 		return fmt.Errorf("writing %s: %w", outPath, err)
 	}
 	fmt.Printf("export-city: wrote %s (%d bytes)\n", outPath, len(buf))
-	fmt.Printf("export-city: city lots by type: %v\n", doc.City.Counts)
+	fmt.Printf("export-city: coarseGrid %dx%d tiles, fineGrid %dx%d lots (lotMeters=%.2f)\n",
+		doc.CoarseGrid.W, doc.CoarseGrid.H, doc.FineGrid.W, doc.FineGrid.H, doc.LotMeters)
+	fmt.Printf("export-city: city lots by type: %v (bridges=%d)\n", doc.City.Counts, len(doc.City.Bridges))
 	return nil
 }
 
@@ -205,7 +346,8 @@ func findCitySite(w *worldgen.World) (citySite, bool) {
 
 // scoreCitySite generates addr's chunk (and peeks at its 8 neighbours for
 // coast/lake bonuses) and scores it as a city site: heavily rewards a large
-// flat, buildable window (a real 15x15 city has to fit on it), rewards a
+// flat, buildable window (flatSearchTiles' own ~4.5km neighbourhood has to
+// fit on it, generously more than the real lot-scale city needs), rewards a
 // stream running through it, and adds smaller bonuses for a coastline, a
 // lake or real elevation range nearby — the "character" the task asks for
 // without letting it crowd out the flat-and-buildable requirement that
@@ -243,8 +385,8 @@ func scoreCitySite(w *worldgen.World, addr worldgen.ChunkAddr) (citySite, bool) 
 			}
 		}
 	}
-	if buildableRun < citySize {
-		return citySite{}, false // can't fit a 15-wide city window anywhere in this chunk
+	if buildableRun < flatSearchTiles {
+		return citySite{}, false // can't fit a flatSearchTiles-wide window anywhere in this chunk
 	}
 	elevRange := int(maxE - minE)
 
@@ -306,8 +448,11 @@ func scoreCitySite(w *worldgen.World, addr worldgen.ChunkAddr) (citySite, bool) 
 }
 
 // buildCityExport stitches the 3x3 chunks around site.addr into one flat
-// terrain grid, finds the flattest 15x15 window inside the centre chunk,
-// lays the city out on it, and assembles the full JSON document.
+// COARSE terrain grid, finds the flattest flatSearchTiles-wide window
+// inside the centre chunk, samples a FINE lot-resolution grid centred on
+// that window (with fineMarginMeters of margin), slices the city's own
+// citySize x citySize lot core straight out of it, lays the city out, and
+// assembles the full JSON document.
 func buildCityExport(w *worldgen.World, site citySite) (*cityExport, error) {
 	edge := w.Params.ChunkTileEdge
 	span := exportChunkSpan
@@ -327,9 +472,9 @@ func buildCityExport(w *worldgen.World, site citySite) (*cityExport, error) {
 		}
 	}
 
-	elevation := make([]int16, gridW*gridH)
-	biome := make([]uint8, gridW*gridH)
-	flags := make([]uint8, gridW*gridH)
+	coarseElev := make([]int16, gridW*gridH)
+	coarseBiome := make([]uint8, gridW*gridH)
+	coarseFlags := make([]uint8, gridW*gridH)
 	var deposits []depositJSON
 
 	for cy := 0; cy < span; cy++ {
@@ -345,9 +490,9 @@ func buildCityExport(w *worldgen.World, site citySite) (*cityExport, error) {
 					t := c.TileAt(i, j)
 					gx, gy := ox+i, oy+j
 					gi := gy*gridW + gx
-					elevation[gi] = t.Elevation
-					biome[gi] = t.Biome
-					flags[gi] = tileFlagsJSON(t)
+					coarseElev[gi] = t.Elevation
+					coarseBiome[gi] = t.Biome
+					coarseFlags[gi] = tileFlagsJSON(t)
 				}
 			}
 			for _, d := range c.Deposits {
@@ -360,20 +505,59 @@ func buildCityExport(w *worldgen.World, site citySite) (*cityExport, error) {
 		}
 	}
 
-	// The city's own window is somewhere inside the CENTRE chunk (cx=cy=1),
-	// so its city-tile terrain lookup always indexes into that one chunk's
-	// worth of the already-stitched grid — chosen by scanning every valid
-	// top-left offset for the one with the fewest unbuildable tiles
-	// (deterministic: ties keep the first — smallest y, then x — found).
+	// bestCityWindow's flatSearchTiles-wide window is somewhere inside the
+	// CENTRE chunk (cx=cy=1): a generously-sized, verified-flat ~4.5km
+	// neighbourhood for the real lot-scale city to sit in the middle of.
 	centerOx, centerOy := 1*edge, 1*edge
-	winX, winY := bestCityWindow(elevation, flags, gridW, centerOx, centerOy, edge)
-	originX, originY := centerOx+winX, centerOy+winY
+	winX, winY := bestCityWindow(coarseElev, coarseFlags, gridW, centerOx, centerOy, edge, flatSearchTiles)
 
+	// Fine lot geometry: centre the citySize x citySize core in the flat
+	// window just found, then extend fineMarginMeters of margin on every
+	// side. All expressed as fractional TILE coordinates in the coarse
+	// grid's own coordinate space, per fineGridJSON's own doc comment.
+	lotMeters := w.Params.TileMeters() / lotsPerTile
+	marginLots := int(math.Ceil(fineMarginMeters / lotMeters))
+	fineW := citySize + 2*marginLots
+	fineH := citySize + 2*marginLots
+
+	coreOriginTileX := float64(centerOx+winX) + float64(flatSearchTiles)/2 - float64(citySize)/(2*float64(lotsPerTile))
+	coreOriginTileY := float64(centerOy+winY) + float64(flatSearchTiles)/2 - float64(citySize)/(2*float64(lotsPerTile))
+	fineOriginTileX := coreOriginTileX - float64(marginLots)/float64(lotsPerTile)
+	fineOriginTileY := coreOriginTileY - float64(marginLots)/float64(lotsPerTile)
+
+	fineSamples := make([]worldgen.FineSample, fineW*fineH)
+	for fy := 0; fy < fineH; fy++ {
+		for fx := 0; fx < fineW; fx++ {
+			tileX := fineOriginTileX + float64(fx)/float64(lotsPerTile)
+			tileY := fineOriginTileY + float64(fy)/float64(lotsPerTile)
+			// Local to the CENTRE chunk's own address: iFrac/jFrac may be
+			// negative or >= edge (a ghost tile position, chunk_address.go's
+			// own term) when the fine window's margin spills into a
+			// neighbouring chunk — TileFlatUVFrac is documented to tolerate
+			// exactly that.
+			iFrac := tileX - float64(centerOx)
+			jFrac := tileY - float64(centerOy)
+			lat, lon := latLonOfLocalTile(site.addr, edge, iFrac, jFrac)
+			fineSamples[fy*fineW+fx] = w.SampleFineLatLon(lat, lon)
+		}
+	}
+
+	fineElevBytes := make([]int16, fineW*fineH)
+	fineBiome := make([]byte, fineW*fineH)
+	fineWater := make([]byte, fineW*fineH)
+	for i, fs := range fineSamples {
+		fineElevBytes[i] = clampElevInt16(fs.ElevationM)
+		fineBiome[i] = fs.Biome
+		fineWater[i] = waterKindByte(fs)
+	}
+
+	// City core: slice directly out of the fine grid just built (no
+	// re-sampling).
+	coreX0, coreY0 := marginLots, marginLots
 	cityTiles := make([]cityTile, citySize*citySize)
 	for ly := 0; ly < citySize; ly++ {
 		for lx := 0; lx < citySize; lx++ {
-			gx, gy := originX+lx, originY+ly
-			cityTiles[ly*citySize+lx] = cityTileFromGrid(elevation, flags, gridW, gridH, gx, gy, deposits)
+			cityTiles[ly*citySize+lx] = cityTileFromFine(fineSamples, fineW, fineH, coreX0+lx, coreY0+ly, deposits, fineOriginTileX, fineOriginTileY)
 		}
 	}
 	layout := layoutCity(citySize, cityTiles)
@@ -389,27 +573,42 @@ func buildCityExport(w *worldgen.World, site citySite) (*cityExport, error) {
 		Seed:             w.Seed,
 		GeneratorVersion: w.GeneratorVersion,
 		TileMeters:       w.Params.TileMeters(),
+		LotMeters:        lotMeters,
 		ChunkTileEdge:    edge,
+		LotsPerTile:      lotsPerTile,
 		CenterChunk: chunkAddrJSON{
 			Face: site.addr.Face, LOD: site.addr.LOD, X: site.addr.X, Y: site.addr.Y,
 		},
 		LatDeg: site.latDeg,
 		LonDeg: site.lonDeg,
-		Elevation: elevation,
-		Biome:     biome,
-		Flags:     flags,
-		Deposits:  deposits,
+		CoarseGrid: coarseGridJSON{
+			W:         gridW,
+			H:         gridH,
+			Elevation: packInt16LE(coarseElev),
+			Biome:     coarseBiome,
+			Flags:     coarseFlags,
+		},
+		FineGrid: fineGridJSON{
+			OriginTileX: fineOriginTileX,
+			OriginTileY: fineOriginTileY,
+			W:           fineW,
+			H:           fineH,
+			Elevation:   packInt16LE(fineElevBytes),
+			Biome:       fineBiome,
+			WaterKind:   fineWater,
+		},
+		Deposits: deposits,
 		City: citySummaryJSON{
-			OriginX: originX,
-			OriginY: originY,
+			OriginX: coreX0,
+			OriginY: coreY0,
 			Size:    citySize,
 			Roads:   layout.Roads,
+			Bridges: layout.Bridges,
 			Lots:    lotsJSON,
 			Counts:  counts,
 		},
 		World: worldSummaryFor(w, site),
 	}
-	doc.Grid.W, doc.Grid.H = gridW, gridH
 
 	for _, b := range w.Content.Biomes {
 		doc.BiomeLegend = append(doc.BiomeLegend, biomeLegendEntry{Code: b.Code, ColorHex: b.ColorHex})
@@ -419,6 +618,74 @@ func buildCityExport(w *worldgen.World, site citySite) (*cityExport, error) {
 	}
 
 	return doc, nil
+}
+
+// latLonOfLocalTile converts a fractional tile coordinate local to addr
+// (chunk_address.go's TileFlatUVFrac convention: i=0/j=0 is addr's own
+// first tile, negative or >=tileEdge is a ghost tile past its edge) into
+// latitude/longitude in degrees, via the same cube-sphere projection
+// TileUnitSpherePoint uses internally for an integer tile — just exposed
+// here through the package's exported FaceDirection since this file lives
+// outside internal/domain/worldgen. VISUAL/QUERY ONLY, same caveat every
+// lat/lon conversion in that package already documents (sin/cos, tan/atan).
+func latLonOfLocalTile(addr worldgen.ChunkAddr, tileEdge int, iFrac, jFrac float64) (latDeg, lonDeg float64) {
+	u, v := addr.TileFlatUVFrac(tileEdge, iFrac, jFrac)
+	x, y, z := worldgen.FaceDirection(addr.Face, u, v)
+	n := math.Sqrt(x*x + y*y + z*z)
+	x, y, z = x/n, y/n, z/n
+	latDeg = math.Asin(clampF(z, -1, 1)) * 180 / math.Pi
+	lonDeg = math.Atan2(y, x) * 180 / math.Pi
+	return
+}
+
+// clampF is zoom.go's own helper, reused here rather than redeclared.
+
+// packInt16LE encodes vals as little-endian int16 pairs — see
+// coarseGridJSON.Elevation's doc comment for why (encoding/json base64s a
+// []byte for free, far cheaper than a raw JSON number array).
+func packInt16LE(vals []int16) []byte {
+	buf := make([]byte, len(vals)*2)
+	for i, v := range vals {
+		binary.LittleEndian.PutUint16(buf[i*2:], uint16(v))
+	}
+	return buf
+}
+
+// clampElevInt16 rounds and clamps a fine sample's float64 elevation into
+// int16 range, the same clamping chunk.go's own tile export already applies
+// (worldgen keeps that logic unexported, so it is repeated here rather than
+// exposed): elevation never approaches this range in practice (see
+// worldgen.Elevation's own doc), this is only a defensive bound so a
+// pathological input can never corrupt the packed byte layout.
+func clampElevInt16(v float64) int16 {
+	r := math.Round(v)
+	switch {
+	case r > math.MaxInt16:
+		return math.MaxInt16
+	case r < math.MinInt16:
+		return math.MinInt16
+	default:
+		return int16(r)
+	}
+}
+
+// waterKindByte maps a FineSample onto fineGridJSON.WaterKind's 5-value
+// encoding (0 none/1 stream/2 river/3 lake/4 ocean) — a strict superset of
+// worldgen.StreamKind, since a fine sample's ocean/lake state lives on
+// separate FineSample fields, not folded into StreamKind itself.
+func waterKindByte(fs worldgen.FineSample) byte {
+	switch {
+	case fs.IsOcean:
+		return 4
+	case fs.IsLake:
+		return 3
+	case fs.StreamKind == worldgen.StreamKindRiver:
+		return 2
+	case fs.StreamKind == worldgen.StreamKindStream:
+		return 1
+	default:
+		return 0
+	}
 }
 
 func tileFlagsJSON(t worldgen.ChunkTile) uint8 {
@@ -441,20 +708,24 @@ const (
 	flagLake   = 4
 )
 
-// bestCityWindow scans every valid citySize x citySize top-left offset
-// inside the one base chunk at (chunkOx,chunkOy) in the stitched grid and
+// bestCityWindow scans every valid winSize x winSize top-left offset inside
+// the one base chunk at (chunkOx,chunkOy) in the stitched COARSE grid and
 // returns the offset (local to that chunk) with the fewest water/steep
-// tiles — a simple, deterministic "flattest, most buildable window" search,
-// good enough for a 32x32 chunk (at most (32-15+1)^2 = 324 windows).
-func bestCityWindow(elevation []int16, flags []uint8, gridW, chunkOx, chunkOy, chunkEdge int) (int, int) {
+// TILES — a simple, deterministic "flattest, most buildable window" search
+// at TILE resolution, good enough for a 32x32 chunk (at most (32-15+1)^2 =
+// 324 windows at the default winSize=flatSearchTiles=15). This only finds a
+// good NEIGHBOURHOOD for the real lot-scale city (buildCityExport centres
+// the much smaller lot core inside whatever window this returns); it does
+// not itself decide the city's own footprint.
+func bestCityWindow(elevation []int16, flags []uint8, gridW, chunkOx, chunkOy, chunkEdge, winSize int) (int, int) {
 	bestX, bestY := 0, 0
 	bestBad := -1
-	maxOff := chunkEdge - citySize
+	maxOff := chunkEdge - winSize
 	for oy := 0; oy <= maxOff; oy++ {
 		for ox := 0; ox <= maxOff; ox++ {
 			bad := 0
-			for ly := 0; ly < citySize; ly++ {
-				for lx := 0; lx < citySize; lx++ {
+			for ly := 0; ly < winSize; ly++ {
+				for lx := 0; lx < winSize; lx++ {
 					gx, gy := chunkOx+ox+lx, chunkOy+oy+ly
 					gi := gy*gridW + gx
 					if flags[gi]&(flagOcean|flagStream|flagLake) != 0 {
@@ -475,12 +746,14 @@ func bestCityWindow(elevation []int16, flags []uint8, gridW, chunkOx, chunkOy, c
 	return bestX, bestY
 }
 
-// steepElevationDelta is the local elevation-gradient threshold (Elevation
-// units between two adjacent tiles) above which a tile counts as too steep
-// to build on — ADR 0028 §6.1's "a steep-slope... lot is unbuildable",
-// given a concrete number for the demo. Chosen generously (a real slope
-// system would grade this continuously): only a genuinely sharp local jump
-// disqualifies a tile, so a gently rolling site is not rejected wholesale.
+// steepElevationDelta is the TILE-scale (~305m) elevation-gradient
+// threshold bestCityWindow's flat-neighbourhood search uses — ADR 0028
+// §6.1's "a steep-slope... lot is unbuildable", given a concrete number.
+// This is NOT what the city's own buildings/roads are checked against
+// (that is fineSteepDeltaM, above, calibrated for ~30m lot spacing
+// instead): this constant only screens the coarse ~4.5km neighbourhood
+// search for gross hillside, generously, so a genuinely flat area is
+// preferred without rejecting a site for texture-scale bumps.
 const steepElevationDelta = 220
 
 func isSteepAt(elevation []int16, gridW, x, y int) bool {
@@ -506,41 +779,78 @@ func isSteepAt(elevation []int16, gridW, x, y int) bool {
 	return worst > steepElevationDelta
 }
 
-// cityTileFromGrid converts one stitched-grid tile into layoutCity's own
-// cityTile shape: water/steep from the terrain flags/elevation already
-// computed for the window search, coast from a direct 4-neighbour check
-// (an ocean tile just outside this one counts, so a shoreline city block
-// still gets a port), and a deposit flag from the exported deposit list
-// (small enough — a few dozen entries across the whole 3x3 window — that a
-// linear scan per tile is simpler than indexing it, and this only runs
-// citySize^2 = 225 times).
-func cityTileFromGrid(elevation []int16, flags []uint8, gridW, gridH, gx, gy int, deposits []depositJSON) cityTile {
-	gi := gy*gridW + gx
-	f := flags[gi]
-	water := f&(flagOcean|flagStream|flagLake) != 0
-	steep := isSteepAt(elevation, gridW, gx, gy)
+// cityTileFromFine converts one FINE-grid lot into layoutCity's own
+// cityTile shape (see fine.go's own doc comment for FineSample and this
+// file's package doc for WHY this is fine-, not coarse-, resolution):
+// water/impassable/biome-driven state straight from the fine sample,
+// fineSteepDeltaM-scale steepness from the fine grid's own 4-neighbour
+// elevation gradient, coast from a fine-grid 4-neighbour ocean check, and a
+// deposit flag derived from the (tile-resolution, unchanged) coarse
+// Deposits list: each deposit's tile coordinate expands to its
+// lotsPerTile x lotsPerTile lot footprint in the SAME fine-grid coordinate
+// space (via fineOriginTileX/Y), and a fine lot inside that footprint is
+// flagged. citylayout.go's anyCornerDeposit separately widens its own
+// building-footprint search by depositSearchMarginLots, so a mine/well can
+// still find a footprint a few lots away rather than needing to land
+// exactly inside it.
+func cityTileFromFine(samples []worldgen.FineSample, fineW, fineH, fx, fy int, deposits []depositJSON, fineOriginTileX, fineOriginTileY float64) cityTile {
+	fs := samples[fy*fineW+fx]
+	water := fs.IsOcean || fs.IsLake || fs.StreamKind != worldgen.StreamKindNone
+	// Impassable (never crossable by a road without detouring): a lake,
+	// ocean, or — treating worldgen.StreamKindRiver as this export's
+	// "too wide to bridge" case, a deliberate simplification over actually
+	// measuring a river's local lot-width — a river. An ordinary
+	// StreamKindStream is the only bridgeable case (see citylayout.go's
+	// traceRoads).
+	impassable := fs.IsOcean || fs.IsLake || fs.StreamKind == worldgen.StreamKindRiver
+	steep := fineSteepAt(samples, fineW, fineH, fx, fy)
 
 	coast := false
 	for _, d := range [4][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
-		nx, ny := gx+d[0], gy+d[1]
-		if nx < 0 || ny < 0 || nx >= gridW || ny >= gridH {
+		nx, ny := fx+d[0], fy+d[1]
+		if nx < 0 || ny < 0 || nx >= fineW || ny >= fineH {
 			continue
 		}
-		if flags[ny*gridW+nx]&flagOcean != 0 {
+		if samples[ny*fineW+nx].IsOcean {
 			coast = true
 			break
 		}
 	}
 
-	tile := cityTile{Water: water, Steep: steep, Coast: coast}
+	tile := cityTile{Water: water, Impassable: impassable, Steep: steep, Coast: coast}
 	for _, d := range deposits {
-		if d.X == gx && d.Y == gy {
+		lx0 := int(math.Round((float64(d.X) - fineOriginTileX) * float64(lotsPerTile)))
+		ly0 := int(math.Round((float64(d.Y) - fineOriginTileY) * float64(lotsPerTile)))
+		if fx >= lx0 && fx < lx0+lotsPerTile && fy >= ly0 && fy < ly0+lotsPerTile {
 			tile.Deposit = true
 			tile.ResourceCode = d.ResourceCode
 			break
 		}
 	}
 	return tile
+}
+
+// fineSteepAt is isSteepAt's lot-scale counterpart: the same 4-neighbour
+// max-gradient check, over worldgen.FineSample.ElevationM (float64,
+// ~lotMeters apart) against fineSteepDeltaM instead of over int16 tile
+// elevation (~TileMeters apart) against steepElevationDelta.
+func fineSteepAt(samples []worldgen.FineSample, fineW, fineH, x, y int) bool {
+	e := samples[y*fineW+x].ElevationM
+	worst := 0.0
+	for _, d := range [4][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
+		nx, ny := x+d[0], y+d[1]
+		if nx < 0 || ny < 0 || nx >= fineW || ny >= fineH {
+			continue
+		}
+		diff := samples[ny*fineW+nx].ElevationM - e
+		if diff < 0 {
+			diff = -diff
+		}
+		if diff > worst {
+			worst = diff
+		}
+	}
+	return worst > fineSteepDeltaM
 }
 
 // worldSummaryFor names the site's nearest river (already known — it is
