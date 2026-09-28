@@ -3,15 +3,17 @@
 # syllable material used to invent fictional continent/sea/mountain/river
 # names.
 #
-# This is NOT loaded through `admin content load` yet — see
-# docs/adr/0028-world-generation.md ("what this decision does not do") for
-# why: the generated PLANET itself has no database schema or admin command
-# in this phase, so wiring its content into the versioned/NATS-published
-# pipeline ADR 0004 describes has nothing downstream to notify yet. It is
-# read directly by `cmd/worldpreview` (internal/content.LoadWorldGen) using
-# the same strict-YAML, validate-before-use discipline every other content
-# file uses. Folding it into the shared `admin content load` command is
-# planned once a world actually gets stored (see the project report).
+# world generation is the stream docs/adr/0028-world-and-settlements.md
+# depends on (its §2, "seed-first", is the design principle this content and
+# internal/domain/worldgen both follow) but does not itself own: this file
+# is NOT loaded through `admin content load` yet, because the generated
+# PLANET itself has no database schema or admin command in this phase, so
+# wiring its content into the versioned/NATS-published pipeline ADR 0004
+# describes has nothing downstream to notify yet. It is read directly by
+# `cmd/worldpreview` (internal/content.LoadWorldGen) using the same
+# strict-YAML, validate-before-use discipline every other content file uses.
+# Folding it into the shared `admin content load` command is planned once a
+# world actually gets stored (see the project report's proposed schema).
 #
 # The RULE for how a biome or a resource gets chosen at a given cell lives in
 # code (internal/domain/worldgen); this file is only the CONTENT that rule
