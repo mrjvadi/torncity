@@ -336,6 +336,10 @@ format:
   digits: "0123456789"
   group_separator: ","
   decimal_separator: "."
+  # Between the plain-noun items of a short list (a settlement's starting
+  # buildings, say) — punctuation, not grammar, but still locale data: a
+  # Persian sentence uses the Arabic comma, never the ASCII one.
+  list_separator: "، "
   duration_hm: "{hours} ساعت و {minutes} دقیقه"
   duration_h: "{hours} ساعت"
   duration_m: "{minutes} دقیقه"
@@ -624,6 +628,54 @@ lever:
 jurisdiction:
   default_country: مشترک‌المنافع
   vantor_federation: "فدراسیون ونتور"
+
+# Biome names, keyed on the biome's content code (configs/content/world.yml).
+biome:
+  ocean: اقیانوس
+  lake: دریاچه
+  tropical_rainforest: "جنگل بارانی حاره‌ای"
+  tropical_savanna: "ساوانای حاره‌ای"
+  desert: کویر
+  temperate_grassland: "چمنزار معتدل"
+  temperate_forest: "جنگل معتدل"
+  temperate_rainforest: "جنگل بارانی معتدل"
+  boreal_forest: "جنگل سوزنی‌برگ"
+  tundra: توندرا
+  polar_ice: "یخ‌های قطبی"
+
+# Founding kit building names, keyed on the building's content code
+# (docs/adr/0028-world-and-settlements.md section 7).
+settlement_building:
+  road: جاده
+  civic_hall: "خانهٔ دهیاری"
+
+# Group founding (docs/adr/0028-world-and-settlements.md section 3): a group
+# admin registers the group and the game places the new village on the map.
+settlement:
+  found:
+    # Announced in the group once the village is placed (ADR 0028 section
+    # 3.1's "one admin.announced-style event tells the group where it
+    # landed and what its first two buildings are building").
+    title: "🏡 روستای تازه‌ای تأسیس شد!"
+    body: |-
+      این گروه اکنون روستای «{name}» را در نزدیکی {feature} بنا کرد.
+      زمین منطقه: {biome}
+      ساخت‌وسازهای آغازین: {buildings}
+      تا {protection} این روستا در برابر حمله محافظت‌شده است.
+    # feature has no known nearby river/continent to name (an open ocean
+    # site, or the named-feature list came up empty).
+    unnamed_feature: "سرزمینی ناشناخته"
+    # Refused: this command only founds a settlement inside a group, where
+    # the whole group can see the result decided (the same group-first rule
+    # every civic act in this game follows).
+    group_only: "🏡 تأسیس روستا فقط در یک گروه ممکن است. ربات را به گروه خود اضافه کنید و همان‌جا این دستور را بفرستید."
+    # Refused: no world has been generated yet.
+    no_world: "🌍 نقشهٔ جهان هنوز آماده نشده است. کمی بعد دوباره امتحان کنید."
+    # This chat already founded one; shown again on a repeated command
+    # (idempotent — never founds a second village).
+    already:
+      title: "🏡 این گروه پیش‌تر روستای «{name}» را تأسیس کرده است."
+      body: "هر گروه تنها یک روستا را می‌تواند تأسیس کند؛ برای رشد، از فرمانداری روستای خود اقدام کنید."
 
 # Playing in a group (internal/gateway/groups). A screen with a player's own
 # details is shown only to that player; these lines are all the rest of the

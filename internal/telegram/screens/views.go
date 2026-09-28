@@ -35,6 +35,10 @@ const (
 	ScreenAppointRefusal = "appoint_refusal"
 	ScreenOfficeNotice   = "office_notice"
 
+	// Group founding (settlements.go).
+	ScreenSettlementFounded = "settlement_founded"
+	ScreenSettlementRefusal = "settlement_refusal"
+
 	// Auctions (auctions.go).
 	ScreenAuctions       = "auctions"
 	ScreenAuctionDetail  = "auction_detail"
