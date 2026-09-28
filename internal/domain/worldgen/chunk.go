@@ -247,15 +247,23 @@ func (w *World) GenerateChunk(addr ChunkAddr) (*Chunk, error) {
 				elev += detail * float64(w.Params.ChunkDetailAmplitude)
 
 				// A small stream: the coarse-interpolated flow accumulation
-				// already says "water drains through here"; the local
-				// stream noise picks a thin, wandering subset of those
-				// tiles instead of flooding the whole drainage corridor,
-				// so a river reads as a meandering line at tile scale
-				// rather than a wide, straight smear the coarse cell's own
-				// resolution would otherwise imply.
+				// already says "water drains through here", often across a
+				// wide eligible swath (the coarse mesh's own cell spacing
+				// is tens of km); the local stream noise's ISOLINE — where
+				// its value crosses close to zero — picks a thin, wandering
+				// subset of that swath instead of flooding all of it, so a
+				// river reads as a meandering line at tile scale rather
+				// than a wide, straight smear the coarse cell's own
+				// resolution would otherwise imply. The band width
+				// (+-0.06) was picked empirically: too narrow relative to
+				// how much the noise changes from one tile to the next and
+				// the isoline breaks into disconnected dots instead of a
+				// continuous line (adjacent tiles both landing in a very
+				// thin band gets unlikely); too wide and it stops reading
+				// as a stream and starts flooding the whole swath again.
 				if cs.riverFlow >= float64(w.Params.RiverFlowThreshold) {
 					wiggle := w.chunkStreamNoise.Sample3(x, y, z)
-					stream = wiggle > -0.15 && wiggle < 0.15
+					stream = wiggle > -0.06 && wiggle < 0.06
 				}
 			}
 

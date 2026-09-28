@@ -185,24 +185,35 @@ type Params struct {
 	// ChunkDetailFrequency/ChunkDetailAmplitude configure the base-LOD-only
 	// local FastNoiseLite detail added on top of the coarse mesh's
 	// interpolated elevation: hills and coastline wrinkling too fine for
-	// the 40k-cell mesh to represent. Frequency is cycles across the
-	// sphere's diameter (same units as NoiseBaseFrequency), which makes its
-	// USEFUL RANGE very different from NoiseBaseFrequency's: that field
-	// shapes continents (a wavelength of thousands of km is exactly right),
-	// this one shapes a single ~10km chunk, so it needs a wavelength on the
-	// order of a kilometre or two — roughly two to three orders of
-	// magnitude higher a frequency for the same "cycles across the
-	// diameter" units. DefaultParams' value (see there) is picked to give
-	// a real wavelength of about 1.5km on Earth's own radius; changing
-	// PlanetRadiusKm without rescaling this proportionally will change how
-	// many hills fit in one chunk. Amplitude is in Elevation units.
+	// the 40k-cell mesh to represent.
+	//
+	// UNITS AND MAGNITUDE. fastnoise.go feeds the noise function
+	// x*Frequency directly (see internal/domain/worldgen/fastnoise), and
+	// OpenSimplex2 has roughly unit period in that scaled coordinate — so
+	// a point on the UNIT sphere (radius 1) sees a real wavelength of
+	// PlanetRadiusKm/Frequency kilometres. That makes this field's useful
+	// range very different from NoiseBaseFrequency's (climate.go, chosen
+	// for continent-scale wavelengths of thousands of km): a chunk is only
+	// ~10km across, so this needs a wavelength of a kilometre or two —
+	// roughly three orders of magnitude higher a Frequency for the same
+	// planet. Each FBm octave DOUBLES that frequency (halving the
+	// wavelength again), which is why the noise field this drives is built
+	// with only 2 octaves (world.go): more, at a frequency already tuned
+	// for chunk scale, would push the finest octave's wavelength below one
+	// tile's own ~305m — sampling detail finer than the grid resolves,
+	// which aliases into visual static rather than smooth hills (this was
+	// caught empirically: an earlier default here produced exactly that).
+	// DefaultParams' value keeps even the finest (2nd) octave several
+	// tiles wide; changing PlanetRadiusKm without rescaling this
+	// proportionally moves how many hills fit in one chunk. Amplitude is
+	// in Elevation units.
 	ChunkDetailFrequency float64
 	ChunkDetailAmplitude Elevation
 
 	// ChunkStreamFrequency/ChunkStreamAmplitude configure the noise that
 	// meanders a base-LOD small stream tile off a dead-straight line
-	// between coarse drainage cells. Same "needs a chunk-scale wavelength,
-	// not a planet-scale one" caveat as ChunkDetailFrequency above.
+	// between coarse drainage cells. Same units and aliasing caveat as
+	// ChunkDetailFrequency above.
 	ChunkStreamFrequency float64
 	ChunkStreamAmplitude Elevation
 
@@ -239,14 +250,19 @@ func DefaultParams() Params {
 		PlanetRadiusKm: 6371,
 		ChunkBaseLOD:   10,
 		ChunkTileEdge:  32,
-		// 8000/12000 give real wavelengths of roughly 1.6km/1.1km on this
-		// radius (frequency = 2*PlanetRadiusKm/wavelengthKm — see the
-		// field docs above) — a handful of hills and a genuinely wandering
-		// stream inside one ~10km base chunk, not a fraction of one
-		// continent-scale wave barely bending across it.
-		ChunkDetailFrequency:        8000,
+		// 2000/1200 give a base-octave real wavelength of roughly
+		// 3.2km/5.3km on this radius (wavelength = PlanetRadiusKm/
+		// Frequency — see the field docs above), so even the finest (2nd,
+		// doubled) FBm octave stays several tiles wide instead of aliasing
+		// — a handful of hills and a genuinely wandering, CONTINUOUS stream
+		// (chunk.go's stream test needs the noise to change gently enough
+		// from one tile to the next that its narrow threshold band is
+		// crossed by a run of adjacent tiles, not just an isolated one)
+		// inside one ~10km base chunk, not a fraction of one continent-
+		// scale wave barely bending across it.
+		ChunkDetailFrequency:        2000,
 		ChunkDetailAmplitude:        300,
-		ChunkStreamFrequency:        12000,
+		ChunkStreamFrequency:        1200,
 		ChunkStreamAmplitude:        60,
 		ChunkDepositTilesPerDeposit: 5,
 	}

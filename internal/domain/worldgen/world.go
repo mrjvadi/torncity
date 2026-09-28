@@ -150,8 +150,17 @@ func Generate(seed uint64, params Params, content Content) (*World, error) {
 	// Chunk-scale detail fields (chunk.go): independent noise streams, same
 	// derivation as every other named field in noise.go, sampled only when
 	// a chunk is actually generated.
-	chunkDetail := newNoiseField(seed, "chunk:detail", 4, params.ChunkDetailFrequency, 500, 0, 1)
-	chunkStream := newNoiseField(seed, "chunk:stream", 3, params.ChunkStreamFrequency, 500, 0, 1)
+	// Octaves deliberately LOW (2, not the coarse fields' 6): each FBm
+	// octave doubles frequency, so with a base frequency already tuned to
+	// a chunk-scale wavelength (see Params.ChunkDetailFrequency's doc), a
+	// handful of octaves would push the FINEST octave's wavelength below
+	// one tile's own size — sampling noise content finer than the grid
+	// samples it at, which aliases into exactly the salt-and-pepper static
+	// an early version of this rendered instead of rolling hills. 2
+	// octaves keeps the finest octave at roughly half the base
+	// wavelength, still several tiles wide.
+	chunkDetail := newNoiseField(seed, "chunk:detail", 2, params.ChunkDetailFrequency, 500, 0, 1)
+	chunkStream := newNoiseField(seed, "chunk:stream", 2, params.ChunkStreamFrequency, 500, 0, 1)
 	chunkClimate := newNoiseField(seed, "chunk:climate", 2, climateJitterFrequency, 500, 0, 1)
 
 	w := &World{

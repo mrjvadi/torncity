@@ -310,7 +310,7 @@ func renderMidLODRegion(w *worldgen.World, center worldgen.ChunkAddr, path strin
 			for j := 0; j < edge; j++ {
 				for i := 0; i < edge; i++ {
 					gx, gy := ox+i, oy+j
-					shade := hillshade(elev, gridW, gridH, gx, gy)
+					shade := tileHillshade(elev, gridW, gridH, gx, gy)
 					base := tileBaseColor(w, t[j*edge+i])
 					img.Set(gx, gy, scaleColor(base, shade))
 				}
@@ -378,7 +378,7 @@ func renderBaseChunk(w *worldgen.World, addr worldgen.ChunkAddr, path string) er
 	img := image.NewRGBA(image.Rect(0, 0, edge*scale, edge*scale))
 	for j := 0; j < edge; j++ {
 		for i := 0; i < edge; i++ {
-			shade := hillshade(elev, edge, edge, i, j)
+			shade := tileHillshade(elev, edge, edge, i, j)
 			base := scaleColor(tileBaseColor(w, c.TileAt(i, j)), shade)
 			for py := 0; py < scale; py++ {
 				for px := 0; px < scale; px++ {
@@ -402,6 +402,55 @@ func renderBaseChunk(w *worldgen.World, addr worldgen.ChunkAddr, path string) er
 	}
 
 	return savePNG(img, path)
+}
+
+// tileGradientScale is hillshade's (render.go) gradient-to-normal scale,
+// but for a TILE grid instead of render.go's coarse equirectangular query
+// grid. render.go's 0.014 was tuned for adjacent samples roughly 111km
+// apart (a ~360x180 query grid over the whole planet — see
+// querySampleSize); adjacent TILES are ~305m apart, roughly 360x closer
+// together, so the elevation delta between them for an equally steep
+// real-world slope is proportionally smaller, but the chunk-scale detail
+// noise's own wavelength (a kilometre or two, Params.ChunkDetailFrequency's
+// doc) is short enough relative to a chunk that USING render.go's 0.014
+// unmodified turned mild rolling hills into a flickering, high-contrast
+// checkerboard: every tile-to-tile step, however small in absolute
+// elevation, was amplified past the point where the shading normal is
+// dominated by noise rather than real relief. 0.0025 was picked by
+// rendering the same chunk at several scales and choosing the one where
+// hills read as hills — see the project report.
+const tileGradientScale = 0.0025
+
+// tileHillshade is hillshade (render.go) with tileGradientScale in place of
+// render.go's own constant — same lighting convention (light from the
+// northwest), different magnitude, for the reason given above.
+func tileHillshade(elev []float64, width, height, px, py int) float64 {
+	x1, x0 := px+1, px-1
+	if x1 >= width {
+		x1 = width - 1
+	}
+	if x0 < 0 {
+		x0 = 0
+	}
+	y1, y0 := py+1, py-1
+	if y1 >= height {
+		y1 = height - 1
+	}
+	if y0 < 0 {
+		y0 = 0
+	}
+	dzdx := elev[py*width+x1] - elev[py*width+x0]
+	dzdy := elev[y1*width+px] - elev[y0*width+px]
+
+	nx, ny, nz := -dzdx*tileGradientScale, -dzdy*tileGradientScale, 1.0
+	n := math.Sqrt(nx*nx + ny*ny + nz*nz)
+	nx, ny, nz = nx/n, ny/n, nz/n
+	lx, ly, lz := -0.55, 0.55, 0.63
+	ln := math.Sqrt(lx*lx + ly*ly + lz*lz)
+	lx, ly, lz = lx/ln, ly/ln, lz/ln
+
+	dot := nx*lx + ny*ly + nz*lz
+	return 0.35 + 1.05*clamp01((dot+1)/2)
 }
 
 // tileBaseColor is renderReliefBiome's (render.go) colour formula, applied
