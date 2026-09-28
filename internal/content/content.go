@@ -281,6 +281,11 @@ type Pack struct {
 	// (recruitment.go; docs/adr/0027-specialist-recruitment.md).
 	Recruitment []RecruitmentDef
 
+	// settlement_knowledge.yml: the village-level knowledge catalogue
+	// (settlementknowledge.go; docs/adr/0031-knowledge-and-village-
+	// progression.md).
+	SettlementKnowledge []SettlementKnowledgeDef
+
 	// world.yml: world generation content (worldgen.go). LoadWorldGen is
 	// the function a caller actually generating a world uses; these fields
 	// exist on Pack only so Load (the shared, ADR-0004 loader every other

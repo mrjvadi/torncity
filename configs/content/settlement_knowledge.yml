@@ -1,0 +1,380 @@
+version: 1
+# The village-level settlement knowledge catalogue (ADR 0031 section 3.1,
+# section 10's owner decisions). Rules: internal/domain/settlementknowledge.
+# Loaded and validated by internal/content/settlementknowledge.go; stored as
+# content_documents rows, kind "settlement_knowledge" (see that file's own
+# comment for why there is no bespoke definitions table).
+#
+# CODES ARE DELIBERATELY NEUTRAL, FUNCTIONAL ENGLISH — never a borrowed
+# proper noun from one real culture (ADR 0031 section 3.1): two settlements
+# that both end up filling `arable_farming` should not both be flying one
+# nation's flag over it. In-game display names (settlement_knowledge.<code>
+# in the locales) may be evocative Persian, but the code and this file's own
+# comments stay neutral and worldwide, grounded in the research table ADR
+# 0031 section 0 cites (medieval European open-field/guilds, East/Southeast
+# Asian paddy irrigation and village schooling, Middle Eastern qanat/waqf,
+# West/East African age-grade militias and lineage smithing, Andean terrace
+# irrigation and ayllu labour, Russian/Central Asian communal tenure, and
+# Oceanic pondfield irrigation and oral navigation knowledge) — no single
+# region's storyline is privileged; every regional analogue sits at the same
+# depth in the tree as its rivals.
+#
+# TERRAIN TAGS mix two open vocabularies on purpose: a world.yml biome code
+# (desert, temperate_grassland, tropical_savanna, tropical_rainforest,
+# tundra, ...) and an ADR 0028 section 6.1 lot flag (river_lot, sloped_lot,
+# coastal_lot) synthesised by the application layer from LocalSample. One
+# more synthetic tag, ore_deposit, is set by the application layer when the
+# settlement's own territory covers an ore-bearing world_deposits cell (ADR
+# 0028 section 5.3) — smithing needs it exactly the way canal_irrigation
+# needs river_lot. This package does not know what any of these mean; it
+# only matches strings, which is why a new terrain source never needs a code
+# change here.
+#
+# NUMBERS ARE A FIRST DRAFT (ADR 0031 section 9 open question 4), offered
+# for the owner to tune in content once a first village is playable — the
+# same precedent ADR 0028 section 12 already set for its own building
+# catalogue.
+knowledge:
+  # ---------------------------------------------------------------------
+  # Universal founding grants (ADR 0031 section 4.3): every new village is
+  # granted all four, free, at founding. mode_eligible: false means never
+  # offered for research, purchase or a license — a settlement either has
+  # them from founding or, today, never will; there is nothing to buy.
+  # ---------------------------------------------------------------------
+  - code: oral_tradition
+    name: "دانش شفاهی"
+    cost: 0
+    time: 0s
+    provides: [literacy_spread]
+    mode_eligible: false
+
+  - code: communal_watch
+    name: "پاس‌داری محله"
+    cost: 0
+    time: 0s
+    provides: [local_security]
+    mode_eligible: false
+
+  - code: kin_apprenticeship
+    name: "شاگردی خانوادگی"
+    cost: 0
+    time: 0s
+    provides: [skilled_labor]
+    mode_eligible: false
+
+  - code: barter_ring
+    name: "حلقهٔ پایاپای"
+    cost: 0
+    time: 0s
+    provides: [market_access]
+    mode_eligible: false
+
+  # ---------------------------------------------------------------------
+  # Universal, largely linear items (ADR 0031 section 3.1's own list):
+  # literacy, record-keeping, basic medicine, and five craft families.
+  # ---------------------------------------------------------------------
+  - code: basic_literacy
+    name: "سوادآموزی پایه"
+    requires: [oral_tradition]
+    provides: [literacy_spread, record_keeping_gate]
+    cost: 4000
+    time: 48h
+
+  - code: record_keeping
+    name: "دفترداری"
+    requires_capability: [literacy_spread]
+    provides: [record_keeping]
+    cost: 6000
+    time: 72h
+
+  - code: basic_medicine
+    name: "درمان‌گری پایه"
+    family: basic_medicine
+    generation: 1
+    cost: 2500
+    time: 30h
+    effects: [{target: service_coverage_bps, op: add, value: 400}]
+  - code: basic_medicine_ii
+    name: "درمان‌گری پیشرفته"
+    requires: [basic_medicine]
+    family: basic_medicine
+    generation: 2
+    cost: 6000
+    time: 60h
+    effects: [{target: service_coverage_bps, op: add, value: 300}]
+
+  # carpentry — the owner's own example, generations i-iv.
+  - code: carpentry
+    name: "نجاری"
+    family: carpentry
+    generation: 1
+    cost: 1000
+    time: 12h
+    effects: [{target: craft_workshop_output_bps, op: add, value: 500}]
+  - code: carpentry_ii
+    name: "نجاری درجه دو"
+    requires: [carpentry]
+    family: carpentry
+    generation: 2
+    cost: 3000
+    time: 24h
+    effects: [{target: craft_workshop_output_bps, op: add, value: 400}]
+  - code: carpentry_iii
+    name: "نجاری درجه سه"
+    requires: [carpentry_ii]
+    family: carpentry
+    generation: 3
+    cost: 7000
+    time: 48h
+    effects: [{target: craft_workshop_output_bps, op: add, value: 300}]
+  - code: carpentry_iv
+    name: "نجاری استادکاری"
+    requires: [carpentry_iii]
+    family: carpentry
+    generation: 4
+    cost: 15000
+    time: 96h
+    effects: [{target: craft_workshop_output_bps, op: add, value: 200}]
+
+  # masonry — generations i-iii.
+  - code: masonry
+    name: "بنایی"
+    family: masonry
+    generation: 1
+    cost: 1200
+    time: 14h
+    effects: [{target: masonry_output_bps, op: add, value: 450}]
+  - code: masonry_ii
+    name: "بنایی درجه دو"
+    requires: [masonry]
+    family: masonry
+    generation: 2
+    cost: 3500
+    time: 28h
+    effects: [{target: masonry_output_bps, op: add, value: 350}]
+  - code: masonry_iii
+    name: "بنایی استادکاری"
+    requires: [masonry_ii]
+    family: masonry
+    generation: 3
+    cost: 8000
+    time: 56h
+    effects: [{target: masonry_output_bps, op: add, value: 250}]
+
+  # smithing — generations i-iii, gated to a settlement whose territory
+  # covers an ore-bearing deposit (ADR 0028 section 5.3; see the file
+  # comment on the synthetic ore_deposit tag).
+  - code: smithing
+    name: "آهنگری"
+    family: smithing
+    generation: 1
+    terrain_tags: [ore_deposit]
+    terrain_mode: required
+    cost: 1500
+    time: 16h
+    effects: [{target: smithing_output_bps, op: add, value: 500}]
+  - code: smithing_ii
+    name: "آهنگری درجه دو"
+    requires: [smithing]
+    family: smithing
+    generation: 2
+    cost: 4000
+    time: 32h
+    effects: [{target: smithing_output_bps, op: add, value: 400}]
+  - code: smithing_iii
+    name: "آهنگری استادکاری"
+    requires: [smithing_ii]
+    family: smithing
+    generation: 3
+    cost: 9000
+    time: 64h
+    effects: [{target: smithing_output_bps, op: add, value: 300}]
+
+  # weaving — generations i-ii.
+  - code: weaving
+    name: "بافندگی"
+    family: weaving
+    generation: 1
+    cost: 900
+    time: 10h
+    effects: [{target: weaving_output_bps, op: add, value: 400}]
+  - code: weaving_ii
+    name: "بافندگی درجه دو"
+    requires: [weaving]
+    family: weaving
+    generation: 2
+    cost: 2600
+    time: 20h
+    effects: [{target: weaving_output_bps, op: add, value: 300}]
+
+  # pottery — generations i-ii.
+  - code: pottery
+    name: "سفال‌گری"
+    family: pottery
+    generation: 1
+    cost: 800
+    time: 9h
+    effects: [{target: pottery_output_bps, op: add, value: 400}]
+  - code: pottery_ii
+    name: "سفال‌گری درجه دو"
+    requires: [pottery]
+    family: pottery
+    generation: 2
+    cost: 2400
+    time: 18h
+    effects: [{target: pottery_output_bps, op: add, value: 300}]
+
+  # milling — generations i-ii.
+  - code: milling
+    name: "آسیابانی"
+    family: milling
+    generation: 1
+    cost: 1000
+    time: 11h
+    effects: [{target: milling_output_bps, op: add, value: 400}]
+  - code: milling_ii
+    name: "آسیابانی درجه دو"
+    requires: [milling]
+    family: milling
+    generation: 2
+    cost: 2800
+    time: 22h
+    effects: [{target: milling_output_bps, op: add, value: 300}]
+
+  # ---------------------------------------------------------------------
+  # arable_farming — four rival branches, each terrain-required, each
+  # Providing the same capability so downstream content never names one
+  # by name (ADR 0031 section 3.1's table).
+  # ---------------------------------------------------------------------
+  - code: canal_irrigation
+    name: "آبیاری نهری"
+    terrain_tags: [river_lot]
+    terrain_mode: required
+    provides: [arable_farming]
+    cost: 3000
+    time: 24h
+  - code: shaft_irrigation
+    name: "آبیاری قناتی"
+    terrain_tags: [desert]
+    terrain_mode: required
+    provides: [arable_farming]
+    cost: 5000
+    time: 48h
+  - code: terrace_irrigation
+    name: "آبیاری تراسی"
+    terrain_tags: [sloped_lot]
+    terrain_mode: required
+    provides: [arable_farming]
+    cost: 4000
+    time: 36h
+  - code: paddy_cultivation
+    name: "شالی‌کاری"
+    terrain_tags: [river_lot, tropical_rainforest, tropical_savanna]
+    terrain_mode: required
+    provides: [arable_farming]
+    cost: 4500
+    time: 40h
+
+  # ---------------------------------------------------------------------
+  # pastoral_husbandry — one branch in v1 (steppe/tundra pastoralism).
+  # ---------------------------------------------------------------------
+  - code: open_range_herding
+    name: "دام‌داری صحرایی"
+    terrain_tags: [temperate_grassland, tropical_savanna, tundra]
+    terrain_mode: required
+    provides: [pastoral_husbandry]
+    cost: 1500
+    time: 12h
+
+  # ---------------------------------------------------------------------
+  # aquatic_harvest — two branches, both needing a coastal lot.
+  # ---------------------------------------------------------------------
+  - code: coastal_fishing
+    name: "ماهی‌گیری ساحلی"
+    terrain_tags: [coastal_lot]
+    terrain_mode: required
+    provides: [aquatic_harvest]
+    cost: 1800
+    time: 14h
+  - code: pondfield_aquaculture
+    name: "آبزی‌پروری حوضچه‌ای"
+    terrain_tags: [coastal_lot, tropical_rainforest, tropical_savanna]
+    terrain_mode: required
+    provides: [aquatic_harvest]
+    cost: 3200
+    time: 26h
+
+  # ---------------------------------------------------------------------
+  # local_security — communal_watch is the founding grant above; three
+  # more branches, one terrain-preferred (a discount, not a gate) and two
+  # gated on record_keeping/basic_literacy instead of terrain at all.
+  # ---------------------------------------------------------------------
+  - code: mounted_militia
+    name: "میلیشیای سوار"
+    terrain_tags: [temperate_grassland, tropical_savanna]
+    terrain_mode: preferred
+    provides: [local_security]
+    cost: 2500
+    time: 18h
+  - code: sworn_retainers
+    name: "گارد سوگندخورده"
+    requires: [record_keeping]
+    provides: [local_security]
+    cost: 4000
+    time: 30h
+  - code: formal_constabulary
+    name: "ژاندارمری رسمی"
+    requires: [record_keeping, basic_literacy]
+    provides: [local_security]
+    cost: 7000
+    time: 50h
+
+  # ---------------------------------------------------------------------
+  # skilled_labor — kin_apprenticeship is the founding grant above; three
+  # more branches, the last gated on the settlement's own literacy_share
+  # (ADR 0031 section 4.4 — a real literacy movement, not just a document).
+  # ---------------------------------------------------------------------
+  - code: craft_guild_charter
+    name: "منشور اصناف"
+    requires: [record_keeping]
+    provides: [skilled_labor]
+    cost: 5000
+    time: 40h
+  - code: temple_school
+    name: "مکتب‌خانه"
+    requires: [basic_literacy]
+    provides: [skilled_labor]
+    cost: 4500
+    time: 36h
+  - code: state_school
+    name: "آموزش همگانی"
+    requires: [basic_literacy]
+    provides: [skilled_labor]
+    min_literacy_share_bps: 5000
+    cost: 8000
+    time: 60h
+
+  # ---------------------------------------------------------------------
+  # market_access — barter_ring is the founding grant above; three more
+  # branches.
+  # ---------------------------------------------------------------------
+  - code: periodic_market
+    name: "بازار ادواری"
+    requires: [record_keeping]
+    provides: [market_access]
+    cost: 3500
+    time: 30h
+  - code: endowed_market_hall
+    name: "بازار وقفی"
+    requires: [record_keeping]
+    provides: [market_access]
+    cost: 6000
+    time: 45h
+  - code: trading_post
+    name: "ایستگاه بازرگانی"
+    terrain_tags: [coastal_lot, river_lot]
+    terrain_mode: required
+    requires: [basic_literacy]
+    provides: [market_access]
+    cost: 5500
+    time: 42h

@@ -291,6 +291,20 @@ func TestRivalBranchesMayBothBeAcquired(t *testing.T) {
 	}
 }
 
+func TestCanAcquireLiteracyTooLow(t *testing.T) {
+	techs := append(sampleTree(), Tech{Code: "state_school", Requires: []string{"basic_literacy"},
+		MinLiteracyShareBPS: 5000, Cost: 1000, Time: time.Hour, ModeEligible: true})
+	tree := treeOf(t, techs)
+	s := Standing{Owned: item.NewSet("oral_tradition", "basic_literacy"), LiteracyShareBPS: 2000}
+	if err := CanAcquire(tree["state_school"], tree, s, true); !errors.Is(err, ErrLiteracyTooLow) {
+		t.Fatalf("err = %v, want ErrLiteracyTooLow", err)
+	}
+	s.LiteracyShareBPS = 5000
+	if err := CanAcquire(tree["state_school"], tree, s, true); err != nil {
+		t.Fatalf("a met literacy threshold should pass: %v", err)
+	}
+}
+
 func TestDiscountedOnlyForPreferredTerrainMatch(t *testing.T) {
 	tree := treeOf(t, sampleTree())
 	inGrassland := Standing{TerrainTags: []string{"temperate_grassland"}}

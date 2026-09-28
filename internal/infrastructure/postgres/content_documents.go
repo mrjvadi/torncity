@@ -233,6 +233,12 @@ func init() {
 			func(p *content.Pack) []string { return p.CompanyReservedNames },
 			func(w string) string { return w },
 			func(p *content.Pack, w string) { p.CompanyReservedNames = append(p.CompanyReservedNames, w) }),
+		listKind("settlement_knowledge",
+			func(p *content.Pack) []content.SettlementKnowledgeDef { return p.SettlementKnowledge },
+			func(d content.SettlementKnowledgeDef) string { return d.Code },
+			func(p *content.Pack, d content.SettlementKnowledgeDef) {
+				p.SettlementKnowledge = append(p.SettlementKnowledge, d)
+			}),
 	)
 }
 

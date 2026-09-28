@@ -122,6 +122,10 @@ type file struct {
 
 	Recruitment *RecruitmentDef `yaml:"recruitment"`
 
+	// Settlement knowledge (settlement_knowledge.yml): the village-level
+	// knowledge catalogue. See settlementknowledge.go.
+	SettlementKnowledge []SettlementKnowledgeDef `yaml:"knowledge"`
+
 	// World generation (world.yml): the biomes, resource-geology rules and
 	// naming material worldgen.Generate reads. See worldgen.go. These are
 	// declared here — alongside every other content type — only so the
@@ -270,6 +274,7 @@ func Load(dir string) (*Pack, error) {
 		if doc.Recruitment != nil {
 			pack.Recruitment = append(pack.Recruitment, *doc.Recruitment)
 		}
+		pack.SettlementKnowledge = append(pack.SettlementKnowledge, doc.SettlementKnowledge...)
 		pack.Biomes = append(pack.Biomes, doc.Biomes...)
 		pack.Resources = append(pack.Resources, doc.Resources...)
 		pack.NameSyllables = append(pack.NameSyllables, doc.NameSyllables...)

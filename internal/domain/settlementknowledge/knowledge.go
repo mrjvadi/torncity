@@ -85,6 +85,9 @@ var (
 	// ErrNotModeEligible means an item marked mode_eligible=false (a
 	// founding-only grant) was offered for research, purchase or a license.
 	ErrNotModeEligible = errors.New("settlementknowledge: item is not offered this way")
+	// ErrLiteracyTooLow means the settlement's own literacy_share has not
+	// yet reached the item's MinLiteracyShareBPS (ADR 0031 section 4.4).
+	ErrLiteracyTooLow = errors.New("settlementknowledge: literacy share too low")
 )
 
 // Bounds on authored content, identical in spirit and in value to
@@ -183,6 +186,13 @@ type Tech struct {
 	// shelf offers.
 	Restricted bool
 
+	// MinLiteracyShareBPS gates this item on the settlement's own literacy
+	// share (ADR 0031 section 4.4: "state_school ... requires literacy_share
+	// >= threshold", "school ... requires literacy_share >= threshold").
+	// Zero means no literacy gate at all. Bounded 0..10000, the same scale
+	// literacy_share itself is stored on.
+	MinLiteracyShareBPS int
+
 	// DiscountCondition names a settlement fact (content: an opaque key the
 	// acquisition rules resolve, e.g. "ran an extraction building N
 	// periods") that halves this item's cost and time once true — the
@@ -271,6 +281,9 @@ func ValidateTree(techs []Tech, vocab Vocabulary) error {
 		}
 		if len(t.TerrainTags) > 0 && t.TerrainMode == TerrainNone {
 			fail(ErrInvalidKnowledge, "%q names terrain tags with no terrain mode", t.Code)
+		}
+		if t.MinLiteracyShareBPS < 0 || t.MinLiteracyShareBPS > 10_000 {
+			fail(ErrInvalidKnowledge, "%q literacy threshold %d", t.Code, t.MinLiteracyShareBPS)
 		}
 	}
 
@@ -466,6 +479,9 @@ type Standing struct {
 	// biome plus any lot flags the caller considers part of "its terrain"
 	// for gating purposes (ADR 0028 sections 2, 6.1). Read-only here.
 	TerrainTags []string
+	// LiteracyShareBPS is the settlement's own current literacy_share (ADR
+	// 0031 section 4.4), 0-10000.
+	LiteracyShareBPS int
 }
 
 // hasCapability reports whether the settlement already holds something that
@@ -544,6 +560,9 @@ func CanAcquire(t Tech, tree Tree, s Standing, forResearch bool) error {
 	}
 	if missing := s.Missing(t, tree); len(missing) > 0 {
 		return fmt.Errorf("%w: %q needs %q", ErrPrerequisiteMissing, t.Code, missing[0])
+	}
+	if t.MinLiteracyShareBPS > 0 && s.LiteracyShareBPS < t.MinLiteracyShareBPS {
+		return fmt.Errorf("%w: %q needs %d bps, settlement has %d", ErrLiteracyTooLow, t.Code, t.MinLiteracyShareBPS, s.LiteracyShareBPS)
 	}
 	if forResearch {
 		if t.Skill != "" {
