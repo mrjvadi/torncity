@@ -53,7 +53,7 @@ biomes:
   # forest, 2000mm for tropical rainforest) left forest under 1% of the map
   # because this model's typical rainfall rarely reached them.
   - {code: tropical_rainforest,  min_temp_c: 20.0,  max_temp_c: 45.0, min_precip_mm: 720,  max_precip_mm: 8000, color_hex: "1a6b34"}
-  - {code: tropical_savanna,     min_temp_c: 20.0,  max_temp_c: 45.0, min_precip_mm: 260,  max_precip_mm: 720,  color_hex: "b8a552"}
+  - {code: tropical_savanna,     min_temp_c: 20.0,  max_temp_c: 45.0, min_precip_mm: 260,  max_precip_mm: 720,  color_hex: "8f9a45"}
   - {code: desert,               min_temp_c: -10.0, max_temp_c: 50.0, min_precip_mm: 0,    max_precip_mm: 240,  color_hex: "d9c07a"}
   - {code: temperate_grassland,  min_temp_c: -5.0,  max_temp_c: 22.0, min_precip_mm: 240,  max_precip_mm: 400,  color_hex: "9ab973"}
   - {code: temperate_forest,     min_temp_c: -5.0,  max_temp_c: 22.0, min_precip_mm: 400,  max_precip_mm: 1400, color_hex: "4c7a3d"}
