@@ -1,0 +1,132 @@
+# Local horizontal-scaling proof — for the scale-out report, not for
+# production. Layer this on top of the base file:
+#
+#   docker compose -f docker-compose.yml -f deployments/compose.scale-test.yml \
+#     up -d --build \
+#     --scale gateway=2 --scale scheduler=2 \
+#     --scale game=3 --scale worker=3 --scale notifier=3 --scale clientapi=3
+#
+# What it adds on top of the base file, and why:
+#
+#  - telegram-bot-api is disabled (same trick compose.server.yml uses: an
+#    alpine no-op behind a profile nothing starts). It needs a real
+#    TELEGRAM_API_ID/HASH from my.telegram.org, which this test never has and
+#    never should; mock-telegram replaces it entirely.
+#
+#  - mock-telegram (tests/loadtest/mocktelegram) stands in for Telegram's
+#    servers. The gateway's real poll loop, its Redis lease and its retry
+#    logic all run completely unmodified against it — only the HTTP endpoint
+#    they talk to changes. No real bot token is used anywhere in this file;
+#    TORN_MOCK_BOT_TOKEN (set in the test .env, never committed) is a value
+#    this stack invented for itself.
+#
+#  - clientapi's fixed host port (127.0.0.1:58091, set in the base file) is
+#    unpublished here: a second and third replica cannot also bind it.
+#    clientapi-lb, a small nginx, takes that port over instead and spreads
+#    requests across however many clientapi replicas are running, through
+#    Docker's own embedded DNS — see deployments/nginx-clientapi-lb.conf.
+#    A real multi-host deploy makes the same trade with a real load
+#    balancer or a reverse proxy that resolves DNS per request; docker-
+#    compose.yml already describes exactly this for panel and clientapi in
+#    the production compose.server.yml overlay.
+#
+#  - postgres.max_connections is raised, and every scaled service's own pool
+#    (postgres.max_conns, TORN_POSTGRES_MAX_CONNS) is turned down to fit
+#    comfortably under it. At the base file's default of 16 per service,
+#    even ONE replica of all eight services can ask for up to 128
+#    connections against Postgres's own default ceiling of 100 — before any
+#    scaling at all. See the report for the exact arithmetic at the replica
+#    counts above, and why PgBouncer is the real fix once this stops being a
+#    local test.
+#
+services:
+  postgres:
+    # 300 comfortably covers every replica count this overlay is meant for;
+    # production sizes this from PgBouncer's pool instead (see the report).
+    command: ["postgres", "-c", "max_connections=300"]
+    # Unpublished: this is a shared host and the base file's default port
+    # (55432) may already be bound by another checkout of this same repo
+    # running alongside this one. Every service still reaches it over the
+    # compose network as tc-postgres; use `docker compose exec postgres
+    # psql ...` for host-side inspection during the test.
+    ports: []
+
+  telegram-bot-api:
+    image: alpine:3.20
+    command: ["true"]
+    restart: "no"
+    profiles: ["unused"]
+
+  gateway:
+    environment:
+      TELEGRAM_API_BASE_URL: "http://mock-telegram:8081"
+      TORN_POSTGRES_MAX_CONNS: "6"
+    depends_on:
+      mock-telegram: {condition: service_healthy}
+
+  game:
+    environment:
+      TORN_POSTGRES_MAX_CONNS: "6"
+
+  worker:
+    environment:
+      TORN_POSTGRES_MAX_CONNS: "6"
+
+  notifier:
+    environment:
+      TORN_POSTGRES_MAX_CONNS: "6"
+
+  scheduler:
+    environment:
+      TORN_POSTGRES_MAX_CONNS: "4"
+
+  panel:
+    environment:
+      TORN_POSTGRES_MAX_CONNS: "4"
+
+  clientapi:
+    # Unpublish the fixed host port from the base file; clientapi-lb takes
+    # over 127.0.0.1:58091 below. Replicas still reach each other and are
+    # reached by the load balancer over the compose network by service name.
+    ports: []
+    environment:
+      TORN_POSTGRES_MAX_CONNS: "6"
+      # Every request now arrives via clientapi-lb, not directly, so
+      # client.trusted_proxies must name that hop for X-Forwarded-For (the
+      # load generator's per-player synthetic address) to be trusted over
+      # the proxy's own socket address — the same reasoning
+      # compose.server.yml documents for its own reverse proxy.
+      TORN_CLIENT_TRUSTED_PROXIES: "172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
+      # Raised for the throughput measurement only: the default
+      # (10 sign-ins/min, 120 commands/min per address) is an anti-abuse
+      # bound, not a capacity one, and would cap this test's numbers before
+      # clientapi's own replica count ever became the limit.
+      TORN_CLIENT_SIGN_INS_PER_MINUTE: "100000"
+      TORN_CLIENT_COMMANDS_PER_MINUTE: "100000"
+
+  mock-telegram:
+    build: {context: ., dockerfile: deployments/loadtest.Dockerfile, args: {PKG: ./tests/loadtest/mocktelegram}}
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: "0.25"
+    command: ["-addr", ":8081"]
+    # Published on loopback only, so the load generator (run from the host)
+    # can inject synthetic updates and read /_test/stats directly.
+    ports: ["127.0.0.1:58099:8081"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://127.0.0.1:8081/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  clientapi-lb:
+    image: nginx:1.27-alpine
+    mem_limit: 32m
+    memswap_limit: 32m
+    cpus: "0.10"
+    volumes: ["./deployments/nginx-clientapi-lb.conf:/etc/nginx/conf.d/default.conf:ro"]
+    ports: ["127.0.0.1:58091:8080"]
+    depends_on:
+      clientapi: {condition: service_started}
+    restart: unless-stopped
