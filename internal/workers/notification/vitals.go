@@ -99,6 +99,28 @@ func (v DefaultVitals) Get(ctx context.Context, playerID string) (RealtimeVitals
 // one trailing publish for when the window closes, so the snapshot a client
 // ends up with is always the one after the burst's last event, never a
 // stale one from its start.
+//
+// # More than one notifier
+//
+// This map lives in the process, like announce.go's throttle, and for the
+// same reason: the events behind one player's burst (their own crime spree,
+// a travel party told together) are not guaranteed to land on the same
+// replica, since JetStream hands work to whichever consumer asks for it
+// next. With N replicas the effective window is only as tight as one
+// replica's share of that player's events, so a busy player can see
+// somewhat more than one publish per window instead of exactly one — up to
+// N in the worst case, the same shape as the announce throttle's
+// per-instance bound.
+//
+// This is deliberately left per-process rather than moved to Redis: unlike
+// the announce throttle (the difference between one line and a wall of them
+// in a group), a vitals publish is a superseding snapshot, not content — an
+// extra one costs a Redis read plus a websocket push and changes nothing
+// about correctness, since RealtimeVitals is always the latest numbers and
+// an out-of-order or repeated delivery is harmless (see its doc comment).
+// Coordinating this across replicas would trade a little avoidable
+// read/publish load for a Redis round trip on every single event, which is
+// the wrong side of that trade for a value this cheap to over-send.
 type vitalsDebounce struct {
 	mu      sync.Mutex
 	min     time.Duration
