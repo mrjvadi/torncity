@@ -85,6 +85,25 @@ func computeElevation(mesh *Mesh, plates []Plate, plateOf []int16, boundaries []
 	n := mesh.Len()
 	raw := make([]float64, n)
 
+	// The main continent-scale field, domain-warped at Params' own
+	// amplitude/frequency: this is what keeps a coastline from tracing the
+	// smooth graph-Voronoi shape of the plate boundary that raised it (see
+	// noise.go's package comment).
+	elevationField := newNoiseField(seed, "elevation",
+		params.NoiseOctaves, params.NoiseBaseFrequency, params.NoisePersistence,
+		params.WarpAmplitude, params.WarpFrequency)
+
+	// A second, higher-frequency field, independent of the first, adding
+	// fine texture (weathering/sediment scale, not continent scale) with
+	// its own smaller warp so it roughens edges without also bending the
+	// large-scale continent shape a second time. Its frequency/warp are
+	// fixed multiples of the base field's rather than separate Params,
+	// because its only job is finer-grained texture under the field above
+	// it, not an independent knob an author would ever want to tune alone.
+	coastlineField := newNoiseField(seed, "coastline_detail",
+		4, params.NoiseBaseFrequency*5, 550,
+		params.WarpAmplitude*0.4, params.WarpFrequency*2)
+
 	for c := 0; c < n; c++ {
 		pType := plates[plateOf[c]].Type
 		base := baseOceanicElevation
@@ -95,18 +114,9 @@ func computeElevation(mesh *Mesh, plates []Plate, plateOf []int16, boundaries []
 		}
 
 		be := boundaryEffect(boundaries[c], params.BoundaryInfluenceSteps)
-		n1 := fbm(seed, "elevation", mesh.Points[c], params.NoiseOctaves, params.NoiseBaseFrequency, params.NoisePersistence)
-
-		// A second, higher-frequency noise field, independent of the first,
-		// added specifically so a coastline (and the ocean floor generally)
-		// is not simply a smoothed trace of the plate-boundary geometry that
-		// produced it: WHICH cells end up land or ocean should look like
-		// weathering and sediment, not like a Voronoi diagram. Its own
-		// frequency is fixed at a multiple of the base field's rather than
-		// exposed as a separate parameter, because its only job is texture
-		// at a finer grain than the continent-scale field above it, not an
-		// independent knob an author would ever want to tune on its own.
-		n2 := fbm(seed, "coastline_detail", mesh.Points[c], 4, params.NoiseBaseFrequency*5, 550)
+		p := mesh.Points[c]
+		n1 := elevationField.Sample3(p.X, p.Y, p.Z)
+		n2 := coastlineField.Sample3(p.X, p.Y, p.Z)
 
 		raw[c] = base + be + noiseAmp*n1 + 550*n2
 	}

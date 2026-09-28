@@ -4,9 +4,43 @@ import "sort"
 
 // Temperature and precipitation. EXACT: everything here reads the already-
 // quantized Elevation (int32) and the mesh point's Z (portable, see
-// geometry.go), and combines them with fbm (portable, see noise.go) and
-// pseudoAngle/eastwardVec (portable, see util.go). No trigonometric function
-// is called anywhere in this file.
+// geometry.go), and combines them with noiseField (portable, see noise.go)
+// and pseudoAngle (portable, see util.go). No trigonometric function is
+// called anywhere in this file.
+
+// climateWarpStrength is how far, in Z units, a cell's PERCEIVED latitude
+// (for temperature and aridity/wetness purposes only — never for which
+// wind band it physically sweeps in, see windSign) can wander from its true
+// one. Without this, every latitude-driven field — the isotherms, the
+// subtropical dry belt, the equatorial wet belt — is a perfect circle
+// around the sphere, and biome borders read as straight horizontal stripes
+// on the map regardless of how organic the coastline itself looks. Applying
+// the SAME warped value everywhere temperature and moisture read latitude
+// keeps them consistent with each other (an isotherm and a dry-belt edge
+// bend together, the way real climate boundaries — which both ultimately
+// follow atmospheric circulation, not a ruler — do).
+const climateWarpStrength = 0.16
+
+// newClimateWarpField builds the broad, slow-varying field warpedZ reads.
+// Low frequency and few octaves deliberately: this is meant to bend
+// climate bands in large, gentle sweeps, not add fine texture (the
+// temperature/coastline noise fields already do that at their own scale).
+func newClimateWarpField(seed uint64) *noiseField {
+	return newNoiseField(seed, "climate_warp", 1, 0.8, 500, 0.35, 0.5)
+}
+
+// warpedZ returns p's Z, offset by climateWarpField and clamped back into
+// [-1,1].
+func warpedZ(climateWarpField *noiseField, p Point) float64 {
+	wz := p.Z + climateWarpField.Sample3(p.X, p.Y, p.Z)*climateWarpStrength
+	if wz > 1 {
+		wz = 1
+	}
+	if wz < -1 {
+		wz = -1
+	}
+	return wz
+}
 
 const (
 	equatorTempCenti = 3000 // 30.00C
@@ -34,8 +68,13 @@ func latitudeCurve(z2 float64) float64 {
 func computeTemperature(mesh *Mesh, elevation []int32, seed uint64) []Temp {
 	n := mesh.Len()
 	out := make([]Temp, n)
+
+	climateWarp := newClimateWarpField(seed)
+	regional := newNoiseField(seed, "temperature", 3, 3.0, 500, 0.25, 2.0)
+
 	for c := 0; c < n; c++ {
-		z := mesh.Points[c].Z
+		p := mesh.Points[c]
+		z := warpedZ(climateWarp, p)
 		z2 := z * z
 		latCurve := latitudeCurve(z2)
 		t := float64(equatorTempCenti) - float64(equatorTempCenti-poleTempCenti)*latCurve
@@ -44,8 +83,7 @@ func computeTemperature(mesh *Mesh, elevation []int32, seed uint64) []Temp {
 			t -= float64(elevation[c]) * lapseCentiPerElevUnit
 		}
 
-		noise := fbm(seed, "temperature", mesh.Points[c], 3, 3.0, 500)
-		t += noise * 400 // +-4C of regional variation
+		t += regional.Sample3(p.X, p.Y, p.Z) * 700 // +-7C of warped, warped-domain regional variation
 
 		out[c] = Temp(quantize(t))
 	}
@@ -142,10 +180,18 @@ func subtropicalAridity(z float64) float64 {
 // shadow on the lee slope — the mechanism behind deserts like the Gobi and
 // the Atacama existing right next to a mountain range instead of at a
 // "random" spot on the map.
-func computeMoisture(mesh *Mesh, elevation []int32, params Params) []Precip {
+func computeMoisture(mesh *Mesh, elevation []int32, params Params, seed uint64) []Precip {
 	n := mesh.Len()
 	precip := make([]Precip, n)
+	climateWarp := newClimateWarpField(seed)
 
+	// Band membership and sweep direction use the TRUE Z, never the warped
+	// one: which wind band a cell physically sits in, and which way that
+	// band's air mass actually moves, is real atmospheric circulation, not
+	// a stylistic wiggle. Only how ARID or WET that band's air is at a
+	// given cell (subtropicalAridity/equatorialWetBoost, below) reads the
+	// warped value, so the dry/wet BELT EDGES bend organically while the
+	// wind physics they ride on stays a real latitude phenomenon.
 	bands := make([][]int32, params.MoistureBands)
 	for c := 0; c < n; c++ {
 		z := mesh.Points[c].Z
@@ -187,7 +233,7 @@ func computeMoisture(mesh *Mesh, elevation []int32, params Params) []Precip {
 			for i := 0; i < m; i++ {
 				c := cells[i]
 				if elevation[c] <= 0 {
-					z := mesh.Points[c].Z
+					z := warpedZ(climateWarp, mesh.Points[c])
 					moisture = oceanMoistureSupply * subtropicalAridity(z) * equatorialWetBoost(z)
 					if lap == 1 {
 						precip[c] = Precip(quantize(moisture * 0.7))
@@ -235,7 +281,7 @@ func computeMoisture(mesh *Mesh, elevation []int32, params Params) []Precip {
 				// between, say, central Kazakhstan — steppe — and the
 				// interior Sahara — desert — despite both being far
 				// inland).
-				floorHere := continentalFloor * subtropicalAridity(mesh.Points[c].Z)
+				floorHere := continentalFloor * subtropicalAridity(warpedZ(climateWarp, mesh.Points[c]))
 
 				rain := moisture * rainout
 				moisture -= rain

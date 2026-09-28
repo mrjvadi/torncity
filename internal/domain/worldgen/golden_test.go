@@ -17,10 +17,10 @@ import "testing"
 // failing test pass without bumping the version first; that is precisely
 // the bug this test exists to catch.
 var goldenFingerprints = map[uint64]uint64{
-	1:  0xf592d032c4501962,
-	2:  0xcb8328b7dcfd3165,
-	3:  0xc077dbeea0dacc9f,
-	42: 0xcbfa8718134bb326,
+	1:  0x74b67cb2215455ed,
+	2:  0x41ad260f64ec00b3,
+	3:  0x56fac63cea93e5c8,
+	42: 0xbd9ebf5339fbf6f1,
 }
 
 func TestGolden_Fingerprints(t *testing.T) {

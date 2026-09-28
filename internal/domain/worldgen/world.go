@@ -88,7 +88,7 @@ func Generate(seed uint64, params Params, content Content) (*World, error) {
 	scrubSpeckleIslands(mesh, elevation)
 
 	temp := computeTemperature(mesh, elevation, seed)
-	precip := computeMoisture(mesh, elevation, params)
+	precip := computeMoisture(mesh, elevation, params, seed)
 
 	hy := computeHydrology(mesh, elevation, params)
 	flow := riverFlow(hy, params.RiverFlowThreshold)

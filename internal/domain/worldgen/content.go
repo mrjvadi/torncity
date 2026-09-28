@@ -62,6 +62,18 @@ type ResourceRule struct {
 	// biomes only). Empty means no biome restriction.
 	BiomeWhitelist []string
 
+	// AllowOcean controls whether an ocean cell may host this resource at
+	// all. Default false: most resources (every metal, every mineral, every
+	// agricultural or forest good) do not belong under open water in this
+	// model, since nothing in the game can reach them there yet — and the
+	// geology score alone is not enough to keep them out, because a
+	// category like volcanic_arc or rift_zone is equally real on land and
+	// ocean cells (a mid-ocean ridge is exactly as real a divergent
+	// boundary as a continental rift). Only the handful of resources with a
+	// genuine offshore form — crude oil and gas on a continental shelf,
+	// fish anywhere on one — set this true in content.
+	AllowOcean bool
+
 	// MinAbsLatitudeDeg/MaxAbsLatitudeDeg restrict deposits to a latitude
 	// band (0=equator, 90=pole), inclusive. 0..90 (the default) is
 	// unrestricted, expressed directly since Z-based comparison would need

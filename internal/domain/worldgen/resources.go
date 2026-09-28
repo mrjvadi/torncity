@@ -43,6 +43,9 @@ func placeResources(mesh *Mesh, elevation []int32, biome []uint8, content Conten
 		var candidates []int32
 		var weights []int64
 		for c := 0; c < len(elevation); c++ {
+			if elevation[c] <= 0 && !rule.AllowOcean {
+				continue
+			}
 			if len(rule.BiomeWhitelist) > 0 && !biomeAllowed(content, biome[c], rule.BiomeWhitelist) {
 				continue
 			}

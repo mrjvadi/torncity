@@ -113,6 +113,20 @@ type Params struct {
 	// contributes half the amplitude of the last).
 	NoisePersistence Permille
 
+	// WarpAmplitude is how far (in sphere-coordinate units, roughly -1..1
+	// per axis) the elevation noise field's domain warp displaces a
+	// sampling point before reading it. This is what keeps a coastline
+	// from tracing the smooth geometric shape of the plate boundary that
+	// raised it — see noise.go. Larger values bend terrain more; past
+	// roughly 1.0 the warp starts to fold the field over itself.
+	WarpAmplitude float64
+
+	// WarpFrequency is the spatial frequency of the warp field itself
+	// (same units as NoiseBaseFrequency). Lower than NoiseBaseFrequency
+	// bends terrain in broad, continent-scale sweeps; higher only wrinkles
+	// it locally.
+	WarpFrequency float64
+
 	// BoundaryInfluenceSteps is how many graph-steps a plate boundary's
 	// effect (mountain building, rifting) reaches before decaying to zero.
 	BoundaryInfluenceSteps int
@@ -147,6 +161,8 @@ func DefaultParams() Params {
 		NoiseOctaves:           6,
 		NoiseBaseFrequency:     2.0,
 		NoisePersistence:       520,
+		WarpAmplitude:          0.45,
+		WarpFrequency:          1.1,
 		BoundaryInfluenceSteps: 9,
 		MoistureBands:          90,
 		RiverFlowThreshold:     12,
