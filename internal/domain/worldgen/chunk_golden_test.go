@@ -18,13 +18,13 @@ import "testing"
 // first.
 var goldenChunkFingerprints = map[uint64]map[ChunkAddr]uint64{
 	1: {
-		{FacePZ, 10, 5, 5}:      0xf2dab93119d3f0ec,
-		{FacePX, 10, 1023, 512}: 0xfdc75562e56854d0,
+		{FacePZ, 10, 5, 5}:      0x5834ebc1229dc889,
+		{FacePX, 10, 1023, 512}: 0xd686b644a3eb0a8c,
 		{FaceNZ, 8, 3, 3}:       0xa79a0c110f8a2035,
 	},
 	42: {
-		{FacePZ, 10, 5, 5}:      0x1bf246f86c74c2a0,
-		{FacePX, 10, 1023, 512}: 0x95507e4dd5dbe4cb,
+		{FacePZ, 10, 5, 5}:      0xe783580b6148c2e3,
+		{FacePX, 10, 1023, 512}: 0x7d81816190f3efd4,
 		{FaceNZ, 8, 3, 3}:       0xa69fc3c9db835f85,
 	},
 }

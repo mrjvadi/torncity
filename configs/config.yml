@@ -959,10 +959,15 @@ worldgen:
   # mesh's interpolated elevation (hills, coastline wrinkling too fine for
   # the 40k-cell mesh) and the noise that meanders a small stream tile off
   # a dead-straight line between coarse drainage cells. Frequency is cycles
-  # across the sphere's diameter; amplitude is in elevation units.
-  chunk_detail_frequency: 40
+  # across the sphere's diameter, same units as noise_base_frequency above
+  # but a very different MAGNITUDE: that field shapes continents (a
+  # wavelength of thousands of km), this shapes one ~10km chunk, so it
+  # needs a wavelength around a kilometre — roughly 8000/12000 give
+  # ~1.6km/~1.1km real wavelengths on this planet_radius_km (frequency =
+  # 2*planet_radius_km/wavelength_km). Amplitude is in elevation units.
+  chunk_detail_frequency: 8000
   chunk_detail_amplitude: 300
-  chunk_stream_frequency: 60
+  chunk_stream_frequency: 12000
   chunk_stream_amplitude: 60
   # How many exact tiles a coarse-mesh resource deposit expands into inside
   # whichever base chunk it falls in.

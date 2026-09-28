@@ -37,11 +37,15 @@ const idwK = 4
 // border between two already-decided neighbours wobbles by a fraction of
 // a coarse cell) — the same category ADR 0028 puts decoration/skin noise
 // in, which the project explicitly does not require to be content-tunable.
-// The frequency is deliberately higher than NoiseBaseFrequency (climate.go)
-// so the wobble reads as texture at chunk scale, not a second, competing
-// climate signal at coarse-mesh scale.
+// The frequency is deliberately a wavelength on the order of several
+// kilometres, not NoiseBaseFrequency's continent scale (climate.go) — see
+// Params.ChunkDetailFrequency's doc for why "cycles across the diameter"
+// units need a very different magnitude at chunk scale than at coarse-mesh
+// scale; 1600 here is roughly an 8km real wavelength on Earth's own
+// radius, so the wobble reads as texture across a handful of chunks, not a
+// second climate signal competing with the coarse mesh's own.
 const (
-	climateJitterFrequency       = 30.0
+	climateJitterFrequency       = 1600.0
 	climateJitterTempAmplitude   = 250.0 // centi-degrees C
 	climateJitterPrecipAmplitude = 200.0 // mm/year
 )
@@ -250,7 +254,7 @@ func (w *World) GenerateChunk(addr ChunkAddr) (*Chunk, error) {
 				// rather than a wide, straight smear the coarse cell's own
 				// resolution would otherwise imply.
 				if cs.riverFlow >= float64(w.Params.RiverFlowThreshold) {
-					wiggle := w.chunkStreamNoise.Sample3(x*3, y*3, z*3)
+					wiggle := w.chunkStreamNoise.Sample3(x, y, z)
 					stream = wiggle > -0.15 && wiggle < 0.15
 				}
 			}

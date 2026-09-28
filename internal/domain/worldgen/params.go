@@ -186,14 +186,23 @@ type Params struct {
 	// local FastNoiseLite detail added on top of the coarse mesh's
 	// interpolated elevation: hills and coastline wrinkling too fine for
 	// the 40k-cell mesh to represent. Frequency is cycles across the
-	// sphere's diameter (same units as NoiseBaseFrequency); amplitude is in
-	// Elevation units.
+	// sphere's diameter (same units as NoiseBaseFrequency), which makes its
+	// USEFUL RANGE very different from NoiseBaseFrequency's: that field
+	// shapes continents (a wavelength of thousands of km is exactly right),
+	// this one shapes a single ~10km chunk, so it needs a wavelength on the
+	// order of a kilometre or two — roughly two to three orders of
+	// magnitude higher a frequency for the same "cycles across the
+	// diameter" units. DefaultParams' value (see there) is picked to give
+	// a real wavelength of about 1.5km on Earth's own radius; changing
+	// PlanetRadiusKm without rescaling this proportionally will change how
+	// many hills fit in one chunk. Amplitude is in Elevation units.
 	ChunkDetailFrequency float64
 	ChunkDetailAmplitude Elevation
 
 	// ChunkStreamFrequency/ChunkStreamAmplitude configure the noise that
 	// meanders a base-LOD small stream tile off a dead-straight line
-	// between coarse drainage cells.
+	// between coarse drainage cells. Same "needs a chunk-scale wavelength,
+	// not a planet-scale one" caveat as ChunkDetailFrequency above.
 	ChunkStreamFrequency float64
 	ChunkStreamAmplitude Elevation
 
@@ -227,12 +236,17 @@ func DefaultParams() Params {
 		// each) puts a tile at ~305m across — see the project report for
 		// the full derivation and why that fits a village's 5x5 and a
 		// city's 15x15 lot grid comfortably inside one base chunk.
-		PlanetRadiusKm:              6371,
-		ChunkBaseLOD:                10,
-		ChunkTileEdge:               32,
-		ChunkDetailFrequency:        40,
+		PlanetRadiusKm: 6371,
+		ChunkBaseLOD:   10,
+		ChunkTileEdge:  32,
+		// 8000/12000 give real wavelengths of roughly 1.6km/1.1km on this
+		// radius (frequency = 2*PlanetRadiusKm/wavelengthKm — see the
+		// field docs above) — a handful of hills and a genuinely wandering
+		// stream inside one ~10km base chunk, not a fraction of one
+		// continent-scale wave barely bending across it.
+		ChunkDetailFrequency:        8000,
 		ChunkDetailAmplitude:        300,
-		ChunkStreamFrequency:        60,
+		ChunkStreamFrequency:        12000,
 		ChunkStreamAmplitude:        60,
 		ChunkDepositTilesPerDeposit: 5,
 	}
