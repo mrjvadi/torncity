@@ -94,15 +94,26 @@ func (v DefaultVitals) Get(ctx context.Context, playerID string) (RealtimeVitals
 // The process never shuts this down explicitly; an opportunistic sweep on
 // the write path keeps the map from growing without bound across a long
 // uptime with many distinct players.
+//
+// A suppressed event is not dropped: the first one inside the window books
+// one trailing publish for when the window closes, so the snapshot a client
+// ends up with is always the one after the burst's last event, never a
+// stale one from its start.
 type vitalsDebounce struct {
 	mu      sync.Mutex
 	min     time.Duration
 	last    map[string]time.Time
+	pending map[string]bool
 	nextRun time.Time
+	// after runs fn once d has passed; time.AfterFunc outside tests.
+	after func(d time.Duration, fn func())
 }
 
 func newVitalsDebounce(min time.Duration) *vitalsDebounce {
-	return &vitalsDebounce{min: min, last: map[string]time.Time{}}
+	return &vitalsDebounce{
+		min: min, last: map[string]time.Time{}, pending: map[string]bool{},
+		after: func(d time.Duration, fn func()) { time.AfterFunc(d, fn) },
+	}
 }
 
 const (
@@ -112,17 +123,24 @@ const (
 )
 
 // allow reports whether playerID's vitals may be read and published now, and
-// if so records that they were.
-func (d *vitalsDebounce) allow(playerID string, now time.Time) bool {
+// if so records that they were. When they may not, trail is how long until
+// the window closes if this call booked the one trailing publish, or zero
+// if one is already booked.
+func (d *vitalsDebounce) allow(playerID string, now time.Time) (ok bool, trail time.Duration) {
 	if d == nil || d.min <= 0 {
-		return true
+		return true, 0
 	}
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	if t, ok := d.last[playerID]; ok && now.Sub(t) < d.min {
-		return false
+	if t, seen := d.last[playerID]; seen && now.Sub(t) < d.min {
+		if d.pending[playerID] {
+			return false, 0
+		}
+		d.pending[playerID] = true
+		return false, d.min - now.Sub(t)
 	}
 	d.last[playerID] = now
+	delete(d.pending, playerID)
 	if len(d.last) > vitalsSweepSize && now.After(d.nextRun) {
 		for id, t := range d.last {
 			if now.Sub(t) > vitalsSweepAge {
@@ -131,7 +149,7 @@ func (d *vitalsDebounce) allow(playerID string, now time.Time) bool {
 		}
 		d.nextRun = now.Add(vitalsSweepInterval)
 	}
-	return true
+	return true, 0
 }
 
 // publishVitals reads and publishes playerID's vitals snapshot, debounced.
@@ -145,7 +163,17 @@ func (w *Worker) publishVitals(ctx context.Context, now time.Time, playerID stri
 	if w.cfg.Realtime == nil || w.cfg.Vitals == nil {
 		return
 	}
-	if !w.vitals.allow(playerID, now) {
+	ok, trail := w.vitals.allow(playerID, now)
+	if !ok {
+		if trail > 0 {
+			// The event's own context ends with Handle; the trailing
+			// publish gets its own short one.
+			w.vitals.after(trail, func() {
+				tctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+				defer cancel()
+				w.publishVitals(tctx, w.cfg.Now(), playerID, log)
+			})
+		}
 		return
 	}
 	v, err := w.cfg.Vitals.Get(ctx, playerID)

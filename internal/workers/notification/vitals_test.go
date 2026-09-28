@@ -178,6 +178,8 @@ func TestVitalsAreDebouncedPerPlayer(t *testing.T) {
 	withVitals(r, fv)
 	r.w.cfg.VitalsMinInterval = 5 * time.Second
 	r.w.vitals = newVitalsDebounce(5 * time.Second)
+	var trailing []func()
+	r.w.vitals.after = func(_ time.Duration, fn func()) { trailing = append(trailing, fn) }
 	route := travelRoute(t)
 
 	if err := r.w.Handle(context.Background(), route, arrivalEvent(t, "req-1", r.now, nil)); err != nil {
@@ -189,13 +191,22 @@ func TestVitalsAreDebouncedPerPlayer(t *testing.T) {
 	if fv.calls != 1 {
 		t.Fatalf("vitals reads = %d, want 1 (debounced)", fv.calls)
 	}
+	if len(trailing) != 1 {
+		t.Fatalf("trailing publishes booked = %d, want 1", len(trailing))
+	}
+	// the window closes: the booked publish sends the burst's final numbers
+	r.now = r.now.Add(5 * time.Second)
+	trailing[0]()
+	if fv.calls != 2 {
+		t.Fatalf("vitals reads = %d, want 2 (trailing publish)", fv.calls)
+	}
 
 	r.now = r.now.Add(6 * time.Second)
 	if err := r.w.Handle(context.Background(), route, arrivalEvent(t, "req-3", r.now, nil)); err != nil {
 		t.Fatal(err)
 	}
-	if fv.calls != 2 {
-		t.Fatalf("vitals reads = %d, want 2 (window passed)", fv.calls)
+	if fv.calls != 3 {
+		t.Fatalf("vitals reads = %d, want 3 (window passed)", fv.calls)
 	}
 }
 
