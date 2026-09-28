@@ -501,3 +501,65 @@ func TestShippedGovernance(t *testing.T) {
 		t.Errorf("the mayor's deputy is %q, want deputy_mayor", mayor.Deputy)
 	}
 }
+
+// TestShippedSettlementOffices checks the offices docs/adr/0028-world-and-
+// settlements.md section 4 (W3) adds at the levels nobody used before: one
+// founding-acquired office per level, one levy lever each, held by that
+// office. This is content only — no election entry yet (re-election once a
+// settlement meets the election's own minimums is a later phase).
+func TestShippedSettlementOffices(t *testing.T) {
+	pack, err := Load(shippedContentDir(t))
+	if err != nil {
+		t.Fatalf("the shipped content does not parse: %v", err)
+	}
+	if err := pack.Validate(); err != nil {
+		t.Fatalf("the shipped content does not validate: %v", err)
+	}
+
+	for code, want := range map[string]struct {
+		level string
+		seats int
+	}{
+		"village_head": {"village", 1},
+		"town_head":    {"town", 1},
+		"governor":     {"province", 1},
+	} {
+		o, ok := pack.Office(code)
+		if !ok {
+			t.Errorf("office %s is not shipped", code)
+			continue
+		}
+		if o.Jurisdiction != want.level || o.Seats != want.seats {
+			t.Errorf("office %s = %s/%d seats, want %s/%d", code, o.Jurisdiction, o.Seats, want.level, want.seats)
+		}
+		if o.AcquiredBy != AcquiredByFounding {
+			t.Errorf("office %s is acquired_by %q, want founding", code, o.AcquiredBy)
+		}
+	}
+
+	for code, want := range map[string]struct{ level, typ, office string }{
+		"village.local_levy":       {"village", LeverBPS, "village_head"},
+		"town.local_levy":          {"town", LeverBPS, "town_head"},
+		"town.building_permit_fee": {"town", LeverMoney, "town_head"},
+		"province.revenue_share":   {"province", LeverBPS, "governor"},
+	} {
+		l, ok := pack.Lever(code)
+		if !ok {
+			t.Errorf("lever %s is not shipped", code)
+			continue
+		}
+		if l.Jurisdiction != want.level || l.Type != want.typ || l.HeldBy != want.office || l.Rule() != DecisionSingle {
+			t.Errorf("lever %s = %s/%s held by %s (%s), want %s/%s held by %s (single)",
+				code, l.Jurisdiction, l.Type, l.HeldBy, l.Rule(), want.level, want.typ, want.office)
+		}
+	}
+
+	// None of these offices is elected yet: no elections entry may name one
+	// (validateElections would refuse it, since none is acquired_by:
+	// election), and the shipped file must not have tried to sneak one in.
+	for _, e := range pack.Elections {
+		if e.Office == "village_head" || e.Office == "town_head" || e.Office == "governor" {
+			t.Errorf("election declared for %s, which is acquired_by: founding, not election", e.Office)
+		}
+	}
+}

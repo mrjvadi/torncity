@@ -555,6 +555,63 @@ levers:
     change_cooldown: 168h
     notice: 72h
 
+  # Settlements (docs/adr/0028-world-and-settlements.md, section 4 and
+  # section 8.3). Before a settlement reaches city tier it has one flat lever
+  # on its own abstract sales, straight to its own treasury — enough to fund
+  # upkeep and the next building, not a tax system to design twice. The
+  # moment a settlement's jurisdictions row becomes level "city" it stops
+  # being read (the full city.* catalogue takes over for free; ADR 0028
+  # section 4), but the lever itself is never removed: a settlement that is
+  # later demoted in content, or whose history is read back, still resolves.
+  - code: village.local_levy
+    jurisdiction: village
+    type: bps
+    default: 200
+    min: 0
+    max: 1000
+    held_by: village_head
+    change_cooldown: 72h
+    notice: 24h
+
+  - code: town.local_levy
+    jurisdiction: town
+    type: bps
+    default: 200
+    min: 0
+    max: 1500
+    held_by: town_head
+    change_cooldown: 72h
+    notice: 24h
+
+  # What a town charges to confirm a building placement above
+  # settlement.council_confirm_above (config.yml): a flat administrative fee
+  # into the town's own treasury, on top of the building's own cost. Nothing
+  # charged before a town could confirm anything, so the default is none.
+  - code: town.building_permit_fee
+    jurisdiction: town
+    type: money
+    default: 0
+    min: 0
+    max: 20000
+    held_by: town_head
+    change_cooldown: 72h
+    notice: 24h
+
+  # Mirrors country.revenue_share one level down (ADR 0028 section 4): once a
+  # province exists, each member settlement's treasury pays this share of
+  # what it took in during its settlement period to the province's own
+  # treasury. No province treasury existed before one could form, so the
+  # default is a moderate start, not a past behaviour.
+  - code: province.revenue_share
+    jurisdiction: province
+    type: bps
+    default: 1000
+    min: 0
+    max: 3000
+    held_by: governor
+    change_cooldown: 168h
+    notice: 72h
+
 offices:
   - code: mayor
     jurisdiction: city
@@ -629,6 +686,39 @@ offices:
     can_be_removed_by: [operator]
     levers: []
     incompatible_with: [mayor, city_council]
+
+  # Settlements (docs/adr/0028, section 4). A village is founded, never
+  # elected into being: the player who founds it (or whoever the founding
+  # mayor names, section 5.4) takes the seat as دهیار, acquired_by: founding.
+  # Re-election once the settlement meets an election's own minimums is a
+  # later phase (ADR 0028 section 10, W7) — not built here, so no elections
+  # entry names this office yet; while nobody is re-elected into it, the
+  # founder simply keeps the seat.
+  - code: village_head
+    jurisdiction: village
+    seats: 1
+    acquired_by: founding
+    levers: [village.local_levy]
+    can_be_removed_by: [operator]
+
+  # فرماندار — same shape one tier up, on a town (ADR 0028 section 4).
+  - code: town_head
+    jurisdiction: town
+    seats: 1
+    acquired_by: founding
+    levers: [town.local_levy, town.building_permit_fee]
+    can_be_removed_by: [operator]
+
+  # استاندار — the first village_head/mayor of a group's settlements to
+  # cross province.form_threshold becomes the province's provisional
+  # governor, by founding (ADR 0028 section 5.5); standing for election once
+  # the province's own minimums are met is the same later phase as above.
+  - code: governor
+    jurisdiction: province
+    seats: 1
+    acquired_by: founding
+    levers: [province.revenue_share]
+    can_be_removed_by: [operator]
 
   - code: president
     jurisdiction: country
