@@ -285,11 +285,24 @@ func (w *World) BuildSummary() Summary {
 		biomeCount[w.Content.Biomes[c.BiomeIdx].Code]++
 	}
 
+	oceanCode := ""
+	for _, b := range w.Content.Biomes {
+		if b.IsWater && b.WaterKind == "ocean" {
+			oceanCode = b.Code
+			break
+		}
+	}
+
 	biomePercent := make(map[string]float64, len(biomeCount))
 	landBiomePercent := make(map[string]float64, len(biomeCount))
 	for code, n := range biomeCount {
 		biomePercent[code] = 100 * float64(n) / float64(len(w.Cells))
-		if land > 0 {
+		// The ocean biome is excluded from LandBiomePercent (not just given
+		// its share of land, which is nonsensical — ocean cells are by
+		// definition never land, so "ocean's share of land" is a number
+		// divided by a denominator it was never part of): every other
+		// biome's land share already sums to 100 without it.
+		if land > 0 && code != oceanCode {
 			landBiomePercent[code] = 100 * float64(n) / float64(land)
 		}
 	}
