@@ -78,7 +78,9 @@ func renderSettlementFounded(c Context, v SettlementFoundedView) *presenter.Resp
 			"protection": FormatDate(c, v.ProtectedUntil),
 		}),
 	)
-	return c.respond(text, keyboards.New().Build())
+	kb := keyboards.New()
+	kb.Nav(c.nav(keyboards.Nav{}))
+	return c.respond(text, kb.Build())
 }
 
 // SettlementRefusalView is a founding command refused: not run in a group,
@@ -109,7 +111,9 @@ func renderSettlementRefusal(c Context, v SettlementRefusalView) *presenter.Resp
 	default:
 		text = c.T("settlement.found.group_only", nil)
 	}
-	return c.respond(text, keyboards.New().Build())
+	kb := keyboards.New()
+	kb.Nav(c.nav(keyboards.Nav{}))
+	return c.respond(text, kb.Build())
 }
 
 // joinNames joins display names the way this language's own short lists

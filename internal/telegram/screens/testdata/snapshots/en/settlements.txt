@@ -1,0 +1,52 @@
+━━━ Settlement founded · river nearby, both buildings placed ━━━
+(edits message 42)
+🏡 A new village has been founded!
+
+This group has founded the village of "Korendal" near Vestara.
+Terrain: Temperate forest
+Starting buildings: Civic hall, Road
+This village is protected from attack until 30 September 2026.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Settlement founded · no named feature nearby ━━━
+(edits message 42)
+🏡 A new village has been founded!
+
+This group has founded the village of "Ashvale" near an unnamed land.
+Terrain: Desert
+Starting buildings: Civic hall, Road
+This village is protected from attack until 30 September 2026.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Settlement founded · only the civic hall fit ━━━
+(edits message 42)
+🏡 A new village has been founded!
+
+This group has founded the village of "Milgrave" near the Northern Sea.
+Terrain: Tundra
+Starting buildings: Civic hall
+This village is protected from attack until 30 September 2026.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Settlement refused · only works in a group ━━━
+(edits message 42)
+🏡 Founding a village only works inside a group. Add the bot to your group and send this command there.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Settlement refused · no world yet ━━━
+(edits message 42)
+🌍 The world map is not ready yet. Try again shortly.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Settlement refused · this group already founded one ━━━
+(edits message 42)
+🏡 This group has already founded the village of "Korendal".
+
+Each group founds only one village; grow it from your village's own government instead.
+  ───
+  [🔙 Back] → player:profile.get
