@@ -367,3 +367,32 @@ func clampInt16(v int32) int16 {
 	}
 	return int16(v)
 }
+
+// Fingerprint hashes every gameplay-relevant field of the chunk (tile
+// elevation/biome/flags/deposit-tile, deposit placements) into one value —
+// the same regression-guard technique World.Fingerprint uses, at chunk
+// grain, so a golden test can lock down GeneratorVersion's chunk output the
+// same way golden_test.go already locks down the coarse World's.
+func (c *Chunk) Fingerprint() uint64 {
+	var h uint64 = 0xC0FFEE1234567890
+	mix := func(v uint64) { h = splitmix64Finalize(h ^ v) }
+	mixInt := func(v int64) { mix(uint64(v)) }
+
+	mixInt(int64(c.Addr.Face))
+	mixInt(int64(c.Addr.LOD))
+	mixInt(int64(c.Addr.X))
+	mixInt(int64(c.Addr.Y))
+	for _, t := range c.Tiles {
+		mixInt(int64(t.Elevation))
+		mixInt(int64(t.Biome))
+		mixInt(int64(t.Flags))
+		mixInt(int64(t.DepositTile))
+	}
+	for _, d := range c.Deposits {
+		mix(fnv1a64(d.DepositID))
+		mix(fnv1a64(d.ResourceCode))
+		mixInt(int64(d.TileX))
+		mixInt(int64(d.TileY))
+	}
+	return h
+}
