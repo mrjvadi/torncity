@@ -81,6 +81,11 @@ type ResourceDef struct {
 
 	BiomeWhitelist []string `yaml:"biome_whitelist"`
 
+	// AllowOcean: whether an ocean cell may host this resource. Default
+	// false — see worldgen.ResourceRule.AllowOcean for why the default
+	// matters.
+	AllowOcean bool `yaml:"allow_ocean"`
+
 	// MinAbsLatitude/MaxAbsLatitude are degrees from the equator (0) to a
 	// pole (90). MaxAbsLatitude omitted or zero means unrestricted (90):
 	// zero is never a meaningful upper bound (it would allow only the
@@ -118,6 +123,7 @@ func (d ResourceDef) Rule() worldgen.ResourceRule {
 		Category:          d.Category,
 		Geology:           geo,
 		BiomeWhitelist:    d.BiomeWhitelist,
+		AllowOcean:        d.AllowOcean,
 		MinAbsLatitudeDeg: d.MinAbsLatitude,
 		MaxAbsLatitudeDeg: maxLat,
 		DepositsTarget:    d.DepositsTarget,

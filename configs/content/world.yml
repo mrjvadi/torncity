@@ -43,13 +43,22 @@ biomes:
   - {code: ocean, is_water: true, water_kind: ocean, color_hex: "1a4d73"}
   - {code: lake,  is_water: true, water_kind: lake,  color_hex: "3f7fa6"}
 
-  - {code: tropical_rainforest,  min_temp_c: 20.0,  max_temp_c: 45.0, min_precip_mm: 2000, max_precip_mm: 8000, color_hex: "1a6b34"}
-  - {code: tropical_savanna,     min_temp_c: 20.0,  max_temp_c: 45.0, min_precip_mm: 400,  max_precip_mm: 2000, color_hex: "b8a552"}
-  - {code: desert,               min_temp_c: -10.0, max_temp_c: 50.0, min_precip_mm: 0,    max_precip_mm: 250,  color_hex: "d9c07a"}
-  - {code: temperate_grassland,  min_temp_c: -5.0,  max_temp_c: 22.0, min_precip_mm: 250,  max_precip_mm: 800,  color_hex: "9ab973"}
-  - {code: temperate_forest,     min_temp_c: -5.0,  max_temp_c: 22.0, min_precip_mm: 800,  max_precip_mm: 2000, color_hex: "4c7a3d"}
-  - {code: temperate_rainforest, min_temp_c: 3.0,   max_temp_c: 18.0, min_precip_mm: 2000, max_precip_mm: 5000, color_hex: "2d5f3f"}
-  - {code: boreal_forest,        min_temp_c: -20.0, max_temp_c: 3.0,  min_precip_mm: 300,  max_precip_mm: 1500, color_hex: "3a5f4a"}
+  # Precipitation thresholds below are set against this generator's actual
+  # output distribution (a coastal cell typically lands 350-900mm, an
+  # interior one settles near its climatological floor, ~300-450mm outside
+  # the dry belt) rather than textbook Earth figures, specifically so
+  # forest — not grassland — is what most well-watered temperate and
+  # tropical land ends up classified as, matching how much of Earth's own
+  # land is forested. Earlier, higher thresholds (800mm to enter temperate
+  # forest, 2000mm for tropical rainforest) left forest under 1% of the map
+  # because this model's typical rainfall rarely reached them.
+  - {code: tropical_rainforest,  min_temp_c: 20.0,  max_temp_c: 45.0, min_precip_mm: 1200, max_precip_mm: 8000, color_hex: "1a6b34"}
+  - {code: tropical_savanna,     min_temp_c: 20.0,  max_temp_c: 45.0, min_precip_mm: 300,  max_precip_mm: 1200, color_hex: "b8a552"}
+  - {code: desert,               min_temp_c: -10.0, max_temp_c: 50.0, min_precip_mm: 0,    max_precip_mm: 220,  color_hex: "d9c07a"}
+  - {code: temperate_grassland,  min_temp_c: -5.0,  max_temp_c: 22.0, min_precip_mm: 220,  max_precip_mm: 450,  color_hex: "9ab973"}
+  - {code: temperate_forest,     min_temp_c: -5.0,  max_temp_c: 22.0, min_precip_mm: 450,  max_precip_mm: 1400, color_hex: "4c7a3d"}
+  - {code: temperate_rainforest, min_temp_c: 3.0,   max_temp_c: 18.0, min_precip_mm: 1400, max_precip_mm: 5000, color_hex: "2d5f3f"}
+  - {code: boreal_forest,        min_temp_c: -20.0, max_temp_c: 3.0,  min_precip_mm: 260,  max_precip_mm: 1500, color_hex: "3a5f4a"}
   - {code: tundra,               min_temp_c: -25.0, max_temp_c: -8.0, min_precip_mm: 0,    max_precip_mm: 500,  color_hex: "9aa38a"}
   - {code: polar_ice,            min_temp_c: -60.0, max_temp_c: -22.0,min_precip_mm: 0,    max_precip_mm: 400,  color_hex: "f0f4f7"}
 
@@ -73,7 +82,8 @@ resources:
     name: Crude Oil
     category: fossil_fuel
     geology: [{category: passive_margin, weight: 70}, {category: foreland_basin, weight: 60},
-              {category: rift_zone, weight: 50}, {category: continental_shelf, weight: 80}]
+              {category: continental_shelf, weight: 80}]
+    allow_ocean: true
     deposits_target: 120
     reserve_min: 1000000
     reserve_max: 50000000
@@ -85,7 +95,8 @@ resources:
     name: Natural Gas
     category: fossil_fuel
     geology: [{category: passive_margin, weight: 60}, {category: foreland_basin, weight: 70},
-              {category: rift_zone, weight: 40}, {category: continental_shelf, weight: 60}]
+              {category: continental_shelf, weight: 60}]
+    allow_ocean: true
     deposits_target: 100
     reserve_min: 1000000
     reserve_max: 40000000
@@ -212,6 +223,7 @@ resources:
     name: Fish Stocks
     category: agricultural
     geology: [{category: continental_shelf, weight: 100}]
+    allow_ocean: true
     deposits_target: 150
     reserve_min: 10000
     reserve_max: 1000000
