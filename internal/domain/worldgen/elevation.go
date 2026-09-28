@@ -14,14 +14,54 @@ import "sort"
 // the decision point" rule the package doc describes: the messy floating
 // intermediate never itself becomes a gameplay decision.
 
-// Base heights per plate type, in Elevation units. Oceanic crust is dense and
-// sits low; continental crust is buoyant and sits high — this is the single
-// largest signal separating ocean basins from continents, before any
-// boundary or noise detail is added.
+// Where continents are is decided by a CONTINUOUS field, never by which
+// plate a cell sits on. An earlier version used plate type as a hard
+// +-4100-unit step (a full ocean/continent base height) added to a much
+// smaller noise texture; because the step dwarfed the noise, the resulting
+// coastline traced the plate boundary's own graph-Voronoi shape almost
+// everywhere — long straight edges and polygon facets, however organic the
+// noise on top of it looked. Real continents are not "this plate is land,
+// that one is sea": a plate's crust type is a real influence (oceanic crust
+// is denser and does sit lower on average) but where the coast actually
+// falls is dominated by large-scale, effectively random variation
+// (erosion, sediment, sea-level history over geological time) that has no
+// relationship to today's plate boundaries at all.
+//
+// So plateBiasAmplitude — the plate-type signal — and continentBlobAmplitude
+// — a low-frequency, heavily domain-warped noise field, "a few large lobes
+// per hemisphere" rather than continent-scale detail — are combined with
+// the blob amplitude more than twice the plate bias, making the noise field
+// the dominant shape and the plate a nudge on top of it, not the other way
+// around. Plate boundaries (boundaryEffect, below) then only ADD relief
+// (a mountain belt, a trench, a rift, an island arc) on top of whatever
+// this field already decided about land and sea; they never independently
+// decide it.
 const (
-	baseOceanicElevation     = -3500.0
-	baseContinentalElevation = 600.0
+	plateBiasAmplitude     = 900.0
+	continentBlobAmplitude = 2400.0
 )
+
+// blendedPlateBias returns a cell's plate-type signal: +1 for continental
+// crust, -1 for oceanic, blended toward the plate on the OTHER side of a
+// nearby boundary so this signal itself has no hard step at a plate edge
+// either — it fades in over the same maxSteps the boundary's own relief
+// effect decays over, halfway blended (not fully swapped) right at the
+// boundary itself.
+func blendedPlateBias(ownType, otherType PlateType, b boundaryInfo, maxSteps int) float64 {
+	own := -1.0
+	if ownType == PlateContinental {
+		own = 1.0
+	}
+	if b.StepsAway < 0 || b.StepsAway >= maxSteps {
+		return own
+	}
+	other := -1.0
+	if otherType == PlateContinental {
+		other = 1.0
+	}
+	t := 1.0 - float64(b.StepsAway)/float64(maxSteps)
+	return own + (other-own)*t*0.5
+}
 
 // boundaryEffect returns the elevation contribution (before noise) a
 // boundary of the given kind and cell arrangement adds, decaying linearly to
@@ -85,40 +125,44 @@ func computeElevation(mesh *Mesh, plates []Plate, plateOf []int16, boundaries []
 	n := mesh.Len()
 	raw := make([]float64, n)
 
-	// The main continent-scale field, domain-warped at Params' own
-	// amplitude/frequency: this is what keeps a coastline from tracing the
-	// smooth graph-Voronoi shape of the plate boundary that raised it (see
-	// noise.go's package comment).
+	// The dominant, continent-shaping field: a few large, heavily
+	// domain-warped lobes per hemisphere (low frequency, few octaves —
+	// this is explicitly NOT meant to add fine detail, see
+	// continentBlobAmplitude's doc above). This is what decides where the
+	// coast falls; plate type only nudges it.
+	continentField := newNoiseField(seed, "continent_blobs",
+		3, 0.6, 550, 0.55, 0.3)
+
+	// The finer-detail fields from here down add TEXTURE on top of the
+	// shape continentField already decided — local relief, not coastline
+	// shape — so their amplitudes are deliberately smaller than
+	// continentBlobAmplitude now, unlike an earlier version where a field
+	// much like elevationField here was the primary shape-former.
 	elevationField := newNoiseField(seed, "elevation",
 		params.NoiseOctaves, params.NoiseBaseFrequency, params.NoisePersistence,
 		params.WarpAmplitude, params.WarpFrequency)
-
-	// A second, higher-frequency field, independent of the first, adding
-	// fine texture (weathering/sediment scale, not continent scale) with
-	// its own smaller warp so it roughens edges without also bending the
-	// large-scale continent shape a second time. Its frequency/warp are
-	// fixed multiples of the base field's rather than separate Params,
-	// because its only job is finer-grained texture under the field above
-	// it, not an independent knob an author would ever want to tune alone.
 	coastlineField := newNoiseField(seed, "coastline_detail",
 		4, params.NoiseBaseFrequency*5, 550,
 		params.WarpAmplitude*0.4, params.WarpFrequency*2)
 
 	for c := 0; c < n; c++ {
-		pType := plates[plateOf[c]].Type
-		base := baseOceanicElevation
-		noiseAmp := 1000.0
-		if pType == PlateContinental {
-			base = baseContinentalElevation
-			noiseAmp = 1700.0
-		}
+		pid := plateOf[c]
+		pType := plates[pid].Type
+		b := boundaries[c]
 
-		be := boundaryEffect(boundaries[c], params.BoundaryInfluenceSteps)
+		otherType := pType
+		if b.StepsAway >= 0 {
+			otherType = b.OtherType
+		}
+		bias := blendedPlateBias(pType, otherType, b, params.BoundaryInfluenceSteps)
+
+		be := boundaryEffect(b, params.BoundaryInfluenceSteps)
 		p := mesh.Points[c]
+		blob := continentField.Sample3(p.X, p.Y, p.Z)
 		n1 := elevationField.Sample3(p.X, p.Y, p.Z)
 		n2 := coastlineField.Sample3(p.X, p.Y, p.Z)
 
-		raw[c] = base + be + noiseAmp*n1 + 550*n2
+		raw[c] = plateBiasAmplitude*bias + continentBlobAmplitude*blob + be + 700*n1 + 400*n2
 	}
 
 	sorted := make([]float64, n)

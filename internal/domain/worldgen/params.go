@@ -146,6 +146,16 @@ type Params struct {
 	// depression needs before it is rendered as a lake rather than treated as
 	// a rounding artifact of the depression-filling step.
 	LakeMinDepth Elevation
+
+	// LakeMinAreaCells is the minimum size, in cells, of a connected filled
+	// basin before it counts as a lake. Priority-flood fills every
+	// depression it finds regardless of size, which is exactly right for
+	// keeping the drainage network depression-free — but rendering every
+	// one of those fills as a lake produces hundreds of one- and two-cell
+	// puddles rather than the handful of notable lakes a real planet's map
+	// shows. A basin below this size is still filled (rivers still flow
+	// through it correctly) — it is just not labelled a lake.
+	LakeMinAreaCells int
 }
 
 // DefaultParams returns the parameters used when nothing more specific is
@@ -167,6 +177,7 @@ func DefaultParams() Params {
 		MoistureBands:          90,
 		RiverFlowThreshold:     12,
 		LakeMinDepth:           40,
+		LakeMinAreaCells:       20,
 	}
 }
 
@@ -189,6 +200,8 @@ func (p Params) Validate() error {
 		return errInvalidParam("moisture_bands", "must be between 6 and 720")
 	case p.RiverFlowThreshold < 1:
 		return errInvalidParam("river_flow_threshold", "must be at least 1")
+	case p.LakeMinAreaCells < 1:
+		return errInvalidParam("lake_min_area_cells", "must be at least 1")
 	}
 	return nil
 }

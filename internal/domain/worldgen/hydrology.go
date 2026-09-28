@@ -136,19 +136,45 @@ func computeHydrology(mesh *Mesh, elevation []int32, params Params) Hydrology {
 		downstream[c] = best
 	}
 
-	// Any cell priority-flood never reached (should not happen on a
-	// connected mesh with at least one ocean cell) is left flowing nowhere.
-	isLake := make([]bool, n)
 	isEndorheic := make([]bool, n)
+	depressionDepth := make([]int32, n)
 	for c := 0; c < n; c++ {
 		if elevation[c] > 0 {
-			depth := filled[c] - elevation[c]
-			if depth > 0 {
+			if depth := filled[c] - elevation[c]; depth > 0 {
 				isEndorheic[c] = true
-				if depth >= int32(params.LakeMinDepth) {
-					isLake[c] = true
-				}
+				depressionDepth[c] = depth
 			}
+		}
+	}
+
+	// A LAKE, NOT EVERY FILLED DEPRESSION. Priority-flood fills every
+	// depression it finds — that is what makes the flow network
+	// depression-free (TestHydrology_EveryCellDrainsToTheSea) — but most of
+	// what it fills is a shallow one- or two-cell dip that a real landscape
+	// drains through a small stream or groundwater, not a standing lake. An
+	// earlier version rendered EVERY filled cell past LakeMinDepth as a
+	// lake, which produced a planet speckled with hundreds of tiny puddles
+	// on every continent instead of the "few dozen notable lakes" a real
+	// planet's map actually shows. A lake needs BOTH some depth (already
+	// covered by LakeMinDepth) AND some area: it is one connected flooded
+	// basin of at least LakeMinAreaCells cells, not a single deep pit.
+	isLake := make([]bool, n)
+	basins := connectedComponents(mesh, func(c int32) bool { return isEndorheic[c] })
+	for _, basin := range basins {
+		if len(basin) < params.LakeMinAreaCells {
+			continue
+		}
+		maxDepth := int32(0)
+		for _, c := range basin {
+			if d := depressionDepth[c]; d > maxDepth {
+				maxDepth = d
+			}
+		}
+		if maxDepth < int32(params.LakeMinDepth) {
+			continue
+		}
+		for _, c := range basin {
+			isLake[c] = true
 		}
 	}
 

@@ -195,6 +195,56 @@ func TestGenerate_DesertsInSubtropicsAndRainShadow(t *testing.T) {
 	}
 }
 
+// TestGenerate_CoastlinesDoNotTracePlateBoundaries guards the fix in
+// elevation.go: land and sea must come from the continuous continentality
+// field (plate type as a low-weight bias plus large-scale warped noise),
+// not from which plate a cell happens to sit on. Before that fix, a
+// coastline edge (a land cell adjacent to an ocean cell) was very often
+// ALSO a plate-boundary edge (a cell adjacent to a cell on a different
+// plate), because plate type alone decided land vs sea — the visible
+// symptom was a coastline that traced long straight plate-boundary
+// segments. This checks the same fact statistically: of every coastline
+// edge in a generated world, only a minority should also be a
+// plate-boundary edge. Some overlap is expected and correct (a mountain
+// belt or a subduction trench really does sit on a plate boundary and can
+// coincide with a coast), but it must not be the dominant pattern.
+func TestGenerate_CoastlinesDoNotTracePlateBoundaries(t *testing.T) {
+	content := sampleContent()
+	params := DefaultParams()
+	params.CellCount = 20000
+	w, err := Generate(9, params, content)
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+
+	var coastEdges, coastAndPlateBoundary int
+	for c := int32(0); int(c) < w.CellCount(); c++ {
+		for _, nb := range w.Neighbors(c) {
+			if nb <= c {
+				continue // count each undirected edge once
+			}
+			isCoast := w.Cells[c].IsOcean != w.Cells[nb].IsOcean
+			if !isCoast {
+				continue
+			}
+			coastEdges++
+			if w.Cells[c].PlateID != w.Cells[nb].PlateID {
+				coastAndPlateBoundary++
+			}
+		}
+	}
+
+	if coastEdges == 0 {
+		t.Fatal("no coastline edges found at all")
+	}
+	frac := float64(coastAndPlateBoundary) / float64(coastEdges)
+	t.Logf("%d/%d (%.1f%%) of coastline edges are also plate-boundary edges", coastAndPlateBoundary, coastEdges, frac*100)
+	if frac > 0.35 {
+		t.Fatalf("%.1f%% of the coastline follows a plate boundary; want well under 35%%, "+
+			"land/sea should come from the continentality noise field, not from plate type", frac*100)
+	}
+}
+
 func TestGenerate_PerformanceBudget(t *testing.T) {
 	content := sampleContent()
 	params := DefaultParams()
