@@ -44,6 +44,15 @@ import (
 // spelling, except that Persian and Arabic digits become ASCII digits
 // (NormalizeArg), because every argument a command takes is an ASCII token.
 //
+// An alias may also be a short phrase of up to MaxAliasPhraseWords words
+// («ساخت روستا» for settlement.found) rather than a single word — a
+// deliberately distinctive multi-word trigger is far less likely to appear by
+// accident in ordinary group chatter than a common single noun would be, the
+// same nuisance concern the crime example above already raises. Rewrite tries
+// the longest possible phrase at the message's start first, falling back to
+// shorter ones, so a phrase and a single-word alias can never shadow one
+// another ambiguously.
+//
 // # Groups
 //
 // In a group, most messages are people talking to each other, and a bot that
@@ -78,13 +87,19 @@ var ErrAliasCollision = errors.New("routing: an alias word names two commands")
 // ErrAliasTarget reports an alias key that is not a command the game serves.
 var ErrAliasTarget = errors.New("routing: an alias names no command the game serves")
 
-// ErrAliasWord reports a word that is not a single token.
-var ErrAliasWord = errors.New("routing: an alias word is not one word")
+// ErrAliasWord reports a word that is empty or longer than
+// MaxAliasPhraseWords words.
+var ErrAliasWord = errors.New("routing: an alias word is not a usable word or phrase")
 
 // maxStrictArgs bounds how many argument tokens a group message may carry
 // after its alias and still be a command. The longest typed command
 // ("پرداخت @ali 5000 card") has three.
 const maxStrictArgs = 3
+
+// MaxAliasPhraseWords bounds how many words a single alias may be. Kept
+// small on purpose: an alias is a trigger a player types on purpose, never a
+// sentence the gateway tries to understand.
+const MaxAliasPhraseWords = 4
 
 // AliasSource is where alias words are read from; *i18n.Catalog satisfies it.
 type AliasSource interface {
@@ -92,10 +107,11 @@ type AliasSource interface {
 	Section(lang, prefix string) map[string]string
 }
 
-// Aliases maps alias words to the slash spelling they stand for. The zero
-// value and nil match nothing.
+// Aliases maps alias words or short phrases to the slash spelling they stand
+// for. The zero value and nil match nothing.
 type Aliases struct {
-	words map[string]string // normalised word -> "/crime", "/bank deposit"
+	words          map[string]string // normalised word/phrase -> "/crime", "/bank deposit"
+	maxPhraseWords int               // the longest loaded alias, in words; at least 1
 }
 
 // LoadAliases reads every language's aliases.
@@ -106,12 +122,12 @@ type Aliases struct {
 // line costs that line and not the gateway. Callers log the error; the
 // shipped locales are held to none by a test.
 func LoadAliases(src AliasSource) (*Aliases, error) {
-	a := &Aliases{words: map[string]string{}}
+	a := &Aliases{words: map[string]string{}, maxPhraseWords: 1}
 	if src == nil {
 		return a, nil
 	}
 	var problems []error
-	claimed := map[string]map[string][]string{} // word -> target -> languages
+	claimed := map[string]map[string][]string{} // word/phrase -> target -> languages
 	for _, lang := range src.Languages() {
 		section := src.Section(lang, AliasSection)
 		keys := make([]string, 0, len(section))
@@ -126,11 +142,12 @@ func LoadAliases(src AliasSource) (*Aliases, error) {
 				continue
 			}
 			for _, raw := range splitAliasWords(section[key]) {
-				word := NormalizeWord(raw)
+				n := len(strings.Fields(raw))
+				word := normalizePhrase(raw)
 				if word == "" {
 					continue
 				}
-				if strings.ContainsFunc(word, unicode.IsSpace) || strings.HasPrefix(word, "/") {
+				if n > MaxAliasPhraseWords || strings.HasPrefix(word, "/") {
 					problems = append(problems, fmt.Errorf("%w: %s: %s.%s: %q", ErrAliasWord, lang, AliasSection, key, raw))
 					continue
 				}
@@ -160,6 +177,9 @@ func LoadAliases(src AliasSource) (*Aliases, error) {
 		}
 		for t := range targets {
 			a.words[w] = t
+		}
+		if n := len(strings.Fields(w)); n > a.maxPhraseWords {
+			a.maxPhraseWords = n
 		}
 	}
 	return a, errors.Join(problems...)
@@ -200,11 +220,13 @@ func (a *Aliases) Len() int {
 	return len(a.words)
 }
 
-// Rewrite turns a plain-text message that starts with an alias into the
-// slash-command it stands for, arguments normalised. ok is false when the
-// message does not start with an alias or, when strict (a group), carries
-// anything but argument-shaped tokens after it. A message that already starts
-// with a slash is not an alias.
+// Rewrite turns a plain-text message that starts with an alias — a word or a
+// short phrase, see the file comment — into the slash-command it stands for,
+// arguments normalised. ok is false when the message does not start with an
+// alias or, when strict (a group), carries anything but argument-shaped
+// tokens after it. A message that already starts with a slash is not an
+// alias. The longest phrase at the message's start is tried first, so a
+// two-word alias is never shadowed by a shorter one sharing its first word.
 func (a *Aliases) Rewrite(text string, strict bool) (string, bool) {
 	if a == nil || len(a.words) == 0 {
 		return "", false
@@ -213,26 +235,42 @@ func (a *Aliases) Rewrite(text string, strict bool) (string, bool) {
 	if len(fields) == 0 || strings.HasPrefix(fields[0], "/") {
 		return "", false
 	}
-	target, ok := a.words[NormalizeWord(fields[0])]
-	if !ok {
-		return "", false
+	maxK := a.maxPhraseWords
+	if maxK > len(fields) {
+		maxK = len(fields)
 	}
-	args := fields[1:]
-	if strict {
-		if len(args) > maxStrictArgs {
-			return "", false
+	for k := maxK; k >= 1; k-- {
+		phraseWords := make([]string, k)
+		for i := 0; i < k; i++ {
+			phraseWords[i] = NormalizeWord(fields[i])
 		}
-		for _, arg := range args {
-			if !argumentShaped(NormalizeArg(arg)) {
-				return "", false
+		target, ok := a.words[strings.Join(phraseWords, " ")]
+		if !ok {
+			continue
+		}
+		args := fields[k:]
+		if strict {
+			if len(args) > maxStrictArgs {
+				continue
+			}
+			shaped := true
+			for _, arg := range args {
+				if !argumentShaped(NormalizeArg(arg)) {
+					shaped = false
+					break
+				}
+			}
+			if !shaped {
+				continue
 			}
 		}
+		out := target
+		for _, arg := range args {
+			out += " " + NormalizeArg(arg)
+		}
+		return out, true
 	}
-	out := target
-	for _, arg := range args {
-		out += " " + NormalizeArg(arg)
-	}
-	return out, true
+	return "", false
 }
 
 // Is reports whether text is exactly the alias for key (help or cancel, or a
@@ -278,6 +316,21 @@ func NormalizeWord(s string) string {
 	return strings.TrimFunc(b.String(), func(r rune) bool {
 		return unicode.IsPunct(r) || unicode.IsSymbol(r) || unicode.IsSpace(r)
 	})
+}
+
+// normalizePhrase is how a multi-word alias ("ساخت روستا") is compared: each
+// of its words normalised by NormalizeWord and rejoined with a single space,
+// so irregular whitespace in a locale file never keeps a phrase from
+// matching the same words as typed.
+func normalizePhrase(s string) string {
+	fields := strings.Fields(s)
+	words := make([]string, 0, len(fields))
+	for _, f := range fields {
+		if w := NormalizeWord(f); w != "" {
+			words = append(words, w)
+		}
+	}
+	return strings.Join(words, " ")
 }
 
 // NormalizeArg writes Persian and Arabic digits, and their group and decimal

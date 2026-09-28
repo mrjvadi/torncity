@@ -1375,6 +1375,8 @@ command_alias:
   stocks: "بورس | سهام"
   portfolio: "سبد | پرتفوی"
   gold: "طلا | طلافروشی"
+  settlement:
+    found: "ساخت روستا | تاسیس روستا"
 
 # Where a command runs (configs/commands.yml). Sent in the wrong kind of chat,
 # it is not run; the player reads one of these instead.

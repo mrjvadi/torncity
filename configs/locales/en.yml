@@ -1259,6 +1259,8 @@ command_alias:
   card: "card"
   link: "link"
   devices: "devices"
+  settlement:
+    found: "found village"
 
 # Where a command runs (configs/commands.yml).
 channel:

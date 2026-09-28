@@ -152,15 +152,42 @@ func TestAliasCollisionsAreRefused(t *testing.T) {
 	}
 }
 
-// An alias must name a command the game serves, and be one word.
+// An alias must name a command the game serves, and be a word or a short
+// phrase of at most MaxAliasPhraseWords words.
 func TestAliasTargetsAreChecked(t *testing.T) {
 	_, err := LoadAliases(fakeAliases{"fa": {"casino": "قمار"}})
 	if !errors.Is(err, ErrAliasTarget) {
 		t.Errorf("an alias of an unserved command loaded: %v", err)
 	}
-	_, err = LoadAliases(fakeAliases{"fa": {"crime": "دزدی کن"}})
+	_, err = LoadAliases(fakeAliases{"fa": {"crime": "یک دو سه چهار پنج"}})
 	if !errors.Is(err, ErrAliasWord) {
-		t.Errorf("a two-word alias loaded: %v", err)
+		t.Errorf("a five-word alias loaded: %v", err)
+	}
+}
+
+// A short phrase («ساخت روستا») is a legal alias, matched as a whole, and
+// never shadowed by a single word sharing its first token.
+func TestAliasPhrases(t *testing.T) {
+	a, err := LoadAliases(fakeAliases{"fa": {
+		"settlement.found": "ساخت روستا",
+		"crime":            "ساخت",
+	}})
+	if err != nil {
+		t.Fatalf("phrase aliases did not load: %v", err)
+	}
+	text, ok := a.Rewrite("ساخت روستا", true)
+	if !ok {
+		t.Fatal("ساخت روستا is not recognised")
+	}
+	command, _, err := ParseText(text)
+	if err != nil {
+		t.Fatalf("%q does not parse: %v", text, err)
+	}
+	if want := "settlement.found"; command != want {
+		t.Errorf("ساخت روستا routes to %s, want %s", command, want)
+	}
+	if got, ok := a.Rewrite("ساخت", true); !ok || got != "/crime" {
+		t.Errorf("the single word ساخت on its own = %q, %v; want /crime", got, ok)
 	}
 }
 
