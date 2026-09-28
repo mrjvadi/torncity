@@ -146,8 +146,12 @@ func hillshade(elev []float64, width, height, px, py int) float64 {
 	dzdx := elev[py*width+x1] - elev[py*width+x0]
 	dzdy := elev[y1*width+px] - elev[y0*width+px]
 
-	// Normal from the local gradient, light from upper-left-ish.
-	nx, ny, nz := -dzdx*0.006, -dzdy*0.006, 1.0
+	// Normal from the local gradient, light from upper-left-ish. The
+	// gradient scale (was 0.006) is punched up so a mountain belt's slope
+	// actually reads as relief rather than a faint tint difference from
+	// the plains around it — the single biggest legibility complaint on
+	// the first several renders of this map.
+	nx, ny, nz := -dzdx*0.014, -dzdy*0.014, 1.0
 	n := math.Sqrt(nx*nx + ny*ny + nz*nz)
 	nx, ny, nz = nx/n, ny/n, nz/n
 	lx, ly, lz := -0.55, 0.55, 0.63
@@ -155,7 +159,7 @@ func hillshade(elev []float64, width, height, px, py int) float64 {
 	lx, ly, lz = lx/ln, ly/ln, lz/ln
 
 	dot := nx*lx + ny*ly + nz*lz
-	return 0.55 + 0.8*clamp01((dot+1)/2)
+	return 0.35 + 1.05*clamp01((dot+1)/2)
 }
 
 func clamp01(v float64) float64 {
@@ -199,9 +203,17 @@ func mixColor(a, b color.RGBA, t float64) color.RGBA {
 }
 
 var defaultGrey = color.RGBA{160, 160, 160, 255}
+var bareRock = color.RGBA{131, 120, 108, 255}
 var snowWhite = color.RGBA{245, 248, 250, 255}
 
-const snowlineElevation = 4200.0
+// rocklineElevation/snowlineElevation give a mountain belt three visible
+// bands going up — biome colour, then bare rock, then snow — the way a real
+// relief map does, instead of jumping straight from forest-green to white
+// (which made mountains hard to pick out from ordinary high ground).
+const (
+	rocklineElevation = 2600.0
+	snowlineElevation = 4200.0
+)
 
 // renderReliefBiome draws the primary map: land tinted by biome, ocean
 // tinted by depth, both hillshaded from a smooth (inverse-distance-weighted)
@@ -229,9 +241,13 @@ func renderReliefBiome(w *worldgen.World, g *pixelGrids, width, height int, path
 			} else {
 				biome := w.Content.Biomes[cell.BiomeIdx]
 				base = hexColor(biome.ColorHex, defaultGrey)
-				if smoothElev > snowlineElevation {
-					t := clamp01((smoothElev - snowlineElevation) / 2500)
-					base = mixColor(base, snowWhite, t)
+				switch {
+				case smoothElev > snowlineElevation:
+					t := clamp01((smoothElev - snowlineElevation) / 1600)
+					base = mixColor(bareRock, snowWhite, t)
+				case smoothElev > rocklineElevation:
+					t := clamp01((smoothElev - rocklineElevation) / (snowlineElevation - rocklineElevation))
+					base = mixColor(base, bareRock, t)
 				}
 			}
 
@@ -316,13 +332,32 @@ func renderPolitical(w *worldgen.World, g *pixelGrids, width, height int, path s
 	return savePNG(img, path)
 }
 
+// riverWidth turns a cell's flow accumulation into a marker radius, on a log
+// scale (flow spans orders of magnitude between a headwater and a river
+// close to its mouth, a linear scale would make everything but the last
+// few cells before the sea invisible) capped so a river never swallows the
+// coastline it runs into.
+func riverWidth(flow int32) int {
+	w := 1
+	for f := int32(20); f < flow && w < 5; f *= 3 {
+		w++
+	}
+	return w
+}
+
 func drawRivers(w *worldgen.World, img *image.RGBA, width, height int) {
-	riverColor := color.RGBA{0x2a, 0x6f, 0xb5, 255}
+	darkRiver := color.RGBA{0x16, 0x4a, 0x7d, 255}
+	lightRiver := color.RGBA{0x5a, 0xa8, 0xdd, 255}
 	for _, riv := range w.Rivers {
 		for _, cellID := range riv.Cells {
-			p := w.Cells[cellID].Point
-			px, py := pointToPixel(p, width, height)
-			drawDot(img, px, py, 1, riverColor)
+			cell := w.Cells[cellID]
+			radius := riverWidth(cell.RiverFlow)
+			// Wider (higher-flow) stretches are drawn a touch darker too,
+			// so a main stem reads as a river and not just a thicker line
+			// of the same pale tint as its headwaters.
+			c := mixColor(lightRiver, darkRiver, clamp01(float64(radius-1)/4))
+			px, py := pointToPixel(cell.Point, width, height)
+			drawDot(img, px, py, radius, c)
 		}
 	}
 }
