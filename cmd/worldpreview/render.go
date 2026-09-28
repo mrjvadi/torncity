@@ -75,7 +75,10 @@ type pixelGrids struct {
 // rate doesn't lose detail cleanly, it ALIASES: the classic symptom is
 // regular, geometric-looking dashed or hatched patterns appearing in
 // otherwise smooth areas (open ocean in this renderer's case), which is
-// exactly the artifact this factor was raised to fix. 8x, not 3x.
+// what this factor was raised to fix, together with buildPixelGrids' box
+// blur (see boxBlur) — the two combined is what a rendered comparison
+// actually confirmed clean; the blur alone at a lower factor was not
+// re-verified and is not assumed to be enough.
 func querySampleSize(cellCount, width, height int) (int, int) {
 	avgCellDeg := 180 / math.Sqrt(float64(cellCount)/math.Pi)
 	sw := int(8 * 360 / avgCellDeg)
