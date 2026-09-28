@@ -559,6 +559,15 @@ type WorldGen struct {
 	RiverFlowThreshold     int     // worldgen.river_flow_threshold
 	LakeMinDepth           int     // worldgen.lake_min_depth
 	LakeMinAreaCells       int     // worldgen.lake_min_area_cells
+
+	PlanetRadiusKm              float64 // worldgen.planet_radius_km
+	ChunkBaseLOD                int     // worldgen.chunk_base_lod
+	ChunkTileEdge               int     // worldgen.chunk_tile_edge
+	ChunkDetailFrequency        float64 // worldgen.chunk_detail_frequency
+	ChunkDetailAmplitude        int     // worldgen.chunk_detail_amplitude
+	ChunkStreamFrequency        float64 // worldgen.chunk_stream_frequency
+	ChunkStreamAmplitude        int     // worldgen.chunk_stream_amplitude
+	ChunkDepositTilesPerDeposit int     // worldgen.chunk_deposit_tiles_per_deposit
 }
 
 // Governance is the tuning of the office holder's screens
@@ -1108,6 +1117,15 @@ func Defaults() *Config {
 			RiverFlowThreshold:     12,
 			LakeMinDepth:           40,
 			LakeMinAreaCells:       20,
+
+			PlanetRadiusKm:              6371,
+			ChunkBaseLOD:                10,
+			ChunkTileEdge:               32,
+			ChunkDetailFrequency:        40,
+			ChunkDetailAmplitude:        300,
+			ChunkStreamFrequency:        60,
+			ChunkStreamAmplitude:        60,
+			ChunkDepositTilesPerDeposit: 5,
 		},
 		Governance: Governance{
 			FineStepDivisor:   100,

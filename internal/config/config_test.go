@@ -506,6 +506,14 @@ worldgen:
   river_flow_threshold: 13
   lake_min_depth: 41
   lake_min_area_cells: 21
+  planet_radius_km: 6372
+  chunk_base_lod: 11
+  chunk_tile_edge: 33
+  chunk_detail_frequency: 41
+  chunk_detail_amplitude: 301
+  chunk_stream_frequency: 61
+  chunk_stream_amplitude: 61
+  chunk_deposit_tiles_per_deposit: 6
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -769,6 +777,14 @@ var envOverrides = map[string]string{
 	"TORN_WORLDGEN_RIVER_FLOW_THRESHOLD":            "14",
 	"TORN_WORLDGEN_LAKE_MIN_DEPTH":                  "42",
 	"TORN_WORLDGEN_LAKE_MIN_AREA_CELLS":             "22",
+	"TORN_WORLDGEN_PLANET_RADIUS_KM":                "6373",
+	"TORN_WORLDGEN_CHUNK_BASE_LOD":                  "12",
+	"TORN_WORLDGEN_CHUNK_TILE_EDGE":                 "34",
+	"TORN_WORLDGEN_CHUNK_DETAIL_FREQUENCY":          "42",
+	"TORN_WORLDGEN_CHUNK_DETAIL_AMPLITUDE":          "302",
+	"TORN_WORLDGEN_CHUNK_STREAM_FREQUENCY":          "62",
+	"TORN_WORLDGEN_CHUNK_STREAM_AMPLITUDE":          "62",
+	"TORN_WORLDGEN_CHUNK_DEPOSIT_TILES_PER_DEPOSIT": "7",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

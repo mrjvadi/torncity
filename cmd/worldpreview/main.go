@@ -64,6 +64,15 @@ func worldGenParams(wg config.WorldGen) worldgen.Params {
 		RiverFlowThreshold:     wg.RiverFlowThreshold,
 		LakeMinDepth:           worldgen.Elevation(wg.LakeMinDepth),
 		LakeMinAreaCells:       wg.LakeMinAreaCells,
+
+		PlanetRadiusKm:              wg.PlanetRadiusKm,
+		ChunkBaseLOD:                int8(wg.ChunkBaseLOD),
+		ChunkTileEdge:               wg.ChunkTileEdge,
+		ChunkDetailFrequency:        wg.ChunkDetailFrequency,
+		ChunkDetailAmplitude:        worldgen.Elevation(wg.ChunkDetailAmplitude),
+		ChunkStreamFrequency:        wg.ChunkStreamFrequency,
+		ChunkStreamAmplitude:        worldgen.Elevation(wg.ChunkStreamAmplitude),
+		ChunkDepositTilesPerDeposit: wg.ChunkDepositTilesPerDeposit,
 	}
 }
 

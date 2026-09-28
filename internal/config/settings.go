@@ -238,6 +238,15 @@ type worldgenSettings struct {
 	RiverFlowThreshold     *int     `yaml:"river_flow_threshold"`
 	LakeMinDepth           *int     `yaml:"lake_min_depth"`
 	LakeMinAreaCells       *int     `yaml:"lake_min_area_cells"`
+
+	PlanetRadiusKm              *float64 `yaml:"planet_radius_km"`
+	ChunkBaseLOD                *int     `yaml:"chunk_base_lod"`
+	ChunkTileEdge               *int     `yaml:"chunk_tile_edge"`
+	ChunkDetailFrequency        *float64 `yaml:"chunk_detail_frequency"`
+	ChunkDetailAmplitude        *int     `yaml:"chunk_detail_amplitude"`
+	ChunkStreamFrequency        *float64 `yaml:"chunk_stream_frequency"`
+	ChunkStreamAmplitude        *int     `yaml:"chunk_stream_amplitude"`
+	ChunkDepositTilesPerDeposit *int     `yaml:"chunk_deposit_tiles_per_deposit"`
 }
 
 type crimeSettings struct {
@@ -912,6 +921,30 @@ var coreSettings = []setting{
 	limitSetting("worldgen", "lake_min_area_cells",
 		func(c *Config) *int { return &c.WorldGen.LakeMinAreaCells },
 		func(f *fileConfig) *int { return f.WorldGen.LakeMinAreaCells }),
+	floatSetting("worldgen", "planet_radius_km",
+		func(c *Config) *float64 { return &c.WorldGen.PlanetRadiusKm },
+		func(f *fileConfig) *float64 { return f.WorldGen.PlanetRadiusKm }),
+	limitSetting("worldgen", "chunk_base_lod",
+		func(c *Config) *int { return &c.WorldGen.ChunkBaseLOD },
+		func(f *fileConfig) *int { return f.WorldGen.ChunkBaseLOD }),
+	limitSetting("worldgen", "chunk_tile_edge",
+		func(c *Config) *int { return &c.WorldGen.ChunkTileEdge },
+		func(f *fileConfig) *int { return f.WorldGen.ChunkTileEdge }),
+	floatSetting("worldgen", "chunk_detail_frequency",
+		func(c *Config) *float64 { return &c.WorldGen.ChunkDetailFrequency },
+		func(f *fileConfig) *float64 { return f.WorldGen.ChunkDetailFrequency }),
+	limitSetting("worldgen", "chunk_detail_amplitude",
+		func(c *Config) *int { return &c.WorldGen.ChunkDetailAmplitude },
+		func(f *fileConfig) *int { return f.WorldGen.ChunkDetailAmplitude }),
+	floatSetting("worldgen", "chunk_stream_frequency",
+		func(c *Config) *float64 { return &c.WorldGen.ChunkStreamFrequency },
+		func(f *fileConfig) *float64 { return f.WorldGen.ChunkStreamFrequency }),
+	limitSetting("worldgen", "chunk_stream_amplitude",
+		func(c *Config) *int { return &c.WorldGen.ChunkStreamAmplitude },
+		func(f *fileConfig) *int { return f.WorldGen.ChunkStreamAmplitude }),
+	limitSetting("worldgen", "chunk_deposit_tiles_per_deposit",
+		func(c *Config) *int { return &c.WorldGen.ChunkDepositTilesPerDeposit },
+		func(f *fileConfig) *int { return f.WorldGen.ChunkDepositTilesPerDeposit }),
 
 	durationSetting("legislature", "vote_window",
 		func(c *Config) *time.Duration { return &c.Legislature.VoteWindow },

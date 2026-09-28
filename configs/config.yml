@@ -947,3 +947,23 @@ worldgen:
   river_flow_threshold: 12
   lake_min_depth: 40
   lake_min_area_cells: 20
+  # Minecraft-style chunking over a cube-sphere (6 quadtree faces). Base LOD
+  # 10 (1024 chunks along a face edge, 32x32 tiles each) puts a tile at
+  # ~305m across on an Earth-sized planet — see the world-chunking report
+  # for the derivation and why that comfortably fits a village's 5x5 and a
+  # city's 15x15 lot grid inside one base chunk.
+  planet_radius_km: 6371
+  chunk_base_lod: 10
+  chunk_tile_edge: 32
+  # Base-LOD-only local FastNoiseLite detail added on top of the coarse
+  # mesh's interpolated elevation (hills, coastline wrinkling too fine for
+  # the 40k-cell mesh) and the noise that meanders a small stream tile off
+  # a dead-straight line between coarse drainage cells. Frequency is cycles
+  # across the sphere's diameter; amplitude is in elevation units.
+  chunk_detail_frequency: 40
+  chunk_detail_amplitude: 300
+  chunk_stream_frequency: 60
+  chunk_stream_amplitude: 60
+  # How many exact tiles a coarse-mesh resource deposit expands into inside
+  # whichever base chunk it falls in.
+  chunk_deposit_tiles_per_deposit: 5

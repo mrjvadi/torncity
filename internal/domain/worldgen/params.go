@@ -39,6 +39,8 @@
 // the one place that boundary is drawn.
 package worldgen
 
+import "math"
+
 // Fixed-point value types. Every one of these is a plain integer so that a
 // gameplay decision made by comparing two of them is an exact, portable
 // comparison — never a floating-point one that could round differently
@@ -156,6 +158,48 @@ type Params struct {
 	// shows. A basin below this size is still filled (rivers still flow
 	// through it correctly) — it is just not labelled a lake.
 	LakeMinAreaCells int
+
+	// --- Chunking (chunk.go, chunk_address.go): Minecraft-style local
+	// generation over the cube-sphere chunk grid, layered on top of the
+	// coarse mesh above. See the project report for the reasoning behind
+	// the defaults.
+
+	// PlanetRadiusKm is the planet's radius, used only to turn the unit
+	// sphere's abstract distances into real metres for TileMeters below and
+	// for any client-facing distance the chunk system reports. Nothing in
+	// the coarse generation above this line uses it — the 40k-cell mesh is
+	// scale-free.
+	PlanetRadiusKm float64
+
+	// ChunkBaseLOD is the finest (highest-detail) LOD chunks are generated
+	// at: chunksPerEdge(ChunkBaseLOD) = 2^ChunkBaseLOD chunks along one
+	// cube face's edge. LOD 0..ChunkBaseLOD-1 are coarser, for the
+	// zoomed-out map.
+	ChunkBaseLOD int8
+
+	// ChunkTileEdge is how many tiles wide/tall one chunk is, at every LOD
+	// (a chunk always has ChunkTileEdge x ChunkTileEdge tiles; what changes
+	// per LOD is how much real ground each tile covers).
+	ChunkTileEdge int
+
+	// ChunkDetailFrequency/ChunkDetailAmplitude configure the base-LOD-only
+	// local FastNoiseLite detail added on top of the coarse mesh's
+	// interpolated elevation: hills and coastline wrinkling too fine for
+	// the 40k-cell mesh to represent. Frequency is cycles across the
+	// sphere's diameter (same units as NoiseBaseFrequency); amplitude is in
+	// Elevation units.
+	ChunkDetailFrequency float64
+	ChunkDetailAmplitude Elevation
+
+	// ChunkStreamFrequency/ChunkStreamAmplitude configure the noise that
+	// meanders a base-LOD small stream tile off a dead-straight line
+	// between coarse drainage cells.
+	ChunkStreamFrequency float64
+	ChunkStreamAmplitude Elevation
+
+	// ChunkDepositTilesPerDeposit is how many exact tiles a coarse-mesh
+	// Deposit expands into inside whichever base chunk it falls in.
+	ChunkDepositTilesPerDeposit int
 }
 
 // DefaultParams returns the parameters used when nothing more specific is
@@ -178,6 +222,19 @@ func DefaultParams() Params {
 		RiverFlowThreshold:     12,
 		LakeMinDepth:           40,
 		LakeMinAreaCells:       20,
+
+		// Earth-like radius; base LOD 10 (1024 chunks/face edge, 32 tiles
+		// each) puts a tile at ~305m across — see the project report for
+		// the full derivation and why that fits a village's 5x5 and a
+		// city's 15x15 lot grid comfortably inside one base chunk.
+		PlanetRadiusKm:              6371,
+		ChunkBaseLOD:                10,
+		ChunkTileEdge:               32,
+		ChunkDetailFrequency:        40,
+		ChunkDetailAmplitude:        300,
+		ChunkStreamFrequency:        60,
+		ChunkStreamAmplitude:        60,
+		ChunkDepositTilesPerDeposit: 5,
 	}
 }
 
@@ -202,6 +259,29 @@ func (p Params) Validate() error {
 		return errInvalidParam("river_flow_threshold", "must be at least 1")
 	case p.LakeMinAreaCells < 1:
 		return errInvalidParam("lake_min_area_cells", "must be at least 1")
+	case p.PlanetRadiusKm <= 0:
+		return errInvalidParam("planet_radius_km", "must be positive")
+	case p.ChunkBaseLOD < 1 || p.ChunkBaseLOD > 24:
+		return errInvalidParam("chunk_base_lod", "must be between 1 and 24")
+	case p.ChunkTileEdge < 4 || p.ChunkTileEdge > 256:
+		return errInvalidParam("chunk_tile_edge", "must be between 4 and 256")
+	case p.ChunkDepositTilesPerDeposit < 1:
+		return errInvalidParam("chunk_deposit_tiles_per_deposit", "must be at least 1")
 	}
 	return nil
+}
+
+// TileMeters is roughly how many metres across one base-LOD tile is: a
+// cube face spans a quarter of the planet's great-circle circumference
+// (chunk_address.go's cube-sphere covers each face over a 90-degree
+// angular patch), divided by the tiles along that edge at the base LOD.
+// APPROXIMATE: it uses the sphere's true circumference, not the tangent
+// adjustment's slightly uneven spacing (chunk_address.go), so it is the
+// right order of magnitude and the number used for gameplay/report
+// purposes, not an exact per-tile figure — a tile nearer a cube corner is
+// measurably smaller than one at a face's centre (see tangentAdjust).
+func (p Params) TileMeters() float64 {
+	faceEdgeKm := (math.Pi / 2) * p.PlanetRadiusKm
+	tilesPerFaceEdge := float64(chunksPerEdge(p.ChunkBaseLOD)) * float64(p.ChunkTileEdge)
+	return faceEdgeKm * 1000 / tilesPerFaceEdge
 }
