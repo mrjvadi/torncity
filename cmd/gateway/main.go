@@ -175,6 +175,31 @@ func loadEnv() (env, error) {
 	if e.actionsPath == "" {
 		e.actionsPath = filepath.Join(filepath.Dir(e.configPath), actionsFile)
 	}
+	if e.gatewayInstanceID == "" {
+		// The instance id is the fencing token on the bot lease: two
+		// instances sharing it would each believe they hold every bot, and
+		// Telegram would split each conversation between them. It used to be
+		// required with no default, on the reasoning that a wrong guess here
+		// is silent data loss.
+		//
+		// Scaling out with `docker compose up --scale gateway=N` (or a
+		// StatefulSet-less Deployment) gives every replica the same
+		// env_file, so a fixed GATEWAY_INSTANCE_ID would put the same value
+		// in all of them — the exact failure this variable exists to
+		// prevent. cmd/scheduler already answers this the same way: default
+		// to the hostname, which a container runtime gives a fresh, unique
+		// value per replica (Docker assigns each container a unique short
+		// ID as its hostname unless one is fixed in compose, and this
+		// service's compose entry does not fix one). An operator who wants
+		// an explicit, human-chosen id may still set the variable; this
+		// only removes the requirement to invent N different values by hand
+		// for N replicas.
+		host, err := os.Hostname()
+		if err != nil || host == "" {
+			return env{}, fmt.Errorf("GATEWAY_INSTANCE_ID is not set and the hostname could not be read: %w", err)
+		}
+		e.gatewayInstanceID = host
+	}
 
 	var missing []string
 	if e.databaseURL == "" {
@@ -185,13 +210,6 @@ func loadEnv() (env, error) {
 	}
 	if e.natsURL == "" {
 		missing = append(missing, "NATS_URL")
-	}
-	if e.gatewayInstanceID == "" {
-		// Not defaulted on purpose. The instance id is the fencing token on
-		// the bot lease: two instances sharing it would each believe they
-		// hold every bot, and Telegram would split each conversation between
-		// them. A wrong default here is silent data loss, so it is fatal.
-		missing = append(missing, "GATEWAY_INSTANCE_ID")
 	}
 	if len(missing) > 0 {
 		return env{}, fmt.Errorf("missing required environment variables: %s", strings.Join(missing, ", "))
@@ -538,10 +556,42 @@ type gateway struct {
 	photos photoKeeper
 }
 
-// serveBot holds one bot's lease and polls it for as long as the lease lasts.
+// serveBot holds one bot's lease and polls it for as long as this instance's
+// context lives, retrying the acquisition whenever it does not currently
+// hold the lease.
+//
+// The retry is the failover half of section 57, not an afterthought: a
+// standby instance that loses the race for a bot at startup (the normal
+// case in a cluster of N>1 gateways) tries again every renewal interval for
+// as long as it runs, so it is ready to take over within roughly one lease
+// TTL of the holder actually dying — not never, which is what a single
+// attempt at startup would give: a bot the process happened to lose the
+// race for at boot would stay on that instance's dead list for its entire
+// lifetime, and a cluster of standbys would never promote one.
 func (g *gateway) serveBot(ctx context.Context, bot application.Bot) {
 	log := g.logger.With(slog.String("bot_id", bot.ID), slog.String("bot_key", bot.BotKey))
 
+	// The same cadence a holder renews at: a standby then notices a freed
+	// lease about as quickly as the holder would have noticed losing it.
+	retryEvery := g.cfg.Lease.RenewEvery()
+
+	for {
+		g.serveBotOnce(ctx, bot, log)
+		if ctx.Err() != nil {
+			return
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(retryEvery):
+		}
+	}
+}
+
+// serveBotOnce is one attempt: acquire (or fail to), poll for as long as the
+// lease holds, then return however that ended. serveBot is what turns a
+// string of these into a standing retry.
+func (g *gateway) serveBotOnce(ctx context.Context, bot application.Bot, log *slog.Logger) {
 	// The keeper acquires before it blocks, but Run does not say when that
 	// happened. Polling a bot this instance does not hold is the one thing
 	// the lease exists to prevent — each getUpdates acknowledges updates for
@@ -574,9 +624,12 @@ func (g *gateway) serveBot(ctx context.Context, bot application.Bot) {
 		return
 	case err := <-kept:
 		// Run returned before it ever acquired: either another instance holds
-		// the bot, which is normal in a cluster, or Redis refused.
+		// the bot, which is normal in a cluster, or Redis refused. serveBot
+		// retries this every renewal interval, so Debug here: at Info it
+		// would repeat for as long as this instance is a standby, which for
+		// a healthy cluster of N>1 gateways is its entire uptime.
 		if errors.Is(err, lease.ErrNotAcquired) {
-			log.Info("bot is leased by another gateway instance, not polling")
+			log.Debug("bot is leased by another gateway instance, not polling")
 			return
 		}
 		if err != nil {
