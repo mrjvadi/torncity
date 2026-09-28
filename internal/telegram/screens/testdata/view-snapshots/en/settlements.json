@@ -1,0 +1,10 @@
+[
+  {
+    "title": "Settlement refused · only works in a group",
+    "screen": "settlement_refusal",
+    "view": {
+      "kind": "group_only",
+      "name": ""
+    }
+  }
+]
