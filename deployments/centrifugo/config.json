@@ -8,6 +8,12 @@
   "admin": {
     "enabled": false
   },
+  "engine": {
+    "type": "redis",
+    "redis": {
+      "address": "redis://tc-redis:6379"
+    }
+  },
   "channel": {
     "namespaces": [
       {

@@ -238,6 +238,17 @@ services:
   # (deployments/centrifugo/config.json). Only the server API key publishes
   # (the notifier, the operators' panel); clients only subscribe, with tokens
   # the client API signs. The admin UI is off.
+  # config.json sets engine.type=redis (over tc-redis), which is what makes
+  # this scalable to more than one node: with the default memory engine, a
+  # publish reaches only the clients on the same node, and channel presence
+  # and history are per-node too — every one of those becomes wrong the
+  # moment a second node exists. With the Redis engine, publish, presence and
+  # history all go through Redis, so any node can serve any publish (the
+  # notifier's and clientapi's calls need not target a specific node) and any
+  # client can connect to any node behind a proxy. This compose file still
+  # runs one instance — a fixed host port and a single container are fine at
+  # one node — but a real multi-node run only needs `ports` replaced by a
+  # proxy in front, the same as clientapi's scale-test overlay.
   centrifugo:
     mem_limit: 128m
     memswap_limit: 128m
@@ -256,6 +267,8 @@ services:
     networks:
       default:
         aliases: ["tc-centrifugo"]
+    depends_on:
+      redis: {condition: service_healthy}
     healthcheck:
       test: ["CMD", "wget", "-q", "-O-", "http://127.0.0.1:8000/health"]
       interval: 30s
