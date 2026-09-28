@@ -55,6 +55,7 @@ type fileConfig struct {
 	Announce      announceSettings      `yaml:"announce"`
 	Notifications notificationsSettings `yaml:"notifications"`
 	WorldGen      worldgenSettings      `yaml:"worldgen"`
+	Settlement    settlementSettings    `yaml:"settlement"`
 
 	Legislature  legislatureSettings  `yaml:"legislature"`
 	City         citySettings         `yaml:"city"`
@@ -247,6 +248,15 @@ type worldgenSettings struct {
 	ChunkStreamFrequency        *float64 `yaml:"chunk_stream_frequency"`
 	ChunkStreamAmplitude        *int     `yaml:"chunk_stream_amplitude"`
 	ChunkDepositTilesPerDeposit *int     `yaml:"chunk_deposit_tiles_per_deposit"`
+}
+
+type settlementSettings struct {
+	ProtectionWindow   *string  `yaml:"protection_window"`
+	MinSpawnDistanceKm *float64 `yaml:"min_spawn_distance_km"`
+	ThreatRadiusKm     *float64 `yaml:"threat_radius_km"`
+	SearchMaxCells     *int     `yaml:"search_max_cells"`
+	SearchMaxAttempts  *int     `yaml:"search_max_attempts"`
+	VillageGridLots    *int     `yaml:"village_grid_lots"`
 }
 
 type crimeSettings struct {
@@ -945,6 +955,25 @@ var coreSettings = []setting{
 	limitSetting("worldgen", "chunk_deposit_tiles_per_deposit",
 		func(c *Config) *int { return &c.WorldGen.ChunkDepositTilesPerDeposit },
 		func(f *fileConfig) *int { return f.WorldGen.ChunkDepositTilesPerDeposit }),
+
+	durationSetting("settlement", "protection_window",
+		func(c *Config) *time.Duration { return &c.Settlement.ProtectionWindow },
+		func(f *fileConfig) *string { return f.Settlement.ProtectionWindow }),
+	floatSetting("settlement", "min_spawn_distance_km",
+		func(c *Config) *float64 { return &c.Settlement.MinSpawnDistanceKm },
+		func(f *fileConfig) *float64 { return f.Settlement.MinSpawnDistanceKm }),
+	floatSetting("settlement", "threat_radius_km",
+		func(c *Config) *float64 { return &c.Settlement.ThreatRadiusKm },
+		func(f *fileConfig) *float64 { return f.Settlement.ThreatRadiusKm }),
+	limitSetting("settlement", "search_max_cells",
+		func(c *Config) *int { return &c.Settlement.SearchMaxCells },
+		func(f *fileConfig) *int { return f.Settlement.SearchMaxCells }),
+	limitSetting("settlement", "search_max_attempts",
+		func(c *Config) *int { return &c.Settlement.SearchMaxAttempts },
+		func(f *fileConfig) *int { return f.Settlement.SearchMaxAttempts }),
+	limitSetting("settlement", "village_grid_lots",
+		func(c *Config) *int { return &c.Settlement.VillageGridLots },
+		func(f *fileConfig) *int { return f.Settlement.VillageGridLots }),
 
 	durationSetting("legislature", "vote_window",
 		func(c *Config) *time.Duration { return &c.Legislature.VoteWindow },

@@ -514,6 +514,13 @@ worldgen:
   chunk_stream_frequency: 61
   chunk_stream_amplitude: 61
   chunk_deposit_tiles_per_deposit: 6
+settlement:
+  protection_window: 169h
+  min_spawn_distance_km: 31
+  threat_radius_km: 151
+  search_max_cells: 2001
+  search_max_attempts: 201
+  village_grid_lots: 6
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -785,6 +792,13 @@ var envOverrides = map[string]string{
 	"TORN_WORLDGEN_CHUNK_STREAM_FREQUENCY":          "62",
 	"TORN_WORLDGEN_CHUNK_STREAM_AMPLITUDE":          "62",
 	"TORN_WORLDGEN_CHUNK_DEPOSIT_TILES_PER_DEPOSIT": "7",
+
+	"TORN_SETTLEMENT_PROTECTION_WINDOW":     "170h",
+	"TORN_SETTLEMENT_MIN_SPAWN_DISTANCE_KM": "32",
+	"TORN_SETTLEMENT_THREAT_RADIUS_KM":      "152",
+	"TORN_SETTLEMENT_SEARCH_MAX_CELLS":      "2002",
+	"TORN_SETTLEMENT_SEARCH_MAX_ATTEMPTS":   "202",
+	"TORN_SETTLEMENT_VILLAGE_GRID_LOTS":     "7",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

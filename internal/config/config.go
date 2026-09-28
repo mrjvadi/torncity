@@ -233,6 +233,14 @@ type Config struct {
 	// docs/adr/0004-content-system.md's distinction); these are the
 	// coefficients that content, not a code change, should be able to move.
 	WorldGen WorldGen
+
+	// Settlement is the tuning of group founding (docs/adr/0028-world-and-
+	// settlements.md): the starting-spot algorithm's search bounds and the
+	// beginner-protection window. What a founded settlement's buildings
+	// cost and unlock is CONTENT (configs/content/buildings.yml, a later
+	// phase); these are the coefficients the founding algorithm itself
+	// runs on.
+	Settlement Settlement
 }
 
 // Postgres bounds every service's connection pool.
@@ -568,6 +576,45 @@ type WorldGen struct {
 	ChunkStreamFrequency        float64 // worldgen.chunk_stream_frequency
 	ChunkStreamAmplitude        int     // worldgen.chunk_stream_amplitude
 	ChunkDepositTilesPerDeposit int     // worldgen.chunk_deposit_tiles_per_deposit
+}
+
+// Settlement is the tuning of a Telegram group founding a village
+// (docs/adr/0028-world-and-settlements.md section 3.2): the starting-spot
+// algorithm's search bounds and the beginner-protection window a founded
+// settlement enjoys.
+type Settlement struct {
+	// ProtectionWindow is how long, REAL time, a freshly founded settlement
+	// cannot be claimed, contested or struck (section 3.1). It ends early
+	// the moment the settlement's own side takes an aggressive action; that
+	// rule is enforced where wars are declared, not here.
+	ProtectionWindow time.Duration // settlement.protection_window
+
+	// MinSpawnDistanceKm is the least great-circle distance a candidate
+	// spot must keep from every existing settlement's centre — more than
+	// twice a village's territory radius, so a spawn can never land inside
+	// another settlement's automatic claim (section 3.2 step 2).
+	MinSpawnDistanceKm float64 // settlement.min_spawn_distance_km
+
+	// ThreatRadiusKm is how far a stronger neighbour's weight still steers
+	// a new spawn away, as a preference rather than a wall (section 3.2
+	// step 3).
+	ThreatRadiusKm float64 // settlement.threat_radius_km
+
+	// SearchMaxCells bounds the outward walk from a lattice point's nearest
+	// cell: a search that finds no eligible cell within this many visited
+	// cells gives up on this lattice point and the caller advances to the
+	// next one (section 3.2 step 4), rather than walking the whole planet.
+	SearchMaxCells int // settlement.search_max_cells
+
+	// SearchMaxAttempts bounds how many lattice points (section 3.2 step 1)
+	// one founding may try before giving up outright — only reachable if
+	// the world is, implausibly, entirely ineligible.
+	SearchMaxAttempts int // settlement.search_max_attempts
+
+	// VillageGridLots is a village's local placement grid, per side, in
+	// lots (ADR 0028 section 4: 5x5). Town and city sizes are a later
+	// phase's own tuning once building placement (W5) ships.
+	VillageGridLots int // settlement.village_grid_lots
 }
 
 // Governance is the tuning of the office holder's screens
@@ -1126,6 +1173,14 @@ func Defaults() *Config {
 			ChunkStreamFrequency:        1200,
 			ChunkStreamAmplitude:        60,
 			ChunkDepositTilesPerDeposit: 5,
+		},
+		Settlement: Settlement{
+			ProtectionWindow:   168 * time.Hour,
+			MinSpawnDistanceKm: 30,
+			ThreatRadiusKm:     150,
+			SearchMaxCells:     2000,
+			SearchMaxAttempts:  200,
+			VillageGridLots:    5,
 		},
 		Governance: Governance{
 			FineStepDivisor:   100,

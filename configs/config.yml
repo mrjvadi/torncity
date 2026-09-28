@@ -976,3 +976,33 @@ worldgen:
   # How many exact tiles a coarse-mesh resource deposit expands into inside
   # whichever base chunk it falls in.
   chunk_deposit_tiles_per_deposit: 5
+
+# Group founding (docs/adr/0028-world-and-settlements.md section 3.2): the
+# starting-spot algorithm's search bounds and the beginner-protection
+# window. A founded settlement's buildings, tiers and levies are CONTENT
+# (governance.yml, buildings.yml) — these are the coefficients the
+# algorithm itself runs on.
+settlement:
+  # How long, REAL time, a freshly founded settlement's territory cannot be
+  # claimed, contested or struck. Ends early the moment its country goes to
+  # war (docs/adr/0022, part two) — the same shape as Travian's and OGame's
+  # beginner-protection window.
+  protection_window: 168h
+  # The least great-circle distance (km) a candidate spot must keep from
+  # every existing settlement's centre: more than twice a village's
+  # automatic territory radius, so a spawn can never land inside another
+  # settlement's claim.
+  min_spawn_distance_km: 30
+  # How far a stronger neighbour's weight still steers a new spawn away, as
+  # a preference rather than a wall.
+  threat_radius_km: 150
+  # The outward walk from a lattice point's nearest cell gives up on that
+  # point (and the caller advances to the next one) after visiting this
+  # many cells with no eligible one among them.
+  search_max_cells: 2000
+  # How many lattice points one founding may try, in total, before giving
+  # up outright.
+  search_max_attempts: 200
+  # A village's local placement grid, per side, in lots (ADR 0028 section
+  # 4: 5x5).
+  village_grid_lots: 5
