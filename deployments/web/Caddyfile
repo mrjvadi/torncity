@@ -28,9 +28,15 @@
 		}
 	}
 
-	# The export's own files keep their names between builds: always
-	# revalidated, so a new build reaches players on their next load.
-	header Cache-Control "no-cache"
+	# A page is never stored at all: Telegram's in-app browser on iOS kept
+	# showing an old index.html even with no-cache. Everything else keeps
+	# its name between builds (the Godot export) or is hashed (the web
+	# client's assets): always revalidated, so a new build reaches players
+	# on their next load.
+	@page path / */ *.html
+	header @page Cache-Control "no-store"
+	@file not path / */ *.html
+	header @file Cache-Control "no-cache"
 	header X-Content-Type-Options "nosniff"
 	header Referrer-Policy "strict-origin-when-cross-origin"
 	file_server {
