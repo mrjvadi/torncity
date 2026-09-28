@@ -54,6 +54,7 @@ type fileConfig struct {
 	Input         inputSettings         `yaml:"input"`
 	Announce      announceSettings      `yaml:"announce"`
 	Notifications notificationsSettings `yaml:"notifications"`
+	WorldGen      worldgenSettings      `yaml:"worldgen"`
 
 	Legislature  legislatureSettings  `yaml:"legislature"`
 	City         citySettings         `yaml:"city"`
@@ -219,6 +220,33 @@ type governanceSettings struct {
 	FineStepDivisor   *int `yaml:"fine_step_divisor"`
 	CoarseStepDivisor *int `yaml:"coarse_step_divisor"`
 	AllocationStepBPS *int `yaml:"allocation_step_bps"`
+}
+
+type worldgenSettings struct {
+	CellCount              *int     `yaml:"cell_count"`
+	NeighborK              *int     `yaml:"neighbor_k"`
+	PlateCount             *int     `yaml:"plate_count"`
+	OceanicPlateFraction   *int     `yaml:"oceanic_plate_fraction_permille"`
+	LandFraction           *int     `yaml:"land_fraction_permille"`
+	NoiseOctaves           *int     `yaml:"noise_octaves"`
+	NoiseBaseFrequency     *float64 `yaml:"noise_base_frequency"`
+	NoisePersistence       *int     `yaml:"noise_persistence_permille"`
+	WarpAmplitude          *float64 `yaml:"warp_amplitude"`
+	WarpFrequency          *float64 `yaml:"warp_frequency"`
+	BoundaryInfluenceSteps *int     `yaml:"boundary_influence_steps"`
+	MoistureBands          *int     `yaml:"moisture_bands"`
+	RiverFlowThreshold     *int     `yaml:"river_flow_threshold"`
+	LakeMinDepth           *int     `yaml:"lake_min_depth"`
+	LakeMinAreaCells       *int     `yaml:"lake_min_area_cells"`
+
+	PlanetRadiusKm              *float64 `yaml:"planet_radius_km"`
+	ChunkBaseLOD                *int     `yaml:"chunk_base_lod"`
+	ChunkTileEdge               *int     `yaml:"chunk_tile_edge"`
+	ChunkDetailFrequency        *float64 `yaml:"chunk_detail_frequency"`
+	ChunkDetailAmplitude        *int     `yaml:"chunk_detail_amplitude"`
+	ChunkStreamFrequency        *float64 `yaml:"chunk_stream_frequency"`
+	ChunkStreamAmplitude        *int     `yaml:"chunk_stream_amplitude"`
+	ChunkDepositTilesPerDeposit *int     `yaml:"chunk_deposit_tiles_per_deposit"`
 }
 
 type crimeSettings struct {
@@ -432,6 +460,40 @@ func limitSetting(section, key string, field func(*Config) *int, raw func(*fileC
 	s.check = func(c *Config) error {
 		if v := *field(c); v <= 0 {
 			return fmt.Errorf("%w: %s is %d", ErrNotPositive, name, v)
+		}
+		return nil
+	}
+	return s
+}
+
+// floatSetting wires a float64 field — used only where a whole number
+// cannot express the value (a noise frequency, a domain-warp amplitude).
+// Its check rejects a negative value; zero is allowed, since an amplitude
+// of zero is a legitimate "no warp" rather than a typo the way a duration
+// or limit of zero usually is.
+func floatSetting(section, key string, field func(*Config) *float64, raw func(*fileConfig) *float64) setting {
+	s := setting{section: section, key: key}
+	name := s.name()
+
+	s.fromFile = func(c *Config, f *fileConfig) error {
+		p := raw(f)
+		if p == nil {
+			return nil
+		}
+		*field(c) = *p
+		return nil
+	}
+	s.fromEnv = func(c *Config, text string) error {
+		v, err := parseFloat(s.envName(), text)
+		if err != nil {
+			return err
+		}
+		*field(c) = v
+		return nil
+	}
+	s.check = func(c *Config) error {
+		if v := *field(c); v < 0 {
+			return fmt.Errorf("%w: %s is %v", ErrNotPositive, name, v)
 		}
 		return nil
 	}
@@ -813,6 +875,76 @@ var coreSettings = []setting{
 	limitSetting("governance", "allocation_step_bps",
 		func(c *Config) *int { return &c.Governance.AllocationStepBPS },
 		func(f *fileConfig) *int { return f.Governance.AllocationStepBPS }),
+
+	limitSetting("worldgen", "cell_count",
+		func(c *Config) *int { return &c.WorldGen.CellCount },
+		func(f *fileConfig) *int { return f.WorldGen.CellCount }),
+	limitSetting("worldgen", "neighbor_k",
+		func(c *Config) *int { return &c.WorldGen.NeighborK },
+		func(f *fileConfig) *int { return f.WorldGen.NeighborK }),
+	limitSetting("worldgen", "plate_count",
+		func(c *Config) *int { return &c.WorldGen.PlateCount },
+		func(f *fileConfig) *int { return f.WorldGen.PlateCount }),
+	limitSetting("worldgen", "oceanic_plate_fraction_permille",
+		func(c *Config) *int { return &c.WorldGen.OceanicPlateFraction },
+		func(f *fileConfig) *int { return f.WorldGen.OceanicPlateFraction }),
+	limitSetting("worldgen", "land_fraction_permille",
+		func(c *Config) *int { return &c.WorldGen.LandFraction },
+		func(f *fileConfig) *int { return f.WorldGen.LandFraction }),
+	limitSetting("worldgen", "noise_octaves",
+		func(c *Config) *int { return &c.WorldGen.NoiseOctaves },
+		func(f *fileConfig) *int { return f.WorldGen.NoiseOctaves }),
+	floatSetting("worldgen", "noise_base_frequency",
+		func(c *Config) *float64 { return &c.WorldGen.NoiseBaseFrequency },
+		func(f *fileConfig) *float64 { return f.WorldGen.NoiseBaseFrequency }),
+	limitSetting("worldgen", "noise_persistence_permille",
+		func(c *Config) *int { return &c.WorldGen.NoisePersistence },
+		func(f *fileConfig) *int { return f.WorldGen.NoisePersistence }),
+	floatSetting("worldgen", "warp_amplitude",
+		func(c *Config) *float64 { return &c.WorldGen.WarpAmplitude },
+		func(f *fileConfig) *float64 { return f.WorldGen.WarpAmplitude }),
+	floatSetting("worldgen", "warp_frequency",
+		func(c *Config) *float64 { return &c.WorldGen.WarpFrequency },
+		func(f *fileConfig) *float64 { return f.WorldGen.WarpFrequency }),
+	limitSetting("worldgen", "boundary_influence_steps",
+		func(c *Config) *int { return &c.WorldGen.BoundaryInfluenceSteps },
+		func(f *fileConfig) *int { return f.WorldGen.BoundaryInfluenceSteps }),
+	limitSetting("worldgen", "moisture_bands",
+		func(c *Config) *int { return &c.WorldGen.MoistureBands },
+		func(f *fileConfig) *int { return f.WorldGen.MoistureBands }),
+	limitSetting("worldgen", "river_flow_threshold",
+		func(c *Config) *int { return &c.WorldGen.RiverFlowThreshold },
+		func(f *fileConfig) *int { return f.WorldGen.RiverFlowThreshold }),
+	limitSetting("worldgen", "lake_min_depth",
+		func(c *Config) *int { return &c.WorldGen.LakeMinDepth },
+		func(f *fileConfig) *int { return f.WorldGen.LakeMinDepth }),
+	limitSetting("worldgen", "lake_min_area_cells",
+		func(c *Config) *int { return &c.WorldGen.LakeMinAreaCells },
+		func(f *fileConfig) *int { return f.WorldGen.LakeMinAreaCells }),
+	floatSetting("worldgen", "planet_radius_km",
+		func(c *Config) *float64 { return &c.WorldGen.PlanetRadiusKm },
+		func(f *fileConfig) *float64 { return f.WorldGen.PlanetRadiusKm }),
+	limitSetting("worldgen", "chunk_base_lod",
+		func(c *Config) *int { return &c.WorldGen.ChunkBaseLOD },
+		func(f *fileConfig) *int { return f.WorldGen.ChunkBaseLOD }),
+	limitSetting("worldgen", "chunk_tile_edge",
+		func(c *Config) *int { return &c.WorldGen.ChunkTileEdge },
+		func(f *fileConfig) *int { return f.WorldGen.ChunkTileEdge }),
+	floatSetting("worldgen", "chunk_detail_frequency",
+		func(c *Config) *float64 { return &c.WorldGen.ChunkDetailFrequency },
+		func(f *fileConfig) *float64 { return f.WorldGen.ChunkDetailFrequency }),
+	limitSetting("worldgen", "chunk_detail_amplitude",
+		func(c *Config) *int { return &c.WorldGen.ChunkDetailAmplitude },
+		func(f *fileConfig) *int { return f.WorldGen.ChunkDetailAmplitude }),
+	floatSetting("worldgen", "chunk_stream_frequency",
+		func(c *Config) *float64 { return &c.WorldGen.ChunkStreamFrequency },
+		func(f *fileConfig) *float64 { return f.WorldGen.ChunkStreamFrequency }),
+	limitSetting("worldgen", "chunk_stream_amplitude",
+		func(c *Config) *int { return &c.WorldGen.ChunkStreamAmplitude },
+		func(f *fileConfig) *int { return f.WorldGen.ChunkStreamAmplitude }),
+	limitSetting("worldgen", "chunk_deposit_tiles_per_deposit",
+		func(c *Config) *int { return &c.WorldGen.ChunkDepositTilesPerDeposit },
+		func(f *fileConfig) *int { return f.WorldGen.ChunkDepositTilesPerDeposit }),
 
 	durationSetting("legislature", "vote_window",
 		func(c *Config) *time.Duration { return &c.Legislature.VoteWindow },

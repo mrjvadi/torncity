@@ -896,3 +896,83 @@ client:
 realtime:
   api_url: http://tc-centrifugo:8000/api
   publish_timeout: 2s
+
+# The world generator (internal/domain/worldgen; the project report at
+# docs/adr proposes the schema for what gets stored). What biomes and
+# resources exist, and the geology that places them, is CONTENT
+# (configs/content/world.yml) — these are the coefficients that shape the
+# planet a seed produces, not what it is made of.
+worldgen:
+  # How many mesh cells cover the sphere, and how many of them each connect
+  # to (a k-nearest-neighbour graph approximating hexagonal adjacency).
+  # Generation time and memory both scale with cell_count.
+  cell_count: 40000
+  neighbor_k: 6
+  # How many tectonic plates the mesh is partitioned into, and what share of
+  # them are oceanic (permille) rather than continental.
+  plate_count: 16
+  oceanic_plate_fraction_permille: 550
+  # The target share of cells that end up above sea level, permille. 450
+  # (45%) rather than Earth's own ~29%: the world exists for Telegram
+  # groups to settle on, so more land means more room for groups.
+  land_fraction_permille: 450
+  # Elevation noise: how many octaves are summed, the coarsest octave's
+  # spatial frequency, and the amplitude multiplier each further octave
+  # contributes (permille; 500 = half the amplitude of the octave before).
+  noise_octaves: 6
+  noise_base_frequency: 2.0
+  noise_persistence_permille: 520
+  # Domain warp applied to the sampling coordinates before reading the
+  # elevation noise field, so a coastline or mountain range does not trace
+  # the smooth geometric shape of the plate boundary that produced it.
+  # warp_amplitude is in sphere-coordinate units (roughly -1..1 per axis);
+  # warp_frequency is in the same units as noise_base_frequency.
+  warp_amplitude: 0.45
+  warp_frequency: 1.1
+  # How many graph-steps a plate boundary's effect (mountain building,
+  # rifting) reaches before decaying to zero.
+  boundary_influence_steps: 9
+  # How many latitude bands the prevailing-wind/moisture simulation divides
+  # the sphere into. More bands approximate the Hadley/Ferrel/polar
+  # circulation cells more finely, at the cost of generation time.
+  moisture_bands: 90
+  # The minimum flow accumulation (a cell count) before a cell is
+  # classified as carrying a river. A filled depression (priority-flood
+  # fills every one it finds, however small, to keep the drainage network
+  # free of dead ends) is only rendered as a lake, rather than just being
+  # part of the terrain a river flows through, when it clears BOTH the
+  # minimum fill depth (elevation units) and the minimum area (cells) below
+  # — area is what keeps the map to a handful of notable lakes instead of
+  # every small filled dip.
+  river_flow_threshold: 12
+  lake_min_depth: 40
+  lake_min_area_cells: 20
+  # Minecraft-style chunking over a cube-sphere (6 quadtree faces). Base LOD
+  # 10 (1024 chunks along a face edge, 32x32 tiles each) puts a tile at
+  # ~305m across on an Earth-sized planet — see the world-chunking report
+  # for the derivation and why that comfortably fits a village's 5x5 and a
+  # city's 15x15 lot grid inside one base chunk.
+  planet_radius_km: 6371
+  chunk_base_lod: 10
+  chunk_tile_edge: 32
+  # Base-LOD-only local FastNoiseLite detail added on top of the coarse
+  # mesh's interpolated elevation (hills, coastline wrinkling too fine for
+  # the 40k-cell mesh) and the noise that meanders a small stream tile off
+  # a dead-straight line between coarse drainage cells. The noise library
+  # feeds it coordinate*frequency directly (internal/domain/worldgen's
+  # fastnoise package), so real wavelength = planet_radius_km/frequency:
+  # noise_base_frequency above (2.0) shapes continents (thousands of km);
+  # this shapes one ~10km chunk, so it needs a MUCH higher frequency for a
+  # wavelength around a kilometre — 2000/1200 give ~3.2km/~5.3km base-octave
+  # wavelengths, keeping even the finest (doubled) FBm octave several tiles
+  # wide rather than aliasing into static finer than the tile grid itself
+  # resolves; the stream frequency stays on the gentler end so its narrow
+  # threshold band (chunk.go) is crossed by a run of adjacent tiles, not
+  # an isolated one. Amplitude is in elevation units.
+  chunk_detail_frequency: 2000
+  chunk_detail_amplitude: 300
+  chunk_stream_frequency: 1200
+  chunk_stream_amplitude: 60
+  # How many exact tiles a coarse-mesh resource deposit expands into inside
+  # whichever base chunk it falls in.
+  chunk_deposit_tiles_per_deposit: 5

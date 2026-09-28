@@ -1,0 +1,275 @@
+# World generation content: the biomes the planet can be made of, the
+# natural resources that exist and the geology that places them, and the
+# syllable material used to invent fictional continent/sea/mountain/river
+# names.
+#
+# world generation is the stream docs/adr/0028-world-and-settlements.md
+# depends on (its §2, "seed-first", is the design principle this content and
+# internal/domain/worldgen both follow) but does not itself own: this file
+# is NOT loaded through `admin content load` yet, because the generated
+# PLANET itself has no database schema or admin command in this phase, so
+# wiring its content into the versioned/NATS-published pipeline ADR 0004
+# describes has nothing downstream to notify yet. It is read directly by
+# `cmd/worldpreview` (internal/content.LoadWorldGen) using the same
+# strict-YAML, validate-before-use discipline every other content file uses.
+# Folding it into the shared `admin content load` command is planned once a
+# world actually gets stored (see the project report's proposed schema).
+#
+# The RULE for how a biome or a resource gets chosen at a given cell lives in
+# code (internal/domain/worldgen); this file is only the CONTENT that rule
+# reads — which biomes exist and what temperature/precipitation box each
+# occupies, which resources exist and how strongly each geological setting
+# favours them. See docs/adr/0004-content-system.md.
+
+version: 1
+
+# biomes — a Whittaker-style temperature/precipitation classification.
+#   code             stable identifier.
+#   min_temp_c / max_temp_c        degrees Celsius (one decimal allowed).
+#   min_precip_mm / max_precip_mm  millimetres of rain per year.
+#   is_water / water_kind          set only on the two special pseudo-biomes
+#                                  below: a cell's biome is "ocean" or "lake"
+#                                  whenever hydrology says so, regardless of
+#                                  temperature or precipitation. Exactly one
+#                                  of each is required.
+#
+# A cell is assigned whichever non-water biome's box it falls INSIDE; if it
+# falls inside none (a gap between authored ranges) or several overlap, it
+# gets whichever box it is numerically closest to. That means a gap in this
+# table is not an error, just a place where the nearest biome quietly
+# stretches to cover it — but a real gap is still worth closing by hand, so
+# keep the ranges touching.
+biomes:
+  - {code: ocean, is_water: true, water_kind: ocean, color_hex: "1a4d73"}
+  - {code: lake,  is_water: true, water_kind: lake,  color_hex: "3f7fa6"}
+
+  # Precipitation thresholds below are set against this generator's actual
+  # output distribution (a coastal cell typically lands 350-900mm, an
+  # interior one settles near its climatological floor, ~300-450mm outside
+  # the dry belt) rather than textbook Earth figures, specifically so
+  # forest — not grassland — is what most well-watered temperate and
+  # tropical land ends up classified as, matching how much of Earth's own
+  # land is forested. Earlier, higher thresholds (800mm to enter temperate
+  # forest, 2000mm for tropical rainforest) left forest under 1% of the map
+  # because this model's typical rainfall rarely reached them.
+  - {code: tropical_rainforest,  min_temp_c: 20.0,  max_temp_c: 45.0, min_precip_mm: 720,  max_precip_mm: 8000, color_hex: "1a6b34"}
+  - {code: tropical_savanna,     min_temp_c: 20.0,  max_temp_c: 45.0, min_precip_mm: 260,  max_precip_mm: 720,  color_hex: "8f9a45"}
+  - {code: desert,               min_temp_c: -10.0, max_temp_c: 50.0, min_precip_mm: 0,    max_precip_mm: 240,  color_hex: "d9c07a"}
+  - {code: temperate_grassland,  min_temp_c: -5.0,  max_temp_c: 22.0, min_precip_mm: 240,  max_precip_mm: 400,  color_hex: "9ab973"}
+  - {code: temperate_forest,     min_temp_c: -5.0,  max_temp_c: 22.0, min_precip_mm: 400,  max_precip_mm: 1400, color_hex: "4c7a3d"}
+  - {code: temperate_rainforest, min_temp_c: 3.0,   max_temp_c: 18.0, min_precip_mm: 1400, max_precip_mm: 5000, color_hex: "2d5f3f"}
+  - {code: boreal_forest,        min_temp_c: -20.0, max_temp_c: 3.0,  min_precip_mm: 260,  max_precip_mm: 1500, color_hex: "3a5f4a"}
+  - {code: tundra,               min_temp_c: -25.0, max_temp_c: -8.0, min_precip_mm: 0,    max_precip_mm: 500,  color_hex: "9aa38a"}
+  - {code: polar_ice,            min_temp_c: -60.0, max_temp_c: -22.0,min_precip_mm: 0,    max_precip_mm: 400,  color_hex: "f0f4f7"}
+
+# resources — one entry per natural resource. See
+# internal/domain/worldgen/geology.go for what each geology category below
+# means physically; a resource may list several, each weighted 0..100 for
+# how strongly that setting favours it.
+#
+#   deposits_target       roughly how many discrete deposits the whole planet
+#                          gets (fewer than this if too few cells qualify).
+#   reserve_min/max       a deposit's finite size, in abstract resource units.
+#   grade_min/max_pct     ore grade / purity, percent (0..100) — the field the
+#                          queued purity/refining feature will read.
+#   biome_whitelist        optional: restrict to cells classified as one of
+#                          these biome codes.
+#   min/max_abs_latitude   optional: restrict to a latitude band, degrees
+#                          from the equator (0) to the pole (90). Default is
+#                          unrestricted (0..90).
+resources:
+  - code: crude_oil
+    name: Crude Oil
+    category: fossil_fuel
+    geology: [{category: passive_margin, weight: 70}, {category: foreland_basin, weight: 60},
+              {category: continental_shelf, weight: 80}]
+    allow_ocean: true
+    deposits_target: 120
+    reserve_min: 1000000
+    reserve_max: 50000000
+    grade_min_pct: 50.0
+    grade_max_pct: 95.0
+    color_hex: "2b2b2b"
+
+  - code: natural_gas
+    name: Natural Gas
+    category: fossil_fuel
+    geology: [{category: passive_margin, weight: 60}, {category: foreland_basin, weight: 70},
+              {category: continental_shelf, weight: 60}]
+    allow_ocean: true
+    deposits_target: 100
+    reserve_min: 1000000
+    reserve_max: 40000000
+    grade_min_pct: 60.0
+    grade_max_pct: 98.0
+    color_hex: "c9a7e0"
+
+  - code: coal
+    name: Coal
+    category: fossil_fuel
+    geology: [{category: high_biomass, weight: 80}, {category: floodplain, weight: 40}, {category: craton, weight: 30}]
+    deposits_target: 80
+    reserve_min: 500000
+    reserve_max: 20000000
+    grade_min_pct: 40.0
+    grade_max_pct: 80.0
+    color_hex: "111111"
+
+  - code: iron
+    name: Iron Ore
+    category: metal_ore
+    geology: [{category: craton, weight: 90}, {category: orogenic_belt, weight: 30}]
+    deposits_target: 90
+    reserve_min: 1000000
+    reserve_max: 80000000
+    grade_min_pct: 20.0
+    grade_max_pct: 60.0
+    color_hex: "b5651d"
+
+  - code: copper
+    name: Copper Ore
+    category: metal_ore
+    geology: [{category: volcanic_arc, weight: 90}, {category: orogenic_belt, weight: 50}]
+    deposits_target: 90
+    reserve_min: 100000
+    reserve_max: 10000000
+    grade_min_pct: 5.0
+    grade_max_pct: 30.0
+    color_hex: "e07b39"
+
+  - code: gold
+    name: Gold Ore
+    category: metal_ore
+    geology: [{category: volcanic_arc, weight: 80}, {category: orogenic_belt, weight: 60}]
+    deposits_target: 70
+    reserve_min: 1000
+    reserve_max: 500000
+    grade_min_pct: 0.1
+    grade_max_pct: 3.0
+    color_hex: "ffd700"
+
+  - code: uranium
+    name: Uranium Ore
+    category: metal_ore
+    geology: [{category: craton, weight: 70}, {category: rift_zone, weight: 50}]
+    deposits_target: 40
+    reserve_min: 1000
+    reserve_max: 100000
+    grade_min_pct: 0.1
+    grade_max_pct: 2.0
+    color_hex: "39ff14"
+
+  - code: bauxite
+    name: Bauxite
+    category: mineral
+    geology: [{category: tropical_weathering, weight: 100}]
+    biome_whitelist: [tropical_rainforest, tropical_savanna]
+    max_abs_latitude: 30
+    deposits_target: 50
+    reserve_min: 100000
+    reserve_max: 10000000
+    grade_min_pct: 30.0
+    grade_max_pct: 60.0
+    color_hex: "cc6600"
+
+  - code: lithium
+    name: Lithium
+    category: mineral
+    geology: [{category: arid_basin, weight: 100}]
+    biome_whitelist: [desert]
+    min_abs_latitude: 15
+    max_abs_latitude: 45
+    deposits_target: 30
+    reserve_min: 10000
+    reserve_max: 1000000
+    grade_min_pct: 0.5
+    grade_max_pct: 3.0
+    color_hex: "ff66cc"
+
+  - code: fertile_soil
+    name: Fertile Soil
+    category: agricultural
+    geology: [{category: floodplain, weight: 100}, {category: high_biomass, weight: 20}]
+    deposits_target: 150
+    reserve_min: 1000
+    reserve_max: 100000
+    grade_min_pct: 40.0
+    grade_max_pct: 90.0
+    color_hex: "7a4a2b"
+
+  - code: fresh_water
+    name: Fresh Water
+    category: water
+    geology: [{category: fresh_water, weight: 100}]
+    deposits_target: 200
+    reserve_min: 100000
+    reserve_max: 10000000
+    grade_min_pct: 80.0
+    grade_max_pct: 100.0
+    color_hex: "00bfff"
+
+  - code: timber
+    name: Timber
+    category: forest
+    geology: [{category: high_biomass, weight: 100}]
+    deposits_target: 150
+    reserve_min: 10000
+    reserve_max: 1000000
+    grade_min_pct: 40.0
+    grade_max_pct: 90.0
+    color_hex: "228b22"
+
+  - code: fish
+    name: Fish Stocks
+    category: agricultural
+    geology: [{category: continental_shelf, weight: 100}]
+    allow_ocean: true
+    deposits_target: 150
+    reserve_min: 10000
+    reserve_max: 1000000
+    grade_min_pct: 50.0
+    grade_max_pct: 100.0
+    color_hex: "1e90ff"
+
+# name_syllables — paired Latin/Persian syllables a generated name is built
+# from. Both scripts are written by hand, side by side, so a generated name's
+# two forms are guaranteed to correspond piece for piece; see
+# internal/domain/worldgen/content.go's NameSyllable doc for why this plan
+# was chosen over transliterating a Latin name after the fact.
+name_syllables:
+  - {latin: ka,   fa: کا}
+  - {latin: ta,   fa: تا}
+  - {latin: ro,   fa: رو}
+  - {latin: mi,   fa: می}
+  - {latin: lu,   fa: لو}
+  - {latin: sen,  fa: سن}
+  - {latin: dor,  fa: دور}
+  - {latin: van,  fa: وان}
+  - {latin: zeel, fa: زیل}
+  - {latin: gol,  fa: گل}
+  - {latin: bar,  fa: بار}
+  - {latin: fen,  fa: فن}
+  - {latin: shu,  fa: شو}
+  - {latin: nar,  fa: نار}
+  - {latin: kesh, fa: کش}
+  - {latin: thal, fa: تال}
+  - {latin: dra,  fa: درا}
+  - {latin: mor,  fa: مور}
+  - {latin: lin,  fa: لین}
+  - {latin: sor,  fa: سور}
+  - {latin: vesh, fa: وش}
+  - {latin: hara, fa: هارا}
+  - {latin: iz,   fa: یز}
+  - {latin: un,   fa: ون}
+
+# naming_templates — how a generated core name is labelled per feature kind.
+# Exactly one %s in each.
+naming_templates:
+  continent_latin: "%s"
+  continent_fa: "%s"
+  sea_latin: "%s Sea"
+  sea_fa: "دریای %s"
+  mountain_latin: "%s Range"
+  mountain_fa: "رشته‌کوه %s"
+  river_latin: "%s River"
+  river_fa: "رود %s"
