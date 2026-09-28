@@ -98,6 +98,16 @@ type Tx interface {
 	GameActions() GameActionRepository
 	Friendships() FriendshipRepository
 
+	// Worlds reads the world registry and hands out founding indices
+	// (docs/adr/0028-world-and-settlements.md section 2); see
+	// ports_settlements.go.
+	Worlds() WorldRepository
+	// Settlements founds a village on the generated planet, in the same
+	// transaction as its jurisdiction, its office seats, its founding-kit
+	// buildings and the Telegram group that founded it; see
+	// ports_settlements.go.
+	Settlements() SettlementRepository
+
 	// Ledger moves money in the same transaction as the change that
 	// caused it; see ports_ledger.go.
 	Ledger() LedgerRepository

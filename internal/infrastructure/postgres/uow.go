@@ -171,6 +171,15 @@ func (t *tx) Governance() application.GovernanceRepository {
 	return &GovernanceRepository{q: t.q}
 }
 
+// Worlds returns the world registry bound to this transaction, so a spawn
+// number reservation and the founding it plans see a consistent world.
+func (t *tx) Worlds() application.WorldRepository { return &WorldRepository{q: t.q} }
+
+// Settlements returns the settlement founder bound to this transaction, so
+// a village's jurisdiction, city row, office seats, founding-kit buildings
+// and Telegram group link commit together or not at all.
+func (t *tx) Settlements() application.SettlementRepository { return &SettlementRepository{q: t.q} }
+
 // Bank returns the bank's presence locks bound to this transaction, so they
 // are held until the money they guard has moved.
 func (t *tx) Bank() application.BankRepository { return &BankRepository{q: t.q} }

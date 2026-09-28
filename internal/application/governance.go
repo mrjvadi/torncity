@@ -859,6 +859,22 @@ func ConquerToOffice(ctx context.Context, tx Tx, officeCode, jurisdictionID stri
 	return fillSeat(ctx, tx, officeCode, jurisdictionID, seat, playerID, AcquiredByConquest, now)
 }
 
+// AcquiredByFounding is offices.acquired_by for a seat taken by founding a
+// settlement: a village's دهیار (docs/adr/0028-world-and-settlements.md
+// section 3.1), a town's فرماندار, a province's استاندار.
+const AcquiredByFounding = "founding"
+
+// FoundOffice seats the player who founded a settlement (or the mayor who
+// named them, ADR 0028 section 5.4) in its top office, under the same
+// checks as an appointment. The seat itself must already exist — Tx.
+// Settlements().Found creates the vacant seat in the same transaction,
+// before the caller calls this.
+func FoundOffice(ctx context.Context, tx Tx, officeCode, jurisdictionID string, seat int,
+	playerID string, now time.Time,
+) (before, after Office, err error) {
+	return fillSeat(ctx, tx, officeCode, jurisdictionID, seat, playerID, AcquiredByFounding, now)
+}
+
 // ElectToOffice seats the winner of an election's count, under the same
 // checks as an appointment; the seat must be vacated first.
 func ElectToOffice(ctx context.Context, tx Tx, officeCode, jurisdictionID string, seat int,

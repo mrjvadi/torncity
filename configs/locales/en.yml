@@ -492,6 +492,9 @@ office:
   central_banker: "Central bank governor"
   military_governor: "Military governor"
   parliament: Parliament
+  village_head: Village head
+  town_head: Town head
+  governor: Governor
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
 lever:
@@ -525,6 +528,13 @@ lever:
     base_interest_rate: "Policy interest rate (yearly)"
     bank_reserve_ratio: "National bank reserve ratio"
     bank_funding: "Treasury funding of the national bank (share per period)"
+  village:
+    local_levy: Village local levy
+  town:
+    local_levy: Town local levy
+    building_permit_fee: Building permit fee
+  province:
+    revenue_share: Province share of city revenue
 
 # Names of places above a city, keyed on the jurisdiction's content code.
 # Cities are named under city.* above.

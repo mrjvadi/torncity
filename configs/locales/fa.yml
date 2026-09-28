@@ -575,6 +575,9 @@ office:
   central_banker: "رئیس بانک مرکزی"
   military_governor: "فرماندار نظامی"
   parliament: مجلس
+  village_head: دهیار
+  town_head: فرماندار
+  governor: استاندار
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
 lever:
@@ -608,6 +611,13 @@ lever:
     base_interest_rate: "نرخ بهرهٔ پایه (سالانه)"
     bank_reserve_ratio: "ذخیرهٔ قانونی بانک ملی"
     bank_funding: "سرمایه‌گذاری خزانه در بانک ملی (سهم هر دوره)"
+  village:
+    local_levy: "عوارض محلی روستا"
+  town:
+    local_levy: "عوارض محلی شهرستان"
+    building_permit_fee: "هزینهٔ پروانهٔ ساخت"
+  province:
+    revenue_share: "سهم استان از درآمد شهرها"
 
 # Names of places above a city, keyed on the jurisdiction's content code.
 # Cities are named under city.* above.
