@@ -45,11 +45,24 @@ import (
 // few tiles of a genuine cube-face edge or corner, which this demo's export
 // window never approaches for an ordinary city site.
 
-// citySize is the city tier's own LOT grid (ADR 0028 §4's table: village
-// 5x5, town 9x9, city 15x15 LOTS — now genuinely lot-scale, ~457m for a
-// city, not the ~4.5km an earlier tile-scale version of this export
-// produced). The demo always shows the biggest tier.
+// citySize is ADR 0028 §4's own city-TIER lot grid (village 5x5, town 9x9,
+// city 15x15 LOTS, ~457m) — kept at its documented value even though the
+// DEMO export below no longer uses it directly for its own window size.
+// citySize stays here as the ADR reference point; nothing in this demo
+// path is a real settlement, so nothing outside cmd/worldpreview depends
+// on this constant's value.
 const citySize = 15
+
+// demoCitySize is the actual --export-city window size, in LOTS: bigger
+// than ADR 0028's own city tier on purpose. The web client is building a
+// realistic procedural city (real streets, extruded buildings with real
+// floor heights, downtown towers, an elevated highway) — a 15x15
+// (~457m) window reads as a village on that renderer, not a city. ~48x48
+// (~1.46km) is a genuine small-city footprint while still comfortably
+// fitting inside flatSearchTiles' own flat-neighbourhood search (below)
+// and keeping the export's byte cost in the low hundreds of KB (see
+// runExportCity's logged size).
+const demoCitySize = 48
 
 // lotsPerTile is how many settlement lots make up one base terrain tile
 // along an edge — the ADR 0028 default (~30.5m lots inside a ~305m tile).
@@ -58,15 +71,18 @@ const citySize = 15
 const lotsPerTile = 10
 
 // flatSearchTiles is bestCityWindow's own search-window size, in base TILES
-// (~305m each) — deliberately decoupled from citySize (a LOT count, above):
-// this only picks a generously flat, buildable ~4.5km neighbourhood
+// (~305m each) — deliberately decoupled from demoCitySize (a LOT count,
+// above): this only picks a generously flat, buildable neighbourhood
 // (scoreCitySite already required at least this much of a flat run to
-// consider the site at all) for the much smaller, real lot-scale city core
-// to sit in the MIDDLE of, with room to spare on every side.
-const flatSearchTiles = 15
+// consider the site at all) for the real lot-scale city core to sit in the
+// MIDDLE of, with room to spare on every side. 20 tiles (~6.1km) generously
+// exceeds demoCitySize+2*margin's own extent (~3.9km, see fineMarginMeters
+// below) so the fine grid's margin never spills past the verified-flat
+// window into unchecked ground.
+const flatSearchTiles = 20
 
-// fineMarginMeters is how far past the city's own citySize x citySize lot
-// core the fine grid extends on every side, so the web client has real
+// fineMarginMeters is how far past the city's own demoCitySize x
+// demoCitySize lot core the fine grid extends on every side, so the web client has real
 // lot-resolution terrain to render right up to (and a little past) the
 // player's view of the city, instead of a hard fine/coarse seam sitting
 // inside it. ~1.2km keeps the fine grid's own byte cost (see runExportCity's
@@ -91,6 +107,16 @@ const fineSteepDeltaM = 8.0
 // still finds a coarse-mesh deposit's (tile-resolution) footprint from a
 // few lots away rather than needing a building to land exactly inside it.
 const depositSearchMarginLots = 3
+
+// riverFlowMultiple is how much higher a coarse cell's RiverFlow must be
+// than Params.RiverFlowThreshold before findCitySite/scoreCitySite treat it
+// as a genuine RIVER site (not just "a stream somewhere in the chunk") —
+// the SAME cutoff internal/domain/worldgen/fine.go's own
+// fineRiverFlowMultiple uses for StreamKindRiver, duplicated here rather
+// than exported (it is a small, self-contained tuning constant, not worth
+// widening that package's API for) — kept in sync by hand; if fine.go's
+// own constant is ever retuned, this should move with it.
+const riverFlowMultiple = 4
 
 // exportChunkTiles is the export window: 3x3 base chunks around the chosen
 // site (the task's own spec), giving the client a full chunk of margin on
@@ -222,19 +248,37 @@ type fineGridJSON struct {
 }
 
 type citySummaryJSON struct {
-	// OriginX/OriginY are the city's citySize x citySize lot core's
+	// OriginX/OriginY are the city's demoCitySize x demoCitySize lot core's
 	// top-left corner, in FineGrid's own LOCAL lot-index space (0..W-1,
 	// 0..H-1) — NOT CoarseGrid's tile space (contrast the top-level
 	// Deposits list, still tile-space). Roads/Lots/Bridges below are all in
 	// the city's OWN local (0..size-1) coordinates; add OriginX/OriginY to
 	// place them inside FineGrid.
-	OriginX int            `json:"originX"`
-	OriginY int            `json:"originY"`
-	Size    int            `json:"size"` // lots per side (== citySize)
-	Roads   [][2]int       `json:"roads"`
-	Bridges [][2]int       `json:"bridges"` // subset of Roads crossing a bridgeable water lot
+	OriginX int        `json:"originX"`
+	OriginY int        `json:"originY"`
+	Size    int        `json:"size"` // lots per side (== demoCitySize)
+	Roads   []roadJSON `json:"roads"`
+	// Bridges is a SELF-CONTAINED subset of Roads (same {x,y,class} shape,
+	// not just coordinates) crossing a bridgeable water lot: a thin stream
+	// under a local road, or a stream OR river under an arterial/the
+	// elevated highway (citylayout.go's WideRiver/passableForClass).
+	Bridges []roadJSON     `json:"bridges"`
 	Lots    []cityLotJSON  `json:"lots"`
 	Counts  map[string]int `json:"counts"`
+}
+
+// roadJSON is one road-network cell: its local grid coordinate (same space
+// as citySummaryJSON.OriginX/Y) and which class of road runs through it —
+// 0 local (the original ~4-lot-spaced street grid), 1 arterial (a coarser,
+// ~7-lot-spaced grid that MAY bridge a genuine river, not just a thin
+// stream), 2 elevated highway (a single roughly-straight line ignoring
+// terrain entirely — see citylayout.go's elevatedHighwayPath; the web
+// client places it on pillars at a fixed height above the highest terrain
+// along its path).
+type roadJSON struct {
+	X     int `json:"x"`
+	Y     int `json:"y"`
+	Class int `json:"class"`
 }
 
 type cityLotJSON struct {
@@ -244,6 +288,12 @@ type cityLotJSON struct {
 	W    int    `json:"w"`
 	H    int    `json:"h"`
 	Rot  int    `json:"rot"`
+	// Floors is the lot's real storey count (citylayout.go's floorsFor),
+	// deterministic from its type and position — so the web renderer
+	// extrudes each building to its own real height (~3.2m/floor) instead
+	// of guessing from the type code alone. 0 means no vertical structure
+	// at all (park, farm).
+	Floors int `json:"floors"`
 }
 
 type worldSummaryJSON struct {
@@ -329,7 +379,15 @@ func findCitySite(w *worldgen.World) (citySite, bool) {
 			tried[addr] = true
 			tries++
 
-			cand, ok := scoreCitySite(w, addr)
+			// This candidate is anchored to a SPECIFIC river cell (cell,
+			// above) — cheaply and precisely known already, no re-derivation
+			// needed: is it a genuine high-flow river cell (RiverFlow far
+			// past RiverFlowThreshold), not just an ordinary flow-eligible
+			// stream cell? See scoreCitySite's own doc for how this drives
+			// the "prefer a site a real river actually crosses" scoring.
+			isHighFlowRiver := cell.RiverFlow >= int32(w.Params.RiverFlowThreshold)*riverFlowMultiple
+
+			cand, ok := scoreCitySite(w, addr, isHighFlowRiver)
 			if !ok {
 				continue
 			}
@@ -346,13 +404,28 @@ func findCitySite(w *worldgen.World) (citySite, bool) {
 
 // scoreCitySite generates addr's chunk (and peeks at its 8 neighbours for
 // coast/lake bonuses) and scores it as a city site: heavily rewards a large
-// flat, buildable window (flatSearchTiles' own ~4.5km neighbourhood has to
-// fit on it, generously more than the real lot-scale city needs), rewards a
-// stream running through it, and adds smaller bonuses for a coastline, a
-// lake or real elevation range nearby — the "character" the task asks for
-// without letting it crowd out the flat-and-buildable requirement that
+// flat, buildable window (flatSearchTiles' own neighbourhood has to fit on
+// it, generously more than the real lot-scale city needs), STRONGLY prefers
+// a site anchored to a genuine high-flow RIVER cell (isHighFlowRiver, from
+// findCitySite's own cheap per-candidate check — not just "a stream
+// somewhere in this chunk", the old, much weaker bonus this still also
+// gives), and adds smaller bonuses for a coastline, a lake or real
+// elevation range nearby — the "character" the task asks for without
+// letting any of it crowd out the flat-and-buildable requirement that
 // actually matters for laying the city itself out.
-func scoreCitySite(w *worldgen.World, addr worldgen.ChunkAddr) (citySite, bool) {
+//
+// APPROXIMATION. isHighFlowRiver is about the ONE cell findCitySite
+// anchored this candidate to, not a check that the river specifically
+// crosses the eventual ~demoCitySize window (bestCityWindow runs later, and
+// could in principle land the window's centre away from this exact cell) —
+// but since a chunk is only picked as a candidate at all when it contains
+// both this river cell AND a flatSearchTiles-sized flat run, and rivers
+// tend to run through the flattest part of their own chunk (floodplains),
+// the two are highly correlated in practice. A precise "does the river
+// cross the final window" check would need fine-resolution sampling per
+// candidate (up to 300 of them), which is unnecessary cost for a scoring
+// heuristic that was already approximate before this change.
+func scoreCitySite(w *worldgen.World, addr worldgen.ChunkAddr, isHighFlowRiver bool) (citySite, bool) {
 	c, err := w.GenerateChunk(addr)
 	if err != nil {
 		return citySite{}, false
@@ -422,6 +495,14 @@ func scoreCitySite(w *worldgen.World, addr worldgen.ChunkAddr) (citySite, bool) 
 	if hasStream {
 		score += 500
 		reasons += "+stream"
+	}
+	if isHighFlowRiver {
+		// Dominates every other bonus below: a real river crossing the city
+		// (bridged by an arterial or the elevated highway — see
+		// citylayout.go) is what the coordinator specifically asked this
+		// export to prefer, not merely "some stream exists in the chunk".
+		score += 3000
+		reasons += "+river"
 	}
 	if nearCoast {
 		score += 150
@@ -511,17 +592,18 @@ func buildCityExport(w *worldgen.World, site citySite) (*cityExport, error) {
 	centerOx, centerOy := 1*edge, 1*edge
 	winX, winY := bestCityWindow(coarseElev, coarseFlags, gridW, centerOx, centerOy, edge, flatSearchTiles)
 
-	// Fine lot geometry: centre the citySize x citySize core in the flat
-	// window just found, then extend fineMarginMeters of margin on every
-	// side. All expressed as fractional TILE coordinates in the coarse
-	// grid's own coordinate space, per fineGridJSON's own doc comment.
+	// Fine lot geometry: centre the demoCitySize x demoCitySize core in the
+	// flat window just found, then extend fineMarginMeters of margin on
+	// every side. All expressed as fractional TILE coordinates in the
+	// coarse grid's own coordinate space, per fineGridJSON's own doc
+	// comment.
 	lotMeters := w.Params.TileMeters() / lotsPerTile
 	marginLots := int(math.Ceil(fineMarginMeters / lotMeters))
-	fineW := citySize + 2*marginLots
-	fineH := citySize + 2*marginLots
+	fineW := demoCitySize + 2*marginLots
+	fineH := demoCitySize + 2*marginLots
 
-	coreOriginTileX := float64(centerOx+winX) + float64(flatSearchTiles)/2 - float64(citySize)/(2*float64(lotsPerTile))
-	coreOriginTileY := float64(centerOy+winY) + float64(flatSearchTiles)/2 - float64(citySize)/(2*float64(lotsPerTile))
+	coreOriginTileX := float64(centerOx+winX) + float64(flatSearchTiles)/2 - float64(demoCitySize)/(2*float64(lotsPerTile))
+	coreOriginTileY := float64(centerOy+winY) + float64(flatSearchTiles)/2 - float64(demoCitySize)/(2*float64(lotsPerTile))
 	fineOriginTileX := coreOriginTileX - float64(marginLots)/float64(lotsPerTile)
 	fineOriginTileY := coreOriginTileY - float64(marginLots)/float64(lotsPerTile)
 
@@ -554,19 +636,27 @@ func buildCityExport(w *worldgen.World, site citySite) (*cityExport, error) {
 	// City core: slice directly out of the fine grid just built (no
 	// re-sampling).
 	coreX0, coreY0 := marginLots, marginLots
-	cityTiles := make([]cityTile, citySize*citySize)
-	for ly := 0; ly < citySize; ly++ {
-		for lx := 0; lx < citySize; lx++ {
-			cityTiles[ly*citySize+lx] = cityTileFromFine(fineSamples, fineW, fineH, coreX0+lx, coreY0+ly, deposits, fineOriginTileX, fineOriginTileY)
+	cityTiles := make([]cityTile, demoCitySize*demoCitySize)
+	for ly := 0; ly < demoCitySize; ly++ {
+		for lx := 0; lx < demoCitySize; lx++ {
+			cityTiles[ly*demoCitySize+lx] = cityTileFromFine(fineSamples, fineW, fineH, coreX0+lx, coreY0+ly, deposits, fineOriginTileX, fineOriginTileY)
 		}
 	}
-	layout := layoutCity(citySize, cityTiles)
+	layout := layoutCity(demoCitySize, cityTiles)
 
 	counts := make(map[string]int)
 	lotsJSON := make([]cityLotJSON, 0, len(layout.Lots))
 	for _, l := range layout.Lots {
 		counts[l.Type]++
-		lotsJSON = append(lotsJSON, cityLotJSON{Type: l.Type, X: l.X, Y: l.Y, W: l.W, H: l.H, Rot: l.Rot})
+		lotsJSON = append(lotsJSON, cityLotJSON{Type: l.Type, X: l.X, Y: l.Y, W: l.W, H: l.H, Rot: l.Rot, Floors: l.Floors})
+	}
+	roadsJSON := make([]roadJSON, len(layout.Roads))
+	for i, r := range layout.Roads {
+		roadsJSON[i] = roadJSON{X: r.X, Y: r.Y, Class: r.Class}
+	}
+	bridgesJSON := make([]roadJSON, len(layout.Bridges))
+	for i, b := range layout.Bridges {
+		bridgesJSON[i] = roadJSON{X: b.X, Y: b.Y, Class: b.Class}
 	}
 
 	doc := &cityExport{
@@ -601,9 +691,9 @@ func buildCityExport(w *worldgen.World, site citySite) (*cityExport, error) {
 		City: citySummaryJSON{
 			OriginX: coreX0,
 			OriginY: coreY0,
-			Size:    citySize,
-			Roads:   layout.Roads,
-			Bridges: layout.Bridges,
+			Size:    demoCitySize,
+			Roads:   roadsJSON,
+			Bridges: bridgesJSON,
 			Lots:    lotsJSON,
 			Counts:  counts,
 		},
@@ -796,13 +886,15 @@ func isSteepAt(elevation []int16, gridW, x, y int) bool {
 func cityTileFromFine(samples []worldgen.FineSample, fineW, fineH, fx, fy int, deposits []depositJSON, fineOriginTileX, fineOriginTileY float64) cityTile {
 	fs := samples[fy*fineW+fx]
 	water := fs.IsOcean || fs.IsLake || fs.StreamKind != worldgen.StreamKindNone
-	// Impassable (never crossable by a road without detouring): a lake,
-	// ocean, or — treating worldgen.StreamKindRiver as this export's
-	// "too wide to bridge" case, a deliberate simplification over actually
-	// measuring a river's local lot-width — a river. An ordinary
-	// StreamKindStream is the only bridgeable case (see citylayout.go's
-	// traceRoads).
-	impassable := fs.IsOcean || fs.IsLake || fs.StreamKind == worldgen.StreamKindRiver
+	// Impassable to EVERY road class: a lake or ocean only.
+	impassable := fs.IsOcean || fs.IsLake
+	// WideRiver: blocks a LOCAL road (still detours around it) but not an
+	// arterial or the elevated highway (citylayout.go's passableForClass) —
+	// treating worldgen.StreamKindRiver as this export's "too wide for a
+	// local road" case is a deliberate simplification over actually
+	// measuring a river's local lot-width. An ordinary StreamKindStream is
+	// bridgeable by EVERY road class, local included.
+	wideRiver := fs.StreamKind == worldgen.StreamKindRiver
 	steep := fineSteepAt(samples, fineW, fineH, fx, fy)
 
 	coast := false
@@ -817,7 +909,7 @@ func cityTileFromFine(samples []worldgen.FineSample, fineW, fineH, fx, fy int, d
 		}
 	}
 
-	tile := cityTile{Water: water, Impassable: impassable, Steep: steep, Coast: coast}
+	tile := cityTile{Water: water, Impassable: impassable, WideRiver: wideRiver, Steep: steep, Coast: coast}
 	for _, d := range deposits {
 		lx0 := int(math.Round((float64(d.X) - fineOriginTileX) * float64(lotsPerTile)))
 		ly0 := int(math.Round((float64(d.Y) - fineOriginTileY) * float64(lotsPerTile)))
