@@ -378,6 +378,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			uuidGenerator{},
 			messages,
 			worldCache,
+			registry,
+			gametime.Scale(cfg.Game.TimeScale),
 			wsettle.Params{
 				MinSpawnDistanceKm: cfg.Settlement.MinSpawnDistanceKm,
 				ThreatRadiusKm:     cfg.Settlement.ThreatRadiusKm,
@@ -386,6 +388,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			},
 			cfg.Settlement.ProtectionWindow,
 			cfg.Settlement.VillageGridLots,
+			cfg.Settlement.TeachPeriod,
 			nil,
 		),
 		village: handlers.NewVillageHandler(

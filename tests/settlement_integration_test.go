@@ -16,6 +16,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
@@ -77,9 +78,11 @@ func TestSettlementFounding(t *testing.T) {
 	founder := insertPlayer(t, pool)
 
 	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
+	snap := loadTestContent(t)
 	h := handlers.NewSettlementsHandler(uow, workIDs{t}, nil, worldCache,
+		staticContentSource{snap: snap}, gametime.Scale(1),
 		wsettle.Params{MinSpawnDistanceKm: 30, ThreatRadiusKm: 150, SearchMaxCells: 2000, SearchMaxAttempts: 50},
-		168*time.Hour, 5, func() time.Time { return time.Now().UTC() })
+		168*time.Hour, 5, time.Hour, func() time.Time { return time.Now().UTC() })
 
 	meta := validMeta(t)
 	meta.BotID = bot

@@ -8,6 +8,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
+	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/events"
@@ -23,37 +24,45 @@ import (
 // announcement is the direct reply to the founding command itself, which
 // only runs where the whole group already sees it (meta.InGroup()).
 type SettlementsHandler struct {
-	uow    application.UnitOfWork
-	ids    IDGenerator
-	msgs   Translator
-	worlds *application.WorldCache
+	uow     application.UnitOfWork
+	ids     IDGenerator
+	msgs    Translator
+	worlds  *application.WorldCache
+	content ContentSource
+	scale   gametimeScale
 
 	spawnParams      wsettle.Params
 	protectionWindow time.Duration
 	villageGridLots  int
+	teachPeriod      time.Duration
 
 	now func() time.Time
 }
 
 // NewSettlementsHandler builds the handler. worlds is this replica's
 // in-memory copy of the active planet (application.WorldCache); spawnParams,
-// protectionWindow and villageGridLots are config.Settlement's own values,
-// copied in rather than imported so this package stays free of
-// internal/config, like every other handler.
+// protectionWindow, villageGridLots and teachPeriod are config.Settlement's
+// own values, copied in rather than imported so this package stays free of
+// internal/config, like every other handler. content and scale are what
+// Found needs to grant the founding kit's knowledge (ADR 0031 section 4.3)
+// and start the settlement's own literacy tick (section 4.4) in the same
+// transaction as founding itself.
 func NewSettlementsHandler(uow application.UnitOfWork, ids IDGenerator, msgs Translator, worlds *application.WorldCache,
-	spawnParams wsettle.Params, protectionWindow time.Duration, villageGridLots int, now func() time.Time,
+	source ContentSource, scale gametimeScale,
+	spawnParams wsettle.Params, protectionWindow time.Duration, villageGridLots int, teachPeriod time.Duration, now func() time.Time,
 ) *SettlementsHandler {
-	if uow == nil || ids == nil || worlds == nil {
-		panic("handlers: NewSettlementsHandler requires a unit of work, an id generator and a world cache")
+	if uow == nil || ids == nil || worlds == nil || source == nil || scale == nil {
+		panic("handlers: NewSettlementsHandler requires a unit of work, an id generator, a world cache, content and a game clock")
 	}
-	if protectionWindow <= 0 || villageGridLots < 2 {
-		panic("handlers: NewSettlementsHandler requires a positive protection window and a village grid of at least 2 lots")
+	if protectionWindow <= 0 || villageGridLots < 2 || teachPeriod <= 0 {
+		panic("handlers: NewSettlementsHandler requires a positive protection window, a village grid of at least 2 lots and a positive teach period")
 	}
 	if now == nil {
 		now = func() time.Time { return time.Now().UTC() }
 	}
-	return &SettlementsHandler{uow: uow, ids: ids, msgs: msgs, worlds: worlds,
-		spawnParams: spawnParams, protectionWindow: protectionWindow, villageGridLots: villageGridLots, now: now}
+	return &SettlementsHandler{uow: uow, ids: ids, msgs: msgs, worlds: worlds, content: source, scale: scale,
+		spawnParams: spawnParams, protectionWindow: protectionWindow, villageGridLots: villageGridLots,
+		teachPeriod: teachPeriod, now: now}
 }
 
 // maxSpawnAttempts bounds how many candidate spots one Found call tries
@@ -202,6 +211,9 @@ func (h *SettlementsHandler) Found(ctx context.Context, meta envelope.Metadata) 
 			if err := h.appendFoundedEvent(ctx, tx, meta, out, cand.LatDeg, cand.LonDeg); err != nil {
 				return err
 			}
+			if err := h.grantFoundingKit(ctx, tx, out.CityID, world.BiomeCode(cand.CellID), now); err != nil {
+				return err
+			}
 
 			founded, foundedCell, done = out, cand.CellID, true
 			return nil
@@ -274,4 +286,42 @@ func (h *SettlementsHandler) appendFoundedEvent(ctx context.Context, tx applicat
 	return tx.Outbox().Append(ctx, application.OutboxRecord{
 		EventID: ev.ID, Subject: subjects.Event("settlement", "founded"), Metadata: meta, Payload: ev.Payload,
 	})
+}
+
+// foundingTerrainPriority is the order settlement_knowledge.yml's own
+// arable_farming/pastoral_husbandry branches are tried in for ADR 0031
+// section 4.3's one terrain-matched founding grant: every arable branch
+// before the pastoral one, matching the ADR's own "a village founded in a
+// desert starts knowing shaft_irrigation... one on grassland starts
+// knowing open_range_herding instead of an arable branch at all" example.
+var foundingTerrainPriority = []string{
+	"canal_irrigation", "shaft_irrigation", "terrace_irrigation", "paddy_cultivation",
+	"open_range_herding",
+}
+
+// grantFoundingKit grants the founding kit's knowledge component (ADR 0031
+// section 4.3): the four universal baselines plus one terrain-matched item
+// chosen deterministically from the founding cell's own biome, and starts
+// the settlement's own literacy tick (section 4.4) — all in the same
+// transaction as founding itself.
+func (h *SettlementsHandler) grantFoundingKit(ctx context.Context, tx application.Tx, settlementID, biomeCode string, at time.Time) error {
+	for _, code := range settlementknowledge.FoundingUniversalGrants {
+		if _, err := tx.SettlementKnowledge().Grant(ctx, application.SettlementKnowledgeOwned{
+			SettlementID: settlementID, Code: code, AcquiredVia: "founding", AcquiredAt: at,
+		}); err != nil {
+			return fmt.Errorf("handlers: granting founding knowledge %s: %w", code, err)
+		}
+	}
+
+	snap := h.content.Current()
+	tree := snap.SettlementKnowledgeTree()
+	if code, ok := settlementknowledge.TerrainGrant(tree, []string{biomeCode}, foundingTerrainPriority); ok {
+		if _, err := tx.SettlementKnowledge().Grant(ctx, application.SettlementKnowledgeOwned{
+			SettlementID: settlementID, Code: code, AcquiredVia: "founding", AcquiredAt: at,
+		}); err != nil {
+			return fmt.Errorf("handlers: granting terrain-matched founding knowledge %s: %w", code, err)
+		}
+	}
+
+	return ensureSettlementTeaching(ctx, tx, h.ids, h.scale, h.teachPeriod, settlementID, at)
 }

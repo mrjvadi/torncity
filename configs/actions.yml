@@ -282,3 +282,11 @@ commands:
   inbox.category: {kind: navigation, icon: "action:inbox"}
   inbox.read_all: {kind: secondary, icon: "action:mark_read"}
   settlement.found: {kind: primary, icon: "action:found"}
+  settlement.overview: {kind: navigation, icon: "action:village"}
+  settlement.knowledge: {kind: navigation, icon: "action:knowledge"}
+  settlement.knowledge.research: {kind: primary, icon: "action:research"}
+  settlement.knowledge.buy: {kind: primary, icon: "action:buy"}
+  settlement.build: {kind: navigation, icon: "action:build"}
+  settlement.build.place: {kind: primary, icon: "action:place"}
+  settlement.build.progress: {kind: navigation, icon: "action:progress"}
+  settlement.build.demolish: {kind: danger, icon: "action:demolish"}

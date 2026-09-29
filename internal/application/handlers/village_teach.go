@@ -44,9 +44,18 @@ const teacherSkillBPS = 6_000
 
 // EnsureTeaching schedules a settlement's first literacy tick if none is
 // pending yet. Idempotent: called again on a settlement that already has
-// one scheduled, it does nothing. Called once, from
-// SettlementsHandler.Found, in the same transaction as founding itself.
+// one scheduled, it does nothing.
 func (h *VillageHandler) EnsureTeaching(ctx context.Context, tx application.Tx, settlementID string, now time.Time) error {
+	return ensureSettlementTeaching(ctx, tx, h.ids, h.scale, h.teachPeriod, settlementID, now)
+}
+
+// ensureSettlementTeaching is EnsureTeaching's own body, standalone so
+// SettlementsHandler.Found can start a freshly founded settlement's first
+// literacy tick in the same transaction as founding itself (ADR 0031
+// section 4.4), without needing a VillageHandler instance.
+func ensureSettlementTeaching(ctx context.Context, tx application.Tx, ids IDGenerator, scale gametimeScale, teachPeriod time.Duration,
+	settlementID string, now time.Time,
+) error {
 	if err := tx.SettlementKnowledge().EnsureLiteracy(ctx, settlementID, now); err != nil {
 		return err
 	}
@@ -57,8 +66,8 @@ func (h *VillageHandler) EnsureTeaching(ctx context.Context, tx application.Tx, 
 	if pending != "" {
 		return nil
 	}
-	finish := now.Add(h.scale.RealWait(h.teachPeriod))
-	actionID, err := h.schedule(ctx, tx, application.SettlementTeachActionType, "settlement", settlementID, settlementID, now, finish)
+	finish := now.Add(scale.RealWait(teachPeriod))
+	actionID, err := scheduleVillageAction(ctx, tx, ids, application.SettlementTeachActionType, "settlement", settlementID, settlementID, now, finish)
 	if err != nil {
 		return err
 	}

@@ -452,11 +452,22 @@ type VillageActionPayload struct {
 func (h *VillageHandler) schedule(ctx context.Context, tx application.Tx, actionType, refType, refID, settlementID string,
 	now, finish time.Time,
 ) (string, error) {
+	return scheduleVillageAction(ctx, tx, h.ids, actionType, refType, refID, settlementID, now, finish)
+}
+
+// scheduleVillageAction puts one K2/W5 action on the game clock. A
+// standalone function, not only a VillageHandler method, because
+// SettlementsHandler.Found also needs it once, to start a freshly founded
+// settlement's own first literacy tick in the same transaction as founding
+// itself (ADR 0031 section 4.4).
+func scheduleVillageAction(ctx context.Context, tx application.Tx, ids IDGenerator, actionType, refType, refID, settlementID string,
+	now, finish time.Time,
+) (string, error) {
 	payload, err := json.Marshal(VillageActionPayload{ID: refID, SettlementID: settlementID})
 	if err != nil {
 		return "", err
 	}
-	id := h.ids.NewID()
+	id := ids.NewID()
 	return id, tx.GameActions().Schedule(ctx, application.GameAction{
 		ID: id, ActionType: actionType, ActorType: "system", ReferenceType: refType, ReferenceID: refID,
 		Payload: payload, StartedAt: now, FinishAt: finish,
