@@ -389,6 +389,7 @@ commands:
   settlement.knowledge.research: {channel: group}
   settlement.knowledge.buy: {channel: group}
   settlement.build: {channel: group}
+  settlement.build.lots: {channel: group}
   settlement.build.place: {channel: group}
   settlement.build.progress: {channel: group}
   settlement.build.demolish: {channel: group}

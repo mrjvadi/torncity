@@ -712,9 +712,11 @@ village:
     literacy: "📖 سوادآموزی روستا هنوز به اندازهٔ کافی نرسیده است."
     not_found: "این مورد پیدا نشد."
     occupied: "🔒 این محل قبلاً اشغال شده است."
+    unbuildable: "💧 روی این محل (آب یا شیب بسیار تند) نمی‌توان ساخت."
     out_of_bounds: "🔒 این محل بیرون از محدودهٔ روستاست."
     concurrent_cap: "🏗 صف ساخت روستا پر است. صبر کنید تا یکی از ساخت‌ها تمام شود."
     not_demolishable: "🔒 این بنا اکنون قابل تخریب نیست."
+    materials: "🧱 مواد لازم برای این ساخت در انبار روستا کافی نیست."
 
 knowledge:
   title: "📚 دانش روستای {name}"
@@ -743,6 +745,19 @@ build:
     locked: "🔒 {building} - اول باید {missing} را داشته باشید"
   button:
     place: "🏗 ساخت {building}"
+  confirm:
+    title: "🏗 ساخت {building}"
+    body: "هزینه: {cost}\nزمان ساخت: {time}\nمحل: ردیف {y}، ستون {x}"
+    material_line: "• {component}: {quantity} واحد"
+    button: "✅ تأیید و ساخت"
+
+lots:
+  title: "🗺 انتخاب محل ساخت در {name}"
+  building: "بنا: {building}"
+  legend: "✅ آزاد و مناسب - ⬜ آزاد ولی نامناسب - 🏠 اشغال‌شده - 🛣 جاده - 💧 آب - ⛰ شیب‌دار"
+  button:
+    rotate: "🔄 چرخاندن بنا"
+    reset_rotation: "🔄 بازگرداندن چرخش"
 
 construction:
   title: "⏳ صف ساخت‌وساز {name}"

@@ -1,6 +1,8 @@
 package screens
 
 import (
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
@@ -47,10 +49,16 @@ const (
 	AddrKnowledgeResearch    = "settlement:knowledge.research"
 	AddrKnowledgeBuy         = "settlement:knowledge.buy"
 	AddrBuildMenu            = "settlement:build"
+	AddrBuildLots            = "settlement:build.lots"
 	AddrBuildPlace           = "settlement:build.place"
 	AddrConstructionProgress = "settlement:build.progress"
 	AddrBuildDemolish        = "settlement:build.demolish"
 )
+
+// VillageBuildConfirm is the "confirm" argument's value a placement's
+// second press carries, exactly ProductionConfirm's own role for a
+// technology's publish confirmation.
+const VillageBuildConfirm = "confirm"
 
 // ---------------------------------------------------------------------
 // Refusals (K2/W5 command handlers)
@@ -69,9 +77,11 @@ const (
 	VillageLiteracy        = "literacy"
 	VillageNotFound        = "not_found"
 	VillageOccupied        = "occupied"
+	VillageUnbuildable     = "unbuildable"
 	VillageOutOfBounds     = "out_of_bounds"
 	VillageConcurrentCap   = "concurrent_cap"
 	VillageNotDemolishable = "not_demolishable"
+	VillageMaterials       = "materials"
 )
 
 // VillageRefusalView is a K2/W5 command refused before it changed anything.
@@ -92,7 +102,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 	switch kind {
 	case VillageNoSettlement, VillageNotOfficeHolder, VillageInsufficient, VillageBusy, VillageAlreadyOwned,
 		VillageNotAvailable, VillageTerrain, VillagePrerequisite, VillageLiteracy, VillageNotFound,
-		VillageOccupied, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable:
+		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials:
 	default:
 		kind = VillageNotFound
 	}
@@ -375,7 +385,7 @@ func renderBuildMenu(c Context, v BuildMenuView) *presenter.Response {
 		lines = append(lines, c.T(key, args))
 		if l.State == BuildAvailable {
 			if btn, ok := keyboards.Button(c.T("build.button.place", map[string]any{"building": c.SettlementBuildingName(l.Building)}),
-				AddrBuildPlace, l.Building.Code); ok {
+				AddrBuildLots, l.Building.Code); ok {
 				buttons = append(buttons, btn)
 			}
 		}
@@ -443,4 +453,202 @@ func renderConstructionProgress(c Context, v ConstructionProgressView) *presente
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrConstructionProgress}))
 
 	return c.respond(paragraphs(head, list), kb.Build())
+}
+
+// ---------------------------------------------------------------------
+// The lot grid: the leader's own choice of where a building goes (ADR 0028
+// section 6). "First legal lot" is not this game's rule — the owner's own
+// words — so this screen exists specifically to let a real choice be made.
+// ---------------------------------------------------------------------
+
+// LotToken is one lot's own compact callback argument: its coordinates,
+// and whether the building being placed there is rotated — one token
+// instead of three separate callback segments, so a 5x5 grid of buttons
+// still fits Telegram's 64-byte callback_data budget with room to spare.
+func LotToken(x, y int, rotated bool) string {
+	t := strconv.Itoa(x) + "-" + strconv.Itoa(y)
+	if rotated {
+		t += "-r"
+	}
+	return t
+}
+
+// ParseLotToken reads a LotToken back. ok is false for anything malformed
+// or negative — a forged or stale button, refused as firmly as any other
+// tampered callback argument, never trusted as a coordinate on its own.
+func ParseLotToken(s string) (x, y int, rotated, ok bool) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return 0, 0, false, false
+	}
+	if strings.HasSuffix(s, "-r") {
+		rotated = true
+		s = strings.TrimSuffix(s, "-r")
+	}
+	parts := strings.SplitN(s, "-", 2)
+	if len(parts) != 2 {
+		return 0, 0, false, false
+	}
+	xi, err1 := strconv.Atoi(parts[0])
+	yi, err2 := strconv.Atoi(parts[1])
+	if err1 != nil || err2 != nil || xi < 0 || yi < 0 {
+		return 0, 0, false, false
+	}
+	return xi, yi, rotated, true
+}
+
+// Lot states, for the grid's own emoji per cell.
+const (
+	LotFree     = "free"
+	LotOccupied = "occupied"
+	LotRoad     = "road"
+	LotWater    = "water"
+	LotSteep    = "steep"
+)
+
+// LotCell is one lot of the grid, as the leader sees it choosing where a
+// specific building goes.
+type LotCell struct {
+	X, Y int
+	// State is the lot's own terrain/occupancy, independent of which
+	// building is being placed.
+	State string
+	// Fits says whether the building currently being placed could go here
+	// — settlementbuilding.CanPlace's own answer, precomputed by the use
+	// case so this package never re-derives a placement rule (skills.go's
+	// own convention, applied here).
+	Fits bool
+}
+
+// LotGridView is a settlement's own placement grid for one building type.
+type LotGridView struct {
+	SettlementName string
+	Building       Named
+	// CanRotate says the building's footprint is not square, so a rotate
+	// button makes sense; Rotated is whether THIS render is showing it
+	// turned 90 degrees.
+	CanRotate bool
+	Rotated   bool
+	// GridLots is the grid's own side length (ADR 0028 section 4: 5 for a
+	// village). Rows is the full grid, row-major, Rows[y][x] — the
+	// complete state, so a game client (cmd/clientapi) can draw its own
+	// map from the identical facts this screen's buttons come from.
+	GridLots int
+	Rows     [][]LotCell
+}
+
+// LotGrid renders the settlement's placement grid for one building type.
+// Its view travels even in a group (withGroupView, not withView): a lot's
+// state is exactly what the whole group already reads off this same
+// screen's own buttons, nothing private about any one player.
+func LotGrid(c Context, v LotGridView) *presenter.Response {
+	return c.withGroupView(renderLotGrid(c, v), ScreenLotGrid, v)
+}
+
+// lotEmoji is one cell's own label: whether the building being placed
+// fits here first (a green check outweighs everything else, because that
+// is the one fact that decides whether pressing this button places the
+// building), then the terrain/occupancy reason it does not.
+func lotEmoji(state string, fits bool) string {
+	if fits {
+		return "✅"
+	}
+	switch state {
+	case LotWater:
+		return "💧"
+	case LotRoad:
+		return "🛣"
+	case LotOccupied:
+		return "🏠"
+	case LotSteep:
+		return "⛰"
+	default:
+		return "⬜"
+	}
+}
+
+func renderLotGrid(c Context, v LotGridView) *presenter.Response {
+	head := body(
+		c.T("lots.title", map[string]any{"name": v.SettlementName}),
+		c.T("lots.building", map[string]any{"building": c.SettlementBuildingName(v.Building)}),
+	)
+	legend := c.T("lots.legend", nil)
+
+	kb := keyboards.New()
+	for _, row := range v.Rows {
+		var buttons []presenter.Button
+		for _, cell := range row {
+			label := lotEmoji(cell.State, cell.Fits)
+			token := LotToken(cell.X, cell.Y, v.Rotated)
+			if btn, ok := keyboards.Button(label, AddrBuildPlace, v.Building.Code, token); ok {
+				buttons = append(buttons, btn)
+			}
+		}
+		kb.Row(buttons...)
+	}
+	if v.CanRotate {
+		rotateArg := "1"
+		rotateKey := "lots.button.rotate"
+		if v.Rotated {
+			rotateArg = "0"
+			rotateKey = "lots.button.reset_rotation"
+		}
+		if btn, ok := keyboards.Button(c.T(rotateKey, nil), AddrBuildLots, v.Building.Code, rotateArg); ok {
+			kb.Row(btn)
+		}
+	}
+	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrBuildMenu), RefreshData: keyboards.Data(AddrBuildLots, v.Building.Code)}))
+
+	return c.respond(paragraphs(head, legend), kb.Build())
+}
+
+// MaterialLine is one component a building's own construction cost needs.
+type MaterialLine struct {
+	Component Named
+	Quantity  int64
+}
+
+// LotConfirmView is the cost-and-time confirmation between choosing a lot
+// and actually placing a building there.
+type LotConfirmView struct {
+	SettlementName string
+	Building       Named
+	X, Y           int
+	Rotated        bool
+	CostMoney      int64
+	Materials      []MaterialLine
+	BuildTime      time.Duration
+}
+
+// LotConfirm renders the placement confirmation.
+func LotConfirm(c Context, v LotConfirmView) *presenter.Response {
+	return c.withGroupView(renderLotConfirm(c, v), ScreenLotConfirm, v)
+}
+
+func renderLotConfirm(c Context, v LotConfirmView) *presenter.Response {
+	var materialLines []string
+	for _, m := range v.Materials {
+		materialLines = append(materialLines, c.T("build.confirm.material_line", map[string]any{
+			"component": c.ComponentName(m.Component), "quantity": m.Quantity,
+		}))
+	}
+	// Lots are shown 1-based (لات ۱، ۱ instead of a raw 0-index): a
+	// coordinate is content a player reads, never an internal identifier.
+	text := paragraphs(
+		c.T("build.confirm.title", map[string]any{"building": c.SettlementBuildingName(v.Building)}),
+		c.T("build.confirm.body", map[string]any{
+			"cost": FormatMoney(c, v.CostMoney), "time": FormatDuration(c, v.BuildTime),
+			"x": v.X + 1, "y": v.Y + 1,
+		}),
+		body(materialLines...),
+	)
+
+	kb := keyboards.New()
+	token := LotToken(v.X, v.Y, v.Rotated)
+	if btn, ok := keyboards.Button(c.T("build.confirm.button", nil), AddrBuildPlace, v.Building.Code, token, VillageBuildConfirm); ok {
+		kb.Row(btn)
+	}
+	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrBuildLots, v.Building.Code)}))
+
+	return c.respond(text, kb.Build())
 }

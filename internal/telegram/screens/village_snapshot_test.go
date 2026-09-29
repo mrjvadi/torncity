@@ -88,6 +88,44 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		},
 	}))
 	add("Construction progress · queue empty", ConstructionProgress(g, ConstructionProgressView{Name: villageNameFor(c)}))
+
+	militiaCamp := sampleNamed(c.Lang, "militia_camp", "اردوگاه میلیشیا", "Militia camp")
+	add("Lot grid · a mix of states, rotatable building", LotGrid(g, LotGridView{
+		SettlementName: villageNameFor(c), Building: militiaCamp, CanRotate: true, Rotated: false,
+		GridLots: 5, Rows: sampleLotRows(),
+	}))
+	add("Lot grid · rotated preview", LotGrid(g, LotGridView{
+		SettlementName: villageNameFor(c), Building: militiaCamp, CanRotate: true, Rotated: true,
+		GridLots: 5, Rows: sampleLotRows(),
+	}))
+	add("Lot grid · square building, no rotate button", LotGrid(g, LotGridView{
+		SettlementName: villageNameFor(c), Building: civicHall, CanRotate: false,
+		GridLots: 5, Rows: sampleLotRows(),
+	}))
+
+	add("Build confirm · with materials", LotConfirm(g, LotConfirmView{
+		SettlementName: villageNameFor(c), Building: civicHall, X: 1, Y: 2, CostMoney: 1000, BuildTime: 2 * time.Hour,
+		Materials: []MaterialLine{{Component: sampleNamed(c.Lang, "timber", "چوب", "Timber"), Quantity: 5}},
+	}))
+	add("Build confirm · rotated, no materials", LotConfirm(g, LotConfirmView{
+		SettlementName: villageNameFor(c), Building: militiaCamp, X: 3, Y: 0, Rotated: true, CostMoney: 500, BuildTime: 45 * time.Minute,
+	}))
+
+	add("Village refused · not enough materials", VillageRefusal(g, VillageRefusalView{Kind: VillageMaterials}))
+	add("Village refused · lot is water or too steep", VillageRefusal(g, VillageRefusalView{Kind: VillageUnbuildable}))
+}
+
+// sampleLotRows is a 5x5 grid mixing every lot state and both Fits
+// outcomes, for the lot-grid golden.
+func sampleLotRows() [][]LotCell {
+	c := func(x, y int, state string, fits bool) LotCell { return LotCell{X: x, Y: y, State: state, Fits: fits} }
+	return [][]LotCell{
+		{c(0, 0, LotFree, true), c(1, 0, LotFree, false), c(2, 0, LotOccupied, false), c(3, 0, LotWater, false), c(4, 0, LotFree, true)},
+		{c(0, 1, LotFree, true), c(1, 1, LotFree, true), c(2, 1, LotOccupied, false), c(3, 1, LotFree, true), c(4, 1, LotFree, false)},
+		{c(0, 2, LotRoad, false), c(1, 2, LotFree, true), c(2, 2, LotFree, true), c(3, 2, LotFree, true), c(4, 2, LotSteep, false)},
+		{c(0, 3, LotFree, true), c(1, 3, LotFree, true), c(2, 3, LotFree, true), c(3, 3, LotOccupied, false), c(4, 3, LotFree, true)},
+		{c(0, 4, LotFree, true), c(1, 4, LotSteep, false), c(2, 4, LotFree, true), c(3, 4, LotFree, true), c(4, 4, LotFree, true)},
+	}
 }
 
 // villageNameFor gives the snapshot a language-appropriate sample village

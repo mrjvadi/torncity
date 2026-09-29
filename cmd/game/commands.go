@@ -269,6 +269,13 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		"settlement.build": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.BuildMenu(ctx, env.Metadata)
 		},
+		"settlement.build.lots": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageLotsRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Lots(ctx, env.Metadata, req)
+		},
 		"settlement.build.place": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageBuildRequest
 			if err := decode(env, &req); err != nil {

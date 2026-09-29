@@ -78,6 +78,7 @@ type VillageHandler struct {
 	scarcityFloorBPS        int64
 	scarcityCapBPS          int64
 	sellerBandBPS           int64
+	demolitionSalvageBPS    int64
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -104,6 +105,7 @@ type VillageRules struct {
 	ScarcityFloorBPS      int64
 	ScarcityCapBPS        int64
 	SellerBandBPS         int64
+	DemolitionSalvageBPS  int64
 }
 
 // NewVillageHandler wires the handler.
@@ -132,6 +134,7 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 		scarcityFloorBPS:      rules.ScarcityFloorBPS,
 		scarcityCapBPS:        rules.ScarcityCapBPS,
 		sellerBandBPS:         rules.SellerBandBPS,
+		demolitionSalvageBPS:  rules.DemolitionSalvageBPS,
 		idempotencyTTL:        idempotencyTTL,
 		now:                   now,
 	}

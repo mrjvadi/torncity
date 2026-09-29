@@ -615,9 +615,11 @@ village:
     literacy: "📖 The village's literacy has not reached what this needs yet."
     not_found: "That was not found."
     occupied: "🔒 That spot is already taken."
+    unbuildable: "💧 Nothing can be built there (water or too steep)."
     out_of_bounds: "🔒 That spot is outside the village's own grid."
     concurrent_cap: "🏗 The village's build queue is full. Wait for one to finish."
     not_demolishable: "🔒 That building cannot be demolished right now."
+    materials: "🧱 The village does not have enough of the materials this build needs."
 
 knowledge:
   title: "📚 Knowledge of {name}"
@@ -646,6 +648,19 @@ build:
     locked: "🔒 {building} - needs {missing} first"
   button:
     place: "🏗 Build {building}"
+  confirm:
+    title: "🏗 Build {building}"
+    body: "Cost: {cost}\nBuild time: {time}\nLocation: row {y}, column {x}"
+    material_line: "• {component}: {quantity} units"
+    button: "✅ Confirm and build"
+
+lots:
+  title: "🗺 Choose where to build in {name}"
+  building: "Building: {building}"
+  legend: "✅ free and fits - ⬜ free but does not fit - 🏠 occupied - 🛣 road - 💧 water - ⛰ steep"
+  button:
+    rotate: "🔄 Rotate building"
+    reset_rotation: "🔄 Reset rotation"
 
 construction:
   title: "⏳ Construction queue of {name}"

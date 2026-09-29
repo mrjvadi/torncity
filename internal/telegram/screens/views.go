@@ -45,6 +45,8 @@ const (
 	ScreenBuildMenu            = "settlement_build_menu"
 	ScreenConstructionProgress = "settlement_construction_progress"
 	ScreenVillageRefusal       = "village_refusal"
+	ScreenLotGrid              = "settlement_build_lots"
+	ScreenLotConfirm           = "settlement_build_confirm"
 
 	// Auctions (auctions.go).
 	ScreenAuctions       = "auctions"
@@ -278,6 +280,18 @@ func (c Context) withView(r *presenter.Response, screen string, view any) *prese
 	if c.Shared {
 		return r
 	}
+	return presenter.WithView(r, screen, view)
+}
+
+// withGroupView attaches a view even when the screen is shared in a group —
+// the narrow exception to withView's own rule, for a view that carries
+// nothing private: the settlement's own lot grid is exactly what the whole
+// group already reads off the text screen (no player's money, no one
+// player's own secret), and a game client (cmd/clientapi) needs the same
+// structured state to offer tap-on-map placement even when a village
+// screen is addressed by its founding group. Use it only for a view this
+// true of; withView remains the default for everything else.
+func (c Context) withGroupView(r *presenter.Response, screen string, view any) *presenter.Response {
 	return presenter.WithView(r, screen, view)
 }
 

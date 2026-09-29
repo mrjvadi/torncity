@@ -80,7 +80,7 @@
 🏗 خانهٔ دهیاری - هزینه ⁨⁨1,000⁩ نیل⁩ - زمان ساخت ⁨2 ساعت⁩
 🔒 کلانتری - اول باید دفترداری را داشته باشید
   ───
-  [🏗 ساخت خانهٔ دهیاری] → settlement:build.place:civic_hall
+  [🏗 ساخت خانهٔ دهیاری] → settlement:build.lots:civic_hall
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build
 
 ━━━ Construction progress · one queued, one building ━━━
@@ -99,3 +99,83 @@
 چیزی در صف ساخت نیست.
   ───
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build.progress
+
+━━━ Lot grid · a mix of states, rotatable building ━━━
+(edits message 42)
+🗺 انتخاب محل ساخت در کورندال
+بنا: اردوگاه میلیشیا
+
+✅ آزاد و مناسب - ⬜ آزاد ولی نامناسب - 🏠 اشغال‌شده - 🛣 جاده - 💧 آب - ⛰ شیب‌دار
+  ───
+  [✅] → settlement:build.place:militia_camp:0-0   │   [⬜] → settlement:build.place:militia_camp:1-0   │   [🏠] → settlement:build.place:militia_camp:2-0   │   [💧] → settlement:build.place:militia_camp:3-0   │   [✅] → settlement:build.place:militia_camp:4-0
+  [✅] → settlement:build.place:militia_camp:0-1   │   [✅] → settlement:build.place:militia_camp:1-1   │   [🏠] → settlement:build.place:militia_camp:2-1   │   [✅] → settlement:build.place:militia_camp:3-1   │   [⬜] → settlement:build.place:militia_camp:4-1
+  [🛣] → settlement:build.place:militia_camp:0-2   │   [✅] → settlement:build.place:militia_camp:1-2   │   [✅] → settlement:build.place:militia_camp:2-2   │   [✅] → settlement:build.place:militia_camp:3-2   │   [⛰] → settlement:build.place:militia_camp:4-2
+  [✅] → settlement:build.place:militia_camp:0-3   │   [✅] → settlement:build.place:militia_camp:1-3   │   [✅] → settlement:build.place:militia_camp:2-3   │   [🏠] → settlement:build.place:militia_camp:3-3   │   [✅] → settlement:build.place:militia_camp:4-3
+  [✅] → settlement:build.place:militia_camp:0-4   │   [⛰] → settlement:build.place:militia_camp:1-4   │   [✅] → settlement:build.place:militia_camp:2-4   │   [✅] → settlement:build.place:militia_camp:3-4   │   [✅] → settlement:build.place:militia_camp:4-4
+  [🔄 چرخاندن بنا] → settlement:build.lots:militia_camp:1
+  [🔙 بازگشت] → settlement:build   │   [🔄 به‌روزرسانی] → settlement:build.lots:militia_camp
+
+━━━ Lot grid · rotated preview ━━━
+(edits message 42)
+🗺 انتخاب محل ساخت در کورندال
+بنا: اردوگاه میلیشیا
+
+✅ آزاد و مناسب - ⬜ آزاد ولی نامناسب - 🏠 اشغال‌شده - 🛣 جاده - 💧 آب - ⛰ شیب‌دار
+  ───
+  [✅] → settlement:build.place:militia_camp:0-0-r   │   [⬜] → settlement:build.place:militia_camp:1-0-r   │   [🏠] → settlement:build.place:militia_camp:2-0-r   │   [💧] → settlement:build.place:militia_camp:3-0-r   │   [✅] → settlement:build.place:militia_camp:4-0-r
+  [✅] → settlement:build.place:militia_camp:0-1-r   │   [✅] → settlement:build.place:militia_camp:1-1-r   │   [🏠] → settlement:build.place:militia_camp:2-1-r   │   [✅] → settlement:build.place:militia_camp:3-1-r   │   [⬜] → settlement:build.place:militia_camp:4-1-r
+  [🛣] → settlement:build.place:militia_camp:0-2-r   │   [✅] → settlement:build.place:militia_camp:1-2-r   │   [✅] → settlement:build.place:militia_camp:2-2-r   │   [✅] → settlement:build.place:militia_camp:3-2-r   │   [⛰] → settlement:build.place:militia_camp:4-2-r
+  [✅] → settlement:build.place:militia_camp:0-3-r   │   [✅] → settlement:build.place:militia_camp:1-3-r   │   [✅] → settlement:build.place:militia_camp:2-3-r   │   [🏠] → settlement:build.place:militia_camp:3-3-r   │   [✅] → settlement:build.place:militia_camp:4-3-r
+  [✅] → settlement:build.place:militia_camp:0-4-r   │   [⛰] → settlement:build.place:militia_camp:1-4-r   │   [✅] → settlement:build.place:militia_camp:2-4-r   │   [✅] → settlement:build.place:militia_camp:3-4-r   │   [✅] → settlement:build.place:militia_camp:4-4-r
+  [🔄 بازگرداندن چرخش] → settlement:build.lots:militia_camp:0
+  [🔙 بازگشت] → settlement:build   │   [🔄 به‌روزرسانی] → settlement:build.lots:militia_camp
+
+━━━ Lot grid · square building, no rotate button ━━━
+(edits message 42)
+🗺 انتخاب محل ساخت در کورندال
+بنا: خانهٔ دهیاری
+
+✅ آزاد و مناسب - ⬜ آزاد ولی نامناسب - 🏠 اشغال‌شده - 🛣 جاده - 💧 آب - ⛰ شیب‌دار
+  ───
+  [✅] → settlement:build.place:civic_hall:0-0   │   [⬜] → settlement:build.place:civic_hall:1-0   │   [🏠] → settlement:build.place:civic_hall:2-0   │   [💧] → settlement:build.place:civic_hall:3-0   │   [✅] → settlement:build.place:civic_hall:4-0
+  [✅] → settlement:build.place:civic_hall:0-1   │   [✅] → settlement:build.place:civic_hall:1-1   │   [🏠] → settlement:build.place:civic_hall:2-1   │   [✅] → settlement:build.place:civic_hall:3-1   │   [⬜] → settlement:build.place:civic_hall:4-1
+  [🛣] → settlement:build.place:civic_hall:0-2   │   [✅] → settlement:build.place:civic_hall:1-2   │   [✅] → settlement:build.place:civic_hall:2-2   │   [✅] → settlement:build.place:civic_hall:3-2   │   [⛰] → settlement:build.place:civic_hall:4-2
+  [✅] → settlement:build.place:civic_hall:0-3   │   [✅] → settlement:build.place:civic_hall:1-3   │   [✅] → settlement:build.place:civic_hall:2-3   │   [🏠] → settlement:build.place:civic_hall:3-3   │   [✅] → settlement:build.place:civic_hall:4-3
+  [✅] → settlement:build.place:civic_hall:0-4   │   [⛰] → settlement:build.place:civic_hall:1-4   │   [✅] → settlement:build.place:civic_hall:2-4   │   [✅] → settlement:build.place:civic_hall:3-4   │   [✅] → settlement:build.place:civic_hall:4-4
+  [🔙 بازگشت] → settlement:build   │   [🔄 به‌روزرسانی] → settlement:build.lots:civic_hall
+
+━━━ Build confirm · with materials ━━━
+(edits message 42)
+🏗 ساخت خانهٔ دهیاری
+
+هزینه: ⁨⁨1,000⁩ نیل⁩
+زمان ساخت: ⁨2 ساعت⁩
+محل: ردیف 3، ستون 2
+
+• الوار: 5 واحد
+  ───
+  [✅ تأیید و ساخت] → settlement:build.place:civic_hall:1-2:confirm
+  [🔙 بازگشت] → settlement:build.lots:civic_hall
+
+━━━ Build confirm · rotated, no materials ━━━
+(edits message 42)
+🏗 ساخت اردوگاه میلیشیا
+
+هزینه: ⁨⁨500⁩ نیل⁩
+زمان ساخت: ⁨45 دقیقه⁩
+محل: ردیف 1، ستون 4
+  ───
+  [✅ تأیید و ساخت] → settlement:build.place:militia_camp:3-0-r:confirm
+  [🔙 بازگشت] → settlement:build.lots:militia_camp
+
+━━━ Village refused · not enough materials ━━━
+(edits message 42)
+🧱 مواد لازم برای این ساخت در انبار روستا کافی نیست.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Village refused · lot is water or too steep ━━━
+(edits message 42)
+💧 روی این محل (آب یا شیب بسیار تند) نمی‌توان ساخت.
+  ───
+  [🔙 بازگشت] → settlement:overview

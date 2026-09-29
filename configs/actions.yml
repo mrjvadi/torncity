@@ -287,6 +287,7 @@ commands:
   settlement.knowledge.research: {kind: primary, icon: "action:research"}
   settlement.knowledge.buy: {kind: primary, icon: "action:buy"}
   settlement.build: {kind: navigation, icon: "action:build"}
+  settlement.build.lots: {kind: navigation, icon: "action:lots"}
   settlement.build.place: {kind: primary, icon: "action:place"}
   settlement.build.progress: {kind: navigation, icon: "action:progress"}
   settlement.build.demolish: {kind: danger, icon: "action:demolish"}

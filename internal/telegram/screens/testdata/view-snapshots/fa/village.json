@@ -1,1 +1,572 @@
-[]
+[
+  {
+    "title": "Lot grid · a mix of states, rotatable building",
+    "screen": "settlement_build_lots",
+    "view": {
+      "building": {
+        "code": "militia_camp",
+        "name": "اردوگاه میلیشیا"
+      },
+      "can_rotate": true,
+      "grid_lots": 5,
+      "rotated": false,
+      "rows": [
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 1,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "water",
+            "x": 3,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 0
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 4,
+            "y": 1
+          }
+        ],
+        [
+          {
+            "fits": false,
+            "state": "road",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 2
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 4,
+            "y": 2
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 3,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 3
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 4
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 1,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 4
+          }
+        ]
+      ],
+      "settlement_name": "کورندال"
+    }
+  },
+  {
+    "title": "Lot grid · rotated preview",
+    "screen": "settlement_build_lots",
+    "view": {
+      "building": {
+        "code": "militia_camp",
+        "name": "اردوگاه میلیشیا"
+      },
+      "can_rotate": true,
+      "grid_lots": 5,
+      "rotated": true,
+      "rows": [
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 1,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "water",
+            "x": 3,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 0
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 4,
+            "y": 1
+          }
+        ],
+        [
+          {
+            "fits": false,
+            "state": "road",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 2
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 4,
+            "y": 2
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 3,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 3
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 4
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 1,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 4
+          }
+        ]
+      ],
+      "settlement_name": "کورندال"
+    }
+  },
+  {
+    "title": "Lot grid · square building, no rotate button",
+    "screen": "settlement_build_lots",
+    "view": {
+      "building": {
+        "code": "civic_hall",
+        "name": "خانهٔ دهیاری"
+      },
+      "can_rotate": false,
+      "grid_lots": 5,
+      "rotated": false,
+      "rows": [
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 1,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "water",
+            "x": 3,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 0
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 4,
+            "y": 1
+          }
+        ],
+        [
+          {
+            "fits": false,
+            "state": "road",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 2
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 4,
+            "y": 2
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 3,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 3
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 4
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 1,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 4
+          }
+        ]
+      ],
+      "settlement_name": "کورندال"
+    }
+  },
+  {
+    "title": "Build confirm · with materials",
+    "screen": "settlement_build_confirm",
+    "view": {
+      "build_time_seconds": 7200,
+      "building": {
+        "code": "civic_hall",
+        "name": "خانهٔ دهیاری"
+      },
+      "cost_money": 1000,
+      "materials": [
+        {
+          "component": {
+            "code": "timber",
+            "name": "چوب"
+          },
+          "quantity": 5
+        }
+      ],
+      "rotated": false,
+      "settlement_name": "کورندال",
+      "x": 1,
+      "y": 2
+    }
+  },
+  {
+    "title": "Build confirm · rotated, no materials",
+    "screen": "settlement_build_confirm",
+    "view": {
+      "build_time_seconds": 2700,
+      "building": {
+        "code": "militia_camp",
+        "name": "اردوگاه میلیشیا"
+      },
+      "cost_money": 500,
+      "materials": null,
+      "rotated": true,
+      "settlement_name": "کورندال",
+      "x": 3,
+      "y": 0
+    }
+  }
+]
