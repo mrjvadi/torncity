@@ -33,6 +33,7 @@ type phaseHandlers struct {
 	gov         *handlers.GovernanceHandler
 	settlements *handlers.SettlementsHandler
 	village     *handlers.VillageHandler
+	presence    *handlers.PresenceHandler
 
 	jobs      *handlers.JobsHandler
 	education *handlers.EducationHandler
@@ -76,6 +77,16 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		},
 		"player.settings": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.settings.Show(ctx, env.Metadata)
+		},
+		"player.presence.set": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.PresenceRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.settings.SetPresence(ctx, env.Metadata, req)
+		},
+		"settlement.who": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.presence.Who(ctx, env.Metadata)
 		},
 		"player.language.set": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.LanguageRequest

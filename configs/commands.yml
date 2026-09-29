@@ -22,6 +22,8 @@ commands:
   player.profile.get: {channel: both}
   player.settings: {channel: private}
   player.language.set: {channel: private}
+  # The «last seen» setting is personal: private chat only, never a group.
+  player.presence.set: {channel: private}
 
   # The map of the player's own city and the walks between its places work
   # everywhere: crime happens at a place, in the group, so moving between
@@ -394,6 +396,9 @@ commands:
   settlement.build.progress: {channel: group, client: true}
   settlement.build.demolish: {channel: group, client: true}
   settlement.build.cancel: {channel: group, client: true}
+  # Who is around in the village: a group screen (docs/adr/0030, R2); a client
+  # asks for it too (it reads the roster of the settlement it lives in).
+  settlement.who: {channel: group, client: true}
 
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the

@@ -20,6 +20,11 @@ type SettingsView struct {
 	// LanguageChanged says this render follows a language change, so the
 	// screen confirms the change in the language it was changed to.
 	LanguageChanged bool
+	// PresenceVisibility is the «last seen» setting (everyone, contacts,
+	// nobody; ADR 0030 section 3.2), or "" when the render carries none.
+	PresenceVisibility string
+	// PresenceChanged says this render follows a change of that setting.
+	PresenceChanged bool
 }
 
 // settingRow is one setting on the settings screen: the line that states its
@@ -32,6 +37,7 @@ type settingRow func(c Context, v SettingsView, kb *keyboards.Builder) string
 // them does not change.
 var settingRows = []settingRow{
 	languageSetting,
+	presenceSetting,
 }
 
 // Settings renders the settings screen.
@@ -50,6 +56,10 @@ func renderSettings(c Context, v SettingsView) *presenter.Response {
 	var confirmation string
 	if v.LanguageChanged && v.Language != "" {
 		confirmation = c.T("settings.language_changed", map[string]any{"language": LanguageName(c, v.Language)})
+	}
+
+	if v.PresenceChanged && v.PresenceVisibility != "" {
+		confirmation = c.T("settings.presence_changed", map[string]any{"visibility": PresenceName(c, v.PresenceVisibility)})
 	}
 
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrSettings}))

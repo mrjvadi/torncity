@@ -706,6 +706,14 @@ input:
 announce:
   window: 1m
   max_per_window: 6
+  # Village news (things finishing in a village, docs/adr/0030): a burst is
+  # merged into one short post. Nothing goes out before the oldest waiting
+  # item is village_merge_window old; a village's group gets at most one post
+  # per village_min_gap; the notifier looks for due posts every
+  # village_flush_interval.
+  village_merge_window: 20s
+  village_min_gap: 90s
+  village_flush_interval: 5s
 
 # The inbox badge (migrations/0037_notification_inbox): most notices are
 # stored and counted on one Telegram message instead of arriving as their
@@ -906,6 +914,14 @@ client:
 realtime:
   api_url: http://tc-centrifugo:8000/api
   publish_timeout: 2s
+  # A player reads as online for presence_ttl after their last command or
+  # heartbeat (docs/adr/0030 section 3.1); nothing is written when they go.
+  presence_ttl: 30s
+  # The most players one settlement list returns.
+  roster_limit: 200
+  # How long a settlement channel event remembers its version, so a
+  # redelivered event is stamped the same and published once.
+  settlement_event_ttl: 24h
 
 # The world generator (internal/domain/worldgen; the project report at
 # docs/adr proposes the schema for what gets stored). What biomes and

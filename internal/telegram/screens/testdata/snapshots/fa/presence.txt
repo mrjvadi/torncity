@@ -1,0 +1,100 @@
+━━━ Who is around · a busy village ━━━
+(edits message 42)
+👥 چه کسانی در «کورندال» هستند
+
+🟢 ⁨3⁩ نفر آنلاین - ⚪️ ⁨12⁩ نفر آفلاین
+
+🟢 سارا - در حال کار - پایانهٔ اتوبوس
+🟢 کاوه - آنلاین
+🟢 نیلوفر - در حال سفر
+  ───
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:who
+
+━━━ Who is around · nobody online ━━━
+(edits message 42)
+👥 چه کسانی در «کورندال» هستند
+
+🟢 ⁨0⁩ نفر آنلاین - ⚪️ ⁨5⁩ نفر آفلاین
+
+الان کسی آنلاین نیست.
+  ───
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:who
+
+━━━ Settings · last seen shown to everyone ━━━
+(edits message 42)
+<b>⚙️ تنظیمات</b>
+
+🌐 زبان بازی: فارسی
+👁 چه کسانی وضعیت آنلاین من را ببینند: همه
+  ───
+  [🌐 تغییر زبان به ⁨English⁩] → player:language.set:en
+  [👁 وضعیت آنلاین: فقط دوستان و هم‌جناحی‌ها] → player:presence.set:contacts
+  [👁 وضعیت آنلاین: هیچ‌کس] → player:presence.set:nobody
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → player:settings
+
+━━━ Settings · last seen shown to nobody, just changed ━━━
+(edits message 42)
+<b>⚙️ تنظیمات</b>
+
+✅ حالا وضعیت آنلاین شما برای «هیچ‌کس» دیده می‌شود.
+
+🌐 زبان بازی: فارسی
+👁 چه کسانی وضعیت آنلاین من را ببینند: هیچ‌کس
+با «هیچ‌کس»، وضعیت آنلاین دیگران هم برایتان پنهان می‌شود؛ فقط اهالی روستای خودتان می‌توانند شما را ببینند.
+  ───
+  [🌐 تغییر زبان به ⁨English⁩] → player:language.set:en
+  [👁 وضعیت آنلاین: همه] → player:presence.set:everyone
+  [👁 وضعیت آنلاین: فقط دوستان و هم‌جناحی‌ها] → player:presence.set:contacts
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → player:settings
+
+━━━ News · a building finished ━━━
+(edits message 42)
+🏗 ساخت «کارگاه نجاری» در روستای «کورندال» تمام شد.
+  ───
+  [⏳ پیشرفت ساخت] → settlement:build.progress
+
+━━━ News · construction started ━━━
+(edits message 42)
+🚧 دهیار ساخت «دیده‌بانی محله» را در روستای «کورندال» شروع کرد.
+  ───
+  [⏳ پیشرفت ساخت] → settlement:build.progress
+
+━━━ News · research finished ━━━
+(edits message 42)
+🔬 پژوهش «آبیاری نهری» در روستای «کورندال» تمام شد و روستا حالا آن را می‌داند.
+  ───
+  [📚 دانش روستا] → settlement:knowledge
+
+━━━ News · knowledge bought ━━━
+(edits message 42)
+📚 دهیار «آبیاری نهری» را برای روستای «کورندال» خرید.
+  ───
+  [📚 دانش روستا] → settlement:knowledge
+
+━━━ News · literacy grew ━━━
+(edits message 42)
+📖 سوادآموزی روستای «کورندال» به ⁨24⁩٪ رسید.
+  ───
+  [🏘 نمای روستا] → settlement:overview
+
+━━━ News · a burst merged into one post ━━━
+(edits message 42)
+🏘 تازه‌های روستای «کورندال»:
+• 🏗 ساخت «کارگاه نجاری» تمام شد.
+• 🔬 پژوهش «آبیاری نهری» تمام شد.
+• 📖 سوادآموزی به ⁨24⁩٪ رسید.
+  ───
+  [🏘 نمای روستا] → settlement:overview
+
+━━━ News · a long burst is cut short ━━━
+(edits message 42)
+🏘 تازه‌های روستای «کورندال»:
+• 🏗 ساخت «کارگاه نجاری» تمام شد.
+• 🏗 ساخت «دیده‌بانی محله» تمام شد.
+• 📚 «آبیاری نهری» خریداری شد.
+• 🔬 پژوهش «آبیاری نهری» تمام شد.
+• 🚧 ساخت «کارگاه نجاری» شروع شد.
+• 📖 سوادآموزی به ⁨31⁩٪ رسید.
+• و ⁨2⁩ خبر دیگر.
+  ───
+  [🏘 نمای روستا] → settlement:overview

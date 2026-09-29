@@ -190,6 +190,11 @@ func (t *tx) SettlementBuildings() application.SettlementBuildingRepository {
 	return &SettlementBuildingRepository{q: t.q}
 }
 
+// Presence returns the presence repository bound to this transaction: a
+// player's "last seen" setting is written with the idempotency key of the
+// press that changed it (ADR 0030 section 3.2).
+func (t *tx) Presence() application.PresenceRepository { return &PresenceRepository{q: t.q} }
+
 // Bank returns the bank's presence locks bound to this transaction, so they
 // are held until the money they guard has moved.
 func (t *tx) Bank() application.BankRepository { return &BankRepository{q: t.q} }

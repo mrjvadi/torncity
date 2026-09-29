@@ -451,7 +451,9 @@
       "languages": [
         "en",
         "fa"
-      ]
+      ],
+      "presence_changed": false,
+      "presence_visibility": ""
     }
   },
   {
@@ -463,7 +465,9 @@
       "languages": [
         "en",
         "fa"
-      ]
+      ],
+      "presence_changed": false,
+      "presence_visibility": ""
     }
   }
 ]

@@ -498,6 +498,16 @@ type Announce struct {
 	// the next line that goes out.
 	Window       time.Duration // announce.window
 	MaxPerWindow int           // announce.max_per_window
+
+	// The village news (internal/workers/notification/village_news.go): a
+	// burst of things finishing in one village is merged into one short
+	// post. Nothing is posted before the oldest waiting item is
+	// VillageMergeWindow old, and a village's group gets at most one post
+	// per VillageMinGap; a background tick every VillageFlushInterval
+	// looks for what is due.
+	VillageMergeWindow   time.Duration // announce.village_merge_window
+	VillageMinGap        time.Duration // announce.village_min_gap
+	VillageFlushInterval time.Duration // announce.village_flush_interval
 }
 
 // Notifications tunes the inbox badge (migrations/0037_notification_inbox)
@@ -1170,6 +1180,10 @@ func Defaults() *Config {
 		Announce: Announce{
 			Window:       time.Minute,
 			MaxPerWindow: 6,
+
+			VillageMergeWindow:   20 * time.Second,
+			VillageMinGap:        90 * time.Second,
+			VillageFlushInterval: 5 * time.Second,
 		},
 		Notifications: Notifications{
 			InboxPageSize:         5,

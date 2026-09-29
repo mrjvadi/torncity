@@ -220,6 +220,7 @@ var legacyPrivate = map[string]bool{
 	"bank":                true,
 	"player.settings":     true,
 	"player.language.set": true,
+	"player.presence.set": true,
 }
 
 // IsPrivate reports whether a response to command must stay out of a group:

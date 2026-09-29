@@ -36,6 +36,7 @@ commands:
   player.profile.get: {kind: navigation, icon: "action:player"}
   player.settings: {kind: navigation, icon: "action:player"}
   player.language.set: {kind: primary, icon: "action:language"}
+  player.presence.set: {kind: primary, icon: "action:presence"}
   travel.start: {kind: primary, icon: "action:travel"}
   travel.options: {kind: primary, icon: "action:travel"}
   travel.status: {kind: navigation, icon: "action:travel"}
@@ -292,3 +293,4 @@ commands:
   settlement.build.progress: {kind: navigation, icon: "action:progress"}
   settlement.build.demolish: {kind: danger, icon: "action:demolish"}
   settlement.build.cancel: {kind: danger, icon: "action:cancel_build"}
+  settlement.who: {kind: navigation, icon: "action:people"}

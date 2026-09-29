@@ -19,6 +19,7 @@
   [📚 Village knowledge] → settlement:knowledge
   [🏗 Construction] → settlement:build
   [⏳ Build progress] → settlement:build.progress
+  [👥 People] → settlement:who
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Village overview · nothing built yet ━━━
@@ -41,6 +42,7 @@ No buildings stand here yet.
   [📚 Village knowledge] → settlement:knowledge
   [🏗 Construction] → settlement:build
   [⏳ Build progress] → settlement:build.progress
+  [👥 People] → settlement:who
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Knowledge list · mixed states, research running ━━━

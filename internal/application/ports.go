@@ -114,6 +114,10 @@ type Tx interface {
 	SettlementKnowledge() SettlementKnowledgeRepository
 	SettlementBuildings() SettlementBuildingRepository
 
+	// Presence holds a player's "last seen" setting and the read-only
+	// facts presence is computed from; see ports_presence.go.
+	Presence() PresenceRepository
+
 	// Ledger moves money in the same transaction as the change that
 	// caused it; see ports_ledger.go.
 	Ledger() LedgerRepository

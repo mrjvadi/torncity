@@ -1,0 +1,64 @@
+[
+  {
+    "title": "Who is around · a busy village",
+    "screen": "settlement_who",
+    "view": {
+      "name": "Korendal",
+      "offline": 12,
+      "online": [
+        {
+          "activity": "working",
+          "name": "Sara",
+          "place": "bus_terminal"
+        },
+        {
+          "activity": "idle",
+          "name": "Kaveh",
+          "place": ""
+        },
+        {
+          "activity": "travelling",
+          "name": "Nilou",
+          "place": ""
+        }
+      ]
+    }
+  },
+  {
+    "title": "Who is around · nobody online",
+    "screen": "settlement_who",
+    "view": {
+      "name": "Korendal",
+      "offline": 5,
+      "online": null
+    }
+  },
+  {
+    "title": "Settings · last seen shown to everyone",
+    "screen": "settings",
+    "view": {
+      "language": "en",
+      "language_changed": false,
+      "languages": [
+        "fa",
+        "en"
+      ],
+      "presence_changed": false,
+      "presence_visibility": "everyone"
+    }
+  },
+  {
+    "title": "Settings · last seen shown to nobody, just changed",
+    "screen": "settings",
+    "view": {
+      "language": "en",
+      "language_changed": false,
+      "languages": [
+        "fa",
+        "en"
+      ],
+      "presence_changed": true,
+      "presence_visibility": "nobody"
+    }
+  }
+]

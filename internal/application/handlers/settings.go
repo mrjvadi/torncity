@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	wpresence "github.com/mrjvadi/torncity/internal/domain/presence"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
@@ -16,6 +17,11 @@ import (
 // LanguageRequest is the payload of player.language.set.
 type LanguageRequest struct {
 	Lang string `json:"lang"`
+}
+
+// PresenceRequest is the payload of player.presence.set.
+type PresenceRequest struct {
+	Visibility string `json:"visibility"`
 }
 
 // LanguageSource lists the languages the game can render. It is the message
@@ -64,20 +70,80 @@ func (h *SettingsHandler) Show(ctx context.Context, meta envelope.Metadata) (*pr
 		return nil, err
 	}
 
-	var lang string
+	var (
+		lang string
+		vis  wpresence.Visibility
+	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
 			return err
 		}
 		lang = RenderLanguage(meta, p)
-		return nil
+		vis, err = visibilityOf(ctx, tx, p.ID)
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return h.render(meta, lang, false), nil
+	return h.render(meta, lang, false, vis, false), nil
+}
+
+// visibilityOf reads the player's «last seen» setting; a transaction without
+// the presence repository (a test double) reports none, and the screen then
+// simply omits the row.
+func visibilityOf(ctx context.Context, tx application.Tx, playerID string) (wpresence.Visibility, error) {
+	repo := tx.Presence()
+	if repo == nil {
+		return "", nil
+	}
+	return repo.Visibility(ctx, playerID)
+}
+
+// SetPresence handles player.presence.set: who may see the player online
+// (ADR 0030 section 3.2). The value is checked before the unit of work opens,
+// and a redelivered press is recognised by its idempotency key and writes
+// nothing, for the reason SetLanguage gives.
+func (h *SettingsHandler) SetPresence(ctx context.Context, meta envelope.Metadata, req PresenceRequest) (*presenter.Response, error) {
+	if err := validPlayerRequest(meta); err != nil {
+		return nil, err
+	}
+	want, ok := wpresence.Parse(strings.ToLower(strings.TrimSpace(req.Visibility)))
+	if !ok {
+		return nil, application.ErrUnsupportedPresenceVisibility
+	}
+
+	var (
+		lang string
+		vis  wpresence.Visibility
+	)
+	changed := false
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
+		if err != nil {
+			return err
+		}
+		lang = RenderLanguage(meta, p)
+		key := idempotency.Derive(p.ID, meta.RequestID, meta.IdempotencyKey)
+		fresh, err := tx.Idempotency().Reserve(ctx, string(key), p.ID, meta.RequestID, meta.Command, h.idempotencyTTL)
+		if err != nil {
+			return err
+		}
+		if !fresh {
+			vis, err = visibilityOf(ctx, tx, p.ID)
+			return err
+		}
+		if err := tx.Presence().SetVisibility(ctx, p.ID, want); err != nil {
+			return err
+		}
+		vis, changed = want, true
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return h.render(meta, lang, false, vis, changed), nil
 }
 
 // SetLanguage handles player.language.set.
@@ -102,9 +168,13 @@ func (h *SettingsHandler) SetLanguage(ctx context.Context, meta envelope.Metadat
 	}
 
 	rendered := lang
+	var vis wpresence.Visibility
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
+			return err
+		}
+		if vis, err = visibilityOf(ctx, tx, p.ID); err != nil {
 			return err
 		}
 
@@ -125,7 +195,7 @@ func (h *SettingsHandler) SetLanguage(ctx context.Context, meta envelope.Metadat
 		return nil, err
 	}
 
-	return h.render(meta, rendered, true), nil
+	return h.render(meta, rendered, true, vis, false), nil
 }
 
 // supported reports whether the catalogue has lang.
@@ -148,7 +218,7 @@ func (h *SettingsHandler) supported(lang string) bool {
 // show, and the screen is really being read in the fallback language. So no
 // language is claimed as current and every one is offered, which is the
 // accurate thing to say and one press away from fixing.
-func (h *SettingsHandler) render(meta envelope.Metadata, lang string, changed bool) *presenter.Response {
+func (h *SettingsHandler) render(meta envelope.Metadata, lang string, changed bool, vis wpresence.Visibility, visChanged bool) *presenter.Response {
 	c := screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta)}
 	current := lang
 	if !h.supported(current) {
@@ -158,6 +228,9 @@ func (h *SettingsHandler) render(meta envelope.Metadata, lang string, changed bo
 		Language:        current,
 		Languages:       h.languages.Languages(),
 		LanguageChanged: changed,
+
+		PresenceVisibility: string(vis),
+		PresenceChanged:    visChanged,
 	})
 }
 

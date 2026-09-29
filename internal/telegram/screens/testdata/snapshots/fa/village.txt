@@ -19,6 +19,7 @@
   [📚 دانش روستا] → settlement:knowledge
   [🏗 ساخت‌وساز] → settlement:build
   [⏳ پیشرفت ساخت] → settlement:build.progress
+  [👥 اهالی] → settlement:who
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ Village overview · nothing built yet ━━━
@@ -41,6 +42,7 @@
   [📚 دانش روستا] → settlement:knowledge
   [🏗 ساخت‌وساز] → settlement:build
   [⏳ پیشرفت ساخت] → settlement:build.progress
+  [👥 اهالی] → settlement:who
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ Knowledge list · mixed states, research running ━━━

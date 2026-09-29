@@ -221,6 +221,7 @@ func (t *fakeTx) Worlds() application.WorldRepository                           
 func (t *fakeTx) Settlements() application.SettlementRepository                  { return nil }
 func (t *fakeTx) SettlementKnowledge() application.SettlementKnowledgeRepository { return nil }
 func (t *fakeTx) SettlementBuildings() application.SettlementBuildingRepository  { return nil }
+func (t *fakeTx) Presence() application.PresenceRepository                       { return nil }
 
 // Bank reads presence off this transaction's own players and journeys.
 func (t *fakeTx) Bank() application.BankRepository {

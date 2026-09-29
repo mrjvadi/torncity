@@ -531,6 +531,11 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		return err
 	}
 	defer func() { _ = rdb.Close() }()
+	h.presence = handlers.NewPresenceHandler(uow, messages, &application.PresenceService{
+		Store:       infraredis.NewPresence(rdb, cfg.Realtime.PresenceTTL),
+		Repo:        postgres.NewPresenceRepository(pool),
+		RosterLimit: cfg.Realtime.RosterLimit,
+	})
 	h.clients.devices, err = handlers.NewDevicesHandler(handlers.DevicesConfig{
 		Msgs:       messages,
 		Players:    postgres.NewPlayerRepository(pool, cfg.Player.DefaultLanguage),

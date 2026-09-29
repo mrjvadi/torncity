@@ -204,6 +204,10 @@ type inputSettings struct {
 type announceSettings struct {
 	Window       *string `yaml:"window"`
 	MaxPerWindow *int    `yaml:"max_per_window"`
+
+	VillageMergeWindow   *string `yaml:"village_merge_window"`
+	VillageMinGap        *string `yaml:"village_min_gap"`
+	VillageFlushInterval *string `yaml:"village_flush_interval"`
 }
 
 type notificationsSettings struct {
@@ -1373,6 +1377,15 @@ var coreSettings = []setting{
 	limitSetting("announce", "max_per_window",
 		func(c *Config) *int { return &c.Announce.MaxPerWindow },
 		func(f *fileConfig) *int { return f.Announce.MaxPerWindow }),
+	durationSetting("announce", "village_merge_window",
+		func(c *Config) *time.Duration { return &c.Announce.VillageMergeWindow },
+		func(f *fileConfig) *string { return f.Announce.VillageMergeWindow }),
+	durationSetting("announce", "village_min_gap",
+		func(c *Config) *time.Duration { return &c.Announce.VillageMinGap },
+		func(f *fileConfig) *string { return f.Announce.VillageMinGap }),
+	durationSetting("announce", "village_flush_interval",
+		func(c *Config) *time.Duration { return &c.Announce.VillageFlushInterval },
+		func(f *fileConfig) *string { return f.Announce.VillageFlushInterval }),
 
 	limitSetting("notifications", "inbox_page_size",
 		func(c *Config) *int { return &c.Notifications.InboxPageSize },

@@ -77,6 +77,7 @@ var all = []Subscription{
 	// Settings: the screen, and the one setting it has so far.
 	{Domain: "player", Action: "settings", Origin: FromPlayer},
 	{Domain: "player", Action: "language.set", Origin: FromPlayer},
+	{Domain: "player", Action: "presence.set", Origin: FromPlayer},
 
 	// Phase 1: travel. travel.arrive is the one command in the game that no
 	// player can send; the scheduler publishes it when a journey comes due.
@@ -432,6 +433,8 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "build.progress", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.demolish", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.cancel", Origin: FromPlayer},
+	// Who is around in the village (docs/adr/0030, R2): a group screen.
+	{Domain: "settlement", Action: "who", Origin: FromPlayer},
 	{Domain: "settlement", Action: "researched", Origin: FromScheduler},
 	{Domain: "settlement", Action: "taught", Origin: FromScheduler},
 	{Domain: "settlement", Action: "built", Origin: FromScheduler},

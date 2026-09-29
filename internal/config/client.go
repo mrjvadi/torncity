@@ -66,6 +66,15 @@ type Client struct {
 type Realtime struct {
 	APIURL         string        // realtime.api_url
 	PublishTimeout time.Duration // realtime.publish_timeout
+
+	// PresenceTTL is how long a player reads as online after their last
+	// heartbeat or command (docs/adr/0030 section 3.1).
+	PresenceTTL time.Duration // realtime.presence_ttl
+	// RosterLimit bounds one settlement player list.
+	RosterLimit int // realtime.roster_limit
+	// SettlementEventTTL is how long a settlement channel event remembers
+	// the version it was stamped with, so a redelivery is stamped the same.
+	SettlementEventTTL time.Duration // realtime.settlement_event_ttl
 }
 
 type clientSettings struct {
@@ -91,8 +100,11 @@ type clientSettings struct {
 }
 
 type realtimeSettings struct {
-	APIURL         *string `yaml:"api_url"`
-	PublishTimeout *string `yaml:"publish_timeout"`
+	APIURL             *string `yaml:"api_url"`
+	PublishTimeout     *string `yaml:"publish_timeout"`
+	PresenceTTL        *string `yaml:"presence_ttl"`
+	RosterLimit        *int    `yaml:"roster_limit"`
+	SettlementEventTTL *string `yaml:"settlement_event_ttl"`
 }
 
 // The two answers client.group_commands takes.
@@ -127,7 +139,10 @@ func defaultClient() Client {
 }
 
 func defaultRealtime() Realtime {
-	return Realtime{APIURL: "http://tc-centrifugo:8000/api", PublishTimeout: 2 * time.Second}
+	return Realtime{
+		APIURL: "http://tc-centrifugo:8000/api", PublishTimeout: 2 * time.Second,
+		PresenceTTL: 30 * time.Second, RosterLimit: 200, SettlementEventTTL: 24 * time.Hour,
+	}
 }
 
 // ErrClient is a client API or realtime setting that cannot work.
@@ -238,5 +253,14 @@ func clientSettingsTable() []setting {
 		durationSetting("realtime", "publish_timeout",
 			func(c *Config) *time.Duration { return &c.Realtime.PublishTimeout },
 			func(f *fileConfig) *string { return f.Realtime.PublishTimeout }),
+		durationSetting("realtime", "presence_ttl",
+			func(c *Config) *time.Duration { return &c.Realtime.PresenceTTL },
+			func(f *fileConfig) *string { return f.Realtime.PresenceTTL }),
+		limitSetting("realtime", "roster_limit",
+			func(c *Config) *int { return &c.Realtime.RosterLimit },
+			func(f *fileConfig) *int { return f.Realtime.RosterLimit }),
+		durationSetting("realtime", "settlement_event_ttl",
+			func(c *Config) *time.Duration { return &c.Realtime.SettlementEventTTL },
+			func(f *fileConfig) *string { return f.Realtime.SettlementEventTTL }),
 	}
 }

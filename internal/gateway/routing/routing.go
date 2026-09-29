@@ -332,6 +332,8 @@ var argNames = map[string][]string{
 	// against the languages it actually ships.
 	"player.settings":     {},
 	"player.language.set": {"lang"},
+	// The «last seen» setting: everyone, contacts or nobody (ADR 0030).
+	"player.presence.set": {"visibility"},
 
 	// The bank. An amount is whole minor units as typed ("5000", "12,500");
 	// the game core parses and bounds it. nonce is the one-time token a
@@ -459,6 +461,7 @@ var argNames = map[string][]string{
 	"settlement.build.progress":     {},
 	"settlement.build.demolish":     {"id"},
 	"settlement.build.cancel":       {"id"},
+	"settlement.who":                {},
 
 	"job.status":       {},
 	"job.list":         {"page"},

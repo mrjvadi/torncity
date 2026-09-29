@@ -276,6 +276,9 @@ settings:
   title: "⚙️ تنظیمات"
   language: "🌐 زبان بازی: {language}"
   language_changed: "✅ زبان بازی به {language} تغییر کرد."
+  presence: "👁 چه کسانی وضعیت آنلاین من را ببینند: {visibility}"
+  presence_changed: "✅ حالا وضعیت آنلاین شما برای «{visibility}» دیده می‌شود."
+  presence_nobody_hint: "با «هیچ‌کس»، وضعیت آنلاین دیگران هم برایتان پنهان می‌شود؛ فقط اهالی روستای خودتان می‌توانند شما را ببینند."
 
 # Language names, keyed on the locale file's name (fa.yml -> language.fa).
 # Each language is written in ITSELF, in every locale: a player who landed in
@@ -394,6 +397,7 @@ button:
   social: "👥 دوستان"
   settings: "⚙️ تنظیمات"
   change_language: "🌐 تغییر زبان به {language}"
+  change_presence: "👁 وضعیت آنلاین: {visibility}"
   add_friend: "➕ افزودن {player}"
   accept: "✅ پذیرفتن {player}"
   bank: "🏦 بانک"
@@ -708,6 +712,8 @@ village:
   building_line: "• {building}"
   no_buildings: "هنوز بنایی ساخته نشده است."
   button:
+    overview: "🏘 نمای روستا"
+    who: "👥 اهالی"
     knowledge: "📚 دانش روستا"
     build: "🏗 ساخت‌وساز"
     progress: "⏳ پیشرفت ساخت"
@@ -1478,6 +1484,7 @@ command_alias:
   gold: "طلا | طلافروشی"
   settlement:
     found: "ساخت روستا | تاسیس روستا"
+    who: "اهالی روستا | آنلاین‌ها"
 
 # Where a command runs (configs/commands.yml). Sent in the wrong kind of chat,
 # it is not run; the player reads one of these instead.
@@ -4459,3 +4466,46 @@ device:
     link: "➕ اتصال کلاینت تازه"
     list: "📱 کلاینت‌های وصل‌شده"
     revoke: "🚫 خروج {name}"
+
+# آخرین بازدید و اهالی روستا (docs/adr/0030-realtime-interest-and-presence.md؛
+# internal/telegram/screens/presence.go). صفحهٔ «اهالی» در گروه است و فقط
+# فهرست همان روستاست؛ تنظیم شخصی هرگز در گروه نمایش داده نمی‌شود.
+presence:
+  visibility:
+    everyone: "همه"
+    contacts: "فقط دوستان و هم‌جناحی‌ها"
+    nobody: "هیچ‌کس"
+  activity:
+    idle: "آنلاین"
+    travelling: "در حال سفر"
+    working: "در حال کار"
+    studying: "در حال تحصیل"
+    training: "در حال تمرین"
+    hospital: "در بیمارستان"
+    jail: "در زندان"
+    building: "در حال ساخت"
+    fighting: "در حال نبرد"
+  who:
+    title: "👥 چه کسانی در «{name}» هستند"
+    counts: "🟢 {online} نفر آنلاین - ⚪️ {offline} نفر آفلاین"
+    line: "🟢 {name} - {activity}"
+    line_place: "🟢 {name} - {activity} - {place}"
+    more: "و {count} نفر آنلاین دیگر"
+    nobody: "الان کسی آنلاین نیست."
+
+# خبرهای کوتاه روستا در گروه (internal/workers/notification/village_news.go).
+# یک خبر تنها با جملهٔ کامل می‌آید؛ چند خبر پشت‌سرهم یکی می‌شوند و فهرست‌وار.
+village_news:
+  built: "🏗 ساخت «{building}» در روستای «{village}» تمام شد."
+  build_started: "🚧 دهیار ساخت «{building}» را در روستای «{village}» شروع کرد."
+  researched: "🔬 پژوهش «{knowledge}» در روستای «{village}» تمام شد و روستا حالا آن را می‌داند."
+  bought: "📚 دهیار «{knowledge}» را برای روستای «{village}» خرید."
+  taught: "📖 سوادآموزی روستای «{village}» به {percent}٪ رسید."
+  merged:
+    title: "🏘 تازه‌های روستای «{village}»:"
+    built: "• 🏗 ساخت «{building}» تمام شد."
+    build_started: "• 🚧 ساخت «{building}» شروع شد."
+    researched: "• 🔬 پژوهش «{knowledge}» تمام شد."
+    bought: "• 📚 «{knowledge}» خریداری شد."
+    taught: "• 📖 سوادآموزی به {percent}٪ رسید."
+    more: "• و {count} خبر دیگر."

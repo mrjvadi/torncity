@@ -1,0 +1,100 @@
+━━━ Who is around · a busy village ━━━
+(edits message 42)
+👥 Who is in Korendal
+
+🟢 3 online - ⚪️ 12 offline
+
+🟢 Sara - working - bus terminal
+🟢 Kaveh - online
+🟢 Nilou - travelling
+  ───
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:who
+
+━━━ Who is around · nobody online ━━━
+(edits message 42)
+👥 Who is in Korendal
+
+🟢 0 online - ⚪️ 5 offline
+
+Nobody is online right now.
+  ───
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:who
+
+━━━ Settings · last seen shown to everyone ━━━
+(edits message 42)
+<b>⚙️ Settings</b>
+
+🌐 Game language: English
+👁 Who can see me online: everyone
+  ───
+  [🌐 Switch to ⁨فارسی⁩] → player:language.set:fa
+  [👁 Online status: friends and faction mates only] → player:presence.set:contacts
+  [👁 Online status: nobody] → player:presence.set:nobody
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → player:settings
+
+━━━ Settings · last seen shown to nobody, just changed ━━━
+(edits message 42)
+<b>⚙️ Settings</b>
+
+✅ Your online status is now visible to: nobody.
+
+🌐 Game language: English
+👁 Who can see me online: nobody
+With "nobody", other players' online status is hidden from you too; only people in your own village can see you.
+  ───
+  [🌐 Switch to ⁨فارسی⁩] → player:language.set:fa
+  [👁 Online status: everyone] → player:presence.set:everyone
+  [👁 Online status: friends and faction mates only] → player:presence.set:contacts
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → player:settings
+
+━━━ News · a building finished ━━━
+(edits message 42)
+🏗 Construction of the Carpentry workshop in Korendal is finished.
+  ───
+  [⏳ Build progress] → settlement:build.progress
+
+━━━ News · construction started ━━━
+(edits message 42)
+🚧 The village head started building the Watch hut in Korendal.
+  ───
+  [⏳ Build progress] → settlement:build.progress
+
+━━━ News · research finished ━━━
+(edits message 42)
+🔬 Research into Canal irrigation in Korendal is finished; the village now knows it.
+  ───
+  [📚 Village knowledge] → settlement:knowledge
+
+━━━ News · knowledge bought ━━━
+(edits message 42)
+📚 The village head bought Canal irrigation for Korendal.
+  ───
+  [📚 Village knowledge] → settlement:knowledge
+
+━━━ News · literacy grew ━━━
+(edits message 42)
+📖 Literacy in Korendal reached 24%.
+  ───
+  [🏘 Village] → settlement:overview
+
+━━━ News · a burst merged into one post ━━━
+(edits message 42)
+🏘 News from Korendal:
+• 🏗 The Carpentry workshop is built.
+• 🔬 Research into Canal irrigation is finished.
+• 📖 Literacy reached 24%.
+  ───
+  [🏘 Village] → settlement:overview
+
+━━━ News · a long burst is cut short ━━━
+(edits message 42)
+🏘 News from Korendal:
+• 🏗 The Carpentry workshop is built.
+• 🏗 The Watch hut is built.
+• 📚 Canal irrigation was bought.
+• 🔬 Research into Canal irrigation is finished.
+• 🚧 Building the Carpentry workshop has started.
+• 📖 Literacy reached 31%.
+• and 2 more.
+  ───
+  [🏘 Village] → settlement:overview

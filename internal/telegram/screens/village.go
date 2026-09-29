@@ -182,6 +182,7 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 	kb.Add(c.T("village.button.knowledge", nil), AddrKnowledgeList)
 	kb.Add(c.T("village.button.build", nil), AddrBuildMenu)
 	kb.Add(c.T("village.button.progress", nil), AddrConstructionProgress)
+	kb.Add(c.T("village.button.who", nil), AddrSettlementWho)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrVillageOverview}))
 
 	return c.respond(paragraphs(head, population, treasury, coverage, buildings), kb.Build())

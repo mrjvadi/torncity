@@ -203,6 +203,9 @@ settings:
   title: "⚙️ Settings"
   language: "🌐 Game language: {language}"
   language_changed: "✅ The game language is now {language}."
+  presence: "👁 Who can see me online: {visibility}"
+  presence_changed: "✅ Your online status is now visible to: {visibility}."
+  presence_nobody_hint: "With \"nobody\", other players' online status is hidden from you too; only people in your own village can see you."
 
 # Language names, keyed on the locale file's name (fa.yml -> language.fa).
 # Each language is written in ITSELF, in every locale: a player who landed in
@@ -306,6 +309,7 @@ button:
   social: "👥 Friends"
   settings: "⚙️ Settings"
   change_language: "🌐 Switch to {language}"
+  change_presence: "👁 Online status: {visibility}"
   add_friend: "➕ Add {player}"
   accept: "✅ Accept {player}"
   bank: "🏦 Bank"
@@ -609,6 +613,8 @@ village:
   building_line: "• {building}"
   no_buildings: "No buildings stand here yet."
   button:
+    overview: "🏘 Village"
+    who: "👥 People"
     knowledge: "📚 Village knowledge"
     build: "🏗 Construction"
     progress: "⏳ Build progress"
@@ -1360,6 +1366,7 @@ command_alias:
   devices: "devices"
   settlement:
     found: "found village"
+    who: "village people | who is online"
 
 # Where a command runs (configs/commands.yml).
 channel:
@@ -4316,3 +4323,46 @@ device:
     link: "➕ Link a client"
     list: "📱 Linked clients"
     revoke: "🚫 Sign out {name}"
+
+# Last seen and a village's people (docs/adr/0030-realtime-interest-and-presence.md;
+# internal/telegram/screens/presence.go). The people screen lives in the group and
+# is only that village's list; the personal setting is never shown in a group.
+presence:
+  visibility:
+    everyone: "everyone"
+    contacts: "friends and faction mates only"
+    nobody: "nobody"
+  activity:
+    idle: "online"
+    travelling: "travelling"
+    working: "working"
+    studying: "studying"
+    training: "training"
+    hospital: "in hospital"
+    jail: "in jail"
+    building: "building"
+    fighting: "fighting"
+  who:
+    title: "👥 Who is in {name}"
+    counts: "🟢 {online} online - ⚪️ {offline} offline"
+    line: "🟢 {name} - {activity}"
+    line_place: "🟢 {name} - {activity} - {place}"
+    more: "and {count} more online"
+    nobody: "Nobody is online right now."
+
+# Short village news in the group (internal/workers/notification/village_news.go).
+# One item reads as a full sentence; a burst is merged into one short list.
+village_news:
+  built: "🏗 Construction of the {building} in {village} is finished."
+  build_started: "🚧 The village head started building the {building} in {village}."
+  researched: "🔬 Research into {knowledge} in {village} is finished; the village now knows it."
+  bought: "📚 The village head bought {knowledge} for {village}."
+  taught: "📖 Literacy in {village} reached {percent}%."
+  merged:
+    title: "🏘 News from {village}:"
+    built: "• 🏗 The {building} is built."
+    build_started: "• 🚧 Building the {building} has started."
+    researched: "• 🔬 Research into {knowledge} is finished."
+    bought: "• 📚 {knowledge} was bought."
+    taught: "• 📖 Literacy reached {percent}%."
+    more: "• and {count} more."
