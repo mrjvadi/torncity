@@ -27,6 +27,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/content/testworld"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 )
@@ -39,6 +40,9 @@ func shippedPack(t *testing.T) *content.Pack {
 	if err != nil {
 		t.Fatalf("loading the shipped content: %v", err)
 	}
+	// The integration database carries the multi-city test world
+	// (main_integration_test.go), and spawn spreads newcomers over cities.
+	pack = testworld.Extend(pack)
 	if err := pack.Validate(); err != nil {
 		t.Fatalf("the shipped content does not validate: %v", err)
 	}

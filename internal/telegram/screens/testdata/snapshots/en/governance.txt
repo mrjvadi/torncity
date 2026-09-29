@@ -10,8 +10,8 @@ Offices:
 Policies:
 • Tax rate: 4.5% - set by Sara (K7Q2M9A)
   ⏳ Changes to 8% in 23h
-• Immigration fee: 1,500 Nil - default
-• Minimum wage: 100 Nil - default
+• Immigration fee: 1,500 SUP - default
+• Minimum wage: 100 SUP - default
 • Working-hours window (game hours): 24 - default
 
 📍 The Commonwealth
@@ -54,7 +54,7 @@ You have not settled in a city yet. Once you do, its offices and policies appear
 📍 Deputy mayor of Ostmarch
 You are acting for the vacant office of Mayor.
 • Tax rate: 4.5%
-• Immigration fee: 1,500 Nil
+• Immigration fee: 1,500 SUP
 
 📍 President of The Commonwealth
 • Border tariff: 0%
@@ -100,18 +100,18 @@ Adjust it with the buttons, then tap “Review change”.
 ━━━ Change a policy · money ━━━
 (edits message 42)
 🏛 Immigration fee — Ostmarch
-• Immigration fee: 1,500 Nil - default
+• Immigration fee: 1,500 SUP - default
 
-Allowed range: 0 Nil to 100,000 Nil
-Default: 0 Nil
+Allowed range: 0 SUP to 100,000 SUP
+Default: 0 SUP
 A change takes effect 24h after it is announced.
 After a change, the next one can be made 3d later.
 
-New value: 1,500 Nil
+New value: 1,500 SUP
 Adjust it with the buttons, then tap “Review change”.
   ───
-  [➖ 10,000 Nil] → gov:lever:city.immigration_fee:ostmarch:0   │   [➖ 1,000 Nil] → gov:lever:city.immigration_fee:ostmarch:500   │   [➕ 1,000 Nil] → gov:lever:city.immigration_fee:ostmarch:2500   │   [➕ 10,000 Nil] → gov:lever:city.immigration_fee:ostmarch:11500
-  [Minimum (0 Nil)] → gov:lever:city.immigration_fee:ostmarch:0   │   [Default (0 Nil)] → gov:lever:city.immigration_fee:ostmarch:0   │   [Maximum (100,000 Nil)] → gov:lever:city.immigration_fee:ostmarch:100000
+  [➖ 10,000 SUP] → gov:lever:city.immigration_fee:ostmarch:0   │   [➖ 1,000 SUP] → gov:lever:city.immigration_fee:ostmarch:500   │   [➕ 1,000 SUP] → gov:lever:city.immigration_fee:ostmarch:2500   │   [➕ 10,000 SUP] → gov:lever:city.immigration_fee:ostmarch:11500
+  [Minimum (0 SUP)] → gov:lever:city.immigration_fee:ostmarch:0   │   [Default (0 SUP)] → gov:lever:city.immigration_fee:ostmarch:0   │   [Maximum (100,000 SUP)] → gov:lever:city.immigration_fee:ostmarch:100000
   [🔙 Back] → gov:office   │   [🔄 Refresh] → gov:lever:city.immigration_fee:ostmarch
 
 ━━━ Change a policy · waiting for the cooldown ━━━
@@ -183,7 +183,7 @@ Tax rate in Ostmarch will change from 4.5% to 8.25% in 24h. The change is record
   Announced by Mayor Sara (K7Q2M9A) - 3h ago
   ⏳ Takes effect in 21h
 
-• Minimum wage (Ostmarch): 100 Nil → 150 Nil
+• Minimum wage (Ostmarch): 100 SUP → 150 SUP
   Announced by Mayor Sara (K7Q2M9A) - 2d 2h ago
   In force for 26h
 

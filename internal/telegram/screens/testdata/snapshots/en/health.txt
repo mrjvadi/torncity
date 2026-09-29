@@ -8,7 +8,7 @@
 🛌 Resting, your health is back in full in 7m. Medicine gets you there sooner.
 
 🩺 Clinics in Ostmarch:
-• Shefa clinic (C1N1C2A): 1,200 Nil a treatment - doctor level 12
+• Shefa clinic (C1N1C2A): 1,200 SUP a treatment - doctor level 12
 • Nilou Repairs clinic (M3D1C4L): not taking patients
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
@@ -25,13 +25,13 @@ Cause: hurt on a job
 Discharged at 14:41
 
 🩺 Who should treat you? A stay is treated once:
-• City hospital: 750 Nil - out 3m sooner
-• Shefa clinic (C1N1C2A): 1,200 Nil - out 5m sooner - doctor level 12
+• City hospital: 750 SUP - out 3m sooner
+• Shefa clinic (C1N1C2A): 1,200 SUP - out 5m sooner - doctor level 12
 • Kaveh Bakery clinic (D4R0B8K): out of medicine
 • Nilou Repairs clinic (M3D1C4L): not taking patients
   ───
-  [🩺 City hospital - 750 Nil] → health:treat:city
-  [🩺 Shefa clinic (C1N1C2A) - 1,200 Nil] → health:treat:C1N1C2A
+  [🩺 City hospital - 750 SUP] → health:treat:city
+  [🩺 Shefa clinic (C1N1C2A) - 1,200 SUP] → health:treat:C1N1C2A
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
 
 ━━━ Hospital · treated, resting ━━━
@@ -61,29 +61,29 @@ Discharged at 14:36
 
 ━━━ Treat · confirm at a clinic ━━━
 (edits message 42) (private in groups)
-🩺 Treatment at Shefa clinic (C1N1C2A): 1,200 Nil. It takes 5m off the 6m left of your stay.
+🩺 Treatment at Shefa clinic (C1N1C2A): 1,200 SUP. It takes 5m off the 6m left of your stay.
 Discharged after treatment at 14:36
 
 How will you pay?
-💵 Your cash: 3,400 Nil - Bank: 52,000 Nil
+💵 Your cash: 3,400 SUP - Bank: 52,000 SUP
   ───
-  [💵 Pay cash - 1,200 Nil] → health:treat:C1N1C2A:cash   │   [💳 Pay by card - 1,200 Nil] → health:treat:C1N1C2A:card
+  [💵 Pay cash - 1,200 SUP] → health:treat:C1N1C2A:cash   │   [💳 Pay by card - 1,200 SUP] → health:treat:C1N1C2A:card
   [🔙 Back] → health:hospital
 
 ━━━ Treat · confirm, cannot afford ━━━
 (edits message 42) (private in groups)
-🩺 Treatment at City hospital: 750 Nil. It takes 3m off the 6m left of your stay.
+🩺 Treatment at City hospital: 750 SUP. It takes 3m off the 6m left of your stay.
 Discharged after treatment at 14:39
 
 💸 Neither your cash nor your bank balance covers this.
-💵 Your cash: 100 Nil - Bank: 0 Nil
+💵 Your cash: 100 SUP - Bank: 0 SUP
   ───
   [🏦 Bank] → bank:show
   [🔙 Back] → health:hospital
 
 ━━━ Treat · confirm, a free clinic ━━━
 (edits message 42) (private in groups)
-🩺 Treatment at Shefa clinic (C1N1C2A): 0 Nil. It takes 5m off the 6m left of your stay.
+🩺 Treatment at Shefa clinic (C1N1C2A): 0 SUP. It takes 5m off the 6m left of your stay.
 Discharged after treatment at 14:36
   ───
   [✅ Free treatment] → health:treat:C1N1C2A:free
@@ -92,7 +92,7 @@ Discharged after treatment at 14:36
 ━━━ Treat · treated at a clinic ━━━
 (edits message 42) (private in groups)
 🩺 Treated at Shefa clinic (C1N1C2A): you are out 5m sooner.
-💸 Treatment: 1,200 Nil
+💸 Treatment: 1,200 SUP
 💳 Paid by bank card.
 ⏳ 2m until you are discharged
 Discharged at 14:36
@@ -104,10 +104,10 @@ Discharged at 14:36
 🩺 Shefa clinic desk
 
 🟢 Taking patients
-💵 A treatment: 1,200 Nil
+💵 A treatment: 1,200 SUP
 💊 Medicine in the warehouse: 18 units - a treatment uses 1
 👨‍⚕️ Best doctor: medicine level 12 - a treatment takes 73% off a stay
-📈 Treatments: 9 - earned: 10,800 Nil
+📈 Treatments: 9 - earned: 10,800 SUP
 
 Patients in the city's hospital see this clinic beside the city hospital. Each treatment uses medicine from the warehouse and pays the clinic.
   ───
@@ -121,11 +121,11 @@ Patients in the city's hospital see this clinic beside the city hospital. Each t
 🩺 Shefa clinic desk
 
 🔴 Not taking patients
-💵 A treatment: 0 Nil
+💵 A treatment: 0 SUP
 💊 Medicine in the warehouse: 0 units - a treatment uses 1
 ⚠️ Not enough medicine for a single treatment; buy from a pharmaceutical lab's listings or make your own.
 👨‍⚕️ Best doctor: medicine level 0 - a treatment takes 55% off a stay
-📈 Treatments: 0 - earned: 0 Nil
+📈 Treatments: 0 - earned: 0 SUP
 
 Patients in the city's hospital see this clinic beside the city hospital. Each treatment uses medicine from the warehouse and pays the clinic.
   ───
@@ -152,7 +152,7 @@ Until you are discharged you cannot travel, work a shift, walk across town or co
 
 ━━━ Notice · the clinic treated a patient ━━━
 (sends) (private in groups)
-🩺 Shefa clinic treated a patient: Kaveh. 1,200 Nil was paid to the clinic and 1 Bandage used; the patient is out 4m sooner.
+🩺 Shefa clinic treated a patient: Kaveh. 1,200 SUP was paid to the clinic and 1 Bandage used; the patient is out 4m sooner.
   ───
   [🩺 Clinic desk] → health:clinic:C1N1C2A
 
@@ -267,7 +267,7 @@ Discharged at 14:41
 (sends)
 ✅ Shift complete
 
-💰 Wage 180 Nil - income tax 18 Nil - you received 162 Nil
+💰 Wage 180 SUP - income tax 18 SUP - you received 162 SUP
 ⭐ 12 XP
 📈 Performance: 64 of 100 (+2)
 ⚡ Energy: 60 of 100
@@ -305,8 +305,8 @@ Until you are discharged you cannot travel, work a shift, walk across town or co
 
 💼 No job yet
 
-💵 Cash: 2,400 Nil
-🏦 Bank balance: 18,000 Nil
+💵 Cash: 2,400 SUP
+🏦 Bank balance: 18,000 SUP
 
 🆔 Player code: K7Q2M9A
   ───

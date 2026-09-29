@@ -2,77 +2,77 @@
 (edits message 42)
 <b>🏦 Bank - Ostmarch branch</b>
 
-💵 Cash: 12,850 Nil
-🏦 Bank balance: 240,000 Nil
+💵 Cash: 12,850 SUP
+🏦 Bank balance: 240,000 SUP
 Withdrawals here carry a fee of 1.5%, taken from your bank on top of the amount; deposits are free.
 
 Choose an amount below; for any other amount, press "any amount" and type it.
 
 💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
   ───
-  [📥 Deposit 1,000 Nil] → bank:deposit:1000:n4Rt   │   [📥 Deposit 5,000 Nil] → bank:deposit:5000:n4Rt
-  [📥 Deposit 10,000 Nil] → bank:deposit:10000:n4Rt   │   [📥 Deposit all - 12,850 Nil] → bank:deposit:12850:n4Rt
+  [📥 Deposit 1,000 SUP] → bank:deposit:1000:n4Rt   │   [📥 Deposit 5,000 SUP] → bank:deposit:5000:n4Rt
+  [📥 Deposit 10,000 SUP] → bank:deposit:10000:n4Rt   │   [📥 Deposit all - 12,850 SUP] → bank:deposit:12850:n4Rt
   [✏️ Deposit any amount] → ask:bank.deposit
-  [📤 Withdraw 10,000 Nil] → bank:withdraw:10000:n4Rt   │   [📤 Withdraw 50,000 Nil] → bank:withdraw:50000:n4Rt
-  [📤 Withdraw 100,000 Nil] → bank:withdraw:100000:n4Rt   │   [📤 Withdraw all - 236,453 Nil] → bank:withdraw:236453:n4Rt
+  [📤 Withdraw 10,000 SUP] → bank:withdraw:10000:n4Rt   │   [📤 Withdraw 50,000 SUP] → bank:withdraw:50000:n4Rt
+  [📤 Withdraw 100,000 SUP] → bank:withdraw:100000:n4Rt   │   [📤 Withdraw all - 236,453 SUP] → bank:withdraw:236453:n4Rt
   [✏️ Withdraw any amount] → ask:bank.withdraw
   [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Bank · after a deposit, no fees ━━━
 (edits message 42)
-✅ 5,000 Nil deposited into your bank account.
+✅ 5,000 SUP deposited into your bank account.
 
 <b>🏦 Bank - Brennhaven branch</b>
 
-💵 Cash: 7,850 Nil
-🏦 Bank balance: 245,000 Nil
+💵 Cash: 7,850 SUP
+🏦 Bank balance: 245,000 SUP
 Deposits and withdrawals here are free.
 
 Choose an amount below; for any other amount, press "any amount" and type it.
 
 💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
   ───
-  [📥 Deposit 1,000 Nil] → bank:deposit:1000:n4Rt   │   [📥 Deposit 5,000 Nil] → bank:deposit:5000:n4Rt
-  [📥 Deposit all - 7,850 Nil] → bank:deposit:7850:n4Rt
+  [📥 Deposit 1,000 SUP] → bank:deposit:1000:n4Rt   │   [📥 Deposit 5,000 SUP] → bank:deposit:5000:n4Rt
+  [📥 Deposit all - 7,850 SUP] → bank:deposit:7850:n4Rt
   [✏️ Deposit any amount] → ask:bank.deposit
-  [📤 Withdraw 10,000 Nil] → bank:withdraw:10000:n4Rt   │   [📤 Withdraw 50,000 Nil] → bank:withdraw:50000:n4Rt
-  [📤 Withdraw 100,000 Nil] → bank:withdraw:100000:n4Rt   │   [📤 Withdraw all - 245,000 Nil] → bank:withdraw:245000:n4Rt
+  [📤 Withdraw 10,000 SUP] → bank:withdraw:10000:n4Rt   │   [📤 Withdraw 50,000 SUP] → bank:withdraw:50000:n4Rt
+  [📤 Withdraw 100,000 SUP] → bank:withdraw:100000:n4Rt   │   [📤 Withdraw all - 245,000 SUP] → bank:withdraw:245000:n4Rt
   [✏️ Withdraw any amount] → ask:bank.withdraw
   [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Bank · after a withdrawal with a fee ━━━
 (edits message 42)
-✅ You withdrew 5,000 Nil in cash, and a fee of 75 Nil was taken from your bank.
+✅ You withdrew 5,000 SUP in cash, and a fee of 75 SUP was taken from your bank.
 
 <b>🏦 Bank - Ostmarch branch</b>
 
-💵 Cash: 17,850 Nil
-🏦 Bank balance: 234,925 Nil
+💵 Cash: 17,850 SUP
+🏦 Bank balance: 234,925 SUP
 Withdrawals here carry a fee of 1.5%, taken from your bank on top of the amount; deposits are free.
 
 Choose an amount below; for any other amount, press "any amount" and type it.
 
 💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
   ───
-  [📥 Deposit 1,000 Nil] → bank:deposit:1000:n4Rt   │   [📥 Deposit 5,000 Nil] → bank:deposit:5000:n4Rt
-  [📥 Deposit 10,000 Nil] → bank:deposit:10000:n4Rt   │   [📥 Deposit all - 17,850 Nil] → bank:deposit:17850:n4Rt
+  [📥 Deposit 1,000 SUP] → bank:deposit:1000:n4Rt   │   [📥 Deposit 5,000 SUP] → bank:deposit:5000:n4Rt
+  [📥 Deposit 10,000 SUP] → bank:deposit:10000:n4Rt   │   [📥 Deposit all - 17,850 SUP] → bank:deposit:17850:n4Rt
   [✏️ Deposit any amount] → ask:bank.deposit
-  [📤 Withdraw 10,000 Nil] → bank:withdraw:10000:n4Rt   │   [📤 Withdraw 50,000 Nil] → bank:withdraw:50000:n4Rt
-  [📤 Withdraw 100,000 Nil] → bank:withdraw:100000:n4Rt   │   [📤 Withdraw all - 231,453 Nil] → bank:withdraw:231453:n4Rt
+  [📤 Withdraw 10,000 SUP] → bank:withdraw:10000:n4Rt   │   [📤 Withdraw 50,000 SUP] → bank:withdraw:50000:n4Rt
+  [📤 Withdraw 100,000 SUP] → bank:withdraw:100000:n4Rt   │   [📤 Withdraw all - 231,453 SUP] → bank:withdraw:231453:n4Rt
   [✏️ Withdraw any amount] → ask:bank.withdraw
   [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
 
 ━━━ Bank · after a free withdrawal, the bank emptied ━━━
 (edits message 42)
-✅ You withdrew 1,000 Nil in cash.
+✅ You withdrew 1,000 SUP in cash.
 
 <b>🏦 Bank - Brennhaven branch</b>
 
-💵 Cash: 1,000 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 1,000 SUP
+🏦 Bank balance: 0 SUP
 Deposits and withdrawals here are free.
 
 📤 Your bank balance is too low to withdraw.
@@ -80,7 +80,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 
 💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
   ───
-  [📥 Deposit 1,000 Nil] → bank:deposit:1000:n4Rt
+  [📥 Deposit 1,000 SUP] → bank:deposit:1000:n4Rt
   [✏️ Deposit any amount] → ask:bank.deposit
   [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
@@ -89,8 +89,8 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 (edits message 42)
 <b>🏦 Bank - Ostmarch branch</b>
 
-💵 Cash: 850 Nil
-🏦 Bank balance: 240,000 Nil
+💵 Cash: 850 SUP
+🏦 Bank balance: 240,000 SUP
 Withdrawals here carry a fee of 1.5%, taken from your bank on top of the amount; deposits are free.
 
 ⛓ You cannot withdraw while in jail; deposits still work.
@@ -98,7 +98,7 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 
 💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
   ───
-  [📥 Deposit all - 850 Nil] → bank:deposit:850:n4Rt
+  [📥 Deposit all - 850 SUP] → bank:deposit:850:n4Rt
   [✏️ Deposit any amount] → ask:bank.deposit
   [💸 Pay a player] → bank:pay   │   [🏛 National bank] → loan:hub
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → bank:show
@@ -107,8 +107,8 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 (edits message 42)
 <b>🏦 Bank - Ostmarch branch</b>
 
-💵 Cash: 0 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 0 SUP
+🏦 Bank balance: 0 SUP
 Withdrawals here carry a fee of 1.5%, taken from your bank on top of the amount; deposits are free.
 
 📥 You carry no cash to deposit.
@@ -123,8 +123,8 @@ Withdrawals here carry a fee of 1.5%, taken from your bank on top of the amount;
 (edits message 42)
 <b>🏦 Bank</b>
 
-💵 Cash: 4,440 Nil
-🏦 Bank balance: 240,000 Nil
+💵 Cash: 4,440 SUP
+🏦 Bank balance: 240,000 SUP
 🧭 You are travelling; you can deposit and withdraw once you arrive in a city. Card payments work from anywhere.
 
 💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
@@ -136,8 +136,8 @@ Withdrawals here carry a fee of 1.5%, taken from your bank on top of the amount;
 (edits message 42)
 <b>🏦 Bank</b>
 
-💵 Cash: 0 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 0 SUP
+🏦 Bank balance: 0 SUP
 You have not settled in a city yet, so there is no bank to visit.
 
 💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
@@ -163,16 +163,16 @@ Cash changes hands only when you are both in the same city; card payments work f
 📍 You are both in Ostmarch; cash or card, either works.
 💳 Card payments from Ostmarch carry a fee of 1%, on top of the amount.
 
-💵 Cash: 12,850 Nil
-🏦 Bank balance: 240,000 Nil
+💵 Cash: 12,850 SUP
+🏦 Bank balance: 240,000 SUP
 
 Choose an amount below; for any other amount, press "any amount" and type it.
   ───
-  [💵 Cash 1,000 Nil] → bank:pay:B3C4D5F:1000:cash   │   [💵 Cash 5,000 Nil] → bank:pay:B3C4D5F:5000:cash
-  [💵 Cash 10,000 Nil] → bank:pay:B3C4D5F:10000:cash   │   [💵 Cash, all - 12,850 Nil] → bank:pay:B3C4D5F:12850:cash
+  [💵 Cash 1,000 SUP] → bank:pay:B3C4D5F:1000:cash   │   [💵 Cash 5,000 SUP] → bank:pay:B3C4D5F:5000:cash
+  [💵 Cash 10,000 SUP] → bank:pay:B3C4D5F:10000:cash   │   [💵 Cash, all - 12,850 SUP] → bank:pay:B3C4D5F:12850:cash
   [✏️ Cash, any amount] → ask:bank.pay:B3C4D5F:cash
-  [💳 Card 10,000 Nil] → bank:pay:B3C4D5F:10000:card   │   [💳 Card 50,000 Nil] → bank:pay:B3C4D5F:50000:card
-  [💳 Card 100,000 Nil] → bank:pay:B3C4D5F:100000:card   │   [💳 Card, all - 237,623 Nil] → bank:pay:B3C4D5F:237623:card
+  [💳 Card 10,000 SUP] → bank:pay:B3C4D5F:10000:card   │   [💳 Card 50,000 SUP] → bank:pay:B3C4D5F:50000:card
+  [💳 Card 100,000 SUP] → bank:pay:B3C4D5F:100000:card   │   [💳 Card, all - 237,623 SUP] → bank:pay:B3C4D5F:237623:card
   [✏️ Card, any amount] → ask:bank.pay:B3C4D5F:card
   [🔙 Back] → bank:show   │   [🔄 Refresh] → bank:pay:B3C4D5F
 
@@ -184,14 +184,14 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 📍 You are both in Ostmarch; cash or card, either works.
 💳 Card payments from Ostmarch carry a fee of 1%, on top of the amount.
 
-💵 Cash: 850 Nil
-🏦 Bank balance: 3,000 Nil
+💵 Cash: 850 SUP
+🏦 Bank balance: 3,000 SUP
 
 Choose an amount below; for any other amount, press "any amount" and type it.
   ───
-  [💵 Cash, all - 850 Nil] → bank:pay:B3C4D5F:850:cash:-1001234567890
+  [💵 Cash, all - 850 SUP] → bank:pay:B3C4D5F:850:cash:-1001234567890
   [✏️ Cash, any amount] → ask:bank.pay:B3C4D5F:cash:-1001234567890
-  [💳 Card 1,000 Nil] → bank:pay:B3C4D5F:1000:card:-1001234567890   │   [💳 Card, all - 2,970 Nil] → bank:pay:B3C4D5F:2970:card:-1001234567890
+  [💳 Card 1,000 SUP] → bank:pay:B3C4D5F:1000:card:-1001234567890   │   [💳 Card, all - 2,970 SUP] → bank:pay:B3C4D5F:2970:card:-1001234567890
   [✏️ Card, any amount] → ask:bank.pay:B3C4D5F:card:-1001234567890
   [🔙 Back] → bank:show   │   [🔄 Refresh] → bank:pay:B3C4D5F
 
@@ -203,13 +203,13 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 🧭 You are not in the same city, so only a card payment is possible.
 💳 Card payments from Brennhaven are free.
 
-💵 Cash: 12,850 Nil
-🏦 Bank balance: 240,000 Nil
+💵 Cash: 12,850 SUP
+🏦 Bank balance: 240,000 SUP
 
 Choose an amount below; for any other amount, press "any amount" and type it.
   ───
-  [💳 Card 10,000 Nil] → bank:pay:B3C4D5F:10000:card   │   [💳 Card 50,000 Nil] → bank:pay:B3C4D5F:50000:card
-  [💳 Card 100,000 Nil] → bank:pay:B3C4D5F:100000:card   │   [💳 Card, all - 240,000 Nil] → bank:pay:B3C4D5F:240000:card
+  [💳 Card 10,000 SUP] → bank:pay:B3C4D5F:10000:card   │   [💳 Card 50,000 SUP] → bank:pay:B3C4D5F:50000:card
+  [💳 Card 100,000 SUP] → bank:pay:B3C4D5F:100000:card   │   [💳 Card, all - 240,000 SUP] → bank:pay:B3C4D5F:240000:card
   [✏️ Card, any amount] → ask:bank.pay:B3C4D5F:card
   [🔙 Back] → bank:show   │   [🔄 Refresh] → bank:pay:B3C4D5F
 
@@ -223,19 +223,19 @@ Kaveh is not here with you, so you cannot hand over cash. Send the money by card
 🧭 You are not in the same city, so only a card payment is possible.
 💳 Card payments from Ostmarch carry a fee of 1%, on top of the amount.
 
-💵 Cash: 12,850 Nil
-🏦 Bank balance: 240,000 Nil
+💵 Cash: 12,850 SUP
+🏦 Bank balance: 240,000 SUP
 
 Choose an amount below; for any other amount, press "any amount" and type it.
   ───
-  [💳 Card 10,000 Nil] → bank:pay:B3C4D5F:10000:card   │   [💳 Card 50,000 Nil] → bank:pay:B3C4D5F:50000:card
-  [💳 Card 100,000 Nil] → bank:pay:B3C4D5F:100000:card   │   [💳 Card, all - 237,623 Nil] → bank:pay:B3C4D5F:237623:card
+  [💳 Card 10,000 SUP] → bank:pay:B3C4D5F:10000:card   │   [💳 Card 50,000 SUP] → bank:pay:B3C4D5F:50000:card
+  [💳 Card 100,000 SUP] → bank:pay:B3C4D5F:100000:card   │   [💳 Card, all - 237,623 SUP] → bank:pay:B3C4D5F:237623:card
   [✏️ Card, any amount] → ask:bank.pay:B3C4D5F:card
   [🔙 Back] → bank:show   │   [🔄 Refresh] → bank:pay:B3C4D5F
 
 ━━━ Pay · not enough cash, checked before confirming ━━━
 (edits message 42)
-💵 Not enough cash: this needs 5,000 Nil and you carry 850 Nil. Choose a smaller amount or pay by card.
+💵 Not enough cash: this needs 5,000 SUP and you carry 850 SUP. Choose a smaller amount or pay by card.
 
 💸 Pay Kaveh
 🆔 Player code: B3C4D5F
@@ -243,21 +243,21 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 📍 You are both in Ostmarch; cash or card, either works.
 💳 Card payments from Ostmarch carry a fee of 1%, on top of the amount.
 
-💵 Cash: 850 Nil
-🏦 Bank balance: 240,000 Nil
+💵 Cash: 850 SUP
+🏦 Bank balance: 240,000 SUP
 
 Choose an amount below; for any other amount, press "any amount" and type it.
   ───
-  [💵 Cash, all - 850 Nil] → bank:pay:B3C4D5F:850:cash
+  [💵 Cash, all - 850 SUP] → bank:pay:B3C4D5F:850:cash
   [✏️ Cash, any amount] → ask:bank.pay:B3C4D5F:cash
-  [💳 Card 10,000 Nil] → bank:pay:B3C4D5F:10000:card   │   [💳 Card 50,000 Nil] → bank:pay:B3C4D5F:50000:card
-  [💳 Card 100,000 Nil] → bank:pay:B3C4D5F:100000:card   │   [💳 Card, all - 237,623 Nil] → bank:pay:B3C4D5F:237623:card
+  [💳 Card 10,000 SUP] → bank:pay:B3C4D5F:10000:card   │   [💳 Card 50,000 SUP] → bank:pay:B3C4D5F:50000:card
+  [💳 Card 100,000 SUP] → bank:pay:B3C4D5F:100000:card   │   [💳 Card, all - 237,623 SUP] → bank:pay:B3C4D5F:237623:card
   [✏️ Card, any amount] → ask:bank.pay:B3C4D5F:card
   [🔙 Back] → bank:show   │   [🔄 Refresh] → bank:pay:B3C4D5F
 
 ━━━ Pay · not enough in the bank with the fee ━━━
 (edits message 42)
-🏦 Not enough in your bank: with the fee this needs 5,050 Nil and you have 3,000 Nil. Choose a smaller amount.
+🏦 Not enough in your bank: with the fee this needs 5,050 SUP and you have 3,000 SUP. Choose a smaller amount.
 
 💸 Pay Kaveh
 🆔 Player code: B3C4D5F
@@ -265,12 +265,12 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 🧭 You are not in the same city, so only a card payment is possible.
 💳 Card payments from Ostmarch carry a fee of 1%, on top of the amount.
 
-💵 Cash: 0 Nil
-🏦 Bank balance: 3,000 Nil
+💵 Cash: 0 SUP
+🏦 Bank balance: 3,000 SUP
 
 Choose an amount below; for any other amount, press "any amount" and type it.
   ───
-  [💳 Card 1,000 Nil] → bank:pay:B3C4D5F:1000:card   │   [💳 Card, all - 2,970 Nil] → bank:pay:B3C4D5F:2970:card
+  [💳 Card 1,000 SUP] → bank:pay:B3C4D5F:1000:card   │   [💳 Card, all - 2,970 SUP] → bank:pay:B3C4D5F:2970:card
   [✏️ Card, any amount] → ask:bank.pay:B3C4D5F:card
   [🔙 Back] → bank:show   │   [🔄 Refresh] → bank:pay:B3C4D5F
 
@@ -282,8 +282,8 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 🧭 You are not in the same city, so only a card payment is possible.
 💳 Card payments from Ostmarch carry a fee of 1%, on top of the amount.
 
-💵 Cash: 0 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 0 SUP
+🏦 Bank balance: 0 SUP
 
 💸 Neither your cash nor your bank balance is enough to pay.
   ───
@@ -294,9 +294,9 @@ Choose an amount below; for any other amount, press "any amount" and type it.
 💸 Confirm your payment to Kaveh
 
 💵 How: cash, hand to hand
-Amount: 5,000 Nil
+Amount: 5,000 SUP
 
-Your cash after paying: 7,850 Nil
+Your cash after paying: 7,850 SUP
   ───
   [✅ Confirm and pay] → bank:pay.send:B3C4D5F:5000:cash:n4Rt   │   [✖️ Cancel] → bank:pay:B3C4D5F
   [🔙 Back] → bank:show
@@ -306,9 +306,9 @@ Your cash after paying: 7,850 Nil
 💸 Confirm your payment to Kaveh
 
 💳 How: bank card
-Amount: 5,000 Nil
+Amount: 5,000 SUP
 
-Your bank balance after paying: 235,000 Nil
+Your bank balance after paying: 235,000 SUP
   ───
   [✅ Confirm and pay] → bank:pay.send:B3C4D5F:5000:card:n4Rt   │   [✖️ Cancel] → bank:pay:B3C4D5F
   [🔙 Back] → bank:show
@@ -318,40 +318,40 @@ Your bank balance after paying: 235,000 Nil
 💸 Confirm your payment to Kaveh
 
 💳 How: bank card
-Amount: 20,000 Nil
-Fee: 200 Nil
-🧾 Total from your bank: 20,200 Nil
+Amount: 20,000 SUP
+Fee: 200 SUP
+🧾 Total from your bank: 20,200 SUP
 
-Your bank balance after paying: 219,800 Nil
+Your bank balance after paying: 219,800 SUP
   ───
   [✅ Confirm and pay] → bank:pay.send:B3C4D5F:20000:card:n4Rt:-1001234567890   │   [✖️ Cancel] → bank:pay:B3C4D5F
   [🔙 Back] → bank:show
 
 ━━━ Pay · sent cash ━━━
 (edits message 42)
-✅ You handed 5,000 Nil in cash to Kaveh.
+✅ You handed 5,000 SUP in cash to Kaveh.
   ───
   [🏦 Bank] → bank:show   │   [💸 Pay again] → bank:pay:B3C4D5F
   [🔙 Back] → player:profile.get
 
 ━━━ Pay · sent card ━━━
 (edits message 42)
-✅ You sent 5,000 Nil by card to Kaveh.
+✅ You sent 5,000 SUP by card to Kaveh.
   ───
   [🏦 Bank] → bank:show   │   [💸 Pay again] → bank:pay:B3C4D5F
   [🔙 Back] → player:profile.get
 
 ━━━ Pay · sent card with fee ━━━
 (edits message 42)
-✅ You sent 20,000 Nil by card to A player.
-Fee: 200 Nil
+✅ You sent 20,000 SUP by card to A player.
+Fee: 200 SUP
   ───
   [🏦 Bank] → bank:show   │   [💸 Pay again] → bank:pay:B3C4D5F
   [🔙 Back] → player:profile.get
 
 ━━━ Notice · received cash ━━━
 (sends)
-💵 Kaveh handed you 5,000 Nil in cash.
+💵 Kaveh handed you 5,000 SUP in cash.
 🆔 Player code: B3C4D5F
   ───
   [🏦 Bank] → bank:show
@@ -359,7 +359,7 @@ Fee: 200 Nil
 
 ━━━ Notice · received by card ━━━
 (sends)
-💳 Kaveh sent you 20,000 Nil by card. The money is in your bank account.
+💳 Kaveh sent you 20,000 SUP by card. The money is in your bank account.
 🆔 Player code: B3C4D5F
   ───
   [🏦 Bank] → bank:show
@@ -400,21 +400,21 @@ Please write the amount as a number only, for example "deposit 5000".
 
 ━━━ Bank refusal · below the minimum ━━━
 (edits message 42)
-The smallest amount allowed is 1 Nil.
+The smallest amount allowed is 1 SUP.
   ───
   [🏦 Bank] → bank:show
   [🔙 Back] → player:profile.get
 
 ━━━ Bank refusal · above the maximum ━━━
 (edits message 42)
-The largest amount allowed at once is 1,000,000 Nil.
+The largest amount allowed at once is 1,000,000 SUP.
   ───
   [🏦 Bank] → bank:show
   [🔙 Back] → player:profile.get
 
 ━━━ Bank refusal · not enough cash ━━━
 (edits message 42)
-You do not have enough cash. Cash on you: 3,200 Nil
+You do not have enough cash. Cash on you: 3,200 SUP
   ───
   [🏦 Bank] → bank:show
   [🔙 Back] → player:profile.get
@@ -422,7 +422,7 @@ You do not have enough cash. Cash on you: 3,200 Nil
 ━━━ Bank refusal · not enough in the bank ━━━
 (edits message 42)
 Your bank balance is not enough.
-This needs 5,075 Nil including the fee, and you have 4,000 Nil.
+This needs 5,075 SUP including the fee, and you have 4,000 SUP.
   ───
   [🏦 Bank] → bank:show
   [🔙 Back] → player:profile.get

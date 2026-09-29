@@ -193,7 +193,7 @@ var shortcuts = map[string]shortcut{
 	// "/pay @ali 5000 card" asks to confirm one.
 	"bank": {Bare: "bank.show"},
 	"pay":  {Bare: "bank.pay", Words: "bank.pay"},
-	// Player-held offices: "/city" is the player's own city, "/city ostmarch"
+	// Player-held offices: "/city" is the player's own city, "/city support"
 	// another one; "/office" is the office holder's screen.
 	"city":   {Bare: "gov.city", Words: "gov.city"},
 	"office": {Bare: "gov.office"},
@@ -274,7 +274,7 @@ var shortcuts = map[string]shortcut{
 	"gold":      {Bare: "gold.show"},
 	// "/laws" is the proposals before the bodies of the player's places;
 	// "/law 12" one of them. "/budget" is the budget of the player's city,
-	// "/budget kessmoor" another's.
+	// "/budget <city code>" another's.
 	"laws":   {Bare: "law.list"},
 	"law":    {Bare: "law.list", Words: "law.view"},
 	"budget": {Bare: "city.budget", Words: "city.budget"},

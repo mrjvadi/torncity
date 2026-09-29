@@ -3,11 +3,11 @@
 <b>🎓 Education</b>
 
 Courses you can take here:
-• First Aid - 600 Nil - 2m
-• Driving Licence - 900 Nil - 3m
-• Bookkeeping - 1,200 Nil - 4m
-• Programming Fundamentals - 2,000 Nil - 6m
-🔒 Retail Management - 2,800 Nil - 8m - from level 4
+• First Aid - 600 SUP - 2m
+• Driving Licence - 900 SUP - 3m
+• Bookkeeping - 1,200 SUP - 4m
+• Programming Fundamentals - 2,000 SUP - 6m
+🔒 Retail Management - 2,800 SUP - 8m - from level 4
 
 Page 1 of 2
   ───
@@ -24,7 +24,7 @@ Page 1 of 2
 🎓 First Aid
 
 🏛 Training centre
-💰 Fee: 600 Nil
+💰 Fee: 600 SUP
 ⏳ Duration: 2m
 
 On completion:
@@ -33,9 +33,9 @@ On completion:
 
 ✅ To enrol, pay the fee:
 💳 Your bank balance does not cover it — pay in cash.
-💵 Your cash: 5,000 Nil - Bank: 0 Nil
+💵 Your cash: 5,000 SUP - Bank: 0 SUP
   ───
-  [💵 Pay cash - 600 Nil] → education:enroll:first_aid:cash
+  [💵 Pay cash - 600 SUP] → education:enroll:first_aid:cash
   [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:first_aid
 
 ━━━ Enrol from the city centre ━━━
@@ -59,7 +59,7 @@ One press walks you to the university quarter (20s) and opens this page again th
 ━━━ Enrol ━━━
 (edits message 42)
 ✅ You have enrolled in First Aid
-💰 Fee paid: 600 Nil
+💰 Fee paid: 600 SUP
 ⏳ Duration: 2m
 The course finishes on its own, and you will be notified.
 💵 Paid from your cash.
@@ -76,11 +76,11 @@ The course finishes on its own, and you will be notified.
 ⏳ Finishing any moment now.
 
 Courses you can take here:
-• First Aid - 600 Nil - 2m
-• Driving Licence - 900 Nil - 3m
-• Bookkeeping - 1,200 Nil - 4m
-• Programming Fundamentals - 2,000 Nil - 6m
-🔒 Retail Management - 2,800 Nil - 8m - from level 4
+• First Aid - 600 SUP - 2m
+• Driving Licence - 900 SUP - 3m
+• Bookkeeping - 1,200 SUP - 4m
+• Programming Fundamentals - 2,000 SUP - 6m
+🔒 Retail Management - 2,800 SUP - 8m - from level 4
 
 Page 1 of 2
   ───
@@ -104,8 +104,8 @@ Page 1 of 2
 💼 No job yet
 📖 First Aid - finishing any moment
 
-💵 Cash: 4,400 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 4,400 SUP
+🏦 Bank balance: 0 SUP
 
 🆔 Player code: K7Q2M9A
   ───
@@ -133,7 +133,7 @@ You cannot enrol in this course yet:
 
 🏛 University
 📍 Taught in Fenwick Span
-💰 Fee: 6,000 Nil
+💰 Fee: 6,000 SUP
 ⏳ Duration: 24m
 🪑 Seats left: 40
 
@@ -174,11 +174,11 @@ You cannot enrol in this course yet:
 📜 Certificates: First Aid
 
 Courses you can take here:
-• Driving Licence - 900 Nil - 3m
-• Bookkeeping - 1,200 Nil - 4m
-• Programming Fundamentals - 2,000 Nil - 6m
-🔒 Retail Management - 2,800 Nil - 8m - from level 4
-🔒 Officer Training - 2,500 Nil - 12m - from level 4
+• Driving Licence - 900 SUP - 3m
+• Bookkeeping - 1,200 SUP - 4m
+• Programming Fundamentals - 2,000 SUP - 6m
+🔒 Retail Management - 2,800 SUP - 8m - from level 4
+🔒 Officer Training - 2,500 SUP - 12m - from level 4
 
 Page 1 of 2
   ───
@@ -202,8 +202,8 @@ Page 1 of 2
 💼 No job yet
 📜 1 certificates
 
-💵 Cash: 4,400 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 4,400 SUP
+🏦 Bank balance: 0 SUP
 
 🆔 Player code: K7Q2M9A
   ───
@@ -222,7 +222,7 @@ Page 1 of 2
 🎓 Bookkeeping
 
 🏛 Training centre
-💰 Fee: 1,200 Nil
+💰 Fee: 1,200 SUP
 ⏳ Duration: 4m
 
 On completion:
@@ -230,16 +230,16 @@ On completion:
 📜 The Bookkeeping certificate
 
 💸 Neither your cash nor your bank balance covers this.
-💵 Your cash: 100 Nil - Bank: 0 Nil
+💵 Your cash: 100 SUP - Bank: 0 SUP
   ───
   [🏦 Bank] → bank:show
   [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:bookkeeping
 
 ━━━ Enrol without the fee ━━━
 (edits message 42) (private in groups)
-💸 You do not have enough to pay 1,200 Nil.
-💵 Cash: 100 Nil
-🏦 Bank: 0 Nil
+💸 You do not have enough to pay 1,200 SUP.
+💵 Cash: 100 SUP
+🏦 Bank: 0 SUP
 Nothing was charged.
   ───
   [📖 Back to the course] → education:view:bookkeeping   │   [🏦 Bank] → bank:show

@@ -49,7 +49,7 @@ func (w *financeWorld) now() time.Time { w.mu.Lock(); defer w.mu.Unlock(); retur
 
 func (w *financeWorld) advance(d time.Duration) { w.mu.Lock(); w.clock = w.clock.Add(d); w.mu.Unlock() }
 
-// newFinanceWorld builds the world in ostmarch. tune changes the finance
+// newFinanceWorld builds the world in support. tune changes the finance
 // content the scenario runs on (a younger listing age, say); nil keeps the
 // loaded content.
 func newFinanceWorld(t *testing.T, tune func(*content.FinanceDef)) *financeWorld {
@@ -78,9 +78,9 @@ func newFinanceWorld(t *testing.T, tune func(*content.FinanceDef)) *financeWorld
 	registry.Swap(snap)
 	ctx := testCtx(t)
 	cities := postgres.NewCityRepository(pool)
-	city, err := cities.ByCode(ctx, "ostmarch")
+	city, err := cities.ByCode(ctx, "support")
 	if err != nil {
-		t.Skipf("the shipped city ostmarch is not loaded: %v", err)
+		t.Skipf("the shipped city support is not loaded: %v", err)
 	}
 	w := &financeWorld{t: t, pool: pool, registry: registry, def: pack.Finance[0], city: city,
 		uow: postgres.NewUnitOfWork(pool, testDefaultLanguage), clock: time.Now().UTC()}
@@ -194,7 +194,7 @@ func (w *financeWorld) purge() {
 	}
 }
 
-// resident is a player living in ostmarch for a month, with money in the
+// resident is a player living in support for a month, with money in the
 // bank.
 func (w *financeWorld) resident(bank int64) *application.Player {
 	w.t.Helper()

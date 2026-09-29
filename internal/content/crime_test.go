@@ -72,8 +72,8 @@ func TestShippedCrimes(t *testing.T) {
 	if got := defs[crime.Locate(venues, crime.Whereabouts{})].Code; got != "city_centre" {
 		t.Errorf("the default venue is %q", got)
 	}
-	if len(snap.CityFacilities("ostmarch")) == 0 {
-		t.Error("the snapshot does not know ostmarch's facilities")
+	if len(snap.CityFacilities("support")) == 0 {
+		t.Error("the snapshot does not know support's facilities")
 	}
 }
 

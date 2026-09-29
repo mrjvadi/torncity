@@ -113,13 +113,7 @@ recruitment:
     - {level: 18, share_bps: 4}
 
   cities:
-    - {city: ostmarch,      education_bps: 8000}
-    - {city: fenwick_span,  education_bps: 11000}
-    - {city: aldrin_hollow, education_bps: 10000}
-    - {city: brennhaven,    education_bps: 12000}
-    - {city: kessmoor,      education_bps: 9000}
-    - {city: calderis,      education_bps: 13000}
-    - {city: vantor_reach,  education_bps: 11000}
+    - {city: support, education_bps: 10700}
 
   acceptance:
     floor_bps: 8500

@@ -1,15 +1,15 @@
 ━━━ Budget · the mayor's view ━━━
 (edits message 42)
 💰 Budget of Ostmarch
-🏦 Treasury: 30,000 Nil
+🏦 Treasury: 30,000 SUP
 Each city period the budget spends up to 20% of the treasury.
 
 Division in force: Police 30%, Public transport subsidy 20%, Defence contribution 10%
 
-Last period 4,200 Nil was spent:
-• Police: 1,800 Nil - cases worked 1.8% harder
-• Public transport subsidy: 1,200 Nil - public transport 4.8% cheaper
-• Defence contribution: 600 Nil - paid into the country's defence fund
+Last period 4,200 SUP was spent:
+• Police: 1,800 SUP - cases worked 1.8% harder
+• Public transport subsidy: 1,200 SUP - public transport 4.8% cheaper
+• Defence contribution: 600 SUP - paid into the country's defence fund
 
 ⏳ Next period: in 14m
 The period ends at 14:49
@@ -21,16 +21,16 @@ The period ends at 14:49
 ━━━ Budget · a new division announced ━━━
 (edits message 42)
 💰 Budget of Ostmarch
-🏦 Treasury: 30,000 Nil
+🏦 Treasury: 30,000 SUP
 Each city period the budget spends up to 20% of the treasury.
 
 Division in force: Police 30%, Public transport subsidy 20%, Defence contribution 10%
 ⏳ A new division takes effect in 20h: Hospital subsidy 50%, Infrastructure and repair 25%
 
-Last period 4,200 Nil was spent:
-• Police: 1,800 Nil - cases worked 1.8% harder
-• Public transport subsidy: 1,200 Nil - public transport 4.8% cheaper
-• Defence contribution: 600 Nil - paid into the country's defence fund
+Last period 4,200 SUP was spent:
+• Police: 1,800 SUP - cases worked 1.8% harder
+• Public transport subsidy: 1,200 SUP - public transport 4.8% cheaper
+• Defence contribution: 600 SUP - paid into the country's defence fund
 
 ⏳ Next period: in 3m
 The period ends at 14:38
@@ -41,7 +41,7 @@ The period ends at 14:38
 ━━━ Budget · nothing allocated, no period yet ━━━
 (edits message 42)
 💰 Budget of Ostmarch
-🏦 Treasury: 1,200 Nil
+🏦 Treasury: 1,200 SUP
 Each city period the budget spends up to 20% of the treasury.
 
 Division in force: no line has a share and nothing is spent

@@ -3,9 +3,9 @@
 <b>🎓 Education</b>
 
 Courses you can take here:
-• First Aid - 600 Nil - 2h
-• Evening Class in Accounting - 400 Nil - 1h 30m
-🔒 Retail Management - 2,800 Nil - 8h - from level 4
+• First Aid - 600 SUP - 2h
+• Evening Class in Accounting - 400 SUP - 1h 30m
+🔒 Retail Management - 2,800 SUP - 8h - from level 4
 
 Page 1 of 2
   ───
@@ -26,7 +26,7 @@ Page 1 of 2
 📜 Certificates: First Aid, Driving Licence
 
 Courses you can take here:
-🔒 Retail Management - 2,800 Nil - 8h - from level 4
+🔒 Retail Management - 2,800 SUP - 8h - from level 4
   ───
   [📖 Retail Management] → education:view:retail_management
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
@@ -39,7 +39,7 @@ Courses you can take here:
 ⏸ Paused (in jail): 60% done, 40m left. It carries on from here once you are free.
 
 Courses you can take here:
-🔒 Retail Management - 2,800 Nil - 8h - from level 4
+🔒 Retail Management - 2,800 SUP - 8h - from level 4
   ───
   [📖 Retail Management] → education:view:retail_management
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
@@ -68,14 +68,14 @@ There are no new courses for you here right now. More open up as you earn certif
 🎓 First Aid
 
 🏛 Training centre
-💰 Fee: 600 Nil
+💰 Fee: 600 SUP
 ⏳ Duration: 2h
 
 On completion:
 🛠 Medicine: +120 XP
 📜 The First Aid certificate
   ───
-  [✅ Enrol - 600 Nil] → education:enroll:first_aid
+  [✅ Enrol - 600 SUP] → education:enroll:first_aid
   [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:first_aid
 
 ━━━ Course · requirements not met ━━━
@@ -84,7 +84,7 @@ On completion:
 
 🏛 University
 📍 Taught in Ostmarch
-💰 Fee: 9,000 Nil
+💰 Fee: 9,000 SUP
 ⏳ Duration: 48h
 🪑 Seats left: 12
 
@@ -105,7 +105,7 @@ Requirements:
 
 🏛 University
 📍 Taught in Fenwick Span
-💰 Fee: 6,000 Nil
+💰 Fee: 6,000 SUP
 ⏳ Duration: 24h
 🪑 Seats left: 0
 
@@ -124,7 +124,7 @@ Requirements:
 🎓 First Aid
 
 🏛 Company academy
-💰 Fee: 600 Nil
+💰 Fee: 600 SUP
 ⏳ Duration: 2h
 
 On completion:
@@ -140,7 +140,7 @@ Requirements:
 ━━━ Enrolled ━━━
 (edits message 42)
 ✅ You have enrolled in First Aid
-💰 Fee paid: 600 Nil
+💰 Fee paid: 600 SUP
 ⏳ Duration: 2h
 The course finishes on its own, and you will be notified.
 🕒 Course ends at 16:35
@@ -183,7 +183,7 @@ That course is not on offer here. See “Education” for the courses you can ta
 ━━━ Refusal · cannot afford the fee ━━━
 (edits message 42) (private in groups)
 💵 Not enough cash for this course.
-Fee: 2,800 Nil - Your cash: 1,250 Nil
+Fee: 2,800 SUP - Your cash: 1,250 SUP
   ───
   [🎓 Education] → education:list
   [🔙 Back] → player:profile.get

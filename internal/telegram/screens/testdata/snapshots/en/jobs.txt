@@ -13,11 +13,11 @@ You do not have a job yet. See what the employers in your city are offering unde
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
-💰 Pay per shift: 120 Nil
+💰 Pay per shift: 120 SUP
 ⚡ Energy per shift: 15 - you have 70 of 100
 📈 Performance: 53 of 100
 🔁 Shifts in this position: 4
-💵 Earned in this job: 456 Nil
+💵 Earned in this job: 456 SUP
 
 ⬆️ Next position: Sales Associate
 Still needed for a promotion:
@@ -37,11 +37,11 @@ Still needed for a promotion:
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
-💰 Pay per shift: 120 Nil
+💰 Pay per shift: 120 SUP
 ⚡ Energy per shift: 15 - you have 70 of 100
 📈 Performance: 61 of 100
 🔁 Shifts in this position: 7
-💵 Earned in this job: 456 Nil
+💵 Earned in this job: 456 SUP
 
 ⬆️ You are ready for a promotion to Sales Associate. Tap “Promotion”.
   ───
@@ -56,11 +56,11 @@ Still needed for a promotion:
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
-💰 Pay per shift: 120 Nil
+💰 Pay per shift: 120 SUP
 ⚡ Energy per shift: 15 - you have 70 of 100
 📈 Performance: 53 of 100
 🔁 Shifts in this position: 4
-💵 Earned in this job: 456 Nil
+💵 Earned in this job: 456 SUP
 
 📍 Your job is in Ostmarch. You need to be there to work.
 
@@ -81,12 +81,12 @@ Still needed for a promotion:
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
-💰 Pay per shift: 120 Nil
+💰 Pay per shift: 120 SUP
 ⚡ Energy per shift: 15 - you have 70 of 100
 📈 Performance: 53 of 100
 🔁 Shifts in this position: 4
 ⏱ Each shift takes 4m
-💵 Earned in this job: 456 Nil
+💵 Earned in this job: 456 SUP
 
 ⏳ On shift - 3m to go
 🕒 Shift ends at 14:38
@@ -107,12 +107,12 @@ Still needed for a promotion:
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
-💰 Pay per shift: 120 Nil
+💰 Pay per shift: 120 SUP
 ⚡ Energy per shift: 15 - you have 70 of 100
 📈 Performance: 53 of 100
 🔁 Shifts in this position: 4
 ⏱ Each shift takes 4m
-💵 Earned in this job: 456 Nil
+💵 Earned in this job: 456 SUP
 
 ⏳ Your shift is ending — your pay arrives any moment now.
 
@@ -156,11 +156,11 @@ Your pay, XP and performance are settled when the shift ends, and you will be no
 
 💼 Store Manager - Retail
 📍 Workplace: Ostmarch
-💰 Pay per shift: 480 Nil
+💰 Pay per shift: 480 SUP
 ⚡ Energy per shift: 15 - you have 70 of 100
 📈 Performance: 53 of 100
 🔁 Shifts in this position: 4
-💵 Earned in this job: 456 Nil
+💵 Earned in this job: 456 SUP
 
 ⭐ You are at the top of this career.
   ───
@@ -172,10 +172,10 @@ Your pay, XP and performance are settled when the shift ends, and you will be no
 (edits message 42)
 💼 Job openings in Ostmarch
 
-✅ Retail - Sales Trainee - 120 Nil per shift
-✅ Logistics - Courier - 130 Nil per shift
-🔒 Technology - Junior Developer - 260 Nil per shift
-🔒 Healthcare - Care Aide - 150 Nil per shift
+✅ Retail - Sales Trainee - 120 SUP per shift
+✅ Logistics - Courier - 130 SUP per shift
+🔒 Technology - Junior Developer - 260 SUP per shift
+🔒 Healthcare - Care Aide - 150 SUP per shift
 
 Page 1 of 2
 
@@ -192,8 +192,8 @@ Page 1 of 2
 
 You work as Sales Trainee. To take another job, leave your current one first.
 
-✅ Logistics - Courier - 130 Nil per shift
-🔒 Technology - Junior Developer - 260 Nil per shift
+✅ Logistics - Courier - 130 SUP per shift
+🔒 Technology - Junior Developer - 260 SUP per shift
   ───
   [✅ Courier] → job:view:logistics   │   [🔒 Junior Developer] → job:view:technology
   [💼 My job] → job:status
@@ -220,7 +220,7 @@ You are on a journey. Job openings appear once you arrive in a city.
 💼 Sales Trainee - Retail
 
 📍 Workplace: Ostmarch
-💰 Pay per shift: 120 Nil
+💰 Pay per shift: 120 SUP
 ⚡ Energy per shift: 15
 
 Requirements:
@@ -234,7 +234,7 @@ Requirements:
 💼 Junior Developer - Technology
 
 📍 Workplace: Ostmarch
-💰 Pay per shift: 260 Nil
+💰 Pay per shift: 260 SUP
 ⚡ Energy per shift: 20
 
 Requirements:
@@ -250,7 +250,7 @@ Requirements:
 💼 Sales Trainee - Retail
 
 📍 Workplace: Ostmarch
-💰 Pay per shift: 120 Nil
+💰 Pay per shift: 120 SUP
 ⚡ Energy per shift: 15
 
 Requirements:
@@ -263,7 +263,7 @@ Requirements:
 💼 Courier - Logistics
 
 📍 Workplace: Ostmarch
-💰 Pay per shift: 130 Nil
+💰 Pay per shift: 130 SUP
 ⚡ Energy per shift: 20
 
 ✅ No experience or qualification needed.
@@ -275,7 +275,7 @@ You already have a job. To take this one, leave your current job first.
 ━━━ Hired ━━━
 (edits message 42)
 ✅ You are hired — you now work as Sales Trainee in Ostmarch.
-💰 Pay per shift: 120 Nil
+💰 Pay per shift: 120 SUP
   ───
   [🛠 Start a shift] → job:work   │   [💼 My job] → job:status
   [🔙 Back] → player:profile.get
@@ -284,7 +284,7 @@ You already have a job. To take this one, leave your current job first.
 (edits message 42)
 ✅ Shift complete
 
-💰 Wage 120 Nil - income tax 6 Nil - you received 114 Nil
+💰 Wage 120 SUP - income tax 6 SUP - you received 114 SUP
 ⭐ 10 XP
 🛠 Management: +15 XP
 🛠 Management reached level 2.
@@ -298,7 +298,7 @@ You already have a job. To take this one, leave your current job first.
 (edits message 42)
 ✅ Shift complete
 
-💰 You received 190 Nil
+💰 You received 190 SUP
 ⭐ 14 XP
 🛠 Management: +20 XP
 📈 Performance: 62 of 100
@@ -312,7 +312,7 @@ You already have a job. To take this one, leave your current job first.
 (edits message 42)
 ✅ Shift complete
 
-💰 Wage 84 Nil - income tax 4 Nil - you received 80 Nil
+💰 Wage 84 SUP - income tax 4 SUP - you received 80 SUP
 ⭐ 10 XP
 📉 Performance: 50 of 100 (−2)
 ⚡ Energy: 10 of 100
@@ -325,7 +325,7 @@ You already have a job. To take this one, leave your current job first.
 ━━━ Promoted ━━━
 (edits message 42)
 ⬆️ Congratulations — you have been promoted to Sales Associate.
-💰 New pay per shift: 190 Nil
+💰 New pay per shift: 190 SUP
   ───
   [💼 My job] → job:status
   [🔙 Back] → player:profile.get

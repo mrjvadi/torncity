@@ -26,9 +26,9 @@ func TestPlayerLimitOverridesTheCompanyCap(t *testing.T) {
 	ctx := testCtx(t)
 
 	cities := postgres.NewCityRepository(pool)
-	city, err := cities.ByCode(ctx, "ostmarch")
+	city, err := cities.ByCode(ctx, "support")
 	if err != nil {
-		t.Skipf("the shipped city ostmarch is not loaded: %v", err)
+		t.Skipf("the shipped city support is not loaded: %v", err)
 	}
 
 	owner := insertPlayer(t, pool)

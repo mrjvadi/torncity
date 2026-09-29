@@ -80,9 +80,9 @@ func TestAShiftFromAnotherPlaceWalksThereAndStartsOnce(t *testing.T) {
 	registry := workRegistry(t, pool)
 	ctx := testCtx(t)
 	cities := postgres.NewCityRepository(pool)
-	city, err := cities.ByCode(ctx, "ostmarch")
+	city, err := cities.ByCode(ctx, "support")
 	if err != nil {
-		t.Skipf("the shipped city ostmarch is not loaded: %v", err)
+		t.Skipf("the shipped city support is not loaded: %v", err)
 	}
 	if len(registry.Current().CityMap(city.Code).Places) == 0 {
 		t.Skip("the active content has no places; run `admin content load`")

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/content/testworld"
 )
 
 // staticContentSource is the handlers.ContentSource every K2/W5 handler
@@ -27,6 +28,10 @@ func loadTestContent(t *testing.T) *content.Snapshot {
 	if err != nil {
 		t.Fatalf("loading content: %v", err)
 	}
+	// The shipped world has one city; the integration database carries the
+	// multi-city test world (main_integration_test.go), so the snapshot the
+	// tests build must match it.
+	pack = testworld.Extend(pack)
 	if err := pack.Validate(); err != nil {
 		t.Fatalf("validating content: %v", err)
 	}

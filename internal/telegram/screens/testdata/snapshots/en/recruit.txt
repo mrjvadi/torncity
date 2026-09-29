@@ -3,7 +3,7 @@
 🔬 Microchips
 🔬 You can research this technology.
 
-💰 Research cost: 60,000 Nil - ⏱ time: 12m
+💰 Research cost: 60,000 SUP - ⏱ time: 12m
 🎓 Skill needed: Engineering level 3 - your best person: level 0
 
 🎓 Nobody in the company has Engineering at level 3.
@@ -63,21 +63,21 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 🎓 Skill: Engineering level 3 or higher
 📍 Cities: Ostmarch, Fenwick Span
 👥 Positions: 1
-💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
-🏠 Housing allowance per period: 33 Nil
-🎁 Signing bonus: 330 Nil
-🚚 Relocation package: up to 1,000 Nil
+💵 Salary per period: 330 SUP - the market in Ostmarch expects 264 SUP
+🏠 Housing allowance per period: 33 SUP
+🎁 Signing bonus: 330 SUP
+🚚 Relocation package: up to 1,000 SUP
 📄 Contract: 10 periods
 📈 Phantom shares: none
 ✋ Auto-hire: off - you accept each applicant yourself
 
 🔎 41 specialists of Engineering level 3 or higher are free to work in these cities.
 📊 Rough chance each specialist answers: 42%
-💰 Advertising: 3,000 Nil (2 cities × 1,500 Nil) - company free money: 52,000 Nil
+💰 Advertising: 3,000 SUP (2 cities × 1,500 SUP) - company free money: 52,000 SUP
   ───
   [🎓 Skill and level] → company:rdraft:14:skill   │   [📍 Cities] → company:rdraft:14:cities
   [💵 Pay and benefits] → company:rdraft:14:pay   │   [📄 Contract and shares] → company:rdraft:14:terms
-  [📢 Post the ad - 3,000 Nil] → company:rpost:14
+  [📢 Post the ad - 3,000 SUP] → company:rpost:14
   [🔙 Back] → company:recruit:Q7M2K9B   │   [🔄 Refresh] → company:rdraft:14
 
 ━━━ Recruitment · the builder, skill ━━━
@@ -90,17 +90,17 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 🎓 Skill: Engineering level 3 or higher
 📍 Cities: Ostmarch, Fenwick Span
 👥 Positions: 1
-💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
-🏠 Housing allowance per period: 33 Nil
-🎁 Signing bonus: 330 Nil
-🚚 Relocation package: up to 1,000 Nil
+💵 Salary per period: 330 SUP - the market in Ostmarch expects 264 SUP
+🏠 Housing allowance per period: 33 SUP
+🎁 Signing bonus: 330 SUP
+🚚 Relocation package: up to 1,000 SUP
 📄 Contract: 10 periods
 📈 Phantom shares: none
 ✋ Auto-hire: off - you accept each applicant yourself
 
 🔎 41 specialists of Engineering level 3 or higher are free to work in these cities.
 📊 Rough chance each specialist answers: 42%
-💰 Advertising: 3,000 Nil (2 cities × 1,500 Nil) - company free money: 52,000 Nil
+💰 Advertising: 3,000 SUP (2 cities × 1,500 SUP) - company free money: 52,000 SUP
   ───
   [✅ Engineering] → company:rset:14:skill:engineering   │   [Programming] → company:rset:14:skill:programming   │   [Medicine] → company:rset:14:skill:medicine
   [Management] → company:rset:14:skill:management   │   [Finance] → company:rset:14:skill:finance   │   [Mechanics] → company:rset:14:skill:mechanics
@@ -117,17 +117,17 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 🎓 Skill: Engineering level 3 or higher
 📍 Cities: Ostmarch, Fenwick Span
 👥 Positions: 1
-💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
-🏠 Housing allowance per period: 33 Nil
-🎁 Signing bonus: 330 Nil
-🚚 Relocation package: up to 1,000 Nil
+💵 Salary per period: 330 SUP - the market in Ostmarch expects 264 SUP
+🏠 Housing allowance per period: 33 SUP
+🎁 Signing bonus: 330 SUP
+🚚 Relocation package: up to 1,000 SUP
 📄 Contract: 10 periods
 📈 Phantom shares: none
 ✋ Auto-hire: off - you accept each applicant yourself
 
 🔎 41 specialists of Engineering level 3 or higher are free to work in these cities.
 📊 Rough chance each specialist answers: 42%
-💰 Advertising: 3,000 Nil (2 cities × 1,500 Nil) - company free money: 52,000 Nil
+💰 Advertising: 3,000 SUP (2 cities × 1,500 SUP) - company free money: 52,000 SUP
   ───
   [✅ Ostmarch] → company:rset:14:city:ostmarch:0   │   [✅ Fenwick Span] → company:rset:14:city:fenwick_span:0
   [Calderis ✈️] → company:rset:14:city:calderis:1
@@ -144,22 +144,22 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 🎓 Skill: Engineering level 3 or higher
 📍 Cities: Ostmarch, Fenwick Span
 👥 Positions: 1
-💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
-🏠 Housing allowance per period: 33 Nil
-🎁 Signing bonus: 330 Nil
-🚚 Relocation package: up to 1,000 Nil
+💵 Salary per period: 330 SUP - the market in Ostmarch expects 264 SUP
+🏠 Housing allowance per period: 33 SUP
+🎁 Signing bonus: 330 SUP
+🚚 Relocation package: up to 1,000 SUP
 📄 Contract: 10 periods
 📈 Phantom shares: none
 ✋ Auto-hire: off - you accept each applicant yourself
 
 🔎 41 specialists of Engineering level 3 or higher are free to work in these cities.
 📊 Rough chance each specialist answers: 42%
-💰 Advertising: 3,000 Nil (2 cities × 1,500 Nil) - company free money: 52,000 Nil
+💰 Advertising: 3,000 SUP (2 cities × 1,500 SUP) - company free money: 52,000 SUP
   ───
-  [💵 250 Nil] → company:rset:14:salary:0   │   [💵 290 Nil] → company:rset:14:salary:1   │   [💵 343 Nil] → company:rset:14:salary:2   │   [✏️ Other salary] → ask:company.ramount:14:salary
-  [🏠 none] → company:rset:14:housing:0   │   [✅ 🏠 33 Nil] → company:rset:14:housing:1   │   [🏠 66 Nil] → company:rset:14:housing:2   │   [✏️ Other housing] → ask:company.ramount:14:housing
-  [🎁 none] → company:rset:14:signing:0   │   [✅ 🎁 330 Nil] → company:rset:14:signing:1   │   [🎁 990 Nil] → company:rset:14:signing:2   │   [✏️ Other bonus] → ask:company.ramount:14:signing
-  [🚚 none] → company:rset:14:relocation:0   │   [✅ 🚚 1,000 Nil] → company:rset:14:relocation:1   │   [🚚 2,500 Nil] → company:rset:14:relocation:2   │   [✏️ Other relocation] → ask:company.ramount:14:relocation
+  [💵 250 SUP] → company:rset:14:salary:0   │   [💵 290 SUP] → company:rset:14:salary:1   │   [💵 343 SUP] → company:rset:14:salary:2   │   [✏️ Other salary] → ask:company.ramount:14:salary
+  [🏠 none] → company:rset:14:housing:0   │   [✅ 🏠 33 SUP] → company:rset:14:housing:1   │   [🏠 66 SUP] → company:rset:14:housing:2   │   [✏️ Other housing] → ask:company.ramount:14:housing
+  [🎁 none] → company:rset:14:signing:0   │   [✅ 🎁 330 SUP] → company:rset:14:signing:1   │   [🎁 990 SUP] → company:rset:14:signing:2   │   [✏️ Other bonus] → ask:company.ramount:14:signing
+  [🚚 none] → company:rset:14:relocation:0   │   [✅ 🚚 1,000 SUP] → company:rset:14:relocation:1   │   [🚚 2,500 SUP] → company:rset:14:relocation:2   │   [✏️ Other relocation] → ask:company.ramount:14:relocation
   [🔙 Back] → company:rdraft:14   │   [🔄 Refresh] → company:rdraft:14:pay
 
 ━━━ Recruitment · the builder, terms ━━━
@@ -172,17 +172,17 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 🎓 Skill: Engineering level 3 or higher
 📍 Cities: Ostmarch, Fenwick Span
 👥 Positions: 1
-💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
-🏠 Housing allowance per period: 33 Nil
-🎁 Signing bonus: 330 Nil
-🚚 Relocation package: up to 1,000 Nil
+💵 Salary per period: 330 SUP - the market in Ostmarch expects 264 SUP
+🏠 Housing allowance per period: 33 SUP
+🎁 Signing bonus: 330 SUP
+🚚 Relocation package: up to 1,000 SUP
 📄 Contract: 10 periods
-📈 Phantom shares: 25 - worth 4,200 Nil today - paid in cash at the end of the contract
+📈 Phantom shares: 25 - worth 4,200 SUP today - paid in cash at the end of the contract
 ⚡️ Auto-hire: on - every applicant is hired at once
 
 🔎 41 specialists of Engineering level 3 or higher are free to work in these cities.
 📊 Rough chance each specialist answers: 42%
-💰 Advertising: 3,000 Nil (2 cities × 1,500 Nil) - company free money: 52,000 Nil
+💰 Advertising: 3,000 SUP (2 cities × 1,500 SUP) - company free money: 52,000 SUP
   ───
   [📄 5 periods] → company:rset:14:term:0   │   [✅ 📄 10 periods] → company:rset:14:term:1   │   [📄 20 periods] → company:rset:14:term:2
   [📈 0 shares] → company:rset:14:shares:0   │   [📈 10 shares] → company:rset:14:shares:1   │   [✅ 📈 25 shares] → company:rset:14:shares:2   │   [📈 50 shares] → company:rset:14:shares:3
@@ -198,21 +198,21 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 🎓 Skill: Engineering level 3 or higher
 📍 Cities: Ostmarch, Fenwick Span
 👥 Positions: 1
-💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
-🏠 Housing allowance per period: 33 Nil
-🎁 Signing bonus: 330 Nil
-🚚 Relocation package: up to 1,000 Nil
+💵 Salary per period: 330 SUP - the market in Ostmarch expects 264 SUP
+🏠 Housing allowance per period: 33 SUP
+🎁 Signing bonus: 330 SUP
+🚚 Relocation package: up to 1,000 SUP
 📄 Contract: 10 periods
 📈 Phantom shares: none
 ✋ Auto-hire: off - you accept each applicant yourself
 
 🔎 41 specialists of Engineering level 3 or higher are free to work in these cities.
 📊 Rough chance each specialist answers: 42%
-💰 Advertising: 3,000 Nil (2 cities × 1,500 Nil) - company free money: 52,000 Nil
+💰 Advertising: 3,000 SUP (2 cities × 1,500 SUP) - company free money: 52,000 SUP
 
-📢 The advertisement runs in 2 cities and 3,000 Nil goes from the company's account to their treasuries. The campaign checks the specialists 4 times, every 6m. Post it?
+📢 The advertisement runs in 2 cities and 3,000 SUP goes from the company's account to their treasuries. The campaign checks the specialists 4 times, every 6m. Post it?
   ───
-  [✅ Post and pay 3,000 Nil] → company:rpost:14:yes
+  [✅ Post and pay 3,000 SUP] → company:rpost:14:yes
   [🔙 Back] → company:rdraft:14   │   [🔄 Refresh] → company:rdraft:14
 
 ━━━ Recruitment · a draft with no city ━━━
@@ -223,16 +223,16 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 🎓 Skill: Engineering level 3 or higher
 📍 Cities: no city chosen yet
 👥 Positions: 1
-💵 Salary per period: 330 Nil - the market in Ostmarch expects 264 Nil
-🏠 Housing allowance per period: 33 Nil
-🎁 Signing bonus: 330 Nil
-🚚 Relocation package: up to 1,000 Nil
+💵 Salary per period: 330 SUP - the market in Ostmarch expects 264 SUP
+🏠 Housing allowance per period: 33 SUP
+🎁 Signing bonus: 330 SUP
+🚚 Relocation package: up to 1,000 SUP
 📄 Contract: 10 periods
 📈 Phantom shares: none
 ✋ Auto-hire: off - you accept each applicant yourself
 
 🔎 0 specialists of Engineering level 3 or higher are free to work in these cities.
-💰 Advertising: 0 Nil (0 cities × 1,500 Nil) - company free money: 52,000 Nil
+💰 Advertising: 0 SUP (0 cities × 1,500 SUP) - company free money: 52,000 SUP
   ───
   [🎓 Skill and level] → company:rdraft:14:skill   │   [📍 Cities] → company:rdraft:14:cities
   [💵 Pay and benefits] → company:rdraft:14:pay   │   [📄 Contract and shares] → company:rdraft:14:terms
@@ -247,24 +247,24 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 📍 Cities: Fenwick Span, Ostmarch
 👥 Hired: 1 of 2
 
-💵 Salary per period: 330 Nil
-🏠 Housing allowance per period: 33 Nil
-🎁 Signing bonus: 330 Nil
-🚚 Relocation package: up to 1,000 Nil
+💵 Salary per period: 330 SUP
+🏠 Housing allowance per period: 33 SUP
+🎁 Signing bonus: 330 SUP
+🚚 Relocation package: up to 1,000 SUP
 📄 Contract: 10 periods
 📈 Phantom shares: 25
 
 📨 Applicants:
-• Leila Rostami - Engineering level 4 - from Fenwick Span - expects 520 Nil - waits until 14:59
-• Pouya Nowruzi - Engineering level 3 - from Ostmarch - expects 290 Nil - waits until 14:55
+• Leila Rostami - Engineering level 4 - from Fenwick Span - expects 520 SUP - waits until 14:59
+• Pouya Nowruzi - Engineering level 3 - from Ostmarch - expects 290 SUP - waits until 14:55
 ✅ Negar Rostami - Engineering level 3 - from Calderis ✈️ - hired
 ⌛️ Farhad Salehi - Engineering level 5 - from Fenwick Span - did not wait and took another job
 ❌ Arash Moradi - Engineering level 3 - from Fenwick Span - turned down
 
-💰 Company free money: 48,000 Nil
+💰 Company free money: 48,000 SUP
   ───
-  [✅ Hire Leila Rostami - 1,330 Nil] → company:rdecide:31:yes   │   [❌ Turn down] → company:rdecide:31:no
-  [✅ Hire Pouya Nowruzi - 330 Nil] → company:rdecide:32:yes   │   [❌ Turn down] → company:rdecide:32:no
+  [✅ Hire Leila Rostami - 1,330 SUP] → company:rdecide:31:yes   │   [❌ Turn down] → company:rdecide:31:no
+  [✅ Hire Pouya Nowruzi - 330 SUP] → company:rdecide:32:yes   │   [❌ Turn down] → company:rdecide:32:no
   [🛑 Stop the campaign] → company:rcancel:14
   [🔙 Back] → company:recruit:Q7M2K9B   │   [🔄 Refresh] → company:rcamp:14
 
@@ -277,24 +277,24 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 📍 Cities: Fenwick Span, Ostmarch
 👥 Hired: 1 of 2
 
-💵 Salary per period: 330 Nil
-🏠 Housing allowance per period: 33 Nil
-🎁 Signing bonus: 330 Nil
-🚚 Relocation package: up to 1,000 Nil
+💵 Salary per period: 330 SUP
+🏠 Housing allowance per period: 33 SUP
+🎁 Signing bonus: 330 SUP
+🚚 Relocation package: up to 1,000 SUP
 📄 Contract: 10 periods
 📈 Phantom shares: 25
 
 📨 Applicants:
-• Leila Rostami - Engineering level 4 - from Fenwick Span - expects 520 Nil - waits until 14:59
-• Pouya Nowruzi - Engineering level 3 - from Ostmarch - expects 290 Nil - waits until 14:55
+• Leila Rostami - Engineering level 4 - from Fenwick Span - expects 520 SUP - waits until 14:59
+• Pouya Nowruzi - Engineering level 3 - from Ostmarch - expects 290 SUP - waits until 14:55
 ✅ Negar Rostami - Engineering level 3 - from Calderis ✈️ - hired
 ⌛️ Farhad Salehi - Engineering level 5 - from Fenwick Span - did not wait and took another job
 ❌ Arash Moradi - Engineering level 3 - from Fenwick Span - turned down
 
-💰 Company free money: 48,000 Nil
+💰 Company free money: 48,000 SUP
   ───
-  [✅ Hire Leila Rostami - 1,330 Nil] → company:rdecide:31:yes   │   [❌ Turn down] → company:rdecide:31:no
-  [✅ Hire Pouya Nowruzi - 330 Nil] → company:rdecide:32:yes   │   [❌ Turn down] → company:rdecide:32:no
+  [✅ Hire Leila Rostami - 1,330 SUP] → company:rdecide:31:yes   │   [❌ Turn down] → company:rdecide:31:no
+  [✅ Hire Pouya Nowruzi - 330 SUP] → company:rdecide:32:yes   │   [❌ Turn down] → company:rdecide:32:no
   [🛑 Stop the campaign] → company:rcancel:14
   [🔙 Back] → company:recruit:Q7M2K9B   │   [🔄 Refresh] → company:rcamp:14
 
@@ -305,21 +305,21 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 📍 Cities: Fenwick Span, Ostmarch
 👥 Hired: 1 of 2
 
-💵 Salary per period: 330 Nil
-🏠 Housing allowance per period: 33 Nil
-🎁 Signing bonus: 330 Nil
-🚚 Relocation package: up to 1,000 Nil
+💵 Salary per period: 330 SUP
+🏠 Housing allowance per period: 33 SUP
+🎁 Signing bonus: 330 SUP
+🚚 Relocation package: up to 1,000 SUP
 📄 Contract: 10 periods
 📈 Phantom shares: 25
 
 📨 Applicants:
-• Leila Rostami - Engineering level 4 - from Fenwick Span - expects 520 Nil - waits until 14:59
-• Pouya Nowruzi - Engineering level 3 - from Ostmarch - expects 290 Nil - waits until 14:55
+• Leila Rostami - Engineering level 4 - from Fenwick Span - expects 520 SUP - waits until 14:59
+• Pouya Nowruzi - Engineering level 3 - from Ostmarch - expects 290 SUP - waits until 14:55
 ✅ Negar Rostami - Engineering level 3 - from Calderis ✈️ - hired
 ⌛️ Farhad Salehi - Engineering level 5 - from Fenwick Span - did not wait and took another job
 ❌ Arash Moradi - Engineering level 3 - from Fenwick Span - turned down
 
-💰 Company free money: 48,000 Nil
+💰 Company free money: 48,000 SUP
 
 🛑 Stop the campaign? The advertising fee is not refunded and waiting applicants step aside.
   ───
@@ -333,12 +333,12 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 📍 Cities: Ostmarch
 👥 Hired: 0 of 1
 
-💵 Salary per period: 250 Nil
+💵 Salary per period: 250 SUP
 📄 Contract: 5 periods
 
 📨 Nobody answered this advertisement. Try a better offer or more cities.
 
-💰 Company free money: 48,000 Nil
+💰 Company free money: 48,000 SUP
   ───
   [🔙 Back] → company:recruit:Q7M2K9B   │   [🔄 Refresh] → company:rcamp:9
 
@@ -350,12 +350,12 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 👥 Hired: 1 of 1
 ⚡️ Auto-hire: on - every applicant is hired at once
 
-💵 Salary per period: 250 Nil
+💵 Salary per period: 250 SUP
 📄 Contract: 5 periods
 
 📨 No other applicant.
 
-💰 Company free money: 48,000 Nil
+💰 Company free money: 48,000 SUP
   ───
   [🔙 Back] → company:recruit:Q7M2K9B   │   [🔄 Refresh] → company:rcamp:9
 
@@ -364,17 +364,17 @@ A recruitment campaign is your job advertisement in the cities you choose. Each 
 👷 Specialists of Nilou Industries - 3 of 10
 
 • Negar Rostami - Engineering level 3 - from Calderis
-💵 Salary per period: 330 Nil + housing 33 Nil
+💵 Salary per period: 330 SUP + housing 33 SUP
 📄 Contract: period 4 of 10
 📈 Phantom shares: 25
 
 • Bahram Nowruzi - Medicine level 2 - from Fenwick Span
-💵 Salary per period: 300 Nil
+💵 Salary per period: 300 SUP
 📄 Contract: period 3 of 10
-⚠️ Paid below the market (420 Nil); in 1 more periods they take a better offer.
+⚠️ Paid below the market (420 SUP); in 1 more periods they take a better offer.
 
 • Nasrin Rostami - Programming level 5 - from Ostmarch
-💵 Salary per period: 700 Nil
+💵 Salary per period: 700 SUP
 ⏳ The contract is completed; renew it before the next settlement or they leave.
 🔴 Their pay is overdue; 1 more periods unpaid and they leave.
 
@@ -393,17 +393,17 @@ Specialists count like an employee with their skill in the lab, the design studi
 👷 Specialists of Nilou Industries - 3 of 10
 
 • Negar Rostami - Engineering level 3 - from Calderis
-💵 Salary per period: 330 Nil + housing 33 Nil
+💵 Salary per period: 330 SUP + housing 33 SUP
 📄 Contract: period 4 of 10
 📈 Phantom shares: 25
 
 • Bahram Nowruzi - Medicine level 2 - from Fenwick Span
-💵 Salary per period: 300 Nil
+💵 Salary per period: 300 SUP
 📄 Contract: period 3 of 10
-⚠️ Paid below the market (420 Nil); in 1 more periods they take a better offer.
+⚠️ Paid below the market (420 SUP); in 1 more periods they take a better offer.
 
 • Nasrin Rostami - Programming level 5 - from Ostmarch
-💵 Salary per period: 700 Nil
+💵 Salary per period: 700 SUP
 ⏳ The contract is completed; renew it before the next settlement or they leave.
 🔴 Their pay is overdue; 1 more periods unpaid and they leave.
 
@@ -420,9 +420,9 @@ Specialists count like an employee with their skill in the lab, the design studi
 👷 Specialists of Nilou Industries - 3 of 10
 
 • Bahram Nowruzi - Medicine level 2 - from Fenwick Span
-💵 Salary per period: 300 Nil
+💵 Salary per period: 300 SUP
 📄 Contract: period 3 of 10
-⚠️ Paid below the market (420 Nil); in 1 more periods they take a better offer.
+⚠️ Paid below the market (420 SUP); in 1 more periods they take a better offer.
 
 🚪 Part ways with Bahram Nowruzi? Bonuses paid are not returned, and they stop working for the company now.
   ───
@@ -443,7 +443,7 @@ Specialists count like an employee with their skill in the lab, the design studi
 
 ━━━ Recruitment refusal · funds ━━━
 (edits message 42) (private in groups)
-💰 The company's free money (1,200 Nil) does not cover this (3,000 Nil).
+💰 The company's free money (1,200 SUP) does not cover this (3,000 SUP).
   ───
   [🔙 Back] → company:recruit:Q7M2K9B
 
@@ -546,7 +546,7 @@ Specialists count like an employee with their skill in the lab, the design studi
 ━━━ Notice · completed  ━━━
 (sends) (private in groups)
 📄 Leila Rostami's (Engineering level 4) contract at Nilou Industries is completed. Renew it before the next settlement, or they leave.
-📈 Their phantom shares were paid: 5,250 Nil.
+📈 Their phantom shares were paid: 5,250 SUP.
   ───
   [👷 Company specialists] → company:npcs:Q7M2K9B
 

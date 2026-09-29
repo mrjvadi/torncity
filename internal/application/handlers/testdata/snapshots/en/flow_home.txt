@@ -12,8 +12,8 @@ This is your home: your condition, your money and your work at a glance. Use the
 
 💼 No job yet
 
-💵 Cash: 5,000 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 5,000 SUP
+🏦 Bank balance: 0 SUP
 
 🆔 Player code: K7Q2M9A
 Friends can find you by sending "find K7Q2M9A".
@@ -59,8 +59,8 @@ This is your home: your condition, your money and your work at a glance. Use the
 
 💼 No job yet
 
-💵 Cash: 5,000 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 5,000 SUP
+🏦 Bank balance: 0 SUP
 
 🆔 Player code: K7Q2M9A
 Friends can find you by sending "find K7Q2M9A".

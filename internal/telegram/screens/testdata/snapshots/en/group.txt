@@ -58,21 +58,21 @@ Help
 To cancel, send "cancel".
 
 ━━━ question · bank.deposit · reply box ━━━
-Amount to deposit, in Nil
+Amount to deposit, in SUP
 
 ━━━ question · bank.withdraw ━━━
 📤 How much should be withdrawn? Type the amount as a number; the fee is charged on top.
 To cancel, send "cancel".
 
 ━━━ question · bank.withdraw · reply box ━━━
-Amount to withdraw, in Nil
+Amount to withdraw, in SUP
 
 ━━━ question · bank.pay ━━━
 💸 How much should be paid? Type the amount as a number.
 To cancel, send "cancel".
 
 ━━━ question · bank.pay · reply box ━━━
-Amount to pay, in Nil
+Amount to pay, in SUP
 
 ━━━ question · an.unlisted ━━━
 ✏️ Type the value and send it.
@@ -147,21 +147,21 @@ Company name
 To cancel, send "cancel".
 
 ━━━ question · company.deposit · reply box ━━━
-Amount to put in, in Nil
+Amount to put in, in SUP
 
 ━━━ question · company.withdraw ━━━
 📤 How much profit should be taken out? Type the amount as a number; the corporate tax comes out of it.
 To cancel, send "cancel".
 
 ━━━ question · company.withdraw · reply box ━━━
-Amount to take out, in Nil
+Amount to take out, in SUP
 
 ━━━ question · company.post ━━━
 💼 What should one shift of this opening pay? Type the amount as a number.
 To cancel, send "cancel".
 
 ━━━ question · company.post · reply box ━━━
-Pay per shift, in Nil
+Pay per shift, in SUP
 
 ━━━ question · company.manager ━━━
 🧑‍💼 Send the new manager's player code or username; to remove the manager, send "none".
@@ -188,7 +188,7 @@ Units
 To cancel, send "cancel".
 
 ━━━ question · company.techmode · reply box ━━━
-License price in Nil
+License price in SUP
 
 ━━━ question · company.dqty ━━━
 🧩 Type the amount for this slot of the design.
@@ -209,7 +209,7 @@ Design name
 To cancel, send "cancel".
 
 ━━━ question · company.sell · reply box ━━━
-Price per unit in Nil
+Price per unit in SUP
 
 ━━━ question · company.buy ━━━
 🛒 How many do you buy? Type the number.
@@ -226,7 +226,7 @@ Quantity
 To cancel, send "cancel".
 
 ━━━ question · company.ramount · reply box ━━━
-Amount in Nil
+Amount in SUP
 
 ━━━ announcement · a contractor licence granted ━━━
 🛡 Aria Tech was granted a defence contractor licence of The Commonwealth.
@@ -306,7 +306,7 @@ Player code or username
 To cancel, send "cancel".
 
 ━━━ question · health.price · reply box ━━━
-Price of a treatment, in Nil
+Price of a treatment, in SUP
 
 ━━━ faction · founded ━━━
 🏴 Sara founded Northern Lions (L10N5ZA).
@@ -360,14 +360,14 @@ Player code or username
 To cancel, send "cancel".
 
 ━━━ question · faction.deposit · reply box ━━━
-Amount to deposit, in Nil
+Amount to deposit, in SUP
 
 ━━━ question · faction.withdraw ━━━
 📤 How much should come out of the faction's bank into your bank? Type the amount.
 To cancel, send "cancel".
 
 ━━━ question · faction.withdraw · reply box ━━━
-Amount to withdraw, in Nil
+Amount to withdraw, in SUP
 
 ━━━ announcement · a proposal before the council ━━━
 ⚖️ Proposal #12 in Ostmarch: divide City budget anew: Police 30%, Public transport subsidy 20%. Proposed by Mayor Sara (K7Q2M9A); the City council votes within 2d.

@@ -7,10 +7,10 @@
 ⚡ Energy: 85 of 100 - full in 45m
 ❤️ Health: 100 of 100
 
-💼 Sales Trainee in Ostmarch - 120 Nil per shift
+💼 Sales Trainee in Ostmarch - 120 SUP per shift
 
-💵 Cash: 5,000 Nil
-🏦 Bank balance: 12,000 Nil
+💵 Cash: 5,000 SUP
+🏦 Bank balance: 12,000 SUP
 
 🆔 Player code: K7Q2M9A
   ───
@@ -34,10 +34,10 @@
 ⚡ Energy: 85 of 100 - full in 45m
 ❤️ Health: 100 of 100
 
-💼 Sales Trainee in Ostmarch - 120 Nil per shift
+💼 Sales Trainee in Ostmarch - 120 SUP per shift
 
-💵 Cash: 5,000 Nil
-🏦 Bank balance: 12,000 Nil
+💵 Cash: 5,000 SUP
+🏦 Bank balance: 12,000 SUP
 
 🆔 Player code: K7Q2M9A
   ───
@@ -60,7 +60,7 @@
 ⚡ Energy: 85 of 100 - full in 45m
 ❤️ Health: 100 of 100
 
-💼 Sales Trainee in Ostmarch - 120 Nil per shift
+💼 Sales Trainee in Ostmarch - 120 SUP per shift
 
 🆔 Player code: K7Q2M9A
   ───
@@ -80,8 +80,8 @@
 ⭐ Level 3
 ⚡ Energy: 85 of 100
 
-💵 Cash: 5,000 Nil
-🏦 Bank balance: 12,000 Nil
+💵 Cash: 5,000 SUP
+🏦 Bank balance: 12,000 SUP
   ───
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
@@ -102,8 +102,8 @@
 ⭐ Level 3
 ⚡ Energy: 85 of 100
 
-💵 Cash: 5,000 Nil
-🏦 Bank balance: 12,000 Nil
+💵 Cash: 5,000 SUP
+🏦 Bank balance: 12,000 SUP
   ───
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
@@ -121,12 +121,12 @@
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
-💰 Pay per shift: 120 Nil
+💰 Pay per shift: 120 SUP
 ⚡ Energy per shift: 15 - you have 85 of 100
 📈 Performance: 50 of 100
 🔁 Shifts in this position: 0
 ⏱ Each shift takes 4m
-💵 Earned in this job: 0 Nil
+💵 Earned in this job: 0 SUP
 
 📍 You work at the business district - a 15s walk from where you are.
 
@@ -143,12 +143,12 @@ Still needed for a promotion:
 
 💼 Sales Trainee - Retail
 📍 Workplace: Ostmarch
-💰 Pay per shift: 120 Nil
+💰 Pay per shift: 120 SUP
 ⚡ Energy per shift: 15 - you have 85 of 100
 📈 Performance: 50 of 100
 🔁 Shifts in this position: 0
 ⏱ Each shift takes 4m
-💵 Earned in this job: 0 Nil
+💵 Earned in this job: 0 SUP
 
 📍 You are at your workplace, the business district.
 
@@ -208,7 +208,7 @@ One press walks you to the train station (20s) and opens this page again there.
 (edits message 42)
 <b>🛒 Hardware store - at the bazaar</b>
 
-• Lockpick set - 450 Nil - 4 in stock
+• Lockpick set - 450 SUP - 4 in stock
 
 📍 The shop is at the bazaar. Walk there to buy.
   ───
@@ -219,7 +219,7 @@ One press walks you to the train station (20s) and opens this page again there.
 (edits message 42)
 <b>🏪 Market of Ostmarch</b>
 
-• Bread - buyers offer: 18 Nil - sellers ask: 22 Nil
+• Bread - buyers offer: 18 SUP - sellers ask: 22 SUP
 
 📍 Trading is done at the market. Walk there to buy or sell.
   ───

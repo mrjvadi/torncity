@@ -47,8 +47,14 @@ func TestShippedContentLoadsAndValidates(t *testing.T) {
 	if len(pack.Cities) == 0 {
 		t.Fatal("the shipped content declares no cities")
 	}
-	if len(pack.Routes) == 0 {
-		t.Fatal("the shipped content declares no routes")
+	// The world has one content city, Support (docs/adr/0032-support-merge.md),
+	// so there is nothing to travel between and no route to declare. When a
+	// second city is linked, this becomes "routes connect every city" again.
+	if len(pack.Cities) == 1 && pack.Cities[0].Code != "support" {
+		t.Errorf("the one shipped city is %q, want support", pack.Cities[0].Code)
+	}
+	if len(pack.Cities) > 1 && len(pack.Routes) == 0 {
+		t.Fatal("the shipped content declares several cities and no routes")
 	}
 
 	// A warning is not a failure, but it should be deliberate. Printing it
@@ -85,6 +91,9 @@ func TestShippedContentBuildsAConnectedWorld(t *testing.T) {
 	routes := snap.Routes()
 	for _, from := range cities {
 		for _, to := range cities {
+			if from.Code == to.Code {
+				continue
+			}
 			if _, err := routes.DistanceBetween(from.Code, to.Code); err != nil {
 				t.Errorf("no journey is possible from %q to %q: %v", from.Code, to.Code, err)
 			}
@@ -107,20 +116,21 @@ func TestShippedSkillsMatchTheDomain(t *testing.T) {
 	}
 }
 
-// The shipped world must place newcomers somewhere, and the two expensive
-// far-end cities are places players travel to, not places they are born.
+// The shipped world must place newcomers somewhere: today, in Support.
 func TestShippedSpawnWeights(t *testing.T) {
 	pack, err := Load(shippedContentDir(t))
 	if err != nil {
 		t.Fatalf("the shipped content does not parse: %v", err)
 	}
 	candidates := pack.SpawnCandidates()
-	if len(candidates) < 2 {
-		t.Errorf("the shipped content spawns players in %d city(ies); new players should be spread over several", len(candidates))
+	if len(candidates) == 0 {
+		t.Fatal("the shipped content spawns players nowhere")
 	}
-	for _, c := range candidates {
-		if c.Code == "calderis" || c.Code == "vantor_reach" {
-			t.Errorf("%s has spawn_weight %d; it is a destination, not a birthplace", c.Code, c.Weight)
-		}
+	// With one content city, everybody is born in Support.
+	if len(pack.Cities) == 1 && (len(candidates) != 1 || candidates[0].Code != "support") {
+		t.Errorf("newcomers must be born in support, got %+v", candidates)
+	}
+	if len(pack.Cities) > 1 && len(candidates) < 2 {
+		t.Errorf("the shipped content spawns players in %d city(ies); new players should be spread over several", len(candidates))
 	}
 }

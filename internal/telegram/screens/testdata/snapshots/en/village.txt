@@ -4,7 +4,7 @@
 
 👥 Population: 340 of 500
 
-🏦 Village treasury: 12,400 Nil
+🏦 Village treasury: 12,400 SUP
 
 🌾 Food coverage: 62%
 💼 Job coverage: 48%
@@ -27,7 +27,7 @@
 
 👥 Population: 40 of 100
 
-🏦 Village treasury: 900 Nil
+🏦 Village treasury: 900 SUP
 
 🌾 Food coverage: 20%
 💼 Job coverage: 10%
@@ -46,13 +46,13 @@ No buildings stand here yet.
 ━━━ Knowledge list · mixed states, research running ━━━
 (edits message 42)
 📚 Knowledge of Korendal
-🏦 Treasury: 12,400 Nil
+🏦 Treasury: 12,400 SUP
 📖 Literacy: 18%
 
 ⏳ Researching Record keeping - finishes at 20:35 - 30h left
 
 ✅ Oral tradition - already known
-🔬 Canal irrigation - research cost 3,000 Nil (24h) - ready-made price: 5,400 Nil
+🔬 Canal irrigation - research cost 3,000 SUP (24h) - ready-made price: 5,400 SUP
 🔒 Basic literacy - needs Oral tradition first
 🔒 Shaft irrigation - this village's terrain does not permit it
 
@@ -64,7 +64,7 @@ No buildings stand here yet.
 ━━━ Knowledge list · nothing to show yet ━━━
 (edits message 42)
 📚 Knowledge of Korendal
-🏦 Treasury: 900 Nil
+🏦 Treasury: 900 SUP
 📖 Literacy: 2%
 
 No knowledge to show.
@@ -74,10 +74,10 @@ No knowledge to show.
 ━━━ Build menu · a mix of ready and locked ━━━
 (edits message 42)
 🏗 Construction in Korendal
-🏦 Treasury: 12,400 Nil
+🏦 Treasury: 12,400 SUP
 📋 Build queue: 1 of 1
 
-🏗 Civic hall - cost 1,000 Nil - build time 2h
+🏗 Civic hall - cost 1,000 SUP - build time 2h
 🔒 Police post - needs Record keeping first
   ───
   [🏗 Build Civic hall] → settlement:build.lots:civic_hall
@@ -148,7 +148,7 @@ Building: Civic hall
 (edits message 42)
 🏗 Build Civic hall
 
-Cost: 1,000 Nil
+Cost: 1,000 SUP
 Build time: 2h
 Location: row 3, column 2
 
@@ -161,7 +161,7 @@ Location: row 3, column 2
 (edits message 42)
 🏗 Build Militia camp
 
-Cost: 500 Nil
+Cost: 500 SUP
 Build time: 45m
 Location: row 1, column 4
   ───

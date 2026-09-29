@@ -57,14 +57,14 @@ From here you can travel to:
 
 How would you like to travel?
 • Bus - Free - 4m on the way - 10 energy
-• Train - 420 Nil - 2m on the way - 6 energy
-• Flight - 1,780 Nil - 2m on the way - 4 energy
+• Train - 420 SUP - 2m on the way - 6 energy
+• Flight - 1,780 SUP - 2m on the way - 4 energy
 
-💵 Your cash: 5,000 Nil
+💵 Your cash: 5,000 SUP
   ───
   [Bus - Free] → travel:start:brennhaven:bus:0
-  [Train - 420 Nil] → travel:start:brennhaven:train:420
-  [Flight - 1,780 Nil] → travel:start:brennhaven:flight:1780
+  [Train - 420 SUP] → travel:start:brennhaven:train:420
+  [Flight - 1,780 SUP] → travel:start:brennhaven:flight:1780
   [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:brennhaven
 
 ━━━ Take the train from the city centre ━━━
@@ -90,15 +90,15 @@ One press walks you to the train station (20s) and opens this page again there.
 🧭 To Brennhaven by Train
 📍 From: Ostmarch
 
-💰 Fare: 420 Nil
+💰 Fare: 420 SUP
 ⏳ 2m on the road
 ⚡ 6 energy
 
 How would you like to pay?
 💳 Your bank balance does not cover it — pay in cash.
-💵 Your cash: 5,000 Nil - Bank: 0 Nil
+💵 Your cash: 5,000 SUP - Bank: 0 SUP
   ───
-  [💵 Pay cash - 420 Nil] → travel:start:brennhaven:train:420:cash
+  [💵 Pay cash - 420 SUP] → travel:start:brennhaven:train:420:cash
   [🧭 Ways to travel] → travel:options:brennhaven
   [🔙 Back] → map:list
 
@@ -108,7 +108,7 @@ How would you like to pay?
 You left Ostmarch and will arrive in 2m.
 ⚡ 6 energy used.
 🕒 Arrives at 12:02
-💵 Fare paid: 420 Nil
+💵 Fare paid: 420 SUP
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
 
@@ -132,8 +132,8 @@ Travelling by: Train
 
 💼 No job yet
 
-💵 Cash: 4,580 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 4,580 SUP
+🏦 Bank balance: 0 SUP
 
 🆔 Player code: K7Q2M9A
   ───
@@ -159,8 +159,8 @@ Travelling by: Train
 (edits message 42)
 <b>🏦 Bank</b>
 
-💵 Cash: 4,580 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 4,580 SUP
+🏦 Bank balance: 0 SUP
 🧭 You are travelling; you can deposit and withdraw once you arrive in a city. Card payments work from anywhere.
 
 💸 To give money to another player, reply to their message in the group with "pay 5000", or press "Pay a player".
@@ -186,8 +186,8 @@ Travelling by: Train
 
 💼 No job yet
 
-💵 Cash: 4,580 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 4,580 SUP
+🏦 Bank balance: 0 SUP
 
 🆔 Player code: K7Q2M9A
   ───
@@ -247,14 +247,14 @@ Tap a place to walk there. Everything is done at its own place.
 
 How would you like to travel?
 • Bus - Free - 4m on the way - 10 energy
-• Train - 420 Nil - 2m on the way - 6 energy
-• Flight - 1,780 Nil - 2m on the way - 4 energy
+• Train - 420 SUP - 2m on the way - 6 energy
+• Flight - 1,780 SUP - 2m on the way - 4 energy
 
-💵 Your cash: 4,580 Nil
+💵 Your cash: 4,580 SUP
   ───
   [Bus - Free] → travel:start:ostmarch:bus:0
-  [Train - 420 Nil] → travel:start:ostmarch:train:420
-  [Flight - 1,780 Nil] → travel:start:ostmarch:flight:1780
+  [Train - 420 SUP] → travel:start:ostmarch:train:420
+  [Flight - 1,780 SUP] → travel:start:ostmarch:flight:1780
   [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:ostmarch
 
 ━━━ Fly with too little money ━━━

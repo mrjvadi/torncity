@@ -11,6 +11,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/content/testworld"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
@@ -270,6 +271,12 @@ func (f *fakeWorkLedger) AccountFor(_ context.Context, kind application.AccountK
 	return application.Account{ID: id, Kind: kind, OwnerID: owner, Balance: money.FromMinor(f.balances[id])}, nil
 }
 
+func (f *fakeWorkLedger) AccountForCurrency(ctx context.Context, kind application.AccountKind, owner, currency string) (application.Account, error) {
+	a, err := f.AccountFor(ctx, kind, owner)
+	a.Currency = currency
+	return a, err
+}
+
 func (f *fakeWorkLedger) Balance(_ context.Context, id string) (money.Amount, error) {
 	return money.FromMinor(f.balances[id]), nil
 }
@@ -359,13 +366,16 @@ type workHarness struct {
 }
 
 // shippedSnapshot is the content that actually ships, so these tests exercise
-// the real careers and courses.
+// the real careers and courses, plus the multi-city world of testworld: the
+// shipped world has one city, but travel, borders and regional careers are
+// rules that still need places that are apart.
 func shippedSnapshot(t *testing.T) *content.Snapshot {
 	t.Helper()
 	pack, err := content.Load("../../../configs/content")
 	if err != nil {
 		t.Fatalf("loading shipped content: %v", err)
 	}
+	pack = testworld.Extend(pack)
 	snap, err := content.BuildSnapshot(7, pack)
 	if err != nil {
 		t.Fatalf("building shipped content: %v", err)

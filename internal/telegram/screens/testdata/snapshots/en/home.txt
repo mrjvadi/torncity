@@ -11,8 +11,8 @@ This is your home: your condition, your money and your work at a glance. Use the
 
 💼 No job yet
 
-💵 Cash: 5,000 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 5,000 SUP
+🏦 Bank balance: 0 SUP
 
 🆔 Player code: K7Q2M9A
 Friends can find you by sending "find K7Q2M9A".
@@ -43,12 +43,12 @@ Friends can find you by sending "find K7Q2M9A".
 😣 Stress ▰▱▱▱▱▱▱▱▱▱ 12
 😊 Happiness ▰▰▰▰▰▰▰▱▱▱ 68
 
-💼 Sales Associate in Brennhaven - 190 Nil per shift
+💼 Sales Associate in Brennhaven - 190 SUP per shift
 📖 Bookkeeping - 1h 35m left
 📜 2 certificates
 
-💵 Cash: 12,850 Nil
-🏦 Bank balance: 240,000 Nil
+💵 Cash: 12,850 SUP
+🏦 Bank balance: 240,000 SUP
 
 🆔 Player code: K7Q2M9A
   ───
@@ -80,11 +80,11 @@ Friends can find you by sending "find K7Q2M9A".
 ⚠️ You are hungry; eat something from your bag or a shop.
 🔻 Your condition takes 8% off energy recovery, work and crime.
 
-💼 Sales Associate in Brennhaven - 190 Nil per shift
+💼 Sales Associate in Brennhaven - 190 SUP per shift
 ⏳ On shift - 25m left
 
-💵 Cash: 12,850 Nil
-🏦 Bank balance: 240,000 Nil
+💵 Cash: 12,850 SUP
+🏦 Bank balance: 240,000 SUP
 
 🆔 Player code: K7Q2M9A
   ───
@@ -107,10 +107,10 @@ Friends can find you by sending "find K7Q2M9A".
 ⚡ Energy: 82 of 100 - full in 18m
 ❤️ Health: 100 of 100
 
-💼 Courier in Ostmarch - 130 Nil per shift
+💼 Courier in Ostmarch - 130 SUP per shift
 
-💵 Cash: 4,440 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 4,440 SUP
+🏦 Bank balance: 0 SUP
 
 🆔 Player code: K7Q2M9A
   ───
@@ -134,8 +134,8 @@ This is your home: your condition, your money and your work at a glance. Use the
 ⚡ Energy: 100 of 100
 ❤️ Health: 100 of 100
 
-💵 Cash: 0 Nil
-🏦 Bank balance: 0 Nil
+💵 Cash: 0 SUP
+🏦 Bank balance: 0 SUP
   ───
   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
@@ -155,8 +155,8 @@ This is your home: your condition, your money and your work at a glance. Use the
 ⚡ Energy: 100 of 100
 ❤️ Health: 100 of 100
 
-💵 Cash: 1,250,000 Nil
-🏦 Bank balance: 98,400,000 Nil
+💵 Cash: 1,250,000 SUP
+🏦 Bank balance: 98,400,000 SUP
 
 🆔 Player code: K7Q2M9A
   ───
@@ -178,8 +178,8 @@ This is your home: your condition, your money and your work at a glance. Use the
 ⭐ Level 3
 ⚡ Energy: 40 of 100
 
-💵 Cash: 5,000 Nil
-🏦 Bank balance: 12,000 Nil
+💵 Cash: 5,000 SUP
+🏦 Bank balance: 12,000 SUP
   ───
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
@@ -204,11 +204,11 @@ Until you are free you cannot travel, work a shift, withdraw from the bank or st
 ⚡ Energy: 64 of 100 - full in 54m
 ❤️ Health: 92 of 100
 
-💼 Sales Associate in Ostmarch - 190 Nil per shift
+💼 Sales Associate in Ostmarch - 190 SUP per shift
 📖 Bookkeeping - paused (in jail), 40m left
 
-💵 Cash: 850 Nil
-🏦 Bank balance: 240,000 Nil
+💵 Cash: 850 SUP
+🏦 Bank balance: 240,000 SUP
 
 🆔 Player code: K7Q2M9A
   ───
@@ -233,8 +233,8 @@ Until you are free you cannot travel, work a shift, withdraw from the bank or st
 ⭐ Level 3
 ⚡ Energy: 40 of 100
 
-💵 Cash: 5,000 Nil
-🏦 Bank balance: 12,000 Nil
+💵 Cash: 5,000 SUP
+🏦 Bank balance: 12,000 SUP
   ───
   [⛓ Jail] → crime:jail   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show

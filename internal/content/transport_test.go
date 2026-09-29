@@ -152,6 +152,11 @@ func TestShippedTransport(t *testing.T) {
 		}
 	}
 	for _, w := range pack.Warnings() {
+		// One city has no route to anywhere by construction
+		// (docs/adr/0032-support-merge.md); that is not a mistake.
+		if len(pack.Cities) == 1 && strings.Contains(w, "has no route to anywhere") {
+			continue
+		}
 		t.Errorf("shipped transport warning: %s", w)
 	}
 }

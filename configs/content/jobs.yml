@@ -230,7 +230,6 @@ careers:
   - code: technology
     name: Technology
     category: technology
-    cities: [ostmarch, brennhaven, calderis, vantor_reach]
     tiers:
       - rank: entry
         title: Junior Developer
@@ -278,7 +277,6 @@ careers:
   - code: healthcare
     name: Healthcare
     category: medical
-    cities: [ostmarch, fenwick_span, kessmoor, vantor_reach]
     tiers:
       - rank: entry
         title: Care Aide
@@ -315,7 +313,6 @@ careers:
   - code: finance
     name: Finance
     category: finance
-    cities: [aldrin_hollow, brennhaven, calderis, vantor_reach]
     tiers:
       - rank: entry
         title: Bank Teller

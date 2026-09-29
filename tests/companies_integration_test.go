@@ -128,12 +128,12 @@ func TestCompanyEndToEnd(t *testing.T) {
 	ctx := testCtx(t)
 
 	cities := postgres.NewCityRepository(pool)
-	city, err := cities.ByCode(ctx, "ostmarch")
+	city, err := cities.ByCode(ctx, "support")
 	if err != nil {
-		t.Skipf("the shipped city ostmarch is not loaded: %v", err)
+		t.Skipf("the shipped city support is not loaded: %v", err)
 	}
 	if n := countRows(t, pool, `SELECT count(*) FROM companies WHERE city_id = $1::uuid AND status = 'active'`, city.ID); n != 0 {
-		t.Skipf("ostmarch already has %d companies; run this test on a database without them", n)
+		t.Skipf("support already has %d companies; run this test on a database without them", n)
 	}
 
 	owner := insertPlayer(t, pool)
@@ -470,12 +470,12 @@ func TestCompanyInsolvencyAndClosing(t *testing.T) {
 	ctx := testCtx(t)
 
 	cities := postgres.NewCityRepository(pool)
-	city, err := cities.ByCode(ctx, "ostmarch")
+	city, err := cities.ByCode(ctx, "support")
 	if err != nil {
-		t.Skipf("the shipped city ostmarch is not loaded: %v", err)
+		t.Skipf("the shipped city support is not loaded: %v", err)
 	}
 	if n := countRows(t, pool, `SELECT count(*) FROM companies WHERE city_id = $1::uuid AND status = 'active'`, city.ID); n != 0 {
-		t.Skipf("ostmarch already has %d companies; run this test on a database without them", n)
+		t.Skipf("support already has %d companies; run this test on a database without them", n)
 	}
 	owner := insertPlayer(t, pool)
 	t.Cleanup(func() { purgeLedgerFor(t, pool, owner.ID) })

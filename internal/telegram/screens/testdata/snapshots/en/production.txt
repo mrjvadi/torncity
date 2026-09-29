@@ -31,10 +31,10 @@ In the warehouse:
 ━━━ Suppliers · the city's ━━━
 (edits message 42)
 🚚 Suppliers in Ostmarch
-💵 Company's free money: 84,000 Nil
+💵 Company's free money: 84,000 SUP
 
-• Diesel fuel - Industrial supplier - 5 Nil a unit - 1,850 units in stock
-• Lithium salt - Industrial supplier - 15 Nil a unit - 60 units in stock
+• Diesel fuel - Industrial supplier - 5 SUP a unit - 1,850 units in stock
+• Lithium salt - Industrial supplier - 15 SUP a unit - 60 units in stock
 
 Suppliers sell the basic inputs no company makes. Each has a limited stock that refills over time.
   ───
@@ -44,13 +44,13 @@ Suppliers sell the basic inputs no company makes. Each has a limited stock that 
 
 ━━━ Suppliers · just bought ━━━
 (edits message 42)
-✅ 100 units of Diesel fuel reached the warehouse; 500 Nil was paid from the company's account.
+✅ 100 units of Diesel fuel reached the warehouse; 500 SUP was paid from the company's account.
 
 🚚 Suppliers in Ostmarch
-💵 Company's free money: 83,500 Nil
+💵 Company's free money: 83,500 SUP
 
-• Diesel fuel - Industrial supplier - 5 Nil a unit - 1,850 units in stock
-• Lithium salt - Industrial supplier - 15 Nil a unit - 60 units in stock
+• Diesel fuel - Industrial supplier - 5 SUP a unit - 1,850 units in stock
+• Lithium salt - Industrial supplier - 15 SUP a unit - 60 units in stock
 
 Suppliers sell the basic inputs no company makes. Each has a limited stock that refills over time.
   ───
@@ -61,7 +61,7 @@ Suppliers sell the basic inputs no company makes. Each has a limited stock that 
 ━━━ Suppliers · none ━━━
 (edits message 42)
 🚚 Suppliers in Ostmarch
-💵 Company's free money: 100 Nil
+💵 Company's free money: 100 SUP
 
 This city has no suppliers.
 
@@ -72,11 +72,11 @@ Suppliers sell the basic inputs no company makes. Each has a limited stock that 
 ━━━ Lab · the tree ━━━
 (edits message 42)
 🧪 Nilou Industries lab
-💵 Company's free money: 84,000 Nil
+💵 Company's free money: 84,000 SUP
 
 ⏳ Research into Battery chemistry finishes at 14:41 - in 6m
 
-✅ Semiconductors - yours - licensed at 9,000 Nil
+✅ Semiconductors - yours - licensed at 9,000 SUP
 🔒 Microchips - needs Semiconductors first
 ⏳ Battery chemistry - being researched
 
@@ -89,11 +89,11 @@ You research each technology once and the company owns it. Keep it private, sell
 ━━━ Lab · a licensee's tree ━━━
 (edits message 42)
 🧪 Kaveh Works lab
-💵 Company's free money: 12,000 Nil
+💵 Company's free money: 12,000 SUP
 
 🌐 Semiconductors - published by another company
 📜 Microchips - you hold a license
-🔬 Battery chemistry - research costs 25,000 Nil - licenses on sale from 2
+🔬 Battery chemistry - research costs 25,000 SUP - licenses on sale from 2
 
 You research each technology once and the company owns it. Keep it private, sell licenses, or publish it for everyone. Reverse engineering never yields a technology.
   ───
@@ -106,12 +106,12 @@ You research each technology once and the company owns it. Keep it private, sell
 🔬 Microchips
 🔬 You can research this technology.
 
-💰 Research cost: 60,000 Nil - ⏱ time: 12m
+💰 Research cost: 60,000 SUP - ⏱ time: 12m
 🎓 Skill needed: Engineering level 2 - your best person: level 3
 ✅ Requires: Semiconductors
 🔓 Make and design with: Chipset
   ───
-  [🔬 Start research - 60,000 Nil] → company:research:Q7M2K9B:microchips
+  [🔬 Start research - 60,000 SUP] → company:research:Q7M2K9B:microchips
   [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
 
 ━━━ Technology · research started ━━━
@@ -121,7 +121,7 @@ You research each technology once and the company owns it. Keep it private, sell
 🔬 Microchips
 ⏳ This technology is being researched.
 
-💰 Research cost: 60,000 Nil - ⏱ time: 12m
+💰 Research cost: 60,000 SUP - ⏱ time: 12m
 🎓 Skill needed: Engineering level 2 - your best person: level 3
 ✅ Requires: Semiconductors
 🔓 Make and design with: Chipset
@@ -135,7 +135,7 @@ You research each technology once and the company owns it. Keep it private, sell
 🔬 Microchips
 🔒 You do not have this technology's prerequisites yet.
 
-💰 Research cost: 60,000 Nil - ⏱ time: 12m
+💰 Research cost: 60,000 SUP - ⏱ time: 12m
 🎓 Skill needed: Engineering level 2 - your best person: level 3
 ❌ Requires: Semiconductors
 🔓 Make and design with: Chipset
@@ -143,7 +143,7 @@ You research each technology once and the company owns it. Keep it private, sell
 🔒 Research the prerequisites above first, or wait for a company to publish them.
 
 🏢 Companies selling licenses for it:
-• Kaveh Works - 12,000 Nil
+• Kaveh Works - 12,000 SUP
   ───
   [📜 License from Kaveh Works] → company:license:Q7M2K9B:microchips:H4T8W2C
   [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
@@ -153,12 +153,12 @@ You research each technology once and the company owns it. Keep it private, sell
 🔬 Microchips
 🔬 You can research this technology.
 
-💰 Research cost: 60,000 Nil - ⏱ time: 12m
+💰 Research cost: 60,000 SUP - ⏱ time: 12m
 🎓 Skill needed: Engineering level 2 - your best person: level 3
 ✅ Requires: Semiconductors
 🔓 Make and design with: Chipset
 
-💰 The company's free money (20,000 Nil) does not cover the research (60,000 Nil).
+💰 The company's free money (20,000 SUP) does not cover the research (60,000 SUP).
   ───
   [🔙 Back] → company:lab:Q7M2K9B   │   [🔄 Refresh] → company:lab:Q7M2K9B:microchips
 
@@ -167,7 +167,7 @@ You research each technology once and the company owns it. Keep it private, sell
 🔬 Microchips
 🔬 You can research this technology.
 
-💰 Research cost: 60,000 Nil - ⏱ time: 12m
+💰 Research cost: 60,000 SUP - ⏱ time: 12m
 🎓 Skill needed: Engineering level 2 - your best person: level 1
 ✅ Requires: Semiconductors
 🔓 Make and design with: Chipset
@@ -185,10 +185,10 @@ You research each technology once and the company owns it. Keep it private, sell
 🔬 Microchips
 ✅ Your company owns this technology.
 
-💰 Research cost: 60,000 Nil - ⏱ time: 12m
+💰 Research cost: 60,000 SUP - ⏱ time: 12m
 🔓 Make and design with: Chipset
 
-📜 Licensed at 12,000 Nil: other companies buy licenses and the money comes to your company.
+📜 Licensed at 12,000 SUP: other companies buy licenses and the money comes to your company.
 📜 Licenses sold: 3
   ───
   [🔐 Private] → company:techmode:Q7M2K9B:microchips:private   │   [📜 Sell licenses] → ask:company.techmode:Q7M2K9B:microchips:license
@@ -202,7 +202,7 @@ You research each technology once and the company owns it. Keep it private, sell
 🔬 Microchips
 ✅ Your company owns this technology.
 
-💰 Research cost: 60,000 Nil - ⏱ time: 12m
+💰 Research cost: 60,000 SUP - ⏱ time: 12m
 🔓 Make and design with: Chipset
 
 🔐 Private: only your company uses it.
@@ -216,10 +216,10 @@ You research each technology once and the company owns it. Keep it private, sell
 🔬 Microchips
 ✅ Your company owns this technology.
 
-💰 Research cost: 60,000 Nil - ⏱ time: 12m
+💰 Research cost: 60,000 SUP - ⏱ time: 12m
 🔓 Make and design with: Chipset
 
-📜 Licensed at 12,000 Nil: other companies buy licenses and the money comes to your company.
+📜 Licensed at 12,000 SUP: other companies buy licenses and the money comes to your company.
 📜 Licenses sold: 3
 
 🌐 Publish Microchips for everyone? Every company will use it for free, and you will never make it private or sell its licenses again.
@@ -234,7 +234,7 @@ You research each technology once and the company owns it. Keep it private, sell
 🔬 Microchips
 ✅ Your company owns this technology.
 
-💰 Research cost: 60,000 Nil - ⏱ time: 12m
+💰 Research cost: 60,000 SUP - ⏱ time: 12m
 🔓 Make and design with: Chipset
 
 🌐 Published: everyone uses it freely, and that cannot be undone.
@@ -247,23 +247,23 @@ You research each technology once and the company owns it. Keep it private, sell
 🔬 Microchips
 🔒 You do not have this technology's prerequisites yet.
 
-💰 Research cost: 60,000 Nil - ⏱ time: 12m
+💰 Research cost: 60,000 SUP - ⏱ time: 12m
 
 🔒 Research the prerequisites above first, or wait for a company to publish them.
 
-📜 Buy a license for Microchips from Nilou Industries at 12,000 Nil? Your company's free money: 30,000 Nil
+📜 Buy a license for Microchips from Nilou Industries at 12,000 SUP? Your company's free money: 30,000 SUP
   ───
-  [📜 Yes, buy at 12,000 Nil] → company:license:H4T8W2C:microchips:Q7M2K9B:yes
+  [📜 Yes, buy at 12,000 SUP] → company:license:H4T8W2C:microchips:Q7M2K9B:yes
   [🔙 Back] → company:lab:H4T8W2C   │   [🔄 Refresh] → company:lab:H4T8W2C:microchips
 
 ━━━ Technology · license bought ━━━
 (edits message 42)
-✅ License bought from Nilou Industries; 12,000 Nil went to their account.
+✅ License bought from Nilou Industries; 12,000 SUP went to their account.
 
 🔬 Microchips
 📜 You hold a license for this technology; you may design and make with it.
 
-💰 Research cost: 60,000 Nil - ⏱ time: 12m
+💰 Research cost: 60,000 SUP - ⏱ time: 12m
   ───
   [🔙 Back] → company:lab:H4T8W2C   │   [🔄 Refresh] → company:lab:H4T8W2C:microchips
 
@@ -303,7 +303,7 @@ Your company has 2 designs and cannot have more.
 
 👁 Battery life: 0
 👁 Quality: 53
-💰 Cost floor per unit: 440 Nil
+💰 Cost floor per unit: 440 SUP
 
 ⬜ Required slots are still empty.
   ───
@@ -326,7 +326,7 @@ Choose the component for Power:
 
 👁 Battery life: 0
 👁 Quality: 53
-💰 Cost floor per unit: 440 Nil
+💰 Cost floor per unit: 440 SUP
 
 ⬜ Required slots are still empty.
   ───
@@ -342,10 +342,10 @@ Choose the component for Power:
 
 Choose the component for Base:
 The amount goes from 50 g to 500 g; after choosing, type the amount.
-• Flour - reference price 1 Nil - quality 50
+• Flour - reference price 1 SUP - quality 50
 
 👁 Quality: 50
-💰 Cost floor per unit: 120 Nil
+💰 Cost floor per unit: 120 SUP
 
 ✅ The design is complete; name it and finalise it.
   ───
@@ -364,7 +364,7 @@ The amount goes from 50 g to 500 g; after choosing, type the amount.
 
 👁 Battery life: 3,000
 👁 Quality: 50
-💰 Cost floor per unit: 590 Nil
+💰 Cost floor per unit: 590 SUP
 
 ✅ The design is complete; name it and finalise it.
   ───
@@ -384,7 +384,7 @@ The amount goes from 50 g to 500 g; after choosing, type the amount.
 
 👁 Battery life: 3,000
 👁 Quality: 50
-💰 Cost floor per unit: 590 Nil
+💰 Cost floor per unit: 590 SUP
 
 🔒 These components need Battery chemistry; research it or buy a license.
   ───
@@ -404,7 +404,7 @@ The amount goes from 50 g to 500 g; after choosing, type the amount.
 
 👁 Battery life: 3,000
 👁 Quality: 50
-💰 Cost floor per unit: 590 Nil
+💰 Cost floor per unit: 590 SUP
   ───
   [⚙️ Produce it] → company:produce:Q7M2K9B:d12
   [🧰 Build an upgrade kit] → company:kit:Q7M2K9B:d12
@@ -425,7 +425,7 @@ The amount goes from 50 g to 500 g; after choosing, type the amount.
 
 👁 Battery life: 3,000
 👁 Quality: 50
-💰 Cost floor per unit: 590 Nil
+💰 Cost floor per unit: 590 SUP
   ───
   [⚙️ Produce it] → company:produce:H4T8W2C:d15
   [🧰 Build an upgrade kit] → company:kit:H4T8W2C:d15
@@ -566,7 +566,7 @@ The sample is destroyed. A success is a design worse than the original, and neve
 
 ━━━ Sell · how many ━━━
 (edits message 42)
-💰 Sell Nil Mobile X (Phone) - 4 in the warehouse - reference price 590 Nil
+💰 Sell Nil Mobile X (Phone) - 4 in the warehouse - reference price 590 SUP
 
 How many units to list?
   ───
@@ -575,22 +575,22 @@ How many units to list?
 
 ━━━ Sell · the price ━━━
 (edits message 42)
-💰 Sell Nil Mobile X (Phone) - 4 in the warehouse - reference price 590 Nil
+💰 Sell Nil Mobile X (Phone) - 4 in the warehouse - reference price 590 SUP
 
 Type a price per unit for 2 Nil Mobile X (Phone), or list at the reference price.
   ───
   [✏️ Other price] → ask:company.sell:Q7M2K9B:d12:2
-  [🏷 Reference price 590 Nil] → company:sell:Q7M2K9B:d12:2:590
+  [🏷 Reference price 590 SUP] → company:sell:Q7M2K9B:d12:2:590
   [🔙 Back] → company:warehouse:Q7M2K9B
 
 ━━━ Listings · just listed ━━━
 (edits message 42)
-🏷 2 Nil Mobile X (Phone) listed at 1,500 Nil a unit.
+🏷 2 Nil Mobile X (Phone) listed at 1,500 SUP a unit.
 
 🏷 Nilou Industries listings in Ostmarch
 
-• Nil Mobile X (Phone) - 2 left - 1,500 Nil a unit
-• Chipset - 10 left - 420 Nil a unit
+• Nil Mobile X (Phone) - 2 left - 1,500 SUP a unit
+• Chipset - 10 left - 420 SUP a unit
 
 Players and companies of this city see and buy your listings under "Company goods". The city's sales tax is taken from the revenue.
   ───
@@ -612,9 +612,9 @@ Players and companies of this city see and buy your listings under "Company good
 (edits message 42)
 🏭 Company goods in Ostmarch
 
-• Nil Mobile X (Phone) - Nilou Industries - 2 left - 1,500 Nil a unit
+• Nil Mobile X (Phone) - Nilou Industries - 2 left - 1,500 SUP a unit
   👁 Battery life 3,000, Quality 50
-• Chipset - Nilou Industries - 10 left - 420 Nil a unit
+• Chipset - Nilou Industries - 10 left - 420 SUP a unit
   ───
   [🛒 Nil Mobile X (Phone)] → company:buy:7   │   [🛒 Chipset] → company:buy:8
   [🔙 Back] → market:list   │   [🔄 Refresh] → company:goods
@@ -629,27 +629,27 @@ The companies of this city list nothing for now.
 
 ━━━ Buy · a player or a company ━━━
 (edits message 42)
-• Nil Mobile X (Phone) - Nilou Industries - 2 left - 1,500 Nil a unit
+• Nil Mobile X (Phone) - Nilou Industries - 2 left - 1,500 SUP a unit
   👁 Battery life 3,000, Quality 50
 
-🧾 1 units - 1,500 Nil in all
+🧾 1 units - 1,500 SUP in all
   ───
-  [💵 Pay cash 1,500 Nil] → company:buy:7:1:cash
-  [💳 Pay by card 1,500 Nil] → company:buy:7:1:card
+  [💵 Pay cash 1,500 SUP] → company:buy:7:1:cash
+  [💳 Pay by card 1,500 SUP] → company:buy:7:1:card
   [🏢 Buy for Kaveh Works] → company:buy:7:1:H4T8W2C
   [✏️ Other quantity] → ask:company.buy:7
   [🔙 Back] → company:goods   │   [🔄 Refresh] → company:buy:7
 
 ━━━ Buy · bought for a company ━━━
 (edits message 42)
-✅ 1 Nil Mobile X (Phone) bought from Nilou Industries for Kaveh Works; 1,500 Nil was paid from the company's account. It is in the company's warehouse.
+✅ 1 Nil Mobile X (Phone) bought from Nilou Industries for Kaveh Works; 1,500 SUP was paid from the company's account. It is in the company's warehouse.
   ───
   [🏭 Kaveh Works warehouse] → company:warehouse:H4T8W2C
   [🔙 Back] → company:goods
 
 ━━━ Buy · bought for the player ━━━
 (edits message 42)
-✅ You bought 1 Nil Mobile X (Phone) from Nilou Industries for 1,500 Nil. It is in your bag.
+✅ You bought 1 Nil Mobile X (Phone) from Nilou Industries for 1,500 SUP. It is in your bag.
   ───
   [🎒 Bag] → inventory:show
   [🔙 Back] → company:goods
@@ -690,13 +690,13 @@ The companies of this city list nothing for now.
 
 ━━━ Notice · a license sold ━━━
 (sends)
-📜 Kaveh Works bought a license for Microchips from Nilou Industries; 12,000 Nil went to the company's account.
+📜 Kaveh Works bought a license for Microchips from Nilou Industries; 12,000 SUP went to the company's account.
   ───
   [🧪 Research lab] → company:lab:Q7M2K9B
 
 ━━━ Notice · goods sold ━━━
 (sends)
-💰 Kaveh Works bought 1 Nil Mobile X (Phone) from Nilou Industries; 1,500 Nil went to the company's account.
+💰 Kaveh Works bought 1 Nil Mobile X (Phone) from Nilou Industries; 1,500 SUP went to the company's account.
   ───
   [🏭 Production and warehouse] → company:warehouse:Q7M2K9B
 
@@ -726,7 +726,7 @@ The companies of this city list nothing for now.
 
 ━━━ Refused · funds ━━━
 (edits message 42)
-💰 Nilou Industries has 12,000 Nil of free money, which does not cover 60,000 Nil.
+💰 Nilou Industries has 12,000 SUP of free money, which does not cover 60,000 SUP.
   ───
   [🔙 Back] → company:warehouse:Q7M2K9B
 

@@ -26,24 +26,11 @@
 # that no route reaches, because an unreachable city is almost always a typo
 # rather than a design choice.
 
+# The world has one content city, Support (docs/adr/0032-support-merge.md), so
+# there is nothing to travel between and no route to write. The route table
+# stays for the day a second city (a settlement players found, ADR 0028) is
+# linked to Support; transport.yml keeps the modes and fares ready for it.
+
 version: 1
 
-routes:
-  # The Ostmarch corridor: cheap, well connected, where new players start.
-  - {from: ostmarch, to: fenwick_span, distance: 120}
-  - {from: ostmarch, to: brennhaven, distance: 260}
-  - {from: fenwick_span, to: aldrin_hollow, distance: 180}
-  - {from: fenwick_span, to: brennhaven, distance: 210}
-
-  # Inland industry.
-  - {from: brennhaven, to: kessmoor, distance: 340}
-  - {from: aldrin_hollow, to: kessmoor, distance: 290}
-
-  # The coast. Calderis is expensive to reach, which is part of why it is
-  # expensive to live in.
-  # No railway crosses the Kessmoor pass: the road and the air only.
-  - {from: kessmoor, to: calderis, distance: 520, modes: [bus, car, flight]}
-  - {from: aldrin_hollow, to: calderis, distance: 610}
-
-  # Vantor Reach sits at the far end: one way in, high tax, high cost.
-  - {from: calderis, to: vantor_reach, distance: 480}
+routes: []

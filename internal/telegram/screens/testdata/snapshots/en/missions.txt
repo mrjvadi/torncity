@@ -13,12 +13,12 @@
 (edits message 42)
 <b>📋 Civic noticeboard - Ostmarch</b>
 
-• First steps - 🎁 Reward: 300 Nil, 40 XP, 2 Sandwich
-• Back to school - 🎁 Reward: 500 Nil, 60 XP
+• First steps - 🎁 Reward: 300 SUP, 40 XP, 2 Sandwich
+• Back to school - 🎁 Reward: 500 SUP, 60 XP
   Do the missions it builds on first.
-• City courier - 🎁 Reward: 250 Nil, 25 XP
+• City courier - 🎁 Reward: 250 SUP, 25 XP
   ⏳ It can be taken again in 14m.
-• Medicine drive - 🎁 Reward: 450 Nil, 30 XP
+• Medicine drive - 🎁 Reward: 450 SUP, 30 XP
   You have this mission already.
   ───
   [📌 First steps] → mission:view:first_steps
@@ -33,7 +33,7 @@
 <b>📋 Police board - Ostmarch</b>
 You take a mission at the police station.
 
-• Road watch - 🎁 Reward: 600 Nil, 50 XP
+• Road watch - 🎁 Reward: 600 SUP, 50 XP
   ───
   [📌 Road watch] → mission:view:road_watch
   [📋 My missions] → mission:mine
@@ -47,7 +47,7 @@ Every newcomer stands on their own feet: earn a wage and stock the medicine cabi
 • Work 2 shifts
 • Buy 1 Bandage at the city's shops
 
-🎁 Reward: 300 Nil, 40 XP, 2 Sandwich
+🎁 Reward: 300 SUP, 40 XP, 2 Sandwich
 📍 Taken and handed in: Civic noticeboard at the civic centre
   ───
   [✅ Take the mission] → mission:accept:first_steps
@@ -60,7 +60,7 @@ Every newcomer stands on their own feet: earn a wage and stock the medicine cabi
 City hall's post must reach another city.
 • Travel to another city
 
-🎁 Reward: 250 Nil, 25 XP
+🎁 Reward: 250 SUP, 25 XP
 📍 Taken and handed in: Civic noticeboard at the civic centre
 ⭐ Level 2 at least
 ⏳ To be done within 12m of taking it
@@ -77,7 +77,7 @@ City hall's post must reach another city.
 The city needs trained hands.
 • Complete 1 courses
 
-🎁 Reward: 500 Nil, 60 XP
+🎁 Reward: 500 SUP, 60 XP
 📍 Taken and handed in: Civic noticeboard at the civic centre
 🔗 After: First steps
 
@@ -92,7 +92,7 @@ Do the missions it builds on first.
 The city's clinics are running short; bring bandages to the civic centre.
 • Hand in 3 Bandage at the board
 
-🎁 Reward: 450 Nil, 30 XP
+🎁 Reward: 450 SUP, 30 XP
 📍 Taken and handed in: Civic noticeboard at the civic centre
 🔁 Repeatable; 24m after each time
 
@@ -126,7 +126,7 @@ Give up «Medicine drive»? Its progress is lost.
   ⏳ 9m left
 
 Lately:
-✅ First steps - 300 Nil
+✅ First steps - 300 SUP
 ⌛ City courier - ran out of time
   ───
   [📦 Hand in for Medicine drive] → mission:deliver:17   │   [✖️ Give up Medicine drive] → mission:abandon:17
@@ -137,7 +137,7 @@ Lately:
 ━━━ Mine · completed, a cap kept some back ━━━
 (edits message 42) (private in groups)
 🎉 «Medicine drive» is done.
-⚖️ 300 Nil of the reward was not paid: the day's cap on rewards.
+⚖️ 300 SUP of the reward was not paid: the day's cap on rewards.
 
 📋 My missions - 0 of 5
 
@@ -163,7 +163,7 @@ No mission in hand. Take one from a city board.
 ━━━ Notice · a mission completed ━━━
 (sends) (private in groups)
 🎉 «First steps» is done!
-💵 300 Nil went into your cash.
+💵 300 SUP went into your cash.
 ⭐ +40 XP
 🎒 You got 2 Sandwich.
   ───
@@ -172,8 +172,8 @@ No mission in hand. Take one from a city board.
 ━━━ Notice · completed, capped ━━━
 (sends) (private in groups)
 🎉 «Medicine drive» is done!
-💵 150 Nil went into your cash.
-⚖️ 300 Nil of the reward was not paid: the day's cap on rewards.
+💵 150 SUP went into your cash.
+⚖️ 300 SUP of the reward was not paid: the day's cap on rewards.
 ⭐ +30 XP
 🎒 You got 1 Bandage.
   ───
@@ -232,7 +232,7 @@ One press walks you to the civic centre (10s) and opens this page again there.
 
 ━━━ Pay · held for review ━━━
 (edits message 42)
-⏸ Your payment of 80,000 Nil to Kaveh is held for review. It has left your purse and waits in your escrow; after the review it reaches Kaveh or comes back to you.
+⏸ Your payment of 80,000 SUP to Kaveh is held for review. It has left your purse and waits in your escrow; after the review it reaches Kaveh or comes back to you.
   ───
   [🏦 Bank] → bank:show   │   [💸 Pay again] → bank:pay:B3C4D5F
   [🔙 Back] → player:profile.get

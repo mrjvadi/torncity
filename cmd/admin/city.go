@@ -71,7 +71,7 @@ func cityGroupChange(ctx context.Context, args []string, link bool) error {
 	}
 	fs := flag.NewFlagSet(name, flag.ExitOnError)
 	fs.Usage = cityUsage
-	city := fs.String("city", "", "the city's content code, e.g. ostmarch")
+	city := fs.String("city", "", "the city's content code, e.g. support")
 	chat := fs.Int64("chat", 0, "the Telegram group's chat id (negative)")
 	bot := fs.String("bot", "", "the bot that serves the group (telegram_bots.bot_key)")
 	language := fs.String("language", "fa", "the group's language")

@@ -146,7 +146,7 @@ Answer (a real `bank.show`, English):
   "screen": "bank",
   "text": "🏦 Bank - Calderis branch\n\n💵 Cash: 125,000 Nil\n🏦 Bank balance: 480,000 Nil\n…",
   "view": {
-    "city_code": "calderis", "city": "Calderis", "travelling": false, "no_city": false, "jailed": false,
+    "city_code": "support", "city": "Support", "travelling": false, "no_city": false, "jailed": false,
     "cash": 125000, "bank": 480000, "withdrawal_fee_bps": 100,
     "deposits": [{"amount": 100000, "nonce": "n1", "all": false}, {"amount": 125000, "nonce": "n2", "all": true}],
     "withdrawals": null, "can_deposit": true, "can_withdraw": true, "notice": ""
@@ -251,7 +251,7 @@ A view is attached only when the screen is shown to the player alone.
 **`profile`** (`player.profile.get`)
 
 ```json
-{"name": "Sara", "code": "K7Q2M9A", "avatar": "🦊", "city_code": "calderis", "city": "Calderis",
+{"name": "Sara", "code": "K7Q2M9A", "avatar": "🦊", "city_code": "support", "city": "Support",
  "place": {"code": "old_town", "name": "Old Town"},
  "walk": {"to": {"code": "harbour", "name": "Harbour"}, "remaining_seconds": 120, "arrives_at": "2026-09-26T10:02:00Z"},
  "level": 3, "xp": 420, "next_level_xp": 600, "energy": 80, "max_energy": 100, "energy_full_in_seconds": 900,
@@ -271,7 +271,7 @@ A view is attached only when the screen is shown to the player alone.
 **`city_map`** (`map.list`)
 
 ```json
-{"city_code": "calderis", "city": "Calderis", "no_city": false, "travelling": false, "travelling_to_code": "", "travelling_to": "",
+{"city_code": "support", "city": "Support", "no_city": false, "travelling": false, "travelling_to_code": "", "travelling_to": "",
  "here": {"code": "old_town", "name": "Old Town"}, "walking": null, "others": 0,
  "places": [{"place": {"code": "harbour", "name": "Harbour"}, "walk_seconds": 180, "energy": 2,
              "services": ["bank"], "departures": null, "shops": null, "here": false}]}
@@ -334,10 +334,10 @@ Load once after signing in (and after a content change).
 
 ```json
 {
-  "player": {"id": "8a4e…", "code": "K7Q2M9A", "name": "Sara", "lang": "fa", "city_code": "calderis", "city": "کالدریس"},
+  "player": {"id": "8a4e…", "code": "K7Q2M9A", "name": "Sara", "lang": "fa", "city_code": "support", "city": "ساپورت"},
   "content_version": 42,
   "languages": [{"code": "en", "name": "English"}, {"code": "fa", "name": "فارسی"}],
-  "cities": [{"code": "calderis", "name": "کالدریس"}, {"code": "ostmarch", "name": "اوستمارش"}],
+  "cities": [{"code": "support", "name": "ساپورت"}],
   "places": [{"code": "old_town", "name": "شهر قدیم"}, {"code": "harbour", "name": "بندر"}],
   "server_time": "2026-09-26T10:00:00Z",
   "realtime": true
@@ -380,13 +380,20 @@ places nearest walk first (the city centre in the middle, the airport on
 the outskirts), then its companies oldest first, then greens and plazas.
 
 ```json
-{"city": "ostmarch", "version": 2934512, "grid": {"w": 16, "h": 16},
+{"city": "support", "version": 2934512, "grid": {"w": 16, "h": 16},
  "water": {"side": "south", "width": 6}, "roads": [[0, 0], [1, 0]],
  "plots": [{"id": "company:Q7M2K9B", "x": 4, "y": 7, "w": 2, "h": 2, "kind": "company",
             "model": "company:factory", "rot": 0,
             "ref": {"table": "company_type", "code": "factory", "company_id": "Q7M2K9B", "owner": "Sara"},
             "name": {"en": "Alborz Steel", "fa": "Alborz Steel"}}]}
 ```
+
+**The world has one content city, `support`** (docs/adr/0032): the seven
+older city codes (`ostmarch`, `fenwick_span`, `aldrin_hollow`, `brennhaven`,
+`kessmoor`, `calderis`, `vantor_reach`) no longer exist and answer
+`city_not_found`. A client that cached a `city_code` sees `support` at its next
+login, and the realtime channel of that city is `city:support`. Money is in
+`SUP` (the neutral currency, shown «ساپ»); every amount keeps its value.
 
 Kinds: `place`, `company`, `decor`. `version` changes whenever a plot does.
 A company plot's tap sends `company.show {id}`, which the API serves as
@@ -413,7 +420,7 @@ Fetch a new token when the SDK asks for one (its `getToken` callback).
 ### 5.2 A city channel — `GET /api/v1/realtime/subscribe?channel=city:<code>`
 
 ```json
-{"token": "eyJhbGciOi…", "expires_at": "2026-09-26T10:15:00Z", "channel": "city:calderis"}
+{"token": "eyJhbGciOi…", "expires_at": "2026-09-26T10:15:00Z", "channel": "city:support"}
 ```
 
 A **subscription token** (claims `sub`, `channel`, `exp`, `iat`) for the

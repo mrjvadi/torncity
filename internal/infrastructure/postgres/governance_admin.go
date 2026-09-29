@@ -33,7 +33,7 @@ func NewGovernanceAdmin(p *Pool) *GovernanceAdmin { return &GovernanceAdmin{pool
 type SeatRef struct {
 	OfficeCode string
 	// JurisdictionKind and JurisdictionCode name the place: ("city",
-	// "ostmarch").
+	// "support").
 	JurisdictionKind string
 	JurisdictionCode string
 	Seat             int

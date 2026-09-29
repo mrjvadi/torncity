@@ -50,7 +50,7 @@
 #   certificate     مدرک                   📜
 #   office          منصب / مناصب            🏛       «سیاست» = policy
 #   back            بازگشت                 🔙       every screen has one, except the profile itself
-#   currency        نیل (Nil، پول بازی)             always through format.money: «5,000 نیل»
+#   currency        ساپ (SUP، پول بازی)             always through format.money: «5,000 ساپ»
 #
 # Voice: address the player as «شما», polite and direct. No exclamation marks
 # except in the one-time welcome. At most one emoji per line, at the head of
@@ -135,7 +135,7 @@ map:
   origin: "📍 شما در {city} هستید."
   destinations: "از اینجا به این شهرها می‌توانید سفر کنید:"
   destination: "• {city} - {distance} کیلومتر"
-  no_routes: "فعلاً از اینجا راهی به شهر دیگری نیست. کمی بعد با «به‌روزرسانی» دوباره نگاه کنید."
+  no_routes: "فعلاً از اینجا راهی به جای دیگری نیست. هر وقت مسیری باز شود، مقصدها همین‌جا نمایش داده می‌شوند."
   no_city: "هنوز در هیچ شهری مستقر نشده‌اید. پس از استقرار، مقصدهای سفر همین‌جا نمایش داده می‌شوند."
   travelling: "🧭 در راه {city} هستید. پس از رسیدن می‌توانید سفر تازه‌ای را آغاز کنید."
 
@@ -226,6 +226,10 @@ skill:
 # entry here falls back to the `name:` in cities.yml, but a test fails CI until
 # every shipped city is translated in every locale.
 city:
+  support: ساپورت
+  # The seven cities Support replaced (docs/adr/0032-support-merge.md). No
+  # city carries these codes any more; the names stay so history that
+  # mentions them (past events, old records) still reads.
   ostmarch: استمارچ
   fenwick_span: فنویک اسپن
   aldrin_hollow: آلدرین هالو
@@ -233,6 +237,13 @@ city:
   kessmoor: کسمور
   calderis: کالدریس
   vantor_reach: ونتور ریچ
+
+# Currency display names, keyed on the currency code (the currencies table).
+# SUP is the neutral money of Support; NIL is the premium currency
+# (docs/adr/0029-currencies-and-premium.md).
+currency:
+  SUP: ساپ
+  NIL: نیل
 
 # The answer to a message the game did not understand. The commands listed in
 # help.body are the shortcuts internal/gateway/routing accepts; keep the two
@@ -349,7 +360,7 @@ format:
   clock: "{hour}:{minute}"
   # A sum of money. {amount} is already written with the digits and the
   # group separator above.
-  money: "{amount} نیل"
+  money: "{amount} ساپ"
   # A date: the calendar it is counted in (jalali, the Solar Hijri calendar,
   # or gregorian), its shape, and the month names.
   calendar: jalali
@@ -1516,29 +1527,29 @@ input:
     life_bio: "💬 چند کلمه دربارهٔ خودتان بنویسید تا روی کارت‌تان بنشیند؛ بدون لینک و نام کاربری."
   placeholder:
     default: "مقدار"
-    bank_deposit: "مبلغ واریز به نیل"
-    bank_withdraw: "مبلغ برداشت به نیل"
-    bank_pay: "مبلغ پرداخت به نیل"
+    bank_deposit: "مبلغ واریز به ساپ"
+    bank_withdraw: "مبلغ برداشت به ساپ"
+    bank_pay: "مبلغ پرداخت به ساپ"
     company_found: "نام شرکت"
-    company_deposit: "مبلغ واریز به نیل"
-    company_withdraw: "مبلغ برداشت به نیل"
-    company_post: "دستمزد هر شیفت به نیل"
+    company_deposit: "مبلغ واریز به ساپ"
+    company_withdraw: "مبلغ برداشت به ساپ"
+    company_post: "دستمزد هر شیفت به ساپ"
     company_manager: "کد بازیکن یا نام کاربری"
     company_supply: "تعداد واحد"
-    company_techmode: "قیمت لایسنس به نیل"
+    company_techmode: "قیمت لایسنس به ساپ"
     company_dqty: "مقدار"
     company_dname: "نام طرح"
-    company_sell: "قیمت هر واحد به نیل"
+    company_sell: "قیمت هر واحد به ساپ"
     company_buy: "تعداد"
-    company_ramount: "مبلغ به نیل"
+    company_ramount: "مبلغ به ساپ"
     gov_appoint: "کد بازیکن یا نام کاربری"
-    health_price: "هزینهٔ هر درمان به نیل"
+    health_price: "هزینهٔ هر درمان به ساپ"
     faction_found: "نام جناح"
     faction_invite: "کد بازیکن یا نام کاربری"
-    faction_deposit: "مبلغ واریز به نیل"
-    faction_withdraw: "مبلغ برداشت به نیل"
-    property_sell: "قیمت فروش به نیل"
-    property_let: "اجاره‌بهای هر دوره به نیل"
+    faction_deposit: "مبلغ واریز به ساپ"
+    faction_withdraw: "مبلغ برداشت به ساپ"
+    property_sell: "قیمت فروش به ساپ"
+    property_let: "اجاره‌بهای هر دوره به ساپ"
     life_bio: "چند کلمه دربارهٔ خودتان"
   cancel_hint: "برای انصراف، «انصراف» را بفرستید."
   cancelled: "✖️ لغو شد. چیزی تغییر نکرد."

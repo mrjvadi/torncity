@@ -80,7 +80,6 @@ courses:
   - code: culinary_arts
     name: Culinary Arts
     institution: training_center
-    city: brennhaven
     cost: 3200
     duration: 10h
     min_level: 4
@@ -90,7 +89,6 @@ courses:
   - code: automotive_repair
     name: Automotive Repair
     institution: training_center
-    city: kessmoor
     cost: 3600
     duration: 12h
     min_level: 4
@@ -100,7 +98,6 @@ courses:
   - code: nursing
     name: Nursing Diploma
     institution: university
-    city: fenwick_span
     cost: 6000
     duration: 24h
     capacity: 40
@@ -112,7 +109,6 @@ courses:
   - code: software_engineering
     name: Software Engineering Degree
     institution: university
-    city: ostmarch
     cost: 9000
     duration: 48h
     capacity: 40

@@ -29,7 +29,7 @@ Your bag is empty. The city's shops sell food, medicine and tools.
 
 Kind: Food
 You have 3.
-💰 Worth about 40 Nil
+💰 Worth about 40 SUP
 
 When used:
 • ⚡ Energy up by 10
@@ -48,7 +48,7 @@ When used:
 
 Kind: Medicine
 You have 1.
-💰 Worth about 80 Nil
+💰 Worth about 80 SUP
 
 When used:
 • ❤️ Health up by 15
@@ -69,7 +69,7 @@ When used:
 
 Kind: Tools
 quality 62 - 7 of 10 uses left
-💰 Worth about 600 Nil
+💰 Worth about 600 SUP
 
 🕶 Helps with: Home burglary, Car break-in
 🎲 Odds of success up by 10%
@@ -201,8 +201,8 @@ This city has no shops yet.
 (edits message 42)
 <b>🛒 Hardware store - at the bazaar</b>
 
-• Lockpick set - 600 Nil - 4 in stock - buys at 300 Nil
-• Crowbar - 390 Nil (in demand) - 2 in stock
+• Lockpick set - 600 SUP - 4 in stock - buys at 300 SUP
+• Crowbar - 390 SUP (in demand) - 2 in stock
 • Pair of gloves - sold out
 
 📍 You are at the counter.
@@ -215,8 +215,8 @@ This city has no shops yet.
 (edits message 42)
 <b>🛒 Hardware store - at the bazaar</b>
 
-• Lockpick set - 600 Nil - 4 in stock - buys at 300 Nil
-• Crowbar - 390 Nil (in demand) - 2 in stock
+• Lockpick set - 600 SUP - 4 in stock - buys at 300 SUP
+• Crowbar - 390 SUP (in demand) - 2 in stock
 • Pair of gloves - sold out
 
 📍 The shop is at the bazaar. Walk there to buy.
@@ -229,36 +229,36 @@ This city has no shops yet.
 (edits message 42)
 🛒 Hardware store
 
-Lockpick set - 1 at 600 Nil each
-Price: 630 Nil
-🧾 Sales tax (5%): 30 Nil
-💵 To pay: 660 Nil
+Lockpick set - 1 at 600 SUP each
+Price: 630 SUP
+🧾 Sales tax (5%): 30 SUP
+💵 To pay: 660 SUP
 
 How would you like to pay?
-💵 Your cash: 2,000 Nil - Bank: 9,000 Nil
+💵 Your cash: 2,000 SUP - Bank: 9,000 SUP
   ───
-  [💵 Pay cash - 630 Nil] → shop:buy:hardware_store:lockpick_set:1:cash:0a1b2c3d4e61   │   [💳 Pay by card - 630 Nil] → shop:buy:hardware_store:lockpick_set:1:card:0a1b2c3d4e61
+  [💵 Pay cash - 630 SUP] → shop:buy:hardware_store:lockpick_set:1:cash:0a1b2c3d4e61   │   [💳 Pay by card - 630 SUP] → shop:buy:hardware_store:lockpick_set:1:card:0a1b2c3d4e61
   [🔙 Back] → shop:view:hardware_store
 
 ━━━ Checkout · neither covers it ━━━
 (edits message 42)
 🛒 Hardware store
 
-Lockpick set - 1 at 600 Nil each
-Price: 630 Nil
-🧾 Sales tax (5%): 30 Nil
-💵 To pay: 660 Nil
+Lockpick set - 1 at 600 SUP each
+Price: 630 SUP
+🧾 Sales tax (5%): 30 SUP
+💵 To pay: 660 SUP
 
 💸 Neither your cash nor your bank balance covers this.
-💵 Your cash: 100 Nil - Bank: 200 Nil
+💵 Your cash: 100 SUP - Bank: 200 SUP
   ───
   [🏦 Bank] → bank:show
   [🔙 Back] → shop:view:hardware_store
 
 ━━━ Bought · with tax ━━━
 (edits message 42)
-✅ You bought Lockpick set - 1 for 660 Nil.
-🧾 That includes 30 Nil sales tax, paid to the city.
+✅ You bought Lockpick set - 1 for 660 SUP.
+🧾 That includes 30 SUP sales tax, paid to the city.
 💳 Paid by bank card.
   ───
   [🎒 Bag] → inventory:show   │   [🛒 Back to the shop] → shop:view:hardware_store
@@ -267,11 +267,11 @@ Price: 630 Nil
 ━━━ Sell · who buys a phone ━━━
 (edits message 42)
 💰 Who buys Phone
-• Pawnshop at the residential area - pays 1,100 Nil
-• Electronics store at the business district - pays 1,250 Nil
+• Pawnshop at the residential area - pays 1,100 SUP
+• Electronics store at the business district - pays 1,250 SUP
   ───
-  [💰 Pawnshop - 1,100 Nil] → shop:sell:pawnshop:F0E1D2C3B4
-  [💰 Electronics store - 1,250 Nil] → shop:sell:electronics_store:F0E1D2C3B4
+  [💰 Pawnshop - 1,100 SUP] → shop:sell:pawnshop:F0E1D2C3B4
+  [💰 Electronics store - 1,250 SUP] → shop:sell:electronics_store:F0E1D2C3B4
   [🔙 Back] → inventory:item:F0E1D2C3B4
 
 ━━━ Sell · nobody buys it ━━━
@@ -283,7 +283,7 @@ No shop in this city buys that.
 
 ━━━ Sold · a phone to the pawnshop ━━━
 (edits message 42)
-💰 You sold Phone to Pawnshop for 1,100 Nil.
+💰 You sold Phone to Pawnshop for 1,100 SUP.
 🎒 Left in your bag: 0
   ───
   [🎒 Bag] → inventory:show

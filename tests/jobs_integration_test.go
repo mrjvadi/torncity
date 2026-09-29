@@ -25,6 +25,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/content/testworld"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
@@ -317,6 +318,7 @@ func TestWorkAndStudyEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	pack = testworld.Extend(pack)
 	var (
 		kept    []content.CareerDef
 		dropped string

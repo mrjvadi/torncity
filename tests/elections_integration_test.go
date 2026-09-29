@@ -119,9 +119,9 @@ func TestElectionStandVoteCountOnce(t *testing.T) {
 	}
 	ctx := testCtx(t)
 	cities := postgres.NewCityRepository(pool)
-	city, err := cities.ByCode(ctx, "ostmarch")
+	city, err := cities.ByCode(ctx, "support")
 	if err != nil {
-		t.Skipf("the shipped city ostmarch is not loaded: %v", err)
+		t.Skipf("the shipped city support is not loaded: %v", err)
 	}
 	var underWay bool
 	if err := pool.Raw().QueryRow(ctx,
@@ -130,7 +130,7 @@ func TestElectionStandVoteCountOnce(t *testing.T) {
 		t.Fatal(err)
 	}
 	if underWay {
-		t.Skip("a mayoral election of ostmarch is already under way in this database")
+		t.Skip("a mayoral election of support is already under way in this database")
 	}
 
 	now := time.Now().UTC()
@@ -371,9 +371,9 @@ func TestElectionWithoutCandidates(t *testing.T) {
 	}
 	ctx := testCtx(t)
 	cities := postgres.NewCityRepository(pool)
-	city, err := cities.ByCode(ctx, "ostmarch")
+	city, err := cities.ByCode(ctx, "support")
 	if err != nil {
-		t.Skipf("the shipped city ostmarch is not loaded: %v", err)
+		t.Skipf("the shipped city support is not loaded: %v", err)
 	}
 	var underWay bool
 	if err := pool.Raw().QueryRow(ctx,
@@ -382,7 +382,7 @@ func TestElectionWithoutCandidates(t *testing.T) {
 		t.Fatal(err)
 	}
 	if underWay {
-		t.Skip("a council election of ostmarch is already under way in this database")
+		t.Skip("a council election of support is already under way in this database")
 	}
 	electionCleanup(t, pool, "city_council", city.JurisdictionID)
 

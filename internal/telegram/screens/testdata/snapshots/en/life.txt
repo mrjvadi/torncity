@@ -10,12 +10,12 @@
 😊 Happiness ▰▰▰▰▰▰▰▱▱▱ 68
 
 🍞 Rank: Breadwinner
-💎 Net worth: 38,100 Nil
-cash 4,200 Nil - bank 21,000 Nil - savings 5,000 Nil - company shares 3,500 Nil - gold 1,600 Nil - goods 2,800 Nil
-⬆️ To Trader: 18,500 Nil more
+💎 Net worth: 38,100 SUP
+cash 4,200 SUP - bank 21,000 SUP - savings 5,000 SUP - company shares 3,500 SUP - gold 1,600 SUP - goods 2,800 SUP
+⬆️ To Trader: 18,500 SUP more
 
 🛏 Where to sleep:
-▫️ hostel at the residential area - 150 Nil - 55 less tiredness
+▫️ hostel at the residential area - 150 SUP - 55 less tiredness
 ▫️ park bench at the city park - free - 30 less tiredness
   ───
   [🚶 Go to the hostel (25s)] → place:go:residential_area:life.me
@@ -41,11 +41,11 @@ cash 4,200 Nil - bank 21,000 Nil - savings 5,000 Nil - company shares 3,500 Nil 
 🔻 You feel low and earn 10% less experience.
 
 🛍 Rank: Trader
-💎 Net worth: 46,790 Nil
-cash 900 Nil - bank 12,000 Nil - property 46,350 Nil
-🧾 Debts: 460 Nil
-🏦 Loans: 12,000 Nil
-⬆️ To Comfortable: 91,210 Nil more
+💎 Net worth: 46,790 SUP
+cash 900 SUP - bank 12,000 SUP - property 46,350 SUP
+🧾 Debts: 460 SUP
+🏦 Loans: 12,000 SUP
+⬆️ To Comfortable: 91,210 SUP more
 
 🛏 Where to sleep:
 🏠 Your own home - the best sleep
@@ -69,12 +69,12 @@ cash 900 Nil - bank 12,000 Nil - property 46,350 Nil
 😊 Happiness ▰▰▰▰▰▰▰▱▱▱ 68
 
 🍞 Rank: Breadwinner
-💎 Net worth: 38,100 Nil
-cash 4,200 Nil - bank 21,000 Nil - savings 5,000 Nil - company shares 3,500 Nil - gold 1,600 Nil - goods 2,800 Nil
-⬆️ To Trader: 18,500 Nil more
+💎 Net worth: 38,100 SUP
+cash 4,200 SUP - bank 21,000 SUP - savings 5,000 SUP - company shares 3,500 SUP - gold 1,600 SUP - goods 2,800 SUP
+⬆️ To Trader: 18,500 SUP more
 
 🛏 Where to sleep:
-▫️ hostel at the residential area - 150 Nil - 55 less tiredness
+▫️ hostel at the residential area - 150 SUP - 55 less tiredness
 ▫️ park bench at the city park - free - 30 less tiredness
 ⏳ 7m until you can sleep again.
   ───
@@ -96,7 +96,7 @@ cash 4,200 Nil - bank 21,000 Nil - savings 5,000 Nil - company shares 3,500 Nil 
 🍞 Rank: Breadwinner
 
 🛏 Where to sleep:
-▫️ hostel at the residential area - 150 Nil - 55 less tiredness
+▫️ hostel at the residential area - 150 SUP - 55 less tiredness
 ▫️ park bench at the city park - free - 30 less tiredness
   ───
   [🚶 Go to the hostel (25s)] → place:go:residential_area:life.me
@@ -174,7 +174,7 @@ Page 1 of 2
 🏥 21 September 2026 - In hospital in Ostmarch (only you)
 📜 20 September 2026 - Earned the Bookkeeping certificate
 ⬆️ 19 September 2026 - Promoted to Sales Associate
-🏠 18 September 2026 - Bought a Studio flat in Ostmarch for 46,350 Nil
+🏠 18 September 2026 - Bought a Studio flat in Ostmarch for 46,350 SUP
 💼 15 September 2026 - First job: Sales Trainee in Ostmarch
 🌱 14 September 2026 - Began a life in the game (from older records)
 
@@ -190,7 +190,7 @@ Moments marked «only you» are not shown to others.
 🗳 22 September 2026 - Won the election for Mayor of Brennhaven with 41 votes
 🎖 21 September 2026 - Commanded an operation against Kessmoor
 🏢 20 September 2026 - Founded «Kaveh Bakery» in Brennhaven
-🤝 19 September 2026 - A big Phone trade in Brennhaven worth 180,000 Nil
+🤝 19 September 2026 - A big Phone trade in Brennhaven worth 180,000 SUP
 ⛓ 18 September 2026 - Jailed in Brennhaven
 📉 17 September 2026 - Fell to Trader
   ───
@@ -219,10 +219,10 @@ Pick one to sit beside your name on your card and profile.
 
 ━━━ Sleep · a hostel bed, paid by cash or card ━━━
 (edits message 42)
-🛏 A night at the hostel: 150 Nil - 55 less tiredness
-💵 Your cash: 4,200 Nil - Bank: 21,000 Nil
+🛏 A night at the hostel: 150 SUP - 55 less tiredness
+💵 Your cash: 4,200 SUP - Bank: 21,000 SUP
   ───
-  [💵 Pay cash - 150 Nil] → life:sleep:hostel:cash   │   [💳 Pay by card - 150 Nil] → life:sleep:hostel:card
+  [💵 Pay cash - 150 SUP] → life:sleep:hostel:cash   │   [💳 Pay by card - 150 SUP] → life:sleep:hostel:card
   [🔙 Back] → life:me
 
 ━━━ Refused · bio_length ━━━
@@ -288,10 +288,10 @@ Pick one to sit beside your name on your card and profile.
 (edits message 42)
 💎 The richest players
 
-1. Nilou - Tycoon - 12,400,000 Nil
-2. Kaveh - Trader - 95,000 Nil
-👉 3. Sara - Breadwinner - 31,500 Nil
-4. A player - Newcomer - 5,000 Nil
+1. Nilou - Tycoon - 12,400,000 SUP
+2. Kaveh - Trader - 95,000 SUP
+👉 3. Sara - Breadwinner - 31,500 SUP
+4. A player - Newcomer - 5,000 SUP
 
 🔄 Refreshed 23 September 2026 at 13:55
 
@@ -305,8 +305,8 @@ Net worth: cash, bank, savings, shares, gold, property and goods, less debts and
 (edits message 42)
 🏢 The biggest companies
 
-1. Kaveh Bakery - Grocery store in Brennhaven - 840,000 Nil
-2. Nilou Repairs - Repair workshop in Ostmarch - 212,000 Nil
+1. Kaveh Bakery - Grocery store in Brennhaven - 840,000 SUP
+2. Nilou Repairs - Repair workshop in Ostmarch - 212,000 SUP
 
 🔄 Refreshed 23 September 2026 at 13:55
 
@@ -360,14 +360,14 @@ What each player's portfolio — shares at market price, gold and savings, less 
 
 ━━━ Notice · rank up ━━━
 (sends)
-🛍 Congratulations! Your rank rose from Breadwinner to Trader. You are worth 51,200 Nil.
+🛍 Congratulations! Your rank rose from Breadwinner to Trader. You are worth 51,200 SUP.
   ───
   [🧬 My life] → life:me
   [🔙 Back] → player:profile.get
 
 ━━━ Notice · rank down ━━━
 (sends)
-🍞 Your rank went from Trader to Breadwinner. You are worth 44,100 Nil; work and investing bring it back.
+🍞 Your rank went from Trader to Breadwinner. You are worth 44,100 SUP; work and investing bring it back.
   ───
   [🧬 My life] → life:me
   [🔙 Back] → player:profile.get

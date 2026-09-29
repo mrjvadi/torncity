@@ -2,8 +2,8 @@
 (edits message 42)
 <b>🏪 Market of Ostmarch</b>
 
-• Bread - buyers offer: 35 Nil - sellers ask: 42 Nil
-• Bandage - buyers offer: nobody yet - sellers ask: 90 Nil
+• Bread - buyers offer: 35 SUP - sellers ask: 42 SUP
+• Bandage - buyers offer: nobody yet - sellers ask: 90 SUP
   ───
   [🏪 Bread] → market:book:bread   │   [🏪 Bandage] → market:book:bandage
   [🏪 Lockpick set] → market:book:lockpick_set
@@ -28,21 +28,21 @@ Nobody is buying or selling here right now.
 <b>🏪 Bread - market of Ostmarch</b>
 
 For sale:
-• 10 at 42 Nil
-• 4 at 45 Nil
+• 10 at 42 SUP
+• 4 at 45 SUP
 
 Wanted:
-• 6 at 35 Nil
+• 6 at 35 SUP
 
 <blockquote expandable>Latest trades:
-• 2 at 40 Nil - 14:30</blockquote>
+• 2 at 40 SUP - 14:30</blockquote>
 
 🎒 You have 3.
 🧾 The seller pays the market fee, set by the city.
   ───
-  [🛒 Buy 1 at 42 Nil] → market:order:buy:bread:1:42   │   [🛒 Offer 40 Nil] → market:order:buy:bread:1:40
-  [💰 Sell 1 at 35 Nil] → market:order:sell:bread:1:35:0a1b2c3d4e62   │   [💰 Ask 40 Nil] → market:order:sell:bread:1:40:0a1b2c3d4e62   │   [💰 Ask 44 Nil] → market:order:sell:bread:1:44:0a1b2c3d4e62
-  [💰 Sell all 3 at 40 Nil] → market:order:sell:bread:3:40:0a1b2c3d4e62
+  [🛒 Buy 1 at 42 SUP] → market:order:buy:bread:1:42   │   [🛒 Offer 40 SUP] → market:order:buy:bread:1:40
+  [💰 Sell 1 at 35 SUP] → market:order:sell:bread:1:35:0a1b2c3d4e62   │   [💰 Ask 40 SUP] → market:order:sell:bread:1:40:0a1b2c3d4e62   │   [💰 Ask 44 SUP] → market:order:sell:bread:1:44:0a1b2c3d4e62
+  [💰 Sell all 3 at 40 SUP] → market:order:sell:bread:3:40:0a1b2c3d4e62
   [📋 My orders] → market:mine
   [🔙 Back] → market:list   │   [🔄 Refresh] → market:book:bread
 
@@ -66,20 +66,20 @@ Wanted:
 (edits message 42)
 🏪 Buy Bread
 
-1 at 42 Nil each
-Set aside: 42 Nil
+1 at 42 SUP each
+Set aside: 42 SUP
 
 💵 The price is set aside until the order fills or you cancel it. Pay it:
 💳 Your bank balance does not cover it — pay in cash.
-💵 Your cash: 500 Nil - Bank: 10 Nil
+💵 Your cash: 500 SUP - Bank: 10 SUP
   ───
-  [💵 Pay cash - 42 Nil] → market:order:buy:bread:1:42:0a1b2c3d4e63:cash
+  [💵 Pay cash - 42 SUP] → market:order:buy:bread:1:42:0a1b2c3d4e63:cash
   [🔙 Back] → market:book:bread
 
 ━━━ Placed · a buy, filled at once ━━━
 (edits message 42)
-✅ Order 41: buy Bread - 1 at 42 Nil.
-🤝 Bought at once: 1 for 42 Nil.
+✅ Order 41: buy Bread - 1 at 42 SUP.
+🤝 Bought at once: 1 for 42 SUP.
 💵 Paid from your cash.
   ───
   [📋 My orders] → market:mine   │   [🏪 Back to the book] → market:book:bread
@@ -87,8 +87,8 @@ Set aside: 42 Nil
 
 ━━━ Placed · a sell, resting ━━━
 (edits message 42)
-✅ Order 42: sell Bread - 3 at 44 Nil.
-🤝 Sold at once: 1 for 43 Nil.
+✅ Order 42: sell Bread - 3 at 44 SUP.
+🤝 Sold at once: 1 for 43 SUP.
 ⏳ 2 waits on the book for the other side.
 🕒 The order ends at 17:23
   ───
@@ -97,7 +97,7 @@ Set aside: 42 Nil
 
 ━━━ Cancelled · a buy ━━━
 (edits message 42)
-❌ Order 41 cancelled. 84 Nil came back to you.
+❌ Order 41 cancelled. 84 SUP came back to you.
   ───
   [📋 My orders] → market:mine
   [🔙 Back] → market:list
@@ -112,9 +112,9 @@ Set aside: 42 Nil
 ━━━ My orders ━━━
 (edits message 42) (private in groups)
 📋 My orders
-• 42: sell Bread - 1 of 3 at 44 Nil - open - Ostmarch
-• 41: buy Bread - 1 of 1 at 42 Nil - filled - Ostmarch
-• 17: buy Bandage - 0 of 2 at 80 Nil - expired - Brennhaven
+• 42: sell Bread - 1 of 3 at 44 SUP - open - Ostmarch
+• 41: buy Bread - 1 of 1 at 42 SUP - filled - Ostmarch
+• 17: buy Bandage - 0 of 2 at 80 SUP - expired - Brennhaven
   ───
   [❌ Cancel order 42] → market:cancel:42
   [🔙 Back] → market:list   │   [🔄 Refresh] → market:mine
@@ -128,13 +128,13 @@ You have no orders.
 
 ━━━ Notice · your sell order filled ━━━
 (sends) (private in groups)
-🤝 Your order in Ostmarch filled: you sold Bread - 2 at 44 Nil for 88 Nil; the market fee was 2 Nil.
+🤝 Your order in Ostmarch filled: you sold Bread - 2 at 44 SUP for 88 SUP; the market fee was 2 SUP.
   ───
   [📋 My orders] → market:mine
 
 ━━━ Notice · your buy order filled ━━━
 (sends) (private in groups)
-🤝 Your order in Ostmarch filled: you bought Bread - 2 at 44 Nil for 88 Nil.
+🤝 Your order in Ostmarch filled: you bought Bread - 2 at 44 SUP for 88 SUP.
   ───
   [📋 My orders] → market:mine
 
@@ -196,8 +196,8 @@ That order is no longer open.
 (edits message 42)
 🔨 Auction house of Ostmarch
 
-• 7: Phone (quality 72) - top bid 2,600 Nil - 40m left
-• 8: Wristwatch (quality 55) - from 800 Nil - 3m left
+• 7: Phone (quality 72) - top bid 2,600 SUP - 40m left
+• 8: Wristwatch (quality 55) - from 800 SUP - 3m left
   ───
   [🔨 Auction 7] → auction:view:7   │   [🔨 Auction 8] → auction:view:8
   [📋 My auctions] → auction:mine   │   [🎒 Bag] → inventory:show
@@ -220,14 +220,14 @@ Nothing is up for auction here right now.
 
 Wristwatch - quality 55
 Seller: Kaveh
-Reserve: 800 Nil
+Reserve: 800 SUP
 No bids yet.
 ⏳ Ends in 3m
 
-💵 A bid of 800 Nil is set aside until you are outbid or win. Pay it:
-💵 Your cash: 1,000 Nil - Bank: 5,000 Nil
+💵 A bid of 800 SUP is set aside until you are outbid or win. Pay it:
+💵 Your cash: 1,000 SUP - Bank: 5,000 SUP
   ───
-  [💵 Pay cash - 800 Nil] → auction:bid:8:800:0a1b2c3d4e64:cash   │   [💳 Pay by card - 800 Nil] → auction:bid:8:800:0a1b2c3d4e64:card
+  [💵 Pay cash - 800 SUP] → auction:bid:8:800:0a1b2c3d4e64:cash   │   [💳 Pay by card - 800 SUP] → auction:bid:8:800:0a1b2c3d4e64:card
   [🔙 Back] → auction:list   │   [🔄 Refresh] → auction:view:8
 
 ━━━ Auction · your bid leads ━━━
@@ -236,8 +236,8 @@ No bids yet.
 
 Phone - quality 72
 Seller: Kaveh
-Reserve: 1,250 Nil
-Top bid: 2,600 Nil - 3 bids
+Reserve: 1,250 SUP
+Top bid: 2,600 SUP - 3 bids
 ⏳ Ends in 40m
 
 🥇 You hold the top bid.
@@ -250,8 +250,8 @@ Top bid: 2,600 Nil - 3 bids
 
 Phone - quality 72
 Seller: Sara
-Reserve: 1,250 Nil
-Top bid: 2,600 Nil - 3 bids
+Reserve: 1,250 SUP
+Top bid: 2,600 SUP - 3 bids
 ⏳ Ends in 40m
 
 This auction is yours.
@@ -264,8 +264,8 @@ This auction is yours.
 
 Phone - quality 72
 Seller: Kaveh
-Reserve: 1,250 Nil
-Top bid: 2,600 Nil - 3 bids
+Reserve: 1,250 SUP
+Top bid: 2,600 SUP - 3 bids
 sold
   ───
   [🔙 Back] → auction:list   │   [🔄 Refresh] → auction:view:7
@@ -276,14 +276,14 @@ sold
 
 Choose the lowest price you accept and how long the auction runs.
   ───
-  [1,250 Nil - 1m] → auction:new:F0E1D2C3B4:1250:0:0a1b2c3d4e65   │   [2,500 Nil - 1m] → auction:new:F0E1D2C3B4:2500:0:0a1b2c3d4e65   │   [3,750 Nil - 1m] → auction:new:F0E1D2C3B4:3750:0:0a1b2c3d4e65
-  [1,250 Nil - 6m] → auction:new:F0E1D2C3B4:1250:1:0a1b2c3d4e65   │   [2,500 Nil - 6m] → auction:new:F0E1D2C3B4:2500:1:0a1b2c3d4e65   │   [3,750 Nil - 6m] → auction:new:F0E1D2C3B4:3750:1:0a1b2c3d4e65
-  [1,250 Nil - 24m] → auction:new:F0E1D2C3B4:1250:2:0a1b2c3d4e65   │   [2,500 Nil - 24m] → auction:new:F0E1D2C3B4:2500:2:0a1b2c3d4e65   │   [3,750 Nil - 24m] → auction:new:F0E1D2C3B4:3750:2:0a1b2c3d4e65
+  [1,250 SUP - 1m] → auction:new:F0E1D2C3B4:1250:0:0a1b2c3d4e65   │   [2,500 SUP - 1m] → auction:new:F0E1D2C3B4:2500:0:0a1b2c3d4e65   │   [3,750 SUP - 1m] → auction:new:F0E1D2C3B4:3750:0:0a1b2c3d4e65
+  [1,250 SUP - 6m] → auction:new:F0E1D2C3B4:1250:1:0a1b2c3d4e65   │   [2,500 SUP - 6m] → auction:new:F0E1D2C3B4:2500:1:0a1b2c3d4e65   │   [3,750 SUP - 6m] → auction:new:F0E1D2C3B4:3750:1:0a1b2c3d4e65
+  [1,250 SUP - 24m] → auction:new:F0E1D2C3B4:1250:2:0a1b2c3d4e65   │   [2,500 SUP - 24m] → auction:new:F0E1D2C3B4:2500:2:0a1b2c3d4e65   │   [3,750 SUP - 24m] → auction:new:F0E1D2C3B4:3750:2:0a1b2c3d4e65
   [🔙 Back] → inventory:item:F0E1D2C3B4
 
 ━━━ Auction · opened ━━━
 (edits message 42)
-✅ Auction 9: Phone from 2,500 Nil, for 6m.
+✅ Auction 9: Phone from 2,500 SUP, for 6m.
 🕒 Ends at 14:41
   ───
   [🔨 Auction 9] → auction:view:9
@@ -291,7 +291,7 @@ Choose the lowest price you accept and how long the auction runs.
 
 ━━━ Bid · placed ━━━
 (edits message 42)
-✅ You bid 800 Nil on auction 8 (Wristwatch).
+✅ You bid 800 SUP on auction 8 (Wristwatch).
 💳 Paid by bank card.
 💵 Your bid is set aside. If someone outbids you, it comes back.
 🕒 Ends at 14:38
@@ -302,9 +302,9 @@ Choose the lowest price you accept and how long the auction runs.
 ━━━ My auctions ━━━
 (edits message 42) (private in groups)
 📋 My auctions
-• 7: Phone (quality 72) - top bid 2,600 Nil - 40m left - yours - open
-• 7: Phone (quality 72) - top bid 2,600 Nil - 40m left - your bid leads - open
-• 3: Phone (quality 40) - top bid 900 Nil - 1s left - you were outbid - sold
+• 7: Phone (quality 72) - top bid 2,600 SUP - 40m left - yours - open
+• 7: Phone (quality 72) - top bid 2,600 SUP - 40m left - your bid leads - open
+• 3: Phone (quality 40) - top bid 900 SUP - 1s left - you were outbid - sold
   ───
   [🔨 Auction 7] → auction:view:7   │   [🔨 Auction 7] → auction:view:7   │   [🔨 Auction 3] → auction:view:3
   [🔙 Back] → auction:list   │   [🔄 Refresh] → auction:mine
@@ -318,19 +318,19 @@ You are not selling or bidding on anything.
 
 ━━━ Notice · auction outbid ━━━
 (sends) (private in groups)
-🔨 You were outbid on auction 7 (Phone). Your 2,600 Nil came back to you.
+🔨 You were outbid on auction 7 (Phone). Your 2,600 SUP came back to you.
   ───
   [🔨 Auction 7] → auction:view:7
 
 ━━━ Notice · auction won ━━━
 (sends) (private in groups)
-🏆 You won auction 7: Phone for 2,600 Nil. It is in your bag.
+🏆 You won auction 7: Phone for 2,600 SUP. It is in your bag.
   ───
   [🎒 Bag] → inventory:show
 
 ━━━ Notice · auction sold ━━━
 (sends) (private in groups)
-🔨 Auction 7 sold Phone for 2,600 Nil; the fee was 130 Nil.
+🔨 Auction 7 sold Phone for 2,600 SUP; the fee was 130 SUP.
   ───
   [🎒 Bag] → inventory:show
 
@@ -357,7 +357,7 @@ That auction is over.
 
 ━━━ Auction refused · bid too low ━━━
 (edits message 42)
-A bid must be at least 2,730 Nil.
+A bid must be at least 2,730 SUP.
   ───
   [🔨 Auction 7] → auction:view:7
   [🔨 Auction house] → auction:list

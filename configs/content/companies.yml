@@ -302,13 +302,9 @@ company_demand:
   - {category: produce,       per_thousand: 3}
 
 company_markets:
-  - {city: ostmarch,      population: 50000, wealth_bps: 8000,  budget_per_thousand: 400}
-  - {city: fenwick_span,  population: 70000, wealth_bps: 9000,  budget_per_thousand: 400}
-  - {city: aldrin_hollow, population: 40000, wealth_bps: 10500, budget_per_thousand: 400}
-  - {city: brennhaven,    population: 60000, wealth_bps: 11000, budget_per_thousand: 400}
-  - {city: kessmoor,      population: 45000, wealth_bps: 12000, budget_per_thousand: 400}
-  - {city: calderis,      population: 55000, wealth_bps: 13500, budget_per_thousand: 400}
-  - {city: vantor_reach,  population: 35000, wealth_bps: 15000, budget_per_thousand: 400}
+  # One market for the one city: the seven legacy markets folded, population
+  # summed (355000) and wealth the population-weighted mean (docs/adr/0032).
+  - {city: support, population: 355000, wealth_bps: 11000, budget_per_thousand: 400}
 
 company_reserved_names:
   - شهرداری

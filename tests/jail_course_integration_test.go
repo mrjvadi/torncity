@@ -39,9 +39,9 @@ func TestJailPausesTheCourse(t *testing.T) {
 	}
 
 	cities := postgres.NewCityRepository(pool)
-	city, err := cities.ByCode(ctx, "ostmarch")
+	city, err := cities.ByCode(ctx, "support")
 	if err != nil {
-		t.Skipf("the shipped city ostmarch is not loaded: %v", err)
+		t.Skipf("the shipped city support is not loaded: %v", err)
 	}
 	policy := postgres.NewPolicyReader(pool, nil)
 	if _, err := policy.Get(ctx, city.JurisdictionID, application.LeverBailPerHour); err != nil {

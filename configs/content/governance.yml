@@ -170,9 +170,12 @@ jurisdictions:
     name: The Commonwealth
     level: country
 
-  # The far end of the map is a country of its own
-  # (docs/adr/0022-military-and-diplomacy.md): a second state is what makes
-  # sanctions, arms exports and treaties mean anything.
+  # A second state, kept because sanctions, arms exports and treaties need
+  # somebody to be signed with (docs/adr/0022-military-and-diplomacy.md). Its
+  # two cities were folded into Support, which belongs to default_country
+  # (docs/adr/0032-support-merge.md), so today it holds no city: a dormant
+  # country whose officials keep office and whose treasury sits idle until a
+  # settlement is founded under it or a city is linked to it.
   - code: vantor_federation
     name: Vantor Federation
     level: country

@@ -110,8 +110,8 @@ Kind: Petty theft
 🔥 Costs 2 nerve
 ⚡ Done on the spot
 🎲 Your odds here: about 51.6%
-💵 A typical take: 15 Nil to 90 Nil
-🚔 If you are caught: 2m to 6m in jail and a fine of 100 Nil to 400 Nil
+💵 A typical take: 15 SUP to 90 SUP
+🚔 If you are caught: 2m to 6m in jail and a fine of 100 SUP to 400 SUP
 
 👥 In a crowd, its victim may be a player standing near you. Chance decides who, never you.
 
@@ -129,8 +129,8 @@ Kind: Burglary
 🔥 Costs 6 nerve
 ⏳ Takes 2m
 🎲 Your odds here: about 32%
-💵 A typical take: 500 Nil to 2,500 Nil
-🚔 If you are caught: 8m to 24m in jail and a fine of 500 Nil to 2,000 Nil
+💵 A typical take: 500 SUP to 2,500 SUP
+🚔 If you are caught: 8m to 24m in jail and a fine of 500 SUP to 2,000 SUP
 
 🏙 Its victims are the city's shops, cars and passers-by.
 
@@ -151,8 +151,8 @@ Kind: Smuggling
 🔥 Costs 8 nerve
 ⏳ Takes 4m
 🎲 Your odds here: about 41%
-💵 A typical take: 1,500 Nil to 5,000 Nil
-🚔 If you are caught: 12m to 36m in jail and a fine of 1,000 Nil to 4,000 Nil
+💵 A typical take: 1,500 SUP to 5,000 SUP
+🚔 If you are caught: 12m to 36m in jail and a fine of 1,000 SUP to 4,000 SUP
 
 🏙 Its victims are the city's shops, cars and passers-by.
 
@@ -169,8 +169,8 @@ Kind: Fraud
 🔥 Costs 3 nerve
 ⏳ Takes 20s
 🎲 Your odds here: about 55%
-💵 A typical take: 80 Nil to 400 Nil
-🚔 If you are caught: 2m to 6m in jail and a fine of 150 Nil to 600 Nil
+💵 A typical take: 80 SUP to 400 SUP
+🚔 If you are caught: 2m to 6m in jail and a fine of 150 SUP to 600 SUP
 
 🏙 Its victims are the city's shops, cars and passers-by.
 
@@ -197,8 +197,8 @@ Kind: Burglary
 🗂 Odds a report is solved down by 10%
 💵 The take up by 10%
 ⏳ At most once every 2h
-💵 A typical take: 500 Nil to 2,500 Nil
-🚔 If you are caught: 8m to 24m in jail and a fine of 500 Nil to 2,000 Nil
+💵 A typical take: 500 SUP to 2,500 SUP
+🚔 If you are caught: 8m to 24m in jail and a fine of 500 SUP to 2,000 SUP
 
 🏙 Its victims are the city's shops, cars and passers-by.
 
@@ -217,8 +217,8 @@ Kind: Burglary
 ⏳ Takes 2m
 🎲 Your odds here: about 32%
 ⏳ At most once every 2h
-💵 A typical take: 500 Nil to 2,500 Nil
-🚔 If you are caught: 8m to 24m in jail and a fine of 500 Nil to 2,000 Nil
+💵 A typical take: 500 SUP to 2,500 SUP
+🚔 If you are caught: 8m to 24m in jail and a fine of 500 SUP to 2,000 SUP
 
 🏙 Its victims are the city's shops, cars and passers-by.
 
@@ -237,8 +237,8 @@ Kind: Petty theft
 🔥 Costs 2 nerve
 ⚡ Done on the spot
 🎲 Your odds here: about 60%
-💵 A typical take: 20 Nil to 120 Nil
-🚔 If you are caught: 1m to 3m in jail and a fine of 50 Nil to 200 Nil
+💵 A typical take: 20 SUP to 120 SUP
+🚔 If you are caught: 1m to 3m in jail and a fine of 50 SUP to 200 SUP
 
 🏙 Its victims are the city's shops, cars and passers-by.
 
@@ -252,7 +252,7 @@ Anyone can try this.
 (edits message 42)
 🕶 Pickpocketing at the train station: done, and nobody stopped you.
 
-💵 You lifted 1,500 Nil from a player's pocket.
+💵 You lifted 1,500 SUP from a player's pocket.
 ⭐ +5 XP
 🎖 +8 criminal XP
 🛠 Stealth: +12 XP
@@ -300,7 +300,7 @@ What was taken has been sent to them privately.
 (edits message 42)
 🕶 Shoplifting at the city centre: done, and nobody stopped you.
 
-💵 You got away with 64 Nil.
+💵 You got away with 64 SUP.
 ⭐ +5 XP
 🎖 +8 criminal XP
 🛠 Stealth: +12 XP
@@ -356,7 +356,7 @@ A fine was paid to the city.
 (edits message 42)
 🚔 Pickpocketing at the train station: Sara was caught in the act and taken to jail for 4m.
 
-💸 Fine: 300 Nil. You could pay 120 Nil; 180 Nil stays on your record.
+💸 Fine: 300 SUP. You could pay 120 SUP; 180 SUP stays on your record.
 ⏳ Free at 14:39
 🚨 Heat: 31 of 100 - wanted level 2 of 5
   ───
@@ -368,7 +368,7 @@ A fine was paid to the city.
 (sends) (private in groups)
 🚔 Home burglary at the city centre went wrong: you were caught and taken to jail for 4m.
 
-💸 Fine paid to the city: 300 Nil
+💸 Fine paid to the city: 300 SUP
 ⏳ Free at 14:39
 🚨 Heat: 31 of 100 - wanted level 2 of 5
   ───
@@ -380,7 +380,7 @@ A fine was paid to the city.
 (edits message 42)
 🕶 Shoplifting at the city centre: done, and nobody stopped you.
 
-💵 You got away with 64 Nil.
+💵 You got away with 64 SUP.
 🎒 Also taken: Phone - 1
 🎒 Also taken: Jewellery - 2
 ⭐ +5 XP
@@ -414,7 +414,7 @@ What was taken has been sent to them privately.
 (edits message 42)
 🕶 Pickpocketing at the train station: done, and nobody stopped you.
 
-💵 You lifted 1,500 Nil from a player's pocket.
+💵 You lifted 1,500 SUP from a player's pocket.
 🎒 You also took their Wristwatch.
 ⭐ +5 XP
 🎖 +8 criminal XP
@@ -431,7 +431,7 @@ What was taken has been sent to them privately.
 (edits message 42)
 🚔 Pickpocketing at the train station: Sara was caught in the act and taken to jail for 4m.
 
-💸 Fine paid to the city: 300 Nil
+💸 Fine paid to the city: 300 SUP
 ⏳ Free at 14:39
 🚔 The police kept as evidence: Lockpick set, Crowbar
 🚨 Heat: 31 of 100 - wanted level 2 of 5
@@ -444,7 +444,7 @@ What was taken has been sent to them privately.
 (sends) (private in groups)
 🕶 Pickpocketing at the train station is over: it went to plan.
 
-💵 You lifted 1,500 Nil from a player's pocket.
+💵 You lifted 1,500 SUP from a player's pocket.
 ⭐ +5 XP
 🎖 +8 criminal XP
 🛠 Stealth: +12 XP
@@ -477,7 +477,7 @@ How it went arrives as a private message when it is over.
 🔥 Nerve: 14 of 20 - full in 30m
 
 Attempts: 12 - succeeded: 8 - arrested: 3 - convicted: 1
-💸 Unpaid: 400 Nil owed to victims, 250 Nil in fines
+💸 Unpaid: 400 SUP owed to victims, 250 SUP in fines
 
 Recently:
 ⏳ Home burglary (under way)
@@ -530,14 +530,14 @@ The record is clean.
 Convicted after a report.
 ⛓ You are in jail - 1h 35m left
 ⏳ Free at 16:10
-💰 Bail to leave now: 3,960 Nil
+💰 Bail to leave now: 3,960 SUP
 
 🔓 To walk out now, pay the bail:
-💵 Your cash: 5,000 Nil - Bank: 12,000 Nil
+💵 Your cash: 5,000 SUP - Bank: 12,000 SUP
 
 While in jail you cannot commit crimes, travel, work a shift or withdraw from the bank.
   ───
-  [💵 Pay cash - 3,960 Nil] → crime:bail:f00dfeed0001:cash   │   [💳 Pay by card - 3,960 Nil] → crime:bail:f00dfeed0001:card
+  [💵 Pay cash - 3,960 SUP] → crime:bail:f00dfeed0001:cash   │   [💳 Pay by card - 3,960 SUP] → crime:bail:f00dfeed0001:card
   [🔙 Back] → crime:hub   │   [🔄 Refresh] → crime:jail
 
 ━━━ Jail · serving, only the card covers the bail, in a group ━━━
@@ -548,14 +548,14 @@ While in jail you cannot commit crimes, travel, work a shift or withdraw from th
 Caught in the act.
 ⛓ You are in jail - 20m left
 ⏳ Free at 14:55
-💰 Bail to leave now: 3,960 Nil
+💰 Bail to leave now: 3,960 SUP
 
 🔓 To walk out now, pay the bail:
 💵 Your cash does not cover it — pay by card.
 
 While in jail you cannot commit crimes, travel, work a shift or withdraw from the bank.
   ───
-  [💳 Pay by card - 3,960 Nil] → crime:bail:f00dfeed0002:card
+  [💳 Pay by card - 3,960 SUP] → crime:bail:f00dfeed0002:card
   [🔙 Back] → crime:hub   │   [🔄 Refresh] → crime:jail
 
 ━━━ Jail · serving, nothing covers the bail ━━━
@@ -566,10 +566,10 @@ While in jail you cannot commit crimes, travel, work a shift or withdraw from th
 Caught in the act.
 ⛓ You are in jail - 20m left
 ⏳ Free at 14:55
-💰 Bail to leave now: 3,960 Nil
+💰 Bail to leave now: 3,960 SUP
 
 💸 Neither your cash nor your bank balance covers this.
-💵 Your cash: 40 Nil - Bank: 100 Nil
+💵 Your cash: 40 SUP - Bank: 100 SUP
 
 While in jail you cannot commit crimes, travel, work a shift or withdraw from the bank.
   ───
@@ -586,7 +586,7 @@ You are free. Nobody is holding you.
 
 ━━━ Bailed · as the player reads it ━━━
 (edits message 42)
-🔓 You paid 3,960 Nil bail and walked out of jail.
+🔓 You paid 3,960 SUP bail and walked out of jail.
 💳 Paid by bank card.
   ───
   [🕶 Underworld] → crime:hub
@@ -607,52 +607,52 @@ You are free. Nobody is holding you.
 
 ━━━ Notice · your pocket was picked ━━━
 (sends) (private in groups)
-👛 You were robbed at the train station in Ostmarch (Pickpocketing). You lost 1,500 Nil.
+👛 You were robbed at the train station in Ostmarch (Pickpocketing). You lost 1,500 SUP.
 
 Nobody saw who did it.
 
-🚔 You can report it to the police. The report fee is 200 Nil, paid to the city.
+🚔 You can report it to the police. The report fee is 200 SUP, paid to the city.
 ⏳ You have 24h to report it.
   ───
   [🚔 Report to the police] → crime:report:cfaebd97-b816-43a8-aff9-3798555dd818
 
 ━━━ Notice · your pocket was picked, and a witness saw who ━━━
 (sends) (private in groups)
-👛 You were robbed at the train station in Ostmarch (Pickpocketing). You lost 1,500 Nil.
+👛 You were robbed at the train station in Ostmarch (Pickpocketing). You lost 1,500 SUP.
 
 👀 A witness saw who did it: Kaveh (B3C4D5F).
 
-🚔 You can report it to the police. The report fee is 200 Nil, paid to the city.
+🚔 You can report it to the police. The report fee is 200 SUP, paid to the city.
 ⏳ You have 24h to report it.
   ───
   [🚔 Report to the police] → crime:report:cfaebd97-b816-43a8-aff9-3798555dd818
 
 ━━━ Notice · your pocket was picked and your watch taken ━━━
 (sends) (private in groups)
-👛 You were robbed at the train station in Ostmarch (Pickpocketing). You lost 1,500 Nil.
+👛 You were robbed at the train station in Ostmarch (Pickpocketing). You lost 1,500 SUP.
 🎒 They also took your Wristwatch.
 
 Nobody saw who did it.
 
-🚔 You can report it to the police. The report fee is 200 Nil, paid to the city.
+🚔 You can report it to the police. The report fee is 200 SUP, paid to the city.
 ⏳ You have 24h to report it.
   ───
   [🚔 Report to the police] → crime:report:cfaebd97-b816-43a8-aff9-3798555dd818
 
 ━━━ Report · confirm ━━━
 (edits message 42) (private in groups)
-🚔 Report the theft in Ostmarch (Pickpocketing)? You lost 1,500 Nil. The police charge a report fee of 200 Nil, paid to the city, and the investigation takes about 6m.
+🚔 Report the theft in Ostmarch (Pickpocketing)? You lost 1,500 SUP. The police charge a report fee of 200 SUP, paid to the city, and the investigation takes about 6m.
 ⏳ You have 23h 40m to report it.
 
 ✅ To file the report, pay the fee:
-💵 Your cash: 900 Nil - Bank: 3,000 Nil
+💵 Your cash: 900 SUP - Bank: 3,000 SUP
   ───
-  [💵 Pay cash - 200 Nil] → crime:report:cfaebd97-b816-43a8-aff9-3798555dd818:cash   │   [💳 Pay by card - 200 Nil] → crime:report:cfaebd97-b816-43a8-aff9-3798555dd818:card
+  [💵 Pay cash - 200 SUP] → crime:report:cfaebd97-b816-43a8-aff9-3798555dd818:cash   │   [💳 Pay by card - 200 SUP] → crime:report:cfaebd97-b816-43a8-aff9-3798555dd818:card
   [🔙 Back] → crime:cases
 
 ━━━ Report · confirm, no fee in this city ━━━
 (edits message 42) (private in groups)
-🚔 Report the theft in Ostmarch (Pickpocketing)? You lost 1,500 Nil. Reporting is free in this city, and the investigation takes about 6m.
+🚔 Report the theft in Ostmarch (Pickpocketing)? You lost 1,500 SUP. Reporting is free in this city, and the investigation takes about 6m.
 ⏳ You have 23h 40m to report it.
   ───
   [✅ File the report] → crime:report:cfaebd97-b816-43a8-aff9-3798555dd818:yes
@@ -670,10 +670,10 @@ Nobody saw who did it.
 (edits message 42) (private in groups)
 🗂 My cases
 
-• Pickpocketing in Ostmarch - 1,500 Nil - under investigation, 4m left
-• Pickpocketing in Brennhaven - 300 Nil - the outcome is due any moment
-• Pickpocketing in Ostmarch - 800 Nil - solved: Kaveh - 800 Nil returned
-• Pickpocketing in Calderis - 120 Nil - closed, unsolved
+• Pickpocketing in Ostmarch - 1,500 SUP - under investigation, 4m left
+• Pickpocketing in Brennhaven - 300 SUP - the outcome is due any moment
+• Pickpocketing in Ostmarch - 800 SUP - solved: Kaveh - 800 SUP returned
+• Pickpocketing in Calderis - 120 SUP - closed, unsolved
   ───
   [🔙 Back] → crime:hub   │   [🔄 Refresh] → crime:cases
 
@@ -687,8 +687,8 @@ You have not reported anything to the police.
 
 ━━━ Notice · case solved, part of it recovered ━━━
 (sends) (private in groups)
-🚔 Case solved: the police caught Kaveh (B3C4D5F) for the theft in Ostmarch (Pickpocketing). 1,100 Nil was returned to you.
-400 Nil could not be recovered; it stays on their record.
+🚔 Case solved: the police caught Kaveh (B3C4D5F) for the theft in Ostmarch (Pickpocketing). 1,100 SUP was returned to you.
+400 SUP could not be recovered; it stays on their record.
   ───
   [🗂 My cases] → crime:cases
 
@@ -700,16 +700,16 @@ You have not reported anything to the police.
 
 ━━━ Notice · case solved, the watch returned ━━━
 (sends) (private in groups)
-🚔 Case solved: the police caught Kaveh (B3C4D5F) for the theft in Ostmarch (Pickpocketing). 1,100 Nil was returned to you.
+🚔 Case solved: the police caught Kaveh (B3C4D5F) for the theft in Ostmarch (Pickpocketing). 1,100 SUP was returned to you.
 🎒 Your Wristwatch was returned to you.
-400 Nil could not be recovered; it stays on their record.
+400 SUP could not be recovered; it stays on their record.
   ───
   [🗂 My cases] → crime:cases
 
 ━━━ Notice · convicted ━━━
 (sends) (private in groups)
-⚖️ Convicted: a theft you committed in Ostmarch (Pickpocketing) was traced to you. You returned 1,100 Nil, paid 0 Nil in fines and were sentenced to 4m in jail.
-💸 Still unpaid: 400 Nil owed to the victim and 300 Nil in fines. It stays on your record.
+⚖️ Convicted: a theft you committed in Ostmarch (Pickpocketing) was traced to you. You returned 1,100 SUP, paid 0 SUP in fines and were sentenced to 4m in jail.
+💸 Still unpaid: 400 SUP owed to the victim and 300 SUP in fines. It stays on your record.
   ───
   [⛓ Jail] → crime:jail
 
@@ -801,7 +801,7 @@ Nothing was taken from you in that theft, so there is nothing to report.
 
 ━━━ Refused · cannot afford ━━━
 (edits message 42) (private in groups)
-💵 That costs 3,960 Nil, and you have 1,200 Nil in cash and in the bank.
+💵 That costs 3,960 SUP, and you have 1,200 SUP in cash and in the bank.
   ───
   [🏦 Bank] → bank:show
   [🔙 Back] → crime:hub

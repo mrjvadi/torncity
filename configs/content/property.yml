@@ -112,24 +112,9 @@ property_types:
     place: city_centre
 
 property_markets:
-  - city: ostmarch
-    price_bps: 10000
-    stock: {studio: 30, apartment: 15, family_house: 8, villa: 2, shop_unit: 6, plot: 10}
-  - city: fenwick_span
-    price_bps: 9500
-    stock: {studio: 25, apartment: 12, family_house: 8, villa: 2, shop_unit: 5, plot: 12}
-  - city: aldrin_hollow
-    price_bps: 11000
-    stock: {studio: 20, apartment: 12, family_house: 6, villa: 2, shop_unit: 5, plot: 8}
-  - city: brennhaven
-    price_bps: 9000
-    stock: {studio: 25, apartment: 10, family_house: 10, villa: 1, shop_unit: 5, plot: 15}
-  - city: kessmoor
-    price_bps: 12000
-    stock: {studio: 15, apartment: 10, family_house: 5, villa: 2, shop_unit: 4, plot: 6}
-  - city: calderis
-    price_bps: 15000
-    stock: {studio: 10, apartment: 10, family_house: 6, villa: 4, shop_unit: 6, plot: 4}
-  - city: vantor_reach
-    price_bps: 18000
-    stock: {studio: 10, apartment: 8, family_house: 5, villa: 5, shop_unit: 5, plot: 4}
+  # One market for the one city (docs/adr/0032): the seven legacy markets
+  # folded, stock summed so the authored supply of the world is kept, the
+  # price the population-weighted mean of the seven.
+  - city: support
+    price_bps: 11700
+    stock: {studio: 135, apartment: 77, family_house: 48, villa: 18, shop_unit: 36, plot: 59}

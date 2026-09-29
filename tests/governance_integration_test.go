@@ -323,7 +323,7 @@ func TestGovernanceLoadAppointSetResolve(t *testing.T) {
 		t.Errorf("the active world has %d seats, want %d (every office × jurisdiction × seat, once)", seats, wantSeats)
 	}
 
-	const cityCode = "kessmoor"
+	const cityCode = "support"
 	admin := postgres.NewGovernanceAdmin(pool)
 	city, err := admin.JurisdictionByCode(ctx, "city", cityCode)
 	if err != nil {
@@ -347,18 +347,18 @@ func TestGovernanceLoadAppointSetResolve(t *testing.T) {
 	clock := now
 	reader := postgres.NewPolicyReader(pool, func() time.Time { return clock })
 	cityDef, _ := pack.Lever("city.tax_rate")
-	var kessmoor int64
+	var support int64
 	for _, c := range pack.Cities {
 		if c.Code == cityCode {
-			kessmoor = cityDef.DefaultFor(c)
+			support = cityDef.DefaultFor(c)
 		}
 	}
 	v, err := reader.Get(ctx, city.ID, "city.tax_rate")
 	if err != nil {
 		t.Fatalf("reading tax with the office vacant: %v", err)
 	}
-	if v.Value != kessmoor || v.Source != application.PolicyFromDefault || v.Acting != nil {
-		t.Errorf("vacant: %d from %s acting %+v, want %d from the default and nobody acting", v.Value, v.Source, v.Acting, kessmoor)
+	if v.Value != support || v.Source != application.PolicyFromDefault || v.Acting != nil {
+		t.Errorf("vacant: %d from %s acting %+v, want %d from the default and nobody acting", v.Value, v.Source, v.Acting, support)
 	}
 
 	// --- appoint, audited ---
@@ -431,7 +431,7 @@ func TestGovernanceLoadAppointSetResolve(t *testing.T) {
 	if err != nil {
 		t.Fatalf("setting tax: %v", err)
 	}
-	if first.OldValue != kessmoor || !first.Setting.EffectiveAt.Equal(now.Add(notice)) {
+	if first.OldValue != support || !first.Setting.EffectiveAt.Equal(now.Add(notice)) {
 		t.Errorf("recorded %+v", first)
 	}
 	var publicPlayer string
@@ -444,7 +444,7 @@ func TestGovernanceLoadAppointSetResolve(t *testing.T) {
 	}
 
 	clock = now.Add(notice - time.Second)
-	if v, _ := reader.Get(ctx, city.ID, "city.tax_rate"); v.Value != kessmoor || v.Pending == nil {
+	if v, _ := reader.Get(ctx, city.ID, "city.tax_rate"); v.Value != support || v.Pending == nil {
 		t.Errorf("inside the notice: %d pending %+v, want the default with the change pending", v.Value, v.Pending)
 	}
 	clock = now.Add(notice)

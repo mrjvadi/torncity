@@ -65,7 +65,7 @@ map:
   origin: "📍 You are in {city}."
   destinations: "From here you can travel to:"
   destination: "• {city} - {distance} km"
-  no_routes: "There is no route from here to another city yet. Check again later with “Refresh”."
+  no_routes: "There is nowhere to travel to from here yet. When a route opens, its destinations will appear right here."
   no_city: "You have not settled in a city yet. Once you do, your travel destinations appear here."
   travelling: "🧭 You are on the way to {city}. You can start a new journey once you arrive."
 
@@ -155,6 +155,10 @@ skill:
 # entry here falls back to the `name:` in cities.yml, but a test fails CI until
 # every shipped city is translated in every locale.
 city:
+  support: Support
+  # The seven cities Support replaced (docs/adr/0032-support-merge.md). No
+  # city carries these codes any more; the names stay so history that
+  # mentions them still reads.
   ostmarch: Ostmarch
   fenwick_span: Fenwick Span
   aldrin_hollow: Aldrin Hollow
@@ -162,6 +166,11 @@ city:
   kessmoor: Kessmoor
   calderis: Calderis
   vantor_reach: Vantor Reach
+
+# Currency display names, keyed on the currency code (the currencies table).
+currency:
+  SUP: SUP
+  NIL: Nil
 
 # The answer to a message the game did not understand. The commands listed in
 # help.body are the shortcuts internal/gateway/routing accepts; keep the two
@@ -263,7 +272,7 @@ format:
   clock: "{hour}:{minute}"
   # A sum of money. {amount} is already written with the digits and the
   # group separator above.
-  money: "{amount} Nil"
+  money: "{amount} SUP"
   # A date: the calendar it is counted in (jalali or gregorian), its shape,
   # and the month names.
   calendar: gregorian
@@ -1396,29 +1405,29 @@ input:
     life_bio: "💬 Write a few words about yourself for your card; no links or usernames."
   placeholder:
     default: "Value"
-    bank_deposit: "Amount to deposit, in Nil"
-    bank_withdraw: "Amount to withdraw, in Nil"
-    bank_pay: "Amount to pay, in Nil"
+    bank_deposit: "Amount to deposit, in SUP"
+    bank_withdraw: "Amount to withdraw, in SUP"
+    bank_pay: "Amount to pay, in SUP"
     company_found: "Company name"
-    company_deposit: "Amount to put in, in Nil"
-    company_withdraw: "Amount to take out, in Nil"
-    company_post: "Pay per shift, in Nil"
+    company_deposit: "Amount to put in, in SUP"
+    company_withdraw: "Amount to take out, in SUP"
+    company_post: "Pay per shift, in SUP"
     company_manager: "Player code or username"
     company_supply: "Units"
-    company_techmode: "License price in Nil"
+    company_techmode: "License price in SUP"
     company_dqty: "Amount"
     company_dname: "Design name"
-    company_sell: "Price per unit in Nil"
+    company_sell: "Price per unit in SUP"
     company_buy: "Quantity"
-    company_ramount: "Amount in Nil"
+    company_ramount: "Amount in SUP"
     gov_appoint: "Player code or username"
-    health_price: "Price of a treatment, in Nil"
+    health_price: "Price of a treatment, in SUP"
     faction_found: "Faction name"
     faction_invite: "Player code or username"
-    faction_deposit: "Amount to deposit, in Nil"
-    faction_withdraw: "Amount to withdraw, in Nil"
-    property_sell: "Sale price, in Nil"
-    property_let: "Rent per period, in Nil"
+    faction_deposit: "Amount to deposit, in SUP"
+    faction_withdraw: "Amount to withdraw, in SUP"
+    property_sell: "Sale price, in SUP"
+    property_let: "Rent per period, in SUP"
     life_bio: "A few words about you"
   cancel_hint: "To cancel, send \"cancel\"."
   cancelled: "✖️ Cancelled. Nothing changed."

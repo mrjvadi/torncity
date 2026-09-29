@@ -288,7 +288,7 @@ func TestLedgerRefusesUnbalancedInsertAtCommit(t *testing.T) {
 	defer func() { _ = tx.Rollback(context.WithoutCancel(ctx)) }()
 	if _, err := tx.Exec(ctx,
 		`INSERT INTO ledger_entries (id, transaction_id, account_id, amount, currency, reason, created_at)
-		 VALUES ($1, $2, $3, 100, 'IRR', 'admin_grant', now())`,
+		 VALUES ($1, $2, $3, 100, 'SUP', 'admin_grant', now())`,
 		newUUID(t), newUUID(t), acct.ID); err != nil {
 		t.Fatalf("the single leg was refused before commit: %v", err)
 	}

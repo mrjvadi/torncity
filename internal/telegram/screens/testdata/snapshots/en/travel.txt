@@ -23,7 +23,7 @@ Page 1 of 2
 
 📍 You are in Vantor Reach.
 
-There is no route from here to another city yet. Check again later with “Refresh”.
+There is nowhere to travel to from here yet. When a route opens, its destinations will appear right here.
   ───
   [🔙 Back] → map:list   │   [🔄 Refresh] → map:cities:1
 
@@ -51,16 +51,16 @@ You have not settled in a city yet. Once you do, your travel destinations appear
 
 How would you like to travel?
 • Bus - Free - 13m on the way - 8 energy
-• Car - 6,300 Nil - 7m on the way - 14 energy
-• Train - 7,720 Nil (busy route) - 4m on the way - 6 energy
-• Flight - 10,480 Nil - 2m on the way - 4 energy
+• Car - 6,300 SUP - 7m on the way - 14 energy
+• Train - 7,720 SUP (busy route) - 4m on the way - 6 energy
+• Flight - 10,480 SUP - 2m on the way - 4 energy
 
-💵 Your cash: 5,000 Nil
+💵 Your cash: 5,000 SUP
   ───
   [Bus - Free] → travel:start:brennhaven:bus:0
-  [Car - 6,300 Nil] → travel:start:brennhaven:car:6300
-  [Train - 7,720 Nil] → travel:start:brennhaven:train:7720
-  [Flight - 10,480 Nil] → travel:start:brennhaven:flight:10480
+  [Car - 6,300 SUP] → travel:start:brennhaven:car:6300
+  [Train - 7,720 SUP] → travel:start:brennhaven:train:7720
+  [Flight - 10,480 SUP] → travel:start:brennhaven:flight:10480
   [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:brennhaven
 
 ━━━ Travel options · in your own car ━━━
@@ -69,13 +69,13 @@ How would you like to travel?
 📍 From: Ostmarch
 
 How would you like to travel?
-• Bus - 1,140 Nil - 13m on the way - 8 energy
-• In your own Car - fuel 2,520 Nil - 7m on the way - 14 energy - condition 87%
+• Bus - 1,140 SUP - 13m on the way - 8 energy
+• In your own Car - fuel 2,520 SUP - 7m on the way - 14 energy - condition 87%
 
-💵 Your cash: 5,000 Nil
+💵 Your cash: 5,000 SUP
   ───
-  [Bus - 1,140 Nil] → travel:start:brennhaven:bus:1140
-  [Car - 2,520 Nil] → travel:start:brennhaven:car:2520
+  [Bus - 1,140 SUP] → travel:start:brennhaven:bus:1140
+  [Car - 2,520 SUP] → travel:start:brennhaven:car:2520
   [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:brennhaven
 
 ━━━ Travel options · the fare changed before departure ━━━
@@ -86,11 +86,11 @@ How would you like to travel?
 ⚠️ The fare has changed since you looked. Nothing was charged — here are the current prices.
 
 How would you like to travel?
-• Train - 8,490 Nil (busy route) - 4m on the way - 6 energy
+• Train - 8,490 SUP (busy route) - 4m on the way - 6 energy
 
-💵 Your cash: 5,000 Nil
+💵 Your cash: 5,000 SUP
   ───
-  [Train - 8,490 Nil] → travel:start:brennhaven:train:8490
+  [Train - 8,490 SUP] → travel:start:brennhaven:train:8490
   [🔙 Back] → map:list   │   [🔄 Refresh] → travel:options:brennhaven
 
 ━━━ Travel · pay for the chosen mode, both ways ━━━
@@ -98,14 +98,14 @@ How would you like to travel?
 🧭 To Brennhaven by Train
 📍 From: Ostmarch
 
-💰 Fare: 7,720 Nil
+💰 Fare: 7,720 SUP
 ⏳ 4m on the road
 ⚡ 6 energy
 
 How would you like to pay?
-💵 Your cash: 9,000 Nil - Bank: 25,000 Nil
+💵 Your cash: 9,000 SUP - Bank: 25,000 SUP
   ───
-  [💵 Pay cash - 7,720 Nil] → travel:start:brennhaven:train:7720:cash   │   [💳 Pay by card - 7,720 Nil] → travel:start:brennhaven:train:7720:card
+  [💵 Pay cash - 7,720 SUP] → travel:start:brennhaven:train:7720:cash   │   [💳 Pay by card - 7,720 SUP] → travel:start:brennhaven:train:7720:card
   [🧭 Ways to travel] → travel:options:brennhaven
   [🔙 Back] → map:list
 
@@ -114,15 +114,15 @@ How would you like to pay?
 🧭 To Brennhaven by Flight
 📍 From: Ostmarch
 
-💰 Fare: 10,480 Nil (busy route)
+💰 Fare: 10,480 SUP (busy route)
 ⏳ 2m on the road
 ⚡ 4 energy
 
 How would you like to pay?
 💵 Your cash does not cover it — pay by card.
-💵 Your cash: 105 Nil - Bank: 25,000 Nil
+💵 Your cash: 105 SUP - Bank: 25,000 SUP
   ───
-  [💳 Pay by card - 10,480 Nil] → travel:start:brennhaven:flight:10480:card
+  [💳 Pay by card - 10,480 SUP] → travel:start:brennhaven:flight:10480:card
   [🧭 Ways to travel] → travel:options:brennhaven
   [🔙 Back] → map:list
 
@@ -131,14 +131,14 @@ How would you like to pay?
 🧭 To Brennhaven by Bus
 📍 From: Ostmarch
 
-💰 Fare: 300 Nil
+💰 Fare: 300 SUP
 ⏳ 5m on the road
 ⚡ 8 energy
 
 How would you like to pay?
 💳 Your bank balance does not cover it — pay in cash.
   ───
-  [💵 Pay cash - 300 Nil] → travel:start:brennhaven:bus:300:cash
+  [💵 Pay cash - 300 SUP] → travel:start:brennhaven:bus:300:cash
   [🧭 Ways to travel] → travel:options:brennhaven
   [🔙 Back] → map:list
 
@@ -147,15 +147,15 @@ How would you like to pay?
 🧭 To Fenwick Span by Bus
 📍 From: Ostmarch
 
-💰 Fare: 300 Nil
+💰 Fare: 300 SUP
 ⏳ 1h 35m on the road
 ⚡ 8 energy
 
 How would you like to pay?
 💵 Cash only here.
-💵 Your cash: 900 Nil - Bank: 100 Nil
+💵 Your cash: 900 SUP - Bank: 100 SUP
   ───
-  [💵 Pay cash - 300 Nil] → travel:start:fenwick_span:bus:300:cash
+  [💵 Pay cash - 300 SUP] → travel:start:fenwick_span:bus:300:cash
   [🧭 Ways to travel] → travel:options:fenwick_span
   [🔙 Back] → map:list
 
@@ -164,12 +164,12 @@ How would you like to pay?
 🧭 To Brennhaven by Flight
 📍 From: Ostmarch
 
-💰 Fare: 10,480 Nil
+💰 Fare: 10,480 SUP
 ⏳ 2m on the road
 ⚡ 4 energy
 
 💸 Neither your cash nor your bank balance covers this.
-💵 Your cash: 3,200 Nil - Bank: 1,500 Nil
+💵 Your cash: 3,200 SUP - Bank: 1,500 SUP
   ───
   [🏦 Bank] → bank:show
   [🧭 Ways to travel] → travel:options:brennhaven
@@ -177,9 +177,9 @@ How would you like to pay?
 
 ━━━ Payment · declined, both balances ━━━
 (edits message 42) (private in groups)
-💸 You do not have enough to pay 10,480 Nil.
-💵 Cash: 3,200 Nil
-🏦 Bank: 1,500 Nil
+💸 You do not have enough to pay 10,480 SUP.
+💵 Cash: 3,200 SUP
+🏦 Bank: 1,500 SUP
 Nothing was charged.
   ───
   [🧭 Ways to travel] → travel:options:brennhaven   │   [🏦 Bank] → bank:show
@@ -187,9 +187,9 @@ Nothing was charged.
 
 ━━━ Payment · declined, cash only here ━━━
 (edits message 42) (private in groups)
-💸 You do not have enough to pay 300 Nil.
-💵 Cash: 100 Nil
-🏦 Bank: 25,000 Nil
+💸 You do not have enough to pay 300 SUP.
+💵 Cash: 100 SUP
+🏦 Bank: 25,000 SUP
 Nothing was charged.
 💵 Cash only here.
   ───
@@ -201,7 +201,7 @@ Nothing was charged.
 🧭 Your journey to Brennhaven by Train has begun
 You left Ostmarch and will arrive in 4m.
 ⚡ 6 energy used.
-💵 Fare paid: 7,720 Nil
+💵 Fare paid: 7,720 SUP
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
 
@@ -228,7 +228,7 @@ Travelling by: Train
 You left Ostmarch and will arrive in 4m.
 ⚡ 6 energy used.
 🕒 Arrives at 14:39
-💵 Fare paid: 7,720 Nil
+💵 Fare paid: 7,720 SUP
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → travel:status
 

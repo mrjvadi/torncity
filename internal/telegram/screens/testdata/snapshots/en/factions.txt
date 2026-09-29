@@ -5,7 +5,7 @@
 • Northern Lions (L10N5ZA) - 7 members
 • The Shades (SH4D3SB) - 3 members
 
-Found your own at city hall; registering one costs 50,000 Nil.
+Found your own at city hall; registering one costs 50,000 SUP.
   ───
   [🏴 Northern Lions] → faction:view:L10N5ZA
   [🏴 The Shades] → faction:view:SH4D3SB
@@ -62,20 +62,20 @@ Your faction: Northern Lions (L10N5ZA)
 ━━━ Found · the fee and the ways to pay ━━━
 (edits message 42) (private in groups)
 🏴 Found a faction
-Registering a faction in Ostmarch costs 50,000 Nil, paid to the city's treasury.
+Registering a faction in Ostmarch costs 50,000 SUP, paid to the city's treasury.
 A name is 3 to 24 letters and may not name a city institution. You found it at city hall.
 
 How will you pay? Then you send the faction's name.
 💵 Your cash does not cover it — pay by card.
-💵 Your cash: 1,200 Nil - Bank: 90,000 Nil
+💵 Your cash: 1,200 SUP - Bank: 90,000 SUP
   ───
-  [💳 Pay by card - 50,000 Nil] → ask:faction.found:card
+  [💳 Pay by card - 50,000 SUP] → ask:faction.found:card
   [🔙 Back] → faction:list
 
 ━━━ Founded ━━━
 (edits message 42) (private in groups)
 🏴 Northern Lions (L10N5ZA) is founded in Ostmarch, and you are its leader.
-💸 Registration: 50,000 Nil
+💸 Registration: 50,000 SUP
 💳 Paid by bank card.
 Now invite members, fill the faction's bank and link its Telegram group: send «/faction L10N5ZA» in that group and press the link button.
   ───
@@ -89,7 +89,7 @@ Now invite members, fill the faction's bank and link its Telegram group: send «
 🎖 Your rank: leader
 📍 City: Ostmarch
 👥 Members: 7 of 30
-🏦 Faction bank: 184,500 Nil
+🏦 Faction bank: 184,500 SUP
 📨 2 applications waiting
 
 💬 No Telegram group yet; the leader sends «/faction L10N5ZA» in one and presses the link button.
@@ -112,7 +112,7 @@ Crew: Sara (K7Q2M9A)
 🎖 Your rank: member
 📍 City: Ostmarch
 👥 Members: 7 of 30
-🏦 Faction bank: 184,500 Nil
+🏦 Faction bank: 184,500 SUP
 
 💬 The faction's Telegram group is linked; its news is posted there.
   ───
@@ -206,7 +206,7 @@ You left Northern Lions (L10N5ZA).
 ━━━ Disbanded, the bank paid out ━━━
 (edits message 42) (private in groups)
 🏴 Northern Lions (L10N5ZA) is disbanded.
-🏦 12,000 Nil came from the faction's bank to yours.
+🏦 12,000 SUP came from the faction's bank to yours.
   ───
   [🏴 Factions] → faction:list
   [🔙 Back] → player:profile.get
@@ -219,14 +219,14 @@ You left Northern Lions (L10N5ZA).
 
 ━━━ Bank · an officer after a deposit ━━━
 (edits message 42) (private in groups)
-📥 10,000 Nil went into the faction's bank.
+📥 10,000 SUP went into the faction's bank.
 💵 Paid from your cash.
 
 🏦 Northern Lions (L10N5ZA) bank
 
-Balance: 194,500 Nil
-💵 Your cash: 3,000 Nil - Bank: 42,000 Nil
-Each deposit or withdrawal between 100 Nil and 10,000,000 Nil
+Balance: 194,500 SUP
+💵 Your cash: 3,000 SUP - Bank: 42,000 SUP
+Each deposit or withdrawal between 100 SUP and 10,000,000 SUP
 
 Members whose rank allows put money in; only allowed ranks take it out, to their own bank.
   ───
@@ -238,9 +238,9 @@ Members whose rank allows put money in; only allowed ranks take it out, to their
 (edits message 42) (private in groups)
 🏦 Northern Lions (L10N5ZA) bank
 
-Balance: 194,500 Nil
-💵 Your cash: 3,000 Nil - Bank: 42,000 Nil
-Each deposit or withdrawal between 100 Nil and 10,000,000 Nil
+Balance: 194,500 SUP
+💵 Your cash: 3,000 SUP - Bank: 42,000 SUP
+Each deposit or withdrawal between 100 SUP and 10,000,000 SUP
 
 Members whose rank allows put money in; only allowed ranks take it out, to their own bank.
   ───
@@ -478,7 +478,7 @@ A faction's name is 3 to 24 letters, starts with a letter or a digit, and may no
 
 ━━━ Refused · the bank short ━━━
 (edits message 42)
-🏦 The faction's bank holds 12,000 Nil; you asked for 50,000 Nil.
+🏦 The faction's bank holds 12,000 SUP; you asked for 50,000 SUP.
   ───
   [🏴 My faction] → faction:mine
   [🔙 Back] → player:profile.get
@@ -552,7 +552,7 @@ Your application to Northern Lions (L10N5ZA) was turned down.
 ━━━ Notice · the job went to plan ━━━
 (sends) (private in groups)
 🕶 Warehouse heist with Northern Lions (L10N5ZA) went to plan.
-💵 Take 7,800 Nil - faction bank 1,170 Nil - your share 2,210 Nil
+💵 Take 7,800 SUP - faction bank 1,170 SUP - your share 2,210 SUP
 ⭐ +30 XP
   ───
   [🕶 Crew jobs] → faction:crime
@@ -562,7 +562,7 @@ Your application to Northern Lions (L10N5ZA) was turned down.
 🚔 Armoured van job with Northern Lions (L10N5ZA) went wrong and the police caught the crew.
 ⛓ You are jailed for 18m.
 ⏳ Free at 14:53
-💸 Fine: 2,400 Nil. You could pay 1,000 Nil; 1,400 Nil stays on your record.
+💸 Fine: 2,400 SUP. You could pay 1,000 SUP; 1,400 SUP stays on your record.
 🚑 You lost 44 health and were taken to hospital; health: 18 of 100
 Discharged at 14:42
   ───

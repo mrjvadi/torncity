@@ -11,14 +11,14 @@ Offices:
 • Foreign minister: vacant - acting: President Kaveh (B3C4D5F)
 
 Budget:
-🏦 National treasury: 184,500 Nil
-🛡 Defence fund: 96,300 Nil
+🏦 National treasury: 184,500 SUP
+🛡 Defence fund: 96,300 SUP
 📊 Cities pay 10% of their revenue to the nation; 30% of that goes to defence.
 🚢 Export policy: arms go to our state and to treaty partners.
 ⏳ The next defence period ends in 17m, at 14:52.
 
-<blockquote expandable>📅 Last period: 12,400 Nil came in from the cities, 3,720 Nil of it to defence.
-🔧 Upkeep paid in full: 1,290 Nil.</blockquote>
+<blockquote expandable>📅 Last period: 12,400 SUP came in from the cities, 3,720 SUP of it to defence.
+🔧 Upkeep paid in full: 1,290 SUP.</blockquote>
 
 Forces:
 ▪️ Ground forces
@@ -29,7 +29,7 @@ Forces:
 ▪️ Air defence
   • Long-range air defence: 2
 🎯 Readiness: 95%
-🔧 Upkeep every period: 1,290 Nil
+🔧 Upkeep every period: 1,290 SUP
 
 The minister buys arms from defence companies with the defence fund, and the commanders station them. The president sets the budget; every change is public in city hall.
   ───
@@ -51,13 +51,13 @@ Offices:
 • Foreign minister: vacant - acting: President Kaveh (B3C4D5F)
 
 Budget:
-🏦 National treasury: 184,500 Nil
-🛡 Defence fund: 96,300 Nil
+🏦 National treasury: 184,500 SUP
+🛡 Defence fund: 96,300 SUP
 📊 Cities pay 10% of their revenue to the nation; 30% of that goes to defence.
 🚢 Export policy: arms go to our state and to treaty partners.
 ⏳ The next defence period ends in 17m, at 14:52.
 
-<blockquote expandable>📅 Last period: 12,400 Nil came in from the cities, 3,720 Nil of it to defence.</blockquote>
+<blockquote expandable>📅 Last period: 12,400 SUP came in from the cities, 3,720 SUP of it to defence.</blockquote>
 
 Forces:
 ▪️ Ground forces
@@ -88,19 +88,19 @@ Offices:
 • Foreign minister: vacant - acting: President Kaveh (B3C4D5F)
 
 Budget:
-🏦 National treasury: 184,500 Nil
-🛡 Defence fund: 96,300 Nil
+🏦 National treasury: 184,500 SUP
+🛡 Defence fund: 96,300 SUP
 📊 Cities pay 10% of their revenue to the nation; 30% of that goes to defence.
 🚢 Export policy: arms go to our state and to treaty partners.
 ⏳ The next defence period ends in 17m, at 14:52.
 
-<blockquote expandable>📅 Last period: 800 Nil came in from the cities, 240 Nil of it to defence.
-⚠️ Upkeep short: 240 Nil of 1,290 Nil paid, and readiness fell.</blockquote>
+<blockquote expandable>📅 Last period: 800 SUP came in from the cities, 240 SUP of it to defence.
+⚠️ Upkeep short: 240 SUP of 1,290 SUP paid, and readiness fell.</blockquote>
 
 Forces:
 No equipment in service yet.
 🎯 Readiness: 85%
-🔧 Upkeep every period: 1,290 Nil
+🔧 Upkeep every period: 1,290 SUP
 
 The minister buys arms from defence companies with the defence fund, and the commanders station them. The president sets the budget; every change is public in city hall.
   ───
@@ -135,7 +135,7 @@ How many of each is a state secret; what the world knows is only how large each 
 ▪️ Air defence
   • Long-range air defence: 2
 🎯 Readiness: 95%
-🔧 Upkeep every period: 1,290 Nil
+🔧 Upkeep every period: 1,290 SUP
 🚚 2 on the way to a garrison.
 
 🔒 Classified: exact numbers, readiness and upkeep are shown only to the country's defence office holders.
@@ -247,23 +247,23 @@ Send 5 to Brennhaven? They arrive in 2m and cannot be ordered elsewhere on the w
 ━━━ Procurement · the minister's list ━━━
 (edits message 42)
 🛒 Arms procurement for The Commonwealth
-🛡 Defence fund: 96,300 Nil
+🛡 Defence fund: 96,300 SUP
 
-• Simorgh 5 (Stealth fighter) - Simorgh Aerospace, Fenwick Span (The Commonwealth) - 42,000 Nil each - 2 left
-• Falcon (Fighter jet) - Simorgh Aerospace, Fenwick Span (The Commonwealth) - 18,500 Nil each - 6 left
+• Simorgh 5 (Stealth fighter) - Simorgh Aerospace, Fenwick Span (The Commonwealth) - 42,000 SUP each - 2 left
+• Falcon (Fighter jet) - Simorgh Aerospace, Fenwick Span (The Commonwealth) - 18,500 SUP each - 6 left
 🚫 Sepehr (Long-range air defence system) - Kaveh Works, Calderis (Vantor Federation) - its country does not export to us
 ⛔ Cruise missile - Kaveh Works, Vantor Reach (Vantor Federation) - under an arms embargo
 
 Arms are paid from the defence fund only, and go into the depot until a commander stations them.
   ───
-  [🛒 Simorgh 5 (Stealth fighter) - 42,000 Nil] → military:buy:default_country:31
-  [🛒 Falcon (Fighter jet) - 18,500 Nil] → military:buy:default_country:34
+  [🛒 Simorgh 5 (Stealth fighter) - 42,000 SUP] → military:buy:default_country:31
+  [🛒 Falcon (Fighter jet) - 18,500 SUP] → military:buy:default_country:34
   [🔙 Back] → military:ministry:default_country   │   [🔄 Refresh] → military:procure:default_country
 
 ━━━ Procurement · nothing for sale ━━━
 (edits message 42)
 🛒 Arms procurement for The Commonwealth
-🛡 Defence fund: 96,300 Nil
+🛡 Defence fund: 96,300 SUP
 
 No defence company is selling military equipment right now.
 
@@ -275,11 +275,11 @@ Arms are paid from the defence fund only, and go into the depot until a commande
 (edits message 42)
 🛒 Simorgh 5 (Stealth fighter)
 Seller: Simorgh Aerospace, Fenwick Span (The Commonwealth)
-Price: 42,000 Nil each - 2 left
+Price: 42,000 SUP each - 2 left
   Top speed: 2,100 km/h
   Range: 1,400 km
   Payload: 4,000 kg
-🛡 Defence fund: 96,300 Nil
+🛡 Defence fund: 96,300 SUP
 How many?
   ───
   [1] → military:buy:default_country:31:1   │   [2] → military:buy:default_country:31:2
@@ -289,12 +289,12 @@ How many?
 (edits message 42)
 🛒 Simorgh 5 (Stealth fighter)
 Seller: Simorgh Aerospace, Fenwick Span (The Commonwealth)
-Price: 42,000 Nil each - 2 left
+Price: 42,000 SUP each - 2 left
   Top speed: 2,100 km/h
   Range: 1,400 km
   Payload: 4,000 kg
-🛡 Defence fund: 96,300 Nil
-Buy 2 × Simorgh 5 (Stealth fighter) for 84,000 Nil? The defence fund keeps 12,300 Nil.
+🛡 Defence fund: 96,300 SUP
+Buy 2 × Simorgh 5 (Stealth fighter) for 84,000 SUP? The defence fund keeps 12,300 SUP.
   ───
   [✅ Buy] → military:buy:default_country:31:2:yes
   [🔙 Back] → military:buy:default_country:31
@@ -303,8 +303,8 @@ Buy 2 × Simorgh 5 (Stealth fighter) for 84,000 Nil? The defence fund keeps 12,3
 (edits message 42)
 🛒 Simorgh 5 (Stealth fighter)
 Seller: Simorgh Aerospace, Fenwick Span (The Commonwealth)
-Price: 42,000 Nil each - 2 left
-🛡 Defence fund: 1,000 Nil
+Price: 42,000 SUP each - 2 left
+🛡 Defence fund: 1,000 SUP
 How many?
 ⚠️ The defence fund cannot pay for even one.
   ───
@@ -318,7 +318,7 @@ Only the Defence minister of The Commonwealth can do that. If you held that offi
 
 ━━━ Refused · funds ━━━
 (edits message 42)
-The defence fund holds 12,000 Nil; this costs 84,000 Nil.
+The defence fund holds 12,000 SUP; this costs 84,000 SUP.
   ───
   [🔙 Back] → military:ministry:default_country
 

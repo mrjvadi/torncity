@@ -55,7 +55,7 @@ You are travelling. Once you arrive, that city's companies are listed here.
 
 💼 Hiring for 1 position(s)
 <blockquote expandable>💼 Hiring:
-💼 Sales Trainee (Retail) - 150 Nil per shift - 1 open</blockquote>
+💼 Sales Trainee (Retail) - 150 SUP per shift - 1 open</blockquote>
   ───
   [⚙️ Manage the company] → company:manage:Q7M2K9B
   [💼 Sales Trainee] → company:opening:12
@@ -74,7 +74,7 @@ You are travelling. Once you arrive, that city's companies are listed here.
 
 💼 Hiring for 1 position(s)
 <blockquote expandable>💼 Hiring:
-💼 Sales Trainee (Retail) - 150 Nil per shift - 1 open</blockquote>
+💼 Sales Trainee (Retail) - 150 SUP per shift - 1 open</blockquote>
   ───
   [💼 Sales Trainee] → company:opening:12
   [🔙 Back] → company:list   │   [🔄 Refresh] → company:view:Q7M2K9B
@@ -111,9 +111,9 @@ You are travelling. Once you arrive, that city's companies are listed here.
 
 The registration fee goes to the city's treasury, and each period the company's upkeep is taken from its account. Choose the kind of business.
 
-🏷 Grocery store - registration 20,000 Nil - upkeep 500 Nil per period
-🏷 Restaurant - registration 30,000 Nil - upkeep 700 Nil per period
-🏷 Repair workshop - registration 35,000 Nil - upkeep 800 Nil per period
+🏷 Grocery store - registration 20,000 SUP - upkeep 500 SUP per period
+🏷 Restaurant - registration 30,000 SUP - upkeep 700 SUP per period
+🏷 Repair workshop - registration 35,000 SUP - upkeep 800 SUP per period
   ───
   [🏷 Grocery store] → company:type:grocery   │   [🏷 Restaurant] → company:type:restaurant
   [🏷 Repair workshop] → company:type:repair_workshop
@@ -125,9 +125,9 @@ The registration fee goes to the city's treasury, and each period the company's 
 
 The registration fee goes to the city's treasury, and each period the company's upkeep is taken from its account. Choose the kind of business.
 
-🏷 Grocery store - registration 20,000 Nil - upkeep 500 Nil per period
-🏷 Restaurant - registration 30,000 Nil - upkeep 700 Nil per period
-🏷 Repair workshop - registration 35,000 Nil - upkeep 800 Nil per period
+🏷 Grocery store - registration 20,000 SUP - upkeep 500 SUP per period
+🏷 Restaurant - registration 30,000 SUP - upkeep 700 SUP per period
+🏷 Repair workshop - registration 35,000 SUP - upkeep 800 SUP per period
 
 You already own 2 companies and cannot register more.
   ───
@@ -140,16 +140,16 @@ You already own 2 companies and cannot register more.
 📍 Workplace: bazaar
 💼 Hires into Retail
 👥 Staff at most: 5
-💰 Registration fee: 20,000 Nil
-🔧 Upkeep: 500 Nil per period - a period lasts 24m
+💰 Registration fee: 20,000 SUP
+🔧 Upkeep: 500 SUP per period - a period lasts 24m
 
 A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
 
-💵 Your cash: 25,000 Nil - Bank: 120,000 Nil
+💵 Your cash: 25,000 SUP - Bank: 120,000 SUP
 
 To register, press how you pay and send the company's name: 3 to 24 characters.
   ───
-  [✏️ Register, pay 20,000 Nil in cash] → ask:company.found:grocery:cash   │   [✏️ Register, pay 20,000 Nil by card] → ask:company.found:grocery:card
+  [✏️ Register, pay 20,000 SUP in cash] → ask:company.found:grocery:cash   │   [✏️ Register, pay 20,000 SUP by card] → ask:company.found:grocery:card
   [🔙 Back] → company:register
 
 ━━━ Register · a kind of business, away from city hall ━━━
@@ -159,8 +159,8 @@ To register, press how you pay and send the company's name: 3 to 24 characters.
 📍 Workplace: bazaar
 💼 Hires into Retail
 👥 Staff at most: 5
-💰 Registration fee: 20,000 Nil
-🔧 Upkeep: 500 Nil per period - a period lasts 24m
+💰 Registration fee: 20,000 SUP
+🔧 Upkeep: 500 SUP per period - a period lasts 24m
 
 A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
 
@@ -176,12 +176,12 @@ A company earns from the people of the city. Every shift your staff work raises 
 📍 Workplace: bazaar
 💼 Hires into Retail
 👥 Staff at most: 5
-💰 Registration fee: 20,000 Nil
-🔧 Upkeep: 500 Nil per period - a period lasts 24m
+💰 Registration fee: 20,000 SUP
+🔧 Upkeep: 500 SUP per period - a period lasts 24m
 
 A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
 
-💵 Your cash: 3,000 Nil - Bank: 1,200 Nil
+💵 Your cash: 3,000 SUP - Bank: 1,200 SUP
 
 Neither your cash nor your bank balance covers the registration fee.
   ───
@@ -194,8 +194,8 @@ Neither your cash nor your bank balance covers the registration fee.
 📍 Workplace: bazaar
 💼 Hires into Retail
 👥 Staff at most: 5
-💰 Registration fee: 20,000 Nil
-🔧 Upkeep: 500 Nil per period - a period lasts 24m
+💰 Registration fee: 20,000 SUP
+🔧 Upkeep: 500 SUP per period - a period lasts 24m
 
 A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
 
@@ -207,7 +207,7 @@ You already own 2 companies and cannot register more.
 (sends)
 ✅ Kaveh Bakery is registered in Ostmarch.
 🏷 Grocery store - code Q7M2K9B
-💳 The registration fee, 20,000 Nil, was paid by card.
+💳 The registration fee, 20,000 SUP, was paid by card.
 
 Now put money into the company's account and post a job opening; from the next period the people of the city buy from you.
   ───
@@ -219,10 +219,10 @@ Now put money into the company's account and post a job opening; from the next p
 <b>⚙️ Managing Kaveh Bakery</b>
 🏷 Grocery store - code Q7M2K9B
 
-💰 Company balance: 18,400 Nil
-🔒 Wages reserved for shifts under way: 300 Nil
-💵 Free to spend: 18,100 Nil
-🔧 Upkeep per period: 500 Nil
+💰 Company balance: 18,400 SUP
+🔒 Wages reserved for shifts under way: 300 SUP
+💵 Free to spend: 18,100 SUP
+🔧 Upkeep per period: 500 SUP
 🏛 Corporate tax on profits taken out: 10%
 
 🏷 Price level: 110% of the reference price
@@ -231,8 +231,8 @@ Now put money into the company's account and post a job opening; from the next p
 🤝 You accept or reject every application yourself.
 
 <blockquote expandable>📊 Last period:
-💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
-💸 Wages: 600 Nil - upkeep: 500 Nil
+💰 Sales to the city: 2,376 SUP - sales tax: 118 SUP
+💸 Wages: 600 SUP - upkeep: 500 SUP
 📦 Sold 180 of 186 units asked for - capacity 180 units
 ⭐ Quality 100% - 4 shifts worked</blockquote>
 
@@ -253,21 +253,21 @@ Now put money into the company's account and post a job opening; from the next p
 <b>⚙️ Managing Kaveh Bakery</b>
 🏷 Grocery store - code Q7M2K9B
 
-💰 Company balance: 18,400 Nil
-🔒 Wages reserved for shifts under way: 300 Nil
-💵 Free to spend: 18,100 Nil
-🔧 Upkeep per period: 500 Nil
+💰 Company balance: 18,400 SUP
+🔒 Wages reserved for shifts under way: 300 SUP
+💵 Free to spend: 18,100 SUP
+🔧 Upkeep per period: 500 SUP
 🏛 Corporate tax on profits taken out: 10%
 
 🏷 Price level: 110% of the reference price
 👥 Staff: 3 of 5 - open openings: 1 - applications waiting: 2
-👷 3 citizens work 3 open positions - their wages are about 900 Nil a period, paid from the company account at settlement
+👷 3 citizens work 3 open positions - their wages are about 900 SUP a period, paid from the company account at settlement
 🧑‍💼 Manager: Kaveh (B3C4D5F)
 🤝 You accept or reject every application yourself.
 
 <blockquote expandable>📊 Last period:
-💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
-💸 Wages: 600 Nil - upkeep: 500 Nil
+💰 Sales to the city: 2,376 SUP - sales tax: 118 SUP
+💸 Wages: 600 SUP - upkeep: 500 SUP
 📦 Sold 180 of 186 units asked for - capacity 180 units
 ⭐ Quality 100% - 4 shifts worked</blockquote>
 
@@ -288,10 +288,10 @@ Now put money into the company's account and post a job opening; from the next p
 <b>⚙️ Managing Kaveh Bakery</b>
 🏷 Grocery store - code Q7M2K9B
 
-💰 Company balance: 18,400 Nil
-🔒 Wages reserved for shifts under way: 300 Nil
-💵 Free to spend: 18,100 Nil
-🔧 Upkeep per period: 500 Nil
+💰 Company balance: 18,400 SUP
+🔒 Wages reserved for shifts under way: 300 SUP
+💵 Free to spend: 18,100 SUP
+🔧 Upkeep per period: 500 SUP
 🏛 Corporate tax on profits taken out: 10%
 
 🏷 Price level: 110% of the reference price
@@ -301,8 +301,8 @@ Now put money into the company's account and post a job opening; from the next p
 🤝 You accept or reject every application yourself.
 
 <blockquote expandable>📊 Last period:
-💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
-💸 Wages: 600 Nil - upkeep: 500 Nil
+💰 Sales to the city: 2,376 SUP - sales tax: 118 SUP
+💸 Wages: 600 SUP - upkeep: 500 SUP
 📦 Sold 180 of 186 units asked for - capacity 180 units
 ⭐ Quality 100% - 4 shifts worked</blockquote>
 
@@ -320,15 +320,15 @@ Now put money into the company's account and post a job opening; from the next p
 
 ━━━ Manage · profit taken out ━━━
 (edits message 42) (private in groups)
-📤 5,000 Nil withdrawn: 500 Nil corporate tax, and 4,500 Nil into your bank account.
+📤 5,000 SUP withdrawn: 500 SUP corporate tax, and 4,500 SUP into your bank account.
 
 <b>⚙️ Managing Kaveh Bakery</b>
 🏷 Grocery store - code Q7M2K9B
 
-💰 Company balance: 18,400 Nil
-🔒 Wages reserved for shifts under way: 300 Nil
-💵 Free to spend: 18,100 Nil
-🔧 Upkeep per period: 500 Nil
+💰 Company balance: 18,400 SUP
+🔒 Wages reserved for shifts under way: 300 SUP
+💵 Free to spend: 18,100 SUP
+🔧 Upkeep per period: 500 SUP
 🏛 Corporate tax on profits taken out: 10%
 
 🏷 Price level: 110% of the reference price
@@ -337,8 +337,8 @@ Now put money into the company's account and post a job opening; from the next p
 🤝 You accept or reject every application yourself.
 
 <blockquote expandable>📊 Last period:
-💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
-💸 Wages: 600 Nil - upkeep: 500 Nil
+💰 Sales to the city: 2,376 SUP - sales tax: 118 SUP
+💸 Wages: 600 SUP - upkeep: 500 SUP
 📦 Sold 180 of 186 units asked for - capacity 180 units
 ⭐ Quality 100% - 4 shifts worked</blockquote>
 
@@ -356,15 +356,15 @@ Now put money into the company's account and post a job opening; from the next p
 
 ━━━ Manage · money put in ━━━
 (edits message 42) (private in groups)
-📥 10,000 Nil went into the company's account.
+📥 10,000 SUP went into the company's account.
 
 <b>⚙️ Managing Kaveh Bakery</b>
 🏷 Grocery store - code Q7M2K9B
 
-💰 Company balance: 18,400 Nil
-🔒 Wages reserved for shifts under way: 300 Nil
-💵 Free to spend: 18,100 Nil
-🔧 Upkeep per period: 500 Nil
+💰 Company balance: 18,400 SUP
+🔒 Wages reserved for shifts under way: 300 SUP
+💵 Free to spend: 18,100 SUP
+🔧 Upkeep per period: 500 SUP
 🏛 Corporate tax on profits taken out: 10%
 
 🏷 Price level: 110% of the reference price
@@ -373,8 +373,8 @@ Now put money into the company's account and post a job opening; from the next p
 🤝 You accept or reject every application yourself.
 
 <blockquote expandable>📊 Last period:
-💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
-💸 Wages: 600 Nil - upkeep: 500 Nil
+💰 Sales to the city: 2,376 SUP - sales tax: 118 SUP
+💸 Wages: 600 SUP - upkeep: 500 SUP
 📦 Sold 180 of 186 units asked for - capacity 180 units
 ⭐ Quality 100% - 4 shifts worked</blockquote>
 
@@ -397,9 +397,9 @@ Now put money into the company's account and post a job opening; from the next p
 <b>⚙️ Managing Kaveh Bakery</b>
 🏷 Grocery store - code Q7M2K9B
 
-💰 Company balance: 0 Nil
-⚠️ Upkeep owed: 750 Nil - 2 of 3 periods of grace
-🔧 Upkeep per period: 500 Nil
+💰 Company balance: 0 SUP
+⚠️ Upkeep owed: 750 SUP - 2 of 3 periods of grace
+🔧 Upkeep per period: 500 SUP
 🏛 Corporate tax on profits taken out: 10%
 
 🏷 Price level: 100% of the reference price
@@ -440,11 +440,11 @@ You own no company and manage none.
 (edits message 42) (private in groups)
 📋 Job openings of Kaveh Bakery
 
-💼 Sales Trainee - 150 Nil per shift - 1 of 2 filled
+💼 Sales Trainee - 150 SUP per shift - 1 of 2 filled
 
 👷 Until a player is hired, the city's citizens fill open positions: they are paid the same wage from the company account and are a little less productive. Every player you hire takes a citizen's place.
 
-For a new opening, press the career and send the wage per shift; the city's minimum wage is 100 Nil.
+For a new opening, press the career and send the wage per shift; the city's minimum wage is 100 SUP.
   ───
   [➕ One more place for Sales Trainee] → company:slots:12:3   │   [➖ One place fewer for Sales Trainee] → company:slots:12:1
   [✏️ Advertise Retail] → ask:company.post:Q7M2K9B:retail
@@ -464,8 +464,8 @@ Every staff place is taken or advertised.
 (edits message 42) (private in groups)
 👥 Staff of Kaveh Bakery
 
-👤 Kaveh (B3C4D5F) - Sales Trainee - 150 Nil per shift - 12 shifts - on a shift now
-👤 Nilou (N1L0F4R) - Sales Trainee - 150 Nil per shift - 3 shifts
+👤 Kaveh (B3C4D5F) - Sales Trainee - 150 SUP per shift - 12 shifts - on a shift now
+👤 Nilou (N1L0F4R) - Sales Trainee - 150 SUP per shift - 3 shifts
 
 📨 Applications:
 📨 Sara (K7Q2M9A) - Sales Trainee - level 4
@@ -480,7 +480,7 @@ Every staff place is taken or advertised.
 
 You have no staff yet.
 
-👷 2 citizens work 2 open positions - their wages are about 440 Nil a period, paid from the company account at settlement
+👷 2 citizens work 2 open positions - their wages are about 440 SUP a period, paid from the company account at settlement
   ───
   [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:staff:Q7M2K9B
 
@@ -490,7 +490,7 @@ You have no staff yet.
 
 👥 Staff of Kaveh Bakery
 
-👤 Nilou (N1L0F4R) - Sales Trainee - 150 Nil per shift - 0 shifts
+👤 Nilou (N1L0F4R) - Sales Trainee - 150 SUP per shift - 0 shifts
   ───
   [🚪 Fire Nilou] → company:fire:Q7M2K9B:N1L0F4R
   [🔙 Back] → company:manage:Q7M2K9B   │   [🔄 Refresh] → company:staff:Q7M2K9B
@@ -516,7 +516,7 @@ You have no staff yet.
 
 🏢 Employer: Kaveh Bakery
 📍 bazaar - Ostmarch
-💰 Pay per shift: 150 Nil
+💰 Pay per shift: 150 SUP
 ⚡ Energy per shift: 10
 ⏱ Each shift takes 4m
 👥 Open positions: 1
@@ -534,7 +534,7 @@ Requirements:
 
 🏢 Employer: Kaveh Bakery
 📍 bazaar - Ostmarch
-💰 Pay per shift: 150 Nil
+💰 Pay per shift: 150 SUP
 ⚡ Energy per shift: 10
 ⏱ Each shift takes 4m
 👥 Open positions: 1
@@ -553,7 +553,7 @@ Requirements:
 
 🏢 Employer: Kaveh Bakery
 📍 bazaar - Ostmarch
-💰 Pay per shift: 150 Nil
+💰 Pay per shift: 150 SUP
 ⚡ Energy per shift: 10
 ⏱ Each shift takes 4m
 👥 Open positions: 1
@@ -577,7 +577,7 @@ Requirements:
 ━━━ Hired on applying ━━━
 (edits message 42)
 ✅ You are hired: you are now Sales Trainee at Kaveh Bakery, Ostmarch.
-💰 Pay per shift: 150 Nil
+💰 Pay per shift: 150 SUP
   ───
   [🛠 Start a shift] → job:work   │   [💼 My job] → job:status
   [🔙 Back] → player:profile.get
@@ -586,7 +586,7 @@ Requirements:
 (edits message 42) (private in groups)
 🚪 Close Kaveh Bakery?
 
-The upkeep owed, 250 Nil, is paid; 1,800 Nil of corporate tax goes to the city's treasury and 16,200 Nil into your bank account.
+The upkeep owed, 250 SUP, is paid; 1,800 SUP of corporate tax goes to the city's treasury and 16,200 SUP into your bank account.
 
 👥 The company's 3 staff lose their jobs, and will be told.
 
@@ -599,7 +599,7 @@ This cannot be undone.
 (edits message 42) (private in groups)
 🔒 Kaveh Bakery is closed.
 
-🏦 16,200 Nil went into your bank account, and 1,800 Nil of corporate tax was paid.
+🏦 16,200 SUP went into your bank account, and 1,800 SUP of corporate tax was paid.
   ───
   [🏢 The city's companies] → company:list
   [🔙 Back] → player:profile.get
@@ -660,7 +660,7 @@ This kind of company cannot be registered in this city.
 
 ━━━ Company refused · cannot_pay ━━━
 (edits message 42)
-💰 Kaveh Bakery has not got enough free money for this shift's pay (150 Nil), so the shift did not start. Let your employer know.
+💰 Kaveh Bakery has not got enough free money for this shift's pay (150 SUP), so the shift did not start. Let your employer know.
   ───
   [💼 My job] → job:status
   [🔙 Back] → company:view:Q7M2K9B
@@ -673,7 +673,7 @@ This kind of company cannot be registered in this city.
 
 ━━━ Company refused · not_enough ━━━
 (edits message 42)
-Kaveh Bakery has 40 Nil free, which does not cover 150 Nil.
+Kaveh Bakery has 40 SUP free, which does not cover 150 SUP.
   ───
   [🔙 Back] → company:manage:Q7M2K9B
 
@@ -697,7 +697,7 @@ This kind of company does not hire into that career.
 
 ━━━ Company refused · below_minimum ━━━
 (edits message 42)
-The pay per shift cannot be under the city's minimum wage, 100 Nil.
+The pay per shift cannot be under the city's minimum wage, 100 SUP.
   ───
   [🔙 Back] → company:manage:Q7M2K9B
 
@@ -796,7 +796,7 @@ Type the amount as a number, for example 5000.
 ━━━ Notice · employee hired ━━━
 (sends)
 ✅ Nilou Repairs hired you as Workshop Hand.
-💰 Pay per shift: 180 Nil
+💰 Pay per shift: 180 SUP
   ───
   [🛠 Start a shift] → job:work   │   [💼 My job] → job:status
   [🔙 Back] → player:profile.get
@@ -833,11 +833,11 @@ Type the amount as a number, for example 5000.
 (sends) (private in groups)
 📊 Period report of Kaveh Bakery
 
-💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
-💸 Wages: 600 Nil - upkeep: 500 Nil
+💰 Sales to the city: 2,376 SUP - sales tax: 118 SUP
+💸 Wages: 600 SUP - upkeep: 500 SUP
 📦 Sold 180 of 186 units asked for - capacity 180 units
 ⭐ Quality 100% - 4 shifts worked
-💰 Company balance: 18,400 Nil
+💰 Company balance: 18,400 SUP
   ───
   [⚙️ Manage the company] → company:manage:Q7M2K9B
   [🔙 Back] → player:profile.get
@@ -846,12 +846,12 @@ Type the amount as a number, for example 5000.
 (sends) (private in groups)
 📊 Period report of Kaveh Bakery
 
-💰 Sales to the city: 2,376 Nil - sales tax: 118 Nil
-💸 Wages: 600 Nil - upkeep: 500 Nil
+💰 Sales to the city: 2,376 SUP - sales tax: 118 SUP
+💸 Wages: 600 SUP - upkeep: 500 SUP
 📦 Sold 180 of 186 units asked for - capacity 180 units
 ⭐ Quality 100% - 4 shifts worked
-👷 2 citizens filled open positions - 4 shifts - wages 600 Nil
-💰 Company balance: 18,400 Nil
+👷 2 citizens filled open positions - 4 shifts - wages 600 SUP
+💰 Company balance: 18,400 SUP
   ───
   [⚙️ Manage the company] → company:manage:Q7M2K9B
   [🔙 Back] → player:profile.get
@@ -860,13 +860,13 @@ Type the amount as a number, for example 5000.
 (sends) (private in groups)
 📊 Period report of Nilou Repairs
 
-💰 Sales to the city: 240 Nil - sales tax: 12 Nil
-💸 Wages: 0 Nil - upkeep: 228 Nil
+💰 Sales to the city: 240 SUP - sales tax: 12 SUP
+💸 Wages: 0 SUP - upkeep: 228 SUP
 📦 Sold 20 of 216 units asked for - capacity 20 units
 ⭐ Quality 30% - 0 shifts worked
-💰 Company balance: 0 Nil
+💰 Company balance: 0 SUP
 
-⚠️ The company owes 272 Nil of upkeep. If it is not paid within 2 more periods, the company is dissolved; put money into its account.
+⚠️ The company owes 272 SUP of upkeep. If it is not paid within 2 more periods, the company is dissolved; put money into its account.
   ───
   [⚙️ Manage the company] → company:manage:H4T8W2C
   [🔙 Back] → player:profile.get
@@ -875,11 +875,11 @@ Type the amount as a number, for example 5000.
 (sends) (private in groups)
 📊 Period report of Nilou Repairs
 
-💰 Sales to the city: 240 Nil - sales tax: 12 Nil
-💸 Wages: 0 Nil - upkeep: 228 Nil
+💰 Sales to the city: 240 SUP - sales tax: 12 SUP
+💸 Wages: 0 SUP - upkeep: 228 SUP
 📦 Sold 20 of 216 units asked for - capacity 20 units
 ⭐ Quality 30% - 0 shifts worked
-💰 Company balance: 0 Nil
+💰 Company balance: 0 SUP
 
 🔒 The company could not pay its upkeep for several periods in a row and was dissolved.
   ───
@@ -889,10 +889,10 @@ Type the amount as a number, for example 5000.
 (edits message 42)
 💼 Job openings in Ostmarch
 
-✅ Retail - Sales Trainee - 120 Nil per shift
+✅ Retail - Sales Trainee - 120 SUP per shift
 
 🏢 At the city's companies:
-✅ Kaveh Bakery - Sales Trainee - 150 Nil per shift
+✅ Kaveh Bakery - Sales Trainee - 150 SUP per shift
 
 ✅ means you qualify and can apply; 🔒 means something is still missing. Tap a job to see the details.
   ───
@@ -907,12 +907,12 @@ Type the amount as a number, for example 5000.
 💼 Sales Trainee - Retail
 🏢 Employer: Kaveh Bakery
 📍 Workplace: Ostmarch
-💰 Pay per shift: 150 Nil
+💰 Pay per shift: 150 SUP
 ⚡ Energy per shift: 10 - you have 80 of 100
 📈 Performance: 52 of 100
 🔁 Shifts in this position: 0
 ⏱ Each shift takes 4m
-💵 Earned in this job: 0 Nil
+💵 Earned in this job: 0 SUP
 
 📍 You are at your workplace, the bazaar.
 

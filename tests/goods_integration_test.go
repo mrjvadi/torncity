@@ -113,9 +113,9 @@ func newGoodsWorld(t *testing.T) *goodsWorld {
 	}
 	ctx := testCtx(t)
 	cities := postgres.NewCityRepository(pool)
-	city, err := cities.ByCode(ctx, "ostmarch")
+	city, err := cities.ByCode(ctx, "support")
 	if err != nil {
-		t.Skipf("the shipped city ostmarch is not loaded: %v", err)
+		t.Skipf("the shipped city support is not loaded: %v", err)
 	}
 	policy := postgres.NewPolicyReader(pool, nil)
 	if _, err := policy.Get(ctx, city.JurisdictionID, handlers.LeverSalesTax); err != nil {
@@ -470,7 +470,7 @@ func TestCrimeGearWearsOnceRestsAndIsTakenAsEvidence(t *testing.T) {
 		t.Fatal(err)
 	}
 	if others > 0 {
-		t.Skipf("%d other players are active in ostmarch; the victim draw would not be deterministic", others)
+		t.Skipf("%d other players are active in support; the victim draw would not be deterministic", others)
 	}
 	// Three pairs of gloves, granted from a recorded origin.
 	if err := w.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {

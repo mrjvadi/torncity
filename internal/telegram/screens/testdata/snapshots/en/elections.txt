@@ -39,15 +39,15 @@ You are not in a city yet. You take part in the elections of the city you live i
 🪑 Seats: 1
 📝 Taking candidates - 31h left
 🕒 Voting opens in 31h.
-💰 Deposit to stand: 5,000 Nil; it comes back after the count if you win at least 10% of the votes.
+💰 Deposit to stand: 5,000 SUP; it comes back after the count if you win at least 10% of the votes.
 
 Candidates:
 1. Kaveh (B3C4D5F)
 
-📝 To stand, pay the deposit of 5,000 Nil:
-💵 Your cash: 8,000 Nil - Bank: 20,000 Nil
+📝 To stand, pay the deposit of 5,000 SUP:
+💵 Your cash: 8,000 SUP - Bank: 20,000 SUP
   ───
-  [💵 Pay cash - 5,000 Nil] → election:stand:4:cash:0a1b2c3d4e70   │   [💳 Pay by card - 5,000 Nil] → election:stand:4:card:0a1b2c3d4e70
+  [💵 Pay cash - 5,000 SUP] → election:stand:4:cash:0a1b2c3d4e70   │   [💳 Pay by card - 5,000 SUP] → election:stand:4:card:0a1b2c3d4e70
   [🔙 Back] → election:list   │   [🔄 Refresh] → election:view:4
 
 ━━━ Election · taking candidates, in a group ━━━
@@ -57,7 +57,7 @@ Candidates:
 🪑 Seats: 1
 📝 Taking candidates - 31h left
 🕒 Voting opens in 31h.
-💰 Deposit to stand: 5,000 Nil; it comes back after the count if you win at least 10% of the votes.
+💰 Deposit to stand: 5,000 SUP; it comes back after the count if you win at least 10% of the votes.
 
 Candidates:
 1. Kaveh (B3C4D5F)
@@ -73,7 +73,7 @@ Candidates:
 🪑 Seats: 1
 📝 Taking candidates - 31h left
 🕒 Voting opens in 31h.
-💰 Deposit to stand: 5,000 Nil; it comes back after the count if you win at least 10% of the votes.
+💰 Deposit to stand: 5,000 SUP; it comes back after the count if you win at least 10% of the votes.
 
 Candidates:
 1. Kaveh (B3C4D5F)
@@ -89,7 +89,7 @@ Candidates:
 🪑 Seats: 1
 📝 Taking candidates - 31h left
 🕒 Voting opens in 31h.
-💰 Deposit to stand: 5,000 Nil; it comes back after the count if you win at least 10% of the votes.
+💰 Deposit to stand: 5,000 SUP; it comes back after the count if you win at least 10% of the votes.
 
 Candidates:
 1. Kaveh (B3C4D5F)
@@ -181,7 +181,7 @@ Candidates:
 ━━━ Stood ━━━
 (edits message 42) (private in groups)
 📝 You are now a candidate in the Ostmarch mayoral election.
-💰 Your deposit of 5,000 Nil is held until the count.
+💰 Your deposit of 5,000 SUP is held until the count.
 💳 Paid by bank card.
 🕒 Voting opens in 31h.
   ───
@@ -288,13 +288,13 @@ You hold an office that cannot be held with this one.
 ━━━ Notice · elected ━━━
 (sends) (private in groups)
 🏆 Congratulations! You won the Ostmarch mayoral election: 15 of 23 votes.
-💰 Your deposit of 5,000 Nil came back to you.
+💰 Your deposit of 5,000 SUP came back to you.
   ───
   [🗳 See the results] → election:view:1
 
 ━━━ Notice · not elected, deposit kept ━━━
 (sends) (private in groups)
 🗳 You were not elected in the Ostmarch mayoral election: 1 of 23 votes.
-💰 Too few votes: your deposit of 5,000 Nil went to your city's treasury.
+💰 Too few votes: your deposit of 5,000 SUP went to your city's treasury.
   ───
   [🗳 See the results] → election:view:1

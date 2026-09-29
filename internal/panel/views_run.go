@@ -37,7 +37,7 @@ func RunView(ctx context.Context, r Reader, name string, query url.Values, now t
 // sampleValues are values of each scope that the sample queries use; a
 // scope resolved to nothing answers not found, which the suite accepts.
 var sampleValues = map[string]string{
-	"player": "ZZZZZZZ", "company": "ZZZZZZ", "city": "ostmarch", "here": "ostmarch", "country": "default_country", "faction": "ZZZZZZ",
+	"player": "ZZZZZZZ", "company": "ZZZZZZ", "city": "support", "here": "support", "country": "default_country", "faction": "ZZZZZZ",
 	"war": "1", "election": "1", "proposal": "1", "loan": "1", "policy": "1", "auction": "1", "operation": "1",
 	"crew": "1", "property": "1", "design": "1", "dividend": "1", "piece": "none",
 	"tx": "00000000-0000-4000-8000-000000000009", "account": "00000000-0000-4000-8000-000000000001",

@@ -8,9 +8,9 @@ Offices:
 • Deputy mayor: vacant
 • City council: vacant
 Policies:
-• Immigration fee: 0 Nil - default
+• Immigration fee: 0 SUP - default
 • Tax rate: 4.5% - default
-• Minimum wage: 100 Nil - default
+• Minimum wage: 100 SUP - default
 • Income tax: 5% - default
 • Working-hours window (game hours): 24 - default
 • Shifts before fatigue: 4 - default
@@ -35,9 +35,9 @@ Policies:
 🏛 My office
 
 📍 Mayor of Ostmarch
-• Immigration fee: 0 Nil
+• Immigration fee: 0 SUP
 • Tax rate: 4.5%
-• Minimum wage: 100 Nil
+• Minimum wage: 100 SUP
 • Income tax: 5%
 • Working-hours window (game hours): 24
 • Shifts before fatigue: 4
@@ -135,10 +135,10 @@ Offices:
 • Deputy mayor: vacant
 • City council: vacant
 Policies:
-• Immigration fee: 0 Nil - default
+• Immigration fee: 0 SUP - default
 • Tax rate: 4.5% - default
   ⏳ Changes to 2% in 24h
-• Minimum wage: 100 Nil - default
+• Minimum wage: 100 SUP - default
 • Income tax: 5% - default
 • Working-hours window (game hours): 24 - default
 • Shifts before fatigue: 4 - default

@@ -54,10 +54,10 @@ To start a design, choose the kind of good:
 ━━━ Lab · a new tech studio ━━━
 (edits message 42)
 🧪 Aria Tech lab
-💵 Company's free money: 90,000 Nil
+💵 Company's free money: 90,000 SUP
 
-🔬 Semiconductors - research costs 30,000 Nil
-🔬 Battery chemistry - research costs 25,000 Nil
+🔬 Semiconductors - research costs 30,000 SUP
+🔬 Battery chemistry - research costs 25,000 SUP
 🔒 Microchips - needs Semiconductors first
 
 🔭 2 more advanced technologies open after these.
@@ -96,7 +96,7 @@ For a new order, choose a product or a component:
 • Copper wire: 10 short - a supplier sells it
 • Epoxy resin: 4 short - a supplier sells it
   ───
-  [🛒 Buy what is missing - 42 Nil] → company:stockup:T3C5T8D:circuit_board:5
+  [🛒 Buy what is missing - 42 SUP] → company:stockup:T3C5T8D:circuit_board:5
   [1 batches] → company:produce:T3C5T8D:circuit_board:1   │   [5 batches] → company:produce:T3C5T8D:circuit_board:5   │   [10 batches] → company:produce:T3C5T8D:circuit_board:10
   [🔙 Back] → company:orders:T3C5T8D
 
@@ -116,7 +116,7 @@ For a new order, choose a product or a component:
 
 ━━━ Produce · the inputs bought in one tap ━━━
 (edits message 42)
-✅ The missing inputs were bought from the supplier and 42 Nil paid from the company's account.
+✅ The missing inputs were bought from the supplier and 42 SUP paid from the company's account.
 
 ⚙️ Produce Circuit board
 📦 Each batch yields 2 units.
@@ -170,11 +170,11 @@ The design «Design no. 22» is half done: complete it and finalise it.
 ⚙️ Production orders running: 0 - open listings: 0
 
 🧭 Next step:
-To make Circuit board, buy its inputs from the supplier in one go: 45 Nil in all.
+To make Circuit board, buy its inputs from the supplier in one go: 45 SUP in all.
 
 📦 The warehouse is empty.
   ───
-  [🛒 Buy the inputs - 45 Nil] → company:stockup:T3C5T8D:circuit_board:5
+  [🛒 Buy the inputs - 45 SUP] → company:stockup:T3C5T8D:circuit_board:5
   [🚚 Suppliers] → company:suppliers:T3C5T8D   │   [⚙️ Production floor] → company:orders:T3C5T8D
   [📐 Design studio] → company:studio:T3C5T8D   │   [🧪 Research lab] → company:lab:T3C5T8D
   [🔍 Reverse engineering] → company:relab:T3C5T8D   │   [🏷 Listings] → company:listings:T3C5T8D
@@ -285,8 +285,8 @@ You can design Phone now.
 🧭 Next step:
 To grow, research Microchips: it opens Phone.
 
-💰 Company balance: 90,000 Nil
-🔧 Upkeep per period: 1,800 Nil
+💰 Company balance: 90,000 SUP
+🔧 Upkeep per period: 1,800 SUP
 🏛 Corporate tax on profits taken out: 10%
 
 🏷 Price level: 100% of the reference price
@@ -313,8 +313,8 @@ To grow, research Microchips: it opens Phone.
 🏷 Aerospace manufacturer - code D3F2N5S
 🛡 The defence licence was revoked and lapses at 14:35.
 
-💰 Company balance: 90,000 Nil
-🔧 Upkeep per period: 1,800 Nil
+💰 Company balance: 90,000 SUP
+🔧 Upkeep per period: 1,800 SUP
 🏛 Corporate tax on profits taken out: 10%
 
 🏷 Price level: 100% of the reference price
@@ -341,8 +341,8 @@ To grow, research Microchips: it opens Phone.
 📍 Workplace: industrial zone
 💼 Hires into Workshop, Technology
 👥 Staff at most: 15
-💰 Registration fee: 250,000 Nil
-🔧 Upkeep: 4,000 Nil per period - a period lasts 24m
+💰 Registration fee: 250,000 SUP
+🔧 Upkeep: 4,000 SUP per period - a period lasts 24m
 
 A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
 
@@ -359,8 +359,8 @@ A company earns from the people of the city. Every shift your staff work raises 
 
 The registration fee goes to the city's treasury, and each period the company's upkeep is taken from its account. Choose the kind of business.
 
-🏷 Tech studio - registration 80,000 Nil - upkeep 1,800 Nil per period
-🏷 Aerospace manufacturer - registration 250,000 Nil - upkeep 4,000 Nil per period - 🛡 needs a defence licence
+🏷 Tech studio - registration 80,000 SUP - upkeep 1,800 SUP per period
+🏷 Aerospace manufacturer - registration 250,000 SUP - upkeep 4,000 SUP per period - 🛡 needs a defence licence
   ───
   [🏷 Tech studio] → company:type:tech_studio   │   [🏷 Aerospace manufacturer] → company:type:aerospace
   [🔙 Back] → company:list
@@ -540,8 +540,8 @@ Defence licences are public. The defence minister approves or rejects applicatio
 (edits message 42)
 💼 Job openings in Ostmarch
 
-✅ Armed Forces - Private - 140 Nil per shift
-✅ Retail - Sales Trainee - 120 Nil per shift
+✅ Armed Forces - Private - 140 SUP per shift
+✅ Retail - Sales Trainee - 120 SUP per shift
 
 ✅ means you qualify and can apply; 🔒 means something is still missing. Tap a job to see the details.
   ───

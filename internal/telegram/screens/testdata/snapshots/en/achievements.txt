@@ -5,7 +5,7 @@
 ✅ First day at work
 ✅ Homeowner
 
-<blockquote expandable>▫️ Career criminal - 4 of 10 - reward 500 Nil
+<blockquote expandable>▫️ Career criminal - 4 of 10 - reward 500 SUP
 ▫️ Hard worker - 3 of 25</blockquote>
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → achievement:list
@@ -16,7 +16,7 @@
 
 You have not earned an achievement yet.
 
-<blockquote expandable>▫️ Career criminal - 4 of 10 - reward 500 Nil
+<blockquote expandable>▫️ Career criminal - 4 of 10 - reward 500 SUP
 ▫️ Hard worker - 3 of 25</blockquote>
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → achievement:list
@@ -24,7 +24,7 @@ You have not earned an achievement yet.
 ━━━ Notice · earned, paid ━━━
 (sends)
 🏅 New achievement: Homeowner!
-💵 A reward of 500 Nil was added to your cash.
+💵 A reward of 500 SUP was added to your cash.
   ───
   [🏅 Achievements] → achievement:list
   [🔙 Back] → player:profile.get
@@ -32,8 +32,8 @@ You have not earned an achievement yet.
 ━━━ Notice · earned, the cap kept some ━━━
 (sends)
 🏅 New achievement: First day at work!
-💵 A reward of 40 Nil was added to your cash.
-The day's cap on rewards held back 60 Nil of it.
+💵 A reward of 40 SUP was added to your cash.
+The day's cap on rewards held back 60 SUP of it.
   ───
   [🏅 Achievements] → achievement:list
   [🔙 Back] → player:profile.get
