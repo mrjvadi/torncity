@@ -307,3 +307,31 @@ func (s *PresenceService) Civic(ctx context.Context, settlementID string) (Settl
 	}
 	return out, nil
 }
+
+// Memberships are the settlements the player lives in or stands in: the ids
+// of the settlement channels a realtime connection is put on (ADR 0030
+// section 1.2). Computed from server-held state, never from the client.
+func (s *PresenceService) Memberships(ctx context.Context, playerID string) ([]string, error) {
+	facts, err := s.Repo.Facts(ctx, []string{playerID})
+	if err != nil {
+		return nil, err
+	}
+	f, ok := facts[playerID]
+	if !ok {
+		return nil, ErrPlayerNotFound
+	}
+	var out []string
+	for _, id := range []string{f.ResidenceCityID, f.CityID} {
+		if id == "" {
+			continue
+		}
+		dup := false
+		for _, x := range out {
+			dup = dup || x == id
+		}
+		if !dup {
+			out = append(out, id)
+		}
+	}
+	return out, nil
+}

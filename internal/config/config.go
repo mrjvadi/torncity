@@ -508,6 +508,9 @@ type Announce struct {
 	VillageMergeWindow   time.Duration // announce.village_merge_window
 	VillageMinGap        time.Duration // announce.village_min_gap
 	VillageFlushInterval time.Duration // announce.village_flush_interval
+	// VillageLiteracyStep is how many percentage points literacy must climb
+	// to be worth a post: teaching steps come every few minutes.
+	VillageLiteracyStep int // announce.village_literacy_step_percent
 }
 
 // Notifications tunes the inbox badge (migrations/0037_notification_inbox)
@@ -1184,6 +1187,7 @@ func Defaults() *Config {
 			VillageMergeWindow:   20 * time.Second,
 			VillageMinGap:        90 * time.Second,
 			VillageFlushInterval: 5 * time.Second,
+			VillageLiteracyStep:  10,
 		},
 		Notifications: Notifications{
 			InboxPageSize:         5,

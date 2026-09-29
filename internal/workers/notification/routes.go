@@ -30,6 +30,13 @@ type Route struct {
 	// Announce, instead of Render, turns the event into a public line in a
 	// city's groups (announce.go).
 	Announce Announcer
+	// Settlement, instead of Render, turns the event into publications on
+	// settlement channels for game clients (settlement.go).
+	Settlement SettlementEvents
+	// News, instead of Render, turns the event into an item of the village
+	// news posted, merged with its neighbours, in the village's group
+	// (village_news.go).
+	News NewsBuilder
 }
 
 // Subject is the event subject this route consumes.
@@ -60,6 +67,13 @@ type Renderer func(ctx context.Context, deps Deps, env *envelope.Envelope) (*Dra
 // Deps is what a renderer may read. Everything is read-only.
 type Deps struct {
 	Cities Cities
+	// Players names a player in a settlement publication. New fills it from
+	// Config.Players when it is nil.
+	Players Players
+	// LiteracyStepBPS is how far literacy must climb, in basis points, to
+	// be village news (announce.village_literacy_step_percent); zero is a
+	// step of ten percentage points.
+	LiteracyStepBPS int
 }
 
 // Draft is a notification before it knows its language.
@@ -227,6 +241,29 @@ func Routes() []Route {
 		{Domain: "legislature", Event: "decided", Name: "announce", Announce: billDecidedAnnouncement},
 		{Domain: "admin", Event: "announced", Name: "announce", Announce: operatorAnnouncement},
 		{Domain: "admin", Event: "broadcast", Render: renderBroadcast},
+
+		// The settlement channel for game clients (settlement.go): what
+		// happens in a village, versioned, one consumer per event beside
+		// its news and its private notice.
+		{Domain: "settlement", Event: "build_started", Name: "realtime", Settlement: villageBuildStarted},
+		{Domain: "settlement", Event: "built", Name: "realtime", Settlement: villageBuilt},
+		{Domain: "settlement", Event: "building_demolished", Name: "realtime", Settlement: villageDemolished},
+		{Domain: "settlement", Event: "research_started", Name: "realtime", Settlement: villageResearchStarted},
+		{Domain: "settlement", Event: "knowledge_researched", Name: "realtime", Settlement: villageResearched},
+		{Domain: "settlement", Event: "knowledge_bought", Name: "realtime", Settlement: villageBought},
+		{Domain: "settlement", Event: "literacy_advanced", Name: "realtime", Settlement: villageLiteracy},
+		{Domain: "governance", Event: "appointed", Name: "realtime", Settlement: governanceHead(false)},
+		{Domain: "governance", Event: "dismissed", Name: "realtime", Settlement: governanceHead(true)},
+		{Domain: "election", Event: "counted", Name: "realtime", Settlement: electionHead},
+		{Domain: "travel", Event: "completed", Name: "realtime", Settlement: travelMembers},
+		{Domain: "residence", Event: "changed", Name: "realtime", Settlement: residenceMembers},
+
+		// The village news in the group (village_news.go).
+		{Domain: "settlement", Event: "build_started", Name: "news", News: newsFrom(screens.NewsBuildStarted)},
+		{Domain: "settlement", Event: "built", Name: "news", News: newsFrom(screens.NewsBuilt)},
+		{Domain: "settlement", Event: "knowledge_researched", Name: "news", News: newsFrom(screens.NewsResearched)},
+		{Domain: "settlement", Event: "knowledge_bought", Name: "news", News: newsFrom(screens.NewsBought)},
+		{Domain: "settlement", Event: "literacy_advanced", Name: "news", News: newsTaught},
 	}
 }
 

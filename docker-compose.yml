@@ -157,6 +157,7 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
       nats: {condition: service_healthy}
+      redis: {condition: service_healthy}
     restart: unless-stopped
 
   # Phase 0 stub: it starts, logs that it is not implemented and waits for a

@@ -398,6 +398,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	gw.links = infraredis.NewLinkStore(rdb)
 	gw.cityGroups = postgres.NewCityGroupRepository(pool)
 	gw.photos = postgres.NewLifeRepository(pool)
+	gw.presence = infraredis.NewPresence(rdb, cfg.Realtime.PresenceTTL)
 	gw.moderation = &moderation.Checker{Source: moderationSource{postgres.NewModerationReader(pool)},
 		Cache: infraredis.NewModerationCache(rdb), TTL: cfg.Panel.ModerationCacheTTL}
 	gw.switches = &switches.Reader{Source: switchSource{postgres.NewSwitchOps(pool)},
@@ -522,6 +523,10 @@ type gateway struct {
 
 	// group is what playing in Telegram groups needs; see groups.go.
 	group groupState
+
+	// presence records that a player is active (Redis, expires by itself).
+	// Nil records nothing.
+	presence presenceBeater
 
 	// moderation drops the commands of a muted (in groups) or banned player
 	// (moderation.go). Nil lets every command through.
@@ -858,6 +863,9 @@ func (g *gateway) handleUpdate(ctx context.Context, bot application.Bot, update 
 		return
 	}
 	meta = identity.WithPlayer(meta, player)
+	// Any command proves the player is here: presence (docs/adr/0030
+	// section 3.1). Best effort, never in the way of the command.
+	g.beat(ctx, meta.PlayerID, log)
 	meta = g.withReplyTarget(ctx, meta, log)
 	// "/pay 5000" as a reply in a group pays the person replied to.
 	payload = groups.AimAtReply(command, payload, meta.ReplyToPlayerID)
@@ -1177,4 +1185,19 @@ type playerStore = firstcontact.Store
 
 func withMeta(ctx context.Context, meta envelope.Metadata) context.Context {
 	return firstcontact.WithMeta(ctx, meta)
+}
+
+// presenceBeater is the one write presence needs (infrastructure/redis.Presence).
+type presenceBeater interface {
+	Beat(ctx context.Context, playerID string, at time.Time) error
+}
+
+// beat records the player as active; a failure is logged at debug and ignored.
+func (g *gateway) beat(ctx context.Context, playerID string, log *slog.Logger) {
+	if g.presence == nil || playerID == "" {
+		return
+	}
+	if err := g.presence.Beat(ctx, playerID, time.Now()); err != nil {
+		log.Debug("cannot record presence", slog.String("error", err.Error()))
+	}
 }

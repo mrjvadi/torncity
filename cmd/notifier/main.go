@@ -37,6 +37,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/infrastructure/centrifugo"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
+	infraredis "github.com/mrjvadi/torncity/internal/infrastructure/redis"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -84,8 +85,12 @@ func main() {
 // env is the bootstrap: what must be known before the configuration file can
 // be read (ADR 0002).
 type env struct {
-	databaseURL       string
-	natsURL           string
+	databaseURL string
+	natsURL     string
+	// redisURL is optional: with it the notifier stamps the settlement
+	// channel's versions and merges the village news (Redis holds both);
+	// without it neither is done and everything else works as before.
+	redisURL          string
 	logLevel          string
 	localesDir        string
 	configPath        string
@@ -96,6 +101,7 @@ func loadEnv() (env, error) {
 	e := env{
 		databaseURL:       os.Getenv("DATABASE_URL"),
 		natsURL:           os.Getenv("NATS_URL"),
+		redisURL:          os.Getenv("REDIS_URL"),
 		logLevel:          os.Getenv("LOG_LEVEL"),
 		localesDir:        os.Getenv("TORN_LOCALES_DIR"),
 		configPath:        os.Getenv("TORN_CONFIG"),
@@ -226,14 +232,37 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		logger.Info("CENTRIFUGO_API_KEY is not set; notices go to Telegram only")
 	}
 
+	// The settlement channel's versions and the village news queue live in
+	// Redis, shared by every notifier replica.
+	var (
+		versions notification.SettlementVersions
+		news     notification.NewsQueue
+	)
+	if e.redisURL != "" {
+		rdb, err := infraredis.New(ctx, e.redisURL)
+		if err != nil {
+			return err
+		}
+		defer func() { _ = rdb.Close() }()
+		if realtime != nil {
+			versions = infraredis.NewSettlementVersions(rdb, cfg.Realtime.SettlementEventTTL)
+		}
+		news = infraredis.NewNewsQueue(rdb, cfg.Realtime.SettlementEventTTL)
+	} else {
+		logger.Info("REDIS_URL is not set; no settlement channel versions and no village news")
+	}
+
 	worker, err := notification.New(notification.Config{
-		Logger:        logger,
-		Msgs:          i18n.NewStore(catalog),
-		Players:       players,
-		Links:         players,
-		Inbox:         postgres.NewInboxStore(pool),
-		Sender:        natsSender{conn: conn.Raw()},
-		Deps:          notification.Deps{Cities: postgres.NewCityRepository(pool)},
+		Logger:  logger,
+		Msgs:    i18n.NewStore(catalog),
+		Players: players,
+		Links:   players,
+		Inbox:   postgres.NewInboxStore(pool),
+		Sender:  natsSender{conn: conn.Raw()},
+		Deps: notification.Deps{
+			Cities:          postgres.NewCityRepository(pool),
+			LiteracyStepBPS: cfg.Announce.VillageLiteracyStep * 100,
+		},
 		SendBudget:    tuning.SendBudget,
 		ReceiptMargin: tuning.ReceiptMargin,
 		MaxAge:        tuning.MaxAge,
@@ -242,10 +271,14 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		AnnounceWindow: cfg.Announce.Window,
 		AnnounceMax:    cfg.Announce.MaxPerWindow,
 
-		Realtime:          realtime,
-		RealtimeLanguages: languages,
-		Vitals:            vitals,
-		VitalsMinInterval: cfg.Notifications.VitalsMinInterval,
+		Realtime:           realtime,
+		RealtimeLanguages:  languages,
+		SettlementVersions: versions,
+		News:               news,
+		NewsMergeWindow:    cfg.Announce.VillageMergeWindow,
+		NewsMinGap:         cfg.Announce.VillageMinGap,
+		Vitals:             vitals,
+		VitalsMinInterval:  cfg.Notifications.VitalsMinInterval,
 
 		PlayerInbox:   playerInbox,
 		DeliveryModes: deliveryModes,
@@ -281,7 +314,11 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// scheduler package's own timers do for the same reason.
 	var timers sync.WaitGroup
 	stopTimers := make(chan struct{})
-	timers.Add(2)
+	timers.Add(3)
+	go func() {
+		defer timers.Done()
+		runTicker(stopTimers, cfg.Announce.VillageFlushInterval, func() { worker.FlushVillageNews(ctx) })
+	}()
 	go func() {
 		defer timers.Done()
 		runTicker(stopTimers, cfg.Notifications.ReminderCheckInterval, func() {

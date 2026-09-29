@@ -56,6 +56,12 @@ type Notice struct {
 	// private chat instead, never to the room; an announcement is meant for
 	// the room and is posted there as it stands.
 	Announcement bool `json:"announcement,omitempty"`
+
+	// Keyboard keeps an announcement's buttons. By default the gateway
+	// strips them: a public line has no owner to press them. The village
+	// news (village_news.go) is the exception, a line whose button opens the
+	// village screen it is about for anybody in the group.
+	Keyboard bool `json:"keyboard,omitempty"`
 }
 
 // Outcome is what became of one notice.

@@ -208,6 +208,7 @@ type announceSettings struct {
 	VillageMergeWindow   *string `yaml:"village_merge_window"`
 	VillageMinGap        *string `yaml:"village_min_gap"`
 	VillageFlushInterval *string `yaml:"village_flush_interval"`
+	VillageLiteracyStep  *int    `yaml:"village_literacy_step_percent"`
 }
 
 type notificationsSettings struct {
@@ -1383,6 +1384,9 @@ var coreSettings = []setting{
 	durationSetting("announce", "village_min_gap",
 		func(c *Config) *time.Duration { return &c.Announce.VillageMinGap },
 		func(f *fileConfig) *string { return f.Announce.VillageMinGap }),
+	limitSetting("announce", "village_literacy_step_percent",
+		func(c *Config) *int { return &c.Announce.VillageLiteracyStep },
+		func(f *fileConfig) *int { return f.Announce.VillageLiteracyStep }),
 	durationSetting("announce", "village_flush_interval",
 		func(c *Config) *time.Duration { return &c.Announce.VillageFlushInterval },
 		func(f *fileConfig) *string { return f.Announce.VillageFlushInterval }),

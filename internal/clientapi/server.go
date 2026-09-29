@@ -55,6 +55,13 @@ type ServerConfig struct {
 	Villages *VillageService
 	Limits   Limiter
 	Realtime RealtimeTokens
+	// Presence, Versions and PresenceTTL are ADR 0030's R1/R2: who is online
+	// and where, the settlement player list, and the settlement channel's
+	// version. All three are optional; without Presence the endpoints answer
+	// not found and no settlement channel is put on a token.
+	Presence    PresenceAPI
+	Versions    SettlementVersions
+	PresenceTTL time.Duration
 	// Msgs words the few refusals a player may be shown (group_only).
 	Msgs screens.Translator
 
@@ -106,6 +113,9 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/v1/settlements/{id}/layout", s.authed(s.settlementLayout))
 	mux.HandleFunc("GET /api/v1/realtime/token", s.authed(s.realtimeToken))
 	mux.HandleFunc("GET /api/v1/realtime/subscribe", s.authed(s.realtimeSubscribe))
+	mux.HandleFunc("POST /api/v1/realtime/heartbeat", s.authed(s.heartbeat))
+	mux.HandleFunc("GET /api/v1/players/{id}/status", s.authed(s.playerStatus))
+	mux.HandleFunc("GET /api/v1/settlements/{id}/players", s.authed(s.settlementPlayers))
 	return s.cors(mux)
 }
 
@@ -197,6 +207,8 @@ func (s *Server) authed(next func(http.ResponseWriter, *http.Request, Principal)
 			s.fail(w, r, "", err)
 			return
 		}
+		// Any authenticated call proves the player is here (ADR 0030 3.1).
+		s.beat(r.Context(), pr.PlayerID)
 		next(w, r, pr)
 	}
 }
@@ -316,7 +328,7 @@ func (s *Server) realtimeToken(w http.ResponseWriter, r *http.Request, pr Princi
 		s.fail(w, r, pr.Lang, errRealtimeOff)
 		return
 	}
-	channels := []string{centrifugo.PlayerChannel(pr.PlayerID)}
+	channels := s.realtimeChannels(r.Context(), pr.PlayerID)
 	tok, exp, err := s.cfg.Realtime.Connection(pr.PlayerID, channels, s.cfg.Now())
 	if err != nil {
 		s.fail(w, r, pr.Lang, err)
@@ -326,19 +338,31 @@ func (s *Server) realtimeToken(w http.ResponseWriter, r *http.Request, pr Princi
 }
 
 // realtimeSubscribe is a subscription token for a public city channel, and
-// only for the city the player is in.
+// only for the city the player is in, or for the channel of a settlement
+// the player lives in or stands in.
 func (s *Server) realtimeSubscribe(w http.ResponseWriter, r *http.Request, pr Principal) {
 	if s.cfg.Realtime == nil || !s.cfg.Realtime.Enabled() {
 		s.fail(w, r, pr.Lang, errRealtimeOff)
 		return
 	}
 	channel := r.URL.Query().Get("channel")
-	code, err := s.cfg.World.CityCode(r.Context(), pr.PlayerID)
-	if err != nil {
-		s.fail(w, r, pr.Lang, err)
-		return
+	allowed := false
+	if strings.HasPrefix(channel, centrifugo.SettlementNamespace+":") {
+		ok, err := s.mayJoinSettlement(r.Context(), pr.PlayerID, channel)
+		if err != nil {
+			s.fail(w, r, pr.Lang, err)
+			return
+		}
+		allowed = ok
+	} else {
+		code, err := s.cfg.World.CityCode(r.Context(), pr.PlayerID)
+		if err != nil {
+			s.fail(w, r, pr.Lang, err)
+			return
+		}
+		allowed = code != "" && channel == centrifugo.CityChannel(code)
 	}
-	if code == "" || channel != centrifugo.CityChannel(code) {
+	if !allowed {
 		s.fail(w, r, pr.Lang, errForbiddenChannel)
 		return
 	}
@@ -420,6 +444,8 @@ func classify(err error) (int, string) {
 		return http.StatusBadRequest, "unknown_command"
 	case errors.Is(err, ErrGroupOnly):
 		return http.StatusForbidden, "group_only"
+	case errors.Is(err, application.ErrNotInSettlement):
+		return http.StatusForbidden, "not_in_settlement"
 	case errors.Is(err, ErrBanned):
 		return http.StatusForbidden, "banned"
 	case errors.Is(err, errForbiddenChannel):

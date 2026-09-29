@@ -461,7 +461,7 @@ func (h *PropertyHandler) Purchase(ctx context.Context, meta envelope.Metadata, 
 		}
 		bought = stored.No
 		if t.Home {
-			if err := h.settleIn(ctx, tx, p.ID, city.ID, now); err != nil {
+			if err := h.settleIn(ctx, tx, meta, p.ID, city.ID, now); err != nil {
 				return err
 			}
 		}
@@ -480,12 +480,20 @@ func (h *PropertyHandler) Purchase(ctx context.Context, meta envelope.Metadata, 
 
 // settleIn makes a city the player's residence, from now, unless it already
 // is.
-func (h *PropertyHandler) settleIn(ctx context.Context, tx application.Tx, playerID, cityID string, now time.Time) error {
+//
+// A change of residence is a fact the settlements on both ends publish on
+// their channels (docs/adr/0030 R2: a member joined, a member left).
+func (h *PropertyHandler) settleIn(ctx context.Context, tx application.Tx, meta envelope.Metadata, playerID, cityID string, now time.Time) error {
 	home, err := tx.Employment().ResidenceCityID(ctx, playerID)
 	if err != nil || home == cityID {
 		return err
 	}
-	return tx.Property().SetResidence(ctx, playerID, cityID, now)
+	if err := tx.Property().SetResidence(ctx, playerID, cityID, now); err != nil {
+		return err
+	}
+	return appendDomainEvent(ctx, tx, meta, "residence", "changed", playerID, map[string]any{
+		"player_id": playerID, "from_city_id": home, "to_city_id": cityID,
+	})
 }
 
 // ---------------------------------------------------------------------------
@@ -1067,7 +1075,7 @@ func (h *PropertyHandler) Buy(ctx context.Context, meta envelope.Metadata, req P
 		bought = pr.No
 		t, _ := snap.PropertyType(pr.TypeCode)
 		if t.Home {
-			if err := h.settleIn(ctx, tx, p.ID, pr.CityID, now); err != nil {
+			if err := h.settleIn(ctx, tx, meta, p.ID, pr.CityID, now); err != nil {
 				return err
 			}
 		}
@@ -1164,7 +1172,7 @@ func (h *PropertyHandler) Rent(ctx context.Context, meta envelope.Metadata, req 
 		}
 		t, _ := snap.PropertyType(pr.TypeCode)
 		if t.Home {
-			if err := h.settleIn(ctx, tx, p.ID, pr.CityID, now); err != nil {
+			if err := h.settleIn(ctx, tx, meta, p.ID, pr.CityID, now); err != nil {
 				return err
 			}
 		}

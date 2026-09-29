@@ -126,7 +126,7 @@ func (h *VillageHandler) Taught(ctx context.Context, meta envelope.Metadata, req
 			return nil // no visible change (no school yet); nothing worth announcing
 		}
 		return appendVillageEvent(ctx, tx, meta, "literacy_advanced", in.SettlementID, map[string]any{
-			"settlement_id": in.SettlementID, "literacy_share_bps": next,
+			"settlement_id": in.SettlementID, "literacy_share_bps": next, "previous_bps": shareBPS,
 		})
 	})
 }

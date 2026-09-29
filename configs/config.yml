@@ -714,6 +714,9 @@ announce:
   village_merge_window: 20s
   village_min_gap: 90s
   village_flush_interval: 5s
+  # Literacy grows by a step every few minutes while a school stands; it is
+  # only news each time it climbs this many percentage points.
+  village_literacy_step_percent: 10
 
 # The inbox badge (migrations/0037_notification_inbox): most notices are
 # stored and counted on one Telegram message instead of arriving as their

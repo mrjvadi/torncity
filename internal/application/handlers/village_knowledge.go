@@ -4,6 +4,7 @@ import (
 	"context"
 	stderrors "errors"
 	"strings"
+	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
@@ -122,12 +123,24 @@ func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, r
 			}
 			return err
 		}
-		return nil
+		return appendVillageEvent(ctx, tx, meta, "research_started", s.CityID, map[string]any{
+			"settlement_id": s.CityID, "research_id": id, "code": code, "name": d.Name, "started_by": p.ID,
+			"finish_at": finish.UTC().Format(time.RFC3339),
+		})
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
 	return h.KnowledgeList(ctx, meta)
+}
+
+// knowledgeName is an item's authored name for an event payload, empty for
+// a code the active content no longer declares.
+func (h *VillageHandler) knowledgeName(code string) string {
+	if d, ok := h.content.Current().SettlementKnowledgeDef(code); ok {
+		return d.Name
+	}
+	return ""
 }
 
 // Buy handles settlement.knowledge.buy: buying a knowledge item from
@@ -196,7 +209,7 @@ func (h *VillageHandler) Buy(ctx context.Context, meta envelope.Metadata, req Vi
 			return err
 		}
 		return appendVillageEvent(ctx, tx, meta, "knowledge_bought", s.CityID, map[string]any{
-			"settlement_id": s.CityID, "code": code, "price": price, "bought_by": p.ID,
+			"settlement_id": s.CityID, "code": code, "name": d.Name, "price": price, "bought_by": p.ID,
 		})
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
@@ -237,7 +250,7 @@ func (h *VillageHandler) Researched(ctx context.Context, meta envelope.Metadata,
 			return err
 		}
 		return appendVillageEvent(ctx, tx, meta, "knowledge_researched", rs.SettlementID, map[string]any{
-			"settlement_id": rs.SettlementID, "code": rs.Code,
+			"settlement_id": rs.SettlementID, "code": rs.Code, "name": h.knowledgeName(rs.Code),
 		})
 	})
 }

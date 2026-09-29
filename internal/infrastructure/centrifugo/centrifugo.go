@@ -9,6 +9,9 @@
 //	                    client can never ask for it
 //	city:<city_code>    a city's public line; a subscription token is
 //	                    required and is issued only for the player's city
+//	settlement:<id>     one settlement's full detail; the connection token
+//	                    subscribes its residents and whoever stands there
+//	                    server-side (the "channels" claim)
 //	panel:...           the operators' panel (internal/panel); reserved
 //
 // Protocol per https://centrifugal.dev/docs/server/server_api (publish:
@@ -35,7 +38,15 @@ import (
 const (
 	PlayerNamespace = "player"
 	CityNamespace   = "city"
+	// SettlementNamespace is a settlement's channel: full detail of what
+	// happens in one village, for its residents and whoever stands there
+	// (docs/adr/0030-realtime-interest-and-presence.md sections 1.1, 1.2).
+	SettlementNamespace = "settlement"
 )
+
+// SettlementChannel is a settlement's channel, keyed on its id (the id of
+// its cities row).
+func SettlementChannel(settlementID string) string { return SettlementNamespace + ":" + settlementID }
 
 // PlayerChannel is a player's personal channel.
 func PlayerChannel(playerID string) string { return PlayerNamespace + ":" + playerID }

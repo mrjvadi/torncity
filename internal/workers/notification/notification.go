@@ -137,6 +137,16 @@ type Config struct {
 	Realtime          Realtime
 	RealtimeLanguages []string
 
+	// SettlementVersions stamps the publications of the settlement channel
+	// (settlement.go); nil publishes none. News is the queue behind the
+	// village news (village_news.go); nil posts none. NewsMergeWindow and
+	// NewsMinGap are announce.village_merge_window and
+	// announce.village_min_gap.
+	SettlementVersions SettlementVersions
+	News               NewsQueue
+	NewsMergeWindow    time.Duration
+	NewsMinGap         time.Duration
+
 	// Vitals, when set (and Realtime is too), also publishes a player's HUD
 	// snapshot — cash, bank, energy, health, xp, level, unread — to their
 	// realtime channel on every notice, at most once every
@@ -180,6 +190,9 @@ func New(cfg Config) (*Worker, error) {
 	if cfg.Now == nil {
 		cfg.Now = time.Now
 	}
+	if cfg.Deps.Players == nil {
+		cfg.Deps.Players = cfg.Players
+	}
 	if cfg.VitalsMinInterval <= 0 {
 		cfg.VitalsMinInterval = 2 * time.Second
 	}
@@ -216,6 +229,12 @@ func (w *Worker) Handle(ctx context.Context, route Route, env *envelope.Envelope
 
 	if route.Announce != nil {
 		return w.announce(ctx, route, env, now, log)
+	}
+	if route.Settlement != nil {
+		return w.publishSettlement(ctx, route, env, now, log)
+	}
+	if route.News != nil {
+		return w.queueNews(ctx, route, env, now, log)
 	}
 
 	// The message id is the outbox event's (Metadata.MessageID), so each of

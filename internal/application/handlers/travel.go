@@ -1165,8 +1165,9 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 		ev, err := events.New("travel.completed", "travel", t.ID, map[string]any{
 			"travel_id":  t.ID,
 			"player_id":  playerID,
-			"to_city_id": t.ToCityID,
-			"mode":       t.Mode,
+			"from_city_id": t.FromCityID,
+			"to_city_id":   t.ToCityID,
+			"mode":         t.Mode,
 			"xp":         h.arrivalXP,
 			"levels":     levelNumbers(ups),
 		})

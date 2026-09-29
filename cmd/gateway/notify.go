@@ -107,7 +107,9 @@ func (g *gateway) deliverNotice(data []byte) notification.Receipt {
 	if notice.Announcement {
 		// A public line for a group: posted in the room as it stands.
 		priority = laneAnnounce
-		resp.Keyboard = nil
+		if !notice.Keyboard {
+			resp.Keyboard = nil
+		}
 	}
 	messageID, err := g.sendNoticeViaFleet(ctx, botKey, meta, &resp, priority, log)
 	receipt := noticeReceipt(ctx, err)

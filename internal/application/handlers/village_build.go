@@ -317,8 +317,8 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		return appendVillageEvent(ctx, tx, meta, "build_started", s.CityID, map[string]any{
-			"settlement_id": s.CityID, "building_id": id, "type_code": code, "lot_x": x, "lot_y": y,
-			"rotated": rotated && d.Def().CanRotate(),
+			"settlement_id": s.CityID, "building_id": id, "type_code": code, "name": d.Name, "lot_x": x, "lot_y": y,
+			"rotated": rotated && d.Def().CanRotate(), "finish_at": finish.UTC().Format(time.RFC3339),
 		})
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
@@ -383,7 +383,7 @@ func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		return appendVillageEvent(ctx, tx, meta, "building_demolished", s.CityID, map[string]any{
-			"settlement_id": s.CityID, "building_id": b.ID, "type_code": b.TypeCode,
+			"settlement_id": s.CityID, "building_id": b.ID, "type_code": b.TypeCode, "name": h.buildingName(b.TypeCode),
 		})
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
@@ -496,7 +496,16 @@ func (h *VillageHandler) Built(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		return appendVillageEvent(ctx, tx, meta, "built", b.SettlementID, map[string]any{
-			"settlement_id": b.SettlementID, "building_id": b.ID, "type_code": b.TypeCode,
+			"settlement_id": b.SettlementID, "building_id": b.ID, "type_code": b.TypeCode, "name": h.buildingName(b.TypeCode),
 		})
 	})
+}
+
+// buildingName is a building type's authored name for an event payload,
+// empty for a code the active content no longer declares.
+func (h *VillageHandler) buildingName(code string) string {
+	if d, ok := h.content.Current().SettlementBuildingDef(code); ok {
+		return d.Name
+	}
+	return ""
 }
