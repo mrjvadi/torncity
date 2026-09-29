@@ -3,6 +3,7 @@ package worldgen
 import (
 	"fmt"
 	"math"
+	"sync"
 )
 
 // GeneratorVersion identifies THIS algorithm. It is stored alongside every
@@ -58,8 +59,12 @@ type World struct {
 	MountainRanges []NamedRegion
 	Rivers         []NamedRiver
 
-	mesh  *Mesh
-	index *nearestIndex
+	mesh *Mesh
+	// index answers nearest-cell queries. It is built on first use and its
+	// scratch buffers are shared, so indexMu serialises both: without it two
+	// requests sampling the same World at once (a server's handlers) race.
+	indexMu sync.Mutex
+	index   *nearestIndex
 
 	// chunkDetailNoise/chunkStreamNoise are the two local, chunk-scale noise
 	// fields GenerateChunk (chunk.go) samples on top of the coarse fields
@@ -204,6 +209,8 @@ func (w *World) BiomeCode(cellID int32) string {
 // already-built World (the preview renderer's pixel-to-cell mapping today,
 // perhaps a settlement-placement query later).
 func (w *World) NearestCell(latDeg, lonDeg float64) int32 {
+	w.indexMu.Lock()
+	defer w.indexMu.Unlock()
 	if w.index == nil {
 		w.index = newNearestIndex(w.mesh.Points)
 	}
@@ -222,6 +229,8 @@ func (w *World) NearestCell(latDeg, lonDeg float64) int32 {
 // renderer's inverse-distance-weighted shading, so a relief map looks like
 // smooth terrain instead of one flat-shaded polygon per cell.
 func (w *World) NearestCells(latDeg, lonDeg float64, k int) ([]int32, []float64) {
+	w.indexMu.Lock()
+	defer w.indexMu.Unlock()
 	if w.index == nil {
 		w.index = newNearestIndex(w.mesh.Points)
 	}

@@ -117,7 +117,9 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 	}
 	for _, sb := range snap.SettlementBuildingDefs() {
 		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, Footprint: []int{sb.Footprint[0], sb.Footprint[1]},
-			Name: names(func(c screens.Context) string { return c.SettlementBuildingName(screens.Named{Code: sb.Code, Name: sb.Name}) })}, true)
+			Name: names(func(c screens.Context) string {
+				return c.SettlementBuildingName(screens.Named{Code: sb.Code, Name: sb.Name})
+			})}, true)
 	}
 	return out
 }

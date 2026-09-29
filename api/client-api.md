@@ -1,5 +1,13 @@
 # Game client API — v1
 
+**Contract version 1.1.** Every 1.x is compatible with 1.0: a client written
+for 1.0 keeps working, and a 1.x client reads the new fields as absent on an
+older server. 1.1 adds the world and the village (section 4.3): the
+`settlement` object of the bootstrap, `GET /world`, `GET /world/chunks/…`,
+`GET /settlements/{id}/layout`, the village commands from a client, and the
+error codes `bad_chunk`, `world_not_created` and `no_settlement`. Nothing
+that 1.0 returned has changed.
+
 The contract between the game and a game client (a native build or the
 Telegram Mini App build). Served by `cmd/clientapi` (package
 `internal/clientapi`); realtime by Centrifugo v6 (`deployments/centrifugo`).
@@ -21,7 +29,7 @@ structured view behind it (for key screens), and its buttons as actions.
 1. [Signing in](#1-signing-in)
 2. [Commands](#2-commands)
 3. [Views](#3-views)
-4. [Bootstrap](#4-bootstrap)
+4. [Bootstrap](#4-bootstrap) (4.3: the world and the village)
 5. [Realtime](#5-realtime)
 6. [Error codes](#6-error-codes)
 7. [Bot commands, configuration and secrets](#7-bot-commands-configuration-and-secrets)
@@ -340,12 +348,20 @@ Load once after signing in (and after a content change).
   "cities": [{"code": "support", "name": "ساپورت"}],
   "places": [{"code": "old_town", "name": "شهر قدیم"}, {"code": "harbour", "name": "بندر"}],
   "server_time": "2026-09-26T10:00:00Z",
-  "realtime": true
+  "realtime": true,
+  "settlement": {
+    "id": "4d1c…", "code": "v-k3x9", "name": "آمل", "tier": "village",
+    "world_cell": 18211, "centre": {"lat": 36.4, "lon": 52.3, "chunk": {"face": 4, "lod": 10, "x": 523, "y": 512}},
+    "is_head": true, "resident": false, "grid_lots": 5,
+    "layout_path": "/api/v1/settlements/4d1c…/layout"
+  }
 }
 ```
 
 Names are in the player's language. `places` are the places of the player's
-current city. `realtime` says whether section 5 is available.
+current city. `realtime` says whether section 5 is available. `settlement`
+(1.1) is the player's own settlement and is absent when they belong to none;
+see 4.3.
 
 ---
 
@@ -398,6 +414,212 @@ login, and the realtime channel of that city is `city:support`. Money is in
 Kinds: `place`, `company`, `decor`. `version` changes whenever a plot does.
 A company plot's tap sends `company.show {id}`, which the API serves as
 `company.view {code}`.
+
+### 4.3 The world and the village (contract 1.1)
+
+The generated planet (docs/adr/0028) and a group's village on it. The old
+city map above stays for `support`, the neutral city.
+
+**Who may ask.** All of these need a signed-in player. Terrain is public
+knowledge in the game, but a chunk is generated on demand, so anonymous
+access would let anyone make a replica compute, and the per-player rate
+limit needs a player to count against. The responses are still cacheable by
+anyone (`Cache-Control: public` on chunks), so a CDN in front may serve a
+chunk it already has.
+
+#### The world — `GET /api/v1/world`
+
+The active world's numbers, so a client can compute chunk addresses. `404
+world_not_created` until an operator has run `admin world create`.
+`ETag` + `Cache-Control: no-cache`: revalidate, the answer is a few hundred
+bytes (about 1.3 KB with the biome table).
+
+```json
+{
+  "id": "0a0a…", "seed": "20280928", "generator_version": 1, "params_hash": "3fa9…",
+  "chunk_codec_version": 1,
+  "chunk": {"faces": 6, "tile_edge": 32, "min_lod": 0, "max_lod": 10, "header_bytes": 33, "tile_bytes": 5},
+  "tile_m": 305.4, "lot_m": 30.54, "lots_per_tile": 10, "planet_radius_km": 6371,
+  "biomes": [{"index": 0, "code": "ocean", "water": true, "color": "1a4d73"},
+             {"index": 6, "code": "temperate_forest", "color": "4c7a3d"}],
+  "chunk_path": "/api/v1/world/chunks/{face}/{lod}/{x}/{y}",
+  "created_at": "2026-09-30T12:00:00Z"
+}
+```
+
+`seed` is a decimal string (a 64-bit number). The planet is a cube-sphere:
+6 faces (OpenGL cubemap order: +X, -X, +Y, -Y, +Z, -Z), each cut by a
+quadtree. At `lod` L a face has `2^L` chunks along each edge, `x` and `y`
+in `[0, 2^L)`; LOD 0 is one chunk per face (the zoomed-out map),
+`max_lod` (10) the gameplay resolution, `tile_edge` (32) × 32 tiles of
+`tile_m` metres (each coarser LOD doubles the tile). A settlement lot is
+`lot_m` metres, `lots_per_tile` (10) to a base tile's edge. `biome` in a
+chunk is an index into `biomes`.
+
+#### A chunk — `GET /api/v1/world/chunks/{face}/{lod}/{x}/{y}`
+
+The binary chunk of the active world (`Content-Type:
+application/vnd.torncity.chunk`), about 5 KB raw and 1.5–1.8 KB gzipped.
+A chunk is a pure function of (world, generator version, address), so it is
+**immutable**:
+
+- `ETag: "<world id>.g<generator version>.c<codec version>.<face>.<lod>.<x>.<y>"`
+  (strong; `-gz` is added before the closing quote on the gzip variant), and
+  `Cache-Control: public, max-age=31536000, immutable`. `If-None-Match`
+  answers `304` without generating anything.
+- `Accept-Encoding: gzip` is honoured (`Content-Encoding: gzip`, `Vary:
+  Accept-Encoding`). Brotli is left to the reverse proxy.
+- Rate limited per player (`client.chunks_per_minute`, 1200).
+- `400 bad_chunk`: face outside 0–5, lod outside 0–`max_lod`, or x/y outside
+  `[0, 2^lod)`, or a segment that is not a plain decimal number.
+  `404 world_not_created` when there is no world.
+
+**Byte layout**, little-endian throughout:
+
+| offset | size | field |
+|---|---|---|
+| 0 | 4 | magic, the bytes `4B 43 4E 57` |
+| 4 | 1 | codec version (`chunk_codec_version`, 1) |
+| 5 | 4 | generator version, `uint32` |
+| 9 | 8 | world seed, `uint64` |
+| 17 | 1 | face, `int8` |
+| 18 | 1 | lod, `int8` |
+| 19 | 4 | x, `int32` |
+| 23 | 4 | y, `int32` |
+| 27 | 2 | tile edge, `uint16` (32) |
+| 29 | 4 | tile count, `uint32` (= edge²) |
+| 33 | 5 × count | tiles, row-major (`index = j × edge + i`, `i` along x, `j` along y): elevation `int16`, biome `uint8`, flags `uint8`, deposit `uint8` |
+| … | 2 | deposit count, `uint16` |
+| … | … | per deposit: `uint8 n`, `n` bytes of deposit id, `uint8 m`, `m` bytes of resource code, `uint8` tile x, `uint8` tile y |
+
+Tile `flags`: bit 0 ocean, bit 1 stream, bit 2 lake. `deposit` is `0`, or
+1 + the index into the chunk's deposit list. Elevation is in the
+generator's height unit (sea level is not 0; read it against the ocean
+tiles), roughly metres. Coarser LODs carry no local detail and no deposits.
+
+#### Your settlement — `bootstrap.settlement`
+
+The settlement the player heads (`is_head`) or lives in (`resident`), with
+`centre` (latitude/longitude of the middle of its lot grid, and the base-LOD
+chunk holding it) and the side of the grid, `grid_lots` (5 for a village, 9
+for a town, 15 for a city). Only the head may place, cancel or demolish
+buildings. Absent when the player belongs to no settlement. Re-read the
+bootstrap after a group founds its village.
+
+#### The layout — `GET /api/v1/settlements/{id}/layout`
+
+The lot grid with its terrain, and the buildings on it. The terrain is
+`settlement.SampleGridDetail`, the very sampling the placement rules check a
+building against, so what the layout marks `buildable` is what the server
+accepts. `404 not_found` for an unknown id.
+
+```json
+{
+  "version": "a5bcccc66911781d", "detail": "full",
+  "viewer": {"member": true, "can_place": true},
+  "settlement": {"id": "4d1c…", "code": "v-k3x9", "name": "آمل", "tier": "village", "world_cell": 18211,
+                 "centre": {"lat": 36.4, "lon": 52.3, "chunk": {"face": 4, "lod": 10, "x": 523, "y": 512}}},
+  "grid": {"lots": 5, "lot_m": 30.54, "origin": {"lat": 36.3989, "lon": 52.2989}, "slope_limit": 15},
+  "lots": [[{"height_m": 1786.21, "slope_m": 0.5, "buildable": true, "biome": "temperate_forest", "tags": ["temperate_forest"]},
+            {"height_m": 1783.9, "slope_m": 4.1, "buildable": false, "biome": "ocean", "water": "ocean", "tags": ["ocean", "coastal_lot"]}]],
+  "buildings": [
+    {"id": "9c1e…", "type": "civic_hall", "x": 1, "y": 1, "w": 2, "h": 2, "rotated": false, "state": "built", "visual_seed": 2891077541},
+    {"id": "0b7d…", "type": "militia_camp", "x": 3, "y": 0, "w": 1, "h": 2, "rotated": true, "state": "under_construction",
+     "started_at": "2026-09-30T11:00:00Z", "finish_at": "2026-09-30T11:45:00Z", "visual_seed": 118034}
+  ],
+  "roads": [{"x": 0, "y": 0}]
+}
+```
+
+- **Geometry.** `lots[y][x]` is lot `(x, y)`; `x` grows east and `y` north,
+  each a `lot_m` step on the ground; `grid.origin` is the lat/lon of the
+  centre of lot `(0, 0)`. A lot is `slope_limit` steep when a neighbour differs
+  by more than that (`tags` then holds `sloped_lot`). `water` is `ocean`,
+  `lake`, `river` or `stream`, absent on dry ground. `tags` are the terrain
+  tags the placement rules use (`river_lot`, `coastal_lot`, `sloped_lot`,
+  `ore_deposit`, the biome). `buildable` is the terrain alone: occupancy is
+  in `buildings`.
+- **Buildings.** `x`, `y` is the top-left lot; `w`, `h` the footprint
+  **after** the turn (`rotated` says a quarter turn was chosen at placement:
+  a 2×1 camp turned is 1×2; the turn is permanent like the lot). `type` is a
+  code of the `settlement_building` table of the content catalogue (4.1: name
+  per language, `footprint`, `category` = role). `visual_seed` seeds the
+  client's own look of the building; no model is ever shipped. `state`:
+  `planned` (paid, not started), `under_construction`, `built`, `damaged`
+  (`damage_bps` 1–9999), `ruin` (10000). Demolished and cancelled buildings
+  are not listed: their lot is free. No rule damages a building yet, so
+  today only `under_construction` and `built` occur.
+- **Roads** repeat, for a client that draws them apart, the `road` buildings
+  that stand.
+- **Who sees what** (ADR 0030 §2.1). A **member** (the head, or anyone who
+  holds an office in the village or lives in it) gets `detail: "full"`: every
+  building with its id, timers and damage. Anyone else gets `detail:
+  "coarse"`: the terrain, which is public, and only the buildings that stand
+  (`built`): no ids, timers, construction, damage or roads under
+  construction. Whether a foreign village is *in range* (the fog of war) is the
+  realtime channel's business (section 5); the layout does not check it.
+- **Polling.** `version` changes exactly when something a client draws
+  changes (a building placed, finished, cancelled, damaged, the tier). It
+  is also the `ETag` (`"<version>.<detail>"`), and the answer is `private,
+  no-cache`: send `If-None-Match` and get `304`. A build's progress is not in
+  the version: compute it from `started_at`, `finish_at` and the bootstrap's
+  `server_time`. Size: about 3 KB for a village (5×5), 20 KB for a city
+  (15×15). Rate limited per player (`client.layouts_per_minute`, 120).
+
+#### Building from a client
+
+The head builds with the same commands as the group, through `POST
+/api/v1/command`; the settlement is always the player's own, nothing names
+it. The same handler and the same rules run: there is no second copy. The
+village commands are open to a client even when `client.group_commands` is
+`refuse` (`client: true` in `configs/commands.yml`); founding a village still
+needs a group.
+
+| command | args | does |
+|---|---|---|
+| `settlement.build` | — | the build menu (`settlement_build_menu`) |
+| `settlement.build.lots` | `code`, `rotate`? (`1`) | `settlement_build_lots`: for every lot, `state` and `fits` for this building |
+| `settlement.build.place` | `code`, `x`, `y`, `rotated`? (bool), `confirm`? | without `confirm`: `settlement_build_confirm` (cost, materials, build time), nothing changes. With `confirm: "confirm"`: pays, draws the materials, starts the build, answers `settlement_construction_progress` |
+| `settlement.build.cancel` | `id` | calls off a building **under construction**; the spend is forfeited, the lot is free again |
+| `settlement.build.demolish` | `id` | removes a **finished** building; part of its cost returns to the treasury |
+| `settlement.build.progress` | — | what is going up |
+| `settlement.overview` | — | the village status |
+| `settlement.knowledge` | — | the knowledge list |
+| `settlement.knowledge.research` / `.buy` | `code` | starts a research / buys the item from Support |
+
+(`place` also takes the Telegram spelling `lot: "3-1"` / `"3-1-r"`.) Send an
+`idempotency_key` with every write, as in section 2. Rotating is a choice
+made at placement: `rotated: true` turns the footprint; ask `lots` with
+`rotate: 1` first to see which lots fit the turned building.
+
+A refused command is `200` with `ok: false`, `screen: "village_refusal"` and a
+coded error, which a client localises itself (`error.message` is the same
+sentence Telegram shows, in the player's language):
+
+```json
+{"ok": false, "screen": "village_refusal", "view": {"kind": "unbuildable", "back": ""},
+ "error": {"code": "village_unbuildable", "message": "🌊 روی این قطعه نمی‌توان ساخت."}, "actions": [...]}
+```
+
+| `error.code` | meaning |
+|---|---|
+| `village_no_settlement` | the player belongs to no settlement |
+| `village_not_office_holder` | not the head |
+| `village_unbuildable` | a lot of the footprint is water, a river or too steep |
+| `village_occupied` | a lot of the footprint holds a building |
+| `village_out_of_bounds` | the footprint leaves the grid |
+| `village_terrain` | the building needs terrain it does not stand on (coast, deposit, arable land) |
+| `village_prerequisite` | knowledge or a building of a role is missing |
+| `village_literacy` | literacy too low |
+| `village_concurrent_cap` | as many builds running as the tier allows |
+| `village_insufficient_funds` | the treasury cannot pay |
+| `village_materials` | the village stock lacks a material |
+| `village_not_found` | unknown building type, id or malformed lot |
+| `village_not_demolishable` / `village_not_cancellable` | wrong state for the action |
+| `village_busy`, `village_already_owned`, `village_not_available` | research / purchase refusals |
+
+A client learns the outcome of a placement by re-reading the layout (its
+`version` moves) until realtime carries it.
 
 ## 5. Realtime
 
@@ -486,7 +708,10 @@ delivery.
 | 403 | `group_only` | the command is played in a Telegram group (localized message) |
 | 403 | `banned` | an operator has banned this account; commands are refused until it is lifted |
 | 403 | `forbidden_channel` | not the player's city channel |
+| 400 | `bad_chunk` | (1.1) the chunk address names no chunk of this world |
 | 404 | `not_found` | |
+| 404 | `world_not_created` | (1.1) no world has been created yet (`admin world create`) |
+| 404 | `no_settlement` | (1.1) the village endpoints are not configured on this server |
 | 409 | `relink` | the device's bot is gone; link again |
 | 429 | `rate_limited` | too many sign-ins, link codes or commands |
 | 503 | `realtime_unavailable` | realtime is not configured |
@@ -495,7 +720,9 @@ delivery.
 
 A command the game **refuses** (not enough energy, travelling, not enough
 money…) is not an HTTP error: it is `200` with `screen: "error"` and the
-refusal in `text`, as in the bot.
+refusal in `text`, as in the bot. (1.1) A refused **village** command is `200`
+with `ok: false`, `screen: "village_refusal"` and an `error.code` of the form
+`village_<kind>` (4.3).
 
 ---
 
@@ -512,8 +739,12 @@ refusal in `text`, as in the bot.
 `client.*` (listen, trusted_proxies, access_ttl, refresh_ttl, link_code_ttl,
 link_codes_per_hour, sign_ins_per_minute, max_devices, command_timeout,
 commands_per_minute, max_body_bytes, telegram_auth_max_age,
-realtime_token_ttl, group_commands, mini_app_url) and `realtime.*` (api_url,
-publish_timeout).
+realtime_token_ttl, group_commands, mini_app_url, and from 1.1
+chunk_cache_entries, chunks_per_minute, layouts_per_minute,
+world_recheck_interval) and `realtime.*` (api_url, publish_timeout). The
+world endpoints regenerate the planet from the active world's seed, so
+`clientapi` reads `worldgen.*` and `configs/content` (`TORN_CONTENT_DIR`)
+like the game.
 
 **Secrets** (environment only, `.env`; never committed):
 
@@ -531,8 +762,10 @@ alias `tc-centrifugo`, admin UI off). On the server both join
 `antispam_default`; exposing them through the reverse proxy is a later step
 (route the API and `/connection/websocket`).
 
-**Migration**: `0033_client_devices` (tables `client_devices`,
-`client_refresh_tokens`).
+**Migrations**: `0033_client_devices` (tables `client_devices`,
+`client_refresh_tokens`); `0049_village_client` (1.1: a building's turn,
+finish time and damage, cancelling, and a demolished or cancelled building
+no longer holds its lot).
 
 ### Opening the Mini App from the bot (when its URL is public)
 

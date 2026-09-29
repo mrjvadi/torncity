@@ -121,21 +121,29 @@ type apiFixture struct {
 	srv *httptest.Server
 }
 
-func newAPIFixture(t *testing.T) *apiFixture {
+func newAPIFixture(t *testing.T) *apiFixture { return newAPIFixtureWith(t, nil) }
+
+// newAPIFixtureWith is newAPIFixture with the server's configuration adjusted
+// before it is built.
+func newAPIFixtureWith(t *testing.T, adjust func(*ServerConfig)) *apiFixture {
 	t.Helper()
 	af := newAuthFixture(t)
 	gen := &ids{n: 100}
 	bus := &fakeBus{resp: presenter.WithView(presenter.Edit(9, "Your bank", &presenter.Keyboard{Rows: [][]presenter.Button{
 		{{Text: "Deposit…", CallbackData: "ask:bank.deposit"}},
 	}}).MarkPrivate(), "bank", struct{ Cash int }{5})}
-	s := NewServer(ServerConfig{
+	cfg := ServerConfig{
 		Auth: af.auth,
 		Bridge: &Bridge{Bus: bus, Policy: loadPolicy(t), ActionMeta: loadActionMeta(t), Timeout: 200 * time.Millisecond, InstanceID: "clientapi-test",
 			NewID: gen.next, Now: af.clock.now},
 		World:  fakeWorld{city: "tehran"},
 		Limits: &memLimits{counts: map[string]int{}}, Realtime: centrifugo.NewTokens("rt-secret", 15*time.Minute),
 		SignInsPerMinute: 5, CommandsPerMinute: 100, MaxBodyBytes: 16384, Now: af.clock.now,
-	})
+	}
+	if adjust != nil {
+		adjust(&cfg)
+	}
+	s := NewServer(cfg)
 	srv := httptest.NewServer(s.Handler())
 	t.Cleanup(srv.Close)
 	return &apiFixture{authFixture: af, bus: bus, srv: srv}
