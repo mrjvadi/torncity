@@ -257,6 +257,14 @@ type settlementSettings struct {
 	SearchMaxCells     *int     `yaml:"search_max_cells"`
 	SearchMaxAttempts  *int     `yaml:"search_max_attempts"`
 	VillageGridLots    *int     `yaml:"village_grid_lots"`
+
+	TeachPeriod           *string `yaml:"teach_period"`
+	TeachRateBPS          *int64  `yaml:"teach_rate_bps"`
+	BaseSchoolCapacityBPS *int64  `yaml:"base_school_capacity_bps"`
+	ScarcityKBPS          *int64  `yaml:"scarcity_k_bps"`
+	ScarcityFloorBPS      *int64  `yaml:"scarcity_floor_bps"`
+	ScarcityCapBPS        *int64  `yaml:"scarcity_cap_bps"`
+	SellerBandBPS         *int64  `yaml:"seller_band_bps"`
 }
 
 type crimeSettings struct {
@@ -974,6 +982,27 @@ var coreSettings = []setting{
 	limitSetting("settlement", "village_grid_lots",
 		func(c *Config) *int { return &c.Settlement.VillageGridLots },
 		func(f *fileConfig) *int { return f.Settlement.VillageGridLots }),
+	durationSetting("settlement", "teach_period",
+		func(c *Config) *time.Duration { return &c.Settlement.TeachPeriod },
+		func(f *fileConfig) *string { return f.Settlement.TeachPeriod }),
+	moneySetting("settlement", "teach_rate_bps",
+		func(c *Config) *int64 { return &c.Settlement.TeachRateBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.TeachRateBPS }),
+	moneySetting("settlement", "base_school_capacity_bps",
+		func(c *Config) *int64 { return &c.Settlement.BaseSchoolCapacityBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.BaseSchoolCapacityBPS }),
+	moneySetting("settlement", "scarcity_k_bps",
+		func(c *Config) *int64 { return &c.Settlement.ScarcityKBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ScarcityKBPS }),
+	moneySetting("settlement", "scarcity_floor_bps",
+		func(c *Config) *int64 { return &c.Settlement.ScarcityFloorBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ScarcityFloorBPS }),
+	moneySetting("settlement", "scarcity_cap_bps",
+		func(c *Config) *int64 { return &c.Settlement.ScarcityCapBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ScarcityCapBPS }),
+	moneySetting("settlement", "seller_band_bps",
+		func(c *Config) *int64 { return &c.Settlement.SellerBandBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.SellerBandBPS }),
 
 	durationSetting("legislature", "vote_window",
 		func(c *Config) *time.Duration { return &c.Legislature.VoteWindow },

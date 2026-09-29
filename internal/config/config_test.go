@@ -521,6 +521,13 @@ settlement:
   search_max_cells: 2001
   search_max_attempts: 201
   village_grid_lots: 6
+  teach_period: 25h
+  teach_rate_bps: 1501
+  base_school_capacity_bps: 8001
+  scarcity_k_bps: 10001
+  scarcity_floor_bps: 3001
+  scarcity_cap_bps: 80001
+  seller_band_bps: 501
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -793,12 +800,19 @@ var envOverrides = map[string]string{
 	"TORN_WORLDGEN_CHUNK_STREAM_AMPLITUDE":          "62",
 	"TORN_WORLDGEN_CHUNK_DEPOSIT_TILES_PER_DEPOSIT": "7",
 
-	"TORN_SETTLEMENT_PROTECTION_WINDOW":     "170h",
-	"TORN_SETTLEMENT_MIN_SPAWN_DISTANCE_KM": "32",
-	"TORN_SETTLEMENT_THREAT_RADIUS_KM":      "152",
-	"TORN_SETTLEMENT_SEARCH_MAX_CELLS":      "2002",
-	"TORN_SETTLEMENT_SEARCH_MAX_ATTEMPTS":   "202",
-	"TORN_SETTLEMENT_VILLAGE_GRID_LOTS":     "7",
+	"TORN_SETTLEMENT_PROTECTION_WINDOW":        "170h",
+	"TORN_SETTLEMENT_MIN_SPAWN_DISTANCE_KM":    "32",
+	"TORN_SETTLEMENT_THREAT_RADIUS_KM":         "152",
+	"TORN_SETTLEMENT_SEARCH_MAX_CELLS":         "2002",
+	"TORN_SETTLEMENT_SEARCH_MAX_ATTEMPTS":      "202",
+	"TORN_SETTLEMENT_VILLAGE_GRID_LOTS":        "7",
+	"TORN_SETTLEMENT_TEACH_PERIOD":             "26h",
+	"TORN_SETTLEMENT_TEACH_RATE_BPS":           "1502",
+	"TORN_SETTLEMENT_BASE_SCHOOL_CAPACITY_BPS": "8002",
+	"TORN_SETTLEMENT_SCARCITY_K_BPS":           "10002",
+	"TORN_SETTLEMENT_SCARCITY_FLOOR_BPS":       "3002",
+	"TORN_SETTLEMENT_SCARCITY_CAP_BPS":         "80002",
+	"TORN_SETTLEMENT_SELLER_BAND_BPS":          "502",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

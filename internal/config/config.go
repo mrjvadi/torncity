@@ -615,6 +615,34 @@ type Settlement struct {
 	// lots (ADR 0028 section 4: 5x5). Town and city sizes are a later
 	// phase's own tuning once building placement (W5) ships.
 	VillageGridLots int // settlement.village_grid_lots
+
+	// K2/W5 (docs/adr/0031-knowledge-and-village-progression.md): the
+	// literacy diffusion tick's own period and rate, and the scarcity
+	// price curve's shared knobs. base_cost per item is content
+	// (settlement_knowledge.yml); k/floor/cap here are the curve's own
+	// coefficients, one set for the whole game (section 10 point 3).
+
+	// TeachPeriod is how often a settlement's own literacy tick runs, GAME
+	// time (section 4.4).
+	TeachPeriod time.Duration // settlement.teach_period
+	// TeachRateBPS is the diffusion formula's own teach_rate term, bps.
+	TeachRateBPS int64 // settlement.teach_rate_bps
+	// BaseSchoolCapacityBPS is school_capacity_factor while any complete
+	// education-role building stands (v1's own simplified stand-in for a
+	// real capacity-against-population ratio; see
+	// internal/application/handlers/village_teach.go).
+	BaseSchoolCapacityBPS int64 // settlement.base_school_capacity_bps
+
+	// ScarcityKBPS, ScarcityFloorBPS and ScarcityCapBPS are
+	// settlementknowledge.ScarcityPrice's own k/floor/cap, basis-point
+	// multipliers of an item's base_cost (10000 = 1x).
+	ScarcityKBPS     int64 // settlement.scarcity_k_bps
+	ScarcityFloorBPS int64 // settlement.scarcity_floor_bps
+	ScarcityCapBPS   int64 // settlement.scarcity_cap_bps
+	// SellerBandBPS bounds a settlement-to-settlement sale's own deviation
+	// from the reference price, either way (section 10 point 3's own
+	// resolved open question).
+	SellerBandBPS int64 // settlement.seller_band_bps
 }
 
 // Governance is the tuning of the office holder's screens
@@ -1181,6 +1209,14 @@ func Defaults() *Config {
 			SearchMaxCells:     2000,
 			SearchMaxAttempts:  200,
 			VillageGridLots:    5,
+
+			TeachPeriod:           24 * time.Hour,
+			TeachRateBPS:          1500,
+			BaseSchoolCapacityBPS: 8000,
+			ScarcityKBPS:          10000,
+			ScarcityFloorBPS:      3000,
+			ScarcityCapBPS:        80000,
+			SellerBandBPS:         500,
 		},
 		Governance: Governance{
 			FineStepDivisor:   100,

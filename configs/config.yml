@@ -1006,3 +1006,18 @@ settlement:
   # A village's local placement grid, per side, in lots (ADR 0028 section
   # 4: 5x5).
   village_grid_lots: 5
+  # K2/W5 (docs/adr/0031-knowledge-and-village-progression.md): how often
+  # a settlement's own literacy tick runs, GAME time, and the diffusion
+  # formula's own rate (section 4.4).
+  teach_period: 24h
+  teach_rate_bps: 1500
+  base_school_capacity_bps: 8000
+  # The scarcity price curve's own shared coefficients (section 10 point
+  # 3): price = base_cost x clamp(k / holders_share, floor, cap). base_cost
+  # is content, per item; these three are one set for the whole game.
+  scarcity_k_bps: 10000
+  scarcity_floor_bps: 3000
+  scarcity_cap_bps: 80000
+  # How far a settlement-to-settlement sale may deviate from the reference
+  # price, either way.
+  seller_band_bps: 500
