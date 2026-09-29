@@ -14,6 +14,19 @@ import (
 // commits with the money and materials that moved for it, the same rule
 // every other port in this package already keeps.
 
+// Village-level game_actions.action_type values (ADR 0031 section 6):
+// researching a knowledge item, the settlement's own literacy diffusion
+// tick (self-rescheduling, never a one-shot), and a building's
+// construction reaching its end. internal/workers/scheduler/routes.go
+// carries the identical string literals under its own names — the two
+// layers never import each other, the same duplication ResearchActionType
+// (ports_production.go) and ActionTypeResearch (routes.go) already accept.
+const (
+	SettlementResearchActionType = "settlement_research"
+	SettlementTeachActionType    = "settlement_teach"
+	SettlementBuildActionType    = "settlement_build"
+)
+
 // Settlement knowledge/construction sentinels.
 var (
 	// ErrKnowledgeNotFound means the code names no item the active content

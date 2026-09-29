@@ -1,0 +1,243 @@
+package handlers
+
+import (
+	"context"
+	stderrors "errors"
+	"strings"
+
+	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
+	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/shared/errors"
+	"github.com/mrjvadi/torncity/internal/telegram/presenter"
+	"github.com/mrjvadi/torncity/internal/telegram/screens"
+)
+
+// This file holds K2's two player-triggered acquisitions (ADR 0031 sections
+// 4.1, 4.2): starting research and buying from Support at the scarcity
+// price. Both are gated by the settlement's own top office
+// (authorizeVillage); buying moves money through the ledger under
+// ReasonSupplierPurchase, the identical shape a company buying from an NPC
+// supplier already uses (ports_ledger.go's own doc comment on that reason).
+
+// VillageKnowledgeRequest names one settlement_knowledge code.
+type VillageKnowledgeRequest struct {
+	Code string `json:"code"`
+}
+
+// knowledgeRefusal maps a settlementknowledge.CanAcquire failure to a
+// screen.
+func knowledgeRefusal(err error) *villageRefusal {
+	switch {
+	case stderrors.Is(err, settlementknowledge.ErrAlreadyOwned):
+		return refuseVillage(screens.VillageAlreadyOwned)
+	case stderrors.Is(err, settlementknowledge.ErrNotModeEligible):
+		return refuseVillage(screens.VillageNotAvailable)
+	case stderrors.Is(err, settlementknowledge.ErrTerrainRequired):
+		return refuseVillage(screens.VillageTerrain)
+	case stderrors.Is(err, settlementknowledge.ErrLiteracyTooLow):
+		return refuseVillage(screens.VillageLiteracy)
+	case stderrors.Is(err, settlementknowledge.ErrSkillTooLow):
+		return refuseVillage(screens.VillagePrerequisite)
+	case stderrors.Is(err, settlementknowledge.ErrBusy):
+		return refuseVillage(screens.VillageBusy)
+	case stderrors.Is(err, settlementknowledge.ErrPrerequisiteMissing):
+		return refuseVillage(screens.VillagePrerequisite)
+	default:
+		return refuseVillage(screens.VillageNotAvailable)
+	}
+}
+
+// Research handles settlement.knowledge.research: starting to research a
+// knowledge item. Its cost leaves the settlement's own treasury (a drain,
+// ReasonResearch — the identical shape a company's own research already
+// uses); the item is the settlement's once its scheduled action runs.
+func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, req VillageKnowledgeRequest) (*presenter.Response, error) {
+	snap := h.content.Current()
+	lang := meta.Language
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, l, err := h.viewer(ctx, tx, meta)
+		if err != nil {
+			return err
+		}
+		lang = l
+		fresh, err := h.reserve(ctx, tx, p.ID, meta)
+		if err != nil || !fresh {
+			return err
+		}
+		s, err := h.settlementOf(ctx, tx, meta)
+		if err != nil {
+			return err
+		}
+		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
+			return err
+		}
+		code := strings.TrimSpace(req.Code)
+		d, ok := snap.SettlementKnowledgeDef(code)
+		if !ok {
+			return refuseVillage(screens.VillageNotFound)
+		}
+		w, err := h.world(ctx)
+		if err != nil {
+			return err
+		}
+		terrain := terrainTagsFor(w, s)
+		running, err := tx.SettlementKnowledge().RunningResearch(ctx, s.CityID)
+		if err != nil {
+			return err
+		}
+		st, _, err := h.knowledgeStanding(ctx, tx, snap, s, terrain, running != nil)
+		if err != nil {
+			return err
+		}
+		tree := snap.SettlementKnowledgeTree()
+		t := tree[code]
+		if cerr := settlementknowledge.CanAcquire(t, tree, st, true); cerr != nil {
+			return knowledgeRefusal(cerr)
+		}
+
+		now := h.now()
+		id := h.ids.NewID()
+		var txID string
+		if d.Cost > 0 {
+			txID, err = spendVillage(ctx, tx, s.CityID, application.ReasonResearch, d.Cost, now)
+			if err != nil {
+				return err
+			}
+		}
+		finish := now.Add(h.scale.RealWait(t.Time))
+		actionID, err := h.schedule(ctx, tx, application.SettlementResearchActionType, "settlement_research", id, s.CityID, now, finish)
+		if err != nil {
+			return err
+		}
+		if err := tx.SettlementKnowledge().StartResearch(ctx, application.SettlementResearch{
+			ID: id, SettlementID: s.CityID, Code: code, Cost: d.Cost, LedgerTransactionID: txID,
+			GameActionID: actionID, StartedBy: p.ID, StartedAt: now, FinishAt: finish,
+		}); err != nil {
+			switch {
+			case stderrors.Is(err, application.ErrSettlementResearchBusy):
+				return refuseVillage(screens.VillageBusy)
+			case stderrors.Is(err, application.ErrSettlementAlreadyResearched):
+				return refuseVillage(screens.VillageAlreadyOwned)
+			}
+			return err
+		}
+		return nil
+	})
+	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
+		return resp, err
+	}
+	return h.KnowledgeList(ctx, meta)
+}
+
+// Buy handles settlement.knowledge.buy: buying a knowledge item from
+// Support at the scarcity price (ADR 0031 section 10 point 3), paid in the
+// neutral currency through the ledger (ReasonSupplierPurchase — the
+// identical shape a company buying an NPC supplier's basic input already
+// uses). Support sells every non-restricted, mode-eligible item (the
+// owner's own decision, section 10 point 2); a restricted item is never
+// offered here.
+func (h *VillageHandler) Buy(ctx context.Context, meta envelope.Metadata, req VillageKnowledgeRequest) (*presenter.Response, error) {
+	snap := h.content.Current()
+	lang := meta.Language
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, l, err := h.viewer(ctx, tx, meta)
+		if err != nil {
+			return err
+		}
+		lang = l
+		fresh, err := h.reserve(ctx, tx, p.ID, meta)
+		if err != nil || !fresh {
+			return err
+		}
+		s, err := h.settlementOf(ctx, tx, meta)
+		if err != nil {
+			return err
+		}
+		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
+			return err
+		}
+		code := strings.TrimSpace(req.Code)
+		d, ok := snap.SettlementKnowledgeDef(code)
+		if !ok {
+			return refuseVillage(screens.VillageNotFound)
+		}
+		if d.Restricted {
+			return refuseVillage(screens.VillageNotAvailable)
+		}
+		w, err := h.world(ctx)
+		if err != nil {
+			return err
+		}
+		terrain := terrainTagsFor(w, s)
+		st, _, err := h.knowledgeStanding(ctx, tx, snap, s, terrain, false)
+		if err != nil {
+			return err
+		}
+		tree := snap.SettlementKnowledgeTree()
+		t := tree[code]
+		if cerr := settlementknowledge.CanAcquire(t, tree, st, false); cerr != nil {
+			return knowledgeRefusal(cerr)
+		}
+		price, err := h.scarcityPrice(ctx, tx, d.Cost, code)
+		if err != nil {
+			return err
+		}
+
+		now := h.now()
+		if price > 0 {
+			if _, err := spendVillage(ctx, tx, s.CityID, application.ReasonSupplierPurchase, price, now); err != nil {
+				return err
+			}
+		}
+		if _, err := tx.SettlementKnowledge().Grant(ctx, application.SettlementKnowledgeOwned{
+			SettlementID: s.CityID, Code: code, AcquiredVia: "bought", AcquiredAt: now,
+		}); err != nil {
+			return err
+		}
+		return appendVillageEvent(ctx, tx, meta, "knowledge_bought", s.CityID, map[string]any{
+			"settlement_id": s.CityID, "code": code, "price": price, "bought_by": p.ID,
+		})
+	})
+	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
+		return resp, err
+	}
+	return h.KnowledgeList(ctx, meta)
+}
+
+// Researched handles settlement.researched from the SCHEDULER: a research
+// finishing. Exactly once: the research row, locked by id, must still be
+// running under the action that finishes it.
+func (h *VillageHandler) Researched(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+	in, err := villagePayload(meta, req)
+	if err != nil {
+		return nil, err
+	}
+	return nil, h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		rs, err := tx.SettlementKnowledge().Research(ctx, in.ID)
+		if isSentinel(err, application.ErrSettlementResearchNotFound) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if rs.Status != "running" || (req.ActionID != "" && rs.GameActionID != req.ActionID) {
+			return nil
+		}
+		now := h.now()
+		if now.Before(rs.FinishAt) {
+			return errors.Internal(stderrors.New("handlers: a settlement research finished before its time"))
+		}
+		if err := tx.SettlementKnowledge().FinishResearch(ctx, rs.ID, now); err != nil {
+			return err
+		}
+		if _, err := tx.SettlementKnowledge().Grant(ctx, application.SettlementKnowledgeOwned{
+			SettlementID: rs.SettlementID, Code: rs.Code, AcquiredVia: "researched", AcquiredAt: now,
+		}); err != nil {
+			return err
+		}
+		return appendVillageEvent(ctx, tx, meta, "knowledge_researched", rs.SettlementID, map[string]any{
+			"settlement_id": rs.SettlementID, "code": rs.Code,
+		})
+	})
+}
