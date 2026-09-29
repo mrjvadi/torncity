@@ -1,53 +1,22 @@
 package screens
 
 import (
-	"testing"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens/screentest"
 )
 
 // Village-level knowledge and construction (docs/adr/0031-knowledge-and-
 // village-progression.md): the settlement overview, knowledge list, build
-// menu and construction progress screens (village.go).
-//
-// DELIBERATELY NOT REGISTERED IN snapshotAreas. That shared map feeds three
-// audits at once (TestScreenSnapshots, TestViewSnapshots and, critically,
-// TestNavigationAudit's dead-button check), and the last one requires every
-// button's address to name a command internal/commands actually serves to
-// players today. These screens' buttons (settlement:knowledge.research,
-// settlement:build.place, ...) are the addresses K2/W5's application layer
-// is meant to serve once its handlers and repositories exist — real
-// commands to grow into, not yet real commands, because binding them now
-// with no repository behind them would be exactly the fake functionality
-// this codebase's own tests exist to catch. So this file renders and lints
-// the same fixtures screentest.Book gives every other screen (text
-// correctness, no unfilled placeholder, no Latin inside Persian, every
-// screen has a way out) directly, writing the identical golden shape to
-// testdata/snapshots/<language>/village.txt for review:
-//
-//	go test ./internal/telegram/screens -run TestVillageScreenGoldens -update
-//
-// Once the commands are registered and bound, deleting this function's body
-// and adding `snapshotAreas["village"] = villageSnapshots` is the entire
-// migration into the shared, fully-audited harness.
-func TestVillageScreenGoldens(t *testing.T) {
-	cat := catalogue(t)
-	for _, lang := range cat.Languages() {
-		who, ok := cast[lang]
-		if !ok {
-			t.Fatalf("no sample cast for the %s locale", lang)
-		}
-		t.Run(lang, func(t *testing.T) {
-			book := screentest.NewBook(lang, who.me, who.friend, who.third,
-				LanguageName(Context{Msgs: cat, Lang: lang}, "en"), LanguageName(Context{Msgs: cat, Lang: lang}, "fa"))
-			c := Context{Msgs: cat, Lang: lang, MessageID: 42, Zone: snapshotZone}
-			villageSnapshots(c, who, book.Add)
-			book.Check(t, snapshotDir, "village")
-		})
-	}
-}
+// menu and construction progress screens (village.go), joining the shared
+// snapshot harness as its own area, testdata/snapshots/<language>/
+// village.txt. K2/W5's eight player commands are now real (internal/
+// commands, cmd/game/commands.go), so this area is fully audited like every
+// other: TestScreenSnapshots renders and lints it, TestViewSnapshots checks
+// its (absent, since these are group screens — village.go's own file
+// comment) structured view, and TestNavigationAudit's dead-button check
+// confirms every button here names a command the game actually serves.
+func init() { snapshotAreas["village"] = villageSnapshots }
 
 // sampleNamed builds a Named with a Persian or Latin authored name so a
 // code that has no catalogue entry of its own (most of the v1 catalogue,
