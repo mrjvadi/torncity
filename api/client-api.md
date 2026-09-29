@@ -630,14 +630,18 @@ Centrifugo v6 (<https://centrifugal.dev/docs>), WebSocket endpoint
 
 ```json
 {"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…", "expires_at": "2026-09-26T10:15:00Z",
- "user": "8a4e…", "channels": ["player:8a4e…"]}
+ "user": "8a4e…", "channels": ["player:8a4e…", "settlement:3c1f…"]}
 ```
 
 A Centrifugo **connection token** (HS256; claims `sub` = player id, `exp`
 = `client.realtime_token_ttl` (15m), `iat`, `channels`). The `channels` claim
 subscribes the connection **server-side** to the player's personal channel
-`player:<player_id>`: the client does not (and cannot) subscribe to it itself.
-Fetch a new token when the SDK asks for one (its `getToken` callback).
+`player:<player_id>` and to the channel of every settlement the player lives
+in or is standing in (`settlement:<id>`, section 5.4; usually one, two while
+visiting): the client does not (and cannot) subscribe to them itself. The
+list is computed by the server when the token is issued, so fetch a new
+token after moving house or travelling (or when the SDK asks for one, its
+`getToken` callback).
 
 ### 5.2 A city channel — `GET /api/v1/realtime/subscribe?channel=city:<code>`
 
@@ -646,8 +650,9 @@ Fetch a new token when the SDK asks for one (its `getToken` callback).
 ```
 
 A **subscription token** (claims `sub`, `channel`, `exp`, `iat`) for the
-public channel of the city the player is **currently in**; any other channel
-is `403 forbidden_channel`. Re-subscribe after travelling.
+public channel of the city the player is **currently in**, or for the
+`settlement:<id>` channel of a settlement the player lives in or stands in;
+any other channel is `403 forbidden_channel`. Re-subscribe after travelling.
 
 ### 5.3 What arrives
 
@@ -690,6 +695,90 @@ on reconnect. Clients can never publish; only the server API key can (the notifi
 the operators' panel). A publishing failure never affects Telegram
 delivery.
 
+
+### 5.4 A settlement's channel — `settlement:<settlement_id>`
+
+Full detail of what happens in one village (a settlement is a `cities` row;
+its id is the one the layout and player-list endpoints take). Every
+publication is small typed JSON with the same envelope:
+
+```json
+{"type": "build_finished", "settlement_id": "3c1f…", "version": 1790724836123, "at": "2026-09-30T10:00:00Z",
+ "building_id": "…", "type_code": "watch_hut"}
+```
+
+**`version`** grows by one for every publication of that settlement (one
+counter per settlement, Redis, decided once per event so a redelivery carries
+the same number). A client keeps the last version it applied: **a version that
+is not the last plus one, or that is not higher, means it missed something —
+fetch the layout and player list again** instead of trusting its picture.
+Publications may arrive out of order (replicas race), which is the same
+signal. `GET /settlements/{id}/players` carries the version it is current to
+(`version`); ignore publications at or below it.
+
+| `type` | fields | when |
+|---|---|---|
+| `build_started` | `building_id`, `type_code`, `lot_x`, `lot_y`, `rotated`, `finish_at` | the head placed a building and paid for it |
+| `build_finished` | `building_id`, `type_code` | construction reached its end |
+| `build_salvaged` | `building_id`, `type_code` | a building was pulled down and its scrap credited |
+| `research_started` | `research_id`, `code`, `finish_at` | the village began researching |
+| `research_finished` | `code` | the research ended; the village knows the item |
+| `knowledge_bought` | `code` | the village bought an item from Support |
+| `literacy_changed` | `literacy_share_bps` | a teaching step finished and literacy moved |
+| `head_changed` | `office`, `vacated`, `player_id`?, `player_name`? | the head office was filled or vacated (appointment, dismissal, election) |
+| `member_joined` | `player_id`, `player_name`?, `via` (`travel` \| `residence`) | someone arrived or moved in |
+| `member_left` | `player_id`, `player_name`?, `via` | someone left or moved out |
+
+No `build_progress` or `build_cancelled` is published: construction has no
+intermediate state to report and cannot be cancelled today. History is kept
+like the other namespaces (20 publications, 5 minutes, recovered on
+reconnect); beyond that, the version gap rule above is the recovery.
+
+### 5.5 Presence
+
+A player is **online** while a Redis key written by any signed-in call (or the
+heartbeat) is alive: `realtime.presence_ttl` (30s) after the last one. Nothing
+is written when a player goes away. What a player is doing is always derived by
+the server from their open timed action, never reported by the client:
+`idle`, `travelling`, `working`, `studying`, `training`, `hospital`, `jail`,
+`building`, `fighting` (`activity_label` is the localized words).
+
+Each player chooses who may see them — `everyone` (default), `contacts`
+(accepted friends and faction mates) or `nobody` — in the bot's private
+settings screen (`player.presence.set`); as in Telegram, choosing `nobody`
+also hides everyone else's presence from you. Their own settlement always
+sees them (an open question for the owner, ADR 0030 section 8).
+
+**`POST /api/v1/realtime/heartbeat`** — `{"ok": true, "ttl_seconds": 30}`.
+Call it every ~`ttl_seconds/2` while the app is open but idle; any other
+authenticated call already counts.
+
+**`GET /api/v1/players/{id}/status`** — `{id}` is the player's id.
+
+```json
+{"id": "…", "name": "Sara", "code": "K7Q2M9A", "visible": true, "online": true,
+ "activity": "working", "activity_label": "در حال کار", "place": "city_centre"}
+```
+
+Shaped by the viewer's relation: same settlement — everything (`place` too);
+accepted friend or faction mate elsewhere — status and activity, **no
+place**; same country only — `online` alone, and only if the player chose
+`everyone`; anyone else — `"visible": false` and nothing more (which is not
+the same as offline). A field the rules withhold is absent.
+
+**`GET /api/v1/settlements/{id}/players`** — the settlement's residents and
+whoever is standing in it, for members only (`403 not_in_settlement`
+otherwise):
+
+```json
+{"settlement_id": "3c1f…", "version": 1790724836123, "online": 2, "hidden": false,
+ "players": [{"id": "…", "name": "Sara", "code": "K7Q2M9A", "visible": true, "online": true,
+              "activity": "idle", "activity_label": "آنلاین", "place": "city_centre"}]}
+```
+
+`hidden: true` means the caller chose `nobody`, so no row carries presence.
+Keep it live with the `member_*` publications of section 5.4.
+
 ---
 
 ## 6. Error codes
@@ -707,8 +796,9 @@ delivery.
 | 401 | `refresh_token_reused` | refresh token used twice: the device is signed out |
 | 403 | `group_only` | the command is played in a Telegram group (localized message) |
 | 403 | `banned` | an operator has banned this account; commands are refused until it is lifted |
-| 403 | `forbidden_channel` | not the player's city channel |
+| 403 | `forbidden_channel` | not the player's city channel, or a settlement they are not in |
 | 400 | `bad_chunk` | (1.1) the chunk address names no chunk of this world |
+| 403 | `not_in_settlement` | the settlement's player list is for its residents and whoever stands there |
 | 404 | `not_found` | |
 | 404 | `world_not_created` | (1.1) no world has been created yet (`admin world create`) |
 | 404 | `no_settlement` | (1.1) the village endpoints are not configured on this server |
