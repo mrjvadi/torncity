@@ -32,7 +32,7 @@ BEGIN
     SELECT jurisdiction_id INTO support_j FROM cities WHERE id = support_id;
 
     -- Keyed tables: Support's merged rows go, the originals come back.
-    FOR keyed IN SELECT unnest(ARRAY['shop_shelves', 'specialist_pools', 'recruit_ad_fees',
+    FOR keyed IN SELECT unnest(ARRAY['shop_shelves', 'specialist_pools',
                                       'city_war_damage', 'city_clocks', 'company_markets']) LOOP
         IF EXISTS (SELECT 1 FROM support_merge_log WHERE table_name = keyed AND action = 'keyed') THEN
             EXECUTE format('DELETE FROM %I WHERE city_id = $1', keyed) USING support_id;
@@ -59,6 +59,11 @@ BEGIN
 
         ELSIF l.action = 'rename' THEN
             UPDATE companies SET name = l.before ->> 'name', name_key = l.before ->> 'name_key'
+             WHERE id = (l.pk ->> 'id')::uuid;
+
+        ELSIF l.action = 'campaign' THEN
+            UPDATE recruit_campaigns
+               SET cities = ARRAY(SELECT jsonb_array_elements_text(l.before -> 'cities'))
              WHERE id = (l.pk ->> 'id')::uuid;
 
         ELSIF l.action = 'cancel' THEN

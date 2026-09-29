@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS support_merge_log (
     created_at  timestamptz NOT NULL DEFAULT now(),
 
     CONSTRAINT support_merge_log_action_check CHECK (action IN (
-        'update', 'keyed', 'rename', 'office', 'ledger', 'payload', 'cancel'))
+        'update', 'keyed', 'rename', 'office', 'ledger', 'payload', 'cancel', 'campaign'))
 );
 CREATE INDEX IF NOT EXISTS support_merge_log_table_idx ON support_merge_log (table_name, action);
 
@@ -268,17 +268,24 @@ BEGIN
          ON CONFLICT DO NOTHING;
     DELETE FROM specialist_pools WHERE city_id = ANY(olds);
 
-    -- recruit_ad_fees: one row per campaign, the largest fee (already paid).
+    -- recruit_ad_fees is NOT merged: each row records a fee already paid into
+    -- one old city's treasury, and `admin economy verify` joins the row to that
+    -- treasury's owner. It is history, like the other append-only records, and
+    -- stays on its old city id. Nothing charges a campaign again: fees are paid
+    -- once, when the campaign is posted (recruit_edit.go), so a campaign that is
+    -- still running simply carries on.
+
+    -- Campaigns that are still open advertise in city CODES (text[]); a
+    -- retired code would advertise nowhere, so they advertise in Support. The
+    -- fee was paid once, when they were posted, and is not charged again.
     INSERT INTO support_merge_log (table_name, action, pk, before)
-         SELECT 'recruit_ad_fees', 'keyed',
-                jsonb_build_object('campaign_id', f.campaign_id, 'city_id', f.city_id), to_jsonb(f)
-           FROM recruit_ad_fees f WHERE f.city_id = ANY(olds);
-    INSERT INTO recruit_ad_fees (campaign_id, city_id, amount, ledger_transaction_id, paid_at)
-         SELECT DISTINCT ON (campaign_id) campaign_id, support_id, amount, ledger_transaction_id, paid_at
-           FROM recruit_ad_fees WHERE city_id = ANY(olds)
-          ORDER BY campaign_id, amount DESC, paid_at, city_id
-         ON CONFLICT DO NOTHING;
-    DELETE FROM recruit_ad_fees WHERE city_id = ANY(olds);
+         SELECT 'recruit_campaigns', 'campaign', jsonb_build_object('id', rc.id), to_jsonb(rc)
+           FROM recruit_campaigns rc
+          WHERE rc.status IN ('draft', 'running')
+            AND rc.cities && (SELECT array_agg(code) FROM cities WHERE id = ANY(olds));
+    UPDATE recruit_campaigns rc SET cities = ARRAY['support']
+     WHERE rc.status IN ('draft', 'running')
+       AND rc.cities && (SELECT array_agg(code) FROM cities WHERE id = ANY(olds));
 
     -- city_war_damage: the worst of the seven.
     INSERT INTO support_merge_log (table_name, action, pk, before)
