@@ -580,11 +580,17 @@ func (a *EconomyAdmin) verifyProduction(ctx context.Context, v *LedgerVerificati
 		{&p.SupplyLedger, &p.SupplyRows, "supplier_purchase", "system_sink", `SELECT COALESCE(SUM(total), 0)::bigint FROM supply_purchases`},
 		{&p.ResearchLedger, &p.ResearchRows, "research", "system_sink", `SELECT COALESCE(SUM(cost), 0)::bigint FROM company_research`},
 	}
+	// Villages spend on research and suppliers under the same reasons as
+	// companies (handlers/village_knowledge.go), so only the transactions a
+	// company treasury paid are the companies' side of these sums.
 	for _, s := range sums {
 		if err := a.q.QueryRow(ctx, `
 			SELECT COALESCE(SUM(e.amount), 0)::bigint
 			  FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
-			 WHERE e.reason = $1 AND a.kind = $2 AND e.amount > 0`, s.reason, s.kind).Scan(s.ledger); err != nil {
+			 WHERE e.reason = $1 AND a.kind = $2 AND e.amount > 0
+			   AND ($2 <> 'system_sink' OR EXISTS (
+			       SELECT 1 FROM ledger_entries d JOIN accounts da ON da.id = d.account_id
+			        WHERE d.transaction_id = e.transaction_id AND d.amount < 0 AND da.kind = 'company_treasury'))`, s.reason, s.kind).Scan(s.ledger); err != nil {
 			return fmt.Errorf("postgres: summing %s in the ledger: %w", s.reason, err)
 		}
 		if err := a.q.QueryRow(ctx, s.sql).Scan(s.rows); err != nil {
