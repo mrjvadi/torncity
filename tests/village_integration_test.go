@@ -26,6 +26,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/money"
+	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // testClock (military_integration_test.go) already lets a test move the
@@ -167,11 +168,16 @@ func TestVillageLifecycle(t *testing.T) {
 		defer cancel()
 		var jurisdictionID string
 		_ = pool.Raw().QueryRow(ctx, `SELECT jurisdiction_id::text FROM cities WHERE id = $1::uuid`, cityID).Scan(&jurisdictionID)
-		// ledger_entries/accounts are deliberately left alone: the ledger is
-		// append-only by design (docs/database.md section 6) precisely so
-		// an audit trail can never be edited, a test's own small history
-		// included — the same reason no other integration test in this
-		// package tries to delete one either. settlement_research is
+		// ledger_entries/accounts, and org_stacks/item_movements the same
+		// way, are deliberately left alone: both are append-only by design
+		// (docs/database.md section 6) precisely so an audit trail can
+		// never be edited, a test's own small history included — the same
+		// reason no other integration test in this package tries to
+		// delete one either, and why seedTimber below is a real
+		// tx.Items().Move rather than a raw INSERT into org_stacks (a raw
+		// insert would leave EconomyAdmin.verifyGoods's own journal check
+		// unable to reconcile the stack it never saw arrive).
+		// settlement_research is
 		// deleted before game_actions, which it references (its own
 		// research/build game_actions rows are left as harmless orphans,
 		// the same as any completed action's row normally outlives what it
@@ -293,8 +299,16 @@ func TestVillageLifecycle(t *testing.T) {
 	// ------------------------------------------------------------------
 	buildAndComplete := func(code string) {
 		t.Helper()
+		lotsResp, err := village.Lots(ctx, newMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: code})
+		if err != nil {
+			t.Fatalf("Lots(%s): %v", code, err)
+		}
+		x, y, ok := firstFittingFreeLot(parseLotGrid(t, lotsResp.View))
+		if !ok {
+			t.Fatalf("no free lot on %s's own grid fits %s's own footprint", cityID, code)
+		}
 		if _, err := village.Place(ctx, newMeta("settlement.build.place", "build.place"),
-			handlers.VillageBuildRequest{Code: code}); err != nil {
+			handlers.VillageBuildRequest{Code: code, Lot: screens.LotToken(x, y, false), Confirm: screens.VillageBuildConfirm}); err != nil {
 			t.Fatalf("Place(%s): %v", code, err)
 		}
 		var buildingID string
@@ -321,6 +335,7 @@ func TestVillageLifecycle(t *testing.T) {
 			t.Errorf("%s status = %q, want complete", code, status)
 		}
 	}
+	seedTimber(t, uow, cityID, 5) // civic_hall's own cost_materials: {timber: 5}
 	buildAndComplete("civic_hall")
 	buildAndComplete("teaching_circle")
 
