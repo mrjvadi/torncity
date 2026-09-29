@@ -93,6 +93,19 @@ func TestCanPlaceRoleMissing(t *testing.T) {
 	}
 }
 
+func TestCanPlaceKnowledgeCapabilityMissing(t *testing.T) {
+	def := Def{Code: "market", FootprintW: 1, FootprintH: 1, RequiresKnowledgeCapability: []string{"market_access"}}
+	grid := sampleGrid()
+	s := openStanding()
+	if err := CanPlace(def, grid, 1, 1, s); !errors.Is(err, ErrKnowledgeMissing) {
+		t.Errorf("err = %v, want ErrKnowledgeMissing", err)
+	}
+	s.KnowledgeCapabilities = item.NewSet("market_access")
+	if err := CanPlace(def, grid, 1, 1, s); err != nil {
+		t.Errorf("holding a capability provider should allow placement: %v", err)
+	}
+}
+
 func TestCanPlaceLiteracyTooLow(t *testing.T) {
 	def := Def{Code: "school", FootprintW: 1, FootprintH: 1, MinLiteracyShareBPS: 5000}
 	grid := sampleGrid()

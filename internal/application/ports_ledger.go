@@ -449,6 +449,25 @@ const (
 	ReasonSpecialistEquity     Reason = "specialist_equity"
 )
 
+// Village-level knowledge and construction
+// (docs/adr/0031-knowledge-and-village-progression.md). A settlement's
+// treasury is city_treasury (a founded settlement is still a cities row,
+// migration 0042), so researching and buying knowledge reuse ReasonResearch
+// and ReasonSupplierPurchase verbatim — the identical shape those two
+// reasons already describe for a company's treasury, just a second kind of
+// holder paying it, exactly ADR 0031 section 2's own "peers of one shape,
+// held by two different kinds of holder". Only construction is genuinely
+// new: nothing existing pays a one-time capital cost (money and materials)
+// out of the economy for a permanent asset the payer itself will hold.
+const (
+	// ReasonSettlementConstruction pays a building's construction cost
+	// (money and, in the ledger only for the money leg — materials move
+	// through org_stacks, not the ledger) from a settlement's treasury to
+	// system_sink, once, when the build is queued (ADR 0028 section 6.3:
+	// "all or nothing... at the moment the build is queued").
+	ReasonSettlementConstruction Reason = "settlement_construction"
+)
+
 var knownReasons = map[Reason]struct{}{
 	ReasonLodgingFee: {},
 
@@ -504,6 +523,8 @@ var knownReasons = map[Reason]struct{}{
 
 	ReasonHospitalFee: {}, ReasonTreatmentFee: {}, ReasonFactionRegistration: {}, ReasonFactionDeposit: {},
 	ReasonFactionWithdrawal: {}, ReasonPaymentHold: {}, ReasonPaymentRelease: {}, ReasonPaymentReturn: {},
+
+	ReasonSettlementConstruction: {},
 }
 
 // Known reports whether r is in the closed set.

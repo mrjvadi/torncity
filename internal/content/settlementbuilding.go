@@ -52,6 +52,12 @@ type SettlementBuildingDef struct {
 	// RequiresKnowledge are settlement_knowledge codes the settlement must
 	// hold (AND).
 	RequiresKnowledge []string `yaml:"requires_knowledge,omitempty" json:"requires_knowledge,omitempty"`
+	// RequiresKnowledgeCapability are settlement_knowledge CAPABILITY tags
+	// the settlement must satisfy, each by any held item that Provides it
+	// (ADR 0031 section 3.1's branching mechanism, mirrored for a
+	// building's own gate — e.g. market: [market_access] instead of naming
+	// periodic_market/endowed_market_hall/trading_post one by one).
+	RequiresKnowledgeCapability []string `yaml:"requires_knowledge_capability,omitempty" json:"requires_knowledge_capability,omitempty"`
 	// RequiresBuildingRole is set for a tier promotion: any building of
 	// that exact role/tier must already stand.
 	RequiresBuildingRole *RequiresBuildingRoleDef `yaml:"requires_building_role,omitempty" json:"requires_building_role,omitempty"`
@@ -87,19 +93,20 @@ func (d SettlementBuildingDef) BuildingEffects() []item.Effect {
 func (d SettlementBuildingDef) Def() settlementbuilding.Def {
 	t, _ := optionalDuration(d.BuildTime)
 	out := settlementbuilding.Def{
-		Code:                d.Code,
-		Role:                d.Role,
-		Tier:                d.Tier,
-		FootprintW:          d.Footprint[0],
-		FootprintH:          d.Footprint[1],
-		RequiresKnowledge:   append([]string(nil), d.RequiresKnowledge...),
-		TerrainTags:         append([]string(nil), d.TerrainTags...),
-		TerrainMode:         settlementbuilding.TerrainMode(d.TerrainMode),
-		CostMoney:           d.CostMoney,
-		BuildTime:           t,
-		Upkeep:              d.Upkeep,
-		MinLiteracyShareBPS: d.MinLiteracyShareBPS,
-		Effects:             d.BuildingEffects(),
+		Code:                        d.Code,
+		Role:                        d.Role,
+		Tier:                        d.Tier,
+		FootprintW:                  d.Footprint[0],
+		FootprintH:                  d.Footprint[1],
+		RequiresKnowledge:           append([]string(nil), d.RequiresKnowledge...),
+		RequiresKnowledgeCapability: append([]string(nil), d.RequiresKnowledgeCapability...),
+		TerrainTags:                 append([]string(nil), d.TerrainTags...),
+		TerrainMode:                 settlementbuilding.TerrainMode(d.TerrainMode),
+		CostMoney:                   d.CostMoney,
+		BuildTime:                   t,
+		Upkeep:                      d.Upkeep,
+		MinLiteracyShareBPS:         d.MinLiteracyShareBPS,
+		Effects:                     d.BuildingEffects(),
 	}
 	if len(d.CostMaterials) > 0 {
 		out.CostMaterials = make(map[string]int64, len(d.CostMaterials))
@@ -121,8 +128,16 @@ func (p *Pack) validateSettlementBuildings(problems *[]error) {
 		*problems = append(*problems, fmt.Errorf("%w: %s", ErrInvalidSettlementBuildingContent, fmt.Sprintf(format, args...)))
 	}
 	knowledge := map[string]bool{}
+	knowledgeCapabilities := map[string]bool{}
 	for _, k := range p.SettlementKnowledge {
 		knowledge[k.Code] = true
+		provides := k.Provides
+		if len(provides) == 0 {
+			provides = []string{k.Code}
+		}
+		for _, c := range provides {
+			knowledgeCapabilities[c] = true
+		}
 	}
 	components := map[string]bool{}
 	for _, c := range p.Components {
@@ -153,6 +168,11 @@ func (p *Pack) validateSettlementBuildings(problems *[]error) {
 		for _, k := range d.RequiresKnowledge {
 			if !knowledge[k] {
 				bad("%s %q requires unknown knowledge %q", where, d.Code, k)
+			}
+		}
+		for _, c := range d.RequiresKnowledgeCapability {
+			if !knowledgeCapabilities[c] {
+				bad("%s %q requires knowledge capability %q, which nothing provides", where, d.Code, c)
 			}
 		}
 		for material := range d.CostMaterials {

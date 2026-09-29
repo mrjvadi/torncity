@@ -125,6 +125,15 @@ type Def struct {
 	// RequiresKnowledge are settlement_knowledge codes the settlement must
 	// hold (AND). Opaque strings here; see the package doc.
 	RequiresKnowledge []string
+	// RequiresKnowledgeCapability are settlement_knowledge CAPABILITY tags
+	// the settlement must satisfy — each by ANY held item that Provides it
+	// (AND across tags, OR within one), the identical branching mechanism
+	// settlementknowledge.Tech.RequiresCapability gives knowledge items
+	// (ADR 0031 section 3.1), mirrored here for a building's own gate: a
+	// tier-2 market building may need "market_access" without naming
+	// periodic_market, endowed_market_hall or trading_post specifically.
+	// Opaque strings here too — see the package doc.
+	RequiresKnowledgeCapability []string
 	// RequiresBuildingRole is set for a tier promotion: the settlement
 	// must already have ANY building of that exact role/tier standing
 	// (the OR-mechanism, ADR 0031 section 3.2). Nil for a tier-1 (or

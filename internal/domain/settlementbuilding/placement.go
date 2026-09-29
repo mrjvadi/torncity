@@ -45,6 +45,11 @@ type Standing struct {
 	// Knowledge is the settlement's own held knowledge codes (opaque
 	// strings; see the package doc).
 	Knowledge item.Set
+	// KnowledgeCapabilities is every capability tag the settlement's own
+	// held knowledge Provides (computed by the caller, which alone knows
+	// settlementknowledge's Provides shape — see the package doc's
+	// boundary). RequiresKnowledgeCapability is checked against this set.
+	KnowledgeCapabilities item.Set
 	// Built counts how many COMPLETE buildings the settlement has at each
 	// role/tier — the OR-mechanism RequiresBuildingRole checks against
 	// (ADR 0031 section 3.2: "any tier-1 building of that role already
@@ -106,6 +111,11 @@ func CanPlace(def Def, grid Grid, x, y int, s Standing) error {
 	}
 	for _, code := range def.RequiresKnowledge {
 		if !s.Knowledge.Has(code) {
+			return ErrKnowledgeMissing
+		}
+	}
+	for _, capability := range def.RequiresKnowledgeCapability {
+		if !s.KnowledgeCapabilities.Has(capability) {
 			return ErrKnowledgeMissing
 		}
 	}

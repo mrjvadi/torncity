@@ -361,13 +361,20 @@ knowledge:
   - code: periodic_market
     name: "بازار ادواری"
     requires: [record_keeping]
-    provides: [market_access]
+    # formal_market_access is distinct from market_access: barter_ring (the
+    # founding grant) already provides market_access, so a gate that needed
+    # only market_access would be satisfied from founding and never really
+    # gate anything. This second tag is provided only by the three
+    # post-founding market branches, for a building (or a future knowledge
+    # item) that genuinely needs one of THOSE, not just "some market
+    # institution exists".
+    provides: [market_access, formal_market_access]
     cost: 3500
     time: 30h
   - code: endowed_market_hall
     name: "بازار وقفی"
     requires: [record_keeping]
-    provides: [market_access]
+    provides: [market_access, formal_market_access]
     cost: 6000
     time: 45h
   - code: trading_post
@@ -375,6 +382,6 @@ knowledge:
     terrain_tags: [coastal_lot, river_lot]
     terrain_mode: required
     requires: [basic_literacy]
-    provides: [market_access]
+    provides: [market_access, formal_market_access]
     cost: 5500
     time: 42h

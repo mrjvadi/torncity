@@ -24,12 +24,12 @@ version: 1
 #   * water_infra/food tier 2 ("capacity-upgraded _ii form") is the same
 #     knowledge-generation-upgrades-the-standing-building shape; only
 #     tier 1 is placeable in v1.
-#   * market tier 2 gates on record_keeping (two of its three ADR 0031
-#     table branches — periodic_market, endowed_market_hall — need it;
-#     trading_post's separate coastal/river route is not yet a distinct
-#     gate here, a follow-up once buildings gain a RequiresKnowledge OR,
-#     the same branching settlement_knowledge.yml's capabilities give
-#     knowledge items already).
+#   * market tier 2 gates on requires_knowledge_capability:
+#     [formal_market_access] — any of periodic_market, endowed_market_hall
+#     or trading_post, never the founding-only barter_ring, which provides
+#     the (deliberately weaker) market_access tag instead. See that field's
+#     own doc comment (internal/domain/settlementbuilding) and
+#     settlement_knowledge.yml's note by the three items' provides: lines.
 #   * CostMaterials names only "timber" (configs/content/items.yml's own
 #     shipped component list, checked by internal/content/settlementbuilding.go).
 #     ADR 0028 section 7's illustrative "steel N" entries are dropped: no
@@ -448,7 +448,14 @@ settlement_buildings:
     tier: 2
     footprint: [3, 3]
     requires_building_role: {role: market, tier: 1}
-    requires_knowledge: [record_keeping]
+    # Any of periodic_market/endowed_market_hall/trading_post satisfies
+    # this — formal_market_access, not market_access itself: barter_ring
+    # (the founding grant) already provides market_access, so gating on
+    # that alone would be satisfied from founding and never gate anything
+    # (see settlement_knowledge.yml's own note on the two tags). Closes the
+    # v1 gap this file's header used to note: trading_post (coastal/river
+    # route) now reaches market tier 2 too.
+    requires_knowledge_capability: [formal_market_access]
     cost_money: 6000
     cost_materials: {timber: 5}
     build_time: 4h
