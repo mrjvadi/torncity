@@ -9,6 +9,8 @@ import "testing"
 // not production content — see golden_test.go's identical rationale for
 // the coarse World fingerprint).
 //
+// (Regenerated once with the worldgen-seams fix while GeneratorVersion 1 was still unshipped; after the first shipped world, never do this without bumping the version.)
+//
 // IF THIS TEST FAILS: either a real bug was introduced into chunk
 // generation, or a deliberate change was made to it. A deliberate change
 // bumps GeneratorVersion (world.go) exactly as golden_test.go's own
@@ -18,14 +20,14 @@ import "testing"
 // first.
 var goldenChunkFingerprints = map[uint64]map[ChunkAddr]uint64{
 	1: {
-		{FacePZ, 10, 5, 5}:      0x4f983a542cc1fcac,
-		{FacePX, 10, 1023, 512}: 0x74964fc7af51f86d,
-		{FaceNZ, 8, 3, 3}:       0xa79a0c110f8a2035,
+		{FacePZ, 10, 5, 5}:      0xd3ab45fef8e64bb5,
+		{FacePX, 10, 1023, 512}: 0xe4b8506fcb20201b,
+		{FaceNZ, 8, 3, 3}:       0x4c2cc574a72d72f4,
 	},
 	42: {
-		{FacePZ, 10, 5, 5}:      0xf2ac9e68d34bb225,
-		{FacePX, 10, 1023, 512}: 0x32cc0f7e48ec415d,
-		{FaceNZ, 8, 3, 3}:       0xa69fc3c9db835f85,
+		{FacePZ, 10, 5, 5}:      0x3dad11a64d4916aa,
+		{FacePX, 10, 1023, 512}: 0xc1579e5ccc1df735,
+		{FaceNZ, 8, 3, 3}:       0x80c1e529dad8f505,
 	},
 }
 

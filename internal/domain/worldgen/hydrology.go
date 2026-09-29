@@ -134,13 +134,13 @@ func computeHydrology(mesh *Mesh, elevation []int32, params Params) Hydrology {
 			dx, dy, dz := np.X-cp.X, np.Y-cp.Y, np.Z-cp.Z
 			slope := float64(filled[c]-filled[nb]) / math.Sqrt(dx*dx+dy*dy+dz*dz)
 			// Meander: scale each candidate's slope by a deterministic
-			// per-edge factor in [0.6,1.4]. Only STRICTLY lower neighbours
+			// per-edge factor in [0.7,1.3]. Only STRICTLY lower neighbours
 			// are candidates, so the flow graph stays acyclic; among them
 			// the pick is no longer always the one lattice direction that
 			// is steepest by a hair, which on a smooth slope produced
 			// ruler-straight rivers along one of the kNN lattice's few
 			// preferred directions.
-			score := slope * (0.6 + 0.8*edgeJitter(c, int(nb)))
+			score := slope * (0.7 + 0.6*edgeJitter(c, int(nb)))
 			if score > bestScore {
 				bestScore = score
 				best = nb

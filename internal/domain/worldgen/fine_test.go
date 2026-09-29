@@ -2,12 +2,13 @@ package worldgen
 
 import (
 	"math"
+	"sort"
 	"testing"
 )
 
 func testWorldForFine(t *testing.T) *World {
 	t.Helper()
-	w, err := Generate(42, smallParams(), sampleContent())
+	w, err := Generate(42, fineParams(), sampleContent())
 	if err != nil {
 		t.Fatalf("Generate: %v", err)
 	}
@@ -94,6 +95,19 @@ func TestSampleFineLatLon_MatchesChunkNearOcean(t *testing.T) {
 // resolution. Deterministic for a fixed seed/params: always the same tile.
 func findStreamAnchor(t *testing.T, w *World) (latDeg, lonDeg float64) {
 	t.Helper()
+	as := findStreamAnchors(t, w, 1)
+	return as[0][0], as[0][1]
+}
+
+// findStreamAnchors returns up to max distinct ordinary-stream anchors, each
+// taken from a different sampled chunk so they do not cluster in one
+// stream. The width test uses their MEDIAN: one anchor can sit where the
+// stream noise is locally flat (a saddle), where any isoline band is wide
+// whatever the band's half-width - that is a property of one spot, not of
+// how wide streams generally read.
+func findStreamAnchors(t *testing.T, w *World, max int) [][2]float64 {
+	t.Helper()
+	var out [][2]float64
 	baseLOD := w.Params.ChunkBaseLOD
 	edge := w.Params.ChunkTileEdge
 	n := chunksPerEdge(baseLOD)
@@ -116,15 +130,22 @@ func findStreamAnchor(t *testing.T, w *World) (latDeg, lonDeg float64) {
 						lat := math.Asin(clamp(zz, -1, 1)) * 180 / math.Pi
 						lon := math.Atan2(yy, xx) * 180 / math.Pi
 						if fs := w.SampleFineLatLon(lat, lon); fs.StreamKind == StreamKindStream {
-							return lat, lon
+							out = append(out, [2]float64{lat, lon})
+							if len(out) >= max {
+								return out
+							}
+							goto nextChunk
 						}
 					}
 				}
+			nextChunk:
 			}
 		}
 	}
-	t.Fatal("findStreamAnchor: no ordinary-stream tile found for this seed/params")
-	return 0, 0
+	if len(out) == 0 {
+		t.Fatal("findStreamAnchor: no ordinary-stream tile found for this seed/params")
+	}
+	return out
 }
 
 // findRiverAnchor locates a lat/lon point near a high-flow coarse cell
@@ -205,15 +226,21 @@ func maxRunAlong(w *World, latDeg, lonDeg float64, horiz bool, want StreamKind) 
 func TestSampleFineLatLon_StreamIsNarrow(t *testing.T) {
 	w := testWorldForFine(t)
 
-	streamLat, streamLon := findStreamAnchor(t, w)
-	streamWidth := 0
-	for _, horiz := range [2]bool{true, false} {
-		if r := maxRunAlong(w, streamLat, streamLon, horiz, StreamKindStream); r > streamWidth {
-			streamWidth = r
+	anchors := findStreamAnchors(t, w, 9)
+	widths := make([]int, 0, len(anchors))
+	for _, a := range anchors {
+		wd := 0
+		for _, horiz := range [2]bool{true, false} {
+			if r := maxRunAlong(w, a[0], a[1], horiz, StreamKindStream); r > wd {
+				wd = r
+			}
 		}
+		widths = append(widths, wd)
 	}
+	sort.Ints(widths)
+	streamWidth := widths[len(widths)/2]
 	if streamWidth < 1 || streamWidth > 8 {
-		t.Fatalf("ordinary stream at (%.4f,%.4f) reads %d lots wide, want 1..8 (a whole base tile is ~10 lots)", streamLat, streamLon, streamWidth)
+		t.Fatalf("ordinary streams (sorted widths %v lots, median %d) read wrong, want median 1..8 (a whole base tile is ~10 lots)", widths, streamWidth)
 	}
 	t.Logf("stream width at fine resolution: %d lots", streamWidth)
 
@@ -240,4 +267,14 @@ func TestSampleFineLatLon_StreamIsNarrow(t *testing.T) {
 	if fs.StreamKind != StreamKindRiver {
 		t.Fatalf("river anchor itself did not classify as StreamKindRiver: %+v", fs)
 	}
+}
+
+// fineParams is smallParams with more cells: fine-sampling tests need at
+// least one coarse cell whose flow clears RiverFlowThreshold*fineRiverFlowMultiple,
+// and a 3000-cell world's rivers may all stay just under it depending on
+// where the drainage happens to converge.
+func fineParams() Params {
+	p := smallParams()
+	p.CellCount = 12000
+	return p
 }

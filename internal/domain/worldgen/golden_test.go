@@ -8,6 +8,8 @@ import "testing"
 // to catch an accidental change to this package's ALGORITHM, not to track
 // content edits).
 //
+// (Regenerated once with the worldgen-seams fix while GeneratorVersion 1 was still unshipped; after the first shipped world, never do this without bumping the version.)
+//
 // IF THIS TEST FAILS: either a real bug was introduced, or a deliberate
 // change to generation was made. A deliberate change must bump
 // GeneratorVersion (world.go) — an already-shipped world's seed must keep
@@ -17,10 +19,10 @@ import "testing"
 // failing test pass without bumping the version first; that is precisely
 // the bug this test exists to catch.
 var goldenFingerprints = map[uint64]uint64{
-	1:  0x99eb856e0f8619f4,
-	2:  0xf87677686e1314b3,
-	3:  0x4853020fa0beefa5,
-	42: 0xc894e73c3a484dac,
+	1:  0x392680ee2d1e5d2c,
+	2:  0xe9af4a045ac905d7,
+	3:  0x1f4049fc850c6c2c,
+	42: 0x55b1b5043b7ca9b9,
 }
 
 func TestGolden_Fingerprints(t *testing.T) {
