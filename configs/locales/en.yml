@@ -628,6 +628,7 @@ village:
     out_of_bounds: "🔒 That spot is outside the village's own grid."
     concurrent_cap: "🏗 The village's build queue is full. Wait for one to finish."
     not_demolishable: "🔒 That building cannot be demolished right now."
+    not_cancellable: "🔒 That building is not under construction any more, so it cannot be cancelled."
     materials: "🧱 The village does not have enough of the materials this build needs."
 
 knowledge:

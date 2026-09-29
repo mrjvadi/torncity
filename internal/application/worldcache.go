@@ -26,6 +26,7 @@ type WorldCache struct {
 	params  worldgen.Params
 	content worldgen.Content
 
+	genMu   sync.Mutex // serialises generation
 	mu      sync.RWMutex
 	worldID string
 	world   *worldgen.World
@@ -46,6 +47,18 @@ func (c *WorldCache) Active(ctx context.Context) (World, *worldgen.World, error)
 		return World{}, nil, err
 	}
 
+	c.mu.RLock()
+	if c.worldID == row.ID {
+		w := c.world
+		c.mu.RUnlock()
+		return row, w, nil
+	}
+	c.mu.RUnlock()
+
+	// One generation at a time: a burst of first requests (a client API
+	// replica just started) must not each build the same planet.
+	c.genMu.Lock()
+	defer c.genMu.Unlock()
 	c.mu.RLock()
 	if c.worldID == row.ID {
 		w := c.world

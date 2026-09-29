@@ -153,6 +153,7 @@ type Founding struct {
 // FoundedSettlement is what one founding wrote.
 type FoundedSettlement struct {
 	CityID         string
+	WorldID        string
 	Code           string
 	Name           string
 	JurisdictionID string
@@ -197,4 +198,25 @@ type SettlementRepository interface {
 	// before searching for a spot at all, so a redelivered command answers
 	// from the existing village instead of running FindSpawn again.
 	ByFoundingGroup(ctx context.Context, chatID int64) (FoundedSettlement, error)
+
+	// ByID returns one founded settlement (buildings left empty), or
+	// ErrCityNotFound.
+	ByID(ctx context.Context, id string) (FoundedSettlement, error)
+
+	// ByPlayer returns the settlement a player belongs to: the one whose
+	// top office they hold (head), else the one they live in (their city).
+	// Buildings are left empty. ErrCityNotFound when they belong to none.
+	// A game client has no Telegram group to name its settlement by, so it
+	// is resolved from the player (docs/adr/0028 section 9.4).
+	ByPlayer(ctx context.Context, playerID string) (PlayerSettlement, error)
+}
+
+// PlayerSettlement is a settlement as seen by one of its people.
+type PlayerSettlement struct {
+	FoundedSettlement
+	// Offices are the office codes the player holds in the settlement's
+	// jurisdiction.
+	Offices []string
+	// Resident reports that the player's city is this settlement.
+	Resident bool
 }

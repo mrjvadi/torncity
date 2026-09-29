@@ -20,6 +20,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
+	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // A client's command goes through the very pipeline a Telegram chat's does:
@@ -156,7 +157,7 @@ func (b *Bridge) Run(ctx context.Context, pr Principal, req CommandRequest) (Scr
 	if err != nil {
 		return Screen{}, ErrUnknownCommand
 	}
-	if b.Policy.Channel(command) == groups.ChannelGroup && !b.AllowGroupCommands {
+	if b.Policy.Channel(command) == groups.ChannelGroup && !b.AllowGroupCommands && !b.Policy.ClientMay(command) {
 		return Screen{}, ErrGroupOnly
 	}
 	if pr.BotID == "" {
@@ -228,7 +229,20 @@ func ScreenOf(resp *presenter.Response, command string, policy *groups.Policy, m
 	if screen == "" {
 		screen = command
 	}
-	return Screen{OK: true, Screen: screen, Text: resp.Text, View: resp.View, Actions: Actions(resp.Keyboard, policy, meta)}
+	out := Screen{OK: true, Screen: screen, Text: resp.Text, View: resp.View, Actions: Actions(resp.Keyboard, policy, meta)}
+	if screen == screens.ScreenVillageRefusal {
+		// A refused village command is an error a client can act on: the
+		// code names why (village_occupied, village_unbuildable, ...), the
+		// text is the same sentence Telegram shows, in the player's language.
+		var v struct {
+			Kind string `json:"kind"`
+		}
+		if json.Unmarshal(resp.View, &v) == nil && v.Kind != "" {
+			out.OK = false
+			out.Error = &APIError{Code: "village_" + v.Kind, Message: resp.Text}
+		}
+	}
+	return out
 }
 
 // NormalizeArgs turns a client's arguments into the payload a command takes:
@@ -307,5 +321,36 @@ func clientAlias(command string, args map[string]json.RawMessage) (string, map[s
 		}
 		return "company.view", out
 	}
+	if command == "settlement.build.place" {
+		return command, placeArgs(args)
+	}
 	return command, args
+}
+
+// placeArgs lets a client name a placement by its numbers, {code, x, y,
+// rotated, confirm}, instead of the lot token Telegram's buttons carry
+// ("3-1" or "3-1-r"); the handler reads the token either way, so both go
+// through one validation.
+func placeArgs(args map[string]json.RawMessage) map[string]json.RawMessage {
+	xr, okx := args["x"]
+	yr, oky := args["y"]
+	if _, has := args["lot"]; has || !okx || !oky {
+		return args
+	}
+	var x, y int
+	if json.Unmarshal(xr, &x) != nil || json.Unmarshal(yr, &y) != nil {
+		return args
+	}
+	var rotated bool
+	if raw, ok := args["rotated"]; ok {
+		_ = json.Unmarshal(raw, &rotated)
+	}
+	out := make(map[string]json.RawMessage, len(args))
+	for k, v := range args {
+		if k != "x" && k != "y" && k != "rotated" {
+			out[k] = v
+		}
+	}
+	out["lot"], _ = json.Marshal(screens.LotToken(x, y, rotated))
+	return out
 }

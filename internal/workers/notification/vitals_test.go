@@ -48,7 +48,9 @@ func (f fakePlayerInbox) Summary(ctx context.Context, playerID string, recent in
 	}
 	return application.InboxSummary{Unread: f.unread}, nil
 }
-func (f fakePlayerInbox) Badge(context.Context, string) (*application.InboxBadge, error) { return nil, nil }
+func (f fakePlayerInbox) Badge(context.Context, string) (*application.InboxBadge, error) {
+	return nil, nil
+}
 func (f fakePlayerInbox) SaveBadge(context.Context, application.InboxBadge, time.Time) error {
 	return nil
 }

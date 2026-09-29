@@ -263,15 +263,21 @@ func (r *SettlementRepository) ExistingForWorld(ctx context.Context, worldID str
 	return out, nil
 }
 
+// settlementColumns are the cities columns a FoundedSettlement is read from.
+const settlementColumns = `c.id::text, c.code, c.name, c.jurisdiction_id::text, c.tier, c.world_id::text, c.world_cell_id,
+	c.founded_at, c.protected_until`
+
+func scanSettlement(row pgx.Row, out *application.FoundedSettlement, extra ...any) error {
+	return row.Scan(append([]any{&out.CityID, &out.Code, &out.Name, &out.JurisdictionID, &out.Tier, &out.WorldID,
+		&out.WorldCellID, &out.FoundedAt, &out.ProtectedUntil}, extra...)...)
+}
+
 // ByFoundingGroup returns the settlement this chat already founded, or
 // application.ErrCityNotFound.
 func (r *SettlementRepository) ByFoundingGroup(ctx context.Context, chatID int64) (application.FoundedSettlement, error) {
 	var out application.FoundedSettlement
-	err := r.q.QueryRow(ctx,
-		`SELECT id::text, code, name, jurisdiction_id::text, tier, world_cell_id, founded_at, protected_until
-		   FROM cities WHERE founded_by_group_id = $1`, chatID).
-		Scan(&out.CityID, &out.Code, &out.Name, &out.JurisdictionID, &out.Tier, &out.WorldCellID,
-			&out.FoundedAt, &out.ProtectedUntil)
+	err := scanSettlement(r.q.QueryRow(ctx,
+		`SELECT `+settlementColumns+` FROM cities c WHERE c.founded_by_group_id = $1`, chatID), &out)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return out, application.ErrCityNotFound
 	}
@@ -296,5 +302,53 @@ func (r *SettlementRepository) ByFoundingGroup(ctx context.Context, chatID int64
 	if err := rows.Err(); err != nil {
 		return out, fmt.Errorf("postgres: reading settlement buildings: %w", err)
 	}
+	return out, nil
+}
+
+// ByID returns one founded settlement, buildings left empty.
+func (r *SettlementRepository) ByID(ctx context.Context, id string) (application.FoundedSettlement, error) {
+	var out application.FoundedSettlement
+	if !isUUID(id) {
+		return out, application.ErrCityNotFound
+	}
+	err := scanSettlement(r.q.QueryRow(ctx,
+		`SELECT `+settlementColumns+` FROM cities c WHERE c.id = $1::uuid AND c.origin = 'founded'`, id), &out)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return out, application.ErrCityNotFound
+	}
+	if err != nil {
+		return out, fmt.Errorf("postgres: reading settlement %s: %w", id, err)
+	}
+	return out, nil
+}
+
+// ByPlayer returns the settlement a player belongs to: one whose office
+// they hold, else the one they live in.
+func (r *SettlementRepository) ByPlayer(ctx context.Context, playerID string) (application.PlayerSettlement, error) {
+	var out application.PlayerSettlement
+	if !isUUID(playerID) {
+		return out, application.ErrCityNotFound
+	}
+	var offices []string
+	err := scanSettlement(r.q.QueryRow(ctx,
+		`SELECT `+settlementColumns+`,
+		        COALESCE((SELECT array_agg(o.office_code ORDER BY o.office_code) FROM offices o
+		                   WHERE o.jurisdiction_id = c.jurisdiction_id AND o.holder_player_id = $1::uuid), '{}'),
+		        c.id = (SELECT city_id FROM players WHERE id = $1::uuid)
+		   FROM cities c
+		  WHERE c.origin = 'founded'
+		    AND (c.id = (SELECT city_id FROM players WHERE id = $1::uuid)
+		         OR EXISTS (SELECT 1 FROM offices o WHERE o.jurisdiction_id = c.jurisdiction_id AND o.holder_player_id = $1::uuid))
+		  ORDER BY EXISTS (SELECT 1 FROM offices o WHERE o.jurisdiction_id = c.jurisdiction_id AND o.holder_player_id = $1::uuid
+		                      AND o.office_code = CASE c.tier WHEN 'town' THEN 'town_head' WHEN 'city' THEN 'mayor' ELSE 'village_head' END) DESC,
+		           c.founded_at, c.id
+		  LIMIT 1`, playerID), &out.FoundedSettlement, &offices, &out.Resident)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return out, application.ErrCityNotFound
+	}
+	if err != nil {
+		return out, fmt.Errorf("postgres: reading the settlement of player %s: %w", playerID, err)
+	}
+	out.Offices = offices
 	return out, nil
 }

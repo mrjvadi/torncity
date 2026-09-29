@@ -57,7 +57,7 @@ type VillageLotsRequest struct {
 	Rotate string `json:"rotate,omitempty"`
 }
 
-func (r VillageLotsRequest) code() string { return strings.TrimSpace(r.Code) }
+func (r VillageLotsRequest) code() string  { return strings.TrimSpace(r.Code) }
 func (r VillageLotsRequest) rotated() bool { return strings.TrimSpace(r.Rotate) == "1" }
 
 // VillageBuildingRequest names one placed building's own id (demolish).
@@ -231,7 +231,7 @@ func isRoadLot(ctx context.Context, tx application.Tx, settlementID string, x, y
 		return false
 	}
 	for _, b := range buildings {
-		if b.LotX == x && b.LotY == y && b.Status != "demolished" {
+		if b.LotX == x && b.LotY == y && b.Holds() {
 			return b.TypeCode == "road"
 		}
 	}
@@ -303,20 +303,22 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 				return err
 			}
 		}
+		finish := now.Add(h.scale.RealWait(def.BuildTime))
 		if err := tx.SettlementBuildings().Place(ctx, application.SettlementBuildingInstance{
 			ID: id, SettlementID: s.CityID, TypeCode: code, LotX: x, LotY: y, Status: "building", QueuedAt: now,
+			Rotated: rotated && d.Def().CanRotate(), FinishAt: &finish,
 		}); err != nil {
 			if stderrors.Is(err, application.ErrLotOccupied) {
 				return refuseVillage(screens.VillageOccupied)
 			}
 			return err
 		}
-		finish := now.Add(h.scale.RealWait(def.BuildTime))
 		if _, err := h.schedule(ctx, tx, application.SettlementBuildActionType, "settlement_building", id, s.CityID, now, finish); err != nil {
 			return err
 		}
 		return appendVillageEvent(ctx, tx, meta, "build_started", s.CityID, map[string]any{
-			"settlement_id": s.CityID, "building_id": id, "type_code": code, "lot_x": x, "lot_y": y, "rotated": rotated,
+			"settlement_id": s.CityID, "building_id": id, "type_code": code, "lot_x": x, "lot_y": y,
+			"rotated": rotated && d.Def().CanRotate(),
 		})
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
@@ -388,6 +390,56 @@ func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, r
 		return resp, err
 	}
 	return h.BuildMenu(ctx, meta)
+}
+
+// Cancel handles settlement.build.cancel: the leader calls off a building
+// that is still going up. Its spend is forfeited (ADR 0028 section 6.2: once
+// building has started, cancelling forfeits the spend and only frees the
+// lot); the scheduled completion finds the row no longer "building" and does
+// nothing. A finished building is demolished, not cancelled.
+func (h *VillageHandler) Cancel(ctx context.Context, meta envelope.Metadata, req VillageBuildingRequest) (*presenter.Response, error) {
+	lang := meta.Language
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, l, err := h.viewer(ctx, tx, meta)
+		if err != nil {
+			return err
+		}
+		lang = l
+		fresh, err := h.reserve(ctx, tx, p.ID, meta)
+		if err != nil || !fresh {
+			return err
+		}
+		s, err := h.settlementOf(ctx, tx, meta)
+		if err != nil {
+			return err
+		}
+		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
+			return err
+		}
+		b, err := tx.SettlementBuildings().Get(ctx, strings.TrimSpace(req.ID))
+		if isSentinel(err, application.ErrBuildingNotFound) {
+			return refuseVillage(screens.VillageNotFound)
+		}
+		if err != nil {
+			return err
+		}
+		if b.SettlementID != s.CityID {
+			return refuseVillage(screens.VillageNotFound)
+		}
+		if err := tx.SettlementBuildings().Cancel(ctx, b.ID, h.now()); err != nil {
+			if stderrors.Is(err, application.ErrBuildingNotCancellable) {
+				return refuseVillage(screens.VillageNotCancellable)
+			}
+			return err
+		}
+		return appendVillageEvent(ctx, tx, meta, "build_cancelled", s.CityID, map[string]any{
+			"settlement_id": s.CityID, "building_id": b.ID, "type_code": b.TypeCode,
+		})
+	})
+	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
+		return resp, err
+	}
+	return h.Progress(ctx, meta)
 }
 
 // creditSalvage pays demolition_salvage_bps of a demolished building's own

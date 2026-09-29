@@ -244,12 +244,12 @@ type SettlementBuildingRepository struct{ q querier }
 var _ application.SettlementBuildingRepository = (*SettlementBuildingRepository)(nil)
 
 const selectSettlementBuildingColumns = `id::text, settlement_id::text, type_code, lot_x, lot_y, status,
-	queued_at, completed_at, demolished_at`
+	queued_at, completed_at, demolished_at, cancelled_at, rotated, finish_at, damage_bps`
 
 func scanSettlementBuilding(row pgx.Row) (application.SettlementBuildingInstance, error) {
 	var b application.SettlementBuildingInstance
 	err := row.Scan(&b.ID, &b.SettlementID, &b.TypeCode, &b.LotX, &b.LotY, &b.Status,
-		&b.QueuedAt, &b.CompletedAt, &b.DemolishedAt)
+		&b.QueuedAt, &b.CompletedAt, &b.DemolishedAt, &b.CancelledAt, &b.Rotated, &b.FinishAt, &b.DamageBPS)
 	return b, err
 }
 
@@ -305,9 +305,10 @@ func (r *SettlementBuildingRepository) Place(ctx context.Context, b application.
 		return err
 	}
 	_, err = r.q.Exec(ctx,
-		`INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
-		 VALUES ($1::uuid, $2::uuid, $3, $4, $5, 'building', $6, NULL)`,
-		id, b.SettlementID, b.TypeCode, b.LotX, b.LotY, b.QueuedAt)
+		`INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at,
+		        rotated, finish_at)
+		 VALUES ($1::uuid, $2::uuid, $3, $4, $5, 'building', $6, NULL, $7, $8)`,
+		id, b.SettlementID, b.TypeCode, b.LotX, b.LotY, b.QueuedAt, b.Rotated, b.FinishAt)
 	if violates(err, sqlstateUniqueViolation, settlementBuildingsLotUnique) {
 		return application.ErrLotOccupied
 	}
@@ -338,6 +339,20 @@ func (r *SettlementBuildingRepository) Demolish(ctx context.Context, id string, 
 	}
 	if tag.RowsAffected() == 0 {
 		return application.ErrBuildingNotDemolishable
+	}
+	return nil
+}
+
+// Cancel marks a building under construction cancelled.
+func (r *SettlementBuildingRepository) Cancel(ctx context.Context, id string, at time.Time) error {
+	tag, err := r.q.Exec(ctx,
+		`UPDATE settlement_buildings SET status = 'cancelled', cancelled_at = $2
+		  WHERE id = $1::uuid AND status IN ('queued', 'building')`, id, at)
+	if err != nil {
+		return fmt.Errorf("postgres: cancelling building %s: %w", id, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return application.ErrBuildingNotCancellable
 	}
 	return nil
 }

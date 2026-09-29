@@ -487,6 +487,10 @@ client:
   realtime_token_ttl: 16m
   group_commands: allow
   mini_app_url: https://play.example.test
+  chunk_cache_entries: 4097
+  chunks_per_minute: 1201
+  layouts_per_minute: 121
+  world_recheck_interval: 31s
 realtime:
   api_url: http://realtime.example.test:8000/api
   publish_timeout: 3s
@@ -774,6 +778,10 @@ var envOverrides = map[string]string{
 	"TORN_CLIENT_REALTIME_TOKEN_TTL":          "17m",
 	"TORN_CLIENT_GROUP_COMMANDS":              "allow",
 	"TORN_CLIENT_MINI_APP_URL":                "https://play2.example.test",
+	"TORN_CLIENT_CHUNK_CACHE_ENTRIES":         "4098",
+	"TORN_CLIENT_CHUNKS_PER_MINUTE":           "1202",
+	"TORN_CLIENT_LAYOUTS_PER_MINUTE":          "122",
+	"TORN_CLIENT_WORLD_RECHECK_INTERVAL":      "32s",
 	"TORN_REALTIME_API_URL":                   "http://realtime2.example.test:8000/api",
 	"TORN_REALTIME_PUBLISH_TIMEOUT":           "4s",
 

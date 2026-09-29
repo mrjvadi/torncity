@@ -458,6 +458,7 @@ var argNames = map[string][]string{
 	"settlement.build.place":        {"code", "lot", "confirm"},
 	"settlement.build.progress":     {},
 	"settlement.build.demolish":     {"id"},
+	"settlement.build.cancel":       {"id"},
 
 	"job.status":       {},
 	"job.list":         {"page"},

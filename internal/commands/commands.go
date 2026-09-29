@@ -431,6 +431,7 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "build.place", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.progress", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.demolish", Origin: FromPlayer},
+	{Domain: "settlement", Action: "build.cancel", Origin: FromPlayer},
 	{Domain: "settlement", Action: "researched", Origin: FromScheduler},
 	{Domain: "settlement", Action: "taught", Origin: FromScheduler},
 	{Domain: "settlement", Action: "built", Origin: FromScheduler},

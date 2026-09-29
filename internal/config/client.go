@@ -46,6 +46,18 @@ type Client struct {
 	// MiniAppURL is the address of the Telegram Mini App build of the
 	// client, empty until it is published.
 	MiniAppURL string // client.mini_app_url
+	// ChunkCacheEntries bounds how many encoded world chunks one replica
+	// keeps (about 10 KB each, raw and gzip together).
+	ChunkCacheEntries int // client.chunk_cache_entries
+	// ChunksPerMinute is how many world chunks one player may fetch per
+	// minute; chunks are cheap but generated on demand.
+	ChunksPerMinute int // client.chunks_per_minute
+	// WorldRecheckInterval is how long the active world's registry row is
+	// trusted before the database is asked again.
+	WorldRecheckInterval time.Duration // client.world_recheck_interval
+	// LayoutsPerMinute is how many village layouts one player may fetch per
+	// minute (each samples the settlement's terrain).
+	LayoutsPerMinute int // client.layouts_per_minute
 }
 
 // Realtime is the realtime server (Centrifugo) the client API and the
@@ -72,6 +84,10 @@ type clientSettings struct {
 	RealtimeTokenTTL   *string  `yaml:"realtime_token_ttl"`
 	GroupCommands      *string  `yaml:"group_commands"`
 	MiniAppURL         *string  `yaml:"mini_app_url"`
+	ChunkCacheEntries  *int     `yaml:"chunk_cache_entries"`
+	ChunksPerMinute    *int     `yaml:"chunks_per_minute"`
+	LayoutsPerMinute   *int     `yaml:"layouts_per_minute"`
+	WorldRecheck       *string  `yaml:"world_recheck_interval"`
 }
 
 type realtimeSettings struct {
@@ -88,21 +104,25 @@ const (
 // defaultClient is what configs/config.yml says.
 func defaultClient() Client {
 	return Client{
-		Listen:             "127.0.0.1:8081",
-		TrustedProxies:     []string{"127.0.0.1/32", "::1/128"},
-		AccessTTL:          15 * time.Minute,
-		RefreshTTL:         30 * 24 * time.Hour,
-		LinkCodeTTL:        10 * time.Minute,
-		LinkCodesPerHour:   5,
-		SignInsPerMinute:   10,
-		MaxDevices:         10,
-		CommandTimeout:     15 * time.Second,
-		CommandsPerMinute:  120,
-		MaxBodyBytes:       16384,
-		TelegramAuthMaxAge: time.Hour,
-		RealtimeTokenTTL:   15 * time.Minute,
-		GroupCommands:      GroupCommandsRefuse,
-		MiniAppURL:         "",
+		Listen:               "127.0.0.1:8081",
+		TrustedProxies:       []string{"127.0.0.1/32", "::1/128"},
+		AccessTTL:            15 * time.Minute,
+		RefreshTTL:           30 * 24 * time.Hour,
+		LinkCodeTTL:          10 * time.Minute,
+		LinkCodesPerHour:     5,
+		SignInsPerMinute:     10,
+		MaxDevices:           10,
+		CommandTimeout:       15 * time.Second,
+		CommandsPerMinute:    120,
+		MaxBodyBytes:         16384,
+		TelegramAuthMaxAge:   time.Hour,
+		RealtimeTokenTTL:     15 * time.Minute,
+		GroupCommands:        GroupCommandsRefuse,
+		MiniAppURL:           "",
+		ChunkCacheEntries:    4096,
+		ChunksPerMinute:      1200,
+		LayoutsPerMinute:     120,
+		WorldRecheckInterval: 30 * time.Second,
 	}
 }
 
@@ -200,6 +220,18 @@ func clientSettingsTable() []setting {
 		optional(stringSetting("client", "mini_app_url",
 			func(c *Config) *string { return &c.Client.MiniAppURL },
 			func(f *fileConfig) *string { return f.Client.MiniAppURL })),
+		limitSetting("client", "chunk_cache_entries",
+			func(c *Config) *int { return &c.Client.ChunkCacheEntries },
+			func(f *fileConfig) *int { return f.Client.ChunkCacheEntries }),
+		limitSetting("client", "chunks_per_minute",
+			func(c *Config) *int { return &c.Client.ChunksPerMinute },
+			func(f *fileConfig) *int { return f.Client.ChunksPerMinute }),
+		limitSetting("client", "layouts_per_minute",
+			func(c *Config) *int { return &c.Client.LayoutsPerMinute },
+			func(f *fileConfig) *int { return f.Client.LayoutsPerMinute }),
+		durationSetting("client", "world_recheck_interval",
+			func(c *Config) *time.Duration { return &c.Client.WorldRecheckInterval },
+			func(f *fileConfig) *string { return f.Client.WorldRecheck }),
 		stringSetting("realtime", "api_url",
 			func(c *Config) *string { return &c.Realtime.APIURL },
 			func(f *fileConfig) *string { return f.Realtime.APIURL }),

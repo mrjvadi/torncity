@@ -889,6 +889,16 @@ client:
   group_commands: refuse
   # The Mini App build's https address; empty until it is published.
   mini_app_url: ""
+  # World chunks (GET /api/v1/world/chunks/...): how many encoded chunks one
+  # replica keeps in memory (about 10 KB each, raw and gzip together), and how
+  # many one player may fetch per minute. A village layout samples the
+  # settlement's terrain, so it has its own, lower, limit.
+  chunk_cache_entries: 4096
+  chunks_per_minute: 1200
+  layouts_per_minute: 120
+  # How long the active world's registry row is trusted before the database
+  # is asked which world is active again.
+  world_recheck_interval: 30s
 
 # The realtime server (Centrifugo, deployments/centrifugo). The client API
 # issues its tokens and the notifier publishes notices to it; its API key

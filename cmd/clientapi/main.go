@@ -25,9 +25,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/clientapi"
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	"github.com/mrjvadi/torncity/internal/gateway/groups"
 	"github.com/mrjvadi/torncity/internal/gateway/identity/firstcontact"
 	"github.com/mrjvadi/torncity/internal/gateway/moderation"
@@ -44,6 +46,7 @@ import (
 
 const (
 	defaultLocalesDir = "configs/locales"
+	defaultContentDir = "configs/content"
 	commandsFile      = "commands.yml"
 	actionsFile       = "actions.yml"
 )
@@ -75,6 +78,7 @@ func main() {
 type env struct {
 	databaseURL, redisURL, natsURL string
 	configPath, localesDir         string
+	contentDir                     string
 	commandsPath                   string
 	actionsPath                    string
 	logLevel                       string
@@ -90,6 +94,7 @@ func loadEnv() (env, error) {
 		natsURL:        os.Getenv("NATS_URL"),
 		configPath:     os.Getenv("TORN_CONFIG"),
 		localesDir:     os.Getenv("TORN_LOCALES_DIR"),
+		contentDir:     os.Getenv("TORN_CONTENT_DIR"),
 		commandsPath:   os.Getenv("TORN_COMMANDS"),
 		actionsPath:    os.Getenv("TORN_ACTIONS"),
 		logLevel:       os.Getenv("LOG_LEVEL"),
@@ -102,6 +107,9 @@ func loadEnv() (env, error) {
 	}
 	if e.localesDir == "" {
 		e.localesDir = defaultLocalesDir
+	}
+	if e.contentDir == "" {
+		e.contentDir = defaultContentDir
 	}
 	if e.commandsPath == "" {
 		e.commandsPath = filepath.Join(filepath.Dir(e.configPath), commandsFile)
@@ -219,6 +227,33 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		return err
 	}
 
+	// The generated planet (docs/adr/0028 section 2): regenerated from the
+	// active world's seed on first use, exactly as the game does, and only
+	// read here. Its chunks and the settlements' terrain are what the world
+	// endpoints serve.
+	wgPack, err := content.LoadWorldGen(e.contentDir)
+	if err != nil {
+		return fmt.Errorf("clientapi: loading world generation content from %s: %w", e.contentDir, err)
+	}
+	wgContent, err := wgPack.ToContent()
+	if err != nil {
+		return fmt.Errorf("clientapi: world generation content: %w", err)
+	}
+	worldCache := application.NewWorldCache(postgres.NewWorldRepository(pool), worldGenParams(cfg.WorldGen), wgContent)
+	worldSvc := &clientapi.WorldService{Source: worldCache, CacheEntries: cfg.Client.ChunkCacheEntries,
+		RecheckEvery: cfg.Client.WorldRecheckInterval, Now: time.Now}
+	villages := &clientapi.VillageService{Settlements: postgres.NewSettlementReader(pool),
+		Buildings: postgres.NewSettlementBuildingReader(pool), World: worldSvc, Content: registry,
+		VillageGridLots: cfg.Settlement.VillageGridLots, Now: time.Now}
+	// Generating the planet takes a while; do it before the first request
+	// asks, not during it. No world yet is fine: the endpoints answer
+	// world_not_created until `admin world create` has run.
+	go func() {
+		if _, err := worldSvc.Info(ctx); err != nil && !errors.Is(err, clientapi.ErrNoWorld) {
+			logger.Warn("cannot warm the world", slog.String("error", err.Error()))
+		}
+	}()
+
 	tokens := centrifugo.NewTokens(e.realtimeSecret, cfg.Client.RealtimeTokenTTL)
 	if !tokens.Enabled() {
 		logger.Warn("CENTRIFUGO_TOKEN_HMAC_SECRET is not set; the realtime endpoints answer realtime_unavailable")
@@ -241,8 +276,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		},
 		World: &clientapi.World{Players: players, Cities: postgres.NewCityRepository(pool),
 			CityCodes: postgres.NewCityRepository(pool), Companies: postgres.NewCompanyRepository(pool), Content: registry,
-			Msgs: catalog, Realtime: tokens.Enabled(), Now: time.Now},
+			Villages: villages, Msgs: catalog, Realtime: tokens.Enabled(), Now: time.Now},
+		WorldSvc: worldSvc, Villages: villages,
 		Limits: limits, Realtime: tokens, Msgs: catalog,
+		ChunksPerMinute: cfg.Client.ChunksPerMinute, LayoutsPerMinute: cfg.Client.LayoutsPerMinute,
 		SignInsPerMinute: cfg.Client.SignInsPerMinute, CommandsPerMinute: cfg.Client.CommandsPerMinute,
 		MaxBodyBytes: int64(cfg.Client.MaxBodyBytes), TrustedProxies: proxies,
 		AllowedOrigin: clientapi.OriginOf(cfg.Client.MiniAppURL), Logger: logger,
@@ -340,4 +377,37 @@ type moderationSource struct{ r *postgres.ModerationReader }
 func (s moderationSource) Standing(ctx context.Context, id int64, now time.Time) (moderation.Standing, error) {
 	st, err := s.r.Standing(ctx, id, now)
 	return moderation.Standing{Muted: st.Muted, Banned: st.Banned, Until: st.Until}, err
+}
+
+// worldGenParams converts config.WorldGen into the typed worldgen.Params the
+// generator takes, as the game's and the admin's own copies do: internal/config
+// imports no domain package, so each process that calls worldgen.Generate
+// makes the conversion.
+func worldGenParams(wg config.WorldGen) worldgen.Params {
+	return worldgen.Params{
+		CellCount:              wg.CellCount,
+		NeighborK:              wg.NeighborK,
+		PlateCount:             wg.PlateCount,
+		OceanicPlateFraction:   worldgen.Permille(wg.OceanicPlateFraction),
+		LandFraction:           worldgen.Permille(wg.LandFraction),
+		NoiseOctaves:           wg.NoiseOctaves,
+		NoiseBaseFrequency:     wg.NoiseBaseFrequency,
+		NoisePersistence:       worldgen.Permille(wg.NoisePersistence),
+		WarpAmplitude:          wg.WarpAmplitude,
+		WarpFrequency:          wg.WarpFrequency,
+		BoundaryInfluenceSteps: wg.BoundaryInfluenceSteps,
+		MoistureBands:          wg.MoistureBands,
+		RiverFlowThreshold:     wg.RiverFlowThreshold,
+		LakeMinDepth:           worldgen.Elevation(wg.LakeMinDepth),
+		LakeMinAreaCells:       wg.LakeMinAreaCells,
+
+		PlanetRadiusKm:              wg.PlanetRadiusKm,
+		ChunkBaseLOD:                int8(wg.ChunkBaseLOD),
+		ChunkTileEdge:               wg.ChunkTileEdge,
+		ChunkDetailFrequency:        wg.ChunkDetailFrequency,
+		ChunkDetailAmplitude:        worldgen.Elevation(wg.ChunkDetailAmplitude),
+		ChunkStreamFrequency:        wg.ChunkStreamFrequency,
+		ChunkStreamAmplitude:        worldgen.Elevation(wg.ChunkStreamAmplitude),
+		ChunkDepositTilesPerDeposit: wg.ChunkDepositTilesPerDeposit,
+	}
 }

@@ -58,7 +58,6 @@ const (
 	// boundary relief is reduced near the coast, never zeroed.
 	coastGuardWidth    = 900.0
 	coastGuardMinScale = 0.20
-
 )
 
 // boundaryPeakMagnitude returns the elevation contribution a boundary of the

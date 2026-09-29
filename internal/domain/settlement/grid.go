@@ -45,50 +45,12 @@ type GridLot struct {
 // pure function of the world and the centre, like every other function in
 // this package: the same world and centre always produce the same grid.
 func SampleGrid(w *worldgen.World, centerLat, centerLon float64, gridLots int, cellID int32) [][]GridLot {
-	if gridLots < 1 {
-		gridLots = 1
-	}
-	lotMeters := w.Params.TileMeters() / lotsPerTile
-
-	hasOre := false
-	for _, d := range w.Deposits {
-		if d.CellID == cellID && oreResourceCodes[d.ResourceCode] {
-			hasOre = true
-			break
-		}
-	}
-
-	samples := make([][]worldgen.FineSample, gridLots)
-	for y := 0; y < gridLots; y++ {
-		samples[y] = make([]worldgen.FineSample, gridLots)
-		for x := 0; x < gridLots; x++ {
-			lat, lon := lotLatLon(w, centerLat, centerLon, lotMeters, x, y, gridLots)
-			samples[y][x] = w.SampleFineLatLon(lat, lon)
-		}
-	}
-
-	out := make([][]GridLot, gridLots)
-	for y := 0; y < gridLots; y++ {
-		out[y] = make([]GridLot, gridLots)
-		for x := 0; x < gridLots; x++ {
-			s := samples[y][x]
-			lot := GridLot{Buildable: buildableFine(s)}
-			if code := biomeCodeOf(w, s.Biome); code != "" {
-				lot.Tags = append(lot.Tags, code)
-			}
-			if s.StreamKind != worldgen.StreamKindNone {
-				lot.Tags = append(lot.Tags, "river_lot")
-			}
-			if isCoastal(samples, x, y, gridLots) {
-				lot.Tags = append(lot.Tags, "coastal_lot")
-			}
-			if isSloped(samples, x, y, gridLots) {
-				lot.Tags = append(lot.Tags, "sloped_lot")
-			}
-			if hasOre {
-				lot.Tags = append(lot.Tags, "ore_deposit")
-			}
-			out[y][x] = lot
+	d := SampleGridDetail(w, centerLat, centerLon, gridLots, cellID)
+	out := make([][]GridLot, len(d.Lots))
+	for y := range d.Lots {
+		out[y] = make([]GridLot, len(d.Lots[y]))
+		for x, l := range d.Lots[y] {
+			out[y][x] = GridLot{Buildable: l.Buildable, Tags: l.Tags}
 		}
 	}
 	return out

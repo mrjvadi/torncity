@@ -46,9 +46,13 @@ type Places interface {
 
 // ServerConfig is what NewServer needs.
 type ServerConfig struct {
-	Auth     *Auth
-	Bridge   *Bridge
-	World    Places
+	Auth   *Auth
+	Bridge *Bridge
+	World  Places
+	// WorldSvc and Villages serve the generated planet and the settlement
+	// layouts (server_world.go); nil answers world_not_created.
+	WorldSvc *WorldService
+	Villages *VillageService
 	Limits   Limiter
 	Realtime RealtimeTokens
 	// Msgs words the few refusals a player may be shown (group_only).
@@ -56,8 +60,12 @@ type ServerConfig struct {
 
 	SignInsPerMinute  int
 	CommandsPerMinute int
-	MaxBodyBytes      int64
-	TrustedProxies    []*net.IPNet
+	// ChunksPerMinute and LayoutsPerMinute bound the world endpoints per
+	// player (0 = unbounded).
+	ChunksPerMinute  int
+	LayoutsPerMinute int
+	MaxBodyBytes     int64
+	TrustedProxies   []*net.IPNet
 	// AllowedOrigin is the one browser origin (the Mini App's) allowed to
 	// call the API from a page; empty allows none.
 	AllowedOrigin string
@@ -93,6 +101,9 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/v1/content", s.authed(s.content))
 	mux.HandleFunc("POST /api/v1/client-log", s.clientLog)
 	mux.HandleFunc("GET /api/v1/world/city", s.authed(s.cityWorld))
+	mux.HandleFunc("GET /api/v1/world", s.authed(s.worldInfo))
+	mux.HandleFunc("GET /api/v1/world/chunks/{face}/{lod}/{x}/{y}", s.authed(s.chunk))
+	mux.HandleFunc("GET /api/v1/settlements/{id}/layout", s.authed(s.settlementLayout))
 	mux.HandleFunc("GET /api/v1/realtime/token", s.authed(s.realtimeToken))
 	mux.HandleFunc("GET /api/v1/realtime/subscribe", s.authed(s.realtimeSubscribe))
 	return s.cors(mux)
@@ -399,6 +410,12 @@ func classify(err error) (int, string) {
 		return http.StatusTooManyRequests, "rate_limited"
 	case errors.Is(err, errBadBody), errors.Is(err, ErrBadArgs):
 		return http.StatusBadRequest, "bad_request"
+	case errors.Is(err, ErrBadChunk):
+		return http.StatusBadRequest, "bad_chunk"
+	case errors.Is(err, ErrNoWorld):
+		return http.StatusNotFound, "world_not_created"
+	case errors.Is(err, ErrNoSettlement):
+		return http.StatusNotFound, "no_settlement"
 	case errors.Is(err, ErrUnknownCommand):
 		return http.StatusBadRequest, "unknown_command"
 	case errors.Is(err, ErrGroupOnly):

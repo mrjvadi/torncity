@@ -384,15 +384,16 @@ commands:
   # Village-level knowledge and construction (docs/adr/0031), K2/W5: the
   # same rule — a settlement's growth is the group's own decision, never
   # private.
-  settlement.overview: {channel: group}
-  settlement.knowledge: {channel: group}
-  settlement.knowledge.research: {channel: group}
-  settlement.knowledge.buy: {channel: group}
-  settlement.build: {channel: group}
-  settlement.build.lots: {channel: group}
-  settlement.build.place: {channel: group}
-  settlement.build.progress: {channel: group}
-  settlement.build.demolish: {channel: group}
+  settlement.overview: {channel: group, client: true}
+  settlement.knowledge: {channel: group, client: true}
+  settlement.knowledge.research: {channel: group, client: true}
+  settlement.knowledge.buy: {channel: group, client: true}
+  settlement.build: {channel: group, client: true}
+  settlement.build.lots: {channel: group, client: true}
+  settlement.build.place: {channel: group, client: true}
+  settlement.build.progress: {channel: group, client: true}
+  settlement.build.demolish: {channel: group, client: true}
+  settlement.build.cancel: {channel: group, client: true}
 
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the

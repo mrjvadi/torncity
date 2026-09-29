@@ -82,6 +82,7 @@ const (
 	VillageConcurrentCap   = "concurrent_cap"
 	VillageNotDemolishable = "not_demolishable"
 	VillageMaterials       = "materials"
+	VillageNotCancellable  = "not_cancellable"
 )
 
 // VillageRefusalView is a K2/W5 command refused before it changed anything.
@@ -102,7 +103,8 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 	switch kind {
 	case VillageNoSettlement, VillageNotOfficeHolder, VillageInsufficient, VillageBusy, VillageAlreadyOwned,
 		VillageNotAvailable, VillageTerrain, VillagePrerequisite, VillageLiteracy, VillageNotFound,
-		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials:
+		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
+		VillageNotCancellable:
 	default:
 		kind = VillageNotFound
 	}

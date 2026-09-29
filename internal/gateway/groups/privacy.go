@@ -64,6 +64,11 @@ const (
 type Rule struct {
 	Channel Channel `yaml:"channel"`
 	Reply   string  `yaml:"reply"`
+	// Client marks a group command a game client may run without a group:
+	// it names its subject (the player's own settlement) from the player,
+	// not from the chat, so client.group_commands = refuse does not apply
+	// to it.
+	Client bool `yaml:"client"`
 }
 
 // InputSpec says how a pending free-text input (internal/gateway/input) fills
@@ -179,6 +184,14 @@ func (p *Policy) Channel(command string) Channel {
 		return r.Channel
 	}
 	return ChannelBoth
+}
+
+// ClientMay reports whether a game client may run a group-only command.
+func (p *Policy) ClientMay(command string) bool {
+	if p == nil {
+		return false
+	}
+	return p.rules[command].Client
 }
 
 // Allowed reports whether command may run in a chat of this kind.

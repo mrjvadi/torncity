@@ -21,6 +21,9 @@ type Bootstrap struct {
 	Cities     []NamedCode `json:"cities"`
 	Places     []NamedCode `json:"places"`
 	ServerTime string      `json:"server_time"`
+	// Settlement is the player's own settlement, absent when they belong to
+	// none (api/client-api.md, "The world").
+	Settlement *BootstrapSettlement `json:"settlement,omitempty"`
 	// Realtime says whether the realtime tokens can be had.
 	Realtime bool `json:"realtime"`
 }
@@ -59,10 +62,13 @@ type World struct {
 	// CityCodes and Companies draw the city map (worldmap.go).
 	CityCodes CityDirectory
 	Companies CompanyDirectory
-	Content   *content.Registry
-	Msgs      Catalogue
-	Realtime  bool
-	Now       func() time.Time
+	// Villages finds the player's settlement for the bootstrap; nil leaves
+	// it out.
+	Villages *VillageService
+	Content  *content.Registry
+	Msgs     Catalogue
+	Realtime bool
+	Now      func() time.Time
 }
 
 // CityCode is the code of the city the player is in, empty when none.
@@ -104,6 +110,11 @@ func (w *World) Bootstrap(ctx context.Context, pr Principal) (Bootstrap, error) 
 		Player:         BootstrapPlayer{ID: p.ID, Code: p.PublicCode, Name: p.DisplayName, Lang: pr.Lang, CityCode: cityCode},
 		ContentVersion: snap.Version(), Languages: []NamedCode{}, Cities: []NamedCode{}, Places: []NamedCode{},
 		ServerTime: w.Now().UTC().Format(time.RFC3339), Realtime: w.Realtime,
+	}
+	if w.Villages != nil {
+		if out.Settlement, err = w.Villages.Mine(ctx, p.ID); err != nil {
+			return Bootstrap{}, err
+		}
 	}
 	for _, lang := range w.Msgs.Languages() {
 		out.Languages = append(out.Languages, NamedCode{Code: lang, Name: screens.LanguageName(c, lang)})

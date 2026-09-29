@@ -73,6 +73,11 @@ var (
 	// internal/application/handlers/village.go's own note).
 	ErrBuildingNotDemolishable = errors.Sentinel(errors.CodeConflict,
 		"application.ErrBuildingNotDemolishable", "that building cannot be demolished")
+
+	// ErrBuildingNotCancellable means the building is not under
+	// construction any more (finished, demolished or already cancelled).
+	ErrBuildingNotCancellable = errors.Sentinel(errors.CodeConflict,
+		"application.ErrBuildingNotCancellable", "that building cannot be cancelled")
 )
 
 // SettlementKnowledgeOwned is one settlement_knowledge_owned row.
@@ -118,6 +123,23 @@ type SettlementBuildingInstance struct {
 	QueuedAt     time.Time
 	CompletedAt  *time.Time
 	DemolishedAt *time.Time
+	// CancelledAt is set with Status "cancelled": the leader cancelled the
+	// building while it was going up.
+	CancelledAt *time.Time
+	// Rotated is set when the footprint was turned a quarter turn at
+	// placement (migration 0049); permanent, like the lot.
+	Rotated bool
+	// FinishAt is when construction ends on the real clock, nil for the
+	// founding kit and for rows written before migration 0049.
+	FinishAt *time.Time
+	// DamageBPS is 0..10000; no rule damages a building yet.
+	DamageBPS int
+}
+
+// Holds reports whether the building holds its lot: anything but a
+// demolished or cancelled one.
+func (b SettlementBuildingInstance) Holds() bool {
+	return b.Status != "demolished" && b.Status != "cancelled"
 }
 
 // Complete reports whether the building has finished construction (whether
@@ -220,4 +242,10 @@ type SettlementBuildingRepository interface {
 	// Demolish marks a complete building demolished. Refuses
 	// ErrBuildingNotDemolishable for anything not currently "complete".
 	Demolish(ctx context.Context, id string, at time.Time) error
+
+	// Cancel marks a building still under construction cancelled; its lot
+	// is free again and the spend is not returned (ADR 0028 section 6.2).
+	// Refuses ErrBuildingNotCancellable for anything not currently
+	// "building" or "queued".
+	Cancel(ctx context.Context, id string, at time.Time) error
 }

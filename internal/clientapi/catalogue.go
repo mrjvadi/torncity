@@ -30,6 +30,8 @@ type CatalogueEntry struct {
 	Asset    CatalogueAsset    `json:"asset"`
 	Category string            `json:"category,omitempty"`
 	Kind     string            `json:"kind,omitempty"`
+	// Footprint is [width, height] in lots, for a settlement building.
+	Footprint []int `json:"footprint,omitempty"`
 }
 
 // CatalogueAsset names the art: a model (a building, a vehicle) and an
@@ -112,6 +114,10 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 	for _, fc := range snap.ForceClasses() {
 		add("military_unit", CatalogueEntry{Code: fc.Code, Category: fc.Branch,
 			Name: names(func(c screens.Context) string { return c.ForceClassName(screens.Named{Code: fc.Code, Name: fc.Name}) })}, true)
+	}
+	for _, sb := range snap.SettlementBuildingDefs() {
+		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, Footprint: []int{sb.Footprint[0], sb.Footprint[1]},
+			Name: names(func(c screens.Context) string { return c.SettlementBuildingName(screens.Named{Code: sb.Code, Name: sb.Name}) })}, true)
 	}
 	return out
 }

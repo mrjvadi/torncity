@@ -71,14 +71,14 @@ type VillageHandler struct {
 	// time (config education.teach_period or a village-specific default);
 	// teachRateBPS/schoolCapacityFactorBPS feed
 	// settlementknowledge.AdvanceLiteracy directly.
-	teachPeriod             time.Duration
-	teachRateBPS            int64
-	baseSchoolCapacityBPS   int64
-	scarcityKBPS            int64
-	scarcityFloorBPS        int64
-	scarcityCapBPS          int64
-	sellerBandBPS           int64
-	demolitionSalvageBPS    int64
+	teachPeriod           time.Duration
+	teachRateBPS          int64
+	baseSchoolCapacityBPS int64
+	scarcityKBPS          int64
+	scarcityFloorBPS      int64
+	scarcityCapBPS        int64
+	sellerBandBPS         int64
+	demolitionSalvageBPS  int64
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -145,16 +145,7 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 // exists.
 const villageHeadOffice = "village_head"
 
-func officeFor(tier string) string {
-	switch tier {
-	case "town":
-		return "town_head"
-	case "city":
-		return "mayor"
-	default:
-		return villageHeadOffice
-	}
-}
+func officeFor(tier string) string { return wsettle.HeadOffice(tier) }
 
 func (h *VillageHandler) screen(meta envelope.Metadata, lang string) screens.Context {
 	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
@@ -217,6 +208,21 @@ func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err 
 // application.ErrCityNotFound. It does not lock anything: reads use it
 // straight, writes re-resolve under whatever lock they themselves need.
 func (h *VillageHandler) settlementOf(ctx context.Context, tx application.Tx, meta envelope.Metadata) (application.FoundedSettlement, error) {
+	if meta.FromClient() {
+		// A game client has no Telegram group to name its settlement by:
+		// it is the player's own, the one they head or live in. Every
+		// write still goes through authorizeVillage, so a resident who
+		// is not the head is refused exactly as in the group.
+		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
+		if err != nil {
+			return application.FoundedSettlement{}, err
+		}
+		ps, err := tx.Settlements().ByPlayer(ctx, p.ID)
+		if err != nil {
+			return application.FoundedSettlement{}, err
+		}
+		return ps.FoundedSettlement, nil
+	}
 	if !meta.InGroup() {
 		return application.FoundedSettlement{}, refuseVillage(screens.VillageNoSettlement)
 	}
@@ -262,12 +268,28 @@ func (h *VillageHandler) grid(ctx context.Context, tx application.Tx, w *worldge
 			g[y][x] = settlementbuilding.Lot{Buildable: sampled[y][x].Buildable, TerrainTags: sampled[y][x].Tags}
 		}
 	}
+	snap := h.content.Current()
 	for _, b := range existing {
-		if b.Status == "demolished" {
+		if !b.Holds() {
 			continue
 		}
-		if b.LotY >= 0 && b.LotY < gridLots && b.LotX >= 0 && b.LotX < gridLots {
-			g[b.LotY][b.LotX].Occupied = true
+		// The whole footprint, turned as it was placed, is taken; a type
+		// the content no longer declares still holds its own lot.
+		fw, fh := 1, 1
+		if d, ok := snap.SettlementBuildingDef(b.TypeCode); ok {
+			def := d.Def()
+			if b.Rotated {
+				def = def.Rotate()
+			}
+			fw, fh = def.FootprintW, def.FootprintH
+		}
+		for dy := 0; dy < fh; dy++ {
+			for dx := 0; dx < fw; dx++ {
+				x, y := b.LotX+dx, b.LotY+dy
+				if y >= 0 && y < gridLots && x >= 0 && x < gridLots {
+					g[y][x].Occupied = true
+				}
+			}
 		}
 	}
 	return g, existing, nil

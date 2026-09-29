@@ -145,7 +145,7 @@ var itemReasons = map[ItemReason]bool{
 	ItemListingEscrow: true, ItemListingRelease: true, ItemCompanySale: true,
 	ItemProcured:  true,
 	ItemDestroyed: true, ItemExpended: true,
-	ItemRetrofitKit: true,
+	ItemRetrofitKit:            true,
 	ItemSettlementConstruction: true,
 }
 

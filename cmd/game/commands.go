@@ -286,6 +286,13 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		"settlement.build.progress": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.Progress(ctx, env.Metadata)
 		},
+		"settlement.build.cancel": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageBuildingRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Cancel(ctx, env.Metadata, req)
+		},
 		"settlement.build.demolish": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageBuildingRequest
 			if err := decode(env, &req); err != nil {

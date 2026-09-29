@@ -1,0 +1,400 @@
+package clientapi
+
+import (
+	"context"
+	"encoding/hex"
+	"errors"
+	"hash/fnv"
+	"math"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/settlement"
+	"github.com/mrjvadi/torncity/internal/domain/worldgen"
+)
+
+// A settlement as a client draws it (docs/adr/0028 sections 6.4 and 9.4):
+// where it stands, its lot grid with the terrain of every lot, and the
+// buildings on it. The terrain comes from settlement.SampleGridDetail, the
+// very sampling the placement rules validate a building against
+// (VillageHandler.grid), so the client and the server agree exactly on what
+// is buildable; the footprints and turns are the ones the placement was
+// validated with.
+
+// Detail levels of a layout, by who asks (ADR 0030 section 2.1).
+const (
+	// DetailFull is a member's view: every building, being built ones
+	// with their timers, damage, ids.
+	DetailFull = "full"
+	// DetailCoarse is a stranger's: the terrain and the buildings that
+	// stand, nothing of what is being built, damaged or by whom.
+	DetailCoarse = "coarse"
+)
+
+// Building states a client is told. The database keeps queued, building,
+// complete; a demolished or cancelled building holds no lot and is not
+// listed.
+const (
+	StatePlanned           = "planned"
+	StateUnderConstruction = "under_construction"
+	StateBuilt             = "built"
+	StateDamaged           = "damaged"
+	StateRuin              = "ruin"
+)
+
+// ErrNoSettlement means the player belongs to no settlement.
+var ErrNoSettlement = errors.New("clientapi: you belong to no settlement")
+
+// SettlementReader reads a settlement and who belongs to it
+// (application.SettlementRepository, over the pool).
+type SettlementReader interface {
+	ByID(ctx context.Context, id string) (application.FoundedSettlement, error)
+	ByPlayer(ctx context.Context, playerID string) (application.PlayerSettlement, error)
+}
+
+// BuildingReader lists a settlement's buildings
+// (application.SettlementBuildingRepository, over the pool).
+type BuildingReader interface {
+	List(ctx context.Context, settlementID string) ([]application.SettlementBuildingInstance, error)
+}
+
+// VillageService assembles the settlement views.
+type VillageService struct {
+	Settlements SettlementReader
+	Buildings   BuildingReader
+	World       *WorldService
+	Content     *content.Registry
+	// VillageGridLots is settlement.village_grid_lots.
+	VillageGridLots int
+	Now             func() time.Time
+}
+
+// Place is a point on the planet with the base-LOD chunk holding it.
+type Place struct {
+	Lat   float64        `json:"lat"`
+	Lon   float64        `json:"lon"`
+	Chunk *ChunkAddrView `json:"chunk,omitempty"`
+}
+
+// ChunkAddrView is a chunk address as the endpoint takes it.
+type ChunkAddrView struct {
+	Face int `json:"face"`
+	LOD  int `json:"lod"`
+	X    int `json:"x"`
+	Y    int `json:"y"`
+}
+
+// BootstrapSettlement is the player's own settlement, in the bootstrap.
+type BootstrapSettlement struct {
+	ID   string `json:"id"`
+	Code string `json:"code"`
+	Name string `json:"name"`
+	Tier string `json:"tier"`
+	// WorldCell is the world cell the settlement stands on, Centre its
+	// middle (the centre of that cell, the middle of the lot grid).
+	WorldCell int32  `json:"world_cell"`
+	Centre    *Place `json:"centre,omitempty"`
+	// IsHead is set when the player holds the settlement's top office, and
+	// only such a player places buildings; Resident when they live there.
+	IsHead   bool `json:"is_head"`
+	Resident bool `json:"resident"`
+	// GridLots is the side of the lot grid.
+	GridLots   int    `json:"grid_lots"`
+	LayoutPath string `json:"layout_path"`
+}
+
+// Mine is the player's settlement, nil when they belong to none.
+func (v *VillageService) Mine(ctx context.Context, playerID string) (*BootstrapSettlement, error) {
+	ps, err := v.Settlements.ByPlayer(ctx, playerID)
+	if errors.Is(err, application.ErrCityNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	out := &BootstrapSettlement{ID: ps.CityID, Code: ps.Code, Name: ps.Name, Tier: ps.Tier, WorldCell: ps.WorldCellID,
+		IsHead: holdsHead(ps), Resident: ps.Resident, GridLots: v.gridLots(ps.Tier), LayoutPath: "/api/v1/settlements/" + ps.CityID + "/layout"}
+	if _, w, err := v.World.active(ctx); err == nil {
+		out.Centre = centreOf(w, ps.WorldCellID)
+	}
+	return out, nil
+}
+
+func holdsHead(ps application.PlayerSettlement) bool {
+	head := settlement.HeadOffice(ps.Tier)
+	for _, o := range ps.Offices {
+		if o == head {
+			return true
+		}
+	}
+	return false
+}
+
+func (v *VillageService) gridLots(tier string) int {
+	return settlement.GridLotsForTier(tier, v.VillageGridLots)
+}
+
+func centreOf(w *worldgen.World, cell int32) *Place {
+	if cell < 0 || int(cell) >= len(w.Cells) {
+		return nil
+	}
+	pt := w.Cells[cell].Point
+	c := worldgen.ChunkOfLatLon(w.Params.ChunkBaseLOD, pt.LatDeg, pt.LonDeg)
+	return &Place{Lat: pt.LatDeg, Lon: pt.LonDeg,
+		Chunk: &ChunkAddrView{Face: int(c.Face), LOD: int(c.LOD), X: int(c.X), Y: int(c.Y)}}
+}
+
+// VillageLayout is GET /api/v1/settlements/{id}/layout.
+type VillageLayout struct {
+	// Version changes whenever anything a client draws changes; it is also
+	// the ETag, so a client can poll cheaply until realtime carries it.
+	Version    string           `json:"version"`
+	Detail     string           `json:"detail"`
+	Viewer     LayoutViewer     `json:"viewer"`
+	Settlement LayoutSettlement `json:"settlement"`
+	Grid       LayoutGrid       `json:"grid"`
+	// Lots[y][x] is the terrain of lot (x, y).
+	Lots      [][]LayoutLot    `json:"lots"`
+	Buildings []LayoutBuilding `json:"buildings"`
+	// Roads lists the lots that hold a road, for a client that draws roads
+	// apart from buildings; they are also in Buildings.
+	Roads []LayoutLotRef `json:"roads"`
+}
+
+// LayoutViewer says what the asker may do here.
+type LayoutViewer struct {
+	Member bool `json:"member"`
+	// CanPlace is set for the settlement's head: place, cancel, demolish.
+	CanPlace bool `json:"can_place"`
+}
+
+// LayoutSettlement identifies the settlement.
+type LayoutSettlement struct {
+	ID        string `json:"id"`
+	Code      string `json:"code"`
+	Name      string `json:"name"`
+	Tier      string `json:"tier"`
+	WorldCell int32  `json:"world_cell"`
+	Centre    *Place `json:"centre,omitempty"`
+}
+
+// LayoutGrid is the lot grid's geometry.
+type LayoutGrid struct {
+	Lots int     `json:"lots"`
+	LotM float64 `json:"lot_m"`
+	// Origin is the centre of lot (0, 0); x grows east and y north, both
+	// in steps of LotM metres on the ground.
+	Origin LayoutOrigin `json:"origin"`
+	// SlopeLimit is the height difference between neighbouring lots above
+	// which a lot counts as steep.
+	SlopeLimit float64 `json:"slope_limit"`
+}
+
+// LayoutOrigin is the lat/lon of lot (0, 0).
+type LayoutOrigin struct {
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
+}
+
+// LayoutLot is one lot's terrain.
+type LayoutLot struct {
+	HeightM float64 `json:"height_m"`
+	SlopeM  float64 `json:"slope_m"`
+	// Buildable is the placement rule's own answer for the terrain alone.
+	Buildable bool   `json:"buildable"`
+	Biome     string `json:"biome,omitempty"`
+	// Water is "ocean", "lake", "river" or "stream", empty on dry ground.
+	Water string   `json:"water,omitempty"`
+	Tags  []string `json:"tags,omitempty"`
+}
+
+// LayoutLotRef is a lot's coordinates.
+type LayoutLotRef struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+}
+
+// LayoutBuilding is a building on the grid. X, Y is its top-left lot (the
+// lot with the smallest x and y) and W, H the footprint after the turn.
+type LayoutBuilding struct {
+	ID   string `json:"id,omitempty"`
+	Type string `json:"type"`
+	X    int    `json:"x"`
+	Y    int    `json:"y"`
+	W    int    `json:"w"`
+	H    int    `json:"h"`
+	// Rotated says the footprint was turned a quarter turn when placed.
+	Rotated bool   `json:"rotated"`
+	State   string `json:"state"`
+	// StartedAt and FinishAt bound a construction, RFC 3339; FinishAt is
+	// empty for the founding kit and for buildings placed before it was
+	// recorded.
+	StartedAt string `json:"started_at,omitempty"`
+	FinishAt  string `json:"finish_at,omitempty"`
+	DamageBPS int    `json:"damage_bps,omitempty"`
+	// VisualSeed seeds the client's own look of the building; the server
+	// never ships a model.
+	VisualSeed uint32 `json:"visual_seed"`
+}
+
+// Layout is a settlement's layout as viewer sees it.
+func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID string) (VillageLayout, error) {
+	s, err := v.Settlements.ByID(ctx, settlementID)
+	if errors.Is(err, application.ErrCityNotFound) {
+		return VillageLayout{}, err
+	}
+	if err != nil {
+		return VillageLayout{}, err
+	}
+	viewer := LayoutViewer{}
+	mine, err := v.Settlements.ByPlayer(ctx, viewerID)
+	switch {
+	case err == nil:
+		if mine.CityID == s.CityID {
+			viewer.Member = true
+			viewer.CanPlace = holdsHead(mine)
+		}
+	case errors.Is(err, application.ErrCityNotFound):
+	default:
+		return VillageLayout{}, err
+	}
+	row, w, err := v.World.active(ctx)
+	if err != nil {
+		return VillageLayout{}, err
+	}
+	if s.WorldID != "" && s.WorldID != row.ID {
+		// The settlement belongs to a world that is not the live one.
+		return VillageLayout{}, application.ErrCityNotFound
+	}
+	if s.WorldCellID < 0 || int(s.WorldCellID) >= len(w.Cells) {
+		return VillageLayout{}, application.ErrCityNotFound
+	}
+	rows, err := v.Buildings.List(ctx, s.CityID)
+	if err != nil {
+		return VillageLayout{}, err
+	}
+
+	pt := w.Cells[s.WorldCellID].Point
+	lots := v.gridLots(s.Tier)
+	grid := settlement.SampleGridDetail(w, pt.LatDeg, pt.LonDeg, lots, s.WorldCellID)
+	out := VillageLayout{
+		Detail: DetailCoarse, Viewer: viewer,
+		Settlement: LayoutSettlement{ID: s.CityID, Code: s.Code, Name: s.Name, Tier: s.Tier, WorldCell: s.WorldCellID,
+			Centre: centreOf(w, s.WorldCellID)},
+		Grid: LayoutGrid{Lots: lots, LotM: grid.LotMeters, Origin: LayoutOrigin{Lat: grid.OriginLat, Lon: grid.OriginLon},
+			SlopeLimit: settlement.SlopeThresholdM()},
+		Lots: make([][]LayoutLot, lots), Buildings: []LayoutBuilding{}, Roads: []LayoutLotRef{},
+	}
+	if viewer.Member {
+		out.Detail = DetailFull
+	}
+	for y := range grid.Lots {
+		out.Lots[y] = make([]LayoutLot, len(grid.Lots[y]))
+		for x, l := range grid.Lots[y] {
+			out.Lots[y][x] = LayoutLot{HeightM: round2(l.ElevationM), SlopeM: round2(l.SlopeM), Buildable: l.Buildable,
+				Biome: l.Biome, Water: waterOf(l), Tags: l.Tags}
+		}
+	}
+
+	snap := v.Content.Current()
+	sort.Slice(rows, func(i, j int) bool {
+		if rows[i].LotY != rows[j].LotY {
+			return rows[i].LotY < rows[j].LotY
+		}
+		if rows[i].LotX != rows[j].LotX {
+			return rows[i].LotX < rows[j].LotX
+		}
+		return rows[i].ID < rows[j].ID
+	})
+	for _, b := range rows {
+		if !b.Holds() {
+			continue
+		}
+		state := stateOf(b)
+		if !viewer.Member && state != StateBuilt {
+			continue
+		}
+		fw, fh := 1, 1
+		if d, ok := snap.SettlementBuildingDef(b.TypeCode); ok {
+			def := d.Def()
+			if b.Rotated {
+				def = def.Rotate()
+			}
+			fw, fh = def.FootprintW, def.FootprintH
+		}
+		lb := LayoutBuilding{Type: b.TypeCode, X: b.LotX, Y: b.LotY, W: fw, H: fh, Rotated: b.Rotated, State: state,
+			VisualSeed: visualSeed(b.ID)}
+		if viewer.Member {
+			lb.ID = b.ID
+			lb.DamageBPS = b.DamageBPS
+			if state == StatePlanned || state == StateUnderConstruction {
+				lb.StartedAt = b.QueuedAt.UTC().Format(time.RFC3339)
+			}
+			if b.FinishAt != nil && (state == StatePlanned || state == StateUnderConstruction) {
+				lb.FinishAt = b.FinishAt.UTC().Format(time.RFC3339)
+			}
+		}
+		out.Buildings = append(out.Buildings, lb)
+		if b.TypeCode == "road" && state != StatePlanned {
+			out.Roads = append(out.Roads, LayoutLotRef{X: b.LotX, Y: b.LotY})
+		}
+	}
+	out.Version = layoutVersion(out)
+	return out, nil
+}
+
+// ETag is the layout's entity tag: its version and the detail it shows.
+func (l VillageLayout) ETag() string { return `"` + l.Version + "." + l.Detail + `"` }
+
+func stateOf(b application.SettlementBuildingInstance) string {
+	switch {
+	case b.Status == "queued":
+		return StatePlanned
+	case b.Status == "building":
+		return StateUnderConstruction
+	case b.DamageBPS >= 10_000:
+		return StateRuin
+	case b.DamageBPS > 0:
+		return StateDamaged
+	}
+	return StateBuilt
+}
+
+func waterOf(l settlement.LotTerrain) string {
+	switch {
+	case l.Ocean:
+		return "ocean"
+	case l.Lake:
+		return "lake"
+	}
+	return l.Stream
+}
+
+func round2(f float64) float64 { return math.Round(f*100) / 100 }
+
+// visualSeed is a building's look seed: stable for its id, never stored.
+func visualSeed(id string) uint32 {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(id))
+	return h.Sum32()
+}
+
+// layoutVersion hashes everything a client draws from the layout, so it
+// moves exactly when the picture does.
+func layoutVersion(l VillageLayout) string {
+	h := fnv.New64a()
+	put := func(parts ...string) {
+		_, _ = h.Write([]byte(strings.Join(parts, "|") + ";"))
+	}
+	put(l.Settlement.ID, l.Settlement.Tier, l.Settlement.Name, strconv.Itoa(l.Grid.Lots), strconv.FormatBool(l.Viewer.CanPlace))
+	for _, b := range l.Buildings {
+		put(b.ID, b.Type, strconv.Itoa(b.X), strconv.Itoa(b.Y), strconv.Itoa(b.W), strconv.Itoa(b.H), strconv.FormatBool(b.Rotated),
+			b.State, b.FinishAt, strconv.Itoa(b.DamageBPS), strconv.FormatUint(uint64(b.VisualSeed), 10))
+	}
+	sum := h.Sum(nil)
+	return hex.EncodeToString(sum)
+}
