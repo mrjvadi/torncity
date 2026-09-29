@@ -121,6 +121,18 @@ const (
 
 	// Specialist recruitment (docs/adr/0027): a campaign's check.
 	ActionTypeRecruitCheck = "recruit_check"
+
+	// Village-level knowledge and construction (docs/adr/0031), K2/W5: a
+	// settlement's own research reaching its end, its literacy tick (self-
+	// rescheduling, never a one-shot), and a building's construction
+	// reaching its end. internal/application carries the identical string
+	// literals under its own names (SettlementResearchActionType etc.,
+	// ports_village.go) — the two layers never import each other, the
+	// same duplication ActionTypeResearch/ResearchActionType already
+	// accept.
+	ActionTypeSettlementResearch = "settlement_research"
+	ActionTypeSettlementTeach    = "settlement_teach"
+	ActionTypeSettlementBuild    = "settlement_build"
 )
 
 // routes maps an action type to the command it is published as.
@@ -176,6 +188,10 @@ var routes = map[string]Route{
 	ActionTypeFinance: {Domain: "finance", Action: "settle"},
 
 	ActionTypeRecruitCheck: {Domain: "company", Action: "rcheck"},
+
+	ActionTypeSettlementResearch: {Domain: "settlement", Action: "researched"},
+	ActionTypeSettlementTeach:    {Domain: "settlement", Action: "taught"},
+	ActionTypeSettlementBuild:    {Domain: "settlement", Action: "built"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.
