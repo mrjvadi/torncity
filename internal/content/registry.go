@@ -93,6 +93,9 @@ type Snapshot struct {
 	// settlementKnowledge is settlement_knowledge.yml's catalogue (ADR 0031
 	// section 3.1); see settlementknowledge.go.
 	settlementKnowledge settlementKnowledgeContent
+	// settlementBuildings is settlement_buildings.yml's catalogue (ADR
+	// 0028 section 7, ADR 0031 section 3.2); see settlementbuilding.go.
+	settlementBuildings settlementBuildingContent
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -192,6 +195,7 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 		snap.recruitment = &r
 	}
 	snap.buildSettlementKnowledge(p)
+	snap.buildSettlementBuildings(p)
 
 	return snap, nil
 }

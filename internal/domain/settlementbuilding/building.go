@@ -65,6 +65,10 @@ var (
 	// ErrConcurrentBuildCap means the settlement's tier-bound concurrent
 	// construction cap (ADR 0028 section 6.3) is already full.
 	ErrConcurrentBuildCap = errors.New("settlementbuilding: the concurrent construction cap is full")
+	// ErrLiteracyTooLow means the settlement's own literacy_share has not
+	// yet reached the building's MinLiteracyShareBPS (ADR 0031 section
+	// 4.4).
+	ErrLiteracyTooLow = errors.New("settlementbuilding: literacy share too low")
 	// ErrAlreadyBuilt means the exact building role/tier pair this
 	// definition promotes to is already standing at that tier (a
 	// promotion happens once; re-promoting is not "one more building").
@@ -143,6 +147,13 @@ type Def struct {
 	// period (ADR 0028 section 8.5).
 	Upkeep int64
 
+	// MinLiteracyShareBPS gates this building on the settlement's own
+	// literacy share (ADR 0031 section 4.4: "school ... requires
+	// literacy_share >= threshold"), the same scale and the same rule
+	// settlementknowledge.Tech.MinLiteracyShareBPS uses. Zero means no
+	// gate.
+	MinLiteracyShareBPS int
+
 	// Effects feed ADR 0028 section 8.1's coverage numbers
 	// (food_coverage_bps, job_coverage_bps, service_coverage_bps,
 	// happiness_bps) plus local_security_bps (ADR 0031 section 3.2). Open
@@ -213,6 +224,9 @@ func ValidateCatalogue(defs []Def) error {
 		}
 		if len(d.TerrainTags) > 0 && d.TerrainMode == TerrainNone {
 			fail(ErrInvalidBuilding, "%q names terrain tags with no terrain mode", d.Code)
+		}
+		if d.MinLiteracyShareBPS < 0 || d.MinLiteracyShareBPS > 10_000 {
+			fail(ErrInvalidBuilding, "%q literacy threshold %d", d.Code, d.MinLiteracyShareBPS)
 		}
 	}
 	for _, code := range sortedCodes(byCode) {

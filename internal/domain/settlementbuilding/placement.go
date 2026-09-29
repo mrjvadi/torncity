@@ -56,6 +56,9 @@ type Standing struct {
 	// ConcurrentCap is the settlement's own tier's concurrent-build cap
 	// (ADR 0028 section 4: 1 village / 2 town / 4 city).
 	ConcurrentCap int
+	// LiteracyShareBPS is the settlement's own current literacy_share (ADR
+	// 0031 section 4.4), 0-10000.
+	LiteracyShareBPS int
 }
 
 // footprintLots yields every (lx, ly) grid coordinate def's footprint would
@@ -108,6 +111,9 @@ func CanPlace(def Def, grid Grid, x, y int, s Standing) error {
 	}
 	if def.RequiresBuildingRole != nil && s.Built[*def.RequiresBuildingRole] < 1 {
 		return ErrRoleMissing
+	}
+	if def.MinLiteracyShareBPS > 0 && s.LiteracyShareBPS < def.MinLiteracyShareBPS {
+		return ErrLiteracyTooLow
 	}
 	if s.RunningBuilds >= s.ConcurrentCap {
 		return ErrConcurrentBuildCap

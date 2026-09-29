@@ -1,0 +1,470 @@
+version: 1
+# The village construction catalogue (docs/adr/0028-world-and-settlements.md
+# section 7, extended by docs/adr/0031-knowledge-and-village-progression.md
+# section 3.2 with role/tier). Rules: internal/domain/settlementbuilding.
+# Loaded and validated by internal/content/settlementbuilding.go; stored as
+# content_documents rows, kind "settlement_building".
+#
+# ROLE AND TIER (ADR 0031 section 3.2). Several codes may share one
+# role/tier pair — the branching mechanism for institutions, mirroring
+# settlement_knowledge.yml's capabilities: watch_hut, militia_camp,
+# retainer_hall and constable_post are four peers of role: security,
+# tier: 1. A tier-2 promotion (police_post) needs ANY tier-1 building of
+# its role already standing (requires_building_role), never one specific
+# code. road and civic_hall keep NO role: the universal founding kit,
+# present in every settlement regardless of branch (ADR 0028 section 3.1).
+#
+# V1 SCOPE NOTES (deliberate simplifications, offered for the owner to
+# widen later, ADR 0031 section 9 open question 4's own precedent):
+#   * craft role tier 2 ("the same code, _ii") is a KNOWLEDGE generation
+#     upgrade to the SAME standing workshop, not a second building row —
+#     ADR 0031 section 3.2's own words. Only tier 1 (the five workshops),
+#     tier 3 (manufactory) and tier 4 (factory, unchanged from ADR 0028)
+#     are placeable rows here.
+#   * water_infra/food tier 2 ("capacity-upgraded _ii form") is the same
+#     knowledge-generation-upgrades-the-standing-building shape; only
+#     tier 1 is placeable in v1.
+#   * market tier 2 gates on record_keeping (two of its three ADR 0031
+#     table branches — periodic_market, endowed_market_hall — need it;
+#     trading_post's separate coastal/river route is not yet a distinct
+#     gate here, a follow-up once buildings gain a RequiresKnowledge OR,
+#     the same branching settlement_knowledge.yml's capabilities give
+#     knowledge items already).
+#   * CostMaterials names only "timber" (configs/content/items.yml's own
+#     shipped component list, checked by internal/content/settlementbuilding.go).
+#     ADR 0028 section 7's illustrative "steel N" entries are dropped: no
+#     "steel" component is shipped yet, and inventing one is production
+#     economy (ADR 0021) scope, not this ADR's.
+settlement_buildings:
+  # ---------------------------------------------------------------------
+  # No role: the universal founding kit and the existing city-tier systems
+  # ADR 0028 section 7 already fully specifies, unchanged.
+  # ---------------------------------------------------------------------
+  - code: road
+    name: "جاده"
+    footprint: [1, 1]
+    cost_money: 50
+    build_time: 10m
+    upkeep: 2
+
+  - code: civic_hall
+    name: "خانهٔ دهیاری"
+    footprint: [2, 2]
+    cost_money: 1000
+    cost_materials: {timber: 5}
+    build_time: 2h
+    upkeep: 20
+
+  - code: housing_block
+    name: "بلوک مسکونی"
+    footprint: [2, 2]
+    cost_money: 3000
+    cost_materials: {timber: 10}
+    build_time: 3h
+    upkeep: 30
+    effects: [{target: housing_capacity, op: add, value: 20}]
+
+  - code: park
+    name: "پارک"
+    footprint: [2, 2]
+    cost_money: 800
+    build_time: 1h
+    upkeep: 10
+    effects: [{target: happiness_bps, op: add, value: 150}]
+
+  - code: bank
+    name: "بانک"
+    footprint: [3, 3]
+    cost_money: 50000
+    build_time: 10h
+    upkeep: 300
+
+  - code: barracks
+    name: "پادگان"
+    footprint: [4, 4]
+    cost_money: 60000
+    build_time: 14h
+    upkeep: 500
+
+  - code: port
+    name: "بندر"
+    footprint: [4, 4]
+    terrain_tags: [coastal_lot]
+    terrain_mode: required
+    cost_money: 80000
+    build_time: 16h
+    upkeep: 600
+
+  - code: airport
+    name: "فرودگاه"
+    footprint: [5, 5]
+    cost_money: 120000
+    build_time: 20h
+    upkeep: 800
+
+  # ---------------------------------------------------------------------
+  # security — watch -> post (ADR 0031 section 3.2, section 7's own
+  # example table).
+  # ---------------------------------------------------------------------
+  - code: watch_hut
+    name: "دیده‌بانی محله"
+    role: security
+    tier: 1
+    footprint: [1, 1]
+    requires_knowledge: [communal_watch]
+    cost_money: 300
+    build_time: 30m
+    upkeep: 30
+    effects: [{target: local_security_bps, op: add, value: 300}]
+
+  - code: militia_camp
+    name: "اردوگاه میلیشیا"
+    role: security
+    tier: 1
+    footprint: [2, 1]
+    requires_knowledge: [mounted_militia]
+    cost_money: 500
+    build_time: 45m
+    upkeep: 40
+    effects: [{target: local_security_bps, op: add, value: 350}]
+
+  - code: retainer_hall
+    name: "تالار گارد"
+    role: security
+    tier: 1
+    footprint: [2, 1]
+    requires_knowledge: [sworn_retainers]
+    cost_money: 600
+    build_time: 50m
+    upkeep: 45
+    effects: [{target: local_security_bps, op: add, value: 380}]
+
+  - code: constable_post
+    name: "پاسگاه ژاندارمری"
+    role: security
+    tier: 1
+    footprint: [1, 1]
+    requires_knowledge: [formal_constabulary]
+    cost_money: 900
+    build_time: 1h10m
+    upkeep: 60
+    effects: [{target: local_security_bps, op: add, value: 420}]
+
+  - code: police_post
+    name: "کلانتری"
+    role: security
+    tier: 2
+    footprint: [2, 2]
+    requires_building_role: {role: security, tier: 1}
+    requires_knowledge: [record_keeping]
+    cost_money: 5000
+    build_time: 4h
+    upkeep: 50
+    effects: [{target: local_security_bps, op: add, value: 900}]
+
+  # ---------------------------------------------------------------------
+  # craft — workshop -> manufactory -> factory.
+  # ---------------------------------------------------------------------
+  - code: carpentry_workshop
+    name: "کارگاه نجاری"
+    role: craft
+    tier: 1
+    footprint: [2, 2]
+    requires_knowledge: [carpentry]
+    cost_money: 1200
+    cost_materials: {timber: 5}
+    build_time: 3h
+    upkeep: 60
+    effects: [{target: job_coverage_bps, op: add, value: 150}]
+
+  - code: masonry_workshop
+    name: "کارگاه بنایی"
+    role: craft
+    tier: 1
+    footprint: [2, 2]
+    requires_knowledge: [masonry]
+    cost_money: 1400
+    build_time: 3h
+    upkeep: 65
+    effects: [{target: job_coverage_bps, op: add, value: 150}]
+
+  - code: smithy
+    name: "کوره‌آهنگری"
+    role: craft
+    tier: 1
+    footprint: [2, 2]
+    requires_knowledge: [smithing]
+    terrain_tags: [ore_deposit]
+    terrain_mode: required
+    cost_money: 1800
+    build_time: 4h
+    upkeep: 70
+    effects: [{target: job_coverage_bps, op: add, value: 160}]
+
+  - code: weaving_shed
+    name: "کارگاه بافندگی"
+    role: craft
+    tier: 1
+    footprint: [2, 2]
+    requires_knowledge: [weaving]
+    cost_money: 1000
+    build_time: 3h
+    upkeep: 55
+    effects: [{target: job_coverage_bps, op: add, value: 140}]
+
+  - code: pottery_kiln
+    name: "کورهٔ سفال‌گری"
+    role: craft
+    tier: 1
+    footprint: [2, 2]
+    requires_knowledge: [pottery]
+    cost_money: 900
+    build_time: 3h
+    upkeep: 50
+    effects: [{target: job_coverage_bps, op: add, value: 140}]
+
+  - code: manufactory
+    name: "کارگاه بزرگ"
+    role: craft
+    tier: 3
+    footprint: [3, 3]
+    requires_building_role: {role: craft, tier: 1}
+    requires_knowledge: [record_keeping]
+    cost_money: 15000
+    build_time: 20h
+    upkeep: 200
+    effects: [{target: job_coverage_bps, op: add, value: 500}]
+
+  - code: factory
+    name: "کارخانه"
+    role: craft
+    tier: 4
+    footprint: [4, 4]
+    requires_building_role: {role: craft, tier: 3}
+    cost_money: 40000
+    build_time: 12h
+    upkeep: 400
+
+  # ---------------------------------------------------------------------
+  # extraction — pit -> mine.
+  # ---------------------------------------------------------------------
+  - code: small_pit
+    name: "گودال استخراج"
+    role: extraction
+    tier: 1
+    footprint: [1, 1]
+    terrain_tags: [ore_deposit]
+    terrain_mode: required
+    cost_money: 400
+    build_time: 1h
+    upkeep: 30
+    effects: [{target: job_coverage_bps, op: add, value: 100}]
+
+  - code: mine
+    name: "معدن"
+    role: extraction
+    tier: 2
+    footprint: [3, 3]
+    requires_building_role: {role: extraction, tier: 1}
+    terrain_tags: [ore_deposit]
+    terrain_mode: required
+    cost_money: 8000
+    build_time: 6h
+    upkeep: 80
+    effects: [{target: job_coverage_bps, op: add, value: 300}]
+
+  # ---------------------------------------------------------------------
+  # water_infra — one per arable_farming branch held (tier 1 only, v1).
+  # ---------------------------------------------------------------------
+  - code: canal_channel
+    name: "کانال آبرسانی"
+    role: water_infra
+    tier: 1
+    footprint: [1, 1]
+    requires_knowledge: [canal_irrigation]
+    cost_money: 500
+    build_time: 1h
+    upkeep: 20
+
+  - code: shaft_well
+    name: "چاه قناتی"
+    role: water_infra
+    tier: 1
+    footprint: [1, 1]
+    requires_knowledge: [shaft_irrigation]
+    cost_money: 800
+    build_time: 1h30m
+    upkeep: 25
+
+  - code: terrace_works
+    name: "سازهٔ تراس"
+    role: water_infra
+    tier: 1
+    footprint: [1, 1]
+    requires_knowledge: [terrace_irrigation]
+    cost_money: 700
+    build_time: 1h20m
+    upkeep: 22
+
+  - code: paddy_banks
+    name: "خاکریز شالیزار"
+    role: water_infra
+    tier: 1
+    footprint: [1, 1]
+    requires_knowledge: [paddy_cultivation]
+    cost_money: 750
+    build_time: 1h25m
+    upkeep: 24
+
+  # ---------------------------------------------------------------------
+  # food — one per branch held, matching the water_infra it sits on
+  # (tier 1 only, v1).
+  # ---------------------------------------------------------------------
+  - code: farm_canal
+    name: "مزرعهٔ نهری"
+    role: food
+    tier: 1
+    footprint: [3, 3]
+    requires_knowledge: [canal_irrigation]
+    cost_money: 2000
+    build_time: 4h
+    upkeep: 40
+    effects: [{target: food_coverage_bps, op: add, value: 600}]
+
+  - code: farm_shaft
+    name: "مزرعهٔ قناتی"
+    role: food
+    tier: 1
+    footprint: [3, 3]
+    requires_knowledge: [shaft_irrigation]
+    cost_money: 2500
+    build_time: 4h30m
+    upkeep: 45
+    effects: [{target: food_coverage_bps, op: add, value: 600}]
+
+  - code: farm_terrace
+    name: "مزرعهٔ تراسی"
+    role: food
+    tier: 1
+    footprint: [3, 3]
+    requires_knowledge: [terrace_irrigation]
+    cost_money: 2300
+    build_time: 4h15m
+    upkeep: 42
+    effects: [{target: food_coverage_bps, op: add, value: 600}]
+
+  - code: farm_paddy
+    name: "شالیزار"
+    role: food
+    tier: 1
+    footprint: [3, 3]
+    requires_knowledge: [paddy_cultivation]
+    cost_money: 2400
+    build_time: 4h20m
+    upkeep: 44
+    effects: [{target: food_coverage_bps, op: add, value: 600}]
+
+  - code: pasture_range
+    name: "چراگاه"
+    role: food
+    tier: 1
+    footprint: [3, 3]
+    requires_knowledge: [open_range_herding]
+    cost_money: 1800
+    build_time: 3h30m
+    upkeep: 38
+    effects: [{target: food_coverage_bps, op: add, value: 550}]
+
+  # ---------------------------------------------------------------------
+  # health — house -> clinic.
+  # ---------------------------------------------------------------------
+  - code: health_house
+    name: "خانهٔ درمان"
+    role: health
+    tier: 1
+    footprint: [2, 2]
+    requires_knowledge: [basic_medicine]
+    cost_money: 1500
+    build_time: 3h
+    upkeep: 60
+    effects: [{target: service_coverage_bps, op: add, value: 300}]
+
+  - code: clinic
+    name: "درمانگاه"
+    role: health
+    tier: 2
+    footprint: [3, 3]
+    requires_building_role: {role: health, tier: 1}
+    requires_knowledge: [basic_medicine_ii]
+    cost_money: 7000
+    build_time: 5h
+    upkeep: 70
+    effects: [{target: service_coverage_bps, op: add, value: 700}]
+
+  # ---------------------------------------------------------------------
+  # education — circle -> school.
+  # ---------------------------------------------------------------------
+  - code: teaching_circle
+    name: "حلقهٔ آموزش"
+    role: education
+    tier: 1
+    footprint: [1, 1]
+    requires_knowledge: [kin_apprenticeship]
+    cost_money: 400
+    build_time: 1h
+    upkeep: 20
+    effects: [{target: service_coverage_bps, op: add, value: 150}]
+
+  - code: school
+    name: "مدرسه"
+    role: education
+    tier: 2
+    footprint: [3, 3]
+    requires_building_role: {role: education, tier: 1}
+    min_literacy_share_bps: 5000
+    cost_money: 6000
+    cost_materials: {timber: 10}
+    build_time: 5h
+    upkeep: 60
+    effects: [{target: service_coverage_bps, op: add, value: 800}]
+
+  # ---------------------------------------------------------------------
+  # market — ring -> market.
+  # ---------------------------------------------------------------------
+  - code: barter_post
+    name: "جایگاه پایاپای"
+    role: market
+    tier: 1
+    footprint: [1, 1]
+    requires_knowledge: [barter_ring]
+    cost_money: 200
+    build_time: 40m
+    upkeep: 15
+    effects: [{target: job_coverage_bps, op: add, value: 80}]
+
+  - code: market
+    name: "بازار"
+    role: market
+    tier: 2
+    footprint: [3, 3]
+    requires_building_role: {role: market, tier: 1}
+    requires_knowledge: [record_keeping]
+    cost_money: 6000
+    cost_materials: {timber: 5}
+    build_time: 4h
+    upkeep: 60
+    effects: [{target: job_coverage_bps, op: add, value: 400}]
+
+  # ---------------------------------------------------------------------
+  # storage — needs nothing, a small food-coverage stabiliser (ADR 0031
+  # section 3.2's own words).
+  # ---------------------------------------------------------------------
+  - code: granary
+    name: "انبار غله"
+    role: storage
+    tier: 1
+    footprint: [1, 1]
+    cost_money: 500
+    build_time: 1h
+    upkeep: 20
+    effects: [{target: food_coverage_bps, op: add, value: 150}]

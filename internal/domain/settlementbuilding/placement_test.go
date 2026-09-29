@@ -93,6 +93,20 @@ func TestCanPlaceRoleMissing(t *testing.T) {
 	}
 }
 
+func TestCanPlaceLiteracyTooLow(t *testing.T) {
+	def := Def{Code: "school", FootprintW: 1, FootprintH: 1, MinLiteracyShareBPS: 5000}
+	grid := sampleGrid()
+	s := openStanding()
+	s.LiteracyShareBPS = 2000
+	if err := CanPlace(def, grid, 1, 1, s); !errors.Is(err, ErrLiteracyTooLow) {
+		t.Errorf("err = %v, want ErrLiteracyTooLow", err)
+	}
+	s.LiteracyShareBPS = 5000
+	if err := CanPlace(def, grid, 1, 1, s); err != nil {
+		t.Errorf("a met literacy threshold should pass: %v", err)
+	}
+}
+
 func TestCanPlaceConcurrentBuildCap(t *testing.T) {
 	def := Def{Code: "road", FootprintW: 1, FootprintH: 1}
 	grid := sampleGrid()

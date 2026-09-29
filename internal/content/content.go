@@ -285,6 +285,11 @@ type Pack struct {
 	// (settlementknowledge.go; docs/adr/0031-knowledge-and-village-
 	// progression.md).
 	SettlementKnowledge []SettlementKnowledgeDef
+	// settlement_buildings.yml: the village construction catalogue
+	// (settlementbuilding.go; docs/adr/0028-world-and-settlements.md
+	// section 7, docs/adr/0031-knowledge-and-village-progression.md
+	// section 3.2).
+	SettlementBuildings []SettlementBuildingDef
 
 	// world.yml: world generation content (worldgen.go). LoadWorldGen is
 	// the function a caller actually generating a world uses; these fields

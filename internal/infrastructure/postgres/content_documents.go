@@ -239,6 +239,12 @@ func init() {
 			func(p *content.Pack, d content.SettlementKnowledgeDef) {
 				p.SettlementKnowledge = append(p.SettlementKnowledge, d)
 			}),
+		listKind("settlement_building",
+			func(p *content.Pack) []content.SettlementBuildingDef { return p.SettlementBuildings },
+			func(d content.SettlementBuildingDef) string { return d.Code },
+			func(p *content.Pack, d content.SettlementBuildingDef) {
+				p.SettlementBuildings = append(p.SettlementBuildings, d)
+			}),
 	)
 }
 
