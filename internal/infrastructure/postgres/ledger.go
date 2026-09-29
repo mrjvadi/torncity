@@ -18,9 +18,11 @@ import (
 // package instead of turning a mapped sentinel back into a raw driver error.
 const (
 	accountsBalanceNonNegativeCheck = "accounts_balance_non_negative_check"
-	accountsKindOwnerCurrencyKey    = "accounts_kind_owner_currency_key"
-	rewardGrantsPlayerFkey          = "reward_grants_player_id_fkey"
-	sqlstateForeignKeyViolation     = "23503"
+	// accountsKindOwnerCurrencyKey is the widened key of migration 0047:
+	// (kind, owner_id, currency, shard_id).
+	accountsKindOwnerCurrencyKey = "accounts_kind_owner_currency_shard_key"
+	rewardGrantsPlayerFkey       = "reward_grants_player_id_fkey"
+	sqlstateForeignKeyViolation  = "23503"
 )
 
 // ownerTables names the table each ownable account kind's owner_id points at.
@@ -62,26 +64,63 @@ func NewLedgerRepository(p *Pool) *LedgerRepository {
 	return &LedgerRepository{q: p.shared()}
 }
 
-// AccountFor returns, opening on first use, the account of kind for ownerID.
+// AccountFor returns, opening on first use, the account of kind for ownerID in
+// the default currency (application.DefaultCurrency, SUP).
+//
+// See AccountForCurrency for how opening works.
+func (r *LedgerRepository) AccountFor(ctx context.Context, kind application.AccountKind, ownerID string) (application.Account, error) {
+	return r.AccountForCurrency(ctx, kind, ownerID, application.DefaultCurrency)
+}
+
+// AccountForCurrency returns, opening on first use, the account of kind for
+// ownerID in currency (docs/adr/0029-currencies-and-premium.md section 5.2,
+// 5.3; docs/adr/0032-support-merge.md section 4).
 //
 // Opening is an INSERT ... ON CONFLICT DO NOTHING followed by a read, so two
 // callers racing to open the same account both come back with the one row;
 // the loser's insert waits for the winner's transaction and then does nothing.
-// The insert is conditional on the owner existing, so an account can never be
-// opened for a player that is not there.
-func (r *LedgerRepository) AccountFor(ctx context.Context, kind application.AccountKind, ownerID string) (application.Account, error) {
+// The insert is conditional on the owner and the currency existing, so an
+// account can never be opened for a player that is not there or for a
+// currency nobody declared.
+//
+// A kind that is not multi-currency has ONE row per owner (a partial unique
+// index enforces it), in whatever currency it was first opened: asking for it
+// in another currency is ErrCurrencyNotAllowed, never a second row. The
+// system kinds are multi-currency: one source and one sink per currency,
+// opened here on first use (shard 0).
+func (r *LedgerRepository) AccountForCurrency(ctx context.Context, kind application.AccountKind, ownerID, currency string) (application.Account, error) {
 	if !kind.Valid() {
 		return application.Account{}, application.ErrUnknownAccountKind.WithDetail("kind", string(kind))
+	}
+	if currency == "" {
+		return application.Account{}, application.ErrUnknownCurrency.WithDetail("currency", currency)
+	}
+
+	id, err := newUUID()
+	if err != nil {
+		return application.Account{}, err
 	}
 
 	if kind.IsSystem() {
 		if ownerID != "" {
 			return application.Account{}, application.ErrUnknownAccountKind.WithDetail("problem", "a system account has no owner")
 		}
-		return r.scanAccount(ctx,
+		if _, err := r.q.Exec(ctx,
+			`INSERT INTO accounts (id, kind, owner_id, currency, balance, created_at)
+			 SELECT $1, $2, NULL, $3, 0, $4
+			  WHERE EXISTS (SELECT 1 FROM currencies WHERE code = $3)
+			 ON CONFLICT DO NOTHING`,
+			id, string(kind), currency, time.Now().UTC()); err != nil {
+			return application.Account{}, fmt.Errorf("postgres: opening %s account: %w", kind, err)
+		}
+		acct, err := r.scanAccount(ctx,
 			`SELECT id::text, kind, COALESCE(owner_id::text, ''), currency, balance
-			   FROM accounts WHERE kind = $1 AND owner_id IS NULL AND currency = $2`,
-			string(kind), application.DefaultCurrency)
+			   FROM accounts WHERE kind = $1 AND owner_id IS NULL AND currency = $2 AND shard_id = 0`,
+			string(kind), currency)
+		if errors.Is(err, application.ErrAccountNotFound) {
+			return application.Account{}, application.ErrUnknownCurrency.WithDetail("currency", currency)
+		}
+		return acct, err
 	}
 
 	table, ok := ownerTables[kind]
@@ -92,17 +131,14 @@ func (r *LedgerRepository) AccountFor(ctx context.Context, kind application.Acco
 		return application.Account{}, notFoundOwner(kind)
 	}
 
-	id, err := newUUID()
-	if err != nil {
-		return application.Account{}, err
-	}
 	// table comes from ownerTables, a fixed map in this file, never from input.
 	_, err = r.q.Exec(ctx, fmt.Sprintf(
 		`INSERT INTO accounts (id, kind, owner_id, currency, balance, created_at)
 		 SELECT $1, $2, $3, $4, 0, $5
 		  WHERE EXISTS (SELECT 1 FROM %s WHERE id = $3)
-		 ON CONFLICT ON CONSTRAINT %s DO NOTHING`, table, accountsKindOwnerCurrencyKey),
-		id, string(kind), ownerID, application.DefaultCurrency, time.Now().UTC())
+		    AND EXISTS (SELECT 1 FROM currencies WHERE code = $4)
+		 ON CONFLICT DO NOTHING`, table),
+		id, string(kind), ownerID, currency, time.Now().UTC())
 	if err != nil {
 		if isInvalidUUIDText(err) {
 			return application.Account{}, notFoundOwner(kind)
@@ -112,14 +148,32 @@ func (r *LedgerRepository) AccountFor(ctx context.Context, kind application.Acco
 
 	acct, err := r.scanAccount(ctx,
 		`SELECT id::text, kind, COALESCE(owner_id::text, ''), currency, balance
-		   FROM accounts WHERE kind = $1 AND owner_id = $2 AND currency = $3`,
-		string(kind), ownerID, application.DefaultCurrency)
+		   FROM accounts WHERE kind = $1 AND owner_id = $2 AND currency = $3 AND shard_id = 0`,
+		string(kind), ownerID, currency)
 	if errors.Is(err, application.ErrAccountNotFound) {
 		// The conditional insert wrote nothing and there was no row to
-		// find: the owner does not exist.
-		return application.Account{}, notFoundOwner(kind)
+		// find: the owner or the currency does not exist, or the owner
+		// already holds this kind in another currency.
+		return application.Account{}, r.explainMissing(ctx, kind, ownerID, currency)
 	}
 	return acct, err
+}
+
+// explainMissing says why an account that could not be opened does not
+// exist: the currency is unknown, the owner has this single-currency kind in
+// another currency, or the owner is missing.
+func (r *LedgerRepository) explainMissing(ctx context.Context, kind application.AccountKind, ownerID, currency string) error {
+	var known bool
+	if err := r.q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM currencies WHERE code = $1)`, currency).Scan(&known); err == nil && !known {
+		return application.ErrUnknownCurrency.WithDetail("currency", currency)
+	}
+	var other bool
+	if err := r.q.QueryRow(ctx,
+		`SELECT EXISTS (SELECT 1 FROM accounts WHERE kind = $1 AND owner_id = $2)`,
+		string(kind), ownerID).Scan(&other); err == nil && other {
+		return application.ErrCurrencyNotAllowed.WithDetail("kind", string(kind)).WithDetail("currency", currency)
+	}
+	return notFoundOwner(kind)
 }
 
 func notFoundOwner(kind application.AccountKind) error {

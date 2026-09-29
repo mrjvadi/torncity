@@ -60,6 +60,10 @@ func (m *fakeMoney) AccountFor(_ context.Context, kind application.AccountKind, 
 	return *a, nil
 }
 
+func (m *fakeMoney) AccountForCurrency(ctx context.Context, kind application.AccountKind, owner, currency string) (application.Account, error) {
+	return m.AccountFor(ctx, kind, owner)
+}
+
 func (m *fakeMoney) Balance(_ context.Context, id string) (money.Amount, error) {
 	a, ok := m.accounts[id]
 	if !ok {

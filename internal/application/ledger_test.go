@@ -225,6 +225,30 @@ func TestAccountKinds(t *testing.T) {
 	}
 }
 
+// Only the system source and sink may exist once per currency (ADR 0029
+// section 5.3); every other kind is one account per owner.
+func TestOnlySystemKindsAreMultiCurrency(t *testing.T) {
+	for _, k := range []AccountKind{AccountSystemSource, AccountSystemSink} {
+		if !k.MultiCurrency() {
+			t.Errorf("%s should be multi-currency", k)
+		}
+	}
+	for _, k := range []AccountKind{AccountPlayerCash, AccountPlayerBank, AccountCompanyTreasury, AccountCityTreasury,
+		AccountStateTreasury, AccountPlayerEscrow, AccountPlayerSavings} {
+		if k.MultiCurrency() {
+			t.Errorf("%s must hold one currency only", k)
+		}
+	}
+}
+
+// The neutral currency is SUP, the money of Support, and the fixed system
+// accounts of migration 0006 are its source and sink.
+func TestDefaultCurrencyIsSupport(t *testing.T) {
+	if DefaultCurrency != "SUP" {
+		t.Errorf("DefaultCurrency = %q, want SUP", DefaultCurrency)
+	}
+}
+
 // fakeLedger records what GrantStartingCash asks of the ledger.
 type fakeLedger struct {
 	granted    map[string]bool
@@ -237,6 +261,13 @@ func (f *fakeLedger) AccountFor(_ context.Context, kind AccountKind, owner strin
 		return Account{}, f.accountErr
 	}
 	return Account{ID: "acct-" + owner, Kind: kind, OwnerID: owner, Currency: DefaultCurrency}, nil
+}
+
+func (f *fakeLedger) AccountForCurrency(_ context.Context, kind AccountKind, owner, currency string) (Account, error) {
+	if f.accountErr != nil {
+		return Account{}, f.accountErr
+	}
+	return Account{ID: "acct-" + owner + "-" + currency, Kind: kind, OwnerID: owner, Currency: currency}, nil
 }
 
 func (f *fakeLedger) Balance(context.Context, string) (money.Amount, error) {

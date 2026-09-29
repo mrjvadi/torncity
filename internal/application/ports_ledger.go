@@ -19,13 +19,18 @@ import (
 // Keeping game rules out of it is what lets one verifier check every financial
 // path in the game with the same three queries.
 
-// DefaultCurrency is the currency every account is opened in until a second
-// one exists. It matches accounts.currency's default in migration 0006.
-const DefaultCurrency = "IRR"
+// DefaultCurrency is the neutral currency of the world, the money of the
+// city "Support" (docs/adr/0032-support-merge.md): the currency every account
+// is opened in by AccountFor. It was IRR until migration 0047 renamed it,
+// one to one, and it matches accounts.currency's default there.
+const DefaultCurrency = "SUP"
 
 // The two system accounts created by migration 0006, with fixed ids so code
 // can name them without a lookup. They are the only places money may enter
-// (source) or leave (sink) the economy.
+// (source) or leave (sink) the economy, IN DefaultCurrency: a faucet or drain
+// in another currency uses AccountForCurrency(AccountSystemSource / Sink,
+// "", currency), which opens that currency's own system account (ADR 0029
+// section 5.3).
 const (
 	SystemSourceAccountID = "00000000-0000-4000-8000-000000000001"
 	SystemSinkAccountID   = "00000000-0000-4000-8000-000000000002"
@@ -80,6 +85,13 @@ func (k AccountKind) Valid() bool {
 func (k AccountKind) IsSystem() bool {
 	return k == AccountSystemSink || k == AccountSystemSource
 }
+
+// MultiCurrency reports whether one owner may hold this kind in several
+// currencies at once: the system source and sink, one per currency. Every
+// other kind has exactly one account per owner, in the currency it was first
+// opened in (docs/adr/0029 section 5.1; enforced by
+// accounts_one_row_per_owner_idx).
+func (k AccountKind) MultiCurrency() bool { return k.IsSystem() }
 
 // Reason is ledger_entries.reason: why money moved.
 //
@@ -662,6 +674,14 @@ type LedgerRepository interface {
 	// ErrPlayerNotFound (player kinds) or ErrAccountOwnerNotFound.
 	AccountFor(ctx context.Context, kind AccountKind, ownerID string) (Account, error)
 
+	// AccountForCurrency is AccountFor for a stated currency, opening the
+	// account on first use. It is the only way to reach a system account of
+	// a currency other than DefaultCurrency. A kind that is not
+	// MultiCurrency has one account per owner: asking for it in a different
+	// currency is ErrCurrencyNotAllowed; an undeclared currency is
+	// ErrUnknownCurrency.
+	AccountForCurrency(ctx context.Context, kind AccountKind, ownerID, currency string) (Account, error)
+
 	// Balance returns the account's cached balance, or ErrAccountNotFound.
 	Balance(ctx context.Context, accountID string) (money.Amount, error)
 
@@ -693,6 +713,12 @@ var (
 
 	ErrInvalidLedgerTransaction = errors.Sentinel(errors.CodeInternal,
 		"application.ErrInvalidLedgerTransaction", "malformed ledger transaction")
+
+	ErrUnknownCurrency = errors.Sentinel(errors.CodeInternal,
+		"application.ErrUnknownCurrency", "currency is not in the currencies table")
+
+	ErrCurrencyNotAllowed = errors.Sentinel(errors.CodeInternal,
+		"application.ErrCurrencyNotAllowed", "this account kind is held in one currency only")
 
 	ErrMixedCurrencies = errors.Sentinel(errors.CodeInternal,
 		"application.ErrMixedCurrencies", "ledger transaction spans more than one currency")

@@ -59,14 +59,25 @@ func TestLedgerNamesMatchTheMigration(t *testing.T) {
 	sql := string(raw)
 	for _, name := range []string{
 		accountsBalanceNonNegativeCheck,
-		accountsKindOwnerCurrencyKey,
 		"reward_grants_one_starting_grant_idx",
 		application.SystemSourceAccountID,
 		application.SystemSinkAccountID,
-		"'" + application.DefaultCurrency + "'",
+		"'IRR'", // the legacy label; migration 0047 renames it to DefaultCurrency
 	} {
 		if !strings.Contains(sql, name) {
 			t.Errorf("migration 0006 no longer contains %q", name)
+		}
+	}
+	// The account key this package maps was widened by 0047 (currencies,
+	// shard_id); the default currency the code opens accounts in is the
+	// one that migration renamed IRR to.
+	raw47, err := os.ReadFile(filepath.Join("..", "..", "..", "migrations", "0047_currencies.up.sql"))
+	if err != nil {
+		t.Fatalf("reading migration 0047: %v", err)
+	}
+	for _, name := range []string{accountsKindOwnerCurrencyKey, "'" + application.DefaultCurrency + "'"} {
+		if !strings.Contains(string(raw47), name) {
+			t.Errorf("migration 0047 no longer contains %q", name)
 		}
 	}
 	// reward_grants.player_id is declared inline, so its foreign key takes
