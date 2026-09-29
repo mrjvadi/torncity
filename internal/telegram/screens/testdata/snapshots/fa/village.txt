@@ -1,0 +1,101 @@
+━━━ Village overview · a young village ━━━
+(edits message 42)
+🏘 روستای کورندال
+
+👥 جمعیت: ⁨340⁩ از ⁨500⁩
+
+🏦 خزانهٔ روستا: ⁨⁨12,400⁩ نیل⁩
+
+🌾 پوشش خوراک: 62٪
+💼 پوشش شغل: 48٪
+🏥 پوشش خدمات: 30٪
+🙂 شادی: 55٪
+🛡 امنیت محلی: 40٪
+📖 سوادآموزی: 18٪
+
+• دیده‌بانی محله
+• کارگاه نجاری
+  ───
+  [📚 دانش روستا] → settlement:knowledge
+  [🏗 ساخت‌وساز] → settlement:build
+  [⏳ پیشرفت ساخت] → settlement:build.progress
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
+
+━━━ Village overview · nothing built yet ━━━
+(edits message 42)
+🏘 روستای کورندال
+
+👥 جمعیت: ⁨40⁩ از ⁨100⁩
+
+🏦 خزانهٔ روستا: ⁨⁨900⁩ نیل⁩
+
+🌾 پوشش خوراک: 20٪
+💼 پوشش شغل: 10٪
+🏥 پوشش خدمات: 0٪
+🙂 شادی: 30٪
+🛡 امنیت محلی: 15٪
+📖 سوادآموزی: 2٪
+
+هنوز بنایی ساخته نشده است.
+  ───
+  [📚 دانش روستا] → settlement:knowledge
+  [🏗 ساخت‌وساز] → settlement:build
+  [⏳ پیشرفت ساخت] → settlement:build.progress
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
+
+━━━ Knowledge list · mixed states, research running ━━━
+(edits message 42)
+📚 دانش روستای کورندال
+🏦 خزانه: ⁨⁨12,400⁩ نیل⁩
+📖 سوادآموزی: 18٪
+
+⏳ در حال پژوهش دفترداری - ساعت ⁨20⁩:⁨35⁩ تمام می‌شود - ⁨30 ساعت⁩ دیگر
+
+✅ دانش شفاهی - آموخته شده
+🔬 آبیاری نهری - هزینهٔ پژوهش ⁨⁨3,000⁩ نیل⁩ (⁨24 ساعت⁩) - قیمت خرید آماده: ⁨⁨5,400⁩ نیل⁩
+🔒 سوادآموزی پایه - اول باید دانش شفاهی را داشته باشید
+🔒 آبیاری قناتی - زمین این روستا مناسب آن نیست
+
+🔭 ⁨6⁩ دانش دیگر پس از این‌ها باز می‌شود.
+  ───
+  [🔬 پژوهش آبیاری نهری] → settlement:knowledge.research:canal_irrigation   │   [💰 خرید آبیاری نهری] → settlement:knowledge.buy:canal_irrigation
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:knowledge
+
+━━━ Knowledge list · nothing to show yet ━━━
+(edits message 42)
+📚 دانش روستای کورندال
+🏦 خزانه: ⁨⁨900⁩ نیل⁩
+📖 سوادآموزی: 2٪
+
+دانشی برای نمایش نیست.
+  ───
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:knowledge
+
+━━━ Build menu · a mix of ready and locked ━━━
+(edits message 42)
+🏗 ساخت‌وساز کورندال
+🏦 خزانه: ⁨⁨12,400⁩ نیل⁩
+📋 صف ساخت: 1 از 1
+
+🏗 خانهٔ دهیاری - هزینه ⁨⁨1,000⁩ نیل⁩ - زمان ساخت ⁨2 ساعت⁩
+🔒 کلانتری - اول باید دفترداری را داشته باشید
+  ───
+  [🏗 ساخت خانهٔ دهیاری] → settlement:build.place:civic_hall
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build
+
+━━━ Construction progress · one queued, one building ━━━
+(edits message 42)
+⏳ صف ساخت‌وساز کورندال
+
+🏗 نجاری - در حال ساخت - ساعت ⁨16⁩:⁨05⁩ تمام می‌شود - ⁨1 ساعت و 30 دقیقه⁩ دیگر
+📋 دیده‌بانی محله - در صف - هنوز شروع نشده
+  ───
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build.progress
+
+━━━ Construction progress · queue empty ━━━
+(edits message 42)
+⏳ صف ساخت‌وساز کورندال
+
+چیزی در صف ساخت نیست.
+  ───
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build.progress

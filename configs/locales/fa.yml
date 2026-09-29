@@ -677,6 +677,65 @@ settlement:
       title: "🏡 این گروه پیش‌تر روستای «{name}» را تأسیس کرده است."
       body: "هر گروه تنها یک روستا را می‌تواند تأسیس کند؛ برای رشد، از فرمانداری روستای خود اقدام کنید."
 
+# Village-level knowledge and construction (docs/adr/0031-knowledge-and-
+# village-progression.md; internal/telegram/screens/village.go). Group
+# screens, never private: a settlement's growth is the group's own decision.
+village:
+  title:
+    village: "🏘 روستای {name}"
+    town: "🏘 شهرستان {name}"
+    city: "🏙 شهر {name}"
+  population: "👥 جمعیت: {population} از {cap}"
+  treasury: "🏦 خزانهٔ روستا: {amount}"
+  coverage:
+    food: "🌾 پوشش خوراک: {percent}٪"
+    job: "💼 پوشش شغل: {percent}٪"
+    service: "🏥 پوشش خدمات: {percent}٪"
+    happiness: "🙂 شادی: {percent}٪"
+    security: "🛡 امنیت محلی: {percent}٪"
+    literacy: "📖 سوادآموزی: {percent}٪"
+  building_line: "• {building}"
+  no_buildings: "هنوز بنایی ساخته نشده است."
+  button:
+    knowledge: "📚 دانش روستا"
+    build: "🏗 ساخت‌وساز"
+    progress: "⏳ پیشرفت ساخت"
+
+knowledge:
+  title: "📚 دانش روستای {name}"
+  treasury: "🏦 خزانه: {amount}"
+  literacy: "📖 سوادآموزی: {percent}٪"
+  running: "⏳ در حال پژوهش {knowledge} - ساعت {time} تمام می‌شود - {duration} دیگر"
+  empty: "دانشی برای نمایش نیست."
+  hidden: "🔭 {count} دانش دیگر پس از این‌ها باز می‌شود."
+  line:
+    held: "✅ {knowledge} - آموخته شده"
+    researching: "⏳ {knowledge} - در حال پژوهش"
+    available: "🔬 {knowledge} - هزینهٔ پژوهش {cost} ({time}) - قیمت خرید آماده: {buy_price}"
+    locked: "🔒 {knowledge} - اول باید {missing} را داشته باشید"
+    locked_terrain: "🔒 {knowledge} - زمین این روستا مناسب آن نیست"
+  button:
+    research: "🔬 پژوهش {knowledge}"
+    buy: "💰 خرید {knowledge}"
+
+build:
+  title: "🏗 ساخت‌وساز {name}"
+  treasury: "🏦 خزانه: {amount}"
+  queue: "📋 صف ساخت: {running} از {cap}"
+  empty: "بنایی برای ساخت نیست."
+  line:
+    available: "🏗 {building} - هزینه {cost} - زمان ساخت {time}"
+    locked: "🔒 {building} - اول باید {missing} را داشته باشید"
+  button:
+    place: "🏗 ساخت {building}"
+
+construction:
+  title: "⏳ صف ساخت‌وساز {name}"
+  empty: "چیزی در صف ساخت نیست."
+  line:
+    queued: "📋 {building} - در صف - هنوز شروع نشده"
+    building: "🏗 {building} - در حال ساخت - ساعت {time} تمام می‌شود - {duration} دیگر"
+
 # Playing in a group (internal/gateway/groups). A screen with a player's own
 # details is shown only to that player; these lines are all the rest of the
 # group ever sees of it, so they name no screen and no number.

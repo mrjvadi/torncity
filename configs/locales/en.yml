@@ -580,6 +580,65 @@ settlement:
       title: "🏡 This group has already founded the village of \"{name}\"."
       body: "Each group founds only one village; grow it from your village's own government instead."
 
+# Village-level knowledge and construction (docs/adr/0031-knowledge-and-
+# village-progression.md; internal/telegram/screens/village.go). Group
+# screens, never private.
+village:
+  title:
+    village: "🏘 the village of {name}"
+    town: "🏘 the town of {name}"
+    city: "🏙 the city of {name}"
+  population: "👥 Population: {population} of {cap}"
+  treasury: "🏦 Village treasury: {amount}"
+  coverage:
+    food: "🌾 Food coverage: {percent}%"
+    job: "💼 Job coverage: {percent}%"
+    service: "🏥 Service coverage: {percent}%"
+    happiness: "🙂 Happiness: {percent}%"
+    security: "🛡 Local security: {percent}%"
+    literacy: "📖 Literacy: {percent}%"
+  building_line: "• {building}"
+  no_buildings: "No buildings stand here yet."
+  button:
+    knowledge: "📚 Village knowledge"
+    build: "🏗 Construction"
+    progress: "⏳ Build progress"
+
+knowledge:
+  title: "📚 Knowledge of {name}"
+  treasury: "🏦 Treasury: {amount}"
+  literacy: "📖 Literacy: {percent}%"
+  running: "⏳ Researching {knowledge} - finishes at {time} - {duration} left"
+  empty: "No knowledge to show."
+  hidden: "🔭 {count} more items unlock beyond these."
+  line:
+    held: "✅ {knowledge} - already known"
+    researching: "⏳ {knowledge} - research running"
+    available: "🔬 {knowledge} - research cost {cost} ({time}) - ready-made price: {buy_price}"
+    locked: "🔒 {knowledge} - needs {missing} first"
+    locked_terrain: "🔒 {knowledge} - this village's terrain does not permit it"
+  button:
+    research: "🔬 Research {knowledge}"
+    buy: "💰 Buy {knowledge}"
+
+build:
+  title: "🏗 Construction in {name}"
+  treasury: "🏦 Treasury: {amount}"
+  queue: "📋 Build queue: {running} of {cap}"
+  empty: "Nothing available to build."
+  line:
+    available: "🏗 {building} - cost {cost} - build time {time}"
+    locked: "🔒 {building} - needs {missing} first"
+  button:
+    place: "🏗 Build {building}"
+
+construction:
+  title: "⏳ Construction queue of {name}"
+  empty: "Nothing is queued."
+  line:
+    queued: "📋 {building} - queued - not yet started"
+    building: "🏗 {building} - under construction - finishes at {time} - {duration} left"
+
 # Playing in a group (internal/gateway/groups). A screen with a player's own
 # details is shown only to that player; these lines are all the rest of the
 # group ever sees of it, so they name no screen and no number.

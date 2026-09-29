@@ -39,6 +39,12 @@ const (
 	ScreenSettlementFounded = "settlement_founded"
 	ScreenSettlementRefusal = "settlement_refusal"
 
+	// Village-level knowledge and construction (village.go).
+	ScreenVillageOverview      = "village_overview"
+	ScreenKnowledgeList        = "settlement_knowledge_list"
+	ScreenBuildMenu            = "settlement_build_menu"
+	ScreenConstructionProgress = "settlement_construction_progress"
+
 	// Auctions (auctions.go).
 	ScreenAuctions       = "auctions"
 	ScreenAuctionDetail  = "auction_detail"

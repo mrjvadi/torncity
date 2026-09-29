@@ -1,0 +1,101 @@
+━━━ Village overview · a young village ━━━
+(edits message 42)
+🏘 the village of Korendal
+
+👥 Population: 340 of 500
+
+🏦 Village treasury: 12,400 Nil
+
+🌾 Food coverage: 62%
+💼 Job coverage: 48%
+🏥 Service coverage: 30%
+🙂 Happiness: 55%
+🛡 Local security: 40%
+📖 Literacy: 18%
+
+• Watch hut
+• Carpentry workshop
+  ───
+  [📚 Village knowledge] → settlement:knowledge
+  [🏗 Construction] → settlement:build
+  [⏳ Build progress] → settlement:build.progress
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
+
+━━━ Village overview · nothing built yet ━━━
+(edits message 42)
+🏘 the village of Korendal
+
+👥 Population: 40 of 100
+
+🏦 Village treasury: 900 Nil
+
+🌾 Food coverage: 20%
+💼 Job coverage: 10%
+🏥 Service coverage: 0%
+🙂 Happiness: 30%
+🛡 Local security: 15%
+📖 Literacy: 2%
+
+No buildings stand here yet.
+  ───
+  [📚 Village knowledge] → settlement:knowledge
+  [🏗 Construction] → settlement:build
+  [⏳ Build progress] → settlement:build.progress
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
+
+━━━ Knowledge list · mixed states, research running ━━━
+(edits message 42)
+📚 Knowledge of Korendal
+🏦 Treasury: 12,400 Nil
+📖 Literacy: 18%
+
+⏳ Researching Record keeping - finishes at 20:35 - 30h left
+
+✅ Oral tradition - already known
+🔬 Canal irrigation - research cost 3,000 Nil (24h) - ready-made price: 5,400 Nil
+🔒 Basic literacy - needs Oral tradition first
+🔒 Shaft irrigation - this village's terrain does not permit it
+
+🔭 6 more items unlock beyond these.
+  ───
+  [🔬 Research Canal irrigation] → settlement:knowledge.research:canal_irrigation   │   [💰 Buy Canal irrigation] → settlement:knowledge.buy:canal_irrigation
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:knowledge
+
+━━━ Knowledge list · nothing to show yet ━━━
+(edits message 42)
+📚 Knowledge of Korendal
+🏦 Treasury: 900 Nil
+📖 Literacy: 2%
+
+No knowledge to show.
+  ───
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:knowledge
+
+━━━ Build menu · a mix of ready and locked ━━━
+(edits message 42)
+🏗 Construction in Korendal
+🏦 Treasury: 12,400 Nil
+📋 Build queue: 1 of 1
+
+🏗 Civic hall - cost 1,000 Nil - build time 2h
+🔒 Police post - needs Record keeping first
+  ───
+  [🏗 Build Civic hall] → settlement:build.place:civic_hall
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build
+
+━━━ Construction progress · one queued, one building ━━━
+(edits message 42)
+⏳ Construction queue of Korendal
+
+🏗 Carpentry - under construction - finishes at 16:05 - 1h 30m left
+📋 Watch hut - queued - not yet started
+  ───
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
+
+━━━ Construction progress · queue empty ━━━
+(edits message 42)
+⏳ Construction queue of Korendal
+
+Nothing is queued.
+  ───
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
