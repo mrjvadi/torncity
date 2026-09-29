@@ -388,6 +388,27 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			cfg.Settlement.VillageGridLots,
 			nil,
 		),
+		village: handlers.NewVillageHandler(
+			uow,
+			uuidGenerator{},
+			messages,
+			registry,
+			worldCache,
+			cities,
+			gametime.Scale(cfg.Game.TimeScale),
+			handlers.VillageRules{
+				VillageGridLots:       cfg.Settlement.VillageGridLots,
+				TeachPeriod:           cfg.Settlement.TeachPeriod,
+				TeachRateBPS:          cfg.Settlement.TeachRateBPS,
+				BaseSchoolCapacityBPS: cfg.Settlement.BaseSchoolCapacityBPS,
+				ScarcityKBPS:          cfg.Settlement.ScarcityKBPS,
+				ScarcityFloorBPS:      cfg.Settlement.ScarcityFloorBPS,
+				ScarcityCapBPS:        cfg.Settlement.ScarcityCapBPS,
+				SellerBandBPS:         cfg.Settlement.SellerBandBPS,
+			},
+			cfg.Game.IdempotencyTTL,
+			nil,
+		),
 	}
 
 	// Work and study read careers and courses from the live registry and a

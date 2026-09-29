@@ -32,6 +32,7 @@ type phaseHandlers struct {
 	bank        *handlers.BankHandler
 	gov         *handlers.GovernanceHandler
 	settlements *handlers.SettlementsHandler
+	village     *handlers.VillageHandler
 
 	jobs      *handlers.JobsHandler
 	education *handlers.EducationHandler
@@ -242,6 +243,72 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 
 		"settlement.found": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.settlements.Found(ctx, env.Metadata)
+		},
+
+		// Village-level knowledge and construction (docs/adr/0031), K2/W5.
+		"settlement.overview": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.Overview(ctx, env.Metadata)
+		},
+		"settlement.knowledge": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.KnowledgeList(ctx, env.Metadata)
+		},
+		"settlement.knowledge.research": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageKnowledgeRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Research(ctx, env.Metadata, req)
+		},
+		"settlement.knowledge.buy": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageKnowledgeRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Buy(ctx, env.Metadata, req)
+		},
+		"settlement.build": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.BuildMenu(ctx, env.Metadata)
+		},
+		"settlement.build.place": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageBuildRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Place(ctx, env.Metadata, req)
+		},
+		"settlement.build.progress": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.Progress(ctx, env.Metadata)
+		},
+		"settlement.build.demolish": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageBuildingRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Demolish(ctx, env.Metadata, req)
+		},
+		// The scheduler's own dispatch payload, decoded into the request the
+		// handler declares for it, exactly travel.arrive and
+		// company.researched already do.
+		"settlement.researched": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.CrimeScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Researched(ctx, env.Metadata, req)
+		},
+		"settlement.taught": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.CrimeScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Taught(ctx, env.Metadata, req)
+		},
+		"settlement.built": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.CrimeScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Built(ctx, env.Metadata, req)
 		},
 	}
 	// Work and study are bound in commands_work.go.
