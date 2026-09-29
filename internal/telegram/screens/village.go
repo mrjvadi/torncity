@@ -49,7 +49,61 @@ const (
 	AddrBuildMenu            = "settlement:build"
 	AddrBuildPlace           = "settlement:build.place"
 	AddrConstructionProgress = "settlement:build.progress"
+	AddrBuildDemolish        = "settlement:build.demolish"
 )
+
+// ---------------------------------------------------------------------
+// Refusals (K2/W5 command handlers)
+// ---------------------------------------------------------------------
+
+// Village refusal kinds.
+const (
+	VillageNoSettlement    = "no_settlement"
+	VillageNotOfficeHolder = "not_office_holder"
+	VillageInsufficient    = "insufficient_funds"
+	VillageBusy            = "busy"
+	VillageAlreadyOwned    = "already_owned"
+	VillageNotAvailable    = "not_available"
+	VillageTerrain         = "terrain"
+	VillagePrerequisite    = "prerequisite"
+	VillageLiteracy        = "literacy"
+	VillageNotFound        = "not_found"
+	VillageOccupied        = "occupied"
+	VillageOutOfBounds     = "out_of_bounds"
+	VillageConcurrentCap   = "concurrent_cap"
+	VillageNotDemolishable = "not_demolishable"
+)
+
+// VillageRefusalView is a K2/W5 command refused before it changed anything.
+type VillageRefusalView struct {
+	Kind string
+	// Back is where the refusal's own button leads; empty means the
+	// village overview.
+	Back string
+}
+
+// VillageRefusal renders a refused village command.
+func VillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
+	return c.withView(renderVillageRefusal(c, v), ScreenVillageRefusal, v)
+}
+
+func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
+	kind := v.Kind
+	switch kind {
+	case VillageNoSettlement, VillageNotOfficeHolder, VillageInsufficient, VillageBusy, VillageAlreadyOwned,
+		VillageNotAvailable, VillageTerrain, VillagePrerequisite, VillageLiteracy, VillageNotFound,
+		VillageOccupied, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable:
+	default:
+		kind = VillageNotFound
+	}
+	back := v.Back
+	if back == "" {
+		back = AddrVillageOverview
+	}
+	kb := keyboards.New()
+	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
+	return c.respond(c.T("village.refusal."+kind, nil), kb.Build())
+}
 
 // ---------------------------------------------------------------------
 // Village overview

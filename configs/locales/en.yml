@@ -603,6 +603,21 @@ village:
     knowledge: "📚 Village knowledge"
     build: "🏗 Construction"
     progress: "⏳ Build progress"
+  refusal:
+    no_settlement: "🏡 This group has not founded a village yet. Send \"found village\" to start."
+    not_office_holder: "🔒 Only the village head may do this."
+    insufficient_funds: "🏦 The village treasury cannot cover this."
+    busy: "⏳ The village is already busy with something else. Wait for it to finish."
+    already_owned: "✅ You already know this."
+    not_available: "🔒 This is not available to research or buy right now."
+    terrain: "🔒 This village's terrain does not permit it."
+    prerequisite: "🔒 The prerequisites for this are not met yet."
+    literacy: "📖 The village's literacy has not reached what this needs yet."
+    not_found: "That was not found."
+    occupied: "🔒 That spot is already taken."
+    out_of_bounds: "🔒 That spot is outside the village's own grid."
+    concurrent_cap: "🏗 The village's build queue is full. Wait for one to finish."
+    not_demolishable: "🔒 That building cannot be demolished right now."
 
 knowledge:
   title: "📚 Knowledge of {name}"

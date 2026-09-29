@@ -44,6 +44,7 @@ const (
 	ScreenKnowledgeList        = "settlement_knowledge_list"
 	ScreenBuildMenu            = "settlement_build_menu"
 	ScreenConstructionProgress = "settlement_construction_progress"
+	ScreenVillageRefusal       = "village_refusal"
 
 	// Auctions (auctions.go).
 	ScreenAuctions       = "auctions"
