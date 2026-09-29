@@ -80,6 +80,28 @@ func TestValidateCatalogueDuplicateCode(t *testing.T) {
 	}
 }
 
+func TestDefRotate(t *testing.T) {
+	d := Def{Code: "militia_camp", FootprintW: 2, FootprintH: 1}
+	if !d.CanRotate() {
+		t.Fatal("a 2x1 footprint should be rotatable")
+	}
+	r := d.Rotate()
+	if r.FootprintW != 1 || r.FootprintH != 2 {
+		t.Errorf("Rotate() footprint = %dx%d, want 1x2", r.FootprintW, r.FootprintH)
+	}
+	if r.Code != d.Code {
+		t.Error("Rotate() must not change anything but the footprint")
+	}
+	square := Def{Code: "civic_hall", FootprintW: 2, FootprintH: 2}
+	if square.CanRotate() {
+		t.Error("a square footprint should not be rotatable")
+	}
+	oneByOne := Def{Code: "road", FootprintW: 1, FootprintH: 1}
+	if oneByOne.CanRotate() {
+		t.Error("a 1x1 footprint should not be rotatable")
+	}
+}
+
 func TestValidateCatalogueBadFootprintCostTime(t *testing.T) {
 	if err := ValidateCatalogue([]Def{{Code: "a", FootprintW: 0, FootprintH: 1, CostMoney: 1, BuildTime: time.Hour}}); !errors.Is(err, ErrInvalidBuilding) {
 		t.Error("zero footprint width accepted")

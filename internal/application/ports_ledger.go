@@ -466,6 +466,12 @@ const (
 	// system_sink, once, when the build is queued (ADR 0028 section 6.3:
 	// "all or nothing... at the moment the build is queued").
 	ReasonSettlementConstruction Reason = "settlement_construction"
+	// ReasonSettlementSalvage credits part of a demolished building's own
+	// cost back into the settlement's treasury from system_source (a
+	// faucet, small and bounded by settlement.demolition_salvage_bps —
+	// ADR 0028 section 6.2's own demolition_salvage_bps, default 20%):
+	// scrap value recovered, not a refund of money that never left.
+	ReasonSettlementSalvage Reason = "settlement_salvage"
 )
 
 var knownReasons = map[Reason]struct{}{
@@ -524,7 +530,7 @@ var knownReasons = map[Reason]struct{}{
 	ReasonHospitalFee: {}, ReasonTreatmentFee: {}, ReasonFactionRegistration: {}, ReasonFactionDeposit: {},
 	ReasonFactionWithdrawal: {}, ReasonPaymentHold: {}, ReasonPaymentRelease: {}, ReasonPaymentReturn: {},
 
-	ReasonSettlementConstruction: {},
+	ReasonSettlementConstruction: {}, ReasonSettlementSalvage: {},
 }
 
 // Known reports whether r is in the closed set.

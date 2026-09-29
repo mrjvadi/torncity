@@ -43,6 +43,9 @@ const (
 	// (migrations/0021_military): the Org's ID is the country's
 	// jurisdiction.
 	OrgState = "state"
+	// OrgSettlement is a settlement's own public stock (ADR 0028 section
+	// 8, migration 0045): the Org's ID is the settlement's own cities.id.
+	OrgSettlement = "settlement"
 )
 
 // Org names an organisation holding goods. The zero Org is no organisation.
@@ -56,6 +59,10 @@ func CompanyOrg(id string) Org { return Org{Kind: OrgCompany, ID: id} }
 
 // StateOrg is a country's state as a holder of goods.
 func StateOrg(countryID string) Org { return Org{Kind: OrgState, ID: countryID} }
+
+// SettlementOrg is a settlement as a holder of goods (its own public
+// stock, ADR 0028 section 8).
+func SettlementOrg(settlementID string) Org { return Org{Kind: OrgSettlement, ID: settlementID} }
 
 // IsZero reports whether o names nobody.
 func (o Org) IsZero() bool { return o.ID == "" }
@@ -121,6 +128,11 @@ const (
 	// reverse engineering sample is, whether the target unit ends up
 	// upgraded or (never: retrofit does not fail) not.
 	ItemRetrofitKit ItemReason = "retrofit_kit"
+
+	// ItemSettlementConstruction is an end: a building's material cost
+	// (ADR 0028 section 6.3) consumed from a settlement's own public stock
+	// (org_stacks, OrgSettlement) when its placement is confirmed.
+	ItemSettlementConstruction ItemReason = "settlement_construction"
 )
 
 var itemReasons = map[ItemReason]bool{
@@ -134,6 +146,7 @@ var itemReasons = map[ItemReason]bool{
 	ItemProcured:  true,
 	ItemDestroyed: true, ItemExpended: true,
 	ItemRetrofitKit: true,
+	ItemSettlementConstruction: true,
 }
 
 // Known reports whether r is in the closed set.

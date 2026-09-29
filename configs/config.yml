@@ -1021,3 +1021,6 @@ settlement:
   # How far a settlement-to-settlement sale may deviate from the reference
   # price, either way.
   seller_band_bps: 500
+  # The share of a demolished building's own money cost credited back to
+  # the settlement's treasury (ADR 0028 section 6.2).
+  demolition_salvage_bps: 2000

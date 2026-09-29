@@ -643,6 +643,11 @@ type Settlement struct {
 	// from the reference price, either way (section 10 point 3's own
 	// resolved open question).
 	SellerBandBPS int64 // settlement.seller_band_bps
+
+	// DemolitionSalvageBPS is the share of a demolished building's own
+	// money cost credited back to the settlement's treasury (ADR 0028
+	// section 6.2), basis points; default 2000 (20%).
+	DemolitionSalvageBPS int64 // settlement.demolition_salvage_bps
 }
 
 // Governance is the tuning of the office holder's screens
@@ -1217,6 +1222,7 @@ func Defaults() *Config {
 			ScarcityFloorBPS:      3000,
 			ScarcityCapBPS:        80000,
 			SellerBandBPS:         500,
+			DemolitionSalvageBPS:  2000,
 		},
 		Governance: Governance{
 			FineStepDivisor:   100,

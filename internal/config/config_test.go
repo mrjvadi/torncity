@@ -528,6 +528,7 @@ settlement:
   scarcity_floor_bps: 3001
   scarcity_cap_bps: 80001
   seller_band_bps: 501
+  demolition_salvage_bps: 2001
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -813,6 +814,7 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_SCARCITY_FLOOR_BPS":       "3002",
 	"TORN_SETTLEMENT_SCARCITY_CAP_BPS":         "80002",
 	"TORN_SETTLEMENT_SELLER_BAND_BPS":          "502",
+	"TORN_SETTLEMENT_DEMOLITION_SALVAGE_BPS":   "2002",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

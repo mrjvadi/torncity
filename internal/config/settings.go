@@ -265,6 +265,7 @@ type settlementSettings struct {
 	ScarcityFloorBPS      *int64  `yaml:"scarcity_floor_bps"`
 	ScarcityCapBPS        *int64  `yaml:"scarcity_cap_bps"`
 	SellerBandBPS         *int64  `yaml:"seller_band_bps"`
+	DemolitionSalvageBPS  *int64  `yaml:"demolition_salvage_bps"`
 }
 
 type crimeSettings struct {
@@ -1003,6 +1004,9 @@ var coreSettings = []setting{
 	moneySetting("settlement", "seller_band_bps",
 		func(c *Config) *int64 { return &c.Settlement.SellerBandBPS },
 		func(f *fileConfig) *int64 { return f.Settlement.SellerBandBPS }),
+	moneySetting("settlement", "demolition_salvage_bps",
+		func(c *Config) *int64 { return &c.Settlement.DemolitionSalvageBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.DemolitionSalvageBPS }),
 
 	durationSetting("legislature", "vote_window",
 		func(c *Config) *time.Duration { return &c.Legislature.VoteWindow },

@@ -170,6 +170,24 @@ type Def struct {
 	Effects []item.Effect
 }
 
+// CanRotate reports whether rotating this building's footprint would
+// change anything — false for a square footprint (including every 1x1),
+// where "rotated" and "not rotated" place the identical lots.
+func (d Def) CanRotate() bool { return d.FootprintW != d.FootprintH }
+
+// Rotate returns d with its footprint's width and height swapped — turning
+// a building the leader is about to place through 90 degrees before
+// choosing its lot (ADR 0028 section 6: the leader places a building on
+// the settlement's own grid; a building's own footprint orientation is
+// part of that placement, not a fixed fact of the building type). Every
+// other field is unchanged: a rotated building still needs the same
+// knowledge, terrain and cost — only which lots its own footprint covers
+// changes.
+func (d Def) Rotate() Def {
+	d.FootprintW, d.FootprintH = d.FootprintH, d.FootprintW
+	return d
+}
+
 // Catalogue is the whole building catalogue, keyed by code.
 type Catalogue map[string]Def
 
