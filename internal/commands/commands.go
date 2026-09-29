@@ -413,6 +413,26 @@ var all = []Subscription{
 	// group's own /found command, answered where it was sent — a village
 	// only ever lands in the group that founded it.
 	{Domain: "settlement", Action: "found", Origin: FromPlayer},
+
+	// Village-level knowledge and construction
+	// (docs/adr/0031-knowledge-and-village-progression.md), K2/W5: the
+	// overview, the knowledge list plus research and buying from Support,
+	// the build menu plus placing and demolishing a building, and
+	// construction progress. Group-first, like founding itself
+	// (configs/commands.yml: channel: group). Only the scheduler sends
+	// settlement.researched, settlement.taught and settlement.built, a
+	// research/literacy tick/construction reaching its end.
+	{Domain: "settlement", Action: "overview", Origin: FromPlayer},
+	{Domain: "settlement", Action: "knowledge", Origin: FromPlayer},
+	{Domain: "settlement", Action: "knowledge.research", Origin: FromPlayer},
+	{Domain: "settlement", Action: "knowledge.buy", Origin: FromPlayer},
+	{Domain: "settlement", Action: "build", Origin: FromPlayer},
+	{Domain: "settlement", Action: "build.place", Origin: FromPlayer},
+	{Domain: "settlement", Action: "build.progress", Origin: FromPlayer},
+	{Domain: "settlement", Action: "build.demolish", Origin: FromPlayer},
+	{Domain: "settlement", Action: "researched", Origin: FromScheduler},
+	{Domain: "settlement", Action: "taught", Origin: FromScheduler},
+	{Domain: "settlement", Action: "built", Origin: FromScheduler},
 	{Domain: "law", Action: "list", Origin: FromPlayer},
 	{Domain: "law", Action: "view", Origin: FromPlayer},
 	{Domain: "law", Action: "vote", Origin: FromPlayer},

@@ -445,6 +445,19 @@ var argNames = map[string][]string{
 	// takes nothing: the game, not the group, chooses the spot.
 	"settlement.found": {},
 
+	// Village-level knowledge and construction (ADR 0031), K2/W5: the
+	// settlement itself is always the group's own (resolved by chat id,
+	// never a callback argument); only the item or building code, or a
+	// placed building's own id, travels on the button.
+	"settlement.overview":           {},
+	"settlement.knowledge":          {},
+	"settlement.knowledge.research": {"code"},
+	"settlement.knowledge.buy":      {"code"},
+	"settlement.build":              {},
+	"settlement.build.place":        {"code"},
+	"settlement.build.progress":     {},
+	"settlement.build.demolish":     {"id"},
+
 	"job.status":       {},
 	"job.list":         {"page"},
 	"job.view":         {"role"},

@@ -381,6 +381,17 @@ commands:
   # civic act the whole group decides and sees, never private — the same
   # rule crime.* above already follows.
   settlement.found: {channel: group}
+  # Village-level knowledge and construction (docs/adr/0031), K2/W5: the
+  # same rule — a settlement's growth is the group's own decision, never
+  # private.
+  settlement.overview: {channel: group}
+  settlement.knowledge: {channel: group}
+  settlement.knowledge.research: {channel: group}
+  settlement.knowledge.buy: {channel: group}
+  settlement.build: {channel: group}
+  settlement.build.place: {channel: group}
+  settlement.build.progress: {channel: group}
+  settlement.build.demolish: {channel: group}
 
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the
