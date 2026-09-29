@@ -2,6 +2,7 @@ package worldgen
 
 import (
 	"container/heap"
+	"math"
 	"sort"
 )
 
@@ -123,10 +124,25 @@ func computeHydrology(mesh *Mesh, elevation []int32, params Params) Hydrology {
 			continue
 		}
 		best := int32(-1)
-		bestFilled := filled[c]
+		bestScore := 0.0
+		cp := mesh.Points[c]
 		for _, nb := range mesh.Neighbors(c) {
-			if filled[nb] < bestFilled {
-				bestFilled = filled[nb]
+			if filled[nb] >= filled[c] {
+				continue
+			}
+			np := mesh.Points[nb]
+			dx, dy, dz := np.X-cp.X, np.Y-cp.Y, np.Z-cp.Z
+			slope := float64(filled[c]-filled[nb]) / math.Sqrt(dx*dx+dy*dy+dz*dz)
+			// Meander: scale each candidate's slope by a deterministic
+			// per-edge factor in [0.6,1.4]. Only STRICTLY lower neighbours
+			// are candidates, so the flow graph stays acyclic; among them
+			// the pick is no longer always the one lattice direction that
+			// is steepest by a hair, which on a smooth slope produced
+			// ruler-straight rivers along one of the kNN lattice's few
+			// preferred directions.
+			score := slope * (0.6 + 0.8*edgeJitter(c, int(nb)))
+			if score > bestScore {
+				bestScore = score
 				best = nb
 			}
 		}
@@ -229,4 +245,14 @@ func riverFlow(hy Hydrology, threshold int) []int32 {
 		}
 	}
 	return out
+}
+
+// edgeJitter is a deterministic per-directed-edge value in [0,1) (integer
+// hash, no float trig), used to break lattice-direction ties in flow routing.
+func edgeJitter(a, b int) float64 {
+	x := uint64(a)*0x9E3779B97F4A7C15 ^ uint64(b)*0xC2B2AE3D27D4EB4F
+	x ^= x >> 29
+	x *= 0xBF58476D1CE4E5B9
+	x ^= x >> 32
+	return float64(x&0xFFFFFF) / float64(0x1000000)
 }

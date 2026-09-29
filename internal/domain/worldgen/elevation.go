@@ -59,31 +59,7 @@ const (
 	coastGuardWidth    = 900.0
 	coastGuardMinScale = 0.20
 
-	// boundaryWarpFraction is how far RealDistance can be pushed, as a
-	// fraction of maxRealDistance, by the boundary_warp noise field —
-	// large enough that the influence zone's edge visibly wanders rather
-	// than tracing a parallel offset of the boundary.
-	boundaryWarpFraction = 0.55
 )
-
-// blendedPlateBias returns a cell's plate-type signal: +1 for continental
-// crust, -1 for oceanic, blended toward the plate on the OTHER side of a
-// nearby boundary so this signal itself has no hard step at a plate edge
-// either. falloff is 1 right at the boundary and 0 by the edge of its
-// influence (see boundaryFalloff) — the same smoothly-warped value
-// boundary relief itself decays by, so the bias blend and the relief bump
-// wander together rather than by two unrelated rules.
-func blendedPlateBias(ownType, otherType PlateType, falloff float64) float64 {
-	own := -1.0
-	if ownType == PlateContinental {
-		own = 1.0
-	}
-	other := -1.0
-	if otherType == PlateContinental {
-		other = 1.0
-	}
-	return own + (other-own)*falloff*0.5
-}
 
 // boundaryPeakMagnitude returns the elevation contribution a boundary of the
 // given kind and cell arrangement adds AT ITS STRONGEST (StepsAway==0,
@@ -104,8 +80,9 @@ func blendedPlateBias(ownType, otherType PlateType, falloff float64) float64 {
 //   - transform: minor uplift on the continental side only, nothing on
 //     oceanic crust (a simplification of ranges like California's Coast
 //     Ranges), otherwise left to noise.
-func boundaryPeakMagnitude(b boundaryInfo) float64 {
-	switch b.Kind {
+func peakMagnitude(kind BoundaryKind, ownType, otherType PlateType) float64 {
+	b := struct{ OwnType, OtherType PlateType }{ownType, otherType}
+	switch kind {
 	case BoundaryConvergent:
 		switch {
 		case b.OwnType == PlateContinental && b.OtherType == PlateContinental:
@@ -132,26 +109,6 @@ func boundaryPeakMagnitude(b boundaryInfo) float64 {
 	}
 }
 
-func (b boundaryInfo) hasInfluence(maxSteps int) bool {
-	return b.IsBoundary || (b.StepsAway >= 0 && b.StepsAway < maxSteps)
-}
-
-// boundaryFalloff turns a cell's (warped) real distance from the nearest
-// boundary into a 1..0 multiplier via smoothstep — a soft S-curve, not the
-// straight line StepsAway/maxSteps used to be, and not a curve that can
-// only take as many distinct values as there are integer hops (the direct
-// cause of visible terracing near a boundary).
-func boundaryFalloff(warpedDistance, maxRealDistance float64) float64 {
-	if warpedDistance <= 0 {
-		return 1
-	}
-	if maxRealDistance <= 0 {
-		return 0
-	}
-	t := warpedDistance / maxRealDistance
-	return 1 - smoothstep(t)
-}
-
 // coastGuardScale damps boundary relief near the base field's OWN sea
 // level, where a modest push could flip a cell's land/sea category, and
 // lets it through at full strength far from it. distFromSeaLevel may be
@@ -169,7 +126,7 @@ func coastGuardScale(distFromSeaLevel float64) float64 {
 // computeElevation returns the raw (pre-sea-level) elevation for every cell
 // and, separately, SeaLevel: the raw elevation that splits cells into
 // Params.LandFraction land and the rest ocean.
-func computeElevation(mesh *Mesh, plates []Plate, plateOf []int16, boundaries []boundaryInfo, maxBoundaryDistance float64, params Params, seed uint64) ([]float64, float64) {
+func computeElevation(mesh *Mesh, plates []Plate, plateOf []int16, boundaries []boundaryInfo, params Params, seed uint64) ([]float64, float64) {
 	n := mesh.Len()
 
 	// The dominant, continent-shaping field: a few large, heavily
@@ -212,38 +169,14 @@ func computeElevation(mesh *Mesh, plates []Plate, plateOf []int16, boundaries []
 	coastlineField := newNoiseField(seed, "coastline_detail",
 		4, params.NoiseBaseFrequency*5, 550,
 		params.WarpAmplitude*0.4, params.WarpFrequency*2)
-	// A dedicated field that warps the DISTANCE a boundary's relief decays
-	// over (see boundaryFalloff), independent of every other noise field in
-	// this package: renaming or retuning it never perturbs elevation
-	// texture or anything else.
-	boundaryWarpField := newNoiseField(seed, "boundary_warp",
-		3, params.NoiseBaseFrequency*1.5, 550, 0.4, 0.4)
-
 	raw := make([]float64, n)
 	for c := 0; c < n; c++ {
-		pid := plateOf[c]
-		pType := plates[pid].Type
 		b := boundaries[c]
 		p := mesh.Points[c]
 
-		otherType := pType
-		if b.StepsAway >= 0 {
-			otherType = b.OtherType
-		}
-
-		falloff := 0.0
-		if b.hasInfluence(params.BoundaryInfluenceSteps) {
-			warp := boundaryWarpField.Sample3(p.X, p.Y, p.Z) * maxBoundaryDistance * boundaryWarpFraction
-			warpedDistance := b.RealDistance + warp
-			if warpedDistance < 0 {
-				warpedDistance = 0
-			}
-			falloff = boundaryFalloff(warpedDistance, maxBoundaryDistance)
-		}
-
-		bias := blendedPlateBias(pType, otherType, falloff)
 		guard := coastGuardScale(baseOnly[c] - baseSeaLevel)
-		be := boundaryPeakMagnitude(b) * falloff * guard
+		be := b.Relief * guard
+		bias := b.Bias
 
 		blob := continentField.Sample3(p.X, p.Y, p.Z)
 		n1 := elevationField.Sample3(p.X, p.Y, p.Z)

@@ -406,20 +406,55 @@ func riverWidth(flow int32) int {
 	return w
 }
 
+// drawRivers draws every river as one continuous, smoothed stroke: the
+// cells' pixel positions are joined by segments (no gaps between cells,
+// which is what used to read as a straight DOTTED line) after two rounds of
+// Chaikin corner cutting, so the mesh's lattice zig-zag becomes a curve.
+// A river crossing the antimeridian is split rather than drawn across the
+// whole map.
 func drawRivers(w *worldgen.World, img *image.RGBA, width, height int) {
 	darkRiver := color.RGBA{0x16, 0x4a, 0x7d, 255}
 	lightRiver := color.RGBA{0x5a, 0xa8, 0xdd, 255}
+	type rp struct{ x, y, r float64 }
 	for _, riv := range w.Rivers {
+		var run []rp
+		flush := func() {
+			for it := 0; it < 2 && len(run) > 2; it++ {
+				out := make([]rp, 0, len(run)*2)
+				out = append(out, run[0])
+				for i := 0; i+1 < len(run); i++ {
+					p, q := run[i], run[i+1]
+					out = append(out,
+						rp{0.75*p.x + 0.25*q.x, 0.75*p.y + 0.25*q.y, 0.75*p.r + 0.25*q.r},
+						rp{0.25*p.x + 0.75*q.x, 0.25*p.y + 0.75*q.y, 0.25*p.r + 0.75*q.r})
+				}
+				out = append(out, run[len(run)-1])
+				run = out
+			}
+			for i := 0; i+1 < len(run); i++ {
+				p, q := run[i], run[i+1]
+				steps := int(math.Max(math.Abs(q.x-p.x), math.Abs(q.y-p.y))) + 1
+				for s := 0; s <= steps; s++ {
+					t := float64(s) / float64(steps)
+					radius := int(math.Round(p.r + (q.r-p.r)*t))
+					if radius < 1 {
+						radius = 1
+					}
+					c := mixColor(lightRiver, darkRiver, clamp01(float64(radius-1)/4))
+					drawDot(img, int(math.Round(p.x+(q.x-p.x)*t)), int(math.Round(p.y+(q.y-p.y)*t)), radius-1, c)
+				}
+			}
+			run = run[:0]
+		}
 		for _, cellID := range riv.Cells {
 			cell := w.Cells[cellID]
-			radius := riverWidth(cell.RiverFlow)
-			// Wider (higher-flow) stretches are drawn a touch darker too,
-			// so a main stem reads as a river and not just a thicker line
-			// of the same pale tint as its headwaters.
-			c := mixColor(lightRiver, darkRiver, clamp01(float64(radius-1)/4))
 			px, py := pointToPixel(cell.Point, width, height)
-			drawDot(img, px, py, radius, c)
+			if n := len(run); n > 0 && math.Abs(float64(px)-run[n-1].x) > float64(width)/2 {
+				flush()
+			}
+			run = append(run, rp{float64(px), float64(py), float64(riverWidth(cell.RiverFlow))})
 		}
+		flush()
 	}
 }
 

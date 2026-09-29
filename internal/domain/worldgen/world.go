@@ -91,10 +91,10 @@ func Generate(seed uint64, params Params, content Content) (*World, error) {
 	root := NewRand(seed)
 	mesh := buildMesh(params.CellCount, params.NeighborK)
 
-	plates, plateOf := assignPlates(mesh, params, root)
-	boundaries, maxBoundaryDistance := computeBoundaries(mesh, plates, plateOf, params.BoundaryInfluenceSteps)
+	plates, plateOf, plateDist := assignPlates(mesh, params, root, seed)
+	boundaries := computeBoundaries(mesh, plates, plateOf, plateDist, params, seed)
 
-	rawElev, seaLevelRaw := computeElevation(mesh, plates, plateOf, boundaries, maxBoundaryDistance, params, seed)
+	rawElev, seaLevelRaw := computeElevation(mesh, plates, plateOf, boundaries, params, seed)
 	elevation := make([]int32, mesh.Len())
 	for c, v := range rawElev {
 		elevation[c] = quantize(v - seaLevelRaw)

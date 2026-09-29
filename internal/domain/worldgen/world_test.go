@@ -95,9 +95,9 @@ func TestHydrology_EveryCellDrainsToTheSea(t *testing.T) {
 	params.CellCount = 20000
 	mesh := buildMesh(params.CellCount, params.NeighborK)
 	r := NewRand(5)
-	plates, plateOf := assignPlates(mesh, params, r)
-	boundaries, maxBoundaryDistance := computeBoundaries(mesh, plates, plateOf, params.BoundaryInfluenceSteps)
-	rawElev, seaLevel := computeElevation(mesh, plates, plateOf, boundaries, maxBoundaryDistance, params, 5)
+	plates, plateOf, plateDist := assignPlates(mesh, params, r, 5)
+	boundaries := computeBoundaries(mesh, plates, plateOf, plateDist, params, 5)
+	rawElev, seaLevel := computeElevation(mesh, plates, plateOf, boundaries, params, 5)
 	elevation := make([]int32, mesh.Len())
 	for c, v := range rawElev {
 		elevation[c] = quantize(v - seaLevel)
