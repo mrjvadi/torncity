@@ -14,6 +14,8 @@ package tests
 
 import (
 	"context"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -24,8 +26,10 @@ import (
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
+	infraredis "github.com/mrjvadi/torncity/internal/infrastructure/redis"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/money"
+	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -220,6 +224,42 @@ func TestVillageLifecycle(t *testing.T) {
 		t.Fatalf("reading the founded city: %v", err)
 	}
 
+	// The group's «who is around» screen (docs/adr/0030, R2 settlement.who):
+	// a group screen, named for the village, listing who is online.
+	if os.Getenv(envRedis) != "" {
+		if _, err := pool.Raw().Exec(ctx, `UPDATE players SET city_id = $2::uuid, residence_city_id = $2::uuid WHERE id = $1::uuid`, founder.ID, cityID); err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() {
+			// The founder lived in the village for this check; let go of it
+			// before the village's own cleanup deletes the city.
+			_, _ = pool.Raw().Exec(context.Background(), `UPDATE players SET city_id = NULL, residence_city_id = NULL WHERE id = $1::uuid`, founder.ID)
+		})
+		catalog, err := i18n.Load("../configs/locales")
+		if err != nil {
+			t.Fatal(err)
+		}
+		presenceSvc := &application.PresenceService{
+			Store: infraredis.NewPresence(requireRedis(t), time.Minute), Repo: postgres.NewPresenceRepository(pool), RosterLimit: 50,
+		}
+		if err := presenceSvc.Beat(ctx, founder.ID, time.Now()); err != nil {
+			t.Fatal(err)
+		}
+		who, err := handlers.NewPresenceHandler(uow, catalog, presenceSvc).Who(ctx, newMeta("settlement.who", "who"))
+		if err != nil {
+			t.Fatalf("settlement.who: %v", err)
+		}
+		if who.Screen != "settlement_who" || !strings.Contains(who.Text, "integration") {
+			t.Errorf("the who screen does not list the online founder: %q (%s)", who.Text, who.Screen)
+		}
+		// In a private chat there is no village to speak of.
+		private := newMeta("settlement.who", "who")
+		private.ChatType, private.TelegramChatID = "private", founder.TelegramUserID
+		if refused, err := handlers.NewPresenceHandler(uow, catalog, presenceSvc).Who(ctx, private); err != nil || refused.Screen == "settlement_who" {
+			t.Errorf("settlement.who answered outside a group: %v %+v", err, refused)
+		}
+	}
+
 	// ------------------------------------------------------------------
 	// 2. The founding grant appears: the four universal items, plus a
 	// terrain-matched one, plus a scheduled literacy tick.
@@ -368,4 +408,15 @@ func TestVillageLifecycle(t *testing.T) {
 		t.Error("the teach tick did not schedule its own successor")
 	}
 	t.Logf("village lifecycle: literacy_share_bps %d -> %d after one teach tick with a school standing", literacyBPS, newLiteracyBPS)
+
+	// ------------------------------------------------------------------
+	// 7. What the village wrote to the outbox reaches its settlement
+	// channel, versioned and once, and its group as one merged post
+	// (docs/adr/0030, R2); needs Redis.
+	// ------------------------------------------------------------------
+	if os.Getenv(envRedis) != "" {
+		verifySettlementChannel(t, pool, cityID)
+	} else {
+		t.Logf("%s is not set; the settlement channel and village news were not checked", envRedis)
+	}
 }

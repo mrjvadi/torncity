@@ -55,8 +55,9 @@ func (s *Server) beat(ctx context.Context, playerID string) {
 }
 
 // heartbeat keeps a connected client online while it is idle.
-func (s *Server) heartbeat(w http.ResponseWriter, r *http.Request, pr Principal) {
-	s.beat(r.Context(), pr.PlayerID)
+func (s *Server) heartbeat(w http.ResponseWriter, _ *http.Request, _ Principal) {
+	// authed already recorded the beat; this endpoint exists so an idle
+	// client has something cheap to call.
 	out := map[string]any{"ok": true}
 	if s.cfg.PresenceTTL > 0 {
 		out["ttl_seconds"] = int(s.cfg.PresenceTTL / time.Second)

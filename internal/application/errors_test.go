@@ -12,13 +12,15 @@ import (
 // Adding one here is the cheap half of adding one at all: the tests below turn
 // the list into a guarantee that the new sentinel is actually distinguishable.
 var namedSentinels = map[string]*errors.Error{
-	"ErrPlayerNotFound":    ErrPlayerNotFound,
-	"ErrCityNotFound":      ErrCityNotFound,
-	"ErrNoActiveTravel":    ErrNoActiveTravel,
-	"ErrAlreadyTravelling": ErrAlreadyTravelling,
-	"ErrSkillNotFound":     ErrSkillNotFound,
-	"ErrNotFriends":        ErrNotFriends,
-	"ErrAlreadyFriends":    ErrAlreadyFriends,
+	"ErrPlayerNotFound":                ErrPlayerNotFound,
+	"ErrNotInSettlement":               ErrNotInSettlement,
+	"ErrUnsupportedPresenceVisibility": ErrUnsupportedPresenceVisibility,
+	"ErrCityNotFound":                  ErrCityNotFound,
+	"ErrNoActiveTravel":                ErrNoActiveTravel,
+	"ErrAlreadyTravelling":             ErrAlreadyTravelling,
+	"ErrSkillNotFound":                 ErrSkillNotFound,
+	"ErrNotFriends":                    ErrNotFriends,
+	"ErrAlreadyFriends":                ErrAlreadyFriends,
 }
 
 // TestSentinelsAreDistinguishable is the regression test for a real defect.

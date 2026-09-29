@@ -479,8 +479,14 @@ func TestRoutesAreWellFormed(t *testing.T) {
 			t.Errorf("durable %s is used twice", r.Durable())
 		}
 		seen[r.Durable()] = true
-		if (r.Render == nil) == (r.Announce == nil) {
-			t.Errorf("%s needs exactly one of a renderer and an announcer", r.Subject())
+		set := 0
+		for _, has := range []bool{r.Render != nil, r.Announce != nil, r.Settlement != nil, r.News != nil} {
+			if has {
+				set++
+			}
+		}
+		if set != 1 {
+			t.Errorf("%s needs exactly one of a renderer, an announcer, a settlement publisher and a news builder", r.Subject())
 		}
 	}
 	if got := travelRoute(t).Subject(); got != "game.event.travel.completed.v1" {
