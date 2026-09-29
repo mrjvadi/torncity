@@ -180,6 +180,16 @@ func (t *tx) Worlds() application.WorldRepository { return &WorldRepository{q: t
 // and Telegram group link commit together or not at all.
 func (t *tx) Settlements() application.SettlementRepository { return &SettlementRepository{q: t.q} }
 
+// SettlementKnowledge and SettlementBuildings are K2/W5 (ADR 0031): what a
+// settlement knows and its own construction queue, bound to this
+// transaction so each commits with the money and materials that moved.
+func (t *tx) SettlementKnowledge() application.SettlementKnowledgeRepository {
+	return &SettlementKnowledgeRepository{q: t.q}
+}
+func (t *tx) SettlementBuildings() application.SettlementBuildingRepository {
+	return &SettlementBuildingRepository{q: t.q}
+}
+
 // Bank returns the bank's presence locks bound to this transaction, so they
 // are held until the money they guard has moved.
 func (t *tx) Bank() application.BankRepository { return &BankRepository{q: t.q} }

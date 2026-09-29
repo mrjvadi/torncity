@@ -108,6 +108,12 @@ type Tx interface {
 	// ports_settlements.go.
 	Settlements() SettlementRepository
 
+	// SettlementKnowledge and SettlementBuildings are K2/W5 (ADR 0031): a
+	// settlement's own knowledge, literacy and research, and its
+	// buildings under construction; see ports_village.go.
+	SettlementKnowledge() SettlementKnowledgeRepository
+	SettlementBuildings() SettlementBuildingRepository
+
 	// Ledger moves money in the same transaction as the change that
 	// caused it; see ports_ledger.go.
 	Ledger() LedgerRepository

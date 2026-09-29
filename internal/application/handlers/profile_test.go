@@ -217,8 +217,10 @@ func (t *fakeTx) Governance() application.GovernanceRepository { return nil }
 
 // Worlds and Settlements are never reached by a handler test yet; nil
 // repositories make any accidental use fail loudly, the same as Governance.
-func (t *fakeTx) Worlds() application.WorldRepository           { return nil }
-func (t *fakeTx) Settlements() application.SettlementRepository { return nil }
+func (t *fakeTx) Worlds() application.WorldRepository                            { return nil }
+func (t *fakeTx) Settlements() application.SettlementRepository                  { return nil }
+func (t *fakeTx) SettlementKnowledge() application.SettlementKnowledgeRepository { return nil }
+func (t *fakeTx) SettlementBuildings() application.SettlementBuildingRepository  { return nil }
 
 // Bank reads presence off this transaction's own players and journeys.
 func (t *fakeTx) Bank() application.BankRepository {
