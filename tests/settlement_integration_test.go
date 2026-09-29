@@ -102,6 +102,14 @@ func TestSettlementFounding(t *testing.T) {
 		_ = pool.Raw().QueryRow(ctx, `SELECT jurisdiction_id::text FROM cities WHERE id = $1::uuid`, cityID).Scan(&jurisdictionID)
 		for _, stmt := range []string{
 			`DELETE FROM outbox WHERE subject = 'game.event.settlement.founded.v1' AND payload->>'settlement_id' = $1`,
+			// Found now also grants the founding kit's knowledge and
+			// starts the settlement's own literacy tick (ADR 0031 section
+			// 4.3/4.4) in the same transaction; all three must go before
+			// the city row itself can be deleted.
+			`DELETE FROM settlement_research WHERE settlement_id = $1::uuid`,
+			`DELETE FROM game_actions WHERE reference_type = 'settlement' AND reference_id = $1::uuid`,
+			`DELETE FROM settlement_literacy WHERE settlement_id = $1::uuid`,
+			`DELETE FROM settlement_knowledge_owned WHERE settlement_id = $1::uuid`,
 			`DELETE FROM settlement_buildings WHERE settlement_id = $1::uuid`,
 			`DELETE FROM city_group_links WHERE city_id = $1::uuid`,
 		} {
