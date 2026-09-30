@@ -414,3 +414,32 @@ func (r *SettlementRepository) ResidentCount(ctx context.Context, settlementID s
 	}
 	return n, nil
 }
+
+// Promote moves a settlement one tier up. See application.SettlementRepository.
+func (r *SettlementRepository) Promote(ctx context.Context, p application.SettlementPromotion) (bool, error) {
+	if !isUUID(p.SettlementID) || !isUUID(p.JurisdictionID) {
+		return false, application.ErrCityNotFound
+	}
+	tag, err := r.q.Exec(ctx,
+		`UPDATE cities SET tier = $2 WHERE id = $1::uuid AND origin = 'founded' AND tier = $3`,
+		p.SettlementID, p.To, p.From)
+	if err != nil {
+		return false, fmt.Errorf("postgres: promoting settlement %s: %w", p.SettlementID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return false, nil
+	}
+	if _, err := r.q.Exec(ctx, `UPDATE jurisdictions SET kind = $2 WHERE id = $1::uuid`, p.JurisdictionID, p.To); err != nil {
+		return false, fmt.Errorf("postgres: promoting the jurisdiction of %s: %w", p.SettlementID, err)
+	}
+	if err := r.createVacantSeats(ctx, p.To, p.JurisdictionID, p.At); err != nil {
+		return false, err
+	}
+	if _, err := r.q.Exec(ctx,
+		`INSERT INTO audit_logs (actor, action, target_type, target_id, old_value, new_value, reason, created_at)
+		 VALUES ($1, 'settlement.promote', 'settlement', $2::uuid, $3, $4, 'tier promotion', $5)`,
+		"player:"+p.Actor, p.SettlementID, []byte(`{"tier":"`+p.From+`"}`), []byte(`{"tier":"`+p.To+`"}`), p.At.UTC()); err != nil {
+		return false, fmt.Errorf("postgres: writing the promotion audit row: %w", err)
+	}
+	return true, nil
+}

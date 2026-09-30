@@ -98,6 +98,9 @@ type Snapshot struct {
 	// settlementBuildings is settlement_buildings.yml's catalogue (ADR
 	// 0028 section 7, ADR 0031 section 3.2); see settlementbuilding.go.
 	settlementBuildings settlementBuildingContent
+	// settlementTiers is settlement_tiers.yml's ladder, by the tier a step
+	// leaves; see settlementtier.go.
+	settlementTiers map[string]SettlementTierDef
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -202,6 +205,7 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	}
 	snap.buildSettlementKnowledge(p)
 	snap.buildSettlementBuildings(p)
+	snap.buildSettlementTiers(p)
 
 	return snap, nil
 }

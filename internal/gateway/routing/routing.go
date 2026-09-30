@@ -473,6 +473,8 @@ var argNames = map[string][]string{
 	"settlement.join":               {"confirm", "settlement"},
 	"settlement.leave":              {"confirm", "settlement"},
 	"settlement.donate":             {"amount", "confirm", "settlement"},
+	"settlement.promotion.view":     {},
+	"settlement.promote":            {"confirm"},
 
 	"job.status":       {},
 	"job.list":         {"page"},

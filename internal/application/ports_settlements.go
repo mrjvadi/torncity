@@ -316,6 +316,14 @@ type SettlementRepository interface {
 	// currency, and whether the name key is a reserved currency name.
 	CurrencyTaken(ctx context.Context, code, nameKey string) (codeTaken, nameTaken bool, err error)
 
+	// Promote moves a settlement one tier up (ADR 0028 section 4.1) when it
+	// is still at p.From: cities.tier and its jurisdiction's kind both take
+	// p.To, the new tier's office seats are created vacant (an existing seat
+	// is kept), and the audit row is written - one compare-and-swap, so a
+	// redelivered or concurrent promotion changes nothing and reports false.
+	// The caller seats the office holder, in the same transaction.
+	Promote(ctx context.Context, p SettlementPromotion) (changed bool, err error)
+
 	// ResidentCount is how many active players have this settlement as
 	// their home (players.residence_city_id): its population.
 	ResidentCount(ctx context.Context, settlementID string) (int64, error)
@@ -329,4 +337,14 @@ type PlayerSettlement struct {
 	Offices []string
 	// Resident reports that the player's home (residence) is this settlement.
 	Resident bool
+}
+
+// SettlementPromotion is one step up the tier ladder.
+type SettlementPromotion struct {
+	SettlementID   string
+	JurisdictionID string
+	From, To       string
+	// Actor is the player who promoted it, for the audit row.
+	Actor string
+	At    time.Time
 }

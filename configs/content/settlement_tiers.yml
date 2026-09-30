@@ -1,0 +1,66 @@
+version: 1
+# The tier ladder (docs/adr/0028-world-and-settlements.md section 4.1):
+# what a settlement asks of itself to grow village -> town -> city.
+# Loaded and validated by internal/content/settlementtier.go; stored as
+# content_documents rows, kind "settlement_tier".
+#
+# GROWTH BY DEVELOPMENT, NOT BY LAND. Nothing here counts lots, area or
+# territory: the grid keeps growing by its own rules. A step asks for people
+# (residents), learning (literacy), things standing (buildings, and one of
+# each service role), things known (knowledge the settlement learned itself)
+# and a healthy treasury. Every number is a first draft to tune after the first
+# village has played (ADR 0028 section 12, decision 4).
+#
+# PROGRESSIVE DISCLOSURE (ADR 0033 section 5). A settlement is only ever shown
+# the step in front of it: a village reads the goals of its town, never those
+# of the city beyond.
+#
+# READING A STEP
+#   residents          least active residents (players whose home it is)
+#   literacy_bps       least literacy share, 0-10000
+#   buildings          least finished buildings, roads not counted
+#   roles              a building of the role standing at, at least, the tier
+#   knowledge_learned  things the settlement itself researched or bought
+#                      (the four founding grants are not counted)
+#   treasury           least treasury, minor units (SUP): a settlement is not
+#                      promoted into a level it could not pay the upkeep of
+#
+# FIRST-DRAFT NUMBERS, AND WHY
+#   village -> town: the founding grant is 10000, a teaching circle 400, a
+#   health house and a farm 1000-2500 each, a granary 500; the game clock runs
+#   at 60x, so a 5-hour build is five minutes and a teaching step (one game
+#   day) is 24 minutes. A group of about ten active residents that spends its
+#   grant on a farm, a health house, a teaching circle and two more buildings,
+#   learns two things and keeps some money aside, has done everything here in
+#   a few days of play - not months. Eight residents are asked so that a
+#   village of ten can lose two and still qualify.
+#   town -> city: the school (needs half the settlement literate), the clinic
+#   and the market are the tier-2 buildings, so the city step asks for them.
+#   Forty residents is the size at which the shared services (police, market
+#   day, school) begin to pay for themselves, and the treasury asked for is
+#   about the upkeep of a full town for a few days.
+settlement_tiers:
+  - code: town
+    from: village
+    residents: 8
+    literacy_bps: 2000
+    buildings: 5
+    roles:
+      - {role: food, tier: 1}
+      - {role: education, tier: 1}
+      - {role: health, tier: 1}
+    knowledge_learned: 2
+    treasury: 2000
+
+  - code: city
+    from: town
+    residents: 40
+    literacy_bps: 5000
+    buildings: 14
+    roles:
+      - {role: education, tier: 2}
+      - {role: health, tier: 2}
+      - {role: market, tier: 2}
+      - {role: security, tier: 1}
+    knowledge_learned: 8
+    treasury: 20000

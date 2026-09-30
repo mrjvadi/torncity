@@ -21,6 +21,8 @@ const (
 	NewsResidentJoined = "resident_joined"
 	// NewsDonated: a resident gave to the village treasury.
 	NewsDonated = "donated"
+	// NewsPromoted: the settlement grew into the next tier (its Tier).
+	NewsPromoted = "promoted"
 )
 
 // MaxNewsLines bounds a merged list; the rest is counted.
@@ -39,6 +41,8 @@ type VillageNewsItem struct {
 	Player string
 	// Amount is what was given, for NewsDonated.
 	Amount int64
+	// Tier is the tier reached, for NewsPromoted; Player is then the head.
+	Tier string
 }
 
 // VillageNewsView is one post: one or more items of one village.
@@ -94,6 +98,8 @@ func newsArgs(c Context, village string, it VillageNewsItem) map[string]any {
 		"knowledge": c.SettlementKnowledgeName(it.Knowledge),
 		"percent":   FormatNumber(c, int64(it.Percent)),
 		"amount":    FormatNumber(c, it.Amount),
+		"tier":      c.T("village.tier_name."+tierOr(it.Tier), nil),
+		"office":    c.T("village.office."+tierOr(it.Tier), nil),
 	}
 }
 

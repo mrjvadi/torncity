@@ -291,6 +291,16 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.Join(ctx, env.Metadata, req)
 		},
+		"settlement.promotion.view": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.PromotionView(ctx, env.Metadata)
+		},
+		"settlement.promote": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillagePromoteRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Promote(ctx, env.Metadata, req)
+		},
 		"settlement.donate": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageDonateRequest
 			if err := decode(env, &req); err != nil {
