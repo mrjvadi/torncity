@@ -292,6 +292,44 @@ func TestPlacementArgumentsBecomeALotToken(t *testing.T) {
 	}
 }
 
+// The founding form's commands are a client's: the draft is read, the form is
+// submitted with its fields as named arguments, and a refusal is a coded
+// error whose view lists the problems (contract 1.3).
+func TestFoundingFormCommandsFromAClient(t *testing.T) {
+	f := newAPIFixture(t)
+	f.codes.put("ABCD2345", application.ClientLinkClaim{PlayerID: "p1", BotID: "bot-a"}, time.Minute)
+	_, session := f.call(t, "POST", "/api/v1/auth/link", "", map[string]string{"code": "ABCD2345"})
+	token := session["access_token"].(string)
+
+	f.bus.resp = presenter.WithView(presenter.Edit(9, "Fix these.", nil), "founding_refusal",
+		struct {
+			Kind     string `json:"kind"`
+			Problems []struct {
+				Field string `json:"field"`
+				Code  string `json:"code"`
+			} `json:"problems"`
+		}{Kind: "invalid"})
+	status, out := f.call(t, "POST", "/api/v1/command", token, map[string]any{
+		"command": "settlement.found.submit",
+		"args": map[string]any{"draft": "d1", "name": "Aria", "currency_code": "ARI", "color_a": "gold", "check": "1"}})
+	if status != http.StatusOK || out["ok"] != false || errCode(out) != "founding_invalid" || out["screen"] != "founding_refusal" {
+		t.Fatalf("refusal: %d %v", status, out)
+	}
+	if f.bus.subj[0] != "game.command.settlement.found.submit.v1" {
+		t.Errorf("subject %s", f.bus.subj[0])
+	}
+	var sent map[string]any
+	if err := json.Unmarshal(f.bus.sent[0].Payload, &sent); err != nil || sent["currency_code"] != "ARI" || sent["color_a"] != "gold" || sent["check"] != "1" {
+		t.Errorf("payload %s", f.bus.sent[0].Payload)
+	}
+
+	f.bus.resp = presenter.WithView(presenter.Edit(9, "The form.", nil), "founding_form", struct{ State string }{"mine"})
+	status, out = f.call(t, "POST", "/api/v1/command", token, map[string]any{"command": "settlement.found.draft", "args": map[string]any{}})
+	if status != http.StatusOK || out["ok"] != true || out["screen"] != "founding_form" {
+		t.Errorf("draft: %d %v", status, out)
+	}
+}
+
 // A group-only village command is open to a client without client.group_
 // commands, an ordinary group command is not, and a refused village command
 // comes back as a coded error.

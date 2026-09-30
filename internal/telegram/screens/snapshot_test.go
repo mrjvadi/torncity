@@ -74,7 +74,7 @@ func TestScreenSnapshots(t *testing.T) {
 		}
 		for name, render := range snapshotAreas {
 			t.Run(lang+"/"+name, func(t *testing.T) {
-				book := screentest.NewBook(lang, who.me, who.friend, who.third, LanguageName(Context{Msgs: cat, Lang: lang}, "en"), LanguageName(Context{Msgs: cat, Lang: lang}, "fa"))
+				book := screentest.NewBook(lang, who.me, who.friend, who.third, "KRD", LanguageName(Context{Msgs: cat, Lang: lang}, "en"), LanguageName(Context{Msgs: cat, Lang: lang}, "fa"))
 				c := Context{Msgs: cat, Lang: lang, MessageID: 42, Zone: snapshotZone}
 				render(c, who, book.Add)
 				book.Check(t, snapshotDir, name)

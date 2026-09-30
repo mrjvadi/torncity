@@ -31,6 +31,66 @@ This village is protected from attack until 30 September 2026.
   ───
   [🔙 Back] → player:profile.get
 
+━━━ Founding · the group message with the form's button ━━━
+(edits message 42)
+📝 Complete the village details
+
+Sara wants to found a village for this group, but first has to complete its details: the village's name, national currency, emblem and motto. The button below opens the game; once the form is submitted the village is founded and announced here.
+
+⏳ Time to complete it: 30 minutes. If it runs out nothing is built and you may send "found village" again.
+
+If the button does not open, open the game from the bot's private chat; the form is waiting there.
+  ───
+  [📝 Complete village details] → 
+
+━━━ Founding · another player asks while a draft is open ━━━
+(edits message 42)
+📝 Sara is completing this group's village details.
+
+Only they can submit the form, but you can look at it. If it is not done within 12 minutes, send "found village" again.
+
+If the button does not open, open the game from the bot's private chat; the form is waiting there.
+  ───
+  [📝 Complete village details] → 
+
+━━━ Settlement founded · through the form, with emblem, motto and currency ━━━
+(edits message 42)
+🏡 A new village has been founded!
+
+This group has founded the village of "Korendal" near Vestara.
+Terrain: Temperate forest
+Starting buildings: Civic hall, Road
+This village is protected from attack until 30 September 2026.
+
+Emblem: 🛡 🌾 🔴🟡
+"Together we build"
+
+👤 Village head: Sara
+🪙 National currency: Korendal mark (KRD) - reserved for the day this village becomes a country; until then Sup is used.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Founding refused · the form expired ━━━
+(edits message 42)
+⏳ This form ran out of time and no village was built. Send "found village" in the group again.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Founding refused · not the founder ━━━
+(edits message 42)
+🔒 Only the player who asked to found the village can submit this form.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Founding refused · the form has problems ━━━
+(edits message 42)
+⚠️ A few things in the form need fixing:
+• Another village already has that name.
+• The currency code must be exactly 3 capital Latin letters, like KRD.
+• The emblem is incomplete; pick a shape, an icon and two different colours.
+  ───
+  [🔙 Back] → player:profile.get
+
 ━━━ Settlement refused · only works in a group ━━━
 (edits message 42)
 🏡 Founding a village only works inside a group. Add the bot to your group and send this command there.

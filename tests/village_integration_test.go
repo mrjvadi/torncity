@@ -144,7 +144,7 @@ func TestVillageLifecycle(t *testing.T) {
 	settlements := handlers.NewSettlementsHandler(uow, workIDs{t}, nil, worldCache, source, gametime.Scale(1),
 		wsettle.Params{MinSpawnDistanceKm: 30, ThreatRadiusKm: 150, SearchMaxCells: 2000, SearchMaxAttempts: 50,
 			ExcludedBiomes: []string{"polar_ice"}, MaxAbsLatitudeDeg: 70},
-		168*time.Hour, 5, time.Second, clk.Now)
+		168*time.Hour, 5, time.Second, testFoundingConfig(), clk.Now)
 
 	village := handlers.NewVillageHandler(uow, workIDs{t}, nil, source, worldCache, cities, gametime.Scale(1),
 		handlers.VillageRules{
@@ -197,6 +197,8 @@ func TestVillageLifecycle(t *testing.T) {
 			`DELETE FROM settlement_knowledge_owned WHERE settlement_id = $1::uuid`,
 			`DELETE FROM settlement_buildings WHERE settlement_id = $1::uuid`,
 			`DELETE FROM city_group_links WHERE city_id = $1::uuid`,
+			`DELETE FROM village_currency_reservations WHERE settlement_id = $1::uuid`,
+			`DELETE FROM settlement_founding_drafts WHERE settlement_id = $1::uuid OR chat_id IN (SELECT founded_by_group_id FROM cities WHERE id = $1::uuid)`,
 		} {
 			if _, err := pool.Raw().Exec(ctx, stmt, cityID); err != nil {
 				t.Errorf("cleanup %q: %v", stmt, err)
@@ -220,9 +222,7 @@ func TestVillageLifecycle(t *testing.T) {
 	// ------------------------------------------------------------------
 	// 1. Found.
 	// ------------------------------------------------------------------
-	if _, err := settlements.Found(ctx, newMeta("settlement.found", "found")); err != nil {
-		t.Fatalf("Found: %v", err)
-	}
+	foundVillage(t, pool, settlements, newMeta("settlement.found", "found"))
 	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE founded_by_group_id = $1`, groupChatID).Scan(&cityID); err != nil {
 		t.Fatalf("reading the founded city: %v", err)
 	}

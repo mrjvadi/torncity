@@ -83,7 +83,7 @@ func TestSettlementFounding(t *testing.T) {
 		staticContentSource{snap: snap}, gametime.Scale(1),
 		wsettle.Params{MinSpawnDistanceKm: 30, ThreatRadiusKm: 150, SearchMaxCells: 2000, SearchMaxAttempts: 50,
 			ExcludedBiomes: []string{"polar_ice"}, MaxAbsLatitudeDeg: 70},
-		168*time.Hour, 5, time.Hour, func() time.Time { return time.Now().UTC() })
+		168*time.Hour, 5, time.Hour, testFoundingConfig(), func() time.Time { return time.Now().UTC() })
 
 	meta := validMeta(t)
 	meta.BotID = bot
@@ -117,6 +117,8 @@ func TestSettlementFounding(t *testing.T) {
 			`DELETE FROM settlement_knowledge_owned WHERE settlement_id = $1::uuid`,
 			`DELETE FROM settlement_buildings WHERE settlement_id = $1::uuid`,
 			`DELETE FROM city_group_links WHERE city_id = $1::uuid`,
+			`DELETE FROM village_currency_reservations WHERE settlement_id = $1::uuid`,
+			`DELETE FROM settlement_founding_drafts WHERE settlement_id = $1::uuid OR chat_id IN (SELECT founded_by_group_id FROM cities WHERE id = $1::uuid)`,
 		} {
 			if _, err := pool.Raw().Exec(ctx, stmt, cityID); err != nil {
 				t.Errorf("cleanup %q: %v", stmt, err)
@@ -141,12 +143,22 @@ func TestSettlementFounding(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Found: %v", err)
 	}
-	if resp == nil {
-		t.Fatal("Found returned a nil response")
+	if resp == nil || !strings.Contains(resp.Text, "founding.draft.title") {
+		t.Fatalf("Found should open a draft, not found the village: %+v", resp)
 	}
-	// messages is nil, so every text key renders as itself (screens.Context.T's
-	// documented nil-Msgs behaviour) — a simple, exact way to tell which
-	// screen was rendered without needing a loaded catalogue.
+	var early int
+	if err := pool.Raw().QueryRow(ctx, `SELECT count(*) FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&early); err != nil || early != 0 {
+		t.Fatalf("a village exists before the form was submitted (count %d, err %v)", early, err)
+	}
+	// The form is submitted from the game client. messages is nil, so every
+	// text key renders as itself (screens.Context.T's documented nil-Msgs
+	// behaviour) — a simple, exact way to tell which screen was rendered
+	// without needing a loaded catalogue.
+	resp, err = h.Submit(ctx, clientMeta(meta, "settlement.found.submit", "found.submit"),
+		validFoundingRequest(t, openDraftID(t, pool, meta.TelegramChatID)))
+	if err != nil {
+		t.Fatalf("Submit: %v", err)
+	}
 	if !strings.Contains(resp.Text, "settlement.found.title") {
 		t.Fatalf("Found's response does not look like the founded screen: %q", resp.Text)
 	}

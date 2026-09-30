@@ -741,7 +741,7 @@ founding:
     currency_name_chars: "نام پول فقط حرف فارسی یا لاتین و فاصله داشته باشد."
     currency_name_forbidden: "این نام برای پول مجاز نیست."
     currency_name_taken: "روستای دیگری همین نام پول را برداشته است."
-    currency_code_format: "کد پول باید دقیقاً {code_len} حرف بزرگ لاتین باشد، مثل KRD."
+    currency_code_format: "کد پول باید دقیقاً {code_len} حرف بزرگ انگلیسی باشد."
     currency_code_reserved: "این کد برای پول‌های بازی یا دنیای واقعی رزرو شده است."
     currency_code_forbidden: "این کد مجاز نیست."
     currency_code_taken: "روستای دیگری همین کد پول را برداشته است."

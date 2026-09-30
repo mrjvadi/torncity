@@ -1,6 +1,6 @@
 # Game client API — v1
 
-**Contract version 1.2.** Every 1.x is compatible with 1.0: a client written
+**Contract version 1.3.** Every 1.x is compatible with 1.0: a client written
 for 1.0 keeps working, and a 1.x client reads the new fields as absent on an
 older server. 1.1 adds the world and the village (section 4.3): the
 `settlement` object of the bootstrap, `GET /world`, `GET /world/chunks/…`,
@@ -10,7 +10,11 @@ presence and the settlement channel (sections 5.4 and 5.5): the
 `settlement:<id>` realtime channel (also on the connection token),
 `POST /realtime/heartbeat`, `GET /players/{id}/status`,
 `GET /settlements/{id}/players`, `settlement.who` and the error code
-`not_in_settlement`. Nothing that 1.0 or 1.1 returned has changed.
+`not_in_settlement`. 1.3 adds the founding form (section 4.4):
+`settlement.found.draft` and `settlement.found.submit`, the `founding_*`
+error codes, the group's Mini App button, and `emblem`, `motto` and
+`currency` on the bootstrap `settlement`. Nothing that 1.0, 1.1 or 1.2
+returned has changed.
 
 The contract between the game and a game client (a native build or the
 Telegram Mini App build). Served by `cmd/clientapi` (package
@@ -33,7 +37,7 @@ structured view behind it (for key screens), and its buttons as actions.
 1. [Signing in](#1-signing-in)
 2. [Commands](#2-commands)
 3. [Views](#3-views)
-4. [Bootstrap](#4-bootstrap) (4.3: the world and the village)
+4. [Bootstrap](#4-bootstrap) (4.3: the world and the village, 4.4: the founding form)
 5. [Realtime](#5-realtime)
 6. [Error codes](#6-error-codes)
 7. [Bot commands, configuration and secrets](#7-bot-commands-configuration-and-secrets)
@@ -637,6 +641,115 @@ A client learns the outcome of a placement by re-reading the layout (its
 `version` moves) — or, with realtime, from the settlement channel's
 `layout_version` (section 5.4) — until it does.
 
+### 4.4 The founding form (contract 1.3)
+
+A group's «ساخت روستا» no longer founds a village at once. It opens a short
+**draft** (`settlement.founding_draft_ttl`, 30 minutes; one open draft per
+group) and answers in the group with a message and one button,
+«📝 تکمیل اطلاعات روستا». The button opens the game on the form; the founder
+fills in the village's **name**, **motto**, **emblem** and the **national
+currency** it reserves, and only submitting the form founds the village.
+Nothing is founded if the draft runs out; the group may then ask again.
+
+**The button.** `web_app` inline buttons are allowed only in private chats
+(<https://core.telegram.org/bots/api#inlinekeyboardbutton>), so the group's
+button is a `url` button to the bot's Main Mini App direct link
+`https://t.me/<bot_username>?startapp=<param>` (Direct Link Mini Apps,
+<https://core.telegram.org/bots/webapps>): it opens the Mini App from a
+group for whoever presses it, with `<param>` in the launch data as
+`start_param` (and `tgWebAppStartParam`). The parameter is
+`found_<draft id without dashes>` (38 characters; Telegram allows
+`A-Z a-z 0-9 _ -` up to 64). The bot's username comes from the bot registry,
+the Mini App from BotFather (section 7, "Opening the Mini App from the bot");
+no username or Mini App URL is written in code. A client that finds
+`found_…` in its `start_param` signs in as usual and opens the form. Without
+a start parameter (the link was lost, or the game was opened from the bot's
+private chat) `settlement.found.draft` with no `draft` argument returns the
+player's own open draft.
+
+**Who.** Only the player who sent «ساخت روستا» can submit the draft.
+Anybody else who opens it reads it (`state: "other"`); a second «ساخت روستا»
+from another member is answered with "X is completing the details" and the
+same button.
+
+| command | args | answers |
+|---|---|---|
+| `settlement.found.draft` | `draft`? (id, with or without dashes) | `founding_form` |
+| `settlement.found.submit` | `draft`, `name`, `motto`?, `currency_name`, `currency_code`, `currency_symbol`?, `shape`, `color_a`, `color_b`, `icon`, `check`? (`1`) | `settlement_founded`, or `founding_checked` with `check`, or a refusal |
+
+Both are commands of a client (`client: true`). Send an `idempotency_key`
+with `submit`; a repeated submit of a draft that already became a village is
+answered from that village, never a second one.
+
+`founding_form` view:
+
+```json
+{"state": "mine", "draft": "5b1c1d0e-…", "expires_at": "2026-09-30T18:30:00Z",
+ "founder": "Sara", "suggested_name": "کورندال",
+ "default_emblem": {"shape": "shield", "color_a": "crimson", "color_b": "gold", "icon": "wheat"},
+ "limits": {"name_min": 3, "name_max": 24, "motto_max": 60, "currency_name_min": 3,
+            "currency_name_max": 24, "currency_code_len": 3, "currency_symbol_max": 3},
+ "shapes":  [{"code": "shield", "name": "سپر", "emoji": "🛡"}],
+ "palette": [{"code": "crimson", "name": "سرخ", "emoji": "🔴", "hex": "#b3261e"}],
+ "icons":   [{"code": "wheat", "name": "خوشهٔ گندم", "emoji": "🌾"}],
+ "neutral_currency": "SUP"}
+```
+
+`state` is `mine` (the viewer may submit), `other` (read only), `expired` or
+`founded` (then `settlement_id` and `settlement_name`). `suggested_name` is the
+generated place name the form starts from. The **emblem** is not an image: it
+is the four codes above, drawn by the client as an SVG (an outline in the
+`shape`, filled with the two colours, the `icon` in the middle) and written by
+the server as emoji in Telegram (`🛡 🌾 🔴🟡`). The catalogue is
+`configs/content/founding.yml`, so it can grow without a new build. There is no
+upload: no storage and no moderation are needed.
+
+**Rules** (checked again by the server on every submit): the name and the
+currency name are Persian or Latin letters, spaces, hyphens and the
+zero-width non-joiner, within the limits, never a link, mention or address,
+never a banned word, and a name never a reserved one; a village name is unique
+among settlements (case, spaces and hyphens ignored); the currency code is
+exactly `currency_code_len` capital Latin letters, unique across the codes
+already reserved and the existing currencies, and never `SUP`, `NIL` or a
+real-world code; the symbol is 1 to `currency_symbol_max` characters (the
+code when empty); the two emblem colours differ. **The currency is only
+reserved.** The village keeps using the neutral SUP until it declares a
+country (docs/adr/0029, phase C4), when the reservation becomes its national
+currency; the ledger is not touched.
+
+A refused form is `200` with `ok: false`, `screen: "founding_refusal"` and
+`error.code` `founding_<kind>`; `error.message` is the sentence Telegram
+shows, in the player's language.
+
+| `error.code` | meaning |
+|---|---|
+| `founding_no_draft` | no such draft |
+| `founding_expired` | the draft's time ran out; nothing was founded |
+| `founding_not_founder` | the viewer did not start the draft |
+| `founding_already` | the group already has a village |
+| `founding_invalid` | the form has problems; `view.problems` is `[{"field", "code"}]` |
+| `founding_no_world`, `founding_unavailable` | the world or the form's content is not ready |
+
+Problem `code`s by `field`: `name` — `name_short`, `name_long`, `name_chars`,
+`name_link`, `name_forbidden`, `name_reserved`, `name_taken`; `motto` —
+`motto_long`, `motto_chars`, `motto_link`, `motto_forbidden`;
+`currency_name` — `currency_name_short`, `currency_name_long`,
+`currency_name_chars`, `currency_name_forbidden`, `currency_name_taken`;
+`currency_code` — `currency_code_format`, `currency_code_reserved`,
+`currency_code_forbidden`, `currency_code_taken`; `currency_symbol` —
+`currency_symbol_invalid`; `emblem` — `emblem_invalid`. With `check: "1"` the
+same checks run and nothing is founded (`founding_checked`), which is how a
+client validates a name or a code as the player types.
+
+The answer to a successful submit is `settlement_founded`:
+`{"name", "settlement_id", "biome_code", "nearby_feature", "buildings",
+"protected_until", "founder", "emblem", "emblem_text", "motto",
+"currency_name", "currency_code", "currency_symbol"}`. The group is told by
+the notifier (an announcement with the name, emblem, motto and currency), and
+the client moves to the new village, whose id is `settlement_id`. The
+`settlement` of the bootstrap then carries `emblem` (`shape`, `color_a`,
+`color_b`, `icon`), `motto` and `currency` (`code`, `name`, `symbol`) too.
+
 ## 5. Realtime
 
 Centrifugo v6 (<https://centrifugal.dev/docs>), WebSocket endpoint
@@ -834,6 +947,7 @@ Keep it live with the `member_*` publications of section 5.4.
 | 404 | `not_found` | |
 | 404 | `world_not_created` | (1.1) no world has been created yet (`admin world create`) |
 | 404 | `no_settlement` | (1.1) the village endpoints are not configured on this server |
+| 200 | `founding_*` | (1.3) a refused founding form, `ok: false` with `screen: "founding_refusal"`; see 4.4 |
 | 409 | `relink` | the device's bot is gone; link again |
 | 429 | `rate_limited` | too many sign-ins, link codes or commands |
 | 503 | `realtime_unavailable` | realtime is not configured |
@@ -884,7 +998,9 @@ alias `tc-centrifugo`, admin UI off). On the server both join
 `antispam_default`; exposing them through the reverse proxy is a later step
 (route the API and `/connection/websocket`).
 
-**Migrations**: `0033_client_devices` (tables `client_devices`,
+**Migrations**: `0051_founding_form` (1.3: founding drafts, the emblem, motto and
+name key of a founded village, and the currency a village reserves);
+`0033_client_devices` (tables `client_devices`,
 `client_refresh_tokens`); `0049_village_client` (1.1: a building's turn,
 finish time and damage, cancelling, and a demolished or cancelled building
 no longer holds its lot).
