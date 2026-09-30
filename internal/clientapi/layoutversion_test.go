@@ -28,7 +28,7 @@ func TestEventLayoutVersionsAreTheLayoutsVersions(t *testing.T) {
 	}
 	check := func(stage string) application.LayoutVersions {
 		t.Helper()
-		lv := application.LayoutVersionsOf(villageID, "village", "Amol", f.svc.gridLots("village"), f.buildings.rows, footprint)
+		lv := application.LayoutVersionsOf(villageID, "village", "Amol", f.svc.gridLots("village", 0), f.buildings.rows, footprint)
 		for who, want := range map[string]string{headID: lv.Head, residentID: lv.Member, strangerID: lv.Public} {
 			l, err := f.svc.Layout(ctx, who, villageID)
 			if err != nil {

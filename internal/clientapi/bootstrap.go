@@ -111,9 +111,9 @@ type World struct {
 	// location of a player standing in one (config travel.city_locations).
 	CitySpots map[string]Spot
 	Content   *content.Registry
-	Msgs     Catalogue
-	Realtime bool
-	Now      func() time.Time
+	Msgs      Catalogue
+	Realtime  bool
+	Now       func() time.Time
 }
 
 // CityCode is the code of the city the player is in, empty when none.
@@ -149,7 +149,7 @@ func (w *World) location(ctx context.Context, c screens.Context, cityID, cityCod
 		case err == nil:
 			cell := s.WorldCellID
 			out := &BootstrapLocation{Kind: LocationSettlement, Code: s.Code, Name: s.Name, SettlementID: s.CityID,
-				Tier: s.Tier, WorldCell: &cell, GridLots: w.Villages.gridLots(s.Tier),
+				Tier: s.Tier, WorldCell: &cell, GridLots: w.Villages.gridLots(s.Tier, s.GridGrowth),
 				LayoutPath: "/api/v1/settlements/" + s.CityID + "/layout",
 				Home:       mine != nil && mine.ID == s.CityID && mine.Resident, Motto: s.Motto}
 			if _, wg, err := w.Villages.World.active(ctx); err == nil {

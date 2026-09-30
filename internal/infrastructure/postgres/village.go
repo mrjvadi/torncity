@@ -298,17 +298,27 @@ func (r *SettlementBuildingRepository) RunningCount(ctx context.Context, settlem
 	return n, nil
 }
 
-// Place writes a new building row, status "building".
+// Place writes a new building row, status "building" - or "complete" (with
+// its completion time) for one the game lays itself, an automatic road, which
+// has no construction to wait for.
 func (r *SettlementBuildingRepository) Place(ctx context.Context, b application.SettlementBuildingInstance) error {
 	id, err := ensureID(b.ID)
 	if err != nil {
 		return err
 	}
+	status, completedAt := "building", (*time.Time)(nil)
+	if b.Status == "complete" {
+		status, completedAt = "complete", b.CompletedAt
+		if completedAt == nil {
+			at := b.QueuedAt
+			completedAt = &at
+		}
+	}
 	_, err = r.q.Exec(ctx,
 		`INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at,
 		        rotated, finish_at, work_required, employer_player_id)
-		 VALUES ($1::uuid, $2::uuid, $3, $4, $5, 'building', $6, NULL, $7, $8, $9, NULLIF($10, '')::uuid)`,
-		id, b.SettlementID, b.TypeCode, b.LotX, b.LotY, b.QueuedAt, b.Rotated, b.FinishAt, b.WorkRequired, b.EmployerPlayerID)
+		 VALUES ($1::uuid, $2::uuid, $3, $4, $5, $9, $6, $10, $7, $8, $11, NULLIF($12, '')::uuid)`,
+		id, b.SettlementID, b.TypeCode, b.LotX, b.LotY, b.QueuedAt, b.Rotated, b.FinishAt, status, completedAt, b.WorkRequired, b.EmployerPlayerID)
 	if violates(err, sqlstateUniqueViolation, settlementBuildingsLotUnique) {
 		return application.ErrLotOccupied
 	}

@@ -32,6 +32,9 @@ type CatalogueEntry struct {
 	Kind     string            `json:"kind,omitempty"`
 	// Footprint is [width, height] in lots, for a settlement building.
 	Footprint []int `json:"footprint,omitempty"`
+	// CapExempt is set for a settlement building the concurrent-construction
+	// cap does not count (the road), so a client may lay it many at a time.
+	CapExempt bool `json:"cap_exempt,omitempty"`
 }
 
 // CatalogueAsset names the art: a model (a building, a vehicle) and an
@@ -116,7 +119,7 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 			Name: names(func(c screens.Context) string { return c.ForceClassName(screens.Named{Code: fc.Code, Name: fc.Name}) })}, true)
 	}
 	for _, sb := range snap.SettlementBuildingDefs() {
-		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, Footprint: []int{sb.Footprint[0], sb.Footprint[1]},
+		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, Footprint: []int{sb.Footprint[0], sb.Footprint[1]}, CapExempt: sb.CapExempt,
 			Name: names(func(c screens.Context) string {
 				return c.SettlementBuildingName(screens.Named{Code: sb.Code, Name: sb.Name})
 			})}, true)

@@ -544,6 +544,8 @@ var knownReasons = map[Reason]struct{}{
 
 	ReasonSettlementConstruction: {}, ReasonSettlementSalvage: {},
 	ReasonSettlementGrant: {}, ReasonSettlementDonation: {}, ReasonSettlementTopup: {},
+	ReasonSettlementLotSale: {}, ReasonSettlementPermitFee: {}, ReasonCitizenConstruction: {},
+	ReasonCitizenMaterials: {}, ReasonSettlementPropertyTax: {},
 	ReasonSettlementMaterial: {}, ReasonSettlementWage: {},
 	ReasonLaborEscrow: {}, ReasonLaborWage: {}, ReasonLaborWageNPC: {},
 }

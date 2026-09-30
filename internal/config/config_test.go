@@ -542,6 +542,10 @@ settlement:
   village_grid_lots: 6
   min_buildable_lot_share_bps: 6500
   grid_shift_max_lots: 4
+  grid_max_lots: 42
+  grid_lot_price: 51
+  grid_price_step_bps: 501
+  auto_road_cost: 11
   founding_draft_ttl: 31m
   founding_name_min: 4
   founding_name_max: 25
@@ -566,6 +570,20 @@ settlement:
   donation_min: 101
   donation_max: 100001
   donation_presets: [251, 1001, 5001]
+  citizen_lot_price: 401
+  citizen_lot_price_min: 101
+  citizen_lot_price_max: 5001
+  citizen_permit_fee: 101
+  citizen_permit_fee_max: 1001
+  citizen_tax_bps: 201
+  citizen_tax_bps_max: 501
+  citizen_tax_period: 25h
+  citizen_material_markup_bps: 12001
+  citizen_max_lots_per_player: 7
+  citizen_private_share_max_bps: 6001
+  citizen_home_rest_cooldown: 7h
+  citizen_home_rest_health: 11
+  citizen_home_rest_happiness: 6
 labor:
   shift_minutes: 61
   reference_crew: 5
@@ -879,68 +897,86 @@ var envOverrides = map[string]string{
 	"TORN_WORLDGEN_CHUNK_STREAM_AMPLITUDE":          "62",
 	"TORN_WORLDGEN_CHUNK_DEPOSIT_TILES_PER_DEPOSIT": "7",
 
-	"TORN_SETTLEMENT_PROTECTION_WINDOW":            "170h",
-	"TORN_SETTLEMENT_MIN_SPAWN_DISTANCE_KM":        "32",
-	"TORN_SETTLEMENT_THREAT_RADIUS_KM":             "152",
-	"TORN_SETTLEMENT_SEARCH_MAX_CELLS":             "2002",
-	"TORN_SETTLEMENT_SEARCH_MAX_ATTEMPTS":          "202",
-	"TORN_SETTLEMENT_EXCLUDED_BIOMES":              "polar_ice, ice_sheet",
-	"TORN_SETTLEMENT_MAX_ABS_LATITUDE_DEG":         "64.5",
-	"TORN_SETTLEMENT_BIOME_PENALTIES":              "desert=6, tundra=8",
-	"TORN_SETTLEMENT_VILLAGE_GRID_LOTS":            "7",
-	"TORN_SETTLEMENT_MIN_BUILDABLE_LOT_SHARE_BPS":  "6600",
-	"TORN_SETTLEMENT_GRID_SHIFT_MAX_LOTS":          "5",
-	"TORN_SETTLEMENT_FOUNDING_DRAFT_TTL":           "32m",
-	"TORN_SETTLEMENT_FOUNDING_NAME_MIN":            "5",
-	"TORN_SETTLEMENT_FOUNDING_NAME_MAX":            "26",
-	"TORN_SETTLEMENT_FOUNDING_MOTTO_MAX":           "62",
-	"TORN_SETTLEMENT_FOUNDING_CURRENCY_NAME_MIN":   "5",
-	"TORN_SETTLEMENT_FOUNDING_CURRENCY_NAME_MAX":   "26",
-	"TORN_SETTLEMENT_FOUNDING_CURRENCY_CODE_LEN":   "5",
-	"TORN_SETTLEMENT_FOUNDING_CURRENCY_SYMBOL_MAX": "5",
-	"TORN_SETTLEMENT_TEACH_PERIOD":                 "26h",
-	"TORN_SETTLEMENT_RESIDENCE_COOLDOWN":           "74h",
-	"TORN_SETTLEMENT_HOME_CITY_CODE":               "hearth2",
-	"TORN_SETTLEMENT_TEACH_RATE_BPS":               "1502",
-	"TORN_SETTLEMENT_BASE_SCHOOL_CAPACITY_BPS":     "8002",
-	"TORN_SETTLEMENT_SCARCITY_K_BPS":               "10002",
-	"TORN_SETTLEMENT_SCARCITY_FLOOR_BPS":           "3002",
-	"TORN_SETTLEMENT_SCARCITY_CAP_BPS":             "80002",
-	"TORN_SETTLEMENT_SELLER_BAND_BPS":              "502",
-	"TORN_SETTLEMENT_DEMOLITION_SALVAGE_BPS":       "2002",
-	"TORN_SETTLEMENT_FOUNDING_GRANT":               "10002",
-	"TORN_SETTLEMENT_MATERIAL_MARKUP_BPS":          "12002",
-	"TORN_SETTLEMENT_STOCK_BASE_CAPACITY":          "62",
-	"TORN_SETTLEMENT_MATERIAL_BUY_MAX":             "202",
-	"TORN_SETTLEMENT_MATERIAL_BUY_PRESETS":         "7,22,52",
-	"TORN_SETTLEMENT_DONATION_MIN":                 "102",
-	"TORN_SETTLEMENT_DONATION_MAX":                 "100002",
-	"TORN_SETTLEMENT_DONATION_PRESETS":             "252,1002,5002",
-	"TORN_LABOR_SHIFT_MINUTES":                     "62",
-	"TORN_LABOR_REFERENCE_CREW":                    "6",
-	"TORN_LABOR_BASE_WAGE":                         "32",
-	"TORN_LABOR_MIN_WAGE_VILLAGE":                  "12",
-	"TORN_LABOR_MIN_WAGE_TOWN":                     "17",
-	"TORN_LABOR_MIN_WAGE_CITY":                     "27",
-	"TORN_LABOR_PARTICIPATION_BPS":                 "6002",
-	"TORN_LABOR_BASE_HOUSING":                      "10",
-	"TORN_LABOR_NPC_PRODUCTIVITY_BPS":              "8502",
-	"TORN_LABOR_FEE_BPS":                           "502",
-	"TORN_LABOR_BUDGET_SLACK_BPS":                  "5002",
-	"TORN_LABOR_JOURNEYMAN_SHIFTS":                 "8",
-	"TORN_LABOR_MASTER_SHIFTS":                     "32",
-	"TORN_LABOR_APPRENTICE_BPS":                    "7002",
-	"TORN_LABOR_JOURNEYMAN_BPS":                    "10002",
-	"TORN_LABOR_MASTER_BPS":                        "13002",
-	"TORN_LABOR_TIGHT_BALANCED_BPS":                "5002",
-	"TORN_LABOR_TIGHT_TIGHT_BPS":                   "10002",
-	"TORN_LABOR_TIGHT_SHORT_BPS":                   "20002",
-	"TORN_LABOR_WAGE_SLACK_BPS":                    "7002",
-	"TORN_LABOR_WAGE_BALANCED_BPS":                 "10002",
-	"TORN_LABOR_WAGE_TIGHT_BPS":                    "15002",
-	"TORN_LABOR_WAGE_SHORT_BPS":                    "25002",
-	"TORN_LABOR_HIRE_PRESETS":                      "3,4,6",
-	"TORN_LABOR_WAGE_PRESETS":                      "102,127,152,202",
+	"TORN_SETTLEMENT_PROTECTION_WINDOW":             "170h",
+	"TORN_SETTLEMENT_MIN_SPAWN_DISTANCE_KM":         "32",
+	"TORN_SETTLEMENT_THREAT_RADIUS_KM":              "152",
+	"TORN_SETTLEMENT_SEARCH_MAX_CELLS":              "2002",
+	"TORN_SETTLEMENT_SEARCH_MAX_ATTEMPTS":           "202",
+	"TORN_SETTLEMENT_EXCLUDED_BIOMES":               "polar_ice, ice_sheet",
+	"TORN_SETTLEMENT_MAX_ABS_LATITUDE_DEG":          "64.5",
+	"TORN_SETTLEMENT_BIOME_PENALTIES":               "desert=6, tundra=8",
+	"TORN_SETTLEMENT_VILLAGE_GRID_LOTS":             "7",
+	"TORN_SETTLEMENT_MIN_BUILDABLE_LOT_SHARE_BPS":   "6600",
+	"TORN_SETTLEMENT_GRID_SHIFT_MAX_LOTS":           "5",
+	"TORN_SETTLEMENT_GRID_MAX_LOTS":                 "43",
+	"TORN_SETTLEMENT_GRID_LOT_PRICE":                "52",
+	"TORN_SETTLEMENT_GRID_PRICE_STEP_BPS":           "502",
+	"TORN_SETTLEMENT_AUTO_ROAD_COST":                "12",
+	"TORN_SETTLEMENT_FOUNDING_DRAFT_TTL":            "32m",
+	"TORN_SETTLEMENT_FOUNDING_NAME_MIN":             "5",
+	"TORN_SETTLEMENT_FOUNDING_NAME_MAX":             "26",
+	"TORN_SETTLEMENT_FOUNDING_MOTTO_MAX":            "62",
+	"TORN_SETTLEMENT_FOUNDING_CURRENCY_NAME_MIN":    "5",
+	"TORN_SETTLEMENT_FOUNDING_CURRENCY_NAME_MAX":    "26",
+	"TORN_SETTLEMENT_FOUNDING_CURRENCY_CODE_LEN":    "5",
+	"TORN_SETTLEMENT_FOUNDING_CURRENCY_SYMBOL_MAX":  "5",
+	"TORN_SETTLEMENT_TEACH_PERIOD":                  "26h",
+	"TORN_SETTLEMENT_RESIDENCE_COOLDOWN":            "74h",
+	"TORN_SETTLEMENT_HOME_CITY_CODE":                "hearth2",
+	"TORN_SETTLEMENT_TEACH_RATE_BPS":                "1502",
+	"TORN_SETTLEMENT_BASE_SCHOOL_CAPACITY_BPS":      "8002",
+	"TORN_SETTLEMENT_SCARCITY_K_BPS":                "10002",
+	"TORN_SETTLEMENT_SCARCITY_FLOOR_BPS":            "3002",
+	"TORN_SETTLEMENT_SCARCITY_CAP_BPS":              "80002",
+	"TORN_SETTLEMENT_SELLER_BAND_BPS":               "502",
+	"TORN_SETTLEMENT_DEMOLITION_SALVAGE_BPS":        "2002",
+	"TORN_SETTLEMENT_FOUNDING_GRANT":                "10002",
+	"TORN_SETTLEMENT_MATERIAL_MARKUP_BPS":           "12002",
+	"TORN_SETTLEMENT_STOCK_BASE_CAPACITY":           "62",
+	"TORN_SETTLEMENT_MATERIAL_BUY_MAX":              "202",
+	"TORN_SETTLEMENT_MATERIAL_BUY_PRESETS":          "7,22,52",
+	"TORN_SETTLEMENT_DONATION_MIN":                  "102",
+	"TORN_SETTLEMENT_DONATION_MAX":                  "100002",
+	"TORN_SETTLEMENT_DONATION_PRESETS":              "252,1002,5002",
+	"TORN_SETTLEMENT_CITIZEN_LOT_PRICE":             "402",
+	"TORN_SETTLEMENT_CITIZEN_LOT_PRICE_MIN":         "102",
+	"TORN_SETTLEMENT_CITIZEN_LOT_PRICE_MAX":         "5002",
+	"TORN_SETTLEMENT_CITIZEN_PERMIT_FEE":            "102",
+	"TORN_SETTLEMENT_CITIZEN_PERMIT_FEE_MAX":        "1002",
+	"TORN_SETTLEMENT_CITIZEN_TAX_BPS":               "202",
+	"TORN_SETTLEMENT_CITIZEN_TAX_BPS_MAX":           "502",
+	"TORN_SETTLEMENT_CITIZEN_TAX_PERIOD":            "26h",
+	"TORN_SETTLEMENT_CITIZEN_MATERIAL_MARKUP_BPS":   "12002",
+	"TORN_SETTLEMENT_CITIZEN_MAX_LOTS_PER_PLAYER":   "8",
+	"TORN_SETTLEMENT_CITIZEN_PRIVATE_SHARE_MAX_BPS": "6002",
+	"TORN_SETTLEMENT_CITIZEN_HOME_REST_COOLDOWN":    "8h",
+	"TORN_SETTLEMENT_CITIZEN_HOME_REST_HEALTH":      "12",
+	"TORN_SETTLEMENT_CITIZEN_HOME_REST_HAPPINESS":   "7",
+	"TORN_LABOR_SHIFT_MINUTES":                      "62",
+	"TORN_LABOR_REFERENCE_CREW":                     "6",
+	"TORN_LABOR_BASE_WAGE":                          "32",
+	"TORN_LABOR_MIN_WAGE_VILLAGE":                   "12",
+	"TORN_LABOR_MIN_WAGE_TOWN":                      "17",
+	"TORN_LABOR_MIN_WAGE_CITY":                      "27",
+	"TORN_LABOR_PARTICIPATION_BPS":                  "6002",
+	"TORN_LABOR_BASE_HOUSING":                       "10",
+	"TORN_LABOR_NPC_PRODUCTIVITY_BPS":               "8502",
+	"TORN_LABOR_FEE_BPS":                            "502",
+	"TORN_LABOR_BUDGET_SLACK_BPS":                   "5002",
+	"TORN_LABOR_JOURNEYMAN_SHIFTS":                  "8",
+	"TORN_LABOR_MASTER_SHIFTS":                      "32",
+	"TORN_LABOR_APPRENTICE_BPS":                     "7002",
+	"TORN_LABOR_JOURNEYMAN_BPS":                     "10002",
+	"TORN_LABOR_MASTER_BPS":                         "13002",
+	"TORN_LABOR_TIGHT_BALANCED_BPS":                 "5002",
+	"TORN_LABOR_TIGHT_TIGHT_BPS":                    "10002",
+	"TORN_LABOR_TIGHT_SHORT_BPS":                    "20002",
+	"TORN_LABOR_WAGE_SLACK_BPS":                     "7002",
+	"TORN_LABOR_WAGE_BALANCED_BPS":                  "10002",
+	"TORN_LABOR_WAGE_TIGHT_BPS":                     "15002",
+	"TORN_LABOR_WAGE_SHORT_BPS":                     "25002",
+	"TORN_LABOR_HIRE_PRESETS":                       "3,4,6",
+	"TORN_LABOR_WAGE_PRESETS":                       "102,127,152,202",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

@@ -62,6 +62,9 @@ settlement_buildings:
     cost_money: 50
     build_time: 10m
     upkeep: 2
+    # Roads are laid many at a time (settlement.build.place_many) and never
+    # queue behind, or hold up, the concurrent-construction cap.
+    cap_exempt: true
 
   - code: civic_hall
     name: "خانهٔ دهیاری"

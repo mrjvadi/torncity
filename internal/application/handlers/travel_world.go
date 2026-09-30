@@ -144,8 +144,8 @@ type Destination struct {
 	DistanceKM int
 	Point      GeoPoint
 	// Fare is the cheapest way there and Wait the fastest.
-	Fare int64
-	Wait time.Duration
+	Fare   int64
+	Wait   time.Duration
 	Emblem string
 }
 

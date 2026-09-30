@@ -118,6 +118,7 @@ func cleanupFounding(t *testing.T, pool *postgres.Pool, chats func() []int64) {
 					`DELETE FROM game_actions WHERE reference_type = 'settlement' AND reference_id = $1::uuid`,
 					`DELETE FROM settlement_literacy WHERE settlement_id = $1::uuid`,
 					`DELETE FROM settlement_knowledge_owned WHERE settlement_id = $1::uuid`,
+					`DELETE FROM settlement_lot_terms WHERE settlement_id = $1::uuid`, // the journals (lots, private buildings, tax) outlive the village like the grants do
 					`DELETE FROM settlement_buildings WHERE settlement_id = $1::uuid`,
 					`DELETE FROM city_group_links WHERE city_id = $1::uuid`,
 					`DELETE FROM village_currency_reservations WHERE settlement_id = $1::uuid`,

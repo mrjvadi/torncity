@@ -131,7 +131,7 @@ func CanPlace(def Def, grid Grid, x, y int, s Standing) error {
 	if def.MinLiteracyShareBPS > 0 && s.LiteracyShareBPS < def.MinLiteracyShareBPS {
 		return ErrLiteracyTooLow
 	}
-	if s.RunningBuilds >= s.ConcurrentCap {
+	if !def.CapExempt && s.RunningBuilds >= s.ConcurrentCap {
 		return ErrConcurrentBuildCap
 	}
 	return nil

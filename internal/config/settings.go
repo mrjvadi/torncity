@@ -301,6 +301,10 @@ type settlementSettings struct {
 	VillageGridLots         *int     `yaml:"village_grid_lots"`
 	MinBuildableLotShareBps *int     `yaml:"min_buildable_lot_share_bps"`
 	GridShiftMaxLots        *int     `yaml:"grid_shift_max_lots"`
+	GridMaxLots             *int     `yaml:"grid_max_lots"`
+	GridLotPrice            *int64   `yaml:"grid_lot_price"`
+	GridPriceStepBPS        *int64   `yaml:"grid_price_step_bps"`
+	AutoRoadCost            *int64   `yaml:"auto_road_cost"`
 
 	FoundingDraftTTL          *string `yaml:"founding_draft_ttl"`
 	FoundingNameMin           *int    `yaml:"founding_name_min"`
@@ -328,6 +332,21 @@ type settlementSettings struct {
 	DonationMin     *int64  `yaml:"donation_min"`
 	DonationMax     *int64  `yaml:"donation_max"`
 	DonationPresets []int64 `yaml:"donation_presets"`
+
+	CitizenLotPrice           *int64  `yaml:"citizen_lot_price"`
+	CitizenLotPriceMin        *int64  `yaml:"citizen_lot_price_min"`
+	CitizenLotPriceMax        *int64  `yaml:"citizen_lot_price_max"`
+	CitizenPermitFee          *int64  `yaml:"citizen_permit_fee"`
+	CitizenPermitFeeMax       *int64  `yaml:"citizen_permit_fee_max"`
+	CitizenTaxBPS             *int    `yaml:"citizen_tax_bps"`
+	CitizenTaxBPSMax          *int    `yaml:"citizen_tax_bps_max"`
+	CitizenTaxPeriod          *string `yaml:"citizen_tax_period"`
+	CitizenMaterialMarkupBPS  *int    `yaml:"citizen_material_markup_bps"`
+	CitizenMaxLotsPerPlayer   *int    `yaml:"citizen_max_lots_per_player"`
+	CitizenPrivateShareMaxBPS *int    `yaml:"citizen_private_share_max_bps"`
+	CitizenHomeRestCooldown   *string `yaml:"citizen_home_rest_cooldown"`
+	CitizenHomeRestHealth     *int    `yaml:"citizen_home_rest_health"`
+	CitizenHomeRestHappiness  *int    `yaml:"citizen_home_rest_happiness"`
 }
 
 type crimeSettings struct {
@@ -1076,6 +1095,18 @@ var coreSettings = []setting{
 	limitSetting("settlement", "grid_shift_max_lots",
 		func(c *Config) *int { return &c.Settlement.GridShiftMaxLots },
 		func(f *fileConfig) *int { return f.Settlement.GridShiftMaxLots }),
+	limitSetting("settlement", "grid_max_lots",
+		func(c *Config) *int { return &c.Settlement.GridMaxLots },
+		func(f *fileConfig) *int { return f.Settlement.GridMaxLots }),
+	moneySetting("settlement", "grid_lot_price",
+		func(c *Config) *int64 { return &c.Settlement.GridLotPrice },
+		func(f *fileConfig) *int64 { return f.Settlement.GridLotPrice }),
+	moneySetting("settlement", "grid_price_step_bps",
+		func(c *Config) *int64 { return &c.Settlement.GridPriceStepBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.GridPriceStepBPS }),
+	moneySetting("settlement", "auto_road_cost",
+		func(c *Config) *int64 { return &c.Settlement.AutoRoadCost },
+		func(f *fileConfig) *int64 { return f.Settlement.AutoRoadCost }),
 	durationSetting("settlement", "founding_draft_ttl",
 		func(c *Config) *time.Duration { return &c.Settlement.FoundingDraftTTL },
 		func(f *fileConfig) *string { return f.Settlement.FoundingDraftTTL }),
@@ -1148,6 +1179,48 @@ var coreSettings = []setting{
 	moneyListSetting("settlement", "donation_presets",
 		func(c *Config) *[]int64 { return &c.Settlement.DonationPresets },
 		func(f *fileConfig) []int64 { return f.Settlement.DonationPresets }),
+	moneySetting("settlement", "citizen_lot_price",
+		func(c *Config) *int64 { return &c.Settlement.CitizenLotPrice },
+		func(f *fileConfig) *int64 { return f.Settlement.CitizenLotPrice }),
+	moneySetting("settlement", "citizen_lot_price_min",
+		func(c *Config) *int64 { return &c.Settlement.CitizenLotPriceMin },
+		func(f *fileConfig) *int64 { return f.Settlement.CitizenLotPriceMin }),
+	moneySetting("settlement", "citizen_lot_price_max",
+		func(c *Config) *int64 { return &c.Settlement.CitizenLotPriceMax },
+		func(f *fileConfig) *int64 { return f.Settlement.CitizenLotPriceMax }),
+	moneySetting("settlement", "citizen_permit_fee",
+		func(c *Config) *int64 { return &c.Settlement.CitizenPermitFee },
+		func(f *fileConfig) *int64 { return f.Settlement.CitizenPermitFee }),
+	moneySetting("settlement", "citizen_permit_fee_max",
+		func(c *Config) *int64 { return &c.Settlement.CitizenPermitFeeMax },
+		func(f *fileConfig) *int64 { return f.Settlement.CitizenPermitFeeMax }),
+	limitSetting("settlement", "citizen_tax_bps",
+		func(c *Config) *int { return &c.Settlement.CitizenTaxBPS },
+		func(f *fileConfig) *int { return f.Settlement.CitizenTaxBPS }),
+	limitSetting("settlement", "citizen_tax_bps_max",
+		func(c *Config) *int { return &c.Settlement.CitizenTaxBPSMax },
+		func(f *fileConfig) *int { return f.Settlement.CitizenTaxBPSMax }),
+	durationSetting("settlement", "citizen_tax_period",
+		func(c *Config) *time.Duration { return &c.Settlement.CitizenTaxPeriod },
+		func(f *fileConfig) *string { return f.Settlement.CitizenTaxPeriod }),
+	limitSetting("settlement", "citizen_material_markup_bps",
+		func(c *Config) *int { return &c.Settlement.CitizenMaterialMarkupBPS },
+		func(f *fileConfig) *int { return f.Settlement.CitizenMaterialMarkupBPS }),
+	limitSetting("settlement", "citizen_max_lots_per_player",
+		func(c *Config) *int { return &c.Settlement.CitizenMaxLotsPerPlayer },
+		func(f *fileConfig) *int { return f.Settlement.CitizenMaxLotsPerPlayer }),
+	limitSetting("settlement", "citizen_private_share_max_bps",
+		func(c *Config) *int { return &c.Settlement.CitizenPrivateShareMaxBPS },
+		func(f *fileConfig) *int { return f.Settlement.CitizenPrivateShareMaxBPS }),
+	durationSetting("settlement", "citizen_home_rest_cooldown",
+		func(c *Config) *time.Duration { return &c.Settlement.CitizenHomeRestCooldown },
+		func(f *fileConfig) *string { return f.Settlement.CitizenHomeRestCooldown }),
+	limitSetting("settlement", "citizen_home_rest_health",
+		func(c *Config) *int { return &c.Settlement.CitizenHomeRestHealth },
+		func(f *fileConfig) *int { return f.Settlement.CitizenHomeRestHealth }),
+	limitSetting("settlement", "citizen_home_rest_happiness",
+		func(c *Config) *int { return &c.Settlement.CitizenHomeRestHappiness },
+		func(f *fileConfig) *int { return f.Settlement.CitizenHomeRestHappiness }),
 
 	moneySetting("labor", "shift_minutes",
 		func(c *Config) *int64 { return &c.Labor.ShiftMinutes },

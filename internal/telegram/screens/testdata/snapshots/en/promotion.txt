@@ -26,9 +26,9 @@ No buildings stand here yet.
 ✅ Treasury: 7,400 SUP of 2,000 SUP
   ───
   [🏡 Become a resident] → settlement:join
-  [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
-  [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
-  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
+  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [🧱 Stock and market] → settlement:materials
+  [👥 People] → settlement:who
   [🧭 The way to a town] → settlement:promotion.view
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
@@ -58,12 +58,16 @@ No buildings stand here yet.
 ✅ A health building (a health house)
 ✅ Things the village learned itself (researched or bought): 3 of 2
 ✅ Treasury: 5,100 SUP of 2,000 SUP
+
+🌱 This is your home: buy land, build a house and help the village grow.
   ───
-  [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
-  [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
-  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
+  [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
+  [⚒ Work in the village] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
+  [🧾 My property] → settlement:mine   │   [👥 People] → settlement:who
+  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [🧱 Stock and market] → settlement:materials
   [🚀 Promote to town] → settlement:promote
-  [💰 Give to the treasury] → settlement:donate   │   [🚪 Leave the village] → settlement:leave
+  [🚪 Leave the village] → settlement:leave
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Village overview · a town has no promotion block at the top ━━━
@@ -84,9 +88,9 @@ No buildings stand here yet.
 No buildings stand here yet.
   ───
   [🏡 Become a resident] → settlement:join
-  [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
-  [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
-  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
+  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [🧱 Stock and market] → settlement:materials
+  [👥 People] → settlement:who
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ The way forward · part way ━━━

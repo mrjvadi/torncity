@@ -212,4 +212,5 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 🔒 School - build one of Teaching circle first
   ───
   [🏗 Build Woodcutter's camp] → settlement:build.lots:woodcutter_camp   │   [🏗 Build Civic hall] → settlement:build.lots:civic_hall
+  [🗺 Expand the land] → settlement:grid.grow
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build

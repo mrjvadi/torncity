@@ -1087,6 +1087,18 @@ settlement:
   # How many lots, each way, the grid may slide from its cell's centre to
   # find a placement that meets the share before the cell is passed over.
   grid_shift_max_lots: 3
+  # Land (docs/adr/0033 section 8.4, as corrected: never capped by tier). The
+  # head buys one expansion at a time - a column east and a row north, so the
+  # grid grows by one lot a side and no building moves. A step costs its new
+  # lots x grid_lot_price, dearer by grid_price_step_bps for each expansion
+  # already bought. grid_max_lots is a TECHNICAL bound on a grid's side (a
+  # layout stays a sane size to sample, send and draw), not a game rule.
+  grid_max_lots: 41
+  grid_lot_price: 50
+  grid_price_step_bps: 500
+  # What the treasury pays for each lot of road the game lays by itself to
+  # connect a new building (a road laid by hand costs 50).
+  auto_road_cost: 10
   # The founding form (docs/adr/0028 section 3): «ساخت روستا» opens a draft
   # that the founder completes in the game client - name, national currency,
   # emblem - and only its submission founds the village. An open draft waits
@@ -1148,6 +1160,34 @@ settlement:
   donation_min: 100
   donation_max: 100000
   donation_presets: [250, 1000, 5000]
+  # The citizen loop (docs/adr/0033 sections 4.4-4.5, migration 0058): a
+  # resident buys a free lot from the village and builds a private house on it.
+  # Everything the citizen pays lands in the village treasury (lot, permit,
+  # property tax) or leaves the world (the building's own cost, bought
+  # materials); nothing pays a resident for living there. The head's levers
+  # (lot price, permit fee, property tax) move inside the *_min/*_max bounds.
+  citizen_lot_price: 400
+  citizen_lot_price_min: 100
+  citizen_lot_price_max: 5000
+  citizen_permit_fee: 100
+  citizen_permit_fee_max: 1000
+  # Property tax a period on the assessed value (lot price plus building
+  # cost): 200 = 2 %. The period is GAME time; the village's own tick
+  # collects it, and what a resident cannot pay stays a debt.
+  citizen_tax_bps: 200
+  citizen_tax_bps_max: 500
+  citizen_tax_period: 24h
+  # A missing building material is bought at items.yml's base_price times
+  # this (12000 = 20 % over the reference price).
+  citizen_material_markup_bps: 12000
+  # One wallet cannot buy the village: most lots per player, and the zoning
+  # cap on the share of buildable lots that may be private.
+  citizen_max_lots_per_player: 6
+  citizen_private_share_max_bps: 6000
+  # Resting in one's own house: real-time cooldown, and what one rest gives.
+  citizen_home_rest_cooldown: 6h
+  citizen_home_rest_health: 10
+  citizen_home_rest_happiness: 5
 
 # The village labour market (docs/adr/0037-labor-market.md). Construction is
 # done by workers: a building needs `reference_crew` workers for its build time,

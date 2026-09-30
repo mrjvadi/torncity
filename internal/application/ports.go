@@ -116,6 +116,9 @@ type Tx interface {
 	// SettlementTreasury records a village treasury's two faucets, the
 	// founding grant and residents' donations; see village_treasury.go.
 	SettlementTreasury() SettlementTreasuryRepository
+	// Citizens is the citizen loop's port: lots, private buildings and the
+	// property tax; see citizen.go.
+	Citizens() CitizenRepository
 
 	// Presence holds a player's "last seen" setting and the read-only
 	// facts presence is computed from; see ports_presence.go.

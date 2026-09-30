@@ -56,6 +56,12 @@ func (r VillageBuildRequest) lot() (x, y int, rotated, ok bool) {
 type VillageLotsRequest struct {
 	Code   string `json:"code"`
 	Rotate string `json:"rotate,omitempty"`
+	// From is the line-picking step of a run of one-lot buildings: "line"
+	// (choose the first lot) or the first lot's token (choose the last).
+	From string `json:"from,omitempty"`
+	// Win is the north-west lot of the window a Telegram keyboard shows over a
+	// grid wider than a row of buttons (a lot token).
+	Win string `json:"win,omitempty"`
 }
 
 func (r VillageLotsRequest) code() string  { return strings.TrimSpace(r.Code) }
@@ -131,7 +137,7 @@ func (h *VillageHandler) buildPlacementContext(ctx context.Context, tx applicati
 		err = berr
 		return
 	}
-	running, rerr := tx.SettlementBuildings().RunningCount(ctx, s.CityID)
+	running, rerr := h.runningJobs(ctx, tx, snap, s.CityID)
 	if rerr != nil {
 		err = rerr
 		return
@@ -213,6 +219,25 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 			SettlementName: s.Name, Building: named(d.Code, d.Name),
 			CanRotate: d.Def().CanRotate(), Rotated: rotated && d.Def().CanRotate(),
 			GridLots: grid.Height(),
+			Multi:    d.Footprint == [2]int{1, 1} && d.CapExempt,
+		}
+		if wx, wy, _, ok := screens.ParseLotToken(strings.TrimSpace(req.Win)); ok {
+			view.WinX, view.WinY = wx, wy
+		}
+		if view.Multi {
+			switch from := strings.TrimSpace(req.From); {
+			case from == "" || from == "-":
+			case from == screens.LineStart:
+				view.Line = screens.LineStart
+			case from != "":
+				if fx, fy, _, ok := screens.ParseLotToken(from); ok {
+					view.Line, view.From = screens.LineEnd, screens.LotBatchLot{X: fx, Y: fy}
+				}
+			}
+		}
+		owned, oerr := privateLotSet(ctx, tx, s.CityID)
+		if oerr != nil {
+			return oerr
 		}
 		for y := 0; y < grid.Height(); y++ {
 			row := make([]screens.LotCell, 0, grid.Width())
@@ -220,7 +245,8 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 				lot := grid[y][x]
 				road := lot.Occupied && isRoadLot(ctx, tx, s.CityID, x, y)
 				cell := screens.LotCell{X: x, Y: y, State: lotState(lot, road)}
-				cell.Fits = settlementbuilding.CanPlace(def, grid, x, y, standing) == nil
+				cell.Fits = !d.Private() && settlementbuilding.CanPlace(def, grid, x, y, standing) == nil &&
+					!footprintTouches(owned, def, x, y)
 				row = append(row, cell)
 			}
 			view.Rows = append(view.Rows, row)
@@ -278,6 +304,9 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
 			return err
 		}
+		if d.Private() {
+			return refuseVillage(screens.CitizenPrivateOnly)
+		}
 		if !def.ListedAt(s.Tier) {
 			return refuseVillage(screens.VillageNotAvailable)
 		}
@@ -289,12 +318,27 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if cerr := settlementbuilding.CanPlace(def, grid, x, y, standing); cerr != nil {
 			return buildingRefusal(cerr)
 		}
+		owned, oerr := privateLotSet(ctx, tx, s.CityID)
+		if oerr != nil {
+			return oerr
+		}
+		if footprintTouches(owned, def, x, y) {
+			return refuseVillage(screens.CitizenLotPrivate)
+		}
+		// The game lays the road that connects the building (roadplan.go);
+		// a building no road could ever reach is refused before anything
+		// is paid.
+		autoRoads, perr := h.planAutoRoads(ctx, tx, s, code, def, grid, x, y)
+		if perr != nil {
+			return perr
+		}
+		roadFee := int64(len(autoRoads)) * h.autoRoadCost
 
 		if !req.confirmed() {
 			confirmView = &screens.LotConfirmView{
 				SettlementName: s.Name, Building: named(d.Code, d.Name), X: x, Y: y, Rotated: rotated,
-				CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime),
-				Materials: materialLines(h.content.Current(), def),
+				CostMoney: d.CostMoney + roadFee, BuildTime: h.scale.RealWait(def.BuildTime),
+				Materials: materialLines(h.content.Current(), def), AutoRoads: len(autoRoads),
 			}
 			return nil
 		}
@@ -322,8 +366,8 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 				return err
 			}
 		}
-		if d.CostMoney > 0 {
-			if _, err := spendVillage(ctx, tx, s.CityID, application.ReasonSettlementConstruction, d.CostMoney, now); err != nil {
+		if d.CostMoney+roadFee > 0 {
+			if _, err := spendVillage(ctx, tx, s.CityID, application.ReasonSettlementConstruction, d.CostMoney+roadFee, now); err != nil {
 				return err
 			}
 		}
@@ -362,6 +406,13 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 				return err
 			}
 			payload["finish_at"] = finish.UTC().Format(time.RFC3339)
+		}
+		laid, err := h.layAutoRoads(ctx, tx, s.CityID, autoRoads, now)
+		if err != nil {
+			return err
+		}
+		if len(laid) > 0 {
+			payload["auto_roads"] = laid
 		}
 		return h.appendBuildingEvent(ctx, tx, meta, s, "build_started", payload)
 	})
@@ -403,9 +454,6 @@ func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
-		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
-			return err
-		}
 		b, err := tx.SettlementBuildings().Get(ctx, strings.TrimSpace(req.ID))
 		if isSentinel(err, application.ErrBuildingNotFound) {
 			return refuseVillage(screens.VillageNotFound)
@@ -415,6 +463,10 @@ func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, r
 		}
 		if b.SettlementID != s.CityID {
 			return refuseVillage(screens.VillageNotFound)
+		}
+		// The head changes the village's own buildings; a resident's is theirs.
+		if err := h.mayChangeBuilding(ctx, tx, s, p.ID, b.ID); err != nil {
+			return err
 		}
 		now := h.now()
 		if err := tx.SettlementBuildings().Demolish(ctx, b.ID, now); err != nil {
@@ -457,9 +509,6 @@ func (h *VillageHandler) Cancel(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
-			return err
-		}
 		b, err := tx.SettlementBuildings().Get(ctx, strings.TrimSpace(req.ID))
 		if isSentinel(err, application.ErrBuildingNotFound) {
 			return refuseVillage(screens.VillageNotFound)
@@ -469,6 +518,10 @@ func (h *VillageHandler) Cancel(ctx context.Context, meta envelope.Metadata, req
 		}
 		if b.SettlementID != s.CityID {
 			return refuseVillage(screens.VillageNotFound)
+		}
+		// The head changes the village's own buildings; a resident's is theirs.
+		if err := h.mayChangeBuilding(ctx, tx, s, p.ID, b.ID); err != nil {
+			return err
 		}
 		if err := tx.SettlementBuildings().Cancel(ctx, b.ID, h.now()); err != nil {
 			if stderrors.Is(err, application.ErrBuildingNotCancellable) {
@@ -500,6 +553,9 @@ func (h *VillageHandler) creditSalvage(ctx context.Context, tx application.Tx, s
 		return nil
 	}
 	d, ok := h.content.Current().SettlementBuildingDef(typeCode)
+	if ok && d.Private() {
+		return nil // a resident's building: what it cost was theirs, not the treasury's
+	}
 	if !ok || d.CostMoney <= 0 {
 		return nil
 	}
@@ -590,7 +646,38 @@ func (h *VillageHandler) appendBuildingEvent(ctx context.Context, tx application
 		}
 		return 1, 1
 	}
-	payload["layout_version"] = application.LayoutVersionsOf(s.CityID, s.Tier, s.Name,
-		wsettle.GridLotsForTier(s.Tier, h.villageGridLots), rows, footprint)
+	// Who owns which lot is part of what a member's layout shows (the
+	// citizen loop): the version an event announces must include it.
+	lots, err := tx.Citizens().Lots(ctx, s.CityID)
+	if err != nil {
+		return err
+	}
+	priv, err := tx.Citizens().PrivateBuildings(ctx, s.CityID)
+	if err != nil {
+		return err
+	}
+	payload["layout_version"] = application.LayoutVersionsWithTenure(s.CityID, s.Tier, s.Name,
+		wsettle.GridLotsGrown(s.Tier, h.villageGridLots, s.GridGrowth), rows, footprint, application.TenureMark(lots, priv))
 	return appendVillageEvent(ctx, tx, meta, name, s.CityID, payload)
+}
+
+// runningJobs is how many of the settlement's buildings under construction
+// hold a slot of the concurrent-construction cap: every one but a type the
+// content marks cap_exempt (a road).
+func (h *VillageHandler) runningJobs(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string) (int, error) {
+	rows, err := tx.SettlementBuildings().List(ctx, settlementID)
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, b := range rows {
+		if b.Status != "building" {
+			continue
+		}
+		if d, ok := snap.SettlementBuildingDef(b.TypeCode); ok && d.CapExempt {
+			continue
+		}
+		n++
+	}
+	return n, nil
 }

@@ -678,6 +678,8 @@ biome:
 settlement_building:
   road: جاده
   civic_hall: "خانهٔ دهیاری"
+  private_cottage: "کلبهٔ شخصی"
+  private_house: "خانهٔ شخصی"
   woodcutter_camp: "کارگاه هیزم‌شکنی"
   cottage: "خانهٔ روستایی"
   granary: "انبار غله"
@@ -712,6 +714,142 @@ settlement_building:
   barracks: "پادگان"
   port: "بندر"
   airport: "فرودگاه"
+  home_workshop: "کارگاه خانگی"
+  market_stall: "غرفهٔ بازار"
+
+# The citizen loop (docs/adr/0033 sections 4.4 and 4.5): a resident buys land
+# from the village, builds a house on it and lives there.
+citizen:
+  hub:
+    hint: "🌱 اینجا خانهٔ توست؛ زمین بخر، خانه بساز و روستا را آباد کن."
+  button:
+    buy_land: "🏡 زمین بخر"
+    build_house: "🏠 خانه بساز"
+    more_land: "🏡 زمین دیگر"
+    work: "🛠 کار کن"
+    mine: "🧾 دارایی من"
+    terms: "⚖️ شرایط زمین"
+    rest: "🛋 استراحت در خانه"
+    rest_wait: "🛋 استراحت ({time} دیگر)"
+    pay_tax: "💳 پرداخت مالیات ({debt})"
+  land:
+    title: "🏡 زمین‌های {village}"
+    body: |-
+      هر زمین آزاد را می‌توانی بخری؛ پولش به خزانهٔ روستا می‌رود و زمین مال خودت می‌شود.
+      💵 قیمت هر زمین: {price}
+      👛 پول تو: {cash}
+      📌 زمین‌های تو: {owned} از {max}
+    body_shared: |-
+      هر زمین آزاد را می‌توانی بخری؛ پولش به خزانهٔ روستا می‌رود و زمین مال خودت می‌شود.
+      💵 قیمت هر زمین: {price}
+      📌 زمین‌های تو: {owned} از {max}
+    legend: "🟩 آزاد و قابل خرید - 🏡 زمین تو - 🔒 زمین دیگران - 🏠 ساختمان - 🛣 جاده - 💧 آب - ⛰ شیب"
+    cannot_buy: "برای خرید زمین بیشتر باید به سقف زمین‌های شخصی نرسیده باشی و پول کافی داشته باشی."
+  buy:
+    ask_title: "🏡 خرید زمین"
+    ask_body: |-
+      ردیف {row}، ستون {col}
+      قیمت: {price}
+      پول تو پس از خرید: {left}
+
+      پول به خزانهٔ روستا می‌رود.
+    ask_body_shared: |-
+      ردیف {row}، ستون {col}
+      قیمت: {price}
+
+      پول به خزانهٔ روستا می‌رود.
+    done_body_shared: |-
+      ردیف {row}، ستون {col} به نام تو ثبت شد و {price} به خزانهٔ روستا رفت.
+      حالا می‌توانی رویش خانه بسازی.
+    button_yes: "✅ بخر - {price}"
+    done_title: "✅ این زمین حالا مال توست"
+    done_body: |-
+      ردیف {row}، ستون {col} به نام تو ثبت شد و {price} به خزانهٔ روستا رفت.
+      پول باقی‌مانده: {cash}
+      حالا می‌توانی رویش خانه بسازی.
+  private:
+    title: "🏠 ساخت‌وساز شخصی در {village}"
+    no_land: "برای ساختن خانه اول باید یک زمین داشته باشی. زمین آزادی بخر و برگرد."
+    intro: |-
+      روی زمین خودت می‌توانی خانه یا کسب‌وکار کوچک بسازی. هزینه از جیب خودت است؛ اگر الوار نداشته باشی، به قیمت مرجع برایت خریده می‌شود.
+      👛 پول تو: {cash}
+      📌 زمین آزاد برای ساخت: {free}
+    intro_shared: |-
+      روی زمین خودت می‌توانی خانه یا کسب‌وکار کوچک بسازی. هزینه از جیب خودت است؛ اگر الوار نداشته باشی، به قیمت مرجع برایت خریده می‌شود.
+      📌 زمین آزاد برای ساخت: {free}
+    line: |-
+      🔨 {name} ({w}×{h})
+      هزینه: {cost} - مجوز: {permit} - زمان: {time}
+      جمع نقدی: {total}
+    material: "   • {name}: {need} واحد (داری {have}، می‌خری {buy} به {cost})"
+    short: "⚠️ پولت برای این ساختمان کافی نیست."
+    button: "🔨 {name} - {total}"
+    none: "فعلاً ساختمان شخصی‌ای که روستا بتواند بسازد وجود ندارد؛ با پیشرفت دانش روستا گزینه‌های بیشتری باز می‌شود."
+    no_free_lot: "همهٔ زمین‌های تو پر است؛ برای ساختن دوباره، زمین دیگری بخر."
+    total: "جمع نقدی: {total}"
+  lots:
+    title: "📍 جای ساخت در {village}"
+    building: "ساختمان: {building}"
+    legend: "✅ همین‌جا بساز (زمین خودت و آزاد) - 🏠 پر - 🛣 جاده - 💧 آب - ⛰ شیب - ⬜ زمین تو نیست"
+  confirm:
+    title: "🏗 ساخت {name}"
+    lines: |-
+      محل: ردیف {row}، ستون {col}
+      هزینهٔ ساختمان: {cost}
+      مجوز ساخت (به خزانه): {permit}
+      مصالح خریداری‌شده: {materials}
+      زمان ساخت: {time}
+    total: |-
+      جمع نقدی: {total}
+      پول تو پس از ساخت: {left}
+    total_shared: "جمع نقدی: {total}"
+    button_yes: "✅ تأیید و ساخت - {total}"
+  mine:
+    title: "🧾 دارایی من در {village}"
+    no_home: "🏚 هنوز خانه‌ای نداری؛ روی زمینت خانه بساز تا ساکن آن شوی."
+    home: "🏠 خانهٔ تو: {name}"
+    lot_bare: "🟩 ردیف {row}، ستون {col}: زمین خالی"
+    lot_building: "🏗 ردیف {row}، ستون {col}: {name} در حال ساخت - {time} دیگر"
+    lot_built: "🏡 ردیف {row}، ستون {col}: {name}"
+    no_lots: "زمینی نداری."
+    tax: "📊 مالیات دارایی: {percent}٪ از ارزش {assessed} در هر دوره؛ یعنی {per}"
+    debt: "⚠️ بدهی مالیاتی: {debt} ({periods} دوره)"
+    cash: "👛 پول تو: {cash}"
+    notice:
+      rested: "🛋 در خانه استراحت کردی و سرحال‌تر شدی."
+      tax_paid: "✅ مالیات پرداخت شد."
+      tax_none: "بدهی‌ای برای پرداخت نیست یا پولت کافی نبود."
+  terms:
+    title: "⚖️ شرایط زمین و ساخت در {village}"
+    body: |-
+      💵 قیمت زمین: {price} (بین {pmin} و {pmax})
+      📜 مجوز ساخت: {permit} (تا {fmax})
+      📊 مالیات دارایی هر دوره: {tax}٪ (تا {tmax}٪)
+
+      همهٔ این‌ها به خزانهٔ روستا می‌رود.
+    button_price: "💵 زمین {amount}"
+    button_permit: "📜 مجوز {amount}"
+    button_tax: "📊 مالیات {percent}٪"
+  work:
+    title: "🛠 کار در {village}"
+    body: |-
+      کارگاه‌ها و مزرعه‌های روستا با ساخته‌شدن باز می‌شوند و کار آن‌ها را اینجا می‌بینی.
+      تا آن روز، کار و شغل در «{city}» است.
+    button_support: "💼 کار در {city} - سفر"
+  refusal:
+    citizen_lot_taken: "این زمین را همین حالا کس دیگری خرید. زمین دیگری انتخاب کن."
+    citizen_lot_limit: "به سقف زمین‌های شخصی رسیده‌ای؛ اول روی زمین‌هایت بساز."
+    citizen_zoning: "سهم زمین‌های شخصی این روستا پر شده است تا فضای عمومی حفظ شود."
+    citizen_not_owner: "این زمین مال تو نیست؛ فقط روی زمین خودت می‌توانی بسازی."
+    citizen_no_cash: "پولت برای این کار کافی نیست."
+    citizen_private_only: "این ساختمان شخصی است و ساکنان روی زمین خودشان می‌سازند، نه دهیار."
+    citizen_lot_private: "این زمین شخصی است و مال یکی از اهالی است."
+    citizen_rest_wait: "هنوز سرحال هستی؛ {time} دیگر می‌توانی دوباره استراحت کنی."
+    citizen_no_house: "برای استراحت اول باید خانه‌ات ساخته شود."
+    citizen_terms_range: "این عدد خارج از محدودهٔ مجاز است."
+    citizen_no_debt: "بدهی مالیاتی‌ای نداری."
+    citizen_off: "خرید زمین هنوز در این روستا باز نشده است."
+    citizen_no_lots: "زمینی نداری؛ اول یک زمین بخر."
 
 # Group founding (docs/adr/0028-world-and-settlements.md section 3): a group
 # admin registers the group and the game places the new village on the map.
@@ -948,6 +1086,11 @@ village:
     no_home: "🏙 شهر بازگشت هنوز تعیین نشده است."
     donate_range: "💰 مبلغ کمک باید بین {min} و {max} باشد."
     donate_no_cash: "💰 پول نقد شما برای این کمک کافی نیست."
+    no_road: "🛣 به این بنا هیچ راهی نمی‌رسد؛ اطرافش جای آزاد و قابل‌ساخت برای کشیدن جاده نیست. قطعهٔ دیگری را امتحان کنید."
+    grid_max: "🗺 زمین روستا به بیشینهٔ فنیِ اندازهٔ نقشه رسیده است و بیشتر گسترش نمی‌یابد."
+    batch: |-
+      🚧 ساخت گروهی انجام نشد و چیزی پرداخت نشد. این قطعه‌ها مشکل دارند:
+      {lots}
     promotion_top: "🏙 این سکونتگاه به بالاترین رده رسیده است؛ گام بعدی وجود ندارد."
     storage_full: "📦 انبار روستا جا ندارد. «انبار غله» ظرفیت انبار را بیشتر می‌کند."
     already_working: "⚒ شما همین حالا در یک شیفت کار می‌کنید. صبر کنید تمام شود."
@@ -962,6 +1105,17 @@ village:
     labor_wage_too_low: "💸 این دستمزد از حداقل دستمزد روستا کمتر است."
     labor_employer_broke: "🏦 کارفرما پول کافی برای دستمزد این شیفت ندارد."
     labor_no_site: "🏗 چنین کارگاهی پیدا نشد."
+  batch_lot: "• ردیف {y}، ستون {x}: {reason}"
+  batch_reason:
+    occupied: "قبلاً اشغال شده"
+    unbuildable: "آب یا شیبِ تند است"
+    out_of_bounds: "بیرون از محدودهٔ روستاست"
+    terrain: "زمینش مناسب نیست"
+    prerequisite: "پیش‌نیازش فراهم نیست"
+    literacy: "سوادآموزی کافی نیست"
+    concurrent_cap: "صف ساخت جا ندارد"
+    not_available: "این بنا را نمی‌شود گروهی ساخت"
+    not_found: "قطعه نامعتبر است"
   needs:
     title:
       build: "🧱 برای ساخت «{subject}» هنوز چیزی کم است:"
@@ -1128,11 +1282,17 @@ build:
     short: "🧱 {building} - هزینه {cost} - مواد لازم: {materials} - کم دارید: {short}"
   button:
     place: "🏗 ساخت {building}"
+    grow: "🗺 گسترش زمین"
   confirm:
     title: "🏗 ساخت {building}"
     body: "هزینه: {cost}\nزمان ساخت: {time}\nمحل: ردیف {y}، ستون {x}"
     material_line: "• {component}: {quantity} واحد"
     button: "✅ تأیید و ساخت"
+    auto_roads: "🛣 برای اتصال این بنا، {count} قطعه جادهٔ رایگان هم همراهش کشیده می‌شود و فوراً آماده است."
+  batch:
+    title: "🛣 ساخت {count} قطعه {building}"
+    body: "هزینهٔ کل: {cost}\nزمان ساخت: {time} (همه با هم شروع می‌شوند)"
+    button: "✅ تأیید و ساخت همه"
 
 lots:
   title: "🗺 انتخاب محل ساخت در {name}"
@@ -1141,6 +1301,10 @@ lots:
   button:
     rotate: "🔄 چرخاندن بنا"
     reset_rotation: "🔄 بازگرداندن چرخش"
+    line: "📏 ساخت چند قطعه پشت‌سرهم"
+  window: "🗺 نمایش ردیف {y0} تا {y1} و ستون {x0} تا {x1} از زمین {n}×{n}؛ با پیکان‌ها جابه‌جا شوید."
+  line_start: "📏 قطعهٔ اول مسیر را بزنید."
+  line_end: "📏 شروع مسیر: ردیف {y}، ستون {x}. حالا قطعهٔ آخر را بزنید؛ مسیر از روی ردیف و ستون رد می‌شود."
 
 construction:
   title: "⏳ صف ساخت‌وساز {name}"
@@ -1149,6 +1313,84 @@ construction:
     queued: "📋 {building} - در صف - هنوز شروع نشده"
     building: "🏗 {building} - در حال ساخت - ساعت {time} تمام می‌شود - {duration} دیگر"
     work: "🏗 {building} - {percent}٪ ساخته شده، {left} مانده (فقط با کار کارگران جلو می‌رود)"
+  button:
+    open: "🏗 {building}"
+  standing_hint: "برای دیدن هر بنای ساخته‌شده، روی نامش بزنید."
+
+# Buying more land: the grid grows by a column east and a row north.
+grow:
+  title: "🗺 گسترش زمین {name}"
+  body: |-
+    زمین از {side}×{side} به {new_side}×{new_side} می‌رسد و {lots} قطعهٔ تازه به روستا اضافه می‌شود؛ {buildable} قطعه‌اش خشکیِ قابل‌ساخت است.
+    هزینه: {price}
+    خزانه: {treasury}
+  note: "بناهای فعلی سر جایشان می‌مانند. آب و شیب تند همان‌جا که هست ساخت‌ناپذیر می‌ماند. هر گسترشِ بعدی گران‌تر است."
+  button: "✅ تأیید و گسترش"
+
+# The panel of one placed building (internal/telegram/screens/village_building.go):
+# what it is and what it does; demolishing is the last, quiet button.
+building:
+  view:
+    title: "🏛 {building}"
+    state_complete: "✅ ساخته شده و در کار است."
+    under_construction: "🏗 در حال ساخت: {percent}٪ - ساعت {time} تمام می‌شود ({duration} دیگر)."
+    upkeep: "🧾 هزینهٔ نگهداری: {amount} در هر دوره"
+    demolish_ask: "🗑 این بنا برای همیشه برداشته می‌شود و قطعه‌اش دوباره آزاد می‌شود؛ فقط بخشی از هزینه‌اش به خزانه برمی‌گردد. مطمئن هستید؟"
+    demolish_yes: "🗑 بله، تخریب شود"
+    cancel_ask: "🛑 ساخت این بنا متوقف می‌شود و هزینه‌ای که پرداخت شده برنمی‌گردد. مطمئن هستید؟"
+    cancel_yes: "🛑 بله، ساخت لغو شود"
+  button:
+    upgrade: "⬆️ ارتقا"
+    demolish: "🗑 تخریب"
+    cancel: "🛑 لغو ساخت"
+  desc:
+    road: "جادهٔ روستا؛ قطعه‌ها را به هم می‌رساند و راه رفت‌وآمد اهالی است. کار دیگری ندارد."
+    civic_hall: "دل اداریِ روستا؛ دهیار از اینجا روستا را اداره می‌کند. خزانه، دانش و ساخت‌وساز روستا از همین‌جا در دسترس است."
+    role:
+      security: "پاسداری از روستا؛ امنیت محلی را بالا می‌برد."
+      craft: "کارگاه ساخت‌وساز و صنعت؛ پایهٔ تولید کالا در روستاست."
+      extraction: "برداشت مواد خام از دل زمین."
+      water_infra: "مهار و رساندن آب برای زندگی و کشاورزی روستا."
+      food: "تولید خوراک روستا؛ پوشش خوراک اهالی را بالا می‌برد."
+      health: "مراقبت از سلامت و درمان اهالی."
+      education: "آموزش اهالی؛ تا وقتی این بنا سر پاست، سواد میان اهالی کم‌کم پخش می‌شود."
+      market: "جای دادوستد اهالی؛ کالا اینجا دست‌به‌دست می‌شود."
+      storage: "انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد."
+      housing: "خانه‌های اهالی؛ ظرفیت جمعیت روستا را بالا می‌برد."
+    code:
+      housing_block: "خانه‌های تازه برای اهالی؛ ظرفیت جمعیت روستا را بالا می‌برد."
+      park: "فضای سبز روستا؛ حال‌وهوای اهالی را بهتر می‌کند."
+      bank: "بنایی از شهرهای بزرگ‌تر؛ کارکردش با رشد روستا باز می‌شود."
+      barracks: "بنایی از شهرهای بزرگ‌تر؛ کارکردش با رشد روستا باز می‌شود."
+      port: "بنایی از شهرهای بزرگ‌تر؛ کارکردش با رشد روستا باز می‌شود."
+      airport: "بنایی از شهرهای بزرگ‌تر؛ کارکردش با رشد روستا باز می‌شود."
+  effect:
+    local_security_bps: "🛡 امنیت محلی: +{value}٪"
+    food_coverage_bps: "🌾 پوشش خوراک: +{value}٪"
+    job_coverage_bps: "💼 پوشش شغل: +{value}٪"
+    service_coverage_bps: "🏥 پوشش خدمات: +{value}٪"
+    happiness_bps: "🙂 شادی: +{value}٪"
+    housing_capacity: "🏠 ظرفیت جمعیت: +{value}"
+  storage:
+    title: "📦 موجودی انبار:"
+    line: "• {item}: {qty}"
+    capacity: "📦 گنجایش انبار: {used} از {capacity} واحد"
+    empty: "📦 انبار فعلاً خالی است."
+  school:
+    literacy: "📖 سواد روستا: {percent}٪"
+    teaching: "🧑‍🏫 آموزش در جریان است و سواد کم‌کم بالا می‌رود."
+    idle: "🧑‍🏫 آموزش در جریان نیست."
+  civic:
+    population: "👥 جمعیت: {population}"
+    research: "🔬 پژوهش در جریان: {knowledge} - {duration} دیگر"
+    no_research: "🔬 پژوهشی در جریان نیست."
+  upgrade:
+    intro: "⬆️ گام بعدیِ «{building}» این‌هاست:"
+    line: "✅ {building} - هزینه {cost} - زمان ساخت {time}"
+    locked: "🔒 {building} - اول باید {missing} را داشته باشید"
+    locked_other: "🔒 {building} - پیش‌نیازهایش هنوز فراهم نیست"
+    needs_tier: "🔒 {building} - وقتی سکونتگاه {tier} شود باز می‌شود"
+    none: "گام بعدی ندارد."
 
 # Playing in a group (internal/gateway/groups). A screen with a player's own
 # details is shown only to that player; these lines are all the rest of the

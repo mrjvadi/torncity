@@ -57,12 +57,28 @@ type BuildingReader interface {
 	List(ctx context.Context, settlementID string) ([]application.SettlementBuildingInstance, error)
 }
 
+// CitizenReader reads a settlement's private property (the citizen loop,
+// migration 0058): who holds which lot, who owns which building and the
+// head's terms, plus the names players go by.
+type CitizenReader interface {
+	Lots(ctx context.Context, settlementID string) ([]application.SettlementLot, error)
+	PrivateBuildings(ctx context.Context, settlementID string) ([]application.PrivateBuilding, error)
+	Terms(ctx context.Context, settlementID string) (application.LotTerms, error)
+	// Names maps player ids to the names they go by; an unknown id is left out.
+	Names(ctx context.Context, playerIDs []string) (map[string]string, error)
+}
+
 // VillageService assembles the settlement views.
 type VillageService struct {
 	Settlements SettlementReader
 	Buildings   BuildingReader
-	World       *WorldService
-	Content     *content.Registry
+	// Citizens and CitizenTerms add the tenure of lots to the layout (the
+	// citizen loop); nil leaves it out. CitizenTerms turns the head's levers
+	// into the lot price, permit fee and tax in force.
+	Citizens     CitizenReader
+	CitizenTerms func(application.LotTerms) (lotPrice, permitFee int64, taxBPS int)
+	World        *WorldService
+	Content      *content.Registry
 	// VillageGridLots is settlement.village_grid_lots.
 	VillageGridLots int
 	Now             func() time.Time
@@ -134,7 +150,7 @@ func (v *VillageService) Mine(ctx context.Context, playerID string) (*BootstrapS
 		return nil, err
 	}
 	out := &BootstrapSettlement{ID: ps.CityID, Code: ps.Code, Name: ps.Name, Tier: ps.Tier, WorldCell: ps.WorldCellID,
-		IsHead: holdsHead(ps), Resident: ps.Resident, GridLots: v.gridLots(ps.Tier), LayoutPath: "/api/v1/settlements/" + ps.CityID + "/layout"}
+		IsHead: holdsHead(ps), Resident: ps.Resident, GridLots: v.gridLots(ps.Tier, ps.GridGrowth), LayoutPath: "/api/v1/settlements/" + ps.CityID + "/layout"}
 	if _, w, err := v.World.active(ctx); err == nil {
 		out.Centre = centreOf(w, ps.WorldCellID)
 	}
@@ -158,8 +174,8 @@ func holdsHead(ps application.PlayerSettlement) bool {
 	return false
 }
 
-func (v *VillageService) gridLots(tier string) int {
-	return settlement.GridLotsForTier(tier, v.VillageGridLots)
+func (v *VillageService) gridLots(tier string, growth int) int {
+	return settlement.GridLotsGrown(tier, v.VillageGridLots, growth)
 }
 
 func centreOf(w *worldgen.World, cell int32) *Place {
@@ -187,6 +203,28 @@ type VillageLayout struct {
 	// Roads lists the lots that hold a road, for a client that draws roads
 	// apart from buildings; they are also in Buildings.
 	Roads []LayoutLotRef `json:"roads"`
+	// Tenure lists the lots that have an owner, for a member only (contract
+	// 1.4); a lot not listed is commons, on sale at Terms.LotPrice.
+	Tenure []LayoutTenure `json:"tenure,omitempty"`
+	// Terms are the land and permit terms in force, for a member only.
+	Terms *LayoutTerms `json:"terms,omitempty"`
+}
+
+// LayoutTenure is one owned lot. Owner names the holder; Mine is set when the
+// viewer holds it themselves.
+type LayoutTenure struct {
+	X      int    `json:"x"`
+	Y      int    `json:"y"`
+	Tenure string `json:"tenure"`
+	Mine   bool   `json:"mine"`
+	Owner  string `json:"owner,omitempty"`
+}
+
+// LayoutTerms are what a lot, a permit and the property tax cost here.
+type LayoutTerms struct {
+	LotPrice  int64 `json:"lot_price"`
+	PermitFee int64 `json:"permit_fee"`
+	TaxBPS    int   `json:"tax_bps"`
 }
 
 // LayoutViewer says what the asker may do here.
@@ -194,6 +232,9 @@ type LayoutViewer struct {
 	Member bool `json:"member"`
 	// CanPlace is set for the settlement's head: place, cancel, demolish.
 	CanPlace bool `json:"can_place"`
+	// Resident is set when the viewer lives here: a resident may buy a free
+	// lot and build a private building on their own (contract 1.4).
+	Resident bool `json:"resident"`
 }
 
 // LayoutSettlement identifies the settlement.
@@ -263,6 +304,11 @@ type LayoutBuilding struct {
 	// VisualSeed seeds the client's own look of the building; the server
 	// never ships a model.
 	VisualSeed uint32 `json:"visual_seed"`
+	// Private is set for a resident's building; Owner names them and Mine is
+	// set when it is the viewer's own. Members only (contract 1.4).
+	Private bool   `json:"private,omitempty"`
+	Owner   string `json:"owner,omitempty"`
+	Mine    bool   `json:"mine,omitempty"`
 }
 
 // Layout is a settlement's layout as viewer sees it.
@@ -281,6 +327,7 @@ func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID stri
 		if mine.CityID == s.CityID {
 			viewer.Member = true
 			viewer.CanPlace = holdsHead(mine)
+			viewer.Resident = mine.Resident
 		}
 	case errors.Is(err, application.ErrCityNotFound):
 	default:
@@ -303,8 +350,8 @@ func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID stri
 	}
 
 	pt := w.Cells[s.WorldCellID].Point
-	lots := v.gridLots(s.Tier)
-	gridLat, gridLon := settlement.GridCentre(w, pt.LatDeg, pt.LonDeg, s.GridShiftX, s.GridShiftY)
+	lots := v.gridLots(s.Tier, s.GridGrowth)
+	gridLat, gridLon := settlement.GridCentreGrown(w, pt.LatDeg, pt.LonDeg, s.GridShiftX, s.GridShiftY, s.GridGrowth)
 	grid := settlement.SampleGridDetail(w, gridLat, gridLon, lots, s.WorldCellID)
 	out := VillageLayout{
 		Detail: DetailCoarse, Viewer: viewer,
@@ -347,8 +394,59 @@ func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID stri
 			out.Roads = append(out.Roads, LayoutLotRef{X: b.X, Y: b.Y})
 		}
 	}
-	out.Version = layoutVersion(out)
+	mark := ""
+	if viewer.Member && v.Citizens != nil {
+		var err error
+		if mark, err = v.addTenure(ctx, &out, viewerID, s.CityID); err != nil {
+			return VillageLayout{}, err
+		}
+	}
+	out.Version = layoutVersion(out, mark)
 	return out, nil
+}
+
+// addTenure adds who owns which lot and building to a member's layout and
+// returns the mark the version folds in (application.TenureMark).
+func (v *VillageService) addTenure(ctx context.Context, out *VillageLayout, viewerID, settlementID string) (string, error) {
+	lots, err := v.Citizens.Lots(ctx, settlementID)
+	if err != nil {
+		return "", err
+	}
+	priv, err := v.Citizens.PrivateBuildings(ctx, settlementID)
+	if err != nil {
+		return "", err
+	}
+	terms, err := v.Citizens.Terms(ctx, settlementID)
+	if err != nil {
+		return "", err
+	}
+	var ids []string
+	for _, l := range lots {
+		ids = append(ids, l.OwnerID)
+	}
+	owners := map[string]string{}
+	for _, b := range priv {
+		owners[b.BuildingID] = b.OwnerID
+		ids = append(ids, b.OwnerID)
+	}
+	names, err := v.Citizens.Names(ctx, ids)
+	if err != nil {
+		return "", err
+	}
+	out.Tenure = []LayoutTenure{}
+	for _, l := range lots {
+		out.Tenure = append(out.Tenure, LayoutTenure{X: l.X, Y: l.Y, Tenure: l.Tenure, Mine: l.OwnerID == viewerID, Owner: names[l.OwnerID]})
+	}
+	for i, b := range out.Buildings {
+		if owner, ok := owners[b.ID]; ok && b.ID != "" {
+			out.Buildings[i].Private, out.Buildings[i].Owner, out.Buildings[i].Mine = true, names[owner], owner == viewerID
+		}
+	}
+	if v.CitizenTerms != nil {
+		price, permit, tax := v.CitizenTerms(terms)
+		out.Terms = &LayoutTerms{LotPrice: price, PermitFee: permit, TaxBPS: tax}
+	}
+	return application.TenureMark(lots, priv), nil
 }
 
 // ETag is the layout's entity tag: its version and the detail it shows.
@@ -368,11 +466,11 @@ func round2(f float64) float64 { return math.Round(f*100) / 100 }
 
 // layoutVersion is the layout's version: application.LayoutVersionOf over
 // what the layout shows.
-func layoutVersion(l VillageLayout) string {
+func layoutVersion(l VillageLayout, tenure ...string) string {
 	bs := make([]application.ViewBuilding, 0, len(l.Buildings))
 	for _, b := range l.Buildings {
 		bs = append(bs, application.ViewBuilding{ID: b.ID, Type: b.Type, X: b.X, Y: b.Y, W: b.W, H: b.H, Rotated: b.Rotated,
 			State: b.State, FinishAt: b.FinishAt, DamageBPS: b.DamageBPS, VisualSeed: b.VisualSeed})
 	}
-	return application.LayoutVersionOf(l.Settlement.ID, l.Settlement.Tier, l.Settlement.Name, l.Grid.Lots, l.Viewer.CanPlace, bs)
+	return application.LayoutVersionOf(l.Settlement.ID, l.Settlement.Tier, l.Settlement.Name, l.Grid.Lots, l.Viewer.CanPlace, bs, tenure...)
 }

@@ -26,9 +26,9 @@
 ✅ خزانه: ⁨⁨7,400⁩ ساپ⁩ از ⁨⁨2,000⁩ ساپ⁩
   ───
   [🏡 ساکن این روستا شو] → settlement:join
-  [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
-  [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
-  [🧱 انبار و بازار] → settlement:materials   │   [⚒ کار در روستا] → settlement:work
+  [📚 دانش روستا] → settlement:knowledge   │   [⏳ پیشرفت ساخت] → settlement:build.progress
+  [🧱 انبار و بازار] → settlement:materials
+  [👥 اهالی] → settlement:who
   [🧭 مسیر شهرستان شدن] → settlement:promotion.view
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
@@ -58,12 +58,16 @@
 ✅ یک ساختمان درمانی (خانهٔ درمان)
 ✅ دانشی که روستا خودش آموخته (پژوهش یا خرید): ⁨3⁩ از ⁨2⁩
 ✅ خزانه: ⁨⁨5,100⁩ ساپ⁩ از ⁨⁨2,000⁩ ساپ⁩
+
+🌱 اینجا خانهٔ توست؛ زمین بخر، خانه بساز و روستا را آباد کن.
   ───
-  [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
-  [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
-  [🧱 انبار و بازار] → settlement:materials   │   [⚒ کار در روستا] → settlement:work
+  [🏡 زمین بخر] → settlement:land   │   [🏠 خانه بساز] → settlement:private
+  [⚒ کار در روستا] → settlement:work   │   [💰 کمک به خزانه] → settlement:donate
+  [🧾 دارایی من] → settlement:mine   │   [👥 اهالی] → settlement:who
+  [📚 دانش روستا] → settlement:knowledge   │   [⏳ پیشرفت ساخت] → settlement:build.progress
+  [🧱 انبار و بازار] → settlement:materials
   [🚀 ارتقا به شهرستان] → settlement:promote
-  [💰 کمک به خزانه] → settlement:donate   │   [🚪 ترک روستا] → settlement:leave
+  [🚪 ترک روستا] → settlement:leave
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ Village overview · a town has no promotion block at the top ━━━
@@ -84,9 +88,9 @@
 هنوز بنایی ساخته نشده است.
   ───
   [🏡 ساکن این روستا شو] → settlement:join
-  [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
-  [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
-  [🧱 انبار و بازار] → settlement:materials   │   [⚒ کار در روستا] → settlement:work
+  [📚 دانش روستا] → settlement:knowledge   │   [⏳ پیشرفت ساخت] → settlement:build.progress
+  [🧱 انبار و بازار] → settlement:materials
+  [👥 اهالی] → settlement:who
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ The way forward · part way ━━━

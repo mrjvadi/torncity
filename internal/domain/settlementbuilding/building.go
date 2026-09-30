@@ -166,6 +166,11 @@ type Def struct {
 	// gate.
 	MinLiteracyShareBPS int
 
+	// CapExempt frees this building from the concurrent-construction cap
+	// (Standing.ConcurrentCap): it neither waits for a free slot nor holds
+	// one. Content, for the cheap, quick, everywhere-needed pieces (a road)
+	// whose one-at-a-time queue was pure friction.
+	CapExempt bool
 	// Storage is how many units of goods, in all, this standing building adds
 	// to the village stock's capacity (a granary): the stock holds at most the
 	// settlement's base capacity plus every standing building's Storage.

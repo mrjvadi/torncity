@@ -212,4 +212,5 @@
 🔒 مدرسه - اول یکی از بناهای حلقهٔ آموزش را بسازید
   ───
   [🏗 ساخت کارگاه هیزم‌شکنی] → settlement:build.lots:woodcutter_camp   │   [🏗 ساخت خانهٔ دهیاری] → settlement:build.lots:civic_hall
+  [🗺 گسترش زمین] → settlement:grid.grow
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build

@@ -433,16 +433,26 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				ScarcityFloorBPS:      cfg.Settlement.ScarcityFloorBPS,
 				ScarcityCapBPS:        cfg.Settlement.ScarcityCapBPS,
 				SellerBandBPS:         cfg.Settlement.SellerBandBPS,
-				MaterialMarkupBPS:     cfg.Settlement.MaterialMarkupBPS,
-				StockBaseCapacity:     cfg.Settlement.StockBaseCapacity,
-				MaterialBuyMax:        cfg.Settlement.MaterialBuyMax,
-				MaterialBuyPresets:    cfg.Settlement.MaterialBuyPresets,
-				ResidenceCooldown:     cfg.Settlement.ResidenceCooldown,
-				HomeCityCode:          cfg.Settlement.HomeCityCode,
+				GridMaxLots:           cfg.Settlement.GridMaxLots, GridLotPrice: cfg.Settlement.GridLotPrice,
+				GridPriceStepBPS: cfg.Settlement.GridPriceStepBPS, AutoRoadCost: cfg.Settlement.AutoRoadCost,
+				MaterialMarkupBPS:  cfg.Settlement.MaterialMarkupBPS,
+				StockBaseCapacity:  cfg.Settlement.StockBaseCapacity,
+				MaterialBuyMax:     cfg.Settlement.MaterialBuyMax,
+				MaterialBuyPresets: cfg.Settlement.MaterialBuyPresets,
+				ResidenceCooldown:  cfg.Settlement.ResidenceCooldown,
+				HomeCityCode:       cfg.Settlement.HomeCityCode,
 			},
 			cfg.Game.IdempotencyTTL,
 			nil,
 		).WithDonationRules(cfg.Settlement.DonationMin, cfg.Settlement.DonationMax, cfg.Settlement.DonationPresets).
+			WithCitizenRules(handlers.CitizenRules{
+				LotPrice: cfg.Settlement.CitizenLotPrice, LotPriceMin: cfg.Settlement.CitizenLotPriceMin, LotPriceMax: cfg.Settlement.CitizenLotPriceMax,
+				PermitFee: cfg.Settlement.CitizenPermitFee, PermitFeeMax: cfg.Settlement.CitizenPermitFeeMax,
+				TaxBPS: cfg.Settlement.CitizenTaxBPS, TaxBPSMax: cfg.Settlement.CitizenTaxBPSMax, TaxPeriod: cfg.Settlement.CitizenTaxPeriod,
+				MaterialMarkupBPS: cfg.Settlement.CitizenMaterialMarkupBPS, MaxLotsPerPlayer: cfg.Settlement.CitizenMaxLotsPerPlayer,
+				PrivateShareMaxBPS: cfg.Settlement.CitizenPrivateShareMaxBPS, HomeRestCooldown: cfg.Settlement.CitizenHomeRestCooldown,
+				HomeRestHealth: cfg.Settlement.CitizenHomeRestHealth, HomeRestHappiness: cfg.Settlement.CitizenHomeRestHappiness,
+			}).
 			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets),
 	}
 

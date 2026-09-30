@@ -405,6 +405,12 @@ commands:
   settlement.build: {channel: group, client: true}
   settlement.build.lots: {channel: group, client: true}
   settlement.build.place: {channel: group, client: true}
+  settlement.build.place_many: {channel: group, client: true}
+  # One placed building's own panel: a group screen for the village, and the
+  # private chat shows the village the player lives in.
+  settlement.building.view: {channel: both, client: true}
+  # Buying more land (the grid grows by a column east and a row north).
+  settlement.grid.grow: {channel: group, client: true}
   settlement.build.progress: {channel: group, client: true}
   settlement.build.demolish: {channel: group, client: true}
   settlement.build.cancel: {channel: group, client: true}
@@ -431,6 +437,18 @@ commands:
   settlement.join: {channel: group, client: true}
   settlement.leave: {channel: group, client: true}
   settlement.donate: {channel: group, client: true}
+  # The citizen loop (docs/adr/0033 sections 4.4-4.5): land, a private house,
+  # one's own property and the head's terms. Personal enough to be answered in
+  # a private chat as well as in the village's group.
+  settlement.land: {channel: both, client: true}
+  settlement.lot.buy: {channel: both, client: true}
+  settlement.private: {channel: both, client: true}
+  settlement.private.lots: {channel: both, client: true}
+  settlement.private.place: {channel: both, client: true}
+  settlement.mine: {channel: both, client: true}
+  settlement.home.rest: {channel: both, client: true}
+  settlement.tax.pay: {channel: both, client: true}
+  settlement.terms: {channel: group, client: true}
   # Growing into the next tier (docs/adr/0028 section 4.1): the goals and the
   # progress on each, and the head's confirmed step. Civic acts, so group
   # screens; a client asks too (it resolves its own settlement).

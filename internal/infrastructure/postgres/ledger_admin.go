@@ -123,6 +123,11 @@ type LedgerVerification struct {
 	Village bool
 	VillageInvariants
 
+	// Citizen is whether the citizen loop's tables exist (migration 0058);
+	// CitizenInvariants their checks (ledger_admin_citizen.go).
+	Citizen bool
+	CitizenInvariants
+
 	// Life is whether a life's tables exist (migration 0028); LifeInvariants
 	// their checks (ledger_admin_life.go).
 	Life bool
@@ -242,7 +247,7 @@ func (v LedgerVerification) OK() bool {
 	return v.LedgerSum == "0" && len(v.Unbalanced) == 0 && len(v.Drifted) == 0 &&
 		len(v.DriftedStacks) == 0 && v.OrphanPieces == 0 && v.CompanyInvariants.ok() && v.ProductionInvariants.ok() &&
 		v.MilitaryInvariants.ok() && v.WarInvariants.ok() && v.StageEInvariants.ok() && v.StageFInvariants.ok() &&
-		v.VillageInvariants.ok() && v.DefenceInvariants.ok() && v.LifeInvariants.ok() && v.FinanceInvariants.ok() &&
+		v.VillageInvariants.ok() && v.CitizenInvariants.ok() && v.DefenceInvariants.ok() && v.LifeInvariants.ok() && v.FinanceInvariants.ok() &&
 		v.RecruitInvariants.ok() && v.GenerationsInvariants.ok()
 }
 
@@ -365,6 +370,14 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 	}
 	if v.Village {
 		if err := a.verifyVillage(ctx, &v); err != nil {
+			return v, err
+		}
+	}
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.settlement_lots') IS NOT NULL`).Scan(&v.Citizen); err != nil {
+		return v, fmt.Errorf("postgres: looking for the citizen loop: %w", err)
+	}
+	if v.Citizen {
+		if err := a.verifyCitizen(ctx, &v); err != nil {
 			return v, err
 		}
 	}

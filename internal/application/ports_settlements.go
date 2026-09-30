@@ -240,10 +240,17 @@ type FoundedSettlement struct {
 	WorldCellID    int32
 	// GridShiftX/GridShiftY: see Founding.
 	GridShiftX, GridShiftY int
-	FoundedAt              time.Time
-	ProtectedUntil         time.Time
-	Buildings              []SettlementBuilding
+	// GridGrowth is how many expansions the village has bought: its grid's
+	// side is the tier's base side plus this (migration 0054).
+	GridGrowth     int
+	FoundedAt      time.Time
+	ProtectedUntil time.Time
+	Buildings      []SettlementBuilding
 }
+
+// ErrGridGrowthConflict means the grid was grown by someone else between the
+// read and the write; the caller re-reads and decides again.
+var ErrGridGrowthConflict = errors.Sentinel(errors.CodeConflict, "application.ErrGridGrowthConflict", "the village grid changed meanwhile")
 
 // SettlementRepository is the transactional port behind founding a
 // settlement (ADR 0028 section 3.1), reached through Tx.Settlements so its
@@ -279,6 +286,11 @@ type SettlementRepository interface {
 	// before searching for a spot at all, so a redelivered command answers
 	// from the existing village instead of running FindSpawn again.
 	ByFoundingGroup(ctx context.Context, chatID int64) (FoundedSettlement, error)
+
+	// GrowGrid moves a village's grid growth from one step count to the next,
+	// only if it is still at from (compare-and-set: two replicas racing to
+	// grow the same village never both win), else ErrGridGrowthConflict.
+	GrowGrid(ctx context.Context, id string, from, to int) error
 
 	// ByID returns one founded settlement (buildings left empty), or
 	// ErrCityNotFound.

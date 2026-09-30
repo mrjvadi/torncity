@@ -30,7 +30,7 @@ func villageEconomySnapshots(c Context, who people, add func(string, *presenter.
 
 	add("Stock and market · the head, a few goods", VillageStock(g, MaterialsView{
 		Village: villageNameFor(c), Treasury: 58_000, Used: 14, Capacity: 60, CanBuy: true, Presets: []int64{5, 20, 50},
-		Stock: []MaterialStockLine{{Item: timber, Qty: 9}, {Item: stone, Qty: 5}},
+		Stock:  []MaterialStockLine{{Item: timber, Qty: 9}, {Item: stone, Qty: 5}},
 		Market: []MaterialMarketLine{{Item: timber, Price: 18}, {Item: stone, Price: 8}, {Item: wool, Price: 15}},
 	}))
 	add("Stock and market · a resident, empty stock, just bought", VillageStock(g, MaterialsView{

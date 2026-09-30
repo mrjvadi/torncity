@@ -219,7 +219,8 @@ func (t *fakeTx) Governance() application.GovernanceRepository { return nil }
 // repositories make any accidental use fail loudly, the same as Governance.
 func (t *fakeTx) Worlds() application.WorldRepository                            { return nil }
 func (t *fakeTx) Settlements() application.SettlementRepository                  { return nil }
-func (t *fakeTx) SettlementTreasury() application.SettlementTreasuryRepository { return nil }
+func (t *fakeTx) SettlementTreasury() application.SettlementTreasuryRepository   { return nil }
+func (t *fakeTx) Citizens() application.CitizenRepository                        { return nil }
 func (t *fakeTx) SettlementKnowledge() application.SettlementKnowledgeRepository { return nil }
 func (t *fakeTx) SettlementBuildings() application.SettlementBuildingRepository  { return nil }
 func (t *fakeTx) Presence() application.PresenceRepository                       { return nil }

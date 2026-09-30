@@ -437,6 +437,9 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "build", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.lots", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.place", Origin: FromPlayer},
+	{Domain: "settlement", Action: "build.place_many", Origin: FromPlayer},
+	{Domain: "settlement", Action: "building.view", Origin: FromPlayer},
+	{Domain: "settlement", Action: "grid.grow", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.progress", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.demolish", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.cancel", Origin: FromPlayer},
@@ -462,6 +465,17 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "join", Origin: FromPlayer},
 	{Domain: "settlement", Action: "leave", Origin: FromPlayer},
 	{Domain: "settlement", Action: "donate", Origin: FromPlayer},
+	// The citizen loop (docs/adr/0033 sections 4.4-4.5): land, a private
+	// house, one's own property, the head's terms and the page behind work.
+	{Domain: "settlement", Action: "land", Origin: FromPlayer},
+	{Domain: "settlement", Action: "lot.buy", Origin: FromPlayer},
+	{Domain: "settlement", Action: "private", Origin: FromPlayer},
+	{Domain: "settlement", Action: "private.lots", Origin: FromPlayer},
+	{Domain: "settlement", Action: "private.place", Origin: FromPlayer},
+	{Domain: "settlement", Action: "mine", Origin: FromPlayer},
+	{Domain: "settlement", Action: "home.rest", Origin: FromPlayer},
+	{Domain: "settlement", Action: "tax.pay", Origin: FromPlayer},
+	{Domain: "settlement", Action: "terms", Origin: FromPlayer},
 	// Growing into the next tier (ADR 0028 section 4.1).
 	{Domain: "settlement", Action: "promotion.view", Origin: FromPlayer},
 	{Domain: "settlement", Action: "promote", Origin: FromPlayer},

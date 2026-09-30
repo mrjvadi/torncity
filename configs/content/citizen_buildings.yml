@@ -1,0 +1,75 @@
+version: 1
+# The citizen catalogue (docs/adr/0033-village-first-progression-and-village-
+# currencies.md sections 4.4 and 4.5, phase H1): what a RESIDENT may build on
+# a lot they own, paid from their own cash, with a permit to the treasury.
+# These are ordinary settlement_buildings rows (same loader, same placement
+# rules, same construction timer) marked owner: citizen; the village head's
+# build menu never lists them, the citizen menu lists only what the village
+# can build now (progressive disclosure: no locked rows).
+#
+# permit_class is the class of permit (residential, craft, commerce); the fee
+# is one number per village (config settlement.citizen_permit_fee, the head's
+# lever within bounds), not per class, until the classes differ.
+#
+# home: true marks a house its owner lives in. Living there pays nothing
+# (ADR 0033 section 4.4: residency is not a faucet): it is a place to rest
+# (a little health and mood, once per cooldown) and it is where the owner is
+# counted at home.
+#
+# cost_money is what the builder pays; cost_materials come from the builder's
+# own inventory or, for what is missing, are bought at the reference price
+# (config settlement.citizen_material_markup_bps above items.yml's base_price).
+# Property tax is assessed on the cost.
+settlement_buildings:
+  - code: private_cottage
+    role: housing
+    tier: 1
+    name: "کلبهٔ شخصی"
+    owner: citizen
+    permit_class: residential
+    home: true
+    footprint: [1, 1]
+    cost_money: 800
+    cost_materials: {timber: 3}
+    build_time: 2h
+    effects: [{target: housing_capacity, op: add, value: 2}]
+
+  - code: private_house
+    role: housing
+    tier: 1
+    name: "خانهٔ شخصی"
+    owner: citizen
+    permit_class: residential
+    home: true
+    footprint: [1, 1]
+    requires_knowledge: [carpentry]
+    cost_money: 1800
+    cost_materials: {timber: 8}
+    build_time: 4h
+    effects:
+      - {target: housing_capacity, op: add, value: 4}
+      - {target: happiness_bps, op: add, value: 40}
+
+  - code: home_workshop
+    role: craft
+    tier: 1
+    name: "کارگاه خانگی"
+    owner: citizen
+    permit_class: craft
+    footprint: [2, 1]
+    requires_knowledge: [carpentry]
+    cost_money: 1500
+    cost_materials: {timber: 6}
+    build_time: 3h
+
+  - code: market_stall
+    role: market
+    tier: 1
+    name: "غرفهٔ بازار"
+    owner: citizen
+    permit_class: commerce
+    footprint: [1, 1]
+    requires_knowledge_capability: [market_access]
+    cost_money: 500
+    cost_materials: {timber: 2}
+    build_time: 1h

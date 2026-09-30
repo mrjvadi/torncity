@@ -17,9 +17,9 @@
 • Carpentry workshop
   ───
   [🏡 Become a resident] → settlement:join
-  [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
-  [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
-  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
+  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [🧱 Stock and market] → settlement:materials
+  [👥 People] → settlement:who
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Village overview · nothing built yet ━━━
@@ -40,9 +40,9 @@
 No buildings stand here yet.
   ───
   [🏡 Become a resident] → settlement:join
-  [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
-  [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
-  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
+  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [🧱 Stock and market] → settlement:materials
+  [👥 People] → settlement:who
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Knowledge list · mixed states, research running ━━━
@@ -83,6 +83,7 @@ No knowledge to show.
 🔒 Police post - needs Record keeping first
   ───
   [🏗 Build Civic hall] → settlement:build.lots:civic_hall
+  [🗺 Expand the land] → settlement:grid.grow
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build
 
 ━━━ Construction progress · one queued, one building ━━━
@@ -92,6 +93,8 @@ No knowledge to show.
 🏗 Carpentry - under construction - finishes at 16:05 - 1h 30m left
 📋 Watch hut - queued - not yet started
   ───
+  [🏗 Carpentry] → settlement:building.view:
+  [🏗 Watch hut] → settlement:building.view:
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
 
 ━━━ Construction progress · queue empty ━━━
@@ -101,6 +104,267 @@ No knowledge to show.
 Nothing is queued.
   ───
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
+
+━━━ Building panel · a granary with its stock ━━━
+(edits message 42)
+🏛 Granary
+
+The village store: the shared materials and goods are kept here, and construction draws from this stock.
+
+✅ Built and working.
+
+📦 Store room: 135 of 360 units
+
+📦 In store:
+
+• Timber: 15
+• Wheat: 120
+
+🧾 Upkeep: 20 SUP per period
+  ───
+  [🗑 Demolish] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · an empty store ━━━
+(edits message 42)
+🏛 Granary
+
+The village store: the shared materials and goods are kept here, and construction draws from this stock.
+
+✅ Built and working.
+
+📦 The store is empty for now.
+  ───
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · a teaching circle, the head sees the upgrade ━━━
+(edits message 42)
+🏛 Teaching circle
+
+Teaches the villagers; while it stands, literacy slowly spreads.
+
+✅ Built and working.
+
+📖 Village literacy: 34%
+
+🧑‍🏫 Teaching is under way and literacy is slowly rising.
+
+🧾 Upkeep: 25 SUP per period
+  ───
+  [⬆️ Upgrade] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:up
+  [🗑 Demolish] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · the upgrade, revealed when pressed ━━━
+(edits message 42)
+🏛 Teaching circle
+
+⬆️ The next step after Teaching circle:
+
+🔒 School - you need Record keeping first
+  ───
+  [🔙 Back] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · the civic hall ━━━
+(edits message 42)
+🏛 Civic hall
+
+The village's seat of office, where the head runs the village. The treasury, knowledge and construction are reached from here.
+
+✅ Built and working.
+
+👥 Population: 34
+
+🏦 Village treasury: 24,600 SUP
+
+🔬 Research under way: Canal irrigation - 41m left
+
+🧾 Upkeep: 20 SUP per period
+  ───
+  [🏘 Village] → settlement:overview   │   [📚 Village knowledge] → settlement:knowledge
+  [🏗 Construction] → settlement:build   │   [⏳ Build progress] → settlement:build.progress
+  [🗑 Demolish] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · a watch hut ━━━
+(edits message 42)
+🏛 Watch hut
+
+Watches over the village and raises local security.
+
+✅ Built and working.
+
+🛡 Local security: +3%
+
+🧾 Upkeep: 30 SUP per period
+  ───
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · a road ━━━
+(edits message 42)
+🏛 Road
+
+A village road; it joins the lots and is the way the villagers walk. It does nothing else.
+
+✅ Built and working.
+
+🧾 Upkeep: 2 SUP per period
+  ───
+  [🗑 Demolish] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · under construction, the head may cancel ━━━
+(edits message 42)
+🏛 Carpentry workshop
+
+A workshop, the base of making goods in the village.
+
+🏗 Under construction: 42% - finishes at 16:05 (1h 30m left).
+  ───
+  [🛑 Cancel the build] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:cx
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · demolishing asks first ━━━
+(edits message 42)
+🏛 Granary
+
+🗑 This building is removed for good and its lot is free again; only part of its cost returns to the treasury. Are you sure?
+  ───
+  [🗑 Yes, demolish it] → settlement:build.demolish:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [🔙 Back] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · cancelling asks first ━━━
+(edits message 42)
+🏛 Carpentry workshop
+
+🛑 Construction stops and what was paid is not returned. Are you sure?
+  ───
+  [🛑 Yes, cancel the build] → settlement:build.cancel:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [🔙 Back] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Construction progress · with the standing buildings to open ━━━
+(edits message 42)
+⏳ Construction queue of Korendal
+
+🏗 Carpentry - under construction - finishes at 16:05 - 1h 30m left
+
+Tap a finished building to see it.
+  ───
+  [🏗 Carpentry] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [Granary] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44   │   [Teaching circle] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [Civic hall] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
+
+━━━ Batch · the total of three roads ━━━
+(edits message 42)
+🛣 Build 3 x Road
+
+Total cost: 150 SUP
+Build time: 10m (all start together)
+  ───
+  [✅ Confirm and build all] → settlement:build.place_many:road:0-0:2-0:confirm
+  [🔙 Back] → settlement:build
+
+━━━ Batch · refused as a whole, every lot named ━━━
+(edits message 42)
+🚧 The batch was not built and nothing was paid. These lots have a problem:
+• row 1, column 2: already taken
+• row 10, column 10: outside the village
+• row 4, column 3: water or too steep
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Roads · no road can reach the building ━━━
+(edits message 42)
+🛣 No road can reach this building; there is no free buildable ground around it to lay one. Try another lot.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Lot grid · picking the first lot of a run of roads ━━━
+(edits message 42)
+🗺 Choose where to build in Korendal
+Building: Road
+
+✅ free and fits - ⬜ free but does not fit - 🏠 occupied - 🛣 road - 💧 water - ⛰ steep
+
+📏 Tap the first lot of the run.
+  ───
+  [✅] → settlement:build.lots:road:0:0-0   │   [⬜] → settlement:build.lots:road:0:1-0   │   [🏠] → settlement:build.lots:road:0:2-0   │   [💧] → settlement:build.lots:road:0:3-0   │   [✅] → settlement:build.lots:road:0:4-0
+  [✅] → settlement:build.lots:road:0:0-1   │   [✅] → settlement:build.lots:road:0:1-1   │   [🏠] → settlement:build.lots:road:0:2-1   │   [✅] → settlement:build.lots:road:0:3-1   │   [⬜] → settlement:build.lots:road:0:4-1
+  [🛣] → settlement:build.lots:road:0:0-2   │   [✅] → settlement:build.lots:road:0:1-2   │   [✅] → settlement:build.lots:road:0:2-2   │   [✅] → settlement:build.lots:road:0:3-2   │   [⛰] → settlement:build.lots:road:0:4-2
+  [✅] → settlement:build.lots:road:0:0-3   │   [✅] → settlement:build.lots:road:0:1-3   │   [✅] → settlement:build.lots:road:0:2-3   │   [🏠] → settlement:build.lots:road:0:3-3   │   [✅] → settlement:build.lots:road:0:4-3
+  [✅] → settlement:build.lots:road:0:0-4   │   [⛰] → settlement:build.lots:road:0:1-4   │   [✅] → settlement:build.lots:road:0:2-4   │   [✅] → settlement:build.lots:road:0:3-4   │   [✅] → settlement:build.lots:road:0:4-4
+  [🔙 Back] → settlement:build   │   [🔄 Refresh] → settlement:build.lots:road
+
+━━━ Lot grid · picking the last lot of the run ━━━
+(edits message 42)
+🗺 Choose where to build in Korendal
+Building: Road
+
+✅ free and fits - ⬜ free but does not fit - 🏠 occupied - 🛣 road - 💧 water - ⛰ steep
+
+📏 The run starts at row 1, column 2. Now tap the last lot; the run goes along the row, then down the column.
+  ───
+  [✅] → settlement:build.place_many:road:1-0:0-0   │   [⬜] → settlement:build.place_many:road:1-0:1-0   │   [🏠] → settlement:build.place_many:road:1-0:2-0   │   [💧] → settlement:build.place_many:road:1-0:3-0   │   [✅] → settlement:build.place_many:road:1-0:4-0
+  [✅] → settlement:build.place_many:road:1-0:0-1   │   [✅] → settlement:build.place_many:road:1-0:1-1   │   [🏠] → settlement:build.place_many:road:1-0:2-1   │   [✅] → settlement:build.place_many:road:1-0:3-1   │   [⬜] → settlement:build.place_many:road:1-0:4-1
+  [🛣] → settlement:build.place_many:road:1-0:0-2   │   [✅] → settlement:build.place_many:road:1-0:1-2   │   [✅] → settlement:build.place_many:road:1-0:2-2   │   [✅] → settlement:build.place_many:road:1-0:3-2   │   [⛰] → settlement:build.place_many:road:1-0:4-2
+  [✅] → settlement:build.place_many:road:1-0:0-3   │   [✅] → settlement:build.place_many:road:1-0:1-3   │   [✅] → settlement:build.place_many:road:1-0:2-3   │   [🏠] → settlement:build.place_many:road:1-0:3-3   │   [✅] → settlement:build.place_many:road:1-0:4-3
+  [✅] → settlement:build.place_many:road:1-0:0-4   │   [⛰] → settlement:build.place_many:road:1-0:1-4   │   [✅] → settlement:build.place_many:road:1-0:2-4   │   [✅] → settlement:build.place_many:road:1-0:3-4   │   [✅] → settlement:build.place_many:road:1-0:4-4
+  [🔙 Back] → settlement:build   │   [🔄 Refresh] → settlement:build.lots:road
+
+━━━ Placement · the preview names the roads laid with the building ━━━
+(edits message 42)
+🏗 Build Cottage
+
+Cost: 720 SUP
+Build time: 45m
+Location: row 5, column 5
+
+• Timber: 2 units
+
+🛣 To connect this building, 2 lots of road are laid with it, free and ready at once.
+  ───
+  [✅ Confirm and build] → settlement:build.place:cottage:4-4:confirm
+  [🔙 Back] → settlement:build.lots:cottage
+
+━━━ Land · a grid wider than a keyboard row is a window over the land ━━━
+(edits message 42)
+🗺 Choose where to build in Korendal
+Building: Cottage
+
+✅ free and fits - ⬜ free but does not fit - 🏠 occupied - 🛣 road - 💧 water - ⛰ steep
+
+🗺 Showing rows 3 to 10 and columns 3 to 10 of the 10x10 land; move with the arrows.
+  ───
+  [✅] → settlement:build.place:cottage:2-2   │   [✅] → settlement:build.place:cottage:3-2   │   [✅] → settlement:build.place:cottage:4-2   │   [✅] → settlement:build.place:cottage:5-2   │   [✅] → settlement:build.place:cottage:6-2   │   [✅] → settlement:build.place:cottage:7-2   │   [✅] → settlement:build.place:cottage:8-2   │   [✅] → settlement:build.place:cottage:9-2
+  [✅] → settlement:build.place:cottage:2-3   │   [✅] → settlement:build.place:cottage:3-3   │   [✅] → settlement:build.place:cottage:4-3   │   [✅] → settlement:build.place:cottage:5-3   │   [✅] → settlement:build.place:cottage:6-3   │   [✅] → settlement:build.place:cottage:7-3   │   [✅] → settlement:build.place:cottage:8-3   │   [✅] → settlement:build.place:cottage:9-3
+  [✅] → settlement:build.place:cottage:2-4   │   [✅] → settlement:build.place:cottage:3-4   │   [✅] → settlement:build.place:cottage:4-4   │   [✅] → settlement:build.place:cottage:5-4   │   [✅] → settlement:build.place:cottage:6-4   │   [✅] → settlement:build.place:cottage:7-4   │   [✅] → settlement:build.place:cottage:8-4   │   [✅] → settlement:build.place:cottage:9-4
+  [✅] → settlement:build.place:cottage:2-5   │   [✅] → settlement:build.place:cottage:3-5   │   [✅] → settlement:build.place:cottage:4-5   │   [✅] → settlement:build.place:cottage:5-5   │   [✅] → settlement:build.place:cottage:6-5   │   [✅] → settlement:build.place:cottage:7-5   │   [✅] → settlement:build.place:cottage:8-5   │   [✅] → settlement:build.place:cottage:9-5
+  [✅] → settlement:build.place:cottage:2-6   │   [✅] → settlement:build.place:cottage:3-6   │   [✅] → settlement:build.place:cottage:4-6   │   [✅] → settlement:build.place:cottage:5-6   │   [✅] → settlement:build.place:cottage:6-6   │   [✅] → settlement:build.place:cottage:7-6   │   [✅] → settlement:build.place:cottage:8-6   │   [✅] → settlement:build.place:cottage:9-6
+  [✅] → settlement:build.place:cottage:2-7   │   [✅] → settlement:build.place:cottage:3-7   │   [✅] → settlement:build.place:cottage:4-7   │   [✅] → settlement:build.place:cottage:5-7   │   [✅] → settlement:build.place:cottage:6-7   │   [✅] → settlement:build.place:cottage:7-7   │   [✅] → settlement:build.place:cottage:8-7   │   [✅] → settlement:build.place:cottage:9-7
+  [✅] → settlement:build.place:cottage:2-8   │   [✅] → settlement:build.place:cottage:3-8   │   [✅] → settlement:build.place:cottage:4-8   │   [✅] → settlement:build.place:cottage:5-8   │   [✅] → settlement:build.place:cottage:6-8   │   [✅] → settlement:build.place:cottage:7-8   │   [✅] → settlement:build.place:cottage:8-8   │   [✅] → settlement:build.place:cottage:9-8
+  [✅] → settlement:build.place:cottage:2-9   │   [✅] → settlement:build.place:cottage:3-9   │   [✅] → settlement:build.place:cottage:4-9   │   [✅] → settlement:build.place:cottage:5-9   │   [✅] → settlement:build.place:cottage:6-9   │   [✅] → settlement:build.place:cottage:7-9   │   [✅] → settlement:build.place:cottage:8-9   │   [✅] → settlement:build.place:cottage:9-9
+  [◀️] → settlement:build.lots:cottage:0:-:0-2   │   [🔼] → settlement:build.lots:cottage:0:-:2-0   │   [🔽] → settlement:build.lots:cottage:0:-:2-6   │   [▶️] → settlement:build.lots:cottage:0:-:6-2
+  [🔙 Back] → settlement:build   │   [🔄 Refresh] → settlement:build.lots:cottage
+
+━━━ Land · the price of the next expansion ━━━
+(edits message 42)
+🗺 Expand the land of Korendal
+
+The land grows from 5x5 to 6x6: 11 new lots, 9 of them dry buildable ground.
+Price: 550 SUP
+Treasury: 12,400 SUP
+
+Standing buildings stay where they are. Water and steep ground stay unbuildable. Each expansion costs more than the last.
+  ───
+  [✅ Confirm and expand] → settlement:grid.grow:confirm
+  [🔙 Back] → settlement:build
+
+━━━ Land · the technical bound ━━━
+(edits message 42)
+🗺 The village's land has reached the technical limit of the map size and cannot grow further.
+  ───
+  [🔙 Back] → settlement:overview
 
 ━━━ Lot grid · a mix of states, rotatable building ━━━
 (edits message 42)
@@ -186,11 +450,15 @@ Location: row 1, column 4
 📖 Literacy: 2%
 
 No buildings stand here yet.
+
+🌱 This is your home: buy land, build a house and help the village grow.
   ───
-  [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
-  [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
-  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
-  [💰 Give to the treasury] → settlement:donate   │   [🚪 Leave the village] → settlement:leave
+  [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
+  [⚒ Work in the village] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
+  [🧾 My property] → settlement:mine   │   [👥 People] → settlement:who
+  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [🧱 Stock and market] → settlement:materials
+  [🚪 Leave the village] → settlement:leave
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Village home · the group hub, a resident, with Support's services a journey away ━━━
@@ -210,12 +478,16 @@ No buildings stand here yet.
 
 No buildings stand here yet.
 
+🌱 This is your home: buy land, build a house and help the village grow.
+
 🧭 Services in Support - travel there for them:
   ───
-  [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
-  [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
-  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
-  [💰 Give to the treasury] → settlement:donate   │   [🚪 Leave the village] → settlement:leave
+  [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
+  [⚒ Work in the village] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
+  [🧾 My property] → settlement:mine   │   [👥 People] → settlement:who
+  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [🧱 Stock and market] → settlement:materials
+  [🚪 Leave the village] → settlement:leave
   [🏦 Bank - travel to Support] → travel:options:support   │   [🛒 Market - travel to Support] → travel:options:support
   [💼 Jobs - travel to Support] → travel:options:support   │   [📚 Knowledge - travel to Support] → travel:options:support
   [🏥 Hospital - travel to Support] → travel:options:support   │   [⛓ Jail - travel to Support] → travel:options:support
@@ -238,14 +510,271 @@ No buildings stand here yet.
 
 No buildings stand here yet.
 
+🌱 This is your home: buy land, build a house and help the village grow.
+
 🏘 Building, research and donations are done in the village group; here you see how your village stands.
 
 🧭 Services in Support - travel there for them:
   ───
+  [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
+  [⚒ Work in the village] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
+  [🧾 My property] → settlement:mine
   [🏦 Bank - travel to Support] → travel:options:support   │   [🛒 Market - travel to Support] → travel:options:support
   [💼 Jobs - travel to Support] → travel:options:support   │   [📚 Knowledge - travel to Support] → travel:options:support
   [🏥 Hospital - travel to Support] → travel:options:support   │   [⛓ Jail - travel to Support] → travel:options:support
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
+
+━━━ Village home · the village head's hub (civic build and land terms) ━━━
+(edits message 42)
+🏘 the village of Korendal
+
+👥 Population: 12 of 100
+
+🏦 Village treasury: 10,900 SUP
+
+🌾 Food coverage: 20%
+💼 Job coverage: 10%
+🏥 Service coverage: 0%
+🙂 Happiness: 30%
+🛡 Local security: 15%
+📖 Literacy: 2%
+
+No buildings stand here yet.
+
+🌱 This is your home: buy land, build a house and help the village grow.
+  ───
+  [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
+  [⚒ Work in the village] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
+  [🧾 My property] → settlement:mine   │   [👥 People] → settlement:who
+  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [🧱 Stock and market] → settlement:materials
+  [🏗 Construction] → settlement:build   │   [⚖️ Land terms] → settlement:terms
+  [🚪 Leave the village] → settlement:leave
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
+
+━━━ Land grid · free lots on offer ━━━
+(edits message 42)
+🏡 Land in Korendal
+
+Any free lot can be yours: the price goes to the village treasury and the lot is yours for good.
+💵 Price per lot: 400 SUP
+📌 Your lots: 1 of 6
+
+🟩 free to buy - 🏡 yours - 🔒 someone else's - 🏠 building - 🛣 road - 💧 water - ⛰ steep
+  ───
+  [🟩] → settlement:lot.buy:0-0   │   [🛣] → settlement:land   │   [🟩] → settlement:lot.buy:2-0   │   [🟩] → settlement:lot.buy:3-0   │   [💧] → settlement:land
+  [🟩] → settlement:lot.buy:0-1   │   [🏠] → settlement:land   │   [🏠] → settlement:land   │   [🔒] → settlement:land   │   [🟩] → settlement:lot.buy:4-1
+  [🟩] → settlement:lot.buy:0-2   │   [🏠] → settlement:land   │   [🏠] → settlement:land   │   [🟩] → settlement:lot.buy:3-2   │   [🟩] → settlement:lot.buy:4-2
+  [🏡] → settlement:private   │   [🟩] → settlement:lot.buy:1-3   │   [🟩] → settlement:lot.buy:2-3   │   [🟩] → settlement:lot.buy:3-3   │   [⛰] → settlement:land
+  [🟩] → settlement:lot.buy:0-4   │   [🟩] → settlement:lot.buy:1-4   │   [🟩] → settlement:lot.buy:2-4   │   [🔒] → settlement:land   │   [🟩] → settlement:lot.buy:4-4
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:land
+
+━━━ Land purchase · confirm ━━━
+(edits message 42)
+🏡 Buy a lot
+
+Row 4, column 3
+Price: 400 SUP
+
+The money goes to the village treasury.
+  ───
+  [✅ Buy - 400 SUP] → settlement:lot.buy:2-3:confirm
+  [🔙 Back] → settlement:land
+
+━━━ Land purchase · done ━━━
+(edits message 42)
+✅ This lot is yours now
+
+Row 4, column 3 is registered in your name and 400 SUP went to the village treasury.
+You can build a house on it now.
+  ───
+  [🏠 Build a house] → settlement:private   │   [🏡 More land] → settlement:land
+  [🔙 Back] → settlement:land
+
+━━━ Citizen catalogue · only what can be built now ━━━
+(edits message 42)
+🏠 Private building in Korendal
+
+On your own lot you can build a house or a small business. You pay from your own pocket; missing timber is bought for you at the reference price.
+📌 Free lots of yours: 1
+
+🔨 Private cottage (1×1)
+Cost: 800 SUP - Permit: 100 SUP - Time: 2h
+Cash total: 954 SUP
+   • Timber: 3 (you have 0, buy 3 for 54 SUP)
+
+🔨 Market stall (1×1)
+Cost: 500 SUP - Permit: 100 SUP - Time: 1h
+Cash total: 600 SUP
+   • Timber: 2 (you have 2, buy 0 for 0 SUP)
+⚠️ You cannot afford this building.
+  ───
+  [🔨 Private cottage - 954 SUP] → settlement:private.lots:private_cottage
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:private
+
+━━━ Citizen catalogue · no land yet ━━━
+(edits message 42)
+🏠 Private building in Korendal
+
+To build a house you need a lot first. Buy a free lot and come back.
+  ───
+  [🏡 Buy land] → settlement:land
+  [🔙 Back] → settlement:overview
+
+━━━ Citizen lot choice · your own lots ━━━
+(edits message 42)
+📍 Where to build in Korendal
+Building: Private cottage
+
+✅ build here (your own free lot) - 🏠 taken - 🛣 road - 💧 water - ⛰ steep - ⬜ not your lot
+  ───
+  [🏠] → settlement:private.place:private_cottage:0-0   │   [🏠] → settlement:private.place:private_cottage:1-0
+  [✅] → settlement:private.place:private_cottage:0-1   │   [🏠] → settlement:private.place:private_cottage:1-1
+  [🔙 Back] → settlement:private   │   [🔄 Refresh] → settlement:private.lots:private_cottage
+
+━━━ Citizen bill · cost, permit, materials ━━━
+(edits message 42)
+🏗 Build Private cottage
+
+Place: row 4, column 1
+Building cost: 800 SUP
+Building permit (to the treasury): 100 SUP
+Materials bought: 54 SUP
+Build time: 2h
+   • Timber: 3 (you have 0, buy 3 for 54 SUP)
+
+Cash total: 954 SUP
+  ───
+  [✅ Confirm and build - 954 SUP] → settlement:private.place:private_cottage:0-3:confirm
+  [🔙 Back] → settlement:private.lots:private_cottage
+
+━━━ My property · a house to live in, tax due ━━━
+(edits message 42)
+🧾 My property in Korendal
+
+🏠 Your home: Private cottage
+
+🏡 Row 4, column 1: Private cottage
+🟩 Row 4, column 3: empty lot
+
+📊 Property tax: 2% of the value 1,245 SUP each period, that is 24 SUP
+  ───
+  [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
+  [🛋 Rest at home] → settlement:home.rest
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:mine
+
+━━━ My property · house under construction, debt, rested ━━━
+(edits message 42)
+🛋 You rested at home and feel better.
+
+🧾 My property in Korendal
+
+🏚 You have no house yet; build one on your lot to live in it.
+
+🏗 Row 4, column 1: Private cottage under construction - 1h 30m left
+
+📊 Property tax: 2% of the value 1,245 SUP each period, that is 24 SUP
+
+⚠️ Tax debt: 48 SUP (2 periods)
+  ───
+  [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
+  [💳 Pay tax (48 SUP)] → settlement:tax.pay
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:mine
+
+━━━ Land terms · the head's levers ━━━
+(edits message 42)
+⚖️ Land and building terms in Korendal
+
+💵 Lot price: 400 SUP (between 100 SUP and 5,000 SUP)
+📜 Building permit: 100 SUP (up to 1,000 SUP)
+📊 Property tax each period: 2% (up to 5%)
+
+All of it goes to the village treasury.
+  ───
+  [💵 Lot 100 SUP] → settlement:terms:lot_price:100   │   [💵 Lot 400 SUP] → settlement:terms:lot_price:400   │   [💵 Lot 800 SUP] → settlement:terms:lot_price:800
+  [📜 Permit 0 SUP] → settlement:terms:permit_fee:0   │   [📜 Permit 100 SUP] → settlement:terms:permit_fee:100   │   [📜 Permit 200 SUP] → settlement:terms:permit_fee:200
+  [📊 Tax 0%] → settlement:terms:tax_bps:0   │   [📊 Tax 2%] → settlement:terms:tax_bps:200   │   [📊 Tax 4%] → settlement:terms:tax_bps:400
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:terms
+
+━━━ Refusal · citizen_lot_taken ━━━
+(edits message 42)
+Someone bought this lot just now. Pick another one.
+  ───
+  [🏡 More land] → settlement:land
+  [🔙 Back] → settlement:overview
+
+━━━ Refusal · citizen_lot_limit ━━━
+(edits message 42)
+You have reached the personal lot limit; build on your lots first.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Refusal · citizen_zoning ━━━
+(edits message 42)
+The share of private lots in this village is full, to keep public space.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Refusal · citizen_not_owner ━━━
+(edits message 42)
+This lot is not yours; you can only build on your own lot.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Refusal · citizen_no_cash ━━━
+(edits message 42)
+You do not have enough money for this.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Refusal · citizen_private_only ━━━
+(edits message 42)
+This is a private building: residents build it on their own lot, not the village head.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Refusal · citizen_lot_private ━━━
+(edits message 42)
+This lot is private and belongs to a resident.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Refusal · citizen_rest_wait ━━━
+(edits message 42)
+You are still rested; you can rest again in 3h.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Refusal · citizen_no_house ━━━
+(edits message 42)
+You need a finished house to rest at home.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Refusal · citizen_terms_range ━━━
+(edits message 42)
+That number is outside the allowed range.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Refusal · citizen_no_debt ━━━
+(edits message 42)
+You have no tax debt.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Refusal · citizen_off ━━━
+(edits message 42)
+Buying land is not open in this village yet.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Refusal · citizen_no_lots ━━━
+(edits message 42)
+You own no lots; buy one first.
+  ───
+  [🏡 Buy land] → settlement:land
+  [🔙 Back] → settlement:overview
 
 ━━━ Village home · a group with no village: the call to found one ━━━
 (edits message 42)

@@ -311,7 +311,7 @@ func TestFoundingFormCommandsFromAClient(t *testing.T) {
 		}{Kind: "invalid"})
 	status, out := f.call(t, "POST", "/api/v1/command", token, map[string]any{
 		"command": "settlement.found.submit",
-		"args": map[string]any{"draft": "d1", "name": "Aria", "currency_code": "ARI", "color_a": "gold", "check": "1"}})
+		"args":    map[string]any{"draft": "d1", "name": "Aria", "currency_code": "ARI", "color_a": "gold", "check": "1"}})
 	if status != http.StatusOK || out["ok"] != false || errCode(out) != "founding_invalid" || out["screen"] != "founding_refusal" {
 		t.Fatalf("refusal: %d %v", status, out)
 	}

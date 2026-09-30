@@ -292,6 +292,9 @@ commands:
   settlement.build: {kind: navigation, icon: "action:build"}
   settlement.build.lots: {kind: navigation, icon: "action:lots"}
   settlement.build.place: {kind: primary, icon: "action:place"}
+  settlement.build.place_many: {kind: primary, icon: "action:place"}
+  settlement.building.view: {kind: navigation, icon: "action:build"}
+  settlement.grid.grow: {kind: primary, icon: "action:lots"}
   settlement.build.progress: {kind: navigation, icon: "action:progress"}
   settlement.build.demolish: {kind: danger, icon: "action:demolish"}
   settlement.build.cancel: {kind: danger, icon: "action:cancel_build"}
@@ -314,3 +317,12 @@ commands:
   settlement.promote: {kind: primary, icon: "action:upgrade"}
   settlement.leave: {kind: danger, icon: "action:leave"}
   settlement.donate: {kind: primary, icon: "action:donate"}
+  settlement.land: {kind: navigation, icon: "action:lots"}
+  settlement.lot.buy: {kind: primary, icon: "action:buy"}
+  settlement.private: {kind: navigation, icon: "action:build"}
+  settlement.private.lots: {kind: navigation, icon: "action:lots"}
+  settlement.private.place: {kind: primary, icon: "action:place"}
+  settlement.mine: {kind: navigation, icon: "action:home"}
+  settlement.home.rest: {kind: primary, icon: "action:home"}
+  settlement.tax.pay: {kind: primary, icon: "action:donate"}
+  settlement.terms: {kind: navigation, icon: "action:build"}
