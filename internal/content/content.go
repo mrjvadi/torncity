@@ -293,6 +293,9 @@ type Pack struct {
 	// section 7, docs/adr/0031-knowledge-and-village-progression.md
 	// section 3.2).
 	SettlementBuildings []SettlementBuildingDef
+	// settlement_tiers.yml: what each step up the tier ladder asks for
+	// (settlementtier.go; docs/adr/0028 section 4.1).
+	SettlementTiers []SettlementTierDef
 
 	// world.yml: world generation content (worldgen.go). LoadWorldGen is
 	// the function a caller actually generating a world uses; these fields
