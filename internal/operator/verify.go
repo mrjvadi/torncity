@@ -159,6 +159,14 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.TopupLedger == t.TopupRows && t.TopupMismatched == 0, fmt.Sprintf("operator top-ups of village treasuries in the ledger match the top-up rows (%d = %d), each the transaction its row names (%d mismatched)", t.TopupLedger, t.TopupRows, t.TopupMismatched))
 	}
 
+	if v.Citizen {
+		c := v.CitizenInvariants
+		out.add(c.LotSaleLedger == c.LotSaleRows && c.LotSaleMismatched == 0, fmt.Sprintf("lot sales in the ledger match the lot rows (%d = %d), each moving its price from the buyer's cash to the village treasury (%d mismatched)", c.LotSaleLedger, c.LotSaleRows, c.LotSaleMismatched))
+		out.add(c.PermitLedger == c.PermitRows && c.ConstructionLedger == c.ConstructionRows && c.MaterialsLedger == c.MaterialsRows && c.BuildingMismatched == 0, fmt.Sprintf("private buildings' permits, costs and bought materials in the ledger match their rows (%d = %d, %d = %d, %d = %d; %d mismatched)", c.PermitLedger, c.PermitRows, c.ConstructionLedger, c.ConstructionRows, c.MaterialsLedger, c.MaterialsRows, c.BuildingMismatched))
+		out.add(c.TaxLedger == c.TaxRows && c.TaxMismatched == 0, fmt.Sprintf("property tax in the ledger matches the paid tax rows (%d = %d), each the transaction its row names (%d mismatched)", c.TaxLedger, c.TaxRows, c.TaxMismatched))
+		out.add(c.CitizenPaidToPlayer == 0, fmt.Sprintf("no citizen-loop reason ever credits a player (%d entries)", c.CitizenPaidToPlayer))
+	}
+
 	if v.Life {
 		l := v.LifeInvariants
 		out.add(l.LodgingLedger == l.LodgingRows && l.UnpaidNights == 0, fmt.Sprintf("lodging fees in the ledger match the nights paid for (%d = %d), each with its own fee (%d without)", l.LodgingLedger, l.LodgingRows, l.UnpaidNights))

@@ -727,6 +727,43 @@ type Settlement struct {
 	DonationMin     int64   // settlement.donation_min
 	DonationMax     int64   // settlement.donation_max
 	DonationPresets []int64 // settlement.donation_presets
+
+	// The citizen loop (docs/adr/0033 sections 4.4 and 4.5, migration 0058): what a
+	// resident pays to buy a lot and to build a private building on it, and the
+	// property tax. Money is minor units. The head's levers (lot price, permit
+	// fee, tax) move inside the Min..Max bounds; the defaults apply until the head
+	// sets one. Which private buildings exist is content (citizen_buildings.yml).
+	// LotPrice is the price of one free lot; LotPriceMin and LotPriceMax
+	// bound the head's lever.
+	CitizenLotPrice    int64 // settlement.citizen_lot_price
+	CitizenLotPriceMin int64 // settlement.citizen_lot_price_min
+	CitizenLotPriceMax int64 // settlement.citizen_lot_price_max
+	// PermitFee is the permit a private building costs, paid to the
+	// treasury; PermitFeeMax bounds the head's lever (the least is zero).
+	CitizenPermitFee    int64 // settlement.citizen_permit_fee
+	CitizenPermitFeeMax int64 // settlement.citizen_permit_fee_max
+	// TaxBPS is the property tax each period, on the assessed value (the
+	// lot's price plus the building's cost), in basis points; TaxBPSMax
+	// bounds the head's lever.
+	CitizenTaxBPS    int // settlement.citizen_tax_bps
+	CitizenTaxBPSMax int // settlement.citizen_tax_bps_max
+	// TaxPeriod is how often the tax falls due, GAME time; the tax is
+	// collected on the village's own periodic tick.
+	CitizenTaxPeriod time.Duration // settlement.citizen_tax_period
+	// MaterialMarkupBPS is what a missing building material costs over its
+	// reference price (items.yml base_price), 10000 = the price itself.
+	CitizenMaterialMarkupBPS int // settlement.citizen_material_markup_bps
+	// MaxLotsPerPlayer bounds how many lots one player may own in a village,
+	// so one wallet cannot buy the village; PrivateShareMaxBPS is the zoning
+	// cap: at most this share of the buildable lots may be private.
+	CitizenMaxLotsPerPlayer   int // settlement.citizen_max_lots_per_player
+	CitizenPrivateShareMaxBPS int // settlement.citizen_private_share_max_bps
+	// HomeRestCooldown is how long, REAL time, before the owner may rest at
+	// home again; HomeRestHealth and HomeRestHappiness are what one rest
+	// gives (the small comfort of living in one's own house).
+	CitizenHomeRestCooldown  time.Duration // settlement.citizen_home_rest_cooldown
+	CitizenHomeRestHealth    int           // settlement.citizen_home_rest_health
+	CitizenHomeRestHappiness int           // settlement.citizen_home_rest_happiness
 }
 
 // Governance is the tuning of the office holder's screens
@@ -1328,6 +1365,12 @@ func Defaults() *Config {
 			DonationMin:           100,
 			DonationMax:           100_000,
 			DonationPresets:       []int64{250, 1000, 5000},
+			CitizenLotPrice:       400, CitizenLotPriceMin: 100, CitizenLotPriceMax: 5000,
+			CitizenPermitFee: 100, CitizenPermitFeeMax: 1000,
+			CitizenTaxBPS: 200, CitizenTaxBPSMax: 500, CitizenTaxPeriod: 24 * time.Hour,
+			CitizenMaterialMarkupBPS: 12000,
+			CitizenMaxLotsPerPlayer:  6, CitizenPrivateShareMaxBPS: 6000,
+			CitizenHomeRestCooldown: 6 * time.Hour, CitizenHomeRestHealth: 10, CitizenHomeRestHappiness: 5,
 		},
 		Governance: Governance{
 			FineStepDivisor:   100,
@@ -1660,6 +1703,13 @@ func (c *Config) Validate() error {
 			return fmt.Errorf("%w: settlement.donation_presets[%d] %d is outside donation_min..donation_max",
 				ErrInvalidValue, i, v)
 		}
+	}
+
+	if z := c.Settlement; z.CitizenLotPriceMin < 1 || z.CitizenLotPrice < z.CitizenLotPriceMin || z.CitizenLotPrice > z.CitizenLotPriceMax ||
+		z.CitizenPermitFee < 0 || z.CitizenPermitFee > z.CitizenPermitFeeMax || z.CitizenTaxBPS < 0 || z.CitizenTaxBPS > z.CitizenTaxBPSMax || z.CitizenTaxBPSMax > 10_000 ||
+		z.CitizenTaxPeriod <= 0 || z.CitizenMaterialMarkupBPS < 10_000 || z.CitizenMaxLotsPerPlayer < 1 ||
+		z.CitizenPrivateShareMaxBPS < 1 || z.CitizenPrivateShareMaxBPS > 10_000 || z.CitizenHomeRestCooldown <= 0 {
+		return fmt.Errorf("%w: settlement.citizen.* is out of order (a default outside its bounds, a period at zero, a markup below the reference price)", ErrInvalidValue)
 	}
 
 	// A basis-point weight above 100% is a typo, not a tuning.

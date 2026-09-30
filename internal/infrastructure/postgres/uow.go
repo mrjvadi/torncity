@@ -192,6 +192,8 @@ func (t *tx) SettlementBuildings() application.SettlementBuildingRepository {
 
 // SettlementTreasury records the village treasury's founding grant and
 // donations, bound to this transaction so each commits with its ledger legs.
+func (t *tx) Citizens() application.CitizenRepository { return &CitizenRepository{q: t.q} }
+
 func (t *tx) SettlementTreasury() application.SettlementTreasuryRepository {
 	return &SettlementTreasuryRepository{q: t.q}
 }

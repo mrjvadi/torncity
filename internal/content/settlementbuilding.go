@@ -78,7 +78,26 @@ type SettlementBuildingDef struct {
 	MinLiteracyShareBPS int `yaml:"min_literacy_share_bps,omitempty" json:"min_literacy_share_bps,omitempty"`
 	// Effects feed ADR 0028 section 8.1's coverage numbers.
 	Effects []EffectDef `yaml:"effects,omitempty" json:"effects,omitempty"`
+	// Owner says who may raise the building: empty or "settlement" for a
+	// civic building the village's head places from the treasury, "citizen"
+	// for a private one a resident builds on their own lot from their own
+	// cash (docs/adr/0033 section 4.5; configs/content/citizen_buildings.yml).
+	Owner string `yaml:"owner,omitempty" json:"owner,omitempty"`
+	// PermitClass is the class of permit a private building needs
+	// (residential, craft, commerce); required for a citizen building.
+	PermitClass string `yaml:"permit_class,omitempty" json:"permit_class,omitempty"`
+	// Home marks a private building its owner lives in.
+	Home bool `yaml:"home,omitempty" json:"home,omitempty"`
 }
+
+// The owners a settlement building may have.
+const (
+	BuildingOwnerSettlement = "settlement"
+	BuildingOwnerCitizen    = "citizen"
+)
+
+// Private reports whether a resident, not the village, raises the building.
+func (d SettlementBuildingDef) Private() bool { return d.Owner == BuildingOwnerCitizen }
 
 // BuildingEffects converts the building's effects.
 func (d SettlementBuildingDef) BuildingEffects() []item.Effect {
@@ -158,6 +177,21 @@ func (p *Pack) validateSettlementBuildings(problems *[]error) {
 		seen[d.Code] = true
 		if d.Name == "" {
 			*problems = append(*problems, fmt.Errorf("%w: %s %q", ErrMissingDisplayName, where, d.Code))
+		}
+		switch d.Owner {
+		case "", BuildingOwnerSettlement:
+			if d.PermitClass != "" || d.Home {
+				bad("%s %q is a civic building and has no permit class or home", where, d.Code)
+			}
+		case BuildingOwnerCitizen:
+			if d.PermitClass == "" {
+				bad("%s %q is a citizen building and needs a permit_class", where, d.Code)
+			}
+			if d.Role != "" || d.RequiresBuildingRole != nil {
+				bad("%s %q is a citizen building and has no role or promotion", where, d.Code)
+			}
+		default:
+			bad("%s %q owner %q is not \"settlement\" or \"citizen\"", where, d.Code, d.Owner)
 		}
 		if d.TerrainMode != "" && d.TerrainMode != "required" {
 			bad("%s %q terrain_mode %q is not \"required\"", where, d.Code, d.TerrainMode)
