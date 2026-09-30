@@ -16,6 +16,11 @@
 --   settlement_donations  a resident's gift from their own cash to their
 --                         village's treasury (settlement.donate).
 --
+-- These tables are journals of an append-only ledger: like the ledger's own
+-- accounts they name their settlement and player without a foreign key, so
+-- the journal outlives a city or player row exactly as the ledger does and
+-- the verifier can always compare the two.
+--
 -- Conventions inherited from 0001 onward: instants are timestamptz in UTC;
 -- no DEFAULT now(); CHECK constraints are named. The ledger transaction id
 -- is not a foreign key (ledger_entries.transaction_id is shared by several
@@ -24,7 +29,7 @@
 BEGIN;
 
 CREATE TABLE settlement_grants (
-    settlement_id         uuid        PRIMARY KEY REFERENCES cities (id),
+    settlement_id         uuid        PRIMARY KEY,
     amount                bigint      NOT NULL,
     ledger_transaction_id uuid        NOT NULL UNIQUE,
     -- 'founding' for a grant made in the founding transaction, 'backfill'
@@ -40,8 +45,8 @@ CREATE TABLE settlement_grants (
 
 CREATE TABLE settlement_donations (
     id                    uuid        PRIMARY KEY,
-    settlement_id         uuid        NOT NULL REFERENCES cities (id),
-    player_id             uuid        NOT NULL REFERENCES players (id),
+    settlement_id         uuid        NOT NULL,
+    player_id             uuid        NOT NULL,
     amount                bigint      NOT NULL,
     ledger_transaction_id uuid        NOT NULL UNIQUE,
     created_at            timestamptz NOT NULL,
@@ -53,7 +58,7 @@ CREATE TABLE settlement_donations (
 -- as many as the operator makes, each with the reason it was made for.
 CREATE TABLE settlement_topups (
     id                    uuid        PRIMARY KEY,
-    settlement_id         uuid        NOT NULL REFERENCES cities (id),
+    settlement_id         uuid        NOT NULL,
     amount                bigint      NOT NULL,
     ledger_transaction_id uuid        NOT NULL UNIQUE,
     granted_by            text        NOT NULL,
