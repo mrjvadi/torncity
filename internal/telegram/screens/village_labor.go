@@ -209,9 +209,14 @@ func laborMarketText(c Context, m LaborMarketLine) string {
 	})
 }
 
+// workHours is a worker-minutes figure as hours with one decimal.
+func workHours(minutes int64) string {
+	return strconv.FormatFloat(float64(minutes)/60, 'f', 1, 64)
+}
+
 // workLeft is a worker-minutes figure as "worker-hours" text.
 func workLeft(c Context, minutes int64) string {
-	return c.T("village.labor.work_left", map[string]any{"hours": strconv.FormatFloat(float64(minutes)/60, 'f', 1, 64)})
+	return c.T("village.labor.work_left", map[string]any{"hours": workHours(minutes)})
 }
 
 func laborJobText(c Context, j LaborJobLine) string {
@@ -292,7 +297,7 @@ func renderLaborSite(c Context, v LaborSiteView) *presenter.Response {
 		progress = c.T("village.labor.site.done", map[string]any{"building": name})
 	} else {
 		progress = c.T("village.labor.site.progress", map[string]any{
-			"percent": v.ProgressBPS / 100, "left": workLeft(c, v.LeftMinutes), "done": workLeft(c, v.DoneMinutes), "total": workLeft(c, v.RequiredMinutes),
+			"percent": v.ProgressBPS / 100, "left": workHours(v.LeftMinutes), "done": workHours(v.DoneMinutes), "total": workHours(v.RequiredMinutes),
 		})
 	}
 	var just string

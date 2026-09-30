@@ -911,7 +911,7 @@ village:
       apprentice: "Apprentice"
       journeyman: "Journeyman"
       master: "Master"
-    work_left: "{hours} worker-hours of work"
+    work_left: "{hours} worker-hours"
     employer:
       village: "the village"
       player: "{name}"
@@ -934,9 +934,9 @@ village:
       site_item: "{building} ({percent}%)"
       hint: "Tap a job to open its site and press Work. Buildings are built only by the work of workers; no timer finishes them by itself."
     site:
-      title: "🏗 Site of {building} in {village}"
+      title: "🏗 {building} - construction in {village}"
       done: "✅ {building} is built."
-      progress: "📊 Progress: {percent}% - {done} of {total} done, {left} to go."
+      progress: "📊 Progress: {percent}% - {done} of {total} worker-hours done, {left} to go."
       no_workers: "😴 Nobody is working on this site right now; a building does not advance without workers."
       workers: |-
         👷 {count} workers on site:

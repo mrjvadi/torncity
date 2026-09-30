@@ -1015,7 +1015,7 @@ village:
       apprentice: "شاگرد"
       journeyman: "کارگر ماهر"
       master: "استادکار"
-    work_left: "{hours} نفر-ساعت کار"
+    work_left: "{hours} نفر-ساعت"
     employer:
       village: "دهیاری"
       player: "{name}"
@@ -1038,9 +1038,9 @@ village:
       site_item: "{building} ({percent}٪)"
       hint: "روی هر آگهی بزنید تا به کارگاه بروید و «کار کن» را بزنید. ساختمان‌ها فقط با کار کارگران ساخته می‌شوند و هیچ زمان‌سنجی خودبه‌خود آن‌ها را تمام نمی‌کند."
     site:
-      title: "🏗 کارگاه «{building}» در روستای «{village}»"
+      title: "🏗 «{building}» - ساخت‌وساز در روستای «{village}»"
       done: "✅ «{building}» ساخته شده است."
-      progress: "📊 پیشرفت: {percent}٪ - {done} از {total} انجام شده، {left} مانده."
+      progress: "📊 پیشرفت: {percent}٪ - {done} از {total} نفر-ساعت انجام شده، {left} نفر-ساعت مانده."
       no_workers: "😴 الان کسی روی این کارگاه کار نمی‌کند؛ ساختمان بدون کارگر جلو نمی‌رود."
       workers: |-
         👷 {count} کارگر مشغول است:

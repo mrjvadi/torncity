@@ -1,0 +1,260 @@
+━━━ Hiring board · three jobs, my shift running ━━━
+(edits message 42)
+📋 Hiring board of Korendal
+
+⏳ You are working at Woodcutter's camp - the shift ends at 15:10 (35m left) - pay 30 SUP
+
+• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the village - 1 working
+• Cottage - 0% built, 4.0 worker-hours to go - 45 SUP a shift from Sara - 0 working
+• Work at Carpentry workshop - 30 SUP a shift from the village - 18 shifts left
+
+⚖️ Labour market: supply and demand are balanced (10 of 12 labourers free) - a day labourer asks 30 SUP a shift.
+
+Tap a job to open its site and press Work. Buildings are built only by the work of workers; no timer finishes them by itself.
+  ───
+  [🏗 Woodcutter's camp (+30 SUP)] → settlement:labor.site:b1
+  [🏗 Cottage (+45 SUP)] → settlement:labor.site:b2
+  [🏗 Carpentry workshop (+30 SUP)] → settlement:labor.site:b3
+  [📊 My work] → settlement:labor.mine   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:labor.board
+
+━━━ Hiring board · empty, a site without a job for the head ━━━
+(edits message 42)
+📋 Hiring board of Korendal
+
+No jobs are posted right now. Every building going up posts one.
+
+🏗 Sites with no job posted: Woodcutter's camp (12%)
+
+📉 Labour market: workers are plentiful (17 of 17 labourers free) - a day labourer asks 22 SUP a shift (minimum 10 SUP).
+
+Tap a job to open its site and press Work. Buildings are built only by the work of workers; no timer finishes them by itself.
+  ───
+  [📋 Post a job for Woodcutter's camp] → settlement:labor.post:b1
+  [📊 My work] → settlement:labor.mine   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:labor.board
+
+━━━ Hiring board · a labour shortage, not a resident ━━━
+(edits message 42)
+📋 Hiring board of Korendal
+
+• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the village - 1 working
+
+🔥 Labour market: a labour shortage! (0 of 5 labourers free) - a day labourer asks 75 SUP a shift. More homes mean more residents and workers.
+
+ℹ️ You do not live in this village, but you can work here by the day while you are in it.
+
+Tap a job to open its site and press Work. Buildings are built only by the work of workers; no timer finishes them by itself.
+  ───
+  [🏗 Woodcutter's camp (+30 SUP)] → settlement:labor.site:b1
+  [📊 My work] → settlement:labor.mine   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:labor.board
+
+━━━ Site · a player may work ━━━
+(edits message 42)
+🏗 Woodcutter's camp - construction in Korendal
+
+📊 Progress: 35% - 0.7 of 2.0 worker-hours done, 1.3 to go.
+
+• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the village - 1 working
+👷 Crew: 2 day labourers are kept on the site.
+
+👷 2 workers on site:
+• Sara - shift until 14:55 (20m left)
+• Day labourer - shift until 15:20 (45m left)
+
+📈 Labour market: workers are getting scarce (2 of 7 labourers free) - a day labourer asks 46 SUP a shift.
+  ───
+  [⚒ Work (+30 SUP)] → settlement:labor.take:j1
+  [📋 Hiring board] → settlement:labor.board   │   [📊 My work] → settlement:labor.mine
+  [🔙 Back] → settlement:labor.board   │   [🔄 Refresh] → settlement:labor.site:b1
+
+━━━ Site · the head, hiring labourers ━━━
+(edits message 42)
+🏗 Woodcutter's camp - construction in Korendal
+
+📊 Progress: 35% - 0.7 of 2.0 worker-hours done, 1.3 to go.
+
+• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the village - 1 working
+👷 Crew: 2 day labourers are kept on the site.
+
+👷 2 workers on site:
+• Sara - shift until 14:55 (20m left)
+• Day labourer - shift until 15:20 (45m left)
+
+👷 Free labourers: 2 - 46 SUP a shift. A day labourer works more slowly than a journeyman.
+
+📈 Labour market: workers are getting scarce (2 of 7 labourers free) - a day labourer asks 46 SUP a shift.
+  ───
+  [👷 Hire 1 labourers] → settlement:labor.hire:j1:1   │   [👷 Hire 2 labourers] → settlement:labor.hire:j1:2   │   [👷 Hire 4 labourers] → settlement:labor.hire:j1:4
+  [💰 Wage 46 SUP] → settlement:labor.wage:j1:100   │   [💰 Wage 57 SUP] → settlement:labor.wage:j1:125   │   [💰 Wage 69 SUP] → settlement:labor.wage:j1:150   │   [💰 Wage 92 SUP] → settlement:labor.wage:j1:200
+  [🚫 Close the job] → settlement:labor.close:j1
+  [📋 Hiring board] → settlement:labor.board   │   [📊 My work] → settlement:labor.mine
+  [🔙 Back] → settlement:labor.board   │   [🔄 Refresh] → settlement:labor.site:b1
+
+━━━ Site · just hired ━━━
+(edits message 42)
+🏗 Woodcutter's camp - construction in Korendal
+
+✅ Workers hired.
+
+📊 Progress: 35% - 0.7 of 2.0 worker-hours done, 1.3 to go.
+
+• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the village - 1 working
+👷 Crew: 2 day labourers are kept on the site.
+
+👷 2 workers on site:
+• Sara - shift until 14:55 (20m left)
+• Day labourer - shift until 15:20 (45m left)
+
+👷 Free labourers: 2 - 46 SUP a shift. A day labourer works more slowly than a journeyman.
+
+📈 Labour market: workers are getting scarce (2 of 7 labourers free) - a day labourer asks 46 SUP a shift.
+  ───
+  [👷 Hire 1 labourers] → settlement:labor.hire:j1:1   │   [👷 Hire 2 labourers] → settlement:labor.hire:j1:2   │   [👷 Hire 4 labourers] → settlement:labor.hire:j1:4
+  [💰 Wage 46 SUP] → settlement:labor.wage:j1:100   │   [💰 Wage 57 SUP] → settlement:labor.wage:j1:125   │   [💰 Wage 69 SUP] → settlement:labor.wage:j1:150   │   [💰 Wage 92 SUP] → settlement:labor.wage:j1:200
+  [🚫 Close the job] → settlement:labor.close:j1
+  [📋 Hiring board] → settlement:labor.board   │   [📊 My work] → settlement:labor.mine
+  [🔙 Back] → settlement:labor.board   │   [🔄 Refresh] → settlement:labor.site:b1
+
+━━━ Site · just took the job ━━━
+(edits message 42)
+🏗 Woodcutter's camp - construction in Korendal
+
+✅ Your shift has started; when it ends the work is added to the building and you are paid.
+
+📊 Progress: 35% - 0.7 of 2.0 worker-hours done, 1.3 to go.
+
+⏳ You are working at Woodcutter's camp - the shift ends at 15:35 (1h left) - pay 30 SUP
+
+• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the village - 1 working
+👷 Crew: 2 day labourers are kept on the site.
+
+👷 2 workers on site:
+• Sara - shift until 14:55 (20m left)
+• Day labourer - shift until 15:20 (45m left)
+
+📈 Labour market: workers are getting scarce (2 of 7 labourers free) - a day labourer asks 46 SUP a shift.
+  ───
+  [📋 Hiring board] → settlement:labor.board   │   [📊 My work] → settlement:labor.mine
+  [🔙 Back] → settlement:labor.board   │   [🔄 Refresh] → settlement:labor.site:b1
+
+━━━ Site · no workers, no job (a stalled build) ━━━
+(edits message 42)
+🏗 Cottage - construction in Korendal
+
+📊 Progress: 10% - 0.4 of 4.0 worker-hours done, 3.6 to go.
+
+📋 There is no job posted for this site.
+
+😴 Nobody is working on this site right now; a building does not advance without workers.
+
+🔥 Labour market: a labour shortage! (0 of 5 labourers free) - a day labourer asks 75 SUP a shift. More homes mean more residents and workers.
+  ───
+  [📋 Post a job for Cottage] → settlement:labor.post:b2
+  [📋 Hiring board] → settlement:labor.board   │   [📊 My work] → settlement:labor.mine
+  [🔙 Back] → settlement:labor.board   │   [🔄 Refresh] → settlement:labor.site:b2
+
+━━━ Site · finished ━━━
+(edits message 42)
+🏗 Woodcutter's camp - construction in Korendal
+
+✅ Woodcutter's camp is built.
+
+⚖️ Labour market: supply and demand are balanced (10 of 12 labourers free) - a day labourer asks 30 SUP a shift.
+  ───
+  [📋 Hiring board] → settlement:labor.board   │   [📊 My work] → settlement:labor.mine
+  [🔙 Back] → settlement:labor.board   │   [🔄 Refresh] → settlement:labor.site:b1
+
+━━━ My work · a journeyman, no shift ━━━
+(edits message 42)
+📊 My work in Korendal
+
+😴 You have no shift now. Pick up a job from the hiring board.
+
+🎖 Level: Journeyman (output 100%) - 9 shifts worked - 310 SUP earned in all
+
+⬆️ 21 more shifts to Master.
+
+⚖️ Labour market: supply and demand are balanced (10 of 12 labourers free) - a day labourer asks 30 SUP a shift.
+  ───
+  [📋 Hiring board] → settlement:labor.board   │   [⚒ Work in the village] → settlement:work
+  [🔙 Back] → settlement:labor.board   │   [🔄 Refresh] → settlement:labor.mine
+
+━━━ My work · a new apprentice, on a shift ━━━
+(edits message 42)
+📊 My work in Korendal
+
+⏳ You are working at Woodcutter's camp - the shift ends at 15:25 (50m left) - pay 27 SUP
+
+🎖 Level: Apprentice (output 70%) - 0 shifts worked - 0 SUP earned in all
+
+⬆️ 6 more shifts to Journeyman.
+
+📉 Labour market: workers are plentiful (17 of 17 labourers free) - a day labourer asks 22 SUP a shift (minimum 10 SUP).
+  ───
+  [📋 Hiring board] → settlement:labor.board   │   [⚒ Work in the village] → settlement:work
+  [🔙 Back] → settlement:labor.board   │   [🔄 Refresh] → settlement:labor.mine
+
+━━━ Refusal · labor_no_job ━━━
+(edits message 42)
+📋 That job is no longer on the hiring board.
+  ───
+  [🔙 Back] → settlement:labor.board
+
+━━━ Refusal · labor_not_here ━━━
+(edits message 42)
+🚶 To work here you must live in this village or be in it.
+  ───
+  [🔙 Back] → settlement:labor.board
+
+━━━ Refusal · labor_fully_staffed ━━━
+(edits message 42)
+👷 Enough workers are already on this site; their shifts in progress will finish the work. Check back when they end.
+  ───
+  [🔙 Back] → settlement:labor.board
+
+━━━ Refusal · labor_budget_spent ━━━
+(edits message 42)
+📋 The employer has set aside no more pay for this job.
+  ───
+  [🔙 Back] → settlement:labor.board
+
+━━━ Refusal · labor_not_employer ━━━
+(edits message 42)
+🔒 Only the employer of this job (the village head, or the building's owner) can do that.
+  ───
+  [🔙 Back] → settlement:labor.board
+
+━━━ Refusal · labor_no_npc ━━━
+(edits message 42)
+👷 No free labourer is left in the village today. More homes mean more residents and more workers.
+  ───
+  [🔙 Back] → settlement:labor.board
+
+━━━ Refusal · labor_wage_too_low ━━━
+(edits message 42)
+💸 That wage is below the village's minimum wage.
+  ───
+  [🔙 Back] → settlement:labor.board
+
+━━━ Refusal · labor_employer_broke ━━━
+(edits message 42)
+🏦 The employer cannot afford the wage of this shift.
+  ───
+  [🔙 Back] → settlement:labor.board
+
+━━━ Refusal · labor_no_site ━━━
+(edits message 42)
+🏗 No such site.
+  ───
+  [🔙 Back] → settlement:labor.board
+
+━━━ Construction progress · by work ━━━
+(edits message 42)
+⏳ Construction queue of Korendal
+
+🏗 Woodcutter's camp - 35% built, 1.3 worker-hours to go (it advances only by workers)
+  ───
+  [🏗 Site of Woodcutter's camp] → settlement:labor.site:b1
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
