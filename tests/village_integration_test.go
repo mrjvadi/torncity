@@ -142,7 +142,8 @@ func TestVillageLifecycle(t *testing.T) {
 	clk := &testClock{now: time.Date(2027, 1, 1, 0, 0, 0, 0, time.UTC)}
 
 	settlements := handlers.NewSettlementsHandler(uow, workIDs{t}, nil, worldCache, source, gametime.Scale(1),
-		wsettle.Params{MinSpawnDistanceKm: 30, ThreatRadiusKm: 150, SearchMaxCells: 2000, SearchMaxAttempts: 50},
+		wsettle.Params{MinSpawnDistanceKm: 30, ThreatRadiusKm: 150, SearchMaxCells: 2000, SearchMaxAttempts: 50,
+			ExcludedBiomes: []string{"polar_ice"}, MaxAbsLatitudeDeg: 70},
 		168*time.Hour, 5, time.Second, clk.Now)
 
 	village := handlers.NewVillageHandler(uow, workIDs{t}, nil, source, worldCache, cities, gametime.Scale(1),

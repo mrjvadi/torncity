@@ -624,6 +624,19 @@ type Settlement struct {
 	// the world is, implausibly, entirely ineligible.
 	SearchMaxAttempts int // settlement.search_max_attempts
 
+	// ExcludedBiomes are biome codes a village may never be placed on: only
+	// truly uninhabitable land (polar_ice). Harsh but livable biomes are
+	// penalised through BiomePenalties instead (section 3.2 step 3).
+	ExcludedBiomes []string // settlement.excluded_biomes
+
+	// MaxAbsLatitudeDeg is the highest |latitude| a spawn may have; the
+	// spawn lattice is squeezed into that band.
+	MaxAbsLatitudeDeg float64 // settlement.max_abs_latitude_deg
+
+	// BiomePenalties are "biome_code=points" entries: the score a spawn
+	// loses for standing on that biome (desert, tundra, ...).
+	BiomePenalties []string // settlement.biome_penalties
+
 	// VillageGridLots is a village's local placement grid, per side, in
 	// lots (ADR 0028 section 4: 5x5). Town and city sizes are a later
 	// phase's own tuning once building placement (W5) ships.
@@ -1231,6 +1244,9 @@ func Defaults() *Config {
 			ThreatRadiusKm:     150,
 			SearchMaxCells:     2000,
 			SearchMaxAttempts:  200,
+			ExcludedBiomes:     []string{"polar_ice"},
+			MaxAbsLatitudeDeg:  70,
+			BiomePenalties:     []string{"desert=4", "tundra=6", "boreal_forest=1"},
 			VillageGridLots:    5,
 
 			TeachPeriod:           24 * time.Hour,
@@ -1527,6 +1543,22 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("%w: %q", ErrUnknownTimezone, c.Player.DefaultTimezone)
 	}
 
+	// A latitude cap outside (0,90] or a malformed biome penalty would
+	// silently misplace or block every founding.
+	if c.Settlement.MaxAbsLatitudeDeg <= 0 || c.Settlement.MaxAbsLatitudeDeg > 90 {
+		return fmt.Errorf("%w: settlement.max_abs_latitude_deg is %v, want 0 < x <= 90",
+			ErrInvalidValue, c.Settlement.MaxAbsLatitudeDeg)
+	}
+	penalties, err := c.Settlement.BiomePenaltyMap()
+	if err != nil {
+		return err
+	}
+	for _, code := range c.Settlement.ExcludedBiomes {
+		if _, both := penalties[code]; both {
+			return fmt.Errorf("%w: settlement biome %q is both excluded and penalised", ErrInvalidValue, code)
+		}
+	}
+
 	// A basis-point weight above 100% is a typo, not a tuning.
 	for name, v := range map[string]int{
 		"crime.investigation_base_bps":          c.Crime.InvestigationBaseBPS,
@@ -1546,6 +1578,29 @@ func (c *Config) Validate() error {
 	}
 
 	return nil
+}
+
+// BiomePenaltyMap parses settlement.biome_penalties ("code=points" entries)
+// into a map by biome code. A malformed entry, a negative or non-finite
+// penalty, or a repeated code is an error naming the entry.
+func (s Settlement) BiomePenaltyMap() (map[string]float64, error) {
+	out := make(map[string]float64, len(s.BiomePenalties))
+	for i, entry := range s.BiomePenalties {
+		code, val, ok := strings.Cut(entry, "=")
+		code = strings.TrimSpace(code)
+		if !ok || code == "" {
+			return nil, fmt.Errorf("%w: settlement.biome_penalties[%d] %q is not code=points", ErrInvalidValue, i, entry)
+		}
+		pts, err := strconv.ParseFloat(strings.TrimSpace(val), 64)
+		if err != nil || pts < 0 || pts > 1e6 {
+			return nil, fmt.Errorf("%w: settlement.biome_penalties[%d] %q has no valid non-negative number", ErrInvalidValue, i, entry)
+		}
+		if _, dup := out[code]; dup {
+			return nil, fmt.Errorf("%w: settlement.biome_penalties repeats %q", ErrInvalidValue, code)
+		}
+		out[code] = pts
+	}
+	return out, nil
 }
 
 // parseDuration reads a duration, naming the field and the text that failed.

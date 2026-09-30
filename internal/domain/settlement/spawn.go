@@ -44,6 +44,44 @@ type Params struct {
 	// SearchMaxAttempts bounds how many lattice points, in total, one
 	// founding tries before giving up.
 	SearchMaxAttempts int
+	// ExcludedBiomes are the biome codes a village can never stand on (ADR
+	// 0028 section 3.2 step 2's habitability rule): only truly uninhabitable
+	// land belongs here (polar ice). Harsh but livable biomes are not
+	// banned; they cost score through BiomePenalties.
+	ExcludedBiomes []string
+	// MaxAbsLatitudeDeg caps |latitude| of any spawn (0 = no cap). The
+	// lattice itself is squeezed into this band (LatticePointBand), so no
+	// attempt is wasted on the frozen caps.
+	MaxAbsLatitudeDeg float64
+	// BiomePenalties is the score subtracted for standing on a harsh but
+	// livable biome (desert, tundra, ...), by biome code: the "terrain
+	// penalty" of section 3.2 step 3 in the same units as the other terms.
+	BiomePenalties map[string]float64
+}
+
+// biomeRules is Params' biome lists resolved against one world's biome
+// table, once per FindSpawn, so the per-cell checks are array lookups.
+type biomeRules struct {
+	excluded []bool
+	penalty  []float64
+	maxLat   float64
+}
+
+func newBiomeRules(w *worldgen.World, p Params) biomeRules {
+	r := biomeRules{
+		excluded: make([]bool, len(w.Content.Biomes)),
+		penalty:  make([]float64, len(w.Content.Biomes)),
+		maxLat:   p.MaxAbsLatitudeDeg,
+	}
+	for i, b := range w.Content.Biomes {
+		for _, code := range p.ExcludedBiomes {
+			if code == b.Code {
+				r.excluded[i] = true
+			}
+		}
+		r.penalty[i] = p.BiomePenalties[b.Code]
+	}
+	return r
 }
 
 // ExistingSettlement is one already-founded settlement, as FindSpawn needs
@@ -105,15 +143,30 @@ const (
 // differently-purposed, fixed-count mesh, here driven by R2 instead of a
 // linear index so a SHORT prefix is already well spread.
 func LatticePoint(n int64) (latDeg, lonDeg float64) {
+	return LatticePointBand(n, 90)
+}
+
+// LatticePointBand is LatticePoint squeezed into the latitude band
+// [-maxAbsLatDeg, +maxAbsLatDeg] (a value outside (0,90) means the whole
+// sphere): z is drawn over [-sin(band), sin(band)] instead of [-1,1], which
+// keeps the near-uniform-by-area property inside the band. No lattice point
+// ever lands on a polar cap the spawn rules exclude, so early villages are
+// spread over the habitable latitudes instead of wasting attempts on ice.
+// The Nth point is still a pure function of N and the band.
+func LatticePointBand(n int64, maxAbsLatDeg float64) (latDeg, lonDeg float64) {
 	if n < 1 {
 		n = 1
+	}
+	zMax := 1.0
+	if maxAbsLatDeg > 0 && maxAbsLatDeg < 90 {
+		zMax = math.Sin(maxAbsLatDeg * math.Pi / 180)
 	}
 	i := float64(n)
 	// The 0.5 offset keeps N=1 off the exact pole/prime-meridian corner,
 	// which is not wrong, just a visually uninteresting first point.
 	u := frac(0.5 + i*r2Alpha1)
 	v := frac(0.5 + i*r2Alpha2)
-	z := 2*v - 1
+	z := (2*v - 1) * zMax
 	theta := 2 * math.Pi * u
 
 	latDeg = math.Asin(clamp(z, -1, 1)) * 180 / math.Pi
@@ -153,13 +206,14 @@ func FindSpawn(w *worldgen.World, existing []ExistingSettlement, startN int64, p
 		startN = 1
 	}
 	deposits := depositsByCell(w)
+	rules := newBiomeRules(w, p)
 
 	for attempt := 0; attempt < p.SearchMaxAttempts; attempt++ {
 		n := startN + int64(attempt)
-		lat, lon := LatticePoint(n)
+		lat, lon := LatticePointBand(n, p.MaxAbsLatitudeDeg)
 		start := w.NearestCell(lat, lon)
 
-		if c, ok := searchAround(w, start, existing, deposits, p); ok {
+		if c, ok := searchAround(w, start, existing, deposits, rules, p); ok {
 			c.LatticeIndex = n
 			return c, nil
 		}
@@ -183,7 +237,7 @@ func depositsByCell(w *worldgen.World) map[int32][]worldgen.Deposit {
 // cells visited, scoring every eligible one it finds (ADR 0028 section 3.2
 // steps 2-3) and returning the best.
 func searchAround(w *worldgen.World, start int32, existing []ExistingSettlement,
-	deposits map[int32][]worldgen.Deposit, p Params,
+	deposits map[int32][]worldgen.Deposit, rules biomeRules, p Params,
 ) (Candidate, bool) {
 	visited := map[int32]bool{start: true}
 	queue := []int32{start}
@@ -197,8 +251,8 @@ func searchAround(w *worldgen.World, start int32, existing []ExistingSettlement,
 		queue = queue[1:]
 		visitedCount++
 
-		if eligible(w, id, existing, p.MinSpawnDistanceKm) {
-			score := scoreCell(w, id, existing, deposits, p.ThreatRadiusKm)
+		if eligible(w, id, existing, rules, p.MinSpawnDistanceKm) {
+			score := scoreCell(w, id, existing, deposits, p.ThreatRadiusKm) - rules.penalty[w.Cells[id].BiomeIdx]
 			cell := w.Cells[id]
 			if !found || score > best.Score || (score == best.Score && id < best.CellID) {
 				best = Candidate{CellID: id, LatDeg: cell.Point.LatDeg, LonDeg: cell.Point.LonDeg, Score: score}
@@ -216,12 +270,20 @@ func searchAround(w *worldgen.World, start int32, existing []ExistingSettlement,
 	return best, found
 }
 
-// eligible reports whether a cell is habitable (not ocean, not a lake — the
-// world generator's own flag) and at least minKm from every existing
-// settlement's cell.
-func eligible(w *worldgen.World, id int32, existing []ExistingSettlement, minKm float64) bool {
+// eligible reports whether a cell is habitable and at least minKm from every
+// existing settlement's cell. Habitable means: not ocean, not a lake (the
+// world generator's own flag), not an excluded biome (polar ice), and within
+// the latitude cap. Harsh-but-livable biomes stay eligible and are penalised
+// in the score instead.
+func eligible(w *worldgen.World, id int32, existing []ExistingSettlement, rules biomeRules, minKm float64) bool {
 	c := w.Cells[id]
 	if c.IsOcean || c.IsLake {
+		return false
+	}
+	if rules.excluded[c.BiomeIdx] {
+		return false
+	}
+	if rules.maxLat > 0 && math.Abs(c.Point.LatDeg) > rules.maxLat {
 		return false
 	}
 	for _, e := range existing {

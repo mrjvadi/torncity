@@ -81,7 +81,8 @@ func TestSettlementFounding(t *testing.T) {
 	snap := loadTestContent(t)
 	h := handlers.NewSettlementsHandler(uow, workIDs{t}, nil, worldCache,
 		staticContentSource{snap: snap}, gametime.Scale(1),
-		wsettle.Params{MinSpawnDistanceKm: 30, ThreatRadiusKm: 150, SearchMaxCells: 2000, SearchMaxAttempts: 50},
+		wsettle.Params{MinSpawnDistanceKm: 30, ThreatRadiusKm: 150, SearchMaxCells: 2000, SearchMaxAttempts: 50,
+			ExcludedBiomes: []string{"polar_ice"}, MaxAbsLatitudeDeg: 70},
 		168*time.Hour, 5, time.Hour, func() time.Time { return time.Now().UTC() })
 
 	meta := validMeta(t)

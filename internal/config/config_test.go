@@ -531,6 +531,9 @@ settlement:
   threat_radius_km: 151
   search_max_cells: 2001
   search_max_attempts: 201
+  excluded_biomes: [polar_ice, glacier]
+  max_abs_latitude_deg: 66.5
+  biome_penalties: ["desert=5", "tundra=7"]
   village_grid_lots: 6
   teach_period: 25h
   teach_rate_bps: 1501
@@ -829,6 +832,9 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_THREAT_RADIUS_KM":         "152",
 	"TORN_SETTLEMENT_SEARCH_MAX_CELLS":         "2002",
 	"TORN_SETTLEMENT_SEARCH_MAX_ATTEMPTS":      "202",
+	"TORN_SETTLEMENT_EXCLUDED_BIOMES":          "polar_ice, ice_sheet",
+	"TORN_SETTLEMENT_MAX_ABS_LATITUDE_DEG":     "64.5",
+	"TORN_SETTLEMENT_BIOME_PENALTIES":          "desert=6, tundra=8",
 	"TORN_SETTLEMENT_VILLAGE_GRID_LOTS":        "7",
 	"TORN_SETTLEMENT_TEACH_PERIOD":             "26h",
 	"TORN_SETTLEMENT_TEACH_RATE_BPS":           "1502",
@@ -1024,6 +1030,31 @@ func TestValidate(t *testing.T) {
 		break_ func(*Config)
 		want   error
 	}{
+		{
+			name:   "a latitude cap of zero",
+			break_: func(c *Config) { c.Settlement.MaxAbsLatitudeDeg = 0 },
+			want:   ErrInvalidValue,
+		},
+		{
+			name:   "a latitude cap past the pole",
+			break_: func(c *Config) { c.Settlement.MaxAbsLatitudeDeg = 91 },
+			want:   ErrInvalidValue,
+		},
+		{
+			name:   "a biome penalty without a number",
+			break_: func(c *Config) { c.Settlement.BiomePenalties = []string{"desert"} },
+			want:   ErrInvalidValue,
+		},
+		{
+			name:   "a negative biome penalty",
+			break_: func(c *Config) { c.Settlement.BiomePenalties = []string{"desert=-1"} },
+			want:   ErrInvalidValue,
+		},
+		{
+			name:   "a biome both excluded and penalised",
+			break_: func(c *Config) { c.Settlement.BiomePenalties = []string{"polar_ice=3"} },
+			want:   ErrInvalidValue,
+		},
 		{
 			name:   "a zero duration is not 'no limit'",
 			break_: func(c *Config) { c.Gateway.PollTimeout = 0 },

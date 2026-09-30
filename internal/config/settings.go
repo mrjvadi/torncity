@@ -261,7 +261,10 @@ type settlementSettings struct {
 	ThreatRadiusKm     *float64 `yaml:"threat_radius_km"`
 	SearchMaxCells     *int     `yaml:"search_max_cells"`
 	SearchMaxAttempts  *int     `yaml:"search_max_attempts"`
-	VillageGridLots    *int     `yaml:"village_grid_lots"`
+	ExcludedBiomes     []string `yaml:"excluded_biomes"`
+	MaxAbsLatitudeDeg  *float64 `yaml:"max_abs_latitude_deg"`
+	BiomePenalties     []string `yaml:"biome_penalties"`
+	VillageGridLots   *int     `yaml:"village_grid_lots"`
 
 	TeachPeriod           *string `yaml:"teach_period"`
 	TeachRateBPS          *int64  `yaml:"teach_rate_bps"`
@@ -985,6 +988,15 @@ var coreSettings = []setting{
 	limitSetting("settlement", "search_max_attempts",
 		func(c *Config) *int { return &c.Settlement.SearchMaxAttempts },
 		func(f *fileConfig) *int { return f.Settlement.SearchMaxAttempts }),
+	stringListSetting("settlement", "excluded_biomes",
+		func(c *Config) *[]string { return &c.Settlement.ExcludedBiomes },
+		func(f *fileConfig) []string { return f.Settlement.ExcludedBiomes }),
+	floatSetting("settlement", "max_abs_latitude_deg",
+		func(c *Config) *float64 { return &c.Settlement.MaxAbsLatitudeDeg },
+		func(f *fileConfig) *float64 { return f.Settlement.MaxAbsLatitudeDeg }),
+	stringListSetting("settlement", "biome_penalties",
+		func(c *Config) *[]string { return &c.Settlement.BiomePenalties },
+		func(f *fileConfig) []string { return f.Settlement.BiomePenalties }),
 	limitSetting("settlement", "village_grid_lots",
 		func(c *Config) *int { return &c.Settlement.VillageGridLots },
 		func(f *fileConfig) *int { return f.Settlement.VillageGridLots }),

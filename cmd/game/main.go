@@ -301,6 +301,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// holds: reloading the text then becomes a pointer swap inside the
 	// store, with no change here and no change in the handler. Do not
 	// "simplify" this to *i18n.Catalog.
+	biomePenalties, err := cfg.Settlement.BiomePenaltyMap()
+	if err != nil {
+		return err
+	}
 	h := phaseHandlers{
 		profile: handlers.NewProfileHandler(
 			uow,
@@ -385,6 +389,9 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				ThreatRadiusKm:     cfg.Settlement.ThreatRadiusKm,
 				SearchMaxCells:     cfg.Settlement.SearchMaxCells,
 				SearchMaxAttempts:  cfg.Settlement.SearchMaxAttempts,
+				ExcludedBiomes:     cfg.Settlement.ExcludedBiomes,
+				MaxAbsLatitudeDeg:  cfg.Settlement.MaxAbsLatitudeDeg,
+				BiomePenalties:     biomePenalties,
 			},
 			cfg.Settlement.ProtectionWindow,
 			cfg.Settlement.VillageGridLots,
