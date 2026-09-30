@@ -596,6 +596,24 @@ needs a group.
 | `settlement.knowledge.research` / `.buy` | `code` | starts a research / buys the item from Support |
 | `settlement.join` | `settlement` (the village id), `confirm`? | makes the village the player's **home** (a player has one). Without `confirm`: `village_residence_confirm`, nothing changes. With `confirm: "confirm"`: moves the home and answers `village_residence_done`; the realtime token then carries `settlement:<id>` (fetch a new one) and the roster gains the player |
 | `settlement.leave` | `settlement`? , `confirm`? | sends the player home to the neutral city, same two steps |
+| `settlement.promotion.view` | — | the way forward: the goals of the **next** tier only (`village_promotion`) |
+| `settlement.promote` | `confirm`? | the head takes the settlement one tier up. Unmet goals answer `village_promotion` (nothing changes); met, without `confirm`: `village_promote_confirm`; with `confirm: "confirm"`: `village_promoted` |
+
+**Tier promotion (contract 1.4, additive).** A settlement grows village → town →
+city by development, not by land. `settlement.overview` carries `promotion`
+(absent at the top of the ladder): `village`, `from`, `to`, `met`, `can_promote`
+(the viewer holds the head office), `office` (the head office after the step)
+and `criteria`, each `{kind, role?, current, required, met}`. `kind` is
+`residents` (people), `literacy` (basis points), `buildings` (finished, roads
+not counted), `role` (`role` names the service, `current`/`required` are the
+building tier standing/needed), `knowledge` (things the village researched or
+bought) or `treasury` (minor units). A village is only ever shown the step to
+the town; the city step appears once it is a town. When `met` and
+`can_promote`, `settlement.promote` is the button. Promotion is free,
+instant and permanent; the sitting head succeeds into the new head office
+(`village_head` → `town_head` → `mayor`), and the settlement's `tier` in
+bootstrap changes. Fetch a new bootstrap/layout after the realtime
+`promoted` publication.
 
 `settlement.overview` carries `resident` (does the viewer live here) and
 `settlement_id`. The village founder is a resident from the moment of founding;
@@ -872,6 +890,7 @@ pictures:
 | `knowledge_bought` | `code` | the village bought an item from Support |
 | `literacy_changed` | `literacy_share_bps` | a teaching step finished and literacy moved |
 | `head_changed` | `office`, `vacated`, `layout_stale`, `player_id`?, `player_name`? | the head office was filled or vacated (appointment, dismissal, election); `layout_stale` says who may place changed, so fetch the layout |
+| `promoted` | `from`, `tier`, `office`, `layout_stale`, `head_player_id`? | the settlement grew into the next tier; its grid, build cap and head office changed, so fetch the layout (and the bootstrap for the new `tier`) |
 | `member_joined` | `player_id`, `player_name`?, `via` (`travel` \| `residence`) | someone arrived or moved in |
 | `member_left` | `player_id`, `player_name`?, `via` | someone left or moved out |
 
