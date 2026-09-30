@@ -64,13 +64,38 @@ func newLaborEnv(t *testing.T) *laborEnv {
 	t.Cleanup(func() {
 		c, cancel := context.WithTimeout(context.Background(), testTimeout)
 		defer cancel()
+		// Everyone whose money the shifts moved: the workers and the citizen employers.
+		var people []string
+		rows, err := pool.Raw().Query(c, `
+			SELECT player_id::text FROM settlement_shifts WHERE settlement_id = $1::uuid AND player_id IS NOT NULL
+			UNION SELECT payer_id::text FROM settlement_shifts WHERE settlement_id = $1::uuid AND payer_kind = 'player' AND payer_id IS NOT NULL
+			UNION SELECT employer_id::text FROM labor_jobs WHERE settlement_id = $1::uuid AND employer_kind = 'player'`, cityID)
+		if err == nil {
+			for rows.Next() {
+				var id string
+				if rows.Scan(&id) == nil {
+					people = append(people, id)
+				}
+			}
+			rows.Close()
+		}
 		for _, stmt := range []string{
 			`DELETE FROM game_actions WHERE reference_type = 'settlement_shift' AND reference_id IN (SELECT id FROM settlement_shifts WHERE settlement_id = $1::uuid)`,
 			`DELETE FROM game_actions WHERE reference_type = 'settlement_building' AND reference_id IN (SELECT id FROM settlement_buildings WHERE settlement_id = $1::uuid)`,
+			// The shifts and jobs have no foreign key to the village or the players,
+			// and the ledger side of their wages is purged with the players and the
+			// treasury below: leaving the rows would make every later test's verify
+			// see wages nobody paid.
+			`DELETE FROM labor_workers WHERE player_id IN (SELECT player_id FROM settlement_shifts WHERE settlement_id = $1::uuid AND player_id IS NOT NULL)`,
+			`DELETE FROM settlement_shifts WHERE settlement_id = $1::uuid`,
+			`DELETE FROM labor_jobs WHERE settlement_id = $1::uuid`,
 		} {
 			if _, err := pool.Raw().Exec(c, stmt, cityID); err != nil {
 				t.Errorf("cleanup %q: %v", stmt, err)
 			}
+		}
+		for _, id := range append(people, cityID) {
+			purgeLedgerFor(t, pool, id)
 		}
 	})
 	seedTreasury(t, pool, cityID, 60_000)
@@ -353,11 +378,11 @@ func TestLaborConstructionOnlyThroughShifts(t *testing.T) {
 	if got := l.scalar(`SELECT count(*) FROM settlement_shifts WHERE building_id = $1::uuid AND kind = 'production' AND job_id IS NOT NULL AND status = 'working'`, camp); got != 1 {
 		t.Fatalf("the production shift was not started through the job: %d", got)
 	}
-	ps := l.workingShifts(camp)
-	l.clock.Advance(time.Hour + time.Minute)
-	l.end(ps[0])
-	if got := stockOfItem(t, l.pool, l.cityID, "timber"); got != 4 {
-		t.Errorf("the production shift made %d timber, want 4", got)
+	// (It is left running: its goods would enter the village stock and the item
+	// journal, which the shared test database keeps; the workplace shift's own
+	// end is covered by TestVillageEconomyLoop.)
+	if got := l.scalar(`SELECT wage FROM settlement_shifts WHERE building_id = $1::uuid AND kind = 'production' AND job_id IS NOT NULL AND status = 'working'`, camp); got != prodSite.Job.Wage {
+		t.Fatalf("the production shift's wage is %d, want the job's %d", got, prodSite.Job.Wage)
 	}
 
 	// 5. The ledger, the item journal and the rows agree.
