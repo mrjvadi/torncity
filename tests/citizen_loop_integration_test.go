@@ -242,7 +242,7 @@ func TestCitizenLoop(t *testing.T) {
 		cityID, resident.ID).Scan(&buildingID); err != nil {
 		t.Fatalf("the private building row: %v", err)
 	}
-	if n := countRows(`SELECT count(*) FROM settlement_buildings WHERE id = $1::uuid AND status = 'building' AND type_code = 'cottage'`, buildingID); n != 1 {
+	if n := countRows(`SELECT count(*) FROM settlement_buildings WHERE id = $1::uuid AND status = 'building' AND type_code = 'private_cottage'`, buildingID); n != 1 {
 		t.Fatal("the building did not start construction")
 	}
 	// Again on the same lot: occupied.

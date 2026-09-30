@@ -93,6 +93,12 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 			}
 			head = false
 		}
+		// A resident's building is managed by its owner, never by the head.
+		if pb, perr := tx.Citizens().PrivateBuilding(ctx, b.ID); perr == nil {
+			head = pb.OwnerID == p.ID
+		} else if !stderrors.Is(perr, application.ErrPrivateBuildingNotFound) {
+			return perr
+		}
 
 		d, known := snap.SettlementBuildingDef(b.TypeCode)
 		if !known {
