@@ -45,7 +45,7 @@ CREATE INDEX settlement_material_purchases_settlement_idx
 CREATE TABLE settlement_shifts (
     id                    uuid        PRIMARY KEY,
     settlement_id         uuid        NOT NULL,
-    building_id           uuid        NOT NULL REFERENCES settlement_buildings (id),
+    building_id           uuid        NOT NULL,
     player_id             uuid        NOT NULL,
     status                text        NOT NULL,
     wage                  bigint      NOT NULL,

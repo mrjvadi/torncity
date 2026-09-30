@@ -591,6 +591,9 @@ needs a group.
 | `settlement.build.cancel` | `id` | calls off a building **under construction**; the spend is forfeited, the lot is free again |
 | `settlement.build.demolish` | `id` | removes a **finished** building; part of its cost returns to the treasury |
 | `settlement.build.progress` | — | what is going up |
+| `settlement.materials` | — | `village_materials`: the village stock (`stock`, `used`, `capacity`) and Support's market (`market`: item, unit price); `can_buy` says whether the viewer may spend the treasury |
+| `settlement.materials.buy` | `item`, `qty`, `confirm`? | the head buys a material from Support's market with SUP from the treasury. Without `confirm`: `village_materials_buy_confirm` (unit price, total), nothing changes. With `confirm: "confirm"`: pays, puts the goods in the stock and answers `village_materials` with `bought` |
+| `settlement.work` | `id`? | without `id`: `village_work`, the workplaces (`places`: `id`, what one shift `produces` and `consumes`, `wage`, `shift`, `workers`, `busy`, `ready`) and the viewer's own shift (`mine`). With `id` (a workplace's building id): a resident starts a timed shift there and the answer is `village_work_started` |
 | `settlement.overview` | — | the village status |
 | `settlement.knowledge` | — | the knowledge list |
 | `settlement.knowledge.research` / `.buy` | `code` | starts a research / buys the item from Support |
@@ -636,6 +639,36 @@ sentence Telegram shows, in the player's language):
 | `village_residence_cooldown` | the home moved too recently (the message names the wait) |
 | `village_holds_office` | the head cannot leave the village |
 | `village_no_home` | the city to return to is not configured |
+| `village_storage_full` | (additive) the village stock has no room; a granary adds room |
+| `village_already_working` / `village_workplace_full` / `village_not_workplace` | (additive) shift refusals: the resident already works, every place is taken, the building cannot be worked in |
+
+**The prerequisite path (additive).** A `village_materials` or
+`village_prerequisite` refusal of a build, a research or a shift also carries
+what is missing and where it comes from, in `view`:
+
+```json
+{"kind": "materials", "back": "settlement:build", "action": "build",
+ "subject": {"code": "housing_block", "name": "بلوک مسکونی"},
+ "needs": [{"kind": "material", "item": {"code": "timber", "name": "Timber"},
+            "have": 2, "need": 10, "price": 18,
+            "makers": [{"building": {"code": "woodcutter_camp", "name": "…"}, "built": false}]}]}
+```
+
+`needs[].kind` is `material` (`have`, `need`, the `makers` that produce it —
+standing ones first — and Support's unit `price`, absent when the village
+cannot buy it), `knowledge` (`item`, or `options`: the items that provide a
+capability) or `building` (`options`: the buildings of the role a promotion
+needs). Only what the village is already offered is named. The `actions` of the
+refusal carry the buttons to the sources (`settlement.build.lots`,
+`settlement.work`, `settlement.materials.buy`, `settlement.knowledge`).
+
+**What is listed (additive).** The build menu, `settlement.build.lots` and
+`settlement.build.place` follow the settlement's tier: a village lists only
+tier 1 buildings whose knowledge it holds (a bank, port or airport is a
+city's, barracks and police posts a town's) and refuses the others with
+`village_not_available`. A building still lacking a standing building of a role
+is listed as locked (`missing_buildings`); one whose materials the stock lacks
+carries `short`.
 
 A client learns the outcome of a placement by re-reading the layout (its
 `version` moves) — or, with realtime, from the settlement channel's

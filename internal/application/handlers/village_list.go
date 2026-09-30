@@ -88,6 +88,9 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 					line.Missing = missingNamed(snap, st.Missing(t, tree))
 				}
 			}
+			if line.State == screens.KnowledgeLocked && len(line.Missing) > 0 {
+				continue // one step away only (ADR 0033 section 5): what needs unowned knowledge is not listed
+			}
 			view.Lines = append(view.Lines, line)
 		}
 		_ = cell
@@ -131,32 +134,43 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 			return err
 		}
 
+		buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
+		if err != nil {
+			return err
+		}
+		stock, err := h.stockOf(ctx, tx, snap, s.CityID, buildings)
+		if err != nil {
+			return err
+		}
+		pc := pathContext{snap: snap, tier: s.Tier, owned: st.Owned, caps: capabilities, standing: standingCodes(buildings), stock: stock.Units, markup: h.materialMarkupBPS}
+
 		view = screens.BuildMenuView{Name: s.Name, Treasury: treasury, RunningBuilds: running,
 			ConcurrentCap: h.concurrentBuildCap[s.Tier]}
 		for _, code := range sortedBuildingCodes(snap) {
 			d, _ := snap.SettlementBuildingDef(code)
 			def := d.Def()
-			line := screens.BuildLine{Building: named(d.Code, d.Name), Role: d.Role, CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime)}
+			// Progressive disclosure (ADR 0033 section 5): a building of a bigger
+			// settlement, or one whose knowledge the village does not hold, is not
+			// listed at all; what is listed is what the village can start or is one
+			// step from.
+			if !pc.listed(d) {
+				continue
+			}
+			line := screens.BuildLine{Building: named(d.Code, d.Name), Role: d.Role, CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime),
+				Materials: materialLinesOf(snap, def.CostMaterials)}
 			ok := true
-			for _, k := range def.RequiresKnowledge {
-				if !st.Owned.Has(k) {
-					ok = false
-					line.Missing = append(line.Missing, named(k, k))
-				}
-			}
-			for _, cp := range def.RequiresKnowledgeCapability {
-				if !capabilities.Has(cp) {
-					ok = false
-				}
-			}
 			if def.RequiresBuildingRole != nil && built[*def.RequiresBuildingRole] < 1 {
 				ok = false
+				line.MissingBuildings = pc.buildingsOfRole(*def.RequiresBuildingRole)
 			}
 			if def.MinLiteracyShareBPS > 0 && st.LiteracyShareBPS < def.MinLiteracyShareBPS {
 				ok = false
 			}
 			if ok {
 				line.State = screens.BuildAvailable
+				for _, n := range pc.materialNeeds(def.CostMaterials) {
+					line.Short = append(line.Short, screens.MaterialLine{Component: n.Item, Quantity: n.Need - n.Have})
+				}
 			} else {
 				line.State = screens.BuildLocked
 			}

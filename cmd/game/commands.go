@@ -339,6 +339,30 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.Place(ctx, env.Metadata, req)
 		},
+		"settlement.materials": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.Materials(ctx, env.Metadata)
+		},
+		"settlement.materials.buy": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageMaterialRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.MaterialsBuy(ctx, env.Metadata, req)
+		},
+		"settlement.work": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageWorkRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Work(ctx, env.Metadata, req)
+		},
+		"settlement.worked": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.CrimeScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Worked(ctx, env.Metadata, req)
+		},
 		"settlement.build.progress": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.Progress(ctx, env.Metadata)
 		},
