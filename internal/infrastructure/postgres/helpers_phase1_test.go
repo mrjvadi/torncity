@@ -197,7 +197,7 @@ func TestListingsReportARowError(t *testing.T) {
 // statement's must agree.
 func TestCityListScansTheStatementsColumns(t *testing.T) {
 	q := &fakeQuerier{rows: &fakeRows{vals: [][]any{
-		{testCityID, "TC", "Test City", "00000000-0000-4000-8000-0000000000aa", int64(1000), 42},
+		{testCityID, "TC", "Test City", "00000000-0000-4000-8000-0000000000aa", int64(1000), 42, "city"},
 	}}}
 
 	got, err := (&CityRepository{q: q}).List(context.Background())
@@ -209,7 +209,7 @@ func TestCityListScansTheStatementsColumns(t *testing.T) {
 	}
 
 	want := application.City{ID: testCityID, Code: "TC", Name: "Test City",
-		JurisdictionID: "00000000-0000-4000-8000-0000000000aa", CostOfLiving: 1000, Population: 42}
+		JurisdictionID: "00000000-0000-4000-8000-0000000000aa", CostOfLiving: 1000, Population: 42, Tier: "city"}
 	if got[0] != want {
 		t.Errorf("List scanned %+v, want %+v", got[0], want)
 	}
