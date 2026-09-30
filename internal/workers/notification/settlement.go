@@ -74,20 +74,23 @@ type SettlementEvents func(ctx context.Context, deps Deps, env *envelope.Envelop
 
 // The settlement channel's publication kinds.
 const (
-	SettlementBuildStarted   = "build_started"
-	SettlementLotBought      = "lot_bought"
-	SettlementBuildFinished  = "build_finished"
-	SettlementBuildCancelled = "build_cancelled"
-	SettlementBuildSalvaged  = "build_salvaged"
-	SettlementRelocated      = "relocated"
-	SettlementResearchStart  = "research_started"
-	SettlementResearchDone   = "research_finished"
-	SettlementKnowledgeBuy   = "knowledge_bought"
-	SettlementLiteracy       = "literacy_changed"
-	SettlementHeadChanged    = "head_changed"
-	SettlementMemberJoined   = "member_joined"
-	SettlementMemberLeft     = "member_left"
-	settlementEventKeySuffix = ":settlement"
+	SettlementBuildStarted      = "build_started"
+	SettlementLotBought         = "lot_bought"
+	SettlementBuildBatchStarted = "build_batch_started"
+	SettlementGridGrown         = "grid_grown"
+	SettlementBuildFinished     = "build_finished"
+	SettlementBuildCancelled    = "build_cancelled"
+	SettlementBuildSalvaged     = "build_salvaged"
+	SettlementRelocated         = "relocated"
+	SettlementResearchStart     = "research_started"
+	SettlementResearchDone      = "research_finished"
+	SettlementKnowledgeBuy      = "knowledge_bought"
+	SettlementLiteracy          = "literacy_changed"
+	SettlementHeadChanged       = "head_changed"
+	SettlementPromoted          = "promoted"
+	SettlementMemberJoined      = "member_joined"
+	SettlementMemberLeft        = "member_left"
+	settlementEventKeySuffix    = ":settlement"
 )
 
 // settlementChannel spells the channel as internal/infrastructure/centrifugo
@@ -166,20 +169,20 @@ func (w *Worker) publishSettlement(ctx context.Context, route Route, env *envelo
 // villageEvent is the union of the fields the settlement.* outbox payloads
 // carry (internal/application/handlers/village*.go).
 type villageEvent struct {
-	SettlementID    string `json:"settlement_id"`
-	BuildingID      string `json:"building_id"`
-	TypeCode        string `json:"type_code"`
-	Name            string `json:"name"`
-	LotX            int    `json:"lot_x"`
-	LotY            int    `json:"lot_y"`
-	Rotated         bool   `json:"rotated"`
-	FinishAt        string `json:"finish_at"`
+	SettlementID string `json:"settlement_id"`
+	BuildingID   string `json:"building_id"`
+	TypeCode     string `json:"type_code"`
+	Name         string `json:"name"`
+	LotX         int    `json:"lot_x"`
+	LotY         int    `json:"lot_y"`
+	Rotated      bool   `json:"rotated"`
+	FinishAt     string `json:"finish_at"`
 	// LayoutVersion is the layout's version after the change, for each kind
 	// of viewer; only building events carry it.
-	LayoutVersion json.RawMessage `json:"layout_version"`
-	ResearchID      string `json:"research_id"`
-	Code            string `json:"code"`
-	LiteracyShareBP int    `json:"literacy_share_bps"`
+	LayoutVersion   json.RawMessage `json:"layout_version"`
+	ResearchID      string          `json:"research_id"`
+	Code            string          `json:"code"`
+	LiteracyShareBP int             `json:"literacy_share_bps"`
 }
 
 func decodeVillage(env *envelope.Envelope, name string) (villageEvent, error) {
@@ -205,6 +208,13 @@ func villageBuildStarted(_ context.Context, _ Deps, env *envelope.Envelope) ([]S
 	}
 	f := map[string]any{"building_id": ev.BuildingID, "type_code": ev.TypeCode,
 		"lot_x": ev.LotX, "lot_y": ev.LotY, "rotated": ev.Rotated}
+	// The roads the game laid with it, finished at once.
+	var laid struct {
+		AutoRoads json.RawMessage `json:"auto_roads"`
+	}
+	if json.Unmarshal(env.Payload, &laid) == nil && len(laid.AutoRoads) > 0 {
+		f["auto_roads"] = laid.AutoRoads
+	}
 	if ev.FinishAt != "" {
 		f["finish_at"] = ev.FinishAt
 	}
@@ -220,6 +230,44 @@ func villageLotBought(_ context.Context, _ Deps, env *envelope.Envelope) ([]Sett
 		return nil, err
 	}
 	return one(ev.SettlementID, SettlementLotBought, withLayout(map[string]any{"lot_x": ev.LotX, "lot_y": ev.LotY}, ev)), nil
+}
+
+// villageBatchStarted: several buildings (a run of roads) were placed by one
+// command. One publication carries them all, with the layout's version after
+// the change, so a client applies the batch (or refetches the layout) once.
+func villageBatchStarted(_ context.Context, _ Deps, env *envelope.Envelope) ([]SettlementPublication, error) {
+	ev, err := decodeVillage(env, "build_batch_started")
+	if err != nil {
+		return nil, err
+	}
+	var batch struct {
+		Buildings json.RawMessage `json:"buildings"`
+		Count     int             `json:"count"`
+	}
+	_ = json.Unmarshal(env.Payload, &batch)
+	f := map[string]any{"type_code": ev.TypeCode, "count": batch.Count}
+	if len(batch.Buildings) > 0 {
+		f["buildings"] = batch.Buildings
+	}
+	if ev.FinishAt != "" {
+		f["finish_at"] = ev.FinishAt
+	}
+	return one(ev.SettlementID, SettlementBuildBatchStarted, withLayout(f, ev)), nil
+}
+
+// villageGridGrown: the village bought more land. The picture changes (the
+// grid is bigger), so the publication carries the new side and the layout's
+// version: a client holding a layout fetches it again.
+func villageGridGrown(_ context.Context, _ Deps, env *envelope.Envelope) ([]SettlementPublication, error) {
+	ev, err := decodeVillage(env, "grid_grown")
+	if err != nil {
+		return nil, err
+	}
+	var grown struct {
+		GridLots int `json:"grid_lots"`
+	}
+	_ = json.Unmarshal(env.Payload, &grown)
+	return one(ev.SettlementID, SettlementGridGrown, withLayout(map[string]any{"grid_lots": grown.GridLots}, ev)), nil
 }
 
 // villageBuilt: a building finished construction.
@@ -308,6 +356,27 @@ func villageLiteracy(_ context.Context, _ Deps, env *envelope.Envelope) ([]Settl
 		return nil, err
 	}
 	return one(ev.SettlementID, SettlementLiteracy, map[string]any{"literacy_share_bps": ev.LiteracyShareBP}), nil
+}
+
+// villagePromoted: the settlement grew into the next tier. Its grid, its
+// build cap and its offices changed with it, so a client that holds a layout
+// fetches it again.
+func villagePromoted(_ context.Context, _ Deps, env *envelope.Envelope) ([]SettlementPublication, error) {
+	var ev struct {
+		SettlementID string `json:"settlement_id"`
+		From         string `json:"from"`
+		To           string `json:"to"`
+		Office       string `json:"office"`
+		HeadPlayerID string `json:"head_player_id"`
+	}
+	if err := json.Unmarshal(env.Payload, &ev); err != nil {
+		return nil, apperrors.InvalidInput("settlement.promoted payload is unreadable").WithCause(err)
+	}
+	f := map[string]any{"from": ev.From, "tier": ev.To, "office": ev.Office, "layout_stale": true}
+	if ev.HeadPlayerID != "" {
+		f["head_player_id"] = ev.HeadPlayerID
+	}
+	return one(ev.SettlementID, SettlementPromoted, f), nil
 }
 
 // headOffices are the offices that head a settlement (ADR 0028 section 4):

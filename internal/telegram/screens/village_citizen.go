@@ -25,7 +25,6 @@ const (
 	AddrHomeRest        = "settlement:home.rest"
 	AddrTaxPay          = "settlement:tax.pay"
 	AddrVillageTerms    = "settlement:terms"
-	AddrVillageWork     = "settlement:work"
 	AddrVillageResident = AddrSettlementWho
 )
 
@@ -39,7 +38,6 @@ const (
 	ScreenPrivateConfirm = "settlement_private_confirm"
 	ScreenMine           = "settlement_mine"
 	ScreenTerms          = "settlement_terms"
-	ScreenVillageWork    = "settlement_work"
 )
 
 // Refusals of the citizen loop; their text is citizen.refusal.<kind>.
@@ -247,7 +245,7 @@ func PrivateMenu(c Context, v PrivateMenuView) *presenter.Response {
 	return c.withView(renderPrivateMenu(c, v), ScreenPrivateMenu, v)
 }
 
-func materialsText(c Context, ms []PrivateMaterial) string {
+func privateMaterialsText(c Context, ms []PrivateMaterial) string {
 	parts := make([]string, 0, len(ms))
 	for _, m := range ms {
 		parts = append(parts, c.T("citizen.private.material", map[string]any{
@@ -275,7 +273,7 @@ func renderPrivateMenu(c Context, v PrivateMenuView) *presenter.Response {
 			"total": FormatMoney(c, l.Total), "time": FormatDuration(c, l.BuildTime),
 			"w": FormatNumber(c, int64(l.FootprintW)), "h": FormatNumber(c, int64(l.FootprintH)),
 		}
-		block := body(c.T("citizen.private.line", args), materialsText(c, l.Materials))
+		block := body(c.T("citizen.private.line", args), privateMaterialsText(c, l.Materials))
 		if !l.Affordable {
 			block = body(block, c.T("citizen.private.short", nil))
 		}
@@ -379,7 +377,7 @@ func renderPrivateConfirm(c Context, v PrivateConfirmView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrPrivateLots, v.Building.Code)}))
 	return c.respond(paragraphs(
 		c.T("citizen.confirm.title", args),
-		body(c.T("citizen.confirm.lines", args), materialsText(c, v.Materials)),
+		body(c.T("citizen.confirm.lines", args), privateMaterialsText(c, v.Materials)),
 		c.T(sharedKey(c, "citizen.confirm.total"), args),
 	), kb.Build())
 }
@@ -542,32 +540,6 @@ func renderTerms(c Context, v TermsView) *presenter.Response {
 	kb.Row(row...)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrVillageTerms}))
 	return c.respond(text, kb.Build())
-}
-
-// WorkView is the seam for the village's own work (the economy phase): until
-// producers stand, it says where work is today.
-type WorkView struct {
-	Village string
-	// Support is the city where jobs exist now, empty when unknown.
-	Support     string
-	SupportCode string
-}
-
-// VillageWork renders the work page.
-func VillageWork(c Context, v WorkView) *presenter.Response {
-	return c.withView(renderVillageWork(c, v), ScreenVillageWork, v)
-}
-
-func renderVillageWork(c Context, v WorkView) *presenter.Response {
-	kb := keyboards.New()
-	if v.SupportCode != "" {
-		if b, ok := keyboards.Button(c.T("citizen.work.button_support", map[string]any{"city": v.Support}), AddrTravelOptions, v.SupportCode); ok {
-			kb.Row(b)
-		}
-	}
-	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview}))
-	return c.respond(paragraphs(c.T("citizen.work.title", map[string]any{"village": v.Village}),
-		c.T("citizen.work.body", map[string]any{"city": v.Support})), kb.Build())
 }
 
 func citizenButtons(c Context, labelA, addrA, labelB, addrB string) []presenter.Button {

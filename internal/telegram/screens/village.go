@@ -84,6 +84,13 @@ const (
 	VillageNotDemolishable = "not_demolishable"
 	VillageMaterials       = "materials"
 	VillageNotCancellable  = "not_cancellable"
+	// VillageBatch is a batch placement refused: Lots names every lot that
+	// stopped it, each with its own kind.
+	VillageBatch = "batch"
+	// VillageNoRoad is a building no road could ever reach.
+	VillageNoRoad = "no_road"
+	// VillageGridMax is the technical bound on a grid's side.
+	VillageGridMax = "grid_max"
 	// Residence (village_residence.go).
 	VillageAlreadyResident = "already_resident"
 	VillageNotResident     = "not_resident"
@@ -105,6 +112,14 @@ type VillageRefusalView struct {
 	Remaining time.Duration
 	// Min and Max are the bounds of a donation the amount fell outside.
 	Min, Max int64
+	// Lots are the lots of a refused batch, with their reasons.
+	Lots []BatchLotFailure
+	// Action, Subject and Needs name what the refused command was about and
+	// exactly what it is missing, each with where it comes from
+	// (village_economy.go); empty for a refusal that has nothing to fetch.
+	Action  string        `json:"action,omitempty"`
+	Subject Named         `json:"subject,omitempty"`
+	Needs   []VillageNeed `json:"needs,omitempty"`
 }
 
 // VillageRefusal renders a refused village command.
@@ -113,13 +128,17 @@ func VillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 }
 
 func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
+	if len(v.Needs) > 0 {
+		return renderVillageNeeds(c, v)
+	}
 	kind := v.Kind
 	switch kind {
 	case VillageNoSettlement, VillageNotOfficeHolder, VillageInsufficient, VillageBusy, VillageAlreadyOwned,
 		VillageNotAvailable, VillageTerrain, VillagePrerequisite, VillageLiteracy, VillageNotFound,
 		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
 		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome,
-		VillageDonateRange, VillageDonateNoCash:
+		VillageDonateRange, VillageDonateNoCash, VillageBatch, VillageNoRoad, VillageGridMax, VillagePromotionTop,
+		VillageStorageFull, VillageAlreadyWorking, VillageWorkplaceFull, VillageNotWorkplace:
 	default:
 		if isCitizenRefusal(kind) {
 			return renderCitizenRefusal(c, v)
@@ -134,6 +153,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(c.T("village.refusal."+kind, map[string]any{
 		"time": FormatDuration(c, v.Remaining), "min": FormatMoney(c, v.Min), "max": FormatMoney(c, v.Max),
+		"lots": batchFailureList(c, v.Lots),
 	}), kb.Build())
 }
 
@@ -180,6 +200,9 @@ type VillageOverviewView struct {
 	// knowledge shop, hospital and jail are a journey away. Nil when no
 	// such city is configured.
 	Support *VillageSupport `json:"support,omitempty"`
+	// Promotion is the way forward: the goals of the next tier and the
+	// settlement's progress on each. Nil at the top of the ladder.
+	Promotion *PromotionView `json:"promotion,omitempty"`
 }
 
 // VillageSupport names the city a village's residents travel to for the
@@ -227,15 +250,19 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 
 	kb := keyboards.New()
 	blocks := []string{head, population, treasury, coverage, buildings}
+	if v.Promotion != nil {
+		blocks = append(blocks, promotionBlock(c, *v.Promotion))
+	}
 	if c.Shared && !v.Resident {
 		kb.Add(c.T("village.button.join", nil), AddrVillageJoin)
 	}
 	if v.Resident {
 		// What a normal resident can do (docs/adr/0033 section 4.4): the
-		// village is not only its head's.
+		// village is not only its head's. Work is the village economy's own
+		// workplaces (settlement.work).
 		blocks = append(blocks, c.T("citizen.hub.hint", nil))
 		kb.Row(villageButtons(c, "citizen.button.buy_land", AddrLand, "citizen.button.build_house", AddrPrivateMenu)...)
-		kb.Row(villageButtons(c, "citizen.button.work", AddrVillageWork, "village.button.donate", AddrVillageDonate)...)
+		kb.Row(villageButtons(c, "village.button.work", AddrWork, "village.button.donate", AddrVillageDonate)...)
 		if c.Shared {
 			kb.Row(villageButtons(c, "citizen.button.mine", AddrMine, "village.button.who", AddrSettlementWho)...)
 		} else {
@@ -244,11 +271,15 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 	}
 	if c.Shared {
 		kb.Row(villageButtons(c, "village.button.knowledge", AddrKnowledgeList, "village.button.progress", AddrConstructionProgress)...)
+		kb.Add(c.T("village.button.materials", nil), AddrMaterials)
 		if v.IsHead {
 			kb.Row(villageButtons(c, "village.button.build", AddrBuildMenu, "citizen.button.terms", AddrVillageTerms)...)
 		}
 		if !v.Resident {
 			kb.Add(c.T("village.button.who", nil), AddrSettlementWho)
+		}
+		if v.Promotion != nil {
+			promotionButton(c, kb, *v.Promotion)
 		}
 		if v.Resident {
 			kb.Add(c.T("village.button.leave", nil), AddrVillageLeave)
@@ -447,6 +478,13 @@ type BuildLine struct {
 	BuildTime time.Duration
 	// Missing are unmet knowledge or role/tier prerequisites.
 	Missing []Named
+	// MissingBuildings are the buildings of the role a promotion still needs.
+	MissingBuildings []Named `json:"missing_buildings,omitempty"`
+	// Materials is what the building's construction takes from the stock and
+	// Short the part of it the stock lacks (the attempt view names where to get
+	// it).
+	Materials []MaterialLine `json:"materials,omitempty"`
+	Short     []MaterialLine `json:"short,omitempty"`
 }
 
 // BuildMenuView is a settlement's own construction menu.
@@ -478,14 +516,30 @@ func renderBuildMenu(c Context, v BuildMenuView) *presenter.Response {
 			"time":     FormatDuration(c, l.BuildTime),
 		}
 		key := "build.line.available"
+		if len(l.Materials) > 0 {
+			args["materials"] = materialsText(c, l.Materials)
+		}
+		if len(l.Short) > 0 {
+			key = "build.line.short"
+			args["short"] = materialsText(c, l.Short)
+		}
 		if l.State == BuildLocked {
-			key = "build.line.locked"
+			key = "build.line.locked_role"
 			if len(l.Missing) > 0 {
+				key = "build.line.locked"
 				names := make([]string, 0, len(l.Missing))
 				for _, m := range l.Missing {
 					names = append(names, c.SettlementKnowledgeName(m))
 				}
 				args["missing"] = c.list(names)
+			}
+			if len(l.MissingBuildings) > 0 {
+				names := make([]string, 0, len(l.MissingBuildings))
+				for _, m := range l.MissingBuildings {
+					names = append(names, c.SettlementBuildingName(m))
+				}
+				args["missing"] = c.list(names)
+				key = "build.line.locked_building"
 			}
 		}
 		lines = append(lines, c.T(key, args))
@@ -503,6 +557,9 @@ func renderBuildMenu(c Context, v BuildMenuView) *presenter.Response {
 
 	kb := keyboards.New()
 	kb.Grid(2, buttons...)
+	if b, ok := keyboards.Button(c.T("build.button.grow", nil), AddrGridGrow); ok {
+		kb.Row(b)
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrBuildMenu}))
 
 	return c.respond(paragraphs(head, list), kb.Build())
@@ -520,6 +577,8 @@ const (
 
 // ConstructionLine is one placement in the settlement's own queue.
 type ConstructionLine struct {
+	// ID is the placed building's id: the button under the line opens its panel.
+	ID         string
 	Building   Named
 	LotX, LotY int
 	State      string
@@ -531,6 +590,16 @@ type ConstructionLine struct {
 type ConstructionProgressView struct {
 	Name  string
 	Lines []ConstructionLine
+	// Standing are the finished buildings (roads left out) whose panels the
+	// screen opens.
+	Standing []StandingLine
+}
+
+// StandingLine is one finished building, for a button that opens its panel.
+type StandingLine struct {
+	ID         string
+	Building   Named
+	LotX, LotY int
 }
 
 // ConstructionProgress renders the settlement's construction queue.
@@ -556,6 +625,25 @@ func renderConstructionProgress(c Context, v ConstructionProgressView) *presente
 	}
 
 	kb := keyboards.New()
+	for _, l := range v.Lines {
+		if l.Building.Code == "road" {
+			continue // a road has no panel worth a button
+		}
+		if btn, ok := keyboards.Button(c.T("construction.button.open", map[string]any{"building": c.SettlementBuildingName(l.Building)}),
+			AddrBuildingView, l.ID); ok {
+			kb.Row(btn)
+		}
+	}
+	if len(v.Standing) > 0 {
+		var buttons []presenter.Button
+		for _, s := range v.Standing {
+			if btn, ok := keyboards.Button(c.SettlementBuildingName(s.Building), AddrBuildingView, s.ID); ok {
+				buttons = append(buttons, btn)
+			}
+		}
+		kb.Grid(2, buttons...)
+		list = paragraphs(list, c.T("construction.standing_hint", nil))
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrConstructionProgress}))
 
 	return c.respond(paragraphs(head, list), kb.Build())
@@ -641,7 +729,48 @@ type LotGridView struct {
 	// map from the identical facts this screen's buttons come from.
 	GridLots int
 	Rows     [][]LotCell
+	// Multi says the building is one lot, so a run of them can be laid from
+	// one lot to another; Line is where that picking stands: "" (one lot at
+	// a time), LineStart (choose the first lot) or LineEnd (choose the last,
+	// From being the first).
+	Multi bool
+	Line  string
+	From  LotBatchLot
+	// WinX and WinY are the north-west lot of the window a Telegram keyboard
+	// shows when the grid is wider than a keyboard row can hold
+	// (MaxLotButtons); a client draws the whole grid from Rows and ignores them.
+	WinX, WinY int
 }
+
+// MaxLotButtons is how many lots a Telegram keyboard shows in a row and in a
+// column (a row holds 8 buttons at most): a bigger grid - land can be bought
+// without a tier's limit - is shown as a window that slides over it.
+const MaxLotButtons = 8
+
+// lotWindow is the window the keyboard shows: the whole grid when it fits,
+// else MaxLotButtons lots square with its corner clamped inside the grid.
+func lotWindow(n, wx, wy int) (x0, y0, x1, y1 int) {
+	if n <= MaxLotButtons {
+		return 0, 0, n, n
+	}
+	clamp := func(v int) int {
+		if v < 0 {
+			return 0
+		}
+		if v > n-MaxLotButtons {
+			return n - MaxLotButtons
+		}
+		return v
+	}
+	x0, y0 = clamp(wx), clamp(wy)
+	return x0, y0, x0 + MaxLotButtons, y0 + MaxLotButtons
+}
+
+// The line-picking steps of a run of one-lot buildings on the grid.
+const (
+	LineStart = "line"
+	LineEnd   = "end"
+)
 
 // LotGrid renders the settlement's placement grid for one building type.
 // Its view travels even in a group (withGroupView, not withView): a lot's
@@ -681,16 +810,73 @@ func renderLotGrid(c Context, v LotGridView) *presenter.Response {
 	legend := c.T("lots.legend", nil)
 
 	kb := keyboards.New()
+	x0, y0, x1, y1 := lotWindow(v.GridLots, v.WinX, v.WinY)
 	for _, row := range v.Rows {
 		var buttons []presenter.Button
 		for _, cell := range row {
+			if cell.X < x0 || cell.X >= x1 || cell.Y < y0 || cell.Y >= y1 {
+				continue
+			}
 			label := lotEmoji(cell.State, cell.Fits)
 			token := LotToken(cell.X, cell.Y, v.Rotated)
-			if btn, ok := keyboards.Button(label, AddrBuildPlace, v.Building.Code, token); ok {
+			var btn presenter.Button
+			var ok bool
+			switch v.Line {
+			case LineStart:
+				btn, ok = keyboards.Button(label, AddrBuildLots, v.Building.Code, "0", token)
+			case LineEnd:
+				btn, ok = keyboards.Button(label, AddrBuildPlaceMany, v.Building.Code, LotToken(v.From.X, v.From.Y, false), token)
+			default:
+				btn, ok = keyboards.Button(label, AddrBuildPlace, v.Building.Code, token)
+			}
+			if ok {
 				buttons = append(buttons, btn)
 			}
 		}
-		kb.Row(buttons...)
+		if len(buttons) > 0 {
+			kb.Row(buttons...)
+		}
+	}
+	if v.GridLots > MaxLotButtons {
+		// slide the window: a step is half a window
+		rotateArg, fromArg := "0", "-"
+		if v.Rotated {
+			rotateArg = "1"
+		}
+		switch v.Line {
+		case LineStart:
+			fromArg = LineStart
+		case LineEnd:
+			fromArg = LotToken(v.From.X, v.From.Y, false)
+		}
+		var moves []presenter.Button
+		for _, m := range []struct {
+			label  string
+			dx, dy int
+		}{{"◀️", -MaxLotButtons / 2, 0}, {"🔼", 0, -MaxLotButtons / 2}, {"🔽", 0, MaxLotButtons / 2}, {"▶️", MaxLotButtons / 2, 0}} {
+			nx, ny := max(0, x0+m.dx), max(0, y0+m.dy)
+			if btn, ok := keyboards.Button(m.label, AddrBuildLots, v.Building.Code, rotateArg, fromArg, LotToken(nx, ny, false)); ok {
+				moves = append(moves, btn)
+			}
+		}
+		kb.Row(moves...)
+		legend = paragraphs(legend, c.T("lots.window", map[string]any{
+			"x0": FormatNumber(c, int64(x0+1)), "x1": FormatNumber(c, int64(x1)),
+			"y0": FormatNumber(c, int64(y0+1)), "y1": FormatNumber(c, int64(y1)),
+			"n": FormatNumber(c, int64(v.GridLots)),
+		}))
+	}
+	switch {
+	case v.Multi && v.Line == "":
+		if btn, ok := keyboards.Button(c.T("lots.button.line", nil), AddrBuildLots, v.Building.Code, "0", LineStart); ok {
+			kb.Row(btn)
+		}
+	case v.Line == LineStart:
+		legend = paragraphs(legend, c.T("lots.line_start", nil))
+	case v.Line == LineEnd:
+		legend = paragraphs(legend, c.T("lots.line_end", map[string]any{
+			"y": FormatNumber(c, int64(v.From.Y+1)), "x": FormatNumber(c, int64(v.From.X+1)),
+		}))
 	}
 	if v.CanRotate {
 		rotateArg := "1"
@@ -724,6 +910,9 @@ type LotConfirmView struct {
 	CostMoney      int64
 	Materials      []MaterialLine
 	BuildTime      time.Duration
+	// AutoRoads is how many lots of road the game lays with the building to
+	// connect it (0: it already touches the network).
+	AutoRoads int
 }
 
 // LotConfirm renders the placement confirmation.
@@ -748,6 +937,9 @@ func renderLotConfirm(c Context, v LotConfirmView) *presenter.Response {
 		}),
 		body(materialLines...),
 	)
+	if v.AutoRoads > 0 {
+		text = paragraphs(text, c.T("build.confirm.auto_roads", map[string]any{"count": FormatNumber(c, int64(v.AutoRoads))}))
+	}
 
 	kb := keyboards.New()
 	token := LotToken(v.X, v.Y, v.Rotated)
@@ -783,4 +975,19 @@ func VillageHomeNone(c Context) *presenter.Response {
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
 	return c.respond(paragraphs(c.T("village.home.none_title", nil), c.T("village.home.none_body", nil)), kb.Build())
+}
+
+// batchFailureList names the lots of a refused batch, one line each, with
+// the reason in words (lots are shown 1-based, as the confirm screen does).
+func batchFailureList(c Context, lots []BatchLotFailure) string {
+	if len(lots) == 0 {
+		return ""
+	}
+	lines := make([]string, 0, len(lots))
+	for _, l := range lots {
+		lines = append(lines, c.T("village.batch_lot", map[string]any{
+			"y": FormatNumber(c, int64(l.Y+1)), "x": FormatNumber(c, int64(l.X+1)), "reason": c.T("village.batch_reason."+l.Kind, nil),
+		}))
+	}
+	return body(lines...)
 }

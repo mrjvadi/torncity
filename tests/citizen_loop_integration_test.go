@@ -183,7 +183,7 @@ func TestCitizenLoop(t *testing.T) {
 		!strings.Contains(r.Text, "citizen.refusal.citizen_lot_private") {
 		t.Fatalf("the head built on a resident's lot: %+v %v", r, err)
 	}
-	if r, err := village.Place(ctx, headMeta("settlement.build.place"), handlers.VillageBuildRequest{Code: "cottage", Lot: lotD, Confirm: screens.VillageBuildConfirm}); err != nil ||
+	if r, err := village.Place(ctx, headMeta("settlement.build.place"), handlers.VillageBuildRequest{Code: "private_cottage", Lot: lotD, Confirm: screens.VillageBuildConfirm}); err != nil ||
 		!strings.Contains(r.Text, "citizen.refusal.citizen_private_only") {
 		t.Fatalf("the head placed a private building: %+v %v", r, err)
 	}
@@ -197,7 +197,7 @@ func TestCitizenLoop(t *testing.T) {
 	for _, l := range viewOf(t, menu)["lines"].([]any) {
 		codes[l.(map[string]any)["building"].(map[string]any)["code"].(string)] = true
 	}
-	if !codes["cottage"] || !codes["market_stall"] || codes["village_house"] || codes["home_workshop"] {
+	if !codes["private_cottage"] || !codes["market_stall"] || codes["private_house"] || codes["home_workshop"] {
 		t.Fatalf("the citizen catalogue offers %v: the carpentry buildings need the knowledge first", codes)
 	}
 
@@ -205,10 +205,10 @@ func TestCitizenLoop(t *testing.T) {
 	place := func(p *application.Player, code, lot, confirm string) (*presenter.Response, error) {
 		return village.PrivatePlace(ctx, client(p, "settlement.private.place"), handlers.VillagePrivateRequest{Code: code, Lot: lot, Confirm: confirm})
 	}
-	if r, err := place(neighbour, "cottage", lotA, screens.VillageBuildConfirm); err != nil || !strings.Contains(r.Text, "citizen.refusal.citizen_not_owner") {
+	if r, err := place(neighbour, "private_cottage", lotA, screens.VillageBuildConfirm); err != nil || !strings.Contains(r.Text, "citizen.refusal.citizen_not_owner") {
 		t.Fatalf("a neighbour built on another's lot: %+v %v", r, err)
 	}
-	if r, err := place(neighbour, "cottage", lotD, screens.VillageBuildConfirm); err != nil || !strings.Contains(r.Text, "citizen.refusal.citizen_not_owner") {
+	if r, err := place(neighbour, "private_cottage", lotD, screens.VillageBuildConfirm); err != nil || !strings.Contains(r.Text, "citizen.refusal.citizen_not_owner") {
 		t.Fatalf("a neighbour built on commons: %+v %v", r, err)
 	}
 	if n := countRows(`SELECT count(*) FROM settlement_private_buildings WHERE settlement_id = $1::uuid`, cityID); n != 0 {
@@ -217,18 +217,18 @@ func TestCitizenLoop(t *testing.T) {
 
 	// ---- build a house on one's own lot -----------------------------------
 	treasury1, cash1 := treasuryOf(t, pool, cityID), cashOfPlayer(resident)
-	ask, err = place(resident, "cottage", lotA, "")
+	ask, err = place(resident, "private_cottage", lotA, "")
 	if err != nil || !strings.Contains(ask.Text, "citizen.confirm.title") {
 		t.Fatalf("asking to build: %+v %v", ask, err)
 	}
 	if treasuryOf(t, pool, cityID) != treasury1 || cashOfPlayer(resident) != cash1 {
 		t.Fatal("asking to build moved money")
 	}
-	started, err := place(resident, "cottage", lotA, screens.VillageBuildConfirm)
+	started, err := place(resident, "private_cottage", lotA, screens.VillageBuildConfirm)
 	if err != nil || !strings.Contains(started.Text, "citizen.mine.title") {
 		t.Fatalf("building: %+v %v", started, err)
 	}
-	cottage, _ := snap.SettlementBuildingDef("cottage")
+	cottage, _ := snap.SettlementBuildingDef("private_cottage")
 	timber, _ := snap.ComponentDef("timber")
 	bought := cottage.CostMaterials["timber"] * (timber.BasePrice * int64(rules.MaterialMarkupBPS) / 10_000)
 	if got := treasuryOf(t, pool, cityID); got != treasury1+rules.PermitFee {
@@ -246,7 +246,7 @@ func TestCitizenLoop(t *testing.T) {
 		t.Fatal("the building did not start construction")
 	}
 	// Again on the same lot: occupied.
-	if r, err := place(resident, "cottage", lotA, screens.VillageBuildConfirm); err != nil || !strings.Contains(r.Text, "village.refusal.occupied") {
+	if r, err := place(resident, "private_cottage", lotA, screens.VillageBuildConfirm); err != nil || !strings.Contains(r.Text, "village.refusal.occupied") {
 		t.Fatalf("built twice on one lot: %+v %v", r, err)
 	}
 	// The head can neither cancel nor demolish a resident's building.
@@ -397,7 +397,7 @@ func TestCitizenLoop(t *testing.T) {
 		}
 	}
 	for _, b := range member.Buildings {
-		if b.Private && b.Mine && b.Type == "cottage" {
+		if b.Private && b.Mine && b.Type == "private_cottage" {
 			private++
 		}
 	}

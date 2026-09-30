@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
@@ -94,7 +95,7 @@ func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, r
 		tree := snap.SettlementKnowledgeTree()
 		t := tree[code]
 		if cerr := settlementknowledge.CanAcquire(t, tree, st, true); cerr != nil {
-			return knowledgeRefusal(cerr)
+			return h.knowledgeAttempt(snap, st, tree, t, d, cerr, screens.AddrKnowledgeList)
 		}
 
 		now := h.now()
@@ -190,7 +191,7 @@ func (h *VillageHandler) Buy(ctx context.Context, meta envelope.Metadata, req Vi
 		tree := snap.SettlementKnowledgeTree()
 		t := tree[code]
 		if cerr := settlementknowledge.CanAcquire(t, tree, st, false); cerr != nil {
-			return knowledgeRefusal(cerr)
+			return h.knowledgeAttempt(snap, st, tree, t, d, cerr, screens.AddrKnowledgeList)
 		}
 		price, err := h.scarcityPrice(ctx, tx, d.Cost, code)
 		if err != nil {
@@ -253,4 +254,21 @@ func (h *VillageHandler) Researched(ctx context.Context, meta envelope.Metadata,
 			"settlement_id": rs.SettlementID, "code": rs.Code, "name": h.knowledgeName(rs.Code),
 		})
 	})
+}
+
+// knowledgeAttempt is the refusal of a research or purchase: when the reason is
+// a prerequisite it names exactly the knowledge that is missing (one hop) and
+// where it comes from, otherwise the plain refusal.
+func (h *VillageHandler) knowledgeAttempt(snap *content.Snapshot, st settlementknowledge.Standing, tree settlementknowledge.Tree,
+	t settlementknowledge.Tech, d content.SettlementKnowledgeDef, cerr error, back string,
+) *villageRefusal {
+	if !stderrors.Is(cerr, settlementknowledge.ErrPrerequisiteMissing) {
+		return knowledgeRefusal(cerr)
+	}
+	missing := st.Missing(t, tree)
+	if len(missing) == 0 {
+		return knowledgeRefusal(cerr)
+	}
+	pc := pathContext{snap: snap}
+	return needsRefusal(screens.VillagePrerequisite, screens.NeedsForResearch, named(d.Code, d.Name), pc.knowledgeNeeds(missing), back)
 }

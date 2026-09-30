@@ -83,6 +83,13 @@ var deferredAreas = map[string]bool{
 // to whichever it came from. Each is one line so the reason is checked in
 // alongside the exception.
 var knownVariants = map[string]string{
+	// The building panel backs to the construction list it was opened from;
+	// its demolish/cancel/upgrade steps back to the panel itself.
+	"village/Building panel": "the panel backs to the construction list; its confirmation and upgrade steps back to the panel",
+	// The batch total backs to the build menu; a refusal to the overview.
+	"village/Batch": "the batch total backs to the build menu; a refusal backs to the village overview like every village refusal",
+	// The land price backs to the build menu; the bound's refusal to the overview.
+	"village/Land": "the land price backs to the build menu; the bound's refusal backs to the village overview like every village refusal",
 	// LoanConfirm (a wizard step: back to its own previous step, the specific
 	// offer) and LoanDetail (a list item: back to the loan hub) both title
 	// their samples "Loan · ...".
@@ -111,6 +118,10 @@ var knownVariants = map[string]string{
 	// and AuctionOpened (done: back to the auction house) all title their
 	// samples "Auction · ...".
 	"trade/Auction": "AuctionDetail and AuctionOpened back to the auction house; AuctionNew backs to the inventory item it lists",
+	// VillageRefusal backs to the screen the refused command was pressed on
+	// (the build menu, the knowledge list, the stock, the work list): the
+	// attempt view of a missing prerequisite returns to where it began.
+	"village_economy/Refusal": "VillageRefusal backs to the build menu, the knowledge list, the stock or the work list, whichever the refused command came from",
 
 	// Read once production/companies/military/war merged (1b908a3). Every
 	// one of these follows a shape already documented above, several times

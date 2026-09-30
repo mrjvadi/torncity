@@ -10,6 +10,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/money"
@@ -35,8 +36,8 @@ import (
 //   - materials: planMaterials draws from the builder's inventory and buys
 //     the rest at the reference price (a system sink). When the economy
 //     phase adds a real material purchase path, replace materialSource.
-//   - roads: after a private building is placed, roadsHook is called (nil
-//     until the roads work exposes an automatic connection).
+//   - roads: a private building is connected by the same road planner as the
+//     head's buildings (planAutoRoads / layAutoRoads in village_roadplan.go).
 //   - work: Work is the page behind «کار کن»; it points at Support until
 //     village producers exist.
 //   - foreclosure: unpaid property tax stays a debt (settlement_property_tax
@@ -481,10 +482,7 @@ func (h *VillageHandler) appendTenureEvent(ctx context.Context, tx application.T
 }
 
 func gridLotsFor(h *VillageHandler, s application.FoundedSettlement) int {
-	if n := h.gridLotsByTier[s.Tier]; n > 0 {
-		return n
-	}
-	return h.villageGridLots
+	return wsettle.GridLotsGrown(s.Tier, h.villageGridLots, s.GridGrowth)
 }
 
 // ---------------------------------------------------------------------
@@ -785,6 +783,14 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 		if !footprintFitsOwn(sc, def, x, y) {
 			return refuseVillage(screens.CitizenNotOwner, screens.AddrPrivateMenu)
 		}
+		// The game lays the road that connects the building (village_roadplan.go),
+		// the same planner the head's buildings use; the lots of other
+		// residents are never paved over.
+		autoRoads, perr := h.planAutoRoads(ctx, tx, sc.s, d.Code, def, grid, x, y)
+		if perr != nil {
+			return perr
+		}
+		roadFee := int64(len(autoRoads)) * h.autoRoadCost
 
 		if !strings.EqualFold(strings.TrimSpace(req.Confirm), screens.VillageBuildConfirm) {
 			bill, err := h.planMaterials(ctx, tx, snap, sc.p.ID, def)
@@ -795,10 +801,10 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 			if err != nil {
 				return err
 			}
-			total := d.CostMoney + sc.fee + bill.boughtCost
+			total := d.CostMoney + roadFee + sc.fee + bill.boughtCost
 			confirmView = &screens.PrivateConfirmView{
 				Village: sc.s.Name, Building: named(d.Code, d.Name), X: x, Y: y, Rotated: rotated,
-				CostMoney: d.CostMoney, PermitFee: sc.fee, Materials: bill.screen(), MaterialsCost: bill.boughtCost,
+				CostMoney: d.CostMoney + roadFee, PermitFee: sc.fee, Materials: bill.screen(), MaterialsCost: bill.boughtCost,
 				Total: total, Cash: cash, BuildTime: h.scale.RealWait(def.BuildTime),
 			}
 			if cash < total {
@@ -822,7 +828,7 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 		if err != nil {
 			return err
 		}
-		total := d.CostMoney + sc.fee + bill.boughtCost
+		total := d.CostMoney + roadFee + sc.fee + bill.boughtCost
 		if cash < total {
 			return refuseVillage(screens.CitizenNoCash, screens.AddrPrivateMenu)
 		}
@@ -861,7 +867,7 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 			permitTx = h.ids.NewID()
 		}
 		if err := tx.Citizens().RecordPrivateBuilding(ctx, application.PrivateBuilding{
-			BuildingID: id, SettlementID: sc.s.CityID, OwnerID: sc.p.ID, PermitFee: sc.fee, ConstructionPaid: d.CostMoney,
+			BuildingID: id, SettlementID: sc.s.CityID, OwnerID: sc.p.ID, PermitFee: sc.fee, ConstructionPaid: d.CostMoney + roadFee,
 			MaterialsPaid: bill.boughtCost, AssessedValue: d.CostMoney + bill.referenceValue, LedgerTransactionID: permitTx, CreatedAt: now,
 		}); err != nil {
 			return err
@@ -890,16 +896,15 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 		if err := pay(permitTx, application.ReasonSettlementPermitFee, treasuryAcct.ID, sc.fee); err != nil {
 			return err
 		}
-		if err := pay("", application.ReasonCitizenConstruction, application.SystemSinkAccountID, d.CostMoney); err != nil {
+		if err := pay("", application.ReasonCitizenConstruction, application.SystemSinkAccountID, d.CostMoney+roadFee); err != nil {
 			return err
 		}
 		if err := pay("", application.ReasonCitizenMaterials, application.SystemSinkAccountID, bill.boughtCost); err != nil {
 			return err
 		}
-		if h.roadsHook != nil {
-			if err := h.roadsHook(ctx, tx, sc.s, id); err != nil {
-				return err
-			}
+		laid, err := h.layAutoRoads(ctx, tx, sc.s.CityID, autoRoads, now)
+		if err != nil {
+			return err
 		}
 		priv, err := tx.Citizens().PrivateBuildings(ctx, sc.s.CityID)
 		if err != nil {
@@ -922,6 +927,7 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 		payload := map[string]any{
 			"settlement_id": sc.s.CityID, "building_id": id, "type_code": d.Code, "name": d.Name, "lot_x": x, "lot_y": y,
 			"rotated": rotated, "finish_at": finish.UTC().Format(time.RFC3339), "private": true, "owner_id": sc.p.ID,
+			"auto_roads": laid,
 			"layout_version": application.LayoutVersionsWithTenure(sc.s.CityID, sc.s.Tier, sc.s.Name, gridLotsFor(h, sc.s), rows,
 				footprint, application.TenureMark(sc.lots, priv)),
 		}
@@ -934,16 +940,6 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 		return screens.PrivateConfirm(h.screen(meta, lang), *confirmView), nil
 	}
 	return h.mine(ctx, meta, "")
-}
-
-// RoadsHook connects a new private building to the road network; nil until
-// the roads work exposes it. It runs in the placement's transaction.
-type RoadsHook func(ctx context.Context, tx application.Tx, s application.FoundedSettlement, buildingID string) error
-
-// WithRoadsHook sets the automatic-roads seam.
-func (h *VillageHandler) WithRoadsHook(f RoadsHook) *VillageHandler {
-	h.roadsHook = f
-	return h
 }
 
 func buildingRefusalTo(err error, back string) *villageRefusal {
@@ -1469,41 +1465,4 @@ func presetsInt(lo, def, hi int) []int {
 		out = append(out, int(v))
 	}
 	return out
-}
-
-// Work handles settlement.work: the page behind «کار کن». Until the village
-// has producers and workers (the economy phase), it tells the player where
-// work is today: the Support city.
-func (h *VillageHandler) Work(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
-	lang := meta.Language
-	var view screens.WorkView
-	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
-		p, l, err := h.viewer(ctx, tx, meta)
-		if err != nil {
-			return err
-		}
-		lang = l
-		s, err := h.settlementOf(ctx, tx, meta)
-		if err != nil {
-			return err
-		}
-		home, err := tx.Employment().ResidenceCityID(ctx, p.ID)
-		if err != nil {
-			return err
-		}
-		if home != s.CityID {
-			return refuseVillage(screens.VillageNotResident)
-		}
-		view = screens.WorkView{Village: s.Name}
-		if h.homeCityCode != "" {
-			if support, err := h.cities.ByCode(ctx, h.homeCityCode); err == nil {
-				view.Support, view.SupportCode = support.Name, support.Code
-			}
-		}
-		return nil
-	})
-	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
-		return resp, err
-	}
-	return screens.VillageWork(h.screen(meta, lang), view), nil
 }

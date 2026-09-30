@@ -56,6 +56,12 @@ func (r VillageBuildRequest) lot() (x, y int, rotated, ok bool) {
 type VillageLotsRequest struct {
 	Code   string `json:"code"`
 	Rotate string `json:"rotate,omitempty"`
+	// From is the line-picking step of a run of one-lot buildings: "line"
+	// (choose the first lot) or the first lot's token (choose the last).
+	From string `json:"from,omitempty"`
+	// Win is the north-west lot of the window a Telegram keyboard shows over a
+	// grid wider than a row of buttons (a lot token).
+	Win string `json:"win,omitempty"`
 }
 
 func (r VillageLotsRequest) code() string  { return strings.TrimSpace(r.Code) }
@@ -131,7 +137,7 @@ func (h *VillageHandler) buildPlacementContext(ctx context.Context, tx applicati
 		err = berr
 		return
 	}
-	running, rerr := tx.SettlementBuildings().RunningCount(ctx, s.CityID)
+	running, rerr := h.runningJobs(ctx, tx, snap, s.CityID)
 	if rerr != nil {
 		err = rerr
 		return
@@ -139,6 +145,7 @@ func (h *VillageHandler) buildPlacementContext(ctx context.Context, tx applicati
 	standing = settlementbuilding.Standing{
 		Knowledge: st.Owned, KnowledgeCapabilities: capabilities, Built: built,
 		RunningBuilds: running, ConcurrentCap: h.concurrentBuildCap[s.Tier], LiteracyShareBPS: st.LiteracyShareBPS,
+		SettlementTier: s.Tier,
 	}
 	return
 }
@@ -198,10 +205,35 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 		if err != nil {
 			return err
 		}
+		if !def.ListedAt(s.Tier) {
+			return refuseVillage(screens.VillageNotAvailable)
+		}
+		// The prerequisites first: a building the village cannot start yet shows
+		// what is missing and where it comes from, not a grid to choose a lot on.
+		if rf, err := h.placementRefusal(ctx, tx, h.content.Current(), s, d, def); err != nil {
+			return err
+		} else if rf != nil {
+			return rf
+		}
 		view = screens.LotGridView{
 			SettlementName: s.Name, Building: named(d.Code, d.Name),
 			CanRotate: d.Def().CanRotate(), Rotated: rotated && d.Def().CanRotate(),
 			GridLots: grid.Height(),
+			Multi:    d.Footprint == [2]int{1, 1} && d.CapExempt,
+		}
+		if wx, wy, _, ok := screens.ParseLotToken(strings.TrimSpace(req.Win)); ok {
+			view.WinX, view.WinY = wx, wy
+		}
+		if view.Multi {
+			switch from := strings.TrimSpace(req.From); {
+			case from == "" || from == "-":
+			case from == screens.LineStart:
+				view.Line = screens.LineStart
+			case from != "":
+				if fx, fy, _, ok := screens.ParseLotToken(from); ok {
+					view.Line, view.From = screens.LineEnd, screens.LotBatchLot{X: fx, Y: fy}
+				}
+			}
 		}
 		owned, oerr := privateLotSet(ctx, tx, s.CityID)
 		if oerr != nil {
@@ -275,6 +307,14 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if d.Private() {
 			return refuseVillage(screens.CitizenPrivateOnly)
 		}
+		if !def.ListedAt(s.Tier) {
+			return refuseVillage(screens.VillageNotAvailable)
+		}
+		if rf, err := h.placementRefusal(ctx, tx, h.content.Current(), s, d, def); err != nil {
+			return err
+		} else if rf != nil {
+			return rf
+		}
 		if cerr := settlementbuilding.CanPlace(def, grid, x, y, standing); cerr != nil {
 			return buildingRefusal(cerr)
 		}
@@ -285,12 +325,20 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if footprintTouches(owned, def, x, y) {
 			return refuseVillage(screens.CitizenLotPrivate)
 		}
+		// The game lays the road that connects the building (roadplan.go);
+		// a building no road could ever reach is refused before anything
+		// is paid.
+		autoRoads, perr := h.planAutoRoads(ctx, tx, s, code, def, grid, x, y)
+		if perr != nil {
+			return perr
+		}
+		roadFee := int64(len(autoRoads)) * h.autoRoadCost
 
 		if !req.confirmed() {
 			confirmView = &screens.LotConfirmView{
 				SettlementName: s.Name, Building: named(d.Code, d.Name), X: x, Y: y, Rotated: rotated,
-				CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime),
-				Materials: materialLines(h.content.Current(), def),
+				CostMoney: d.CostMoney + roadFee, BuildTime: h.scale.RealWait(def.BuildTime),
+				Materials: materialLines(h.content.Current(), def), AutoRoads: len(autoRoads),
 			}
 			return nil
 		}
@@ -309,13 +357,17 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 				Reason: application.ItemSettlementConstruction, ReferenceType: "settlement_building", ReferenceID: id, At: now,
 			}); err != nil {
 				if stderrors.Is(err, application.ErrNotEnoughItems) {
+					// A racing build took the stock: name what is missing now.
+					if rf, rerr := h.placementRefusal(ctx, tx, h.content.Current(), s, d, def); rerr == nil && rf != nil {
+						return rf
+					}
 					return refuseVillage(screens.VillageMaterials)
 				}
 				return err
 			}
 		}
-		if d.CostMoney > 0 {
-			if _, err := spendVillage(ctx, tx, s.CityID, application.ReasonSettlementConstruction, d.CostMoney, now); err != nil {
+		if d.CostMoney+roadFee > 0 {
+			if _, err := spendVillage(ctx, tx, s.CityID, application.ReasonSettlementConstruction, d.CostMoney+roadFee, now); err != nil {
 				return err
 			}
 		}
@@ -332,10 +384,18 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if _, err := h.schedule(ctx, tx, application.SettlementBuildActionType, "settlement_building", id, s.CityID, now, finish); err != nil {
 			return err
 		}
-		return h.appendBuildingEvent(ctx, tx, meta, s, "build_started", map[string]any{
+		laid, err := h.layAutoRoads(ctx, tx, s.CityID, autoRoads, now)
+		if err != nil {
+			return err
+		}
+		payload := map[string]any{
 			"settlement_id": s.CityID, "building_id": id, "type_code": code, "name": d.Name, "lot_x": x, "lot_y": y,
 			"rotated": rotated && d.Def().CanRotate(), "finish_at": finish.UTC().Format(time.RFC3339),
-		})
+		}
+		if len(laid) > 0 {
+			payload["auto_roads"] = laid
+		}
+		return h.appendBuildingEvent(ctx, tx, meta, s, "build_started", payload)
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
@@ -572,6 +632,27 @@ func (h *VillageHandler) appendBuildingEvent(ctx context.Context, tx application
 		return err
 	}
 	payload["layout_version"] = application.LayoutVersionsWithTenure(s.CityID, s.Tier, s.Name,
-		wsettle.GridLotsForTier(s.Tier, h.villageGridLots), rows, footprint, application.TenureMark(lots, priv))
+		wsettle.GridLotsGrown(s.Tier, h.villageGridLots, s.GridGrowth), rows, footprint, application.TenureMark(lots, priv))
 	return appendVillageEvent(ctx, tx, meta, name, s.CityID, payload)
+}
+
+// runningJobs is how many of the settlement's buildings under construction
+// hold a slot of the concurrent-construction cap: every one but a type the
+// content marks cap_exempt (a road).
+func (h *VillageHandler) runningJobs(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string) (int, error) {
+	rows, err := tx.SettlementBuildings().List(ctx, settlementID)
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, b := range rows {
+		if b.Status != "building" {
+			continue
+		}
+		if d, ok := snap.SettlementBuildingDef(b.TypeCode); ok && d.CapExempt {
+			continue
+		}
+		n++
+	}
+	return n, nil
 }

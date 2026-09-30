@@ -86,6 +86,8 @@ var all = []Subscription{
 	// its fare and wait; travel.start departs by the mode chosen there.
 	{Domain: "travel", Action: "options", Origin: FromPlayer},
 	{Domain: "travel", Action: "status", Origin: FromPlayer},
+	// travel.here is the journey to the village of the group it is sent in.
+	{Domain: "travel", Action: "here", Origin: FromPlayer},
 	{Domain: "travel", Action: "arrive", Origin: FromScheduler},
 
 	// Phase 1: skills, the world map and the social graph.
@@ -435,9 +437,19 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "build", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.lots", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.place", Origin: FromPlayer},
+	{Domain: "settlement", Action: "build.place_many", Origin: FromPlayer},
+	{Domain: "settlement", Action: "building.view", Origin: FromPlayer},
+	{Domain: "settlement", Action: "grid.grow", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.progress", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.demolish", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.cancel", Origin: FromPlayer},
+	// The village economy's first loop (ADR 0033 section 4.1): the stock and
+	// Support's market, buying materials, working a shift; only the scheduler
+	// sends settlement.worked, a shift reaching its end.
+	{Domain: "settlement", Action: "materials", Origin: FromPlayer},
+	{Domain: "settlement", Action: "materials.buy", Origin: FromPlayer},
+	{Domain: "settlement", Action: "work", Origin: FromPlayer},
+	{Domain: "settlement", Action: "worked", Origin: FromScheduler},
 	// Who is around in the village (docs/adr/0030, R2): a group screen.
 	{Domain: "settlement", Action: "who", Origin: FromPlayer},
 	{Domain: "settlement", Action: "join", Origin: FromPlayer},
@@ -454,7 +466,9 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "home.rest", Origin: FromPlayer},
 	{Domain: "settlement", Action: "tax.pay", Origin: FromPlayer},
 	{Domain: "settlement", Action: "terms", Origin: FromPlayer},
-	{Domain: "settlement", Action: "work", Origin: FromPlayer},
+	// Growing into the next tier (ADR 0028 section 4.1).
+	{Domain: "settlement", Action: "promotion.view", Origin: FromPlayer},
+	{Domain: "settlement", Action: "promote", Origin: FromPlayer},
 	{Domain: "settlement", Action: "researched", Origin: FromScheduler},
 	{Domain: "settlement", Action: "taught", Origin: FromScheduler},
 	{Domain: "settlement", Action: "built", Origin: FromScheduler},

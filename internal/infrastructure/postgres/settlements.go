@@ -305,9 +305,31 @@ func (r *SettlementRepository) ExistingForWorld(ctx context.Context, worldID str
 	return out, nil
 }
 
+// Founded returns every founded settlement, ordered by code.
+func (r *SettlementRepository) Founded(ctx context.Context) ([]application.FoundedSettlement, error) {
+	rows, err := r.q.Query(ctx,
+		`SELECT `+settlementColumns+` FROM cities c WHERE c.origin = 'founded' ORDER BY c.code`)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: listing founded settlements: %w", err)
+	}
+	defer rows.Close()
+	var out []application.FoundedSettlement
+	for rows.Next() {
+		var s application.FoundedSettlement
+		if err := scanSettlement(rows, &s); err != nil {
+			return nil, fmt.Errorf("postgres: scanning founded settlement: %w", err)
+		}
+		out = append(out, s)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("postgres: listing founded settlements: %w", err)
+	}
+	return out, nil
+}
+
 // settlementColumns are the cities columns a FoundedSettlement is read from.
 const settlementColumns = `c.id::text, c.code, c.name, c.jurisdiction_id::text, c.tier, c.world_id::text, c.world_cell_id,
-	c.founded_at, c.protected_until, c.grid_shift_x, c.grid_shift_y,
+	c.founded_at, c.protected_until, c.grid_shift_x, c.grid_shift_y, c.grid_growth,
 	COALESCE(c.emblem_shape, ''), COALESCE(c.emblem_color_a, ''), COALESCE(c.emblem_color_b, ''), COALESCE(c.emblem_icon, ''),
 	COALESCE(c.motto, ''),
 	COALESCE((SELECT v.code FROM village_currency_reservations v WHERE v.settlement_id = c.id), ''),
@@ -316,9 +338,22 @@ const settlementColumns = `c.id::text, c.code, c.name, c.jurisdiction_id::text, 
 
 func scanSettlement(row pgx.Row, out *application.FoundedSettlement, extra ...any) error {
 	return row.Scan(append([]any{&out.CityID, &out.Code, &out.Name, &out.JurisdictionID, &out.Tier, &out.WorldID,
-		&out.WorldCellID, &out.FoundedAt, &out.ProtectedUntil, &out.GridShiftX, &out.GridShiftY,
+		&out.WorldCellID, &out.FoundedAt, &out.ProtectedUntil, &out.GridShiftX, &out.GridShiftY, &out.GridGrowth,
 		&out.Emblem.Shape, &out.Emblem.ColorA, &out.Emblem.ColorB, &out.Emblem.Icon, &out.Motto,
 		&out.Currency.Code, &out.Currency.Name, &out.Currency.Symbol}, extra...)...)
+}
+
+// GrowGrid is a compare-and-set on the village's grid growth.
+func (r *SettlementRepository) GrowGrid(ctx context.Context, id string, from, to int) error {
+	tag, err := r.q.Exec(ctx,
+		`UPDATE cities SET grid_growth = $3 WHERE id = $1::uuid AND grid_growth = $2`, id, from, to)
+	if err != nil {
+		return fmt.Errorf("postgres: growing the grid of %s: %w", id, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return application.ErrGridGrowthConflict
+	}
+	return nil
 }
 
 // ByFoundingGroup returns the settlement this chat already founded, or
@@ -413,4 +448,33 @@ func (r *SettlementRepository) ResidentCount(ctx context.Context, settlementID s
 		return 0, fmt.Errorf("postgres: counting the residents of %s: %w", settlementID, err)
 	}
 	return n, nil
+}
+
+// Promote moves a settlement one tier up. See application.SettlementRepository.
+func (r *SettlementRepository) Promote(ctx context.Context, p application.SettlementPromotion) (bool, error) {
+	if !isUUID(p.SettlementID) || !isUUID(p.JurisdictionID) {
+		return false, application.ErrCityNotFound
+	}
+	tag, err := r.q.Exec(ctx,
+		`UPDATE cities SET tier = $2 WHERE id = $1::uuid AND origin = 'founded' AND tier = $3`,
+		p.SettlementID, p.To, p.From)
+	if err != nil {
+		return false, fmt.Errorf("postgres: promoting settlement %s: %w", p.SettlementID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return false, nil
+	}
+	if _, err := r.q.Exec(ctx, `UPDATE jurisdictions SET kind = $2 WHERE id = $1::uuid`, p.JurisdictionID, p.To); err != nil {
+		return false, fmt.Errorf("postgres: promoting the jurisdiction of %s: %w", p.SettlementID, err)
+	}
+	if err := r.createVacantSeats(ctx, p.To, p.JurisdictionID, p.At); err != nil {
+		return false, err
+	}
+	if _, err := r.q.Exec(ctx,
+		`INSERT INTO audit_logs (actor, action, target_type, target_id, old_value, new_value, reason, created_at)
+		 VALUES ($1, 'settlement.promote', 'settlement', $2::uuid, $3, $4, 'tier promotion', $5)`,
+		"player:"+p.Actor, p.SettlementID, []byte(`{"tier":"`+p.From+`"}`), []byte(`{"tier":"`+p.To+`"}`), p.At.UTC()); err != nil {
+		return false, fmt.Errorf("postgres: writing the promotion audit row: %w", err)
+	}
+	return true, nil
 }

@@ -1,0 +1,208 @@
+━━━ Village overview · the way to a town, part way ━━━
+(edits message 42)
+🏘 the village of Korendal
+
+👥 Population: 6 of 12
+
+🏦 Village treasury: 7,400 SUP
+
+🌾 Food coverage: 40%
+💼 Job coverage: 0%
+🏥 Service coverage: 0%
+🙂 Happiness: 0%
+🛡 Local security: 0%
+📖 Literacy: 12%
+
+No buildings stand here yet.
+
+🧭 The way to becoming a town:
+▫️ Residents: 6 of 8
+▫️ Literacy: 12% of 20%
+▫️ Finished buildings (roads not counted): 3 of 5
+✅ A food building (a farm or a pasture)
+▫️ A teaching building (a teaching circle)
+▫️ A health building (a health house)
+▫️ Things the village learned itself (researched or bought): 1 of 2
+✅ Treasury: 7,400 SUP of 2,000 SUP
+  ───
+  [🏡 Become a resident] → settlement:join
+  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [🧱 Stock and market] → settlement:materials
+  [👥 People] → settlement:who
+  [🧭 The way to a town] → settlement:promotion.view
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
+
+━━━ Village overview · ready to promote (the head) ━━━
+(edits message 42)
+🏘 the village of Korendal
+
+👥 Population: 10 of 12
+
+🏦 Village treasury: 5,100 SUP
+
+🌾 Food coverage: 80%
+💼 Job coverage: 0%
+🏥 Service coverage: 0%
+🙂 Happiness: 0%
+🛡 Local security: 0%
+📖 Literacy: 26%
+
+No buildings stand here yet.
+
+🧭 The way to becoming a town:
+✅ Residents: 10 of 8
+✅ Literacy: 26% of 20%
+✅ Finished buildings (roads not counted): 7 of 5
+✅ A food building (a farm or a pasture)
+✅ A teaching building (a teaching circle)
+✅ A health building (a health house)
+✅ Things the village learned itself (researched or bought): 3 of 2
+✅ Treasury: 5,100 SUP of 2,000 SUP
+
+🌱 This is your home: buy land, build a house and help the village grow.
+  ───
+  [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
+  [⚒ Work in the village] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
+  [🧾 My property] → settlement:mine   │   [👥 People] → settlement:who
+  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [🧱 Stock and market] → settlement:materials
+  [🚀 Promote to town] → settlement:promote
+  [🚪 Leave the village] → settlement:leave
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
+
+━━━ Village overview · a town has no promotion block at the top ━━━
+(edits message 42)
+🏙 the city of Korendal
+
+👥 Population: 90 of 120
+
+🏦 Village treasury: 90,000 SUP
+
+🌾 Food coverage: 0%
+💼 Job coverage: 0%
+🏥 Service coverage: 0%
+🙂 Happiness: 0%
+🛡 Local security: 0%
+📖 Literacy: 70%
+
+No buildings stand here yet.
+  ───
+  [🏡 Become a resident] → settlement:join
+  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [🧱 Stock and market] → settlement:materials
+  [👥 People] → settlement:who
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
+
+━━━ The way forward · part way ━━━
+(edits message 42)
+🧭 The way to becoming a town - Korendal
+
+Korendal grows into a town by developing, not by taking more land: people, literacy, buildings, knowledge and a healthy treasury. These are the steps ahead:
+
+▫️ Residents: 6 of 8
+▫️ Literacy: 12% of 20%
+▫️ Finished buildings (roads not counted): 3 of 5
+✅ A food building (a farm or a pasture)
+▫️ A teaching building (a teaching circle)
+▫️ A health building (a health house)
+▫️ Things the village learned itself (researched or bought): 1 of 2
+✅ Treasury: 7,400 SUP of 2,000 SUP
+
+Every step taken turns ✅ here. When all are ✅ the head gets the promotion button.
+  ───
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:promotion.view
+
+━━━ The way forward · ready, the head ━━━
+(edits message 42)
+🧭 The way to becoming a town - Korendal
+
+Korendal grows into a town by developing, not by taking more land: people, literacy, buildings, knowledge and a healthy treasury. These are the steps ahead:
+
+✅ Residents: 10 of 8
+✅ Literacy: 26% of 20%
+✅ Finished buildings (roads not counted): 7 of 5
+✅ A food building (a farm or a pasture)
+✅ A teaching building (a teaching circle)
+✅ A health building (a health house)
+✅ Things the village learned itself (researched or bought): 3 of 2
+✅ Treasury: 5,100 SUP of 2,000 SUP
+
+🎉 Every step is taken. You can now promote Korendal to a town.
+  ───
+  [🚀 Promote to town] → settlement:promote
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:promotion.view
+
+━━━ The way forward · ready, a member ━━━
+(edits message 42)
+🧭 The way to becoming a town - Korendal
+
+Korendal grows into a town by developing, not by taking more land: people, literacy, buildings, knowledge and a healthy treasury. These are the steps ahead:
+
+✅ Residents: 10 of 8
+✅ Literacy: 26% of 20%
+✅ Finished buildings (roads not counted): 7 of 5
+✅ A food building (a farm or a pasture)
+✅ A teaching building (a teaching circle)
+✅ A health building (a health house)
+✅ Things the village learned itself (researched or bought): 3 of 2
+✅ Treasury: 5,100 SUP of 2,000 SUP
+
+🎉 Every step is taken. Promoting is up to the head.
+  ───
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:promotion.view
+
+━━━ Promotion · confirm (town) ━━━
+(edits message 42)
+🚀 Promote Korendal to a town?
+
+The village head becomes the town head and keeps leading; building opens up and new buildings and knowledge appear. Promotion is free and cannot be undone; the group is told.
+  ───
+  [✅ Yes, promote] → settlement:promote:confirm
+  [🔙 Back] → settlement:overview
+
+━━━ Promotion · done (town) ━━━
+(edits message 42)
+🎉 Korendal is now a town!
+
+The village head is now the town head. The town's new buildings and knowledge show in the build and knowledge lists, and the group has been told.
+  ───
+  [🏗 Construction] → settlement:build   │   [📚 Village knowledge] → settlement:knowledge
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:overview
+
+━━━ Promotion · confirm (city) ━━━
+(edits message 42)
+🚀 Promote Korendal to a city?
+
+The town head becomes the mayor and keeps leading; the city government with taxes, a council and elections starts. Promotion is free and cannot be undone; the group is told.
+  ───
+  [✅ Yes, promote] → settlement:promote:confirm
+  [🔙 Back] → settlement:overview
+
+━━━ Promotion · done (city) ━━━
+(edits message 42)
+🎉 Korendal is now a city!
+
+The town head is now the mayor. City affairs are open, and the group has been told.
+  ───
+  [🏗 Construction] → settlement:build   │   [📚 Village knowledge] → settlement:knowledge
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:overview
+
+━━━ Promotion · refused, the top of the ladder ━━━
+(edits message 42)
+🏙 This settlement has reached the highest tier; there is no step beyond.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Village news · promoted ━━━
+(edits message 42)
+🎉 Korendal has grown into a town! Kaveh is now the town head, and new buildings and knowledge are open.
+  ───
+  [🏘 Village] → settlement:overview
+
+━━━ Village news · promoted among others ━━━
+(edits message 42)
+🏘 News from Korendal:
+• 🏗 The Canal farm is built.
+• 🎉 Grew into a town; Kaveh is now the town head.
+  ───
+  [🏘 Village] → settlement:overview

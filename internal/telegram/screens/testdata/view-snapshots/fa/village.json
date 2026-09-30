@@ -1,14 +1,486 @@
 [
   {
-    "title": "Lot grid · a mix of states, rotatable building",
+    "title": "Building panel · a granary with its stock",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "granary",
+        "name": "انبار غله"
+      },
+      "can_manage": true,
+      "description": "انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد.",
+      "effects": null,
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "storage",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "storage",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": [
+        {
+          "item": {
+            "code": "timber",
+            "name": "چوب"
+          },
+          "kind": "component",
+          "qty": 15
+        },
+        {
+          "item": {
+            "code": "wheat",
+            "name": "گندم"
+          },
+          "kind": "item",
+          "qty": 120
+        }
+      ],
+      "stock_capacity": 360,
+      "stock_used": 135,
+      "teaching": false,
+      "tier": 1,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 20,
+      "w": 1,
+      "x": 4,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · an empty store",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "granary",
+        "name": "انبار غله"
+      },
+      "can_manage": false,
+      "description": "انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد.",
+      "effects": null,
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "storage",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "storage",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "stock_capacity": 0,
+      "stock_used": 0,
+      "teaching": false,
+      "tier": 1,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 0,
+      "w": 1,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · a teaching circle, the head sees the upgrade",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "teaching_circle",
+        "name": "حلقهٔ آموزش"
+      },
+      "can_manage": true,
+      "description": "آموزش اهالی؛ تا وقتی این بنا سر پاست، سواد میان اهالی کم‌کم پخش می‌شود.",
+      "effects": null,
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": true,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "school",
+      "left_seconds": 0,
+      "literacy_percent": 34,
+      "mode": "",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "education",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "stock_capacity": 0,
+      "stock_used": 0,
+      "teaching": true,
+      "tier": 1,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 25,
+      "w": 1,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · the upgrade, revealed when pressed",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "teaching_circle",
+        "name": "حلقهٔ آموزش"
+      },
+      "can_manage": true,
+      "description": "آموزش اهالی؛ تا وقتی این بنا سر پاست، سواد میان اهالی کم‌کم پخش می‌شود.",
+      "effects": null,
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": true,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "school",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "up",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "education",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "stock_capacity": 0,
+      "stock_used": 0,
+      "teaching": false,
+      "tier": 1,
+      "treasury": 0,
+      "upgrades": [
+        {
+          "available": false,
+          "build_time_seconds": 14400,
+          "building": {
+            "code": "school",
+            "name": "مدرسه"
+          },
+          "cost_money": 9000,
+          "missing": [
+            {
+              "code": "record_keeping",
+              "name": "دفترداری"
+            }
+          ],
+          "needs_tier": "",
+          "tier": 2
+        }
+      ],
+      "upkeep": 0,
+      "w": 1,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · the civic hall",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "civic_hall",
+        "name": "خانهٔ دهیاری"
+      },
+      "can_manage": true,
+      "description": "دل اداریِ روستا؛ دهیار از اینجا روستا را اداره می‌کند. خزانه، دانش و ساخت‌وساز روستا از همین‌جا در دسترس است.",
+      "effects": null,
+      "finish_at": null,
+      "h": 2,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "civic_hall",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "",
+      "population": 34,
+      "progress_percent": 0,
+      "research": {
+        "finish_at": null,
+        "knowledge": {
+          "code": "canal_irrigation",
+          "name": "آبیاری نهری"
+        },
+        "left_seconds": 2460
+      },
+      "role": "",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "stock_capacity": 0,
+      "stock_used": 0,
+      "teaching": false,
+      "tier": 0,
+      "treasury": 24600,
+      "upgrades": null,
+      "upkeep": 20,
+      "w": 2,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · a watch hut",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "watch_hut",
+        "name": "دیده‌بانی محله"
+      },
+      "can_manage": false,
+      "description": "پاسداری از روستا؛ امنیت محلی را بالا می‌برد.",
+      "effects": [
+        {
+          "target": "local_security_bps",
+          "value": 300
+        }
+      ],
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "security",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "security",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "stock_capacity": 0,
+      "stock_used": 0,
+      "teaching": false,
+      "tier": 1,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 30,
+      "w": 1,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · a road",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "road",
+        "name": "جاده"
+      },
+      "can_manage": true,
+      "description": "جادهٔ روستا؛ قطعه‌ها را به هم می‌رساند و راه رفت‌وآمد اهالی است. کار دیگری ندارد.",
+      "effects": null,
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "road",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "stock_capacity": 0,
+      "stock_used": 0,
+      "teaching": false,
+      "tier": 0,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 2,
+      "w": 1,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · under construction, the head may cancel",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "carpentry_workshop",
+        "name": "کارگاه نجاری"
+      },
+      "can_manage": true,
+      "description": "کارگاه ساخت‌وساز و صنعت؛ پایهٔ تولید کالا در روستاست.",
+      "effects": null,
+      "finish_at": "2026-09-23T12:35:00Z",
+      "h": 2,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "generic",
+      "left_seconds": 5400,
+      "literacy_percent": 0,
+      "mode": "",
+      "population": 0,
+      "progress_percent": 42,
+      "research": null,
+      "role": "craft",
+      "rotated": false,
+      "started_at": null,
+      "state": "building",
+      "stock": null,
+      "stock_capacity": 0,
+      "stock_used": 0,
+      "teaching": false,
+      "tier": 1,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 0,
+      "w": 2,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · demolishing asks first",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "granary",
+        "name": "انبار غله"
+      },
+      "can_manage": true,
+      "description": "انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد.",
+      "effects": null,
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "storage",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "dm",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "storage",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "stock_capacity": 0,
+      "stock_used": 0,
+      "teaching": false,
+      "tier": 0,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 0,
+      "w": 1,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · cancelling asks first",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "carpentry_workshop",
+        "name": "کارگاه نجاری"
+      },
+      "can_manage": true,
+      "description": "building.desc.code.carpentry_workshop",
+      "effects": null,
+      "finish_at": null,
+      "h": 2,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "generic",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "cx",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "",
+      "rotated": false,
+      "started_at": null,
+      "state": "building",
+      "stock": null,
+      "stock_capacity": 0,
+      "stock_used": 0,
+      "teaching": false,
+      "tier": 0,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 0,
+      "w": 2,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Batch · the total of three roads",
+    "screen": "settlement_build_batch_confirm",
+    "view": {
+      "build_time_seconds": 600,
+      "building": {
+        "code": "road",
+        "name": "جاده"
+      },
+      "cost_money": 150,
+      "count": 3,
+      "lots": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 1,
+          "y": 0
+        },
+        {
+          "x": 2,
+          "y": 0
+        }
+      ],
+      "materials": null,
+      "settlement_name": "کورندال"
+    }
+  },
+  {
+    "title": "Lot grid · picking the first lot of a run of roads",
     "screen": "settlement_build_lots",
     "view": {
       "building": {
-        "code": "militia_camp",
-        "name": "اردوگاه میلیشیا"
+        "code": "road",
+        "name": "جاده"
       },
-      "can_rotate": true,
+      "can_rotate": false,
+      "from": {
+        "x": 0,
+        "y": 0
+      },
       "grid_lots": 5,
+      "line": "line",
+      "multi": true,
       "rotated": false,
       "rows": [
         [
@@ -172,7 +644,1060 @@
           }
         ]
       ],
-      "settlement_name": "کورندال"
+      "settlement_name": "کورندال",
+      "win_x": 0,
+      "win_y": 0
+    }
+  },
+  {
+    "title": "Lot grid · picking the last lot of the run",
+    "screen": "settlement_build_lots",
+    "view": {
+      "building": {
+        "code": "road",
+        "name": "جاده"
+      },
+      "can_rotate": false,
+      "from": {
+        "x": 1,
+        "y": 0
+      },
+      "grid_lots": 5,
+      "line": "end",
+      "multi": true,
+      "rotated": false,
+      "rows": [
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 1,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "water",
+            "x": 3,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 0
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 4,
+            "y": 1
+          }
+        ],
+        [
+          {
+            "fits": false,
+            "state": "road",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 2
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 4,
+            "y": 2
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 3,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 3
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 4
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 1,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 4
+          }
+        ]
+      ],
+      "settlement_name": "کورندال",
+      "win_x": 0,
+      "win_y": 0
+    }
+  },
+  {
+    "title": "Placement · the preview names the roads laid with the building",
+    "screen": "settlement_build_confirm",
+    "view": {
+      "auto_roads": 2,
+      "build_time_seconds": 2700,
+      "building": {
+        "code": "cottage",
+        "name": "خانهٔ روستایی"
+      },
+      "cost_money": 720,
+      "materials": [
+        {
+          "component": {
+            "code": "timber",
+            "name": "چوب"
+          },
+          "quantity": 2
+        }
+      ],
+      "rotated": false,
+      "settlement_name": "کورندال",
+      "x": 4,
+      "y": 4
+    }
+  },
+  {
+    "title": "Land · a grid wider than a keyboard row is a window over the land",
+    "screen": "settlement_build_lots",
+    "view": {
+      "building": {
+        "code": "cottage",
+        "name": "خانهٔ روستایی"
+      },
+      "can_rotate": false,
+      "from": {
+        "x": 0,
+        "y": 0
+      },
+      "grid_lots": 10,
+      "line": "",
+      "multi": false,
+      "rotated": false,
+      "rows": [
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 0
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 1
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 2
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 3
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 4
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 5
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 6
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 7
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 8
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 9
+          }
+        ]
+      ],
+      "settlement_name": "کورندال",
+      "win_x": 4,
+      "win_y": 4
+    }
+  },
+  {
+    "title": "Land · the price of the next expansion",
+    "screen": "settlement_grid_grow",
+    "view": {
+      "buildable_gained": 9,
+      "lots_gained": 11,
+      "new_side": 6,
+      "price": 550,
+      "settlement_name": "کورندال",
+      "side": 5,
+      "treasury": 12400
+    }
+  },
+  {
+    "title": "Lot grid · a mix of states, rotatable building",
+    "screen": "settlement_build_lots",
+    "view": {
+      "building": {
+        "code": "militia_camp",
+        "name": "اردوگاه میلیشیا"
+      },
+      "can_rotate": true,
+      "from": {
+        "x": 0,
+        "y": 0
+      },
+      "grid_lots": 5,
+      "line": "",
+      "multi": false,
+      "rotated": false,
+      "rows": [
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 1,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "water",
+            "x": 3,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 0
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 4,
+            "y": 1
+          }
+        ],
+        [
+          {
+            "fits": false,
+            "state": "road",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 2
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 4,
+            "y": 2
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 3,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 3
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 4
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 1,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 4
+          }
+        ]
+      ],
+      "settlement_name": "کورندال",
+      "win_x": 0,
+      "win_y": 0
     }
   },
   {
@@ -184,7 +1709,13 @@
         "name": "اردوگاه میلیشیا"
       },
       "can_rotate": true,
+      "from": {
+        "x": 0,
+        "y": 0
+      },
       "grid_lots": 5,
+      "line": "",
+      "multi": false,
       "rotated": true,
       "rows": [
         [
@@ -348,7 +1879,9 @@
           }
         ]
       ],
-      "settlement_name": "کورندال"
+      "settlement_name": "کورندال",
+      "win_x": 0,
+      "win_y": 0
     }
   },
   {
@@ -360,7 +1893,13 @@
         "name": "خانهٔ دهیاری"
       },
       "can_rotate": false,
+      "from": {
+        "x": 0,
+        "y": 0
+      },
       "grid_lots": 5,
+      "line": "",
+      "multi": false,
       "rotated": false,
       "rows": [
         [
@@ -524,13 +2063,16 @@
           }
         ]
       ],
-      "settlement_name": "کورندال"
+      "settlement_name": "کورندال",
+      "win_x": 0,
+      "win_y": 0
     }
   },
   {
     "title": "Build confirm · with materials",
     "screen": "settlement_build_confirm",
     "view": {
+      "auto_roads": 0,
       "build_time_seconds": 7200,
       "building": {
         "code": "civic_hall",
@@ -556,6 +2098,7 @@
     "title": "Build confirm · rotated, no materials",
     "screen": "settlement_build_confirm",
     "view": {
+      "auto_roads": 0,
       "build_time_seconds": 2700,
       "building": {
         "code": "militia_camp",
@@ -582,6 +2125,7 @@
       "name": "کورندال",
       "population": 12,
       "population_cap": 100,
+      "promotion": null,
       "resident": true,
       "security_percent": 15,
       "service_percent": 0,

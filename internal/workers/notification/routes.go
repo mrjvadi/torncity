@@ -252,6 +252,8 @@ func Routes() []Route {
 		// its news and its private notice.
 		{Domain: "settlement", Event: "build_started", Name: "realtime", Settlement: villageBuildStarted},
 		{Domain: "settlement", Event: "lot_bought", Name: "realtime", Settlement: villageLotBought},
+		{Domain: "settlement", Event: "build_batch_started", Name: "realtime", Settlement: villageBatchStarted},
+		{Domain: "settlement", Event: "grid_grown", Name: "realtime", Settlement: villageGridGrown},
 		{Domain: "settlement", Event: "built", Name: "realtime", Settlement: villageBuilt},
 		{Domain: "settlement", Event: "build_cancelled", Name: "realtime", Settlement: villageCancelled},
 		{Domain: "settlement", Event: "building_demolished", Name: "realtime", Settlement: villageDemolished},
@@ -260,6 +262,7 @@ func Routes() []Route {
 		{Domain: "settlement", Event: "knowledge_researched", Name: "realtime", Settlement: villageResearched},
 		{Domain: "settlement", Event: "knowledge_bought", Name: "realtime", Settlement: villageBought},
 		{Domain: "settlement", Event: "literacy_advanced", Name: "realtime", Settlement: villageLiteracy},
+		{Domain: "settlement", Event: "promoted", Name: "realtime", Settlement: villagePromoted},
 		{Domain: "governance", Event: "appointed", Name: "realtime", Settlement: governanceHead(false)},
 		{Domain: "governance", Event: "dismissed", Name: "realtime", Settlement: governanceHead(true)},
 		{Domain: "election", Event: "counted", Name: "realtime", Settlement: electionHead},
@@ -274,6 +277,7 @@ func Routes() []Route {
 		{Domain: "settlement", Event: "literacy_advanced", Name: "news", News: newsTaught},
 		{Domain: "residence", Event: "changed", Name: "news", News: newsResidentJoined},
 		{Domain: "settlement", Event: "donated", Name: "news", News: newsDonated},
+		{Domain: "settlement", Event: "promoted", Name: "news", News: newsPromoted},
 	}
 }
 

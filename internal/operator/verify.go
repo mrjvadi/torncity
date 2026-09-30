@@ -167,6 +167,14 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(c.CitizenPaidToPlayer == 0, fmt.Sprintf("no citizen-loop reason ever credits a player (%d entries)", c.CitizenPaidToPlayer))
 	}
 
+	if v.Village {
+		t := v.VillageInvariants
+		out.add(t.MaterialLedger == t.MaterialRows && t.MaterialMismatched == 0, fmt.Sprintf("materials villages bought from Support in the ledger match the purchase rows (%d = %d), each one treasury-to-sink for its total (%d mismatched)", t.MaterialLedger, t.MaterialRows, t.MaterialMismatched))
+		out.add(t.MaterialItems == t.MaterialItemRows, fmt.Sprintf("bought material units in the item journal match the purchase rows (%d = %d)", t.MaterialItems, t.MaterialItemRows))
+		out.add(t.WageLedger == t.WageRows && t.WageMismatched == 0, fmt.Sprintf("village shift wages in the ledger match the finished shifts (%d = %d), each one the transaction its row names (%d mismatched)", t.WageLedger, t.WageRows, t.WageMismatched))
+		out.add(t.ShiftItems == t.ShiftItemRows, fmt.Sprintf("goods produced by shifts in the item journal match the finished shifts (%d = %d)", t.ShiftItems, t.ShiftItemRows))
+	}
+
 	if v.Life {
 		l := v.LifeInvariants
 		out.add(l.LodgingLedger == l.LodgingRows && l.UnpaidNights == 0, fmt.Sprintf("lodging fees in the ledger match the nights paid for (%d = %d), each with its own fee (%d without)", l.LodgingLedger, l.LodgingRows, l.UnpaidNights))

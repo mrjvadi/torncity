@@ -145,6 +145,11 @@ func GridLotsForTier(tier string, villageLots int) int {
 	return villageLots
 }
 
+// GridLotsGrown is the side of a grid that has grown by growth steps.
+func GridLotsGrown(tier string, villageLots, growth int) int {
+	return GridLotsForTier(tier, villageLots) + growth
+}
+
 // HeadOffice is the code of the office at the top of a settlement of the
 // tier (docs/adr/0028 section 4).
 func HeadOffice(tier string) string {

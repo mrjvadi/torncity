@@ -42,6 +42,11 @@ gateway:
   # flood of identical ones.
   redirect_cooldown: 1m
 
+  # How often one player may press «send it to my private chat» under a group
+  # screen's web-app button, so a mashed button does not flood their private
+  # chat.
+  webapp_private_cooldown: 5s
+
 # The per-bot lease: which gateway instance has the exclusive right to poll a
 # given bot. Two instances polling one bot lose updates rather than duplicating
 # them, because each getUpdates acknowledges the other's.
@@ -333,6 +338,25 @@ travel:
   arrival_xp: 25
 
   # How long a journey takes is the game clock's business: game.time_scale.
+
+  # Where a CONTENT city stands on the generated world ("code=lat:lon",
+  # degrees). A founded village stands on its own world cell; Support has
+  # none, so its spot is set here: a temperate lowland cell of the seed-42
+  # world's great continent, 940 km from any sea (docs/adr/0034). The
+  # distance of a journey with no content route is the great-circle
+  # distance between two such spots on a planet of worldgen.planet_radius_km.
+  city_locations:
+    - "support=32.30:-47.70"
+
+  # Which transport modes (configs/content/transport.yml) serve those
+  # world-derived journeys, and the longest one each will make ("mode=km").
+  # A listed mode needs no facility at either end (a village has none): its
+  # speed and fare per kilometre come from transport.yml, so time and fare
+  # grow with the distance. A destination beyond every listed mode is not offered.
+  world_reach:
+    - "walk=60"
+    - "cart=500"
+    - "car=21000"
 
 # Player-facing defaults.
 player:
@@ -1063,6 +1087,18 @@ settlement:
   # How many lots, each way, the grid may slide from its cell's centre to
   # find a placement that meets the share before the cell is passed over.
   grid_shift_max_lots: 3
+  # Land (docs/adr/0033 section 8.4, as corrected: never capped by tier). The
+  # head buys one expansion at a time - a column east and a row north, so the
+  # grid grows by one lot a side and no building moves. A step costs its new
+  # lots x grid_lot_price, dearer by grid_price_step_bps for each expansion
+  # already bought. grid_max_lots is a TECHNICAL bound on a grid's side (a
+  # layout stays a sane size to sample, send and draw), not a game rule.
+  grid_max_lots: 41
+  grid_lot_price: 50
+  grid_price_step_bps: 500
+  # What the treasury pays for each lot of road the game lays by itself to
+  # connect a new building (a road laid by hand costs 50).
+  auto_road_cost: 10
   # The founding form (docs/adr/0028 section 3): «ساخت روستا» opens a draft
   # that the founder completes in the game client - name, national currency,
   # emblem - and only its submission founds the village. An open draft waits
@@ -1096,6 +1132,20 @@ settlement:
   # The share of a demolished building's own money cost credited back to
   # the settlement's treasury (ADR 0028 section 6.2).
   demolition_salvage_bps: 2000
+  # What a village pays Support for a material it buys with SUP from its
+  # treasury (ADR 0033 section 4.1; items.yml village_buy): the component's
+  # reference price times this over 10000. 12000 = the reference price + 20 %,
+  # so producing a material at a workplace is always cheaper than buying it.
+  material_markup_bps: 12000
+  # How many units of goods a village's stock holds without a granary (each
+  # standing building's `storage` in settlement_buildings.yml adds to it), and
+  # the most units of one material bought in one purchase. The base capacity
+  # must hold the largest single building cost, or a village could never
+  # stock what it needs to build; production and purchases stop at the
+  # capacity, so a granary is what lets a village keep more.
+  stock_base_capacity: 60
+  material_buy_max: 200
+  material_buy_presets: [5, 20, 50]
   # Village treasury start-up. A village has no income until its abstract
   # sales exist (ADR 0028 section 8.3), so it is founded with this many SUP
   # in its treasury (system_source -> city_treasury, reason

@@ -147,6 +147,10 @@ type TravelHandler struct {
 	// departs from the place its mode stops at, and lands there. Nil (a
 	// test without places) departs from anywhere and lands at the default.
 	places ContentSource
+	// world prices the journeys no content route joins: a founded village
+	// stands on the world, not in routes.yml (travel_world.go). Nil offers
+	// content routes only.
+	world *WorldRoutes
 }
 
 // WithPlaces makes the handler honour city places: a departure only from the
@@ -341,6 +345,13 @@ func (h *TravelHandler) planTrip(ctx context.Context, tx application.Tx, p *appl
 	}
 
 	options, version := h.network.Options(from.Code, to.Code)
+	if len(options) == 0 {
+		// No content route joins them: a journey to or from a founded
+		// village is priced from where the two stand on the world.
+		if options, version, err = h.worldOptions(ctx, tx, *from, *to); err != nil {
+			return t, err
+		}
+	}
 	t.contentVersion = version
 	if len(options) == 0 {
 		// No mode's network reaches there: for the player, there is no
@@ -479,6 +490,12 @@ func optionsView(t trip, cash int64, requoted bool) screens.TravelOptionsView {
 // charges nothing, so it reserves no idempotency key: a refresh must always
 // show the prices of now.
 func (h *TravelHandler) Options(ctx context.Context, meta envelope.Metadata, req TravelOptionsRequest) (*presenter.Response, error) {
+	return h.options(ctx, meta, req, meta.InGroup())
+}
+
+// options is Options. shared says the answer is posted where others read it
+// (a group), so it leaves the player's purse out.
+func (h *TravelHandler) options(ctx context.Context, meta envelope.Metadata, req TravelOptionsRequest, shared bool) (*presenter.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -509,16 +526,18 @@ func (h *TravelHandler) Options(ctx context.Context, meta envelope.Metadata, req
 		view = optionsView(t, cash.Balance.Minor(), false)
 		return nil
 	})
+	sc := h.screen(meta, lang)
+	sc.Shared = shared
 	if v, ok := asBlocked(err); ok {
-		return screens.SanctionBlocked(h.screen(meta, lang), v), nil
+		return screens.SanctionBlocked(sc, v), nil
 	}
 	if v, ok := asWarBlocked(err); ok {
-		return screens.WarBlocked(h.screen(meta, lang), v), nil
+		return screens.WarBlocked(sc, v), nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return screens.TravelOptions(h.screen(meta, lang), view), nil
+	return screens.TravelOptions(sc, view), nil
 }
 
 // errRequote ends a departure's transaction without writing anything, so the
@@ -1163,13 +1182,13 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 		}
 
 		ev, err := events.New("travel.completed", "travel", t.ID, map[string]any{
-			"travel_id":  t.ID,
-			"player_id":  playerID,
+			"travel_id":    t.ID,
+			"player_id":    playerID,
 			"from_city_id": t.FromCityID,
 			"to_city_id":   t.ToCityID,
 			"mode":         t.Mode,
-			"xp":         h.arrivalXP,
-			"levels":     levelNumbers(ups),
+			"xp":           h.arrivalXP,
+			"levels":       levelNumbers(ups),
 		})
 		if err != nil {
 			return err

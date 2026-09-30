@@ -36,6 +36,11 @@ commands:
   travel.options: {channel: private}
   travel.start: {channel: private}
   travel.status: {channel: private}
+  # «سفر به این روستا» in a village's group: the journey to that group's
+  # village from wherever the player stands. The fares are the player's own
+  # (their vehicle, their purse), so the answer goes to their PV and the group
+  # sees one neutral line. The web asks for the same screens with client: true.
+  travel.here: {channel: both, reply: private}
 
   skills.list: {channel: private}
 
@@ -400,9 +405,21 @@ commands:
   settlement.build: {channel: group, client: true}
   settlement.build.lots: {channel: group, client: true}
   settlement.build.place: {channel: group, client: true}
+  settlement.build.place_many: {channel: group, client: true}
+  # One placed building's own panel: a group screen for the village, and the
+  # private chat shows the village the player lives in.
+  settlement.building.view: {channel: both, client: true}
+  # Buying more land (the grid grows by a column east and a row north).
+  settlement.grid.grow: {channel: group, client: true}
   settlement.build.progress: {channel: group, client: true}
   settlement.build.demolish: {channel: group, client: true}
   settlement.build.cancel: {channel: group, client: true}
+  # The village economy (ADR 0033 section 4.1): the stock and Support's market,
+  # buying materials with the treasury, working a shift. A shift's end is the
+  # scheduler's (settlement.worked).
+  settlement.materials: {channel: group, client: true}
+  settlement.materials.buy: {channel: group, client: true}
+  settlement.work: {channel: group, client: true}
   # Who is around in the village: a group screen (docs/adr/0030, R2); a client
   # asks for it too (it reads the roster of the settlement it lives in).
   settlement.who: {channel: group, client: true}
@@ -423,7 +440,11 @@ commands:
   settlement.home.rest: {channel: both, client: true}
   settlement.tax.pay: {channel: both, client: true}
   settlement.terms: {channel: group, client: true}
-  settlement.work: {channel: both, client: true}
+  # Growing into the next tier (docs/adr/0028 section 4.1): the goals and the
+  # progress on each, and the head's confirmed step. Civic acts, so group
+  # screens; a client asks too (it resolves its own settlement).
+  settlement.promotion.view: {channel: group, client: true}
+  settlement.promote: {channel: group, client: true}
 
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the

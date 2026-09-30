@@ -55,7 +55,9 @@ func (f *fakePresenceRepo) Visibility(_ context.Context, id string) (presence.Vi
 	}
 	return x.Visibility, nil
 }
-func (f *fakePresenceRepo) SetVisibility(context.Context, string, presence.Visibility) error { return nil }
+func (f *fakePresenceRepo) SetVisibility(context.Context, string, presence.Visibility) error {
+	return nil
+}
 func (f *fakePresenceRepo) Facts(_ context.Context, ids []string) (map[string]PresenceFacts, error) {
 	out := map[string]PresenceFacts{}
 	for _, id := range ids {

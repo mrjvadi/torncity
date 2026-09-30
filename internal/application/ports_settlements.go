@@ -240,10 +240,17 @@ type FoundedSettlement struct {
 	WorldCellID    int32
 	// GridShiftX/GridShiftY: see Founding.
 	GridShiftX, GridShiftY int
-	FoundedAt              time.Time
-	ProtectedUntil         time.Time
-	Buildings              []SettlementBuilding
+	// GridGrowth is how many expansions the village has bought: its grid's
+	// side is the tier's base side plus this (migration 0054).
+	GridGrowth     int
+	FoundedAt      time.Time
+	ProtectedUntil time.Time
+	Buildings      []SettlementBuilding
 }
+
+// ErrGridGrowthConflict means the grid was grown by someone else between the
+// read and the write; the caller re-reads and decides again.
+var ErrGridGrowthConflict = errors.Sentinel(errors.CodeConflict, "application.ErrGridGrowthConflict", "the village grid changed meanwhile")
 
 // SettlementRepository is the transactional port behind founding a
 // settlement (ADR 0028 section 3.1), reached through Tx.Settlements so its
@@ -280,9 +287,19 @@ type SettlementRepository interface {
 	// from the existing village instead of running FindSpawn again.
 	ByFoundingGroup(ctx context.Context, chatID int64) (FoundedSettlement, error)
 
+	// GrowGrid moves a village's grid growth from one step count to the next,
+	// only if it is still at from (compare-and-set: two replicas racing to
+	// grow the same village never both win), else ErrGridGrowthConflict.
+	GrowGrid(ctx context.Context, id string, from, to int) error
+
 	// ByID returns one founded settlement (buildings left empty), or
 	// ErrCityNotFound.
 	ByID(ctx context.Context, id string) (FoundedSettlement, error)
+
+	// Founded returns every founded settlement, ordered by code (buildings
+	// left empty): the places a traveller can go to besides the content
+	// cities, with the cell each stands on (ADR 0034).
+	Founded(ctx context.Context) ([]FoundedSettlement, error)
 
 	// ByPlayer returns the settlement a player belongs to: the one whose
 	// top office they hold (head), else the one they live in (their residence).
@@ -316,6 +333,14 @@ type SettlementRepository interface {
 	// currency, and whether the name key is a reserved currency name.
 	CurrencyTaken(ctx context.Context, code, nameKey string) (codeTaken, nameTaken bool, err error)
 
+	// Promote moves a settlement one tier up (ADR 0028 section 4.1) when it
+	// is still at p.From: cities.tier and its jurisdiction's kind both take
+	// p.To, the new tier's office seats are created vacant (an existing seat
+	// is kept), and the audit row is written - one compare-and-swap, so a
+	// redelivered or concurrent promotion changes nothing and reports false.
+	// The caller seats the office holder, in the same transaction.
+	Promote(ctx context.Context, p SettlementPromotion) (changed bool, err error)
+
 	// ResidentCount is how many active players have this settlement as
 	// their home (players.residence_city_id): its population.
 	ResidentCount(ctx context.Context, settlementID string) (int64, error)
@@ -329,4 +354,14 @@ type PlayerSettlement struct {
 	Offices []string
 	// Resident reports that the player's home (residence) is this settlement.
 	Resident bool
+}
+
+// SettlementPromotion is one step up the tier ladder.
+type SettlementPromotion struct {
+	SettlementID   string
+	JurisdictionID string
+	From, To       string
+	// Actor is the player who promoted it, for the audit row.
+	Actor string
+	At    time.Time
 }

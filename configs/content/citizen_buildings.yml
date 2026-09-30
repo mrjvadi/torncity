@@ -21,8 +21,10 @@ version: 1
 # (config settlement.citizen_material_markup_bps above items.yml's base_price).
 # Property tax is assessed on the cost.
 settlement_buildings:
-  - code: cottage
-    name: "کلبهٔ روستایی"
+  - code: private_cottage
+    role: housing
+    tier: 1
+    name: "کلبهٔ شخصی"
     owner: citizen
     permit_class: residential
     home: true
@@ -32,8 +34,10 @@ settlement_buildings:
     build_time: 2h
     effects: [{target: housing_capacity, op: add, value: 2}]
 
-  - code: village_house
-    name: "خانهٔ روستایی"
+  - code: private_house
+    role: housing
+    tier: 1
+    name: "خانهٔ شخصی"
     owner: citizen
     permit_class: residential
     home: true
@@ -47,6 +51,8 @@ settlement_buildings:
       - {target: happiness_bps, op: add, value: 40}
 
   - code: home_workshop
+    role: craft
+    tier: 1
     name: "کارگاه خانگی"
     owner: citizen
     permit_class: craft
@@ -57,6 +63,8 @@ settlement_buildings:
     build_time: 3h
 
   - code: market_stall
+    role: market
+    tier: 1
     name: "غرفهٔ بازار"
     owner: citizen
     permit_class: commerce

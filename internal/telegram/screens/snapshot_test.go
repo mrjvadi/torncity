@@ -166,6 +166,21 @@ func travelScreens(c Context, who people, add func(string, *presenter.Response))
 		}}))
 	add("Map · no routes from here", Map(c, MapView{OriginCode: "vantor_reach", Origin: "Vantor Reach", Page: 1, Pages: 1}))
 	add("Map · not in any city", Map(c, MapView{Page: 1, Pages: 1}))
+	amol, kashan, sari := "Amol", "Kashan", "Sari"
+	if c.Lang == "fa" {
+		amol, kashan, sari = "آمل", "کاشان", "ساری"
+	}
+	add("Map · Support first, then villages priced from the world", Map(c, MapView{OriginCode: "v-ab12", Origin: amol, Page: 1, Pages: 1,
+		Destinations: []MapCity{
+			{Code: "support", Name: "Support", DistanceKM: 1280, Fare: 6400, Wait: 14*time.Hour + 20*time.Minute, Lat: 32.3, Lon: -47.7},
+			{Code: "v-cd34", Name: kashan, DistanceKM: 42, Village: true, SettlementID: "0b7d", Emblem: "🛡 🌾 🔴🟡",
+				Fare: 0, Wait: 8 * time.Minute},
+			{Code: "v-ef56", Name: sari, DistanceKM: 380, Village: true, SettlementID: "9c1e", Emblem: "🏰 🐎 🔵⚪",
+				Fare: 780, Wait: 19 * time.Minute},
+		}}))
+	add("Travel here · the group has no village", TravelHere(c, TravelHereView{Reason: TravelHereNoVillage}))
+	add("Travel here · already in the village", TravelHere(c, TravelHereView{Reason: TravelHereAlreadyThere, Village: amol, VillageCode: "v-ab12"}))
+	add("Travel here · not in a group", TravelHere(c, TravelHereView{Reason: TravelHereGroupOnly}))
 	add("Map · while travelling", Map(c, MapView{Travelling: true, TravellingToCode: "brennhaven", TravellingTo: "Brennhaven",
 		OriginCode: "ostmarch", Origin: "Ostmarch", Page: 1, Pages: 1}))
 	add("Travel options", TravelOptions(c, TravelOptionsView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven",

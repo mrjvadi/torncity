@@ -61,6 +61,8 @@ type SettlementDonation struct {
 // reached through Tx.SettlementTreasury so each commits with its ledger
 // transaction.
 type SettlementTreasuryRepository interface {
+	// The village economy's purchases and shifts (village_economy.go).
+	SettlementEconomyRepository
 	// RecordGrant inserts the settlement's one grant row and reports whether
 	// it was inserted; false means the settlement already had its grant (the
 	// primary key), whichever replica or run made it.

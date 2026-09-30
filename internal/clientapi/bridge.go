@@ -101,7 +101,9 @@ var (
 
 // Limits on what a command may carry.
 const (
-	maxArgs      = 16
+	maxArgs = 16
+	// maxListItems bounds a list argument (a batch of lots).
+	maxListItems = 64
 	maxArgLength = 512
 )
 
@@ -277,7 +279,7 @@ func NormalizeArgs(args map[string]json.RawMessage) (map[string]any, error) {
 			continue
 		}
 		var list []json.RawMessage
-		if json.Unmarshal(raw, &list) != nil || len(list) > maxArgs {
+		if json.Unmarshal(raw, &list) != nil || len(list) > maxListItems {
 			return nil, fmt.Errorf("%w: %s", ErrBadArgs, k)
 		}
 		items := make([]string, 0, len(list))
@@ -336,6 +338,9 @@ func clientAlias(command string, args map[string]json.RawMessage) (string, map[s
 	if command == "settlement.build.place" || command == "settlement.lot.buy" || command == "settlement.private.place" {
 		return command, placeArgs(args)
 	}
+	if command == "settlement.build.place_many" {
+		return command, placeManyArgs(args)
+	}
 	return command, args
 }
 
@@ -364,5 +369,37 @@ func placeArgs(args map[string]json.RawMessage) map[string]json.RawMessage {
 		}
 	}
 	out["lot"], _ = json.Marshal(screens.LotToken(x, y, rotated))
+	return out
+}
+
+// placeManyArgs lets a client name the lots of a batch as objects, {x, y,
+// rotated?}, the way place names one; the handler reads the same lot tokens
+// Telegram's buttons carry, so both go through one validation. A lots list
+// that is already tokens, or a from/to line, is left alone.
+func placeManyArgs(args map[string]json.RawMessage) map[string]json.RawMessage {
+	raw, ok := args["lots"]
+	if !ok {
+		return args
+	}
+	var lots []struct {
+		X       *int `json:"x"`
+		Y       *int `json:"y"`
+		Rotated bool `json:"rotated"`
+	}
+	if json.Unmarshal(raw, &lots) != nil {
+		return args
+	}
+	tokens := make([]string, 0, len(lots))
+	for _, l := range lots {
+		if l.X == nil || l.Y == nil {
+			return args
+		}
+		tokens = append(tokens, screens.LotToken(*l.X, *l.Y, l.Rotated))
+	}
+	out := make(map[string]json.RawMessage, len(args))
+	for k, v := range args {
+		out[k] = v
+	}
+	out["lots"], _ = json.Marshal(tokens)
 	return out
 }

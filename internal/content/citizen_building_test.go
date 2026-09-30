@@ -16,13 +16,14 @@ func TestCitizenBuildingRules(t *testing.T) {
 			t.Errorf("%s: err = %v, want ErrInvalidSettlementBuildingContent", name, err)
 		}
 	}
-	base := SettlementBuildingDef{Code: "x", Name: "X", Footprint: [2]int{1, 1}, CostMoney: 1, BuildTime: "1h"}
+	base := SettlementBuildingDef{Code: "x", Name: "X", Role: "housing", Tier: 1, Footprint: [2]int{1, 1}, CostMoney: 1, BuildTime: "1h"}
 	d := base
 	d.Owner = BuildingOwnerCitizen
 	bad("a citizen building with no permit class", d)
 	d = base
-	d.Owner, d.PermitClass, d.Role = BuildingOwnerCitizen, "residential", "craft"
-	bad("a citizen building with a role", d)
+	d.Owner, d.PermitClass = BuildingOwnerCitizen, "residential"
+	d.RequiresBuildingRole = &RequiresBuildingRoleDef{Role: "craft", Tier: 1}
+	bad("a citizen building that is a promotion", d)
 	d = base
 	d.PermitClass = "residential"
 	bad("a civic building with a permit class", d)
@@ -48,8 +49,8 @@ func TestShippedCitizenCatalogue(t *testing.T) {
 	for _, d := range pack.SettlementBuildings {
 		if d.Private() {
 			private++
-			if d.PermitClass == "" || d.Role != "" {
-				t.Errorf("%s: a private building needs a permit class and has no role", d.Code)
+			if d.PermitClass == "" || d.Role == "" {
+				t.Errorf("%s: a private building needs a permit class and a role", d.Code)
 			}
 			if d.Home {
 				homes++

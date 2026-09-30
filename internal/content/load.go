@@ -131,6 +131,8 @@ type file struct {
 	// Settlement buildings (settlement_buildings.yml): the village
 	// construction catalogue. See settlementbuilding.go.
 	SettlementBuildings []SettlementBuildingDef `yaml:"settlement_buildings"`
+	// The tier ladder (settlement_tiers.yml): see settlementtier.go.
+	SettlementTiers []SettlementTierDef `yaml:"settlement_tiers"`
 
 	// World generation (world.yml): the biomes, resource-geology rules and
 	// naming material worldgen.Generate reads. See worldgen.go. These are
@@ -285,6 +287,7 @@ func Load(dir string) (*Pack, error) {
 		}
 		pack.SettlementKnowledge = append(pack.SettlementKnowledge, doc.SettlementKnowledge...)
 		pack.SettlementBuildings = append(pack.SettlementBuildings, doc.SettlementBuildings...)
+		pack.SettlementTiers = append(pack.SettlementTiers, doc.SettlementTiers...)
 		pack.Biomes = append(pack.Biomes, doc.Biomes...)
 		pack.Resources = append(pack.Resources, doc.Resources...)
 		pack.NameSyllables = append(pack.NameSyllables, doc.NameSyllables...)

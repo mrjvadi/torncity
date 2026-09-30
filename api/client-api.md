@@ -1,6 +1,7 @@
 # Game client API — v1
 
 **Contract version 1.4.** Every 1.x is compatible with 1.0: a client written
+**Contract version 1.5.** Every 1.x is compatible with 1.0: a client written
 for 1.0 keeps working, and a 1.x client reads the new fields as absent on an
 older server. 1.1 adds the world and the village (section 4.3): the
 `settlement` object of the bootstrap, `GET /world`, `GET /world/chunks/…`,
@@ -21,6 +22,19 @@ building, and the commands `settlement.land`, `settlement.lot.buy`,
 `settlement.mine`, `settlement.home.rest`, `settlement.tax.pay`,
 `settlement.terms` and `settlement.work`. Nothing that 1.0, 1.1, 1.2 or 1.3
 returned has changed.
+`currency` on the bootstrap `settlement`. 1.4 adds travel to villages
+(section 4.5): `location` on the bootstrap, villages among the destinations of
+`map.cities` (with `village`, `emblem`, `settlement_id`, `lat`, `lon`, `fare`,
+`wait_seconds`), and the `walk` and `cart` transport modes. 1.5 adds the
+building panel, batch placement, automatic roads and land (section 4.3,
+"Building panels, batches, roads and land"): `settlement.building.view`,
+`settlement.build.place_many`, `settlement.grid.grow`, the `village_batch`,
+`village_no_road` and `village_grid_max` error codes, the realtime publications
+`build_batch_started` and `grid_grown`, `auto_roads` on `build_started`, and a
+`grid.lots` that may be larger than the tier's base side. The content
+catalogue's `settlement_building` entries gain `cap_exempt` (roads), which tells
+a client which buildings it may lay many at a time. Nothing that 1.0,
+1.1, 1.2, 1.3 or 1.4 returned has changed.
 
 The contract between the game and a game client (a native build or the
 Telegram Mini App build). Served by `cmd/clientapi` (package
@@ -299,10 +313,12 @@ A view is attached only when the screen is shown to the player alone.
              "services": ["bank"], "departures": null, "shops": null, "here": false}]}
 ```
 
-**`cities`** (`map.cities`): `{destinations: [{code, name, distance_km}], page, pages, origin_code, origin, travelling, travelling_to_code, travelling_to}`.
+**`cities`** (`map.cities`): `{destinations: [{code, name, distance_km, village, settlement_id, emblem, lat, lon, fare, wait_seconds}], page, pages, origin_code, origin, travelling, travelling_to_code, travelling_to}`.
 
 **`travel_options`** (`travel.options`): `{from_code, from, to_code, to, cash, requoted, options: [{mode_code, mode_name, fare, wait_seconds, energy, busy, vehicle: {code, name} | null, condition}]}`.
 Start a journey with `travel.start {city: to_code, mode: mode_code, max: fare}`.
+
+`fare` and `wait_seconds` (the cheapest fare, the fastest real wait) are set for a destination the world derived (section 4.5) and `0` for one a content route reaches, which is priced when its mode is chosen.
 
 **`travel_status`** (`travel.status`): `{from_code, from, to_code, to, mode_code, mode_name, remaining_seconds, arrives_at}`.
 
@@ -363,6 +379,8 @@ Load once after signing in (and after a content change).
   "places": [{"code": "old_town", "name": "شهر قدیم"}, {"code": "harbour", "name": "بندر"}],
   "server_time": "2026-09-26T10:00:00Z",
   "realtime": true,
+  "location": {"kind": "city", "code": "support", "name": "ساپورت", "home": true,
+               "centre": {"lat": 32.3, "lon": -47.7}},
   "settlement": {
     "id": "4d1c…", "code": "v-k3x9", "name": "آمل", "tier": "village",
     "world_cell": 18211, "centre": {"lat": 36.4, "lon": 52.3, "chunk": {"face": 4, "lod": 10, "x": 523, "y": 512}},
@@ -376,6 +394,51 @@ Names are in the player's language. `places` are the places of the player's
 current city. `realtime` says whether section 5 is available. `settlement`
 (1.1) is the player's own settlement and is absent when they belong to none;
 see 4.3.
+
+#### Where you stand — `bootstrap.location` (1.4)
+
+The place the player stands in **now**, which is not always their own
+settlement (`bootstrap.settlement`): a traveller stands in another group's
+village, or in Support. Absent for a player who is nowhere.
+
+| field | meaning |
+|---|---|
+| `kind` | `city` (a content city: Support) or `settlement` (a founded village) |
+| `code`, `name` | the city's or village's code and its name in the player's language |
+| `centre` | `{lat, lon}` (a village's also carries `chunk`): where it stands on the world |
+| `home` | the player lives here (their residence) |
+| `settlement_id`, `tier`, `world_cell`, `grid_lots`, `layout_path`, `emblem`, `motto`, `currency` | for `kind: "settlement"` only, as on `bootstrap.settlement`. Draw the place with `GET /settlements/{id}/layout` (a stranger gets `detail: "coarse"`, section 4.3) |
+
+Re-read the bootstrap (or `GET /players/{id}/status`) after `travel.completed`
+to learn the new place; `player.city_code` follows it.
+
+---
+
+### 4.5 Travel to Support and to villages (1.4)
+
+Every founded village and Support are destinations for everyone: a traveller is
+not a settler (residence is `settlement.join`), and beginner protection does
+not close a village's door. No route is authored between them; the game derives
+each journey from where the two stand on the world:
+
+```
+distance  = great-circle km between the two spots (haversine, planet radius 6371 km, rounded up, at least 1)
+per mode  = boarding + distance / speed    (game time; the real wait is that / 60, the game clock)
+fare      = base_fare + fare_per_km x distance     (private modes, paid to the system sink)
+modes     = the modes config `travel.world_reach` lists whose reach covers the distance
+```
+
+Today: `walk` (5 km/h, free, up to 60 km), `cart` (20 km/h, 20 + 2/km, up to
+500 km), `car` (90 km/h, 5/km, up to 21 000 km). A place no listed mode reaches
+is not a destination.
+
+The flow is the ordinary one: `map.cities` (Support first, then villages,
+nearest first, paged; `village: true` marks a village) -> `travel.options {city:
+<code>}` -> `travel.start {city, mode, max, method}` -> the scheduler lands the
+player with `travel.arrive`; `players.city_id` (the place) moves, the
+residence does not. A `member_joined` (`via: "travel"`) reaches the destination
+village's settlement channel and a `member_left` the origin's (founded villages
+only; Support has no settlement channel).
 
 ---
 
@@ -511,12 +574,74 @@ Tile `flags`: bit 0 ocean, bit 1 stream, bit 2 lake. `deposit` is `0`, or
 generator's height unit (sea level is not 0; read it against the ocean
 tiles), roughly metres. Coarser LODs carry no local detail and no deposits.
 
+#### Building panels, batches, roads and land (contract 1.5)
+
+**The panel.** `settlement.building.view {building_id, mode?}` answers screen
+`settlement_building_view`; any member may ask, only the head (`can_manage`)
+gets the actions. Every building shows what it IS; demolishing is a small,
+last, confirmed action, never the panel's face. `view`:
+
+| field | meaning |
+|---|---|
+| `id`, `building {code,name}`, `role`, `tier`, `x`, `y`, `w`, `h`, `rotated`, `description` | the building; `description` is what it is and does, in the player's language |
+| `kind` | which panel to draw: `road`, `civic_hall`, `storage`, `school`, `security`, `generic` (draw an unknown kind as `generic`) |
+| `state` | `complete` or `building` |
+| `effects` | `[{target, value}]` what the building adds (basis points, except `housing_capacity`); `upkeep` |
+| `started_at`, `finish_at`, `left_seconds`, `progress_percent` | under construction (0..100, already computed) |
+| `stock` | `storage`: `[{item {code,name}, kind: "component"|"item", qty}]` the village store; the store has no capacity in the content yet, so none is sent |
+| `literacy_percent`, `teaching` | `school`: teaching runs by itself while an education building stands, so it is a state, not a switch |
+| `treasury`, `population`, `research` | `civic_hall`: the village numbers and the research running now |
+| `can_manage`, `has_upgrade`, `mode` | management; `has_upgrade` tells whether the "upgrade" action is worth showing |
+| `upgrades` | only with `mode: "up"`: `[{building, tier, cost_money, build_time_seconds, available, missing}]`, the **next tier of the building's role** from the content's own ladder (a tier-2 building requires a tier-1 one of its role). It is revealed only when pressed. Levels *within* one building are a later phase and nothing here blocks them |
+
+`mode`: `up` reveals the upgrade, `dm` and `cx` are the confirmation screens
+of demolishing a finished building and calling off one going up (the
+confirming press is `settlement.build.demolish` / `settlement.build.cancel`).
+
+**Batch placement.** `settlement.build.place_many {code, lots | from+to,
+confirm?}` starts them all in one command and one transaction: the same
+validation as `place` for every lot (bounds, water, occupied, terrain,
+knowledge, literacy), judged against a grid that already counts the batch's
+own earlier lots; one total spend; one `build_batch_started` publication.
+Without `confirm` it answers `settlement_build_batch_confirm` (`count`, `lots`,
+`cost_money`, `materials`, `build_time_seconds`). Any bad lot refuses the WHOLE batch
+(`village_batch`, every offending lot named). **The cap rule:** the
+concurrent-construction cap (village 1, town 2, city 4) is about big builds;
+the content marks the road `cap_exempt`, so a road never waits for a slot and
+never holds one, alone or in a batch. Only cap-exempt one-lot types can be
+batched (anything else answers `village_not_available`).
+
+**Automatic roads.** `place` also lays the road that connects the building:
+the cheapest run of free buildable lots (Dijkstra over the four neighbours;
+open ground costs more than ground beside buildings, the edge or water, and a
+turn costs extra, so streets run along the edges of what stands and straight)
+from a lot beside the building to a lot beside the network (any road, or the
+civic hall). The roads are finished at once, cost `settlement.auto_road_cost`
+per lot (10), and ride in the same `build_started` (`auto_roads`). A building
+that already touches the network gets none; one no road could reach is refused
+(`village_no_road`) before anything is paid. `settlement_build_confirm` carries
+`auto_roads` (the number of lots) and the cost already includes them. The
+founding kit already puts a road against the hall, so founding needs nothing.
+
+**Land.** A village owns as much land as it pays for: nothing ties the grid
+to the tier. `settlement.grid.grow` adds a column on the **east** edge and a
+row on the **north** edge, so `grid.lots` grows by one and **every stored lot
+coordinate stays valid** (lot (0,0), the south-west corner, and
+`grid.origin` never move; the new lots are sampled by the same sampler, so
+water and steep ground stay unbuildable). The price is the lots gained
+(`2 × side + 1`) × `settlement.grid_lot_price`, dearer by
+`settlement.grid_price_step_bps` for each expansion already bought; the only
+bound is the technical `settlement.grid_max_lots` (41), not a game rule.
+`bootstrap.settlement.grid_lots` and the layout's `grid.lots` include the
+expansions. After an expansion the client re-reads the layout (the
+`grid_grown` publication carries the new `layout_version`).
+
 #### Your settlement — `bootstrap.settlement`
 
 The settlement the player heads (`is_head`) or lives in (`resident`), with
 `centre` (latitude/longitude of the middle of its lot grid, and the base-LOD
 chunk holding it) and the side of the grid, `grid_lots` (5 for a village, 9
-for a town, 15 for a city). Only the head may place, cancel or demolish
+for a town, 15 for a city, plus the expansions the settlement bought). Only the head may place, cancel or demolish
 buildings. Absent when the player belongs to no settlement. Re-read the
 bootstrap after a group founds its village.
 
@@ -594,14 +719,38 @@ needs a group.
 | `settlement.build` | — | the build menu (`settlement_build_menu`) |
 | `settlement.build.lots` | `code`, `rotate`? (`1`) | `settlement_build_lots`: for every lot, `state` and `fits` for this building |
 | `settlement.build.place` | `code`, `x`, `y`, `rotated`? (bool), `confirm`? | without `confirm`: `settlement_build_confirm` (cost, materials, build time), nothing changes. With `confirm: "confirm"`: pays, draws the materials, starts the build, answers `settlement_construction_progress` |
+| `settlement.build.place_many` | `code`, `lots` (`[{x, y}]`, or tokens `"3-1"`), or `from`/`to` (two ends of a line, along the row and then down the column), `confirm`? | lays several one-lot buildings **of a cap-exempt type (roads)** in ONE command; see "Building panels, batches, roads and land" |
+| `settlement.building.view` | `building_id`, `mode`? (`up` \| `dm` \| `cx`) | one placed building's own panel (`settlement_building_view`) |
+| `settlement.grid.grow` | `confirm`? | buys one expansion of the village's land; without `confirm`: `settlement_grid_grow` (price, new side, buildable lots gained) |
 | `settlement.build.cancel` | `id` | calls off a building **under construction**; the spend is forfeited, the lot is free again |
 | `settlement.build.demolish` | `id` | removes a **finished** building; part of its cost returns to the treasury |
 | `settlement.build.progress` | — | what is going up |
+| `settlement.materials` | — | `village_materials`: the village stock (`stock`, `used`, `capacity`) and Support's market (`market`: item, unit price); `can_buy` says whether the viewer may spend the treasury |
+| `settlement.materials.buy` | `item`, `qty`, `confirm`? | the head buys a material from Support's market with SUP from the treasury. Without `confirm`: `village_materials_buy_confirm` (unit price, total), nothing changes. With `confirm: "confirm"`: pays, puts the goods in the stock and answers `village_materials` with `bought` |
+| `settlement.work` | `id`? | without `id`: `village_work`, the workplaces (`places`: `id`, what one shift `produces` and `consumes`, `wage`, `shift`, `workers`, `busy`, `ready`) and the viewer's own shift (`mine`). With `id` (a workplace's building id): a resident starts a timed shift there and the answer is `village_work_started` |
 | `settlement.overview` | — | the village status |
 | `settlement.knowledge` | — | the knowledge list |
 | `settlement.knowledge.research` / `.buy` | `code` | starts a research / buys the item from Support |
 | `settlement.join` | `settlement` (the village id), `confirm`? | makes the village the player's **home** (a player has one). Without `confirm`: `village_residence_confirm`, nothing changes. With `confirm: "confirm"`: moves the home and answers `village_residence_done`; the realtime token then carries `settlement:<id>` (fetch a new one) and the roster gains the player |
 | `settlement.leave` | `settlement`? , `confirm`? | sends the player home to the neutral city, same two steps |
+| `settlement.promotion.view` | — | the way forward: the goals of the **next** tier only (`village_promotion`) |
+| `settlement.promote` | `confirm`? | the head takes the settlement one tier up. Unmet goals answer `village_promotion` (nothing changes); met, without `confirm`: `village_promote_confirm`; with `confirm: "confirm"`: `village_promoted` |
+
+**Tier promotion (contract 1.4, additive).** A settlement grows village → town →
+city by development, not by land. `settlement.overview` carries `promotion`
+(absent at the top of the ladder): `village`, `from`, `to`, `met`, `can_promote`
+(the viewer holds the head office), `office` (the head office after the step)
+and `criteria`, each `{kind, role?, current, required, met}`. `kind` is
+`residents` (people), `literacy` (basis points), `buildings` (finished, roads
+not counted), `role` (`role` names the service, `current`/`required` are the
+building tier standing/needed), `knowledge` (things the village researched or
+bought) or `treasury` (minor units). A village is only ever shown the step to
+the town; the city step appears once it is a town. When `met` and
+`can_promote`, `settlement.promote` is the button. Promotion is free,
+instant and permanent; the sitting head succeeds into the new head office
+(`village_head` → `town_head` → `mayor`), and the settlement's `tier` in
+bootstrap changes. Fetch a new bootstrap/layout after the realtime
+`promoted` publication.
 
 `settlement.overview` carries `resident` (does the viewer live here) and
 `settlement_id`. The village founder is a resident from the moment of founding;
@@ -635,6 +784,9 @@ sentence Telegram shows, in the player's language):
 | `village_concurrent_cap` | as many builds running as the tier allows |
 | `village_insufficient_funds` | the treasury cannot pay |
 | `village_materials` | the village stock lacks a material |
+| `village_batch` | (1.5) a batch was refused as a whole; `view.lots` is `[{x, y, kind}]`, every offending lot with its own kind (`occupied`, `unbuildable`, `out_of_bounds`, `terrain`, `prerequisite`, `literacy`, `concurrent_cap`, `not_available`, `not_found`); nothing was paid or built |
+| `village_no_road` | (1.5) the building could never be reached by road: no free buildable ground beside it leads to the network |
+| `village_grid_max` | (1.5) the land is at the technical bound of a grid's side (`settlement.grid_max_lots`) |
 | `village_not_found` | unknown building type, id or malformed lot |
 | `village_not_demolishable` / `village_not_cancellable` | wrong state for the action |
 | `village_busy`, `village_already_owned`, `village_not_available` | research / purchase refusals |
@@ -642,6 +794,36 @@ sentence Telegram shows, in the player's language):
 | `village_residence_cooldown` | the home moved too recently (the message names the wait) |
 | `village_holds_office` | the head cannot leave the village |
 | `village_no_home` | the city to return to is not configured |
+| `village_storage_full` | (additive) the village stock has no room; a granary adds room |
+| `village_already_working` / `village_workplace_full` / `village_not_workplace` | (additive) shift refusals: the resident already works, every place is taken, the building cannot be worked in |
+
+**The prerequisite path (additive).** A `village_materials` or
+`village_prerequisite` refusal of a build, a research or a shift also carries
+what is missing and where it comes from, in `view`:
+
+```json
+{"kind": "materials", "back": "settlement:build", "action": "build",
+ "subject": {"code": "housing_block", "name": "بلوک مسکونی"},
+ "needs": [{"kind": "material", "item": {"code": "timber", "name": "Timber"},
+            "have": 2, "need": 10, "price": 18,
+            "makers": [{"building": {"code": "woodcutter_camp", "name": "…"}, "built": false}]}]}
+```
+
+`needs[].kind` is `material` (`have`, `need`, the `makers` that produce it —
+standing ones first — and Support's unit `price`, absent when the village
+cannot buy it), `knowledge` (`item`, or `options`: the items that provide a
+capability) or `building` (`options`: the buildings of the role a promotion
+needs). Only what the village is already offered is named. The `actions` of the
+refusal carry the buttons to the sources (`settlement.build.lots`,
+`settlement.work`, `settlement.materials.buy`, `settlement.knowledge`).
+
+**What is listed (additive).** The build menu, `settlement.build.lots` and
+`settlement.build.place` follow the settlement's tier: a village lists only
+tier 1 buildings whose knowledge it holds (a bank, port or airport is a
+city's, barracks and police posts a town's) and refuses the others with
+`village_not_available`. A building still lacking a standing building of a role
+is listed as locked (`missing_buildings`); one whose materials the stock lacks
+carries `short`.
 
 A client learns the outcome of a placement by re-reading the layout (its
 `version` moves) — or, with realtime, from the settlement channel's
@@ -920,6 +1102,9 @@ pictures:
 |---|---|---|
 | `build_started` | `building_id`, `type_code`, `lot_x`, `lot_y`, `rotated`, `finish_at`, `layout_version` | the head, or (1.4) a resident on their own lot, placed a building and paid for it |
 | `lot_bought` | `lot_x`, `lot_y`, `layout_version` | a resident bought a lot (1.4); the versions include who owns what, so refetch the layout when yours differs |
+| `build_started` | `building_id`, `type_code`, `lot_x`, `lot_y`, `rotated`, `finish_at`, `auto_roads`? (1.5: `[{building_id, lot_x, lot_y}]`, roads the game laid with it, already finished), `layout_version` | the head placed a building and paid for it |
+| `build_batch_started` | `type_code`, `count`, `buildings` (`[{building_id, lot_x, lot_y}]`), `finish_at`, `layout_version` | (1.5) the head placed several buildings with one command |
+| `grid_grown` | `grid_lots`, `layout_version` | (1.5) the village bought land: the grid is bigger, fetch the layout |
 | `build_finished` | `building_id`, `type_code`, `layout_version` | construction reached its end |
 | `build_cancelled` | `building_id`, `type_code`, `layout_version` | the head called off a building still going up |
 | `build_salvaged` | `building_id`, `type_code`, `layout_version` | a building was pulled down and its scrap credited |
@@ -929,6 +1114,7 @@ pictures:
 | `knowledge_bought` | `code` | the village bought an item from Support |
 | `literacy_changed` | `literacy_share_bps` | a teaching step finished and literacy moved |
 | `head_changed` | `office`, `vacated`, `layout_stale`, `player_id`?, `player_name`? | the head office was filled or vacated (appointment, dismissal, election); `layout_stale` says who may place changed, so fetch the layout |
+| `promoted` | `from`, `tier`, `office`, `layout_stale`, `head_player_id`? | the settlement grew into the next tier; its grid, build cap and head office changed, so fetch the layout (and the bootstrap for the new `tier`) |
 | `member_joined` | `player_id`, `player_name`?, `via` (`travel` \| `residence`) | someone arrived or moved in |
 | `member_left` | `player_id`, `player_name`?, `via` | someone left or moved out |
 
@@ -1056,7 +1242,8 @@ alias `tc-centrifugo`, admin UI off). On the server both join
 `antispam_default`; exposing them through the reverse proxy is a later step
 (route the API and `/connection/websocket`).
 
-**Migrations**: `0051_founding_form` (1.3: founding drafts, the emblem, motto and
+**Migrations**: `0054_settlement_grid_growth` (1.5: `cities.grid_growth`, the
+expansions a village has bought); `0051_founding_form` (1.3: founding drafts, the emblem, motto and
 name key of a founded village, and the currency a village reserves);
 `0033_client_devices` (tables `client_devices`,
 `client_refresh_tokens`); `0049_village_client` (1.1: a building's turn,

@@ -128,8 +128,8 @@ type FoundingFormView struct {
 	// SuggestedName is the generated place name the form starts from.
 	SuggestedName string `json:"suggested_name"`
 	// DefaultEmblem is an emblem the form starts from.
-	DefaultEmblem FoundingEmblemView `json:"default_emblem"`
-	Limits        FoundingLimitsView `json:"limits"`
+	DefaultEmblem FoundingEmblemView   `json:"default_emblem"`
+	Limits        FoundingLimitsView   `json:"limits"`
 	Shapes        []FoundingChoiceView `json:"shapes"`
 	Palette       []FoundingChoiceView `json:"palette"`
 	Icons         []FoundingChoiceView `json:"icons"`

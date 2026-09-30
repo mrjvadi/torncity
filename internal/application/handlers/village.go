@@ -79,16 +79,24 @@ type VillageHandler struct {
 	scarcityCapBPS        int64
 	sellerBandBPS         int64
 	demolitionSalvageBPS  int64
-	residenceCooldown     time.Duration
-	homeCityCode          string
-	donationMin           int64
-	donationMax           int64
-	donationPresets       []int64
+	// Land and roads (config.Settlement): the technical bound on a grid's
+	// side, the lot price and its step, and the fee per automatic road lot.
+	gridMaxLots        int
+	gridLotPrice       int64
+	gridPriceStepBPS   int64
+	autoRoadCost       int64
+	materialMarkupBPS  int64
+	stockBaseCapacity  int64
+	materialBuyMax     int64
+	materialBuyPresets []int64
+	residenceCooldown  time.Duration
+	homeCityCode       string
+	donationMin        int64
+	donationMax        int64
+	donationPresets    []int64
 
-	// citizen is the citizen loop's tuning and roadsHook its seam to the
-	// automatic roads (village_citizen.go).
-	citizen   CitizenRules
-	roadsHook RoadsHook
+	// citizen is the citizen loop's tuning (village_citizen.go).
+	citizen CitizenRules
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -116,6 +124,21 @@ type VillageRules struct {
 	ScarcityCapBPS        int64
 	SellerBandBPS         int64
 	DemolitionSalvageBPS  int64
+	// GridMaxLots, GridLotPrice, GridPriceStepBPS and AutoRoadCost are
+	// settlement.grid_max_lots, .grid_lot_price, .grid_price_step_bps and
+	// .auto_road_cost.
+	GridMaxLots      int
+	GridLotPrice     int64
+	GridPriceStepBPS int64
+	AutoRoadCost     int64
+	// MaterialMarkupBPS, StockBaseCapacity and MaterialBuyMax are
+	// settlement.material_markup_bps, .stock_base_capacity and
+	// .material_buy_max (village_economy.go).
+	MaterialMarkupBPS int64
+	StockBaseCapacity int64
+	MaterialBuyMax    int64
+	// MaterialBuyPresets are the quantities the buy buttons offer.
+	MaterialBuyPresets []int64
 	// ResidenceCooldown and HomeCityCode are settlement.residence_cooldown
 	// and settlement.home_city_code (village_residence.go).
 	ResidenceCooldown time.Duration
@@ -149,6 +172,14 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 		scarcityCapBPS:        rules.ScarcityCapBPS,
 		sellerBandBPS:         rules.SellerBandBPS,
 		demolitionSalvageBPS:  rules.DemolitionSalvageBPS,
+		gridMaxLots:           rules.GridMaxLots,
+		gridLotPrice:          rules.GridLotPrice,
+		gridPriceStepBPS:      rules.GridPriceStepBPS,
+		autoRoadCost:          rules.AutoRoadCost,
+		materialMarkupBPS:     rules.MaterialMarkupBPS,
+		stockBaseCapacity:     rules.StockBaseCapacity,
+		materialBuyMax:        rules.MaterialBuyMax,
+		materialBuyPresets:    append([]int64(nil), rules.MaterialBuyPresets...),
 		residenceCooldown:     rules.ResidenceCooldown,
 		homeCityCode:          rules.HomeCityCode,
 		idempotencyTTL:        idempotencyTTL,
@@ -191,6 +222,14 @@ type villageRefusal struct {
 	remaining time.Duration
 	// min and max are a donation's bounds, for donate_range.
 	min, max int64
+	// lots are the lots a refused batch names.
+	lots []screens.BatchLotFailure
+	// action, subject and needs are the attempt view of a refused build,
+	// research or shift: exactly what is missing and where it comes from
+	// (village_economy.go).
+	action  string
+	subject screens.Named
+	needs   []screens.VillageNeed
 }
 
 func (e *villageRefusal) Error() string { return "handlers: village refusal: " + e.kind }
@@ -212,7 +251,8 @@ func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err 
 	c := h.screen(meta, lang)
 	var r *villageRefusal
 	if stderrors.As(err, &r) {
-		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: r.kind, Back: r.back, Remaining: r.remaining, Min: r.min, Max: r.max}), nil
+		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: r.kind, Back: r.back, Remaining: r.remaining, Min: r.min, Max: r.max, Lots: r.lots,
+			Action: r.action, Subject: r.subject, Needs: r.needs}), nil
 	}
 	if stderrors.Is(err, application.ErrCityNotFound) {
 		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: screens.VillageNoSettlement}), nil
@@ -269,12 +309,9 @@ func (h *VillageHandler) world(ctx context.Context) (*worldgen.World, error) {
 // section 6.2's permanence rule).
 func (h *VillageHandler) grid(ctx context.Context, tx application.Tx, w *worldgen.World, s application.FoundedSettlement,
 ) (settlementbuilding.Grid, []application.SettlementBuildingInstance, error) {
-	gridLots := h.gridLotsByTier[s.Tier]
-	if gridLots < 1 {
-		gridLots = h.villageGridLots
-	}
+	gridLots := h.gridSide(s)
 	cell := w.Cells[s.WorldCellID]
-	gridLat, gridLon := wsettle.GridCentre(w, cell.Point.LatDeg, cell.Point.LonDeg, s.GridShiftX, s.GridShiftY)
+	gridLat, gridLon := wsettle.GridCentreGrown(w, cell.Point.LatDeg, cell.Point.LonDeg, s.GridShiftX, s.GridShiftY, s.GridGrowth)
 	sampled := wsettle.SampleGrid(w, gridLat, gridLon, gridLots, s.WorldCellID)
 
 	existing, err := tx.SettlementBuildings().List(ctx, s.CityID)
@@ -313,6 +350,16 @@ func (h *VillageHandler) grid(ctx context.Context, tx application.Tx, w *worldge
 		}
 	}
 	return g, existing, nil
+}
+
+// gridSide is the side, in lots, of a settlement's grid now: the tier's base
+// side plus the expansions it has bought.
+func (h *VillageHandler) gridSide(s application.FoundedSettlement) int {
+	base := h.gridLotsByTier[s.Tier]
+	if base < 1 {
+		base = h.villageGridLots
+	}
+	return base + s.GridGrowth
 }
 
 // knowledgeStanding builds the settlementknowledge.Standing a settlement
@@ -423,7 +470,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			}
 		}
 		var roleLines []screens.VillageRoleLine
-		for _, role := range []string{"security", "craft", "extraction", "water_infra", "food", "health", "education", "market", "storage"} {
+		for _, role := range []string{"security", "craft", "forestry", "extraction", "water_infra", "food", "housing", "health", "education", "market", "storage", "recreation"} {
 			if l, ok := byRole[role]; ok {
 				roleLines = append(roleLines, l)
 			}
@@ -442,6 +489,9 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			SecurityPercent:  int(coverage["local_security_bps"] / 100),
 			LiteracyPercent:  literacyBPS / 100,
 			Buildings:        roleLines,
+		}
+		if view.Promotion, err = h.promotionOf(ctx, tx, snap, s, viewer.ID); err != nil {
+			return err
 		}
 		if h.homeCityCode != "" {
 			if support, err := h.cities.ByCode(ctx, h.homeCityCode); err == nil {

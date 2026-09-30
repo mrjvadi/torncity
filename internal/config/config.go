@@ -266,6 +266,9 @@ type Gateway struct {
 	// silently dropped: a player pressing a stale button many times gets one
 	// message per cooldown, not a flood.
 	RedirectCooldown time.Duration // gateway.redirect_cooldown
+	// WebAppPrivateCooldown is how often one player may press «send it to my
+	// private chat» under a group screen's web-app button.
+	WebAppPrivateCooldown time.Duration // gateway.webapp_private_cooldown
 }
 
 // Lease governs the exclusive right to poll one bot.
@@ -435,6 +438,58 @@ type Game struct {
 // policy (city.transit_fare), read only through the policy resolver.
 type Travel struct {
 	ArrivalXP int // travel.arrival_xp
+
+	// CityLocations are "code=lat:lon" entries: where a content city (Support)
+	// stands on the generated world, in degrees. A founded settlement's place
+	// is its own world cell; a content city has none, so its spot is tuning
+	// (ADR 0034). Journeys between places without a content route are priced
+	// by the great-circle distance between these spots.
+	CityLocations []string // travel.city_locations
+	// WorldReach are "mode=km" entries: the transport modes that serve a
+	// world-derived journey and the longest one each will make. A mode not
+	// listed serves content routes only.
+	WorldReach []string // travel.world_reach
+}
+
+// CityLocation is a content city's spot on the world.
+type CityLocation struct{ LatDeg, LonDeg float64 }
+
+// CityLocationMap parses travel.city_locations ("code=lat:lon") by city code.
+func (t Travel) CityLocationMap() (map[string]CityLocation, error) {
+	out := make(map[string]CityLocation, len(t.CityLocations))
+	for i, entry := range t.CityLocations {
+		code, val, ok := strings.Cut(entry, "=")
+		code = strings.TrimSpace(code)
+		latText, lonText, ok2 := strings.Cut(val, ":")
+		lat, err1 := strconv.ParseFloat(strings.TrimSpace(latText), 64)
+		lon, err2 := strconv.ParseFloat(strings.TrimSpace(lonText), 64)
+		if !ok || !ok2 || code == "" || err1 != nil || err2 != nil || lat < -90 || lat > 90 || lon < -180 || lon > 180 {
+			return nil, fmt.Errorf("%w: travel.city_locations[%d] %q is not code=lat:lon (degrees)", ErrInvalidValue, i, entry)
+		}
+		if _, dup := out[code]; dup {
+			return nil, fmt.Errorf("%w: travel.city_locations repeats %q", ErrInvalidValue, code)
+		}
+		out[code] = CityLocation{LatDeg: lat, LonDeg: lon}
+	}
+	return out, nil
+}
+
+// WorldReachMap parses travel.world_reach ("mode=km") by mode code.
+func (t Travel) WorldReachMap() (map[string]int, error) {
+	out := make(map[string]int, len(t.WorldReach))
+	for i, entry := range t.WorldReach {
+		code, val, ok := strings.Cut(entry, "=")
+		code = strings.TrimSpace(code)
+		km, err := strconv.Atoi(strings.TrimSpace(val))
+		if !ok || code == "" || err != nil || km < 1 || km > 100_000 {
+			return nil, fmt.Errorf("%w: travel.world_reach[%d] %q is not mode=km (1..100000)", ErrInvalidValue, i, entry)
+		}
+		if _, dup := out[code]; dup {
+			return nil, fmt.Errorf("%w: travel.world_reach repeats %q", ErrInvalidValue, code)
+		}
+		out[code] = km
+	}
+	return out, nil
 }
 
 // Player holds player-facing defaults.
@@ -662,6 +717,24 @@ type Settlement struct {
 	// slide from its cell's centre to find a placement that meets the share.
 	GridShiftMaxLots int // settlement.grid_shift_max_lots
 
+	// Land (the grid's growth, docs/adr/0033 section 8.4 as the owner
+	// corrected it): a village owns as much land as it pays for. Growth is
+	// never tied to the tier; it is bounded by the world's terrain and by
+	// this price, and by GridMaxLots, a TECHNICAL bound on a grid's side (so
+	// a layout stays a sane size to sample, send and draw), not a game rule.
+	GridMaxLots int // settlement.grid_max_lots
+	// GridLotPrice is the price, minor units, of one lot of new land;
+	// GridPriceStepBPS makes each earlier expansion dearer: a step's price
+	// is its lots x GridLotPrice x (10000 + GridPriceStepBPS x expansions
+	// so far) / 10000.
+	GridLotPrice     int64 // settlement.grid_lot_price
+	GridPriceStepBPS int64 // settlement.grid_price_step_bps
+	// AutoRoadCost is what the treasury pays for each lot of road the game
+	// lays by itself to connect a new building: a small fee (a road laid by
+	// hand costs 50), so the game never lays roads for nothing yet a road is
+	// far cheaper than the building it serves.
+	AutoRoadCost int64 // settlement.auto_road_cost
+
 	// The founding form: a group's «ساخت روستا» opens a draft the founder
 	// completes in the game client (name, currency, emblem) before the
 	// village exists.
@@ -715,6 +788,20 @@ type Settlement struct {
 	// money cost credited back to the settlement's treasury (ADR 0028
 	// section 6.2), basis points; default 2000 (20%).
 	DemolitionSalvageBPS int64 // settlement.demolition_salvage_bps
+
+	// MaterialMarkupBPS is what a village pays Support for a material it buys
+	// (ADR 0033 section 4.1): the component's reference price times this over
+	// 10000, so 12000 is the reference price plus 20 %.
+	MaterialMarkupBPS int64 // settlement.material_markup_bps
+	// StockBaseCapacity is how many units of goods, in all, a village's
+	// stock holds without a granary; every standing building's `storage`
+	// (settlement_buildings.yml) adds to it.
+	StockBaseCapacity int64 // settlement.stock_base_capacity
+	// MaterialBuyMax is the most units of one material a village may buy from
+	// Support in one purchase.
+	MaterialBuyMax int64 // settlement.material_buy_max
+	// MaterialBuyPresets are the quantities the buy buttons offer.
+	MaterialBuyPresets []int64 // settlement.material_buy_presets
 
 	// FoundingGrant is the treasury a freshly founded village starts with,
 	// minted once from system_source (ledger reason settlement_grant): a
@@ -1114,11 +1201,12 @@ type Diplomacy struct {
 func Defaults() *Config {
 	return &Config{
 		Gateway: Gateway{
-			PollTimeout:      30 * time.Second,
-			PollErrorBackoff: 2 * time.Second,
-			ShutdownTimeout:  20 * time.Second,
-			SendAttempts:     2,
-			RedirectCooldown: time.Minute,
+			PollTimeout:           30 * time.Second,
+			PollErrorBackoff:      2 * time.Second,
+			ShutdownTimeout:       20 * time.Second,
+			SendAttempts:          2,
+			RedirectCooldown:      time.Minute,
+			WebAppPrivateCooldown: 5 * time.Second,
 		},
 		Lease: Lease{
 			TTL:            30 * time.Second,
@@ -1188,6 +1276,10 @@ func Defaults() *Config {
 		},
 		Travel: Travel{
 			ArrivalXP: 25,
+			// Support, on the seed-42 world: a temperate lowland cell of the
+			// great continent, 940 km from any sea (ADR 0034).
+			CityLocations: []string{"support=32.30:-47.70"},
+			WorldReach:    []string{"walk=60", "cart=500", "car=21000"},
 		},
 		Player: Player{
 			DefaultLanguage: "fa",
@@ -1343,6 +1435,10 @@ func Defaults() *Config {
 
 			MinBuildableLotShareBps: 7000,
 			GridShiftMaxLots:        3,
+			GridMaxLots:             41,
+			GridLotPrice:            50,
+			GridPriceStepBPS:        500,
+			AutoRoadCost:            10,
 
 			FoundingDraftTTL:          30 * time.Minute,
 			FoundingNameMin:           3,
@@ -1361,6 +1457,10 @@ func Defaults() *Config {
 			ScarcityCapBPS:        80000,
 			SellerBandBPS:         500,
 			DemolitionSalvageBPS:  2000,
+			MaterialMarkupBPS:     12000,
+			StockBaseCapacity:     60,
+			MaterialBuyMax:        200,
+			MaterialBuyPresets:    []int64{5, 20, 50},
 			FoundingGrant:         10_000,
 			DonationMin:           100,
 			DonationMax:           100_000,
@@ -1663,6 +1763,12 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("%w: settlement.max_abs_latitude_deg is %v, want 0 < x <= 90",
 			ErrInvalidValue, c.Settlement.MaxAbsLatitudeDeg)
 	}
+	if _, err := c.Travel.CityLocationMap(); err != nil {
+		return err
+	}
+	if _, err := c.Travel.WorldReachMap(); err != nil {
+		return err
+	}
 	penalties, err := c.Settlement.BiomePenaltyMap()
 	if err != nil {
 		return err
@@ -1675,6 +1781,9 @@ func (c *Config) Validate() error {
 
 	if v := c.Settlement.MinBuildableLotShareBps; v > 10_000 {
 		return fmt.Errorf("%w: settlement.min_buildable_lot_share_bps is %d, want 1 to 10000", ErrBPSTooLarge, v)
+	}
+	if v := c.Settlement.GridMaxLots; v < c.Settlement.VillageGridLots || v > 101 {
+		return fmt.Errorf("%w: settlement.grid_max_lots is %d, want the village grid (%d) to 101", ErrInvalidValue, v, c.Settlement.VillageGridLots)
 	}
 	if v := c.Settlement.GridShiftMaxLots; v > 10 {
 		return fmt.Errorf("%w: settlement.grid_shift_max_lots is %d, want 1 to 10", ErrInvalidValue, v)

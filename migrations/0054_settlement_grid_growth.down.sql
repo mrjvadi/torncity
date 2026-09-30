@@ -1,0 +1,3 @@
+BEGIN;
+ALTER TABLE cities DROP COLUMN grid_growth;
+COMMIT;

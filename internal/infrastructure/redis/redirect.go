@@ -15,10 +15,22 @@ import (
 // The test and the write are one SET NX, exactly as Deduplicator's is: two
 // updates from the same user arriving at once must not both find the gate
 // open, or both get sent the notice.
-type RedirectGate struct{ client *Client }
+type RedirectGate struct {
+	client *Client
+	prefix string
+}
 
 // NewRedirectGate returns the gate.
-func NewRedirectGate(c *Client) *RedirectGate { return &RedirectGate{client: c} }
+func NewRedirectGate(c *Client) *RedirectGate {
+	return &RedirectGate{client: c, prefix: redirectPrefix}
+}
+
+// NewWebAppGate paces «send the web app to my private chat» presses per
+// Telegram user (gateway.webapp_private_cooldown): the same SET NX gate under
+// its own key, so it does not share a cooldown with the redirect notice.
+func NewWebAppGate(c *Client) *RedirectGate {
+	return &RedirectGate{client: c, prefix: "gateway:webapp_private:"}
+}
 
 const redirectPrefix = "gateway:redirect:"
 
@@ -35,7 +47,7 @@ func (g *RedirectGate) Allow(ctx context.Context, telegramUserID int64, cooldown
 	if cooldown <= 0 {
 		return true, nil
 	}
-	key := redirectPrefix + strconv.FormatInt(telegramUserID, 10)
+	key := g.prefix + strconv.FormatInt(telegramUserID, 10)
 	stored, err := g.client.Raw().SetNX(ctx, key, "1", cooldown).Result()
 	if err != nil {
 		return true, fmt.Errorf("redis: redirect cooldown for user %d: %w", telegramUserID, err)
