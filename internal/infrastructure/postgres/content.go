@@ -639,6 +639,10 @@ func (s *ContentStore) Active(ctx context.Context) (ActiveVersion, error) {
 // a broken save, and discovering it when the player next opens a screen is far
 // worse than refusing here.
 //
+// Only content cities are the pack's to retire: a village a group founded
+// (origin 'founded', ADR 0028) is never in cities.yml and never removed by a
+// load.
+//
 // "The current world" is the active version's cities plus any row with no
 // version at all (written before the content system existed). A city an
 // earlier load already retired is not being removed by THIS load, and must not
@@ -667,6 +671,7 @@ func refuseRemovalOfCitiesInUse(ctx context.Context, tx pgx.Tx, p *content.Pack)
 		`SELECT c.code
 		   FROM cities c
 		  WHERE NOT (c.code = ANY($1::text[]))
+		    AND c.origin = 'content'
 		    AND (c.content_version_id IS NULL
 		         OR c.content_version_id IN (SELECT id FROM content_versions WHERE status = 'active'))
 		  ORDER BY c.code

@@ -23,6 +23,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/clientapi"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/content/testworld"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
@@ -232,6 +233,18 @@ func TestVillageResidency(t *testing.T) {
 	}
 	if o := overview(member); o.has(screens.AddrVillageJoin) {
 		t.Errorf("the member's overview after joining = %+v", o)
+	}
+
+	// 4b. A content load never retires a founded village: it is not in
+	// cities.yml, and it now has residents (the live 2026-09-30 deploy was
+	// refused with "a city in use would be removed" until this held).
+	{
+		pack, err := content.Load("../configs/content")
+		if err != nil {
+			t.Fatalf("loading content: %v", err)
+		}
+		pack = testworld.Extend(pack)
+		applyContent(t, pool, pack, "reload with a founded, inhabited village")
 	}
 
 	// 5. Refusals: already a resident; the cool-down; the head cannot leave;
