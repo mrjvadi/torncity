@@ -94,7 +94,7 @@ func promotionLines(c Context, v PromotionView) string {
 			args["required"] = FormatMoney(c, k.Required)
 		case promoRole:
 			key = "village.promotion.goal.role"
-			args["role"] = c.T("village.promotion.role."+k.Role+"."+strconv.FormatInt(k.Required, 10), nil)
+			args["role"] = c.T("village.promotion.role."+k.Role+".t"+strconv.FormatInt(k.Required, 10), nil)
 		default:
 			args["current"] = FormatNumber(c, k.Current)
 			args["required"] = FormatNumber(c, k.Required)
@@ -164,7 +164,7 @@ func renderVillagePromoteAsk(c Context, v PromotionView) *presenter.Response {
 	if b, ok := keyboards.Button(c.T("village.promotion.button_yes", args), AddrVillagePromote, VillagePromoteConfirm); ok {
 		kb.Row(b)
 	}
-	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillagePromotion}))
+	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview}))
 	return c.respond(paragraphs(c.T("village.promotion.ask_title", args), c.T("village.promotion.ask_body."+v.To, args)), kb.Build())
 }
 

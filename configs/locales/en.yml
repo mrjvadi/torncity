@@ -749,17 +749,17 @@ village:
       role: "{mark} {role}"
     role:
       food:
-        "1": "A food building (a farm or a pasture)"
+        t1: "A food building (a farm or a pasture)"
       education:
-        "1": "A teaching building (a teaching circle)"
-        "2": "A school"
+        t1: "A teaching building (a teaching circle)"
+        t2: "A school"
       health:
-        "1": "A health building (a health house)"
-        "2": "A clinic"
+        t1: "A health building (a health house)"
+        t2: "A clinic"
       market:
-        "2": "A market"
+        t2: "A market"
       security:
-        "1": "A security building (a watch hut or a post)"
+        t1: "A security building (a watch hut or a post)"
     ready_head: "🎉 Every step is taken. You can now promote {village} to a {tier}."
     ready_member: "🎉 Every step is taken. Promoting is up to the head."
     not_ready: "Every step taken turns ✅ here. When all are ✅ the head gets the promotion button."

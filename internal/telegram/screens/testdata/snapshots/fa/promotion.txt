@@ -151,7 +151,7 @@
 دهیار فرماندار می‌شود و همچنان سرپرست می‌ماند؛ ساخت‌وساز گسترده‌تر می‌شود و ساختمان‌ها و دانش تازه‌ای پیدا می‌شود. ارتقا هزینه ندارد و برگشت‌پذیر نیست؛ خبرش در گروه اعلام می‌شود.
   ───
   [✅ بله، ارتقا بده] → settlement:promote:confirm
-  [🔙 بازگشت] → settlement:promotion.view
+  [🔙 بازگشت] → settlement:overview
 
 ━━━ Promotion · done (town) ━━━
 (edits message 42)
@@ -169,7 +169,7 @@
 فرماندار شهردار می‌شود و همچنان سرپرست می‌ماند؛ دولت شهر با مالیات، شورا و انتخابات راه می‌افتد. ارتقا هزینه ندارد و برگشت‌پذیر نیست؛ خبرش در گروه اعلام می‌شود.
   ───
   [✅ بله، ارتقا بده] → settlement:promote:confirm
-  [🔙 بازگشت] → settlement:promotion.view
+  [🔙 بازگشت] → settlement:overview
 
 ━━━ Promotion · done (city) ━━━
 (edits message 42)

@@ -151,7 +151,7 @@ Korendal grows into a town by developing, not by taking more land: people, liter
 The village head becomes the town head and keeps leading; building opens up and new buildings and knowledge appear. Promotion is free and cannot be undone; the group is told.
   ───
   [✅ Yes, promote] → settlement:promote:confirm
-  [🔙 Back] → settlement:promotion.view
+  [🔙 Back] → settlement:overview
 
 ━━━ Promotion · done (town) ━━━
 (edits message 42)
@@ -169,7 +169,7 @@ The village head is now the town head. The town's new buildings and knowledge sh
 The town head becomes the mayor and keeps leading; the city government with taxes, a council and elections starts. Promotion is free and cannot be undone; the group is told.
   ───
   [✅ Yes, promote] → settlement:promote:confirm
-  [🔙 Back] → settlement:promotion.view
+  [🔙 Back] → settlement:overview
 
 ━━━ Promotion · done (city) ━━━
 (edits message 42)
