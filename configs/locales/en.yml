@@ -806,7 +806,7 @@ village:
     source:
       made_built: "made at your {building}, work a shift there"
       made_unbuilt: "build a {building} to make it"
-      buy: "or buy it from Support's market ({price} each)"
+      buy: "buy it from Support's market ({price} each)"
     button:
       build: "🏗 Build {building}"
       work: "⚒ Work at {building}"

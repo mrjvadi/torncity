@@ -132,7 +132,7 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 (edits message 42)
 🧱 To build Housing block you are still missing something:
 
-• 10 Timber needed (in the village stock: 2) - build a Woodcutter's camp to make it or or buy it from Support's market (18 SUP each)
+• 10 Timber needed (in the village stock: 2) - build a Woodcutter's camp to make it or buy it from Support's market (18 SUP each)
   ───
   [🏗 Build Woodcutter's camp] → settlement:build.lots:woodcutter_camp
   [🛒 Buy 8 Timber] → settlement:materials.buy:timber:8
@@ -143,7 +143,7 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 (edits message 42)
 🧱 To build Civic hall you are still missing something:
 
-• 5 Timber needed (in the village stock: 0) - made at your Woodcutter's camp, work a shift there or or buy it from Support's market (18 SUP each)
+• 5 Timber needed (in the village stock: 0) - made at your Woodcutter's camp, work a shift there or buy it from Support's market (18 SUP each)
   ───
   [⚒ Work at Woodcutter's camp] → settlement:work
   [🛒 Buy 5 Timber] → settlement:materials.buy:timber:5
@@ -165,7 +165,7 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 🧱 To build School you are still missing something:
 
 • One of these buildings: Teaching circle - build it first
-• 10 Timber needed (in the village stock: 0) - build a Woodcutter's camp to make it or or buy it from Support's market (18 SUP each)
+• 10 Timber needed (in the village stock: 0) - build a Woodcutter's camp to make it or buy it from Support's market (18 SUP each)
   ───
   [🏗 Build Teaching circle] → settlement:build.lots:teaching_circle
   [🏗 Build Woodcutter's camp] → settlement:build.lots:woodcutter_camp
