@@ -9,6 +9,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/money"
@@ -316,7 +317,7 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if _, err := h.schedule(ctx, tx, application.SettlementBuildActionType, "settlement_building", id, s.CityID, now, finish); err != nil {
 			return err
 		}
-		return appendVillageEvent(ctx, tx, meta, "build_started", s.CityID, map[string]any{
+		return h.appendBuildingEvent(ctx, tx, meta, s, "build_started", map[string]any{
 			"settlement_id": s.CityID, "building_id": id, "type_code": code, "name": d.Name, "lot_x": x, "lot_y": y,
 			"rotated": rotated && d.Def().CanRotate(), "finish_at": finish.UTC().Format(time.RFC3339),
 		})
@@ -382,7 +383,7 @@ func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, r
 		if err := h.creditSalvage(ctx, tx, s.CityID, b.TypeCode, now); err != nil {
 			return err
 		}
-		return appendVillageEvent(ctx, tx, meta, "building_demolished", s.CityID, map[string]any{
+		return h.appendBuildingEvent(ctx, tx, meta, s, "building_demolished", map[string]any{
 			"settlement_id": s.CityID, "building_id": b.ID, "type_code": b.TypeCode, "name": h.buildingName(b.TypeCode),
 		})
 	})
@@ -432,7 +433,7 @@ func (h *VillageHandler) Cancel(ctx context.Context, meta envelope.Metadata, req
 			}
 			return err
 		}
-		return appendVillageEvent(ctx, tx, meta, "build_cancelled", s.CityID, map[string]any{
+		return h.appendBuildingEvent(ctx, tx, meta, s, "build_cancelled", map[string]any{
 			"settlement_id": s.CityID, "building_id": b.ID, "type_code": b.TypeCode,
 		})
 	})
@@ -495,7 +496,11 @@ func (h *VillageHandler) Built(ctx context.Context, meta envelope.Metadata, req 
 		if err := tx.SettlementBuildings().Complete(ctx, b.ID, now); err != nil {
 			return err
 		}
-		return appendVillageEvent(ctx, tx, meta, "built", b.SettlementID, map[string]any{
+		s, err := tx.Settlements().ByID(ctx, b.SettlementID)
+		if err != nil {
+			return err
+		}
+		return h.appendBuildingEvent(ctx, tx, meta, s, "built", map[string]any{
 			"settlement_id": b.SettlementID, "building_id": b.ID, "type_code": b.TypeCode, "name": h.buildingName(b.TypeCode),
 		})
 	})
@@ -508,4 +513,35 @@ func (h *VillageHandler) buildingName(code string) string {
 		return d.Name
 	}
 	return ""
+}
+
+// appendBuildingEvent writes an event that changes the picture of the
+// settlement (a building placed, finished, cancelled or pulled down). It
+// carries the version the layout will have once this transaction commits, for
+// each kind of viewer (application.LayoutVersions), so a client holding a
+// layout knows from the event alone whether it is already current or must
+// fetch it again. The buildings are read in the same transaction, after the
+// change, so the version is exactly the one GET /settlements/{id}/layout will
+// report.
+func (h *VillageHandler) appendBuildingEvent(ctx context.Context, tx application.Tx, meta envelope.Metadata,
+	s application.FoundedSettlement, name string, payload map[string]any,
+) error {
+	rows, err := tx.SettlementBuildings().List(ctx, s.CityID)
+	if err != nil {
+		return err
+	}
+	snap := h.content.Current()
+	footprint := func(code string, rotated bool) (int, int) {
+		if d, ok := snap.SettlementBuildingDef(code); ok {
+			def := d.Def()
+			if rotated {
+				def = def.Rotate()
+			}
+			return def.FootprintW, def.FootprintH
+		}
+		return 1, 1
+	}
+	payload["layout_version"] = application.LayoutVersionsOf(s.CityID, s.Tier, s.Name,
+		wsettle.GridLotsForTier(s.Tier, h.villageGridLots), rows, footprint)
+	return appendVillageEvent(ctx, tx, meta, name, s.CityID, payload)
 }

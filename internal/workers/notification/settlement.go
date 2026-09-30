@@ -16,7 +16,7 @@ import (
 // settlement:<settlement_id>, for the game clients of its residents and of
 // whoever stands there.
 //
-//	{"type": "<kind>", "settlement_id": "<id>", "version": 1234, "at": "<RFC3339>", ...fields}
+//	{"type": "<kind>", "settlement_id": "<id>", "seq": 1234, "at": "<RFC3339>", ...fields}
 //
 // # Publishing
 //
@@ -25,16 +25,30 @@ import (
 // reads it from the event stream and publishes, from whichever replica
 // happens to take it. Nothing is published inside a database transaction.
 //
-// # Versions and gaps
+// # Sequence and gaps
 //
-// Every publication carries a version, one number sequence per settlement
-// (internal/infrastructure/redis.SettlementVersions). The version of an event
-// is decided once, keyed on the event's id, so a redelivery is stamped the
-// same and the realtime server (given the same idempotency key) publishes it
+// Every publication carries seq, one number sequence per settlement
+// (internal/infrastructure/redis.SettlementVersions). The seq of an event is
+// decided once, keyed on the event's id, so a redelivery is stamped the same
+// and the realtime server (given the same idempotency key) publishes it
 // once. Replicas race, so two publications may arrive out of order and a
-// failed publish leaves a hole; a client that sees a version that is not the
-// last plus one, or lower, fetches the layout again instead of trusting its
-// picture (the layout endpoint carries the version it is current to).
+// failed publish leaves a hole; a client that sees a seq that is not the last
+// plus one, or lower, has missed something and fetches the layout and the
+// player list again instead of trusting its picture. The player list carries
+// the seq it is current to.
+//
+// # The layout's version
+//
+// The layout's own version (GET /settlements/{id}/layout, "version") is a
+// hash of the picture, so it cannot order or count anything; what it can do
+// is say whether a picture is current. Every publication that changes the
+// picture (a building placed, finished, cancelled or pulled down) therefore
+// also carries layout_version, the version the layout will have once the
+// change has committed, for each kind of viewer (head, member, public): the
+// event's writer computes it with the very code the layout endpoint does
+// (application.LayoutVersionsOf). A client that holds a layout whose version
+// equals its own kind's layout_version is already current; any other value
+// means fetch it again.
 
 // SettlementVersions stamps a settlement's publications.
 type SettlementVersions interface {
@@ -62,6 +76,7 @@ type SettlementEvents func(ctx context.Context, deps Deps, env *envelope.Envelop
 const (
 	SettlementBuildStarted   = "build_started"
 	SettlementBuildFinished  = "build_finished"
+	SettlementBuildCancelled = "build_cancelled"
 	SettlementBuildSalvaged  = "build_salvaged"
 	SettlementResearchStart  = "research_started"
 	SettlementResearchDone   = "research_finished"
@@ -113,7 +128,7 @@ func (w *Worker) publishSettlement(ctx context.Context, route Route, env *envelo
 		}
 		msg["type"] = p.Type
 		msg["settlement_id"] = p.SettlementID
-		msg["version"] = version
+		msg["seq"] = version
 		msg["at"] = now.UTC().Format(time.RFC3339)
 		if err := w.cfg.Realtime.Publish(ctx, settlementChannel(p.SettlementID), msg, eventKey+settlementEventKeySuffix); err != nil {
 			log.Warn("cannot publish to the settlement channel",
@@ -135,6 +150,9 @@ type villageEvent struct {
 	LotY            int    `json:"lot_y"`
 	Rotated         bool   `json:"rotated"`
 	FinishAt        string `json:"finish_at"`
+	// LayoutVersion is the layout's version after the change, for each kind
+	// of viewer; only building events carry it.
+	LayoutVersion json.RawMessage `json:"layout_version"`
 	ResearchID      string `json:"research_id"`
 	Code            string `json:"code"`
 	LiteracyShareBP int    `json:"literacy_share_bps"`
@@ -166,7 +184,7 @@ func villageBuildStarted(_ context.Context, _ Deps, env *envelope.Envelope) ([]S
 	if ev.FinishAt != "" {
 		f["finish_at"] = ev.FinishAt
 	}
-	return one(ev.SettlementID, SettlementBuildStarted, f), nil
+	return one(ev.SettlementID, SettlementBuildStarted, withLayout(f, ev)), nil
 }
 
 // villageBuilt: a building finished construction.
@@ -175,7 +193,7 @@ func villageBuilt(_ context.Context, _ Deps, env *envelope.Envelope) ([]Settleme
 	if err != nil {
 		return nil, err
 	}
-	return one(ev.SettlementID, SettlementBuildFinished, map[string]any{"building_id": ev.BuildingID, "type_code": ev.TypeCode}), nil
+	return one(ev.SettlementID, SettlementBuildFinished, withLayout(map[string]any{"building_id": ev.BuildingID, "type_code": ev.TypeCode}, ev)), nil
 }
 
 // villageDemolished: a building was pulled down and its scrap credited.
@@ -184,7 +202,25 @@ func villageDemolished(_ context.Context, _ Deps, env *envelope.Envelope) ([]Set
 	if err != nil {
 		return nil, err
 	}
-	return one(ev.SettlementID, SettlementBuildSalvaged, map[string]any{"building_id": ev.BuildingID, "type_code": ev.TypeCode}), nil
+	return one(ev.SettlementID, SettlementBuildSalvaged, withLayout(map[string]any{"building_id": ev.BuildingID, "type_code": ev.TypeCode}, ev)), nil
+}
+
+// villageCancelled: a building still going up was called off.
+func villageCancelled(_ context.Context, _ Deps, env *envelope.Envelope) ([]SettlementPublication, error) {
+	ev, err := decodeVillage(env, "build_cancelled")
+	if err != nil {
+		return nil, err
+	}
+	return one(ev.SettlementID, SettlementBuildCancelled, withLayout(map[string]any{"building_id": ev.BuildingID, "type_code": ev.TypeCode}, ev)), nil
+}
+
+// withLayout adds the layout's version after the change, when the event
+// carries it.
+func withLayout(f map[string]any, ev villageEvent) map[string]any {
+	if len(ev.LayoutVersion) > 0 && string(ev.LayoutVersion) != "null" {
+		f["layout_version"] = ev.LayoutVersion
+	}
+	return f
 }
 
 // villageResearchStarted: the village began researching something.
@@ -271,7 +307,9 @@ func headPublications(ev electionEvent, playerID, name string, vacated bool) []S
 	}
 	var out []SettlementPublication
 	for _, id := range ids {
-		f := map[string]any{"office": ev.Office, "vacated": vacated}
+		// Who may place is part of the head's picture of the layout, so the
+		// layout is stale for whoever gained or lost the office.
+		f := map[string]any{"office": ev.Office, "vacated": vacated, "layout_stale": true}
 		if playerID != "" {
 			f["player_id"] = playerID
 		}

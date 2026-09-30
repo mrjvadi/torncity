@@ -327,7 +327,7 @@ func TestPrivateScreenWithNoReceiverIsNotPosted(t *testing.T) {
 func TestPrivacyClassification(t *testing.T) {
 	private := map[string]bool{
 		"bank.show": true, "bank.deposit": true, "bank.withdraw": true, "bank.pay": true, "bank.pay.send": true,
-		"player.settings": true, "player.language.set": true,
+		"player.settings": true, "player.language.set": true, "player.presence.set": true,
 	}
 	seen := 0
 	for _, s := range commands.All() {

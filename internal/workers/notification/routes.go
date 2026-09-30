@@ -247,6 +247,7 @@ func Routes() []Route {
 		// its news and its private notice.
 		{Domain: "settlement", Event: "build_started", Name: "realtime", Settlement: villageBuildStarted},
 		{Domain: "settlement", Event: "built", Name: "realtime", Settlement: villageBuilt},
+		{Domain: "settlement", Event: "build_cancelled", Name: "realtime", Settlement: villageCancelled},
 		{Domain: "settlement", Event: "building_demolished", Name: "realtime", Settlement: villageDemolished},
 		{Domain: "settlement", Event: "research_started", Name: "realtime", Settlement: villageResearchStarted},
 		{Domain: "settlement", Event: "knowledge_researched", Name: "realtime", Settlement: villageResearched},

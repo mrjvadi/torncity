@@ -418,6 +418,10 @@ input:
 announce:
   window: 2m
   max_per_window: 7
+  village_merge_window: 21s
+  village_min_gap: 91s
+  village_flush_interval: 6s
+  village_literacy_step_percent: 11
 notifications:
   inbox_page_size: 9
   edit_throttle: 11s
@@ -494,6 +498,9 @@ client:
 realtime:
   api_url: http://realtime.example.test:8000/api
   publish_timeout: 3s
+  presence_ttl: 31s
+  roster_limit: 201
+  settlement_event_ttl: 25h
 worldgen:
   cell_count: 41000
   neighbor_k: 7
@@ -612,6 +619,11 @@ var envOverrides = map[string]string{
 
 	"TORN_ANNOUNCE_WINDOW":         "3m",
 	"TORN_ANNOUNCE_MAX_PER_WINDOW": "8",
+
+	"TORN_ANNOUNCE_VILLAGE_MERGE_WINDOW":          "22s",
+	"TORN_ANNOUNCE_VILLAGE_MIN_GAP":               "92s",
+	"TORN_ANNOUNCE_VILLAGE_FLUSH_INTERVAL":        "7s",
+	"TORN_ANNOUNCE_VILLAGE_LITERACY_STEP_PERCENT": "12",
 
 	"TORN_NOTIFICATIONS_INBOX_PAGE_SIZE":         "10",
 	"TORN_NOTIFICATIONS_EDIT_THROTTLE":           "12s",
@@ -784,6 +796,9 @@ var envOverrides = map[string]string{
 	"TORN_CLIENT_WORLD_RECHECK_INTERVAL":      "32s",
 	"TORN_REALTIME_API_URL":                   "http://realtime2.example.test:8000/api",
 	"TORN_REALTIME_PUBLISH_TIMEOUT":           "4s",
+	"TORN_REALTIME_PRESENCE_TTL":              "32s",
+	"TORN_REALTIME_ROSTER_LIMIT":              "202",
+	"TORN_REALTIME_SETTLEMENT_EVENT_TTL":      "26h",
 
 	"TORN_WORLDGEN_CELL_COUNT":                      "42000",
 	"TORN_WORLDGEN_NEIGHBOR_K":                      "8",

@@ -48,6 +48,16 @@ func (h *PresenceHandler) Who(ctx context.Context, meta envelope.Metadata) (*pre
 			return err
 		}
 		lang = RenderLanguage(meta, p)
+		if meta.FromClient() {
+			// A game client has no group to name its settlement by: it is
+			// the player's own (as VillageHandler.settlementOf does).
+			ps, err := tx.Settlements().ByPlayer(ctx, p.ID)
+			if err != nil {
+				return err
+			}
+			s = ps.FoundedSettlement
+			return nil
+		}
 		if !meta.InGroup() {
 			return refuseVillage(screens.VillageNoSettlement)
 		}

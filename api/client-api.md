@@ -1,12 +1,16 @@
 # Game client API — v1
 
-**Contract version 1.1.** Every 1.x is compatible with 1.0: a client written
+**Contract version 1.2.** Every 1.x is compatible with 1.0: a client written
 for 1.0 keeps working, and a 1.x client reads the new fields as absent on an
 older server. 1.1 adds the world and the village (section 4.3): the
 `settlement` object of the bootstrap, `GET /world`, `GET /world/chunks/…`,
 `GET /settlements/{id}/layout`, the village commands from a client, and the
-error codes `bad_chunk`, `world_not_created` and `no_settlement`. Nothing
-that 1.0 returned has changed.
+error codes `bad_chunk`, `world_not_created` and `no_settlement`. 1.2 adds
+presence and the settlement channel (sections 5.4 and 5.5): the
+`settlement:<id>` realtime channel (also on the connection token),
+`POST /realtime/heartbeat`, `GET /players/{id}/status`,
+`GET /settlements/{id}/players`, `settlement.who` and the error code
+`not_in_settlement`. Nothing that 1.0 or 1.1 returned has changed.
 
 The contract between the game and a game client (a native build or the
 Telegram Mini App build). Served by `cmd/clientapi` (package
@@ -619,7 +623,8 @@ sentence Telegram shows, in the player's language):
 | `village_busy`, `village_already_owned`, `village_not_available` | research / purchase refusals |
 
 A client learns the outcome of a placement by re-reading the layout (its
-`version` moves) until realtime carries it.
+`version` moves) — or, with realtime, from the settlement channel's
+`layout_version` (section 5.4) — until it does.
 
 ## 5. Realtime
 
@@ -696,45 +701,61 @@ the operators' panel). A publishing failure never affects Telegram
 delivery.
 
 
-### 5.4 A settlement's channel — `settlement:<settlement_id>`
+### 5.4 A settlement's channel — `settlement:<settlement_id>` (contract 1.2)
 
 Full detail of what happens in one village (a settlement is a `cities` row;
 its id is the one the layout and player-list endpoints take). Every
 publication is small typed JSON with the same envelope:
 
 ```json
-{"type": "build_finished", "settlement_id": "3c1f…", "version": 1790724836123, "at": "2026-09-30T10:00:00Z",
- "building_id": "…", "type_code": "watch_hut"}
+{"type": "build_finished", "settlement_id": "3c1f…", "seq": 1790724836123, "at": "2026-09-30T10:00:00Z",
+ "building_id": "…", "type_code": "watch_hut",
+ "layout_version": {"head": "9f2c…", "member": "51ab…", "public": "c07e…"}}
 ```
 
-**`version`** grows by one for every publication of that settlement (one
-counter per settlement, Redis, decided once per event so a redelivery carries
-the same number). A client keeps the last version it applied: **a version that
-is not the last plus one, or that is not higher, means it missed something —
-fetch the layout and player list again** instead of trusting its picture.
-Publications may arrive out of order (replicas race), which is the same
-signal. `GET /settlements/{id}/players` carries the version it is current to
-(`version`); ignore publications at or below it.
+Two numbers say whether a client's picture is current, for two different
+pictures:
+
+* **`seq`** orders the channel: it grows by one for every publication of that
+  settlement (one counter per settlement, in Redis, decided once per event so
+  a redelivery carries the same number). A client keeps the last `seq` it
+  applied: **a `seq` that is not the last plus one, or that is not higher,
+  means it missed something — fetch the layout and the player list again**
+  instead of trusting its picture. Publications may arrive out of order
+  (replicas race), which is the same signal. `GET /settlements/{id}/players`
+  carries the `seq` it is current to; ignore publications at or below it.
+* **`layout_version`** is on every publication that changes the layout (a
+  building placed, finished, cancelled or pulled down): the `version` that
+  `GET /settlements/{id}/layout` will report once the change has committed,
+  for each kind of viewer — `head` (may place: `viewer.can_place`), `member`
+  (any other member) and `public` (everyone else). Compare the one that is
+  yours with the `version` of the layout you hold: equal means you are already
+  current, anything else means fetch it again. (The layout's `version` is a
+  hash of the picture, so it says whether a picture is current but cannot
+  count what was missed; that is what `seq` is for. It does not move on
+  construction progress: a client counts that down from `started_at` and
+  `finish_at`.)
 
 | `type` | fields | when |
 |---|---|---|
-| `build_started` | `building_id`, `type_code`, `lot_x`, `lot_y`, `rotated`, `finish_at` | the head placed a building and paid for it |
-| `build_finished` | `building_id`, `type_code` | construction reached its end |
-| `build_salvaged` | `building_id`, `type_code` | a building was pulled down and its scrap credited |
+| `build_started` | `building_id`, `type_code`, `lot_x`, `lot_y`, `rotated`, `finish_at`, `layout_version` | the head placed a building and paid for it |
+| `build_finished` | `building_id`, `type_code`, `layout_version` | construction reached its end |
+| `build_cancelled` | `building_id`, `type_code`, `layout_version` | the head called off a building still going up |
+| `build_salvaged` | `building_id`, `type_code`, `layout_version` | a building was pulled down and its scrap credited |
 | `research_started` | `research_id`, `code`, `finish_at` | the village began researching |
 | `research_finished` | `code` | the research ended; the village knows the item |
 | `knowledge_bought` | `code` | the village bought an item from Support |
 | `literacy_changed` | `literacy_share_bps` | a teaching step finished and literacy moved |
-| `head_changed` | `office`, `vacated`, `player_id`?, `player_name`? | the head office was filled or vacated (appointment, dismissal, election) |
+| `head_changed` | `office`, `vacated`, `layout_stale`, `player_id`?, `player_name`? | the head office was filled or vacated (appointment, dismissal, election); `layout_stale` says who may place changed, so fetch the layout |
 | `member_joined` | `player_id`, `player_name`?, `via` (`travel` \| `residence`) | someone arrived or moved in |
 | `member_left` | `player_id`, `player_name`?, `via` | someone left or moved out |
 
-No `build_progress` or `build_cancelled` is published: construction has no
-intermediate state to report and cannot be cancelled today. History is kept
-like the other namespaces (20 publications, 5 minutes, recovered on
-reconnect); beyond that, the version gap rule above is the recovery.
+There is no `build_progress`: construction has no intermediate state to
+report (see `started_at`/`finish_at` above). History is kept like the other
+namespaces (20 publications, 5 minutes, recovered on reconnect); beyond that,
+the `seq` gap rule is the recovery.
 
-### 5.5 Presence
+### 5.5 Presence (contract 1.2)
 
 A player is **online** while a Redis key written by any signed-in call (or the
 heartbeat) is alive: `realtime.presence_ttl` (30s) after the last one. Nothing
@@ -771,7 +792,7 @@ whoever is standing in it, for members only (`403 not_in_settlement`
 otherwise):
 
 ```json
-{"settlement_id": "3c1f…", "version": 1790724836123, "online": 2, "hidden": false,
+{"settlement_id": "3c1f…", "seq": 1790724836123, "online": 2, "hidden": false,
  "players": [{"id": "…", "name": "Sara", "code": "K7Q2M9A", "visible": true, "online": true,
               "activity": "idle", "activity_label": "آنلاین", "place": "city_centre"}]}
 ```

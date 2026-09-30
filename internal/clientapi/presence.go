@@ -105,10 +105,10 @@ func (s *Server) playerStatus(w http.ResponseWriter, r *http.Request, pr Princip
 // SettlementPlayersJSON is GET /api/v1/settlements/{id}/players.
 type SettlementPlayersJSON struct {
 	SettlementID string `json:"settlement_id"`
-	// Version is the last version stamped on the settlement's channel when
-	// the list was read: publications with a lower or equal version are
+	// Seq is the last sequence number stamped on the settlement's channel
+	// when the list was read: publications with a lower or equal seq are
 	// already in it.
-	Version int64 `json:"version"`
+	Seq int64 `json:"seq"`
 	Online  int   `json:"online"`
 	// Hidden is true when the caller chose «nobody» for themself, so no row
 	// carries presence.
@@ -139,7 +139,7 @@ func (s *Server) settlementPlayers(w http.ResponseWriter, r *http.Request, pr Pr
 		s.fail(w, r, pr.Lang, err)
 		return
 	}
-	out := SettlementPlayersJSON{SettlementID: id, Version: version, Online: list.Online, Hidden: list.Hidden,
+	out := SettlementPlayersJSON{SettlementID: id, Seq: version, Online: list.Online, Hidden: list.Hidden,
 		Players: make([]PlayerStatusJSON, 0, len(list.Players))}
 	for _, p := range list.Players {
 		out.Players = append(out.Players, s.statusJSON(pr.Lang, p))

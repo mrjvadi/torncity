@@ -2,13 +2,8 @@ package clientapi
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
-	"hash/fnv"
 	"math"
-	"sort"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -39,11 +34,11 @@ const (
 // complete; a demolished or cancelled building holds no lot and is not
 // listed.
 const (
-	StatePlanned           = "planned"
-	StateUnderConstruction = "under_construction"
-	StateBuilt             = "built"
-	StateDamaged           = "damaged"
-	StateRuin              = "ruin"
+	StatePlanned           = application.ViewPlanned
+	StateUnderConstruction = application.ViewUnderConstruction
+	StateBuilt             = application.ViewBuilt
+	StateDamaged           = application.ViewDamaged
+	StateRuin              = application.ViewRuin
 )
 
 // ErrNoSettlement means the player belongs to no settlement.
@@ -301,46 +296,25 @@ func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID stri
 	}
 
 	snap := v.Content.Current()
-	sort.Slice(rows, func(i, j int) bool {
-		if rows[i].LotY != rows[j].LotY {
-			return rows[i].LotY < rows[j].LotY
-		}
-		if rows[i].LotX != rows[j].LotX {
-			return rows[i].LotX < rows[j].LotX
-		}
-		return rows[i].ID < rows[j].ID
-	})
-	for _, b := range rows {
-		if !b.Holds() {
-			continue
-		}
-		state := stateOf(b)
-		if !viewer.Member && state != StateBuilt {
-			continue
-		}
-		fw, fh := 1, 1
-		if d, ok := snap.SettlementBuildingDef(b.TypeCode); ok {
+	footprint := func(code string, rotated bool) (int, int) {
+		if d, ok := snap.SettlementBuildingDef(code); ok {
 			def := d.Def()
-			if b.Rotated {
+			if rotated {
 				def = def.Rotate()
 			}
-			fw, fh = def.FootprintW, def.FootprintH
+			return def.FootprintW, def.FootprintH
 		}
-		lb := LayoutBuilding{Type: b.TypeCode, X: b.LotX, Y: b.LotY, W: fw, H: fh, Rotated: b.Rotated, State: state,
-			VisualSeed: visualSeed(b.ID)}
-		if viewer.Member {
-			lb.ID = b.ID
-			lb.DamageBPS = b.DamageBPS
-			if state == StatePlanned || state == StateUnderConstruction {
-				lb.StartedAt = b.QueuedAt.UTC().Format(time.RFC3339)
-			}
-			if b.FinishAt != nil && (state == StatePlanned || state == StateUnderConstruction) {
-				lb.FinishAt = b.FinishAt.UTC().Format(time.RFC3339)
-			}
-		}
-		out.Buildings = append(out.Buildings, lb)
-		if b.TypeCode == "road" && state != StatePlanned {
-			out.Roads = append(out.Roads, LayoutLotRef{X: b.LotX, Y: b.LotY})
+		return 1, 1
+	}
+	// The buildings, and the version of them, are application.ViewBuildings
+	// and application.LayoutVersionOf: the same code the village events use
+	// to say what the layout's version will be once they have committed.
+	for _, b := range application.ViewBuildings(rows, viewer.Member, footprint) {
+		out.Buildings = append(out.Buildings, LayoutBuilding{ID: b.ID, Type: b.Type, X: b.X, Y: b.Y, W: b.W, H: b.H,
+			Rotated: b.Rotated, State: b.State, StartedAt: b.StartedAt, FinishAt: b.FinishAt, DamageBPS: b.DamageBPS,
+			VisualSeed: b.VisualSeed})
+		if b.Type == "road" && b.State != StatePlanned {
+			out.Roads = append(out.Roads, LayoutLotRef{X: b.X, Y: b.Y})
 		}
 	}
 	out.Version = layoutVersion(out)
@@ -349,20 +323,6 @@ func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID stri
 
 // ETag is the layout's entity tag: its version and the detail it shows.
 func (l VillageLayout) ETag() string { return `"` + l.Version + "." + l.Detail + `"` }
-
-func stateOf(b application.SettlementBuildingInstance) string {
-	switch {
-	case b.Status == "queued":
-		return StatePlanned
-	case b.Status == "building":
-		return StateUnderConstruction
-	case b.DamageBPS >= 10_000:
-		return StateRuin
-	case b.DamageBPS > 0:
-		return StateDamaged
-	}
-	return StateBuilt
-}
 
 func waterOf(l settlement.LotTerrain) string {
 	switch {
@@ -376,25 +336,13 @@ func waterOf(l settlement.LotTerrain) string {
 
 func round2(f float64) float64 { return math.Round(f*100) / 100 }
 
-// visualSeed is a building's look seed: stable for its id, never stored.
-func visualSeed(id string) uint32 {
-	h := fnv.New32a()
-	_, _ = h.Write([]byte(id))
-	return h.Sum32()
-}
-
-// layoutVersion hashes everything a client draws from the layout, so it
-// moves exactly when the picture does.
+// layoutVersion is the layout's version: application.LayoutVersionOf over
+// what the layout shows.
 func layoutVersion(l VillageLayout) string {
-	h := fnv.New64a()
-	put := func(parts ...string) {
-		_, _ = h.Write([]byte(strings.Join(parts, "|") + ";"))
-	}
-	put(l.Settlement.ID, l.Settlement.Tier, l.Settlement.Name, strconv.Itoa(l.Grid.Lots), strconv.FormatBool(l.Viewer.CanPlace))
+	bs := make([]application.ViewBuilding, 0, len(l.Buildings))
 	for _, b := range l.Buildings {
-		put(b.ID, b.Type, strconv.Itoa(b.X), strconv.Itoa(b.Y), strconv.Itoa(b.W), strconv.Itoa(b.H), strconv.FormatBool(b.Rotated),
-			b.State, b.FinishAt, strconv.Itoa(b.DamageBPS), strconv.FormatUint(uint64(b.VisualSeed), 10))
+		bs = append(bs, application.ViewBuilding{ID: b.ID, Type: b.Type, X: b.X, Y: b.Y, W: b.W, H: b.H, Rotated: b.Rotated,
+			State: b.State, FinishAt: b.FinishAt, DamageBPS: b.DamageBPS, VisualSeed: b.VisualSeed})
 	}
-	sum := h.Sum(nil)
-	return hex.EncodeToString(sum)
+	return application.LayoutVersionOf(l.Settlement.ID, l.Settlement.Tier, l.Settlement.Name, l.Grid.Lots, l.Viewer.CanPlace, bs)
 }

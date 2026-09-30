@@ -188,7 +188,7 @@ func TestSettlementPlayersEndpoint(t *testing.T) {
 		Detail: presence.Detail{Visible: true, Online: true, Activity: presence.Idle, Place: "market"}}}
 	f, tok := newPresenceFixture(t, pr)
 	status, out := f.call(t, "GET", "/api/v1/settlements/"+villageA+"/players", tok, nil)
-	if status != http.StatusOK || out["settlement_id"] != villageA || out["version"] != 41.0 || out["online"] != 1.0 {
+	if status != http.StatusOK || out["settlement_id"] != villageA || out["seq"] != 41.0 || out["online"] != 1.0 {
 		t.Fatalf("players: %d %v", status, out)
 	}
 	rows, _ := out["players"].([]any)

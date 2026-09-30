@@ -90,7 +90,10 @@ func NewSettlementVersions(c *Client, eventTTL time.Duration) *SettlementVersion
 // already stamped returns its number; otherwise the settlement's counter
 // moves up by one (seeded at the current Unix millisecond when it does not
 // exist, so a flushed Redis can only make versions jump forward, never back)
-// and the number is remembered for the event id.
+// and the number is remembered for the event id. The seed is what makes a
+// lost counter harmless: a client that sees a seq lower than the last it
+// applied simply fetches again, and a re-seeded counter is ahead of the old
+// one as long as the settlement averaged fewer than one event a millisecond.
 var assign = goredis.NewScript(`
 local seen = redis.call('GET', KEYS[2])
 if seen then return tonumber(seen) end

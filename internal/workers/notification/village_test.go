@@ -177,12 +177,12 @@ func TestSettlementPublicationIsVersionedAndIdempotent(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if len(pub.pubs) != 2 || pub.pubs[0].key != pub.pubs[1].key || pub.pubs[0].data["version"] != pub.pubs[1].data["version"] {
+	if len(pub.pubs) != 2 || pub.pubs[0].key != pub.pubs[1].key || pub.pubs[0].data["seq"] != pub.pubs[1].data["seq"] {
 		t.Fatalf("a redelivery must repeat the same publication: %+v", pub.pubs)
 	}
 	got := pub.pubs[0]
 	if got.channel != "settlement:"+villageID || got.data["type"] != "build_started" || got.data["settlement_id"] != villageID ||
-		got.data["version"] != 1.0 || got.data["building_id"] != "b1" || got.data["type_code"] != "watch_hut" || got.data["lot_x"] != 2.0 {
+		got.data["seq"] != 1.0 || got.data["building_id"] != "b1" || got.data["type_code"] != "watch_hut" || got.data["lot_x"] != 2.0 {
 		t.Errorf("publication = %+v", got)
 	}
 
@@ -192,7 +192,7 @@ func TestSettlementPublicationIsVersionedAndIdempotent(t *testing.T) {
 		"settlement_id": villageID, "building_id": "b1", "type_code": "watch_hut"})); err != nil {
 		t.Fatal(err)
 	}
-	if last := pub.pubs[len(pub.pubs)-1]; last.data["type"] != "build_finished" || last.data["version"] != 2.0 {
+	if last := pub.pubs[len(pub.pubs)-1]; last.data["type"] != "build_finished" || last.data["seq"] != 2.0 {
 		t.Errorf("second publication = %+v", last)
 	}
 }
@@ -310,7 +310,7 @@ func TestFailedSettlementPublishIsRetriedWithTheSameVersion(t *testing.T) {
 	if err := r.w.Handle(context.Background(), route, ev); err != nil {
 		t.Fatal(err)
 	}
-	if len(pub.pubs) != 1 || pub.pubs[0].data["version"] != 1.0 || ver.next[villageID] != 1 {
+	if len(pub.pubs) != 1 || pub.pubs[0].data["seq"] != 1.0 || ver.next[villageID] != 1 {
 		t.Errorf("publications = %+v, counter = %d", pub.pubs, ver.next[villageID])
 	}
 	ver.fail = errors.New("redis is down")

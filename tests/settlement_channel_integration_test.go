@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/infrastructure/centrifugo"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	infraredis "github.com/mrjvadi/torncity/internal/infrastructure/redis"
@@ -206,14 +207,14 @@ func verifySettlementChannel(t *testing.T, pool *postgres.Pool, cityID string) {
 		}
 	}
 	// Centrifugo answers history newest first; put it in version order.
-	sort.SliceStable(pubs, func(i, j int) bool { return pubs[i]["version"].(float64) < pubs[j]["version"].(float64) })
+	sort.SliceStable(pubs, func(i, j int) bool { return pubs[i]["seq"].(float64) < pubs[j]["seq"].(float64) })
 	if len(pubs) != handled {
 		t.Fatalf("the channel holds %d publications for %d events (a redelivery must not publish twice)", len(pubs), handled)
 	}
 	prev := 0.0
 	types := map[string]bool{}
 	for _, p := range pubs {
-		v := p["version"].(float64)
+		v := p["seq"].(float64)
 		if v != prev+1 && prev != 0 {
 			t.Errorf("versions are not consecutive: %v after %v", v, prev)
 		}
@@ -227,6 +228,42 @@ func verifySettlementChannel(t *testing.T, pool *postgres.Pool, cityID string) {
 		if !types[want] {
 			t.Errorf("no %q publication on the settlement channel; got %v", want, types)
 		}
+	}
+
+	// The last building event names the version the layout has now, for each
+	// kind of viewer: computed by the handler in the transaction that changed
+	// the buildings, with the code the layout endpoint uses.
+	var lastLayout map[string]any
+	for _, p := range pubs {
+		if lv, ok := p["layout_version"].(map[string]any); ok {
+			lastLayout = lv
+		}
+	}
+	if lastLayout == nil {
+		t.Fatal("no building publication carried a layout version")
+	}
+	snap := loadTestContent(t)
+	var cityRow application.FoundedSettlement
+	if err := pool.Raw().QueryRow(ctx, `SELECT id::text, name, tier FROM cities WHERE id = $1::uuid`, cityID).Scan(&cityRow.CityID, &cityRow.Name, &cityRow.Tier); err != nil {
+		t.Fatal(err)
+	}
+	stored, err := postgres.NewSettlementBuildingReader(pool).List(ctx, cityID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := application.LayoutVersionsOf(cityID, cityRow.Tier, cityRow.Name, wsettle.GridLotsForTier(cityRow.Tier, 5), stored,
+		func(code string, rotated bool) (int, int) {
+			if d, ok := snap.SettlementBuildingDef(code); ok {
+				def := d.Def()
+				if rotated {
+					def = def.Rotate()
+				}
+				return def.FootprintW, def.FootprintH
+			}
+			return 1, 1
+		})
+	if lastLayout["head"] != now.Head || lastLayout["member"] != now.Member || lastLayout["public"] != now.Public {
+		t.Errorf("the last event says the layout is %v, the buildings now make it %+v", lastLayout, now)
 	}
 
 	// The news: nothing before the window, one merged post after it, and a
@@ -318,7 +355,9 @@ func TestSettlementVersionsAreIdempotentAndUnique(t *testing.T) {
 		t.Errorf("versions run %d..%d after %d, want consecutive", lo, hi, first)
 	}
 
-	// A flushed counter can only move forward: it re-seeds from the clock.
+	// A flushed counter moves forward: it re-seeds from the clock, which is
+	// ahead of a counter that has advanced less than once a millisecond.
+	time.Sleep(100 * time.Millisecond)
 	if err := rdb.Raw().Del(ctx, "settlement:version:{settlement:"+village+"}").Err(); err != nil {
 		t.Fatal(err)
 	}

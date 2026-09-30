@@ -131,8 +131,8 @@ func TestClientAPIPresenceEndpoints(t *testing.T) {
 	if status != http.StatusOK || out["settlement_id"] != home || len(rows) != 2 || out["online"] != 2.0 {
 		t.Errorf("players: %d %v", status, out)
 	}
-	if _, has := out["version"]; !has {
-		t.Errorf("no version in the list: %v", out)
+	if _, has := out["seq"]; !has {
+		t.Errorf("no seq in the list: %v", out)
 	}
 
 	// Outside the settlement: no list.
