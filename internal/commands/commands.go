@@ -443,6 +443,9 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "join", Origin: FromPlayer},
 	{Domain: "settlement", Action: "leave", Origin: FromPlayer},
 	{Domain: "settlement", Action: "donate", Origin: FromPlayer},
+	// Growing into the next tier (ADR 0028 section 4.1).
+	{Domain: "settlement", Action: "promotion.view", Origin: FromPlayer},
+	{Domain: "settlement", Action: "promote", Origin: FromPlayer},
 	{Domain: "settlement", Action: "researched", Origin: FromScheduler},
 	{Domain: "settlement", Action: "taught", Origin: FromScheduler},
 	{Domain: "settlement", Action: "built", Origin: FromScheduler},

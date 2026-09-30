@@ -581,6 +581,7 @@
       "name": "کورندال",
       "population": 12,
       "population_cap": 100,
+      "promotion": null,
       "resident": true,
       "security_percent": 15,
       "service_percent": 0,

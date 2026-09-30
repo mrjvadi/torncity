@@ -146,6 +146,7 @@ func (w *Worker) postNews(ctx context.Context, now time.Time, b NewsBatch) error
 			view.Items = append(view.Items, screens.VillageNewsItem{
 				Kind: q.Kind, Building: screens.Named{Code: q.Code, Name: q.Name},
 				Knowledge: screens.Named{Code: q.Code, Name: q.Name}, Percent: q.Percent, Player: playerOf(q), Amount: q.Amount,
+				Tier: tierOfNews(q),
 			})
 		}
 		resp := screens.VillageNews(c, view)
@@ -243,10 +244,45 @@ func newsTaught(_ context.Context, deps Deps, env *envelope.Envelope) (*NewsItem
 
 // playerOf is who a resident_joined item is about (its Name).
 func playerOf(q QueuedNews) string {
-	if q.Kind == screens.NewsResidentJoined || q.Kind == screens.NewsDonated {
+	if q.Kind == screens.NewsResidentJoined || q.Kind == screens.NewsDonated || q.Kind == screens.NewsPromoted {
 		return q.Name
 	}
 	return ""
+}
+
+// tierOfNews is the tier a promotion reached (its Code).
+func tierOfNews(q QueuedNews) string {
+	if q.Kind == screens.NewsPromoted {
+		return q.Code
+	}
+	return ""
+}
+
+// newsPromoted: the settlement grew into the next tier. The item carries the
+// tier reached (Code) and the head's name.
+func newsPromoted(ctx context.Context, deps Deps, env *envelope.Envelope) (*NewsItem, error) {
+	var ev struct {
+		SettlementID string `json:"settlement_id"`
+		To           string `json:"to"`
+		HeadPlayerID string `json:"head_player_id"`
+	}
+	if err := json.Unmarshal(env.Payload, &ev); err != nil {
+		return nil, apperrors.InvalidInput("settlement.promoted payload is unreadable").WithCause(err)
+	}
+	if ev.SettlementID == "" || ev.To == "" {
+		return nil, nil
+	}
+	name := ""
+	if deps.Players != nil && ev.HeadPlayerID != "" {
+		p, err := deps.Players.GetByID(ctx, ev.HeadPlayerID)
+		switch {
+		case err == nil:
+			name = shownName(p)
+		case apperrors.CodeOf(err) != apperrors.CodeNotFound:
+			return nil, err
+		}
+	}
+	return &NewsItem{SettlementID: ev.SettlementID, Kind: screens.NewsPromoted, Code: ev.To, Name: name}, nil
 }
 
 // newsResidentJoined: a player made a village their home. The founder's own

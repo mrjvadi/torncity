@@ -119,7 +119,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 		VillageNotAvailable, VillageTerrain, VillagePrerequisite, VillageLiteracy, VillageNotFound,
 		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
 		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome,
-		VillageDonateRange, VillageDonateNoCash:
+		VillageDonateRange, VillageDonateNoCash, VillagePromotionTop:
 	default:
 		kind = VillageNotFound
 	}
@@ -172,6 +172,9 @@ type VillageOverviewView struct {
 	// knowledge shop, hospital and jail are a journey away. Nil when no
 	// such city is configured.
 	Support *VillageSupport `json:"support,omitempty"`
+	// Promotion is the way forward: the goals of the next tier and the
+	// settlement's progress on each. Nil at the top of the ladder.
+	Promotion *PromotionView `json:"promotion,omitempty"`
 }
 
 // VillageSupport names the city a village's residents travel to for the
@@ -219,12 +222,18 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 
 	kb := keyboards.New()
 	blocks := []string{head, population, treasury, coverage, buildings}
+	if v.Promotion != nil {
+		blocks = append(blocks, promotionBlock(c, *v.Promotion))
+	}
 	if c.Shared {
 		if !v.Resident {
 			kb.Add(c.T("village.button.join", nil), AddrVillageJoin)
 		}
 		kb.Row(villageButtons(c, "village.button.knowledge", AddrKnowledgeList, "village.button.build", AddrBuildMenu)...)
 		kb.Row(villageButtons(c, "village.button.progress", AddrConstructionProgress, "village.button.who", AddrSettlementWho)...)
+		if v.Promotion != nil {
+			promotionButton(c, kb, *v.Promotion)
+		}
 		if v.Resident {
 			kb.Row(villageButtons(c, "village.button.donate", AddrVillageDonate, "village.button.leave", AddrVillageLeave)...)
 		}

@@ -728,6 +728,52 @@ village:
     join: "🏡 Become a resident"
     leave: "🚪 Leave the village"
     donate: "💰 Give to the treasury"
+  tier_name:
+    village: "village"
+    town: "town"
+    city: "city"
+  office:
+    village: "village head"
+    town: "town head"
+    city: "mayor"
+  promotion:
+    block_title: "🧭 The way to becoming a {tier}:"
+    title: "🧭 The way to becoming a {tier} - {village}"
+    intro: "{village} grows into a {tier} by developing, not by taking more land: people, literacy, buildings, knowledge and a healthy treasury. These are the steps ahead:"
+    goal:
+      residents: "{mark} Residents: {current} of {required}"
+      literacy: "{mark} Literacy: {current}% of {required}%"
+      buildings: "{mark} Finished buildings (roads not counted): {current} of {required}"
+      knowledge: "{mark} Things the village learned itself (researched or bought): {current} of {required}"
+      treasury: "{mark} Treasury: {current} of {required}"
+      role: "{mark} {role}"
+    role:
+      food:
+        "1": "A food building (a farm or a pasture)"
+      education:
+        "1": "A teaching building (a teaching circle)"
+        "2": "A school"
+      health:
+        "1": "A health building (a health house)"
+        "2": "A clinic"
+      market:
+        "2": "A market"
+      security:
+        "1": "A security building (a watch hut or a post)"
+    ready_head: "🎉 Every step is taken. You can now promote {village} to a {tier}."
+    ready_member: "🎉 Every step is taken. Promoting is up to the head."
+    not_ready: "Every step taken turns ✅ here. When all are ✅ the head gets the promotion button."
+    button_view: "🧭 The way to a {tier}"
+    button_promote: "🚀 Promote to {tier}"
+    button_yes: "✅ Yes, promote"
+    ask_title: "🚀 Promote {village} to a {tier}?"
+    ask_body:
+      town: "The village head becomes the town head and keeps leading; building opens up and new buildings and knowledge appear. Promotion is free and cannot be undone; the group is told."
+      city: "The town head becomes the mayor and keeps leading; the city government with taxes, a council and elections starts. Promotion is free and cannot be undone; the group is told."
+    done_title: "🎉 {village} is now a {tier}!"
+    done_body:
+      town: "The village head is now the town head. The town's new buildings and knowledge show in the build and knowledge lists, and the group has been told."
+      city: "The town head is now the mayor. City affairs are open, and the group has been told."
   refusal:
     no_settlement: "🏡 This group has not founded a village yet. Send \"found village\" to start."
     not_office_holder: "🔒 Only the village head may do this."
@@ -753,6 +799,7 @@ village:
     no_home: "🏙 The city to return to has not been set."
     donate_range: "💰 A gift must be between {min} and {max}."
     donate_no_cash: "💰 You do not have enough cash for that gift."
+    promotion_top: "🏙 This settlement has reached the highest tier; there is no step beyond."
   donate:
     title: "💰 Give to the treasury of {village}"
     body: |-
@@ -4508,6 +4555,7 @@ village_news:
   taught: "📖 Literacy in {village} reached {percent}%."
   resident_joined: "🏡 {player} became a resident of {village}."
   donated: "💰 {player} gave {amount} to the village treasury."
+  promoted: "🎉 {village} has grown into a {tier}! {player} is now the {office}, and new buildings and knowledge are open."
   someone: "Someone"
   merged:
     title: "🏘 News from {village}:"
@@ -4518,4 +4566,5 @@ village_news:
     taught: "• 📖 Literacy reached {percent}%."
     resident_joined: "• 🏡 {player} moved in."
     donated: "• 💰 {player} gave {amount} to the village treasury."
+    promoted: "• 🎉 Grew into a {tier}; {player} is now the {office}."
     more: "• and {count} more."

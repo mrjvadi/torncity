@@ -411,6 +411,11 @@ commands:
   settlement.join: {channel: group, client: true}
   settlement.leave: {channel: group, client: true}
   settlement.donate: {channel: group, client: true}
+  # Growing into the next tier (docs/adr/0028 section 4.1): the goals and the
+  # progress on each, and the head's confirmed step. Civic acts, so group
+  # screens; a client asks too (it resolves its own settlement).
+  settlement.promotion.view: {channel: group, client: true}
+  settlement.promote: {channel: group, client: true}
 
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the

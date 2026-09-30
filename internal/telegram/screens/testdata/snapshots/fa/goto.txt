@@ -64,13 +64,16 @@
 
 🆔 کد بازیکن: ⁨K7Q2M9A⁩
   ───
-  [🗺 نقشه] → map:list
+  [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🕶 دنیای زیرزمینی] → crime:hub
+  [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
+  [🏠 املاک من] → property:mine   │   [🛒 مغازه‌ها] → shop:list
   [🏛 مناصب و سیاست‌ها] → gov:city   │   [🏢 شرکت‌های شهر] → company:list
-  [🧬 زندگی من] → life:me
+  [👥 دوستان] → social:friend.list   │   [🏴 جناح من] → faction:mine
+  [📋 مأموریت‌های من] → mission:mine
+  [🛠 مهارت‌ها] → skills:list   │   [🧬 زندگی من] → life:me
   [🏅 دستاوردها] → achievement:list   │   [🏆 برترین‌ها] → life:top
-  [🔒 ادامه در پی‌وی] → https://t.me/torn_bot
-  [🔄 به‌روزرسانی] → player:profile.get
+  [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
 ━━━ Dashboard · standing at a place ━━━
 (edits message 42)
@@ -266,5 +269,5 @@
 نوع کار را انتخاب کنید:
   ───
   [دزدی خُرد] → crime:list:petty_theft   │   [جرم خیابانی] → crime:list:street_crime
-  [🔒 ادامه در پی‌وی] → https://t.me/torn_bot
+  [📜 سابقهٔ من] → crime:record   │   [🗂 پرونده‌های من] → crime:cases
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → crime:hub

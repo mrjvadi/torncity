@@ -436,6 +436,9 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			LiteracyPercent:  literacyBPS / 100,
 			Buildings:        roleLines,
 		}
+		if view.Promotion, err = h.promotionOf(ctx, tx, snap, s, viewer.ID); err != nil {
+			return err
+		}
 		if h.homeCityCode != "" {
 			if support, err := h.cities.ByCode(ctx, h.homeCityCode); err == nil {
 				view.Support = &screens.VillageSupport{Code: support.Code, Name: support.Name}
