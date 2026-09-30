@@ -705,6 +705,18 @@ type Settlement struct {
 	// money cost credited back to the settlement's treasury (ADR 0028
 	// section 6.2), basis points; default 2000 (20%).
 	DemolitionSalvageBPS int64 // settlement.demolition_salvage_bps
+
+	// FoundingGrant is the treasury a freshly founded village starts with,
+	// minted once from system_source (ledger reason settlement_grant): a
+	// village has no income until its abstract sales exist (ADR 0028
+	// section 8.3), so without a start it could pay for neither its first
+	// buildings nor its first research.
+	FoundingGrant int64 // settlement.founding_grant
+	// DonationMin and DonationMax bound one settlement.donate, in minor
+	// units; DonationPresets are the amounts the donate buttons offer.
+	DonationMin     int64   // settlement.donation_min
+	DonationMax     int64   // settlement.donation_max
+	DonationPresets []int64 // settlement.donation_presets
 }
 
 // Governance is the tuning of the office holder's screens
@@ -1299,6 +1311,10 @@ func Defaults() *Config {
 			ScarcityCapBPS:        80000,
 			SellerBandBPS:         500,
 			DemolitionSalvageBPS:  2000,
+			FoundingGrant:         10_000,
+			DonationMin:           100,
+			DonationMax:           100_000,
+			DonationPresets:       []int64{250, 1000, 5000},
 		},
 		Governance: Governance{
 			FineStepDivisor:   100,
@@ -1612,6 +1628,18 @@ func (c *Config) Validate() error {
 	}
 	if c.Settlement.FoundingNameMax > 60 || c.Settlement.FoundingMottoMax > 200 || c.Settlement.FoundingCurrencyNameMax > 60 || c.Settlement.FoundingCurrencySymbolMax > 8 {
 		return fmt.Errorf("%w: a settlement.founding_* bound is beyond what the database column holds", ErrInvalidValue)
+	}
+
+	// A donation window that is upside down would refuse every donation.
+	if c.Settlement.DonationMin > c.Settlement.DonationMax {
+		return fmt.Errorf("%w: settlement.donation_min %d is above settlement.donation_max %d",
+			ErrInvalidValue, c.Settlement.DonationMin, c.Settlement.DonationMax)
+	}
+	for i, v := range c.Settlement.DonationPresets {
+		if v < c.Settlement.DonationMin || v > c.Settlement.DonationMax {
+			return fmt.Errorf("%w: settlement.donation_presets[%d] %d is outside donation_min..donation_max",
+				ErrInvalidValue, i, v)
+		}
 	}
 
 	// A basis-point weight above 100% is a typo, not a tuning.

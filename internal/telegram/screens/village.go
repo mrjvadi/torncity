@@ -89,6 +89,9 @@ const (
 	VillageResidenceWait   = "residence_cooldown"
 	VillageHoldsOffice     = "holds_office"
 	VillageNoHome          = "no_home"
+	// Donating (village_donate.go).
+	VillageDonateRange  = "donate_range"
+	VillageDonateNoCash = "donate_no_cash"
 )
 
 // VillageRefusalView is a K2/W5 command refused before it changed anything.
@@ -99,6 +102,8 @@ type VillageRefusalView struct {
 	Back string
 	// Remaining is how long a residence cool-down still runs.
 	Remaining time.Duration
+	// Min and Max are the bounds of a donation the amount fell outside.
+	Min, Max int64
 }
 
 // VillageRefusal renders a refused village command.
@@ -112,7 +117,8 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 	case VillageNoSettlement, VillageNotOfficeHolder, VillageInsufficient, VillageBusy, VillageAlreadyOwned,
 		VillageNotAvailable, VillageTerrain, VillagePrerequisite, VillageLiteracy, VillageNotFound,
 		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
-		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome:
+		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome,
+		VillageDonateRange, VillageDonateNoCash:
 	default:
 		kind = VillageNotFound
 	}
@@ -122,7 +128,9 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 	}
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
-	return c.respond(c.T("village.refusal."+kind, map[string]any{"time": FormatDuration(c, v.Remaining)}), kb.Build())
+	return c.respond(c.T("village.refusal."+kind, map[string]any{
+		"time": FormatDuration(c, v.Remaining), "min": FormatMoney(c, v.Min), "max": FormatMoney(c, v.Max),
+	}), kb.Build())
 }
 
 // ---------------------------------------------------------------------
@@ -200,6 +208,7 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 	kb.Add(c.T("village.button.progress", nil), AddrConstructionProgress)
 	kb.Add(c.T("village.button.who", nil), AddrSettlementWho)
 	if v.Resident {
+		kb.Add(c.T("village.button.donate", nil), AddrVillageDonate)
 		kb.Add(c.T("village.button.leave", nil), AddrVillageLeave)
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrVillageOverview}))

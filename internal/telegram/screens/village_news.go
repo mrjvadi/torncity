@@ -19,6 +19,8 @@ const (
 	NewsTaught       = "taught"
 	// NewsResidentJoined: a player made the village their home.
 	NewsResidentJoined = "resident_joined"
+	// NewsDonated: a resident gave to the village treasury.
+	NewsDonated = "donated"
 )
 
 // MaxNewsLines bounds a merged list; the rest is counted.
@@ -32,8 +34,11 @@ type VillageNewsItem struct {
 	Knowledge Named
 	// Percent is the literacy reached, for NewsTaught.
 	Percent int
-	// Player is who joined, for NewsResidentJoined ("" when unnamed).
+	// Player is who joined or gave, for NewsResidentJoined and NewsDonated
+	// ("" when unnamed).
 	Player string
+	// Amount is what was given, for NewsDonated.
+	Amount int64
 }
 
 // VillageNewsView is one post: one or more items of one village.
@@ -55,6 +60,8 @@ func VillageNews(c Context, v VillageNewsView) *presenter.Response {
 			addr, label = AddrConstructionProgress, "village.button.progress"
 		case NewsResearched, NewsBought:
 			addr, label = AddrKnowledgeList, "village.button.knowledge"
+		case NewsDonated:
+			addr, label = AddrVillageOverview, "village.button.overview"
 		}
 	}
 	kb.Add(c.T(label, nil), addr)
@@ -86,6 +93,7 @@ func newsArgs(c Context, village string, it VillageNewsItem) map[string]any {
 		"building":  c.SettlementBuildingName(it.Building),
 		"knowledge": c.SettlementKnowledgeName(it.Knowledge),
 		"percent":   FormatNumber(c, int64(it.Percent)),
+		"amount":    FormatNumber(c, it.Amount),
 	}
 }
 

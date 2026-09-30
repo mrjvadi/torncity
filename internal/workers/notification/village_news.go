@@ -55,6 +55,8 @@ type NewsItem struct {
 	Code, Name string
 	// Percent is the literacy reached, for screens.NewsTaught.
 	Percent int
+	// Amount is what a donation gave, for screens.NewsDonated.
+	Amount int64
 }
 
 // NewsBuilder turns one village event into news, or nil when it is not news.
@@ -89,7 +91,7 @@ func (w *Worker) queueNews(ctx context.Context, route Route, env *envelope.Envel
 		return nil
 	}
 	if err := w.cfg.News.Push(ctx, item.SettlementID, QueuedNews{
-		EventID: env.Metadata.MessageID(), Kind: item.Kind, Code: item.Code, Name: item.Name, Percent: item.Percent, At: now,
+		EventID: env.Metadata.MessageID(), Kind: item.Kind, Code: item.Code, Name: item.Name, Percent: item.Percent, Amount: item.Amount, At: now,
 	}); err != nil {
 		log.Warn("cannot queue the village news", slog.String("error", err.Error()))
 		return err
@@ -143,7 +145,7 @@ func (w *Worker) postNews(ctx context.Context, now time.Time, b NewsBatch) error
 		for _, q := range b.Items {
 			view.Items = append(view.Items, screens.VillageNewsItem{
 				Kind: q.Kind, Building: screens.Named{Code: q.Code, Name: q.Name},
-				Knowledge: screens.Named{Code: q.Code, Name: q.Name}, Percent: q.Percent, Player: playerOf(q),
+				Knowledge: screens.Named{Code: q.Code, Name: q.Name}, Percent: q.Percent, Player: playerOf(q), Amount: q.Amount,
 			})
 		}
 		resp := screens.VillageNews(c, view)
@@ -241,7 +243,7 @@ func newsTaught(_ context.Context, deps Deps, env *envelope.Envelope) (*NewsItem
 
 // playerOf is who a resident_joined item is about (its Name).
 func playerOf(q QueuedNews) string {
-	if q.Kind == screens.NewsResidentJoined {
+	if q.Kind == screens.NewsResidentJoined || q.Kind == screens.NewsDonated {
 		return q.Name
 	}
 	return ""
@@ -282,4 +284,31 @@ func newsResidentJoined(ctx context.Context, deps Deps, env *envelope.Envelope) 
 		}
 	}
 	return &NewsItem{SettlementID: ev.ToCityID, Kind: screens.NewsResidentJoined, Name: name}, nil
+}
+
+// newsDonated: a resident gave to the village treasury. The gift is public
+// news, with the giver's name and the amount, so the village can thank them.
+func newsDonated(ctx context.Context, deps Deps, env *envelope.Envelope) (*NewsItem, error) {
+	var ev struct {
+		SettlementID string `json:"settlement_id"`
+		PlayerID     string `json:"player_id"`
+		Amount       int64  `json:"amount"`
+	}
+	if err := json.Unmarshal(env.Payload, &ev); err != nil {
+		return nil, apperrors.InvalidInput("settlement.donated payload is unreadable").WithCause(err)
+	}
+	if ev.SettlementID == "" || ev.Amount <= 0 {
+		return nil, nil
+	}
+	name := ""
+	if deps.Players != nil && ev.PlayerID != "" {
+		p, err := deps.Players.GetByID(ctx, ev.PlayerID)
+		switch {
+		case err == nil:
+			name = shownName(p)
+		case apperrors.CodeOf(err) != apperrors.CodeNotFound:
+			return nil, err
+		}
+	}
+	return &NewsItem{SettlementID: ev.SettlementID, Kind: screens.NewsDonated, Name: name, Amount: ev.Amount}, nil
 }

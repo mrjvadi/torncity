@@ -193,6 +193,7 @@ No buildings stand here yet.
   [🏗 Construction] → settlement:build
   [⏳ Build progress] → settlement:build.progress
   [👥 People] → settlement:who
+  [💰 Give to the treasury] → settlement:donate
   [🚪 Leave the village] → settlement:leave
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 

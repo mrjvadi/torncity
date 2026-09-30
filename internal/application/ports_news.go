@@ -13,6 +13,8 @@ type QueuedNews struct {
 	Code    string    `json:"c,omitempty"`
 	Name    string    `json:"n,omitempty"`
 	Percent int       `json:"p,omitempty"`
+	// Amount is what a donation gave, minor units.
+	Amount int64 `json:"m,omitempty"`
 	At      time.Time `json:"a"`
 }
 

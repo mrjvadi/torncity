@@ -281,6 +281,13 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.Join(ctx, env.Metadata, req)
 		},
+		"settlement.donate": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageDonateRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Donate(ctx, env.Metadata, req)
+		},
 		"settlement.leave": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageJoinRequest
 			if err := decode(env, &req); err != nil {

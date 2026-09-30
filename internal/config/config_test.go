@@ -553,6 +553,10 @@ settlement:
   scarcity_cap_bps: 80001
   seller_band_bps: 501
   demolition_salvage_bps: 2001
+  founding_grant: 10001
+  donation_min: 101
+  donation_max: 100001
+  donation_presets: [251, 1001, 5001]
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -864,6 +868,10 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_SCARCITY_CAP_BPS":             "80002",
 	"TORN_SETTLEMENT_SELLER_BAND_BPS":              "502",
 	"TORN_SETTLEMENT_DEMOLITION_SALVAGE_BPS":       "2002",
+	"TORN_SETTLEMENT_FOUNDING_GRANT":               "10002",
+	"TORN_SETTLEMENT_DONATION_MIN":                 "102",
+	"TORN_SETTLEMENT_DONATION_MAX":                 "100002",
+	"TORN_SETTLEMENT_DONATION_PRESETS":             "252,1002,5002",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

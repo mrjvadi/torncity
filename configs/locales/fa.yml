@@ -808,6 +808,7 @@ village:
     progress: "⏳ پیشرفت ساخت"
     join: "🏡 ساکن این روستا شو"
     leave: "🚪 ترک روستا"
+    donate: "💰 کمک به خزانه"
   refusal:
     no_settlement: "🏡 این گروه هنوز روستایی تأسیس نکرده است. برای شروع «ساخت روستا» را بفرستید."
     not_office_holder: "🔒 این کار فقط برای دهیار روستا ممکن است."
@@ -831,6 +832,19 @@ village:
     residence_cooldown: "⏳ به‌تازگی خانه‌تان را جابه‌جا کرده‌اید. {time} دیگر می‌توانید دوباره جابه‌جا شوید."
     holds_office: "🔒 تا وقتی مسئولیت دهیاری با شماست نمی‌توانید روستا را ترک کنید."
     no_home: "🏙 شهر بازگشت هنوز تعیین نشده است."
+    donate_range: "💰 مبلغ کمک باید بین {min} و {max} باشد."
+    donate_no_cash: "💰 پول نقد شما برای این کمک کافی نیست."
+  donate:
+    title: "💰 کمک به خزانهٔ روستای «{village}»"
+    body: |-
+      🏦 خزانهٔ روستا: {treasury}
+      👛 پول نقد شما: {cash}
+      هر کمک بین {min} و {max} است. مبلغ را انتخاب کنید:
+    ask_title: "💰 {amount} به خزانهٔ روستای «{village}» کمک می‌کنید؟"
+    ask_body: "این مبلغ از پول نقد شما کم و به خزانهٔ روستا اضافه می‌شود؛ خزانه برای ساخت‌وساز و پژوهش روستا خرج می‌شود. کمک پس‌گرفتنی نیست."
+    button_yes: "✅ بله، {amount} کمک می‌کنم"
+    done_title: "💰 ممنون! {amount} به خزانهٔ روستای «{village}» رسید."
+    done_body: "🏦 خزانهٔ روستا اکنون {treasury} است و پول نقد شما {cash}."
   residence:
     join:
       ask_title: "🏡 ساکن روستای «{village}» می‌شوید؟"
@@ -4617,6 +4631,7 @@ village_news:
   bought: "📚 دهیار «{knowledge}» را برای روستای «{village}» خرید."
   taught: "📖 سوادآموزی روستای «{village}» به {percent}٪ رسید."
   resident_joined: "🏡 {player} ساکن روستای «{village}» شد."
+  donated: "💰 {player} {amount} ساپ به خزانهٔ روستا کمک کرد."
   someone: "یک نفر"
   merged:
     title: "🏘 تازه‌های روستای «{village}»:"
@@ -4626,4 +4641,5 @@ village_news:
     bought: "• 📚 «{knowledge}» خریداری شد."
     taught: "• 📖 سوادآموزی به {percent}٪ رسید."
     resident_joined: "• 🏡 {player} ساکن روستا شد."
+    donated: "• 💰 {player} {amount} ساپ به خزانهٔ روستا کمک کرد."
     more: "• و {count} خبر دیگر."

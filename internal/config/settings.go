@@ -285,6 +285,11 @@ type settlementSettings struct {
 	ScarcityCapBPS        *int64  `yaml:"scarcity_cap_bps"`
 	SellerBandBPS         *int64  `yaml:"seller_band_bps"`
 	DemolitionSalvageBPS  *int64  `yaml:"demolition_salvage_bps"`
+
+	FoundingGrant   *int64  `yaml:"founding_grant"`
+	DonationMin     *int64  `yaml:"donation_min"`
+	DonationMax     *int64  `yaml:"donation_max"`
+	DonationPresets []int64 `yaml:"donation_presets"`
 }
 
 type crimeSettings struct {
@@ -1065,6 +1070,18 @@ var coreSettings = []setting{
 	moneySetting("settlement", "demolition_salvage_bps",
 		func(c *Config) *int64 { return &c.Settlement.DemolitionSalvageBPS },
 		func(f *fileConfig) *int64 { return f.Settlement.DemolitionSalvageBPS }),
+	moneySetting("settlement", "founding_grant",
+		func(c *Config) *int64 { return &c.Settlement.FoundingGrant },
+		func(f *fileConfig) *int64 { return f.Settlement.FoundingGrant }),
+	moneySetting("settlement", "donation_min",
+		func(c *Config) *int64 { return &c.Settlement.DonationMin },
+		func(f *fileConfig) *int64 { return f.Settlement.DonationMin }),
+	moneySetting("settlement", "donation_max",
+		func(c *Config) *int64 { return &c.Settlement.DonationMax },
+		func(f *fileConfig) *int64 { return f.Settlement.DonationMax }),
+	moneyListSetting("settlement", "donation_presets",
+		func(c *Config) *[]int64 { return &c.Settlement.DonationPresets },
+		func(f *fileConfig) []int64 { return f.Settlement.DonationPresets }),
 
 	durationSetting("legislature", "vote_window",
 		func(c *Config) *time.Duration { return &c.Legislature.VoteWindow },

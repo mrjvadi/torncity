@@ -407,6 +407,7 @@ commands:
   # residence is the player's own, the act is seen by the group.
   settlement.join: {channel: group, client: true}
   settlement.leave: {channel: group, client: true}
+  settlement.donate: {channel: group, client: true}
 
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the

@@ -709,6 +709,7 @@ village:
     progress: "⏳ Build progress"
     join: "🏡 Become a resident"
     leave: "🚪 Leave the village"
+    donate: "💰 Give to the treasury"
   refusal:
     no_settlement: "🏡 This group has not founded a village yet. Send \"found village\" to start."
     not_office_holder: "🔒 Only the village head may do this."
@@ -732,6 +733,19 @@ village:
     residence_cooldown: "⏳ You moved home recently. You can move again in {time}."
     holds_office: "🔒 You cannot leave the village while you are its head."
     no_home: "🏙 The city to return to has not been set."
+    donate_range: "💰 A gift must be between {min} and {max}."
+    donate_no_cash: "💰 You do not have enough cash for that gift."
+  donate:
+    title: "💰 Give to the treasury of {village}"
+    body: |-
+      🏦 Village treasury: {treasury}
+      👛 Your cash: {cash}
+      A gift is between {min} and {max}. Choose an amount:
+    ask_title: "💰 Give {amount} to the treasury of {village}?"
+    ask_body: "The amount leaves your cash and joins the village treasury, which pays for its buildings and research. A gift cannot be taken back."
+    button_yes: "✅ Yes, give {amount}"
+    done_title: "💰 Thank you! {amount} reached the treasury of {village}."
+    done_body: "🏦 The village treasury now holds {treasury} and your cash is {cash}."
   residence:
     join:
       ask_title: "🏡 Become a resident of {village}?"
@@ -4474,6 +4488,7 @@ village_news:
   bought: "📚 The village head bought {knowledge} for {village}."
   taught: "📖 Literacy in {village} reached {percent}%."
   resident_joined: "🏡 {player} became a resident of {village}."
+  donated: "💰 {player} gave {amount} to the village treasury."
   someone: "Someone"
   merged:
     title: "🏘 News from {village}:"
@@ -4483,4 +4498,5 @@ village_news:
     bought: "• 📚 {knowledge} was bought."
     taught: "• 📖 Literacy reached {percent}%."
     resident_joined: "• 🏡 {player} moved in."
+    donated: "• 💰 {player} gave {amount} to the village treasury."
     more: "• and {count} more."

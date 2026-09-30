@@ -298,3 +298,4 @@ commands:
   settlement.found.submit: {kind: confirm, icon: "action:home"}
   settlement.join: {kind: primary, icon: "action:home"}
   settlement.leave: {kind: danger, icon: "action:leave"}
+  settlement.donate: {kind: primary, icon: "action:donate"}

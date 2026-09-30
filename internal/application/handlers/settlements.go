@@ -36,6 +36,9 @@ type SettlementsHandler struct {
 	villageGridLots  int
 	teachPeriod      time.Duration
 	founding         FoundingConfig
+	// foundingGrant is the treasury a new village starts with
+	// (WithFoundingGrant, village_treasury.go); zero grants nothing.
+	foundingGrant int64
 
 	now func() time.Time
 }

@@ -151,6 +151,14 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		}
 	}
 
+	if v.Village {
+		t := v.VillageInvariants
+		out.add(t.GrantLedger == t.GrantRows && t.GrantMismatched == 0, fmt.Sprintf("village founding grants in the ledger match the grant rows (%d = %d), each one the transaction its row names (%d mismatched)", t.GrantLedger, t.GrantRows, t.GrantMismatched))
+		out.add(t.Ungranted == 0, fmt.Sprintf("every founded settlement received its one founding grant (%d without: run 'admin settlement backfill-grants')", t.Ungranted))
+		out.add(t.DonationLedger == t.DonationRows && t.DonationMismatched == 0, fmt.Sprintf("village donations in the ledger match the donation rows (%d = %d), each moving its amount from the donor's cash to the treasury (%d mismatched)", t.DonationLedger, t.DonationRows, t.DonationMismatched))
+		out.add(t.TopupLedger == t.TopupRows && t.TopupMismatched == 0, fmt.Sprintf("operator top-ups of village treasuries in the ledger match the top-up rows (%d = %d), each the transaction its row names (%d mismatched)", t.TopupLedger, t.TopupRows, t.TopupMismatched))
+	}
+
 	if v.Life {
 		l := v.LifeInvariants
 		out.add(l.LodgingLedger == l.LodgingRows && l.UnpaidNights == 0, fmt.Sprintf("lodging fees in the ledger match the nights paid for (%d = %d), each with its own fee (%d without)", l.LodgingLedger, l.LodgingRows, l.UnpaidNights))

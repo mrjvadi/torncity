@@ -406,7 +406,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				},
 			},
 			nil,
-		),
+		).WithFoundingGrant(cfg.Settlement.FoundingGrant),
 		village: handlers.NewVillageHandler(
 			uow,
 			uuidGenerator{},
@@ -429,7 +429,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			},
 			cfg.Game.IdempotencyTTL,
 			nil,
-		),
+		).WithDonationRules(cfg.Settlement.DonationMin, cfg.Settlement.DonationMax, cfg.Settlement.DonationPresets),
 	}
 
 	// Work and study read careers and courses from the live registry and a

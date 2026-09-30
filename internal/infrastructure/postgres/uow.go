@@ -190,6 +190,12 @@ func (t *tx) SettlementBuildings() application.SettlementBuildingRepository {
 	return &SettlementBuildingRepository{q: t.q}
 }
 
+// SettlementTreasury records the village treasury's founding grant and
+// donations, bound to this transaction so each commits with its ledger legs.
+func (t *tx) SettlementTreasury() application.SettlementTreasuryRepository {
+	return &SettlementTreasuryRepository{q: t.q}
+}
+
 // Presence returns the presence repository bound to this transaction: a
 // player's "last seen" setting is written with the idempotency key of the
 // press that changed it (ADR 0030 section 3.2).

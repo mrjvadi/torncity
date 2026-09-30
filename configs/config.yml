@@ -1087,3 +1087,17 @@ settlement:
   # The share of a demolished building's own money cost credited back to
   # the settlement's treasury (ADR 0028 section 6.2).
   demolition_salvage_bps: 2000
+  # Village treasury start-up. A village has no income until its abstract
+  # sales exist (ADR 0028 section 8.3), so it is founded with this many SUP
+  # in its treasury (system_source -> city_treasury, reason
+  # settlement_grant, exactly once per village). 10000 covers the first two
+  # or three tier-1 buildings (300-2500 each: a workshop 1200, a farm 2000,
+  # a granary 500) plus one first research (carpentry 1000 ... basic_literacy
+  # 4000).
+  founding_grant: 10000
+  # A resident may give from their own cash to their village's treasury
+  # (settlement.donate, reason settlement_donation): the least and the most
+  # of one gift, and the amounts the donate buttons offer.
+  donation_min: 100
+  donation_max: 100000
+  donation_presets: [250, 1000, 5000]

@@ -193,6 +193,7 @@
   [🏗 ساخت‌وساز] → settlement:build
   [⏳ پیشرفت ساخت] → settlement:build.progress
   [👥 اهالی] → settlement:who
+  [💰 کمک به خزانه] → settlement:donate
   [🚪 ترک روستا] → settlement:leave
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 

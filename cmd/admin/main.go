@@ -74,6 +74,8 @@ func main() {
 		err = panelCommand(ctx, os.Args[2:])
 	case "switch":
 		err = switchCommand(ctx, os.Args[2:])
+	case "settlement":
+		err = settlementCommand(ctx, os.Args[2:])
 	default:
 		usage()
 		os.Exit(2)
@@ -106,6 +108,7 @@ func usage() {
   life          backfill players' life histories from older records (audited)
   panel         the web panel's operator accounts (see: admin panel user)
   switch        runtime switches: telegram_play, telegram_notices (see: admin switch)
+  settlement    village treasuries: backfill-grants, grant (see: admin settlement)
 
 DATABASE_URL must be set, except for `+"`admin content validate`"+`, which
 reads files only.
