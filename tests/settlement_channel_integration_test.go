@@ -122,7 +122,7 @@ func verifySettlementChannel(t *testing.T, pool *postgres.Pool, cityID string) {
 	players := postgres.NewPlayerRepository(pool, testDefaultLanguage)
 	worker, err := notification.New(notification.Config{
 		Msgs: i18n.NewStore(catalog), Players: players, Links: players, Inbox: postgres.NewInboxStore(pool), Sender: sender,
-		Deps:       notification.Deps{Cities: postgres.NewCityRepository(pool), LiteracyStepBPS: 1},
+		Deps:       notification.Deps{Cities: postgres.NewCityRepository(pool), Founded: postgres.NewPresenceRepository(pool), LiteracyStepBPS: 1},
 		SendBudget: 10 * time.Second, ReceiptMargin: 2 * time.Second,
 		Groups: postgres.NewCityGroupRepository(pool), Now: func() time.Time { return clock },
 

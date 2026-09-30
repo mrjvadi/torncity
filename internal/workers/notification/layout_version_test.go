@@ -57,3 +57,53 @@ func TestBuildingPublicationsCarryTheLayoutVersion(t *testing.T) {
 		t.Errorf("head_changed = %+v", got)
 	}
 }
+
+type onlyFounded map[string]bool
+
+func (o onlyFounded) FoundedAmong(_ context.Context, ids []string) ([]string, error) {
+	var out []string
+	for _, id := range ids {
+		if o[id] {
+			out = append(out, id)
+		}
+	}
+	return out, nil
+}
+
+// A neutral city such as Support gets no settlement publication of any kind;
+// a journey between it and a founded village publishes only on the village.
+func TestContentCitiesPublishNothingOnSettlementChannels(t *testing.T) {
+	r, pub, _, _ := villageRig(t)
+	const support = "99999999-0000-4000-8000-000000000099"
+	r.w.cfg.Deps.Founded = onlyFounded{villageID: true}
+
+	trip := villageRoute(t, "travel", "completed", "realtime")
+	if err := r.w.Handle(context.Background(), trip, villageEvent2(t, "s1", r.now, map[string]any{
+		"player_id": playerID, "from_city_id": villageID, "to_city_id": support})); err != nil {
+		t.Fatal(err)
+	}
+	if len(pub.pubs) != 1 || pub.pubs[0].channel != "settlement:"+villageID || pub.pubs[0].data["type"] != "member_left" {
+		t.Fatalf("leaving a village for Support: %+v", pub.pubs)
+	}
+	before := len(pub.pubs)
+	if err := r.w.Handle(context.Background(), trip, villageEvent2(t, "s2", r.now, map[string]any{
+		"player_id": playerID, "from_city_id": support, "to_city_id": "88888888-0000-4000-8000-000000000088"})); err != nil {
+		t.Fatal(err)
+	}
+	move := villageRoute(t, "residence", "changed", "realtime")
+	if err := r.w.Handle(context.Background(), move, villageEvent2(t, "s3", r.now, map[string]any{
+		"player_id": playerID, "from_city_id": support, "to_city_id": villageID})); err != nil {
+		t.Fatal(err)
+	}
+	if len(pub.pubs) != before+1 || pub.pubs[before].data["type"] != "member_joined" {
+		t.Fatalf("only the founded village hears of it: %+v", pub.pubs[before:])
+	}
+	// Every other kind of village event for a content city is dropped too.
+	built := villageRoute(t, "settlement", "built", "realtime")
+	if err := r.w.Handle(context.Background(), built, villageEvent2(t, "s4", r.now, map[string]any{"settlement_id": support, "building_id": "b"})); err != nil {
+		t.Fatal(err)
+	}
+	if len(pub.pubs) != before+1 {
+		t.Errorf("a content city got a publication: %+v", pub.pubs[before+1:])
+	}
+}

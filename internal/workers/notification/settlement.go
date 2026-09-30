@@ -112,6 +112,28 @@ func (w *Worker) publishSettlement(ctx context.Context, route Route, env *envelo
 		log.Warn("event makes no settlement publication", slog.String("error", err.Error()))
 		return nil
 	}
+	if w.cfg.Deps.Founded != nil && len(pubs) > 0 {
+		ids := make([]string, 0, len(pubs))
+		for _, p := range pubs {
+			ids = append(ids, p.SettlementID)
+		}
+		keep, err := w.cfg.Deps.Founded.FoundedAmong(ctx, ids)
+		if err != nil {
+			log.Warn("cannot tell founded settlements from content cities", slog.String("error", err.Error()))
+			return err
+		}
+		founded := make(map[string]bool, len(keep))
+		for _, id := range keep {
+			founded[id] = true
+		}
+		// Indexes stay those of the event, so a publication that is skipped
+		// does not renumber the ones after it (their stamps are keyed on it).
+		for i := range pubs {
+			if !founded[pubs[i].SettlementID] {
+				pubs[i].SettlementID = ""
+			}
+		}
+	}
 	for i, p := range pubs {
 		if p.SettlementID == "" {
 			continue

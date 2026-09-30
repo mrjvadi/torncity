@@ -186,10 +186,43 @@ func (r *PresenceRepository) Roster(ctx context.Context, settlementID string, li
 func (r *PresenceRepository) Member(ctx context.Context, playerID, settlementID string) (bool, error) {
 	var ok bool
 	err := r.q.QueryRow(ctx,
-		`SELECT EXISTS (SELECT 1 FROM players WHERE id = $1::uuid AND (city_id = $2::uuid OR residence_city_id = $2::uuid))`,
+		`SELECT EXISTS (SELECT 1 FROM players p JOIN cities c ON c.id = $2::uuid AND c.origin = 'founded'
+		                 WHERE p.id = $1::uuid AND (p.city_id = c.id OR p.residence_city_id = c.id))`,
 		playerID, settlementID).Scan(&ok)
 	if err != nil {
 		return false, fmt.Errorf("postgres: checking settlement membership: %w", err)
 	}
 	return ok, nil
+}
+
+// FoundedAmong keeps the ids of cityIDs that are founded settlements, in the
+// order given.
+func (r *PresenceRepository) FoundedAmong(ctx context.Context, cityIDs []string) ([]string, error) {
+	if len(cityIDs) == 0 {
+		return nil, nil
+	}
+	rows, err := r.q.Query(ctx,
+		`SELECT id::text FROM cities WHERE origin = 'founded' AND id = ANY($1::uuid[])`, cityIDs)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading founded settlements: %w", err)
+	}
+	defer rows.Close()
+	keep := map[string]bool{}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("postgres: scanning founded settlements: %w", err)
+		}
+		keep[id] = true
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	var out []string
+	for _, id := range cityIDs {
+		if keep[id] {
+			out = append(out, id)
+		}
+	}
+	return out, nil
 }

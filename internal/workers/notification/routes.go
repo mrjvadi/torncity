@@ -70,6 +70,10 @@ type Deps struct {
 	// Players names a player in a settlement publication. New fills it from
 	// Config.Players when it is nil.
 	Players Players
+	// Founded says which ids are founded settlements. The settlement
+	// channel carries nothing for any other city (Support and the content
+	// cities are too busy to be a channel). Nil treats every id as one.
+	Founded FoundedSettlements
 	// LiteracyStepBPS is how far literacy must climb, in basis points, to
 	// be village news (announce.village_literacy_step_percent); zero is a
 	// step of ten percentage points.
@@ -311,4 +315,9 @@ type Cities interface {
 	// ByID returns the city, or an error classified NOT_FOUND
 	// (application.ErrCityNotFound) when there is none.
 	ByID(ctx context.Context, id string) (*application.City, error)
+}
+
+// FoundedSettlements narrows city ids to the group-founded settlements.
+type FoundedSettlements interface {
+	FoundedAmong(ctx context.Context, cityIDs []string) ([]string, error)
 }

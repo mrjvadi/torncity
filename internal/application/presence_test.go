@@ -34,6 +34,18 @@ type fakePresenceRepo struct {
 	facts     map[string]PresenceFacts
 	contacts  map[string]bool
 	countries map[string]string
+	// content lists the ids that are content cities, not founded settlements.
+	content map[string]bool
+}
+
+func (f *fakePresenceRepo) FoundedAmong(_ context.Context, ids []string) ([]string, error) {
+	var out []string
+	for _, id := range ids {
+		if !f.content[id] {
+			out = append(out, id)
+		}
+	}
+	return out, nil
 }
 
 func (f *fakePresenceRepo) Visibility(_ context.Context, id string) (presence.Visibility, error) {
@@ -202,5 +214,23 @@ func TestMemberships(t *testing.T) {
 	}
 	if _, err := s.Memberships(context.Background(), "ghost"); !errors.Is(err, ErrPlayerNotFound) {
 		t.Errorf("unknown player: %v", err)
+	}
+}
+
+// Support and the other content cities have no settlement channel: a token
+// for a player who lives there carries none, and the roster is not theirs.
+func TestContentCitiesHaveNoSettlementChannel(t *testing.T) {
+	s, _, repo := presenceRig()
+	repo.content = map[string]bool{"A": true}
+	got, err := s.Memberships(context.Background(), "viewer")
+	if err != nil || len(got) != 0 {
+		t.Fatalf("a resident of a content city has channels %v (%v)", got, err)
+	}
+	v := repo.facts["viewer"]
+	v.CityID = "B" // visiting a founded village
+	repo.facts["viewer"] = v
+	got, _ = s.Memberships(context.Background(), "viewer")
+	if len(got) != 1 || got[0] != "B" {
+		t.Errorf("only the founded settlement they stand in: %v", got)
 	}
 }

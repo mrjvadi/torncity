@@ -261,6 +261,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		Sender:  natsSender{conn: conn.Raw()},
 		Deps: notification.Deps{
 			Cities:          postgres.NewCityRepository(pool),
+			Founded:         postgres.NewPresenceRepository(pool),
 			LiteracyStepBPS: cfg.Announce.VillageLiteracyStep * 100,
 		},
 		SendBudget:    tuning.SendBudget,

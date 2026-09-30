@@ -42,6 +42,7 @@ func TestPresenceVisibilityAndActivity(t *testing.T) {
 
 	home := cityIDByCode(t, pool, "calderis")
 	away := cityIDByCode(t, pool, "vantor_reach") // the same country as calderis
+	asFoundedSettlement(t, pool, home)
 	abroad := cityIDByCode(t, pool, "brennhaven")
 
 	viewer, mate, friend, citizen, stranger := insertPlayer(t, pool), insertPlayer(t, pool), insertPlayer(t, pool), insertPlayer(t, pool), insertPlayer(t, pool)
@@ -208,4 +209,28 @@ func TestPresenceExpiresWithoutASignOff(t *testing.T) {
 	if got, _ := store.Online(ctx, []string{id}); got[id] {
 		t.Fatal("still online after the TTL")
 	}
+}
+
+// asFoundedSettlement makes a content city count as a founded settlement for
+// the length of a test, so the settlement channel and roster apply to it, and
+// puts it back afterwards.
+func asFoundedSettlement(t *testing.T, pool *postgres.Pool, cityID string) {
+	t.Helper()
+	ctx := testCtx(t)
+	world := newUUID(t)
+	if _, err := pool.Raw().Exec(ctx, `INSERT INTO worlds (id, seed, generator_version, params_hash, active, created_at, created_by)
+		VALUES ($1::uuid, $2, 1, 'itest-presence', false, now(), 'itest')`, world, randomInt64(t, 1<<40)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Raw().Exec(ctx, `UPDATE cities SET origin = 'founded', tier = 'village', world_id = $2::uuid,
+		world_cell_id = $3, founded_by_group_id = $4, founded_at = now(), protected_until = now() WHERE id = $1::uuid`,
+		cityID, world, int32(900000+randomInt64(t, 90000)), -newTelegramUserID(t)); err != nil {
+		t.Fatalf("standing in for a founded settlement: %v", err)
+	}
+	t.Cleanup(func() {
+		c := context.Background()
+		_, _ = pool.Raw().Exec(c, `UPDATE cities SET origin = 'content', tier = NULL, world_id = NULL, world_cell_id = NULL,
+			founded_by_group_id = NULL, founded_at = NULL, protected_until = NULL WHERE id = $1::uuid`, cityID)
+		_, _ = pool.Raw().Exec(c, `DELETE FROM worlds WHERE id = $1::uuid`, world)
+	})
 }

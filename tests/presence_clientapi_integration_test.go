@@ -4,6 +4,7 @@ package tests
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -30,6 +31,10 @@ func TestClientAPIPresenceEndpoints(t *testing.T) {
 
 	home := cityIDByCode(t, pool, "calderis")
 	away := cityIDByCode(t, pool, "brennhaven")
+	support := cityIDByCode(t, pool, "support")
+	// Only a founded settlement has a channel and a roster: stand in for one.
+	asFoundedSettlement(t, pool, home)
+	asFoundedSettlement(t, pool, away)
 	botID := insertBot(t, pool)
 	me, mate, outsider := insertPlayer(t, pool), insertPlayer(t, pool), insertPlayer(t, pool)
 	placePlayer(t, pool, me.ID, home, "")
@@ -133,6 +138,25 @@ func TestClientAPIPresenceEndpoints(t *testing.T) {
 	}
 	if _, has := out["seq"]; !has {
 		t.Errorf("no seq in the list: %v", out)
+	}
+
+	// A resident of Support (a content city) has no settlement channel, and
+	// Support has no roster.
+	dweller := insertPlayer(t, pool)
+	t.Cleanup(func() {
+		_, _ = pool.Raw().Exec(context.Background(), `DELETE FROM client_devices WHERE player_id = $1::uuid`, dweller.ID)
+	})
+	placePlayer(t, pool, dweller.ID, support, "")
+	dTok := signIn(dweller)
+	_, out = call("GET", "/api/v1/realtime/token", dTok)
+	if chans, _ := out["channels"].([]any); len(chans) != 1 || chans[0] != "player:"+dweller.ID {
+		t.Errorf("a Support resident's channels = %v, want only their own", chans)
+	}
+	if status, _ := call("GET", "/api/v1/realtime/subscribe?channel=settlement:"+support, dTok); status != http.StatusForbidden {
+		t.Errorf("subscribing to Support as a settlement: %d", status)
+	}
+	if status, _ := call("GET", "/api/v1/settlements/"+support+"/players", dTok); status != http.StatusForbidden {
+		t.Errorf("Support's roster: %d", status)
 	}
 
 	// Outside the settlement: no list.

@@ -74,7 +74,15 @@ type PresenceRepository interface {
 	// settlement, by display name, at most limit of them.
 	Roster(ctx context.Context, settlementID string, limit int) ([]string, error)
 	// Member says whether the player lives in or stands in the settlement.
+	// Only a founded settlement (a group-founded village, cities.origin =
+	// 'founded') has members in this sense; a content city such as Support
+	// answers false.
 	Member(ctx context.Context, playerID, settlementID string) (bool, error)
+	// FoundedAmong keeps the ids that are founded settlements. The
+	// settlement channel and everything on it exist for those only: a
+	// neutral city that nearly every player passes through would be the hot
+	// channel ADR 0030 section 5.4 warns about.
+	FoundedAmong(ctx context.Context, cityIDs []string) ([]string, error)
 }
 
 // PlayerStatus is what one viewer may see of one player, already shaped by
@@ -333,5 +341,7 @@ func (s *PresenceService) Memberships(ctx context.Context, playerID string) ([]s
 			out = append(out, id)
 		}
 	}
-	return out, nil
+	// Only founded settlements have a channel; Support and the other
+	// content cities have none.
+	return s.Repo.FoundedAmong(ctx, out)
 }
