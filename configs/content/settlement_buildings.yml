@@ -14,6 +14,14 @@ version: 1
 # code. road and civic_hall keep NO role: the universal founding kit,
 # present in every settlement regardless of branch (ADR 0028 section 3.1).
 #
+# WORKPLACES (ADR 0033 section 4.1). A building with `produces` is a place a
+# resident works in: `workers` shifts may run at once, each lasts `shift`
+# (game time), takes `consumes` out of the village stock when it starts, puts
+# `produces` into it when it ends and is paid `wage` from the treasury. Every
+# material a building costs or consumes must be reachable from the founding
+# state - bought from Support (items.yml village_buy) or produced by a
+# workplace that is itself reachable - or the content load fails.
+#
 # V1 SCOPE NOTES (deliberate simplifications, offered for the owner to
 # widen later, ADR 0031 section 9 open question 4's own precedent):
 #   * craft role tier 2 ("the same code, _ii") is a KNOWLEDGE generation
@@ -30,11 +38,10 @@ version: 1
 #     the (deliberately weaker) market_access tag instead. See that field's
 #     own doc comment (internal/domain/settlementbuilding) and
 #     settlement_knowledge.yml's note by the three items' provides: lines.
-#   * CostMaterials names only "timber" (configs/content/items.yml's own
-#     shipped component list, checked by internal/content/settlementbuilding.go).
-#     ADR 0028 section 7's illustrative "steel N" entries are dropped: no
-#     "steel" component is shipped yet, and inventing one is production
-#     economy (ADR 0021) scope, not this ADR's.
+#   * CostMaterials names village materials (items.yml: timber, stone, ...),
+#     checked by internal/content/settlementbuilding.go. ADR 0028 section 7's
+#     illustrative "steel N" entries are dropped: no "steel" component is
+#     shipped yet, and inventing one is production economy (ADR 0021) scope.
 settlement_buildings:
   # ---------------------------------------------------------------------
   # No role: the universal founding kit and the existing city-tier systems
@@ -101,6 +108,27 @@ settlement_buildings:
     cost_money: 120000
     build_time: 20h
     upkeep: 800
+
+  # ---------------------------------------------------------------------
+  # forestry — the village's own timber. It needs no knowledge and no
+  # material to build, so the first material a village needs is never a
+  # dead end (ADR 0033 section 4.1; the reachability lint keeps it so).
+  # A workplace: a resident works a shift here (settlement.work), the shift
+  # puts `produces` into the village stock and the treasury pays the `wage`.
+  # No worker, no timber: nothing is produced by being idle.
+  # ---------------------------------------------------------------------
+  - code: woodcutter_camp
+    name: "کارگاه هیزم‌شکنی"
+    role: forestry
+    tier: 1
+    footprint: [2, 2]
+    cost_money: 300
+    build_time: 30m
+    upkeep: 20
+    produces: {timber: 4}
+    workers: 3
+    shift: 1h
+    wage: 40
 
   # ---------------------------------------------------------------------
   # security — watch -> post (ADR 0031 section 3.2, section 7's own
@@ -176,6 +204,11 @@ settlement_buildings:
     build_time: 3h
     upkeep: 60
     effects: [{target: job_coverage_bps, op: add, value: 150}]
+    consumes: {timber: 3}
+    produces: {plank: 2}
+    workers: 2
+    shift: 1h30m
+    wage: 30
 
   - code: masonry_workshop
     name: "کارگاه بنایی"
@@ -184,9 +217,15 @@ settlement_buildings:
     footprint: [2, 2]
     requires_knowledge: [masonry]
     cost_money: 1400
+    cost_materials: {stone: 4}
     build_time: 3h
     upkeep: 65
     effects: [{target: job_coverage_bps, op: add, value: 150}]
+    consumes: {stone: 3}
+    produces: {brick: 2}
+    workers: 2
+    shift: 1h30m
+    wage: 20
 
   - code: smithy
     name: "کوره‌آهنگری"
@@ -211,6 +250,11 @@ settlement_buildings:
     build_time: 3h
     upkeep: 55
     effects: [{target: job_coverage_bps, op: add, value: 140}]
+    consumes: {wool: 3}
+    produces: {cloth: 2}
+    workers: 2
+    shift: 1h30m
+    wage: 30
 
   - code: pottery_kiln
     name: "کورهٔ سفال‌گری"
@@ -259,6 +303,10 @@ settlement_buildings:
     build_time: 1h
     upkeep: 30
     effects: [{target: job_coverage_bps, op: add, value: 100}]
+    produces: {stone: 6}
+    workers: 2
+    shift: 1h
+    wage: 25
 
   - code: mine
     name: "معدن"
@@ -330,6 +378,10 @@ settlement_buildings:
     build_time: 4h
     upkeep: 40
     effects: [{target: food_coverage_bps, op: add, value: 600}]
+    produces: {wheat: 20}
+    workers: 4
+    shift: 2h
+    wage: 50
 
   - code: farm_shaft
     name: "مزرعهٔ قناتی"
@@ -341,6 +393,10 @@ settlement_buildings:
     build_time: 4h30m
     upkeep: 45
     effects: [{target: food_coverage_bps, op: add, value: 600}]
+    produces: {wheat: 20}
+    workers: 4
+    shift: 2h
+    wage: 50
 
   - code: farm_terrace
     name: "مزرعهٔ تراسی"
@@ -352,6 +408,10 @@ settlement_buildings:
     build_time: 4h15m
     upkeep: 42
     effects: [{target: food_coverage_bps, op: add, value: 600}]
+    produces: {wheat: 20}
+    workers: 4
+    shift: 2h
+    wage: 50
 
   - code: farm_paddy
     name: "شالیزار"
@@ -363,6 +423,10 @@ settlement_buildings:
     build_time: 4h20m
     upkeep: 44
     effects: [{target: food_coverage_bps, op: add, value: 600}]
+    produces: {wheat: 20}
+    workers: 4
+    shift: 2h
+    wage: 50
 
   - code: pasture_range
     name: "چراگاه"
@@ -374,6 +438,10 @@ settlement_buildings:
     build_time: 3h30m
     upkeep: 38
     effects: [{target: food_coverage_bps, op: add, value: 550}]
+    produces: {wool: 5}
+    workers: 3
+    shift: 2h
+    wage: 45
 
   # ---------------------------------------------------------------------
   # health — house -> clinic.

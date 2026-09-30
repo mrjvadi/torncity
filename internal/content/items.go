@@ -51,6 +51,11 @@ type ComponentDef struct {
 	// Production is how a company makes it; none means it is only bought
 	// from a supplier (suppliers in production.yml).
 	Production *ComponentProductionDef `yaml:"production,omitempty" json:"production,omitempty"`
+	// VillageBuy lets a village buy it from Support's market with SUP from its
+	// treasury, at BasePrice plus the settlement's markup (ADR 0033 section
+	// 4.1): the always-reachable source of a basic building material, so a
+	// prerequisite is never a dead end.
+	VillageBuy bool `yaml:"village_buy,omitempty" json:"village_buy,omitempty"`
 }
 
 // Component converts the definition to the domain value.

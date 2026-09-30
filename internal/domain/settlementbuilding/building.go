@@ -163,12 +163,39 @@ type Def struct {
 	// gate.
 	MinLiteracyShareBPS int
 
+	// Work is what a standing building makes when villagers work in it
+	// (ADR 0033 section 4.1's daily loop): nothing without workers, never
+	// a passive income. Zero value means "not a workplace".
+	Work Work
+
 	// Effects feed ADR 0028 section 8.1's coverage numbers
 	// (food_coverage_bps, job_coverage_bps, service_coverage_bps,
 	// happiness_bps) plus local_security_bps (ADR 0031 section 3.2). Open
 	// target, same item.Effect shape as everywhere else.
 	Effects []item.Effect
 }
+
+// Work is a workplace's production. Every shift a resident works in a
+// standing building takes Consumes out of the village stock when it starts and
+// puts Produces into it when it ends, and pays Wage from the treasury. The
+// shape is content; how many shifts run at once is Workers.
+type Work struct {
+	// Produces and Consumes are component code -> quantity per shift.
+	Produces map[string]int64
+	Consumes map[string]int64
+	// Workers is how many residents may work here at the same time.
+	Workers int
+	// Shift is how long one shift lasts, GAME time.
+	Shift time.Duration
+	// Wage is paid per finished shift from the village treasury, minor units.
+	Wage int64
+}
+
+// Workplace reports whether the building can be worked in at all.
+func (w Work) Workplace() bool { return len(w.Produces) > 0 }
+
+// MaxShift bounds one shift, GAME time.
+const MaxShift = 24 * time.Hour
 
 // CanRotate reports whether rotating this building's footprint would
 // change anything — false for a square footprint (including every 1x1),
@@ -254,6 +281,32 @@ func ValidateCatalogue(defs []Def) error {
 		}
 		if d.MinLiteracyShareBPS < 0 || d.MinLiteracyShareBPS > 10_000 {
 			fail(ErrInvalidBuilding, "%q literacy threshold %d", d.Code, d.MinLiteracyShareBPS)
+		}
+		if w := d.Work; w.Workplace() {
+			if w.Workers < 1 || w.Workers > 50 {
+				fail(ErrInvalidBuilding, "%q workers %d", d.Code, w.Workers)
+			}
+			if w.Shift <= 0 || w.Shift > MaxShift {
+				fail(ErrInvalidBuilding, "%q shift %s", d.Code, w.Shift)
+			}
+			if w.Wage < 0 {
+				fail(ErrInvalidBuilding, "%q wage %d", d.Code, w.Wage)
+			}
+			for c, q := range w.Produces {
+				if q <= 0 {
+					fail(ErrInvalidBuilding, "%q produces %q quantity %d", d.Code, c, q)
+				}
+				if w.Consumes[c] > 0 {
+					fail(ErrInvalidBuilding, "%q consumes what it produces (%q): a cycle", d.Code, c)
+				}
+			}
+			for c, q := range w.Consumes {
+				if q <= 0 {
+					fail(ErrInvalidBuilding, "%q consumes %q quantity %d", d.Code, c, q)
+				}
+			}
+		} else if len(w.Consumes) > 0 || w.Workers != 0 || w.Wage != 0 {
+			fail(ErrInvalidBuilding, "%q declares workers, wage or inputs but produces nothing", d.Code)
 		}
 	}
 	for _, code := range sortedCodes(byCode) {
