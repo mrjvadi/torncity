@@ -652,6 +652,16 @@ type Settlement struct {
 	// phase's own tuning once building placement (W5) ships.
 	VillageGridLots int // settlement.village_grid_lots
 
+	// MinBuildableLotShareBps is the least share of a village's lot grid
+	// (basis points, 10000 = every lot) that must be buildable land - not
+	// lake, sea or river - for a spot to be chosen for a village. Judged on
+	// the very grid the village would get, by the placement rules' own
+	// sampler.
+	MinBuildableLotShareBps int // settlement.min_buildable_lot_share_bps
+	// GridShiftMaxLots is how many lots, in each direction, the grid may
+	// slide from its cell's centre to find a placement that meets the share.
+	GridShiftMaxLots int // settlement.grid_shift_max_lots
+
 	// The founding form: a group's «ساخت روستا» opens a draft the founder
 	// completes in the game client (name, currency, emblem) before the
 	// village exists.
@@ -1282,6 +1292,9 @@ func Defaults() *Config {
 			BiomePenalties:     []string{"desert=4", "tundra=6", "boreal_forest=1"},
 			VillageGridLots:    5,
 
+			MinBuildableLotShareBps: 7000,
+			GridShiftMaxLots:        3,
+
 			FoundingDraftTTL:          30 * time.Minute,
 			FoundingNameMin:           3,
 			FoundingNameMax:           24,
@@ -1599,6 +1612,13 @@ func (c *Config) Validate() error {
 		if _, both := penalties[code]; both {
 			return fmt.Errorf("%w: settlement biome %q is both excluded and penalised", ErrInvalidValue, code)
 		}
+	}
+
+	if v := c.Settlement.MinBuildableLotShareBps; v > 10_000 {
+		return fmt.Errorf("%w: settlement.min_buildable_lot_share_bps is %d, want 1 to 10000", ErrBPSTooLarge, v)
+	}
+	if v := c.Settlement.GridShiftMaxLots; v > 10 {
+		return fmt.Errorf("%w: settlement.grid_shift_max_lots is %d, want 1 to 10", ErrInvalidValue, v)
 	}
 
 	// The founding form's bounds must leave room for a name and a code the

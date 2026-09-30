@@ -57,6 +57,9 @@ type Params struct {
 	// livable biome (desert, tundra, ...), by biome code: the "terrain
 	// penalty" of section 3.2 step 3 in the same units as the other terms.
 	BiomePenalties map[string]float64
+	// Site is the lot-grid rule a cell must also meet: the grid the village
+	// would really get must be mostly buildable (site.go). Zero value = off.
+	Site SiteRules
 }
 
 // biomeRules is Params' biome lists resolved against one world's biome
@@ -108,6 +111,11 @@ type Candidate struct {
 	// bonus − terrainPenalty − threatScore. Exposed for logging/tests, not
 	// gameplay.
 	Score float64
+	// ShiftX/ShiftY slide the village grid from the cell centre, in whole
+	// lots (site.go); BuildableLots of TotalLots is the chosen grid's
+	// buildable count. All zero when Params.Site is off.
+	ShiftX, ShiftY           int
+	BuildableLots, TotalLots int
 }
 
 // r2Alpha1/r2Alpha2 are 1/phi and 1/phi^2 — the golden ratio's own 2D
@@ -254,9 +262,14 @@ func searchAround(w *worldgen.World, start int32, existing []ExistingSettlement,
 		if eligible(w, id, existing, rules, p.MinSpawnDistanceKm) {
 			score := scoreCell(w, id, existing, deposits, p.ThreatRadiusKm) - rules.penalty[w.Cells[id].BiomeIdx]
 			cell := w.Cells[id]
+			// The lot-grid check is the expensive one, so it runs only for a
+			// cell that would win; the result is the same as checking all.
 			if !found || score > best.Score || (score == best.Score && id < best.CellID) {
-				best = Candidate{CellID: id, LatDeg: cell.Point.LatDeg, LonDeg: cell.Point.LonDeg, Score: score}
-				found = true
+				if rep, ok := FitSite(w, id, p.Site); ok {
+					best = Candidate{CellID: id, LatDeg: cell.Point.LatDeg, LonDeg: cell.Point.LonDeg, Score: score,
+						ShiftX: rep.ShiftX, ShiftY: rep.ShiftY, BuildableLots: rep.BuildableLots, TotalLots: rep.TotalLots}
+					found = true
+				}
 			}
 		}
 
@@ -404,4 +417,36 @@ func scoreCell(w *worldgen.World, id int32, existing []ExistingSettlement,
 	}
 
 	return resourceScore + freshwater - terrainPenalty - threatScore
+}
+
+// FindRelocation looks for a valid site for a settlement that already exists,
+// as near to where it stands as the rules allow: its own cell first (a slid
+// grid may be enough), then the cells around it, nearest first, in the order
+// of the cell graph (deterministic). others are every OTHER settlement (the
+// one being moved is left out, so it does not block its own cell). It stops
+// after Params.SearchMaxCells cells and reports ErrNoEligibleSpot.
+func FindRelocation(w *worldgen.World, cellID int32, others []ExistingSettlement, p Params) (Candidate, error) {
+	rules := newBiomeRules(w, p)
+	deposits := depositsByCell(w)
+	visited := map[int32]bool{cellID: true}
+	queue := []int32{cellID}
+	for n := 0; len(queue) > 0 && n < p.SearchMaxCells; n++ {
+		id := queue[0]
+		queue = queue[1:]
+		if eligible(w, id, others, rules, p.MinSpawnDistanceKm) {
+			if rep, ok := FitSite(w, id, p.Site); ok {
+				cell := w.Cells[id]
+				return Candidate{CellID: id, LatDeg: cell.Point.LatDeg, LonDeg: cell.Point.LonDeg,
+					Score:  scoreCell(w, id, others, deposits, p.ThreatRadiusKm) - rules.penalty[cell.BiomeIdx],
+					ShiftX: rep.ShiftX, ShiftY: rep.ShiftY, BuildableLots: rep.BuildableLots, TotalLots: rep.TotalLots}, nil
+			}
+		}
+		for _, nb := range w.Neighbors(id) {
+			if !visited[nb] {
+				visited[nb] = true
+				queue = append(queue, nb)
+			}
+		}
+	}
+	return Candidate{}, ErrNoEligibleSpot
 }

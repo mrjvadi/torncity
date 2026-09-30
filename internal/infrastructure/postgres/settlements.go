@@ -157,13 +157,14 @@ func (r *SettlementRepository) Found(ctx context.Context, f application.Founding
 	_, err = r.q.Exec(ctx,
 		`INSERT INTO cities (id, code, name, tax_rate_bps, cost_of_living, population, jurisdiction_id,
 		        origin, tier, world_id, world_cell_id, founded_by_group_id, founded_at, protected_until,
-		        emblem_shape, emblem_color_a, emblem_color_b, emblem_icon, motto, name_key)
+		        emblem_shape, emblem_color_a, emblem_color_b, emblem_icon, motto, name_key,
+		        grid_shift_x, grid_shift_y)
 		 VALUES ($1::uuid, $2, $3, 0, $4, 0, $5::uuid, 'founded', $6, $7::uuid, $8, $9, $10, $11,
-		        $12, $13, $14, $15, $16, $17)`,
+		        $12, $13, $14, $15, $16, $17, $18, $19)`,
 		cityID, f.Code, f.Name, settlementFoundedCostOfLiving, jurisdictionID, f.Tier,
 		f.WorldID, f.WorldCellID, f.FoundedByGroupChatID, f.FoundedAt, f.ProtectedUntil,
 		nullIfEmpty(f.Emblem.Shape), nullIfEmpty(f.Emblem.ColorA), nullIfEmpty(f.Emblem.ColorB), nullIfEmpty(f.Emblem.Icon),
-		nullIfEmpty(f.Motto), nullIfEmpty(f.NameKey))
+		nullIfEmpty(f.Motto), nullIfEmpty(f.NameKey), f.GridShiftX, f.GridShiftY)
 	switch {
 	case violates(err, sqlstateUniqueViolation, citiesWorldCellUniqueIdx):
 		return out, application.ErrSpawnCellTaken
@@ -225,7 +226,7 @@ func (r *SettlementRepository) Found(ctx context.Context, f application.Founding
 
 	out = application.FoundedSettlement{
 		CityID: cityID, Code: f.Code, Name: f.Name, JurisdictionID: jurisdictionID, Tier: f.Tier,
-		WorldCellID: f.WorldCellID, FoundedAt: f.FoundedAt, ProtectedUntil: f.ProtectedUntil, Buildings: f.Buildings,
+		WorldCellID: f.WorldCellID, GridShiftX: f.GridShiftX, GridShiftY: f.GridShiftY, FoundedAt: f.FoundedAt, ProtectedUntil: f.ProtectedUntil, Buildings: f.Buildings,
 		Emblem: f.Emblem, Motto: f.Motto, Currency: f.Currency, WorldID: f.WorldID,
 	}
 	return out, nil
@@ -306,7 +307,7 @@ func (r *SettlementRepository) ExistingForWorld(ctx context.Context, worldID str
 
 // settlementColumns are the cities columns a FoundedSettlement is read from.
 const settlementColumns = `c.id::text, c.code, c.name, c.jurisdiction_id::text, c.tier, c.world_id::text, c.world_cell_id,
-	c.founded_at, c.protected_until,
+	c.founded_at, c.protected_until, c.grid_shift_x, c.grid_shift_y,
 	COALESCE(c.emblem_shape, ''), COALESCE(c.emblem_color_a, ''), COALESCE(c.emblem_color_b, ''), COALESCE(c.emblem_icon, ''),
 	COALESCE(c.motto, ''),
 	COALESCE((SELECT v.code FROM village_currency_reservations v WHERE v.settlement_id = c.id), ''),
@@ -315,7 +316,7 @@ const settlementColumns = `c.id::text, c.code, c.name, c.jurisdiction_id::text, 
 
 func scanSettlement(row pgx.Row, out *application.FoundedSettlement, extra ...any) error {
 	return row.Scan(append([]any{&out.CityID, &out.Code, &out.Name, &out.JurisdictionID, &out.Tier, &out.WorldID,
-		&out.WorldCellID, &out.FoundedAt, &out.ProtectedUntil,
+		&out.WorldCellID, &out.FoundedAt, &out.ProtectedUntil, &out.GridShiftX, &out.GridShiftY,
 		&out.Emblem.Shape, &out.Emblem.ColorA, &out.Emblem.ColorB, &out.Emblem.Icon, &out.Motto,
 		&out.Currency.Code, &out.Currency.Name, &out.Currency.Symbol}, extra...)...)
 }

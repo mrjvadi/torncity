@@ -52,6 +52,8 @@ func main() {
 		err = cityCommand(ctx, os.Args[2:])
 	case "world":
 		err = worldCommand(ctx, os.Args[2:])
+	case "settlement":
+		err = settlementCommand(ctx, os.Args[2:])
 	case "election":
 		err = electionCommand(ctx, os.Args[2:])
 	case "company":
@@ -97,6 +99,7 @@ func usage() {
   policy        show the policy in force in a place (see: admin policy)
   city          link a city to its Telegram group (see: admin city)
   world         create and show the world registry (see: admin world)
+  settlement    check founded settlements' sites, relocate one (see: admin settlement)
   election      open an election of an elected office (see: admin election)
   company       list player companies or show one (see: admin company)
   watch         the watch's flags and held payments (see: admin watch)

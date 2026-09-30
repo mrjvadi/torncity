@@ -254,6 +254,7 @@ func Routes() []Route {
 		{Domain: "settlement", Event: "built", Name: "realtime", Settlement: villageBuilt},
 		{Domain: "settlement", Event: "build_cancelled", Name: "realtime", Settlement: villageCancelled},
 		{Domain: "settlement", Event: "building_demolished", Name: "realtime", Settlement: villageDemolished},
+		{Domain: "settlement", Event: "relocated", Name: "realtime", Settlement: villageRelocated},
 		{Domain: "settlement", Event: "research_started", Name: "realtime", Settlement: villageResearchStarted},
 		{Domain: "settlement", Event: "knowledge_researched", Name: "realtime", Settlement: villageResearched},
 		{Domain: "settlement", Event: "knowledge_bought", Name: "realtime", Settlement: villageBought},
