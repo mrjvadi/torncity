@@ -29,6 +29,17 @@ func settlementUsage() {
   grant --id SETTLEMENT_UUID --amount MINOR --reason "why" [--by NAME]
                           top up one founded village's treasury from the
                           system source; audited
+  check-sites             read-only: every founded settlement's cell, grid
+                          slide, buildable-lot share and founding kit, and
+                          whether it meets settlement.min_buildable_lot_share_bps
+  relocate --id UUID --reason "why" [--by NAME]
+                          move a settlement to a valid site nearby and lay its
+                          founding kit on buildable lots, in one transaction,
+                          audited. Refused when the village holds anything
+                          beyond its founding kit or has construction in
+                          progress. Clients are told to refetch the layout.
+                          (check-sites and relocate regenerate the world from
+                          the active seed, about 15 seconds.)
 
 --by names the operator in the audit row; it defaults to $`+operatorEnv+`, then
 $USER. DATABASE_URL must be set.
@@ -45,6 +56,10 @@ func settlementCommand(ctx context.Context, args []string) error {
 		return settlementBackfill(ctx, args[1:])
 	case "grant":
 		return settlementGrant(ctx, args[1:])
+	case "check-sites":
+		return settlementCheckSites(ctx)
+	case "relocate":
+		return settlementRelocate(ctx, args[1:])
 	}
 	settlementUsage()
 	os.Exit(2)

@@ -256,17 +256,19 @@ type worldgenSettings struct {
 }
 
 type settlementSettings struct {
-	ProtectionWindow   *string  `yaml:"protection_window"`
-	ResidenceCooldown  *string  `yaml:"residence_cooldown"`
-	HomeCityCode       *string  `yaml:"home_city_code"`
-	MinSpawnDistanceKm *float64 `yaml:"min_spawn_distance_km"`
-	ThreatRadiusKm     *float64 `yaml:"threat_radius_km"`
-	SearchMaxCells     *int     `yaml:"search_max_cells"`
-	SearchMaxAttempts  *int     `yaml:"search_max_attempts"`
-	ExcludedBiomes     []string `yaml:"excluded_biomes"`
-	MaxAbsLatitudeDeg  *float64 `yaml:"max_abs_latitude_deg"`
-	BiomePenalties     []string `yaml:"biome_penalties"`
-	VillageGridLots    *int     `yaml:"village_grid_lots"`
+	ProtectionWindow        *string  `yaml:"protection_window"`
+	ResidenceCooldown       *string  `yaml:"residence_cooldown"`
+	HomeCityCode            *string  `yaml:"home_city_code"`
+	MinSpawnDistanceKm      *float64 `yaml:"min_spawn_distance_km"`
+	ThreatRadiusKm          *float64 `yaml:"threat_radius_km"`
+	SearchMaxCells          *int     `yaml:"search_max_cells"`
+	SearchMaxAttempts       *int     `yaml:"search_max_attempts"`
+	ExcludedBiomes          []string `yaml:"excluded_biomes"`
+	MaxAbsLatitudeDeg       *float64 `yaml:"max_abs_latitude_deg"`
+	BiomePenalties          []string `yaml:"biome_penalties"`
+	VillageGridLots         *int     `yaml:"village_grid_lots"`
+	MinBuildableLotShareBps *int     `yaml:"min_buildable_lot_share_bps"`
+	GridShiftMaxLots        *int     `yaml:"grid_shift_max_lots"`
 
 	FoundingDraftTTL          *string `yaml:"founding_draft_ttl"`
 	FoundingNameMin           *int    `yaml:"founding_name_min"`
@@ -1022,6 +1024,12 @@ var coreSettings = []setting{
 	limitSetting("settlement", "village_grid_lots",
 		func(c *Config) *int { return &c.Settlement.VillageGridLots },
 		func(f *fileConfig) *int { return f.Settlement.VillageGridLots }),
+	limitSetting("settlement", "min_buildable_lot_share_bps",
+		func(c *Config) *int { return &c.Settlement.MinBuildableLotShareBps },
+		func(f *fileConfig) *int { return f.Settlement.MinBuildableLotShareBps }),
+	limitSetting("settlement", "grid_shift_max_lots",
+		func(c *Config) *int { return &c.Settlement.GridShiftMaxLots },
+		func(f *fileConfig) *int { return f.Settlement.GridShiftMaxLots }),
 	durationSetting("settlement", "founding_draft_ttl",
 		func(c *Config) *time.Duration { return &c.Settlement.FoundingDraftTTL },
 		func(f *fileConfig) *string { return f.Settlement.FoundingDraftTTL }),

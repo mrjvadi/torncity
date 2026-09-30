@@ -52,6 +52,8 @@ func main() {
 		err = cityCommand(ctx, os.Args[2:])
 	case "world":
 		err = worldCommand(ctx, os.Args[2:])
+	case "settlement":
+		err = settlementCommand(ctx, os.Args[2:])
 	case "election":
 		err = electionCommand(ctx, os.Args[2:])
 	case "company":
@@ -74,8 +76,6 @@ func main() {
 		err = panelCommand(ctx, os.Args[2:])
 	case "switch":
 		err = switchCommand(ctx, os.Args[2:])
-	case "settlement":
-		err = settlementCommand(ctx, os.Args[2:])
 	default:
 		usage()
 		os.Exit(2)
@@ -99,6 +99,7 @@ func usage() {
   policy        show the policy in force in a place (see: admin policy)
   city          link a city to its Telegram group (see: admin city)
   world         create and show the world registry (see: admin world)
+  settlement    villages: check-sites, relocate, backfill-grants, grant (see: admin settlement)
   election      open an election of an elected office (see: admin election)
   company       list player companies or show one (see: admin company)
   watch         the watch's flags and held payments (see: admin watch)
@@ -108,7 +109,6 @@ func usage() {
   life          backfill players' life histories from older records (audited)
   panel         the web panel's operator accounts (see: admin panel user)
   switch        runtime switches: telegram_play, telegram_notices (see: admin switch)
-  settlement    village treasuries: backfill-grants, grant (see: admin settlement)
 
 DATABASE_URL must be set, except for `+"`admin content validate`"+`, which
 reads files only.

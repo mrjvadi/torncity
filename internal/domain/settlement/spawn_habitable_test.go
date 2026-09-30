@@ -35,6 +35,9 @@ func realConfigParams(t *testing.T) Params {
 		ExcludedBiomes:     cfg.Settlement.ExcludedBiomes,
 		MaxAbsLatitudeDeg:  cfg.Settlement.MaxAbsLatitudeDeg,
 		BiomePenalties:     pen,
+		Site: SiteRules{GridLots: cfg.Settlement.VillageGridLots,
+			MinBuildableShareBps: cfg.Settlement.MinBuildableLotShareBps,
+			MaxShiftLots:         cfg.Settlement.GridShiftMaxLots},
 	}
 }
 

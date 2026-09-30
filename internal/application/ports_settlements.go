@@ -183,6 +183,9 @@ type Founding struct {
 	WorldCellID int32
 	LatDeg      float64
 	LonDeg      float64
+	// GridShiftX/GridShiftY slide the village's lot grid from its cell's
+	// centre, in whole lots (east/north positive; migration 0053).
+	GridShiftX, GridShiftY int
 	// Tier is always "village" today (ADR 0028 section 3.1); carried as a
 	// field, not a constant, because expedition-founded settlements (a
 	// later phase, ADR 0028 section 5.4) start at village tier the same
@@ -235,9 +238,11 @@ type FoundedSettlement struct {
 	JurisdictionID string
 	Tier           string
 	WorldCellID    int32
-	FoundedAt      time.Time
-	ProtectedUntil time.Time
-	Buildings      []SettlementBuilding
+	// GridShiftX/GridShiftY: see Founding.
+	GridShiftX, GridShiftY int
+	FoundedAt              time.Time
+	ProtectedUntil         time.Time
+	Buildings              []SettlementBuilding
 }
 
 // SettlementRepository is the transactional port behind founding a

@@ -33,6 +33,7 @@ type foundingEnv struct {
 	clock *testClock
 	bot   string
 	chats []int64
+	// cache is the world the test planet is read from.
 	cache *application.WorldCache
 }
 

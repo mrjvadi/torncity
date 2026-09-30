@@ -1054,6 +1054,15 @@ settlement:
   # A village's local placement grid, per side, in lots (ADR 0028 section
   # 4: 5x5).
   village_grid_lots: 5
+  # The least share of a village's lot grid (basis points, 10000 = every
+  # lot) that must be buildable land - not lake, sea or river. Judged on the
+  # grid the village would really get, with the placement rules' own sampler:
+  # a spot whose grid is mostly water is never chosen. The centre lot and the
+  # founding kit's lots must be buildable whatever the share.
+  min_buildable_lot_share_bps: 7000
+  # How many lots, each way, the grid may slide from its cell's centre to
+  # find a placement that meets the share before the cell is passed over.
+  grid_shift_max_lots: 3
   # The founding form (docs/adr/0028 section 3): «ساخت روستا» opens a draft
   # that the founder completes in the game client - name, national currency,
   # emblem - and only its submission founds the village. An open draft waits

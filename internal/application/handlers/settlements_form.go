@@ -534,7 +534,10 @@ func (h *SettlementsHandler) submitInTx(ctx context.Context, tx application.Tx, 
 	if err != nil {
 		return fmt.Errorf("handlers: founding settlement: %w", err)
 	}
-	kit := wsettle.PlaceFoundingKit(world, cand.LatDeg, cand.LonDeg, h.villageGridLots)
+	// The kit is laid on the grid the village really has: slid from the cell
+	// centre by the site search, so it stands on land.
+	gridLat, gridLon := wsettle.GridCentre(world, cand.LatDeg, cand.LonDeg, cand.ShiftX, cand.ShiftY)
+	kit := wsettle.PlaceFoundingKit(world, gridLat, gridLon, h.villageGridLots)
 	buildings := make([]application.SettlementBuilding, len(kit))
 	for i, b := range kit {
 		buildings[i] = application.SettlementBuilding{TypeCode: b.TypeCode, LotX: b.LotX, LotY: b.LotY}
@@ -542,6 +545,7 @@ func (h *SettlementsHandler) submitInTx(ctx context.Context, tx application.Tx, 
 
 	f := application.Founding{
 		WorldID: worldRow.ID, WorldCellID: cand.CellID, LatDeg: cand.LatDeg, LonDeg: cand.LonDeg,
+		GridShiftX: cand.ShiftX, GridShiftY: cand.ShiftY,
 		Tier: "village", Code: settlementCode(h.ids), Name: clean.Name,
 		CountryCode: application.DefaultFoundingCountryCode, FounderPlayerID: p.ID,
 		Emblem:  application.EmblemCodes{Shape: clean.Emblem.Shape, ColorA: clean.Emblem.ColorA, ColorB: clean.Emblem.ColorB, Icon: clean.Emblem.Icon},

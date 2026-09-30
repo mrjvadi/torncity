@@ -304,7 +304,8 @@ func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID stri
 
 	pt := w.Cells[s.WorldCellID].Point
 	lots := v.gridLots(s.Tier)
-	grid := settlement.SampleGridDetail(w, pt.LatDeg, pt.LonDeg, lots, s.WorldCellID)
+	gridLat, gridLon := settlement.GridCentre(w, pt.LatDeg, pt.LonDeg, s.GridShiftX, s.GridShiftY)
+	grid := settlement.SampleGridDetail(w, gridLat, gridLon, lots, s.WorldCellID)
 	out := VillageLayout{
 		Detail: DetailCoarse, Viewer: viewer,
 		Settlement: LayoutSettlement{ID: s.CityID, Code: s.Code, Name: s.Name, Tier: s.Tier, WorldCell: s.WorldCellID,

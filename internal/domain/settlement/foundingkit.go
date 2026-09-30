@@ -70,11 +70,6 @@ func PlaceFoundingKit(w *worldgen.World, centerLat, centerLon float64, gridLots 
 		gridLots = 2
 	}
 	lotMeters := w.Params.TileMeters() / lotsPerTile
-
-	occupied := make([][]bool, gridLots)
-	for i := range occupied {
-		occupied[i] = make([]bool, gridLots)
-	}
 	buildableCache := map[[2]int]bool{}
 	buildableAt := func(x, y int) bool {
 		key := [2]int{x, y}
@@ -85,6 +80,20 @@ func PlaceFoundingKit(w *worldgen.World, centerLat, centerLon float64, gridLots 
 		v := buildableFine(w.SampleFineLatLon(lat, lon))
 		buildableCache[key] = v
 		return v
+	}
+	return placeKit(gridLots, buildableAt)
+}
+
+// placeKit is PlaceFoundingKit over any per-lot buildable test, so the site
+// search can run the very same placement on a pre-sampled window.
+//
+// The civic hall takes the buildable footprint nearest the grid's centre
+// (row-major among equals), so the village's heart is where its middle is; the
+// road then goes next to it.
+func placeKit(gridLots int, buildableAt func(x, y int) bool) []BuildingPlacement {
+	occupied := make([][]bool, gridLots)
+	for i := range occupied {
+		occupied[i] = make([]bool, gridLots)
 	}
 	fits := func(x, y, width, height int) bool {
 		if x < 0 || y < 0 || x+width > gridLots || y+height > gridLots {
@@ -106,15 +115,23 @@ func PlaceFoundingKit(w *worldgen.World, centerLat, centerLon float64, gridLots 
 			}
 		}
 	}
+	// scan is the free footprint whose centre is nearest the grid's centre
+	// (squared distance in half lots, exact integers), row-major among equals.
 	scan := func(width, height int) (int, int, bool) {
+		bx, by, best := 0, 0, -1
 		for y := 0; y <= gridLots-height; y++ {
 			for x := 0; x <= gridLots-width; x++ {
-				if fits(x, y, width, height) {
-					return x, y, true
+				if !fits(x, y, width, height) {
+					continue
+				}
+				dx := 2*x + width - gridLots
+				dy := 2*y + height - gridLots
+				if d := dx*dx + dy*dy; best < 0 || d < best {
+					bx, by, best = x, y, d
 				}
 			}
 		}
-		return 0, 0, false
+		return bx, by, best >= 0
 	}
 
 	var out []BuildingPlacement

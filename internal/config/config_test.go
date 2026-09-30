@@ -537,6 +537,8 @@ settlement:
   max_abs_latitude_deg: 66.5
   biome_penalties: ["desert=5", "tundra=7"]
   village_grid_lots: 6
+  min_buildable_lot_share_bps: 6500
+  grid_shift_max_lots: 4
   founding_draft_ttl: 31m
   founding_name_min: 4
   founding_name_max: 25
@@ -850,6 +852,8 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_MAX_ABS_LATITUDE_DEG":         "64.5",
 	"TORN_SETTLEMENT_BIOME_PENALTIES":              "desert=6, tundra=8",
 	"TORN_SETTLEMENT_VILLAGE_GRID_LOTS":            "7",
+	"TORN_SETTLEMENT_MIN_BUILDABLE_LOT_SHARE_BPS":  "6600",
+	"TORN_SETTLEMENT_GRID_SHIFT_MAX_LOTS":          "5",
 	"TORN_SETTLEMENT_FOUNDING_DRAFT_TTL":           "32m",
 	"TORN_SETTLEMENT_FOUNDING_NAME_MIN":            "5",
 	"TORN_SETTLEMENT_FOUNDING_NAME_MAX":            "26",

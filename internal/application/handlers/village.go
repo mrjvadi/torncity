@@ -272,7 +272,8 @@ func (h *VillageHandler) grid(ctx context.Context, tx application.Tx, w *worldge
 		gridLots = h.villageGridLots
 	}
 	cell := w.Cells[s.WorldCellID]
-	sampled := wsettle.SampleGrid(w, cell.Point.LatDeg, cell.Point.LonDeg, gridLots, s.WorldCellID)
+	gridLat, gridLon := wsettle.GridCentre(w, cell.Point.LatDeg, cell.Point.LonDeg, s.GridShiftX, s.GridShiftY)
+	sampled := wsettle.SampleGrid(w, gridLat, gridLon, gridLots, s.WorldCellID)
 
 	existing, err := tx.SettlementBuildings().List(ctx, s.CityID)
 	if err != nil {

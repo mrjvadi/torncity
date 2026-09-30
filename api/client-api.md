@@ -866,6 +866,7 @@ pictures:
 | `build_finished` | `building_id`, `type_code`, `layout_version` | construction reached its end |
 | `build_cancelled` | `building_id`, `type_code`, `layout_version` | the head called off a building still going up |
 | `build_salvaged` | `building_id`, `type_code`, `layout_version` | a building was pulled down and its scrap credited |
+| `relocated` | (none) | an operator moved the village to a better site (its terrain and the founding kit's lots changed): fetch the layout again. Carries no `layout_version`; `grid.origin` in the new layout is where the grid now stands |
 | `research_started` | `research_id`, `code`, `finish_at` | the village began researching |
 | `research_finished` | `code` | the research ended; the village knows the item |
 | `knowledge_bought` | `code` | the village bought an item from Support |

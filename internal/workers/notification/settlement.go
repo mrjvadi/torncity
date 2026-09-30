@@ -78,6 +78,7 @@ const (
 	SettlementBuildFinished  = "build_finished"
 	SettlementBuildCancelled = "build_cancelled"
 	SettlementBuildSalvaged  = "build_salvaged"
+	SettlementRelocated      = "relocated"
 	SettlementResearchStart  = "research_started"
 	SettlementResearchDone   = "research_finished"
 	SettlementKnowledgeBuy   = "knowledge_bought"
@@ -234,6 +235,18 @@ func villageCancelled(_ context.Context, _ Deps, env *envelope.Envelope) ([]Sett
 		return nil, err
 	}
 	return one(ev.SettlementID, SettlementBuildCancelled, withLayout(map[string]any{"building_id": ev.BuildingID, "type_code": ev.TypeCode}, ev)), nil
+}
+
+// villageRelocated: an operator moved the village to a better site. The
+// picture is different in every way (terrain, the kit's lots), so the
+// publication carries no layout_version: a client holding a layout fetches it
+// again.
+func villageRelocated(_ context.Context, _ Deps, env *envelope.Envelope) ([]SettlementPublication, error) {
+	ev, err := decodeVillage(env, "relocated")
+	if err != nil {
+		return nil, err
+	}
+	return one(ev.SettlementID, SettlementRelocated, map[string]any{}), nil
 }
 
 // withLayout adds the layout's version after the change, when the event
