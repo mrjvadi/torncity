@@ -441,7 +441,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			}
 		}
 		var roleLines []screens.VillageRoleLine
-		for _, role := range []string{"security", "craft", "extraction", "water_infra", "food", "health", "education", "market", "storage"} {
+		for _, role := range []string{"security", "craft", "forestry", "extraction", "water_infra", "food", "housing", "health", "education", "market", "storage", "recreation"} {
 			if l, ok := byRole[role]; ok {
 				roleLines = append(roleLines, l)
 			}
