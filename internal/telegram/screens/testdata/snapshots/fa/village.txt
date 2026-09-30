@@ -17,8 +17,8 @@
 • کارگاه نجاری
   ───
   [🏡 ساکن این روستا شو] → settlement:join
-  [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
-  [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
+  [📚 دانش روستا] → settlement:knowledge   │   [⏳ پیشرفت ساخت] → settlement:build.progress
+  [👥 اهالی] → settlement:who
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ Village overview · nothing built yet ━━━
@@ -39,8 +39,8 @@
 هنوز بنایی ساخته نشده است.
   ───
   [🏡 ساکن این روستا شو] → settlement:join
-  [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
-  [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
+  [📚 دانش روستا] → settlement:knowledge   │   [⏳ پیشرفت ساخت] → settlement:build.progress
+  [👥 اهالی] → settlement:who
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ Knowledge list · mixed states, research running ━━━
@@ -184,10 +184,14 @@
 📖 سوادآموزی: 2٪
 
 هنوز بنایی ساخته نشده است.
+
+🌱 اینجا خانهٔ توست؛ زمین بخر، خانه بساز و روستا را آباد کن.
   ───
-  [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
-  [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
-  [💰 کمک به خزانه] → settlement:donate   │   [🚪 ترک روستا] → settlement:leave
+  [🏡 زمین بخر] → settlement:land   │   [🏠 خانه بساز] → settlement:private
+  [🛠 کار کن] → settlement:work   │   [💰 کمک به خزانه] → settlement:donate
+  [🧾 دارایی من] → settlement:mine   │   [👥 اهالی] → settlement:who
+  [📚 دانش روستا] → settlement:knowledge   │   [⏳ پیشرفت ساخت] → settlement:build.progress
+  [🚪 ترک روستا] → settlement:leave
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ Village home · the group hub, a resident, with Support's services a journey away ━━━
@@ -207,11 +211,15 @@
 
 هنوز بنایی ساخته نشده است.
 
+🌱 اینجا خانهٔ توست؛ زمین بخر، خانه بساز و روستا را آباد کن.
+
 🧭 خدمات در «ساپورت» - برای آن‌ها سفر کنید:
   ───
-  [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
-  [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
-  [💰 کمک به خزانه] → settlement:donate   │   [🚪 ترک روستا] → settlement:leave
+  [🏡 زمین بخر] → settlement:land   │   [🏠 خانه بساز] → settlement:private
+  [🛠 کار کن] → settlement:work   │   [💰 کمک به خزانه] → settlement:donate
+  [🧾 دارایی من] → settlement:mine   │   [👥 اهالی] → settlement:who
+  [📚 دانش روستا] → settlement:knowledge   │   [⏳ پیشرفت ساخت] → settlement:build.progress
+  [🚪 ترک روستا] → settlement:leave
   [🏦 بانک - سفر به ساپورت] → travel:options:support   │   [🛒 بازار - سفر به ساپورت] → travel:options:support
   [💼 کار - سفر به ساپورت] → travel:options:support   │   [📚 دانش - سفر به ساپورت] → travel:options:support
   [🏥 بیمارستان - سفر به ساپورت] → travel:options:support   │   [⛓ زندان - سفر به ساپورت] → travel:options:support
@@ -234,14 +242,289 @@
 
 هنوز بنایی ساخته نشده است.
 
+🌱 اینجا خانهٔ توست؛ زمین بخر، خانه بساز و روستا را آباد کن.
+
 🏘 ساخت‌وساز، پژوهش و کمک به خزانه در گروه روستا انجام می‌شود؛ اینجا وضعیت روستایتان را می‌بینید.
 
 🧭 خدمات در «ساپورت» - برای آن‌ها سفر کنید:
   ───
+  [🏡 زمین بخر] → settlement:land   │   [🏠 خانه بساز] → settlement:private
+  [🛠 کار کن] → settlement:work   │   [💰 کمک به خزانه] → settlement:donate
+  [🧾 دارایی من] → settlement:mine
   [🏦 بانک - سفر به ساپورت] → travel:options:support   │   [🛒 بازار - سفر به ساپورت] → travel:options:support
   [💼 کار - سفر به ساپورت] → travel:options:support   │   [📚 دانش - سفر به ساپورت] → travel:options:support
   [🏥 بیمارستان - سفر به ساپورت] → travel:options:support   │   [⛓ زندان - سفر به ساپورت] → travel:options:support
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
+
+━━━ Village home · the village head's hub (civic build and land terms) ━━━
+(edits message 42)
+🏘 روستای کورندال
+
+👥 جمعیت: ⁨12⁩ از ⁨100⁩
+
+🏦 خزانهٔ روستا: ⁨⁨10,900⁩ ساپ⁩
+
+🌾 پوشش خوراک: 20٪
+💼 پوشش شغل: 10٪
+🏥 پوشش خدمات: 0٪
+🙂 شادی: 30٪
+🛡 امنیت محلی: 15٪
+📖 سوادآموزی: 2٪
+
+هنوز بنایی ساخته نشده است.
+
+🌱 اینجا خانهٔ توست؛ زمین بخر، خانه بساز و روستا را آباد کن.
+  ───
+  [🏡 زمین بخر] → settlement:land   │   [🏠 خانه بساز] → settlement:private
+  [🛠 کار کن] → settlement:work   │   [💰 کمک به خزانه] → settlement:donate
+  [🧾 دارایی من] → settlement:mine   │   [👥 اهالی] → settlement:who
+  [📚 دانش روستا] → settlement:knowledge   │   [⏳ پیشرفت ساخت] → settlement:build.progress
+  [🏗 ساخت‌وساز] → settlement:build   │   [⚖️ شرایط زمین] → settlement:terms
+  [🚪 ترک روستا] → settlement:leave
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
+
+━━━ Land grid · free lots on offer ━━━
+(edits message 42)
+🏡 زمین‌های کورندال
+
+هر زمین آزاد را می‌توانی بخری؛ پولش به خزانهٔ روستا می‌رود و زمین مال خودت می‌شود.
+💵 قیمت هر زمین: ⁨⁨400⁩ ساپ⁩
+👛 پول تو: ⁨⁨5,000⁩ ساپ⁩
+📌 زمین‌های تو: ⁨1⁩ از ⁨6⁩
+
+🟩 آزاد و قابل خرید - 🏡 زمین تو - 🔒 زمین دیگران - 🏠 ساختمان - 🛣 جاده - 💧 آب - ⛰ شیب
+  ───
+  [🟩] → settlement:lot.buy:0-0   │   [🛣] → settlement:land   │   [🟩] → settlement:lot.buy:2-0   │   [🟩] → settlement:lot.buy:3-0   │   [💧] → settlement:land
+  [🟩] → settlement:lot.buy:0-1   │   [🏠] → settlement:land   │   [🏠] → settlement:land   │   [🔒] → settlement:land   │   [🟩] → settlement:lot.buy:4-1
+  [🟩] → settlement:lot.buy:0-2   │   [🏠] → settlement:land   │   [🏠] → settlement:land   │   [🟩] → settlement:lot.buy:3-2   │   [🟩] → settlement:lot.buy:4-2
+  [🏡] → settlement:private   │   [🟩] → settlement:lot.buy:1-3   │   [🟩] → settlement:lot.buy:2-3   │   [🟩] → settlement:lot.buy:3-3   │   [⛰] → settlement:land
+  [🟩] → settlement:lot.buy:0-4   │   [🟩] → settlement:lot.buy:1-4   │   [🟩] → settlement:lot.buy:2-4   │   [🔒] → settlement:land   │   [🟩] → settlement:lot.buy:4-4
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:land
+
+━━━ Land purchase · confirm ━━━
+(edits message 42)
+🏡 خرید زمین
+
+ردیف ⁨4⁩، ستون ⁨3⁩
+قیمت: ⁨⁨400⁩ ساپ⁩
+پول تو پس از خرید: ⁨⁨4,600⁩ ساپ⁩
+
+پول به خزانهٔ روستا می‌رود.
+  ───
+  [✅ بخر - ⁨⁨400⁩ ساپ⁩] → settlement:lot.buy:2-3:confirm
+  [🔙 بازگشت] → settlement:land
+
+━━━ Land purchase · done ━━━
+(edits message 42)
+✅ این زمین حالا مال توست
+
+ردیف ⁨4⁩، ستون ⁨3⁩ به نام تو ثبت شد و ⁨⁨400⁩ ساپ⁩ به خزانهٔ روستا رفت.
+پول باقی‌مانده: ⁨⁨4,600⁩ ساپ⁩
+حالا می‌توانی رویش خانه بسازی.
+  ───
+  [🏠 خانه بساز] → settlement:private   │   [🏡 زمین دیگر] → settlement:land
+  [🔙 بازگشت] → settlement:land
+
+━━━ Citizen catalogue · only what can be built now ━━━
+(edits message 42)
+🏠 ساخت‌وساز شخصی در کورندال
+
+روی زمین خودت می‌توانی خانه یا کسب‌وکار کوچک بسازی. هزینه از جیب خودت است؛ اگر الوار نداشته باشی، به قیمت مرجع برایت خریده می‌شود.
+👛 پول تو: ⁨⁨4,600⁩ ساپ⁩
+📌 زمین آزاد برای ساخت: ⁨1⁩
+
+🔨 کلبهٔ روستایی (⁨1⁩×⁨1⁩)
+هزینه: ⁨⁨800⁩ ساپ⁩ - مجوز: ⁨⁨100⁩ ساپ⁩ - زمان: ⁨2 ساعت⁩
+جمع نقدی: ⁨⁨954⁩ ساپ⁩
+   • الوار: ⁨3⁩ واحد (داری ⁨0⁩، می‌خری ⁨3⁩ به ⁨⁨54⁩ ساپ⁩)
+
+🔨 غرفهٔ بازار (⁨1⁩×⁨1⁩)
+هزینه: ⁨⁨500⁩ ساپ⁩ - مجوز: ⁨⁨100⁩ ساپ⁩ - زمان: ⁨1 ساعت⁩
+جمع نقدی: ⁨⁨600⁩ ساپ⁩
+   • الوار: ⁨2⁩ واحد (داری ⁨2⁩، می‌خری ⁨0⁩ به ⁨⁨0⁩ ساپ⁩)
+⚠️ پولت برای این ساختمان کافی نیست.
+  ───
+  [🔨 کلبهٔ روستایی - ⁨⁨954⁩ ساپ⁩] → settlement:private.lots:cottage
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:private
+
+━━━ Citizen catalogue · no land yet ━━━
+(edits message 42)
+🏠 ساخت‌وساز شخصی در کورندال
+
+برای ساختن خانه اول باید یک زمین داشته باشی. زمین آزادی بخر و برگرد.
+  ───
+  [🏡 زمین بخر] → settlement:land
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Citizen lot choice · your own lots ━━━
+(edits message 42)
+📍 جای ساخت در کورندال
+ساختمان: کلبهٔ روستایی
+
+✅ همین‌جا بساز (زمین خودت و آزاد) - 🏠 پر - 🛣 جاده - 💧 آب - ⛰ شیب - ⬜ زمین تو نیست
+  ───
+  [🏠] → settlement:private.place:cottage:0-0   │   [🏠] → settlement:private.place:cottage:1-0
+  [✅] → settlement:private.place:cottage:0-1   │   [🏠] → settlement:private.place:cottage:1-1
+  [🔙 بازگشت] → settlement:private   │   [🔄 به‌روزرسانی] → settlement:private.lots:cottage
+
+━━━ Citizen bill · cost, permit, materials ━━━
+(edits message 42)
+🏗 ساخت کلبهٔ روستایی
+
+محل: ردیف ⁨4⁩، ستون ⁨1⁩
+هزینهٔ ساختمان: ⁨⁨800⁩ ساپ⁩
+مجوز ساخت (به خزانه): ⁨⁨100⁩ ساپ⁩
+مصالح خریداری‌شده: ⁨⁨54⁩ ساپ⁩
+زمان ساخت: ⁨2 ساعت⁩
+   • الوار: ⁨3⁩ واحد (داری ⁨0⁩، می‌خری ⁨3⁩ به ⁨⁨54⁩ ساپ⁩)
+
+جمع نقدی: ⁨⁨954⁩ ساپ⁩
+پول تو پس از ساخت: ⁨⁨3,646⁩ ساپ⁩
+  ───
+  [✅ تأیید و ساخت - ⁨⁨954⁩ ساپ⁩] → settlement:private.place:cottage:0-3:confirm
+  [🔙 بازگشت] → settlement:private.lots:cottage
+
+━━━ My property · a house to live in, tax due ━━━
+(edits message 42)
+🧾 دارایی من در کورندال
+
+🏠 خانهٔ تو: کلبهٔ روستایی
+
+🏡 ردیف ⁨4⁩، ستون ⁨1⁩: کلبهٔ روستایی
+🟩 ردیف ⁨4⁩، ستون ⁨3⁩: زمین خالی
+
+📊 مالیات دارایی: ⁨2⁩٪ از ارزش ⁨⁨1,245⁩ ساپ⁩ در هر دوره؛ یعنی ⁨⁨24⁩ ساپ⁩
+
+👛 پول تو: ⁨⁨3,646⁩ ساپ⁩
+  ───
+  [🏡 زمین بخر] → settlement:land   │   [🏠 خانه بساز] → settlement:private
+  [🛋 استراحت در خانه] → settlement:home.rest
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:mine
+
+━━━ My property · house under construction, debt, rested ━━━
+(edits message 42)
+🛋 در خانه استراحت کردی و سرحال‌تر شدی.
+
+🧾 دارایی من در کورندال
+
+🏚 هنوز خانه‌ای نداری؛ روی زمینت خانه بساز تا ساکن آن شوی.
+
+🏗 ردیف ⁨4⁩، ستون ⁨1⁩: کلبهٔ روستایی در حال ساخت - ⁨1 ساعت و 30 دقیقه⁩ دیگر
+
+📊 مالیات دارایی: ⁨2⁩٪ از ارزش ⁨⁨1,245⁩ ساپ⁩ در هر دوره؛ یعنی ⁨⁨24⁩ ساپ⁩
+
+⚠️ بدهی مالیاتی: ⁨⁨48⁩ ساپ⁩ (⁨2⁩ دوره)
+
+👛 پول تو: ⁨⁨40⁩ ساپ⁩
+  ───
+  [🏡 زمین بخر] → settlement:land   │   [🏠 خانه بساز] → settlement:private
+  [💳 پرداخت مالیات (⁨⁨48⁩ ساپ⁩)] → settlement:tax.pay
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:mine
+
+━━━ Land terms · the head's levers ━━━
+(edits message 42)
+⚖️ شرایط زمین و ساخت در کورندال
+
+💵 قیمت زمین: ⁨⁨400⁩ ساپ⁩ (بین ⁨⁨100⁩ ساپ⁩ و ⁨⁨5,000⁩ ساپ⁩)
+📜 مجوز ساخت: ⁨⁨100⁩ ساپ⁩ (تا ⁨⁨1,000⁩ ساپ⁩)
+📊 مالیات دارایی هر دوره: ⁨2⁩٪ (تا ⁨5⁩٪)
+
+همهٔ این‌ها به خزانهٔ روستا می‌رود.
+  ───
+  [💵 زمین ⁨⁨100⁩ ساپ⁩] → settlement:terms:lot_price:100   │   [💵 زمین ⁨⁨400⁩ ساپ⁩] → settlement:terms:lot_price:400   │   [💵 زمین ⁨⁨800⁩ ساپ⁩] → settlement:terms:lot_price:800
+  [📜 مجوز ⁨⁨0⁩ ساپ⁩] → settlement:terms:permit_fee:0   │   [📜 مجوز ⁨⁨100⁩ ساپ⁩] → settlement:terms:permit_fee:100   │   [📜 مجوز ⁨⁨200⁩ ساپ⁩] → settlement:terms:permit_fee:200
+  [📊 مالیات ⁨0⁩٪] → settlement:terms:tax_bps:0   │   [📊 مالیات ⁨2⁩٪] → settlement:terms:tax_bps:200   │   [📊 مالیات ⁨4⁩٪] → settlement:terms:tax_bps:400
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:terms
+
+━━━ Work · until the village has workshops, jobs are in Support ━━━
+(edits message 42)
+🛠 کار در کورندال
+
+کارگاه‌ها و مزرعه‌های روستا با ساخته‌شدن باز می‌شوند و کار آن‌ها را اینجا می‌بینی.
+تا آن روز، کار و شغل در «ساپورت» است.
+  ───
+  [💼 کار در ساپورت - سفر] → travel:options:support
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_lot_taken ━━━
+(edits message 42)
+این زمین را همین حالا کس دیگری خرید. زمین دیگری انتخاب کن.
+  ───
+  [🏡 زمین دیگر] → settlement:land
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_lot_limit ━━━
+(edits message 42)
+به سقف زمین‌های شخصی رسیده‌ای؛ اول روی زمین‌هایت بساز.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_zoning ━━━
+(edits message 42)
+سهم زمین‌های شخصی این روستا پر شده است تا فضای عمومی حفظ شود.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_not_owner ━━━
+(edits message 42)
+این زمین مال تو نیست؛ فقط روی زمین خودت می‌توانی بسازی.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_no_cash ━━━
+(edits message 42)
+پولت برای این کار کافی نیست.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_private_only ━━━
+(edits message 42)
+این ساختمان شخصی است و ساکنان روی زمین خودشان می‌سازند، نه دهیار.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_lot_private ━━━
+(edits message 42)
+این زمین شخصی است و مال یکی از اهالی است.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_rest_wait ━━━
+(edits message 42)
+هنوز سرحال هستی؛ ⁨3 ساعت⁩ دیگر می‌توانی دوباره استراحت کنی.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_no_house ━━━
+(edits message 42)
+برای استراحت اول باید خانه‌ات ساخته شود.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_terms_range ━━━
+(edits message 42)
+این عدد خارج از محدودهٔ مجاز است.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_no_debt ━━━
+(edits message 42)
+بدهی مالیاتی‌ای نداری.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_off ━━━
+(edits message 42)
+خرید زمین هنوز در این روستا باز نشده است.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Refusal · citizen_no_lots ━━━
+(edits message 42)
+زمینی نداری؛ اول یک زمین بخر.
+  ───
+  [🏡 زمین بخر] → settlement:land
+  [🔙 بازگشت] → settlement:overview
 
 ━━━ Village home · a group with no village: the call to found one ━━━
 (edits message 42)

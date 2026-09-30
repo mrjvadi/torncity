@@ -202,7 +202,7 @@ func renderLotBuyDone(c Context, v LotBuyView) *presenter.Response {
 	args := lotArgs(c, v)
 	kb := keyboards.New()
 	kb.Row(citizenButtons(c, "citizen.button.build_house", AddrPrivateMenu, "citizen.button.more_land", AddrLand)...)
-	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview}))
+	kb.Nav(c.nav(keyboards.Nav{BackData: AddrLand}))
 	return c.respond(paragraphs(c.T("citizen.buy.done_title", args), c.T("citizen.buy.done_body", args)), kb.Build())
 }
 

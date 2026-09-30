@@ -603,7 +603,7 @@ citizen:
       💵 Price per lot: {price}
       👛 Your money: {cash}
       📌 Your lots: {owned} of {max}
-    legend: "🟩 free to buy   🏡 yours   🔒 someone else's   🏠 building   🛣 road   💧 water   ⛰ steep"
+    legend: "🟩 free to buy - 🏡 yours - 🔒 someone else's - 🏠 building - 🛣 road - 💧 water - ⛰ steep"
     cannot_buy: "To buy more land you must be under the personal lot limit and have enough money."
   buy:
     ask_title: "🏡 Buy a lot"
@@ -628,7 +628,7 @@ citizen:
       📌 Free lots of yours: {free}
     line: |-
       🔨 {name} ({w}×{h})
-      Cost: {cost} · Permit: {permit} · Time: {time}
+      Cost: {cost} - Permit: {permit} - Time: {time}
       Cash total: {total}
     material: "   • {name}: {need} (you have {have}, buy {buy} for {cost})"
     short: "⚠️ You cannot afford this building."
@@ -639,7 +639,7 @@ citizen:
   lots:
     title: "📍 Where to build in {village}"
     building: "Building: {building}"
-    legend: "✅ build here (your own free lot)   🏠 taken   🛣 road   💧 water   ⛰ steep   ⬜ not your lot"
+    legend: "✅ build here (your own free lot) - 🏠 taken - 🛣 road - 💧 water - ⛰ steep - ⬜ not your lot"
   confirm:
     title: "🏗 Build {name}"
     lines: |-

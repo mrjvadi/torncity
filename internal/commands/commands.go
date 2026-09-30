@@ -443,6 +443,18 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "join", Origin: FromPlayer},
 	{Domain: "settlement", Action: "leave", Origin: FromPlayer},
 	{Domain: "settlement", Action: "donate", Origin: FromPlayer},
+	// The citizen loop (docs/adr/0033 sections 4.4-4.5): land, a private
+	// house, one's own property, the head's terms and the page behind work.
+	{Domain: "settlement", Action: "land", Origin: FromPlayer},
+	{Domain: "settlement", Action: "lot.buy", Origin: FromPlayer},
+	{Domain: "settlement", Action: "private", Origin: FromPlayer},
+	{Domain: "settlement", Action: "private.lots", Origin: FromPlayer},
+	{Domain: "settlement", Action: "private.place", Origin: FromPlayer},
+	{Domain: "settlement", Action: "mine", Origin: FromPlayer},
+	{Domain: "settlement", Action: "home.rest", Origin: FromPlayer},
+	{Domain: "settlement", Action: "tax.pay", Origin: FromPlayer},
+	{Domain: "settlement", Action: "terms", Origin: FromPlayer},
+	{Domain: "settlement", Action: "work", Origin: FromPlayer},
 	{Domain: "settlement", Action: "researched", Origin: FromScheduler},
 	{Domain: "settlement", Action: "taught", Origin: FromScheduler},
 	{Domain: "settlement", Action: "built", Origin: FromScheduler},

@@ -135,6 +135,94 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		FoodPercent: 20, JobPercent: 10, ServicePercent: 0, HappinessPercent: 30, SecurityPercent: 15,
 		LiteracyPercent: 2, Treasury: 10_900,
 	}))
+	add("Village home · the village head's hub (civic build and land terms)", VillageOverview(g, VillageOverviewView{
+		Name: villageNameFor(c), Tier: "village", Resident: true, IsHead: true,
+		Population: 12, PopulationCap: 100,
+		FoodPercent: 20, JobPercent: 10, ServicePercent: 0, HappinessPercent: 30, SecurityPercent: 15,
+		LiteracyPercent: 2, Treasury: 10_900,
+	}))
+
+	// The citizen loop (docs/adr/0033 sections 4.4-4.5): land, a private
+	// house, one's own property, the head's terms.
+	landRow := func(y int, states ...string) []LandCell {
+		row := make([]LandCell, len(states))
+		for x, st := range states {
+			row[x] = LandCell{X: x, Y: y, State: st}
+			if st == LandTaken {
+				row[x].Owner = "Sara"
+			}
+		}
+		return row
+	}
+	land := LandView{
+		Village: villageNameFor(c), GridLots: 5, Price: 400, Cash: 5_000, Owned: 1, Max: 6, CanBuy: true, FreeLots: 14,
+		Rows: [][]LandCell{
+			landRow(0, LandFree, LandRoad, LandFree, LandFree, LandWater),
+			landRow(1, LandFree, LandBuilding, LandBuilding, LandTaken, LandFree),
+			landRow(2, LandFree, LandBuilding, LandBuilding, LandFree, LandFree),
+			landRow(3, LandMine, LandFree, LandFree, LandFree, LandSteep),
+			landRow(4, LandFree, LandFree, LandFree, LandTaken, LandFree),
+		},
+	}
+	add("Land grid · free lots on offer", LandGrid(g, land))
+	buy := LotBuyView{Village: villageNameFor(c), X: 2, Y: 3, Price: 400, Cash: 5_000, Treasury: 10_900}
+	add("Land purchase · confirm", LotBuyConfirm(g, buy))
+	buy.Cash, buy.Treasury = 4_600, 11_300
+	add("Land purchase · done", LotBuyDone(g, buy))
+
+	timberMat := PrivateMaterial{Component: sampleNamed(c.Lang, "timber", "الوار", "Timber"), Need: 3, Have: 0, Buy: 3, BuyCost: 54}
+	add("Citizen catalogue · only what can be built now", PrivateMenu(g, PrivateMenuView{
+		Village: villageNameFor(c), Cash: 4_600, OwnedLots: 1, FreeLots: 1,
+		Lines: []PrivateLine{
+			{Building: sampleNamed(c.Lang, "cottage", "کلبهٔ روستایی", "Cottage"), Home: true, Class: "residential", CostMoney: 800, PermitFee: 100,
+				Materials: []PrivateMaterial{timberMat}, BuildTime: 2 * time.Hour, FootprintW: 1, FootprintH: 1, Total: 954, Affordable: true},
+			{Building: sampleNamed(c.Lang, "market_stall", "غرفهٔ بازار", "Market stall"), Class: "commerce", CostMoney: 500, PermitFee: 100,
+				Materials: []PrivateMaterial{{Component: timberMat.Component, Need: 2, Have: 2}}, BuildTime: time.Hour, FootprintW: 1, FootprintH: 1,
+				Total: 600, Affordable: false},
+		},
+	}))
+	add("Citizen catalogue · no land yet", PrivateMenu(g, PrivateMenuView{Village: villageNameFor(c), Cash: 4_600}))
+	lotRow := func(y int, fits ...bool) []LotCell {
+		row := make([]LotCell, len(fits))
+		for x, f := range fits {
+			st := LotFree
+			if !f {
+				st = LotOccupied
+			}
+			row[x] = LotCell{X: x, Y: y, State: st, Fits: f}
+		}
+		return row
+	}
+	add("Citizen lot choice · your own lots", PrivateLots(g, PrivateLotsView{
+		Village: villageNameFor(c), Building: sampleNamed(c.Lang, "cottage", "کلبهٔ روستایی", "Cottage"), GridLots: 2,
+		Rows: [][]LotCell{lotRow(0, false, false), lotRow(1, true, false)},
+	}))
+	add("Citizen bill · cost, permit, materials", PrivateConfirm(g, PrivateConfirmView{
+		Village: villageNameFor(c), Building: sampleNamed(c.Lang, "cottage", "کلبهٔ روستایی", "Cottage"), X: 0, Y: 3,
+		CostMoney: 800, PermitFee: 100, Materials: []PrivateMaterial{timberMat}, MaterialsCost: 54, Total: 954, Cash: 4_600, BuildTime: 2 * time.Hour,
+	}))
+	house := sampleNamed(c.Lang, "cottage", "کلبهٔ روستایی", "Cottage")
+	add("My property · a house to live in, tax due", Mine(g, MineView{
+		Village: villageNameFor(c), Cash: 3_646, Home: &house, CanRest: true, Assessed: 1_245, TaxBPS: 200, TaxPerPeriod: 24,
+		Lots: []MineLot{{X: 0, Y: 3, Building: "cottage", State: "built"}, {X: 2, Y: 3}},
+	}))
+	add("My property · house under construction, debt, rested", Mine(g, MineView{
+		Village: villageNameFor(c), Cash: 40, CanRest: false, RestWait: 5 * time.Hour, Assessed: 1_245, TaxBPS: 200, TaxPerPeriod: 24,
+		Debt: 48, DebtPeriods: 2, Notice: "rested",
+		Lots: []MineLot{{X: 0, Y: 3, Building: "cottage", State: "under_construction", FinishAt: snapshotNow.Add(90 * time.Minute), Left: 90 * time.Minute}},
+	}))
+	add("Land terms · the head's levers", Terms(g, TermsView{
+		Village: villageNameFor(c), LotPrice: 400, LotPriceMin: 100, LotPriceMax: 5_000, PermitFee: 100, PermitFeeMax: 1_000,
+		TaxBPS: 200, TaxBPSMax: 500, LotPresets: []int64{100, 400, 800}, PermitPresets: []int64{0, 100, 200}, TaxPresets: []int{0, 200, 400},
+	}))
+	add("Work · until the village has workshops, jobs are in Support", VillageWork(g, WorkView{
+		Village: villageNameFor(c), Support: supportNameFor(c), SupportCode: "support",
+	}))
+	for _, kind := range []string{CitizenLotTaken, CitizenLotLimit, CitizenZoning, CitizenNotOwner, CitizenNoCash, CitizenPrivateOnly,
+		CitizenLotPrivate, CitizenRestWait, CitizenNoHouse, CitizenTermsRange, CitizenNoDebt, CitizenOff, CitizenNoLots} {
+		add("Refusal · "+kind, VillageRefusal(g, VillageRefusalView{Kind: kind, Remaining: 3 * time.Hour}))
+	}
+
 	add("Village home · a group with no village: the call to found one", VillageHomeCall(g))
 	add("Village home · private, living in no village", VillageHomeNone(priv(c)))
 	add("Refusal · a city-only feature asked of a village", Error(c, application.ErrCityTierOnly.WithCause(stderrors.New("lever city.budget is set per city"))))
