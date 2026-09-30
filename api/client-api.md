@@ -19,7 +19,7 @@ roads and land"): `settlement.building.view`, `settlement.build.place_many`,
 `settlement.grid.grow`, the `village_batch`, `village_no_road` and
 `village_grid_max` error codes, the realtime publications
 `build_batch_started` and `grid_grown`, `auto_roads` on `build_started`, and a
-`grid.lots` that may be larger than the tier's base side. Nothing that 1.0,
+`grid.lots` that may be larger than the tier's base side. The content catalogue's `settlement_building` entries gain `cap_exempt` (roads), which tells a client which buildings it may lay many at a time. Nothing that 1.0,
 1.1, 1.2 or 1.3 returned has changed.
 
 The contract between the game and a game client (a native build or the
@@ -520,16 +520,16 @@ last, confirmed action, never the panel's face. `view`:
 
 | field | meaning |
 |---|---|
-| `id`, `building {code,name}`, `role`, `tier`, `x`, `y`, `w`, `h`, `rotated` | the building |
+| `id`, `building {code,name}`, `role`, `tier`, `x`, `y`, `w`, `h`, `rotated`, `description` | the building; `description` is what it is and does, in the player's language |
 | `kind` | which panel to draw: `road`, `civic_hall`, `storage`, `school`, `security`, `generic` (draw an unknown kind as `generic`) |
 | `state` | `complete` or `building` |
 | `effects` | `[{target, value}]` what the building adds (basis points, except `housing_capacity`); `upkeep` |
-| `started_at`, `finish_at`, `left`, `progress_percent` | under construction (0..100, already computed) |
+| `started_at`, `finish_at`, `left_seconds`, `progress_percent` | under construction (0..100, already computed) |
 | `stock` | `storage`: `[{item {code,name}, kind: "component"|"item", qty}]` the village store; the store has no capacity in the content yet, so none is sent |
 | `literacy_percent`, `teaching` | `school`: teaching runs by itself while an education building stands, so it is a state, not a switch |
 | `treasury`, `population`, `research` | `civic_hall`: the village numbers and the research running now |
 | `can_manage`, `has_upgrade`, `mode` | management; `has_upgrade` tells whether the "upgrade" action is worth showing |
-| `upgrades` | only with `mode: "up"`: `[{building, tier, cost_money, build_time, available, missing}]`, the **next tier of the building's role** from the content's own ladder (a tier-2 building requires a tier-1 one of its role). It is revealed only when pressed. Levels *within* one building are a later phase and nothing here blocks them |
+| `upgrades` | only with `mode: "up"`: `[{building, tier, cost_money, build_time_seconds, available, missing}]`, the **next tier of the building's role** from the content's own ladder (a tier-2 building requires a tier-1 one of its role). It is revealed only when pressed. Levels *within* one building are a later phase and nothing here blocks them |
 
 `mode`: `up` reveals the upgrade, `dm` and `cx` are the confirmation screens
 of demolishing a finished building and calling off one going up (the
@@ -541,7 +541,7 @@ validation as `place` for every lot (bounds, water, occupied, terrain,
 knowledge, literacy), judged against a grid that already counts the batch's
 own earlier lots; one total spend; one `build_batch_started` publication.
 Without `confirm` it answers `settlement_build_batch_confirm` (`count`, `lots`,
-`cost_money`, `materials`, `build_time`). Any bad lot refuses the WHOLE batch
+`cost_money`, `materials`, `build_time_seconds`). Any bad lot refuses the WHOLE batch
 (`village_batch`, every offending lot named). **The cap rule:** the
 concurrent-construction cap (village 1, town 2, city 4) is about big builds;
 the content marks the road `cap_exempt`, so a road never waits for a slot and

@@ -103,6 +103,245 @@
   ───
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build.progress
 
+━━━ Building panel · a granary with its stock ━━━
+(edits message 42)
+🏛 انبار غله
+
+انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد.
+
+✅ ساخته شده و در کار است.
+
+📦 موجودی انبار:
+
+• الوار: ⁨15⁩
+• گندم: ⁨120⁩
+
+🧾 هزینهٔ نگهداری: ⁨⁨20⁩ ساپ⁩ در هر دوره
+  ───
+  [🗑 تخریب] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
+  [🔙 بازگشت] → settlement:build.progress   │   [🔄 به‌روزرسانی] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · an empty store ━━━
+(edits message 42)
+🏛 انبار غله
+
+انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد.
+
+✅ ساخته شده و در کار است.
+
+📦 انبار فعلاً خالی است.
+  ───
+  [🔙 بازگشت] → settlement:build.progress   │   [🔄 به‌روزرسانی] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · a teaching circle, the head sees the upgrade ━━━
+(edits message 42)
+🏛 حلقهٔ آموزش
+
+آموزش اهالی؛ تا وقتی این بنا سر پاست، سواد میان اهالی کم‌کم پخش می‌شود.
+
+✅ ساخته شده و در کار است.
+
+📖 سواد روستا: 34٪
+
+🧑‍🏫 آموزش در جریان است و سواد کم‌کم بالا می‌رود.
+
+🧾 هزینهٔ نگهداری: ⁨⁨25⁩ ساپ⁩ در هر دوره
+  ───
+  [⬆️ ارتقا] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:up
+  [🗑 تخریب] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
+  [🔙 بازگشت] → settlement:build.progress   │   [🔄 به‌روزرسانی] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · the upgrade, revealed when pressed ━━━
+(edits message 42)
+🏛 حلقهٔ آموزش
+
+⬆️ گام بعدیِ «حلقهٔ آموزش» این‌هاست:
+
+🔒 مدرسه - اول باید دفترداری را داشته باشید
+  ───
+  [🔙 بازگشت] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · the civic hall ━━━
+(edits message 42)
+🏛 خانهٔ دهیاری
+
+دل اداریِ روستا؛ دهیار از اینجا روستا را اداره می‌کند. خزانه، دانش و ساخت‌وساز روستا از همین‌جا در دسترس است.
+
+✅ ساخته شده و در کار است.
+
+👥 جمعیت: ⁨34⁩
+
+🏦 خزانهٔ روستا: ⁨⁨24,600⁩ ساپ⁩
+
+🔬 پژوهش در جریان: آبیاری نهری - ⁨41 دقیقه⁩ دیگر
+
+🧾 هزینهٔ نگهداری: ⁨⁨20⁩ ساپ⁩ در هر دوره
+  ───
+  [🏘 نمای روستا] → settlement:overview   │   [📚 دانش روستا] → settlement:knowledge
+  [🏗 ساخت‌وساز] → settlement:build   │   [⏳ پیشرفت ساخت] → settlement:build.progress
+  [🗑 تخریب] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
+  [🔙 بازگشت] → settlement:build.progress   │   [🔄 به‌روزرسانی] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · a watch hut ━━━
+(edits message 42)
+🏛 دیده‌بانی محله
+
+پاسداری از روستا؛ امنیت محلی را بالا می‌برد.
+
+✅ ساخته شده و در کار است.
+
+🛡 امنیت محلی: +⁨3⁩٪
+
+🧾 هزینهٔ نگهداری: ⁨⁨30⁩ ساپ⁩ در هر دوره
+  ───
+  [🔙 بازگشت] → settlement:build.progress   │   [🔄 به‌روزرسانی] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · a road ━━━
+(edits message 42)
+🏛 جاده
+
+جادهٔ روستا؛ قطعه‌ها را به هم می‌رساند و راه رفت‌وآمد اهالی است. کار دیگری ندارد.
+
+✅ ساخته شده و در کار است.
+
+🧾 هزینهٔ نگهداری: ⁨⁨2⁩ ساپ⁩ در هر دوره
+  ───
+  [🗑 تخریب] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
+  [🔙 بازگشت] → settlement:build.progress   │   [🔄 به‌روزرسانی] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · under construction, the head may cancel ━━━
+(edits message 42)
+🏛 کارگاه نجاری
+
+کارگاه ساخت‌وساز و صنعت؛ پایهٔ تولید کالا در روستاست.
+
+🏗 در حال ساخت: 42٪ - ساعت ⁨16⁩:⁨05⁩ تمام می‌شود (⁨1 ساعت و 30 دقیقه⁩ دیگر).
+  ───
+  [🛑 لغو ساخت] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:cx
+  [🔙 بازگشت] → settlement:build.progress   │   [🔄 به‌روزرسانی] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · demolishing asks first ━━━
+(edits message 42)
+🏛 انبار غله
+
+🗑 این بنا برای همیشه برداشته می‌شود و قطعه‌اش دوباره آزاد می‌شود؛ فقط بخشی از هزینه‌اش به خزانه برمی‌گردد. مطمئن هستید؟
+  ───
+  [🗑 بله، تخریب شود] → settlement:build.demolish:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [🔙 بازگشت] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · cancelling asks first ━━━
+(edits message 42)
+🏛 کارگاه نجاری
+
+🛑 ساخت این بنا متوقف می‌شود و هزینه‌ای که پرداخت شده برنمی‌گردد. مطمئن هستید؟
+  ───
+  [🛑 بله، ساخت لغو شود] → settlement:build.cancel:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [🔙 بازگشت] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Construction progress · with the standing buildings to open ━━━
+(edits message 42)
+⏳ صف ساخت‌وساز کورندال
+
+🏗 نجاری - در حال ساخت - ساعت ⁨16⁩:⁨05⁩ تمام می‌شود - ⁨1 ساعت و 30 دقیقه⁩ دیگر
+
+برای دیدن هر بنای ساخته‌شده، روی نامش بزنید.
+  ───
+  [🏗 نجاری] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [انبار غله] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44   │   [حلقهٔ آموزش] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [خانهٔ دهیاری] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build.progress
+
+━━━ Batch · the total of three roads ━━━
+(edits message 42)
+🛣 ساخت ⁨3⁩ قطعه جاده
+
+هزینهٔ کل: ⁨⁨150⁩ ساپ⁩
+زمان ساخت: ⁨10 دقیقه⁩ (همه با هم شروع می‌شوند)
+  ───
+  [✅ تأیید و ساخت همه] → settlement:build.place_many:road:0-0:2-0:confirm
+  [🔙 بازگشت] → settlement:build
+
+━━━ Batch · refused as a whole, every lot named ━━━
+(edits message 42)
+🚧 ساخت گروهی انجام نشد و چیزی پرداخت نشد. این قطعه‌ها مشکل دارند:
+⁨• ردیف ⁨1⁩، ستون ⁨2⁩: قبلاً اشغال شده
+• ردیف ⁨10⁩، ستون ⁨10⁩: بیرون از محدودهٔ روستاست
+• ردیف ⁨4⁩، ستون ⁨3⁩: آب یا شیبِ تند است⁩
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Roads · no road can reach the building ━━━
+(edits message 42)
+🛣 به این بنا هیچ راهی نمی‌رسد؛ اطرافش جای آزاد و قابل‌ساخت برای کشیدن جاده نیست. قطعهٔ دیگری را امتحان کنید.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Lot grid · picking the first lot of a run of roads ━━━
+(edits message 42)
+🗺 انتخاب محل ساخت در کورندال
+بنا: جاده
+
+✅ آزاد و مناسب - ⬜ آزاد ولی نامناسب - 🏠 اشغال‌شده - 🛣 جاده - 💧 آب - ⛰ شیب‌دار
+
+📏 قطعهٔ اول مسیر را بزنید.
+  ───
+  [✅] → settlement:build.lots:road:0:0-0   │   [⬜] → settlement:build.lots:road:0:1-0   │   [🏠] → settlement:build.lots:road:0:2-0   │   [💧] → settlement:build.lots:road:0:3-0   │   [✅] → settlement:build.lots:road:0:4-0
+  [✅] → settlement:build.lots:road:0:0-1   │   [✅] → settlement:build.lots:road:0:1-1   │   [🏠] → settlement:build.lots:road:0:2-1   │   [✅] → settlement:build.lots:road:0:3-1   │   [⬜] → settlement:build.lots:road:0:4-1
+  [🛣] → settlement:build.lots:road:0:0-2   │   [✅] → settlement:build.lots:road:0:1-2   │   [✅] → settlement:build.lots:road:0:2-2   │   [✅] → settlement:build.lots:road:0:3-2   │   [⛰] → settlement:build.lots:road:0:4-2
+  [✅] → settlement:build.lots:road:0:0-3   │   [✅] → settlement:build.lots:road:0:1-3   │   [✅] → settlement:build.lots:road:0:2-3   │   [🏠] → settlement:build.lots:road:0:3-3   │   [✅] → settlement:build.lots:road:0:4-3
+  [✅] → settlement:build.lots:road:0:0-4   │   [⛰] → settlement:build.lots:road:0:1-4   │   [✅] → settlement:build.lots:road:0:2-4   │   [✅] → settlement:build.lots:road:0:3-4   │   [✅] → settlement:build.lots:road:0:4-4
+  [🔙 بازگشت] → settlement:build   │   [🔄 به‌روزرسانی] → settlement:build.lots:road
+
+━━━ Lot grid · picking the last lot of the run ━━━
+(edits message 42)
+🗺 انتخاب محل ساخت در کورندال
+بنا: جاده
+
+✅ آزاد و مناسب - ⬜ آزاد ولی نامناسب - 🏠 اشغال‌شده - 🛣 جاده - 💧 آب - ⛰ شیب‌دار
+
+📏 شروع مسیر: ردیف ⁨1⁩، ستون ⁨2⁩. حالا قطعهٔ آخر را بزنید؛ مسیر از روی ردیف و ستون رد می‌شود.
+  ───
+  [✅] → settlement:build.place_many:road:1-0:0-0   │   [⬜] → settlement:build.place_many:road:1-0:1-0   │   [🏠] → settlement:build.place_many:road:1-0:2-0   │   [💧] → settlement:build.place_many:road:1-0:3-0   │   [✅] → settlement:build.place_many:road:1-0:4-0
+  [✅] → settlement:build.place_many:road:1-0:0-1   │   [✅] → settlement:build.place_many:road:1-0:1-1   │   [🏠] → settlement:build.place_many:road:1-0:2-1   │   [✅] → settlement:build.place_many:road:1-0:3-1   │   [⬜] → settlement:build.place_many:road:1-0:4-1
+  [🛣] → settlement:build.place_many:road:1-0:0-2   │   [✅] → settlement:build.place_many:road:1-0:1-2   │   [✅] → settlement:build.place_many:road:1-0:2-2   │   [✅] → settlement:build.place_many:road:1-0:3-2   │   [⛰] → settlement:build.place_many:road:1-0:4-2
+  [✅] → settlement:build.place_many:road:1-0:0-3   │   [✅] → settlement:build.place_many:road:1-0:1-3   │   [✅] → settlement:build.place_many:road:1-0:2-3   │   [🏠] → settlement:build.place_many:road:1-0:3-3   │   [✅] → settlement:build.place_many:road:1-0:4-3
+  [✅] → settlement:build.place_many:road:1-0:0-4   │   [⛰] → settlement:build.place_many:road:1-0:1-4   │   [✅] → settlement:build.place_many:road:1-0:2-4   │   [✅] → settlement:build.place_many:road:1-0:3-4   │   [✅] → settlement:build.place_many:road:1-0:4-4
+  [🔙 بازگشت] → settlement:build   │   [🔄 به‌روزرسانی] → settlement:build.lots:road
+
+━━━ Placement · the preview names the roads laid with the building ━━━
+(edits message 42)
+🏗 ساخت خانهٔ روستایی
+
+هزینه: ⁨⁨720⁩ ساپ⁩
+زمان ساخت: ⁨45 دقیقه⁩
+محل: ردیف 5، ستون 5
+
+• الوار: 2 واحد
+
+🛣 برای اتصال این بنا، ⁨2⁩ قطعه جادهٔ رایگان هم همراهش کشیده می‌شود و فوراً آماده است.
+  ───
+  [✅ تأیید و ساخت] → settlement:build.place:village_house:4-4:confirm
+  [🔙 بازگشت] → settlement:build.lots:village_house
+
+━━━ Land · the price of the next expansion ━━━
+(edits message 42)
+🗺 گسترش زمین کورندال
+
+زمین از ⁨5⁩×⁨5⁩ به ⁨6⁩×⁨6⁩ می‌رسد و ⁨11⁩ قطعهٔ تازه به روستا اضافه می‌شود؛ ⁨9⁩ قطعه‌اش خشکیِ قابل‌ساخت است.
+هزینه: ⁨⁨550⁩ ساپ⁩
+خزانه: ⁨⁨12,400⁩ ساپ⁩
+
+بناهای فعلی سر جایشان می‌مانند. آب و شیب تند همان‌جا که هست ساخت‌ناپذیر می‌ماند. هر گسترشِ بعدی گران‌تر است.
+  ───
+  [✅ تأیید و گسترش] → settlement:grid.grow:confirm
+  [🔙 بازگشت] → settlement:build
+
+━━━ Land · the technical bound ━━━
+(edits message 42)
+🗺 زمین روستا به بیشینهٔ فنیِ اندازهٔ نقشه رسیده است و بیشتر گسترش نمی‌یابد.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
 ━━━ Lot grid · a mix of states, rotatable building ━━━
 (edits message 42)
 🗺 انتخاب محل ساخت در کورندال

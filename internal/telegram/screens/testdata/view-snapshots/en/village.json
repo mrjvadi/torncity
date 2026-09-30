@@ -1,5 +1,853 @@
 [
   {
+    "title": "Building panel · a granary with its stock",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "granary",
+        "name": "Granary"
+      },
+      "can_manage": true,
+      "description": "The village store: the shared materials and goods are kept here, and construction draws from this stock.",
+      "effects": null,
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "storage",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "storage",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": [
+        {
+          "item": {
+            "code": "timber",
+            "name": "Timber"
+          },
+          "kind": "component",
+          "qty": 15
+        },
+        {
+          "item": {
+            "code": "wheat",
+            "name": "Wheat"
+          },
+          "kind": "item",
+          "qty": 120
+        }
+      ],
+      "teaching": false,
+      "tier": 1,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 20,
+      "w": 1,
+      "x": 4,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · an empty store",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "granary",
+        "name": "Granary"
+      },
+      "can_manage": false,
+      "description": "The village store: the shared materials and goods are kept here, and construction draws from this stock.",
+      "effects": null,
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "storage",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "storage",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "teaching": false,
+      "tier": 1,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 0,
+      "w": 1,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · a teaching circle, the head sees the upgrade",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "teaching_circle",
+        "name": "Teaching circle"
+      },
+      "can_manage": true,
+      "description": "Teaches the villagers; while it stands, literacy slowly spreads.",
+      "effects": null,
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": true,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "school",
+      "left_seconds": 0,
+      "literacy_percent": 34,
+      "mode": "",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "education",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "teaching": true,
+      "tier": 1,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 25,
+      "w": 1,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · the upgrade, revealed when pressed",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "teaching_circle",
+        "name": "Teaching circle"
+      },
+      "can_manage": true,
+      "description": "Teaches the villagers; while it stands, literacy slowly spreads.",
+      "effects": null,
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": true,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "school",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "up",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "education",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "teaching": false,
+      "tier": 1,
+      "treasury": 0,
+      "upgrades": [
+        {
+          "available": false,
+          "build_time_seconds": 14400,
+          "building": {
+            "code": "school",
+            "name": "School"
+          },
+          "cost_money": 9000,
+          "missing": [
+            {
+              "code": "record_keeping",
+              "name": "Record keeping"
+            }
+          ],
+          "tier": 2
+        }
+      ],
+      "upkeep": 0,
+      "w": 1,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · the civic hall",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "civic_hall",
+        "name": "Civic hall"
+      },
+      "can_manage": true,
+      "description": "The village's seat of office, where the head runs the village. The treasury, knowledge and construction are reached from here.",
+      "effects": null,
+      "finish_at": null,
+      "h": 2,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "civic_hall",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "",
+      "population": 34,
+      "progress_percent": 0,
+      "research": {
+        "finish_at": null,
+        "knowledge": {
+          "code": "canal_irrigation",
+          "name": "Canal irrigation"
+        },
+        "left_seconds": 2460
+      },
+      "role": "",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "teaching": false,
+      "tier": 0,
+      "treasury": 24600,
+      "upgrades": null,
+      "upkeep": 20,
+      "w": 2,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · a watch hut",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "watch_hut",
+        "name": "Watch hut"
+      },
+      "can_manage": false,
+      "description": "Watches over the village and raises local security.",
+      "effects": [
+        {
+          "target": "local_security_bps",
+          "value": 300
+        }
+      ],
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "security",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "security",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "teaching": false,
+      "tier": 1,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 30,
+      "w": 1,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · a road",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "road",
+        "name": "Road"
+      },
+      "can_manage": true,
+      "description": "A village road; it joins the lots and is the way the villagers walk. It does nothing else.",
+      "effects": null,
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "road",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "teaching": false,
+      "tier": 0,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 2,
+      "w": 1,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · under construction, the head may cancel",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "carpentry_workshop",
+        "name": "Carpentry workshop"
+      },
+      "can_manage": true,
+      "description": "A workshop, the base of making goods in the village.",
+      "effects": null,
+      "finish_at": "2026-09-23T12:35:00Z",
+      "h": 2,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "generic",
+      "left_seconds": 5400,
+      "literacy_percent": 0,
+      "mode": "",
+      "population": 0,
+      "progress_percent": 42,
+      "research": null,
+      "role": "craft",
+      "rotated": false,
+      "started_at": null,
+      "state": "building",
+      "stock": null,
+      "teaching": false,
+      "tier": 1,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 0,
+      "w": 2,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · demolishing asks first",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "granary",
+        "name": "Granary"
+      },
+      "can_manage": true,
+      "description": "The village store: the shared materials and goods are kept here, and construction draws from this stock.",
+      "effects": null,
+      "finish_at": null,
+      "h": 1,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "storage",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "dm",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "storage",
+      "rotated": false,
+      "started_at": null,
+      "state": "complete",
+      "stock": null,
+      "teaching": false,
+      "tier": 0,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 0,
+      "w": 1,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Building panel · cancelling asks first",
+    "screen": "settlement_building_view",
+    "view": {
+      "building": {
+        "code": "carpentry_workshop",
+        "name": "Carpentry workshop"
+      },
+      "can_manage": true,
+      "description": "building.desc.code.carpentry_workshop",
+      "effects": null,
+      "finish_at": null,
+      "h": 2,
+      "has_upgrade": false,
+      "id": "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44",
+      "kind": "generic",
+      "left_seconds": 0,
+      "literacy_percent": 0,
+      "mode": "cx",
+      "population": 0,
+      "progress_percent": 0,
+      "research": null,
+      "role": "",
+      "rotated": false,
+      "started_at": null,
+      "state": "building",
+      "stock": null,
+      "teaching": false,
+      "tier": 0,
+      "treasury": 0,
+      "upgrades": null,
+      "upkeep": 0,
+      "w": 2,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "title": "Batch · the total of three roads",
+    "screen": "settlement_build_batch_confirm",
+    "view": {
+      "build_time_seconds": 600,
+      "building": {
+        "code": "road",
+        "name": "Road"
+      },
+      "cost_money": 150,
+      "count": 3,
+      "lots": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 1,
+          "y": 0
+        },
+        {
+          "x": 2,
+          "y": 0
+        }
+      ],
+      "materials": null,
+      "settlement_name": "Korendal"
+    }
+  },
+  {
+    "title": "Lot grid · picking the first lot of a run of roads",
+    "screen": "settlement_build_lots",
+    "view": {
+      "building": {
+        "code": "road",
+        "name": "Road"
+      },
+      "can_rotate": false,
+      "from": {
+        "x": 0,
+        "y": 0
+      },
+      "grid_lots": 5,
+      "line": "line",
+      "multi": true,
+      "rotated": false,
+      "rows": [
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 1,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "water",
+            "x": 3,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 0
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 4,
+            "y": 1
+          }
+        ],
+        [
+          {
+            "fits": false,
+            "state": "road",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 2
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 4,
+            "y": 2
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 3,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 3
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 4
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 1,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 4
+          }
+        ]
+      ],
+      "settlement_name": "Korendal"
+    }
+  },
+  {
+    "title": "Lot grid · picking the last lot of the run",
+    "screen": "settlement_build_lots",
+    "view": {
+      "building": {
+        "code": "road",
+        "name": "Road"
+      },
+      "can_rotate": false,
+      "from": {
+        "x": 1,
+        "y": 0
+      },
+      "grid_lots": 5,
+      "line": "end",
+      "multi": true,
+      "rotated": false,
+      "rows": [
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 1,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "fits": false,
+            "state": "water",
+            "x": 3,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 0
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 1
+          },
+          {
+            "fits": false,
+            "state": "free",
+            "x": 4,
+            "y": 1
+          }
+        ],
+        [
+          {
+            "fits": false,
+            "state": "road",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 2
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 4,
+            "y": 2
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "fits": false,
+            "state": "occupied",
+            "x": 3,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 3
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 4
+          },
+          {
+            "fits": false,
+            "state": "steep",
+            "x": 1,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 4
+          }
+        ]
+      ],
+      "settlement_name": "Korendal"
+    }
+  },
+  {
+    "title": "Placement · the preview names the roads laid with the building",
+    "screen": "settlement_build_confirm",
+    "view": {
+      "auto_roads": 2,
+      "build_time_seconds": 2700,
+      "building": {
+        "code": "village_house",
+        "name": "Village house"
+      },
+      "cost_money": 720,
+      "materials": [
+        {
+          "component": {
+            "code": "timber",
+            "name": "Timber"
+          },
+          "quantity": 2
+        }
+      ],
+      "rotated": false,
+      "settlement_name": "Korendal",
+      "x": 4,
+      "y": 4
+    }
+  },
+  {
+    "title": "Land · the price of the next expansion",
+    "screen": "settlement_grid_grow",
+    "view": {
+      "buildable_gained": 9,
+      "lots_gained": 11,
+      "new_side": 6,
+      "price": 550,
+      "settlement_name": "Korendal",
+      "side": 5,
+      "treasury": 12400
+    }
+  },
+  {
     "title": "Lot grid · a mix of states, rotatable building",
     "screen": "settlement_build_lots",
     "view": {

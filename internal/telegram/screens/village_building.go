@@ -127,6 +127,9 @@ type BuildingView struct {
 	Population int
 	Research   *BuildingResearchLine
 
+	// Description is what the building is and does, in the viewer's language.
+	Description string
+
 	// Upgrades is set only in mode "up"; HasUpgrade tells the plain panel
 	// whether the button is worth showing.
 	HasUpgrade bool
@@ -135,6 +138,7 @@ type BuildingView struct {
 
 // BuildingPanel renders one building's panel.
 func BuildingPanel(c Context, v BuildingView) *presenter.Response {
+	v.Description = c.T(buildingDescKey(v), nil)
 	return c.withGroupView(renderBuildingPanel(c, v), ScreenBuildingView, v)
 }
 

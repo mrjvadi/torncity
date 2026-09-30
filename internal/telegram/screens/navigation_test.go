@@ -83,6 +83,13 @@ var deferredAreas = map[string]bool{
 // to whichever it came from. Each is one line so the reason is checked in
 // alongside the exception.
 var knownVariants = map[string]string{
+	// The building panel backs to the construction list it was opened from;
+	// its demolish/cancel/upgrade steps back to the panel itself.
+	"village/Building panel": "the panel backs to the construction list; its confirmation and upgrade steps back to the panel",
+	// The batch total backs to the build menu; a refusal to the overview.
+	"village/Batch": "the batch total backs to the build menu; a refusal backs to the village overview like every village refusal",
+	// The land price backs to the build menu; the bound's refusal to the overview.
+	"village/Land": "the land price backs to the build menu; the bound's refusal backs to the village overview like every village refusal",
 	// LoanConfirm (a wizard step: back to its own previous step, the specific
 	// offer) and LoanDetail (a list item: back to the loan hub) both title
 	// their samples "Loan · ...".

@@ -103,6 +103,245 @@ Nothing is queued.
   ───
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
 
+━━━ Building panel · a granary with its stock ━━━
+(edits message 42)
+🏛 Granary
+
+The village store: the shared materials and goods are kept here, and construction draws from this stock.
+
+✅ Built and working.
+
+📦 In store:
+
+• Timber: 15
+• Wheat: 120
+
+🧾 Upkeep: 20 SUP per period
+  ───
+  [🗑 Demolish] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · an empty store ━━━
+(edits message 42)
+🏛 Granary
+
+The village store: the shared materials and goods are kept here, and construction draws from this stock.
+
+✅ Built and working.
+
+📦 The store is empty for now.
+  ───
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · a teaching circle, the head sees the upgrade ━━━
+(edits message 42)
+🏛 Teaching circle
+
+Teaches the villagers; while it stands, literacy slowly spreads.
+
+✅ Built and working.
+
+📖 Village literacy: 34%
+
+🧑‍🏫 Teaching is under way and literacy is slowly rising.
+
+🧾 Upkeep: 25 SUP per period
+  ───
+  [⬆️ Upgrade] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:up
+  [🗑 Demolish] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · the upgrade, revealed when pressed ━━━
+(edits message 42)
+🏛 Teaching circle
+
+⬆️ The next step after Teaching circle:
+
+🔒 School - you need Record keeping first
+  ───
+  [🔙 Back] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · the civic hall ━━━
+(edits message 42)
+🏛 Civic hall
+
+The village's seat of office, where the head runs the village. The treasury, knowledge and construction are reached from here.
+
+✅ Built and working.
+
+👥 Population: 34
+
+🏦 Village treasury: 24,600 SUP
+
+🔬 Research under way: Canal irrigation - 41m left
+
+🧾 Upkeep: 20 SUP per period
+  ───
+  [🏘 Village] → settlement:overview   │   [📚 Village knowledge] → settlement:knowledge
+  [🏗 Construction] → settlement:build   │   [⏳ Build progress] → settlement:build.progress
+  [🗑 Demolish] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · a watch hut ━━━
+(edits message 42)
+🏛 Watch hut
+
+Watches over the village and raises local security.
+
+✅ Built and working.
+
+🛡 Local security: +3%
+
+🧾 Upkeep: 30 SUP per period
+  ───
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · a road ━━━
+(edits message 42)
+🏛 Road
+
+A village road; it joins the lots and is the way the villagers walk. It does nothing else.
+
+✅ Built and working.
+
+🧾 Upkeep: 2 SUP per period
+  ───
+  [🗑 Demolish] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · under construction, the head may cancel ━━━
+(edits message 42)
+🏛 Carpentry workshop
+
+A workshop, the base of making goods in the village.
+
+🏗 Under construction: 42% - finishes at 16:05 (1h 30m left).
+  ───
+  [🛑 Cancel the build] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:cx
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · demolishing asks first ━━━
+(edits message 42)
+🏛 Granary
+
+🗑 This building is removed for good and its lot is free again; only part of its cost returns to the treasury. Are you sure?
+  ───
+  [🗑 Yes, demolish it] → settlement:build.demolish:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [🔙 Back] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Building panel · cancelling asks first ━━━
+(edits message 42)
+🏛 Carpentry workshop
+
+🛑 Construction stops and what was paid is not returned. Are you sure?
+  ───
+  [🛑 Yes, cancel the build] → settlement:build.cancel:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [🔙 Back] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+
+━━━ Construction progress · with the standing buildings to open ━━━
+(edits message 42)
+⏳ Construction queue of Korendal
+
+🏗 Carpentry - under construction - finishes at 16:05 - 1h 30m left
+
+Tap a finished building to see it.
+  ───
+  [🏗 Carpentry] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [Granary] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44   │   [Teaching circle] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [Civic hall] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
+
+━━━ Batch · the total of three roads ━━━
+(edits message 42)
+🛣 Build 3 x Road
+
+Total cost: 150 SUP
+Build time: 10m (all start together)
+  ───
+  [✅ Confirm and build all] → settlement:build.place_many:road:0-0:2-0:confirm
+  [🔙 Back] → settlement:build
+
+━━━ Batch · refused as a whole, every lot named ━━━
+(edits message 42)
+🚧 The batch was not built and nothing was paid. These lots have a problem:
+• row 1, column 2: already taken
+• row 10, column 10: outside the village
+• row 4, column 3: water or too steep
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Roads · no road can reach the building ━━━
+(edits message 42)
+🛣 No road can reach this building; there is no free buildable ground around it to lay one. Try another lot.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Lot grid · picking the first lot of a run of roads ━━━
+(edits message 42)
+🗺 Choose where to build in Korendal
+Building: Road
+
+✅ free and fits - ⬜ free but does not fit - 🏠 occupied - 🛣 road - 💧 water - ⛰ steep
+
+📏 Tap the first lot of the run.
+  ───
+  [✅] → settlement:build.lots:road:0:0-0   │   [⬜] → settlement:build.lots:road:0:1-0   │   [🏠] → settlement:build.lots:road:0:2-0   │   [💧] → settlement:build.lots:road:0:3-0   │   [✅] → settlement:build.lots:road:0:4-0
+  [✅] → settlement:build.lots:road:0:0-1   │   [✅] → settlement:build.lots:road:0:1-1   │   [🏠] → settlement:build.lots:road:0:2-1   │   [✅] → settlement:build.lots:road:0:3-1   │   [⬜] → settlement:build.lots:road:0:4-1
+  [🛣] → settlement:build.lots:road:0:0-2   │   [✅] → settlement:build.lots:road:0:1-2   │   [✅] → settlement:build.lots:road:0:2-2   │   [✅] → settlement:build.lots:road:0:3-2   │   [⛰] → settlement:build.lots:road:0:4-2
+  [✅] → settlement:build.lots:road:0:0-3   │   [✅] → settlement:build.lots:road:0:1-3   │   [✅] → settlement:build.lots:road:0:2-3   │   [🏠] → settlement:build.lots:road:0:3-3   │   [✅] → settlement:build.lots:road:0:4-3
+  [✅] → settlement:build.lots:road:0:0-4   │   [⛰] → settlement:build.lots:road:0:1-4   │   [✅] → settlement:build.lots:road:0:2-4   │   [✅] → settlement:build.lots:road:0:3-4   │   [✅] → settlement:build.lots:road:0:4-4
+  [🔙 Back] → settlement:build   │   [🔄 Refresh] → settlement:build.lots:road
+
+━━━ Lot grid · picking the last lot of the run ━━━
+(edits message 42)
+🗺 Choose where to build in Korendal
+Building: Road
+
+✅ free and fits - ⬜ free but does not fit - 🏠 occupied - 🛣 road - 💧 water - ⛰ steep
+
+📏 The run starts at row 1, column 2. Now tap the last lot; the run goes along the row, then down the column.
+  ───
+  [✅] → settlement:build.place_many:road:1-0:0-0   │   [⬜] → settlement:build.place_many:road:1-0:1-0   │   [🏠] → settlement:build.place_many:road:1-0:2-0   │   [💧] → settlement:build.place_many:road:1-0:3-0   │   [✅] → settlement:build.place_many:road:1-0:4-0
+  [✅] → settlement:build.place_many:road:1-0:0-1   │   [✅] → settlement:build.place_many:road:1-0:1-1   │   [🏠] → settlement:build.place_many:road:1-0:2-1   │   [✅] → settlement:build.place_many:road:1-0:3-1   │   [⬜] → settlement:build.place_many:road:1-0:4-1
+  [🛣] → settlement:build.place_many:road:1-0:0-2   │   [✅] → settlement:build.place_many:road:1-0:1-2   │   [✅] → settlement:build.place_many:road:1-0:2-2   │   [✅] → settlement:build.place_many:road:1-0:3-2   │   [⛰] → settlement:build.place_many:road:1-0:4-2
+  [✅] → settlement:build.place_many:road:1-0:0-3   │   [✅] → settlement:build.place_many:road:1-0:1-3   │   [✅] → settlement:build.place_many:road:1-0:2-3   │   [🏠] → settlement:build.place_many:road:1-0:3-3   │   [✅] → settlement:build.place_many:road:1-0:4-3
+  [✅] → settlement:build.place_many:road:1-0:0-4   │   [⛰] → settlement:build.place_many:road:1-0:1-4   │   [✅] → settlement:build.place_many:road:1-0:2-4   │   [✅] → settlement:build.place_many:road:1-0:3-4   │   [✅] → settlement:build.place_many:road:1-0:4-4
+  [🔙 Back] → settlement:build   │   [🔄 Refresh] → settlement:build.lots:road
+
+━━━ Placement · the preview names the roads laid with the building ━━━
+(edits message 42)
+🏗 Build Village house
+
+Cost: 720 SUP
+Build time: 45m
+Location: row 5, column 5
+
+• Timber: 2 units
+
+🛣 To connect this building, 2 lots of road are laid with it, free and ready at once.
+  ───
+  [✅ Confirm and build] → settlement:build.place:village_house:4-4:confirm
+  [🔙 Back] → settlement:build.lots:village_house
+
+━━━ Land · the price of the next expansion ━━━
+(edits message 42)
+🗺 Expand the land of Korendal
+
+The land grows from 5x5 to 6x6: 11 new lots, 9 of them dry buildable ground.
+Price: 550 SUP
+Treasury: 12,400 SUP
+
+Standing buildings stay where they are. Water and steep ground stay unbuildable. Each expansion costs more than the last.
+  ───
+  [✅ Confirm and expand] → settlement:grid.grow:confirm
+  [🔙 Back] → settlement:build
+
+━━━ Land · the technical bound ━━━
+(edits message 42)
+🗺 The village's land has reached the technical limit of the map size and cannot grow further.
+  ───
+  [🔙 Back] → settlement:overview
+
 ━━━ Lot grid · a mix of states, rotatable building ━━━
 (edits message 42)
 🗺 Choose where to build in Korendal

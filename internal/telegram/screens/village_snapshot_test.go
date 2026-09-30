@@ -93,6 +93,92 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 	}))
 	add("Construction progress · queue empty", ConstructionProgress(g, ConstructionProgressView{Name: villageNameFor(c)}))
 
+	// The panel of one placed building, per type (village_building.go). The ids
+	// are real uuids: the longest address a panel carries must fit Telegram's
+	// 64 bytes.
+	const bid = "3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44"
+	granary := sampleNamed(c.Lang, "granary", "انبار غله", "Granary")
+	teaching := sampleNamed(c.Lang, "teaching_circle", "حلقهٔ آموزش", "Teaching circle")
+	schoolB := sampleNamed(c.Lang, "school", "مدرسه", "School")
+	timber := sampleNamed(c.Lang, "timber", "چوب", "Timber")
+	add("Building panel · a granary with its stock", BuildingPanel(g, BuildingView{
+		ID: bid, Building: granary, Role: "storage", Tier: 1, Kind: BuildingKindStorage, State: BuildingStateComplete,
+		X: 4, Y: 0, W: 1, H: 1, Upkeep: 20, CanManage: true,
+		Stock: []BuildingStockLine{{Item: timber, Kind: "component", Qty: 15}, {Item: sampleNamed(c.Lang, "wheat", "گندم", "Wheat"), Kind: "item", Qty: 120}},
+	}))
+	add("Building panel · an empty store", BuildingPanel(g, BuildingView{
+		ID: bid, Building: granary, Role: "storage", Tier: 1, Kind: BuildingKindStorage, State: BuildingStateComplete, W: 1, H: 1,
+	}))
+	add("Building panel · a teaching circle, the head sees the upgrade", BuildingPanel(g, BuildingView{
+		ID: bid, Building: teaching, Role: "education", Tier: 1, Kind: BuildingKindSchool, State: BuildingStateComplete,
+		W: 1, H: 1, LiteracyPercent: 34, Teaching: true, Upkeep: 25, CanManage: true, HasUpgrade: true,
+	}))
+	add("Building panel · the upgrade, revealed when pressed", BuildingPanel(g, BuildingView{
+		ID: bid, Building: teaching, Role: "education", Tier: 1, Kind: BuildingKindSchool, State: BuildingStateComplete,
+		W: 1, H: 1, CanManage: true, HasUpgrade: true, Mode: BuildingModeUpgrade,
+		Upgrades: []BuildingUpgradeLine{
+			{Building: schoolB, Tier: 2, CostMoney: 9000, BuildTime: 4 * time.Hour, Available: false, Missing: []Named{recordKeeping}},
+		},
+	}))
+	add("Building panel · the civic hall", BuildingPanel(g, BuildingView{
+		ID: bid, Building: civicHall, Kind: BuildingKindCivicHall, State: BuildingStateComplete, W: 2, H: 2,
+		Treasury: 24_600, Population: 34, Upkeep: 20, CanManage: true,
+		Research: &BuildingResearchLine{Knowledge: canal, Left: 41 * time.Minute},
+	}))
+	add("Building panel · a watch hut", BuildingPanel(g, BuildingView{
+		ID: bid, Building: watchHut, Role: "security", Tier: 1, Kind: BuildingKindSecurity, State: BuildingStateComplete, W: 1, H: 1,
+		Upkeep: 30, Effects: []BuildingEffectLine{{Target: "local_security_bps", Value: 300}},
+	}))
+	add("Building panel · a road", BuildingPanel(g, BuildingView{
+		ID: bid, Building: sampleNamed(c.Lang, "road", "جاده", "Road"), Kind: BuildingKindRoad, State: BuildingStateComplete, W: 1, H: 1,
+		Upkeep: 2, CanManage: true,
+	}))
+	add("Building panel · under construction, the head may cancel", BuildingPanel(g, BuildingView{
+		ID: bid, Building: carpentryWorkshop, Role: "craft", Tier: 1, Kind: BuildingKindGeneric, State: BuildingStateBuilding, W: 2, H: 2,
+		ProgressPercent: 42, FinishAt: snapshotNow.Add(90 * time.Minute), Left: 90 * time.Minute, CanManage: true,
+	}))
+	add("Building panel · demolishing asks first", BuildingPanel(g, BuildingView{
+		ID: bid, Building: granary, Role: "storage", Kind: BuildingKindStorage, State: BuildingStateComplete, W: 1, H: 1,
+		CanManage: true, Mode: BuildingModeDemolish,
+	}))
+	add("Building panel · cancelling asks first", BuildingPanel(g, BuildingView{
+		ID: bid, Building: carpentryWorkshop, Kind: BuildingKindGeneric, State: BuildingStateBuilding, W: 2, H: 2,
+		CanManage: true, Mode: BuildingModeCancel,
+	}))
+	add("Construction progress · with the standing buildings to open", ConstructionProgress(g, ConstructionProgressView{
+		Name: villageNameFor(c),
+		Lines: []ConstructionLine{
+			{ID: bid, Building: carpentry, LotX: 2, LotY: 3, State: ConstructionBuilding, FinishAt: snapshotNow.Add(90 * time.Minute), Left: 90 * time.Minute},
+		},
+		Standing: []StandingLine{{ID: bid, Building: granary}, {ID: bid, Building: teaching}, {ID: bid, Building: civicHall}},
+	}))
+
+	road := sampleNamed(c.Lang, "road", "جاده", "Road")
+	add("Batch · the total of three roads", LotBatchConfirm(g, LotBatchConfirmView{
+		SettlementName: villageNameFor(c), Building: road, Count: 3, CostMoney: 150, BuildTime: 10 * time.Minute,
+		Lots: []LotBatchLot{{X: 0, Y: 0}, {X: 1, Y: 0}, {X: 2, Y: 0}},
+	}))
+	add("Batch · refused as a whole, every lot named", VillageRefusal(g, VillageRefusalView{
+		Kind: VillageBatch,
+		Lots: []BatchLotFailure{{X: 1, Y: 0, Kind: VillageOccupied}, {X: 9, Y: 9, Kind: VillageOutOfBounds}, {X: 2, Y: 3, Kind: VillageUnbuildable}},
+	}))
+	add("Roads · no road can reach the building", VillageRefusal(g, VillageRefusalView{Kind: VillageNoRoad}))
+	add("Lot grid · picking the first lot of a run of roads", LotGrid(g, LotGridView{
+		SettlementName: villageNameFor(c), Building: road, GridLots: 5, Rows: sampleLotRows(), Multi: true, Line: LineStart,
+	}))
+	add("Lot grid · picking the last lot of the run", LotGrid(g, LotGridView{
+		SettlementName: villageNameFor(c), Building: road, GridLots: 5, Rows: sampleLotRows(), Multi: true, Line: LineEnd, From: LotBatchLot{X: 1, Y: 0},
+	}))
+	add("Placement · the preview names the roads laid with the building", LotConfirm(g, LotConfirmView{
+		SettlementName: villageNameFor(c), Building: sampleNamed(c.Lang, "village_house", "خانهٔ روستایی", "Village house"),
+		X: 4, Y: 4, CostMoney: 720, BuildTime: 45 * time.Minute, AutoRoads: 2,
+		Materials: []MaterialLine{{Component: timber, Quantity: 2}},
+	}))
+	add("Land · the price of the next expansion", GridGrowConfirm(g, GridGrowView{
+		SettlementName: villageNameFor(c), Side: 5, NewSide: 6, LotsGained: 11, BuildableGained: 9, Price: 550, Treasury: 12_400,
+	}))
+	add("Land · the technical bound", VillageRefusal(g, VillageRefusalView{Kind: VillageGridMax}))
+
 	militiaCamp := sampleNamed(c.Lang, "militia_camp", "اردوگاه میلیشیا", "Militia camp")
 	add("Lot grid · a mix of states, rotatable building", LotGrid(g, LotGridView{
 		SettlementName: villageNameFor(c), Building: militiaCamp, CanRotate: true, Rotated: false,
