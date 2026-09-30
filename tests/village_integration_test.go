@@ -188,6 +188,8 @@ func TestVillageLifecycle(t *testing.T) {
 		// the same as any completed action's row normally outlives what it
 		// finished).
 		for _, stmt := range []string{
+			`UPDATE players SET residence_city_id = NULL, residence_since = NULL WHERE residence_city_id = $1::uuid`,
+			`DELETE FROM outbox WHERE payload->>'to_city_id' = $1 OR payload->>'from_city_id' = $1`,
 			`DELETE FROM outbox WHERE payload->>'settlement_id' = $1`,
 			`DELETE FROM settlement_research WHERE settlement_id = $1::uuid`,
 			`DELETE FROM game_actions WHERE reference_type = 'settlement' AND reference_id = $1::uuid`,

@@ -435,6 +435,8 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "build.cancel", Origin: FromPlayer},
 	// Who is around in the village (docs/adr/0030, R2): a group screen.
 	{Domain: "settlement", Action: "who", Origin: FromPlayer},
+	{Domain: "settlement", Action: "join", Origin: FromPlayer},
+	{Domain: "settlement", Action: "leave", Origin: FromPlayer},
 	{Domain: "settlement", Action: "researched", Origin: FromScheduler},
 	{Domain: "settlement", Action: "taught", Origin: FromScheduler},
 	{Domain: "settlement", Action: "built", Origin: FromScheduler},

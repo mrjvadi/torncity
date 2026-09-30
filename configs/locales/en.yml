@@ -618,6 +618,8 @@ village:
     knowledge: "📚 Village knowledge"
     build: "🏗 Construction"
     progress: "⏳ Build progress"
+    join: "🏡 Become a resident"
+    leave: "🚪 Leave the village"
   refusal:
     no_settlement: "🏡 This group has not founded a village yet. Send \"found village\" to start."
     not_office_holder: "🔒 Only the village head may do this."
@@ -636,6 +638,28 @@ village:
     not_demolishable: "🔒 That building cannot be demolished right now."
     not_cancellable: "🔒 That building is not under construction any more, so it cannot be cancelled."
     materials: "🧱 The village does not have enough of the materials this build needs."
+    already_resident: "🏡 You already live in this village."
+    not_resident: "🏡 You do not live in this village."
+    residence_cooldown: "⏳ You moved home recently. You can move again in {time}."
+    holds_office: "🔒 You cannot leave the village while you are its head."
+    no_home: "🏙 The city to return to has not been set."
+  residence:
+    join:
+      ask_title: "🏡 Become a resident of {village}?"
+      ask_body: |-
+        Your home moves to this village. Your properties, companies and job stay where they are, but from now on your income tax goes to the village treasury and you need a work permit to work in other cities.
+        You cannot move home again for {cooldown}.
+      button_yes: "✅ Yes, I will live here"
+      done_title: "🏡 Welcome to {village}!"
+      done_body: "Your home is now here, and you are one of {population} residents. You cannot move again for {cooldown}."
+    leave:
+      ask_title: "🚪 Leave {village}?"
+      ask_body: |-
+        Your home returns to {home}. Your properties, companies and job stay where they are.
+        You cannot move home again for {cooldown}.
+      button_yes: "✅ Yes, I am leaving"
+      done_title: "🚪 You left {village}."
+      done_body: "Your home is now {home}. You cannot move again for {cooldown}."
 
 knowledge:
   title: "📚 Knowledge of {name}"
@@ -1366,6 +1390,8 @@ command_alias:
   devices: "devices"
   settlement:
     found: "found village"
+    join: "join village | become resident"
+    leave: "leave village"
     who: "village people | who is online"
 
 # Where a command runs (configs/commands.yml).
@@ -4358,6 +4384,8 @@ village_news:
   researched: "🔬 Research into {knowledge} in {village} is finished; the village now knows it."
   bought: "📚 The village head bought {knowledge} for {village}."
   taught: "📖 Literacy in {village} reached {percent}%."
+  resident_joined: "🏡 {player} became a resident of {village}."
+  someone: "Someone"
   merged:
     title: "🏘 News from {village}:"
     built: "• 🏗 The {building} is built."
@@ -4365,4 +4393,5 @@ village_news:
     researched: "• 🔬 Research into {knowledge} is finished."
     bought: "• 📚 {knowledge} was bought."
     taught: "• 📖 Literacy reached {percent}%."
+    resident_joined: "• 🏡 {player} moved in."
     more: "• and {count} more."

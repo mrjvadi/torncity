@@ -204,11 +204,15 @@ type SettlementRepository interface {
 	ByID(ctx context.Context, id string) (FoundedSettlement, error)
 
 	// ByPlayer returns the settlement a player belongs to: the one whose
-	// top office they hold (head), else the one they live in (their city).
+	// top office they hold (head), else the one they live in (their residence).
 	// Buildings are left empty. ErrCityNotFound when they belong to none.
 	// A game client has no Telegram group to name its settlement by, so it
 	// is resolved from the player (docs/adr/0028 section 9.4).
 	ByPlayer(ctx context.Context, playerID string) (PlayerSettlement, error)
+
+	// ResidentCount is how many active players have this settlement as
+	// their home (players.residence_city_id): its population.
+	ResidentCount(ctx context.Context, settlementID string) (int64, error)
 }
 
 // PlayerSettlement is a settlement as seen by one of its people.
@@ -217,6 +221,6 @@ type PlayerSettlement struct {
 	// Offices are the office codes the player holds in the settlement's
 	// jurisdiction.
 	Offices []string
-	// Resident reports that the player's city is this settlement.
+	// Resident reports that the player's home (residence) is this settlement.
 	Resident bool
 }

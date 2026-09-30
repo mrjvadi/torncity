@@ -269,6 +269,7 @@ func Routes() []Route {
 		{Domain: "settlement", Event: "knowledge_researched", Name: "news", News: newsFrom(screens.NewsResearched)},
 		{Domain: "settlement", Event: "knowledge_bought", Name: "news", News: newsFrom(screens.NewsBought)},
 		{Domain: "settlement", Event: "literacy_advanced", Name: "news", News: newsTaught},
+		{Domain: "residence", Event: "changed", Name: "news", News: newsResidentJoined},
 	}
 }
 

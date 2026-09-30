@@ -334,10 +334,10 @@ func (r *SettlementRepository) ByPlayer(ctx context.Context, playerID string) (a
 		`SELECT `+settlementColumns+`,
 		        COALESCE((SELECT array_agg(o.office_code ORDER BY o.office_code) FROM offices o
 		                   WHERE o.jurisdiction_id = c.jurisdiction_id AND o.holder_player_id = $1::uuid), '{}'),
-		        c.id = (SELECT city_id FROM players WHERE id = $1::uuid)
+		        c.id = (SELECT residence_city_id FROM players WHERE id = $1::uuid)
 		   FROM cities c
 		  WHERE c.origin = 'founded'
-		    AND (c.id = (SELECT city_id FROM players WHERE id = $1::uuid)
+		    AND (c.id = (SELECT residence_city_id FROM players WHERE id = $1::uuid)
 		         OR EXISTS (SELECT 1 FROM offices o WHERE o.jurisdiction_id = c.jurisdiction_id AND o.holder_player_id = $1::uuid))
 		  ORDER BY EXISTS (SELECT 1 FROM offices o WHERE o.jurisdiction_id = c.jurisdiction_id AND o.holder_player_id = $1::uuid
 		                      AND o.office_code = CASE c.tier WHEN 'town' THEN 'town_head' WHEN 'city' THEN 'mayor' ELSE 'village_head' END) DESC,
@@ -351,4 +351,17 @@ func (r *SettlementRepository) ByPlayer(ctx context.Context, playerID string) (a
 	}
 	out.Offices = offices
 	return out, nil
+}
+
+// ResidentCount is how many active players live in the settlement.
+func (r *SettlementRepository) ResidentCount(ctx context.Context, settlementID string) (int64, error) {
+	if !isUUID(settlementID) {
+		return 0, nil
+	}
+	var n int64
+	if err := r.q.QueryRow(ctx,
+		`SELECT count(*) FROM players WHERE residence_city_id = $1::uuid AND status = 'active'`, settlementID).Scan(&n); err != nil {
+		return 0, fmt.Errorf("postgres: counting the residents of %s: %w", settlementID, err)
+	}
+	return n, nil
 }

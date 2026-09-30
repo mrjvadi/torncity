@@ -102,6 +102,10 @@ func TestSettlementFounding(t *testing.T) {
 		var jurisdictionID string
 		_ = pool.Raw().QueryRow(ctx, `SELECT jurisdiction_id::text FROM cities WHERE id = $1::uuid`, cityID).Scan(&jurisdictionID)
 		for _, stmt := range []string{
+			// The founder lives in the village from the founding transaction
+			// on: let go of it before the city can be deleted.
+			`UPDATE players SET residence_city_id = NULL, residence_since = NULL WHERE residence_city_id = $1::uuid`,
+			`DELETE FROM outbox WHERE subject = 'game.event.residence.changed.v1' AND payload->>'to_city_id' = $1`,
 			`DELETE FROM outbox WHERE subject = 'game.event.settlement.founded.v1' AND payload->>'settlement_id' = $1`,
 			// Found now also grants the founding kit's knowledge and
 			// starts the settlement's own literacy tick (ADR 0031 section

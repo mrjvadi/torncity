@@ -717,6 +717,8 @@ village:
     knowledge: "📚 دانش روستا"
     build: "🏗 ساخت‌وساز"
     progress: "⏳ پیشرفت ساخت"
+    join: "🏡 ساکن این روستا شو"
+    leave: "🚪 ترک روستا"
   refusal:
     no_settlement: "🏡 این گروه هنوز روستایی تأسیس نکرده است. برای شروع «ساخت روستا» را بفرستید."
     not_office_holder: "🔒 این کار فقط برای دهیار روستا ممکن است."
@@ -735,6 +737,28 @@ village:
     not_demolishable: "🔒 این بنا اکنون قابل تخریب نیست."
     not_cancellable: "🔒 این بنا دیگر در حال ساخت نیست و لغو نمی‌شود."
     materials: "🧱 مواد لازم برای این ساخت در انبار روستا کافی نیست."
+    already_resident: "🏡 شما همین حالا ساکن این روستا هستید."
+    not_resident: "🏡 شما ساکن این روستا نیستید."
+    residence_cooldown: "⏳ به‌تازگی خانه‌تان را جابه‌جا کرده‌اید. {time} دیگر می‌توانید دوباره جابه‌جا شوید."
+    holds_office: "🔒 تا وقتی مسئولیت دهیاری با شماست نمی‌توانید روستا را ترک کنید."
+    no_home: "🏙 شهر بازگشت هنوز تعیین نشده است."
+  residence:
+    join:
+      ask_title: "🏡 ساکن روستای «{village}» می‌شوید؟"
+      ask_body: |-
+        خانهٔ شما به این روستا منتقل می‌شود. ملک، شرکت و شغل‌تان سر جای خود می‌مانند، اما از این پس مالیات درآمدتان به خزانهٔ روستا می‌رسد و برای کار در شهرهای دیگر به مجوز کار نیاز دارید.
+        تا {cooldown} دیگر نمی‌توانید خانه‌تان را جابه‌جا کنید.
+      button_yes: "✅ بله، ساکن می‌شوم"
+      done_title: "🏡 به روستای «{village}» خوش آمدید!"
+      done_body: "خانهٔ شما اکنون اینجاست و شما یکی از {population} ساکن این روستا هستید. تا {cooldown} دیگر جابه‌جایی ممکن نیست."
+    leave:
+      ask_title: "🚪 روستای «{village}» را ترک می‌کنید؟"
+      ask_body: |-
+        خانهٔ شما به «{home}» برمی‌گردد. ملک، شرکت و شغل‌تان سر جای خود می‌مانند.
+        تا {cooldown} دیگر نمی‌توانید خانه‌تان را جابه‌جا کنید.
+      button_yes: "✅ بله، ترک می‌کنم"
+      done_title: "🚪 روستای «{village}» را ترک کردید."
+      done_body: "خانهٔ شما اکنون «{home}» است. تا {cooldown} دیگر جابه‌جایی ممکن نیست."
 
 knowledge:
   title: "📚 دانش روستای {name}"
@@ -1484,6 +1508,8 @@ command_alias:
   gold: "طلا | طلافروشی"
   settlement:
     found: "ساخت روستا | تاسیس روستا"
+    join: "ساکن این روستا شو | عضویت در روستا | ساکن روستا شو"
+    leave: "ترک روستا"
     who: "اهالی روستا | آنلاین‌ها"
 
 # Where a command runs (configs/commands.yml). Sent in the wrong kind of chat,
@@ -4501,6 +4527,8 @@ village_news:
   researched: "🔬 پژوهش «{knowledge}» در روستای «{village}» تمام شد و روستا حالا آن را می‌داند."
   bought: "📚 دهیار «{knowledge}» را برای روستای «{village}» خرید."
   taught: "📖 سوادآموزی روستای «{village}» به {percent}٪ رسید."
+  resident_joined: "🏡 {player} ساکن روستای «{village}» شد."
+  someone: "یک نفر"
   merged:
     title: "🏘 تازه‌های روستای «{village}»:"
     built: "• 🏗 ساخت «{building}» تمام شد."
@@ -4508,4 +4536,5 @@ village_news:
     researched: "• 🔬 پژوهش «{knowledge}» تمام شد."
     bought: "• 📚 «{knowledge}» خریداری شد."
     taught: "• 📖 سوادآموزی به {percent}٪ رسید."
+    resident_joined: "• 🏡 {player} ساکن روستا شد."
     more: "• و {count} خبر دیگر."

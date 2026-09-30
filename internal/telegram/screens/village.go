@@ -83,6 +83,12 @@ const (
 	VillageNotDemolishable = "not_demolishable"
 	VillageMaterials       = "materials"
 	VillageNotCancellable  = "not_cancellable"
+	// Residence (village_residence.go).
+	VillageAlreadyResident = "already_resident"
+	VillageNotResident     = "not_resident"
+	VillageResidenceWait   = "residence_cooldown"
+	VillageHoldsOffice     = "holds_office"
+	VillageNoHome          = "no_home"
 )
 
 // VillageRefusalView is a K2/W5 command refused before it changed anything.
@@ -91,6 +97,8 @@ type VillageRefusalView struct {
 	// Back is where the refusal's own button leads; empty means the
 	// village overview.
 	Back string
+	// Remaining is how long a residence cool-down still runs.
+	Remaining time.Duration
 }
 
 // VillageRefusal renders a refused village command.
@@ -104,7 +112,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 	case VillageNoSettlement, VillageNotOfficeHolder, VillageInsufficient, VillageBusy, VillageAlreadyOwned,
 		VillageNotAvailable, VillageTerrain, VillagePrerequisite, VillageLiteracy, VillageNotFound,
 		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
-		VillageNotCancellable:
+		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome:
 	default:
 		kind = VillageNotFound
 	}
@@ -114,7 +122,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 	}
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
-	return c.respond(c.T("village.refusal."+kind, nil), kb.Build())
+	return c.respond(c.T("village.refusal."+kind, map[string]any{"time": FormatDuration(c, v.Remaining)}), kb.Build())
 }
 
 // ---------------------------------------------------------------------
@@ -143,6 +151,11 @@ type VillageOverviewView struct {
 	FoodPercent, JobPercent, ServicePercent, HappinessPercent, SecurityPercent int
 	// LiteracyPercent is ADR 0031 section 4.4's literacy_share, 0-100.
 	LiteracyPercent int
+	// Resident reports that the viewer lives here (their home is this
+	// village); a non-resident is offered the join button. SettlementID
+	// addresses the village for a client.
+	Resident     bool
+	SettlementID string
 	Treasury        int64
 	Buildings       []VillageRoleLine
 }
@@ -179,10 +192,16 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 	}
 
 	kb := keyboards.New()
+	if !v.Resident {
+		kb.Add(c.T("village.button.join", nil), AddrVillageJoin)
+	}
 	kb.Add(c.T("village.button.knowledge", nil), AddrKnowledgeList)
 	kb.Add(c.T("village.button.build", nil), AddrBuildMenu)
 	kb.Add(c.T("village.button.progress", nil), AddrConstructionProgress)
 	kb.Add(c.T("village.button.who", nil), AddrSettlementWho)
+	if v.Resident {
+		kb.Add(c.T("village.button.leave", nil), AddrVillageLeave)
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrVillageOverview}))
 
 	return c.respond(paragraphs(head, population, treasury, coverage, buildings), kb.Build())

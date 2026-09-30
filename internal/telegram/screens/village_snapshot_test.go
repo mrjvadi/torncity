@@ -111,6 +111,33 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		SettlementName: villageNameFor(c), Building: militiaCamp, X: 3, Y: 0, Rotated: true, CostMoney: 500, BuildTime: 45 * time.Minute,
 	}))
 
+	add("Village overview · a resident's view (no join button)", VillageOverview(g, VillageOverviewView{
+		Name: villageNameFor(c), Tier: "village", Resident: true,
+		Population: 12, PopulationCap: 100,
+		FoodPercent: 20, JobPercent: 10, ServicePercent: 0, HappinessPercent: 30, SecurityPercent: 15,
+		LiteracyPercent: 2, Treasury: 900,
+	}))
+
+	joinView := ResidenceView{Village: villageNameFor(c), Cooldown: 72 * time.Hour, Population: 13}
+	leaveView := ResidenceView{Leaving: true, Village: villageNameFor(c), Home: supportNameFor(c), Cooldown: 72 * time.Hour, Population: 12}
+	add("Residence · asks before joining", ResidenceAsk(g, joinView))
+	add("Residence · joined", ResidenceDone(g, joinView))
+	add("Residence · asks before leaving", ResidenceAsk(g, leaveView))
+	add("Residence · left", ResidenceDone(g, leaveView))
+	add("Residence refused · already a resident", VillageRefusal(g, VillageRefusalView{Kind: VillageAlreadyResident}))
+	add("Residence refused · not a resident", VillageRefusal(g, VillageRefusalView{Kind: VillageNotResident}))
+	add("Residence refused · cool-down", VillageRefusal(g, VillageRefusalView{Kind: VillageResidenceWait, Remaining: 50*time.Hour + 20*time.Minute}))
+	add("Residence refused · the head cannot leave", VillageRefusal(g, VillageRefusalView{Kind: VillageHoldsOffice}))
+
+	add("Village news · one resident joined", VillageNews(g, VillageNewsView{Village: villageNameFor(c),
+		Items: []VillageNewsItem{{Kind: NewsResidentJoined, Player: residentNameFor(c, 0)}}}))
+	add("Village news · several joined and a building finished", VillageNews(g, VillageNewsView{Village: villageNameFor(c),
+		Items: []VillageNewsItem{
+			{Kind: NewsResidentJoined, Player: residentNameFor(c, 0)},
+			{Kind: NewsResidentJoined, Player: residentNameFor(c, 1)},
+			{Kind: NewsBuilt, Building: watchHut},
+		}}))
+
 	add("Village refused · not enough materials", VillageRefusal(g, VillageRefusalView{Kind: VillageMaterials}))
 	add("Village refused · lot is water or too steep", VillageRefusal(g, VillageRefusalView{Kind: VillageUnbuildable}))
 }
@@ -136,4 +163,20 @@ func villageNameFor(c Context) string {
 		return "کورندال"
 	}
 	return "Korendal"
+}
+
+func supportNameFor(c Context) string {
+	if c.Lang == "fa" {
+		return "ساپورت"
+	}
+	return "Support"
+}
+
+func residentNameFor(c Context, i int) string {
+	fa := []string{"سارا", "کامران"}
+	en := []string{"Sara", "Kamran"}
+	if c.Lang == "fa" {
+		return fa[i]
+	}
+	return en[i]
 }

@@ -283,11 +283,11 @@ func TestClientVillageCommandsAndLayout(t *testing.T) {
 	}
 
 	// ---- a resident who is not the head may look, not build -----------------
-	if _, err := pool.Raw().Exec(ctx, `UPDATE players SET city_id = $2::uuid WHERE id = $1::uuid`, stranger.ID, cityID); err != nil {
+	if _, err := pool.Raw().Exec(ctx, `UPDATE players SET city_id = $2::uuid, residence_city_id = $2::uuid WHERE id = $1::uuid`, stranger.ID, cityID); err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
-		_, _ = pool.Raw().Exec(context.Background(), `UPDATE players SET city_id = NULL WHERE id = $1::uuid`, stranger.ID)
+		_, _ = pool.Raw().Exec(context.Background(), `UPDATE players SET city_id = NULL, residence_city_id = NULL WHERE id = $1::uuid`, stranger.ID)
 	})
 	res, err := villages.Layout(ctx, stranger.ID, cityID)
 	if err != nil || res.Detail != clientapi.DetailFull || res.Viewer.CanPlace {

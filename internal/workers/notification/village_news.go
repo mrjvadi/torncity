@@ -143,7 +143,7 @@ func (w *Worker) postNews(ctx context.Context, now time.Time, b NewsBatch) error
 		for _, q := range b.Items {
 			view.Items = append(view.Items, screens.VillageNewsItem{
 				Kind: q.Kind, Building: screens.Named{Code: q.Code, Name: q.Name},
-				Knowledge: screens.Named{Code: q.Code, Name: q.Name}, Percent: q.Percent,
+				Knowledge: screens.Named{Code: q.Code, Name: q.Name}, Percent: q.Percent, Player: playerOf(q),
 			})
 		}
 		resp := screens.VillageNews(c, view)
@@ -237,4 +237,49 @@ func newsTaught(_ context.Context, deps Deps, env *envelope.Envelope) (*NewsItem
 		return nil, nil
 	}
 	return &NewsItem{SettlementID: ev.SettlementID, Kind: screens.NewsTaught, Percent: raw.Share / 100}, nil
+}
+
+// playerOf is who a resident_joined item is about (its Name).
+func playerOf(q QueuedNews) string {
+	if q.Kind == screens.NewsResidentJoined {
+		return q.Name
+	}
+	return ""
+}
+
+// newsResidentJoined: a player made a village their home. The founder's own
+// move at founding is not news (the founding announcement says it), and a
+// move into a city that no group founded is not a village's news.
+func newsResidentJoined(ctx context.Context, deps Deps, env *envelope.Envelope) (*NewsItem, error) {
+	var ev struct {
+		PlayerID string `json:"player_id"`
+		ToCityID string `json:"to_city_id"`
+		Via      string `json:"via"`
+	}
+	if err := json.Unmarshal(env.Payload, &ev); err != nil {
+		return nil, apperrors.InvalidInput("residence.changed payload is unreadable").WithCause(err)
+	}
+	if ev.ToCityID == "" || ev.PlayerID == "" || ev.Via != "join" {
+		return nil, nil
+	}
+	if deps.Founded != nil {
+		keep, err := deps.Founded.FoundedAmong(ctx, []string{ev.ToCityID})
+		if err != nil {
+			return nil, err
+		}
+		if len(keep) == 0 {
+			return nil, nil
+		}
+	}
+	name := ""
+	if deps.Players != nil {
+		p, err := deps.Players.GetByID(ctx, ev.PlayerID)
+		switch {
+		case err == nil:
+			name = shownName(p)
+		case apperrors.CodeOf(err) != apperrors.CodeNotFound:
+			return nil, err
+		}
+	}
+	return &NewsItem{SettlementID: ev.ToCityID, Kind: screens.NewsResidentJoined, Name: name}, nil
 }

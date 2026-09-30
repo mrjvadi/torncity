@@ -527,6 +527,8 @@ worldgen:
   chunk_deposit_tiles_per_deposit: 6
 settlement:
   protection_window: 169h
+  residence_cooldown: 73h
+  home_city_code: hearth
   min_spawn_distance_km: 31
   threat_radius_km: 151
   search_max_cells: 2001
@@ -837,6 +839,8 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_BIOME_PENALTIES":          "desert=6, tundra=8",
 	"TORN_SETTLEMENT_VILLAGE_GRID_LOTS":        "7",
 	"TORN_SETTLEMENT_TEACH_PERIOD":             "26h",
+	"TORN_SETTLEMENT_RESIDENCE_COOLDOWN":       "74h",
+	"TORN_SETTLEMENT_HOME_CITY_CODE":           "hearth2",
 	"TORN_SETTLEMENT_TEACH_RATE_BPS":           "1502",
 	"TORN_SETTLEMENT_BASE_SCHOOL_CAPACITY_BPS": "8002",
 	"TORN_SETTLEMENT_SCARCITY_K_BPS":           "10002",
@@ -1030,6 +1034,16 @@ func TestValidate(t *testing.T) {
 		break_ func(*Config)
 		want   error
 	}{
+		{
+			name:   "a residence cool-down of zero",
+			break_: func(c *Config) { c.Settlement.ResidenceCooldown = 0 },
+			want:   ErrNotPositive,
+		},
+		{
+			name:   "no home city to return to",
+			break_: func(c *Config) { c.Settlement.HomeCityCode = " " },
+			want:   ErrEmpty,
+		},
 		{
 			name:   "a latitude cap of zero",
 			break_: func(c *Config) { c.Settlement.MaxAbsLatitudeDeg = 0 },

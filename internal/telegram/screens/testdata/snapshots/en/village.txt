@@ -16,6 +16,7 @@
 • Watch hut
 • Carpentry workshop
   ───
+  [🏡 Become a resident] → settlement:join
   [📚 Village knowledge] → settlement:knowledge
   [🏗 Construction] → settlement:build
   [⏳ Build progress] → settlement:build.progress
@@ -39,6 +40,7 @@
 
 No buildings stand here yet.
   ───
+  [🏡 Become a resident] → settlement:join
   [📚 Village knowledge] → settlement:knowledge
   [🏗 Construction] → settlement:build
   [⏳ Build progress] → settlement:build.progress
@@ -169,6 +171,107 @@ Location: row 1, column 4
   ───
   [✅ Confirm and build] → settlement:build.place:militia_camp:3-0-r:confirm
   [🔙 Back] → settlement:build.lots:militia_camp
+
+━━━ Village overview · a resident's view (no join button) ━━━
+(edits message 42)
+🏘 the village of Korendal
+
+👥 Population: 12 of 100
+
+🏦 Village treasury: 900 SUP
+
+🌾 Food coverage: 20%
+💼 Job coverage: 10%
+🏥 Service coverage: 0%
+🙂 Happiness: 30%
+🛡 Local security: 15%
+📖 Literacy: 2%
+
+No buildings stand here yet.
+  ───
+  [📚 Village knowledge] → settlement:knowledge
+  [🏗 Construction] → settlement:build
+  [⏳ Build progress] → settlement:build.progress
+  [👥 People] → settlement:who
+  [🚪 Leave the village] → settlement:leave
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
+
+━━━ Residence · asks before joining ━━━
+(edits message 42)
+🏡 Become a resident of Korendal?
+
+Your home moves to this village. Your properties, companies and job stay where they are, but from now on your income tax goes to the village treasury and you need a work permit to work in other cities.
+You cannot move home again for 72h.
+  ───
+  [✅ Yes, I will live here] → settlement:join:confirm
+  [🔙 Back] → settlement:overview
+
+━━━ Residence · joined ━━━
+(edits message 42)
+🏡 Welcome to Korendal!
+
+Your home is now here, and you are one of 13 residents. You cannot move again for 72h.
+  ───
+  [🏘 Village] → settlement:overview
+  [🔙 Back] → player:profile.get
+
+━━━ Residence · asks before leaving ━━━
+(edits message 42)
+🚪 Leave Korendal?
+
+Your home returns to Support. Your properties, companies and job stay where they are.
+You cannot move home again for 72h.
+  ───
+  [✅ Yes, I am leaving] → settlement:leave:confirm
+  [🔙 Back] → settlement:overview
+
+━━━ Residence · left ━━━
+(edits message 42)
+🚪 You left Korendal.
+
+Your home is now Support. You cannot move again for 72h.
+  ───
+  [🏘 Village] → settlement:overview
+  [🔙 Back] → player:profile.get
+
+━━━ Residence refused · already a resident ━━━
+(edits message 42)
+🏡 You already live in this village.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Residence refused · not a resident ━━━
+(edits message 42)
+🏡 You do not live in this village.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Residence refused · cool-down ━━━
+(edits message 42)
+⏳ You moved home recently. You can move again in 50h 20m.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Residence refused · the head cannot leave ━━━
+(edits message 42)
+🔒 You cannot leave the village while you are its head.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Village news · one resident joined ━━━
+(edits message 42)
+🏡 Sara became a resident of Korendal.
+  ───
+  [🏘 Village] → settlement:overview
+
+━━━ Village news · several joined and a building finished ━━━
+(edits message 42)
+🏘 News from Korendal:
+• 🏡 Sara moved in.
+• 🏡 Kamran moved in.
+• 🏗 The Watch hut is built.
+  ───
+  [🏘 Village] → settlement:overview
 
 ━━━ Village refused · not enough materials ━━━
 (edits message 42)

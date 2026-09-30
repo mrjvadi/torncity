@@ -602,6 +602,16 @@ type Settlement struct {
 	// rule is enforced where wars are declared, not here.
 	ProtectionWindow time.Duration // settlement.protection_window
 
+	// ResidenceCooldown is how long, REAL time, a player who moved their
+	// home (joined a village, went back) must wait before the next
+	// settlement.join / settlement.leave. It runs from players.residence_since,
+	// which every change of residence stamps.
+	ResidenceCooldown time.Duration // settlement.residence_cooldown
+
+	// HomeCityCode is the content city a player returns to when they leave
+	// a village (settlement.leave): the neutral city, "support".
+	HomeCityCode string // settlement.home_city_code
+
 	// MinSpawnDistanceKm is the least great-circle distance a candidate
 	// spot must keep from every existing settlement's centre — more than
 	// twice a village's territory radius, so a spawn can never land inside
@@ -1240,6 +1250,8 @@ func Defaults() *Config {
 		},
 		Settlement: Settlement{
 			ProtectionWindow:   168 * time.Hour,
+			ResidenceCooldown:  72 * time.Hour,
+			HomeCityCode:       "support",
 			MinSpawnDistanceKm: 30,
 			ThreatRadiusKm:     150,
 			SearchMaxCells:     2000,

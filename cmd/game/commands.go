@@ -260,6 +260,20 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		"settlement.overview": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.Overview(ctx, env.Metadata)
 		},
+		"settlement.join": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageJoinRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Join(ctx, env.Metadata, req)
+		},
+		"settlement.leave": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageJoinRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Leave(ctx, env.Metadata, req)
+		},
 		"settlement.knowledge": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.KnowledgeList(ctx, env.Metadata)
 		},

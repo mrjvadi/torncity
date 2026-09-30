@@ -16,6 +16,7 @@
 • دیده‌بانی محله
 • کارگاه نجاری
   ───
+  [🏡 ساکن این روستا شو] → settlement:join
   [📚 دانش روستا] → settlement:knowledge
   [🏗 ساخت‌وساز] → settlement:build
   [⏳ پیشرفت ساخت] → settlement:build.progress
@@ -39,6 +40,7 @@
 
 هنوز بنایی ساخته نشده است.
   ───
+  [🏡 ساکن این روستا شو] → settlement:join
   [📚 دانش روستا] → settlement:knowledge
   [🏗 ساخت‌وساز] → settlement:build
   [⏳ پیشرفت ساخت] → settlement:build.progress
@@ -169,6 +171,107 @@
   ───
   [✅ تأیید و ساخت] → settlement:build.place:militia_camp:3-0-r:confirm
   [🔙 بازگشت] → settlement:build.lots:militia_camp
+
+━━━ Village overview · a resident's view (no join button) ━━━
+(edits message 42)
+🏘 روستای کورندال
+
+👥 جمعیت: ⁨12⁩ از ⁨100⁩
+
+🏦 خزانهٔ روستا: ⁨⁨900⁩ ساپ⁩
+
+🌾 پوشش خوراک: 20٪
+💼 پوشش شغل: 10٪
+🏥 پوشش خدمات: 0٪
+🙂 شادی: 30٪
+🛡 امنیت محلی: 15٪
+📖 سوادآموزی: 2٪
+
+هنوز بنایی ساخته نشده است.
+  ───
+  [📚 دانش روستا] → settlement:knowledge
+  [🏗 ساخت‌وساز] → settlement:build
+  [⏳ پیشرفت ساخت] → settlement:build.progress
+  [👥 اهالی] → settlement:who
+  [🚪 ترک روستا] → settlement:leave
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
+
+━━━ Residence · asks before joining ━━━
+(edits message 42)
+🏡 ساکن روستای «کورندال» می‌شوید؟
+
+خانهٔ شما به این روستا منتقل می‌شود. ملک، شرکت و شغل‌تان سر جای خود می‌مانند، اما از این پس مالیات درآمدتان به خزانهٔ روستا می‌رسد و برای کار در شهرهای دیگر به مجوز کار نیاز دارید.
+تا ⁨72 ساعت⁩ دیگر نمی‌توانید خانه‌تان را جابه‌جا کنید.
+  ───
+  [✅ بله، ساکن می‌شوم] → settlement:join:confirm
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Residence · joined ━━━
+(edits message 42)
+🏡 به روستای «کورندال» خوش آمدید!
+
+خانهٔ شما اکنون اینجاست و شما یکی از ⁨13⁩ ساکن این روستا هستید. تا ⁨72 ساعت⁩ دیگر جابه‌جایی ممکن نیست.
+  ───
+  [🏘 نمای روستا] → settlement:overview
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Residence · asks before leaving ━━━
+(edits message 42)
+🚪 روستای «کورندال» را ترک می‌کنید؟
+
+خانهٔ شما به «ساپورت» برمی‌گردد. ملک، شرکت و شغل‌تان سر جای خود می‌مانند.
+تا ⁨72 ساعت⁩ دیگر نمی‌توانید خانه‌تان را جابه‌جا کنید.
+  ───
+  [✅ بله، ترک می‌کنم] → settlement:leave:confirm
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Residence · left ━━━
+(edits message 42)
+🚪 روستای «کورندال» را ترک کردید.
+
+خانهٔ شما اکنون «ساپورت» است. تا ⁨72 ساعت⁩ دیگر جابه‌جایی ممکن نیست.
+  ───
+  [🏘 نمای روستا] → settlement:overview
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Residence refused · already a resident ━━━
+(edits message 42)
+🏡 شما همین حالا ساکن این روستا هستید.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Residence refused · not a resident ━━━
+(edits message 42)
+🏡 شما ساکن این روستا نیستید.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Residence refused · cool-down ━━━
+(edits message 42)
+⏳ به‌تازگی خانه‌تان را جابه‌جا کرده‌اید. ⁨50 ساعت و 20 دقیقه⁩ دیگر می‌توانید دوباره جابه‌جا شوید.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Residence refused · the head cannot leave ━━━
+(edits message 42)
+🔒 تا وقتی مسئولیت دهیاری با شماست نمی‌توانید روستا را ترک کنید.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Village news · one resident joined ━━━
+(edits message 42)
+🏡 سارا ساکن روستای «کورندال» شد.
+  ───
+  [🏘 نمای روستا] → settlement:overview
+
+━━━ Village news · several joined and a building finished ━━━
+(edits message 42)
+🏘 تازه‌های روستای «کورندال»:
+• 🏡 سارا ساکن روستا شد.
+• 🏡 کامران ساکن روستا شد.
+• 🏗 ساخت «دیده‌بانی محله» تمام شد.
+  ───
+  [🏘 نمای روستا] → settlement:overview
 
 ━━━ Village refused · not enough materials ━━━
 (edits message 42)

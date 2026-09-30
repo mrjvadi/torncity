@@ -257,6 +257,8 @@ type worldgenSettings struct {
 
 type settlementSettings struct {
 	ProtectionWindow   *string  `yaml:"protection_window"`
+	ResidenceCooldown  *string  `yaml:"residence_cooldown"`
+	HomeCityCode       *string  `yaml:"home_city_code"`
 	MinSpawnDistanceKm *float64 `yaml:"min_spawn_distance_km"`
 	ThreatRadiusKm     *float64 `yaml:"threat_radius_km"`
 	SearchMaxCells     *int     `yaml:"search_max_cells"`
@@ -976,6 +978,12 @@ var coreSettings = []setting{
 	durationSetting("settlement", "protection_window",
 		func(c *Config) *time.Duration { return &c.Settlement.ProtectionWindow },
 		func(f *fileConfig) *string { return f.Settlement.ProtectionWindow }),
+	durationSetting("settlement", "residence_cooldown",
+		func(c *Config) *time.Duration { return &c.Settlement.ResidenceCooldown },
+		func(f *fileConfig) *string { return f.Settlement.ResidenceCooldown }),
+	stringSetting("settlement", "home_city_code",
+		func(c *Config) *string { return &c.Settlement.HomeCityCode },
+		func(f *fileConfig) *string { return f.Settlement.HomeCityCode }),
 	floatSetting("settlement", "min_spawn_distance_km",
 		func(c *Config) *float64 { return &c.Settlement.MinSpawnDistanceKm },
 		func(f *fileConfig) *float64 { return f.Settlement.MinSpawnDistanceKm }),

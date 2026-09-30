@@ -415,6 +415,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				ScarcityFloorBPS:      cfg.Settlement.ScarcityFloorBPS,
 				ScarcityCapBPS:        cfg.Settlement.ScarcityCapBPS,
 				SellerBandBPS:         cfg.Settlement.SellerBandBPS,
+				ResidenceCooldown:     cfg.Settlement.ResidenceCooldown,
+				HomeCityCode:          cfg.Settlement.HomeCityCode,
 			},
 			cfg.Game.IdempotencyTTL,
 			nil,

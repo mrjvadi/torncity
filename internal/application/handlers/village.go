@@ -79,6 +79,8 @@ type VillageHandler struct {
 	scarcityCapBPS        int64
 	sellerBandBPS         int64
 	demolitionSalvageBPS  int64
+	residenceCooldown     time.Duration
+	homeCityCode          string
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -106,6 +108,10 @@ type VillageRules struct {
 	ScarcityCapBPS        int64
 	SellerBandBPS         int64
 	DemolitionSalvageBPS  int64
+	// ResidenceCooldown and HomeCityCode are settlement.residence_cooldown
+	// and settlement.home_city_code (village_residence.go).
+	ResidenceCooldown time.Duration
+	HomeCityCode      string
 }
 
 // NewVillageHandler wires the handler.
@@ -135,6 +141,8 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 		scarcityCapBPS:        rules.ScarcityCapBPS,
 		sellerBandBPS:         rules.SellerBandBPS,
 		demolitionSalvageBPS:  rules.DemolitionSalvageBPS,
+		residenceCooldown:     rules.ResidenceCooldown,
+		homeCityCode:          rules.HomeCityCode,
 		idempotencyTTL:        idempotencyTTL,
 		now:                   now,
 	}
@@ -169,7 +177,11 @@ func (h *VillageHandler) viewer(ctx context.Context, tx application.Tx, meta env
 // refusal screens.VillageRefusal renders, mirroring productionRefusal's own
 // shape (production.go) at a fraction of its size: K2/W5 needs no
 // per-kind extra fields today.
-type villageRefusal struct{ kind, back string }
+type villageRefusal struct {
+	kind, back string
+	// remaining is how long a residence cool-down still runs.
+	remaining time.Duration
+}
 
 func (e *villageRefusal) Error() string { return "handlers: village refusal: " + e.kind }
 
@@ -190,7 +202,7 @@ func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err 
 	c := h.screen(meta, lang)
 	var r *villageRefusal
 	if stderrors.As(err, &r) {
-		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: r.kind, Back: r.back}), nil
+		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: r.kind, Back: r.back, Remaining: r.remaining}), nil
 	}
 	if stderrors.Is(err, application.ErrCityNotFound) {
 		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: screens.VillageNoSettlement}), nil
@@ -344,7 +356,7 @@ func (h *VillageHandler) Overview(ctx context.Context, meta envelope.Metadata) (
 	lang := meta.Language
 	var view screens.VillageOverviewView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
-		_, l, err := h.viewer(ctx, tx, meta)
+		viewer, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
 			return err
 		}
@@ -353,7 +365,11 @@ func (h *VillageHandler) Overview(ctx context.Context, meta envelope.Metadata) (
 		if err != nil {
 			return err
 		}
-		city, err := h.cities.ByID(ctx, s.CityID)
+		residents, err := tx.Settlements().ResidentCount(ctx, s.CityID)
+		if err != nil {
+			return err
+		}
+		home, err := tx.Employment().ResidenceCityID(ctx, viewer.ID)
 		if err != nil {
 			return err
 		}
@@ -402,7 +418,8 @@ func (h *VillageHandler) Overview(ctx context.Context, meta envelope.Metadata) (
 		}
 
 		view = screens.VillageOverviewView{
-			Name: s.Name, Tier: s.Tier, Population: int64(city.Population), PopulationCap: cap,
+			Name: s.Name, Tier: s.Tier, Population: residents, PopulationCap: cap,
+			Resident: home == s.CityID, SettlementID: s.CityID,
 			Treasury:         treasury,
 			FoodPercent:      int(coverage["food_coverage_bps"] / 100),
 			JobPercent:       int(coverage["job_coverage_bps"] / 100),

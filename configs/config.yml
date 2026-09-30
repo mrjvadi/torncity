@@ -1017,6 +1017,12 @@ settlement:
   # war (docs/adr/0022, part two) — the same shape as Travian's and OGame's
   # beginner-protection window.
   protection_window: 168h
+  # How long, REAL time, a player who moved their home (joined a village or
+  # went back to the neutral city) must wait before moving it again. It runs
+  # from the last change of residence.
+  residence_cooldown: 72h
+  # The content city a player returns to when they leave a village.
+  home_city_code: support
   # The least great-circle distance (km) a candidate spot must keep from
   # every existing settlement's centre: more than twice a village's
   # automatic territory radius, so a spawn can never land inside another

@@ -590,6 +590,13 @@ needs a group.
 | `settlement.overview` | — | the village status |
 | `settlement.knowledge` | — | the knowledge list |
 | `settlement.knowledge.research` / `.buy` | `code` | starts a research / buys the item from Support |
+| `settlement.join` | `settlement` (the village id), `confirm`? | makes the village the player's **home** (a player has one). Without `confirm`: `village_residence_confirm`, nothing changes. With `confirm: "confirm"`: moves the home and answers `village_residence_done`; the realtime token then carries `settlement:<id>` (fetch a new one) and the roster gains the player |
+| `settlement.leave` | `settlement`? , `confirm`? | sends the player home to the neutral city, same two steps |
+
+`settlement.overview` carries `resident` (does the viewer live here) and
+`settlement_id`. The village founder is a resident from the moment of founding;
+everyone else joins. Moving home has a cool-down (`settlement.residence_cooldown`)
+that also applies to buying a home elsewhere; the head cannot leave.
 
 (`place` also takes the Telegram spelling `lot: "3-1"` / `"3-1-r"`.) Send an
 `idempotency_key` with every write, as in section 2. Rotating is a choice
@@ -621,6 +628,10 @@ sentence Telegram shows, in the player's language):
 | `village_not_found` | unknown building type, id or malformed lot |
 | `village_not_demolishable` / `village_not_cancellable` | wrong state for the action |
 | `village_busy`, `village_already_owned`, `village_not_available` | research / purchase refusals |
+| `village_already_resident` / `village_not_resident` | join / leave when the home is / is not this village |
+| `village_residence_cooldown` | the home moved too recently (the message names the wait) |
+| `village_holds_office` | the head cannot leave the village |
+| `village_no_home` | the city to return to is not configured |
 
 A client learns the outcome of a placement by re-reading the layout (its
 `version` moves) — or, with realtime, from the settlement channel's

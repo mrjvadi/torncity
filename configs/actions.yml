@@ -294,3 +294,5 @@ commands:
   settlement.build.demolish: {kind: danger, icon: "action:demolish"}
   settlement.build.cancel: {kind: danger, icon: "action:cancel_build"}
   settlement.who: {kind: navigation, icon: "action:people"}
+  settlement.join: {kind: primary, icon: "action:home"}
+  settlement.leave: {kind: danger, icon: "action:leave"}

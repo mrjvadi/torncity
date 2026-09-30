@@ -208,6 +208,14 @@ func (h *SettlementsHandler) Found(ctx context.Context, meta envelope.Metadata) 
 			if _, _, err := application.FoundOffice(ctx, tx, "village_head", out.JurisdictionID, 1, playerID, now); err != nil {
 				return err
 			}
+			// The founder lives in the village they just founded, from this
+			// very transaction: the head of a village is its first resident
+			// (everyone else joins with settlement.join). Their home moves
+			// off Support; their property, company and job there keep
+			// working (residence is not location).
+			if _, err := moveResidence(ctx, tx, meta, playerID, out.CityID, now, "founding"); err != nil {
+				return err
+			}
 			if err := h.appendFoundedEvent(ctx, tx, meta, out, cand.LatDeg, cand.LonDeg); err != nil {
 				return err
 			}

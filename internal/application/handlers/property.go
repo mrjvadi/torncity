@@ -484,15 +484,28 @@ func (h *PropertyHandler) Purchase(ctx context.Context, meta envelope.Metadata, 
 // A change of residence is a fact the settlements on both ends publish on
 // their channels (docs/adr/0030 R2: a member joined, a member left).
 func (h *PropertyHandler) settleIn(ctx context.Context, tx application.Tx, meta envelope.Metadata, playerID, cityID string, now time.Time) error {
+	_, err := moveResidence(ctx, tx, meta, playerID, cityID, now, "property")
+	return err
+}
+
+// moveResidence is the one way a player's home changes: it sets the
+// residence (and its since-stamp, which is also the cooldown clock of
+// settlement.join/leave) and writes residence.changed to the outbox in the
+// caller's transaction, so presence and the settlement channels react. via
+// says what moved them (property, founding, join, leave). It returns the
+// city they lived in before, "" for none, and does nothing when the player
+// already lives in cityID.
+func moveResidence(ctx context.Context, tx application.Tx, meta envelope.Metadata, playerID, cityID string, now time.Time, via string,
+) (string, error) {
 	home, err := tx.Employment().ResidenceCityID(ctx, playerID)
 	if err != nil || home == cityID {
-		return err
+		return home, err
 	}
 	if err := tx.Property().SetResidence(ctx, playerID, cityID, now); err != nil {
-		return err
+		return home, err
 	}
-	return appendDomainEvent(ctx, tx, meta, "residence", "changed", playerID, map[string]any{
-		"player_id": playerID, "from_city_id": home, "to_city_id": cityID,
+	return home, appendDomainEvent(ctx, tx, meta, "residence", "changed", playerID, map[string]any{
+		"player_id": playerID, "from_city_id": home, "to_city_id": cityID, "via": via,
 	})
 }
 
