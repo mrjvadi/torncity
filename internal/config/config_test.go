@@ -537,6 +537,14 @@ settlement:
   max_abs_latitude_deg: 66.5
   biome_penalties: ["desert=5", "tundra=7"]
   village_grid_lots: 6
+  founding_draft_ttl: 31m
+  founding_name_min: 4
+  founding_name_max: 25
+  founding_motto_max: 61
+  founding_currency_name_min: 4
+  founding_currency_name_max: 25
+  founding_currency_code_len: 4
+  founding_currency_symbol_max: 4
   teach_period: 25h
   teach_rate_bps: 1501
   base_school_capacity_bps: 8001
@@ -829,25 +837,33 @@ var envOverrides = map[string]string{
 	"TORN_WORLDGEN_CHUNK_STREAM_AMPLITUDE":          "62",
 	"TORN_WORLDGEN_CHUNK_DEPOSIT_TILES_PER_DEPOSIT": "7",
 
-	"TORN_SETTLEMENT_PROTECTION_WINDOW":        "170h",
-	"TORN_SETTLEMENT_MIN_SPAWN_DISTANCE_KM":    "32",
-	"TORN_SETTLEMENT_THREAT_RADIUS_KM":         "152",
-	"TORN_SETTLEMENT_SEARCH_MAX_CELLS":         "2002",
-	"TORN_SETTLEMENT_SEARCH_MAX_ATTEMPTS":      "202",
-	"TORN_SETTLEMENT_EXCLUDED_BIOMES":          "polar_ice, ice_sheet",
-	"TORN_SETTLEMENT_MAX_ABS_LATITUDE_DEG":     "64.5",
-	"TORN_SETTLEMENT_BIOME_PENALTIES":          "desert=6, tundra=8",
-	"TORN_SETTLEMENT_VILLAGE_GRID_LOTS":        "7",
-	"TORN_SETTLEMENT_TEACH_PERIOD":             "26h",
-	"TORN_SETTLEMENT_RESIDENCE_COOLDOWN":       "74h",
-	"TORN_SETTLEMENT_HOME_CITY_CODE":           "hearth2",
-	"TORN_SETTLEMENT_TEACH_RATE_BPS":           "1502",
-	"TORN_SETTLEMENT_BASE_SCHOOL_CAPACITY_BPS": "8002",
-	"TORN_SETTLEMENT_SCARCITY_K_BPS":           "10002",
-	"TORN_SETTLEMENT_SCARCITY_FLOOR_BPS":       "3002",
-	"TORN_SETTLEMENT_SCARCITY_CAP_BPS":         "80002",
-	"TORN_SETTLEMENT_SELLER_BAND_BPS":          "502",
-	"TORN_SETTLEMENT_DEMOLITION_SALVAGE_BPS":   "2002",
+	"TORN_SETTLEMENT_PROTECTION_WINDOW":            "170h",
+	"TORN_SETTLEMENT_MIN_SPAWN_DISTANCE_KM":        "32",
+	"TORN_SETTLEMENT_THREAT_RADIUS_KM":             "152",
+	"TORN_SETTLEMENT_SEARCH_MAX_CELLS":             "2002",
+	"TORN_SETTLEMENT_SEARCH_MAX_ATTEMPTS":          "202",
+	"TORN_SETTLEMENT_EXCLUDED_BIOMES":              "polar_ice, ice_sheet",
+	"TORN_SETTLEMENT_MAX_ABS_LATITUDE_DEG":         "64.5",
+	"TORN_SETTLEMENT_BIOME_PENALTIES":              "desert=6, tundra=8",
+	"TORN_SETTLEMENT_VILLAGE_GRID_LOTS":            "7",
+	"TORN_SETTLEMENT_FOUNDING_DRAFT_TTL":           "32m",
+	"TORN_SETTLEMENT_FOUNDING_NAME_MIN":            "5",
+	"TORN_SETTLEMENT_FOUNDING_NAME_MAX":            "26",
+	"TORN_SETTLEMENT_FOUNDING_MOTTO_MAX":           "62",
+	"TORN_SETTLEMENT_FOUNDING_CURRENCY_NAME_MIN":   "5",
+	"TORN_SETTLEMENT_FOUNDING_CURRENCY_NAME_MAX":   "26",
+	"TORN_SETTLEMENT_FOUNDING_CURRENCY_CODE_LEN":   "5",
+	"TORN_SETTLEMENT_FOUNDING_CURRENCY_SYMBOL_MAX": "5",
+	"TORN_SETTLEMENT_TEACH_PERIOD":                 "26h",
+	"TORN_SETTLEMENT_RESIDENCE_COOLDOWN":           "74h",
+	"TORN_SETTLEMENT_HOME_CITY_CODE":               "hearth2",
+	"TORN_SETTLEMENT_TEACH_RATE_BPS":               "1502",
+	"TORN_SETTLEMENT_BASE_SCHOOL_CAPACITY_BPS":     "8002",
+	"TORN_SETTLEMENT_SCARCITY_K_BPS":               "10002",
+	"TORN_SETTLEMENT_SCARCITY_FLOOR_BPS":           "3002",
+	"TORN_SETTLEMENT_SCARCITY_CAP_BPS":             "80002",
+	"TORN_SETTLEMENT_SELLER_BAND_BPS":              "502",
+	"TORN_SETTLEMENT_DEMOLITION_SALVAGE_BPS":       "2002",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

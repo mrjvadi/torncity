@@ -122,6 +122,9 @@ type file struct {
 
 	Recruitment *RecruitmentDef `yaml:"recruitment"`
 
+	// The founding form (founding.yml): see founding.go.
+	Founding *FoundingDef `yaml:"founding"`
+
 	// Settlement knowledge (settlement_knowledge.yml): the village-level
 	// knowledge catalogue. See settlementknowledge.go.
 	SettlementKnowledge []SettlementKnowledgeDef `yaml:"knowledge"`
@@ -276,6 +279,9 @@ func Load(dir string) (*Pack, error) {
 		}
 		if doc.Recruitment != nil {
 			pack.Recruitment = append(pack.Recruitment, *doc.Recruitment)
+		}
+		if doc.Founding != nil {
+			pack.Founding = append(pack.Founding, *doc.Founding)
 		}
 		pack.SettlementKnowledge = append(pack.SettlementKnowledge, doc.SettlementKnowledge...)
 		pack.SettlementBuildings = append(pack.SettlementBuildings, doc.SettlementBuildings...)

@@ -195,6 +195,7 @@ func (p *Pack) Validate() error {
 	p.validateLife(&problems)
 	p.validateFinance(&problems)
 	p.validateRecruitment(&problems)
+	p.validateFounding(&problems)
 	p.validateVehicles(&problems)
 	p.validateSettlementKnowledge(&problems)
 	p.validateSettlementBuildings(&problems)

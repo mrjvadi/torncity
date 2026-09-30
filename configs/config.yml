@@ -1054,6 +1054,21 @@ settlement:
   # A village's local placement grid, per side, in lots (ADR 0028 section
   # 4: 5x5).
   village_grid_lots: 5
+  # The founding form (docs/adr/0028 section 3): «ساخت روستا» opens a draft
+  # that the founder completes in the game client - name, national currency,
+  # emblem - and only its submission founds the village. An open draft waits
+  # founding_draft_ttl; then nothing is founded and the group may ask again.
+  founding_draft_ttl: 30m
+  # Bounds, in characters. The code is exactly currency_code_len capital
+  # letters (2 to 6); the currency is only RESERVED for the village and
+  # becomes its national money when it declares a country (ADR 0029).
+  founding_name_min: 3
+  founding_name_max: 24
+  founding_motto_max: 60
+  founding_currency_name_min: 3
+  founding_currency_name_max: 24
+  founding_currency_code_len: 3
+  founding_currency_symbol_max: 3
   # K2/W5 (docs/adr/0031-knowledge-and-village-progression.md): how often
   # a settlement's own literacy tick runs, GAME time, and the diffusion
   # formula's own rate (section 4.4).

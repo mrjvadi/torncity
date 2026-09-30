@@ -89,6 +89,8 @@ type Snapshot struct {
 	// recruitment is recruitment.yml's section, nil without one; see
 	// recruitment.go.
 	recruitment *RecruitmentDef
+	// founding is founding.yml's section, nil without one; see founding.go.
+	founding *FoundingDef
 
 	// settlementKnowledge is settlement_knowledge.yml's catalogue (ADR 0031
 	// section 3.1); see settlementknowledge.go.
@@ -193,6 +195,10 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	if len(p.Recruitment) > 0 {
 		r := p.Recruitment[0]
 		snap.recruitment = &r
+	}
+	if len(p.Founding) > 0 {
+		f := p.Founding[0]
+		snap.founding = &f
 	}
 	snap.buildSettlementKnowledge(p)
 	snap.buildSettlementBuildings(p)

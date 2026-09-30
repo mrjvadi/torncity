@@ -266,7 +266,16 @@ type settlementSettings struct {
 	ExcludedBiomes     []string `yaml:"excluded_biomes"`
 	MaxAbsLatitudeDeg  *float64 `yaml:"max_abs_latitude_deg"`
 	BiomePenalties     []string `yaml:"biome_penalties"`
-	VillageGridLots   *int     `yaml:"village_grid_lots"`
+	VillageGridLots    *int     `yaml:"village_grid_lots"`
+
+	FoundingDraftTTL          *string `yaml:"founding_draft_ttl"`
+	FoundingNameMin           *int    `yaml:"founding_name_min"`
+	FoundingNameMax           *int    `yaml:"founding_name_max"`
+	FoundingMottoMax          *int    `yaml:"founding_motto_max"`
+	FoundingCurrencyNameMin   *int    `yaml:"founding_currency_name_min"`
+	FoundingCurrencyNameMax   *int    `yaml:"founding_currency_name_max"`
+	FoundingCurrencyCodeLen   *int    `yaml:"founding_currency_code_len"`
+	FoundingCurrencySymbolMax *int    `yaml:"founding_currency_symbol_max"`
 
 	TeachPeriod           *string `yaml:"teach_period"`
 	TeachRateBPS          *int64  `yaml:"teach_rate_bps"`
@@ -1008,6 +1017,30 @@ var coreSettings = []setting{
 	limitSetting("settlement", "village_grid_lots",
 		func(c *Config) *int { return &c.Settlement.VillageGridLots },
 		func(f *fileConfig) *int { return f.Settlement.VillageGridLots }),
+	durationSetting("settlement", "founding_draft_ttl",
+		func(c *Config) *time.Duration { return &c.Settlement.FoundingDraftTTL },
+		func(f *fileConfig) *string { return f.Settlement.FoundingDraftTTL }),
+	limitSetting("settlement", "founding_name_min",
+		func(c *Config) *int { return &c.Settlement.FoundingNameMin },
+		func(f *fileConfig) *int { return f.Settlement.FoundingNameMin }),
+	limitSetting("settlement", "founding_name_max",
+		func(c *Config) *int { return &c.Settlement.FoundingNameMax },
+		func(f *fileConfig) *int { return f.Settlement.FoundingNameMax }),
+	limitSetting("settlement", "founding_motto_max",
+		func(c *Config) *int { return &c.Settlement.FoundingMottoMax },
+		func(f *fileConfig) *int { return f.Settlement.FoundingMottoMax }),
+	limitSetting("settlement", "founding_currency_name_min",
+		func(c *Config) *int { return &c.Settlement.FoundingCurrencyNameMin },
+		func(f *fileConfig) *int { return f.Settlement.FoundingCurrencyNameMin }),
+	limitSetting("settlement", "founding_currency_name_max",
+		func(c *Config) *int { return &c.Settlement.FoundingCurrencyNameMax },
+		func(f *fileConfig) *int { return f.Settlement.FoundingCurrencyNameMax }),
+	limitSetting("settlement", "founding_currency_code_len",
+		func(c *Config) *int { return &c.Settlement.FoundingCurrencyCodeLen },
+		func(f *fileConfig) *int { return f.Settlement.FoundingCurrencyCodeLen }),
+	limitSetting("settlement", "founding_currency_symbol_max",
+		func(c *Config) *int { return &c.Settlement.FoundingCurrencySymbolMax },
+		func(f *fileConfig) *int { return f.Settlement.FoundingCurrencySymbolMax }),
 	durationSetting("settlement", "teach_period",
 		func(c *Config) *time.Duration { return &c.Settlement.TeachPeriod },
 		func(f *fileConfig) *string { return f.Settlement.TeachPeriod }),

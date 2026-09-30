@@ -280,6 +280,9 @@ type Pack struct {
 	// recruitment.yml: the recruitment section, at most one
 	// (recruitment.go; docs/adr/0027-specialist-recruitment.md).
 	Recruitment []RecruitmentDef
+	// founding.yml: the founding form's emblem catalogue and word lists,
+	// at most one (founding.go; docs/adr/0028-world-and-settlements.md).
+	Founding []FoundingDef
 
 	// settlement_knowledge.yml: the village-level knowledge catalogue
 	// (settlementknowledge.go; docs/adr/0031-knowledge-and-village-

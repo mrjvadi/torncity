@@ -1,0 +1,98 @@
+# The founding form (docs/adr/0028-world-and-settlements.md section 3): what a
+# group's founder picks from before their village exists. The emblem is a
+# heraldic badge drawn from these choices - a shape, two colours from the
+# palette and an icon - never an uploaded image: it is stored as four codes,
+# drawn as an SVG by the game client and written as emoji in Telegram.
+#
+#   shapes    code, emoji   the badge's outline
+#   palette   code, hex, emoji (the coloured dot Telegram shows)
+#   icons     code, emoji   the symbol in the middle
+#
+# The display names are in the locales: founding.shape.<code>,
+# founding.color.<code>, founding.icon.<code>.
+#
+# banned_words are refused in a village's name, motto and currency (whole
+# words; a word of five letters or more anywhere inside). reserved_names are
+# refused as a village's name outright. reserved_currency_codes are codes no
+# village may reserve (the game's own and the real-world ones). Extend the
+# lists freely; the rules that read them are in internal/domain/settlement.
+founding:
+  shapes:
+    - {code: shield, emoji: "🛡"}
+    - {code: circle, emoji: "⭕"}
+    - {code: banner, emoji: "🚩"}
+    - {code: diamond, emoji: "🔶"}
+    - {code: hexagon, emoji: "⬢"}
+  palette:
+    - {code: crimson, hex: "#b3261e", emoji: "🔴"}
+    - {code: orange, hex: "#d9731a", emoji: "🟠"}
+    - {code: gold, hex: "#e2b53c", emoji: "🟡"}
+    - {code: green, hex: "#2f8f4e", emoji: "🟢"}
+    - {code: azure, hex: "#2b6fc4", emoji: "🔵"}
+    - {code: violet, hex: "#7a4fc0", emoji: "🟣"}
+    - {code: brown, hex: "#7a5236", emoji: "🟤"}
+    - {code: ivory, hex: "#efe7d2", emoji: "⚪"}
+    - {code: slate, hex: "#2a3140", emoji: "⚫"}
+  icons:
+    - {code: wheat, emoji: "🌾"}
+    - {code: tree, emoji: "🌳"}
+    - {code: mountain, emoji: "⛰"}
+    - {code: wave, emoji: "🌊"}
+    - {code: sun, emoji: "☀️"}
+    - {code: moon, emoji: "🌙"}
+    - {code: star, emoji: "⭐"}
+    - {code: tower, emoji: "🏰"}
+    - {code: anchor, emoji: "⚓"}
+    - {code: hammer, emoji: "🔨"}
+    - {code: flame, emoji: "🔥"}
+    - {code: crown, emoji: "👑"}
+    - {code: key, emoji: "🗝"}
+    - {code: book, emoji: "📖"}
+    - {code: horse, emoji: "🐎"}
+    - {code: fish, emoji: "🐟"}
+  banned_words:
+    - fuck
+    - shit
+    - bitch
+    - nazi
+    - hitler
+    - isis
+    - کیر
+    - کون
+    - کوس
+    - جنده
+    - کصافت
+    - حرومزاده
+    - گایید
+    - داعش
+    - هیتلر
+  reserved_names:
+    - Support
+    - ساپورت
+    - Torncity
+    - Admin
+    - ادمین
+    - System
+    - سیستم
+    - Nil
+    - نیل
+    - Sup
+    - Default
+  reserved_currency_codes:
+    - SUP
+    - NIL
+    - USD
+    - EUR
+    - GBP
+    - JPY
+    - CNY
+    - RUB
+    - TRY
+    - AED
+    - IRR
+    - IRT
+    - BTC
+    - ETH
+    - XAU
+    - XAG
+    - XXX

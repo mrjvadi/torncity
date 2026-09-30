@@ -652,6 +652,27 @@ type Settlement struct {
 	// phase's own tuning once building placement (W5) ships.
 	VillageGridLots int // settlement.village_grid_lots
 
+	// The founding form: a group's «ساخت روستا» opens a draft the founder
+	// completes in the game client (name, currency, emblem) before the
+	// village exists.
+
+	// FoundingDraftTTL is how long, REAL time, an open founding draft waits
+	// for its founder; after it nothing is founded and the group may ask again.
+	FoundingDraftTTL time.Duration // settlement.founding_draft_ttl
+	// FoundingNameMin and FoundingNameMax bound a village's name, in
+	// characters; FoundingMottoMax its motto.
+	FoundingNameMin  int // settlement.founding_name_min
+	FoundingNameMax  int // settlement.founding_name_max
+	FoundingMottoMax int // settlement.founding_motto_max
+	// FoundingCurrencyNameMin and FoundingCurrencyNameMax bound the name of
+	// the currency a village reserves for the day it becomes a country;
+	// FoundingCurrencyCodeLen is the exact length of its code (letters A-Z)
+	// and FoundingCurrencySymbolMax the longest symbol, in characters.
+	FoundingCurrencyNameMin   int // settlement.founding_currency_name_min
+	FoundingCurrencyNameMax   int // settlement.founding_currency_name_max
+	FoundingCurrencyCodeLen   int // settlement.founding_currency_code_len
+	FoundingCurrencySymbolMax int // settlement.founding_currency_symbol_max
+
 	// K2/W5 (docs/adr/0031-knowledge-and-village-progression.md): the
 	// literacy diffusion tick's own period and rate, and the scarcity
 	// price curve's shared knobs. base_cost per item is content
@@ -1261,6 +1282,15 @@ func Defaults() *Config {
 			BiomePenalties:     []string{"desert=4", "tundra=6", "boreal_forest=1"},
 			VillageGridLots:    5,
 
+			FoundingDraftTTL:          30 * time.Minute,
+			FoundingNameMin:           3,
+			FoundingNameMax:           24,
+			FoundingMottoMax:          60,
+			FoundingCurrencyNameMin:   3,
+			FoundingCurrencyNameMax:   24,
+			FoundingCurrencyCodeLen:   3,
+			FoundingCurrencySymbolMax: 3,
+
 			TeachPeriod:           24 * time.Hour,
 			TeachRateBPS:          1500,
 			BaseSchoolCapacityBPS: 8000,
@@ -1569,6 +1599,19 @@ func (c *Config) Validate() error {
 		if _, both := penalties[code]; both {
 			return fmt.Errorf("%w: settlement biome %q is both excluded and penalised", ErrInvalidValue, code)
 		}
+	}
+
+	// The founding form's bounds must leave room for a name and a code the
+	// database accepts (currencies.code is 2-6 capital letters).
+	if st := c.Settlement; st.FoundingNameMin > st.FoundingNameMax || st.FoundingCurrencyNameMin > st.FoundingCurrencyNameMax {
+		return fmt.Errorf("%w: settlement.founding_*_min is above its max", ErrInvalidValue)
+	}
+	if c.Settlement.FoundingCurrencyCodeLen < 2 || c.Settlement.FoundingCurrencyCodeLen > 6 {
+		return fmt.Errorf("%w: settlement.founding_currency_code_len is %d, want 2 to 6",
+			ErrInvalidValue, c.Settlement.FoundingCurrencyCodeLen)
+	}
+	if c.Settlement.FoundingNameMax > 60 || c.Settlement.FoundingMottoMax > 200 || c.Settlement.FoundingCurrencyNameMax > 60 || c.Settlement.FoundingCurrencySymbolMax > 8 {
+		return fmt.Errorf("%w: a settlement.founding_* bound is beyond what the database column holds", ErrInvalidValue)
 	}
 
 	// A basis-point weight above 100% is a typo, not a tuning.
