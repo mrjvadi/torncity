@@ -281,7 +281,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		Presence:    presenceSvc,
 		Versions:    infraredis.NewSettlementVersions(rdb, cfg.Realtime.SettlementEventTTL),
 		PresenceTTL: cfg.Realtime.PresenceTTL,
-		Auth: auth,
+		Auth:        auth,
 		Bridge: &clientapi.Bridge{
 			Bus: clientapi.NewNATSBus(conn.Raw(), infranats.NewPublisher(conn)), Policy: policy,
 			ActionMeta:         actionMeta,

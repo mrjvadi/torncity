@@ -8,14 +8,14 @@ import (
 // QueuedNews is a news item waiting on the queue.
 type QueuedNews struct {
 	// EventID makes queueing idempotent.
-	EventID string    `json:"e"`
-	Kind    string    `json:"k"`
-	Code    string    `json:"c,omitempty"`
-	Name    string    `json:"n,omitempty"`
-	Percent int       `json:"p,omitempty"`
+	EventID string `json:"e"`
+	Kind    string `json:"k"`
+	Code    string `json:"c,omitempty"`
+	Name    string `json:"n,omitempty"`
+	Percent int    `json:"p,omitempty"`
 	// Amount is what a donation gave, minor units.
-	Amount int64 `json:"m,omitempty"`
-	At      time.Time `json:"a"`
+	Amount int64     `json:"m,omitempty"`
+	At     time.Time `json:"a"`
 }
 
 // NewsBatch is everything one village's queue held when it was taken.
@@ -38,4 +38,3 @@ type NewsQueue interface {
 	// claimed again at once.
 	Requeue(ctx context.Context, batch NewsBatch) error
 }
-

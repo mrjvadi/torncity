@@ -108,8 +108,8 @@ type SettlementPlayersJSON struct {
 	// Seq is the last sequence number stamped on the settlement's channel
 	// when the list was read: publications with a lower or equal seq are
 	// already in it.
-	Seq int64 `json:"seq"`
-	Online  int   `json:"online"`
+	Seq    int64 `json:"seq"`
+	Online int   `json:"online"`
 	// Hidden is true when the caller chose «nobody» for themself, so no row
 	// carries presence.
 	Hidden  bool               `json:"hidden,omitempty"`

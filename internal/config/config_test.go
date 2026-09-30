@@ -631,9 +631,9 @@ var envOverrides = map[string]string{
 	"TORN_POSTGRES_MAX_CONNS":                   "18",
 	"TORN_POSTGRES_IDLE_IN_TRANSACTION_TIMEOUT": "62s",
 
-	"TORN_TRAVEL_ARRIVAL_XP": "27",
+	"TORN_TRAVEL_ARRIVAL_XP":     "27",
 	"TORN_TRAVEL_CITY_LOCATIONS": "support=11.5:21.5",
-	"TORN_TRAVEL_WORLD_REACH": "walk=62, cart=501",
+	"TORN_TRAVEL_WORLD_REACH":    "walk=62, cart=501",
 	// The legacy spelling of the game clock; TORN_GAME_TIME_SCALE wins.
 	"TORN_TRAVEL_TIME_SCALE": "62",
 	"TORN_GAME_TIME_SCALE":   "63",

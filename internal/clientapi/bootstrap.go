@@ -111,9 +111,9 @@ type World struct {
 	// location of a player standing in one (config travel.city_locations).
 	CitySpots map[string]Spot
 	Content   *content.Registry
-	Msgs     Catalogue
-	Realtime bool
-	Now      func() time.Time
+	Msgs      Catalogue
+	Realtime  bool
+	Now       func() time.Time
 }
 
 // CityCode is the code of the city the player is in, empty when none.
