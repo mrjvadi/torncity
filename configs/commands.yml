@@ -408,6 +408,12 @@ commands:
   settlement.build.progress: {channel: group, client: true}
   settlement.build.demolish: {channel: group, client: true}
   settlement.build.cancel: {channel: group, client: true}
+  # The village economy (ADR 0033 section 4.1): the stock and Support's market,
+  # buying materials with the treasury, working a shift. A shift's end is the
+  # scheduler's (settlement.worked).
+  settlement.materials: {channel: group, client: true}
+  settlement.materials.buy: {channel: group, client: true}
+  settlement.work: {channel: group, client: true}
   # Who is around in the village: a group screen (docs/adr/0030, R2); a client
   # asks for it too (it reads the roster of the settlement it lives in).
   settlement.who: {channel: group, client: true}

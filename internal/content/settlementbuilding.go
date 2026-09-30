@@ -3,6 +3,7 @@ package content
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
@@ -78,6 +79,21 @@ type SettlementBuildingDef struct {
 	MinLiteracyShareBPS int `yaml:"min_literacy_share_bps,omitempty" json:"min_literacy_share_bps,omitempty"`
 	// Effects feed ADR 0028 section 8.1's coverage numbers.
 	Effects []EffectDef `yaml:"effects,omitempty" json:"effects,omitempty"`
+
+	// Produces, Consumes, Workers, Shift and Wage make the building a
+	// workplace (ADR 0033 section 4.1): each shift a resident works here
+	// takes Consumes out of the village stock when it starts, puts Produces
+	// into it when it ends, and pays Wage from the treasury. Workers is how
+	// many shifts may run at once; Shift is GAME time. A building with no
+	// Produces is not a workplace. Nothing is produced without a worker.
+	// Storage is how many units of goods a standing building adds to the
+	// village stock's capacity (a granary).
+	Storage  int64            `yaml:"storage,omitempty" json:"storage,omitempty"`
+	Produces map[string]int64 `yaml:"produces,omitempty" json:"produces,omitempty"`
+	Consumes map[string]int64 `yaml:"consumes,omitempty" json:"consumes,omitempty"`
+	Workers  int              `yaml:"workers,omitempty" json:"workers,omitempty"`
+	Shift    string           `yaml:"shift,omitempty" json:"shift,omitempty"`
+	Wage     int64            `yaml:"wage,omitempty" json:"wage,omitempty"`
 }
 
 // BuildingEffects converts the building's effects.
@@ -106,7 +122,15 @@ func (d SettlementBuildingDef) Def() settlementbuilding.Def {
 		BuildTime:                   t,
 		Upkeep:                      d.Upkeep,
 		MinLiteracyShareBPS:         d.MinLiteracyShareBPS,
+		Storage:                     d.Storage,
 		Effects:                     d.BuildingEffects(),
+	}
+	if len(d.Produces) > 0 || len(d.Consumes) > 0 || d.Workers != 0 || d.Wage != 0 {
+		shift, _ := optionalDuration(d.Shift)
+		out.Work = settlementbuilding.Work{
+			Produces: copyQuantities(d.Produces), Consumes: copyQuantities(d.Consumes),
+			Workers: d.Workers, Shift: shift, Wage: d.Wage,
+		}
 	}
 	if len(d.CostMaterials) > 0 {
 		out.CostMaterials = make(map[string]int64, len(d.CostMaterials))
@@ -116,6 +140,17 @@ func (d SettlementBuildingDef) Def() settlementbuilding.Def {
 	}
 	if d.RequiresBuildingRole != nil {
 		out.RequiresBuildingRole = &settlementbuilding.RoleTier{Role: d.RequiresBuildingRole.Role, Tier: d.RequiresBuildingRole.Tier}
+	}
+	return out
+}
+
+func copyQuantities(in map[string]int64) map[string]int64 {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make(map[string]int64, len(in))
+	for k, v := range in {
+		out[k] = v
 	}
 	return out
 }
@@ -159,6 +194,12 @@ func (p *Pack) validateSettlementBuildings(problems *[]error) {
 		if d.Name == "" {
 			*problems = append(*problems, fmt.Errorf("%w: %s %q", ErrMissingDisplayName, where, d.Code))
 		}
+		if d.Role == "" || d.Tier < 1 {
+			// ADR 0033 section 5: what a settlement lists depends on the
+			// building's tier (a village lists tier 1, a town tier 2, a city
+			// 3 and up), so every building says which and what it is.
+			bad("%s %q must declare its role and tier (tier 1 village, 2 town, 3 and 4 city)", where, d.Code)
+		}
 		if d.TerrainMode != "" && d.TerrainMode != "required" {
 			bad("%s %q terrain_mode %q is not \"required\"", where, d.Code, d.TerrainMode)
 		}
@@ -180,11 +221,27 @@ func (p *Pack) validateSettlementBuildings(problems *[]error) {
 				bad("%s %q costs unknown component %q", where, d.Code, material)
 			}
 		}
+		for material := range d.Produces {
+			if !components[material] {
+				bad("%s %q produces unknown component %q", where, d.Code, material)
+			}
+		}
+		for material := range d.Consumes {
+			if !components[material] {
+				bad("%s %q consumes unknown component %q", where, d.Code, material)
+			}
+		}
+		if d.Shift != "" {
+			if _, err := optionalDuration(d.Shift); err != nil {
+				bad("%s %q shift: %v", where, d.Code, err)
+			}
+		}
 		defs = append(defs, d.Def())
 	}
 	if err := settlementbuilding.ValidateCatalogue(defs); err != nil {
 		bad("%v", err)
 	}
+	p.validateVillageReachability(problems)
 }
 
 // settlementBuildingContent is the settlement building part of a snapshot.
@@ -235,5 +292,52 @@ func (s *Snapshot) SettlementBuildingsByRole(role string) []SettlementBuildingDe
 			out = append(out, d)
 		}
 	}
+	return out
+}
+
+// SettlementProducers lists, in file order, every building a village can work
+// in to get item: where a missing material comes from (ADR 0033 section 4.1).
+func (s *Snapshot) SettlementProducers(item string) []SettlementBuildingDef {
+	var out []SettlementBuildingDef
+	for _, d := range s.settlementBuildings.defs {
+		if d.Produces[item] > 0 {
+			out = append(out, d)
+		}
+	}
+	return out
+}
+
+// SettlementWorkplaces lists every building a village can work in, in file
+// order.
+func (s *Snapshot) SettlementWorkplaces() []SettlementBuildingDef {
+	var out []SettlementBuildingDef
+	for _, d := range s.settlementBuildings.defs {
+		if len(d.Produces) > 0 {
+			out = append(out, d)
+		}
+	}
+	return out
+}
+
+// VillageMaterialPrice is what a village pays Support for one unit of item at
+// markupBPS over the component's reference price (10000 = the reference price
+// itself), and whether the village may buy it at all.
+func (s *Snapshot) VillageMaterialPrice(item string, markupBPS int64) (int64, bool) {
+	c, ok := s.ComponentDef(item)
+	if !ok || !c.VillageBuy {
+		return 0, false
+	}
+	return (c.BasePrice*markupBPS + 9999) / 10000, true
+}
+
+// VillageMaterials lists the component codes a village may buy, sorted.
+func (s *Snapshot) VillageMaterials() []string {
+	var out []string
+	for _, c := range s.ComponentDefs() {
+		if c.VillageBuy {
+			out = append(out, c.Code)
+		}
+	}
+	sort.Strings(out)
 	return out
 }

@@ -585,6 +585,40 @@ biome:
 settlement_building:
   road: Road
   civic_hall: Civic hall
+  woodcutter_camp: Woodcutter's camp
+  cottage: Cottage
+  granary: Granary
+  housing_block: Housing block
+  park: Park
+  small_pit: Small pit
+  farm_canal: Canal farm
+  farm_shaft: Shaft-well farm
+  farm_terrace: Terrace farm
+  farm_paddy: Paddy field
+  pasture_range: Pasture
+  carpentry_workshop: Carpentry workshop
+  masonry_workshop: Masonry workshop
+  weaving_shed: Weaving shed
+  pottery_kiln: Pottery kiln
+  smithy: Smithy
+  watch_hut: Watch hut
+  militia_camp: Militia camp
+  retainer_hall: Retainer hall
+  constable_post: Constable post
+  police_post: Police post
+  manufactory: Manufactory
+  factory: Factory
+  mine: Mine
+  health_house: Healing house
+  clinic: Clinic
+  teaching_circle: Teaching circle
+  school: School
+  barter_post: Barter post
+  market: Market
+  bank: Bank
+  barracks: Barracks
+  port: Port
+  airport: Airport
 
 # Group founding (docs/adr/0028-world-and-settlements.md section 3): a group
 # admin registers the group and the game places the new village on the map.
@@ -737,6 +771,8 @@ village:
     join: "🏡 Become a resident"
     leave: "🚪 Leave the village"
     donate: "💰 Give to the treasury"
+    materials: "🧱 Stock and market"
+    work: "⚒ Work in the village"
   tier_name:
     village: "village"
     town: "town"
@@ -809,6 +845,58 @@ village:
     donate_range: "💰 A gift must be between {min} and {max}."
     donate_no_cash: "💰 You do not have enough cash for that gift."
     promotion_top: "🏙 This settlement has reached the highest tier; there is no step beyond."
+    storage_full: "📦 The village stock has no room. A granary adds room."
+    already_working: "⚒ You are already working a shift. Wait for it to end."
+    workplace_full: "⚒ Every place at this workplace is taken. Try again later or work somewhere else."
+    not_workplace: "🔒 Nobody works in this building."
+  needs:
+    title:
+      build: "🧱 To build {subject} you are still missing something:"
+      research: "🔬 To research {subject} you are still missing something:"
+      work: "⚒ To work at {subject} you are still missing something:"
+    material: "• {need} {name} needed (in the village stock: {have}) - {source}"
+    knowledge: "• The knowledge {name} - research it under Village knowledge or buy it from Support"
+    knowledge_any: "• One of these: {names} - research it under Village knowledge or buy it from Support"
+    building: "• One of these buildings: {names} - build it first"
+    or: " or "
+    source:
+      made_built: "made at your {building}, work a shift there"
+      made_unbuilt: "build a {building} to make it"
+      buy: "buy it from Support's market ({price} each)"
+    button:
+      build: "🏗 Build {building}"
+      work: "⚒ Work at {building}"
+      buy: "🛒 Buy {quantity} {name}"
+      knowledge: "📚 Village knowledge"
+      materials: "🧱 Stock and market"
+  materials:
+    title: "🧱 Stock and market of {village}"
+    treasury: "🏦 Treasury: {amount}"
+    capacity: "📦 Stock room: {used} of {capacity} units"
+    stock_title: "📥 In the stock:"
+    stock_line: "• {name}: {qty}"
+    stock_empty: "The stock is empty."
+    market_title: "🛒 Support's market (paid in SUP from the treasury):"
+    market_line: "• {name}: {price} each"
+    hint: "What the village's own workplaces make comes cheaper than the market; to get going you can buy here."
+    bought: "✅ {qty} {name} bought and brought to the village stock ({total} from the treasury)."
+    ask_title: "🛒 Buy {qty} {name} for {village}?"
+    ask_body: "{unit} each; {total} in all is paid from the treasury (now {treasury}) and the goods go to the village stock."
+    button:
+      buy: "🛒 {name} x{quantity}"
+      yes: "✅ Yes, buy ({total})"
+  work:
+    title: "⚒ Work in {village}"
+    material: "{qty} {name}"
+    place: "• {building}: per shift ({shift}) {produces} - wage {wage} - places taken: {busy} of {workers}"
+    place_inputs: "• {building}: per shift ({shift}) turns {consumes} into {produces} - wage {wage} - places taken: {busy} of {workers}"
+    none: "There is no workplace yet. To start, build one of these: {names}"
+    mine: "⏳ Your shift at {building} - ends at {time} ({duration} left) - makes {produces}, wage {wage}"
+    not_resident: "🏡 Only residents work here; press \"Become a resident\" first."
+    capacity: "📦 Stock room: {used} of {capacity} units"
+    hint: "A resident works each shift; nothing is made without a worker and the wage is paid from the village treasury."
+    button:
+      start: "⚒ Start a shift at {building}"
   donate:
     title: "💰 Give to the treasury of {village}"
     body: |-
@@ -863,6 +951,9 @@ build:
   line:
     available: "🏗 {building} - cost {cost} - build time {time}"
     locked: "🔒 {building} - needs {missing} first"
+    locked_building: "🔒 {building} - build one of {missing} first"
+    locked_role: "🔒 {building} - its prerequisites are not met yet"
+    short: "🧱 {building} - cost {cost} - materials: {materials} - you lack: {short}"
   button:
     place: "🏗 Build {building}"
   confirm:
@@ -2612,6 +2703,11 @@ component:
   wheat: Wheat
   cotton: Cotton
   timber: Timber
+  stone: Stone
+  wool: Wool
+  plank: Planks
+  brick: Bricks
+  cloth: Cloth
   flour: Flour
   tool_steel: Tool steel
   plastic_case: Plastic case

@@ -111,6 +111,10 @@ var knownVariants = map[string]string{
 	// and AuctionOpened (done: back to the auction house) all title their
 	// samples "Auction · ...".
 	"trade/Auction": "AuctionDetail and AuctionOpened back to the auction house; AuctionNew backs to the inventory item it lists",
+	// VillageRefusal backs to the screen the refused command was pressed on
+	// (the build menu, the knowledge list, the stock, the work list): the
+	// attempt view of a missing prerequisite returns to where it began.
+	"village_economy/Refusal": "VillageRefusal backs to the build menu, the knowledge list, the stock or the work list, whichever the refused command came from",
 
 	// Read once production/companies/military/war merged (1b908a3). Every
 	// one of these follows a shape already documented above, several times

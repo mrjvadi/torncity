@@ -35,8 +35,19 @@ func TestShippedSettlementBuildingCatalogueShape(t *testing.T) {
 			t.Errorf("role %q has no building", want)
 		}
 	}
-	if noRole < 2 {
-		t.Errorf("only %d no-role buildings, want at least road and civic_hall", noRole)
+	if noRole != 0 {
+		t.Errorf("%d buildings declare no role: every building needs a role and a tier (ADR 0033 section 5)", noRole)
+	}
+	tierOf := map[string]int{}
+	for _, d := range defs {
+		tierOf[d.Code] = d.Tier
+	}
+	// A village must not be offered a city's building.
+	want := map[string]int{"airport": 3, "port": 3, "bank": 3, "barracks": 2, "road": 1, "civic_hall": 1, "cottage": 1, "granary": 1}
+	for code, tier := range want {
+		if tierOf[code] != tier {
+			t.Errorf("%s is tier %d, want %d", code, tierOf[code], tier)
+		}
 	}
 	byCode := map[string]bool{}
 	for _, d := range defs {

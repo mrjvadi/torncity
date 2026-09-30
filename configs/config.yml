@@ -1120,6 +1120,20 @@ settlement:
   # The share of a demolished building's own money cost credited back to
   # the settlement's treasury (ADR 0028 section 6.2).
   demolition_salvage_bps: 2000
+  # What a village pays Support for a material it buys with SUP from its
+  # treasury (ADR 0033 section 4.1; items.yml village_buy): the component's
+  # reference price times this over 10000. 12000 = the reference price + 20 %,
+  # so producing a material at a workplace is always cheaper than buying it.
+  material_markup_bps: 12000
+  # How many units of goods a village's stock holds without a granary (each
+  # standing building's `storage` in settlement_buildings.yml adds to it), and
+  # the most units of one material bought in one purchase. The base capacity
+  # must hold the largest single building cost, or a village could never
+  # stock what it needs to build; production and purchases stop at the
+  # capacity, so a granary is what lets a village keep more.
+  stock_base_capacity: 60
+  material_buy_max: 200
+  material_buy_presets: [5, 20, 50]
   # Village treasury start-up. A village has no income until its abstract
   # sales exist (ADR 0028 section 8.3), so it is founded with this many SUP
   # in its treasury (system_source -> city_treasury, reason

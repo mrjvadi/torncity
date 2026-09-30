@@ -295,6 +295,9 @@ commands:
   settlement.build.progress: {kind: navigation, icon: "action:progress"}
   settlement.build.demolish: {kind: danger, icon: "action:demolish"}
   settlement.build.cancel: {kind: danger, icon: "action:cancel_build"}
+  settlement.materials: {kind: navigation, icon: "action:materials"}
+  settlement.materials.buy: {kind: primary, icon: "action:buy"}
+  settlement.work: {kind: primary, icon: "action:work"}
   settlement.who: {kind: navigation, icon: "action:people"}
   settlement.found.draft: {kind: primary, icon: "action:home"}
   settlement.found.submit: {kind: confirm, icon: "action:home"}

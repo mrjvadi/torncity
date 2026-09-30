@@ -19,6 +19,7 @@
   [🏡 Become a resident] → settlement:join
   [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
   [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
+  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Village overview · nothing built yet ━━━
@@ -41,6 +42,7 @@ No buildings stand here yet.
   [🏡 Become a resident] → settlement:join
   [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
   [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
+  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Knowledge list · mixed states, research running ━━━
@@ -187,6 +189,7 @@ No buildings stand here yet.
   ───
   [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
   [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
+  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
   [💰 Give to the treasury] → settlement:donate   │   [🚪 Leave the village] → settlement:leave
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
@@ -211,6 +214,7 @@ No buildings stand here yet.
   ───
   [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
   [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
+  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
   [💰 Give to the treasury] → settlement:donate   │   [🚪 Leave the village] → settlement:leave
   [🏦 Bank - travel to Support] → travel:options:support   │   [🛒 Market - travel to Support] → travel:options:support
   [💼 Jobs - travel to Support] → travel:options:support   │   [📚 Knowledge - travel to Support] → travel:options:support

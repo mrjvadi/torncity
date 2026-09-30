@@ -678,6 +678,40 @@ biome:
 settlement_building:
   road: جاده
   civic_hall: "خانهٔ دهیاری"
+  woodcutter_camp: "کارگاه هیزم‌شکنی"
+  cottage: "خانهٔ روستایی"
+  granary: "انبار غله"
+  housing_block: "بلوک مسکونی"
+  park: "پارک"
+  small_pit: "گودال استخراج"
+  farm_canal: "مزرعهٔ نهری"
+  farm_shaft: "مزرعهٔ قناتی"
+  farm_terrace: "مزرعهٔ تراسی"
+  farm_paddy: "شالیزار"
+  pasture_range: "چراگاه"
+  carpentry_workshop: "کارگاه نجاری"
+  masonry_workshop: "کارگاه بنایی"
+  weaving_shed: "کارگاه بافندگی"
+  pottery_kiln: "کورهٔ سفال‌گری"
+  smithy: "کوره‌آهنگری"
+  watch_hut: "دیده‌بانی محله"
+  militia_camp: "اردوگاه میلیشیا"
+  retainer_hall: "تالار گارد"
+  constable_post: "پاسگاه ژاندارمری"
+  police_post: "کلانتری"
+  manufactory: "کارگاه بزرگ"
+  factory: "کارخانه"
+  mine: "معدن"
+  health_house: "خانهٔ درمان"
+  clinic: "درمانگاه"
+  teaching_circle: "حلقهٔ آموزش"
+  school: "مدرسه"
+  barter_post: "جایگاه پایاپای"
+  market: "بازار"
+  bank: "بانک"
+  barracks: "پادگان"
+  port: "بندر"
+  airport: "فرودگاه"
 
 # Group founding (docs/adr/0028-world-and-settlements.md section 3): a group
 # admin registers the group and the game places the new village on the map.
@@ -841,6 +875,8 @@ village:
     join: "🏡 ساکن این روستا شو"
     leave: "🚪 ترک روستا"
     donate: "💰 کمک به خزانه"
+    materials: "🧱 انبار و بازار"
+    work: "⚒ کار در روستا"
   tier_name:
     village: "روستا"
     town: "شهرستان"
@@ -913,6 +949,58 @@ village:
     donate_range: "💰 مبلغ کمک باید بین {min} و {max} باشد."
     donate_no_cash: "💰 پول نقد شما برای این کمک کافی نیست."
     promotion_top: "🏙 این سکونتگاه به بالاترین رده رسیده است؛ گام بعدی وجود ندارد."
+    storage_full: "📦 انبار روستا جا ندارد. «انبار غله» ظرفیت انبار را بیشتر می‌کند."
+    already_working: "⚒ شما همین حالا در یک شیفت کار می‌کنید. صبر کنید تمام شود."
+    workplace_full: "⚒ همهٔ جایگاه‌های این کارگاه پر است. کمی بعد یا در کارگاه دیگری کار کنید."
+    not_workplace: "🔒 در این بنا کار نمی‌شود."
+  needs:
+    title:
+      build: "🧱 برای ساخت «{subject}» هنوز چیزی کم است:"
+      research: "🔬 برای پژوهش «{subject}» هنوز چیزی کم است:"
+      work: "⚒ برای کار در «{subject}» هنوز چیزی کم است:"
+    material: "• {need} {name} لازم است (در انبار روستا: {have}) - {source}"
+    knowledge: "• دانش «{name}» - در «دانش روستا» پژوهش کنید یا از ساپورت بخرید"
+    knowledge_any: "• یکی از این دانش‌ها: {names} - در «دانش روستا» پژوهش کنید یا از ساپورت بخرید"
+    building: "• یکی از بناهای {names} - اول آن را بسازید"
+    or: " یا "
+    source:
+      made_built: "در «{building}» تولید می‌شود، آنجا کار کنید"
+      made_unbuilt: "«{building}» را بسازید تا تولید کند"
+      buy: "از بازار ساپورت بخرید (هر واحد {price})"
+    button:
+      build: "🏗 ساخت {building}"
+      work: "⚒ کار در {building}"
+      buy: "🛒 خرید {quantity} {name}"
+      knowledge: "📚 دانش روستا"
+      materials: "🧱 انبار و بازار"
+  materials:
+    title: "🧱 انبار و بازار روستای «{village}»"
+    treasury: "🏦 خزانه: {amount}"
+    capacity: "📦 جای انبار: {used} از {capacity} واحد"
+    stock_title: "📥 موجود در انبار:"
+    stock_line: "• {name}: {qty}"
+    stock_empty: "انبار خالی است."
+    market_title: "🛒 بازار ساپورت (با ساپِ خزانه):"
+    market_line: "• {name}: هر واحد {price}"
+    hint: "کالایی که کارگاه‌های روستا خودشان تولید می‌کنند ارزان‌تر از بازار درمی‌آید؛ برای شروع می‌توانید از بازار بخرید."
+    bought: "✅ {qty} {name} خریداری و به انبار روستا آورده شد ({total} از خزانه)."
+    ask_title: "🛒 {qty} {name} برای روستای «{village}» بخرید؟"
+    ask_body: "قیمت هر واحد {unit} است؛ جمعاً {total} از خزانه (اکنون {treasury}) پرداخت و کالا به انبار روستا می‌رسد."
+    button:
+      buy: "🛒 {name} ×{quantity}"
+      yes: "✅ بله، بخر ({total})"
+  work:
+    title: "⚒ کار در روستای «{village}»"
+    material: "{qty} {name}"
+    place: "• {building}: هر شیفت ({shift}) {produces} - دستمزد {wage} - جایگاه پر: {busy} از {workers}"
+    place_inputs: "• {building}: هر شیفت ({shift}) از {consumes} تولید {produces} - دستمزد {wage} - جایگاه پر: {busy} از {workers}"
+    none: "هنوز کارگاهی نساخته‌اید. برای شروع یکی از این‌ها را بسازید: {names}"
+    mine: "⏳ شیفت شما در «{building}» - ساعت {time} تمام می‌شود ({duration} دیگر) - تولید {produces}، دستمزد {wage}"
+    not_resident: "🏡 فقط ساکنان روستا کار می‌کنند؛ اول «ساکن این روستا شو» را بزنید."
+    capacity: "📦 جای انبار: {used} از {capacity} واحد"
+    hint: "هر شیفت را یک ساکن کار می‌کند؛ بدون کارگر چیزی تولید نمی‌شود و دستمزد از خزانهٔ روستا پرداخت می‌شود."
+    button:
+      start: "⚒ شروع شیفت در {building}"
   donate:
     title: "💰 کمک به خزانهٔ روستای «{village}»"
     body: |-
@@ -967,6 +1055,9 @@ build:
   line:
     available: "🏗 {building} - هزینه {cost} - زمان ساخت {time}"
     locked: "🔒 {building} - اول باید {missing} را داشته باشید"
+    locked_building: "🔒 {building} - اول یکی از بناهای {missing} را بسازید"
+    locked_role: "🔒 {building} - پیش‌نیازهای آن هنوز فراهم نشده است"
+    short: "🧱 {building} - هزینه {cost} - مواد لازم: {materials} - کم دارید: {short}"
   button:
     place: "🏗 ساخت {building}"
   confirm:
@@ -2747,6 +2838,11 @@ component:
   wheat: گندم
   cotton: پنبه
   timber: الوار
+  stone: سنگ
+  wool: پشم
+  plank: تخته
+  brick: آجر
+  cloth: پارچه
   flour: آرد
   tool_steel: فولاد ابزار
   plastic_case: بدنهٔ پلاستیکی

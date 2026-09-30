@@ -28,6 +28,7 @@
   [🏡 ساکن این روستا شو] → settlement:join
   [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
   [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
+  [🧱 انبار و بازار] → settlement:materials   │   [⚒ کار در روستا] → settlement:work
   [🧭 مسیر شهرستان شدن] → settlement:promotion.view
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
@@ -60,6 +61,7 @@
   ───
   [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
   [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
+  [🧱 انبار و بازار] → settlement:materials   │   [⚒ کار در روستا] → settlement:work
   [🚀 ارتقا به شهرستان] → settlement:promote
   [💰 کمک به خزانه] → settlement:donate   │   [🚪 ترک روستا] → settlement:leave
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
@@ -84,6 +86,7 @@
   [🏡 ساکن این روستا شو] → settlement:join
   [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
   [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
+  [🧱 انبار و بازار] → settlement:materials   │   [⚒ کار در روستا] → settlement:work
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ The way forward · part way ━━━

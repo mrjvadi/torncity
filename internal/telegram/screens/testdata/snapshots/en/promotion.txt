@@ -28,6 +28,7 @@ No buildings stand here yet.
   [🏡 Become a resident] → settlement:join
   [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
   [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
+  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
   [🧭 The way to a town] → settlement:promotion.view
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
@@ -60,6 +61,7 @@ No buildings stand here yet.
   ───
   [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
   [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
+  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
   [🚀 Promote to town] → settlement:promote
   [💰 Give to the treasury] → settlement:donate   │   [🚪 Leave the village] → settlement:leave
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
@@ -84,6 +86,7 @@ No buildings stand here yet.
   [🏡 Become a resident] → settlement:join
   [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
   [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
+  [🧱 Stock and market] → settlement:materials   │   [⚒ Work in the village] → settlement:work
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ The way forward · part way ━━━

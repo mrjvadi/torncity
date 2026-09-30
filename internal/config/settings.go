@@ -290,6 +290,10 @@ type settlementSettings struct {
 	ScarcityCapBPS        *int64  `yaml:"scarcity_cap_bps"`
 	SellerBandBPS         *int64  `yaml:"seller_band_bps"`
 	DemolitionSalvageBPS  *int64  `yaml:"demolition_salvage_bps"`
+	MaterialMarkupBPS     *int64  `yaml:"material_markup_bps"`
+	StockBaseCapacity     *int64  `yaml:"stock_base_capacity"`
+	MaterialBuyMax        *int64  `yaml:"material_buy_max"`
+	MaterialBuyPresets    []int64 `yaml:"material_buy_presets"`
 
 	FoundingGrant   *int64  `yaml:"founding_grant"`
 	DonationMin     *int64  `yaml:"donation_min"`
@@ -1091,6 +1095,18 @@ var coreSettings = []setting{
 	moneySetting("settlement", "demolition_salvage_bps",
 		func(c *Config) *int64 { return &c.Settlement.DemolitionSalvageBPS },
 		func(f *fileConfig) *int64 { return f.Settlement.DemolitionSalvageBPS }),
+	moneySetting("settlement", "material_markup_bps",
+		func(c *Config) *int64 { return &c.Settlement.MaterialMarkupBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.MaterialMarkupBPS }),
+	moneySetting("settlement", "stock_base_capacity",
+		func(c *Config) *int64 { return &c.Settlement.StockBaseCapacity },
+		func(f *fileConfig) *int64 { return f.Settlement.StockBaseCapacity }),
+	moneySetting("settlement", "material_buy_max",
+		func(c *Config) *int64 { return &c.Settlement.MaterialBuyMax },
+		func(f *fileConfig) *int64 { return f.Settlement.MaterialBuyMax }),
+	moneyListSetting("settlement", "material_buy_presets",
+		func(c *Config) *[]int64 { return &c.Settlement.MaterialBuyPresets },
+		func(f *fileConfig) []int64 { return f.Settlement.MaterialBuyPresets }),
 	moneySetting("settlement", "founding_grant",
 		func(c *Config) *int64 { return &c.Settlement.FoundingGrant },
 		func(f *fileConfig) *int64 { return f.Settlement.FoundingGrant }),

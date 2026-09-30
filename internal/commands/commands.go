@@ -440,6 +440,13 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "build.progress", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.demolish", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.cancel", Origin: FromPlayer},
+	// The village economy's first loop (ADR 0033 section 4.1): the stock and
+	// Support's market, buying materials, working a shift; only the scheduler
+	// sends settlement.worked, a shift reaching its end.
+	{Domain: "settlement", Action: "materials", Origin: FromPlayer},
+	{Domain: "settlement", Action: "materials.buy", Origin: FromPlayer},
+	{Domain: "settlement", Action: "work", Origin: FromPlayer},
+	{Domain: "settlement", Action: "worked", Origin: FromScheduler},
 	// Who is around in the village (docs/adr/0030, R2): a group screen.
 	{Domain: "settlement", Action: "who", Origin: FromPlayer},
 	{Domain: "settlement", Action: "join", Origin: FromPlayer},
