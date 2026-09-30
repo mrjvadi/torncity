@@ -103,7 +103,7 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 	timber := sampleNamed(c.Lang, "timber", "چوب", "Timber")
 	add("Building panel · a granary with its stock", BuildingPanel(g, BuildingView{
 		ID: bid, Building: granary, Role: "storage", Tier: 1, Kind: BuildingKindStorage, State: BuildingStateComplete,
-		X: 4, Y: 0, W: 1, H: 1, Upkeep: 20, CanManage: true,
+		X: 4, Y: 0, W: 1, H: 1, Upkeep: 20, CanManage: true, StockUsed: 135, StockCapacity: 360,
 		Stock: []BuildingStockLine{{Item: timber, Kind: "component", Qty: 15}, {Item: sampleNamed(c.Lang, "wheat", "گندم", "Wheat"), Kind: "item", Qty: 120}},
 	}))
 	add("Building panel · an empty store", BuildingPanel(g, BuildingView{
@@ -170,12 +170,12 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		SettlementName: villageNameFor(c), Building: road, GridLots: 5, Rows: sampleLotRows(), Multi: true, Line: LineEnd, From: LotBatchLot{X: 1, Y: 0},
 	}))
 	add("Placement · the preview names the roads laid with the building", LotConfirm(g, LotConfirmView{
-		SettlementName: villageNameFor(c), Building: sampleNamed(c.Lang, "village_house", "خانهٔ روستایی", "Village house"),
+		SettlementName: villageNameFor(c), Building: sampleNamed(c.Lang, "cottage", "خانهٔ روستایی", "Village house"),
 		X: 4, Y: 4, CostMoney: 720, BuildTime: 45 * time.Minute, AutoRoads: 2,
 		Materials: []MaterialLine{{Component: timber, Quantity: 2}},
 	}))
 	add("Land · a grid wider than a keyboard row is a window over the land", LotGrid(g, LotGridView{
-		SettlementName: villageNameFor(c), Building: sampleNamed(c.Lang, "village_house", "خانهٔ روستایی", "Village house"),
+		SettlementName: villageNameFor(c), Building: sampleNamed(c.Lang, "cottage", "خانهٔ روستایی", "Village house"),
 		GridLots: 10, Rows: wideLotRows(10), WinX: 4, WinY: 4,
 	}))
 	add("Land · the price of the next expansion", GridGrowConfirm(g, GridGrowView{

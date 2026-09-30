@@ -117,6 +117,8 @@ type BuildingView struct {
 	// Storage: what the village store holds. The store has no capacity in
 	// the content yet; none is invented here.
 	Stock []BuildingStockLine
+	// StockUsed and StockCapacity are the store's use and its room, in units.
+	StockUsed, StockCapacity int64
 
 	// School: the village's literacy, and whether diffusion is running.
 	LiteracyPercent int
@@ -220,6 +222,9 @@ func buildingBody(c Context, v BuildingView) []string {
 	var out []string
 	switch v.Kind {
 	case BuildingKindStorage:
+		if v.StockCapacity > 0 {
+			out = append(out, c.T("building.storage.capacity", map[string]any{"used": FormatNumber(c, v.StockUsed), "capacity": FormatNumber(c, v.StockCapacity)}))
+		}
 		if len(v.Stock) == 0 {
 			out = append(out, c.T("building.storage.empty", nil))
 			break

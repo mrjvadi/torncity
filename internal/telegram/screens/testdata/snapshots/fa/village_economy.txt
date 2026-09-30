@@ -1,0 +1,216 @@
+━━━ Stock and market · the head, a few goods ━━━
+(edits message 42)
+🧱 انبار و بازار روستای «کورندال»
+
+🏦 خزانه: ⁨⁨58,000⁩ ساپ⁩
+
+📦 جای انبار: 14 از 60 واحد
+
+📥 موجود در انبار:
+• الوار: 9
+• سنگ: 5
+
+🛒 بازار ساپورت (با ساپِ خزانه):
+• الوار: هر واحد ⁨⁨18⁩ ساپ⁩
+• سنگ: هر واحد ⁨⁨8⁩ ساپ⁩
+• پشم: هر واحد ⁨⁨15⁩ ساپ⁩
+
+کالایی که کارگاه‌های روستا خودشان تولید می‌کنند ارزان‌تر از بازار درمی‌آید؛ برای شروع می‌توانید از بازار بخرید.
+  ───
+  [🛒 الوار ×5] → settlement:materials.buy:timber:5   │   [🛒 الوار ×20] → settlement:materials.buy:timber:20   │   [🛒 الوار ×50] → settlement:materials.buy:timber:50
+  [🛒 سنگ ×5] → settlement:materials.buy:stone:5   │   [🛒 سنگ ×20] → settlement:materials.buy:stone:20   │   [🛒 سنگ ×50] → settlement:materials.buy:stone:50
+  [🛒 پشم ×5] → settlement:materials.buy:wool:5   │   [🛒 پشم ×20] → settlement:materials.buy:wool:20   │   [🛒 پشم ×50] → settlement:materials.buy:wool:50
+  [⚒ کار در روستا] → settlement:work   │   [🏗 ساخت‌وساز] → settlement:build
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:materials
+
+━━━ Stock and market · a resident, empty stock, just bought ━━━
+(edits message 42)
+✅ 10 الوار خریداری و به انبار روستا آورده شد (⁨⁨180⁩ ساپ⁩ از خزانه).
+
+🧱 انبار و بازار روستای «کورندال»
+
+🏦 خزانه: ⁨⁨57,820⁩ ساپ⁩
+
+📦 جای انبار: 0 از 60 واحد
+
+📥 موجود در انبار:
+انبار خالی است.
+
+🛒 بازار ساپورت (با ساپِ خزانه):
+• الوار: هر واحد ⁨⁨18⁩ ساپ⁩
+
+کالایی که کارگاه‌های روستا خودشان تولید می‌کنند ارزان‌تر از بازار درمی‌آید؛ برای شروع می‌توانید از بازار بخرید.
+  ───
+  [⚒ کار در روستا] → settlement:work   │   [🏗 ساخت‌وساز] → settlement:build
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:materials
+
+━━━ Buy confirm · ten timber ━━━
+(edits message 42)
+🛒 10 الوار برای روستای «کورندال» بخرید؟
+
+قیمت هر واحد ⁨⁨18⁩ ساپ⁩ است؛ جمعاً ⁨⁨180⁩ ساپ⁩ از خزانه (اکنون ⁨⁨58,000⁩ ساپ⁩) پرداخت و کالا به انبار روستا می‌رسد.
+  ───
+  [✅ بله، بخر (⁨⁨180⁩ ساپ⁩)] → settlement:materials.buy:timber:10:confirm
+  [🔙 بازگشت] → settlement:materials
+
+━━━ Work · a woodcutter's camp and a joinery, my shift running ━━━
+(edits message 42)
+⚒ کار در روستای «کورندال»
+
+⏳ شیفت شما در «کارگاه هیزم‌شکنی» - ساعت ⁨15⁩:⁨15⁩ تمام می‌شود (⁨40 دقیقه⁩ دیگر) - تولید ⁨4 الوار⁩، دستمزد ⁨⁨40⁩ ساپ⁩
+
+• کارگاه هیزم‌شکنی: هر شیفت (⁨1 ساعت⁩) ⁨4 الوار⁩ - دستمزد ⁨⁨40⁩ ساپ⁩ - جایگاه پر: 1 از 3
+• کارگاه نجاری: هر شیفت (⁨1 ساعت و 30 دقیقه⁩) از ⁨3 الوار⁩ تولید ⁨2 تخته⁩ - دستمزد ⁨⁨30⁩ ساپ⁩ - جایگاه پر: 0 از 2
+
+📦 جای انبار: 14 از 60 واحد
+
+هر شیفت را یک ساکن کار می‌کند؛ بدون کارگر چیزی تولید نمی‌شود و دستمزد از خزانهٔ روستا پرداخت می‌شود.
+  ───
+  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:work
+
+━━━ Work · a resident may start a shift ━━━
+(edits message 42)
+⚒ کار در روستای «کورندال»
+
+• کارگاه هیزم‌شکنی: هر شیفت (⁨1 ساعت⁩) ⁨4 الوار⁩ - دستمزد ⁨⁨40⁩ ساپ⁩ - جایگاه پر: 0 از 3
+
+📦 جای انبار: 0 از 60 واحد
+
+هر شیفت را یک ساکن کار می‌کند؛ بدون کارگر چیزی تولید نمی‌شود و دستمزد از خزانهٔ روستا پرداخت می‌شود.
+  ───
+  [⚒ شروع شیفت در کارگاه هیزم‌شکنی] → settlement:work:b1
+  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:work
+
+━━━ Work · no workplace yet, what to build ━━━
+(edits message 42)
+⚒ کار در روستای «کورندال»
+
+هنوز کارگاهی نساخته‌اید. برای شروع یکی از این‌ها را بسازید: کارگاه هیزم‌شکنی، گودال استخراج
+
+📦 جای انبار: 0 از 60 واحد
+
+هر شیفت را یک ساکن کار می‌کند؛ بدون کارگر چیزی تولید نمی‌شود و دستمزد از خزانهٔ روستا پرداخت می‌شود.
+  ───
+  [🏗 ساخت کارگاه هیزم‌شکنی] → settlement:build.lots:woodcutter_camp
+  [🏗 ساخت گودال استخراج] → settlement:build.lots:small_pit
+  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:work
+
+━━━ Work · not a resident ━━━
+(edits message 42)
+⚒ کار در روستای «کورندال»
+
+🏡 فقط ساکنان روستا کار می‌کنند؛ اول «ساکن این روستا شو» را بزنید.
+
+• کارگاه هیزم‌شکنی: هر شیفت (⁨1 ساعت⁩) ⁨4 الوار⁩ - دستمزد ⁨⁨40⁩ ساپ⁩ - جایگاه پر: 0 از 3
+
+📦 جای انبار: 0 از 60 واحد
+
+هر شیفت را یک ساکن کار می‌کند؛ بدون کارگر چیزی تولید نمی‌شود و دستمزد از خزانهٔ روستا پرداخت می‌شود.
+  ───
+  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:work
+
+━━━ Work started ━━━
+(edits message 42)
+⚒ کار در روستای «کورندال»
+
+⏳ شیفت شما در «کارگاه هیزم‌شکنی» - ساعت ⁨15⁩:⁨35⁩ تمام می‌شود (⁨1 ساعت⁩ دیگر) - تولید ⁨4 الوار⁩، دستمزد ⁨⁨40⁩ ساپ⁩
+
+• کارگاه هیزم‌شکنی: هر شیفت (⁨1 ساعت⁩) ⁨4 الوار⁩ - دستمزد ⁨⁨40⁩ ساپ⁩ - جایگاه پر: 1 از 3
+
+📦 جای انبار: 14 از 60 واحد
+
+هر شیفت را یک ساکن کار می‌کند؛ بدون کارگر چیزی تولید نمی‌شود و دستمزد از خزانهٔ روستا پرداخت می‌شود.
+  ───
+  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:work
+
+━━━ Refusal · civic hall needs timber that a camp makes and Support sells ━━━
+(edits message 42)
+🧱 برای ساخت «بلوک مسکونی» هنوز چیزی کم است:
+
+• 10 الوار لازم است (در انبار روستا: 2) - ⁨«کارگاه هیزم‌شکنی» را بسازید تا تولید کند یا از بازار ساپورت بخرید (هر واحد ⁨⁨18⁩ ساپ⁩)⁩
+  ───
+  [🏗 ساخت کارگاه هیزم‌شکنی] → settlement:build.lots:woodcutter_camp
+  [🛒 خرید 8 الوار] → settlement:materials.buy:timber:8
+  [🧱 انبار و بازار] → settlement:materials
+  [🔙 بازگشت] → settlement:build
+
+━━━ Refusal · the camp is already standing, work there ━━━
+(edits message 42)
+🧱 برای ساخت «خانهٔ دهیاری» هنوز چیزی کم است:
+
+• 5 الوار لازم است (در انبار روستا: 0) - ⁨در «کارگاه هیزم‌شکنی» تولید می‌شود، آنجا کار کنید یا از بازار ساپورت بخرید (هر واحد ⁨⁨18⁩ ساپ⁩)⁩
+  ───
+  [⚒ کار در کارگاه هیزم‌شکنی] → settlement:work
+  [🛒 خرید 5 الوار] → settlement:materials.buy:timber:5
+  [🧱 انبار و بازار] → settlement:materials
+  [🔙 بازگشت] → settlement:build
+
+━━━ Refusal · a material only a workshop makes and Support does not sell ━━━
+(edits message 42)
+⚒ برای کار در «کارگاه نجاری» هنوز چیزی کم است:
+
+• 3 گندم لازم است (در انبار روستا: 1) - «مزرعهٔ نهری» را بسازید تا تولید کند
+  ───
+  [🏗 ساخت مزرعهٔ نهری] → settlement:build.lots:farm_canal
+  [🧱 انبار و بازار] → settlement:materials
+  [🔙 بازگشت] → settlement:work
+
+━━━ Refusal · a school needs a circle first and timber ━━━
+(edits message 42)
+🧱 برای ساخت «مدرسه» هنوز چیزی کم است:
+
+• یکی از بناهای حلقهٔ آموزش - اول آن را بسازید
+• 10 الوار لازم است (در انبار روستا: 0) - ⁨«کارگاه هیزم‌شکنی» را بسازید تا تولید کند یا از بازار ساپورت بخرید (هر واحد ⁨⁨18⁩ ساپ⁩)⁩
+  ───
+  [🏗 ساخت حلقهٔ آموزش] → settlement:build.lots:teaching_circle
+  [🏗 ساخت کارگاه هیزم‌شکنی] → settlement:build.lots:woodcutter_camp
+  [🛒 خرید 10 الوار] → settlement:materials.buy:timber:10
+  [🧱 انبار و بازار] → settlement:materials
+  [🔙 بازگشت] → settlement:build
+
+━━━ Refusal · research needs knowledge first ━━━
+(edits message 42)
+🔬 برای پژوهش «نجاری» هنوز چیزی کم است:
+
+• دانش «سوادآموزی پایه» - در «دانش روستا» پژوهش کنید یا از ساپورت بخرید
+  ───
+  [📚 دانش روستا] → settlement:knowledge
+  [🧱 انبار و بازار] → settlement:materials
+  [🔙 بازگشت] → settlement:knowledge
+
+━━━ Refusal · the stock is full ━━━
+(edits message 42)
+📦 انبار روستا جا ندارد. «انبار غله» ظرفیت انبار را بیشتر می‌کند.
+  ───
+  [🔙 بازگشت] → settlement:materials
+
+━━━ Refusal · already working ━━━
+(edits message 42)
+⚒ شما همین حالا در یک شیفت کار می‌کنید. صبر کنید تمام شود.
+  ───
+  [🔙 بازگشت] → settlement:work
+
+━━━ Refusal · workplace full ━━━
+(edits message 42)
+⚒ همهٔ جایگاه‌های این کارگاه پر است. کمی بعد یا در کارگاه دیگری کار کنید.
+  ───
+  [🔙 بازگشت] → settlement:work
+
+━━━ Build menu · listed by tier, materials short, roles missing ━━━
+(edits message 42)
+🏗 ساخت‌وساز کورندال
+🏦 خزانه: ⁨⁨58,000⁩ ساپ⁩
+📋 صف ساخت: 0 از 1
+
+🏗 کارگاه هیزم‌شکنی - هزینه ⁨⁨300⁩ ساپ⁩ - زمان ساخت ⁨30 دقیقه⁩
+🧱 خانهٔ دهیاری - هزینه ⁨⁨1,000⁩ ساپ⁩ - مواد لازم: ⁨5 الوار⁩ - کم دارید: ⁨5 الوار⁩
+🔒 مدرسه - اول یکی از بناهای حلقهٔ آموزش را بسازید
+  ───
+  [🏗 ساخت کارگاه هیزم‌شکنی] → settlement:build.lots:woodcutter_camp   │   [🏗 ساخت خانهٔ دهیاری] → settlement:build.lots:civic_hall
+  [🗺 گسترش زمین] → settlement:grid.grow
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build

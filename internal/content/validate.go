@@ -199,6 +199,7 @@ func (p *Pack) Validate() error {
 	p.validateVehicles(&problems)
 	p.validateSettlementKnowledge(&problems)
 	p.validateSettlementBuildings(&problems)
+	p.validateSettlementTiers(&problems)
 
 	if len(problems) > 0 {
 		return errors.Join(problems...)

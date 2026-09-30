@@ -86,6 +86,7 @@ const (
 	SettlementKnowledgeBuy      = "knowledge_bought"
 	SettlementLiteracy          = "literacy_changed"
 	SettlementHeadChanged       = "head_changed"
+	SettlementPromoted          = "promoted"
 	SettlementMemberJoined      = "member_joined"
 	SettlementMemberLeft        = "member_left"
 	settlementEventKeySuffix    = ":settlement"
@@ -343,6 +344,27 @@ func villageLiteracy(_ context.Context, _ Deps, env *envelope.Envelope) ([]Settl
 		return nil, err
 	}
 	return one(ev.SettlementID, SettlementLiteracy, map[string]any{"literacy_share_bps": ev.LiteracyShareBP}), nil
+}
+
+// villagePromoted: the settlement grew into the next tier. Its grid, its
+// build cap and its offices changed with it, so a client that holds a layout
+// fetches it again.
+func villagePromoted(_ context.Context, _ Deps, env *envelope.Envelope) ([]SettlementPublication, error) {
+	var ev struct {
+		SettlementID string `json:"settlement_id"`
+		From         string `json:"from"`
+		To           string `json:"to"`
+		Office       string `json:"office"`
+		HeadPlayerID string `json:"head_player_id"`
+	}
+	if err := json.Unmarshal(env.Payload, &ev); err != nil {
+		return nil, apperrors.InvalidInput("settlement.promoted payload is unreadable").WithCause(err)
+	}
+	f := map[string]any{"from": ev.From, "tier": ev.To, "office": ev.Office, "layout_stale": true}
+	if ev.HeadPlayerID != "" {
+		f["head_player_id"] = ev.HeadPlayerID
+	}
+	return one(ev.SettlementID, SettlementPromoted, f), nil
 }
 
 // headOffices are the offices that head a settlement (ADR 0028 section 4):

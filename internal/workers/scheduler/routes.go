@@ -133,6 +133,8 @@ const (
 	ActionTypeSettlementResearch = "settlement_research"
 	ActionTypeSettlementTeach    = "settlement_teach"
 	ActionTypeSettlementBuild    = "settlement_build"
+	// A village shift reaching its end (docs/adr/0033, section 4.1).
+	ActionTypeSettlementWork = "settlement_work"
 )
 
 // routes maps an action type to the command it is published as.
@@ -192,6 +194,7 @@ var routes = map[string]Route{
 	ActionTypeSettlementResearch: {Domain: "settlement", Action: "researched"},
 	ActionTypeSettlementTeach:    {Domain: "settlement", Action: "taught"},
 	ActionTypeSettlementBuild:    {Domain: "settlement", Action: "built"},
+	ActionTypeSettlementWork:     {Domain: "settlement", Action: "worked"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

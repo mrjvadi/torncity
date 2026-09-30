@@ -133,8 +133,12 @@ map:
   cities_title: "🧭 سفر به شهر دیگر"
   title: "🗺 نقشه"
   origin: "📍 شما در {city} هستید."
-  destinations: "از اینجا به این شهرها می‌توانید سفر کنید:"
+  destinations: "از اینجا به این شهرها و روستاها می‌توانید سفر کنید:"
   destination: "• {city} - {distance} کیلومتر"
+  # A place priced from the world: the distance, the cheapest fare and the
+  # fastest way there.
+  destination_priced: "• {city} - {distance} کیلومتر - کرایه از {fare} - سریع‌ترین {wait}"
+  destination_free: "• {city} - {distance} کیلومتر - رایگان با پای پیاده - سریع‌ترین {wait}"
   no_routes: "فعلاً از اینجا راهی به جای دیگری نیست. هر وقت مسیری باز شود، مقصدها همین‌جا نمایش داده می‌شوند."
   no_city: "هنوز در هیچ شهری مستقر نشده‌اید. پس از استقرار، مقصدهای سفر همین‌جا نمایش داده می‌شوند."
   travelling: "🧭 در راه {city} هستید. پس از رسیدن می‌توانید سفر تازه‌ای را آغاز کنید."
@@ -187,6 +191,13 @@ travel:
   # to a new level; {level} is the highest level reached.
   arrived_level: "⭐ تبریک؛ به سطح {level} رسیدید."
   none: "الان در سفر نیستید. برای سفر، «نقشه» را باز کنید."
+  # «سفر به این روستا» typed in a village's group (travel.here): the journey to
+  # that group's village, with nothing to choose. These are what it says when
+  # there is no journey to offer.
+  here:
+    no_village: "🏡 این گروه هنوز روستایی ندارد، پس مقصدی برای سفر نیست. برای شروع «ساخت روستا» را بفرستید."
+    already_there: "📍 همین حالا در {village} هستید و سفری لازم نیست. برای رفتن به جای دیگر «نقشه» را باز کنید."
+    group_only: "🧭 «سفر به این روستا» را در گروهِ همان روستا بفرستید تا مستقیم به آنجا سفر کنید. برای مقصدهای دیگر «نقشه» را باز کنید."
   same_city: "همین حالا در این شهر هستید. مقصد دیگری را از «نقشه» انتخاب کنید."
   no_route: "از شهری که در آن هستید راهی به آنجا نیست. یکی از مقصدهای «نقشه» را انتخاب کنید."
   mode_unavailable: "این وسیله در این مسیر رفت‌وآمد نمی‌کند. مقصد را دوباره از «نقشه» بزنید تا وسیله‌های همین مسیر را ببینید."
@@ -199,6 +210,8 @@ transport_mode:
   car: خودرو
   train: قطار
   flight: هواپیما
+  walk: پیاده
+  cart: گاری
 
 skills:
   title: "🛠 مهارت‌ها"
@@ -393,6 +406,7 @@ button:
   travel_to: "🧭 {city}"
   travel_by: "{mode} - {fare}"
   travel_options: "🧭 وسیله‌های سفر"
+  travel_elsewhere: "🧭 مقصدهای دیگر"
   skills: "🛠 مهارت‌ها"
   social: "👥 دوستان"
   settings: "⚙️ تنظیمات"
@@ -664,6 +678,40 @@ biome:
 settlement_building:
   road: جاده
   civic_hall: "خانهٔ دهیاری"
+  woodcutter_camp: "کارگاه هیزم‌شکنی"
+  cottage: "خانهٔ روستایی"
+  granary: "انبار غله"
+  housing_block: "بلوک مسکونی"
+  park: "پارک"
+  small_pit: "گودال استخراج"
+  farm_canal: "مزرعهٔ نهری"
+  farm_shaft: "مزرعهٔ قناتی"
+  farm_terrace: "مزرعهٔ تراسی"
+  farm_paddy: "شالیزار"
+  pasture_range: "چراگاه"
+  carpentry_workshop: "کارگاه نجاری"
+  masonry_workshop: "کارگاه بنایی"
+  weaving_shed: "کارگاه بافندگی"
+  pottery_kiln: "کورهٔ سفال‌گری"
+  smithy: "کوره‌آهنگری"
+  watch_hut: "دیده‌بانی محله"
+  militia_camp: "اردوگاه میلیشیا"
+  retainer_hall: "تالار گارد"
+  constable_post: "پاسگاه ژاندارمری"
+  police_post: "کلانتری"
+  manufactory: "کارگاه بزرگ"
+  factory: "کارخانه"
+  mine: "معدن"
+  health_house: "خانهٔ درمان"
+  clinic: "درمانگاه"
+  teaching_circle: "حلقهٔ آموزش"
+  school: "مدرسه"
+  barter_post: "جایگاه پایاپای"
+  market: "بازار"
+  bank: "بانک"
+  barracks: "پادگان"
+  port: "بندر"
+  airport: "فرودگاه"
 
 # Group founding (docs/adr/0028-world-and-settlements.md section 3): a group
 # admin registers the group and the game places the new village on the map.
@@ -827,6 +875,54 @@ village:
     join: "🏡 ساکن این روستا شو"
     leave: "🚪 ترک روستا"
     donate: "💰 کمک به خزانه"
+    materials: "🧱 انبار و بازار"
+    work: "⚒ کار در روستا"
+  tier_name:
+    village: "روستا"
+    town: "شهرستان"
+    city: "شهر"
+  office:
+    village: "دهیار"
+    town: "فرماندار"
+    city: "شهردار"
+  promotion:
+    block_title: "🧭 مسیر {tier} شدن:"
+    title: "🧭 مسیر {tier} شدن «{village}»"
+    intro: "«{village}» با رشد به {tier} می‌رسد، نه با زمین بیشتر: با مردم، سواد، ساختمان، دانش و خزانه‌ای سالم. این‌ها گام‌های پیش رو هستند:"
+    goal:
+      residents: "{mark} ساکنان: {current} از {required}"
+      literacy: "{mark} سوادآموزی: {current}٪ از {required}٪"
+      buildings: "{mark} ساختمان‌های ساخته‌شده (بدون جاده): {current} از {required}"
+      knowledge: "{mark} دانشی که روستا خودش آموخته (پژوهش یا خرید): {current} از {required}"
+      treasury: "{mark} خزانه: {current} از {required}"
+      role: "{mark} {role}"
+    role:
+      food:
+        t1: "یک ساختمان تأمین خوراک (مزرعه یا دامداری)"
+      education:
+        t1: "یک ساختمان آموزشی (حلقهٔ آموزش)"
+        t2: "مدرسه"
+      health:
+        t1: "یک ساختمان درمانی (خانهٔ درمان)"
+        t2: "درمانگاه"
+      market:
+        t2: "بازار"
+      security:
+        t1: "یک ساختمان امنیتی (دیده‌بانی یا پاسگاه)"
+    ready_head: "🎉 همهٔ گام‌ها برداشته شد. حالا می‌توانید «{village}» را به {tier} ارتقا دهید."
+    ready_member: "🎉 همهٔ گام‌ها برداشته شد. ارتقا با سرپرست روستاست."
+    not_ready: "هر گامی که برداشته شود اینجا ✅ می‌شود. وقتی همه ✅ شدند، سرپرست دکمهٔ ارتقا را می‌بیند."
+    button_view: "🧭 مسیر {tier} شدن"
+    button_promote: "🚀 ارتقا به {tier}"
+    button_yes: "✅ بله، ارتقا بده"
+    ask_title: "🚀 «{village}» را به {tier} ارتقا می‌دهید؟"
+    ask_body:
+      town: "دهیار فرماندار می‌شود و همچنان سرپرست می‌ماند؛ ساخت‌وساز گسترده‌تر می‌شود و ساختمان‌ها و دانش تازه‌ای پیدا می‌شود. ارتقا هزینه ندارد و برگشت‌پذیر نیست؛ خبرش در گروه اعلام می‌شود."
+      city: "فرماندار شهردار می‌شود و همچنان سرپرست می‌ماند؛ دولت شهر با مالیات، شورا و انتخابات راه می‌افتد. ارتقا هزینه ندارد و برگشت‌پذیر نیست؛ خبرش در گروه اعلام می‌شود."
+    done_title: "🎉 «{village}» به {tier} ارتقا یافت!"
+    done_body:
+      town: "دهیار اکنون فرماندار است. ساختمان‌ها و دانش تازهٔ شهرستان در فهرست ساخت‌وساز و دانش دیده می‌شود و خبر ارتقا در گروه اعلام شد."
+      city: "فرماندار اکنون شهردار است. کارهای شهری در دسترس شد و خبر ارتقا در گروه اعلام شد."
   refusal:
     no_settlement: "🏡 این گروه هنوز روستایی تأسیس نکرده است. برای شروع «ساخت روستا» را بفرستید."
     not_office_holder: "🔒 این کار فقط برای دهیار روستا ممکن است."
@@ -857,6 +953,11 @@ village:
     batch: |-
       🚧 ساخت گروهی انجام نشد و چیزی پرداخت نشد. این قطعه‌ها مشکل دارند:
       {lots}
+    promotion_top: "🏙 این سکونتگاه به بالاترین رده رسیده است؛ گام بعدی وجود ندارد."
+    storage_full: "📦 انبار روستا جا ندارد. «انبار غله» ظرفیت انبار را بیشتر می‌کند."
+    already_working: "⚒ شما همین حالا در یک شیفت کار می‌کنید. صبر کنید تمام شود."
+    workplace_full: "⚒ همهٔ جایگاه‌های این کارگاه پر است. کمی بعد یا در کارگاه دیگری کار کنید."
+    not_workplace: "🔒 در این بنا کار نمی‌شود."
   batch_lot: "• ردیف {y}، ستون {x}: {reason}"
   batch_reason:
     occupied: "قبلاً اشغال شده"
@@ -868,6 +969,54 @@ village:
     concurrent_cap: "صف ساخت جا ندارد"
     not_available: "این بنا را نمی‌شود گروهی ساخت"
     not_found: "قطعه نامعتبر است"
+  needs:
+    title:
+      build: "🧱 برای ساخت «{subject}» هنوز چیزی کم است:"
+      research: "🔬 برای پژوهش «{subject}» هنوز چیزی کم است:"
+      work: "⚒ برای کار در «{subject}» هنوز چیزی کم است:"
+    material: "• {need} {name} لازم است (در انبار روستا: {have}) - {source}"
+    knowledge: "• دانش «{name}» - در «دانش روستا» پژوهش کنید یا از ساپورت بخرید"
+    knowledge_any: "• یکی از این دانش‌ها: {names} - در «دانش روستا» پژوهش کنید یا از ساپورت بخرید"
+    building: "• یکی از بناهای {names} - اول آن را بسازید"
+    or: " یا "
+    source:
+      made_built: "در «{building}» تولید می‌شود، آنجا کار کنید"
+      made_unbuilt: "«{building}» را بسازید تا تولید کند"
+      buy: "از بازار ساپورت بخرید (هر واحد {price})"
+    button:
+      build: "🏗 ساخت {building}"
+      work: "⚒ کار در {building}"
+      buy: "🛒 خرید {quantity} {name}"
+      knowledge: "📚 دانش روستا"
+      materials: "🧱 انبار و بازار"
+  materials:
+    title: "🧱 انبار و بازار روستای «{village}»"
+    treasury: "🏦 خزانه: {amount}"
+    capacity: "📦 جای انبار: {used} از {capacity} واحد"
+    stock_title: "📥 موجود در انبار:"
+    stock_line: "• {name}: {qty}"
+    stock_empty: "انبار خالی است."
+    market_title: "🛒 بازار ساپورت (با ساپِ خزانه):"
+    market_line: "• {name}: هر واحد {price}"
+    hint: "کالایی که کارگاه‌های روستا خودشان تولید می‌کنند ارزان‌تر از بازار درمی‌آید؛ برای شروع می‌توانید از بازار بخرید."
+    bought: "✅ {qty} {name} خریداری و به انبار روستا آورده شد ({total} از خزانه)."
+    ask_title: "🛒 {qty} {name} برای روستای «{village}» بخرید؟"
+    ask_body: "قیمت هر واحد {unit} است؛ جمعاً {total} از خزانه (اکنون {treasury}) پرداخت و کالا به انبار روستا می‌رسد."
+    button:
+      buy: "🛒 {name} ×{quantity}"
+      yes: "✅ بله، بخر ({total})"
+  work:
+    title: "⚒ کار در روستای «{village}»"
+    material: "{qty} {name}"
+    place: "• {building}: هر شیفت ({shift}) {produces} - دستمزد {wage} - جایگاه پر: {busy} از {workers}"
+    place_inputs: "• {building}: هر شیفت ({shift}) از {consumes} تولید {produces} - دستمزد {wage} - جایگاه پر: {busy} از {workers}"
+    none: "هنوز کارگاهی نساخته‌اید. برای شروع یکی از این‌ها را بسازید: {names}"
+    mine: "⏳ شیفت شما در «{building}» - ساعت {time} تمام می‌شود ({duration} دیگر) - تولید {produces}، دستمزد {wage}"
+    not_resident: "🏡 فقط ساکنان روستا کار می‌کنند؛ اول «ساکن این روستا شو» را بزنید."
+    capacity: "📦 جای انبار: {used} از {capacity} واحد"
+    hint: "هر شیفت را یک ساکن کار می‌کند؛ بدون کارگر چیزی تولید نمی‌شود و دستمزد از خزانهٔ روستا پرداخت می‌شود."
+    button:
+      start: "⚒ شروع شیفت در {building}"
   donate:
     title: "💰 کمک به خزانهٔ روستای «{village}»"
     body: |-
@@ -922,6 +1071,9 @@ build:
   line:
     available: "🏗 {building} - هزینه {cost} - زمان ساخت {time}"
     locked: "🔒 {building} - اول باید {missing} را داشته باشید"
+    locked_building: "🔒 {building} - اول یکی از بناهای {missing} را بسازید"
+    locked_role: "🔒 {building} - پیش‌نیازهای آن هنوز فراهم نشده است"
+    short: "🧱 {building} - هزینه {cost} - مواد لازم: {materials} - کم دارید: {short}"
   button:
     place: "🏗 ساخت {building}"
     grow: "🗺 گسترش زمین"
@@ -997,8 +1149,8 @@ building:
       education: "آموزش اهالی؛ تا وقتی این بنا سر پاست، سواد میان اهالی کم‌کم پخش می‌شود."
       market: "جای دادوستد اهالی؛ کالا اینجا دست‌به‌دست می‌شود."
       storage: "انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد."
+      housing: "خانه‌های اهالی؛ ظرفیت جمعیت روستا را بالا می‌برد."
     code:
-      village_house: "خانه‌ای یک‌قطعه‌ای برای چند نفر؛ ظرفیت جمعیت روستا را کمی بالا می‌برد."
       housing_block: "خانه‌های تازه برای اهالی؛ ظرفیت جمعیت روستا را بالا می‌برد."
       park: "فضای سبز روستا؛ حال‌وهوای اهالی را بهتر می‌کند."
       bank: "بنایی از شهرهای بزرگ‌تر؛ کارکردش با رشد روستا باز می‌شود."
@@ -1015,6 +1167,7 @@ building:
   storage:
     title: "📦 موجودی انبار:"
     line: "• {item}: {qty}"
+    capacity: "📦 گنجایش انبار: {used} از {capacity} واحد"
     empty: "📦 انبار فعلاً خالی است."
   school:
     literacy: "📖 سواد روستا: {percent}٪"
@@ -1049,6 +1202,16 @@ group:
   # of a screen (the bank, the bag, the job…): it opens the bot's private
   # chat, where those live.
   continue_private: "🔒 ادامه در پی‌وی"
+  # Web-app buttons do not open inside a group (Telegram allows them only in
+  # a private chat), so under each one sits a button that sends it there.
+  webapp_send_private: "📩 ارسال در پیوی من"
+  webapp_sent: "📩 در پیوی برایت فرستادم."
+  webapp_start_bot: "ابتدا ربات را در پی‌وی باز کنید و «شروع» را بزنید، بعد دوباره این دکمه را بزنید."
+  webapp_slow_down: "⏳ همین الان فرستاده شد؛ پیوی خودتان را ببینید."
+  webapp_unavailable: "این بخش فعلاً در دسترس نیست. کمی بعد دوباره امتحان کنید."
+  webapp_text: "🌐 برای ورود به بازی روی دکمهٔ زیر بزنید تا در همین گفت‌وگو باز شود."
+  webapp_text_founding: "🏡 برای پر کردن فرم تأسیس روستا روی دکمهٔ زیر بزنید تا در همین گفت‌وگو باز شود."
+  webapp_open: "🌐 باز کردن"
   # Posted once when the bot is added to a group.
   welcome: |-
     سلام به همه! از این پس می‌توانید در همین گروه بازی کنید؛ برای شروع «پروفایل» یا «راهنما» را بفرستید.
@@ -1730,6 +1893,10 @@ command_alias:
   portfolio: "سبد | پرتفوی"
   gold: "طلا | طلافروشی"
   village: "روستا | دهکده"
+  # Straight to the village of the group it is sent in (travel.here): the ways
+  # there from wherever the player stands, no list to search.
+  travel:
+    here: "سفر به این روستا | سفر به این گروه | سفر به اینجا | بریم اینجا"
   settlement:
     found: "ساخت روستا | تاسیس روستا"
     join: "ساکن این روستا شو | عضویت در روستا | ساکن روستا شو"
@@ -2774,6 +2941,11 @@ component:
   wheat: گندم
   cotton: پنبه
   timber: الوار
+  stone: سنگ
+  wool: پشم
+  plank: تخته
+  brick: آجر
+  cloth: پارچه
   flour: آرد
   tool_steel: فولاد ابزار
   plastic_case: بدنهٔ پلاستیکی
@@ -4753,6 +4925,7 @@ village_news:
   taught: "📖 سوادآموزی روستای «{village}» به {percent}٪ رسید."
   resident_joined: "🏡 {player} ساکن روستای «{village}» شد."
   donated: "💰 {player} {amount} ساپ به خزانهٔ روستا کمک کرد."
+  promoted: "🎉 «{village}» به {tier} ارتقا یافت! {player} اکنون {office} است و ساختمان‌ها و دانش تازه‌ای در دسترس است."
   someone: "یک نفر"
   merged:
     title: "🏘 تازه‌های روستای «{village}»:"
@@ -4763,4 +4936,5 @@ village_news:
     taught: "• 📖 سوادآموزی به {percent}٪ رسید."
     resident_joined: "• 🏡 {player} ساکن روستا شد."
     donated: "• 💰 {player} {amount} ساپ به خزانهٔ روستا کمک کرد."
+    promoted: "• 🎉 به {tier} ارتقا یافت؛ {player} اکنون {office} است."
     more: "• و {count} خبر دیگر."

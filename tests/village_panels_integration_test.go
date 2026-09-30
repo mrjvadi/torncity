@@ -292,7 +292,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 	// ---------------------------------------------------------------
 	// 1. Automatic roads: a house far from the network brings its own street.
 	// ---------------------------------------------------------------
-	preview := place("village_house", 0, 0, false)
+	preview := place("cottage", 0, 0, false)
 	if preview.Screen != screens.ScreenLotConfirm {
 		t.Fatalf("the preview screen = %q", preview.Screen)
 	}
@@ -303,9 +303,9 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 		t.Errorf("the preview does not mention the roads; text = %q", preview.Text)
 	}
 	before, roadsBefore := treasury(), func() int { n, _ := rowsOf("road"); return n }()
-	place("village_house", 0, 0, true)
-	if got := before - treasury(); got != 700+2*roadFee {
-		t.Errorf("the house and its street cost %d, want %d (700 + 2 road lots x %d)", got, 700+2*roadFee, roadFee)
+	place("cottage", 0, 0, true)
+	if got := before - treasury(); got != 400+2*roadFee {
+		t.Errorf("the house and its street cost %d, want %d (400 + 2 road lots x %d)", got, 400+2*roadFee, roadFee)
 	}
 	n, done := rowsOf("road")
 	if n-roadsBefore != 2 || done != n {
@@ -321,9 +321,9 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 	// A house that already touches the network needs no road and costs only itself.
 	before = treasury()
 	roadsBefore, _ = rowsOf("road")
-	place("village_house", 1, 3, true)
-	if got := before - treasury(); got != 700 {
-		t.Errorf("a house on the network cost %d, want 700 (no road lots)", got)
+	place("cottage", 1, 3, true)
+	if got := before - treasury(); got != 400 {
+		t.Errorf("a house on the network cost %d, want 400 (no road lots)", got)
 	}
 	if n, _ := rowsOf("road"); n != roadsBefore {
 		t.Errorf("a house on the network laid %d roads", n-roadsBefore)
@@ -334,7 +334,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 	// 2. The cap: house2 holds the village's one slot, so another house waits;
 	// roads hold none, so a batch of them goes ahead beside it.
 	// ---------------------------------------------------------------
-	capResp := place("village_house", 4, 1, true)
+	capResp := place("cottage", 4, 1, true)
 	if !strings.Contains(capResp.Text, "صف ساخت") {
 		t.Errorf("a second running house was not refused by the cap; text = %q", capResp.Text)
 	}
@@ -420,7 +420,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 
 	// A batch of anything but a cap-exempt type is refused.
 	notRoad, err := village.PlaceMany(testCtx(t), headMeta("settlement.build.place_many", "build.place_many"),
-		handlers.VillageBuildManyRequest{Code: "village_house", Lots: []string{"3-1", "4-1"}, Confirm: screens.VillageBuildConfirm})
+		handlers.VillageBuildManyRequest{Code: "cottage", Lots: []string{"3-1", "4-1"}, Confirm: screens.VillageBuildConfirm})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -555,10 +555,10 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 	// 5. A building no road could ever reach is refused and costs nothing.
 	// ---------------------------------------------------------------
 	finish(house2)
-	lay("village_house", 3, 4)
-	lay("village_house", 4, 3)
+	lay("cottage", 3, 4)
+	lay("cottage", 4, 3)
 	before = treasury()
-	walled := place("village_house", 4, 4, true)
+	walled := place("cottage", 4, 4, true)
 	if walled.Screen != screens.ScreenVillageRefusal || !strings.Contains(walled.Text, "هیچ راهی") {
 		t.Errorf("a walled-in house answered %q: %q", walled.Screen, walled.Text)
 	}
@@ -619,7 +619,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 
 	// The lot picker now spans 6x6 and the walled lot is reachable again is not
 	// promised; what is promised: the new strip is offered and old lots unchanged.
-	lotsResp, err := village.Lots(testCtx(t), headMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "village_house"})
+	lotsResp, err := village.Lots(testCtx(t), headMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "cottage"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -655,7 +655,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 	}
 
 	// A house on the new land: connected by its own street, at the strip's edge.
-	lotsResp, _ = village.Lots(testCtx(t), headMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "village_house"})
+	lotsResp, _ = village.Lots(testCtx(t), headMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "cottage"})
 	g = parseLotGrid(t, lotsResp.View)
 	if len(g.Rows) != 7 {
 		t.Fatalf("the grid is %d rows after two expansions, want 7", len(g.Rows))
@@ -664,14 +664,14 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 	for y := 6; y >= 5 && !placed; y-- {
 		for x := 0; x < 7 && !placed; x++ {
 			if g.Rows[y][x].State == screens.LotFree && g.Rows[y][x].Fits {
-				place("village_house", x, y, true)
+				place("cottage", x, y, true)
 				placed = true
 			}
 		}
 	}
 	if placed {
 		var nHouses int
-		_ = pool.Raw().QueryRow(testCtx(t), `SELECT count(*) FROM settlement_buildings WHERE settlement_id = $1::uuid AND type_code = 'village_house' AND (lot_x >= 5 OR lot_y >= 5)`, cityID).Scan(&nHouses)
+		_ = pool.Raw().QueryRow(testCtx(t), `SELECT count(*) FROM settlement_buildings WHERE settlement_id = $1::uuid AND type_code = 'cottage' AND (lot_x >= 5 OR lot_y >= 5)`, cityID).Scan(&nHouses)
 		if nHouses != 1 {
 			t.Errorf("no house stands on the new strip after placing one")
 		}

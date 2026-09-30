@@ -310,7 +310,10 @@ var argNames = map[string][]string{
 	// reads as the set of commands phase 1 speaks rather than as the subset
 	// of them that happens to have arguments.
 	"travel.status": {},
-	"skills.list":   {"page"},
+	// travel.here takes nothing: the destination is the village of the group
+	// it is sent in («سفر به این روستا», docs/adr/0034).
+	"travel.here": {},
+	"skills.list": {"page"},
 	// social.search takes one argument, the query, and every word after
 	// the command is part of it (see joinRest). A search names one player
 	// exactly, so there is no page.
@@ -472,10 +475,15 @@ var argNames = map[string][]string{
 	"settlement.build.progress":     {},
 	"settlement.build.demolish":     {"id"},
 	"settlement.build.cancel":       {"id"},
+	"settlement.materials":          {},
+	"settlement.materials.buy":      {"item", "qty", "confirm"},
+	"settlement.work":               {"id"},
 	"settlement.who":                {},
 	"settlement.join":               {"confirm", "settlement"},
 	"settlement.leave":              {"confirm", "settlement"},
 	"settlement.donate":             {"amount", "confirm", "settlement"},
+	"settlement.promotion.view":     {},
+	"settlement.promote":            {"confirm"},
 
 	"job.status":       {},
 	"job.list":         {"page"},

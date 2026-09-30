@@ -62,6 +62,9 @@ var (
 	// ErrRoleMissing means the settlement holds no building of the
 	// role/tier a promotion requires.
 	ErrRoleMissing = errors.New("settlementbuilding: no building of the required role/tier stands yet")
+	// ErrAboveTier means the building belongs to a bigger settlement than this
+	// one: a village never lists, and is never allowed, an airport.
+	ErrAboveTier = errors.New("settlementbuilding: the settlement is too small for this building")
 	// ErrConcurrentBuildCap means the settlement's tier-bound concurrent
 	// construction cap (ADR 0028 section 6.3) is already full.
 	ErrConcurrentBuildCap = errors.New("settlementbuilding: the concurrent construction cap is full")
@@ -168,12 +171,74 @@ type Def struct {
 	// one. Content, for the cheap, quick, everywhere-needed pieces (a road)
 	// whose one-at-a-time queue was pure friction.
 	CapExempt bool
+	// Storage is how many units of goods, in all, this standing building adds
+	// to the village stock's capacity (a granary): the stock holds at most the
+	// settlement's base capacity plus every standing building's Storage.
+	Storage int64
+
+	// Work is what a standing building makes when villagers work in it
+	// (ADR 0033 section 4.1's daily loop): nothing without workers, never
+	// a passive income. Zero value means "not a workplace".
+	Work Work
 
 	// Effects feed ADR 0028 section 8.1's coverage numbers
 	// (food_coverage_bps, job_coverage_bps, service_coverage_bps,
 	// happiness_bps) plus local_security_bps (ADR 0031 section 3.2). Open
 	// target, same item.Effect shape as everywhere else.
 	Effects []item.Effect
+}
+
+// Work is a workplace's production. Every shift a resident works in a
+// standing building takes Consumes out of the village stock when it starts and
+// puts Produces into it when it ends, and pays Wage from the treasury. The
+// shape is content; how many shifts run at once is Workers.
+type Work struct {
+	// Produces and Consumes are component code -> quantity per shift.
+	Produces map[string]int64
+	Consumes map[string]int64
+	// Workers is how many residents may work here at the same time.
+	Workers int
+	// Shift is how long one shift lasts, GAME time.
+	Shift time.Duration
+	// Wage is paid per finished shift from the village treasury, minor units.
+	Wage int64
+}
+
+// Workplace reports whether the building can be worked in at all.
+func (w Work) Workplace() bool { return len(w.Produces) > 0 }
+
+// MaxShift bounds one shift, GAME time.
+const MaxShift = 24 * time.Hour
+
+// The settlement tiers, smallest first (internal/domain/settlement.Tier*).
+const (
+	SettlementVillage = "village"
+	SettlementTown    = "town"
+	SettlementCity    = "city"
+)
+
+var settlementTierRank = map[string]int{SettlementVillage: 1, SettlementTown: 2, SettlementCity: 3}
+
+// MinSettlementTier is the smallest settlement that may list and build this
+// building (ADR 0033 section 3): a role tier 1 is a village's, tier 2 a town's,
+// tier 3 and up a city's. A row with no role tier (a legacy row) is a
+// village's.
+func (d Def) MinSettlementTier() string {
+	switch {
+	case d.Tier <= 1:
+		return SettlementVillage
+	case d.Tier == 2:
+		return SettlementTown
+	default:
+		return SettlementCity
+	}
+}
+
+// ListedAt reports whether a settlement of this tier lists the building: its
+// own tier or below. An unknown tier lists nothing.
+func (d Def) ListedAt(settlementTier string) bool {
+	have, ok := settlementTierRank[settlementTier]
+	return ok && have >= settlementTierRank[d.MinSettlementTier()]
 }
 
 // CanRotate reports whether rotating this building's footprint would
@@ -260,6 +325,35 @@ func ValidateCatalogue(defs []Def) error {
 		}
 		if d.MinLiteracyShareBPS < 0 || d.MinLiteracyShareBPS > 10_000 {
 			fail(ErrInvalidBuilding, "%q literacy threshold %d", d.Code, d.MinLiteracyShareBPS)
+		}
+		if d.Storage < 0 {
+			fail(ErrInvalidBuilding, "%q storage %d", d.Code, d.Storage)
+		}
+		if w := d.Work; w.Workplace() {
+			if w.Workers < 1 || w.Workers > 50 {
+				fail(ErrInvalidBuilding, "%q workers %d", d.Code, w.Workers)
+			}
+			if w.Shift <= 0 || w.Shift > MaxShift {
+				fail(ErrInvalidBuilding, "%q shift %s", d.Code, w.Shift)
+			}
+			if w.Wage < 0 {
+				fail(ErrInvalidBuilding, "%q wage %d", d.Code, w.Wage)
+			}
+			for c, q := range w.Produces {
+				if q <= 0 {
+					fail(ErrInvalidBuilding, "%q produces %q quantity %d", d.Code, c, q)
+				}
+				if w.Consumes[c] > 0 {
+					fail(ErrInvalidBuilding, "%q consumes what it produces (%q): a cycle", d.Code, c)
+				}
+			}
+			for c, q := range w.Consumes {
+				if q <= 0 {
+					fail(ErrInvalidBuilding, "%q consumes %q quantity %d", d.Code, c, q)
+				}
+			}
+		} else if len(w.Consumes) > 0 || w.Workers != 0 || w.Wage != 0 {
+			fail(ErrInvalidBuilding, "%q declares workers, wage or inputs but produces nothing", d.Code)
 		}
 	}
 	for _, code := range sortedCodes(byCode) {

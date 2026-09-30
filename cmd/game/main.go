@@ -296,6 +296,12 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		return fmt.Errorf("game: world generation content: %w", err)
 	}
 	worldCache := application.NewWorldCache(postgres.NewWorldRepository(pool), worldGenParams(cfg.WorldGen), wgContent)
+	// Journeys to and from a founded village are priced from where the two
+	// stand on that world (ADR 0034).
+	worldTravel, err := worldRoutes(cfg, worldCache, registry)
+	if err != nil {
+		return err
+	}
 
 	// Every handler is given the store, not the catalogue it currently
 	// holds: reloading the text then becomes a pointer swap inside the
@@ -332,7 +338,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			cfg.Game.IdempotencyTTL,
 			nil,
 		// A journey departs from, and lands at, the place of its mode.
-		).WithPlaces(registry),
+		).WithPlaces(registry).WithWorld(worldTravel),
 		skills: handlers.NewSkillsHandler(uow, messages, postgres.NewSkillRepository(pool), nil),
 		social: handlers.NewSocialHandler(
 			uow,
@@ -344,7 +350,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			nil,
 		),
 		worldMap: handlers.NewMapHandler(uow, messages, cities, travels, liveRoutes{registry: registry},
-			handlers.DefaultPageSize, nil),
+			handlers.DefaultPageSize, nil).WithWorld(worldTravel),
 		settings: handlers.NewSettingsHandler(uow, messages, storeLanguages{store: messages}, cfg.Game.IdempotencyTTL),
 		// The bank's fees are each city's policy, read only through the
 		// resolver; its limits are configuration.
@@ -429,8 +435,12 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				SellerBandBPS:         cfg.Settlement.SellerBandBPS,
 				GridMaxLots:           cfg.Settlement.GridMaxLots, GridLotPrice: cfg.Settlement.GridLotPrice,
 				GridPriceStepBPS: cfg.Settlement.GridPriceStepBPS, AutoRoadCost: cfg.Settlement.AutoRoadCost,
-				ResidenceCooldown: cfg.Settlement.ResidenceCooldown,
-				HomeCityCode:      cfg.Settlement.HomeCityCode,
+				MaterialMarkupBPS:  cfg.Settlement.MaterialMarkupBPS,
+				StockBaseCapacity:  cfg.Settlement.StockBaseCapacity,
+				MaterialBuyMax:     cfg.Settlement.MaterialBuyMax,
+				MaterialBuyPresets: cfg.Settlement.MaterialBuyPresets,
+				ResidenceCooldown:  cfg.Settlement.ResidenceCooldown,
+				HomeCityCode:       cfg.Settlement.HomeCityCode,
 			},
 			cfg.Game.IdempotencyTTL,
 			nil,

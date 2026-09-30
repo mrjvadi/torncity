@@ -19,6 +19,7 @@
   [🏡 ساکن این روستا شو] → settlement:join
   [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
   [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
+  [🧱 انبار و بازار] → settlement:materials   │   [⚒ کار در روستا] → settlement:work
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ Village overview · nothing built yet ━━━
@@ -41,6 +42,7 @@
   [🏡 ساکن این روستا شو] → settlement:join
   [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
   [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
+  [🧱 انبار و بازار] → settlement:materials   │   [⚒ کار در روستا] → settlement:work
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ Knowledge list · mixed states, research running ━━━
@@ -110,6 +112,8 @@
 انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد.
 
 ✅ ساخته شده و در کار است.
+
+📦 گنجایش انبار: ⁨135⁩ از ⁨360⁩ واحد
 
 📦 موجودی انبار:
 
@@ -320,8 +324,8 @@
 
 🛣 برای اتصال این بنا، ⁨2⁩ قطعه جادهٔ رایگان هم همراهش کشیده می‌شود و فوراً آماده است.
   ───
-  [✅ تأیید و ساخت] → settlement:build.place:village_house:4-4:confirm
-  [🔙 بازگشت] → settlement:build.lots:village_house
+  [✅ تأیید و ساخت] → settlement:build.place:cottage:4-4:confirm
+  [🔙 بازگشت] → settlement:build.lots:cottage
 
 ━━━ Land · a grid wider than a keyboard row is a window over the land ━━━
 (edits message 42)
@@ -332,16 +336,16 @@
 
 🗺 نمایش ردیف ⁨3⁩ تا ⁨10⁩ و ستون ⁨3⁩ تا ⁨10⁩ از زمین ⁨10⁩×⁨10⁩؛ با پیکان‌ها جابه‌جا شوید.
   ───
-  [✅] → settlement:build.place:village_house:2-2   │   [✅] → settlement:build.place:village_house:3-2   │   [✅] → settlement:build.place:village_house:4-2   │   [✅] → settlement:build.place:village_house:5-2   │   [✅] → settlement:build.place:village_house:6-2   │   [✅] → settlement:build.place:village_house:7-2   │   [✅] → settlement:build.place:village_house:8-2   │   [✅] → settlement:build.place:village_house:9-2
-  [✅] → settlement:build.place:village_house:2-3   │   [✅] → settlement:build.place:village_house:3-3   │   [✅] → settlement:build.place:village_house:4-3   │   [✅] → settlement:build.place:village_house:5-3   │   [✅] → settlement:build.place:village_house:6-3   │   [✅] → settlement:build.place:village_house:7-3   │   [✅] → settlement:build.place:village_house:8-3   │   [✅] → settlement:build.place:village_house:9-3
-  [✅] → settlement:build.place:village_house:2-4   │   [✅] → settlement:build.place:village_house:3-4   │   [✅] → settlement:build.place:village_house:4-4   │   [✅] → settlement:build.place:village_house:5-4   │   [✅] → settlement:build.place:village_house:6-4   │   [✅] → settlement:build.place:village_house:7-4   │   [✅] → settlement:build.place:village_house:8-4   │   [✅] → settlement:build.place:village_house:9-4
-  [✅] → settlement:build.place:village_house:2-5   │   [✅] → settlement:build.place:village_house:3-5   │   [✅] → settlement:build.place:village_house:4-5   │   [✅] → settlement:build.place:village_house:5-5   │   [✅] → settlement:build.place:village_house:6-5   │   [✅] → settlement:build.place:village_house:7-5   │   [✅] → settlement:build.place:village_house:8-5   │   [✅] → settlement:build.place:village_house:9-5
-  [✅] → settlement:build.place:village_house:2-6   │   [✅] → settlement:build.place:village_house:3-6   │   [✅] → settlement:build.place:village_house:4-6   │   [✅] → settlement:build.place:village_house:5-6   │   [✅] → settlement:build.place:village_house:6-6   │   [✅] → settlement:build.place:village_house:7-6   │   [✅] → settlement:build.place:village_house:8-6   │   [✅] → settlement:build.place:village_house:9-6
-  [✅] → settlement:build.place:village_house:2-7   │   [✅] → settlement:build.place:village_house:3-7   │   [✅] → settlement:build.place:village_house:4-7   │   [✅] → settlement:build.place:village_house:5-7   │   [✅] → settlement:build.place:village_house:6-7   │   [✅] → settlement:build.place:village_house:7-7   │   [✅] → settlement:build.place:village_house:8-7   │   [✅] → settlement:build.place:village_house:9-7
-  [✅] → settlement:build.place:village_house:2-8   │   [✅] → settlement:build.place:village_house:3-8   │   [✅] → settlement:build.place:village_house:4-8   │   [✅] → settlement:build.place:village_house:5-8   │   [✅] → settlement:build.place:village_house:6-8   │   [✅] → settlement:build.place:village_house:7-8   │   [✅] → settlement:build.place:village_house:8-8   │   [✅] → settlement:build.place:village_house:9-8
-  [✅] → settlement:build.place:village_house:2-9   │   [✅] → settlement:build.place:village_house:3-9   │   [✅] → settlement:build.place:village_house:4-9   │   [✅] → settlement:build.place:village_house:5-9   │   [✅] → settlement:build.place:village_house:6-9   │   [✅] → settlement:build.place:village_house:7-9   │   [✅] → settlement:build.place:village_house:8-9   │   [✅] → settlement:build.place:village_house:9-9
-  [◀️] → settlement:build.lots:village_house:0:-:0-2   │   [🔼] → settlement:build.lots:village_house:0:-:2-0   │   [🔽] → settlement:build.lots:village_house:0:-:2-6   │   [▶️] → settlement:build.lots:village_house:0:-:6-2
-  [🔙 بازگشت] → settlement:build   │   [🔄 به‌روزرسانی] → settlement:build.lots:village_house
+  [✅] → settlement:build.place:cottage:2-2   │   [✅] → settlement:build.place:cottage:3-2   │   [✅] → settlement:build.place:cottage:4-2   │   [✅] → settlement:build.place:cottage:5-2   │   [✅] → settlement:build.place:cottage:6-2   │   [✅] → settlement:build.place:cottage:7-2   │   [✅] → settlement:build.place:cottage:8-2   │   [✅] → settlement:build.place:cottage:9-2
+  [✅] → settlement:build.place:cottage:2-3   │   [✅] → settlement:build.place:cottage:3-3   │   [✅] → settlement:build.place:cottage:4-3   │   [✅] → settlement:build.place:cottage:5-3   │   [✅] → settlement:build.place:cottage:6-3   │   [✅] → settlement:build.place:cottage:7-3   │   [✅] → settlement:build.place:cottage:8-3   │   [✅] → settlement:build.place:cottage:9-3
+  [✅] → settlement:build.place:cottage:2-4   │   [✅] → settlement:build.place:cottage:3-4   │   [✅] → settlement:build.place:cottage:4-4   │   [✅] → settlement:build.place:cottage:5-4   │   [✅] → settlement:build.place:cottage:6-4   │   [✅] → settlement:build.place:cottage:7-4   │   [✅] → settlement:build.place:cottage:8-4   │   [✅] → settlement:build.place:cottage:9-4
+  [✅] → settlement:build.place:cottage:2-5   │   [✅] → settlement:build.place:cottage:3-5   │   [✅] → settlement:build.place:cottage:4-5   │   [✅] → settlement:build.place:cottage:5-5   │   [✅] → settlement:build.place:cottage:6-5   │   [✅] → settlement:build.place:cottage:7-5   │   [✅] → settlement:build.place:cottage:8-5   │   [✅] → settlement:build.place:cottage:9-5
+  [✅] → settlement:build.place:cottage:2-6   │   [✅] → settlement:build.place:cottage:3-6   │   [✅] → settlement:build.place:cottage:4-6   │   [✅] → settlement:build.place:cottage:5-6   │   [✅] → settlement:build.place:cottage:6-6   │   [✅] → settlement:build.place:cottage:7-6   │   [✅] → settlement:build.place:cottage:8-6   │   [✅] → settlement:build.place:cottage:9-6
+  [✅] → settlement:build.place:cottage:2-7   │   [✅] → settlement:build.place:cottage:3-7   │   [✅] → settlement:build.place:cottage:4-7   │   [✅] → settlement:build.place:cottage:5-7   │   [✅] → settlement:build.place:cottage:6-7   │   [✅] → settlement:build.place:cottage:7-7   │   [✅] → settlement:build.place:cottage:8-7   │   [✅] → settlement:build.place:cottage:9-7
+  [✅] → settlement:build.place:cottage:2-8   │   [✅] → settlement:build.place:cottage:3-8   │   [✅] → settlement:build.place:cottage:4-8   │   [✅] → settlement:build.place:cottage:5-8   │   [✅] → settlement:build.place:cottage:6-8   │   [✅] → settlement:build.place:cottage:7-8   │   [✅] → settlement:build.place:cottage:8-8   │   [✅] → settlement:build.place:cottage:9-8
+  [✅] → settlement:build.place:cottage:2-9   │   [✅] → settlement:build.place:cottage:3-9   │   [✅] → settlement:build.place:cottage:4-9   │   [✅] → settlement:build.place:cottage:5-9   │   [✅] → settlement:build.place:cottage:6-9   │   [✅] → settlement:build.place:cottage:7-9   │   [✅] → settlement:build.place:cottage:8-9   │   [✅] → settlement:build.place:cottage:9-9
+  [◀️] → settlement:build.lots:cottage:0:-:0-2   │   [🔼] → settlement:build.lots:cottage:0:-:2-0   │   [🔽] → settlement:build.lots:cottage:0:-:2-6   │   [▶️] → settlement:build.lots:cottage:0:-:6-2
+  [🔙 بازگشت] → settlement:build   │   [🔄 به‌روزرسانی] → settlement:build.lots:cottage
 
 ━━━ Land · the price of the next expansion ━━━
 (edits message 42)
@@ -449,6 +453,7 @@
   ───
   [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
   [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
+  [🧱 انبار و بازار] → settlement:materials   │   [⚒ کار در روستا] → settlement:work
   [💰 کمک به خزانه] → settlement:donate   │   [🚪 ترک روستا] → settlement:leave
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
@@ -473,6 +478,7 @@
   ───
   [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
   [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
+  [🧱 انبار و بازار] → settlement:materials   │   [⚒ کار در روستا] → settlement:work
   [💰 کمک به خزانه] → settlement:donate   │   [🚪 ترک روستا] → settlement:leave
   [🏦 بانک - سفر به ساپورت] → travel:options:support   │   [🛒 بازار - سفر به ساپورت] → travel:options:support
   [💼 کار - سفر به ساپورت] → travel:options:support   │   [📚 دانش - سفر به ساپورت] → travel:options:support

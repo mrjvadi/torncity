@@ -42,7 +42,7 @@ Tap a place to walk there. Everything is done at its own place.
 
 📍 You are in Ostmarch.
 
-From here you can travel to:
+From here you can travel to these cities and villages:
 • Fenwick Span - 120 km
 • Brennhaven - 320 km
   ───

@@ -98,11 +98,12 @@ type achievementsSettings struct {
 }
 
 type gatewaySettings struct {
-	PollTimeout      *string `yaml:"poll_timeout"`
-	PollErrorBackoff *string `yaml:"poll_error_backoff"`
-	ShutdownTimeout  *string `yaml:"shutdown_timeout"`
-	SendAttempts     *int    `yaml:"send_attempts"`
-	RedirectCooldown *string `yaml:"redirect_cooldown"`
+	PollTimeout           *string `yaml:"poll_timeout"`
+	PollErrorBackoff      *string `yaml:"poll_error_backoff"`
+	ShutdownTimeout       *string `yaml:"shutdown_timeout"`
+	SendAttempts          *int    `yaml:"send_attempts"`
+	RedirectCooldown      *string `yaml:"redirect_cooldown"`
+	WebAppPrivateCooldown *string `yaml:"webapp_private_cooldown"`
 }
 
 type leaseSettings struct {
@@ -178,7 +179,9 @@ type gameSettings struct {
 }
 
 type travelSettings struct {
-	ArrivalXP *int `yaml:"arrival_xp"`
+	ArrivalXP     *int     `yaml:"arrival_xp"`
+	CityLocations []string `yaml:"city_locations"`
+	WorldReach    []string `yaml:"world_reach"`
 	// TimeScale is the legacy spelling of game.time_scale; see Game.
 	TimeScale *int `yaml:"time_scale"`
 }
@@ -291,6 +294,10 @@ type settlementSettings struct {
 	ScarcityCapBPS        *int64  `yaml:"scarcity_cap_bps"`
 	SellerBandBPS         *int64  `yaml:"seller_band_bps"`
 	DemolitionSalvageBPS  *int64  `yaml:"demolition_salvage_bps"`
+	MaterialMarkupBPS     *int64  `yaml:"material_markup_bps"`
+	StockBaseCapacity     *int64  `yaml:"stock_base_capacity"`
+	MaterialBuyMax        *int64  `yaml:"material_buy_max"`
+	MaterialBuyPresets    []int64 `yaml:"material_buy_presets"`
 
 	FoundingGrant   *int64  `yaml:"founding_grant"`
 	DonationMin     *int64  `yaml:"donation_min"`
@@ -764,6 +771,9 @@ var coreSettings = []setting{
 	durationSetting("gateway", "redirect_cooldown",
 		func(c *Config) *time.Duration { return &c.Gateway.RedirectCooldown },
 		func(f *fileConfig) *string { return f.Gateway.RedirectCooldown }),
+	durationSetting("gateway", "webapp_private_cooldown",
+		func(c *Config) *time.Duration { return &c.Gateway.WebAppPrivateCooldown },
+		func(f *fileConfig) *string { return f.Gateway.WebAppPrivateCooldown }),
 
 	durationSetting("lease", "ttl",
 		func(c *Config) *time.Duration { return &c.Lease.TTL },
@@ -894,6 +904,13 @@ var coreSettings = []setting{
 	limitSetting("travel", "arrival_xp",
 		func(c *Config) *int { return &c.Travel.ArrivalXP },
 		func(f *fileConfig) *int { return f.Travel.ArrivalXP }),
+
+	stringListSetting("travel", "city_locations",
+		func(c *Config) *[]string { return &c.Travel.CityLocations },
+		func(f *fileConfig) []string { return f.Travel.CityLocations }),
+	stringListSetting("travel", "world_reach",
+		func(c *Config) *[]string { return &c.Travel.WorldReach },
+		func(f *fileConfig) []string { return f.Travel.WorldReach }),
 
 	stringSetting("player", "default_language",
 		func(c *Config) *string { return &c.Player.DefaultLanguage },
@@ -1094,6 +1111,18 @@ var coreSettings = []setting{
 	moneySetting("settlement", "demolition_salvage_bps",
 		func(c *Config) *int64 { return &c.Settlement.DemolitionSalvageBPS },
 		func(f *fileConfig) *int64 { return f.Settlement.DemolitionSalvageBPS }),
+	moneySetting("settlement", "material_markup_bps",
+		func(c *Config) *int64 { return &c.Settlement.MaterialMarkupBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.MaterialMarkupBPS }),
+	moneySetting("settlement", "stock_base_capacity",
+		func(c *Config) *int64 { return &c.Settlement.StockBaseCapacity },
+		func(f *fileConfig) *int64 { return f.Settlement.StockBaseCapacity }),
+	moneySetting("settlement", "material_buy_max",
+		func(c *Config) *int64 { return &c.Settlement.MaterialBuyMax },
+		func(f *fileConfig) *int64 { return f.Settlement.MaterialBuyMax }),
+	moneyListSetting("settlement", "material_buy_presets",
+		func(c *Config) *[]int64 { return &c.Settlement.MaterialBuyPresets },
+		func(f *fileConfig) []int64 { return f.Settlement.MaterialBuyPresets }),
 	moneySetting("settlement", "founding_grant",
 		func(c *Config) *int64 { return &c.Settlement.FoundingGrant },
 		func(f *fileConfig) *int64 { return f.Settlement.FoundingGrant }),

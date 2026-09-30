@@ -114,6 +114,12 @@ type VillageRefusalView struct {
 	Min, Max int64
 	// Lots are the lots of a refused batch, with their reasons.
 	Lots []BatchLotFailure
+	// Action, Subject and Needs name what the refused command was about and
+	// exactly what it is missing, each with where it comes from
+	// (village_economy.go); empty for a refusal that has nothing to fetch.
+	Action  string        `json:"action,omitempty"`
+	Subject Named         `json:"subject,omitempty"`
+	Needs   []VillageNeed `json:"needs,omitempty"`
 }
 
 // VillageRefusal renders a refused village command.
@@ -122,13 +128,17 @@ func VillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 }
 
 func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
+	if len(v.Needs) > 0 {
+		return renderVillageNeeds(c, v)
+	}
 	kind := v.Kind
 	switch kind {
 	case VillageNoSettlement, VillageNotOfficeHolder, VillageInsufficient, VillageBusy, VillageAlreadyOwned,
 		VillageNotAvailable, VillageTerrain, VillagePrerequisite, VillageLiteracy, VillageNotFound,
 		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
 		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome,
-		VillageDonateRange, VillageDonateNoCash, VillageBatch, VillageNoRoad, VillageGridMax:
+		VillageDonateRange, VillageDonateNoCash, VillageBatch, VillageNoRoad, VillageGridMax, VillagePromotionTop,
+		VillageStorageFull, VillageAlreadyWorking, VillageWorkplaceFull, VillageNotWorkplace:
 	default:
 		kind = VillageNotFound
 	}
@@ -182,6 +192,9 @@ type VillageOverviewView struct {
 	// knowledge shop, hospital and jail are a journey away. Nil when no
 	// such city is configured.
 	Support *VillageSupport `json:"support,omitempty"`
+	// Promotion is the way forward: the goals of the next tier and the
+	// settlement's progress on each. Nil at the top of the ladder.
+	Promotion *PromotionView `json:"promotion,omitempty"`
 }
 
 // VillageSupport names the city a village's residents travel to for the
@@ -229,12 +242,19 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 
 	kb := keyboards.New()
 	blocks := []string{head, population, treasury, coverage, buildings}
+	if v.Promotion != nil {
+		blocks = append(blocks, promotionBlock(c, *v.Promotion))
+	}
 	if c.Shared {
 		if !v.Resident {
 			kb.Add(c.T("village.button.join", nil), AddrVillageJoin)
 		}
 		kb.Row(villageButtons(c, "village.button.knowledge", AddrKnowledgeList, "village.button.build", AddrBuildMenu)...)
 		kb.Row(villageButtons(c, "village.button.progress", AddrConstructionProgress, "village.button.who", AddrSettlementWho)...)
+		kb.Row(villageButtons(c, "village.button.materials", AddrMaterials, "village.button.work", AddrWork)...)
+		if v.Promotion != nil {
+			promotionButton(c, kb, *v.Promotion)
+		}
 		if v.Resident {
 			kb.Row(villageButtons(c, "village.button.donate", AddrVillageDonate, "village.button.leave", AddrVillageLeave)...)
 		}
@@ -432,6 +452,13 @@ type BuildLine struct {
 	BuildTime time.Duration
 	// Missing are unmet knowledge or role/tier prerequisites.
 	Missing []Named
+	// MissingBuildings are the buildings of the role a promotion still needs.
+	MissingBuildings []Named `json:"missing_buildings,omitempty"`
+	// Materials is what the building's construction takes from the stock and
+	// Short the part of it the stock lacks (the attempt view names where to get
+	// it).
+	Materials []MaterialLine `json:"materials,omitempty"`
+	Short     []MaterialLine `json:"short,omitempty"`
 }
 
 // BuildMenuView is a settlement's own construction menu.
@@ -463,14 +490,30 @@ func renderBuildMenu(c Context, v BuildMenuView) *presenter.Response {
 			"time":     FormatDuration(c, l.BuildTime),
 		}
 		key := "build.line.available"
+		if len(l.Materials) > 0 {
+			args["materials"] = materialsText(c, l.Materials)
+		}
+		if len(l.Short) > 0 {
+			key = "build.line.short"
+			args["short"] = materialsText(c, l.Short)
+		}
 		if l.State == BuildLocked {
-			key = "build.line.locked"
+			key = "build.line.locked_role"
 			if len(l.Missing) > 0 {
+				key = "build.line.locked"
 				names := make([]string, 0, len(l.Missing))
 				for _, m := range l.Missing {
 					names = append(names, c.SettlementKnowledgeName(m))
 				}
 				args["missing"] = c.list(names)
+			}
+			if len(l.MissingBuildings) > 0 {
+				names := make([]string, 0, len(l.MissingBuildings))
+				for _, m := range l.MissingBuildings {
+					names = append(names, c.SettlementBuildingName(m))
+				}
+				args["missing"] = c.list(names)
+				key = "build.line.locked_building"
 			}
 		}
 		lines = append(lines, c.T(key, args))

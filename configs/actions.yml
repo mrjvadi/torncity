@@ -40,6 +40,7 @@ commands:
   travel.start: {kind: primary, icon: "action:travel"}
   travel.options: {kind: primary, icon: "action:travel"}
   travel.status: {kind: navigation, icon: "action:travel"}
+  travel.here: {kind: primary, icon: "action:travel"}
   skills.list: {kind: navigation, icon: "action:skills"}
   map.list: {kind: navigation, icon: "action:map"}
   map.cities: {kind: navigation, icon: "action:map"}
@@ -297,9 +298,14 @@ commands:
   settlement.build.progress: {kind: navigation, icon: "action:progress"}
   settlement.build.demolish: {kind: danger, icon: "action:demolish"}
   settlement.build.cancel: {kind: danger, icon: "action:cancel_build"}
+  settlement.materials: {kind: navigation, icon: "action:materials"}
+  settlement.materials.buy: {kind: primary, icon: "action:buy"}
+  settlement.work: {kind: primary, icon: "action:work"}
   settlement.who: {kind: navigation, icon: "action:people"}
   settlement.found.draft: {kind: primary, icon: "action:home"}
   settlement.found.submit: {kind: confirm, icon: "action:home"}
   settlement.join: {kind: primary, icon: "action:home"}
+  settlement.promotion.view: {kind: secondary, icon: "action:info"}
+  settlement.promote: {kind: primary, icon: "action:upgrade"}
   settlement.leave: {kind: danger, icon: "action:leave"}
   settlement.donate: {kind: primary, icon: "action:donate"}

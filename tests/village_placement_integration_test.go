@@ -368,9 +368,16 @@ func TestVillageBuildPlacement(t *testing.T) {
 	// anything; confirmed with no timber in stock, it refuses for
 	// materials rather than placing a half-paid building.
 	// ------------------------------------------------------------------
-	lotsResp, err := village.Lots(testCtx(t), newMetaFor(groupChatID, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "civic_hall"})
+	// The grid of a building the village cannot afford in materials is not
+	// offered (the attempt view names what is missing instead), so a 2x2 that
+	// needs none - the park - is what the lot is picked on.
+	lotsResp, err := village.Lots(testCtx(t), newMetaFor(groupChatID, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "park"})
 	if err != nil {
-		t.Fatalf("Lots(civic_hall): %v", err)
+		t.Fatalf("Lots(park): %v", err)
+	}
+	if noGrid, err := village.Lots(testCtx(t), newMetaFor(groupChatID, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "civic_hall"}); err != nil ||
+		!strings.Contains(noGrid.Text, "الوار") {
+		t.Errorf("Lots(civic_hall) with no timber should name the timber it lacks: %+v %v", noGrid, err)
 	}
 	hallGrid := parseLotGrid(t, lotsResp.View)
 	hallX, hallY, ok := firstFittingFreeLot(hallGrid)
@@ -379,13 +386,15 @@ func TestVillageBuildPlacement(t *testing.T) {
 	}
 	hallLot := screens.LotToken(hallX, hallY, false)
 
+	// Without the timber even the preview is the attempt view: what is missing
+	// and where it comes from, never a cost screen for something unaffordable.
 	previewResp, err := village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
 		handlers.VillageBuildRequest{Code: "civic_hall", Lot: hallLot})
 	if err != nil {
 		t.Fatalf("Place preview: %v", err)
 	}
-	if previewResp.Screen != screens.ScreenLotConfirm {
-		t.Errorf("an unconfirmed Place's own screen = %q, want %q", previewResp.Screen, screens.ScreenLotConfirm)
+	if previewResp.Screen == screens.ScreenLotConfirm || !strings.Contains(previewResp.Text, "الوار") {
+		t.Errorf("an unconfirmed Place with no timber = %q %q, want the attempt view naming the timber", previewResp.Screen, previewResp.Text)
 	}
 	assertNoBuildingAt(t, pool, cityID, hallX, hallY)
 
@@ -394,7 +403,7 @@ func TestVillageBuildPlacement(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Place confirmed with no timber: %v", err)
 	}
-	if !strings.Contains(shortResp.Text, "مواد لازم") {
+	if !strings.Contains(shortResp.Text, "الوار") || !strings.Contains(shortResp.Text, "هیزم‌شکنی") {
 		t.Errorf("Place confirmed with no timber did not refuse for materials; text = %q", shortResp.Text)
 	}
 	assertNoBuildingAt(t, pool, cityID, hallX, hallY)
@@ -406,6 +415,13 @@ func TestVillageBuildPlacement(t *testing.T) {
 	// ------------------------------------------------------------------
 	seedTimber(t, uow, cityID, 20)
 	treasuryBefore := cashBalance(t, pool, application.AccountCityTreasury, cityID)
+
+	// With the timber in stock the preview shows cost and time and changes nothing.
+	if preview, err := village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
+		handlers.VillageBuildRequest{Code: "civic_hall", Lot: hallLot}); err != nil || preview.Screen != screens.ScreenLotConfirm {
+		t.Errorf("an unconfirmed Place's own screen = %+v %v, want %q", preview, err, screens.ScreenLotConfirm)
+	}
+	assertNoBuildingAt(t, pool, cityID, hallX, hallY)
 
 	if _, err := village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
 		handlers.VillageBuildRequest{Code: "civic_hall", Lot: hallLot, Confirm: screens.VillageBuildConfirm}); err != nil {

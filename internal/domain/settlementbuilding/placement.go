@@ -64,6 +64,9 @@ type Standing struct {
 	// LiteracyShareBPS is the settlement's own current literacy_share (ADR
 	// 0031 section 4.4), 0-10000.
 	LiteracyShareBPS int
+	// SettlementTier is the settlement's own tier ("village", "town",
+	// "city"); empty skips the tier rule (a caller that has none).
+	SettlementTier string
 }
 
 // footprintLots yields every (lx, ly) grid coordinate def's footprint would
@@ -85,6 +88,9 @@ func footprintLots(def Def, x, y int) [][2]int {
 // (money and materials) is the caller's own separate all-or-nothing check
 // (ADR 0028 section 6.3), not this function's concern.
 func CanPlace(def Def, grid Grid, x, y int, s Standing) error {
+	if s.SettlementTier != "" && !def.ListedAt(s.SettlementTier) {
+		return ErrAboveTier
+	}
 	if x < 0 || y < 0 || x+def.FootprintW > grid.Width() || y+def.FootprintH > grid.Height() {
 		return ErrOutOfBounds
 	}

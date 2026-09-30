@@ -237,6 +237,7 @@ gateway:
   shutdown_timeout: 21s
   send_attempts: 4
   redirect_cooldown: 90s
+  webapp_private_cooldown: 7s
 lease:
   ttl: 31s
   renew_divisor: 4
@@ -291,6 +292,8 @@ game:
   time_scale: 61
 travel:
   arrival_xp: 26
+  city_locations: ["support=10.5:20.5"]
+  world_reach: ["walk=61"]
 player:
   default_language: "en"
   default_timezone: "Europe/Berlin"
@@ -559,6 +562,10 @@ settlement:
   scarcity_cap_bps: 80001
   seller_band_bps: 501
   demolition_salvage_bps: 2001
+  material_markup_bps: 12001
+  stock_base_capacity: 61
+  material_buy_max: 201
+  material_buy_presets: [6, 21, 51]
   founding_grant: 10001
   donation_min: 101
   donation_max: 100001
@@ -569,11 +576,12 @@ settlement:
 // different value again, so a field reachable from the file but not from the
 // environment is caught too.
 var envOverrides = map[string]string{
-	"TORN_GATEWAY_POLL_TIMEOUT":       "12s",
-	"TORN_GATEWAY_POLL_ERROR_BACKOFF": "4s",
-	"TORN_GATEWAY_SHUTDOWN_TIMEOUT":   "23s",
-	"TORN_GATEWAY_SEND_ATTEMPTS":      "5",
-	"TORN_GATEWAY_REDIRECT_COOLDOWN":  "91s",
+	"TORN_GATEWAY_POLL_TIMEOUT":            "12s",
+	"TORN_GATEWAY_POLL_ERROR_BACKOFF":      "4s",
+	"TORN_GATEWAY_SHUTDOWN_TIMEOUT":        "23s",
+	"TORN_GATEWAY_SEND_ATTEMPTS":           "5",
+	"TORN_GATEWAY_REDIRECT_COOLDOWN":       "91s",
+	"TORN_GATEWAY_WEBAPP_PRIVATE_COOLDOWN": "8s",
 
 	"TORN_LEASE_TTL":             "33s",
 	"TORN_LEASE_RENEW_DIVISOR":   "5",
@@ -624,6 +632,8 @@ var envOverrides = map[string]string{
 	"TORN_POSTGRES_IDLE_IN_TRANSACTION_TIMEOUT": "62s",
 
 	"TORN_TRAVEL_ARRIVAL_XP": "27",
+	"TORN_TRAVEL_CITY_LOCATIONS": "support=11.5:21.5",
+	"TORN_TRAVEL_WORLD_REACH": "walk=62, cart=501",
 	// The legacy spelling of the game clock; TORN_GAME_TIME_SCALE wins.
 	"TORN_TRAVEL_TIME_SCALE": "62",
 	"TORN_GAME_TIME_SCALE":   "63",
@@ -881,6 +891,10 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_SELLER_BAND_BPS":              "502",
 	"TORN_SETTLEMENT_DEMOLITION_SALVAGE_BPS":       "2002",
 	"TORN_SETTLEMENT_FOUNDING_GRANT":               "10002",
+	"TORN_SETTLEMENT_MATERIAL_MARKUP_BPS":          "12002",
+	"TORN_SETTLEMENT_STOCK_BASE_CAPACITY":          "62",
+	"TORN_SETTLEMENT_MATERIAL_BUY_MAX":             "202",
+	"TORN_SETTLEMENT_MATERIAL_BUY_PRESETS":         "7,22,52",
 	"TORN_SETTLEMENT_DONATION_MIN":                 "102",
 	"TORN_SETTLEMENT_DONATION_MAX":                 "100002",
 	"TORN_SETTLEMENT_DONATION_PRESETS":             "252,1002,5002",
@@ -1088,6 +1102,16 @@ func TestValidate(t *testing.T) {
 		{
 			name:   "a latitude cap past the pole",
 			break_: func(c *Config) { c.Settlement.MaxAbsLatitudeDeg = 91 },
+			want:   ErrInvalidValue,
+		},
+		{
+			name:   "a city location that is not lat,lon",
+			break_: func(c *Config) { c.Travel.CityLocations = []string{"support=95:20"} },
+			want:   ErrInvalidValue,
+		},
+		{
+			name:   "a world reach without a distance",
+			break_: func(c *Config) { c.Travel.WorldReach = []string{"walk"} },
 			want:   ErrInvalidValue,
 		},
 		{

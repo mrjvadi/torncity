@@ -402,3 +402,21 @@ func (s *Snapshot) NearestByAnyMode(from, to string) (int, bool) {
 	}
 	return best, found
 }
+
+// DerivedTransport lists the modes that can make a journey of distanceKM the
+// game derived from the world rather than from a content route (a founded
+// village has no route in routes.yml; ADR 0034). reach is config
+// travel.world_reach: the modes that serve such journeys and the longest one
+// each makes. Modes come in transport.yml's order, each carrying the
+// distance itself, because a derived journey has one distance whatever the
+// mode: the great circle.
+func (s *Snapshot) DerivedTransport(distanceKM int, reach map[string]int) []TransportOption {
+	var out []TransportOption
+	for _, n := range s.transport {
+		if max, ok := reach[n.def.Code]; !ok || distanceKM > max {
+			continue
+		}
+		out = append(out, TransportOption{Mode: n.mode, Name: n.def.Name, DistanceKM: distanceKM})
+	}
+	return out
+}

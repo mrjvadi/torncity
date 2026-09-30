@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"sort"
 	"strings"
 	"time"
 
@@ -22,8 +23,8 @@ import (
 // What each building type has in code today (the inventory behind the panels):
 //   - storage role (granary): the village's public stock, org_stacks under
 //     OrgSettlement. The panel lists its contents. There is no capacity in
-//     the content yet, so none is shown (TODO: a capacity effect on storage
-//     buildings would let the panel show use/limit).
+//     the panel shows the store's use against its capacity (stockOf: the
+//     base capacity plus every standing building's storage).
 //   - education role (teaching_circle, school): literacy diffusion
 //     (village_teach.go) runs on its own tick while any complete education
 //     building stands. It cannot be started or stopped by the head, so the
@@ -138,18 +139,29 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 
 		switch view.Kind {
 		case screens.BuildingKindStorage:
-			stacks, _, err := tx.Items().OrgHoldings(ctx, application.SettlementOrg(s.CityID), application.HoldWarehouse)
+			rows, err := tx.SettlementBuildings().List(ctx, s.CityID)
 			if err != nil {
 				return err
 			}
-			for _, st := range stacks {
-				if st.Qty <= 0 {
+			stock, err := h.stockOf(ctx, tx, snap, s.CityID, rows)
+			if err != nil {
+				return err
+			}
+			view.StockUsed, view.StockCapacity = stock.Used, stock.Capacity
+			codes := make([]string, 0, len(stock.Units))
+			for code := range stock.Units {
+				codes = append(codes, code)
+			}
+			sort.Strings(codes)
+			for _, code := range codes {
+				qty := stock.Units[code]
+				if qty <= 0 {
 					continue
 				}
-				line := screens.BuildingStockLine{Item: named(st.Item, st.Item), Kind: "item", Qty: st.Qty}
-				if cd, ok := snap.ComponentDef(st.Item); ok {
+				line := screens.BuildingStockLine{Item: named(code, code), Kind: "item", Qty: qty}
+				if cd, ok := snap.ComponentDef(code); ok {
 					line.Item, line.Kind = named(cd.Code, cd.Name), "component"
-				} else if id, ok := snap.ItemDef(st.Item); ok {
+				} else if id, ok := snap.ItemDef(code); ok {
 					line.Item = named(id.Code, id.Name)
 				}
 				view.Stock = append(view.Stock, line)
@@ -211,7 +223,7 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 	next := 0
 	for _, code := range sortedBuildingCodes(snap) {
 		o, _ := snap.SettlementBuildingDef(code)
-		if o.Role == d.Role && o.Tier > d.Tier && (next == 0 || o.Tier < next) {
+		if o.Role == d.Role && o.Tier > d.Tier && o.Def().ListedAt(s.Tier) && (next == 0 || o.Tier < next) {
 			next = o.Tier
 		}
 	}
@@ -229,10 +241,10 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 	var out []screens.BuildingUpgradeLine
 	for _, code := range sortedBuildingCodes(snap) {
 		o, _ := snap.SettlementBuildingDef(code)
-		if o.Role != d.Role || o.Tier != next {
+		def := o.Def()
+		if o.Role != d.Role || o.Tier != next || !def.ListedAt(s.Tier) {
 			continue
 		}
-		def := o.Def()
 		line := screens.BuildingUpgradeLine{
 			Building: named(o.Code, o.Name), Tier: o.Tier, CostMoney: o.CostMoney,
 			BuildTime: h.scale.RealWait(def.BuildTime), Available: true,

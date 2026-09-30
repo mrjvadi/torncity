@@ -81,15 +81,19 @@ type VillageHandler struct {
 	demolitionSalvageBPS  int64
 	// Land and roads (config.Settlement): the technical bound on a grid's
 	// side, the lot price and its step, and the fee per automatic road lot.
-	gridMaxLots       int
-	gridLotPrice      int64
-	gridPriceStepBPS  int64
-	autoRoadCost      int64
-	residenceCooldown time.Duration
-	homeCityCode      string
-	donationMin       int64
-	donationMax       int64
-	donationPresets   []int64
+	gridMaxLots        int
+	gridLotPrice       int64
+	gridPriceStepBPS   int64
+	autoRoadCost       int64
+	materialMarkupBPS  int64
+	stockBaseCapacity  int64
+	materialBuyMax     int64
+	materialBuyPresets []int64
+	residenceCooldown  time.Duration
+	homeCityCode       string
+	donationMin        int64
+	donationMax        int64
+	donationPresets    []int64
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -124,6 +128,14 @@ type VillageRules struct {
 	GridLotPrice     int64
 	GridPriceStepBPS int64
 	AutoRoadCost     int64
+	// MaterialMarkupBPS, StockBaseCapacity and MaterialBuyMax are
+	// settlement.material_markup_bps, .stock_base_capacity and
+	// .material_buy_max (village_economy.go).
+	MaterialMarkupBPS int64
+	StockBaseCapacity int64
+	MaterialBuyMax    int64
+	// MaterialBuyPresets are the quantities the buy buttons offer.
+	MaterialBuyPresets []int64
 	// ResidenceCooldown and HomeCityCode are settlement.residence_cooldown
 	// and settlement.home_city_code (village_residence.go).
 	ResidenceCooldown time.Duration
@@ -161,6 +173,10 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 		gridLotPrice:          rules.GridLotPrice,
 		gridPriceStepBPS:      rules.GridPriceStepBPS,
 		autoRoadCost:          rules.AutoRoadCost,
+		materialMarkupBPS:     rules.MaterialMarkupBPS,
+		stockBaseCapacity:     rules.StockBaseCapacity,
+		materialBuyMax:        rules.MaterialBuyMax,
+		materialBuyPresets:    append([]int64(nil), rules.MaterialBuyPresets...),
 		residenceCooldown:     rules.ResidenceCooldown,
 		homeCityCode:          rules.HomeCityCode,
 		idempotencyTTL:        idempotencyTTL,
@@ -205,6 +221,12 @@ type villageRefusal struct {
 	min, max int64
 	// lots are the lots a refused batch names.
 	lots []screens.BatchLotFailure
+	// action, subject and needs are the attempt view of a refused build,
+	// research or shift: exactly what is missing and where it comes from
+	// (village_economy.go).
+	action  string
+	subject screens.Named
+	needs   []screens.VillageNeed
 }
 
 func (e *villageRefusal) Error() string { return "handlers: village refusal: " + e.kind }
@@ -226,7 +248,8 @@ func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err 
 	c := h.screen(meta, lang)
 	var r *villageRefusal
 	if stderrors.As(err, &r) {
-		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: r.kind, Back: r.back, Remaining: r.remaining, Min: r.min, Max: r.max, Lots: r.lots}), nil
+		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: r.kind, Back: r.back, Remaining: r.remaining, Min: r.min, Max: r.max, Lots: r.lots,
+			Action: r.action, Subject: r.subject, Needs: r.needs}), nil
 	}
 	if stderrors.Is(err, application.ErrCityNotFound) {
 		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: screens.VillageNoSettlement}), nil
@@ -444,7 +467,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			}
 		}
 		var roleLines []screens.VillageRoleLine
-		for _, role := range []string{"security", "craft", "extraction", "water_infra", "food", "health", "education", "market", "storage"} {
+		for _, role := range []string{"security", "craft", "forestry", "extraction", "water_infra", "food", "housing", "health", "education", "market", "storage", "recreation"} {
 			if l, ok := byRole[role]; ok {
 				roleLines = append(roleLines, l)
 			}
@@ -461,6 +484,9 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			SecurityPercent:  int(coverage["local_security_bps"] / 100),
 			LiteracyPercent:  literacyBPS / 100,
 			Buildings:        roleLines,
+		}
+		if view.Promotion, err = h.promotionOf(ctx, tx, snap, s, viewer.ID); err != nil {
+			return err
 		}
 		if h.homeCityCode != "" {
 			if support, err := h.cities.ByCode(ctx, h.homeCityCode); err == nil {

@@ -7,17 +7,38 @@
         {
           "code": "fenwick_span",
           "distance_km": 120,
-          "name": "Fenwick Span"
+          "emblem": "",
+          "fare": 0,
+          "lat": 0,
+          "lon": 0,
+          "name": "Fenwick Span",
+          "settlement_id": "",
+          "village": false,
+          "wait_seconds": 0
         },
         {
           "code": "aldrin_hollow",
           "distance_km": 340,
-          "name": "Aldrin Hollow"
+          "emblem": "",
+          "fare": 0,
+          "lat": 0,
+          "lon": 0,
+          "name": "Aldrin Hollow",
+          "settlement_id": "",
+          "village": false,
+          "wait_seconds": 0
         },
         {
           "code": "brennhaven",
           "distance_km": 1260,
-          "name": "Brennhaven"
+          "emblem": "",
+          "fare": 0,
+          "lat": 0,
+          "lon": 0,
+          "name": "Brennhaven",
+          "settlement_id": "",
+          "village": false,
+          "wait_seconds": 0
         }
       ],
       "origin": "Ostmarch",
@@ -55,6 +76,84 @@
       "travelling": false,
       "travelling_to": "",
       "travelling_to_code": ""
+    }
+  },
+  {
+    "title": "Map · Support first, then villages priced from the world",
+    "screen": "cities",
+    "view": {
+      "destinations": [
+        {
+          "code": "support",
+          "distance_km": 1280,
+          "emblem": "",
+          "fare": 6400,
+          "lat": 32.3,
+          "lon": -47.7,
+          "name": "Support",
+          "settlement_id": "",
+          "village": false,
+          "wait_seconds": 51600
+        },
+        {
+          "code": "v-cd34",
+          "distance_km": 42,
+          "emblem": "🛡 🌾 🔴🟡",
+          "fare": 0,
+          "lat": 0,
+          "lon": 0,
+          "name": "کاشان",
+          "settlement_id": "0b7d",
+          "village": true,
+          "wait_seconds": 480
+        },
+        {
+          "code": "v-ef56",
+          "distance_km": 380,
+          "emblem": "🏰 🐎 🔵⚪",
+          "fare": 780,
+          "lat": 0,
+          "lon": 0,
+          "name": "ساری",
+          "settlement_id": "9c1e",
+          "village": true,
+          "wait_seconds": 1140
+        }
+      ],
+      "origin": "آمل",
+      "origin_code": "v-ab12",
+      "page": 1,
+      "pages": 1,
+      "travelling": false,
+      "travelling_to": "",
+      "travelling_to_code": ""
+    }
+  },
+  {
+    "title": "Travel here · the group has no village",
+    "screen": "travel_here",
+    "view": {
+      "reason": "no_village",
+      "village": "",
+      "village_code": ""
+    }
+  },
+  {
+    "title": "Travel here · already in the village",
+    "screen": "travel_here",
+    "view": {
+      "reason": "already_there",
+      "village": "آمل",
+      "village_code": "v-ab12"
+    }
+  },
+  {
+    "title": "Travel here · not in a group",
+    "screen": "travel_here",
+    "view": {
+      "reason": "group_only",
+      "village": "",
+      "village_code": ""
     }
   },
   {
