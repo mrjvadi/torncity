@@ -1,6 +1,6 @@
 # Game client API — v1
 
-**Contract version 1.3.** Every 1.x is compatible with 1.0: a client written
+**Contract version 1.4.** Every 1.x is compatible with 1.0: a client written
 for 1.0 keeps working, and a 1.x client reads the new fields as absent on an
 older server. 1.1 adds the world and the village (section 4.3): the
 `settlement` object of the bootstrap, `GET /world`, `GET /world/chunks/…`,
@@ -13,8 +13,14 @@ presence and the settlement channel (sections 5.4 and 5.5): the
 `not_in_settlement`. 1.3 adds the founding form (section 4.4):
 `settlement.found.draft` and `settlement.found.submit`, the `founding_*`
 error codes, the group's Mini App button, and `emblem`, `motto` and
-`currency` on the bootstrap `settlement`. Nothing that 1.0, 1.1 or 1.2
-returned has changed.
+`currency` on the bootstrap `settlement`. 1.4 adds the building panel, batch
+placement, automatic roads and land (section 4.3, "Building panels, batches,
+roads and land"): `settlement.building.view`, `settlement.build.place_many`,
+`settlement.grid.grow`, the `village_batch`, `village_no_road` and
+`village_grid_max` error codes, the realtime publications
+`build_batch_started` and `grid_grown`, `auto_roads` on `build_started`, and a
+`grid.lots` that may be larger than the tier's base side. Nothing that 1.0,
+1.1, 1.2 or 1.3 returned has changed.
 
 The contract between the game and a game client (a native build or the
 Telegram Mini App build). Served by `cmd/clientapi` (package
@@ -505,12 +511,74 @@ Tile `flags`: bit 0 ocean, bit 1 stream, bit 2 lake. `deposit` is `0`, or
 generator's height unit (sea level is not 0; read it against the ocean
 tiles), roughly metres. Coarser LODs carry no local detail and no deposits.
 
+#### Building panels, batches, roads and land (contract 1.4)
+
+**The panel.** `settlement.building.view {building_id, mode?}` answers screen
+`settlement_building_view`; any member may ask, only the head (`can_manage`)
+gets the actions. Every building shows what it IS; demolishing is a small,
+last, confirmed action, never the panel's face. `view`:
+
+| field | meaning |
+|---|---|
+| `id`, `building {code,name}`, `role`, `tier`, `x`, `y`, `w`, `h`, `rotated` | the building |
+| `kind` | which panel to draw: `road`, `civic_hall`, `storage`, `school`, `security`, `generic` (draw an unknown kind as `generic`) |
+| `state` | `complete` or `building` |
+| `effects` | `[{target, value}]` what the building adds (basis points, except `housing_capacity`); `upkeep` |
+| `started_at`, `finish_at`, `left`, `progress_percent` | under construction (0..100, already computed) |
+| `stock` | `storage`: `[{item {code,name}, kind: "component"|"item", qty}]` the village store; the store has no capacity in the content yet, so none is sent |
+| `literacy_percent`, `teaching` | `school`: teaching runs by itself while an education building stands, so it is a state, not a switch |
+| `treasury`, `population`, `research` | `civic_hall`: the village numbers and the research running now |
+| `can_manage`, `has_upgrade`, `mode` | management; `has_upgrade` tells whether the "upgrade" action is worth showing |
+| `upgrades` | only with `mode: "up"`: `[{building, tier, cost_money, build_time, available, missing}]`, the **next tier of the building's role** from the content's own ladder (a tier-2 building requires a tier-1 one of its role). It is revealed only when pressed. Levels *within* one building are a later phase and nothing here blocks them |
+
+`mode`: `up` reveals the upgrade, `dm` and `cx` are the confirmation screens
+of demolishing a finished building and calling off one going up (the
+confirming press is `settlement.build.demolish` / `settlement.build.cancel`).
+
+**Batch placement.** `settlement.build.place_many {code, lots | from+to,
+confirm?}` starts them all in one command and one transaction: the same
+validation as `place` for every lot (bounds, water, occupied, terrain,
+knowledge, literacy), judged against a grid that already counts the batch's
+own earlier lots; one total spend; one `build_batch_started` publication.
+Without `confirm` it answers `settlement_build_batch_confirm` (`count`, `lots`,
+`cost_money`, `materials`, `build_time`). Any bad lot refuses the WHOLE batch
+(`village_batch`, every offending lot named). **The cap rule:** the
+concurrent-construction cap (village 1, town 2, city 4) is about big builds;
+the content marks the road `cap_exempt`, so a road never waits for a slot and
+never holds one, alone or in a batch. Only cap-exempt one-lot types can be
+batched (anything else answers `village_not_available`).
+
+**Automatic roads.** `place` also lays the road that connects the building:
+the cheapest run of free buildable lots (Dijkstra over the four neighbours;
+open ground costs more than ground beside buildings, the edge or water, and a
+turn costs extra, so streets run along the edges of what stands and straight)
+from a lot beside the building to a lot beside the network (any road, or the
+civic hall). The roads are finished at once, cost `settlement.auto_road_cost`
+per lot (10), and ride in the same `build_started` (`auto_roads`). A building
+that already touches the network gets none; one no road could reach is refused
+(`village_no_road`) before anything is paid. `settlement_build_confirm` carries
+`auto_roads` (the number of lots) and the cost already includes them. The
+founding kit already puts a road against the hall, so founding needs nothing.
+
+**Land.** A village owns as much land as it pays for: nothing ties the grid
+to the tier. `settlement.grid.grow` adds a column on the **east** edge and a
+row on the **north** edge, so `grid.lots` grows by one and **every stored lot
+coordinate stays valid** (lot (0,0), the south-west corner, and
+`grid.origin` never move; the new lots are sampled by the same sampler, so
+water and steep ground stay unbuildable). The price is the lots gained
+(`2 × side + 1`) × `settlement.grid_lot_price`, dearer by
+`settlement.grid_price_step_bps` for each expansion already bought; the only
+bound is the technical `settlement.grid_max_lots` (41), not a game rule.
+`bootstrap.settlement.grid_lots` and the layout's `grid.lots` include the
+expansions. After an expansion the client re-reads the layout (the
+`grid_grown` publication carries the new `layout_version`).
+
 #### Your settlement — `bootstrap.settlement`
 
 The settlement the player heads (`is_head`) or lives in (`resident`), with
 `centre` (latitude/longitude of the middle of its lot grid, and the base-LOD
 chunk holding it) and the side of the grid, `grid_lots` (5 for a village, 9
-for a town, 15 for a city). Only the head may place, cancel or demolish
+for a town, 15 for a city, plus the expansions the settlement bought). Only the head may place, cancel or demolish
 buildings. Absent when the player belongs to no settlement. Re-read the
 bootstrap after a group founds its village.
 
@@ -588,6 +656,9 @@ needs a group.
 | `settlement.build` | — | the build menu (`settlement_build_menu`) |
 | `settlement.build.lots` | `code`, `rotate`? (`1`) | `settlement_build_lots`: for every lot, `state` and `fits` for this building |
 | `settlement.build.place` | `code`, `x`, `y`, `rotated`? (bool), `confirm`? | without `confirm`: `settlement_build_confirm` (cost, materials, build time), nothing changes. With `confirm: "confirm"`: pays, draws the materials, starts the build, answers `settlement_construction_progress` |
+| `settlement.build.place_many` | `code`, `lots` (`[{x, y}]`, or tokens `"3-1"`), or `from`/`to` (two ends of a line, along the row and then down the column), `confirm`? | lays several one-lot buildings **of a cap-exempt type (roads)** in ONE command; see "Building panels, batches, roads and land" |
+| `settlement.building.view` | `building_id`, `mode`? (`up` \| `dm` \| `cx`) | one placed building's own panel (`settlement_building_view`) |
+| `settlement.grid.grow` | `confirm`? | buys one expansion of the village's land; without `confirm`: `settlement_grid_grow` (price, new side, buildable lots gained) |
 | `settlement.build.cancel` | `id` | calls off a building **under construction**; the spend is forfeited, the lot is free again |
 | `settlement.build.demolish` | `id` | removes a **finished** building; part of its cost returns to the treasury |
 | `settlement.build.progress` | — | what is going up |
@@ -629,6 +700,9 @@ sentence Telegram shows, in the player's language):
 | `village_concurrent_cap` | as many builds running as the tier allows |
 | `village_insufficient_funds` | the treasury cannot pay |
 | `village_materials` | the village stock lacks a material |
+| `village_batch` | (1.4) a batch was refused as a whole; `view.lots` is `[{x, y, kind}]`, every offending lot with its own kind (`occupied`, `unbuildable`, `out_of_bounds`, `terrain`, `prerequisite`, `literacy`, `concurrent_cap`, `not_available`, `not_found`); nothing was paid or built |
+| `village_no_road` | (1.4) the building could never be reached by road: no free buildable ground beside it leads to the network |
+| `village_grid_max` | (1.4) the land is at the technical bound of a grid's side (`settlement.grid_max_lots`) |
 | `village_not_found` | unknown building type, id or malformed lot |
 | `village_not_demolishable` / `village_not_cancellable` | wrong state for the action |
 | `village_busy`, `village_already_owned`, `village_not_available` | research / purchase refusals |
@@ -862,7 +936,9 @@ pictures:
 
 | `type` | fields | when |
 |---|---|---|
-| `build_started` | `building_id`, `type_code`, `lot_x`, `lot_y`, `rotated`, `finish_at`, `layout_version` | the head placed a building and paid for it |
+| `build_started` | `building_id`, `type_code`, `lot_x`, `lot_y`, `rotated`, `finish_at`, `auto_roads`? (1.4: `[{building_id, lot_x, lot_y}]`, roads the game laid with it, already finished), `layout_version` | the head placed a building and paid for it |
+| `build_batch_started` | `type_code`, `count`, `buildings` (`[{building_id, lot_x, lot_y}]`), `finish_at`, `layout_version` | (1.4) the head placed several buildings with one command |
+| `grid_grown` | `grid_lots`, `layout_version` | (1.4) the village bought land: the grid is bigger, fetch the layout |
 | `build_finished` | `building_id`, `type_code`, `layout_version` | construction reached its end |
 | `build_cancelled` | `building_id`, `type_code`, `layout_version` | the head called off a building still going up |
 | `build_salvaged` | `building_id`, `type_code`, `layout_version` | a building was pulled down and its scrap credited |
@@ -999,7 +1075,8 @@ alias `tc-centrifugo`, admin UI off). On the server both join
 `antispam_default`; exposing them through the reverse proxy is a later step
 (route the API and `/connection/websocket`).
 
-**Migrations**: `0051_founding_form` (1.3: founding drafts, the emblem, motto and
+**Migrations**: `0054_settlement_grid_growth` (1.4: `cities.grid_growth`, the
+expansions a village has bought); `0051_founding_form` (1.3: founding drafts, the emblem, motto and
 name key of a founded village, and the currency a village reserves);
 `0033_client_devices` (tables `client_devices`,
 `client_refresh_tokens`); `0049_village_client` (1.1: a building's turn,
