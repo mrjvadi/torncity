@@ -307,7 +307,7 @@ func (r *SettlementRepository) ExistingForWorld(ctx context.Context, worldID str
 
 // settlementColumns are the cities columns a FoundedSettlement is read from.
 const settlementColumns = `c.id::text, c.code, c.name, c.jurisdiction_id::text, c.tier, c.world_id::text, c.world_cell_id,
-	c.founded_at, c.protected_until, c.grid_shift_x, c.grid_shift_y,
+	c.founded_at, c.protected_until, c.grid_shift_x, c.grid_shift_y, c.grid_growth,
 	COALESCE(c.emblem_shape, ''), COALESCE(c.emblem_color_a, ''), COALESCE(c.emblem_color_b, ''), COALESCE(c.emblem_icon, ''),
 	COALESCE(c.motto, ''),
 	COALESCE((SELECT v.code FROM village_currency_reservations v WHERE v.settlement_id = c.id), ''),
@@ -316,9 +316,22 @@ const settlementColumns = `c.id::text, c.code, c.name, c.jurisdiction_id::text, 
 
 func scanSettlement(row pgx.Row, out *application.FoundedSettlement, extra ...any) error {
 	return row.Scan(append([]any{&out.CityID, &out.Code, &out.Name, &out.JurisdictionID, &out.Tier, &out.WorldID,
-		&out.WorldCellID, &out.FoundedAt, &out.ProtectedUntil, &out.GridShiftX, &out.GridShiftY,
+		&out.WorldCellID, &out.FoundedAt, &out.ProtectedUntil, &out.GridShiftX, &out.GridShiftY, &out.GridGrowth,
 		&out.Emblem.Shape, &out.Emblem.ColorA, &out.Emblem.ColorB, &out.Emblem.Icon, &out.Motto,
 		&out.Currency.Code, &out.Currency.Name, &out.Currency.Symbol}, extra...)...)
+}
+
+// GrowGrid is a compare-and-set on the village's grid growth.
+func (r *SettlementRepository) GrowGrid(ctx context.Context, id string, from, to int) error {
+	tag, err := r.q.Exec(ctx,
+		`UPDATE cities SET grid_growth = $3 WHERE id = $1::uuid AND grid_growth = $2`, id, from, to)
+	if err != nil {
+		return fmt.Errorf("postgres: growing the grid of %s: %w", id, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return application.ErrGridGrowthConflict
+	}
+	return nil
 }
 
 // ByFoundingGroup returns the settlement this chat already founded, or

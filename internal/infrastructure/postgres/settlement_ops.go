@@ -227,7 +227,7 @@ func (o *SettlementOps) Relocate(ctx context.Context, r Relocation) (RelocationD
 		}
 
 		_, err = tx.Exec(ctx,
-			`UPDATE cities SET world_cell_id = $2, grid_shift_x = $3, grid_shift_y = $4 WHERE id = $1::uuid`,
+			`UPDATE cities SET world_cell_id = $2, grid_shift_x = $3, grid_shift_y = $4, grid_growth = 0 WHERE id = $1::uuid`,
 			cur.ID, move.CellID, move.ShiftX, move.ShiftY)
 		if violates(err, sqlstateUniqueViolation, citiesWorldCellUniqueIdx) {
 			return application.ErrSpawnCellTaken

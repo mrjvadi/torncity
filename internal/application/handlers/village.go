@@ -79,11 +79,17 @@ type VillageHandler struct {
 	scarcityCapBPS        int64
 	sellerBandBPS         int64
 	demolitionSalvageBPS  int64
-	residenceCooldown     time.Duration
-	homeCityCode          string
-	donationMin           int64
-	donationMax           int64
-	donationPresets       []int64
+	// Land and roads (config.Settlement): the technical bound on a grid's
+	// side, the lot price and its step, and the fee per automatic road lot.
+	gridMaxLots       int
+	gridLotPrice      int64
+	gridPriceStepBPS  int64
+	autoRoadCost      int64
+	residenceCooldown time.Duration
+	homeCityCode      string
+	donationMin       int64
+	donationMax       int64
+	donationPresets   []int64
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -111,6 +117,13 @@ type VillageRules struct {
 	ScarcityCapBPS        int64
 	SellerBandBPS         int64
 	DemolitionSalvageBPS  int64
+	// GridMaxLots, GridLotPrice, GridPriceStepBPS and AutoRoadCost are
+	// settlement.grid_max_lots, .grid_lot_price, .grid_price_step_bps and
+	// .auto_road_cost.
+	GridMaxLots      int
+	GridLotPrice     int64
+	GridPriceStepBPS int64
+	AutoRoadCost     int64
 	// ResidenceCooldown and HomeCityCode are settlement.residence_cooldown
 	// and settlement.home_city_code (village_residence.go).
 	ResidenceCooldown time.Duration
@@ -144,6 +157,10 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 		scarcityCapBPS:        rules.ScarcityCapBPS,
 		sellerBandBPS:         rules.SellerBandBPS,
 		demolitionSalvageBPS:  rules.DemolitionSalvageBPS,
+		gridMaxLots:           rules.GridMaxLots,
+		gridLotPrice:          rules.GridLotPrice,
+		gridPriceStepBPS:      rules.GridPriceStepBPS,
+		autoRoadCost:          rules.AutoRoadCost,
 		residenceCooldown:     rules.ResidenceCooldown,
 		homeCityCode:          rules.HomeCityCode,
 		idempotencyTTL:        idempotencyTTL,
@@ -266,12 +283,9 @@ func (h *VillageHandler) world(ctx context.Context) (*worldgen.World, error) {
 // section 6.2's permanence rule).
 func (h *VillageHandler) grid(ctx context.Context, tx application.Tx, w *worldgen.World, s application.FoundedSettlement,
 ) (settlementbuilding.Grid, []application.SettlementBuildingInstance, error) {
-	gridLots := h.gridLotsByTier[s.Tier]
-	if gridLots < 1 {
-		gridLots = h.villageGridLots
-	}
+	gridLots := h.gridSide(s)
 	cell := w.Cells[s.WorldCellID]
-	gridLat, gridLon := wsettle.GridCentre(w, cell.Point.LatDeg, cell.Point.LonDeg, s.GridShiftX, s.GridShiftY)
+	gridLat, gridLon := wsettle.GridCentreGrown(w, cell.Point.LatDeg, cell.Point.LonDeg, s.GridShiftX, s.GridShiftY, s.GridGrowth)
 	sampled := wsettle.SampleGrid(w, gridLat, gridLon, gridLots, s.WorldCellID)
 
 	existing, err := tx.SettlementBuildings().List(ctx, s.CityID)
@@ -310,6 +324,16 @@ func (h *VillageHandler) grid(ctx context.Context, tx application.Tx, w *worldge
 		}
 	}
 	return g, existing, nil
+}
+
+// gridSide is the side, in lots, of a settlement's grid now: the tier's base
+// side plus the expansions it has bought.
+func (h *VillageHandler) gridSide(s application.FoundedSettlement) int {
+	base := h.gridLotsByTier[s.Tier]
+	if base < 1 {
+		base = h.villageGridLots
+	}
+	return base + s.GridGrowth
 }
 
 // knowledgeStanding builds the settlementknowledge.Standing a settlement

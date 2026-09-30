@@ -539,6 +539,10 @@ settlement:
   village_grid_lots: 6
   min_buildable_lot_share_bps: 6500
   grid_shift_max_lots: 4
+  grid_max_lots: 42
+  grid_lot_price: 51
+  grid_price_step_bps: 501
+  auto_road_cost: 11
   founding_draft_ttl: 31m
   founding_name_min: 4
   founding_name_max: 25
@@ -854,6 +858,10 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_VILLAGE_GRID_LOTS":            "7",
 	"TORN_SETTLEMENT_MIN_BUILDABLE_LOT_SHARE_BPS":  "6600",
 	"TORN_SETTLEMENT_GRID_SHIFT_MAX_LOTS":          "5",
+	"TORN_SETTLEMENT_GRID_MAX_LOTS":                "43",
+	"TORN_SETTLEMENT_GRID_LOT_PRICE":               "52",
+	"TORN_SETTLEMENT_GRID_PRICE_STEP_BPS":          "502",
+	"TORN_SETTLEMENT_AUTO_ROAD_COST":               "12",
 	"TORN_SETTLEMENT_FOUNDING_DRAFT_TTL":           "32m",
 	"TORN_SETTLEMENT_FOUNDING_NAME_MIN":            "5",
 	"TORN_SETTLEMENT_FOUNDING_NAME_MAX":            "26",

@@ -76,6 +76,7 @@ type SettlementEvents func(ctx context.Context, deps Deps, env *envelope.Envelop
 const (
 	SettlementBuildStarted      = "build_started"
 	SettlementBuildBatchStarted = "build_batch_started"
+	SettlementGridGrown         = "grid_grown"
 	SettlementBuildFinished     = "build_finished"
 	SettlementBuildCancelled    = "build_cancelled"
 	SettlementBuildSalvaged     = "build_salvaged"
@@ -205,6 +206,13 @@ func villageBuildStarted(_ context.Context, _ Deps, env *envelope.Envelope) ([]S
 	}
 	f := map[string]any{"building_id": ev.BuildingID, "type_code": ev.TypeCode,
 		"lot_x": ev.LotX, "lot_y": ev.LotY, "rotated": ev.Rotated}
+	// The roads the game laid with it, finished at once.
+	var laid struct {
+		AutoRoads json.RawMessage `json:"auto_roads"`
+	}
+	if json.Unmarshal(env.Payload, &laid) == nil && len(laid.AutoRoads) > 0 {
+		f["auto_roads"] = laid.AutoRoads
+	}
 	if ev.FinishAt != "" {
 		f["finish_at"] = ev.FinishAt
 	}
@@ -232,6 +240,21 @@ func villageBatchStarted(_ context.Context, _ Deps, env *envelope.Envelope) ([]S
 		f["finish_at"] = ev.FinishAt
 	}
 	return one(ev.SettlementID, SettlementBuildBatchStarted, withLayout(f, ev)), nil
+}
+
+// villageGridGrown: the village bought more land. The picture changes (the
+// grid is bigger), so the publication carries the new side and the layout's
+// version: a client holding a layout fetches it again.
+func villageGridGrown(_ context.Context, _ Deps, env *envelope.Envelope) ([]SettlementPublication, error) {
+	ev, err := decodeVillage(env, "grid_grown")
+	if err != nil {
+		return nil, err
+	}
+	var grown struct {
+		GridLots int `json:"grid_lots"`
+	}
+	_ = json.Unmarshal(env.Payload, &grown)
+	return one(ev.SettlementID, SettlementGridGrown, withLayout(map[string]any{"grid_lots": grown.GridLots}, ev)), nil
 }
 
 // villageBuilt: a building finished construction.

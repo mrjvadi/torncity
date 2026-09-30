@@ -134,7 +134,7 @@ func (v *VillageService) Mine(ctx context.Context, playerID string) (*BootstrapS
 		return nil, err
 	}
 	out := &BootstrapSettlement{ID: ps.CityID, Code: ps.Code, Name: ps.Name, Tier: ps.Tier, WorldCell: ps.WorldCellID,
-		IsHead: holdsHead(ps), Resident: ps.Resident, GridLots: v.gridLots(ps.Tier), LayoutPath: "/api/v1/settlements/" + ps.CityID + "/layout"}
+		IsHead: holdsHead(ps), Resident: ps.Resident, GridLots: v.gridLots(ps.Tier, ps.GridGrowth), LayoutPath: "/api/v1/settlements/" + ps.CityID + "/layout"}
 	if _, w, err := v.World.active(ctx); err == nil {
 		out.Centre = centreOf(w, ps.WorldCellID)
 	}
@@ -158,8 +158,8 @@ func holdsHead(ps application.PlayerSettlement) bool {
 	return false
 }
 
-func (v *VillageService) gridLots(tier string) int {
-	return settlement.GridLotsForTier(tier, v.VillageGridLots)
+func (v *VillageService) gridLots(tier string, growth int) int {
+	return settlement.GridLotsGrown(tier, v.VillageGridLots, growth)
 }
 
 func centreOf(w *worldgen.World, cell int32) *Place {
@@ -303,8 +303,8 @@ func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID stri
 	}
 
 	pt := w.Cells[s.WorldCellID].Point
-	lots := v.gridLots(s.Tier)
-	gridLat, gridLon := settlement.GridCentre(w, pt.LatDeg, pt.LonDeg, s.GridShiftX, s.GridShiftY)
+	lots := v.gridLots(s.Tier, s.GridGrowth)
+	gridLat, gridLon := settlement.GridCentreGrown(w, pt.LatDeg, pt.LonDeg, s.GridShiftX, s.GridShiftY, s.GridGrowth)
 	grid := settlement.SampleGridDetail(w, gridLat, gridLon, lots, s.WorldCellID)
 	out := VillageLayout{
 		Detail: DetailCoarse, Viewer: viewer,

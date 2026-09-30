@@ -8,7 +8,13 @@
         "name": "Militia camp"
       },
       "can_rotate": true,
+      "from": {
+        "x": 0,
+        "y": 0
+      },
       "grid_lots": 5,
+      "line": "",
+      "multi": false,
       "rotated": false,
       "rows": [
         [
@@ -184,7 +190,13 @@
         "name": "Militia camp"
       },
       "can_rotate": true,
+      "from": {
+        "x": 0,
+        "y": 0
+      },
       "grid_lots": 5,
+      "line": "",
+      "multi": false,
       "rotated": true,
       "rows": [
         [
@@ -360,7 +372,13 @@
         "name": "Civic hall"
       },
       "can_rotate": false,
+      "from": {
+        "x": 0,
+        "y": 0
+      },
       "grid_lots": 5,
+      "line": "",
+      "multi": false,
       "rotated": false,
       "rows": [
         [
@@ -531,6 +549,7 @@
     "title": "Build confirm · with materials",
     "screen": "settlement_build_confirm",
     "view": {
+      "auto_roads": 0,
       "build_time_seconds": 7200,
       "building": {
         "code": "civic_hall",
@@ -556,6 +575,7 @@
     "title": "Build confirm · rotated, no materials",
     "screen": "settlement_build_confirm",
     "view": {
+      "auto_roads": 0,
       "build_time_seconds": 2700,
       "building": {
         "code": "militia_camp",

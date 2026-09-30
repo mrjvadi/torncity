@@ -58,6 +58,17 @@ settlement_buildings:
     build_time: 2h
     upkeep: 20
 
+  # One lot, so a household can be added anywhere a lot is free; the block
+  # below is the dense form (a 2x2 of flats).
+  - code: village_house
+    name: "خانهٔ روستایی"
+    footprint: [1, 1]
+    cost_money: 700
+    cost_materials: {timber: 2}
+    build_time: 45m
+    upkeep: 6
+    effects: [{target: housing_capacity, op: add, value: 4}]
+
   - code: housing_block
     name: "بلوک مسکونی"
     footprint: [2, 2]

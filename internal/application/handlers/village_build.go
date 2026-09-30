@@ -284,12 +284,20 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if cerr := settlementbuilding.CanPlace(def, grid, x, y, standing); cerr != nil {
 			return buildingRefusal(cerr)
 		}
+		// The game lays the road that connects the building (roadplan.go);
+		// a building no road could ever reach is refused before anything
+		// is paid.
+		autoRoads, perr := h.planAutoRoads(ctx, tx, s, code, def, grid, x, y)
+		if perr != nil {
+			return perr
+		}
+		roadFee := int64(len(autoRoads)) * h.autoRoadCost
 
 		if !req.confirmed() {
 			confirmView = &screens.LotConfirmView{
 				SettlementName: s.Name, Building: named(d.Code, d.Name), X: x, Y: y, Rotated: rotated,
-				CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime),
-				Materials: materialLines(h.content.Current(), def),
+				CostMoney: d.CostMoney + roadFee, BuildTime: h.scale.RealWait(def.BuildTime),
+				Materials: materialLines(h.content.Current(), def), AutoRoads: len(autoRoads),
 			}
 			return nil
 		}
@@ -313,8 +321,8 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 				return err
 			}
 		}
-		if d.CostMoney > 0 {
-			if _, err := spendVillage(ctx, tx, s.CityID, application.ReasonSettlementConstruction, d.CostMoney, now); err != nil {
+		if d.CostMoney+roadFee > 0 {
+			if _, err := spendVillage(ctx, tx, s.CityID, application.ReasonSettlementConstruction, d.CostMoney+roadFee, now); err != nil {
 				return err
 			}
 		}
@@ -331,10 +339,18 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if _, err := h.schedule(ctx, tx, application.SettlementBuildActionType, "settlement_building", id, s.CityID, now, finish); err != nil {
 			return err
 		}
-		return h.appendBuildingEvent(ctx, tx, meta, s, "build_started", map[string]any{
+		laid, err := h.layAutoRoads(ctx, tx, s.CityID, autoRoads, now)
+		if err != nil {
+			return err
+		}
+		payload := map[string]any{
 			"settlement_id": s.CityID, "building_id": id, "type_code": code, "name": d.Name, "lot_x": x, "lot_y": y,
 			"rotated": rotated && d.Def().CanRotate(), "finish_at": finish.UTC().Format(time.RFC3339),
-		})
+		}
+		if len(laid) > 0 {
+			payload["auto_roads"] = laid
+		}
+		return h.appendBuildingEvent(ctx, tx, meta, s, "build_started", payload)
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
@@ -556,7 +572,7 @@ func (h *VillageHandler) appendBuildingEvent(ctx context.Context, tx application
 		return 1, 1
 	}
 	payload["layout_version"] = application.LayoutVersionsOf(s.CityID, s.Tier, s.Name,
-		wsettle.GridLotsForTier(s.Tier, h.villageGridLots), rows, footprint)
+		wsettle.GridLotsGrown(s.Tier, h.villageGridLots, s.GridGrowth), rows, footprint)
 	return appendVillageEvent(ctx, tx, meta, name, s.CityID, payload)
 }
 

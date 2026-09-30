@@ -87,6 +87,10 @@ const (
 	// VillageBatch is a batch placement refused: Lots names every lot that
 	// stopped it, each with its own kind.
 	VillageBatch = "batch"
+	// VillageNoRoad is a building no road could ever reach.
+	VillageNoRoad = "no_road"
+	// VillageGridMax is the technical bound on a grid's side.
+	VillageGridMax = "grid_max"
 	// Residence (village_residence.go).
 	VillageAlreadyResident = "already_resident"
 	VillageNotResident     = "not_resident"
@@ -124,7 +128,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 		VillageNotAvailable, VillageTerrain, VillagePrerequisite, VillageLiteracy, VillageNotFound,
 		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
 		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome,
-		VillageDonateRange, VillageDonateNoCash, VillageBatch:
+		VillageDonateRange, VillageDonateNoCash, VillageBatch, VillageNoRoad, VillageGridMax:
 	default:
 		kind = VillageNotFound
 	}
@@ -484,6 +488,9 @@ func renderBuildMenu(c Context, v BuildMenuView) *presenter.Response {
 
 	kb := keyboards.New()
 	kb.Grid(2, buttons...)
+	if b, ok := keyboards.Button(c.T("build.button.grow", nil), AddrGridGrow); ok {
+		kb.Row(b)
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrBuildMenu}))
 
 	return c.respond(paragraphs(head, list), kb.Build())
@@ -771,6 +778,9 @@ type LotConfirmView struct {
 	CostMoney      int64
 	Materials      []MaterialLine
 	BuildTime      time.Duration
+	// AutoRoads is how many lots of road the game lays with the building to
+	// connect it (0: it already touches the network).
+	AutoRoads int
 }
 
 // LotConfirm renders the placement confirmation.
@@ -795,6 +805,9 @@ func renderLotConfirm(c Context, v LotConfirmView) *presenter.Response {
 		}),
 		body(materialLines...),
 	)
+	if v.AutoRoads > 0 {
+		text = paragraphs(text, c.T("build.confirm.auto_roads", map[string]any{"count": FormatNumber(c, int64(v.AutoRoads))}))
+	}
 
 	kb := keyboards.New()
 	token := LotToken(v.X, v.Y, v.Rotated)

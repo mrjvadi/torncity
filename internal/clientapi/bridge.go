@@ -101,7 +101,7 @@ var (
 
 // Limits on what a command may carry.
 const (
-	maxArgs      = 16
+	maxArgs = 16
 	// maxListItems bounds a list argument (a batch of lots).
 	maxListItems = 64
 	maxArgLength = 512

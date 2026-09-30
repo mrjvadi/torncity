@@ -293,6 +293,7 @@ commands:
   settlement.build.place: {kind: primary, icon: "action:place"}
   settlement.build.place_many: {kind: primary, icon: "action:place"}
   settlement.building.view: {kind: navigation, icon: "action:build"}
+  settlement.grid.grow: {kind: primary, icon: "action:lots"}
   settlement.build.progress: {kind: navigation, icon: "action:progress"}
   settlement.build.demolish: {kind: danger, icon: "action:demolish"}
   settlement.build.cancel: {kind: danger, icon: "action:cancel_build"}

@@ -468,6 +468,7 @@ var argNames = map[string][]string{
 	"settlement.build.place":        {"code", "lot", "confirm"},
 	"settlement.build.place_many":   {"code", "from", "to", "confirm"},
 	"settlement.building.view":      {"building_id", "mode"},
+	"settlement.grid.grow":          {"confirm"},
 	"settlement.build.progress":     {},
 	"settlement.build.demolish":     {"id"},
 	"settlement.build.cancel":       {"id"},

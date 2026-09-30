@@ -81,6 +81,7 @@ No knowledge to show.
 🔒 Police post - needs Record keeping first
   ───
   [🏗 Build Civic hall] → settlement:build.lots:civic_hall
+  [🗺 Expand the land] → settlement:grid.grow
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build
 
 ━━━ Construction progress · one queued, one building ━━━
@@ -90,6 +91,8 @@ No knowledge to show.
 🏗 Carpentry - under construction - finishes at 16:05 - 1h 30m left
 📋 Watch hut - queued - not yet started
   ───
+  [🏗 Carpentry] → settlement:building.view:
+  [🏗 Watch hut] → settlement:building.view:
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
 
 ━━━ Construction progress · queue empty ━━━

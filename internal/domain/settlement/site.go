@@ -67,14 +67,30 @@ func (s SiteReport) Meets(r SiteRules) bool {
 // from a cell's centre (x grows east, y north), the point PlaceFoundingKit,
 // SampleGridDetail and SampleGrid are all given.
 func GridCentre(w *worldgen.World, cellLat, cellLon float64, shiftX, shiftY int) (lat, lon float64) {
+	return gridCentreLots(w, cellLat, cellLon, float64(shiftX), float64(shiftY))
+}
+
+// GridCentreGrown is GridCentre for a grid that has grown by growth lots per
+// side. A grown grid gains a column on its EAST edge and a row on its NORTH
+// edge per step, so lot (0,0) - the south-west corner every stored building
+// coordinate is counted from - never moves: the centre slides half a lot east
+// and north per step, which keeps every existing lot on exactly the ground it
+// always had (SampleGridDetail places lot (x,y) at (x-mid, y-mid) lots from
+// the centre, mid = (side-1)/2).
+func GridCentreGrown(w *worldgen.World, cellLat, cellLon float64, shiftX, shiftY, growth int) (lat, lon float64) {
+	half := float64(growth) / 2
+	return gridCentreLots(w, cellLat, cellLon, float64(shiftX)+half, float64(shiftY)+half)
+}
+
+func gridCentreLots(w *worldgen.World, cellLat, cellLon, shiftX, shiftY float64) (lat, lon float64) {
 	if shiftX == 0 && shiftY == 0 {
 		return cellLat, cellLon
 	}
 	lotMeters := w.Params.TileMeters() / lotsPerTile
 	radiusM := w.Params.PlanetRadiusKm * 1000
 	latRad := cellLat * math.Pi / 180
-	dLat := (float64(shiftY) * lotMeters / radiusM) * 180 / math.Pi
-	dLon := (float64(shiftX) * lotMeters / (radiusM * math.Cos(latRad))) * 180 / math.Pi
+	dLat := (shiftY * lotMeters / radiusM) * 180 / math.Pi
+	dLon := (shiftX * lotMeters / (radiusM * math.Cos(latRad))) * 180 / math.Pi
 	return cellLat + dLat, cellLon + dLon
 }
 

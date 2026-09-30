@@ -81,6 +81,7 @@
 🔒 کلانتری - اول باید دفترداری را داشته باشید
   ───
   [🏗 ساخت خانهٔ دهیاری] → settlement:build.lots:civic_hall
+  [🗺 گسترش زمین] → settlement:grid.grow
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build
 
 ━━━ Construction progress · one queued, one building ━━━
@@ -90,6 +91,8 @@
 🏗 نجاری - در حال ساخت - ساعت ⁨16⁩:⁨05⁩ تمام می‌شود - ⁨1 ساعت و 30 دقیقه⁩ دیگر
 📋 دیده‌بانی محله - در صف - هنوز شروع نشده
   ───
+  [🏗 نجاری] → settlement:building.view:
+  [🏗 دیده‌بانی محله] → settlement:building.view:
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build.progress
 
 ━━━ Construction progress · queue empty ━━━

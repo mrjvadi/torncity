@@ -753,6 +753,8 @@ village:
     no_home: "🏙 The city to return to has not been set."
     donate_range: "💰 A gift must be between {min} and {max}."
     donate_no_cash: "💰 You do not have enough cash for that gift."
+    no_road: "🛣 No road can reach this building; there is no free buildable ground around it to lay one. Try another lot."
+    grid_max: "🗺 The village's land has reached the technical limit of the map size and cannot grow further."
     batch: |-
       🚧 The batch was not built and nothing was paid. These lots have a problem:
       {lots}
@@ -823,11 +825,13 @@ build:
     locked: "🔒 {building} - needs {missing} first"
   button:
     place: "🏗 Build {building}"
+    grow: "🗺 Expand the land"
   confirm:
     title: "🏗 Build {building}"
     body: "Cost: {cost}\nBuild time: {time}\nLocation: row {y}, column {x}"
     material_line: "• {component}: {quantity} units"
     button: "✅ Confirm and build"
+    auto_roads: "🛣 To connect this building, {count} lots of road are laid with it, free and ready at once."
   batch:
     title: "🛣 Build {count} x {building}"
     body: "Total cost: {cost}\nBuild time: {time} (all start together)"
@@ -853,6 +857,16 @@ construction:
   button:
     open: "🏗 {building}"
   standing_hint: "Tap a finished building to see it."
+
+# Buying more land: the grid grows by a column east and a row north.
+grow:
+  title: "🗺 Expand the land of {name}"
+  body: |-
+    The land grows from {side}x{side} to {new_side}x{new_side}: {lots} new lots, {buildable} of them dry buildable ground.
+    Price: {price}
+    Treasury: {treasury}
+  note: "Standing buildings stay where they are. Water and steep ground stay unbuildable. Each expansion costs more than the last."
+  button: "✅ Confirm and expand"
 
 # The panel of one placed building (internal/telegram/screens/village_building.go):
 # what it is and what it does; demolishing is the last, quiet button.
@@ -884,6 +898,7 @@ building:
       market: "Where the villagers trade and goods change hands."
       storage: "The village store: the shared materials and goods are kept here, and construction draws from this stock."
     code:
+      village_house: "A one-lot home for a few villagers; raises the population capacity a little."
       housing_block: "New homes for the villagers; raises the population capacity."
       park: "Green space that lifts the villagers' mood."
       bank: "A building of larger towns; its use opens as the village grows."

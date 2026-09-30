@@ -852,6 +852,8 @@ village:
     no_home: "🏙 شهر بازگشت هنوز تعیین نشده است."
     donate_range: "💰 مبلغ کمک باید بین {min} و {max} باشد."
     donate_no_cash: "💰 پول نقد شما برای این کمک کافی نیست."
+    no_road: "🛣 به این بنا هیچ راهی نمی‌رسد؛ اطرافش جای آزاد و قابل‌ساخت برای کشیدن جاده نیست. قطعهٔ دیگری را امتحان کنید."
+    grid_max: "🗺 زمین روستا به بیشینهٔ فنیِ اندازهٔ نقشه رسیده است و بیشتر گسترش نمی‌یابد."
     batch: |-
       🚧 ساخت گروهی انجام نشد و چیزی پرداخت نشد. این قطعه‌ها مشکل دارند:
       {lots}
@@ -922,11 +924,13 @@ build:
     locked: "🔒 {building} - اول باید {missing} را داشته باشید"
   button:
     place: "🏗 ساخت {building}"
+    grow: "🗺 گسترش زمین"
   confirm:
     title: "🏗 ساخت {building}"
     body: "هزینه: {cost}\nزمان ساخت: {time}\nمحل: ردیف {y}، ستون {x}"
     material_line: "• {component}: {quantity} واحد"
     button: "✅ تأیید و ساخت"
+    auto_roads: "🛣 برای اتصال این بنا، {count} قطعه جادهٔ رایگان هم همراهش کشیده می‌شود و فوراً آماده است."
   batch:
     title: "🛣 ساخت {count} قطعه {building}"
     body: "هزینهٔ کل: {cost}\nزمان ساخت: {time} (همه با هم شروع می‌شوند)"
@@ -952,6 +956,16 @@ construction:
   button:
     open: "🏗 {building}"
   standing_hint: "برای دیدن هر بنای ساخته‌شده، روی نامش بزنید."
+
+# Buying more land: the grid grows by a column east and a row north.
+grow:
+  title: "🗺 گسترش زمین {name}"
+  body: |-
+    زمین از {side}×{side} به {new_side}×{new_side} می‌رسد و {lots} قطعهٔ تازه به روستا اضافه می‌شود؛ {buildable} قطعه‌اش خشکیِ قابل‌ساخت است.
+    هزینه: {price}
+    خزانه: {treasury}
+  note: "بناهای فعلی سر جایشان می‌مانند. آب و شیب تند همان‌جا که هست ساخت‌ناپذیر می‌ماند. هر گسترشِ بعدی گران‌تر است."
+  button: "✅ تأیید و گسترش"
 
 # The panel of one placed building (internal/telegram/screens/village_building.go):
 # what it is and what it does; demolishing is the last, quiet button.
@@ -983,6 +997,7 @@ building:
       market: "جای دادوستد اهالی؛ کالا اینجا دست‌به‌دست می‌شود."
       storage: "انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد."
     code:
+      village_house: "خانه‌ای یک‌قطعه‌ای برای چند نفر؛ ظرفیت جمعیت روستا را کمی بالا می‌برد."
       housing_block: "خانه‌های تازه برای اهالی؛ ظرفیت جمعیت روستا را بالا می‌برد."
       park: "فضای سبز روستا؛ حال‌وهوای اهالی را بهتر می‌کند."
       bank: "بنایی از شهرهای بزرگ‌تر؛ کارکردش با رشد روستا باز می‌شود."

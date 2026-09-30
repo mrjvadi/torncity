@@ -27,10 +27,11 @@ import (
 // to keep the head from starting many big things at once. A road is cheap and
 // quick, so the content marks it cap_exempt: a road neither waits for a free
 // slot nor holds one, in a batch or alone, and a batch of roads never blocks
-// the house being built beside it. Any other 1x1 type is allowed in a batch
-// but keeps its cost to the cap: each lot is one job, so a batch is refused
-// (concurrent_cap, naming the lots past the limit) as soon as it would
-// exceed the cap. Nothing is hardcoded: which types are exempt is content.
+// the house being built beside it. Any other type
+// is not batched at all (not_available): a batch of jobs that DO hold a slot
+// would either flood the cap or need a "batch is one job" fiction that the
+// running count could not honour once the rows exist. Nothing is hardcoded:
+// which types are exempt is content (cap_exempt).
 
 // VillageBuildManyRequest is a batch: the lots as tokens (a client sends
 // {x,y,rotated} objects; the bridge spells them as tokens), or two ends of a
@@ -125,7 +126,7 @@ func (h *VillageHandler) PlaceMany(ctx context.Context, meta envelope.Metadata, 
 		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
 			return err
 		}
-		if def.FootprintW != 1 || def.FootprintH != 1 || len(lots) > len(grid)*len(grid) {
+		if def.FootprintW != 1 || def.FootprintH != 1 || !def.CapExempt || len(lots) > len(grid)*len(grid) {
 			return refuseVillage(screens.VillageNotAvailable)
 		}
 
