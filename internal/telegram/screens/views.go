@@ -267,6 +267,10 @@ const (
 	ScreenTravelCheckout = "travel_checkout"
 	ScreenTravelStarted  = "travel_started"
 	ScreenTravelArrived  = "travel_arrived"
+	// ScreenTravelHere answers «سفر به این روستا» when there is nowhere to
+	// go: the group has no village, the player is in it already, or the
+	// words were not sent in a group.
+	ScreenTravelHere = "travel_here"
 
 	// ScreenError is a refusal or a failure: its text says what went
 	// wrong. It carries no view.

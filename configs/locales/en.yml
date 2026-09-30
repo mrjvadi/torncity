@@ -63,8 +63,10 @@ map:
   cities_title: "🧭 Travel to another city"
   title: "🗺 Map"
   origin: "📍 You are in {city}."
-  destinations: "From here you can travel to:"
+  destinations: "From here you can travel to these cities and villages:"
   destination: "• {city} - {distance} km"
+  destination_priced: "• {city} - {distance} km - fare from {fare} - fastest {wait}"
+  destination_free: "• {city} - {distance} km - free on foot - fastest {wait}"
   no_routes: "There is nowhere to travel to from here yet. When a route opens, its destinations will appear right here."
   no_city: "You have not settled in a city yet. Once you do, your travel destinations appear here."
   travelling: "🧭 You are on the way to {city}. You can start a new journey once you arrive."
@@ -116,6 +118,10 @@ travel:
   # to a new level; {level} is the highest level reached.
   arrived_level: "⭐ Congratulations — you reached level {level}."
   none: "You are not travelling right now. Open the “Map” to choose a destination."
+  here:
+    no_village: "🏡 This group has no village yet, so there is nowhere to travel to. Send “found village” to start one."
+    already_there: "📍 You are in {village} right now; no journey needed. Open the “Map” to go somewhere else."
+    group_only: "🧭 Send “travel to this village” in the group of that village to travel straight there. Open the “Map” for other destinations."
   same_city: "You are already in this city. Choose another destination on the “Map”."
   no_route: "There is no route there from your current city. Choose one of the destinations on the “Map”."
   mode_unavailable: "That way of travelling does not serve this route. Choose the destination on the “Map” again to see the ways that do."
@@ -128,6 +134,8 @@ transport_mode:
   car: Car
   train: Train
   flight: Flight
+  walk: On foot
+  cart: Cart
 
 skills:
   title: "🛠 Skills"
@@ -305,6 +313,7 @@ button:
   travel_to: "🧭 {city}"
   travel_by: "{mode} - {fare}"
   travel_options: "🧭 Ways to travel"
+  travel_elsewhere: "🧭 Other destinations"
   skills: "🛠 Skills"
   social: "👥 Friends"
   settings: "⚙️ Settings"
@@ -1510,6 +1519,8 @@ command_alias:
   link: "link"
   devices: "devices"
   village: "village"
+  travel:
+    here: "travel to this village | travel to this group | take me here"
   settlement:
     found: "found village"
     join: "join village | become resident"

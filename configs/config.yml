@@ -334,6 +334,25 @@ travel:
 
   # How long a journey takes is the game clock's business: game.time_scale.
 
+  # Where a CONTENT city stands on the generated world ("code=lat:lon",
+  # degrees). A founded village stands on its own world cell; Support has
+  # none, so its spot is set here: a temperate lowland cell of the seed-42
+  # world's great continent, 940 km from any sea (docs/adr/0034). The
+  # distance of a journey with no content route is the great-circle
+  # distance between two such spots on a planet of worldgen.planet_radius_km.
+  city_locations:
+    - "support=32.30:-47.70"
+
+  # Which transport modes (configs/content/transport.yml) serve those
+  # world-derived journeys, and the longest one each will make ("mode=km").
+  # A listed mode needs no facility at either end (a village has none): its
+  # speed and fare per kilometre come from transport.yml, so time and fare
+  # grow with the distance. A destination beyond every listed mode is not offered.
+  world_reach:
+    - "walk=60"
+    - "cart=500"
+    - "car=21000"
+
 # Player-facing defaults.
 player:
   # The language a player gets when Telegram tells us nothing usable about

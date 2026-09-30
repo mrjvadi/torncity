@@ -305,6 +305,28 @@ func (r *SettlementRepository) ExistingForWorld(ctx context.Context, worldID str
 	return out, nil
 }
 
+// Founded returns every founded settlement, ordered by code.
+func (r *SettlementRepository) Founded(ctx context.Context) ([]application.FoundedSettlement, error) {
+	rows, err := r.q.Query(ctx,
+		`SELECT `+settlementColumns+` FROM cities c WHERE c.origin = 'founded' ORDER BY c.code`)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: listing founded settlements: %w", err)
+	}
+	defer rows.Close()
+	var out []application.FoundedSettlement
+	for rows.Next() {
+		var s application.FoundedSettlement
+		if err := scanSettlement(rows, &s); err != nil {
+			return nil, fmt.Errorf("postgres: scanning founded settlement: %w", err)
+		}
+		out = append(out, s)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("postgres: listing founded settlements: %w", err)
+	}
+	return out, nil
+}
+
 // settlementColumns are the cities columns a FoundedSettlement is read from.
 const settlementColumns = `c.id::text, c.code, c.name, c.jurisdiction_id::text, c.tier, c.world_id::text, c.world_cell_id,
 	c.founded_at, c.protected_until, c.grid_shift_x, c.grid_shift_y,

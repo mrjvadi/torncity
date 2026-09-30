@@ -86,6 +86,8 @@ var all = []Subscription{
 	// its fare and wait; travel.start departs by the mode chosen there.
 	{Domain: "travel", Action: "options", Origin: FromPlayer},
 	{Domain: "travel", Action: "status", Origin: FromPlayer},
+	// travel.here is the journey to the village of the group it is sent in.
+	{Domain: "travel", Action: "here", Origin: FromPlayer},
 	{Domain: "travel", Action: "arrive", Origin: FromScheduler},
 
 	// Phase 1: skills, the world map and the social graph.

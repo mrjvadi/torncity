@@ -7,6 +7,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/commands"
+	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/world"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -112,6 +113,9 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		},
 		"travel.status": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.travel.Status(ctx, env.Metadata)
+		},
+		"travel.here": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.travel.Here(ctx, env.Metadata)
 		},
 		// The scheduler's dispatch payload, decoded into the request the
 		// handler declares for it. Both sides name the same json fields; the
@@ -502,6 +506,47 @@ func (t liveTransport) Options(from, to string) ([]handlers.TransportOption, int
 			Accepts: snap.ModeAccepts(o.Mode.Code)})
 	}
 	return out, snap.Version()
+}
+
+// liveWorldTransport prices the journeys the world derives (a founded village
+// has no route in routes.yml) from the current content snapshot: the modes
+// config travel.world_reach lets serve them, and the emblem of a village.
+type liveWorldTransport struct {
+	registry *content.Registry
+	reach    map[string]int
+}
+
+func (t liveWorldTransport) Derived(distanceKM int) ([]handlers.TransportOption, int) {
+	snap := t.registry.Current()
+	opts := snap.DerivedTransport(distanceKM, t.reach)
+	out := make([]handlers.TransportOption, 0, len(opts))
+	for _, o := range opts {
+		out = append(out, handlers.TransportOption{Mode: o.Mode, Name: o.Name, DistanceKM: o.DistanceKM,
+			Accepts: snap.ModeAccepts(o.Mode.Code)})
+	}
+	return out, snap.Version()
+}
+
+func (t liveWorldTransport) EmblemText(e application.EmblemCodes) string {
+	return handlers.EmblemTextOf(t.registry.Current(), e)
+}
+
+// worldRoutes builds the world-derived travel from configuration.
+func worldRoutes(cfg *config.Config, cache *application.WorldCache, registry *content.Registry) (*handlers.WorldRoutes, error) {
+	spots, err := cfg.Travel.CityLocationMap()
+	if err != nil {
+		return nil, err
+	}
+	reach, err := cfg.Travel.WorldReachMap()
+	if err != nil {
+		return nil, err
+	}
+	locations := make(map[string]handlers.GeoPoint, len(spots))
+	for code, s := range spots {
+		locations[code] = handlers.GeoPoint{LatDeg: s.LatDeg, LonDeg: s.LonDeg}
+	}
+	return handlers.NewWorldRoutes(cache, locations, cfg.WorldGen.PlanetRadiusKm, cfg.Game.TimeScale,
+		liveWorldTransport{registry: registry, reach: reach}), nil
 }
 
 // liveRoutes is the route network the map screen reads, for the same reason.

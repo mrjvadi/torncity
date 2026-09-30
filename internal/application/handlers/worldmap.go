@@ -20,6 +20,9 @@ type MapHandler struct {
 	cities  application.CityRepository
 	travels application.TravelRepository
 	routes  RouteNetwork
+	// world adds the places the generated world puts within reach, founded
+	// villages among them (travel_world.go). Nil lists content routes only.
+	world *WorldRoutes
 
 	pageSize int
 	now      func() time.Time
@@ -147,9 +150,38 @@ func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageR
 				DistanceKM: distance,
 			})
 		}
-		// Nearest first, the order a traveller weighs them in; the code
-		// breaks ties so the order is stable between two presses of "next".
+		// Places the world puts within reach: Support first, then the
+		// founded villages, each nearest first, priced from the distance.
+		if h.world != nil {
+			listed := make(map[string]bool, len(destinations))
+			for _, d := range destinations {
+				listed[d.Code] = true
+			}
+			far, err := h.world.Destinations(ctx, tx, *origin, all)
+			if err != nil {
+				return err
+			}
+			for _, d := range far {
+				if listed[d.City.Code] {
+					continue
+				}
+				mc := screens.MapCity{
+					Code: d.City.Code, Name: d.City.Name, DistanceKM: d.DistanceKM, Emblem: d.Emblem,
+					Fare: d.Fare, Wait: d.Wait, Lat: d.Point.LatDeg, Lon: d.Point.LonDeg,
+				}
+				if d.Settlement != nil {
+					mc.Village, mc.SettlementID = true, d.Settlement.CityID
+				}
+				destinations = append(destinations, mc)
+			}
+		}
+		// Nearest first, the order a traveller weighs them in, cities before
+		// villages; the code breaks ties so the order is stable between two
+		// presses of "next".
 		sort.SliceStable(destinations, func(i, j int) bool {
+			if destinations[i].Village != destinations[j].Village {
+				return !destinations[i].Village
+			}
 			if destinations[i].DistanceKM != destinations[j].DistanceKM {
 				return destinations[i].DistanceKM < destinations[j].DistanceKM
 			}

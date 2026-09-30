@@ -291,6 +291,8 @@ game:
   time_scale: 61
 travel:
   arrival_xp: 26
+  city_locations: ["support=10.5:20.5"]
+  world_reach: ["walk=61"]
 player:
   default_language: "en"
   default_timezone: "Europe/Berlin"
@@ -620,6 +622,8 @@ var envOverrides = map[string]string{
 	"TORN_POSTGRES_IDLE_IN_TRANSACTION_TIMEOUT": "62s",
 
 	"TORN_TRAVEL_ARRIVAL_XP": "27",
+	"TORN_TRAVEL_CITY_LOCATIONS": "support=11.5:21.5",
+	"TORN_TRAVEL_WORLD_REACH": "walk=62, cart=501",
 	// The legacy spelling of the game clock; TORN_GAME_TIME_SCALE wins.
 	"TORN_TRAVEL_TIME_SCALE": "62",
 	"TORN_GAME_TIME_SCALE":   "63",
@@ -1080,6 +1084,16 @@ func TestValidate(t *testing.T) {
 		{
 			name:   "a latitude cap past the pole",
 			break_: func(c *Config) { c.Settlement.MaxAbsLatitudeDeg = 91 },
+			want:   ErrInvalidValue,
+		},
+		{
+			name:   "a city location that is not lat,lon",
+			break_: func(c *Config) { c.Travel.CityLocations = []string{"support=95:20"} },
+			want:   ErrInvalidValue,
+		},
+		{
+			name:   "a world reach without a distance",
+			break_: func(c *Config) { c.Travel.WorldReach = []string{"walk"} },
 			want:   ErrInvalidValue,
 		},
 		{

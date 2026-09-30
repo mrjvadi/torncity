@@ -1,6 +1,8 @@
 package screens
 
 import (
+	"time"
+
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -20,6 +22,21 @@ type MapCity struct {
 	Code       string
 	Name       string
 	DistanceKM int
+	// Emblem is a founded village's emblem as emoji, empty for a content
+	// city. Village says the destination is a founded settlement, and
+	// SettlementID names it for the layout and the roster.
+	Emblem       string
+	Village      bool
+	SettlementID string
+	// Lat and Lon are where the destination stands on the world, for a
+	// client that draws the journey; zero when unknown.
+	Lat, Lon float64
+	// Fare is the cheapest way there, in minor units, and Wait the fastest
+	// (real time), for a destination priced from the world: the distance
+	// sets both. Wait zero means the list carries no price (a content
+	// route, priced when the mode is chosen).
+	Fare int64
+	Wait time.Duration
 }
 
 // MapView is one page of destinations.
@@ -74,10 +91,21 @@ func renderMap(c Context, v MapView) *presenter.Response {
 		lines = append(lines, c.T("map.destinations", nil))
 		for _, city := range v.Destinations {
 			name := c.CityName(city.Code, city.Name)
-			lines = append(lines, c.T("map.destination", map[string]any{
+			if city.Emblem != "" {
+				name = city.Emblem + " " + name
+			}
+			key, args := "map.destination", map[string]any{
 				"city":     name,
 				"distance": FormatNumber(c, int64(city.DistanceKM)),
-			}))
+			}
+			if city.Wait > 0 {
+				key = "map.destination_priced"
+				if city.Fare == 0 {
+					key = "map.destination_free"
+				}
+				args["fare"], args["wait"] = FormatMoney(c, city.Fare), FormatDuration(c, city.Wait)
+			}
+			lines = append(lines, c.T(key, args))
 			// The city CODE is the address: it is authored content, it is
 			// stable, and it is short enough to leave room inside the 64-byte
 			// budget. The core looks it up again and re-checks the route, the

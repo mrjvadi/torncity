@@ -64,8 +64,44 @@ facilities:
   - bus_terminal
   - rail_station
   - airport
+  # No content city has it: the walk and the cart serve the journeys the game
+  # derives from the world (config travel.world_reach), never a content route.
+  - village_road
 
 transport_modes:
+  # On foot: free, slow and tiring. Serves only world-derived journeys
+  # (config travel.world_reach caps how far anyone walks): to the next village
+  # over, never across a country.
+  - code: walk
+    name: On foot
+    requires: [village_road]
+    speed: 5
+    boarding: 0s
+    base_fare: 0
+    fare_per_distance: 0
+    energy_cost: 12
+    demand:
+      window: 1h
+      free_departures: 1000
+      step_bps: 0
+      max_bps: 10000
+
+  # The village cart: cheap and slow, carts of the countryside. Same rules as
+  # the walk. Its fare is a little per kilometre.
+  - code: cart
+    name: Cart
+    requires: [village_road]
+    speed: 20
+    boarding: 10m
+    base_fare: 20
+    fare_per_distance: 2
+    energy_cost: 5
+    demand:
+      window: 1h
+      free_departures: 20
+      step_bps: 200
+      max_bps: 15000
+
   # The cheap, slow default, run by the city. Every city has a terminal.
   - code: bus
     name: Bus

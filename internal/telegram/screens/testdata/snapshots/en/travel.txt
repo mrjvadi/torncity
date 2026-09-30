@@ -4,7 +4,7 @@
 
 📍 You are in Ostmarch.
 
-From here you can travel to:
+From here you can travel to these cities and villages:
 • Fenwick Span - 120 km
 • Aldrin Hollow - 340 km
 • Brennhaven - 1,260 km
@@ -34,6 +34,40 @@ There is nowhere to travel to from here yet. When a route opens, its destination
 You have not settled in a city yet. Once you do, your travel destinations appear here.
   ───
   [🔙 Back] → map:list   │   [🔄 Refresh] → map:cities
+
+━━━ Map · Support first, then villages priced from the world ━━━
+(edits message 42)
+<b>🧭 Travel to another city</b>
+
+📍 You are in Amol.
+
+From here you can travel to these cities and villages:
+• Support - 1,280 km - fare from 6,400 SUP - fastest 14h 20m
+• 🛡 🌾 🔴🟡 Kashan - 42 km - free on foot - fastest 8m
+• 🏰 🐎 🔵⚪ Sari - 380 km - fare from 780 SUP - fastest 19m
+  ───
+  [🧭 Support] → travel:options:support
+  [🧭 🛡 🌾 🔴🟡 Kashan] → travel:options:v-cd34
+  [🧭 🏰 🐎 🔵⚪ Sari] → travel:options:v-ef56
+  [🔙 Back] → map:list   │   [🔄 Refresh] → map:cities:1
+
+━━━ Travel here · the group has no village ━━━
+(edits message 42)
+🏡 This group has no village yet, so there is nowhere to travel to. Send “found village” to start one.
+  ───
+  [🧭 Other destinations] → map:cities
+
+━━━ Travel here · already in the village ━━━
+(edits message 42)
+📍 You are in Amol right now; no journey needed. Open the “Map” to go somewhere else.
+  ───
+  [🧭 Other destinations] → map:cities
+
+━━━ Travel here · not in a group ━━━
+(edits message 42)
+🧭 Send “travel to this village” in the group of that village to travel straight there. Open the “Map” for other destinations.
+  ───
+  [🧭 Other destinations] → map:cities
 
 ━━━ Map · while travelling ━━━
 (edits message 42)
