@@ -24,7 +24,7 @@ settlement_buildings:
   - code: private_cottage
     role: housing
     tier: 1
-    name: "کلبهٔ شخصی"
+    name: کلبه
     owner: citizen
     permit_class: residential
     home: true
@@ -37,7 +37,7 @@ settlement_buildings:
   - code: private_house
     role: housing
     tier: 1
-    name: "خانهٔ شخصی"
+    name: خانه
     owner: citizen
     permit_class: residential
     home: true
@@ -65,7 +65,7 @@ settlement_buildings:
   - code: market_stall
     role: market
     tier: 1
-    name: "غرفهٔ بازار"
+    name: دکهٔ بازار
     owner: citizen
     permit_class: commerce
     footprint: [1, 1]

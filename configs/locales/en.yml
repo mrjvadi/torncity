@@ -611,11 +611,15 @@ settlement_building:
   manufactory: Manufactory
   factory: Factory
   mine: Mine
-  health_house: Healing house
+  canal_channel: Irrigation canal
+  shaft_well: Qanat well
+  terrace_works: Terrace walls
+  paddy_banks: Paddy banks
+  health_house: Health house
   clinic: Clinic
-  teaching_circle: Teaching circle
+  teaching_circle: Village classroom
   school: School
-  barter_post: Barter post
+  barter_post: Small market
   market: Market
   bank: Bank
   barracks: Barracks
@@ -2672,6 +2676,8 @@ company_type:
   restaurant: Restaurant
   repair_workshop: Repair workshop
   clinic: Clinic
+  pharma: Medicine factory
+  pharmacy: Pharmacy
   courier: Courier company
   tech_studio: Tech studio
   factory: Factory

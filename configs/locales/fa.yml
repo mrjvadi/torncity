@@ -678,44 +678,48 @@ biome:
 settlement_building:
   road: جاده
   civic_hall: "خانهٔ دهیاری"
-  private_cottage: "کلبهٔ شخصی"
-  private_house: "خانهٔ شخصی"
+  private_cottage: "کلبه"
+  private_house: "خانه"
   woodcutter_camp: "کارگاه هیزم‌شکنی"
   cottage: "خانهٔ روستایی"
   granary: "انبار غله"
-  housing_block: "بلوک مسکونی"
+  housing_block: "آپارتمان"
   park: "پارک"
-  small_pit: "گودال استخراج"
+  small_pit: "گودال معدن"
+  canal_channel: "کانال آبرسانی"
+  shaft_well: "چاه قنات"
+  terrace_works: "دیوارهای پلکانی"
+  paddy_banks: "پشته‌های شالیزار"
   farm_canal: "مزرعهٔ نهری"
   farm_shaft: "مزرعهٔ قناتی"
-  farm_terrace: "مزرعهٔ تراسی"
+  farm_terrace: "مزرعهٔ پلکانی"
   farm_paddy: "شالیزار"
   pasture_range: "چراگاه"
   carpentry_workshop: "کارگاه نجاری"
   masonry_workshop: "کارگاه بنایی"
   weaving_shed: "کارگاه بافندگی"
   pottery_kiln: "کورهٔ سفال‌گری"
-  smithy: "کوره‌آهنگری"
-  watch_hut: "دیده‌بانی محله"
-  militia_camp: "اردوگاه میلیشیا"
-  retainer_hall: "تالار گارد"
+  smithy: "آهنگری"
+  watch_hut: "نگهبانی محله"
+  militia_camp: "اردوگاه سواران محلی"
+  retainer_hall: "تالار محافظان"
   constable_post: "پاسگاه ژاندارمری"
   police_post: "کلانتری"
   manufactory: "کارگاه بزرگ"
   factory: "کارخانه"
   mine: "معدن"
-  health_house: "خانهٔ درمان"
+  health_house: "خانهٔ بهداشت"
   clinic: "درمانگاه"
-  teaching_circle: "حلقهٔ آموزش"
+  teaching_circle: "کلاس درس"
   school: "مدرسه"
-  barter_post: "جایگاه پایاپای"
+  barter_post: "بازارچه"
   market: "بازار"
   bank: "بانک"
   barracks: "پادگان"
   port: "بندر"
   airport: "فرودگاه"
   home_workshop: "کارگاه خانگی"
-  market_stall: "غرفهٔ بازار"
+  market_stall: "دکهٔ بازار"
 
 # The citizen loop (docs/adr/0033 sections 4.4 and 4.5): a resident buys land
 # from the village, builds a house on it and lives there.
@@ -1038,15 +1042,15 @@ village:
       food:
         t1: "یک ساختمان تأمین خوراک (مزرعه یا دامداری)"
       education:
-        t1: "یک ساختمان آموزشی (حلقهٔ آموزش)"
+        t1: "یک ساختمان آموزشی (کلاس درس)"
         t2: "مدرسه"
       health:
-        t1: "یک ساختمان درمانی (خانهٔ درمان)"
+        t1: "یک ساختمان درمانی (خانهٔ بهداشت)"
         t2: "درمانگاه"
       market:
         t2: "بازار"
       security:
-        t1: "یک ساختمان امنیتی (دیده‌بانی یا پاسگاه)"
+        t1: "یک ساختمان امنیتی (نگهبانی یا پاسگاه)"
     ready_head: "🎉 همهٔ گام‌ها برداشته شد. حالا می‌توانید «{village}» را به {tier} ارتقا دهید."
     ready_member: "🎉 همهٔ گام‌ها برداشته شد. ارتقا با سرپرست روستاست."
     not_ready: "هر گامی که برداشته شود اینجا ✅ می‌شود. وقتی همه ✅ شدند، سرپرست دکمهٔ ارتقا را می‌بیند."
@@ -2808,8 +2812,10 @@ company_type:
   restaurant: رستوران
   repair_workshop: تعمیرگاه
   clinic: درمانگاه
+  pharma: کارخانهٔ دارو
+  pharmacy: داروخانه
   courier: شرکت پیک و حمل‌ونقل
-  tech_studio: استودیوی فناوری
+  tech_studio: شرکت نرم‌افزاری
   factory: کارخانه
   mine: معدن
   farm: مزرعه

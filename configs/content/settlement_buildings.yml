@@ -77,7 +77,7 @@ settlement_buildings:
     upkeep: 20
 
   - code: housing_block
-    name: "بلوک مسکونی"
+    name: آپارتمان
     role: housing
     tier: 1
     footprint: [2, 2]
@@ -174,7 +174,7 @@ settlement_buildings:
   # example table).
   # ---------------------------------------------------------------------
   - code: watch_hut
-    name: "دیده‌بانی محله"
+    name: نگهبانی محله
     role: security
     tier: 1
     footprint: [1, 1]
@@ -185,7 +185,7 @@ settlement_buildings:
     effects: [{target: local_security_bps, op: add, value: 300}]
 
   - code: militia_camp
-    name: "اردوگاه میلیشیا"
+    name: اردوگاه سواران محلی
     role: security
     tier: 1
     footprint: [2, 1]
@@ -196,7 +196,7 @@ settlement_buildings:
     effects: [{target: local_security_bps, op: add, value: 350}]
 
   - code: retainer_hall
-    name: "تالار گارد"
+    name: تالار محافظان
     role: security
     tier: 1
     footprint: [2, 1]
@@ -267,7 +267,7 @@ settlement_buildings:
     wage: 20
 
   - code: smithy
-    name: "کوره‌آهنگری"
+    name: آهنگری
     role: craft
     tier: 1
     footprint: [2, 2]
@@ -332,7 +332,7 @@ settlement_buildings:
   # extraction — pit -> mine.
   # ---------------------------------------------------------------------
   - code: small_pit
-    name: "گودال استخراج"
+    name: گودال معدن
     role: extraction
     tier: 1
     footprint: [1, 1]
@@ -374,7 +374,7 @@ settlement_buildings:
     upkeep: 20
 
   - code: shaft_well
-    name: "چاه قناتی"
+    name: چاه قنات
     role: water_infra
     tier: 1
     footprint: [1, 1]
@@ -384,7 +384,7 @@ settlement_buildings:
     upkeep: 25
 
   - code: terrace_works
-    name: "سازهٔ تراس"
+    name: دیوارهای پلکانی
     role: water_infra
     tier: 1
     footprint: [1, 1]
@@ -394,7 +394,7 @@ settlement_buildings:
     upkeep: 22
 
   - code: paddy_banks
-    name: "خاکریز شالیزار"
+    name: پشته‌های شالیزار
     role: water_infra
     tier: 1
     footprint: [1, 1]
@@ -438,7 +438,7 @@ settlement_buildings:
     wage: 50
 
   - code: farm_terrace
-    name: "مزرعهٔ تراسی"
+    name: مزرعهٔ پلکانی
     role: food
     tier: 1
     footprint: [3, 3]
@@ -486,7 +486,7 @@ settlement_buildings:
   # health — house -> clinic.
   # ---------------------------------------------------------------------
   - code: health_house
-    name: "خانهٔ درمان"
+    name: خانهٔ بهداشت
     role: health
     tier: 1
     footprint: [2, 2]
@@ -512,7 +512,7 @@ settlement_buildings:
   # education — circle -> school.
   # ---------------------------------------------------------------------
   - code: teaching_circle
-    name: "حلقهٔ آموزش"
+    name: کلاس درس
     role: education
     tier: 1
     footprint: [1, 1]
@@ -539,7 +539,7 @@ settlement_buildings:
   # market — ring -> market.
   # ---------------------------------------------------------------------
   - code: barter_post
-    name: "جایگاه پایاپای"
+    name: بازارچه
     role: market
     tier: 1
     footprint: [1, 1]

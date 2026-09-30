@@ -139,7 +139,7 @@ The village store: the shared materials and goods are kept here, and constructio
 
 ━━━ Building panel · a teaching circle, the head sees the upgrade ━━━
 (edits message 42)
-🏛 Teaching circle
+🏛 Village classroom
 
 Teaches the villagers; while it stands, literacy slowly spreads.
 
@@ -157,9 +157,9 @@ Teaches the villagers; while it stands, literacy slowly spreads.
 
 ━━━ Building panel · the upgrade, revealed when pressed ━━━
 (edits message 42)
-🏛 Teaching circle
+🏛 Village classroom
 
-⬆️ The next step after Teaching circle:
+⬆️ The next step after Village classroom:
 
 🔒 School - you need Record keeping first
   ───
@@ -251,7 +251,7 @@ A workshop, the base of making goods in the village.
 Tap a finished building to see it.
   ───
   [🏗 Carpentry] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
-  [Granary] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44   │   [Teaching circle] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [Granary] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44   │   [Village classroom] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
   [Civic hall] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
 
