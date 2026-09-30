@@ -427,6 +427,7 @@ var all = []Subscription{
 	// (configs/commands.yml: channel: group). Only the scheduler sends
 	// settlement.researched, settlement.taught and settlement.built, a
 	// research/literacy tick/construction reaching its end.
+	{Domain: "settlement", Action: "home", Origin: FromPlayer},
 	{Domain: "settlement", Action: "overview", Origin: FromPlayer},
 	{Domain: "settlement", Action: "knowledge", Origin: FromPlayer},
 	{Domain: "settlement", Action: "knowledge.research", Origin: FromPlayer},

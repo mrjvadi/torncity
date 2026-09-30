@@ -17,10 +17,8 @@
 • Carpentry workshop
   ───
   [🏡 Become a resident] → settlement:join
-  [📚 Village knowledge] → settlement:knowledge
-  [🏗 Construction] → settlement:build
-  [⏳ Build progress] → settlement:build.progress
-  [👥 People] → settlement:who
+  [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
+  [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Village overview · nothing built yet ━━━
@@ -41,10 +39,8 @@
 No buildings stand here yet.
   ───
   [🏡 Become a resident] → settlement:join
-  [📚 Village knowledge] → settlement:knowledge
-  [🏗 Construction] → settlement:build
-  [⏳ Build progress] → settlement:build.progress
-  [👥 People] → settlement:who
+  [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
+  [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Knowledge list · mixed states, research running ━━━
@@ -189,13 +185,92 @@ Location: row 1, column 4
 
 No buildings stand here yet.
   ───
-  [📚 Village knowledge] → settlement:knowledge
-  [🏗 Construction] → settlement:build
-  [⏳ Build progress] → settlement:build.progress
-  [👥 People] → settlement:who
-  [💰 Give to the treasury] → settlement:donate
-  [🚪 Leave the village] → settlement:leave
+  [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
+  [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
+  [💰 Give to the treasury] → settlement:donate   │   [🚪 Leave the village] → settlement:leave
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
+
+━━━ Village home · the group hub, a resident, with Support's services a journey away ━━━
+(edits message 42)
+🏘 the village of Korendal
+
+👥 Population: 12 of 100
+
+🏦 Village treasury: 10,900 SUP
+
+🌾 Food coverage: 20%
+💼 Job coverage: 10%
+🏥 Service coverage: 0%
+🙂 Happiness: 30%
+🛡 Local security: 15%
+📖 Literacy: 2%
+
+No buildings stand here yet.
+
+🧭 Services in Support - travel there for them:
+  ───
+  [📚 Village knowledge] → settlement:knowledge   │   [🏗 Construction] → settlement:build
+  [⏳ Build progress] → settlement:build.progress   │   [👥 People] → settlement:who
+  [💰 Give to the treasury] → settlement:donate   │   [🚪 Leave the village] → settlement:leave
+  [🏦 Bank - travel to Support] → travel:options:support   │   [🛒 Market - travel to Support] → travel:options:support
+  [💼 Jobs - travel to Support] → travel:options:support   │   [📚 Knowledge - travel to Support] → travel:options:support
+  [🏥 Hospital - travel to Support] → travel:options:support   │   [⛓ Jail - travel to Support] → travel:options:support
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
+
+━━━ Village home · a private chat (the village is home, run in its group) ━━━
+(edits message 42)
+🏘 the village of Korendal
+
+👥 Population: 12 of 100
+
+🏦 Village treasury: 10,900 SUP
+
+🌾 Food coverage: 20%
+💼 Job coverage: 10%
+🏥 Service coverage: 0%
+🙂 Happiness: 30%
+🛡 Local security: 15%
+📖 Literacy: 2%
+
+No buildings stand here yet.
+
+🏘 Building, research and donations are done in the village group; here you see how your village stands.
+
+🧭 Services in Support - travel there for them:
+  ───
+  [🏦 Bank - travel to Support] → travel:options:support   │   [🛒 Market - travel to Support] → travel:options:support
+  [💼 Jobs - travel to Support] → travel:options:support   │   [📚 Knowledge - travel to Support] → travel:options:support
+  [🏥 Hospital - travel to Support] → travel:options:support   │   [⛓ Jail - travel to Support] → travel:options:support
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
+
+━━━ Village home · a group with no village: the call to found one ━━━
+(edits message 42)
+🏡 This group has no village yet.
+
+A village is your group's home: it has a shared treasury, buildings and knowledge, and everyone who lives there shares in it. Open the founding form with the button below; nothing is built until it is complete.
+  ───
+  [🏗 Found the village] → settlement:found
+  [🔙 Back] → player:profile.get
+
+━━━ Village home · private, living in no village ━━━
+(edits message 42)
+🏡 You do not live in a village yet.
+
+Go to a village group and press «Live in this village», or send «Found a village» in your own group.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Refusal · a city-only feature asked of a village ━━━
+(edits message 42)
+This is for cities: a village has no budget or city council yet. It opens up once the village grows.
+  ───
+  [🔙 Back] → player:profile.get
+
+━━━ Refusal · a raw internal failure never reaches the player ━━━
+(edits message 42)
+I could not understand that request. Please use the buttons.
+  ───
+  [🔙 Back] → player:profile.get
 
 ━━━ Residence · asks before joining ━━━
 (edits message 42)

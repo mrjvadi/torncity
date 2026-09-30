@@ -125,6 +125,11 @@ func homeScreens(c Context, who people, add func(string, *presenter.Response)) {
 		Work: &ProfileWork{Job: &ProfileJob{Job: JobRef{CareerCode: "logistics", Rank: "entry", Title: "Courier"},
 			CityCode: "ostmarch", City: "Ostmarch", Pay: 130}},
 	}))
+	add("Profile · a village resident: the village is the home", Profile(c, ProfileView{
+		Name: who.me, Code: myCode, CityCode: "ostmarch", City: "Ostmarch", Level: 2, XP: 60, NextLevelXP: 150,
+		Energy: 82, MaxEnergy: 100, Health: 100, MaxHealth: 100, Cash: 4440,
+		Village: &Named{Code: "vin", Name: "Vinlar"},
+	}))
 	add("Profile · not in any city yet", Profile(c, ProfileView{
 		Name: who.me, Level: 1, NextLevelXP: 50, Energy: 100, MaxEnergy: 100, Health: 100, MaxHealth: 100,
 	}))

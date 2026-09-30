@@ -123,6 +123,30 @@
   [🏅 دستاوردها] → achievement:list   │   [🏆 برترین‌ها] → life:top
   [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
 
+━━━ Profile · a village resident: the village is the home ━━━
+(edits message 42)
+👤 سارا
+📍 استمارچ
+
+⭐ سطح 2 - ⁨90⁩ امتیاز تجربه تا سطح 3
+⚡ انرژی: ⁨82⁩ از ⁨100⁩
+❤️ سلامت: ⁨100⁩ از ⁨100⁩
+
+💵 پول نقد: ⁨⁨4,440⁩ ساپ⁩
+🏦 موجودی بانک: ⁨⁨0⁩ ساپ⁩
+
+🆔 کد بازیکن: ⁨K7Q2M9A⁩
+  ───
+  [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
+  [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
+  [🏠 املاک من] → property:mine   │   [🛒 مغازه‌ها] → shop:list
+  [🏡 روستای من] → settlement:home   │   [🏢 شرکت‌های شهر] → company:list
+  [👥 دوستان] → social:friend.list   │   [🏴 جناح من] → faction:mine
+  [📋 مأموریت‌های من] → mission:mine
+  [🛠 مهارت‌ها] → skills:list   │   [🧬 زندگی من] → life:me
+  [🏅 دستاوردها] → achievement:list   │   [🏆 برترین‌ها] → life:top
+  [⚙️ تنظیمات] → player:settings   │   [🔄 به‌روزرسانی] → player:profile.get
+
 ━━━ Profile · not in any city yet ━━━
 (edits message 42)
 👋 به بازی خوش آمدید!

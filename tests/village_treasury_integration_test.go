@@ -135,7 +135,7 @@ func TestVillageTreasury(t *testing.T) {
 	village := handlers.NewVillageHandler(postgres.NewUnitOfWork(pool, testDefaultLanguage), workIDs{t}, nil,
 		staticContentSource{snap: loadTestContent(t)}, e.cache, postgres.NewCityRepository(pool), gametime.Scale(1),
 		handlers.VillageRules{VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000,
-			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500},
+			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500, HomeCityCode: "support"},
 		time.Hour, e.clock.Now).WithDonationRules(100, 100_000, []int64{250, 1000})
 	grantCash(t, pool, founderA.ID, 5_000)
 	dm := func(amount, confirm string) (*presenter.Response, error) {
@@ -193,5 +193,39 @@ func TestVillageTreasury(t *testing.T) {
 	}
 	if v.Ungranted != v0.Ungranted {
 		t.Errorf("ungranted after the backfill = %d", v.Ungranted)
+	}
+
+	// The village is the home. A group with a village gets its overview with
+	// Support's services a journey away; a group without one, the call to
+	// found; a resident in a private chat, the village, run in its group.
+	cities := postgres.NewCityRepository(pool)
+	if c, err := cities.ByID(ctx, cityA); err != nil || c.Tier != "village" || c.IsCityTier() {
+		t.Errorf("a founded village is not village tier: %+v %v", c, err)
+	}
+	if c, err := cities.ByCode(ctx, "support"); err != nil || !c.IsCityTier() {
+		t.Errorf("Support is not city tier: %+v %v", c, err)
+	}
+	hm := asPlayer(metaA, founderA)
+	hm.Command, hm.Action = "settlement.home", "home"
+	home, err := village.Home(ctx, hm)
+	if err != nil || !strings.Contains(home.Text, "village.support.title") || !strings.Contains(home.Text, "village.treasury") {
+		t.Errorf("the group's home is not the village: %+v %v", home, err)
+	}
+	if resp, ok, err := village.HomeIfVillage(ctx, hm); err != nil || !ok || resp == nil {
+		t.Errorf("HomeIfVillage: %v %v", ok, err)
+	}
+	empty, _ := e.group(t)
+	empty.Command, empty.Action = "settlement.home", "home"
+	if resp, ok, err := village.HomeIfVillage(ctx, empty); err != nil || ok || resp != nil {
+		t.Errorf("a group with no village was offered a village: %v %v", ok, err)
+	}
+	if call, err := village.Home(ctx, empty); err != nil || !strings.Contains(call.Text, "village.home.call_title") {
+		t.Errorf("a group with no village is not offered founding: %+v %v", call, err)
+	}
+	pm := asPlayer(metaA, founderA)
+	pm.ChatType, pm.TelegramChatID = "private", founderA.TelegramUserID
+	pm.Command, pm.Action = "settlement.home", "home"
+	if r, err := village.Home(ctx, pm); err != nil || !strings.Contains(r.Text, "village.private_hint") {
+		t.Errorf("a resident's private home is not the village: %+v %v", r, err)
 	}
 }

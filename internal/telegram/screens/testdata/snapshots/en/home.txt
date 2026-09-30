@@ -123,6 +123,30 @@ Friends can find you by sending "find K7Q2M9A".
   [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
   [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
 
+━━━ Profile · a village resident: the village is the home ━━━
+(edits message 42)
+👤 Sara
+📍 Ostmarch
+
+⭐ Level 2 - 90 XP to level 3
+⚡ Energy: 82 of 100
+❤️ Health: 100 of 100
+
+💵 Cash: 4,440 SUP
+🏦 Bank balance: 0 SUP
+
+🆔 Player code: K7Q2M9A
+  ───
+  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
+  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
+  [🏡 My village] → settlement:home   │   [🏢 The city's companies] → company:list
+  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
+  [📋 My missions] → mission:mine
+  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
+  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+
 ━━━ Profile · not in any city yet ━━━
 (edits message 42)
 👋 Welcome to the game!

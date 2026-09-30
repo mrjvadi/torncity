@@ -44,6 +44,7 @@ func (c Context) SettlementBuildingName(n Named) string {
 // Village overview, knowledge list, build menu and construction progress
 // addresses.
 const (
+	AddrVillageHome          = "settlement:home"
 	AddrVillageOverview      = "settlement:overview"
 	AddrKnowledgeList        = "settlement:knowledge"
 	AddrKnowledgeResearch    = "settlement:knowledge.research"
@@ -164,9 +165,26 @@ type VillageOverviewView struct {
 	// addresses the village for a client.
 	Resident     bool
 	SettlementID string
-	Treasury        int64
-	Buildings       []VillageRoleLine
+	Treasury     int64
+	Buildings    []VillageRoleLine
+	// Support is where the services the village does not have yet are:
+	// the starter city. The village is home; its bank, market, jobs,
+	// knowledge shop, hospital and jail are a journey away. Nil when no
+	// such city is configured.
+	Support *VillageSupport `json:"support,omitempty"`
 }
+
+// VillageSupport names the city a village's residents travel to for the
+// services the village cannot offer yet.
+type VillageSupport struct {
+	Code string `json:"code"`
+	Name string `json:"name"`
+}
+
+// villageSupportServices are the services a village's home screen lists as
+// «در Support - سفر کنید», each a journey to the same city through the
+// existing travel flow (travel:options).
+var villageSupportServices = []string{"bank", "market", "jobs", "knowledge", "hospital", "jail"}
 
 // VillageOverview renders a settlement's own status screen.
 func VillageOverview(c Context, v VillageOverviewView) *presenter.Response {
@@ -200,20 +218,52 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 	}
 
 	kb := keyboards.New()
-	if !v.Resident {
-		kb.Add(c.T("village.button.join", nil), AddrVillageJoin)
+	blocks := []string{head, population, treasury, coverage, buildings}
+	if c.Shared {
+		if !v.Resident {
+			kb.Add(c.T("village.button.join", nil), AddrVillageJoin)
+		}
+		kb.Row(villageButtons(c, "village.button.knowledge", AddrKnowledgeList, "village.button.build", AddrBuildMenu)...)
+		kb.Row(villageButtons(c, "village.button.progress", AddrConstructionProgress, "village.button.who", AddrSettlementWho)...)
+		if v.Resident {
+			kb.Row(villageButtons(c, "village.button.donate", AddrVillageDonate, "village.button.leave", AddrVillageLeave)...)
+		}
+	} else {
+		// Private: the village is home, but it is run in its group.
+		blocks = append(blocks, c.T("village.private_hint", nil))
 	}
-	kb.Add(c.T("village.button.knowledge", nil), AddrKnowledgeList)
-	kb.Add(c.T("village.button.build", nil), AddrBuildMenu)
-	kb.Add(c.T("village.button.progress", nil), AddrConstructionProgress)
-	kb.Add(c.T("village.button.who", nil), AddrSettlementWho)
-	if v.Resident {
-		kb.Add(c.T("village.button.donate", nil), AddrVillageDonate)
-		kb.Add(c.T("village.button.leave", nil), AddrVillageLeave)
+	if v.Support != nil {
+		args := map[string]any{"city": v.Support.Name}
+		blocks = append(blocks, c.T("village.support.title", args))
+		var row []presenter.Button
+		for _, code := range villageSupportServices {
+			if b, ok := keyboards.Button(c.T("village.support.service."+code, args), AddrTravelOptions, v.Support.Code); ok {
+				row = append(row, b)
+			}
+			if len(row) == 2 {
+				kb.Row(row...)
+				row = nil
+			}
+		}
+		if len(row) > 0 {
+			kb.Row(row...)
+		}
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrVillageOverview}))
 
-	return c.respond(paragraphs(head, population, treasury, coverage, buildings), kb.Build())
+	return c.respond(paragraphs(blocks...), kb.Build())
+}
+
+// villageButtons builds a row from two label/address pairs.
+func villageButtons(c Context, labelA, addrA, labelB, addrB string) []presenter.Button {
+	var row []presenter.Button
+	if b, ok := keyboards.Button(c.T(labelA, nil), addrA); ok {
+		row = append(row, b)
+	}
+	if b, ok := keyboards.Button(c.T(labelB, nil), addrB); ok {
+		row = append(row, b)
+	}
+	return row
 }
 
 func tierOr(tier string) string {
@@ -682,4 +732,30 @@ func renderLotConfirm(c Context, v LotConfirmView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrBuildLots, v.Building.Code)}))
 
 	return c.respond(text, kb.Build())
+}
+
+// AddrSettlementFound is the press that opens the founding draft, the same
+// command as sending «ساخت روستا».
+const AddrSettlementFound = "settlement:found"
+
+// ScreenVillageHomeCall is the home screen of a group that has no village
+// yet: the call to found one.
+const ScreenVillageHomeCall = "village_home_call"
+
+// VillageHomeCall is what a group without a village sees as its home: the
+// village is the home of a group, so the first thing offered is founding it.
+func VillageHomeCall(c Context) *presenter.Response {
+	kb := keyboards.New()
+	kb.Add(c.T("village.home.found_button", nil), AddrSettlementFound)
+	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
+	return c.withView(c.respond(paragraphs(c.T("village.home.call_title", nil), c.T("village.home.call_body", nil)), kb.Build()),
+		ScreenVillageHomeCall, struct{}{})
+}
+
+// VillageHomeNone is what a player who lives in no village sees when they ask
+// for their village in a private chat.
+func VillageHomeNone(c Context) *presenter.Response {
+	kb := keyboards.New()
+	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
+	return c.respond(paragraphs(c.T("village.home.none_title", nil), c.T("village.home.none_body", nil)), kb.Build())
 }

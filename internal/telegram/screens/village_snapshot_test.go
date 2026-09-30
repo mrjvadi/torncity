@@ -1,7 +1,11 @@
 package screens
 
 import (
+	stderrors "errors"
 	"time"
+
+	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/shared/errors"
 
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -118,6 +122,24 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		LiteracyPercent: 2, Treasury: 900,
 	}))
 
+	support := &VillageSupport{Code: "support", Name: supportNameFor(c)}
+	add("Village home · the group hub, a resident, with Support's services a journey away", VillageOverview(g, VillageOverviewView{
+		Name: villageNameFor(c), Tier: "village", Resident: true, Support: support,
+		Population: 12, PopulationCap: 100,
+		FoodPercent: 20, JobPercent: 10, ServicePercent: 0, HappinessPercent: 30, SecurityPercent: 15,
+		LiteracyPercent: 2, Treasury: 10_900,
+	}))
+	add("Village home · a private chat (the village is home, run in its group)", VillageOverview(priv(c), VillageOverviewView{
+		Name: villageNameFor(c), Tier: "village", Resident: true, Support: support,
+		Population: 12, PopulationCap: 100,
+		FoodPercent: 20, JobPercent: 10, ServicePercent: 0, HappinessPercent: 30, SecurityPercent: 15,
+		LiteracyPercent: 2, Treasury: 10_900,
+	}))
+	add("Village home · a group with no village: the call to found one", VillageHomeCall(g))
+	add("Village home · private, living in no village", VillageHomeNone(priv(c)))
+	add("Refusal · a city-only feature asked of a village", Error(c, application.ErrCityTierOnly.WithCause(stderrors.New("lever city.budget is set per city"))))
+	add("Refusal · a raw internal failure never reaches the player", Error(c, errors.InvalidInput("INVALID_INPUT: that does not apply here: lever city.budget is set per city, and vinlar is a village")))
+
 	joinView := ResidenceView{Village: villageNameFor(c), Cooldown: 72 * time.Hour, Population: 13}
 	leaveView := ResidenceView{Leaving: true, Village: villageNameFor(c), Home: supportNameFor(c), Cooldown: 72 * time.Hour, Population: 12}
 	add("Residence · asks before joining", ResidenceAsk(g, joinView))
@@ -179,4 +201,10 @@ func residentNameFor(c Context, i int) string {
 		return fa[i]
 	}
 	return en[i]
+}
+
+// priv is the same context in a private chat: not shared.
+func priv(c Context) Context {
+	c.Shared = false
+	return c
 }

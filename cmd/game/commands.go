@@ -218,6 +218,13 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			if err := decode(env, &req); err != nil {
 				return nil, err
 			}
+			// The village is the home of a group that has one: its «شهر»
+			// is the village, not a city hall it does not have.
+			if req.City == "" {
+				if resp, ok, err := h.village.HomeIfVillage(ctx, env.Metadata); err != nil || ok {
+					return resp, err
+				}
+			}
 			return h.gov.City(ctx, env.Metadata, req)
 		},
 		"gov.history": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
@@ -271,6 +278,9 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		},
 
 		// Village-level knowledge and construction (docs/adr/0031), K2/W5.
+		"settlement.home": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.Home(ctx, env.Metadata)
+		},
 		"settlement.overview": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.Overview(ctx, env.Metadata)
 		},

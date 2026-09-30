@@ -225,8 +225,8 @@ func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err 
 // application.ErrCityNotFound. It does not lock anything: reads use it
 // straight, writes re-resolve under whatever lock they themselves need.
 func (h *VillageHandler) settlementOf(ctx context.Context, tx application.Tx, meta envelope.Metadata) (application.FoundedSettlement, error) {
-	if meta.FromClient() {
-		// A game client has no Telegram group to name its settlement by:
+	if meta.FromClient() || !meta.InGroup() {
+		// A game client (or a private chat) has no Telegram group to name its settlement by:
 		// it is the player's own, the one they head or live in. Every
 		// write still goes through authorizeVillage, so a resident who
 		// is not the head is refused exactly as in the group.
@@ -239,9 +239,6 @@ func (h *VillageHandler) settlementOf(ctx context.Context, tx application.Tx, me
 			return application.FoundedSettlement{}, err
 		}
 		return ps.FoundedSettlement, nil
-	}
-	if !meta.InGroup() {
-		return application.FoundedSettlement{}, refuseVillage(screens.VillageNoSettlement)
 	}
 	return tx.Settlements().ByFoundingGroup(ctx, meta.TelegramChatID)
 }
@@ -357,6 +354,10 @@ func (h *VillageHandler) knowledgeStanding(ctx context.Context, tx application.T
 
 // Overview handles settlement.overview.
 func (h *VillageHandler) Overview(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+	return h.overview(ctx, meta, false)
+}
+
+func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, home bool) (*presenter.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
 	var view screens.VillageOverviewView
@@ -434,8 +435,20 @@ func (h *VillageHandler) Overview(ctx context.Context, meta envelope.Metadata) (
 			LiteracyPercent:  literacyBPS / 100,
 			Buildings:        roleLines,
 		}
+		if h.homeCityCode != "" {
+			if support, err := h.cities.ByCode(ctx, h.homeCityCode); err == nil {
+				view.Support = &screens.VillageSupport{Code: support.Code, Name: support.Name}
+			}
+		}
 		return nil
 	})
+	if home && stderrors.Is(err, application.ErrCityNotFound) {
+		// The village is the home: without one, home is the call to found it.
+		if meta.InGroup() {
+			return screens.VillageHomeCall(h.screen(meta, lang)), nil
+		}
+		return screens.VillageHomeNone(h.screen(meta, lang)), nil
+	}
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
@@ -560,4 +573,39 @@ func appendVillageEvent(ctx context.Context, tx application.Tx, meta envelope.Me
 	return tx.Outbox().Append(ctx, application.OutboxRecord{
 		EventID: ev.ID, Subject: subjects.Event("settlement", name), Metadata: meta, Payload: ev.Payload,
 	})
+}
+
+// Home handles settlement.home: the village is the home. In a group with a
+// founded village it is that village's overview (build, knowledge, residents,
+// treasury and donation, and the services that are a journey away in
+// Support); in a group without one, the call to found it; in a private chat,
+// the village the player lives in.
+func (h *VillageHandler) Home(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+	return h.overview(ctx, meta, true)
+}
+
+// HomeIfVillage is Home for a group that has a village, and reports false for
+// a group that has none, so a caller with its own screen (the city hall) can
+// let the village take the place of the city only where there is a village.
+func (h *VillageHandler) HomeIfVillage(ctx context.Context, meta envelope.Metadata) (*presenter.Response, bool, error) {
+	if !meta.InGroup() {
+		return nil, false, nil
+	}
+	var found bool
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		_, err := tx.Settlements().ByFoundingGroup(ctx, meta.TelegramChatID)
+		switch {
+		case err == nil:
+			found = true
+		case stderrors.Is(err, application.ErrCityNotFound):
+		default:
+			return err
+		}
+		return nil
+	})
+	if err != nil || !found {
+		return nil, false, err
+	}
+	resp, err := h.Home(ctx, meta)
+	return resp, err == nil, err
 }
