@@ -646,6 +646,14 @@ needs a group.
 | `settlement.materials` | — | `village_materials`: the village stock (`stock`, `used`, `capacity`) and Support's market (`market`: item, unit price); `can_buy` says whether the viewer may spend the treasury |
 | `settlement.materials.buy` | `item`, `qty`, `confirm`? | the head buys a material from Support's market with SUP from the treasury. Without `confirm`: `village_materials_buy_confirm` (unit price, total), nothing changes. With `confirm: "confirm"`: pays, puts the goods in the stock and answers `village_materials` with `bought` |
 | `settlement.work` | `id`? | without `id`: `village_work`, the workplaces (`places`: `id`, what one shift `produces` and `consumes`, `wage`, `shift`, `workers`, `busy`, `ready`) and the viewer's own shift (`mine`). With `id` (a workplace's building id): a resident starts a timed shift there and the answer is `village_work_started` |
+| `settlement.labor.board` | — | `labor_board`, the hiring board: `jobs` (`id`, `building_id`, `building`, `kind` `construction`/`production`, `employer_kind` `settlement`/`player`, `employer`, `wage` per shift, `left` shifts the budget still pays, `progress_bps`, `left_minutes` worker-minutes of work, `workers`, `npc_crew`, `can_take`, `mine`, `points` the work one shift of the viewer adds), `market` (`housing`, `pool`, `available`, `working`, `vacancies`, `tightness_bps`, `level` `slack`/`balanced`/`tight`/`short`, `npc_wage`, `min_wage`), `working` (the viewer's shift in progress), `sites` (buildings under construction with no open job the viewer may post one for), `resident` |
+| `settlement.labor.site` | `id` (a building id) | `labor_site`, the panel of a construction site: `status`, `progress_bps`, `required_minutes`, `done_minutes`, `left_minutes`, `job`, `workers` (`worker`, `worker_npc`, `level`, `finish_at`, `left`, `points`), `market`, `can_work` with `work_wage` and `work_points`, `working`, and for the employer `can_employ`, `hire_presets` (crew sizes), `wage_presets` (`percent`, `wage`), `npc_available`, `npc_wage`; `can_post` when the site has no job and the viewer may post one; `just` names what the last press did |
+| `settlement.labor.take` | `id` (a job id) | a player takes the job and works one timed shift; answers `labor_site` with `just: "worked"`. When the shift ends the work is added to the building and the employer's wage is paid. A player of any skill may take it; players and NPC labourers compete for the same work |
+| `settlement.labor.hire` | `id` (a job id), `n` | the employer sets the NPC crew (0 sends them home when their shifts end) and the free labourers start at once, paid the market wage a shift at a time; the crew is kept up until the work is done |
+| `settlement.labor.wage` | `id`, `n` (percent of the market wage) | the employer sets the wage a player gets per shift; never under the village's minimum wage |
+| `settlement.labor.close` | `id` | the employer takes the job off the board; shifts in progress still end and are paid |
+| `settlement.labor.post` | `id` (a building id) | the employer posts the job of a building under construction that has none, or of a standing workplace |
+| `settlement.labor.mine` | — | `labor_mine`, the viewer's own status: `level` (`apprentice`/`journeyman`/`master`), `productivity_bps`, `shifts`, `earned`, `next_level`, `next_shifts`, `working`, `market` |
 | `settlement.overview` | — | the village status |
 | `settlement.knowledge` | — | the knowledge list |
 | `settlement.knowledge.research` / `.buy` | `code` | starts a research / buys the item from Support |
@@ -731,6 +739,20 @@ capability) or `building` (`options`: the buildings of the role a promotion
 needs). Only what the village is already offered is named. The `actions` of the
 refusal carry the buttons to the sources (`settlement.build.lots`,
 `settlement.work`, `settlement.materials.buy`, `settlement.knowledge`).
+
+**Construction is done by workers (additive, migration 0059).** A building
+placed while `labor.*` is configured carries the work it needs
+(`work_required`, worker-minutes: its build time times `labor.reference_crew`)
+and is finished only by the shifts of workers: the `settlement.build.place`
+answer and the layout give the building no `finish_at`, `settlement.build.progress`
+lines carry `by_work`, `progress_bps` and `left_minutes` instead of a finish time,
+and the `settlement.built` event is sent when the last shift ends. A game client
+that drew a timer from `finish_at` shows `progress_bps` from
+`settlement.labor.site` instead. Skill is productivity (apprentice 70 %,
+journeyman 100 %, master 130 % of a shift); an NPC labourer works at 85 %.
+The NPC labour pool follows housing (more homes, more workers) and an NPC
+labourer's wage rises with scarcity and falls with surplus, never below the
+village's minimum wage.
 
 **What is listed (additive).** The build menu, `settlement.build.lots` and
 `settlement.build.place` follow the settlement's tier: a village lists only
