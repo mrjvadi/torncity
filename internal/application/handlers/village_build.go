@@ -561,7 +561,17 @@ func (h *VillageHandler) appendBuildingEvent(ctx context.Context, tx application
 		}
 		return 1, 1
 	}
-	payload["layout_version"] = application.LayoutVersionsOf(s.CityID, s.Tier, s.Name,
-		wsettle.GridLotsForTier(s.Tier, h.villageGridLots), rows, footprint)
+	// Who owns which lot is part of what a member's layout shows (the
+	// citizen loop): the version an event announces must include it.
+	lots, err := tx.Citizens().Lots(ctx, s.CityID)
+	if err != nil {
+		return err
+	}
+	priv, err := tx.Citizens().PrivateBuildings(ctx, s.CityID)
+	if err != nil {
+		return err
+	}
+	payload["layout_version"] = application.LayoutVersionsWithTenure(s.CityID, s.Tier, s.Name,
+		wsettle.GridLotsForTier(s.Tier, h.villageGridLots), rows, footprint, application.TenureMark(lots, priv))
 	return appendVillageEvent(ctx, tx, meta, name, s.CityID, payload)
 }
