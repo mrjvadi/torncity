@@ -1,6 +1,6 @@
 # Game client API — v1
 
-**Contract version 1.3.** Every 1.x is compatible with 1.0: a client written
+**Contract version 1.4.** Every 1.x is compatible with 1.0: a client written
 for 1.0 keeps working, and a 1.x client reads the new fields as absent on an
 older server. 1.1 adds the world and the village (section 4.3): the
 `settlement` object of the bootstrap, `GET /world`, `GET /world/chunks/…`,
@@ -13,7 +13,13 @@ presence and the settlement channel (sections 5.4 and 5.5): the
 `not_in_settlement`. 1.3 adds the founding form (section 4.4):
 `settlement.found.draft` and `settlement.found.submit`, the `founding_*`
 error codes, the group's Mini App button, and `emblem`, `motto` and
-`currency` on the bootstrap `settlement`. Nothing that 1.0, 1.1 or 1.2
+`currency` on the bootstrap `settlement`. 1.4 adds land and private
+buildings (section 4.3, "Land and private buildings"): `tenure`, `terms` and
+`viewer.resident` on the layout, `private`, `owner` and `mine` on a layout
+building, and the commands `settlement.land`, `settlement.lot.buy`,
+`settlement.private`, `settlement.private.lots`, `settlement.private.place`,
+`settlement.mine`, `settlement.home.rest`, `settlement.tax.pay`,
+`settlement.terms` and `settlement.work`. Nothing that 1.0, 1.1, 1.2 or 1.3
 returned has changed.
 
 The contract between the game and a game client (a native build or the
@@ -640,6 +646,56 @@ sentence Telegram shows, in the player's language):
 A client learns the outcome of a placement by re-reading the layout (its
 `version` moves) — or, with realtime, from the settlement channel's
 `layout_version` (section 5.4) — until it does.
+
+#### Land and private buildings (contract 1.4)
+
+Every lot is **commons** (the village's) until a resident buys it; a lot a
+resident owns is **freehold**. A resident builds a **private building** (a
+house, a stall) on their own lot from their own cash; the village head builds
+civic buildings and never on a private lot.
+
+The layout of a **member** gains (a stranger's layout has none of these):
+
+```json
+{"viewer": {"member": true, "can_place": false, "resident": true},
+ "tenure": [{"x": 0, "y": 3, "tenure": "freehold", "mine": true, "owner": "Sara"}],
+ "terms": {"lot_price": 400, "permit_fee": 100, "tax_bps": 200},
+ "buildings": [{"id": "…", "type": "cottage", "x": 0, "y": 3, "private": true, "owner": "Sara", "mine": true, "state": "built", "…": "…"}]}
+```
+
+A lot **not** in `tenure` (and buildable, with nothing on it) is on sale at
+`terms.lot_price`. `mine` is relative to the asker. `version` moves when a lot
+or a building changes hands (member and head versions only; the public version
+never carries owners). The settlement channel's `lot_bought` and
+`build_started` events carry the new `layout_version` as usual.
+
+| command | args | does |
+|---|---|---|
+| `settlement.land` | — | `settlement_land`: `rows[y][x]` with `state` (`free`, `mine`, `taken` + `owner`, `building`, `road`, `water`, `steep`), `price`, `cash`, `owned`, `max`, `can_buy` |
+| `settlement.lot.buy` | `x`, `y`, `confirm`? | resident only. Without `confirm`: `settlement_lot_buy_confirm` (price, cash), nothing changes. With `confirm: "confirm"`: pays the price **to the village treasury**, the lot is the player's; answers `settlement_lot_buy_done` |
+| `settlement.private` | — | `settlement_private_menu`: the citizen catalogue, only what the village can build now (`lines[]`: `building`, `cost_money`, `permit_fee`, `materials[]` with `need`/`have`/`buy`/`buy_cost`, `build_time`, `total`, `affordable`) |
+| `settlement.private.lots` | `code`, `rotate`? (`1`) | `settlement_private_lots`: `rows[y][x]` with `fits` true only where the whole footprint is the player's own free land |
+| `settlement.private.place` | `code`, `x`, `y`, `rotated`?, `confirm`? | without `confirm`: `settlement_private_confirm` (the bill), nothing changes. With `confirm: "confirm"`: pays the cost and the permit (to the treasury), takes materials the player carries and buys the rest at the reference price, starts the timer; answers `settlement_mine` |
+| `settlement.mine` | — | `settlement_mine`: own lots and buildings, `home`, `can_rest`, `assessed`, `tax_per_period`, `debt` |
+| `settlement.home.rest` | — | the owner of a finished house rests (a little health and mood, once per cool-down; pays nothing) |
+| `settlement.tax.pay` | — | pays the unpaid property tax as far as cash goes |
+| `settlement.terms` | `lot_price`?, `permit_fee`?, `tax_bps`? | the head reads the terms and moves a lever inside its bounds; answers `settlement_terms` |
+| `settlement.work` | — | `settlement_work`: where work is (Support until the village has producers) |
+
+Cancelling or demolishing a private building (`settlement.build.cancel` /
+`.demolish`) is the **owner's**, never the head's; nothing returns to the
+treasury for it. The property tax (`terms.tax_bps` of the lots' price plus the
+buildings' cost, each period) is collected on the village's own tick; what a
+resident cannot pay stays a debt.
+
+Refusals (`error.code`, all `village_…`): `village_citizen_lot_taken`,
+`village_citizen_lot_limit`, `village_citizen_zoning` (private share full),
+`village_citizen_not_owner`, `village_citizen_no_cash`,
+`village_citizen_private_only` (the head placing a resident's kind),
+`village_citizen_lot_private` (the head on a private lot), `village_citizen_rest_wait`,
+`village_citizen_no_house`, `village_citizen_terms_range`, `village_citizen_no_debt`,
+`village_citizen_off`, `village_citizen_no_lots`, plus the older
+`village_not_resident`, `village_unbuildable`, `village_occupied`.
 
 ### 4.4 The founding form (contract 1.3)
 
