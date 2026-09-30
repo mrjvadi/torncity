@@ -33,6 +33,8 @@ type foundingEnv struct {
 	clock *testClock
 	bot   string
 	chats []int64
+	// cache is the world the test planet is read from.
+	cache *application.WorldCache
 }
 
 // group is a new group chat with a founder in it.
@@ -93,8 +95,9 @@ func newFoundingEnv(t *testing.T) *foundingEnv {
 		}
 	})
 
+	e.cache = application.NewWorldCache(worlds, params, wgContent)
 	e.h = handlers.NewSettlementsHandler(postgres.NewUnitOfWork(pool, testDefaultLanguage), workIDs{t}, nil,
-		application.NewWorldCache(worlds, params, wgContent), staticContentSource{snap: loadTestContent(t)}, gametime.Scale(1),
+		e.cache, staticContentSource{snap: loadTestContent(t)}, gametime.Scale(1),
 		wsettle.Params{MinSpawnDistanceKm: 30, ThreatRadiusKm: 150, SearchMaxCells: 2000, SearchMaxAttempts: 50,
 			ExcludedBiomes: []string{"polar_ice"}, MaxAbsLatitudeDeg: 70},
 		168*time.Hour, 5, time.Hour, testFoundingConfig(), e.clock.Now)

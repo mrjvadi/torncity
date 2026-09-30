@@ -12,6 +12,8 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
+	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 )
@@ -344,4 +346,37 @@ func relocationEvent(ctx context.Context, tx pgx.Tx, r Relocation, d RelocationD
 		return fmt.Errorf("postgres: relocation event outbox: %w", err)
 	}
 	return nil
+}
+
+// FoundingKitTypes are the building types of the founding kit: what a
+// settlement may hold and still be relocated.
+func FoundingKitTypes() []string {
+	out := make([]string, len(wsettle.FoundingKitBuildings))
+	for i, b := range wsettle.FoundingKitBuildings {
+		out[i] = b.TypeCode
+	}
+	return out
+}
+
+// RelocationPlan is the Plan of a relocation under the game's own rules: the
+// nearest site that meets params (wsettle.FindRelocation - the founding
+// search's sampler and bounds), keeping the spacing to every other
+// settlement, with the founding kit laid on that site's buildable lots.
+func RelocationPlan(w *worldgen.World, params wsettle.Params) func(SettlementSite, []application.ExistingSettlement) (RelocationMove, error) {
+	return func(cur SettlementSite, others []application.ExistingSettlement) (RelocationMove, error) {
+		ex := make([]wsettle.ExistingSettlement, len(others))
+		for i, e := range others {
+			ex[i] = wsettle.ExistingSettlement{CellID: e.WorldCellID, TierWeight: 1}
+		}
+		cand, err := wsettle.FindRelocation(w, cur.CellID, ex, params)
+		if err != nil {
+			return RelocationMove{}, fmt.Errorf("no valid site near cell %d: %w", cur.CellID, err)
+		}
+		lat, lon := wsettle.GridCentre(w, cand.LatDeg, cand.LonDeg, cand.ShiftX, cand.ShiftY)
+		mv := RelocationMove{CellID: cand.CellID, ShiftX: cand.ShiftX, ShiftY: cand.ShiftY, LatDeg: cand.LatDeg, LonDeg: cand.LonDeg}
+		for _, b := range wsettle.PlaceFoundingKit(w, lat, lon, params.Site.GridLots) {
+			mv.Kit = append(mv.Kit, application.SettlementBuilding{TypeCode: b.TypeCode, LotX: b.LotX, LotY: b.LotY})
+		}
+		return mv, nil
+	}
 }

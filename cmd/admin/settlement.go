@@ -108,13 +108,7 @@ func siteParams(cfg *config.Config) (wsettle.Params, error) {
 	}, nil
 }
 
-func kitTypes() []string {
-	out := make([]string, len(wsettle.FoundingKitBuildings))
-	for i, b := range wsettle.FoundingKitBuildings {
-		out[i] = b.TypeCode
-	}
-	return out
-}
+func kitTypes() []string { return postgres.FoundingKitTypes() }
 
 func settlementCheckSites(ctx context.Context) error {
 	cfg, err := loadConfig()
@@ -220,24 +214,7 @@ func relocateSettlement(ctx context.Context, ops *postgres.SettlementOps, w *wor
 	g := params.Site.GridLots
 	done, err := ops.Relocate(ctx, postgres.Relocation{
 		SettlementID: id, Actor: who, Reason: reason, At: now, KitTypes: kitTypes(),
-		Plan: func(cur postgres.SettlementSite, others []application.ExistingSettlement) (postgres.RelocationMove, error) {
-			ex := make([]wsettle.ExistingSettlement, len(others))
-			for i, e := range others {
-				ex[i] = wsettle.ExistingSettlement{CellID: e.WorldCellID, TierWeight: 1}
-			}
-			cand, err := wsettle.FindRelocation(w, cur.CellID, ex, params)
-			if err != nil {
-				return postgres.RelocationMove{}, fmt.Errorf("no valid site near cell %d: %w", cur.CellID, err)
-			}
-			lat, lon := wsettle.GridCentre(w, cand.LatDeg, cand.LonDeg, cand.ShiftX, cand.ShiftY)
-			kit := wsettle.PlaceFoundingKit(w, lat, lon, g)
-			mv := postgres.RelocationMove{CellID: cand.CellID, ShiftX: cand.ShiftX, ShiftY: cand.ShiftY,
-				LatDeg: cand.LatDeg, LonDeg: cand.LonDeg}
-			for _, b := range kit {
-				mv.Kit = append(mv.Kit, application.SettlementBuilding{TypeCode: b.TypeCode, LotX: b.LotX, LotY: b.LotY})
-			}
-			return mv, nil
-		},
+		Plan: postgres.RelocationPlan(w, params),
 	})
 	if err != nil {
 		var refused postgres.ErrRelocateRefused
