@@ -667,6 +667,34 @@ type LotGridView struct {
 	Multi bool
 	Line  string
 	From  LotBatchLot
+	// WinX and WinY are the north-west lot of the window a Telegram keyboard
+	// shows when the grid is wider than a keyboard row can hold
+	// (MaxLotButtons); a client draws the whole grid from Rows and ignores them.
+	WinX, WinY int
+}
+
+// MaxLotButtons is how many lots a Telegram keyboard shows in a row and in a
+// column (a row holds 8 buttons at most): a bigger grid - land can be bought
+// without a tier's limit - is shown as a window that slides over it.
+const MaxLotButtons = 8
+
+// lotWindow is the window the keyboard shows: the whole grid when it fits,
+// else MaxLotButtons lots square with its corner clamped inside the grid.
+func lotWindow(n, wx, wy int) (x0, y0, x1, y1 int) {
+	if n <= MaxLotButtons {
+		return 0, 0, n, n
+	}
+	clamp := func(v int) int {
+		if v < 0 {
+			return 0
+		}
+		if v > n-MaxLotButtons {
+			return n - MaxLotButtons
+		}
+		return v
+	}
+	x0, y0 = clamp(wx), clamp(wy)
+	return x0, y0, x0 + MaxLotButtons, y0 + MaxLotButtons
 }
 
 // The line-picking steps of a run of one-lot buildings on the grid.
@@ -713,9 +741,13 @@ func renderLotGrid(c Context, v LotGridView) *presenter.Response {
 	legend := c.T("lots.legend", nil)
 
 	kb := keyboards.New()
+	x0, y0, x1, y1 := lotWindow(v.GridLots, v.WinX, v.WinY)
 	for _, row := range v.Rows {
 		var buttons []presenter.Button
 		for _, cell := range row {
+			if cell.X < x0 || cell.X >= x1 || cell.Y < y0 || cell.Y >= y1 {
+				continue
+			}
 			label := lotEmoji(cell.State, cell.Fits)
 			token := LotToken(cell.X, cell.Y, v.Rotated)
 			var btn presenter.Button
@@ -732,7 +764,38 @@ func renderLotGrid(c Context, v LotGridView) *presenter.Response {
 				buttons = append(buttons, btn)
 			}
 		}
-		kb.Row(buttons...)
+		if len(buttons) > 0 {
+			kb.Row(buttons...)
+		}
+	}
+	if v.GridLots > MaxLotButtons {
+		// slide the window: a step is half a window
+		rotateArg, fromArg := "0", "-"
+		if v.Rotated {
+			rotateArg = "1"
+		}
+		switch v.Line {
+		case LineStart:
+			fromArg = LineStart
+		case LineEnd:
+			fromArg = LotToken(v.From.X, v.From.Y, false)
+		}
+		var moves []presenter.Button
+		for _, m := range []struct {
+			label  string
+			dx, dy int
+		}{{"◀️", -MaxLotButtons / 2, 0}, {"🔼", 0, -MaxLotButtons / 2}, {"🔽", 0, MaxLotButtons / 2}, {"▶️", MaxLotButtons / 2, 0}} {
+			nx, ny := max(0, x0+m.dx), max(0, y0+m.dy)
+			if btn, ok := keyboards.Button(m.label, AddrBuildLots, v.Building.Code, rotateArg, fromArg, LotToken(nx, ny, false)); ok {
+				moves = append(moves, btn)
+			}
+		}
+		kb.Row(moves...)
+		legend = paragraphs(legend, c.T("lots.window", map[string]any{
+			"x0": FormatNumber(c, int64(x0+1)), "x1": FormatNumber(c, int64(x1)),
+			"y0": FormatNumber(c, int64(y0+1)), "y1": FormatNumber(c, int64(y1)),
+			"n": FormatNumber(c, int64(v.GridLots)),
+		}))
 	}
 	switch {
 	case v.Multi && v.Line == "":

@@ -59,6 +59,9 @@ type VillageLotsRequest struct {
 	// From is the line-picking step of a run of one-lot buildings: "line"
 	// (choose the first lot) or the first lot's token (choose the last).
 	From string `json:"from,omitempty"`
+	// Win is the north-west lot of the window a Telegram keyboard shows over a
+	// grid wider than a row of buttons (a lot token).
+	Win string `json:"win,omitempty"`
 }
 
 func (r VillageLotsRequest) code() string  { return strings.TrimSpace(r.Code) }
@@ -205,10 +208,14 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 			SettlementName: s.Name, Building: named(d.Code, d.Name),
 			CanRotate: d.Def().CanRotate(), Rotated: rotated && d.Def().CanRotate(),
 			GridLots: grid.Height(),
-			Multi:    d.Footprint == [2]int{1, 1},
+			Multi:    d.Footprint == [2]int{1, 1} && d.CapExempt,
+		}
+		if wx, wy, _, ok := screens.ParseLotToken(strings.TrimSpace(req.Win)); ok {
+			view.WinX, view.WinY = wx, wy
 		}
 		if view.Multi {
 			switch from := strings.TrimSpace(req.From); {
+			case from == "" || from == "-":
 			case from == screens.LineStart:
 				view.Line = screens.LineStart
 			case from != "":

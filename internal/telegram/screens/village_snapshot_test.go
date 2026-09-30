@@ -174,6 +174,10 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		X: 4, Y: 4, CostMoney: 720, BuildTime: 45 * time.Minute, AutoRoads: 2,
 		Materials: []MaterialLine{{Component: timber, Quantity: 2}},
 	}))
+	add("Land · a grid wider than a keyboard row is a window over the land", LotGrid(g, LotGridView{
+		SettlementName: villageNameFor(c), Building: sampleNamed(c.Lang, "village_house", "خانهٔ روستایی", "Village house"),
+		GridLots: 10, Rows: wideLotRows(10), WinX: 4, WinY: 4,
+	}))
 	add("Land · the price of the next expansion", GridGrowConfirm(g, GridGrowView{
 		SettlementName: villageNameFor(c), Side: 5, NewSide: 6, LotsGained: 11, BuildableGained: 9, Price: 550, Treasury: 12_400,
 	}))
@@ -293,4 +297,16 @@ func residentNameFor(c Context, i int) string {
 func priv(c Context) Context {
 	c.Shared = false
 	return c
+}
+
+// wideLotRows is an n x n grid of free lots that all fit.
+func wideLotRows(n int) [][]LotCell {
+	rows := make([][]LotCell, n)
+	for y := range rows {
+		rows[y] = make([]LotCell, n)
+		for x := range rows[y] {
+			rows[y][x] = LotCell{X: x, Y: y, State: LotFree, Fits: true}
+		}
+	}
+	return rows
 }

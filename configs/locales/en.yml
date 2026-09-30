@@ -845,6 +845,7 @@ lots:
     rotate: "🔄 Rotate building"
     reset_rotation: "🔄 Reset rotation"
     line: "📏 Build a run of lots"
+  window: "🗺 Showing rows {y0} to {y1} and columns {x0} to {x1} of the {n}x{n} land; move with the arrows."
   line_start: "📏 Tap the first lot of the run."
   line_end: "📏 The run starts at row {y}, column {x}. Now tap the last lot; the run goes along the row, then down the column."
 

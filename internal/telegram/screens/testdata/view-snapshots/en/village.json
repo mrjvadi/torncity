@@ -623,7 +623,9 @@
           }
         ]
       ],
-      "settlement_name": "Korendal"
+      "settlement_name": "Korendal",
+      "win_x": 0,
+      "win_y": 0
     }
   },
   {
@@ -805,7 +807,9 @@
           }
         ]
       ],
-      "settlement_name": "Korendal"
+      "settlement_name": "Korendal",
+      "win_x": 0,
+      "win_y": 0
     }
   },
   {
@@ -832,6 +836,650 @@
       "settlement_name": "Korendal",
       "x": 4,
       "y": 4
+    }
+  },
+  {
+    "title": "Land · a grid wider than a keyboard row is a window over the land",
+    "screen": "settlement_build_lots",
+    "view": {
+      "building": {
+        "code": "village_house",
+        "name": "Village house"
+      },
+      "can_rotate": false,
+      "from": {
+        "x": 0,
+        "y": 0
+      },
+      "grid_lots": 10,
+      "line": "",
+      "multi": false,
+      "rotated": false,
+      "rows": [
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 0
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 0
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 1
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 1
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 2
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 2
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 3
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 3
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 4
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 4
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 5
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 5
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 6
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 6
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 7
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 7
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 8
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 8
+          }
+        ],
+        [
+          {
+            "fits": true,
+            "state": "free",
+            "x": 0,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 1,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 2,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 3,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 4,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 5,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 6,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 7,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 8,
+            "y": 9
+          },
+          {
+            "fits": true,
+            "state": "free",
+            "x": 9,
+            "y": 9
+          }
+        ]
+      ],
+      "settlement_name": "Korendal",
+      "win_x": 4,
+      "win_y": 4
     }
   },
   {
@@ -1026,7 +1674,9 @@
           }
         ]
       ],
-      "settlement_name": "Korendal"
+      "settlement_name": "Korendal",
+      "win_x": 0,
+      "win_y": 0
     }
   },
   {
@@ -1208,7 +1858,9 @@
           }
         ]
       ],
-      "settlement_name": "Korendal"
+      "settlement_name": "Korendal",
+      "win_x": 0,
+      "win_y": 0
     }
   },
   {
@@ -1390,7 +2042,9 @@
           }
         ]
       ],
-      "settlement_name": "Korendal"
+      "settlement_name": "Korendal",
+      "win_x": 0,
+      "win_y": 0
     }
   },
   {
