@@ -178,9 +178,19 @@ func TestVillageEconomyLoop(t *testing.T) {
 		t.Fatalf("treasury after buying = %d, want %d (10 x 18)", got, treasury0-180)
 	}
 	// Room, budget and rights are enforced.
+	// The founding kit's granary adds 300 of room; with it out of use the
+	// base room is what is left, and 200 is past it.
+	setGranary := func(status string) {
+		if _, err := pool.Raw().Exec(ctx, `UPDATE settlement_buildings SET status = $2,
+		    completed_at = CASE WHEN $2 = 'complete' THEN now() END WHERE settlement_id = $1::uuid AND type_code = 'granary'`, cityID, status); err != nil {
+			t.Fatal(err)
+		}
+	}
+	setGranary("building")
 	if r := buy("200", screens.MaterialsConfirm); !strings.Contains(r.Text, "جا ندارد") {
 		t.Errorf("buying past the stock's room was not refused:\n%s", r.Text)
 	}
+	setGranary("complete")
 	other := insertPlayer(t, pool)
 	om := asPlayer(meta, other)
 	om.Command, om.Action = "settlement.materials.buy", "materials.buy"

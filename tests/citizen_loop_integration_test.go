@@ -299,7 +299,25 @@ func TestCitizenLoop(t *testing.T) {
 		t.Fatalf("the head's terms: %+v", r)
 	}
 	tr0, nc0 := treasuryOf(t, pool, cityID), cashOfPlayer(neighbour)
-	if r, err := village.BuyLot(ctx, client(neighbour, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotD, Confirm: screens.ResidenceConfirm}); err != nil ||
+	// A lot that is still free now: the house's automatic road may have taken
+	// lotD, depending on where the founding kit stands.
+	freeLotNow := func(p *application.Player) string {
+		land, err := village.Land(ctx, client(p, "settlement.land"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, row := range viewOf(t, land)["rows"].([]any) {
+			for _, c := range row.([]any) {
+				if cell := c.(map[string]any); cell["state"] == screens.LandFree {
+					return screens.LotToken(int(cell["x"].(float64)), int(cell["y"].(float64)), false)
+				}
+			}
+		}
+		t.Fatal("no free lot left")
+		return ""
+	}
+	lotE := freeLotNow(neighbour)
+	if r, err := village.BuyLot(ctx, client(neighbour, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotE, Confirm: screens.ResidenceConfirm}); err != nil ||
 		!strings.Contains(r.Text, "citizen.buy.done_title") {
 		t.Fatalf("buying at the head's price: %+v %v", r, err)
 	}
@@ -341,7 +359,7 @@ func TestCitizenLoop(t *testing.T) {
 		t.Fatal(err)
 	}
 	grantCash(t, pool, pauper.ID, 400)
-	if r, err := village.BuyLot(ctx, client(pauper, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: free[4%len(free)], Confirm: screens.ResidenceConfirm}); err != nil ||
+	if r, err := village.BuyLot(ctx, client(pauper, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: freeLotNow(pauper), Confirm: screens.ResidenceConfirm}); err != nil ||
 		!strings.Contains(r.Text, "citizen.buy.done_title") {
 		t.Fatalf("the pauper's lot: %+v %v", r, err)
 	}
