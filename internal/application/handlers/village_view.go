@@ -223,7 +223,7 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 	next := 0
 	for _, code := range sortedBuildingCodes(snap) {
 		o, _ := snap.SettlementBuildingDef(code)
-		if o.Role == d.Role && o.Tier > d.Tier && o.Def().ListedAt(s.Tier) && (next == 0 || o.Tier < next) {
+		if o.Role == d.Role && o.Tier > d.Tier && (next == 0 || o.Tier < next) {
 			next = o.Tier
 		}
 	}
@@ -242,12 +242,25 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 	for _, code := range sortedBuildingCodes(snap) {
 		o, _ := snap.SettlementBuildingDef(code)
 		def := o.Def()
-		if o.Role != d.Role || o.Tier != next || !def.ListedAt(s.Tier) {
+		if o.Role != d.Role || o.Tier != next {
 			continue
 		}
 		line := screens.BuildingUpgradeLine{
 			Building: named(o.Code, o.Name), Tier: o.Tier, CostMoney: o.CostMoney,
 			BuildTime: h.scale.RealWait(def.BuildTime), Available: true,
+		}
+		// The step above the settlement's own tier is still revealed on
+		// request (the owner's disclosure rule), with the tier it opens at.
+		if !def.ListedAt(s.Tier) {
+			line.Available = false
+			for _, t := range []string{"village", "town", "city"} {
+				if def.ListedAt(t) {
+					line.NeedsTier = t
+					break
+				}
+			}
+			out = append(out, line)
+			continue
 		}
 		for _, k := range def.RequiresKnowledge {
 			if !st.Owned.Has(k) {

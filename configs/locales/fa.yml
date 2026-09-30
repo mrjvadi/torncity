@@ -1182,6 +1182,7 @@ building:
     line: "✅ {building} - هزینه {cost} - زمان ساخت {time}"
     locked: "🔒 {building} - اول باید {missing} را داشته باشید"
     locked_other: "🔒 {building} - پیش‌نیازهایش هنوز فراهم نیست"
+    needs_tier: "🔒 {building} - وقتی سکونتگاه {tier} شود باز می‌شود"
     none: "گام بعدی ندارد."
 
 # Playing in a group (internal/gateway/groups). A screen with a player's own

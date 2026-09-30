@@ -1078,6 +1078,7 @@ building:
     line: "✅ {building} - cost {cost} - build time {time}"
     locked: "🔒 {building} - you need {missing} first"
     locked_other: "🔒 {building} - its prerequisites are not met yet"
+    needs_tier: "🔒 {building} - opens when the settlement becomes a {tier}"
     none: "There is no next step."
 
 # Playing in a group (internal/gateway/groups). A screen with a player's own

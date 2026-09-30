@@ -87,6 +87,9 @@ type BuildingUpgradeLine struct {
 	// knowledge items that are.
 	Available bool
 	Missing   []Named
+	// NeedsTier is the settlement tier ("town", "city") this building opens
+	// at, when the settlement has not reached it yet; empty otherwise.
+	NeedsTier string
 }
 
 // BuildingView is one placed building's own panel.
@@ -291,6 +294,11 @@ func renderBuildingUpgrade(c Context, v BuildingView, name string, blocks []stri
 			if b, ok := keyboards.Button(c.T("build.button.place", args), AddrBuildLots, u.Building.Code); ok {
 				kb.Row(b)
 			}
+			continue
+		}
+		if u.NeedsTier != "" {
+			args["tier"] = c.T("village.tier_name."+u.NeedsTier, nil)
+			lines = append(lines, c.T("building.upgrade.needs_tier", args))
 			continue
 		}
 		names := make([]string, 0, len(u.Missing))
