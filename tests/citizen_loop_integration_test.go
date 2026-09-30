@@ -46,6 +46,8 @@ func TestCitizenLoop(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	t.Cleanup(func() { purgeCitizenFootprint(t, pool, cityID) })
+
 	rules := handlers.CitizenRules{
 		LotPrice: 400, LotPriceMin: 100, LotPriceMax: 5000, PermitFee: 100, PermitFeeMax: 1000,
 		TaxBPS: 200, TaxBPSMax: 500, TaxPeriod: 24 * time.Hour, MaterialMarkupBPS: 12_000,
@@ -413,5 +415,54 @@ func TestCitizenLoop(t *testing.T) {
 	}
 	if head1, err := villages.Layout(ctx, head.ID, cityID); err != nil || head1.Version == member.Version {
 		t.Errorf("the head's and the member's layout versions must differ (canPlace): %v", err)
+	}
+}
+
+// purgeCitizenFootprint takes back everything a test wrote for one village's
+// citizen loop: the journal rows AND the ledger transactions they name, both
+// sides together, so the integration database still verifies (the ledger is
+// append-only in production; tests are the only place it is purged, the way
+// companies_integration_test.go does).
+func purgeCitizenFootprint(t *testing.T, pool *postgres.Pool, cityID string) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
+	defer cancel()
+	tx, err := pool.Raw().Begin(ctx)
+	if err != nil {
+		t.Errorf("cleanup: begin: %v", err)
+		return
+	}
+	defer func() { _ = tx.Rollback(context.WithoutCancel(ctx)) }()
+	for _, stmt := range []string{
+		`CREATE TEMP TABLE purge_cz ON COMMIT DROP AS
+		   SELECT DISTINCT e.transaction_id FROM ledger_entries e
+		    WHERE e.reason IN ('settlement_lot_sale', 'settlement_permit_fee', 'citizen_construction', 'citizen_materials', 'settlement_property_tax')
+		      AND e.reference_id IN (SELECT id FROM settlement_lots WHERE settlement_id = $1::uuid
+		                             UNION SELECT building_id FROM settlement_private_buildings WHERE settlement_id = $1::uuid
+		                             UNION SELECT id FROM settlement_property_tax WHERE settlement_id = $1::uuid)`,
+		`ALTER TABLE ledger_entries DISABLE TRIGGER ledger_entries_append_only`,
+		`UPDATE accounts a SET balance = a.balance - d.delta
+		   FROM (SELECT account_id, SUM(amount)::bigint AS delta FROM ledger_entries
+		          WHERE transaction_id IN (SELECT transaction_id FROM purge_cz) GROUP BY account_id) d
+		  WHERE a.id = d.account_id`,
+		`DELETE FROM ledger_entries WHERE transaction_id IN (SELECT transaction_id FROM purge_cz)`,
+		`ALTER TABLE ledger_entries ENABLE TRIGGER ledger_entries_append_only`,
+		`DELETE FROM settlement_property_tax WHERE settlement_id = $1::uuid`,
+		`DELETE FROM settlement_private_buildings WHERE settlement_id = $1::uuid`,
+		`DELETE FROM settlement_lots WHERE settlement_id = $1::uuid`,
+	} {
+		var err error
+		if strings.Contains(stmt, "$1") {
+			_, err = tx.Exec(ctx, stmt, cityID)
+		} else {
+			_, err = tx.Exec(ctx, stmt)
+		}
+		if err != nil {
+			t.Errorf("cleanup %.40q: %v", stmt, err)
+			return
+		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Errorf("cleanup: commit: %v", err)
 	}
 }

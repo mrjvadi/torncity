@@ -59,11 +59,13 @@ CREATE TABLE settlement_lot_terms (
 );
 
 -- A private building: the settlement_buildings row is the building, this row
--- is its owner and its bill. permit_fee went to the treasury (reason
+-- is its owner and its bill. Like every journal here it names its building
+-- without a foreign key, so it outlives the building and the verifier can
+-- always compare it with the ledger. permit_fee went to the treasury (reason
 -- settlement_permit_fee), construction_paid and materials_paid left the
 -- owner's cash for good (reasons citizen_construction, citizen_materials).
 CREATE TABLE settlement_private_buildings (
-    building_id           uuid        PRIMARY KEY REFERENCES settlement_buildings (id),
+    building_id           uuid        PRIMARY KEY,
     settlement_id         uuid        NOT NULL,
     owner_id              uuid        NOT NULL,
     permit_fee            bigint      NOT NULL,
