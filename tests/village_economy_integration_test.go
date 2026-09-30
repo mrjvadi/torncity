@@ -83,15 +83,16 @@ func TestVillageEconomyLoop(t *testing.T) {
 	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&cityID); err != nil {
 		t.Fatal(err)
 	}
-	// The shifts, purchases and their actions go before the village does.
+	// The scheduled actions go before the village does. The purchase and shift
+	// rows stay, like the ledger and the item journal they are the record of:
+	// the verifier compares the two, so deleting one side would break every
+	// later test's verification.
 	t.Cleanup(func() {
 		c, cancel := context.WithTimeout(context.Background(), testTimeout)
 		defer cancel()
 		for _, stmt := range []string{
 			`DELETE FROM game_actions WHERE reference_type = 'settlement_shift' AND reference_id IN (SELECT id FROM settlement_shifts WHERE settlement_id = $1::uuid)`,
 			`DELETE FROM game_actions WHERE reference_type = 'settlement_building' AND reference_id IN (SELECT id FROM settlement_buildings WHERE settlement_id = $1::uuid)`,
-			`DELETE FROM settlement_shifts WHERE settlement_id = $1::uuid`,
-			`DELETE FROM settlement_material_purchases WHERE settlement_id = $1::uuid`,
 		} {
 			if _, err := pool.Raw().Exec(c, stmt, cityID); err != nil {
 				t.Errorf("cleanup %q: %v", stmt, err)
