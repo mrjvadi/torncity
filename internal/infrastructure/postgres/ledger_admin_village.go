@@ -48,6 +48,23 @@ type VillageInvariants struct {
 	WageLedger, WageRows      int64
 	WageMismatched            int64
 	ShiftItems, ShiftItemRows int64
+
+	// The labour market (migration 0059, ADR 0035). LaborWageLedger is what the
+	// ledger says construction shifts were paid (labor_wage and labor_wage_npc,
+	// the credits of each transaction), LaborWageRows what the finished shifts
+	// record; LaborMismatched the finished construction shifts whose ledger
+	// transaction does not move exactly the wage paid, its levy included.
+	// LaborEscrowLedger is what citizens set aside for started shifts,
+	// LaborEscrowRows what those shifts' wages add up to.
+	// LaborBuiltWithoutWork counts buildings raised by work that are complete
+	// with work missing (a timer finished them), LaborWorkUnbacked buildings
+	// whose work done exceeds the points of their finished shifts.
+	LaborWageLedger, LaborWageRows int64
+	LaborMismatched                int64
+	LaborEscrowLedger              int64
+	LaborEscrowRows                int64
+	LaborBuiltWithoutWork          int64
+	LaborWorkUnbacked              int64
 }
 
 func (v VillageInvariants) ok() bool {
@@ -55,7 +72,9 @@ func (v VillageInvariants) ok() bool {
 		v.DonationLedger == v.DonationRows && v.DonationMismatched == 0 &&
 		v.TopupLedger == v.TopupRows && v.TopupMismatched == 0 &&
 		v.MaterialLedger == v.MaterialRows && v.MaterialMismatched == 0 && v.MaterialItems == v.MaterialItemRows &&
-		v.WageLedger == v.WageRows && v.WageMismatched == 0 && v.ShiftItems == v.ShiftItemRows
+		v.WageLedger == v.WageRows && v.WageMismatched == 0 && v.ShiftItems == v.ShiftItemRows &&
+		v.LaborWageLedger == v.LaborWageRows && v.LaborMismatched == 0 && v.LaborEscrowLedger == v.LaborEscrowRows &&
+		v.LaborBuiltWithoutWork == 0 && v.LaborWorkUnbacked == 0
 }
 
 // verifyVillage runs the village treasury's invariants.
@@ -116,10 +135,10 @@ func (a *EconomyAdmin) verifyVillage(ctx context.Context, v *LedgerVerification)
 			 WHERE reason = 'supplied' AND reference_type = 'settlement_material_purchase'`, nil},
 		{&s.MaterialItemRows, "village material units in the purchase rows", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM settlement_material_purchases`, nil},
 		{&s.WageLedger, "village shift wages", credited, []any{"settlement_wage"}},
-		{&s.WageRows, "village shift wage rows", `SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts WHERE status = 'done'`, nil},
+		{&s.WageRows, "village shift wage rows", `SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts WHERE status = 'done' AND kind = 'production'`, nil},
 		{&s.WageMismatched, "village shift wage transactions", `
 			SELECT count(*) FROM settlement_shifts s
-			 WHERE s.status = 'done'
+			 WHERE s.status = 'done' AND s.kind = 'production'
 			   AND ((s.wage_paid > 0
 			         AND ((SELECT count(*) FROM ledger_entries e
 			                WHERE e.transaction_id = s.ledger_transaction_id AND e.reason = 'settlement_wage'
@@ -133,6 +152,31 @@ func (a *EconomyAdmin) verifyVillage(ctx context.Context, v *LedgerVerification)
 		{&s.ShiftItemRows, "village goods produced in the shift rows", `
 			SELECT COALESCE(SUM(v.value::bigint), 0)::bigint
 			  FROM settlement_shifts s, jsonb_each_text(s.produced) v WHERE s.status = 'done'`, nil},
+		{&s.LaborWageLedger, "labour wages", `
+			SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason IN ('labor_wage', 'labor_wage_npc') AND amount > 0`, nil},
+		{&s.LaborWageRows, "labour wage rows", `
+			SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts WHERE status = 'done' AND kind = 'construction'`, nil},
+		{&s.LaborMismatched, "labour wage transactions", `
+			SELECT count(*) FROM settlement_shifts s
+			 WHERE s.status = 'done' AND s.kind = 'construction'
+			   AND ((s.wage_paid > 0
+			         AND ((SELECT count(*) FROM ledger_entries e
+			                WHERE e.transaction_id = s.ledger_transaction_id AND e.reason IN ('labor_wage', 'labor_wage_npc')
+			                  AND e.reference_type = 'settlement_shifts' AND e.reference_id = s.id) <> 2 + (CASE WHEN s.fee > 0 THEN 1 ELSE 0 END)
+			           OR (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e
+			                WHERE e.transaction_id = s.ledger_transaction_id AND e.amount > 0) <> s.wage_paid))
+			     OR (s.wage_paid = 0 AND s.ledger_transaction_id IS NOT NULL))`, nil},
+		{&s.LaborEscrowLedger, "labour escrow", credited, []any{"labor_escrow"}},
+		{&s.LaborEscrowRows, "labour escrow rows", `
+			SELECT COALESCE(SUM(wage), 0)::bigint FROM settlement_shifts WHERE kind = 'construction' AND payer_kind = 'player'`, nil},
+		{&s.LaborBuiltWithoutWork, "buildings finished without their work", `
+			SELECT count(*) FROM settlement_buildings
+			 WHERE work_required > 0 AND status IN ('complete', 'demolished') AND completed_at IS NOT NULL AND work_done < work_required`, nil},
+		{&s.LaborWorkUnbacked, "buildings with work no shift did", `
+			SELECT count(*) FROM settlement_buildings b
+			 WHERE b.work_required > 0
+			   AND b.work_done > (SELECT COALESCE(SUM(s.work_points), 0) FROM settlement_shifts s
+			                       WHERE s.building_id = b.id AND s.status = 'done' AND s.kind = 'construction')`, nil},
 	}
 	for _, c := range checks {
 		if err := a.q.QueryRow(ctx, c.sql, c.args...).Scan(c.into); err != nil {

@@ -63,6 +63,8 @@ type SettlementDonation struct {
 type SettlementTreasuryRepository interface {
 	// The village economy's purchases and shifts (village_economy.go).
 	SettlementEconomyRepository
+	// The labour market's jobs and construction shifts (labor.go).
+	LaborRepository
 	// RecordGrant inserts the settlement's one grant row and reports whether
 	// it was inserted; false means the settlement already had its grant (the
 	// primary key), whichever replica or run made it.

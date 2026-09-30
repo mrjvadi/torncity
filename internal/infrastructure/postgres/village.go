@@ -244,12 +244,12 @@ type SettlementBuildingRepository struct{ q querier }
 var _ application.SettlementBuildingRepository = (*SettlementBuildingRepository)(nil)
 
 const selectSettlementBuildingColumns = `id::text, settlement_id::text, type_code, lot_x, lot_y, status,
-	queued_at, completed_at, demolished_at, cancelled_at, rotated, finish_at, damage_bps`
+	queued_at, completed_at, demolished_at, cancelled_at, rotated, finish_at, damage_bps, work_required, work_done, COALESCE(employer_player_id::text, '')`
 
 func scanSettlementBuilding(row pgx.Row) (application.SettlementBuildingInstance, error) {
 	var b application.SettlementBuildingInstance
 	err := row.Scan(&b.ID, &b.SettlementID, &b.TypeCode, &b.LotX, &b.LotY, &b.Status,
-		&b.QueuedAt, &b.CompletedAt, &b.DemolishedAt, &b.CancelledAt, &b.Rotated, &b.FinishAt, &b.DamageBPS)
+		&b.QueuedAt, &b.CompletedAt, &b.DemolishedAt, &b.CancelledAt, &b.Rotated, &b.FinishAt, &b.DamageBPS, &b.WorkRequired, &b.WorkDone, &b.EmployerPlayerID)
 	return b, err
 }
 
@@ -306,9 +306,9 @@ func (r *SettlementBuildingRepository) Place(ctx context.Context, b application.
 	}
 	_, err = r.q.Exec(ctx,
 		`INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at,
-		        rotated, finish_at)
-		 VALUES ($1::uuid, $2::uuid, $3, $4, $5, 'building', $6, NULL, $7, $8)`,
-		id, b.SettlementID, b.TypeCode, b.LotX, b.LotY, b.QueuedAt, b.Rotated, b.FinishAt)
+		        rotated, finish_at, work_required, employer_player_id)
+		 VALUES ($1::uuid, $2::uuid, $3, $4, $5, 'building', $6, NULL, $7, $8, $9, NULLIF($10, '')::uuid)`,
+		id, b.SettlementID, b.TypeCode, b.LotX, b.LotY, b.QueuedAt, b.Rotated, b.FinishAt, b.WorkRequired, b.EmployerPlayerID)
 	if violates(err, sqlstateUniqueViolation, settlementBuildingsLotUnique) {
 		return application.ErrLotOccupied
 	}

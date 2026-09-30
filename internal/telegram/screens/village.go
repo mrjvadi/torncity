@@ -129,7 +129,9 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
 		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome,
 		VillageDonateRange, VillageDonateNoCash, VillagePromotionTop,
-		VillageStorageFull, VillageAlreadyWorking, VillageWorkplaceFull, VillageNotWorkplace:
+		VillageStorageFull, VillageAlreadyWorking, VillageWorkplaceFull, VillageNotWorkplace,
+		LaborNoJob, LaborNotHere, LaborFullyStaffed, LaborBudgetSpent, LaborNotEmployer, LaborNoNPC, LaborWageTooLow,
+		LaborEmployerBroke, LaborNoSite:
 	default:
 		kind = VillageNotFound
 	}

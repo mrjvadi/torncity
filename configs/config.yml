@@ -1148,3 +1148,37 @@ settlement:
   donation_min: 100
   donation_max: 100000
   donation_presets: [250, 1000, 5000]
+
+# The village labour market (docs/adr/0035-labor-market.md). Construction is
+# done by workers: a building needs `reference_crew` workers for its build time,
+# every shift adds work, and no timer finishes it. An NPC labourer's wage is
+# `base_wage` moved along the wage curve by how tight the labour market is
+# (demand over the labour force, in bps): slack -> below base, short -> above.
+# The labour force follows housing: (base_housing + the homes' capacity - the
+# players who live there) x participation_bps.
+labor:
+  shift_minutes: 60            # one construction shift, GAME minutes
+  reference_crew: 4            # workers the content's build time assumes
+  base_wage: 30                # NPC wage per shift in a balanced market
+  min_wage_village: 10         # statutory floor per settlement tier
+  min_wage_town: 15
+  min_wage_city: 25
+  participation_bps: 6000      # share of NPC residents who work
+  base_housing: 8              # households a settlement has before any home
+  npc_productivity_bps: 8500   # an NPC labourer works at 85 %
+  fee_bps: 500                 # the village's levy on a citizen employer's wage
+  budget_slack_bps: 5000       # an automatic job pays 50 % more shifts than the work needs
+  journeyman_shifts: 6         # skill ladder: apprentice, from this many shifts journeyman, then master
+  master_shifts: 30
+  apprentice_bps: 7000         # productivity of each rung
+  journeyman_bps: 10000
+  master_bps: 13000
+  tight_balanced_bps: 5000     # the wage curve: at 0 % tightness the slack wage,
+  tight_tight_bps: 10000       # then these points, ascending; beyond the last it holds
+  tight_short_bps: 20000
+  wage_slack_bps: 7000
+  wage_balanced_bps: 10000
+  wage_tight_bps: 15000
+  wage_short_bps: 25000
+  hire_presets: [1, 2, 4]      # NPC crew sizes the hire buttons offer
+  wage_presets: [100, 125, 150, 200]  # the employer's wage buttons, % of the market wage

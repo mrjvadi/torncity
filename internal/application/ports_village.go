@@ -134,7 +134,17 @@ type SettlementBuildingInstance struct {
 	FinishAt *time.Time
 	// DamageBPS is 0..10000; no rule damages a building yet.
 	DamageBPS int
+	// WorkRequired and WorkDone are the worker-minutes construction needs and
+	// has had (migration 0059, ADR 0035). WorkRequired zero is a building of
+	// the older timer, finished by FinishAt.
+	WorkRequired, WorkDone int64
+	// EmployerPlayerID is the citizen who builds and hires for the building;
+	// empty means the village treasury does.
+	EmployerPlayerID string
 }
+
+// ByWork reports whether the building is raised by the work of shifts.
+func (b SettlementBuildingInstance) ByWork() bool { return b.WorkRequired > 0 }
 
 // Holds reports whether the building holds its lot: anything but a
 // demolished or cancelled one.

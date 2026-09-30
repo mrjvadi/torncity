@@ -81,9 +81,17 @@ type SettlementShift struct {
 	// quantity, fixed when it starts.
 	Produced, Consumed map[string]int64
 	GameActionID       string
-	StartedAt          time.Time
-	FinishAt           time.Time
-	FinishedAt         *time.Time
+	// Kind is "production" (the workplace loop) or "construction" (ADR 0035);
+	// WorkerKind "player" or "npc" (then PlayerID is empty); JobID the hiring-
+	// board job it was taken from; WorkPoints the work a construction shift
+	// adds; PayerKind/PayerID who pays the wage; Fee the village's levy.
+	Kind, WorkerKind, JobID string
+	WorkPoints              int64
+	PayerKind, PayerID      string
+	Fee                     int64
+	StartedAt               time.Time
+	FinishAt                time.Time
+	FinishedAt              *time.Time
 }
 
 // SettlementEconomyRepository is the village economy's transactional port; it

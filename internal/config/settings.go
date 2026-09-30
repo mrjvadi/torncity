@@ -58,6 +58,7 @@ type fileConfig struct {
 	Settlement    settlementSettings    `yaml:"settlement"`
 
 	Legislature  legislatureSettings  `yaml:"legislature"`
+	Labor        laborSettings        `yaml:"labor"`
 	City         citySettings         `yaml:"city"`
 	Property     propertySettings     `yaml:"property"`
 	Achievements achievementsSettings `yaml:"achievements"`
@@ -67,6 +68,34 @@ type fileConfig struct {
 
 	Client   clientSettings   `yaml:"client"`
 	Realtime realtimeSettings `yaml:"realtime"`
+}
+
+type laborSettings struct {
+	ShiftMinutes       *int64  `yaml:"shift_minutes"`
+	ReferenceCrew      *int64  `yaml:"reference_crew"`
+	BaseWage           *int64  `yaml:"base_wage"`
+	MinWageVillage     *int64  `yaml:"min_wage_village"`
+	MinWageTown        *int64  `yaml:"min_wage_town"`
+	MinWageCity        *int64  `yaml:"min_wage_city"`
+	ParticipationBPS   *int64  `yaml:"participation_bps"`
+	BaseHousing        *int64  `yaml:"base_housing"`
+	NPCProductivityBPS *int64  `yaml:"npc_productivity_bps"`
+	FeeBPS             *int64  `yaml:"fee_bps"`
+	BudgetSlackBPS     *int64  `yaml:"budget_slack_bps"`
+	JourneymanShifts   *int64  `yaml:"journeyman_shifts"`
+	MasterShifts       *int64  `yaml:"master_shifts"`
+	ApprenticeBPS      *int64  `yaml:"apprentice_bps"`
+	JourneymanBPS      *int64  `yaml:"journeyman_bps"`
+	MasterBPS          *int64  `yaml:"master_bps"`
+	TightBalancedBPS   *int64  `yaml:"tight_balanced_bps"`
+	TightTightBPS      *int64  `yaml:"tight_tight_bps"`
+	TightShortBPS      *int64  `yaml:"tight_short_bps"`
+	WageSlackBPS       *int64  `yaml:"wage_slack_bps"`
+	WageBalancedBPS    *int64  `yaml:"wage_balanced_bps"`
+	WageTightBPS       *int64  `yaml:"wage_tight_bps"`
+	WageShortBPS       *int64  `yaml:"wage_short_bps"`
+	HirePresets        []int64 `yaml:"hire_presets"`
+	WagePresets        []int64 `yaml:"wage_presets"`
 }
 
 type postgresSettings struct {
@@ -1119,6 +1148,82 @@ var coreSettings = []setting{
 	moneyListSetting("settlement", "donation_presets",
 		func(c *Config) *[]int64 { return &c.Settlement.DonationPresets },
 		func(f *fileConfig) []int64 { return f.Settlement.DonationPresets }),
+
+	moneySetting("labor", "shift_minutes",
+		func(c *Config) *int64 { return &c.Labor.ShiftMinutes },
+		func(f *fileConfig) *int64 { return f.Labor.ShiftMinutes }),
+	moneySetting("labor", "reference_crew",
+		func(c *Config) *int64 { return &c.Labor.ReferenceCrew },
+		func(f *fileConfig) *int64 { return f.Labor.ReferenceCrew }),
+	moneySetting("labor", "base_wage",
+		func(c *Config) *int64 { return &c.Labor.BaseWage },
+		func(f *fileConfig) *int64 { return f.Labor.BaseWage }),
+	moneySetting("labor", "min_wage_village",
+		func(c *Config) *int64 { return &c.Labor.MinWageVillage },
+		func(f *fileConfig) *int64 { return f.Labor.MinWageVillage }),
+	moneySetting("labor", "min_wage_town",
+		func(c *Config) *int64 { return &c.Labor.MinWageTown },
+		func(f *fileConfig) *int64 { return f.Labor.MinWageTown }),
+	moneySetting("labor", "min_wage_city",
+		func(c *Config) *int64 { return &c.Labor.MinWageCity },
+		func(f *fileConfig) *int64 { return f.Labor.MinWageCity }),
+	moneySetting("labor", "participation_bps",
+		func(c *Config) *int64 { return &c.Labor.ParticipationBPS },
+		func(f *fileConfig) *int64 { return f.Labor.ParticipationBPS }),
+	moneySetting("labor", "base_housing",
+		func(c *Config) *int64 { return &c.Labor.BaseHousing },
+		func(f *fileConfig) *int64 { return f.Labor.BaseHousing }),
+	moneySetting("labor", "npc_productivity_bps",
+		func(c *Config) *int64 { return &c.Labor.NPCProductivityBPS },
+		func(f *fileConfig) *int64 { return f.Labor.NPCProductivityBPS }),
+	moneySetting("labor", "fee_bps",
+		func(c *Config) *int64 { return &c.Labor.FeeBPS },
+		func(f *fileConfig) *int64 { return f.Labor.FeeBPS }),
+	moneySetting("labor", "budget_slack_bps",
+		func(c *Config) *int64 { return &c.Labor.BudgetSlackBPS },
+		func(f *fileConfig) *int64 { return f.Labor.BudgetSlackBPS }),
+	moneySetting("labor", "journeyman_shifts",
+		func(c *Config) *int64 { return &c.Labor.JourneymanShifts },
+		func(f *fileConfig) *int64 { return f.Labor.JourneymanShifts }),
+	moneySetting("labor", "master_shifts",
+		func(c *Config) *int64 { return &c.Labor.MasterShifts },
+		func(f *fileConfig) *int64 { return f.Labor.MasterShifts }),
+	moneySetting("labor", "apprentice_bps",
+		func(c *Config) *int64 { return &c.Labor.ApprenticeBPS },
+		func(f *fileConfig) *int64 { return f.Labor.ApprenticeBPS }),
+	moneySetting("labor", "journeyman_bps",
+		func(c *Config) *int64 { return &c.Labor.JourneymanBPS },
+		func(f *fileConfig) *int64 { return f.Labor.JourneymanBPS }),
+	moneySetting("labor", "master_bps",
+		func(c *Config) *int64 { return &c.Labor.MasterBPS },
+		func(f *fileConfig) *int64 { return f.Labor.MasterBPS }),
+	moneySetting("labor", "tight_balanced_bps",
+		func(c *Config) *int64 { return &c.Labor.TightBalancedBPS },
+		func(f *fileConfig) *int64 { return f.Labor.TightBalancedBPS }),
+	moneySetting("labor", "tight_tight_bps",
+		func(c *Config) *int64 { return &c.Labor.TightTightBPS },
+		func(f *fileConfig) *int64 { return f.Labor.TightTightBPS }),
+	moneySetting("labor", "tight_short_bps",
+		func(c *Config) *int64 { return &c.Labor.TightShortBPS },
+		func(f *fileConfig) *int64 { return f.Labor.TightShortBPS }),
+	moneySetting("labor", "wage_slack_bps",
+		func(c *Config) *int64 { return &c.Labor.WageSlackBPS },
+		func(f *fileConfig) *int64 { return f.Labor.WageSlackBPS }),
+	moneySetting("labor", "wage_balanced_bps",
+		func(c *Config) *int64 { return &c.Labor.WageBalancedBPS },
+		func(f *fileConfig) *int64 { return f.Labor.WageBalancedBPS }),
+	moneySetting("labor", "wage_tight_bps",
+		func(c *Config) *int64 { return &c.Labor.WageTightBPS },
+		func(f *fileConfig) *int64 { return f.Labor.WageTightBPS }),
+	moneySetting("labor", "wage_short_bps",
+		func(c *Config) *int64 { return &c.Labor.WageShortBPS },
+		func(f *fileConfig) *int64 { return f.Labor.WageShortBPS }),
+	moneyListSetting("labor", "hire_presets",
+		func(c *Config) *[]int64 { return &c.Labor.HirePresets },
+		func(f *fileConfig) []int64 { return f.Labor.HirePresets }),
+	moneyListSetting("labor", "wage_presets",
+		func(c *Config) *[]int64 { return &c.Labor.WagePresets },
+		func(f *fileConfig) []int64 { return f.Labor.WagePresets }),
 
 	durationSetting("legislature", "vote_window",
 		func(c *Config) *time.Duration { return &c.Legislature.VoteWindow },

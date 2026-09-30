@@ -566,6 +566,32 @@ settlement:
   donation_min: 101
   donation_max: 100001
   donation_presets: [251, 1001, 5001]
+labor:
+  shift_minutes: 61
+  reference_crew: 5
+  base_wage: 31
+  min_wage_village: 11
+  min_wage_town: 16
+  min_wage_city: 26
+  participation_bps: 6001
+  base_housing: 9
+  npc_productivity_bps: 8501
+  fee_bps: 501
+  budget_slack_bps: 5001
+  journeyman_shifts: 7
+  master_shifts: 31
+  apprentice_bps: 7001
+  journeyman_bps: 10001
+  master_bps: 13001
+  tight_balanced_bps: 5001
+  tight_tight_bps: 10001
+  tight_short_bps: 20001
+  wage_slack_bps: 7001
+  wage_balanced_bps: 10001
+  wage_tight_bps: 15001
+  wage_short_bps: 25001
+  hire_presets: [2, 3, 5]
+  wage_presets: [101, 126, 151, 201]
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -627,9 +653,9 @@ var envOverrides = map[string]string{
 	"TORN_POSTGRES_MAX_CONNS":                   "18",
 	"TORN_POSTGRES_IDLE_IN_TRANSACTION_TIMEOUT": "62s",
 
-	"TORN_TRAVEL_ARRIVAL_XP": "27",
+	"TORN_TRAVEL_ARRIVAL_XP":     "27",
 	"TORN_TRAVEL_CITY_LOCATIONS": "support=11.5:21.5",
-	"TORN_TRAVEL_WORLD_REACH": "walk=62, cart=501",
+	"TORN_TRAVEL_WORLD_REACH":    "walk=62, cart=501",
 	// The legacy spelling of the game clock; TORN_GAME_TIME_SCALE wins.
 	"TORN_TRAVEL_TIME_SCALE": "62",
 	"TORN_GAME_TIME_SCALE":   "63",
@@ -890,6 +916,31 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_DONATION_MIN":                 "102",
 	"TORN_SETTLEMENT_DONATION_MAX":                 "100002",
 	"TORN_SETTLEMENT_DONATION_PRESETS":             "252,1002,5002",
+	"TORN_LABOR_SHIFT_MINUTES":                     "62",
+	"TORN_LABOR_REFERENCE_CREW":                    "6",
+	"TORN_LABOR_BASE_WAGE":                         "32",
+	"TORN_LABOR_MIN_WAGE_VILLAGE":                  "12",
+	"TORN_LABOR_MIN_WAGE_TOWN":                     "17",
+	"TORN_LABOR_MIN_WAGE_CITY":                     "27",
+	"TORN_LABOR_PARTICIPATION_BPS":                 "6002",
+	"TORN_LABOR_BASE_HOUSING":                      "10",
+	"TORN_LABOR_NPC_PRODUCTIVITY_BPS":              "8502",
+	"TORN_LABOR_FEE_BPS":                           "502",
+	"TORN_LABOR_BUDGET_SLACK_BPS":                  "5002",
+	"TORN_LABOR_JOURNEYMAN_SHIFTS":                 "8",
+	"TORN_LABOR_MASTER_SHIFTS":                     "32",
+	"TORN_LABOR_APPRENTICE_BPS":                    "7002",
+	"TORN_LABOR_JOURNEYMAN_BPS":                    "10002",
+	"TORN_LABOR_MASTER_BPS":                        "13002",
+	"TORN_LABOR_TIGHT_BALANCED_BPS":                "5002",
+	"TORN_LABOR_TIGHT_TIGHT_BPS":                   "10002",
+	"TORN_LABOR_TIGHT_SHORT_BPS":                   "20002",
+	"TORN_LABOR_WAGE_SLACK_BPS":                    "7002",
+	"TORN_LABOR_WAGE_BALANCED_BPS":                 "10002",
+	"TORN_LABOR_WAGE_TIGHT_BPS":                    "15002",
+	"TORN_LABOR_WAGE_SHORT_BPS":                    "25002",
+	"TORN_LABOR_HIRE_PRESETS":                      "3,4,6",
+	"TORN_LABOR_WAGE_PRESETS":                      "102,127,152,202",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

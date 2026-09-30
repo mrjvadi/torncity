@@ -203,7 +203,9 @@ type Config struct {
 	Announce   Announce
 
 	// Stage F (docs/adr/0024-property-and-politics.md).
-	Legislature  Legislature
+	Legislature Legislature
+	// Labor is the labour market (ADR 0035).
+	Labor        Labor
 	City         City
 	Property     Property
 	Achievements Achievements
@@ -1037,6 +1039,38 @@ type Missions struct {
 	EconomyDailyCap int64 // missions.economy_daily_cap
 }
 
+// Labor is the village labour market's tuning (docs/adr/0035-labor-market.md):
+// construction is done by workers, and an NPC labourer's wage follows how
+// scarce labour is. Wages and minimums are minor units per construction shift;
+// every share is in basis points.
+type Labor struct {
+	ShiftMinutes       int64   // labor.shift_minutes
+	ReferenceCrew      int64   // labor.reference_crew
+	BaseWage           int64   // labor.base_wage
+	MinWageVillage     int64   // labor.min_wage_village
+	MinWageTown        int64   // labor.min_wage_town
+	MinWageCity        int64   // labor.min_wage_city
+	ParticipationBPS   int64   // labor.participation_bps
+	BaseHousing        int64   // labor.base_housing
+	NPCProductivityBPS int64   // labor.npc_productivity_bps
+	FeeBPS             int64   // labor.fee_bps
+	BudgetSlackBPS     int64   // labor.budget_slack_bps
+	JourneymanShifts   int64   // labor.journeyman_shifts
+	MasterShifts       int64   // labor.master_shifts
+	ApprenticeBPS      int64   // labor.apprentice_bps
+	JourneymanBPS      int64   // labor.journeyman_bps
+	MasterBPS          int64   // labor.master_bps
+	TightBalancedBPS   int64   // labor.tight_balanced_bps
+	TightTightBPS      int64   // labor.tight_tight_bps
+	TightShortBPS      int64   // labor.tight_short_bps
+	WageSlackBPS       int64   // labor.wage_slack_bps
+	WageBalancedBPS    int64   // labor.wage_balanced_bps
+	WageTightBPS       int64   // labor.wage_tight_bps
+	WageShortBPS       int64   // labor.wage_short_bps
+	HirePresets        []int64 // labor.hire_presets
+	WagePresets        []int64 // labor.wage_presets
+}
+
 // Legislature is the tuning of votes of a body
 // (docs/adr/0024-property-and-politics.md): which bodies exist and what they
 // confirm is content (governance.yml).
@@ -1413,7 +1447,34 @@ func Defaults() *Config {
 			AllocationStepBPS: 500,
 		},
 		Legislature: Legislature{VoteWindow: 48 * time.Hour, ListSize: 8},
-		City:        City{Period: 24 * time.Hour},
+		Labor: Labor{
+			ShiftMinutes:       60,
+			ReferenceCrew:      4,
+			BaseWage:           30,
+			MinWageVillage:     10,
+			MinWageTown:        15,
+			MinWageCity:        25,
+			ParticipationBPS:   6000,
+			BaseHousing:        8,
+			NPCProductivityBPS: 8500,
+			FeeBPS:             500,
+			BudgetSlackBPS:     5000,
+			JourneymanShifts:   6,
+			MasterShifts:       30,
+			ApprenticeBPS:      7000,
+			JourneymanBPS:      10000,
+			MasterBPS:          13000,
+			TightBalancedBPS:   5000,
+			TightTightBPS:      10000,
+			TightShortBPS:      20000,
+			WageSlackBPS:       7000,
+			WageBalancedBPS:    10000,
+			WageTightBPS:       15000,
+			WageShortBPS:       25000,
+			HirePresets:        []int64{1, 2, 4},
+			WagePresets:        []int64{100, 125, 150, 200},
+		},
+		City: City{Period: 24 * time.Hour},
 		Property: Property{ForeclosurePeriods: 3, EvictionPeriods: 2, MaxOwned: 5, MaxPrice: 100_000_000,
 			MaxRent: 1_000_000, RestCooldown: 8 * time.Hour},
 		Achievements: Achievements{PlayerDailyCap: 5000, EconomyDailyCap: 500_000},
