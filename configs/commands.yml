@@ -400,6 +400,10 @@ commands:
   settlement.build: {channel: group, client: true}
   settlement.build.lots: {channel: group, client: true}
   settlement.build.place: {channel: group, client: true}
+  settlement.build.place_many: {channel: group, client: true}
+  # One placed building's own panel: a group screen for the village, and the
+  # private chat shows the village the player lives in.
+  settlement.building.view: {channel: both, client: true}
   settlement.build.progress: {channel: group, client: true}
   settlement.build.demolish: {channel: group, client: true}
   settlement.build.cancel: {channel: group, client: true}

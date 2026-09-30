@@ -84,6 +84,9 @@ const (
 	VillageNotDemolishable = "not_demolishable"
 	VillageMaterials       = "materials"
 	VillageNotCancellable  = "not_cancellable"
+	// VillageBatch is a batch placement refused: Lots names every lot that
+	// stopped it, each with its own kind.
+	VillageBatch = "batch"
 	// Residence (village_residence.go).
 	VillageAlreadyResident = "already_resident"
 	VillageNotResident     = "not_resident"
@@ -105,6 +108,8 @@ type VillageRefusalView struct {
 	Remaining time.Duration
 	// Min and Max are the bounds of a donation the amount fell outside.
 	Min, Max int64
+	// Lots are the lots of a refused batch, with their reasons.
+	Lots []BatchLotFailure
 }
 
 // VillageRefusal renders a refused village command.
@@ -119,7 +124,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 		VillageNotAvailable, VillageTerrain, VillagePrerequisite, VillageLiteracy, VillageNotFound,
 		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
 		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome,
-		VillageDonateRange, VillageDonateNoCash:
+		VillageDonateRange, VillageDonateNoCash, VillageBatch:
 	default:
 		kind = VillageNotFound
 	}
@@ -131,6 +136,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(c.T("village.refusal."+kind, map[string]any{
 		"time": FormatDuration(c, v.Remaining), "min": FormatMoney(c, v.Min), "max": FormatMoney(c, v.Max),
+		"lots": batchFailureList(c, v.Lots),
 	}), kb.Build())
 }
 
@@ -495,6 +501,8 @@ const (
 
 // ConstructionLine is one placement in the settlement's own queue.
 type ConstructionLine struct {
+	// ID is the placed building's id: the button under the line opens its panel.
+	ID         string
 	Building   Named
 	LotX, LotY int
 	State      string
@@ -506,6 +514,16 @@ type ConstructionLine struct {
 type ConstructionProgressView struct {
 	Name  string
 	Lines []ConstructionLine
+	// Standing are the finished buildings (roads left out) whose panels the
+	// screen opens.
+	Standing []StandingLine
+}
+
+// StandingLine is one finished building, for a button that opens its panel.
+type StandingLine struct {
+	ID         string
+	Building   Named
+	LotX, LotY int
 }
 
 // ConstructionProgress renders the settlement's construction queue.
@@ -531,6 +549,25 @@ func renderConstructionProgress(c Context, v ConstructionProgressView) *presente
 	}
 
 	kb := keyboards.New()
+	for _, l := range v.Lines {
+		if l.Building.Code == "road" {
+			continue // a road has no panel worth a button
+		}
+		if btn, ok := keyboards.Button(c.T("construction.button.open", map[string]any{"building": c.SettlementBuildingName(l.Building)}),
+			AddrBuildingView, l.ID); ok {
+			kb.Row(btn)
+		}
+	}
+	if len(v.Standing) > 0 {
+		var buttons []presenter.Button
+		for _, s := range v.Standing {
+			if btn, ok := keyboards.Button(c.SettlementBuildingName(s.Building), AddrBuildingView, s.ID); ok {
+				buttons = append(buttons, btn)
+			}
+		}
+		kb.Grid(2, buttons...)
+		list = paragraphs(list, c.T("construction.standing_hint", nil))
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrConstructionProgress}))
 
 	return c.respond(paragraphs(head, list), kb.Build())
@@ -616,7 +653,20 @@ type LotGridView struct {
 	// map from the identical facts this screen's buttons come from.
 	GridLots int
 	Rows     [][]LotCell
+	// Multi says the building is one lot, so a run of them can be laid from
+	// one lot to another; Line is where that picking stands: "" (one lot at
+	// a time), LineStart (choose the first lot) or LineEnd (choose the last,
+	// From being the first).
+	Multi bool
+	Line  string
+	From  LotBatchLot
 }
+
+// The line-picking steps of a run of one-lot buildings on the grid.
+const (
+	LineStart = "line"
+	LineEnd   = "end"
+)
 
 // LotGrid renders the settlement's placement grid for one building type.
 // Its view travels even in a group (withGroupView, not withView): a lot's
@@ -661,11 +711,33 @@ func renderLotGrid(c Context, v LotGridView) *presenter.Response {
 		for _, cell := range row {
 			label := lotEmoji(cell.State, cell.Fits)
 			token := LotToken(cell.X, cell.Y, v.Rotated)
-			if btn, ok := keyboards.Button(label, AddrBuildPlace, v.Building.Code, token); ok {
+			var btn presenter.Button
+			var ok bool
+			switch v.Line {
+			case LineStart:
+				btn, ok = keyboards.Button(label, AddrBuildLots, v.Building.Code, "0", token)
+			case LineEnd:
+				btn, ok = keyboards.Button(label, AddrBuildPlaceMany, v.Building.Code, LotToken(v.From.X, v.From.Y, false), token)
+			default:
+				btn, ok = keyboards.Button(label, AddrBuildPlace, v.Building.Code, token)
+			}
+			if ok {
 				buttons = append(buttons, btn)
 			}
 		}
 		kb.Row(buttons...)
+	}
+	switch {
+	case v.Multi && v.Line == "":
+		if btn, ok := keyboards.Button(c.T("lots.button.line", nil), AddrBuildLots, v.Building.Code, "0", LineStart); ok {
+			kb.Row(btn)
+		}
+	case v.Line == LineStart:
+		legend = paragraphs(legend, c.T("lots.line_start", nil))
+	case v.Line == LineEnd:
+		legend = paragraphs(legend, c.T("lots.line_end", map[string]any{
+			"y": FormatNumber(c, int64(v.From.Y+1)), "x": FormatNumber(c, int64(v.From.X+1)),
+		}))
 	}
 	if v.CanRotate {
 		rotateArg := "1"
@@ -758,4 +830,19 @@ func VillageHomeNone(c Context) *presenter.Response {
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
 	return c.respond(paragraphs(c.T("village.home.none_title", nil), c.T("village.home.none_body", nil)), kb.Build())
+}
+
+// batchFailureList names the lots of a refused batch, one line each, with
+// the reason in words (lots are shown 1-based, as the confirm screen does).
+func batchFailureList(c Context, lots []BatchLotFailure) string {
+	if len(lots) == 0 {
+		return ""
+	}
+	lines := make([]string, 0, len(lots))
+	for _, l := range lots {
+		lines = append(lines, c.T("village.batch_lot", map[string]any{
+			"y": FormatNumber(c, int64(l.Y+1)), "x": FormatNumber(c, int64(l.X+1)), "reason": c.T("village.batch_reason."+l.Kind, nil),
+		}))
+	}
+	return body(lines...)
 }

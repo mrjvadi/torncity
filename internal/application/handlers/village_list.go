@@ -118,7 +118,7 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 		if err != nil {
 			return err
 		}
-		running, err := tx.SettlementBuildings().RunningCount(ctx, s.CityID)
+		running, err := h.runningJobs(ctx, tx, snap, s.CityID)
 		if err != nil {
 			return err
 		}
@@ -192,6 +192,10 @@ func (h *VillageHandler) Progress(ctx context.Context, meta envelope.Metadata) (
 		view = screens.ConstructionProgressView{Name: s.Name}
 		now := h.now()
 		for _, b := range buildings {
+			if b.Status == "complete" && b.TypeCode != "road" {
+				d, _ := snap.SettlementBuildingDef(b.TypeCode)
+				view.Standing = append(view.Standing, screens.StandingLine{ID: b.ID, Building: named(d.Code, d.Name), LotX: b.LotX, LotY: b.LotY})
+			}
 			if b.Status != "building" {
 				continue
 			}
@@ -201,7 +205,7 @@ func (h *VillageHandler) Progress(ctx context.Context, meta envelope.Metadata) (
 			// the content's own build time counted from queued_at, which
 			// is exactly what the action was scheduled for.
 			finish := b.QueuedAt.Add(h.scale.RealWait(d.Def().BuildTime))
-			view.Lines = append(view.Lines, screens.ConstructionLine{Building: named(d.Code, d.Name), LotX: b.LotX, LotY: b.LotY,
+			view.Lines = append(view.Lines, screens.ConstructionLine{ID: b.ID, Building: named(d.Code, d.Name), LotX: b.LotX, LotY: b.LotY,
 				State: screens.ConstructionBuilding, FinishAt: finish, Left: countdownTo(finish, now)})
 		}
 		return nil

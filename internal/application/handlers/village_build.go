@@ -56,6 +56,9 @@ func (r VillageBuildRequest) lot() (x, y int, rotated, ok bool) {
 type VillageLotsRequest struct {
 	Code   string `json:"code"`
 	Rotate string `json:"rotate,omitempty"`
+	// From is the line-picking step of a run of one-lot buildings: "line"
+	// (choose the first lot) or the first lot's token (choose the last).
+	From string `json:"from,omitempty"`
 }
 
 func (r VillageLotsRequest) code() string  { return strings.TrimSpace(r.Code) }
@@ -131,7 +134,7 @@ func (h *VillageHandler) buildPlacementContext(ctx context.Context, tx applicati
 		err = berr
 		return
 	}
-	running, rerr := tx.SettlementBuildings().RunningCount(ctx, s.CityID)
+	running, rerr := h.runningJobs(ctx, tx, snap, s.CityID)
 	if rerr != nil {
 		err = rerr
 		return
@@ -202,6 +205,17 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 			SettlementName: s.Name, Building: named(d.Code, d.Name),
 			CanRotate: d.Def().CanRotate(), Rotated: rotated && d.Def().CanRotate(),
 			GridLots: grid.Height(),
+			Multi:    d.Footprint == [2]int{1, 1},
+		}
+		if view.Multi {
+			switch from := strings.TrimSpace(req.From); {
+			case from == screens.LineStart:
+				view.Line = screens.LineStart
+			case from != "":
+				if fx, fy, _, ok := screens.ParseLotToken(from); ok {
+					view.Line, view.From = screens.LineEnd, screens.LotBatchLot{X: fx, Y: fy}
+				}
+			}
 		}
 		for y := 0; y < grid.Height(); y++ {
 			row := make([]screens.LotCell, 0, grid.Width())
@@ -544,4 +558,25 @@ func (h *VillageHandler) appendBuildingEvent(ctx context.Context, tx application
 	payload["layout_version"] = application.LayoutVersionsOf(s.CityID, s.Tier, s.Name,
 		wsettle.GridLotsForTier(s.Tier, h.villageGridLots), rows, footprint)
 	return appendVillageEvent(ctx, tx, meta, name, s.CityID, payload)
+}
+
+// runningJobs is how many of the settlement's buildings under construction
+// hold a slot of the concurrent-construction cap: every one but a type the
+// content marks cap_exempt (a road).
+func (h *VillageHandler) runningJobs(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string) (int, error) {
+	rows, err := tx.SettlementBuildings().List(ctx, settlementID)
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, b := range rows {
+		if b.Status != "building" {
+			continue
+		}
+		if d, ok := snap.SettlementBuildingDef(b.TypeCode); ok && d.CapExempt {
+			continue
+		}
+		n++
+	}
+	return n, nil
 }

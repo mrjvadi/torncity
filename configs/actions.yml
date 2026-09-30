@@ -291,6 +291,8 @@ commands:
   settlement.build: {kind: navigation, icon: "action:build"}
   settlement.build.lots: {kind: navigation, icon: "action:lots"}
   settlement.build.place: {kind: primary, icon: "action:place"}
+  settlement.build.place_many: {kind: primary, icon: "action:place"}
+  settlement.building.view: {kind: navigation, icon: "action:build"}
   settlement.build.progress: {kind: navigation, icon: "action:progress"}
   settlement.build.demolish: {kind: danger, icon: "action:demolish"}
   settlement.build.cancel: {kind: danger, icon: "action:cancel_build"}

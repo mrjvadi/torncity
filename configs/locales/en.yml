@@ -753,6 +753,20 @@ village:
     no_home: "🏙 The city to return to has not been set."
     donate_range: "💰 A gift must be between {min} and {max}."
     donate_no_cash: "💰 You do not have enough cash for that gift."
+    batch: |-
+      🚧 The batch was not built and nothing was paid. These lots have a problem:
+      {lots}
+  batch_lot: "• row {y}, column {x}: {reason}"
+  batch_reason:
+    occupied: "already taken"
+    unbuildable: "water or too steep"
+    out_of_bounds: "outside the village"
+    terrain: "the ground is not suitable"
+    prerequisite: "a prerequisite is missing"
+    literacy: "literacy is too low"
+    concurrent_cap: "the build queue is full"
+    not_available: "this building cannot be built in a batch"
+    not_found: "not a valid lot"
   donate:
     title: "💰 Give to the treasury of {village}"
     body: |-
@@ -814,6 +828,10 @@ build:
     body: "Cost: {cost}\nBuild time: {time}\nLocation: row {y}, column {x}"
     material_line: "• {component}: {quantity} units"
     button: "✅ Confirm and build"
+  batch:
+    title: "🛣 Build {count} x {building}"
+    body: "Total cost: {cost}\nBuild time: {time} (all start together)"
+    button: "✅ Confirm and build all"
 
 lots:
   title: "🗺 Choose where to build in {name}"
@@ -822,6 +840,9 @@ lots:
   button:
     rotate: "🔄 Rotate building"
     reset_rotation: "🔄 Reset rotation"
+    line: "📏 Build a run of lots"
+  line_start: "📏 Tap the first lot of the run."
+  line_end: "📏 The run starts at row {y}, column {x}. Now tap the last lot; the run goes along the row, then down the column."
 
 construction:
   title: "⏳ Construction queue of {name}"
@@ -829,6 +850,71 @@ construction:
   line:
     queued: "📋 {building} - queued - not yet started"
     building: "🏗 {building} - under construction - finishes at {time} - {duration} left"
+  button:
+    open: "🏗 {building}"
+  standing_hint: "Tap a finished building to see it."
+
+# The panel of one placed building (internal/telegram/screens/village_building.go):
+# what it is and what it does; demolishing is the last, quiet button.
+building:
+  view:
+    title: "🏛 {building}"
+    state_complete: "✅ Built and working."
+    under_construction: "🏗 Under construction: {percent}% - finishes at {time} ({duration} left)."
+    upkeep: "🧾 Upkeep: {amount} per period"
+    demolish_ask: "🗑 This building is removed for good and its lot is free again; only part of its cost returns to the treasury. Are you sure?"
+    demolish_yes: "🗑 Yes, demolish it"
+    cancel_ask: "🛑 Construction stops and what was paid is not returned. Are you sure?"
+    cancel_yes: "🛑 Yes, cancel the build"
+  button:
+    upgrade: "⬆️ Upgrade"
+    demolish: "🗑 Demolish"
+    cancel: "🛑 Cancel the build"
+  desc:
+    road: "A village road; it joins the lots and is the way the villagers walk. It does nothing else."
+    civic_hall: "The village's seat of office, where the head runs the village. The treasury, knowledge and construction are reached from here."
+    role:
+      security: "Watches over the village and raises local security."
+      craft: "A workshop, the base of making goods in the village."
+      extraction: "Takes raw materials out of the ground."
+      water_infra: "Brings and holds water for the village's life and farming."
+      food: "Grows the village's food and raises its food coverage."
+      health: "Looks after the villagers' health."
+      education: "Teaches the villagers; while it stands, literacy slowly spreads."
+      market: "Where the villagers trade and goods change hands."
+      storage: "The village store: the shared materials and goods are kept here, and construction draws from this stock."
+    code:
+      housing_block: "New homes for the villagers; raises the population capacity."
+      park: "Green space that lifts the villagers' mood."
+      bank: "A building of larger towns; its use opens as the village grows."
+      barracks: "A building of larger towns; its use opens as the village grows."
+      port: "A building of larger towns; its use opens as the village grows."
+      airport: "A building of larger towns; its use opens as the village grows."
+  effect:
+    local_security_bps: "🛡 Local security: +{value}%"
+    food_coverage_bps: "🌾 Food coverage: +{value}%"
+    job_coverage_bps: "💼 Job coverage: +{value}%"
+    service_coverage_bps: "🏥 Service coverage: +{value}%"
+    happiness_bps: "🙂 Happiness: +{value}%"
+    housing_capacity: "🏠 Population capacity: +{value}"
+  storage:
+    title: "📦 In store:"
+    line: "• {item}: {qty}"
+    empty: "📦 The store is empty for now."
+  school:
+    literacy: "📖 Village literacy: {percent}%"
+    teaching: "🧑‍🏫 Teaching is under way and literacy is slowly rising."
+    idle: "🧑‍🏫 Nothing is being taught."
+  civic:
+    population: "👥 Population: {population}"
+    research: "🔬 Research under way: {knowledge} - {duration} left"
+    no_research: "🔬 No research is running."
+  upgrade:
+    intro: "⬆️ The next step after {building}:"
+    line: "✅ {building} - cost {cost} - build time {time}"
+    locked: "🔒 {building} - you need {missing} first"
+    locked_other: "🔒 {building} - its prerequisites are not met yet"
+    none: "There is no next step."
 
 # Playing in a group (internal/gateway/groups). A screen with a player's own
 # details is shown only to that player; these lines are all the rest of the

@@ -76,6 +76,9 @@ type SettlementBuildingDef struct {
 	// MinLiteracyShareBPS gates this building on the settlement's own
 	// literacy share (ADR 0031 section 4.4), 0-10000; zero means no gate.
 	MinLiteracyShareBPS int `yaml:"min_literacy_share_bps,omitempty" json:"min_literacy_share_bps,omitempty"`
+	// CapExempt frees the building from the concurrent-construction cap
+	// (roads: cheap, quick, and laid many at a time).
+	CapExempt bool `yaml:"cap_exempt,omitempty" json:"cap_exempt,omitempty"`
 	// Effects feed ADR 0028 section 8.1's coverage numbers.
 	Effects []EffectDef `yaml:"effects,omitempty" json:"effects,omitempty"`
 }
@@ -106,6 +109,7 @@ func (d SettlementBuildingDef) Def() settlementbuilding.Def {
 		BuildTime:                   t,
 		Upkeep:                      d.Upkeep,
 		MinLiteracyShareBPS:         d.MinLiteracyShareBPS,
+		CapExempt:                   d.CapExempt,
 		Effects:                     d.BuildingEffects(),
 	}
 	if len(d.CostMaterials) > 0 {

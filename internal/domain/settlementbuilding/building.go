@@ -163,6 +163,12 @@ type Def struct {
 	// gate.
 	MinLiteracyShareBPS int
 
+	// CapExempt frees this building from the concurrent-construction cap
+	// (Standing.ConcurrentCap): it neither waits for a free slot nor holds
+	// one. Content, for the cheap, quick, everywhere-needed pieces (a road)
+	// whose one-at-a-time queue was pure friction.
+	CapExempt bool
+
 	// Effects feed ADR 0028 section 8.1's coverage numbers
 	// (food_coverage_bps, job_coverage_bps, service_coverage_bps,
 	// happiness_bps) plus local_security_bps (ADR 0031 section 3.2). Open

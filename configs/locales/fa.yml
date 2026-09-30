@@ -852,6 +852,20 @@ village:
     no_home: "🏙 شهر بازگشت هنوز تعیین نشده است."
     donate_range: "💰 مبلغ کمک باید بین {min} و {max} باشد."
     donate_no_cash: "💰 پول نقد شما برای این کمک کافی نیست."
+    batch: |-
+      🚧 ساخت گروهی انجام نشد و چیزی پرداخت نشد. این قطعه‌ها مشکل دارند:
+      {lots}
+  batch_lot: "• ردیف {y}، ستون {x}: {reason}"
+  batch_reason:
+    occupied: "قبلاً اشغال شده"
+    unbuildable: "آب یا شیبِ تند است"
+    out_of_bounds: "بیرون از محدودهٔ روستاست"
+    terrain: "زمینش مناسب نیست"
+    prerequisite: "پیش‌نیازش فراهم نیست"
+    literacy: "سوادآموزی کافی نیست"
+    concurrent_cap: "صف ساخت جا ندارد"
+    not_available: "این بنا را نمی‌شود گروهی ساخت"
+    not_found: "قطعه نامعتبر است"
   donate:
     title: "💰 کمک به خزانهٔ روستای «{village}»"
     body: |-
@@ -913,6 +927,10 @@ build:
     body: "هزینه: {cost}\nزمان ساخت: {time}\nمحل: ردیف {y}، ستون {x}"
     material_line: "• {component}: {quantity} واحد"
     button: "✅ تأیید و ساخت"
+  batch:
+    title: "🛣 ساخت {count} قطعه {building}"
+    body: "هزینهٔ کل: {cost}\nزمان ساخت: {time} (همه با هم شروع می‌شوند)"
+    button: "✅ تأیید و ساخت همه"
 
 lots:
   title: "🗺 انتخاب محل ساخت در {name}"
@@ -921,6 +939,9 @@ lots:
   button:
     rotate: "🔄 چرخاندن بنا"
     reset_rotation: "🔄 بازگرداندن چرخش"
+    line: "📏 ساخت چند قطعه پشت‌سرهم"
+  line_start: "📏 قطعهٔ اول مسیر را بزنید."
+  line_end: "📏 شروع مسیر: ردیف {y}، ستون {x}. حالا قطعهٔ آخر را بزنید؛ مسیر از روی ردیف و ستون رد می‌شود."
 
 construction:
   title: "⏳ صف ساخت‌وساز {name}"
@@ -928,6 +949,71 @@ construction:
   line:
     queued: "📋 {building} - در صف - هنوز شروع نشده"
     building: "🏗 {building} - در حال ساخت - ساعت {time} تمام می‌شود - {duration} دیگر"
+  button:
+    open: "🏗 {building}"
+  standing_hint: "برای دیدن هر بنای ساخته‌شده، روی نامش بزنید."
+
+# The panel of one placed building (internal/telegram/screens/village_building.go):
+# what it is and what it does; demolishing is the last, quiet button.
+building:
+  view:
+    title: "🏛 {building}"
+    state_complete: "✅ ساخته شده و در کار است."
+    under_construction: "🏗 در حال ساخت: {percent}٪ - ساعت {time} تمام می‌شود ({duration} دیگر)."
+    upkeep: "🧾 هزینهٔ نگهداری: {amount} در هر دوره"
+    demolish_ask: "🗑 این بنا برای همیشه برداشته می‌شود و قطعه‌اش دوباره آزاد می‌شود؛ فقط بخشی از هزینه‌اش به خزانه برمی‌گردد. مطمئن هستید؟"
+    demolish_yes: "🗑 بله، تخریب شود"
+    cancel_ask: "🛑 ساخت این بنا متوقف می‌شود و هزینه‌ای که پرداخت شده برنمی‌گردد. مطمئن هستید؟"
+    cancel_yes: "🛑 بله، ساخت لغو شود"
+  button:
+    upgrade: "⬆️ ارتقا"
+    demolish: "🗑 تخریب"
+    cancel: "🛑 لغو ساخت"
+  desc:
+    road: "جادهٔ روستا؛ قطعه‌ها را به هم می‌رساند و راه رفت‌وآمد اهالی است. کار دیگری ندارد."
+    civic_hall: "دل اداریِ روستا؛ دهیار از اینجا روستا را اداره می‌کند. خزانه، دانش و ساخت‌وساز روستا از همین‌جا در دسترس است."
+    role:
+      security: "پاسداری از روستا؛ امنیت محلی را بالا می‌برد."
+      craft: "کارگاه ساخت‌وساز و صنعت؛ پایهٔ تولید کالا در روستاست."
+      extraction: "برداشت مواد خام از دل زمین."
+      water_infra: "مهار و رساندن آب برای زندگی و کشاورزی روستا."
+      food: "تولید خوراک روستا؛ پوشش خوراک اهالی را بالا می‌برد."
+      health: "مراقبت از سلامت و درمان اهالی."
+      education: "آموزش اهالی؛ تا وقتی این بنا سر پاست، سواد میان اهالی کم‌کم پخش می‌شود."
+      market: "جای دادوستد اهالی؛ کالا اینجا دست‌به‌دست می‌شود."
+      storage: "انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد."
+    code:
+      housing_block: "خانه‌های تازه برای اهالی؛ ظرفیت جمعیت روستا را بالا می‌برد."
+      park: "فضای سبز روستا؛ حال‌وهوای اهالی را بهتر می‌کند."
+      bank: "بنایی از شهرهای بزرگ‌تر؛ کارکردش با رشد روستا باز می‌شود."
+      barracks: "بنایی از شهرهای بزرگ‌تر؛ کارکردش با رشد روستا باز می‌شود."
+      port: "بنایی از شهرهای بزرگ‌تر؛ کارکردش با رشد روستا باز می‌شود."
+      airport: "بنایی از شهرهای بزرگ‌تر؛ کارکردش با رشد روستا باز می‌شود."
+  effect:
+    local_security_bps: "🛡 امنیت محلی: +{value}٪"
+    food_coverage_bps: "🌾 پوشش خوراک: +{value}٪"
+    job_coverage_bps: "💼 پوشش شغل: +{value}٪"
+    service_coverage_bps: "🏥 پوشش خدمات: +{value}٪"
+    happiness_bps: "🙂 شادی: +{value}٪"
+    housing_capacity: "🏠 ظرفیت جمعیت: +{value}"
+  storage:
+    title: "📦 موجودی انبار:"
+    line: "• {item}: {qty}"
+    empty: "📦 انبار فعلاً خالی است."
+  school:
+    literacy: "📖 سواد روستا: {percent}٪"
+    teaching: "🧑‍🏫 آموزش در جریان است و سواد کم‌کم بالا می‌رود."
+    idle: "🧑‍🏫 آموزش در جریان نیست."
+  civic:
+    population: "👥 جمعیت: {population}"
+    research: "🔬 پژوهش در جریان: {knowledge} - {duration} دیگر"
+    no_research: "🔬 پژوهشی در جریان نیست."
+  upgrade:
+    intro: "⬆️ گام بعدیِ «{building}» این‌هاست:"
+    line: "✅ {building} - هزینه {cost} - زمان ساخت {time}"
+    locked: "🔒 {building} - اول باید {missing} را داشته باشید"
+    locked_other: "🔒 {building} - پیش‌نیازهایش هنوز فراهم نیست"
+    none: "گام بعدی ندارد."
 
 # Playing in a group (internal/gateway/groups). A screen with a player's own
 # details is shown only to that player; these lines are all the rest of the

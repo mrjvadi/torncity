@@ -186,6 +186,8 @@ type villageRefusal struct {
 	remaining time.Duration
 	// min and max are a donation's bounds, for donate_range.
 	min, max int64
+	// lots are the lots a refused batch names.
+	lots []screens.BatchLotFailure
 }
 
 func (e *villageRefusal) Error() string { return "handlers: village refusal: " + e.kind }
@@ -207,7 +209,7 @@ func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err 
 	c := h.screen(meta, lang)
 	var r *villageRefusal
 	if stderrors.As(err, &r) {
-		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: r.kind, Back: r.back, Remaining: r.remaining, Min: r.min, Max: r.max}), nil
+		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: r.kind, Back: r.back, Remaining: r.remaining, Min: r.min, Max: r.max, Lots: r.lots}), nil
 	}
 	if stderrors.Is(err, application.ErrCityNotFound) {
 		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: screens.VillageNoSettlement}), nil

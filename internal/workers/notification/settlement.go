@@ -74,19 +74,20 @@ type SettlementEvents func(ctx context.Context, deps Deps, env *envelope.Envelop
 
 // The settlement channel's publication kinds.
 const (
-	SettlementBuildStarted   = "build_started"
-	SettlementBuildFinished  = "build_finished"
-	SettlementBuildCancelled = "build_cancelled"
-	SettlementBuildSalvaged  = "build_salvaged"
-	SettlementRelocated      = "relocated"
-	SettlementResearchStart  = "research_started"
-	SettlementResearchDone   = "research_finished"
-	SettlementKnowledgeBuy   = "knowledge_bought"
-	SettlementLiteracy       = "literacy_changed"
-	SettlementHeadChanged    = "head_changed"
-	SettlementMemberJoined   = "member_joined"
-	SettlementMemberLeft     = "member_left"
-	settlementEventKeySuffix = ":settlement"
+	SettlementBuildStarted      = "build_started"
+	SettlementBuildBatchStarted = "build_batch_started"
+	SettlementBuildFinished     = "build_finished"
+	SettlementBuildCancelled    = "build_cancelled"
+	SettlementBuildSalvaged     = "build_salvaged"
+	SettlementRelocated         = "relocated"
+	SettlementResearchStart     = "research_started"
+	SettlementResearchDone      = "research_finished"
+	SettlementKnowledgeBuy      = "knowledge_bought"
+	SettlementLiteracy          = "literacy_changed"
+	SettlementHeadChanged       = "head_changed"
+	SettlementMemberJoined      = "member_joined"
+	SettlementMemberLeft        = "member_left"
+	settlementEventKeySuffix    = ":settlement"
 )
 
 // settlementChannel spells the channel as internal/infrastructure/centrifugo
@@ -165,20 +166,20 @@ func (w *Worker) publishSettlement(ctx context.Context, route Route, env *envelo
 // villageEvent is the union of the fields the settlement.* outbox payloads
 // carry (internal/application/handlers/village*.go).
 type villageEvent struct {
-	SettlementID    string `json:"settlement_id"`
-	BuildingID      string `json:"building_id"`
-	TypeCode        string `json:"type_code"`
-	Name            string `json:"name"`
-	LotX            int    `json:"lot_x"`
-	LotY            int    `json:"lot_y"`
-	Rotated         bool   `json:"rotated"`
-	FinishAt        string `json:"finish_at"`
+	SettlementID string `json:"settlement_id"`
+	BuildingID   string `json:"building_id"`
+	TypeCode     string `json:"type_code"`
+	Name         string `json:"name"`
+	LotX         int    `json:"lot_x"`
+	LotY         int    `json:"lot_y"`
+	Rotated      bool   `json:"rotated"`
+	FinishAt     string `json:"finish_at"`
 	// LayoutVersion is the layout's version after the change, for each kind
 	// of viewer; only building events carry it.
-	LayoutVersion json.RawMessage `json:"layout_version"`
-	ResearchID      string `json:"research_id"`
-	Code            string `json:"code"`
-	LiteracyShareBP int    `json:"literacy_share_bps"`
+	LayoutVersion   json.RawMessage `json:"layout_version"`
+	ResearchID      string          `json:"research_id"`
+	Code            string          `json:"code"`
+	LiteracyShareBP int             `json:"literacy_share_bps"`
 }
 
 func decodeVillage(env *envelope.Envelope, name string) (villageEvent, error) {
@@ -208,6 +209,29 @@ func villageBuildStarted(_ context.Context, _ Deps, env *envelope.Envelope) ([]S
 		f["finish_at"] = ev.FinishAt
 	}
 	return one(ev.SettlementID, SettlementBuildStarted, withLayout(f, ev)), nil
+}
+
+// villageBatchStarted: several buildings (a run of roads) were placed by one
+// command. One publication carries them all, with the layout's version after
+// the change, so a client applies the batch (or refetches the layout) once.
+func villageBatchStarted(_ context.Context, _ Deps, env *envelope.Envelope) ([]SettlementPublication, error) {
+	ev, err := decodeVillage(env, "build_batch_started")
+	if err != nil {
+		return nil, err
+	}
+	var batch struct {
+		Buildings json.RawMessage `json:"buildings"`
+		Count     int             `json:"count"`
+	}
+	_ = json.Unmarshal(env.Payload, &batch)
+	f := map[string]any{"type_code": ev.TypeCode, "count": batch.Count}
+	if len(batch.Buildings) > 0 {
+		f["buildings"] = batch.Buildings
+	}
+	if ev.FinishAt != "" {
+		f["finish_at"] = ev.FinishAt
+	}
+	return one(ev.SettlementID, SettlementBuildBatchStarted, withLayout(f, ev)), nil
 }
 
 // villageBuilt: a building finished construction.
