@@ -75,6 +75,7 @@ type SettlementEvents func(ctx context.Context, deps Deps, env *envelope.Envelop
 // The settlement channel's publication kinds.
 const (
 	SettlementBuildStarted   = "build_started"
+	SettlementLotBought      = "lot_bought"
 	SettlementBuildFinished  = "build_finished"
 	SettlementBuildCancelled = "build_cancelled"
 	SettlementBuildSalvaged  = "build_salvaged"
@@ -208,6 +209,17 @@ func villageBuildStarted(_ context.Context, _ Deps, env *envelope.Envelope) ([]S
 		f["finish_at"] = ev.FinishAt
 	}
 	return one(ev.SettlementID, SettlementBuildStarted, withLayout(f, ev)), nil
+}
+
+// villageLotBought: a resident bought a lot (the citizen loop). The
+// publication carries the layout versions that include who owns what, so a
+// client that holds the old layout fetches the new one.
+func villageLotBought(_ context.Context, _ Deps, env *envelope.Envelope) ([]SettlementPublication, error) {
+	ev, err := decodeVillage(env, "lot_bought")
+	if err != nil {
+		return nil, err
+	}
+	return one(ev.SettlementID, SettlementLotBought, withLayout(map[string]any{"lot_x": ev.LotX, "lot_y": ev.LotY}, ev)), nil
 }
 
 // villageBuilt: a building finished construction.

@@ -918,7 +918,8 @@ pictures:
 
 | `type` | fields | when |
 |---|---|---|
-| `build_started` | `building_id`, `type_code`, `lot_x`, `lot_y`, `rotated`, `finish_at`, `layout_version` | the head placed a building and paid for it |
+| `build_started` | `building_id`, `type_code`, `lot_x`, `lot_y`, `rotated`, `finish_at`, `layout_version` | the head, or (1.4) a resident on their own lot, placed a building and paid for it |
+| `lot_bought` | `lot_x`, `lot_y`, `layout_version` | a resident bought a lot (1.4); the versions include who owns what, so refetch the layout when yours differs |
 | `build_finished` | `building_id`, `type_code`, `layout_version` | construction reached its end |
 | `build_cancelled` | `building_id`, `type_code`, `layout_version` | the head called off a building still going up |
 | `build_salvaged` | `building_id`, `type_code`, `layout_version` | a building was pulled down and its scrap credited |
