@@ -86,6 +86,9 @@ type SettlementBuildingDef struct {
 	// into it when it ends, and pays Wage from the treasury. Workers is how
 	// many shifts may run at once; Shift is GAME time. A building with no
 	// Produces is not a workplace. Nothing is produced without a worker.
+	// Storage is how many units of goods a standing building adds to the
+	// village stock's capacity (a granary).
+	Storage  int64            `yaml:"storage,omitempty" json:"storage,omitempty"`
 	Produces map[string]int64 `yaml:"produces,omitempty" json:"produces,omitempty"`
 	Consumes map[string]int64 `yaml:"consumes,omitempty" json:"consumes,omitempty"`
 	Workers  int              `yaml:"workers,omitempty" json:"workers,omitempty"`
@@ -119,6 +122,7 @@ func (d SettlementBuildingDef) Def() settlementbuilding.Def {
 		BuildTime:                   t,
 		Upkeep:                      d.Upkeep,
 		MinLiteracyShareBPS:         d.MinLiteracyShareBPS,
+		Storage:                     d.Storage,
 		Effects:                     d.BuildingEffects(),
 	}
 	if len(d.Produces) > 0 || len(d.Consumes) > 0 || d.Workers != 0 || d.Wage != 0 {
@@ -189,6 +193,12 @@ func (p *Pack) validateSettlementBuildings(problems *[]error) {
 		seen[d.Code] = true
 		if d.Name == "" {
 			*problems = append(*problems, fmt.Errorf("%w: %s %q", ErrMissingDisplayName, where, d.Code))
+		}
+		if d.Role == "" || d.Tier < 1 {
+			// ADR 0033 section 5: what a settlement lists depends on the
+			// building's tier (a village lists tier 1, a town tier 2, a city
+			// 3 and up), so every building says which and what it is.
+			bad("%s %q must declare its role and tier (tier 1 village, 2 town, 3 and 4 city)", where, d.Code)
 		}
 		if d.TerrainMode != "" && d.TerrainMode != "required" {
 			bad("%s %q terrain_mode %q is not \"required\"", where, d.Code, d.TerrainMode)

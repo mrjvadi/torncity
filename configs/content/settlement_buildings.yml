@@ -5,6 +5,13 @@ version: 1
 # Loaded and validated by internal/content/settlementbuilding.go; stored as
 # content_documents rows, kind "settlement_building".
 #
+# TIER DECIDES WHAT A SETTLEMENT LISTS (ADR 0033 sections 3 and 5). Every entry
+# declares a role and a tier; a village lists and may build tier 1, a town tier
+# 2 and up, a city tier 3 and up, and a building of a bigger settlement is never
+# listed, refused with a neutral "not available" if asked for by code, and
+# refused at content load if it has no tier. Tier 1 = village (a bank, port or
+# airport is a city's: tier 3; barracks and police posts a town's: tier 2).
+#
 # ROLE AND TIER (ADR 0031 section 3.2). Several codes may share one
 # role/tier pair — the branching mechanism for institutions, mirroring
 # settlement_knowledge.yml's capabilities: watch_hut, militia_camp,
@@ -49,6 +56,8 @@ settlement_buildings:
   # ---------------------------------------------------------------------
   - code: road
     name: "جاده"
+    role: infrastructure
+    tier: 1
     footprint: [1, 1]
     cost_money: 50
     build_time: 10m
@@ -56,6 +65,8 @@ settlement_buildings:
 
   - code: civic_hall
     name: "خانهٔ دهیاری"
+    role: governance
+    tier: 1
     footprint: [2, 2]
     cost_money: 1000
     cost_materials: {timber: 5}
@@ -64,6 +75,8 @@ settlement_buildings:
 
   - code: housing_block
     name: "بلوک مسکونی"
+    role: housing
+    tier: 1
     footprint: [2, 2]
     cost_money: 3000
     cost_materials: {timber: 10}
@@ -71,8 +84,23 @@ settlement_buildings:
     upkeep: 30
     effects: [{target: housing_capacity, op: add, value: 20}]
 
+  # A single-lot home: the smallest residential option a village can place
+  # (the housing_block below is the 2x2 block of homes).
+  - code: cottage
+    name: "خانهٔ روستایی"
+    role: housing
+    tier: 1
+    footprint: [1, 1]
+    cost_money: 400
+    cost_materials: {timber: 3}
+    build_time: 1h
+    upkeep: 8
+    effects: [{target: housing_capacity, op: add, value: 4}]
+
   - code: park
     name: "پارک"
+    role: recreation
+    tier: 1
     footprint: [2, 2]
     cost_money: 800
     build_time: 1h
@@ -81,6 +109,8 @@ settlement_buildings:
 
   - code: bank
     name: "بانک"
+    role: finance
+    tier: 3
     footprint: [3, 3]
     cost_money: 50000
     build_time: 10h
@@ -88,6 +118,8 @@ settlement_buildings:
 
   - code: barracks
     name: "پادگان"
+    role: military
+    tier: 2
     footprint: [4, 4]
     cost_money: 60000
     build_time: 14h
@@ -95,6 +127,8 @@ settlement_buildings:
 
   - code: port
     name: "بندر"
+    role: transport
+    tier: 3
     footprint: [4, 4]
     terrain_tags: [coastal_lot]
     terrain_mode: required
@@ -104,6 +138,8 @@ settlement_buildings:
 
   - code: airport
     name: "فرودگاه"
+    role: transport
+    tier: 3
     footprint: [5, 5]
     cost_money: 120000
     build_time: 20h
@@ -542,4 +578,9 @@ settlement_buildings:
     cost_money: 500
     build_time: 1h
     upkeep: 20
+    # Adds this many units to the village stock's capacity
+    # (settlement.stock_base_capacity is what a village holds without one):
+    # the wheat, wool, timber and stone its workplaces make and the materials
+    # it buys are kept here.
+    storage: 300
     effects: [{target: food_coverage_bps, op: add, value: 150}]

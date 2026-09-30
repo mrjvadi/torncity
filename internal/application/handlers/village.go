@@ -79,6 +79,10 @@ type VillageHandler struct {
 	scarcityCapBPS        int64
 	sellerBandBPS         int64
 	demolitionSalvageBPS  int64
+	materialMarkupBPS     int64
+	stockBaseCapacity     int64
+	materialBuyMax        int64
+	materialBuyPresets    []int64
 	residenceCooldown     time.Duration
 	homeCityCode          string
 	donationMin           int64
@@ -111,6 +115,14 @@ type VillageRules struct {
 	ScarcityCapBPS        int64
 	SellerBandBPS         int64
 	DemolitionSalvageBPS  int64
+	// MaterialMarkupBPS, StockBaseCapacity and MaterialBuyMax are
+	// settlement.material_markup_bps, .stock_base_capacity and
+	// .material_buy_max (village_economy.go).
+	MaterialMarkupBPS int64
+	StockBaseCapacity int64
+	MaterialBuyMax    int64
+	// MaterialBuyPresets are the quantities the buy buttons offer.
+	MaterialBuyPresets []int64
 	// ResidenceCooldown and HomeCityCode are settlement.residence_cooldown
 	// and settlement.home_city_code (village_residence.go).
 	ResidenceCooldown time.Duration
@@ -144,6 +156,10 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 		scarcityCapBPS:        rules.ScarcityCapBPS,
 		sellerBandBPS:         rules.SellerBandBPS,
 		demolitionSalvageBPS:  rules.DemolitionSalvageBPS,
+		materialMarkupBPS:     rules.MaterialMarkupBPS,
+		stockBaseCapacity:     rules.StockBaseCapacity,
+		materialBuyMax:        rules.MaterialBuyMax,
+		materialBuyPresets:    append([]int64(nil), rules.MaterialBuyPresets...),
 		residenceCooldown:     rules.ResidenceCooldown,
 		homeCityCode:          rules.HomeCityCode,
 		idempotencyTTL:        idempotencyTTL,
@@ -186,6 +202,12 @@ type villageRefusal struct {
 	remaining time.Duration
 	// min and max are a donation's bounds, for donate_range.
 	min, max int64
+	// action, subject and needs are the attempt view of a refused build,
+	// research or shift: exactly what is missing and where it comes from
+	// (village_economy.go).
+	action  string
+	subject screens.Named
+	needs   []screens.VillageNeed
 }
 
 func (e *villageRefusal) Error() string { return "handlers: village refusal: " + e.kind }
@@ -207,7 +229,8 @@ func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err 
 	c := h.screen(meta, lang)
 	var r *villageRefusal
 	if stderrors.As(err, &r) {
-		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: r.kind, Back: r.back, Remaining: r.remaining, Min: r.min, Max: r.max}), nil
+		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: r.kind, Back: r.back, Remaining: r.remaining, Min: r.min, Max: r.max,
+			Action: r.action, Subject: r.subject, Needs: r.needs}), nil
 	}
 	if stderrors.Is(err, application.ErrCityNotFound) {
 		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: screens.VillageNoSettlement}), nil

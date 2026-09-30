@@ -62,6 +62,9 @@ var (
 	// ErrRoleMissing means the settlement holds no building of the
 	// role/tier a promotion requires.
 	ErrRoleMissing = errors.New("settlementbuilding: no building of the required role/tier stands yet")
+	// ErrAboveTier means the building belongs to a bigger settlement than this
+	// one: a village never lists, and is never allowed, an airport.
+	ErrAboveTier = errors.New("settlementbuilding: the settlement is too small for this building")
 	// ErrConcurrentBuildCap means the settlement's tier-bound concurrent
 	// construction cap (ADR 0028 section 6.3) is already full.
 	ErrConcurrentBuildCap = errors.New("settlementbuilding: the concurrent construction cap is full")
@@ -163,6 +166,11 @@ type Def struct {
 	// gate.
 	MinLiteracyShareBPS int
 
+	// Storage is how many units of goods, in all, this standing building adds
+	// to the village stock's capacity (a granary): the stock holds at most the
+	// settlement's base capacity plus every standing building's Storage.
+	Storage int64
+
 	// Work is what a standing building makes when villagers work in it
 	// (ADR 0033 section 4.1's daily loop): nothing without workers, never
 	// a passive income. Zero value means "not a workplace".
@@ -196,6 +204,37 @@ func (w Work) Workplace() bool { return len(w.Produces) > 0 }
 
 // MaxShift bounds one shift, GAME time.
 const MaxShift = 24 * time.Hour
+
+// The settlement tiers, smallest first (internal/domain/settlement.Tier*).
+const (
+	SettlementVillage = "village"
+	SettlementTown    = "town"
+	SettlementCity    = "city"
+)
+
+var settlementTierRank = map[string]int{SettlementVillage: 1, SettlementTown: 2, SettlementCity: 3}
+
+// MinSettlementTier is the smallest settlement that may list and build this
+// building (ADR 0033 section 3): a role tier 1 is a village's, tier 2 a town's,
+// tier 3 and up a city's. A row with no role tier (a legacy row) is a
+// village's.
+func (d Def) MinSettlementTier() string {
+	switch {
+	case d.Tier <= 1:
+		return SettlementVillage
+	case d.Tier == 2:
+		return SettlementTown
+	default:
+		return SettlementCity
+	}
+}
+
+// ListedAt reports whether a settlement of this tier lists the building: its
+// own tier or below. An unknown tier lists nothing.
+func (d Def) ListedAt(settlementTier string) bool {
+	have, ok := settlementTierRank[settlementTier]
+	return ok && have >= settlementTierRank[d.MinSettlementTier()]
+}
 
 // CanRotate reports whether rotating this building's footprint would
 // change anything — false for a square footprint (including every 1x1),
@@ -281,6 +320,9 @@ func ValidateCatalogue(defs []Def) error {
 		}
 		if d.MinLiteracyShareBPS < 0 || d.MinLiteracyShareBPS > 10_000 {
 			fail(ErrInvalidBuilding, "%q literacy threshold %d", d.Code, d.MinLiteracyShareBPS)
+		}
+		if d.Storage < 0 {
+			fail(ErrInvalidBuilding, "%q storage %d", d.Code, d.Storage)
 		}
 		if w := d.Work; w.Workplace() {
 			if w.Workers < 1 || w.Workers > 50 {

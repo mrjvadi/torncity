@@ -139,6 +139,7 @@ func (h *VillageHandler) buildPlacementContext(ctx context.Context, tx applicati
 	standing = settlementbuilding.Standing{
 		Knowledge: st.Owned, KnowledgeCapabilities: capabilities, Built: built,
 		RunningBuilds: running, ConcurrentCap: h.concurrentBuildCap[s.Tier], LiteracyShareBPS: st.LiteracyShareBPS,
+		SettlementTier: s.Tier,
 	}
 	return
 }
@@ -197,6 +198,16 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 		s, d, def, grid, standing, err := h.buildPlacementContext(ctx, tx, meta, code, rotated)
 		if err != nil {
 			return err
+		}
+		if !def.ListedAt(s.Tier) {
+			return refuseVillage(screens.VillageNotAvailable)
+		}
+		// The prerequisites first: a building the village cannot start yet shows
+		// what is missing and where it comes from, not a grid to choose a lot on.
+		if rf, err := h.placementRefusal(ctx, tx, h.content.Current(), s, d, def); err != nil {
+			return err
+		} else if rf != nil {
+			return rf
 		}
 		view = screens.LotGridView{
 			SettlementName: s.Name, Building: named(d.Code, d.Name),
@@ -267,6 +278,14 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
 			return err
 		}
+		if !def.ListedAt(s.Tier) {
+			return refuseVillage(screens.VillageNotAvailable)
+		}
+		if rf, err := h.placementRefusal(ctx, tx, h.content.Current(), s, d, def); err != nil {
+			return err
+		} else if rf != nil {
+			return rf
+		}
 		if cerr := settlementbuilding.CanPlace(def, grid, x, y, standing); cerr != nil {
 			return buildingRefusal(cerr)
 		}
@@ -294,6 +313,10 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 				Reason: application.ItemSettlementConstruction, ReferenceType: "settlement_building", ReferenceID: id, At: now,
 			}); err != nil {
 				if stderrors.Is(err, application.ErrNotEnoughItems) {
+					// A racing build took the stock: name what is missing now.
+					if rf, rerr := h.placementRefusal(ctx, tx, h.content.Current(), s, d, def); rerr == nil && rf != nil {
+						return rf
+					}
 					return refuseVillage(screens.VillageMaterials)
 				}
 				return err

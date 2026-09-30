@@ -716,6 +716,20 @@ type Settlement struct {
 	// section 6.2), basis points; default 2000 (20%).
 	DemolitionSalvageBPS int64 // settlement.demolition_salvage_bps
 
+	// MaterialMarkupBPS is what a village pays Support for a material it buys
+	// (ADR 0033 section 4.1): the component's reference price times this over
+	// 10000, so 12000 is the reference price plus 20 %.
+	MaterialMarkupBPS int64 // settlement.material_markup_bps
+	// StockBaseCapacity is how many units of goods, in all, a village's
+	// stock holds without a granary; every standing building's `storage`
+	// (settlement_buildings.yml) adds to it.
+	StockBaseCapacity int64 // settlement.stock_base_capacity
+	// MaterialBuyMax is the most units of one material a village may buy from
+	// Support in one purchase.
+	MaterialBuyMax int64 // settlement.material_buy_max
+	// MaterialBuyPresets are the quantities the buy buttons offer.
+	MaterialBuyPresets []int64 // settlement.material_buy_presets
+
 	// FoundingGrant is the treasury a freshly founded village starts with,
 	// minted once from system_source (ledger reason settlement_grant): a
 	// village has no income until its abstract sales exist (ADR 0028
@@ -1324,6 +1338,10 @@ func Defaults() *Config {
 			ScarcityCapBPS:        80000,
 			SellerBandBPS:         500,
 			DemolitionSalvageBPS:  2000,
+			MaterialMarkupBPS:     12000,
+			StockBaseCapacity:     60,
+			MaterialBuyMax:        200,
+			MaterialBuyPresets:    []int64{5, 20, 50},
 			FoundingGrant:         10_000,
 			DonationMin:           100,
 			DonationMax:           100_000,
