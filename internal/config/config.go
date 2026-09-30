@@ -204,7 +204,7 @@ type Config struct {
 
 	// Stage F (docs/adr/0024-property-and-politics.md).
 	Legislature Legislature
-	// Labor is the labour market (ADR 0035).
+	// Labor is the labour market (ADR 0037).
 	Labor        Labor
 	City         City
 	Property     Property
@@ -1039,7 +1039,7 @@ type Missions struct {
 	EconomyDailyCap int64 // missions.economy_daily_cap
 }
 
-// Labor is the village labour market's tuning (docs/adr/0035-labor-market.md):
+// Labor is the village labour market's tuning (docs/adr/0037-labor-market.md):
 // construction is done by workers, and an NPC labourer's wage follows how
 // scarce labour is. Wages and minimums are minor units per construction shift;
 // every share is in basis points.

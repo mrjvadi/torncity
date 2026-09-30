@@ -332,7 +332,7 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 			Rotated: rotated && d.Def().CanRotate(),
 		}
 		// With the labour rules on, construction is raised by the work of shifts
-		// (ADR 0035): the build time becomes the work required and nothing is
+		// (ADR 0037): the build time becomes the work required and nothing is
 		// scheduled to finish it. Without them, the older timer.
 		byWork := h.labor.Enabled()
 		var finish time.Time
@@ -537,7 +537,8 @@ func (h *VillageHandler) Built(ctx context.Context, meta envelope.Metadata, req 
 		if err != nil {
 			return err
 		}
-		if b.Status != "building" {
+		if b.Status != "building" || b.ByWork() {
+			// A building raised by work is finished by the last shift, never by a timer.
 			return nil
 		}
 		now := h.now()

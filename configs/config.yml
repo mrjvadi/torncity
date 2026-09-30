@@ -1149,7 +1149,7 @@ settlement:
   donation_max: 100000
   donation_presets: [250, 1000, 5000]
 
-# The village labour market (docs/adr/0035-labor-market.md). Construction is
+# The village labour market (docs/adr/0037-labor-market.md). Construction is
 # done by workers: a building needs `reference_crew` workers for its build time,
 # every shift adds work, and no timer finishes it. An NPC labourer's wage is
 # `base_wage` moved along the wage curve by how tight the labour market is

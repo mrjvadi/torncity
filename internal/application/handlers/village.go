@@ -90,7 +90,7 @@ type VillageHandler struct {
 	donationMax           int64
 	donationPresets       []int64
 
-	// labor are the labour market's rules (ADR 0035); zero keeps the timer.
+	// labor are the labour market's rules (ADR 0037); zero keeps the timer.
 	labor     labor.Rules
 	laborHire []int64
 	laborWage []int64

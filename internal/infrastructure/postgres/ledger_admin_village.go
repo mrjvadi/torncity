@@ -49,7 +49,7 @@ type VillageInvariants struct {
 	WageMismatched            int64
 	ShiftItems, ShiftItemRows int64
 
-	// The labour market (migration 0059, ADR 0035). LaborWageLedger is what the
+	// The labour market (migration 0059, ADR 0037). LaborWageLedger is what the
 	// ledger says construction shifts were paid (labor_wage and labor_wage_npc,
 	// the credits of each transaction), LaborWageRows what the finished shifts
 	// record; LaborMismatched the finished construction shifts whose ledger

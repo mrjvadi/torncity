@@ -6,7 +6,7 @@ import (
 )
 
 // laborRules turns the labour section of the configuration into the market's
-// rules (docs/adr/0035-labor-market.md).
+// rules (docs/adr/0037-labor-market.md).
 func laborRules(c config.Labor) labor.Rules {
 	return labor.Rules{
 		ShiftMinutes: c.ShiftMinutes, ReferenceCrew: c.ReferenceCrew, BaseWage: c.BaseWage,

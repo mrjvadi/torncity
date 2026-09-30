@@ -7,7 +7,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 )
 
-// The labour market (docs/adr/0035-labor-market.md, migration 0059): a
+// The labour market (docs/adr/0037-labor-market.md, migration 0059): a
 // building under construction is raised by the work of shifts, citizens and the
 // village post jobs on a hiring board, players and NPC labourers take them, and
 // the wage is paid by whoever posted the job.

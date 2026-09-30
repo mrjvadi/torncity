@@ -81,7 +81,7 @@ type SettlementShift struct {
 	// quantity, fixed when it starts.
 	Produced, Consumed map[string]int64
 	GameActionID       string
-	// Kind is "production" (the workplace loop) or "construction" (ADR 0035);
+	// Kind is "production" (the workplace loop) or "construction" (ADR 0037);
 	// WorkerKind "player" or "npc" (then PlayerID is empty); JobID the hiring-
 	// board job it was taken from; WorkPoints the work a construction shift
 	// adds; PayerKind/PayerID who pays the wage; Fee the village's levy.

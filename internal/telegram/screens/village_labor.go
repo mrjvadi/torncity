@@ -2,14 +2,13 @@ package screens
 
 import (
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
-// The labour market's screens (docs/adr/0035-labor-market.md): the hiring
+// The labour market's screens (docs/adr/0037-labor-market.md): the hiring
 // board, a construction site, and a worker's own status. Group screens like
 // the rest of the village; the numbers are computed by the use case.
 
@@ -263,13 +262,13 @@ func renderLaborBoard(c Context, v LaborBoardView) *presenter.Response {
 	if len(v.Sites) > 0 {
 		var names []string
 		for _, s := range v.Sites {
-			names = append(names, c.SettlementBuildingName(s.Building)+" ("+strconv.FormatInt(s.ProgressBPS/100, 10)+"٪)")
+			names = append(names, c.T("village.labor.board.site_item", map[string]any{"building": c.SettlementBuildingName(s.Building), "percent": s.ProgressBPS / 100}))
 			if b, ok := keyboards.Button(c.T("village.labor.button.post", map[string]any{"building": c.SettlementBuildingName(s.Building)}),
 				AddrLaborPost, s.ID); ok {
 				kb.Row(b)
 			}
 		}
-		sites = c.T("village.labor.board.sites", map[string]any{"names": strings.Join(names, "، ")})
+		sites = c.T("village.labor.board.sites", map[string]any{"names": c.list(names)})
 	}
 	var notResident string
 	if !v.Resident {

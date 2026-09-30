@@ -135,7 +135,7 @@ type SettlementBuildingInstance struct {
 	// DamageBPS is 0..10000; no rule damages a building yet.
 	DamageBPS int
 	// WorkRequired and WorkDone are the worker-minutes construction needs and
-	// has had (migration 0059, ADR 0035). WorkRequired zero is a building of
+	// has had (migration 0059, ADR 0037). WorkRequired zero is a building of
 	// the older timer, finished by FinishAt.
 	WorkRequired, WorkDone int64
 	// EmployerPlayerID is the citizen who builds and hires for the building;

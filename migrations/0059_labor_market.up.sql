@@ -1,5 +1,5 @@
 -- 0059_labor_market - construction done by workers and the hiring board
--- (docs/adr/0035-labor-market.md).
+-- (docs/adr/0037-labor-market.md).
 --
 --   settlement_buildings   gains work_required / work_done (worker-minutes): a
 --                          building placed under the labour rules is finished

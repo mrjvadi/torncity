@@ -1,4 +1,4 @@
-// Package labor is the village labour market (docs/adr/0035): construction
+// Package labor is the village labour market (docs/adr/0037): construction
 // is done by workers, not by a timer, and the wage an NPC labourer asks moves
 // with how scarce labour is.
 //

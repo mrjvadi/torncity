@@ -17,7 +17,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
-// This file is the village labour market (docs/adr/0035-labor-market.md,
+// This file is the village labour market (docs/adr/0037-labor-market.md,
 // migration 0059):
 //
 //   - construction is done by workers: a building placed while the labour rules
@@ -693,13 +693,6 @@ func (h *VillageHandler) LaborTake(ctx context.Context, meta envelope.Metadata, 
 		} else if !here {
 			return "", "", refuseVillage(screens.LaborNotHere, screens.AddrLaborBoard)
 		}
-		fresh, err := h.reserve(ctx, tx, p.ID, meta)
-		if err != nil {
-			return "", "", err
-		}
-		if !fresh {
-			return job.BuildingID, "worked", nil // a redelivered press: already working
-		}
 		if mine, err := tx.SettlementTreasury().PlayerShift(ctx, p.ID); err != nil {
 			return "", "", err
 		} else if mine != nil {
@@ -721,6 +714,18 @@ func (h *VillageHandler) LaborTake(ctx context.Context, meta envelope.Metadata, 
 				return "", "", err
 			}
 			return job.BuildingID, "worked", nil
+		}
+		fresh, err := h.reserve(ctx, tx, p.ID, meta)
+		if err != nil {
+			return "", "", err
+		}
+		if !fresh {
+			return job.BuildingID, "worked", nil // a redelivered press: already working
+		}
+		if mine, err := tx.SettlementTreasury().PlayerShift(ctx, p.ID); err != nil {
+			return "", "", err
+		} else if mine != nil {
+			return "", "", refuseVillage(screens.VillageAlreadyWorking, screens.AddrLaborSite+":"+job.BuildingID)
 		}
 		w, err := tx.SettlementTreasury().Worker(ctx, p.ID)
 		if err != nil {

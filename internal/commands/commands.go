@@ -447,7 +447,7 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "materials.buy", Origin: FromPlayer},
 	{Domain: "settlement", Action: "work", Origin: FromPlayer},
 	{Domain: "settlement", Action: "worked", Origin: FromScheduler},
-	// The labour market (ADR 0035): the hiring board, a construction site,
+	// The labour market (ADR 0037): the hiring board, a construction site,
 	// taking a job, hiring NPC labourers, the wage, closing and posting a job.
 	{Domain: "settlement", Action: "labor.board", Origin: FromPlayer},
 	{Domain: "settlement", Action: "labor.site", Origin: FromPlayer},
