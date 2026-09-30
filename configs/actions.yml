@@ -298,5 +298,7 @@ commands:
   settlement.found.draft: {kind: primary, icon: "action:home"}
   settlement.found.submit: {kind: confirm, icon: "action:home"}
   settlement.join: {kind: primary, icon: "action:home"}
+  settlement.promotion.view: {kind: secondary, icon: "action:info"}
+  settlement.promote: {kind: primary, icon: "action:upgrade"}
   settlement.leave: {kind: danger, icon: "action:leave"}
   settlement.donate: {kind: primary, icon: "action:donate"}

@@ -64,16 +64,13 @@
 
 🆔 Player code: K7Q2M9A
   ───
-  [🗺 Map] → map:list   │   [💼 My job] → job:status
+  [🗺 Map] → map:list
   [🕶 Underworld] → crime:hub
-  [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
-  [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
   [🏛 Offices and policies] → gov:city   │   [🏢 The city's companies] → company:list
-  [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
-  [📋 My missions] → mission:mine
-  [🛠 Skills] → skills:list   │   [🧬 My life] → life:me
+  [🧬 My life] → life:me
   [🏅 Achievements] → achievement:list   │   [🏆 Leaderboards] → life:top
-  [⚙️ Settings] → player:settings   │   [🔄 Refresh] → player:profile.get
+  [🔒 Continue in private chat] → https://t.me/torn_bot
+  [🔄 Refresh] → player:profile.get
 
 ━━━ Dashboard · standing at a place ━━━
 (edits message 42)
@@ -269,5 +266,5 @@ What was taken has been sent to them privately.
 Choose a kind of crime:
   ───
   [Petty theft] → crime:list:petty_theft   │   [Street crime] → crime:list:street_crime
-  [📜 My record] → crime:record   │   [🗂 My cases] → crime:cases
+  [🔒 Continue in private chat] → https://t.me/torn_bot
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → crime:hub
