@@ -26,6 +26,7 @@ services:
     cpus: "0.50"
     memswap_limit: 512m
     image: postgres:17-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: torn
       POSTGRES_PASSWORD: torn
@@ -50,6 +51,7 @@ services:
     cpus: "0.25"
     memswap_limit: 256m
     image: redis:7-alpine
+    restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     ports: ["127.0.0.1:56379:6379"]
     volumes: ["redisdata:/data"]
@@ -67,6 +69,7 @@ services:
     cpus: "0.25"
     memswap_limit: 256m
     image: nats:2-alpine
+    restart: unless-stopped
     command: ["-js", "-sd", "/data", "-m", "8222"]
     ports: ["127.0.0.1:54222:4222", "127.0.0.1:58222:8222"]
     volumes: ["natsdata:/data"]
