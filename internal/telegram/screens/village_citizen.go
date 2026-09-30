@@ -101,7 +101,7 @@ type LandView struct {
 // LandGrid renders the land grid: every free lot is a button that starts a
 // purchase.
 func LandGrid(c Context, v LandView) *presenter.Response {
-	return c.withGroupView(renderLand(c, v), ScreenLand, v)
+	return c.withView(renderLand(c, v), ScreenLand, v)
 }
 
 func landEmoji(state string) string {
@@ -126,7 +126,7 @@ func landEmoji(state string) string {
 
 func renderLand(c Context, v LandView) *presenter.Response {
 	head := c.T("citizen.land.title", map[string]any{"village": v.Village})
-	info := c.T("citizen.land.body", map[string]any{
+	info := c.T(sharedKey(c, "citizen.land.body"), map[string]any{
 		"price": FormatMoney(c, v.Price), "cash": FormatMoney(c, v.Cash),
 		"owned": FormatNumber(c, int64(v.Owned)), "max": FormatNumber(c, int64(v.Max)),
 	})
@@ -190,7 +190,7 @@ func renderLotBuyConfirm(c Context, v LotBuyView) *presenter.Response {
 		kb.Row(b)
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrLand}))
-	return c.respond(paragraphs(c.T("citizen.buy.ask_title", args), c.T("citizen.buy.ask_body", args)), kb.Build())
+	return c.respond(paragraphs(c.T("citizen.buy.ask_title", args), c.T(sharedKey(c, "citizen.buy.ask_body"), args)), kb.Build())
 }
 
 // LotBuyDone renders the result of a purchase.
@@ -203,7 +203,7 @@ func renderLotBuyDone(c Context, v LotBuyView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Row(citizenButtons(c, "citizen.button.build_house", AddrPrivateMenu, "citizen.button.more_land", AddrLand)...)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrLand}))
-	return c.respond(paragraphs(c.T("citizen.buy.done_title", args), c.T("citizen.buy.done_body", args)), kb.Build())
+	return c.respond(paragraphs(c.T("citizen.buy.done_title", args), c.T(sharedKey(c, "citizen.buy.done_body"), args)), kb.Build())
 }
 
 // PrivateMaterial is one material a private building needs, and how it is met.
@@ -266,7 +266,7 @@ func renderPrivateMenu(c Context, v PrivateMenuView) *presenter.Response {
 		kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview}))
 		return c.respond(paragraphs(head, c.T("citizen.private.no_land", nil)), kb.Build())
 	}
-	blocks := []string{head, c.T("citizen.private.intro", map[string]any{
+	blocks := []string{head, c.T(sharedKey(c, "citizen.private.intro"), map[string]any{
 		"cash": FormatMoney(c, v.Cash), "free": FormatNumber(c, int64(v.FreeLots)),
 	})}
 	for _, l := range v.Lines {
@@ -380,7 +380,7 @@ func renderPrivateConfirm(c Context, v PrivateConfirmView) *presenter.Response {
 	return c.respond(paragraphs(
 		c.T("citizen.confirm.title", args),
 		body(c.T("citizen.confirm.lines", args), materialsText(c, v.Materials)),
-		c.T("citizen.confirm.total", args),
+		c.T(sharedKey(c, "citizen.confirm.total"), args),
 	), kb.Build())
 }
 
@@ -462,7 +462,9 @@ func renderMine(c Context, v MineView) *presenter.Response {
 			"debt": FormatMoney(c, v.Debt), "periods": FormatNumber(c, int64(v.DebtPeriods)),
 		}))
 	}
-	blocks = append(blocks, c.T("citizen.mine.cash", map[string]any{"cash": FormatMoney(c, v.Cash)}))
+	if !c.Shared {
+		blocks = append(blocks, c.T("citizen.mine.cash", map[string]any{"cash": FormatMoney(c, v.Cash)}))
+	}
 
 	kb := keyboards.New()
 	kb.Row(citizenButtons(c, "citizen.button.buy_land", AddrLand, "citizen.button.build_house", AddrPrivateMenu)...)
@@ -590,4 +592,14 @@ func renderCitizenRefusal(c Context, v VillageRefusalView) *presenter.Response {
 	return c.respond(c.T("citizen.refusal."+v.Kind, map[string]any{
 		"time": FormatDuration(c, v.Remaining), "min": FormatMoney(c, v.Min), "max": FormatMoney(c, v.Max),
 	}), kb.Build())
+}
+
+// sharedKey is the text of a screen that would show the player's own money:
+// in a group the whole group reads it, so the variant without the balance is
+// used there (the client's private channel keeps the full text).
+func sharedKey(c Context, key string) string {
+	if c.Shared {
+		return key + "_shared"
+	}
+	return key
 }

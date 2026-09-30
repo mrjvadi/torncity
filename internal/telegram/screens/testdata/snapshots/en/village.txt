@@ -289,7 +289,6 @@ No buildings stand here yet.
 
 Any free lot can be yours: the price goes to the village treasury and the lot is yours for good.
 💵 Price per lot: 400 SUP
-👛 Your money: 5,000 SUP
 📌 Your lots: 1 of 6
 
 🟩 free to buy - 🏡 yours - 🔒 someone else's - 🏠 building - 🛣 road - 💧 water - ⛰ steep
@@ -307,7 +306,6 @@ Any free lot can be yours: the price goes to the village treasury and the lot is
 
 Row 4, column 3
 Price: 400 SUP
-Your money after buying: 4,600 SUP
 
 The money goes to the village treasury.
   ───
@@ -319,7 +317,6 @@ The money goes to the village treasury.
 ✅ This lot is yours now
 
 Row 4, column 3 is registered in your name and 400 SUP went to the village treasury.
-Money left: 4,600 SUP
 You can build a house on it now.
   ───
   [🏠 Build a house] → settlement:private   │   [🏡 More land] → settlement:land
@@ -330,7 +327,6 @@ You can build a house on it now.
 🏠 Private building in Korendal
 
 On your own lot you can build a house or a small business. You pay from your own pocket; missing timber is bought for you at the reference price.
-👛 Your money: 4,600 SUP
 📌 Free lots of yours: 1
 
 🔨 Cottage (1×1)
@@ -379,7 +375,6 @@ Build time: 2h
    • Timber: 3 (you have 0, buy 3 for 54 SUP)
 
 Cash total: 954 SUP
-Your money after building: 3,646 SUP
   ───
   [✅ Confirm and build - 954 SUP] → settlement:private.place:cottage:0-3:confirm
   [🔙 Back] → settlement:private.lots:cottage
@@ -394,8 +389,6 @@ Your money after building: 3,646 SUP
 🟩 Row 4, column 3: empty lot
 
 📊 Property tax: 2% of the value 1,245 SUP each period, that is 24 SUP
-
-👛 Your money: 3,646 SUP
   ───
   [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
   [🛋 Rest at home] → settlement:home.rest
@@ -414,8 +407,6 @@ Your money after building: 3,646 SUP
 📊 Property tax: 2% of the value 1,245 SUP each period, that is 24 SUP
 
 ⚠️ Tax debt: 48 SUP (2 periods)
-
-👛 Your money: 40 SUP
   ───
   [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
   [💳 Pay tax (48 SUP)] → settlement:tax.pay

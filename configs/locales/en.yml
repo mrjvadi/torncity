@@ -603,6 +603,10 @@ citizen:
       💵 Price per lot: {price}
       👛 Your money: {cash}
       📌 Your lots: {owned} of {max}
+    body_shared: |-
+      Any free lot can be yours: the price goes to the village treasury and the lot is yours for good.
+      💵 Price per lot: {price}
+      📌 Your lots: {owned} of {max}
     legend: "🟩 free to buy - 🏡 yours - 🔒 someone else's - 🏠 building - 🛣 road - 💧 water - ⛰ steep"
     cannot_buy: "To buy more land you must be under the personal lot limit and have enough money."
   buy:
@@ -613,6 +617,14 @@ citizen:
       Your money after buying: {left}
 
       The money goes to the village treasury.
+    ask_body_shared: |-
+      Row {row}, column {col}
+      Price: {price}
+
+      The money goes to the village treasury.
+    done_body_shared: |-
+      Row {row}, column {col} is registered in your name and {price} went to the village treasury.
+      You can build a house on it now.
     button_yes: "✅ Buy - {price}"
     done_title: "✅ This lot is yours now"
     done_body: |-
@@ -625,6 +637,9 @@ citizen:
     intro: |-
       On your own lot you can build a house or a small business. You pay from your own pocket; missing timber is bought for you at the reference price.
       👛 Your money: {cash}
+      📌 Free lots of yours: {free}
+    intro_shared: |-
+      On your own lot you can build a house or a small business. You pay from your own pocket; missing timber is bought for you at the reference price.
       📌 Free lots of yours: {free}
     line: |-
       🔨 {name} ({w}×{h})
@@ -651,6 +666,7 @@ citizen:
     total: |-
       Cash total: {total}
       Your money after building: {left}
+    total_shared: "Cash total: {total}"
     button_yes: "✅ Confirm and build - {total}"
   mine:
     title: "🧾 My property in {village}"
