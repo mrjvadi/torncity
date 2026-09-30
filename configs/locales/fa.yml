@@ -133,8 +133,12 @@ map:
   cities_title: "🧭 سفر به شهر دیگر"
   title: "🗺 نقشه"
   origin: "📍 شما در {city} هستید."
-  destinations: "از اینجا به این شهرها می‌توانید سفر کنید:"
+  destinations: "از اینجا به این شهرها و روستاها می‌توانید سفر کنید:"
   destination: "• {city} - {distance} کیلومتر"
+  # A place priced from the world: the distance, the cheapest fare and the
+  # fastest way there.
+  destination_priced: "• {city} - {distance} کیلومتر - کرایه از {fare} - سریع‌ترین {wait}"
+  destination_free: "• {city} - {distance} کیلومتر - رایگان با پای پیاده - سریع‌ترین {wait}"
   no_routes: "فعلاً از اینجا راهی به جای دیگری نیست. هر وقت مسیری باز شود، مقصدها همین‌جا نمایش داده می‌شوند."
   no_city: "هنوز در هیچ شهری مستقر نشده‌اید. پس از استقرار، مقصدهای سفر همین‌جا نمایش داده می‌شوند."
   travelling: "🧭 در راه {city} هستید. پس از رسیدن می‌توانید سفر تازه‌ای را آغاز کنید."
@@ -187,6 +191,13 @@ travel:
   # to a new level; {level} is the highest level reached.
   arrived_level: "⭐ تبریک؛ به سطح {level} رسیدید."
   none: "الان در سفر نیستید. برای سفر، «نقشه» را باز کنید."
+  # «سفر به این روستا» typed in a village's group (travel.here): the journey to
+  # that group's village, with nothing to choose. These are what it says when
+  # there is no journey to offer.
+  here:
+    no_village: "🏡 این گروه هنوز روستایی ندارد، پس مقصدی برای سفر نیست. برای شروع «ساخت روستا» را بفرستید."
+    already_there: "📍 همین حالا در {village} هستید و سفری لازم نیست. برای رفتن به جای دیگر «نقشه» را باز کنید."
+    group_only: "🧭 «سفر به این روستا» را در گروهِ همان روستا بفرستید تا مستقیم به آنجا سفر کنید. برای مقصدهای دیگر «نقشه» را باز کنید."
   same_city: "همین حالا در این شهر هستید. مقصد دیگری را از «نقشه» انتخاب کنید."
   no_route: "از شهری که در آن هستید راهی به آنجا نیست. یکی از مقصدهای «نقشه» را انتخاب کنید."
   mode_unavailable: "این وسیله در این مسیر رفت‌وآمد نمی‌کند. مقصد را دوباره از «نقشه» بزنید تا وسیله‌های همین مسیر را ببینید."
@@ -199,6 +210,8 @@ transport_mode:
   car: خودرو
   train: قطار
   flight: هواپیما
+  walk: پیاده
+  cart: گاری
 
 skills:
   title: "🛠 مهارت‌ها"
@@ -393,6 +406,7 @@ button:
   travel_to: "🧭 {city}"
   travel_by: "{mode} - {fare}"
   travel_options: "🧭 وسیله‌های سفر"
+  travel_elsewhere: "🧭 مقصدهای دیگر"
   skills: "🛠 مهارت‌ها"
   social: "👥 دوستان"
   settings: "⚙️ تنظیمات"
@@ -1685,6 +1699,10 @@ command_alias:
   portfolio: "سبد | پرتفوی"
   gold: "طلا | طلافروشی"
   village: "روستا | دهکده"
+  # Straight to the village of the group it is sent in (travel.here): the ways
+  # there from wherever the player stands, no list to search.
+  travel:
+    here: "سفر به این روستا | سفر به این گروه | سفر به اینجا | بریم اینجا"
   settlement:
     found: "ساخت روستا | تاسیس روستا"
     join: "ساکن این روستا شو | عضویت در روستا | ساکن روستا شو"

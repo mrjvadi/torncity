@@ -191,6 +191,29 @@ func TestAliasPhrases(t *testing.T) {
 	}
 }
 
+// «سفر به این روستا» and its short forms, typed alone in a group, are the
+// direct trip to that group's village (travel.here); with words after them
+// they are chatter, not a command.
+func TestTravelHereAliases(t *testing.T) {
+	a := shippedAliases(t)
+	for _, phrase := range []string{
+		"سفر به این روستا", "سفر به این گروه", "سفر به اینجا", "بریم اینجا",
+		"travel to this village", "take me here",
+	} {
+		text, ok := a.Rewrite(phrase, true)
+		if !ok {
+			t.Errorf("%q is not recognised in a group", phrase)
+			continue
+		}
+		if command, _, err := ParseText(text); err != nil || command != "travel.here" {
+			t.Errorf("%q routes to %q (%v), want travel.here", phrase, command, err)
+		}
+	}
+	if text, ok := a.Rewrite("سفر به این روستا خیلی خوب بود دیروز", true); ok {
+		t.Errorf("a sentence starting with the phrase became a command: %q", text)
+	}
+}
+
 // help and cancel are the gateway's own.
 func TestHelpAndCancel(t *testing.T) {
 	a := shippedAliases(t)

@@ -284,6 +284,11 @@ type SettlementRepository interface {
 	// ErrCityNotFound.
 	ByID(ctx context.Context, id string) (FoundedSettlement, error)
 
+	// Founded returns every founded settlement, ordered by code (buildings
+	// left empty): the places a traveller can go to besides the content
+	// cities, with the cell each stands on (ADR 0034).
+	Founded(ctx context.Context) ([]FoundedSettlement, error)
+
 	// ByPlayer returns the settlement a player belongs to: the one whose
 	// top office they hold (head), else the one they live in (their residence).
 	// Buildings are left empty. ErrCityNotFound when they belong to none.

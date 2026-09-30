@@ -1,6 +1,6 @@
 # Game client API — v1
 
-**Contract version 1.3.** Every 1.x is compatible with 1.0: a client written
+**Contract version 1.4.** Every 1.x is compatible with 1.0: a client written
 for 1.0 keeps working, and a 1.x client reads the new fields as absent on an
 older server. 1.1 adds the world and the village (section 4.3): the
 `settlement` object of the bootstrap, `GET /world`, `GET /world/chunks/…`,
@@ -13,8 +13,11 @@ presence and the settlement channel (sections 5.4 and 5.5): the
 `not_in_settlement`. 1.3 adds the founding form (section 4.4):
 `settlement.found.draft` and `settlement.found.submit`, the `founding_*`
 error codes, the group's Mini App button, and `emblem`, `motto` and
-`currency` on the bootstrap `settlement`. Nothing that 1.0, 1.1 or 1.2
-returned has changed.
+`currency` on the bootstrap `settlement`. 1.4 adds travel to villages
+(section 4.5): `location` on the bootstrap, villages among the destinations of
+`map.cities` (with `village`, `emblem`, `settlement_id`, `lat`, `lon`, `fare`,
+`wait_seconds`), and the `walk` and `cart` transport modes. Nothing that 1.0,
+1.1, 1.2 or 1.3 returned has changed.
 
 The contract between the game and a game client (a native build or the
 Telegram Mini App build). Served by `cmd/clientapi` (package
@@ -293,10 +296,12 @@ A view is attached only when the screen is shown to the player alone.
              "services": ["bank"], "departures": null, "shops": null, "here": false}]}
 ```
 
-**`cities`** (`map.cities`): `{destinations: [{code, name, distance_km}], page, pages, origin_code, origin, travelling, travelling_to_code, travelling_to}`.
+**`cities`** (`map.cities`): `{destinations: [{code, name, distance_km, village, settlement_id, emblem, lat, lon, fare, wait_seconds}], page, pages, origin_code, origin, travelling, travelling_to_code, travelling_to}`.
 
 **`travel_options`** (`travel.options`): `{from_code, from, to_code, to, cash, requoted, options: [{mode_code, mode_name, fare, wait_seconds, energy, busy, vehicle: {code, name} | null, condition}]}`.
 Start a journey with `travel.start {city: to_code, mode: mode_code, max: fare}`.
+
+`fare` and `wait_seconds` (the cheapest fare, the fastest real wait) are set for a destination the world derived (section 4.5) and `0` for one a content route reaches, which is priced when its mode is chosen.
 
 **`travel_status`** (`travel.status`): `{from_code, from, to_code, to, mode_code, mode_name, remaining_seconds, arrives_at}`.
 
@@ -357,6 +362,8 @@ Load once after signing in (and after a content change).
   "places": [{"code": "old_town", "name": "شهر قدیم"}, {"code": "harbour", "name": "بندر"}],
   "server_time": "2026-09-26T10:00:00Z",
   "realtime": true,
+  "location": {"kind": "city", "code": "support", "name": "ساپورت", "home": true,
+               "centre": {"lat": 32.3, "lon": -47.7}},
   "settlement": {
     "id": "4d1c…", "code": "v-k3x9", "name": "آمل", "tier": "village",
     "world_cell": 18211, "centre": {"lat": 36.4, "lon": 52.3, "chunk": {"face": 4, "lod": 10, "x": 523, "y": 512}},
@@ -370,6 +377,51 @@ Names are in the player's language. `places` are the places of the player's
 current city. `realtime` says whether section 5 is available. `settlement`
 (1.1) is the player's own settlement and is absent when they belong to none;
 see 4.3.
+
+#### Where you stand — `bootstrap.location` (1.4)
+
+The place the player stands in **now**, which is not always their own
+settlement (`bootstrap.settlement`): a traveller stands in another group's
+village, or in Support. Absent for a player who is nowhere.
+
+| field | meaning |
+|---|---|
+| `kind` | `city` (a content city: Support) or `settlement` (a founded village) |
+| `code`, `name` | the city's or village's code and its name in the player's language |
+| `centre` | `{lat, lon}` (a village's also carries `chunk`): where it stands on the world |
+| `home` | the player lives here (their residence) |
+| `settlement_id`, `tier`, `world_cell`, `grid_lots`, `layout_path`, `emblem`, `motto`, `currency` | for `kind: "settlement"` only, as on `bootstrap.settlement`. Draw the place with `GET /settlements/{id}/layout` (a stranger gets `detail: "coarse"`, section 4.3) |
+
+Re-read the bootstrap (or `GET /players/{id}/status`) after `travel.completed`
+to learn the new place; `player.city_code` follows it.
+
+---
+
+### 4.5 Travel to Support and to villages (1.4)
+
+Every founded village and Support are destinations for everyone: a traveller is
+not a settler (residence is `settlement.join`), and beginner protection does
+not close a village's door. No route is authored between them; the game derives
+each journey from where the two stand on the world:
+
+```
+distance  = great-circle km between the two spots (haversine, planet radius 6371 km, rounded up, at least 1)
+per mode  = boarding + distance / speed    (game time; the real wait is that / 60, the game clock)
+fare      = base_fare + fare_per_km x distance     (private modes, paid to the system sink)
+modes     = the modes config `travel.world_reach` lists whose reach covers the distance
+```
+
+Today: `walk` (5 km/h, free, up to 60 km), `cart` (20 km/h, 20 + 2/km, up to
+500 km), `car` (90 km/h, 5/km, up to 21 000 km). A place no listed mode reaches
+is not a destination.
+
+The flow is the ordinary one: `map.cities` (Support first, then villages,
+nearest first, paged; `village: true` marks a village) -> `travel.options {city:
+<code>}` -> `travel.start {city, mode, max, method}` -> the scheduler lands the
+player with `travel.arrive`; `players.city_id` (the place) moves, the
+residence does not. A `member_joined` (`via: "travel"`) reaches the destination
+village's settlement channel and a `member_left` the origin's (founded villages
+only; Support has no settlement channel).
 
 ---
 

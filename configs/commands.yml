@@ -36,6 +36,11 @@ commands:
   travel.options: {channel: private}
   travel.start: {channel: private}
   travel.status: {channel: private}
+  # «سفر به این روستا» in a village's group: the journey to that group's
+  # village from wherever the player stands. The fares are the player's own
+  # (their vehicle, their purse), so the answer goes to their PV and the group
+  # sees one neutral line. The web asks for the same screens with client: true.
+  travel.here: {channel: both, reply: private}
 
   skills.list: {channel: private}
 

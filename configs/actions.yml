@@ -40,6 +40,7 @@ commands:
   travel.start: {kind: primary, icon: "action:travel"}
   travel.options: {kind: primary, icon: "action:travel"}
   travel.status: {kind: navigation, icon: "action:travel"}
+  travel.here: {kind: primary, icon: "action:travel"}
   skills.list: {kind: navigation, icon: "action:skills"}
   map.list: {kind: navigation, icon: "action:map"}
   map.cities: {kind: navigation, icon: "action:map"}

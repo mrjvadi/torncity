@@ -438,6 +438,58 @@ type Game struct {
 // policy (city.transit_fare), read only through the policy resolver.
 type Travel struct {
 	ArrivalXP int // travel.arrival_xp
+
+	// CityLocations are "code=lat:lon" entries: where a content city (Support)
+	// stands on the generated world, in degrees. A founded settlement's place
+	// is its own world cell; a content city has none, so its spot is tuning
+	// (ADR 0034). Journeys between places without a content route are priced
+	// by the great-circle distance between these spots.
+	CityLocations []string // travel.city_locations
+	// WorldReach are "mode=km" entries: the transport modes that serve a
+	// world-derived journey and the longest one each will make. A mode not
+	// listed serves content routes only.
+	WorldReach []string // travel.world_reach
+}
+
+// CityLocation is a content city's spot on the world.
+type CityLocation struct{ LatDeg, LonDeg float64 }
+
+// CityLocationMap parses travel.city_locations ("code=lat:lon") by city code.
+func (t Travel) CityLocationMap() (map[string]CityLocation, error) {
+	out := make(map[string]CityLocation, len(t.CityLocations))
+	for i, entry := range t.CityLocations {
+		code, val, ok := strings.Cut(entry, "=")
+		code = strings.TrimSpace(code)
+		latText, lonText, ok2 := strings.Cut(val, ":")
+		lat, err1 := strconv.ParseFloat(strings.TrimSpace(latText), 64)
+		lon, err2 := strconv.ParseFloat(strings.TrimSpace(lonText), 64)
+		if !ok || !ok2 || code == "" || err1 != nil || err2 != nil || lat < -90 || lat > 90 || lon < -180 || lon > 180 {
+			return nil, fmt.Errorf("%w: travel.city_locations[%d] %q is not code=lat:lon (degrees)", ErrInvalidValue, i, entry)
+		}
+		if _, dup := out[code]; dup {
+			return nil, fmt.Errorf("%w: travel.city_locations repeats %q", ErrInvalidValue, code)
+		}
+		out[code] = CityLocation{LatDeg: lat, LonDeg: lon}
+	}
+	return out, nil
+}
+
+// WorldReachMap parses travel.world_reach ("mode=km") by mode code.
+func (t Travel) WorldReachMap() (map[string]int, error) {
+	out := make(map[string]int, len(t.WorldReach))
+	for i, entry := range t.WorldReach {
+		code, val, ok := strings.Cut(entry, "=")
+		code = strings.TrimSpace(code)
+		km, err := strconv.Atoi(strings.TrimSpace(val))
+		if !ok || code == "" || err != nil || km < 1 || km > 100_000 {
+			return nil, fmt.Errorf("%w: travel.world_reach[%d] %q is not mode=km (1..100000)", ErrInvalidValue, i, entry)
+		}
+		if _, dup := out[code]; dup {
+			return nil, fmt.Errorf("%w: travel.world_reach repeats %q", ErrInvalidValue, code)
+		}
+		out[code] = km
+	}
+	return out, nil
 }
 
 // Player holds player-facing defaults.
@@ -1155,6 +1207,10 @@ func Defaults() *Config {
 		},
 		Travel: Travel{
 			ArrivalXP: 25,
+			// Support, on the seed-42 world: a temperate lowland cell of the
+			// great continent, 940 km from any sea (ADR 0034).
+			CityLocations: []string{"support=32.30:-47.70"},
+			WorldReach:    []string{"walk=60", "cart=500", "car=21000"},
 		},
 		Player: Player{
 			DefaultLanguage: "fa",
@@ -1623,6 +1679,12 @@ func (c *Config) Validate() error {
 	if c.Settlement.MaxAbsLatitudeDeg <= 0 || c.Settlement.MaxAbsLatitudeDeg > 90 {
 		return fmt.Errorf("%w: settlement.max_abs_latitude_deg is %v, want 0 < x <= 90",
 			ErrInvalidValue, c.Settlement.MaxAbsLatitudeDeg)
+	}
+	if _, err := c.Travel.CityLocationMap(); err != nil {
+		return err
+	}
+	if _, err := c.Travel.WorldReachMap(); err != nil {
+		return err
 	}
 	penalties, err := c.Settlement.BiomePenaltyMap()
 	if err != nil {

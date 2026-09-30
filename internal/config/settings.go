@@ -179,7 +179,9 @@ type gameSettings struct {
 }
 
 type travelSettings struct {
-	ArrivalXP *int `yaml:"arrival_xp"`
+	ArrivalXP     *int     `yaml:"arrival_xp"`
+	CityLocations []string `yaml:"city_locations"`
+	WorldReach    []string `yaml:"world_reach"`
 	// TimeScale is the legacy spelling of game.time_scale; see Game.
 	TimeScale *int `yaml:"time_scale"`
 }
@@ -894,6 +896,13 @@ var coreSettings = []setting{
 	limitSetting("travel", "arrival_xp",
 		func(c *Config) *int { return &c.Travel.ArrivalXP },
 		func(f *fileConfig) *int { return f.Travel.ArrivalXP }),
+
+	stringListSetting("travel", "city_locations",
+		func(c *Config) *[]string { return &c.Travel.CityLocations },
+		func(f *fileConfig) []string { return f.Travel.CityLocations }),
+	stringListSetting("travel", "world_reach",
+		func(c *Config) *[]string { return &c.Travel.WorldReach },
+		func(f *fileConfig) []string { return f.Travel.WorldReach }),
 
 	stringSetting("player", "default_language",
 		func(c *Config) *string { return &c.Player.DefaultLanguage },
