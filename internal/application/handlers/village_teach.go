@@ -122,6 +122,11 @@ func (h *VillageHandler) Taught(ctx context.Context, meta envelope.Metadata, req
 		if err := tx.SettlementKnowledge().RefreshHolderCounts(ctx, now); err != nil {
 			return err
 		}
+		// The property tax rides the village's own tick (village_citizen.go):
+		// one row per owner and period, so a redelivery charges nothing twice.
+		if err := h.SettleTax(ctx, tx, in.SettlementID, now); err != nil {
+			return err
+		}
 		if next == int64(shareBPS) {
 			return nil // no visible change (no school yet); nothing worth announcing
 		}

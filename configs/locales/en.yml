@@ -576,6 +576,128 @@ biome:
 settlement_building:
   road: Road
   civic_hall: Civic hall
+  cottage: Cottage
+  village_house: Village house
+  home_workshop: Home workshop
+  market_stall: Market stall
+
+# The citizen loop (docs/adr/0033 sections 4.4 and 4.5): a resident buys land
+# from the village, builds a house on it and lives there.
+citizen:
+  hub:
+    hint: "🌱 This is your home: buy land, build a house and help the village grow."
+  button:
+    buy_land: "🏡 Buy land"
+    build_house: "🏠 Build a house"
+    more_land: "🏡 More land"
+    work: "🛠 Work"
+    mine: "🧾 My property"
+    terms: "⚖️ Land terms"
+    rest: "🛋 Rest at home"
+    rest_wait: "🛋 Rest ({time} left)"
+    pay_tax: "💳 Pay tax ({debt})"
+  land:
+    title: "🏡 Land in {village}"
+    body: |-
+      Any free lot can be yours: the price goes to the village treasury and the lot is yours for good.
+      💵 Price per lot: {price}
+      👛 Your money: {cash}
+      📌 Your lots: {owned} of {max}
+    legend: "🟩 free to buy   🏡 yours   🔒 someone else's   🏠 building   🛣 road   💧 water   ⛰ steep"
+    cannot_buy: "To buy more land you must be under the personal lot limit and have enough money."
+  buy:
+    ask_title: "🏡 Buy a lot"
+    ask_body: |-
+      Row {row}, column {col}
+      Price: {price}
+      Your money after buying: {left}
+
+      The money goes to the village treasury.
+    button_yes: "✅ Buy - {price}"
+    done_title: "✅ This lot is yours now"
+    done_body: |-
+      Row {row}, column {col} is registered in your name and {price} went to the village treasury.
+      Money left: {cash}
+      You can build a house on it now.
+  private:
+    title: "🏠 Private building in {village}"
+    no_land: "To build a house you need a lot first. Buy a free lot and come back."
+    intro: |-
+      On your own lot you can build a house or a small business. You pay from your own pocket; missing timber is bought for you at the reference price.
+      👛 Your money: {cash}
+      📌 Free lots of yours: {free}
+    line: |-
+      🔨 {name} ({w}×{h})
+      Cost: {cost} · Permit: {permit} · Time: {time}
+      Cash total: {total}
+    material: "   • {name}: {need} (you have {have}, buy {buy} for {cost})"
+    short: "⚠️ You cannot afford this building."
+    button: "🔨 {name} - {total}"
+    none: "The village cannot build any private building yet; more open up as its knowledge grows."
+    no_free_lot: "All your lots are taken; buy another lot to build again."
+    total: "Cash total: {total}"
+  lots:
+    title: "📍 Where to build in {village}"
+    building: "Building: {building}"
+    legend: "✅ build here (your own free lot)   🏠 taken   🛣 road   💧 water   ⛰ steep   ⬜ not your lot"
+  confirm:
+    title: "🏗 Build {name}"
+    lines: |-
+      Place: row {row}, column {col}
+      Building cost: {cost}
+      Building permit (to the treasury): {permit}
+      Materials bought: {materials}
+      Build time: {time}
+    total: |-
+      Cash total: {total}
+      Your money after building: {left}
+    button_yes: "✅ Confirm and build - {total}"
+  mine:
+    title: "🧾 My property in {village}"
+    no_home: "🏚 You have no house yet; build one on your lot to live in it."
+    home: "🏠 Your home: {name}"
+    lot_bare: "🟩 Row {row}, column {col}: empty lot"
+    lot_building: "🏗 Row {row}, column {col}: {name} under construction - {time} left"
+    lot_built: "🏡 Row {row}, column {col}: {name}"
+    no_lots: "You own no lots."
+    tax: "📊 Property tax: {percent}% of the value {assessed} each period, that is {per}"
+    debt: "⚠️ Tax debt: {debt} ({periods} periods)"
+    cash: "👛 Your money: {cash}"
+    notice:
+      rested: "🛋 You rested at home and feel better."
+      tax_paid: "✅ Tax paid."
+      tax_none: "There is no debt to pay, or you cannot afford it."
+  terms:
+    title: "⚖️ Land and building terms in {village}"
+    body: |-
+      💵 Lot price: {price} (between {pmin} and {pmax})
+      📜 Building permit: {permit} (up to {fmax})
+      📊 Property tax each period: {tax}% (up to {tmax}%)
+
+      All of it goes to the village treasury.
+    button_price: "💵 Lot {amount}"
+    button_permit: "📜 Permit {amount}"
+    button_tax: "📊 Tax {percent}%"
+  work:
+    title: "🛠 Work in {village}"
+    body: |-
+      The village's workshops and farms open as they are built, and their work will be here.
+      Until then, jobs are in {city}.
+    button_support: "💼 Work in {city} - travel"
+  refusal:
+    citizen_lot_taken: "Someone bought this lot just now. Pick another one."
+    citizen_lot_limit: "You have reached the personal lot limit; build on your lots first."
+    citizen_zoning: "The share of private lots in this village is full, to keep public space."
+    citizen_not_owner: "This lot is not yours; you can only build on your own lot."
+    citizen_no_cash: "You do not have enough money for this."
+    citizen_private_only: "This is a private building: residents build it on their own lot, not the village head."
+    citizen_lot_private: "This lot is private and belongs to a resident."
+    citizen_rest_wait: "You are still rested; you can rest again in {time}."
+    citizen_no_house: "You need a finished house to rest at home."
+    citizen_terms_range: "That number is outside the allowed range."
+    citizen_no_debt: "You have no tax debt."
+    citizen_off: "Buying land is not open in this village yet."
+    citizen_no_lots: "You own no lots; buy one first."
 
 # Group founding (docs/adr/0028-world-and-settlements.md section 3): a group
 # admin registers the group and the game places the new village on the map.

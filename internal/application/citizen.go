@@ -187,3 +187,35 @@ func PropertyTaxDue(assessed int64, bps int) int64 {
 	}
 	return due
 }
+
+// CitizenBounds are the configured defaults and bounds of the head's levers.
+type CitizenBounds struct {
+	LotPrice, LotPriceMin, LotPriceMax int64
+	PermitFee, PermitFeeMax            int64
+	TaxBPS, TaxBPSMax                  int
+}
+
+// Effective is the lot price, permit fee and tax the head's levers and the
+// defaults come to, clamped into the bounds.
+func (b CitizenBounds) Effective(t LotTerms) (price, permit int64, tax int) {
+	clamp := func(v, lo, hi int64) int64 {
+		if v < lo {
+			return lo
+		}
+		if v > hi {
+			return hi
+		}
+		return v
+	}
+	price, permit, tax = b.LotPrice, b.PermitFee, b.TaxBPS
+	if t.LotPrice > 0 {
+		price = clamp(t.LotPrice, b.LotPriceMin, b.LotPriceMax)
+	}
+	if t.HasPermit {
+		permit = clamp(t.PermitFee, 0, b.PermitFeeMax)
+	}
+	if t.HasTax {
+		tax = int(clamp(int64(t.TaxBPS), 0, int64(b.TaxBPSMax)))
+	}
+	return price, permit, tax
+}

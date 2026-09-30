@@ -411,6 +411,19 @@ commands:
   settlement.join: {channel: group, client: true}
   settlement.leave: {channel: group, client: true}
   settlement.donate: {channel: group, client: true}
+  # The citizen loop (docs/adr/0033 sections 4.4-4.5): land, a private house,
+  # one's own property and the head's terms. Personal enough to be answered in
+  # a private chat as well as in the village's group.
+  settlement.land: {channel: both, client: true}
+  settlement.lot.buy: {channel: both, client: true}
+  settlement.private: {channel: both, client: true}
+  settlement.private.lots: {channel: both, client: true}
+  settlement.private.place: {channel: both, client: true}
+  settlement.mine: {channel: both, client: true}
+  settlement.home.rest: {channel: both, client: true}
+  settlement.tax.pay: {channel: both, client: true}
+  settlement.terms: {channel: group, client: true}
+  settlement.work: {channel: both, client: true}
 
 # Free-text input (internal/gateway/input): a button «✏️ …» asks the player to
 # type a value, and their next message fills one field of a command. Only the

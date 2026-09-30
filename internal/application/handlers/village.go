@@ -85,6 +85,11 @@ type VillageHandler struct {
 	donationMax           int64
 	donationPresets       []int64
 
+	// citizen is the citizen loop's tuning and roadsHook its seam to the
+	// automatic roads (village_citizen.go).
+	citizen   CitizenRules
+	roadsHook RoadsHook
+
 	idempotencyTTL time.Duration
 	now            func() time.Time
 }
@@ -424,8 +429,10 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			}
 		}
 
+		isHead := authorizeVillage(ctx, tx, s, viewer.ID) == nil
 		view = screens.VillageOverviewView{
-			Name: s.Name, Tier: s.Tier, Population: residents, PopulationCap: cap,
+			IsHead: isHead,
+			Name:   s.Name, Tier: s.Tier, Population: residents, PopulationCap: cap,
 			Resident: home == s.CityID, SettlementID: s.CityID,
 			Treasury:         treasury,
 			FoodPercent:      int(coverage["food_coverage_bps"] / 100),

@@ -203,13 +203,18 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 			CanRotate: d.Def().CanRotate(), Rotated: rotated && d.Def().CanRotate(),
 			GridLots: grid.Height(),
 		}
+		owned, oerr := privateLotSet(ctx, tx, s.CityID)
+		if oerr != nil {
+			return oerr
+		}
 		for y := 0; y < grid.Height(); y++ {
 			row := make([]screens.LotCell, 0, grid.Width())
 			for x := 0; x < grid.Width(); x++ {
 				lot := grid[y][x]
 				road := lot.Occupied && isRoadLot(ctx, tx, s.CityID, x, y)
 				cell := screens.LotCell{X: x, Y: y, State: lotState(lot, road)}
-				cell.Fits = settlementbuilding.CanPlace(def, grid, x, y, standing) == nil
+				cell.Fits = !d.Private() && settlementbuilding.CanPlace(def, grid, x, y, standing) == nil &&
+					!footprintTouches(owned, def, x, y)
 				row = append(row, cell)
 			}
 			view.Rows = append(view.Rows, row)
@@ -267,8 +272,18 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
 			return err
 		}
+		if d.Private() {
+			return refuseVillage(screens.CitizenPrivateOnly)
+		}
 		if cerr := settlementbuilding.CanPlace(def, grid, x, y, standing); cerr != nil {
 			return buildingRefusal(cerr)
+		}
+		owned, oerr := privateLotSet(ctx, tx, s.CityID)
+		if oerr != nil {
+			return oerr
+		}
+		if footprintTouches(owned, def, x, y) {
+			return refuseVillage(screens.CitizenLotPrivate)
 		}
 
 		if !req.confirmed() {
@@ -360,9 +375,6 @@ func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
-		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
-			return err
-		}
 		b, err := tx.SettlementBuildings().Get(ctx, strings.TrimSpace(req.ID))
 		if isSentinel(err, application.ErrBuildingNotFound) {
 			return refuseVillage(screens.VillageNotFound)
@@ -372,6 +384,10 @@ func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, r
 		}
 		if b.SettlementID != s.CityID {
 			return refuseVillage(screens.VillageNotFound)
+		}
+		// The head changes the village's own buildings; a resident's is theirs.
+		if err := h.mayChangeBuilding(ctx, tx, s, p.ID, b.ID); err != nil {
+			return err
 		}
 		now := h.now()
 		if err := tx.SettlementBuildings().Demolish(ctx, b.ID, now); err != nil {
@@ -414,9 +430,6 @@ func (h *VillageHandler) Cancel(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
-			return err
-		}
 		b, err := tx.SettlementBuildings().Get(ctx, strings.TrimSpace(req.ID))
 		if isSentinel(err, application.ErrBuildingNotFound) {
 			return refuseVillage(screens.VillageNotFound)
@@ -426,6 +439,10 @@ func (h *VillageHandler) Cancel(ctx context.Context, meta envelope.Metadata, req
 		}
 		if b.SettlementID != s.CityID {
 			return refuseVillage(screens.VillageNotFound)
+		}
+		// The head changes the village's own buildings; a resident's is theirs.
+		if err := h.mayChangeBuilding(ctx, tx, s, p.ID, b.ID); err != nil {
+			return err
 		}
 		if err := tx.SettlementBuildings().Cancel(ctx, b.ID, h.now()); err != nil {
 			if stderrors.Is(err, application.ErrBuildingNotCancellable) {
@@ -452,6 +469,9 @@ func (h *VillageHandler) creditSalvage(ctx context.Context, tx application.Tx, s
 		return nil
 	}
 	d, ok := h.content.Current().SettlementBuildingDef(typeCode)
+	if ok && d.Private() {
+		return nil // a resident's building: what it cost was theirs, not the treasury's
+	}
 	if !ok || d.CostMoney <= 0 {
 		return nil
 	}

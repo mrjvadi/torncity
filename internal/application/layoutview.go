@@ -111,12 +111,17 @@ func ViewBuildings(rows []SettlementBuildingInstance, member bool, footprint Foo
 // LayoutVersionOf hashes everything a client draws from the layout, so it
 // moves exactly when the picture does. canPlace is the viewer's right to
 // place (the settlement's head).
-func LayoutVersionOf(settlementID, tier, name string, gridLots int, canPlace bool, buildings []ViewBuilding) string {
+func LayoutVersionOf(settlementID, tier, name string, gridLots int, canPlace bool, buildings []ViewBuilding, tenure ...string) string {
 	h := fnv.New64a()
 	put := func(parts ...string) {
 		_, _ = h.Write([]byte(strings.Join(parts, "|") + ";"))
 	}
 	put(settlementID, tier, name, strconv.Itoa(gridLots), strconv.FormatBool(canPlace))
+	if len(tenure) > 0 && tenure[0] != "" {
+		// Who owns which lot and building: only members see it, so only the
+		// member versions carry it (citizen.go).
+		put("tenure", tenure[0])
+	}
 	for _, b := range buildings {
 		put(b.ID, b.Type, strconv.Itoa(b.X), strconv.Itoa(b.Y), strconv.Itoa(b.W), strconv.Itoa(b.H), strconv.FormatBool(b.Rotated),
 			b.State, b.FinishAt, strconv.Itoa(b.DamageBPS), strconv.FormatUint(uint64(b.VisualSeed), 10))
@@ -142,6 +147,41 @@ func LayoutVersionsOf(settlementID, tier, name string, gridLots int, rows []Sett
 	return LayoutVersions{
 		Head:   LayoutVersionOf(settlementID, tier, name, gridLots, true, member),
 		Member: LayoutVersionOf(settlementID, tier, name, gridLots, false, member),
+		Public: LayoutVersionOf(settlementID, tier, name, gridLots, false, public),
+	}
+}
+
+// TenureMark hashes who owns which lot and which building, for the member
+// versions of a layout: empty while nobody owns anything, so a village
+// without private property keeps the version it always had.
+func TenureMark(lots []SettlementLot, buildings []PrivateBuilding) string {
+	if len(lots) == 0 && len(buildings) == 0 {
+		return ""
+	}
+	parts := make([]string, 0, len(lots)+len(buildings))
+	for _, l := range lots {
+		parts = append(parts, "l"+strconv.Itoa(l.X)+","+strconv.Itoa(l.Y)+","+l.Tenure+","+l.OwnerID)
+	}
+	for _, b := range buildings {
+		parts = append(parts, "b"+b.BuildingID+","+b.OwnerID)
+	}
+	sort.Strings(parts)
+	h := fnv.New64a()
+	_, _ = h.Write([]byte(strings.Join(parts, ";")))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+// LayoutVersionsWithTenure is LayoutVersionsOf for a village with private
+// property: the head's and the members' versions also move when a lot or a
+// building changes hands; the public one never shows ownership.
+func LayoutVersionsWithTenure(settlementID, tier, name string, gridLots int, rows []SettlementBuildingInstance,
+	footprint Footprint, mark string,
+) LayoutVersions {
+	member := ViewBuildings(rows, true, footprint)
+	public := ViewBuildings(rows, false, footprint)
+	return LayoutVersions{
+		Head:   LayoutVersionOf(settlementID, tier, name, gridLots, true, member, mark),
+		Member: LayoutVersionOf(settlementID, tier, name, gridLots, false, member, mark),
 		Public: LayoutVersionOf(settlementID, tier, name, gridLots, false, public),
 	}
 }

@@ -298,6 +298,54 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.Donate(ctx, env.Metadata, req)
 		},
+		// The citizen loop (docs/adr/0033 sections 4.4-4.5): buy a lot, build
+		// a private house on it, live there, pay the property tax.
+		"settlement.land": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.Land(ctx, env.Metadata)
+		},
+		"settlement.lot.buy": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageLotRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.BuyLot(ctx, env.Metadata, req)
+		},
+		"settlement.private": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.PrivateMenu(ctx, env.Metadata)
+		},
+		"settlement.private.lots": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillagePrivateRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.PrivateLots(ctx, env.Metadata, req)
+		},
+		"settlement.private.place": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillagePrivateRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.PrivatePlace(ctx, env.Metadata, req)
+		},
+		"settlement.mine": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.Mine(ctx, env.Metadata)
+		},
+		"settlement.home.rest": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.HomeRest(ctx, env.Metadata)
+		},
+		"settlement.tax.pay": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.PayTax(ctx, env.Metadata)
+		},
+		"settlement.terms": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageTermsRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Terms(ctx, env.Metadata, req)
+		},
+		"settlement.work": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.Work(ctx, env.Metadata)
+		},
 		"settlement.leave": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageJoinRequest
 			if err := decode(env, &req); err != nil {

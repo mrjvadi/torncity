@@ -135,6 +135,9 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 			ConcurrentCap: h.concurrentBuildCap[s.Tier]}
 		for _, code := range sortedBuildingCodes(snap) {
 			d, _ := snap.SettlementBuildingDef(code)
+			if d.Private() {
+				continue // a resident's building: the citizen catalogue lists it
+			}
 			def := d.Def()
 			line := screens.BuildLine{Building: named(d.Code, d.Name), Role: d.Role, CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime)}
 			ok := true

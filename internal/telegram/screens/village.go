@@ -121,6 +121,9 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome,
 		VillageDonateRange, VillageDonateNoCash:
 	default:
+		if isCitizenRefusal(kind) {
+			return renderCitizenRefusal(c, v)
+		}
 		kind = VillageNotFound
 	}
 	back := v.Back
@@ -167,6 +170,11 @@ type VillageOverviewView struct {
 	SettlementID string
 	Treasury     int64
 	Buildings    []VillageRoleLine
+	// IsHead is set when the viewer holds the village's top office: only
+	// they place civic buildings and set the land terms. A resident who is
+	// not the head is offered the citizen actions instead (docs/adr/0033
+	// section 4.4): buy land, build a house, work, help the treasury.
+	IsHead bool
 	// Support is where the services the village does not have yet are:
 	// the starter city. The village is home; its bank, market, jobs,
 	// knowledge shop, hospital and jail are a journey away. Nil when no
@@ -219,17 +227,34 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 
 	kb := keyboards.New()
 	blocks := []string{head, population, treasury, coverage, buildings}
-	if c.Shared {
-		if !v.Resident {
-			kb.Add(c.T("village.button.join", nil), AddrVillageJoin)
+	if c.Shared && !v.Resident {
+		kb.Add(c.T("village.button.join", nil), AddrVillageJoin)
+	}
+	if v.Resident {
+		// What a normal resident can do (docs/adr/0033 section 4.4): the
+		// village is not only its head's.
+		blocks = append(blocks, c.T("citizen.hub.hint", nil))
+		kb.Row(villageButtons(c, "citizen.button.buy_land", AddrLand, "citizen.button.build_house", AddrPrivateMenu)...)
+		kb.Row(villageButtons(c, "citizen.button.work", AddrVillageWork, "village.button.donate", AddrVillageDonate)...)
+		if c.Shared {
+			kb.Row(villageButtons(c, "citizen.button.mine", AddrMine, "village.button.who", AddrSettlementWho)...)
+		} else {
+			kb.Add(c.T("citizen.button.mine", nil), AddrMine)
 		}
-		kb.Row(villageButtons(c, "village.button.knowledge", AddrKnowledgeList, "village.button.build", AddrBuildMenu)...)
-		kb.Row(villageButtons(c, "village.button.progress", AddrConstructionProgress, "village.button.who", AddrSettlementWho)...)
+	}
+	if c.Shared {
+		kb.Row(villageButtons(c, "village.button.knowledge", AddrKnowledgeList, "village.button.progress", AddrConstructionProgress)...)
+		if v.IsHead {
+			kb.Row(villageButtons(c, "village.button.build", AddrBuildMenu, "citizen.button.terms", AddrVillageTerms)...)
+		}
+		if !v.Resident {
+			kb.Add(c.T("village.button.who", nil), AddrSettlementWho)
+		}
 		if v.Resident {
-			kb.Row(villageButtons(c, "village.button.donate", AddrVillageDonate, "village.button.leave", AddrVillageLeave)...)
+			kb.Add(c.T("village.button.leave", nil), AddrVillageLeave)
 		}
 	} else {
-		// Private: the village is home, but it is run in its group.
+		// Private: the village is home; the civic side is run in its group.
 		blocks = append(blocks, c.T("village.private_hint", nil))
 	}
 	if v.Support != nil {

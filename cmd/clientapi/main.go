@@ -244,7 +244,13 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		RecheckEvery: cfg.Client.WorldRecheckInterval, Now: time.Now}
 	villages := &clientapi.VillageService{Settlements: postgres.NewSettlementReader(pool),
 		Buildings: postgres.NewSettlementBuildingReader(pool), World: worldSvc, Content: registry,
-		VillageGridLots: cfg.Settlement.VillageGridLots, Now: time.Now}
+		VillageGridLots: cfg.Settlement.VillageGridLots, Now: time.Now,
+		Citizens: postgres.NewCitizenReader(pool),
+		CitizenTerms: application.CitizenBounds{
+			LotPrice: cfg.Settlement.CitizenLotPrice, LotPriceMin: cfg.Settlement.CitizenLotPriceMin, LotPriceMax: cfg.Settlement.CitizenLotPriceMax,
+			PermitFee: cfg.Settlement.CitizenPermitFee, PermitFeeMax: cfg.Settlement.CitizenPermitFeeMax,
+			TaxBPS: cfg.Settlement.CitizenTaxBPS, TaxBPSMax: cfg.Settlement.CitizenTaxBPSMax,
+		}.Effective}
 	// Generating the planet takes a while; do it before the first request
 	// asks, not during it. No world yet is fine: the endpoints answer
 	// world_not_created until `admin world create` has run.

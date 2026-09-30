@@ -333,7 +333,7 @@ func clientAlias(command string, args map[string]json.RawMessage) (string, map[s
 		}
 		return "company.view", out
 	}
-	if command == "settlement.build.place" {
+	if command == "settlement.build.place" || command == "settlement.lot.buy" || command == "settlement.private.place" {
 		return command, placeArgs(args)
 	}
 	return command, args

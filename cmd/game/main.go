@@ -432,7 +432,15 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			},
 			cfg.Game.IdempotencyTTL,
 			nil,
-		).WithDonationRules(cfg.Settlement.DonationMin, cfg.Settlement.DonationMax, cfg.Settlement.DonationPresets),
+		).WithDonationRules(cfg.Settlement.DonationMin, cfg.Settlement.DonationMax, cfg.Settlement.DonationPresets).
+			WithCitizenRules(handlers.CitizenRules{
+				LotPrice: cfg.Settlement.CitizenLotPrice, LotPriceMin: cfg.Settlement.CitizenLotPriceMin, LotPriceMax: cfg.Settlement.CitizenLotPriceMax,
+				PermitFee: cfg.Settlement.CitizenPermitFee, PermitFeeMax: cfg.Settlement.CitizenPermitFeeMax,
+				TaxBPS: cfg.Settlement.CitizenTaxBPS, TaxBPSMax: cfg.Settlement.CitizenTaxBPSMax, TaxPeriod: cfg.Settlement.CitizenTaxPeriod,
+				MaterialMarkupBPS: cfg.Settlement.CitizenMaterialMarkupBPS, MaxLotsPerPlayer: cfg.Settlement.CitizenMaxLotsPerPlayer,
+				PrivateShareMaxBPS: cfg.Settlement.CitizenPrivateShareMaxBPS, HomeRestCooldown: cfg.Settlement.CitizenHomeRestCooldown,
+				HomeRestHealth: cfg.Settlement.CitizenHomeRestHealth, HomeRestHappiness: cfg.Settlement.CitizenHomeRestHappiness,
+			}),
 	}
 
 	// Work and study read careers and courses from the live registry and a

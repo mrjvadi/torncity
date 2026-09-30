@@ -664,6 +664,128 @@ biome:
 settlement_building:
   road: جاده
   civic_hall: "خانهٔ دهیاری"
+  cottage: "کلبهٔ روستایی"
+  village_house: "خانهٔ روستایی"
+  home_workshop: "کارگاه خانگی"
+  market_stall: "غرفهٔ بازار"
+
+# The citizen loop (docs/adr/0033 sections 4.4 and 4.5): a resident buys land
+# from the village, builds a house on it and lives there.
+citizen:
+  hub:
+    hint: "🌱 اینجا خانهٔ توست؛ زمین بخر، خانه بساز و روستا را آباد کن."
+  button:
+    buy_land: "🏡 زمین بخر"
+    build_house: "🏠 خانه بساز"
+    more_land: "🏡 زمین دیگر"
+    work: "🛠 کار کن"
+    mine: "🧾 دارایی من"
+    terms: "⚖️ شرایط زمین"
+    rest: "🛋 استراحت در خانه"
+    rest_wait: "🛋 استراحت ({time} دیگر)"
+    pay_tax: "💳 پرداخت مالیات ({debt})"
+  land:
+    title: "🏡 زمین‌های {village}"
+    body: |-
+      هر زمین آزاد را می‌توانی بخری؛ پولش به خزانهٔ روستا می‌رود و زمین مال خودت می‌شود.
+      💵 قیمت هر زمین: {price}
+      👛 پول تو: {cash}
+      📌 زمین‌های تو: {owned} از {max}
+    legend: "🟩 آزاد و قابل خرید   🏡 زمین تو   🔒 زمین دیگران   🏠 ساختمان   🛣 جاده   💧 آب   ⛰ شیب"
+    cannot_buy: "برای خرید زمین بیشتر باید به سقف زمین‌های شخصی نرسیده باشی و پول کافی داشته باشی."
+  buy:
+    ask_title: "🏡 خرید زمین"
+    ask_body: |-
+      ردیف {row}، ستون {col}
+      قیمت: {price}
+      پول تو پس از خرید: {left}
+
+      پول به خزانهٔ روستا می‌رود.
+    button_yes: "✅ بخر - {price}"
+    done_title: "✅ این زمین حالا مال توست"
+    done_body: |-
+      ردیف {row}، ستون {col} به نام تو ثبت شد و {price} به خزانهٔ روستا رفت.
+      پول باقی‌مانده: {cash}
+      حالا می‌توانی رویش خانه بسازی.
+  private:
+    title: "🏠 ساخت‌وساز شخصی در {village}"
+    no_land: "برای ساختن خانه اول باید یک زمین داشته باشی. زمین آزادی بخر و برگرد."
+    intro: |-
+      روی زمین خودت می‌توانی خانه یا کسب‌وکار کوچک بسازی. هزینه از جیب خودت است؛ اگر الوار نداشته باشی، به قیمت مرجع برایت خریده می‌شود.
+      👛 پول تو: {cash}
+      📌 زمین آزاد برای ساخت: {free}
+    line: |-
+      🔨 {name} ({w}×{h})
+      هزینه: {cost} · مجوز: {permit} · زمان: {time}
+      جمع نقدی: {total}
+    material: "   • {name}: {need} واحد (داری {have}، می‌خری {buy} به {cost})"
+    short: "⚠️ پولت برای این ساختمان کافی نیست."
+    button: "🔨 {name} - {total}"
+    none: "فعلاً ساختمان شخصی‌ای که روستا بتواند بسازد وجود ندارد؛ با پیشرفت دانش روستا گزینه‌های بیشتری باز می‌شود."
+    no_free_lot: "همهٔ زمین‌های تو پر است؛ برای ساختن دوباره، زمین دیگری بخر."
+    total: "جمع نقدی: {total}"
+  lots:
+    title: "📍 جای ساخت در {village}"
+    building: "ساختمان: {building}"
+    legend: "✅ همین‌جا بساز (زمین خودت و آزاد)   🏠 پر   🛣 جاده   💧 آب   ⛰ شیب   ⬜ زمین تو نیست"
+  confirm:
+    title: "🏗 ساخت {name}"
+    lines: |-
+      محل: ردیف {row}، ستون {col}
+      هزینهٔ ساختمان: {cost}
+      مجوز ساخت (به خزانه): {permit}
+      مصالح خریداری‌شده: {materials}
+      زمان ساخت: {time}
+    total: |-
+      جمع نقدی: {total}
+      پول تو پس از ساخت: {left}
+    button_yes: "✅ تأیید و ساخت - {total}"
+  mine:
+    title: "🧾 دارایی من در {village}"
+    no_home: "🏚 هنوز خانه‌ای نداری؛ روی زمینت خانه بساز تا ساکن آن شوی."
+    home: "🏠 خانهٔ تو: {name}"
+    lot_bare: "🟩 ردیف {row}، ستون {col}: زمین خالی"
+    lot_building: "🏗 ردیف {row}، ستون {col}: {name} در حال ساخت - {time} دیگر"
+    lot_built: "🏡 ردیف {row}، ستون {col}: {name}"
+    no_lots: "زمینی نداری."
+    tax: "📊 مالیات دارایی: {percent}٪ از ارزش {assessed} در هر دوره؛ یعنی {per}"
+    debt: "⚠️ بدهی مالیاتی: {debt} ({periods} دوره)"
+    cash: "👛 پول تو: {cash}"
+    notice:
+      rested: "🛋 در خانه استراحت کردی و سرحال‌تر شدی."
+      tax_paid: "✅ مالیات پرداخت شد."
+      tax_none: "بدهی‌ای برای پرداخت نیست یا پولت کافی نبود."
+  terms:
+    title: "⚖️ شرایط زمین و ساخت در {village}"
+    body: |-
+      💵 قیمت زمین: {price} (بین {pmin} و {pmax})
+      📜 مجوز ساخت: {permit} (تا {fmax})
+      📊 مالیات دارایی هر دوره: {tax}٪ (تا {tmax}٪)
+
+      همهٔ این‌ها به خزانهٔ روستا می‌رود.
+    button_price: "💵 زمین {amount}"
+    button_permit: "📜 مجوز {amount}"
+    button_tax: "📊 مالیات {percent}٪"
+  work:
+    title: "🛠 کار در {village}"
+    body: |-
+      کارگاه‌ها و مزرعه‌های روستا با ساخته‌شدن باز می‌شوند و کار آن‌ها را اینجا می‌بینی.
+      تا آن روز، کار و شغل در «{city}» است.
+    button_support: "💼 کار در {city} - سفر"
+  refusal:
+    citizen_lot_taken: "این زمین را همین حالا کس دیگری خرید. زمین دیگری انتخاب کن."
+    citizen_lot_limit: "به سقف زمین‌های شخصی رسیده‌ای؛ اول روی زمین‌هایت بساز."
+    citizen_zoning: "سهم زمین‌های شخصی این روستا پر شده است تا فضای عمومی حفظ شود."
+    citizen_not_owner: "این زمین مال تو نیست؛ فقط روی زمین خودت می‌توانی بسازی."
+    citizen_no_cash: "پولت برای این کار کافی نیست."
+    citizen_private_only: "این ساختمان شخصی است و ساکنان روی زمین خودشان می‌سازند، نه دهیار."
+    citizen_lot_private: "این زمین شخصی است و مال یکی از اهالی است."
+    citizen_rest_wait: "هنوز سرحال هستی؛ {time} دیگر می‌توانی دوباره استراحت کنی."
+    citizen_no_house: "برای استراحت اول باید خانه‌ات ساخته شود."
+    citizen_terms_range: "این عدد خارج از محدودهٔ مجاز است."
+    citizen_no_debt: "بدهی مالیاتی‌ای نداری."
+    citizen_off: "خرید زمین هنوز در این روستا باز نشده است."
+    citizen_no_lots: "زمینی نداری؛ اول یک زمین بخر."
 
 # Group founding (docs/adr/0028-world-and-settlements.md section 3): a group
 # admin registers the group and the game places the new village on the map.

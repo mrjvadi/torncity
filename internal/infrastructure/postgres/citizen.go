@@ -226,3 +226,32 @@ func (r *CitizenRepository) MarkTaxPaid(ctx context.Context, id, ledgerTransacti
 	}
 	return nil
 }
+
+// CitizenReader is the citizen loop's read side for the client API, over the pool.
+type CitizenReader struct{ CitizenRepository }
+
+// NewCitizenReader reads private property outside a transaction.
+func NewCitizenReader(p *Pool) *CitizenReader {
+	return &CitizenReader{CitizenRepository{q: p.shared()}}
+}
+
+// Names maps player ids to their display names.
+func (r *CitizenReader) Names(ctx context.Context, ids []string) (map[string]string, error) {
+	out := map[string]string{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	rows, err := r.q.Query(ctx, `SELECT id::text, display_name FROM players WHERE id = ANY($1::uuid[])`, ids)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading player names: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id, name string
+		if err := rows.Scan(&id, &name); err != nil {
+			return nil, fmt.Errorf("postgres: scanning a player name: %w", err)
+		}
+		out[id] = name
+	}
+	return out, rows.Err()
+}
