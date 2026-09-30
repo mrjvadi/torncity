@@ -414,6 +414,15 @@ commands:
   settlement.materials: {channel: group, client: true}
   settlement.materials.buy: {channel: group, client: true}
   settlement.work: {channel: group, client: true}
+  # The labour market (ADR 0035): construction is done by workers.
+  settlement.labor.board: {channel: group, client: true}
+  settlement.labor.site: {channel: group, client: true}
+  settlement.labor.take: {channel: group, client: true}
+  settlement.labor.hire: {channel: group, client: true}
+  settlement.labor.wage: {channel: group, client: true}
+  settlement.labor.close: {channel: group, client: true}
+  settlement.labor.post: {channel: group, client: true}
+  settlement.labor.mine: {channel: group, client: true}
   # Who is around in the village: a group screen (docs/adr/0030, R2); a client
   # asks for it too (it reads the roster of the settlement it lives in).
   settlement.who: {channel: group, client: true}

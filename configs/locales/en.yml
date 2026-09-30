@@ -849,6 +849,15 @@ village:
     already_working: "⚒ You are already working a shift. Wait for it to end."
     workplace_full: "⚒ Every place at this workplace is taken. Try again later or work somewhere else."
     not_workplace: "🔒 Nobody works in this building."
+    labor_no_job: "📋 That job is no longer on the hiring board."
+    labor_not_here: "🚶 To work here you must live in this village or be in it."
+    labor_fully_staffed: "👷 Enough workers are already on this site; their shifts in progress will finish the work. Check back when they end."
+    labor_budget_spent: "📋 The employer has set aside no more pay for this job."
+    labor_not_employer: "🔒 Only the employer of this job (the village head, or the building's owner) can do that."
+    labor_no_npc: "👷 No free labourer is left in the village today. More homes mean more residents and more workers."
+    labor_wage_too_low: "💸 That wage is below the village's minimum wage."
+    labor_employer_broke: "🏦 The employer cannot afford the wage of this shift."
+    labor_no_site: "🏗 No such site."
   needs:
     title:
       build: "🧱 To build {subject} you are still missing something:"
@@ -897,6 +906,64 @@ village:
     hint: "A resident works each shift; nothing is made without a worker and the wage is paid from the village treasury."
     button:
       start: "⚒ Start a shift at {building}"
+  labor:
+    level:
+      apprentice: "Apprentice"
+      journeyman: "Journeyman"
+      master: "Master"
+    work_left: "{hours} worker-hours of work"
+    employer:
+      village: "the village"
+      player: "{name}"
+    npc_worker: "Day labourer"
+    worker: "• {name} - shift until {time} ({duration} left)"
+    not_resident: "ℹ️ You do not live in this village, but you can work here by the day while you are in it."
+    market:
+      slack: "📉 Labour market: workers are plentiful ({available} of {pool} labourers free) - a day labourer asks {wage} a shift (minimum {min})."
+      balanced: "⚖️ Labour market: supply and demand are balanced ({available} of {pool} labourers free) - a day labourer asks {wage} a shift."
+      tight: "📈 Labour market: workers are getting scarce ({available} of {pool} labourers free) - a day labourer asks {wage} a shift."
+      short: "🔥 Labour market: a labour shortage! ({available} of {pool} labourers free) - a day labourer asks {wage} a shift. More homes mean more residents and workers."
+    job:
+      construction: "• {building} - {percent}% built, {left} to go - {wage} a shift from {employer} - {workers} working"
+      production: "• Work at {building} - {wage} a shift from {employer} - {shifts} shifts left"
+    board:
+      title: "📋 Hiring board of {village}"
+      empty: "No jobs are posted right now. Every building going up posts one."
+      working: "⏳ You are working at {building} - the shift ends at {time} ({duration} left) - pay {wage}"
+      sites: "🏗 Sites with no job posted: {names}"
+      hint: "Tap a job to open its site and press Work. Buildings are built only by the work of workers; no timer finishes them by itself."
+    site:
+      title: "🏗 Site of {building} in {village}"
+      done: "✅ {building} is built."
+      progress: "📊 Progress: {percent}% - {done} of {total} done, {left} to go."
+      no_workers: "😴 Nobody is working on this site right now; a building does not advance without workers."
+      workers: |-
+        👷 {count} workers on site:
+        {list}
+      no_job: "📋 There is no job posted for this site."
+      crew: "👷 Crew: {crew} day labourers are kept on the site."
+      hire: "👷 Free labourers: {available} - {wage} a shift. A day labourer works more slowly than a journeyman."
+    just:
+      worked: "✅ Your shift has started; when it ends the work is added to the building and you are paid."
+      hired: "✅ Workers hired."
+      wage: "✅ Wage changed."
+      posted: "✅ The job is on the board."
+      closed: "🚫 The job is closed; shifts in progress still end and are paid."
+    mine:
+      title: "📊 My work in {village}"
+      idle: "😴 You have no shift now. Pick up a job from the hiring board."
+      stats: "🎖 Level: {level} (output {percent}%) - {shifts} shifts worked - {earned} earned in all"
+      next: "⬆️ {shifts} more shifts to {level}."
+    button:
+      job: "🏗 {building} (+{wage})"
+      post: "📋 Post a job for {building}"
+      work: "⚒ Work (+{wage})"
+      hire: "👷 Hire {count} labourers"
+      wage: "💰 Wage {wage}"
+      close: "🚫 Close the job"
+      mine: "📊 My work"
+      board: "📋 Hiring board"
+      site: "🏗 Site of {building}"
   donate:
     title: "💰 Give to the treasury of {village}"
     body: |-
@@ -976,6 +1043,7 @@ construction:
   line:
     queued: "📋 {building} - queued - not yet started"
     building: "🏗 {building} - under construction - finishes at {time} - {duration} left"
+    work: "🏗 {building} - {percent}% built, {left} to go (it advances only by workers)"
 
 # Playing in a group (internal/gateway/groups). A screen with a player's own
 # details is shown only to that player; these lines are all the rest of the

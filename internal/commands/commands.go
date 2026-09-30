@@ -447,6 +447,16 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "materials.buy", Origin: FromPlayer},
 	{Domain: "settlement", Action: "work", Origin: FromPlayer},
 	{Domain: "settlement", Action: "worked", Origin: FromScheduler},
+	// The labour market (ADR 0035): the hiring board, a construction site,
+	// taking a job, hiring NPC labourers, the wage, closing and posting a job.
+	{Domain: "settlement", Action: "labor.board", Origin: FromPlayer},
+	{Domain: "settlement", Action: "labor.site", Origin: FromPlayer},
+	{Domain: "settlement", Action: "labor.take", Origin: FromPlayer},
+	{Domain: "settlement", Action: "labor.hire", Origin: FromPlayer},
+	{Domain: "settlement", Action: "labor.wage", Origin: FromPlayer},
+	{Domain: "settlement", Action: "labor.close", Origin: FromPlayer},
+	{Domain: "settlement", Action: "labor.post", Origin: FromPlayer},
+	{Domain: "settlement", Action: "labor.mine", Origin: FromPlayer},
 	// Who is around in the village (docs/adr/0030, R2): a group screen.
 	{Domain: "settlement", Action: "who", Origin: FromPlayer},
 	{Domain: "settlement", Action: "join", Origin: FromPlayer},

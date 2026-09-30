@@ -61,10 +61,10 @@ func (r *SettlementTreasuryRepository) StartShift(ctx context.Context, s applica
 	}
 	_, err = r.q.Exec(ctx, `
 		INSERT INTO settlement_shifts
-		       (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed, game_action_id, started_at, finish_at)
-		VALUES ($1, $2, $3, $4, 'working', $5, 0, $6::jsonb, $7::jsonb, $8, $9, $10)`,
+		       (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed, game_action_id, started_at, finish_at, job_id)
+		VALUES ($1, $2, $3, $4, 'working', $5, 0, $6::jsonb, $7::jsonb, $8, $9, $10, NULLIF($11, '')::uuid)`,
 		s.ID, s.SettlementID, s.BuildingID, s.PlayerID, s.Wage, string(produced), string(consumed), s.GameActionID,
-		s.StartedAt.UTC(), s.FinishAt.UTC())
+		s.StartedAt.UTC(), s.FinishAt.UTC(), s.JobID)
 	if violates(err, sqlstateUniqueViolation, settlementShiftsOneWorkingIdx) {
 		return application.ErrAlreadyWorking
 	}

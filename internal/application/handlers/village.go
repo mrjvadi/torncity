@@ -9,6 +9,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/item"
+	"github.com/mrjvadi/torncity/internal/domain/labor"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
@@ -88,6 +89,11 @@ type VillageHandler struct {
 	donationMin           int64
 	donationMax           int64
 	donationPresets       []int64
+
+	// labor are the labour market's rules (ADR 0035); zero keeps the timer.
+	labor     labor.Rules
+	laborHire []int64
+	laborWage []int64
 
 	idempotencyTTL time.Duration
 	now            func() time.Time

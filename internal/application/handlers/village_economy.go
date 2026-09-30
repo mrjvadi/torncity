@@ -628,6 +628,14 @@ func (h *VillageHandler) Work(ctx context.Context, meta envelope.Metadata, req V
 func (h *VillageHandler) startShift(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
 	p *application.Player, s application.FoundedSettlement, buildingID string,
 ) error {
+	return h.startShiftAt(ctx, tx, meta, snap, p, s, buildingID, -1, "")
+}
+
+// startShiftAt is startShift at a wage the hiring board's job sets (a negative
+// wage is the building's own) and, when it has one, under that job's budget.
+func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
+	p *application.Player, s application.FoundedSettlement, buildingID string, wageOverride int64, jobID string,
+) error {
 	if ok, err := h.resident(ctx, tx, p.ID, s.CityID); err != nil {
 		return err
 	} else if !ok {
@@ -656,6 +664,11 @@ func (h *VillageHandler) startShift(ctx context.Context, tx application.Tx, meta
 	} else if mine != nil {
 		return refuseVillage(screens.VillageAlreadyWorking, screens.AddrWork)
 	}
+	if jobID != "" {
+		if err := tx.SettlementTreasury().CountStarted(ctx, jobID); err != nil {
+			return err
+		}
+	}
 
 	if err := tx.Items().LockOrg(ctx, application.SettlementOrg(s.CityID)); err != nil {
 		return err
@@ -683,11 +696,15 @@ func (h *VillageHandler) startShift(ctx context.Context, tx application.Tx, meta
 		// Not even the room the inputs free up: the shift's goods would all be lost.
 		return refuseVillage(screens.VillageStorageFull, screens.AddrWork)
 	}
+	wage := d.Wage
+	if wageOverride >= 0 {
+		wage = wageOverride
+	}
 	treasury, err := treasuryBalance(ctx, tx, s.CityID)
 	if err != nil {
 		return err
 	}
-	if treasury < d.Wage {
+	if treasury < wage {
 		return refuseVillage(screens.VillageInsufficient, screens.AddrWork)
 	}
 
@@ -712,7 +729,7 @@ func (h *VillageHandler) startShift(ctx context.Context, tx application.Tx, meta
 		return err
 	}
 	if err := tx.SettlementTreasury().StartShift(ctx, application.SettlementShift{
-		ID: shiftID, SettlementID: s.CityID, BuildingID: b.ID, PlayerID: p.ID, Wage: d.Wage,
+		ID: shiftID, SettlementID: s.CityID, BuildingID: b.ID, PlayerID: p.ID, Wage: wage, JobID: jobID,
 		Produced: copyQty(d.Produces), Consumed: copyQty(d.Consumes), GameActionID: actionID, StartedAt: now, FinishAt: finish,
 	}, d.Workers); err != nil {
 		switch {
@@ -771,6 +788,9 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		now := h.now()
 		if now.Before(sh.FinishAt) {
 			return errors.Internal(stderrors.New("handlers: a village shift finished before its time"))
+		}
+		if sh.Kind == application.LaborKindConstruction {
+			return h.workedSite(ctx, tx, meta, snap, sh, now)
 		}
 		org := application.SettlementOrg(sh.SettlementID)
 		if err := tx.Items().LockOrg(ctx, org); err != nil {

@@ -545,6 +545,12 @@ type ConstructionLine struct {
 	State      string
 	FinishAt   time.Time
 	Left       time.Duration
+	// ID, ProgressBPS and LeftMinutes describe a building raised by work (ADR
+	// 0035): ByWork is set and FinishAt/Left are empty.
+	ID          string
+	ByWork      bool
+	ProgressBPS int64
+	LeftMinutes int64
 }
 
 // ConstructionProgressView is the settlement's own construction queue.
@@ -562,12 +568,22 @@ func renderConstructionProgress(c Context, v ConstructionProgressView) *presente
 	head := c.T("construction.title", map[string]any{"name": v.Name})
 
 	var lines []string
+	kb := keyboards.New()
 	for _, l := range v.Lines {
 		key := "construction.line." + l.State
+		if l.ByWork {
+			key = "construction.line.work"
+			if b, ok := keyboards.Button(c.T("village.labor.button.site", map[string]any{"building": c.SettlementBuildingName(l.Building)}),
+				AddrLaborSite, l.ID); ok {
+				kb.Row(b)
+			}
+		}
 		lines = append(lines, c.T(key, map[string]any{
 			"building": c.SettlementBuildingName(l.Building),
 			"time":     FormatClock(c, l.FinishAt),
 			"duration": FormatDuration(c, l.Left),
+			"percent":  l.ProgressBPS / 100,
+			"left":     workLeft(c, l.LeftMinutes),
 		}))
 	}
 	list := body(lines...)
@@ -575,7 +591,6 @@ func renderConstructionProgress(c Context, v ConstructionProgressView) *presente
 		list = c.T("construction.empty", nil)
 	}
 
-	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrConstructionProgress}))
 
 	return c.respond(paragraphs(head, list), kb.Build())

@@ -327,23 +327,43 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 				return err
 			}
 		}
-		finish := now.Add(h.scale.RealWait(def.BuildTime))
-		if err := tx.SettlementBuildings().Place(ctx, application.SettlementBuildingInstance{
+		inst := application.SettlementBuildingInstance{
 			ID: id, SettlementID: s.CityID, TypeCode: code, LotX: x, LotY: y, Status: "building", QueuedAt: now,
-			Rotated: rotated && d.Def().CanRotate(), FinishAt: &finish,
-		}); err != nil {
+			Rotated: rotated && d.Def().CanRotate(),
+		}
+		// With the labour rules on, construction is raised by the work of shifts
+		// (ADR 0035): the build time becomes the work required and nothing is
+		// scheduled to finish it. Without them, the older timer.
+		byWork := h.labor.Enabled()
+		var finish time.Time
+		if byWork {
+			inst.WorkRequired = h.labor.WorkRequired(int64(def.BuildTime / time.Minute))
+		} else {
+			finish = now.Add(h.scale.RealWait(def.BuildTime))
+			inst.FinishAt = &finish
+		}
+		if err := tx.SettlementBuildings().Place(ctx, inst); err != nil {
 			if stderrors.Is(err, application.ErrLotOccupied) {
 				return refuseVillage(screens.VillageOccupied)
 			}
 			return err
 		}
-		if _, err := h.schedule(ctx, tx, application.SettlementBuildActionType, "settlement_building", id, s.CityID, now, finish); err != nil {
-			return err
-		}
-		return h.appendBuildingEvent(ctx, tx, meta, s, "build_started", map[string]any{
+		payload := map[string]any{
 			"settlement_id": s.CityID, "building_id": id, "type_code": code, "name": d.Name, "lot_x": x, "lot_y": y,
-			"rotated": rotated && d.Def().CanRotate(), "finish_at": finish.UTC().Format(time.RFC3339),
-		})
+			"rotated": rotated && d.Def().CanRotate(),
+		}
+		if byWork {
+			payload["work_required"] = inst.WorkRequired
+			if err := h.openSiteJob(ctx, tx, h.content.Current(), s, inst, application.LaborEmployerSettlement, s.CityID, p.ID, now); err != nil {
+				return err
+			}
+		} else {
+			if _, err := h.schedule(ctx, tx, application.SettlementBuildActionType, "settlement_building", id, s.CityID, now, finish); err != nil {
+				return err
+			}
+			payload["finish_at"] = finish.UTC().Format(time.RFC3339)
+		}
+		return h.appendBuildingEvent(ctx, tx, meta, s, "build_started", payload)
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
@@ -455,6 +475,11 @@ func (h *VillageHandler) Cancel(ctx context.Context, meta envelope.Metadata, req
 				return refuseVillage(screens.VillageNotCancellable)
 			}
 			return err
+		}
+		if b.ByWork() {
+			if err := tx.SettlementTreasury().CloseJobOfBuilding(ctx, b.ID, h.now()); err != nil {
+				return err
+			}
 		}
 		return h.appendBuildingEvent(ctx, tx, meta, s, "build_cancelled", map[string]any{
 			"settlement_id": s.CityID, "building_id": b.ID, "type_code": b.TypeCode,

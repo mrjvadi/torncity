@@ -298,6 +298,14 @@ commands:
   settlement.materials: {kind: navigation, icon: "action:materials"}
   settlement.materials.buy: {kind: primary, icon: "action:buy"}
   settlement.work: {kind: primary, icon: "action:work"}
+  settlement.labor.board: {kind: navigation, icon: "action:work"}
+  settlement.labor.site: {kind: navigation, icon: "action:build"}
+  settlement.labor.take: {kind: primary, icon: "action:work"}
+  settlement.labor.hire: {kind: primary, icon: "action:people"}
+  settlement.labor.wage: {kind: secondary, icon: "action:buy"}
+  settlement.labor.close: {kind: danger, icon: "action:cancel_build"}
+  settlement.labor.post: {kind: primary, icon: "action:place"}
+  settlement.labor.mine: {kind: navigation, icon: "action:progress"}
   settlement.who: {kind: navigation, icon: "action:people"}
   settlement.found.draft: {kind: primary, icon: "action:home"}
   settlement.found.submit: {kind: confirm, icon: "action:home"}

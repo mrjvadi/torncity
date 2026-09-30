@@ -6,6 +6,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/labor"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -214,6 +215,12 @@ func (h *VillageHandler) Progress(ctx context.Context, meta envelope.Metadata) (
 			// (it lives on the scheduled game_action); the screen shows
 			// the content's own build time counted from queued_at, which
 			// is exactly what the action was scheduled for.
+			if b.ByWork() {
+				view.Lines = append(view.Lines, screens.ConstructionLine{Building: named(d.Code, d.Name), LotX: b.LotX, LotY: b.LotY,
+					State: screens.ConstructionBuilding, ID: b.ID, ByWork: true, ProgressBPS: labor.ProgressBPS(b.WorkDone, b.WorkRequired),
+					LeftMinutes: b.WorkRequired - b.WorkDone})
+				continue
+			}
 			finish := b.QueuedAt.Add(h.scale.RealWait(d.Def().BuildTime))
 			view.Lines = append(view.Lines, screens.ConstructionLine{Building: named(d.Code, d.Name), LotX: b.LotX, LotY: b.LotY,
 				State: screens.ConstructionBuilding, FinishAt: finish, Left: countdownTo(finish, now)})

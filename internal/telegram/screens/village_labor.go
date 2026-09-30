@@ -159,7 +159,9 @@ type LaborSiteView struct {
 	Working    *LaborShiftLine
 	// CanEmploy: the viewer is the employer. HirePresets are the crew sizes
 	// offered, WagePresets the wages; NPCAvailable how many labourers are free.
-	CanEmploy    bool
+	CanEmploy bool
+	// CanPost: the site has no open job and the viewer may post one.
+	CanPost      bool
 	HirePresets  []int
 	WagePresets  []LaborPreset
 	NPCAvailable int64
@@ -354,6 +356,11 @@ func renderLaborSite(c Context, v LaborSiteView) *presenter.Response {
 			kb.Row(wrow...)
 		}
 		if b, ok := keyboards.Button(c.T("village.labor.button.close", nil), AddrLaborClose, jobID); ok {
+			kb.Row(b)
+		}
+	}
+	if v.CanPost {
+		if b, ok := keyboards.Button(c.T("village.labor.button.post", map[string]any{"building": name}), AddrLaborPost, v.ID); ok {
 			kb.Row(b)
 		}
 	}

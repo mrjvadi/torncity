@@ -442,7 +442,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			},
 			cfg.Game.IdempotencyTTL,
 			nil,
-		).WithDonationRules(cfg.Settlement.DonationMin, cfg.Settlement.DonationMax, cfg.Settlement.DonationPresets),
+		).WithDonationRules(cfg.Settlement.DonationMin, cfg.Settlement.DonationMax, cfg.Settlement.DonationPresets).
+			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets),
 	}
 
 	// Work and study read careers and courses from the live registry and a

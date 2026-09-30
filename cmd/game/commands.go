@@ -370,6 +370,54 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.Work(ctx, env.Metadata, req)
 		},
+		"settlement.labor.board": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.LaborBoard(ctx, env.Metadata)
+		},
+		"settlement.labor.mine": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.LaborMine(ctx, env.Metadata)
+		},
+		"settlement.labor.site": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageLaborRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.LaborSite(ctx, env.Metadata, req)
+		},
+		"settlement.labor.take": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageLaborRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.LaborTake(ctx, env.Metadata, req)
+		},
+		"settlement.labor.hire": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageLaborRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.LaborHire(ctx, env.Metadata, req)
+		},
+		"settlement.labor.wage": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageLaborRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.LaborWage(ctx, env.Metadata, req)
+		},
+		"settlement.labor.close": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageLaborRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.LaborClose(ctx, env.Metadata, req)
+		},
+		"settlement.labor.post": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageLaborRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.LaborPost(ctx, env.Metadata, req)
+		},
 		"settlement.worked": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.CrimeScheduledRequest
 			if err := decode(env, &req); err != nil {
