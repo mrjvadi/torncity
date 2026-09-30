@@ -567,9 +567,9 @@ func (h *SettlementsHandler) submitInTx(ctx context.Context, tx application.Tx, 
 	}
 	// The founder lives in the village they just founded, from this very
 	// transaction: the head of a village is its first resident (everyone else
-	// joins with settlement.join). Their home moves off Support; their
-	// property, company and job there keep working (residence is not location).
-	if _, err := moveResidence(ctx, tx, meta, p.ID, founded.CityID, now, "founding"); err != nil {
+	// joins with settlement.join). Their home moves off Support and they
+	// stand in the village; their property, company and job there keep working.
+	if _, err := moveHome(ctx, tx, meta, p.ID, founded.CityID, now, "founding"); err != nil {
 		return err
 	}
 	if err := h.appendFoundedEvent(ctx, tx, meta, founded, draft, p.DisplayName, world.BiomeCode(cand.CellID),

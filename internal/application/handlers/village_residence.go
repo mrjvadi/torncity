@@ -139,7 +139,7 @@ func (h *VillageHandler) Join(ctx context.Context, meta envelope.Metadata, req V
 		if err := h.residenceGate(ctx, tx, p.ID, now); err != nil {
 			return err
 		}
-		if _, err := moveResidence(ctx, tx, meta, p.ID, s.CityID, now, "join"); err != nil {
+		if _, err := moveHome(ctx, tx, meta, p.ID, s.CityID, now, "join"); err != nil {
 			return err
 		}
 		view.Population, err = tx.Settlements().ResidentCount(ctx, s.CityID)

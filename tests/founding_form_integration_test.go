@@ -269,6 +269,10 @@ func TestFoundingFormFlow(t *testing.T) {
 	if err := e.pool.Raw().QueryRow(ctx, `SELECT COALESCE(residence_city_id::text, '') FROM players WHERE id = $1::uuid`, founder.ID).Scan(&home); err != nil || home != cityID {
 		t.Errorf("the founder should live in the new village: %q %v", home, err)
 	}
+	var here string
+	if err := e.pool.Raw().QueryRow(ctx, `SELECT COALESCE(city_id::text, '') FROM players WHERE id = $1::uuid`, founder.ID).Scan(&here); err != nil || here != cityID {
+		t.Errorf("the founder should stand in the new village, not in Support: %q %v", here, err)
+	}
 	var status, submittedTo string
 	if err := e.pool.Raw().QueryRow(ctx, `SELECT status, COALESCE(settlement_id::text, '') FROM settlement_founding_drafts WHERE id = $1::uuid`, draft).Scan(&status, &submittedTo); err != nil || status != "submitted" || submittedTo != cityID {
 		t.Errorf("the draft should be submitted to the village: %s %s %v", status, submittedTo, err)

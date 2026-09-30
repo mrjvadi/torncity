@@ -192,6 +192,10 @@ type PropertyRepository interface {
 
 	// SetResidence moves a player's residence to a city, since a time.
 	SetResidence(ctx context.Context, playerID, cityID string, since time.Time) error
+	// MoveInto puts a player who is not on a journey into a city, at no
+	// place inside it, and reports whether they moved. A player in transit
+	// stays on the road: the journey decides where they arrive.
+	MoveInto(ctx context.Context, playerID, cityID string, at time.Time) (bool, error)
 	// ResidenceSince is when the player began living where they live; nil
 	// for since the character was made.
 	ResidenceSince(ctx context.Context, playerID string) (*time.Time, error)

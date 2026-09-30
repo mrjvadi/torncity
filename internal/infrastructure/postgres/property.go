@@ -408,6 +408,20 @@ func (r *PropertyRepository) SetResidence(ctx context.Context, playerID, cityID 
 	return nil
 }
 
+// MoveInto puts a player who is not travelling into a city. See
+// application.PropertyRepository.
+func (r *PropertyRepository) MoveInto(ctx context.Context, playerID, cityID string, at time.Time) (bool, error) {
+	tag, err := r.q.Exec(ctx, `
+UPDATE players SET city_id = $2::uuid, place_code = NULL, place_since = NULL, updated_at = $3
+ WHERE id = $1::uuid AND city_id IS DISTINCT FROM $2::uuid
+   AND NOT EXISTS (SELECT 1 FROM travels t WHERE t.player_id = $1::uuid AND t.status = 'in_transit')`,
+		playerID, cityID, at.UTC())
+	if err != nil {
+		return false, fmt.Errorf("postgres: moving a player into a city: %w", err)
+	}
+	return tag.RowsAffected() == 1, nil
+}
+
 // ResidenceSince is when the player began living where they live.
 func (r *PropertyRepository) ResidenceSince(ctx context.Context, playerID string) (*time.Time, error) {
 	var at *time.Time

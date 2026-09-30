@@ -509,6 +509,20 @@ func moveResidence(ctx context.Context, tx application.Tx, meta envelope.Metadat
 	})
 }
 
+// moveHome makes a village the player's home AND the place they stand: a
+// player who founds or joins a village is in it, not left behind in Support
+// (the village is home; Support is somewhere they travel to). A player on a
+// journey keeps travelling and only their residence changes.
+func moveHome(ctx context.Context, tx application.Tx, meta envelope.Metadata, playerID, cityID string, now time.Time, via string,
+) (string, error) {
+	home, err := moveResidence(ctx, tx, meta, playerID, cityID, now, via)
+	if err != nil {
+		return home, err
+	}
+	_, err = tx.Property().MoveInto(ctx, playerID, cityID, now)
+	return home, err
+}
+
 // ---------------------------------------------------------------------------
 // The player's own.
 

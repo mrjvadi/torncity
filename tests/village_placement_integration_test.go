@@ -189,6 +189,7 @@ func cleanupPlacementSettlement(t *testing.T, pool *postgres.Pool, cityID string
 	_ = pool.Raw().QueryRow(ctx, `SELECT jurisdiction_id::text FROM cities WHERE id = $1::uuid`, cityID).Scan(&jurisdictionID)
 	for _, stmt := range []string{
 		`UPDATE players SET residence_city_id = NULL, residence_since = NULL WHERE residence_city_id = $1::uuid`,
+		`UPDATE players SET city_id = (SELECT id FROM cities WHERE code = 'support'), place_code = NULL WHERE city_id = $1::uuid`,
 		`DELETE FROM outbox WHERE payload->>'to_city_id' = $1 OR payload->>'from_city_id' = $1`,
 		`DELETE FROM outbox WHERE payload->>'settlement_id' = $1`,
 		`DELETE FROM settlement_research WHERE settlement_id = $1::uuid`,

@@ -225,6 +225,10 @@ func TestVillageResidency(t *testing.T) {
 	if residenceOf(member) != cityID {
 		t.Fatalf("the member's residence = %s, want %s", residenceOf(member), cityID)
 	}
+	var here string
+	if err := pool.Raw().QueryRow(ctx, `SELECT COALESCE(city_id::text, '') FROM players WHERE id = $1::uuid`, member.ID).Scan(&here); err != nil || here != cityID {
+		t.Errorf("a member who joins stands in the village, not in Support: %q %v", here, err)
+	}
 	if movesTo("join") != 1 {
 		t.Errorf("residence.changed (join) events = %d, want 1", movesTo("join"))
 	}
