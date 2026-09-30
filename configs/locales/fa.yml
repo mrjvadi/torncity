@@ -947,6 +947,16 @@ group:
   # of a screen (the bank, the bag, the job…): it opens the bot's private
   # chat, where those live.
   continue_private: "🔒 ادامه در پی‌وی"
+  # Web-app buttons do not open inside a group (Telegram allows them only in
+  # a private chat), so under each one sits a button that sends it there.
+  webapp_send_private: "📩 ارسال در پیوی من"
+  webapp_sent: "📩 در پیوی برایت فرستادم."
+  webapp_start_bot: "ابتدا ربات را در پی‌وی باز کنید و «شروع» را بزنید، بعد دوباره این دکمه را بزنید."
+  webapp_slow_down: "⏳ همین الان فرستاده شد؛ پیوی خودتان را ببینید."
+  webapp_unavailable: "این بخش فعلاً در دسترس نیست. کمی بعد دوباره امتحان کنید."
+  webapp_text: "🌐 برای ورود به بازی روی دکمهٔ زیر بزنید تا در همین گفت‌وگو باز شود."
+  webapp_text_founding: "🏡 برای پر کردن فرم تأسیس روستا روی دکمهٔ زیر بزنید تا در همین گفت‌وگو باز شود."
+  webapp_open: "🌐 باز کردن"
   # Posted once when the bot is added to a group.
   welcome: |-
     سلام به همه! از این پس می‌توانید در همین گروه بازی کنید؛ برای شروع «پروفایل» یا «راهنما» را بفرستید.

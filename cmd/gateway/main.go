@@ -404,6 +404,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	gw.switches = &switches.Reader{Source: switchSource{postgres.NewSwitchOps(pool)},
 		Cache: infraredis.NewSwitchCache(rdb), TTL: cfg.Panel.SwitchCacheTTL}
 	gw.redirectGate = infraredis.NewRedirectGate(rdb)
+	gw.webAppGate = infraredis.NewWebAppGate(rdb)
 
 	// Commands typed without a slash, in every language. A collision is
 	// logged and the word left out; the rest work.
@@ -538,6 +539,9 @@ type gateway struct {
 	// redirectGate paces the redirect notice per Telegram user
 	// (gateway.redirect_cooldown). Nil sends it every time.
 	redirectGate redirectGate
+	// webAppGate paces the «send the web app to my private chat» button per
+	// Telegram user (gateway.webapp_private_cooldown). Nil never paces.
+	webAppGate redirectGate
 
 	// aliases are the commands players type without a slash, in every
 	// language (command_alias in the locales); policy is configs/commands.yml,
@@ -788,6 +792,15 @@ func (g *gateway) handleUpdate(ctx context.Context, bot application.Bot, update 
 		// The player typed a word of ours in their own language: they are
 		// talking to the game, not to another bot.
 		admitted.mayHelp = true
+	}
+
+	// «📩 ارسال در پیوی من» under a group screen's web-app button: the entry
+	// goes to the player's private chat. See webapp.go.
+	if cq := update.CallbackQuery; cq != nil {
+		if param, ok := groups.ParseWebAppCallback(cq.Data); ok {
+			g.sendWebAppPrivately(ctx, bot, meta, param, log)
+			return
+		}
 	}
 
 	// A muted player's commands in groups, and a banned player's anywhere,

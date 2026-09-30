@@ -98,11 +98,12 @@ type achievementsSettings struct {
 }
 
 type gatewaySettings struct {
-	PollTimeout      *string `yaml:"poll_timeout"`
-	PollErrorBackoff *string `yaml:"poll_error_backoff"`
-	ShutdownTimeout  *string `yaml:"shutdown_timeout"`
-	SendAttempts     *int    `yaml:"send_attempts"`
-	RedirectCooldown *string `yaml:"redirect_cooldown"`
+	PollTimeout           *string `yaml:"poll_timeout"`
+	PollErrorBackoff      *string `yaml:"poll_error_backoff"`
+	ShutdownTimeout       *string `yaml:"shutdown_timeout"`
+	SendAttempts          *int    `yaml:"send_attempts"`
+	RedirectCooldown      *string `yaml:"redirect_cooldown"`
+	WebAppPrivateCooldown *string `yaml:"webapp_private_cooldown"`
 }
 
 type leaseSettings struct {
@@ -760,6 +761,9 @@ var coreSettings = []setting{
 	durationSetting("gateway", "redirect_cooldown",
 		func(c *Config) *time.Duration { return &c.Gateway.RedirectCooldown },
 		func(f *fileConfig) *string { return f.Gateway.RedirectCooldown }),
+	durationSetting("gateway", "webapp_private_cooldown",
+		func(c *Config) *time.Duration { return &c.Gateway.WebAppPrivateCooldown },
+		func(f *fileConfig) *string { return f.Gateway.WebAppPrivateCooldown }),
 
 	durationSetting("lease", "ttl",
 		func(c *Config) *time.Duration { return &c.Lease.TTL },

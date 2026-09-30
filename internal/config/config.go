@@ -266,6 +266,9 @@ type Gateway struct {
 	// silently dropped: a player pressing a stale button many times gets one
 	// message per cooldown, not a flood.
 	RedirectCooldown time.Duration // gateway.redirect_cooldown
+	// WebAppPrivateCooldown is how often one player may press «send it to my
+	// private chat» under a group screen's web-app button.
+	WebAppPrivateCooldown time.Duration // gateway.webapp_private_cooldown
 }
 
 // Lease governs the exclusive right to poll one bot.
@@ -1077,11 +1080,12 @@ type Diplomacy struct {
 func Defaults() *Config {
 	return &Config{
 		Gateway: Gateway{
-			PollTimeout:      30 * time.Second,
-			PollErrorBackoff: 2 * time.Second,
-			ShutdownTimeout:  20 * time.Second,
-			SendAttempts:     2,
-			RedirectCooldown: time.Minute,
+			PollTimeout:           30 * time.Second,
+			PollErrorBackoff:      2 * time.Second,
+			ShutdownTimeout:       20 * time.Second,
+			SendAttempts:          2,
+			RedirectCooldown:      time.Minute,
+			WebAppPrivateCooldown: 5 * time.Second,
 		},
 		Lease: Lease{
 			TTL:            30 * time.Second,

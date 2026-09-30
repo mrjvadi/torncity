@@ -237,6 +237,7 @@ gateway:
   shutdown_timeout: 21s
   send_attempts: 4
   redirect_cooldown: 90s
+  webapp_private_cooldown: 7s
 lease:
   ttl: 31s
   renew_divisor: 4
@@ -565,11 +566,12 @@ settlement:
 // different value again, so a field reachable from the file but not from the
 // environment is caught too.
 var envOverrides = map[string]string{
-	"TORN_GATEWAY_POLL_TIMEOUT":       "12s",
-	"TORN_GATEWAY_POLL_ERROR_BACKOFF": "4s",
-	"TORN_GATEWAY_SHUTDOWN_TIMEOUT":   "23s",
-	"TORN_GATEWAY_SEND_ATTEMPTS":      "5",
-	"TORN_GATEWAY_REDIRECT_COOLDOWN":  "91s",
+	"TORN_GATEWAY_POLL_TIMEOUT":            "12s",
+	"TORN_GATEWAY_POLL_ERROR_BACKOFF":      "4s",
+	"TORN_GATEWAY_SHUTDOWN_TIMEOUT":        "23s",
+	"TORN_GATEWAY_SEND_ATTEMPTS":           "5",
+	"TORN_GATEWAY_REDIRECT_COOLDOWN":       "91s",
+	"TORN_GATEWAY_WEBAPP_PRIVATE_COOLDOWN": "8s",
 
 	"TORN_LEASE_TTL":             "33s",
 	"TORN_LEASE_RENEW_DIVISOR":   "5",

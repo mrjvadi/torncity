@@ -847,6 +847,16 @@ group:
   # In a group, the one button that stands in for every private-chat button
   # of a screen: it opens the bot's private chat, where those live.
   continue_private: "🔒 Continue in private chat"
+  # Web-app buttons do not open inside a group (Telegram allows them only in
+  # a private chat), so under each one sits a button that sends it there.
+  webapp_send_private: "📩 Send to my private chat"
+  webapp_sent: "📩 Sent to your private chat."
+  webapp_start_bot: "Open the bot in a private chat and press Start first, then press this button again."
+  webapp_slow_down: "⏳ Just sent; check your private chat."
+  webapp_unavailable: "This is not available right now. Try again in a moment."
+  webapp_text: "🌐 Tap the button below to open the game right here in this chat."
+  webapp_text_founding: "🏡 Tap the button below to fill in the village founding form right here in this chat."
+  webapp_open: "🌐 Open"
   # Posted once when the bot is added to a group.
   welcome: |-
     Hello everyone! You can now play the game right here in this group; send "profile" or "help" to begin.

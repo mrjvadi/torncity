@@ -96,7 +96,11 @@ func (g *gateway) sendRedirect(ctx context.Context, bot application.Bot, meta en
 	}
 
 	var webAppURL, groupLink string
-	if meta.InGroup() {
+	if meta.InGroup() && g.cfg.Client.MiniAppURL != "" {
+		// The render turns it into the Mini App link and the «send to my
+		// private chat» button (groups.ForWebApp).
+		webAppURL = g.cfg.Client.MiniAppURL
+	} else if meta.InGroup() {
 		groupLink = groups.MiniAppDeepLink(g.botUsername(ctx, bot.BotKey, g.clientFor(bot.BotKey)))
 	} else {
 		webAppURL = g.cfg.Client.MiniAppURL

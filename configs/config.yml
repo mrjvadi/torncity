@@ -42,6 +42,11 @@ gateway:
   # flood of identical ones.
   redirect_cooldown: 1m
 
+  # How often one player may press «send it to my private chat» under a group
+  # screen's web-app button, so a mashed button does not flood their private
+  # chat.
+  webapp_private_cooldown: 5s
+
 # The per-bot lease: which gateway instance has the exclusive right to poll a
 # given bot. Two instances polling one bot lose updates rather than duplicating
 # them, because each getUpdates acknowledges the other's.
