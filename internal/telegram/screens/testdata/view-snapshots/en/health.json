@@ -697,6 +697,7 @@
       "travel_to": "",
       "travel_to_code": "",
       "travelling": false,
+      "village": null,
       "walk": null,
       "work": {
         "certificates": 0,

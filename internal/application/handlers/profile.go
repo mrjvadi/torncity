@@ -283,6 +283,12 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 	}
 	view.Cash, view.Bank = cash.Balance.Minor(), bankAcct.Balance.Minor()
 
+	// A player who lives in a village has it as their home: the hub offers
+	// the village where a city would have its hall.
+	if err := h.village(ctx, tx, p.ID, &view); err != nil {
+		return view, err
+	}
+
 	// A player on the road is shown the journey rather than the city they
 	// left, and the home screen offers the journey instead of the map.
 	if t, err := tx.Travels().Active(ctx, p.ID); err == nil {
@@ -630,4 +636,24 @@ func (h *ProfileHandler) renderProfile(meta envelope.Metadata, p *application.Pl
 		return presenter.Message(c.T("profile.unavailable", nil), nil)
 	}
 	return screens.Profile(c, view)
+}
+
+// village reads the village a player lives in, if any, onto the view.
+func (h *ProfileHandler) village(ctx context.Context, tx application.Tx, playerID string, view *screens.ProfileView) error {
+	employment, settlements := tx.Employment(), tx.Settlements()
+	if employment == nil || settlements == nil {
+		return nil
+	}
+	home, err := employment.ResidenceCityID(ctx, playerID)
+	if err != nil || home == "" {
+		return err
+	}
+	s, err := settlements.ByID(ctx, home)
+	switch {
+	case err == nil:
+		view.Village = &screens.Named{Code: s.Code, Name: s.Name}
+	case !isSentinel(err, application.ErrCityNotFound):
+		return err
+	}
+	return nil
 }

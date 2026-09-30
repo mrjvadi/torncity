@@ -176,7 +176,8 @@
             "name": "The Commonwealth"
           }
         }
-      ]
+      ],
+      "tier": ""
     }
   },
   {
@@ -213,7 +214,8 @@
             "name": "Ostmarch"
           }
         }
-      ]
+      ],
+      "tier": ""
     }
   },
   {
@@ -227,7 +229,8 @@
       },
       "holds_office": false,
       "no_city": true,
-      "sections": null
+      "sections": null,
+      "tier": ""
     }
   },
   {

@@ -35,6 +35,7 @@
       "travel_to": "",
       "travel_to_code": "",
       "travelling": false,
+      "village": null,
       "walk": null,
       "work": {
         "certificates": 0,
@@ -91,6 +92,7 @@
       "travel_to": "",
       "travel_to_code": "",
       "travelling": false,
+      "village": null,
       "walk": {
         "arrives_at": "2026-09-23T11:05:12Z",
         "remaining_seconds": 12,

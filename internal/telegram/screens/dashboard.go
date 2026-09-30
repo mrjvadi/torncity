@@ -59,5 +59,5 @@ func renderDashboard(c Context, v DashboardView) *presenter.Response {
 		),
 		moneyLines(c, v.Cash, v.Bank),
 	)
-	return c.respond(text, hubKeyboard(c, city != "", v.Travelling, v.Jail != nil, nil).Build())
+	return c.respond(text, hubKeyboard(c, city != "", v.Travelling, v.Jail != nil, nil, nil).Build())
 }

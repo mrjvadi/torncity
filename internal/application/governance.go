@@ -72,6 +72,11 @@ var (
 	ErrWrongJurisdiction = errors.Sentinel(errors.CodeInvalidInput,
 		"application.ErrWrongJurisdiction", "that does not apply here")
 
+	// ErrCityTierOnly means a city-only feature (the budget, the city
+	// period) was asked of a village or a town (ADR 0028 section 4).
+	ErrCityTierOnly = errors.Sentinel(errors.CodeInvalidInput,
+		"application.ErrCityTierOnly", "this feature is for cities")
+
 	// ErrLeverKindUnsupported means the lever holds a structured value (a
 	// yes/no, a choice, a table, an allocation), which content may declare
 	// but nothing can read or change yet.

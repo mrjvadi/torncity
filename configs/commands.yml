@@ -390,7 +390,10 @@ commands:
   # Village-level knowledge and construction (docs/adr/0031), K2/W5: the
   # same rule — a settlement's growth is the group's own decision, never
   # private.
-  settlement.overview: {channel: group, client: true}
+  # The village is the home: a group's hub (its village, or the call to found
+  # one) and a resident's village in the private chat.
+  settlement.home: {channel: both, client: true}
+  settlement.overview: {channel: both, client: true}
   settlement.knowledge: {channel: group, client: true}
   settlement.knowledge.research: {channel: group, client: true}
   settlement.knowledge.buy: {channel: group, client: true}

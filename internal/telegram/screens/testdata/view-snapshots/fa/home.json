@@ -35,6 +35,7 @@
       "travel_to": "",
       "travel_to_code": "",
       "travelling": false,
+      "village": null,
       "walk": null,
       "work": {
         "certificates": 0,
@@ -92,6 +93,7 @@
       "travel_to": "",
       "travel_to_code": "",
       "travelling": false,
+      "village": null,
       "walk": null,
       "work": {
         "certificates": 2,
@@ -169,6 +171,7 @@
       "travel_to": "",
       "travel_to_code": "",
       "travelling": false,
+      "village": null,
       "walk": null,
       "work": {
         "certificates": 0,
@@ -225,6 +228,7 @@
       "travel_to": "Brennhaven",
       "travel_to_code": "brennhaven",
       "travelling": true,
+      "village": null,
       "walk": null,
       "work": {
         "certificates": 0,
@@ -242,6 +246,51 @@
           "shift_ends_in_seconds": 0
         }
       },
+      "xp": 60
+    }
+  },
+  {
+    "title": "Profile · a village resident: the village is the home",
+    "screen": "profile",
+    "view": {
+      "achievements": 0,
+      "age": 0,
+      "avatar": "",
+      "bank": 0,
+      "cash": 4440,
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "code": "K7Q2M9A",
+      "energy": 82,
+      "energy_full_in_seconds": 0,
+      "health": 100,
+      "hospital": null,
+      "jail": null,
+      "level": 2,
+      "max_energy": 100,
+      "max_health": 100,
+      "name": "سارا",
+      "needs": null,
+      "next_level_xp": 150,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "rank": null,
+      "stage": {
+        "code": "",
+        "name": ""
+      },
+      "travel_remaining_seconds": 0,
+      "travel_to": "",
+      "travel_to_code": "",
+      "travelling": false,
+      "village": {
+        "code": "vin",
+        "name": "Vinlar"
+      },
+      "walk": null,
+      "work": null,
       "xp": 60
     }
   },
@@ -281,6 +330,7 @@
       "travel_to": "",
       "travel_to_code": "",
       "travelling": false,
+      "village": null,
       "walk": null,
       "work": null,
       "xp": 0
@@ -322,6 +372,7 @@
       "travel_to": "",
       "travel_to_code": "",
       "travelling": false,
+      "village": null,
       "walk": null,
       "work": null,
       "xp": 9999999
@@ -389,6 +440,7 @@
       "travel_to": "",
       "travel_to_code": "",
       "travelling": false,
+      "village": null,
       "walk": null,
       "work": {
         "certificates": 0,

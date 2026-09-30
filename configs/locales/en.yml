@@ -458,6 +458,7 @@ gov:
     unknown_lever: This policy no longer exists. Open “My office” to see the policies you can change.
     unknown_place: "This place could not be found. Open the “Map” and try again."
     wrong_place: This policy does not apply to this place.
+    city_only: "This is for cities: a village has no budget or city council yet. It opens up once the village grows."
     office_not_found: This office does not exist here.
     office_occupied: Someone already holds this office.
     office_vacant: This office is already vacant.
@@ -701,6 +702,23 @@ village:
     literacy: "📖 Literacy: {percent}%"
   building_line: "• {building}"
   no_buildings: "No buildings stand here yet."
+  private_hint: "🏘 Building, research and donations are done in the village group; here you see how your village stands."
+  home:
+    call_title: "🏡 This group has no village yet."
+    call_body: "A village is your group's home: it has a shared treasury, buildings and knowledge, and everyone who lives there shares in it. Open the founding form with the button below; nothing is built until it is complete."
+    found_button: "🏗 Found the village"
+    none_title: "🏡 You do not live in a village yet."
+    none_body: "Go to a village group and press «Live in this village», or send «Found a village» in your own group."
+    profile_button: "🏡 My village"
+  support:
+    title: "🧭 Services in {city} - travel there for them:"
+    service:
+      bank: "🏦 Bank - travel to {city}"
+      market: "🛒 Market - travel to {city}"
+      jobs: "💼 Jobs - travel to {city}"
+      knowledge: "📚 Knowledge - travel to {city}"
+      hospital: "🏥 Hospital - travel to {city}"
+      jail: "⛓ Jail - travel to {city}"
   button:
     overview: "🏘 Village"
     who: "👥 People"
@@ -1491,6 +1509,7 @@ command_alias:
   card: "card"
   link: "link"
   devices: "devices"
+  village: "village"
   settlement:
     found: "found village"
     join: "join village | become resident"

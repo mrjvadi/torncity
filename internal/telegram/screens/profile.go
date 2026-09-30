@@ -91,6 +91,11 @@ type ProfileView struct {
 	Age    int
 	Stage  Named
 	Needs  *NeedsView
+
+	// Village is the village the player lives in, nil when they live in a
+	// city. A resident's home is their village (ADR 0028): the hub offers it
+	// in place of the city hall, which a village does not have.
+	Village *Named
 }
 
 // ProfileJail is a sentence as the home screen shows it. A hospital stay is
@@ -212,7 +217,7 @@ func renderProfile(c Context, v ProfileView) *presenter.Response {
 		code,
 	)
 
-	kb := hubKeyboard(c, city != "", v.Travelling, v.Jail != nil || v.Hospital != nil, v.Work)
+	kb := hubKeyboard(c, city != "", v.Travelling, v.Jail != nil || v.Hospital != nil, v.Work, v.Village)
 	if v.Hospital != nil && v.Jail == nil {
 		kb = hospitalHub(c, v.Work)
 	}
@@ -390,7 +395,7 @@ func energyLine(c Context, energy, maxEnergy int, fullIn time.Duration) string {
 //
 // The order is the order of use: going somewhere and working first, then
 // study and money, then skills and friends, then the city, then settings.
-func hubKeyboard(c Context, hasCity, travelling, jailed bool, work *ProfileWork) *keyboards.Builder {
+func hubKeyboard(c Context, hasCity, travelling, jailed bool, work *ProfileWork, village *Named) *keyboards.Builder {
 	kb := keyboards.New()
 
 	var place presenter.Button
@@ -436,6 +441,11 @@ func hubKeyboard(c Context, hasCity, travelling, jailed bool, work *ProfileWork)
 		// The city's own institutions: its offices and policies, and the
 		// companies it hosts.
 		city, _ := keyboards.Button(c.T("gov.button.city", nil), AddrGovCity)
+		if village != nil {
+			// A resident's home is the village: its overview replaces the
+			// city hall, which a village does not have.
+			city, _ = keyboards.Button(c.T("village.home.profile_button", nil), AddrVillageHome)
+		}
 		companies, _ := keyboards.Button(c.T("company.button.registry", nil), AddrCompanies)
 		kb.Row(city, companies)
 	}

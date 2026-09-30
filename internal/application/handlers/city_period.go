@@ -122,6 +122,9 @@ func (h *CityHandler) StartClocks(ctx context.Context) error {
 	return h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		now := h.now()
 		for _, c := range cities {
+			if !c.IsCityTier() {
+				continue // a village or a town has no city period
+			}
 			if _, err := h.ensureClock(ctx, tx, c.ID, now); err != nil {
 				return err
 			}
@@ -181,6 +184,12 @@ func (h *CityHandler) settle(ctx context.Context, tx application.Tx, snap *conte
 	city, err := h.cities.ByID(ctx, clock.CityID)
 	if err != nil {
 		return err
+	}
+	if !city.IsCityTier() {
+		// A clock that was started before the settlement was known to be a
+		// village: end it quietly instead of settling a budget it has none of.
+		clock.NextAt, clock.ActionID, clock.UpdatedAt = nil, "", now
+		return tx.CityPeriods().SaveClock(ctx, *clock)
 	}
 	if err := h.spendBudget(ctx, tx, snap, city, clock, now); err != nil {
 		return err
@@ -318,6 +327,11 @@ func (h *CityHandler) Budget(ctx context.Context, meta envelope.Metadata, req Bu
 		if city == nil || !hasBudget || city.JurisdictionID == "" {
 			view.NoCity = true
 			return nil
+		}
+		if !city.IsCityTier() {
+			// The budget is a city's (ADR 0028 section 4): a village or a
+			// town has none, and its lever is not set at its level.
+			return application.ErrCityTierOnly
 		}
 		now := h.now()
 		view.City = screens.GovPlace{Kind: "city", Code: city.Code, Name: city.Name}

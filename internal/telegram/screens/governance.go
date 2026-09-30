@@ -158,6 +158,10 @@ type CityGovView struct {
 	HoldsOffice bool
 	// NoCity means the viewer asked for their own city and is in none.
 	NoCity bool
+	// Tier is the settlement's stage ("village", "town", "city"; empty is a
+	// city): the budget and the city council's bills belong to a city alone,
+	// so a village's screen does not offer them.
+	Tier string
 }
 
 // GovSeat is one seat the viewer holds, and what it lets them change.
@@ -413,9 +417,11 @@ func renderCityGovernance(c Context, v CityGovView) *presenter.Response {
 		elections, _ := keyboards.Button(c.T("gov.button.elections", nil), AddrElections)
 		kb.Row(b, elections)
 	}
-	if b, ok := keyboards.Button(c.T("gov.button.budget", nil), AddrBudget, v.City.Code); ok {
-		laws, _ := keyboards.Button(c.T("gov.button.laws", nil), AddrBills)
-		kb.Row(b, laws)
+	if v.Tier == "" || v.Tier == "city" {
+		if b, ok := keyboards.Button(c.T("gov.button.budget", nil), AddrBudget, v.City.Code); ok {
+			laws, _ := keyboards.Button(c.T("gov.button.laws", nil), AddrBills)
+			kb.Row(b, laws)
+		}
 	}
 	if v.HoldsOffice {
 		kb.Add(c.T("gov.button.my_office", nil), AddrGovOffice)
@@ -928,6 +934,7 @@ var governanceSentinels = []struct {
 	{application.ErrUnknownLever, "gov.refusal.unknown_lever"},
 	{application.ErrJurisdictionNotFound, "gov.refusal.unknown_place"},
 	{application.ErrWrongJurisdiction, "gov.refusal.wrong_place"},
+	{application.ErrCityTierOnly, "gov.refusal.city_only"},
 	{application.ErrLeverKindUnsupported, "gov.refusal.unsupported"},
 	{application.ErrInvalidAllocation, "gov.refusal.invalid_allocation"},
 	{application.ErrOfficeNotFound, "gov.refusal.office_not_found"},

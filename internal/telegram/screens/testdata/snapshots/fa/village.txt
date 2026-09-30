@@ -17,10 +17,8 @@
 • کارگاه نجاری
   ───
   [🏡 ساکن این روستا شو] → settlement:join
-  [📚 دانش روستا] → settlement:knowledge
-  [🏗 ساخت‌وساز] → settlement:build
-  [⏳ پیشرفت ساخت] → settlement:build.progress
-  [👥 اهالی] → settlement:who
+  [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
+  [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ Village overview · nothing built yet ━━━
@@ -41,10 +39,8 @@
 هنوز بنایی ساخته نشده است.
   ───
   [🏡 ساکن این روستا شو] → settlement:join
-  [📚 دانش روستا] → settlement:knowledge
-  [🏗 ساخت‌وساز] → settlement:build
-  [⏳ پیشرفت ساخت] → settlement:build.progress
-  [👥 اهالی] → settlement:who
+  [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
+  [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ Knowledge list · mixed states, research running ━━━
@@ -189,13 +185,92 @@
 
 هنوز بنایی ساخته نشده است.
   ───
-  [📚 دانش روستا] → settlement:knowledge
-  [🏗 ساخت‌وساز] → settlement:build
-  [⏳ پیشرفت ساخت] → settlement:build.progress
-  [👥 اهالی] → settlement:who
-  [💰 کمک به خزانه] → settlement:donate
-  [🚪 ترک روستا] → settlement:leave
+  [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
+  [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
+  [💰 کمک به خزانه] → settlement:donate   │   [🚪 ترک روستا] → settlement:leave
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
+
+━━━ Village home · the group hub, a resident, with Support's services a journey away ━━━
+(edits message 42)
+🏘 روستای کورندال
+
+👥 جمعیت: ⁨12⁩ از ⁨100⁩
+
+🏦 خزانهٔ روستا: ⁨⁨10,900⁩ ساپ⁩
+
+🌾 پوشش خوراک: 20٪
+💼 پوشش شغل: 10٪
+🏥 پوشش خدمات: 0٪
+🙂 شادی: 30٪
+🛡 امنیت محلی: 15٪
+📖 سوادآموزی: 2٪
+
+هنوز بنایی ساخته نشده است.
+
+🧭 خدمات در «ساپورت» - برای آن‌ها سفر کنید:
+  ───
+  [📚 دانش روستا] → settlement:knowledge   │   [🏗 ساخت‌وساز] → settlement:build
+  [⏳ پیشرفت ساخت] → settlement:build.progress   │   [👥 اهالی] → settlement:who
+  [💰 کمک به خزانه] → settlement:donate   │   [🚪 ترک روستا] → settlement:leave
+  [🏦 بانک - سفر به ساپورت] → travel:options:support   │   [🛒 بازار - سفر به ساپورت] → travel:options:support
+  [💼 کار - سفر به ساپورت] → travel:options:support   │   [📚 دانش - سفر به ساپورت] → travel:options:support
+  [🏥 بیمارستان - سفر به ساپورت] → travel:options:support   │   [⛓ زندان - سفر به ساپورت] → travel:options:support
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
+
+━━━ Village home · a private chat (the village is home, run in its group) ━━━
+(edits message 42)
+🏘 روستای کورندال
+
+👥 جمعیت: ⁨12⁩ از ⁨100⁩
+
+🏦 خزانهٔ روستا: ⁨⁨10,900⁩ ساپ⁩
+
+🌾 پوشش خوراک: 20٪
+💼 پوشش شغل: 10٪
+🏥 پوشش خدمات: 0٪
+🙂 شادی: 30٪
+🛡 امنیت محلی: 15٪
+📖 سوادآموزی: 2٪
+
+هنوز بنایی ساخته نشده است.
+
+🏘 ساخت‌وساز، پژوهش و کمک به خزانه در گروه روستا انجام می‌شود؛ اینجا وضعیت روستایتان را می‌بینید.
+
+🧭 خدمات در «ساپورت» - برای آن‌ها سفر کنید:
+  ───
+  [🏦 بانک - سفر به ساپورت] → travel:options:support   │   [🛒 بازار - سفر به ساپورت] → travel:options:support
+  [💼 کار - سفر به ساپورت] → travel:options:support   │   [📚 دانش - سفر به ساپورت] → travel:options:support
+  [🏥 بیمارستان - سفر به ساپورت] → travel:options:support   │   [⛓ زندان - سفر به ساپورت] → travel:options:support
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
+
+━━━ Village home · a group with no village: the call to found one ━━━
+(edits message 42)
+🏡 این گروه هنوز روستایی ندارد.
+
+روستا خانهٔ گروه شماست: خزانه و ساخت‌وساز و دانشِ مشترک دارد و همهٔ اهالی در آن سهیم‌اند. با دکمهٔ زیر فرم ساخت روستا را باز کنید؛ تا تکمیل فرم چیزی ساخته نمی‌شود.
+  ───
+  [🏗 ساخت روستا] → settlement:found
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Village home · private, living in no village ━━━
+(edits message 42)
+🏡 هنوز ساکن هیچ روستایی نیستید.
+
+به گروه یک روستا بروید و «ساکن این روستا شو» را بزنید، یا در گروه خودتان «ساخت روستا» را بفرستید.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refusal · a city-only feature asked of a village ━━━
+(edits message 42)
+این بخش مخصوص شهرهاست؛ روستا هنوز بودجه و شورای شهر ندارد. وقتی روستا رشد کند، این‌ها هم باز می‌شوند.
+  ───
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Refusal · a raw internal failure never reaches the player ━━━
+(edits message 42)
+این درخواست را متوجه نشدم. لطفاً از دکمه‌ها استفاده کنید.
+  ───
+  [🔙 بازگشت] → player:profile.get
 
 ━━━ Residence · asks before joining ━━━
 (edits message 42)

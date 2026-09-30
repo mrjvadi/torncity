@@ -197,6 +197,9 @@ var shortcuts = map[string]shortcut{
 	// another one; "/office" is the office holder's screen.
 	"city":   {Bare: "gov.city", Words: "gov.city"},
 	"office": {Bare: "gov.office"},
+	// "/village" is the village: a group's home (its village, or the call to
+	// found one) and a resident's village in the private chat.
+	"village": {Bare: "settlement.home"},
 	// Work and study: "/job" is the player's job, "/jobs" the openings in
 	// their city, "/study" the courses.
 	"job":   {Bare: "job.status"},
@@ -455,6 +458,7 @@ var argNames = map[string][]string{
 	// settlement itself is always the group's own (resolved by chat id,
 	// never a callback argument); only the item or building code, or a
 	// placed building's own id, travels on the button.
+	"settlement.home":               {},
 	"settlement.overview":           {},
 	"settlement.knowledge":          {},
 	"settlement.knowledge.research": {"code"},

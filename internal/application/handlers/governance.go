@@ -176,6 +176,7 @@ func (h *GovernanceHandler) City(ctx context.Context, meta envelope.Metadata, re
 	}
 
 	view, err := h.cityView(ctx, city)
+	view.Tier = city.Tier
 	if err != nil {
 		if screens.IsGovernanceRefusal(err) {
 			return screens.PolicyRefused(c, screens.PolicyRefusalView{Err: err, Now: h.now()}), nil

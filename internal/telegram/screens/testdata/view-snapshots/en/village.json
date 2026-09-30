@@ -568,5 +568,29 @@
       "x": 3,
       "y": 0
     }
+  },
+  {
+    "title": "Village home · a private chat (the village is home, run in its group)",
+    "screen": "village_overview",
+    "view": {
+      "buildings": null,
+      "food_percent": 20,
+      "happiness_percent": 30,
+      "job_percent": 10,
+      "literacy_percent": 2,
+      "name": "Korendal",
+      "population": 12,
+      "population_cap": 100,
+      "resident": true,
+      "security_percent": 15,
+      "service_percent": 0,
+      "settlement_id": "",
+      "support": {
+        "code": "support",
+        "name": "Support"
+      },
+      "tier": "village",
+      "treasury": 10900
+    }
   }
 ]
