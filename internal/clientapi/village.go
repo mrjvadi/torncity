@@ -100,6 +100,28 @@ type BootstrapSettlement struct {
 	// GridLots is the side of the lot grid.
 	GridLots   int    `json:"grid_lots"`
 	LayoutPath string `json:"layout_path"`
+	// Emblem, Motto and Currency are the founding form's choices (contract
+	// 1.3); absent for a village founded before the form existed.
+	Emblem   *EmblemView   `json:"emblem,omitempty"`
+	Motto    string        `json:"motto,omitempty"`
+	Currency *CurrencyView `json:"currency,omitempty"`
+}
+
+// EmblemView is a village's emblem as the four codes of the catalogue
+// (configs/content/founding.yml) a client draws it from.
+type EmblemView struct {
+	Shape  string `json:"shape"`
+	ColorA string `json:"color_a"`
+	ColorB string `json:"color_b"`
+	Icon   string `json:"icon"`
+}
+
+// CurrencyView is the national currency a village reserved; it uses SUP
+// until it declares a country.
+type CurrencyView struct {
+	Code   string `json:"code"`
+	Name   string `json:"name"`
+	Symbol string `json:"symbol"`
 }
 
 // Mine is the player's settlement, nil when they belong to none.
@@ -115,6 +137,13 @@ func (v *VillageService) Mine(ctx context.Context, playerID string) (*BootstrapS
 		IsHead: holdsHead(ps), Resident: ps.Resident, GridLots: v.gridLots(ps.Tier), LayoutPath: "/api/v1/settlements/" + ps.CityID + "/layout"}
 	if _, w, err := v.World.active(ctx); err == nil {
 		out.Centre = centreOf(w, ps.WorldCellID)
+	}
+	if e := ps.Emblem; e.Shape != "" {
+		out.Emblem = &EmblemView{Shape: e.Shape, ColorA: e.ColorA, ColorB: e.ColorB, Icon: e.Icon}
+	}
+	out.Motto = ps.Motto
+	if ps.Currency.Code != "" {
+		out.Currency = &CurrencyView{Code: ps.Currency.Code, Name: ps.Currency.Name, Symbol: ps.Currency.Symbol}
 	}
 	return out, nil
 }

@@ -4,8 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-
-	"github.com/mrjvadi/torncity/internal/domain/settlement"
+	"strings"
 )
 
 // This file holds the founding form's catalogue (configs/content/
@@ -43,22 +42,6 @@ func (s *Snapshot) Founding() (FoundingDef, bool) {
 		return FoundingDef{}, false
 	}
 	return *s.founding, true
-}
-
-func choices(defs []FoundingChoiceDef) []settlement.Choice {
-	out := make([]settlement.Choice, len(defs))
-	for i, d := range defs {
-		out[i] = settlement.Choice{Code: d.Code, Emoji: d.Emoji}
-	}
-	return out
-}
-
-// Rules is the founding form's rule set: this catalogue's lists with the
-// configured bounds. The bounds come from the caller (settlement.founding_*).
-func (d FoundingDef) Rules(b settlement.FormRules) settlement.FormRules {
-	b.Shapes, b.Icons, b.Palette = choices(d.Shapes), choices(d.Icons), choices(d.Palette)
-	b.BannedWords, b.ReservedNames, b.ReservedCodes = d.BannedWords, d.ReservedNames, d.ReservedCurrencyCodes
-	return b
 }
 
 var (
@@ -109,12 +92,12 @@ func (p *Pack) validateFounding(problems *[]error) {
 	list("palette", d.Palette, 2, true)
 	list("icons", d.Icons, 1, false)
 	for i, w := range d.BannedWords {
-		if settlement.NameKey(w) == "" {
+		if strings.TrimSpace(w) == "" {
 			bad("banned_words[%d] is empty", i)
 		}
 	}
 	for i, w := range d.ReservedNames {
-		if settlement.NameKey(w) == "" {
+		if strings.TrimSpace(w) == "" {
 			bad("reserved_names[%d] is empty", i)
 		}
 	}

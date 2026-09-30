@@ -39,24 +39,42 @@ func (c Context) BiomeName(code string) string {
 // river or continent the world generator named, and its two free starting
 // buildings (ADR 0028 section 3.1/7).
 type SettlementFoundedView struct {
-	Name string
+	Name string `json:"name"`
+	// SettlementID addresses the new village for a client.
+	SettlementID string `json:"settlement_id,omitempty"`
 	// BiomeCode is the founding cell's biome (configs/content/world.yml).
-	BiomeCode string
+	BiomeCode string `json:"biome_code"`
 	// NearbyFeature is the display name of the nearest named river or
 	// continent (internal/domain/worldgen's own naming, section 1's
 	// glossary) — empty when the world generator named none nearby.
-	NearbyFeature string
+	NearbyFeature string `json:"nearby_feature"`
 	// Buildings are the founding kit's placed buildings' content codes, in
 	// placement order.
-	Buildings []string
+	Buildings []string `json:"buildings"`
 	// ProtectedUntil is when the beginner-protection window ends
 	// (config settlement.protection_window).
-	ProtectedUntil time.Time
+	ProtectedUntil time.Time `json:"protected_until"`
+	// The founding form's choices (docs/adr/0028 section 3): the founder's
+	// name, the emblem (its codes, and the emoji that stand for it in
+	// Telegram), the motto and the currency the village reserved.
+	Founder      string             `json:"founder,omitempty"`
+	Emblem       FoundingEmblemView `json:"emblem"`
+	EmblemText   string             `json:"emblem_text,omitempty"`
+	Motto        string             `json:"motto,omitempty"`
+	CurrencyName string             `json:"currency_name,omitempty"`
+	CurrencyCode string             `json:"currency_code,omitempty"`
+	CurrencySign string             `json:"currency_symbol,omitempty"`
 }
 
 // SettlementFounded announces a newly founded village to its group.
 func SettlementFounded(c Context, v SettlementFoundedView) *presenter.Response {
 	return c.withView(renderSettlementFounded(c, v), ScreenSettlementFounded, v)
+}
+
+// SettlementFoundedText is the announcement as plain text, for the line the
+// notifier posts in the group once the founder submitted the form.
+func SettlementFoundedText(c Context, v SettlementFoundedView) string {
+	return renderSettlementFounded(c, v).Text
 }
 
 func renderSettlementFounded(c Context, v SettlementFoundedView) *presenter.Response {
@@ -68,6 +86,19 @@ func renderSettlementFounded(c Context, v SettlementFoundedView) *presenter.Resp
 	for _, code := range v.Buildings {
 		buildings = append(buildings, c.BuildingName(code))
 	}
+	var emblem, motto, currency, founder string
+	if v.EmblemText != "" {
+		emblem = c.T("settlement.found.emblem", map[string]any{"emblem": v.EmblemText})
+	}
+	if v.Motto != "" {
+		motto = c.T("settlement.found.motto", map[string]any{"motto": v.Motto})
+	}
+	if v.CurrencyCode != "" {
+		currency = c.T("settlement.found.currency", map[string]any{"name": v.CurrencyName, "code": v.CurrencyCode})
+	}
+	if v.Founder != "" {
+		founder = c.T("settlement.found.founder", map[string]any{"founder": v.Founder})
+	}
 	text := paragraphs(
 		c.T("settlement.found.title", nil),
 		c.T("settlement.found.body", map[string]any{
@@ -77,6 +108,8 @@ func renderSettlementFounded(c Context, v SettlementFoundedView) *presenter.Resp
 			"buildings":  c.joinNames(buildings),
 			"protection": FormatDate(c, v.ProtectedUntil),
 		}),
+		body(emblem, motto),
+		body(founder, currency),
 	)
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{}))

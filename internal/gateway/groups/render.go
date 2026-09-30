@@ -172,14 +172,14 @@ func (r *Renderer) Render(ctx context.Context, api API, bot Bot, meta envelope.M
 // buttons, bound to the player who asked. A screen sent another way than
 // Render — a photo — carries the same.
 func (r *Renderer) PublicMarkup(bot Bot, meta envelope.Metadata, kb *presenter.Keyboard) any {
-	return Markup(BindKeyboard(r.ForGroup(kb, meta.Language, DeepLink(bot.Username, "")), meta.TelegramUserID))
+	return Markup(BindKeyboard(r.ForGroup(ResolveMiniApp(kb, bot.Username), meta.Language, DeepLink(bot.Username, "")), meta.TelegramUserID))
 }
 
 // public posts or edits a screen everybody in the group may see. Its
 // buttons are the group's (ForGroup), bound to the player who asked.
 func (r *Renderer) public(ctx context.Context, api API, bot Bot, meta envelope.Metadata, resp *presenter.Response) (Outcome, error) {
 	out := Outcome{Route: RoutePublic}
-	kb := r.ForGroup(resp.Keyboard, meta.Language, DeepLink(bot.Username, ""))
+	kb := r.ForGroup(ResolveMiniApp(resp.Keyboard, bot.Username), meta.Language, DeepLink(bot.Username, ""))
 	markup := Markup(BindKeyboard(kb, meta.TelegramUserID))
 
 	if resp.Type == presenter.ActionEditMessage {
@@ -232,7 +232,7 @@ func (r *Renderer) direct(ctx context.Context, api API, bot Bot, meta envelope.M
 		return out, ErrNoReceiver
 	}
 	// A private chat holds one player, so its buttons need no owner.
-	_, err := api.SendMessageWith(ctx, user, resp.Text, Markup(resp.Keyboard), client.SendOptions{ParseMode: parseModeOf(resp)})
+	_, err := api.SendMessageWith(ctx, user, resp.Text, Markup(ResolveMiniApp(resp.Keyboard, bot.Username)), client.SendOptions{ParseMode: parseModeOf(resp)})
 	if err != nil && (isFlood(err) || !isUnreachable(err)) {
 		return out, err
 	}

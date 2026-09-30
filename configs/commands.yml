@@ -383,6 +383,10 @@ commands:
   # civic act the whole group decides and sees, never private — the same
   # rule crime.* above already follows.
   settlement.found: {channel: group}
+  # The founding form (found.draft, found.submit) is filled in the game
+  # client the group's button opens - never in a chat.
+  settlement.found.draft: {channel: private, client: true}
+  settlement.found.submit: {channel: private, client: true}
   # Village-level knowledge and construction (docs/adr/0031), K2/W5: the
   # same rule — a settlement's growth is the group's own decision, never
   # private.

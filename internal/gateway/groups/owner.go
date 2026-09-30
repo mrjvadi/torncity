@@ -102,6 +102,11 @@ func Markup(kb *presenter.Keyboard) any {
 	for _, row := range kb.Rows {
 		out := make([]button, 0, len(row))
 		for _, b := range row {
+			if b.CallbackData == "" && b.URL == "" && b.WebAppURL == "" {
+				// A button that does nothing (an unresolved Mini App link)
+				// would make Telegram refuse the whole keyboard.
+				continue
+			}
 			var wa *webApp
 			if b.WebAppURL != "" {
 				wa = &webApp{URL: b.WebAppURL}

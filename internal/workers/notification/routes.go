@@ -207,6 +207,7 @@ func Routes() []Route {
 		// Public lines in a city's groups (announce.go). Each has its own
 		// consumer beside the event's private notice, if any.
 		{Domain: "travel", Event: "completed", Name: "announce", Announce: arrivalAnnouncement},
+		{Domain: "settlement", Event: "founded", Name: "announce", Announce: foundedAnnouncement},
 		{Domain: "crime", Event: "jailed", Name: "announce", Announce: jailAnnouncement},
 		{Domain: "election", Event: "opened", Name: "announce", Announce: electionOpenedAnnouncement},
 		{Domain: "election", Event: "stood", Name: "announce", Announce: electionStoodAnnouncement},

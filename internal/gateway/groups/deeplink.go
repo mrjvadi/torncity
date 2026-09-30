@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 	"time"
+
+	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
 // Deep links.
@@ -202,11 +204,56 @@ func DeepLink(username, payload string) string {
 // direct link to one of several named apps. It is empty when the bot's
 // username is unknown, exactly like DeepLink.
 func MiniAppDeepLink(username string) string {
+	return MiniAppLink(username, miniAppStartParam)
+}
+
+// MiniAppLink is the link that opens the bot's Mini App with a start
+// parameter, which arrives in the Mini App as start_param (and as the
+// tgWebAppStartParam launch parameter): core.telegram.org/bots/webapps,
+// "Direct Link Mini Apps". It is empty when the username is unknown or the
+// parameter is empty, too long or has characters Telegram does not allow.
+func MiniAppLink(username, param string) string {
 	username = strings.TrimPrefix(strings.TrimSpace(username), "@")
-	if username == "" {
+	if username == "" || param == "" || len(param) > maxStartPayload || !allPayloadBytes(param) {
 		return ""
 	}
-	return telegramLinkBase + username + "?startapp=" + miniAppStartParam
+	return telegramLinkBase + username + "?startapp=" + param
+}
+
+// ResolveMiniApp turns every button that names a Mini App start parameter
+// (presenter.Button.MiniAppParam) into a `url` button to the bot's Mini App
+// link, and drops one whose link cannot be made. kb itself is not modified.
+func ResolveMiniApp(kb *presenter.Keyboard, username string) *presenter.Keyboard {
+	if kb == nil {
+		return nil
+	}
+	found := false
+	for _, row := range kb.Rows {
+		for _, b := range row {
+			found = found || b.MiniAppParam != ""
+		}
+	}
+	if !found {
+		return kb
+	}
+	out := &presenter.Keyboard{}
+	for _, row := range kb.Rows {
+		next := make([]presenter.Button, 0, len(row))
+		for _, b := range row {
+			if b.MiniAppParam != "" {
+				link := MiniAppLink(username, b.MiniAppParam)
+				if link == "" {
+					continue
+				}
+				b.URL, b.MiniAppParam = link, ""
+			}
+			next = append(next, b)
+		}
+		if len(next) > 0 {
+			out.Rows = append(out.Rows, next)
+		}
+	}
+	return out
 }
 
 // miniAppStartParam is the start_param a redirect's Mini App link carries.

@@ -587,11 +587,100 @@ settlement:
       Starting buildings: {buildings}
       This village is protected from attack until {protection}.
     unnamed_feature: "an unnamed land"
+    # The founding form adds these to the announcement (docs/adr/0028 section 3).
+    emblem: "Emblem: {emblem}"
+    motto: "\"{motto}\""
+    founder: "👤 Village head: {founder}"
+    currency: "🪙 National currency: {name} ({code}) - reserved for the day this village becomes a country; until then Sup is used."
     group_only: "🏡 Founding a village only works inside a group. Add the bot to your group and send this command there."
     no_world: "🌍 The world map is not ready yet. Try again shortly."
     already:
       title: "🏡 This group has already founded the village of \"{name}\"."
       body: "Each group founds only one village; grow it from your village's own government instead."
+
+# The founding form (docs/adr/0028-world-and-settlements.md section 3): "found
+# village" opens a draft in the group; the founder completes the village's
+# details in the game client, and only submitting the form founds the village.
+founding:
+  draft:
+    title: "📝 Complete the village details"
+    body: "{founder} wants to found a village for this group, but first has to complete its details: the village's name, national currency, emblem and motto. The button below opens the game; once the form is submitted the village is founded and announced here."
+    deadline: "⏳ Time to complete it: {minutes} minutes. If it runs out nothing is built and you may send \"found village\" again."
+    hint: "If the button does not open, open the game from the bot's private chat; the form is waiting there."
+    pending_title: "📝 {founder} is completing this group's village details."
+    pending_body: "Only they can submit the form, but you can look at it. If it is not done within {minutes} minutes, send \"found village\" again."
+    button: "📝 Complete village details"
+  form:
+    title: "📝 Village details"
+    mine: "Choose the village's name, national currency, emblem and motto, then submit the form."
+    other: "{founder} is completing this form; only they can submit it."
+    done: "🏡 The village of \"{name}\" has been founded."
+  checked: "✅ The form is fine; you can found the village of \"{name}\"."
+  refusal:
+    no_draft: "📝 No village form was found. Send \"found village\" in the group."
+    expired: "⏳ This form ran out of time and no village was built. Send \"found village\" in the group again."
+    not_founder: "🔒 Only the player who asked to found the village can submit this form."
+    already: "🏡 This group has already founded the village of \"{name}\"."
+    invalid: "⚠️ A few things in the form need fixing:"
+    no_world: "🌍 The world map is not ready yet. Try again shortly."
+    group_only: "🏡 Founding a village only works inside a group. Add the bot to your group and send \"found village\" there."
+    unavailable: "🛠 The village form is unavailable for now. Try again shortly."
+  problem:
+    name_short: "The village name needs at least {name_min} characters."
+    name_long: "The village name can have at most {name_max} characters."
+    name_chars: "The village name may only use Persian or Latin letters and spaces; no digits or symbols."
+    name_link: "The village name cannot be a link, a handle or an address."
+    name_forbidden: "That name is not allowed; pick another."
+    name_reserved: "That name is reserved by the game."
+    name_taken: "Another village already has that name."
+    motto_long: "The motto can have at most {motto_max} characters."
+    motto_chars: "The motto may only use letters, digits and simple punctuation."
+    motto_link: "The motto cannot contain a link or a handle."
+    motto_forbidden: "That motto is not allowed."
+    currency_name_short: "The currency name needs at least {currency_name_min} characters."
+    currency_name_long: "The currency name can have at most {currency_name_max} characters."
+    currency_name_chars: "The currency name may only use Persian or Latin letters and spaces."
+    currency_name_forbidden: "That currency name is not allowed."
+    currency_name_taken: "Another village has already taken that currency name."
+    currency_code_format: "The currency code must be exactly {code_len} capital Latin letters, like KRD."
+    currency_code_reserved: "That code is reserved for the game's or the real world's currencies."
+    currency_code_forbidden: "That code is not allowed."
+    currency_code_taken: "Another village has already taken that currency code."
+    currency_symbol_invalid: "The currency symbol must be 1 to {symbol_max} characters, without spaces."
+    emblem_invalid: "The emblem is incomplete; pick a shape, an icon and two different colours."
+  shape:
+    shield: "Shield"
+    circle: "Circle"
+    banner: "Banner"
+    diamond: "Diamond"
+    hexagon: "Hexagon"
+  color:
+    crimson: "Crimson"
+    orange: "Orange"
+    gold: "Gold"
+    green: "Green"
+    azure: "Azure"
+    violet: "Violet"
+    brown: "Brown"
+    ivory: "Ivory"
+    slate: "Slate"
+  icon:
+    wheat: "Wheat"
+    tree: "Tree"
+    mountain: "Mountain"
+    wave: "Wave"
+    sun: "Sun"
+    moon: "Moon"
+    star: "Star"
+    tower: "Tower"
+    anchor: "Anchor"
+    hammer: "Hammer"
+    flame: "Flame"
+    crown: "Crown"
+    key: "Key"
+    book: "Book"
+    horse: "Horse"
+    fish: "Fish"
 
 # Village-level knowledge and construction (docs/adr/0031-knowledge-and-
 # village-progression.md; internal/telegram/screens/village.go). Group

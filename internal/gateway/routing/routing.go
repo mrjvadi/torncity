@@ -446,6 +446,10 @@ var argNames = map[string][]string{
 	// Group founding (docs/adr/0028-world-and-settlements.md section 3)
 	// takes nothing: the game, not the group, chooses the spot.
 	"settlement.found": {},
+	// The founding form is a client's: its arguments are named in the
+	// payload (internal/application/handlers.FoundSubmitRequest).
+	"settlement.found.draft":  {"draft"},
+	"settlement.found.submit": {"draft"},
 
 	// Village-level knowledge and construction (ADR 0031), K2/W5: the
 	// settlement itself is always the group's own (resolved by chat id,

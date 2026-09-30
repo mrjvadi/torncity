@@ -115,7 +115,19 @@ var _ application.SettlementRepository = (*SettlementRepository)(nil)
 const (
 	citiesWorldCellUniqueIdx      = "cities_world_cell_unique_idx"
 	citiesFoundedByGroupUniqueIdx = "cities_founded_by_group_unique_idx"
+	citiesFoundedNameKeyIdx       = "cities_founded_name_key_idx"
+	currencyReservationCodeKey    = "village_currency_reservations_pkey"
+	currencyReservationNameKey    = "village_currency_reservations_name_key"
+	foundingDraftsOpenChatIdx     = "founding_drafts_open_chat_idx"
 )
+
+// nullIfEmpty stores an empty string as NULL.
+func nullIfEmpty(s string) any {
+	if s == "" {
+		return nil
+	}
+	return s
+}
 
 // Found writes one settlement. See the application.SettlementRepository
 // doc for exactly what it refuses and why.
@@ -144,17 +156,45 @@ func (r *SettlementRepository) Found(ctx context.Context, f application.Founding
 	}
 	_, err = r.q.Exec(ctx,
 		`INSERT INTO cities (id, code, name, tax_rate_bps, cost_of_living, population, jurisdiction_id,
-		        origin, tier, world_id, world_cell_id, founded_by_group_id, founded_at, protected_until)
-		 VALUES ($1::uuid, $2, $3, 0, $4, 0, $5::uuid, 'founded', $6, $7::uuid, $8, $9, $10, $11)`,
+		        origin, tier, world_id, world_cell_id, founded_by_group_id, founded_at, protected_until,
+		        emblem_shape, emblem_color_a, emblem_color_b, emblem_icon, motto, name_key)
+		 VALUES ($1::uuid, $2, $3, 0, $4, 0, $5::uuid, 'founded', $6, $7::uuid, $8, $9, $10, $11,
+		        $12, $13, $14, $15, $16, $17)`,
 		cityID, f.Code, f.Name, settlementFoundedCostOfLiving, jurisdictionID, f.Tier,
-		f.WorldID, f.WorldCellID, f.FoundedByGroupChatID, f.FoundedAt, f.ProtectedUntil)
+		f.WorldID, f.WorldCellID, f.FoundedByGroupChatID, f.FoundedAt, f.ProtectedUntil,
+		nullIfEmpty(f.Emblem.Shape), nullIfEmpty(f.Emblem.ColorA), nullIfEmpty(f.Emblem.ColorB), nullIfEmpty(f.Emblem.Icon),
+		nullIfEmpty(f.Motto), nullIfEmpty(f.NameKey))
 	switch {
 	case violates(err, sqlstateUniqueViolation, citiesWorldCellUniqueIdx):
 		return out, application.ErrSpawnCellTaken
 	case violates(err, sqlstateUniqueViolation, citiesFoundedByGroupUniqueIdx):
 		return out, application.ErrGroupAlreadyFounded
+	case violates(err, sqlstateUniqueViolation, citiesFoundedNameKeyIdx):
+		return out, application.ErrFoundingNameTaken
 	case err != nil:
 		return out, fmt.Errorf("postgres: founding settlement: creating city: %w", err)
+	}
+
+	if f.Currency.Code != "" {
+		var existing bool
+		if err := r.q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM currencies WHERE code = $1)`, f.Currency.Code).Scan(&existing); err != nil {
+			return out, fmt.Errorf("postgres: founding settlement: checking the currency code: %w", err)
+		}
+		if existing {
+			return out, application.ErrFoundingCurrencyCodeTaken
+		}
+		_, err := r.q.Exec(ctx,
+			`INSERT INTO village_currency_reservations (code, name, name_key, symbol, settlement_id, reserved_at)
+			 VALUES ($1, $2, $3, $4, $5::uuid, $6)`,
+			f.Currency.Code, f.Currency.Name, f.CurrencyNameKey, f.Currency.Symbol, cityID, f.FoundedAt)
+		switch {
+		case violates(err, sqlstateUniqueViolation, currencyReservationCodeKey):
+			return out, application.ErrFoundingCurrencyCodeTaken
+		case violates(err, sqlstateUniqueViolation, currencyReservationNameKey):
+			return out, application.ErrFoundingCurrencyNameTaken
+		case err != nil:
+			return out, fmt.Errorf("postgres: founding settlement: reserving the currency: %w", err)
+		}
 	}
 
 	if err := r.createVacantSeats(ctx, f.Tier, jurisdictionID, f.FoundedAt); err != nil {
@@ -186,6 +226,7 @@ func (r *SettlementRepository) Found(ctx context.Context, f application.Founding
 	out = application.FoundedSettlement{
 		CityID: cityID, Code: f.Code, Name: f.Name, JurisdictionID: jurisdictionID, Tier: f.Tier,
 		WorldCellID: f.WorldCellID, FoundedAt: f.FoundedAt, ProtectedUntil: f.ProtectedUntil, Buildings: f.Buildings,
+		Emblem: f.Emblem, Motto: f.Motto, Currency: f.Currency, WorldID: f.WorldID,
 	}
 	return out, nil
 }
@@ -265,11 +306,18 @@ func (r *SettlementRepository) ExistingForWorld(ctx context.Context, worldID str
 
 // settlementColumns are the cities columns a FoundedSettlement is read from.
 const settlementColumns = `c.id::text, c.code, c.name, c.jurisdiction_id::text, c.tier, c.world_id::text, c.world_cell_id,
-	c.founded_at, c.protected_until`
+	c.founded_at, c.protected_until,
+	COALESCE(c.emblem_shape, ''), COALESCE(c.emblem_color_a, ''), COALESCE(c.emblem_color_b, ''), COALESCE(c.emblem_icon, ''),
+	COALESCE(c.motto, ''),
+	COALESCE((SELECT v.code FROM village_currency_reservations v WHERE v.settlement_id = c.id), ''),
+	COALESCE((SELECT v.name FROM village_currency_reservations v WHERE v.settlement_id = c.id), ''),
+	COALESCE((SELECT v.symbol FROM village_currency_reservations v WHERE v.settlement_id = c.id), '')`
 
 func scanSettlement(row pgx.Row, out *application.FoundedSettlement, extra ...any) error {
 	return row.Scan(append([]any{&out.CityID, &out.Code, &out.Name, &out.JurisdictionID, &out.Tier, &out.WorldID,
-		&out.WorldCellID, &out.FoundedAt, &out.ProtectedUntil}, extra...)...)
+		&out.WorldCellID, &out.FoundedAt, &out.ProtectedUntil,
+		&out.Emblem.Shape, &out.Emblem.ColorA, &out.Emblem.ColorB, &out.Emblem.Icon, &out.Motto,
+		&out.Currency.Code, &out.Currency.Name, &out.Currency.Symbol}, extra...)...)
 }
 
 // ByFoundingGroup returns the settlement this chat already founded, or

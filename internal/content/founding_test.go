@@ -3,8 +3,6 @@ package content
 import (
 	"errors"
 	"testing"
-
-	"github.com/mrjvadi/torncity/internal/domain/settlement"
 )
 
 func TestShippedFoundingIsUsable(t *testing.T) {
@@ -20,12 +18,9 @@ func TestShippedFoundingIsUsable(t *testing.T) {
 	if len(problems) != 0 {
 		t.Fatalf("shipped founding content: %v", problems)
 	}
-	rules := pack.Founding[0].Rules(settlement.FormRules{NameMin: 3, NameMax: 24, MottoMax: 60,
-		CurrencyNameMin: 3, CurrencyNameMax: 24, CurrencyCodeLen: 3, CurrencySymbolMax: 3})
-	_, ps := rules.Check(settlement.Form{Name: "Korendal", CurrencyName: "Korendal mark", CurrencyCode: "KRD",
-		Emblem: settlement.Emblem{Shape: "shield", ColorA: "crimson", ColorB: "gold", Icon: "wheat"}})
-	if len(ps) != 0 {
-		t.Errorf("a good form is refused with the shipped lists: %v", ps)
+	d := pack.Founding[0]
+	if len(d.Shapes) < 3 || len(d.Palette) < 6 || len(d.Icons) < 8 {
+		t.Errorf("the emblem catalogue is thin: %d shapes, %d colours, %d icons", len(d.Shapes), len(d.Palette), len(d.Icons))
 	}
 }
 

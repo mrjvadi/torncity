@@ -39,6 +39,14 @@ type Button struct {
 	// (internal/gateway/groups.MiniAppDeepLink), which opens the same Mini
 	// App from anywhere.
 	WebAppURL string `json:"web_app_url,omitempty"`
+	// MiniAppParam opens the bot's Mini App with this start parameter: a
+	// `url` button to t.me/<bot>?startapp=<param>, which Telegram allows in
+	// a group where `web_app` is not. The bot's @username is the gateway's
+	// to know, so the handler names only the parameter and the gateway
+	// makes the link (groups.ResolveMiniApp); a button whose link cannot be
+	// made is left out. The parameter is A-Z, a-z, 0-9, "_" and "-", up to
+	// 64 characters.
+	MiniAppParam string `json:"mini_app_param,omitempty"`
 }
 
 // Keyboard is a grid of buttons, outer slice is rows.

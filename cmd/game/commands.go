@@ -255,6 +255,20 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		"settlement.found": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.settlements.Found(ctx, env.Metadata)
 		},
+		"settlement.found.draft": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.FoundDraftRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.settlements.FoundDraft(ctx, env.Metadata, req)
+		},
+		"settlement.found.submit": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.FoundSubmitRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.settlements.Submit(ctx, env.Metadata, req)
+		},
 
 		// Village-level knowledge and construction (docs/adr/0031), K2/W5.
 		"settlement.overview": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {

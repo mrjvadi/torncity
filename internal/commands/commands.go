@@ -414,6 +414,10 @@ var all = []Subscription{
 	// group's own /found command, answered where it was sent — a village
 	// only ever lands in the group that founded it.
 	{Domain: "settlement", Action: "found", Origin: FromPlayer},
+	// The founding form: read and submitted from the game client, which the
+	// group's button opens (found.draft, found.submit).
+	{Domain: "settlement", Action: "found.draft", Origin: FromPlayer},
+	{Domain: "settlement", Action: "found.submit", Origin: FromPlayer},
 
 	// Village-level knowledge and construction
 	// (docs/adr/0031-knowledge-and-village-progression.md), K2/W5: the

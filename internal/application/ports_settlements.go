@@ -76,7 +76,64 @@ var (
 	// reaches this, not a second village.
 	ErrGroupAlreadyFounded = errors.Sentinel(errors.CodeConflict,
 		"application.ErrGroupAlreadyFounded", "this group has already founded a settlement")
+
+	// ErrFoundingNameTaken, ErrFoundingCurrencyCodeTaken and
+	// ErrFoundingCurrencyNameTaken mean another settlement holds the chosen
+	// name, or another village has reserved the chosen currency code or name
+	// (the unique indexes of migration 0051, hit by a concurrent founding
+	// that won the race after the form's own check).
+	ErrFoundingNameTaken = errors.Sentinel(errors.CodeConflict,
+		"application.ErrFoundingNameTaken", "that village name is taken")
+	ErrFoundingCurrencyCodeTaken = errors.Sentinel(errors.CodeConflict,
+		"application.ErrFoundingCurrencyCodeTaken", "that currency code is taken")
+	ErrFoundingCurrencyNameTaken = errors.Sentinel(errors.CodeConflict,
+		"application.ErrFoundingCurrencyNameTaken", "that currency name is taken")
+
+	// ErrFoundingDraftNotFound means no founding draft has that id.
+	ErrFoundingDraftNotFound = errors.Sentinel(errors.CodeNotFound,
+		"application.ErrFoundingDraftNotFound", "no such founding draft")
 )
+
+// Draft statuses (settlement_founding_drafts.status).
+const (
+	DraftOpen      = "open"
+	DraftSubmitted = "submitted"
+	DraftExpired   = "expired"
+)
+
+// FoundingDraft is a group's founding waiting for its founder to complete the
+// village details (migration 0051): nothing is founded until it is submitted.
+type FoundingDraft struct {
+	ID              string
+	ChatID          int64
+	BotID           string
+	FounderPlayerID string
+	// FounderName is the founder's display name, for the group's message and
+	// for whoever else opens the link.
+	FounderName string
+	// Language is the group's language.
+	Language string
+	// SuggestedName is the generated place name the form starts from, in
+	// the group's language; SuggestedNameLatin is its Latin spelling.
+	SuggestedName      string
+	SuggestedNameLatin string
+	Status             string
+	CreatedAt          time.Time
+	ExpiresAt          time.Time
+	SubmittedAt        time.Time
+	// SettlementID is the village a submitted draft became.
+	SettlementID string
+}
+
+// Expired reports a draft that is open but past its time.
+func (d FoundingDraft) Expired(now time.Time) bool {
+	return d.Status == DraftExpired || (d.Status == DraftOpen && !now.Before(d.ExpiresAt))
+}
+
+// VillageCurrency is the national currency a village reserved at its founding.
+type VillageCurrency struct {
+	Code, Name, Symbol string
+}
 
 // WorldRepository reads the world registry and hands out founding indices.
 // Reached through Tx.Worlds so a read taken to plan a founding and the
@@ -140,6 +197,14 @@ type Founding struct {
 	// country, content code default_country — DefaultFoundingCountryCode).
 	CountryCode     string
 	FounderPlayerID string
+	// The founding form's choices (migration 0051): the emblem's four codes,
+	// the motto, and the currency the village reserves. NameKey is
+	// settlement.NameKey(Name), CurrencyNameKey that of the currency's name.
+	Emblem          EmblemCodes
+	Motto           string
+	NameKey         string
+	Currency        VillageCurrency
+	CurrencyNameKey string
 	// FoundedByGroupChatID is the Telegram chat that founded it (negative,
 	// like every group chat id in this codebase).
 	FoundedByGroupChatID int64
@@ -150,8 +215,19 @@ type Founding struct {
 	Buildings            []SettlementBuilding
 }
 
+// EmblemCodes are a village emblem's four catalogue codes.
+type EmblemCodes struct {
+	Shape, ColorA, ColorB, Icon string
+}
+
 // FoundedSettlement is what one founding wrote.
 type FoundedSettlement struct {
+	// Emblem, Motto and Currency are the founding form's choices; empty for
+	// a village founded before the form existed.
+	Emblem   EmblemCodes
+	Motto    string
+	Currency VillageCurrency
+
 	CityID         string
 	WorldID        string
 	Code           string
@@ -209,6 +285,31 @@ type SettlementRepository interface {
 	// A game client has no Telegram group to name its settlement by, so it
 	// is resolved from the player (docs/adr/0028 section 9.4).
 	ByPlayer(ctx context.Context, playerID string) (PlayerSettlement, error)
+
+	// CreateDraft opens a founding draft for d.ChatID, first marking any
+	// open draft of that chat whose time is up as expired. When another
+	// draft of the chat is still open (a concurrent «ساخت روستا», or a
+	// redelivery) it returns that one and created is false: one open draft
+	// per group.
+	CreateDraft(ctx context.Context, d FoundingDraft, now time.Time) (draft FoundingDraft, created bool, err error)
+	// OpenDraftOfChat is the chat's open, unexpired draft, or
+	// ErrFoundingDraftNotFound.
+	OpenDraftOfChat(ctx context.Context, chatID int64, now time.Time) (FoundingDraft, error)
+	// DraftByID reads a draft, locking its row for the rest of the
+	// transaction, or ErrFoundingDraftNotFound. An open draft past its time
+	// is returned with status expired (and stored so).
+	DraftByID(ctx context.Context, id string, now time.Time) (FoundingDraft, error)
+	// OpenDraftOfPlayer is the player's open, unexpired draft, or
+	// ErrFoundingDraftNotFound.
+	OpenDraftOfPlayer(ctx context.Context, playerID string, now time.Time) (FoundingDraft, error)
+	// MarkDraftSubmitted records that the draft became settlementID.
+	MarkDraftSubmitted(ctx context.Context, draftID, settlementID string, at time.Time) error
+	// FoundingNameTaken reports whether a settlement or city already has a
+	// name with this key (settlement.NameKey).
+	FoundingNameTaken(ctx context.Context, nameKey string) (bool, error)
+	// CurrencyTaken reports whether the code is an existing or reserved
+	// currency, and whether the name key is a reserved currency name.
+	CurrencyTaken(ctx context.Context, code, nameKey string) (codeTaken, nameTaken bool, err error)
 
 	// ResidentCount is how many active players have this settlement as
 	// their home (players.residence_city_id): its population.

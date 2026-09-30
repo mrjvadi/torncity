@@ -396,6 +396,15 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			cfg.Settlement.ProtectionWindow,
 			cfg.Settlement.VillageGridLots,
 			cfg.Settlement.TeachPeriod,
+			handlers.FoundingConfig{
+				DraftTTL: cfg.Settlement.FoundingDraftTTL,
+				Bounds: wsettle.FormRules{
+					NameMin: cfg.Settlement.FoundingNameMin, NameMax: cfg.Settlement.FoundingNameMax,
+					MottoMax:        cfg.Settlement.FoundingMottoMax,
+					CurrencyNameMin: cfg.Settlement.FoundingCurrencyNameMin, CurrencyNameMax: cfg.Settlement.FoundingCurrencyNameMax,
+					CurrencyCodeLen: cfg.Settlement.FoundingCurrencyCodeLen, CurrencySymbolMax: cfg.Settlement.FoundingCurrencySymbolMax,
+				},
+			},
 			nil,
 		),
 		village: handlers.NewVillageHandler(
