@@ -555,6 +555,10 @@ settlement:
   scarcity_cap_bps: 80001
   seller_band_bps: 501
   demolition_salvage_bps: 2001
+  material_markup_bps: 12001
+  stock_base_capacity: 61
+  material_buy_max: 201
+  material_buy_presets: [6, 21, 51]
   founding_grant: 10001
   donation_min: 101
   donation_max: 100001
@@ -873,6 +877,10 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_SELLER_BAND_BPS":              "502",
 	"TORN_SETTLEMENT_DEMOLITION_SALVAGE_BPS":       "2002",
 	"TORN_SETTLEMENT_FOUNDING_GRANT":               "10002",
+	"TORN_SETTLEMENT_MATERIAL_MARKUP_BPS":          "12002",
+	"TORN_SETTLEMENT_STOCK_BASE_CAPACITY":          "62",
+	"TORN_SETTLEMENT_MATERIAL_BUY_MAX":             "202",
+	"TORN_SETTLEMENT_MATERIAL_BUY_PRESETS":         "7,22,52",
 	"TORN_SETTLEMENT_DONATION_MIN":                 "102",
 	"TORN_SETTLEMENT_DONATION_MAX":                 "100002",
 	"TORN_SETTLEMENT_DONATION_PRESETS":             "252,1002,5002",
