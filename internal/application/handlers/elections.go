@@ -20,8 +20,9 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // ElectionsHandler serves elections (internal/domain/election): the
@@ -93,22 +94,22 @@ func (h *ElectionsHandler) screen(meta envelope.Metadata, lang string) screens.C
 }
 
 // electionRefusal carries a refused request out of a unit of work.
-type electionRefusal struct{ view screens.ElectionRefusalView }
+type electionRefusal struct{ view society.ElectionRefusalView }
 
 func (r *electionRefusal) Error() string { return "handlers: election refused: " + r.view.Kind }
 
 func refuseElection(kind string, e *application.Election, j application.Jurisdiction) *electionRefusal {
-	r := &electionRefusal{view: screens.ElectionRefusalView{Kind: kind}}
+	r := &electionRefusal{view: society.ElectionRefusalView{Kind: kind}}
 	if e != nil {
 		r.view.No, r.view.Office, r.view.Place = e.No, e.OfficeCode, govPlace(j)
 	}
 	return r
 }
 
-func (h *ElectionsHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *ElectionsHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	var r *electionRefusal
 	if stderrors.As(err, &r) {
-		return screens.ElectionRefusal(h.screen(meta, lang), r.view), nil
+		return society.ElectionRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(h.screen(meta, lang), v), nil
@@ -306,7 +307,7 @@ func (h *ElectionsHandler) person(ctx context.Context, tx application.Tx, p *app
 // phaseOf is an election's phase now, counted ones included.
 func phaseOf(e application.Election, now time.Time) string {
 	if e.Status == application.ElectionCounted {
-		return screens.ElectionCounted
+		return society.ElectionCounted
 	}
 	return string(election.Schedule{OpensAt: e.OpensAt, CandidacyEndsAt: e.CandidacyEndsAt, VotingEndsAt: e.VotingEndsAt}.At(now))
 }
@@ -314,8 +315,8 @@ func phaseOf(e application.Election, now time.Time) string {
 // line is an election as the list shows it.
 func (h *ElectionsHandler) line(ctx context.Context, tx application.Tx, e application.Election, j application.Jurisdiction,
 	now time.Time,
-) (screens.ElectionLine, error) {
-	l := screens.ElectionLine{No: e.No, Office: e.OfficeCode, Place: govPlace(j), Phase: phaseOf(e, now), Seats: e.Seats}
+) (society.ElectionLine, error) {
+	l := society.ElectionLine{No: e.No, Office: e.OfficeCode, Place: govPlace(j), Phase: phaseOf(e, now), Seats: e.Seats}
 	switch l.Phase {
 	case string(election.Candidacy):
 		l.EndsAt = e.CandidacyEndsAt
@@ -336,7 +337,7 @@ func (h *ElectionsHandler) line(ctx context.Context, tx application.Tx, e applic
 			if err != nil {
 				return l, err
 			}
-			l.Elected = append(l.Elected, screens.GovPlayer{Name: shownName(who), Code: who.PublicCode})
+			l.Elected = append(l.Elected, society.GovPlayer{Name: shownName(who), Code: who.PublicCode})
 		}
 	}
 	return l, nil
@@ -345,12 +346,12 @@ func (h *ElectionsHandler) line(ctx context.Context, tx application.Tx, e applic
 // List handles election.list: the elections of the player's city and of
 // the jurisdictions above it, under way first, then the latest of each
 // office.
-func (h *ElectionsHandler) List(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *ElectionsHandler) List(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	lang := meta.Language
-	var view screens.ElectionsView
+	var view society.ElectionsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -391,18 +392,18 @@ func (h *ElectionsHandler) List(ctx context.Context, meta envelope.Metadata) (*p
 	if err != nil {
 		return nil, err
 	}
-	return screens.Elections(h.screen(meta, lang), view), nil
+	return society.Elections(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // View handles election.view: one election, its candidates and — for the
 // player — whether and how they may stand or vote.
-func (h *ElectionsHandler) View(ctx context.Context, meta envelope.Metadata, req ElectionRequest) (*presenter.Response, error) {
+func (h *ElectionsHandler) View(ctx context.Context, meta envelope.Metadata, req ElectionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ElectionView
+	var view society.ElectionView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -416,7 +417,7 @@ func (h *ElectionsHandler) View(ctx context.Context, meta envelope.Metadata, req
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
 		return resp, ferr
 	}
-	return screens.Election(h.screen(meta, lang), view), nil
+	return society.Election(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // ballot is an election's candidates in ballot order, with the players.
@@ -437,28 +438,28 @@ func ballot(ctx context.Context, tx application.Tx, electionID string) ([]applic
 func (h *ElectionsHandler) election(ctx context.Context, tx application.Tx, no string) (*application.Election, error) {
 	n, err := strconv.ParseInt(strings.TrimSpace(no), 10, 64)
 	if err != nil || n <= 0 {
-		return nil, refuseElection(screens.ElectionRefusedNone, nil, application.Jurisdiction{})
+		return nil, refuseElection(society.ElectionRefusedNone, nil, application.Jurisdiction{})
 	}
 	e, err := tx.Elections().ElectionByNo(ctx, n)
 	if isSentinel(err, application.ErrElectionNotFound) {
-		return nil, refuseElection(screens.ElectionRefusedNone, nil, application.Jurisdiction{})
+		return nil, refuseElection(society.ElectionRefusedNone, nil, application.Jurisdiction{})
 	}
 	return e, err
 }
 
 func (h *ElectionsHandler) view(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, no string,
-) (screens.ElectionView, error) {
+) (society.ElectionView, error) {
 	e, err := h.election(ctx, tx, no)
 	if err != nil {
-		return screens.ElectionView{}, err
+		return society.ElectionView{}, err
 	}
 	j, err := tx.Governance().Jurisdiction(ctx, e.JurisdictionID)
 	if err != nil {
-		return screens.ElectionView{}, err
+		return society.ElectionView{}, err
 	}
 	now := h.now()
 	def, rules, _ := snap.Election(e.OfficeCode)
-	v := screens.ElectionView{
+	v := society.ElectionView{
 		No: e.No, Office: e.OfficeCode, Place: govPlace(j), Seats: e.Seats, Phase: phaseOf(*e, now),
 		CandidacyEndsAt: e.CandidacyEndsAt, VotingEndsAt: e.VotingEndsAt, VotesCast: e.VotesCast,
 		Deposit: def.Deposit, RefundShareBPS: rules.RefundShareBPS, MinLevel: rules.MinLevel, Nonce: h.nonce(),
@@ -474,7 +475,7 @@ func (h *ElectionsHandler) view(ctx context.Context, tx application.Tx, snap *co
 		return v, err
 	}
 	for i, c := range cs {
-		line := screens.CandidateLine{Player: screens.GovPlayer{Name: shownName(who[i]), Code: who[i].PublicCode},
+		line := society.CandidateLine{Player: society.GovPlayer{Name: shownName(who[i]), Code: who[i].PublicCode},
 			Mine: c.PlayerID == p.ID}
 		if c.Votes != nil {
 			line.Votes, line.Counted = *c.Votes, true
@@ -533,7 +534,7 @@ func (h *ElectionsHandler) view(ctx context.Context, tx application.Tx, snap *co
 
 // Stand handles election.stand: a candidacy, registered at city hall, the
 // deposit held in the candidate's escrow until the count.
-func (h *ElectionsHandler) Stand(ctx context.Context, meta envelope.Metadata, req ElectionRequest) (*presenter.Response, error) {
+func (h *ElectionsHandler) Stand(ctx context.Context, meta envelope.Metadata, req ElectionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -544,9 +545,9 @@ func (h *ElectionsHandler) Stand(ctx context.Context, meta envelope.Metadata, re
 		return nil, err
 	}
 	var (
-		stood    screens.StoodView
+		stood    society.StoodView
 		replayed bool
-		asked    *screens.ElectionView
+		asked    *society.ElectionView
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -573,7 +574,7 @@ func (h *ElectionsHandler) Stand(ctx context.Context, meta envelope.Metadata, re
 		now := h.now()
 		def, rules, ok := snap.Election(e.OfficeCode)
 		if !ok || e.Status != application.ElectionOpen || phaseOf(*e, now) != string(election.Candidacy) {
-			return refuseElection(screens.ElectionRefusedNotStanding, e, j)
+			return refuseElection(society.ElectionRefusedNotStanding, e, j)
 		}
 		el, err := h.electorate(ctx, tx, p)
 		if err != nil {
@@ -597,7 +598,7 @@ func (h *ElectionsHandler) Stand(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		if w.city == nil || !el.residentOf(e.JurisdictionID) || !inChain(el.hereChain, e.JurisdictionID) {
-			return refuseElection(screens.ElectionRefusedAway, e, j)
+			return refuseElection(society.ElectionRefusedAway, e, j)
 		}
 		if err := needService(w, snap, place.ServiceCityHall, h.scale, now); err != nil {
 			// Away from city hall: the walk there reopens this election.
@@ -621,7 +622,7 @@ func (h *ElectionsHandler) Stand(ctx context.Context, meta envelope.Metadata, re
 				return err
 			}
 			plan := wallet.Plan(money.FromMinor(def.Deposit), snap.Accepts(content.ServiceElection))
-			back := []string{screens.AddrElection, strconv.FormatInt(e.No, 10)}
+			back := []string{society.AddrElection, strconv.FormatInt(e.No, 10)}
 			if err := checkMethod(plan, method, wallet, "election.button.back", back...); err != nil {
 				return err
 			}
@@ -648,7 +649,7 @@ func (h *ElectionsHandler) Stand(ctx context.Context, meta envelope.Metadata, re
 			}
 			return err
 		}
-		stood = screens.StoodView{No: e.No, Office: e.OfficeCode, Place: govPlace(j), Deposit: def.Deposit,
+		stood = society.StoodView{No: e.No, Office: e.OfficeCode, Place: govPlace(j), Deposit: def.Deposit,
 			Method: string(method), VotingAt: e.CandidacyEndsAt, VotingIn: max(e.CandidacyEndsAt.Sub(now), 0)}
 		cityIDs, err := electionCities(ctx, tx, j)
 		if err != nil {
@@ -671,9 +672,9 @@ func (h *ElectionsHandler) Stand(ctx context.Context, meta envelope.Metadata, re
 	case replayed:
 		return h.View(ctx, meta, ElectionRequest{No: req.No})
 	case asked != nil:
-		return screens.Election(h.screen(meta, lang), *asked), nil
+		return society.Election(presentation.Ctx{Lang: lang}, *asked), nil
 	}
-	return screens.Stood(h.screen(meta, lang), stood), nil
+	return society.Stood(presentation.Ctx{Lang: lang}, stood), nil
 }
 
 func inChain(chain []application.Jurisdiction, id string) bool {
@@ -735,14 +736,14 @@ func incompatibleOffices(a, b application.OfficeDefinition) bool {
 
 // Vote handles election.vote: one secret vote per resident. Who voted and
 // for whom are written apart, so nothing ties the two.
-func (h *ElectionsHandler) Vote(ctx context.Context, meta envelope.Metadata, req ElectionRequest) (*presenter.Response, error) {
+func (h *ElectionsHandler) Vote(ctx context.Context, meta envelope.Metadata, req ElectionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		voted    screens.VotedView
+		voted    society.VotedView
 		replayed bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -770,7 +771,7 @@ func (h *ElectionsHandler) Vote(ctx context.Context, meta envelope.Metadata, req
 		now := h.now()
 		_, rules, ok := snap.Election(e.OfficeCode)
 		if !ok || e.Status != application.ElectionOpen || phaseOf(*e, now) != string(election.Voting) {
-			return refuseElection(screens.ElectionRefusedNotVoting, e, j)
+			return refuseElection(society.ElectionRefusedNotVoting, e, j)
 		}
 		el, err := h.electorate(ctx, tx, p)
 		if err != nil {
@@ -793,7 +794,7 @@ func (h *ElectionsHandler) Vote(ctx context.Context, meta envelope.Metadata, req
 		}
 		n, err := strconv.Atoi(strings.TrimSpace(req.Candidate))
 		if err != nil || n < 1 || n > len(cs) {
-			return refuseElection(screens.ElectionRefusedNoCandidate, e, j)
+			return refuseElection(society.ElectionRefusedNoCandidate, e, j)
 		}
 		chosen := cs[n-1]
 		if err := tx.Elections().Vote(ctx, e.ID, p.ID, chosen.PlayerID, h.ids.NewID()); err != nil {
@@ -802,8 +803,8 @@ func (h *ElectionsHandler) Vote(ctx context.Context, meta envelope.Metadata, req
 			}
 			return err
 		}
-		voted = screens.VotedView{No: e.No, Office: e.OfficeCode, Place: govPlace(j),
-			Candidate: screens.GovPlayer{Name: shownName(players[n-1]), Code: players[n-1].PublicCode}, CountAt: e.VotingEndsAt,
+		voted = society.VotedView{No: e.No, Office: e.OfficeCode, Place: govPlace(j),
+			Candidate: society.GovPlayer{Name: shownName(players[n-1]), Code: players[n-1].PublicCode}, CountAt: e.VotingEndsAt,
 			CountIn: max(e.VotingEndsAt.Sub(now), 0)}
 		return nil
 	})
@@ -813,7 +814,7 @@ func (h *ElectionsHandler) Vote(ctx context.Context, meta envelope.Metadata, req
 	if replayed {
 		return h.View(ctx, meta, ElectionRequest{No: req.No})
 	}
-	return screens.Voted(h.screen(meta, lang), voted), nil
+	return society.Voted(presentation.Ctx{Lang: lang}, voted), nil
 }
 
 // electionActionID is the election a scheduled election action names.
@@ -863,7 +864,7 @@ func electionCities(ctx context.Context, tx application.Tx, j application.Jurisd
 // and the vote opens, which the city's groups hear — with how many stood, or
 // that nobody did. It runs once: voting_opened_at moves from NULL only once,
 // under the election's row lock.
-func (h *ElectionsHandler) Voting(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *ElectionsHandler) Voting(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -923,7 +924,7 @@ func (h *ElectionsHandler) Voting(ctx context.Context, meta envelope.Metadata, r
 // public; and — for an office with a term — the next election put on the
 // schedule. A seat nobody won stays vacant, which the result says. It runs
 // once: only an open election moves, under its row lock.
-func (h *ElectionsHandler) Count(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *ElectionsHandler) Count(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -1146,7 +1147,7 @@ func (h *ElectionsHandler) scheduleNext(ctx context.Context, tx application.Tx, 
 // Open handles election.open from the SCHEDULER: the next election of an
 // office whose term is running out. It opens only if the election it follows
 // is still the latest of that office there, so a redelivery opens nothing.
-func (h *ElectionsHandler) Open(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *ElectionsHandler) Open(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}

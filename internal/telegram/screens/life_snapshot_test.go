@@ -103,7 +103,7 @@ func lifeSnapshots(c Context, who people, add func(string, *presenter.Response))
 	ranks := map[string]RankRef{"breadwinner": breadwinner, "trader": trader, "newcomer": newcomer,
 		"tycoon": {Code: "tycoon", Name: "Tycoon", Emoji: "🏙"}}
 	at := snapshotNow.Add(-40 * time.Minute)
-	add("Top · the richest", Leaderboard(group(c), BoardView{Board: "richest", At: at, Ranks: ranks, Lines: []BoardLine{
+	add("Top · the richest", Leaderboard(group(c), BoardView{Board: "richest", At: at, Ranks: rankNames(ranks), Lines: []BoardLine{
 		{Position: 1, Code: thirdCode, Name: who.third, Tag: "tycoon", Value: 12400000},
 		{Position: 2, Code: friendCode, Name: who.friend, Tag: "trader", Value: 95000},
 		{Position: 3, Code: myCode, Name: who.me, Tag: "breadwinner", Value: 31500, Mine: true},

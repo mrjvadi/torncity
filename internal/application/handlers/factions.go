@@ -18,8 +18,9 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/shared/playercode"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // FactionRules is the tuning of factions (config factions.*, and the bank's
@@ -109,30 +110,30 @@ type FactionCmd struct {
 type FactionScheduledRequest = CrimeScheduledRequest
 
 // confirmed reports whether a press confirms.
-func (r FactionCmd) confirmed() bool { return strings.TrimSpace(r.Confirm) == screens.FactionYes }
+func (r FactionCmd) confirmed() bool { return strings.TrimSpace(r.Confirm) == society.FactionYes }
 
 func (h *FactionsHandler) screen(meta envelope.Metadata, lang string) screens.Context {
 	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
 }
 
 // factionRefusal carries a refused faction command out of a unit of work.
-type factionRefusal struct{ view screens.FactionRefusalView }
+type factionRefusal struct{ view society.FactionRefusalView }
 
 func (r *factionRefusal) Error() string { return "handlers: faction refused: " + r.view.Kind }
 
 func refuseFaction(kind string) *factionRefusal {
-	return &factionRefusal{view: screens.FactionRefusalView{Kind: kind}}
+	return &factionRefusal{view: society.FactionRefusalView{Kind: kind}}
 }
 
 // finish turns a refusal into its screen.
-func (h *FactionsHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *FactionsHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	if err == nil {
 		return nil, nil
 	}
 	c := h.screen(meta, lang)
 	var r *factionRefusal
 	if stderrors.As(err, &r) {
-		return screens.FactionRefusal(c, r.view), nil
+		return society.FactionRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(c, v), nil
@@ -153,14 +154,14 @@ func (h *FactionsHandler) reserve(ctx context.Context, tx application.Tx, player
 func factionDef(snap *content.Snapshot) (content.FactionDef, error) {
 	def, ok := snap.Faction()
 	if !ok {
-		return def, refuseFaction(screens.FactionRefusedNone)
+		return def, refuseFaction(society.FactionRefusedNone)
 	}
 	return def, nil
 }
 
 // factionRef names a faction for a screen.
-func factionRef(f application.Faction) screens.FactionRef {
-	return screens.FactionRef{Code: f.Code, Name: f.Name}
+func factionRef(f application.Faction) society.FactionRef {
+	return society.FactionRef{Code: f.Code, Name: f.Name}
 }
 
 // member is a player's membership with its faction, read together.
@@ -175,7 +176,7 @@ type member struct {
 func (h *FactionsHandler) membership(ctx context.Context, tx application.Tx, playerID string, lock bool) (*member, error) {
 	m, err := tx.Factions().Membership(ctx, playerID)
 	if isSentinel(err, application.ErrNotInFaction) {
-		return nil, refuseFaction(screens.FactionRefusedNotMember)
+		return nil, refuseFaction(society.FactionRefusedNotMember)
 	}
 	if err != nil {
 		return nil, err
@@ -193,12 +194,12 @@ func (h *FactionsHandler) membership(ctx context.Context, tx application.Tx, pla
 		// Re-read under the faction's lock: a kick may have landed.
 		if m, err = tx.Factions().Membership(ctx, playerID); err != nil {
 			if isSentinel(err, application.ErrNotInFaction) {
-				return nil, refuseFaction(screens.FactionRefusedNotMember)
+				return nil, refuseFaction(society.FactionRefusedNotMember)
 			}
 			return nil, err
 		}
 		if m.FactionID != f.ID {
-			return nil, refuseFaction(screens.FactionRefusedNotMember)
+			return nil, refuseFaction(society.FactionRefusedNotMember)
 		}
 	}
 	return &member{faction: f, m: *m, rank: faction.Rank(m.Rank)}, nil
@@ -207,7 +208,7 @@ func (h *FactionsHandler) membership(ctx context.Context, tx application.Tx, pla
 // may refuses what the member's rank does not allow.
 func (mb *member) may(def content.FactionDef, right faction.Right) error {
 	if !def.Charter().Can(mb.rank, right) {
-		return refuseFaction(screens.FactionRefusedRank)
+		return refuseFaction(society.FactionRefusedRank)
 	}
 	return nil
 }
@@ -229,13 +230,13 @@ func groupFields(f application.Faction, payload map[string]any) map[string]any {
 }
 
 // List handles faction.list: the factions of the player's city.
-func (h *FactionsHandler) List(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) List(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.FactionListView
+	var view society.FactionListView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -261,7 +262,7 @@ func (h *FactionsHandler) List(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		for _, l := range lines {
-			view.Factions = append(view.Factions, screens.FactionLine{Ref: factionRef(l.Faction), Members: l.Members})
+			view.Factions = append(view.Factions, society.FactionLine{Ref: factionRef(l.Faction), Members: l.Members})
 		}
 		if m, err := tx.Factions().Membership(ctx, p.ID); err == nil {
 			f, err := tx.Factions().ByID(ctx, m.FactionID)
@@ -278,18 +279,18 @@ func (h *FactionsHandler) List(ctx context.Context, meta envelope.Metadata, req 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.FactionList(h.screen(meta, lang), view), nil
+	return society.FactionList(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // View handles faction.view: a faction's public page — its city, leader,
 // members and ranks.
-func (h *FactionsHandler) View(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) View(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.FactionPageView
+	var view society.FactionPageView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -320,31 +321,31 @@ func (h *FactionsHandler) View(ctx context.Context, meta envelope.Metadata, req 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.FactionPage(h.screen(meta, lang), view), nil
+	return society.FactionPage(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // byCode reads an active faction by its public code.
 func (h *FactionsHandler) byCode(ctx context.Context, tx application.Tx, code string) (*application.Faction, error) {
 	code = playercode.Normalize(code)
 	if !playercode.Valid(code) {
-		return nil, refuseFaction(screens.FactionRefusedNotFound)
+		return nil, refuseFaction(society.FactionRefusedNotFound)
 	}
 	f, err := tx.Factions().ByCode(ctx, code)
 	if isSentinel(err, application.ErrFactionNotFound) {
-		return nil, refuseFaction(screens.FactionRefusedNotFound)
+		return nil, refuseFaction(society.FactionRefusedNotFound)
 	}
 	if err != nil {
 		return nil, err
 	}
 	if !f.Active() {
-		return nil, refuseFaction(screens.FactionRefusedNotFound)
+		return nil, refuseFaction(society.FactionRefusedNotFound)
 	}
 	return f, nil
 }
 
 // page reads a faction's public page for viewer.
-func (h *FactionsHandler) page(ctx context.Context, tx application.Tx, f application.Faction, viewer string) (screens.FactionPageView, error) {
-	v := screens.FactionPageView{Ref: factionRef(f), Linked: f.ChatID != 0}
+func (h *FactionsHandler) page(ctx context.Context, tx application.Tx, f application.Faction, viewer string) (society.FactionPageView, error) {
+	v := society.FactionPageView{Ref: factionRef(f), Linked: f.ChatID != 0}
 	city, err := h.cities.ByID(ctx, f.CityID)
 	if err != nil {
 		return v, err
@@ -359,7 +360,7 @@ func (h *FactionsHandler) page(ctx context.Context, tx application.Tx, f applica
 		if err != nil {
 			return v, err
 		}
-		v.Members = append(v.Members, screens.FactionMemberLine{Player: who, Rank: m.Rank})
+		v.Members = append(v.Members, society.FactionMemberLine{Player: who, Rank: m.Rank})
 		if m.PlayerID == viewer {
 			v.Mine = true
 		}
@@ -377,7 +378,7 @@ func (h *FactionsHandler) page(ctx context.Context, tx application.Tx, f applica
 // Found handles faction.found: founding a faction at city hall. Without a
 // method it shows the fee and the ways to pay, each asking for the name;
 // with one and a name it founds it, paying the fee to the city.
-func (h *FactionsHandler) Found(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) Found(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -389,8 +390,8 @@ func (h *FactionsHandler) Found(ctx context.Context, meta envelope.Metadata, req
 	}
 	name := strings.TrimSpace(req.Name)
 	var (
-		intro    *screens.FactionFoundView
-		founded  *screens.FactionFoundedView
+		intro    *society.FactionFoundView
+		founded  *society.FactionFoundedView
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -415,7 +416,7 @@ func (h *FactionsHandler) Found(ctx context.Context, meta envelope.Metadata, req
 		}
 		now := h.now()
 		if _, err := tx.Factions().Membership(ctx, p.ID); err == nil {
-			return refuseFaction(screens.FactionRefusedAlreadyMember)
+			return refuseFaction(society.FactionRefusedAlreadyMember)
 		} else if !isSentinel(err, application.ErrNotInFaction) {
 			return err
 		}
@@ -434,7 +435,7 @@ func (h *FactionsHandler) Found(ctx context.Context, meta envelope.Metadata, req
 		plan := wallet.Plan(fee, snap.Accepts(content.ServiceFaction))
 		if !chosen || name == "" {
 			choice := paymentChoice(plan, wallet)
-			intro = &screens.FactionFoundView{CityCode: w.city.Code, City: w.city.Name, Fee: def.FoundingFee, Payment: choice,
+			intro = &society.FactionFoundView{CityCode: w.city.Code, City: w.city.Name, Fee: def.FoundingFee, Payment: choice,
 				NameMin: h.rules.NameMin, NameMax: h.rules.NameMax}
 			return nil
 		}
@@ -447,7 +448,7 @@ func (h *FactionsHandler) Found(ctx context.Context, meta envelope.Metadata, req
 		clean, err := company.CheckName(name, company.NameRules{MinRunes: h.rules.NameMin, MaxRunes: h.rules.NameMax,
 			Reserved: snap.CompanyReservedNames()})
 		if err != nil {
-			r := refuseFaction(screens.FactionRefusedName)
+			r := refuseFaction(society.FactionRefusedName)
 			r.view.Min, r.view.Max = h.rules.NameMin, h.rules.NameMax
 			return r
 		}
@@ -462,14 +463,14 @@ func (h *FactionsHandler) Found(ctx context.Context, meta envelope.Metadata, req
 			Rank: string(faction.Leader), JoinedAt: now}); err != nil {
 			switch {
 			case isSentinel(err, application.ErrFactionNameTaken):
-				return refuseFaction(screens.FactionRefusedNameTaken)
+				return refuseFaction(society.FactionRefusedNameTaken)
 			case isSentinel(err, application.ErrAlreadyInFaction):
-				return refuseFaction(screens.FactionRefusedAlreadyMember)
+				return refuseFaction(society.FactionRefusedAlreadyMember)
 			}
 			return err
 		}
 		if !fee.IsZero() {
-			if err := checkMethod(plan, method, wallet, "faction.button.found", screens.AddrFactionFound); err != nil {
+			if err := checkMethod(plan, method, wallet, "faction.button.found", society.AddrFactionFound); err != nil {
 				return err
 			}
 			treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, w.city.ID)
@@ -483,7 +484,7 @@ func (h *FactionsHandler) Found(ctx context.Context, meta envelope.Metadata, req
 			})
 			if err != nil {
 				if stderrors.Is(err, application.ErrPaymentDeclined) {
-					return declined(plan, wallet, "faction.button.found", screens.AddrFactionFound)
+					return declined(plan, wallet, "faction.button.found", society.AddrFactionFound)
 				}
 				return err
 			}
@@ -499,7 +500,7 @@ func (h *FactionsHandler) Found(ctx context.Context, meta envelope.Metadata, req
 		if err := tx.Factions().WithdrawPendingOf(ctx, p.ID, now); err != nil {
 			return err
 		}
-		founded = &screens.FactionFoundedView{Ref: factionRef(f), CityCode: w.city.Code, City: w.city.Name,
+		founded = &society.FactionFoundedView{Ref: factionRef(f), CityCode: w.city.Code, City: w.city.Name,
 			Fee: fee.Minor(), Method: string(method)}
 		return appendFactionEvent(ctx, tx, meta, "founded", f.ID, map[string]any{
 			"faction_id": f.ID, "faction_code": f.Code, "faction_name": f.Name, "city_id": f.CityID,
@@ -513,9 +514,9 @@ func (h *FactionsHandler) Found(ctx context.Context, meta envelope.Metadata, req
 	case replayed:
 		return h.Mine(ctx, meta)
 	case intro != nil:
-		return screens.FactionFound(h.screen(meta, lang), *intro), nil
+		return society.FactionFound(presentation.Ctx{Lang: lang}, *intro), nil
 	case founded != nil:
-		return screens.FactionFounded(h.screen(meta, lang), *founded), nil
+		return society.FactionFounded(presentation.Ctx{Lang: lang}, *founded), nil
 	}
 	return nil, errors.Internal(stderrors.New("handlers: founding a faction produced nothing"))
 }
@@ -541,14 +542,14 @@ func (h *FactionsHandler) freeCode(ctx context.Context, tx application.Tx) (stri
 // Mine handles faction.mine: the player's faction — their rank, the bank,
 // what is waiting, the organised crime under way, and what their rank may
 // do. A player in none is sent to the list.
-func (h *FactionsHandler) Mine(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *FactionsHandler) Mine(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view screens.FactionHomeView
+		view society.FactionHomeView
 		none bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -563,7 +564,7 @@ func (h *FactionsHandler) Mine(ctx context.Context, meta envelope.Metadata) (*pr
 		}
 		mb, err := h.membership(ctx, tx, p.ID, false)
 		var r *factionRefusal
-		if stderrors.As(err, &r) && r.view.Kind == screens.FactionRefusedNotMember {
+		if stderrors.As(err, &r) && r.view.Kind == society.FactionRefusedNotMember {
 			none = true
 			return nil
 		}
@@ -579,15 +580,15 @@ func (h *FactionsHandler) Mine(ctx context.Context, meta envelope.Metadata) (*pr
 	if none {
 		return h.List(ctx, meta, FactionCmd{})
 	}
-	return screens.FactionHome(h.screen(meta, lang), view), nil
+	return society.FactionHome(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // home reads a member's faction screen.
 func (h *FactionsHandler) home(ctx context.Context, tx application.Tx, snap *content.Snapshot, def content.FactionDef,
 	mb *member,
-) (screens.FactionHomeView, error) {
+) (society.FactionHomeView, error) {
 	f := *mb.faction
-	v := screens.FactionHomeView{Ref: factionRef(f), Rank: string(mb.rank), Linked: f.ChatID != 0}
+	v := society.FactionHomeView{Ref: factionRef(f), Rank: string(mb.rank), Linked: f.ChatID != 0}
 	charter := def.Charter()
 	for _, r := range faction.AllRights() {
 		if charter.Can(mb.rank, r) {
@@ -634,13 +635,13 @@ func (h *FactionsHandler) home(ctx context.Context, tx application.Tx, snap *con
 
 // Link handles faction.link, sent in a group: the leader, or a member whose
 // rank allows, ties the faction to this group; its news is posted here.
-func (h *FactionsHandler) Link(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) Link(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.FactionLinkedView
+	var view society.FactionLinkedView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -652,7 +653,7 @@ func (h *FactionsHandler) Link(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		if !meta.InGroup() || meta.TelegramChatID >= 0 {
-			return refuseFaction(screens.FactionRefusedNotGroup)
+			return refuseFaction(society.FactionRefusedNotGroup)
 		}
 		fresh, err := h.reserve(ctx, tx, p.ID, meta)
 		if err != nil {
@@ -666,19 +667,19 @@ func (h *FactionsHandler) Link(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		f := mb.faction
-		view = screens.FactionLinkedView{Ref: factionRef(*f)}
+		view = society.FactionLinkedView{Ref: factionRef(*f)}
 		if !fresh || f.ChatID == meta.TelegramChatID {
 			return nil
 		}
 		if other, err := tx.Factions().ByChat(ctx, meta.TelegramChatID); err == nil && other.ID != f.ID {
-			return refuseFaction(screens.FactionRefusedGroupTaken)
+			return refuseFaction(society.FactionRefusedGroupTaken)
 		} else if err != nil && !isSentinel(err, application.ErrFactionNotFound) {
 			return err
 		}
 		f.ChatID, f.ChatBotID, f.ChatLanguage, f.UpdatedAt = meta.TelegramChatID, meta.BotID, lang, h.now()
 		if err := tx.Factions().Save(ctx, *f); err != nil {
 			if isSentinel(err, application.ErrFactionNameTaken) {
-				return refuseFaction(screens.FactionRefusedGroupTaken)
+				return refuseFaction(society.FactionRefusedGroupTaken)
 			}
 			return err
 		}
@@ -688,7 +689,7 @@ func (h *FactionsHandler) Link(ctx context.Context, meta envelope.Metadata, req 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.FactionLinked(h.screen(meta, lang), view), nil
+	return society.FactionLinked(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // parseAmount reads a typed amount inside the bank's bounds.
@@ -710,17 +711,17 @@ func (h *FactionsHandler) parseAmount(raw string) (money.Amount, error) {
 
 // Bank handles faction.bank: the faction's bank, and the ways in and out
 // the member's rank allows.
-func (h *FactionsHandler) Bank(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *FactionsHandler) Bank(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.bankWith(ctx, meta, nil)
 }
 
-func (h *FactionsHandler) bankWith(ctx context.Context, meta envelope.Metadata, done *screens.FactionMoneyDone) (*presenter.Response, error) {
+func (h *FactionsHandler) bankWith(ctx context.Context, meta envelope.Metadata, done *society.FactionMoneyDone) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.FactionBankView
+	var view society.FactionBankView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -744,7 +745,7 @@ func (h *FactionsHandler) bankWith(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		charter := def.Charter()
-		view = screens.FactionBankView{Ref: factionRef(*mb.faction), Balance: acct.Balance.Minor(),
+		view = society.FactionBankView{Ref: factionRef(*mb.faction), Balance: acct.Balance.Minor(),
 			CanDeposit: charter.Can(mb.rank, faction.Deposit), CanWithdraw: charter.Can(mb.rank, faction.Withdraw),
 			Cash: wallet.Cash.Balance.Minor(), BankBalance: wallet.Bank.Balance.Minor(), Done: done,
 			Min: h.rules.Limits.Min.Minor(), Max: h.rules.Limits.Max.Minor()}
@@ -756,12 +757,12 @@ func (h *FactionsHandler) bankWith(ctx context.Context, meta envelope.Metadata, 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.FactionBank(h.screen(meta, lang), view), nil
+	return society.FactionBank(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Deposit handles faction.deposit: money from the member's cash or card
 // into the faction's bank.
-func (h *FactionsHandler) Deposit(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) Deposit(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -779,7 +780,7 @@ func (h *FactionsHandler) Deposit(ctx context.Context, meta envelope.Metadata, r
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		done     screens.FactionMoneyDone
+		done     society.FactionMoneyDone
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -816,7 +817,7 @@ func (h *FactionsHandler) Deposit(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		plan := wallet.Plan(amount, snap.Accepts(content.ServiceFaction))
-		if err := checkMethod(plan, method, wallet, "faction.button.bank", screens.AddrFactionBank); err != nil {
+		if err := checkMethod(plan, method, wallet, "faction.button.bank", society.AddrFactionBank); err != nil {
 			return err
 		}
 		if _, err := wallet.Pay(ctx, tx.Ledger(), application.Charge{
@@ -825,11 +826,11 @@ func (h *FactionsHandler) Deposit(ctx context.Context, meta envelope.Metadata, r
 			To: []application.LedgerEntry{{AccountID: treasury.ID, Amount: amount}}, CreatedAt: h.now(),
 		}); err != nil {
 			if stderrors.Is(err, application.ErrPaymentDeclined) {
-				return declined(plan, wallet, "faction.button.bank", screens.AddrFactionBank)
+				return declined(plan, wallet, "faction.button.bank", society.AddrFactionBank)
 			}
 			return err
 		}
-		done = screens.FactionMoneyDone{Deposit: true, Amount: amount.Minor(), Method: string(method)}
+		done = society.FactionMoneyDone{Deposit: true, Amount: amount.Minor(), Method: string(method)}
 		return appendFactionEvent(ctx, tx, meta, "deposited", mb.faction.ID, map[string]any{
 			"faction_id": mb.faction.ID, "player_id": p.ID, "amount": amount.Minor(), "method": string(method)})
 	})
@@ -844,7 +845,7 @@ func (h *FactionsHandler) Deposit(ctx context.Context, meta envelope.Metadata, r
 
 // Withdraw handles faction.withdraw: money from the faction's bank to the
 // member's own bank, for a rank that may.
-func (h *FactionsHandler) Withdraw(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) Withdraw(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -858,7 +859,7 @@ func (h *FactionsHandler) Withdraw(ctx context.Context, meta envelope.Metadata, 
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		done     screens.FactionMoneyDone
+		done     society.FactionMoneyDone
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -891,7 +892,7 @@ func (h *FactionsHandler) Withdraw(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		if treasury.Balance.Minor() < amount.Minor() {
-			r := refuseFaction(screens.FactionRefusedBankShort)
+			r := refuseFaction(society.FactionRefusedBankShort)
 			r.view.Amount, r.view.Balance = amount.Minor(), treasury.Balance.Minor()
 			return r
 		}
@@ -906,11 +907,11 @@ func (h *FactionsHandler) Withdraw(ctx context.Context, meta envelope.Metadata, 
 				{AccountID: to.ID, Amount: amount}},
 		}); err != nil {
 			if isSentinel(err, application.ErrInsufficientFunds) {
-				return refuseFaction(screens.FactionRefusedBankShort)
+				return refuseFaction(society.FactionRefusedBankShort)
 			}
 			return err
 		}
-		done = screens.FactionMoneyDone{Amount: amount.Minor()}
+		done = society.FactionMoneyDone{Amount: amount.Minor()}
 		return appendFactionEvent(ctx, tx, meta, "withdrawn", mb.faction.ID, map[string]any{
 			"faction_id": mb.faction.ID, "player_id": p.ID, "amount": amount.Minor()})
 	})

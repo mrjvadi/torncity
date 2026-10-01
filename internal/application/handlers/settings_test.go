@@ -64,7 +64,7 @@ func TestStoredLanguageBeatsTheTelegramLanguage(t *testing.T) {
 			return h.mapHandler(t).List(ctx, m, PageRequest{})
 		},
 		"friends": func(m envelope.Metadata) (*presenter.Response, error) {
-			return h.socialHandler(t).FriendList(ctx, m, PageRequest{})
+			return rendered(t)(h.socialHandler(t).FriendList(ctx, m, PageRequest{}))
 		},
 		"settings": func(m envelope.Metadata) (*presenter.Response, error) {
 			return h.settingsHandler(t).Show(ctx, m)

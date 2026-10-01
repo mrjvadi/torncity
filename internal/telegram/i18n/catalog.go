@@ -114,32 +114,27 @@ func LoadWithDefault(dir, defaultLang string) (*Catalog, error) {
 		if !e.IsDir() {
 			continue
 		}
-		layer, err := os.ReadDir(filepath.Join(dir, e.Name()))
+		files, err := layerFiles(dir, e.Name())
 		if err != nil {
-			return nil, fmt.Errorf("i18n: read locale layer %s: %w", e.Name(), err)
+			return nil, err
 		}
-		for _, f := range layer {
-			name := f.Name()
-			if f.IsDir() || filepath.Ext(name) != localeExt {
-				continue
-			}
-			lang := strings.TrimSuffix(name, localeExt)
-			data, err := os.ReadFile(filepath.Join(dir, e.Name(), name))
+		for _, f := range files {
+			data, err := os.ReadFile(f.path)
 			if err != nil {
-				return nil, fmt.Errorf("i18n: read %s/%s: %w", e.Name(), name, err)
+				return nil, fmt.Errorf("i18n: read %s: %w", f.label, err)
 			}
-			msgs, err := parseLocale(e.Name()+"/"+name, data)
+			msgs, err := parseLocale(f.label, data)
 			if err != nil {
 				return nil, err
 			}
-			if messages[lang] == nil {
-				messages[lang] = map[string]string{}
+			if messages[f.lang] == nil {
+				messages[f.lang] = map[string]string{}
 			}
 			for key, text := range msgs {
-				if _, dup := messages[lang][key]; dup {
-					return nil, fmt.Errorf("%w: %s in %s/%s", ErrDuplicateKey, key, e.Name(), name)
+				if _, dup := messages[f.lang][key]; dup {
+					return nil, fmt.Errorf("%w: %s in %s", ErrDuplicateKey, key, f.label)
 				}
-				messages[lang][key] = text
+				messages[f.lang][key] = text
 			}
 		}
 	}
@@ -456,3 +451,43 @@ func format(v any) string {
 // nilText is how the standard formatter prints a nil pointer, map, slice or
 // interface.
 const nilText = "<nil>"
+
+// layerFile is one file of a locale layer: the language it holds, where it is
+// and how errors name it.
+type layerFile struct {
+	lang, path, label string
+}
+
+// layerFiles lists the files of one layer, in a stable order. A layer holds a
+// file per language (telegram/fa.yml) and may also hold a folder per language
+// (telegram/fa/society.yml): every file in the folder adds its keys to that
+// language, so each area of the game keeps its own wording file and areas do
+// not collide when they are merged.
+func layerFiles(dir, layer string) ([]layerFile, error) {
+	entries, err := os.ReadDir(filepath.Join(dir, layer))
+	if err != nil {
+		return nil, fmt.Errorf("i18n: read locale layer %s: %w", layer, err)
+	}
+	var out []layerFile
+	for _, f := range entries {
+		name := f.Name()
+		switch {
+		case !f.IsDir() && filepath.Ext(name) == localeExt:
+			out = append(out, layerFile{lang: strings.TrimSuffix(name, localeExt),
+				path: filepath.Join(dir, layer, name), label: layer + "/" + name})
+		case f.IsDir():
+			sub, err := os.ReadDir(filepath.Join(dir, layer, name))
+			if err != nil {
+				return nil, fmt.Errorf("i18n: read locale layer %s/%s: %w", layer, name, err)
+			}
+			for _, g := range sub {
+				if g.IsDir() || filepath.Ext(g.Name()) != localeExt {
+					continue
+				}
+				out = append(out, layerFile{lang: name, path: filepath.Join(dir, layer, name, g.Name()),
+					label: layer + "/" + name + "/" + g.Name()})
+			}
+		}
+	}
+	return out, nil
+}

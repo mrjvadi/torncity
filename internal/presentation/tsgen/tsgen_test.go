@@ -7,6 +7,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/tsgen"
+	_ "github.com/mrjvadi/torncity/internal/presentation/society"
 	_ "github.com/mrjvadi/torncity/internal/presentation/village"
 )
 

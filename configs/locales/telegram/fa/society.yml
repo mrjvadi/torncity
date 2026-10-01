@@ -1,0 +1,606 @@
+# Telegram wording (fa) of the politics and society area: offices and governance, elections, factions,
+# diplomacy, the legislature, friends and search (docs/adr/0039-presentation-split.md).
+# Natural everyday speech; a key is defined once across the layers.
+
+social:
+  unknown_player: یک بازیکن
+  # A search names one player exactly, in one of three forms; there is no
+  # search by display name. {query} is echoed only for a username (with its
+  # @) or a code — never for a Telegram ID, which no screen prints.
+  search:
+    help: |-
+      🔎 پیدا کردن بازیکن
+      بازیکن را با یکی از این‌ها پیدا کنید:
+      • نام کاربری تلگرام: «پیدا @username»
+      • کد بازیکن: «پیدا K7Q2M9A»
+      • شناسهٔ عددی تلگرام: «پیدا» و پس از آن شناسه
+    title: "🔎 نتیجهٔ جست‌وجو"
+    player: "👤 {player}"
+    self: "این خودتان هستید. کد بازیکنتان را به دوستانتان بدهید تا پیدایتان کنند."
+    not_found_username: "بازیکنی با نام کاربری {query} پیدا نشد. شاید نام کاربری‌اش را عوض کرده یا هنوز بازی را شروع نکرده است؛ کد بازیکنش را از خودش بپرسید."
+    not_found_code: "بازیکنی با کد {query} پیدا نشد. کد را دوباره بررسی کنید؛ برای جست‌وجوی نام کاربری، @ را اول آن بگذارید."
+    not_found_id: "بازیکنی با این شناسهٔ تلگرام پیدا نشد. شاید هنوز بازی را شروع نکرده است."
+  friends:
+    title: "👥 دوستان"
+    empty: |-
+      هنوز دوستی ندارید.
+      برای پیدا کردن بازیکن، «پیدا» را با نام کاربری یا کد بازیکنش بفرستید؛ مثلاً «پیدا @username»
+    line: "• {player}"
+    # A request this player sent, waiting for the other one.
+    line_pending: "• {player} - در انتظار پاسخ او"
+    # A request the other player sent; it has the accept button.
+    line_incoming: "• {player} - می‌خواهد با شما دوست شود"
+    line_blocked: "• {player} - مسدود"
+  friend:
+    requested: "✅ درخواست دوستی برای {player} فرستاده شد. پس از پذیرفتن، در فهرست دوستانتان می‌آید."
+    requested_anon: "✅ درخواست دوستی فرستاده شد. پس از پذیرفتن، در فهرست دوستانتان می‌آید."
+    accepted: "✅ شما و {player} از این پس دوست هستید."
+    accepted_anon: "✅ درخواست دوستی را پذیرفتید. این بازیکن حالا در فهرست دوستان شماست."
+    # Notices to the other player, sent to their private chat.
+    incoming: "👥 {player} می‌خواهد با شما دوست شود."
+    incoming_anon: "👥 بازیکنی می‌خواهد با شما دوست شود."
+    incoming_hint: برای پذیرفتن، دکمهٔ زیر را بزنید. درخواست در فهرست دوستانتان هم می‌ماند.
+    now_friends: "👥 {player} درخواست دوستی شما را پذیرفت. از این پس دوست هستید."
+    now_friends_anon: "👥 درخواست دوستی شما پذیرفته شد. این بازیکن حالا در فهرست دوستان شماست."
+
+# Player-held offices (docs/adr/0015-player-held-offices.md): the offices and
+# policies of a city, the office holder's own screen, the flow that changes a
+# policy, and the public history of changes.
+#
+# Terms: office منصب 🏛 (a seat a player holds: شهردار، رئیس‌جمهور), policy
+# سیاست (what an office decides: نرخ مالیات، عوارض), vacant «خالی», acting
+# «سرپرستی» (a deputy exercising a vacant office's powers), announced «اعلام»
+# (a change is public at once and «اجرا» after its notice), public history
+# «تاریخچهٔ عمومی» 📜. Percent is «{value}٪»; money goes through format.money.
+gov:
+  player: "{name} ({code})"
+  list_separator: "، "
+  percent: "{value}٪"
+  span_d: "{days} روز"
+  span_dh: "{days} روز و {hours} ساعت"
+  unnamed_office: یک منصب
+  unnamed_lever: یک سیاست
+  city:
+    title: "🏛 مناصب و سیاست‌های {city}"
+    title_plain: "🏛 مناصب و سیاست‌ها"
+    no_city: "هنوز در هیچ شهری مستقر نشده‌اید. پس از استقرار، مناصب و سیاست‌های شهرتان همین‌جا نمایش داده می‌شوند."
+    place: "📍 {place}"
+    offices: "مناصب:"
+    no_offices: "• منصبی در اینجا تعریف نشده است."
+    policies: "سیاست‌ها:"
+  office:
+    held: "• {office}: {players}"
+    seats: "• {office}: {held} از {seats} کرسی - {players}"
+    acting: "• {office}: خالی - سرپرست: {deputy} {players}"
+    vacant: "• {office}: خالی"
+  lever:
+    line_default: "• {lever}: {value} - پیش‌فرض"
+    line_set: "• {lever}: {value} - تعیین‌شده به دست {player}"
+    pending: "  ⏳ {when} دیگر به {value} تغییر می‌کند"
+  mine:
+    title: "🏛 منصب من"
+    none: "شما منصبی ندارید. شهردار، اعضای شورای شهر و رئیس‌جمهور انتخاب می‌شوند و مناصب دیگر انتصابی‌اند."
+    seat: "📍 {office} {place}"
+    acting_for: "شما سرپرست منصب خالی {office} هستید."
+    no_levers: "این منصب فعلاً سیاستی ندارد که بتوانید تغییرش دهید."
+    lever: "• {lever}: {value}"
+    lever_vote: "• {lever}: {value} - با رأی {office} تعیین می‌شود"
+    confirmed_by: "  🗳 برای تغییرش ممکن است تأیید {office} لازم باشد."
+  edit:
+    title: "🏛 {lever} — {place}"
+    bounds: "بازهٔ مجاز: {min} تا {max}"
+    default: "مقدار پیش‌فرض: {value}"
+    notice: "هر تغییر {notice} پس از اعلام اجرا می‌شود."
+    cooldown: "میان دو تغییر دست‌کم {cooldown} فاصله لازم است."
+    cooldown_active: "⏳ {wait} دیگر می‌توانید این سیاست را دوباره تغییر دهید."
+    draft: |-
+      مقدار تازه: {value}
+      با دکمه‌ها تنظیمش کنید و سپس «بازبینی تغییر» را بزنید.
+  confirm:
+    title: "📝 تأیید تغییر"
+    change: "{lever} در {place}: از {old} به {new}"
+    notice: "این تغییر همین حالا اعلام می‌شود و {notice} بعد اجرا خواهد شد."
+    cooldown: "پس از آن تا {cooldown} نمی‌توانید این سیاست را دوباره تغییر دهید."
+    vote: "🗳 این تغییر پیش از اعلام به رأی {office} گذاشته می‌شود و تنها در صورت تصویب اجرا خواهد شد."
+  announced:
+    title: "📢 تغییر اعلام شد"
+    body: "{lever} در {place} از {old} به {new} تغییر می‌کند و {when} دیگر اجرا می‌شود. این تغییر در تاریخچهٔ عمومی ثبت شد."
+  history:
+    title: "📜 تاریخچهٔ سیاست‌های {city}"
+    empty: هنوز هیچ سیاستی در اینجا تغییر نکرده است.
+    change: "• {lever} ({place}): {old} ← {new}"
+    by: "  اعلام {office} {player} - {ago} پیش"
+    effective_in: "  ⏳ {when} دیگر اجرا می‌شود"
+    effective_since: "  {when} است که اجرا می‌شود"
+  button:
+    city: "🏛 مناصب و سیاست‌ها"
+    history: "📜 تاریخچهٔ سیاست‌ها"
+    elections: "🗳 انتخابات"
+    my_office: "🏛 منصب من"
+    change: "✏️ {lever} — {place}"
+    down: "➖ {amount}"
+    up: "➕ {amount}"
+    min: حداقل ({value})
+    default: پیش‌فرض ({value})
+    max: حداکثر ({value})
+    review: "📝 بازبینی تغییر"
+    propose: "🗳 پیشنهاد {lever} — {place}"
+    budget: "💰 بودجهٔ شهر"
+    laws: "⚖️ طرح‌ها و رأی‌گیری‌ها"
+    confirm: "✅ تأیید"
+    cancel: "✖️ انصراف"
+    appoint: "👤 انتصاب {office}"
+    dismiss: "✖️ برکناری {office}"
+    confirm_appoint: "✅ منصوب کن"
+    confirm_dismiss: "✅ برکنار کن"
+  refusal:
+    not_holder: "تنها {office} می‌تواند این سیاست را تغییر دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
+    requires_vote: این سیاست با رأی {office} تعیین می‌شود و تنها اعضای آن می‌توانند تغییرش را پیشنهاد دهند.
+    requires_confirmation: این تغییر پیش از اجرا باید به تأیید {office} برسد.
+    invalid_allocation: "این تقسیم مجاز نیست: فقط خطوط همین بودجه سهم می‌گیرند و جمع سهم‌ها حداکثر 100٪ است."
+    out_of_range: "این مقدار بیرون از بازهٔ مجاز {min} تا {max} است. مقداری در همین بازه انتخاب کنید."
+    out_of_range_plain: "این مقدار بیرون از بازهٔ مجاز است. مقداری در بازهٔ مجاز انتخاب کنید."
+    cooldown: این سیاست به‌تازگی تغییر کرده است. {wait} دیگر می‌توانید دوباره تغییرش دهید.
+    cooldown_later: این سیاست به‌تازگی تغییر کرده است. کمی بعد دوباره امتحان کنید.
+    unsupported: این نوع سیاست هنوز قابل تغییر نیست.
+    unknown_lever: این سیاست دیگر وجود ندارد. برای دیدن سیاست‌هایی که می‌توانید تغییر دهید، «منصب من» را باز کنید.
+    unknown_place: این مکان پیدا نشد. «نقشه» را باز کنید و دوباره امتحان کنید.
+    wrong_place: این سیاست در این مکان کاربردی ندارد.
+    city_only: "این بخش مخصوص شهرهاست؛ روستا هنوز بودجه و شورای شهر ندارد. وقتی روستا رشد کند، این‌ها هم باز می‌شوند."
+    office_not_found: چنین منصبی در اینجا وجود ندارد.
+    office_occupied: این منصب در اختیار کس دیگری است.
+    office_vacant: این منصب از قبل خالی است.
+    already_holds: شما همین حالا این منصب را دارید.
+    incompatible: این منصب را نمی‌توان هم‌زمان با منصبی که اکنون دارید در اختیار داشت.
+  alloc:
+    draft: "✏️ پیش‌نویس تقسیم:"
+    line: "• {line}: {share}"
+    down: "➖ {line}"
+    up: "➕ {line}"
+    total: "جمع: {total} - {left} خرج نمی‌شود و در خزانه می‌ماند."
+    spend_share: "هر دورهٔ شهر، بودجه تا {share} از موجودی خزانه را خرج می‌کند."
+  appoint:
+    heading: "انتصاب‌ها:"
+    vacant: "• {office}: خالی"
+    held: "• {office}: {player}"
+    confirm: "👤 {player} را به‌عنوان {office} {place} منصوب می‌کنید؟\nهمین حالا بر صندلی می‌نشیند و اگر منصب شما اجازه دهد، بعداً می‌توانید برکنارش کنید."
+    done: "✅ {player} اکنون {office} {place} است."
+    term: "دورهٔ این منصب {term} است."
+    notice: "🎖 {by_office} {by} شما را به‌عنوان {office} {place} منصوب کرد. «منصب من» را باز کنید تا ببینید از این پس دربارهٔ چه چیزهایی تصمیم می‌گیرید."
+    announce: "🎖 {player} به‌عنوان {office} {place} منصوب شد."
+    refused:
+      not_appointer: "تنها {office} می‌تواند این کار را انجام دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
+      no_player: "بازیکنی با این کد یا نام کاربری پیدا نشد. آن را بررسی کنید و دوباره بفرستید."
+      no_seat: "این صندلی دیگر خالی نیست."
+  dismiss:
+    confirm: "✖️ {player} را از منصب {office} {place} برکنار می‌کنید؟\nصندلی همین حالا خالی می‌شود و اگر سرپرستی تعریف شده باشد، او به جایش عمل می‌کند."
+    done: "✅ {player} دیگر {office} {place} نیست."
+    notice: "📭 {by_office} {by} شما را از منصب {office} {place} برکنار کرد."
+
+# انتخابات (internal/telegram/screens/elections.go). رأی مخفی است: هیچ سطری
+# نمی‌گوید چه کسی به چه کسی رأی داد.
+election:
+  # نام یک انتخابات. election.name.<کد منصب> نام رایج آن است؛ منصبی که
+  # نامی اینجا ندارد با election.of نامیده می‌شود.
+  of: "انتخابات {office} {place}"
+  name:
+    mayor: "انتخابات شهرداری {place}"
+    city_council: "انتخابات شورای شهر {place}"
+    president: "انتخابات ریاست‌جمهوری {place}"
+  this: این انتخابات
+  title: "🗳 انتخابات {place}"
+  title_plain: "🗳 انتخابات"
+  no_city: هنوز در شهری نیستید. هر کس در انتخابات شهری شرکت می‌کند که در آن زندگی می‌کند.
+  none: الان انتخاباتی در جریان نیست و تا امروز هم انتخاباتی اینجا برگزار نشده است.
+  hint: "نامزدها در شهرداری ثبت‌نام می‌کنند و هر ساکن یک بار و مخفیانه رأی می‌دهد. برای دیدن هر انتخابات، دکمهٔ شماره‌اش را بزنید."
+  line:
+    candidacy: "• شمارهٔ {no}: {election} - ثبت‌نام نامزدها، {remaining} مانده، تا الان {count} نامزد"
+    voting: "• شمارهٔ {no}: {election} - رأی‌گیری، {remaining} مانده، {count} نامزد"
+    counting: "• شمارهٔ {no}: {election} - در انتظار شمارش آرا"
+    counted: "• شمارهٔ {no}: {election} - برگزیده: {elected}"
+    unfilled: "• شمارهٔ {no}: {election} - کسی برگزیده نشد"
+  detail_title: "🗳 {election} (شمارهٔ {no})"
+  seats: "🪑 تعداد کرسی‌ها: {seats}"
+  deposit: "💰 ودیعهٔ نامزدی: {deposit}؛ اگر دست‌کم {share} آرا را بیاورید، پس از شمارش به شما برمی‌گردد."
+  phase:
+    candidacy: "📝 ثبت‌نام نامزدها - {remaining} مانده"
+    voting: "🗳 رأی‌گیری - {remaining} مانده"
+    counting: "⏳ رأی‌گیری تمام شده و آرا به‌زودی شمرده می‌شود."
+    counted: "✅ آرا شمرده شد: در مجموع {cast} رأی"
+  voting_from: "🕒 رأی‌گیری {duration} دیگر، ساعت {time}، شروع می‌شود."
+  voting_in: "🕒 رأی‌گیری {duration} دیگر شروع می‌شود."
+  count_at: "🕒 آرا {duration} دیگر، ساعت {time}، شمرده می‌شود."
+  count_in: "🕒 آرا {duration} دیگر شمرده می‌شود."
+  candidates: "نامزدها:"
+  no_candidates: "• هنوز کسی نامزد نشده است"
+  candidate: "{n}. {player}"
+  candidate_counted: "{n}. {player} - {votes} رأی"
+  candidate_elected: "{n}. {player} - {votes} رأی 🏆"
+  candidate_you: "{line} (شما)"
+  you_stand: "📝 شما نامزد این انتخابات هستید."
+  you_voted: "🗳 رأی‌تان را داده‌اید. رأی شما مخفی است."
+  stand_how: "📝 برای نامزد شدن، ودیعهٔ {deposit} را بپردازید:"
+  vote_how: "🗳 نامزد دلخواهتان را انتخاب کنید. فقط یک بار می‌توانید رأی بدهید و رأی شما مخفی می‌ماند."
+  private: "🔒 نامزد شدن و رأی دادن در پی‌وی ربات انجام می‌شود."
+  cannot_stand:
+    not_resident: "📝 فقط ساکنان همین‌جا می‌توانند نامزد شوند."
+    too_new: "📝 هنوز آن‌قدر اینجا زندگی نکرده‌اید که بتوانید نامزد شوید."
+    level: "📝 برای نامزد شدن باید دست‌کم سطح {level} باشید."
+    record: "📝 به قربانیان یا شهر بدهی دارید؛ پیش از نامزد شدن آن را تسویه کنید."
+    jailed: "📝 در زندان نمی‌توانید نامزد شوید."
+  cannot_vote:
+    not_resident: "🗳 فقط ساکنان همین‌جا رأی می‌دهند."
+    too_new: "🗳 هنوز آن‌قدر اینجا زندگی نکرده‌اید که بتوانید رأی بدهید."
+  stood: "📝 نامزدی شما در {election} ثبت شد."
+  stood_deposit: "💰 ودیعهٔ {deposit} تا شمارش آرا امانت می‌ماند."
+  voted: "🗳 رأی شما در {election} به نام {player} ثبت شد."
+  secret: "🔒 هیچ‌کس نمی‌فهمد به چه کسی رأی داده‌اید."
+  button:
+    open: "🗳 شمارهٔ {no}"
+    vote: "🗳 رأی به {player}"
+    stand: "📝 نامزد می‌شوم"
+    back: "🗳 بازگشت به انتخابات"
+    results: "🗳 دیدن نتیجه"
+  refused:
+    none: چنین انتخاباتی پیدا نشد.
+    not_candidacy: "ثبت‌نام نامزدهای {election} الان باز نیست."
+    not_voting: "رأی‌گیری {election} الان باز نیست."
+    away: "📍 نامزدی را باید در شهرداریِ همان شهری ثبت کنید که انتخابات برای آن است."
+    no_candidate: این نامزد در فهرست نامزدها نیست.
+    not_resident: "در {election} فقط ساکنان همان‌جا شرکت می‌کنند."
+    too_new: "هنوز آن‌قدر اینجا زندگی نکرده‌اید که در {election} شرکت کنید."
+    level: "سطح شما برای نامزد شدن در {election} کافی نیست."
+    record: به قربانیان یا شهر بدهی دارید؛ پیش از نامزد شدن آن را تسویه کنید.
+    jailed: در زندان نمی‌توانید نامزد شوید.
+    standing: "شما همین حالا نامزد {election} هستید."
+    voted: "شما در {election} رأی داده‌اید و هر نفر فقط یک بار رأی می‌دهد."
+    incompatible: منصبی دارید که با این منصب قابل جمع نیست.
+  notice:
+    won: "🏆 تبریک! در {election} برگزیده شدید: {votes} رأی از {cast} رأی."
+    lost: "🗳 در {election} برگزیده نشدید: {votes} رأی از {cast} رأی به دست آوردید."
+    deposit_back: "💰 ودیعهٔ {deposit} به شما برگشت."
+    deposit_kept: "💰 آرای شما به حد لازم نرسید و ودیعهٔ {deposit} به خزانهٔ شهرتان رفت."
+
+diplomacy:
+  measure:
+    trade: "تحریم تجاری"
+    arms: "تحریم تسلیحاتی"
+    technology: "تحریم فناوری"
+    travel: "ممنوعیت سفر"
+    financial: "تحریم مالی"
+  ground:
+    aggression: "تجاوز نظامی"
+    proliferation: "اشاعهٔ تسلیحات"
+    terrorism: "حمایت از تروریسم"
+    human_rights: "نقض حقوق بشر"
+    unfair_trade: "تجارت ناعادلانه"
+    retaliation: "مقابله به مثل"
+  treaty:
+    alliance: "پیمان نظامی"
+    non_aggression: "پیمان عدم تجاوز"
+    trade_agreement: "موافقت‌نامهٔ تجاری"
+  sanctions:
+    title: "⛔ تحریم‌های {country}"
+    imposed: "تحریم‌هایی که ما وضع کرده‌ایم:"
+    suffered: "تحریم‌هایی که بر ما وضع شده:"
+    none: "• هیچ"
+    line_on: "• شمارهٔ {no} بر {country}: {measures} - به دلیل {ground}"
+    line_by: "• شمارهٔ {no} از سوی {country}: {measures} - به دلیل {ground}"
+    pending: "  ⏳ {in} دیگر اجرا می‌شود"
+    since: "  {since} است که اجرا می‌شود"
+    by: "  وضع‌شده به دست {office} {player}"
+    liftable_in: "  🔒 {in} دیگر می‌توان لغوش کرد"
+    footer: "تحریم دوطرفه اثر می‌کند: تحریم تجاری بازار، حراجی و خرید از شرکت‌ها را میان مردم دو کشور می‌بندد؛ تحریم تسلیحاتی فروش سلاح را؛ تحریم فناوری فروش لایسنس را؛ ممنوعیت سفر سفر میان شهرهای دو کشور را؛ و تحریم مالی پرداخت کارتی میان مردمشان را."
+  impose:
+    title: "⛔ تحریم تازه از سوی {country}"
+    choose_target: "کدام کشور تحریم شود؟"
+    no_targets: "کشور دیگری وجود ندارد."
+    choose_measures: "چه تحریم‌هایی بر {target} وضع شود؟ برای انتخاب بزنید و برای برداشتن دوباره بزنید."
+    choose_ground: "{measures} بر {target} به چه دلیلی وضع می‌شود؟"
+    confirm: "{measures} به دلیل {ground} بر {target} وضع شود؟\nهمین حالا اعلام می‌شود و {notice} دیگر اجرا خواهد شد؛ تا {min} دیگر هم نمی‌توان لغوش کرد."
+    done: "⛔ تحریم بر {target} اعلام شد و {in} دیگر اجرا می‌شود."
+  lift:
+    confirm: "تحریم شمارهٔ {no} بر {target} ({measures}) لغو شود؟ از همین لحظه دیگر اجرا نمی‌شود."
+    done: "🕊 تحریم بر {target} لغو شد."
+  treaties:
+    title: "🤝 پیمان‌های {country}"
+    incoming: "📨 شمارهٔ {no}: {country} پیشنهاد {kind} داده است - تا {in} دیگر پاسخ دهید"
+    outgoing: "📤 شمارهٔ {no}: ما به {country} پیشنهاد {kind} داده‌ایم - {in} تا پایان مهلت پاسخ"
+    active: "✅ شمارهٔ {no}: {kind} با {country}"
+    ended_declined: "✖️ شمارهٔ {no}: {kind} با {country} رد شد"
+    ended_withdrawn: "↩️ شمارهٔ {no}: پیشنهاد {kind} به {country} پس گرفته شد"
+    ended_expired: "⌛ شمارهٔ {no}: پیشنهاد {kind} به {country} بی‌پاسخ ماند و منقضی شد"
+    ended_terminated: "🔚 شمارهٔ {no}: {kind} با {country} پایان یافت"
+    none: "هنوز پیمانی در کار نیست."
+    footer: "پیمان وقتی اجرا می‌شود که وزیر امور خارجهٔ کشور دیگر آن را بپذیرد. پیمان نظامی دو کشور را شریک تسلیحاتی می‌کند و هر کدام را به دفاع از دیگری می‌کشاند؛ موافقت‌نامهٔ تجاری تجارتشان را از تعرفهٔ مرزی معاف می‌کند."
+  propose:
+    title: "🤝 پیشنهاد پیمان تازه از سوی {country}"
+    choose_partner: "به کدام کشور؟"
+    choose_kind: "چه پیمانی با {partner}؟"
+    confirm: "به {partner} پیشنهاد {kind} داده شود؟ وزیر امور خارجهٔ آن کشور {ttl} برای پاسخ فرصت دارد."
+    done: "📤 پیشنهاد {kind} به {partner} فرستاده شد. پاسخش همین‌جا نمایش داده می‌شود."
+  end:
+    confirm_withdraw: "پیشنهاد شمارهٔ {no} ({kind} به {country}) پس گرفته شود؟"
+    confirm_terminate: "پیمان شمارهٔ {no} ({kind} با {country}) پایان یابد؟ از همین لحظه دیگر اجرا نمی‌شود و گروه‌های هر دو کشور خبردار می‌شوند."
+    done_withdrawn: "↩️ پیشنهاد پس گرفته شد."
+    done_terminated: "🔚 پیمان پایان یافت."
+  history:
+    title: "📜 کارنامهٔ دیپلماتیک {country}"
+    empty: "هنوز میان کشورها اتفاقی نیفتاده است."
+    sanction_imposed: "• {country} {measures} را به دلیل {ground} بر {other} وضع کرد (شمارهٔ {no})"
+    sanction_lifted: "• {country} تحریم شمارهٔ {no} بر {other} را لغو کرد"
+    treaty_proposed: "• {country} به {other} پیشنهاد {kind} داد (شمارهٔ {no})"
+    treaty_signed: "• {country} و {other} {kind} امضا کردند (شمارهٔ {no})"
+    treaty_declined: "• {country} {kind} با {other} را رد کرد (شمارهٔ {no})"
+    treaty_withdrawn: "• {country} پیشنهاد {kind} به {other} را پس گرفت (شمارهٔ {no})"
+    treaty_terminated: "• {country} به {kind} با {other} پایان داد (شمارهٔ {no})"
+    by: "  به دست {office} {player} - {ago} پیش"
+  button:
+    sanctions: "⛔ تحریم‌ها"
+    treaties: "🤝 پیمان‌ها"
+    history: "📜 کارنامه"
+    impose: "➕ وضع تحریم"
+    lift: "✖️ لغو شمارهٔ {no} بر {country}"
+    measure_on: "✅ {measure}"
+    measure_off: "▫️ {measure}"
+    next: "⬅️ ادامه"
+    confirm_impose: "✅ وضع کن"
+    confirm_lift: "✅ لغو کن"
+    accept: "✅ پذیرش شمارهٔ {no}"
+    decline: "✖️ رد شمارهٔ {no}"
+    withdraw: "↩️ پس گرفتن شمارهٔ {no}"
+    terminate: "🔚 پایان شمارهٔ {no}"
+    propose: "➕ پیشنهاد پیمان"
+    confirm_propose: "✅ پیشنهاد بده"
+    confirm_withdraw: "✅ پس بگیر"
+    confirm_terminate: "✅ پیمان را پایان بده"
+  refused:
+    not_found: "چنین تحریم یا پیمانی وجود ندارد."
+    not_holder: "تنها {office} {country} می‌تواند این کار را انجام دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
+    self: "کشوری نمی‌تواند این کار را با خودش انجام دهد."
+    standing: "ما از قبل بر این کشور تحریمی داریم. پیش از وضع تحریم تازه، آن را لغو کنید."
+    too_soon: "هر تحریم مدتی باید بماند تا بتوان لغوش کرد: {in} دیگر."
+    open: "پیمانی از همین نوع با این کشور هم‌اکنون باز است."
+    state: "این پیمان پیش‌تر پاسخ گرفته، پس گرفته شده، پایان یافته یا منقضی شده است."
+    no_country: "هنوز در هیچ کشوری ساکن نیستید. اول در شهری مستقر شوید."
+  blocked:
+    trade: "⛔ تحریم تجاری میان {imposer} و {target} این معامله را ممنوع می‌کند."
+    arms: "⛔ تحریم تسلیحاتی میان {imposer} و {target} این فروش را ممنوع می‌کند."
+    technology: "⛔ تحریم فناوری میان {imposer} و {target} فروش این لایسنس را ممنوع می‌کند."
+    travel: "⛔ ممنوعیت سفر میان {imposer} و {target} این مسیر را بسته است."
+    financial: "⛔ تحریم مالی میان {imposer} و {target} پرداخت کارتی میان مردم دو کشور را ممنوع می‌کند."
+  notice:
+    proposed: "📨 {country} به ما پیشنهاد {kind} داده است (شمارهٔ {no}). تا {in} دیگر پاسخ دهید."
+  announce:
+    imposed: "⛔ {imposer} به دلیل {ground}، {measures} را بر {target} وضع کرد."
+    lifted: "🕊 {imposer} تحریم‌هایش بر {target} را لغو کرد."
+    signed: "🤝 {a} و {b} {kind} امضا کردند."
+    terminated: "🔚 {by} به {kind} خود با {other} پایان داد."
+  answer:
+    active: "🤝 پیمان امضا شد و از همین حالا اجرا می‌شود."
+    declined: "✖️ پیشنهاد رد شد."
+
+# جناح‌ها (docs/adr/0023): گروه‌ها و سازمان‌هایی که بازیکنان تأسیس و اداره می‌کنند.
+faction:
+  name: "{name} ({code})"
+  rank:
+    leader: "رهبر"
+    officer: "افسر"
+    member: "عضو"
+  list_title: "🏴 جناح‌ها"
+  list_title_city: "🏴 جناح‌های {city}"
+  list_line: "• {faction} - {members} عضو"
+  list_none: "هنوز جناحی در این شهر نیست."
+  list_mine: "جناح شما: {faction}"
+  list_found: "جناح خودتان را در شهرداری تأسیس کنید؛ هزینهٔ ثبت {fee} است."
+  page_title: "🏴 {faction}"
+  page_city: "📍 شهر: {city}"
+  page_members: "👥 {count} عضو:"
+  member_line: "• {player} - {rank}"
+  member_line_self: "• {player} - {rank} (شما)"
+  page_linked: "💬 گروه تلگرامی جناح وصل است؛ خبرهای جناح آنجا اعلام می‌شود."
+  found_title: "🏴 تأسیس جناح"
+  found_fee: "هزینهٔ ثبت جناح در {city}: {fee} که به خزانهٔ شهر می‌رود."
+  found_rules: "نام جناح باید {min} تا {max} حرف باشد و نام نهادهای شهر را نداشته باشد. تأسیس در شهرداری انجام می‌شود."
+  found_how: "هزینه را چطور می‌پردازید؟ پس از انتخاب، نام جناح را می‌فرستید."
+  founded: "🏴 {faction} در {city} تأسیس شد و شما رهبر آن هستید."
+  founded_fee: "💸 هزینهٔ ثبت: {fee}"
+  founded_next: "حالا اعضا را دعوت کنید، بانک جناح را پر کنید و گروه تلگرامی جناح را وصل کنید: در آن گروه «جناح {code}» را بفرستید و دکمهٔ وصل کردن را بزنید."
+  home_title: "🏴 {faction}"
+  home_rank: "🎖 رتبهٔ شما: {rank}"
+  home_members: "👥 اعضا: {count} از {max}"
+  home_bank: "🏦 بانک جناح: {amount}"
+  home_applications: "📨 {count} درخواست عضویت در انتظار پاسخ"
+  home_unlinked: "💬 جناح هنوز گروه تلگرامی ندارد؛ رهبر در گروه «جناح {code}» را می‌فرستد و دکمهٔ وصل کردن را می‌زند."
+  members_title: "👥 اعضای {faction}"
+  members_count: "{count} عضو از {max}"
+  requests_title: "📨 در انتظار پاسخ:"
+  request_line:
+    invite: "• دعوت از {player}"
+    apply: "• درخواست عضویت {player}"
+  invited: "📨 دعوت برای {player} فرستاده شد."
+  applied: "📨 درخواست عضویت شما برای {faction} فرستاده شد. پاسخ را در پیام خصوصی می‌گیرید."
+  answered:
+    invite_accepted: "🤝 به {faction} پیوستید."
+    invite_declined: "دعوت {faction} را نپذیرفتید."
+    apply_accepted: "🤝 {player} به {faction} پیوست."
+    apply_declined: "درخواست {player} رد شد."
+  confirm:
+    kick: "{player} از {faction} اخراج شود؟"
+    lead: "رهبری {faction} به {player} سپرده شود؟ شما افسر می‌شوید و این کار برگشت‌پذیر نیست مگر او دوباره رهبری را به شما بسپارد."
+    leave: "از {faction} خارج می‌شوید؟"
+    disband: "شما تنها عضو {faction} هستید. با خروج، جناح منحل می‌شود و ماندهٔ بانکش به حساب بانکی شما می‌آید. ادامه می‌دهید؟"
+  left: "از {faction} خارج شدید."
+  disbanded: "🏴 {faction} منحل شد."
+  disbanded_paid: "🏦 {amount} از بانک جناح به حساب بانکی شما آمد."
+  linked: "💬 {faction} به این گروه وصل شد؛ خبرهای جناح از این پس اینجا اعلام می‌شود."
+  bank_title: "🏦 بانک {faction}"
+  bank_balance: "موجودی: {amount}"
+  bank_limits: "هر واریز یا برداشت بین {min} و {max}"
+  bank_rules: "واریز با اعضایی است که رتبه‌شان اجازه می‌دهد؛ برداشت فقط با رتبه‌های مجاز و به حساب بانکی خودشان."
+  bank_deposited: "📥 {amount} به بانک جناح واریز شد."
+  bank_withdrawn: "📤 {amount} از بانک جناح به حساب بانکی شما آمد."
+  op:
+    gathering: "🕶 {crime} در {place} {city}: گروه در حال جمع شدن است."
+    running: "🕶 {crime} در {place} {city} در جریان است - شانس موفقیت {chance}٪ - {left} مانده"
+    gather_until: "مهلت جمع شدن: ساعت {time}"
+    ends_at: "پایان کار: ساعت {time}"
+    crew_count: "👥 {crew} نفر از حداقل {min} و حداکثر {max} - هر نفر هنگام شروع {nerve} جسارت می‌دهد"
+    crew: "گروه: {crew}"
+  crime_notice:
+    planned: "🗺 نقشه کشیده شد. اعضا باید در همان محل جمع شوند و به گروه بپیوندند."
+    joined: "🤝 به گروه پیوستید. تا شروع کار همین‌جا بمانید."
+    launched: "🚀 کار شروع شد. نتیجه پس از پایان در پیام خصوصی می‌رسد."
+    called_off: "✖️ نقشه لغو شد. کسی چیزی پرداخت نکرده بود."
+  crime_title: "🕶 خلاف گروهی {faction}"
+  crime_none: "کاری در جریان نیست. کارهای ممکن:"
+  crime_line: "• {crime}: {min} تا {max} نفر - هر نفر {nerve} جسارت - حداقل سطح {level} - {duration} - در: {places}"
+  crime_rules: "کسی که نقشه می‌کشد باید همان‌جایی باشد که کار انجام می‌شود. اعضا در همان محل به گروه می‌پیوندند و هنگام شروع جسارت می‌دهند؛ هر کس آنجا نباشد جا می‌ماند. سهم بانک جناح {cut}٪ است و باقی به نسبت رتبه تقسیم می‌شود. اگر پلیس برسد، همهٔ گروه زندانی و جریمه می‌شوند."
+  crime_result:
+    succeeded: "🕶 {crime} با {faction} موفق بود."
+    escaped: "🏃 {crime} با {faction} خراب شد، ولی گروه فرار کرد."
+    caught: "🚔 {crime} با {faction} خراب شد و پلیس گروه را گرفت."
+    split: "💵 کل درآمد {take} - سهم بانک جناح {cut} - سهم شما {share}"
+    jail: "⛓ برای {term} به زندان رفتید."
+  op_result:
+    succeeded: "موفق بود"
+    escaped: "خراب شد؛ گروه فرار کرد"
+    caught: "خراب شد؛ گروه دستگیر شد"
+  notice:
+    invite: "📨 {player} شما را به {faction} دعوت کرد."
+    apply: "📨 {player} می‌خواهد به {faction} بپیوندد."
+    answer_invite_accepted: "🤝 {player} دعوت شما را پذیرفت و به {faction} پیوست."
+    answer_invite_declined: "{player} دعوت {faction} را نپذیرفت."
+    answer_apply_accepted: "🤝 درخواست شما پذیرفته شد: اکنون عضو {faction} هستید."
+    answer_apply_declined: "درخواست عضویت شما در {faction} پذیرفته نشد."
+    kicked: "🚪 {player} شما را از {faction} اخراج کرد."
+  announce:
+    founded: "🏴 {player} جناح {faction} را تأسیس کرد."
+    joined: "🤝 {player} به {faction} پیوست."
+    left: "🚪 {player} از {faction} رفت."
+    linked: "💬 {faction} به این گروه وصل شد."
+    ranked: "🎖 {player} در {faction} {rank} شد."
+    disbanded: "🏴 {faction} منحل شد."
+    planned: "🗺 {faction} نقشهٔ {crime} را در {place} کشید. اعضا، در همان محل جمع شوید."
+    launched: "🚀 گروه {faction} راهی {crime} شد."
+    crime_resolved: "🕶 {crime} گروه {faction}: {result}."
+  button:
+    view: "🏴 {name}"
+    mine: "🏴 جناح من"
+    found: "🏴 تأسیس جناح"
+    list: "🏴 جناح‌ها"
+    apply: "📨 درخواست عضویت"
+    members: "👥 اعضا"
+    bank: "🏦 بانک جناح"
+    crime: "🕶 خلاف گروهی"
+    invite: "✏️ دعوت از بازیکن"
+    leave: "🚪 خروج از جناح"
+    promote: "⬆️ {name}"
+    demote: "⬇️ {name}"
+    kick: "✖️ {name}"
+    lead: "👑 {name}"
+    accept: "✅ پذیرفتن"
+    accept_name: "✅ {name}"
+    decline: "❌ رد"
+    confirm_kick: "✖️ اخراج"
+    confirm_lead: "👑 سپردن رهبری"
+    confirm_leave: "🚪 خروج"
+    confirm_disband: "🏴 خروج و انحلال"
+    deposit_cash: "✏️ واریز نقدی"
+    deposit_card: "✏️ واریز با کارت"
+    withdraw: "✏️ برداشت"
+    plan: "🗺 نقشهٔ {crime}"
+    join: "🤝 پیوستن به گروه"
+    launch: "🚀 شروع کار"
+    calloff: "✖️ لغو نقشه"
+    link: "🔗 وصل کردن به این گروه"
+  refused:
+    none: "این دنیا هنوز جناح ندارد."
+    not_member: "عضو هیچ جناحی نیستید."
+    rank: "🎖 رتبهٔ شما اجازهٔ این کار را نمی‌دهد."
+    not_found: "چنین جناحی پیدا نشد."
+    already_member: "شما همین حالا عضو یک جناح هستید."
+    name: "نام جناح باید {min} تا {max} حرف باشد، با حرف یا عدد شروع شود و نام نهادهای شهر را نداشته باشد."
+    name_taken: "این نام را جناح دیگری دارد."
+    not_group: "این کار فقط در گروه تلگرامی جناح انجام می‌شود."
+    group_taken: "این گروه به جناح دیگری وصل است."
+    bank_short: "🏦 بانک جناح {balance} دارد و {amount} خواستید."
+    no_player: "چنین بازیکنی پیدا نشد. کد بازیکن یا نام کاربری را درست بفرستید."
+    theirs: "این بازیکن عضو یک جناح است."
+    full: "جناح پر است: حداکثر {max} عضو."
+    pending_full: "درخواست‌های در انتظار این جناح زیاد است؛ کمی بعد دوباره امتحان کنید."
+    pending: "یک دعوت یا درخواست از قبل در انتظار پاسخ است."
+    request_gone: "این دعوت یا درخواست دیگر در انتظار نیست."
+    not_yours: "پاسخ این درخواست با شما نیست."
+    not_in_it: "این بازیکن عضو جناح شما نیست."
+    on_a_job: "🕶 گروه در حال کار است؛ تا پایانش نمی‌شود جناح را ترک کرد."
+    leader_leaving: "👑 رهبر پیش از خروج باید رهبری را به عضو دیگری بسپارد."
+    no_such_crime: "چنین کار گروهی‌ای وجود ندارد."
+    operation_open: "جناح همین حالا یک کار گروهی در جریان دارد."
+    level: "برای کشیدن این نقشه دست‌کم سطح {level} لازم است."
+    no_place_here: "این کار در این شهر شدنی نیست."
+    no_operation: "کار گروهی‌ای در حال جمع شدن نیست."
+    crew_full: "گروه پر است."
+    elsewhere: "گروه در شهر یا محل دیگری جمع می‌شود."
+    crew_short: "👥 برای شروع دست‌کم {need} نفر در محل با جسارت کافی لازم است و {have} نفر آماده‌اند."
+
+# Votes of a body (docs/adr/0024-property-and-politics.md): a council
+# confirming the mayor's budget, a parliament approving a declaration of war,
+# a council setting a policy it holds. Terms: proposal «طرح» ⚖️ (numbered
+# «طرح #12»), vote «رأی»، yes «موافق»، no «مخالف»، passed «تصویب شد»، failed
+# «رد شد»؛ a passed proposal that could not be applied «اجرا نشد». A
+# legislator's vote is public record.
+legislature:
+  list_title: "⚖️ طرح‌ها و رأی‌گیری‌ها"
+  list_empty: در شهر و کشور شما اکنون هیچ طرحی در دست بررسی نیست.
+  line: "• طرح #{no} در {place}: {subject}"
+  title: "⚖️ طرح #{no} — {place}"
+  subject_lever: "تغییر {lever} به {value}"
+  subject_allocation: "تقسیم تازهٔ {lever}: {shares}"
+  action:
+    country:
+      war: اعلان جنگ
+  action_target: " علیه {target}"
+  action_unnamed: یک اقدام
+  proposed_by: "پیشنهاد {office} {player}"
+  body: "رأی‌دهندگان: {body} - {held} کرسی پر از {seats} کرسی"
+  rule:
+    majority: "برای تصویب: بیشتر آرای داده‌شده موافق باشد"
+    supermajority: "برای تصویب: دست‌کم {threshold} آرای داده‌شده موافق باشد"
+    unanimous: "برای تصویب: همهٔ اعضا موافق باشند"
+  fraction: "{num}/{den}"
+  quorum: "حد نصاب: {quorum} کرسی‌ها باید رأی بدهند"
+  status:
+    open: "🗳 در حال رأی‌گیری - {remaining} مانده - {yes} موافق، {no} مخالف"
+    passed: "✅ تصویب شد - {yes} موافق، {no} مخالف"
+    failed: "❌ رد شد - {yes} موافق، {no} مخالف"
+    lapsed: "⚪️ تصویب شد اما اجرا نشد: {why}"
+  lapse:
+    cooldown: این سیاست در این فاصله تغییر کرده بود و هنوز نمی‌شد دوباره تغییرش داد
+    bounds: مرزهای مجاز این سیاست در این فاصله عوض شده بود
+    gone: این موضوع دیگر وجود ندارد
+    changed: اوضاع در این فاصله عوض شده بود
+  needs: "با {held} عضو حاضر، {needs} رأی موافق این طرح را تصویب می‌کند."
+  closes_at: "پایان رأی‌گیری ساعت {time}"
+  votes: "آرای اعضا:"
+  vote_yes: "• {player}: موافق"
+  vote_no: "• {player}: مخالف"
+  notice:
+    submitted: "📨 طرح به رأی {body} {place} گذاشته شد. نتیجه پس از رأی‌گیری در گروه‌های شهر اعلام می‌شود."
+    voted: "✅ رأی شما ثبت شد."
+    already_voted: شما پیش‌تر به این طرح رأی داده‌اید.
+    closed: رأی‌گیری این طرح به پایان رسیده است.
+  refused:
+    not_found: چنین طرحی پیدا نشد. فهرست طرح‌ها را باز کنید.
+    not_member: تنها اعضای {body} به این طرح رأی می‌دهند.
+    under_way: همین حالا طرحی دربارهٔ همین موضوع در {body} در دست رأی‌گیری است. پس از اعلام نتیجهٔ آن دوباره امتحان کنید.
+  announce:
+    opened: "⚖️ طرح #{no} در {place}: {subject}. پیشنهاد {office} {player}؛ {body} تا {window} دیگر رأی می‌دهد."
+    passed: "✅ {body} {place} طرح #{no} را تصویب کرد: {subject}. {yes} موافق، {no_votes} مخالف."
+    failed: "❌ {body} {place} طرح #{no} را رد کرد: {subject}. {yes} موافق، {no_votes} مخالف."
+    lapsed: "⚪️ طرح #{no} در {place} تصویب شد اما اجرا نشد ({subject}): {why}."
+  button:
+    view: "⚖️ طرح #{no}"
+    for: "✅ موافق"
+    against: "❌ مخالف"
+    list: "⚖️ طرح‌ها و رأی‌گیری‌ها"

@@ -19,17 +19,9 @@ func (c Context) playerName(name string) string {
 	return name
 }
 
-// SearchBy says which identifier a search was made with. It only chooses the
-// "not found" sentence: each form fails for its own reason and has its own
-// advice.
-type SearchBy string
 
-// The three identifiers a search accepts; see handlers.ClassifyPlayerQuery.
-const (
-	SearchByUsername   SearchBy = "username"
-	SearchByTelegramID SearchBy = "telegram_id"
-	SearchByCode       SearchBy = "code"
-)
+
+
 
 // searchNotFoundKeys maps each form to its "not found" line.
 var searchNotFoundKeys = map[SearchBy]string{
@@ -38,37 +30,9 @@ var searchNotFoundKeys = map[SearchBy]string{
 	SearchByCode:       "social.search.not_found_code",
 }
 
-// SearchResult is the player a search found.
-type SearchResult struct {
-	// ID addresses the player in a callback. It is an opaque identifier and
-	// grants nothing: pressing "add friend" makes a REQUEST, which the other
-	// player has to accept, and the core re-checks the edge either way. It is
-	// never shown.
-	ID string
-	// Name is the player's display name, empty when they have none worth
-	// showing.
-	Name string
-	// Code is the player's public code: the identifier that IS meant to be
-	// seen, and the one a player can pass on.
-	Code string
-	// Self marks the searcher finding themselves.
-	Self bool
-}
 
-// SearchView is the answer to one search.
-type SearchView struct {
-	// Help means the query was empty or was none of the three forms. The
-	// screen then explains the forms instead of pretending to have searched.
-	Help bool
-	// By is the form the query took.
-	By SearchBy
-	// Query is what was searched for, as it may be echoed back: the
-	// username with its @, or the code. It is empty for a Telegram id, which
-	// the screen never prints.
-	Query string
-	// Found is the player, or nil when nobody matched.
-	Found *SearchResult
-}
+
+
 
 // Search renders the answer to a search: the one player it found, a "not
 // found" line for the form that was used, or how to search at all.
@@ -131,17 +95,7 @@ func renderSearch(c Context, v SearchView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-// FriendLine is one edge of the player's social graph.
-type FriendLine struct {
-	ID   string
-	Name string
-	// Status is the stored edge status. It is never shown as it stands: it
-	// only chooses which line the friend gets.
-	Status string
-	// Incoming marks a request waiting for THIS player to accept, which is
-	// the only one that gets an accept button.
-	Incoming bool
-}
+
 
 // friendLineKeys maps a stored edge status to its line. An accepted friend
 // needs no label on a list titled "friends"; anything not listed here renders
@@ -151,12 +105,7 @@ var friendLineKeys = map[string]string{
 	"blocked": "social.friends.line_blocked",
 }
 
-// FriendsView is one page of the friend list.
-type FriendsView struct {
-	Friends []FriendLine
-	Page    int
-	Pages   int
-}
+
 
 // Friends renders the friend list.
 func Friends(c Context, v FriendsView) *presenter.Response {

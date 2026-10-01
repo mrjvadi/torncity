@@ -13,6 +13,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
 )
 
 // What the military and diplomacy handlers share
@@ -184,7 +185,7 @@ func sanctionBlocked(ctx context.Context, tx application.Tx, err error, back ...
 	if terr != nil {
 		return screens.SanctionBlockedView{}, true, terr
 	}
-	return screens.SanctionBlockedView{Measure: string(s.Measure), Imposer: imposer, Target: target, Back: back}, true, nil
+	return screens.SanctionBlockedView{Measure: string(s.Measure), Imposer: imposer, Target: target, Back: presentation.RefOfAddress(strings.Join(back, ":"))}, true, nil
 }
 
 // sanctionRefusal carries a blocked cross-border action out of a unit of

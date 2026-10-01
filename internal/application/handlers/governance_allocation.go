@@ -9,8 +9,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // This file serves allocation levers — a city's budget
@@ -69,8 +69,8 @@ type GovAllocRequest struct {
 
 // allocation renders the editor with a draft: the one given, else the
 // shares that will be in force.
-func (h *GovernanceHandler) allocation(ctx context.Context, c screens.Context, t *leverTarget, raw string, now time.Time,
-) (*presenter.Response, error) {
+func (h *GovernanceHandler) allocation(ctx context.Context, c presentation.Ctx, t *leverTarget, raw string, now time.Time,
+) (*presentation.Response, error) {
 	step := h.steps.AllocationStep
 	if step <= 0 {
 		return nil, errors.Internal(errors.InvalidInput("no allocation step is configured"))
@@ -88,13 +88,13 @@ func (h *GovernanceHandler) allocation(ctx context.Context, c screens.Context, t
 		draft = current
 	}
 	place, lever := t.view(now)
-	v := screens.AllocationEditView{Place: place, Lever: lever, NextChangeIn: wait,
+	v := society.AllocationEditView{Place: place, Lever: lever, NextChangeIn: wait,
 		Draft: encodeAllocation(t.def.Categories, draft, step)}
 	for _, code := range t.def.Categories {
 		v.Total += draft[code]
 	}
 	for _, code := range t.def.Categories {
-		line := screens.AllocationLine{Code: code, Share: draft[code]}
+		line := society.AllocationLine{Code: code, Share: draft[code]}
 		if draft[code] >= step {
 			down := copyShares(draft)
 			down[code] -= step
@@ -113,7 +113,7 @@ func (h *GovernanceHandler) allocation(ctx context.Context, c screens.Context, t
 			v.SpendShareBPS = b.SpendShareBPS
 		}
 	}
-	return screens.AllocationEdit(c, v), nil
+	return society.AllocationEdit(c, v), nil
 }
 
 func copyShares(in map[string]int64) map[string]int64 {
@@ -125,12 +125,12 @@ func copyShares(in map[string]int64) map[string]int64 {
 }
 
 // Alloc handles gov.alloc: the editor with a draft.
-func (h *GovernanceHandler) Alloc(ctx context.Context, meta envelope.Metadata, req GovAllocRequest) (*presenter.Response, error) {
+func (h *GovernanceHandler) Alloc(ctx context.Context, meta envelope.Metadata, req GovAllocRequest) (*presentation.Response, error) {
 	p, lang, err := h.viewer(ctx, meta)
 	if err != nil {
 		return nil, err
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	now := h.now()
 	t, err := h.target(ctx, p, GovLeverRequest{Lever: req.Lever, Place: req.Place})
 	if err == nil && !t.def.IsAllocation() {
@@ -147,12 +147,12 @@ func (h *GovernanceHandler) Alloc(ctx context.Context, meta envelope.Metadata, r
 
 // AllocConfirm handles gov.allocok: the allocation spelled out before it is
 // announced or put to a vote.
-func (h *GovernanceHandler) AllocConfirm(ctx context.Context, meta envelope.Metadata, req GovAllocRequest) (*presenter.Response, error) {
+func (h *GovernanceHandler) AllocConfirm(ctx context.Context, meta envelope.Metadata, req GovAllocRequest) (*presentation.Response, error) {
 	p, lang, err := h.viewer(ctx, meta)
 	if err != nil {
 		return nil, err
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	now := h.now()
 	t, err := h.target(ctx, p, GovLeverRequest{Lever: req.Lever, Place: req.Place})
 	if err == nil && !t.def.IsAllocation() {
@@ -185,14 +185,14 @@ func (h *GovernanceHandler) AllocConfirm(ctx context.Context, meta envelope.Meta
 		return nil, err
 	}
 	place, lever := t.view(now)
-	return screens.AllocationConfirm(c, screens.AllocationConfirmView{Place: place, Lever: lever,
+	return society.AllocationConfirm(c, society.AllocationConfirmView{Place: place, Lever: lever,
 		Draft: encodeAllocation(t.def.Categories, shares, h.steps.AllocationStep), New: shares, VoteBy: body}), nil
 }
 
 // AllocSet handles gov.allocset: the allocation announced through
 // SetAllocation, or put to the vote of the body that must confirm it, with
 // the command's idempotency key. A redelivered press changes nothing.
-func (h *GovernanceHandler) AllocSet(ctx context.Context, meta envelope.Metadata, req GovAllocRequest) (*presenter.Response, error) {
+func (h *GovernanceHandler) AllocSet(ctx context.Context, meta envelope.Metadata, req GovAllocRequest) (*presentation.Response, error) {
 	if err := validPlayerRequest(meta); err != nil {
 		return nil, err
 	}
@@ -259,7 +259,7 @@ func (h *GovernanceHandler) AllocSet(ctx context.Context, meta envelope.Metadata
 		}
 		return appendPolicyChanged(ctx, tx, meta, t.place, change)
 	})
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	if resp, ok, err := h.billOpened(ctx, meta, lang, bill, err); ok {
 		return resp, err
 	}
@@ -273,8 +273,8 @@ func (h *GovernanceHandler) AllocSet(ctx context.Context, meta envelope.Metadata
 		return h.lever(ctx, c, p, GovLeverRequest{Lever: t.def.Code, Place: t.place.Code})
 	}
 	place := govPlace(t.place)
-	lever := screens.GovLever{Code: t.def.Code, Type: t.def.Type, HeldBy: t.def.HeldBy, Categories: t.def.Categories}
-	return screens.PolicyAnnounced(c, screens.PolicyAnnouncedView{
+	lever := society.GovLever{Code: t.def.Code, Type: t.def.Type, HeldBy: t.def.HeldBy, Categories: t.def.Categories}
+	return society.PolicyAnnounced(c, society.PolicyAnnouncedView{
 		Place: place, Lever: lever,
 		OldAllocation: change.OldAllocation, NewAllocation: change.Setting.Allocation,
 		In: change.Setting.EffectiveAt.Sub(now),

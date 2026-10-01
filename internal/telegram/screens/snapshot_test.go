@@ -602,9 +602,9 @@ func governanceSnapshots(c Context, who people, add func(string, *presenter.Resp
 		{"already holds it", application.ErrAlreadyHoldsSeat},
 		{"incompatible offices", application.ErrIncompatibleOffices},
 	} {
-		add("Refusal · "+r.title, PolicyRefused(c, PolicyRefusalView{Err: r.err, Place: &place, Lever: &tax, Now: now}))
+		add("Refusal · "+r.title, PolicyRefused(c, PolicyRefusalView{Refusal: refusalOf(r.err, now), Place: &place, Lever: &tax}))
 	}
-	add("Refusal · out of range, lever unknown", PolicyRefused(c, PolicyRefusalView{Err: application.ErrPolicyOutOfBounds, Now: now}))
+	add("Refusal · out of range, lever unknown", PolicyRefused(c, PolicyRefusalView{Refusal: refusalOf(application.ErrPolicyOutOfBounds, now)}))
 }
 
 func errorScreens(c Context, _ people, add func(string, *presenter.Response)) {

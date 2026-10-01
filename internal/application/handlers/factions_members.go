@@ -12,8 +12,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/shared/playercode"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // This file holds a faction's people: its members and their ranks,
@@ -22,13 +22,13 @@ import (
 
 // Members handles faction.members: the members, and what the viewer's rank
 // lets them do to each.
-func (h *FactionsHandler) Members(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *FactionsHandler) Members(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.FactionMembersView
+	var view society.FactionMembersView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -49,14 +49,14 @@ func (h *FactionsHandler) Members(ctx context.Context, meta envelope.Metadata) (
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.FactionMembers(h.screen(meta, lang), view), nil
+	return society.FactionMembers(presentation.Ctx{Lang: lang}, view), nil
 }
 
 func (h *FactionsHandler) membersView(ctx context.Context, tx application.Tx, def content.FactionDef, mb *member,
 	viewer string,
-) (screens.FactionMembersView, error) {
+) (society.FactionMembersView, error) {
 	charter := def.Charter()
-	v := screens.FactionMembersView{Ref: factionRef(*mb.faction), Max: h.rules.MaxMembers,
+	v := society.FactionMembersView{Ref: factionRef(*mb.faction), Max: h.rules.MaxMembers,
 		CanInvite: charter.Can(mb.rank, faction.Invite)}
 	members, err := tx.Factions().Members(ctx, mb.faction.ID)
 	if err != nil {
@@ -67,7 +67,7 @@ func (h *FactionsHandler) membersView(ctx context.Context, tx application.Tx, de
 		if err != nil {
 			return v, err
 		}
-		line := screens.FactionMemberLine{Player: who, Rank: m.Rank, Self: m.PlayerID == viewer}
+		line := society.FactionMemberLine{Player: who, Rank: m.Rank, Self: m.PlayerID == viewer}
 		r := faction.Rank(m.Rank)
 		self := m.PlayerID == viewer
 		line.CanKick = charter.CheckKick(mb.rank, r, self) == nil
@@ -86,7 +86,7 @@ func (h *FactionsHandler) membersView(ctx context.Context, tx application.Tx, de
 		if err != nil {
 			return v, err
 		}
-		v.Requests = append(v.Requests, screens.FactionRequestLine{No: q.No, Kind: q.Kind, Player: who,
+		v.Requests = append(v.Requests, society.FactionRequestLine{No: q.No, Kind: q.Kind, Player: who,
 			CanDecide: canDecide && q.Kind == application.RequestApply})
 	}
 	return v, nil
@@ -94,7 +94,7 @@ func (h *FactionsHandler) membersView(ctx context.Context, tx application.Tx, de
 
 // Invite handles faction.invite: a member whose rank allows invites a
 // player by their code or username.
-func (h *FactionsHandler) Invite(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) Invite(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (h *FactionsHandler) Invite(ctx context.Context, meta envelope.Metadata, re
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		invited  *screens.GovPlayer
+		invited  *society.GovPlayer
 		replayed bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -134,17 +134,17 @@ func (h *FactionsHandler) Invite(ctx context.Context, meta envelope.Metadata, re
 		}
 		q, ok := ClassifyPlayerQuery(req.To)
 		if !ok {
-			return refuseFaction(screens.FactionRefusedNoPlayer)
+			return refuseFaction(society.FactionRefusedNoPlayer)
 		}
 		target, err := h.search.Find(ctx, q)
 		if isSentinel(err, application.ErrPlayerNotFound) {
-			return refuseFaction(screens.FactionRefusedNoPlayer)
+			return refuseFaction(society.FactionRefusedNoPlayer)
 		}
 		if err != nil {
 			return err
 		}
 		if target.ID == p.ID {
-			return refuseFaction(screens.FactionRefusedAlreadyMember)
+			return refuseFaction(society.FactionRefusedAlreadyMember)
 		}
 		if err := h.roomFor(ctx, tx, *mb.faction, target.ID); err != nil {
 			return err
@@ -152,7 +152,7 @@ func (h *FactionsHandler) Invite(ctx context.Context, meta envelope.Metadata, re
 		r, err := tx.Factions().Request(ctx, application.FactionRequest{ID: h.ids.NewID(), FactionID: mb.faction.ID,
 			PlayerID: target.ID, Kind: application.RequestInvite, ByPlayer: p.ID, CreatedAt: h.now()})
 		if isSentinel(err, application.ErrRequestPending) {
-			return refuseFaction(screens.FactionRefusedPending)
+			return refuseFaction(society.FactionRefusedPending)
 		}
 		if err != nil {
 			return err
@@ -168,14 +168,14 @@ func (h *FactionsHandler) Invite(ctx context.Context, meta envelope.Metadata, re
 	if replayed || invited == nil {
 		return h.Members(ctx, meta)
 	}
-	return screens.FactionInvited(h.screen(meta, lang), *invited), nil
+	return society.FactionInvited(presentation.Ctx{Lang: lang}, society.FactionInvitedView{Player: *invited}), nil
 }
 
 // roomFor refuses a player who is in a faction, a faction that is full, or
 // one with too many requests waiting.
 func (h *FactionsHandler) roomFor(ctx context.Context, tx application.Tx, f application.Faction, playerID string) error {
 	if _, err := tx.Factions().Membership(ctx, playerID); err == nil {
-		return refuseFaction(screens.FactionRefusedTheirs)
+		return refuseFaction(society.FactionRefusedTheirs)
 	} else if !isSentinel(err, application.ErrNotInFaction) {
 		return err
 	}
@@ -184,7 +184,7 @@ func (h *FactionsHandler) roomFor(ctx context.Context, tx application.Tx, f appl
 		return err
 	}
 	if len(members) >= h.rules.MaxMembers {
-		r := refuseFaction(screens.FactionRefusedFull)
+		r := refuseFaction(society.FactionRefusedFull)
 		r.view.Max = h.rules.MaxMembers
 		return r
 	}
@@ -193,7 +193,7 @@ func (h *FactionsHandler) roomFor(ctx context.Context, tx application.Tx, f appl
 		return err
 	}
 	if len(pending) >= h.rules.MaxPending {
-		return refuseFaction(screens.FactionRefusedPendingFull)
+		return refuseFaction(society.FactionRefusedPendingFull)
 	}
 	return nil
 }
@@ -201,7 +201,7 @@ func (h *FactionsHandler) roomFor(ctx context.Context, tx application.Tx, f appl
 // Apply handles faction.apply: asking to join a faction. Without the
 // confirmation it shows the faction; with it, its leader and the officers
 // whose rank decides are asked.
-func (h *FactionsHandler) Apply(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) Apply(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if !req.confirmed() {
 		return h.View(ctx, meta, req)
 	}
@@ -211,7 +211,7 @@ func (h *FactionsHandler) Apply(ctx context.Context, meta envelope.Metadata, req
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		ref      screens.FactionRef
+		ref      society.FactionRef
 		replayed bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -240,7 +240,7 @@ func (h *FactionsHandler) Apply(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		if _, err := tx.Factions().Membership(ctx, p.ID); err == nil {
-			return refuseFaction(screens.FactionRefusedAlreadyMember)
+			return refuseFaction(society.FactionRefusedAlreadyMember)
 		} else if !isSentinel(err, application.ErrNotInFaction) {
 			return err
 		}
@@ -250,7 +250,7 @@ func (h *FactionsHandler) Apply(ctx context.Context, meta envelope.Metadata, req
 		r, err := tx.Factions().Request(ctx, application.FactionRequest{ID: h.ids.NewID(), FactionID: f.ID,
 			PlayerID: p.ID, Kind: application.RequestApply, ByPlayer: p.ID, CreatedAt: h.now()})
 		if isSentinel(err, application.ErrRequestPending) {
-			return refuseFaction(screens.FactionRefusedPending)
+			return refuseFaction(society.FactionRefusedPending)
 		}
 		if err != nil {
 			return err
@@ -278,24 +278,24 @@ func (h *FactionsHandler) Apply(ctx context.Context, meta envelope.Metadata, req
 	if replayed {
 		return h.List(ctx, meta, FactionCmd{})
 	}
-	return screens.FactionApplied(h.screen(meta, lang), ref), nil
+	return society.FactionApplied(presentation.Ctx{Lang: lang}, society.FactionAppliedView{Ref: ref}), nil
 }
 
 // Answer handles faction.answer: an invitee answering an invitation, or a
 // member whose rank decides answering an application.
-func (h *FactionsHandler) Answer(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) Answer(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	no, err := strconv.ParseInt(strings.TrimSpace(req.No), 10, 64)
-	accept := strings.TrimSpace(req.Verdict) == screens.FactionAccept
-	if err != nil || no <= 0 || (!accept && strings.TrimSpace(req.Verdict) != screens.FactionDecline) {
+	accept := strings.TrimSpace(req.Verdict) == society.FactionAccept
+	if err != nil || no <= 0 || (!accept && strings.TrimSpace(req.Verdict) != society.FactionDecline) {
 		return h.Mine(ctx, meta)
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		answered screens.FactionAnsweredView
+		answered society.FactionAnsweredView
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -318,7 +318,7 @@ func (h *FactionsHandler) Answer(ctx context.Context, meta envelope.Metadata, re
 		}
 		q, err := tx.Factions().RequestByNo(ctx, no)
 		if isSentinel(err, application.ErrRequestNotFound) {
-			return refuseFaction(screens.FactionRefusedRequestGone)
+			return refuseFaction(society.FactionRefusedRequestGone)
 		}
 		if err != nil {
 			return err
@@ -331,23 +331,23 @@ func (h *FactionsHandler) Answer(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		if q.Status != application.RequestPending || !f.Active() {
-			return refuseFaction(screens.FactionRefusedRequestGone)
+			return refuseFaction(society.FactionRefusedRequestGone)
 		}
 		switch q.Kind {
 		case application.RequestInvite:
 			if q.PlayerID != p.ID {
-				return refuseFaction(screens.FactionRefusedNotYours)
+				return refuseFaction(society.FactionRefusedNotYours)
 			}
 		default:
 			m, err := tx.Factions().Membership(ctx, p.ID)
 			if isSentinel(err, application.ErrNotInFaction) || (err == nil && m.FactionID != f.ID) {
-				return refuseFaction(screens.FactionRefusedNotYours)
+				return refuseFaction(society.FactionRefusedNotYours)
 			}
 			if err != nil {
 				return err
 			}
 			if !def.Charter().Can(faction.Rank(m.Rank), faction.Decide) {
-				return refuseFaction(screens.FactionRefusedRank)
+				return refuseFaction(society.FactionRefusedRank)
 			}
 		}
 		now := h.now()
@@ -355,11 +355,11 @@ func (h *FactionsHandler) Answer(ctx context.Context, meta envelope.Metadata, re
 		if err != nil {
 			return err
 		}
-		answered = screens.FactionAnsweredView{Ref: factionRef(*f), Kind: q.Kind, Accepted: accept, Player: govPlayerOf(joiner)}
+		answered = society.FactionAnsweredView{Ref: factionRef(*f), Kind: q.Kind, Accepted: accept, Player: govPlayerOf(joiner)}
 		if accept {
 			if err := h.roomFor(ctx, tx, *f, joiner.ID); err != nil {
 				var r *factionRefusal
-				if stderrors.As(err, &r) && r.view.Kind == screens.FactionRefusedPendingFull {
+				if stderrors.As(err, &r) && r.view.Kind == society.FactionRefusedPendingFull {
 					// The request being answered is one of those waiting.
 					err = nil
 				}
@@ -370,7 +370,7 @@ func (h *FactionsHandler) Answer(ctx context.Context, meta envelope.Metadata, re
 			if err := tx.Factions().AddMember(ctx, application.FactionMember{PlayerID: joiner.ID, FactionID: f.ID,
 				Rank: string(faction.Member), JoinedAt: now}); err != nil {
 				if isSentinel(err, application.ErrAlreadyInFaction) {
-					return refuseFaction(screens.FactionRefusedTheirs)
+					return refuseFaction(society.FactionRefusedTheirs)
 				}
 				return err
 			}
@@ -403,25 +403,25 @@ func (h *FactionsHandler) Answer(ctx context.Context, meta envelope.Metadata, re
 	if replayed {
 		return h.Mine(ctx, meta)
 	}
-	return screens.FactionAnswered(h.screen(meta, lang), answered), nil
+	return society.FactionAnswered(presentation.Ctx{Lang: lang}, answered), nil
 }
 
 // target reads another member of the actor's faction by their public code.
 func (h *FactionsHandler) target(ctx context.Context, tx application.Tx, mb *member, code string) (*application.Player, faction.Rank, error) {
 	code = playercode.Normalize(code)
 	if !playercode.Valid(code) {
-		return nil, "", refuseFaction(screens.FactionRefusedNoPlayer)
+		return nil, "", refuseFaction(society.FactionRefusedNoPlayer)
 	}
 	p, err := h.search.Find(ctx, application.PlayerQuery{Kind: application.PlayerQueryPublicCode, PublicCode: code})
 	if isSentinel(err, application.ErrPlayerNotFound) {
-		return nil, "", refuseFaction(screens.FactionRefusedNoPlayer)
+		return nil, "", refuseFaction(society.FactionRefusedNoPlayer)
 	}
 	if err != nil {
 		return nil, "", err
 	}
 	m, err := tx.Factions().Membership(ctx, p.ID)
 	if isSentinel(err, application.ErrNotInFaction) || (err == nil && m.FactionID != mb.faction.ID) {
-		return nil, "", refuseFaction(screens.FactionRefusedNotInIt)
+		return nil, "", refuseFaction(society.FactionRefusedNotInIt)
 	}
 	if err != nil {
 		return nil, "", err
@@ -431,14 +431,14 @@ func (h *FactionsHandler) target(ctx context.Context, tx application.Tx, mb *mem
 
 // Kick handles faction.kick: removing a member of lower rank, confirmed
 // first.
-func (h *FactionsHandler) Kick(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) Kick(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		confirm  *screens.FactionConfirmView
+		confirm  *society.FactionConfirmView
 		replayed bool
 		done     bool
 	)
@@ -471,10 +471,10 @@ func (h *FactionsHandler) Kick(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		if err := def.Charter().CheckKick(mb.rank, rank, target.ID == p.ID); err != nil {
-			return refuseFaction(screens.FactionRefusedRank)
+			return refuseFaction(society.FactionRefusedRank)
 		}
 		if !req.confirmed() {
-			confirm = &screens.FactionConfirmView{Kind: screens.FactionConfirmKick, Ref: factionRef(*mb.faction),
+			confirm = &society.FactionConfirmView{Kind: society.FactionConfirmKick, Ref: factionRef(*mb.faction),
 				Player: govPlayerOf(target)}
 			return nil
 		}
@@ -496,7 +496,7 @@ func (h *FactionsHandler) Kick(ctx context.Context, meta envelope.Metadata, req 
 		return resp, err
 	}
 	if confirm != nil {
-		return screens.FactionConfirm(h.screen(meta, lang), *confirm), nil
+		return society.FactionConfirm(presentation.Ctx{Lang: lang}, *confirm), nil
 	}
 	_, _ = replayed, done
 	return h.Members(ctx, meta)
@@ -511,14 +511,14 @@ func (h *FactionsHandler) refuseInCrew(ctx context.Context, tx application.Tx, p
 	case err != nil:
 		return err
 	case op.Status == application.HeistRunning:
-		return refuseFaction(screens.FactionRefusedOnAJob)
+		return refuseFaction(society.FactionRefusedOnAJob)
 	}
 	return nil
 }
 
 // Rank handles faction.rank: promoting a member to officer, lowering an
 // officer to member, or — the leader, confirmed — passing the leadership.
-func (h *FactionsHandler) Rank(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) Rank(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -529,7 +529,7 @@ func (h *FactionsHandler) Rank(ctx context.Context, meta envelope.Metadata, req 
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		confirm  *screens.FactionConfirmView
+		confirm  *society.FactionConfirmView
 		replayed bool
 	)
 	lead := to == faction.Leader
@@ -564,10 +564,10 @@ func (h *FactionsHandler) Rank(ctx context.Context, meta envelope.Metadata, req 
 		}
 		if lead {
 			if mb.rank != faction.Leader || target.ID == p.ID {
-				return refuseFaction(screens.FactionRefusedRank)
+				return refuseFaction(society.FactionRefusedRank)
 			}
 			if !req.confirmed() {
-				confirm = &screens.FactionConfirmView{Kind: screens.FactionConfirmLead, Ref: factionRef(*mb.faction),
+				confirm = &society.FactionConfirmView{Kind: society.FactionConfirmLead, Ref: factionRef(*mb.faction),
 					Player: govPlayerOf(target)}
 				return nil
 			}
@@ -588,7 +588,7 @@ func (h *FactionsHandler) Rank(ctx context.Context, meta envelope.Metadata, req 
 				if stderrors.Is(err, faction.ErrNoChange) {
 					return nil
 				}
-				return refuseFaction(screens.FactionRefusedRank)
+				return refuseFaction(society.FactionRefusedRank)
 			}
 			if err := tx.Factions().SetRank(ctx, mb.faction.ID, target.ID, string(to)); err != nil {
 				return err
@@ -601,7 +601,7 @@ func (h *FactionsHandler) Rank(ctx context.Context, meta envelope.Metadata, req 
 		return resp, err
 	}
 	if confirm != nil {
-		return screens.FactionConfirm(h.screen(meta, lang), *confirm), nil
+		return society.FactionConfirm(presentation.Ctx{Lang: lang}, *confirm), nil
 	}
 	_ = replayed
 	return h.Members(ctx, meta)
@@ -610,15 +610,15 @@ func (h *FactionsHandler) Rank(ctx context.Context, meta envelope.Metadata, req 
 // Leave handles faction.leave: a member leaving, confirmed first. The leader
 // passes the leadership before leaving; a leader alone disbands the faction,
 // and what is left in its bank goes to their own.
-func (h *FactionsHandler) Leave(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) Leave(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		confirm  *screens.FactionConfirmView
-		left     *screens.FactionLeftView
+		confirm  *society.FactionConfirmView
+		left     *society.FactionLeftView
 		replayed bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -650,14 +650,14 @@ func (h *FactionsHandler) Leave(ctx context.Context, meta envelope.Metadata, req
 		}
 		disband := len(members) == 1
 		if mb.rank == faction.Leader && !disband {
-			return refuseFaction(screens.FactionRefusedLeaderLeaving)
+			return refuseFaction(society.FactionRefusedLeaderLeaving)
 		}
 		if !req.confirmed() {
-			kind := screens.FactionConfirmLeave
+			kind := society.FactionConfirmLeave
 			if disband {
-				kind = screens.FactionConfirmDisband
+				kind = society.FactionConfirmDisband
 			}
-			confirm = &screens.FactionConfirmView{Kind: kind, Ref: factionRef(*mb.faction)}
+			confirm = &society.FactionConfirmView{Kind: kind, Ref: factionRef(*mb.faction)}
 			return nil
 		}
 		if err := h.refuseInCrew(ctx, tx, p.ID); err != nil {
@@ -665,7 +665,7 @@ func (h *FactionsHandler) Leave(ctx context.Context, meta envelope.Metadata, req
 		}
 		now := h.now()
 		f := *mb.faction
-		left = &screens.FactionLeftView{Ref: factionRef(f), Disbanded: disband}
+		left = &society.FactionLeftView{Ref: factionRef(f), Disbanded: disband}
 		if disband {
 			if op, err := tx.Factions().OpenOperation(ctx, f.ID); err == nil {
 				op.Status = application.HeistCalledOff
@@ -717,9 +717,9 @@ func (h *FactionsHandler) Leave(ctx context.Context, meta envelope.Metadata, req
 	}
 	switch {
 	case confirm != nil:
-		return screens.FactionConfirm(h.screen(meta, lang), *confirm), nil
+		return society.FactionConfirm(presentation.Ctx{Lang: lang}, *confirm), nil
 	case left != nil:
-		return screens.FactionLeft(h.screen(meta, lang), *left), nil
+		return society.FactionLeft(presentation.Ctx{Lang: lang}, *left), nil
 	}
 	_ = replayed
 	return h.List(ctx, meta, FactionCmd{})

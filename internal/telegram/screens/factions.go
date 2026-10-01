@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
@@ -14,43 +13,17 @@ import (
 // members, invitations and applications, its bank, its group, and its
 // organised crimes; the notices and the lines its group reads.
 
-// Addresses of the faction screens.
+// Commands of the faction screens that ask the player to type a value.
 const (
-	AddrFactions        = "faction:list"
-	AddrFaction         = "faction:view"
-	AddrFactionFound    = "faction:found"
-	AddrFactionMine     = "faction:mine"
-	AddrFactionMembers  = "faction:members"
-	AddrFactionApply    = "faction:apply"
-	AddrFactionAnswer   = "faction:answer"
-	AddrFactionKick     = "faction:kick"
-	AddrFactionRank     = "faction:rank"
-	AddrFactionLeave    = "faction:leave"
-	AddrFactionBank     = "faction:bank"
-	AddrFactionCrime    = "faction:crime"
-	AddrFactionPlan     = "faction:plan"
-	AddrFactionJoin     = "faction:join"
-	AddrFactionLaunch   = "faction:launch"
-	AddrFactionCallOff  = "faction:calloff"
-	AddrFactionLink     = "faction:link"
 	commandFactionFound = "faction.found"
-	commandFactionInv   = "faction.invite"
-	commandFactionDep   = "faction.deposit"
-	commandFactionWd    = "faction.withdraw"
+	commandFactionInv = "faction.invite"
+	commandFactionDep = "faction.deposit"
+	commandFactionWd = "faction.withdraw"
 )
 
-// Answers a faction button carries.
-const (
-	FactionYes     = "yes"
-	FactionAccept  = "accept"
-	FactionDecline = "decline"
-)
 
-// FactionRef names a faction: its name and public code.
-type FactionRef struct {
-	Code string
-	Name string
-}
+
+
 
 func (c Context) factionName(r FactionRef) string {
 	return c.T("faction.name", map[string]any{"name": r.Name, "code": r.Code})
@@ -59,20 +32,9 @@ func (c Context) factionName(r FactionRef) string {
 // rankName names a rank.
 func (c Context) rankName(rank string) string { return c.T("faction.rank."+rank, nil) }
 
-// FactionLine is one faction of a list.
-type FactionLine struct {
-	Ref     FactionRef
-	Members int
-}
 
-// FactionListView is the factions of the player's city.
-type FactionListView struct {
-	CityCode, City string
-	Fee            int64
-	Factions       []FactionLine
-	// Mine is the viewer's faction, nil for none.
-	Mine *FactionRef
-}
+
+
 
 // FactionList renders the factions of a city.
 func FactionList(c Context, v FactionListView) *presenter.Response {
@@ -107,27 +69,9 @@ func renderFactionList(c Context, v FactionListView) *presenter.Response {
 	return c.respond(paragraphs(title, list, mine), kb.Build())
 }
 
-// FactionMemberLine is one member, or one crew member.
-type FactionMemberLine struct {
-	Player GovPlayer
-	Rank   string
-	Self   bool
-	// What the viewer may do to them.
-	CanKick, CanPromote, CanDemote, CanLead bool
-}
 
-// FactionPageView is a faction's public page.
-type FactionPageView struct {
-	Ref            FactionRef
-	CityCode, City string
-	Linked         bool
-	Members        []FactionMemberLine
-	// Mine is the viewer's own faction; CanApply that they may ask to join;
-	// CanLink that they may tie it to the group the page is read in.
-	Mine     bool
-	CanApply bool
-	CanLink  bool
-}
+
+
 
 // FactionPage renders a faction's public page.
 func FactionPage(c Context, v FactionPageView) *presenter.Response {
@@ -159,14 +103,7 @@ func renderFactionPage(c Context, v FactionPageView) *presenter.Response {
 		kb.Build())
 }
 
-// FactionFoundView is founding a faction: the fee, and a way to pay each
-// asking for the name.
-type FactionFoundView struct {
-	CityCode, City   string
-	Fee              int64
-	Payment          PaymentChoice
-	NameMin, NameMax int
-}
+
 
 // FactionFound renders founding a faction.
 func FactionFound(c Context, v FactionFoundView) *presenter.Response {
@@ -195,13 +132,7 @@ func renderFactionFound(c Context, v FactionFoundView) *presenter.Response {
 	return c.respond(paragraphs(text, pay), kb.Build()).MarkPrivate()
 }
 
-// FactionFoundedView is a faction founded.
-type FactionFoundedView struct {
-	Ref            FactionRef
-	CityCode, City string
-	Fee            int64
-	Method         string
-}
+
 
 // FactionFounded renders a faction founded.
 func FactionFounded(c Context, v FactionFoundedView) *presenter.Response {
@@ -221,19 +152,7 @@ func renderFactionFounded(c Context, v FactionFoundedView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build()).MarkPrivate()
 }
 
-// FactionHomeView is a member's faction screen.
-type FactionHomeView struct {
-	Ref            FactionRef
-	Rank           string
-	Linked         bool
-	Rights         []string
-	CityCode, City string
-	Members        int
-	MaxMembers     int
-	Bank           int64
-	Applications   int
-	Operation      *FactionOperationLine
-}
+
 
 func hasRight(rights []string, r string) bool {
 	for _, x := range rights {
@@ -284,22 +203,9 @@ func renderFactionHome(c Context, v FactionHomeView) *presenter.Response {
 		body(lines...), link, op), kb.Build()).MarkPrivate()
 }
 
-// FactionRequestLine is an invitation or an application waiting.
-type FactionRequestLine struct {
-	No        int64
-	Kind      string
-	Player    GovPlayer
-	CanDecide bool
-}
 
-// FactionMembersView is a faction's members, and what is waiting.
-type FactionMembersView struct {
-	Ref       FactionRef
-	Max       int
-	CanInvite bool
-	Members   []FactionMemberLine
-	Requests  []FactionRequestLine
-}
+
+
 
 // FactionMembers renders a faction's members, with the buttons the viewer's
 // rank allows on each.
@@ -383,13 +289,7 @@ func FactionApplied(c Context, f FactionRef) *presenter.Response {
 	return c.respond(c.T("faction.applied", map[string]any{"faction": c.factionName(f)}), kb.Build()).MarkPrivate()
 }
 
-// FactionAnsweredView is an invitation or application answered.
-type FactionAnsweredView struct {
-	Ref      FactionRef
-	Kind     string
-	Accepted bool
-	Player   GovPlayer
-}
+
 
 // FactionAnswered renders an answer given.
 func FactionAnswered(c Context, v FactionAnsweredView) *presenter.Response {
@@ -414,20 +314,9 @@ func renderFactionAnswered(c Context, v FactionAnsweredView) *presenter.Response
 		kb.Build()).MarkPrivate()
 }
 
-// Confirmations of a faction.
-const (
-	FactionConfirmKick    = "kick"
-	FactionConfirmLead    = "lead"
-	FactionConfirmLeave   = "leave"
-	FactionConfirmDisband = "disband"
-)
 
-// FactionConfirmView asks to confirm an act that cannot be taken back.
-type FactionConfirmView struct {
-	Kind   string
-	Ref    FactionRef
-	Player GovPlayer
-}
+
+
 
 // FactionConfirm renders a confirmation.
 func FactionConfirm(c Context, v FactionConfirmView) *presenter.Response {
@@ -453,12 +342,7 @@ func renderFactionConfirm(c Context, v FactionConfirmView) *presenter.Response {
 	return c.respond(c.T("faction.confirm."+v.Kind, args), kb.Build()).MarkPrivate()
 }
 
-// FactionLeftView is a member gone, or a faction disbanded.
-type FactionLeftView struct {
-	Ref       FactionRef
-	Disbanded bool
-	PaidOut   int64
-}
+
 
 // FactionLeft renders leaving a faction.
 func FactionLeft(c Context, v FactionLeftView) *presenter.Response {
@@ -480,8 +364,7 @@ func renderFactionLeft(c Context, v FactionLeftView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build()).MarkPrivate()
 }
 
-// FactionLinkedView is a faction tied to a group.
-type FactionLinkedView struct{ Ref FactionRef }
+
 
 // FactionLinked renders a faction tied to the group it was sent in.
 func FactionLinked(c Context, v FactionLinkedView) *presenter.Response {
@@ -494,23 +377,9 @@ func renderFactionLinked(c Context, v FactionLinkedView) *presenter.Response {
 	return c.respond(c.T("faction.linked", map[string]any{"faction": c.factionName(v.Ref)}), kb.Build())
 }
 
-// FactionMoneyDone is money just moved in or out of a faction's bank.
-type FactionMoneyDone struct {
-	Deposit bool
-	Amount  int64
-	Method  string
-}
 
-// FactionBankView is a faction's bank.
-type FactionBankView struct {
-	Ref                     FactionRef
-	Balance                 int64
-	CanDeposit, CanWithdraw bool
-	Cash, BankBalance       int64
-	Min, Max                int64
-	Methods                 []string
-	Done                    *FactionMoneyDone
-}
+
+
 
 // FactionBank renders a faction's bank.
 func FactionBank(c Context, v FactionBankView) *presenter.Response {
@@ -554,22 +423,7 @@ func renderFactionBank(c Context, v FactionBankView) *presenter.Response {
 		body(lines...), rules), kb.Build()).MarkPrivate()
 }
 
-// FactionOperationLine is an organised crime, gathering or under way.
-type FactionOperationLine struct {
-	No             int64
-	Status         string
-	Crime          Named
-	Place          Named
-	CityCode, City string
-	ChanceBPS      int
-	Min, Max       int
-	Nerve          int
-	Crew           []FactionMemberLine
-	// Left and At are the gathering's end or the job's.
-	Left    time.Duration
-	At      time.Time
-	Expired bool
-}
+
 
 // operationLines are an organised crime's lines.
 func (c Context) operationLines(o FactionOperationLine) string {
@@ -593,34 +447,11 @@ func (c Context) operationLines(o FactionOperationLine) string {
 	return body(lines...)
 }
 
-// FactionPlanLine is an organised crime that may be planned.
-type FactionPlanLine struct {
-	Crime    Named
-	Min, Max int
-	Nerve    int
-	MinLevel int
-	Duration time.Duration
-	Places   []Named
-}
 
-// Notices on the organised crime board.
-const (
-	FactionNoticePlanned   = "planned"
-	FactionNoticeJoined    = "joined"
-	FactionNoticeLaunched  = "launched"
-	FactionNoticeCalledOff = "called_off"
-)
 
-// FactionCrimeView is a faction's organised crime board.
-type FactionCrimeView struct {
-	Ref                         FactionRef
-	Notice                      string
-	CanPlan, CanLaunch, CanJoin bool
-	CutBPS                      int
-	Operation                   *FactionOperationLine
-	InCrew                      bool
-	Crimes                      []FactionPlanLine
-}
+
+
+
 
 // FactionCrime renders the organised crime board.
 func FactionCrime(c Context, v FactionCrimeView) *presenter.Response {
@@ -670,46 +501,9 @@ func renderFactionCrime(c Context, v FactionCrimeView) *presenter.Response {
 		current, menu, rules), kb.Build())
 }
 
-// Faction refusal kinds.
-const (
-	FactionRefusedNone          = "none"
-	FactionRefusedNotMember     = "not_member"
-	FactionRefusedRank          = "rank"
-	FactionRefusedNotFound      = "not_found"
-	FactionRefusedAlreadyMember = "already_member"
-	FactionRefusedName          = "name"
-	FactionRefusedNameTaken     = "name_taken"
-	FactionRefusedNotGroup      = "not_group"
-	FactionRefusedGroupTaken    = "group_taken"
-	FactionRefusedBankShort     = "bank_short"
-	FactionRefusedNoPlayer      = "no_player"
-	FactionRefusedTheirs        = "theirs"
-	FactionRefusedFull          = "full"
-	FactionRefusedPendingFull   = "pending_full"
-	FactionRefusedPending       = "pending"
-	FactionRefusedRequestGone   = "request_gone"
-	FactionRefusedNotYours      = "not_yours"
-	FactionRefusedNotInIt       = "not_in_it"
-	FactionRefusedOnAJob        = "on_a_job"
-	FactionRefusedLeaderLeaving = "leader_leaving"
-	FactionRefusedNoSuchCrime   = "no_such_crime"
-	FactionRefusedOperationOpen = "operation_open"
-	FactionRefusedLevel         = "level"
-	FactionRefusedNoPlaceHere   = "no_place_here"
-	FactionRefusedNoOperation   = "no_operation"
-	FactionRefusedCrewFull      = "crew_full"
-	FactionRefusedElsewhere     = "elsewhere"
-	FactionRefusedCrewShort     = "crew_short"
-)
 
-// FactionRefusalView is a refused faction request.
-type FactionRefusalView struct {
-	Kind            string
-	Min, Max        int
-	Amount, Balance int64
-	Need, Have      int
-	Level           int
-}
+
+
 
 // FactionRefusal renders a refused faction request.
 func FactionRefusal(c Context, v FactionRefusalView) *presenter.Response {

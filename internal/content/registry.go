@@ -55,6 +55,11 @@ type Snapshot struct {
 	// Elections by office; see election.go.
 	elections map[string]ElectionDef
 
+	// The names a client words by code: offices, levers, jurisdictions above
+	// the city; see election.go.
+	officeCodes, leverCodes []string
+	jurisdictions           []JurisdictionDef
+
 	// Companies; see company.go.
 	companies companyContent
 

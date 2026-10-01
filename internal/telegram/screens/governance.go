@@ -1,12 +1,10 @@
 package screens
 
 import (
-	stderrors "errors"
 	"strconv"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
-	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -22,26 +20,7 @@ import (
 // a code with no entry reads as a generic phrase, never as the code itself: a
 // lever code, an office code or an id is not something a player should read.
 
-// Callback addresses of the governance screens.
-//
-// A lever is addressed by its content code and the code of the place it is
-// set in, never by a database id: both are short, stable and authored, and
-// the core looks the place up again and re-checks, through SetPolicy, that
-// this player may change the lever there. A value in an address is only a
-// proposal: SetPolicy refuses one out of bounds whatever a button said.
-const (
-	AddrGovCity    = "gov:city"
-	AddrGovHistory = "gov:history"
-	AddrGovOffice  = "gov:office"
-	AddrGovLever   = "gov:lever"
-	AddrGovConfirm = "gov:confirm"
-	AddrGovSet     = "gov:set"
-	// The allocation editor (a budget): the draft travels in the address,
-	// one character per category (docs/adr/0024-property-and-politics.md).
-	AddrGovAlloc        = "gov:alloc"
-	AddrGovAllocConfirm = "gov:allocok"
-	AddrGovAllocSet     = "gov:allocset"
-)
+
 
 // Catalogue namespaces for content-coded names.
 const (
@@ -64,150 +43,39 @@ const cityKind = "city"
 // countryKind is the level of a country.
 const countryKind = "country"
 
-// GovPlayer names another player: the display name and the public code, the
-// two things one player may see of another.
-type GovPlayer struct {
-	Name string
-	Code string
-}
 
-// GovPlace is one jurisdiction: a city or a country.
-type GovPlace struct {
-	Kind string
-	Code string
-	// Name is the authored name, the fallback for an untranslated code.
-	Name string
-}
 
-// GovOffice is one office of a place and who sits in it.
-type GovOffice struct {
-	Code  string
-	Seats int
-	// Holders are the players in its held seats.
-	Holders []GovPlayer
-	// ActingCode and Acting name the deputy office acting for this one
-	// while every seat of it is vacant, and who sits in it. Empty when the
-	// office is held or nobody acts for it.
-	ActingCode string
-	Acting     []GovPlayer
-}
 
-// GovLever is one policy as the resolver answered it, with the constitution
-// around it.
-type GovLever struct {
-	Code string
-	Type string
-	// Value is the value in force now.
-	Value             int64
-	Default, Min, Max int64
-	// FromOffice says an office holder set Value; SetBy is who, when known.
-	FromOffice bool
-	SetBy      *GovPlayer
-	// Pending is the next announced change, if any.
-	Pending *GovPending
-	// HeldBy is the office deciding the lever.
-	HeldBy           string
-	Notice, Cooldown time.Duration
-	// Vote says the lever is decided by a vote of HeldBy: nobody changes it
-	// alone; a member proposes and the body votes.
-	Vote bool
-	// ConfirmBy is the body whose vote confirms a change, empty for none.
-	ConfirmBy string
-	// Allocation and Categories are an allocation lever's shares in force
-	// and its categories, in order; nil for a scalar lever.
-	Allocation map[string]int64
-	Categories []string
-}
+
+
+
+
 
 // isAllocation reports whether the lever divides a budget.
-func (l GovLever) isAllocation() bool { return l.Type == application.LeverAllocation }
+func isAllocationLever(l GovLever) bool { return l.Type == application.LeverAllocation }
 
 // leverValue renders the lever's value in force: an allocation's shares, a
 // scalar in its unit.
 func (c Context) leverValue(l GovLever) string {
-	if l.isAllocation() {
+	if isAllocationLever(l) {
 		return c.AllocationText(l.Allocation, l.Categories)
 	}
 	return FormatPolicyValue(c, l.Code, l.Type, l.Value)
 }
 
-// GovPending is a change announced and not yet in force.
-type GovPending struct {
-	Value int64
-	// Allocation is an allocation lever's announced shares.
-	Allocation map[string]int64
-	// In is how long until it takes effect.
-	In time.Duration
-	By *GovPlayer
-}
 
-// GovSection is one place's offices and policies.
-type GovSection struct {
-	Place   GovPlace
-	Offices []GovOffice
-	Levers  []GovLever
-}
 
-// CityGovView is the city hall screen: the city's offices and policies, and
-// those of every place above it.
-type CityGovView struct {
-	City GovPlace
-	// Sections are the city first, then each place above it.
-	Sections []GovSection
-	// HoldsOffice offers the viewer a way to their own office screen.
-	HoldsOffice bool
-	// NoCity means the viewer asked for their own city and is in none.
-	NoCity bool
-	// Tier is the settlement's stage ("village", "town", "city"; empty is a
-	// city): the budget and the city council's bills belong to a city alone,
-	// so a village's screen does not offer them.
-	Tier string
-}
 
-// GovSeat is one seat the viewer holds, and what it lets them change.
-type GovSeat struct {
-	Office string
-	Place  GovPlace
-	// ActingFor names the vacant office this seat acts for, when it acts
-	// as a deputy.
-	ActingFor string
-	// Levers are the policies the viewer can change from this seat now.
-	Levers []GovLever
-	// VoteLevers are the policies this office decides by a vote.
-	VoteLevers []GovLever
-	// Appointees are the seats this office appoints to or may remove the
-	// holder of.
-	Appointees []GovAppointee
-}
 
-// MyOfficeView is the office holder's screen.
-type MyOfficeView struct {
-	Seats []GovSeat
-}
 
-// LeverEditView is one policy the viewer can change, with a proposed value.
-type LeverEditView struct {
-	Place GovPlace
-	Lever GovLever
-	// Draft is the value being proposed; it starts at the value that will
-	// be in force.
-	Draft int64
-	// FineStep and CoarseStep are the two step sizes of the +/- buttons.
-	FineStep, CoarseStep int64
-	// NextChangeIn is how long until the lever may change again; zero when
-	// it may change now.
-	NextChangeIn time.Duration
-}
 
-// PolicyConfirmView asks the office holder to confirm one change.
-type PolicyConfirmView struct {
-	Place    GovPlace
-	Lever    GovLever
-	NewValue int64
-	// VoteBy is the body the change goes to for a vote, empty when it is
-	// announced at once.
-	VoteBy string
-}
+
+
+
+
+
+
+
 
 // confirmNotice says when a change takes effect: after its notice, or —
 // when a body must confirm it — after the vote.
@@ -226,51 +94,13 @@ func (c Context) confirmVote(l GovLever, body string) string {
 	return c.T("gov.confirm.vote", map[string]any{"office": c.OfficeName(body)})
 }
 
-// PolicyAnnouncedView reports a change that was made.
-type PolicyAnnouncedView struct {
-	Place    GovPlace
-	Lever    GovLever
-	Old, New int64
-	// OldAllocation and NewAllocation are an allocation lever's shares.
-	OldAllocation, NewAllocation map[string]int64
-	// In is how long until it takes effect.
-	In time.Duration
-}
 
-// GovHistoryEntry is one change in the public record.
-type GovHistoryEntry struct {
-	Place GovPlace
-	Lever string
-	// Type formats the values; empty when the lever is no longer in the
-	// active content, and the values are shown as plain numbers.
-	Type     string
-	Office   string
-	By       *GovPlayer
-	Old, New int64
-	// Ago is how long since it was announced; EffectiveIn how long until it
-	// takes effect, negative once it has.
-	Ago         time.Duration
-	EffectiveIn time.Duration
-}
 
-// GovHistoryView is one page of a city's public record.
-type GovHistoryView struct {
-	City    GovPlace
-	Entries []GovHistoryEntry
-	Page    int
-	Pages   int
-}
 
-// PolicyRefusalView is a governance refusal with what the screen knows about
-// its lever, so bounds and waits can be written in the lever's unit.
-type PolicyRefusalView struct {
-	Err error
-	// Place and Lever are nil when the refusal came before either was known.
-	Place *GovPlace
-	Lever *GovLever
-	// Now is when the refusal happened, for "available in …".
-	Now time.Time
-}
+
+
+
+
 
 // PlaceName names a jurisdiction in this context's language: a city through
 // city.<code>, anything else through jurisdiction.<code>, and the authored
@@ -489,7 +319,7 @@ func govLeverLines(c Context, l GovLever) []string {
 	}
 	if l.Pending != nil {
 		pending := FormatPolicyValue(c, l.Code, l.Type, l.Pending.Value)
-		if l.isAllocation() {
+		if isAllocationLever(l) {
 			pending = c.AllocationText(l.Pending.Allocation, l.Categories)
 		}
 		lines = append(lines, c.T("gov.lever.pending", map[string]any{
@@ -723,35 +553,15 @@ func renderPolicyAnnounced(c Context, v PolicyAnnouncedView) *presenter.Response
 
 // announcedValue is one side of an announced change.
 func (c Context) announcedValue(l GovLever, v int64, shares map[string]int64) string {
-	if l.isAllocation() {
+	if isAllocationLever(l) {
 		return c.AllocationText(shares, l.Categories)
 	}
 	return FormatPolicyValue(c, l.Code, l.Type, v)
 }
 
-// AllocationLine is one category of an allocation being drafted, with the
-// drafts one press down and up leads to ("" where it cannot move).
-type AllocationLine struct {
-	Code     string
-	Share    int64
-	Down, Up string
-}
 
-// AllocationEditView is an allocation the viewer may change: the draft,
-// encoded for the addresses, and its lines.
-type AllocationEditView struct {
-	Place GovPlace
-	Lever GovLever
-	Draft string
-	Lines []AllocationLine
-	// Total is what the draft allocates, bps; SpendShareBPS the share of the
-	// treasury the budget spends each period, zero when not a budget.
-	Total         int64
-	SpendShareBPS int64
-	NextChangeIn  time.Duration
-	// Changed says the draft differs from the value in force.
-	Changed bool
-}
+
+
 
 // AllocationEdit renders the allocation editor.
 func AllocationEdit(c Context, v AllocationEditView) *presenter.Response {
@@ -816,15 +626,7 @@ func (c Context) spendShareLine(bps int64) string {
 		map[string]any{"value": PercentFromBPS(c, int(bps))})})
 }
 
-// AllocationConfirmView asks to confirm an allocation.
-type AllocationConfirmView struct {
-	Place GovPlace
-	Lever GovLever
-	Draft string
-	New   map[string]int64
-	// VoteBy is the body it goes to, empty when announced at once.
-	VoteBy string
-}
+
 
 // AllocationConfirm asks the holder to confirm an allocation.
 func AllocationConfirm(c Context, v AllocationConfirmView) *presenter.Response {
@@ -904,10 +706,7 @@ func PolicyRefused(c Context, v PolicyRefusalView) *presenter.Response {
 }
 
 func renderPolicyRefused(c Context, v PolicyRefusalView) *presenter.Response {
-	key, args, ok := governanceRefusal(c, v.Err, v.Lever, v.Now)
-	if !ok {
-		return Error(c, v.Err)
-	}
+	key, args := governanceRefusal(c, v.Refusal, v.Lever)
 	kb := keyboards.New()
 	back := AddrGovOffice
 	if v.Lever != nil && v.Place != nil {
@@ -918,76 +717,54 @@ func renderPolicyRefused(c Context, v PolicyRefusalView) *presenter.Response {
 	return c.respond(c.T(key, args), kb.Build())
 }
 
-// IsGovernanceRefusal reports whether err is one of the governance refusals
-// these screens have a sentence for.
-func IsGovernanceRefusal(err error) bool {
-	_, _, ok := governanceRefusal(Context{}, err, nil, time.Time{})
-	return ok
-}
-
-// governanceSentinels maps every governance refusal that needs no numbers to
-// its sentence. The ones that carry numbers are handled in governanceRefusal.
-var governanceSentinels = []struct {
-	target error
-	key    string
-}{
-	{application.ErrUnknownLever, "gov.refusal.unknown_lever"},
-	{application.ErrJurisdictionNotFound, "gov.refusal.unknown_place"},
-	{application.ErrWrongJurisdiction, "gov.refusal.wrong_place"},
-	{application.ErrCityTierOnly, "gov.refusal.city_only"},
-	{application.ErrLeverKindUnsupported, "gov.refusal.unsupported"},
-	{application.ErrInvalidAllocation, "gov.refusal.invalid_allocation"},
-	{application.ErrOfficeNotFound, "gov.refusal.office_not_found"},
-	{application.ErrOfficeOccupied, "gov.refusal.office_occupied"},
-	{application.ErrOfficeVacant, "gov.refusal.office_vacant"},
-	{application.ErrAlreadyHoldsSeat, "gov.refusal.already_holds"},
-	{application.ErrIncompatibleOffices, "gov.refusal.incompatible"},
-}
-
-// governanceRefusal picks the sentence for a governance sentinel, or reports
-// that err is none. lever, when known, puts the bounds in the lever's unit;
-// now, when set, turns a cooldown into a wait.
-func governanceRefusal(c Context, err error, lever *GovLever, now time.Time) (string, map[string]any, bool) {
-	switch {
-	case stderrors.Is(err, application.ErrNotOfficeHolder):
-		office := detailString(err, "office")
+// governanceRefusal picks the sentence for a governance refusal. lever, when
+// known, puts the bounds in the lever's unit.
+func governanceRefusal(c Context, g GovRefusal, lever *GovLever) (string, map[string]any) {
+	switch g.Kind {
+	case GovRefusedNotHolder:
+		office := g.Office
 		if office == "" && lever != nil {
 			office = lever.HeldBy
 		}
-		return "gov.refusal.not_holder", map[string]any{"office": c.OfficeName(office)}, true
+		return "gov.refusal.not_holder", map[string]any{"office": c.OfficeName(office)}
 
-	case stderrors.Is(err, application.ErrPolicyRequiresConfirmation):
-		return "gov.refusal.requires_confirmation", map[string]any{"office": c.OfficeName(detailString(err, "body"))}, true
+	case GovRefusedRequiresConfirmation:
+		return "gov.refusal.requires_confirmation", map[string]any{"office": c.OfficeName(g.Office)}
 
-	case stderrors.Is(err, application.ErrPolicyRequiresVote):
-		body := detailString(err, "body")
+	case GovRefusedRequiresVote:
+		body := g.Office
 		if body == "" && lever != nil {
 			body = lever.HeldBy
 		}
-		return "gov.refusal.requires_vote", map[string]any{"office": c.OfficeName(body)}, true
+		return "gov.refusal.requires_vote", map[string]any{"office": c.OfficeName(body)}
 
-	case stderrors.Is(err, application.ErrPolicyOutOfBounds):
+	case GovRefusedOutOfRange:
 		if lever == nil {
-			return "gov.refusal.out_of_range_plain", nil, true
+			return "gov.refusal.out_of_range_plain", nil
 		}
 		return "gov.refusal.out_of_range", map[string]any{
 			"min": FormatPolicyValue(c, lever.Code, lever.Type, lever.Min),
 			"max": FormatPolicyValue(c, lever.Code, lever.Type, lever.Max),
-		}, true
+		}
 
-	case stderrors.Is(err, application.ErrPolicyCooldown):
-		at, ok := detailTime(err, "available_at")
-		if !ok || now.IsZero() || !at.After(now) {
-			return "gov.refusal.cooldown_later", nil, true
+	case GovRefusedCooldown:
+		if g.Wait <= 0 {
+			return "gov.refusal.cooldown_later", nil
 		}
-		return "gov.refusal.cooldown", map[string]any{"wait": FormatSpan(c, at.Sub(now))}, true
+		return "gov.refusal.cooldown", map[string]any{"wait": FormatSpan(c, g.Wait)}
 	}
-	for _, s := range governanceSentinels {
-		if stderrors.Is(err, s.target) {
-			return s.key, nil, true
-		}
+	return "gov.refusal." + g.Kind, nil
+}
+
+// governanceRefusalOfError is the sentence for a stray governance sentinel the
+// generic error screen meets.
+func governanceRefusalOfError(c Context, err error) (string, map[string]any, bool) {
+	r, ok := application.ClassifyGovernanceRefusal(err)
+	if !ok {
+		return "", nil, false
 	}
-	return "", nil, false
+	key, args := governanceRefusal(c, GovRefusal{Kind: r.Kind, Office: r.Office}, nil)
+	return key, args, true
 }
 
 // clampValue keeps a proposed value inside the lever's bounds, so a step
@@ -1000,24 +777,4 @@ func clampValue(v, lo, hi int64) int64 {
 		return hi
 	}
 	return v
-}
-
-// detailString reads one string detail off a classified error.
-func detailString(err error, key string) string {
-	var e *errors.Error
-	if !stderrors.As(err, &e) {
-		return ""
-	}
-	s, _ := e.Details[key].(string)
-	return s
-}
-
-// detailTime reads one time detail off a classified error.
-func detailTime(err error, key string) (time.Time, bool) {
-	var e *errors.Error
-	if !stderrors.As(err, &e) {
-		return time.Time{}, false
-	}
-	t, ok := e.Details[key].(time.Time)
-	return t, ok
 }

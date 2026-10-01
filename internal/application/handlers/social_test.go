@@ -166,8 +166,8 @@ func TestSocialSearchFindsByEachForm(t *testing.T) {
 			h.search.players = []application.Player{other}
 			handler := h.socialHandler(t)
 
-			resp, err := handler.Search(context.Background(),
-				command("social.search", 300, "req-1"), SearchRequest{Query: tt.query})
+			resp, err := rendered(t)(handler.Search(context.Background(),
+				command("social.search", 300, "req-1"), SearchRequest{Query: tt.query}))
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -205,8 +205,8 @@ func TestSocialSearchNeverPrintsTheTelegramIDAsAName(t *testing.T) {
 	h.search.players = []application.Player{other}
 	handler := h.socialHandler(t)
 
-	resp, err := handler.Search(context.Background(),
-		command("social.search", 301, "req-1"), SearchRequest{Query: "777000111"})
+	resp, err := rendered(t)(handler.Search(context.Background(),
+		command("social.search", 301, "req-1"), SearchRequest{Query: "777000111"}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -229,8 +229,8 @@ func TestSocialSearchFindsYourself(t *testing.T) {
 	h.search.players = []application.Player{*self}
 	handler := h.socialHandler(t)
 
-	resp, err := handler.Search(context.Background(),
-		command("social.search", 302, "req-1"), SearchRequest{Query: "mexz234"})
+	resp, err := rendered(t)(handler.Search(context.Background(),
+		command("social.search", 302, "req-1"), SearchRequest{Query: "mexz234"}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -258,8 +258,8 @@ func TestSocialSearchNeverFindsAnInactiveAccount(t *testing.T) {
 			h.search.players = []application.Player{other}
 			handler := h.socialHandler(t)
 
-			resp, err := handler.Search(context.Background(),
-				command("social.search", 303, "req-1"), SearchRequest{Query: "K7Q2M9A"})
+			resp, err := rendered(t)(handler.Search(context.Background(),
+				command("social.search", 303, "req-1"), SearchRequest{Query: "K7Q2M9A"}))
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -293,8 +293,8 @@ func TestSocialSearchSaysWhatWasNotFound(t *testing.T) {
 			h.search.players = []application.Player{searchable()}
 			handler := h.socialHandler(t)
 
-			resp, err := handler.Search(context.Background(),
-				command("social.search", 304, "req-1"), SearchRequest{Query: tt.query})
+			resp, err := rendered(t)(handler.Search(context.Background(),
+				command("social.search", 304, "req-1"), SearchRequest{Query: tt.query}))
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -319,8 +319,8 @@ func TestSocialSearchAnswersAnythingElseWithHelp(t *testing.T) {
 			h.search.players = []application.Player{searchable()}
 			handler := h.socialHandler(t)
 
-			resp, err := handler.Search(context.Background(),
-				command("social.search", 305, "req-1"), SearchRequest{Query: query})
+			resp, err := rendered(t)(handler.Search(context.Background(),
+				command("social.search", 305, "req-1"), SearchRequest{Query: query}))
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -339,8 +339,8 @@ func TestSocialFriendAddRequestsTheEdge(t *testing.T) {
 	self := h.player(304, "p-1", tehranID)
 	handler := h.socialHandler(t)
 
-	resp, err := handler.FriendAdd(context.Background(),
-		command("social.friend.add", 304, "req-1"), FriendRequest{Player: "other"})
+	resp, err := rendered(t)(handler.FriendAdd(context.Background(),
+		command("social.friend.add", 304, "req-1"), FriendRequest{Player: "other"}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -365,8 +365,8 @@ func TestSocialFriendAddRefusesSelf(t *testing.T) {
 	self := h.player(305, "p-1", tehranID)
 	handler := h.socialHandler(t)
 
-	if _, err := handler.FriendAdd(context.Background(),
-		command("social.friend.add", 305, "req-1"), FriendRequest{Player: self.ID}); err == nil {
+	if _, err := rendered(t)(handler.FriendAdd(context.Background(),
+		command("social.friend.add", 305, "req-1"), FriendRequest{Player: self.ID})); err == nil {
 		t.Error("expected a refusal for befriending yourself")
 	}
 	if n := len(h.friendships.requested); n != 0 {
@@ -382,8 +382,8 @@ func TestSocialFriendAddRefusesAnExistingFriend(t *testing.T) {
 	}
 	handler := h.socialHandler(t)
 
-	_, err := handler.FriendAdd(context.Background(),
-		command("social.friend.add", 306, "req-1"), FriendRequest{Player: "other"})
+	_, err := rendered(t)(handler.FriendAdd(context.Background(),
+		command("social.friend.add", 306, "req-1"), FriendRequest{Player: "other"}))
 	if !isSentinel(err, application.ErrAlreadyFriends) {
 		t.Fatalf("got %v, want ErrAlreadyFriends", err)
 	}
@@ -399,8 +399,8 @@ func TestSocialFriendAddIsQuietWhenAlreadyRequested(t *testing.T) {
 	}
 	handler := h.socialHandler(t)
 
-	resp, err := handler.FriendAdd(context.Background(),
-		command("social.friend.add", 307, "req-1"), FriendRequest{Player: "other"})
+	resp, err := rendered(t)(handler.FriendAdd(context.Background(),
+		command("social.friend.add", 307, "req-1"), FriendRequest{Player: "other"}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -417,10 +417,10 @@ func TestSocialFriendAddReplayWritesOnce(t *testing.T) {
 	ctx := context.Background()
 	m := command("social.friend.add", 308, "req-replay")
 
-	if _, err := handler.FriendAdd(ctx, m, FriendRequest{Player: "other"}); err != nil {
+	if _, err := rendered(t)(handler.FriendAdd(ctx, m, FriendRequest{Player: "other"})); err != nil {
 		t.Fatalf("first delivery: %v", err)
 	}
-	if _, err := handler.FriendAdd(ctx, m, FriendRequest{Player: "other"}); err != nil {
+	if _, err := rendered(t)(handler.FriendAdd(ctx, m, FriendRequest{Player: "other"})); err != nil {
 		t.Fatalf("redelivery: %v", err)
 	}
 	if n := len(h.friendships.requested); n != 1 {
@@ -440,8 +440,8 @@ func TestSocialFriendAcceptTurnsTheEdge(t *testing.T) {
 	}
 	handler := h.socialHandler(t)
 
-	resp, err := handler.FriendAccept(context.Background(),
-		command("social.friend.accept", 309, "req-1"), FriendRequest{Player: "other"})
+	resp, err := rendered(t)(handler.FriendAccept(context.Background(),
+		command("social.friend.accept", 309, "req-1"), FriendRequest{Player: "other"}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -456,8 +456,8 @@ func TestSocialFriendAcceptRefusesANonEdge(t *testing.T) {
 	h.player(310, "p-1", tehranID)
 	handler := h.socialHandler(t)
 
-	_, err := handler.FriendAccept(context.Background(),
-		command("social.friend.accept", 310, "req-1"), FriendRequest{Player: "stranger"})
+	_, err := rendered(t)(handler.FriendAccept(context.Background(),
+		command("social.friend.accept", 310, "req-1"), FriendRequest{Player: "stranger"}))
 	if !isSentinel(err, application.ErrNotFriends) {
 		t.Fatalf("got %v, want ErrNotFriends", err)
 	}
@@ -477,7 +477,7 @@ func TestSocialFriendListPagesToTheBoundary(t *testing.T) {
 	handler := h.socialHandler(t)
 	ctx := context.Background()
 
-	last, err := handler.FriendList(ctx, command("social.friend.list", 311, "req-1"), PageRequest{Page: "3"})
+	last, err := rendered(t)(handler.FriendList(ctx, command("social.friend.list", 311, "req-1"), PageRequest{Page: "3"}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -488,7 +488,7 @@ func TestSocialFriendListPagesToTheBoundary(t *testing.T) {
 
 	// A page past the end is empty rather than an error: a list that shrank
 	// under a player's next press must not fail.
-	past, err := handler.FriendList(ctx, command("social.friend.list", 311, "req-2"), PageRequest{Page: "99"})
+	past, err := rendered(t)(handler.FriendList(ctx, command("social.friend.list", 311, "req-2"), PageRequest{Page: "99"}))
 	if err != nil {
 		t.Fatalf("page past the end: %v", err)
 	}

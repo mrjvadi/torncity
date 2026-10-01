@@ -102,6 +102,13 @@ func (p *Pack) validateElections(problems *[]error) {
 
 // buildElections indexes the elections by office.
 func (s *Snapshot) buildElections(p *Pack) {
+	for _, o := range p.Offices {
+		s.officeCodes = append(s.officeCodes, o.Code)
+	}
+	for _, l := range p.Levers {
+		s.leverCodes = append(s.leverCodes, l.Code)
+	}
+	s.jurisdictions = append([]JurisdictionDef(nil), p.Jurisdictions...)
 	s.elections = make(map[string]ElectionDef, len(p.Elections))
 	for _, e := range p.Elections {
 		s.elections[e.Office] = e
@@ -128,4 +135,16 @@ func (s *Snapshot) Elections() []ElectionDef {
 		out = append(out, e)
 	}
 	return out
+}
+
+// OfficeCodes lists the offices of governance.yml, in file order.
+func (s *Snapshot) OfficeCodes() []string { return append([]string(nil), s.officeCodes...) }
+
+// LeverCodes lists the levers of governance.yml, in file order.
+func (s *Snapshot) LeverCodes() []string { return append([]string(nil), s.leverCodes...) }
+
+// JurisdictionDefs lists the jurisdictions above the city (a city's country
+// among them), in file order.
+func (s *Snapshot) JurisdictionDefs() []JurisdictionDef {
+	return append([]JurisdictionDef(nil), s.jurisdictions...)
 }

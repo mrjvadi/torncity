@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -14,31 +13,13 @@ import (
 // office may remove its holder vacates it. Both from «my office», privately;
 // the country's or city's groups read one line of each.
 
-// Callback addresses of appointment.
-const (
-	AddrGovAppoint = "gov:appoint"
-	AddrGovSeat    = "gov:seat"
-	AddrGovDismiss = "gov:dismiss"
-	AddrGovUnseat  = "gov:unseat"
-)
+
 
 // commandAppoint is the command a «✏️ appoint» button asks a player's code or
 // username for (configs/commands.yml, section input).
 const commandAppoint = "gov.appoint"
 
-// GovAppointee is one seat of an office the viewer's office appoints to or
-// may remove the holder of.
-type GovAppointee struct {
-	Office string
-	Place  GovPlace
-	Seat   int
-	// Holder is who sits in it, nil while it is vacant.
-	Holder *GovPlayer
-	// CanAppoint is a vacant seat the viewer may fill; CanDismiss a held
-	// one they may vacate.
-	CanAppoint bool
-	CanDismiss bool
-}
+
 
 // appointeeLines renders the seats a viewer's office appoints and removes,
 // and adds their buttons.
@@ -68,12 +49,7 @@ func appointeeLines(c Context, kb *keyboards.Builder, list []GovAppointee) []str
 	return lines
 }
 
-// AppointView asks the appointer to confirm an appointment.
-type AppointView struct {
-	Office string
-	Place  GovPlace
-	Player GovPlayer
-}
+
 
 // AppointConfirm renders the confirmation of an appointment.
 func AppointConfirm(c Context, v AppointView) *presenter.Response {
@@ -88,13 +64,7 @@ func renderAppointConfirm(c Context, v AppointView) *presenter.Response {
 		"office": c.OfficeName(v.Office), "place": c.PlaceName(v.Place)}), kb.Build())
 }
 
-// DismissView asks the holder to confirm removing another from office.
-type DismissView struct {
-	Office string
-	Place  GovPlace
-	Seat   int
-	Holder GovPlayer
-}
+
 
 // DismissConfirm renders the confirmation of a removal.
 func DismissConfirm(c Context, v DismissView) *presenter.Response {
@@ -109,15 +79,7 @@ func renderDismissConfirm(c Context, v DismissView) *presenter.Response {
 		"office": c.OfficeName(v.Office), "place": c.PlaceName(v.Place)}), kb.Build())
 }
 
-// AppointDoneView reports an appointment or a removal made.
-type AppointDoneView struct {
-	Office    string
-	Place     GovPlace
-	Player    GovPlayer
-	Dismissed bool
-	// TermEndsIn is how long the new tenure runs, zero at pleasure.
-	TermEndsIn time.Duration
-}
+
 
 // AppointDone renders an appointment or a removal made.
 func AppointDone(c Context, v AppointDoneView) *presenter.Response {
@@ -140,20 +102,9 @@ func renderAppointDone(c Context, v AppointDoneView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-// Appointment refusals the governance sentinels do not cover.
-const (
-	AppointRefusedNotAppointer = "not_appointer"
-	AppointRefusedNoPlayer     = "no_player"
-	AppointRefusedNoSeat       = "no_seat"
-)
 
-// AppointRefusalView is a refused appointment or removal: a governance
-// sentinel (Err), or one of the kinds above.
-type AppointRefusalView struct {
-	Kind   string
-	Err    error
-	Office string
-}
+
+
 
 // AppointRefusal renders a refused appointment or removal.
 func AppointRefusal(c Context, v AppointRefusalView) *presenter.Response {
@@ -163,11 +114,9 @@ func AppointRefusal(c Context, v AppointRefusalView) *presenter.Response {
 func renderAppointRefusal(c Context, v AppointRefusalView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrGovOffice}))
-	if v.Err != nil {
-		if key, args, ok := governanceRefusal(c, v.Err, nil, time.Time{}); ok {
-			return c.respond(c.T(key, args), kb.Build())
-		}
-		return Error(c, v.Err)
+	if v.Gov != nil {
+		key, args := governanceRefusal(c, *v.Gov, nil)
+		return c.respond(c.T(key, args), kb.Build())
 	}
 	return c.respond(c.T("gov.appoint.refused."+v.Kind, map[string]any{"office": c.OfficeName(v.Office)}), kb.Build())
 }

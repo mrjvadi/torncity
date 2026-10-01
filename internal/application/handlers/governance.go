@@ -14,8 +14,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // This file serves player-held offices to players
@@ -151,35 +151,31 @@ func (h *GovernanceHandler) viewer(ctx context.Context, meta envelope.Metadata) 
 	return p, RenderLanguage(meta, p), nil
 }
 
-func (h *GovernanceHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta)}
-}
-
 // City handles gov.city: the offices of a city and of every place above it,
 // who holds them, and the policies in force there.
-func (h *GovernanceHandler) City(ctx context.Context, meta envelope.Metadata, req GovCityRequest) (*presenter.Response, error) {
+func (h *GovernanceHandler) City(ctx context.Context, meta envelope.Metadata, req GovCityRequest) (*presentation.Response, error) {
 	p, lang, err := h.viewer(ctx, meta)
 	if err != nil {
 		return nil, err
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 
 	city, err := h.cityOf(ctx, p, req.City)
 	if err != nil {
 		return nil, err
 	}
 	if city == nil {
-		return screens.CityGovernance(c, screens.CityGovView{NoCity: true}), nil
+		return society.CityGovernance(c, society.CityGovView{NoCity: true}), nil
 	}
 	if city.JurisdictionID == "" {
-		return screens.PolicyRefused(c, screens.PolicyRefusalView{Err: application.ErrJurisdictionNotFound}), nil
+		return society.PolicyRefused(c, society.PolicyRefusalView{Refusal: society.GovRefusal{Kind: society.GovRefusedUnknownPlace}}), nil
 	}
 
 	view, err := h.cityView(ctx, city)
 	view.Tier = city.Tier
 	if err != nil {
-		if screens.IsGovernanceRefusal(err) {
-			return screens.PolicyRefused(c, screens.PolicyRefusalView{Err: err, Now: h.now()}), nil
+		if g, ok := govRefusalOf(err, h.now()); ok {
+			return society.PolicyRefused(c, society.PolicyRefusalView{Refusal: g}), nil
 		}
 		return nil, err
 	}
@@ -188,7 +184,7 @@ func (h *GovernanceHandler) City(ctx context.Context, meta envelope.Metadata, re
 		return nil, err
 	}
 	view.HoldsOffice = len(held) > 0
-	return screens.CityGovernance(c, view), nil
+	return society.CityGovernance(c, view), nil
 }
 
 // cityOf is the city a request names, or the player's own; nil when the
@@ -204,19 +200,19 @@ func (h *GovernanceHandler) cityOf(ctx context.Context, p *application.Player, c
 }
 
 // cityView gathers the city hall screen.
-func (h *GovernanceHandler) cityView(ctx context.Context, city *application.City) (screens.CityGovView, error) {
+func (h *GovernanceHandler) cityView(ctx context.Context, city *application.City) (society.CityGovView, error) {
 	now := h.now()
 	places, err := h.dir.Ancestry(ctx, city.JurisdictionID)
 	if err != nil {
-		return screens.CityGovView{}, err
+		return society.CityGovView{}, err
 	}
 	levers, err := h.dir.Levers(ctx)
 	if err != nil {
-		return screens.CityGovView{}, err
+		return society.CityGovView{}, err
 	}
 	offices, err := h.dir.Offices(ctx)
 	if err != nil {
-		return screens.CityGovView{}, err
+		return society.CityGovView{}, err
 	}
 	ids := make([]string, 0, len(places))
 	for _, pl := range places {
@@ -224,7 +220,7 @@ func (h *GovernanceHandler) cityView(ctx context.Context, city *application.City
 	}
 	seats, err := h.dir.Seats(ctx, ids)
 	if err != nil {
-		return screens.CityGovView{}, err
+		return society.CityGovView{}, err
 	}
 
 	// Values first, so every player named anywhere on the screen is named
@@ -247,7 +243,7 @@ func (h *GovernanceHandler) cityView(ctx context.Context, city *application.City
 				continue
 			}
 			if err != nil {
-				return screens.CityGovView{}, err
+				return society.CityGovView{}, err
 			}
 			values[pl.ID] = append(values[pl.ID], leverAt{def: l, value: v})
 			names.addValue(v)
@@ -258,12 +254,12 @@ func (h *GovernanceHandler) cityView(ctx context.Context, city *application.City
 	}
 	named, err := h.dir.PlayerNames(ctx, names.ids())
 	if err != nil {
-		return screens.CityGovView{}, err
+		return society.CityGovView{}, err
 	}
 
-	view := screens.CityGovView{City: govPlace(places[0])}
+	view := society.CityGovView{City: govPlace(places[0])}
 	for _, pl := range places {
-		section := screens.GovSection{Place: govPlace(pl)}
+		section := society.GovSection{Place: govPlace(pl)}
 		for _, o := range officeOrder(offices, levers, pl.Kind) {
 			section.Offices = append(section.Offices, officeView(o, offices, seats, pl.ID, named))
 		}
@@ -325,8 +321,8 @@ func officeOrder(offices []application.OfficeDefinition, levers []application.Le
 // vacant, the deputy acting for it.
 func officeView(o application.OfficeDefinition, offices []application.OfficeDefinition, seats []application.Office,
 	jurisdictionID string, named map[string]application.PlayerName,
-) screens.GovOffice {
-	view := screens.GovOffice{Code: o.Code, Seats: o.Seats}
+) society.GovOffice {
+	view := society.GovOffice{Code: o.Code, Seats: o.Seats}
 
 	deputy := map[string]string{}
 	for _, d := range offices {
@@ -359,12 +355,12 @@ func officeView(o application.OfficeDefinition, offices []application.OfficeDefi
 
 // Office handles gov.office: every seat the player holds and the policies it
 // lets them change now.
-func (h *GovernanceHandler) Office(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *GovernanceHandler) Office(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	p, lang, err := h.viewer(ctx, meta)
 	if err != nil {
 		return nil, err
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	now := h.now()
 
 	held, err := h.dir.SeatsHeldBy(ctx, p.ID)
@@ -435,9 +431,9 @@ func (h *GovernanceHandler) Office(ctx context.Context, meta envelope.Metadata) 
 		return nil, err
 	}
 
-	var view screens.MyOfficeView
+	var view society.MyOfficeView
 	for i, r := range rows {
-		seat := screens.GovSeat{Office: r.seat.OfficeCode, Place: govPlace(r.place), ActingFor: r.acting,
+		seat := society.GovSeat{Office: r.seat.OfficeCode, Place: govPlace(r.place), ActingFor: r.acting,
 			Appointees: appointees[i]}
 		for i, l := range r.act {
 			seat.Levers = append(seat.Levers, govLever(l, r.actV[i], named, now))
@@ -447,7 +443,7 @@ func (h *GovernanceHandler) Office(ctx context.Context, meta envelope.Metadata) 
 		}
 		view.Seats = append(view.Seats, seat)
 	}
-	return screens.MyOffice(c, view), nil
+	return society.MyOffice(c, view), nil
 }
 
 // appointees lists, for each seat held, the seats of the same place whose
@@ -455,8 +451,8 @@ func (h *GovernanceHandler) Office(ctx context.Context, meta envelope.Metadata) 
 // holder of (a held one may be vacated). named gains the holders.
 func (h *GovernanceHandler) appointees(ctx context.Context, held []application.Office,
 	named map[string]application.PlayerName,
-) ([][]screens.GovAppointee, error) {
-	out := make([][]screens.GovAppointee, len(held))
+) ([][]society.GovAppointee, error) {
+	out := make([][]society.GovAppointee, len(held))
 	if len(held) == 0 {
 		return out, nil
 	}
@@ -504,7 +500,7 @@ func (h *GovernanceHandler) appointees(ctx context.Context, held []application.O
 				if s.OfficeCode != d.Code || s.HolderPlayerID == seat.HolderPlayerID {
 					continue
 				}
-				a := screens.GovAppointee{Office: d.Code, Place: govPlace(places[0]), Seat: s.Seat,
+				a := society.GovAppointee{Office: d.Code, Place: govPlace(places[0]), Seat: s.Seat,
 					Holder: govPlayer(s.HolderPlayerID, named)}
 				if s.Vacant() {
 					a.CanAppoint = d.AppointedBy == seat.OfficeCode
@@ -543,7 +539,7 @@ type leverTarget struct {
 	named map[string]application.PlayerName
 }
 
-func (t leverTarget) view(now time.Time) (screens.GovPlace, screens.GovLever) {
+func (t leverTarget) view(now time.Time) (society.GovPlace, society.GovLever) {
 	return govPlace(t.place), govLever(t.def, t.value, t.named, now)
 }
 
@@ -642,30 +638,31 @@ func (h *GovernanceHandler) nextChangeIn(ctx context.Context, t *leverTarget, no
 
 // refused renders a governance refusal as an answer, or reports that err is
 // not one and must travel up as it is.
-func (h *GovernanceHandler) refused(c screens.Context, t *leverTarget, err error, now time.Time) (*presenter.Response, bool) {
-	if !screens.IsGovernanceRefusal(err) {
+func (h *GovernanceHandler) refused(c presentation.Ctx, t *leverTarget, err error, now time.Time) (*presentation.Response, bool) {
+	g, ok := govRefusalOf(err, now)
+	if !ok {
 		return nil, false
 	}
-	v := screens.PolicyRefusalView{Err: err, Now: now}
+	v := society.PolicyRefusalView{Refusal: g}
 	if t != nil && t.place.ID != "" {
 		place, lever := t.view(now)
 		v.Place, v.Lever = &place, &lever
 	}
-	return screens.PolicyRefused(c, v), true
+	return society.PolicyRefused(c, v), true
 }
 
 // Lever handles gov.lever: one policy the player may change, a proposed value
 // and the buttons that move it.
-func (h *GovernanceHandler) Lever(ctx context.Context, meta envelope.Metadata, req GovLeverRequest) (*presenter.Response, error) {
+func (h *GovernanceHandler) Lever(ctx context.Context, meta envelope.Metadata, req GovLeverRequest) (*presentation.Response, error) {
 	p, lang, err := h.viewer(ctx, meta)
 	if err != nil {
 		return nil, err
 	}
-	return h.lever(ctx, h.screen(meta, lang), p, req)
+	return h.lever(ctx, presentation.Ctx{Lang: lang}, p, req)
 }
 
-func (h *GovernanceHandler) lever(ctx context.Context, c screens.Context, p *application.Player, req GovLeverRequest,
-) (*presenter.Response, error) {
+func (h *GovernanceHandler) lever(ctx context.Context, c presentation.Ctx, p *application.Player, req GovLeverRequest,
+) (*presentation.Response, error) {
 	now := h.now()
 	t, err := h.target(ctx, p, req)
 	if err != nil {
@@ -703,19 +700,19 @@ func (h *GovernanceHandler) lever(ctx context.Context, c screens.Context, p *app
 	}
 
 	place, lever := t.view(now)
-	return screens.LeverEdit(c, screens.LeverEditView{
+	return society.LeverEdit(c, society.LeverEditView{
 		Place: place, Lever: lever, Draft: draft,
 		FineStep: fine, CoarseStep: coarse, NextChangeIn: wait,
 	}), nil
 }
 
 // Confirm handles gov.confirm: the change spelled out, before it is made.
-func (h *GovernanceHandler) Confirm(ctx context.Context, meta envelope.Metadata, req GovLeverRequest) (*presenter.Response, error) {
+func (h *GovernanceHandler) Confirm(ctx context.Context, meta envelope.Metadata, req GovLeverRequest) (*presentation.Response, error) {
 	p, lang, err := h.viewer(ctx, meta)
 	if err != nil {
 		return nil, err
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	now := h.now()
 	value, ok := parseValue(req.Value)
 	if !ok {
@@ -737,7 +734,7 @@ func (h *GovernanceHandler) Confirm(ctx context.Context, meta envelope.Metadata,
 	if err != nil {
 		return nil, err
 	}
-	return screens.PolicyConfirm(c, screens.PolicyConfirmView{Place: place, Lever: lever, NewValue: value, VoteBy: body}), nil
+	return society.PolicyConfirm(c, society.PolicyConfirmView{Place: place, Lever: lever, NewValue: value, VoteBy: body}), nil
 }
 
 // voteBy is the body a change goes to for a vote, "" when it is announced
@@ -781,7 +778,7 @@ func (h *GovernanceHandler) precheck(ctx context.Context, t *leverTarget, value 
 // Set handles gov.set: the change itself, through SetPolicy, with its public
 // record and its event in the same transaction as the command's idempotency
 // key. A redelivered press changes nothing and shows the policy as it stands.
-func (h *GovernanceHandler) Set(ctx context.Context, meta envelope.Metadata, req GovLeverRequest) (*presenter.Response, error) {
+func (h *GovernanceHandler) Set(ctx context.Context, meta envelope.Metadata, req GovLeverRequest) (*presentation.Response, error) {
 	if err := validPlayerRequest(meta); err != nil {
 		return nil, err
 	}
@@ -853,7 +850,7 @@ func (h *GovernanceHandler) Set(ctx context.Context, meta envelope.Metadata, req
 		}
 		return appendPolicyChanged(ctx, tx, meta, t.place, change)
 	})
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	if resp, ok, err := h.billOpened(ctx, meta, lang, bill, err); ok {
 		return resp, err
 	}
@@ -870,8 +867,8 @@ func (h *GovernanceHandler) Set(ctx context.Context, meta envelope.Metadata, req
 	}
 
 	place := govPlace(t.place)
-	lever := screens.GovLever{Code: t.def.Code, Type: t.def.Type, HeldBy: t.def.HeldBy}
-	return screens.PolicyAnnounced(c, screens.PolicyAnnouncedView{
+	lever := society.GovLever{Code: t.def.Code, Type: t.def.Type, HeldBy: t.def.HeldBy}
+	return society.PolicyAnnounced(c, society.PolicyAnnouncedView{
 		Place: place, Lever: lever,
 		Old: change.OldValue, New: change.Setting.Value,
 		In: change.Setting.EffectiveAt.Sub(now),
@@ -883,16 +880,16 @@ func (h *GovernanceHandler) Set(ctx context.Context, meta envelope.Metadata, req
 // neither happened.
 func (h *GovernanceHandler) billOpened(ctx context.Context, meta envelope.Metadata, lang string, bill *application.Proposal,
 	err error,
-) (*presenter.Response, bool, error) {
+) (*presentation.Response, bool, error) {
 	var r *billRefusal
 	if stderrors.As(err, &r) {
-		return screens.BillRefusal(h.screen(meta, lang), r.view), true, nil
+		return society.BillRefusal(presentation.Ctx{Lang: lang}, r.view), true, nil
 	}
 	if err != nil || bill == nil || h.legislature == nil {
 		return nil, false, nil
 	}
 	resp, err := h.legislature.view(ctx, meta, LegislatureRequest{No: strconv.FormatInt(bill.No, 10)},
-		screens.BillNoticeSubmitted)
+		society.BillNoticeSubmitted)
 	return resp, true, err
 }
 
@@ -931,12 +928,12 @@ func appendPolicyChanged(ctx context.Context, tx application.Tx, meta envelope.M
 
 // History handles gov.history: one page of the public record of policy
 // changes in a city and the places above it, newest first.
-func (h *GovernanceHandler) History(ctx context.Context, meta envelope.Metadata, req GovHistoryRequest) (*presenter.Response, error) {
+func (h *GovernanceHandler) History(ctx context.Context, meta envelope.Metadata, req GovHistoryRequest) (*presentation.Response, error) {
 	p, lang, err := h.viewer(ctx, meta)
 	if err != nil {
 		return nil, err
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	now := h.now()
 	page := parsePage(req.Page)
 
@@ -945,7 +942,7 @@ func (h *GovernanceHandler) History(ctx context.Context, meta envelope.Metadata,
 		return nil, err
 	}
 	if city == nil {
-		return screens.CityGovernance(c, screens.CityGovView{NoCity: true}), nil
+		return society.CityGovernance(c, society.CityGovView{NoCity: true}), nil
 	}
 	places, err := h.dir.Ancestry(ctx, city.JurisdictionID)
 	if err != nil {
@@ -983,9 +980,9 @@ func (h *GovernanceHandler) History(ctx context.Context, meta envelope.Metadata,
 	}
 
 	_, _, pages := pageWindow(total, page, h.pageSize)
-	view := screens.GovHistoryView{City: govPlace(places[0]), Page: page, Pages: pages}
+	view := society.GovHistoryView{City: govPlace(places[0]), Page: page, Pages: pages}
 	for _, r := range records {
-		view.Entries = append(view.Entries, screens.GovHistoryEntry{
+		view.Entries = append(view.Entries, society.GovHistoryEntry{
 			Place:       govPlace(byID[r.JurisdictionID]),
 			Lever:       r.LeverCode,
 			Type:        types[r.LeverCode],
@@ -997,7 +994,7 @@ func (h *GovernanceHandler) History(ctx context.Context, meta envelope.Metadata,
 			EffectiveIn: r.EffectiveAt.Sub(now),
 		})
 	}
-	return screens.GovHistory(c, view), nil
+	return society.GovHistory(c, view), nil
 }
 
 // parseValue reads a proposed value off a callback argument.
@@ -1006,15 +1003,15 @@ func parseValue(raw string) (int64, bool) {
 	return v, err == nil
 }
 
-func govPlace(j application.Jurisdiction) screens.GovPlace {
-	return screens.GovPlace{Kind: j.Kind, Code: j.Code, Name: j.Name}
+func govPlace(j application.Jurisdiction) society.GovPlace {
+	return society.GovPlace{Kind: j.Kind, Code: j.Code, Name: j.Name}
 }
 
 // govLever turns the resolver's answer into what a screen shows.
 func govLever(d application.LeverDefinition, v application.PolicyValue, named map[string]application.PlayerName,
 	now time.Time,
-) screens.GovLever {
-	l := screens.GovLever{
+) society.GovLever {
+	l := society.GovLever{
 		Code: d.Code, Type: d.Type, Value: v.Value,
 		Default: d.Default, Min: d.Min, Max: d.Max,
 		FromOffice: v.Source == application.PolicyFromOffice,
@@ -1030,7 +1027,7 @@ func govLever(d application.LeverDefinition, v application.PolicyValue, named ma
 		l.SetBy = govPlayer(v.InForce.SetByPlayerID, named)
 	}
 	if v.Pending != nil {
-		l.Pending = &screens.GovPending{
+		l.Pending = &society.GovPending{
 			Value:      v.Pending.Value,
 			Allocation: v.Pending.Allocation,
 			In:         v.Pending.EffectiveAt.Sub(now),
@@ -1040,21 +1037,21 @@ func govLever(d application.LeverDefinition, v application.PolicyValue, named ma
 	return l
 }
 
-func govPlayer(id string, named map[string]application.PlayerName) *screens.GovPlayer {
+func govPlayer(id string, named map[string]application.PlayerName) *society.GovPlayer {
 	n, ok := named[id]
 	if !ok {
 		return nil
 	}
-	return &screens.GovPlayer{Name: n.DisplayName, Code: n.PublicCode}
+	return &society.GovPlayer{Name: n.DisplayName, Code: n.PublicCode}
 }
 
-func govPlayers(seats []application.Office, named map[string]application.PlayerName) []screens.GovPlayer {
-	out := make([]screens.GovPlayer, 0, len(seats))
+func govPlayers(seats []application.Office, named map[string]application.PlayerName) []society.GovPlayer {
+	out := make([]society.GovPlayer, 0, len(seats))
 	for _, s := range seats {
 		if p := govPlayer(s.HolderPlayerID, named); p != nil {
 			out = append(out, *p)
 		} else {
-			out = append(out, screens.GovPlayer{})
+			out = append(out, society.GovPlayer{})
 		}
 	}
 	return out

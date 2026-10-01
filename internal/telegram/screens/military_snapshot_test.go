@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens/screentest"
 )
@@ -210,7 +211,7 @@ func diplomacySnapshots(c Context, who people, add func(string, *presenter.Respo
 	}
 	for _, m := range []string{"trade", "arms", "technology", "travel", "financial"} {
 		add("Blocked · "+m, SanctionBlocked(c, SanctionBlockedView{Measure: m, Imposer: homeCountry, Target: otherCountry,
-			Back: []string{AddrMarket}}))
+			Back: presentation.RefOfAddress(AddrMarket)}))
 	}
 	add("Notice · a treaty proposed to us", TreatyProposedNotice(sent(c), TreatyNoticeView{Country: otherCountry,
 		Other: homeCountry, Kind: alliance, No: 5, TTL: 72 * time.Hour}))

@@ -726,13 +726,6 @@
     "title": "Refusal · not the holder",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "UNAUTHORIZED",
-        "details": {
-          "office": "mayor"
-        },
-        "message": "only the office holder can change that"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -762,11 +755,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "not_holder",
+        "office": "mayor",
+        "wait_seconds": 0
       }
     }
   },
@@ -774,13 +771,6 @@
     "title": "Refusal · decided by a vote",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "UNAUTHORIZED",
-        "details": {
-          "body": "city_council"
-        },
-        "message": "that decision requires a vote"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -810,11 +800,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "requires_vote",
+        "office": "city_council",
+        "wait_seconds": 0
       }
     }
   },
@@ -822,11 +816,6 @@
     "title": "Refusal · out of range",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "INVALID_INPUT",
-        "details": null,
-        "message": "that value is outside the allowed range"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -856,11 +845,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "out_of_range",
+        "office": "",
+        "wait_seconds": 0
       }
     }
   },
@@ -868,13 +861,6 @@
     "title": "Refusal · cooldown",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "COOLDOWN",
-        "details": {
-          "available_at": "2026-09-24T18:00:00Z"
-        },
-        "message": "that policy changed too recently"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -904,11 +890,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "cooldown",
+        "office": "",
+        "wait_seconds": 108000
       }
     }
   },
@@ -916,11 +906,6 @@
     "title": "Refusal · cooldown, time unknown",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "COOLDOWN",
-        "details": null,
-        "message": "that policy changed too recently"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -950,11 +935,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "cooldown",
+        "office": "",
+        "wait_seconds": 0
       }
     }
   },
@@ -962,11 +951,6 @@
     "title": "Refusal · unsupported",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "INVALID_INPUT",
-        "details": null,
-        "message": "that kind of policy is not supported yet"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -996,11 +980,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "unsupported",
+        "office": "",
+        "wait_seconds": 0
       }
     }
   },
@@ -1008,11 +996,6 @@
     "title": "Refusal · unknown policy",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "NOT_FOUND",
-        "details": null,
-        "message": "no such policy"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -1042,11 +1025,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "unknown_lever",
+        "office": "",
+        "wait_seconds": 0
       }
     }
   },
@@ -1054,11 +1041,6 @@
     "title": "Refusal · unknown place",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "NOT_FOUND",
-        "details": null,
-        "message": "no such place"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -1088,11 +1070,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "unknown_place",
+        "office": "",
+        "wait_seconds": 0
       }
     }
   },
@@ -1100,11 +1086,6 @@
     "title": "Refusal · wrong place",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "INVALID_INPUT",
-        "details": null,
-        "message": "that does not apply here"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -1134,11 +1115,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "wrong_place",
+        "office": "",
+        "wait_seconds": 0
       }
     }
   },
@@ -1146,11 +1131,6 @@
     "title": "Refusal · office not found",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "NOT_FOUND",
-        "details": null,
-        "message": "no such office"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -1180,11 +1160,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "office_not_found",
+        "office": "",
+        "wait_seconds": 0
       }
     }
   },
@@ -1192,11 +1176,6 @@
     "title": "Refusal · office occupied",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "CONFLICT",
-        "details": null,
-        "message": "that office is already held"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -1226,11 +1205,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "office_occupied",
+        "office": "",
+        "wait_seconds": 0
       }
     }
   },
@@ -1238,11 +1221,6 @@
     "title": "Refusal · office vacant",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "CONFLICT",
-        "details": null,
-        "message": "that office is already vacant"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -1272,11 +1250,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "office_vacant",
+        "office": "",
+        "wait_seconds": 0
       }
     }
   },
@@ -1284,11 +1266,6 @@
     "title": "Refusal · already holds it",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "CONFLICT",
-        "details": null,
-        "message": "already holds that office"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -1318,11 +1295,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "already_holds",
+        "office": "",
+        "wait_seconds": 0
       }
     }
   },
@@ -1330,11 +1311,6 @@
     "title": "Refusal · incompatible offices",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "CONFLICT",
-        "details": null,
-        "message": "cannot hold both offices"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -1364,11 +1340,15 @@
         "value": 450,
         "vote": false
       },
-      "now": "2026-09-23T12:00:00Z",
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "incompatible",
+        "office": "",
+        "wait_seconds": 0
       }
     }
   },
@@ -1376,14 +1356,13 @@
     "title": "Refusal · out of range, lever unknown",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "INVALID_INPUT",
-        "details": null,
-        "message": "that value is outside the allowed range"
-      },
       "lever": null,
-      "now": "2026-09-23T12:00:00Z",
-      "place": null
+      "place": null,
+      "refusal": {
+        "kind": "out_of_range",
+        "office": "",
+        "wait_seconds": 0
+      }
     }
   }
 ]

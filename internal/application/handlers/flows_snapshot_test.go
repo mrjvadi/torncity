@@ -14,6 +14,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
+	"github.com/mrjvadi/torncity/internal/telegram/render"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 	"github.com/mrjvadi/torncity/internal/telegram/screens/screentest"
 )
@@ -138,6 +139,9 @@ type flowGame struct {
 	w     *flowWorld
 	msgs  *i18n.Catalog
 	seq   int
+	// lastMeta is the command the flow sent last: the Telegram edge edits the
+	// message a pressed button sits on and sends a typed command's answer.
+	lastMeta envelope.Metadata
 	snap  *content.Snapshot
 	names [2]string
 
@@ -234,12 +238,15 @@ func (g *flowGame) typed(tg int64, command string) envelope.Metadata {
 	m.Command = command
 	m.Language = g.lang
 	m.IdempotencyKey = "update-" + id
+	g.lastMeta = m
 	return m
 }
 
 // press is a button press on the message the flow is looking at.
 func (g *flowGame) press(tg int64, command string) envelope.Metadata {
-	return pressed(g.typed(tg, command), 42)
+	m := pressed(g.typed(tg, command), 42)
+	g.lastMeta = m
+	return m
 }
 
 // flowBook is one flow's golden file.
@@ -276,6 +283,14 @@ func (b *flowBook) record(title string, wantError bool) func(*presenter.Response
 			if !wantError {
 				b.g.t.Errorf("[%s] %s: handler error: %v", b.g.lang, title, err)
 			}
+		}
+		if resp.Neutral() {
+			// The Telegram edge words a neutral answer from the catalogue.
+			out, rerr := render.Render(b.g.msgs, render.DeliveryOf(b.g.lastMeta), resp)
+			if rerr != nil {
+				b.g.t.Fatalf("[%s] %s: the Telegram edge cannot render %q: %v", b.g.lang, title, resp.Screen, rerr)
+			}
+			resp = out
 		}
 		if resp == nil {
 			b.book.AddText(title, "(nothing is shown)")

@@ -14,8 +14,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // LegislatureHandler serves votes of a body
@@ -108,22 +108,18 @@ type LegislatureActionPayload struct {
 	ReferenceID string `json:"reference_id"`
 }
 
-func (h *LegislatureHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
-}
-
 // billRefusal carries a refused request out of a unit of work.
-type billRefusal struct{ view screens.BillRefusalView }
+type billRefusal struct{ view society.BillRefusalView }
 
 func (r *billRefusal) Error() string { return "handlers: proposal refused: " + r.view.Kind }
 
-func (h *LegislatureHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *LegislatureHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	var r *billRefusal
 	if stderrors.As(err, &r) {
-		return screens.BillRefusal(h.screen(meta, lang), r.view), nil
+		return society.BillRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
 	if isSentinel(err, application.ErrBillNotFound) {
-		return screens.BillRefusal(h.screen(meta, lang), screens.BillRefusalView{Kind: screens.BillRefusedNotFound}), nil
+		return society.BillRefusal(presentation.Ctx{Lang: lang}, society.BillRefusalView{Kind: society.BillRefusedNotFound}), nil
 	}
 	return nil, err
 }
@@ -212,7 +208,7 @@ func (h *LegislatureHandler) OpenBill(ctx context.Context, tx application.Tx, me
 	}
 	stored, err := tx.Legislature().Open(ctx, p)
 	if isSentinel(err, application.ErrBillUnderWay) {
-		return p, &billRefusal{view: screens.BillRefusalView{Kind: screens.BillRefusedUnderWay, Body: b.Body}}
+		return p, &billRefusal{view: society.BillRefusalView{Kind: society.BillRefusedUnderWay, Body: b.Body}}
 	}
 	if err != nil {
 		return p, err
@@ -239,7 +235,7 @@ func (h *LegislatureHandler) OpenBill(ctx context.Context, tx application.Tx, me
 
 // billEvent is the payload of a legislature event: what a group line and a
 // private notice need, and the cities whose groups read it.
-func billEvent(v screens.BillView, cities []string, extra map[string]any) map[string]any {
+func billEvent(v society.BillView, cities []string, extra map[string]any) map[string]any {
 	out := map[string]any{
 		"no": v.No, "status": v.Status, "lapse": v.LapsedWhy, "yes": v.Yes, "nay": v.Nay,
 		"place_kind": v.Place.Kind, "place_code": v.Place.Code, "place_name": v.Place.Name,
@@ -277,16 +273,16 @@ func (h *LegislatureHandler) placeCities(ctx context.Context, tx application.Tx,
 
 // billView gathers one proposal for a screen, and the cities of its place.
 func (h *LegislatureHandler) billView(ctx context.Context, tx application.Tx, p application.Proposal, now time.Time,
-) (screens.BillView, []string, error) {
+) (society.BillView, []string, error) {
 	j, err := tx.Governance().Jurisdiction(ctx, p.JurisdictionID)
 	if err != nil {
-		return screens.BillView{}, nil, err
+		return society.BillView{}, nil, err
 	}
 	by, err := playerNamed(ctx, tx, p.ProposedBy)
 	if err != nil {
-		return screens.BillView{}, nil, err
+		return society.BillView{}, nil, err
 	}
-	v := screens.BillView{No: p.No, Place: govPlace(j), Office: p.ProposerOffice, By: by, Body: p.Body,
+	v := society.BillView{No: p.No, Place: govPlace(j), Office: p.ProposerOffice, By: by, Body: p.Body,
 		Rule: p.Rule, Threshold: p.Threshold, Quorum: p.Quorum, Seats: p.Seats, Status: p.Status,
 		LapsedWhy: p.LapseReason, ClosesAt: p.ClosesAt, Remaining: max(p.ClosesAt.Sub(now), 0)}
 	if v.Subject, err = h.subject(ctx, tx, p); err != nil {
@@ -301,7 +297,7 @@ func (h *LegislatureHandler) billView(ctx context.Context, tx application.Tx, p 
 		if err != nil {
 			return v, nil, err
 		}
-		v.Votes = append(v.Votes, screens.BillVoteLine{Player: who, Yes: vote.Vote == application.VoteYes})
+		v.Votes = append(v.Votes, society.BillVoteLine{Player: who, Yes: vote.Vote == application.VoteYes})
 		if vote.Vote == application.VoteYes {
 			v.Yes++
 		} else {
@@ -324,8 +320,8 @@ func (h *LegislatureHandler) billView(ctx context.Context, tx application.Tx, p 
 }
 
 // subject describes what a proposal would do.
-func (h *LegislatureHandler) subject(ctx context.Context, tx application.Tx, p application.Proposal) (screens.BillSubject, error) {
-	s := screens.BillSubject{Kind: p.Kind, Code: p.Subject, Allocation: p.Allocation}
+func (h *LegislatureHandler) subject(ctx context.Context, tx application.Tx, p application.Proposal) (society.BillSubject, error) {
+	s := society.BillSubject{Kind: p.Kind, Code: p.Subject, Allocation: p.Allocation}
 	if p.Value != nil {
 		s.Value = *p.Value
 	}
@@ -441,12 +437,12 @@ func (h *LegislatureHandler) places(ctx context.Context, tx application.Tx, p *a
 
 // List handles law.list: the proposals of the player's places, open
 // first.
-func (h *LegislatureHandler) List(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *LegislatureHandler) List(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	lang := meta.Language
-	var view screens.BillsView
+	var view society.BillsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -474,7 +470,7 @@ func (h *LegislatureHandler) List(ctx context.Context, meta envelope.Metadata) (
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Bills(h.screen(meta, lang), view), nil
+	return society.Bills(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // parseBillNo reads a proposal's public number.
@@ -484,12 +480,12 @@ func parseBillNo(raw string) (int64, bool) {
 }
 
 // View handles law.view: one proposal.
-func (h *LegislatureHandler) View(ctx context.Context, meta envelope.Metadata, req LegislatureRequest) (*presenter.Response, error) {
+func (h *LegislatureHandler) View(ctx context.Context, meta envelope.Metadata, req LegislatureRequest) (*presentation.Response, error) {
 	return h.view(ctx, meta, req, "")
 }
 
 func (h *LegislatureHandler) view(ctx context.Context, meta envelope.Metadata, req LegislatureRequest, notice string,
-) (*presenter.Response, error) {
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -498,7 +494,7 @@ func (h *LegislatureHandler) view(ctx context.Context, meta envelope.Metadata, r
 		return h.List(ctx, meta)
 	}
 	lang := meta.Language
-	var view screens.BillView
+	var view society.BillView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -519,7 +515,7 @@ func (h *LegislatureHandler) view(ctx context.Context, meta envelope.Metadata, r
 		return resp, err
 	}
 	view.Notice = notice
-	return screens.Bill(h.screen(meta, lang), view), nil
+	return society.Bill(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // mayVote reports whether the player sits in the body and has not voted.
@@ -560,7 +556,7 @@ func memberSeat(ctx context.Context, tx application.Tx, b application.Proposal, 
 
 // Vote handles law.vote: a member's vote, once per seat; the vote
 // that settles the proposal decides it.
-func (h *LegislatureHandler) Vote(ctx context.Context, meta envelope.Metadata, req LegislatureRequest) (*presenter.Response, error) {
+func (h *LegislatureHandler) Vote(ctx context.Context, meta envelope.Metadata, req LegislatureRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -570,7 +566,7 @@ func (h *LegislatureHandler) Vote(ctx context.Context, meta envelope.Metadata, r
 		return nil, errors.InvalidInput("law.vote names no proposal or no vote")
 	}
 	lang := meta.Language
-	notice := screens.BillNoticeVoted
+	notice := society.BillNoticeVoted
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -591,7 +587,7 @@ func (h *LegislatureHandler) Vote(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		if b.Status != application.ProposalOpen {
-			notice = screens.BillNoticeClosed
+			notice = society.BillNoticeClosed
 			return nil
 		}
 		seat, err := memberSeat(ctx, tx, *b, p.ID)
@@ -599,7 +595,7 @@ func (h *LegislatureHandler) Vote(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		if seat == nil {
-			return &billRefusal{view: screens.BillRefusalView{Kind: screens.BillRefusedNotMember, No: b.No, Body: b.Body}}
+			return &billRefusal{view: society.BillRefusalView{Kind: society.BillRefusedNotMember, No: b.No, Body: b.Body}}
 		}
 		now := h.now()
 		cast, err := tx.Legislature().CastVote(ctx, application.ProposalVote{ProposalID: b.ID, OfficeID: seat.ID,
@@ -608,7 +604,7 @@ func (h *LegislatureHandler) Vote(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		if !cast {
-			notice = screens.BillNoticeAlreadyVoted
+			notice = society.BillNoticeAlreadyVoted
 			return nil
 		}
 		_, err = h.settle(ctx, tx, meta, b, false, now)
@@ -622,7 +618,7 @@ func (h *LegislatureHandler) Vote(ctx context.Context, meta envelope.Metadata, r
 
 // Close handles law.close from the SCHEDULER: a proposal's window
 // ended. It runs once: only an open proposal moves, under its row lock.
-func (h *LegislatureHandler) Close(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *LegislatureHandler) Close(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}

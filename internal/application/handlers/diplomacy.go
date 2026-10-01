@@ -13,8 +13,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // DiplomacyRules is the tuning of sanctions and treaties (config
@@ -80,38 +80,33 @@ type DiplomacyRequest struct {
 }
 
 func (r DiplomacyRequest) confirmed() bool {
-	return strings.TrimSpace(r.Confirm) == screens.DiplomacyConfirm
-}
-
-func (h *DiplomacyHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
+	return strings.TrimSpace(r.Confirm) == society.DiplomacyConfirm
 }
 
 // diplomacyRefusal carries a refused diplomacy command out of a unit of
 // work.
-type diplomacyRefusal struct{ view screens.DiplomacyRefusalView }
+type diplomacyRefusal struct{ view society.DiplomacyRefusalView }
 
 func (r *diplomacyRefusal) Error() string { return "handlers: diplomacy refused: " + r.view.Kind }
 
 func refuseDiplomacy(kind string, country *application.Jurisdiction, back ...string) *diplomacyRefusal {
-	r := &diplomacyRefusal{view: screens.DiplomacyRefusalView{Kind: kind, Back: back}}
+	r := &diplomacyRefusal{view: society.DiplomacyRefusalView{Kind: kind, Back: presentation.RefOfAddress(strings.Join(back, ":"))}}
 	if country != nil {
 		r.view.Country = countryPlace(*country)
 	}
 	return r
 }
 
-func (h *DiplomacyHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *DiplomacyHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	if err == nil {
 		return nil, nil
 	}
-	c := h.screen(meta, lang)
 	var r *diplomacyRefusal
 	if stderrors.As(err, &r) {
-		return screens.DiplomacyRefusal(c, r.view), nil
+		return society.DiplomacyRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
 	if isSentinel(err, application.ErrJurisdictionNotFound) {
-		return screens.DiplomacyRefusal(c, screens.DiplomacyRefusalView{Kind: screens.DiplomacyRefusedNotFound}), nil
+		return society.DiplomacyRefusal(presentation.Ctx{Lang: lang}, society.DiplomacyRefusalView{Kind: society.DiplomacyRefusedNotFound}), nil
 	}
 	return nil, err
 }
@@ -136,7 +131,7 @@ func (h *DiplomacyHandler) country(ctx context.Context, tx application.Tx, p *ap
 		return nil, err
 	}
 	if j == nil {
-		return nil, refuseDiplomacy(screens.DiplomacyRefusedNoCountry, nil)
+		return nil, refuseDiplomacy(society.DiplomacyRefusedNoCountry, nil)
 	}
 	return j, nil
 }
@@ -151,7 +146,7 @@ func (h *DiplomacyHandler) authorize(ctx context.Context, tx application.Tx, sna
 		return seat, err
 	}
 	if !ok {
-		r := refuseDiplomacy(screens.DiplomacyRefusedNotHolder, country, back...)
+		r := refuseDiplomacy(society.DiplomacyRefusedNotHolder, country, back...)
 		r.view.Office = actionOffice(snap, action)
 		return seat, r
 	}
@@ -192,9 +187,9 @@ func (h *DiplomacyHandler) actingCountry(ctx context.Context, tx application.Tx,
 	}
 	var back []string
 	if home != nil {
-		back = []string{screens.AddrSanctions, home.Code}
+		back = []string{society.AddrSanctions, home.Code}
 	}
-	r := refuseDiplomacy(screens.DiplomacyRefusedNotHolder, home, back...)
+	r := refuseDiplomacy(society.DiplomacyRefusedNotHolder, home, back...)
 	r.view.Office = actionOffice(snap, action)
 	return nil, application.Office{}, r
 }
@@ -221,16 +216,16 @@ func measureCodes(ms []diplomacy.Measure) []string {
 }
 
 // sanctionLine reads a sanction for a board.
-func (h *DiplomacyHandler) sanctionLine(ctx context.Context, tx application.Tx, s application.Sanction, now time.Time) (screens.SanctionLine, error) {
+func (h *DiplomacyHandler) sanctionLine(ctx context.Context, tx application.Tx, s application.Sanction, now time.Time) (society.SanctionLine, error) {
 	imposer, err := placeOf(ctx, tx, s.ImposerID)
 	if err != nil {
-		return screens.SanctionLine{}, err
+		return society.SanctionLine{}, err
 	}
 	target, err := placeOf(ctx, tx, s.TargetID)
 	if err != nil {
-		return screens.SanctionLine{}, err
+		return society.SanctionLine{}, err
 	}
-	line := screens.SanctionLine{No: s.No, Imposer: imposer, Target: target, Measures: measureCodes(s.Measures),
+	line := society.SanctionLine{No: s.No, Imposer: imposer, Target: target, Measures: measureCodes(s.Measures),
 		Ground: s.Ground, Office: s.ImposedOffice, Since: max(now.Sub(s.EffectiveAt), time.Second)}
 	if s.EffectiveAt.After(now) {
 		line.InForceIn = s.EffectiveAt.Sub(now)
@@ -249,17 +244,17 @@ func (h *DiplomacyHandler) sanctionLine(ctx context.Context, tx application.Tx, 
 }
 
 // Sanctions handles diplomacy.sanctions: a country's sanctions board.
-func (h *DiplomacyHandler) Sanctions(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presenter.Response, error) {
-	return h.sanctionsWith(ctx, meta, req, "")
+func (h *DiplomacyHandler) Sanctions(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presentation.Response, error) {
+	return h.sanctionsWith(ctx, meta, req, nil)
 }
 
-func (h *DiplomacyHandler) sanctionsWith(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest, notice string) (*presenter.Response, error) {
+func (h *DiplomacyHandler) sanctionsWith(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest, notice *society.DiplomacyNotice) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.SanctionsView
+	var view society.SanctionsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -270,7 +265,7 @@ func (h *DiplomacyHandler) sanctionsWith(ctx context.Context, meta envelope.Meta
 			return err
 		}
 		now := h.now()
-		view = screens.SanctionsView{Country: countryPlace(*country), Notice: notice}
+		view = society.SanctionsView{Country: countryPlace(*country), Notice: notice}
 		standing, err := tx.Diplomacy().StandingSanctions(ctx, country.ID)
 		if err != nil {
 			return err
@@ -294,21 +289,21 @@ func (h *DiplomacyHandler) sanctionsWith(ctx context.Context, meta envelope.Meta
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Sanctions(h.screen(meta, lang), view), nil
+	return society.Sanctions(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Impose handles diplomacy.impose: the flow that imposes a sanction — the
 // target, the measures (a mask a button toggles), the ground, then confirm;
 // on confirm, once, the sanction is recorded, announced now and binds after
 // its notice.
-func (h *DiplomacyHandler) Impose(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presenter.Response, error) {
+func (h *DiplomacyHandler) Impose(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view    screens.ImposeView
+		view    society.ImposeView
 		done    bool
 		country *application.Jurisdiction
 	)
@@ -329,7 +324,7 @@ func (h *DiplomacyHandler) Impose(ctx context.Context, meta envelope.Metadata, r
 		if country, seat, err = h.actingCountry(ctx, tx, snap, p, content.ActionSanction); err != nil {
 			return err
 		}
-		view = screens.ImposeView{Country: countryPlace(*country), Notice: h.rules.SanctionNotice,
+		view = society.ImposeView{Country: countryPlace(*country), Notice: h.rules.SanctionNotice,
 			MinDuration: h.rules.SanctionMinDuration}
 		targetCode := strings.ToLower(strings.TrimSpace(req.Target))
 		if targetCode == "" {
@@ -349,7 +344,7 @@ func (h *DiplomacyHandler) Impose(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		if target.ID == country.ID {
-			return refuseDiplomacy(screens.DiplomacyRefusedSelf, country, screens.AddrImpose)
+			return refuseDiplomacy(society.DiplomacyRefusedSelf, country, society.AddrImpose)
 		}
 		place := countryPlace(target)
 		view.Target = &place
@@ -370,11 +365,11 @@ func (h *DiplomacyHandler) Impose(ctx context.Context, meta envelope.Metadata, r
 				// Pressing a measure flips it: the mask it leads to is below
 				// this one exactly when the measure is chosen now.
 				next, _ := diplomacy.Toggle(mask, m)
-				view.Measures = append(view.Measures, screens.MeasureToggle{Code: string(m), On: next < mask, Mask: next})
+				view.Measures = append(view.Measures, society.MeasureToggle{Code: string(m), On: next < mask, Mask: next})
 			}
 			return nil
 		}
-		if ground == screens.ChooseGround || !hasCode(snap.SanctionGrounds(), ground) {
+		if ground == society.ChooseGround || !hasCode(snap.SanctionGrounds(), ground) {
 			view.Grounds = snap.SanctionGrounds()
 			return nil
 		}
@@ -395,7 +390,7 @@ func (h *DiplomacyHandler) Impose(ctx context.Context, meta envelope.Metadata, r
 		}
 		if err := diplomacy.CheckImpose(country.ID, target.ID, chosen, rules); err != nil {
 			if stderrors.Is(err, diplomacy.ErrAlreadySanctioned) {
-				return refuseDiplomacy(screens.DiplomacyRefusedStanding, country, screens.AddrSanctions, country.Code)
+				return refuseDiplomacy(society.DiplomacyRefusedStanding, country, society.AddrSanctions, country.Code)
 			}
 			return errors.InvalidInput("the sanction cannot be imposed").WithCause(err)
 		}
@@ -404,7 +399,7 @@ func (h *DiplomacyHandler) Impose(ctx context.Context, meta envelope.Metadata, r
 			TargetID: target.ID, Measures: chosen, Ground: ground, ImposedBy: p.ID, ImposedOffice: seat.OfficeCode,
 			ImposedAt: now, EffectiveAt: now.Add(h.rules.SanctionNotice)})
 		if isSentinel(err, application.ErrAlreadySanctioned) {
-			return refuseDiplomacy(screens.DiplomacyRefusedStanding, country, screens.AddrSanctions, country.Code)
+			return refuseDiplomacy(society.DiplomacyRefusedStanding, country, society.AddrSanctions, country.Code)
 		}
 		if err != nil {
 			return err
@@ -427,24 +422,22 @@ func (h *DiplomacyHandler) Impose(ctx context.Context, meta envelope.Metadata, r
 		return resp, err
 	}
 	if done {
-		c := h.screen(meta, lang)
-		notice := c.T("diplomacy.impose.done", map[string]any{"target": c.PlaceName(*view.Target),
-			"in": screens.FormatSpan(c, h.rules.SanctionNotice)})
+		notice := &society.DiplomacyNotice{Kind: "impose.done", Place: *view.Target, In: h.rules.SanctionNotice}
 		return h.sanctionsWith(ctx, meta, DiplomacyRequest{Country: country.Code}, notice)
 	}
-	return screens.Impose(h.screen(meta, lang), view), nil
+	return society.Impose(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Lift handles diplomacy.lift: the confirmation, then lifting one of the
 // country's sanctions, once, no sooner than its least duration.
-func (h *DiplomacyHandler) Lift(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presenter.Response, error) {
+func (h *DiplomacyHandler) Lift(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view    screens.LiftView
+		view    society.LiftView
 		done    bool
 		country *application.Jurisdiction
 	)
@@ -463,11 +456,11 @@ func (h *DiplomacyHandler) Lift(ctx context.Context, meta envelope.Metadata, req
 		}
 		no, ok := number(req.No)
 		if !ok {
-			return refuseDiplomacy(screens.DiplomacyRefusedNotFound, nil)
+			return refuseDiplomacy(society.DiplomacyRefusedNotFound, nil)
 		}
 		s, err := tx.Diplomacy().SanctionByNo(ctx, no, false)
 		if isSentinel(err, application.ErrSanctionNotFound) {
-			return refuseDiplomacy(screens.DiplomacyRefusedNotFound, nil)
+			return refuseDiplomacy(society.DiplomacyRefusedNotFound, nil)
 		}
 		if err != nil {
 			return err
@@ -477,7 +470,7 @@ func (h *DiplomacyHandler) Lift(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		country = &j
-		seat, err := h.authorize(ctx, tx, snap, country, content.ActionSanction, p, screens.AddrSanctions, country.Code)
+		seat, err := h.authorize(ctx, tx, snap, country, content.ActionSanction, p, society.AddrSanctions, country.Code)
 		if err != nil {
 			return err
 		}
@@ -486,13 +479,13 @@ func (h *DiplomacyHandler) Lift(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		view = screens.LiftView{Country: countryPlace(*country), Sanction: line}
+		view = society.LiftView{Country: countryPlace(*country), Sanction: line}
 		if s.LiftedAt != nil {
-			return refuseDiplomacy(screens.DiplomacyRefusedNotFound, country, screens.AddrSanctions, country.Code)
+			return refuseDiplomacy(society.DiplomacyRefusedNotFound, country, society.AddrSanctions, country.Code)
 		}
 		if err := diplomacy.CheckLift(s.Rule(), country.ID, now, h.rules.SanctionMinDuration); err != nil {
 			if stderrors.Is(err, diplomacy.ErrTooSoon) {
-				r := refuseDiplomacy(screens.DiplomacyRefusedTooSoon, country, screens.AddrSanctions, country.Code)
+				r := refuseDiplomacy(society.DiplomacyRefusedTooSoon, country, society.AddrSanctions, country.Code)
 				r.view.In = line.LiftableIn
 				return r
 			}
@@ -535,28 +528,27 @@ func (h *DiplomacyHandler) Lift(ctx context.Context, meta envelope.Metadata, req
 		return resp, err
 	}
 	if done {
-		c := h.screen(meta, lang)
-		notice := c.T("diplomacy.lift.done", map[string]any{"target": c.PlaceName(view.Sanction.Target)})
+		notice := &society.DiplomacyNotice{Kind: "lift.done", Place: view.Sanction.Target}
 		return h.sanctionsWith(ctx, meta, DiplomacyRequest{Country: country.Code}, notice)
 	}
-	return screens.Lift(h.screen(meta, lang), view), nil
+	return society.Lift(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // treatyLine reads a treaty for a board, from the country's side.
 func (h *DiplomacyHandler) treatyLine(ctx context.Context, tx application.Tx, snap *content.Snapshot, t application.Treaty,
 	countryID string, now time.Time,
-) (screens.TreatyLine, error) {
+) (society.TreatyLine, error) {
 	rule := t.Rule()
 	other, err := placeOf(ctx, tx, rule.Other(countryID))
 	if err != nil {
-		return screens.TreatyLine{}, err
+		return society.TreatyLine{}, err
 	}
 	kind := named(t.Kind, t.Kind)
 	if def, ok := snap.TreatyType(t.Kind); ok {
 		kind.Name = def.Name
 	}
 	status := rule.StatusAt(now)
-	line := screens.TreatyLine{No: t.No, Kind: kind, Other: other, Status: string(status),
+	line := society.TreatyLine{No: t.No, Kind: kind, Other: other, Status: string(status),
 		Incoming: t.PartnerID == countryID}
 	switch status {
 	case diplomacy.Proposed:
@@ -578,17 +570,17 @@ func (h *DiplomacyHandler) treatyLine(ctx context.Context, tx application.Tx, sn
 }
 
 // Treaties handles diplomacy.treaties: a country's treaties board.
-func (h *DiplomacyHandler) Treaties(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presenter.Response, error) {
-	return h.treatiesWith(ctx, meta, req, "")
+func (h *DiplomacyHandler) Treaties(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presentation.Response, error) {
+	return h.treatiesWith(ctx, meta, req, nil)
 }
 
-func (h *DiplomacyHandler) treatiesWith(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest, notice string) (*presenter.Response, error) {
+func (h *DiplomacyHandler) treatiesWith(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest, notice *society.DiplomacyNotice) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.TreatiesView
+	var view society.TreatiesView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -599,7 +591,7 @@ func (h *DiplomacyHandler) treatiesWith(ctx context.Context, meta envelope.Metad
 			return err
 		}
 		now := h.now()
-		view = screens.TreatiesView{Country: countryPlace(*country), Notice: notice}
+		view = society.TreatiesView{Country: countryPlace(*country), Notice: notice}
 		treaties, err := tx.Diplomacy().Treaties(ctx, country.ID, now.Add(-h.rules.EndedShownFor))
 		if err != nil {
 			return err
@@ -619,20 +611,20 @@ func (h *DiplomacyHandler) treatiesWith(ctx context.Context, meta envelope.Metad
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Treaties(h.screen(meta, lang), view), nil
+	return society.Treaties(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Propose handles diplomacy.propose: the partner, the kind, then confirm;
 // on confirm, once, the proposal is recorded and the partner's acting
 // foreign minister is told.
-func (h *DiplomacyHandler) Propose(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presenter.Response, error) {
+func (h *DiplomacyHandler) Propose(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view    screens.ProposeView
+		view    society.ProposeView
 		done    bool
 		country *application.Jurisdiction
 	)
@@ -653,7 +645,7 @@ func (h *DiplomacyHandler) Propose(ctx context.Context, meta envelope.Metadata, 
 		if country, seat, err = h.actingCountry(ctx, tx, snap, p, content.ActionTreaty); err != nil {
 			return err
 		}
-		view = screens.ProposeView{Country: countryPlace(*country), TTL: h.rules.TreatyOfferTTL}
+		view = society.ProposeView{Country: countryPlace(*country), TTL: h.rules.TreatyOfferTTL}
 		partnerCode := strings.ToLower(strings.TrimSpace(req.Target))
 		if partnerCode == "" {
 			countries, err := tx.Diplomacy().Countries(ctx)
@@ -672,7 +664,7 @@ func (h *DiplomacyHandler) Propose(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		if partner.ID == country.ID {
-			return refuseDiplomacy(screens.DiplomacyRefusedSelf, country, screens.AddrPropose)
+			return refuseDiplomacy(society.DiplomacyRefusedSelf, country, society.AddrPropose)
 		}
 		place := countryPlace(partner)
 		view.Partner = &place
@@ -704,13 +696,13 @@ func (h *DiplomacyHandler) Propose(ctx context.Context, meta envelope.Metadata, 
 			rules[i] = t.Rule()
 		}
 		if err := diplomacy.CheckPropose(country.ID, partner.ID, def.Code, rules, now); err != nil {
-			return refuseDiplomacy(screens.DiplomacyRefusedOpen, country, screens.AddrTreaties, country.Code)
+			return refuseDiplomacy(society.DiplomacyRefusedOpen, country, society.AddrTreaties, country.Code)
 		}
 		t, err := tx.Diplomacy().ProposeTreaty(ctx, application.Treaty{ID: h.ids.NewID(), Kind: def.Code,
 			ProposerID: country.ID, PartnerID: partner.ID, ProposedBy: p.ID, ProposedOffice: seat.OfficeCode,
 			ProposedAt: now, ExpiresAt: now.Add(h.rules.TreatyOfferTTL)})
 		if isSentinel(err, application.ErrTreatyOpen) {
-			return refuseDiplomacy(screens.DiplomacyRefusedOpen, country, screens.AddrTreaties, country.Code)
+			return refuseDiplomacy(society.DiplomacyRefusedOpen, country, society.AddrTreaties, country.Code)
 		}
 		if err != nil {
 			return err
@@ -743,12 +735,10 @@ func (h *DiplomacyHandler) Propose(ctx context.Context, meta envelope.Metadata, 
 		return resp, err
 	}
 	if done {
-		c := h.screen(meta, lang)
-		notice := c.T("diplomacy.propose.done", map[string]any{"partner": c.PlaceName(*view.Partner),
-			"kind": c.TreatyName(*view.Kind)})
+		notice := &society.DiplomacyNotice{Kind: "propose.done", Place: *view.Partner, Treaty: *view.Kind}
 		return h.treatiesWith(ctx, meta, DiplomacyRequest{Country: country.Code}, notice)
 	}
-	return screens.Propose(h.screen(meta, lang), view), nil
+	return society.Propose(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // treatyFor reads a treaty by number and the side of it the player acts
@@ -759,11 +749,11 @@ func (h *DiplomacyHandler) treatyFor(ctx context.Context, tx application.Tx, sna
 ) (*application.Treaty, *application.Jurisdiction, application.Office, error) {
 	no, ok := number(rawNo)
 	if !ok {
-		return nil, nil, application.Office{}, refuseDiplomacy(screens.DiplomacyRefusedNotFound, nil)
+		return nil, nil, application.Office{}, refuseDiplomacy(society.DiplomacyRefusedNotFound, nil)
 	}
 	t, err := tx.Diplomacy().TreatyByNo(ctx, no, false)
 	if isSentinel(err, application.ErrTreatyNotFound) {
-		return nil, nil, application.Office{}, refuseDiplomacy(screens.DiplomacyRefusedNotFound, nil)
+		return nil, nil, application.Office{}, refuseDiplomacy(society.DiplomacyRefusedNotFound, nil)
 	}
 	if err != nil {
 		return nil, nil, application.Office{}, err
@@ -785,7 +775,7 @@ func (h *DiplomacyHandler) treatyFor(ctx context.Context, tx application.Tx, sna
 			return t, &j, seat, nil
 		}
 	}
-	r := refuseDiplomacy(screens.DiplomacyRefusedNotHolder, first, screens.AddrTreaties, first.Code)
+	r := refuseDiplomacy(society.DiplomacyRefusedNotHolder, first, society.AddrTreaties, first.Code)
 	r.view.Office = actionOffice(snap, content.ActionTreaty)
 	return nil, nil, application.Office{}, r
 }
@@ -793,12 +783,12 @@ func (h *DiplomacyHandler) treatyFor(ctx context.Context, tx application.Tx, sna
 // Answer handles diplomacy.answer: the partner's acting foreign minister
 // accepts or declines a proposal — once: the row is locked and must still
 // be a proposal in time.
-func (h *DiplomacyHandler) Answer(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presenter.Response, error) {
+func (h *DiplomacyHandler) Answer(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
-	accept := strings.TrimSpace(req.Verdict) == screens.AnswerAccept
-	if !accept && strings.TrimSpace(req.Verdict) != screens.AnswerDecline {
+	accept := strings.TrimSpace(req.Verdict) == society.AnswerAccept
+	if !accept && strings.TrimSpace(req.Verdict) != society.AnswerDecline {
 		return nil, errors.InvalidInput("an answer is accept or decline")
 	}
 	snap := h.content.Current()
@@ -830,12 +820,12 @@ func (h *DiplomacyHandler) Answer(ctx context.Context, meta envelope.Metadata, r
 		now := h.now()
 		status, err := diplomacy.Answer(t.Rule(), c.ID, accept, now)
 		if err != nil {
-			return refuseDiplomacy(screens.DiplomacyRefusedState, c, screens.AddrTreaties, c.Code)
+			return refuseDiplomacy(society.DiplomacyRefusedState, c, society.AddrTreaties, c.Code)
 		}
 		t.Status, t.DecidedBy, t.DecidedOffice, t.DecidedAt = status, p.ID, seat.OfficeCode, &now
 		if err := tx.Diplomacy().SaveTreaty(ctx, *t); err != nil {
 			if isSentinel(err, application.ErrTreatyOpen) {
-				return refuseDiplomacy(screens.DiplomacyRefusedOpen, c, screens.AddrTreaties, c.Code)
+				return refuseDiplomacy(society.DiplomacyRefusedOpen, c, society.AddrTreaties, c.Code)
 			}
 			return err
 		}
@@ -871,10 +861,9 @@ func (h *DiplomacyHandler) Answer(ctx context.Context, meta envelope.Metadata, r
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	notice := ""
+	var notice *society.DiplomacyNotice
 	if answer != "" {
-		c := h.screen(meta, lang)
-		notice = c.T("diplomacy.answer."+string(answer), nil)
+		notice = &society.DiplomacyNotice{Kind: "answer." + string(answer)}
 	}
 	code := ""
 	if country != nil {
@@ -885,14 +874,14 @@ func (h *DiplomacyHandler) Answer(ctx context.Context, meta envelope.Metadata, r
 
 // End handles diplomacy.end: the confirmation, then withdrawing a proposal
 // (the proposer) or ending a treaty in force (either party), once.
-func (h *DiplomacyHandler) End(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presenter.Response, error) {
+func (h *DiplomacyHandler) End(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view    screens.EndTreatyView
+		view    society.EndTreatyView
 		country *application.Jurisdiction
 		ended   diplomacy.Status
 	)
@@ -921,9 +910,9 @@ func (h *DiplomacyHandler) End(ctx context.Context, meta envelope.Metadata, req 
 		if err != nil {
 			return err
 		}
-		view = screens.EndTreatyView{Country: countryPlace(*c), Treaty: line}
+		view = society.EndTreatyView{Country: countryPlace(*c), Treaty: line}
 		if _, err := diplomacy.End(t.Rule(), c.ID, now); err != nil {
-			return refuseDiplomacy(screens.DiplomacyRefusedState, c, screens.AddrTreaties, c.Code)
+			return refuseDiplomacy(society.DiplomacyRefusedState, c, society.AddrTreaties, c.Code)
 		}
 		if !confirm {
 			return nil
@@ -936,7 +925,7 @@ func (h *DiplomacyHandler) End(ctx context.Context, meta envelope.Metadata, req 
 		}
 		status, err := diplomacy.End(t.Rule(), c.ID, now)
 		if err != nil {
-			return refuseDiplomacy(screens.DiplomacyRefusedState, c, screens.AddrTreaties, c.Code)
+			return refuseDiplomacy(society.DiplomacyRefusedState, c, society.AddrTreaties, c.Code)
 		}
 		t.Status, t.EndedBy, t.EndedOffice, t.EndedAt = status, p.ID, seat.OfficeCode, &now
 		if err := tx.Diplomacy().SaveTreaty(ctx, *t); err != nil {
@@ -976,21 +965,20 @@ func (h *DiplomacyHandler) End(ctx context.Context, meta envelope.Metadata, req 
 		return resp, err
 	}
 	if ended != "" {
-		c := h.screen(meta, lang)
-		return h.treatiesWith(ctx, meta, DiplomacyRequest{Country: country.Code}, c.T("diplomacy.end.done_"+string(ended), nil))
+		return h.treatiesWith(ctx, meta, DiplomacyRequest{Country: country.Code}, &society.DiplomacyNotice{Kind: "end.done_" + string(ended)})
 	}
-	return screens.EndTreaty(h.screen(meta, lang), view), nil
+	return society.EndTreaty(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // History handles diplomacy.history: one page of the public record
 // concerning a country.
-func (h *DiplomacyHandler) History(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presenter.Response, error) {
+func (h *DiplomacyHandler) History(ctx context.Context, meta envelope.Metadata, req DiplomacyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.DiplomacyHistoryView
+	var view society.DiplomacyHistoryView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -1010,7 +998,7 @@ func (h *DiplomacyHandler) History(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		now := h.now()
-		view = screens.DiplomacyHistoryView{Country: countryPlace(*country), Page: page, Pages: max((total+size-1)/size, 1)}
+		view = society.DiplomacyHistoryView{Country: countryPlace(*country), Page: page, Pages: max((total+size-1)/size, 1)}
 		for _, e := range entries {
 			a, err := placeOf(ctx, tx, e.CountryID)
 			if err != nil {
@@ -1020,7 +1008,7 @@ func (h *DiplomacyHandler) History(ctx context.Context, meta envelope.Metadata, 
 			if err != nil {
 				return err
 			}
-			entry := screens.DiplomacyEntry{Kind: e.Kind, Country: a, Other: b, Measures: measureCodes(e.Measures),
+			entry := society.DiplomacyEntry{Kind: e.Kind, Country: a, Other: b, Measures: measureCodes(e.Measures),
 				Ground: e.Ground, Treaty: named(e.TreatyKind, e.TreatyKind), No: e.SanctionNo + e.TreatyNo,
 				Office: e.OfficeCode, Ago: max(now.Sub(e.At), time.Second)}
 			if def, ok := snap.TreatyType(e.TreatyKind); ok {
@@ -1038,5 +1026,5 @@ func (h *DiplomacyHandler) History(ctx context.Context, meta envelope.Metadata, 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.DiplomacyHistory(h.screen(meta, lang), view), nil
+	return society.DiplomacyHistory(presentation.Ctx{Lang: lang}, view), nil
 }

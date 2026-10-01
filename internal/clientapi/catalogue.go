@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -138,6 +139,33 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 			add("life_stage", CatalogueEntry{Code: st.Code,
 				Name: names(func(c screens.Context) string { return c.StageName(screens.Named{Code: st.Code, Name: st.Name}) })}, false)
 		}
+	}
+	// Politics and society: the names a client words by code (offices, policies,
+	// the places above a city, budget lines, treaty kinds, sanction measures and
+	// grounds).
+	for _, code := range snap.OfficeCodes() {
+		add("office", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.OfficeName(code) })}, false)
+	}
+	for _, code := range snap.LeverCodes() {
+		add("lever", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.LeverName(code) })}, false)
+	}
+	for _, j := range snap.JurisdictionDefs() {
+		add("jurisdiction", CatalogueEntry{Code: j.Code, Kind: j.Level,
+			Name: names(func(c screens.Context) string { return c.PlaceName(screens.GovPlace{Kind: j.Level, Code: j.Code, Name: j.Name}) })}, false)
+	}
+	if b, ok := snap.Budget(); ok {
+		for _, l := range b.Lines {
+			add("budget_line", CatalogueEntry{Code: l.Code, Name: names(func(c screens.Context) string { return c.BudgetLineName(l.Code) })}, false)
+		}
+	}
+	for _, t := range snap.TreatyTypes() {
+		add("treaty_kind", CatalogueEntry{Code: t.Code, Name: names(func(c screens.Context) string { return c.TreatyName(screens.Named{Code: t.Code, Name: t.Name}) })}, false)
+	}
+	for _, m := range diplomacy.Measures() {
+		add("sanction_measure", CatalogueEntry{Code: string(m), Name: names(func(c screens.Context) string { return c.MeasureName(string(m)) })}, false)
+	}
+	for _, g := range snap.SanctionGrounds() {
+		add("sanction_ground", CatalogueEntry{Code: g, Name: names(func(c screens.Context) string { return c.GroundName(g) })}, false)
 	}
 	for _, sb := range snap.SettlementBuildingDefs() {
 		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, Footprint: []int{sb.Footprint[0], sb.Footprint[1]}, CapExempt: sb.CapExempt,

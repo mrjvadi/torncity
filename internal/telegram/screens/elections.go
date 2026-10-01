@@ -15,46 +15,15 @@ import (
 // A ballot is secret: no screen says who voted for whom, and the counts are
 // shown only after the count.
 
-// Callback addresses of elections.
-const (
-	AddrElections     = "election:list"
-	AddrElection      = "election:view"
-	AddrElectionStand = "election:stand"
-	AddrElectionVote  = "election:vote"
-)
 
-// ElectionCounted is the phase of an election after its count; the others
-// are the domain's candidacy, voting and counting.
-const ElectionCounted = "counted"
 
-// Election phases as the screens spell them.
-const (
-	ElectionCandidacy = "candidacy"
-	ElectionVoting    = "voting"
-	ElectionCounting  = "counting"
-)
 
-// ElectionLine is one election of the list.
-type ElectionLine struct {
-	No     int64
-	Office string
-	Place  GovPlace
-	Phase  string
-	Seats  int
-	// EndsAt and Remaining are the end of the phase under way.
-	EndsAt     time.Time
-	Remaining  time.Duration
-	Candidates int
-	// Elected are the winners of a counted election.
-	Elected []GovPlayer
-}
 
-// ElectionsView is the elections of the player's city and above it.
-type ElectionsView struct {
-	NoCity    bool
-	Place     GovPlace
-	Elections []ElectionLine
-}
+
+
+
+
+
 
 // electionTitle names an election: the usual name of an office's election
 // (election.name.<office>), or the office and the place.
@@ -138,42 +107,9 @@ func renderElections(c Context, v ElectionsView) *presenter.Response {
 		c.T("election.hint", nil)), kb.Build())
 }
 
-// CandidateLine is one candidate on the ballot.
-type CandidateLine struct {
-	Player GovPlayer
-	// Mine marks the viewer.
-	Mine bool
-	// Votes is known once Counted.
-	Votes   int64
-	Counted bool
-	Elected bool
-}
 
-// ElectionView is one election for the viewer.
-type ElectionView struct {
-	No     int64
-	Office string
-	Place  GovPlace
-	Seats  int
-	Phase  string
-	// Remaining is what is left of the phase under way.
-	Remaining                     time.Duration
-	CandidacyEndsAt, VotingEndsAt time.Time
-	VotesCast                     int64
-	Candidates                    []CandidateLine
-	Deposit                       int64
-	RefundShareBPS                int
-	MinLevel                      int
-	// The viewer: standing, voted, and what they may do now. StandBlocked
-	// and VoteBlocked name why not (the domain's Why).
-	Standing, Voted           bool
-	CanStand, CanVote         bool
-	StandBlocked, VoteBlocked string
-	// Payment is how the deposit may be paid, nil for none.
-	Payment *PaymentChoice
-	// Nonce binds the stand and vote buttons.
-	Nonce string
-}
+
+
 
 // Election renders one election.
 func Election(c Context, v ElectionView) *presenter.Response {
@@ -271,17 +207,7 @@ func renderElection(c Context, v ElectionView) *presenter.Response {
 	), kb.Build())
 }
 
-// StoodView is a candidacy registered.
-type StoodView struct {
-	No       int64
-	Office   string
-	Place    GovPlace
-	Deposit  int64
-	Method   string
-	VotingAt time.Time
-	// VotingIn is how long until the vote opens.
-	VotingIn time.Duration
-}
+
 
 // Stood renders a candidacy registered.
 func Stood(c Context, v StoodView) *presenter.Response {
@@ -301,16 +227,7 @@ func renderStood(c Context, v StoodView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build()).MarkPrivate()
 }
 
-// VotedView is a vote cast.
-type VotedView struct {
-	No        int64
-	Office    string
-	Place     GovPlace
-	Candidate GovPlayer
-	CountAt   time.Time
-	// CountIn is how long until the count.
-	CountIn time.Duration
-}
+
 
 // Voted renders a vote cast. It is private: whom a player voted for is
 // theirs alone.
@@ -330,23 +247,9 @@ func renderVoted(c Context, v VotedView) *presenter.Response {
 	), kb.Build()).MarkPrivate()
 }
 
-// Election refusal kinds, beside the domain's reasons (not_resident,
-// too_new, level, record, jailed, standing, voted, incompatible).
-const (
-	ElectionRefusedNone        = "none"
-	ElectionRefusedNotStanding = "not_candidacy"
-	ElectionRefusedNotVoting   = "not_voting"
-	ElectionRefusedAway        = "away"
-	ElectionRefusedNoCandidate = "no_candidate"
-)
 
-// ElectionRefusalView is a refused election request.
-type ElectionRefusalView struct {
-	Kind   string
-	No     int64
-	Office string
-	Place  GovPlace
-}
+
+
 
 // ElectionRefusal renders a refused election request.
 func ElectionRefusal(c Context, v ElectionRefusalView) *presenter.Response {

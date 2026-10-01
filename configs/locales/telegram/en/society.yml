@@ -1,0 +1,596 @@
+# Telegram wording (en) of the politics and society area: offices and governance, elections, factions,
+# diplomacy, the legislature, friends and search (docs/adr/0039-presentation-split.md).
+# Natural everyday speech; a key is defined once across the layers.
+
+social:
+  unknown_player: A player
+  search:
+    help: |-
+      🔎 Find a player
+      Search by one of these:
+      • Telegram username: /social @username
+      • Player code: /social K7Q2M9A
+      • Telegram ID: /social 123456789
+    title: "🔎 Search result"
+    player: "👤 {player}"
+    self: This is you. Share your player code so friends can find you.
+    not_found_username: No player has the username {query}. They may have changed it or not started the game yet — ask them for their player code.
+    not_found_code: No player has the code {query}. Check the code; to search by username, put @ in front of it.
+    not_found_id: No player has this Telegram ID. They may not have started the game yet.
+  friends:
+    title: "👥 Friends"
+    empty: |-
+      You have no friends yet.
+      To find a player, send their Telegram username or player code, for example /social @username
+    line: "• {player}"
+    line_pending: "• {player} - waiting for their reply"
+    line_incoming: "• {player} - wants to be your friend"
+    line_blocked: "• {player} - blocked"
+  friend:
+    requested: "✅ Friend request sent to {player}. They will appear in your friends list once they accept."
+    requested_anon: "✅ Friend request sent. The player will appear in your friends list once they accept."
+    accepted: "✅ You and {player} are now friends."
+    accepted_anon: "✅ Friend request accepted. This player is now in your friends list."
+    # Notices to the other player, sent to their private chat.
+    incoming: "👥 {player} wants to be your friend."
+    incoming_anon: "👥 A player wants to be your friend."
+    incoming_hint: Tap the button below to accept. The request also stays in your friends list.
+    now_friends: "👥 {player} accepted your friend request. You are now friends."
+    now_friends_anon: "👥 Your friend request was accepted. This player is now in your friends list."
+
+# Player-held offices (docs/adr/0015-player-held-offices.md): the offices and
+# policies of a city, the office holder's own screen, the flow that changes a
+# policy, and the public history of changes.
+#
+# Terms: office 🏛 (a seat a player holds: mayor, president), policy (what an
+# office decides: a tax rate, a fee), vacant (nobody holds the office),
+# acting (a deputy exercising a vacant office's powers), announced (a change
+# is public at once and takes effect after its notice), public history 📜.
+# Percentages are written "{value}%"; money goes through format.money.
+gov:
+  player: "{name} ({code})"
+  list_separator: ", "
+  percent: "{value}%"
+  span_d: "{days}d"
+  span_dh: "{days}d {hours}h"
+  unnamed_office: an office
+  unnamed_lever: a policy
+  city:
+    title: "🏛 Offices and policies — {city}"
+    title_plain: "🏛 Offices and policies"
+    no_city: You have not settled in a city yet. Once you do, its offices and policies appear here.
+    place: "📍 {place}"
+    offices: "Offices:"
+    no_offices: • There are no offices here.
+    policies: "Policies:"
+  office:
+    held: "• {office}: {players}"
+    seats: "• {office}: {held} of {seats} seats held - {players}"
+    acting: "• {office}: vacant - acting: {deputy} {players}"
+    vacant: "• {office}: vacant"
+  lever:
+    line_default: "• {lever}: {value} - default"
+    line_set: "• {lever}: {value} - set by {player}"
+    pending: "  ⏳ Changes to {value} in {when}"
+  mine:
+    title: "🏛 My office"
+    none: You do not hold any office. Mayors, councillors and presidents are elected; the other offices are appointed.
+    seat: "📍 {office} of {place}"
+    acting_for: You are acting for the vacant office of {office}.
+    no_levers: This office has no policy you can change right now.
+    lever: "• {lever}: {value}"
+    lever_vote: "• {lever}: {value} - decided by a vote of the {office}"
+    confirmed_by: "  🗳 Changing it may need the {office} to confirm."
+  edit:
+    title: "🏛 {lever} — {place}"
+    bounds: "Allowed range: {min} to {max}"
+    default: "Default: {value}"
+    notice: A change takes effect {notice} after it is announced.
+    cooldown: After a change, the next one can be made {cooldown} later.
+    cooldown_active: "⏳ You can change this policy again in {wait}."
+    draft: |-
+      New value: {value}
+      Adjust it with the buttons, then tap “Review change”.
+  confirm:
+    title: "📝 Confirm the change"
+    change: "{lever} in {place}: from {old} to {new}"
+    notice: It will be announced now and take effect in {notice}.
+    cooldown: You will not be able to change this policy again for {cooldown}.
+    vote: "🗳 This change goes to a vote of the {office} before it is announced, and takes effect only if it passes."
+  announced:
+    title: "📢 Change announced"
+    body: "{lever} in {place} will change from {old} to {new} in {when}. The change is recorded in the public history."
+  history:
+    title: "📜 Policy history — {city}"
+    empty: No policy has been changed here yet.
+    change: "• {lever} ({place}): {old} → {new}"
+    by: "  Announced by {office} {player} - {ago} ago"
+    effective_in: "  ⏳ Takes effect in {when}"
+    effective_since: "  In force for {when}"
+  button:
+    city: "🏛 Offices and policies"
+    history: "📜 Policy history"
+    elections: "🗳 Elections"
+    my_office: "🏛 My office"
+    change: "✏️ {lever} — {place}"
+    down: "➖ {amount}"
+    up: "➕ {amount}"
+    min: Minimum ({value})
+    default: Default ({value})
+    max: Maximum ({value})
+    review: "📝 Review change"
+    propose: "🗳 Propose {lever} — {place}"
+    budget: "💰 City budget"
+    laws: "⚖️ Proposals and votes"
+    confirm: "✅ Confirm"
+    cancel: "✖️ Cancel"
+    appoint: "👤 Appoint a {office}"
+    dismiss: "✖️ Remove the {office}"
+    confirm_appoint: "✅ Appoint"
+    confirm_dismiss: "✅ Remove"
+  refusal:
+    not_holder: "Only the {office} can change this policy. If you held that office, you may have been replaced."
+    requires_vote: This policy is decided by a vote of the {office}; only its members can propose a change.
+    requires_confirmation: This change must be confirmed by the {office} before it takes effect.
+    invalid_allocation: "That division is not allowed: only this budget's lines take a share, and the shares add up to at most 100%."
+    out_of_range: That value is outside the allowed range of {min} to {max}. Choose a value within it.
+    out_of_range_plain: That value is outside the allowed range. Choose a value within it.
+    cooldown: This policy was changed recently. You can change it again in {wait}.
+    cooldown_later: This policy was changed recently. Please try again later.
+    unsupported: This kind of policy cannot be changed yet.
+    unknown_lever: This policy no longer exists. Open “My office” to see the policies you can change.
+    unknown_place: "This place could not be found. Open the “Map” and try again."
+    wrong_place: This policy does not apply to this place.
+    city_only: "This is for cities: a village has no budget or city council yet. It opens up once the village grows."
+    office_not_found: This office does not exist here.
+    office_occupied: Someone already holds this office.
+    office_vacant: This office is already vacant.
+    already_holds: You already hold this office.
+    incompatible: This office cannot be held together with an office you already hold.
+  alloc:
+    draft: "✏️ Draft division:"
+    line: "• {line}: {share}"
+    down: "➖ {line}"
+    up: "➕ {line}"
+    total: "Total: {total} - {left} is not spent and stays in the treasury."
+    spend_share: "Each city period the budget spends up to {share} of the treasury."
+  appoint:
+    heading: "Appoints:"
+    vacant: "• {office}: vacant"
+    held: "• {office}: {player}"
+    confirm: "👤 Appoint {player} as {office} of {place}?\nThey take the seat at once; you can remove them later if your office may."
+    done: "✅ {player} is now {office} of {place}."
+    term: "The term runs {term}."
+    notice: "🎖 You were appointed {office} of {place} by {by_office} {by}. Open «My office» to see what you now decide."
+    announce: "🎖 {player} was appointed {office} of {place}."
+    refused:
+      not_appointer: "Only the {office} can do that. If you held that office, you may have been replaced."
+      no_player: "No player was found by that code or username. Check it and try again."
+      no_seat: "That seat is not free any more."
+  dismiss:
+    confirm: "✖️ Remove {player} from the office of {office} of {place}?\nThe seat falls vacant at once and the deputy acts for it, if there is one."
+    done: "✅ {player} is no longer {office} of {place}."
+    notice: "📭 You were removed from the office of {office} of {place} by {by_office} {by}."
+
+# Elections (internal/telegram/screens/elections.go). A ballot is secret: no
+# line says who voted for whom.
+election:
+  # An election's name: election.name.<office code> is its usual name;
+  # an office without one here is named through election.of.
+  of: "{office} election in {place}"
+  name:
+    mayor: "{place} mayoral election"
+    city_council: "{place} city council election"
+    president: "{place} presidential election"
+  this: this election
+  title: "🗳 Elections - {place}"
+  title_plain: "🗳 Elections"
+  no_city: You are not in a city yet. You take part in the elections of the city you live in.
+  none: No election is under way, and none has been held here yet.
+  hint: "Candidates stand at city hall; every resident votes once, in secret. Press an election's number to open it."
+  line:
+    candidacy: "• No. {no}: {election} - taking candidates, {remaining} left, {count} so far"
+    voting: "• No. {no}: {election} - voting, {remaining} left, {count} candidates"
+    counting: "• No. {no}: {election} - waiting for the count"
+    counted: "• No. {no}: {election} - elected: {elected}"
+    unfilled: "• No. {no}: {election} - nobody was elected"
+  detail_title: "🗳 {election} (No. {no})"
+  seats: "🪑 Seats: {seats}"
+  deposit: "💰 Deposit to stand: {deposit}; it comes back after the count if you win at least {share} of the votes."
+  phase:
+    candidacy: "📝 Taking candidates - {remaining} left"
+    voting: "🗳 Voting - {remaining} left"
+    counting: "⏳ The vote is over; the count is due any moment."
+    counted: "✅ Counted: {cast} votes cast"
+  voting_from: "🕒 Voting opens in {duration}, at {time}."
+  voting_in: "🕒 Voting opens in {duration}."
+  count_at: "🕒 The votes are counted in {duration}, at {time}."
+  count_in: "🕒 The votes are counted in {duration}."
+  candidates: "Candidates:"
+  no_candidates: "• nobody has stood yet"
+  candidate: "{n}. {player}"
+  candidate_counted: "{n}. {player} - {votes} votes"
+  candidate_elected: "{n}. {player} - {votes} votes 🏆"
+  candidate_you: "{line} (you)"
+  you_stand: "📝 You are standing in this election."
+  you_voted: "🗳 You have voted. Your ballot is secret."
+  stand_how: "📝 To stand, pay the deposit of {deposit}:"
+  vote_how: "🗳 Choose your candidate. You vote once, and your ballot stays secret."
+  private: "🔒 Standing and voting are done in your private chat with the bot."
+  cannot_stand:
+    not_resident: "📝 Only residents may stand here."
+    too_new: "📝 You have not lived here long enough to stand."
+    level: "📝 Standing needs level {level}."
+    record: "📝 You owe victims or the city money; settle it before you stand."
+    jailed: "📝 You cannot stand from a cell."
+  cannot_vote:
+    not_resident: "🗳 Only residents vote here."
+    too_new: "🗳 You have not lived here long enough to vote."
+  stood: "📝 You are now a candidate in the {election}."
+  stood_deposit: "💰 Your deposit of {deposit} is held until the count."
+  voted: "🗳 Your vote in the {election} went to {player}."
+  secret: "🔒 Nobody else will ever see whom you voted for."
+  button:
+    open: "🗳 No. {no}"
+    vote: "🗳 Vote {player}"
+    stand: "📝 Stand as a candidate"
+    back: "🗳 Back to the election"
+    results: "🗳 See the results"
+  refused:
+    none: There is no such election.
+    not_candidacy: "The {election} is not taking candidates now."
+    not_voting: "The {election} is not taking votes now."
+    away: "📍 A candidacy is registered at city hall, in the city the election is for."
+    no_candidate: That candidate is not on the ballot.
+    not_resident: "Only residents take part in the {election}."
+    too_new: "You have not lived here long enough to take part in the {election}."
+    level: "Your level is too low to stand in the {election}."
+    record: "You owe victims or the city money; settle it before you stand."
+    jailed: You cannot stand from a cell.
+    standing: "You are already a candidate in the {election}."
+    voted: "You have already voted in the {election}; everyone votes once."
+    incompatible: "You hold an office that cannot be held with this one."
+  notice:
+    won: "🏆 Congratulations! You won the {election}: {votes} of {cast} votes."
+    lost: "🗳 You were not elected in the {election}: {votes} of {cast} votes."
+    deposit_back: "💰 Your deposit of {deposit} came back to you."
+    deposit_kept: "💰 Too few votes: your deposit of {deposit} went to your city's treasury."
+
+diplomacy:
+  measure:
+    trade: "trade embargo"
+    arms: "arms embargo"
+    technology: "technology ban"
+    travel: "travel ban"
+    financial: "financial sanctions"
+  ground:
+    aggression: "aggression"
+    proliferation: "weapons proliferation"
+    terrorism: "support for terrorism"
+    human_rights: "human rights abuses"
+    unfair_trade: "unfair trade"
+    retaliation: "retaliation"
+  treaty:
+    alliance: "military alliance"
+    non_aggression: "non-aggression pact"
+    trade_agreement: "trade agreement"
+  sanctions:
+    title: "⛔ Sanctions of {country}"
+    imposed: "Imposed by us:"
+    suffered: "Imposed on us:"
+    none: "• none"
+    line_on: "• No. {no} on {country}: {measures} - for {ground}"
+    line_by: "• No. {no} by {country}: {measures} - for {ground}"
+    pending: "  ⏳ binds in {in}"
+    since: "  in force for {since}"
+    by: "  imposed by the {office}, {player}"
+    liftable_in: "  🔒 may be lifted in {in}"
+    footer: "A sanction binds both ways: a trade embargo stops the market, the auction house and company sales between the two countries' people; an arms embargo, arms sales; a technology ban, licenses; a travel ban, journeys between their cities; financial sanctions, card payments."
+  impose:
+    title: "⛔ New sanction by {country}"
+    choose_target: "On which country?"
+    no_targets: "There is no other country."
+    choose_measures: "Which measures against {target}? Press to choose, press again to drop."
+    choose_ground: "On what ground are {measures} imposed on {target}?"
+    confirm: "Impose {measures} on {target} for {ground}?\nIt is announced now and binds in {notice}; it can be lifted no sooner than {min} from now."
+    done: "⛔ The sanction on {target} is announced and binds in {in}."
+  lift:
+    confirm: "Lift sanction No. {no} on {target} ({measures})? It stops binding at once."
+    done: "🕊 The sanction on {target} is lifted."
+  treaties:
+    title: "🤝 Treaties of {country}"
+    incoming: "📨 No. {no}: {country} proposes a {kind} - answer within {in}"
+    outgoing: "📤 No. {no}: we proposed a {kind} to {country} - {in} left for an answer"
+    active: "✅ No. {no}: {kind} with {country}"
+    ended_declined: "✖️ No. {no}: {kind} with {country} was declined"
+    ended_withdrawn: "↩️ No. {no}: {kind} with {country} was withdrawn"
+    ended_expired: "⌛ No. {no}: {kind} with {country} lapsed unanswered"
+    ended_terminated: "🔚 No. {no}: {kind} with {country} was ended"
+    none: "No treaties yet."
+    footer: "A treaty binds once the other country's foreign minister accepts it. An alliance makes the two arms partners and will bring each to the other's defence; a trade agreement spares their trade the border tariff."
+  propose:
+    title: "🤝 New treaty proposal by {country}"
+    choose_partner: "To which country?"
+    choose_kind: "What kind of treaty with {partner}?"
+    confirm: "Propose a {kind} to {partner}? Their foreign minister has {ttl} to answer."
+    done: "📤 A {kind} was proposed to {partner}. Their answer will show here."
+  end:
+    confirm_withdraw: "Withdraw proposal No. {no} ({kind} to {country})?"
+    confirm_terminate: "End treaty No. {no} ({kind} with {country})? It stops binding at once, and both countries' groups hear of it."
+    done_withdrawn: "↩️ The proposal was withdrawn."
+    done_terminated: "🔚 The treaty was ended."
+  history:
+    title: "📜 Diplomatic record of {country}"
+    empty: "Nothing has happened between countries yet."
+    sanction_imposed: "• {country} imposed {measures} on {other} (No. {no}), for {ground}"
+    sanction_lifted: "• {country} lifted sanction No. {no} on {other}"
+    treaty_proposed: "• {country} proposed a {kind} to {other} (No. {no})"
+    treaty_signed: "• {country} and {other} signed a {kind} (No. {no})"
+    treaty_declined: "• {country} declined a {kind} with {other} (No. {no})"
+    treaty_withdrawn: "• {country} withdrew a {kind} proposal to {other} (No. {no})"
+    treaty_terminated: "• {country} ended the {kind} with {other} (No. {no})"
+    by: "  by the {office}, {player} - {ago} ago"
+  button:
+    sanctions: "⛔ Sanctions"
+    treaties: "🤝 Treaties"
+    history: "📜 Record"
+    impose: "➕ Impose a sanction"
+    lift: "✖️ Lift No. {no} on {country}"
+    measure_on: "✅ {measure}"
+    measure_off: "▫️ {measure}"
+    next: "➡️ Next"
+    confirm_impose: "✅ Impose"
+    confirm_lift: "✅ Lift"
+    accept: "✅ Accept No. {no}"
+    decline: "✖️ Decline No. {no}"
+    withdraw: "↩️ Withdraw No. {no}"
+    terminate: "🔚 End No. {no}"
+    propose: "➕ Propose a treaty"
+    confirm_propose: "✅ Propose"
+    confirm_withdraw: "✅ Withdraw"
+    confirm_terminate: "✅ End the treaty"
+  refused:
+    not_found: "No such sanction or treaty."
+    not_holder: "Only the {office} of {country} can do that. If you held that office, you may have been replaced."
+    self: "A country cannot do that with itself."
+    standing: "We have a sanction on that country already. Lift it before imposing another."
+    too_soon: "A sanction stands for a while before it may be lifted: {in} more."
+    open: "A treaty of that kind with that country is open already."
+    state: "That treaty has already been answered, withdrawn, ended or has lapsed."
+    no_country: "You do not live in any country yet. Settle in a city first."
+  blocked:
+    trade: "⛔ A trade embargo between {imposer} and {target} forbids this deal."
+    arms: "⛔ An arms embargo between {imposer} and {target} forbids this sale."
+    technology: "⛔ A technology ban between {imposer} and {target} forbids this license."
+    travel: "⛔ A travel ban between {imposer} and {target} closes this route."
+    financial: "⛔ Financial sanctions between {imposer} and {target} forbid card payments between their people."
+  notice:
+    proposed: "📨 {country} proposes a {kind} to us (No. {no}). Answer within {in}."
+  announce:
+    imposed: "⛔ {imposer} imposed {measures} on {target}, for {ground}."
+    lifted: "🕊 {imposer} lifted its sanctions on {target}."
+    signed: "🤝 {a} and {b} signed a {kind}."
+    terminated: "🔚 {by} ended its {kind} with {other}."
+  answer:
+    active: "🤝 Treaty signed: it binds from now on."
+    declined: "✖️ The proposal was declined."
+
+# Factions (docs/adr/0023): gangs and organisations players found and run.
+faction:
+  name: "{name} ({code})"
+  rank:
+    leader: "leader"
+    officer: "officer"
+    member: "member"
+  list_title: "🏴 Factions"
+  list_title_city: "🏴 Factions of {city}"
+  list_line: "• {faction} - {members} members"
+  list_none: "No faction in this city yet."
+  list_mine: "Your faction: {faction}"
+  list_found: "Found your own at city hall; registering one costs {fee}."
+  page_title: "🏴 {faction}"
+  page_city: "📍 City: {city}"
+  page_members: "👥 {count} members:"
+  member_line: "• {player} - {rank}"
+  member_line_self: "• {player} - {rank} (you)"
+  page_linked: "💬 The faction's Telegram group is linked; its news is posted there."
+  found_title: "🏴 Found a faction"
+  found_fee: "Registering a faction in {city} costs {fee}, paid to the city's treasury."
+  found_rules: "A name is {min} to {max} letters and may not name a city institution. You found it at city hall."
+  found_how: "How will you pay? Then you send the faction's name."
+  founded: "🏴 {faction} is founded in {city}, and you are its leader."
+  founded_fee: "💸 Registration: {fee}"
+  founded_next: "Now invite members, fill the faction's bank and link its Telegram group: send «/faction {code}» in that group and press the link button."
+  home_title: "🏴 {faction}"
+  home_rank: "🎖 Your rank: {rank}"
+  home_members: "👥 Members: {count} of {max}"
+  home_bank: "🏦 Faction bank: {amount}"
+  home_applications: "📨 {count} applications waiting"
+  home_unlinked: "💬 No Telegram group yet; the leader sends «/faction {code}» in one and presses the link button."
+  members_title: "👥 Members of {faction}"
+  members_count: "{count} members of {max}"
+  requests_title: "📨 Waiting:"
+  request_line:
+    invite: "• invited {player}"
+    apply: "• {player} applied"
+  invited: "📨 {player} was invited."
+  applied: "📨 Your application to {faction} is sent. You will hear back in private."
+  answered:
+    invite_accepted: "🤝 You joined {faction}."
+    invite_declined: "You turned down {faction}."
+    apply_accepted: "🤝 {player} joined {faction}."
+    apply_declined: "{player}'s application was turned down."
+  confirm:
+    kick: "Remove {player} from {faction}?"
+    lead: "Hand the leadership of {faction} to {player}? You become an officer, and only they can hand it back."
+    leave: "Leave {faction}?"
+    disband: "You are the last member of {faction}. Leaving disbands it, and what is left in its bank goes to your bank. Go on?"
+  left: "You left {faction}."
+  disbanded: "🏴 {faction} is disbanded."
+  disbanded_paid: "🏦 {amount} came from the faction's bank to yours."
+  linked: "💬 {faction} is linked to this group; its news is posted here from now on."
+  bank_title: "🏦 {faction} bank"
+  bank_balance: "Balance: {amount}"
+  bank_limits: "Each deposit or withdrawal between {min} and {max}"
+  bank_rules: "Members whose rank allows put money in; only allowed ranks take it out, to their own bank."
+  bank_deposited: "📥 {amount} went into the faction's bank."
+  bank_withdrawn: "📤 {amount} came from the faction's bank to your bank."
+  op:
+    gathering: "🕶 {crime} at the {place}, {city}: the crew is gathering."
+    running: "🕶 {crime} at the {place}, {city} is under way - {chance}% chance - {left} left"
+    gather_until: "Gathering until {time}"
+    ends_at: "Done at {time}"
+    crew_count: "👥 {crew} of at least {min} and at most {max} - each pays {nerve} nerve at the start"
+    crew: "Crew: {crew}"
+  crime_notice:
+    planned: "🗺 The plan is laid. Members gather at the same place and join the crew."
+    joined: "🤝 You joined the crew. Stay here until it starts."
+    launched: "🚀 The job has started. How it went arrives in private when it is done."
+    called_off: "✖️ The plan is off. Nobody had paid anything."
+  crime_title: "🕶 {faction} crew jobs"
+  crime_none: "Nothing under way. Jobs:"
+  crime_line: "• {crime}: {min} to {max} people - {nerve} nerve each - level {level} - {duration} - at: {places}"
+  crime_rules: "The planner must stand at the place. Members join there and pay their nerve at the start; whoever is not there is left behind. The faction's bank takes {cut}% and the rest is split by rank. If the police arrive, the whole crew is jailed and fined."
+  crime_result:
+    succeeded: "🕶 {crime} with {faction} went to plan."
+    escaped: "🏃 {crime} with {faction} went wrong, but the crew got away."
+    caught: "🚔 {crime} with {faction} went wrong and the police caught the crew."
+    split: "💵 Take {take} - faction bank {cut} - your share {share}"
+    jail: "⛓ You are jailed for {term}."
+  op_result:
+    succeeded: "went to plan"
+    escaped: "went wrong; the crew got away"
+    caught: "went wrong; the crew was caught"
+  notice:
+    invite: "📨 {player} invited you to {faction}."
+    apply: "📨 {player} wants to join {faction}."
+    answer_invite_accepted: "🤝 {player} accepted your invitation and joined {faction}."
+    answer_invite_declined: "{player} turned down {faction}'s invitation."
+    answer_apply_accepted: "🤝 You were accepted: you are now a member of {faction}."
+    answer_apply_declined: "Your application to {faction} was turned down."
+    kicked: "🚪 {player} removed you from {faction}."
+  announce:
+    founded: "🏴 {player} founded {faction}."
+    joined: "🤝 {player} joined {faction}."
+    left: "🚪 {player} left {faction}."
+    linked: "💬 {faction} is linked to this group."
+    ranked: "🎖 {player} is now {rank} of {faction}."
+    disbanded: "🏴 {faction} is disbanded."
+    planned: "🗺 {faction} is planning {crime} at the {place}. Members, gather there."
+    launched: "🚀 {faction}'s crew is off on {crime}."
+    crime_resolved: "🕶 {faction}'s {crime}: {result}."
+  button:
+    view: "🏴 {name}"
+    mine: "🏴 My faction"
+    found: "🏴 Found a faction"
+    list: "🏴 Factions"
+    apply: "📨 Apply to join"
+    members: "👥 Members"
+    bank: "🏦 Faction bank"
+    crime: "🕶 Crew jobs"
+    invite: "✏️ Invite a player"
+    leave: "🚪 Leave the faction"
+    promote: "⬆️ {name}"
+    demote: "⬇️ {name}"
+    kick: "✖️ {name}"
+    lead: "👑 {name}"
+    accept: "✅ Accept"
+    accept_name: "✅ {name}"
+    decline: "❌ Decline"
+    confirm_kick: "✖️ Remove"
+    confirm_lead: "👑 Hand over"
+    confirm_leave: "🚪 Leave"
+    confirm_disband: "🏴 Leave and disband"
+    deposit_cash: "✏️ Deposit cash"
+    deposit_card: "✏️ Deposit by card"
+    withdraw: "✏️ Withdraw"
+    plan: "🗺 Plan {crime}"
+    join: "🤝 Join the crew"
+    launch: "🚀 Start the job"
+    calloff: "✖️ Call it off"
+    link: "🔗 Link to this group"
+  refused:
+    none: "This world has no factions yet."
+    not_member: "You are not in a faction."
+    rank: "🎖 Your rank does not allow that."
+    not_found: "No such faction."
+    already_member: "You are already in a faction."
+    name: "A faction's name is {min} to {max} letters, starts with a letter or a digit, and may not name a city institution."
+    name_taken: "Another faction has that name."
+    not_group: "That is done in the faction's Telegram group."
+    group_taken: "This group is linked to another faction."
+    bank_short: "🏦 The faction's bank holds {balance}; you asked for {amount}."
+    no_player: "No such player. Send their player code or username."
+    theirs: "That player is in a faction."
+    full: "The faction is full: {max} members at most."
+    pending_full: "The faction has too many requests waiting; try again later."
+    pending: "An invitation or application is already waiting."
+    request_gone: "That invitation or application is no longer waiting."
+    not_yours: "That request is not yours to answer."
+    not_in_it: "That player is not in your faction."
+    on_a_job: "🕶 Your crew is out on a job; you cannot leave until it is done."
+    leader_leaving: "👑 The leader hands the leadership over before leaving."
+    no_such_crime: "No such crew job."
+    operation_open: "Your faction already has a crew job going."
+    level: "Planning that takes level {level}."
+    no_place_here: "That job cannot be done in this city."
+    no_operation: "No crew is gathering."
+    crew_full: "The crew is full."
+    elsewhere: "The crew gathers in another city or place."
+    crew_short: "👥 Starting takes at least {need} crew at the place with the nerve; {have} are ready."
+
+# Votes of a body (docs/adr/0024-property-and-politics.md).
+legislature:
+  list_title: "⚖️ Proposals and votes"
+  list_empty: No proposal is before any body of your city or country right now.
+  line: "• Proposal #{no} in {place}: {subject}"
+  title: "⚖️ Proposal #{no} — {place}"
+  subject_lever: "set {lever} to {value}"
+  subject_allocation: "divide {lever} anew: {shares}"
+  action:
+    country:
+      war: declare war
+  action_target: " on {target}"
+  action_unnamed: an action
+  proposed_by: "Proposed by {office} {player}"
+  body: "Voting: {body} - {held} of {seats} seats held"
+  rule:
+    majority: "To pass: more yes than no among the votes cast"
+    supermajority: "To pass: at least {threshold} of the votes cast are yes"
+    unanimous: "To pass: every member votes yes"
+  fraction: "{num}/{den}"
+  quorum: "Quorum: {quorum} of the seats must vote"
+  status:
+    open: "🗳 Voting - {remaining} left - {yes} yes, {no} no"
+    passed: "✅ Passed - {yes} yes, {no} no"
+    failed: "❌ Rejected - {yes} yes, {no} no"
+    lapsed: "⚪️ Passed but not applied: {why}"
+  lapse:
+    cooldown: the policy had changed meanwhile and could not change again yet
+    bounds: the policy's allowed range had changed meanwhile
+    gone: the matter no longer exists
+    changed: things had changed meanwhile
+  needs: "With {held} members seated, {needs} yes votes carry it."
+  closes_at: "Voting closes at {time}"
+  votes: "Members' votes:"
+  vote_yes: "• {player}: yes"
+  vote_no: "• {player}: no"
+  notice:
+    submitted: "📨 The proposal is before the {body} of {place}. The result is announced in the city's groups after the vote."
+    voted: "✅ Your vote is recorded."
+    already_voted: You have already voted on this proposal.
+    closed: The vote on this proposal is over.
+  refused:
+    not_found: No such proposal was found. Open the list of proposals.
+    not_member: Only members of the {body} vote on this proposal.
+    under_way: A proposal on the same matter is already before the {body}. Try again once it is decided.
+  announce:
+    opened: "⚖️ Proposal #{no} in {place}: {subject}. Proposed by {office} {player}; the {body} votes within {window}."
+    passed: "✅ The {body} of {place} passed proposal #{no}: {subject}. {yes} yes, {no_votes} no."
+    failed: "❌ The {body} of {place} rejected proposal #{no}: {subject}. {yes} yes, {no_votes} no."
+    lapsed: "⚪️ Proposal #{no} in {place} passed but was not applied ({subject}): {why}."
+  button:
+    view: "⚖️ Proposal #{no}"
+    for: "✅ Yes"
+    against: "❌ No"
+    list: "⚖️ Proposals and votes"

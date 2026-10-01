@@ -17,8 +17,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // This file holds a faction's organised crimes: one of the organised crimes
@@ -36,8 +36,8 @@ import (
 // operationLine reads an organised crime for a screen.
 func (h *FactionsHandler) operationLine(ctx context.Context, tx application.Tx, snap *content.Snapshot, def content.FactionDef,
 	op application.FactionOperation, now time.Time,
-) (screens.FactionOperationLine, error) {
-	v := screens.FactionOperationLine{No: op.No, Status: op.Status, Place: placeNamed(snap, op.Place), ChanceBPS: op.ChanceBPS}
+) (society.FactionOperationLine, error) {
+	v := society.FactionOperationLine{No: op.No, Status: op.Status, Place: placeNamed(snap, op.Place), ChanceBPS: op.ChanceBPS}
 	if od, _, ok := def.Organised(op.Crime, snap.CrimeTiers()); ok {
 		v.Crime = named(od.Code, od.Name)
 		v.Min, v.Max, v.Nerve = od.Crew.Min, od.Crew.Max, od.Nerve
@@ -58,7 +58,7 @@ func (h *FactionsHandler) operationLine(ctx context.Context, tx application.Tx, 
 		if err != nil {
 			return v, err
 		}
-		v.Crew = append(v.Crew, screens.FactionMemberLine{Player: who, Rank: c.Rank})
+		v.Crew = append(v.Crew, society.FactionMemberLine{Player: who, Rank: c.Rank})
 	}
 	switch {
 	case op.Status == application.HeistGathering:
@@ -95,17 +95,17 @@ func (h *FactionsHandler) openOperation(ctx context.Context, tx application.Tx, 
 
 // CrimeBoard handles faction.crime: the organised crime under way or
 // gathering, and the ones a member whose rank plans may plan.
-func (h *FactionsHandler) CrimeBoard(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *FactionsHandler) CrimeBoard(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.board(ctx, meta, "")
 }
 
-func (h *FactionsHandler) board(ctx context.Context, meta envelope.Metadata, notice string) (*presenter.Response, error) {
+func (h *FactionsHandler) board(ctx context.Context, meta envelope.Metadata, notice string) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.FactionCrimeView
+	var view society.FactionCrimeView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -122,7 +122,7 @@ func (h *FactionsHandler) board(ctx context.Context, meta envelope.Metadata, not
 		}
 		now := h.now()
 		charter := def.Charter()
-		view = screens.FactionCrimeView{Ref: factionRef(*mb.faction), Notice: notice,
+		view = society.FactionCrimeView{Ref: factionRef(*mb.faction), Notice: notice,
 			CanPlan: charter.Can(mb.rank, faction.Plan), CanLaunch: charter.Can(mb.rank, faction.Launch),
 			CanJoin: charter.Can(mb.rank, faction.Join), CutBPS: int(def.CrimeCutBPS)}
 		op, err := tx.Factions().OpenOperation(ctx, mb.faction.ID)
@@ -146,7 +146,7 @@ func (h *FactionsHandler) board(ctx context.Context, meta envelope.Metadata, not
 			return err
 		}
 		for _, od := range def.OrganisedCrimes {
-			line := screens.FactionPlanLine{Crime: named(od.Code, od.Name), Min: od.Crew.Min, Max: od.Crew.Max,
+			line := society.FactionPlanLine{Crime: named(od.Code, od.Name), Min: od.Crew.Min, Max: od.Crew.Max,
 				Nerve: od.Nerve, MinLevel: od.MinLevel, Duration: h.scale.RealWait(durationOf(od.Duration))}
 			for _, v := range od.Venues {
 				line.Places = append(line.Places, placeNamed(snap, v))
@@ -158,7 +158,7 @@ func (h *FactionsHandler) board(ctx context.Context, meta envelope.Metadata, not
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.FactionCrime(h.screen(meta, lang), view), nil
+	return society.FactionCrime(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // heistNeed names the organised crime on a "not here" refusal, whose walk
@@ -204,7 +204,7 @@ func (h *FactionsHandler) standsAt(ctx context.Context, tx application.Tx, snap 
 // Plan handles faction.plan: planning an organised crime where the planner
 // stands, for a member whose rank plans. The planner is its first crew
 // member; the others have until the gathering ends to join.
-func (h *FactionsHandler) Plan(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) Plan(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func (h *FactionsHandler) Plan(ctx context.Context, meta envelope.Metadata, req 
 		}
 		od, cr, ok := def.Organised(req.Crime, snap.CrimeTiers())
 		if !ok {
-			return refuseFaction(screens.FactionRefusedNoSuchCrime)
+			return refuseFaction(society.FactionRefusedNoSuchCrime)
 		}
 		now := h.now()
 		open, err := h.openOperation(ctx, tx, mb.faction.ID, now)
@@ -246,14 +246,14 @@ func (h *FactionsHandler) Plan(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		if open != nil {
-			return refuseFaction(screens.FactionRefusedOperationOpen)
+			return refuseFaction(society.FactionRefusedOperationOpen)
 		}
 		stand, err := loadStanding(ctx, tx, p, now)
 		if err != nil {
 			return err
 		}
 		if stand.stats.Level < od.MinLevel {
-			r := refuseFaction(screens.FactionRefusedLevel)
+			r := refuseFaction(society.FactionRefusedLevel)
 			r.view.Level = od.MinLevel
 			return r
 		}
@@ -264,7 +264,7 @@ func (h *FactionsHandler) Plan(ctx context.Context, meta envelope.Metadata, req 
 		if w.placed() && !cr.CommittableAt(w.here.Code) {
 			target, ok := w.cmap.Find(od.Venues[0])
 			if !ok {
-				return refuseFaction(screens.FactionRefusedNoPlaceHere)
+				return refuseFaction(society.FactionRefusedNoPlaceHere)
 			}
 			return heistNeed(needAt(w, snap, target, "place.need.heist", nil, h.scale, now), od)
 		}
@@ -273,7 +273,7 @@ func (h *FactionsHandler) Plan(ctx context.Context, meta envelope.Metadata, req 
 			Crime: od.Code, CityID: w.city.ID, Place: here, PlannedBy: p.ID,
 			GatherUntil: now.Add(h.scale.RealWait(def.GatherTime())), ContentVersion: snap.Version(), CreatedAt: now})
 		if isSentinel(err, application.ErrOperationOpen) {
-			return refuseFaction(screens.FactionRefusedOperationOpen)
+			return refuseFaction(society.FactionRefusedOperationOpen)
 		}
 		if err != nil {
 			return err
@@ -290,12 +290,12 @@ func (h *FactionsHandler) Plan(ctx context.Context, meta envelope.Metadata, req 
 		return resp, err
 	}
 	_ = replayed
-	return h.board(ctx, meta, screens.FactionNoticePlanned)
+	return h.board(ctx, meta, society.FactionNoticePlanned)
 }
 
 // Join handles faction.join: a member standing at the planned crime's
 // place joins its crew while it gathers.
-func (h *FactionsHandler) Join(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *FactionsHandler) Join(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -328,30 +328,30 @@ func (h *FactionsHandler) Join(ctx context.Context, meta envelope.Metadata) (*pr
 			return err
 		}
 		if op == nil || op.Status != application.HeistGathering {
-			return refuseFaction(screens.FactionRefusedNoOperation)
+			return refuseFaction(society.FactionRefusedNoOperation)
 		}
 		od, _, ok := def.Organised(op.Crime, snap.CrimeTiers())
 		if !ok {
-			return refuseFaction(screens.FactionRefusedNoSuchCrime)
+			return refuseFaction(society.FactionRefusedNoSuchCrime)
 		}
 		crew, err := tx.Factions().Crew(ctx, op.ID)
 		if err != nil {
 			return err
 		}
 		if len(crew) >= od.Crew.Max {
-			return refuseFaction(screens.FactionRefusedCrewFull)
+			return refuseFaction(society.FactionRefusedCrewFull)
 		}
 		w, err := h.standsAt(ctx, tx, snap, p, now)
 		if err != nil {
 			return err
 		}
 		if w.city.ID != op.CityID {
-			return refuseFaction(screens.FactionRefusedElsewhere)
+			return refuseFaction(society.FactionRefusedElsewhere)
 		}
 		if w.placed() && w.here.Code != op.Place {
 			target, ok := w.cmap.Find(op.Place)
 			if !ok {
-				return refuseFaction(screens.FactionRefusedElsewhere)
+				return refuseFaction(society.FactionRefusedElsewhere)
 			}
 			return heistNeed(needAt(w, snap, target, "place.need.heist", nil, h.scale, now), od)
 		}
@@ -367,12 +367,12 @@ func (h *FactionsHandler) Join(ctx context.Context, meta envelope.Metadata) (*pr
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return h.board(ctx, meta, screens.FactionNoticeJoined)
+	return h.board(ctx, meta, society.FactionNoticeJoined)
 }
 
 // CallOff handles faction.calloff: a member whose rank plans calls off a
 // crime still gathering. Nobody has paid anything yet.
-func (h *FactionsHandler) CallOff(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) CallOff(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -404,7 +404,7 @@ func (h *FactionsHandler) CallOff(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		if op == nil || op.Status != application.HeistGathering {
-			return refuseFaction(screens.FactionRefusedNoOperation)
+			return refuseFaction(society.FactionRefusedNoOperation)
 		}
 		op.Status = application.HeistCalledOff
 		return tx.Factions().SaveOperation(ctx, *op)
@@ -412,7 +412,7 @@ func (h *FactionsHandler) CallOff(ctx context.Context, meta envelope.Metadata, r
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return h.board(ctx, meta, screens.FactionNoticeCalledOff)
+	return h.board(ctx, meta, society.FactionNoticeCalledOff)
 }
 
 // Launch handles faction.launch: a member whose rank launches sets the
@@ -421,7 +421,7 @@ func (h *FactionsHandler) CallOff(ctx context.Context, meta envelope.Metadata, r
 // crew left too small does not go. The nerve is paid now; the chance is
 // fixed now from the crew's best skills, its highest heat, the place's
 // security and its size; the end is put on the game clock.
-func (h *FactionsHandler) Launch(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presenter.Response, error) {
+func (h *FactionsHandler) Launch(ctx context.Context, meta envelope.Metadata, req FactionCmd) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -454,11 +454,11 @@ func (h *FactionsHandler) Launch(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		if op == nil || op.Status != application.HeistGathering {
-			return refuseFaction(screens.FactionRefusedNoOperation)
+			return refuseFaction(society.FactionRefusedNoOperation)
 		}
 		od, cr, ok := def.Organised(op.Crime, snap.CrimeTiers())
 		if !ok {
-			return refuseFaction(screens.FactionRefusedNoSuchCrime)
+			return refuseFaction(society.FactionRefusedNoSuchCrime)
 		}
 		crew, err := tx.Factions().Crew(ctx, op.ID)
 		if err != nil {
@@ -485,7 +485,7 @@ func (h *FactionsHandler) Launch(ctx context.Context, meta envelope.Metadata, re
 			}
 		}
 		if len(ready) < od.Crew.Min {
-			r := refuseFaction(screens.FactionRefusedCrewShort)
+			r := refuseFaction(society.FactionRefusedCrewShort)
 			r.view.Need, r.view.Have = od.Crew.Min, len(ready)
 			return r
 		}
@@ -547,7 +547,7 @@ func (h *FactionsHandler) Launch(ctx context.Context, meta envelope.Metadata, re
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return h.board(ctx, meta, screens.FactionNoticeLaunched)
+	return h.board(ctx, meta, society.FactionNoticeLaunched)
 }
 
 // canGo says whether a crew member can go on the job now: still a member of
@@ -617,7 +617,7 @@ func (d *seededDice) Roll(n int64) int64 {
 // SCHEDULER and settles once: the key is derived from the operation and its
 // action, the operation is locked, and only one still running and still
 // ended by this action moves.
-func (h *FactionsHandler) Resolve(ctx context.Context, meta envelope.Metadata, req FactionScheduledRequest) (*presenter.Response, error) {
+func (h *FactionsHandler) Resolve(ctx context.Context, meta envelope.Metadata, req FactionScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}

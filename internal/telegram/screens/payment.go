@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -24,30 +25,7 @@ const (
 )
 
 // PaymentChoice is what a price screen needs to offer the ways to pay.
-type PaymentChoice struct {
-	// Amount is the price, in minor units.
-	Amount int64
-	// Accepted are the methods the service takes, in display order.
-	Accepted []string
-	// Usable are the accepted methods that cover Amount.
-	Usable []string
-	// Cash and Bank are the player's balances. Shown only on a screen
-	// that is not shared.
-	Cash, Bank int64
-}
-
-func (p PaymentChoice) accepts(m string) bool { return hasMethod(p.Accepted, m) }
-
-func (p PaymentChoice) usable(m string) bool { return hasMethod(p.Usable, m) }
-
-func hasMethod(list []string, s string) bool {
-	for _, x := range list {
-		if x == s {
-			return true
-		}
-	}
-	return false
-}
+type PaymentChoice = presentation.PaymentChoice
 
 // paymentButtons adds one row with a button per usable method. addr builds
 // each button's address from the method; the method is its last part, so a
@@ -71,13 +49,13 @@ func (c Context) paymentButtons(kb *keyboards.Builder, p PaymentChoice, addr fun
 func (c Context) paymentNote(p PaymentChoice) string {
 	var lines []string
 	switch {
-	case len(p.Accepted) == 1 && p.accepts(MethodCash):
+	case len(p.Accepted) == 1 && p.Takes(MethodCash):
 		lines = append(lines, c.T("payment.cash_only", nil))
-	case len(p.Accepted) == 1 && p.accepts(MethodCard):
+	case len(p.Accepted) == 1 && p.Takes(MethodCard):
 		lines = append(lines, c.T("payment.card_only", nil))
-	case p.accepts(MethodCash) && p.accepts(MethodCard) && len(p.Usable) == 1 && p.usable(MethodCard):
+	case p.Takes(MethodCash) && p.Takes(MethodCard) && len(p.Usable) == 1 && p.CanPay(MethodCard):
 		lines = append(lines, c.T("payment.only_card", nil))
-	case p.accepts(MethodCash) && p.accepts(MethodCard) && len(p.Usable) == 1 && p.usable(MethodCash):
+	case p.Takes(MethodCash) && p.Takes(MethodCard) && len(p.Usable) == 1 && p.CanPay(MethodCash):
 		lines = append(lines, c.T("payment.only_cash", nil))
 	}
 	if !c.Shared {

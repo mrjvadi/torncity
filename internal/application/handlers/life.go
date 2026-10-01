@@ -19,6 +19,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // LifeHandler serves a character's life (docs/adr/0025-life-and-legacy.md):
@@ -678,9 +680,9 @@ func (h *LifeHandler) Top(ctx context.Context, meta envelope.Metadata, req LifeR
 		board = application.BoardRichest
 	}
 	lang := meta.Language
-	view := screens.BoardView{Board: board, Ranks: map[string]screens.RankRef{}}
+	view := society.BoardView{Board: board, Ranks: map[string]presentation.Named{}}
 	for _, r := range def.Ranks.Ladder {
-		view.Ranks[r.Code] = screens.RankRef{Code: r.Code, Name: r.Name, Emoji: r.Emoji}
+		view.Ranks[r.Code] = presentation.Named{Code: r.Code, Name: r.Name}
 	}
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
@@ -693,7 +695,7 @@ func (h *LifeHandler) Top(ctx context.Context, meta envelope.Metadata, req LifeR
 		}
 		view.At = at
 		for _, l := range lines {
-			bl := screens.BoardLine{Position: l.Position, Code: l.Code, Name: l.Name, Tag: l.Tag, TagName: l.TagName,
+			bl := society.BoardLine{Position: l.Position, Code: l.Code, Name: l.Name, Tag: l.Tag, TagName: l.TagName,
 				Value: l.Value, Extra: l.Extra, Extra2: l.Extra2}
 			switch board {
 			case application.BoardCompanies:

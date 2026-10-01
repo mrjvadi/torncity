@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -562,30 +563,11 @@ func renderLifeRefusal(c Context, v LifeRefusalView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-// BoardLine is one line of a leaderboard.
-type BoardLine struct {
-	Position int
-	Code     string
-	Name     string
-	// Tag is what the line is tagged with: a rank, a city, a career;
-	// TagCode and TagKind say which, for its name.
-	Tag, TagName string
-	City         Named
-	Value        int64
-	Extra        int64
-	Extra2       int64
-	Mine         bool
-}
-
-// BoardView is one leaderboard.
-type BoardView struct {
-	Board string
-	Lines []BoardLine
-	// At is when it was refreshed; zero before the first refresh.
-	At time.Time
-	// Ranks names the ranks the richest board tags players with.
-	Ranks map[string]RankRef
-}
+// BoardLine and BoardView are the leaderboard's view (presentation/society).
+type (
+	BoardLine = society.BoardLine
+	BoardView = society.BoardView
+)
 
 // boardLine is one line of a board in words.
 func (c Context) boardLine(board string, l BoardLine) string {
@@ -627,7 +609,7 @@ func renderLeaderboard(c Context, v BoardView) *presenter.Response {
 	for _, l := range v.Lines {
 		if v.Board == "richest" {
 			if r, ok := v.Ranks[l.Tag]; ok {
-				l.TagName = c.RankName(r)
+				l.TagName = c.RankName(RankRef{Code: r.Code, Name: r.Name})
 			}
 		}
 		lines = append(lines, c.boardLine(v.Board, l))

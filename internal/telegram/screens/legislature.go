@@ -15,92 +15,21 @@ import (
 // votes, a member's vote, and the public lines of a proposal opened and
 // decided. A legislator's vote is public record, unlike a ballot.
 
-// Addresses of the legislature screens.
-const (
-	AddrBills   = "law:list"
-	AddrBill    = "law:view"
-	AddrBillVot = "law:vote"
-)
 
-// BillSubject is what a proposal would do: change a lever to a value or an
-// allocation, or take an action.
-type BillSubject struct {
-	Kind string
-	// Code is the lever's or the action's code.
-	Code string
-	// LeverType formats a lever's values; Value is a scalar's, Allocation an
-	// allocation's shares; Categories their order.
-	LeverType  string
-	Value      int64
-	Allocation map[string]int64
-	Categories []string
-	// Target is the country an action concerns (a declaration of war).
-	Target *GovPlace
-}
 
-// BillVoteLine is one member's vote.
-type BillVoteLine struct {
-	Player GovPlayer
-	Yes    bool
-}
 
-// BillView is one proposal.
-type BillView struct {
-	No      int64
-	Place   GovPlace
-	Subject BillSubject
-	// Office and By are the seat and the member who proposed it.
-	Office string
-	By     GovPlayer
-	// Body votes; Rule, Threshold and Quorum are how; Seats and Held its
-	// seats and those held now; Needs the yes votes that carry it if every
-	// member votes.
-	Body       string
-	Rule       string
-	Threshold  string
-	Quorum     string
-	Seats      int
-	Held       int
-	Needs      int
-	Status     string
-	LapsedWhy  string
-	Yes, Nay   int
-	Votes      []BillVoteLine
-	ClosesAt   time.Time
-	Remaining  time.Duration
-	DecidedAgo time.Duration
-	// CanVote offers the viewer the vote: a member who has not voted.
-	CanVote bool
-	// Notice is what just happened: submitted, voted, already_voted.
-	Notice string
-}
 
-// Notices above a proposal.
-const (
-	BillNoticeSubmitted    = "submitted"
-	BillNoticeVoted        = "voted"
-	BillNoticeAlreadyVoted = "already_voted"
-	BillNoticeClosed       = "closed"
-)
 
-// BillsView is the proposals of the player's places.
-type BillsView struct {
-	Bills []BillView
-}
 
-// Refusals of the legislature screens.
-const (
-	BillRefusedNotFound  = "not_found"
-	BillRefusedNotMember = "not_member"
-	BillRefusedUnderWay  = "under_way"
-)
 
-// BillRefusalView is a refused request.
-type BillRefusalView struct {
-	Kind string
-	No   int64
-	Body string
-}
+
+
+
+
+
+
+
+
 
 // BillSubjectText describes what a proposal would do, in one line.
 func (c Context) BillSubjectText(s BillSubject) string {

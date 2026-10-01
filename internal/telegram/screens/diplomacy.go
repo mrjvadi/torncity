@@ -19,28 +19,9 @@ import (
 // is named diplomacy.measure.<code>, a ground diplomacy.ground.<code>, a kind
 // of treaty diplomacy.treaty.<code>.
 
-// Callback addresses of the diplomacy screens.
-const (
-	AddrSanctions = "diplomacy:sanctions"
-	AddrImpose    = "diplomacy:impose"
-	AddrLift      = "diplomacy:lift"
-	AddrTreaties  = "diplomacy:treaties"
-	AddrPropose   = "diplomacy:propose"
-	AddrAnswer    = "diplomacy:answer"
-	AddrEndTreaty = "diplomacy:end"
-	AddrDipHist   = "diplomacy:history"
-)
 
-// Arguments diplomacy buttons carry.
-const (
-	// DiplomacyConfirm confirms a decision.
-	DiplomacyConfirm = "yes"
-	// ChooseGround moves the impose flow from its measures to its ground.
-	ChooseGround = "-"
-	// AnswerAccept and AnswerDecline answer a proposal.
-	AnswerAccept  = "accept"
-	AnswerDecline = "decline"
-)
+
+
 
 // MeasureName names a sanction measure.
 func (c Context) MeasureName(code string) string { return c.named("diplomacy.measure."+code, code) }
@@ -63,35 +44,14 @@ func (c Context) measureList(ms []string) string {
 	return out
 }
 
-// SanctionLine is one sanction on a board.
-type SanctionLine struct {
-	No       int64
-	Imposer  GovPlace
-	Target   GovPlace
-	Measures []string
-	Ground   string
-	By       *GovPlayer
-	Office   string
-	// Since is how long it has stood; InForceIn how long until it binds,
-	// zero once it does.
-	Since     time.Duration
-	InForceIn time.Duration
-	// Liftable is set on the viewer's own when they may lift it now;
-	// LiftableIn how long until they may.
-	Liftable   bool
-	LiftableIn time.Duration
-}
 
-// SanctionsView is a country's sanctions board.
-type SanctionsView struct {
-	Country GovPlace
-	// Imposed are the country's sanctions on others; Suffered others' on
-	// it.
-	Imposed  []SanctionLine
-	Suffered []SanctionLine
-	// CanImpose is the viewer who decides the country's sanctions.
-	CanImpose bool
-	Notice    string
+
+
+
+// diplomacyNotice words what a board says just happened.
+func (c Context) diplomacyNotice(n DiplomacyNotice) string {
+	return c.T("diplomacy."+n.Kind, map[string]any{"target": c.PlaceName(n.Place), "partner": c.PlaceName(n.Place),
+		"in": FormatSpan(c, n.In), "kind": c.TreatyName(n.Treaty)})
 }
 
 func sanctionLines(c Context, s SanctionLine, imposed bool) []string {
@@ -121,8 +81,8 @@ func Sanctions(c Context, v SanctionsView) *presenter.Response {
 
 func renderSanctions(c Context, v SanctionsView) *presenter.Response {
 	blocks := []string{}
-	if v.Notice != "" {
-		blocks = append(blocks, v.Notice)
+	if v.Notice != nil {
+		blocks = append(blocks, c.diplomacyNotice(*v.Notice))
 	}
 	blocks = append(blocks, c.T("diplomacy.sanctions.title", map[string]any{"country": c.PlaceName(v.Country)}))
 	kb := keyboards.New()
@@ -160,34 +120,9 @@ func renderSanctions(c Context, v SanctionsView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-// MeasureToggle is one measure of the impose flow and whether it is chosen.
-type MeasureToggle struct {
-	Code string
-	On   bool
-	// Mask is the mask pressing it leads to.
-	Mask int
-}
 
-// ImposeView is the impose flow: choose the target, then the measures, then
-// the ground, then confirm.
-type ImposeView struct {
-	Country GovPlace
-	// Targets are the countries to choose from, before one is chosen.
-	Targets []GovPlace
-	Target  *GovPlace
-	Mask    int
-	// Measures are the toggles, while choosing them.
-	Measures []MeasureToggle
-	// Chosen are the measures chosen, for the ground and confirm steps.
-	Chosen []string
-	// Grounds are offered once the measures are chosen; Ground is the one
-	// chosen.
-	Grounds []string
-	Ground  string
-	// Notice is how long the sanction waits before it binds, and the least
-	// it stands.
-	Notice, MinDuration time.Duration
-}
+
+
 
 // Impose renders the impose flow.
 func Impose(c Context, v ImposeView) *presenter.Response {
@@ -248,11 +183,7 @@ func renderImpose(c Context, v ImposeView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-// LiftView asks the holder to confirm lifting a sanction.
-type LiftView struct {
-	Country  GovPlace
-	Sanction SanctionLine
-}
+
 
 // Lift renders the confirmation of lifting a sanction.
 func Lift(c Context, v LiftView) *presenter.Response {
@@ -268,29 +199,9 @@ func renderLift(c Context, v LiftView) *presenter.Response {
 		"measures": c.measureList(s.Measures)}), kb.Build())
 }
 
-// TreatyLine is one treaty on a board.
-type TreatyLine struct {
-	No    int64
-	Kind  Named
-	Other GovPlace
-	// Status is the treaty's status at now (a proposal past its expiry is
-	// expired); Incoming is a proposal made to the viewer's country.
-	Status   string
-	Incoming bool
-	// ExpiresIn is how long a proposal has left; Since how long ago the
-	// treaty reached its status.
-	ExpiresIn time.Duration
-	Since     time.Duration
-}
 
-// TreatiesView is a country's treaties board.
-type TreatiesView struct {
-	Country  GovPlace
-	Treaties []TreatyLine
-	// CanAct is the viewer who concludes the country's treaties.
-	CanAct bool
-	Notice string
-}
+
+
 
 // Treaties renders a country's treaties board.
 func Treaties(c Context, v TreatiesView) *presenter.Response {
@@ -299,8 +210,8 @@ func Treaties(c Context, v TreatiesView) *presenter.Response {
 
 func renderTreaties(c Context, v TreatiesView) *presenter.Response {
 	blocks := []string{}
-	if v.Notice != "" {
-		blocks = append(blocks, v.Notice)
+	if v.Notice != nil {
+		blocks = append(blocks, c.diplomacyNotice(*v.Notice))
 	}
 	blocks = append(blocks, c.T("diplomacy.treaties.title", map[string]any{"country": c.PlaceName(v.Country)}))
 	kb := keyboards.New()
@@ -347,17 +258,7 @@ func renderTreaties(c Context, v TreatiesView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-// ProposeView is the propose flow: choose the partner, then the kind, then
-// confirm.
-type ProposeView struct {
-	Country  GovPlace
-	Partners []GovPlace
-	Partner  *GovPlace
-	Kinds    []Named
-	Kind     *Named
-	// TTL is how long the partner has to answer.
-	TTL time.Duration
-}
+
 
 // Propose renders the propose flow.
 func Propose(c Context, v ProposeView) *presenter.Response {
@@ -393,12 +294,7 @@ func renderPropose(c Context, v ProposeView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-// EndTreatyView asks the holder to confirm withdrawing a proposal or ending
-// a treaty.
-type EndTreatyView struct {
-	Country GovPlace
-	Treaty  TreatyLine
-}
+
 
 // EndTreaty renders the confirmation of withdrawing or ending a treaty.
 func EndTreaty(c Context, v EndTreatyView) *presenter.Response {
@@ -418,28 +314,9 @@ func renderEndTreaty(c Context, v EndTreatyView) *presenter.Response {
 		kb.Build())
 }
 
-// DiplomacyEntry is one line of the public record.
-type DiplomacyEntry struct {
-	// Kind is the event (application.Event*).
-	Kind     string
-	Country  GovPlace
-	Other    GovPlace
-	Measures []string
-	Ground   string
-	Treaty   Named
-	No       int64
-	By       *GovPlayer
-	Office   string
-	Ago      time.Duration
-}
 
-// DiplomacyHistoryView is one page of the public record.
-type DiplomacyHistoryView struct {
-	Country GovPlace
-	Entries []DiplomacyEntry
-	Page    int
-	Pages   int
-}
+
+
 
 // DiplomacyHistory renders the public record.
 func DiplomacyHistory(c Context, v DiplomacyHistoryView) *presenter.Response {
@@ -467,27 +344,9 @@ func renderDiplomacyHistory(c Context, v DiplomacyHistoryView) *presenter.Respon
 	return c.respond(body(lines...), kb.Build())
 }
 
-// Diplomacy refusals.
-const (
-	DiplomacyRefusedNotFound  = "not_found"
-	DiplomacyRefusedNotHolder = "not_holder"
-	DiplomacyRefusedSelf      = "self"
-	DiplomacyRefusedStanding  = "standing"
-	DiplomacyRefusedTooSoon   = "too_soon"
-	DiplomacyRefusedOpen      = "open"
-	DiplomacyRefusedState     = "state"
-	DiplomacyRefusedNoCountry = "no_country"
-)
 
-// DiplomacyRefusalView is a refused diplomacy command.
-type DiplomacyRefusalView struct {
-	Kind    string
-	Country GovPlace
-	Office  string
-	// In is how long until it becomes possible (too_soon).
-	In   time.Duration
-	Back []string
-}
+
+
 
 // DiplomacyRefusal renders a refused diplomacy command.
 func DiplomacyRefusal(c Context, v DiplomacyRefusalView) *presenter.Response {
@@ -500,21 +359,15 @@ func renderDiplomacyRefusal(c Context, v DiplomacyRefusalView) *presenter.Respon
 	if v.Country.Code != "" {
 		back = keyboards.Data(AddrSanctions, v.Country.Code)
 	}
-	if len(v.Back) > 0 {
-		back = keyboards.Data(v.Back...)
+	if v.Back.Command != "" {
+		back = v.Back.Address()
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(c.T("diplomacy.refused."+v.Kind, map[string]any{"country": c.PlaceName(v.Country),
 		"office": c.OfficeName(v.Office), "in": FormatSpan(c, v.In)}), kb.Build())
 }
 
-// SanctionBlockedView is a cross-border action a sanction blocked.
-type SanctionBlockedView struct {
-	Measure string
-	Imposer GovPlace
-	Target  GovPlace
-	Back    []string
-}
+
 
 // SanctionBlocked renders the refusal every blocked cross-border action
 // answers with: which measure of whose sanction on whom.
@@ -527,8 +380,8 @@ func renderSanctionBlocked(c Context, v SanctionBlockedView) *presenter.Response
 	sanctions, _ := keyboards.Button(c.T("diplomacy.button.sanctions", nil), AddrSanctions, v.Imposer.Code)
 	kb.Row(sanctions)
 	back := AddrHome
-	if len(v.Back) > 0 {
-		back = keyboards.Data(v.Back...)
+	if v.Back.Command != "" {
+		back = v.Back.Address()
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(c.T("diplomacy.blocked."+v.Measure, map[string]any{"imposer": c.PlaceName(v.Imposer),

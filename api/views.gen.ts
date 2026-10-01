@@ -4,10 +4,126 @@
 // Every field is always present. A nil pointer, slice or map, and a zero time, are null.
 // A duration is whole seconds, rounded up, under the field's name with `_seconds` appended.
 
+export interface AllocationConfirmView {
+  place: GovPlace
+  lever: GovLever
+  draft: string
+  new: Record<string, number> | null
+  vote_by: string
+}
+
+export interface AllocationEditView {
+  place: GovPlace
+  lever: GovLever
+  draft: string
+  lines: AllocationLine[] | null
+  total: number
+  spend_share_bps: number
+  next_change_in_seconds: number
+  changed: boolean
+}
+
+export interface AllocationLine {
+  code: string
+  share: number
+  down: string
+  up: string
+}
+
+export interface AppointDoneView {
+  office: string
+  place: GovPlace
+  player: GovPlayer
+  dismissed: boolean
+  term_ends_in_seconds: number
+}
+
+export interface AppointRefusalView {
+  kind: string
+  gov: GovRefusal | null
+  office: string
+}
+
+export interface AppointView {
+  office: string
+  place: GovPlace
+  player: GovPlayer
+}
+
 export interface BatchLotFailure {
   x: number
   y: number
   kind: string
+}
+
+export interface BillRefusalView {
+  kind: string
+  no: number
+  body: string
+}
+
+export interface BillSubject {
+  kind: string
+  code: string
+  lever_type: string
+  value: number
+  allocation: Record<string, number> | null
+  categories: string[] | null
+  target: GovPlace | null
+}
+
+export interface BillView {
+  no: number
+  place: GovPlace
+  subject: BillSubject
+  office: string
+  by: GovPlayer
+  body: string
+  rule: string
+  threshold: string
+  quorum: string
+  seats: number
+  held: number
+  needs: number
+  status: string
+  lapsed_why: string
+  yes: number
+  nay: number
+  votes: BillVoteLine[] | null
+  closes_at: string | null
+  remaining_seconds: number
+  decided_ago_seconds: number
+  can_vote: boolean
+  notice: string
+}
+
+export interface BillVoteLine {
+  player: GovPlayer
+  yes: boolean
+}
+
+export interface BillsView {
+  bills: BillView[] | null
+}
+
+export interface BoardLine {
+  position: number
+  code: string
+  name: string
+  tag: string
+  tag_name: string
+  city: Named
+  value: number
+  extra: number
+  extra2: number
+  mine: boolean
+}
+
+export interface BoardView {
+  board: string
+  lines: BoardLine[] | null
+  at: string | null
+  ranks: Record<string, Named> | null
 }
 
 export interface BuildLine {
@@ -89,6 +205,22 @@ export interface BuildingView {
   upgrades: BuildingUpgradeLine[] | null
 }
 
+export interface CandidateLine {
+  player: GovPlayer
+  mine: boolean
+  votes: number
+  counted: boolean
+  elected: boolean
+}
+
+export interface CityGovView {
+  city: GovPlace
+  sections: GovSection[] | null
+  holds_office: boolean
+  no_city: boolean
+  tier: string
+}
+
 export interface ConstructionLine {
   id: string
   building: Named
@@ -110,6 +242,48 @@ export interface ConstructionProgressView {
   standing: StandingLine[] | null
 }
 
+export interface DiplomacyEntry {
+  kind: string
+  country: GovPlace
+  other: GovPlace
+  measures: string[] | null
+  ground: string
+  treaty: Named
+  no: number
+  by: GovPlayer | null
+  office: string
+  ago_seconds: number
+}
+
+export interface DiplomacyHistoryView {
+  country: GovPlace
+  entries: DiplomacyEntry[] | null
+  page: number
+  pages: number
+}
+
+export interface DiplomacyNotice {
+  kind: string
+  place: GovPlace
+  treaty: Named
+  in_seconds: number
+}
+
+export interface DiplomacyRefusalView {
+  kind: string
+  country: GovPlace
+  office: string
+  in_seconds: number
+  back: Ref
+}
+
+export interface DismissView {
+  office: string
+  place: GovPlace
+  seat: number
+  holder: GovPlayer
+}
+
 export interface DonateView {
   village: string
   amount: number
@@ -121,7 +295,361 @@ export interface DonateView {
   settlement_id: string
 }
 
+export interface ElectionLine {
+  no: number
+  office: string
+  place: GovPlace
+  phase: string
+  seats: number
+  ends_at: string | null
+  remaining_seconds: number
+  candidates: number
+  elected: GovPlayer[] | null
+}
+
+export interface ElectionRefusalView {
+  kind: string
+  no: number
+  office: string
+  place: GovPlace
+}
+
+export interface ElectionView {
+  no: number
+  office: string
+  place: GovPlace
+  seats: number
+  phase: string
+  remaining_seconds: number
+  candidacy_ends_at: string | null
+  voting_ends_at: string | null
+  votes_cast: number
+  candidates: CandidateLine[] | null
+  deposit: number
+  refund_share_bps: number
+  min_level: number
+  standing: boolean
+  voted: boolean
+  can_stand: boolean
+  can_vote: boolean
+  stand_blocked: string
+  vote_blocked: string
+  payment: PaymentChoice | null
+  nonce: string
+}
+
+export interface ElectionsView {
+  no_city: boolean
+  place: GovPlace
+  elections: ElectionLine[] | null
+}
+
 export interface EmptyView {
+}
+
+export interface EndTreatyView {
+  country: GovPlace
+  treaty: TreatyLine
+}
+
+export interface FactionAnsweredView {
+  ref: FactionRef
+  kind: string
+  accepted: boolean
+  player: GovPlayer
+}
+
+export interface FactionAppliedView {
+  ref: FactionRef
+}
+
+export interface FactionBankView {
+  ref: FactionRef
+  balance: number
+  can_deposit: boolean
+  can_withdraw: boolean
+  cash: number
+  bank_balance: number
+  min: number
+  max: number
+  methods: string[] | null
+  done: FactionMoneyDone | null
+}
+
+export interface FactionConfirmView {
+  kind: string
+  ref: FactionRef
+  player: GovPlayer
+}
+
+export interface FactionCrimeView {
+  ref: FactionRef
+  notice: string
+  can_plan: boolean
+  can_launch: boolean
+  can_join: boolean
+  cut_bps: number
+  operation: FactionOperationLine | null
+  in_crew: boolean
+  crimes: FactionPlanLine[] | null
+}
+
+export interface FactionFoundView {
+  city_code: string
+  city: string
+  fee: number
+  payment: PaymentChoice
+  name_min: number
+  name_max: number
+}
+
+export interface FactionFoundedView {
+  ref: FactionRef
+  city_code: string
+  city: string
+  fee: number
+  method: string
+}
+
+export interface FactionHomeView {
+  ref: FactionRef
+  rank: string
+  linked: boolean
+  rights: string[] | null
+  city_code: string
+  city: string
+  members: number
+  max_members: number
+  bank: number
+  applications: number
+  operation: FactionOperationLine | null
+}
+
+export interface FactionInvitedView {
+  player: GovPlayer
+}
+
+export interface FactionLeftView {
+  ref: FactionRef
+  disbanded: boolean
+  paid_out: number
+}
+
+export interface FactionLine {
+  ref: FactionRef
+  members: number
+}
+
+export interface FactionLinkedView {
+  ref: FactionRef
+}
+
+export interface FactionListView {
+  city_code: string
+  city: string
+  fee: number
+  factions: FactionLine[] | null
+  mine: FactionRef | null
+}
+
+export interface FactionMemberLine {
+  player: GovPlayer
+  rank: string
+  self: boolean
+  can_kick: boolean
+  can_promote: boolean
+  can_demote: boolean
+  can_lead: boolean
+}
+
+export interface FactionMembersView {
+  ref: FactionRef
+  max: number
+  can_invite: boolean
+  members: FactionMemberLine[] | null
+  requests: FactionRequestLine[] | null
+}
+
+export interface FactionMoneyDone {
+  deposit: boolean
+  amount: number
+  method: string
+}
+
+export interface FactionOperationLine {
+  no: number
+  status: string
+  crime: Named
+  place: Named
+  city_code: string
+  city: string
+  chance_bps: number
+  min: number
+  max: number
+  nerve: number
+  crew: FactionMemberLine[] | null
+  left_seconds: number
+  at: string | null
+  expired: boolean
+}
+
+export interface FactionPageView {
+  ref: FactionRef
+  city_code: string
+  city: string
+  linked: boolean
+  members: FactionMemberLine[] | null
+  mine: boolean
+  can_apply: boolean
+  can_link: boolean
+}
+
+export interface FactionPlanLine {
+  crime: Named
+  min: number
+  max: number
+  nerve: number
+  min_level: number
+  duration_seconds: number
+  places: Named[] | null
+}
+
+export interface FactionRef {
+  code: string
+  name: string
+}
+
+export interface FactionRefusalView {
+  kind: string
+  min: number
+  max: number
+  amount: number
+  balance: number
+  need: number
+  have: number
+  level: number
+}
+
+export interface FactionRequestLine {
+  no: number
+  kind: string
+  player: GovPlayer
+  can_decide: boolean
+}
+
+export interface FriendAcceptedView {
+  name: string
+}
+
+export interface FriendLine {
+  id: string
+  name: string
+  status: string
+  incoming: boolean
+}
+
+export interface FriendRequestedView {
+  name: string
+}
+
+export interface FriendsView {
+  friends: FriendLine[] | null
+  page: number
+  pages: number
+}
+
+export interface GovAppointee {
+  office: string
+  place: GovPlace
+  seat: number
+  holder: GovPlayer | null
+  can_appoint: boolean
+  can_dismiss: boolean
+}
+
+export interface GovHistoryEntry {
+  place: GovPlace
+  lever: string
+  type: string
+  office: string
+  by: GovPlayer | null
+  old: number
+  new: number
+  ago_seconds: number
+  effective_in_seconds: number
+}
+
+export interface GovHistoryView {
+  city: GovPlace
+  entries: GovHistoryEntry[] | null
+  page: number
+  pages: number
+}
+
+export interface GovLever {
+  code: string
+  type: string
+  value: number
+  default: number
+  min: number
+  max: number
+  from_office: boolean
+  set_by: GovPlayer | null
+  pending: GovPending | null
+  held_by: string
+  notice_seconds: number
+  cooldown_seconds: number
+  vote: boolean
+  confirm_by: string
+  allocation: Record<string, number> | null
+  categories: string[] | null
+}
+
+export interface GovOffice {
+  code: string
+  seats: number
+  holders: GovPlayer[] | null
+  acting_code: string
+  acting: GovPlayer[] | null
+}
+
+export interface GovPending {
+  value: number
+  allocation: Record<string, number> | null
+  in_seconds: number
+  by: GovPlayer | null
+}
+
+export interface GovPlace {
+  kind: string
+  code: string
+  name: string
+}
+
+export interface GovPlayer {
+  name: string
+  code: string
+}
+
+export interface GovRefusal {
+  kind: string
+  office: string
+  wait_seconds: number
+}
+
+export interface GovSeat {
+  office: string
+  place: GovPlace
+  acting_for: string
+  levers: GovLever[] | null
+  vote_levers: GovLever[] | null
+  appointees: GovAppointee[] | null
+}
+
+export interface GovSection {
+  place: GovPlace
+  offices: GovOffice[] | null
+  levers: GovLever[] | null
 }
 
 export interface GridGrowView {
@@ -132,6 +660,19 @@ export interface GridGrowView {
   buildable_gained: number
   price: number
   treasury: number
+}
+
+export interface ImposeView {
+  country: GovPlace
+  targets: GovPlace[] | null
+  target: GovPlace | null
+  mask: number
+  measures: MeasureToggle[] | null
+  chosen: string[] | null
+  grounds: string[] | null
+  ground: string
+  notice_seconds: number
+  min_duration_seconds: number
 }
 
 export interface KnowledgeLine {
@@ -281,6 +822,20 @@ export interface LandView {
   free_lots: number
 }
 
+export interface LeverEditView {
+  place: GovPlace
+  lever: GovLever
+  draft: number
+  fine_step: number
+  coarse_step: number
+  next_change_in_seconds: number
+}
+
+export interface LiftView {
+  country: GovPlace
+  sanction: SanctionLine
+}
+
 export interface LotBatchConfirmView {
   settlement_name: string
   building: Named
@@ -383,6 +938,12 @@ export interface MaterialsView {
   bought: MaterialBought | null
 }
 
+export interface MeasureToggle {
+  code: string
+  on: boolean
+  mask: number
+}
+
 export interface MineLot {
   x: number
   y: number
@@ -408,9 +969,44 @@ export interface MineView {
   notice: string
 }
 
+export interface MyOfficeView {
+  seats: GovSeat[] | null
+}
+
 export interface Named {
   code: string
   name: string
+}
+
+export interface PaymentChoice {
+  amount: number
+  accepted: string[] | null
+  usable: string[] | null
+  cash: number
+  bank: number
+}
+
+export interface PolicyAnnouncedView {
+  place: GovPlace
+  lever: GovLever
+  old: number
+  new: number
+  old_allocation: Record<string, number> | null
+  new_allocation: Record<string, number> | null
+  in_seconds: number
+}
+
+export interface PolicyConfirmView {
+  place: GovPlace
+  lever: GovLever
+  new_value: number
+  vote_by: string
+}
+
+export interface PolicyRefusalView {
+  refusal: GovRefusal
+  place: GovPlace | null
+  lever: GovLever | null
 }
 
 export interface PrivateConfirmView {
@@ -487,6 +1083,15 @@ export interface PromotionView {
   settlement_id: string
 }
 
+export interface ProposeView {
+  country: GovPlace
+  partners: GovPlace[] | null
+  partner: GovPlace | null
+  kinds: Named[] | null
+  kind: Named | null
+  ttl_seconds: number
+}
+
 export interface Ref {
   command: string
   args: string[] | null
@@ -502,6 +1107,49 @@ export interface ResidenceView {
   settlement_id: string
 }
 
+export interface SanctionBlockedView {
+  measure: string
+  imposer: GovPlace
+  target: GovPlace
+  back: Ref
+}
+
+export interface SanctionLine {
+  no: number
+  imposer: GovPlace
+  target: GovPlace
+  measures: string[] | null
+  ground: string
+  by: GovPlayer | null
+  office: string
+  since_seconds: number
+  in_force_in_seconds: number
+  liftable: boolean
+  liftable_in_seconds: number
+}
+
+export interface SanctionsView {
+  country: GovPlace
+  imposed: SanctionLine[] | null
+  suffered: SanctionLine[] | null
+  can_impose: boolean
+  notice: DiplomacyNotice | null
+}
+
+export interface SearchResult {
+  id: string
+  name: string
+  code: string
+  self: boolean
+}
+
+export interface SearchView {
+  help: boolean
+  by: string
+  query: string
+  found: SearchResult | null
+}
+
 export interface SettlementWhoView {
   name: string
   online: WhoLine[] | null
@@ -513,6 +1161,16 @@ export interface StandingLine {
   building: Named
   lot_x: number
   lot_y: number
+}
+
+export interface StoodView {
+  no: number
+  office: string
+  place: GovPlace
+  deposit: number
+  method: string
+  voting_at: string | null
+  voting_in_seconds: number
 }
 
 export interface TermsView {
@@ -531,6 +1189,23 @@ export interface TermsView {
   default_lot_price: number
   default_permit: number
   default_tax_bps: number
+}
+
+export interface TreatiesView {
+  country: GovPlace
+  treaties: TreatyLine[] | null
+  can_act: boolean
+  notice: DiplomacyNotice | null
+}
+
+export interface TreatyLine {
+  no: number
+  kind: Named
+  other: GovPlace
+  status: string
+  incoming: boolean
+  expires_in_seconds: number
+  since_seconds: number
 }
 
 export interface VillageMaker {
@@ -591,6 +1266,15 @@ export interface VillageSupport {
   name: string
 }
 
+export interface VotedView {
+  no: number
+  office: string
+  place: GovPlace
+  candidate: GovPlayer
+  count_at: string | null
+  count_in_seconds: number
+}
+
 export interface WhoLine {
   name: string
   activity: string
@@ -630,9 +1314,56 @@ export interface WorkplaceLine {
 
 /** The screens of the migrated areas: the screen name on the wire, and its view. */
 export interface ScreenViews {
+  allocation_confirm: AllocationConfirmView
+  allocation_edit: AllocationEditView
+  appoint_confirm: AppointView
+  appoint_done: AppointDoneView
+  appoint_refusal: AppointRefusalView
+  bill: BillView
+  bill_refusal: BillRefusalView
+  bills: BillsView
+  city_governance: CityGovView
+  diplomacy_history: DiplomacyHistoryView
+  diplomacy_refusal: DiplomacyRefusalView
+  dismiss_confirm: DismissView
+  election: ElectionView
+  election_refusal: ElectionRefusalView
+  elections: ElectionsView
+  end_treaty: EndTreatyView
+  faction_answered: FactionAnsweredView
+  faction_applied: FactionAppliedView
+  faction_bank: FactionBankView
+  faction_confirm: FactionConfirmView
+  faction_crime: FactionCrimeView
+  faction_found: FactionFoundView
+  faction_founded: FactionFoundedView
+  faction_home: FactionHomeView
+  faction_invited: FactionInvitedView
+  faction_left: FactionLeftView
+  faction_linked: FactionLinkedView
+  faction_list: FactionListView
+  faction_members: FactionMembersView
+  faction_page: FactionPageView
+  faction_refusal: FactionRefusalView
+  friend_accepted: FriendAcceptedView
+  friend_requested: FriendRequestedView
+  friends: FriendsView
+  gov_history: GovHistoryView
+  impose: ImposeView
   labor_board: LaborBoardView
   labor_mine: LaborMineView
   labor_site: LaborSiteView
+  leaderboard: BoardView
+  lever_edit: LeverEditView
+  lift: LiftView
+  my_office: MyOfficeView
+  policy_announced: PolicyAnnouncedView
+  policy_confirm: PolicyConfirmView
+  policy_refused: PolicyRefusalView
+  propose: ProposeView
+  sanction_blocked: SanctionBlockedView
+  sanctions: SanctionsView
+  search: SearchView
   settlement_build_batch_confirm: LotBatchConfirmView
   settlement_build_confirm: LotConfirmView
   settlement_build_lots: LotGridView
@@ -650,6 +1381,8 @@ export interface ScreenViews {
   settlement_private_menu: PrivateMenuView
   settlement_terms: TermsView
   settlement_who: SettlementWhoView
+  stood: StoodView
+  treaties: TreatiesView
   village_donate_confirm: DonateView
   village_donate_done: DonateView
   village_donate_menu: DonateView
@@ -666,7 +1399,8 @@ export interface ScreenViews {
   village_residence_done: ResidenceView
   village_work: WorkView
   village_work_started: WorkView
+  voted: VotedView
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */
-export const REFUSAL_SCREENS = ['village_refusal'] as const
+export const REFUSAL_SCREENS = ['appoint_refusal', 'bill_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'policy_refused', 'sanction_blocked', 'village_refusal'] as const

@@ -261,13 +261,17 @@ func TestEveryGovernanceRefusalHasItsOwnSentence(t *testing.T) {
 	}
 	for want, err := range refusals {
 		c := ctx(t, "en", 0)
-		key, _, ok := governanceRefusal(c, err, &lever, now)
+		key, _, ok := governanceRefusalOfError(c, err)
+		if gv := refusalOf(err, now); gv.Kind != "" {
+			key, _ = governanceRefusal(c, gv, &lever)
+			ok = true
+		}
 		if !ok || key != want {
 			t.Errorf("%v: key %q, want %q", err, key, want)
 		}
 		for _, lang := range []string{"fa", "en"} {
 			c := ctx(t, lang, 0)
-			resp := PolicyRefused(c, PolicyRefusalView{Err: err, Place: &govSamplePlace, Lever: &lever, Now: now})
+			resp := PolicyRefused(c, PolicyRefusalView{Refusal: refusalOf(err, now), Place: &govSamplePlace, Lever: &lever})
 			assertRendered(t, resp)
 			if resp.Text != c.T(key, govArgsOf(c, err, &lever, now)) {
 				t.Errorf("%s/%s rendered %q", want, lang, resp.Text)
@@ -279,13 +283,13 @@ func TestEveryGovernanceRefusalHasItsOwnSentence(t *testing.T) {
 			}
 		}
 	}
-	if IsGovernanceRefusal(application.ErrCityNotFound) {
+	if _, ok := application.ClassifyGovernanceRefusal(application.ErrCityNotFound); ok {
 		t.Error("a non-governance sentinel is taken for a governance refusal")
 	}
 }
 
 func govArgsOf(c Context, err error, lever *GovLever, now time.Time) map[string]any {
-	_, args, _ := governanceRefusal(c, err, lever, now)
+	_, args := governanceRefusal(c, refusalOf(err, now), lever)
 	return args
 }
 
@@ -312,4 +316,22 @@ func TestLeverValuesAreFormattedInTheirUnit(t *testing.T) {
 	if got, want := FormatSpan(c, 24*time.Hour), FormatDuration(c, 24*time.Hour); got != want {
 		t.Errorf("24h = %q, want %q", got, want)
 	}
+}
+
+// refusalOf is what a handler hands the screen for a governance sentinel.
+func refusalOf(err error, now time.Time) GovRefusal {
+	r, ok := application.ClassifyGovernanceRefusal(err)
+	if !ok {
+		return GovRefusal{}
+	}
+	return GovRefusal{Kind: r.Kind, Office: r.Office, Wait: r.Wait(now)}
+}
+
+// rankNames is the leaderboard view's rank names, from the ranks a fixture holds.
+func rankNames(m map[string]RankRef) map[string]Named {
+	out := make(map[string]Named, len(m))
+	for k, r := range m {
+		out[k] = Named{Code: r.Code, Name: r.Name}
+	}
+	return out
 }

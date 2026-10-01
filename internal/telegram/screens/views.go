@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -32,10 +33,10 @@ const (
 	ScreenAchievementNotice = "achievement_notice"
 
 	// Player-held offices: appointing and dismissing (appointments.go).
-	ScreenAppointConfirm = "appoint_confirm"
-	ScreenDismissConfirm = "dismiss_confirm"
-	ScreenAppointDone    = "appoint_done"
-	ScreenAppointRefusal = "appoint_refusal"
+	ScreenAppointConfirm = society.ScreenAppointConfirm
+	ScreenDismissConfirm = society.ScreenDismissConfirm
+	ScreenAppointDone    = society.ScreenAppointDone
+	ScreenAppointRefusal = society.ScreenAppointRefusal
 	ScreenOfficeNotice   = "office_notice"
 
 	// Group founding (settlements.go).
@@ -85,15 +86,15 @@ const (
 	ScreenDevices    = "devices"
 
 	// Diplomacy: sanctions and treaties (diplomacy.go).
-	ScreenSanctions            = "sanctions"
-	ScreenImpose               = "impose"
-	ScreenLift                 = "lift"
-	ScreenTreaties             = "treaties"
-	ScreenPropose              = "propose"
-	ScreenEndTreaty            = "end_treaty"
-	ScreenDiplomacyHistory     = "diplomacy_history"
-	ScreenDiplomacyRefusal     = "diplomacy_refusal"
-	ScreenSanctionBlocked      = "sanction_blocked"
+	ScreenSanctions            = society.ScreenSanctions
+	ScreenImpose               = society.ScreenImpose
+	ScreenLift                 = society.ScreenLift
+	ScreenTreaties             = society.ScreenTreaties
+	ScreenPropose              = society.ScreenPropose
+	ScreenEndTreaty            = society.ScreenEndTreaty
+	ScreenDiplomacyHistory     = society.ScreenDiplomacyHistory
+	ScreenDiplomacyRefusal     = society.ScreenDiplomacyRefusal
+	ScreenSanctionBlocked      = society.ScreenSanctionBlocked
 	ScreenTreatyProposedNotice = "treaty_proposed_notice"
 
 	// Education (education.go).
@@ -103,27 +104,27 @@ const (
 	ScreenCourseCompleted = "course_completed"
 
 	// Elections (elections.go).
-	ScreenElections            = "elections"
-	ScreenElection             = "election"
-	ScreenStood                = "stood"
-	ScreenVoted                = "voted"
-	ScreenElectionRefusal      = "election_refusal"
+	ScreenElections            = society.ScreenElections
+	ScreenElection             = society.ScreenElection
+	ScreenStood                = society.ScreenStood
+	ScreenVoted                = society.ScreenVoted
+	ScreenElectionRefusal      = society.ScreenElectionRefusal
 	ScreenElectionResultNotice = "election_result_notice"
 
 	// Factions (factions.go).
-	ScreenFactionList          = "faction_list"
-	ScreenFactionPage          = "faction_page"
-	ScreenFactionFound         = "faction_found"
-	ScreenFactionFounded       = "faction_founded"
-	ScreenFactionHome          = "faction_home"
-	ScreenFactionMembers       = "faction_members"
-	ScreenFactionAnswered      = "faction_answered"
-	ScreenFactionConfirm       = "faction_confirm"
-	ScreenFactionLeft          = "faction_left"
-	ScreenFactionLinked        = "faction_linked"
-	ScreenFactionBank          = "faction_bank"
-	ScreenFactionCrime         = "faction_crime"
-	ScreenFactionRefusal       = "faction_refusal"
+	ScreenFactionList          = society.ScreenFactionList
+	ScreenFactionPage          = society.ScreenFactionPage
+	ScreenFactionFound         = society.ScreenFactionFound
+	ScreenFactionFounded       = society.ScreenFactionFounded
+	ScreenFactionHome          = society.ScreenFactionHome
+	ScreenFactionMembers       = society.ScreenFactionMembers
+	ScreenFactionAnswered      = society.ScreenFactionAnswered
+	ScreenFactionConfirm       = society.ScreenFactionConfirm
+	ScreenFactionLeft          = society.ScreenFactionLeft
+	ScreenFactionLinked        = society.ScreenFactionLinked
+	ScreenFactionBank          = society.ScreenFactionBank
+	ScreenFactionCrime         = society.ScreenFactionCrime
+	ScreenFactionRefusal       = society.ScreenFactionRefusal
 	ScreenFactionRequestNotice = "faction_request_notice"
 	ScreenFactionAnswerNotice  = "faction_answer_notice"
 	ScreenFactionCrimeNotice   = "faction_crime_notice"
@@ -144,15 +145,15 @@ const (
 	ScreenGoldTrade = "gold_trade"
 
 	// Player-held offices: a city's government (governance.go).
-	ScreenCityGovernance    = "city_governance"
-	ScreenMyOffice          = "my_office"
-	ScreenLeverEdit         = "lever_edit"
-	ScreenPolicyConfirm     = "policy_confirm"
-	ScreenPolicyAnnounced   = "policy_announced"
-	ScreenAllocationEdit    = "allocation_edit"
-	ScreenAllocationConfirm = "allocation_confirm"
-	ScreenGovHistory        = "gov_history"
-	ScreenPolicyRefused     = "policy_refused"
+	ScreenCityGovernance    = society.ScreenCityGovernance
+	ScreenMyOffice          = society.ScreenMyOffice
+	ScreenLeverEdit         = society.ScreenLeverEdit
+	ScreenPolicyConfirm     = society.ScreenPolicyConfirm
+	ScreenPolicyAnnounced   = society.ScreenPolicyAnnounced
+	ScreenAllocationEdit    = society.ScreenAllocationEdit
+	ScreenAllocationConfirm = society.ScreenAllocationConfirm
+	ScreenGovHistory        = society.ScreenGovHistory
+	ScreenPolicyRefused     = society.ScreenPolicyRefused
 
 	// Health: the hospital and the clinic (health.go).
 	ScreenHospital            = "hospital"
@@ -182,9 +183,9 @@ const (
 	ScreenRefusal      = "refusal"
 
 	// The legislature (legislature.go).
-	ScreenBills             = "bills"
-	ScreenBill              = "bill"
-	ScreenBillRefusal       = "bill_refusal"
+	ScreenBills             = society.ScreenBills
+	ScreenBill              = society.ScreenBill
+	ScreenBillRefusal       = society.ScreenBillRefusal
 	ScreenBillDecidedNotice = "bill_decided_notice"
 
 	// A character's life and legacy (life.go).
@@ -193,7 +194,7 @@ const (
 	ScreenAvatars      = "avatars"
 	ScreenSleepPay     = "sleep_pay"
 	ScreenLifeRefusal  = "life_refusal"
-	ScreenLeaderboard  = "leaderboard"
+	ScreenLeaderboard  = society.ScreenLeaderboard
 	ScreenRankNotice   = "rank_notice"
 	ScreenHungerNotice = "hunger_notice"
 
@@ -254,8 +255,8 @@ const (
 
 	// Skills and the social graph (skills.go, social.go).
 	ScreenSkills  = "skills"
-	ScreenSearch  = "search"
-	ScreenFriends = "friends"
+	ScreenSearch  = society.ScreenSearch
+	ScreenFriends = society.ScreenFriends
 
 	// The stock exchange (stocks.go).
 	ScreenExchange    = "exchange"

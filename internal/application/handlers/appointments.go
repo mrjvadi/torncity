@@ -10,8 +10,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // AppointmentHandler serves appointments by office holders
@@ -58,26 +58,21 @@ type AppointRequest struct {
 	Seat   string `json:"seat,omitempty"`
 }
 
-func (h *AppointmentHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta)}
-}
-
 // appointRefusal carries a refused appointment out of a unit of work.
-type appointRefusal struct{ view screens.AppointRefusalView }
+type appointRefusal struct{ view society.AppointRefusalView }
 
 func (r *appointRefusal) Error() string { return "handlers: appointment refused: " + r.view.Kind }
 
-func (h *AppointmentHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *AppointmentHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	if err == nil {
 		return nil, nil
 	}
-	c := h.screen(meta, lang)
 	var r *appointRefusal
 	if stderrors.As(err, &r) {
-		return screens.AppointRefusal(c, r.view), nil
+		return society.AppointRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
-	if screens.IsGovernanceRefusal(err) {
-		return screens.AppointRefusal(c, screens.AppointRefusalView{Err: err}), nil
+	if g, ok := govRefusalOf(err, h.now()); ok {
+		return society.AppointRefusal(presentation.Ctx{Lang: lang}, society.AppointRefusalView{Gov: &g}), nil
 	}
 	return nil, err
 }
@@ -142,12 +137,12 @@ func cityJurisdiction(ctx context.Context, tx application.Tx, code string) (appl
 // holder of the office it is appointed by, or the deputy acting for it.
 func appointer(ctx context.Context, tx application.Tx, t appointTarget, playerID string) (application.Office, error) {
 	if t.def.AppointedBy == "" {
-		return application.Office{}, &appointRefusal{view: screens.AppointRefusalView{Kind: screens.AppointRefusedNotAppointer,
+		return application.Office{}, &appointRefusal{view: society.AppointRefusalView{Kind: society.AppointRefusedNotAppointer,
 			Office: t.def.Code}}
 	}
 	seat, err := application.Authorize(ctx, tx, t.place.ID, t.def.AppointedBy, playerID)
 	if stderrors.Is(err, application.ErrNotOfficeHolder) {
-		return seat, &appointRefusal{view: screens.AppointRefusalView{Kind: screens.AppointRefusedNotAppointer,
+		return seat, &appointRefusal{view: society.AppointRefusalView{Kind: society.AppointRefusedNotAppointer,
 			Office: t.def.AppointedBy}}
 	}
 	return seat, err
@@ -169,7 +164,7 @@ func remover(ctx context.Context, tx application.Tx, t appointTarget, playerID s
 	if len(t.def.CanBeRemovedBy) > 0 {
 		office = t.def.CanBeRemovedBy[0]
 	}
-	return application.Office{}, &appointRefusal{view: screens.AppointRefusalView{Kind: screens.AppointRefusedNotAppointer,
+	return application.Office{}, &appointRefusal{view: society.AppointRefusalView{Kind: society.AppointRefusedNotAppointer,
 		Office: office}}
 }
 
@@ -184,12 +179,12 @@ func vacantSeat(ctx context.Context, tx application.Tx, t appointTarget) (int, e
 			return seat, nil
 		}
 	}
-	return 0, &appointRefusal{view: screens.AppointRefusalView{Kind: screens.AppointRefusedNoSeat, Office: t.def.Code}}
+	return 0, &appointRefusal{view: society.AppointRefusalView{Kind: society.AppointRefusedNoSeat, Office: t.def.Code}}
 }
 
 // Appoint handles gov.appoint: the player the appointer typed, found and
 // shown for confirmation.
-func (h *AppointmentHandler) Appoint(ctx context.Context, meta envelope.Metadata, req AppointRequest) (*presenter.Response, error) {
+func (h *AppointmentHandler) Appoint(ctx context.Context, meta envelope.Metadata, req AppointRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -202,7 +197,7 @@ func (h *AppointmentHandler) Appoint(ctx context.Context, meta envelope.Metadata
 		candidate = found
 	}
 	lang := meta.Language
-	var view screens.AppointView
+	var view society.AppointView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -220,20 +215,20 @@ func (h *AppointmentHandler) Appoint(ctx context.Context, meta envelope.Metadata
 			return err
 		}
 		if candidate == nil || candidate.Status != playerActive {
-			return &appointRefusal{view: screens.AppointRefusalView{Kind: screens.AppointRefusedNoPlayer}}
+			return &appointRefusal{view: society.AppointRefusalView{Kind: society.AppointRefusedNoPlayer}}
 		}
-		view = screens.AppointView{Office: t.def.Code, Place: govPlace(t.place), Player: govPlayerOf(candidate)}
+		view = society.AppointView{Office: t.def.Code, Place: govPlace(t.place), Player: govPlayerOf(candidate)}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.AppointConfirm(h.screen(meta, lang), view), nil
+	return society.AppointConfirm(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Seat handles gov.seat: the confirmed appointment, once. The seat is the
 // first vacant one of the office, under its lock.
-func (h *AppointmentHandler) Seat(ctx context.Context, meta envelope.Metadata, req AppointRequest) (*presenter.Response, error) {
+func (h *AppointmentHandler) Seat(ctx context.Context, meta envelope.Metadata, req AppointRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -247,7 +242,7 @@ func (h *AppointmentHandler) Seat(ctx context.Context, meta envelope.Metadata, r
 	}
 	lang := meta.Language
 	var (
-		view     screens.AppointDoneView
+		view     society.AppointDoneView
 		replayed bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -274,7 +269,7 @@ func (h *AppointmentHandler) Seat(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		if candidate == nil || candidate.Status != playerActive {
-			return &appointRefusal{view: screens.AppointRefusalView{Kind: screens.AppointRefusedNoPlayer}}
+			return &appointRefusal{view: society.AppointRefusalView{Kind: society.AppointRefusedNoPlayer}}
 		}
 		seat, err := vacantSeat(ctx, tx, t)
 		if err != nil {
@@ -285,7 +280,7 @@ func (h *AppointmentHandler) Seat(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
-		view = screens.AppointDoneView{Office: t.def.Code, Place: govPlace(t.place), Player: govPlayerOf(candidate)}
+		view = society.AppointDoneView{Office: t.def.Code, Place: govPlace(t.place), Player: govPlayerOf(candidate)}
 		if after.TermEndsAt != nil {
 			view.TermEndsIn = after.TermEndsAt.Sub(now)
 		}
@@ -295,10 +290,10 @@ func (h *AppointmentHandler) Seat(ctx context.Context, meta envelope.Metadata, r
 		return resp, err
 	}
 	if replayed {
-		return screens.AppointRefusal(h.screen(meta, lang), screens.AppointRefusalView{Kind: screens.AppointRefusedNoSeat,
+		return society.AppointRefusal(presentation.Ctx{Lang: lang}, society.AppointRefusalView{Kind: society.AppointRefusedNoSeat,
 			Office: strings.TrimSpace(req.Office)}), nil
 	}
-	return screens.AppointDone(h.screen(meta, lang), view), nil
+	return society.AppointDone(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // announce tells the player seated or removed, and — for an appointment —
@@ -340,23 +335,23 @@ func (h *AppointmentHandler) announce(ctx context.Context, tx application.Tx, me
 }
 
 // Dismiss handles gov.dismiss: the removal shown for confirmation.
-func (h *AppointmentHandler) Dismiss(ctx context.Context, meta envelope.Metadata, req AppointRequest) (*presenter.Response, error) {
+func (h *AppointmentHandler) Dismiss(ctx context.Context, meta envelope.Metadata, req AppointRequest) (*presentation.Response, error) {
 	return h.dismiss(ctx, meta, req, false)
 }
 
 // Unseat handles gov.unseat: the confirmed removal, once.
-func (h *AppointmentHandler) Unseat(ctx context.Context, meta envelope.Metadata, req AppointRequest) (*presenter.Response, error) {
+func (h *AppointmentHandler) Unseat(ctx context.Context, meta envelope.Metadata, req AppointRequest) (*presentation.Response, error) {
 	return h.dismiss(ctx, meta, req, true)
 }
 
-func (h *AppointmentHandler) dismiss(ctx context.Context, meta envelope.Metadata, req AppointRequest, confirm bool) (*presenter.Response, error) {
+func (h *AppointmentHandler) dismiss(ctx context.Context, meta envelope.Metadata, req AppointRequest, confirm bool) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	lang := meta.Language
 	var (
-		confirmView screens.DismissView
-		done        *screens.AppointDoneView
+		confirmView society.DismissView
+		done        *society.AppointDoneView
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -395,21 +390,21 @@ func (h *AppointmentHandler) dismiss(ctx context.Context, meta envelope.Metadata
 		if err != nil {
 			return err
 		}
-		confirmView = screens.DismissView{Office: t.def.Code, Place: govPlace(t.place), Seat: seatNo, Holder: govPlayerOf(holder)}
+		confirmView = society.DismissView{Office: t.def.Code, Place: govPlace(t.place), Seat: seatNo, Holder: govPlayerOf(holder)}
 		if !confirm {
 			return nil
 		}
 		if _, _, err := application.VacateOffice(ctx, tx, t.def.Code, t.place.ID, seatNo, h.now()); err != nil {
 			return err
 		}
-		done = &screens.AppointDoneView{Office: t.def.Code, Place: govPlace(t.place), Player: govPlayerOf(holder), Dismissed: true}
+		done = &society.AppointDoneView{Office: t.def.Code, Place: govPlace(t.place), Player: govPlayerOf(holder), Dismissed: true}
 		return h.announce(ctx, tx, meta, t, holder, p, by.OfficeCode, true)
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
 	if done != nil {
-		return screens.AppointDone(h.screen(meta, lang), *done), nil
+		return society.AppointDone(presentation.Ctx{Lang: lang}, *done), nil
 	}
-	return screens.DismissConfirm(h.screen(meta, lang), confirmView), nil
+	return society.DismissConfirm(presentation.Ctx{Lang: lang}, confirmView), nil
 }

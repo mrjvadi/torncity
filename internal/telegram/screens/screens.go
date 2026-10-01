@@ -288,7 +288,7 @@ func errorMessage(c Context, err error) (string, map[string]any) {
 		return key, args
 	}
 	// Player-held offices name their own refusals; see governance.go.
-	if key, args, ok := governanceRefusal(c, err, nil, time.Time{}); ok {
+	if key, args, ok := governanceRefusalOfError(c, err); ok {
 		return key, args
 	}
 	// Identity first: see Error for why class matching cannot do this.

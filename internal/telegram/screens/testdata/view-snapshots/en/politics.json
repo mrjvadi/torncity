@@ -457,13 +457,6 @@
     "title": "Refusal · needs the council",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "UNAUTHORIZED",
-        "details": {
-          "body": "city_council"
-        },
-        "message": "that change must be confirmed by a vote"
-      },
       "lever": {
         "allocation": null,
         "categories": null,
@@ -482,11 +475,15 @@
         "value": 450,
         "vote": false
       },
-      "now": null,
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "requires_confirmation",
+        "office": "city_council",
+        "wait_seconds": 0
       }
     }
   },
@@ -494,11 +491,6 @@
     "title": "Refusal · an allocation beyond the whole",
     "screen": "policy_refused",
     "view": {
-      "err": {
-        "code": "INVALID_INPUT",
-        "details": null,
-        "message": "that division of the budget is not allowed"
-      },
       "lever": {
         "allocation": {
           "defence": 1000,
@@ -532,11 +524,15 @@
         "value": 0,
         "vote": false
       },
-      "now": null,
       "place": {
         "code": "ostmarch",
         "kind": "city",
         "name": "Ostmarch"
+      },
+      "refusal": {
+        "kind": "invalid_allocation",
+        "office": "",
+        "wait_seconds": 0
       }
     }
   },

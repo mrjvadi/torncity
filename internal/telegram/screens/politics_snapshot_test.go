@@ -68,9 +68,9 @@ func politicsSnapshots(c Context, who people, add func(string, *presenter.Respon
 	add("Tax · a large change goes to the council", PolicyConfirm(c, PolicyConfirmView{Place: city, Lever: tax,
 		NewValue: 1200, VoteBy: "city_council"}))
 	add("Refusal · needs the council", PolicyRefused(c, PolicyRefusalView{
-		Err: application.ErrPolicyRequiresConfirmation.WithDetail("body", "city_council"), Place: &city, Lever: &tax}))
+		Refusal: refusalOf(application.ErrPolicyRequiresConfirmation.WithDetail("body", "city_council"), time.Time{}), Place: &city, Lever: &tax}))
 	add("Refusal · an allocation beyond the whole", PolicyRefused(c, PolicyRefusalView{
-		Err: application.ErrInvalidAllocation, Place: &city, Lever: &budgetLever}))
+		Refusal: refusalOf(application.ErrInvalidAllocation, time.Time{}), Place: &city, Lever: &budgetLever}))
 
 	// Proposals.
 	budgetBill := BillView{No: 12, Place: city, Office: "mayor", By: me, Body: "city_council", Rule: "majority",

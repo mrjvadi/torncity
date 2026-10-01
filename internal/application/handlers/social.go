@@ -14,8 +14,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/playercode"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // Friendship statuses as they are stored. An edge is directed, so these
@@ -111,10 +111,6 @@ func NewSocialHandler(
 
 // screen builds the rendering context for a reply to the player who sent
 // meta, in lang (see RenderLanguage).
-func (h *SocialHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta)}
-}
-
 // Search handles social.search: finding one player by an exact identifier.
 //
 // The query is classified first (ClassifyPlayerQuery). One that is none of
@@ -127,7 +123,7 @@ func (h *SocialHandler) screen(meta envelope.Metadata, lang string) screens.Cont
 // Telegram id and the record id never reach the screen, even when the search
 // was made with the Telegram id. Finding yourself says so and offers no
 // add-friend button.
-func (h *SocialHandler) Search(ctx context.Context, meta envelope.Metadata, req SearchRequest) (*presenter.Response, error) {
+func (h *SocialHandler) Search(ctx context.Context, meta envelope.Metadata, req SearchRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -137,7 +133,7 @@ func (h *SocialHandler) Search(ctx context.Context, meta envelope.Metadata, req 
 
 	query, ok := ClassifyPlayerQuery(req.Query)
 
-	var view screens.SearchView
+	var view society.SearchView
 	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -148,7 +144,7 @@ func (h *SocialHandler) Search(ctx context.Context, meta envelope.Metadata, req 
 		lang = RenderLanguage(meta, self)
 
 		if !ok {
-			view = screens.SearchView{Help: true}
+			view = society.SearchView{Help: true}
 			return nil
 		}
 		view = searchView(query)
@@ -167,7 +163,7 @@ func (h *SocialHandler) Search(ctx context.Context, meta envelope.Metadata, req 
 			return nil
 		}
 
-		view.Found = &screens.SearchResult{
+		view.Found = &society.SearchResult{
 			ID:   found.ID,
 			Name: shownName(found),
 			Code: found.PublicCode,
@@ -179,21 +175,21 @@ func (h *SocialHandler) Search(ctx context.Context, meta envelope.Metadata, req 
 		return nil, err
 	}
 
-	return screens.Search(h.screen(meta, lang), view), nil
+	return society.Search(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // searchView starts the view for a classified query: which form it took and
 // what of it may be echoed back. A Telegram id is never echoed.
-func searchView(q application.PlayerQuery) screens.SearchView {
+func searchView(q application.PlayerQuery) society.SearchView {
 	switch q.Kind {
 	case application.PlayerQueryUsername:
-		return screens.SearchView{By: screens.SearchByUsername, Query: "@" + q.Username}
+		return society.SearchView{By: society.SearchByUsername, Query: "@" + q.Username}
 	case application.PlayerQueryTelegramUserID:
-		return screens.SearchView{By: screens.SearchByTelegramID}
+		return society.SearchView{By: society.SearchByTelegramID}
 	case application.PlayerQueryPublicCode:
-		return screens.SearchView{By: screens.SearchByCode, Query: q.PublicCode}
+		return society.SearchView{By: society.SearchByCode, Query: q.PublicCode}
 	}
-	return screens.SearchView{Help: true}
+	return society.SearchView{Help: true}
 }
 
 // shownName is the display name a search result may show. The placeholder a
@@ -327,7 +323,7 @@ func asciiDigits(s string) string {
 // An edge is directed, so this writes the requesting side only. The other
 // player accepts, which is what FriendAccept is for; nobody acquires a friend
 // without agreeing to it.
-func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, req FriendRequest) (*presenter.Response, error) {
+func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, req FriendRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -416,15 +412,15 @@ func (h *SocialHandler) FriendAdd(ctx context.Context, meta envelope.Metadata, r
 	}
 
 	if accepted {
-		return screens.FriendAccepted(h.screen(meta, lang), name), nil
+		return society.FriendAccepted(presentation.Ctx{Lang: lang}, society.FriendAcceptedView{Name: name}), nil
 	}
 	// The other player is named by their display name; one with no name
 	// worth showing is "a player", never an identifier.
-	return screens.FriendRequested(h.screen(meta, lang), name), nil
+	return society.FriendRequested(presentation.Ctx{Lang: lang}, society.FriendRequestedView{Name: name}), nil
 }
 
 // FriendAccept handles social.friend.accept.
-func (h *SocialHandler) FriendAccept(ctx context.Context, meta envelope.Metadata, req FriendRequest) (*presenter.Response, error) {
+func (h *SocialHandler) FriendAccept(ctx context.Context, meta envelope.Metadata, req FriendRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -465,7 +461,7 @@ func (h *SocialHandler) FriendAccept(ctx context.Context, meta envelope.Metadata
 		return nil, err
 	}
 
-	return screens.FriendAccepted(h.screen(meta, lang), name), nil
+	return society.FriendAccepted(presentation.Ctx{Lang: lang}, society.FriendAcceptedView{Name: name}), nil
 }
 
 // acceptRequest turns the other player's request into a friendship and tells
@@ -511,7 +507,7 @@ func (h *SocialHandler) nameOf(ctx context.Context, tx application.Tx, playerID 
 // The whole list is read and then paged in memory. That is the right trade
 // while a friend list is the size a person can maintain; when it is not, the
 // fix is a limit and an offset on the port, not a bigger message.
-func (h *SocialHandler) FriendList(ctx context.Context, meta envelope.Metadata, req PageRequest) (*presenter.Response, error) {
+func (h *SocialHandler) FriendList(ctx context.Context, meta envelope.Metadata, req PageRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -520,7 +516,7 @@ func (h *SocialHandler) FriendList(ctx context.Context, meta envelope.Metadata, 
 	}
 	page := parsePage(req.Page)
 
-	var view screens.FriendsView
+	var view society.FriendsView
 	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -536,13 +532,13 @@ func (h *SocialHandler) FriendList(ctx context.Context, meta envelope.Metadata, 
 		}
 
 		start, end, pages := pageWindow(len(edges), page, h.pageSize)
-		lines := make([]screens.FriendLine, 0, end-start)
+		lines := make([]society.FriendLine, 0, end-start)
 		for _, e := range edges[start:end] {
 			name, err := h.nameOf(ctx, tx, e.FriendPlayerID)
 			if err != nil {
 				return err
 			}
-			lines = append(lines, screens.FriendLine{
+			lines = append(lines, society.FriendLine{
 				ID:     e.FriendPlayerID,
 				Name:   name,
 				Status: e.Status,
@@ -551,12 +547,12 @@ func (h *SocialHandler) FriendList(ctx context.Context, meta envelope.Metadata, 
 				Incoming: e.Incoming && e.Status == friendPending,
 			})
 		}
-		view = screens.FriendsView{Friends: lines, Page: page, Pages: pages}
+		view = society.FriendsView{Friends: lines, Page: page, Pages: pages}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return screens.Friends(h.screen(meta, lang), view), nil
+	return society.Friends(presentation.Ctx{Lang: lang}, view), nil
 }

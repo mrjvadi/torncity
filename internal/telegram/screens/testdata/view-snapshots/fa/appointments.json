@@ -150,7 +150,7 @@
     "title": "Refused · not_appointer",
     "screen": "appoint_refusal",
     "view": {
-      "err": null,
+      "gov": null,
       "kind": "not_appointer",
       "office": "chief_of_general_staff"
     }
@@ -159,7 +159,7 @@
     "title": "Refused · no_player",
     "screen": "appoint_refusal",
     "view": {
-      "err": null,
+      "gov": null,
       "kind": "no_player",
       "office": ""
     }
@@ -168,7 +168,7 @@
     "title": "Refused · no_seat",
     "screen": "appoint_refusal",
     "view": {
-      "err": null,
+      "gov": null,
       "kind": "no_seat",
       "office": "defence_minister"
     }
