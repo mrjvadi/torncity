@@ -366,7 +366,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			bankLimits,
 			cfg.Game.IdempotencyTTL,
 			nil,
-		).WithQuickAmounts(cfg.Economy.BankQuickAmounts).WithWatch(watchThresholds(cfg.AntiCheat)),
+		).WithQuickAmounts(cfg.Economy.BankQuickAmounts).WithWatch(watchThresholds(cfg.AntiCheat)).WithBankCity(cfg.Settlement.HomeCityCode),
 		// Policy values are read only through the resolver and changed only
 		// through SetPolicy; the directory reads the seats, names and public
 		// record around them (ADR 0015).

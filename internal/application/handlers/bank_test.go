@@ -168,10 +168,16 @@ func (b *fakeBank) LockPresence(_ context.Context, ids ...string) ([]application
 type bankPolicy struct {
 	values map[string]int64
 	asked  []string
+	// noBank are jurisdictions without bank levers (a village): the
+	// resolver answers ErrWrongJurisdiction for them.
+	noBank map[string]bool
 }
 
 func (p *bankPolicy) Get(_ context.Context, jurisdictionID, lever string) (application.PolicyValue, error) {
 	p.asked = append(p.asked, jurisdictionID+"/"+lever)
+	if p.noBank[jurisdictionID] {
+		return application.PolicyValue{}, application.ErrWrongJurisdiction
+	}
 	return application.PolicyValue{JurisdictionID: jurisdictionID, Lever: lever, Value: p.values[lever]}, nil
 }
 
@@ -335,6 +341,33 @@ func TestWithdrawalChargesTheCityFeeIntoItsTreasury(t *testing.T) {
 		t.Errorf("fee not shown:\n%s", out)
 	}
 	b.invariant(t)
+}
+
+// A village keeps no bank: its people bank in the bank city, and pay that
+// bank's fee, instead of the bank screen failing (the live bug, 2026-10-02).
+func TestAVillageBanksAtTheBankCity(t *testing.T) {
+	b := newBankHarness(t)
+	b.policy.values[application.LeverBankWithdrawalFee] = 250
+	b.policy.noBank = map[string]bool{"jur-berlin": true}
+	b.h.WithBankCity("tehran")
+	b.money.give(t, application.AccountPlayerBank, payerID, 2000)
+
+	text(t)(b.h.Withdraw(context.Background(), bankMeta(payerTG, "r1", "bank.withdraw"),
+		BankAmountRequest{Amount: "1000"}))
+
+	if got := b.money.balance(application.AccountPlayerBank, payerID); got != 975 {
+		t.Errorf("bank = %d, want 975 (the bank city's 2.5%% fee)", got)
+	}
+	if got := strings.Join(b.policy.asked, " "); !strings.Contains(got, "jur-tehran/"+application.LeverBankWithdrawalFee) {
+		t.Errorf("the fee was not read from the bank city: %v", b.policy.asked)
+	}
+	// The bank that keeps the account takes the fee, not the village.
+	if got := b.money.balance(application.AccountCityTreasury, tehranID); got != 25 {
+		t.Errorf("bank city's treasury = %d, want 25", got)
+	}
+	if got := b.money.balance(application.AccountCityTreasury, berlinID); got != 0 {
+		t.Errorf("the village's treasury took the fee: %d", got)
+	}
 }
 
 func TestWithdrawalBeyondTheBalanceIsRefusedWithTheNumbers(t *testing.T) {

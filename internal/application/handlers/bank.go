@@ -94,6 +94,10 @@ type BankHandler struct {
 	policy application.PolicyReader
 	search application.PlayerSearch
 	limits bank.Limits
+	// bankCity is the city whose bank keeps the accounts of places that have
+	// none («شهر مرکزی»): a village or town without the bank levers pays
+	// that bank's fees, as a real villager banks in the nearest city.
+	bankCity string
 	// quick are the round amounts offered as buttons, smallest first.
 	quick []int64
 
@@ -255,7 +259,7 @@ func (h *BankHandler) render(ctx context.Context, meta envelope.Metadata,
 		}
 		view.CityCode, view.City = city.Code, city.Name
 
-		feeBPS, err := h.fee(ctx, city, application.LeverBankWithdrawalFee)
+		feeBPS, _, err := h.fee(ctx, city, application.LeverBankWithdrawalFee)
 		if err != nil {
 			return err
 		}
@@ -384,13 +388,15 @@ func (h *BankHandler) move(ctx context.Context, meta envelope.Metadata, req Bank
 		reason := application.ReasonBankDeposit
 		from, to := cash, bankAcct
 		quote := bank.Quote{Amount: amount, Total: amount}
+		feeCity := city
 		if !deposit {
 			reason = application.ReasonBankWithdrawal
 			from, to = bankAcct, cash
-			feeBPS, err := h.fee(ctx, city, application.LeverBankWithdrawalFee)
+			feeBPS, charging, err := h.fee(ctx, city, application.LeverBankWithdrawalFee)
 			if err != nil {
 				return err
 			}
+			feeCity = charging
 			if quote, err = bank.QuoteFor(amount, feeBPS); err != nil {
 				return errors.Internal(err)
 			}
@@ -403,7 +409,7 @@ func (h *BankHandler) move(ctx context.Context, meta envelope.Metadata, req Bank
 		if err != nil {
 			return err
 		}
-		if err := h.chargeFee(ctx, tx, from.ID, city.ID, quote.Fee, txID); err != nil {
+		if err := h.chargeFee(ctx, tx, from.ID, feeCity.ID, quote.Fee, txID); err != nil {
 			return err
 		}
 		fee = quote.Fee
@@ -1012,24 +1018,42 @@ func (h *BankHandler) cardFee(ctx context.Context, payer application.Presence) (
 	if err != nil {
 		return 0, nil, err
 	}
-	feeBPS, err := h.fee(ctx, city, application.LeverCardTransferFee)
-	return feeBPS, city, err
+	// The fee city is the bank's: the player's own city, or the bank city
+	// for a place that keeps no bank.
+	return h.fee(ctx, city, application.LeverCardTransferFee)
+}
+
+// WithBankCity names the city whose bank serves places without their own
+// bank levers (a village or a town): their fees are that bank's.
+func (h *BankHandler) WithBankCity(code string) *BankHandler {
+	h.bankCity = code
+	return h
 }
 
 // fee reads one of a city's bank fees through the policy resolver — the only
-// place a fee is ever read from.
-func (h *BankHandler) fee(ctx context.Context, city *application.City, lever string) (int64, error) {
+// place a fee is ever read from. A place whose jurisdiction has no bank
+// levers (a village or a town keeps no bank) pays the fees of the bank that
+// keeps its accounts, the bank city's.
+func (h *BankHandler) fee(ctx context.Context, city *application.City, lever string) (int64, *application.City, error) {
 	if city.JurisdictionID == "" {
-		return 0, application.ErrBankPolicyUnavailable.WithDetail("city", city.Code)
+		return 0, nil, application.ErrBankPolicyUnavailable.WithDetail("city", city.Code)
 	}
 	v, err := h.policy.Get(ctx, city.JurisdictionID, lever)
+	if stderrors.Is(err, application.ErrWrongJurisdiction) && h.bankCity != "" && city.Code != h.bankCity {
+		home, herr := h.cities.ByCode(ctx, h.bankCity)
+		if herr != nil {
+			return 0, nil, application.ErrBankPolicyUnavailable.WithCause(herr).WithDetail("lever", lever)
+		}
+		return h.fee(ctx, home, lever)
+	}
 	if err != nil {
-		return 0, application.ErrBankPolicyUnavailable.WithCause(err).WithDetail("lever", lever)
+		return 0, nil, application.ErrBankPolicyUnavailable.WithCause(err).WithDetail("lever", lever)
 	}
 	if v.Value < 0 || v.Value > bank.MaxFeeBps {
-		return 0, application.ErrBankPolicyUnavailable.WithDetail("lever", lever).WithDetail("value", v.Value)
+		return 0, nil, application.ErrBankPolicyUnavailable.WithDetail("lever", lever).WithDetail("value", v.Value)
 	}
-	return v.Value, nil
+	// The fee is the charging bank's: its city's treasury receives it.
+	return v.Value, city, nil
 }
 
 // checkFunds refuses a movement the paying account cannot cover, with the
