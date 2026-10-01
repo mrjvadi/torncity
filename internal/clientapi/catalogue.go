@@ -78,7 +78,13 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 		}
 		return m
 	}
+	seen := map[string]bool{}
 	add := func(table string, e CatalogueEntry, model bool) {
+		// a code is listed once in a table, whichever area names it first
+		if seen[table+"\x00"+e.Code] {
+			return
+		}
+		seen[table+"\x00"+e.Code] = true
 		e.Asset.Icon = table + ":" + e.Code
 		if model {
 			e.Asset.Model = table + ":" + e.Code

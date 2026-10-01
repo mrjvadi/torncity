@@ -3,8 +3,8 @@ package handlers
 import (
 	"context"
 	"github.com/mrjvadi/torncity/internal/presentation"
+	cview "github.com/mrjvadi/torncity/internal/presentation/companies"
 	mview "github.com/mrjvadi/torncity/internal/presentation/military"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 	"strings"
 	"time"
 
@@ -58,7 +58,7 @@ func licenceEntry(snap *content.Snapshot, l application.DefenceLicence, c applic
 // defenceBadge is where a company stands on a defence licence, nil when the
 // content has none or licences do not concern it.
 func (h *CompaniesHandler) defenceBadge(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company,
-) (*screens.DefenceBadge, error) {
+) (*cview.DefenceBadge, error) {
 	d, ok := snap.DefenceLicence()
 	if !ok {
 		return nil, nil
@@ -72,7 +72,7 @@ func (h *CompaniesHandler) defenceBadge(ctx context.Context, tx application.Tx, 
 		return nil, err
 	}
 	now := h.now()
-	b := &screens.DefenceBadge{Contractor: def.SectorCode() != d.Sector}
+	b := &cview.DefenceBadge{Contractor: def.SectorCode() != d.Sector}
 	if l != nil {
 		b.Status = string(licenceRule(*l).Settled(now))
 		if l.EffectiveAt != nil {
@@ -143,7 +143,7 @@ func (h *CompaniesHandler) defenceGate(ctx context.Context, tx application.Tx, s
 	basis, err := military.MayFound(who, snap.DefenceRankTier())
 	if err != nil {
 		if f.blocked == "" {
-			f.blocked = screens.CompanyBlockedDefence
+			f.blocked = cview.CompanyBlockedDefence
 		}
 		if career, ok := snap.CareerDef(d.Career); ok {
 			f.rank = jobRef(career, snap.DefenceRankTier())
@@ -178,7 +178,7 @@ func (h *CompaniesHandler) Defence(ctx context.Context, meta envelope.Metadata, 
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	apply := strings.TrimSpace(req.Confirm) == screens.ProductionConfirm
+	apply := strings.TrimSpace(req.Confirm) == cview.ProductionConfirm
 	var view mview.CompanyDefenceView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -198,7 +198,7 @@ func (h *CompaniesHandler) Defence(ctx context.Context, meta envelope.Metadata, 
 		}
 		d, ok := snap.DefenceLicence()
 		if !ok {
-			return refuseCompany(screens.CompanyRefusedNotFound, c, snap)
+			return refuseCompany(cview.CompanyRefusedNotFound, c, snap)
 		}
 		def, _, err := companyType(snap, *c)
 		if err != nil {

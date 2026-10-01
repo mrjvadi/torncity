@@ -2,7 +2,6 @@
 # a file leaves it when its area is migrated (docs/adr/0039-presentation-split.md).
 internal/application/handlers/auctions.go
 internal/application/handlers/bank.go
-internal/application/handlers/companies_defence.go
 internal/application/handlers/companies_staff.go
 internal/application/handlers/crime.go
 internal/application/handlers/crime_commit.go
