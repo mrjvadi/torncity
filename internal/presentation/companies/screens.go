@@ -38,7 +38,6 @@ var (
 	screenDesign      = presentation.Define[DesignView](ScreenDesign, "companies")
 	screenImprovement = presentation.Define[ImprovementView](ScreenImprovement, "companies")
 	screenRetrofit    = presentation.Define[RetrofitView](ScreenRetrofit, "companies")
-	screenKit         = presentation.Define[KitPurchaseView](ScreenKitPurchase, "companies")
 	screenLab         = presentation.Define[LabView](ScreenLab, "companies")
 	screenTech        = presentation.Define[TechView](ScreenTech, "companies")
 	screenOrders      = presentation.Define[OrdersView](ScreenOrders, "companies")
@@ -637,12 +636,6 @@ func Retrofit(c presentation.Ctx, v RetrofitView) *presentation.Response {
 		return screenRetrofit.Response(c.Lang, v, act(AddrOrders, v.Ref.Code).Named("production.orders"))
 	}
 	return screenRetrofit.Response(c.Lang, v, back(AddrOrders, v.Ref.Code))
-}
-
-// KitPurchase is the plan or the result of buying upgrade kits from a
-// contractor.
-func KitPurchase(c presentation.Ctx, v KitPurchaseView) *presentation.Response {
-	return screenKit.Response(c.Lang, v, act(AddrProcure, v.Country).Named("military.procure"))
 }
 
 // Lab is a company's research lab.

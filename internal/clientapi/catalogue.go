@@ -1,6 +1,7 @@
 package clientapi
 
 import (
+	"github.com/mrjvadi/torncity/internal/application"
 	"sort"
 	"strconv"
 	"strings"
@@ -156,12 +157,62 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 		add("military_unit", CatalogueEntry{Code: fc.Code, Category: fc.Branch,
 			Name: names(func(c screens.Context) string { return c.ForceClassName(screens.Named{Code: fc.Code, Name: fc.Name}) })}, true)
 	}
+	// The armed forces and the war (the military area's screens): the branches,
+	// the bands a strength is told in, the grounds of a war, the kinds of
+	// operation, their objectives, the damage bands, the proposals and the
+	// odds an estimate is given in, and the attributes of a design. A client
+	// words them by code from here.
+	for _, b := range snap.Branches() {
+		add("branch", CatalogueEntry{Code: b.Code,
+			Name: names(func(c screens.Context) string { return c.BranchName(screens.Named{Code: b.Code, Name: b.Name}) })}, false)
+	}
+	for _, b := range snap.StrengthBands() {
+		add("force_band", CatalogueEntry{Code: b.Code, Name: names(func(c screens.Context) string { return c.BandName(b.Code) })}, false)
+	}
+	if def, ok := snap.War(); ok {
+		for _, g := range def.Grounds {
+			add("war_ground", CatalogueEntry{Code: g, Name: names(func(c screens.Context) string { return c.WarGroundName(g) })}, false)
+		}
+		for _, op := range def.Operations {
+			add("war_operation", CatalogueEntry{Code: op.Code, Name: names(func(c screens.Context) string { return c.OperationName(op.Code) })}, false)
+		}
+		for _, d := range def.DamageBands {
+			add("war_damage", CatalogueEntry{Code: d.Code, Name: names(func(c screens.Context) string { return c.DamageBandName(d.Code) })}, false)
+		}
+	}
+	for _, code := range []string{application.ObjectiveCity, application.ObjectiveDefences, application.ObjectiveTake} {
+		add("war_objective", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.ObjectiveName(code) })}, false)
+	}
+	for _, code := range []string{"ceasefire", "peace"} {
+		add("war_proposal", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.WarProposalName(code) })}, false)
+	}
+	for _, code := range []string{"likely", "even", "unlikely"} {
+		add("war_chance", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.WarChanceName(code) })}, false)
+	}
+	if sec, ok := w.Msgs.(interface {
+		Section(lang, prefix string) map[string]string
+		Default() string
+	}); ok {
+		var attrs []string
+		for code := range sec.Section(sec.Default(), "attribute") {
+			if !strings.Contains(code, ".") {
+				attrs = append(attrs, code)
+			}
+		}
+		sort.Strings(attrs)
+		for _, code := range attrs {
+			code := code
+			add("attribute", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.AttributeName(code) })}, false)
+		}
+	}
 	// Knowledge of a settlement, and the names of life: ranks, sleeping spots
 	// and stages of age. A client words these by code from here, so a name
 	// never has to be written into a client.
 	for _, k := range snap.SettlementKnowledgeDefs() {
 		add("settlement_knowledge", CatalogueEntry{Code: k.Code,
-			Name: names(func(c screens.Context) string { return c.SettlementKnowledgeName(screens.Named{Code: k.Code, Name: k.Name}) })}, false)
+			Name: names(func(c screens.Context) string {
+				return c.SettlementKnowledgeName(screens.Named{Code: k.Code, Name: k.Name})
+			})}, false)
 	}
 	if life, ok := snap.Life(); ok {
 		for _, r := range life.Ranks.Ladder {
@@ -189,7 +240,9 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 	}
 	for _, j := range snap.JurisdictionDefs() {
 		add("jurisdiction", CatalogueEntry{Code: j.Code, Kind: j.Level,
-			Name: names(func(c screens.Context) string { return c.PlaceName(screens.GovPlace{Kind: j.Level, Code: j.Code, Name: j.Name}) })}, false)
+			Name: names(func(c screens.Context) string {
+				return c.PlaceName(screens.GovPlace{Kind: j.Level, Code: j.Code, Name: j.Name})
+			})}, false)
 	}
 	if b, ok := snap.Budget(); ok {
 		for _, l := range b.Lines {

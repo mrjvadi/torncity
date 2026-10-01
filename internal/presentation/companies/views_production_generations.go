@@ -32,10 +32,3 @@ type RetrofitView struct {
 	Started  bool
 }
 
-// KitPurchaseView is the defence minister's plan or result of buying
-// upgrade kits from a contractor.
-type KitPurchaseView struct {
-	Bought  bool
-	Seller  string
-	Country string
-}

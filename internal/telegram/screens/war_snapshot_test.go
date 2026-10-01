@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens/screentest"
 )
@@ -150,9 +151,9 @@ func warSnapshots(c Context, who people, add func(string, *presenter.Response)) 
 		add("Refused · "+r.Kind, WarRefusal(c, r))
 	}
 	add("Blocked · the border", WarBlocked(c, WarBlockedView{Border: true, From: homeCountry, To: otherCountry,
-		Back: []string{AddrCities}}))
+		Back: presentation.RefOfAddress(AddrCities)}))
 	add("Blocked · a struck city", WarBlocked(c, WarBlockedView{CityCode: "kessmoor", City: "Kessmoor", In: 5 * time.Minute,
-		Back: []string{AddrCities}}))
+		Back: presentation.RefOfAddress(AddrCities)}))
 }
 
 // warAnnouncements are the lines the groups of the countries at war read.

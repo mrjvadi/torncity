@@ -51,13 +51,24 @@ func (g *ServiceGate) Check(ctx context.Context, snap *content.Snapshot, cityID,
 	if !ok {
 		return nil, nil
 	}
-	return g.judge(ctx, cityID, tag, service)
+	return g.evaluate(ctx, tag, cityID, service, false)
 }
 
-// CheckTag is Check for an entry that availability.yml tags itself, by kind
+// CheckEntry is Check for an entry that availability.yml tags itself, by kind
 // and code (a company_type, a building, a place): whether the settlement the
 // player stands in reaches it. An entry nothing tags is reachable everywhere.
-func (g *ServiceGate) CheckTag(ctx context.Context, snap *content.Snapshot, cityID, kind, code string) (*economy.Unavailable, error) {
+// The national level is around any city (see CheckTag).
+func (g *ServiceGate) CheckEntry(ctx context.Context, snap *content.Snapshot, cityID, kind, code string) (*economy.Unavailable, error) {
+	return g.CheckTag(ctx, snap, cityID, kind, code, code)
+}
+
+// CheckTag is Check for a tag that is not a service: a government action or an
+// office (kind "government_action", code "country.war"), named service in the
+// answer. The national level is around any city: a country-stage tag is
+// reached by a player who stands in a city, which belongs to a country or
+// does not (that is the command's own question), so only a village or a town
+// is told it is not offered.
+func (g *ServiceGate) CheckTag(ctx context.Context, snap *content.Snapshot, cityID, kind, code, service string) (*economy.Unavailable, error) {
 	if g == nil || g.cities == nil || cityID == "" || snap == nil {
 		return nil, nil
 	}
@@ -65,11 +76,13 @@ func (g *ServiceGate) CheckTag(ctx context.Context, snap *content.Snapshot, city
 	if !ok {
 		return nil, nil
 	}
-	return g.judge(ctx, cityID, tag, code)
+	return g.evaluate(ctx, tag, cityID, service, true)
 }
 
-// judge applies one tag to the city the player stands in.
-func (g *ServiceGate) judge(ctx context.Context, cityID string, tag content.AvailabilityDef, service string) (*economy.Unavailable, error) {
+// evaluate decides one tag for the settlement of cityID. cityIsNational says a
+// city already has the national level around it.
+func (g *ServiceGate) evaluate(ctx context.Context, tag content.AvailabilityDef, cityID, service string, cityIsNational bool,
+) (*economy.Unavailable, error) {
 	here, err := g.cities.ByID(ctx, cityID)
 	if err != nil {
 		return nil, err
@@ -84,6 +97,8 @@ func (g *ServiceGate) judge(ctx context.Context, cityID string, tag content.Avai
 		// undecided, or a stage nothing here can judge: nothing is guessed.
 		return nil, nil
 	case content.StageRank(stage) >= content.StageRank(tag.Stage):
+		return nil, nil
+	case cityIsNational && tag.Stage == content.StageCountry && content.StageRank(stage) >= content.StageRank(content.StageCity):
 		return nil, nil
 	}
 	out := &economy.Unavailable{Service: service, Stage: tag.Stage, Here: stage}

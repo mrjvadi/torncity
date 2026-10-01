@@ -75,6 +75,30 @@ export interface AppointView {
   player: GovPlayer
 }
 
+export interface ArmsBuyView {
+  country: GovPlace
+  offer: ProcureOffer
+  attributes: AttributeLine[] | null
+  fund: number
+  qty: number
+  confirm: boolean
+  total: number
+}
+
+export interface AssetGroup {
+  good: Good
+  class: Named
+  count: number
+  quality: number
+  garrisons: GarrisonLine[] | null
+  depot: number
+  moving: number
+  committed: number
+  damaged: number
+  attributes: AttributeLine[] | null
+  seen_at: number
+}
+
 export interface AttributeLine {
   name: string
   value: number
@@ -306,6 +330,21 @@ export interface BoughtView {
   for_code: string
 }
 
+export interface BranchForces {
+  branch: Named
+  classes: ForceClassLine[] | null
+}
+
+export interface BranchView {
+  country: GovPlace
+  branch: Named
+  groups: AssetGroup[] | null
+  moves: MoveLine[] | null
+  can_station: boolean
+  reference_radar_km: number
+  notice: Notice | null
+}
+
 export interface BudgetLineView {
   code: string
   effect: string
@@ -533,6 +572,19 @@ export interface CompanyCloseView {
   tax: number
   net: number
   staff: number
+}
+
+export interface CompanyDefenceView {
+  ref: CompanyRef
+  licence: LicenceEntry | null
+  manufacturer: boolean
+  owned: number
+  tier: number
+  min_techs: number
+  min_tier: number
+  can_apply: boolean
+  applied: boolean
+  no_minister: boolean
 }
 
 export interface CompanyEmployeeLine {
@@ -808,6 +860,13 @@ export interface CreditView {
   defaults: number
 }
 
+export interface DamageLine {
+  city_code: string
+  city: string
+  band: string
+  closed_in_seconds: number
+}
+
 export interface DashboardView {
   name: string
   city_code: string
@@ -821,6 +880,18 @@ export interface DashboardView {
   cash: number
   bank: number
   jail: ProfileJail | null
+}
+
+export interface DeclareView {
+  unavailable: Unavailable | null
+  country: GovPlace
+  targets: GovPlace[] | null
+  target: GovPlace | null
+  grounds: string[] | null
+  ground: string
+  notice_seconds: number
+  breaks: Named[] | null
+  allies: GovPlace[] | null
 }
 
 export interface DefenceBadge {
@@ -1023,6 +1094,12 @@ export interface EndTreatyView {
 export interface ErrorView {
   code: string
   args: Record<string, unknown> | null
+}
+
+export interface Estimate {
+  chance: string
+  loss_band: string
+  damage_band: string
 }
 
 export interface ExchangeView {
@@ -1278,6 +1355,34 @@ export interface FinanceView {
   pledge: Pledge | null
 }
 
+export interface ForceClassLine {
+  class: Named
+  band: string
+  count: number
+}
+
+export interface ForceOption {
+  kind: string
+  class: Named
+  ready: number
+  from_code: string
+  from: string
+  distance_km: number
+  munitions: number
+  can_launch: boolean
+  office: string
+}
+
+export interface ForcesView {
+  unavailable: Unavailable | null
+  country: GovPlace
+  branches: BranchForces[] | null
+  cleared: boolean
+  readiness: number
+  upkeep: number
+  moving: number
+}
+
 export interface FoundDraftView {
   founder: string
   pending: boolean
@@ -1359,6 +1464,12 @@ export interface FriendsView {
   friends: FriendLine[] | null
   page: number
   pages: number
+}
+
+export interface GarrisonLine {
+  city_code: string
+  city: string
+  count: number
 }
 
 export interface GearLine {
@@ -1649,6 +1760,14 @@ export interface Injury {
   ends_at: string | null
 }
 
+export interface InjuryLine {
+  damage: number
+  health: number
+  max: number
+  hospital: boolean
+  ends_at: string | null
+}
+
 export interface InsuranceProductLine {
   product: Named
   covers: string
@@ -1754,6 +1873,12 @@ export interface JobRef {
   career_name: string
   rank: string
   title: string
+}
+
+export interface JoinLine {
+  war_no: number
+  ally: GovPlace
+  enemy: GovPlace
 }
 
 export interface KitPurchaseView {
@@ -1917,6 +2042,20 @@ export interface LandView {
   free_lots: number
 }
 
+export interface LaunchView {
+  country: GovPlace
+  target: RoomTarget
+  option: ForceOption
+  objectives: string[] | null
+  objective: string
+  quantities: number[] | null
+  qty: number
+  confirm: boolean
+  prepare_seconds: number
+  munitions: number
+  estimate: Estimate | null
+}
+
 export interface LeverEditView {
   place: GovPlace
   lever: GovLever
@@ -1924,6 +2063,35 @@ export interface LeverEditView {
   fine_step: number
   coarse_step: number
   next_change_in_seconds: number
+}
+
+export interface LicenceEntry {
+  no: number
+  company: CompanyRef
+  kind: string
+  basis: string
+  status: string
+  effective_at: string | null
+}
+
+export interface LicenceNoticeView {
+  kind: string
+  company: CompanyRef
+  country: GovPlace
+  effective_at: string | null
+}
+
+export interface LicencesView {
+  unavailable: Unavailable | null
+  country: GovPlace
+  pending: LicenceEntry[] | null
+  in_force: LicenceEntry[] | null
+  ended: LicenceEntry[] | null
+  can_decide: boolean
+  notice: string
+  notice_company: string
+  confirm: LicenceEntry | null
+  revoke_notice_seconds: number
 }
 
 export interface LifeRefusalView {
@@ -2253,6 +2421,25 @@ export interface MeasureToggle {
   mask: number
 }
 
+export interface MilitaryNoticeView {
+  country: GovPlace
+  good: Good
+  qty: number
+  city_code: string
+  city: string
+  branch: Named
+}
+
+export interface MilitaryRefusalView {
+  kind: string
+  country: GovPlace
+  office: string
+  need: number
+  have: number
+  max: number
+  back: Ref
+}
+
 export interface MineLot {
   x: number
   y: number
@@ -2278,12 +2465,42 @@ export interface MineView {
   notice: string
 }
 
+export interface MinistryView {
+  unavailable: Unavailable | null
+  country: GovPlace
+  offices: GovOffice[] | null
+  treasury: number
+  fund: number
+  revenue_share_bps: number
+  defence_budget_bps: number
+  arms_exports: number
+  last: PeriodLine | null
+  next_in_seconds: number
+  next_at: string | null
+  forces: BranchForces[] | null
+  cleared: boolean
+  readiness: number
+  upkeep: number
+  can_procure: boolean
+  notice: Notice | null
+  pending_licences: number
+}
+
 export interface MissionCompletedView {
   mission: Named
   cash: number
   withheld: number
   xp: number
   items: Loot[] | null
+}
+
+export interface MoveLine {
+  good: Good
+  qty: number
+  city_code: string
+  city: string
+  left_seconds: number
+  at: string | null
 }
 
 export interface MyAuctionsView {
@@ -2351,6 +2568,26 @@ export interface NotHereView {
   then_args: string[] | null
 }
 
+export interface Notice {
+  code: string
+  count: number
+  good: Good
+  city_code: string
+  city: string
+  time_seconds: number
+  total: number
+  kind: string
+  target: GovPlace
+}
+
+export interface OccupationLine {
+  city_code: string
+  city: string
+  controller: GovPlace
+  de_jure: GovPlace
+  since_seconds: number
+}
+
 export interface OfficeView {
   office: string
   place: Place
@@ -2366,6 +2603,24 @@ export interface OpenOrderLine {
   qty: number
   filled: number
   price: number
+}
+
+export interface OperationLine {
+  no: number
+  kind: string
+  objective: string
+  country: GovPlace
+  city_code: string
+  city: string
+  target: GovPlace
+  pending: boolean
+  strikes_in_seconds: number
+  called_off: boolean
+  damage_band: string
+  lost_band: string
+  enemy_lost_band: string
+  captured: boolean
+  ago_seconds: number
 }
 
 export interface OrderCancelledView {
@@ -2480,6 +2735,13 @@ export interface PaymentView {
   payer_code: string
   method: string
   amount: number
+}
+
+export interface PeriodLine {
+  levy: number
+  appropriation: number
+  upkeep_due: number
+  upkeep_paid: number
 }
 
 export interface Person {
@@ -2635,6 +2897,26 @@ export interface PrivateMenuView {
   owned_lots: number
   free_lots: number
   lines: PrivateLine[] | null
+}
+
+export interface ProcureOffer {
+  no: number
+  good: Good
+  company: CompanyRef
+  city_code: string
+  city: string
+  country: GovPlace
+  left: number
+  price: number
+  blocked: string
+}
+
+export interface ProcureView {
+  unavailable: Unavailable | null
+  country: GovPlace
+  fund: number
+  offers: ProcureOffer[] | null
+  notice: Notice | null
 }
 
 export interface ProduceTarget {
@@ -2900,6 +3182,14 @@ export interface PropertyView {
   amount: number
 }
 
+export interface ProposalLine {
+  no: number
+  kind: string
+  other: GovPlace
+  incoming: boolean
+  expires_in_seconds: number
+}
+
 export interface ProposeView {
   country: GovPlace
   partners: GovPlace[] | null
@@ -3153,6 +3443,15 @@ export interface ReverseStarted {
   good: Good
   finish_at: string | null
   left_seconds: number
+}
+
+export interface RoomTarget {
+  city_code: string
+  city: string
+  country: GovPlace
+  war_no: number
+  distance_km: number
+  damage_band: string
 }
 
 export interface SampleLine {
@@ -3423,6 +3722,31 @@ export interface StandingLine {
   lot_y: number
 }
 
+export interface StateRetrofitView {
+  country: string
+  kit_serial: string
+  target_serial: string
+  good: Good
+  from_ver: number
+  to_ver: number
+  duration_seconds: number
+  finish_at: string | null
+  started: boolean
+}
+
+export interface StationView {
+  country: GovPlace
+  branch: Named
+  good: Good
+  available: number
+  cities: GovPlace[] | null
+  city_code: string
+  city: string
+  qty: number
+  time_seconds: number
+  confirm: boolean
+}
+
 export interface StockOrderView {
   company: Named
   side: string
@@ -3492,6 +3816,32 @@ export interface StoredNotice {
   screen: string
   view: unknown
   text: string
+}
+
+export interface StrikeReportView {
+  no: number
+  kind: string
+  objective: string
+  country: GovPlace
+  target: GovPlace
+  city_code: string
+  city: string
+  class: Named
+  ours: boolean
+  called_off: boolean
+  committed: number
+  lost: number
+  damaged: number
+  enemy_lost: number
+  enemy_dmg: number
+  seen_at_km: number
+  fired: number
+  munitions: number
+  hits: number
+  damage_bps: number
+  damage_band: string
+  captured: boolean
+  liberated: boolean
 }
 
 export interface StudioKind {
@@ -3835,6 +4185,96 @@ export interface WalkView {
   arrives_at: string | null
 }
 
+export interface WarBlockedView {
+  border: boolean
+  from: GovPlace
+  to: GovPlace
+  city_code: string
+  city: string
+  in_seconds: number
+  back: Ref
+}
+
+export interface WarBoardView {
+  unavailable: Unavailable | null
+  country: GovPlace
+  wars: WarLine[] | null
+  joinable: JoinLine[] | null
+  occupied: OccupationLine[] | null
+  damaged: DamageLine[] | null
+  operations: OperationLine[] | null
+  can_declare: boolean
+  can_command: boolean
+  notice: Notice | null
+}
+
+export interface WarDecisionView {
+  kind: string
+  country: GovPlace
+  war_no: number
+  other: GovPlace
+  ally: GovPlace
+  notice_seconds: number
+  ttl_seconds: number
+}
+
+export interface WarLine {
+  no: number
+  attacker: GovPlace
+  defender: GovPlace
+  attacker_allies: GovPlace[] | null
+  defender_allies: GovPlace[] | null
+  ground: string
+  status: string
+  active_in_seconds: number
+  active_at: string | null
+  since_seconds: number
+  broke: boolean
+  proposals: ProposalLine[] | null
+  can_propose: boolean
+  can_resume: boolean
+}
+
+export interface WarNoticeView {
+  kind: string
+  country: GovPlace
+  other: GovPlace
+  ally: GovPlace
+  city_code: string
+  city: string
+  war_no: number
+  proposal_no: number
+  proposal_kind: string
+  band: string
+  in_seconds: number
+  injury: InjuryLine | null
+}
+
+export interface WarRefusalView {
+  kind: string
+  country: GovPlace
+  office: string
+  in_seconds: number
+  max: number
+  back: Ref
+}
+
+export interface WarRoomView {
+  unavailable: Unavailable | null
+  country: GovPlace
+  targets: RoomTarget[] | null
+  running: OperationLine[] | null
+  readiness: number
+  notice: Notice | null
+}
+
+export interface WarTargetView {
+  country: GovPlace
+  target: RoomTarget
+  options: ForceOption[] | null
+  occupied: OccupationLine | null
+}
+
 export interface WarehouseLine {
   good: Good
   qty: number
@@ -3918,6 +4358,7 @@ export interface ScreenViews {
   appoint_confirm: AppointView
   appoint_done: AppointDoneView
   appoint_refusal: AppointRefusalView
+  arms_buy: ArmsBuyView
   auction_detail: AuctionDetailView
   auction_new: AuctionNewView
   auction_notice: AuctionView
@@ -3932,6 +4373,7 @@ export interface ScreenViews {
   bill_refusal: BillRefusalView
   bills: BillsView
   book: BookView
+  branch: BranchView
   budget: BudgetView
   card: CardView
   case_solved_notice: CaseOutcomeView
@@ -3943,6 +4385,7 @@ export interface ScreenViews {
   company_applied: CompanyAppliedView
   company_buy: BuyView
   company_close: CompanyCloseView
+  company_defence: CompanyDefenceView
   company_employee_notice: CompanyEmployeeNoticeView
   company_founded: CompanyFoundedView
   company_goods: GoodsView
@@ -3995,6 +4438,7 @@ export interface ScreenViews {
   finance_hub: FinanceHubView
   finance_notice: FinanceView
   finance_refusal: FinanceRefusalView
+  forces: ForcesView
   founding_checked: FoundingCheckedView
   founding_form: FoundingFormView
   founding_refusal: FoundingRefusalView
@@ -4028,6 +4472,8 @@ export interface ScreenViews {
   labor_site: LaborSiteView
   leaderboard: BoardView
   lever_edit: LeverEditView
+  licence_notice: LicenceNoticeView
+  licences: LicencesView
   life: LifeView
   life_refusal: LifeRefusalView
   lift: LiftView
@@ -4040,7 +4486,10 @@ export interface ScreenViews {
   market_checkout: MarketCheckoutView
   market_filled_notice: MarketFilledView
   market_refusal: MarketRefusalView
+  military_refusal: MilitaryRefusalView
+  ministry: MinistryView
   mission_completed_notice: MissionCompletedView
+  move_arrived_notice: MilitaryNoticeView
   my_auctions: MyAuctionsView
   my_office: MyOfficeView
   my_orders: MyOrdersView
@@ -4059,6 +4508,7 @@ export interface ScreenViews {
   policy_confirm: PolicyConfirmView
   policy_refused: PolicyRefusalView
   portfolio: PortfolioView
+  procure: ProcureView
   produce: ProduceView
   production_notice: ProductionNoticeView
   production_refusal: ProductionRefusalView
@@ -4116,10 +4566,13 @@ export interface ScreenViews {
   shops: ShopsView
   sleep_pay: SleepPayView
   specialists: SpecialistsView
+  state_retrofit: StateRetrofitView
+  station: StationView
   stock: StockPageView
   stock_notice: StockView
   stock_order: StockOrderView
   stood: StoodView
+  strike_report: StrikeReportView
   studio: StudioView
   suppliers: SuppliersView
   tech: TechView
@@ -4151,8 +4604,17 @@ export interface ScreenViews {
   village_work_started: WorkView
   voted: VotedView
   walk_started: WalkStartedView
+  war_blocked: WarBlockedView
+  war_board: WarBoardView
+  war_decision: WarDecisionView
+  war_declare: DeclareView
+  war_launch: LaunchView
+  war_notice: WarNoticeView
+  war_refusal: WarRefusalView
+  war_room: WarRoomView
+  war_target: WarTargetView
   warehouse: WarehouseView
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */
-export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal'] as const
+export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'war_blocked', 'war_refusal'] as const

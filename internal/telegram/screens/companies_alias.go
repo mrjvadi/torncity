@@ -205,7 +205,6 @@ type AttributeLine = companies.AttributeLine
 type DesignView = companies.DesignView
 type ImprovementView = companies.ImprovementView
 type RetrofitView = companies.RetrofitView
-type KitPurchaseView = companies.KitPurchaseView
 
 const TechOwned = companies.TechOwned
 const TechLicense = companies.TechLicense

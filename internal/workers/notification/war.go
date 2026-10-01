@@ -3,11 +3,12 @@ package notification
 import (
 	"context"
 	"encoding/json"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	mview "github.com/mrjvadi/torncity/internal/presentation/military"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -44,8 +45,8 @@ type warEvent struct {
 	ProposalNo    int64    `json:"proposal_no"`
 	ProposalKind  string   `json:"proposal_kind"`
 
-	Report *screens.StrikeReportView `json:"report"`
-	Injury *injuryPayload            `json:"injury"`
+	Report *mview.StrikeReportView `json:"report"`
+	Injury *injuryPayload          `json:"injury"`
 }
 
 func decodeWar(env *envelope.Envelope, name string) (warEvent, error) {
@@ -64,14 +65,22 @@ func renderWarNotice(name string) Renderer {
 		if err != nil || ev.PlayerID == "" {
 			return nil, err
 		}
-		view := screens.WarNoticeView{Kind: ev.Kind, Country: country(ev.CountryCode, ev.CountryName),
+		view := mview.WarNoticeView{Kind: ev.Kind, Country: country(ev.CountryCode, ev.CountryName),
 			Other: country(ev.OtherCode, ev.OtherName), Ally: country(ev.AllyCode, ev.AllyName), CityCode: ev.CityCode,
 			City: ev.CityName, WarNo: ev.WarNo, ProposalNo: ev.ProposalNo, ProposalKind: ev.ProposalKind, Band: ev.Band,
-			In: time.Duration(ev.TTLSeconds) * time.Second, Injury: ev.Injury.view()}
-		return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-			return screens.WarNotice(c, view)
+			In: time.Duration(ev.TTLSeconds) * time.Second, Injury: warInjury(ev.Injury)}
+		return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+			return mview.WarNotice(c, view)
 		}}, nil
 	}
+}
+
+// warInjury is what a strike did to the player, as the notice carries it.
+func warInjury(p *injuryPayload) *mview.InjuryLine {
+	if p == nil || p.Damage <= 0 {
+		return nil
+	}
+	return &mview.InjuryLine{Damage: p.Damage, Health: p.Health, Max: p.MaxHealth, Hospital: p.Hospital, EndsAt: p.EndsAt}
 }
 
 // renderWarReport: an operation's exact report, to one player.
@@ -81,8 +90,8 @@ func renderWarReport(_ context.Context, _ Deps, env *envelope.Envelope) (*Draft,
 		return nil, err
 	}
 	view := *ev.Report
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.StrikeReport(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return mview.StrikeReport(c, view)
 	}}, nil
 }
 

@@ -108,7 +108,6 @@ func companiesFixtures() []fixture {
 	retrofit := companies.RetrofitView{Ref: ref, KitNo: 4, Good: good, FromVer: 1, ToVer: 2, Duration: time.Hour, FinishAt: at}
 	retrofitOn := retrofit
 	retrofitOn.Started = true
-	kit := companies.KitPurchaseView{Bought: true, Seller: "Nilou", Country: "ostmark"}
 	lab := companies.LabView{Ref: ref, Available: 4000, Running: &companies.ResearchLine{Tech: named("circuits"), FinishAt: at, Left: time.Hour},
 		Techs: []companies.TechLine{{Tech: named("circuits"), State: companies.TechAvailable, Cost: 900}, {Tech: named("optics"), State: companies.TechLocked, Missing: []presentation.Named{named("circuits")}}}, Hidden: 2}
 	tech := companies.TechView{Ref: ref, Tech: named("circuits"), State: companies.TechAvailable, Cost: 900, Time: time.Hour,
@@ -234,7 +233,6 @@ func companiesFixtures() []fixture {
 		{"improvement started", companies.Improvement(c, improvementOn), func(x screens.Context) *presenter.Response { return screens.Improvement(x, improvementOn) }},
 		{"retrofit", companies.Retrofit(c, retrofit), func(x screens.Context) *presenter.Response { return screens.Retrofit(x, retrofit) }},
 		{"retrofit started", companies.Retrofit(c, retrofitOn), func(x screens.Context) *presenter.Response { return screens.Retrofit(x, retrofitOn) }},
-		{"kit purchase", companies.KitPurchase(c, kit), func(x screens.Context) *presenter.Response { return screens.KitPurchase(x, kit) }},
 		{"lab", companies.Lab(c, lab), func(x screens.Context) *presenter.Response { return screens.Lab(x, lab) }},
 		{"tech", companies.Tech(c, tech), func(x screens.Context) *presenter.Response { return screens.Tech(x, tech) }},
 		{"tech owned licensed", companies.Tech(c, techOwned), func(x screens.Context) *presenter.Response { return screens.Tech(x, techOwned) }},

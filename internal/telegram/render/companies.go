@@ -32,7 +32,6 @@ func init() {
 	Register(companies.ScreenDesign, screens.Design)
 	Register(companies.ScreenImprovement, screens.Improvement)
 	Register(companies.ScreenRetrofit, screens.Retrofit)
-	Register(companies.ScreenKitPurchase, screens.KitPurchase)
 	Register(companies.ScreenLab, screens.Lab)
 	Register(companies.ScreenTech, screens.Tech)
 	Register(companies.ScreenOrders, screens.Orders)

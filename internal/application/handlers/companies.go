@@ -548,7 +548,7 @@ func (h *CompaniesHandler) Register(ctx context.Context, meta envelope.Metadata)
 		for _, def := range snap.CompanyTypes() {
 			// A kind the settlement does not reach is listed as such, with
 			// the stage it starts at, never left out (availability.yml).
-			gone, err := h.gates.CheckTag(ctx, snap, city.ID, "company_type", def.Code)
+			gone, err := h.gates.CheckEntry(ctx, snap, city.ID, "company_type", def.Code)
 			if err != nil {
 				return err
 			}
@@ -638,7 +638,7 @@ func (h *CompaniesHandler) foundability(ctx context.Context, tx application.Tx, 
 		return f, nil
 	}
 	f.city = city
-	if f.gone, err = h.gates.CheckTag(ctx, snap, city.ID, "company_type", def.Code); err != nil {
+	if f.gone, err = h.gates.CheckEntry(ctx, snap, city.ID, "company_type", def.Code); err != nil {
 		return f, err
 	}
 	if f.gone != nil {

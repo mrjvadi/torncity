@@ -41,3 +41,8 @@ func (u *Unavailable) actions(backAddr string) []presentation.Action {
 	}
 	return append(a, back(backAddr))
 }
+
+// Actions is the answer of a screen of another area whose service is not
+// offered here: the journey to the nearest place that has it, and the way back
+// to backAddr.
+func (u *Unavailable) Actions(backAddr string) []presentation.Action { return u.actions(backAddr) }

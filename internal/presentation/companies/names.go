@@ -27,7 +27,6 @@ const (
 	ScreenDesign            = "design"
 	ScreenImprovement       = "improvement"
 	ScreenRetrofit          = "retrofit"
-	ScreenKitPurchase       = "kit_purchase"
 	ScreenLab               = "lab"
 	ScreenTech              = "tech"
 	ScreenOrders            = "orders"
