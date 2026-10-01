@@ -201,7 +201,7 @@ func (r *rehearsal) jurisdictionOf(city string) string {
 // player would.
 func (r *rehearsal) busFare(p *application.Player, to string) int64 {
 	r.t.Helper()
-	resp, err := r.travel.Options(testCtx(r.t), travelMeta(p, "req-options-"+randomToken(r.t, 6)), handlers.TravelOptionsRequest{City: to})
+	resp, err := rr(r.travel.Options(testCtx(r.t), travelMeta(p, "req-options-"+randomToken(r.t, 6)), handlers.TravelOptionsRequest{City: to}))
 	if err != nil {
 		r.t.Fatalf("options: %v", err)
 	}

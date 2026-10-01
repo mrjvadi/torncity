@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strings"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -11,24 +10,6 @@ import (
 // Game clients (cmd/clientapi): the one-time code that links a client to
 // the player's account, and the list of linked clients with a way to sign
 // each out. Both are the player's own business: private screens.
-
-// Callback addresses of the device screens.
-const (
-	AddrDeviceLink   = "device:link"
-	AddrDeviceList   = "device:list"
-	AddrDeviceRevoke = "device:revoke"
-)
-
-// DeviceLinkView is a fresh link code.
-type DeviceLinkView struct {
-	Code      string
-	ExpiresAt time.Time
-	// Valid is how long the code works, from now.
-	Valid time.Duration
-	// MiniAppURL is the web game, opened in place as a Telegram Mini App
-	// (signed in by Telegram, no code needed); empty for none.
-	MiniAppURL string
-}
 
 // DeviceLink renders a link code and how to use it.
 func DeviceLink(c Context, v DeviceLinkView) *presenter.Response {
@@ -61,23 +42,6 @@ func renderDeviceLink(c Context, v DeviceLinkView) *presenter.Response {
 		markup.Rows = append([][]presenter.Button{{play}}, markup.Rows...)
 	}
 	return c.respond(text, markup).MarkPrivate().AsHTML()
-}
-
-// DeviceLine is one linked client.
-type DeviceLine struct {
-	ID   string
-	Name string
-	// Via is how it signed in: "link" or "telegram".
-	Via        string
-	CreatedAt  time.Time
-	LastSeenAt time.Time
-}
-
-// DevicesView is the list of linked clients.
-type DevicesView struct {
-	Devices []DeviceLine
-	// Notice is what just happened: "revoked", "gone" or empty.
-	Notice string
 }
 
 // Devices renders the linked clients, each with a button that signs it out.

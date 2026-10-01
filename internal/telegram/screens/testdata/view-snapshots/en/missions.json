@@ -694,7 +694,7 @@
         "name": "Bazaar"
       },
       "mode": "",
-      "need": "place.need.board",
+      "need": "board",
       "need_args": {
         "board": "Civic noticeboard"
       },

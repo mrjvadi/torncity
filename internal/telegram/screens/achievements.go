@@ -9,27 +9,9 @@ import (
 // earned and how far they are toward the rest; the notice of one earned; and
 // the count on the home screen.
 
-// AddrAchievements is the achievements screen.
-const AddrAchievements = "achievement:list"
-
 // AchievementName names an achievement.
 func (c Context) AchievementName(n Named) string {
 	return c.named("achievement."+n.Code+".name", n.Name)
-}
-
-// AchievementLine is one achievement and the player's progress.
-type AchievementLine struct {
-	Achievement Named
-	Count, Done int64
-	Reward      int64
-	Earned      bool
-	// Cash is what earning it paid.
-	Cash int64
-}
-
-// AchievementsView is the player's achievements.
-type AchievementsView struct {
-	Lines []AchievementLine
 }
 
 // Achievements renders the player's achievements.

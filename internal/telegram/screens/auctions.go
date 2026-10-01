@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -12,39 +11,6 @@ import (
 // the game clock. The list and an auction are public; a bid's checkout shows
 // balances only in the player's own chat. An auction is named by its number,
 // never an id.
-
-// Callback addresses of the auction house.
-const (
-	AddrAuctions    = "auction:list"
-	AddrAuction     = "auction:view"
-	AddrAuctionNew  = "auction:new"
-	AddrAuctionBid  = "auction:bid"
-	AddrAuctionMine = "auction:mine"
-)
-
-// AuctionLine is one auction on a list.
-type AuctionLine struct {
-	No        int64
-	Item      Named
-	Quality   int
-	HighBid   int64
-	Reserve   int64
-	Remaining time.Duration
-	EndsAt    time.Time
-	Status    string
-	// Mine marks the viewer's own auction; Leading the viewer's standing
-	// bid.
-	Mine, Leading bool
-}
-
-// AuctionsView is the open auctions of a city.
-type AuctionsView struct {
-	CityCode, City string
-	Auctions       []AuctionLine
-	AtHouse        bool
-	// Way is the walk to the auction house when the player is elsewhere.
-	Way *Way
-}
 
 func (c Context) auctionLine(a AuctionLine) string {
 	args := map[string]any{
@@ -63,6 +29,9 @@ func Auctions(c Context, v AuctionsView) *presenter.Response {
 }
 
 func renderAuctions(c Context, v AuctionsView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrMarket)
+	}
 	kb := keyboards.New()
 	lines := []string{}
 	if len(v.Auctions) == 0 {
@@ -88,20 +57,6 @@ func renderAuctions(c Context, v AuctionsView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMarket, RefreshData: AddrAuctions}))
 	return c.respond(paragraphs(c.T("auction.title", map[string]any{"city": c.CityName(v.CityCode, v.City)}),
 		body(lines...), where), kb.Build())
-}
-
-// AuctionView is one auction in detail, with the bid the viewer may make.
-type AuctionView struct {
-	Line AuctionLine
-	// MinNext is the least a new bid must be; Bids how many were made.
-	MinNext int64
-	Bids    int
-	// Payment is how the next bid can be paid, nil when the viewer cannot
-	// bid (their own auction, their standing bid, closed, not at the house).
-	Payment *PaymentChoice
-	Nonce   string
-	// Seller names the seller.
-	Seller string
 }
 
 // AuctionDetail renders one auction.
@@ -146,18 +101,6 @@ func renderAuctionDetail(c Context, v AuctionView) *presenter.Response {
 	return c.respond(paragraphs(c.T("auction.detail_title", map[string]any{"no": FormatNumber(c, a.No)}), body(lines...), bid), kb.Build())
 }
 
-// AuctionNewView is a piece the player may put up, and the terms offered.
-type AuctionNewView struct {
-	Item      Named
-	Ref       string
-	Quality   int
-	Reserves  []int64
-	Durations []time.Duration
-	// Duration is the chosen length's index, when a reserve is being
-	// chosen.
-	Nonce string
-}
-
 // AuctionNew renders the choice of a reserve and a length for a piece.
 func AuctionNew(c Context, v AuctionNewView) *presenter.Response {
 	return c.withView(renderAuctionNew(c, v), ScreenAuctionNew, v)
@@ -183,15 +126,6 @@ func renderAuctionNew(c Context, v AuctionNewView) *presenter.Response {
 	), kb.Build())
 }
 
-// AuctionOpenedView is an auction opened.
-type AuctionOpenedView struct {
-	No       int64
-	Item     Named
-	Reserve  int64
-	Duration time.Duration
-	EndsAt   time.Time
-}
-
 // AuctionOpened renders an auction opened.
 func AuctionOpened(c Context, v AuctionOpenedView) *presenter.Response {
 	return c.withView(renderAuctionOpened(c, v), ScreenAuctionOpened, v)
@@ -207,15 +141,6 @@ func renderAuctionOpened(c Context, v AuctionOpenedView) *presenter.Response {
 			"reserve": FormatMoney(c, v.Reserve), "duration": FormatDuration(c, v.Duration)}),
 		clockLine(c, "auction.ends_at", v.EndsAt),
 	), kb.Build())
-}
-
-// BidPlacedView is a bid made.
-type BidPlacedView struct {
-	No     int64
-	Item   Named
-	Amount int64
-	Method string
-	EndsAt time.Time
 }
 
 // BidPlaced renders a bid.
@@ -234,11 +159,6 @@ func renderBidPlaced(c Context, v BidPlacedView) *presenter.Response {
 		c.T("auction.bid_escrow", nil),
 		clockLine(c, "auction.ends_at", v.EndsAt),
 	), kb.Build())
-}
-
-// MyAuctionsView is what the player sells and bids on.
-type MyAuctionsView struct {
-	Auctions []AuctionLine
 }
 
 // MyAuctions renders the player's auctions and bids. Private.
@@ -303,26 +223,6 @@ func renderAuctionNotice(c Context, v AuctionNoticeView) *presenter.Response {
 	return c.respond(c.T("auction.notice_"+v.Kind, map[string]any{
 		"no": FormatNumber(c, v.No), "item": c.ItemName(v.Item), "amount": FormatMoney(c, v.Amount), "fee": FormatMoney(c, v.Fee),
 	}), kb.Build()).MarkPrivate()
-}
-
-// Auction refusal kinds.
-const (
-	AuctionRefusedNone        = "none"
-	AuctionRefusedClosed      = "closed"
-	AuctionRefusedTooLow      = "too_low"
-	AuctionRefusedOwn         = "own"
-	AuctionRefusedLeading     = "leading"
-	AuctionRefusedNotHeld     = "not_held"
-	AuctionRefusedTooMany     = "too_many"
-	AuctionRefusedNotSellable = "not_sellable"
-)
-
-// AuctionRefusalView is a refused auction request.
-type AuctionRefusalView struct {
-	Kind    string
-	No      int64
-	MinNext int64
-	Count   int
 }
 
 // AuctionRefusal renders a refused auction request.

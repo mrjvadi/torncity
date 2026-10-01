@@ -84,7 +84,7 @@ func missionSnapshots(c Context, who people, add func(string, *presenter.Respons
 		add("Refused · "+kind, MissionRefusal(c, MissionRefusalView{Kind: kind}))
 	}
 	add("Refused · level", MissionRefusal(c, MissionRefusalView{Kind: MissionRefusedBlocked, Blocked: "level", Level: 2}))
-	add("Not here · take it at the board", NotHere(c, NotHereView{Need: "place.need.board",
+	add("Not here · take it at the board", NotHere(c, NotHereView{Need: "board",
 		NeedArgs: map[string]any{"board": c.boardName(cityHall)}, Place: cityHall.Place,
 		Here: Named{Code: "bazaar", Name: "Bazaar"}, Walk: 10 * time.Second, Then: "mission.board", ThenArgs: []string{"city_hall"}}))
 	add("Pay · held for review", PaySent(c, PaySentView{PayeeName: who.friend, PayeeCode: friendCode, Method: PayCard,

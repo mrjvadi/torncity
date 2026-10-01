@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"regexp"
 	"strings"
 	"time"
@@ -16,7 +18,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/events"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Go, then do.
@@ -143,16 +144,16 @@ func followUpFrom(meta envelope.Metadata, then string, args []string) (*FollowUp
 	return f, nil
 }
 
-// followUpNote is the catalogue key of the line a started walk adds about
+// followUpNote is the code of the line a started walk adds about
 // what happens on arrival.
 func followUpNote(f *FollowUp) string {
 	switch {
 	case f == nil:
 		return ""
 	case f.Command == "job.work":
-		return "place.then.work"
+		return "work"
 	}
-	return "place.then.open"
+	return "open"
 }
 
 // PlaceActionPayload is the jsonb a walk writes onto its game_actions row: the
@@ -185,20 +186,20 @@ var errAlreadyThere = place.ErrAlreadyThere
 // walks the player to its place first.
 func beginWalk(ctx context.Context, tx application.Tx, ids IDGenerator, scale gametime.Scale,
 	snap *content.Snapshot, meta envelope.Metadata, ws walkStart, now time.Time,
-) (screens.WalkStartedView, error) {
+) (life.WalkStartedView, error) {
 	w, p := ws.where, ws.player
 	mv, err := place.StartMove(w.cmap, w.here.Code, ws.to, now, scale)
 	switch {
 	case stderrors.Is(err, place.ErrAlreadyThere):
-		return screens.WalkStartedView{}, errAlreadyThere
+		return life.WalkStartedView{}, errAlreadyThere
 	case stderrors.Is(err, place.ErrUnknownPlace):
-		return screens.WalkStartedView{}, errors.NotFound("no such place in this city").WithCause(err)
+		return life.WalkStartedView{}, errors.NotFound("no such place in this city").WithCause(err)
 	case err != nil:
-		return screens.WalkStartedView{}, errors.Internal(err)
+		return life.WalkStartedView{}, errors.Internal(err)
 	}
 	spent, err := domainStats(ws.stats).SpendEnergy(mv.Energy)
 	if err != nil {
-		return screens.WalkStartedView{}, errors.InvalidInput("not enough energy to walk there").
+		return life.WalkStartedView{}, errors.InvalidInput("not enough energy to walk there").
 			WithCause(err).WithDetail("needed", mv.Energy).WithDetail("current", ws.stats.Energy)
 	}
 	next := storedStats(ws.stats, spent)
@@ -206,26 +207,26 @@ func beginWalk(ctx context.Context, tx application.Tx, ids IDGenerator, scale ga
 		next.UpdatedAt = now
 	}
 	if err := tx.Stats().Save(ctx, next); err != nil {
-		return screens.WalkStartedView{}, err
+		return life.WalkStartedView{}, err
 	}
 
 	moveID, actionID := ids.NewID(), ids.NewID()
 	payload, err := json.Marshal(PlaceActionPayload{ReferenceID: moveID, PlayerID: p.ID, Then: ws.then})
 	if err != nil {
-		return screens.WalkStartedView{}, err
+		return life.WalkStartedView{}, err
 	}
 	if err := tx.GameActions().Schedule(ctx, application.GameAction{
 		ID: actionID, ActionType: application.PlaceMoveActionType, ActorType: "player", ActorID: p.ID,
 		ReferenceType: application.PlaceMoveReference, ReferenceID: moveID, Payload: payload,
 		StartedAt: mv.StartedAt, FinishAt: mv.ArrivesAt,
 	}); err != nil {
-		return screens.WalkStartedView{}, err
+		return life.WalkStartedView{}, err
 	}
 	if err := tx.Places().StartMove(ctx, application.PlaceMove{
 		ID: moveID, PlayerID: p.ID, CityID: w.city.ID, From: mv.From, To: mv.To, Energy: mv.Energy,
 		GameActionID: actionID, StartedAt: mv.StartedAt, ArrivesAt: mv.ArrivesAt,
 	}); err != nil {
-		return screens.WalkStartedView{}, err
+		return life.WalkStartedView{}, err
 	}
 	fields := map[string]any{
 		"move_id": moveID, "player_id": p.ID, "city_id": w.city.ID, "from": mv.From, "to": mv.To,
@@ -236,14 +237,14 @@ func beginWalk(ctx context.Context, tx application.Tx, ids IDGenerator, scale ga
 	}
 	ev, err := events.New("place.walk_started", "place_move", moveID, fields)
 	if err != nil {
-		return screens.WalkStartedView{}, err
+		return life.WalkStartedView{}, err
 	}
 	if err := tx.Outbox().Append(ctx, application.OutboxRecord{
 		EventID: ev.ID, Subject: subjects.Event("place", "walk_started"), Metadata: meta, Payload: ev.Payload,
 	}); err != nil {
-		return screens.WalkStartedView{}, err
+		return life.WalkStartedView{}, err
 	}
-	return screens.WalkStartedView{
+	return life.WalkStartedView{
 		To: placeNamed(snap, mv.To), From: placeNamed(snap, mv.From),
 		Duration: mv.Duration(), ArrivesAt: mv.ArrivesAt, Energy: mv.Energy,
 		Then: followUpNote(ws.then),
@@ -323,7 +324,7 @@ func thenFor(err error, command string, args ...string) error {
 // wayTo is the walk to the city's place offering s, for a screen to offer
 // when the player is elsewhere: nil when they are there, on the way
 // somewhere, or in a city without the place.
-func wayTo(w whereabouts, snap *content.Snapshot, s place.Service, scale gametime.Scale) *screens.Way {
+func wayTo(w whereabouts, snap *content.Snapshot, s place.Service, scale gametime.Scale) *presentation.Way {
 	if !w.placed() || w.walk != nil {
 		return nil
 	}
@@ -331,5 +332,5 @@ func wayTo(w whereabouts, snap *content.Snapshot, s place.Service, scale gametim
 	if !ok || target.Code == w.here.Code {
 		return nil
 	}
-	return &screens.Way{Place: placeNamed(snap, target.Code), Walk: scale.RealWait(target.MoveTime)}
+	return &presentation.Way{Place: placeNamed(snap, target.Code), Walk: scale.RealWait(target.MoveTime)}
 }

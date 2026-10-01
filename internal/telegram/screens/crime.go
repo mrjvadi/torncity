@@ -1159,24 +1159,6 @@ func renderCrimeRefusal(c Context, v CrimeRefusalView) *presenter.Response {
 	return resp
 }
 
-// crimeError names the refusals other features raise for the crime engine:
-// a jailed player, or one in the middle of a timed crime, asking to travel,
-// work or withdraw.
-func crimeError(c Context, err error) (string, map[string]any, bool) {
-	switch {
-	case identical(err, application.ErrInJail):
-		secs := detailInt(err, "remaining_seconds")
-		if secs <= 0 {
-			return "crime.error.in_jail_later", nil, true
-		}
-		return "crime.error.in_jail", map[string]any{
-			"remaining": FormatDuration(c, time.Duration(secs)*time.Second)}, true
-	case identical(err, application.ErrCrimeInProgress):
-		return "crime.error.in_progress", nil, true
-	}
-	return "", nil, false
-}
-
 func init() {
 	errorNextStep["crime.error.in_jail"] = struct{ label, addr string }{"crime.button.jail", AddrCrimeJail}
 	errorNextStep["crime.error.in_jail_later"] = struct{ label, addr string }{"crime.button.jail", AddrCrimeJail}

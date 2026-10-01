@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/telegram/i18n"
+	"github.com/mrjvadi/torncity/internal/telegram/render"
 	"strings"
 	"testing"
 
@@ -19,6 +21,13 @@ func (h *phase1) settingsHandler(t *testing.T) *SettingsHandler {
 // it was rendered in without asserting on any sentence.
 func labels(resp *presenter.Response) []string {
 	var out []string
+	if resp != nil && resp.Neutral() {
+		// what a Telegram player reads: the edge words the neutral answer
+		shippedOnce.Do(func() { shipped, shippedErr = i18n.Load(localesDir) })
+		if r, err := render.Render(shipped, render.Delivery{}, resp); err == nil {
+			resp = r
+		}
+	}
 	if resp == nil || resp.Keyboard == nil {
 		return out
 	}
@@ -177,7 +186,7 @@ func TestSetLanguageRendersTheSettingsInTheNewLanguage(t *testing.T) {
 
 	m := pressed(command("player.language.set", 704, "req-1"), 77)
 	m.Language = "fa"
-	resp, err := h.settingsHandler(t).SetLanguage(ctx, m, LanguageRequest{Lang: "en"})
+	resp, err := shownIn(t, messages(t), m)(h.settingsHandler(t).SetLanguage(ctx, m, LanguageRequest{Lang: "en"}))
 	if err != nil {
 		t.Fatalf("SetLanguage: %v", err)
 	}
@@ -261,7 +270,7 @@ func TestSettingsScreenShowsNamesAndOffersTheOtherLanguages(t *testing.T) {
 			p := h.player(706, "p-706", berlinID)
 			p.Language = tt.stored
 
-			resp, err := h.settingsHandler(t).Show(context.Background(), command("player.settings", 706, "req-1"))
+			resp, err := shown(t, messages(t))(h.settingsHandler(t).Show(context.Background(), command("player.settings", 706, "req-1")))
 			if err != nil {
 				t.Fatal(err)
 			}

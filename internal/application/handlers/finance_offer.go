@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strconv"
 	"strings"
 	"time"
@@ -10,8 +12,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/finance"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // offer is what a product lends one player now, worked out once for the
@@ -24,8 +24,8 @@ type offer struct {
 	// most is the most it lends: the band's share of the product, the
 	// pledge's worth, what the bank may lend.
 	most    int64
-	pledges []screens.PledgeLine
-	pledge  *screens.PledgeLine
+	pledges []economy.PledgeLine
+	pledge  *economy.PledgeLine
 }
 
 // offerFor works out a product's offer; pledgeArg names the pledge chosen
@@ -35,7 +35,7 @@ func (h *FinanceHandler) offerFor(ctx context.Context, tx application.Tx, snap *
 ) (offer, error) {
 	l, ok := def.Loan(code)
 	if !ok {
-		return offer{}, refuseFinance(screens.FinanceRefusedNoProduct)
+		return offer{}, refuseFinance(economy.FinanceRefusedNoProduct)
 	}
 	o := offer{product: l}
 	country, err := h.countryOf(ctx, tx, p)
@@ -50,7 +50,7 @@ func (h *FinanceHandler) offerFor(ctx context.Context, tx application.Tx, snap *
 	}
 	o.rate, o.most = quote(l, def, o.credit.score.Score, o.bank.policyBPS)
 	if o.most == 0 {
-		r := refuseFinance(screens.FinanceRefusedScore)
+		r := refuseFinance(economy.FinanceRefusedScore)
 		r.view.Score = max(l.MinScore, def.CreditBands()[0].MinScore)
 		for _, b := range def.CreditBands() {
 			if b.LimitBPS > 0 && b.MinScore > o.credit.score.Score {
@@ -65,7 +65,7 @@ func (h *FinanceHandler) offerFor(ctx context.Context, tx application.Tx, snap *
 			return o, err
 		}
 		if len(o.pledges) == 0 {
-			return o, refuseFinance(screens.FinanceRefusedPledge)
+			return o, refuseFinance(economy.FinanceRefusedPledge)
 		}
 		pledgeArg = strings.TrimSpace(pledgeArg)
 		for i := range o.pledges {
@@ -84,8 +84,8 @@ func (h *FinanceHandler) offerFor(ctx context.Context, tx application.Tx, snap *
 }
 
 // options are the amounts and terms offered.
-func (o offer) options(def content.FinanceDef) []screens.LoanOption {
-	var out []screens.LoanOption
+func (o offer) options(def content.FinanceDef) []economy.LoanOption {
+	var out []economy.LoanOption
 	seen := map[int64]bool{}
 	for _, bps := range def.Bank.OfferBPS {
 		a := finance.OfBPS(o.most, bps)
@@ -99,7 +99,7 @@ func (o offer) options(def content.FinanceDef) []screens.LoanOption {
 			if err != nil {
 				continue
 			}
-			out = append(out, screens.LoanOption{Amount: a, Term: term, Instalment: s.Amount(1)})
+			out = append(out, economy.LoanOption{Amount: a, Term: term, Instalment: s.Amount(1)})
 		}
 	}
 	return out
@@ -116,17 +116,22 @@ func (o offer) allows(def content.FinanceDef, amount, term int64) bool {
 }
 
 // Offer handles loan.offer: a product's amounts and terms, after its pledge.
-func (h *FinanceHandler) Offer(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) Offer(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
+	if resp, err := h.gate(ctx, meta, snap, "loans", func(lang string, un *economy.Unavailable) *presentation.Response {
+		return economy.LoanOffer(presentation.Ctx{Lang: lang}, economy.LoanOfferView{Unavailable: un})
+	}); resp != nil || err != nil {
+		return resp, err
+	}
 	def, err := h.def(snap)
 	if err != nil {
 		return nil, err
 	}
 	lang := meta.Language
-	var view screens.LoanOfferView
+	var view economy.LoanOfferView
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -137,7 +142,7 @@ func (h *FinanceHandler) Offer(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		l := o.product
-		view = screens.LoanOfferView{Product: named(l.Code, l.Name), Kind: productKind(l), RateBPS: o.rate,
+		view = economy.LoanOfferView{Product: named(l.Code, l.Name), Kind: productKind(l), RateBPS: o.rate,
 			Limit: o.most, Terms: l.Terms, Pledges: o.pledges, Pledge: o.pledge, LateFeeBPS: l.LateFeeBPS,
 			DefaultAfter: l.DefaultAfter}
 		if len(o.pledges) == 0 || o.pledge != nil {
@@ -148,5 +153,5 @@ func (h *FinanceHandler) Offer(ctx context.Context, meta envelope.Metadata, req 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.LoanOffer(h.screen(meta, lang), view), nil
+	return economy.LoanOffer(presentation.Ctx{Lang: lang}, view), nil
 }

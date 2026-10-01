@@ -20,7 +20,7 @@ func TestProfileShowsLevelEnergyHealthAndCity(t *testing.T) {
 	row.Health = 88
 	h.stats.rows[p.ID] = row
 
-	resp, err := h.profileHandler(t).Handle(context.Background(), command("player.profile.get", 500, "req-1"))
+	resp, err := shown(t, messages(t))(h.profileHandler(t).Handle(context.Background(), command("player.profile.get", 500, "req-1")))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -45,7 +45,7 @@ func TestProfileShowsThePublicCode(t *testing.T) {
 	p.DisplayName = "Ada"
 	p.PublicCode = "K7Q2M9A"
 
-	resp, err := h.profileHandler(t).Handle(context.Background(), command("player.profile.get", 501, "req-1"))
+	resp, err := shown(t, messages(t))(h.profileHandler(t).Handle(context.Background(), command("player.profile.get", 501, "req-1")))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -81,7 +81,7 @@ func TestProfileRegeneratesEnergyOnReadAndPersistsIt(t *testing.T) {
 	// One hour away: four whole fifteen-minute ticks, five energy each.
 	h.now = fixedNow.Add(time.Hour)
 
-	resp, err := h.profileHandler(t).Handle(context.Background(), command("player.profile.get", 501, "req-1"))
+	resp, err := shown(t, messages(t))(h.profileHandler(t).Handle(context.Background(), command("player.profile.get", 501, "req-1")))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -168,7 +168,7 @@ func TestProfileReplayStillRendersTheProfile(t *testing.T) {
 	if _, err := handler.Handle(ctx, m); err != nil {
 		t.Fatalf("first delivery: %v", err)
 	}
-	resp, err := handler.Handle(ctx, m)
+	resp, err := shown(t, messages(t))(handler.Handle(ctx, m))
 	if err != nil {
 		t.Fatalf("redelivery: %v", err)
 	}
@@ -185,7 +185,7 @@ func TestProfileSurvivesAMissingCity(t *testing.T) {
 	h.player(505, "p-1", "city-atlantis")
 	handler := h.profileHandler(t)
 
-	resp, err := handler.Handle(context.Background(), command("player.profile.get", 505, "req-1"))
+	resp, err := shown(t, messages(t))(handler.Handle(context.Background(), command("player.profile.get", 505, "req-1")))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
@@ -15,59 +14,8 @@ import (
 // home they rent; resting at home; and the notices of a lease that ended and
 // a property the city took back.
 
-// Addresses of the property screens.
-const (
-	AddrPropertyMarket   = "property:list"
-	AddrPropertyType     = "property:type"
-	AddrPropertyPurchase = "property:purchase"
-	AddrPropertyMine     = "property:mine"
-	AddrProperty         = "property:view"
-	AddrPropertySell     = "property:sell"
-	AddrPropertyLet      = "property:let"
-	AddrPropertyCancel   = "property:cancel"
-	AddrPropertyOffer    = "property:offer"
-	AddrPropertyBuy      = "property:buy"
-	AddrPropertyRent     = "property:rent"
-	AddrPropertyLeave    = "property:leave"
-	AddrPropertyRest     = "property:rest"
-)
-
-// PropertyYes confirms leaving a rented home.
-const PropertyYes = "yes"
-
 // PropertyTypeName names a kind of property.
 func (c Context) PropertyTypeName(n Named) string { return c.named("property_type."+n.Code, n.Name) }
-
-// PropertyTypeLine is one kind of property a city sells.
-type PropertyTypeLine struct {
-	Type    Named
-	Kind    string
-	Size    int
-	Quality int
-	Price   int64
-	Left    int
-	Home    bool
-}
-
-// PropertyOfferLine is one owner's offer: a property for sale or to let.
-type PropertyOfferLine struct {
-	No         int64
-	Kind       string
-	Type       Named
-	PropertyNo int64
-	Price      int64
-	Seller     GovPlayer
-	// Mine says the viewer made it.
-	Mine bool
-}
-
-// PropertyMarketView is a city's property market.
-type PropertyMarketView struct {
-	NoCity bool
-	City   GovPlace
-	Types  []PropertyTypeLine
-	Offers []PropertyOfferLine
-}
 
 func (c Context) propertyFacts(kind string, size, quality int) string {
 	return c.T("property.facts", map[string]any{"kind": c.T("property.kind."+kind, nil),
@@ -124,31 +72,6 @@ func renderPropertyMarket(c Context, v PropertyMarketView) *presenter.Response {
 	return c.respond(paragraphs(head, body(sold...), body(offers...)), kb.Build())
 }
 
-// PropertyTypeView is one kind of property the city sells, and its price.
-type PropertyTypeView struct {
-	City       GovPlace
-	Type       Named
-	Kind       string
-	Size       int
-	Quality    int
-	Upkeep     int64
-	Home       bool
-	RestEnergy int
-	Place      Named
-	Price      int64
-	Left       int
-	TaxBPS     int64
-	// Payment offers the ways to pay, when the viewer may buy here now.
-	Payment *PaymentChoice
-	// Blocked says why they may not: sold_out, too_many.
-	Blocked string
-	Max     int
-	// Way is the walk to the land registry, when they are elsewhere.
-	Way *Way
-	// Bought says the viewer just bought one: its number.
-	Bought int64
-}
-
 // PropertyType renders one kind of property.
 func PropertyType(c Context, v PropertyTypeView) *presenter.Response {
 	return c.withView(renderPropertyType(c, v), ScreenPropertyType, v)
@@ -187,23 +110,6 @@ func renderPropertyType(c Context, v PropertyTypeView) *presenter.Response {
 	kb.Add(c.T("property.button.mine", nil), AddrPropertyMine)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrPropertyMarket, RefreshData: keyboards.Data(AddrPropertyType, v.Type.Code)}))
 	return c.respond(paragraphs(notice, body(facts...), action), kb.Build())
-}
-
-// PropertyOfferView is one owner's offer, and what taking it costs.
-type PropertyOfferView struct {
-	Offer   PropertyOfferLine
-	City    GovPlace
-	Kind    string
-	Size    int
-	Quality int
-	Upkeep  int64
-	Home    bool
-	Payment *PaymentChoice
-	// Blocked says why the viewer may not take it: own, renting,
-	// too_many, taken.
-	Blocked string
-	Max     int
-	Way     *Way
 }
 
 // PropertyOffer renders one offer.
@@ -250,59 +156,6 @@ func renderPropertyOffer(c Context, v PropertyOfferView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrPropertyMarket, RefreshData: keyboards.Data(AddrPropertyOffer, no)}))
 	return c.respond(paragraphs(body(facts...), action), kb.Build())
 }
-
-// PropertyLine is one property the viewer owns.
-type PropertyLine struct {
-	No            int64
-	Type          Named
-	Kind          string
-	Size, Quality int
-	City          GovPlace
-	Value         int64
-	Debt          int64
-	UnpaidPeriods int
-	Home          bool
-	// Offer is its open offer; Tenant and Rent its lease.
-	Offer   *PropertyOfferLine
-	Tenant  *GovPlayer
-	Rent    int64
-	Arrears int
-}
-
-// RentedHomeLine is the home the viewer rents.
-type RentedHomeLine struct {
-	LeaseNo  int64
-	Property PropertyLine
-	Landlord GovPlayer
-	Rent     int64
-	Arrears  int
-}
-
-// PropertyMineView is the viewer's property.
-type PropertyMineView struct {
-	Owned  []PropertyLine
-	Rented *RentedHomeLine
-	// Residence is the city they live in; Grace how many periods of debt a
-	// property may run before the city takes it back.
-	Residence GovPlace
-	Grace     int
-	// Rest: a home here to rest at, how long until they may, what it gives.
-	CanRest    bool
-	RestIn     time.Duration
-	RestEnergy int
-	Notice     string
-	NoticeArgs map[string]any
-}
-
-// Notices above the viewer's property.
-const (
-	PropertyNoticeListed    = "listed"
-	PropertyNoticeCancelled = "cancelled"
-	PropertyNoticeRented    = "rented"
-	PropertyNoticeLeft      = "left"
-	PropertyNoticeRested    = "rested"
-	PropertyNoticeBought    = "bought_offer"
-)
 
 func (c Context) ownedLine(p PropertyLine) string {
 	lines := []string{c.T("property.owned_line", map[string]any{"no": FormatNumber(c, p.No),
@@ -374,19 +227,6 @@ func renderPropertyMine(c Context, v PropertyMineView) *presenter.Response {
 	return c.respond(paragraphs(notice, body(head...), body(owned...), rented, rest), kb.Build()).MarkPrivate()
 }
 
-// PropertyView is one of the viewer's properties, and what they can do with
-// it.
-type PropertyView struct {
-	Property PropertyLine
-	Place    Named
-	Upkeep   int64
-	TaxBPS   int64
-	MaxPrice int64
-	MaxRent  int64
-	// Notice is what just happened (listed, cancelled).
-	Notice string
-}
-
 // Property renders one of the viewer's properties.
 func Property(c Context, v PropertyView) *presenter.Response {
 	return c.withView(renderProperty(c, v), ScreenProperty, v)
@@ -423,13 +263,6 @@ func renderProperty(c Context, v PropertyView) *presenter.Response {
 	return c.respond(paragraphs(notice, body(facts...)), kb.Build()).MarkPrivate()
 }
 
-// PropertyLeaveView asks the tenant to confirm leaving their rented home.
-type PropertyLeaveView struct {
-	LeaseNo int64
-	Type    Named
-	City    GovPlace
-}
-
 // PropertyLeave asks to confirm leaving.
 func PropertyLeave(c Context, v PropertyLeaveView) *presenter.Response {
 	return c.withView(renderPropertyLeave(c, v), ScreenPropertyLeave, v)
@@ -443,34 +276,6 @@ func renderPropertyLeave(c Context, v PropertyLeaveView) *presenter.Response {
 		"city": c.PlaceName(v.City)}), kb.Build()).MarkPrivate()
 }
 
-// Refusals of the property screens.
-const (
-	PropertyRefusedNotFound = "not_found"
-	PropertyRefusedNotYours = "not_yours"
-	PropertyRefusedSoldOut  = "sold_out"
-	PropertyRefusedTooMany  = "too_many"
-	PropertyRefusedTaken    = "taken"
-	PropertyRefusedOwn      = "own"
-	PropertyRefusedRenting  = "renting"
-	PropertyRefusedLet      = "let"
-	PropertyRefusedOffered  = "offered"
-	// PropertyRefusedPledged: it secures a running mortgage.
-	PropertyRefusedPledged   = "pledged"
-	PropertyRefusedInDebt    = "in_debt"
-	PropertyRefusedPrice     = "price"
-	PropertyRefusedNoHome    = "no_home"
-	PropertyRefusedTooSoon   = "too_soon"
-	PropertyRefusedNotInCity = "not_in_city"
-)
-
-// PropertyRefusalView is a refused request.
-type PropertyRefusalView struct {
-	Kind string
-	Max  int64
-	Wait time.Duration
-	Back []string
-}
-
 // PropertyRefusal renders a refused request.
 func PropertyRefusal(c Context, v PropertyRefusalView) *presenter.Response {
 	return c.withView(renderPropertyRefusal(c, v), ScreenPropertyRefusal, v)
@@ -479,8 +284,9 @@ func PropertyRefusal(c Context, v PropertyRefusalView) *presenter.Response {
 func renderPropertyRefusal(c Context, v PropertyRefusalView) *presenter.Response {
 	kb := keyboards.New()
 	back := AddrPropertyMine
-	if len(v.Back) > 0 {
-		back = keyboards.Data(v.Back...)
+	if v.Back.Command != "" {
+		back = v.Back.Address()
+
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(c.T("property.refused."+v.Kind, map[string]any{"max": FormatMoney(c, v.Max),

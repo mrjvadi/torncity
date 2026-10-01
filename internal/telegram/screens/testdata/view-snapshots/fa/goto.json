@@ -260,7 +260,7 @@
         "code": "city_centre",
         "name": "City centre"
       },
-      "then": "place.then.work",
+      "then": "work",
       "to": {
         "code": "business_district",
         "name": "Business district"
@@ -278,7 +278,7 @@
         "code": "city_centre",
         "name": "City centre"
       },
-      "then": "place.then.open",
+      "then": "open",
       "to": {
         "code": "university",
         "name": "University quarter"
@@ -299,7 +299,7 @@
         "name": "City centre"
       },
       "mode": "",
-      "need": "place.need.university",
+      "need": "university",
       "need_args": null,
       "place": {
         "code": "university",
@@ -332,7 +332,7 @@
         "name": "City centre"
       },
       "mode": "",
-      "need": "place.need.shop",
+      "need": "shop",
       "need_args": null,
       "place": {
         "code": "bazaar",
@@ -365,7 +365,7 @@
         "name": "City centre"
       },
       "mode": "train",
-      "need": "place.need.departure",
+      "need": "departure",
       "need_args": null,
       "place": {
         "code": "train_station",
@@ -450,6 +450,7 @@
       "auctions": null,
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "unavailable": null,
       "way": {
         "place": {
           "code": "business_district",

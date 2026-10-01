@@ -251,7 +251,7 @@ func text(t *testing.T) func(*presenter.Response, error) string {
 		if resp == nil {
 			t.Fatal("nil response")
 		}
-		return resp.Text
+		return edge(t, resp).Text
 	}
 }
 
@@ -468,6 +468,7 @@ func TestPayScreenOffersCashOnlyWhenTogether(t *testing.T) {
 
 	resp, err := b.h.Pay(context.Background(), bankMeta(payerTG, "r1", "bank.pay"), PayRequest{To: payeeCode})
 	text(t)(resp, err)
+	resp = edge(t, resp)
 	if !hasButtonData(resp, "bank:pay:"+payeeCode+":1000:cash") {
 		t.Errorf("no cash option while together: %+v", resp.Keyboard)
 	}
@@ -475,6 +476,7 @@ func TestPayScreenOffersCashOnlyWhenTogether(t *testing.T) {
 	b.uow.tx.travels.active[payeeID] = application.Travel{ID: "trip", PlayerID: payeeID}
 	resp, err = b.h.Pay(context.Background(), bankMeta(payerTG, "r2", "bank.pay"), PayRequest{To: payeeCode})
 	text(t)(resp, err)
+	resp = edge(t, resp)
 	if hasButtonData(resp, "bank:pay:"+payeeCode+":1000:cash") {
 		t.Error("cash offered to a payee who is travelling")
 	}

@@ -25,7 +25,7 @@ func fixtures() []fixture {
 	c := presentation.Ctx{Lang: "fa"}
 	promo := &village.PromotionView{Village: "v", From: "village", To: "town", Met: true, CanPromote: true}
 	ov := village.VillageOverviewView{Name: "v", Tier: "village", Resident: true, IsHead: true, Promotion: promo,
-		Support: &village.VillageSupport{Code: "support", Name: "Support"}}
+		Support: &village.VillageSupport{Code: "support", Name: "Support", Services: []string{"bank", "market"}}}
 	know := village.KnowledgeListView{Name: "v", Lines: []village.KnowledgeLine{
 		{Knowledge: named("carpentry"), State: village.KnowledgeAvailable, BuyPrice: 50}, {Knowledge: named("x"), State: village.KnowledgeLocked}}}
 	menu := village.BuildMenuView{Name: "v", Lines: []village.BuildLine{{Building: named("house"), State: village.BuildAvailable}, {Building: named("school"), State: village.BuildLocked}}}
@@ -44,7 +44,7 @@ func fixtures() []fixture {
 	donate := village.DonateView{Village: "v", Presets: []int64{100, 500}}
 	res := village.ResidenceView{Village: "v", Home: "h"}
 	promoV := *promo
-	return []fixture{
+	village := []fixture{
 		{"overview", village.VillageOverview(c, ov), func(x screens.Context) *presenter.Response { return screens.VillageOverview(x, ov) }},
 		{"knowledge", village.KnowledgeList(c, know), func(x screens.Context) *presenter.Response { return screens.KnowledgeList(x, know) }},
 		{"build menu", village.BuildMenu(c, menu), func(x screens.Context) *presenter.Response { return screens.BuildMenu(x, menu) }},
@@ -60,6 +60,7 @@ func fixtures() []fixture {
 		{"residence", village.ResidenceAsk(c, res), func(x screens.Context) *presenter.Response { return screens.ResidenceAsk(x, res) }},
 		{"promotion", village.VillagePromotion(c, promoV), func(x screens.Context) *presenter.Response { return screens.VillagePromotion(x, promoV) }},
 	}
+	return append(village, economyFixtures()...)
 }
 
 // TestNeutralActionsAreServedCommands: every action the core lists names a
@@ -100,6 +101,10 @@ func TestTelegramButtonsAreNeutralActions(t *testing.T) {
 		neutral := map[string]bool{}
 		for _, a := range f.neutral.Actions {
 			neutral[a.Address()] = true
+			if a.Ask {
+				// A button that asks for a value carries "ask:<command>:<fixed args>".
+				neutral[askAddress(a)] = true
+			}
 		}
 		for _, shared := range []bool{false, true} {
 			out := f.telegram(screens.Context{Msgs: keyTranslator{}, Lang: "fa", Shared: shared})
@@ -115,4 +120,15 @@ func TestTelegramButtonsAreNeutralActions(t *testing.T) {
 			}
 		}
 	}
+}
+
+// askAddress is the callback data of a button that asks the player for the
+// last value of an action: "ask", the command, and the fixed arguments with
+// the trailing empty ones dropped.
+func askAddress(a presentation.Action) string {
+	args := append([]string(nil), a.Args...)
+	for len(args) > 0 && args[len(args)-1] == "" {
+		args = args[:len(args)-1]
+	}
+	return strings.Join(append([]string{screens.AddrAsk, a.Command}, args...), ":")
 }

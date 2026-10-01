@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -10,8 +12,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // AchievementsHandler serves achievements (docs/adr/0024-property-and-
@@ -196,13 +196,13 @@ func (h *AchievementsHandler) award(ctx context.Context, tx application.Tx, meta
 
 // List handles achievement.list: what the player has earned and how far
 // they are toward the rest.
-func (h *AchievementsHandler) List(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *AchievementsHandler) List(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.AchievementsView
+	var view life.AchievementsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -222,7 +222,7 @@ func (h *AchievementsHandler) List(ctx context.Context, meta envelope.Metadata) 
 			have[e.Code] = e
 		}
 		for _, d := range snap.Achievements() {
-			line := screens.AchievementLine{Achievement: named(d.Code, d.Name), Count: d.Count, Reward: d.Reward,
+			line := life.AchievementLine{Achievement: named(d.Code, d.Name), Count: d.Count, Reward: d.Reward,
 				Done: min(progress[d.Code], d.Count)}
 			if e, ok := have[d.Code]; ok {
 				line.Earned, line.Done, line.Cash = true, d.Count, e.Cash
@@ -234,8 +234,7 @@ func (h *AchievementsHandler) List(ctx context.Context, meta envelope.Metadata) 
 	if err != nil {
 		return nil, err
 	}
-	return screens.Achievements(screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta),
-		Shared: meta.InGroup()}, view), nil
+	return life.Achievements(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // EarnedCount is how many achievements a player has, for the profile.

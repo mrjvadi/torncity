@@ -760,7 +760,10 @@
     "title": "Refused · not_found",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "not_found",
       "max": 0,
       "wait_seconds": 0
@@ -770,7 +773,10 @@
     "title": "Refused · not_yours",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "not_yours",
       "max": 0,
       "wait_seconds": 0
@@ -780,7 +786,10 @@
     "title": "Refused · sold_out",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "sold_out",
       "max": 0,
       "wait_seconds": 0
@@ -790,7 +799,10 @@
     "title": "Refused · taken",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "taken",
       "max": 0,
       "wait_seconds": 0
@@ -800,7 +812,10 @@
     "title": "Refused · own",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "own",
       "max": 0,
       "wait_seconds": 0
@@ -810,7 +825,10 @@
     "title": "Refused · renting",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "renting",
       "max": 0,
       "wait_seconds": 0
@@ -820,7 +838,10 @@
     "title": "Refused · let",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "let",
       "max": 0,
       "wait_seconds": 0
@@ -830,7 +851,10 @@
     "title": "Refused · offered",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "offered",
       "max": 0,
       "wait_seconds": 0
@@ -840,7 +864,10 @@
     "title": "Refused · in_debt",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "in_debt",
       "max": 0,
       "wait_seconds": 0
@@ -850,7 +877,10 @@
     "title": "Refused · no_home",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "no_home",
       "max": 0,
       "wait_seconds": 0
@@ -860,7 +890,10 @@
     "title": "Refused · not_in_city",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "not_in_city",
       "max": 0,
       "wait_seconds": 0
@@ -870,7 +903,10 @@
     "title": "Refused · too many",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "too_many",
       "max": 0,
       "wait_seconds": 0
@@ -880,10 +916,12 @@
     "title": "Refused · price above the ceiling",
     "screen": "property_refusal",
     "view": {
-      "back": [
-        "property:view",
-        "16"
-      ],
+      "back": {
+        "args": [
+          "16"
+        ],
+        "command": "property.view"
+      },
       "kind": "price",
       "max": 1000000,
       "wait_seconds": 0
@@ -893,7 +931,10 @@
     "title": "Refused · rested lately",
     "screen": "property_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "kind": "too_soon",
       "max": 0,
       "wait_seconds": 360

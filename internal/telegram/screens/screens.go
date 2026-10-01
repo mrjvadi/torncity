@@ -20,13 +20,11 @@ package screens
 
 import (
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"strings"
 	"time"
 
-	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/player"
-	"github.com/mrjvadi/torncity/internal/domain/travel"
-	"github.com/mrjvadi/torncity/internal/domain/world"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -232,12 +230,14 @@ func FormatDuration(c Context, d time.Duration) string {
 // The fallback is by class, so a failure nobody anticipated still produces a
 // sentence rather than a blank bubble.
 func Error(c Context, err error) *presenter.Response {
-	if err == nil {
-		kb := keyboards.New().Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
-		return asError(c.respond(c.T("error.internal", nil), kb.Build()))
-	}
+	return ErrorFrom(c, life.ErrorOf(err))
+}
 
-	key, args := errorMessage(c, err)
+// ErrorFrom words an error the core classified (life.ErrorOf): its code is the
+// catalogue key of the sentence, its arguments are data that this edge writes
+// in the language's own numerals and units.
+func ErrorFrom(c Context, v ErrorView) *presenter.Response {
+	key, args := errorSentence(c, v)
 	kb := keyboards.New()
 	// Where a refusal has an obvious next step, that step is one press away
 	// instead of described and left for the player to find.
@@ -248,6 +248,49 @@ func Error(c Context, err error) *presenter.Response {
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
 	return asError(c.respond(c.T(key, args), kb.Build()))
+}
+
+// errorSentence is the key and the placeholder values of an error's sentence.
+func errorSentence(c Context, v ErrorView) (string, map[string]any) {
+	n := func(k string) int64 { return rawInt(v.Args[k]) }
+	switch v.Code {
+	case "error.not_enough_energy":
+		needed, current := n("needed"), n("current")
+		return v.Code, map[string]any{
+			"needed":  FormatNumber(c, needed),
+			"current": FormatNumber(c, current),
+			"wait":    FormatDuration(c, energyWait(needed-current)),
+		}
+	case "error.cooldown":
+		return v.Code, map[string]any{"wait": FormatDuration(c, time.Duration(n("seconds"))*time.Second)}
+	case "bank.error.below_minimum":
+		return v.Code, map[string]any{"min": FormatMoney(c, n("min"))}
+	case "bank.error.above_maximum":
+		return v.Code, map[string]any{"max": FormatMoney(c, n("max"))}
+	case "bank.error.not_enough_cash":
+		return v.Code, map[string]any{"available": FormatMoney(c, n("available"))}
+	case "bank.error.not_enough_in_bank":
+		return v.Code, map[string]any{"available": FormatMoney(c, n("available")), "needed": FormatMoney(c, n("needed"))}
+	case "crime.error.in_jail", "health.error.hospitalised":
+		return v.Code, map[string]any{"remaining": FormatDuration(c, time.Duration(n("remaining_seconds"))*time.Second)}
+	case "gov.refusal.not_holder", "gov.refusal.requires_confirmation", "gov.refusal.requires_vote":
+		office, _ := v.Args["office"].(string)
+		return v.Code, map[string]any{"office": c.OfficeName(office)}
+	}
+	return v.Code, nil
+}
+
+// rawInt reads a whole number out of a view's argument: it crossed the bus as JSON, so it may be any numeric type.
+func rawInt(v any) int64 {
+	switch n := v.(type) {
+	case int:
+		return int64(n)
+	case int64:
+		return n
+	case float64:
+		return int64(n)
+	}
+	return 0
 }
 
 // errorNextStep maps a refusal to the one screen that resolves it. A refusal
@@ -274,69 +317,6 @@ var errorNextStep = map[string]struct{ label, addr string }{
 	"bank.error.above_maximum":      {"button.bank", AddrBank},
 }
 
-// errorMessage picks the key and the placeholder values for a failure.
-func errorMessage(c Context, err error) (string, map[string]any) {
-	if key, args, ok := bankRefusal(c, err); ok {
-		return key, args
-	}
-	// The crime engine's refusals raised by other features; see crime.go.
-	if key, args, ok := crimeError(c, err); ok {
-		return key, args
-	}
-	// A patient asking for what hospital rules out; see health.go.
-	if key, args, ok := healthError(c, err); ok {
-		return key, args
-	}
-	// Player-held offices name their own refusals; see governance.go.
-	if key, args, ok := governanceRefusalOfError(c, err); ok {
-		return key, args
-	}
-	// Identity first: see Error for why class matching cannot do this.
-	for _, s := range applicationSentinels {
-		if identical(err, s.target) {
-			return s.key, nil
-		}
-	}
-
-	switch {
-	case stderrors.Is(err, player.ErrNotEnoughEnergy):
-		needed, current := detailInt(err, "needed"), detailInt(err, "current")
-		if needed <= current {
-			// Without the two numbers there is no honest wait to quote.
-			return "error.not_enough_energy_later", nil
-		}
-		return "error.not_enough_energy", map[string]any{
-			"needed":  FormatNumber(c, needed),
-			"current": FormatNumber(c, current),
-			"wait":    FormatDuration(c, energyWait(needed-current)),
-		}
-	case stderrors.Is(err, travel.ErrSameCity):
-		return "travel.same_city", nil
-	case stderrors.Is(err, world.ErrNoRoute), stderrors.Is(err, world.ErrUnknownCity):
-		return "travel.no_route", nil
-	case stderrors.Is(err, travel.ErrModeUnavailable):
-		return "travel.mode_unavailable", nil
-	}
-
-	switch errors.CodeOf(err) {
-	case errors.CodeNotFound:
-		return "error.not_found", nil
-	case errors.CodeInvalidInput:
-		return "error.invalid_input", nil
-	case errors.CodeConflict:
-		return "error.conflict", nil
-	case errors.CodeRateLimited:
-		return "error.rate_limited", nil
-	case errors.CodeCooldown:
-		return "error.cooldown", map[string]any{
-			"wait": FormatDuration(c, time.Duration(detailInt(err, "seconds"))*time.Second),
-		}
-	case errors.CodeUnauthorized:
-		return "error.unauthorized", nil
-	}
-	return "error.internal", nil
-}
-
 // energyWait is the longest a player short of missing energy has to wait for
 // it: whole regeneration ticks, straight from the domain's constants. It is
 // an upper bound, because the current tick may already be part-way through,
@@ -348,44 +328,6 @@ func energyWait(missing int64) time.Duration {
 	}
 	ticks := (missing + amount - 1) / amount
 	return time.Duration(ticks) * player.EnergyRegenInterval
-}
-
-// applicationSentinels maps each phase 1 sentinel to its sentence. Order is
-// irrelevant because identity matching cannot produce a false positive.
-var applicationSentinels = []struct {
-	target error
-	key    string
-}{
-	{application.ErrCityNotFound, "error.city_not_found"},
-	{application.ErrNoActiveTravel, "travel.none"},
-	{application.ErrAlreadyTravelling, "error.already_travelling"},
-	{application.ErrShiftInProgress, "error.at_work"},
-	{application.ErrSkillNotFound, "error.skill_not_found"},
-	{application.ErrNotFriends, "error.not_friends"},
-	{application.ErrAlreadyFriends, "error.already_friends"},
-	{application.ErrPlayerNotFound, "error.player_not_found"},
-	{application.ErrUnsupportedLanguage, "error.unsupported_language"},
-	{application.ErrPaymentNotAccepted, "payment.not_accepted"},
-}
-
-// identical reports whether target appears anywhere in err's chain as that
-// exact value, ignoring the Is method entirely.
-//
-// A named sentinel (errors.Sentinel) is matched by its id as well, so a copy
-// carrying details — ErrInJail.WithDetail("remaining_seconds", …), as every
-// refusal with a number is raised — is still the sentinel it was copied
-// from. An unnamed one is matched by identity alone.
-func identical(err, target error) bool {
-	named, _ := target.(*errors.Error)
-	for e := err; e != nil; e = stderrors.Unwrap(e) {
-		if e == target {
-			return true
-		}
-		if x, ok := e.(*errors.Error); ok && named != nil && named.ID() != "" && x.ID() == named.ID() {
-			return true
-		}
-	}
-	return false
 }
 
 // detailInt reads one structured detail off a classified error, or zero.

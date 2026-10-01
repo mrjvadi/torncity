@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -12,38 +11,6 @@ import (
 // can do on it, the checkout of a buy, an order placed or cancelled, and a
 // player's own orders. The book is public; balances show only in the
 // player's own chat (PaymentChoice).
-
-// Callback addresses of the market.
-const (
-	AddrMarket       = "market:list"
-	AddrMarketBook   = "market:book"
-	AddrMarketOrder  = "market:order"
-	AddrMarketCancel = "market:cancel"
-	AddrMarketMine   = "market:mine"
-)
-
-// Market order sides, as the core spells them.
-const (
-	SideBuy  = "buy"
-	SideSell = "sell"
-)
-
-// BookSummary is one good's book in a city, summed.
-type BookSummary struct {
-	Item                   Named
-	BestBid, BestAsk, Last int64
-}
-
-// MarketView is a city's books.
-type MarketView struct {
-	CityCode, City string
-	Books          []BookSummary
-	// Yours are goods the player carries with no book yet here.
-	Yours    []Named
-	AtMarket bool
-	// Way is the walk to the market when the player is elsewhere.
-	Way *Way
-}
 
 // priceOrDash is a price, or the catalogue's "none yet".
 func (c Context) priceOrNone(v int64) string {
@@ -93,34 +60,6 @@ func renderMarket(c Context, v MarketView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap, RefreshData: AddrMarket}))
 	title := htmlBold(htmlEscape(c.T("market.title", map[string]any{"city": c.CityName(v.CityCode, v.City)})))
 	return c.respond(paragraphs(title, htmlEscape(body(lines...)), htmlEscape(where)), kb.Build()).AsHTML()
-}
-
-// BookLevel is one price on a side of a book and how much rests there.
-type BookLevel struct {
-	Price, Qty int64
-}
-
-// TradeLine is one recent trade.
-type TradeLine struct {
-	Qty, Price int64
-	At         time.Time
-}
-
-// BookView is one good's book.
-type BookView struct {
-	Item           Named
-	CityCode, City string
-	Bids, Asks     []BookLevel
-	Trades         []TradeLine
-	// Reference is the price the preset buttons start from: the last trade,
-	// else the good's base price.
-	Reference int64
-	Holding   int64
-	AtMarket  bool
-	// Way is the walk to the market when the player is elsewhere.
-	Way *Way
-	// Nonce binds the sell buttons: one press is one order.
-	Nonce string
 }
 
 // Book renders one good's book, and — at the market place — a buy button at
@@ -223,15 +162,6 @@ func renderBook(c Context, v BookView) *presenter.Response {
 	), kb.Build()).AsHTML()
 }
 
-// MarketCheckoutView is a buy order's escrow and the ways to pay it.
-type MarketCheckoutView struct {
-	Item       Named
-	Qty, Price int64
-	Reserve    int64
-	Payment    PaymentChoice
-	Nonce      string
-}
-
 // MarketCheckout renders a buy order's checkout: what is set aside, and a
 // button per way to pay it.
 func MarketCheckout(c Context, v MarketCheckoutView) *presenter.Response {
@@ -261,23 +191,6 @@ func renderMarketCheckout(c Context, v MarketCheckoutView) *presenter.Response {
 		),
 		pay,
 	), kb.Build())
-}
-
-// OrderPlacedView is an order placed: what traded at once, what rests.
-type OrderPlacedView struct {
-	Item        Named
-	Side        string
-	No          int64
-	Qty, Filled int64
-	Price       int64
-	Rests       bool
-	Spent, Got  int64
-	ExpiresAt   time.Time
-	Method      string
-	// Embargoed is how many offers on the other side the order would have
-	// met but may not: their owners' country and the player's are under a
-	// trade embargo (docs/adr/0022).
-	Embargoed int
 }
 
 // OrderPlaced renders an order placed.
@@ -316,15 +229,6 @@ func renderOrderPlaced(c Context, v OrderPlacedView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-// OrderCancelledView is an order taken off the book.
-type OrderCancelledView struct {
-	Item   Named
-	Side   string
-	No     int64
-	Left   int64
-	Refund int64
-}
-
 // OrderCancelled renders a cancel.
 func OrderCancelled(c Context, v OrderCancelledView) *presenter.Response {
 	return c.withView(renderOrderCancelled(c, v), ScreenOrderCancelled, v)
@@ -342,23 +246,6 @@ func renderOrderCancelled(c Context, v OrderCancelledView) *presenter.Response {
 	return c.respond(c.T(key, map[string]any{
 		"no": FormatNumber(c, v.No), "item": c.ItemName(v.Item), "left": FormatNumber(c, v.Left), "refund": FormatMoney(c, v.Refund),
 	}), kb.Build())
-}
-
-// OrderLine is one of the player's orders.
-type OrderLine struct {
-	No             int64
-	Item           Named
-	Side           string
-	Qty, Filled    int64
-	Price          int64
-	Status         string
-	CityCode, City string
-	ExpiresAt      time.Time
-}
-
-// MyOrdersView is the player's orders.
-type MyOrdersView struct {
-	Orders []OrderLine
 }
 
 // MyOrders renders the player's orders, with a cancel button per open one.
@@ -426,23 +313,6 @@ func MarketExpiredNotice(c Context, side string, item Named, left, no int64) *pr
 	return c.respond(c.T("market.notice_expired_"+side, map[string]any{
 		"item": c.ItemName(item), "left": FormatNumber(c, left), "no": FormatNumber(c, no),
 	}), kb.Build()).MarkPrivate()
-}
-
-// Market refusal kinds.
-const (
-	MarketRefusedNotTraded = "not_traded"
-	MarketRefusedTooBig    = "too_big"
-	MarketRefusedTooMany   = "too_many"
-	MarketRefusedNotEnough = "not_enough"
-	MarketRefusedNoOrder   = "no_order"
-	MarketRefusedClosed    = "closed"
-)
-
-// MarketRefusalView is a refused market request.
-type MarketRefusalView struct {
-	Kind  string
-	Item  Named
-	Count int
 }
 
 // MarketRefusal renders a refused market request.

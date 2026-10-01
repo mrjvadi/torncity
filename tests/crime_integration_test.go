@@ -406,6 +406,7 @@ func TestCrimeTheftReportConvictionAndBail(t *testing.T) {
 
 	// 5. Bail: refused without the money, paid with it.
 	resp, err = h.Bail(ctx, metaFor(thief, "crime.bail", false), handlers.BailRequest{Nonce: "b1b1b1b1b1b1", Method: "cash"})
+	resp = rendered(t, resp)
 	if err != nil || !strings.Contains(resp.Text, "payment.declined") || !resp.Private {
 		t.Fatalf("bail without money = %+v, %v", resp, err)
 	}

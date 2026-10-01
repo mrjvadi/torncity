@@ -2,19 +2,19 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strconv"
 	"strings"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/market"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // order places a buy or a sell: without a nonce, its confirmation; with
 // one, the order, once.
-func (h *FinanceHandler) order(ctx context.Context, meta envelope.Metadata, req FinanceRequest, side market.Side) (*presenter.Response, error) {
+func (h *FinanceHandler) order(ctx context.Context, meta envelope.Metadata, req FinanceRequest, side market.Side) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (h *FinanceHandler) order(ctx context.Context, meta envelope.Metadata, req 
 	}
 	lang := meta.Language
 	var (
-		view     screens.StockOrderView
+		view     economy.StockOrderView
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -60,10 +60,10 @@ func (h *FinanceHandler) order(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		if listing == nil {
-			return refuseFinance(screens.FinanceRefusedNotListed, screens.AddrStock, c.Code)
+			return refuseFinance(economy.FinanceRefusedNotListed, economy.AddrStock, c.Code)
 		}
 		if qty > maxShareQty || price > maxSharePrice {
-			return refuseFinance(screens.FinanceRefusedOrder, screens.AddrStock, c.Code)
+			return refuseFinance(economy.FinanceRefusedOrder, economy.AddrStock, c.Code)
 		}
 		if !confirmed {
 			fee, err := h.feeOf(ctx, *c)
@@ -74,7 +74,7 @@ func (h *FinanceHandler) order(ctx context.Context, meta envelope.Metadata, req 
 			if err != nil {
 				return err
 			}
-			view = screens.StockOrderView{Company: named(c.Code, c.Name), Side: string(side), Qty: qty, Price: price,
+			view = economy.StockOrderView{Company: named(c.Code, c.Name), Side: string(side), Qty: qty, Price: price,
 				Reserve: qty * price, Bank: bank.Balance.Minor(), FeeBPS: fee, Nonce: h.nonce()}
 			return nil
 		}
@@ -87,12 +87,12 @@ func (h *FinanceHandler) order(ctx context.Context, meta envelope.Metadata, req 
 	if replayed {
 		return h.Portfolio(ctx, meta)
 	}
-	return screens.StockOrder(h.screen(meta, lang), view), nil
+	return economy.StockOrder(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // CancelShares handles stock.cancel: the owner takes an open order off the
 // book and gets back what it holds.
-func (h *FinanceHandler) CancelShares(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) CancelShares(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (h *FinanceHandler) CancelShares(ctx context.Context, meta envelope.Metadat
 		}
 		o, err := tx.Stocks().Order(ctx, no)
 		if isSentinel(err, application.ErrShareOrderNotFound) || (err == nil && o.OwnerID != p.ID) {
-			return refuseFinance(screens.FinanceRefusedNotYours, screens.AddrPortfolio)
+			return refuseFinance(economy.FinanceRefusedNotYours, economy.AddrPortfolio)
 		}
 		if err != nil {
 			return err

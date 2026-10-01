@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"strings"
 	"testing"
 
@@ -19,8 +20,8 @@ func TestBankScreensRender(t *testing.T) {
 		for name, resp := range map[string]*presenter.Response{
 			"bank open": Bank(c, BankView{CityCode: "ostmarch", City: "Ostmarch", Cash: 1000, Bank: 12500,
 				WithdrawalFeeBPS: 250, Deposits: opts, Withdrawals: opts,
-				Notice: BankNotice(c, false, 1000, 25)}),
-			"bank free":       Bank(c, BankView{CityCode: "ostmarch", City: "Ostmarch", Notice: BankNotice(c, true, 5, 0)}),
+				Notice: "withdrew_fee", NoticeArgs: map[string]any{"amount": int64(1000), "fee": int64(25)}}),
+			"bank free":       Bank(c, BankView{CityCode: "ostmarch", City: "Ostmarch", Notice: "deposited", NoticeArgs: map[string]any{"amount": int64(5)}}),
 			"bank travelling": Bank(c, BankView{Travelling: true, Cash: 1, Bank: 2}),
 			"bank no city":    Bank(c, BankView{NoCity: true}),
 			"pay help":        PayHelp(c),
@@ -104,8 +105,8 @@ func TestBankRefusalsHaveSentences(t *testing.T) {
 		application.ErrInsufficientFunds,
 		application.ErrBankPolicyUnavailable,
 	} {
-		key, _, ok := bankRefusal(c, err)
-		if !ok || !strings.HasPrefix(key, "bank.error.") {
+		key := life.ErrorOf(err).Code
+		if !strings.HasPrefix(key, "bank.error.") {
 			t.Errorf("%v has no bank sentence (key %q)", err, key)
 			continue
 		}

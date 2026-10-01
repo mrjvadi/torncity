@@ -649,18 +649,10 @@ const (
 
 // GovPlayer names another player: the display name and the public code, the
 // two things one player may see of another.
-type GovPlayer struct {
-	Name string
-	Code string
-}
+type GovPlayer = presentation.GovPlayer
 
 // GovPlace is one jurisdiction: a city or a country.
-type GovPlace struct {
-	Kind string
-	Code string
-	// Name is the authored name, the fallback for an untranslated code.
-	Name string
-}
+type GovPlace = presentation.GovPlace
 
 // GovOffice is one office of a place and who sits in it.
 type GovOffice struct {

@@ -225,6 +225,7 @@ func (w *financeWorld) ok(what string, resp *presenter.Response, err error, want
 	if resp == nil {
 		w.t.Fatalf("%s: no screen", what)
 	}
+	resp, _ = rrc(resp, nil)
 	for _, s := range want {
 		if !strings.Contains(resp.Text, s) {
 			w.t.Fatalf("%s: the screen does not say %q:\n%s", what, s, resp.Text)

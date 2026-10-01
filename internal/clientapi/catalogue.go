@@ -142,6 +142,10 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 			add("sleep_spot", CatalogueEntry{Code: sp.Code,
 				Name: names(func(c screens.Context) string { return c.SleepSpotName(screens.Named{Code: sp.Code, Name: sp.Name}) })}, false)
 		}
+		for _, av := range life.Avatars {
+			add("avatar", CatalogueEntry{Code: av.Code,
+				Name: names(func(c screens.Context) string { return c.AvatarName(screens.Named{Code: av.Code, Name: av.Name}) })}, false)
+		}
 		for _, st := range life.Age.Stages {
 			add("life_stage", CatalogueEntry{Code: st.Code,
 				Name: names(func(c screens.Context) string { return c.StageName(screens.Named{Code: st.Code, Name: st.Name}) })}, false)
@@ -190,6 +194,16 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 		add("treaty_type", CatalogueEntry{Code: tt.Code,
 			Name: names(func(c screens.Context) string { return c.TreatyName(screens.Named{Code: tt.Code, Name: tt.Name}) })}, false)
 	}
+	// The city shops and the city budget's lines (the economy screens).
+	for _, sh := range snap.Shops() {
+		add("shop", CatalogueEntry{Code: sh.Code,
+			Name: names(func(c screens.Context) string { return c.ShopName(screens.Named{Code: sh.Code, Name: sh.Name}) })}, false)
+	}
+	if b, ok := snap.Budget(); ok {
+		for _, l := range b.Lines {
+			add("budget_line", CatalogueEntry{Code: l.Code, Name: names(func(c screens.Context) string { return c.BudgetLineName(l.Code) })}, false)
+		}
+	}
 	if fin, ok := snap.Finance(); ok {
 		for _, l := range fin.Loans {
 			add("loan_product", CatalogueEntry{Code: l.Code,
@@ -220,6 +234,19 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 	for _, code := range offices {
 		code := code
 		add("office", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.OfficeName(code) })}, false)
+	}
+	for _, sh := range snap.Shops() {
+		add("shop", CatalogueEntry{Code: sh.Code,
+			Name: names(func(c screens.Context) string { return c.ShopName(screens.Named{Code: sh.Code, Name: sh.Name}) })}, false)
+	}
+	// A career, and each position in it (code "<career>.<rank>"): what a job is called.
+	for _, cr := range snap.Careers() {
+		add("career", CatalogueEntry{Code: cr.Code, Category: cr.Category,
+			Name: names(func(c screens.Context) string { return c.CareerName(cr.Code, cr.Name) })}, false)
+		for _, tier := range cr.Tiers {
+			add("career_tier", CatalogueEntry{Code: cr.Code + "." + tier.Rank, Category: cr.Code,
+				Name: names(func(c screens.Context) string { return c.TierTitle(cr.Code, tier.Rank, tier.Title) })}, false)
+		}
 	}
 	for _, sb := range snap.SettlementBuildingDefs() {
 		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, Footprint: []int{sb.Footprint[0], sb.Footprint[1]}, CapExempt: sb.CapExempt,

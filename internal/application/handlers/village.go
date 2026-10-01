@@ -504,6 +504,11 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 		if h.homeCityCode != "" {
 			if support, err := h.cities.ByCode(ctx, h.homeCityCode); err == nil {
 				view.Support = &village.VillageSupport{Code: support.Code, Name: support.Name}
+				for _, s := range village.SupportServiceRoles {
+					if _, has := byRole[s.Role]; s.Role == "" || !has {
+						view.Support.Services = append(view.Support.Services, s.Service)
+					}
+				}
 			}
 		}
 		return nil

@@ -13,6 +13,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/travel"
 	"github.com/mrjvadi/torncity/internal/domain/world"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
@@ -175,7 +176,7 @@ func sampleScreens() map[string]func(Context) *presenter.Response {
 		},
 		"payment declined": func(c Context) *presenter.Response {
 			return PaymentDeclined(c, PaymentDeclinedView{Amount: 2480, Cash: 300, Bank: 150, Accepted: []string{MethodCash, MethodCard},
-				BackLabel: "button.travel_options", BackAddr: []string{AddrTravelOptions, "brennhaven"}})
+				BackLabel: "button.travel_options", Back: presentation.RefOfAddress(AddrTravelOptions + ":brennhaven")})
 		},
 		"travel status by mode": func(c Context) *presenter.Response {
 			return TravelStatus(c, TravelStatusView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven", To: "Brennhaven",

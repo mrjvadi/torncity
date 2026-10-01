@@ -3,14 +3,14 @@ package handlers
 import (
 	"context"
 	"errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"regexp"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // DevicesHandler serves the game-client commands (api/client-api.md):
@@ -18,7 +18,7 @@ import (
 // player's account, device.list shows the linked clients and device.revoke
 // signs one out.
 type DevicesHandler struct {
-	msgs    screens.Translator
+	msgs    Translator
 	players DevicePlayers
 	codes   application.ClientLinkCodes
 	devices application.ClientDevices
@@ -36,7 +36,7 @@ type DevicePlayers interface {
 // DevicesConfig is what NewDevicesHandler needs: codeTTL and perHour are
 // client.link_code_ttl and client.link_codes_per_hour.
 type DevicesConfig struct {
-	Msgs    screens.Translator
+	Msgs    Translator
 	Players DevicePlayers
 	Codes   application.ClientLinkCodes
 	Devices application.ClientDevices
@@ -67,17 +67,17 @@ type DeviceRevokeRequest struct {
 
 var deviceIDPattern = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 
-func (h *DevicesHandler) player(ctx context.Context, meta envelope.Metadata) (*application.Player, screens.Context, error) {
+func (h *DevicesHandler) player(ctx context.Context, meta envelope.Metadata) (*application.Player, presentation.Ctx, error) {
 	p, err := h.players.GetByTelegramUserID(ctx, meta.TelegramUserID)
 	if err != nil {
-		return nil, screens.Context{}, err
+		return nil, presentation.Ctx{}, err
 	}
-	c := screens.Context{Msgs: h.msgs, Lang: RenderLanguage(meta, p), MessageID: editableMessageID(meta)}
+	c := presentation.Ctx{Lang: RenderLanguage(meta, p)}
 	return p, c, nil
 }
 
 // Link hands out a link code. A redelivered command gets the same code.
-func (h *DevicesHandler) Link(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *DevicesHandler) Link(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	p, c, err := h.player(ctx, meta)
 	if err != nil {
 		return nil, err
@@ -94,12 +94,12 @@ func (h *DevicesHandler) Link(ctx context.Context, meta envelope.Metadata) (*pre
 	if valid <= 0 || valid > h.codeTTL {
 		valid = h.codeTTL
 	}
-	return screens.DeviceLink(c, screens.DeviceLinkView{Code: code.Code, ExpiresAt: code.ExpiresAt, Valid: valid,
+	return life.DeviceLink(c, life.DeviceLinkView{Code: code.Code, ExpiresAt: code.ExpiresAt, Valid: valid,
 		MiniAppURL: h.miniApp}), nil
 }
 
 // List shows the linked clients.
-func (h *DevicesHandler) List(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *DevicesHandler) List(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	p, c, err := h.player(ctx, meta)
 	if err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (h *DevicesHandler) List(ctx context.Context, meta envelope.Metadata) (*pre
 
 // Revoke signs one of the player's clients out, then shows the rest.
 // Revoking twice is harmless: the second time says it was already out.
-func (h *DevicesHandler) Revoke(ctx context.Context, meta envelope.Metadata, req DeviceRevokeRequest) (*presenter.Response, error) {
+func (h *DevicesHandler) Revoke(ctx context.Context, meta envelope.Metadata, req DeviceRevokeRequest) (*presentation.Response, error) {
 	p, c, err := h.player(ctx, meta)
 	if err != nil {
 		return nil, err
@@ -128,15 +128,15 @@ func (h *DevicesHandler) Revoke(ctx context.Context, meta envelope.Metadata, req
 	return h.list(ctx, c, p, notice)
 }
 
-func (h *DevicesHandler) list(ctx context.Context, c screens.Context, p *application.Player, notice string) (*presenter.Response, error) {
+func (h *DevicesHandler) list(ctx context.Context, c presentation.Ctx, p *application.Player, notice string) (*presentation.Response, error) {
 	devices, err := h.devices.Active(ctx, p.ID)
 	if err != nil {
 		return nil, err
 	}
-	v := screens.DevicesView{Notice: notice}
+	v := life.DevicesView{Notice: notice}
 	for _, d := range devices {
-		v.Devices = append(v.Devices, screens.DeviceLine{ID: d.ID, Name: d.Name, Via: d.Via,
+		v.Devices = append(v.Devices, life.DeviceLine{ID: d.ID, Name: d.Name, Via: d.Via,
 			CreatedAt: d.CreatedAt, LastSeenAt: d.LastSeenAt})
 	}
-	return screens.Devices(c, v), nil
+	return life.Devices(c, v), nil
 }

@@ -117,7 +117,7 @@ func TestAShiftFromAnotherPlaceWalksThereAndStartsOnce(t *testing.T) {
 	if _, err := jobs.Apply(ctx, metaFor("job.apply"), handlers.JobRequest{Role: "retail"}); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
-	walk, err := jobs.Work(ctx, metaFor("job.work"))
+	walk, err := rr(jobs.Work(ctx, metaFor("job.work")))
 	if err != nil {
 		t.Fatalf("Work: %v", err)
 	}
@@ -333,6 +333,7 @@ func TestAGroupPaymentHandsOffWithItsPayee(t *testing.T) {
 	}
 	// The handler runs without a catalogue here, so the screen reads as its
 	// keys: the payment screen, not the form asking whom to pay.
+	screen = rendered(t, screen)
 	if !strings.Contains(screen.Text, "pay.title") || strings.Contains(screen.Text, "pay.help") {
 		t.Fatalf("the private chat opened on %q, want the payment to %s", screen.Text, payee.PublicCode)
 	}

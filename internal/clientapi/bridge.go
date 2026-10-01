@@ -15,6 +15,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/commands"
 	"github.com/mrjvadi/torncity/internal/gateway/groups"
+	"github.com/mrjvadi/torncity/internal/gateway/input"
 	"github.com/mrjvadi/torncity/internal/gateway/moderation"
 	"github.com/mrjvadi/torncity/internal/gateway/routing"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -133,10 +134,10 @@ type Bridge struct {
 	LegacyText LegacyText
 	// LegacyScreens are client.legacy_text_screens: "*" is every screen.
 	LegacyScreens []string
-	Timeout    time.Duration
-	InstanceID string
-	NewID      func() string
-	Now        func() time.Time
+	Timeout       time.Duration
+	InstanceID    string
+	NewID         func() string
+	Now           func() time.Time
 }
 
 // Screen is the answer to a command.
@@ -266,11 +267,35 @@ func (b *Bridge) Run(ctx context.Context, pr Principal, req CommandRequest) (Scr
 				if a.Label == "" {
 					a.Label = lr.Labels[presentation.Action{Command: a.Command, Args: positional(a)}.Address()]
 				}
+				if a.Label == "" && a.Input != nil {
+					// a button that asks for a value carries "ask:<command>:<fixed arguments>"
+					a.Label = lr.Labels[b.askAddress(a)]
+				}
 			}
 		}
 	}
 	out.RequestID = requestID
 	return out, nil
+}
+
+// askAddress is the callback data of the Telegram button an input action
+// stands for: "ask", the command and its fixed arguments in the order the
+// command's input table names them, trailing empty ones dropped.
+func (b *Bridge) askAddress(a *Action) string {
+	parts := []string{input.AskPrefix, a.Command}
+	if spec, ok := b.Policy.Input(a.Command); ok {
+		for _, name := range spec.Args {
+			v, ok := a.Args[name]
+			if !ok {
+				break
+			}
+			parts = append(parts, fmt.Sprint(v))
+		}
+	}
+	for len(parts) > 2 && parts[len(parts)-1] == "" {
+		parts = parts[:len(parts)-1]
+	}
+	return strings.Join(parts, ":")
 }
 
 // positional is an action's arguments back in the positional order the game
@@ -291,7 +316,7 @@ func positional(a *Action) []string {
 // ScreenOf is what the client is shown for a response.
 func ScreenOf(resp *presenter.Response, command string, policy *groups.Policy, meta *ActionMetadata) Screen {
 	if resp.Neutral() {
-		return neutralScreenOf(resp, command, meta)
+		return neutralScreenOf(resp, command, policy, meta)
 	}
 	if resp.Type == presenter.ActionAnswerCallback {
 		return Screen{OK: true, Screen: "notice", Actions: []Action{},
@@ -465,8 +490,8 @@ func placeManyArgs(args map[string]json.RawMessage) map[string]json.RawMessage {
 // neutralScreenOf is what the client is shown for a neutral response
 // (docs/adr/0037): the screen, its view, the actions by meaning, and a
 // refusal or a notice as a code with its arguments. There is no text.
-func neutralScreenOf(resp *presentation.Response, command string, meta *ActionMetadata) Screen {
-	out := Screen{OK: true, Screen: resp.Screen, View: resp.View, Actions: NeutralActions(resp.Actions, meta)}
+func neutralScreenOf(resp *presentation.Response, command string, policy *groups.Policy, meta *ActionMetadata) Screen {
+	out := Screen{OK: true, Screen: resp.Screen, View: resp.View, Actions: NeutralActions(resp.Actions, policy, meta)}
 	if out.Screen == "" {
 		out.Screen = command
 	}

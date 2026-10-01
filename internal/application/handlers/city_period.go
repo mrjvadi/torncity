@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -13,8 +15,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // CityHandler serves a city's period (docs/adr/0024-property-and-politics.md):
@@ -144,7 +144,7 @@ func (h *CityHandler) StartClock(ctx context.Context, cityID string) error {
 
 // Settle handles city.settle from the SCHEDULER: one period of one city,
 // exactly once.
-func (h *CityHandler) Settle(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *CityHandler) Settle(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -300,14 +300,14 @@ type BudgetRequest struct {
 // Budget handles city.budget: a city's budget — the allocation in force and
 // announced, what the treasury holds, what the last period spent on each
 // line and the effect it bought, and when the next period ends.
-func (h *CityHandler) Budget(ctx context.Context, meta envelope.Metadata, req BudgetRequest) (*presenter.Response, error) {
+func (h *CityHandler) Budget(ctx context.Context, meta envelope.Metadata, req BudgetRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	def, hasBudget := snap.Budget()
 	lang := meta.Language
-	var view screens.BudgetView
+	var view economy.BudgetView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -334,7 +334,7 @@ func (h *CityHandler) Budget(ctx context.Context, meta envelope.Metadata, req Bu
 			return application.ErrCityTierOnly
 		}
 		now := h.now()
-		view.City = screens.GovPlace{Kind: "city", Code: city.Code, Name: city.Name}
+		view.City = presentation.GovPlace{Kind: "city", Code: city.Code, Name: city.Name}
 		view.SpendShareBPS = def.SpendShareBPS
 		for _, l := range def.Lines {
 			view.Order = append(view.Order, l.Code)
@@ -362,9 +362,9 @@ func (h *CityHandler) Budget(ctx context.Context, meta envelope.Metadata, req Bu
 			return err
 		}
 		if last != nil {
-			view.Last = &screens.BudgetPeriodView{Spent: last.Spent, Spendable: last.Spendable}
+			view.Last = &economy.BudgetPeriodView{Spent: last.Spent, Spendable: last.Spendable}
 			for _, l := range last.Lines {
-				view.Last.Lines = append(view.Last.Lines, screens.BudgetLineView{Code: l.Line, Effect: l.Effect,
+				view.Last.Lines = append(view.Last.Lines, economy.BudgetLineView{Code: l.Line, Effect: l.Effect,
 					Spent: l.Spent, EffectBPS: l.EffectBPS})
 			}
 		}
@@ -380,11 +380,9 @@ func (h *CityHandler) Budget(ctx context.Context, meta envelope.Metadata, req Bu
 	})
 	if err != nil {
 		if isSentinel(err, application.ErrCityNotFound) {
-			return screens.Budget(screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta)},
-				screens.BudgetView{NoCity: true}), nil
+			return economy.Budget(presentation.Ctx{Lang: lang}, economy.BudgetView{NoCity: true}), nil
 		}
 		return nil, err
 	}
-	return screens.Budget(screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta),
-		Shared: meta.InGroup()}, view), nil
+	return economy.Budget(presentation.Ctx{Lang: lang}, view), nil
 }

@@ -355,8 +355,8 @@ func (w *fWorld) vote(p *application.Player, no int64, vote string) envelope.Met
 // screen's departure button.
 func busFare(t *testing.T, travel *handlers.TravelHandler, p *application.Player, to string) int64 {
 	t.Helper()
-	resp, err := travel.Options(testCtx(t), travelMeta(p, "req-options-"+randomToken(t, 6)),
-		handlers.TravelOptionsRequest{City: to})
+	resp, err := rr(travel.Options(testCtx(t), travelMeta(p, "req-options-"+randomToken(t, 6)),
+		handlers.TravelOptionsRequest{City: to}))
 	if err != nil {
 		t.Fatalf("options: %v", err)
 	}

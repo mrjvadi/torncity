@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -233,8 +234,8 @@ func TestClientAPILinkCommandRoundTrip(t *testing.T) {
 	}
 
 	// /link in the bot's private chat, through the real handler.
-	linkScreen, err := game.Link(ctx, envelope.Metadata{RequestID: newUUID(t), BotID: botID,
-		TelegramUserID: player.TelegramUserID, Language: "fa"})
+	linkScreen, err := rrc(game.Link(ctx, envelope.Metadata{RequestID: newUUID(t), BotID: botID,
+		TelegramUserID: player.TelegramUserID, Language: "fa"}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -260,8 +261,9 @@ func TestClientAPILinkCommandRoundTrip(t *testing.T) {
 	if status != http.StatusOK || screen["ok"] != true {
 		t.Fatalf("device.list: %d %v", status, screen)
 	}
-	if !strings.Contains(screen["text"].(string), "Integration phone") {
-		t.Errorf("the list does not show the linked client:\n%s", screen["text"])
+	// the neutral screen carries the facts, not a sentence
+	if view, _ := screen["view"].(map[string]any); view == nil || !strings.Contains(fmt.Sprint(view["devices"]), "Integration phone") {
+		t.Errorf("the list does not show the linked client:\n%v", screen)
 	}
 	var revoke map[string]any
 	for _, a := range screen["actions"].([]any) {
@@ -283,7 +285,7 @@ func TestClientAPILinkCommandRoundTrip(t *testing.T) {
 	// Sign the device out by the action the screen offered, as the bot's
 	// button would; the next request is refused.
 	status, out := call("/api/v1/command", access, map[string]any{"command": revoke["command"], "args": revoke["args"]})
-	if status != http.StatusOK || !strings.Contains(out["text"].(string), catalog.T("fa", "device.notice.revoked", nil)) {
+	if v, _ := out["view"].(map[string]any); status != http.StatusOK || v == nil || v["notice"] != "revoked" {
 		t.Fatalf("device.revoke: %d %v", status, out)
 	}
 	if status, out := call("/api/v1/command", access, map[string]any{"command": "device.list"}); status != http.StatusUnauthorized {

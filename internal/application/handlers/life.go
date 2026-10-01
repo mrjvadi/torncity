@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,9 +20,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
-	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
@@ -83,16 +84,16 @@ type LifeRequest struct {
 }
 
 // lifeRefusal carries a refusal out of a unit of work.
-type lifeRefusal struct{ view screens.LifeRefusalView }
+type lifeRefusal struct{ view plife.LifeRefusalView }
 
 func (r *lifeRefusal) Error() string { return "handlers: life refused: " + r.view.Kind }
 
 func refuseLife(kind string) *lifeRefusal {
-	return &lifeRefusal{view: screens.LifeRefusalView{Kind: kind}}
+	return &lifeRefusal{view: plife.LifeRefusalView{Kind: kind}}
 }
 
 // sleepPayment carries the price screen of a night out of a unit of work.
-type sleepPayment struct{ view screens.SleepPayView }
+type sleepPayment struct{ view plife.SleepPayView }
 
 func (s *sleepPayment) Error() string { return "handlers: a night to pay for" }
 
@@ -101,20 +102,20 @@ func (h *LifeHandler) screen(meta envelope.Metadata, lang string) screens.Contex
 }
 
 // finish turns what a unit of work ended with into a screen.
-func (h *LifeHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *LifeHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	var r *lifeRefusal
 	if stderrors.As(err, &r) {
-		return screens.LifeRefusal(h.screen(meta, lang), r.view), nil
+		return plife.LifeRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
 	var pay *sleepPayment
 	if stderrors.As(err, &pay) {
-		return screens.SleepPay(h.screen(meta, lang), pay.view), nil
+		return plife.SleepPay(presentation.Ctx{Lang: lang}, pay.view), nil
 	}
 	if v, ok := asNotHere(err); ok {
-		return screens.NotHere(h.screen(meta, lang), v), nil
+		return plife.NotHere(presentation.Ctx{Lang: lang}, v), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
 	}
 	return nil, err
 }
@@ -143,12 +144,12 @@ func (h *LifeHandler) def(snap *content.Snapshot) (content.LifeDef, error) {
 }
 
 // Me handles life.me: «🧬 زندگی من».
-func (h *LifeHandler) Me(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *LifeHandler) Me(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.me(ctx, meta, "", nil)
 }
 
 // me renders the life screen, opening with a notice.
-func (h *LifeHandler) me(ctx context.Context, meta envelope.Metadata, notice string, args map[string]any) (*presenter.Response, error) {
+func (h *LifeHandler) me(ctx context.Context, meta envelope.Metadata, notice string, args map[string]any) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -158,7 +159,7 @@ func (h *LifeHandler) me(ctx context.Context, meta envelope.Metadata, notice str
 		return nil, err
 	}
 	lang := meta.Language
-	view := screens.LifeView{Notice: notice, NoticeArgs: args}
+	view := plife.LifeView{Notice: notice, NoticeArgs: args}
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -181,14 +182,14 @@ func (h *LifeHandler) me(ctx context.Context, meta envelope.Metadata, notice str
 		}
 		view.Needs = *needsView(l)
 		h.fillLife(def, l.row, now, &view)
-		view.Worth = screens.WorthView{Cash: worth.Cash, Bank: worth.Bank, Escrow: worth.Escrow, Equity: worth.Equity,
+		view.Worth = plife.WorthView{Cash: worth.Cash, Bank: worth.Bank, Escrow: worth.Escrow, Equity: worth.Equity,
 			Property: worth.Property, Goods: worth.Goods, Debts: worth.Debts, Savings: worth.Savings, Gold: worth.Gold,
 			Loans: worth.Loans, Total: worth.Total()}
 		ladder := def.Ladder()
 		for i, r := range ladder.Ranks {
 			if r.Code == l.row.Rank && i+1 < len(ladder.Ranks) {
 				next := def.Ranks.Ladder[i+1]
-				view.Next = &screens.RankRef{Code: next.Code, Name: next.Name, Emoji: next.Emoji}
+				view.Next = &plife.RankRef{Code: next.Code, Name: next.Name, Emoji: next.Emoji}
 				view.NextNeed = max(next.Min-worth.Total(), 1)
 			}
 		}
@@ -198,11 +199,11 @@ func (h *LifeHandler) me(ctx context.Context, meta envelope.Metadata, notice str
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Life(h.screen(meta, lang), view), nil
+	return plife.Life(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // fillLife writes age, intelligence and rank onto the view.
-func (h *LifeHandler) fillLife(def content.LifeDef, row *application.PlayerLife, now time.Time, view *screens.LifeView) {
+func (h *LifeHandler) fillLife(def content.LifeDef, row *application.PlayerLife, now time.Time, view *plife.LifeView) {
 	aging := def.Aging()
 	view.Age = aging.Age(row.BornAt, now, h.scale)
 	if st, ok := def.Stage(aging.StageOf(view.Age)); ok {
@@ -216,7 +217,7 @@ func (h *LifeHandler) fillLife(def content.LifeDef, row *application.PlayerLife,
 
 // spots are where the player may sleep in the city they are in.
 func (h *LifeHandler) spots(ctx context.Context, tx application.Tx, snap *content.Snapshot, def content.LifeDef,
-	p *application.Player, row *application.PlayerLife, now time.Time, view *screens.LifeView,
+	p *application.Player, row *application.PlayerLife, now time.Time, view *plife.LifeView,
 ) error {
 	if row.LastSleepAt != nil {
 		if ready := row.LastSleepAt.Add(h.scale.RealWait(def.Sleep.CooldownDuration())); ready.After(now) {
@@ -233,7 +234,7 @@ func (h *LifeHandler) spots(ctx context.Context, tx application.Tx, snap *conten
 		return err
 	}
 	for _, s := range def.Sleep.Spots {
-		line := screens.SleepSpotLine{Spot: named(s.Code, s.Name), Place: placeNamed(snap, s.Place), Price: s.Price,
+		line := plife.SleepSpotLine{Spot: named(s.Code, s.Name), Place: placeNamed(snap, s.Place), Price: s.Price,
 			Rest: s.Rest, Relief: s.Relief}
 		if w.placed() {
 			target, ok := w.cmap.Find(s.Place)
@@ -241,7 +242,7 @@ func (h *LifeHandler) spots(ctx context.Context, tx application.Tx, snap *conten
 				continue
 			}
 			if w.walk == nil && w.here.Code != target.Code {
-				line.Way = &screens.Way{Place: placeNamed(snap, target.Code), Walk: h.scale.RealWait(target.MoveTime)}
+				line.Way = &presentation.Way{Place: placeNamed(snap, target.Code), Walk: h.scale.RealWait(target.MoveTime)}
 			}
 		}
 		view.Spots = append(view.Spots, line)
@@ -251,7 +252,7 @@ func (h *LifeHandler) spots(ctx context.Context, tx application.Tx, snap *conten
 
 // Sleep handles life.sleep: a night at a hostel or on a bench, where the
 // player stands, once a cooldown; a paid bed shows its price first.
-func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req LifeRequest) (*presenter.Response, error) {
+func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req LifeRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -270,7 +271,7 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 		}
 		spot, ok := def.Spot(strings.ToLower(strings.TrimSpace(req.Spot)))
 		if !ok {
-			return refuseLife(screens.LifeRefusedNoSpot)
+			return refuseLife(plife.LifeRefusedNoSpot)
 		}
 		method, chosen, err := chosenMethod(req.Method)
 		if err != nil {
@@ -289,7 +290,7 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 			return err
 		}
 		if _, err := tx.Travels().Active(ctx, p.ID); err == nil {
-			return refuseLife(screens.LifeRefusedNoCity)
+			return refuseLife(plife.LifeRefusedNoCity)
 		} else if !isSentinel(err, application.ErrNoActiveTravel) {
 			return err
 		}
@@ -298,12 +299,12 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 			return err
 		}
 		if w.city == nil {
-			return refuseLife(screens.LifeRefusedNoCity)
+			return refuseLife(plife.LifeRefusedNoCity)
 		}
 		if w.placed() {
 			target, ok := w.cmap.Find(spot.Place)
 			if !ok {
-				return refuseLife(screens.LifeRefusedNoSpot)
+				return refuseLife(plife.LifeRefusedNoSpot)
 			}
 			if err := needAt(w, snap, target, "place.need.sleep", nil, h.scale, now); err != nil {
 				return thenFor(err, "life.me")
@@ -320,7 +321,7 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 		}
 		if row.LastSleepAt != nil {
 			if ready := row.LastSleepAt.Add(h.scale.RealWait(def.Sleep.CooldownDuration())); ready.After(now) {
-				r := refuseLife(screens.LifeRefusedTooSoon)
+				r := refuseLife(plife.LifeRefusedTooSoon)
 				r.view.Wait = ready.Sub(now)
 				return r
 			}
@@ -334,10 +335,10 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 			}
 			plan := wallet.Plan(money.FromMinor(spot.Price), snap.Accepts(content.ServiceLodging))
 			if !chosen {
-				return &sleepPayment{view: screens.SleepPayView{Spot: named(spot.Code, spot.Name), Rest: spot.Rest,
+				return &sleepPayment{view: plife.SleepPayView{Spot: named(spot.Code, spot.Name), Rest: spot.Rest,
 					Relief: spot.Relief, Payment: paymentChoice(plan, wallet)}}
 			}
-			if err := checkMethod(plan, method, wallet, "life.button.open", screens.AddrLife); err != nil {
+			if err := checkMethod(plan, method, wallet, "life.button.open", plife.AddrLife); err != nil {
 				return err
 			}
 			treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, w.city.ID)
@@ -351,7 +352,7 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 			})
 			if err != nil {
 				if stderrors.Is(err, application.ErrPaymentDeclined) {
-					return declined(plan, wallet, "life.button.open", screens.AddrLife)
+					return declined(plan, wallet, "life.button.open", plife.AddrLife)
 				}
 				return err
 			}
@@ -375,18 +376,16 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 	if replayed || slept == nil {
 		return h.Me(ctx, meta)
 	}
-	c := h.screen(meta, lang)
-	return h.me(ctx, meta, screens.LifeNoticeSlept, map[string]any{
-		"spot": c.SleepSpotName(named(slept["spot"].(string), "")), "rest": slept["rest"]})
+	return h.me(ctx, meta, plife.LifeNoticeSlept, map[string]any{"spot": slept["spot"], "rest": slept["rest"]})
 }
 
 // Card handles life.card: a player's card — the player's own without a
 // code, else the one a code or a username names.
-func (h *LifeHandler) Card(ctx context.Context, meta envelope.Metadata, req LifeRequest) (*presenter.Response, error) {
+func (h *LifeHandler) Card(ctx context.Context, meta envelope.Metadata, req LifeRequest) (*presentation.Response, error) {
 	return h.card(ctx, meta, req.Code, "")
 }
 
-func (h *LifeHandler) card(ctx context.Context, meta envelope.Metadata, code, notice string) (*presenter.Response, error) {
+func (h *LifeHandler) card(ctx context.Context, meta envelope.Metadata, code, notice string) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -396,7 +395,7 @@ func (h *LifeHandler) card(ctx context.Context, meta envelope.Metadata, code, no
 		return nil, err
 	}
 	lang := meta.Language
-	view := screens.CardView{Notice: notice}
+	view := plife.CardView{Notice: notice}
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		me, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -427,7 +426,7 @@ func (h *LifeHandler) card(ctx context.Context, meta envelope.Metadata, code, no
 		case "":
 		case content.AvatarPhoto:
 			view.Avatar.Photo = true
-			photo := &presenter.Photo{UserID: target.TelegramUserID, PlayerID: target.ID}
+			photo := &presentation.Photo{UserID: target.TelegramUserID, PlayerID: target.ID}
 			if file, at, err := tx.Life().Photo(ctx, target.ID, meta.BotID); err != nil {
 				return err
 			} else if file != "" && now.Sub(at) < def.PhotoTTLDuration() {
@@ -436,7 +435,7 @@ func (h *LifeHandler) card(ctx context.Context, meta envelope.Metadata, code, no
 			view.Photo = photo
 		default:
 			if a, ok := def.Avatar(row.Avatar); ok {
-				view.Avatar = screens.AvatarRef{Code: a.Code, Emoji: a.Emoji}
+				view.Avatar = plife.AvatarRef{Code: a.Code, Emoji: a.Emoji}
 			}
 		}
 		if st, err := tx.Stats().Get(ctx, target.ID); err == nil {
@@ -451,7 +450,7 @@ func (h *LifeHandler) card(ctx context.Context, meta envelope.Metadata, code, no
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Card(h.screen(meta, lang), view), nil
+	return plife.Card(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // target is the player a code or username names, the asker without one.
@@ -462,18 +461,18 @@ func (h *LifeHandler) target(ctx context.Context, me *application.Player, code s
 	}
 	q, ok := ClassifyPlayerQuery(code)
 	if !ok {
-		return nil, refuseLife(screens.LifeRefusedNoPlayer)
+		return nil, refuseLife(plife.LifeRefusedNoPlayer)
 	}
 	p, err := h.search.Find(ctx, q)
 	if isSentinel(err, application.ErrPlayerNotFound) {
-		return nil, refuseLife(screens.LifeRefusedNoPlayer)
+		return nil, refuseLife(plife.LifeRefusedNoPlayer)
 	}
 	return p, err
 }
 
 // History handles life.history: the player's own timeline, or another's
 // public one, a page at a time.
-func (h *LifeHandler) History(ctx context.Context, meta envelope.Metadata, req LifeRequest) (*presenter.Response, error) {
+func (h *LifeHandler) History(ctx context.Context, meta envelope.Metadata, req LifeRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -483,7 +482,7 @@ func (h *LifeHandler) History(ctx context.Context, meta envelope.Metadata, req L
 		return nil, err
 	}
 	lang := meta.Language
-	var view screens.HistoryView
+	var view plife.HistoryView
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		me, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -518,20 +517,20 @@ func (h *LifeHandler) History(ctx context.Context, meta envelope.Metadata, req L
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.History(h.screen(meta, lang), view), nil
+	return plife.History(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // historyLine is an entry as the timeline shows it.
-func historyLine(e application.HistoryEntry) screens.HistoryLine {
+func historyLine(e application.HistoryEntry) plife.HistoryLine {
 	d := e.Data
-	return screens.HistoryLine{Kind: e.Kind, At: e.At, Code: d.Code, Name: d.Name, Sub: d.Sub, SubName: d.SubName,
+	return plife.HistoryLine{Kind: e.Kind, At: e.At, Code: d.Code, Name: d.Name, Sub: d.Sub, SubName: d.SubName,
 		PlaceKind: d.PlaceKind, Place: named(d.PlaceCode, d.PlaceName), Amount: d.Amount, Number: d.Number,
 		Backfilled: e.Backfilled, Private: !e.Public}
 }
 
 // Bio handles life.bio: the typed bio saved once it passes the rules, or
 // the bio cleared.
-func (h *LifeHandler) Bio(ctx context.Context, meta envelope.Metadata, req LifeRequest) (*presenter.Response, error) {
+func (h *LifeHandler) Bio(ctx context.Context, meta envelope.Metadata, req LifeRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -545,7 +544,7 @@ func (h *LifeHandler) Bio(ctx context.Context, meta envelope.Metadata, req LifeR
 		return nil, err
 	}
 	lang := meta.Language
-	notice := screens.LifeNoticeBio
+	notice := plife.LifeNoticeBio
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -560,10 +559,10 @@ func (h *LifeHandler) Bio(ctx context.Context, meta envelope.Metadata, req LifeR
 			rules := def.BioRules()
 			cleaned, err := rules.Clean(req.Text)
 			if err != nil {
-				kind := map[error]string{life.ErrBioLength: screens.LifeRefusedBioLength, life.ErrBioLink: screens.LifeRefusedBioLink,
-					life.ErrBioBlocked: screens.LifeRefusedBioBlocked, life.ErrBioChars: screens.LifeRefusedBioChars}[err]
+				kind := map[error]string{life.ErrBioLength: plife.LifeRefusedBioLength, life.ErrBioLink: plife.LifeRefusedBioLink,
+					life.ErrBioBlocked: plife.LifeRefusedBioBlocked, life.ErrBioChars: plife.LifeRefusedBioChars}[err]
 				if kind == "" {
-					kind = screens.LifeRefusedBioChars
+					kind = plife.LifeRefusedBioChars
 				}
 				r := refuseLife(kind)
 				r.view.Min, r.view.Max = rules.MinRunes, rules.MaxRunes
@@ -572,7 +571,7 @@ func (h *LifeHandler) Bio(ctx context.Context, meta envelope.Metadata, req LifeR
 			bio = cleaned
 		}
 		if bio == "" {
-			notice = screens.LifeNoticeBioGone
+			notice = plife.LifeNoticeBioGone
 		}
 		now := h.now()
 		row, err := tx.Life().Ensure(ctx, lifeDefaults(def, p.ID, p.CreatedAt, now))
@@ -590,7 +589,7 @@ func (h *LifeHandler) Bio(ctx context.Context, meta envelope.Metadata, req LifeR
 
 // Avatar handles life.avatar: the choice of avatar, or choosing one — a
 // content avatar, the player's Telegram photo, or none.
-func (h *LifeHandler) Avatar(ctx context.Context, meta envelope.Metadata, req LifeRequest) (*presenter.Response, error) {
+func (h *LifeHandler) Avatar(ctx context.Context, meta envelope.Metadata, req LifeRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -601,7 +600,7 @@ func (h *LifeHandler) Avatar(ctx context.Context, meta envelope.Metadata, req Li
 	}
 	lang := meta.Language
 	choice := strings.ToLower(strings.TrimSpace(req.Choice))
-	var picker *screens.AvatarsView
+	var picker *plife.AvatarsView
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -613,16 +612,16 @@ func (h *LifeHandler) Avatar(ctx context.Context, meta envelope.Metadata, req Li
 			if err != nil {
 				return err
 			}
-			v := screens.AvatarsView{}
+			v := plife.AvatarsView{}
 			if row != nil {
 				if row.Avatar == content.AvatarPhoto {
 					v.Current.Photo = true
 				} else if a, ok := def.Avatar(row.Avatar); ok {
-					v.Current = screens.AvatarRef{Code: a.Code, Emoji: a.Emoji}
+					v.Current = plife.AvatarRef{Code: a.Code, Emoji: a.Emoji}
 				}
 			}
 			for _, a := range def.Avatars {
-				v.Avatars = append(v.Avatars, screens.AvatarChoice{Code: a.Code, Name: a.Name, Emoji: a.Emoji})
+				v.Avatars = append(v.Avatars, plife.AvatarChoice{Code: a.Code, Name: a.Name, Emoji: a.Emoji})
 			}
 			picker = &v
 			return nil
@@ -638,7 +637,7 @@ func (h *LifeHandler) Avatar(ctx context.Context, meta envelope.Metadata, req Li
 			}
 		default:
 			if _, ok := def.Avatar(choice); !ok {
-				return refuseLife(screens.LifeRefusedNoAvatar)
+				return refuseLife(plife.LifeRefusedNoAvatar)
 			}
 		}
 		fresh, err := h.reserve(ctx, tx, p.ID, meta)
@@ -656,13 +655,13 @@ func (h *LifeHandler) Avatar(ctx context.Context, meta envelope.Metadata, req Li
 		return resp, err
 	}
 	if picker != nil {
-		return screens.Avatars(h.screen(meta, lang), *picker), nil
+		return plife.Avatars(presentation.Ctx{Lang: lang}, *picker), nil
 	}
-	return h.card(ctx, meta, "", screens.LifeNoticeAvatar)
+	return h.card(ctx, meta, "", plife.LifeNoticeAvatar)
 }
 
 // Top handles life.top: one leaderboard as it was last refreshed.
-func (h *LifeHandler) Top(ctx context.Context, meta envelope.Metadata, req LifeRequest) (*presenter.Response, error) {
+func (h *LifeHandler) Top(ctx context.Context, meta envelope.Metadata, req LifeRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -774,7 +773,7 @@ func (h *LifeHandler) schedule(ctx context.Context, tx application.Tx, def conte
 // exactly once — the clock row locked first and naming this action and
 // period, the period recorded by its number — every rank judged anew, the
 // boards written, the next period scheduled.
-func (h *LifeHandler) Refresh(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *LifeHandler) Refresh(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}

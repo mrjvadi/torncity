@@ -1,8 +1,6 @@
 package screens
 
 import (
-	"time"
-
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 )
 
@@ -10,13 +8,6 @@ import (
 // service is at another place of the city offers one press that walks there
 // and opens the screen again on arrival, instead of sending the player to
 // the map.
-
-// Way is the walk to the place a screen's service is at.
-type Way struct {
-	Place Named
-	// Walk is the real time the walk takes.
-	Walk time.Duration
-}
 
 // wayButton adds «🚶 رفتن به {place} ({walk})», which walks to the way's
 // place and then runs then with its arguments. Nothing is added without a

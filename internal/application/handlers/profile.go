@@ -10,6 +10,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"strconv"
 	"time"
 
@@ -22,8 +24,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // How long a command key blocks a replay is NOT declared here any more. It is
@@ -164,7 +164,7 @@ type keyTranslator struct{}
 func (keyTranslator) T(_, key string, _ map[string]any) string { return key }
 
 // Handle processes one player.profile.get command.
-func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -174,7 +174,7 @@ func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*p
 
 	var (
 		record *application.Player
-		view   screens.ProfileView
+		view   life.ProfileView
 	)
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -238,13 +238,13 @@ func (h *ProfileHandler) Handle(ctx context.Context, meta envelope.Metadata) (*p
 // connection, so a stats row written on a separate connection could not even
 // satisfy its foreign key to players; on tx it can, and a failed request
 // leaves neither a player nor stats behind.
-func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *application.Player, meta envelope.Metadata) (screens.ProfileView, error) {
+func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *application.Player, meta envelope.Metadata) (life.ProfileView, error) {
 	// The record's id, stored language and account status are not copied
 	// onto the view: none of them means anything to a player. Nor is the
 	// placeholder name a record gets when no real one was on hand: it is
 	// derived from the Telegram account number, and showing it would put an
 	// identifier on screen dressed up as a name.
-	var view screens.ProfileView
+	var view life.ProfileView
 	if p.DisplayName != fallbackDisplayName(p.TelegramUserID) {
 		view.Name = p.DisplayName
 	}
@@ -363,7 +363,7 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 // life catches the player's life up and puts its rank, age, avatar and
 // needs on the home screen. A world without life content shows none.
 func (h *ProfileHandler) life(ctx context.Context, tx application.Tx, p *application.Player, meta envelope.Metadata,
-	view *screens.ProfileView,
+	view *life.ProfileView,
 ) error {
 	if h.content == nil || h.scale.Validate() != nil {
 		return nil
@@ -408,7 +408,7 @@ func (h *ProfileHandler) life(ctx context.Context, tx application.Tx, p *applica
 // on. A city without places, or a profile served without content, says only
 // the city.
 func (h *ProfileHandler) place(ctx context.Context, tx application.Tx, p *application.Player, city *application.City,
-	view *screens.ProfileView,
+	view *life.ProfileView,
 ) error {
 	if h.content == nil || view.Travelling {
 		return nil
@@ -422,7 +422,7 @@ func (h *ProfileHandler) place(ctx context.Context, tx application.Tx, p *applic
 	switch {
 	case err == nil:
 		now := h.now()
-		view.Walk = &screens.WalkView{
+		view.Walk = &life.WalkView{
 			To: placeNamed(snap, walk.To), Remaining: walk.ArrivesAt.Sub(now), ArrivesAt: walk.ArrivesAt,
 		}
 		return nil
@@ -440,7 +440,7 @@ func (h *ProfileHandler) place(ctx context.Context, tx application.Tx, p *applic
 }
 
 // jail reads the sentence the player is serving, or nil when they are free.
-func (h *ProfileHandler) jail(ctx context.Context, tx application.Tx, playerID string) (*screens.ProfileJail, error) {
+func (h *ProfileHandler) jail(ctx context.Context, tx application.Tx, playerID string) (*life.ProfileJail, error) {
 	now := h.now()
 	s, err := tx.Crime().ActiveSentence(ctx, playerID)
 	switch {
@@ -451,7 +451,7 @@ func (h *ProfileHandler) jail(ctx context.Context, tx application.Tx, playerID s
 	case !s.Serving(now):
 		return nil, nil
 	}
-	j := &screens.ProfileJail{Remaining: s.EndsAt.Sub(now), EndsAt: s.EndsAt}
+	j := &life.ProfileJail{Remaining: s.EndsAt.Sub(now), EndsAt: s.EndsAt}
 	if city, err := h.cities.ByID(ctx, s.CityID); err == nil {
 		j.CityCode, j.City = city.Code, city.Name
 	} else if !isSentinel(err, application.ErrCityNotFound) {
@@ -463,7 +463,7 @@ func (h *ProfileHandler) jail(ctx context.Context, tx application.Tx, playerID s
 // hospital reads the player's health and stay for the home screen: health
 // as it stands now — recovering in hospital, or with the rest the game clock
 // gave back — and the stay while it lasts. It only reads.
-func (h *ProfileHandler) hospital(ctx context.Context, tx application.Tx, row application.Stats, view *screens.ProfileView) error {
+func (h *ProfileHandler) hospital(ctx context.Context, tx application.Tx, row application.Stats, view *life.ProfileView) error {
 	if h.content == nil {
 		return nil
 	}
@@ -483,7 +483,7 @@ func (h *ProfileHandler) hospital(ctx context.Context, tx application.Tx, row ap
 		}
 		return nil
 	}
-	j := &screens.ProfileJail{Remaining: stay.EndsAt.Sub(now), EndsAt: stay.EndsAt}
+	j := &life.ProfileJail{Remaining: stay.EndsAt.Sub(now), EndsAt: stay.EndsAt}
 	if city, err := h.cities.ByID(ctx, stay.CityID); err == nil {
 		j.CityCode, j.City = city.Code, city.Name
 	} else if !isSentinel(err, application.ErrCityNotFound) {
@@ -495,9 +495,9 @@ func (h *ProfileHandler) hospital(ctx context.Context, tx application.Tx, row ap
 
 // work reads the player's job and studies for the home screen. It only
 // reads: nothing is paid, finished or promoted by looking at the profile.
-func (h *ProfileHandler) work(ctx context.Context, tx application.Tx, p *application.Player) (*screens.ProfileWork, error) {
+func (h *ProfileHandler) work(ctx context.Context, tx application.Tx, p *application.Player) (*life.ProfileWork, error) {
 	snap := h.content.Current()
-	w := &screens.ProfileWork{}
+	w := &life.ProfileWork{}
 
 	emp, err := tx.Employment().Current(ctx, p.ID)
 	switch {
@@ -511,7 +511,7 @@ func (h *ProfileHandler) work(ctx context.Context, tx application.Tx, p *applica
 			// the job screen explains it, the home screen stays up.
 			break
 		}
-		job := &screens.ProfileJob{Job: jobRef(def, emp.Tier), Pay: emp.Rate}
+		job := &life.ProfileJob{Job: jobRef(def, emp.Tier), Pay: emp.Rate}
 		city, err := h.cities.ByID(ctx, emp.CityID)
 		if err != nil && !isSentinel(err, application.ErrCityNotFound) {
 			return nil, err
@@ -547,7 +547,7 @@ func (h *ProfileHandler) work(ctx context.Context, tx application.Tx, p *applica
 		return nil, err
 	default:
 		d := domainEnrollment(*enrolment)
-		w.Course = &screens.ProfileCourse{
+		w.Course = &life.ProfileCourse{
 			Course:    courseRef(snap, enrolment.CourseCode),
 			Remaining: d.Remaining(h.now()),
 			Paused:    d.IsPaused(),
@@ -630,16 +630,12 @@ func fallbackDisplayName(telegramUserID int64) string {
 // The layout lives in internal/telegram/screens, not here: a use case decides
 // what is true and a screen decides what it looks like. Every word of it
 // still comes from the catalogue.
-func (h *ProfileHandler) renderProfile(meta envelope.Metadata, p *application.Player, view screens.ProfileView) *presenter.Response {
-	c := screens.Context{Msgs: h.msgs, Lang: RenderLanguage(meta, p), MessageID: editableMessageID(meta), Shared: meta.InGroup()}
-	if p == nil {
-		return presenter.Message(c.T("profile.unavailable", nil), nil)
-	}
-	return screens.Profile(c, view)
+func (h *ProfileHandler) renderProfile(meta envelope.Metadata, p *application.Player, view life.ProfileView) *presentation.Response {
+	return life.Profile(presentation.Ctx{Lang: RenderLanguage(meta, p)}, view)
 }
 
 // village reads the village a player lives in, if any, onto the view.
-func (h *ProfileHandler) village(ctx context.Context, tx application.Tx, playerID string, view *screens.ProfileView) error {
+func (h *ProfileHandler) village(ctx context.Context, tx application.Tx, playerID string, view *life.ProfileView) error {
 	employment, settlements := tx.Employment(), tx.Settlements()
 	if employment == nil || settlements == nil {
 		return nil
@@ -651,7 +647,7 @@ func (h *ProfileHandler) village(ctx context.Context, tx application.Tx, playerI
 	s, err := settlements.ByID(ctx, home)
 	switch {
 	case err == nil:
-		view.Village = &screens.Named{Code: s.Code, Name: s.Name}
+		view.Village = &presentation.Named{Code: s.Code, Name: s.Name}
 	case !isSentinel(err, application.ErrCityNotFound):
 		return err
 	}

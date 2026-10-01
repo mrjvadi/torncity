@@ -404,10 +404,12 @@
         "card"
       ],
       "amount": 10480,
-      "back_addr": [
-        "travel:options",
-        "brennhaven"
-      ],
+      "back": {
+        "args": [
+          "brennhaven"
+        ],
+        "command": "travel.options"
+      },
       "back_label": "button.travel_options",
       "bank": 1500,
       "cash": 3200
@@ -421,10 +423,12 @@
         "cash"
       ],
       "amount": 300,
-      "back_addr": [
-        "travel:options",
-        "fenwick_span"
-      ],
+      "back": {
+        "args": [
+          "fenwick_span"
+        ],
+        "command": "travel.options"
+      },
       "back_label": "button.travel_options",
       "bank": 25000,
       "cash": 100

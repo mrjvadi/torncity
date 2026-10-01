@@ -215,6 +215,11 @@ func (c Context) integerText(v any) (string, bool) {
 		return c.numerals().grouped(uint64(n)), true
 	case uint64:
 		return c.numerals().grouped(n), true
+	case float64:
+		// a whole number that crossed the bus as JSON (a notice's arguments)
+		if n == float64(int64(n)) {
+			return FormatNumber(c, int64(n)), true
+		}
 	}
 	return "", false
 }

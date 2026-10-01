@@ -310,7 +310,7 @@ func TestDepartureChargesTheFareInTheSameTransaction(t *testing.T) {
 
 	opts := snap.TransportOptions("ostmarch", "fenwick_span")
 	var trainFare int64 = -1
-	resp, err := handler.Options(testCtx(t), travelMeta(rich, "req-options"), handlers.TravelOptionsRequest{City: "fenwick_span"})
+	resp, err := rr(handler.Options(testCtx(t), travelMeta(rich, "req-options"), handlers.TravelOptionsRequest{City: "fenwick_span"}))
 	if err != nil {
 		t.Fatalf("options: %v", err)
 	}
@@ -360,9 +360,9 @@ func TestDepartureChargesTheFareInTheSameTransaction(t *testing.T) {
 	}
 
 	// The poor player is answered, not failed, and nothing of theirs moved.
-	resp, err = handler.Start(testCtx(t), travelMeta(poor, "req-poor"), handlers.StartTravelRequest{
+	resp, err = rr(handler.Start(testCtx(t), travelMeta(poor, "req-poor"), handlers.StartTravelRequest{
 		City: "fenwick_span", Mode: "train", Max: fmt.Sprint(trainFare * 10), Method: "cash",
-	})
+	}))
 	if err != nil || resp == nil {
 		t.Fatalf("a player who cannot pay: %v, %v", resp, err)
 	}

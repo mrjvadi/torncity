@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
+	"github.com/mrjvadi/torncity/internal/telegram/render"
 	"strings"
 	"testing"
 	"time"
@@ -14,7 +16,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/render"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 	"github.com/mrjvadi/torncity/internal/telegram/screens/screentest"
 )
@@ -133,17 +134,17 @@ var flowLevers = []application.LeverDefinition{
 
 // flowGame is every handler over one world, for one language.
 type flowGame struct {
-	t     *testing.T
-	lang  string
-	now   time.Time
-	w     *flowWorld
-	msgs  *i18n.Catalog
-	seq   int
-	// lastMeta is the command the flow sent last: the Telegram edge edits the
-	// message a pressed button sits on and sends a typed command's answer.
+	t    *testing.T
+	lang string
+	now  time.Time
+	w    *flowWorld
+	msgs *i18n.Catalog
+	seq  int
+	// lastMeta is the command the flow sent last: how Telegram delivers the
+	// answer (a pressed button edits its message, a typed command sends).
 	lastMeta envelope.Metadata
-	snap  *content.Snapshot
-	names [2]string
+	snap     *content.Snapshot
+	names    [2]string
 
 	profile   *ProfileHandler
 	travel    *TravelHandler
@@ -284,11 +285,11 @@ func (b *flowBook) record(title string, wantError bool) func(*presenter.Response
 				b.g.t.Errorf("[%s] %s: handler error: %v", b.g.lang, title, err)
 			}
 		}
-		if resp.Neutral() {
-			// The Telegram edge words a neutral answer from the catalogue.
+		if resp != nil && resp.Neutral() {
+			// the Telegram edge words a neutral answer just before delivery
 			out, rerr := render.Render(b.g.msgs, render.DeliveryOf(b.g.lastMeta), resp)
 			if rerr != nil {
-				b.g.t.Fatalf("[%s] %s: the Telegram edge cannot render %q: %v", b.g.lang, title, resp.Screen, rerr)
+				b.g.t.Fatalf("[%s] %s: the edge cannot render %q: %v", b.g.lang, title, resp.Screen, rerr)
 			}
 			resp = out
 		}
@@ -418,18 +419,18 @@ func bankFlow(g *flowGame) *flowBook {
 	ctx := context.Background()
 	b := g.book()
 	show := b.step("/bank")(g.bank.Show(ctx, g.typed(flowMeTG, "bank.show")))
-	dep := b.button(show, screens.AddrDeposit+":")
+	dep := b.button(show, economy.AddrDeposit+":")
 	show = b.step("Deposit")(g.bank.Deposit(ctx, g.press(flowMeTG, "bank.deposit"), BankAmountRequest{Amount: dep[2], Nonce: dep[3]}))
-	wd := b.button(show, screens.AddrWithdraw+":")
+	wd := b.button(show, economy.AddrWithdraw+":")
 	b.step("Withdraw")(g.bank.Withdraw(ctx, g.press(flowMeTG, "bank.withdraw"), BankAmountRequest{Amount: wd[2], Nonce: wd[3]}))
 	b.refused("/bank deposit 999999 (too much)")(g.bank.Deposit(ctx, g.typed(flowMeTG, "bank.deposit"), BankAmountRequest{Amount: "999999"}))
 	b.refused("/bank deposit abc")(g.bank.Deposit(ctx, g.typed(flowMeTG, "bank.deposit"), BankAmountRequest{Amount: "abc"}))
 	b.step("/pay")(g.bank.Pay(ctx, g.typed(flowMeTG, "bank.pay"), PayRequest{}))
 	pay := b.step("/pay " + flowFriendC)(g.bank.Pay(ctx, g.typed(flowMeTG, "bank.pay"), PayRequest{To: flowFriendC}))
-	card := b.button(pay, screens.AddrPay+":"+flowFriendC+":")
+	card := b.button(pay, economy.AddrPay+":"+flowFriendC+":")
 	confirm := b.step("Choose an amount")(g.bank.Pay(ctx, g.press(flowMeTG, "bank.pay"),
 		PayRequest{To: card[2], Amount: card[3], Method: card[4]}))
-	send := b.button(confirm, screens.AddrPaySend+":")
+	send := b.button(confirm, economy.AddrPaySend+":")
 	b.step("Confirm")(g.bank.PaySend(ctx, g.press(flowMeTG, "bank.pay.send"),
 		PayRequest{To: send[2], Amount: send[3], Method: send[4], Nonce: send[5]}))
 	b.step("/pay " + flowFriendC + " 900000 card (too much)")(g.bank.Pay(ctx, g.typed(flowMeTG, "bank.pay"),

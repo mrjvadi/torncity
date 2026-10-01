@@ -327,7 +327,7 @@ func govRendered(t *testing.T, resp *presenter.Response, err error) string {
 	if resp == nil {
 		t.Fatal("nil response")
 	}
-	resp = shown(t, resp)
+	resp, _ = shown(t, messages(t))(resp, nil)
 	var b strings.Builder
 	b.WriteString(resp.Text)
 	if resp.Keyboard != nil {

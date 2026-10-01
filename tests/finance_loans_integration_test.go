@@ -20,6 +20,7 @@ import (
 // starts with prefix.
 func lastCallback(t *testing.T, resp *presenter.Response, prefix string) string {
 	t.Helper()
+	resp = rendered(t, resp)
 	if resp != nil && resp.Keyboard != nil {
 		for _, row := range resp.Keyboard.Rows {
 			for _, b := range row {

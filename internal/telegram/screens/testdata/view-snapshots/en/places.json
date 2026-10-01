@@ -338,7 +338,7 @@
         "name": "City centre"
       },
       "mode": "",
-      "need": "place.need.bank",
+      "need": "bank",
       "need_args": null,
       "place": {
         "code": "business_district",
@@ -369,7 +369,7 @@
         "name": "City centre"
       },
       "mode": "",
-      "need": "place.need.market",
+      "need": "market",
       "need_args": null,
       "place": {
         "code": "bazaar",
@@ -400,7 +400,7 @@
         "name": "Bazaar"
       },
       "mode": "",
-      "need": "place.need.university",
+      "need": "university",
       "need_args": null,
       "place": {
         "code": "university",
@@ -431,7 +431,7 @@
         "name": "Bazaar"
       },
       "mode": "",
-      "need": "place.need.police",
+      "need": "police",
       "need_args": null,
       "place": {
         "code": "police_station",
@@ -462,7 +462,7 @@
         "name": "City centre"
       },
       "mode": "train",
-      "need": "place.need.departure",
+      "need": "departure",
       "need_args": null,
       "place": {
         "code": "train_station",
@@ -493,7 +493,7 @@
         "name": "City centre"
       },
       "mode": "",
-      "need": "place.need.shop",
+      "need": "shop",
       "need_args": null,
       "place": {
         "code": "bazaar",
@@ -524,7 +524,7 @@
         "name": "City centre"
       },
       "mode": "",
-      "need": "place.need.crime",
+      "need": "crime",
       "need_args": null,
       "place": {
         "code": "residential_area",

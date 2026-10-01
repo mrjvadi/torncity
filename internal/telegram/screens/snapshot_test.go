@@ -8,6 +8,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/travel"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens/screentest"
@@ -219,9 +220,9 @@ func travelScreens(c Context, who people, add func(string, *presenter.Response))
 		ToCode: "brennhaven", To: "Brennhaven", ModeCode: "flight", ModeName: "Flight", Fare: 10480, Wait: 2 * time.Minute, Energy: 4,
 		Payment: PaymentChoice{Amount: 10480, Accepted: both, Cash: 3200, Bank: 1500}}))
 	add("Payment · declined, both balances", PaymentDeclined(c, PaymentDeclinedView{Amount: 10480, Cash: 3200, Bank: 1500,
-		Accepted: both, BackLabel: "button.travel_options", BackAddr: []string{AddrTravelOptions, "brennhaven"}}))
+		Accepted: both, BackLabel: "button.travel_options", Back: presentation.RefOfAddress(AddrTravelOptions + ":brennhaven")}))
 	add("Payment · declined, cash only here", PaymentDeclined(c, PaymentDeclinedView{Amount: 300, Cash: 100, Bank: 25000,
-		Accepted: []string{MethodCash}, BackLabel: "button.travel_options", BackAddr: []string{AddrTravelOptions, "fenwick_span"}}))
+		Accepted: []string{MethodCash}, BackLabel: "button.travel_options", Back: presentation.RefOfAddress(AddrTravelOptions + ":fenwick_span")}))
 	add("Travel · departed, paid fare", TravelStarted(c, TravelStartedView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "brennhaven",
 		To: "Brennhaven", ModeCode: "train", ModeName: "Train", Duration: 4 * time.Minute, Energy: 6, Fare: 7720}))
 	add("Travel · departed, free", TravelStarted(c, TravelStartedView{FromCode: "ostmarch", From: "Ostmarch", ToCode: "fenwick_span",
@@ -294,13 +295,13 @@ func bankScreens(c Context, who people, add func(string, *presenter.Response)) {
 	add("Bank · in a city with a withdrawal fee", Bank(c, BankView{CityCode: "ostmarch", City: "Ostmarch", Cash: 12850, Bank: 240000,
 		WithdrawalFeeBPS: 150, Deposits: amounts(12850, 1000, 5000, 10000), Withdrawals: amounts(236453, 10000, 50000, 100000),
 		CanDeposit: true, CanWithdraw: true}))
-	add("Bank · after a deposit, no fees", Bank(c, BankView{Notice: BankNotice(c, true, 5000, 0), CityCode: "brennhaven", City: "Brennhaven",
+	add("Bank · after a deposit, no fees", Bank(c, BankView{Notice: "deposited", NoticeArgs: map[string]any{"amount": int64(5000)}, CityCode: "brennhaven", City: "Brennhaven",
 		Cash: 7850, Bank: 245000, Deposits: amounts(7850, 1000, 5000), Withdrawals: amounts(245000, 10000, 50000, 100000),
 		CanDeposit: true, CanWithdraw: true}))
-	add("Bank · after a withdrawal with a fee", Bank(c, BankView{Notice: BankNotice(c, false, 5000, 75), CityCode: "ostmarch", City: "Ostmarch",
+	add("Bank · after a withdrawal with a fee", Bank(c, BankView{Notice: "withdrew_fee", NoticeArgs: map[string]any{"amount": int64(5000), "fee": int64(75)}, CityCode: "ostmarch", City: "Ostmarch",
 		Cash: 17850, Bank: 234925, WithdrawalFeeBPS: 150, Deposits: amounts(17850, 1000, 5000, 10000),
 		Withdrawals: amounts(231453, 10000, 50000, 100000), CanDeposit: true, CanWithdraw: true}))
-	add("Bank · after a free withdrawal, the bank emptied", Bank(c, BankView{Notice: BankNotice(c, false, 1000, 0), CityCode: "brennhaven",
+	add("Bank · after a free withdrawal, the bank emptied", Bank(c, BankView{Notice: "withdrew", NoticeArgs: map[string]any{"amount": int64(1000)}, CityCode: "brennhaven",
 		City: "Brennhaven", Cash: 1000, Bank: 0, Deposits: amounts(0, 1000), CanDeposit: true}))
 	add("Bank · in jail", Bank(c, BankView{CityCode: "ostmarch", City: "Ostmarch", Jailed: true, Cash: 850, Bank: 240000,
 		WithdrawalFeeBPS: 150, Deposits: amounts(850), CanDeposit: true}))
@@ -319,16 +320,16 @@ func bankScreens(c Context, who people, add func(string, *presenter.Response)) {
 	add("Pay · apart, free card payments", Pay(c, PayView{PayeeName: who.friend, PayeeCode: friendCode,
 		PayerCityCode: "brennhaven", PayerCity: "Brennhaven", Cash: 12850, Bank: 240000,
 		CardOptions: amounts(240000, 10000, 50000, 100000), CanCard: true}))
-	add("Pay · a refusal brought you back", Pay(c, PayView{Notice: c.T("pay.not_together", map[string]any{"player": who.friend}),
+	add("Pay · a refusal brought you back", Pay(c, PayView{Notice: "not_together", NoticeArgs: map[string]any{"player": who.friend},
 		PayeeName: who.friend, PayeeCode: friendCode, PayerCityCode: "ostmarch", PayerCity: "Ostmarch", CardFeeBPS: 100,
 		Cash: 12850, Bank: 240000, CardOptions: amounts(237623, 10000, 50000, 100000), CanCard: true}))
 	add("Pay · not enough cash, checked before confirming", Pay(c, PayView{
-		Notice:    PayShortfall(c, application.ErrNotEnoughCash.WithDetail("available", int64(850)).WithDetail("needed", int64(5000))),
+		Notice: "short_cash", NoticeArgs: map[string]any{"available": int64(850), "needed": int64(5000)},
 		PayeeName: who.friend, PayeeCode: friendCode, Together: true, CityCode: "ostmarch", City: "Ostmarch",
 		PayerCityCode: "ostmarch", PayerCity: "Ostmarch", CardFeeBPS: 100, Cash: 850, Bank: 240000,
 		CashOptions: amounts(850), CardOptions: amounts(237623, 10000, 50000, 100000), CanCash: true, CanCard: true}))
 	add("Pay · not enough in the bank with the fee", Pay(c, PayView{
-		Notice:    PayShortfall(c, application.ErrNotEnoughInBank.WithDetail("available", int64(3000)).WithDetail("needed", int64(5050))),
+		Notice: "short_bank", NoticeArgs: map[string]any{"available": int64(3000), "needed": int64(5050)},
 		PayeeName: who.friend, PayeeCode: friendCode, PayerCityCode: "ostmarch", PayerCity: "Ostmarch", CardFeeBPS: 100,
 		Cash: 0, Bank: 3000, CardOptions: amounts(2970, 1000), CanCard: true}))
 	add("Pay · nothing to pay with", Pay(c, PayView{PayeeName: who.friend, PayeeCode: friendCode,

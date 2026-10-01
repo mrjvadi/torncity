@@ -618,7 +618,7 @@ func TestASecondShiftWhileWorkingIsRefused(t *testing.T) {
 	}
 	energy := h.uow.tx.stats.rows[h.player.ID].Energy
 	for i, req := range []string{"req-work-2", "req-work-3"} {
-		resp, err := h.work(ctx, h.meta(req, "job.work"))
+		resp, err := shown(t, messages(t))(h.work(ctx, h.meta(req, "job.work")))
 		if err != nil || !strings.Contains(resp.Text, "at work") {
 			t.Fatalf("Work #%d while working = %q, %v; want the at-work refusal", i+2, workText(resp), err)
 		}
@@ -636,7 +636,7 @@ func TestASecondShiftWhileWorkingIsRefused(t *testing.T) {
 			return h.jobs.Quit(ctx, h.meta("req-q", "job.quit"), QuitRequest{Confirm: screens.QuitConfirmation})
 		},
 	} {
-		resp, err := call()
+		resp, err := shown(t, messages(t))(call())
 		if err != nil || !strings.Contains(resp.Text, "at work") {
 			t.Errorf("while working = %q, %v; want the at-work refusal", workText(resp), err)
 		}
@@ -761,7 +761,7 @@ func TestMinimumWageRaisesPay(t *testing.T) {
 func TestNonResidentIsRefusedWithTheReason(t *testing.T) {
 	h := newWorkHarness(t)
 	h.uow.w.jobs.residence[h.player.ID] = berlinID
-	resp, err := h.jobs.Apply(context.Background(), h.meta("req-apply", "job.apply"), JobRequest{Role: "retail"})
+	resp, err := shown(t, messages(t))(h.jobs.Apply(context.Background(), h.meta("req-apply", "job.apply"), JobRequest{Role: "retail"}))
 	if err != nil {
 		t.Fatalf("Apply = %v, want a refusal screen", err)
 	}
@@ -788,11 +788,11 @@ func TestApplyRefusalsNameWhatIsMissing(t *testing.T) {
 	h := newWorkHarness(t)
 	ctx := context.Background()
 	// technology is not offered in tehran (the test city is not in its list).
-	resp, err := h.jobs.Apply(ctx, h.meta("req-1", "job.apply"), JobRequest{Role: "technology"})
+	resp, err := shown(t, messages(t))(h.jobs.Apply(ctx, h.meta("req-1", "job.apply"), JobRequest{Role: "technology"}))
 	if err != nil || !strings.Contains(resp.Text, "not offered") {
 		t.Fatalf("Apply(technology) = %q, %v; want not offered", workText(resp), err)
 	}
-	resp, err = h.jobs.Apply(ctx, h.meta("req-2", "job.apply"), JobRequest{Role: "nonexistent"})
+	resp, err = shown(t, messages(t))(h.jobs.Apply(ctx, h.meta("req-2", "job.apply"), JobRequest{Role: "nonexistent"}))
 	if err != nil || !strings.Contains(resp.Text, "not offered") {
 		t.Fatalf("Apply(nonexistent) = %q, %v; want not offered", workText(resp), err)
 	}
@@ -829,7 +829,7 @@ func TestWorkAwayFromTheJobIsRefused(t *testing.T) {
 	}
 	elsewhere := berlinID
 	h.player.CityID = &elsewhere
-	resp, err := h.work(ctx, h.meta("req-work", "job.work"))
+	resp, err := shown(t, messages(t))(h.work(ctx, h.meta("req-work", "job.work")))
 	if err != nil || !strings.Contains(resp.Text, "Tehran") {
 		t.Fatalf("Work away = %q, %v; want the job's city named", workText(resp), err)
 	}
@@ -846,7 +846,7 @@ func TestPromotion(t *testing.T) {
 	if _, err := h.jobs.Apply(ctx, h.meta("req-apply", "job.apply"), JobRequest{Role: "retail"}); err != nil {
 		t.Fatal(err)
 	}
-	resp, err := h.jobs.Promote(ctx, h.meta("req-p1", "job.promote"))
+	resp, err := shown(t, messages(t))(h.jobs.Promote(ctx, h.meta("req-p1", "job.promote")))
 	if err != nil {
 		t.Fatalf("Promote: %v", err)
 	}
@@ -950,7 +950,7 @@ func TestEnrollThenComplete(t *testing.T) {
 	enrolment := h.uow.w.edu.active[h.player.ID]
 
 	// A second course while one runs is refused, and costs nothing.
-	resp, err = h.edu.Enroll(ctx, h.meta("req-e2", "education.enroll"), CourseRequest{Course: "driving_licence", Method: "cash"})
+	resp, err = shown(t, messages(t))(h.edu.Enroll(ctx, h.meta("req-e2", "education.enroll"), CourseRequest{Course: "driving_licence", Method: "cash"}))
 	if err != nil || !strings.Contains(resp.Text, "already studying") {
 		t.Fatalf("second Enroll = %q, %v; want already enrolled", workText(resp), err)
 	}
@@ -1009,6 +1009,7 @@ func TestEnrollWithoutTheFee(t *testing.T) {
 	h.uow.w.ledger.balances[accountID(application.AccountPlayerCash, h.player.ID)] = 100
 	h.uow.w.ledger.balances[accountID(application.AccountPlayerBank, h.player.ID)] = 250
 	resp, err := h.edu.Enroll(context.Background(), h.meta("req-e", "education.enroll"), CourseRequest{Course: "first_aid", Method: "cash"})
+	resp = edge(t, resp)
 	if err != nil || !strings.Contains(resp.Text, "600") || !strings.Contains(resp.Text, "100") ||
 		!strings.Contains(resp.Text, "250") || !resp.Private {
 		t.Fatalf("Enroll = %q, %v; want the fee and both balances, privately", workText(resp), err)
@@ -1094,7 +1095,7 @@ func TestCoursesTaughtElsewhereSayWhere(t *testing.T) {
 			t.Errorf("View(%s) = %q, %v; want where it is taught and no enrolment", code, workText(resp), err)
 		}
 	}
-	resp, err := h.edu.View(ctx, h.meta("req-x", "education.view"), CourseRequest{Course: "alchemy"})
+	resp, err := shown(t, messages(t))(h.edu.View(ctx, h.meta("req-x", "education.view"), CourseRequest{Course: "alchemy"}))
 	if err != nil || !strings.Contains(resp.Text, "not on offer") {
 		t.Errorf("View(alchemy) = %q, %v; want not on offer", workText(resp), err)
 	}

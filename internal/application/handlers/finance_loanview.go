@@ -3,18 +3,18 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/finance"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // View handles loan.view: one of the player's loans.
-func (h *FinanceHandler) View(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) View(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	no, err := parseCount(req.No)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func (h *FinanceHandler) View(ctx context.Context, meta envelope.Metadata, req F
 }
 
 // view renders a loan, asking about its payoff when confirm is set.
-func (h *FinanceHandler) view(ctx context.Context, meta envelope.Metadata, no int64, confirm bool, notice string) (*presenter.Response, error) {
+func (h *FinanceHandler) view(ctx context.Context, meta envelope.Metadata, no int64, confirm bool, notice string) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (h *FinanceHandler) view(ctx context.Context, meta envelope.Metadata, no in
 		return nil, err
 	}
 	lang := meta.Language
-	var view screens.LoanDetailView
+	var view economy.LoanDetailView
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -56,14 +56,14 @@ func (h *FinanceHandler) view(ctx context.Context, meta envelope.Metadata, no in
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.LoanDetail(h.screen(meta, lang), view), nil
+	return economy.LoanDetail(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // ownLoan reads a loan the player answers for.
 func (h *FinanceHandler) ownLoan(ctx context.Context, tx application.Tx, p *application.Player, no int64, lock bool) (*application.Loan, error) {
 	l, err := tx.Finance().LoanByNo(ctx, no, lock)
 	if isSentinel(err, application.ErrLoanNotFound) || (err == nil && l.PlayerID != p.ID) {
-		return nil, refuseFinance(screens.FinanceRefusedNotYours)
+		return nil, refuseFinance(economy.FinanceRefusedNotYours)
 	}
 	return l, err
 }
@@ -71,12 +71,12 @@ func (h *FinanceHandler) ownLoan(ctx context.Context, tx application.Tx, p *appl
 // loanDetail is a loan as its screen shows it.
 func (h *FinanceHandler) loanDetail(ctx context.Context, tx application.Tx, snap *content.Snapshot, def content.FinanceDef,
 	l application.Loan,
-) (screens.LoanDetailView, error) {
+) (economy.LoanDetailView, error) {
 	line, err := h.loanLine(ctx, tx, def, l)
 	if err != nil {
-		return screens.LoanDetailView{}, err
+		return economy.LoanDetailView{}, err
 	}
-	v := screens.LoanDetailView{Loan: line, Principal: l.Principal, Interest: l.Interest, RateBPS: l.RateBPS,
+	v := economy.LoanDetailView{Loan: line, Principal: l.Principal, Interest: l.Interest, RateBPS: l.RateBPS,
 		Periods: l.Periods, Paid: l.PaidPeriods, FeesDue: l.FeesDue, Payoff: l.Owed(), OpenedAt: l.OpenedAt,
 		Missed: l.MissedTotal, Recovered: l.Recovered, WrittenOff: l.WrittenOff}
 	if l.Status == application.LoanActive {
@@ -138,7 +138,7 @@ func (h *FinanceHandler) repay(ctx context.Context, tx application.Tx, l *applic
 
 // Repay handles loan.repay: without a nonce, the payoff and its button; with
 // one, the whole loan paid off now — every instalment left and the fees.
-func (h *FinanceHandler) Repay(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) Repay(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -174,13 +174,13 @@ func (h *FinanceHandler) Repay(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		if pu.total() < principal+interest+fees {
-			r := refuseFinance(screens.FinanceRefusedShort, screens.AddrLoanView, req.No)
+			r := refuseFinance(economy.FinanceRefusedShort, economy.AddrLoanView, req.No)
 			r.view.Amount = principal + interest + fees
 			return r
 		}
 		if err := h.repay(ctx, tx, l, &pu, principal, interest, fees, now); err != nil {
 			if stderrors.Is(err, application.ErrInsufficientFunds) {
-				return refuseFinance(screens.FinanceRefusedShort, screens.AddrLoanView, req.No)
+				return refuseFinance(economy.FinanceRefusedShort, economy.AddrLoanView, req.No)
 			}
 			return err
 		}

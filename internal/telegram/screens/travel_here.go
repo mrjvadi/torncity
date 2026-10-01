@@ -5,24 +5,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
-// Why «سفر به این روستا» has nowhere to take the player.
-const (
-	TravelHereNoVillage    = "no_village"
-	TravelHereAlreadyThere = "already_there"
-	TravelHereGroupOnly    = "group_only"
-)
-
-// TravelHereView is the answer to a direct trip to a group's village when
-// there is no trip to offer.
-type TravelHereView struct {
-	// Reason is one of the TravelHere* constants.
-	Reason string
-	// Village and VillageCode name the group's village when the player is in
-	// it already.
-	Village     string
-	VillageCode string
-}
-
 // TravelHere renders the refusal, with the way on: the map of the places the
 // player can go to instead.
 func TravelHere(c Context, v TravelHereView) *presenter.Response {

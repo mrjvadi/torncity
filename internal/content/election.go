@@ -109,7 +109,7 @@ func (s *Snapshot) buildElections(p *Pack) {
 		s.leverCodes = append(s.leverCodes, l.Code)
 	}
 	s.jurisdictions = append([]JurisdictionDef(nil), p.Jurisdictions...)
-	s.availability = append([]AvailabilityDef(nil), p.Availability...)
+	s.availabilityTags = append([]AvailabilityDef(nil), p.Availability...)
 	s.elections = make(map[string]ElectionDef, len(p.Elections))
 	for _, e := range p.Elections {
 		s.elections[e.Office] = e
@@ -159,7 +159,7 @@ func (s *Snapshot) AvailabilityTags(kinds ...string) []AvailabilityDef {
 		want[k] = true
 	}
 	var out []AvailabilityDef
-	for _, a := range s.availability {
+	for _, a := range s.availabilityTags {
 		if want[a.Kind] {
 			out = append(out, a)
 		}

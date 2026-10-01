@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strings"
 	"time"
 
@@ -19,7 +21,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/shared/playercode"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
-	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
@@ -138,8 +139,8 @@ func (h *FactionsHandler) finish(meta envelope.Metadata, lang string, err error)
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(c, v), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(c, v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: c.Lang}, v), nil
 	}
 	return nil, err
 }

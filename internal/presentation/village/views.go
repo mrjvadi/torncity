@@ -120,6 +120,11 @@ type VillageOverviewView struct {
 type VillageSupport struct {
 	Code string `json:"code"`
 	Name string `json:"name"`
+	// Services are the services of that city this village does not have
+	// itself, by code (bank, market, knowledge, hospital): each is a journey
+	// away. A service the village already has is not listed, and neither is
+	// work (the village's own labour board is its «work») or the jail.
+	Services []string `json:"services"`
 }
 
 // Where the settlement stands on a knowledge item.

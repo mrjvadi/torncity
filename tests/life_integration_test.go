@@ -129,6 +129,7 @@ func (w *lifeWorld) ok(t *testing.T, what string) func(*presenter.Response, erro
 
 func (w *lifeWorld) check(t *testing.T, what string, resp *presenter.Response, err error) *presenter.Response {
 	t.Helper()
+	resp, err = rr(resp, err)
 	if err != nil {
 		t.Fatalf("%s: %v", what, err)
 	}

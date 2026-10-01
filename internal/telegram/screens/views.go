@@ -1,6 +1,8 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"github.com/mrjvadi/torncity/internal/presentation/society"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -11,25 +13,25 @@ import (
 // client decides how to draw it. The names are part of the client contract
 // (api/client-api.md); renaming one breaks every client in the field.
 const (
-	ScreenProfile       = "profile"
-	ScreenDashboard     = "dashboard"
-	ScreenCityMap       = "city_map"
-	ScreenMap           = "cities"
-	ScreenTravelOptions = "travel_options"
-	ScreenTravelStatus  = "travel_status"
-	ScreenBank          = "bank"
-	ScreenInventory     = "inventory"
+	ScreenProfile       = life.ScreenProfile
+	ScreenDashboard     = life.ScreenDashboard
+	ScreenCityMap       = life.ScreenCityMap
+	ScreenMap           = life.ScreenCities
+	ScreenTravelOptions = life.ScreenTravelOptions
+	ScreenTravelStatus  = life.ScreenTravelStatus
+	ScreenBank          = economy.ScreenBank
+	ScreenInventory     = life.ScreenInventory
 	ScreenJobStatus     = "job_status"
-	ScreenLife          = "life"
+	ScreenLife          = life.ScreenLife
 
 	// Bank: paying another player (bank.go).
-	ScreenPay           = "pay"
-	ScreenPayConfirm    = "pay_confirm"
-	ScreenPaySent       = "pay_sent"
+	ScreenPay           = economy.ScreenPay
+	ScreenPayConfirm    = economy.ScreenPayConfirm
+	ScreenPaySent       = economy.ScreenPaySent
 	ScreenPaymentNotice = "payment_notice"
 
 	// Achievements (achievements.go).
-	ScreenAchievements      = "achievements"
+	ScreenAchievements      = life.ScreenAchievements
 	ScreenAchievementNotice = "achievement_notice"
 
 	// Player-held offices: appointing and dismissing (appointments.go).
@@ -53,17 +55,17 @@ const (
 	ScreenLotConfirm           = village.ScreenLotConfirm
 
 	// Auctions (auctions.go).
-	ScreenAuctions       = "auctions"
-	ScreenAuctionDetail  = "auction_detail"
-	ScreenAuctionNew     = "auction_new"
-	ScreenAuctionOpened  = "auction_opened"
-	ScreenBidPlaced      = "bid_placed"
-	ScreenMyAuctions     = "my_auctions"
+	ScreenAuctions       = economy.ScreenAuctions
+	ScreenAuctionDetail  = economy.ScreenAuctionDetail
+	ScreenAuctionNew     = economy.ScreenAuctionNew
+	ScreenAuctionOpened  = economy.ScreenAuctionOpened
+	ScreenBidPlaced      = economy.ScreenBidPlaced
+	ScreenMyAuctions     = economy.ScreenMyAuctions
 	ScreenAuctionNotice  = "auction_notice"
-	ScreenAuctionRefusal = "auction_refusal"
+	ScreenAuctionRefusal = economy.ScreenAuctionRefusal
 
 	// The city budget (budget.go).
-	ScreenBudget = "budget"
+	ScreenBudget = economy.ScreenBudget
 
 	// Crime (crime.go).
 	ScreenCrimeHub         = "crime_hub"
@@ -82,8 +84,8 @@ const (
 	ScreenCrimeRefusal     = "crime_refusal"
 
 	// The player's own linked devices (devices.go).
-	ScreenDeviceLink = "device_link"
-	ScreenDevices    = "devices"
+	ScreenDeviceLink = life.ScreenDeviceLink
+	ScreenDevices    = life.ScreenDevices
 
 	// Diplomacy: sanctions and treaties (diplomacy.go).
 	ScreenSanctions            = society.ScreenSanctions
@@ -130,19 +132,19 @@ const (
 	ScreenFactionCrimeNotice   = "faction_crime_notice"
 
 	// Finance: loans, savings and insurance (finance.go).
-	ScreenFinanceHub     = "finance_hub"
-	ScreenLoanOffer      = "loan_offer"
-	ScreenLoanConfirm    = "loan_confirm"
-	ScreenLoanDetail     = "loan_detail"
-	ScreenSavings        = "savings"
-	ScreenInsurance      = "insurance"
-	ScreenInsureConfirm  = "insure_confirm"
-	ScreenFinanceRefusal = "finance_refusal"
+	ScreenFinanceHub     = economy.ScreenFinanceHub
+	ScreenLoanOffer      = economy.ScreenLoanOffer
+	ScreenLoanConfirm    = economy.ScreenLoanConfirm
+	ScreenLoanDetail     = economy.ScreenLoanDetail
+	ScreenSavings        = economy.ScreenSavings
+	ScreenInsurance      = economy.ScreenInsurance
+	ScreenInsureConfirm  = economy.ScreenInsureConfirm
+	ScreenFinanceRefusal = economy.ScreenFinanceRefusal
 	ScreenFinanceNotice  = "finance_notice"
 
 	// The gold exchange (gold.go).
-	ScreenGold      = "gold"
-	ScreenGoldTrade = "gold_trade"
+	ScreenGold      = economy.ScreenGold
+	ScreenGoldTrade = economy.ScreenGoldTrade
 
 	// Player-held offices: a city's government (governance.go).
 	ScreenCityGovernance    = society.ScreenCityGovernance
@@ -166,12 +168,12 @@ const (
 
 	// The bag: one good or piece, using it, giving it, dropping it
 	// (items.go).
-	ScreenItemDetail  = "item_detail"
-	ScreenItemUsed    = "item_used"
-	ScreenItemGiven   = "item_given"
-	ScreenDropConfirm = "drop_confirm"
-	ScreenItemDropped = "item_dropped"
-	ScreenItemRefusal = "item_refusal"
+	ScreenItemDetail  = life.ScreenItemDetail
+	ScreenItemUsed    = life.ScreenItemUsed
+	ScreenItemGiven   = life.ScreenItemGiven
+	ScreenDropConfirm = life.ScreenDropConfirm
+	ScreenItemDropped = life.ScreenItemDropped
+	ScreenItemRefusal = life.ScreenItemRefusal
 
 	// Work (jobs.go).
 	ScreenJobOpenings  = "job_openings"
@@ -180,7 +182,7 @@ const (
 	ScreenShiftStarted = "shift_started"
 	ScreenShiftWorked  = "shift_worked"
 	ScreenJobPromoted  = "job_promoted"
-	ScreenRefusal      = "refusal"
+	ScreenRefusal      = life.ScreenRefusal
 
 	// The legislature (legislature.go).
 	ScreenBills             = society.ScreenBills
@@ -189,24 +191,24 @@ const (
 	ScreenBillDecidedNotice = "bill_decided_notice"
 
 	// A character's life and legacy (life.go).
-	ScreenCard         = "card"
-	ScreenHistory      = "history"
-	ScreenAvatars      = "avatars"
-	ScreenSleepPay     = "sleep_pay"
-	ScreenLifeRefusal  = "life_refusal"
+	ScreenCard         = life.ScreenCard
+	ScreenHistory      = life.ScreenHistory
+	ScreenAvatars      = life.ScreenAvatars
+	ScreenSleepPay     = life.ScreenSleepPay
+	ScreenLifeRefusal  = life.ScreenLifeRefusal
 	ScreenLeaderboard  = society.ScreenLeaderboard
 	ScreenRankNotice   = "rank_notice"
 	ScreenHungerNotice = "hunger_notice"
 
 	// The item market (market.go).
-	ScreenMarket             = "market"
-	ScreenBook               = "book"
-	ScreenMarketCheckout     = "market_checkout"
-	ScreenOrderPlaced        = "order_placed"
-	ScreenOrderCancelled     = "order_cancelled"
-	ScreenMyOrders           = "my_orders"
+	ScreenMarket             = economy.ScreenMarket
+	ScreenBook               = economy.ScreenBook
+	ScreenMarketCheckout     = economy.ScreenMarketCheckout
+	ScreenOrderPlaced        = economy.ScreenOrderPlaced
+	ScreenOrderCancelled     = economy.ScreenOrderCancelled
+	ScreenMyOrders           = economy.ScreenMyOrders
 	ScreenMarketFilledNotice = "market_filled_notice"
-	ScreenMarketRefusal      = "market_refusal"
+	ScreenMarketRefusal      = economy.ScreenMarketRefusal
 
 	// Mission boards (missions.go).
 	ScreenMissionBoard           = "mission_board"
@@ -216,20 +218,20 @@ const (
 	ScreenMissionRefusal         = "mission_refusal"
 
 	// A declined payment (payment.go).
-	ScreenPaymentDeclined = "payment_declined"
+	ScreenPaymentDeclined = economy.ScreenPaymentDeclined
 
 	// Walking between a city's places (places.go).
-	ScreenWalkStarted = "walk_started"
-	ScreenNotHere     = "not_here"
+	ScreenWalkStarted = life.ScreenWalkStarted
+	ScreenNotHere     = life.ScreenNotHere
 
 	// Property (property.go).
-	ScreenPropertyMarket  = "property_market"
-	ScreenPropertyType    = "property_type"
-	ScreenPropertyOffer   = "property_offer"
-	ScreenPropertyMine    = "property_mine"
-	ScreenProperty        = "property"
-	ScreenPropertyLeave   = "property_leave"
-	ScreenPropertyRefusal = "property_refusal"
+	ScreenPropertyMarket  = life.ScreenPropertyMarket
+	ScreenPropertyType    = life.ScreenPropertyType
+	ScreenPropertyOffer   = life.ScreenPropertyOffer
+	ScreenPropertyMine    = life.ScreenPropertyMine
+	ScreenProperty        = life.ScreenProperty
+	ScreenPropertyLeave   = life.ScreenPropertyLeave
+	ScreenPropertyRefusal = life.ScreenPropertyRefusal
 	ScreenPropertyNotice  = "property_notice"
 
 	// Specialist recruitment (recruit.go, recruit_campaign.go,
@@ -242,16 +244,16 @@ const (
 	ScreenRecruitNotice   = "recruit_notice"
 
 	// The settings screen (settings.go).
-	ScreenSettings = "settings"
+	ScreenSettings = life.ScreenSettings
 
 	// City shops (shops.go).
-	ScreenShops        = "shops"
-	ScreenShopDetail   = "shop_detail"
-	ScreenShopCheckout = "shop_checkout"
-	ScreenShopBought   = "shop_bought"
-	ScreenSellOffers   = "sell_offers"
-	ScreenShopSold     = "shop_sold"
-	ScreenShopRefusal  = "shop_refusal"
+	ScreenShops        = economy.ScreenShops
+	ScreenShopDetail   = economy.ScreenShopDetail
+	ScreenShopCheckout = economy.ScreenShopCheckout
+	ScreenShopBought   = economy.ScreenShopBought
+	ScreenSellOffers   = economy.ScreenSellOffers
+	ScreenShopSold     = economy.ScreenShopSold
+	ScreenShopRefusal  = economy.ScreenShopRefusal
 
 	// Skills and the social graph (skills.go, social.go).
 	ScreenSkills  = "skills"
@@ -259,26 +261,26 @@ const (
 	ScreenFriends = society.ScreenFriends
 
 	// The stock exchange (stocks.go).
-	ScreenExchange    = "exchange"
-	ScreenStock       = "stock"
-	ScreenStockOrder  = "stock_order"
-	ScreenPortfolio   = "portfolio"
-	ScreenListing     = "listing"
-	ScreenDividend    = "dividend"
+	ScreenExchange    = economy.ScreenExchange
+	ScreenStock       = economy.ScreenStock
+	ScreenStockOrder  = economy.ScreenStockOrder
+	ScreenPortfolio   = economy.ScreenPortfolio
+	ScreenListing     = economy.ScreenListing
+	ScreenDividend    = economy.ScreenDividend
 	ScreenStockNotice = "stock_notice"
 
 	// Travel between cities: the rest of the flow (travel.go).
-	ScreenTravelCheckout = "travel_checkout"
-	ScreenTravelStarted  = "travel_started"
-	ScreenTravelArrived  = "travel_arrived"
+	ScreenTravelCheckout = life.ScreenTravelCheckout
+	ScreenTravelStarted  = life.ScreenTravelStarted
+	ScreenTravelArrived  = life.ScreenTravelArrived
 	// ScreenTravelHere answers «سفر به این روستا» when there is nowhere to
 	// go: the group has no village, the player is in it already, or the
 	// words were not sent in a group.
-	ScreenTravelHere = "travel_here"
+	ScreenTravelHere = life.ScreenTravelHere
 
 	// ScreenError is a refusal or a failure: its text says what went
 	// wrong. It carries no view.
-	ScreenError = "error"
+	ScreenError = life.ScreenError
 )
 
 // withView attaches the view to a screen shown to the player alone. A screen

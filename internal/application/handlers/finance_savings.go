@@ -3,14 +3,14 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/finance"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Savings (docs/adr/0026 section 2.5): a player's own account beside the
@@ -90,21 +90,26 @@ func (h *FinanceHandler) payInterest(ctx context.Context, tx application.Tx, def
 }
 
 // Savings handles save.show.
-func (h *FinanceHandler) Savings(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *FinanceHandler) Savings(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.savings(ctx, meta, "", nil)
 }
 
-func (h *FinanceHandler) savings(ctx context.Context, meta envelope.Metadata, notice string, args map[string]any) (*presenter.Response, error) {
+func (h *FinanceHandler) savings(ctx context.Context, meta envelope.Metadata, notice string, args map[string]any) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
+	if resp, err := h.gate(ctx, meta, snap, "savings", func(lang string, un *economy.Unavailable) *presentation.Response {
+		return economy.Savings(presentation.Ctx{Lang: lang}, economy.SavingsView{Unavailable: un})
+	}); resp != nil || err != nil {
+		return resp, err
+	}
 	def, err := h.def(snap)
 	if err != nil {
 		return nil, err
 	}
 	lang := meta.Language
-	view := screens.SavingsView{Notice: notice, NoticeArgs: args}
+	view := economy.SavingsView{Notice: notice, NoticeArgs: args}
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -151,23 +156,23 @@ func (h *FinanceHandler) savings(ctx context.Context, meta envelope.Metadata, no
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Savings(h.screen(meta, lang), view), nil
+	return economy.Savings(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Deposit handles save.deposit: bank to savings.
-func (h *FinanceHandler) Deposit(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) Deposit(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	return h.moveSavings(ctx, meta, req, true)
 }
 
 // Withdraw handles save.withdraw: savings to bank.
-func (h *FinanceHandler) Withdraw(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) Withdraw(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	return h.moveSavings(ctx, meta, req, false)
 }
 
 // moveSavings moves money between a player's bank and savings, once per
 // press. A withdrawal lowers the mark interest is counted on, so money taken
 // out and put back earns nothing until a period has passed.
-func (h *FinanceHandler) moveSavings(ctx context.Context, meta envelope.Metadata, req FinanceRequest, in bool) (*presenter.Response, error) {
+func (h *FinanceHandler) moveSavings(ctx context.Context, meta envelope.Metadata, req FinanceRequest, in bool) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -206,17 +211,17 @@ func (h *FinanceHandler) moveSavings(ctx context.Context, meta envelope.Metadata
 		}
 		switch {
 		case in && amount < def.Savings.MinAmount:
-			r := refuseFinance(screens.FinanceRefusedAmount, screens.AddrSavings)
+			r := refuseFinance(economy.FinanceRefusedAmount, economy.AddrSavings)
 			r.view.Amount = def.Savings.MinAmount
 			return r
 		case in && acct.Balance.Minor()+amount > def.Savings.MaxBalance:
-			r := refuseFinance(screens.FinanceRefusedSavingsCap, screens.AddrSavings)
+			r := refuseFinance(economy.FinanceRefusedSavingsCap, economy.AddrSavings)
 			r.view.Amount = def.Savings.MaxBalance
 			return r
 		}
 		if _, err := move(ctx, tx, from.ID, to.ID, amount, reason, application.SavingsReference, p.ID, "", now); err != nil {
 			if stderrors.Is(err, application.ErrInsufficientFunds) {
-				r := refuseFinance(screens.FinanceRefusedShort, screens.AddrSavings)
+				r := refuseFinance(economy.FinanceRefusedShort, economy.AddrSavings)
 				r.view.Amount = amount
 				return r
 			}

@@ -48,14 +48,14 @@ func placesSnapshots(c Context, _ people, add func(string, *presenter.Response))
 		title string
 		v     NotHereView
 	}{
-		{"Not here · the bank", NotHereView{Need: "place.need.bank", Place: business, Here: centre, Walk: 15 * time.Second}},
-		{"Not here · the market", NotHereView{Need: "place.need.market", Place: bazaar, Here: centre, Walk: 15 * time.Second}},
-		{"Not here · a course", NotHereView{Need: "place.need.university", Place: uni, Here: bazaar, Walk: 20 * time.Second}},
-		{"Not here · the police", NotHereView{Need: "place.need.police", Place: police, Here: bazaar, Walk: 15 * time.Second}},
-		{"Not here · a departure", NotHereView{Need: "place.need.departure", Mode: "train", Place: station, Here: centre, Walk: 20 * time.Second}},
-		{"Not here · a shop", NotHereView{Need: "place.need.shop", Shop: Named{Code: "hardware_store", Name: "Hardware store"},
+		{"Not here · the bank", NotHereView{Need: "bank", Place: business, Here: centre, Walk: 15 * time.Second}},
+		{"Not here · the market", NotHereView{Need: "market", Place: bazaar, Here: centre, Walk: 15 * time.Second}},
+		{"Not here · a course", NotHereView{Need: "university", Place: uni, Here: bazaar, Walk: 20 * time.Second}},
+		{"Not here · the police", NotHereView{Need: "police", Place: police, Here: bazaar, Walk: 15 * time.Second}},
+		{"Not here · a departure", NotHereView{Need: "departure", Mode: "train", Place: station, Here: centre, Walk: 20 * time.Second}},
+		{"Not here · a shop", NotHereView{Need: "shop", Shop: Named{Code: "hardware_store", Name: "Hardware store"},
 			Place: bazaar, Here: centre, Walk: 15 * time.Second}},
-		{"Not here · a crime", NotHereView{Need: "place.need.crime", Crime: Named{Code: "home_burglary", Name: "Home burglary"},
+		{"Not here · a crime", NotHereView{Need: "crime", Crime: Named{Code: "home_burglary", Name: "Home burglary"},
 			Place: Named{Code: "residential_area", Name: "Residential area"}, Here: centre, Walk: 25 * time.Second}},
 		{"Not here · still walking", NotHereView{Walking: true, Place: bazaar, Remaining: 7 * time.Second,
 			ArrivesAt: snapshotNow.Add(7 * time.Second)}},

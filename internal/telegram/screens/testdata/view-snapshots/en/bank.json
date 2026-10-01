@@ -34,6 +34,7 @@
       "jailed": false,
       "no_city": false,
       "notice": "",
+      "notice_args": null,
       "travelling": false,
       "withdrawal_fee_bps": 150,
       "withdrawals": [
@@ -89,7 +90,10 @@
       ],
       "jailed": false,
       "no_city": false,
-      "notice": "✅ 5,000 SUP deposited into your bank account.",
+      "notice": "deposited",
+      "notice_args": {
+        "amount": 5000
+      },
       "travelling": false,
       "withdrawal_fee_bps": 0,
       "withdrawals": [
@@ -150,7 +154,11 @@
       ],
       "jailed": false,
       "no_city": false,
-      "notice": "✅ You withdrew 5,000 SUP in cash, and a fee of 75 SUP was taken from your bank.",
+      "notice": "withdrew_fee",
+      "notice_args": {
+        "amount": 5000,
+        "fee": 75
+      },
       "travelling": false,
       "withdrawal_fee_bps": 150,
       "withdrawals": [
@@ -196,7 +204,10 @@
       ],
       "jailed": false,
       "no_city": false,
-      "notice": "✅ You withdrew 1,000 SUP in cash.",
+      "notice": "withdrew",
+      "notice_args": {
+        "amount": 1000
+      },
       "travelling": false,
       "withdrawal_fee_bps": 0,
       "withdrawals": null
@@ -222,6 +233,7 @@
       "jailed": true,
       "no_city": false,
       "notice": "",
+      "notice_args": null,
       "travelling": false,
       "withdrawal_fee_bps": 150,
       "withdrawals": null
@@ -241,6 +253,7 @@
       "jailed": false,
       "no_city": false,
       "notice": "",
+      "notice_args": null,
       "travelling": false,
       "withdrawal_fee_bps": 150,
       "withdrawals": null
@@ -260,6 +273,7 @@
       "jailed": false,
       "no_city": false,
       "notice": "",
+      "notice_args": null,
       "travelling": true,
       "withdrawal_fee_bps": 0,
       "withdrawals": null
@@ -279,6 +293,7 @@
       "jailed": false,
       "no_city": true,
       "notice": "",
+      "notice_args": null,
       "travelling": false,
       "withdrawal_fee_bps": 0,
       "withdrawals": null
@@ -340,6 +355,7 @@
       "city": "Ostmarch",
       "city_code": "ostmarch",
       "notice": "",
+      "notice_args": null,
       "origin": "",
       "payee_code": "B3C4D5F",
       "payee_name": "Kaveh",
@@ -379,6 +395,7 @@
       "city": "Ostmarch",
       "city_code": "ostmarch",
       "notice": "",
+      "notice_args": null,
       "origin": "-1001234567890",
       "payee_code": "B3C4D5F",
       "payee_name": "Kaveh",
@@ -422,6 +439,7 @@
       "city": "",
       "city_code": "",
       "notice": "",
+      "notice_args": null,
       "origin": "",
       "payee_code": "B3C4D5F",
       "payee_name": "Kaveh",
@@ -464,7 +482,10 @@
       "cash_options": null,
       "city": "",
       "city_code": "",
-      "notice": "Kaveh is not here with you, so you cannot hand over cash. Send the money by card instead — card payments work from anywhere.",
+      "notice": "not_together",
+      "notice_args": {
+        "player": "Kaveh"
+      },
       "origin": "",
       "payee_code": "B3C4D5F",
       "payee_name": "Kaveh",
@@ -513,7 +534,11 @@
       ],
       "city": "Ostmarch",
       "city_code": "ostmarch",
-      "notice": "💵 Not enough cash: this needs 5,000 SUP and you carry 850 SUP. Choose a smaller amount or pay by card.",
+      "notice": "short_cash",
+      "notice_args": {
+        "available": 850,
+        "needed": 5000
+      },
       "origin": "",
       "payee_code": "B3C4D5F",
       "payee_name": "Kaveh",
@@ -546,7 +571,11 @@
       "cash_options": null,
       "city": "",
       "city_code": "",
-      "notice": "🏦 Not enough in your bank: with the fee this needs 5,050 SUP and you have 3,000 SUP. Choose a smaller amount.",
+      "notice": "short_bank",
+      "notice_args": {
+        "available": 3000,
+        "needed": 5050
+      },
       "origin": "",
       "payee_code": "B3C4D5F",
       "payee_name": "Kaveh",
@@ -569,6 +598,7 @@
       "city": "",
       "city_code": "",
       "notice": "",
+      "notice_args": null,
       "origin": "",
       "payee_code": "B3C4D5F",
       "payee_name": "Kaveh",

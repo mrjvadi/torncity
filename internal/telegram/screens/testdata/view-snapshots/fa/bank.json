@@ -34,6 +34,7 @@
       "jailed": false,
       "no_city": false,
       "notice": "",
+      "notice_args": null,
       "travelling": false,
       "withdrawal_fee_bps": 150,
       "withdrawals": [
@@ -89,7 +90,10 @@
       ],
       "jailed": false,
       "no_city": false,
-      "notice": "✅ ⁨⁨5,000⁩ ساپ⁩ به حساب بانکی شما واریز شد.",
+      "notice": "deposited",
+      "notice_args": {
+        "amount": 5000
+      },
       "travelling": false,
       "withdrawal_fee_bps": 0,
       "withdrawals": [
@@ -150,7 +154,11 @@
       ],
       "jailed": false,
       "no_city": false,
-      "notice": "✅ ⁨⁨5,000⁩ ساپ⁩ نقد برداشت کردید و کارمزد ⁨⁨75⁩ ساپ⁩ هم از بانک کسر شد.",
+      "notice": "withdrew_fee",
+      "notice_args": {
+        "amount": 5000,
+        "fee": 75
+      },
       "travelling": false,
       "withdrawal_fee_bps": 150,
       "withdrawals": [
@@ -196,7 +204,10 @@
       ],
       "jailed": false,
       "no_city": false,
-      "notice": "✅ ⁨⁨1,000⁩ ساپ⁩ نقد برداشت کردید.",
+      "notice": "withdrew",
+      "notice_args": {
+        "amount": 1000
+      },
       "travelling": false,
       "withdrawal_fee_bps": 0,
       "withdrawals": null
@@ -222,6 +233,7 @@
       "jailed": true,
       "no_city": false,
       "notice": "",
+      "notice_args": null,
       "travelling": false,
       "withdrawal_fee_bps": 150,
       "withdrawals": null
@@ -241,6 +253,7 @@
       "jailed": false,
       "no_city": false,
       "notice": "",
+      "notice_args": null,
       "travelling": false,
       "withdrawal_fee_bps": 150,
       "withdrawals": null
@@ -260,6 +273,7 @@
       "jailed": false,
       "no_city": false,
       "notice": "",
+      "notice_args": null,
       "travelling": true,
       "withdrawal_fee_bps": 0,
       "withdrawals": null
@@ -279,6 +293,7 @@
       "jailed": false,
       "no_city": true,
       "notice": "",
+      "notice_args": null,
       "travelling": false,
       "withdrawal_fee_bps": 0,
       "withdrawals": null
@@ -340,6 +355,7 @@
       "city": "Ostmarch",
       "city_code": "ostmarch",
       "notice": "",
+      "notice_args": null,
       "origin": "",
       "payee_code": "B3C4D5F",
       "payee_name": "کاوه",
@@ -379,6 +395,7 @@
       "city": "Ostmarch",
       "city_code": "ostmarch",
       "notice": "",
+      "notice_args": null,
       "origin": "-1001234567890",
       "payee_code": "B3C4D5F",
       "payee_name": "کاوه",
@@ -422,6 +439,7 @@
       "city": "",
       "city_code": "",
       "notice": "",
+      "notice_args": null,
       "origin": "",
       "payee_code": "B3C4D5F",
       "payee_name": "کاوه",
@@ -464,7 +482,10 @@
       "cash_options": null,
       "city": "",
       "city_code": "",
-      "notice": "کاوه اینجا کنار شما نیست، پس نمی‌توانید به او پول نقد بدهید. به‌جای آن با کارت پرداخت کنید؛ پرداخت کارتی از همه‌جا ممکن است.",
+      "notice": "not_together",
+      "notice_args": {
+        "player": "کاوه"
+      },
       "origin": "",
       "payee_code": "B3C4D5F",
       "payee_name": "کاوه",
@@ -513,7 +534,11 @@
       ],
       "city": "Ostmarch",
       "city_code": "ostmarch",
-      "notice": "💵 پول نقدتان کافی نیست: ⁨⁨5,000⁩ ساپ⁩ لازم است و ⁨⁨850⁩ ساپ⁩ همراه دارید. مبلغ کمتری انتخاب کنید یا با کارت بپردازید.",
+      "notice": "short_cash",
+      "notice_args": {
+        "available": 850,
+        "needed": 5000
+      },
       "origin": "",
       "payee_code": "B3C4D5F",
       "payee_name": "کاوه",
@@ -546,7 +571,11 @@
       "cash_options": null,
       "city": "",
       "city_code": "",
-      "notice": "🏦 موجودی بانکتان کافی نیست: با کارمزد ⁨⁨5,050⁩ ساپ⁩ لازم است و ⁨⁨3,000⁩ ساپ⁩ دارید. مبلغ کمتری انتخاب کنید.",
+      "notice": "short_bank",
+      "notice_args": {
+        "available": 3000,
+        "needed": 5050
+      },
       "origin": "",
       "payee_code": "B3C4D5F",
       "payee_name": "کاوه",
@@ -569,6 +598,7 @@
       "city": "",
       "city_code": "",
       "notice": "",
+      "notice_args": null,
       "origin": "",
       "payee_code": "B3C4D5F",
       "payee_name": "کاوه",

@@ -1,63 +1,9 @@
 package screens
 
 import (
-	"time"
-
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
-
-// MapCity is one destination on the map: a city a route reaches from where
-// the player stands.
-//
-// Cities with no route from here are not destinations and are not shown. A
-// list of places the player cannot go is noise on a screen whose whole job is
-// "where can I go"; they appear as soon as the player stands somewhere that
-// connects to them.
-//
-// Code is both the address of its travel button and the key its display name
-// is looked up by; Name is the authored name, shown only when the catalogue
-// has no translation for Code.
-type MapCity struct {
-	Code       string
-	Name       string
-	DistanceKM int
-	// Emblem is a founded village's emblem as emoji, empty for a content
-	// city. Village says the destination is a founded settlement, and
-	// SettlementID names it for the layout and the roster.
-	Emblem       string
-	Village      bool
-	SettlementID string
-	// Lat and Lon are where the destination stands on the world, for a
-	// client that draws the journey; zero when unknown.
-	Lat, Lon float64
-	// Fare is the cheapest way there, in minor units, and Wait the fastest
-	// (real time), for a destination priced from the world: the distance
-	// sets both. Wait zero means the list carries no price (a content
-	// route, priced when the mode is chosen).
-	Fare int64
-	Wait time.Duration
-}
-
-// MapView is one page of destinations.
-type MapView struct {
-	// Destinations are the reachable cities on this page, never including
-	// the one the player is in.
-	Destinations []MapCity
-	Page         int
-	Pages        int
-	// OriginCode and Origin are the player's city: its content code and its
-	// authored name, the fallback for an untranslated code. Both empty when
-	// they are nowhere yet.
-	OriginCode string
-	Origin     string
-	// Travelling says a journey is in progress, and TravellingToCode and
-	// TravellingTo name its destination. A traveller is shown the journey,
-	// not a departures board full of buttons that would all be refused.
-	Travelling       bool
-	TravellingToCode string
-	TravellingTo     string
-}
 
 // Map renders the destinations reachable from the player's city.
 func Map(c Context, v MapView) *presenter.Response {

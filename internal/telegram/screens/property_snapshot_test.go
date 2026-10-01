@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -94,7 +95,7 @@ func propertySnapshots(c Context, who people, add func(string, *presenter.Respon
 	}
 	add("Refused · too many", PropertyRefusal(c, PropertyRefusalView{Kind: PropertyRefusedTooMany}))
 	add("Refused · price above the ceiling", PropertyRefusal(c, PropertyRefusalView{Kind: PropertyRefusedPrice, Max: 1000000,
-		Back: []string{AddrProperty, "16"}}))
+		Back: presentation.RefOfAddress(AddrProperty + ":16")}))
 	add("Refused · rested lately", PropertyRefusal(c, PropertyRefusalView{Kind: PropertyRefusedTooSoon, Wait: 6 * time.Minute}))
 
 	for _, kind := range []string{"sold", "let", "tenant_left", "foreclosed", "evicted", "evicted_tenant"} {

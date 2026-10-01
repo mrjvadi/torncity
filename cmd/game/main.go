@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -477,6 +479,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		gametime.Scale(cfg.Game.TimeScale), cfg.Crime, cfg.Trade, cfg.Game.IdempotencyTTL)
 	// The watch checks every market trade (docs/adr/0023).
 	h.goods.market.WithWatch(watchThresholds(cfg.AntiCheat))
+	// A service the settlement a player stands in does not offer is said so
+	// (availability.yml): the auction house and the national bank's counters.
+	serviceGate := handlers.NewServiceGate(cities, cfg.Settlement.HomeCityCode)
+	h.goods.auctions.WithServiceGate(serviceGate)
 	// A meal touches the life (docs/adr/0025): the urgent "you are hungry"
 	// notice's own cooldown.
 	h.goods.inventory.WithHungerAlert(cfg.Notifications.HungerAlertCooldown)
@@ -565,7 +571,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.stageG2.finance = handlers.NewFinanceHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale),
 		handlers.FinanceLimits{OrderTTL: cfg.Trade.MarketOrderTTL, MaxOpen: cfg.Trade.MarketMaxOpenOrders},
-		cfg.Game.IdempotencyTTL, nil).WithWatch(watchThresholds(cfg.AntiCheat))
+		cfg.Game.IdempotencyTTL, nil).WithWatch(watchThresholds(cfg.AntiCheat)).WithServiceGate(serviceGate)
 	// Game clients (api/client-api.md): /link hands out a one-time code
 	// kept in Redis; the linked devices are rows.
 	rdb, err := infraredis.New(ctx, e.redisURL)
@@ -891,11 +897,7 @@ func (s *service) handle(ctx context.Context, sub commands.Subscription, run com
 		log.Info("command refused", slog.String("command", meta.Command), slog.String("error", err.Error()))
 		resp = nil
 		if sub.Origin == commands.FromPlayer {
-			resp = screens.Error(screens.Context{
-				Msgs:      s.messages,
-				Lang:      s.refusalLanguage(ctx, meta),
-				MessageID: editableMessageID(meta),
-			}, err)
+			resp = life.Error(presentation.Ctx{Lang: s.refusalLanguage(ctx, meta)}, life.ErrorOf(err))
 		}
 	}
 
@@ -973,17 +975,6 @@ func (s *service) reply(meta envelope.Metadata, resp *presenter.Response, log *s
 		return err
 	}
 	return nil
-}
-
-// editableMessageID is the message an error screen may replace: the one an
-// inline button sits on, which the bot sent. A typed command's message
-// belongs to the player and no bot may edit it, so it is only ever a callback
-// that yields a non-zero id.
-func editableMessageID(meta envelope.Metadata) int64 {
-	if meta.CallbackQueryID == nil || *meta.CallbackQueryID == "" {
-		return 0
-	}
-	return meta.TelegramMessageID
 }
 
 // uuidGenerator supplies identifiers to the handler.

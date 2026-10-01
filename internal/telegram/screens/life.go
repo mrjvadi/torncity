@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strings"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/presentation/society"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
@@ -14,26 +13,6 @@ import (
 // avatar and bio; the life history; sleeping at a hostel or on a bench; the
 // leaderboards; and the notice of a rank that rose or fell.
 
-// Callback addresses of life.
-const (
-	AddrLife        = "life:me"
-	AddrLifeCard    = "life:card"
-	AddrLifeHistory = "life:history"
-	AddrLifeBio     = "life:bio"
-	AddrLifeAvatar  = "life:avatar"
-	AddrLifeSleep   = "life:sleep"
-	AddrLifeTop     = "life:top"
-)
-
-// CommandLifeBio is the command a typed bio fills (configs/commands.yml,
-// input).
-const CommandLifeBio = "life.bio"
-
-// RankRef is a rank of the ladder of wealth.
-type RankRef struct {
-	Code, Name, Emoji string
-}
-
 // RankName is a rank's display name. Its emoji heads the line the rank is
 // the subject of (rankLine), never the middle of a sentence.
 func (c Context) RankName(r RankRef) string { return c.named("life.rank."+r.Code, r.Name) }
@@ -43,22 +22,14 @@ func (c Context) rankLine(r RankRef) string {
 	return c.T("life.rank_line", map[string]any{"emoji": r.Emoji, "rank": c.RankName(r)})
 }
 
+// AvatarName is an avatar's display name.
+func (c Context) AvatarName(n Named) string { return c.named("life.avatar."+n.Code, n.Name) }
+
 // StageName is a stage of life's display name.
 func (c Context) StageName(n Named) string { return c.named("life.stage."+n.Code, n.Name) }
 
 // SpotName is a sleeping spot's display name.
 func (c Context) SleepSpotName(n Named) string { return c.named("life.spot."+n.Code, n.Name) }
-
-// NeedsView is the needs and the mood as screens show them: whole points
-// out of 100, higher worse for the three needs, and what they cost.
-type NeedsView struct {
-	Hunger, Sleep, Stress int
-	Happiness             int
-	// BodyBPS and XPBPS are what the condition does (10000 = nothing).
-	BodyBPS, XPBPS int
-	// Pressing names the needs over the mark where they start to cost.
-	Pressing []string
-}
 
 // meter is a bar of ten cells for a value out of 100.
 func (c Context) meter(v int) string {
@@ -96,59 +67,6 @@ func needsLines(c Context, n *NeedsView) string {
 	return body(lines...)
 }
 
-// WorthView is what a player is worth, part by part.
-type WorthView struct {
-	Cash, Bank, Escrow, Equity, Property, Goods, Debts int64
-	// Savings, Gold and Loans are finance's (docs/adr/0026).
-	Savings, Gold, Loans int64
-	Total                int64
-}
-
-// SleepSpotLine is a place anyone may sleep at, as the life screen offers it.
-type SleepSpotLine struct {
-	Spot  Named
-	Place Named
-	Price int64
-	// Rest and Relief are the points of sleep need and stress it takes away.
-	Rest, Relief int
-	// Way is the walk there, nil when the player is there.
-	Way *Way
-}
-
-// Notices the life screen may open with.
-const (
-	LifeNoticeSlept   = "slept"
-	LifeNoticeBio     = "bio"
-	LifeNoticeBioGone = "bio_gone"
-	LifeNoticeAvatar  = "avatar"
-)
-
-// LifeView is «🧬 زندگی من».
-type LifeView struct {
-	Needs NeedsView
-	Age   int
-	Stage Named
-	// Intelligence out of IntelligenceMax, and what it speeds up: CourseBPS
-	// off a course's time, SkillBPS onto skill experience.
-	Intelligence, IntelligenceMax int
-	CourseBPS, SkillBPS           int
-	Rank                          *RankRef
-	// Next is the next rank up and what it takes more; nil at the top.
-	Next     *RankRef
-	NextNeed int64
-	// Worth is what the player is worth: private, left out of a group.
-	Worth WorthView
-	// Spots are where the player may sleep in their city; SleepIn how long
-	// until they may sleep at one again, zero now. Home says they have a
-	// home to rest at.
-	Spots   []SleepSpotLine
-	SleepIn time.Duration
-	Home    bool
-	// Notice, with NoticeArgs, is what just happened.
-	Notice     string
-	NoticeArgs map[string]any
-}
-
 // Life renders «🧬 زندگی من».
 func Life(c Context, v LifeView) *presenter.Response {
 	return c.withView(renderLife(c, v), ScreenLife, v)
@@ -157,7 +75,12 @@ func Life(c Context, v LifeView) *presenter.Response {
 func renderLife(c Context, v LifeView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
-		notice = c.T("life.notice."+v.Notice, v.NoticeArgs)
+		args := v.NoticeArgs
+		if spot, ok := args["spot"].(string); ok && v.Notice == LifeNoticeSlept {
+			// the view carries the spot's code; its name is the edge's
+			args = map[string]any{"spot": c.SleepSpotName(Named{Code: spot}), "rest": args["rest"]}
+		}
+		notice = c.T("life.notice."+v.Notice, args)
 	}
 	iq := map[string]any{"iq": FormatNumber(c, int64(v.Intelligence)), "max": FormatNumber(c, int64(v.IntelligenceMax)),
 		"course": PercentFromBPS(c, v.CourseBPS), "skill": PercentFromBPS(c, v.SkillBPS)}
@@ -246,33 +169,6 @@ func renderLife(c Context, v LifeView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-// AvatarRef is how a player is shown: an avatar's emoji, or their photo.
-type AvatarRef struct {
-	Code  string
-	Emoji string
-	Photo bool
-}
-
-// CardView is a player's public card.
-type CardView struct {
-	Name, Code string
-	Avatar     AvatarRef
-	Bio        string
-	Rank       *RankRef
-	Age        int
-	Stage      Named
-	Level      int
-	// Achievements earned, and entries on the public timeline.
-	Achievements int
-	Entries      int
-	JoinedAt     time.Time
-	// Self is the player's own card: it offers the bio and the avatar.
-	Self bool
-	// Photo is the Telegram photo to show it with, nil for none.
-	Photo  *presenter.Photo
-	Notice string
-}
-
 // cardName is a player's name with their avatar in front of it.
 func (c Context) cardName(v CardView) string {
 	name := c.playerName(v.Name)
@@ -337,34 +233,6 @@ func renderCard(c Context, v CardView) *presenter.Response {
 		resp.Photo = v.Photo
 	}
 	return resp
-}
-
-// HistoryLine is one entry of a timeline.
-type HistoryLine struct {
-	Kind string
-	At   time.Time
-	// Code and Name are what it is about; Sub and SubName a second code
-	// (a job's rank, the rank fallen from); Place where; Amount and Number
-	// its figures.
-	Code, Name   string
-	Sub, SubName string
-	PlaceKind    string
-	Place        Named
-	Amount       int64
-	Number       int64
-	Backfilled   bool
-	Private      bool
-}
-
-// HistoryView is a page of a life history.
-type HistoryView struct {
-	Name  string
-	Code  string
-	Self  bool
-	Lines []HistoryLine
-	Page  int
-	Pages int
-	Total int
 }
 
 // historyWhat is what an entry is about, in words.
@@ -452,17 +320,6 @@ func renderHistory(c Context, v HistoryView) *presenter.Response {
 	return c.respond(paragraphs(head, body(lines...), hint), kb.Build())
 }
 
-// AvatarsView is the choice of avatar.
-type AvatarsView struct {
-	Current AvatarRef
-	Avatars []AvatarChoice
-}
-
-// AvatarChoice is one avatar to choose.
-type AvatarChoice struct {
-	Code, Name, Emoji string
-}
-
 // Avatars renders the choice of avatar.
 func Avatars(c Context, v AvatarsView) *presenter.Response {
 	return c.withView(renderAvatars(c, v), ScreenAvatars, v)
@@ -482,7 +339,7 @@ func renderAvatars(c Context, v AvatarsView) *presenter.Response {
 	var row []presenter.Button
 	for _, a := range v.Avatars {
 		btn, ok := keyboards.Button(c.T("life.button.avatar_choice", map[string]any{"emoji": a.Emoji,
-			"name": c.named("life.avatar."+a.Code, a.Name)}), AddrLifeAvatar, a.Code)
+			"name": c.AvatarName(Named{Code: a.Code, Name: a.Name})}), AddrLifeAvatar, a.Code)
 		if ok {
 			row = append(row, btn)
 		}
@@ -493,14 +350,6 @@ func renderAvatars(c Context, v AvatarsView) *presenter.Response {
 	kb.Row(photo, none)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrLifeCard, RefreshData: AddrLifeAvatar}))
 	return c.respond(text, kb.Build())
-}
-
-// SleepPayView is a night at a paid spot, to pay for.
-type SleepPayView struct {
-	Spot    Named
-	Rest    int
-	Relief  int
-	Payment PaymentChoice
 }
 
 // SleepPay renders the price of a night and how to pay it.
@@ -515,28 +364,6 @@ func renderSleepPay(c Context, v SleepPayView) *presenter.Response {
 	c.paymentButtons(kb, v.Payment, func(method string) []string { return []string{AddrLifeSleep, v.Spot.Code, method} })
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrLife}))
 	return c.respond(text, kb.Build())
-}
-
-// Refusals of life.
-const (
-	LifeRefusedBioLength  = "bio_length"
-	LifeRefusedBioLink    = "bio_link"
-	LifeRefusedBioBlocked = "bio_blocked"
-	LifeRefusedBioChars   = "bio_chars"
-	LifeRefusedTooSoon    = "too_soon"
-	LifeRefusedNoSpot     = "no_spot"
-	LifeRefusedNoAvatar   = "no_avatar"
-	LifeRefusedNoPlayer   = "no_player"
-	LifeRefusedNoCity     = "no_city"
-	LifeRefusedRested     = "rested"
-)
-
-// LifeRefusalView is a refusal of life.
-type LifeRefusalView struct {
-	Kind string
-	Wait time.Duration
-	Min  int
-	Max  int
 }
 
 // LifeRefusal renders a refusal of life.

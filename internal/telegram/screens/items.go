@@ -1,8 +1,6 @@
 package screens
 
 import (
-	"time"
-
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -16,50 +14,11 @@ import (
 // and is never shown: a player tells two phones apart by their quality and
 // what is left of them.
 
-// Callback addresses of the bag.
-const (
-	AddrInventory = "inventory:show"
-	AddrItem      = "inventory:item"
-	AddrItemUse   = "inventory:use"
-	AddrItemGive  = "inventory:give"
-	AddrItemDrop  = "inventory:drop"
-)
-
-// DropConfirmation is the argument that turns inventory.drop from "are you
-// sure" into the drop.
-const DropConfirmation = "yes"
-
 // ItemName is a good's display name in this context's language.
 func (c Context) ItemName(n Named) string { return c.named("item_name."+n.Code, n.Name) }
 
 // itemCategory is a good's group.
 func (c Context) itemCategory(code string) string { return c.named("item_category."+code, code) }
-
-// InventoryLine is one line of the bag: a stack, or one piece.
-type InventoryLine struct {
-	Item     Named
-	Category string
-	Qty      int64
-	// Serial is set for a piece: its address. Quality, UsesLeft and
-	// Durability describe it.
-	Serial     string
-	Quality    int
-	UsesLeft   int
-	Durability int
-	// Design is the name of the design a piece was made from, when a
-	// company made it (docs/adr/0021-production-economy.md).
-	Design string
-}
-
-// InventoryView is one page of the bag.
-type InventoryView struct {
-	Lines       []InventoryLine
-	Page, Pages int
-	Total       int
-	// InEscrow counts the goods set aside for the market and the auction
-	// house: still the player's, not in the bag.
-	InEscrow int
-}
 
 // pieceLine describes a piece: its quality, and what is left of it.
 func (c Context) pieceLine(quality, uses, durability int) string {
@@ -121,45 +80,6 @@ func renderInventory(c Context, v InventoryView) *presenter.Response {
 	}))
 	title := htmlBold(htmlEscape(c.T("item.bag_title", nil)))
 	return c.respond(paragraphs(title, htmlEscape(content), htmlEscape(escrow)), kb.Build()).AsHTML()
-}
-
-// EffectLine is one effect of using a good.
-type EffectLine struct {
-	Target string
-	Op     string
-	Value  int64
-}
-
-// GearLine is what a good does to crimes while carried.
-type GearLine struct {
-	Categories                                            []Named
-	Crimes                                                []Named
-	SuccessBPS, CatchBPS, WitnessBPS, SolveBPS, RewardBPS int
-	Nerve                                                 int
-	Confiscated                                           bool
-}
-
-// ItemDetailView is one good or piece in detail.
-type ItemDetailView struct {
-	Item     Named
-	Category string
-	Qty      int64
-	// Ref is the good's code or the piece's serial: its address.
-	Ref                           string
-	Piece                         bool
-	Quality, UsesLeft, Durability int
-	Worth                         int64
-	Effects                       []EffectLine
-	Gear                          *GearLine
-	Usable, Tradeable             bool
-	// Cooldown is the rest after a use; CoolingFor what is left of it now.
-	Cooldown   time.Duration
-	CoolingFor time.Duration
-	ReadyAt    time.Time
-	// Nonce is the one-time token of the use and give buttons.
-	Nonce string
-	// GiveTo are the friends standing here who may receive it.
-	GiveTo []Named
 }
 
 // effectLine renders one effect.
@@ -304,23 +224,6 @@ func renderItemDetail(c Context, v ItemDetailView) *presenter.Response {
 	), kb.Build())
 }
 
-// VitalChange is one value a use changed.
-type VitalChange struct {
-	Target        string
-	Before, After int
-	Max           int
-}
-
-// ItemUsedView is a good used.
-type ItemUsedView struct {
-	Item    Named
-	Changes []VitalChange
-	// Left is how many remain; ReadyAt when the group may be used again.
-	Left     int64
-	Cooldown time.Duration
-	ReadyAt  time.Time
-}
-
 // ItemUsed renders a use.
 func ItemUsed(c Context, v ItemUsedView) *presenter.Response {
 	return c.withView(renderItemUsed(c, v), ScreenItemUsed, v)
@@ -345,12 +248,6 @@ func renderItemUsed(c Context, v ItemUsedView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-// ItemGivenView is a gift handed over.
-type ItemGivenView struct {
-	Item Named
-	To   Named
-}
-
 // ItemGiven renders a gift.
 func ItemGiven(c Context, v ItemGivenView) *presenter.Response {
 	return c.withView(renderItemGiven(c, v), ScreenItemGiven, v)
@@ -370,13 +267,6 @@ func ItemReceivedNotice(c Context, item Named, from string) *presenter.Response 
 	bag, _ := keyboards.Button(c.T("item.button.bag", nil), AddrInventory)
 	kb.Row(bag)
 	return c.respond(c.T("item.received", map[string]any{"item": c.ItemName(item), "player": from}), kb.Build()).MarkPrivate()
-}
-
-// ItemDroppedView is a drop asked about or done.
-type ItemDroppedView struct {
-	Item  Named
-	Ref   string
-	Nonce string
 }
 
 // DropConfirm asks before a good is thrown away.
@@ -404,25 +294,6 @@ func renderItemDropped(c Context, v ItemDroppedView) *presenter.Response {
 	kb.Row(bag)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
 	return c.respond(c.T("item.dropped", map[string]any{"item": c.ItemName(v.Item)}), kb.Build())
-}
-
-// Item refusal kinds.
-const (
-	ItemRefusedNotHeld      = "not_held"
-	ItemRefusedNotUsable    = "not_usable"
-	ItemRefusedCooling      = "cooling"
-	ItemRefusedNoEffect     = "no_effect"
-	ItemRefusedNotTradeable = "not_tradeable"
-	ItemRefusedNotTogether  = "not_together"
-)
-
-// ItemRefusalView is a refused request about a good.
-type ItemRefusalView struct {
-	Kind string
-	Item Named
-	// Wait and ReadyAt are the rest left, for cooling.
-	Wait    time.Duration
-	ReadyAt time.Time
 }
 
 // ItemRefusal renders a refused request about a good.

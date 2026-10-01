@@ -3,14 +3,14 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strings"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The gold dealer (docs/adr/0026 section 6): the NPC economy's gold, a
@@ -20,21 +20,26 @@ import (
 // conserved — the dealer's stock and every player's add up to the reserve.
 
 // Gold handles gold.show.
-func (h *FinanceHandler) Gold(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *FinanceHandler) Gold(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.gold(ctx, meta, "", nil)
 }
 
-func (h *FinanceHandler) gold(ctx context.Context, meta envelope.Metadata, notice string, args map[string]any) (*presenter.Response, error) {
+func (h *FinanceHandler) gold(ctx context.Context, meta envelope.Metadata, notice string, args map[string]any) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
+	if resp, err := h.gate(ctx, meta, snap, "gold", func(lang string, un *economy.Unavailable) *presentation.Response {
+		return economy.Gold(presentation.Ctx{Lang: lang}, economy.GoldView{Unavailable: un})
+	}); resp != nil || err != nil {
+		return resp, err
+	}
 	def, err := h.def(snap)
 	if err != nil {
 		return nil, err
 	}
 	lang := meta.Language
-	view := screens.GoldView{Notice: notice, NoticeArgs: args, Options: def.Gold.GramOptions}
+	view := economy.GoldView{Notice: notice, NoticeArgs: args, Options: def.Gold.GramOptions}
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -56,7 +61,7 @@ func (h *FinanceHandler) gold(ctx context.Context, meta envelope.Metadata, notic
 				view.Prev = pr.Price
 			}
 			if i < def.Gold.History {
-				view.History = append(view.History, screens.GoldPoint{Price: pr.Price, At: pr.At})
+				view.History = append(view.History, economy.GoldPoint{Price: pr.Price, At: pr.At})
 			}
 		}
 		hold, err := tx.Finance().GoldHolding(ctx, p.ID)
@@ -70,22 +75,22 @@ func (h *FinanceHandler) gold(ctx context.Context, meta envelope.Metadata, notic
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Gold(h.screen(meta, lang), view), nil
+	return economy.Gold(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // GoldBuy handles gold.buy: without a method, the price and the ways to pay
 // it; with one, the gold, once.
-func (h *FinanceHandler) GoldBuy(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) GoldBuy(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	return h.goldTrade(ctx, meta, req, true)
 }
 
 // GoldSell handles gold.sell: without a nonce, the price; with one, the sale.
-func (h *FinanceHandler) GoldSell(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) GoldSell(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	return h.goldTrade(ctx, meta, req, false)
 }
 
 // goldTrade buys or sells gold.
-func (h *FinanceHandler) goldTrade(ctx context.Context, meta envelope.Metadata, req FinanceRequest, buy bool) (*presenter.Response, error) {
+func (h *FinanceHandler) goldTrade(ctx context.Context, meta envelope.Metadata, req FinanceRequest, buy bool) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -99,13 +104,13 @@ func (h *FinanceHandler) goldTrade(ctx context.Context, meta envelope.Metadata, 
 		return nil, err
 	}
 	if grams > def.Gold.MaxGrams {
-		return h.finish(meta, meta.Language, refuseFinance(screens.FinanceRefusedAmount, screens.AddrGold))
+		return h.finish(meta, meta.Language, refuseFinance(economy.FinanceRefusedAmount, economy.AddrGold))
 	}
 	method := payment.Method(strings.TrimSpace(req.Method))
 	confirmed := isNonce(req.Nonce) && (!buy || method != "")
 	lang := meta.Language
 	var (
-		confirm *screens.GoldTradeView
+		confirm *economy.GoldTradeView
 		notice  string
 		args    map[string]any
 	)
@@ -137,16 +142,16 @@ func (h *FinanceHandler) goldTrade(ctx context.Context, meta envelope.Metadata, 
 		}
 		switch {
 		case buy && d.Stock < grams:
-			r := refuseFinance(screens.FinanceRefusedGoldStock, screens.AddrGold)
+			r := refuseFinance(economy.FinanceRefusedGoldStock, economy.AddrGold)
 			r.view.Count = d.Stock
 			return r
 		case !buy && hold.Grams < grams:
-			r := refuseFinance(screens.FinanceRefusedGoldHeld, screens.AddrGold)
+			r := refuseFinance(economy.FinanceRefusedGoldHeld, economy.AddrGold)
 			r.view.Count = hold.Grams
 			return r
 		}
 		if !confirmed {
-			confirm = &screens.GoldTradeView{Side: side, Grams: grams, Price: price, Total: total, Nonce: h.nonce()}
+			confirm = &economy.GoldTradeView{Side: side, Grams: grams, Price: price, Total: total, Nonce: h.nonce()}
 			if buy {
 				wallet, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
 				if err != nil {
@@ -164,7 +169,7 @@ func (h *FinanceHandler) goldTrade(ctx context.Context, meta envelope.Metadata, 
 				return err
 			}
 			plan := wallet.Plan(moneyOf(total), snap.Accepts(content.ServiceGold))
-			if err := checkMethod(plan, method, wallet, "gold.button.back", screens.AddrGold); err != nil {
+			if err := checkMethod(plan, method, wallet, "gold.button.back", economy.AddrGold); err != nil {
 				return err
 			}
 			if trade.LedgerTx, err = wallet.Pay(ctx, tx.Ledger(), application.Charge{Method: method, Accepted: plan.Accepted,
@@ -172,7 +177,7 @@ func (h *FinanceHandler) goldTrade(ctx context.Context, meta envelope.Metadata, 
 				To:        []application.LedgerEntry{{AccountID: application.SystemSinkAccountID, Amount: moneyOf(total)}},
 				CreatedAt: now}); err != nil {
 				if stderrors.Is(err, application.ErrPaymentDeclined) {
-					return declined(plan, wallet, "gold.button.back", screens.AddrGold)
+					return declined(plan, wallet, "gold.button.back", economy.AddrGold)
 				}
 				return err
 			}
@@ -206,7 +211,7 @@ func (h *FinanceHandler) goldTrade(ctx context.Context, meta envelope.Metadata, 
 		return resp, err
 	}
 	if confirm != nil {
-		return screens.GoldTrade(h.screen(meta, lang), *confirm), nil
+		return economy.GoldTrade(presentation.Ctx{Lang: lang}, *confirm), nil
 	}
 	return h.gold(ctx, meta, notice, args)
 }
