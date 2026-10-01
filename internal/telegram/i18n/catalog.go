@@ -109,39 +109,16 @@ func LoadWithDefault(dir, defaultLang string) (*Catalog, error) {
 	// Layers: every subdirectory of dir (configs/locales/telegram) adds its
 	// own files over the top-level ones, one file per language, and a key
 	// defined in two layers is refused, so moving wording between layers
-	// never leaves two answers.
+	// never leaves two answers. A layer may hold sub-layers of its own (one
+	// folder per area, configs/locales/telegram/notices/fa.yml), to any depth,
+	// so areas migrated in parallel each keep their wording in files of their
+	// own.
 	for _, e := range entries {
 		if !e.IsDir() {
 			continue
 		}
-		layer, err := os.ReadDir(filepath.Join(dir, e.Name()))
-		if err != nil {
-			return nil, fmt.Errorf("i18n: read locale layer %s: %w", e.Name(), err)
-		}
-		// A layer holds either one file per language (telegram/fa.yml) or one
-		// directory per language with a file per area (telegram/fa/economy.yml),
-		// so areas migrate in parallel without sharing a file.
-		for _, f := range layer {
-			name := f.Name()
-			switch {
-			case !f.IsDir() && filepath.Ext(name) == localeExt:
-				if err := addLayerFile(messages, dir, e.Name(), name, strings.TrimSuffix(name, localeExt)); err != nil {
-					return nil, err
-				}
-			case f.IsDir():
-				files, err := os.ReadDir(filepath.Join(dir, e.Name(), name))
-				if err != nil {
-					return nil, fmt.Errorf("i18n: read locale layer %s/%s: %w", e.Name(), name, err)
-				}
-				for _, g := range files {
-					if g.IsDir() || filepath.Ext(g.Name()) != localeExt {
-						continue
-					}
-					if err := addLayerFile(messages, dir, e.Name(), name+"/"+g.Name(), name); err != nil {
-						return nil, err
-					}
-				}
-			}
+		if err := loadLayer(messages, dir, e.Name()); err != nil {
+			return nil, err
 		}
 	}
 
@@ -458,25 +435,43 @@ func format(v any) string {
 // interface.
 const nilText = "<nil>"
 
-// addLayerFile reads one file of a locale layer into messages under lang,
-// refusing a key a lower layer or another file already defined.
-func addLayerFile(messages map[string]map[string]string, dir, layer, name, lang string) error {
-	data, err := os.ReadFile(filepath.Join(dir, layer, name))
+// loadLayer adds the language files of one layer folder (rel, relative to
+// root) to messages, then those of its sub-folders. A key already defined in
+// another layer is refused.
+func loadLayer(messages map[string]map[string]string, root, rel string) error {
+	layer, err := os.ReadDir(filepath.Join(root, rel))
 	if err != nil {
-		return fmt.Errorf("i18n: read %s/%s: %w", layer, name, err)
+		return fmt.Errorf("i18n: read locale layer %s: %w", rel, err)
 	}
-	msgs, err := parseLocale(layer+"/"+name, data)
-	if err != nil {
-		return err
-	}
-	if messages[lang] == nil {
-		messages[lang] = map[string]string{}
-	}
-	for key, text := range msgs {
-		if _, dup := messages[lang][key]; dup {
-			return fmt.Errorf("%w: %s in %s/%s", ErrDuplicateKey, key, layer, name)
+	for _, f := range layer {
+		name := f.Name()
+		if f.IsDir() {
+			if err := loadLayer(messages, root, filepath.Join(rel, name)); err != nil {
+				return err
+			}
+			continue
 		}
-		messages[lang][key] = text
+		if filepath.Ext(name) != localeExt {
+			continue
+		}
+		lang := strings.TrimSuffix(name, localeExt)
+		data, err := os.ReadFile(filepath.Join(root, rel, name))
+		if err != nil {
+			return fmt.Errorf("i18n: read %s/%s: %w", rel, name, err)
+		}
+		msgs, err := parseLocale(rel+"/"+name, data)
+		if err != nil {
+			return err
+		}
+		if messages[lang] == nil {
+			messages[lang] = map[string]string{}
+		}
+		for key, text := range msgs {
+			if _, dup := messages[lang][key]; dup {
+				return fmt.Errorf("%w: %s in %s/%s", ErrDuplicateKey, key, rel, name)
+			}
+			messages[lang][key] = text
+		}
 	}
 	return nil
 }

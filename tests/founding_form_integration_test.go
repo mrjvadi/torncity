@@ -130,7 +130,7 @@ func TestFoundingFormFlow(t *testing.T) {
 	chat := groupMeta.TelegramChatID
 
 	// 1. «ساخت روستا» opens a draft and founds nothing.
-	resp, err := e.h.Found(ctx, groupMeta)
+	resp, err := rr(e.h.Found(ctx, groupMeta))
 	if err != nil {
 		t.Fatalf("Found: %v", err)
 	}
@@ -157,7 +157,7 @@ func TestFoundingFormFlow(t *testing.T) {
 		t.Fatal(err)
 	}
 	other := insertPlayer(t, e.pool)
-	resp, err = e.h.Found(ctx, asPlayer(groupMeta, other))
+	resp, err = rr(e.h.Found(ctx, asPlayer(groupMeta, other)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,7 +173,7 @@ func TestFoundingFormFlow(t *testing.T) {
 	client := func(p *application.Player, command, action string) envelope.Metadata {
 		return clientMeta(asPlayer(groupMeta, p), command, action)
 	}
-	resp, err = e.h.FoundDraft(ctx, client(founder, "settlement.found.draft", "found.draft"), handlers.FoundDraftRequest{Draft: strings.ReplaceAll(draft, "-", "")})
+	resp, err = rr(e.h.FoundDraft(ctx, client(founder, "settlement.found.draft", "found.draft"), handlers.FoundDraftRequest{Draft: strings.ReplaceAll(draft, "-", "")}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,25 +181,25 @@ func TestFoundingFormFlow(t *testing.T) {
 	if v["state"] != "mine" || v["suggested_name"] != suggested || len(v["shapes"].([]any)) < 3 || len(v["palette"].([]any)) < 6 {
 		t.Errorf("the founder's form view is wrong: %v", v)
 	}
-	resp, err = e.h.FoundDraft(ctx, client(other, "settlement.found.draft", "found.draft"), handlers.FoundDraftRequest{Draft: draft})
+	resp, err = rr(e.h.FoundDraft(ctx, client(other, "settlement.found.draft", "found.draft"), handlers.FoundDraftRequest{Draft: draft}))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if v := viewOf(t, resp); v["state"] != "other" {
 		t.Errorf("another player should read the form only: state %v", v["state"])
 	}
-	resp, err = e.h.FoundDraft(ctx, client(founder, "settlement.found.draft", "found.draft"), handlers.FoundDraftRequest{})
+	resp, err = rr(e.h.FoundDraft(ctx, client(founder, "settlement.found.draft", "found.draft"), handlers.FoundDraftRequest{}))
 	if err != nil || viewOf(t, resp)["draft"] != draft {
 		t.Errorf("without an id the founder's own open draft is meant: %v %v", err, resp)
 	}
-	resp, err = e.h.FoundDraft(ctx, client(founder, "settlement.found.draft", "found.draft"), handlers.FoundDraftRequest{Draft: newUUID(t)})
+	resp, err = rr(e.h.FoundDraft(ctx, client(founder, "settlement.found.draft", "found.draft"), handlers.FoundDraftRequest{Draft: newUUID(t)}))
 	if err != nil || viewOf(t, resp)["kind"] != "no_draft" {
 		t.Errorf("an unknown draft should be refused as no_draft: %v %v", err, resp)
 	}
 
 	// 4. Only the founder submits.
 	good := validFoundingRequest(t, draft)
-	resp, err = e.h.Submit(ctx, client(other, "settlement.found.submit", "found.submit"), good)
+	resp, err = rr(e.h.Submit(ctx, client(other, "settlement.found.submit", "found.submit"), good))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,7 +211,7 @@ func TestFoundingFormFlow(t *testing.T) {
 	// nothing.
 	bad := good
 	bad.Name, bad.CurrencyCode, bad.Shape = "ab", "SUP", "blob"
-	resp, err = e.h.Submit(ctx, client(founder, "settlement.found.submit", "found.submit"), bad)
+	resp, err = rr(e.h.Submit(ctx, client(founder, "settlement.found.submit", "found.submit"), bad))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -228,7 +228,7 @@ func TestFoundingFormFlow(t *testing.T) {
 	// 6. A check validates and founds nothing.
 	check := good
 	check.Check = "1"
-	resp, err = e.h.Submit(ctx, client(founder, "settlement.found.submit", "found.submit"), check)
+	resp, err = rr(e.h.Submit(ctx, client(founder, "settlement.found.submit", "found.submit"), check))
 	if err != nil || resp.Screen != "founding_checked" {
 		t.Fatalf("a check of a good form should answer founding_checked: %v %+v", err, resp)
 	}
@@ -237,7 +237,7 @@ func TestFoundingFormFlow(t *testing.T) {
 	}
 
 	// 7. The founder's submit founds the village with the chosen details.
-	resp, err = e.h.Submit(ctx, client(founder, "settlement.found.submit", "found.submit"), good)
+	resp, err = rr(e.h.Submit(ctx, client(founder, "settlement.found.submit", "found.submit"), good))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -289,7 +289,7 @@ func TestFoundingFormFlow(t *testing.T) {
 	}
 
 	// 8. A repeated submit answers from the village; nothing is duplicated.
-	resp, err = e.h.Submit(ctx, client(founder, "settlement.found.submit", "found.submit"), good)
+	resp, err = rr(e.h.Submit(ctx, client(founder, "settlement.found.submit", "found.submit"), good))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -302,11 +302,11 @@ func TestFoundingFormFlow(t *testing.T) {
 		t.Error("a repeated submit duplicated something")
 	}
 	// The draft reads as founded, and asking again in the group says so.
-	resp, err = e.h.FoundDraft(ctx, client(other, "settlement.found.draft", "found.draft"), handlers.FoundDraftRequest{Draft: draft})
+	resp, err = rr(e.h.FoundDraft(ctx, client(other, "settlement.found.draft", "found.draft"), handlers.FoundDraftRequest{Draft: draft}))
 	if err != nil || viewOf(t, resp)["state"] != "founded" {
 		t.Errorf("the submitted draft should read founded: %v %v", err, resp)
 	}
-	resp, err = e.h.Found(ctx, again)
+	resp, err = rr(e.h.Found(ctx, again))
 	if err != nil || !strings.Contains(resp.Text, "settlement.found.already") {
 		t.Errorf("asking again after founding should say the group already has a village: %v %v", err, resp)
 	}
@@ -321,7 +321,7 @@ func TestFoundingFormFlow(t *testing.T) {
 	clash := validFoundingRequest(t, draft2)
 	clash.Name = strings.ToUpper(good.Name[:3]) + " " + good.Name[3:] // same name key
 	clash.CurrencyCode, clash.CurrencyName = good.CurrencyCode, good.CurrencyName
-	resp, err = e.h.Submit(ctx, clientMeta(group2, "settlement.found.submit", "found.submit"), clash)
+	resp, err = rr(e.h.Submit(ctx, clientMeta(group2, "settlement.found.submit", "found.submit"), clash))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -336,7 +336,7 @@ func TestFoundingFormFlow(t *testing.T) {
 	// 10. A draft that waits too long founds nothing, and the group may ask
 	// again for a new one.
 	e.clock.Advance(31 * time.Minute)
-	resp, err = e.h.Submit(ctx, clientMeta(group2, "settlement.found.submit", "found.submit"), validFoundingRequest(t, draft2))
+	resp, err = rr(e.h.Submit(ctx, clientMeta(group2, "settlement.found.submit", "found.submit"), validFoundingRequest(t, draft2)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -356,7 +356,7 @@ func TestFoundingFormFlow(t *testing.T) {
 	if draft3 == draft2 {
 		t.Fatal("a new draft should replace the expired one")
 	}
-	resp, err = e.h.Submit(ctx, clientMeta(group2, "settlement.found.submit", "found.submit"), validFoundingRequest(t, draft3))
+	resp, err = rr(e.h.Submit(ctx, clientMeta(group2, "settlement.found.submit", "found.submit"), validFoundingRequest(t, draft3)))
 	if err != nil || viewOf(t, resp)["settlement_id"] == nil {
 		t.Fatalf("the new draft should found the village: %v %+v", err, resp)
 	}
@@ -400,7 +400,7 @@ func TestFoundingFormConcurrentSubmit(t *testing.T) {
 			defer wg.Done()
 			m := clientMeta(groupMeta, "settlement.found.submit", "found.submit")
 			m.RequestID = "req_" + randomTokenSafe(i)
-			resp, err := e.h.Submit(ctx, m, req)
+			resp, err := rr(e.h.Submit(ctx, m, req))
 			errs[i] = err
 			if err == nil && len(resp.View) > 0 {
 				ids[i] = viewOfNoT(resp)["settlement_id"]

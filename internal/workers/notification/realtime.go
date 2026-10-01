@@ -6,7 +6,10 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/mrjvadi/torncity/internal/commands"
+	"github.com/mrjvadi/torncity/internal/gateway/routing"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -24,23 +27,40 @@ type Realtime interface {
 	Publish(ctx context.Context, channel string, data any, idempotencyKey string) error
 }
 
-// RealtimeNotice is what a player's channel carries for a notice.
+// RealtimeNotice is what a player's channel carries for a notice: the notice
+// as data, never as a sentence (docs/adr/0039-presentation-split.md, section
+// 8). Screen is its code, View its facts and Actions where the player may go
+// next; a client words it with its own table and picks its colour and icon
+// from the code. A notice of a screen that is not carried as data yet has a
+// Kind and, when its screen has a view, that, and nothing to read as text.
 type RealtimeNotice struct {
 	Type string `json:"type"` // "notice"
 	// Kind is the event behind it, "travel.completed".
-	Kind   string          `json:"kind"`
-	Text   string          `json:"text"`
-	Screen string          `json:"screen,omitempty"`
-	View   json.RawMessage `json:"view,omitempty"`
+	Kind    string           `json:"kind"`
+	Screen  string           `json:"screen,omitempty"`
+	View    json.RawMessage  `json:"view,omitempty"`
+	Actions []RealtimeAction `json:"actions,omitempty"`
+}
+
+// RealtimeAction is one place a notice can take the player: a command the game
+// serves to players, its arguments by name, and the id the client words it by.
+type RealtimeAction struct {
+	ID      string         `json:"id,omitempty"`
+	Command string         `json:"command"`
+	Args    map[string]any `json:"args,omitempty"`
 }
 
 // RealtimeAnnouncement is what a city's channel carries for an
-// announcement: the line in every language, and Text in the default one.
+// announcement. A line that is not carried as data yet is written in every
+// language (Texts, and Text in the default one); one that is carries its
+// Screen and View instead and no text.
 type RealtimeAnnouncement struct {
-	Type  string            `json:"type"` // "announce"
-	Kind  string            `json:"kind"`
-	Text  string            `json:"text"`
-	Texts map[string]string `json:"texts,omitempty"`
+	Type   string            `json:"type"` // "announce"
+	Kind   string            `json:"kind"`
+	Text   string            `json:"text,omitempty"`
+	Texts  map[string]string `json:"texts,omitempty"`
+	Screen string            `json:"screen,omitempty"`
+	View   json.RawMessage   `json:"view,omitempty"`
 }
 
 // RealtimeVitals is what a player's channel carries as their HUD numbers
@@ -83,11 +103,27 @@ func (w *Worker) publishNotice(ctx context.Context, route Route, meta envelope.M
 	if w.cfg.Realtime == nil || resp == nil {
 		return
 	}
-	msg := RealtimeNotice{Type: "notice", Kind: routeKind(route), Text: resp.Text, Screen: resp.Screen, View: resp.View}
+	msg := RealtimeNotice{Type: "notice", Kind: routeKind(route), Screen: resp.Screen, View: resp.View,
+		Actions: realtimeActions(resp.Actions)}
 	key := meta.MessageID() + ":" + route.Durable()
 	if err := w.cfg.Realtime.Publish(ctx, playerChannel(playerID), msg, key); err != nil {
 		log.Warn("cannot publish the notice to the realtime server", slog.String("error", err.Error()))
 	}
+}
+
+// realtimeActions are a notice's actions as the client runs them: the ones
+// that lead somewhere (not "back" or "refresh"), for commands the game serves
+// to players, their positional arguments named as the command takes them.
+func realtimeActions(list []presentation.Action) []RealtimeAction {
+	var out []RealtimeAction
+	for _, a := range list {
+		if a.Command == "" || a.Role == presentation.RoleBack || a.Role == presentation.RoleNavigation ||
+			!commands.FromPlayerCommand(a.Command) {
+			continue
+		}
+		out = append(out, RealtimeAction{ID: a.ID, Command: a.Command, Args: routing.PayloadOf(a.Command, a.Args)})
+	}
+	return out
 }
 
 // publishInboxUpdate tells the player's realtime channel their unread count
@@ -108,7 +144,7 @@ func (w *Worker) publishInboxUpdate(ctx context.Context, meta envelope.Metadata,
 // is about. An announcement for one chat only (a faction's group) has no
 // city and is not published.
 func (w *Worker) publishAnnouncement(ctx context.Context, route Route, env *envelope.Envelope, a *Announcement, log *slog.Logger) {
-	if w.cfg.Realtime == nil || a == nil || a.Line == nil || len(w.cfg.RealtimeLanguages) == 0 {
+	if w.cfg.Realtime == nil || a == nil || (a.Line == nil && a.Notice == nil) || len(w.cfg.RealtimeLanguages) == 0 {
 		return
 	}
 	ids := a.CityIDs
@@ -129,13 +165,19 @@ func (w *Worker) publishAnnouncement(ctx context.Context, route Route, env *enve
 			return
 		}
 	}
-	msg := RealtimeAnnouncement{Type: "announce", Kind: routeKind(route), Texts: map[string]string{}}
-	for i, lang := range w.cfg.RealtimeLanguages {
-		c := screens.Context{Msgs: w.cfg.Msgs, Lang: lang}
-		text := screens.Announcement(c, a.Line(c, name), 0)
-		msg.Texts[lang] = text
-		if i == 0 {
-			msg.Text = text
+	msg := RealtimeAnnouncement{Type: "announce", Kind: routeKind(route)}
+	if a.Notice != nil {
+		n := a.Notice(presentation.Ctx{Lang: w.cfg.RealtimeLanguages[0]}, name)
+		msg.Screen, msg.View = n.Screen, n.View
+	} else {
+		msg.Texts = map[string]string{}
+		for i, lang := range w.cfg.RealtimeLanguages {
+			c := screens.Context{Msgs: w.cfg.Msgs, Lang: lang}
+			text := screens.Announcement(c, a.Line(c, name), 0)
+			msg.Texts[lang] = text
+			if i == 0 {
+				msg.Text = text
+			}
 		}
 	}
 	seen := map[string]bool{}

@@ -9,7 +9,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 )
 
 // This file is the inbox badge: the ONE Telegram message a player's unread
@@ -58,11 +59,7 @@ func (w *Worker) storeInboxItem(ctx context.Context, route Route, meta envelope.
 	player *application.Player, lang, category string, log *slog.Logger,
 ) error {
 	now := w.cfg.Now()
-	item := application.InboxRecord{
-		PlayerID: player.ID, Category: category, Kind: routeKind(route),
-		TextFA: renderText(draft, w.cfg.Msgs, "fa"), TextEN: renderText(draft, w.cfg.Msgs, "en"),
-		LinkAddr: draft.Link, SourceMessageID: meta.MessageID(),
-	}
+	item := w.inboxRecord(route, meta, draft, player, category)
 	if err := w.cfg.PlayerInbox.Record(ctx, item, false, now); err != nil {
 		log.Error("cannot record an inbox notification", slog.String("error", err.Error()))
 		return err
@@ -83,20 +80,29 @@ func (w *Worker) storeInboxItem(ctx context.Context, route Route, meta envelope.
 func (w *Worker) archiveInstant(ctx context.Context, route Route, meta envelope.Metadata, draft *Draft,
 	player *application.Player, category string, log *slog.Logger,
 ) {
-	item := application.InboxRecord{
-		PlayerID: player.ID, Category: category, Kind: routeKind(route),
-		TextFA: renderText(draft, w.cfg.Msgs, "fa"), TextEN: renderText(draft, w.cfg.Msgs, "en"),
-		LinkAddr: draft.Link, SourceMessageID: meta.MessageID(),
-	}
+	item := w.inboxRecord(route, meta, draft, player, category)
 	if err := w.cfg.PlayerInbox.Record(ctx, item, true, w.cfg.Now()); err != nil {
 		log.Warn("cannot archive an instant notification", slog.String("error", err.Error()))
 	}
 }
 
-// renderText is a draft's text in one language, for storage. It ignores the
-// keyboard: the inbox screen builds its own buttons from the stored item.
-func renderText(draft *Draft, msgs screens.Translator, lang string) string {
-	return draft.Screen(screens.Context{Msgs: msgs, Lang: lang}).Text
+// inboxRecord is a draft as the inbox keeps it. A notice carried as data is
+// stored as data, its screen and its view, and worded by whichever edge reads
+// it, in the reader's language. A notice of a screen that is not carried as
+// data yet is stored as the text written once in both shipped languages.
+func (w *Worker) inboxRecord(route Route, meta envelope.Metadata, draft *Draft, player *application.Player, category string) application.InboxRecord {
+	item := application.InboxRecord{
+		PlayerID: player.ID, Category: category, Kind: routeKind(route),
+		LinkAddr: draft.Link, SourceMessageID: meta.MessageID(),
+	}
+	if draft.Notice != nil {
+		n := draft.Notice(presentation.Ctx{Lang: "fa"})
+		item.Screen, item.View = n.Screen, n.View
+		return item
+	}
+	item.TextFA = draft.response(w.cfg.Msgs, "fa").Text
+	item.TextEN = draft.response(w.cfg.Msgs, "en").Text
+	return item
 }
 
 // updateBadge sends the badge the first time and edits it after, throttled;
@@ -135,7 +141,9 @@ func (w *Worker) updateBadge(ctx context.Context, meta envelope.Metadata, player
 	}
 
 	link := application.BotLink{BotID: badge.BotID, TelegramChatID: badge.ChatID}
-	resp := screens.InboxBadge(screens.Context{Msgs: w.cfg.Msgs, Lang: lang, MessageID: badge.TelegramMessageID}, view)
+	resp := notices.InboxBadge(presentation.Ctx{Lang: lang}, view)
+	// The edge words it; this says only which message it replaces.
+	resp.Type, resp.MessageID = presentation.ActionEditMessage, badge.TelegramMessageID
 	env, err := envelope.New(noticeMetadata(meta, player, link, lang),
 		Notice{DeliverBy: now.Add(w.cfg.SendBudget - w.cfg.ReceiptMargin), Response: *resp, Edit: true})
 	if err != nil {
@@ -159,7 +167,7 @@ func (w *Worker) updateBadge(ctx context.Context, meta envelope.Metadata, player
 // recently seen bot and remembers its id. No reachable link is not an
 // error: nobody to tell right now, and the next item tries again.
 func (w *Worker) sendFreshBadge(ctx context.Context, meta envelope.Metadata, player *application.Player, lang string,
-	view screens.InboxBadgeView, unread int, now time.Time, log *slog.Logger,
+	view notices.InboxBadgeView, unread int, now time.Time, log *slog.Logger,
 ) {
 	links, err := w.cfg.Links.ReachableBotLinks(ctx, player.ID)
 	if err != nil {
@@ -170,7 +178,7 @@ func (w *Worker) sendFreshBadge(ctx context.Context, meta envelope.Metadata, pla
 		return
 	}
 	link := links[0]
-	resp := screens.InboxBadge(screens.Context{Msgs: w.cfg.Msgs, Lang: lang}, view)
+	resp := notices.InboxBadge(presentation.Ctx{Lang: lang}, view)
 	env, err := envelope.New(noticeMetadata(meta, player, link, lang),
 		Notice{DeliverBy: now.Add(w.cfg.SendBudget - w.cfg.ReceiptMargin), Response: *resp})
 	if err != nil {
@@ -191,17 +199,22 @@ func (w *Worker) sendFreshBadge(ctx context.Context, meta envelope.Metadata, pla
 	}
 }
 
-// badgeView turns a summary into the badge's view.
-func badgeView(summary application.InboxSummary, lang string) screens.InboxBadgeView {
-	v := screens.InboxBadgeView{Unread: summary.Unread}
+// badgeView turns a summary into the badge's view. The teaser quotes the
+// latest notices whole, as data; the edge words them.
+func badgeView(summary application.InboxSummary, lang string) notices.InboxBadgeView {
+	v := notices.InboxBadgeView{Unread: summary.Unread}
 	for _, c := range summary.Categories {
-		v.Categories = append(v.Categories, screens.InboxCategoryCount{Category: c.Category, Count: c.Count})
+		v.Categories = append(v.Categories, notices.InboxCategoryCount{Category: c.Category, Count: c.Count})
 	}
 	for i, item := range summary.Recent {
 		if i >= badgeTeaserItems {
 			break
 		}
-		v.Teaser = append(v.Teaser, item.Text(lang))
+		if item.Screen != "" && len(item.View) > 0 {
+			v.Teaser = append(v.Teaser, notices.StoredNotice{Screen: item.Screen, View: item.View})
+			continue
+		}
+		v.Teaser = append(v.Teaser, notices.StoredNotice{Text: item.Text(lang)})
 	}
 	return v
 }
@@ -239,7 +252,7 @@ func (w *Worker) sendReminder(ctx context.Context, rem application.InboxReminder
 	}
 	lang := handlers.RenderLanguage(envelope.Metadata{}, player)
 	link := application.BotLink{BotID: rem.BotID, TelegramChatID: rem.ChatID}
-	resp := screens.InboxReminder(screens.Context{Msgs: w.cfg.Msgs, Lang: lang}, screens.InboxReminderView{Unread: rem.UnreadCount})
+	resp := notices.InboxReminder(presentation.Ctx{Lang: lang}, notices.InboxReminderView{Unread: rem.UnreadCount})
 	// No source event started this: it is a timer, not something that
 	// happened. Metadata.Validate still asks for a request id, a trace id
 	// and a command, so a synthetic one is given, exactly the shape

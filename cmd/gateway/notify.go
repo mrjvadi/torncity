@@ -14,6 +14,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/gateway/telegram/client"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
+	telegramrender "github.com/mrjvadi/torncity/internal/telegram/render"
 	"github.com/mrjvadi/torncity/internal/workers/notification"
 )
 
@@ -98,6 +99,22 @@ func (g *gateway) deliverNotice(data []byte) notification.Receipt {
 	// otherwise it cannot edit a message the player is reading, even if it
 	// is malformed.
 	resp := notice.Response
+	if resp.Neutral() {
+		// A notice carried as data is worded here, at the Telegram edge, in
+		// the language the worker named: the same renderer that words a
+		// command's answer. A public line (an announcement) is shown in a
+		// group, which leaves a player's own money out.
+		var edit int64
+		if notice.Edit && resp.Type == presenter.ActionEditMessage {
+			edit = resp.MessageID
+		}
+		rendered, err := telegramrender.Render(g.messages, telegramrender.Delivery{MessageID: edit, Shared: notice.Announcement}, &resp)
+		if err != nil {
+			log.Error("cannot word the notice", slog.String("screen", resp.Screen), slog.String("error", err.Error()))
+			return notification.Receipt{Outcome: notification.OutcomeFailed, Detail: "cannot word the notice"}
+		}
+		resp = *rendered
+	}
 	if !notice.Edit || resp.Type != presenter.ActionEditMessage || resp.MessageID == 0 {
 		resp.Type = presenter.ActionSendMessage
 		resp.MessageID = 0

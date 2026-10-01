@@ -1,0 +1,161 @@
+# Telegram wording (fa) of notices and the inbox (what the notifier pushes), layered over configs/locales/fa.yml by the catalogue loader.
+# Moved here with its screens (docs/adr/0039-presentation-split.md, section 7); a key is defined once across the layers.
+gov:
+  appoint:
+    notice: "🎖 {by_office} {by} شما را به‌عنوان {office} {place} منصوب کرد. «منصب من» را باز کنید تا ببینید از این پس دربارهٔ چه چیزهایی تصمیم می‌گیرید."
+  dismiss:
+    notice: "📭 {by_office} {by} شما را از منصب {office} {place} برکنار کرد."
+pay:
+  received_cash: "💵 {player} مبلغ {amount} را نقد به شما داد."
+  received_card: "💳 {player} مبلغ {amount} را با کارت برای شما فرستاد. این پول به حساب بانکی شما واریز شد."
+crime:
+  victim:
+    head: "👛 در {venue} شهر {city} از شما دزدی شد ({crime}). {amount} از دست دادید."
+    unseen: "کسی ندید چه کسی این کار را کرد."
+    seen: "👀 شاهدی دیده است چه کسی این کار را کرد: {thief} ({code})."
+    report: "🚔 می‌توانید به پلیس شکایت کنید. هزینهٔ ثبت شکایت {fee} است و به خزانهٔ شهر می‌رود."
+    item: "🎒 {item} شما را هم بردند."
+  case_closed: "🗂 پرونده بسته شد: پلیس نتوانست کسی را که در {city} از شما دزدی کرد پیدا کند."
+  case_solved: "🚔 پرونده حل شد: پلیس {thief} ({code}) را به خاطر دزدی در {city} ({crime}) دستگیر کرد. {restored} به شما بازگردانده شد."
+  case_shortfall: "{short} قابل بازگرداندن نبود و در سابقهٔ او می‌ماند."
+  case_item_returned: "🎒 {item} شما به شما برگشت."
+  convicted: "⚖️ محکوم شدید: دزدی‌ای که در {city} کرده بودید ({crime}) به شما رسید. {restored} را بازگرداندید، {fine} جریمه پرداختید و به {term} زندان محکوم شدید."
+  convicted_unpaid: "💸 هنوز پرداخت‌نشده: {restitution} بدهی به قربانی و {fines} جریمه. در سابقه‌تان می‌ماند."
+market:
+  notice_bought: "🤝 سفارشتان در {city} انجام شد: {item} خریدید - {qty} عدد، هر عدد {price}، روی هم {amount}."
+  notice_sold: "🤝 سفارشتان در {city} انجام شد: {item} فروختید - {qty} عدد، هر عدد {price}، روی هم {amount}؛ کارمزد بازار {fee} بود."
+auction:
+  notice_outbid: "🔨 در حراج {no} ({item}) کسی پیشنهاد بالاتری داد. {amount} به شما برگشت."
+  notice_won: "🏆 حراج {no} را بردید: {item} به {amount}. در کوله‌پشتی‌تان است."
+  notice_sold: "🔨 حراج {no}: {item} به {amount} فروخته شد؛ کارمزد {fee} بود."
+  notice_unsold: "🔨 حراج {no} بدون فروش تمام شد. {item} به کوله‌پشتی‌تان برگشت."
+election:
+  notice:
+    won: "🏆 تبریک! در {election} برگزیده شدید: {votes} رأی از {cast} رأی."
+    lost: "🗳 در {election} برگزیده نشدید: {votes} رأی از {cast} رأی به دست آوردید."
+    deposit_back: "💰 ودیعهٔ {deposit} به شما برگشت."
+    deposit_kept: "💰 آرای شما به حد لازم نرسید و ودیعهٔ {deposit} به خزانهٔ شهرتان رفت."
+diplomacy:
+  notice:
+    proposed: "📨 {country} به ما پیشنهاد {kind} داده است (شمارهٔ {no}). تا {in} دیگر پاسخ دهید."
+health:
+  notice:
+    hospitalised: "🚑 {damage} از سلامتتان کم شد و در {city} به بیمارستان منتقل شدید. سلامت: {health} از {max}"
+    blocks: "تا ترخیص نمی‌توانید سفر کنید، سر کار بروید، در شهر جابه‌جا شوید یا خلاف کنید. درمان، بستری را کوتاه می‌کند."
+    discharged: "🏥 از بیمارستان {city} مرخص شدید. سلامت: {health} از {max}"
+    clinic_treated: "🩺 درمانگاه {name} بیماری را درمان کرد: {patient}. {price} به حساب درمانگاه واریز شد و {units} واحد {item} مصرف شد؛ بیمار {saved} زودتر مرخص می‌شود."
+faction:
+  notice:
+    invite: "📨 {player} شما را به {faction} دعوت کرد."
+    apply: "📨 {player} می‌خواهد به {faction} بپیوندد."
+    answer_invite_accepted: "🤝 {player} دعوت شما را پذیرفت و به {faction} پیوست."
+    answer_invite_declined: "{player} دعوت {faction} را نپذیرفت."
+    answer_apply_accepted: "🤝 درخواست شما پذیرفته شد: اکنون عضو {faction} هستید."
+    answer_apply_declined: "درخواست عضویت شما در {faction} پذیرفته نشد."
+    kicked: "🚪 {player} شما را از {faction} اخراج کرد."
+mission:
+  withheld: "⚖️ {amount} از پاداش به‌خاطر سقف روزانهٔ پاداش‌ها پرداخت نشد."
+  completed: "🎉 مأموریت «{mission}» انجام شد!"
+  paid: "💵 {cash} به پول نقدتان اضافه شد."
+  got_item: "🎒 {qty} {item} گرفتید."
+property:
+  notice_event:
+    sold: "💰 ملک #{no} ({type} در {city}) را {player} خرید؛ {amount} به حساب بانکی شما واریز شد."
+    let: "🔑 {player} ملک #{no} ({type} در {city}) را اجاره کرد؛ اجارهٔ دورهٔ اول، {amount}، به حساب بانکی شما واریز شد."
+    tenant_left: "🔑 {player} از ملک #{no} ({type} در {city}) رفت."
+    foreclosed: "⚠️ ملک #{no} ({type} در {city}) به خاطر بدهی پرداخت‌نشده به شهر برگشت."
+    evicted: "⚠️ اجارهٔ {type} در {city} چند دوره پرداخت نشد و قرارداد تمام شد."
+    evicted_tenant: "⚠️ مستأجر ملک #{no} ({type} در {city}) چند دوره اجاره نداد و قرارداد تمام شد."
+achievement:
+  notice: "🏅 دستاورد تازه: {achievement}!"
+  notice_cash: "💵 {cash} جایزه به پول نقدتان اضافه شد."
+  notice_withheld: "سقف روزانهٔ جایزه‌ها {amount} از آن را نگه داشت."
+inbox:
+  badge:
+    empty: "📭 اعلان جدیدی ندارید."
+    title: "📬 {count} اعلان جدید دارید:"
+    category_line: "  • {category}: {count}"
+    teaser_line: "  ↳ {text}"
+    open_button: "📬 دیدن اعلان‌ها"
+  hub:
+    empty: "📭 صندوق اعلان‌هایتان خالی است."
+    title: "📬 {count} اعلان خوانده‌نشده:"
+    category_line: "• {category}: {count}"
+    open_button: "{category} ({count})"
+    read_all_button: "✅ خواندن همه"
+  category_title: "📂 {category}"
+  category_empty: "چیزی در این دسته نیست."
+  item_line: "▫️ {text} - {ago} پیش"
+  open_item_button: "🔗 مورد {n}"
+  reminder: "📬 {count} اعلان خوانده‌نشده در صندوقتان منتظر شماست."
+  category:
+    companies: "🏢 شرکت‌ها"
+    finance: "💰 مالی"
+    jobs: "💼 شغل"
+    market: "🛍 بازار"
+    government: "🏛 حکومت"
+    war: "⚔️ جنگ"
+    social: "👥 اجتماعی"
+    health: "❤️ سلامت"
+    crime: "🕵️ خلاف"
+    travel: "🧭 سفر"
+    education: "📖 آموزش"
+    property: "🏠 املاک"
+    achievements: "🏅 دستاوردها"
+    missions: "🎯 مأموریت‌ها"
+    life: "🧬 زندگی"
+life:
+  rank_up_notice: "{emoji} تبریک! رتبهٔ شما از {from} به {rank} رسید. دارایی خالص شما {worth} است."
+  rank_down_notice: "{emoji} رتبهٔ شما از {from} به {rank} رسید. دارایی خالص شما {worth} است؛ با کار و سرمایه‌گذاری دوباره بالا می‌روید."
+  hunger_low:
+    text: "🍽 شکم‌تان دارد اعتراض می‌کند! یک لقمه بخورید تا دوباره سرحال شوید."
+    eat_button: "🎒 خوردن از کوله"
+    shop_button: "🛒 خرید غذا"
+finance:
+  event:
+    due: "⏰ قسط وام شمارهٔ {no} ({product}) {amount} است و ساعت {time} برداشت می‌شود، اما حساب بانکی و نقد شما روی هم {other} است. پول کافی کنار بگذارید تا قسط عقب نیفتد."
+    missed: "🔴 قسط وام شمارهٔ {no} ({product}) پرداخت نشد. {other} جریمهٔ دیرکرد اضافه شد و امتیاز اعتباری‌تان پایین آمد. {count} قسط عقب‌افتاده دارید."
+    defaulted: "⛔ وام شمارهٔ {no} ({product}) نکول شد. {amount} از بدهی سوخت شد و در پرونده‌تان ماند."
+    pledge_defaulted: "🏚 وثیقهٔ این وام، {pledge}، به شهر برگشت و شهر {other} به بانک پرداخت."
+    repaid: "✅ وام شمارهٔ {no} ({product}) کامل تسویه شد. آفرین!"
+    claimed: "🛡 {product}: {amount} خسارت به حساب بانکی شما واریز شد."
+    lapsed: "🛡 حق بیمهٔ {product}، {amount}، پرداخت نشد و بیمه‌نامه باطل شد."
+    gone: "🛡 ملکی که {product} برایش بود دیگر مال شما نیست و بیمه‌نامه تمام شد."
+stock:
+  event:
+    filled_buy: "🤝 سفارش خرید شما پر شد: {qty} سهم «{company}» به {price}، جمعاً {amount}."
+    filled_sell: "🤝 سفارش فروش شما پر شد: {qty} سهم «{company}» به {price}؛ {amount} به حساب بانکی‌تان آمد."
+    dividend: "💵 «{company}» سود داد: {qty} سهم شما، هر سهم {price}، جمعاً {amount} به حساب بانکی‌تان آمد."
+    takeover: "👑 حالا {qty} سهم «{company}» مال شماست و اختیار شرکت با شماست."
+    takeover_lost: "⚠️ کسی بیش از نیمی از سهام «{company}» را خرید و اختیار شرکت با اوست."
+recruit:
+  notice:
+    applied: "📨 {company} - کارزار شمارهٔ {no}: {count} متخصص درخواست دادند."
+    hired: "✅ {name} ({what}) با پذیرش خودکار به {company} پیوست."
+    ended: "⌛️ {company} - کارزار شمارهٔ {no}: بررسی‌ها تمام شد."
+    filled: "✅ {company} - کارزار شمارهٔ {no}: همهٔ نفرات استخدام شدند."
+    completed: "📄 قرارداد {name} ({what}) در {company} تمام شد. تا تسویهٔ بعد تمدیدش کنید، وگرنه می‌رود."
+    equity: "📈 سهام مجازی‌اش {amount} نقد پرداخت شد."
+    left: "🚪 {name} ({what}) از {company} رفت: {reason}."
+    unpaid: "🔴 حقوق {name} ({what}) در {company} پرداخت نشد؛ پول آزاد شرکت کافی نبود."
+village_news:
+  built: "🏗 ساخت «{building}» در روستای «{village}» تمام شد."
+  build_started: "🚧 دهیار ساخت «{building}» را در روستای «{village}» شروع کرد."
+  researched: "🔬 پژوهش «{knowledge}» در روستای «{village}» تمام شد و روستا حالا آن را می‌داند."
+  bought: "📚 دهیار «{knowledge}» را برای روستای «{village}» خرید."
+  taught: "📖 سوادآموزی روستای «{village}» به {percent}٪ رسید."
+  resident_joined: "🏡 {player} ساکن روستای «{village}» شد."
+  donated: "💰 {player} {amount} ساپ به خزانهٔ روستا کمک کرد."
+  promoted: "🎉 «{village}» به {tier} ارتقا یافت! {player} اکنون {office} است و ساختمان‌ها و دانش تازه‌ای در دسترس است."
+  someone: "یک نفر"
+  merged:
+    title: "🏘 تازه‌های روستای «{village}»:"
+    built: "• 🏗 ساخت «{building}» تمام شد."
+    build_started: "• 🚧 ساخت «{building}» شروع شد."
+    researched: "• 🔬 پژوهش «{knowledge}» تمام شد."
+    bought: "• 📚 «{knowledge}» خریداری شد."
+    taught: "• 📖 سوادآموزی به {percent}٪ رسید."
+    resident_joined: "• 🏡 {player} ساکن روستا شد."
+    donated: "• 💰 {player} {amount} ساپ به خزانهٔ روستا کمک کرد."
+    promoted: "• 🎉 به {tier} ارتقا یافت؛ {player} اکنون {office} است."
+    more: "• و {count} خبر دیگر."

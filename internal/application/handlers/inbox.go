@@ -6,9 +6,9 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // InboxHandler serves /inbox (migrations/0037_notification_inbox): what
@@ -52,7 +52,7 @@ func NewInboxHandler(uow application.UnitOfWork, msgs Translator, rules InboxRul
 // before rendering — the counts shown are exactly what just arrived, and
 // pressing "open" a second time (or refreshing) always shows a settled inbox
 // with nothing left unread.
-func (h *InboxHandler) Show(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *InboxHandler) Show(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -60,7 +60,7 @@ func (h *InboxHandler) Show(ctx context.Context, meta envelope.Metadata) (*prese
 		return nil, errors.InvalidInput("request carries no telegram user")
 	}
 
-	var view screens.InboxHubView
+	var view notices.InboxHubView
 	lang := meta.Language
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -82,21 +82,21 @@ func (h *InboxHandler) Show(ctx context.Context, meta envelope.Metadata) (*prese
 
 		view.Total = before.Unread
 		for _, c := range before.Categories {
-			view.Categories = append(view.Categories, screens.InboxHubCategory{Category: c.Category, Count: c.Count})
+			view.Categories = append(view.Categories, notices.InboxHubCategory{Category: c.Category, Count: c.Count})
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return screens.InboxHub(screens.Context{Msgs: h.msgs, Lang: lang, MessageID: meta.TelegramMessageID}, view), nil
+	return notices.InboxHub(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // ReadAll handles inbox.read_all, the hub's own "mark all read" button. It
 // is Show under another name: opening the hub already marks everything
 // read, so pressing the button again only catches up anything that arrived
 // in between.
-func (h *InboxHandler) ReadAll(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *InboxHandler) ReadAll(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.Show(ctx, meta)
 }
 
@@ -110,7 +110,7 @@ type InboxCategoryRequest struct {
 }
 
 // Category handles inbox.category: one category's compact, paginated list.
-func (h *InboxHandler) Category(ctx context.Context, meta envelope.Metadata, req InboxCategoryRequest) (*presenter.Response, error) {
+func (h *InboxHandler) Category(ctx context.Context, meta envelope.Metadata, req InboxCategoryRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -119,7 +119,7 @@ func (h *InboxHandler) Category(ctx context.Context, meta envelope.Metadata, req
 	}
 	page := parsePage(req.Page)
 
-	var view screens.InboxCategoryView
+	var view notices.InboxCategoryView
 	lang := meta.Language
 	now := h.now()
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -135,8 +135,9 @@ func (h *InboxHandler) Category(ctx context.Context, meta envelope.Metadata, req
 		}
 		view.Category, view.Page, view.TotalPages = req.Category, page, pages
 		for _, it := range items {
-			view.Items = append(view.Items, screens.InboxItemLine{
-				Text: it.Text(lang), Ago: now.Sub(it.CreatedAt), LinkAddr: it.LinkAddr,
+			view.Items = append(view.Items, notices.InboxItemLine{
+				Kind: it.Kind, Notice: storedNotice(it, lang), Ago: now.Sub(it.CreatedAt),
+				Link: presentation.RefOfAddress(it.LinkAddr),
 			})
 		}
 		return nil
@@ -144,5 +145,15 @@ func (h *InboxHandler) Category(ctx context.Context, meta envelope.Metadata, req
 	if err != nil {
 		return nil, err
 	}
-	return screens.InboxCategory(screens.Context{Msgs: h.msgs, Lang: lang, MessageID: meta.TelegramMessageID}, view), nil
+	return notices.InboxCategory(presentation.Ctx{Lang: lang}, view), nil
+}
+
+// storedNotice is an inbox item as the screens carry it: the notice as data
+// when it was stored as data, else the text its producer wrote in the
+// reader's language.
+func storedNotice(it application.NotificationItem, lang string) notices.StoredNotice {
+	if it.Screen != "" && len(it.View) > 0 {
+		return notices.StoredNotice{Screen: it.Screen, View: it.View}
+	}
+	return notices.StoredNotice{Text: it.Text(lang)}
 }

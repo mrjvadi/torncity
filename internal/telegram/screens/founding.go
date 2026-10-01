@@ -237,13 +237,6 @@ func renderFoundingRefusal(c Context, v FoundingRefusalView) *presenter.Response
 	return c.respond(text, kb.Build())
 }
 
-// FoundingChoiceName is the display name of an emblem shape, colour or icon
-// (kind "shape", "color" or "icon"); the code itself when the catalogue has
-// none.
-func (c Context) FoundingChoiceName(kind, code string) string {
-	return c.coded("founding."+kind+".", code, code)
-}
-
 func joinLines(lines []string) string {
 	out := ""
 	for i, l := range lines {

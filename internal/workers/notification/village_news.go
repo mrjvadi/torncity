@@ -14,9 +14,10 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Village news: one short post in a village's Telegram group when something
@@ -32,7 +33,7 @@ import (
 // posts a village's whole queue as ONE message once its oldest item is
 // announce.village_merge_window old, and no more often than one post per
 // announce.village_min_gap. A lone event is a sentence; a burst is a short
-// list (screens.VillageNews).
+// list (notices.VillageNews).
 //
 // # Many replicas, one post
 //
@@ -48,14 +49,14 @@ import (
 // NewsItem is one thing to tell a village's group about, as an event yields it.
 type NewsItem struct {
 	SettlementID string
-	// Kind is one of screens.News*.
+	// Kind is one of notices.News*.
 	Kind string
 	// Code and Name identify the building or knowledge item it is about
 	// (Name is the authored name; the catalogue names it per language).
 	Code, Name string
-	// Percent is the literacy reached, for screens.NewsTaught.
+	// Percent is the literacy reached, for notices.NewsTaught.
 	Percent int
-	// Amount is what a donation gave, for screens.NewsDonated.
+	// Amount is what a donation gave, for notices.NewsDonated.
 	Amount int64
 }
 
@@ -134,22 +135,21 @@ func (w *Worker) postNews(ctx context.Context, now time.Time, b NewsBatch) error
 	}
 	sort.SliceStable(b.Items, func(i, j int) bool { return b.Items[i].At.Before(b.Items[j].At) })
 	for _, g := range groups {
-		c := screens.Context{Msgs: w.cfg.Msgs, Lang: g.Language, Shared: true}
 		village := g.CityName
 		if village == "" {
 			if city, err := w.cfg.Deps.Cities.ByID(ctx, b.SettlementID); err == nil && city != nil {
 				village = city.Name
 			}
 		}
-		view := screens.VillageNewsView{Village: village}
+		view := notices.VillageNewsView{Village: village}
 		for _, q := range b.Items {
-			view.Items = append(view.Items, screens.VillageNewsItem{
-				Kind: q.Kind, Building: screens.Named{Code: q.Code, Name: q.Name},
-				Knowledge: screens.Named{Code: q.Code, Name: q.Name}, Percent: q.Percent, Player: playerOf(q), Amount: q.Amount,
+			view.Items = append(view.Items, notices.VillageNewsItem{
+				Kind: q.Kind, Building: notices.Named{Code: q.Code, Name: q.Name},
+				Knowledge: notices.Named{Code: q.Code, Name: q.Name}, Percent: q.Percent, Player: playerOf(q), Amount: q.Amount,
 				Tier: tierOfNews(q),
 			})
 		}
-		resp := screens.VillageNews(c, view)
+		resp := notices.VillageNews(presentation.Ctx{Lang: g.Language}, view)
 		if err := w.sendNews(ctx, now, g, resp); err != nil {
 			return err
 		}
@@ -209,9 +209,9 @@ func newsFrom(kind string) NewsBuilder {
 		}
 		item := &NewsItem{SettlementID: ev.SettlementID, Kind: kind, Name: ev.Name}
 		switch kind {
-		case screens.NewsBuilt, screens.NewsBuildStarted:
+		case notices.NewsBuilt, notices.NewsBuildStarted:
 			item.Code = ev.TypeCode
-		case screens.NewsResearched, screens.NewsBought:
+		case notices.NewsResearched, notices.NewsBought:
 			item.Code = ev.Code
 		}
 		return item, nil
@@ -239,12 +239,12 @@ func newsTaught(_ context.Context, deps Deps, env *envelope.Envelope) (*NewsItem
 	if raw.Share/step == raw.Previous/step {
 		return nil, nil
 	}
-	return &NewsItem{SettlementID: ev.SettlementID, Kind: screens.NewsTaught, Percent: raw.Share / 100}, nil
+	return &NewsItem{SettlementID: ev.SettlementID, Kind: notices.NewsTaught, Percent: raw.Share / 100}, nil
 }
 
 // playerOf is who a resident_joined item is about (its Name).
 func playerOf(q QueuedNews) string {
-	if q.Kind == screens.NewsResidentJoined || q.Kind == screens.NewsDonated || q.Kind == screens.NewsPromoted {
+	if q.Kind == notices.NewsResidentJoined || q.Kind == notices.NewsDonated || q.Kind == notices.NewsPromoted {
 		return q.Name
 	}
 	return ""
@@ -252,7 +252,7 @@ func playerOf(q QueuedNews) string {
 
 // tierOfNews is the tier a promotion reached (its Code).
 func tierOfNews(q QueuedNews) string {
-	if q.Kind == screens.NewsPromoted {
+	if q.Kind == notices.NewsPromoted {
 		return q.Code
 	}
 	return ""
@@ -282,7 +282,7 @@ func newsPromoted(ctx context.Context, deps Deps, env *envelope.Envelope) (*News
 			return nil, err
 		}
 	}
-	return &NewsItem{SettlementID: ev.SettlementID, Kind: screens.NewsPromoted, Code: ev.To, Name: name}, nil
+	return &NewsItem{SettlementID: ev.SettlementID, Kind: notices.NewsPromoted, Code: ev.To, Name: name}, nil
 }
 
 // newsResidentJoined: a player made a village their home. The founder's own
@@ -319,7 +319,7 @@ func newsResidentJoined(ctx context.Context, deps Deps, env *envelope.Envelope) 
 			return nil, err
 		}
 	}
-	return &NewsItem{SettlementID: ev.ToCityID, Kind: screens.NewsResidentJoined, Name: name}, nil
+	return &NewsItem{SettlementID: ev.ToCityID, Kind: notices.NewsResidentJoined, Name: name}, nil
 }
 
 // newsDonated: a resident gave to the village treasury. The gift is public
@@ -346,5 +346,5 @@ func newsDonated(ctx context.Context, deps Deps, env *envelope.Envelope) (*NewsI
 			return nil, err
 		}
 	}
-	return &NewsItem{SettlementID: ev.SettlementID, Kind: screens.NewsDonated, Name: name, Amount: ev.Amount}, nil
+	return &NewsItem{SettlementID: ev.SettlementID, Kind: notices.NewsDonated, Name: name, Amount: ev.Amount}, nil
 }

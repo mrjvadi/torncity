@@ -4,6 +4,12 @@
 // Every field is always present. A nil pointer, slice or map, and a zero time, are null.
 // A duration is whole seconds, rounded up, under the field's name with `_seconds` appended.
 
+export interface AchievementView {
+  achievement: Named
+  cash: number
+  withheld: number
+}
+
 export interface AmountOption {
   amount: number
   nonce: string
@@ -94,6 +100,27 @@ export interface BidPlacedView {
   amount: number
   method: string
   ends_at: string | null
+}
+
+export interface BillDecidedView {
+  no: number
+  place: Place
+  subject: BillSubject
+  body: string
+  status: string
+  lapsed_why: string
+  yes: number
+  nay: number
+}
+
+export interface BillSubject {
+  kind: string
+  code: string
+  lever_type: string
+  value: number
+  allocation: Record<string, number> | null
+  categories: string[] | null
+  target: Place | null
 }
 
 export interface BookLevel {
@@ -230,6 +257,37 @@ export interface BuildingView {
   upgrades: BuildingUpgradeLine[] | null
 }
 
+export interface CaseOutcomeView {
+  crime: Named
+  city_code: string
+  city: string
+  solved: boolean
+  thief: string
+  thief_code: string
+  stolen: number
+  restored: number
+  shortfall: number
+  fine: number
+  fine_paid: number
+  term_seconds: number
+  returned: Named | null
+}
+
+export interface ClinicTreatedView {
+  ref: CompanyRef
+  patient: string
+  price: number
+  item: Named
+  units: number
+  saved_seconds: number
+}
+
+export interface CompanyRef {
+  code: string
+  name: string
+  type: Named
+}
+
 export interface ConstructionLine {
   id: string
   building: Named
@@ -290,12 +348,56 @@ export interface DonateView {
   settlement_id: string
 }
 
+export interface ElectionResultView {
+  no: number
+  office: string
+  place: Place
+  elected: boolean
+  votes: number
+  cast: number
+  deposit: number
+  deposit_returned: boolean
+}
+
 export interface EmptyView {
 }
 
 export interface ExchangeView {
   lines: ListedLine[] | null
   unavailable: Unavailable | null
+}
+
+export interface FactionAnswerView {
+  ref: FactionRef
+  kind: string
+  accepted: boolean
+  player: Person
+}
+
+export interface FactionCrimeView {
+  ref: FactionRef
+  crime: Named
+  result: string
+  share: number
+  take: number
+  cut: number
+  xp: number
+  jail: Sentence | null
+  fine: number
+  fine_paid: number
+  injury: Injury | null
+}
+
+export interface FactionRef {
+  code: string
+  name: string
+}
+
+export interface FactionRequestView {
+  no: number
+  kind: string
+  ref: FactionRef
+  player: Person
 }
 
 export interface FinanceHubView {
@@ -320,6 +422,79 @@ export interface FinanceRefusalView {
   count: number
   wait_seconds: number
   back: Ref
+}
+
+export interface FinanceView {
+  kind: string
+  no: number
+  product: Named
+  amount: number
+  other: number
+  count: number
+  at: string | null
+  pledge: Pledge | null
+}
+
+export interface FoundDraftView {
+  founder: string
+  pending: boolean
+  minutes: number
+  draft_id: string
+}
+
+export interface FoundingCheckedView {
+  name: string
+  currency_code: string
+}
+
+export interface FoundingChoiceView {
+  code: string
+  hex: string
+}
+
+export interface FoundingEmblemView {
+  shape: string
+  color_a: string
+  color_b: string
+  icon: string
+}
+
+export interface FoundingFormView {
+  state: string
+  draft: string
+  expires_at: string | null
+  founder: string
+  suggested_name: string
+  default_emblem: FoundingEmblemView
+  limits: FoundingLimitsView
+  shapes: FoundingChoiceView[] | null
+  palette: FoundingChoiceView[] | null
+  icons: FoundingChoiceView[] | null
+  neutral_currency: string
+  settlement_id: string
+  settlement_name: string
+}
+
+export interface FoundingLimitsView {
+  name_min: number
+  name_max: number
+  motto_max: number
+  currency_name_min: number
+  currency_name_max: number
+  currency_code_len: number
+  currency_symbol_max: number
+}
+
+export interface FoundingProblem {
+  field: string
+  code: string
+}
+
+export interface FoundingRefusalView {
+  kind: string
+  problems: FoundingProblem[] | null
+  name: string
+  limits: FoundingLimitsView
 }
 
 export interface GoldPoint {
@@ -376,6 +551,64 @@ export interface HoldingLine {
   value: number
   cost: number
   listed: boolean
+}
+
+export interface HospitalisedView {
+  city_code: string
+  city: string
+  cause: string
+  damage: number
+  health: number
+  max: number
+  ends_at: string | null
+  remaining_seconds: number
+}
+
+export interface InboxBadgeView {
+  unread: number
+  categories: InboxCategoryCount[] | null
+  teaser: StoredNotice[] | null
+}
+
+export interface InboxCategoryCount {
+  category: string
+  count: number
+}
+
+export interface InboxCategoryView {
+  category: string
+  items: InboxItemLine[] | null
+  page: number
+  total_pages: number
+}
+
+export interface InboxHubCategory {
+  category: string
+  count: number
+}
+
+export interface InboxHubView {
+  total: number
+  categories: InboxHubCategory[] | null
+}
+
+export interface InboxItemLine {
+  kind: string
+  notice: StoredNotice
+  ago_seconds: number
+  link: Ref
+}
+
+export interface InboxReminderView {
+  unread: number
+}
+
+export interface Injury {
+  damage: number
+  health: number
+  max: number
+  hospital: boolean
+  ends_at: string | null
 }
 
 export interface InsuranceProductLine {
@@ -658,6 +891,11 @@ export interface LoanProductLine {
   min_score: number
 }
 
+export interface Loot {
+  item: Named
+  qty: number
+}
+
 export interface LotBatchConfirmView {
   settlement_name: string
   building: Named
@@ -724,6 +962,17 @@ export interface MarketCheckoutView {
   reserve: number
   payment: PaymentChoice
   nonce: string
+}
+
+export interface MarketFilledView {
+  side: string
+  item: Named
+  qty: number
+  price: number
+  amount: number
+  fee: number
+  city_code: string
+  city: string
 }
 
 export interface MarketRefusalView {
@@ -809,6 +1058,14 @@ export interface MineView {
   notice: string
 }
 
+export interface MissionCompletedView {
+  mission: Named
+  cash: number
+  withheld: number
+  xp: number
+  items: Loot[] | null
+}
+
 export interface MyAuctionsView {
   auctions: AuctionLine[] | null
 }
@@ -826,6 +1083,14 @@ export interface NeedBuilding {
   code: string
   role: string
   tier: number
+}
+
+export interface OfficeView {
+  office: string
+  place: Place
+  by: Person
+  by_office: string
+  dismissed: boolean
 }
 
 export interface OpenOrderLine {
@@ -932,6 +1197,33 @@ export interface PaymentDeclinedView {
   accepted: string[] | null
   back_label: string
   back: Ref
+}
+
+export interface PaymentView {
+  payer_name: string
+  payer_code: string
+  method: string
+  amount: number
+}
+
+export interface Person {
+  name: string
+  code: string
+}
+
+export interface Place {
+  kind: string
+  code: string
+  name: string
+}
+
+export interface Pledge {
+  no: number
+  code: string
+  type: Named
+  city: Place
+  value: number
+  limit: number
 }
 
 export interface PledgeLine {
@@ -1049,6 +1341,40 @@ export interface PromotionView {
   settlement_id: string
 }
 
+export interface PropertyView {
+  kind: string
+  type: Named
+  no: number
+  city: Place
+  player: Person
+  amount: number
+}
+
+export interface Rank {
+  code: string
+  name: string
+  emoji: string
+}
+
+export interface RankView {
+  rank: Rank
+  from: Rank
+  up: boolean
+  worth: number
+}
+
+export interface RecruitView {
+  kind: string
+  company: CompanyRef
+  campaign_no: number
+  count: number
+  name_seed: number
+  skill: string
+  level: number
+  reason: string
+  amount: number
+}
+
 export interface Ref {
   command: string
   args: string[] | null
@@ -1088,6 +1414,32 @@ export interface SellOffersView {
   item: Named
   ref: string
   offers: SellOffer[] | null
+}
+
+export interface Sentence {
+  crime: Named
+  remaining_seconds: number
+  ends_at: string | null
+}
+
+export interface SettlementFoundedView {
+  name: string
+  settlement_id: string
+  biome_code: string
+  nearby_feature: string
+  buildings: string[] | null
+  protected_until: string | null
+  founder: string
+  emblem: FoundingEmblemView
+  motto: string
+  currency_name: string
+  currency_code: string
+  currency_symbol: string
+}
+
+export interface SettlementRefusalView {
+  kind: string
+  name: string
 }
 
 export interface SettlementWhoView {
@@ -1216,6 +1568,12 @@ export interface StockView {
   unavailable: Unavailable | null
 }
 
+export interface StoredNotice {
+  screen: string
+  view: unknown
+  text: string
+}
+
 export interface TermsView {
   village: string
   settlement_id: string
@@ -1240,12 +1598,34 @@ export interface TradeLine {
   at: string | null
 }
 
+export interface TreatyView {
+  country: Place
+  other: Place
+  kind: Named
+  no: number
+  ttl_seconds: number
+}
+
 export interface Unavailable {
   service: string
   stage: string
   here: string
   requires: NeedBuilding[] | null
   nearest: Named | null
+}
+
+export interface VictimView {
+  crime: Named
+  venue: Named
+  city_code: string
+  city: string
+  amount: number
+  thief_name: string
+  thief_code: string
+  crime_id: string
+  report_fee: number
+  report_within_seconds: number
+  item: Named | null
 }
 
 export interface VillageMaker {
@@ -1261,6 +1641,21 @@ export interface VillageNeed {
   need: number
   makers: VillageMaker[] | null
   price: number
+}
+
+export interface VillageNewsItem {
+  kind: string
+  building: Named
+  knowledge: Named
+  percent: number
+  player: string
+  amount: number
+  tier: string
+}
+
+export interface VillageNewsView {
+  village: string
+  items: VillageNewsItem[] | null
 }
 
 export interface VillageOverviewView {
@@ -1350,21 +1745,41 @@ export interface WorkplaceLine {
 
 /** The screens of the migrated areas: the screen name on the wire, and its view. */
 export interface ScreenViews {
+  achievement_notice: AchievementView
   auction_detail: AuctionView
   auction_new: AuctionNewView
+  auction_notice: AuctionView
   auction_opened: AuctionOpenedView
   auction_refusal: AuctionRefusalView
   auctions: AuctionsView
   bank: BankView
   bid_placed: BidPlacedView
+  bill_decided_notice: BillDecidedView
   book: BookView
   budget: BudgetView
+  case_solved_notice: CaseOutcomeView
+  clinic_treated_notice: ClinicTreatedView
+  convicted_notice: CaseOutcomeView
   dividend: DividendView
+  election_result_notice: ElectionResultView
   exchange: ExchangeView
+  faction_answer_notice: FactionAnswerView
+  faction_crime_notice: FactionCrimeView
+  faction_request_notice: FactionRequestView
   finance_hub: FinanceHubView
+  finance_notice: FinanceView
   finance_refusal: FinanceRefusalView
+  founding_checked: FoundingCheckedView
+  founding_form: FoundingFormView
+  founding_refusal: FoundingRefusalView
   gold: GoldView
   gold_trade: GoldTradeView
+  hospitalised_notice: HospitalisedView
+  hunger_notice: EmptyView
+  inbox_badge: InboxBadgeView
+  inbox_category: InboxCategoryView
+  inbox_hub: InboxHubView
+  inbox_reminder: InboxReminderView
   insurance: InsuranceView
   insure_confirm: InsureConfirmView
   labor_board: LaborBoardView
@@ -1376,9 +1791,12 @@ export interface ScreenViews {
   loan_offer: LoanOfferView
   market: MarketView
   market_checkout: MarketCheckoutView
+  market_filled_notice: MarketFilledView
   market_refusal: MarketRefusalView
+  mission_completed_notice: MissionCompletedView
   my_auctions: MyAuctionsView
   my_orders: MyOrdersView
+  office_notice: OfficeView
   order_cancelled: OrderCancelledView
   order_placed: OrderPlacedView
   pay: PayView
@@ -1386,7 +1804,11 @@ export interface ScreenViews {
   pay_help: PayHelpView
   pay_sent: PaySentView
   payment_declined: PaymentDeclinedView
+  payment_notice: PaymentView
   portfolio: PortfolioView
+  property_notice: PropertyView
+  rank_notice: RankView
+  recruit_notice: RecruitView
   savings: SavingsView
   sell_offers: SellOffersView
   settlement_build_batch_confirm: LotBatchConfirmView
@@ -1395,6 +1817,8 @@ export interface ScreenViews {
   settlement_build_menu: BuildMenuView
   settlement_building_view: BuildingView
   settlement_construction_progress: ConstructionProgressView
+  settlement_found_draft: FoundDraftView
+  settlement_founded: SettlementFoundedView
   settlement_grid_grow: GridGrowView
   settlement_knowledge_list: KnowledgeListView
   settlement_land: LandView
@@ -1404,6 +1828,7 @@ export interface ScreenViews {
   settlement_private_confirm: PrivateConfirmView
   settlement_private_lots: PrivateLotsView
   settlement_private_menu: PrivateMenuView
+  settlement_refusal: SettlementRefusalView
   settlement_terms: TermsView
   settlement_who: SettlementWhoView
   shop_bought: ShopBoughtView
@@ -1413,7 +1838,10 @@ export interface ScreenViews {
   shop_sold: ShopSoldView
   shops: ShopsView
   stock: StockView
+  stock_notice: StockView
   stock_order: StockOrderView
+  treaty_proposed_notice: TreatyView
+  victim_notice: VictimView
   village_donate_confirm: DonateView
   village_donate_done: DonateView
   village_donate_menu: DonateView
@@ -1421,6 +1849,7 @@ export interface ScreenViews {
   village_home_none: EmptyView
   village_materials: MaterialsView
   village_materials_buy_confirm: MaterialBuyView
+  village_news: VillageNewsView
   village_overview: VillageOverviewView
   village_promote_confirm: PromotionView
   village_promoted: PromotionView
@@ -1433,4 +1862,4 @@ export interface ScreenViews {
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */
-export const REFUSAL_SCREENS = ['auction_refusal', 'finance_refusal', 'market_refusal', 'shop_refusal', 'village_refusal'] as const
+export const REFUSAL_SCREENS = ['auction_refusal', 'finance_refusal', 'founding_refusal', 'market_refusal', 'settlement_refusal', 'shop_refusal', 'village_refusal'] as const

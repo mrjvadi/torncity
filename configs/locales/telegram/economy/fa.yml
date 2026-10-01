@@ -66,10 +66,6 @@ pay:
   sent_card: "✅ {amount} با کارت برای {player} فرستادید."
   sent_fee: "کارمزد: {fee}"
   not_together: "{player} اینجا کنار شما نیست، پس نمی‌توانید به او پول نقد بدهید. به‌جای آن با کارت پرداخت کنید؛ پرداخت کارتی از همه‌جا ممکن است."
-  received_cash: "💵 {player} مبلغ {amount} را نقد به شما داد."
-  received_card: "💳 {player} مبلغ {amount} را با کارت برای شما فرستاد. این پول به حساب بانکی شما واریز شد."
-  # Posted in the group a payment was started in, once it is made. It never
-  # says how much.
   announced: "💸 {payer} به {payee} پول داد."
   held: "⏸ پرداخت {amount} به {player} برای بررسی نگه داشته شد. مبلغ از حساب شما کسر و در حساب امانی شما نگه داشته شده است؛ پس از بررسی یا به {player} می‌رسد یا به شما برمی‌گردد."
 
@@ -184,8 +180,6 @@ market:
     filled: انجام‌شده
     cancelled: لغوشده
     expired: پایان‌یافته
-  notice_bought: "🤝 سفارشتان در {city} انجام شد: {item} خریدید - {qty} عدد، هر عدد {price}، روی هم {amount}."
-  notice_sold: "🤝 سفارشتان در {city} انجام شد: {item} فروختید - {qty} عدد، هر عدد {price}، روی هم {amount}؛ کارمزد بازار {fee} بود."
   notice_expired_buy: "⏳ مهلت سفارش {no} برای {item} تمام شد و {left} عدد خریده نشد. مبلغ کنارگذاشته به شما برگشت."
   notice_expired_sell: "⏳ مهلت سفارش {no} برای {item} تمام شد و {left} عدد فروخته نشد. به کوله‌پشتی‌تان برگشت."
   button:
@@ -242,10 +236,6 @@ auction:
     open: باز
     sold: فروخته شد
     unsold: فروخته نشد
-  notice_outbid: "🔨 در حراج {no} ({item}) کسی پیشنهاد بالاتری داد. {amount} به شما برگشت."
-  notice_won: "🏆 حراج {no} را بردید: {item} به {amount}. در کوله‌پشتی‌تان است."
-  notice_sold: "🔨 حراج {no}: {item} به {amount} فروخته شد؛ کارمزد {fee} بود."
-  notice_unsold: "🔨 حراج {no} بدون فروش تمام شد. {item} به کوله‌پشتی‌تان برگشت."
   button:
     house: "🔨 حراجی"
     mine: "📋 حراج‌های من"
@@ -436,18 +426,6 @@ finance:
     own_company: "نمی‌شود با خودتان معامله کنید."
     fund_closed: "🛡 صندوق بیمه این بیمه را نمی‌فروشد."
     no_player: "🔎 بازیکنی پیدا نشد."
-  event:
-    due: "⏰ قسط وام شمارهٔ {no} ({product}) {amount} است و ساعت {time} برداشت می‌شود، اما حساب بانکی و نقد شما روی هم {other} است. پول کافی کنار بگذارید تا قسط عقب نیفتد."
-    missed: "🔴 قسط وام شمارهٔ {no} ({product}) پرداخت نشد. {other} جریمهٔ دیرکرد اضافه شد و امتیاز اعتباری‌تان پایین آمد. {count} قسط عقب‌افتاده دارید."
-    defaulted: "⛔ وام شمارهٔ {no} ({product}) نکول شد. {amount} از بدهی سوخت شد و در پرونده‌تان ماند."
-    pledge_defaulted: "🏚 وثیقهٔ این وام، {pledge}، به شهر برگشت و شهر {other} به بانک پرداخت."
-    repaid: "✅ وام شمارهٔ {no} ({product}) کامل تسویه شد. آفرین!"
-    claimed: "🛡 {product}: {amount} خسارت به حساب بانکی شما واریز شد."
-    lapsed: "🛡 حق بیمهٔ {product}، {amount}، پرداخت نشد و بیمه‌نامه باطل شد."
-    gone: "🛡 ملکی که {product} برایش بود دیگر مال شما نیست و بیمه‌نامه تمام شد."
-
-# The stock exchange (docs/adr/0026-finance.md section 5). Market data is
-# public; a holding and an order are the player's own.
 stock:
   move_up: "🟢 {pct}٪+"
   move_down: "🔴 {pct}٪−"
@@ -526,14 +504,6 @@ stock:
     dividend: "💵 تقسیم سود"
     dividend_option: "{amount} (هر سهم {per_share})"
     dividend_yes: "✅ بله، سود پرداخت شود"
-  event:
-    filled_buy: "🤝 سفارش خرید شما پر شد: {qty} سهم «{company}» به {price}، جمعاً {amount}."
-    filled_sell: "🤝 سفارش فروش شما پر شد: {qty} سهم «{company}» به {price}؛ {amount} به حساب بانکی‌تان آمد."
-    dividend: "💵 «{company}» سود داد: {qty} سهم شما، هر سهم {price}، جمعاً {amount} به حساب بانکی‌تان آمد."
-    takeover: "👑 حالا {qty} سهم «{company}» مال شماست و اختیار شرکت با شماست."
-    takeover_lost: "⚠️ کسی بیش از نیمی از سهام «{company}» را خرید و اختیار شرکت با اوست."
-
-# The gold dealer (docs/adr/0026-finance.md section 6).
 gold:
   title: "🪙 طلافروشی"
   price: "هر گرم: خرید از ما {buy} - فروش به ما {sell} {move}"

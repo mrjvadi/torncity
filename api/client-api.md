@@ -448,7 +448,9 @@ Every content entry a client may have to draw, by table, with its name in
 every language and the asset keys its art is looked up by
 (`internal/clientapi/catalogue.go`). Tables: `city`, `place`,
 `company_type`, `item`, `component`, `mode`, `crime`, `course`, `skill`,
-`technology`, `military_unit`. `asset.icon` is always `<table>:<code>`;
+`technology`, `military_unit`; and, for what a notice names (ADR 0039 section
+8), `achievement`, `mission`, `property_type`, `treaty_type`, `loan_product`,
+`insurance_product` and `office`. `asset.icon` is always `<table>:<code>`;
 `asset.model` is set for tables drawn as buildings or vehicles (`place`,
 `company_type`, `mode`, `military_unit`). Items, components, crimes, skills
 and company types carry a `category`, places `kind: place`, military units
@@ -949,18 +951,21 @@ answered from that village, never a second one.
  "default_emblem": {"shape": "shield", "color_a": "crimson", "color_b": "gold", "icon": "wheat"},
  "limits": {"name_min": 3, "name_max": 24, "motto_max": 60, "currency_name_min": 3,
             "currency_name_max": 24, "currency_code_len": 3, "currency_symbol_max": 3},
- "shapes":  [{"code": "shield", "name": "سپر", "emoji": "🛡"}],
- "palette": [{"code": "crimson", "name": "سرخ", "emoji": "🔴", "hex": "#b3261e"}],
- "icons":   [{"code": "wheat", "name": "خوشهٔ گندم", "emoji": "🌾"}],
+ "shapes":  [{"code": "shield"}],
+ "palette": [{"code": "crimson", "hex": "#b3261e"}],
+ "icons":   [{"code": "wheat"}],
  "neutral_currency": "SUP"}
 ```
 
 `state` is `mine` (the viewer may submit), `other` (read only), `expired` or
 `founded` (then `settlement_id` and `settlement_name`). `suggested_name` is the
-generated place name the form starts from. The **emblem** is not an image: it
-is the four codes above, drawn by the client as an SVG (an outline in the
-`shape`, filled with the two colours, the `icon` in the middle) and written by
-the server as emoji in Telegram (`🛡 🌾 🔴🟡`). The catalogue is
+generated place name the form starts from; `founder` is empty when the player
+has no name worth showing. The choices are **codes**: the server sends no
+name, no emoji and no sentence, and each client words a shape, a colour and an
+icon from its own table. The **emblem** is not an image: it is the four codes
+above, drawn by the client as an SVG (an outline in the `shape`, filled with
+the two colours, the `icon` in the middle); Telegram writes it as emoji from
+its own locale layer. The catalogue is
 `configs/content/founding.yml`, so it can grow without a new build. There is no
 upload: no storage and no moderation are needed.
 
@@ -978,8 +983,11 @@ country (docs/adr/0029, phase C4), when the reservation becomes its national
 currency; the ledger is not touched.
 
 A refused form is `200` with `ok: false`, `screen: "founding_refusal"` and
-`error.code` `founding_<kind>`; `error.message` is the sentence Telegram
-shows, in the player's language.
+`error.code` `founding_<kind>` (`error.args.name` is the village a group
+already has, for `founding_already`); there is no `error.message`, the client
+words the code. A founding command refused in a group answers
+`settlement_refusal` with `error.code` `settlement_group_only`,
+`settlement_no_world` or `settlement_already`, the same way.
 
 | `error.code` | meaning |
 |---|---|
@@ -1003,9 +1011,10 @@ client validates a name or a code as the player types.
 
 The answer to a successful submit is `settlement_founded`:
 `{"name", "settlement_id", "biome_code", "nearby_feature", "buildings",
-"protected_until", "founder", "emblem", "emblem_text", "motto",
-"currency_name", "currency_code", "currency_symbol"}`. The group is told by
-the notifier (an announcement with the name, emblem, motto and currency), and
+"protected_until", "founder", "emblem", "motto",
+"currency_name", "currency_code", "currency_symbol"}` (the emblem is its four
+codes). The group is told by the notifier (an announcement with the name,
+emblem, motto and currency, carried as data to every edge), and
 the client moves to the new village, whose id is `settlement_id`. The
 `settlement` of the bootstrap then carries `emblem` (`shape`, `color_a`,
 `color_b`, `icon`), `motto` and `currency` (`code`, `name`, `symbol`) too.
@@ -1049,11 +1058,26 @@ On `player:<id>` — every notice the bot sends the player (a journey landed, a
 payment received, a shift paid…), as well as to Telegram:
 
 ```json
-{"type": "notice", "kind": "travel.completed", "text": "🛬 You have arrived in Calderis…", "screen": "…", "view": {…}}
+{"type": "notice", "kind": "bank.payment_received", "screen": "payment_notice",
+ "view": {"payer_name": "Ada", "payer_code": "B3C4D5F", "method": "card", "amount": 12500},
+ "actions": [{"id": "notice.bank", "command": "bank.show"}, {"id": "notice.profile", "command": "player.profile.get"}]}
 ```
 
-`kind` is the game event (`domain.event`); `text` is localized for the player;
-`screen`/`view` are present when the notice's screen has a view.
+A notice is **data** (contract 1.5, ADR 0039 section 8): `kind` is the game
+event (`domain.event`); `screen` is the notice's code (`payment_notice`,
+`market_filled_notice`, `hunger_notice`, … the notices area, one per kind of
+notice) and `view` its facts, which the client words with its own table, and
+from the code picks its colour and icon; `actions` are where the player may go
+next, the arguments named as the command takes them. There is **no `text`**: the
+Telegram wording of earlier builds is gone from this channel. A notice whose
+screen is not carried as data yet has only `kind` (and a `view` when its screen
+has one); a client shows a generic line for it and opens the inbox.
+
+The inbox (`inbox.show` → `inbox_hub`, `inbox.category` → `inbox_category`)
+keeps each stored notice as the same data: `items[].notice` is
+`{"screen", "view"}` for a notice carried as data, or `{"text"}` for one that
+is not yet, with `items[].kind`, `ago_seconds` and `link` (`{command, args}` or
+empty).
 
 Also on `player:<id>` — a HUD snapshot, sent again (debounced,
 `notifications.vitals_min_interval`, 2s) whenever a notice's event may have
@@ -1077,7 +1101,10 @@ companies founded, elections, strikes…):
 {"type": "announce", "kind": "crime.jailed", "text": "📣 …", "texts": {"fa": "📣 …", "en": "📣 …"}}
 ```
 
-`text` is in the game's default language; pick `texts[lang]` when present.
+`text` is in the game's default language; pick `texts[lang]` when present. An
+announcement carried as data (the founding of a village,
+`kind: "settlement.founded"`) has `screen` and `view` instead of any text, like
+a notice; the other lines are text until their screens are migrated.
 
 Both namespaces keep the last 20 publications for 5 minutes and recover them
 on reconnect. Clients can never publish; only the server API key can (the notifier and

@@ -3,13 +3,12 @@ package notification
 import (
 	"context"
 	"encoding/json"
-	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Finance (docs/adr/0026-finance.md), privately: a borrower hears that an
@@ -46,14 +45,14 @@ func renderFinanceNotice(_ context.Context, _ Deps, env *envelope.Envelope) (*Dr
 	if ev.PlayerID == "" || ev.Kind == "" {
 		return nil, apperrors.InvalidInput("finance event names nobody")
 	}
-	view := screens.FinanceNoticeView{Kind: ev.Kind, No: ev.No, Product: screens.Named{Code: ev.Product, Name: ev.ProductName},
+	view := notices.FinanceView{Kind: ev.Kind, No: ev.No, Product: notices.Named{Code: ev.Product, Name: ev.ProductName},
 		Amount: ev.Amount, Other: ev.Other, Count: ev.Count, At: ev.At}
 	if ev.PropertyNo > 0 {
-		view.Pledge = &economy.PledgeLine{No: ev.PropertyNo, Type: screens.Named{Code: ev.TypeCode, Name: ev.TypeName},
-			City: screens.GovPlace{Kind: "city", Code: ev.CityCode, Name: ev.CityName}, Value: ev.Value}
+		view.Pledge = &notices.Pledge{No: ev.PropertyNo, Type: notices.Named{Code: ev.TypeCode, Name: ev.TypeName},
+			City: notices.Place{Kind: "city", Code: ev.CityCode, Name: ev.CityName}, Value: ev.Value}
 	}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.FinanceNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.FinanceNotice(c, view)
 	}}, nil
 }
 
@@ -83,9 +82,9 @@ func renderStockNotice(_ context.Context, _ Deps, env *envelope.Envelope) (*Draf
 	if kind == "takeover" && !ev.Gained {
 		kind = "takeover_lost"
 	}
-	view := screens.StockNoticeView{Kind: kind, Company: screens.Named{Code: ev.CompanyCode, Name: ev.CompanyName},
+	view := notices.StockView{Kind: kind, Company: notices.Named{Code: ev.CompanyCode, Name: ev.CompanyName},
 		Side: ev.Side, Qty: ev.Qty, Price: ev.Price, Amount: ev.Amount}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.StockNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.StockNotice(c, view)
 	}}, nil
 }

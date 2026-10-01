@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -67,6 +68,18 @@ func (e billEvent) view() screens.BillView {
 	return v
 }
 
+// notice is the proposal as the notice of its decision carries it.
+func (e billEvent) notice() notices.BillDecidedView {
+	v := notices.BillDecidedView{No: e.No, Status: e.Status, LapsedWhy: e.Lapse, Yes: e.Yes, Nay: e.Nay,
+		Place: notices.Place{Kind: e.PlaceKind, Code: e.PlaceCode, Name: e.PlaceName}, Body: e.Body,
+		Subject: notices.BillSubject{Kind: e.SubjectKind, Code: e.Subject, LeverType: e.LeverType, Value: e.Value,
+			Allocation: e.Allocation, Categories: e.Categories}}
+	if e.TargetCode != "" {
+		v.Subject.Target = &notices.Place{Kind: "country", Code: e.TargetCode, Name: e.TargetName}
+	}
+	return v
+}
+
 // billOpenedAnnouncement: a proposal was put to a body's vote.
 func billOpenedAnnouncement(_ context.Context, _ Deps, env *envelope.Envelope) (*Announcement, error) {
 	ev, err := decodeBill(env, "proposed")
@@ -96,7 +109,7 @@ func renderBillDecided(_ context.Context, _ Deps, env *envelope.Envelope) (*Draf
 	if err != nil || ev.PlayerID == "" {
 		return nil, err
 	}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.BillDecidedNotice(c, ev.view())
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.BillDecidedNotice(c, ev.notice())
 	}}, nil
 }

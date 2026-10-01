@@ -64,8 +64,6 @@ pay:
   sent_card: "✅ You sent {amount} by card to {player}."
   sent_fee: "Fee: {fee}"
   not_together: "{player} is not here with you, so you cannot hand over cash. Send the money by card instead — card payments work from anywhere."
-  received_cash: "💵 {player} handed you {amount} in cash."
-  received_card: "💳 {player} sent you {amount} by card. The money is in your bank account."
   announced: "💸 {payer} paid {payee}."
   held: "⏸ Your payment of {amount} to {player} is held for review. It has left your purse and waits in your escrow; after the review it reaches {player} or comes back to you."
 
@@ -179,8 +177,6 @@ market:
     filled: filled
     cancelled: cancelled
     expired: expired
-  notice_bought: "🤝 Your order in {city} filled: you bought {item} - {qty} at {price} for {amount}."
-  notice_sold: "🤝 Your order in {city} filled: you sold {item} - {qty} at {price} for {amount}; the market fee was {fee}."
   notice_expired_buy: "⏳ Order {no} for {item} ended with {left} unbought. The money set aside came back to you."
   notice_expired_sell: "⏳ Order {no} for {item} ended with {left} unsold. It came back to your bag."
   button:
@@ -237,10 +233,6 @@ auction:
     open: open
     sold: sold
     unsold: unsold
-  notice_outbid: "🔨 You were outbid on auction {no} ({item}). Your {amount} came back to you."
-  notice_won: "🏆 You won auction {no}: {item} for {amount}. It is in your bag."
-  notice_sold: "🔨 Auction {no} sold {item} for {amount}; the fee was {fee}."
-  notice_unsold: "🔨 Auction {no} ended without a sale. {item} came back to your bag."
   button:
     house: "🔨 Auction house"
     mine: "📋 My auctions"
@@ -429,17 +421,6 @@ finance:
     own_company: "You cannot trade with yourself."
     fund_closed: "🛡 The fund does not sell that policy."
     no_player: "🔎 No such player."
-  event:
-    due: "⏰ Loan {no} ({product}) takes {amount} at {time}, but your bank account and cash hold {other} together. Set enough aside so the instalment is not missed."
-    missed: "🔴 An instalment of loan {no} ({product}) went unpaid. A late fee of {other} was added and your credit score fell. {count} instalments are overdue."
-    defaulted: "⛔ Loan {no} ({product}) defaulted. {amount} was written off and stays on your record."
-    pledge_defaulted: "🏚 Its collateral, {pledge}, went back to the city, which paid the bank {other}."
-    repaid: "✅ Loan {no} ({product}) is repaid in full. Well done!"
-    claimed: "🛡 {product}: {amount} was paid into your bank account for your loss."
-    lapsed: "🛡 The premium of your {product}, {amount}, went unpaid and the policy lapsed."
-    gone: "🛡 The property your {product} covered is no longer yours; the policy ended."
-
-# The stock exchange (docs/adr/0026-finance.md section 5).
 stock:
   move_up: "🟢 +{pct}%"
   move_down: "🔴 −{pct}%"
@@ -518,14 +499,6 @@ stock:
     dividend: "💵 Pay a dividend"
     dividend_option: "{amount} ({per_share} a share)"
     dividend_yes: "✅ Yes, pay it"
-  event:
-    filled_buy: "🤝 Your buy order filled: {qty} shares of {company} at {price}, {amount} in all."
-    filled_sell: "🤝 Your sell order filled: {qty} shares of {company} at {price}; {amount} went to your bank account."
-    dividend: "💵 {company} paid a dividend: your {qty} shares at {price} each, {amount} to your bank account."
-    takeover: "👑 You now hold {qty} shares of {company} and control it."
-    takeover_lost: "⚠️ Someone bought more than half of {company} and now controls it."
-
-# The gold dealer (docs/adr/0026-finance.md section 6).
 gold:
   title: "🪙 The gold dealer"
   price: "A gram: buy from us {buy} - sell to us {sell} {move}"

@@ -14,9 +14,9 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"github.com/mrjvadi/torncity/internal/shared/events"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The founding form (docs/adr/0028-world-and-settlements.md section 3): three
@@ -91,18 +91,20 @@ func (h *SettlementsHandler) rules() (wsettle.FormRules, content.FoundingDef, bo
 	return r, def, true
 }
 
-func limitsOf(r wsettle.FormRules) screens.FoundingLimitsView {
-	return screens.FoundingLimitsView{
+func limitsOf(r wsettle.FormRules) village.FoundingLimitsView {
+	return village.FoundingLimitsView{
 		NameMin: r.NameMin, NameMax: r.NameMax, MottoMax: r.MottoMax,
 		CurrencyNameMin: r.CurrencyNameMin, CurrencyNameMax: r.CurrencyNameMax,
 		CurrencyCodeLen: r.CurrencyCodeLen, CurrencySymbolMax: r.CurrencySymbolMax,
 	}
 }
 
-// shownFounder is a player's name as the group's message shows it.
-func (h *SettlementsHandler) shownFounder(c screens.Context, name string) string {
-	if name == "" || strings.HasPrefix(name, "player-") {
-		return c.T("social.unknown_player", nil)
+// shownFounder is a player's name as the form shows it: empty for the
+// placeholder a record gets when no real name was on hand, so each edge says
+// "a player" in its own words instead of an identifier.
+func (h *SettlementsHandler) shownFounder(name string) string {
+	if strings.HasPrefix(name, "player-") {
+		return ""
 	}
 	return name
 }
@@ -121,34 +123,34 @@ func normalDraftID(id string) string {
 // opens a draft, answering with the button to the form. It is idempotent
 // under at-least-once delivery and under a group asking twice: one open draft
 // per group, and a second ask shows the same one.
-func (h *SettlementsHandler) Found(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *SettlementsHandler) Found(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	p, lang, err := h.viewer(ctx, meta)
 	if err != nil {
 		return nil, err
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	if !meta.InGroup() {
-		return screens.SettlementRefusal(c, screens.SettlementRefusalView{Kind: "group_only"}), nil
+		return village.SettlementRefusal(c, village.SettlementRefusalView{Kind: village.SettlementGroupOnly}), nil
 	}
 	chatID := meta.TelegramChatID
 
 	worldRow, world, err := h.worlds.Active(ctx)
 	if stderrors.Is(err, application.ErrNoActiveWorld) {
-		return screens.SettlementRefusal(c, screens.SettlementRefusalView{Kind: "no_world"}), nil
+		return village.SettlementRefusal(c, village.SettlementRefusalView{Kind: village.SettlementNoWorld}), nil
 	}
 	if err != nil {
 		return nil, err
 	}
 	if _, _, ok := h.rules(); !ok {
-		return screens.FoundingRefusal(c, screens.FoundingRefusalView{Kind: screens.FoundingNoContent}), nil
+		return village.FoundingRefusal(c, village.FoundingRefusalView{Kind: village.FoundingNoContent}), nil
 	}
 
 	now := h.now()
-	var reply *presenter.Response
+	var reply *presentation.Response
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		reply = nil
 		if existing, err := tx.Settlements().ByFoundingGroup(ctx, chatID); err == nil {
-			reply = screens.SettlementRefusal(c, screens.SettlementRefusalView{Kind: "already", Name: existing.Name})
+			reply = village.SettlementRefusal(c, village.SettlementRefusalView{Kind: village.SettlementAlready, Name: existing.Name})
 			return nil
 		} else if !stderrors.Is(err, application.ErrCityNotFound) {
 			return err
@@ -198,8 +200,8 @@ func (h *SettlementsHandler) Found(ctx context.Context, meta envelope.Metadata) 
 		if minutes < 1 {
 			minutes = 1
 		}
-		reply = screens.FoundDraft(c, screens.FoundDraftView{
-			Founder: h.shownFounder(c, draft.FounderName), Pending: draft.FounderPlayerID != p.ID,
+		reply = village.FoundDraft(c, village.FoundDraftView{
+			Founder: h.shownFounder(draft.FounderName), Pending: draft.FounderPlayerID != p.ID,
 			Minutes: minutes, DraftID: draft.ID,
 		})
 		return nil
@@ -212,7 +214,7 @@ func (h *SettlementsHandler) Found(ctx context.Context, meta envelope.Metadata) 
 
 // defaultEmblem picks the emblem the form starts from, from the draft's id, so
 // a reopened form shows the same one.
-func defaultEmblem(seed string, r wsettle.FormRules) screens.FoundingEmblemView {
+func defaultEmblem(seed string, r wsettle.FormRules) village.FoundingEmblemView {
 	f := fnv.New64a()
 	_, _ = f.Write([]byte(seed))
 	x := f.Sum64()
@@ -222,7 +224,7 @@ func defaultEmblem(seed string, r wsettle.FormRules) screens.FoundingEmblemView 
 		}
 		return int((x >> shift) % uint64(len(list)))
 	}
-	out := screens.FoundingEmblemView{}
+	out := village.FoundingEmblemView{}
 	if i := pick(r.Shapes, 0); i >= 0 {
 		out.Shape = r.Shapes[i].Code
 	}
@@ -236,24 +238,24 @@ func defaultEmblem(seed string, r wsettle.FormRules) screens.FoundingEmblemView 
 	return out
 }
 
-func choiceViews(c screens.Context, prefix string, list []content.FoundingChoiceDef) []screens.FoundingChoiceView {
-	out := make([]screens.FoundingChoiceView, len(list))
+func choiceViews(list []content.FoundingChoiceDef) []village.FoundingChoiceView {
+	out := make([]village.FoundingChoiceView, len(list))
 	for i, d := range list {
-		out[i] = screens.FoundingChoiceView{Code: d.Code, Name: c.FoundingChoiceName(prefix, d.Code), Emoji: d.Emoji, Hex: d.Hex}
+		out[i] = village.FoundingChoiceView{Code: d.Code, Hex: d.Hex}
 	}
 	return out
 }
 
 // formView is the form's facts for a client.
-func (h *SettlementsHandler) formView(c screens.Context, rules wsettle.FormRules, def content.FoundingDef,
+func (h *SettlementsHandler) formView(rules wsettle.FormRules, def content.FoundingDef,
 	d application.FoundingDraft, state, settlementID, settlementName string,
-) screens.FoundingFormView {
-	return screens.FoundingFormView{
-		State: state, Draft: d.ID, ExpiresAt: d.ExpiresAt, Founder: h.shownFounder(c, d.FounderName),
+) village.FoundingFormView {
+	return village.FoundingFormView{
+		State: state, Draft: d.ID, ExpiresAt: d.ExpiresAt, Founder: h.shownFounder(d.FounderName),
 		SuggestedName: d.SuggestedName, DefaultEmblem: defaultEmblem(d.ID, rules), Limits: limitsOf(rules),
-		Shapes:          choiceViews(c, "shape", def.Shapes),
-		Palette:         choiceViews(c, "color", def.Palette),
-		Icons:           choiceViews(c, "icon", def.Icons),
+		Shapes:          choiceViews(def.Shapes),
+		Palette:         choiceViews(def.Palette),
+		Icons:           choiceViews(def.Icons),
 		NeutralCurrency: neutralCurrency, SettlementID: settlementID, SettlementName: settlementName,
 	}
 }
@@ -264,18 +266,18 @@ const neutralCurrency = "SUP"
 
 // FoundDraft handles settlement.found.draft: the form's facts, for whoever
 // opens the link. Only the founder may submit it; anyone else reads it.
-func (h *SettlementsHandler) FoundDraft(ctx context.Context, meta envelope.Metadata, req FoundDraftRequest) (*presenter.Response, error) {
+func (h *SettlementsHandler) FoundDraft(ctx context.Context, meta envelope.Metadata, req FoundDraftRequest) (*presentation.Response, error) {
 	p, lang, err := h.viewer(ctx, meta)
 	if err != nil {
 		return nil, err
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	rules, def, ok := h.rules()
 	if !ok {
-		return screens.FoundingRefusal(c, screens.FoundingRefusalView{Kind: screens.FoundingNoContent}), nil
+		return village.FoundingRefusal(c, village.FoundingRefusalView{Kind: village.FoundingNoContent}), nil
 	}
 	now := h.now()
-	var reply *presenter.Response
+	var reply *presentation.Response
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		var (
 			d   application.FoundingDraft
@@ -287,7 +289,7 @@ func (h *SettlementsHandler) FoundDraft(ctx context.Context, meta envelope.Metad
 			d, err = tx.Settlements().OpenDraftOfPlayer(ctx, p.ID, now)
 		}
 		if stderrors.Is(err, application.ErrFoundingDraftNotFound) {
-			reply = screens.FoundingRefusal(c, screens.FoundingRefusalView{Kind: screens.FoundingNoDraft, Limits: limitsOf(rules)})
+			reply = village.FoundingRefusal(c, village.FoundingRefusalView{Kind: village.FoundingNoDraft, Limits: limitsOf(rules)})
 			return nil
 		}
 		if err != nil {
@@ -299,13 +301,13 @@ func (h *SettlementsHandler) FoundDraft(ctx context.Context, meta envelope.Metad
 			if err != nil {
 				return err
 			}
-			reply = screens.FoundingForm(c, h.formView(c, rules, def, d, screens.FoundingDone, s.CityID, s.Name))
+			reply = village.FoundingForm(c, h.formView(rules, def, d, village.FoundingDone, s.CityID, s.Name))
 		case d.Expired(now):
-			reply = screens.FoundingForm(c, h.formView(c, rules, def, d, screens.FoundingExpired, "", ""))
+			reply = village.FoundingForm(c, h.formView(rules, def, d, village.FoundingExpired, "", ""))
 		case d.FounderPlayerID == p.ID:
-			reply = screens.FoundingForm(c, h.formView(c, rules, def, d, screens.FoundingMine, "", ""))
+			reply = village.FoundingForm(c, h.formView(rules, def, d, village.FoundingMine, "", ""))
 		default:
-			reply = screens.FoundingForm(c, h.formView(c, rules, def, d, screens.FoundingOther, "", ""))
+			reply = village.FoundingForm(c, h.formView(rules, def, d, village.FoundingOther, "", ""))
 		}
 		return nil
 	})
@@ -317,9 +319,9 @@ func (h *SettlementsHandler) FoundDraft(ctx context.Context, meta envelope.Metad
 
 // submitOutcome is what one attempt of a submit ended with.
 type submitOutcome struct {
-	refusal *screens.FoundingRefusalView
-	group   *screens.SettlementRefusalView
-	checked *screens.FoundingCheckedView
+	refusal *village.FoundingRefusalView
+	group   *village.SettlementRefusalView
+	checked *village.FoundingCheckedView
 	// founded is set on success and for a repeated submit; cell is where.
 	founded *application.FoundedSettlement
 	cell    int32
@@ -328,19 +330,19 @@ type submitOutcome struct {
 
 // Submit handles settlement.found.submit. It is idempotent: a second submit
 // of a draft that already became a village answers from that village.
-func (h *SettlementsHandler) Submit(ctx context.Context, meta envelope.Metadata, req FoundSubmitRequest) (*presenter.Response, error) {
+func (h *SettlementsHandler) Submit(ctx context.Context, meta envelope.Metadata, req FoundSubmitRequest) (*presentation.Response, error) {
 	p, lang, err := h.viewer(ctx, meta)
 	if err != nil {
 		return nil, err
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	rules, _, ok := h.rules()
 	if !ok {
-		return screens.FoundingRefusal(c, screens.FoundingRefusalView{Kind: screens.FoundingNoContent}), nil
+		return village.FoundingRefusal(c, village.FoundingRefusalView{Kind: village.FoundingNoContent}), nil
 	}
 	worldRow, world, err := h.worlds.Active(ctx)
 	if stderrors.Is(err, application.ErrNoActiveWorld) {
-		return screens.FoundingRefusal(c, screens.FoundingRefusalView{Kind: screens.FoundingNoWorld, Limits: limitsOf(rules)}), nil
+		return village.FoundingRefusal(c, village.FoundingRefusalView{Kind: village.FoundingNoWorld, Limits: limitsOf(rules)}), nil
 	}
 	if err != nil {
 		return nil, err
@@ -351,10 +353,10 @@ func (h *SettlementsHandler) Submit(ctx context.Context, meta envelope.Metadata,
 		CurrencySymbol: req.CurrencySymbol,
 		Emblem:         wsettle.Emblem{Shape: req.Shape, ColorA: req.ColorA, ColorB: req.ColorB, Icon: req.Icon},
 	}
-	invalid := func(problems ...wsettle.Problem) *screens.FoundingRefusalView {
-		v := &screens.FoundingRefusalView{Kind: screens.FoundingInvalid, Limits: limitsOf(rules)}
+	invalid := func(problems ...wsettle.Problem) *village.FoundingRefusalView {
+		v := &village.FoundingRefusalView{Kind: village.FoundingInvalid, Limits: limitsOf(rules)}
 		for _, x := range problems {
-			v.Problems = append(v.Problems, screens.FoundingProblem{Field: x.Field, Code: x.Code})
+			v.Problems = append(v.Problems, village.FoundingProblem{Field: x.Field, Code: x.Code})
 		}
 		return v
 	}
@@ -389,7 +391,7 @@ func (h *SettlementsHandler) Submit(ctx context.Context, meta envelope.Metadata,
 				if err != nil {
 					return err
 				}
-				out.group = &screens.SettlementRefusalView{Kind: "already", Name: s.Name}
+				out.group = &village.SettlementRefusalView{Kind: village.SettlementAlready, Name: s.Name}
 				return nil
 			}); rerr != nil {
 				return nil, rerr
@@ -401,24 +403,24 @@ func (h *SettlementsHandler) Submit(ctx context.Context, meta envelope.Metadata,
 	}
 	switch {
 	case out.refusal != nil:
-		return screens.FoundingRefusal(c, *out.refusal), nil
+		return village.FoundingRefusal(c, *out.refusal), nil
 	case out.group != nil:
-		return screens.SettlementRefusal(c, *out.group), nil
+		return village.SettlementRefusal(c, *out.group), nil
 	case out.checked != nil:
-		return screens.FoundingChecked(c, *out.checked), nil
+		return village.FoundingChecked(c, *out.checked), nil
 	case out.founded != nil:
-		return screens.SettlementFounded(c, h.foundedView(c, world, *out.founded, rules, out.founder, out.cell)), nil
+		return village.SettlementFounded(c, h.foundedView(lang, world, *out.founded, rules, out.founder, out.cell)), nil
 	}
 	return nil, fmt.Errorf("handlers: founding settlement: no eligible spot after %d attempts", maxSpawnAttempts)
 }
 
 // foundedView is the announcement's facts.
-func (h *SettlementsHandler) foundedView(c screens.Context, world *worldgen.World, s application.FoundedSettlement,
+func (h *SettlementsHandler) foundedView(lang string, world *worldgen.World, s application.FoundedSettlement,
 	rules wsettle.FormRules, founder string, cell int32,
-) screens.SettlementFoundedView {
+) village.SettlementFoundedView {
 	feature := wsettle.NearbyFeature(world, cell)
 	featureName := feature.Latin
-	if c.Lang == "fa" && feature.Persian != "" {
+	if lang == "fa" && feature.Persian != "" {
 		featureName = feature.Persian
 	}
 	codes := make([]string, len(s.Buildings))
@@ -426,11 +428,11 @@ func (h *SettlementsHandler) foundedView(c screens.Context, world *worldgen.Worl
 		codes[i] = b.TypeCode
 	}
 	e := wsettle.Emblem{Shape: s.Emblem.Shape, ColorA: s.Emblem.ColorA, ColorB: s.Emblem.ColorB, Icon: s.Emblem.Icon}
-	return screens.SettlementFoundedView{
+	return village.SettlementFoundedView{
 		Name: s.Name, SettlementID: s.CityID, BiomeCode: world.BiomeCode(cell), NearbyFeature: featureName,
 		Buildings: codes, ProtectedUntil: s.ProtectedUntil, Founder: founder,
-		Emblem:     screens.FoundingEmblemView{Shape: e.Shape, ColorA: e.ColorA, ColorB: e.ColorB, Icon: e.Icon},
-		EmblemText: rules.EmblemText(e), Motto: s.Motto,
+		Emblem:     village.FoundingEmblemView{Shape: e.Shape, ColorA: e.ColorA, ColorB: e.ColorB, Icon: e.Icon},
+		Motto: s.Motto,
 		CurrencyName: s.Currency.Name, CurrencyCode: s.Currency.Code, CurrencySign: s.Currency.Symbol,
 	}
 }
@@ -441,24 +443,24 @@ func (h *SettlementsHandler) foundedView(c screens.Context, world *worldgen.Worl
 // returned as an error for Submit to interpret.
 func (h *SettlementsHandler) submitInTx(ctx context.Context, tx application.Tx, meta envelope.Metadata,
 	p *application.Player, lang string, req FoundSubmitRequest, form wsettle.Form, rules wsettle.FormRules,
-	worldRow application.World, world *worldgen.World, invalid func(...wsettle.Problem) *screens.FoundingRefusalView,
+	worldRow application.World, world *worldgen.World, invalid func(...wsettle.Problem) *village.FoundingRefusalView,
 	out *submitOutcome,
 ) error {
 	now := h.now()
 	refuse := func(kind string) {
-		out.refusal = &screens.FoundingRefusalView{Kind: kind, Limits: limitsOf(rules)}
+		out.refusal = &village.FoundingRefusalView{Kind: kind, Limits: limitsOf(rules)}
 	}
 
 	draft, err := tx.Settlements().DraftByID(ctx, normalDraftID(req.Draft), now)
 	if stderrors.Is(err, application.ErrFoundingDraftNotFound) {
-		refuse(screens.FoundingNoDraft)
+		refuse(village.FoundingNoDraft)
 		return nil
 	}
 	if err != nil {
 		return err
 	}
 	if draft.FounderPlayerID != p.ID {
-		refuse(screens.FoundingNotFounder)
+		refuse(village.FoundingNotFounder)
 		return nil
 	}
 	out.founder = p.DisplayName
@@ -473,12 +475,12 @@ func (h *SettlementsHandler) submitInTx(ctx context.Context, tx application.Tx, 
 		out.founded, out.cell = &s, s.WorldCellID
 		return nil
 	case draft.Expired(now):
-		refuse(screens.FoundingExpiredRef)
+		refuse(village.FoundingExpiredRef)
 		return nil
 	}
 
 	if existing, err := tx.Settlements().ByFoundingGroup(ctx, draft.ChatID); err == nil {
-		out.group = &screens.SettlementRefusalView{Kind: "already", Name: existing.Name}
+		out.group = &village.SettlementRefusalView{Kind: village.SettlementAlready, Name: existing.Name}
 		return nil
 	} else if !stderrors.Is(err, application.ErrCityNotFound) {
 		return err
@@ -513,8 +515,7 @@ func (h *SettlementsHandler) submitInTx(ctx context.Context, tx application.Tx, 
 		return nil
 	}
 	if req.checkOnly() {
-		out.checked = &screens.FoundingCheckedView{Name: clean.Name, Currency: clean.CurrencyCode,
-			EmblemText: rules.EmblemText(clean.Emblem)}
+		out.checked = &village.FoundingCheckedView{Name: clean.Name, Currency: clean.CurrencyCode}
 		return nil
 	}
 
@@ -573,7 +574,7 @@ func (h *SettlementsHandler) submitInTx(ctx context.Context, tx application.Tx, 
 		return err
 	}
 	if err := h.appendFoundedEvent(ctx, tx, meta, founded, draft, p.DisplayName, world.BiomeCode(cand.CellID),
-		wsettle.NearbyFeature(world, cand.CellID), rules.EmblemText(clean.Emblem), cand.LatDeg, cand.LonDeg); err != nil {
+		wsettle.NearbyFeature(world, cand.CellID), cand.LatDeg, cand.LonDeg); err != nil {
 		return err
 	}
 	if err := h.grantFoundingKit(ctx, tx, founded.CityID, world.BiomeCode(cand.CellID), now); err != nil {
@@ -605,7 +606,7 @@ func hasField(problems []wsettle.Problem, field string) bool {
 // so the announcement is written from the event alone.
 func (h *SettlementsHandler) appendFoundedEvent(ctx context.Context, tx application.Tx, meta envelope.Metadata,
 	out application.FoundedSettlement, draft application.FoundingDraft, founder, biome string, feature wsettle.Name,
-	emblemText string, latDeg, lonDeg float64,
+	latDeg, lonDeg float64,
 ) error {
 	codes := make([]string, len(out.Buildings))
 	for i, b := range out.Buildings {
@@ -628,7 +629,7 @@ func (h *SettlementsHandler) appendFoundedEvent(ctx context.Context, tx applicat
 		"founder_id":      draft.FounderPlayerID,
 		"founder_name":    founder,
 		"emblem": map[string]string{"shape": out.Emblem.Shape, "color_a": out.Emblem.ColorA,
-			"color_b": out.Emblem.ColorB, "icon": out.Emblem.Icon, "text": emblemText},
+			"color_b": out.Emblem.ColorB, "icon": out.Emblem.Icon},
 		"motto": out.Motto,
 		"currency": map[string]string{"code": out.Currency.Code, "name": out.Currency.Name,
 			"symbol": out.Currency.Symbol},
