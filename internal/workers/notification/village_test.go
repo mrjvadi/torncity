@@ -346,7 +346,7 @@ func newsEvent(t *testing.T, r *rig, id, event string, payload map[string]any) {
 // the oldest has waited out the merge window.
 func TestVillageNewsBurstIsMergedIntoOnePost(t *testing.T) {
 	r, _, _, _ := villageRig(t)
-	newsEvent(t, r, "n1", "built", map[string]any{"building_id": "b1", "type_code": "watch_hut", "name": "دیده‌بانی محله"})
+	newsEvent(t, r, "n1", "built", map[string]any{"building_id": "b1", "type_code": "watch_hut", "name": "نگهبانی محله"})
 	r.now = r.now.Add(5 * time.Second)
 	newsEvent(t, r, "n2", "knowledge_researched", map[string]any{"code": "canal_irrigation", "name": "آبیاری نهری"})
 	newsEvent(t, r, "n2", "knowledge_researched", map[string]any{"code": "canal_irrigation", "name": "آبیاری نهری"}) // redelivery
@@ -365,7 +365,7 @@ func TestVillageNewsBurstIsMergedIntoOnePost(t *testing.T) {
 	if !got.notice.Announcement || !got.notice.Keyboard || got.meta.TelegramChatID != cityGroup || got.meta.BotID != botA || got.meta.Language != "fa" {
 		t.Errorf("the post went %+v %+v", got.meta, got.notice)
 	}
-	if !strings.Contains(text, "کورندال") || !strings.Contains(text, "دیده‌بانی محله") || !strings.Contains(text, "آبیاری نهری") ||
+	if !strings.Contains(text, "کورندال") || !strings.Contains(text, "نگهبانی محله") || !strings.Contains(text, "آبیاری نهری") ||
 		strings.Count(text, "آبیاری نهری") != 1 {
 		t.Errorf("the merged post is %q", text)
 	}
@@ -375,7 +375,7 @@ func TestVillageNewsBurstIsMergedIntoOnePost(t *testing.T) {
 
 	// Nothing left to post, and a late redelivery of an old event does not
 	// bring it back.
-	newsEvent(t, r, "n1", "built", map[string]any{"building_id": "b1", "type_code": "watch_hut", "name": "دیده‌بانی محله"})
+	newsEvent(t, r, "n1", "built", map[string]any{"building_id": "b1", "type_code": "watch_hut", "name": "نگهبانی محله"})
 	r.now = r.now.Add(5 * time.Minute)
 	r.w.FlushVillageNews(context.Background())
 	if len(r.sender.sent) != 1 {
@@ -387,14 +387,14 @@ func TestVillageNewsBurstIsMergedIntoOnePost(t *testing.T) {
 // the min gap holds the next post back.
 func TestVillageNewsLoneEventAndMinGap(t *testing.T) {
 	r, _, _, _ := villageRig(t)
-	newsEvent(t, r, "a", "built", map[string]any{"building_id": "b", "type_code": "watch_hut", "name": "دیده‌بانی محله"})
+	newsEvent(t, r, "a", "built", map[string]any{"building_id": "b", "type_code": "watch_hut", "name": "نگهبانی محله"})
 	r.now = r.now.Add(25 * time.Second)
 	r.w.FlushVillageNews(context.Background())
 	if len(r.sender.sent) != 1 {
 		t.Fatal("no post")
 	}
 	post := r.sender.sent[0].notice.Response
-	if strings.Contains(post.Text, "\n") || !strings.Contains(post.Text, "دیده‌بانی محله") ||
+	if strings.Contains(post.Text, "\n") || !strings.Contains(post.Text, "نگهبانی محله") ||
 		post.Keyboard.Rows[0][0].CallbackData != "settlement:build.progress" {
 		t.Errorf("post = %q %+v", post.Text, post.Keyboard)
 	}
@@ -415,7 +415,7 @@ func TestVillageNewsLoneEventAndMinGap(t *testing.T) {
 // A post the gateway cannot deliver is put back and tried again.
 func TestVillageNewsFailedSendIsRetried(t *testing.T) {
 	r, _, _, _ := villageRig(t)
-	newsEvent(t, r, "a", "built", map[string]any{"building_id": "b", "type_code": "watch_hut", "name": "دیده‌بانی محله"})
+	newsEvent(t, r, "a", "built", map[string]any{"building_id": "b", "type_code": "watch_hut", "name": "نگهبانی محله"})
 	r.now = r.now.Add(25 * time.Second)
 	r.sender.err = errors.New("no receipt")
 	r.w.FlushVillageNews(context.Background())

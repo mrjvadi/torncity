@@ -139,7 +139,7 @@ The village store: the shared materials and goods are kept here, and constructio
 
 ━━━ Building panel · a teaching circle, the head sees the upgrade ━━━
 (edits message 42)
-🏛 Teaching circle
+🏛 Village classroom
 
 Teaches the villagers; while it stands, literacy slowly spreads.
 
@@ -157,9 +157,9 @@ Teaches the villagers; while it stands, literacy slowly spreads.
 
 ━━━ Building panel · the upgrade, revealed when pressed ━━━
 (edits message 42)
-🏛 Teaching circle
+🏛 Village classroom
 
-⬆️ The next step after Teaching circle:
+⬆️ The next step after Village classroom:
 
 🔒 School - you need Record keeping first
   ───
@@ -251,7 +251,7 @@ A workshop, the base of making goods in the village.
 Tap a finished building to see it.
   ───
   [🏗 Carpentry] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
-  [Granary] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44   │   [Teaching circle] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [Granary] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44   │   [Village classroom] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
   [Civic hall] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
 
@@ -480,7 +480,7 @@ No buildings stand here yet.
 
 🌱 This is your home: buy land, build a house and help the village grow.
 
-🧭 Services in Support - travel there for them:
+🧭 Services in Central City - travel there for them:
   ───
   [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
   [⚒ Work in the village] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
@@ -488,9 +488,9 @@ No buildings stand here yet.
   [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
   [🚪 Leave the village] → settlement:leave
-  [🏦 Bank - travel to Support] → travel:options:support   │   [🛒 Market - travel to Support] → travel:options:support
-  [💼 Jobs - travel to Support] → travel:options:support   │   [📚 Knowledge - travel to Support] → travel:options:support
-  [🏥 Hospital - travel to Support] → travel:options:support   │   [⛓ Jail - travel to Support] → travel:options:support
+  [🏦 Bank - travel to Central City] → travel:options:support   │   [🛒 Market - travel to Central City] → travel:options:support
+  [💼 Jobs - travel to Central City] → travel:options:support   │   [📚 Knowledge - travel to Central City] → travel:options:support
+  [🏥 Hospital - travel to Central City] → travel:options:support   │   [⛓ Jail - travel to Central City] → travel:options:support
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Village home · a private chat (the village is home, run in its group) ━━━
@@ -514,14 +514,14 @@ No buildings stand here yet.
 
 🏘 Building, research and donations are done in the village group; here you see how your village stands.
 
-🧭 Services in Support - travel there for them:
+🧭 Services in Central City - travel there for them:
   ───
   [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
   [⚒ Work in the village] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
   [🧾 My property] → settlement:mine
-  [🏦 Bank - travel to Support] → travel:options:support   │   [🛒 Market - travel to Support] → travel:options:support
-  [💼 Jobs - travel to Support] → travel:options:support   │   [📚 Knowledge - travel to Support] → travel:options:support
-  [🏥 Hospital - travel to Support] → travel:options:support   │   [⛓ Jail - travel to Support] → travel:options:support
+  [🏦 Bank - travel to Central City] → travel:options:support   │   [🛒 Market - travel to Central City] → travel:options:support
+  [💼 Jobs - travel to Central City] → travel:options:support   │   [📚 Knowledge - travel to Central City] → travel:options:support
+  [🏥 Hospital - travel to Central City] → travel:options:support   │   [⛓ Jail - travel to Central City] → travel:options:support
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Village home · the village head's hub (civic build and land terms) ━━━

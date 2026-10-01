@@ -29,7 +29,10 @@ type BuildingPlacement struct {
 }
 
 // FoundingKitBuildings is the settlement.founding_kit content this ADR names
-// (section 7): one road, one civic hall. Kept here rather than in
+// (section 7): the civic hall (the head's house), one road, and — the owner's
+// rule since 2026-10-01 — the village's first market (barter_post, the tier-1
+// market) and its storage (granary), so a new village can trade and keep
+// goods from its first minute. Kept here rather than in
 // configs/content because nothing about placing exactly these two differs
 // per world — the day a second founding kit exists, this becomes a
 // parameter the content loader supplies instead.
@@ -39,6 +42,8 @@ var FoundingKitBuildings = []struct {
 }{
 	{TypeCode: "civic_hall", W: 2, H: 2},
 	{TypeCode: "road", W: 1, H: 1},
+	{TypeCode: "barter_post", W: 1, H: 1},
+	{TypeCode: "granary", W: 1, H: 1},
 }
 
 // buildableFine reports whether one fine sample is legal ground for a
@@ -136,8 +141,18 @@ func placeKit(gridLots int, buildableAt func(x, y int) bool) []BuildingPlacement
 
 	var out []BuildingPlacement
 	var hallX, hallY, hallW, hallH int
-	haveHall := false
+	var roadX, roadY int
+	haveHall, haveRoad := false, false
 	for _, b := range FoundingKitBuildings {
+		if b.TypeCode != "road" && b.TypeCode != "civic_hall" && b.W == 1 && b.H == 1 && haveRoad {
+			// The market and the storage stand on the road, so they are
+			// reached from the first day (the road-adjacency rule).
+			if x, y, ok := firstAdjacentFree(roadX, roadY, 1, 1, gridLots, fits); ok {
+				place(x, y, 1, 1)
+				out = append(out, BuildingPlacement{TypeCode: b.TypeCode, LotX: x, LotY: y})
+				continue
+			}
+		}
 		if b.TypeCode == "road" && haveHall {
 			// Prefer a road lot directly adjacent to the civic hall's own
 			// footprint (ADR 0028 section 6.2's road-adjacency rule), before
@@ -145,6 +160,7 @@ func placeKit(gridLots int, buildableAt func(x, y int) bool) []BuildingPlacement
 			if x, y, ok := firstAdjacentFree(hallX, hallY, hallW, hallH, gridLots, fits); ok {
 				place(x, y, 1, 1)
 				out = append(out, BuildingPlacement{TypeCode: b.TypeCode, LotX: x, LotY: y})
+				roadX, roadY, haveRoad = x, y, true
 				continue
 			}
 		}
@@ -154,8 +170,11 @@ func placeKit(gridLots int, buildableAt func(x, y int) bool) []BuildingPlacement
 		}
 		place(x, y, b.W, b.H)
 		out = append(out, BuildingPlacement{TypeCode: b.TypeCode, LotX: x, LotY: y})
-		if b.TypeCode == "civic_hall" {
+		switch b.TypeCode {
+		case "civic_hall":
 			hallX, hallY, hallW, hallH, haveHall = x, y, b.W, b.H, true
+		case "road":
+			roadX, roadY, haveRoad = x, y, true
 		}
 	}
 	return out

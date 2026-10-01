@@ -164,10 +164,10 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 (edits message 42)
 🧱 To build School you are still missing something:
 
-• One of these buildings: Teaching circle - build it first
+• One of these buildings: Village classroom - build it first
 • 10 Timber needed (in the village stock: 0) - build a Woodcutter's camp to make it or buy it from Support's market (18 SUP each)
   ───
-  [🏗 Build Teaching circle] → settlement:build.lots:teaching_circle
+  [🏗 Build Village classroom] → settlement:build.lots:teaching_circle
   [🏗 Build Woodcutter's camp] → settlement:build.lots:woodcutter_camp
   [🛒 Buy 10 Timber] → settlement:materials.buy:timber:10
   [🧱 Stock and market] → settlement:materials
@@ -209,7 +209,7 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 
 🏗 Woodcutter's camp - cost 300 SUP - build time 30m
 🧱 Civic hall - cost 1,000 SUP - materials: 5 Timber - you lack: 5 Timber
-🔒 School - build one of Teaching circle first
+🔒 School - build one of Village classroom first
   ───
   [🏗 Build Woodcutter's camp] → settlement:build.lots:woodcutter_camp   │   [🏗 Build Civic hall] → settlement:build.lots:civic_hall
   [🗺 Expand the land] → settlement:grid.grow

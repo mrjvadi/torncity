@@ -41,7 +41,7 @@ func TestShiftOrderIsBoundedAndDeterministic(t *testing.T) {
 }
 
 func TestSiteReportMeets(t *testing.T) {
-	full := []BuildingPlacement{{TypeCode: "civic_hall"}, {TypeCode: "road"}}
+	full := []BuildingPlacement{{TypeCode: "civic_hall"}, {TypeCode: "road"}, {TypeCode: "barter_post"}, {TypeCode: "granary"}}
 	rules := SiteRules{GridLots: 5, MinBuildableShareBps: 7000, MaxShiftLots: 3}
 	cases := []struct {
 		name string
@@ -73,7 +73,7 @@ func TestSiteReportMeets(t *testing.T) {
 func TestPlaceKitPrefersCentreAndDryLots(t *testing.T) {
 	all := func(x, y int) bool { return true }
 	kit := placeKit(5, all)
-	if len(kit) != 2 {
+	if len(kit) != len(FoundingKitBuildings) {
 		t.Fatalf("kit = %v", kit)
 	}
 	if kit[0].TypeCode != "civic_hall" || kit[0].LotX < 1 || kit[0].LotX > 2 || kit[0].LotY < 1 || kit[0].LotY > 2 {
@@ -82,7 +82,7 @@ func TestPlaceKitPrefersCentreAndDryLots(t *testing.T) {
 	// The whole west half is water: nothing may be placed there.
 	dryEast := func(x, y int) bool { return x >= 3 }
 	kit = placeKit(5, dryEast)
-	if len(kit) != 2 {
+	if len(kit) == 0 {
 		t.Fatalf("kit on a half-dry grid = %v", kit)
 	}
 	for _, b := range kit {

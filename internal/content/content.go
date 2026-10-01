@@ -274,6 +274,12 @@ type Pack struct {
 	// life.yml: the life section, at most one (life.go;
 	// docs/adr/0025-life-and-legacy.md).
 	Life []LifeDef
+
+	// Availability tags (availability.yml): which stage each piece of content
+	// becomes available at and what it needs. Data only. See availability.go.
+	Availability    []AvailabilityDef
+	StaffRoles      []StaffRoleDef
+	PersonalSources []PersonalSourceDef
 	// finance.yml: the finance section, at most one (finance.go;
 	// docs/adr/0026-finance.md).
 	Finance []FinanceDef

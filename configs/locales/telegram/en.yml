@@ -1,5 +1,5 @@
 # Telegram wording (en), layered over configs/locales/en.yml by the catalogue loader.
-# Wording moves here area by area with its screens (docs/adr/0039-presentation-split.md).
+# Wording moves here area by area with its screens (docs/adr/0037-presentation-split.md).
 # Natural everyday speech; a key is defined once across the layers.
 
 # ---- village ----

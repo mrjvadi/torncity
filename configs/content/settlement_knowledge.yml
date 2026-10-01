@@ -42,14 +42,14 @@ knowledge:
   # them from founding or, today, never will; there is nothing to buy.
   # ---------------------------------------------------------------------
   - code: oral_tradition
-    name: "دانش شفاهی"
+    name: دانش سینه‌به‌سینه
     cost: 0
     time: 0s
     provides: [literacy_spread]
     mode_eligible: false
 
   - code: communal_watch
-    name: "پاس‌داری محله"
+    name: نگهبانی محله
     cost: 0
     time: 0s
     provides: [local_security]
@@ -63,7 +63,7 @@ knowledge:
     mode_eligible: false
 
   - code: barter_ring
-    name: "حلقهٔ پایاپای"
+    name: معاوضهٔ کالا
     cost: 0
     time: 0s
     provides: [market_access]
@@ -88,14 +88,14 @@ knowledge:
     time: 72h
 
   - code: basic_medicine
-    name: "درمان‌گری پایه"
+    name: طبابت ساده
     family: basic_medicine
     generation: 1
     cost: 2500
     time: 30h
     effects: [{target: service_coverage_bps, op: add, value: 400}]
   - code: basic_medicine_ii
-    name: "درمان‌گری پیشرفته"
+    name: طبابت پیشرفته
     requires: [basic_medicine]
     family: basic_medicine
     generation: 2
@@ -261,7 +261,7 @@ knowledge:
     cost: 5000
     time: 48h
   - code: terrace_irrigation
-    name: "آبیاری تراسی"
+    name: آبیاری پلکانی
     terrain_tags: [sloped_lot]
     terrain_mode: required
     provides: [arable_farming]
@@ -297,7 +297,7 @@ knowledge:
     cost: 1800
     time: 14h
   - code: pondfield_aquaculture
-    name: "آبزی‌پروری حوضچه‌ای"
+    name: پرورش ماهی در استخر
     terrain_tags: [coastal_lot, tropical_rainforest, tropical_savanna]
     terrain_mode: required
     provides: [aquatic_harvest]
@@ -310,14 +310,14 @@ knowledge:
   # gated on record_keeping/basic_literacy instead of terrain at all.
   # ---------------------------------------------------------------------
   - code: mounted_militia
-    name: "میلیشیای سوار"
+    name: سواران محلی
     terrain_tags: [temperate_grassland, tropical_savanna]
     terrain_mode: preferred
     provides: [local_security]
     cost: 2500
     time: 18h
   - code: sworn_retainers
-    name: "گارد سوگندخورده"
+    name: نگهبانان سوگندخورده
     requires: [record_keeping]
     provides: [local_security]
     cost: 4000
@@ -335,7 +335,7 @@ knowledge:
   # (ADR 0031 section 4.4 — a real literacy movement, not just a document).
   # ---------------------------------------------------------------------
   - code: craft_guild_charter
-    name: "منشور اصناف"
+    name: اتحادیهٔ اصناف
     requires: [record_keeping]
     provides: [skilled_labor]
     cost: 5000
@@ -359,7 +359,7 @@ knowledge:
   # branches.
   # ---------------------------------------------------------------------
   - code: periodic_market
-    name: "بازار ادواری"
+    name: بازار هفتگی
     requires: [record_keeping]
     # formal_market_access is distinct from market_access: barter_ring (the
     # founding grant) already provides market_access, so a gate that needed

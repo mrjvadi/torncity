@@ -1,0 +1,520 @@
+version: 1
+# AVAILABILITY TAGS (docs/audit/2026-10-01-rules-audit.md; schema in
+# internal/content/availability.go). For every player-facing entry: the stage it
+# becomes available at, what it needs, and where it can be had if the
+# settlement lacks it. DATA ONLY: nothing reads these yet; the activities work
+# (ADR 0038) starts reading them where the audit's table says.
+#
+#   stage     village | town | city | country | support | undecided
+#             the smallest stage that has it; a bigger settlement has it too.
+#             support = the neutral city only. country = needs a state around
+#             the settlement (province and above). undecided = the owner must
+#             answer `question` (listed in the audit); nothing is guessed.
+#   requires  knowledge   settlement_knowledge codes the settlement researched
+#             buildings   standing: {code} or {role, tier} (tier or better)
+#             staff       staff_roles below: someone qualified is present
+#             personal    the player's own: literacy, certificate (a course
+#                         that certifies), skill + min, rank, level + min
+#             `requires: {}` = nothing needed. Buildings and knowledge carry
+#             their own requires_* fields and their tag leaves `requires` out.
+#   elsewhere where a missing thing can be obtained: support (always open) or
+#             a stage, with `needs` naming what that place must have.
+#
+# THE LINT (internal/content/availability.go, run by `admin content load`):
+# every entry below is tagged exactly once, every reference resolves, a
+# building's stage equals its tier's, and every prerequisite is reachable from
+# Support or from a village's founding state. A dead end fails the load.
+
+# People who make a service run. Support always has an NPC for the role.
+staff_roles:
+  - {code: teacher, building: {role: education, tier: 1}, personal: [{kind: literacy}], support_npc: true, note: "a qualified citizen or the building's staff; ADR 0038 owner decision 6 point 3"}
+  - {code: health_worker, building: {role: health, tier: 1}, personal: [{kind: certificate, code: first_aid}], support_npc: true, note: "village health worker (Iran: behvarz), ADR 0038 section 2"}
+  - {code: nurse, building: {role: health, tier: 2}, personal: [{kind: certificate, code: nursing}], support_npc: true}
+  - {code: watchman, building: {role: security, tier: 1}, personal: [{kind: level, min: 2}], support_npc: true, note: "village watch warden, ADR 0036 section 9.4"}
+
+# Personal prerequisites that no certifying course provides yet.
+personal_sources:
+  - {kind: literacy, support: true, buildings: [teaching_circle], status: planned, note: "the literacy lesson (ADR 0038 owner decision 4) is not in education.yml yet: audit M-01"}
+
+availability:
+  # ---- buildings: stage is the tier (1 village, 2 town, 3+ city); prerequisites are the building's own requires_* fields
+  - {kind: building, code: road, stage: village}
+  - {kind: building, code: civic_hall, stage: village}
+  - {kind: building, code: housing_block, stage: undecided, question: بلوک مسکونی در سطح روستا تعریف شده است، اما در واقعیت آپارتمان‌سازی از شهرک به بالا است. آیا باید به سطح دو (شهرک) برود؟}
+  - {kind: building, code: cottage, stage: village}
+  - {kind: building, code: park, stage: village}
+  - {kind: building, code: bank, stage: city, elsewhere: [{where: support}]}
+  - {kind: building, code: barracks, stage: town, elsewhere: [{where: support}]}
+  - {kind: building, code: port, stage: city, elsewhere: [{where: support}]}
+  - {kind: building, code: airport, stage: city, elsewhere: [{where: support}]}
+  - {kind: building, code: woodcutter_camp, stage: village}
+  - {kind: building, code: watch_hut, stage: village}
+  - {kind: building, code: militia_camp, stage: village}
+  - {kind: building, code: retainer_hall, stage: village}
+  - {kind: building, code: constable_post, stage: village}
+  - {kind: building, code: police_post, stage: town, elsewhere: [{where: support}]}
+  - {kind: building, code: carpentry_workshop, stage: village}
+  - {kind: building, code: masonry_workshop, stage: village}
+  - {kind: building, code: smithy, stage: village}
+  - {kind: building, code: weaving_shed, stage: village}
+  - {kind: building, code: pottery_kiln, stage: village}
+  - {kind: building, code: manufactory, stage: city}
+  - {kind: building, code: factory, stage: city}
+  - {kind: building, code: small_pit, stage: village}
+  - {kind: building, code: mine, stage: town}
+  - {kind: building, code: canal_channel, stage: village}
+  - {kind: building, code: shaft_well, stage: village}
+  - {kind: building, code: terrace_works, stage: village}
+  - {kind: building, code: paddy_banks, stage: village}
+  - {kind: building, code: farm_canal, stage: village}
+  - {kind: building, code: farm_shaft, stage: village}
+  - {kind: building, code: farm_terrace, stage: village}
+  - {kind: building, code: farm_paddy, stage: village}
+  - {kind: building, code: pasture_range, stage: village}
+  - {kind: building, code: health_house, stage: village, elsewhere: [{where: support}]}
+  - {kind: building, code: clinic, stage: town, elsewhere: [{where: support}]}
+  - {kind: building, code: teaching_circle, stage: village, elsewhere: [{where: support}]}
+  - {kind: building, code: school, stage: town, elsewhere: [{where: support}], note: "gated by min_literacy_share_bps 5000 in the building itself; it names no teacher knowledge (state_school) yet, see audit M-09"}
+  - {kind: building, code: barter_post, stage: village, elsewhere: [{where: support}]}
+  - {kind: building, code: market, stage: town, elsewhere: [{where: support}]}
+  - {kind: building, code: granary, stage: village}
+  - {kind: building, code: private_cottage, stage: village}
+  - {kind: building, code: private_house, stage: village}
+  - {kind: building, code: home_workshop, stage: village}
+  - {kind: building, code: market_stall, stage: village, elsewhere: [{where: support}]}
+
+  # ---- knowledge: generation 1 and the founding grants are a village's; generation 2 a town's (ADR 0031 tier table); generation 3+ and formal institutions as noted
+  - {kind: knowledge, code: oral_tradition, stage: village, note: "founding grant, every settlement has it"}
+  - {kind: knowledge, code: communal_watch, stage: village, note: "founding grant, every settlement has it"}
+  - {kind: knowledge, code: kin_apprenticeship, stage: village, note: "founding grant, every settlement has it"}
+  - {kind: knowledge, code: barter_ring, stage: village, note: "founding grant, every settlement has it"}
+  - {kind: knowledge, code: basic_literacy, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: record_keeping, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: basic_medicine, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: basic_medicine_ii, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: carpentry, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: carpentry_ii, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: carpentry_iii, stage: city, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: carpentry_iv, stage: city, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: masonry, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: masonry_ii, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: masonry_iii, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: smithing, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: smithing_ii, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: smithing_iii, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: weaving, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: weaving_ii, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: pottery, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: pottery_ii, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: milling, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: milling_ii, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: canal_irrigation, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: shaft_irrigation, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: terrace_irrigation, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: paddy_cultivation, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: open_range_herding, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: coastal_fishing, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: pondfield_aquaculture, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: mounted_militia, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: sworn_retainers, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: formal_constabulary, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: craft_guild_charter, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: temple_school, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: state_school, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: periodic_market, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: endowed_market_hall, stage: town, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: trading_post, stage: town, elsewhere: [{where: support}]}
+
+  # ---- courses and education (ADR 0038 section 5 and owner decisions 4 and 6): a course needs the knowledge, the building and a teacher; Support teaches every one
+  - {kind: course, code: first_aid, stage: village, requires: {knowledge: [basic_medicine], buildings: [{role: health, tier: 1}]}, elsewhere: [{where: support}], note: "taught by the health worker, who is trained in Support (no teacher role needed: avoids a circle)"}
+  - {kind: course, code: driving_licence, stage: town, requires: {}, elsewhere: [{where: support}], note: "owner decision 2026-10-01: from town"}
+  - {kind: course, code: bookkeeping, stage: town, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: programming_fundamentals, stage: city, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: retail_management, stage: town, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: culinary_arts, stage: town, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: automotive_repair, stage: city, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: nursing, stage: city, requires: {knowledge: [basic_medicine_ii], buildings: [{role: education, tier: 2}, {role: health, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: software_engineering, stage: city, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: officer_training, stage: city, requires: {buildings: [{code: barracks}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: evening_accounting, stage: town, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+
+  # ---- careers (jobs.yml): village work is the labour board (ADR 0037); these ladders start at town; certificates come from the career's own required_certifications
+  - {kind: career, code: retail, stage: town, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: hospitality, stage: undecided, requires: {}, elsewhere: [{where: support}], question: آیا مسافرخانه/چایخانه ساختمانِ تازه‌ای است؟ بدون آن این شغل جایگاهی ندارد و ساختمانی در فهرست نیست.}
+  - {kind: career, code: logistics, stage: city, requires: {buildings: [{role: transport, tier: 3}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: workshop, stage: town, requires: {buildings: [{role: craft, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: technology, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: healthcare, stage: town, requires: {buildings: [{role: health, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: finance, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: armed_forces, stage: town, requires: {buildings: [{code: barracks}]}, elsewhere: [{where: support}]}
+
+  # ---- crimes (ADR 0038 4.4): village petty crime, town burglary and scams, city counterfeit and smuggling; Support refuses crime by policy
+  - {kind: crime, code: pickpocketing, stage: village, requires: {buildings: [{role: market, tier: 1}], personal: [{kind: level, min: 1}]}}
+  - {kind: crime, code: shoplifting, stage: village, requires: {buildings: [{role: market, tier: 1}], personal: [{kind: level, min: 1}]}}
+  - {kind: crime, code: bag_snatching, stage: town, requires: {personal: [{kind: level, min: 2}]}, note: "owner decision 2026-10-01: from town"}
+  - {kind: crime, code: street_scam, stage: town, requires: {buildings: [{role: market, tier: 2}], personal: [{kind: level, min: 2}]}}
+  - {kind: crime, code: car_break_in, stage: town, requires: {buildings: [{role: housing, tier: 1}], personal: [{kind: level, min: 3}]}, note: "owner decision 2026-10-01: from town"}
+  - {kind: crime, code: home_burglary, stage: town, requires: {buildings: [{role: housing, tier: 1}], personal: [{kind: level, min: 5}]}}
+  - {kind: crime, code: counterfeit_selling, stage: city, requires: {buildings: [{role: market, tier: 2}], personal: [{kind: level, min: 4}]}}
+  - {kind: crime, code: goods_smuggling, stage: city, requires: {buildings: [{role: transport, tier: 3}], personal: [{kind: level, min: 6}]}}
+
+  # ---- places: the venues crimes and shops name (places.yml); derived village places (ADR 0033 3.2) are not built yet
+  - {kind: place, code: city_centre, stage: city, requires: {}, elsewhere: [{where: support}]}
+  - {kind: place, code: bazaar, stage: village, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: place, code: business_district, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
+  - {kind: place, code: university, stage: city, requires: {buildings: [{role: education, tier: 2}]}, elsewhere: [{where: support}]}
+  - {kind: place, code: city_hall, stage: village, requires: {buildings: [{code: civic_hall}]}, elsewhere: [{where: support}]}
+  - {kind: place, code: police_station, stage: town, requires: {buildings: [{role: security, tier: 2}]}, elsewhere: [{where: support}]}
+  - {kind: place, code: bus_terminal, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: place, code: train_station, stage: city, requires: {}, elsewhere: [{where: support}]}
+  - {kind: place, code: airport, stage: city, requires: {buildings: [{code: airport}]}, elsewhere: [{where: support}]}
+  - {kind: place, code: industrial_zone, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
+  - {kind: place, code: farmland, stage: village, requires: {buildings: [{role: food, tier: 1}]}}
+  - {kind: place, code: hospital, stage: town, requires: {buildings: [{role: health, tier: 2}]}, elsewhere: [{where: support}]}
+  - {kind: place, code: barracks, stage: town, requires: {buildings: [{code: barracks}]}, elsewhere: [{where: support}]}
+  - {kind: place, code: residential_area, stage: village, requires: {buildings: [{role: housing, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: place, code: park, stage: village, requires: {buildings: [{code: park}]}, elsewhere: [{where: support}]}
+
+  # ---- missions: the two boards and seven missions exist only at Support as written (city objectives, SUP rewards); the village works board is ADR 0038 4.5
+  - {kind: mission_board, code: city_hall, stage: support, requires: {}, note: "city-era board; the village works board and citizens' request board replace it in villages (ADR 0038 4.5)"}
+  - {kind: mission_board, code: police, stage: support, requires: {}, note: "city-era board; the village works board and citizens' request board replace it in villages (ADR 0038 4.5)"}
+  - {kind: mission, code: first_steps, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
+  - {kind: mission, code: study_up, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
+  - {kind: mission, code: city_courier, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
+  - {kind: mission, code: medicine_drive, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
+  - {kind: mission, code: market_day, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
+  - {kind: mission, code: road_watch, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
+  - {kind: mission, code: first_aid_course, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
+
+  # ---- items: where a good first becomes available; shops and workshops decide where it is sold and made
+  - {kind: item, code: bread, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: sandwich, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: hot_meal, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: water_bottle, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: coffee, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: energy_drink, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
+  - {kind: item, code: bandage, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: painkillers, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: first_aid_kit, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: lockpick_set, stage: town, requires: {}, elsewhere: [{where: support}], note: "underworld gear, ADR 0035"}
+  - {kind: item, code: crowbar, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: gloves, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: ski_mask, stage: town, requires: {}, elsewhere: [{where: support}], note: "underworld gear, ADR 0035"}
+  - {kind: item, code: running_shoes, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: fake_documents, stage: city, requires: {}, note: "no legal source; black market not built (ADR 0035), behind the operator 18+ switch"}
+  - {kind: item, code: card_skimmer, stage: city, requires: {}, note: "no legal source; black market not built (ADR 0035), behind the operator 18+ switch"}
+  - {kind: item, code: phone, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
+  - {kind: item, code: watch, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: car_stereo, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
+  - {kind: item, code: jewellery, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: led_torch, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, note: no shop sells it}
+  - {kind: item, code: pocket_radio, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, note: no shop sells it}
+  - {kind: item, code: car, stage: city, requires: {buildings: [{role: craft, tier: 4}]}, elsewhere: [{where: support}]}
+  - {kind: item, code: motorbike, stage: town, requires: {}, elsewhere: [{where: support}]}
+
+  # ---- defence goods (defence_industry.yml): a factory-class building, export-controlled, never on sale in Support
+  - {kind: item, code: fighter_jet, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: stealth_fighter_jet, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: strategic_bomber, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: attack_drone, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: airlifter, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: main_battle_tank, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: ifv, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: sp_artillery, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: early_warning_radar, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: short_range_sam, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: medium_range_sam, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: long_range_sam, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: ballistic_missile, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: cruise_missile, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: guided_bomb, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: anti_ship_missile, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: frigate, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+  - {kind: item, code: attack_submarine, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
+
+  # ---- components (materials): raw materials are a village's; smelted and machined ones a town's and city's
+  - {kind: component, code: diesel, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
+  - {kind: component, code: seed_grain, stage: village, requires: {}}
+  - {kind: component, code: lithium_salt, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
+  - {kind: component, code: spring_water, stage: village, requires: {}}
+  - {kind: component, code: yeast, stage: village, requires: {}}
+  - {kind: component, code: coffee_bean, stage: town, requires: {}}
+  - {kind: component, code: herb_extract, stage: village, requires: {}}
+  - {kind: component, code: starch, stage: village, requires: {}}
+  - {kind: component, code: gemstone, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
+  - {kind: component, code: silver, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
+  - {kind: component, code: copper_wire, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
+  - {kind: component, code: resin, stage: village, requires: {}}
+  - {kind: component, code: silica, stage: village, requires: {}}
+  - {kind: component, code: iron_ore, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
+  - {kind: component, code: crude_oil, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
+  - {kind: component, code: wheat, stage: village, requires: {}}
+  - {kind: component, code: cotton, stage: village, requires: {}}
+  - {kind: component, code: timber, stage: village, requires: {}, elsewhere: [{where: support}], note: bought from Support by a village (village_buy)}
+  - {kind: component, code: stone, stage: village, requires: {}, elsewhere: [{where: support}], note: bought from Support by a village (village_buy)}
+  - {kind: component, code: wool, stage: village, requires: {}, elsewhere: [{where: support}], note: bought from Support by a village (village_buy)}
+  - {kind: component, code: plank, stage: village, requires: {}}
+  - {kind: component, code: brick, stage: village, requires: {}}
+  - {kind: component, code: cloth, stage: village, requires: {}}
+  - {kind: component, code: flour, stage: village, requires: {}}
+  - {kind: component, code: tool_steel, stage: town, requires: {knowledge: [smithing], buildings: [{code: smithy}]}}
+  - {kind: component, code: plastic_case, stage: city, requires: {buildings: [{role: craft, tier: 3}]}}
+  - {kind: component, code: circuit_board, stage: city, requires: {buildings: [{role: craft, tier: 3}]}}
+  - {kind: component, code: chipset, stage: city, requires: {buildings: [{role: craft, tier: 3}]}}
+  - {kind: component, code: cell, stage: city, requires: {buildings: [{role: craft, tier: 3}]}}
+  - {kind: component, code: titanium, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: carbon_fibre, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: rare_earths, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: explosive, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: fighter_airframe, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: stealth_airframe, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: bomber_airframe, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: drone_airframe, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: transport_airframe, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: turbofan, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: turbojet, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: turboprop, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: ram_coating, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: fire_control_radar, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: aesa_radar, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: vhf_array, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: tank_hull, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: light_hull, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: tank_gun, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: autocannon, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: howitzer_barrel, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: powerpack, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: fire_control_computer, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: short_interceptor, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: medium_interceptor, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: long_interceptor, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: solid_rocket_motor, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: two_stage_motor, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: missile_body, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: blast_warhead, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: inertial_guidance, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: precision_guidance, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: radar_seeker, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: frigate_hull, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: pressure_hull, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: gas_turbine, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: diesel_electric, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: hull_sonar, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+  - {kind: component, code: missile_cells, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "strategic material, restricted"}
+
+  # ---- shops and suppliers
+  - {kind: shop, code: grocery, stage: village, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: shop, code: diner, stage: town, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: shop, code: pharmacy, stage: town, requires: {buildings: [{role: health, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: shop, code: hardware_store, stage: town, requires: {buildings: [{role: market, tier: 2}]}, elsewhere: [{where: support}]}
+  - {kind: shop, code: outfitter, stage: town, requires: {buildings: [{role: market, tier: 2}]}, elsewhere: [{where: support}]}
+  - {kind: shop, code: electronics_store, stage: city, requires: {buildings: [{role: market, tier: 2}]}, elsewhere: [{where: support}]}
+  - {kind: shop, code: car_dealer, stage: city, requires: {buildings: [{role: market, tier: 2}]}, elsewhere: [{where: support}]}
+  - {kind: shop, code: pawnshop, stage: town, requires: {buildings: [{role: market, tier: 2}]}, elsewhere: [{where: support}]}
+  - {kind: supplier, code: industrial_supplier, stage: support, requires: {}, note: NPC wholesaler of Support; a village buys its materials from Support (village_buy)}
+  - {kind: supplier, code: farm_supply, stage: support, requires: {}, note: NPC wholesaler of Support; a village buys its materials from Support (village_buy)}
+  - {kind: supplier, code: electronics_wholesaler, stage: support, requires: {}, note: NPC wholesaler of Support; a village buys its materials from Support (village_buy)}
+  - {kind: supplier, code: wholesale_market, stage: support, requires: {}, note: NPC wholesaler of Support; a village buys its materials from Support (village_buy)}
+  - {kind: supplier, code: strategic_materials, stage: support, requires: {}, note: NPC wholesaler of Support; a village buys its materials from Support (village_buy)}
+
+  # ---- vehicles and transport
+  - {kind: transport_mode, code: walk, stage: village, requires: {}}
+  - {kind: transport_mode, code: cart, stage: village, requires: {buildings: [{code: road}]}}
+  - {kind: transport_mode, code: bus, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: transport_mode, code: car, stage: town, requires: {personal: [{kind: certificate, code: driving_licence}]}, elsewhere: [{where: support}]}
+  - {kind: transport_mode, code: train, stage: city, requires: {}, elsewhere: [{where: support}]}
+  - {kind: transport_mode, code: flight, stage: city, requires: {buildings: [{code: airport}]}, elsewhere: [{where: support}]}
+  - {kind: transport_facility, code: bus_terminal, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: transport_facility, code: rail_station, stage: city, requires: {}, elsewhere: [{where: support}]}
+  - {kind: transport_facility, code: airport, stage: city, requires: {buildings: [{code: airport}]}, elsewhere: [{where: support}]}
+  - {kind: transport_facility, code: village_road, stage: village, requires: {buildings: [{code: road}]}}
+
+  # ---- skills: the village skills (farming, carpentry...) do not exist yet (audit M-04); these are the city-era ones
+  - {kind: skill, code: programming, stage: city, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: engineering, stage: city, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: mechanics, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: cooking, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: logistics, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: driving, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: medicine, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: management, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: finance, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: stealth, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: lockpicking, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: deception, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: streetwise, stage: village, requires: {}, elsewhere: [{where: support}]}
+
+  # ---- company types (player businesses)
+  - {kind: company_type, code: grocery, stage: village, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: restaurant, stage: town, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: repair_workshop, stage: town, requires: {buildings: [{role: craft, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: clinic, stage: town, requires: {buildings: [{role: health, tier: 2}]}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: pharma, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: pharmacy, stage: town, requires: {buildings: [{role: health, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: courier, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: tech_studio, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: factory, stage: city, requires: {buildings: [{code: factory}]}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: mine, stage: town, requires: {buildings: [{code: mine}]}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: farm, stage: village, requires: {buildings: [{role: food, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: aerospace, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: defence sector; needs a defence licence (country.defence_licence)}
+  - {kind: company_type, code: land_systems, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: defence sector; needs a defence licence (country.defence_licence)}
+  - {kind: company_type, code: missile_works, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: defence sector; needs a defence licence (country.defence_licence)}
+  - {kind: company_type, code: shipyard, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: defence sector; needs a defence licence (country.defence_licence)}
+  - {kind: company_type, code: defence_electronics, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: defence sector; needs a defence licence (country.defence_licence)}
+
+  # ---- property types (city property market; a village's own housing is the citizen buildings)
+  - {kind: property_type, code: studio, stage: city, requires: {buildings: [{role: housing, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: property_type, code: apartment, stage: town, requires: {buildings: [{role: housing, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: property_type, code: family_house, stage: village, requires: {buildings: [{role: housing, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: property_type, code: villa, stage: town, requires: {buildings: [{role: housing, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: property_type, code: shop_unit, stage: town, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: property_type, code: plot, stage: village, requires: {}, elsewhere: [{where: support}]}
+
+  # ---- offices (governance.yml): the stage is the jurisdiction the office belongs to
+  - {kind: office, code: mayor, stage: city, requires: {}}
+  - {kind: office, code: deputy_mayor, stage: city, requires: {}}
+  - {kind: office, code: city_council, stage: city, requires: {}}
+  - {kind: office, code: police_chief, stage: city, requires: {buildings: [{role: security, tier: 2}]}}
+  - {kind: office, code: deputy_police_chief, stage: city, requires: {buildings: [{role: security, tier: 2}]}}
+  - {kind: office, code: military_governor, stage: city, requires: {}}
+  - {kind: office, code: village_head, stage: village, requires: {buildings: [{code: civic_hall}]}}
+  - {kind: office, code: town_head, stage: town, requires: {}}
+  - {kind: office, code: governor, stage: country, requires: {}}
+  - {kind: office, code: president, stage: country, requires: {}}
+  - {kind: office, code: parliament, stage: country, requires: {}}
+  - {kind: office, code: defence_minister, stage: country, requires: {}}
+  - {kind: office, code: chief_of_general_staff, stage: country, requires: {}}
+  - {kind: office, code: ground_forces_commander, stage: country, requires: {}}
+  - {kind: office, code: air_force_commander, stage: country, requires: {}}
+  - {kind: office, code: navy_commander, stage: country, requires: {}}
+  - {kind: office, code: air_defence_commander, stage: country, requires: {}}
+  - {kind: office, code: central_banker, stage: country, requires: {}}
+  - {kind: office, code: foreign_minister, stage: country, requires: {}}
+
+  # ---- government actions (country-level: war, treaties, sanctions, procurement)
+  - {kind: government_action, code: country.procure, stage: country, requires: {}}
+  - {kind: government_action, code: country.defence_licence, stage: country, requires: {}}
+  - {kind: government_action, code: country.command_ground, stage: country, requires: {}}
+  - {kind: government_action, code: country.command_air, stage: country, requires: {}}
+  - {kind: government_action, code: country.command_navy, stage: country, requires: {}}
+  - {kind: government_action, code: country.command_air_defence, stage: country, requires: {}}
+  - {kind: government_action, code: country.sanction, stage: country, requires: {}}
+  - {kind: government_action, code: country.treaty, stage: country, requires: {}}
+  - {kind: government_action, code: country.war, stage: country, requires: {}}
+
+  # ---- military and diplomacy
+  - {kind: branch, code: ground, stage: country, requires: {}}
+  - {kind: branch, code: air, stage: country, requires: {}}
+  - {kind: branch, code: navy, stage: country, requires: {}}
+  - {kind: branch, code: air_defence, stage: country, requires: {}}
+  - {kind: force_class, code: fighter, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: stealth_fighter, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: bomber, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: drone, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: transport, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: bomb, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: tank, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: ifv, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: artillery, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: ballistic, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: cruise, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: anti_ship, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: frigate, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: submarine, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: radar, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: sam_short, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: sam_medium, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: force_class, code: sam_long, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
+  - {kind: treaty_type, code: alliance, stage: country, requires: {}}
+  - {kind: treaty_type, code: non_aggression, stage: country, requires: {}}
+  - {kind: treaty_type, code: trade_agreement, stage: country, requires: {}}
+
+  # ---- achievements (personal; unlocked by doing the thing, so the stage is the stage of that thing)
+  - {kind: achievement, code: first_shift, stage: village, requires: {}}
+  - {kind: achievement, code: hard_worker, stage: village, requires: {}}
+  - {kind: achievement, code: first_journey, stage: village, requires: {}}
+  - {kind: achievement, code: graduate, stage: village, requires: {}}
+  - {kind: achievement, code: entrepreneur, stage: town, requires: {}}
+  - {kind: achievement, code: homeowner, stage: village, requires: {}}
+  - {kind: achievement, code: ten_crimes, stage: village, requires: {}}
+  - {kind: achievement, code: elected, stage: village, requires: {}}
+  - {kind: achievement, code: lawmaker, stage: country, requires: {}}
+
+  # ---- wealth ranks (personal, by net worth, any stage)
+  - {kind: rank, code: newcomer, stage: village, requires: {}}
+  - {kind: rank, code: breadwinner, stage: village, requires: {}}
+  - {kind: rank, code: trader, stage: village, requires: {}}
+  - {kind: rank, code: comfortable, stage: village, requires: {}}
+  - {kind: rank, code: wealthy, stage: village, requires: {}}
+  - {kind: rank, code: capitalist, stage: village, requires: {}}
+  - {kind: rank, code: tycoon, stage: village, requires: {}}
+  - {kind: rank, code: mogul, stage: village, requires: {}}
+
+  # ---- sleep spots
+  - {kind: sleep_spot, code: home, stage: village, requires: {buildings: [{role: housing, tier: 1}]}}
+  - {kind: sleep_spot, code: bench, stage: village, requires: {buildings: [{code: park}]}}
+  - {kind: sleep_spot, code: hostel, stage: undecided, requires: {}, question: مسافرخانه ساختمانی در فهرست ساختمان‌ها ندارد؛ آیا ساختمان «مسافرخانه» (نقش اقامت) اضافه شود و از چه سطحی؟}
+
+  # ---- health services (health.yml)
+  - {kind: health_service, code: home_rest, stage: village, requires: {buildings: [{role: housing, tier: 1}]}}
+  - {kind: health_service, code: city_hospital, stage: city, requires: {buildings: [{role: health, tier: 2}]}, elsewhere: [{where: support}], note: the village equivalent is the health house (ADR 0038 4.3); serious cases are referred to Support}
+
+  # ---- finance services (finance.yml): the bank is a tier 3 building
+  - {kind: finance_service, code: bank, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
+  - {kind: finance_service, code: credit, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
+  - {kind: finance_service, code: loans, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
+  - {kind: finance_service, code: savings, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
+  - {kind: finance_service, code: insurance, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
+  - {kind: finance_service, code: stocks, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
+  - {kind: finance_service, code: gold, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
+  - {kind: finance_service, code: ton_exchange, stage: undecided, requires: {}, question: صرافی تون (ارز ویژه) فقط در شهر مرکزی باشد یا در هر جایی که بانک هست؟}
+
+  # ---- factions (gangs and guilds)
+  - {kind: faction, code: faction, stage: town, requires: {buildings: [{role: market, tier: 1}]}, note: "ADR 0033 3.5: guilds and clans at town with a market; organised crime at city"}
+
+  # ---- technologies (production and defence): company research, gated by the skill the entry already names
+  - {kind: technology, code: semiconductors, stage: city, requires: {buildings: [{role: craft, tier: 3}], personal: [{kind: skill, code: engineering, min: 1}]}}
+  - {kind: technology, code: semiconductors_ii, stage: city, requires: {buildings: [{role: craft, tier: 3}], personal: [{kind: skill, code: engineering, min: 3}]}}
+  - {kind: technology, code: semiconductors_iii, stage: city, requires: {buildings: [{role: craft, tier: 3}], personal: [{kind: skill, code: engineering, min: 5}]}}
+  - {kind: technology, code: microchips, stage: city, requires: {buildings: [{role: craft, tier: 3}], personal: [{kind: skill, code: engineering, min: 2}]}}
+  - {kind: technology, code: microchips_ii, stage: city, requires: {buildings: [{role: craft, tier: 3}], personal: [{kind: skill, code: engineering, min: 4}]}}
+  - {kind: technology, code: microchips_iii, stage: city, requires: {buildings: [{role: craft, tier: 3}], personal: [{kind: skill, code: engineering, min: 6}]}}
+  - {kind: technology, code: batteries, stage: city, requires: {buildings: [{role: craft, tier: 3}], personal: [{kind: skill, code: engineering, min: 1}]}}
+  - {kind: technology, code: batteries_ii, stage: city, requires: {buildings: [{role: craft, tier: 3}], personal: [{kind: skill, code: engineering, min: 3}]}}
+  - {kind: technology, code: batteries_iii, stage: city, requires: {buildings: [{role: craft, tier: 3}], personal: [{kind: skill, code: engineering, min: 5}]}}
+  - {kind: technology, code: vehicle_engineering, stage: city, requires: {buildings: [{role: craft, tier: 3}], personal: [{kind: skill, code: engineering, min: 1}]}}
+  - {kind: technology, code: vehicle_engineering_ii, stage: city, requires: {buildings: [{role: craft, tier: 3}], personal: [{kind: skill, code: engineering, min: 3}]}}
+  - {kind: technology, code: vehicle_engineering_iii, stage: city, requires: {buildings: [{role: craft, tier: 3}], personal: [{kind: skill, code: engineering, min: 5}]}}
+  - {kind: technology, code: aerospace_engineering, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 3}]}, note: export controlled}
+  - {kind: technology, code: aerospace_engineering_ii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 5}]}, note: export controlled}
+  - {kind: technology, code: aerospace_engineering_iii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 7}]}, note: export controlled}
+  - {kind: technology, code: jet_propulsion, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 4}]}, note: export controlled}
+  - {kind: technology, code: jet_propulsion_ii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 6}]}, note: export controlled}
+  - {kind: technology, code: jet_propulsion_iii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 8}]}, note: export controlled}
+  - {kind: technology, code: stealth_shaping, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 6}]}, note: export controlled}
+  - {kind: technology, code: stealth_shaping_ii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 8}]}, note: export controlled}
+  - {kind: technology, code: stealth_shaping_iii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 10}]}, note: export controlled}
+  - {kind: technology, code: radar_absorbent_materials, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 6}]}, note: export controlled}
+  - {kind: technology, code: radar_absorbent_materials_ii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 8}]}, note: export controlled}
+  - {kind: technology, code: radar_absorbent_materials_iii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 10}]}, note: export controlled}
+  - {kind: technology, code: radar_systems, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 3}]}, note: export controlled}
+  - {kind: technology, code: radar_systems_ii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 5}]}, note: export controlled}
+  - {kind: technology, code: radar_systems_iii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 7}]}, note: export controlled}
+  - {kind: technology, code: aesa_radar, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 6}]}, note: export controlled}
+  - {kind: technology, code: aesa_radar_ii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 8}]}, note: export controlled}
+  - {kind: technology, code: vhf_radar, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 4}]}, note: export controlled}
+  - {kind: technology, code: vhf_radar_ii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 6}]}, note: export controlled}
+  - {kind: technology, code: armour_systems, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 3}]}, note: export controlled}
+  - {kind: technology, code: armour_systems_ii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 5}]}, note: export controlled}
+  - {kind: technology, code: armour_systems_iii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 7}]}, note: export controlled}
+  - {kind: technology, code: rocketry, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 4}]}, note: export controlled}
+  - {kind: technology, code: rocketry_ii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 6}]}, note: export controlled}
+  - {kind: technology, code: rocketry_iii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 8}]}, note: export controlled}
+  - {kind: technology, code: missile_guidance, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 5}]}, note: export controlled}
+  - {kind: technology, code: missile_guidance_ii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 7}]}, note: export controlled}
+  - {kind: technology, code: naval_architecture, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 3}]}, note: export controlled}
+  - {kind: technology, code: naval_architecture_ii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 5}]}, note: export controlled}
+  - {kind: technology, code: naval_architecture_iii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 7}]}, note: export controlled}
+  - {kind: technology, code: submarine_technology, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 6}]}, note: export controlled}
+  - {kind: technology, code: submarine_technology_ii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 8}]}, note: export controlled}
+  - {kind: technology, code: submarine_technology_iii, stage: country, requires: {buildings: [{role: craft, tier: 4}], personal: [{kind: skill, code: engineering, min: 10}]}, note: export controlled}

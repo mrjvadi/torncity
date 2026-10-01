@@ -165,7 +165,9 @@ func TestVillagePromotion(t *testing.T) {
 	}
 	// A demolished or unfinished building does not count.
 	exec(`INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at) VALUES (gen_random_uuid(), $1::uuid, 'market', 30, 30, 'building', now())`, cityID)
-	if p := promotionOf(head); current(p, "buildings", "") != 5 {
+	// The founding kit's civic hall, market and granary, and the four above
+	// (roads do not count).
+	if p := promotionOf(head); current(p, "buildings", "") != 7 {
 		t.Errorf("buildings counted wrong: %v", p["criteria"])
 	}
 	for _, code := range []string{"carpentry", "basic_literacy"} {

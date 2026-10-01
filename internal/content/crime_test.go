@@ -138,6 +138,8 @@ func TestPackWithoutCrimesStillValidates(t *testing.T) {
 	p.Property, p.PropertyTypes, p.PropertyMarkets = nil, nil, nil
 	// Stage G1: a life sleeps at places.
 	p.Life = nil
+	// The availability tags name what was just removed.
+	p.Availability = nil
 	kept := p.CompanyTypes[:0]
 	for _, t := range p.CompanyTypes {
 		if t.Code != "pharmacy" {
@@ -173,6 +175,8 @@ func TestVenueReferencesAreWarnings(t *testing.T) {
 	}
 	// Work accidents and missions name careers and courses.
 	p.Health, p.MissionBoards, p.Missions = nil, nil, nil
+	// The availability tags name what was just removed.
+	p.Availability = nil
 	if err := p.Validate(); err != nil {
 		t.Fatalf("a venue naming unknown modes or categories failed the load: %v", err)
 	}

@@ -1,5 +1,5 @@
 # Telegram wording (fa), layered over configs/locales/fa.yml by the catalogue loader.
-# Wording moves here area by area with its screens (docs/adr/0039-presentation-split.md).
+# Wording moves here area by area with its screens (docs/adr/0037-presentation-split.md).
 # Natural everyday speech; a key is defined once across the layers.
 
 # ---- village ----
@@ -143,7 +143,7 @@ citizen:
 village:
   title:
     village: "🏘 روستای {name}"
-    town: "🏘 شهرستان {name}"
+    town: "🏘 شهرک {name}"
     city: "🏙 شهر {name}"
   population: "👥 جمعیت: {population} از {cap}"
   treasury: "🏦 خزانهٔ روستا: {amount}"
@@ -186,7 +186,7 @@ village:
     work: "⚒ کار در روستا"
   tier_name:
     village: "روستا"
-    town: "شهرستان"
+    town: "شهرک"
     city: "شهر"
   office:
     village: "دهیار"
@@ -207,15 +207,15 @@ village:
       food:
         t1: "یک ساختمان تأمین خوراک (مزرعه یا دامداری)"
       education:
-        t1: "یک ساختمان آموزشی (حلقهٔ آموزش)"
+        t1: "یک ساختمان آموزشی (کلاس درس)"
         t2: "مدرسه"
       health:
-        t1: "یک ساختمان درمانی (خانهٔ درمان)"
+        t1: "یک ساختمان درمانی (خانهٔ بهداشت)"
         t2: "درمانگاه"
       market:
         t2: "بازار"
       security:
-        t1: "یک ساختمان امنیتی (دیده‌بانی یا پاسگاه)"
+        t1: "یک ساختمان امنیتی (نگهبانی یا پاسگاه)"
     ready_head: "🎉 همهٔ گام‌ها برداشته شد. حالا می‌توانید «{village}» را به {tier} ارتقا دهید."
     ready_member: "🎉 همهٔ گام‌ها برداشته شد. ارتقا با سرپرست روستاست."
     not_ready: "هر گامی که برداشته شود اینجا ✅ می‌شود. وقتی همه ✅ شدند، سرپرست دکمهٔ ارتقا را می‌بیند."
@@ -228,7 +228,7 @@ village:
       city: "فرماندار شهردار می‌شود و همچنان سرپرست می‌ماند؛ دولت شهر با مالیات، شورا و انتخابات راه می‌افتد. ارتقا هزینه ندارد و برگشت‌پذیر نیست؛ خبرش در گروه اعلام می‌شود."
     done_title: "🎉 «{village}» به {tier} ارتقا یافت!"
     done_body:
-      town: "دهیار اکنون فرماندار است. ساختمان‌ها و دانش تازهٔ شهرستان در فهرست ساخت‌وساز و دانش دیده می‌شود و خبر ارتقا در گروه اعلام شد."
+      town: "دهیار اکنون فرماندار است. ساختمان‌ها و دانش تازهٔ شهرک در فهرست ساخت‌وساز و دانش دیده می‌شود و خبر ارتقا در گروه اعلام شد."
       city: "فرماندار اکنون شهردار است. کارهای شهری در دسترس شد و خبر ارتقا در گروه اعلام شد."
   refusal:
     no_settlement: "🏡 این گروه هنوز روستایی تأسیس نکرده است. برای شروع «ساخت روستا» را بفرستید."
@@ -291,14 +291,14 @@ village:
       research: "🔬 برای پژوهش «{subject}» هنوز چیزی کم است:"
       work: "⚒ برای کار در «{subject}» هنوز چیزی کم است:"
     material: "• {need} {name} لازم است (در انبار روستا: {have}) - {source}"
-    knowledge: "• دانش «{name}» - در «دانش روستا» پژوهش کنید یا از ساپورت بخرید"
-    knowledge_any: "• یکی از این دانش‌ها: {names} - در «دانش روستا» پژوهش کنید یا از ساپورت بخرید"
+    knowledge: "• دانش «{name}» - در «دانش روستا» پژوهش کنید یا از شهر مرکزی بخرید"
+    knowledge_any: "• یکی از این دانش‌ها: {names} - در «دانش روستا» پژوهش کنید یا از شهر مرکزی بخرید"
     building: "• یکی از بناهای {names} - اول آن را بسازید"
     or: " یا "
     source:
       made_built: "در «{building}» تولید می‌شود، آنجا کار کنید"
       made_unbuilt: "«{building}» را بسازید تا تولید کند"
-      buy: "از بازار ساپورت بخرید (هر واحد {price})"
+      buy: "از بازار شهر مرکزی بخرید (هر واحد {price})"
     button:
       build: "🏗 ساخت {building}"
       work: "⚒ کار در {building}"
@@ -312,7 +312,7 @@ village:
     stock_title: "📥 موجود در انبار:"
     stock_line: "• {name}: {qty}"
     stock_empty: "انبار خالی است."
-    market_title: "🛒 بازار ساپورت (با ساپِ خزانه):"
+    market_title: "🛒 بازار شهر مرکزی (با پول خزانه):"
     market_line: "• {name}: هر واحد {price}"
     hint: "کالایی که کارگاه‌های روستا خودشان تولید می‌کنند ارزان‌تر از بازار درمی‌آید؛ برای شروع می‌توانید از بازار بخرید."
     bought: "✅ {qty} {name} خریداری و به انبار روستا آورده شد ({total} از خزانه)."

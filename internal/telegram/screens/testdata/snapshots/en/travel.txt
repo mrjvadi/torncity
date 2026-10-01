@@ -42,11 +42,11 @@ You have not settled in a city yet. Once you do, your travel destinations appear
 📍 You are in Amol.
 
 From here you can travel to these cities and villages:
-• Support - 1,280 km - fare from 6,400 SUP - fastest 14h 20m
+• Central City - 1,280 km - fare from 6,400 SUP - fastest 14h 20m
 • 🛡 🌾 🔴🟡 Kashan - 42 km - free on foot - fastest 8m
 • 🏰 🐎 🔵⚪ Sari - 380 km - fare from 780 SUP - fastest 19m
   ───
-  [🧭 Support] → travel:options:support
+  [🧭 Central City] → travel:options:support
   [🧭 🛡 🌾 🔴🟡 Kashan] → travel:options:v-cd34
   [🧭 🏰 🐎 🔵⚪ Sari] → travel:options:v-ef56
   [🔙 Back] → map:list   │   [🔄 Refresh] → map:cities:1

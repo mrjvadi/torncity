@@ -15,8 +15,8 @@ func TestSupportScreensReadRight(t *testing.T) {
 		"Ostmarch", "Fenwick Span", "Aldrin Hollow", "Brennhaven", "Kessmoor", "Calderis", "Vantor Reach"}
 
 	for lang, want := range map[string]struct{ city, money string }{
-		"fa": {city: "ساپورت", money: "ساپ"},
-		"en": {city: "Support", money: "SUP"},
+		"fa": {city: "شهر مرکزی", money: "ساپ"},
+		"en": {city: "Central City", money: "SUP"},
 	} {
 		c := ctx(t, lang, 0)
 
