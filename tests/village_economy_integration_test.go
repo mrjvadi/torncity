@@ -140,7 +140,7 @@ func TestVillageEconomyLoop(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"10", "الوار", "هیزم‌شکنی", "ساپورت"} {
+	for _, want := range []string{"10", "الوار", "هیزم‌شکنی", "شهر مرکزی"} {
 		if !strings.Contains(r.Text, want) {
 			t.Errorf("the refusal for a housing block does not say %q:\n%s", want, r.Text)
 		}

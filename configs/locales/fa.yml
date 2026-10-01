@@ -239,7 +239,7 @@ skill:
 # entry here falls back to the `name:` in cities.yml, but a test fails CI until
 # every shipped city is translated in every locale.
 city:
-  support: ساپورت
+  support: شهر مرکزی
   # The seven cities Support replaced (docs/adr/0032-support-merge.md). No
   # city carries these codes any more; the names stay so history that
   # mentions them (past events, old records) still reads.
@@ -648,7 +648,7 @@ lever:
   village:
     local_levy: "عوارض محلی روستا"
   town:
-    local_levy: "عوارض محلی شهرستان"
+    local_levy: "عوارض محلی شهرک"
     building_permit_fee: "هزینهٔ پروانهٔ ساخت"
   province:
     revenue_share: "سهم استان از درآمد شهرها"
@@ -978,7 +978,7 @@ founding:
 village:
   title:
     village: "🏘 روستای {name}"
-    town: "🏘 شهرستان {name}"
+    town: "🏘 شهرک {name}"
     city: "🏙 شهر {name}"
   population: "👥 جمعیت: {population} از {cap}"
   treasury: "🏦 خزانهٔ روستا: {amount}"
@@ -1021,7 +1021,7 @@ village:
     work: "⚒ کار در روستا"
   tier_name:
     village: "روستا"
-    town: "شهرستان"
+    town: "شهرک"
     city: "شهر"
   office:
     village: "دهیار"
@@ -1063,7 +1063,7 @@ village:
       city: "فرماندار شهردار می‌شود و همچنان سرپرست می‌ماند؛ دولت شهر با مالیات، شورا و انتخابات راه می‌افتد. ارتقا هزینه ندارد و برگشت‌پذیر نیست؛ خبرش در گروه اعلام می‌شود."
     done_title: "🎉 «{village}» به {tier} ارتقا یافت!"
     done_body:
-      town: "دهیار اکنون فرماندار است. ساختمان‌ها و دانش تازهٔ شهرستان در فهرست ساخت‌وساز و دانش دیده می‌شود و خبر ارتقا در گروه اعلام شد."
+      town: "دهیار اکنون فرماندار است. ساختمان‌ها و دانش تازهٔ شهرک در فهرست ساخت‌وساز و دانش دیده می‌شود و خبر ارتقا در گروه اعلام شد."
       city: "فرماندار اکنون شهردار است. کارهای شهری در دسترس شد و خبر ارتقا در گروه اعلام شد."
   refusal:
     no_settlement: "🏡 این گروه هنوز روستایی تأسیس نکرده است. برای شروع «ساخت روستا» را بفرستید."
@@ -1126,14 +1126,14 @@ village:
       research: "🔬 برای پژوهش «{subject}» هنوز چیزی کم است:"
       work: "⚒ برای کار در «{subject}» هنوز چیزی کم است:"
     material: "• {need} {name} لازم است (در انبار روستا: {have}) - {source}"
-    knowledge: "• دانش «{name}» - در «دانش روستا» پژوهش کنید یا از ساپورت بخرید"
-    knowledge_any: "• یکی از این دانش‌ها: {names} - در «دانش روستا» پژوهش کنید یا از ساپورت بخرید"
+    knowledge: "• دانش «{name}» - در «دانش روستا» پژوهش کنید یا از شهر مرکزی بخرید"
+    knowledge_any: "• یکی از این دانش‌ها: {names} - در «دانش روستا» پژوهش کنید یا از شهر مرکزی بخرید"
     building: "• یکی از بناهای {names} - اول آن را بسازید"
     or: " یا "
     source:
       made_built: "در «{building}» تولید می‌شود، آنجا کار کنید"
       made_unbuilt: "«{building}» را بسازید تا تولید کند"
-      buy: "از بازار ساپورت بخرید (هر واحد {price})"
+      buy: "از بازار شهر مرکزی بخرید (هر واحد {price})"
     button:
       build: "🏗 ساخت {building}"
       work: "⚒ کار در {building}"
@@ -1147,7 +1147,7 @@ village:
     stock_title: "📥 موجود در انبار:"
     stock_line: "• {name}: {qty}"
     stock_empty: "انبار خالی است."
-    market_title: "🛒 بازار ساپورت (با ساپِ خزانه):"
+    market_title: "🛒 بازار شهر مرکزی (با پول خزانه):"
     market_line: "• {name}: هر واحد {price}"
     hint: "کالایی که کارگاه‌های روستا خودشان تولید می‌کنند ارزان‌تر از بازار درمی‌آید؛ برای شروع می‌توانید از بازار بخرید."
     bought: "✅ {qty} {name} خریداری و به انبار روستا آورده شد ({total} از خزانه)."
@@ -5115,7 +5115,7 @@ presence:
     idle: "آنلاین"
     travelling: "در حال سفر"
     working: "در حال کار"
-    studying: "در حال تحصیل"
+    studying: "در حال درس خواندن"
     training: "در حال تمرین"
     hospital: "در بیمارستان"
     jail: "در زندان"

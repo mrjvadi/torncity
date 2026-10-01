@@ -163,7 +163,7 @@ skill:
 # entry here falls back to the `name:` in cities.yml, but a test fails CI until
 # every shipped city is translated in every locale.
 city:
-  support: Support
+  support: Central City
   # The seven cities Support replaced (docs/adr/0032-support-merge.md). No
   # city carries these codes any more; the names stay so history that
   # mentions them still reads.
