@@ -456,7 +456,7 @@ export interface FactionConfirmView {
   player: GovPlayer
 }
 
-export interface FactionCrimeView {
+export interface FactionCrimeBoardView {
   ref: FactionRef
   notice: string
   can_plan: boolean
@@ -466,6 +466,20 @@ export interface FactionCrimeView {
   operation: FactionOperationLine | null
   in_crew: boolean
   crimes: FactionPlanLine[] | null
+}
+
+export interface FactionCrimeView {
+  ref: FactionRef
+  crime: Named
+  result: string
+  share: number
+  take: number
+  cut: number
+  xp: number
+  jail: Sentence | null
+  fine: number
+  fine_paid: number
+  injury: Injury | null
 }
 
 export interface FactionFoundView {
@@ -877,6 +891,14 @@ export interface InboxItemLine {
 
 export interface InboxReminderView {
   unread: number
+}
+
+export interface Injury {
+  damage: number
+  health: number
+  max: number
+  hospital: boolean
+  ends_at: string | null
 }
 
 export interface KnowledgeLine {
@@ -1447,6 +1469,12 @@ export interface SearchView {
   found: SearchResult | null
 }
 
+export interface Sentence {
+  crime: Named
+  remaining_seconds: number
+  ends_at: string | null
+}
+
 export interface SettlementFoundedView {
   name: string
   settlement_id: string
@@ -1712,7 +1740,7 @@ export interface ScreenViews {
   faction_applied: FactionAppliedView
   faction_bank: FactionBankView
   faction_confirm: FactionConfirmView
-  faction_crime: FactionCrimeView
+  faction_crime: FactionCrimeBoardView
   faction_crime_notice: FactionCrimeView
   faction_found: FactionFoundView
   faction_founded: FactionFoundedView

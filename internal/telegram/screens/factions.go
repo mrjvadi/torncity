@@ -454,11 +454,11 @@ func (c Context) operationLines(o FactionOperationLine) string {
 
 
 // FactionCrime renders the organised crime board.
-func FactionCrime(c Context, v FactionCrimeView) *presenter.Response {
+func FactionCrime(c Context, v FactionCrimeBoardView) *presenter.Response {
 	return c.withView(renderFactionCrime(c, v), ScreenFactionCrime, v)
 }
 
-func renderFactionCrime(c Context, v FactionCrimeView) *presenter.Response {
+func renderFactionCrime(c Context, v FactionCrimeBoardView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("faction.crime_notice."+v.Notice, nil)

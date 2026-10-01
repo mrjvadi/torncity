@@ -572,8 +572,8 @@ const (
 	FactionNoticeCalledOff = "called_off"
 )
 
-// FactionCrimeView is a faction's organised crime board.
-type FactionCrimeView struct {
+// FactionCrimeBoardView is a faction's organised crime board.
+type FactionCrimeBoardView struct {
 	Ref                         FactionRef
 	Notice                      string
 	CanPlan, CanLaunch, CanJoin bool

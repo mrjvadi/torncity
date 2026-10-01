@@ -40,7 +40,7 @@ var (
 	screenFactionLeft     = presentation.Define[FactionLeftView](ScreenFactionLeft, "society", presentation.Private())
 	screenFactionLinked   = presentation.Define[FactionLinkedView](ScreenFactionLinked, "society")
 	screenFactionBank     = presentation.Define[FactionBankView](ScreenFactionBank, "society", presentation.Private())
-	screenFactionCrime    = presentation.Define[FactionCrimeView](ScreenFactionCrime, "society")
+	screenFactionCrime    = presentation.Define[FactionCrimeBoardView](ScreenFactionCrime, "society")
 	screenFactionRefusal  = presentation.Define[FactionRefusalView](ScreenFactionRefusal, "society", presentation.Refusal())
 	screenFactionInvited  = presentation.Define[FactionInvitedView](ScreenFactionInvited, "society", presentation.Private())
 	screenFactionApplied  = presentation.Define[FactionAppliedView](ScreenFactionApplied, "society", presentation.Private())
@@ -572,7 +572,7 @@ func FactionBank(c presentation.Ctx, v FactionBankView) *presentation.Response {
 }
 
 // FactionCrime is a faction's organised crime board.
-func FactionCrime(c presentation.Ctx, v FactionCrimeView) *presentation.Response {
+func FactionCrime(c presentation.Ctx, v FactionCrimeBoardView) *presentation.Response {
 	var a []presentation.Action
 	if o := v.Operation; o != nil {
 		if o.Status == OperationGathering {

@@ -105,7 +105,7 @@ func (h *FactionsHandler) board(ctx context.Context, meta envelope.Metadata, not
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view society.FactionCrimeView
+	var view society.FactionCrimeBoardView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -122,7 +122,7 @@ func (h *FactionsHandler) board(ctx context.Context, meta envelope.Metadata, not
 		}
 		now := h.now()
 		charter := def.Charter()
-		view = society.FactionCrimeView{Ref: factionRef(*mb.faction), Notice: notice,
+		view = society.FactionCrimeBoardView{Ref: factionRef(*mb.faction), Notice: notice,
 			CanPlan: charter.Can(mb.rank, faction.Plan), CanLaunch: charter.Can(mb.rank, faction.Launch),
 			CanJoin: charter.Can(mb.rank, faction.Join), CutBPS: int(def.CrimeCutBPS)}
 		op, err := tx.Factions().OpenOperation(ctx, mb.faction.ID)

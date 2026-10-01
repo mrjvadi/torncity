@@ -90,15 +90,15 @@ func factionSnapshots(c Context, who people, add func(string, *presenter.Respons
 		{Crime: heist, Min: 2, Max: 5, Nerve: 5, MinLevel: 3, Duration: 3 * time.Minute, Places: []Named{industrial}},
 		{Crime: van, Min: 3, Max: 6, Nerve: 8, MinLevel: 5, Duration: 4 * time.Minute, Places: []Named{business}},
 	}
-	add("Crime · nothing under way, an officer", FactionCrime(c, FactionCrimeView{Ref: lions, CanPlan: true, CanLaunch: true,
+	add("Crime · nothing under way, an officer", FactionCrime(c, FactionCrimeBoardView{Ref: lions, CanPlan: true, CanLaunch: true,
 		CanJoin: true, CutBPS: 1500, Crimes: plans}))
-	add("Crime · planned, a member may join", FactionCrime(c, FactionCrimeView{Ref: lions, Notice: FactionNoticePlanned,
+	add("Crime · planned, a member may join", FactionCrime(c, FactionCrimeBoardView{Ref: lions, Notice: FactionNoticePlanned,
 		CanJoin: true, CutBPS: 1500, Operation: &gathering}))
 	ready := gathering
 	ready.Crew = append(ready.Crew, FactionMemberLine{Player: friend, Rank: "officer"})
-	add("Crime · the crew ready, the leader", FactionCrime(c, FactionCrimeView{Ref: lions, Notice: FactionNoticeJoined,
+	add("Crime · the crew ready, the leader", FactionCrime(c, FactionCrimeBoardView{Ref: lions, Notice: FactionNoticeJoined,
 		CanPlan: true, CanLaunch: true, CanJoin: true, InCrew: true, CutBPS: 1500, Operation: &ready}))
-	add("Crime · under way, as a group reads it", FactionCrime(group(c), FactionCrimeView{Ref: lions,
+	add("Crime · under way, as a group reads it", FactionCrime(group(c), FactionCrimeBoardView{Ref: lions,
 		Notice: FactionNoticeLaunched, CutBPS: 1500, Operation: &running}))
 
 	for _, kind := range []string{FactionRefusedNone, FactionRefusedNotMember, FactionRefusedRank, FactionRefusedNotFound,

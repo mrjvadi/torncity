@@ -121,12 +121,12 @@ func societyFixtures() []societyFixture {
 		sfx("faction left", society.FactionLeft, screens.FactionLeft),
 		sfx("faction linked", society.FactionLinked, screens.FactionLinked),
 		sfx("faction bank", society.FactionBank, screens.FactionBank, func(v *society.FactionBankView) { v.Methods = []string{"cash", "card"} }),
-		sfx("faction crime gathering", society.FactionCrime, screens.FactionCrime, func(v *society.FactionCrimeView) {
+		sfx("faction crime gathering", society.FactionCrime, screens.FactionCrime, func(v *society.FactionCrimeBoardView) {
 			v.Operation.Status = society.OperationGathering
 			v.InCrew = false
 			v.Operation.Min = 1
 		}),
-		sfx("faction crime plan", society.FactionCrime, screens.FactionCrime, func(v *society.FactionCrimeView) { v.Operation = nil }),
+		sfx("faction crime plan", society.FactionCrime, screens.FactionCrime, func(v *society.FactionCrimeBoardView) { v.Operation = nil }),
 		sfx("faction refusal", society.FactionRefusal, screens.FactionRefusal),
 		sfx("faction refusal crime", society.FactionRefusal, screens.FactionRefusal, func(v *society.FactionRefusalView) { v.Kind = society.FactionRefusedLevel }),
 		sfx("faction refusal list", society.FactionRefusal, screens.FactionRefusal, func(v *society.FactionRefusalView) { v.Kind = society.FactionRefusedNotMember }),
