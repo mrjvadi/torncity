@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"strconv"
 	"strings"
 	"time"
@@ -19,7 +21,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -110,31 +111,31 @@ func (h *PropertyHandler) screen(meta envelope.Metadata, lang string) screens.Co
 }
 
 // propertyRefusal carries a refused request out of a unit of work.
-type propertyRefusal struct{ view screens.PropertyRefusalView }
+type propertyRefusal struct{ view plife.PropertyRefusalView }
 
 func (r *propertyRefusal) Error() string { return "handlers: property refused: " + r.view.Kind }
 
 func refuseProperty(kind string, back ...string) *propertyRefusal {
-	return &propertyRefusal{view: screens.PropertyRefusalView{Kind: kind, Back: back}}
+	return &propertyRefusal{view: plife.PropertyRefusalView{Kind: kind, Back: refOf(back)}}
 }
 
-func (h *PropertyHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *PropertyHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	var r *propertyRefusal
 	if stderrors.As(err, &r) {
-		return screens.PropertyRefusal(h.screen(meta, lang), r.view), nil
+		return plife.PropertyRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
 	if v, ok := asNotHere(err); ok {
-		return screens.NotHere(h.screen(meta, lang), v), nil
+		return plife.NotHere(presentation.Ctx{Lang: lang}, v), nil
 	}
 	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
 		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
 	}
 	switch {
 	case isSentinel(err, application.ErrPropertyNotFound):
-		return screens.PropertyRefusal(h.screen(meta, lang), screens.PropertyRefusalView{Kind: screens.PropertyRefusedNotFound}), nil
+		return plife.PropertyRefusal(presentation.Ctx{Lang: lang}, plife.PropertyRefusalView{Kind: plife.PropertyRefusedNotFound}), nil
 	case isSentinel(err, application.ErrOfferNotFound):
-		return screens.PropertyRefusal(h.screen(meta, lang), screens.PropertyRefusalView{Kind: screens.PropertyRefusedTaken,
-			Back: []string{screens.AddrPropertyMarket}}), nil
+		return plife.PropertyRefusal(presentation.Ctx{Lang: lang}, plife.PropertyRefusalView{Kind: plife.PropertyRefusedTaken,
+			Back: refOf([]string{plife.AddrPropertyMarket})}), nil
 	}
 	return nil, err
 }
@@ -196,24 +197,24 @@ func cityPrice(ctx context.Context, tx application.Tx, snap *content.Snapshot, c
 	return property.CityPrice(t.Type(), market.PriceBPS, sold, def.Demand()), max(market.Stock[t.Code]-sold, 0), nil
 }
 
-func govCity(c *application.City) screens.GovPlace {
-	return screens.GovPlace{Kind: "city", Code: c.Code, Name: c.Name}
+func govCity(c *application.City) presentation.GovPlace {
+	return presentation.GovPlace{Kind: "city", Code: c.Code, Name: c.Name}
 }
 
-func propertyTypeNamed(t content.PropertyTypeDef) screens.Named { return named(t.Code, t.Name) }
+func propertyTypeNamed(t content.PropertyTypeDef) presentation.Named { return named(t.Code, t.Name) }
 
 // ---------------------------------------------------------------------------
 // The market.
 
 // Market handles property.list: what the city the player stands in sells,
 // and its owners' offers.
-func (h *PropertyHandler) Market(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *PropertyHandler) Market(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.PropertyMarketView
+	var view plife.PropertyMarketView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -234,7 +235,7 @@ func (h *PropertyHandler) Market(ctx context.Context, meta envelope.Metadata) (*
 				if err != nil {
 					return err
 				}
-				view.Types = append(view.Types, screens.PropertyTypeLine{Type: propertyTypeNamed(t), Kind: t.Kind,
+				view.Types = append(view.Types, plife.PropertyTypeLine{Type: propertyTypeNamed(t), Kind: t.Kind,
 					Size: t.Size, Quality: t.Quality, Price: price, Left: left, Home: t.Home})
 			}
 		}
@@ -254,40 +255,40 @@ func (h *PropertyHandler) Market(ctx context.Context, meta envelope.Metadata) (*
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.PropertyMarket(h.screen(meta, lang), view), nil
+	return plife.PropertyMarket(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // offerLine is one offer for a screen.
 func (h *PropertyHandler) offerLine(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 	o application.PropertyListing, viewerID string,
-) (screens.PropertyOfferLine, error) {
+) (plife.PropertyOfferLine, error) {
 	pr, err := tx.Property().ByID(ctx, o.PropertyID, false)
 	if err != nil {
-		return screens.PropertyOfferLine{}, err
+		return plife.PropertyOfferLine{}, err
 	}
 	t, _ := snap.PropertyType(pr.TypeCode)
 	seller, err := playerNamed(ctx, tx, o.SellerID)
 	if err != nil {
-		return screens.PropertyOfferLine{}, err
+		return plife.PropertyOfferLine{}, err
 	}
-	return screens.PropertyOfferLine{No: o.No, Kind: o.Kind, Type: named(pr.TypeCode, t.Name), PropertyNo: pr.No,
+	return plife.PropertyOfferLine{No: o.No, Kind: o.Kind, Type: named(pr.TypeCode, t.Name), PropertyNo: pr.No,
 		Price: o.Price, Seller: seller, Mine: o.SellerID == viewerID}, nil
 }
 
 // Type handles property.type: one kind of property the city sells, its
 // price, and the ways to pay at the land registry.
-func (h *PropertyHandler) Type(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presenter.Response, error) {
+func (h *PropertyHandler) Type(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presentation.Response, error) {
 	return h.typeView(ctx, meta, req, 0)
 }
 
 func (h *PropertyHandler) typeView(ctx context.Context, meta envelope.Metadata, req PropertyRequest, bought int64,
-) (*presenter.Response, error) {
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.PropertyTypeView
+	var view plife.PropertyTypeView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -300,24 +301,24 @@ func (h *PropertyHandler) typeView(ctx context.Context, meta envelope.Metadata, 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.PropertyType(h.screen(meta, lang), view), nil
+	return plife.PropertyType(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // typeOffer is what the city offers of one type to a player now.
 func (h *PropertyHandler) typeOffer(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 	p *application.Player, code string,
-) (screens.PropertyTypeView, error) {
-	var view screens.PropertyTypeView
+) (plife.PropertyTypeView, error) {
+	var view plife.PropertyTypeView
 	t, ok := snap.PropertyType(code)
 	if !ok {
-		return view, refuseProperty(screens.PropertyRefusedNotFound, screens.AddrPropertyMarket)
+		return view, refuseProperty(plife.PropertyRefusedNotFound, plife.AddrPropertyMarket)
 	}
 	city, err := h.hereCity(ctx, tx, p)
 	if err != nil {
 		return view, err
 	}
 	if city == nil {
-		return view, refuseProperty(screens.PropertyRefusedNotInCity, screens.AddrPropertyMarket)
+		return view, refuseProperty(plife.PropertyRefusedNotInCity, plife.AddrPropertyMarket)
 	}
 	price, left, err := cityPrice(ctx, tx, snap, city, t)
 	if err != nil {
@@ -327,7 +328,7 @@ func (h *PropertyHandler) typeOffer(ctx context.Context, tx application.Tx, snap
 	if err != nil {
 		return view, err
 	}
-	view = screens.PropertyTypeView{City: govCity(city), Type: propertyTypeNamed(t), Kind: t.Kind, Size: t.Size,
+	view = plife.PropertyTypeView{City: govCity(city), Type: propertyTypeNamed(t), Kind: t.Kind, Size: t.Size,
 		Quality: t.Quality, Upkeep: t.Upkeep, Home: t.Home, RestEnergy: t.RestEnergy, Place: placeNamed(snap, t.Place),
 		Price: price, Left: left, TaxBPS: rate, Max: h.rules.MaxOwned}
 	owned, err := tx.Property().OwnedBy(ctx, p.ID)
@@ -336,10 +337,10 @@ func (h *PropertyHandler) typeOffer(ctx context.Context, tx application.Tx, snap
 	}
 	switch {
 	case left <= 0:
-		view.Blocked = screens.PropertyRefusedSoldOut
+		view.Blocked = plife.PropertyRefusedSoldOut
 		return view, nil
 	case owned >= h.rules.MaxOwned:
-		view.Blocked = screens.PropertyRefusedTooMany
+		view.Blocked = plife.PropertyRefusedTooMany
 		return view, nil
 	}
 	w, err := locate(ctx, tx, h.cities, snap, p)
@@ -363,7 +364,7 @@ func (h *PropertyHandler) typeOffer(ctx context.Context, tx application.Tx, snap
 // land registry, once — the stock locked, the price read again, the money
 // into the treasury and the deed to the buyer in one transaction. A home
 // makes its city the buyer's residence.
-func (h *PropertyHandler) Purchase(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presenter.Response, error) {
+func (h *PropertyHandler) Purchase(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -398,14 +399,14 @@ func (h *PropertyHandler) Purchase(ctx context.Context, meta envelope.Metadata, 
 		}
 		t, ok := snap.PropertyType(code)
 		if !ok {
-			return refuseProperty(screens.PropertyRefusedNotFound, screens.AddrPropertyMarket)
+			return refuseProperty(plife.PropertyRefusedNotFound, plife.AddrPropertyMarket)
 		}
 		city, err := h.hereCity(ctx, tx, p)
 		if err != nil {
 			return err
 		}
 		if city == nil {
-			return refuseProperty(screens.PropertyRefusedNotInCity, screens.AddrPropertyMarket)
+			return refuseProperty(plife.PropertyRefusedNotInCity, plife.AddrPropertyMarket)
 		}
 		w, err := locate(ctx, tx, h.cities, snap, p)
 		if err != nil {
@@ -422,15 +423,15 @@ func (h *PropertyHandler) Purchase(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		if left <= 0 {
-			return refuseProperty(screens.PropertyRefusedSoldOut, screens.AddrPropertyType, code)
+			return refuseProperty(plife.PropertyRefusedSoldOut, plife.AddrPropertyType, code)
 		}
 		owned, err := tx.Property().OwnedBy(ctx, p.ID)
 		if err != nil {
 			return err
 		}
 		if owned >= h.rules.MaxOwned {
-			refusal = &propertyRefusal{view: screens.PropertyRefusalView{Kind: screens.PropertyRefusedTooMany,
-				Max: int64(h.rules.MaxOwned), Back: []string{screens.AddrPropertyMine}}}
+			refusal = &propertyRefusal{view: plife.PropertyRefusalView{Kind: plife.PropertyRefusedTooMany,
+				Max: int64(h.rules.MaxOwned), Back: refOf([]string{plife.AddrPropertyMine})}}
 			return refusal
 		}
 		wallet, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
@@ -438,7 +439,7 @@ func (h *PropertyHandler) Purchase(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		plan := wallet.Plan(money.FromMinor(price), snap.Accepts(content.ServiceProperty))
-		if err := checkMethod(plan, method, wallet, "property.button.back_to_type", screens.AddrPropertyType, code); err != nil {
+		if err := checkMethod(plan, method, wallet, "property.button.back_to_type", plife.AddrPropertyType, code); err != nil {
 			return err
 		}
 		treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, city.ID)
@@ -450,7 +451,7 @@ func (h *PropertyHandler) Purchase(ctx context.Context, meta envelope.Metadata, 
 			Reason: application.ReasonPropertyPurchase, ReferenceType: application.PropertyReference, ReferenceID: id,
 			To: []application.LedgerEntry{{AccountID: treasury.ID, Amount: money.FromMinor(price)}}, CreatedAt: now}); err != nil {
 			if stderrors.Is(err, application.ErrPaymentDeclined) {
-				return declined(plan, wallet, "property.button.back_to_type", screens.AddrPropertyType, code)
+				return declined(plan, wallet, "property.button.back_to_type", plife.AddrPropertyType, code)
 			}
 			return err
 		}
@@ -528,18 +529,18 @@ func moveHome(ctx context.Context, tx application.Tx, meta envelope.Metadata, pl
 
 // Mine handles property.mine: what the player owns, the home they rent,
 // where they live, and whether they may rest at home.
-func (h *PropertyHandler) Mine(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *PropertyHandler) Mine(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.mine(ctx, meta, "", nil)
 }
 
 func (h *PropertyHandler) mine(ctx context.Context, meta envelope.Metadata, notice string, args map[string]any,
-) (*presenter.Response, error) {
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	view := screens.PropertyMineView{Grace: h.rules.ForeclosurePeriods, Notice: notice, NoticeArgs: args}
+	view := plife.PropertyMineView{Grace: h.rules.ForeclosurePeriods, Notice: notice, NoticeArgs: args}
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -573,7 +574,7 @@ func (h *PropertyHandler) mine(ctx context.Context, meta envelope.Metadata, noti
 			if err != nil {
 				return err
 			}
-			view.Rented = &screens.RentedHomeLine{LeaseNo: lease.No, Property: line, Landlord: landlord, Rent: lease.Rent,
+			view.Rented = &plife.RentedHomeLine{LeaseNo: lease.No, Property: line, Landlord: landlord, Rent: lease.Rent,
 				Arrears: lease.Arrears}
 		}
 		home, err := tx.Employment().ResidenceCityID(ctx, p.ID)
@@ -598,19 +599,19 @@ func (h *PropertyHandler) mine(ctx context.Context, meta envelope.Metadata, noti
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.PropertyMine(h.screen(meta, lang), view), nil
+	return plife.PropertyMine(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // propertyLine is one owned property for a screen.
 func (h *PropertyHandler) propertyLine(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 	pr application.Property,
-) (screens.PropertyLine, error) {
+) (plife.PropertyLine, error) {
 	t, _ := snap.PropertyType(pr.TypeCode)
 	city, err := h.cities.ByID(ctx, pr.CityID)
 	if err != nil {
-		return screens.PropertyLine{}, err
+		return plife.PropertyLine{}, err
 	}
-	line := screens.PropertyLine{No: pr.No, Type: named(pr.TypeCode, t.Name), Kind: t.Kind, Size: t.Size,
+	line := plife.PropertyLine{No: pr.No, Type: named(pr.TypeCode, t.Name), Kind: t.Kind, Size: t.Size,
 		Quality: t.Quality, City: govCity(city), Value: pr.Value, Debt: pr.Debt(), UnpaidPeriods: pr.UnpaidPeriods,
 		Home: t.Home}
 	offer, err := tx.Property().ListingOf(ctx, pr.ID)
@@ -618,7 +619,7 @@ func (h *PropertyHandler) propertyLine(ctx context.Context, tx application.Tx, s
 		return line, err
 	}
 	if offer != nil {
-		line.Offer = &screens.PropertyOfferLine{No: offer.No, Kind: offer.Kind, Type: line.Type, PropertyNo: pr.No,
+		line.Offer = &plife.PropertyOfferLine{No: offer.No, Kind: offer.Kind, Type: line.Type, PropertyNo: pr.No,
 			Price: offer.Price, Mine: true}
 	}
 	lease, err := tx.Property().LeaseOf(ctx, pr.ID)
@@ -692,12 +693,12 @@ func (h *PropertyHandler) restWait(ctx context.Context, tx application.Tx, playe
 
 // View handles property.view: one of the player's properties and what they
 // can do with it.
-func (h *PropertyHandler) View(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presenter.Response, error) {
+func (h *PropertyHandler) View(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presentation.Response, error) {
 	return h.view(ctx, meta, req, "")
 }
 
 func (h *PropertyHandler) view(ctx context.Context, meta envelope.Metadata, req PropertyRequest, notice string,
-) (*presenter.Response, error) {
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -707,7 +708,7 @@ func (h *PropertyHandler) view(ctx context.Context, meta envelope.Metadata, req 
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.PropertyView
+	var view plife.PropertyView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -718,7 +719,7 @@ func (h *PropertyHandler) view(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		if pr.OwnerID != p.ID {
-			return refuseProperty(screens.PropertyRefusedNotYours)
+			return refuseProperty(plife.PropertyRefusedNotYours)
 		}
 		line, err := h.propertyLine(ctx, tx, snap, *pr)
 		if err != nil {
@@ -733,30 +734,30 @@ func (h *PropertyHandler) view(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		t, _ := snap.PropertyType(pr.TypeCode)
-		view = screens.PropertyView{Property: line, Place: placeNamed(snap, t.Place), Upkeep: t.Upkeep, TaxBPS: rate,
+		view = plife.PropertyView{Property: line, Place: placeNamed(snap, t.Place), Upkeep: t.Upkeep, TaxBPS: rate,
 			MaxPrice: h.rules.MaxPrice, MaxRent: h.rules.MaxRent, Notice: notice}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Property(h.screen(meta, lang), view), nil
+	return plife.Property(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Sell handles property.sell and Let property.let: the owner offers a
 // property for sale at a price, or to let at a rent per period. A property
 // in debt, let, or already offered cannot be.
-func (h *PropertyHandler) Sell(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presenter.Response, error) {
+func (h *PropertyHandler) Sell(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presentation.Response, error) {
 	return h.offer(ctx, meta, req, application.OfferSale)
 }
 
 // Let handles property.let; see Sell.
-func (h *PropertyHandler) Let(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presenter.Response, error) {
+func (h *PropertyHandler) Let(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presentation.Response, error) {
 	return h.offer(ctx, meta, req, application.OfferRent)
 }
 
 func (h *PropertyHandler) offer(ctx context.Context, meta envelope.Metadata, req PropertyRequest, kind string,
-) (*presenter.Response, error) {
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -774,7 +775,7 @@ func (h *PropertyHandler) offer(ctx context.Context, meta envelope.Metadata, req
 		limit = h.rules.MaxRent
 	}
 	lang := meta.Language
-	back := []string{screens.AddrProperty, strconv.FormatInt(no, 10)}
+	back := []string{plife.AddrProperty, strconv.FormatInt(no, 10)}
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -785,24 +786,24 @@ func (h *PropertyHandler) offer(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		if price > limit {
-			return &propertyRefusal{view: screens.PropertyRefusalView{Kind: screens.PropertyRefusedPrice, Max: limit, Back: back}}
+			return &propertyRefusal{view: plife.PropertyRefusalView{Kind: plife.PropertyRefusedPrice, Max: limit, Back: refOf(back)}}
 		}
 		pr, err := tx.Property().ByNo(ctx, no, true)
 		if err != nil {
 			return err
 		}
 		if pr.OwnerID != p.ID {
-			return refuseProperty(screens.PropertyRefusedNotYours)
+			return refuseProperty(plife.PropertyRefusedNotYours)
 		}
 		if pr.Debt() > 0 {
-			return refuseProperty(screens.PropertyRefusedInDebt, back...)
+			return refuseProperty(plife.PropertyRefusedInDebt, back...)
 		}
 		lease, err := tx.Property().LeaseOf(ctx, pr.ID)
 		if err != nil {
 			return err
 		}
 		if lease != nil {
-			return refuseProperty(screens.PropertyRefusedLet, back...)
+			return refuseProperty(plife.PropertyRefusedLet, back...)
 		}
 		// A property securing a running mortgage is not the owner's to sell
 		// until it is repaid (docs/adr/0026).
@@ -811,24 +812,24 @@ func (h *PropertyHandler) offer(ctx context.Context, meta envelope.Metadata, req
 				if err != nil {
 					return err
 				}
-				return refuseProperty(screens.PropertyRefusedPledged, back...)
+				return refuseProperty(plife.PropertyRefusedPledged, back...)
 			}
 		}
 		_, err = tx.Property().OpenListing(ctx, application.PropertyListing{ID: h.ids.NewID(), PropertyID: pr.ID,
 			SellerID: p.ID, Kind: kind, Price: price, CreatedAt: h.now()})
 		if isSentinel(err, application.ErrOfferExists) {
-			return refuseProperty(screens.PropertyRefusedOffered, back...)
+			return refuseProperty(plife.PropertyRefusedOffered, back...)
 		}
 		return err
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return h.view(ctx, meta, PropertyRequest{No: strconv.FormatInt(no, 10)}, screens.PropertyNoticeListed)
+	return h.view(ctx, meta, PropertyRequest{No: strconv.FormatInt(no, 10)}, plife.PropertyNoticeListed)
 }
 
 // Cancel handles property.cancel: the owner withdraws a property's offer.
-func (h *PropertyHandler) Cancel(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presenter.Response, error) {
+func (h *PropertyHandler) Cancel(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -847,7 +848,7 @@ func (h *PropertyHandler) Cancel(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		if pr.OwnerID != p.ID {
-			return refuseProperty(screens.PropertyRefusedNotYours)
+			return refuseProperty(plife.PropertyRefusedNotYours)
 		}
 		offer, err := tx.Property().ListingOf(ctx, pr.ID)
 		if err != nil || offer == nil {
@@ -859,7 +860,7 @@ func (h *PropertyHandler) Cancel(ctx context.Context, meta envelope.Metadata, re
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return h.view(ctx, meta, PropertyRequest{No: strconv.FormatInt(no, 10)}, screens.PropertyNoticeCancelled)
+	return h.view(ctx, meta, PropertyRequest{No: strconv.FormatInt(no, 10)}, plife.PropertyNoticeCancelled)
 }
 
 // ---------------------------------------------------------------------------
@@ -867,7 +868,7 @@ func (h *PropertyHandler) Cancel(ctx context.Context, meta envelope.Metadata, re
 
 // Offer handles property.offer: one owner's offer, and the ways to take it
 // at the land registry.
-func (h *PropertyHandler) Offer(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presenter.Response, error) {
+func (h *PropertyHandler) Offer(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -877,7 +878,7 @@ func (h *PropertyHandler) Offer(ctx context.Context, meta envelope.Metadata, req
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.PropertyOfferView
+	var view plife.PropertyOfferView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -900,7 +901,7 @@ func (h *PropertyHandler) Offer(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		view = screens.PropertyOfferView{Offer: line, City: govCity(city), Kind: t.Kind, Size: t.Size, Quality: t.Quality,
+		view = plife.PropertyOfferView{Offer: line, City: govCity(city), Kind: t.Kind, Size: t.Size, Quality: t.Quality,
 			Upkeep: t.Upkeep, Home: t.Home, Max: h.rules.MaxOwned}
 		if view.Blocked, err = h.offerBlocked(ctx, tx, o, p); err != nil || view.Blocked != "" {
 			return err
@@ -910,7 +911,7 @@ func (h *PropertyHandler) Offer(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		if here == nil || here.ID != pr.CityID {
-			view.Blocked = screens.PropertyRefusedNotInCity
+			view.Blocked = plife.PropertyRefusedNotInCity
 			return nil
 		}
 		w, err := locate(ctx, tx, h.cities, snap, p)
@@ -932,7 +933,7 @@ func (h *PropertyHandler) Offer(ctx context.Context, meta envelope.Metadata, req
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.PropertyOffer(h.screen(meta, lang), view), nil
+	return plife.PropertyOffer(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // offerBlocked says why a player may not take an offer, "" when they may.
@@ -941,20 +942,20 @@ func (h *PropertyHandler) offerBlocked(ctx context.Context, tx application.Tx, o
 ) (string, error) {
 	switch {
 	case o.Status != application.OfferOpen:
-		return screens.PropertyRefusedTaken, nil
+		return plife.PropertyRefusedTaken, nil
 	case o.SellerID == p.ID:
-		return screens.PropertyRefusedOwn, nil
+		return plife.PropertyRefusedOwn, nil
 	}
 	if o.Kind == application.OfferRent {
 		lease, err := tx.Property().TenantLease(ctx, p.ID)
 		if err != nil || lease != nil {
-			return screens.PropertyRefusedRenting, err
+			return plife.PropertyRefusedRenting, err
 		}
 		return "", nil
 	}
 	owned, err := tx.Property().OwnedBy(ctx, p.ID)
 	if err != nil || owned >= h.rules.MaxOwned {
-		return screens.PropertyRefusedTooMany, err
+		return plife.PropertyRefusedTooMany, err
 	}
 	return "", nil
 }
@@ -994,16 +995,16 @@ func (h *PropertyHandler) takeOffer(ctx context.Context, tx application.Tx, snap
 	if o, err = tx.Property().ListingByNo(ctx, no, true); err != nil {
 		return nil, nil, nil, nil, err
 	}
-	back := []string{screens.AddrPropertyOffer, strconv.FormatInt(no, 10)}
+	back := []string{plife.AddrPropertyOffer, strconv.FormatInt(no, 10)}
 	if o.Kind != kind || pr.OwnerID != o.SellerID || pr.Status != application.PropertyOwned {
-		return nil, nil, nil, nil, refuseProperty(screens.PropertyRefusedTaken, screens.AddrPropertyMarket)
+		return nil, nil, nil, nil, refuseProperty(plife.PropertyRefusedTaken, plife.AddrPropertyMarket)
 	}
 	blocked, err := h.offerBlocked(ctx, tx, o, p)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 	if blocked != "" {
-		r := &propertyRefusal{view: screens.PropertyRefusalView{Kind: blocked, Max: int64(h.rules.MaxOwned), Back: back}}
+		r := &propertyRefusal{view: plife.PropertyRefusalView{Kind: blocked, Max: int64(h.rules.MaxOwned), Back: refOf(back)}}
 		return nil, nil, nil, nil, r
 	}
 	here, err := h.hereCity(ctx, tx, p)
@@ -1011,7 +1012,7 @@ func (h *PropertyHandler) takeOffer(ctx context.Context, tx application.Tx, snap
 		return nil, nil, nil, nil, err
 	}
 	if here == nil || here.ID != pr.CityID {
-		return nil, nil, nil, nil, refuseProperty(screens.PropertyRefusedNotInCity, back...)
+		return nil, nil, nil, nil, refuseProperty(plife.PropertyRefusedNotInCity, back...)
 	}
 	w, err := locate(ctx, tx, h.cities, snap, p)
 	if err != nil {
@@ -1027,7 +1028,7 @@ func (h *PropertyHandler) takeOffer(ctx context.Context, tx application.Tx, snap
 // registry, once — the price from the buyer's chosen purse, less the
 // city's market fee to the seller's bank, the deed to the buyer, the offer
 // closed, in one transaction.
-func (h *PropertyHandler) Buy(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presenter.Response, error) {
+func (h *PropertyHandler) Buy(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -1051,7 +1052,7 @@ func (h *PropertyHandler) Buy(ctx context.Context, meta envelope.Metadata, req P
 		}
 		replay = false
 		if pr.Debt() > 0 {
-			return refuseProperty(screens.PropertyRefusedInDebt, screens.AddrPropertyMarket)
+			return refuseProperty(plife.PropertyRefusedInDebt, plife.AddrPropertyMarket)
 		}
 		fee, err := h.policy.Get(ctx, city.JurisdictionID, LeverMarketFee)
 		if err != nil {
@@ -1062,7 +1063,7 @@ func (h *PropertyHandler) Buy(ctx context.Context, meta envelope.Metadata, req P
 		if err != nil {
 			return err
 		}
-		back := []string{screens.AddrPropertyOffer, strconv.FormatInt(no, 10)}
+		back := []string{plife.AddrPropertyOffer, strconv.FormatInt(no, 10)}
 		plan := wallet.Plan(money.FromMinor(o.Price), snap.Accepts(content.ServiceProperty))
 		if err := checkMethod(plan, method, wallet, "property.button.back_to_offer", back...); err != nil {
 			return err
@@ -1091,7 +1092,7 @@ func (h *PropertyHandler) Buy(ctx context.Context, meta envelope.Metadata, req P
 		}
 		if closed, err := tx.Property().CloseListing(ctx, o.ID, application.OfferTaken, p.ID, now); err != nil || !closed {
 			if err == nil {
-				err = refuseProperty(screens.PropertyRefusedTaken, screens.AddrPropertyMarket)
+				err = refuseProperty(plife.PropertyRefusedTaken, plife.AddrPropertyMarket)
 			}
 			return err
 		}
@@ -1127,7 +1128,7 @@ func (h *PropertyHandler) Buy(ctx context.Context, meta envelope.Metadata, req P
 	if replay || bought == 0 {
 		return h.Mine(ctx, meta)
 	}
-	return h.mine(ctx, meta, screens.PropertyNoticeBought, mineArg)
+	return h.mine(ctx, meta, plife.PropertyNoticeBought, mineArg)
 }
 
 // Rent handles property.rent: a lease taken at the land registry, once — the
@@ -1135,7 +1136,7 @@ func (h *PropertyHandler) Buy(ctx context.Context, meta envelope.Metadata, req P
 // the lease begun, the offer closed, in one transaction. The rent of that
 // period is recorded paid; each later period's falls due at its end. A home
 // makes its city the tenant's residence.
-func (h *PropertyHandler) Rent(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presenter.Response, error) {
+func (h *PropertyHandler) Rent(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -1158,7 +1159,7 @@ func (h *PropertyHandler) Rent(ctx context.Context, meta envelope.Metadata, req 
 		if err != nil {
 			return err
 		}
-		back := []string{screens.AddrPropertyOffer, strconv.FormatInt(no, 10)}
+		back := []string{plife.AddrPropertyOffer, strconv.FormatInt(no, 10)}
 		plan := wallet.Plan(money.FromMinor(o.Price), snap.Accepts(content.ServiceProperty))
 		if err := checkMethod(plan, method, wallet, "property.button.back_to_offer", back...); err != nil {
 			return err
@@ -1170,7 +1171,7 @@ func (h *PropertyHandler) Rent(ctx context.Context, meta envelope.Metadata, req 
 		lease, err := tx.Property().StartLease(ctx, application.PropertyLease{ID: h.ids.NewID(), PropertyID: pr.ID,
 			LandlordID: o.SellerID, TenantID: p.ID, Rent: o.Price, StartedAt: now})
 		if isSentinel(err, application.ErrLeaseExists) {
-			return refuseProperty(screens.PropertyRefusedRenting, back...)
+			return refuseProperty(plife.PropertyRefusedRenting, back...)
 		}
 		if err != nil {
 			return err
@@ -1193,7 +1194,7 @@ func (h *PropertyHandler) Rent(ctx context.Context, meta envelope.Metadata, req 
 		}
 		if closed, err := tx.Property().CloseListing(ctx, o.ID, application.OfferTaken, p.ID, now); err != nil || !closed {
 			if err == nil {
-				err = refuseProperty(screens.PropertyRefusedTaken, screens.AddrPropertyMarket)
+				err = refuseProperty(plife.PropertyRefusedTaken, plife.AddrPropertyMarket)
 			}
 			return err
 		}
@@ -1214,12 +1215,12 @@ func (h *PropertyHandler) Rent(ctx context.Context, meta envelope.Metadata, req 
 	if replay {
 		return h.Mine(ctx, meta)
 	}
-	return h.mine(ctx, meta, screens.PropertyNoticeRented, nil)
+	return h.mine(ctx, meta, plife.PropertyNoticeRented, nil)
 }
 
 // Leave handles property.leave: the tenant leaves the home they rent, after
 // confirming. What they paid for this period is not returned.
-func (h *PropertyHandler) Leave(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presenter.Response, error) {
+func (h *PropertyHandler) Leave(ctx context.Context, meta envelope.Metadata, req PropertyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -1229,8 +1230,8 @@ func (h *PropertyHandler) Leave(ctx context.Context, meta envelope.Metadata, req
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	confirm := strings.TrimSpace(req.Confirm) == screens.PropertyYes
-	var ask *screens.PropertyLeaveView
+	confirm := strings.TrimSpace(req.Confirm) == plife.PropertyYes
+	var ask *plife.PropertyLeaveView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -1241,7 +1242,7 @@ func (h *PropertyHandler) Leave(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		if lease == nil || lease.TenantID != p.ID || lease.Status != application.LeaseActive {
-			return refuseProperty(screens.PropertyRefusedNotYours)
+			return refuseProperty(plife.PropertyRefusedNotYours)
 		}
 		pr, err := tx.Property().ByID(ctx, lease.PropertyID, false)
 		if err != nil {
@@ -1253,7 +1254,7 @@ func (h *PropertyHandler) Leave(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		if !confirm {
-			ask = &screens.PropertyLeaveView{LeaseNo: lease.No, Type: named(t.Code, t.Name), City: govCity(city)}
+			ask = &plife.PropertyLeaveView{LeaseNo: lease.No, Type: named(t.Code, t.Name), City: govCity(city)}
 			return nil
 		}
 		fresh, err := h.reserve(ctx, tx, p.ID, meta)
@@ -1277,15 +1278,15 @@ func (h *PropertyHandler) Leave(ctx context.Context, meta envelope.Metadata, req
 		return resp, err
 	}
 	if ask != nil {
-		return screens.PropertyLeave(h.screen(meta, lang), *ask), nil
+		return plife.PropertyLeave(presentation.Ctx{Lang: lang}, *ask), nil
 	}
-	return h.mine(ctx, meta, screens.PropertyNoticeLeft, nil)
+	return h.mine(ctx, meta, plife.PropertyNoticeLeft, nil)
 }
 
 // Rest handles property.rest: the player rests at a home they own (and have
 // not let) or rent in the city they stand in, at its place, for the home's
 // energy, once every property.rest_cooldown of game time.
-func (h *PropertyHandler) Rest(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *PropertyHandler) Rest(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -1310,7 +1311,7 @@ func (h *PropertyHandler) Rest(ctx context.Context, meta envelope.Metadata) (*pr
 			return err
 		}
 		if !ok {
-			return refuseProperty(screens.PropertyRefusedNoHome)
+			return refuseProperty(plife.PropertyRefusedNoHome)
 		}
 		w, err := locate(ctx, tx, h.cities, snap, p)
 		if err != nil {
@@ -1330,7 +1331,7 @@ func (h *PropertyHandler) Rest(ctx context.Context, meta envelope.Metadata) (*pr
 			return err
 		}
 		if wait > 0 {
-			return &propertyRefusal{view: screens.PropertyRefusalView{Kind: screens.PropertyRefusedTooSoon, Wait: wait}}
+			return &propertyRefusal{view: plife.PropertyRefusalView{Kind: plife.PropertyRefusedTooSoon, Wait: wait}}
 		}
 		before := stats.Energy
 		stats.Energy = min(stats.Energy+t.RestEnergy, stats.MaxEnergy)
@@ -1360,5 +1361,11 @@ func (h *PropertyHandler) Rest(ctx context.Context, meta envelope.Metadata) (*pr
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return h.mine(ctx, meta, screens.PropertyNoticeRested, map[string]any{"energy": gained, "rest": rested})
+	return h.mine(ctx, meta, plife.PropertyNoticeRested, map[string]any{"energy": gained, "rest": rested})
+}
+
+// refOf reads the parts of an address (the screen, then its arguments) as the
+// place to go back to.
+func refOf(parts []string) presentation.Ref {
+	return presentation.RefOfAddress(strings.Join(parts, ":"))
 }

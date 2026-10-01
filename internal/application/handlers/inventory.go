@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"sort"
 	"strconv"
 	"strings"
@@ -20,8 +22,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // InventoryHandler serves what a player carries (internal/domain/inventory,
@@ -99,26 +99,22 @@ type ItemRequest struct {
 	To      string `json:"to,omitempty"`
 }
 
-func (h *InventoryHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
-}
-
 // itemRefusal carries a refused request out of a unit of work.
-type itemRefusal struct{ view screens.ItemRefusalView }
+type itemRefusal struct{ view plife.ItemRefusalView }
 
 func (r *itemRefusal) Error() string { return "handlers: item refused: " + r.view.Kind }
 
-func refuseItem(kind string, it screens.Named) *itemRefusal {
-	return &itemRefusal{view: screens.ItemRefusalView{Kind: kind, Item: it}}
+func refuseItem(kind string, it presentation.Named) *itemRefusal {
+	return &itemRefusal{view: plife.ItemRefusalView{Kind: kind, Item: it}}
 }
 
-func (h *InventoryHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *InventoryHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	var r *itemRefusal
 	if stderrors.As(err, &r) {
-		return screens.ItemRefusal(h.screen(meta, lang), r.view), nil
+		return plife.ItemRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
 	if v, ok := asNotHere(err); ok {
-		return screens.NotHere(h.screen(meta, lang), v), nil
+		return plife.NotHere(presentation.Ctx{Lang: lang}, v), nil
 	}
 	return nil, err
 }
@@ -130,14 +126,14 @@ func (h *InventoryHandler) nonce() string {
 }
 
 // Show handles inventory.show: what the player carries, a page at a time.
-func (h *InventoryHandler) Show(ctx context.Context, meta envelope.Metadata, req PageRequest) (*presenter.Response, error) {
+func (h *InventoryHandler) Show(ctx context.Context, meta envelope.Metadata, req PageRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	page := parsePage(req.Page)
-	var view screens.InventoryView
+	var view plife.InventoryView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -154,7 +150,7 @@ func (h *InventoryHandler) Show(ctx context.Context, meta envelope.Metadata, req
 		}
 		lines := inventoryLines(snap, stacks, pieces, names)
 		start, end, pages := pageWindow(len(lines), page, h.pageSize)
-		view = screens.InventoryView{Lines: lines[start:end], Page: min(page, pages), Pages: pages, Total: len(lines)}
+		view = plife.InventoryView{Lines: lines[start:end], Page: min(page, pages), Pages: pages, Total: len(lines)}
 		esc, escPieces, err := tx.Items().Holdings(ctx, p.ID, application.HoldEscrow)
 		if err != nil {
 			return err
@@ -165,25 +161,25 @@ func (h *InventoryHandler) Show(ctx context.Context, meta envelope.Metadata, req
 	if err != nil {
 		return nil, err
 	}
-	return screens.Inventory(h.screen(meta, lang), view), nil
+	return plife.Inventory(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // inventoryLines lists stacks and pieces in the content's order of goods.
 func inventoryLines(snap *content.Snapshot, stacks []application.Stack, pieces []application.Piece,
 	designs map[string]string,
-) []screens.InventoryLine {
+) []plife.InventoryLine {
 	order := map[string]int{}
 	for i, d := range snap.Items() {
 		order[d.Code] = i
 	}
-	var lines []screens.InventoryLine
+	var lines []plife.InventoryLine
 	for _, s := range stacks {
 		def, _ := snap.ItemDef(s.Item)
-		lines = append(lines, screens.InventoryLine{Item: itemNamed(snap, s.Item), Category: def.Category, Qty: s.Qty})
+		lines = append(lines, plife.InventoryLine{Item: itemNamed(snap, s.Item), Category: def.Category, Qty: s.Qty})
 	}
 	for _, pc := range pieces {
 		def, _ := snap.ItemDef(pc.Item)
-		lines = append(lines, screens.InventoryLine{Item: itemNamed(snap, pc.Item), Category: def.Category, Qty: 1,
+		lines = append(lines, plife.InventoryLine{Item: itemNamed(snap, pc.Item), Category: def.Category, Qty: 1,
 			Serial: pc.Serial, Quality: pc.Quality, UsesLeft: pc.UsesLeft, Durability: def.Durability,
 			Design: designs[pc.DesignID]})
 	}
@@ -227,13 +223,13 @@ func held(ctx context.Context, tx application.Tx, playerID, ref string) (code st
 
 // Item handles inventory.item: one good or piece in detail, with what the
 // player can do with it.
-func (h *InventoryHandler) Item(ctx context.Context, meta envelope.Metadata, req ItemRequest) (*presenter.Response, error) {
+func (h *InventoryHandler) Item(ctx context.Context, meta envelope.Metadata, req ItemRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ItemDetailView
+	var view plife.ItemDetailView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -245,7 +241,7 @@ func (h *InventoryHandler) Item(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		if qty == 0 {
-			return refuseItem(screens.ItemRefusedNotHeld, itemNamed(snap, req.Item))
+			return refuseItem(plife.ItemRefusedNotHeld, itemNamed(snap, req.Item))
 		}
 		view, err = h.detail(ctx, tx, snap, p, code, qty, piece)
 		return err
@@ -253,16 +249,16 @@ func (h *InventoryHandler) Item(ctx context.Context, meta envelope.Metadata, req
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
 		return resp, ferr
 	}
-	return screens.ItemDetail(h.screen(meta, lang), view), nil
+	return plife.ItemDetail(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // detail builds a good's detail view.
 func (h *InventoryHandler) detail(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player,
 	code string, qty int64, piece *application.Piece,
-) (screens.ItemDetailView, error) {
+) (plife.ItemDetailView, error) {
 	def, _ := snap.ItemDef(code)
 	rules := def.Item()
-	v := screens.ItemDetailView{
+	v := plife.ItemDetailView{
 		Item: itemNamed(snap, code), Category: def.Category, Qty: qty, Worth: def.BasePrice,
 		Usable: rules.Usable(), Tradeable: rules.Tradeable, Nonce: h.nonce(), Ref: code,
 	}
@@ -271,10 +267,10 @@ func (h *InventoryHandler) detail(ctx context.Context, tx application.Tx, snap *
 		v.Quality, v.UsesLeft, v.Durability = piece.Quality, piece.UsesLeft, def.Durability
 	}
 	for _, e := range def.Effects {
-		v.Effects = append(v.Effects, screens.EffectLine{Target: e.Target, Op: e.Op, Value: e.Value})
+		v.Effects = append(v.Effects, plife.EffectLine{Target: e.Target, Op: e.Op, Value: e.Value})
 	}
 	if g := def.Gear; g != nil {
-		v.Gear = &screens.GearLine{SuccessBPS: g.SuccessBPS, CatchBPS: g.CatchBPS, WitnessBPS: g.WitnessBPS,
+		v.Gear = &plife.GearLine{SuccessBPS: g.SuccessBPS, CatchBPS: g.CatchBPS, WitnessBPS: g.WitnessBPS,
 			SolveBPS: g.SolveBPS, RewardBPS: g.RewardBPS, Nerve: g.Nerve, Confiscated: g.Confiscated}
 		for _, c := range g.Categories {
 			for _, cat := range snap.CrimeCategories() {
@@ -313,7 +309,7 @@ func (h *InventoryHandler) detail(ctx context.Context, tx application.Tx, snap *
 // friendsHere lists the player's friends standing where they stand: in the
 // same city, not travelling, at the same place. A gift changes hands in
 // person.
-func (h *InventoryHandler) friendsHere(ctx context.Context, tx application.Tx, p *application.Player) ([]screens.Named, error) {
+func (h *InventoryHandler) friendsHere(ctx context.Context, tx application.Tx, p *application.Player) ([]presentation.Named, error) {
 	if p.CityID == nil {
 		return nil, nil
 	}
@@ -325,7 +321,7 @@ func (h *InventoryHandler) friendsHere(ctx context.Context, tx application.Tx, p
 	if err != nil {
 		return nil, err
 	}
-	var out []screens.Named
+	var out []presentation.Named
 	for _, e := range edges {
 		if e.Status != friendAccepted {
 			continue
@@ -350,7 +346,7 @@ func (h *InventoryHandler) friendsHere(ctx context.Context, tx application.Tx, p
 		if there != here {
 			continue
 		}
-		out = append(out, screens.Named{Code: f.PublicCode, Name: f.DisplayName})
+		out = append(out, presentation.Named{Code: f.PublicCode, Name: f.DisplayName})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out, nil
@@ -368,14 +364,14 @@ func (h *InventoryHandler) reserve(ctx context.Context, tx application.Tx, playe
 
 // Use handles inventory.use: one unit of a good (or one use of a piece)
 // applied to the player's condition.
-func (h *InventoryHandler) Use(ctx context.Context, meta envelope.Metadata, req ItemRequest) (*presenter.Response, error) {
+func (h *InventoryHandler) Use(ctx context.Context, meta envelope.Metadata, req ItemRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view     screens.ItemUsedView
+		view     plife.ItemUsedView
 		replayed bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -408,13 +404,13 @@ func (h *InventoryHandler) Use(ctx context.Context, meta envelope.Metadata, req 
 		}
 		it := itemNamed(snap, req.Item)
 		if qty == 0 {
-			return refuseItem(screens.ItemRefusedNotHeld, it)
+			return refuseItem(plife.ItemRefusedNotHeld, it)
 		}
 		it = itemNamed(snap, code)
 		def, _ := snap.ItemDef(code)
 		rules := def.Item()
 		if !rules.Usable() {
-			return refuseItem(screens.ItemRefusedNotUsable, it)
+			return refuseItem(plife.ItemRefusedNotUsable, it)
 		}
 		last, err := tx.Items().LastUsed(ctx, p.ID, rules.Group())
 		if err != nil {
@@ -462,12 +458,12 @@ func (h *InventoryHandler) Use(ctx context.Context, meta envelope.Metadata, req 
 		after, ready, err := inventory.Use(rules, v, last, now, h.scale)
 		switch {
 		case stderrors.Is(err, inventory.ErrCoolingDown):
-			r := refuseItem(screens.ItemRefusedCooling, it)
+			r := refuseItem(plife.ItemRefusedCooling, it)
 			r.view.Wait = inventory.Cooling(rules, last, now, h.scale)
 			r.view.ReadyAt = now.Add(r.view.Wait)
 			return r
 		case stderrors.Is(err, inventory.ErrNoEffect):
-			return refuseItem(screens.ItemRefusedNoEffect, it)
+			return refuseItem(plife.ItemRefusedNoEffect, it)
 		case err != nil:
 			return errors.Internal(err)
 		}
@@ -510,7 +506,7 @@ func (h *InventoryHandler) Use(ctx context.Context, meta envelope.Metadata, req 
 				return err
 			}
 		}
-		view = screens.ItemUsedView{Item: it, Left: left, ReadyAt: ready, Cooldown: h.scale.RealWait(rules.Cooldown)}
+		view = plife.ItemUsedView{Item: it, Left: left, ReadyAt: ready, Cooldown: h.scale.RealWait(rules.Cooldown)}
 		for _, c := range []struct {
 			target        string
 			before, after int
@@ -525,7 +521,7 @@ func (h *InventoryHandler) Use(ctx context.Context, meta envelope.Metadata, req 
 			{inventory.TargetStress, v.Stress, after.Stress, v.MaxNeed},
 		} {
 			if c.before != c.after {
-				view.Changes = append(view.Changes, screens.VitalChange{Target: c.target, Before: c.before, After: c.after, Max: c.max})
+				view.Changes = append(view.Changes, plife.VitalChange{Target: c.target, Before: c.before, After: c.after, Max: c.max})
 			}
 		}
 		return appendItemEvent(ctx, tx, meta, "used", p.ID, map[string]any{
@@ -538,12 +534,12 @@ func (h *InventoryHandler) Use(ctx context.Context, meta envelope.Metadata, req 
 	if replayed {
 		return h.Show(ctx, meta, PageRequest{})
 	}
-	return screens.ItemUsed(h.screen(meta, lang), view), nil
+	return plife.ItemUsed(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Give handles inventory.give: one unit or piece to a friend standing at the
 // same place. Without a friend named it shows who can receive it.
-func (h *InventoryHandler) Give(ctx context.Context, meta envelope.Metadata, req ItemRequest) (*presenter.Response, error) {
+func (h *InventoryHandler) Give(ctx context.Context, meta envelope.Metadata, req ItemRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -553,7 +549,7 @@ func (h *InventoryHandler) Give(ctx context.Context, meta envelope.Metadata, req
 		return h.Item(ctx, meta, req)
 	}
 	var (
-		view     screens.ItemGivenView
+		view     plife.ItemGivenView
 		replayed bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -575,14 +571,14 @@ func (h *InventoryHandler) Give(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		var to *screens.Named
+		var to *presentation.Named
 		for i := range friends {
 			if strings.EqualFold(friends[i].Code, req.To) {
 				to = &friends[i]
 			}
 		}
 		if to == nil {
-			return refuseItem(screens.ItemRefusedNotTogether, itemNamed(snap, req.Item))
+			return refuseItem(plife.ItemRefusedNotTogether, itemNamed(snap, req.Item))
 		}
 		friendID := ""
 		edges, err := tx.Friendships().List(ctx, p.ID)
@@ -595,7 +591,7 @@ func (h *InventoryHandler) Give(ctx context.Context, meta envelope.Metadata, req
 			}
 		}
 		if friendID == "" {
-			return refuseItem(screens.ItemRefusedNotTogether, itemNamed(snap, req.Item))
+			return refuseItem(plife.ItemRefusedNotTogether, itemNamed(snap, req.Item))
 		}
 		// Both holders' goods, in id order, so two gifts crossing cannot
 		// deadlock.
@@ -614,11 +610,11 @@ func (h *InventoryHandler) Give(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		if qty == 0 {
-			return refuseItem(screens.ItemRefusedNotHeld, itemNamed(snap, req.Item))
+			return refuseItem(plife.ItemRefusedNotHeld, itemNamed(snap, req.Item))
 		}
 		def, _ := snap.ItemDef(code)
 		if !def.Item().Tradeable {
-			return refuseItem(screens.ItemRefusedNotTradeable, itemNamed(snap, code))
+			return refuseItem(plife.ItemRefusedNotTradeable, itemNamed(snap, code))
 		}
 		move := application.ItemMove{ID: h.ids.NewID(), Item: code, Qty: 1, From: p.ID, FromHolding: application.HoldCarried,
 			To: friendID, ToHolding: application.HoldCarried, Reason: application.ItemGift,
@@ -628,11 +624,11 @@ func (h *InventoryHandler) Give(ctx context.Context, meta envelope.Metadata, req
 		}
 		if err := tx.Items().Move(ctx, move); err != nil {
 			if isSentinel(err, application.ErrNotEnoughItems) || isSentinel(err, application.ErrPieceNotFound) {
-				return refuseItem(screens.ItemRefusedNotHeld, itemNamed(snap, code))
+				return refuseItem(plife.ItemRefusedNotHeld, itemNamed(snap, code))
 			}
 			return err
 		}
-		view = screens.ItemGivenView{Item: itemNamed(snap, code), To: *to}
+		view = plife.ItemGivenView{Item: itemNamed(snap, code), To: *to}
 		return appendItemEvent(ctx, tx, meta, "given", friendID, map[string]any{
 			"player_id": friendID, "from_name": shownName(p), "from_code": p.PublicCode, "item": code,
 			"item_name": def.Name, "content_version": snap.Version(),
@@ -644,20 +640,20 @@ func (h *InventoryHandler) Give(ctx context.Context, meta envelope.Metadata, req
 	if replayed {
 		return h.Show(ctx, meta, PageRequest{})
 	}
-	return screens.ItemGiven(h.screen(meta, lang), view), nil
+	return plife.ItemGiven(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Drop handles inventory.drop: throwing away one unit or piece. Without the
 // confirmation it asks first.
-func (h *InventoryHandler) Drop(ctx context.Context, meta envelope.Metadata, req ItemRequest) (*presenter.Response, error) {
+func (h *InventoryHandler) Drop(ctx context.Context, meta envelope.Metadata, req ItemRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	confirmed := req.Confirm == screens.DropConfirmation
+	confirmed := req.Confirm == plife.DropConfirmation
 	var (
-		view     screens.ItemDroppedView
+		view     plife.ItemDroppedView
 		ask      bool
 		replayed bool
 	)
@@ -685,9 +681,9 @@ func (h *InventoryHandler) Drop(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		if qty == 0 {
-			return refuseItem(screens.ItemRefusedNotHeld, itemNamed(snap, req.Item))
+			return refuseItem(plife.ItemRefusedNotHeld, itemNamed(snap, req.Item))
 		}
-		view = screens.ItemDroppedView{Item: itemNamed(snap, code), Ref: req.Item, Nonce: h.nonce()}
+		view = plife.ItemDroppedView{Item: itemNamed(snap, code), Ref: req.Item, Nonce: h.nonce()}
 		if !confirmed {
 			ask = true
 			return nil
@@ -706,9 +702,9 @@ func (h *InventoryHandler) Drop(ctx context.Context, meta envelope.Metadata, req
 	case replayed:
 		return h.Show(ctx, meta, PageRequest{})
 	case ask:
-		return screens.DropConfirm(h.screen(meta, lang), view), nil
+		return plife.DropConfirm(presentation.Ctx{Lang: lang}, view), nil
 	}
-	return screens.ItemDropped(h.screen(meta, lang), view), nil
+	return plife.ItemDropped(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // appendItemEvent writes an inventory event to the outbox in the command's

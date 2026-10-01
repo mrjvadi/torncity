@@ -4,6 +4,36 @@
 // Every field is always present. A nil pointer, slice or map, and a zero time, are null.
 // A duration is whole seconds, rounded up, under the field's name with `_seconds` appended.
 
+export interface AchievementLine {
+  achievement: Named
+  count: number
+  done: number
+  reward: number
+  earned: boolean
+  cash: number
+}
+
+export interface AchievementsView {
+  lines: AchievementLine[] | null
+}
+
+export interface AvatarChoice {
+  code: string
+  name: string
+  emoji: string
+}
+
+export interface AvatarRef {
+  code: string
+  emoji: string
+  photo: boolean
+}
+
+export interface AvatarsView {
+  current: AvatarRef
+  avatars: AvatarChoice[] | null
+}
+
 export interface BatchLotFailure {
   x: number
   y: number
@@ -89,6 +119,36 @@ export interface BuildingView {
   upgrades: BuildingUpgradeLine[] | null
 }
 
+export interface CardView {
+  name: string
+  code: string
+  avatar: AvatarRef
+  bio: string
+  rank: RankRef | null
+  age: number
+  stage: Named
+  level: number
+  achievements: number
+  entries: number
+  joined_at: string | null
+  self: boolean
+  photo: Photo | null
+  notice: string
+}
+
+export interface CityMapView {
+  city_code: string
+  city: string
+  no_city: boolean
+  travelling: boolean
+  travelling_to_code: string
+  travelling_to: string
+  here: Named
+  walking: WalkView | null
+  others: number
+  places: PlaceLine[] | null
+}
+
 export interface ConstructionLine {
   id: string
   building: Named
@@ -110,6 +170,46 @@ export interface ConstructionProgressView {
   standing: StandingLine[] | null
 }
 
+export interface CourseRef {
+  code: string
+  name: string
+}
+
+export interface DashboardView {
+  name: string
+  city_code: string
+  city: string
+  place: Named
+  walk: WalkView | null
+  level: number
+  energy: number
+  max_energy: number
+  travelling: boolean
+  cash: number
+  bank: number
+  jail: ProfileJail | null
+}
+
+export interface DeviceLine {
+  id: string
+  name: string
+  via: string
+  created_at: string | null
+  last_seen_at: string | null
+}
+
+export interface DeviceLinkView {
+  code: string
+  expires_at: string | null
+  valid_seconds: number
+  mini_app_url: string
+}
+
+export interface DevicesView {
+  devices: DeviceLine[] | null
+  notice: string
+}
+
 export interface DonateView {
   village: string
   amount: number
@@ -121,7 +221,36 @@ export interface DonateView {
   settlement_id: string
 }
 
+export interface EffectLine {
+  target: string
+  op: string
+  value: number
+}
+
 export interface EmptyView {
+}
+
+export interface GearLine {
+  categories: Named[] | null
+  crimes: Named[] | null
+  success_bps: number
+  catch_bps: number
+  witness_bps: number
+  solve_bps: number
+  reward_bps: number
+  nerve: number
+  confiscated: boolean
+}
+
+export interface GovPlace {
+  kind: string
+  code: string
+  name: string
+}
+
+export interface GovPlayer {
+  name: string
+  code: string
 }
 
 export interface GridGrowView {
@@ -132,6 +261,104 @@ export interface GridGrowView {
   buildable_gained: number
   price: number
   treasury: number
+}
+
+export interface HistoryLine {
+  kind: string
+  at: string | null
+  code: string
+  name: string
+  sub: string
+  sub_name: string
+  place_kind: string
+  place: Named
+  amount: number
+  number: number
+  backfilled: boolean
+  private: boolean
+}
+
+export interface HistoryView {
+  name: string
+  code: string
+  self: boolean
+  lines: HistoryLine[] | null
+  page: number
+  pages: number
+  total: number
+}
+
+export interface InventoryLine {
+  item: Named
+  category: string
+  qty: number
+  serial: string
+  quality: number
+  uses_left: number
+  durability: number
+  design: string
+}
+
+export interface InventoryView {
+  lines: InventoryLine[] | null
+  page: number
+  pages: number
+  total: number
+  in_escrow: number
+}
+
+export interface ItemDetailView {
+  item: Named
+  category: string
+  qty: number
+  ref: string
+  piece: boolean
+  quality: number
+  uses_left: number
+  durability: number
+  worth: number
+  effects: EffectLine[] | null
+  gear: GearLine | null
+  usable: boolean
+  tradeable: boolean
+  cooldown_seconds: number
+  cooling_for_seconds: number
+  ready_at: string | null
+  nonce: string
+  give_to: Named[] | null
+}
+
+export interface ItemDroppedView {
+  item: Named
+  ref: string
+  nonce: string
+}
+
+export interface ItemGivenView {
+  item: Named
+  to: Named
+}
+
+export interface ItemRefusalView {
+  kind: string
+  item: Named
+  wait_seconds: number
+  ready_at: string | null
+}
+
+export interface ItemUsedView {
+  item: Named
+  changes: VitalChange[] | null
+  left: number
+  cooldown_seconds: number
+  ready_at: string | null
+}
+
+export interface JobRef {
+  career_code: string
+  career_name: string
+  rank: string
+  title: string
 }
 
 export interface KnowledgeLine {
@@ -281,6 +508,32 @@ export interface LandView {
   free_lots: number
 }
 
+export interface LifeRefusalView {
+  kind: string
+  wait_seconds: number
+  min: number
+  max: number
+}
+
+export interface LifeView {
+  needs: NeedsView
+  age: number
+  stage: Named
+  intelligence: number
+  intelligence_max: number
+  course_bps: number
+  skill_bps: number
+  rank: RankRef | null
+  next: RankRef | null
+  next_need: number
+  worth: WorthView
+  spots: SleepSpotLine[] | null
+  sleep_in_seconds: number
+  home: boolean
+  notice: string
+  notice_args: Record<string, unknown> | null
+}
+
 export interface LotBatchConfirmView {
   settlement_name: string
   building: Named
@@ -338,6 +591,30 @@ export interface LotGridView {
   from: LotBatchLot
   win_x: number
   win_y: number
+}
+
+export interface MapCity {
+  code: string
+  name: string
+  distance_km: number
+  emblem: string
+  village: boolean
+  settlement_id: string
+  lat: number
+  lon: number
+  fare: number
+  wait_seconds: number
+}
+
+export interface MapView {
+  destinations: MapCity[] | null
+  page: number
+  pages: number
+  origin_code: string
+  origin: string
+  travelling: boolean
+  travelling_to_code: string
+  travelling_to: string
 }
 
 export interface MaterialBought {
@@ -413,6 +690,56 @@ export interface Named {
   name: string
 }
 
+export interface NeedsView {
+  hunger: number
+  sleep: number
+  stress: number
+  happiness: number
+  body_bps: number
+  xpbps: number
+  pressing: string[] | null
+}
+
+export interface NotHereView {
+  need: string
+  need_args: Record<string, unknown> | null
+  mode: string
+  crime: Named
+  shop: Named
+  place: Named
+  here: Named
+  walk_seconds: number
+  walking: boolean
+  remaining_seconds: number
+  arrives_at: string | null
+  then: string
+  then_args: string[] | null
+}
+
+export interface PaymentChoice {
+  amount: number
+  accepted: string[] | null
+  usable: string[] | null
+  cash: number
+  bank: number
+}
+
+export interface Photo {
+  file_id: string
+  user_id: number
+  player_id: string
+}
+
+export interface PlaceLine {
+  place: Named
+  walk_seconds: number
+  energy: number
+  services: string[] | null
+  departures: string[] | null
+  shops: Named[] | null
+  here: boolean
+}
+
 export interface PrivateConfirmView {
   village: string
   building: Named
@@ -468,6 +795,66 @@ export interface PrivateMenuView {
   lines: PrivateLine[] | null
 }
 
+export interface ProfileCourse {
+  course: CourseRef
+  remaining_seconds: number
+  paused: boolean
+}
+
+export interface ProfileJail {
+  city_code: string
+  city: string
+  remaining_seconds: number
+  ends_at: string | null
+}
+
+export interface ProfileJob {
+  job: JobRef
+  city_code: string
+  city: string
+  pay: number
+  shift_ends_in_seconds: number
+}
+
+export interface ProfileView {
+  name: string
+  code: string
+  city_code: string
+  city: string
+  place: Named
+  walk: WalkView | null
+  level: number
+  xp: number
+  next_level_xp: number
+  energy: number
+  max_energy: number
+  energy_full_in_seconds: number
+  health: number
+  max_health: number
+  cash: number
+  bank: number
+  travelling: boolean
+  travel_to_code: string
+  travel_to: string
+  travel_remaining_seconds: number
+  work: ProfileWork | null
+  jail: ProfileJail | null
+  hospital: ProfileJail | null
+  achievements: number
+  avatar: string
+  rank: RankRef | null
+  age: number
+  stage: Named
+  needs: NeedsView | null
+  village: Named | null
+}
+
+export interface ProfileWork {
+  job: ProfileJob | null
+  course: ProfileCourse | null
+  certificates: number
+}
+
 export interface PromotionCriterionView {
   kind: string
   role: string
@@ -487,9 +874,160 @@ export interface PromotionView {
   settlement_id: string
 }
 
+export interface PropertyLeaveView {
+  lease_no: number
+  type: Named
+  city: GovPlace
+}
+
+export interface PropertyLine {
+  no: number
+  type: Named
+  kind: string
+  size: number
+  quality: number
+  city: GovPlace
+  value: number
+  debt: number
+  unpaid_periods: number
+  home: boolean
+  offer: PropertyOfferLine | null
+  tenant: GovPlayer | null
+  rent: number
+  arrears: number
+}
+
+export interface PropertyMarketView {
+  no_city: boolean
+  city: GovPlace
+  types: PropertyTypeLine[] | null
+  offers: PropertyOfferLine[] | null
+}
+
+export interface PropertyMineView {
+  owned: PropertyLine[] | null
+  rented: RentedHomeLine | null
+  residence: GovPlace
+  grace: number
+  can_rest: boolean
+  rest_in_seconds: number
+  rest_energy: number
+  notice: string
+  notice_args: Record<string, unknown> | null
+}
+
+export interface PropertyOfferLine {
+  no: number
+  kind: string
+  type: Named
+  property_no: number
+  price: number
+  seller: GovPlayer
+  mine: boolean
+}
+
+export interface PropertyOfferView {
+  offer: PropertyOfferLine
+  city: GovPlace
+  kind: string
+  size: number
+  quality: number
+  upkeep: number
+  home: boolean
+  payment: PaymentChoice | null
+  blocked: string
+  max: number
+  way: Way | null
+}
+
+export interface PropertyRefusalView {
+  kind: string
+  max: number
+  wait_seconds: number
+  back: Ref
+}
+
+export interface PropertyTypeLine {
+  type: Named
+  kind: string
+  size: number
+  quality: number
+  price: number
+  left: number
+  home: boolean
+}
+
+export interface PropertyTypeView {
+  city: GovPlace
+  type: Named
+  kind: string
+  size: number
+  quality: number
+  upkeep: number
+  home: boolean
+  rest_energy: number
+  place: Named
+  price: number
+  left: number
+  tax_bps: number
+  payment: PaymentChoice | null
+  blocked: string
+  max: number
+  way: Way | null
+  bought: number
+}
+
+export interface PropertyView {
+  property: PropertyLine
+  place: Named
+  upkeep: number
+  tax_bps: number
+  max_price: number
+  max_rent: number
+  notice: string
+}
+
+export interface RankRef {
+  code: string
+  name: string
+  emoji: string
+}
+
 export interface Ref {
   command: string
   args: string[] | null
+}
+
+export interface RefusalView {
+  kind: string
+  missing: Requirement[] | null
+  city_code: string
+  city: string
+  fee: number
+  cash: number
+  wait_seconds: number
+  ends_at: string | null
+}
+
+export interface RentedHomeLine {
+  lease_no: number
+  property: PropertyLine
+  landlord: GovPlayer
+  rent: number
+  arrears: number
+}
+
+export interface Requirement {
+  kind: string
+  met: boolean
+  skill: string
+  need: number
+  have: number
+  course_code: string
+  course_name: string
+  city_code: string
+  city: string
+  wait_seconds: number
 }
 
 export interface ResidenceView {
@@ -502,10 +1040,34 @@ export interface ResidenceView {
   settlement_id: string
 }
 
+export interface SettingsView {
+  language: string
+  languages: string[] | null
+  language_changed: boolean
+  presence_visibility: string
+  presence_changed: boolean
+}
+
 export interface SettlementWhoView {
   name: string
   online: WhoLine[] | null
   offline: number
+}
+
+export interface SleepPayView {
+  spot: Named
+  rest: number
+  relief: number
+  payment: PaymentChoice
+}
+
+export interface SleepSpotLine {
+  spot: Named
+  place: Named
+  price: number
+  rest: number
+  relief: number
+  way: Way | null
 }
 
 export interface StandingLine {
@@ -531,6 +1093,77 @@ export interface TermsView {
   default_lot_price: number
   default_permit: number
   default_tax_bps: number
+}
+
+export interface TravelArrivedView {
+  city_code: string
+  city: string
+  xp: number
+}
+
+export interface TravelCheckoutView {
+  from_code: string
+  from: string
+  to_code: string
+  to: string
+  mode_code: string
+  mode_name: string
+  fare: number
+  wait_seconds: number
+  energy: number
+  busy: boolean
+  payment: PaymentChoice
+}
+
+export interface TravelHereView {
+  reason: string
+  village: string
+  village_code: string
+}
+
+export interface TravelOption {
+  mode_code: string
+  mode_name: string
+  fare: number
+  wait_seconds: number
+  energy: number
+  busy: boolean
+  vehicle: Named | null
+  condition: number
+}
+
+export interface TravelOptionsView {
+  from_code: string
+  from: string
+  to_code: string
+  to: string
+  options: TravelOption[] | null
+  cash: number
+  requoted: boolean
+}
+
+export interface TravelStartedView {
+  from_code: string
+  from: string
+  to_code: string
+  to: string
+  mode_code: string
+  mode_name: string
+  duration_seconds: number
+  arrives_at: string | null
+  energy: number
+  fare: number
+}
+
+export interface TravelStatusView {
+  from_code: string
+  from: string
+  to_code: string
+  to: string
+  mode_code: string
+  mode_name: string
+  remaining_seconds: number
+  arrives_at: string | null
 }
 
 export interface VillageMaker {
@@ -589,6 +1222,34 @@ export interface VillageRoleLine {
 export interface VillageSupport {
   code: string
   name: string
+  services: string[] | null
+}
+
+export interface VitalChange {
+  target: string
+  before: number
+  after: number
+  max: number
+}
+
+export interface WalkStartedView {
+  from: Named
+  to: Named
+  duration_seconds: number
+  arrives_at: string | null
+  energy: number
+  then: string
+}
+
+export interface WalkView {
+  to: Named
+  remaining_seconds: number
+  arrives_at: string | null
+}
+
+export interface Way {
+  place: Named
+  walk_seconds: number
 }
 
 export interface WhoLine {
@@ -628,11 +1289,54 @@ export interface WorkplaceLine {
   ready: boolean
 }
 
+export interface WorthView {
+  cash: number
+  bank: number
+  escrow: number
+  equity: number
+  property: number
+  goods: number
+  debts: number
+  savings: number
+  gold: number
+  loans: number
+  total: number
+}
+
 /** The screens of the migrated areas: the screen name on the wire, and its view. */
 export interface ScreenViews {
+  achievements: AchievementsView
+  avatars: AvatarsView
+  card: CardView
+  cities: MapView
+  city_map: CityMapView
+  dashboard: DashboardView
+  device_link: DeviceLinkView
+  devices: DevicesView
+  drop_confirm: ItemDroppedView
+  history: HistoryView
+  inventory: InventoryView
+  item_detail: ItemDetailView
+  item_dropped: ItemDroppedView
+  item_given: ItemGivenView
+  item_refusal: ItemRefusalView
+  item_used: ItemUsedView
   labor_board: LaborBoardView
   labor_mine: LaborMineView
   labor_site: LaborSiteView
+  life: LifeView
+  life_refusal: LifeRefusalView
+  not_here: NotHereView
+  profile: ProfileView
+  property: PropertyView
+  property_leave: PropertyLeaveView
+  property_market: PropertyMarketView
+  property_mine: PropertyMineView
+  property_offer: PropertyOfferView
+  property_refusal: PropertyRefusalView
+  property_type: PropertyTypeView
+  refusal: RefusalView
+  settings: SettingsView
   settlement_build_batch_confirm: LotBatchConfirmView
   settlement_build_confirm: LotConfirmView
   settlement_build_lots: LotGridView
@@ -650,6 +1354,13 @@ export interface ScreenViews {
   settlement_private_menu: PrivateMenuView
   settlement_terms: TermsView
   settlement_who: SettlementWhoView
+  sleep_pay: SleepPayView
+  travel_arrived: TravelArrivedView
+  travel_checkout: TravelCheckoutView
+  travel_here: TravelHereView
+  travel_options: TravelOptionsView
+  travel_started: TravelStartedView
+  travel_status: TravelStatusView
   village_donate_confirm: DonateView
   village_donate_done: DonateView
   village_donate_menu: DonateView
@@ -666,7 +1377,8 @@ export interface ScreenViews {
   village_residence_done: ResidenceView
   village_work: WorkView
   village_work_started: WorkView
+  walk_started: WalkStartedView
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */
-export const REFUSAL_SCREENS = ['village_refusal'] as const
+export const REFUSAL_SCREENS = ['item_refusal', 'life_refusal', 'property_refusal', 'refusal', 'village_refusal'] as const

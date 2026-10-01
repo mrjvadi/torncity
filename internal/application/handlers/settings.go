@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"strings"
 	"time"
 
@@ -10,8 +12,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // LanguageRequest is the payload of player.language.set.
@@ -65,7 +65,7 @@ func NewSettingsHandler(
 }
 
 // Show handles player.settings. It reads and writes nothing but the player.
-func (h *SettingsHandler) Show(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *SettingsHandler) Show(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validPlayerRequest(meta); err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func visibilityOf(ctx context.Context, tx application.Tx, playerID string) (wpre
 // (ADR 0030 section 3.2). The value is checked before the unit of work opens,
 // and a redelivered press is recognised by its idempotency key and writes
 // nothing, for the reason SetLanguage gives.
-func (h *SettingsHandler) SetPresence(ctx context.Context, meta envelope.Metadata, req PresenceRequest) (*presenter.Response, error) {
+func (h *SettingsHandler) SetPresence(ctx context.Context, meta envelope.Metadata, req PresenceRequest) (*presentation.Response, error) {
 	if err := validPlayerRequest(meta); err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func (h *SettingsHandler) SetPresence(ctx context.Context, meta envelope.Metadat
 // the second time. That matters even though the write is "the same value
 // again": a stale redelivery of an earlier choice, arriving after a later
 // one, would otherwise quietly switch the player back.
-func (h *SettingsHandler) SetLanguage(ctx context.Context, meta envelope.Metadata, req LanguageRequest) (*presenter.Response, error) {
+func (h *SettingsHandler) SetLanguage(ctx context.Context, meta envelope.Metadata, req LanguageRequest) (*presentation.Response, error) {
 	if err := validPlayerRequest(meta); err != nil {
 		return nil, err
 	}
@@ -218,13 +218,13 @@ func (h *SettingsHandler) supported(lang string) bool {
 // show, and the screen is really being read in the fallback language. So no
 // language is claimed as current and every one is offered, which is the
 // accurate thing to say and one press away from fixing.
-func (h *SettingsHandler) render(meta envelope.Metadata, lang string, changed bool, vis wpresence.Visibility, visChanged bool) *presenter.Response {
-	c := screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta)}
+func (h *SettingsHandler) render(meta envelope.Metadata, lang string, changed bool, vis wpresence.Visibility, visChanged bool) *presentation.Response {
+	c := presentation.Ctx{Lang: lang}
 	current := lang
 	if !h.supported(current) {
 		current, changed = "", false
 	}
-	return screens.Settings(c, screens.SettingsView{
+	return life.Settings(c, life.SettingsView{
 		Language:        current,
 		Languages:       h.languages.Languages(),
 		LanguageChanged: changed,

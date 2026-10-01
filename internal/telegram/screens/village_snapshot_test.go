@@ -212,7 +212,7 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		LiteracyPercent: 2, Treasury: 900,
 	}))
 
-	support := &VillageSupport{Code: "support", Name: supportNameFor(c)}
+	support := &VillageSupport{Code: "support", Name: supportNameFor(c), Services: []string{"bank", "market", "jobs", "knowledge", "hospital", "jail"}}
 	add("Village home · the group hub, a resident, with Support's services a journey away", VillageOverview(g, VillageOverviewView{
 		Name: villageNameFor(c), Tier: "village", Resident: true, Support: support,
 		Population: 12, PopulationCap: 100,

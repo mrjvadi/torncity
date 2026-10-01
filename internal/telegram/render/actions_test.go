@@ -25,7 +25,7 @@ func fixtures() []fixture {
 	c := presentation.Ctx{Lang: "fa"}
 	promo := &village.PromotionView{Village: "v", From: "village", To: "town", Met: true, CanPromote: true}
 	ov := village.VillageOverviewView{Name: "v", Tier: "village", Resident: true, IsHead: true, Promotion: promo,
-		Support: &village.VillageSupport{Code: "support", Name: "Support"}}
+		Support: &village.VillageSupport{Code: "support", Name: "Support", Services: []string{"bank", "market"}}}
 	know := village.KnowledgeListView{Name: "v", Lines: []village.KnowledgeLine{
 		{Knowledge: named("carpentry"), State: village.KnowledgeAvailable, BuyPrice: 50}, {Knowledge: named("x"), State: village.KnowledgeLocked}}}
 	menu := village.BuildMenuView{Name: "v", Lines: []village.BuildLine{{Building: named("house"), State: village.BuildAvailable}, {Building: named("school"), State: village.BuildLocked}}}

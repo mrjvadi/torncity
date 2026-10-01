@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/mrjvadi/torncity/internal/presentation"
+	_ "github.com/mrjvadi/torncity/internal/presentation/life"
 	"github.com/mrjvadi/torncity/internal/presentation/tsgen"
 	_ "github.com/mrjvadi/torncity/internal/presentation/village"
 )

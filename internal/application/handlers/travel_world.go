@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"sort"
 	"strings"
 	"time"
@@ -15,8 +17,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // World-derived travel (docs/adr/0034-world-travel.md).
@@ -255,7 +255,7 @@ func (h *TravelHandler) worldOptions(ctx context.Context, tx application.Tx, fro
 // It never posts to the group. The fares are the player's own (their
 // vehicle, their purse), so the answer goes to their private chat and the
 // group sees one neutral line (configs/commands.yml, reply: private).
-func (h *TravelHandler) Here(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *TravelHandler) Here(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -263,7 +263,7 @@ func (h *TravelHandler) Here(ctx context.Context, meta envelope.Metadata) (*pres
 		return nil, errors.InvalidInput("request carries no telegram user")
 	}
 	var (
-		view    screens.TravelHereView
+		view    life.TravelHereView
 		village application.FoundedSettlement
 		lang    = meta.Language
 	)
@@ -274,28 +274,28 @@ func (h *TravelHandler) Here(ctx context.Context, meta envelope.Metadata) (*pres
 		}
 		lang = RenderLanguage(meta, p)
 		if !meta.InGroup() {
-			view.Reason = screens.TravelHereGroupOnly
+			view.Reason = life.TravelHereGroupOnly
 			return nil
 		}
 		village, err = tx.Settlements().ByFoundingGroup(ctx, meta.TelegramChatID)
 		if stderrors.Is(err, application.ErrCityNotFound) {
-			view.Reason = screens.TravelHereNoVillage
+			view.Reason = life.TravelHereNoVillage
 			return nil
 		}
 		if err != nil {
 			return err
 		}
 		if p.CityID != nil && *p.CityID == village.CityID {
-			view.Reason, view.Village, view.VillageCode = screens.TravelHereAlreadyThere, village.Name, village.Code
+			view.Reason, view.Village, view.VillageCode = life.TravelHereAlreadyThere, village.Name, village.Code
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	private := func(r *presenter.Response) *presenter.Response { return r.MarkPrivate() }
+	private := func(r *presentation.Response) *presentation.Response { return r.MarkPrivate() }
 	if view.Reason != "" {
-		return private(screens.TravelHere(screens.Context{Msgs: h.msgs, Lang: lang}, view)), nil
+		return private(life.TravelHere(presentation.Ctx{Lang: lang}, view)), nil
 	}
 	resp, err := h.options(ctx, meta, TravelOptionsRequest{City: village.Code}, false)
 	if err != nil {

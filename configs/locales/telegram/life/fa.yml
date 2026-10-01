@@ -1,0 +1,488 @@
+# Telegram wording of the life area (docs/adr/0039-presentation-split.md): the profile and its menus,
+# the city map and travel, the character's life, settings, devices, achievements, the bag and property.
+# Layered over configs/locales/fa.yml by the catalogue loader; a key is defined once across the layers.
+
+profile:
+  # The one-time welcome. It is shown above the profile only while the player
+  # has not earned any XP, and it takes no placeholders. (The key name is
+  # pinned by internal/telegram/i18n's shipped-locale test.)
+  body: |-
+    👋 به بازی خوش آمدید!
+    اینجا خانهٔ شماست: وضعیت، پول و کارتان را همین‌جا می‌بینید. با دکمه‌های پایین به هر جای بازی بروید.
+
+  name: "👤 {name}"
+  city: "📍 {city}"
+  # Where in the city the player stands, or the walk they are on.
+  place: "📍 {place} - {city}"
+  walking: "🚶 در راه {place} - {remaining} مانده - رسیدن ساعت {time}"
+  travelling: "🧭 در راه {city} - {remaining} مانده"
+  level: "⭐ سطح {level} - {xp_to_next} امتیاز تجربه تا سطح {next_level}"
+  level_plain: "⭐ سطح {level}"
+  level_max: "⭐ سطح {level} - بالاترین سطح بازی"
+  energy: "⚡ انرژی: {energy} از {max_energy}"
+  energy_refilling: "⚡ انرژی: {energy} از {max_energy} - {duration} تا پر شدن"
+  health: "❤️ سلامت: {health} از {max_health}"
+  # پول بازیکن: نقدی که همراه دارد و موجودی بانکش. خصوصی است و فقط خود
+  # بازیکن آن را می‌بیند.
+  cash: "💵 پول نقد: {cash}"
+  bank: "🏦 موجودی بانک: {bank}"
+  # The public player code, and how a friend uses it. The code is the one
+  # identifier a player is meant to see and share; see
+  # internal/shared/playercode. social.search reuses profile.code.
+  code: "🆔 کد بازیکن: {code}"
+  code_hint: "دوستانتان با فرستادن «پیدا {code}» شما را پیدا می‌کنند."
+  unavailable: "پروفایل شما الان در دسترس نیست. چند لحظهٔ دیگر دوباره امتحان کنید."
+
+  # The player's work and studies, between their condition and their money.
+  job: "💼 {title} در {city} - {pay} برای هر شیفت"
+  job_none: "💼 هنوز شغلی ندارید"
+  shift_running: "⏳ در حال شیفت - {remaining} مانده"
+  shift_ending: "⏳ شیفت تمام شد؛ دستمزد در راه است"
+  course: "📖 {course} - {remaining} مانده"
+  course_finishing: "📖 {course} - چند لحظهٔ دیگر تمام می‌شود"
+  course_paused: "📖 {course} - متوقف (در زندان)، {remaining} مانده"
+  # A player in jail sees it first on the home screen.
+  jail: "⛓ در زندان هستید - {remaining} مانده"
+  jail_in: "⛓ در زندان {city} هستید - {remaining} مانده"
+  jail_blocks: "تا آزادی نمی‌توانید سفر کنید، شیفت کار کنید، از بانک برداشت کنید یا دورهٔ تازه‌ای شروع کنید؛ دورهٔ در حال گذراندن هم متوقف می‌ماند."
+  certificates: "📜 {count} مدرک"
+  achievements: "🏅 {count} دستاورد"
+  hospital: "🏥 در بیمارستان {city} بستری هستید - {remaining} مانده"
+  hospital_blocks: "تا ترخیص نمی‌توانید سفر کنید، سر کار بروید، در شهر جابه‌جا شوید یا خلاف کنید. درمان، بستری را کوتاه می‌کند."
+travel:
+  # The choice of transport, shown when a destination is pressed on the Map.
+  # Nothing departs until a mode is chosen. {fare} and {cash} arrive already
+  # formatted through format.money; {wait} is the real time the trip takes.
+  options_title: |-
+    🧭 سفر به {to}
+    📍 مبدأ: {from}
+  options_choose: "با چه وسیله‌ای می‌روید؟"
+  option: "• {mode} - {fare} - {wait} در راه - {energy} انرژی"
+  option_busy: "• {mode} - {fare} (مسیر شلوغ) - {wait} در راه - {energy} انرژی"
+  option_own: "• {mode} (وسیلهٔ خودتان) - سوخت {fare} - {wait} در راه - {energy} انرژی - سلامت خودرو {condition}"
+  requoted: "⚠️ کرایه از وقتی که قیمت‌ها را دیدید تغییر کرده است. پولی کسر نشد؛ قیمت‌های تازه را ببینید و دوباره انتخاب کنید."
+  cash: "💵 پول نقد شما: {cash}"
+  # The fare of the chosen mode and the ways to pay it: the step between
+  # choosing a mode and departing.
+  checkout_title: |-
+    🧭 سفر به {to} با {mode}
+    📍 مبدأ: {from}
+  checkout_fare: "💰 کرایه: {fare}"
+  checkout_fare_busy: "💰 کرایه: {fare} (مسیر شلوغ)"
+  checkout_wait: "⏳ {wait} در راه"
+  checkout_energy: "⚡ {energy} انرژی"
+  # Shown only if a mode has neither a translation nor an authored name.
+  mode_unnamed: وسیلهٔ دیگر
+  # What a journey that costs nothing shows instead of a price of zero.
+  free: "رایگان"
+  started: |-
+    🧭 سفر با {mode} به سوی {to} آغاز شد
+    {from} را ترک کردید و {duration} دیگر می‌رسید.
+    ⚡ {energy} انرژی مصرف شد.
+  started_fare: "💵 کرایهٔ پرداخت‌شده: {fare}"
+  # زمان رسیدن سفر، به وقت منطقهٔ زمانی بازیکن.
+  arrives_at: "🕒 ساعت رسیدن: {time}"
+  status_mode: "وسیلهٔ سفر: {mode}"
+  status: |-
+    🧭 در راه {to}
+    📍 مبدأ: {from}
+    ⏳ {remaining} تا رسیدن
+  status_arriving: |-
+    🧭 در راه {to}
+    📍 مبدأ: {from}
+    ⏳ چند لحظهٔ دیگر می‌رسید.
+  arrived: "📍 به {city} رسیدید."
+  arrived_xp: "⭐ {xp} امتیاز تجربه گرفتید."
+  # Added to the arrival notice when the XP of the journey lifted the player
+  # to a new level; {level} is the highest level reached.
+  arrived_level: "⭐ تبریک؛ به سطح {level} رسیدید."
+  none: "الان در سفر نیستید. برای سفر، «نقشه» را باز کنید."
+  # «سفر به این روستا» typed in a village's group (travel.here): the journey to
+  # that group's village, with nothing to choose. These are what it says when
+  # there is no journey to offer.
+  here:
+    no_village: "🏡 این گروه هنوز روستایی ندارد، پس مقصدی برای سفر نیست. برای شروع «ساخت روستا» را بفرستید."
+    already_there: "📍 همین حالا در {village} هستید و سفری لازم نیست. برای رفتن به جای دیگر «نقشه» را باز کنید."
+    group_only: "🧭 «سفر به این روستا» را در گروهِ همان روستا بفرستید تا مستقیم به آنجا سفر کنید. برای مقصدهای دیگر «نقشه» را باز کنید."
+  same_city: "همین حالا در این شهر هستید. مقصد دیگری را از «نقشه» انتخاب کنید."
+  no_route: "از شهری که در آن هستید راهی به آنجا نیست. یکی از مقصدهای «نقشه» را انتخاب کنید."
+  mode_unavailable: "این وسیله در این مسیر رفت‌وآمد نمی‌کند. مقصد را دوباره از «نقشه» بزنید تا وسیله‌های همین مسیر را ببینید."
+map:
+  cities_title: "🧭 سفر به شهر دیگر"
+  title: "🗺 نقشه"
+  origin: "📍 شما در {city} هستید."
+  destinations: "از اینجا به این شهرها و روستاها می‌توانید سفر کنید:"
+  destination: "• {city} - {distance} کیلومتر"
+  # A place priced from the world: the distance, the cheapest fare and the
+  # fastest way there.
+  destination_priced: "• {city} - {distance} کیلومتر - کرایه از {fare} - سریع‌ترین {wait}"
+  destination_free: "• {city} - {distance} کیلومتر - رایگان با پای پیاده - سریع‌ترین {wait}"
+  no_routes: "فعلاً از اینجا راهی به جای دیگری نیست. هر وقت مسیری باز شود، مقصدها همین‌جا نمایش داده می‌شوند."
+  no_city: "هنوز در هیچ شهری مستقر نشده‌اید. پس از استقرار، مقصدهای سفر همین‌جا نمایش داده می‌شوند."
+  travelling: "🧭 در راه {city} هستید. پس از رسیدن می‌توانید سفر تازه‌ای را آغاز کنید."
+# The map of the player's own city (configs/content/places.yml): where they
+# stand, every place of the city with the walk to it and what is there. A
+# walk is short and timed on the game clock; a service is found only at its
+# place. Place names are under venue.<code>.
+place:
+  title: "🗺 نقشهٔ {city}"
+  here: "📍 شما در {place} هستید."
+  others: "👥 بازیکنان دیگر اینجا: {count}"
+  walking: "🚶 در راه {place} هستید - {remaining} مانده"
+  arrives_at: "🕒 رسیدن: ساعت {time}"
+  list_title: "جاهای شهر:"
+  line: "• {place} - {walk} پیاده‌روی"
+  line_here: "• {place} (همین‌جا)"
+  line_with: "{line} - {what}"
+  separator: "، "
+  departures: "حرکت {mode}"
+  hint: "برای رفتن به هر جا دکمه‌اش را بزنید. هر کاری فقط در جای خودش انجام می‌شود."
+  walk_started: "🚶 به سوی {place} راه افتادید - {duration} پیاده‌روی."
+  walk_energy: "⚡ {energy} انرژی مصرف شد."
+  still_walking: "🚶 هنوز در راه {place} هستید - {remaining} مانده."
+  you_are_at: "📍 شما الان در {place} هستید."
+  # A walk that does something on arrival (go, then do): the line the
+  # started walk adds, and the hint under a refusal whose button walks there
+  # and opens the same page again.
+  then:
+    work: "🛠 به‌محض رسیدن، شیفت کارتان شروع می‌شود."
+    open: "📲 به‌محض رسیدن، صفحه‌ای که خواستید برایتان باز می‌شود."
+  then_hint: "با یک دکمه تا {place} پیاده می‌روید ({walk}) و همین صفحه آنجا دوباره باز می‌شود."
+  service:
+    bank: بانک
+    police: پلیس
+    city_hall: شهرداری
+    market: بازار معاملات
+    auction_house: حراجی
+    university: دانشگاه
+    training_center: آموزشگاه
+  need:
+    bank: "🏦 بانک در {place} است."
+    police: "🚓 پلیس در {place} است."
+    city_hall: "🏛 شهرداری در {place} است."
+    market: "🏪 بازار معاملات در {place} است."
+    auction_house: "🔨 حراجی در {place} است."
+    university: "🎓 این دوره در {place} برگزار می‌شود."
+    training_center: "🎓 این دوره در {place} برگزار می‌شود."
+    departure: "🚉 {mode} از {place} حرکت می‌کند."
+    shop: "🛒 {shop} در {place} است."
+    crime: "🕶 {crime} اینجا شدنی نیست؛ برای انجامش به {place} بروید."
+    heist: "🕶 {crime} اینجا شدنی نیست؛ گروه باید در {place} جمع شود."
+    board: "📋 مأموریت در تابلوی {board} در {place} گرفته و تحویل داده می‌شود."
+    home: "🛏 خانهٔ شما در {place} است."
+    sleep: "🛏 این جای خواب در {place} است."
+  button:
+    go: "🚶 {place}"
+    walk: "🚶 رفتن به {place} - {walk}"
+    walk_then: "🚶 رفتن به {place} ({walk})"
+    other_cities: "🧭 سفر به شهر دیگر"
+settings:
+  title: "⚙️ تنظیمات"
+  language: "🌐 زبان بازی: {language}"
+  language_changed: "✅ زبان بازی به {language} تغییر کرد."
+  presence: "👁 چه کسانی وضعیت آنلاین من را ببینند: {visibility}"
+  presence_changed: "✅ حالا وضعیت آنلاین شما برای «{visibility}» دیده می‌شود."
+  presence_nobody_hint: "با «هیچ‌کس»، وضعیت آنلاین دیگران هم برایتان پنهان می‌شود؛ فقط اهالی روستای خودتان می‌توانند شما را ببینند."
+# کلاینت‌های بازی (api/client-api.md): کد یک‌بارمصرفی که کلاینت را به حساب
+# وصل می‌کند و فهرست کلاینت‌های وصل‌شده.
+device:
+  link_title: "📱 اتصال کلاینت بازی"
+  link_code: "کد شما: {code}"
+  link_valid: "فقط یک بار و تا {valid} دیگر کار می‌کند."
+  link_until: "معتبر تا ساعت {time}."
+  link_help: "کلاینت بازی را باز کنید، «ورود با تلگرام» را بزنید و این کد را وارد کنید. کد را به هیچ‌کس ندهید: هر کس آن را وارد کند به‌جای شما بازی می‌کند."
+  list_title: "📱 کلاینت‌های وصل‌شدهٔ شما"
+  list_empty: "هیچ کلاینتی وصل نیست. برای گرفتن کد /link یا «اتصال» را بفرستید."
+  line: "• {name} ({via}) — اتصال {date}، آخرین استفاده {date_seen}"
+  via:
+    link: "با کد"
+    telegram: "اپ تلگرام"
+  notice:
+    revoked: "✅ این کلاینت از حساب خارج شد."
+    gone: "این کلاینت پیش‌تر خارج شده بود."
+  button:
+    play: "🎮 بازی در نسخهٔ وب"
+    link: "➕ اتصال کلاینت تازه"
+    list: "📱 کلاینت‌های وصل‌شده"
+    revoke: "🚫 خروج {name}"
+# آنچه مصرف یک کالا تغییر می‌دهد.
+vital:
+  energy: "⚡ انرژی"
+  health: "❤️ سلامت"
+  happiness: "😊 شادی"
+  nerve: "🔥 جسارت"
+  hunger: "🍽 گرسنگی"
+  sleep: "😴 خستگی"
+  stress: "😣 استرس"
+# اثر ابزار همراه بر یک جرم (internal/domain/crime/gear.go).
+gear:
+  success_up: "🎲 شانس موفقیت {pct}٪ بیشتر"
+  success_down: "🎲 شانس موفقیت {pct}٪ کمتر"
+  catch_up: "🚔 احتمال دستگیری {pct}٪ بیشتر"
+  catch_down: "🚔 احتمال دستگیری {pct}٪ کمتر"
+  witness_up: "👀 احتمال دیده‌شدن {pct}٪ بیشتر"
+  witness_down: "👀 احتمال دیده‌شدن {pct}٪ کمتر"
+  solve_up: "🗂 احتمال حل‌شدن پرونده {pct}٪ بیشتر"
+  solve_down: "🗂 احتمال حل‌شدن پرونده {pct}٪ کمتر"
+  reward_up: "💵 غنیمت {pct}٪ بیشتر"
+  reward_down: "💵 غنیمت {pct}٪ کمتر"
+  nerve_up: "🔥 {value} جسارت بیشتر لازم دارد"
+  nerve_down: "🔥 {value} جسارت کمتر لازم دارد"
+item:
+  bag_title: "🎒 کوله‌پشتی شما"
+  bag_empty: کوله‌پشتی‌تان خالی است. مغازه‌های شهر خوراکی، دارو و ابزار می‌فروشند.
+  bag_stack: "• {item} - {qty} عدد"
+  bag_piece: "• {item} - {detail}"
+  piece: "کیفیت {quality}"
+  piece_worn: "کیفیت {quality} - {uses} بار از {durability} بار مصرف مانده"
+  in_escrow: "📦 {count} قلم از کالاهایتان در بازار یا حراجی است."
+  detail_title: "🎒 {item}"
+  category: "نوع: {category}"
+  you_have: "{qty} عدد دارید."
+  worth: "💰 ارزش تقریبی: {price}"
+  effects: "با مصرفش:"
+  effect_plus: "• {vital} {value} واحد بالا می‌رود"
+  effect_minus: "• {vital} {value} واحد پایین می‌آید"
+  effect_cap: "• {vital} دست‌کم به {value} می‌رسد"
+  effect_times: "• {vital} به {pct}٪ مقدار فعلی می‌رسد"
+  cooldown: "⏳ هر {duration} یک بار"
+  cooling: "⏳ تا {duration} دیگر دوباره می‌توانید مصرفش کنید."
+  ready_at: "🕒 آماده در ساعت {time}"
+  gear_for: "🕶 به کار می‌آید برای: {crimes}"
+  gear_evidence: "🚔 اگر دستگیر شوید، پلیس آن را به‌عنوان مدرک نگه می‌دارد."
+  give_nobody: "👥 برای بخشیدن، باید با یک دوست در یک جا باشید."
+  used: "✅ مصرف شد: {item}"
+  changed: "{vital}: {before} ← {after} از {max}"
+  left: "🎒 باقی‌مانده در کوله‌پشتی: {qty}"
+  next_use: "⏳ بعدی تا {duration} دیگر"
+  given: "🎁 {item} را به {player} دادید."
+  drop_confirm: "🗑 {item} را دور بیندازید؟ برای همیشه از دست می‌رود."
+  dropped: "🗑 {item} را دور انداختید."
+  button:
+    bag: "🎒 کوله‌پشتی"
+    open: "🎒 {item}"
+    use: "✅ مصرف {item}"
+    give: "🎁 بده به {player}"
+    drop: "🗑 دور انداختن"
+    drop_confirm: "🗑 بله، دور بینداز"
+  refused:
+    not_held: "{item} همراهتان نیست."
+    not_usable: "{item} مصرفی نیست؛ فقط همراهتان می‌ماند."
+    cooling: "⏳ تا {duration} دیگر می‌توانید دوباره {item} مصرف کنید."
+    no_effect: "مصرف {item} الان فایده‌ای ندارد؛ همین حالا پر هستید."
+    not_tradeable: "{item} قابل واگذاری نیست."
+    not_together: "👥 فقط به دوستی می‌توانید چیزی بدهید که همان‌جایی باشد که شما هستید."
+
+# نوع کالاها (configs/content/items.yml).
+property:
+  no_city: "🏠 برای دیدن بازار املاک باید در یک شهر باشید، نه در راه."
+  market_title: "🏠 بازار املاک {city}"
+  city_sells: "ثبت اسناد شهر می‌فروشد:"
+  city_sells_none: "• این شهر ملکی برای فروش ندارد."
+  type_line: "• {type} ({facts}): {price} - {left} واحد مانده"
+  type_line_sold_out: "• {type} ({facts}): فروخته شد"
+  facts: "{kind}، {size} متر، کیفیت {quality}"
+  offers: "آگهی‌های مالکان:"
+  offers_none: "• فعلاً آگهی‌ای نیست."
+  offer_sale: "• ملک #{no}، {type}: فروش به {price} - {seller}"
+  offer_rent: "• ملک #{no}، {type}: اجاره {price} در هر دورهٔ شهر - {seller}"
+  kind:
+    house: خانه
+    apartment: آپارتمان
+    shop: مغازه
+    land: زمین
+  type_title: "🏠 {type} - {city}"
+  where: "📍 در {place}"
+  price: "💰 قیمت: {price} (ثبت اسناد {left} واحد دیگر دارد)"
+  upkeep: "🧾 هزینهٔ نگهداری: {upkeep} در هر دورهٔ شهر"
+  tax: "🏛 مالیات ملک: {tax} ارزش ملک در هر دورهٔ شهر"
+  home_note: "🛏 خانه است: خرید یا اجاره‌اش شما را مقیم این شهر می‌کند و در آن {energy} انرژی استراحت می‌کنید."
+  home_residence: "🛏 خانه است: خرید یا اجاره‌اش شما را مقیم این شهر می‌کند."
+  at_registry: "✍️ سند در ثبت اسناد {place} امضا می‌شود."
+  bought: "✅ ملک #{no} ({type}) اکنون به نام شماست."
+  offer_title: "🏠 ملک #{no}، {type} - {city}"
+  rent_terms: "🔑 اجاره‌بهای دورهٔ اول هنگام امضا پرداخت می‌شود و هر دورهٔ بعد پایان همان دوره."
+  mine_title: "🏠 املاک من"
+  residence: "📍 محل اقامت: {city}"
+  owned_line: "• ملک #{no}، {type} در {city} - ارزش {value}"
+  debt: "⚠️ بدهی: {debt} ({periods} دورهٔ پیاپی)"
+  let_to: "🔑 در اجارهٔ {tenant} به {rent} در هر دوره"
+  offered_rent: "📢 آگهی اجاره: {price} در هر دوره"
+  offered_sale: "📢 آگهی فروش: {price}"
+  lived_in: "🛏 خانهٔ شما"
+  owned_none: "هنوز ملکی ندارید. ثبت اسناد هر شهر ملک می‌فروشد."
+  grace: "ملکی که {periods} دورهٔ پیاپی بدهکار بماند به شهر برمی‌گردد."
+  renting: "🔑 مستأجر {type} در {city} از {landlord}، {rent} در هر دوره"
+  arrears: "⚠️ اجارهٔ {periods} دوره پرداخت نشده است."
+  rest_wait: "🛏 {wait} دیگر می‌توانید در خانه استراحت کنید."
+  rest_ready: "🛏 می‌توانید در خانه استراحت کنید و {energy} انرژی بگیرید."
+  debt_blocks: "⚠️ تا بدهی این ملک پرداخت نشود نمی‌توانید آن را آگهی کنید."
+  offer_limits: "آگهی فروش تا {price} و اجاره تا {rent} در هر دوره."
+  leave_confirm: "🔑 از {type} در {city} می‌روید؟ اجارهٔ این دوره برنمی‌گردد."
+  notice:
+    listed: "📢 آگهی ثبت شد."
+    cancelled: "آگهی برداشته شد."
+    rented: "🔑 اجاره امضا شد؛ اجارهٔ دورهٔ اول پرداخت شد."
+    left: "🔑 از خانهٔ اجاره‌ای رفتید."
+    rested: "🛏 در خانه خوابیدید؛ {energy} انرژی گرفتید و {rest} واحد از خستگی‌تان کم شد."
+    bought_offer: "✅ ملک #{no} اکنون به نام شماست."
+  refused:
+    not_found: این ملک پیدا نشد.
+    not_yours: این ملک یا اجاره مال شما نیست.
+    sold_out: ثبت اسناد این شهر دیگر از این نوع ملک ندارد.
+    too_many: "شما همین حالا بیشترین تعداد مجاز ملک را دارید."
+    taken: این آگهی دیگر برقرار نیست.
+    own: این آگهی خودتان است.
+    renting: شما همین حالا خانه‌ای اجاره کرده‌اید؛ اول از آن بروید.
+    let: این ملک در اجاره است و تا پایان اجاره نمی‌شود آگهی‌اش کرد.
+    offered: این ملک همین حالا آگهی شده است.
+    pledged: این ملک وثیقهٔ یک وام مسکن است و تا وام تسویه نشود فروخته نمی‌شود.
+    in_debt: تا بدهی این ملک پرداخت نشود نمی‌شود آن را آگهی کرد یا فروخت.
+    price: "این قیمت بیش از سقف مجاز {max} است."
+    no_home: در این شهر خانه‌ای ندارید که در آن استراحت کنید.
+    too_soon: "{wait} دیگر می‌توانید دوباره در خانه استراحت کنید."
+    not_in_city: برای این کار باید در همان شهر باشید.
+  button:
+    type: "🏠 {type}"
+    offer: "📢 ملک #{no}"
+    mine: "🏠 املاک من"
+    market: "🏠 بازار املاک"
+    manage: "🏠 ملک #{no}، {type}"
+    sell: "💰 آگهی فروش"
+    let: "🔑 آگهی اجاره"
+    cancel: "✖️ برداشتن آگهی"
+    leave: "🚪 ترک خانهٔ اجاره‌ای"
+    leave_confirm: "✅ بله، می‌روم"
+    rest: "🛏 استراحت در خانه"
+    back_to_type: "🔙 بازگشت به ملک"
+    back_to_offer: "🔙 بازگشت به آگهی"
+
+# Kinds of property, keyed on the kind's content code (property.yml).
+life:
+  age: "🎂 سن: {age} سال - {stage}"
+  avatar_current: "آواتار فعلی: {avatar}"
+  avatar_hint: "یکی را انتخاب کنید تا کنار نامتان روی کارت و پروفایل بنشیند."
+  avatar_none: "ندارید"
+  avatar_photo: "عکس پروفایل تلگرام"
+  avatar_title: "🎭 آواتار شما"
+  bar_empty: "▱"
+  bar_full: "▰"
+  body_cost: "🔻 حال جسمی‌تان {percent}٪ از بازیابی انرژی و بازدهی کار و خلاف کم می‌کند."
+  card:
+    name: "👤 {name}"
+    name_avatar: "{avatar} {name}"
+    bio: "💬 «{bio}»"
+    no_bio: "💬 هنوز بیوگرافی ننوشته‌اید. با دکمهٔ «بیوگرافی» چند کلمه دربارهٔ خودتان بنویسید."
+    age_level: "🎂 {age} سال - {stage} - سطح {level}"
+    record: "🏅 {achievements} دستاورد - {entries} رویداد در سرگذشت"
+    joined: "🗓 آغاز زندگی: {date}"
+  history:
+    backfilled: "{line} (از پرونده‌های قدیمی)"
+    private: "{line} (فقط برای شما)"
+    joined: "🌱 {date} - آغاز زندگی در بازی"
+    first_job: "💼 {date} - نخستین شغل: {what} در {place}"
+    first_job_nowhere: "💼 {date} - نخستین شغل: {what}"
+    hired: "💼 {date} - استخدام: {what} در {place}"
+    hired_nowhere: "💼 {date} - استخدام: {what}"
+    promoted: "⬆️ {date} - ارتقا به {what}"
+    course: "📖 {date} - پایان دورهٔ {what}"
+    certificate: "📜 {date} - گرفتن مدرک {what}"
+    company_founded: "🏢 {date} - تأسیس شرکت «{what}» در {place}"
+    company_founded_nowhere: "🏢 {date} - تأسیس شرکت «{what}»"
+    company_closed: "🏚 {date} - تعطیلی شرکت «{what}» در {place}"
+    company_closed_nowhere: "🏚 {date} - تعطیلی شرکت «{what}»"
+    property_bought: "🏠 {date} - خرید {what} در {place} به {amount}"
+    property_bought_nowhere: "🏠 {date} - خرید {what} به {amount}"
+    property_sold: "🏷 {date} - فروش {what} در {place} به {amount}"
+    property_sold_nowhere: "🏷 {date} - فروش {what} به {amount}"
+    election_won: "🗳 {date} - پیروزی در انتخابات {what} {place} با {number} رأی"
+    election_lost: "🗳 {date} - شکست در انتخابات {what} {place} با {number} رأی"
+    office_taken: "🏛 {date} - رسیدن به منصب {what} {place}"
+    office_lost: "🏛 {date} - کنار رفتن از منصب {what} {place}"
+    jailed: "⛓ {date} - زندان در {place}"
+    jailed_nowhere: "⛓ {date} - زندان"
+    convicted: "⚖️ {date} - محکومیت در دادگاه"
+    hospitalised: "🏥 {date} - بستری در بیمارستان {place}"
+    hospitalised_nowhere: "🏥 {date} - بستری در بیمارستان"
+    war_command: "🎖 {date} - فرماندهی عملیات علیه {place}"
+    achievement: "🏅 {date} - دستاورد «{what}»"
+    rank_up: "📈 {date} - رسیدن به رتبهٔ {what}"
+    rank_down: "📉 {date} - افت به رتبهٔ {what}"
+    big_trade: "🤝 {date} - معاملهٔ بزرگ {what} در {place} به ارزش {amount}"
+    big_trade_nowhere: "🤝 {date} - معاملهٔ بزرگ {what} به ارزش {amount}"
+  history_empty: "هنوز رویدادی ثبت نشده است. هر کار مهمی که انجام دهید اینجا می‌ماند."
+  history_hint: "رویدادهایی که «فقط برای شما» دارند را دیگران نمی‌بینند."
+  history_page: "صفحهٔ {page} از {pages}"
+  history_title: "📜 سرگذشت {player}"
+  history_title_mine: "📜 سرگذشت شما"
+  intelligence: "🧠 هوش: {iq} از {max}"
+  intelligence_perks: "🧠 هوش: {iq} از {max} - دوره‌ها {course}٪ کوتاه‌تر و تجربهٔ مهارت {skill}٪ بیشتر"
+  mood_cost: "🔻 کم‌حوصله‌اید و {percent}٪ امتیاز تجربهٔ کمتری می‌گیرید."
+  need:
+    hunger: "🍽 گرسنگی {bar} {value}"
+    sleep: "😴 خستگی {bar} {value}"
+    stress: "😣 استرس {bar} {value}"
+    happiness: "😊 شادی {bar} {value}"
+  next_rank: "⬆️ تا رتبهٔ {rank}: {need} دیگر"
+  notice:
+    slept: "😴 خوب خوابیدید ({spot}) و {rest} واحد از خستگی‌تان کم شد."
+    bio: "✅ بیوگرافی شما ذخیره شد."
+    bio_gone: "🗑 بیوگرافی شما پاک شد."
+    avatar: "✅ آواتار شما عوض شد."
+  pressing:
+    hunger: "⚠️ گرسنه‌اید؛ یک غذا از کوله یا مغازه بخورید."
+    sleep: "⚠️ خسته‌اید؛ در خانه استراحت کنید یا جایی بخوابید."
+    stress: "⚠️ استرس‌تان بالاست؛ استراحت، خواب و شادی آن را پایین می‌آورد."
+  rank_line: "{emoji} رتبه: {rank}"
+  refused:
+    bio_length: "✏️ بیوگرافی باید بین {min} تا {max} حرف باشد."
+    bio_link: "🔗 بیوگرافی نمی‌تواند لینک، نشانی سایت یا نام کاربری داشته باشد."
+    bio_blocked: "🚫 این متن کلمه‌ای دارد که در بیوگرافی مجاز نیست. لطفاً مؤدبانه بنویسید."
+    bio_chars: "✏️ بیوگرافی نویسه‌هایی دارد که نمی‌شود نمایش داد. آن را ساده‌تر بنویسید."
+    too_soon: "⏳ تازه خوابیده‌اید. تا خواب بعدی {wait} مانده."
+    no_spot: "🛏 این جای خواب در این شهر نیست."
+    no_avatar: "🎭 این آواتار در فهرست نیست. یکی از فهرست را انتخاب کنید."
+    no_player: "🔎 بازیکنی با این کد یا نام کاربری پیدا نشد."
+    no_city: "🧭 برای خوابیدن باید در یک شهر باشید، نه در راه."
+    rested: "⏳ تازه استراحت کرده‌اید. کمی بعد دوباره امتحان کنید."
+  sleep_home: "🏠 خانهٔ خودتان - بهترین خواب"
+  sleep_pay: "🛏 یک شب خواب در {spot}: {price} - {rest} واحد از خستگی کم می‌کند"
+  sleep_title: "🛏 جای خواب:"
+  sleep_wait: "⏳ تا خواب بعدی {wait} مانده."
+  spot_line: "▫️ {spot} در {place} - {price} - {rest} واحد از خستگی کم می‌کند"
+  spot_line_free: "▫️ {spot} در {place} - رایگان - {rest} واحد از خستگی کم می‌کند"
+  title: "🧬 زندگی شما"
+  worth: "💎 دارایی خالص: {total}"
+  worth_debts: "🧾 بدهی: {debts}"
+  worth_loans: "🏦 وام: {loans}"
+  worth_part:
+    cash: "نقد {amount}"
+    bank: "بانک {amount}"
+    equity: "سهام {amount}"
+    property: "املاک {amount}"
+    goods: "کالاها {amount}"
+    savings: "پس‌انداز {amount}"
+    gold: "طلا {amount}"
+  worth_sep: " - "
+  button:
+    top: "🏆 برترین‌ها"
+    sleep: "😴 خواب: {spot}"
+    sleep_walk: "🚶 رفتن به {spot} ({walk})"
+    home_rest: "🏠 استراحت در خانه"
+    history: "📜 سرگذشت من"
+    my_history: "📜 سرگذشت من"
+    their_history: "📜 سرگذشت {player}"
+    card: "🪪 کارت من"
+    bio: "✏️ بیوگرافی"
+    bio_again: "✏️ نوشتن دوباره"
+    bio_clear: "🗑 پاک کردن بیوگرافی"
+    avatar: "🎭 آواتار"
+    avatar_choice: "{emoji} {name}"
+    avatar_photo: "📷 عکس تلگرامم"
+    avatar_none: "🚫 بدون آواتار"
+achievement:
+  title: "🏅 دستاوردهای شما: {earned} از {all}"
+  earned_line: "✅ {achievement}"
+  open_line: "▫️ {achievement} - {done} از {count}"
+  open_line_reward: "▫️ {achievement} - {done} از {count} - جایزه {reward}"
+  none_yet: هنوز دستاوردی به دست نیاورده‌اید.

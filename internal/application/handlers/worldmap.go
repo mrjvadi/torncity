@@ -2,14 +2,14 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"sort"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // MapHandler serves map.list: the cities a player can travel to from where
@@ -71,7 +71,7 @@ func NewMapHandler(
 // repository returns cities in whatever order the query produced, and a list
 // that reorders itself between two presses of "next" would show some cities
 // twice and hide others entirely.
-func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageRequest) (*presenter.Response, error) {
+func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -80,7 +80,7 @@ func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageR
 	}
 	page := parsePage(req.Page)
 
-	var view screens.MapView
+	var view life.MapView
 	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -108,7 +108,7 @@ func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageR
 
 		// A player already on the road is shown their journey instead of a
 		// departures board; see MapView.Travelling.
-		view = screens.MapView{Page: page, Pages: 1}
+		view = life.MapView{Page: page, Pages: 1}
 		if t, err := h.travels.Active(ctx, p.ID); err == nil {
 			view.Travelling = true
 			for i := range all {
@@ -135,7 +135,7 @@ func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageR
 		// and listing it would bury the choices they do have. A route that
 		// does not exist is not a failure either: two islands with no link
 		// between them load fine. See world.NewRoutes.
-		destinations := make([]screens.MapCity, 0, len(all))
+		destinations := make([]life.MapCity, 0, len(all))
 		for _, c := range all {
 			if c.ID == origin.ID {
 				continue
@@ -144,7 +144,7 @@ func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageR
 			if err != nil {
 				continue
 			}
-			destinations = append(destinations, screens.MapCity{
+			destinations = append(destinations, life.MapCity{
 				Code:       c.Code,
 				Name:       c.Name,
 				DistanceKM: distance,
@@ -165,7 +165,7 @@ func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageR
 				if listed[d.City.Code] {
 					continue
 				}
-				mc := screens.MapCity{
+				mc := life.MapCity{
 					Code: d.City.Code, Name: d.City.Name, DistanceKM: d.DistanceKM, Emblem: d.Emblem,
 					Fare: d.Fare, Wait: d.Wait, Lat: d.Point.LatDeg, Lon: d.Point.LonDeg,
 				}
@@ -197,9 +197,5 @@ func (h *MapHandler) List(ctx context.Context, meta envelope.Metadata, req PageR
 		return nil, err
 	}
 
-	return screens.Map(screens.Context{
-		Msgs:      h.msgs,
-		Lang:      lang,
-		MessageID: editableMessageID(meta),
-	}, view), nil
+	return life.Cities(presentation.Ctx{Lang: lang}, view), nil
 }

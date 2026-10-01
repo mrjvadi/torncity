@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"strings"
 	"time"
 
@@ -14,8 +16,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // PlacesHandler serves the map of the player's own city and the walks
@@ -86,10 +86,6 @@ type PlaceRequest struct {
 // PlaceScheduledRequest is the scheduler's dispatch payload for place.arrive.
 type PlaceScheduledRequest = CrimeScheduledRequest
 
-func (h *PlacesHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
-}
-
 // whereabouts is where a player is: their city, its places, the place they
 // stand at, and a walk under way.
 type whereabouts struct {
@@ -134,25 +130,25 @@ func locate(ctx context.Context, tx application.Tx, cities application.CityRepos
 }
 
 // placeNamed is a place as a screen names it.
-func placeNamed(snap *content.Snapshot, code string) screens.Named {
+func placeNamed(snap *content.Snapshot, code string) presentation.Named {
 	def, _ := snap.PlaceDef(code)
-	return screens.Named{Code: code, Name: def.Name}
+	return presentation.Named{Code: code, Name: def.Name}
 }
 
 // notHere carries "that is not here" out of a unit of work: the service or
 // the departure the player asked for is at another place, with the walk
 // there one press away.
-type notHere struct{ view screens.NotHereView }
+type notHere struct{ view life.NotHereView }
 
 func (n *notHere) Error() string { return "handlers: not at the place the request needs" }
 
 // asNotHere reports whether err is a place refusal and returns its view.
-func asNotHere(err error) (screens.NotHereView, bool) {
+func asNotHere(err error) (life.NotHereView, bool) {
 	var n *notHere
 	if stderrors.As(err, &n) {
 		return n.view, true
 	}
-	return screens.NotHereView{}, false
+	return life.NotHereView{}, false
 }
 
 // refuseWalking refuses what a player on their way somewhere cannot do.
@@ -160,7 +156,7 @@ func refuseWalking(w whereabouts, snap *content.Snapshot, now time.Time) error {
 	if w.walk == nil {
 		return nil
 	}
-	return &notHere{view: screens.NotHereView{
+	return &notHere{view: life.NotHereView{
 		Walking: true, Place: placeNamed(snap, w.walk.To),
 		Remaining: w.walk.ArrivesAt.Sub(now), ArrivesAt: w.walk.ArrivesAt,
 	}}
@@ -181,8 +177,8 @@ func needAt(w whereabouts, snap *content.Snapshot, target place.Place, need stri
 	if w.here.Code == target.Code {
 		return nil
 	}
-	return &notHere{view: screens.NotHereView{
-		Need: need, NeedArgs: args, Place: placeNamed(snap, target.Code), Here: placeNamed(snap, w.here.Code),
+	return &notHere{view: life.NotHereView{
+		Need: strings.TrimPrefix(need, "place.need."), NeedArgs: args, Place: placeNamed(snap, target.Code), Here: placeNamed(snap, w.here.Code),
 		Walk: scale.RealWait(target.MoveTime),
 	}}
 }
@@ -202,13 +198,13 @@ func needService(w whereabouts, snap *content.Snapshot, s place.Service, scale g
 }
 
 // Map handles map.list: the player's own city.
-func (h *PlacesHandler) Map(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *PlacesHandler) Map(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CityMapView
+	var view life.CityMapView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -240,7 +236,7 @@ func (h *PlacesHandler) Map(ctx context.Context, meta envelope.Metadata) (*prese
 		}
 		view.Here = placeNamed(snap, w.here.Code)
 		if w.walk != nil {
-			view.Walking = &screens.WalkView{
+			view.Walking = &life.WalkView{
 				To: placeNamed(snap, w.walk.To), Remaining: w.walk.ArrivesAt.Sub(now), ArrivesAt: w.walk.ArrivesAt,
 			}
 		}
@@ -256,7 +252,7 @@ func (h *PlacesHandler) Map(ctx context.Context, meta envelope.Metadata) (*prese
 			view.Others = here - 1
 		}
 		for _, pl := range w.cmap.Places {
-			line := screens.PlaceLine{
+			line := life.PlaceLine{
 				Place: placeNamed(snap, pl.Code), Walk: h.scale.RealWait(pl.MoveTime), Energy: pl.Energy,
 				Here: w.walk == nil && pl.Code == w.here.Code,
 			}
@@ -278,7 +274,7 @@ func (h *PlacesHandler) Map(ctx context.Context, meta envelope.Metadata) (*prese
 	if err != nil {
 		return nil, err
 	}
-	return screens.CityMap(h.screen(meta, lang), view), nil
+	return life.CityMap(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Go handles place.go: a walk to another place of the player's city. The walk
@@ -286,14 +282,14 @@ func (h *PlacesHandler) Map(ctx context.Context, meta envelope.Metadata) (*prese
 // clock; the player is on the way until it ends and stands nowhere
 // meanwhile. One walk at a time; none while travelling, jailed, in the
 // middle of a timed crime or on a shift.
-func (h *PlacesHandler) Go(ctx context.Context, meta envelope.Metadata, req PlaceRequest) (*presenter.Response, error) {
+func (h *PlacesHandler) Go(ctx context.Context, meta envelope.Metadata, req PlaceRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view     screens.WalkStartedView
+		view     life.WalkStartedView
 		replayed bool
 		there    bool
 		follow   *FollowUp
@@ -361,7 +357,7 @@ func (h *PlacesHandler) Go(ctx context.Context, meta envelope.Metadata, req Plac
 		return err
 	})
 	if v, ok := asNotHere(err); ok {
-		return screens.NotHere(h.screen(meta, lang), v), nil
+		return life.NotHere(presentation.Ctx{Lang: lang}, v), nil
 	}
 	if err != nil {
 		return nil, err
@@ -378,7 +374,7 @@ func (h *PlacesHandler) Go(ctx context.Context, meta envelope.Metadata, req Plac
 	if replayed || there {
 		return h.Map(ctx, meta)
 	}
-	return screens.WalkStarted(h.screen(meta, lang), view), nil
+	return life.WalkStarted(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Arrive ends a walk. It arrives from the SCHEDULER and runs exactly once:
@@ -386,7 +382,7 @@ func (h *PlacesHandler) Go(ctx context.Context, meta envelope.Metadata, req Plac
 // Nothing is announced: a walk is short, and the map shows where the player
 // stands. A walk with a follow-up (places_then.go) hands it to the outbox in
 // the same transaction, as the command itself.
-func (h *PlacesHandler) Arrive(ctx context.Context, meta envelope.Metadata, req PlaceScheduledRequest) (*presenter.Response, error) {
+func (h *PlacesHandler) Arrive(ctx context.Context, meta envelope.Metadata, req PlaceScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -440,7 +436,7 @@ func followUpOf(req PlaceScheduledRequest) *FollowUp {
 
 // CommandRunner runs one command of the game for the player in meta, as if
 // they had sent it: cmd/game hands in its own table of commands.
-type CommandRunner func(ctx context.Context, meta envelope.Metadata, command string, payload map[string]string) (*presenter.Response, error)
+type CommandRunner func(ctx context.Context, meta envelope.Metadata, command string, payload map[string]string) (*presentation.Response, error)
 
 // WithRunner lets a walk to where the player already stands run its
 // follow-up at once, instead of showing the map.

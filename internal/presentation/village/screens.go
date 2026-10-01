@@ -125,7 +125,7 @@ func VillageOverview(c presentation.Ctx, v VillageOverviewView) *presentation.Re
 		a = append(a, act(AddrVillageLeave).Named("village.leave").As(presentation.RoleDanger))
 	}
 	if v.Support != nil {
-		for _, code := range SupportServices {
+		for _, code := range v.Support.Services {
 			a = append(a, act(AddrTravelOptions, v.Support.Code).Named("support."+code).About(v.Support.Code))
 		}
 	}
@@ -133,9 +133,13 @@ func VillageOverview(c presentation.Ctx, v VillageOverviewView) *presentation.Re
 	return screenOverview.Response(c.Lang, v, a...)
 }
 
-// SupportServices are the services a village's home screen lists as a
-// journey to the support city, each a travel.options to the same city.
-var SupportServices = []string{"bank", "market", "jobs", "knowledge", "hospital", "jail"}
+// SupportServiceRoles maps each service the support city offers to the role of
+// the village building that would give the village that service itself; a
+// village shows the shortcut only while no such building stands. The bank has
+// no village counterpart.
+var SupportServiceRoles = []struct{ Service, Role string }{
+	{"bank", ""}, {"market", "market"}, {"knowledge", "education"}, {"hospital", "health"},
+}
 
 // VillageHomeCall is what a group without a village sees as its home.
 func VillageHomeCall(c presentation.Ctx) *presentation.Response {

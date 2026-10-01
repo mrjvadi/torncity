@@ -11,13 +11,6 @@ import (
 // Study screens: the courses a player can take, one course in detail, an
 // enrolment, and the notice a finished course sends.
 
-// CourseRef names a course: its code, which keys its display name, and the
-// authored name, the fallback.
-type CourseRef struct {
-	Code string
-	Name string
-}
-
 func (c Context) course(r CourseRef) string { return c.CourseName(r.Code, r.Name) }
 
 // CurrentCourseView is the course a player is on.

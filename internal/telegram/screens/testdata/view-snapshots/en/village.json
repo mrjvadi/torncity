@@ -2347,7 +2347,15 @@
       "settlement_id": "",
       "support": {
         "code": "support",
-        "name": "Support"
+        "name": "Support",
+        "services": [
+          "bank",
+          "market",
+          "jobs",
+          "knowledge",
+          "hospital",
+          "jail"
+        ]
       },
       "tier": "village",
       "treasury": 10900

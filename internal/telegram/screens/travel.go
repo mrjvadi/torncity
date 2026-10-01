@@ -29,41 +29,6 @@ func (c Context) ModeName(code, name string) string {
 	return c.T("travel.mode_unnamed", nil)
 }
 
-// TravelOption is one way to make the journey the options screen offers.
-type TravelOption struct {
-	// ModeCode addresses the button and names the mode through the
-	// catalogue; ModeName is its authored fallback.
-	ModeCode string
-	ModeName string
-	// Fare is what the journey costs now, in minor units: the price the
-	// button promises and the most the departure may charge.
-	Fare int64
-	// Wait is the real time the journey takes.
-	Wait   time.Duration
-	Energy int
-	// Busy says demand has raised the fare above its plain price.
-	Busy bool
-	// Vehicle is the player's own vehicle this mode is driven in: Fare is
-	// then its fuel (docs/adr/0024). Condition is what is left of it, bps.
-	Vehicle   *Named
-	Condition int64
-}
-
-// TravelOptionsView is the choice of transport between two cities.
-type TravelOptionsView struct {
-	FromCode string
-	From     string
-	ToCode   string
-	To       string
-	Options  []TravelOption
-	// Cash is the player's cash on hand, in minor units.
-	Cash int64
-	// Requoted says the player chose a price that is no longer on offer: the
-	// fare rose since they saw it, so nothing was charged and the current
-	// prices are shown instead.
-	Requoted bool
-}
-
 // TravelOptions renders the transport choice: every mode that makes the
 // journey, with its fare, its real wait and its energy, one button each.
 //
@@ -135,21 +100,6 @@ func requoteNotice(c Context, requoted bool) string {
 	return c.T("travel.requoted", nil)
 }
 
-// TravelCheckoutView is the price of one way to make a journey, and the ways
-// the player can pay it: the step between choosing a mode and departing.
-type TravelCheckoutView struct {
-	FromCode, From string
-	ToCode, To     string
-	ModeCode       string
-	ModeName       string
-	Fare           int64
-	// Wait is the real time the journey takes; Energy what departing costs.
-	Wait    time.Duration
-	Energy  int
-	Busy    bool
-	Payment PaymentChoice
-}
-
 // TravelCheckout renders the fare of the chosen mode with a button per way
 // the player can pay it. Each button carries the fare as the ceiling the
 // player agreed to, and the method; the departure re-prices and honours or
@@ -196,28 +146,6 @@ func renderTravelCheckout(c Context, v TravelCheckoutView) *presenter.Response {
 	), kb.Build())
 }
 
-// TravelStartedView is the confirmation a departure produces.
-//
-// Each city is its content code, resolved to a name in the player's language
-// by the screen, and its authored name, the fallback for an untranslated code.
-type TravelStartedView struct {
-	FromCode string
-	From     string
-	ToCode   string
-	To       string
-	ModeCode string
-	ModeName string
-	// Duration is the real wait until arrival.
-	Duration time.Duration
-	// ArrivesAt is when the journey lands; zero shows no clock line.
-	ArrivesAt time.Time
-	// Energy is what the departure actually cost, as the domain charged it,
-	// not what the screen thinks it should have cost.
-	Energy int
-	// Fare is what was charged, in minor units.
-	Fare int64
-}
-
 // TravelStarted renders a departure.
 //
 // Its refresh button opens the journey itself, so there is no separate
@@ -243,21 +171,6 @@ func renderTravelStarted(c Context, v TravelStartedView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrTravelStatus}))
 
 	return c.respond(text, kb.Build())
-}
-
-// TravelStatusView is a journey in progress. Its cities are carried as in
-// TravelStartedView.
-type TravelStatusView struct {
-	FromCode string
-	From     string
-	ToCode   string
-	To       string
-	// ModeCode and ModeName name the mode; both empty for a journey that
-	// began before modes existed, which then shows no mode line.
-	ModeCode  string
-	ModeName  string
-	Remaining time.Duration
-	ArrivesAt time.Time
 }
 
 // arrivingThreshold is how close to arrival a journey reads as "any moment
@@ -296,20 +209,6 @@ func renderTravelStatus(c Context, v TravelStatusView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrTravelStatus}))
 
 	return c.respond(body(c.T(key, args), arrives, mode), kb.Build())
-}
-
-// TravelArrivedView is the notification a landed journey produces.
-//
-// It is the one screen in this package a player did not ask for: the
-// scheduler produces it when the journey finishes, so it always SENDS. There
-// is no message of the player's to edit, and editing one from an hour ago
-// would replace something they may still be reading.
-type TravelArrivedView struct {
-	// CityCode and City are the destination, carried as in
-	// TravelStartedView.
-	CityCode string
-	City     string
-	XP       int64
 }
 
 // TravelArrived renders the arrival notification.

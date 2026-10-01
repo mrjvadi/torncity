@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strings"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -18,13 +17,6 @@ import (
 // authored name. Everything here is public: where a player stands is what the
 // people around them can see.
 
-// Callback addresses of the city map.
-const (
-	// AddrCities is the list of other cities to travel to (the old map).
-	AddrCities  = "map:cities"
-	AddrPlaceGo = "place:go"
-)
-
 // SpotName is a city place's display name in this context's language.
 // (PlaceName names a jurisdiction; a city place is a venue in the
 // catalogue.)
@@ -32,45 +24,6 @@ func (c Context) SpotName(n Named) string { return c.VenueName(n) }
 
 // ShopName is a city shop's display name (shop_name.<code>).
 func (c Context) ShopName(n Named) string { return c.named("shop_name."+n.Code, n.Name) }
-
-// WalkView is a walk under way.
-type WalkView struct {
-	To        Named
-	Remaining time.Duration
-	ArrivesAt time.Time
-}
-
-// PlaceLine is one place on the city map.
-type PlaceLine struct {
-	Place Named
-	// Walk is the real time the walk there takes; Energy what it costs.
-	Walk   time.Duration
-	Energy int
-	// Services are what is found there (place.service.<code>); Departures
-	// the transport modes that leave from there.
-	Services   []string
-	Departures []string
-	// Shops are the shops found there (shops.yml place).
-	Shops []Named
-	// Here marks where the player stands.
-	Here bool
-}
-
-// CityMapView is the map of the player's own city.
-type CityMapView struct {
-	CityCode, City string
-	// NoCity: the player is nowhere yet.
-	NoCity bool
-	// Travelling: a journey between cities is under way.
-	Travelling                     bool
-	TravellingToCode, TravellingTo string
-	// Here is where the player stands; Walking a walk under way instead.
-	Here    Named
-	Walking *WalkView
-	// Others counts the other players standing at the same place.
-	Others int
-	Places []PlaceLine
-}
 
 // placeWhat is the short line of what a place holds.
 func (c Context) placeWhat(l PlaceLine) string {
@@ -179,17 +132,6 @@ func renderCityMap(c Context, v CityMapView) *presenter.Response {
 		kb.Build()).AsHTML()
 }
 
-// WalkStartedView is a walk that has begun.
-type WalkStartedView struct {
-	From, To  Named
-	Duration  time.Duration
-	ArrivesAt time.Time
-	Energy    int
-	// Then is the catalogue key of what happens on arrival (place.then.*),
-	// empty for a plain walk.
-	Then string
-}
-
 // WalkStarted renders a walk under way.
 func WalkStarted(c Context, v WalkStartedView) *presenter.Response {
 	return c.withView(renderWalkStarted(c, v), ScreenWalkStarted, v)
@@ -206,7 +148,7 @@ func renderWalkStarted(c Context, v WalkStartedView) *presenter.Response {
 		lines = append(lines, c.T("place.walk_energy", map[string]any{"energy": FormatNumber(c, int64(v.Energy))}))
 	}
 	if v.Then != "" {
-		lines = append(lines, c.T(v.Then, map[string]any{"place": c.SpotName(v.To)}))
+		lines = append(lines, c.T("place.then."+v.Then, map[string]any{"place": c.SpotName(v.To)}))
 	}
 	kb := keyboards.New()
 	if btn, ok := keyboards.Button(c.T("button.map", nil), AddrMap); ok {
@@ -214,34 +156,6 @@ func renderWalkStarted(c Context, v WalkStartedView) *presenter.Response {
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
 	return c.respond(body(lines...), kb.Build())
-}
-
-// NotHereView is a request that needs another place: the service or the
-// departure is there, or the player is still on the way somewhere.
-type NotHereView struct {
-	// Need is the catalogue key naming what was asked for
-	// (place.need.<service>, place.need.departure…), NeedArgs its values.
-	Need     string
-	NeedArgs map[string]any
-	// Mode, Crime and Shop name what needs the place, for the sentences
-	// that mention it: a departure's mode, a crime, a shop.
-	Mode  string
-	Crime Named
-	Shop  Named
-	// Place is where it is; Here where the player stands; Walk how long
-	// the walk there takes.
-	Place Named
-	Here  Named
-	Walk  time.Duration
-	// Walking: the player is on the way to Place, Remaining left.
-	Walking   bool
-	Remaining time.Duration
-	ArrivesAt time.Time
-	// Then, with ThenArgs, is the screen the walk button opens on arrival
-	// (the one the player asked for), so one press walks there and carries
-	// on. Empty: the button only walks.
-	Then     string
-	ThenArgs []string
 }
 
 // GoThen is the address of a walk to place that runs then, with its
@@ -299,7 +213,7 @@ func renderNotHere(c Context, v NotHereView) *presenter.Response {
 	if v.Shop.Code != "" {
 		args["shop"] = c.ShopName(v.Shop)
 	}
-	need := c.T(v.Need, args)
+	need := c.T("place.need."+v.Need, args)
 	walkArgs := map[string]any{"place": c.SpotName(v.Place), "walk": FormatDuration(c, v.Walk)}
 	label, hint := c.T("place.button.walk", walkArgs), ""
 	if v.Then != "" {

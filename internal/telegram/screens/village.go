@@ -84,11 +84,6 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 // Village overview
 // ---------------------------------------------------------------------
 
-// villageSupportServices are the services a village's home screen lists as
-// «در Support - سفر کنید», each a journey to the same city through the
-// existing travel flow (travel:options).
-var villageSupportServices = []string{"bank", "market", "jobs", "knowledge", "hospital", "jail"}
-
 // VillageOverview renders a settlement's own status screen.
 func VillageOverview(c Context, v VillageOverviewView) *presenter.Response {
 	return c.withView(renderVillageOverview(c, v), ScreenVillageOverview, v)
@@ -164,7 +159,7 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 		args := map[string]any{"city": c.CityName(v.Support.Code, v.Support.Name)}
 		blocks = append(blocks, c.T("village.support.title", args))
 		var row []presenter.Button
-		for _, code := range villageSupportServices {
+		for _, code := range v.Support.Services {
 			if b, ok := keyboards.Button(c.T("village.support.service."+code, args), AddrTravelOptions, v.Support.Code); ok {
 				row = append(row, b)
 			}

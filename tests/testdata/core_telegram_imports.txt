@@ -1,6 +1,5 @@
 # Files that still import a Telegram presentation package. This list may only shrink:
 # a file leaves it when its area is migrated (docs/adr/0039-presentation-split.md).
-internal/application/handlers/achievements.go
 internal/application/handlers/appointments.go
 internal/application/handlers/auctions.go
 internal/application/handlers/bank.go
@@ -13,7 +12,6 @@ internal/application/handlers/crime.go
 internal/application/handlers/crime_commit.go
 internal/application/handlers/crime_justice.go
 internal/application/handlers/crime_read.go
-internal/application/handlers/devices.go
 internal/application/handlers/diplomacy.go
 internal/application/handlers/education.go
 internal/application/handlers/elections.go
@@ -41,7 +39,6 @@ internal/application/handlers/governance_allocation.go
 internal/application/handlers/health.go
 internal/application/handlers/health_common.go
 internal/application/handlers/inbox.go
-internal/application/handlers/inventory.go
 internal/application/handlers/jobs.go
 internal/application/handlers/legislature.go
 internal/application/handlers/life.go
@@ -54,8 +51,6 @@ internal/application/handlers/military_licences.go
 internal/application/handlers/military_procure.go
 internal/application/handlers/missions.go
 internal/application/handlers/payment.go
-internal/application/handlers/places.go
-internal/application/handlers/places_then.go
 internal/application/handlers/production.go
 internal/application/handlers/production_design.go
 internal/application/handlers/production_generations.go
@@ -65,7 +60,6 @@ internal/application/handlers/production_research.go
 internal/application/handlers/production_reverse.go
 internal/application/handlers/production_sales.go
 internal/application/handlers/production_staging.go
-internal/application/handlers/profile.go
 internal/application/handlers/property.go
 internal/application/handlers/recruit.go
 internal/application/handlers/recruit_campaign.go
@@ -75,19 +69,16 @@ internal/application/handlers/recruit_edit.go
 internal/application/handlers/recruit_market.go
 internal/application/handlers/recruit_period.go
 internal/application/handlers/recruit_staff.go
-internal/application/handlers/settings.go
 internal/application/handlers/settlements.go
 internal/application/handlers/settlements_form.go
 internal/application/handlers/shops.go
 internal/application/handlers/skills.go
 internal/application/handlers/social.go
 internal/application/handlers/travel.go
-internal/application/handlers/travel_world.go
 internal/application/handlers/war.go
 internal/application/handlers/war_battle.go
 internal/application/handlers/war_ops.go
 internal/application/handlers/work_common.go
-internal/application/handlers/worldmap.go
 internal/workers/notification/achievement.go
 internal/workers/notification/announce.go
 internal/workers/notification/badge.go

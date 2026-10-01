@@ -18,113 +18,7 @@
 # " - " (a hyphen with a space on each side), never "·"; a hyphen never
 # touches a number.
 
-profile:
-  # The one-time welcome, shown only while the player has not earned any XP.
-  body: |-
-    👋 Welcome to the game!
-    This is your home: your condition, your money and your work at a glance. Use the buttons below to go anywhere.
 
-  name: "👤 {name}"
-  city: "📍 {city}"
-  # Where in the city the player stands, or the walk they are on.
-  place: "📍 {place} - {city}"
-  walking: "🚶 On the way to the {place} - {remaining} left - arriving at {time}"
-  travelling: "🧭 On the way to {city} - {remaining} left"
-  level: "⭐ Level {level} - {xp_to_next} XP to level {next_level}"
-  level_plain: "⭐ Level {level}"
-  level_max: "⭐ Level {level} - highest level reached"
-  energy: "⚡ Energy: {energy} of {max_energy}"
-  energy_refilling: "⚡ Energy: {energy} of {max_energy} - full in {duration}"
-  health: "❤️ Health: {health} of {max_health}"
-  # A player's money: the cash they carry and their bank balance. Private:
-  # only the player sees these.
-  cash: "💵 Cash: {cash}"
-  bank: "🏦 Bank balance: {bank}"
-  code: "🆔 Player code: {code}"
-  code_hint: "Friends can find you by sending \"find {code}\"."
-  unavailable: "Your profile is not available right now. Please try again in a moment."
-
-  # The player's work and studies, between their condition and their money.
-  job: "💼 {title} in {city} - {pay} per shift"
-  job_none: "💼 No job yet"
-  shift_running: "⏳ On shift - {remaining} left"
-  shift_ending: "⏳ Shift over - your pay is on its way"
-  course: "📖 {course} - {remaining} left"
-  course_finishing: "📖 {course} - finishing any moment"
-  course_paused: "📖 {course} - paused (in jail), {remaining} left"
-  jail: "⛓ You are in jail - {remaining} left"
-  jail_in: "⛓ You are in jail in {city} - {remaining} left"
-  jail_blocks: "Until you are free you cannot travel, work a shift, withdraw from the bank or start a new course; the course you are on is paused too."
-  certificates: "📜 {count} certificates"
-  achievements: "🏅 {count} achievements"
-  hospital: "🏥 You are in hospital in {city} - {remaining} left"
-  hospital_blocks: "Until you are discharged you cannot travel, work a shift, walk across town or commit a crime. Treatment shortens the stay."
-map:
-  cities_title: "🧭 Travel to another city"
-  title: "🗺 Map"
-  origin: "📍 You are in {city}."
-  destinations: "From here you can travel to these cities and villages:"
-  destination: "• {city} - {distance} km"
-  destination_priced: "• {city} - {distance} km - fare from {fare} - fastest {wait}"
-  destination_free: "• {city} - {distance} km - free on foot - fastest {wait}"
-  no_routes: "There is nowhere to travel to from here yet. When a route opens, its destinations will appear right here."
-  no_city: "You have not settled in a city yet. Once you do, your travel destinations appear here."
-  travelling: "🧭 You are on the way to {city}. You can start a new journey once you arrive."
-
-travel:
-  # The choice of transport, shown when a destination is pressed on the Map.
-  # Nothing departs until a mode is chosen. {fare} and {cash} arrive already
-  # formatted through format.money; {wait} is the real time the trip takes.
-  options_title: |-
-    🧭 Travel to {to}
-    📍 From: {from}
-  options_choose: "How would you like to travel?"
-  option: "• {mode} - {fare} - {wait} on the way - {energy} energy"
-  option_busy: "• {mode} - {fare} (busy route) - {wait} on the way - {energy} energy"
-  option_own: "• In your own {mode} - fuel {fare} - {wait} on the way - {energy} energy - condition {condition}"
-  requoted: "⚠️ The fare has changed since you looked. Nothing was charged — here are the current prices."
-  cash: "💵 Your cash: {cash}"
-  # The fare of the chosen mode and the ways to pay it.
-  checkout_title: |-
-    🧭 To {to} by {mode}
-    📍 From: {from}
-  checkout_fare: "💰 Fare: {fare}"
-  checkout_fare_busy: "💰 Fare: {fare} (busy route)"
-  checkout_wait: "⏳ {wait} on the road"
-  checkout_energy: "⚡ {energy} energy"
-  # Shown only if a mode has neither a translation nor an authored name.
-  mode_unnamed: Other transport
-  # What a journey that costs nothing shows instead of a price of zero.
-  free: "Free"
-  started: |-
-    🧭 Your journey to {to} by {mode} has begun
-    You left {from} and will arrive in {duration}.
-    ⚡ {energy} energy used.
-  started_fare: "💵 Fare paid: {fare}"
-  # When the journey lands, as a clock time in the player's time zone.
-  arrives_at: "🕒 Arrives at {time}"
-  status_mode: "Travelling by: {mode}"
-  status: |-
-    🧭 On the way to {to}
-    📍 From: {from}
-    ⏳ Arriving in {remaining}
-  status_arriving: |-
-    🧭 On the way to {to}
-    📍 From: {from}
-    ⏳ Arriving any moment now.
-  arrived: "📍 You have arrived in {city}."
-  arrived_xp: "⭐ You earned {xp} XP."
-  # Added to the arrival notice when the XP of the journey lifted the player
-  # to a new level; {level} is the highest level reached.
-  arrived_level: "⭐ Congratulations — you reached level {level}."
-  none: "You are not travelling right now. Open the “Map” to choose a destination."
-  here:
-    no_village: "🏡 This group has no village yet, so there is nowhere to travel to. Send “found village” to start one."
-    already_there: "📍 You are in {village} right now; no journey needed. Open the “Map” to go somewhere else."
-    group_only: "🧭 Send “travel to this village” in the group of that village to travel straight there. Open the “Map” for other destinations."
-  same_city: "You are already in this city. Choose another destination on the “Map”."
-  no_route: "There is no route there from your current city. Choose one of the destinations on the “Map”."
-  mode_unavailable: "That way of travelling does not serve this route. Choose the destination on the “Map” again to see the ways that do."
 
 # Transport mode names, keyed on the mode's content code
 # (configs/content/transport.yml). A mode with no entry here falls back to its
@@ -207,13 +101,6 @@ help:
     • settings
     • help - this screen
 
-settings:
-  title: "⚙️ Settings"
-  language: "🌐 Game language: {language}"
-  language_changed: "✅ The game language is now {language}."
-  presence: "👁 Who can see me online: {visibility}"
-  presence_changed: "✅ Your online status is now visible to: {visibility}."
-  presence_nobody_hint: "With \"nobody\", other players' online status is hidden from you too; only people in your own village can see you."
 
 # Language names, keyed on the locale file's name (fa.yml -> language.fa).
 # Each language is written in ITSELF, in every locale: a player who landed in
@@ -1320,58 +1207,6 @@ payment:
     🏦 Bank: {bank}
     Nothing was charged.
 
-# The map of the player's own city (configs/content/places.yml). Place names
-# are under venue.<code>.
-place:
-  title: "🗺 Map of {city}"
-  here: "📍 You are at the {place}."
-  others: "👥 Other players here: {count}"
-  walking: "🚶 On your way to the {place} - {remaining} left"
-  arrives_at: "🕒 Arriving at {time}"
-  list_title: "Places in the city:"
-  line: "• {place} - {walk} walk"
-  line_here: "• {place} (you are here)"
-  line_with: "{line} - {what}"
-  separator: ", "
-  departures: "{mode} departures"
-  hint: "Tap a place to walk there. Everything is done at its own place."
-  walk_started: "🚶 You set off for the {place} - a {duration} walk."
-  walk_energy: "⚡ {energy} energy spent."
-  still_walking: "🚶 You are still on your way to the {place} - {remaining} left."
-  you_are_at: "📍 You are at the {place} now."
-  # A walk that does something on arrival (go, then do).
-  then:
-    work: "🛠 Your shift starts as soon as you arrive."
-    open: "📲 What you asked for opens as soon as you arrive."
-  then_hint: "One press walks you to the {place} ({walk}) and opens this page again there."
-  service:
-    bank: bank
-    police: police
-    city_hall: city hall
-    market: market
-    auction_house: auction house
-    university: university
-    training_center: training centre
-  need:
-    bank: "🏦 The bank is at the {place}."
-    police: "🚓 The police are at the {place}."
-    city_hall: "🏛 City hall is at the {place}."
-    market: "🏪 The market is at the {place}."
-    auction_house: "🔨 The auction house is at the {place}."
-    university: "🎓 This course is taught at the {place}."
-    training_center: "🎓 This course is taught at the {place}."
-    departure: "🚉 Departures by {mode} are from the {place}."
-    shop: "🛒 {shop} is at the {place}."
-    crime: "🕶 {crime} cannot be done here; go to the {place} to do it."
-    heist: "🕶 {crime} cannot be done here; the crew gathers at the {place}."
-    board: "📋 Missions are taken and handed in at the {board} at the {place}."
-    home: "🛏 Your home is at the {place}."
-    sleep: "🛏 This place to sleep is at the {place}."
-  button:
-    go: "🚶 {place}"
-    walk: "🚶 Walk to the {place} - {walk}"
-    walk_then: "🚶 Go to the {place} ({walk})"
-    other_cities: "🧭 Travel to another city"
 
 # Commands typed without a slash; see the note in fa.yml. The key is the
 # slash-command a word stands for; several words are separated by "|".
@@ -1525,52 +1360,7 @@ announce:
 # What a player carries (internal/telegram/screens/items.go). A good's name is
 # under item_name.<code>, its kind under item_category.<code>.
 item:
-  bag_title: "🎒 Your bag"
-  bag_empty: Your bag is empty. The city's shops sell food, medicine and tools.
-  bag_stack: "• {item} - {qty}"
-  bag_piece: "• {item} - {detail}"
-  piece: "quality {quality}"
-  piece_worn: "quality {quality} - {uses} of {durability} uses left"
-  in_escrow: "📦 {count} of your goods are on the market or up for auction."
-  detail_title: "🎒 {item}"
-  category: "Kind: {category}"
-  you_have: "You have {qty}."
-  worth: "💰 Worth about {price}"
-  effects: "When used:"
-  effect_plus: "• {vital} up by {value}"
-  effect_minus: "• {vital} down by {value}"
-  effect_cap: "• {vital} raised to at least {value}"
-  effect_times: "• {vital} to {pct}% of what it is"
-  cooldown: "⏳ At most once every {duration}"
-  cooling: "⏳ You can use it again in {duration}."
-  ready_at: "🕒 Ready at {time}"
-  gear_for: "🕶 Helps with: {crimes}"
-  gear_evidence: "🚔 If you are caught, the police keep it as evidence."
-  give_nobody: "👥 To give it away, stand with a friend at the same place."
-  used: "✅ You used: {item}"
-  changed: "{vital}: {before} → {after} of {max}"
-  left: "🎒 Left in your bag: {qty}"
-  next_use: "⏳ The next one in {duration}"
-  given: "🎁 You gave {item} to {player}."
   received: "🎁 {player} gave you {item}."
-  drop_confirm: "🗑 Throw away {item}? It is gone for good."
-  dropped: "🗑 You threw away {item}."
-  button:
-    bag: "🎒 Bag"
-    open: "🎒 {item}"
-    use: "✅ Use {item}"
-    give: "🎁 Give to {player}"
-    drop: "🗑 Throw away"
-    drop_confirm: "🗑 Yes, throw it away"
-  refused:
-    not_held: "You do not have {item} with you."
-    not_usable: "{item} is not something you use; you carry it."
-    cooling: "⏳ You can use {item} again in {duration}."
-    no_effect: "{item} would do nothing now: you are already at full."
-    not_tradeable: "{item} cannot change hands."
-    not_together: "👥 You can only hand something to a friend who stands at the same place as you."
-
-# The kinds of goods (configs/content/items.yml).
 item_category:
   vehicles: Vehicles
   food: Food
@@ -1626,30 +1416,7 @@ item_name:
   frigate: "Frigate"
   attack_submarine: "Attack submarine"
 
-# What using a good changes.
-vital:
-  energy: "⚡ Energy"
-  health: "❤️ Health"
-  happiness: "😊 Happiness"
-  nerve: "🔥 Nerve"
-  hunger: "🍽 Hunger"
-  sleep: "😴 Tiredness"
-  stress: "😣 Stress"
 
-# What a tool carried does to a crime (internal/domain/crime/gear.go).
-gear:
-  success_up: "🎲 Odds of success up by {pct}%"
-  success_down: "🎲 Odds of success down by {pct}%"
-  catch_up: "🚔 Odds of arrest up by {pct}%"
-  catch_down: "🚔 Odds of arrest down by {pct}%"
-  witness_up: "👀 Odds of being seen up by {pct}%"
-  witness_down: "👀 Odds of being seen down by {pct}%"
-  solve_up: "🗂 Odds a report is solved up by {pct}%"
-  solve_down: "🗂 Odds a report is solved down by {pct}%"
-  reward_up: "💵 The take up by {pct}%"
-  reward_down: "💵 The take down by {pct}%"
-  nerve_up: "🔥 Costs {value} more nerve"
-  nerve_down: "🔥 Costs {value} less nerve"
 
 # The city's shops (configs/content/shops.yml). Each stands at a place of
 # the city; buying is done at its counter.
@@ -3510,73 +3277,6 @@ budget_line:
 
 # Property (docs/adr/0024-property-and-politics.md).
 property:
-  no_city: "🏠 To see the property market you must be in a city, not on the road."
-  market_title: "🏠 Property market of {city}"
-  city_sells: "The land registry sells:"
-  city_sells_none: "• This city sells no property."
-  type_line: "• {type} ({facts}): {price} - {left} left"
-  type_line_sold_out: "• {type} ({facts}): sold out"
-  facts: "{kind}, {size} m², quality {quality}"
-  offers: "Owners' offers:"
-  offers_none: "• No offers right now."
-  offer_sale: "• Property #{no}, {type}: for sale at {price} - {seller}"
-  offer_rent: "• Property #{no}, {type}: to let at {price} per city period - {seller}"
-  kind:
-    house: house
-    apartment: apartment
-    shop: shop
-    land: land
-  type_title: "🏠 {type} - {city}"
-  where: "📍 At the {place}"
-  price: "💰 Price: {price} (the registry has {left} more)"
-  upkeep: "🧾 Upkeep: {upkeep} per city period"
-  tax: "🏛 Property tax: {tax} of its value per city period"
-  home_note: "🛏 A home: buying or renting it makes you a resident of this city, and you rest there for {energy} energy."
-  home_residence: "🛏 A home: buying or renting it makes you a resident of this city."
-  at_registry: "✍️ Deeds are signed at the land registry at the {place}."
-  bought: "✅ Property #{no} ({type}) is now yours."
-  offer_title: "🏠 Property #{no}, {type} - {city}"
-  rent_terms: "🔑 The first period's rent is paid on signing, each later one at its end."
-  mine_title: "🏠 My property"
-  residence: "📍 Residence: {city}"
-  owned_line: "• Property #{no}, {type} in {city} - worth {value}"
-  debt: "⚠️ Debt: {debt} ({periods} periods in a row)"
-  let_to: "🔑 Let to {tenant} at {rent} per period"
-  offered_rent: "📢 Offered to let: {price} per period"
-  offered_sale: "📢 Offered for sale: {price}"
-  lived_in: "🛏 Your home"
-  owned_none: You own no property yet. Every city's land registry sells some.
-  grace: "Property in debt {periods} periods in a row goes back to the city."
-  renting: "🔑 Renting a {type} in {city} from {landlord}, {rent} per period"
-  arrears: "⚠️ Rent unpaid for {periods} periods."
-  rest_wait: "🛏 You can rest at home again in {wait}."
-  rest_ready: "🛏 You can rest at home for {energy} energy."
-  debt_blocks: "⚠️ You cannot offer this property until its debt is paid."
-  offer_limits: "Offers for sale up to {price}, to let up to {rent} per period."
-  leave_confirm: "🔑 Leave the {type} in {city}? This period's rent is not returned."
-  notice:
-    listed: "📢 The offer is posted."
-    cancelled: The offer is withdrawn.
-    rented: "🔑 The lease is signed; the first period's rent is paid."
-    left: "🔑 You left your rented home."
-    rested: "🛏 You slept at home: {energy} energy gained and {rest} less tiredness."
-    bought_offer: "✅ Property #{no} is now yours."
-  refused:
-    not_found: That property was not found.
-    not_yours: That property or lease is not yours.
-    sold_out: The land registry here has no more of this kind.
-    too_many: You already own as much property as you may.
-    taken: That offer is no longer open.
-    own: That offer is your own.
-    renting: You already rent a home; leave it first.
-    let: This property is let and cannot be offered until the lease ends.
-    offered: This property is already offered.
-    pledged: This property secures a mortgage and cannot be sold until the loan is repaid.
-    in_debt: This property cannot be offered or sold until its debt is paid.
-    price: "That price is above the allowed ceiling of {max}."
-    no_home: You have no home in this city to rest at.
-    too_soon: "You can rest at home again in {wait}."
-    not_in_city: You must be in that city to do this.
   notice_event:
     sold: "💰 {player} bought property #{no} ({type} in {city}); {amount} was paid into your bank."
     let: "🔑 {player} rented property #{no} ({type} in {city}); the first period's rent, {amount}, was paid into your bank."
@@ -3584,22 +3284,6 @@ property:
     foreclosed: "⚠️ Property #{no} ({type} in {city}) went back to the city for its unpaid debt."
     evicted: "⚠️ The rent of the {type} in {city} went unpaid for several periods, and the lease has ended."
     evicted_tenant: "⚠️ The tenant of property #{no} ({type} in {city}) paid no rent for several periods, and the lease has ended."
-  button:
-    type: "🏠 {type}"
-    offer: "📢 Property #{no}"
-    mine: "🏠 My property"
-    market: "🏠 Property market"
-    manage: "🏠 Property #{no}, {type}"
-    sell: "💰 Offer for sale"
-    let: "🔑 Offer to let"
-    cancel: "✖️ Withdraw the offer"
-    leave: "🚪 Leave my rented home"
-    leave_confirm: "✅ Yes, leave"
-    rest: "🛏 Rest at home"
-    back_to_type: "🔙 Back to the property"
-    back_to_offer: "🔙 Back to the offer"
-
-# Kinds of property, keyed on the kind's content code (property.yml).
 property_type:
   studio: Studio flat
   apartment: Two-room apartment
@@ -3610,11 +3294,6 @@ property_type:
 
 # Achievements (docs/adr/0024; configs/content/achievements.yml).
 achievement:
-  title: "🏅 Your achievements: {earned} of {all}"
-  none_yet: You have not earned an achievement yet.
-  earned_line: "✅ {achievement}"
-  open_line: "▫️ {achievement} - {done} of {count}"
-  open_line_reward: "▫️ {achievement} - {done} of {count} - reward {reward}"
   notice: "🏅 New achievement: {achievement}!"
   notice_cash: "💵 A reward of {cash} was added to your cash."
   notice_withheld: "The day's cap on rewards held back {amount} of it."
@@ -3732,128 +3411,8 @@ inbox:
 
 # A character's life (docs/adr/0025-life-and-legacy.md).
 life:
-  title: "🧬 Your life"
-  age: "🎂 Age: {age} - {stage}"
-  intelligence: "🧠 Intelligence: {iq} of {max}"
-  intelligence_perks: "🧠 Intelligence: {iq} of {max} - courses {course}% shorter and {skill}% more skill experience"
-  rank_line: "{emoji} Rank: {rank}"
-  worth: "💎 Net worth: {total}"
-  worth_part:
-    cash: "cash {amount}"
-    bank: "bank {amount}"
-    equity: "company shares {amount}"
-    property: "property {amount}"
-    goods: "goods {amount}"
-    savings: "savings {amount}"
-    gold: "gold {amount}"
-  worth_sep: " - "
-  worth_debts: "🧾 Debts: {debts}"
-  worth_loans: "🏦 Loans: {loans}"
-  next_rank: "⬆️ To {rank}: {need} more"
-  bar_full: "▰"
-  bar_empty: "▱"
-  need:
-    hunger: "🍽 Hunger {bar} {value}"
-    sleep: "😴 Tiredness {bar} {value}"
-    stress: "😣 Stress {bar} {value}"
-    happiness: "😊 Happiness {bar} {value}"
-  pressing:
-    hunger: "⚠️ You are hungry; eat something from your bag or a shop."
-    sleep: "⚠️ You are tired; rest at home or sleep somewhere."
-    stress: "⚠️ Your stress is high; rest, sleep and happiness bring it down."
-  body_cost: "🔻 Your condition takes {percent}% off energy recovery, work and crime."
-  mood_cost: "🔻 You feel low and earn {percent}% less experience."
-  sleep_title: "🛏 Where to sleep:"
-  sleep_home: "🏠 Your own home - the best sleep"
-  spot_line: "▫️ {spot} at the {place} - {price} - {rest} less tiredness"
-  spot_line_free: "▫️ {spot} at the {place} - free - {rest} less tiredness"
-  sleep_wait: "⏳ {wait} until you can sleep again."
-  sleep_pay: "🛏 A night at the {spot}: {price} - {rest} less tiredness"
-  notice:
-    slept: "😴 You slept well ({spot}); your tiredness fell by {rest}."
-    bio: "✅ Your bio is saved."
-    bio_gone: "🗑 Your bio is cleared."
-    avatar: "✅ Your avatar has changed."
   button:
     open: "🧬 My life"
-    top: "🏆 Leaderboards"
-    sleep: "😴 Sleep: {spot}"
-    sleep_walk: "🚶 Go to the {spot} ({walk})"
-    home_rest: "🏠 Rest at home"
-    history: "📜 My story"
-    my_history: "📜 My story"
-    their_history: "📜 {player}'s story"
-    card: "🪪 My card"
-    bio: "✏️ Bio"
-    bio_again: "✏️ Write it again"
-    bio_clear: "🗑 Clear my bio"
-    avatar: "🎭 Avatar"
-    avatar_choice: "{emoji} {name}"
-    avatar_photo: "📷 My Telegram photo"
-    avatar_none: "🚫 No avatar"
-  card:
-    name: "👤 {name}"
-    name_avatar: "{avatar} {name}"
-    bio: "💬 “{bio}”"
-    no_bio: "💬 No bio yet. Press «Bio» to write a few words about yourself."
-    age_level: "🎂 {age} - {stage} - level {level}"
-    record: "🏅 {achievements} achievements - {entries} moments in their story"
-    joined: "🗓 Life began: {date}"
-  history_title_mine: "📜 Your story"
-  history_title: "📜 {player}'s story"
-  history_page: "Page {page} of {pages}"
-  history_empty: "Nothing yet. Everything important you do stays here."
-  history_hint: "Moments marked «only you» are not shown to others."
-  history:
-    backfilled: "{line} (from older records)"
-    private: "{line} (only you)"
-    joined: "🌱 {date} - Began a life in the game"
-    first_job: "💼 {date} - First job: {what} in {place}"
-    first_job_nowhere: "💼 {date} - First job: {what}"
-    hired: "💼 {date} - Hired: {what} in {place}"
-    hired_nowhere: "💼 {date} - Hired: {what}"
-    promoted: "⬆️ {date} - Promoted to {what}"
-    course: "📖 {date} - Finished the {what} course"
-    certificate: "📜 {date} - Earned the {what} certificate"
-    company_founded: "🏢 {date} - Founded «{what}» in {place}"
-    company_founded_nowhere: "🏢 {date} - Founded «{what}»"
-    company_closed: "🏚 {date} - Closed «{what}» in {place}"
-    company_closed_nowhere: "🏚 {date} - Closed «{what}»"
-    property_bought: "🏠 {date} - Bought a {what} in {place} for {amount}"
-    property_bought_nowhere: "🏠 {date} - Bought a {what} for {amount}"
-    property_sold: "🏷 {date} - Sold a {what} in {place} for {amount}"
-    property_sold_nowhere: "🏷 {date} - Sold a {what} for {amount}"
-    election_won: "🗳 {date} - Won the election for {what} of {place} with {number} votes"
-    election_lost: "🗳 {date} - Lost the election for {what} of {place} with {number} votes"
-    office_taken: "🏛 {date} - Took office as {what} of {place}"
-    office_lost: "🏛 {date} - Left office as {what} of {place}"
-    jailed: "⛓ {date} - Jailed in {place}"
-    jailed_nowhere: "⛓ {date} - Jailed"
-    convicted: "⚖️ {date} - Convicted in court"
-    hospitalised: "🏥 {date} - In hospital in {place}"
-    hospitalised_nowhere: "🏥 {date} - In hospital"
-    war_command: "🎖 {date} - Commanded an operation against {place}"
-    achievement: "🏅 {date} - Achievement «{what}»"
-    rank_up: "📈 {date} - Rose to {what}"
-    rank_down: "📉 {date} - Fell to {what}"
-    big_trade: "🤝 {date} - A big {what} trade in {place} worth {amount}"
-    big_trade_nowhere: "🤝 {date} - A big {what} trade worth {amount}"
-  avatar_title: "🎭 Your avatar"
-  avatar_current: "Current avatar: {avatar}"
-  avatar_none: "none"
-  avatar_photo: "your Telegram profile photo"
-  avatar_hint: "Pick one to sit beside your name on your card and profile."
-  refused:
-    bio_length: "✏️ A bio is {min} to {max} characters long."
-    bio_link: "🔗 A bio may not hold a link, a web address or a username."
-    bio_blocked: "🚫 That has a word a bio may not hold. Please keep it polite."
-    bio_chars: "✏️ That has characters that cannot be shown. Keep it simple."
-    too_soon: "⏳ You slept not long ago. {wait} until the next night."
-    no_spot: "🛏 This city has no such place to sleep."
-    no_avatar: "🎭 That avatar is not on the list. Pick one from it."
-    no_player: "🔎 No player has that code or username."
-    no_city: "🧭 You sleep in a city, not on the road."
-    rested: "⏳ You rested not long ago. Try again a little later."
   board:
     empty: "No board yet. The boards are refreshed every game day."
     refreshed: "🔄 Refreshed {date} at {time}"
@@ -4372,28 +3931,6 @@ recruit:
     unpaid: "🔴 {name}'s ({what}) pay at {company} was not paid; the company's free money fell short."
   announce: "📢 Job advertisement - {company} ({type}) is looking for {what}; specialists of {city} may apply."
 
-# Game clients (api/client-api.md): the one-time code that links a native
-# client to the account, and the clients linked so far.
-device:
-  link_title: "📱 Link a game client"
-  link_code: "Your code: {code}"
-  link_valid: "It works once, for {valid}."
-  link_until: "Valid until {time}."
-  link_help: "Open the game client, choose «Link with Telegram» and type this code. Never give it to anyone: whoever types it plays as you."
-  list_title: "📱 Your linked game clients"
-  list_empty: "No game client is linked. Send /link to get a code for one."
-  line: "• {name} ({via}) — linked {date}, last seen {date_seen}"
-  via:
-    link: "code"
-    telegram: "Telegram app"
-  notice:
-    revoked: "✅ That client is signed out."
-    gone: "That client was already signed out."
-  button:
-    play: "🎮 Play the web game"
-    link: "➕ Link a client"
-    list: "📱 Linked clients"
-    revoke: "🚫 Sign out {name}"
 
 # Last seen and a village's people (docs/adr/0030-realtime-interest-and-presence.md;
 # internal/telegram/screens/presence.go). The people screen lives in the group and

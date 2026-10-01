@@ -27,6 +27,7 @@ package i18n
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -109,38 +110,44 @@ func LoadWithDefault(dir, defaultLang string) (*Catalog, error) {
 	// Layers: every subdirectory of dir (configs/locales/telegram) adds its
 	// own files over the top-level ones, one file per language, and a key
 	// defined in two layers is refused, so moving wording between layers
-	// never leaves two answers.
+	// never leaves two answers. A layer may split into one directory per
+	// area (telegram/life/fa.yml): its files are read at any depth, and a
+	// file is the language its name says.
 	for _, e := range entries {
 		if !e.IsDir() {
 			continue
 		}
-		layer, err := os.ReadDir(filepath.Join(dir, e.Name()))
-		if err != nil {
-			return nil, fmt.Errorf("i18n: read locale layer %s: %w", e.Name(), err)
-		}
-		for _, f := range layer {
-			name := f.Name()
-			if f.IsDir() || filepath.Ext(name) != localeExt {
-				continue
-			}
-			lang := strings.TrimSuffix(name, localeExt)
-			data, err := os.ReadFile(filepath.Join(dir, e.Name(), name))
+		root := filepath.Join(dir, e.Name())
+		err := filepath.WalkDir(root, func(path string, f fs.DirEntry, err error) error {
 			if err != nil {
-				return nil, fmt.Errorf("i18n: read %s/%s: %w", e.Name(), name, err)
+				return err
 			}
-			msgs, err := parseLocale(e.Name()+"/"+name, data)
+			if f.IsDir() || filepath.Ext(f.Name()) != localeExt {
+				return nil
+			}
+			rel, _ := filepath.Rel(dir, path)
+			lang := strings.TrimSuffix(f.Name(), localeExt)
+			data, err := os.ReadFile(path)
 			if err != nil {
-				return nil, err
+				return fmt.Errorf("i18n: read %s: %w", rel, err)
+			}
+			msgs, err := parseLocale(rel, data)
+			if err != nil {
+				return err
 			}
 			if messages[lang] == nil {
 				messages[lang] = map[string]string{}
 			}
 			for key, text := range msgs {
 				if _, dup := messages[lang][key]; dup {
-					return nil, fmt.Errorf("%w: %s in %s/%s", ErrDuplicateKey, key, e.Name(), name)
+					return fmt.Errorf("%w: %s in %s", ErrDuplicateKey, key, rel)
 				}
 				messages[lang][key] = text
 			}
+			return nil
+		})
+		if err != nil {
+			return nil, fmt.Errorf("i18n: read locale layer %s: %w", e.Name(), err)
 		}
 	}
 

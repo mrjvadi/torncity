@@ -114,7 +114,7 @@ func factionSnapshots(c Context, who people, add func(string, *presenter.Respons
 	add("Refused · full", FactionRefusal(c, FactionRefusalView{Kind: FactionRefusedFull, Max: 30}))
 	add("Refused · level", FactionRefusal(c, FactionRefusalView{Kind: FactionRefusedLevel, Level: 5}))
 	add("Refused · crew short", FactionRefusal(c, FactionRefusalView{Kind: FactionRefusedCrewShort, Need: 3, Have: 2}))
-	add("Not here · the crew gathers elsewhere", NotHere(c, NotHereView{Need: "place.need.heist", Crime: heist,
+	add("Not here · the crew gathers elsewhere", NotHere(c, NotHereView{Need: "heist", Crime: heist,
 		Place: industrial, Here: Named{Code: "bazaar", Name: "Bazaar"}, Walk: 30 * time.Second, Then: "faction.crime"}))
 
 	add("Notice · invited", FactionRequestNotice(sent(c), FactionRequestNoticeView{No: 13, Kind: "invite", Ref: lions, Player: me}))

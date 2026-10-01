@@ -5,28 +5,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
-// SettingsView is the player's settings as the settings screen shows them.
-//
-// Every field describes a setting that exists. There is no field for a
-// setting that is planned: a greyed-out row for something a player cannot
-// use yet is a promise on screen, and it teaches them to skip the rows.
-type SettingsView struct {
-	// Language is the player's current language code. It is never shown as
-	// such: the screen names it from the catalogue (language.<code>).
-	Language string
-	// Languages is every language the game ships, in the order they are
-	// offered. The current one is not offered again.
-	Languages []string
-	// LanguageChanged says this render follows a language change, so the
-	// screen confirms the change in the language it was changed to.
-	LanguageChanged bool
-	// PresenceVisibility is the «last seen» setting (everyone, contacts,
-	// nobody; ADR 0030 section 3.2), or "" when the render carries none.
-	PresenceVisibility string
-	// PresenceChanged says this render follows a change of that setting.
-	PresenceChanged bool
-}
-
 // settingRow is one setting on the settings screen: the line that states its
 // current value, and the buttons that change it, added to kb. A setting with
 // nothing to show returns "" and adds no buttons.

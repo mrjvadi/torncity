@@ -60,53 +60,9 @@ func (c Context) CourseName(code, authored string) string {
 	return c.named("course."+code, authored)
 }
 
-// JobRef names a position: a career and one of its tiers.
-type JobRef struct {
-	CareerCode string
-	// CareerName is the authored career name, the fallback.
-	CareerName string
-	// Rank is the tier's rank name, which keys its title.
-	Rank string
-	// Title is the authored tier title, the fallback.
-	Title string
-}
-
 func (c Context) jobTitle(j JobRef) string { return c.TierTitle(j.CareerCode, j.Rank, j.Title) }
 func (c Context) jobCareer(j JobRef) string {
 	return c.CareerName(j.CareerCode, j.CareerName)
-}
-
-// Requirement kinds. They choose a sentence; none is ever shown.
-const (
-	ReqLevel            = "level"
-	ReqSkill            = "skill"
-	ReqCertificate      = "certificate"
-	ReqResidence        = "residence"
-	ReqPerformance      = "performance"
-	ReqTime             = "time"
-	ReqShifts           = "shifts"
-	ReqTopTier          = "top"
-	ReqCourseCity       = "course_city"
-	ReqCourseFull       = "course_full"
-	ReqAlreadyCertified = "already_certified"
-	ReqAlreadyEnrolled  = "already_enrolled"
-)
-
-// Requirement is one condition of a position or a course, met or not.
-type Requirement struct {
-	Kind string
-	Met  bool
-	// Skill is a skill code, looked up as skill.<code>.
-	Skill      string
-	Need, Have int64
-	// CourseCode and CourseName name a certificate or a course.
-	CourseCode string
-	CourseName string
-	// CityCode and City name a city.
-	CityCode string
-	City     string
-	// Wait is how long until a time requirement is met.
-	Wait time.Duration
 }
 
 // requirementLine renders one requirement with its met or unmet mark.
@@ -732,44 +688,6 @@ func JobQuit(c Context, job JobRef) *presenter.Response {
 	kb.Row(openings)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
 	return c.respond(c.T("job.quit_done", map[string]any{"title": c.jobTitle(job)}), kb.Build())
-}
-
-// Refusal kinds for work and study: what a player asked for that cannot be
-// done, each with its own sentence and next step.
-const (
-	RefusalJobRequirements    = "job_requirements"
-	RefusalPromotion          = "promotion"
-	RefusalNotEmployed        = "not_employed"
-	RefusalAlreadyEmployed    = "already_employed"
-	RefusalJobNotOffered      = "job_not_offered"
-	RefusalNotAtWorkplace     = "not_at_workplace"
-	RefusalCourseRequirements = "course_requirements"
-	RefusalCourseNotFound     = "course_not_found"
-	RefusalCannotAfford       = "cannot_afford"
-	// RefusalShiftInProgress is a player at work asking for something a
-	// running shift rules out: another shift, a promotion, leaving the job.
-	RefusalShiftInProgress = "shift_in_progress"
-	// RefusalArmyCannotPay is a soldier's duty refused because the
-	// country's defence fund cannot pay one shift (docs/adr/0022, section
-	// 2.14).
-	RefusalArmyCannotPay = "army_cannot_pay"
-)
-
-// RefusalView is a work or study request that was refused, with the reasons.
-type RefusalView struct {
-	Kind string
-	// Missing lists the unmet requirements, for the requirement refusals.
-	Missing []Requirement
-	// CityCode and City name the job's city, for not_at_workplace.
-	CityCode string
-	City     string
-	// Fee and Cash are the course fee and the player's cash, for
-	// cannot_afford.
-	Fee, Cash int64
-	// Wait and EndsAt are the time left on the shift and when it ends, for
-	// shift_in_progress.
-	Wait   time.Duration
-	EndsAt time.Time
 }
 
 // refusals maps a refusal to its sentence and its one next step.

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"github.com/mrjvadi/torncity/internal/domain/budget"
 	"github.com/mrjvadi/torncity/internal/domain/vehicle"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"strconv"
 	"strings"
@@ -24,7 +26,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -265,7 +266,7 @@ type quotedOption struct {
 // the good it is, and what is left of it.
 type ownVehicle struct {
 	piece     application.Piece
-	item      screens.Named
+	item      presentation.Named
 	condition int64
 }
 
@@ -333,14 +334,14 @@ func (h *TravelHandler) planTrip(ctx context.Context, tx application.Tx, p *appl
 		return t, err
 	}
 	if err := checkSanctions(ctx, tx, application.CheckSanctions(ctx, tx, diplomacy.Travel, fromCountry, toCountry, now),
-		screens.AddrCities); err != nil {
+		life.AddrCities); err != nil {
 		return t, err
 	}
 	// War closes the border between countries at war, and a city struck
 	// lately to arrivals (docs/adr/0022, part two). Leaving is never
 	// refused.
 	if err := checkWarTravel(ctx, tx, h.cities, application.CheckWarTravel(ctx, tx, fromCountry, toCountry, to.ID, now),
-		now, screens.AddrCities); err != nil {
+		now, life.AddrCities); err != nil {
 		return t, err
 	}
 
@@ -459,19 +460,19 @@ func cashOf(ctx context.Context, tx application.Tx, playerID string) (applicatio
 }
 
 // optionsView turns a priced trip into the choice-of-transport screen.
-func optionsView(t trip, cash int64, requoted bool) screens.TravelOptionsView {
-	v := screens.TravelOptionsView{
+func optionsView(t trip, cash int64, requoted bool) life.TravelOptionsView {
+	v := life.TravelOptionsView{
 		FromCode: t.from.Code, From: t.from.Name,
 		ToCode: t.to.Code, To: t.to.Name,
 		Cash: cash, Requoted: requoted,
 	}
 	for _, o := range t.options {
-		var own *screens.Named
+		var own *presentation.Named
 		var condition int64
 		if o.own != nil {
 			own, condition = &o.own.item, o.own.condition
 		}
-		v.Options = append(v.Options, screens.TravelOption{
+		v.Options = append(v.Options, life.TravelOption{
 			Vehicle:   own,
 			Condition: condition,
 			ModeCode:  o.quote.Mode,
@@ -489,13 +490,13 @@ func optionsView(t trip, cash int64, requoted bool) screens.TravelOptionsView {
 // mode with its price, its real wait and its energy. It departs nowhere and
 // charges nothing, so it reserves no idempotency key: a refresh must always
 // show the prices of now.
-func (h *TravelHandler) Options(ctx context.Context, meta envelope.Metadata, req TravelOptionsRequest) (*presenter.Response, error) {
+func (h *TravelHandler) Options(ctx context.Context, meta envelope.Metadata, req TravelOptionsRequest) (*presentation.Response, error) {
 	return h.options(ctx, meta, req, meta.InGroup())
 }
 
 // options is Options. shared says the answer is posted where others read it
 // (a group), so it leaves the player's purse out.
-func (h *TravelHandler) options(ctx context.Context, meta envelope.Metadata, req TravelOptionsRequest, shared bool) (*presenter.Response, error) {
+func (h *TravelHandler) options(ctx context.Context, meta envelope.Metadata, req TravelOptionsRequest, shared bool) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -506,7 +507,7 @@ func (h *TravelHandler) options(ctx context.Context, meta envelope.Metadata, req
 		return nil, errors.InvalidInput("travel.options requires a destination city")
 	}
 
-	var view screens.TravelOptionsView
+	var view life.TravelOptionsView
 	lang := meta.Language
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -537,7 +538,7 @@ func (h *TravelHandler) options(ctx context.Context, meta envelope.Metadata, req
 	if err != nil {
 		return nil, err
 	}
-	return screens.TravelOptions(sc, view), nil
+	return life.TravelOptions(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // errRequote ends a departure's transaction without writing anything, so the
@@ -574,7 +575,7 @@ var errPaymentDeclined = stderrors.New("handlers: the chosen payment method does
 // the purse the player chose — cash or card — whichever the mode accepts; a
 // press without a method is answered with the fare and a button per way to
 // pay it (Checkout), and a free journey departs without one.
-func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req StartTravelRequest) (*presenter.Response, error) {
+func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req StartTravelRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -604,8 +605,8 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 	}
 
 	var (
-		started  screens.TravelStartedView
-		options  screens.TravelOptionsView
+		started  life.TravelStartedView
+		options  life.TravelOptionsView
 		declined screens.PaymentDeclinedView
 		replayed bool
 		lang     = meta.Language
@@ -790,7 +791,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 			return err
 		}
 
-		started = screens.TravelStartedView{
+		started = life.TravelStartedView{
 			FromCode:  t.from.Code,
 			From:      t.from.Name,
 			ToCode:    t.to.Code,
@@ -806,12 +807,12 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 	})
 	switch {
 	case err == errRequote:
-		return screens.TravelOptions(h.screen(meta, lang), options), nil
+		return life.TravelOptions(presentation.Ctx{Lang: lang}, options), nil
 	case err == errPaymentDeclined:
 		return screens.PaymentDeclined(h.screen(meta, lang), declined), nil
 	}
 	if v, ok := asNotHere(err); ok {
-		return screens.NotHere(h.screen(meta, lang), v), nil
+		return life.NotHere(presentation.Ctx{Lang: lang}, v), nil
 	}
 	if v, ok := asBlocked(err); ok {
 		return screens.SanctionBlocked(h.screen(meta, lang), v), nil
@@ -829,7 +830,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		// they are on.
 		return h.Status(ctx, meta)
 	}
-	return screens.TravelStarted(h.screen(meta, lang), started), nil
+	return life.TravelStarted(presentation.Ctx{Lang: lang}, started), nil
 }
 
 // option finds the priced option for one mode code.
@@ -905,10 +906,10 @@ func (h *TravelHandler) chargeFare(ctx context.Context, tx application.Tx, playe
 // chosen mode with a button per way the player can pay it. It writes
 // nothing. free reports a journey that costs nothing, which departs without
 // asking; a fare risen above the accepted ceiling re-quotes, like Start.
-func (h *TravelHandler) checkout(ctx context.Context, meta envelope.Metadata, req StartTravelRequest, maxFare int64) (*presenter.Response, bool, error) {
+func (h *TravelHandler) checkout(ctx context.Context, meta envelope.Metadata, req StartTravelRequest, maxFare int64) (*presentation.Response, bool, error) {
 	var (
-		view     screens.TravelCheckoutView
-		options  screens.TravelOptionsView
+		view     life.TravelCheckoutView
+		options  life.TravelOptionsView
 		requoted bool
 		free     bool
 		lang     = meta.Language
@@ -944,7 +945,7 @@ func (h *TravelHandler) checkout(ctx context.Context, meta envelope.Metadata, re
 			free = true
 			return nil
 		}
-		view = screens.TravelCheckoutView{
+		view = life.TravelCheckoutView{
 			FromCode: t.from.Code, From: t.from.Name, ToCode: t.to.Code, To: t.to.Name,
 			ModeCode: q.Mode, ModeName: chosen.name, Fare: q.Fare.Minor(),
 			Wait: q.Wait, Energy: q.Energy, Busy: q.Surged(),
@@ -953,7 +954,7 @@ func (h *TravelHandler) checkout(ctx context.Context, meta envelope.Metadata, re
 		return nil
 	})
 	if v, ok := asNotHere(err); ok {
-		return screens.NotHere(h.screen(meta, lang), v), false, nil
+		return life.NotHere(presentation.Ctx{Lang: lang}, v), false, nil
 	}
 	if v, ok := asBlocked(err); ok {
 		return screens.SanctionBlocked(h.screen(meta, lang), v), false, nil
@@ -965,11 +966,11 @@ func (h *TravelHandler) checkout(ctx context.Context, meta envelope.Metadata, re
 	case err != nil:
 		return nil, false, err
 	case requoted:
-		return screens.TravelOptions(h.screen(meta, lang), options), false, nil
+		return life.TravelOptions(presentation.Ctx{Lang: lang}, options), false, nil
 	case free:
 		return nil, true, nil
 	}
-	return screens.TravelCheckout(h.screen(meta, lang), view), false, nil
+	return life.TravelCheckout(presentation.Ctx{Lang: lang}, view), false, nil
 }
 
 // Status handles travel.status: the journey in progress, and how much of it
@@ -978,7 +979,7 @@ func (h *TravelHandler) checkout(ctx context.Context, meta envelope.Metadata, re
 // It writes nothing and reserves no idempotency key. A read has no side
 // effect to suppress, and reserving a key for one would block the refresh
 // button the screen ships with.
-func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -986,7 +987,7 @@ func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*pr
 		return nil, errors.InvalidInput("request carries no telegram user")
 	}
 
-	var view screens.TravelStatusView
+	var view life.TravelStatusView
 	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -1019,7 +1020,7 @@ func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*pr
 			return err
 		}
 
-		view = screens.TravelStatusView{
+		view = life.TravelStatusView{
 			FromCode:  from.Code,
 			From:      from.Name,
 			ToCode:    to.Code,
@@ -1034,7 +1035,7 @@ func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*pr
 		return nil, err
 	}
 
-	return screens.TravelStatus(h.screen(meta, lang), view), nil
+	return life.TravelStatus(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Complete lands a journey. It arrives from the SCHEDULER, not from a player.
@@ -1059,7 +1060,7 @@ func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*pr
 // A second delivery returns a nil response and no error: there is nothing to
 // announce twice, and telling the player they arrived again would be worse
 // than saying nothing.
-func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, req ArriveTravelRequest) (*presenter.Response, error) {
+func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, req ArriveTravelRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -1086,7 +1087,7 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 	}
 
 	var (
-		view     screens.TravelArrivedView
+		view     life.TravelArrivedView
 		arrived  bool
 		language = meta.Language
 	)
@@ -1214,7 +1215,7 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 		}
 
 		arrived = true
-		view = screens.TravelArrivedView{CityCode: to.Code, City: to.Name, XP: h.arrivalXP}
+		view = life.TravelArrivedView{CityCode: to.Code, City: to.Name, XP: h.arrivalXP}
 		return nil
 	})
 	if err != nil {
@@ -1226,7 +1227,7 @@ func (h *TravelHandler) Complete(ctx context.Context, meta envelope.Metadata, re
 
 	// An arrival is always SENT: the player did not press anything, so there
 	// is no message of theirs to edit.
-	return screens.TravelArrived(screens.Context{Msgs: h.msgs, Lang: language}, view), nil
+	return life.TravelArrived(presentation.Ctx{Lang: language}, view), nil
 }
 
 // levelNumbers flattens the domain's level-up records for the event payload.

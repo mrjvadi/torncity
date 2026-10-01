@@ -1027,7 +1027,7 @@
         "name": "Bazaar"
       },
       "mode": "",
-      "need": "place.need.heist",
+      "need": "heist",
       "need_args": null,
       "place": {
         "code": "industrial_zone",

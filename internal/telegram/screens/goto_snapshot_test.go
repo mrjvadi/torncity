@@ -72,17 +72,17 @@ func gotoSnapshots(c Context, who people, add func(string, *presenter.Response))
 	job.WalkToWork = 0
 	add("My job · at the workplace", JobStatus(c, job))
 	add("Walk · to work, the shift starts on arrival", WalkStarted(c, WalkStartedView{From: centre, To: business,
-		Duration: 15 * time.Second, ArrivesAt: snapshotNow.Add(15 * time.Second), Then: "place.then.work"}))
+		Duration: 15 * time.Second, ArrivesAt: snapshotNow.Add(15 * time.Second), Then: "work"}))
 	add("Walk · to a page that opens on arrival", WalkStarted(c, WalkStartedView{From: centre, To: uni,
-		Duration: 20 * time.Second, ArrivesAt: snapshotNow.Add(20 * time.Second), Then: "place.then.open"}))
+		Duration: 20 * time.Second, ArrivesAt: snapshotNow.Add(20 * time.Second), Then: "open"}))
 
 	// A service elsewhere: the walk there opens the same page again.
-	add("Not here · a course, walk and come back to it", NotHere(c, NotHereView{Need: "place.need.university",
+	add("Not here · a course, walk and come back to it", NotHere(c, NotHereView{Need: "university",
 		Place: uni, Here: centre, Walk: 20 * time.Second, Then: "education.view", ThenArgs: []string{"first_aid"}}))
-	add("Not here · a shop, walk and come back to it", NotHere(c, NotHereView{Need: "place.need.shop",
+	add("Not here · a shop, walk and come back to it", NotHere(c, NotHereView{Need: "shop",
 		Shop: Named{Code: "hardware_store", Name: "Hardware store"}, Place: bazaar, Here: centre, Walk: 15 * time.Second,
 		Then: "shop.view", ThenArgs: []string{"hardware_store"}}))
-	add("Not here · a departure, walk and choose again", NotHere(c, NotHereView{Need: "place.need.departure", Mode: "train",
+	add("Not here · a departure, walk and choose again", NotHere(c, NotHereView{Need: "departure", Mode: "train",
 		Place: Named{Code: "train_station", Name: "Train station"}, Here: centre, Walk: 20 * time.Second,
 		Then: "travel.options", ThenArgs: []string{"brennhaven"}}))
 	add("Shop · away from the counter", ShopDetail(c, ShopView{Shop: Named{Code: "hardware_store", Name: "Hardware store"},

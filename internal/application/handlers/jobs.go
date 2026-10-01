@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -126,7 +128,7 @@ func (h *JobsHandler) screen(meta envelope.Metadata, lang string) screens.Contex
 func (h *JobsHandler) finish(meta envelope.Metadata, lang string, resp *presenter.Response, err error) (*presenter.Response, error) {
 	if err != nil {
 		if r, ok := asRefusal(err); ok {
-			return screens.Refusal(h.screen(meta, lang), r.view), nil
+			return plife.Refusal(presentation.Ctx{Lang: lang}, r.view), nil
 		}
 		if v, ok := asNotHere(err); ok {
 			return screens.NotHere(h.screen(meta, lang), v), nil
