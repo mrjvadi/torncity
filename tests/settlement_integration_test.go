@@ -140,7 +140,7 @@ func TestSettlementFounding(t *testing.T) {
 		}
 	})
 
-	resp, err := h.Found(ctx, meta)
+	resp, err := rr(h.Found(ctx, meta))
 	if err != nil {
 		t.Fatalf("Found: %v", err)
 	}
@@ -155,8 +155,8 @@ func TestSettlementFounding(t *testing.T) {
 	// text key renders as itself (screens.Context.T's documented nil-Msgs
 	// behaviour) — a simple, exact way to tell which screen was rendered
 	// without needing a loaded catalogue.
-	resp, err = h.Submit(ctx, clientMeta(meta, "settlement.found.submit", "found.submit"),
-		validFoundingRequest(t, openDraftID(t, pool, meta.TelegramChatID)))
+	resp, err = rr(h.Submit(ctx, clientMeta(meta, "settlement.found.submit", "found.submit"),
+		validFoundingRequest(t, openDraftID(t, pool, meta.TelegramChatID))))
 	if err != nil {
 		t.Fatalf("Submit: %v", err)
 	}
@@ -230,7 +230,7 @@ func TestSettlementFounding(t *testing.T) {
 	// the idempotency at-least-once delivery needs.
 	meta2 := meta
 	meta2.RequestID = "req_" + randomToken(t, 24)
-	resp2, err := h.Found(ctx, meta2)
+	resp2, err := rr(h.Found(ctx, meta2))
 	if err != nil {
 		t.Fatalf("second Found: %v", err)
 	}

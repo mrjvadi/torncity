@@ -7,7 +7,8 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 )
 
 // A village founded through the founding form is announced in the group that
@@ -32,7 +33,6 @@ type settlementFounded struct {
 		ColorA string `json:"color_a"`
 		ColorB string `json:"color_b"`
 		Icon   string `json:"icon"`
-		Text   string `json:"text"`
 	} `json:"emblem"`
 	Currency struct {
 		Code   string `json:"code"`
@@ -56,17 +56,17 @@ func foundedAnnouncement(_ context.Context, _ Deps, env *envelope.Envelope) (*An
 	}
 	return &Announcement{
 		ChatID: ev.ChatID, BotID: ev.BotID, Language: ev.Language,
-		Line: func(c screens.Context, _ string) string {
+		Notice: func(c presentation.Ctx, _ string) *presentation.Response {
 			feature := ev.FeatureLatin
 			if c.Lang == "fa" && ev.FeaturePers != "" {
 				feature = ev.FeaturePers
 			}
-			return screens.SettlementFoundedText(c, screens.SettlementFoundedView{
+			return village.SettlementFounded(c, village.SettlementFoundedView{
 				Name: ev.Name, SettlementID: ev.SettlementID, BiomeCode: ev.BiomeCode, NearbyFeature: feature,
 				Buildings: ev.Buildings, ProtectedUntil: ev.Protected, Founder: ev.FounderName,
-				Emblem: screens.FoundingEmblemView{Shape: ev.Emblem.Shape, ColorA: ev.Emblem.ColorA,
+				Emblem: village.FoundingEmblemView{Shape: ev.Emblem.Shape, ColorA: ev.Emblem.ColorA,
 					ColorB: ev.Emblem.ColorB, Icon: ev.Emblem.Icon},
-				EmblemText: ev.Emblem.Text, Motto: ev.Motto,
+				Motto:        ev.Motto,
 				CurrencyName: ev.Currency.Name, CurrencyCode: ev.Currency.Code, CurrencySign: ev.Currency.Symbol,
 			})
 		},

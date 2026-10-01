@@ -12,7 +12,9 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
+	"github.com/mrjvadi/torncity/internal/telegram/render"
 )
 
 // --- fakes -------------------------------------------------------------
@@ -89,12 +91,17 @@ func (f *fakeInbox) MarkProcessed(_ context.Context, id, consumer string) (bool,
 type sent struct {
 	subject string
 	meta    envelope.Metadata
-	notice  Notice
+	// notice is what the gateway would send: a notice carried as data is
+	// worded here, by the Telegram edge's renderer, as the gateway does.
+	notice Notice
+	// neutral is the notice as the worker built it, when it is data.
+	neutral *presentation.Response
 }
 
 // fakeSender answers with the scripted outcome for the bot a notice names,
 // delivered by default, or with err when set.
 type fakeSender struct {
+	msgs      *i18n.Catalog
 	outcomes  map[string]Outcome
 	err       error
 	sent      []sent
@@ -106,7 +113,21 @@ func (f *fakeSender) Send(_ context.Context, subject string, env *envelope.Envel
 	if err := env.Decode(&n); err != nil {
 		return Receipt{}, err
 	}
-	f.sent = append(f.sent, sent{subject: subject, meta: env.Metadata, notice: n})
+	var neutral *presentation.Response
+	if n.Response.Neutral() {
+		raw := n.Response
+		neutral = &raw
+		var edit int64
+		if n.Edit && raw.Type == presentation.ActionEditMessage {
+			edit = raw.MessageID
+		}
+		out, err := render.Render(f.msgs, render.Delivery{MessageID: edit, Shared: n.Announcement}, &raw)
+		if err != nil {
+			return Receipt{}, err
+		}
+		n.Response = *out
+	}
+	f.sent = append(f.sent, sent{subject: subject, meta: env.Metadata, notice: n, neutral: neutral})
 	if f.err != nil {
 		return Receipt{}, f.err
 	}
@@ -135,7 +156,7 @@ func newRig(t *testing.T, player *application.Player, links ...application.BotLi
 	r := &rig{
 		links:  &fakeLinks{links: links},
 		inbox:  &fakeInbox{},
-		sender: &fakeSender{outcomes: map[string]Outcome{}},
+		sender: &fakeSender{msgs: msgs, outcomes: map[string]Outcome{}},
 		msgs:   msgs,
 		now:    time.Date(2026, 9, 23, 12, 0, 0, 0, time.UTC),
 	}

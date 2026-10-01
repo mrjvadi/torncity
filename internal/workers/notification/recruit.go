@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -55,10 +56,10 @@ func renderRecruit(_ context.Context, _ Deps, env *envelope.Envelope) (*Draft, e
 	if err != nil || ev.OwnerID == "" || ev.Kind == "" {
 		return nil, err
 	}
-	view := screens.RecruitNoticeView{Kind: ev.Kind, Company: ev.ref(), CampaignNo: ev.CampaignNo, Count: ev.Count,
+	view := notices.RecruitView{Kind: ev.Kind, Company: notices.CompanyRef{Code: ev.Code, Name: ev.Name, Type: notices.Named{Code: ev.Type, Name: ev.Type}}, CampaignNo: ev.CampaignNo, Count: ev.Count,
 		NameSeed: ev.NameSeed, Skill: ev.Skill, Level: ev.Level, Reason: ev.Reason, Amount: ev.Amount}
-	return &Draft{PlayerID: ev.OwnerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.RecruitNotice(c, view)
+	return &Draft{PlayerID: ev.OwnerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.RecruitNotice(c, view)
 	}}, nil
 }
 

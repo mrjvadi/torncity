@@ -4,14 +4,6 @@
 # internal/telegram/render and DELETING its line here; tests fail if a migrated screen is still listed
 # or a legacy screen is missing from the list.
 
-[village]
-founding_checked
-founding_form
-founding_refusal
-settlement_found_draft
-settlement_founded
-settlement_refusal
-
 [economy]
 auction_detail
 auction_new
@@ -133,33 +125,3 @@ travel_status
 treat_confirm
 treated
 walk_started
-
-[notices]
-achievement_notice
-auction_notice
-bill_decided_notice
-case_solved_notice
-clinic_treated_notice
-convicted_notice
-election_result_notice
-faction_answer_notice
-faction_crime_notice
-faction_request_notice
-finance_notice
-hospitalised_notice
-hunger_notice
-inbox_badge
-inbox_category
-inbox_hub
-inbox_reminder
-market_filled_notice
-mission_completed_notice
-office_notice
-payment_notice
-property_notice
-rank_notice
-recruit_notice
-stock_notice
-treaty_proposed_notice
-victim_notice
-

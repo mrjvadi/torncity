@@ -149,6 +149,32 @@ func renderSettlementRefusal(c Context, v SettlementRefusalView) *presenter.Resp
 	return c.respond(text, kb.Build())
 }
 
+// FoundingEmoji is the glyph the Telegram wording layer has for a shape,
+// colour or icon of the emblem ("shape", "color", "icon"), empty when it has
+// none: Telegram can only show an emblem as emoji, so they live in its own
+// locale layer (founding.emoji.<kind>.<code>), not in the core's views.
+func (c Context) FoundingEmoji(kind, code string) string {
+	key := "founding.emoji." + kind + "." + code
+	if text := c.T(key, nil); text != key {
+		return text
+	}
+	return ""
+}
+
+// EmblemText is an emblem written as emoji: the shape, the icon and the two
+// colours, the way the group's announcement shows it.
+func (c Context) EmblemText(e FoundingEmblemView) string {
+	parts := []string{c.FoundingEmoji("shape", e.Shape), c.FoundingEmoji("icon", e.Icon),
+		c.FoundingEmoji("color", e.ColorA) + c.FoundingEmoji("color", e.ColorB)}
+	out := parts[:0]
+	for _, p := range parts {
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return strings.Join(out, " ")
+}
+
 // joinNames joins display names the way this language's own short lists
 // read (format.list_separator): a settlement's starting buildings, say.
 func (c Context) joinNames(names []string) string {

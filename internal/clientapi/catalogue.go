@@ -1,7 +1,9 @@
 package clientapi
 
 import (
+	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
@@ -148,9 +150,6 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 	// Politics and society: the names a client words by code (offices, policies,
 	// the places above a city, budget lines, treaty kinds, sanction measures and
 	// grounds).
-	for _, code := range snap.OfficeCodes() {
-		add("office", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.OfficeName(code) })}, false)
-	}
 	for _, code := range snap.LeverCodes() {
 		add("lever", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.LeverName(code) })}, false)
 	}
@@ -171,6 +170,56 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 	}
 	for _, g := range snap.SanctionGrounds() {
 		add("sanction_ground", CatalogueEntry{Code: g, Name: names(func(c screens.Context) string { return c.GroundName(g) })}, false)
+	}
+	// What the notices (docs/adr/0039, section 8) name: a client words an
+	// achievement, a mission, a property, a treaty, a bank or insurance
+	// product and an office by code from here, in the player's language.
+	for _, a := range snap.Achievements() {
+		add("achievement", CatalogueEntry{Code: a.Code,
+			Name: names(func(c screens.Context) string { return c.AchievementName(screens.Named{Code: a.Code, Name: a.Name}) })}, false)
+	}
+	for _, m := range snap.Missions() {
+		add("mission", CatalogueEntry{Code: m.Code,
+			Name: names(func(c screens.Context) string { return c.MissionName(screens.Named{Code: m.Code, Name: m.Name}) })}, false)
+	}
+	for _, p := range snap.PropertyTypes() {
+		add("property_type", CatalogueEntry{Code: p.Code, Kind: p.Kind,
+			Name: names(func(c screens.Context) string { return c.PropertyTypeName(screens.Named{Code: p.Code, Name: p.Name}) })}, false)
+	}
+	for _, tt := range snap.TreatyTypes() {
+		add("treaty_type", CatalogueEntry{Code: tt.Code,
+			Name: names(func(c screens.Context) string { return c.TreatyName(screens.Named{Code: tt.Code, Name: tt.Name}) })}, false)
+	}
+	if fin, ok := snap.Finance(); ok {
+		for _, l := range fin.Loans {
+			add("loan_product", CatalogueEntry{Code: l.Code,
+				Name: names(func(c screens.Context) string { return c.LoanProductName(screens.Named{Code: l.Code, Name: l.Name}) })}, false)
+		}
+		for _, in := range fin.Insurance {
+			add("insurance_product", CatalogueEntry{Code: in.Code,
+				Name: names(func(c screens.Context) string {
+					return c.InsuranceProductName(screens.Named{Code: in.Code, Name: in.Name})
+				})}, false)
+		}
+	}
+	// Offices are not content rows: their names are the locale's own
+	// ("office.<code>"), so the codes are read from the catalogue when it can
+	// list a section.
+	offices := make([]string, 0, 24)
+	if sec, ok := w.Msgs.(interface {
+		Section(lang, prefix string) map[string]string
+		Default() string
+	}); ok {
+		for code := range sec.Section(sec.Default(), "office") {
+			if !strings.Contains(code, ".") {
+				offices = append(offices, code)
+			}
+		}
+	}
+	sort.Strings(offices)
+	for _, code := range offices {
+		code := code
+		add("office", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.OfficeName(code) })}, false)
 	}
 	for _, sb := range snap.SettlementBuildingDefs() {
 		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, Footprint: []int{sb.Footprint[0], sb.Footprint[1]}, CapExempt: sb.CapExempt,

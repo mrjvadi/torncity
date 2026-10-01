@@ -166,7 +166,6 @@ gov:
     confirm: "👤 {player} را به‌عنوان {office} {place} منصوب می‌کنید؟\nهمین حالا بر صندلی می‌نشیند و اگر منصب شما اجازه دهد، بعداً می‌توانید برکنارش کنید."
     done: "✅ {player} اکنون {office} {place} است."
     term: "دورهٔ این منصب {term} است."
-    notice: "🎖 {by_office} {by} شما را به‌عنوان {office} {place} منصوب کرد. «منصب من» را باز کنید تا ببینید از این پس دربارهٔ چه چیزهایی تصمیم می‌گیرید."
     announce: "🎖 {player} به‌عنوان {office} {place} منصوب شد."
     refused:
       not_appointer: "تنها {office} می‌تواند این کار را انجام دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
@@ -175,7 +174,6 @@ gov:
   dismiss:
     confirm: "✖️ {player} را از منصب {office} {place} برکنار می‌کنید؟\nصندلی همین حالا خالی می‌شود و اگر سرپرستی تعریف شده باشد، او به جایش عمل می‌کند."
     done: "✅ {player} دیگر {office} {place} نیست."
-    notice: "📭 {by_office} {by} شما را از منصب {office} {place} برکنار کرد."
 
 # انتخابات (internal/telegram/screens/elections.go). رأی مخفی است: هیچ سطری
 # نمی‌گوید چه کسی به چه کسی رأی داد.
@@ -255,11 +253,6 @@ election:
     standing: "شما همین حالا نامزد {election} هستید."
     voted: "شما در {election} رأی داده‌اید و هر نفر فقط یک بار رأی می‌دهد."
     incompatible: منصبی دارید که با این منصب قابل جمع نیست.
-  notice:
-    won: "🏆 تبریک! در {election} برگزیده شدید: {votes} رأی از {cast} رأی."
-    lost: "🗳 در {election} برگزیده نشدید: {votes} رأی از {cast} رأی به دست آوردید."
-    deposit_back: "💰 ودیعهٔ {deposit} به شما برگشت."
-    deposit_kept: "💰 آرای شما به حد لازم نرسید و ودیعهٔ {deposit} به خزانهٔ شهرتان رفت."
 
 diplomacy:
   measure:
@@ -369,8 +362,6 @@ diplomacy:
     technology: "⛔ تحریم فناوری میان {imposer} و {target} فروش این لایسنس را ممنوع می‌کند."
     travel: "⛔ ممنوعیت سفر میان {imposer} و {target} این مسیر را بسته است."
     financial: "⛔ تحریم مالی میان {imposer} و {target} پرداخت کارتی میان مردم دو کشور را ممنوع می‌کند."
-  notice:
-    proposed: "📨 {country} به ما پیشنهاد {kind} داده است (شمارهٔ {no}). تا {in} دیگر پاسخ دهید."
   announce:
     imposed: "⛔ {imposer} به دلیل {ground}، {measures} را بر {target} وضع کرد."
     lifted: "🕊 {imposer} تحریم‌هایش بر {target} را لغو کرد."
@@ -466,14 +457,6 @@ faction:
     succeeded: "موفق بود"
     escaped: "خراب شد؛ گروه فرار کرد"
     caught: "خراب شد؛ گروه دستگیر شد"
-  notice:
-    invite: "📨 {player} شما را به {faction} دعوت کرد."
-    apply: "📨 {player} می‌خواهد به {faction} بپیوندد."
-    answer_invite_accepted: "🤝 {player} دعوت شما را پذیرفت و به {faction} پیوست."
-    answer_invite_declined: "{player} دعوت {faction} را نپذیرفت."
-    answer_apply_accepted: "🤝 درخواست شما پذیرفته شد: اکنون عضو {faction} هستید."
-    answer_apply_declined: "درخواست عضویت شما در {faction} پذیرفته نشد."
-    kicked: "🚪 {player} شما را از {faction} اخراج کرد."
   announce:
     founded: "🏴 {player} جناح {faction} را تأسیس کرد."
     joined: "🤝 {player} به {faction} پیوست."

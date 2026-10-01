@@ -276,7 +276,7 @@ func TestNotificationInboxBadge(t *testing.T) {
 		Command: "inbox.show", SchemaVersion: envelope.SchemaVersion,
 		TelegramUserID: player.TelegramUserID, TelegramChatID: player.TelegramUserID, ChatType: "private",
 	}
-	resp, err := inboxHandler.Show(ctx, meta)
+	resp, err := rr(inboxHandler.Show(ctx, meta))
 	if err != nil {
 		t.Fatalf("inbox.show: %v", err)
 	}

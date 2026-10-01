@@ -50,10 +50,10 @@ func (r *PlayerInboxRepository) Record(ctx context.Context, item application.Inb
 	}
 	if _, err := r.q.Exec(ctx, `
 INSERT INTO player_notifications
-	(id, player_id, category, kind, text_fa, text_en, link_addr, source_message_id, created_at, read_at)
-VALUES (gen_random_uuid(), $1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)`,
-		item.PlayerID, item.Category, item.Kind, item.TextFA, item.TextEN, item.LinkAddr, item.SourceMessageID,
-		now.UTC(), readAt); err != nil {
+	(id, player_id, category, kind, text_fa, text_en, screen, view, link_addr, source_message_id, created_at, read_at)
+VALUES (gen_random_uuid(), $1::uuid, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11)`,
+		item.PlayerID, item.Category, item.Kind, item.TextFA, item.TextEN, item.Screen, viewArg(item.View),
+		item.LinkAddr, item.SourceMessageID, now.UTC(), readAt); err != nil {
 		return fmt.Errorf("postgres: recording a notification for player %s: %w", item.PlayerID, err)
 	}
 	return nil
@@ -193,7 +193,7 @@ SELECT category, count(*) FROM player_notifications
 		return sum, nil
 	}
 	items, err := r.scanItems(ctx, `
-SELECT id::text, player_id::text, category, kind, text_fa, text_en, link_addr, created_at, read_at
+SELECT id::text, player_id::text, category, kind, text_fa, text_en, screen, view, link_addr, created_at, read_at
   FROM player_notifications WHERE player_id = $1::uuid
  ORDER BY created_at DESC LIMIT $2`, playerID, recent)
 	if err != nil {
@@ -227,7 +227,7 @@ SELECT count(*) FROM player_notifications WHERE player_id = $1::uuid AND categor
 	}
 
 	items, err := r.scanItems(ctx, `
-SELECT id::text, player_id::text, category, kind, text_fa, text_en, link_addr, created_at, read_at
+SELECT id::text, player_id::text, category, kind, text_fa, text_en, screen, view, link_addr, created_at, read_at
   FROM player_notifications WHERE player_id = $1::uuid AND category = $2
  ORDER BY created_at DESC LIMIT $3 OFFSET $4`, playerID, category, pageSize, (page-1)*pageSize)
 	if err != nil {
@@ -275,7 +275,7 @@ func (r *PlayerInboxRepository) scanItems(ctx context.Context, sql string, args 
 	var out []application.NotificationItem
 	for rows.Next() {
 		var it application.NotificationItem
-		if err := rows.Scan(&it.ID, &it.PlayerID, &it.Category, &it.Kind, &it.TextFA, &it.TextEN, &it.LinkAddr,
+		if err := rows.Scan(&it.ID, &it.PlayerID, &it.Category, &it.Kind, &it.TextFA, &it.TextEN, &it.Screen, &it.View, &it.LinkAddr,
 			&it.CreatedAt, &it.ReadAt); err != nil {
 			return nil, err
 		}
@@ -290,4 +290,12 @@ func (r *PlayerInboxRepository) scanItems(ctx context.Context, sql string, args 
 		return nil, err
 	}
 	return out, nil
+}
+
+// viewArg is a notice's view as the jsonb argument: NULL when it has none.
+func viewArg(v []byte) any {
+	if len(v) == 0 {
+		return nil
+	}
+	return string(v)
 }

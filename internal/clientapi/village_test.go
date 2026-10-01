@@ -10,6 +10,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/settlement"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
@@ -301,19 +303,16 @@ func TestFoundingFormCommandsFromAClient(t *testing.T) {
 	_, session := f.call(t, "POST", "/api/v1/auth/link", "", map[string]string{"code": "ABCD2345"})
 	token := session["access_token"].(string)
 
-	f.bus.resp = presenter.WithView(presenter.Edit(9, "Fix these.", nil), "founding_refusal",
-		struct {
-			Kind     string `json:"kind"`
-			Problems []struct {
-				Field string `json:"field"`
-				Code  string `json:"code"`
-			} `json:"problems"`
-		}{Kind: "invalid"})
+	f.bus.resp = village.FoundingRefusal(presentation.Ctx{Lang: "fa"}, village.FoundingRefusalView{
+		Kind: village.FoundingInvalid, Problems: []village.FoundingProblem{{Field: "name", Code: "name_short"}}})
 	status, out := f.call(t, "POST", "/api/v1/command", token, map[string]any{
 		"command": "settlement.found.submit",
 		"args":    map[string]any{"draft": "d1", "name": "Aria", "currency_code": "ARI", "color_a": "gold", "check": "1"}})
 	if status != http.StatusOK || out["ok"] != false || errCode(out) != "founding_invalid" || out["screen"] != "founding_refusal" {
 		t.Fatalf("refusal: %d %v", status, out)
+	}
+	if msg, _ := out["error"].(map[string]any)["message"].(string); msg != "" {
+		t.Errorf("a founding refusal carries no sentence: %v", out["error"])
 	}
 	if f.bus.subj[0] != "game.command.settlement.found.submit.v1" {
 		t.Errorf("subject %s", f.bus.subj[0])

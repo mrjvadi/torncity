@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -80,10 +82,10 @@ func renderFactionRequest(kind string) Renderer {
 		if ev.PlayerID == "" || ev.No <= 0 {
 			return nil, apperrors.InvalidInput("a faction request names nobody or no request")
 		}
-		view := screens.FactionRequestNoticeView{No: ev.No, Kind: kind, Ref: ev.ref(),
-			Player: screens.GovPlayer{Name: ev.ByName, Code: ev.ByCode}}
-		return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-			return screens.FactionRequestNotice(c, view)
+		view := notices.FactionRequestView{No: ev.No, Kind: kind, Ref: notices.FactionRef(ev.ref()),
+			Player: notices.Person{Name: ev.ByName, Code: ev.ByCode}}
+		return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+			return notices.FactionRequestNotice(c, view)
 		}}, nil
 	}
 }
@@ -97,10 +99,10 @@ func renderFactionAnswer(_ context.Context, _ Deps, env *envelope.Envelope) (*Dr
 	if ev.PlayerID == "" {
 		return nil, apperrors.InvalidInput("faction.answered names nobody")
 	}
-	view := screens.FactionAnsweredView{Ref: ev.ref(), Kind: ev.Kind, Accepted: ev.Accepted,
-		Player: screens.GovPlayer{Name: ev.JoinerName, Code: ev.JoinerCode}}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.FactionAnswerNotice(c, view)
+	view := notices.FactionAnswerView{Ref: notices.FactionRef(ev.ref()), Kind: ev.Kind, Accepted: ev.Accepted,
+		Player: notices.Person{Name: ev.JoinerName, Code: ev.JoinerCode}}
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.FactionAnswerNotice(c, view)
 	}}, nil
 }
 
@@ -127,14 +129,14 @@ func renderFactionCrime(_ context.Context, _ Deps, env *envelope.Envelope) (*Dra
 	if ev.PlayerID == "" || ev.Result == "" {
 		return nil, apperrors.InvalidInput("faction.crime_settled names nobody or no result")
 	}
-	view := screens.FactionCrimeNoticeView{Ref: ev.ref(), Crime: screens.Named{Code: ev.Crime, Name: ev.CrimeName},
+	view := notices.FactionCrimeView{Ref: notices.FactionRef(ev.ref()), Crime: notices.Named{Code: ev.Crime, Name: ev.CrimeName},
 		Result: ev.Result, Share: ev.Share, Take: ev.Take, Cut: ev.Cut, XP: ev.XP, Fine: ev.Fine, FinePaid: ev.FinePaid,
-		Injury: ev.Injury.view()}
+		Injury: ev.Injury.notice()}
 	if ev.JailSeconds > 0 {
-		view.Jail = &screens.CrimeProgress{Remaining: time.Duration(ev.JailSeconds) * time.Second, EndsAt: ev.JailEndsAt}
+		view.Jail = &notices.Sentence{Remaining: time.Duration(ev.JailSeconds) * time.Second, EndsAt: ev.JailEndsAt}
 	}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.FactionCrimeNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.FactionCrimeNotice(c, view)
 	}}, nil
 }
 

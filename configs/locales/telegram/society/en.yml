@@ -161,7 +161,6 @@ gov:
     confirm: "👤 Appoint {player} as {office} of {place}?\nThey take the seat at once; you can remove them later if your office may."
     done: "✅ {player} is now {office} of {place}."
     term: "The term runs {term}."
-    notice: "🎖 You were appointed {office} of {place} by {by_office} {by}. Open «My office» to see what you now decide."
     announce: "🎖 {player} was appointed {office} of {place}."
     refused:
       not_appointer: "Only the {office} can do that. If you held that office, you may have been replaced."
@@ -170,7 +169,6 @@ gov:
   dismiss:
     confirm: "✖️ Remove {player} from the office of {office} of {place}?\nThe seat falls vacant at once and the deputy acts for it, if there is one."
     done: "✅ {player} is no longer {office} of {place}."
-    notice: "📭 You were removed from the office of {office} of {place} by {by_office} {by}."
 
 # Elections (internal/telegram/screens/elections.go). A ballot is secret: no
 # line says who voted for whom.
@@ -250,11 +248,6 @@ election:
     standing: "You are already a candidate in the {election}."
     voted: "You have already voted in the {election}; everyone votes once."
     incompatible: "You hold an office that cannot be held with this one."
-  notice:
-    won: "🏆 Congratulations! You won the {election}: {votes} of {cast} votes."
-    lost: "🗳 You were not elected in the {election}: {votes} of {cast} votes."
-    deposit_back: "💰 Your deposit of {deposit} came back to you."
-    deposit_kept: "💰 Too few votes: your deposit of {deposit} went to your city's treasury."
 
 diplomacy:
   measure:
@@ -364,8 +357,6 @@ diplomacy:
     technology: "⛔ A technology ban between {imposer} and {target} forbids this license."
     travel: "⛔ A travel ban between {imposer} and {target} closes this route."
     financial: "⛔ Financial sanctions between {imposer} and {target} forbid card payments between their people."
-  notice:
-    proposed: "📨 {country} proposes a {kind} to us (No. {no}). Answer within {in}."
   announce:
     imposed: "⛔ {imposer} imposed {measures} on {target}, for {ground}."
     lifted: "🕊 {imposer} lifted its sanctions on {target}."
@@ -461,14 +452,6 @@ faction:
     succeeded: "went to plan"
     escaped: "went wrong; the crew got away"
     caught: "went wrong; the crew was caught"
-  notice:
-    invite: "📨 {player} invited you to {faction}."
-    apply: "📨 {player} wants to join {faction}."
-    answer_invite_accepted: "🤝 {player} accepted your invitation and joined {faction}."
-    answer_invite_declined: "{player} turned down {faction}'s invitation."
-    answer_apply_accepted: "🤝 You were accepted: you are now a member of {faction}."
-    answer_apply_declined: "Your application to {faction} was turned down."
-    kicked: "🚪 {player} removed you from {faction}."
   announce:
     founded: "🏴 {player} founded {faction}."
     joined: "🤝 {player} joined {faction}."

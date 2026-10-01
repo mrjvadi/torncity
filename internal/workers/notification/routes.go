@@ -8,6 +8,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -86,9 +88,20 @@ type Deps struct {
 // reads the player's stored language and chooses the bot. Keeping the
 // language out of the renderer is what keeps every notification on the one
 // language rule (handlers.RenderLanguage).
+//
+// A notice is carried as DATA when it sets Notice: a neutral response (the
+// screen's name, its view, the actions that follow from it) which the worker
+// stores and publishes as it is, and the edge that delivers it words
+// (internal/telegram/render at the gateway, the web's own table). A notice of
+// a screen that is not carried as data yet sets Screen instead, and is worded
+// here, in Telegram's language, as it always was; that path goes away with
+// the last such screen (docs/adr/0039-presentation-split.md, section 8).
 type Draft struct {
 	PlayerID string
-	Screen   func(c screens.Context) *presenter.Response
+	// Notice builds the neutral notice for the language the player reads.
+	Notice func(c presentation.Ctx) *presentation.Response
+	// Screen is the legacy form: Telegram's rendering, written here.
+	Screen func(c screens.Context) *presenter.Response
 
 	// Link is a callback address (keyboards.Data) the inbox item's "open"
 	// button replays, for a notice with a screen of its own worth pointing
@@ -97,6 +110,16 @@ type Draft struct {
 	// own navigation. Only read for a route classified ModeInbox
 	// (badge.go); an instant notice's own keyboard already does this job.
 	Link string
+}
+
+// response is the draft as the response the notice carries, for the language
+// the player reads: the neutral notice when the draft is data, else the
+// Telegram rendering of its screen.
+func (d *Draft) response(msgs screens.Translator, lang string) *presenter.Response {
+	if d.Notice != nil {
+		return d.Notice(presentation.Ctx{Lang: lang})
+	}
+	return d.Screen(screens.Context{Msgs: msgs, Lang: lang})
 }
 
 // Routes is the table. Add a row here, and a renderer below, for every new
@@ -270,10 +293,10 @@ func Routes() []Route {
 		{Domain: "residence", Event: "changed", Name: "realtime", Settlement: residenceMembers},
 
 		// The village news in the group (village_news.go).
-		{Domain: "settlement", Event: "build_started", Name: "news", News: newsFrom(screens.NewsBuildStarted)},
-		{Domain: "settlement", Event: "built", Name: "news", News: newsFrom(screens.NewsBuilt)},
-		{Domain: "settlement", Event: "knowledge_researched", Name: "news", News: newsFrom(screens.NewsResearched)},
-		{Domain: "settlement", Event: "knowledge_bought", Name: "news", News: newsFrom(screens.NewsBought)},
+		{Domain: "settlement", Event: "build_started", Name: "news", News: newsFrom(notices.NewsBuildStarted)},
+		{Domain: "settlement", Event: "built", Name: "news", News: newsFrom(notices.NewsBuilt)},
+		{Domain: "settlement", Event: "knowledge_researched", Name: "news", News: newsFrom(notices.NewsResearched)},
+		{Domain: "settlement", Event: "knowledge_bought", Name: "news", News: newsFrom(notices.NewsBought)},
 		{Domain: "settlement", Event: "literacy_advanced", Name: "news", News: newsTaught},
 		{Domain: "residence", Event: "changed", Name: "news", News: newsResidentJoined},
 		{Domain: "settlement", Event: "donated", Name: "news", News: newsDonated},
