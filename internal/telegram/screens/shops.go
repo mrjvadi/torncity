@@ -1,8 +1,8 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -13,32 +13,6 @@ import (
 // selling a good back. A shop's name is shop_name.<code>, a good's
 // item_name.<code>. Prices are public; balances show only in the player's own
 // chat (PaymentChoice).
-
-// Callback addresses of the shops.
-const (
-	AddrShops          = "shop:list"
-	AddrShop           = "shop:view"
-	AddrShopBuy        = "shop:buy"
-	AddrShopSellOffers = "shop:offers"
-	AddrShopSell       = "shop:sell"
-)
-
-// ShopLine is one shop of the city.
-type ShopLine struct {
-	Shop  Named
-	Place Named
-	// Here marks a shop at the place the player stands.
-	Here bool
-}
-
-// ShopsView is the shops of the player's city.
-type ShopsView struct {
-	CityCode, City string
-	Shops          []ShopLine
-	// Place, when set, is the one place whose shops are listed (the map's
-	// «🛒 مغازه‌های اینجا»); nil lists the whole city's.
-	Place *Named
-}
 
 // Shops renders the shops of the city.
 func Shops(c Context, v ShopsView) *presenter.Response {
@@ -83,29 +57,6 @@ func renderShops(c Context, v ShopsView) *presenter.Response {
 	kb.Row(bag)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap, RefreshData: refresh}))
 	return c.respond(paragraphs(htmlBold(htmlEscape(title)), htmlEscape(body(lines...))), kb.Build()).AsHTML()
-}
-
-// ShelfLine is one good on a shelf, priced now.
-type ShelfLine struct {
-	Item  Named
-	Price int64
-	Stock int64
-	// Busy: demand has raised the price.
-	Busy bool
-	// Buyback is what the shop pays for one; zero when it does not buy it.
-	Buyback     int64
-	NextRestock time.Time
-}
-
-// ShopView is one shop's shelves.
-type ShopView struct {
-	Shop, Place Named
-	Here        bool
-	// Walk is the real time the walk to the shop takes, when the player
-	// is elsewhere and not already walking.
-	Walk    time.Duration
-	Shelves []ShelfLine
-	TaxBPS  int
 }
 
 // ShopDetail renders a shop's shelves, with a buy button per good in stock
@@ -158,23 +109,6 @@ func renderShopDetail(c Context, v ShopView) *presenter.Response {
 	), kb.Build()).AsHTML()
 }
 
-// ShopCheckoutView is the price of a purchase and the ways to pay it.
-type ShopCheckoutView struct {
-	Shop, Item Named
-	Qty        int64
-	Unit       int64
-	Total, Tax int64
-	TaxBPS     int
-	Stock      int64
-	Payment    PaymentChoice
-	// Nonce is shared by every pay button, so one purchase is one.
-	Nonce string
-}
-
-// shopQtyChoices are the quantities the checkout offers besides the chosen
-// one, when the shelf holds them.
-var shopQtyChoices = []int64{1, 5, 10}
-
 // ShopCheckout renders the checkout.
 func ShopCheckout(c Context, v ShopCheckoutView) *presenter.Response {
 	return c.withView(renderShopCheckout(c, v), ScreenShopCheckout, v)
@@ -205,7 +139,7 @@ func renderShopCheckout(c Context, v ShopCheckoutView) *presenter.Response {
 		}
 	}
 	var more []presenter.Button
-	for _, q := range shopQtyChoices {
+	for _, q := range economy.ShopQtyChoices {
 		if q == v.Qty || q > v.Stock {
 			continue
 		}
@@ -217,14 +151,6 @@ func renderShopCheckout(c Context, v ShopCheckoutView) *presenter.Response {
 	kb.Row(more...)
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrShop, v.Shop.Code)}))
 	return c.respond(paragraphs(c.T("shop.checkout_title", map[string]any{"shop": c.ShopName(v.Shop)}), body(facts...), pay), kb.Build())
-}
-
-// ShopBoughtView is a purchase made.
-type ShopBoughtView struct {
-	Shop, Item Named
-	Qty        int64
-	Total, Tax int64
-	Method     string
 }
 
 // ShopBought renders a purchase.
@@ -246,19 +172,6 @@ func renderShopBought(c Context, v ShopBoughtView) *presenter.Response {
 	kb.Row(bag, again)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
 	return c.respond(body(lines...), kb.Build())
-}
-
-// SellOffer is one shop that buys a good, and at what.
-type SellOffer struct {
-	Shop, Place Named
-	Price       int64
-}
-
-// SellOffersView is who buys a good the player carries.
-type SellOffersView struct {
-	Item   Named
-	Ref    string
-	Offers []SellOffer
 }
 
 // SellOffers renders the shops that buy a good.
@@ -285,13 +198,6 @@ func renderSellOffers(c Context, v SellOffersView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-// ShopSoldView is a good sold back.
-type ShopSoldView struct {
-	Shop, Item Named
-	Price      int64
-	Left       int64
-}
-
 // ShopSold renders a sale to a shop.
 func ShopSold(c Context, v ShopSoldView) *presenter.Response {
 	return c.withView(renderShopSold(c, v), ScreenShopSold, v)
@@ -306,23 +212,6 @@ func renderShopSold(c Context, v ShopSoldView) *presenter.Response {
 		c.T("shop.sold", map[string]any{"item": c.ItemName(v.Item), "shop": c.ShopName(v.Shop), "price": FormatMoney(c, v.Price)}),
 		c.T("item.left", map[string]any{"qty": FormatNumber(c, v.Left)}),
 	), kb.Build())
-}
-
-// Shop refusal kinds.
-const (
-	ShopRefusedNoShop    = "no_shop"
-	ShopRefusedNotSold   = "not_sold"
-	ShopRefusedSoldOut   = "sold_out"
-	ShopRefusedNotHeld   = "not_held"
-	ShopRefusedNoBuyback = "no_buyback"
-)
-
-// ShopRefusalView is a refused shop request.
-type ShopRefusalView struct {
-	Kind        string
-	Shop, Item  Named
-	Stock       int64
-	NextRestock time.Time
 }
 
 // ShopRefusal renders a refused shop request.

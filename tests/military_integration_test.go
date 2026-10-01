@@ -174,6 +174,7 @@ func said(t *testing.T, what string, resp *presenter.Response, err error, want .
 	if resp == nil {
 		t.Fatalf("%s: no response", what)
 	}
+	resp = rendered(t, resp)
 	for _, w := range want {
 		if !strings.Contains(resp.Text, w) {
 			t.Fatalf("%s: %q does not say %q", what, resp.Text, w)

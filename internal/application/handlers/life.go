@@ -6,6 +6,7 @@ import (
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	plife "github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"sort"
 	"strconv"
 	"strings"
@@ -112,8 +113,8 @@ func (h *LifeHandler) finish(meta envelope.Metadata, lang string, err error) (*p
 	if v, ok := asNotHere(err); ok {
 		return plife.NotHere(presentation.Ctx{Lang: lang}, v), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
 	}
 	return nil, err
 }

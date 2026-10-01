@@ -4,6 +4,8 @@ import (
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/domain/budget"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strings"
 	"time"
 
@@ -111,8 +113,8 @@ func (h *HealthHandler) finish(meta envelope.Metadata, lang string, err error) (
 	if stderrors.As(err, &r) {
 		return screens.HealthRefusal(c, r.view), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(c, v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: c.Lang}, v), nil
 	}
 	return nil, err
 }

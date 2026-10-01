@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -11,42 +10,15 @@ import (
 // The gold dealer (docs/adr/0026-finance.md section 6): its price per gram,
 // buying and selling, and how the price moved.
 
-// Addresses of the gold dealer.
-const (
-	AddrGold     = "gold:show"
-	AddrGoldBuy  = "gold:buy"
-	AddrGoldSell = "gold:sell"
-)
-
-// GoldPoint is one period's price.
-type GoldPoint struct {
-	Price int64
-	At    time.Time
-}
-
-// GoldView is the dealer's counter.
-type GoldView struct {
-	// Buy is what a gram costs, Sell what the dealer pays for one; Mid
-	// its price and Prev the one before.
-	Buy, Sell, Mid, Prev int64
-	Stock                int64
-	History              []GoldPoint
-	// Grams is what the player holds, Cost what it cost them; left out of
-	// a shared screen.
-	Grams, Cost int64
-	// Options are the grams offered.
-	Options    []int64
-	NextAt     time.Time
-	Notice     string
-	NoticeArgs map[string]any
-}
-
 // Gold renders the gold dealer.
 func Gold(c Context, v GoldView) *presenter.Response {
 	return c.withView(renderGold(c, v), ScreenGold, v)
 }
 
 func renderGold(c Context, v GoldView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("gold.notice."+v.Notice, moneyArgs(c, v.NoticeArgs))
@@ -94,17 +66,6 @@ func renderGold(c Context, v GoldView) *presenter.Response {
 	kb.Add(c.T("finance.button.portfolio", nil), AddrPortfolio)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrGold}))
 	return c.respond(paragraphs(notice, body(head...), body(history...), mine), kb.Build())
-}
-
-// GoldTradeView is a trade with the dealer: its confirmation (a purchase's
-// ways to pay, a sale's button) or what it came to.
-type GoldTradeView struct {
-	Side    string
-	Grams   int64
-	Price   int64
-	Total   int64
-	Payment PaymentChoice
-	Nonce   string
 }
 
 // GoldTrade renders a purchase's price with the ways to pay, or a sale's

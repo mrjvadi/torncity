@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/binary"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"hash/fnv"
 	"sort"
 	"strconv"
@@ -193,8 +195,8 @@ func (h *ProductionHandler) finish(meta envelope.Metadata, lang string, err erro
 	if v, ok := asCompanyRefusal(err); ok {
 		return screens.CompanyRefusal(c, v), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(c, v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: c.Lang}, v), nil
 	}
 	if v, ok := asBlocked(err); ok {
 		return screens.SanctionBlocked(c, v), nil

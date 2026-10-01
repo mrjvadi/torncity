@@ -5,6 +5,7 @@ import (
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	plife "github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strconv"
 	"strings"
 	"time"
@@ -194,8 +195,8 @@ func (h *CompaniesHandler) finish(meta envelope.Metadata, lang string, err error
 	if r, ok := asRefusal(err); ok {
 		return plife.Refusal(presentation.Ctx{Lang: c.Lang}, r.view), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(c, v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: c.Lang}, v), nil
 	}
 	return nil, err
 }

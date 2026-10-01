@@ -2,6 +2,7 @@ package screens
 
 import (
 	"github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -17,15 +18,15 @@ const (
 	ScreenMap           = life.ScreenCities
 	ScreenTravelOptions = life.ScreenTravelOptions
 	ScreenTravelStatus  = life.ScreenTravelStatus
-	ScreenBank          = "bank"
+	ScreenBank          = economy.ScreenBank
 	ScreenInventory     = life.ScreenInventory
 	ScreenJobStatus     = "job_status"
 	ScreenLife          = life.ScreenLife
 
 	// Bank: paying another player (bank.go).
-	ScreenPay           = "pay"
-	ScreenPayConfirm    = "pay_confirm"
-	ScreenPaySent       = "pay_sent"
+	ScreenPay           = economy.ScreenPay
+	ScreenPayConfirm    = economy.ScreenPayConfirm
+	ScreenPaySent       = economy.ScreenPaySent
 	ScreenPaymentNotice = "payment_notice"
 
 	// Achievements (achievements.go).
@@ -53,17 +54,17 @@ const (
 	ScreenLotConfirm           = village.ScreenLotConfirm
 
 	// Auctions (auctions.go).
-	ScreenAuctions       = "auctions"
-	ScreenAuctionDetail  = "auction_detail"
-	ScreenAuctionNew     = "auction_new"
-	ScreenAuctionOpened  = "auction_opened"
-	ScreenBidPlaced      = "bid_placed"
-	ScreenMyAuctions     = "my_auctions"
+	ScreenAuctions       = economy.ScreenAuctions
+	ScreenAuctionDetail  = economy.ScreenAuctionDetail
+	ScreenAuctionNew     = economy.ScreenAuctionNew
+	ScreenAuctionOpened  = economy.ScreenAuctionOpened
+	ScreenBidPlaced      = economy.ScreenBidPlaced
+	ScreenMyAuctions     = economy.ScreenMyAuctions
 	ScreenAuctionNotice  = "auction_notice"
-	ScreenAuctionRefusal = "auction_refusal"
+	ScreenAuctionRefusal = economy.ScreenAuctionRefusal
 
 	// The city budget (budget.go).
-	ScreenBudget = "budget"
+	ScreenBudget = economy.ScreenBudget
 
 	// Crime (crime.go).
 	ScreenCrimeHub         = "crime_hub"
@@ -130,19 +131,19 @@ const (
 	ScreenFactionCrimeNotice   = "faction_crime_notice"
 
 	// Finance: loans, savings and insurance (finance.go).
-	ScreenFinanceHub     = "finance_hub"
-	ScreenLoanOffer      = "loan_offer"
-	ScreenLoanConfirm    = "loan_confirm"
-	ScreenLoanDetail     = "loan_detail"
-	ScreenSavings        = "savings"
-	ScreenInsurance      = "insurance"
-	ScreenInsureConfirm  = "insure_confirm"
-	ScreenFinanceRefusal = "finance_refusal"
+	ScreenFinanceHub     = economy.ScreenFinanceHub
+	ScreenLoanOffer      = economy.ScreenLoanOffer
+	ScreenLoanConfirm    = economy.ScreenLoanConfirm
+	ScreenLoanDetail     = economy.ScreenLoanDetail
+	ScreenSavings        = economy.ScreenSavings
+	ScreenInsurance      = economy.ScreenInsurance
+	ScreenInsureConfirm  = economy.ScreenInsureConfirm
+	ScreenFinanceRefusal = economy.ScreenFinanceRefusal
 	ScreenFinanceNotice  = "finance_notice"
 
 	// The gold exchange (gold.go).
-	ScreenGold      = "gold"
-	ScreenGoldTrade = "gold_trade"
+	ScreenGold      = economy.ScreenGold
+	ScreenGoldTrade = economy.ScreenGoldTrade
 
 	// Player-held offices: a city's government (governance.go).
 	ScreenCityGovernance    = "city_governance"
@@ -199,14 +200,14 @@ const (
 	ScreenHungerNotice = "hunger_notice"
 
 	// The item market (market.go).
-	ScreenMarket             = "market"
-	ScreenBook               = "book"
-	ScreenMarketCheckout     = "market_checkout"
-	ScreenOrderPlaced        = "order_placed"
-	ScreenOrderCancelled     = "order_cancelled"
-	ScreenMyOrders           = "my_orders"
+	ScreenMarket             = economy.ScreenMarket
+	ScreenBook               = economy.ScreenBook
+	ScreenMarketCheckout     = economy.ScreenMarketCheckout
+	ScreenOrderPlaced        = economy.ScreenOrderPlaced
+	ScreenOrderCancelled     = economy.ScreenOrderCancelled
+	ScreenMyOrders           = economy.ScreenMyOrders
 	ScreenMarketFilledNotice = "market_filled_notice"
-	ScreenMarketRefusal      = "market_refusal"
+	ScreenMarketRefusal      = economy.ScreenMarketRefusal
 
 	// Mission boards (missions.go).
 	ScreenMissionBoard           = "mission_board"
@@ -216,7 +217,7 @@ const (
 	ScreenMissionRefusal         = "mission_refusal"
 
 	// A declined payment (payment.go).
-	ScreenPaymentDeclined = "payment_declined"
+	ScreenPaymentDeclined = economy.ScreenPaymentDeclined
 
 	// Walking between a city's places (places.go).
 	ScreenWalkStarted = life.ScreenWalkStarted
@@ -245,13 +246,13 @@ const (
 	ScreenSettings = life.ScreenSettings
 
 	// City shops (shops.go).
-	ScreenShops        = "shops"
-	ScreenShopDetail   = "shop_detail"
-	ScreenShopCheckout = "shop_checkout"
-	ScreenShopBought   = "shop_bought"
-	ScreenSellOffers   = "sell_offers"
-	ScreenShopSold     = "shop_sold"
-	ScreenShopRefusal  = "shop_refusal"
+	ScreenShops        = economy.ScreenShops
+	ScreenShopDetail   = economy.ScreenShopDetail
+	ScreenShopCheckout = economy.ScreenShopCheckout
+	ScreenShopBought   = economy.ScreenShopBought
+	ScreenSellOffers   = economy.ScreenSellOffers
+	ScreenShopSold     = economy.ScreenShopSold
+	ScreenShopRefusal  = economy.ScreenShopRefusal
 
 	// Skills and the social graph (skills.go, social.go).
 	ScreenSkills  = "skills"
@@ -259,12 +260,12 @@ const (
 	ScreenFriends = "friends"
 
 	// The stock exchange (stocks.go).
-	ScreenExchange    = "exchange"
-	ScreenStock       = "stock"
-	ScreenStockOrder  = "stock_order"
-	ScreenPortfolio   = "portfolio"
-	ScreenListing     = "listing"
-	ScreenDividend    = "dividend"
+	ScreenExchange    = economy.ScreenExchange
+	ScreenStock       = economy.ScreenStock
+	ScreenStockOrder  = economy.ScreenStockOrder
+	ScreenPortfolio   = economy.ScreenPortfolio
+	ScreenListing     = economy.ScreenListing
+	ScreenDividend    = economy.ScreenDividend
 	ScreenStockNotice = "stock_notice"
 
 	// Travel between cities: the rest of the flow (travel.go).

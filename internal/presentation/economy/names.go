@@ -1,0 +1,53 @@
+package economy
+
+// The economy area's screens, by name on the wire. A name is part of the
+// client contract (api/client-api.md): renaming one breaks every client in
+// the field.
+const (
+	ScreenBank = "bank"
+	ScreenPay  = "pay"
+	// ScreenPayHelp is new with the split: how to pay a player, which
+	// the bank always showed as plain text.
+	ScreenPayHelp         = "pay_help"
+	ScreenPayConfirm      = "pay_confirm"
+	ScreenPaySent         = "pay_sent"
+	ScreenAuctions        = "auctions"
+	ScreenAuctionDetail   = "auction_detail"
+	ScreenAuctionNew      = "auction_new"
+	ScreenAuctionOpened   = "auction_opened"
+	ScreenBidPlaced       = "bid_placed"
+	ScreenMyAuctions      = "my_auctions"
+	ScreenAuctionRefusal  = "auction_refusal"
+	ScreenBudget          = "budget"
+	ScreenFinanceHub      = "finance_hub"
+	ScreenLoanOffer       = "loan_offer"
+	ScreenLoanConfirm     = "loan_confirm"
+	ScreenLoanDetail      = "loan_detail"
+	ScreenSavings         = "savings"
+	ScreenInsurance       = "insurance"
+	ScreenInsureConfirm   = "insure_confirm"
+	ScreenFinanceRefusal  = "finance_refusal"
+	ScreenGold            = "gold"
+	ScreenGoldTrade       = "gold_trade"
+	ScreenMarket          = "market"
+	ScreenBook            = "book"
+	ScreenMarketCheckout  = "market_checkout"
+	ScreenOrderPlaced     = "order_placed"
+	ScreenOrderCancelled  = "order_cancelled"
+	ScreenMyOrders        = "my_orders"
+	ScreenMarketRefusal   = "market_refusal"
+	ScreenPaymentDeclined = "payment_declined"
+	ScreenShops           = "shops"
+	ScreenShopDetail      = "shop_detail"
+	ScreenShopCheckout    = "shop_checkout"
+	ScreenShopBought      = "shop_bought"
+	ScreenSellOffers      = "sell_offers"
+	ScreenShopSold        = "shop_sold"
+	ScreenShopRefusal     = "shop_refusal"
+	ScreenExchange        = "exchange"
+	ScreenStock           = "stock"
+	ScreenStockOrder      = "stock_order"
+	ScreenPortfolio       = "portfolio"
+	ScreenListing         = "listing"
+	ScreenDividend        = "dividend"
+)

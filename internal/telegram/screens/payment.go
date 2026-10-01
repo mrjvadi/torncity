@@ -42,9 +42,9 @@ func (c Context) paymentNote(p PaymentChoice) string {
 		lines = append(lines, c.T("payment.cash_only", nil))
 	case len(p.Accepted) == 1 && p.Accepts(MethodCard):
 		lines = append(lines, c.T("payment.card_only", nil))
-	case p.Accepts(MethodCash) && p.Accepts(MethodCard) && len(p.Usable) == 1 && p.UsableMethod(MethodCard):
+	case p.Accepts(MethodCash) && p.Accepts(MethodCard) && len(p.Usable) == 1 && p.UsableBy(MethodCard):
 		lines = append(lines, c.T("payment.only_card", nil))
-	case p.Accepts(MethodCash) && p.Accepts(MethodCard) && len(p.Usable) == 1 && p.UsableMethod(MethodCash):
+	case p.Accepts(MethodCash) && p.Accepts(MethodCard) && len(p.Usable) == 1 && p.UsableBy(MethodCash):
 		lines = append(lines, c.T("payment.only_cash", nil))
 	}
 	if !c.Shared {
@@ -53,19 +53,6 @@ func (c Context) paymentNote(p PaymentChoice) string {
 		}))
 	}
 	return body(lines...)
-}
-
-// PaymentDeclinedView is a charge nothing the player holds can pay.
-type PaymentDeclinedView struct {
-	Amount     int64
-	Cash, Bank int64
-	// Accepted are the methods the service takes; a service taking one
-	// method says so, since money in the other purse cannot help.
-	Accepted []string
-	// BackLabel is the catalogue key of the way back and BackAddr its
-	// address: the screen the price was on.
-	BackLabel string
-	BackAddr  []string
 }
 
 // PaymentDeclined renders a refused charge: what it costs, both balances and
@@ -90,8 +77,8 @@ func renderPaymentDeclined(c Context, v PaymentDeclinedView) *presenter.Response
 	}
 	kb := keyboards.New()
 	var row []presenter.Button
-	if v.BackLabel != "" && len(v.BackAddr) > 0 {
-		if btn, ok := keyboards.Button(c.T(v.BackLabel, nil), v.BackAddr...); ok {
+	if v.BackLabel != "" && v.Back.Command != "" {
+		if btn, ok := keyboards.Button(c.T(v.BackLabel, nil), v.Back.Address()); ok {
 			row = append(row, btn)
 		}
 	}

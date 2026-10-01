@@ -1009,6 +1009,7 @@ func TestEnrollWithoutTheFee(t *testing.T) {
 	h.uow.w.ledger.balances[accountID(application.AccountPlayerCash, h.player.ID)] = 100
 	h.uow.w.ledger.balances[accountID(application.AccountPlayerBank, h.player.ID)] = 250
 	resp, err := h.edu.Enroll(context.Background(), h.meta("req-e", "education.enroll"), CourseRequest{Course: "first_aid", Method: "cash"})
+	resp = edge(t, resp)
 	if err != nil || !strings.Contains(resp.Text, "600") || !strings.Contains(resp.Text, "100") ||
 		!strings.Contains(resp.Text, "250") || !resp.Private {
 		t.Fatalf("Enroll = %q, %v; want the fee and both balances, privately", workText(resp), err)

@@ -408,6 +408,7 @@
       ],
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "unavailable": null,
       "way": null
     }
   },
@@ -419,6 +420,7 @@
       "auctions": null,
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "unavailable": null,
       "way": null
     }
   },

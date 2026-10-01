@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"github.com/mrjvadi/torncity/internal/telegram/render"
 	"strings"
 	"testing"
@@ -133,14 +134,15 @@ var flowLevers = []application.LeverDefinition{
 
 // flowGame is every handler over one world, for one language.
 type flowGame struct {
-	// lastMeta is the command the flow sent last: how its answer is delivered.
+	t    *testing.T
+	lang string
+	now  time.Time
+	w    *flowWorld
+	msgs *i18n.Catalog
+	seq  int
+	// lastMeta is the command the flow sent last: how Telegram delivers the
+	// answer (a pressed button edits its message, a typed command sends).
 	lastMeta envelope.Metadata
-	t        *testing.T
-	lang     string
-	now      time.Time
-	w        *flowWorld
-	msgs     *i18n.Catalog
-	seq      int
 	snap     *content.Snapshot
 	names    [2]string
 
@@ -417,18 +419,18 @@ func bankFlow(g *flowGame) *flowBook {
 	ctx := context.Background()
 	b := g.book()
 	show := b.step("/bank")(g.bank.Show(ctx, g.typed(flowMeTG, "bank.show")))
-	dep := b.button(show, screens.AddrDeposit+":")
+	dep := b.button(show, economy.AddrDeposit+":")
 	show = b.step("Deposit")(g.bank.Deposit(ctx, g.press(flowMeTG, "bank.deposit"), BankAmountRequest{Amount: dep[2], Nonce: dep[3]}))
-	wd := b.button(show, screens.AddrWithdraw+":")
+	wd := b.button(show, economy.AddrWithdraw+":")
 	b.step("Withdraw")(g.bank.Withdraw(ctx, g.press(flowMeTG, "bank.withdraw"), BankAmountRequest{Amount: wd[2], Nonce: wd[3]}))
 	b.refused("/bank deposit 999999 (too much)")(g.bank.Deposit(ctx, g.typed(flowMeTG, "bank.deposit"), BankAmountRequest{Amount: "999999"}))
 	b.refused("/bank deposit abc")(g.bank.Deposit(ctx, g.typed(flowMeTG, "bank.deposit"), BankAmountRequest{Amount: "abc"}))
 	b.step("/pay")(g.bank.Pay(ctx, g.typed(flowMeTG, "bank.pay"), PayRequest{}))
 	pay := b.step("/pay " + flowFriendC)(g.bank.Pay(ctx, g.typed(flowMeTG, "bank.pay"), PayRequest{To: flowFriendC}))
-	card := b.button(pay, screens.AddrPay+":"+flowFriendC+":")
+	card := b.button(pay, economy.AddrPay+":"+flowFriendC+":")
 	confirm := b.step("Choose an amount")(g.bank.Pay(ctx, g.press(flowMeTG, "bank.pay"),
 		PayRequest{To: card[2], Amount: card[3], Method: card[4]}))
-	send := b.button(confirm, screens.AddrPaySend+":")
+	send := b.button(confirm, economy.AddrPaySend+":")
 	b.step("Confirm")(g.bank.PaySend(ctx, g.press(flowMeTG, "bank.pay.send"),
 		PayRequest{To: send[2], Amount: send[3], Method: send[4], Nonce: send[5]}))
 	b.step("/pay " + flowFriendC + " 900000 card (too much)")(g.bank.Pay(ctx, g.typed(flowMeTG, "bank.pay"),

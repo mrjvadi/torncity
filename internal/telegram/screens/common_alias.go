@@ -11,7 +11,3 @@ type (
 	Way           = presentation.Way
 )
 
-const (
-	MethodCash = presentation.MethodCash
-	MethodCard = presentation.MethodCard
-)

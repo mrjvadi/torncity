@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -11,7 +12,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/finance"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
 // The finance period (docs/adr/0026 section 1): one clock, on the game
@@ -72,7 +72,7 @@ func (h *FinanceHandler) schedule(ctx context.Context, tx application.Tx, def co
 
 // Settle handles finance.settle from the SCHEDULER: one finance period,
 // exactly once.
-func (h *FinanceHandler) Settle(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) Settle(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}

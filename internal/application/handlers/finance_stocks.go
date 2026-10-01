@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"sort"
 	"strings"
 
@@ -10,22 +12,25 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/finance"
 	"github.com/mrjvadi/torncity/internal/domain/market"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Exchange handles stock.list: every listed company, public.
-func (h *FinanceHandler) Exchange(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *FinanceHandler) Exchange(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
+	if resp, err := h.gate(ctx, meta, snap, "stocks", func(lang string, un *economy.Unavailable) *presentation.Response {
+		return economy.Exchange(presentation.Ctx{Lang: lang}, economy.ExchangeView{Unavailable: un})
+	}); resp != nil || err != nil {
+		return resp, err
+	}
 	def, err := h.def(snap)
 	if err != nil {
 		return nil, err
 	}
 	lang := meta.Language
-	var view screens.ExchangeView
+	var view economy.ExchangeView
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		if _, err := h.player(ctx, tx, meta, &lang); err != nil {
 			return err
@@ -46,11 +51,11 @@ func (h *FinanceHandler) Exchange(ctx context.Context, meta envelope.Metadata) (
 	if err != nil {
 		return nil, err
 	}
-	return screens.Exchange(h.screen(meta, lang), view), nil
+	return economy.Exchange(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // listedLine is a listed company for the exchange's list.
-func (h *FinanceHandler) listedLine(ctx context.Context, snap *content.Snapshot, l application.ListedCompany) (screens.ListedLine, error) {
+func (h *FinanceHandler) listedLine(ctx context.Context, snap *content.Snapshot, l application.ListedCompany) (economy.ListedLine, error) {
 	price := l.LastPrice
 	if price == 0 {
 		price = l.IPOPrice
@@ -59,7 +64,7 @@ func (h *FinanceHandler) listedLine(ctx context.Context, snap *content.Snapshot,
 	if prev == 0 {
 		prev = l.IPOPrice
 	}
-	line := screens.ListedLine{Company: named(l.Company.Code, l.Company.Name), Type: named(l.Company.TypeCode, l.Company.TypeCode),
+	line := economy.ListedLine{Company: named(l.Company.Code, l.Company.Name), Type: named(l.Company.TypeCode, l.Company.TypeCode),
 		Price: price, Prev: prev, Volume: l.Volume, Cap: price * l.Company.TotalShares}
 	if t, _, ok := snap.CompanyType(l.Company.TypeCode); ok {
 		line.Type.Name = t.Name
@@ -73,21 +78,26 @@ func (h *FinanceHandler) listedLine(ctx context.Context, snap *content.Snapshot,
 }
 
 // Stock handles stock.view: one company on the exchange.
-func (h *FinanceHandler) Stock(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) Stock(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	return h.stock(ctx, meta, req.Code, "", nil)
 }
 
-func (h *FinanceHandler) stock(ctx context.Context, meta envelope.Metadata, code, notice string, args map[string]any) (*presenter.Response, error) {
+func (h *FinanceHandler) stock(ctx context.Context, meta envelope.Metadata, code, notice string, args map[string]any) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
+	if resp, err := h.gate(ctx, meta, snap, "stocks", func(lang string, un *economy.Unavailable) *presentation.Response {
+		return economy.Stock(presentation.Ctx{Lang: lang}, economy.StockPageView{Unavailable: un})
+	}); resp != nil || err != nil {
+		return resp, err
+	}
 	def, err := h.def(snap)
 	if err != nil {
 		return nil, err
 	}
 	lang := meta.Language
-	var view screens.StockView
+	var view economy.StockPageView
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -104,14 +114,14 @@ func (h *FinanceHandler) stock(ctx context.Context, meta envelope.Metadata, code
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Stock(h.screen(meta, lang), view), nil
+	return economy.Stock(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // company reads an active company by its code.
 func (h *FinanceHandler) company(ctx context.Context, tx application.Tx, code string, lock bool) (*application.Company, error) {
 	c, err := tx.Companies().ByCode(ctx, strings.ToUpper(strings.TrimSpace(code)))
 	if isSentinel(err, application.ErrCompanyNotFound) || (err == nil && !c.Active()) {
-		return nil, refuseFinance(screens.FinanceRefusedNotListed, screens.AddrExchange)
+		return nil, refuseFinance(economy.FinanceRefusedNotListed, economy.AddrExchange)
 	}
 	if err != nil || !lock {
 		return c, err
@@ -134,8 +144,8 @@ func refPrice(last int64, listing *application.StockListing, book, total int64) 
 // stockView is a company as its page shows it to p.
 func (h *FinanceHandler) stockView(ctx context.Context, tx application.Tx, snap *content.Snapshot, def content.FinanceDef,
 	c application.Company, p *application.Player,
-) (screens.StockView, error) {
-	v := screens.StockView{Company: named(c.Code, c.Name), Type: named(c.TypeCode, c.TypeCode), Total: c.TotalShares,
+) (economy.StockPageView, error) {
+	v := economy.StockPageView{Company: named(c.Code, c.Name), Type: named(c.TypeCode, c.TypeCode), Total: c.TotalShares,
 		Owner: c.OwnerID == p.ID, FeeBPS: 0}
 	if t, _, ok := snap.CompanyType(c.TypeCode); ok {
 		v.Type.Name = t.Name
@@ -167,7 +177,7 @@ func (h *FinanceHandler) stockView(ctx context.Context, tx application.Tx, snap 
 			return v, err
 		}
 		for i, t := range trades {
-			v.Trades = append(v.Trades, screens.TradeLine{Qty: t.Qty, Price: t.Price, At: t.At})
+			v.Trades = append(v.Trades, economy.TradeLine{Qty: t.Qty, Price: t.Price, At: t.At})
 			if i == 1 {
 				v.Prev = t.Price
 			}
@@ -200,30 +210,30 @@ func (h *FinanceHandler) stockView(ctx context.Context, tx application.Tx, snap 
 	for _, step := range def.Stocks.PriceSteps {
 		price := max(finance.OfBPS(v.Price, step), 1)
 		qty := def.Stocks.QtyOptions[0]
-		v.Buys = append(v.Buys, screens.PriceOption{Qty: qty, Price: price})
+		v.Buys = append(v.Buys, economy.PriceOption{Qty: qty, Price: price})
 		if hold.Free() >= qty {
-			v.Sells = append(v.Sells, screens.PriceOption{Qty: qty, Price: price})
+			v.Sells = append(v.Sells, economy.PriceOption{Qty: qty, Price: price})
 		}
 	}
 	for _, qty := range def.Stocks.QtyOptions[1:] {
-		v.Buys = append(v.Buys, screens.PriceOption{Qty: qty, Price: v.Price})
+		v.Buys = append(v.Buys, economy.PriceOption{Qty: qty, Price: v.Price})
 		if hold.Free() >= qty {
-			v.Sells = append(v.Sells, screens.PriceOption{Qty: qty, Price: v.Price})
+			v.Sells = append(v.Sells, economy.PriceOption{Qty: qty, Price: v.Price})
 		}
 	}
 	return v, nil
 }
 
 // depth sums a book's open orders by price, the best n of each side.
-func depth(orders []application.ShareOrder, n int) (bids, asks []screens.BookLevel) {
+func depth(orders []application.ShareOrder, n int) (bids, asks []economy.BookLevel) {
 	sum := map[string]map[int64]int64{"buy": {}, "sell": {}}
 	for _, o := range orders {
 		sum[o.Side][o.Price] += o.Qty - o.Filled
 	}
-	level := func(side string, desc bool) []screens.BookLevel {
-		var out []screens.BookLevel
+	level := func(side string, desc bool) []economy.BookLevel {
+		var out []economy.BookLevel
 		for p, q := range sum[side] {
-			out = append(out, screens.BookLevel{Price: p, Qty: q})
+			out = append(out, economy.BookLevel{Price: p, Qty: q})
 		}
 		sort.Slice(out, func(i, j int) bool {
 			if desc {
@@ -237,11 +247,11 @@ func depth(orders []application.ShareOrder, n int) (bids, asks []screens.BookLev
 }
 
 // BuyShares handles stock.buy.
-func (h *FinanceHandler) BuyShares(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) BuyShares(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	return h.order(ctx, meta, req, market.Buy)
 }
 
 // SellShares handles stock.sell.
-func (h *FinanceHandler) SellShares(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) SellShares(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	return h.order(ctx, meta, req, market.Sell)
 }

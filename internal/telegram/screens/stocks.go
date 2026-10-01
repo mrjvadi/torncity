@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -13,31 +12,8 @@ import (
 // the player's holding, an order, a listing, a dividend and the portfolio of
 // shares, gold and savings.
 
-// Addresses of the stock exchange.
-const (
-	AddrExchange      = "stock:list"
-	AddrStock         = "stock:view"
-	AddrStockBuy      = "stock:buy"
-	AddrStockSell     = "stock:sell"
-	AddrStockCancel   = "stock:cancel"
-	AddrPortfolio     = "stock:mine"
-	AddrStockIPO      = "stock:ipo"
-	AddrStockDividend = "stock:dividend"
-)
-
 // companyName is a company's name on the exchange.
 func (c Context) companyName(n Named) string { return c.named("company_name."+n.Code, n.Name) }
-
-// ListedLine is a listed company as the exchange lists it.
-type ListedLine struct {
-	Company Named
-	Type    Named
-	City    GovPlace
-	// Price is the last price (the listing price before a first trade),
-	// Prev the one before; Volume the shares traded lately; Cap the price
-	// times all shares.
-	Price, Prev, Volume, Cap int64
-}
 
 // change is a price's move from prev, in basis points.
 func change(price, prev int64) int64 {
@@ -59,11 +35,6 @@ func (c Context) moveText(price, prev int64) string {
 	return c.T("stock.move_flat", nil)
 }
 
-// ExchangeView is the exchange: every listed company.
-type ExchangeView struct {
-	Lines []ListedLine
-}
-
 // Exchange renders the listed companies. It shows no one's money: market
 // data is public.
 func Exchange(c Context, v ExchangeView) *presenter.Response {
@@ -71,6 +42,9 @@ func Exchange(c Context, v ExchangeView) *presenter.Response {
 }
 
 func renderExchange(c Context, v ExchangeView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	lines := []string{c.T("stock.exchange_title", nil)}
 	kb := keyboards.New()
 	var buttons []presenter.Button
@@ -96,37 +70,6 @@ func renderExchange(c Context, v ExchangeView) *presenter.Response {
 // A company's book and trades use the market's BookLevel and TradeLine
 // (market.go): one engine, one shape.
 
-// PriceOption is a price or a quantity an order may be placed at.
-type PriceOption struct {
-	Qty, Price int64
-}
-
-// StockView is one company on the exchange.
-type StockView struct {
-	Company Named
-	Type    Named
-	City    GovPlace
-	Listed  bool
-	// Price is the last price, Prev the one before, IPO the listing
-	// price, Book the book value per share; Total all its shares.
-	Price, Prev, IPO, Book, Total int64
-	Bids, Asks                    []BookLevel
-	Trades                        []TradeLine
-	// Holding is the viewer's shares (Locked in sell orders), Cost what
-	// they paid; left out of a shared screen.
-	Holding, Locked, Cost int64
-	// Owner says the viewer controls the company: it offers the listing
-	// and the dividend. Controller names who controls it.
-	Owner      bool
-	Controller string
-	// Buys and Sells are the orders offered: quantity and price.
-	Buys, Sells []PriceOption
-	LastDiv     int64
-	FeeBPS      int64
-	Notice      string
-	NoticeArgs  map[string]any
-}
-
 // Stock renders a company on the exchange: its price and book, its last
 // trades, and — in the player's own chat — their holding and the orders
 // they may place.
@@ -135,6 +78,9 @@ func Stock(c Context, v StockView) *presenter.Response {
 }
 
 func renderStock(c Context, v StockView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("stock.notice."+v.Notice, moneyArgs(c, v.NoticeArgs))
@@ -212,25 +158,6 @@ func renderStock(c Context, v StockView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-// StockOrderView is an order about to be placed, or one just placed.
-type StockOrderView struct {
-	Company   Named
-	Side      string
-	Qty       int64
-	Price     int64
-	Reserve   int64
-	Bank      int64
-	FeeBPS    int64
-	Nonce     string
-	Placed    bool
-	No        int64
-	Filled    int64
-	Spent     int64
-	Got       int64
-	Rests     bool
-	ExpiresAt time.Time
-}
-
 // StockOrder renders an order: its confirmation, or what became of it.
 func StockOrder(c Context, v StockOrderView) *presenter.Response {
 	return c.withView(renderStockOrder(c, v), ScreenStockOrder, v)
@@ -267,46 +194,15 @@ func renderStockOrder(c Context, v StockOrderView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build()).MarkPrivate()
 }
 
-// HoldingLine is one company in a portfolio.
-type HoldingLine struct {
-	Company Named
-	Shares  int64
-	Locked  int64
-	Price   int64
-	Value   int64
-	Cost    int64
-	Listed  bool
-}
-
-// OpenOrderLine is one of the player's open orders.
-type OpenOrderLine struct {
-	No      int64
-	Company Named
-	Side    string
-	Qty     int64
-	Filled  int64
-	Price   int64
-}
-
-// PortfolioView is everything a player invested in.
-type PortfolioView struct {
-	Holdings []HoldingLine
-	Orders   []OpenOrderLine
-	Gold     int64
-	GoldVal  int64
-	Savings  int64
-	// Value is the whole portfolio; Gain what it made over what went in.
-	Value, Gain int64
-	Notice      string
-	NoticeArgs  map[string]any
-}
-
 // Portfolio renders a player's shares, gold, savings and open orders.
 func Portfolio(c Context, v PortfolioView) *presenter.Response {
 	return c.withView(renderPortfolio(c, v), ScreenPortfolio, v)
 }
 
 func renderPortfolio(c Context, v PortfolioView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("stock.notice."+v.Notice, moneyArgs(c, v.NoticeArgs))
@@ -354,25 +250,6 @@ func renderPortfolio(c Context, v PortfolioView) *presenter.Response {
 	return c.respond(paragraphs(notice, body(lines...), body(orders...)), kb.Build()).MarkPrivate()
 }
 
-// ListingView is a company's listing: whether it may list, and the choices.
-type ListingView struct {
-	Company Named
-	// Refused is why it may not list yet ("" when it may); Age and
-	// Revenue what it has, MinAge and MinRevenue what it needs.
-	Refused             string
-	Age, MinAge         time.Duration
-	Revenue, MinRevenue int64
-	Book                int64
-	Total               int64
-	Fee                 int64
-	// Floats are the shares offered (bps of the company, and shares);
-	// Prices the prices (bps of book, and the price).
-	Floats, Prices []PriceOption
-	// Chosen, with Nonce, is the listing about to be made.
-	Chosen *PriceOption
-	Nonce  string
-}
-
 // Listing renders the listing of a company on the exchange.
 func Listing(c Context, v ListingView) *presenter.Response {
 	return c.withView(renderListing(c, v), ScreenListing, v)
@@ -412,23 +289,6 @@ func renderListing(c Context, v ListingView) *presenter.Response {
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrStock, v.Company.Code)}))
 	return c.respond(body(lines...), kb.Build()).MarkPrivate()
-}
-
-// DividendView is a dividend to declare.
-type DividendView struct {
-	Company Named
-	// Free is the company's money that may be paid out; TaxBPS the tax on
-	// it; Total its shares.
-	Free    int64
-	TaxBPS  int64
-	Total   int64
-	Options []PriceOption
-	Chosen  *PriceOption
-	Nonce   string
-	// Paid is a dividend just paid: per share and in all.
-	Paid, PerShare int64
-	Holders        int64
-	Refused        string
 }
 
 // Dividend renders a dividend: the choices, its confirmation or what it paid.

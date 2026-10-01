@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"sort"
 	"strconv"
 	"strings"
@@ -18,7 +20,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -184,19 +185,37 @@ func checkMeta(meta envelope.Metadata) error {
 }
 
 // Show handles bank.show: balances, the city's terms and quick amounts.
-func (h *BankHandler) Show(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *BankHandler) Show(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := checkMeta(meta); err != nil {
 		return nil, err
 	}
-	return h.render(ctx, meta, func(screens.Context) string { return "" })
+	return h.render(ctx, meta, bankNotice{})
+}
+
+// bankNotice is what a bank screen says first: a code and the sums it needs
+// (minor units). Each edge words it in the player's language.
+type bankNotice struct {
+	code string
+	args map[string]any
+}
+
+// movedNotice is the outcome of a deposit or a withdrawal.
+func movedNotice(deposited bool, amount, fee int64) bankNotice {
+	switch {
+	case deposited:
+		return bankNotice{"deposited", map[string]any{"amount": amount}}
+	case fee > 0:
+		return bankNotice{"withdrew_fee", map[string]any{"amount": amount, "fee": fee}}
+	}
+	return bankNotice{"withdrew", map[string]any{"amount": amount}}
 }
 
 // render reads the bank screen in its own unit of work and lays it out. The
-// notice, if any, is worded in the player's language once it is known.
+// notice, if any, says what the player just did.
 func (h *BankHandler) render(ctx context.Context, meta envelope.Metadata,
-	notice func(screens.Context) string,
-) (*presenter.Response, error) {
-	var view screens.BankView
+	notice bankNotice,
+) (*presentation.Response, error) {
+	var view economy.BankView
 	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -256,9 +275,8 @@ func (h *BankHandler) render(ctx context.Context, meta envelope.Metadata,
 		return nil, err
 	}
 
-	c := h.screen(meta, lang)
-	view.Notice = notice(c)
-	return screens.Bank(c, view), nil
+	view.Notice, view.NoticeArgs = notice.code, notice.args
+	return economy.Bank(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // options builds the buttons for a sum the player could move: the largest
@@ -266,7 +284,7 @@ func (h *BankHandler) render(ctx context.Context, meta envelope.Metadata,
 // it» — the whole sum, clamped to the maximum — unless a round amount already
 // is exactly that. any reports whether any amount at all can be moved, which
 // is when the screen offers a typed amount too.
-func (h *BankHandler) options(available money.Amount) (opts []screens.AmountOption, any bool) {
+func (h *BankHandler) options(available money.Amount) (opts []economy.AmountOption, any bool) {
 	if h.limits.Check(h.limits.Min) != nil || available.Minor() < h.limits.Min.Minor() {
 		return nil, false
 	}
@@ -280,12 +298,12 @@ func (h *BankHandler) options(available money.Amount) (opts []screens.AmountOpti
 	if len(fits) > quickButtons {
 		fits = fits[len(fits)-quickButtons:]
 	}
-	out := make([]screens.AmountOption, 0, len(fits)+1)
+	out := make([]economy.AmountOption, 0, len(fits)+1)
 	for _, q := range fits {
-		out = append(out, screens.AmountOption{Amount: q, Nonce: h.nonce()})
+		out = append(out, economy.AmountOption{Amount: q, Nonce: h.nonce()})
 	}
 	if len(fits) == 0 || fits[len(fits)-1] != all.Minor() {
-		out = append(out, screens.AmountOption{Amount: all.Minor(), Nonce: h.nonce(), All: true})
+		out = append(out, economy.AmountOption{Amount: all.Minor(), Nonce: h.nonce(), All: true})
 	}
 	return out, true
 }
@@ -300,19 +318,19 @@ func (h *BankHandler) nonce() string {
 }
 
 // Deposit handles bank.deposit: cash into the bank, in a city, free.
-func (h *BankHandler) Deposit(ctx context.Context, meta envelope.Metadata, req BankAmountRequest) (*presenter.Response, error) {
+func (h *BankHandler) Deposit(ctx context.Context, meta envelope.Metadata, req BankAmountRequest) (*presentation.Response, error) {
 	return h.move(ctx, meta, req, true)
 }
 
 // Withdraw handles bank.withdraw: bank balance into cash, in a city, with
 // the city's withdrawal fee charged on top.
-func (h *BankHandler) Withdraw(ctx context.Context, meta envelope.Metadata, req BankAmountRequest) (*presenter.Response, error) {
+func (h *BankHandler) Withdraw(ctx context.Context, meta envelope.Metadata, req BankAmountRequest) (*presentation.Response, error) {
 	return h.move(ctx, meta, req, false)
 }
 
 // move is a deposit or a withdrawal. The two differ only in direction, in
 // the reason, and in the fee, which only a withdrawal carries.
-func (h *BankHandler) move(ctx context.Context, meta envelope.Metadata, req BankAmountRequest, deposit bool) (*presenter.Response, error) {
+func (h *BankHandler) move(ctx context.Context, meta envelope.Metadata, req BankAmountRequest, deposit bool) (*presentation.Response, error) {
 	if err := checkMeta(meta); err != nil {
 		return nil, err
 	}
@@ -406,13 +424,11 @@ func (h *BankHandler) move(ctx context.Context, meta envelope.Metadata, req Bank
 		return nil, err
 	}
 
-	notice := func(c screens.Context) string {
-		if replayed {
-			// The same press twice: the first one already moved the money,
-			// and the screen shows where it is now.
-			return ""
-		}
-		return screens.BankNotice(c, deposit, amount.Minor(), fee.Minor())
+	var notice bankNotice
+	if !replayed {
+		// The same press twice: the first one already moved the money, and
+		// the screen shows where it is now, with no notice.
+		notice = movedNotice(deposit, amount.Minor(), fee.Minor())
 	}
 	return h.render(ctx, meta, notice)
 }
@@ -420,7 +436,7 @@ func (h *BankHandler) move(ctx context.Context, meta envelope.Metadata, req Bank
 // Pay handles bank.pay: the screen for paying one player — which methods are
 // open and quick amounts — or, with an amount and a method, the confirmation.
 // It moves no money.
-func (h *BankHandler) Pay(ctx context.Context, meta envelope.Metadata, req PayRequest) (*presenter.Response, error) {
+func (h *BankHandler) Pay(ctx context.Context, meta envelope.Metadata, req PayRequest) (*presentation.Response, error) {
 	if err := checkMeta(meta); err != nil {
 		return nil, err
 	}
@@ -436,7 +452,7 @@ func (h *BankHandler) Pay(ctx context.Context, meta envelope.Metadata, req PayRe
 		}); err != nil {
 			return nil, err
 		}
-		return screens.PayHelp(h.screen(meta, lang)), nil
+		return economy.PayHelp(presentation.Ctx{Lang: lang}), nil
 	}
 
 	// Started in a group: the group is told, once the money has moved, who
@@ -456,9 +472,9 @@ func (h *BankHandler) Pay(ctx context.Context, meta envelope.Metadata, req PayRe
 // payScreen renders the payment chooser. refusal, when set, is why the
 // player was brought back here, worded at the top.
 func (h *BankHandler) payScreen(ctx context.Context, meta envelope.Metadata, req PayRequest,
-	refusal func(c screens.Context, payee string) string,
-) (*presenter.Response, error) {
-	var view screens.PayView
+	refusal func(payee string) bankNotice,
+) (*presentation.Response, error) {
+	var view economy.PayView
 	lang := meta.Language
 	// An amount named without a method («پرداخت ۵۰۰۰» as a reply) is
 	// offered first, each way it can be paid.
@@ -523,11 +539,11 @@ func (h *BankHandler) payScreen(ctx context.Context, meta envelope.Metadata, req
 		return nil, err
 	}
 
-	c := h.screen(meta, lang)
 	if refusal != nil {
-		view.Notice = refusal(c, view.PayeeName)
+		n := refusal(view.PayeeName)
+		view.Notice, view.NoticeArgs = n.code, n.args
 	}
-	resp := screens.Pay(c, view)
+	resp := economy.Pay(presentation.Ctx{Lang: lang}, view)
 	resp.Resume = payResume(view.PayeeCode, asked.Minor(), "")
 	return resp, nil
 }
@@ -535,11 +551,11 @@ func (h *BankHandler) payScreen(ctx context.Context, meta envelope.Metadata, req
 // withAsked puts the amount the player named at the head of one method's
 // quick amounts, when that method can pay it: moved there when it is one of
 // them already.
-func (h *BankHandler) withAsked(opts []screens.AmountOption, asked, available money.Amount) []screens.AmountOption {
+func (h *BankHandler) withAsked(opts []economy.AmountOption, asked, available money.Amount) []economy.AmountOption {
 	if asked.Minor() <= 0 || asked.Minor() > available.Minor() {
 		return opts
 	}
-	out := []screens.AmountOption{{Amount: asked.Minor(), Nonce: h.nonce()}}
+	out := []economy.AmountOption{{Amount: asked.Minor(), Nonce: h.nonce()}}
 	for _, o := range opts {
 		if o.Amount == asked.Minor() && !o.All {
 			out[0] = o
@@ -552,7 +568,7 @@ func (h *BankHandler) withAsked(opts []screens.AmountOption, asked, available mo
 
 // confirm renders the last look before a payment: the amount, the fee and
 // the total, with a single-use confirm button.
-func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req PayRequest) (*presenter.Response, error) {
+func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req PayRequest) (*presentation.Response, error) {
 	amount, err := h.parseAmount(req.Amount)
 	if err != nil {
 		return nil, err
@@ -563,7 +579,7 @@ func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req P
 	}
 
 	var (
-		view  screens.PayConfirmView
+		view  economy.PayConfirmView
 		short error
 	)
 	lang := meta.Language
@@ -590,7 +606,7 @@ func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req P
 		if method == bank.MethodCard {
 			// Financial sanctions between the two players' countries
 			// (docs/adr/0022): the one sanctions check.
-			if err := playersSanctioned(ctx, tx, diplomacy.Financial, p.ID, payee.ID, h.now(), screens.AddrBank); err != nil {
+			if err := playersSanctioned(ctx, tx, diplomacy.Financial, p.ID, payee.ID, h.now(), economy.AddrBank); err != nil {
 				return err
 			}
 			feeBPS, _, err := h.cardFee(ctx, here[0])
@@ -615,7 +631,7 @@ func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req P
 			short = err
 			return nil
 		}
-		view = screens.PayConfirmView{
+		view = economy.PayConfirmView{
 			PayeeName: shownName(payee),
 			PayeeCode: payee.PublicCode,
 			Method:    string(method),
@@ -640,11 +656,9 @@ func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req P
 	if short != nil {
 		// Not enough: back to the payment screen, whose buttons only offer
 		// what can be paid, with the shortfall at the top.
-		return h.payScreen(ctx, meta, req, func(c screens.Context, _ string) string {
-			return screens.PayShortfall(c, short)
-		})
+		return h.payScreen(ctx, meta, req, func(string) bankNotice { return shortfallNotice(short) })
 	}
-	resp := screens.PayConfirm(h.screen(meta, lang), view)
+	resp := economy.PayConfirm(presentation.Ctx{Lang: lang}, view)
 	resp.Resume = payResume(view.PayeeCode, view.Amount, string(method))
 	return resp, nil
 }
@@ -677,13 +691,36 @@ func cleanOrigin(origin string) string {
 	return origin
 }
 
-// notTogether words the refusal of cash between players who are apart, and
-// points at the card.
-func notTogether(c screens.Context, payee string) string {
-	if payee == "" {
-		payee = c.T("social.unknown_player", nil)
+// notTogether is the refusal of cash between players who are apart: the
+// screen points at the card.
+func notTogether(payee string) bankNotice {
+	return bankNotice{"not_together", map[string]any{"player": payee}}
+}
+
+// shortfallNotice says why a payment was not put up for confirmation: the way
+// chosen does not cover it, fee included.
+func shortfallNotice(err error) bankNotice {
+	args := map[string]any{"available": errorDetail(err, "available"), "needed": errorDetail(err, "needed")}
+	if stderrors.Is(err, application.ErrNotEnoughCash) {
+		return bankNotice{"short_cash", args}
 	}
-	return c.T("pay.not_together", map[string]any{"player": payee})
+	return bankNotice{"short_bank", args}
+}
+
+// errorDetail is a whole number a refusal carries (WithDetail), 0 when it has
+// none.
+func errorDetail(err error, key string) int64 {
+	var e *errors.Error
+	if !stderrors.As(err, &e) {
+		return 0
+	}
+	switch v := e.Details[key].(type) {
+	case int:
+		return int64(v)
+	case int64:
+		return v
+	}
+	return 0
 }
 
 // paySendQuote is what payQuote resolves for a bank.pay.send: who is being
@@ -735,7 +772,7 @@ func (h *BankHandler) payQuote(ctx context.Context, tx application.Tx, p *applic
 	q.reason, q.from, q.to = application.ReasonCashPayment, payerCash, payeeCash
 	q.quote = bank.Quote{Amount: amount, Total: amount}
 	if method == bank.MethodCard {
-		if err := playersSanctioned(ctx, tx, diplomacy.Financial, p.ID, payee.ID, now, screens.AddrBank); err != nil {
+		if err := playersSanctioned(ctx, tx, diplomacy.Financial, p.ID, payee.ID, now, economy.AddrBank); err != nil {
 			return q, err
 		}
 		q.reason, q.from, q.to = application.ReasonCardPayment, payerBank, payeeBank
@@ -762,7 +799,7 @@ func (h *BankHandler) payQuote(ctx context.Context, tx application.Tx, p *applic
 // it. A card payment works from anywhere, bank to bank, and the payer's city
 // charges its card fee on top. Either way the payee is told, through the
 // outbox, once the money has moved.
-func (h *BankHandler) PaySend(ctx context.Context, meta envelope.Metadata, req PayRequest) (*presenter.Response, error) {
+func (h *BankHandler) PaySend(ctx context.Context, meta envelope.Metadata, req PayRequest) (*presentation.Response, error) {
 	if err := checkMeta(meta); err != nil {
 		return nil, err
 	}
@@ -776,7 +813,7 @@ func (h *BankHandler) PaySend(ctx context.Context, meta envelope.Metadata, req P
 	}
 
 	var (
-		sent     screens.PaySentView
+		sent     economy.PaySentView
 		replayed bool
 		lang     = meta.Language
 	)
@@ -817,7 +854,7 @@ func (h *BankHandler) PaySend(ctx context.Context, meta envelope.Metadata, req P
 			if err := h.chargeFee(ctx, tx, from.ID, feeCity, quote.Fee, hold.HoldTransactionID); err != nil {
 				return err
 			}
-			sent = screens.PaySentView{PayeeName: shownName(payee), PayeeCode: payee.PublicCode, Method: string(method),
+			sent = economy.PaySentView{PayeeName: shownName(payee), PayeeCode: payee.PublicCode, Method: string(method),
 				Amount: quote.Amount.Minor(), Fee: quote.Fee.Minor(), Held: true}
 			return nil
 		}
@@ -849,7 +886,7 @@ func (h *BankHandler) PaySend(ctx context.Context, meta envelope.Metadata, req P
 			return err
 		}
 
-		sent = screens.PaySentView{
+		sent = economy.PaySentView{
 			PayeeName: shownName(payee),
 			PayeeCode: payee.PublicCode,
 			Method:    string(method),
@@ -872,9 +909,9 @@ func (h *BankHandler) PaySend(ctx context.Context, meta envelope.Metadata, req P
 	if replayed {
 		// The confirm button pressed twice. The first press paid; this one
 		// shows the bank as it now stands instead of paying again.
-		return h.render(ctx, meta, func(screens.Context) string { return "" })
+		return h.render(ctx, meta, bankNotice{})
 	}
-	return screens.PaySent(h.screen(meta, lang), sent), nil
+	return economy.PaySent(presentation.Ctx{Lang: lang}, sent), nil
 }
 
 // paymentRefusal classifies the domain's refusal of a payment.

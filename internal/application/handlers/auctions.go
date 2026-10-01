@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strconv"
 	"strings"
 	"time"
@@ -21,7 +23,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -65,6 +66,17 @@ type AuctionsHandler struct {
 	pageSize       int
 	idempotencyTTL time.Duration
 	now            func() time.Time
+
+	// gates says whether the house is offered where the player stands; nil
+	// offers it everywhere.
+	gates *ServiceGate
+}
+
+// WithServiceGate has the auction list say so when the house is not offered in
+// the settlement the player stands in (service_gate.go).
+func (h *AuctionsHandler) WithServiceGate(g *ServiceGate) *AuctionsHandler {
+	h.gates = g
+	return h
 }
 
 // NewAuctionsHandler wires the handler.
@@ -108,18 +120,18 @@ func (h *AuctionsHandler) screen(meta envelope.Metadata, lang string) screens.Co
 	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
 }
 
-type auctionRefusal struct{ view screens.AuctionRefusalView }
+type auctionRefusal struct{ view economy.AuctionRefusalView }
 
 func (r *auctionRefusal) Error() string { return "handlers: auction refused: " + r.view.Kind }
 
 func refuseAuction(kind string, no int64) *auctionRefusal {
-	return &auctionRefusal{view: screens.AuctionRefusalView{Kind: kind, No: no}}
+	return &auctionRefusal{view: economy.AuctionRefusalView{Kind: kind, No: no}}
 }
 
-func (h *AuctionsHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *AuctionsHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	var r *auctionRefusal
 	if stderrors.As(err, &r) {
-		return screens.AuctionRefusal(h.screen(meta, lang), r.view), nil
+		return economy.AuctionRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
 	if v, ok := asBlocked(err); ok {
 		return screens.SanctionBlocked(h.screen(meta, lang), v), nil
@@ -127,8 +139,8 @@ func (h *AuctionsHandler) finish(meta envelope.Metadata, lang string, err error)
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(h.screen(meta, lang), v), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
 	}
 	return nil, err
 }
@@ -183,12 +195,12 @@ func highBid(a application.Auction) auction.Bid {
 }
 
 // line is an auction as a list shows it.
-func (h *AuctionsHandler) line(ctx context.Context, tx application.Tx, snap *content.Snapshot, a application.Auction, viewer string, now time.Time) (screens.AuctionLine, error) {
+func (h *AuctionsHandler) line(ctx context.Context, tx application.Tx, snap *content.Snapshot, a application.Auction, viewer string, now time.Time) (economy.AuctionLine, error) {
 	pc, err := tx.Items().Piece(ctx, a.PieceID)
 	if err != nil {
-		return screens.AuctionLine{}, err
+		return economy.AuctionLine{}, err
 	}
-	return screens.AuctionLine{
+	return economy.AuctionLine{
 		No: a.No, Item: itemNamed(snap, a.Item), Quality: pc.Quality, HighBid: a.HighBid, Reserve: a.Reserve,
 		Remaining: max(a.EndsAt.Sub(now), 0), EndsAt: a.EndsAt, Status: a.Status,
 		Mine: a.SellerID == viewer, Leading: a.HighBidder != "" && a.HighBidder == viewer,
@@ -196,13 +208,14 @@ func (h *AuctionsHandler) line(ctx context.Context, tx application.Tx, snap *con
 }
 
 // List handles auction.list: the city's open auctions, soonest to close.
-func (h *AuctionsHandler) List(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *AuctionsHandler) List(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.AuctionsView
+	var view economy.AuctionsView
+	var cityID string
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -213,6 +226,7 @@ func (h *AuctionsHandler) List(ctx context.Context, meta envelope.Metadata) (*pr
 		if err != nil {
 			return err
 		}
+		cityID = w.city.ID
 		view.CityCode, view.City, view.AtHouse = w.city.Code, w.city.Name, h.atHouse(w)
 		view.Way = wayTo(w, snap, place.ServiceAuctionHouse, h.scale)
 		list, err := tx.Auctions().List(ctx, w.city.ID, 15)
@@ -232,7 +246,12 @@ func (h *AuctionsHandler) List(ctx context.Context, meta envelope.Metadata) (*pr
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
 		return resp, ferr
 	}
-	return screens.Auctions(h.screen(meta, lang), view), nil
+	if un, gerr := h.gates.Check(ctx, snap, cityID, "auction_house"); gerr != nil {
+		return nil, gerr
+	} else if un != nil {
+		return economy.Auctions(presentation.Ctx{Lang: lang}, economy.AuctionsView{Unavailable: un}), nil
+	}
+	return economy.Auctions(presentation.Ctx{Lang: lang}, view), nil
 }
 
 func parseNo(raw string) int64 {
@@ -244,13 +263,13 @@ func parseNo(raw string) int64 {
 }
 
 // View handles auction.view: one auction, and the bid the viewer may make.
-func (h *AuctionsHandler) View(ctx context.Context, meta envelope.Metadata, req AuctionRequest) (*presenter.Response, error) {
+func (h *AuctionsHandler) View(ctx context.Context, meta envelope.Metadata, req AuctionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.AuctionView
+	var view economy.AuctionDetailView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -259,7 +278,7 @@ func (h *AuctionsHandler) View(ctx context.Context, meta envelope.Metadata, req 
 		lang = RenderLanguage(meta, p)
 		a, err := tx.Auctions().AuctionByNo(ctx, parseNo(req.No))
 		if isSentinel(err, application.ErrAuctionNotFound) {
-			return refuseAuction(screens.AuctionRefusedNone, 0)
+			return refuseAuction(economy.AuctionRefusedNone, 0)
 		}
 		if err != nil {
 			return err
@@ -269,7 +288,7 @@ func (h *AuctionsHandler) View(ctx context.Context, meta envelope.Metadata, req 
 		if err != nil {
 			return err
 		}
-		view = screens.AuctionView{Line: l, MinNext: h.terms(*a).MinNext(highBid(*a)).Minor(), Nonce: h.nonce()}
+		view = economy.AuctionDetailView{Line: l, MinNext: h.terms(*a).MinNext(highBid(*a)).Minor(), Nonce: h.nonce()}
 		if seller, err := tx.Players().GetByID(ctx, a.SellerID); err == nil {
 			view.Seller = seller.DisplayName
 		} else if !isSentinel(err, application.ErrPlayerNotFound) {
@@ -294,12 +313,12 @@ func (h *AuctionsHandler) View(ctx context.Context, meta envelope.Metadata, req 
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
 		return resp, ferr
 	}
-	return screens.AuctionDetail(h.screen(meta, lang), view), nil
+	return economy.AuctionDetail(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // New handles auction.new: without terms, the choice of a reserve and a
 // length for a piece the player carries; with them, the auction opened.
-func (h *AuctionsHandler) New(ctx context.Context, meta envelope.Metadata, req AuctionRequest) (*presenter.Response, error) {
+func (h *AuctionsHandler) New(ctx context.Context, meta envelope.Metadata, req AuctionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -309,8 +328,8 @@ func (h *AuctionsHandler) New(ctx context.Context, meta envelope.Metadata, req A
 	durationAt, durErr := strconv.Atoi(strings.TrimSpace(req.Duration))
 	chosen := reserve > 0 && durErr == nil
 	var (
-		choose   *screens.AuctionNewView
-		opened   screens.AuctionOpenedView
+		choose   *economy.AuctionNewView
+		opened   economy.AuctionOpenedView
 		replayed bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -342,14 +361,14 @@ func (h *AuctionsHandler) New(ctx context.Context, meta envelope.Metadata, req A
 			return err
 		}
 		if qty == 0 || piece == nil {
-			return refuseAuction(screens.AuctionRefusedNotHeld, 0)
+			return refuseAuction(economy.AuctionRefusedNotHeld, 0)
 		}
 		def, _ := snap.ItemDef(code)
 		if !def.Item().Tradeable {
-			return refuseAuction(screens.AuctionRefusedNotSellable, 0)
+			return refuseAuction(economy.AuctionRefusedNotSellable, 0)
 		}
 		if !chosen {
-			v := screens.AuctionNewView{Item: named(def.Code, def.Name), Ref: piece.Serial, Quality: piece.Quality, Nonce: h.nonce()}
+			v := economy.AuctionNewView{Item: named(def.Code, def.Name), Ref: piece.Serial, Quality: piece.Quality, Nonce: h.nonce()}
 			for _, d := range h.rules.Durations {
 				v.Durations = append(v.Durations, h.scale.RealWait(d))
 			}
@@ -371,7 +390,7 @@ func (h *AuctionsHandler) New(ctx context.Context, meta envelope.Metadata, req A
 			return err
 		}
 		if open >= h.rules.MaxOpen {
-			r := refuseAuction(screens.AuctionRefusedTooMany, 0)
+			r := refuseAuction(economy.AuctionRefusedTooMany, 0)
 			r.view.Count = h.rules.MaxOpen
 			return r
 		}
@@ -404,7 +423,7 @@ func (h *AuctionsHandler) New(ctx context.Context, meta envelope.Metadata, req A
 		if err != nil {
 			return err
 		}
-		opened = screens.AuctionOpenedView{No: stored.No, Item: named(def.Code, def.Name), Reserve: reserve, Duration: wait, EndsAt: a.EndsAt}
+		opened = economy.AuctionOpenedView{No: stored.No, Item: named(def.Code, def.Name), Reserve: reserve, Duration: wait, EndsAt: a.EndsAt}
 		return appendAuctionEvent(ctx, tx, meta, "opened", a.ID, map[string]any{
 			"auction_id": a.ID, "no": stored.No, "seller_id": p.ID, "item": code, "reserve": reserve, "ends_at": a.EndsAt,
 		})
@@ -416,14 +435,14 @@ func (h *AuctionsHandler) New(ctx context.Context, meta envelope.Metadata, req A
 	case replayed:
 		return h.Mine(ctx, meta)
 	case choose != nil:
-		return screens.AuctionNew(h.screen(meta, lang), *choose), nil
+		return economy.AuctionNew(presentation.Ctx{Lang: lang}, *choose), nil
 	}
-	return screens.AuctionOpened(h.screen(meta, lang), opened), nil
+	return economy.AuctionOpened(presentation.Ctx{Lang: lang}, opened), nil
 }
 
 // Bid handles auction.bid: a bid paid into escrow, the standing bid beaten
 // and paid back.
-func (h *AuctionsHandler) Bid(ctx context.Context, meta envelope.Metadata, req AuctionRequest) (*presenter.Response, error) {
+func (h *AuctionsHandler) Bid(ctx context.Context, meta envelope.Metadata, req AuctionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -438,7 +457,7 @@ func (h *AuctionsHandler) Bid(ctx context.Context, meta envelope.Metadata, req A
 	lang := meta.Language
 	amount := parseNo(req.Amount)
 	var (
-		view     screens.BidPlacedView
+		view     economy.BidPlacedView
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -458,7 +477,7 @@ func (h *AuctionsHandler) Bid(ctx context.Context, meta envelope.Metadata, req A
 		now := h.now()
 		a, err := tx.Auctions().AuctionByNo(ctx, parseNo(req.No))
 		if isSentinel(err, application.ErrAuctionNotFound) {
-			return refuseAuction(screens.AuctionRefusedNone, 0)
+			return refuseAuction(economy.AuctionRefusedNone, 0)
 		}
 		if err != nil {
 			return err
@@ -468,17 +487,17 @@ func (h *AuctionsHandler) Bid(ctx context.Context, meta envelope.Metadata, req A
 			return err
 		}
 		if w.city.ID != a.CityID {
-			return refuseAuction(screens.AuctionRefusedNone, a.No)
+			return refuseAuction(economy.AuctionRefusedNone, a.No)
 		}
 		if err := needService(w, snap, place.ServiceAuctionHouse, h.scale, now); err != nil {
 			return thenFor(err, "auction.view", strconv.FormatInt(a.No, 10))
 		}
 		if a.Status != application.AuctionOpen {
-			return refuseAuction(screens.AuctionRefusedClosed, a.No)
+			return refuseAuction(economy.AuctionRefusedClosed, a.No)
 		}
 		// A trade embargo between the bidder's country and the seller's
 		// (docs/adr/0022): the one sanctions check.
-		if err := playersSanctioned(ctx, tx, diplomacy.Trade, p.ID, a.SellerID, now, screens.AddrAuction,
+		if err := playersSanctioned(ctx, tx, diplomacy.Trade, p.ID, a.SellerID, now, economy.AddrAuction,
 			strconv.FormatInt(a.No, 10)); err != nil {
 			return err
 		}
@@ -486,13 +505,13 @@ func (h *AuctionsHandler) Bid(ctx context.Context, meta envelope.Metadata, req A
 		high, err := auction.PlaceBid(t, a.SellerID, highBid(*a), p.ID, money.FromMinor(amount), now)
 		switch {
 		case stderrors.Is(err, auction.ErrClosed):
-			return refuseAuction(screens.AuctionRefusedClosed, a.No)
+			return refuseAuction(economy.AuctionRefusedClosed, a.No)
 		case stderrors.Is(err, auction.ErrOwnAuction):
-			return refuseAuction(screens.AuctionRefusedOwn, a.No)
+			return refuseAuction(economy.AuctionRefusedOwn, a.No)
 		case stderrors.Is(err, auction.ErrAlreadyWinning):
-			return refuseAuction(screens.AuctionRefusedLeading, a.No)
+			return refuseAuction(economy.AuctionRefusedLeading, a.No)
 		case stderrors.Is(err, auction.ErrBidTooLow):
-			r := refuseAuction(screens.AuctionRefusedTooLow, a.No)
+			r := refuseAuction(economy.AuctionRefusedTooLow, a.No)
 			r.view.MinNext = t.MinNext(highBid(*a)).Minor()
 			return r
 		case err != nil:
@@ -503,7 +522,7 @@ func (h *AuctionsHandler) Bid(ctx context.Context, meta envelope.Metadata, req A
 			return err
 		}
 		plan := wallet.Plan(high.Amount, snap.Accepts(content.ServiceAuction))
-		back := []string{screens.AddrAuction, strconv.FormatInt(a.No, 10)}
+		back := []string{economy.AddrAuction, strconv.FormatInt(a.No, 10)}
 		if err := checkMethod(plan, method, wallet, "auction.button.back", back...); err != nil {
 			return err
 		}
@@ -542,7 +561,7 @@ func (h *AuctionsHandler) Bid(ctx context.Context, meta envelope.Metadata, req A
 			Amount: high.Amount.Minor(), Method: string(method), LedgerTransactionID: txID, CreatedAt: now}, a.HighBidID); err != nil {
 			return err
 		}
-		view = screens.BidPlacedView{No: a.No, Item: itemNamed(snap, a.Item), Amount: high.Amount.Minor(), Method: string(method), EndsAt: a.EndsAt}
+		view = economy.BidPlacedView{No: a.No, Item: itemNamed(snap, a.Item), Amount: high.Amount.Minor(), Method: string(method), EndsAt: a.EndsAt}
 		return nil
 	})
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
@@ -551,7 +570,7 @@ func (h *AuctionsHandler) Bid(ctx context.Context, meta envelope.Metadata, req A
 	if replayed {
 		return h.View(ctx, meta, AuctionRequest{No: req.No})
 	}
-	return screens.BidPlaced(h.screen(meta, lang), view), nil
+	return economy.BidPlaced(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // refundBid pays a beaten bid back in full, from the bidder's escrow to the
@@ -580,13 +599,13 @@ func (h *AuctionsHandler) refundBid(ctx context.Context, tx application.Tx, b ap
 }
 
 // Mine handles auction.mine: what the player sells and bids on.
-func (h *AuctionsHandler) Mine(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *AuctionsHandler) Mine(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.MyAuctionsView
+	var view economy.MyAuctionsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -610,12 +629,12 @@ func (h *AuctionsHandler) Mine(ctx context.Context, meta envelope.Metadata) (*pr
 	if err != nil {
 		return nil, err
 	}
-	return screens.MyAuctions(h.screen(meta, lang), view), nil
+	return economy.MyAuctions(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Close ends an auction at its end. It arrives from the SCHEDULER and runs
 // exactly once.
-func (h *AuctionsHandler) Close(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *AuctionsHandler) Close(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}

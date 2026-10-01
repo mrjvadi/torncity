@@ -12,26 +12,11 @@ type CourseRef struct {
 	Name string
 }
 
-// Way is the walk to the place a screen's service is at.
-type Way struct {
-	Place Named
-	// Walk is the real time the walk takes.
-	Walk time.Duration
-}
-
 // GovPlayer names another player: the display name and the public code, the
 // two things one player may see of another.
 type GovPlayer struct {
 	Name string
 	Code string
-}
-
-// GovPlace is one jurisdiction: a city or a country.
-type GovPlace struct {
-	Kind string
-	Code string
-	// Name is the authored name, the fallback for an untranslated code.
-	Name string
 }
 
 // JobRef names a position: a career and one of its tiers.
@@ -50,34 +35,6 @@ const (
 	MethodCash = "cash"
 	MethodCard = "card"
 )
-
-// PaymentChoice is what a price screen needs to offer the ways to pay.
-type PaymentChoice struct {
-	// Amount is the price, in minor units.
-	Amount int64
-	// Accepted are the methods the service takes, in display order.
-	Accepted []string
-	// Usable are the accepted methods that cover Amount.
-	Usable []string
-	// Cash and Bank are the player's balances. Shown only on a screen
-	// that is not shared.
-	Cash, Bank int64
-}
-
-// Accepts reports whether the service takes the method.
-func (p PaymentChoice) Accepts(m string) bool { return hasMethod(p.Accepted, m) }
-
-// UsableMethod reports whether the method is accepted and covers the price.
-func (p PaymentChoice) UsableMethod(m string) bool { return hasMethod(p.Usable, m) }
-
-func hasMethod(list []string, s string) bool {
-	for _, x := range list {
-		if x == s {
-			return true
-		}
-	}
-	return false
-}
 
 // Requirement kinds. They choose a sentence; none is ever shown.
 const (

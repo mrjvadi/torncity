@@ -1,0 +1,219 @@
+[
+  {
+    "title": "Not here, bank counters · loans in a village",
+    "screen": "finance_hub",
+    "view": {
+      "args": null,
+      "country": {
+        "code": "",
+        "kind": "",
+        "name": ""
+      },
+      "credit": {
+        "debt_bps": 0,
+        "defaults": 0,
+        "history_bps": 0,
+        "income_bps": 0,
+        "max": 0,
+        "min": 0,
+        "missed": 0,
+        "new_credit_bps": 0,
+        "payment_bps": 0,
+        "score": 0,
+        "worth_bps": 0
+      },
+      "lendable": 0,
+      "loans": null,
+      "next_at": null,
+      "notice": "",
+      "policy_bps": 0,
+      "products": null,
+      "savings": 0,
+      "savings_bps": 0,
+      "unavailable": {
+        "here": "village",
+        "nearest": {
+          "code": "brennhaven",
+          "name": "Brennhaven"
+        },
+        "requires": [
+          {
+            "code": "bank",
+            "role": "",
+            "tier": 0
+          }
+        ],
+        "service": "loans",
+        "stage": "city"
+      }
+    }
+  },
+  {
+    "title": "Not here, bank counters · savings in a village",
+    "screen": "savings",
+    "view": {
+      "balance": 0,
+      "bank": 0,
+      "deposits": null,
+      "earned": 0,
+      "next": 0,
+      "next_at": null,
+      "notice": "",
+      "notice_args": null,
+      "rate_bps": 0,
+      "unavailable": {
+        "here": "village",
+        "nearest": {
+          "code": "brennhaven",
+          "name": "Brennhaven"
+        },
+        "requires": [
+          {
+            "code": "bank",
+            "role": "",
+            "tier": 0
+          }
+        ],
+        "service": "savings",
+        "stage": "city"
+      },
+      "withdrawals": null
+    }
+  },
+  {
+    "title": "Not here, bank counters · insurance in a town",
+    "screen": "insurance",
+    "view": {
+      "cancel": null,
+      "country": {
+        "code": "",
+        "kind": "",
+        "name": ""
+      },
+      "fund": 0,
+      "notice": "",
+      "notice_args": null,
+      "policies": null,
+      "products": null,
+      "unavailable": {
+        "here": "town",
+        "nearest": {
+          "code": "brennhaven",
+          "name": "Brennhaven"
+        },
+        "requires": [
+          {
+            "code": "bank",
+            "role": "",
+            "tier": 0
+          }
+        ],
+        "service": "insurance",
+        "stage": "city"
+      }
+    }
+  },
+  {
+    "title": "Not here, markets of money · the exchange in a village",
+    "screen": "exchange",
+    "view": {
+      "lines": null,
+      "unavailable": {
+        "here": "village",
+        "nearest": {
+          "code": "brennhaven",
+          "name": "Brennhaven"
+        },
+        "requires": [
+          {
+            "code": "bank",
+            "role": "",
+            "tier": 0
+          }
+        ],
+        "service": "stocks",
+        "stage": "city"
+      }
+    }
+  },
+  {
+    "title": "Not here, markets of money · gold in a village",
+    "screen": "gold",
+    "view": {
+      "buy": 0,
+      "cost": 0,
+      "grams": 0,
+      "history": null,
+      "mid": 0,
+      "next_at": null,
+      "notice": "",
+      "notice_args": null,
+      "options": null,
+      "prev": 0,
+      "sell": 0,
+      "stock": 0,
+      "unavailable": {
+        "here": "village",
+        "nearest": {
+          "code": "brennhaven",
+          "name": "Brennhaven"
+        },
+        "requires": [
+          {
+            "code": "bank",
+            "role": "",
+            "tier": 0
+          }
+        ],
+        "service": "gold",
+        "stage": "city"
+      }
+    }
+  },
+  {
+    "title": "Not here, the auction house · auctions, only in the central city",
+    "screen": "auctions",
+    "view": {
+      "at_house": false,
+      "auctions": null,
+      "city": "",
+      "city_code": "",
+      "unavailable": {
+        "here": "town",
+        "nearest": {
+          "code": "brennhaven",
+          "name": "Brennhaven"
+        },
+        "requires": null,
+        "service": "auction_house",
+        "stage": "support"
+      },
+      "way": null
+    }
+  },
+  {
+    "title": "Not here, markets of money · nowhere known to go",
+    "screen": "gold",
+    "view": {
+      "buy": 0,
+      "cost": 0,
+      "grams": 0,
+      "history": null,
+      "mid": 0,
+      "next_at": null,
+      "notice": "",
+      "notice_args": null,
+      "options": null,
+      "prev": 0,
+      "sell": 0,
+      "stock": 0,
+      "unavailable": {
+        "here": "village",
+        "nearest": null,
+        "requires": null,
+        "service": "gold",
+        "stage": "city"
+      }
+    }
+  }
+]

@@ -164,6 +164,16 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 		add("treaty_type", CatalogueEntry{Code: tt.Code,
 			Name: names(func(c screens.Context) string { return c.TreatyName(screens.Named{Code: tt.Code, Name: tt.Name}) })}, false)
 	}
+	// The city shops and the city budget's lines (the economy screens).
+	for _, sh := range snap.Shops() {
+		add("shop", CatalogueEntry{Code: sh.Code,
+			Name: names(func(c screens.Context) string { return c.ShopName(screens.Named{Code: sh.Code, Name: sh.Name}) })}, false)
+	}
+	if b, ok := snap.Budget(); ok {
+		for _, l := range b.Lines {
+			add("budget_line", CatalogueEntry{Code: l.Code, Name: names(func(c screens.Context) string { return c.BudgetLineName(l.Code) })}, false)
+		}
+	}
 	if fin, ok := snap.Finance(); ok {
 		for _, l := range fin.Loans {
 			add("loan_product", CatalogueEntry{Code: l.Code,

@@ -1,0 +1,566 @@
+# Telegram wording of the economy and finance area (fa), layered over configs/locales/fa.yml by
+# the catalogue loader (docs/adr/0039-presentation-split.md section 7). Natural everyday
+# speech; a key is defined once across the layers.
+
+# بانک: پول نقد همراه بازیکن و موجودی حساب بانکی. بانک خدمتی شهری است، پس
+# واریز و برداشت فقط در شهر انجام می‌شود؛ پرداخت کارتی از همه‌جا ممکن است و
+# پول نقد فقط بین دو بازیکنِ هم‌شهر دست‌به‌دست می‌شود. کارمزدها سیاست هر شهر
+# است و همیشه پیش از جابه‌جایی پول نشان داده می‌شود.
+bank:
+  title: "🏦 بانک"
+  title_branch: "🏦 بانک - شعبهٔ {city}"
+  withdrawal_fee: "کارمزد برداشت در این شهر {percent}٪ است و جدا از مبلغ از بانک کسر می‌شود؛ واریز رایگان است."
+  withdrawal_free: "واریز و برداشت در این شهر کارمزد ندارد."
+  closed_travelling: "🧭 در سفر هستید؛ واریز و برداشت پس از رسیدن به شهر ممکن است. پرداخت کارتی از همه‌جا انجام می‌شود."
+  closed_no_city: "هنوز در هیچ شهری مستقر نشده‌اید، پس بانکی در دسترس نیست."
+  hint: "مبلغ را از دکمه‌ها انتخاب کنید؛ برای هر مبلغ دیگری، دکمهٔ «مبلغ دلخواه» را بزنید و مبلغ را بنویسید."
+  pay_hint: "💸 برای پول دادن به بازیکن دیگر، در گروه روی پیام او «پرداخت 5000» را پاسخ بدهید، یا دکمهٔ «پرداخت به بازیکن» را بزنید."
+  nothing_to_deposit: "📥 پول نقدی برای واریز همراه ندارید."
+  nothing_to_withdraw: "📤 موجودی بانک برای برداشت کافی نیست."
+  jailed_no_withdrawal: "⛓ در زندان نمی‌توانید از بانک برداشت کنید؛ واریز ممکن است."
+  deposited: "✅ {amount} به حساب بانکی شما واریز شد."
+  withdrew: "✅ {amount} نقد برداشت کردید."
+  withdrew_fee: "✅ {amount} نقد برداشت کردید و کارمزد {fee} هم از بانک کسر شد."
+  error:
+    not_in_city: "بانک فقط در شهر باز است. پس از رسیدن به مقصد می‌توانید واریز و برداشت کنید؛ پرداخت کارتی از همه‌جا ممکن است."
+    not_together: "پول نقد را فقط به بازیکنی می‌توانید بدهید که با شما در یک شهر است. به‌جای آن با کارت پرداخت کنید؛ پرداخت کارتی از همه‌جا ممکن است."
+    self_payment: نمی‌توانید به خودتان پرداخت کنید.
+    payee_not_found: "بازیکنی برای پرداخت پیدا نشد. نام کاربری یا کد بازیکن را بررسی کنید و دوباره امتحان کنید."
+    invalid_amount: "مبلغ را فقط به عدد بنویسید؛ مثلاً «واریز 5000»."
+    below_minimum: کمترین مبلغ مجاز {min} است.
+    above_maximum: بیشترین مبلغ مجاز در هر بار {max} است.
+    not_enough_cash: "پول نقد کافی ندارید. پول نقد همراه شما: {available}"
+    not_enough_in_bank: |-
+      موجودی بانک کافی نیست.
+      این کار با کارمزد {needed} لازم دارد و موجودی شما {available} است.
+    insufficient: "پول کافی برای این کار ندارید. موجودی‌هایتان را در «بانک» ببینید."
+    unavailable: "بانک الان در دسترس نیست. چند لحظهٔ دیگر دوباره امتحان کنید."
+
+# پرداخت به بازیکن دیگر. {player} نام آن بازیکن است.
+pay:
+  help: |-
+    💸 پرداخت به بازیکن دیگر
+    • در گروه: روی پیام او «پرداخت 5000» را پاسخ بدهید.
+    • اینجا: «پرداخت» را با نام کاربری یا کد بازیکن او بفرستید؛ مثلاً «پرداخت @username» یا «پرداخت K7Q2M9A».
+    پول نقد فقط وقتی دست‌به‌دست می‌شود که هر دو در یک شهر باشید؛ پرداخت کارتی از همه‌جا ممکن است.
+  title: "💸 پرداخت به {player}"
+  together: "📍 هر دو در {city} هستید؛ نقد یا کارت، هر دو ممکن است."
+  apart: "🧭 در یک شهر نیستید، پس فقط پرداخت کارتی ممکن است."
+  card_fee: "💳 کارمزد پرداخت کارتی از {city} {percent}٪ است و جدا از مبلغ کسر می‌شود."
+  card_free: "💳 پرداخت کارتی از {city} کارمزد ندارد."
+  hint: "مبلغ را از دکمه‌ها انتخاب کنید؛ برای هر مبلغ دیگری، دکمهٔ «مبلغ دلخواه» را بزنید و مبلغ را بنویسید."
+  cannot_afford: "💸 نه پول نقدتان و نه موجودی بانکتان برای پرداخت کافی نیست."
+  # The funds are checked before the confirmation; these bring the player
+  # back to the payment screen instead.
+  short_cash: "💵 پول نقدتان کافی نیست: {needed} لازم است و {available} همراه دارید. مبلغ کمتری انتخاب کنید یا با کارت بپردازید."
+  short_bank: "🏦 موجودی بانکتان کافی نیست: با کارمزد {needed} لازم است و {available} دارید. مبلغ کمتری انتخاب کنید."
+  confirm_title: "💸 تأیید پرداخت به {player}"
+  confirm_method_cash: "💵 روش: نقد، دست‌به‌دست"
+  confirm_method_card: "💳 روش: کارت بانکی"
+  confirm_amount: "مبلغ: {amount}"
+  confirm_fee: "کارمزد: {fee}"
+  confirm_total: "🧾 مجموع کسر از بانک: {total}"
+  confirm_after_cash: "پول نقد شما پس از پرداخت: {after}"
+  confirm_after_bank: "موجودی بانک شما پس از پرداخت: {after}"
+  sent_cash: "✅ {amount} نقد به {player} دادید."
+  sent_card: "✅ {amount} با کارت برای {player} فرستادید."
+  sent_fee: "کارمزد: {fee}"
+  not_together: "{player} اینجا کنار شما نیست، پس نمی‌توانید به او پول نقد بدهید. به‌جای آن با کارت پرداخت کنید؛ پرداخت کارتی از همه‌جا ممکن است."
+  announced: "💸 {payer} به {payee} پول داد."
+  held: "⏸ پرداخت {amount} به {player} برای بررسی نگه داشته شد. مبلغ از حساب شما کسر و در حساب امانی شما نگه داشته شده است؛ پس از بررسی یا به {player} می‌رسد یا به شما برمی‌گردد."
+
+# Paying a service (internal/domain/payment): every charge — tuition, a fare,
+# a police fee, bail, a shop, the market — is paid from the cash the player
+# carries or by bank card, as the player chooses. A price screen offers only
+# the ways that cover the price; «balances» is shown only in the player's own
+# chat, never in a group.
+payment:
+  choose: "چطور پرداخت می‌کنید؟"
+  button:
+    cash: "💵 پرداخت نقدی - {amount}"
+    card: "💳 پرداخت با کارت - {amount}"
+  only_card: "💵 پول نقدتان کافی نیست؛ با کارت بانکی بپردازید."
+  only_cash: "💳 موجودی بانکتان کافی نیست؛ نقدی بپردازید."
+  cash_only: "💵 اینجا فقط پول نقد پذیرفته می‌شود."
+  card_only: "💳 اینجا فقط پرداخت کارتی پذیرفته می‌شود."
+  not_accepted: "این روش پرداخت اینجا پذیرفته نمی‌شود. قیمت را دوباره باز کنید و از دکمه‌های همان صفحه بپردازید."
+  cannot_afford: "💸 نه پول نقدتان و نه موجودی بانکتان به این مبلغ نمی‌رسد."
+  paid:
+    cash: "💵 از پول نقدتان پرداخت شد."
+    card: "💳 با کارت بانکی پرداخت شد."
+  balances: "💵 پول نقد شما: {cash} - موجودی بانک: {bank}"
+  declined: |-
+    💸 پولتان برای پرداخت {amount} کافی نیست.
+    💵 پول نقد: {cash}
+    🏦 موجودی بانک: {bank}
+    چیزی کسر نشد.
+
+# مغازه‌های شهر (configs/content/shops.yml). هر مغازه در یکی از مکان‌های
+# شهر است و خرید پای پیشخوان خودش انجام می‌شود.
+shop:
+  title: "🛒 مغازه‌های {city}"
+  title_at: "🛒 مغازه‌های {place} در {city}"
+  none: این شهر هنوز مغازه‌ای ندارد.
+  none_at: "در {place} مغازه‌ای نیست."
+  line: "• {shop} - در {place}"
+  line_here: "• {shop} - همین‌جا"
+  detail_title: "🛒 {shop} - در {place}"
+  shelf: "• {item} - {price} - {stock} عدد موجود"
+  shelf_busy: "• {item} - {price} (پرطرفدار) - {stock} عدد موجود"
+  shelf_empty: "• {item} - تمام شده"
+  shelf_buys: "{line} - می‌خرد به {buyback}"
+  at_counter: "📍 پای پیشخوان هستید."
+  away: "📍 این مغازه در {place} است. برای خرید به آنجا بروید."
+  tax: "🧾 مالیات فروش در اینجا: {pct}٪"
+  restock_at: "🚚 بار بعدی در ساعت {time} می‌رسد"
+  checkout_title: "🛒 {shop}"
+  checkout_item: "{item} - {qty} عدد، هر عدد {unit}"
+  checkout_total: "قیمت: {total}"
+  checkout_tax: "🧾 مالیات فروش ({pct}٪): {tax}"
+  checkout_due: "💵 مبلغ پرداختی: {due}"
+  bought: "✅ {item} خریدید - {qty} عدد به {total}."
+  bought_tax: "🧾 {tax} از این مبلغ مالیات فروش است و به شهر می‌رسد."
+  offers_title: "💰 چه کسی {item} می‌خرد"
+  offers_none: هیچ مغازه‌ای در این شهر این را نمی‌خرد.
+  offer: "• {shop} در {place} - {price} می‌دهد"
+  sold: "💰 {item} را به {shop} به {price} فروختید."
+  button:
+    shops: "🛒 مغازه‌ها"
+    all: "🛒 همهٔ مغازه‌های شهر"
+    here: "🛒 مغازه‌های اینجا"
+    at: "🛒 مغازه‌های {place}"
+    open: "🛒 {shop}"
+    buy: "🛒 {item}"
+    qty: "🛒 خرید {qty} عدد"
+    back_to_shop: "🛒 بازگشت به مغازه"
+    sell_back: "💰 فروش به مغازه"
+    sell_to: "💰 {shop} - {price}"
+  refused:
+    no_shop: این مغازه در این شهر نیست.
+    not_sold: "{shop} این را نمی‌فروشد."
+    sold_out: "{item} در {shop} تمام شده است. منتظر بار بعدی بمانید."
+    not_held: "{item} همراهتان نیست."
+    no_buyback: "{shop} {item} نمی‌خرد."
+
+# بازار بازیکنان (internal/domain/market): برای هر کالا در هر شهر یک دفتر
+# سفارش. کارمزد را فروشنده می‌دهد و نرخش را شهر تعیین می‌کند.
+market:
+  title: "🏪 بازار {city}"
+  none_yet: هنوز کسی نیست
+  empty: الان کسی در اینجا نمی‌خرد و نمی‌فروشد.
+  book_line: "• {item} - پیشنهاد خریداران: {bid} - قیمت فروشندگان: {ask}"
+  book_title: "🏪 {item} - بازار {city}"
+  asks: "برای فروش:"
+  bids: "خریدار دارد:"
+  level: "• {qty} عدد به {price}"
+  level_none: "• هیچ"
+  trades: "آخرین معامله‌ها:"
+  trade: "• {qty} عدد به {price} - ساعت {time}"
+  you_hold: "🎒 {qty} عدد دارید."
+  away: "📍 خرید و فروش در بازار انجام می‌شود. برای معامله به آنجا بروید."
+  fee_note: "🧾 کارمزد بازار را فروشنده می‌دهد و نرخش را شهر تعیین می‌کند."
+  escrow_how: "💵 این مبلغ تا انجام سفارش یا لغو آن کنار گذاشته می‌شود. پرداخت کنید:"
+  checkout_title: "🏪 خرید {item}"
+  checkout_order: "{qty} عدد، هر عدد {price}"
+  checkout_reserve: "مبلغ کنارگذاشته: {reserve}"
+  placed_buy: "✅ سفارش {no}: خرید {item} - {qty} عدد به {price}."
+  placed_sell: "✅ سفارش {no}: فروش {item} - {qty} عدد به {price}."
+  filled_buy: "🤝 همان لحظه خریدید: {filled} عدد به {spent}."
+  filled_sell: "🤝 همان لحظه فروختید: {filled} عدد به {got}."
+  rests: "⏳ {left} عدد در دفتر سفارش منتظر طرف مقابل می‌ماند."
+  expires_at: "🕒 پایان سفارش در ساعت {time}"
+  cancelled_buy: "❌ سفارش {no} لغو شد و {refund} به شما برگشت."
+  cancelled_sell: "❌ سفارش {no} لغو شد و {left} عدد {item} به کوله‌پشتی‌تان برگشت."
+  mine_title: "📋 سفارش‌های من"
+  mine_none: هیچ سفارشی ندارید.
+  order_buy: "• {no}: خرید {item} - {filled} از {qty} به {price} - {status} - {city}"
+  order_sell: "• {no}: فروش {item} - {filled} از {qty} به {price} - {status} - {city}"
+  status:
+    open: باز
+    filled: انجام‌شده
+    cancelled: لغوشده
+    expired: پایان‌یافته
+  notice_expired_buy: "⏳ مهلت سفارش {no} برای {item} تمام شد و {left} عدد خریده نشد. مبلغ کنارگذاشته به شما برگشت."
+  notice_expired_sell: "⏳ مهلت سفارش {no} برای {item} تمام شد و {left} عدد فروخته نشد. به کوله‌پشتی‌تان برگشت."
+  button:
+    market: "🏪 بازار"
+    book: "🏪 {item}"
+    mine: "📋 سفارش‌های من"
+    back_to_book: "🏪 بازگشت به دفتر سفارش"
+    buy_at: "🛒 خرید 1 عدد به {price}"
+    bid_at: "🛒 پیشنهاد {price}"
+    sell_at: "💰 فروش 1 عدد به {price}"
+    ask_at: "💰 فروش به {price}"
+    ask_all: "💰 فروش همهٔ {qty} عدد به {price}"
+    cancel: "❌ لغو سفارش {no}"
+    sell_here: "🏪 فروش در بازار"
+  refused:
+    not_traded: "{item} در بازار معامله نمی‌شود."
+    too_big: این سفارش از سقف مجاز بازار بزرگ‌تر است.
+    too_many: "همین حالا {count} سفارش باز دارید. یکی را لغو کنید یا صبر کنید انجام شود."
+    not_enough: "این مقدار {item} همراهتان نیست."
+    no_order: چنین سفارشی از شما وجود ندارد.
+    closed: این سفارش دیگر باز نیست.
+  embargoed: "⛔ از {count} پیشنهاد کشوری که با کشور ما زیر تحریم تجاری است صرف‌نظر شد."
+
+# حراجی (internal/domain/auction): فقط برای اشیای یکتا.
+auction:
+  title: "🔨 حراجی {city}"
+  none: الان چیزی در اینجا حراج نمی‌شود.
+  away: "📍 پیشنهاد دادن در حراجی انجام می‌شود. برای شرکت به آنجا بروید."
+  line_bid: "• {no}: {item} (کیفیت {quality}) - بالاترین پیشنهاد {bid} - {remaining} مانده"
+  line_reserve: "• {no}: {item} (کیفیت {quality}) - از {reserve} - {remaining} مانده"
+  detail_title: "🔨 حراج {no}"
+  item: "{item} - کیفیت {quality}"
+  seller: "فروشنده: {player}"
+  reserve: "حداقل قیمت: {reserve}"
+  high_bid: "بالاترین پیشنهاد: {bid} - {bids} پیشنهاد"
+  no_bids: هنوز پیشنهادی نرسیده است.
+  ends_in: "⏳ {remaining} تا پایان"
+  ends_at: "🕒 پایان در ساعت {time}"
+  yours: این حراج مال شماست.
+  leading: "🥇 بالاترین پیشنهاد مال شماست."
+  bid_how: "💵 پیشنهاد {amount} تا وقتی کسی بالاتر ندهد یا حراج را ببرید کنار گذاشته می‌شود. پرداخت کنید:"
+  new_title: "🔨 حراج {item} (کیفیت {quality})"
+  new_hint: کمترین قیمتی را که می‌پذیرید و مدت حراج را انتخاب کنید.
+  opened: "✅ حراج {no}: {item} از {reserve}، به مدت {duration}."
+  bid_placed: "✅ برای حراج {no} ({item}) {amount} پیشنهاد دادید."
+  bid_escrow: "💵 مبلغ پیشنهادتان کنار گذاشته شد. اگر کسی بالاتر بدهد، به شما برمی‌گردد."
+  mine_title: "📋 حراج‌های من"
+  mine_none: نه چیزی حراج گذاشته‌اید و نه برای چیزی پیشنهاد داده‌اید.
+  mine_line: "{line} - {role} - {status}"
+  role_seller: مال شما
+  role_leading: پیشنهاد شما بالاترین است
+  role_bidder: کسی بالاتر داد
+  status:
+    open: باز
+    sold: فروخته شد
+    unsold: فروخته نشد
+  button:
+    house: "🔨 حراجی"
+    mine: "📋 حراج‌های من"
+    open: "🔨 حراج {no}"
+    sell: "🔨 حراج گذاشتن"
+    terms: "{reserve} - {duration}"
+  refused:
+    none: چنین حراجی وجود ندارد.
+    closed: این حراج تمام شده است.
+    too_low: "پیشنهاد باید دست‌کم {min} باشد."
+    own: برای حراج خودتان نمی‌توانید پیشنهاد بدهید.
+    leading: بالاترین پیشنهاد همین حالا مال شماست.
+    not_held: این شیء همراهتان نیست.
+    too_many: "همین حالا {count} حراج باز دارید."
+    not_sellable: این را نمی‌شود حراج گذاشت. فقط اشیای یکتا به حراج می‌روند.
+
+# A city's budget (docs/adr/0024; configs/content/budget.yml). Terms: budget
+# «بودجه» 💰، treasury «خزانه» 🏦، a line of the budget «خط بودجه»، share
+# «سهم» (a percentage).
+budget:
+  title: "💰 بودجهٔ {city}"
+  treasury: "🏦 موجودی خزانه: {amount}"
+  spend_share: "هر دورهٔ شهر، بودجه تا {share} از موجودی خزانه را خرج می‌کند."
+  allocation: "تقسیم فعلی: {shares}"
+  pending: "⏳ تقسیم تازه {when} دیگر اجرا می‌شود: {shares}"
+  share: "{line} {share}"
+  nothing_allocated: هیچ خطی سهمی ندارد و چیزی خرج نمی‌شود
+  unnamed_line: یک خط بودجه
+  last: "دورهٔ گذشته {spent} خرج شد:"
+  last_line: "• {line}: {spent} - {effect}"
+  no_period: هنوز هیچ دورهٔ بودجه‌ای به پایان نرسیده است.
+  next: "⏳ دورهٔ بعد: {in} دیگر"
+  next_at: "پایان دوره ساعت {time}"
+  no_city: هنوز در هیچ شهری مستقر نشده‌اید. پس از استقرار، بودجهٔ شهرتان همین‌جا نمایش داده می‌شود.
+  effect:
+    investigation: "پیگیری پرونده‌ها {share} جدی‌تر"
+    hospital_price: "بیمارستان شهر {share} ارزان‌تر"
+    transit_fare: "حمل‌ونقل عمومی {share} ارزان‌تر"
+    course_fee: "دوره‌های آموزشی {share} ارزان‌تر"
+    war_repair: "{share} از خرابی جنگ بازسازی شد"
+    npc_demand: "خرید مردم از شرکت‌ها {share} بیشتر"
+    defence_fund: "به صندوق دفاع کشور رفت"
+  button:
+    change: "✏️ تغییر تقسیم بودجه"
+
+finance:
+  credit:
+    score: "📊 امتیاز اعتباری شما: {score} از {max} ({band})"
+    band:
+      poor: "ضعیف"
+      fair: "متوسط"
+      good: "خوب"
+      very_good: "خیلی خوب"
+      excellent: "عالی"
+    factors: "خوش‌حسابی {payment}٪ - سبکی بدهی {debt}٪ - سابقه {history}٪ - درآمد {income}٪"
+    record: "⚠️ در پرونده: {missed} قسط عقب‌افتاده و {defaults} وام نکول‌شده"
+  hub:
+    title: "🏛 بانک ملی {country}"
+    rate: "📈 نرخ بهرهٔ پایه (رئیس بانک مرکزی): {rate}٪ در سال"
+    offers: "💳 وام‌هایی که به شما می‌دهیم:"
+    offer: "▫️ {product}: تا {limit} با سود {rate}٪ در سال"
+    offer_closed: "▫️ {product}: فعلاً نه؛ حداقل امتیاز {score} لازم است"
+    bank_dry: "🏦 بانک ملی الان پولی برای وام دادن ندارد."
+    loans: "📒 وام‌های شما:"
+    next_due: "⏰ قسط بعدی ساعت {time} برداشت می‌شود، اول از بانک و بعد از نقد."
+    savings: "🐖 پس‌انداز: {amount} با سود {rate}٪ در سال"
+  loan:
+    line: "▫️ وام شمارهٔ {no} ({product}): قسط بعدی {next} - {left} قسط مانده - کل بدهی {owed}"
+    line_company: "▫️ وام شمارهٔ {no} ({product} برای «{company}»): قسط بعدی {next} - کل بدهی {owed}"
+    line_arrears: "🔴 وام شمارهٔ {no} ({product}): {arrears} قسط عقب‌افتاده - کل بدهی {owed}"
+    line_repaid: "✅ وام شمارهٔ {no} ({product}): تسویه شد"
+    line_defaulted: "⛔ وام شمارهٔ {no} ({product}): نکول شد"
+    title: "📒 وام شمارهٔ {no} - {product}"
+    terms: "اصل وام {principal} - سود کل {interest} ({rate}٪ در سال) - {periods} قسط"
+    opened: "🗓 گرفته‌شده در {date}"
+    progress: "پرداخت‌شده: {paid} قسط از {periods} - قسط‌های عقب‌افتاده تا امروز: {missed}"
+    owed: "💰 کل بدهی: {owed} - قسط بعدی: {next}"
+    arrears: "🔴 {arrears} قسط عقب‌افتاده و {fees} جریمهٔ دیرکرد"
+    defaulted: "⛔ این وام نکول شد. بانک {recovered} از وثیقه برگرداند و {written_off} سوخت شد."
+    repaid: "✅ این وام کامل تسویه شده است."
+    payoff_confirm: "کل بدهی این وام، {amount}، همین حالا از حساب بانکی و بعد نقد شما برداشت می‌شود. تسویهٔ زودتر سودی را کم نمی‌کند."
+  offer:
+    title: "💳 {product}"
+    kind:
+      player: "وام بدون وثیقه به خود شما."
+      mortgage: "وام با وثیقهٔ ملک: تا وام تسویه نشود ملک فروخته نمی‌شود و اگر نکول کنید، شهر آن را پس می‌گیرد."
+      company: "وام به شرکت شما: به حساب شرکت واریز و از پول آزاد شرکت بازپرداخت می‌شود."
+    rate: "📈 سود: {rate}٪ در سال، ثابت از روزی که وام را می‌گیرید"
+    rules: "⚠️ هر قسط عقب‌افتاده {fee}٪ جریمه دارد و {after} قسط عقب‌افتاده یعنی نکول."
+    choose_pledge:
+      mortgage: "کدام ملک وثیقهٔ این وام باشد؟"
+      company: "این وام برای کدام شرکت شماست؟"
+    company: "شرکت «{company}»"
+    property: "{type} شمارهٔ {no} در {city} (ارزش {value})"
+    pledged: "🔒 وثیقه: {pledge}"
+    limit: "بیشترین مبلغ برای شما: {limit}. یک مبلغ و مدت را انتخاب کنید:"
+    nothing: "با امتیاز و وثیقهٔ فعلی شما مبلغی برای این وام نمی‌ماند."
+  confirm:
+    title: "📝 شرایط {product}"
+    terms: "مبلغ {amount} در {term} قسط، با سود {rate}٪ در سال"
+    cost: "سود کل {interest} - هر قسط {instalment} - جمع بازپرداخت {total}"
+    first: "⏰ قسط اول ساعت {time} برداشت می‌شود."
+    warning: "قسط‌ها خودکار از حساب بانکی و سپس نقد شما برداشت می‌شوند. قسط نپرداخته امتیاز اعتباری‌تان را پایین می‌آورد."
+  savings:
+    title: "🐖 حساب پس‌انداز"
+    balance: "موجودی: {amount} - سود {rate}٪ در سال"
+    earned: "سود گرفته تا امروز: {earned} - سود دورهٔ بعد: {next}"
+    bank: "🏦 موجودی حساب بانکی: {bank}"
+    hint: "سود هر روز بازی به کمترین موجودی دو روز آخر تعلق می‌گیرد؛ پولی که تازه گذاشته‌اید از روز بعد سود می‌گیرد."
+    next: "⏰ سود بعدی ساعت {time} واریز می‌شود."
+  insurance:
+    title: "🛡 صندوق بیمهٔ {country}"
+    fund: "موجودی صندوق: {fund}؛ خسارت فقط تا همین مقدار پرداخت می‌شود."
+    product:
+      hospital: "▫️ {product}: {cover}٪ هزینهٔ درمان در بیمارستان، تا {max} در هر بستری - حق بیمه {premium} در هر روز بازی - پوشش پس از {wait}"
+      war_damage: "▫️ {product}: {cover}٪ خسارت حمله به ملک، تا {max} در هر حمله - حق بیمه {premium} در هر روز بازی - پوشش پس از {wait}"
+      war_damage_valued: "▫️ {product}: {cover}٪ خسارت حمله به ملک، تا {max} در هر حمله - حق بیمه {premium} به‌علاوهٔ {bps}٪ ارزش ملک در هر روز بازی - پوشش پس از {wait}"
+    mine: "📄 بیمه‌نامه‌های شما:"
+    policy: "▫️ شمارهٔ {no} ({product}): حق بیمه {premium} در هر روز بازی - خسارت گرفته: {paid}"
+    policy_property: "▫️ شمارهٔ {no} ({product} برای {pledge}): حق بیمه {premium} در هر روز بازی - خسارت گرفته: {paid}"
+    policy_waiting: "⏳ شمارهٔ {no} ({product}): پوشش از ساعت {time} - حق بیمه {premium} در هر روز بازی"
+    policy_ended:
+      cancelled: "▫️ شمارهٔ {no} ({product}): لغو شد - خسارت گرفته: {paid}"
+      lapsed: "▫️ شمارهٔ {no} ({product}): حق بیمه پرداخت نشد و باطل شد"
+      property_gone: "▫️ شمارهٔ {no} ({product}): ملک دیگر مال شما نیست و بیمه تمام شد"
+    cancel_confirm: "بیمه‌نامهٔ شمارهٔ {no} ({product}) لغو شود؟ حق بیمه‌های پرداخته برنمی‌گردد."
+    hint: "حق بیمه هر روز بازی خودکار از حساب بانکی و سپس نقد شما برداشت می‌شود؛ اگر پول کافی نباشد بیمه باطل می‌شود."
+  insure:
+    title: "🛡 {product}"
+    terms: "حق بیمهٔ امروز {premium} - پوشش {cover}٪ تا {max} - پوشش پس از {wait} شروع می‌شود"
+    property: "برای: {pledge}"
+    every_period: "از روز بازی بعد، هر روز همین حق بیمه خودکار برداشت می‌شود."
+  button:
+    product: "💳 {product}"
+    loan: "📒 وام شمارهٔ {no}"
+    savings: "🐖 پس‌انداز"
+    insurance: "🛡 بیمه"
+    exchange: "📈 بورس"
+    gold: "🪙 طلا"
+    portfolio: "💼 سبد سرمایه"
+    bank: "🏛 بانک ملی"
+    pledge: "🔒 {pledge}"
+    option: "{amount} در {term} قسط ({instalment} هر قسط)"
+    take: "✅ گرفتن وام {amount}"
+    payoff: "💰 تسویهٔ کامل ({amount})"
+    payoff_yes: "✅ بله، {amount} پرداخت شود"
+    deposit: "📥 {amount}"
+    withdraw: "📤 {amount}"
+    deposit_custom: "✏️ واریز مبلغ دلخواه"
+    withdraw_custom: "✏️ برداشت مبلغ دلخواه"
+    insure: "🛡 خرید {product}"
+    insure_property: "🛡 {product} برای {pledge}"
+    cancel_policy: "✖️ لغو بیمه‌نامهٔ {no}"
+    cancel_yes: "✅ بله، لغو شود"
+  notice:
+    taken: "✅ وام گرفته شد و پولش واریز شد."
+    paid_off: "✅ وام کامل تسویه شد. آفرین!"
+    deposited: "✅ {amount} به پس‌انداز رفت."
+    withdrawn: "✅ {amount} از پس‌انداز به حساب بانکی برگشت."
+    insured: "✅ بیمه‌نامه صادر شد."
+    cancelled: "🗑 بیمه‌نامه لغو شد."
+  refused:
+    no_bank: "🏛 شما هنوز ساکن هیچ کشوری نیستید و بانک ملی‌ای ندارید."
+    score: "📊 امتیاز اعتباری شما برای این وام کافی نیست. دست‌کم {score} لازم است؛ قسط‌ها را به‌موقع بدهید، کار کنید و بدهی‌تان را کم کنید."
+    too_many: "📒 نمی‌شود بیش از {count} وام هم‌زمان داشت. اول یکی را تسویه کنید."
+    bank_dry: "🏦 بانک ملی الان پول کافی برای این وام ندارد. بعداً دوباره سر بزنید."
+    amount: "این مبلغ پذیرفته نیست. حداکثر یا حداقل مجاز: {amount}."
+    pledge: "🔒 وثیقهٔ مناسبی برای این وام ندارید."
+    not_owner: "🏢 فقط کسی که شرکت را در اختیار دارد این کار را می‌کند."
+    short: "💸 موجودی شما کافی نیست. لازم است: {amount}."
+    savings_cap: "🐖 موجودی پس‌انداز نمی‌تواند از {amount} بیشتر شود."
+    no_product: "این محصول دیگر عرضه نمی‌شود."
+    held: "🛡 همین بیمه را همین حالا دارید."
+    pledged: "🔒 این ملک وثیقهٔ یک وام است."
+    not_listed: "📈 این شرکت در بورس نیست."
+    listed: "📈 این شرکت همین حالا در بورس است."
+    too_young: "⏳ این شرکت هنوز جوان‌تر از آن است که عرضه شود."
+    too_small: "📉 درآمد این شرکت هنوز برای عرضه کافی نیست."
+    in_debt: "🧾 شرکتی که بدهی دارد عرضه نمی‌شود و سود نمی‌دهد."
+    bad_float: "این مقدار سهم یا این قیمت برای عرضه پذیرفته نیست."
+    no_shares: "📄 سهم آزاد کافی ندارید. سهم آزاد شما: {count}."
+    no_money: "🏢 پول آزاد شرکت کافی نیست. لازم است: {amount}."
+    too_many_orders: "📋 بیش از {count} سفارش باز نمی‌شود داشت. یکی را لغو کنید."
+    order: "این سفارش پذیرفته نیست."
+    gold_stock: "🪙 طلافروش فقط {count} گرم طلا دارد."
+    gold_held: "🪙 شما فقط {count} گرم طلا دارید."
+    not_yours: "🔎 این مورد مال شما نیست یا پیدا نشد."
+    own_company: "نمی‌شود با خودتان معامله کنید."
+    fund_closed: "🛡 صندوق بیمه این بیمه را نمی‌فروشد."
+    no_player: "🔎 بازیکنی پیدا نشد."
+stock:
+  move_up: "🟢 {pct}٪+"
+  move_down: "🔴 {pct}٪−"
+  move_flat: "⚪️ بی‌تغییر"
+  exchange_title: "📈 بورس شرکت‌ها"
+  exchange_line: "▫️ «{company}» ({type}، {city}): {price} {move} - حجم امروز {volume} سهم - ارزش بازار {cap}"
+  exchange_empty: "هنوز هیچ شرکتی در بورس عرضه نشده است. صاحب شرکت می‌تواند از صفحهٔ شرکتش آن را عرضه کند."
+  exchange_hint: "قیمت هر سهم فقط از خرید و فروش بازیکنان درمی‌آید. سود سهام را صاحب شرکت از پول آزاد شرکت می‌دهد."
+  title: "🏢 «{company}» - {type} در {city}"
+  not_listed: "این شرکت در بورس عرضه نشده است."
+  price: "💹 قیمت هر سهم: {price} {move} - قیمت عرضهٔ اولیه {ipo}"
+  book: "📘 ارزش دفتری هر سهم {book} - کل سهام {total} - ارزش بازار {cap}"
+  controller: "👤 اختیار شرکت با: {player}"
+  last_dividend: "💵 آخرین سود هر سهم: {amount}"
+  book_title: "📋 دفتر سفارش:"
+  ask_line: "🔺 فروش {qty} سهم به {price}"
+  bid_line: "🔻 خرید {qty} سهم به {price}"
+  book_empty: "دفتر سفارش خالی است."
+  trades_title: "🕘 آخرین معامله‌ها:"
+  trade_line: "▫️ {qty} سهم به {price} ساعت {time}"
+  holding: "💼 سهام شما: {shares} سهم ({locked} سهم در سفارش فروش) - ارزش {value} - بهای خرید {cost}"
+  notice:
+    listed: "🎉 شرکت در بورس عرضه شد و سهام عرضه‌شده در دفتر سفارش است."
+    cancelled: "🗑 سفارش شمارهٔ {no} لغو شد و پول یا سهمش برگشت."
+  order:
+    confirm_buy: "🛒 خرید {qty} سهم «{company}» تا قیمت {price}. {reserve} از حساب بانکی شما کنار گذاشته می‌شود (موجودی: {bank})؛ اگر ارزان‌تر بخرید، باقی برمی‌گردد."
+    confirm_sell: "🏷 فروش {qty} سهم «{company}» دست‌کم به قیمت {price}. سهم‌ها تا فروش یا لغو سفارش قفل می‌مانند."
+    fee: "کارمزد بازار شهر شرکت، {fee}٪، از پول فروشنده کم می‌شود."
+    placed_buy: "✅ سفارش خرید شمارهٔ {no} ثبت شد: {qty} سهم «{company}» تا {price}."
+    placed_sell: "✅ سفارش فروش شمارهٔ {no} ثبت شد: {qty} سهم «{company}» از {price}."
+    filled_buy: "🤝 {filled} سهم خریدید و {spent} پرداختید."
+    filled_sell: "🤝 {filled} سهم فروختید و {got} به حساب بانکی‌تان آمد."
+    rests: "⏳ باقی سفارش در دفتر می‌ماند تا ساعت {time}."
+  portfolio:
+    title: "💼 سبد سرمایهٔ شما"
+    holding: "▫️ «{company}»: {shares} سهم به قیمت {price} - ارزش {value} - بهای خرید {cost}"
+    holding_private: "▫️ «{company}» (عرضه‌نشده): {shares} سهم - ارزش دفتری {value}"
+    no_shares: "هنوز سهمی ندارید."
+    gold: "🪙 طلا: {grams} گرم - ارزش {value}"
+    savings: "🐖 پس‌انداز: {amount}"
+    total: "💎 ارزش کل سبد: {value}"
+    gain: "📈 سود نسبت به پولی که گذاشته‌اید: {amount}"
+    loss: "📉 زیان نسبت به پولی که گذاشته‌اید: {amount}"
+    orders: "📋 سفارش‌های باز شما:"
+    order_buy: "▫️ شمارهٔ {no}: خرید {qty} سهم «{company}» تا {price}"
+    order_sell: "▫️ شمارهٔ {no}: فروش {qty} سهم «{company}» از {price}"
+  ipo:
+    title: "🔔 عرضهٔ اولیهٔ «{company}» در بورس"
+    rules: "شرط‌ها: دست‌کم {age} عمر، {revenue} درآمد و بی‌بدهی. هزینهٔ عرضه {fee} از حساب شرکت به شهر."
+    book: "ارزش دفتری هر سهم {book} - کل سهام {total}"
+    refused:
+      too_young: "⏳ شرکت هنوز جوان است؛ {wait} دیگر صبر کنید."
+      too_small: "📉 درآمد شرکت تا امروز {revenue} است و هنوز کافی نیست."
+      in_debt: "🧾 اول بدهی نگهداری شرکت را بپردازید."
+      bad_float: "📄 سهم آزاد کافی برای عرضه ندارید."
+    choose: "چند سهم و به چه قیمتی عرضه شود؟ اختیار شرکت با شما می‌ماند مگر کسی بیش از نیمی از سهام را بخرد."
+    confirm: "{shares} سهم به قیمت هر سهم {price} در دفتر فروش گذاشته می‌شود و {fee} هزینهٔ عرضه از حساب شرکت پرداخت می‌شود."
+  dividend:
+    title: "💵 سود سهام «{company}»"
+    free: "پول آزاد شرکت {free} - مالیات شرکت {tax}٪ - کل سهام {total}"
+    refused:
+      in_debt: "🧾 شرکتی که بدهی دارد سود نمی‌دهد."
+      no_money: "پول آزاد شرکت برای سود دادن کافی نیست."
+    paid: "✅ سود پرداخت شد: هر سهم {per_share} و در کل {paid} به {holders} سهامدار."
+    confirm: "{amount} از پول آزاد شرکت برداشته می‌شود؛ مالیات به شهر می‌رود و به هر سهم {per_share} می‌رسد."
+  button:
+    company: "🏢 {company}"
+    buy: "🛒 {qty} سهم تا {price}"
+    sell: "🏷 {qty} سهم از {price}"
+    confirm_buy: "✅ ثبت خرید"
+    confirm_sell: "✅ ثبت فروش"
+    cancel: "✖️ لغو سفارش {no}"
+    ipo: "🔔 عرضه در بورس"
+    ipo_option: "{shares} سهم به {price}"
+    ipo_yes: "✅ بله، عرضه شود"
+    dividend: "💵 تقسیم سود"
+    dividend_option: "{amount} (هر سهم {per_share})"
+    dividend_yes: "✅ بله، سود پرداخت شود"
+gold:
+  title: "🪙 طلافروشی"
+  price: "هر گرم: خرید از ما {buy} - فروش به ما {sell} {move}"
+  stock: "طلای موجود طلافروش: {grams} گرم"
+  next: "⏰ قیمت بعدی ساعت {time} اعلام می‌شود."
+  history: "📉 قیمت‌های اخیر:"
+  history_line: "▫️ {price} ساعت {time}"
+  holding: "💼 طلای شما: {grams} گرم - ارزش امروز {value} - بهای خرید {cost}"
+  confirm_buy: "🪙 خرید {grams} گرم طلا، هر گرم {price}، جمعاً {total}."
+  confirm_sell: "🪙 فروش {grams} گرم طلا، هر گرم {price}، جمعاً {total} به حساب بانکی شما."
+  notice:
+    buy_done: "✅ {grams} گرم طلا خریدید و {total} پرداختید."
+    sell_done: "✅ {grams} گرم طلا فروختید و {total} به حساب بانکی‌تان آمد."
+  button:
+    buy: "🛒 {grams} گرم ({price})"
+    sell: "🏷 فروش {grams} گرم ({price})"
+    sell_yes: "✅ بله، بفروش"
+    back: "🪙 طلافروشی"
+
+button:
+  deposit: "📥 واریز {amount}"
+  deposit_all: "📥 واریز همه - {amount}"
+  deposit_custom: "✏️ واریز مبلغ دلخواه"
+  withdraw: "📤 برداشت {amount}"
+  withdraw_all: "📤 برداشت همه - {amount}"
+  withdraw_custom: "✏️ برداشت مبلغ دلخواه"
+  pay_player: "💸 پرداخت به بازیکن"
+  pay_cash: "💵 نقد {amount}"
+  pay_cash_all: "💵 نقد، همه - {amount}"
+  pay_cash_custom: "✏️ نقد، مبلغ دلخواه"
+  pay_card: "💳 کارت {amount}"
+  pay_card_all: "💳 کارت، همه - {amount}"
+  pay_card_custom: "✏️ کارت، مبلغ دلخواه"
+  confirm_pay: "✅ تأیید و پرداخت"
+  pay_again: "💸 پرداخت دوباره"
+
+# «اینجا نیست»: خدمتی که این جا (روستا، شهرک) هنوز راه نیفتاده و نزدیک‌ترین جایی که دارد.
+unavailable:
+  title: "🚫 {service} اینجا نیست"
+  from: "{service} از «{stage}» به بالا هست؛ اینجا هنوز {here} است."
+  only_support: "{service} فقط در {place} هست."
+  requires: "ساختمان لازم: {buildings}."
+  nearest: "نزدیک‌ترین جا: {city}."
+  service_unknown: "این خدمت"
+  stage_unknown: "جای دیگر"
+  stage:
+    village: "روستا"
+    town: "شهرک"
+    city: "شهر"
+    country: "کشور"
+    support: "شهر مرکزی"
+  service:
+    bank: "بانک"
+    credit: "امتیاز اعتبار"
+    loans: "وام بانکی"
+    savings: "پس‌انداز"
+    insurance: "بیمه"
+    stocks: "بورس"
+    gold: "خرید و فروش طلا"
+    auction_house: "حراج"

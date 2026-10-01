@@ -2,14 +2,14 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/finance"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The national bank's loans (docs/adr/0026 section 2): the bank's counter
@@ -80,8 +80,8 @@ func quote(l content.LoanDef, def content.FinanceDef, score, policyBPS int64) (r
 // business loan).
 func (h *FinanceHandler) pledges(ctx context.Context, tx application.Tx, snap *content.Snapshot, l content.LoanDef,
 	p *application.Player, most int64,
-) ([]screens.PledgeLine, error) {
-	var out []screens.PledgeLine
+) ([]economy.PledgeLine, error) {
+	var out []economy.PledgeLine
 	switch productKind(l) {
 	case "mortgage":
 		props, err := tx.Property().OfOwner(ctx, p.ID)
@@ -115,15 +115,15 @@ func (h *FinanceHandler) pledges(ctx context.Context, tx application.Tx, snap *c
 			if c.OwnerID != p.ID {
 				continue
 			}
-			out = append(out, screens.PledgeLine{Code: c.Code, Type: named(c.Code, c.Name), Limit: most})
+			out = append(out, economy.PledgeLine{Code: c.Code, Type: named(c.Code, c.Name), Limit: most})
 		}
 	}
 	return out, nil
 }
 
 // propertyLine names a property for a screen.
-func (h *FinanceHandler) propertyLine(ctx context.Context, snap *content.Snapshot, pr application.Property) (screens.PledgeLine, error) {
-	line := screens.PledgeLine{No: pr.No, Value: pr.Value, Type: named(pr.TypeCode, pr.TypeCode)}
+func (h *FinanceHandler) propertyLine(ctx context.Context, snap *content.Snapshot, pr application.Property) (economy.PledgeLine, error) {
+	line := economy.PledgeLine{No: pr.No, Value: pr.Value, Type: named(pr.TypeCode, pr.TypeCode)}
 	if t, ok := snap.PropertyType(pr.TypeCode); ok {
 		line.Type.Name = t.Name
 	}
@@ -136,8 +136,8 @@ func (h *FinanceHandler) propertyLine(ctx context.Context, snap *content.Snapsho
 }
 
 // loanLine is a loan for a list.
-func (h *FinanceHandler) loanLine(ctx context.Context, tx application.Tx, def content.FinanceDef, l application.Loan) (screens.LoanLine, error) {
-	line := screens.LoanLine{No: l.No, Product: named(l.Product, l.Product), Status: l.Status, Next: l.Next(),
+func (h *FinanceHandler) loanLine(ctx context.Context, tx application.Tx, def content.FinanceDef, l application.Loan) (economy.LoanLine, error) {
+	line := economy.LoanLine{No: l.No, Product: named(l.Product, l.Product), Status: l.Status, Next: l.Next(),
 		Owed: l.Owed(), Left: l.Periods - l.PaidPeriods, Arrears: l.Arrears}
 	if d, ok := def.Loan(l.Product); ok {
 		line.Product.Name = d.Name
@@ -153,21 +153,26 @@ func (h *FinanceHandler) loanLine(ctx context.Context, tx application.Tx, def co
 }
 
 // Hub handles loan.hub: the national bank's counter.
-func (h *FinanceHandler) Hub(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *FinanceHandler) Hub(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.hub(ctx, meta, "", nil)
 }
 
-func (h *FinanceHandler) hub(ctx context.Context, meta envelope.Metadata, notice string, args map[string]any) (*presenter.Response, error) {
+func (h *FinanceHandler) hub(ctx context.Context, meta envelope.Metadata, notice string, args map[string]any) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
+	if resp, err := h.gate(ctx, meta, snap, "loans", func(lang string, un *economy.Unavailable) *presentation.Response {
+		return economy.FinanceHub(presentation.Ctx{Lang: lang}, economy.FinanceHubView{Unavailable: un})
+	}); resp != nil || err != nil {
+		return resp, err
+	}
 	def, err := h.def(snap)
 	if err != nil {
 		return nil, err
 	}
 	lang := meta.Language
-	view := screens.FinanceHubView{Notice: notice, Args: args}
+	view := economy.FinanceHubView{Notice: notice, Args: args}
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -194,7 +199,7 @@ func (h *FinanceHandler) hub(ctx context.Context, meta envelope.Metadata, notice
 			if most < l.MinAmount {
 				most = 0
 			}
-			view.Products = append(view.Products, screens.LoanProductLine{Product: named(l.Code, l.Name),
+			view.Products = append(view.Products, economy.LoanProductLine{Product: named(l.Code, l.Name),
 				Kind: productKind(l), RateBPS: rate, Limit: most, MinScore: l.MinScore})
 		}
 		loans, err := tx.Finance().LoansOf(ctx, p.ID, 8)
@@ -222,7 +227,7 @@ func (h *FinanceHandler) hub(ctx context.Context, meta envelope.Metadata, notice
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.FinanceHub(h.screen(meta, lang), view), nil
+	return economy.FinanceHub(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // firstDue is when a loan taken now pays its first instalment: the end of

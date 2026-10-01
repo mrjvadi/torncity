@@ -4,50 +4,6 @@
 # internal/telegram/render and DELETING its line here; tests fail if a migrated screen is still listed
 # or a legacy screen is missing from the list.
 
-[economy]
-auction_detail
-auction_new
-auction_opened
-auction_refusal
-auctions
-bank
-bid_placed
-book
-budget
-dividend
-exchange
-finance_hub
-finance_refusal
-gold
-gold_trade
-insurance
-insure_confirm
-listing
-loan_confirm
-loan_detail
-loan_offer
-market
-market_checkout
-market_refusal
-my_auctions
-my_orders
-order_cancelled
-order_placed
-pay
-pay_confirm
-pay_sent
-payment_declined
-portfolio
-savings
-sell_offers
-shop_bought
-shop_checkout
-shop_detail
-shop_refusal
-shop_sold
-shops
-stock
-stock_order
 
 [politics]
 allocation_confirm

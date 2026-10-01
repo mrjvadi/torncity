@@ -3,7 +3,6 @@
 internal/application/handlers/appointments.go
 internal/application/handlers/auctions.go
 internal/application/handlers/bank.go
-internal/application/handlers/city_period.go
 internal/application/handlers/companies.go
 internal/application/handlers/companies_defence.go
 internal/application/handlers/companies_period.go
@@ -18,21 +17,6 @@ internal/application/handlers/elections.go
 internal/application/handlers/factions.go
 internal/application/handlers/factions_crime.go
 internal/application/handlers/factions_members.go
-internal/application/handlers/finance_common.go
-internal/application/handlers/finance_credit.go
-internal/application/handlers/finance_gold.go
-internal/application/handlers/finance_insurance.go
-internal/application/handlers/finance_ipo.go
-internal/application/handlers/finance_loans.go
-internal/application/handlers/finance_loanview.go
-internal/application/handlers/finance_offer.go
-internal/application/handlers/finance_order_cmd.go
-internal/application/handlers/finance_orders.go
-internal/application/handlers/finance_period.go
-internal/application/handlers/finance_portfolio.go
-internal/application/handlers/finance_savings.go
-internal/application/handlers/finance_stocks.go
-internal/application/handlers/finance_take.go
 internal/application/handlers/goods.go
 internal/application/handlers/governance.go
 internal/application/handlers/governance_allocation.go
@@ -49,7 +33,6 @@ internal/application/handlers/military_generations.go
 internal/application/handlers/military_licences.go
 internal/application/handlers/military_procure.go
 internal/application/handlers/missions.go
-internal/application/handlers/payment.go
 internal/application/handlers/production.go
 internal/application/handlers/production_design.go
 internal/application/handlers/production_generations.go

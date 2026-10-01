@@ -23,12 +23,73 @@ export interface AchievementsView {
   lines: AchievementLine[] | null
 }
 
+export interface AmountOption {
+  amount: number
+  nonce: string
+  all: boolean
+}
+
+export interface AuctionDetailView {
+  line: AuctionLine
+  min_next: number
+  bids: number
+  payment: PaymentChoice | null
+  nonce: string
+  seller: string
+}
+
+export interface AuctionLine {
+  no: number
+  item: Named
+  quality: number
+  high_bid: number
+  reserve: number
+  remaining_seconds: number
+  ends_at: string | null
+  status: string
+  mine: boolean
+  leading: boolean
+}
+
+export interface AuctionNewView {
+  item: Named
+  ref: string
+  quality: number
+  reserves: number[] | null
+  durations: number[] | null
+  nonce: string
+}
+
+export interface AuctionOpenedView {
+  no: number
+  item: Named
+  reserve: number
+  duration_seconds: number
+  ends_at: string | null
+}
+
+export interface AuctionRefusalView {
+  kind: string
+  no: number
+  min_next: number
+  count: number
+}
+
 export interface AuctionView {
   kind: string
   no: number
   item: Named
   amount: number
   fee: number
+}
+
+export interface AuctionsView {
+  city_code: string
+  city: string
+  auctions: AuctionLine[] | null
+  at_house: boolean
+  way: Way | null
+  unavailable: Unavailable | null
 }
 
 export interface AvatarChoice {
@@ -48,10 +109,35 @@ export interface AvatarsView {
   avatars: AvatarChoice[] | null
 }
 
+export interface BankView {
+  city_code: string
+  city: string
+  travelling: boolean
+  no_city: boolean
+  jailed: boolean
+  cash: number
+  bank: number
+  withdrawal_fee_bps: number
+  deposits: AmountOption[] | null
+  withdrawals: AmountOption[] | null
+  can_deposit: boolean
+  can_withdraw: boolean
+  notice: string
+  notice_args: Record<string, unknown> | null
+}
+
 export interface BatchLotFailure {
   x: number
   y: number
   kind: string
+}
+
+export interface BidPlacedView {
+  no: number
+  item: Named
+  amount: number
+  method: string
+  ends_at: string | null
 }
 
 export interface BillDecidedView {
@@ -73,6 +159,61 @@ export interface BillSubject {
   allocation: Record<string, number> | null
   categories: string[] | null
   target: Place | null
+}
+
+export interface BookLevel {
+  price: number
+  qty: number
+}
+
+export interface BookSummary {
+  item: Named
+  best_bid: number
+  best_ask: number
+  last: number
+}
+
+export interface BookView {
+  item: Named
+  city_code: string
+  city: string
+  bids: BookLevel[] | null
+  asks: BookLevel[] | null
+  trades: TradeLine[] | null
+  reference: number
+  holding: number
+  at_market: boolean
+  way: Way | null
+  nonce: string
+}
+
+export interface BudgetLineView {
+  code: string
+  effect: string
+  spent: number
+  effect_bps: number
+}
+
+export interface BudgetPeriodView {
+  spent: number
+  spendable: number
+  lines: BudgetLineView[] | null
+}
+
+export interface BudgetView {
+  no_city: boolean
+  city: GovPlace
+  lever: string
+  can_propose: boolean
+  spend_share_bps: number
+  order: string[] | null
+  allocation: Record<string, number> | null
+  pending: Record<string, number> | null
+  pending_in_seconds: number
+  treasury: number
+  last: BudgetPeriodView | null
+  next_at: string | null
+  next_in_seconds: number
 }
 
 export interface BuildLine {
@@ -241,6 +382,20 @@ export interface CourseRef {
   name: string
 }
 
+export interface CreditView {
+  score: number
+  min: number
+  max: number
+  payment_bps: number
+  debt_bps: number
+  history_bps: number
+  income_bps: number
+  worth_bps: number
+  new_credit_bps: number
+  missed: number
+  defaults: number
+}
+
 export interface DashboardView {
   name: string
   city_code: string
@@ -274,6 +429,20 @@ export interface DeviceLinkView {
 export interface DevicesView {
   devices: DeviceLine[] | null
   notice: string
+}
+
+export interface DividendView {
+  company: Named
+  free: number
+  tax_bps: number
+  total: number
+  options: PriceOption[] | null
+  chosen: PriceOption | null
+  nonce: string
+  paid: number
+  per_share: number
+  holders: number
+  refused: string
 }
 
 export interface DonateView {
@@ -312,6 +481,11 @@ export interface ErrorView {
   args: Record<string, unknown> | null
 }
 
+export interface ExchangeView {
+  lines: ListedLine[] | null
+  unavailable: Unavailable | null
+}
+
 export interface FactionAnswerView {
   ref: FactionRef
   kind: string
@@ -343,6 +517,30 @@ export interface FactionRequestView {
   kind: string
   ref: FactionRef
   player: Person
+}
+
+export interface FinanceHubView {
+  country: GovPlace
+  credit: CreditView
+  policy_bps: number
+  products: LoanProductLine[] | null
+  loans: LoanLine[] | null
+  savings: number
+  savings_bps: number
+  lendable: number
+  next_at: string | null
+  notice: string
+  args: Record<string, unknown> | null
+  unavailable: Unavailable | null
+}
+
+export interface FinanceRefusalView {
+  kind: string
+  amount: number
+  score: number
+  count: number
+  wait_seconds: number
+  back: Ref
 }
 
 export interface FinanceView {
@@ -430,6 +628,36 @@ export interface GearLine {
   confiscated: boolean
 }
 
+export interface GoldPoint {
+  price: number
+  at: string | null
+}
+
+export interface GoldTradeView {
+  side: string
+  grams: number
+  price: number
+  total: number
+  payment: PaymentChoice
+  nonce: string
+}
+
+export interface GoldView {
+  buy: number
+  sell: number
+  mid: number
+  prev: number
+  stock: number
+  history: GoldPoint[] | null
+  grams: number
+  cost: number
+  options: number[] | null
+  next_at: string | null
+  notice: string
+  notice_args: Record<string, unknown> | null
+  unavailable: Unavailable | null
+}
+
 export interface GovPlace {
   kind: string
   code: string
@@ -474,6 +702,16 @@ export interface HistoryView {
   page: number
   pages: number
   total: number
+}
+
+export interface HoldingLine {
+  company: Named
+  shares: number
+  locked: number
+  price: number
+  value: number
+  cost: number
+  listed: boolean
 }
 
 export interface HospitalisedView {
@@ -532,6 +770,40 @@ export interface Injury {
   max: number
   hospital: boolean
   ends_at: string | null
+}
+
+export interface InsuranceProductLine {
+  product: Named
+  covers: string
+  premium: number
+  prem_bps: number
+  cover_bps: number
+  max_claim: number
+  waiting_seconds: number
+  targets: PledgeLine[] | null
+  held: boolean
+}
+
+export interface InsuranceView {
+  country: GovPlace
+  fund: number
+  products: InsuranceProductLine[] | null
+  policies: PolicyLine[] | null
+  notice: string
+  notice_args: Record<string, unknown> | null
+  cancel: PolicyLine | null
+  unavailable: Unavailable | null
+}
+
+export interface InsureConfirmView {
+  product: Named
+  covers: string
+  property: PledgeLine | null
+  premium: number
+  cover_bps: number
+  max_claim: number
+  waiting_seconds: number
+  payment: PaymentChoice
 }
 
 export interface InventoryLine {
@@ -780,6 +1052,105 @@ export interface LifeView {
   notice_args: Record<string, unknown> | null
 }
 
+export interface ListedLine {
+  company: Named
+  type: Named
+  city: GovPlace
+  price: number
+  prev: number
+  volume: number
+  cap: number
+}
+
+export interface ListingView {
+  company: Named
+  refused: string
+  age_seconds: number
+  min_age_seconds: number
+  revenue: number
+  min_revenue: number
+  book: number
+  total: number
+  fee: number
+  floats: PriceOption[] | null
+  prices: PriceOption[] | null
+  chosen: PriceOption | null
+  nonce: string
+}
+
+export interface LoanConfirmView {
+  product: Named
+  amount: number
+  term: number
+  rate_bps: number
+  interest: number
+  instalment: number
+  total: number
+  first_at: string | null
+  pledge: PledgeLine | null
+  nonce: string
+}
+
+export interface LoanDetailView {
+  loan: LoanLine
+  principal: number
+  interest: number
+  rate_bps: number
+  periods: number
+  paid: number
+  fees_due: number
+  payoff: number
+  pledge: PledgeLine | null
+  opened_at: string | null
+  next_at: string | null
+  missed: number
+  recovered: number
+  written_off: number
+  nonce: string
+  notice: string
+  notice_args: Record<string, unknown> | null
+  confirm_open: boolean
+}
+
+export interface LoanLine {
+  no: number
+  product: Named
+  company: Named
+  status: string
+  next: number
+  owed: number
+  left: number
+  arrears: number
+}
+
+export interface LoanOfferView {
+  product: Named
+  kind: string
+  rate_bps: number
+  limit: number
+  terms: number[] | null
+  options: LoanOption[] | null
+  pledges: PledgeLine[] | null
+  pledge: PledgeLine | null
+  late_fee_bps: number
+  default_after: number
+  unavailable: Unavailable | null
+}
+
+export interface LoanOption {
+  amount: number
+  term: number
+  instalment: number
+}
+
+export interface LoanProductLine {
+  product: Named
+  kind: string
+  rate_bps: number
+  limit: number
+  min_score: number
+}
+
 export interface Loot {
   item: Named
   qty: number
@@ -868,6 +1239,15 @@ export interface MapView {
   travelling_to: string
 }
 
+export interface MarketCheckoutView {
+  item: Named
+  qty: number
+  price: number
+  reserve: number
+  payment: PaymentChoice
+  nonce: string
+}
+
 export interface MarketFilledView {
   side: string
   item: Named
@@ -877,6 +1257,21 @@ export interface MarketFilledView {
   fee: number
   city_code: string
   city: string
+}
+
+export interface MarketRefusalView {
+  kind: string
+  item: Named
+  count: number
+}
+
+export interface MarketView {
+  city_code: string
+  city: string
+  books: BookSummary[] | null
+  yours: Named[] | null
+  at_market: boolean
+  way: Way | null
 }
 
 export interface MaterialBought {
@@ -955,9 +1350,23 @@ export interface MissionCompletedView {
   items: Loot[] | null
 }
 
+export interface MyAuctionsView {
+  auctions: AuctionLine[] | null
+}
+
+export interface MyOrdersView {
+  orders: OrderLine[] | null
+}
+
 export interface Named {
   code: string
   name: string
+}
+
+export interface NeedBuilding {
+  code: string
+  role: string
+  tier: number
 }
 
 export interface NeedsView {
@@ -994,12 +1403,110 @@ export interface OfficeView {
   dismissed: boolean
 }
 
+export interface OpenOrderLine {
+  no: number
+  company: Named
+  side: string
+  qty: number
+  filled: number
+  price: number
+}
+
+export interface OrderCancelledView {
+  item: Named
+  side: string
+  no: number
+  left: number
+  refund: number
+}
+
+export interface OrderLine {
+  no: number
+  item: Named
+  side: string
+  qty: number
+  filled: number
+  price: number
+  status: string
+  city_code: string
+  city: string
+  expires_at: string | null
+}
+
+export interface OrderPlacedView {
+  item: Named
+  side: string
+  no: number
+  qty: number
+  filled: number
+  price: number
+  rests: boolean
+  spent: number
+  got: number
+  expires_at: string | null
+  method: string
+  embargoed: number
+}
+
+export interface PayConfirmView {
+  payee_name: string
+  payee_code: string
+  method: string
+  amount: number
+  fee: number
+  total: number
+  after: number
+  nonce: string
+  origin: string
+}
+
+export interface PayHelpView {
+}
+
+export interface PaySentView {
+  payee_name: string
+  payee_code: string
+  method: string
+  amount: number
+  fee: number
+  held: boolean
+}
+
+export interface PayView {
+  payee_name: string
+  payee_code: string
+  together: boolean
+  city_code: string
+  city: string
+  payer_city_code: string
+  payer_city: string
+  card_fee_bps: number
+  cash: number
+  bank: number
+  cash_options: AmountOption[] | null
+  card_options: AmountOption[] | null
+  can_cash: boolean
+  can_card: boolean
+  origin: string
+  notice: string
+  notice_args: Record<string, unknown> | null
+}
+
 export interface PaymentChoice {
   amount: number
   accepted: string[] | null
   usable: string[] | null
   cash: number
   bank: number
+}
+
+export interface PaymentDeclinedView {
+  amount: number
+  cash: number
+  bank: number
+  accepted: string[] | null
+  back_label: string
+  back: Ref
 }
 
 export interface PaymentView {
@@ -1043,6 +1550,47 @@ export interface Pledge {
   city: Place
   value: number
   limit: number
+}
+
+export interface PledgeLine {
+  no: number
+  code: string
+  type: Named
+  city: GovPlace
+  value: number
+  limit: number
+}
+
+export interface PolicyLine {
+  no: number
+  product: Named
+  covers: string
+  property: PledgeLine | null
+  status: string
+  reason: string
+  premium: number
+  paid: number
+  from: string | null
+  started: string | null
+  claimable: boolean
+}
+
+export interface PortfolioView {
+  holdings: HoldingLine[] | null
+  orders: OpenOrderLine[] | null
+  gold: number
+  gold_val: number
+  savings: number
+  value: number
+  gain: number
+  notice: string
+  notice_args: Record<string, unknown> | null
+  unavailable: Unavailable | null
+}
+
+export interface PriceOption {
+  qty: number
+  price: number
 }
 
 export interface PrivateConfirmView {
@@ -1379,6 +1927,32 @@ export interface ResidenceView {
   settlement_id: string
 }
 
+export interface SavingsView {
+  balance: number
+  rate_bps: number
+  earned: number
+  next: number
+  bank: number
+  deposits: number[] | null
+  withdrawals: number[] | null
+  next_at: string | null
+  notice: string
+  notice_args: Record<string, unknown> | null
+  unavailable: Unavailable | null
+}
+
+export interface SellOffer {
+  shop: Named
+  place: Named
+  price: number
+}
+
+export interface SellOffersView {
+  item: Named
+  ref: string
+  offers: SellOffer[] | null
+}
+
 export interface Sentence {
   crime: Named
   remaining_seconds: number
@@ -1419,6 +1993,74 @@ export interface SettlementWhoView {
   offline: number
 }
 
+export interface ShelfLine {
+  item: Named
+  price: number
+  stock: number
+  busy: boolean
+  buyback: number
+  next_restock: string | null
+}
+
+export interface ShopBoughtView {
+  shop: Named
+  item: Named
+  qty: number
+  total: number
+  tax: number
+  method: string
+}
+
+export interface ShopCheckoutView {
+  shop: Named
+  item: Named
+  qty: number
+  unit: number
+  total: number
+  tax: number
+  tax_bps: number
+  stock: number
+  payment: PaymentChoice
+  nonce: string
+}
+
+export interface ShopLine {
+  shop: Named
+  place: Named
+  here: boolean
+}
+
+export interface ShopRefusalView {
+  kind: string
+  shop: Named
+  item: Named
+  stock: number
+  next_restock: string | null
+}
+
+export interface ShopSoldView {
+  shop: Named
+  item: Named
+  price: number
+  left: number
+}
+
+export interface ShopView {
+  shop: Named
+  place: Named
+  here: boolean
+  walk_seconds: number
+  shelves: ShelfLine[] | null
+  tax_bps: number
+}
+
+export interface ShopsView {
+  city_code: string
+  city: string
+  shops: ShopLine[] | null
+  place: Named | null
+}
+
 export interface SleepPayView {
   spot: Named
   rest: number
@@ -1440,6 +2082,51 @@ export interface StandingLine {
   building: Named
   lot_x: number
   lot_y: number
+}
+
+export interface StockOrderView {
+  company: Named
+  side: string
+  qty: number
+  price: number
+  reserve: number
+  bank: number
+  fee_bps: number
+  nonce: string
+  placed: boolean
+  no: number
+  filled: number
+  spent: number
+  got: number
+  rests: boolean
+  expires_at: string | null
+}
+
+export interface StockPageView {
+  company: Named
+  type: Named
+  city: GovPlace
+  listed: boolean
+  price: number
+  prev: number
+  ipo: number
+  book: number
+  total: number
+  bids: BookLevel[] | null
+  asks: BookLevel[] | null
+  trades: TradeLine[] | null
+  holding: number
+  locked: number
+  cost: number
+  owner: boolean
+  controller: string
+  buys: PriceOption[] | null
+  sells: PriceOption[] | null
+  last_div: number
+  fee_bps: number
+  notice: string
+  notice_args: Record<string, unknown> | null
+  unavailable: Unavailable | null
 }
 
 export interface StockView {
@@ -1474,6 +2161,12 @@ export interface TermsView {
   default_lot_price: number
   default_permit: number
   default_tax_bps: number
+}
+
+export interface TradeLine {
+  qty: number
+  price: number
+  at: string | null
 }
 
 export interface TravelArrivedView {
@@ -1553,6 +2246,14 @@ export interface TreatyView {
   kind: Named
   no: number
   ttl_seconds: number
+}
+
+export interface Unavailable {
+  service: string
+  stage: string
+  here: string
+  requires: NeedBuilding[] | null
+  nearest: Named | null
 }
 
 export interface VictimView {
@@ -1725,9 +2426,18 @@ export interface WorthView {
 export interface ScreenViews {
   achievement_notice: AchievementView
   achievements: AchievementsView
+  auction_detail: AuctionDetailView
+  auction_new: AuctionNewView
   auction_notice: AuctionView
+  auction_opened: AuctionOpenedView
+  auction_refusal: AuctionRefusalView
+  auctions: AuctionsView
   avatars: AvatarsView
+  bank: BankView
+  bid_placed: BidPlacedView
   bill_decided_notice: BillDecidedView
+  book: BookView
+  budget: BudgetView
   card: CardView
   case_solved_notice: CaseOutcomeView
   cities: MapView
@@ -1737,16 +2447,22 @@ export interface ScreenViews {
   dashboard: DashboardView
   device_link: DeviceLinkView
   devices: DevicesView
+  dividend: DividendView
   drop_confirm: ItemDroppedView
   election_result_notice: ElectionResultView
   error: ErrorView
+  exchange: ExchangeView
   faction_answer_notice: FactionAnswerView
   faction_crime_notice: FactionCrimeView
   faction_request_notice: FactionRequestView
+  finance_hub: FinanceHubView
   finance_notice: FinanceView
+  finance_refusal: FinanceRefusalView
   founding_checked: FoundingCheckedView
   founding_form: FoundingFormView
   founding_refusal: FoundingRefusalView
+  gold: GoldView
+  gold_trade: GoldTradeView
   history: HistoryView
   hospitalised_notice: HospitalisedView
   hunger_notice: EmptyView
@@ -1754,6 +2470,8 @@ export interface ScreenViews {
   inbox_category: InboxCategoryView
   inbox_hub: InboxHubView
   inbox_reminder: InboxReminderView
+  insurance: InsuranceView
+  insure_confirm: InsureConfirmView
   inventory: InventoryView
   item_detail: ItemDetailView
   item_dropped: ItemDroppedView
@@ -1765,11 +2483,28 @@ export interface ScreenViews {
   labor_site: LaborSiteView
   life: LifeView
   life_refusal: LifeRefusalView
+  listing: ListingView
+  loan_confirm: LoanConfirmView
+  loan_detail: LoanDetailView
+  loan_offer: LoanOfferView
+  market: MarketView
+  market_checkout: MarketCheckoutView
   market_filled_notice: MarketFilledView
+  market_refusal: MarketRefusalView
   mission_completed_notice: MissionCompletedView
+  my_auctions: MyAuctionsView
+  my_orders: MyOrdersView
   not_here: NotHereView
   office_notice: OfficeView
+  order_cancelled: OrderCancelledView
+  order_placed: OrderPlacedView
+  pay: PayView
+  pay_confirm: PayConfirmView
+  pay_help: PayHelpView
+  pay_sent: PaySentView
+  payment_declined: PaymentDeclinedView
   payment_notice: PaymentView
+  portfolio: PortfolioView
   profile: ProfileView
   property: PropertyDetailView
   property_leave: PropertyLeaveView
@@ -1782,6 +2517,8 @@ export interface ScreenViews {
   rank_notice: RankView
   recruit_notice: RecruitView
   refusal: RefusalView
+  savings: SavingsView
+  sell_offers: SellOffersView
   settings: SettingsView
   settlement_build_batch_confirm: LotBatchConfirmView
   settlement_build_confirm: LotConfirmView
@@ -1803,8 +2540,16 @@ export interface ScreenViews {
   settlement_refusal: SettlementRefusalView
   settlement_terms: TermsView
   settlement_who: SettlementWhoView
+  shop_bought: ShopBoughtView
+  shop_checkout: ShopCheckoutView
+  shop_detail: ShopView
+  shop_refusal: ShopRefusalView
+  shop_sold: ShopSoldView
+  shops: ShopsView
   sleep_pay: SleepPayView
+  stock: StockPageView
   stock_notice: StockView
+  stock_order: StockOrderView
   travel_arrived: TravelArrivedView
   travel_checkout: TravelCheckoutView
   travel_here: TravelHereView
@@ -1834,4 +2579,4 @@ export interface ScreenViews {
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */
-export const REFUSAL_SCREENS = ['founding_refusal', 'item_refusal', 'life_refusal', 'property_refusal', 'refusal', 'settlement_refusal', 'village_refusal'] as const
+export const REFUSAL_SCREENS = ['auction_refusal', 'finance_refusal', 'founding_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'property_refusal', 'refusal', 'settlement_refusal', 'shop_refusal', 'village_refusal'] as const

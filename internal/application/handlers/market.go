@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"sort"
 	"strconv"
 	"strings"
@@ -23,7 +25,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -128,24 +129,24 @@ func (h *MarketHandler) screen(meta envelope.Metadata, lang string) screens.Cont
 }
 
 // marketRefusal carries a refused market request out of a unit of work.
-type marketRefusal struct{ view screens.MarketRefusalView }
+type marketRefusal struct{ view economy.MarketRefusalView }
 
 func (r *marketRefusal) Error() string { return "handlers: market refused: " + r.view.Kind }
 
 func refuseMarket(kind string) *marketRefusal {
-	return &marketRefusal{view: screens.MarketRefusalView{Kind: kind}}
+	return &marketRefusal{view: economy.MarketRefusalView{Kind: kind}}
 }
 
-func (h *MarketHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *MarketHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	var r *marketRefusal
 	if stderrors.As(err, &r) {
-		return screens.MarketRefusal(h.screen(meta, lang), r.view), nil
+		return economy.MarketRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(h.screen(meta, lang), v), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
 	}
 	return nil, err
 }
@@ -184,13 +185,13 @@ func reference(snap *content.Snapshot, code string, last int64) int64 {
 
 // Books handles market.list: the city's books, and the goods the player
 // could put on one.
-func (h *MarketHandler) Books(ctx context.Context, meta envelope.Metadata, req MarketRequest) (*presenter.Response, error) {
+func (h *MarketHandler) Books(ctx context.Context, meta envelope.Metadata, req MarketRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.MarketView
+	var view economy.MarketView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -212,7 +213,7 @@ func (h *MarketHandler) Books(ctx context.Context, meta envelope.Metadata, req M
 				continue
 			}
 			listed[b.Item] = true
-			view.Books = append(view.Books, screens.BookSummary{Item: itemNamed(snap, b.Item), BestBid: b.BestBid,
+			view.Books = append(view.Books, economy.BookSummary{Item: itemNamed(snap, b.Item), BestBid: b.BestBid,
 				BestAsk: b.BestAsk, Last: b.LastPrice})
 		}
 		stacks, _, _, err := carried(ctx, tx, p.ID)
@@ -231,7 +232,7 @@ func (h *MarketHandler) Books(ctx context.Context, meta envelope.Metadata, req M
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
 		return resp, ferr
 	}
-	return screens.Market(h.screen(meta, lang), view), nil
+	return economy.Market(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // atMarket reports whether the player stands where orders are placed.
@@ -244,13 +245,13 @@ func (h *MarketHandler) atMarket(w whereabouts) bool {
 }
 
 // Book handles market.book: one good's book in the player's city.
-func (h *MarketHandler) Book(ctx context.Context, meta envelope.Metadata, req MarketRequest) (*presenter.Response, error) {
+func (h *MarketHandler) Book(ctx context.Context, meta envelope.Metadata, req MarketRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.BookView
+	var view economy.BookView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -259,7 +260,7 @@ func (h *MarketHandler) Book(ctx context.Context, meta envelope.Metadata, req Ma
 		lang = RenderLanguage(meta, p)
 		def, ok := snap.ItemDef(req.Item)
 		if !ok || !def.Item().Tradeable || isUniqueForm(def) {
-			return refuseMarket(screens.MarketRefusedNotTraded)
+			return refuseMarket(economy.MarketRefusedNotTraded)
 		}
 		w, err := h.city(ctx, tx, snap, p)
 		if err != nil {
@@ -271,22 +272,22 @@ func (h *MarketHandler) Book(ctx context.Context, meta envelope.Metadata, req Ma
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
 		return resp, ferr
 	}
-	return screens.Book(h.screen(meta, lang), view), nil
+	return economy.Book(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // bookView reads one good's book and what the player can do on it.
 func (h *MarketHandler) bookView(ctx context.Context, tx application.Tx, snap *content.Snapshot, w whereabouts,
 	p *application.Player, def content.ItemDef,
-) (screens.BookView, error) {
+) (economy.BookView, error) {
 	orders, err := tx.Market().OpenOrders(ctx, w.city.ID, def.Code)
 	if err != nil {
-		return screens.BookView{}, err
+		return economy.BookView{}, err
 	}
 	trades, err := tx.Market().RecentTrades(ctx, w.city.ID, def.Code, 5)
 	if err != nil {
-		return screens.BookView{}, err
+		return economy.BookView{}, err
 	}
-	v := screens.BookView{Item: named(def.Code, def.Name), CityCode: w.city.Code, City: w.city.Name,
+	v := economy.BookView{Item: named(def.Code, def.Name), CityCode: w.city.Code, City: w.city.Name,
 		AtMarket: h.atMarket(w), Way: wayTo(w, snap, place.ServiceMarket, h.scale), Nonce: h.nonce()}
 	now := h.now()
 	bids, asks := map[int64]int64{}, map[int64]int64{}
@@ -306,7 +307,7 @@ func (h *MarketHandler) bookView(ctx context.Context, tx application.Tx, snap *c
 		if i == 0 {
 			last = t.Price
 		}
-		v.Trades = append(v.Trades, screens.TradeLine{Qty: t.Qty, Price: t.Price, At: t.At})
+		v.Trades = append(v.Trades, economy.TradeLine{Qty: t.Qty, Price: t.Price, At: t.At})
 	}
 	v.Reference = reference(snap, def.Code, last)
 	stacks, _, _, err := carried(ctx, tx, p.ID)
@@ -322,10 +323,10 @@ func (h *MarketHandler) bookView(ctx context.Context, tx application.Tx, snap *c
 }
 
 // levels sums a side of a book by price, best first, at most five levels.
-func levels(qty map[int64]int64, bids bool) []screens.BookLevel {
-	out := make([]screens.BookLevel, 0, len(qty))
+func levels(qty map[int64]int64, bids bool) []economy.BookLevel {
+	out := make([]economy.BookLevel, 0, len(qty))
 	for p, q := range qty {
-		out = append(out, screens.BookLevel{Price: p, Qty: q})
+		out = append(out, economy.BookLevel{Price: p, Qty: q})
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if bids {
@@ -347,7 +348,7 @@ func domainOrder(o application.MarketOrder, key market.AssetKey) market.Order {
 
 // Order handles market.order: a limit order on a good's book, at the market
 // place. A buy without a way to pay is answered with its checkout.
-func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req MarketRequest) (*presenter.Response, error) {
+func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req MarketRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -367,8 +368,8 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		checkout *screens.MarketCheckoutView
-		placed   screens.OrderPlacedView
+		checkout *economy.MarketCheckoutView
+		placed   economy.OrderPlacedView
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -395,7 +396,7 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 		now := h.now()
 		def, ok := snap.ItemDef(req.Item)
 		if !ok || !def.Item().Tradeable || isUniqueForm(def) {
-			return refuseMarket(screens.MarketRefusedNotTraded)
+			return refuseMarket(economy.MarketRefusedNotTraded)
 		}
 		it := named(def.Code, def.Name)
 		w, err := h.city(ctx, tx, snap, p)
@@ -409,13 +410,13 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 			return err
 		}
 		if qty > h.limits.MaxQuantity || price > h.limits.MaxPrice {
-			r := refuseMarket(screens.MarketRefusedTooBig)
+			r := refuseMarket(economy.MarketRefusedTooBig)
 			r.view.Item = it
 			return r
 		}
 		reserve, err := market.Reserve(market.Order{Side: side, Quantity: qty, UnitPrice: money.FromMinor(price)})
 		if err != nil {
-			return refuseMarket(screens.MarketRefusedTooBig)
+			return refuseMarket(economy.MarketRefusedTooBig)
 		}
 		if side == market.Buy {
 			wallet, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
@@ -424,11 +425,11 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 			}
 			plan := wallet.Plan(reserve.Money, snap.Accepts(content.ServiceMarket))
 			if !chosen {
-				checkout = &screens.MarketCheckoutView{Item: it, Qty: qty, Price: price, Reserve: reserve.Money.Minor(),
+				checkout = &economy.MarketCheckoutView{Item: it, Qty: qty, Price: price, Reserve: reserve.Money.Minor(),
 					Payment: paymentChoice(plan, wallet), Nonce: h.nonce()}
 				return nil
 			}
-			if err := checkMethod(plan, method, wallet, "market.button.back_to_book", screens.AddrMarketBook, def.Code); err != nil {
+			if err := checkMethod(plan, method, wallet, "market.button.back_to_book", economy.AddrMarketBook, def.Code); err != nil {
 				return err
 			}
 		}
@@ -437,7 +438,7 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 			return err
 		}
 		if open >= h.limits.MaxOpen {
-			r := refuseMarket(screens.MarketRefusedTooMany)
+			r := refuseMarket(economy.MarketRefusedTooMany)
 			r.view.Count = h.limits.MaxOpen
 			return r
 		}
@@ -451,9 +452,9 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 	case replayed:
 		return h.Mine(ctx, meta, MarketRequest{})
 	case checkout != nil:
-		return screens.MarketCheckout(h.screen(meta, lang), *checkout), nil
+		return economy.MarketCheckout(presentation.Ctx{Lang: lang}, *checkout), nil
 	}
-	return screens.OrderPlaced(h.screen(meta, lang), placed), nil
+	return economy.OrderPlaced(presentation.Ctx{Lang: lang}, placed), nil
 }
 
 // place sets the order's escrow aside, matches it against the book, settles
@@ -461,14 +462,14 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
 	city *application.City, p *application.Player, def content.ItemDef, side market.Side, qty, price int64,
 	method payment.Method, reserve market.Reservation, now time.Time,
-) (screens.OrderPlacedView, error) {
+) (economy.OrderPlacedView, error) {
 	it := named(def.Code, def.Name)
 	if err := tx.Market().LockBook(ctx, city.ID, def.Code); err != nil {
-		return screens.OrderPlacedView{}, err
+		return economy.OrderPlacedView{}, err
 	}
 	feeLever, err := h.policy.Get(ctx, city.JurisdictionID, LeverMarketFee)
 	if err != nil {
-		return screens.OrderPlacedView{}, err
+		return economy.OrderPlacedView{}, err
 	}
 	order := application.MarketOrder{
 		ID: h.ids.NewID(), CityID: city.ID, Item: def.Code, Side: string(side), Kind: string(market.Limit),
@@ -480,11 +481,11 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 		order.Funding = string(method)
 		wallet, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
 		if err != nil {
-			return screens.OrderPlacedView{}, err
+			return economy.OrderPlacedView{}, err
 		}
 		escrow, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerEscrow, p.ID)
 		if err != nil {
-			return screens.OrderPlacedView{}, err
+			return economy.OrderPlacedView{}, err
 		}
 		if _, err := wallet.Pay(ctx, tx.Ledger(), application.Charge{
 			Method: method, Accepted: snap.Accepts(content.ServiceMarket), Reason: application.ReasonMarketEscrow,
@@ -493,35 +494,35 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 		}); err != nil {
 			if stderrors.Is(err, application.ErrPaymentDeclined) {
 				plan := wallet.Plan(reserve.Money, snap.Accepts(content.ServiceMarket))
-				return screens.OrderPlacedView{}, declined(plan, wallet, "market.button.back_to_book", screens.AddrMarketBook, def.Code)
+				return economy.OrderPlacedView{}, declined(plan, wallet, "market.button.back_to_book", economy.AddrMarketBook, def.Code)
 			}
-			return screens.OrderPlacedView{}, err
+			return economy.OrderPlacedView{}, err
 		}
 	} else {
 		if err := tx.Items().LockOwner(ctx, p.ID); err != nil {
-			return screens.OrderPlacedView{}, err
+			return economy.OrderPlacedView{}, err
 		}
 		if err := tx.Items().Move(ctx, application.ItemMove{ID: h.ids.NewID(), Item: def.Code, Qty: qty,
 			From: p.ID, FromHolding: application.HoldCarried, To: p.ID, ToHolding: application.HoldEscrow,
 			Reason: application.ItemMarketEscrow, ReferenceType: "market_orders", ReferenceID: order.ID, At: now}); err != nil {
 			if isSentinel(err, application.ErrNotEnoughItems) {
-				r := refuseMarket(screens.MarketRefusedNotEnough)
+				r := refuseMarket(economy.MarketRefusedNotEnough)
 				r.view.Item = it
-				return screens.OrderPlacedView{}, r
+				return economy.OrderPlacedView{}, r
 			}
-			return screens.OrderPlacedView{}, err
+			return economy.OrderPlacedView{}, err
 		}
 	}
 
 	resting, err := tx.Market().OpenOrders(ctx, city.ID, def.Code)
 	if err != nil {
-		return screens.OrderPlacedView{}, err
+		return economy.OrderPlacedView{}, err
 	}
 	// A trade embargo (docs/adr/0022): offers whose owner's country and the
 	// player's are under one stay on the book, unmatched by this order.
 	embargoed, err := embargoedOwners(ctx, tx, p.ID, resting, now)
 	if err != nil {
-		return screens.OrderPlacedView{}, err
+		return economy.OrderPlacedView{}, err
 	}
 	skipped := 0
 	key := market.AssetKey{Type: market.AssetItem, ID: def.Code, City: city.ID, Channel: market.ChannelPublic}
@@ -544,7 +545,7 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 	}
 	res, err := market.Match(book, domainOrder(order, key), now)
 	if err != nil {
-		return screens.OrderPlacedView{}, errors.Internal(err)
+		return economy.OrderPlacedView{}, errors.Internal(err)
 	}
 	order.Filled = res.Incoming.Filled
 	if !res.Rests {
@@ -556,33 +557,33 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 	if res.Rests {
 		payload, err := json.Marshal(MarketActionPayload{ReferenceID: order.ID, PlayerID: p.ID})
 		if err != nil {
-			return screens.OrderPlacedView{}, err
+			return economy.OrderPlacedView{}, err
 		}
 		order.GameActionID = h.ids.NewID()
 		if err := tx.GameActions().Schedule(ctx, application.GameAction{
 			ID: order.GameActionID, ActionType: application.MarketExpiryActionType, ActorType: "player", ActorID: p.ID,
 			ReferenceType: "market_orders", ReferenceID: order.ID, Payload: payload, StartedAt: now, FinishAt: order.ExpiresAt,
 		}); err != nil {
-			return screens.OrderPlacedView{}, err
+			return economy.OrderPlacedView{}, err
 		}
 	}
 	placed, err := tx.Market().PlaceOrder(ctx, order)
 	if err != nil {
-		return screens.OrderPlacedView{}, err
+		return economy.OrderPlacedView{}, err
 	}
 
 	var spent, got int64
 	for _, t := range res.Trades {
 		fee, err := h.settle(ctx, tx, meta, snap, city, def, t, stored, placed, int(feeLever.Value), now)
 		if err != nil {
-			return screens.OrderPlacedView{}, err
+			return economy.OrderPlacedView{}, err
 		}
 		spent += t.Notional.Minor()
 		got += t.Notional.Minor() - fee
 	}
 	for _, u := range res.Updated {
 		if err := tx.Market().UpdateOrder(ctx, u.ID, u.Filled, application.OrderOpen, nil); err != nil {
-			return screens.OrderPlacedView{}, err
+			return economy.OrderPlacedView{}, err
 		}
 	}
 	for _, r := range res.Removed {
@@ -595,11 +596,11 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 		}
 		closed := now
 		if err := tx.Market().UpdateOrder(ctx, r.Order.ID, r.Order.Filled, status, &closed); err != nil {
-			return screens.OrderPlacedView{}, err
+			return economy.OrderPlacedView{}, err
 		}
 		if status != application.OrderFilled {
 			if err := h.release(ctx, tx, stored[r.Order.ID], r.Order.Remaining(), now); err != nil {
-				return screens.OrderPlacedView{}, err
+				return economy.OrderPlacedView{}, err
 			}
 		}
 	}
@@ -610,11 +611,11 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 		reserved := order.Filled * price
 		if improvement := reserved - spent; improvement > 0 {
 			if err := h.refund(ctx, tx, placed, improvement, now); err != nil {
-				return screens.OrderPlacedView{}, err
+				return economy.OrderPlacedView{}, err
 			}
 		}
 	}
-	return screens.OrderPlacedView{Item: it, Side: string(side), Qty: qty, Filled: order.Filled, Price: price, No: placed.No,
+	return economy.OrderPlacedView{Item: it, Side: string(side), Qty: qty, Filled: order.Filled, Price: price, No: placed.No,
 		Rests: res.Rests, Spent: spent, Got: got, ExpiresAt: order.ExpiresAt, Method: order.Funding, Embargoed: skipped}, nil
 }
 
@@ -811,7 +812,7 @@ func (h *MarketHandler) refund(ctx context.Context, tx application.Tx, o applica
 
 // Cancel handles market.cancel: the owner takes a resting order off the book
 // and gets back what it still holds.
-func (h *MarketHandler) Cancel(ctx context.Context, meta envelope.Metadata, req MarketRequest) (*presenter.Response, error) {
+func (h *MarketHandler) Cancel(ctx context.Context, meta envelope.Metadata, req MarketRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -821,7 +822,7 @@ func (h *MarketHandler) Cancel(ctx context.Context, meta envelope.Metadata, req 
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.OrderCancelledView
+	var view economy.OrderCancelledView
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -830,7 +831,7 @@ func (h *MarketHandler) Cancel(ctx context.Context, meta envelope.Metadata, req 
 		lang = RenderLanguage(meta, p)
 		o, err := tx.Market().OrderByNo(ctx, no)
 		if isSentinel(err, application.ErrOrderNotFound) || (err == nil && o.OwnerID != p.ID) {
-			return refuseMarket(screens.MarketRefusedNoOrder)
+			return refuseMarket(economy.MarketRefusedNoOrder)
 		}
 		if err != nil {
 			return err
@@ -842,7 +843,7 @@ func (h *MarketHandler) Cancel(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		if o.Status != application.OrderOpen {
-			return refuseMarket(screens.MarketRefusedClosed)
+			return refuseMarket(economy.MarketRefusedClosed)
 		}
 		now := h.now()
 		if err := tx.Market().UpdateOrder(ctx, o.ID, o.Filled, application.OrderCancelled, &now); err != nil {
@@ -856,24 +857,24 @@ func (h *MarketHandler) Cancel(ctx context.Context, meta envelope.Metadata, req 
 		if err := h.release(ctx, tx, *o, o.Qty-o.Filled, now); err != nil {
 			return err
 		}
-		view = screens.OrderCancelledView{Item: itemNamed(snap, o.Item), Side: o.Side, No: o.No,
+		view = economy.OrderCancelledView{Item: itemNamed(snap, o.Item), Side: o.Side, No: o.No,
 			Left: o.Qty - o.Filled, Refund: (o.Qty - o.Filled) * o.Price}
 		return nil
 	})
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
 		return resp, ferr
 	}
-	return screens.OrderCancelled(h.screen(meta, lang), view), nil
+	return economy.OrderCancelled(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Mine handles market.mine: the player's orders.
-func (h *MarketHandler) Mine(ctx context.Context, meta envelope.Metadata, req MarketRequest) (*presenter.Response, error) {
+func (h *MarketHandler) Mine(ctx context.Context, meta envelope.Metadata, req MarketRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.MyOrdersView
+	var view economy.MyOrdersView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -889,7 +890,7 @@ func (h *MarketHandler) Mine(ctx context.Context, meta envelope.Metadata, req Ma
 			if err != nil {
 				return err
 			}
-			view.Orders = append(view.Orders, screens.OrderLine{No: o.No, Item: itemNamed(snap, o.Item), Side: o.Side,
+			view.Orders = append(view.Orders, economy.OrderLine{No: o.No, Item: itemNamed(snap, o.Item), Side: o.Side,
 				Qty: o.Qty, Filled: o.Filled, Price: o.Price, Status: o.Status, CityCode: city.Code, City: city.Name,
 				ExpiresAt: o.ExpiresAt})
 		}
@@ -898,13 +899,13 @@ func (h *MarketHandler) Mine(ctx context.Context, meta envelope.Metadata, req Ma
 	if err != nil {
 		return nil, err
 	}
-	return screens.MyOrders(h.screen(meta, lang), view), nil
+	return economy.MyOrders(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Expire ends a resting order whose time is up. It arrives from the
 // SCHEDULER and runs exactly once: the key is derived from the order, and
 // only an order still open moves.
-func (h *MarketHandler) Expire(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *MarketHandler) Expire(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}

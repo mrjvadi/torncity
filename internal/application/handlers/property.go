@@ -5,6 +5,7 @@ import (
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	plife "github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strconv"
 	"strings"
 	"time"
@@ -127,8 +128,8 @@ func (h *PropertyHandler) finish(meta envelope.Metadata, lang string, err error)
 	if v, ok := asNotHere(err); ok {
 		return plife.NotHere(presentation.Ctx{Lang: lang}, v), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
 	}
 	switch {
 	case isSentinel(err, application.ErrPropertyNotFound):
@@ -1362,10 +1363,4 @@ func (h *PropertyHandler) Rest(ctx context.Context, meta envelope.Metadata) (*pr
 		return resp, err
 	}
 	return h.mine(ctx, meta, plife.PropertyNoticeRested, map[string]any{"energy": gained, "rest": rested})
-}
-
-// refOf reads the parts of an address (the screen, then its arguments) as the
-// place to go back to.
-func refOf(parts []string) presentation.Ref {
-	return presentation.RefOfAddress(strings.Join(parts, ":"))
 }
