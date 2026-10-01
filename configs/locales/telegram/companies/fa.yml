@@ -322,7 +322,6 @@ production:
     retired: "🗄 کنار گذاشته"
   design_copy: "🔍 کپی از «{source}» با مهندسی معکوس - کیفیت {loss}٪ کمتر - مصرف مواد {overhead}٪ بیشتر"
   design_version: "نسخهٔ {version}"
-  revision_name: "{base} - نسخهٔ {version}"
   slot_empty: "⬜ {slot}: خالی"
   slot_optional: "▫️ {slot}: خالی (اختیاری)"
   slot_filled: "🟩 {slot}: {component} - {qty}"
