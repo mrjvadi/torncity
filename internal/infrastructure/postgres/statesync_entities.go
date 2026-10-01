@@ -569,8 +569,9 @@ func (s *StateSync) addSettlement(ctx context.Context, q querier, id, viewer str
 	}
 	if viewer != statesync.ViewerPublic {
 		var t statesync.TreasuryData
-		err := q.QueryRow(ctx, `SELECT a.currency, a.balance FROM cities c JOIN accounts a ON a.id = c.treasury_account_id
- WHERE c.id = $1::uuid`, id).Scan(&t.Currency, &t.Balance)
+		// the treasury account the handlers post to (AccountFor city_treasury)
+		err := q.QueryRow(ctx, `SELECT currency, balance FROM accounts
+ WHERE kind = 'city_treasury' AND owner_id = $1::uuid ORDER BY currency LIMIT 1`, id).Scan(&t.Currency, &t.Balance)
 		switch {
 		case err == nil:
 			d.Treasury = &t

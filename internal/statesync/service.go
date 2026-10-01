@@ -162,14 +162,14 @@ func PlayerChannel(playerID string) string { return "player:" + playerID }
 
 // Project projects one player and publishes what it appended.
 func (s *Service) Project(ctx context.Context, playerID, source, cause string, kinds KindSet) (Projection, error) {
-	s.Metrics.inc(&s.Metrics.projections)
+	s.m().inc(&s.m().projections)
 	p, err := s.Store.Project(ctx, ProjectRequest{PlayerID: playerID, Source: source, Cause: cause, Kinds: kinds, At: s.now()})
 	if err != nil {
-		s.Metrics.inc(&s.Metrics.projectErrors)
+		s.m().inc(&s.m().projectErrors)
 		return p, err
 	}
 	if len(p.Records) > 0 {
-		s.Metrics.Appended(p.Records)
+		s.m().Appended(p.Records)
 		s.publish(ctx, playerID, p.Records)
 	}
 	return p, nil
@@ -185,17 +185,17 @@ func (s *Service) publish(ctx context.Context, playerID string, records []Record
 	from, to := records[0].PTS, records[len(records)-1].PTS
 	pub := Publication{Type: PublicationUpdates, From: from, To: to, Updates: records}
 	if s.tooBig(pub) {
-		s.Metrics.inc(&s.Metrics.tooLong)
+		s.m().inc(&s.m().tooLong)
 		pub = Publication{Type: PublicationTooLong, From: from, To: to}
 	}
 	key := "upd:" + playerID + ":" + strconv.FormatInt(from, 10) + "-" + strconv.FormatInt(to, 10)
 	if err := s.Pub.Publish(ctx, PlayerChannel(playerID), pub, key); err != nil {
-		s.Metrics.inc(&s.Metrics.publishErrors)
+		s.m().inc(&s.m().publishErrors)
 		s.log().Warn("cannot publish state updates", slog.String("player_id", playerID), slog.String("error", err.Error()))
 		return
 	}
-	s.Metrics.inc(&s.Metrics.published)
-	s.Metrics.Lag(s.now().Sub(records[len(records)-1].At))
+	s.m().inc(&s.m().published)
+	s.m().Lag(s.now().Sub(records[len(records)-1].At))
 }
 
 func (s *Service) tooBig(p Publication) bool {
@@ -241,7 +241,7 @@ func (s *Service) HandleEvent(ctx context.Context, env *envelope.Envelope) error
 			// whose records are already in the log. Send those again; a
 			// client drops what it has by pts.
 			if again, err := s.Store.BySource(ctx, id, source); err == nil && len(again) > 0 {
-				s.Metrics.inc(&s.Metrics.redeliveries)
+				s.m().inc(&s.m().redeliveries)
 				s.publish(ctx, id, again)
 			}
 		}
@@ -261,7 +261,7 @@ func (s *Service) HandleEvent(ctx context.Context, env *envelope.Envelope) error
 				continue
 			}
 			done[id] = true
-			s.Metrics.inc(&s.Metrics.fanout)
+			s.m().inc(&s.m().fanout)
 			if _, err := s.Project(ctx, id, source, meta.RequestID, Kinds(KindSettlement, KindResidence)); err != nil {
 				errs = append(errs, fmt.Errorf("statesync: projecting %s for settlement %s: %w", id, sid, err))
 			}
@@ -307,7 +307,7 @@ func (s *Service) ForCommand(ctx context.Context, playerID, requestID string) *C
 	defer cancel()
 	p, err := s.Project(ctx, playerID, RequestSource(requestID), requestID, nil)
 	if err != nil {
-		s.Metrics.inc(&s.Metrics.commandMisses)
+		s.m().inc(&s.m().commandMisses)
 		// The wait ran out (or the lock was busy): project in the
 		// background, so a command that wrote no event still reaches the
 		// log and the push without waiting for the player's next one.
@@ -330,7 +330,7 @@ func (s *Service) ForCommand(ctx context.Context, playerID, requestID string) *C
 			recs = found
 		}
 	}
-	s.Metrics.inc(&s.Metrics.commandHits)
+	s.m().inc(&s.m().commandHits)
 	out := &CommandUpdates{PTS: p.MaxPTS, Records: recs}
 	if out.Records == nil {
 		out.Records = []Record{}
@@ -382,8 +382,8 @@ func (s *Service) Updates(ctx context.Context, playerID string, since int64, epo
 	}
 	cur := s.epoch(l.Epoch)
 	reset := func(reason string) Difference {
-		s.Metrics.Pull("reset")
-		s.Metrics.Reset(reason)
+		s.m().Pull("reset")
+		s.m().Reset(reason)
 		return Difference{PTS: l.MaxPTS, Reset: true, Reason: reason, Epoch: cur, Updates: []Record{}}
 	}
 	switch {
@@ -396,7 +396,7 @@ func (s *Service) Updates(ctx context.Context, playerID string, since int64, epo
 	case s.Cfg.ResetThreshold > 0 && l.MaxPTS-since > int64(s.Cfg.ResetThreshold):
 		return reset(ResetTooLong), nil
 	}
-	s.Metrics.ClientLag(l.MaxPTS - since)
+	s.m().ClientLag(l.MaxPTS - since)
 	recs := l.Records
 	if len(recs) > 0 && recs[0].PTS != since+1 {
 		// trimmed between the bounds and the rows: never hand out a hole
@@ -410,9 +410,9 @@ func (s *Service) Updates(ctx context.Context, playerID string, since int64, epo
 		d.More = true
 	}
 	if len(recs) == 0 {
-		s.Metrics.Pull("empty")
+		s.m().Pull("empty")
 	} else {
-		s.Metrics.Pull("ok")
+		s.m().Pull("ok")
 	}
 	return d, nil
 }
@@ -470,4 +470,14 @@ func newRefreshID(now time.Time) string {
 	var b [8]byte
 	_, _ = rand.Read(b[:])
 	return strconv.FormatInt(now.UnixNano(), 36) + "-" + hex.EncodeToString(b[:])
+}
+
+// discardMetrics counts for a service built without Metrics.
+var discardMetrics = NewMetrics()
+
+func (s *Service) m() *Metrics {
+	if s.Metrics == nil {
+		return discardMetrics
+	}
+	return s.Metrics
 }
