@@ -155,8 +155,8 @@ func TestSettlementFounding(t *testing.T) {
 	// text key renders as itself (screens.Context.T's documented nil-Msgs
 	// behaviour) — a simple, exact way to tell which screen was rendered
 	// without needing a loaded catalogue.
-	resp, err = h.Submit(ctx, clientMeta(meta, "settlement.found.submit", "found.submit"),
-		validFoundingRequest(t, openDraftID(t, pool, meta.TelegramChatID)))
+	resp, err = rr(h.Submit(ctx, clientMeta(meta, "settlement.found.submit", "found.submit"),
+		validFoundingRequest(t, openDraftID(t, pool, meta.TelegramChatID))))
 	if err != nil {
 		t.Fatalf("Submit: %v", err)
 	}
