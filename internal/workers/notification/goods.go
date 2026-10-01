@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -63,10 +65,10 @@ func renderMarketFilled(_ context.Context, _ Deps, env *envelope.Envelope) (*Dra
 	if err != nil {
 		return nil, err
 	}
-	view := screens.MarketFilledView{Side: ev.Side, Item: ev.item(), Qty: ev.Qty, Price: ev.Price, Amount: ev.Amount,
+	view := notices.MarketFilledView{Side: ev.Side, Item: notices.Named(ev.item()), Qty: ev.Qty, Price: ev.Price, Amount: ev.Amount,
 		Fee: ev.Fee, CityCode: ev.CityCode, City: ev.CityName}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.MarketFilledNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.MarketFilledNotice(c, view)
 	}}, nil
 }
 
@@ -90,9 +92,9 @@ func renderAuction(kind string) Renderer {
 		if err != nil {
 			return nil, err
 		}
-		view := screens.AuctionNoticeView{Kind: kind, No: ev.No, Item: ev.item(), Amount: ev.Amount, Fee: ev.Fee}
-		return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-			return screens.AuctionNotice(c, view)
+		view := notices.AuctionView{Kind: kind, No: ev.No, Item: notices.Named(ev.item()), Amount: ev.Amount, Fee: ev.Fee}
+		return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+			return notices.AuctionNotice(c, view)
 		}}, nil
 	}
 }

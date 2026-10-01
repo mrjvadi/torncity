@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Property (docs/adr/0024-property-and-politics.md), privately: a seller
@@ -39,10 +39,10 @@ func renderPropertyNotice(_ context.Context, _ Deps, env *envelope.Envelope) (*D
 	if ev.PlayerID == "" || ev.Kind == "" {
 		return nil, apperrors.InvalidInput("property event names nobody")
 	}
-	view := screens.PropertyNoticeView{Kind: ev.Kind, Type: screens.Named{Code: ev.Type, Name: ev.TypeName},
-		No: ev.PropertyNo, City: screens.GovPlace{Kind: "city", Code: ev.CityCode, Name: ev.CityName},
-		Player: screens.GovPlayer{Name: ev.OtherName, Code: ev.OtherCode}, Amount: ev.Amount}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.PropertyNotice(c, view)
+	view := notices.PropertyView{Kind: ev.Kind, Type: notices.Named{Code: ev.Type, Name: ev.TypeName},
+		No: ev.PropertyNo, City: notices.Place{Kind: "city", Code: ev.CityCode, Name: ev.CityName},
+		Player: notices.Person{Name: ev.OtherName, Code: ev.OtherCode}, Amount: ev.Amount}
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.PropertyNotice(c, view)
 	}}, nil
 }

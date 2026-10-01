@@ -455,7 +455,6 @@ gov:
     confirm: "👤 {player} را به‌عنوان {office} {place} منصوب می‌کنید؟\nهمین حالا بر صندلی می‌نشیند و اگر منصب شما اجازه دهد، بعداً می‌توانید برکنارش کنید."
     done: "✅ {player} اکنون {office} {place} است."
     term: "دورهٔ این منصب {term} است."
-    notice: "🎖 {by_office} {by} شما را به‌عنوان {office} {place} منصوب کرد. «منصب من» را باز کنید تا ببینید از این پس دربارهٔ چه چیزهایی تصمیم می‌گیرید."
     announce: "🎖 {player} به‌عنوان {office} {place} منصوب شد."
     refused:
       not_appointer: "تنها {office} می‌تواند این کار را انجام دهد. اگر این منصب را داشتید، ممکن است جایگزین شده باشید."
@@ -464,7 +463,6 @@ gov:
   dismiss:
     confirm: "✖️ {player} را از منصب {office} {place} برکنار می‌کنید؟\nصندلی همین حالا خالی می‌شود و اگر سرپرستی تعریف شده باشد، او به جایش عمل می‌کند."
     done: "✅ {player} دیگر {office} {place} نیست."
-    notice: "📭 {by_office} {by} شما را از منصب {office} {place} برکنار کرد."
 
 # Office names, keyed on the office's content code (configs/content/governance.yml).
 office:
@@ -598,120 +596,10 @@ settlement_building:
 
 # Group founding (docs/adr/0028-world-and-settlements.md section 3): a group
 # admin registers the group and the game places the new village on the map.
-settlement:
-  found:
-    # Announced in the group once the village is placed (ADR 0028 section
-    # 3.1's "one admin.announced-style event tells the group where it
-    # landed and what its first two buildings are building").
-    title: "🏡 روستای تازه‌ای تأسیس شد!"
-    body: |-
-      این گروه اکنون روستای «{name}» را در نزدیکی {feature} بنا کرد.
-      زمین منطقه: {biome}
-      ساخت‌وسازهای آغازین: {buildings}
-      تا {protection} این روستا در برابر حمله محافظت‌شده است.
-    # feature has no known nearby river/continent to name (an open ocean
-    # site, or the named-feature list came up empty).
-    unnamed_feature: "سرزمینی ناشناخته"
-    # The founding form adds these to the announcement (docs/adr/0028 section 3).
-    emblem: "نشان: {emblem}"
-    motto: "«{motto}»"
-    founder: "👤 دهیار: {founder}"
-    currency: "🪙 پول ملی: {name} ({code}) - برای روزی که این روستا کشور شود رزرو شد؛ تا آن روز ساپ رایج است."
-    # Refused: this command only founds a settlement inside a group, where
-    # the whole group can see the result decided (the same group-first rule
-    # every civic act in this game follows).
-    group_only: "🏡 تأسیس روستا فقط در یک گروه ممکن است. ربات را به گروه خود اضافه کنید و همان‌جا این دستور را بفرستید."
-    # Refused: no world has been generated yet.
-    no_world: "🌍 نقشهٔ جهان هنوز آماده نشده است. کمی بعد دوباره امتحان کنید."
-    # This chat already founded one; shown again on a repeated command
-    # (idempotent — never founds a second village).
-    already:
-      title: "🏡 این گروه پیش‌تر روستای «{name}» را تأسیس کرده است."
-      body: "هر گروه تنها یک روستا را می‌تواند تأسیس کند؛ برای رشد، از فرمانداری روستای خود اقدام کنید."
 
 # The founding form (docs/adr/0028-world-and-settlements.md section 3): «ساخت روستا»
 # opens a draft in the group; the founder completes the village's details in
 # the game client, and only submitting the form founds the village.
-founding:
-  draft:
-    title: "📝 مشخصات روستا را کامل کنید"
-    body: "{founder} می‌خواهد برای این گروه روستا بسازد، اما پیش از تأسیس باید مشخصاتش را کامل کند: نام روستا، پول ملی، نشان و شعار. با دکمهٔ زیر برنامهٔ بازی باز می‌شود؛ پس از ثبت فرم، روستا تأسیس و همین‌جا اعلام می‌شود."
-    deadline: "⏳ مهلت تکمیل: {minutes} دقیقه. اگر تمام نشود چیزی ساخته نمی‌شود و می‌توانید دوباره «ساخت روستا» را بفرستید."
-    hint: "اگر دکمه باز نشد، برنامهٔ بازی را از پیوی ربات باز کنید؛ فرم همان‌جا منتظر شماست."
-    pending_title: "📝 {founder} در حال تکمیل مشخصات روستای این گروه است."
-    pending_body: "فقط خودِ ایشان می‌تواند فرم را ثبت کند و شما می‌توانید آن را ببینید. اگر تا {minutes} دقیقهٔ دیگر تمام نشود، دوباره «ساخت روستا» را بفرستید."
-    button: "📝 تکمیل اطلاعات روستا"
-  form:
-    title: "📝 مشخصات روستا"
-    mine: "نام، پول ملی، نشان و شعار روستا را انتخاب کنید و فرم را ثبت کنید."
-    other: "{founder} در حال تکمیل این فرم است؛ فقط خودِ ایشان می‌تواند آن را ثبت کند."
-    done: "🏡 روستای «{name}» تأسیس شده است."
-  checked: "✅ فرم درست است؛ می‌توانید روستای «{name}» را تأسیس کنید."
-  refusal:
-    no_draft: "📝 فرمی برای تأسیس روستا پیدا نشد. در گروه «ساخت روستا» را بفرستید."
-    expired: "⏳ مهلت این فرم تمام شد و روستایی ساخته نشد. در گروه دوباره «ساخت روستا» را بفرستید."
-    not_founder: "🔒 این فرم را فقط کسی که «ساخت روستا» را فرستاده می‌تواند ثبت کند."
-    already: "🏡 این گروه پیش‌تر روستای «{name}» را تأسیس کرده است."
-    invalid: "⚠️ چند مورد فرم نیاز به اصلاح دارد:"
-    no_world: "🌍 نقشهٔ جهان هنوز آماده نشده است. کمی بعد دوباره امتحان کنید."
-    group_only: "🏡 تأسیس روستا فقط در یک گروه ممکن است. ربات را به گروه خود اضافه کنید و همان‌جا «ساخت روستا» را بفرستید."
-    unavailable: "🛠 فرم تأسیس روستا موقتاً در دسترس نیست. کمی بعد دوباره امتحان کنید."
-  problem:
-    name_short: "نام روستا دست‌کم {name_min} حرف باشد."
-    name_long: "نام روستا حداکثر {name_max} حرف باشد."
-    name_chars: "نام روستا فقط حرف فارسی یا لاتین و فاصله داشته باشد؛ عدد و نشانه مجاز نیست."
-    name_link: "نام روستا نباید پیوند، آیدی یا نشانی باشد."
-    name_forbidden: "این نام مجاز نیست؛ نام دیگری انتخاب کنید."
-    name_reserved: "این نام برای خود بازی رزرو شده است."
-    name_taken: "روستای دیگری همین نام را دارد."
-    motto_long: "شعار حداکثر {motto_max} حرف باشد."
-    motto_chars: "شعار فقط حرف، عدد و نشانه‌های ساده داشته باشد."
-    motto_link: "شعار نباید پیوند یا آیدی داشته باشد."
-    motto_forbidden: "این شعار مجاز نیست."
-    currency_name_short: "نام پول دست‌کم {currency_name_min} حرف باشد."
-    currency_name_long: "نام پول حداکثر {currency_name_max} حرف باشد."
-    currency_name_chars: "نام پول فقط حرف فارسی یا لاتین و فاصله داشته باشد."
-    currency_name_forbidden: "این نام برای پول مجاز نیست."
-    currency_name_taken: "روستای دیگری همین نام پول را برداشته است."
-    currency_code_format: "کد پول باید دقیقاً {code_len} حرف بزرگ انگلیسی باشد."
-    currency_code_reserved: "این کد برای پول‌های بازی یا دنیای واقعی رزرو شده است."
-    currency_code_forbidden: "این کد مجاز نیست."
-    currency_code_taken: "روستای دیگری همین کد پول را برداشته است."
-    currency_symbol_invalid: "نماد پول باید بین 1 تا {symbol_max} نویسه باشد، بدون فاصله."
-    emblem_invalid: "نشان کامل نیست؛ یک شکل، یک نماد و دو رنگ متفاوت انتخاب کنید."
-  shape:
-    shield: "سپر"
-    circle: "دایره"
-    banner: "پرچم"
-    diamond: "لوزی"
-    hexagon: "شش‌ضلعی"
-  color:
-    crimson: "سرخ"
-    orange: "نارنجی"
-    gold: "طلایی"
-    green: "سبز"
-    azure: "آبی"
-    violet: "بنفش"
-    brown: "قهوه‌ای"
-    ivory: "عاجی"
-    slate: "خاکستری تیره"
-  icon:
-    wheat: "خوشهٔ گندم"
-    tree: "درخت"
-    mountain: "کوه"
-    wave: "موج"
-    sun: "خورشید"
-    moon: "ماه"
-    star: "ستاره"
-    tower: "برج"
-    anchor: "لنگر"
-    hammer: "چکش"
-    flame: "شعله"
-    crown: "تاج"
-    key: "کلید"
-    book: "کتاب"
-    horse: "اسب"
-    fish: "ماهی"
 
 # Playing in a group (internal/gateway/groups). A screen with a player's own
 # details is shown only to that player; these lines are all the rest of the
@@ -831,8 +719,6 @@ pay:
   sent_card: "✅ {amount} با کارت برای {player} فرستادید."
   sent_fee: "کارمزد: {fee}"
   not_together: "{player} اینجا کنار شما نیست، پس نمی‌توانید به او پول نقد بدهید. به‌جای آن با کارت پرداخت کنید؛ پرداخت کارتی از همه‌جا ممکن است."
-  received_cash: "💵 {player} مبلغ {amount} را نقد به شما داد."
-  received_card: "💳 {player} مبلغ {amount} را با کارت برای شما فرستاد. این پول به حساب بانکی شما واریز شد."
   # Posted in the group a payment was started in, once it is made. It never
   # says how much.
   announced: "💸 {payer} به {payee} پول داد."
@@ -1190,12 +1076,7 @@ crime:
   bailed_public: "🔓 {player} وثیقه پرداخت و از زندان بیرون آمد."
   released: "🔓 دوران حبس شما در {city} تمام شد. آزاد هستید."
   victim:
-    head: "👛 در {venue} شهر {city} از شما دزدی شد ({crime}). {amount} از دست دادید."
-    unseen: "کسی ندید چه کسی این کار را کرد."
-    seen: "👀 شاهدی دیده است چه کسی این کار را کرد: {thief} ({code})."
-    report: "🚔 می‌توانید به پلیس شکایت کنید. هزینهٔ ثبت شکایت {fee} است و به خزانهٔ شهر می‌رود."
     report_by: "⏳ تا {duration} دیگر می‌توانید شکایت کنید."
-    item: "🎒 {item} شما را هم بردند."
   report:
     confirm: "🚔 از دزدی در {city} ({crime}) شکایت می‌کنید؟ {amount} از دست داده‌اید. پلیس برای ثبت شکایت {fee} می‌گیرد که به خزانهٔ شهر می‌رود، و رسیدگی حدود {duration} طول می‌کشد."
     filed: "🗂 شکایت ثبت شد. پلیس در حال رسیدگی است؛ نتیجه حدود {duration} دیگر به شما می‌رسد."
@@ -1209,12 +1090,6 @@ crime:
     closing: "• {crime} در {city} - {amount} - نتیجه هر لحظه اعلام می‌شود"
     solved: "• {crime} در {city} - {amount} - حل شد: {thief} - {restored} بازگردانده شد"
     unsolved: "• {crime} در {city} - {amount} - بسته شد، بی‌نتیجه"
-  case_closed: "🗂 پرونده بسته شد: پلیس نتوانست کسی را که در {city} از شما دزدی کرد پیدا کند."
-  case_solved: "🚔 پرونده حل شد: پلیس {thief} ({code}) را به خاطر دزدی در {city} ({crime}) دستگیر کرد. {restored} به شما بازگردانده شد."
-  case_shortfall: "{short} قابل بازگرداندن نبود و در سابقهٔ او می‌ماند."
-  case_item_returned: "🎒 {item} شما به شما برگشت."
-  convicted: "⚖️ محکوم شدید: دزدی‌ای که در {city} کرده بودید ({crime}) به شما رسید. {restored} را بازگرداندید، {fine} جریمه پرداختید و به {term} زندان محکوم شدید."
-  convicted_unpaid: "💸 هنوز پرداخت‌نشده: {restitution} بدهی به قربانی و {fines} جریمه. در سابقه‌تان می‌ماند."
   refused:
     requirements: "🔒 {crime}: هنوز نه. این‌ها را کم دارید:"
     not_found: "چنین کاری وجود ندارد. یکی را از دنیای زیرزمینی انتخاب کنید."
@@ -1631,8 +1506,6 @@ market:
     filled: انجام‌شده
     cancelled: لغوشده
     expired: پایان‌یافته
-  notice_bought: "🤝 سفارشتان در {city} انجام شد: {item} خریدید - {qty} عدد، هر عدد {price}، روی هم {amount}."
-  notice_sold: "🤝 سفارشتان در {city} انجام شد: {item} فروختید - {qty} عدد، هر عدد {price}، روی هم {amount}؛ کارمزد بازار {fee} بود."
   notice_expired_buy: "⏳ مهلت سفارش {no} برای {item} تمام شد و {left} عدد خریده نشد. مبلغ کنارگذاشته به شما برگشت."
   notice_expired_sell: "⏳ مهلت سفارش {no} برای {item} تمام شد و {left} عدد فروخته نشد. به کوله‌پشتی‌تان برگشت."
   button:
@@ -1689,10 +1562,6 @@ auction:
     open: باز
     sold: فروخته شد
     unsold: فروخته نشد
-  notice_outbid: "🔨 در حراج {no} ({item}) کسی پیشنهاد بالاتری داد. {amount} به شما برگشت."
-  notice_won: "🏆 حراج {no} را بردید: {item} به {amount}. در کوله‌پشتی‌تان است."
-  notice_sold: "🔨 حراج {no}: {item} به {amount} فروخته شد؛ کارمزد {fee} بود."
-  notice_unsold: "🔨 حراج {no} بدون فروش تمام شد. {item} به کوله‌پشتی‌تان برگشت."
   button:
     house: "🔨 حراجی"
     mine: "📋 حراج‌های من"
@@ -1787,11 +1656,6 @@ election:
     standing: "شما همین حالا نامزد {election} هستید."
     voted: "شما در {election} رأی داده‌اید و هر نفر فقط یک بار رأی می‌دهد."
     incompatible: منصبی دارید که با این منصب قابل جمع نیست.
-  notice:
-    won: "🏆 تبریک! در {election} برگزیده شدید: {votes} رأی از {cast} رأی."
-    lost: "🗳 در {election} برگزیده نشدید: {votes} رأی از {cast} رأی به دست آوردید."
-    deposit_back: "💰 ودیعهٔ {deposit} به شما برگشت."
-    deposit_kept: "💰 آرای شما به حد لازم نرسید و ودیعهٔ {deposit} به خزانهٔ شهرتان رفت."
 
 # شرکت‌های بازیکنان (internal/telegram/screens/companies.go،
 # docs/adr/0020-companies.md). واژه‌ها: شرکت 🏢، ثبت شرکت، مالک، مدیر،
@@ -2745,8 +2609,6 @@ diplomacy:
     technology: "⛔ تحریم فناوری میان {imposer} و {target} فروش این لایسنس را ممنوع می‌کند."
     travel: "⛔ ممنوعیت سفر میان {imposer} و {target} این مسیر را بسته است."
     financial: "⛔ تحریم مالی میان {imposer} و {target} پرداخت کارتی میان مردم دو کشور را ممنوع می‌کند."
-  notice:
-    proposed: "📨 {country} به ما پیشنهاد {kind} داده است (شمارهٔ {no}). تا {in} دیگر پاسخ دهید."
   announce:
     imposed: "⛔ {imposer} به دلیل {ground}، {measures} را بر {target} وضع کرد."
     lifted: "🕊 {imposer} تحریم‌هایش بر {target} را لغو کرد."
@@ -2990,11 +2852,6 @@ health:
     doctor: "👨‍⚕️ بهترین پزشک: سطح {level} پزشکی - هر درمان {share}٪ از زمان بستری را کم می‌کند"
     earned: "📈 درمان‌ها: {count} - درآمد: {earned}"
     help: "بیماران در بیمارستان شهر، این درمانگاه را کنار بیمارستان شهر می‌بینند. هر درمان داروی انبار را مصرف می‌کند و هزینه‌اش به حساب درمانگاه واریز می‌شود."
-  notice:
-    hospitalised: "🚑 {damage} از سلامتتان کم شد و در {city} به بیمارستان منتقل شدید. سلامت: {health} از {max}"
-    blocks: "تا ترخیص نمی‌توانید سفر کنید، سر کار بروید، در شهر جابه‌جا شوید یا خلاف کنید. درمان، بستری را کوتاه می‌کند."
-    discharged: "🏥 از بیمارستان {city} مرخص شدید. سلامت: {health} از {max}"
-    clinic_treated: "🩺 درمانگاه {name} بیماری را درمان کرد: {patient}. {price} به حساب درمانگاه واریز شد و {units} واحد {item} مصرف شد؛ بیمار {saved} زودتر مرخص می‌شود."
   announce:
     hospitalised: "🚑 {player} در {city} به بیمارستان منتقل شد."
   button:
@@ -3104,14 +2961,6 @@ faction:
     succeeded: "موفق بود"
     escaped: "خراب شد؛ گروه فرار کرد"
     caught: "خراب شد؛ گروه دستگیر شد"
-  notice:
-    invite: "📨 {player} شما را به {faction} دعوت کرد."
-    apply: "📨 {player} می‌خواهد به {faction} بپیوندد."
-    answer_invite_accepted: "🤝 {player} دعوت شما را پذیرفت و به {faction} پیوست."
-    answer_invite_declined: "{player} دعوت {faction} را نپذیرفت."
-    answer_apply_accepted: "🤝 درخواست شما پذیرفته شد: اکنون عضو {faction} هستید."
-    answer_apply_declined: "درخواست عضویت شما در {faction} پذیرفته نشد."
-    kicked: "🚪 {player} شما را از {faction} اخراج کرد."
   announce:
     founded: "🏴 {player} جناح {faction} را تأسیس کرد."
     joined: "🤝 {player} به {faction} پیوست."
@@ -3279,10 +3128,6 @@ mission:
     delivered: "📦 {qty} واحد برای «{mission}» تحویل داده شد."
     completed: "🎉 مأموریت «{mission}» انجام شد."
     abandoned: "✖️ مأموریت «{mission}» را رها کردید."
-  withheld: "⚖️ {amount} از پاداش به‌خاطر سقف روزانهٔ پاداش‌ها پرداخت نشد."
-  completed: "🎉 مأموریت «{mission}» انجام شد!"
-  paid: "💵 {cash} به پول نقدتان اضافه شد."
-  got_item: "🎒 {qty} {item} گرفتید."
   abandon_confirm: "مأموریت «{mission}» را رها می‌کنید؟ پیشرفتش از بین می‌رود."
   button:
     board: "📋 {board}"
@@ -3406,14 +3251,7 @@ budget_line:
 # hall، offer «آگهی» (for sale «فروش»، to let «اجاره»)، rent «اجاره‌بها»،
 # tenant «مستأجر»، landlord «موجر»، owner «مالک»، upkeep «هزینهٔ نگهداری»،
 # debt «بدهی»، repossessed «مصادره»، evicted «تخلیه».
-property:
-  notice_event:
-    sold: "💰 ملک #{no} ({type} در {city}) را {player} خرید؛ {amount} به حساب بانکی شما واریز شد."
-    let: "🔑 {player} ملک #{no} ({type} در {city}) را اجاره کرد؛ اجارهٔ دورهٔ اول، {amount}، به حساب بانکی شما واریز شد."
-    tenant_left: "🔑 {player} از ملک #{no} ({type} در {city}) رفت."
-    foreclosed: "⚠️ ملک #{no} ({type} در {city}) به خاطر بدهی پرداخت‌نشده به شهر برگشت."
-    evicted: "⚠️ اجارهٔ {type} در {city} چند دوره پرداخت نشد و قرارداد تمام شد."
-    evicted_tenant: "⚠️ مستأجر ملک #{no} ({type} در {city}) چند دوره اجاره نداد و قرارداد تمام شد."
+# Kinds of property, keyed on the kind's content code (property.yml).
 property_type:
   studio: آپارتمان یک‌خوابه
   apartment: آپارتمان دوخوابه
@@ -3425,9 +3263,6 @@ property_type:
 # Achievements (docs/adr/0024; configs/content/achievements.yml). Term:
 # achievement «دستاورد» 🏅.
 achievement:
-  notice: "🏅 دستاورد تازه: {achievement}!"
-  notice_cash: "💵 {cash} جایزه به پول نقدتان اضافه شد."
-  notice_withheld: "سقف روزانهٔ جایزه‌ها {amount} از آن را نگه داشت."
   button:
     list: "🏅 دستاوردها"
   first_shift:
@@ -3505,40 +3340,6 @@ defence:
 # message («📬 …») cmd/notifier edits in place as reports pile up, /inbox
 # itself grouped by category, and the 24h-unread reminder. A hunger notice
 # and the like still arrive at once; this is only for what waits.
-inbox:
-  badge:
-    empty: "📭 اعلان جدیدی ندارید."
-    title: "📬 {count} اعلان جدید دارید:"
-    category_line: "  • {category}: {count}"
-    teaser_line: "  ↳ {text}"
-    open_button: "📬 دیدن اعلان‌ها"
-  hub:
-    empty: "📭 صندوق اعلان‌هایتان خالی است."
-    title: "📬 {count} اعلان خوانده‌نشده:"
-    category_line: "• {category}: {count}"
-    open_button: "{category} ({count})"
-    read_all_button: "✅ خواندن همه"
-  category_title: "📂 {category}"
-  category_empty: "چیزی در این دسته نیست."
-  item_line: "▫️ {text} - {ago} پیش"
-  open_item_button: "🔗 مورد {n}"
-  reminder: "📬 {count} اعلان خوانده‌نشده در صندوقتان منتظر شماست."
-  category:
-    companies: "🏢 شرکت‌ها"
-    finance: "💰 مالی"
-    jobs: "💼 شغل"
-    market: "🛍 بازار"
-    government: "🏛 حکومت"
-    war: "⚔️ جنگ"
-    social: "👥 اجتماعی"
-    health: "❤️ سلامت"
-    crime: "🕵️ خلاف"
-    travel: "🧭 سفر"
-    education: "📖 آموزش"
-    property: "🏠 املاک"
-    achievements: "🏅 دستاوردها"
-    missions: "🎯 مأموریت‌ها"
-    life: "🧬 زندگی"
 
 # A character's life (docs/adr/0025-life-and-legacy.md): «🧬 زندگی من», the
 # player card, the life history, sleeping, the leaderboards.
@@ -3570,12 +3371,6 @@ life:
     investors_line: "{pos}. {name} - {value} سود - سبد {extra}"
     investors_tab: "📈 سرمایه‌گذاران"
     investors_hint: "سود سبد سرمایهٔ هر بازیکن از جدول قبل تا امروز: سهام به قیمت بازار، طلا و پس‌انداز، منهای آنچه در آن‌ها گذاشته است."
-  rank_up_notice: "{emoji} تبریک! رتبهٔ شما از {from} به {rank} رسید. دارایی خالص شما {worth} است."
-  rank_down_notice: "{emoji} رتبهٔ شما از {from} به {rank} رسید. دارایی خالص شما {worth} است؛ با کار و سرمایه‌گذاری دوباره بالا می‌روید."
-  hunger_low:
-    text: "🍽 شکم‌تان دارد اعتراض می‌کند! یک لقمه بخورید تا دوباره سرحال شوید."
-    eat_button: "🎒 خوردن از کوله"
-    shop_button: "🛒 خرید غذا"
   rank:
     newcomer: تازه‌کار
     breadwinner: نان‌آور
@@ -3762,15 +3557,6 @@ finance:
     own_company: "نمی‌شود با خودتان معامله کنید."
     fund_closed: "🛡 صندوق بیمه این بیمه را نمی‌فروشد."
     no_player: "🔎 بازیکنی پیدا نشد."
-  event:
-    due: "⏰ قسط وام شمارهٔ {no} ({product}) {amount} است و ساعت {time} برداشت می‌شود، اما حساب بانکی و نقد شما روی هم {other} است. پول کافی کنار بگذارید تا قسط عقب نیفتد."
-    missed: "🔴 قسط وام شمارهٔ {no} ({product}) پرداخت نشد. {other} جریمهٔ دیرکرد اضافه شد و امتیاز اعتباری‌تان پایین آمد. {count} قسط عقب‌افتاده دارید."
-    defaulted: "⛔ وام شمارهٔ {no} ({product}) نکول شد. {amount} از بدهی سوخت شد و در پرونده‌تان ماند."
-    pledge_defaulted: "🏚 وثیقهٔ این وام، {pledge}، به شهر برگشت و شهر {other} به بانک پرداخت."
-    repaid: "✅ وام شمارهٔ {no} ({product}) کامل تسویه شد. آفرین!"
-    claimed: "🛡 {product}: {amount} خسارت به حساب بانکی شما واریز شد."
-    lapsed: "🛡 حق بیمهٔ {product}، {amount}، پرداخت نشد و بیمه‌نامه باطل شد."
-    gone: "🛡 ملکی که {product} برایش بود دیگر مال شما نیست و بیمه‌نامه تمام شد."
 
 # The stock exchange (docs/adr/0026-finance.md section 5). Market data is
 # public; a holding and an order are the player's own.
@@ -3852,12 +3638,6 @@ stock:
     dividend: "💵 تقسیم سود"
     dividend_option: "{amount} (هر سهم {per_share})"
     dividend_yes: "✅ بله، سود پرداخت شود"
-  event:
-    filled_buy: "🤝 سفارش خرید شما پر شد: {qty} سهم «{company}» به {price}، جمعاً {amount}."
-    filled_sell: "🤝 سفارش فروش شما پر شد: {qty} سهم «{company}» به {price}؛ {amount} به حساب بانکی‌تان آمد."
-    dividend: "💵 «{company}» سود داد: {qty} سهم شما، هر سهم {price}، جمعاً {amount} به حساب بانکی‌تان آمد."
-    takeover: "👑 حالا {qty} سهم «{company}» مال شماست و اختیار شرکت با شماست."
-    takeover_lost: "⚠️ کسی بیش از نیمی از سهام «{company}» را خرید و اختیار شرکت با اوست."
 
 # The gold dealer (docs/adr/0026-finance.md section 6).
 gold:
@@ -4054,15 +3834,6 @@ recruit:
     contract_end: "قراردادش تمام شد و تمدید نشد"
     dismissed: "شرکت همکاری را تمام کرد"
     company_closed: "شرکت بسته شد"
-  notice:
-    applied: "📨 {company} - کارزار شمارهٔ {no}: {count} متخصص درخواست دادند."
-    hired: "✅ {name} ({what}) با پذیرش خودکار به {company} پیوست."
-    ended: "⌛️ {company} - کارزار شمارهٔ {no}: بررسی‌ها تمام شد."
-    filled: "✅ {company} - کارزار شمارهٔ {no}: همهٔ نفرات استخدام شدند."
-    completed: "📄 قرارداد {name} ({what}) در {company} تمام شد. تا تسویهٔ بعد تمدیدش کنید، وگرنه می‌رود."
-    equity: "📈 سهام مجازی‌اش {amount} نقد پرداخت شد."
-    left: "🚪 {name} ({what}) از {company} رفت: {reason}."
-    unpaid: "🔴 حقوق {name} ({what}) در {company} پرداخت نشد؛ پول آزاد شرکت کافی نبود."
   announce: "📢 آگهی استخدام - {company} ({type}) در پی {what} است؛ متخصصان {city} می‌توانند درخواست دهند."
 
 
@@ -4094,24 +3865,3 @@ presence:
 
 # خبرهای کوتاه روستا در گروه (internal/workers/notification/village_news.go).
 # یک خبر تنها با جملهٔ کامل می‌آید؛ چند خبر پشت‌سرهم یکی می‌شوند و فهرست‌وار.
-village_news:
-  built: "🏗 ساخت «{building}» در روستای «{village}» تمام شد."
-  build_started: "🚧 دهیار ساخت «{building}» را در روستای «{village}» شروع کرد."
-  researched: "🔬 پژوهش «{knowledge}» در روستای «{village}» تمام شد و روستا حالا آن را می‌داند."
-  bought: "📚 دهیار «{knowledge}» را برای روستای «{village}» خرید."
-  taught: "📖 سوادآموزی روستای «{village}» به {percent}٪ رسید."
-  resident_joined: "🏡 {player} ساکن روستای «{village}» شد."
-  donated: "💰 {player} {amount} ساپ به خزانهٔ روستا کمک کرد."
-  promoted: "🎉 «{village}» به {tier} ارتقا یافت! {player} اکنون {office} است و ساختمان‌ها و دانش تازه‌ای در دسترس است."
-  someone: "یک نفر"
-  merged:
-    title: "🏘 تازه‌های روستای «{village}»:"
-    built: "• 🏗 ساخت «{building}» تمام شد."
-    build_started: "• 🚧 ساخت «{building}» شروع شد."
-    researched: "• 🔬 پژوهش «{knowledge}» تمام شد."
-    bought: "• 📚 «{knowledge}» خریداری شد."
-    taught: "• 📖 سوادآموزی به {percent}٪ رسید."
-    resident_joined: "• 🏡 {player} ساکن روستا شد."
-    donated: "• 💰 {player} {amount} ساپ به خزانهٔ روستا کمک کرد."
-    promoted: "• 🎉 به {tier} ارتقا یافت؛ {player} اکنون {office} است."
-    more: "• و {count} خبر دیگر."

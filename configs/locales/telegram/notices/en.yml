@@ -1,0 +1,161 @@
+# Telegram wording (en) of notices and the inbox (what the notifier pushes), layered over configs/locales/en.yml by the catalogue loader.
+# Moved here with its screens (docs/adr/0039-presentation-split.md, section 7); a key is defined once across the layers.
+gov:
+  appoint:
+    notice: "🎖 You were appointed {office} of {place} by {by_office} {by}. Open «My office» to see what you now decide."
+  dismiss:
+    notice: "📭 You were removed from the office of {office} of {place} by {by_office} {by}."
+pay:
+  received_cash: "💵 {player} handed you {amount} in cash."
+  received_card: "💳 {player} sent you {amount} by card. The money is in your bank account."
+crime:
+  victim:
+    head: "👛 You were robbed at the {venue} in {city} ({crime}). You lost {amount}."
+    unseen: Nobody saw who did it.
+    seen: "👀 A witness saw who did it: {thief} ({code})."
+    report: "🚔 You can report it to the police. The report fee is {fee}, paid to the city."
+    item: "🎒 They also took your {item}."
+  case_closed: "🗂 Case closed: the police could not find who robbed you in {city}."
+  case_solved: "🚔 Case solved: the police caught {thief} ({code}) for the theft in {city} ({crime}). {restored} was returned to you."
+  case_shortfall: "{short} could not be recovered; it stays on their record."
+  case_item_returned: "🎒 Your {item} was returned to you."
+  convicted: "⚖️ Convicted: a theft you committed in {city} ({crime}) was traced to you. You returned {restored}, paid {fine} in fines and were sentenced to {term} in jail."
+  convicted_unpaid: "💸 Still unpaid: {restitution} owed to the victim and {fines} in fines. It stays on your record."
+market:
+  notice_bought: "🤝 Your order in {city} filled: you bought {item} - {qty} at {price} for {amount}."
+  notice_sold: "🤝 Your order in {city} filled: you sold {item} - {qty} at {price} for {amount}; the market fee was {fee}."
+auction:
+  notice_outbid: "🔨 You were outbid on auction {no} ({item}). Your {amount} came back to you."
+  notice_won: "🏆 You won auction {no}: {item} for {amount}. It is in your bag."
+  notice_sold: "🔨 Auction {no} sold {item} for {amount}; the fee was {fee}."
+  notice_unsold: "🔨 Auction {no} ended without a sale. {item} came back to your bag."
+election:
+  notice:
+    won: "🏆 Congratulations! You won the {election}: {votes} of {cast} votes."
+    lost: "🗳 You were not elected in the {election}: {votes} of {cast} votes."
+    deposit_back: "💰 Your deposit of {deposit} came back to you."
+    deposit_kept: "💰 Too few votes: your deposit of {deposit} went to your city's treasury."
+diplomacy:
+  notice:
+    proposed: "📨 {country} proposes a {kind} to us (No. {no}). Answer within {in}."
+health:
+  notice:
+    hospitalised: "🚑 You lost {damage} health and were taken to hospital in {city}. Health: {health} of {max}"
+    blocks: "Until you are discharged you cannot travel, work a shift, walk across town or commit a crime. Treatment shortens the stay."
+    discharged: "🏥 You were discharged from hospital in {city}. Health: {health} of {max}"
+    clinic_treated: "🩺 {name} clinic treated a patient: {patient}. {price} was paid to the clinic and {units} {item} used; the patient is out {saved} sooner."
+faction:
+  notice:
+    invite: "📨 {player} invited you to {faction}."
+    apply: "📨 {player} wants to join {faction}."
+    answer_invite_accepted: "🤝 {player} accepted your invitation and joined {faction}."
+    answer_invite_declined: "{player} turned down {faction}'s invitation."
+    answer_apply_accepted: "🤝 You were accepted: you are now a member of {faction}."
+    answer_apply_declined: "Your application to {faction} was turned down."
+    kicked: "🚪 {player} removed you from {faction}."
+mission:
+  withheld: "⚖️ {amount} of the reward was not paid: the day's cap on rewards."
+  completed: "🎉 «{mission}» is done!"
+  paid: "💵 {cash} went into your cash."
+  got_item: "🎒 You got {qty} {item}."
+property:
+  notice_event:
+    sold: "💰 {player} bought property #{no} ({type} in {city}); {amount} was paid into your bank."
+    let: "🔑 {player} rented property #{no} ({type} in {city}); the first period's rent, {amount}, was paid into your bank."
+    tenant_left: "🔑 {player} left property #{no} ({type} in {city})."
+    foreclosed: "⚠️ Property #{no} ({type} in {city}) went back to the city for its unpaid debt."
+    evicted: "⚠️ The rent of the {type} in {city} went unpaid for several periods, and the lease has ended."
+    evicted_tenant: "⚠️ The tenant of property #{no} ({type} in {city}) paid no rent for several periods, and the lease has ended."
+achievement:
+  notice: "🏅 New achievement: {achievement}!"
+  notice_cash: "💵 A reward of {cash} was added to your cash."
+  notice_withheld: "The day's cap on rewards held back {amount} of it."
+inbox:
+  badge:
+    empty: "📭 No new notifications."
+    title: "📬 You have {count} new notifications:"
+    category_line: "  • {category}: {count}"
+    teaser_line: "  ↳ {text}"
+    open_button: "📬 Open notifications"
+  hub:
+    empty: "📭 Your inbox is empty."
+    title: "📬 {count} notifications came in:"
+    category_line: "• {category}: {count}"
+    open_button: "{category} ({count})"
+    read_all_button: "✅ Mark all read"
+  category_title: "📂 {category}"
+  category_empty: "Nothing in this category."
+  item_line: "▫️ {text} - {ago} ago"
+  open_item_button: "🔗 Item {n}"
+  reminder: "📬 {count} unread notifications are waiting for you."
+  category:
+    companies: "🏢 Companies"
+    finance: "💰 Finance"
+    jobs: "💼 Jobs"
+    market: "🛍 Market"
+    government: "🏛 Government"
+    war: "⚔️ War"
+    social: "👥 Social"
+    health: "❤️ Health"
+    crime: "🕵️ Crime"
+    travel: "🧭 Travel"
+    education: "📖 Education"
+    property: "🏠 Property"
+    achievements: "🏅 Achievements"
+    missions: "🎯 Missions"
+    life: "🧬 Life"
+life:
+  rank_up_notice: "{emoji} Congratulations! Your rank rose from {from} to {rank}. You are worth {worth}."
+  rank_down_notice: "{emoji} Your rank went from {from} to {rank}. You are worth {worth}; work and investing bring it back."
+  hunger_low:
+    text: "🍽 Your stomach's staging a protest! Grab a bite and get your spark back."
+    eat_button: "🎒 Eat from my bag"
+    shop_button: "🛒 Buy food"
+finance:
+  event:
+    due: "⏰ Loan {no} ({product}) takes {amount} at {time}, but your bank account and cash hold {other} together. Set enough aside so the instalment is not missed."
+    missed: "🔴 An instalment of loan {no} ({product}) went unpaid. A late fee of {other} was added and your credit score fell. {count} instalments are overdue."
+    defaulted: "⛔ Loan {no} ({product}) defaulted. {amount} was written off and stays on your record."
+    pledge_defaulted: "🏚 Its collateral, {pledge}, went back to the city, which paid the bank {other}."
+    repaid: "✅ Loan {no} ({product}) is repaid in full. Well done!"
+    claimed: "🛡 {product}: {amount} was paid into your bank account for your loss."
+    lapsed: "🛡 The premium of your {product}, {amount}, went unpaid and the policy lapsed."
+    gone: "🛡 The property your {product} covered is no longer yours; the policy ended."
+stock:
+  event:
+    filled_buy: "🤝 Your buy order filled: {qty} shares of {company} at {price}, {amount} in all."
+    filled_sell: "🤝 Your sell order filled: {qty} shares of {company} at {price}; {amount} went to your bank account."
+    dividend: "💵 {company} paid a dividend: your {qty} shares at {price} each, {amount} to your bank account."
+    takeover: "👑 You now hold {qty} shares of {company} and control it."
+    takeover_lost: "⚠️ Someone bought more than half of {company} and now controls it."
+recruit:
+  notice:
+    applied: "📨 {company} - campaign No. {no}: {count} specialists applied."
+    hired: "✅ {name} ({what}) joined {company} by auto-hire."
+    ended: "⌛️ {company} - campaign No. {no}: the checks are over."
+    filled: "✅ {company} - campaign No. {no}: every position is filled."
+    completed: "📄 {name}'s ({what}) contract at {company} is completed. Renew it before the next settlement, or they leave."
+    equity: "📈 Their phantom shares were paid: {amount}."
+    left: "🚪 {name} ({what}) left {company}: {reason}."
+    unpaid: "🔴 {name}'s ({what}) pay at {company} was not paid; the company's free money fell short."
+village_news:
+  built: "🏗 Construction of the {building} in {village} is finished."
+  build_started: "🚧 The village head started building the {building} in {village}."
+  researched: "🔬 Research into {knowledge} in {village} is finished; the village now knows it."
+  bought: "📚 The village head bought {knowledge} for {village}."
+  taught: "📖 Literacy in {village} reached {percent}%."
+  resident_joined: "🏡 {player} became a resident of {village}."
+  donated: "💰 {player} gave {amount} to the village treasury."
+  promoted: "🎉 {village} has grown into a {tier}! {player} is now the {office}, and new buildings and knowledge are open."
+  someone: "Someone"
+  merged:
+    title: "🏘 News from {village}:"
+    built: "• 🏗 The {building} is built."
+    build_started: "• 🚧 Building the {building} has started."
+    researched: "• 🔬 Research into {knowledge} is finished."
+    bought: "• 📚 {knowledge} was bought."
+    taught: "• 📖 Literacy reached {percent}%."
+    resident_joined: "• 🏡 {player} moved in."
+    donated: "• 💰 {player} gave {amount} to the village treasury."
+    promoted: "• 🎉 Grew into a {tier}; {player} is now the {office}."
+    more: "• and {count} more."

@@ -374,7 +374,6 @@ gov:
     confirm: "👤 Appoint {player} as {office} of {place}?\nThey take the seat at once; you can remove them later if your office may."
     done: "✅ {player} is now {office} of {place}."
     term: "The term runs {term}."
-    notice: "🎖 You were appointed {office} of {place} by {by_office} {by}. Open «My office» to see what you now decide."
     announce: "🎖 {player} was appointed {office} of {place}."
     refused:
       not_appointer: "Only the {office} can do that. If you held that office, you may have been replaced."
@@ -383,7 +382,6 @@ gov:
   dismiss:
     confirm: "✖️ Remove {player} from the office of {office} of {place}?\nThe seat falls vacant at once and the deputy acts for it, if there is one."
     done: "✅ {player} is no longer {office} of {place}."
-    notice: "📭 You were removed from the office of {office} of {place} by {by_office} {by}."
 
 # Office names, keyed on the office's content code (configs/content/governance.yml).
 office:
@@ -517,109 +515,10 @@ settlement_building:
 
 # Group founding (docs/adr/0028-world-and-settlements.md section 3): a group
 # admin registers the group and the game places the new village on the map.
-settlement:
-  found:
-    title: "🏡 A new village has been founded!"
-    body: |-
-      This group has founded the village of "{name}" near {feature}.
-      Terrain: {biome}
-      Starting buildings: {buildings}
-      This village is protected from attack until {protection}.
-    unnamed_feature: "an unnamed land"
-    # The founding form adds these to the announcement (docs/adr/0028 section 3).
-    emblem: "Emblem: {emblem}"
-    motto: "\"{motto}\""
-    founder: "👤 Village head: {founder}"
-    currency: "🪙 National currency: {name} ({code}) - reserved for the day this village becomes a country; until then Sup is used."
-    group_only: "🏡 Founding a village only works inside a group. Add the bot to your group and send this command there."
-    no_world: "🌍 The world map is not ready yet. Try again shortly."
-    already:
-      title: "🏡 This group has already founded the village of \"{name}\"."
-      body: "Each group founds only one village; grow it from your village's own government instead."
 
 # The founding form (docs/adr/0028-world-and-settlements.md section 3): "found
 # village" opens a draft in the group; the founder completes the village's
 # details in the game client, and only submitting the form founds the village.
-founding:
-  draft:
-    title: "📝 Complete the village details"
-    body: "{founder} wants to found a village for this group, but first has to complete its details: the village's name, national currency, emblem and motto. The button below opens the game; once the form is submitted the village is founded and announced here."
-    deadline: "⏳ Time to complete it: {minutes} minutes. If it runs out nothing is built and you may send \"found village\" again."
-    hint: "If the button does not open, open the game from the bot's private chat; the form is waiting there."
-    pending_title: "📝 {founder} is completing this group's village details."
-    pending_body: "Only they can submit the form, but you can look at it. If it is not done within {minutes} minutes, send \"found village\" again."
-    button: "📝 Complete village details"
-  form:
-    title: "📝 Village details"
-    mine: "Choose the village's name, national currency, emblem and motto, then submit the form."
-    other: "{founder} is completing this form; only they can submit it."
-    done: "🏡 The village of \"{name}\" has been founded."
-  checked: "✅ The form is fine; you can found the village of \"{name}\"."
-  refusal:
-    no_draft: "📝 No village form was found. Send \"found village\" in the group."
-    expired: "⏳ This form ran out of time and no village was built. Send \"found village\" in the group again."
-    not_founder: "🔒 Only the player who asked to found the village can submit this form."
-    already: "🏡 This group has already founded the village of \"{name}\"."
-    invalid: "⚠️ A few things in the form need fixing:"
-    no_world: "🌍 The world map is not ready yet. Try again shortly."
-    group_only: "🏡 Founding a village only works inside a group. Add the bot to your group and send \"found village\" there."
-    unavailable: "🛠 The village form is unavailable for now. Try again shortly."
-  problem:
-    name_short: "The village name needs at least {name_min} characters."
-    name_long: "The village name can have at most {name_max} characters."
-    name_chars: "The village name may only use Persian or Latin letters and spaces; no digits or symbols."
-    name_link: "The village name cannot be a link, a handle or an address."
-    name_forbidden: "That name is not allowed; pick another."
-    name_reserved: "That name is reserved by the game."
-    name_taken: "Another village already has that name."
-    motto_long: "The motto can have at most {motto_max} characters."
-    motto_chars: "The motto may only use letters, digits and simple punctuation."
-    motto_link: "The motto cannot contain a link or a handle."
-    motto_forbidden: "That motto is not allowed."
-    currency_name_short: "The currency name needs at least {currency_name_min} characters."
-    currency_name_long: "The currency name can have at most {currency_name_max} characters."
-    currency_name_chars: "The currency name may only use Persian or Latin letters and spaces."
-    currency_name_forbidden: "That currency name is not allowed."
-    currency_name_taken: "Another village has already taken that currency name."
-    currency_code_format: "The currency code must be exactly {code_len} capital Latin letters, like KRD."
-    currency_code_reserved: "That code is reserved for the game's or the real world's currencies."
-    currency_code_forbidden: "That code is not allowed."
-    currency_code_taken: "Another village has already taken that currency code."
-    currency_symbol_invalid: "The currency symbol must be 1 to {symbol_max} characters, without spaces."
-    emblem_invalid: "The emblem is incomplete; pick a shape, an icon and two different colours."
-  shape:
-    shield: "Shield"
-    circle: "Circle"
-    banner: "Banner"
-    diamond: "Diamond"
-    hexagon: "Hexagon"
-  color:
-    crimson: "Crimson"
-    orange: "Orange"
-    gold: "Gold"
-    green: "Green"
-    azure: "Azure"
-    violet: "Violet"
-    brown: "Brown"
-    ivory: "Ivory"
-    slate: "Slate"
-  icon:
-    wheat: "Wheat"
-    tree: "Tree"
-    mountain: "Mountain"
-    wave: "Wave"
-    sun: "Sun"
-    moon: "Moon"
-    star: "Star"
-    tower: "Tower"
-    anchor: "Anchor"
-    hammer: "Hammer"
-    flame: "Flame"
-    crown: "Crown"
-    key: "Key"
-    book: "Book"
-    horse: "Horse"
-    fish: "Fish"
 
 # Playing in a group (internal/gateway/groups). A screen with a player's own
 # details is shown only to that player; these lines are all the rest of the
@@ -735,8 +634,6 @@ pay:
   sent_card: "✅ You sent {amount} by card to {player}."
   sent_fee: "Fee: {fee}"
   not_together: "{player} is not here with you, so you cannot hand over cash. Send the money by card instead — card payments work from anywhere."
-  received_cash: "💵 {player} handed you {amount} in cash."
-  received_card: "💳 {player} sent you {amount} by card. The money is in your bank account."
   announced: "💸 {payer} paid {payee}."
   held: "⏸ Your payment of {amount} to {player} is held for review. It has left your purse and waits in your escrow; after the review it reaches {player} or comes back to you."
 
@@ -1091,12 +988,7 @@ crime:
   bailed_public: "🔓 {player} paid bail and walked out of jail."
   released: "🔓 Your sentence in {city} is served. You are free."
   victim:
-    head: "👛 You were robbed at the {venue} in {city} ({crime}). You lost {amount}."
-    unseen: Nobody saw who did it.
-    seen: "👀 A witness saw who did it: {thief} ({code})."
-    report: "🚔 You can report it to the police. The report fee is {fee}, paid to the city."
     report_by: "⏳ You have {duration} to report it."
-    item: "🎒 They also took your {item}."
   report:
     confirm: "🚔 Report the theft in {city} ({crime})? You lost {amount}. The police charge a report fee of {fee}, paid to the city, and the investigation takes about {duration}."
     filed: "🗂 Report filed. The police are investigating; you will hear the outcome in about {duration}."
@@ -1110,12 +1002,6 @@ crime:
     closing: "• {crime} in {city} - {amount} - the outcome is due any moment"
     solved: "• {crime} in {city} - {amount} - solved: {thief} - {restored} returned"
     unsolved: "• {crime} in {city} - {amount} - closed, unsolved"
-  case_closed: "🗂 Case closed: the police could not find who robbed you in {city}."
-  case_solved: "🚔 Case solved: the police caught {thief} ({code}) for the theft in {city} ({crime}). {restored} was returned to you."
-  case_shortfall: "{short} could not be recovered; it stays on their record."
-  case_item_returned: "🎒 Your {item} was returned to you."
-  convicted: "⚖️ Convicted: a theft you committed in {city} ({crime}) was traced to you. You returned {restored}, paid {fine} in fines and were sentenced to {term} in jail."
-  convicted_unpaid: "💸 Still unpaid: {restitution} owed to the victim and {fines} in fines. It stays on your record."
   refused:
     requirements: "🔒 {crime}: not yet. You still need:"
     not_found: That crime does not exist. Choose one from the underworld.
@@ -1514,8 +1400,6 @@ market:
     filled: filled
     cancelled: cancelled
     expired: expired
-  notice_bought: "🤝 Your order in {city} filled: you bought {item} - {qty} at {price} for {amount}."
-  notice_sold: "🤝 Your order in {city} filled: you sold {item} - {qty} at {price} for {amount}; the market fee was {fee}."
   notice_expired_buy: "⏳ Order {no} for {item} ended with {left} unbought. The money set aside came back to you."
   notice_expired_sell: "⏳ Order {no} for {item} ended with {left} unsold. It came back to your bag."
   button:
@@ -1572,10 +1456,6 @@ auction:
     open: open
     sold: sold
     unsold: unsold
-  notice_outbid: "🔨 You were outbid on auction {no} ({item}). Your {amount} came back to you."
-  notice_won: "🏆 You won auction {no}: {item} for {amount}. It is in your bag."
-  notice_sold: "🔨 Auction {no} sold {item} for {amount}; the fee was {fee}."
-  notice_unsold: "🔨 Auction {no} ended without a sale. {item} came back to your bag."
   button:
     house: "🔨 Auction house"
     mine: "📋 My auctions"
@@ -1670,11 +1550,6 @@ election:
     standing: "You are already a candidate in the {election}."
     voted: "You have already voted in the {election}; everyone votes once."
     incompatible: "You hold an office that cannot be held with this one."
-  notice:
-    won: "🏆 Congratulations! You won the {election}: {votes} of {cast} votes."
-    lost: "🗳 You were not elected in the {election}: {votes} of {cast} votes."
-    deposit_back: "💰 Your deposit of {deposit} came back to you."
-    deposit_kept: "💰 Too few votes: your deposit of {deposit} went to your city's treasury."
 
 # Player companies (internal/telegram/screens/companies.go,
 # docs/adr/0020-companies.md). A kind of business is company_type.<code>.
@@ -2626,8 +2501,6 @@ diplomacy:
     technology: "⛔ A technology ban between {imposer} and {target} forbids this license."
     travel: "⛔ A travel ban between {imposer} and {target} closes this route."
     financial: "⛔ Financial sanctions between {imposer} and {target} forbid card payments between their people."
-  notice:
-    proposed: "📨 {country} proposes a {kind} to us (No. {no}). Answer within {in}."
   announce:
     imposed: "⛔ {imposer} imposed {measures} on {target}, for {ground}."
     lifted: "🕊 {imposer} lifted its sanctions on {target}."
@@ -2871,11 +2744,6 @@ health:
     doctor: "👨‍⚕️ Best doctor: medicine level {level} - a treatment takes {share}% off a stay"
     earned: "📈 Treatments: {count} - earned: {earned}"
     help: "Patients in the city's hospital see this clinic beside the city hospital. Each treatment uses medicine from the warehouse and pays the clinic."
-  notice:
-    hospitalised: "🚑 You lost {damage} health and were taken to hospital in {city}. Health: {health} of {max}"
-    blocks: "Until you are discharged you cannot travel, work a shift, walk across town or commit a crime. Treatment shortens the stay."
-    discharged: "🏥 You were discharged from hospital in {city}. Health: {health} of {max}"
-    clinic_treated: "🩺 {name} clinic treated a patient: {patient}. {price} was paid to the clinic and {units} {item} used; the patient is out {saved} sooner."
   announce:
     hospitalised: "🚑 {player} was taken to hospital in {city}."
   button:
@@ -2985,14 +2853,6 @@ faction:
     succeeded: "went to plan"
     escaped: "went wrong; the crew got away"
     caught: "went wrong; the crew was caught"
-  notice:
-    invite: "📨 {player} invited you to {faction}."
-    apply: "📨 {player} wants to join {faction}."
-    answer_invite_accepted: "🤝 {player} accepted your invitation and joined {faction}."
-    answer_invite_declined: "{player} turned down {faction}'s invitation."
-    answer_apply_accepted: "🤝 You were accepted: you are now a member of {faction}."
-    answer_apply_declined: "Your application to {faction} was turned down."
-    kicked: "🚪 {player} removed you from {faction}."
   announce:
     founded: "🏴 {player} founded {faction}."
     joined: "🤝 {player} joined {faction}."
@@ -3160,10 +3020,6 @@ mission:
     delivered: "📦 {qty} units handed in for «{mission}»."
     completed: "🎉 «{mission}» is done."
     abandoned: "✖️ You gave up «{mission}»."
-  withheld: "⚖️ {amount} of the reward was not paid: the day's cap on rewards."
-  completed: "🎉 «{mission}» is done!"
-  paid: "💵 {cash} went into your cash."
-  got_item: "🎒 You got {qty} {item}."
   abandon_confirm: "Give up «{mission}»? Its progress is lost."
   button:
     board: "📋 {board}"
@@ -3276,14 +3132,7 @@ budget_line:
   defence: Defence contribution
 
 # Property (docs/adr/0024-property-and-politics.md).
-property:
-  notice_event:
-    sold: "💰 {player} bought property #{no} ({type} in {city}); {amount} was paid into your bank."
-    let: "🔑 {player} rented property #{no} ({type} in {city}); the first period's rent, {amount}, was paid into your bank."
-    tenant_left: "🔑 {player} left property #{no} ({type} in {city})."
-    foreclosed: "⚠️ Property #{no} ({type} in {city}) went back to the city for its unpaid debt."
-    evicted: "⚠️ The rent of the {type} in {city} went unpaid for several periods, and the lease has ended."
-    evicted_tenant: "⚠️ The tenant of property #{no} ({type} in {city}) paid no rent for several periods, and the lease has ended."
+# Kinds of property, keyed on the kind's content code (property.yml).
 property_type:
   studio: Studio flat
   apartment: Two-room apartment
@@ -3294,9 +3143,6 @@ property_type:
 
 # Achievements (docs/adr/0024; configs/content/achievements.yml).
 achievement:
-  notice: "🏅 New achievement: {achievement}!"
-  notice_cash: "💵 A reward of {cash} was added to your cash."
-  notice_withheld: "The day's cap on rewards held back {amount} of it."
   button:
     list: "🏅 Achievements"
   first_shift:
@@ -3374,40 +3220,6 @@ defence:
 # message («📬 …») cmd/notifier edits in place as reports pile up, /inbox
 # itself grouped by category, and the 24h-unread reminder. A hunger notice
 # and the like still arrive at once; this is only for what waits.
-inbox:
-  badge:
-    empty: "📭 No new notifications."
-    title: "📬 You have {count} new notifications:"
-    category_line: "  • {category}: {count}"
-    teaser_line: "  ↳ {text}"
-    open_button: "📬 Open notifications"
-  hub:
-    empty: "📭 Your inbox is empty."
-    title: "📬 {count} notifications came in:"
-    category_line: "• {category}: {count}"
-    open_button: "{category} ({count})"
-    read_all_button: "✅ Mark all read"
-  category_title: "📂 {category}"
-  category_empty: "Nothing in this category."
-  item_line: "▫️ {text} - {ago} ago"
-  open_item_button: "🔗 Item {n}"
-  reminder: "📬 {count} unread notifications are waiting for you."
-  category:
-    companies: "🏢 Companies"
-    finance: "💰 Finance"
-    jobs: "💼 Jobs"
-    market: "🛍 Market"
-    government: "🏛 Government"
-    war: "⚔️ War"
-    social: "👥 Social"
-    health: "❤️ Health"
-    crime: "🕵️ Crime"
-    travel: "🧭 Travel"
-    education: "📖 Education"
-    property: "🏠 Property"
-    achievements: "🏅 Achievements"
-    missions: "🎯 Missions"
-    life: "🧬 Life"
 
 # A character's life (docs/adr/0025-life-and-legacy.md).
 life:
@@ -3438,12 +3250,6 @@ life:
     investors_line: "{pos}. {name} - {value} gained - portfolio {extra}"
     investors_tab: "📈 Investors"
     investors_hint: "What each player's portfolio — shares at market price, gold and savings, less what they put in — gained since the last board."
-  rank_up_notice: "{emoji} Congratulations! Your rank rose from {from} to {rank}. You are worth {worth}."
-  rank_down_notice: "{emoji} Your rank went from {from} to {rank}. You are worth {worth}; work and investing bring it back."
-  hunger_low:
-    text: "🍽 Your stomach's staging a protest! Grab a bite and get your spark back."
-    eat_button: "🎒 Eat from my bag"
-    shop_button: "🛒 Buy food"
   rank:
     newcomer: Newcomer
     breadwinner: Breadwinner
@@ -3629,15 +3435,6 @@ finance:
     own_company: "You cannot trade with yourself."
     fund_closed: "🛡 The fund does not sell that policy."
     no_player: "🔎 No such player."
-  event:
-    due: "⏰ Loan {no} ({product}) takes {amount} at {time}, but your bank account and cash hold {other} together. Set enough aside so the instalment is not missed."
-    missed: "🔴 An instalment of loan {no} ({product}) went unpaid. A late fee of {other} was added and your credit score fell. {count} instalments are overdue."
-    defaulted: "⛔ Loan {no} ({product}) defaulted. {amount} was written off and stays on your record."
-    pledge_defaulted: "🏚 Its collateral, {pledge}, went back to the city, which paid the bank {other}."
-    repaid: "✅ Loan {no} ({product}) is repaid in full. Well done!"
-    claimed: "🛡 {product}: {amount} was paid into your bank account for your loss."
-    lapsed: "🛡 The premium of your {product}, {amount}, went unpaid and the policy lapsed."
-    gone: "🛡 The property your {product} covered is no longer yours; the policy ended."
 
 # The stock exchange (docs/adr/0026-finance.md section 5).
 stock:
@@ -3718,12 +3515,6 @@ stock:
     dividend: "💵 Pay a dividend"
     dividend_option: "{amount} ({per_share} a share)"
     dividend_yes: "✅ Yes, pay it"
-  event:
-    filled_buy: "🤝 Your buy order filled: {qty} shares of {company} at {price}, {amount} in all."
-    filled_sell: "🤝 Your sell order filled: {qty} shares of {company} at {price}; {amount} went to your bank account."
-    dividend: "💵 {company} paid a dividend: your {qty} shares at {price} each, {amount} to your bank account."
-    takeover: "👑 You now hold {qty} shares of {company} and control it."
-    takeover_lost: "⚠️ Someone bought more than half of {company} and now controls it."
 
 # The gold dealer (docs/adr/0026-finance.md section 6).
 gold:
@@ -3920,15 +3711,6 @@ recruit:
     contract_end: "their contract ended unrenewed"
     dismissed: "the company parted ways"
     company_closed: "the company closed"
-  notice:
-    applied: "📨 {company} - campaign No. {no}: {count} specialists applied."
-    hired: "✅ {name} ({what}) joined {company} by auto-hire."
-    ended: "⌛️ {company} - campaign No. {no}: the checks are over."
-    filled: "✅ {company} - campaign No. {no}: every position is filled."
-    completed: "📄 {name}'s ({what}) contract at {company} is completed. Renew it before the next settlement, or they leave."
-    equity: "📈 Their phantom shares were paid: {amount}."
-    left: "🚪 {name} ({what}) left {company}: {reason}."
-    unpaid: "🔴 {name}'s ({what}) pay at {company} was not paid; the company's free money fell short."
   announce: "📢 Job advertisement - {company} ({type}) is looking for {what}; specialists of {city} may apply."
 
 
@@ -3960,24 +3742,3 @@ presence:
 
 # Short village news in the group (internal/workers/notification/village_news.go).
 # One item reads as a full sentence; a burst is merged into one short list.
-village_news:
-  built: "🏗 Construction of the {building} in {village} is finished."
-  build_started: "🚧 The village head started building the {building} in {village}."
-  researched: "🔬 Research into {knowledge} in {village} is finished; the village now knows it."
-  bought: "📚 The village head bought {knowledge} for {village}."
-  taught: "📖 Literacy in {village} reached {percent}%."
-  resident_joined: "🏡 {player} became a resident of {village}."
-  donated: "💰 {player} gave {amount} to the village treasury."
-  promoted: "🎉 {village} has grown into a {tier}! {player} is now the {office}, and new buildings and knowledge are open."
-  someone: "Someone"
-  merged:
-    title: "🏘 News from {village}:"
-    built: "• 🏗 The {building} is built."
-    build_started: "• 🚧 Building the {building} has started."
-    researched: "• 🔬 Research into {knowledge} is finished."
-    bought: "• 📚 {knowledge} was bought."
-    taught: "• 📖 Literacy reached {percent}%."
-    resident_joined: "• 🏡 {player} moved in."
-    donated: "• 💰 {player} gave {amount} to the village treasury."
-    promoted: "• 🎉 Grew into a {tier}; {player} is now the {office}."
-    more: "• and {count} more."

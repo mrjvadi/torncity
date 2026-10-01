@@ -314,18 +314,6 @@ func ScreenOf(resp *presenter.Response, command string, policy *groups.Policy, m
 			out.Error = &APIError{Code: "village_" + v.Kind, Message: resp.Text}
 		}
 	}
-	if screen == screens.ScreenFoundingRefusal {
-		// A refused founding form is an error too (contract 1.3): the code is
-		// founding_<kind>, and for founding_invalid the view lists the coded
-		// problems by field.
-		var v struct {
-			Kind string `json:"kind"`
-		}
-		if json.Unmarshal(resp.View, &v) == nil && v.Kind != "" {
-			out.OK = false
-			out.Error = &APIError{Code: "founding_" + v.Kind, Message: resp.Text}
-		}
-	}
 	return out
 }
 

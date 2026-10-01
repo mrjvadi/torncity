@@ -74,8 +74,53 @@ func TestNoticeIsAlsoPublishedToThePlayersChannel(t *testing.T) {
 	p := pubs[0]
 	data, _ := p["data"].(map[string]any)
 	if p["channel"] != "player:"+playerID || data["type"] != "notice" || data["kind"] != "travel.completed" ||
-		data["text"] != r.sender.sent[0].notice.Response.Text || !strings.HasPrefix(p["idempotency_key"].(string), "req-rt:") {
+		!strings.HasPrefix(p["idempotency_key"].(string), "req-rt:") {
 		t.Errorf("publication = %v", p)
+	}
+	// What the web is told is data: never the sentence Telegram was sent.
+	if _, has := data["text"]; has {
+		t.Errorf("a realtime notice carries Telegram's text: %v", data)
+	}
+}
+
+// A notice carried as data reaches the web as its code (the screen), its view
+// and where the player may go next, with the arguments named as the command
+// takes them, and not one word of Telegram.
+func TestNeutralNoticeIsPublishedAsCodeAndView(t *testing.T) {
+	r := newRig(t, englishPlayer(), link(botA, 1001))
+	rs := newRealtimeServer(t)
+	withRealtime(r, rs)
+	env := paymentEvent(t, "req-rt-pay", r.now, map[string]any{
+		"payer_name": "Ada", "payer_code": "B3C4D5F", "payee_id": playerID, "method": "card", "amount": 12500,
+	})
+	if err := r.w.Handle(context.Background(), paymentRoute(t), env); err != nil {
+		t.Fatal(err)
+	}
+	pubs := rs.published()
+	if len(pubs) != 1 {
+		t.Fatalf("published %d, want 1", len(pubs))
+	}
+	data, _ := pubs[0]["data"].(map[string]any)
+	if data["screen"] != "payment_notice" || data["kind"] != "bank.payment_received" {
+		t.Fatalf("publication = %v", data)
+	}
+	view, _ := data["view"].(map[string]any)
+	if view["payer_name"] != "Ada" || view["method"] != "card" || view["amount"] != float64(12500) {
+		t.Errorf("view = %v", view)
+	}
+	actions, _ := data["actions"].([]any)
+	if len(actions) != 2 {
+		t.Fatalf("actions = %v", data["actions"])
+	}
+	first, _ := actions[0].(map[string]any)
+	if first["command"] != "bank.show" {
+		t.Errorf("first action = %v", first)
+	}
+	raw, _ := json.Marshal(data)
+	for _, banned := range []string{`"text"`, `"label"`, `"keyboard"`, "<b>", "💵"} {
+		if strings.Contains(string(raw), banned) {
+			t.Errorf("the realtime notice holds %s: %s", banned, raw)
+		}
 	}
 }
 

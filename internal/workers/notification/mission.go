@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // missionCompleted is the payload of mission.completed
@@ -36,12 +36,12 @@ func renderMissionCompleted(_ context.Context, _ Deps, env *envelope.Envelope) (
 	if ev.PlayerID == "" || ev.Mission == "" {
 		return nil, apperrors.InvalidInput("mission.completed names no player or no mission")
 	}
-	view := screens.MissionCompletedView{Mission: screens.Named{Code: ev.Mission, Name: ev.MissionName},
+	view := notices.MissionCompletedView{Mission: notices.Named{Code: ev.Mission, Name: ev.MissionName},
 		Cash: ev.Cash, Withheld: ev.Withheld, XP: ev.XP}
 	for _, it := range ev.Items {
-		view.Items = append(view.Items, screens.LootLine{Item: screens.Named{Code: it.Item, Name: it.ItemName}, Qty: it.Qty})
+		view.Items = append(view.Items, notices.Loot{Item: notices.Named{Code: it.Item, Name: it.ItemName}, Qty: it.Qty})
 	}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.MissionCompletedNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.MissionCompletedNotice(c, view)
 	}}, nil
 }

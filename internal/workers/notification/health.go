@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -50,10 +52,10 @@ func renderHospitalised(ctx context.Context, deps Deps, env *envelope.Envelope) 
 	if err != nil {
 		return nil, err
 	}
-	view := screens.HospitalisedNoticeView{CityCode: city.Code, City: city.Name, Cause: ev.Cause, Damage: ev.Damage,
+	view := notices.HospitalisedView{CityCode: city.Code, City: city.Name, Cause: ev.Cause, Damage: ev.Damage,
 		Health: ev.Health, Max: ev.MaxHealth, EndsAt: ev.EndsAt, Remaining: time.Until(ev.EndsAt)}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.HospitalisedNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.HospitalisedNotice(c, view)
 	}}, nil
 }
 
@@ -119,10 +121,10 @@ func renderClinicTreated(_ context.Context, _ Deps, env *envelope.Envelope) (*Dr
 	if ev.PlayerID == "" || ev.CompanyCode == "" {
 		return nil, apperrors.InvalidInput("health.clinic_treated names no owner or no clinic")
 	}
-	view := screens.ClinicTreatedNoticeView{Ref: screens.CompanyRef{Code: ev.CompanyCode, Name: ev.CompanyName},
-		Patient: ev.PatientName, Price: ev.Price, Item: screens.Named{Code: ev.Medicine, Name: ev.Medicine},
+	view := notices.ClinicTreatedView{Ref: notices.CompanyRef{Code: ev.CompanyCode, Name: ev.CompanyName},
+		Patient: ev.PatientName, Price: ev.Price, Item: notices.Named{Code: ev.Medicine, Name: ev.Medicine},
 		Units: ev.MedicineUnits, Saved: time.Duration(ev.SavedSeconds) * time.Second}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.ClinicTreatedNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.ClinicTreatedNotice(c, view)
 	}}, nil
 }

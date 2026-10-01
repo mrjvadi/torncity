@@ -23,6 +23,7 @@ import (
 	infraredis "github.com/mrjvadi/torncity/internal/infrastructure/redis"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
+	"github.com/mrjvadi/torncity/internal/telegram/render"
 	"github.com/mrjvadi/torncity/internal/workers/notification"
 )
 
@@ -62,6 +63,15 @@ func (c *captureSender) Send(_ context.Context, _ string, env *envelope.Envelope
 	var n notification.Notice
 	if err := env.Decode(&n); err != nil {
 		return notification.Receipt{}, err
+	}
+	if n.Response.Neutral() {
+		// a notice carried as data is worded by the Telegram edge, as the gateway does
+		raw := n.Response
+		out, err := render.Render(nil, render.Delivery{Shared: n.Announcement}, &raw)
+		if err != nil {
+			return notification.Receipt{}, err
+		}
+		n.Response = *out
 	}
 	c.mu.Lock()
 	c.notices = append(c.notices, n)

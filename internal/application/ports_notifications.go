@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 )
 
@@ -29,6 +30,13 @@ type NotificationItem struct {
 	// internal/workers/notification), kept for tracing.
 	Kind           string
 	TextFA, TextEN string
+	// Screen and View are the notice as data (docs/adr/0039-presentation-
+	// split.md, section 8): the neutral screen it was sent as and its view's
+	// JSON. Each edge words it in the reader's language when it is read.
+	// Empty for an item of a screen that is not carried as data yet, which
+	// has only its text.
+	Screen string
+	View   json.RawMessage
 	// LinkAddr is a callback address (keyboards.Data) the item's "open"
 	// button replays, for a notice with a screen of its own to point at.
 	// Empty means the item has none.
@@ -103,7 +111,11 @@ type InboxRecord struct {
 	Category       string
 	Kind           string
 	TextFA, TextEN string
-	LinkAddr       string
+	// Screen and View are the notice as data; see NotificationItem. A record
+	// with a Screen needs no text.
+	Screen   string
+	View     json.RawMessage
+	LinkAddr string
 	// SourceMessageID is the outbox event's Metadata.MessageID(), kept for
 	// tracing a notification back to what produced it. Not relied on for
 	// idempotency: the caller's own redelivery guard (inbox_messages) has

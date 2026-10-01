@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -72,10 +73,10 @@ func renderElectionResult(_ context.Context, _ Deps, env *envelope.Envelope) (*D
 	if ev.PlayerID == "" {
 		return nil, apperrors.InvalidInput("election.result names no candidate")
 	}
-	view := screens.ElectionResultView{No: ev.No, Office: ev.Office, Place: ev.place(), Elected: ev.Elected,
+	view := notices.ElectionResultView{No: ev.No, Office: ev.Office, Place: notices.Place(ev.place()), Elected: ev.Elected,
 		Votes: ev.Votes, Cast: ev.Cast, Deposit: ev.Deposit, DepositReturned: ev.DepositReturned}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.ElectionResultNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.ElectionResultNotice(c, view)
 	}}, nil
 }
 
