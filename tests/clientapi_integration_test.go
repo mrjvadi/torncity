@@ -233,7 +233,7 @@ func TestClientAPILinkCommandRoundTrip(t *testing.T) {
 	}
 
 	// /link in the bot's private chat, through the real handler.
-	linkScreen, err := rr(game.Link(ctx, envelope.Metadata{RequestID: newUUID(t), BotID: botID,
+	linkScreen, err := rrc(game.Link(ctx, envelope.Metadata{RequestID: newUUID(t), BotID: botID,
 		TelegramUserID: player.TelegramUserID, Language: "fa"}))
 	if err != nil {
 		t.Fatal(err)
