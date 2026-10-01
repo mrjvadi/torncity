@@ -5,12 +5,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/recruit"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // A posted campaign: its candidates, hiring one (the signing bonus and the
@@ -20,13 +21,13 @@ import (
 // campaignView builds a campaign's screen.
 func (h *RecruitHandler) campaignView(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 	c application.Company, camp application.RecruitCampaign,
-) (screens.RecruitCampaignView, error) {
+) (companies.RecruitCampaignView, error) {
 	line, err := h.campaignLine(ctx, tx, camp)
 	if err != nil {
-		return screens.RecruitCampaignView{}, err
+		return companies.RecruitCampaignView{}, err
 	}
-	v := screens.RecruitCampaignView{Ref: companyRef(snap, c), Line: line, ChecksLeft: camp.ChecksTotal - camp.ChecksDone,
-		Offer: screens.RecruitOffer{Salary: camp.Salary, Housing: camp.Housing, Signing: camp.Signing,
+	v := companies.RecruitCampaignView{Ref: companyRef(snap, c), Line: line, ChecksLeft: camp.ChecksTotal - camp.ChecksDone,
+		Offer: companies.RecruitOffer{Salary: camp.Salary, Housing: camp.Housing, Signing: camp.Signing,
 			Relocation: camp.Relocation, Term: camp.TermPeriods, Shares: camp.Shares}, AdFee: camp.AdFee,
 		Auto: camp.AutoAccept}
 	for _, ci := range sortedCities(snap, camp.Cities) {
@@ -44,7 +45,7 @@ func (h *RecruitHandler) campaignView(ctx context.Context, tx application.Tx, sn
 	now := h.now()
 	for _, cd := range cands {
 		home, _ := snap.CityByID(cd.HomeCityID)
-		l := screens.RecruitCandidateLine{No: cd.No, NameSeed: cd.NameSeed, Skill: cd.Skill, Level: cd.Level,
+		l := companies.RecruitCandidateLine{No: cd.No, NameSeed: cd.NameSeed, Skill: cd.Skill, Level: cd.Level,
 			Home: named(home.Code, home.Name), Expected: cd.Expected, Status: cd.Status, ExpiresAt: cd.ExpiresAt,
 			Cost: camp.Signing + min(camp.Relocation, cd.MoveCost)}
 		if cd.Status == application.CandidatePending && !now.Before(cd.ExpiresAt) {
@@ -71,14 +72,14 @@ func (h *RecruitHandler) campaignView(ctx context.Context, tx application.Tx, sn
 
 // Campaign handles company.rcamp: a campaign and its candidates; a draft
 // opens in the builder.
-func (h *RecruitHandler) Campaign(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presenter.Response, error) {
+func (h *RecruitHandler) Campaign(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presentation.Response, error) {
 	return h.draftWith(ctx, meta, req, false)
 }
 
 // Cancel handles company.rcancel: without confirmation, the question; with
 // it, the campaign stopped — its advertising fee is not refunded, its
 // waiting candidates step aside, and its scheduled check finds it stopped.
-func (h *RecruitHandler) Cancel(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presenter.Response, error) {
+func (h *RecruitHandler) Cancel(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -88,7 +89,7 @@ func (h *RecruitHandler) Cancel(ctx context.Context, meta envelope.Metadata, req
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.RecruitCampaignView
+	var view companies.RecruitCampaignView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -127,11 +128,11 @@ func (h *RecruitHandler) Cancel(ctx context.Context, meta envelope.Metadata, req
 	if err != nil {
 		return h.finish(meta, lang, err)
 	}
-	return screens.RecruitCampaign(h.screen(meta, lang), view), nil
+	return companies.RecruitCampaign(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Decide handles company.rdecide: hire a candidate, or turn one down.
-func (h *RecruitHandler) Decide(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presenter.Response, error) {
+func (h *RecruitHandler) Decide(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -140,12 +141,12 @@ func (h *RecruitHandler) Decide(ctx context.Context, meta envelope.Metadata, req
 		return nil, errNoNumber
 	}
 	verdict := strings.TrimSpace(req.Verdict)
-	if verdict != screens.RecruitHire && verdict != screens.RecruitReject {
+	if verdict != companies.RecruitHire && verdict != companies.RecruitReject {
 		return nil, invalidRecruit("a verdict is yes or no")
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.RecruitCampaignView
+	var view companies.RecruitCampaignView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -157,7 +158,7 @@ func (h *RecruitHandler) Decide(ctx context.Context, meta envelope.Metadata, req
 		}
 		cand, err := tx.Recruitment().Candidate(ctx, no, false)
 		if isSentinel(err, application.ErrCandidateNotFound) {
-			return refuseRecruit(screens.RecruitRefusedNotFound, nil, snap)
+			return refuseRecruit(companies.RecruitRefusedNotFound, nil, snap)
 		}
 		if err != nil {
 			return err
@@ -180,7 +181,7 @@ func (h *RecruitHandler) Decide(ctx context.Context, meta envelope.Metadata, req
 		notice := ""
 		if fresh {
 			now := h.now()
-			if verdict == screens.RecruitReject {
+			if verdict == companies.RecruitReject {
 				if ok, err := tx.Recruitment().Decide(ctx, cand.ID, application.CandidateRejected, p.ID, now); err != nil {
 					return err
 				} else if ok {
@@ -200,7 +201,7 @@ func (h *RecruitHandler) Decide(ctx context.Context, meta envelope.Metadata, req
 	if err != nil {
 		return h.finish(meta, lang, err)
 	}
-	return screens.RecruitCampaign(h.screen(meta, lang), view), nil
+	return companies.RecruitCampaign(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // hire makes a pending candidate a specialist of the company: under the
@@ -213,18 +214,18 @@ func (h *RecruitHandler) hire(ctx context.Context, tx application.Tx, meta envel
 	def content.RecruitmentDef, c application.Company, camp *application.RecruitCampaign, cand *application.RecruitCandidate,
 	by string, now time.Time,
 ) (application.NPCStaff, error) {
-	back := []string{screens.AddrRecruitCamp, itoa64(camp.No)}
+	back := []string{companies.AddrRecruitCamp, itoa64(camp.No)}
 	gone := func() error {
-		r := refuseRecruit(screens.RecruitRefusedGone, &c, snap)
-		r.view.Back, r.view.NameSeed = back, cand.NameSeed
+		r := refuseRecruit(companies.RecruitRefusedGone, &c, snap)
+		r.view.Back, r.view.NameSeed = backRef(back...), cand.NameSeed
 		return r
 	}
 	if cand.Status != application.CandidatePending || !now.Before(cand.ExpiresAt) {
 		return application.NPCStaff{}, gone()
 	}
 	if camp.Hired >= camp.Positions {
-		r := refuseRecruit(screens.RecruitRefusedFilled, &c, snap)
-		r.view.Back = back
+		r := refuseRecruit(companies.RecruitRefusedFilled, &c, snap)
+		r.view.Back = backRef(back...)
 		return application.NPCStaff{}, r
 	}
 	staff, err := tx.Recruitment().Staff(ctx, c.ID)
@@ -232,8 +233,8 @@ func (h *RecruitHandler) hire(ctx context.Context, tx application.Tx, meta envel
 		return application.NPCStaff{}, err
 	}
 	if len(staff) >= h.rules.MaxStaff {
-		r := refuseRecruit(screens.RecruitRefusedStaff, &c, snap)
-		r.view.Max, r.view.Back = h.rules.MaxStaff, back
+		r := refuseRecruit(companies.RecruitRefusedStaff, &c, snap)
+		r.view.Max, r.view.Back = h.rules.MaxStaff, backRef(back...)
 		return application.NPCStaff{}, r
 	}
 	home, ok := snap.CityByID(cand.HomeCityID)
@@ -254,8 +255,8 @@ func (h *RecruitHandler) hire(ctx context.Context, tx application.Tx, meta envel
 		return application.NPCStaff{}, err
 	}
 	if b.Available().Minor() < signing+relocation {
-		r := refuseRecruit(screens.RecruitRefusedFunds, &c, snap)
-		r.view.Need, r.view.Have, r.view.Back = signing+relocation, b.Available().Minor(), back
+		r := refuseRecruit(companies.RecruitRefusedFunds, &c, snap)
+		r.view.Need, r.view.Have, r.view.Back = signing+relocation, b.Available().Minor(), backRef(back...)
 		return application.NPCStaff{}, r
 	}
 	id := h.ids.NewID()
@@ -292,7 +293,7 @@ func (h *RecruitHandler) hire(ctx context.Context, tx application.Tx, meta envel
 			return s, err
 		}
 		camp.Status, camp.EndedAt, camp.ActionID, camp.NextCheckAt = application.CampaignFilled, &now, "", nil
-		if err := appendCompanyEvent(ctx, tx, meta, "recruit", c.ID, recruitEvent(c, screens.RecruitNoticeFilled,
+		if err := appendCompanyEvent(ctx, tx, meta, "recruit", c.ID, recruitEvent(c, companies.RecruitNoticeFilled,
 			map[string]any{"campaign_no": camp.No})); err != nil {
 			return s, err
 		}

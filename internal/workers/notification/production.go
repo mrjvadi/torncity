@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -86,8 +87,8 @@ func renderProduction(name string) Renderer {
 		case "sold":
 			view.Kind = screens.ProductionNoticeSold
 		}
-		return &Draft{PlayerID: ev.OwnerID, Screen: func(c screens.Context) *presenter.Response {
-			return screens.ProductionNotice(c, view)
+		return &Draft{PlayerID: ev.OwnerID, Notice: func(c presentation.Ctx) *presentation.Response {
+			return companies.ProductionNotice(c, view)
 		}}, nil
 	}
 }

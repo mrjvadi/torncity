@@ -85,7 +85,7 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 		out.Entries[table] = append(out.Entries[table], e)
 	}
 	out.Entries = map[string][]CatalogueEntry{}
-	out.Availability = snap.AvailabilityTags("faction", "government_action", "office", "treaty_type")
+	out.Availability = snap.AvailabilityTags("faction", "government_action", "office", "treaty_type", "company_type")
 
 	for _, city := range snap.Cities() {
 		add("city", CatalogueEntry{Code: city.Code, Name: names(func(c screens.Context) string { return c.CityName(city.Code, city.Name) })}, false)
@@ -118,6 +118,36 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 	}
 	for _, sk := range snap.Skills() {
 		add("skill", CatalogueEntry{Code: sk.Code, Category: sk.Category, Name: names(func(c screens.Context) string { return c.SkillName(sk.Code) })}, false)
+	}
+	// Production: the suppliers, the slots a design is made of and the
+	// attributes it computes, and the lists a specialist's name is drawn from
+	// (the view carries a seed; the client picks first[seed % n] and
+	// last[(seed / n) % m] from the lists, separated by "|").
+	for _, sp := range snap.Suppliers() {
+		add("supplier", CatalogueEntry{Code: sp.Code,
+			Name: names(func(c screens.Context) string { return c.SupplierName(screens.Named{Code: sp.Code, Name: sp.Name}) })}, false)
+	}
+	slots, attrs := map[string]bool{}, map[string]bool{}
+	for _, a := range snap.Archetypes() {
+		for _, sl := range a.Slots {
+			slots[sl.Name] = true
+		}
+		for _, at := range a.Attributes {
+			attrs[at.Name] = true
+		}
+	}
+	for _, code := range sortedKeys(slots) {
+		code := code
+		add("design_slot", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.SlotName(code) })}, false)
+	}
+	for _, code := range sortedKeys(attrs) {
+		code := code
+		add("attribute", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.AttributeName(code) })}, false)
+	}
+	for _, part := range []string{"first", "last"} {
+		part := part
+		add("specialist_name", CatalogueEntry{Code: part,
+			Name: names(func(c screens.Context) string { return c.T("recruit.names."+part, nil) })}, false)
 	}
 	for _, tc := range snap.Technologies() {
 		add("technology", CatalogueEntry{Code: tc.Code, Name: names(func(c screens.Context) string { return c.TechName(screens.Named{Code: tc.Code, Name: tc.Name}) })}, false)
@@ -248,11 +278,33 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 				Name: names(func(c screens.Context) string { return c.TierTitle(cr.Code, tier.Rank, tier.Title) })}, false)
 		}
 	}
+	// The roles a settlement building has (what an availability condition
+	// names: "a craft building of tier 3").
+	roles := map[string]bool{}
+	for _, sb := range snap.SettlementBuildingDefs() {
+		if sb.Role != "" {
+			roles[sb.Role] = true
+		}
+	}
+	for _, role := range sortedKeys(roles) {
+		role := role
+		add("building_role", CatalogueEntry{Code: role, Name: names(func(c screens.Context) string { return c.T("building_role."+role, nil) })}, false)
+	}
 	for _, sb := range snap.SettlementBuildingDefs() {
 		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, Footprint: []int{sb.Footprint[0], sb.Footprint[1]}, CapExempt: sb.CapExempt,
 			Name: names(func(c screens.Context) string {
 				return c.SettlementBuildingName(screens.Named{Code: sb.Code, Name: sb.Name})
 			})}, true)
 	}
+	return out
+}
+
+// sortedKeys lists the keys of a set, in order.
+func sortedKeys(m map[string]bool) []string {
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	sort.Strings(out)
 	return out
 }

@@ -492,7 +492,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// the resolver (ADR 0015); periods run on the game clock.
 	h.companies = handlers.NewCompaniesHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), postgres.NewPlayerSearchRepository(pool), gametime.Scale(cfg.Game.TimeScale),
-		companyRules(cfg.Company, bankLimits), cfg.Game.IdempotencyTTL, nil)
+		companyRules(cfg.Company, bankLimits), cfg.Game.IdempotencyTTL, nil).WithServiceGate(serviceGate)
 	// The production economy: components, technologies, suppliers and
 	// method timings are content; research, orders and reverse engineering
 	// run on the game clock.

@@ -7,13 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/recruit"
 	"github.com/mrjvadi/torncity/internal/domain/world"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The recruitment hub and the campaign builder: a draft is a
@@ -26,13 +27,13 @@ func (h *RecruitHandler) market(snap *content.Snapshot, def content.RecruitmentD
 }
 
 // Hub handles company.recruit: a company's recruitment.
-func (h *RecruitHandler) Hub(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presenter.Response, error) {
+func (h *RecruitHandler) Hub(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.RecruitHubView
+	var view companies.RecruitHubView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -48,12 +49,12 @@ func (h *RecruitHandler) Hub(ctx context.Context, meta envelope.Metadata, req Re
 	if err != nil {
 		return h.finish(meta, lang, err)
 	}
-	return screens.RecruitHub(h.screen(meta, lang), view), nil
+	return companies.RecruitHub(presentation.Ctx{Lang: lang}, view), nil
 }
 
 func (h *RecruitHandler) hubView(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company,
-) (screens.RecruitHubView, error) {
-	v := screens.RecruitHubView{Ref: companyRef(snap, c), MaxStaff: h.rules.MaxStaff, MaxCampaign: h.rules.MaxCampaigns}
+) (companies.RecruitHubView, error) {
+	v := companies.RecruitHubView{Ref: companyRef(snap, c), MaxStaff: h.rules.MaxStaff, MaxCampaign: h.rules.MaxCampaigns}
 	staff, err := tx.Recruitment().Staff(ctx, c.ID)
 	if err != nil {
 		return v, err
@@ -78,8 +79,8 @@ func (h *RecruitHandler) hubView(ctx context.Context, tx application.Tx, snap *c
 
 // campaignLine is a campaign for the hub.
 func (h *RecruitHandler) campaignLine(ctx context.Context, tx application.Tx, camp application.RecruitCampaign,
-) (screens.RecruitCampaignLine, error) {
-	l := screens.RecruitCampaignLine{No: camp.No, Status: camp.Status, Skill: camp.Skill, Level: camp.MinLevel,
+) (companies.RecruitCampaignLine, error) {
+	l := companies.RecruitCampaignLine{No: camp.No, Status: camp.Status, Skill: camp.Skill, Level: camp.MinLevel,
 		Cities: len(camp.Cities), Positions: camp.Positions, Hired: camp.Hired}
 	if camp.NextCheckAt != nil {
 		l.NextAt = *camp.NextCheckAt
@@ -103,13 +104,13 @@ func (h *RecruitHandler) campaignLine(ctx context.Context, tx application.Tx, ca
 // New handles company.rnew: the company's draft, created when it has none,
 // set to the skill and level the request names (from the research lab's
 // «recruit» button, for one).
-func (h *RecruitHandler) New(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presenter.Response, error) {
+func (h *RecruitHandler) New(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.RecruitDraftView
+	var view companies.RecruitDraftView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -140,7 +141,7 @@ func (h *RecruitHandler) New(ctx context.Context, meta envelope.Metadata, req Re
 			notice = "created"
 		}
 		if draft == nil {
-			return refuseRecruit(screens.RecruitRefusedNotFound, c, snap)
+			return refuseRecruit(companies.RecruitRefusedNotFound, c, snap)
 		}
 		view, err = h.draftView(ctx, tx, snap, def, *c, *draft, "")
 		view.Notice = notice
@@ -149,7 +150,7 @@ func (h *RecruitHandler) New(ctx context.Context, meta envelope.Metadata, req Re
 	if err != nil {
 		return h.finish(meta, lang, err)
 	}
-	return screens.RecruitDraft(h.screen(meta, lang), view), nil
+	return companies.RecruitDraft(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // startDraft creates the company's draft, or re-aims the one it has, at the
@@ -221,12 +222,12 @@ func (h *RecruitHandler) reprice(ctx context.Context, tx application.Tx, m jobMa
 
 // Draft handles company.rdraft: the campaign builder at a section; a
 // campaign already posted opens as a campaign.
-func (h *RecruitHandler) Draft(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presenter.Response, error) {
+func (h *RecruitHandler) Draft(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presentation.Response, error) {
 	return h.draftWith(ctx, meta, req, false)
 }
 
 func (h *RecruitHandler) draftWith(ctx context.Context, meta envelope.Metadata, req RecruitRequest, confirm bool,
-) (*presenter.Response, error) {
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -237,8 +238,8 @@ func (h *RecruitHandler) draftWith(ctx context.Context, meta envelope.Metadata, 
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view   screens.RecruitDraftView
-		posted *screens.RecruitCampaignView
+		view   companies.RecruitDraftView
+		posted *companies.RecruitCampaignView
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
@@ -266,9 +267,9 @@ func (h *RecruitHandler) draftWith(ctx context.Context, meta envelope.Metadata, 
 		return h.finish(meta, lang, err)
 	}
 	if posted != nil {
-		return screens.RecruitCampaign(h.screen(meta, lang), *posted), nil
+		return companies.RecruitCampaign(presentation.Ctx{Lang: lang}, *posted), nil
 	}
-	return screens.RecruitDraft(h.screen(meta, lang), view), nil
+	return companies.RecruitDraft(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // campaignOf reads a campaign by number and its company, which the player
@@ -278,7 +279,7 @@ func (h *RecruitHandler) campaignOf(ctx context.Context, tx application.Tx, snap
 ) (*application.RecruitCampaign, *application.Company, error) {
 	camp, err := tx.Recruitment().Campaign(ctx, no, false)
 	if isSentinel(err, application.ErrCampaignNotFound) {
-		return nil, nil, refuseRecruit(screens.RecruitRefusedNotFound, nil, snap)
+		return nil, nil, refuseRecruit(companies.RecruitRefusedNotFound, nil, snap)
 	}
 	if err != nil {
 		return nil, nil, err
@@ -298,16 +299,16 @@ func (h *RecruitHandler) campaignOf(ctx context.Context, tx application.Tx, snap
 // draftView builds the campaign builder.
 func (h *RecruitHandler) draftView(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 	def content.RecruitmentDef, c application.Company, camp application.RecruitCampaign, section string,
-) (screens.RecruitDraftView, error) {
+) (companies.RecruitDraftView, error) {
 	m := h.market(snap, def)
 	own, _ := cityOfCompany(snap, c)
-	v := screens.RecruitDraftView{Ref: companyRef(snap, c), No: camp.No, Section: section, Skill: camp.Skill,
+	v := companies.RecruitDraftView{Ref: companyRef(snap, c), No: camp.No, Section: section, Skill: camp.Skill,
 		Level: camp.MinLevel, MaxLevel: def.MaxLevel(), CityCode: own.Code, City: own.Name, Positions: camp.Positions,
 		MaxPositions: h.rules.MaxPositions, Salary: camp.Salary, Housing: camp.Housing, Signing: camp.Signing,
 		Relocation: camp.Relocation, Term: camp.TermPeriods, Shares: camp.Shares, Auto: camp.AutoAccept,
 		AdFee: def.AdFee, Checks: h.rules.Checks, Every: h.scale.RealWait(h.rules.CheckEvery)}
 	switch section {
-	case screens.RecruitSectionSkill, screens.RecruitSectionCities, screens.RecruitSectionPay, screens.RecruitSectionTerms:
+	case companies.RecruitSectionSkill, companies.RecruitSectionCities, companies.RecruitSectionPay, companies.RecruitSectionTerms:
 	default:
 		v.Section = ""
 	}
@@ -333,7 +334,7 @@ func (h *RecruitHandler) draftView(ctx context.Context, tx application.Tx, snap 
 		chosen[code] = true
 	}
 	for _, ci := range snap.Cities() {
-		v.Cities = append(v.Cities, screens.RecruitCityChoice{Code: ci.Code, Name: ci.Name, On: chosen[ci.Code],
+		v.Cities = append(v.Cities, companies.RecruitCityChoice{Code: ci.Code, Name: ci.Name, On: chosen[ci.Code],
 			Abroad: country != "" && !domestic[ci.ID] && ci.ID != own.ID})
 	}
 	if v.Market, err = m.expectedFrom(ctx, tx, camp.Skill, camp.MinLevel, own, own); err != nil {

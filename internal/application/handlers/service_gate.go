@@ -51,6 +51,25 @@ func (g *ServiceGate) Check(ctx context.Context, snap *content.Snapshot, cityID,
 	if !ok {
 		return nil, nil
 	}
+	return g.judge(ctx, cityID, tag, service)
+}
+
+// CheckTag is Check for an entry that availability.yml tags itself, by kind
+// and code (a company_type, a building, a place): whether the settlement the
+// player stands in reaches it. An entry nothing tags is reachable everywhere.
+func (g *ServiceGate) CheckTag(ctx context.Context, snap *content.Snapshot, cityID, kind, code string) (*economy.Unavailable, error) {
+	if g == nil || g.cities == nil || cityID == "" || snap == nil {
+		return nil, nil
+	}
+	tag, ok := snap.AvailabilityTag(kind, code)
+	if !ok {
+		return nil, nil
+	}
+	return g.judge(ctx, cityID, tag, code)
+}
+
+// judge applies one tag to the city the player stands in.
+func (g *ServiceGate) judge(ctx context.Context, cityID string, tag content.AvailabilityDef, service string) (*economy.Unavailable, error) {
 	here, err := g.cities.ByID(ctx, cityID)
 	if err != nil {
 		return nil, err

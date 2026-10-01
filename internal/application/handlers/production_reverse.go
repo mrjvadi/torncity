@@ -4,14 +4,15 @@ import (
 	"context"
 	"strings"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/company"
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Reverse engineering (docs/adr/0005-item-and-production-model.md §6): a
@@ -79,24 +80,24 @@ func (h *ProductionHandler) asSample(ctx context.Context, tx application.Tx, sna
 }
 
 // line is a sample for a screen, with the company's chance on it.
-func (s sample) line(snap *content.Snapshot, level int) screens.SampleLine {
-	return screens.SampleLine{Serial: s.piece.Serial, Good: designGood(snap, *s.design), Maker: s.maker.Name,
+func (s sample) line(snap *content.Snapshot, level int) companies.SampleLine {
+	return companies.SampleLine{Serial: s.piece.Serial, Good: designGood(snap, *s.design), Maker: s.maker.Name,
 		Quality: s.piece.Quality, ChanceBPS: item.ReverseChanceBPS(level, s.arch.ReverseDifficulty)}
 }
 
 // ReverseLab handles company.relab: the samples the company holds, its
 // engineer, its reverse engineering running and done.
-func (h *ProductionHandler) ReverseLab(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
-	return h.reverseLabWith(ctx, meta, req, "", "")
+func (h *ProductionHandler) ReverseLab(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
+	return h.reverseLabWith(ctx, meta, req, "", nil)
 }
 
-func (h *ProductionHandler) reverseLabWith(ctx context.Context, meta envelope.Metadata, req ProductionRequest, confirm, notice string) (*presenter.Response, error) {
+func (h *ProductionHandler) reverseLabWith(ctx context.Context, meta envelope.Metadata, req ProductionRequest, confirm string, started *companies.ReverseStarted) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ReverseLabView
+	var view companies.ReverseLabView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -110,7 +111,7 @@ func (h *ProductionHandler) reverseLabWith(ctx context.Context, meta envelope.Me
 		if err != nil {
 			return err
 		}
-		view = screens.ReverseLabView{Ref: companyRef(snap, *c), Time: h.scale.RealWait(h.rules.ReverseTime), Notice: notice}
+		view = companies.ReverseLabView{Ref: companyRef(snap, *c), Time: h.scale.RealWait(h.rules.ReverseTime), Started: started}
 		list, err := h.samples(ctx, tx, snap, f)
 		if err != nil {
 			return err
@@ -150,7 +151,7 @@ func (h *ProductionHandler) reverseLabWith(ctx context.Context, meta envelope.Me
 			if err != nil {
 				return err
 			}
-			line := screens.ReverseLine{No: j.No, Good: designGood(snap, *src), Status: j.Status, FinishAt: j.FinishAt,
+			line := companies.ReverseLine{No: j.No, Good: designGood(snap, *src), Status: j.Status, FinishAt: j.FinishAt,
 				Left: countdownTo(j.FinishAt, now)}
 			if j.ResultDesignID != "" {
 				res, err := tx.Production().DesignByID(ctx, j.ResultDesignID)
@@ -166,23 +167,23 @@ func (h *ProductionHandler) reverseLabWith(ctx context.Context, meta envelope.Me
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.ReverseLab(h.screen(meta, lang), view), nil
+	return companies.ReverseLab(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Reverse handles company.reverse: taking a sample apart. Unconfirmed, it
 // shows the chance and asks; confirmed, the sample is destroyed now and the
 // work runs on the game clock.
-func (h *ProductionHandler) Reverse(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Reverse(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	serial := strings.ToUpper(strings.TrimSpace(req.Serial))
 	if !req.confirmed() {
-		return h.reverseLabWith(ctx, meta, req, serial, "")
+		return h.reverseLabWith(ctx, meta, req, serial, nil)
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	notice := ""
+	var started *companies.ReverseStarted
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -196,7 +197,7 @@ func (h *ProductionHandler) Reverse(ctx context.Context, meta envelope.Metadata,
 		if err != nil {
 			return err
 		}
-		back := []string{screens.AddrReverseLab, c.Code}
+		back := []string{companies.AddrReverseLab, c.Code}
 		f, err := readFloor(ctx, tx, snap, c)
 		if err != nil {
 			return err
@@ -207,7 +208,7 @@ func (h *ProductionHandler) Reverse(ctx context.Context, meta envelope.Metadata,
 		}
 		piece, err := tx.Items().PieceBySerial(ctx, serial)
 		if isSentinel(err, application.ErrPieceNotFound) || (err == nil && (piece.Org != org || piece.Holding != application.HoldWarehouse)) {
-			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(back...)
+			return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(back...)
 		}
 		if err != nil {
 			return err
@@ -217,10 +218,10 @@ func (h *ProductionHandler) Reverse(ctx context.Context, meta envelope.Metadata,
 			return err
 		}
 		if !ok {
-			kind := screens.ProductionRefusedNotReversible
+			kind := companies.ProductionRefusedNotReversible
 			if piece.DesignID != "" {
 				if d, err := tx.Production().DesignByID(ctx, piece.DesignID); err == nil && d.CompanyID == c.ID {
-					kind = screens.ProductionRefusedOwnDesign
+					kind = companies.ProductionRefusedOwnDesign
 				}
 			}
 			return refuseProduction(kind, c, snap).back(back...)
@@ -248,22 +249,20 @@ func (h *ProductionHandler) Reverse(ctx context.Context, meta envelope.Metadata,
 			ReferenceType: reverseReference, ReferenceID: id, At: now}); err != nil {
 			return err
 		}
-		c2 := h.screen(meta, lang)
-		notice = c2.T("production.reverse_started", map[string]any{"good": c2.GoodName(designGood(snap, *s.design)),
-			"time": screens.FormatClock(c2, finish), "duration": screens.FormatDuration(c2, countdownTo(finish, now))})
+		started = &companies.ReverseStarted{Good: designGood(snap, *s.design), FinishAt: finish, Left: countdownTo(finish, now)}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return h.reverseLabWith(ctx, meta, req, "", notice)
+	return h.reverseLabWith(ctx, meta, req, "", started)
 }
 
 // Reversed handles company.reversed from the SCHEDULER: a reverse
 // engineering finishing. Exactly once: the job row, locked, must still be
 // running under the action that finishes it. A success adds a degraded copy
 // of the design to the company's designs — and nothing to its technologies.
-func (h *ProductionHandler) Reversed(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Reversed(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	in, err := productionPayload(meta, req)
 	if err != nil {
 		return nil, err

@@ -144,23 +144,23 @@ func TestProductGenerationsCivilian(t *testing.T) {
 		return resp
 	}
 
-	resp, err := companies.Found(ctx, metaAs(owner, "company.found"), handlers.CompanyRequest{Type: "factory", Method: "cash",
-		Name: "Generations Co"})
+	resp, err := rr(companies.Found(ctx, metaAs(owner, "company.found"), handlers.CompanyRequest{Type: "factory", Method: "cash",
+		Name: "Generations Co"}))
 	ok("found the company", resp, err)
 	var companyID, companyCode string
 	if err := pool.Raw().QueryRow(ctx, `SELECT id::text, code FROM companies WHERE owner_player_id = $1::uuid`,
 		owner.ID).Scan(&companyID, &companyCode); err != nil {
 		t.Fatalf("the company was not founded: %v (%s)", err, resp.Text)
 	}
-	resp, err = companies.Deposit(ctx, metaAs(owner, "company.deposit"), handlers.CompanyRequest{Company: companyCode, Method: "cash",
-		Amount: "1500000"})
+	resp, err = rr(companies.Deposit(ctx, metaAs(owner, "company.deposit"), handlers.CompanyRequest{Company: companyCode, Method: "cash",
+		Amount: "1500000"}))
 	ok("deposit", resp, err)
 
 	// --- 1. Research: semiconductors, microchips, batteries, then a
 	// GENERATION of a technology already owned: microchips II. ------------
 	research := func(tech string) {
 		t.Helper()
-		resp, err := prod.Research(ctx, metaAs(owner, "company.research"), handlers.ProductionRequest{Company: companyCode, Tech: tech})
+		resp, err := rr(prod.Research(ctx, metaAs(owner, "company.research"), handlers.ProductionRequest{Company: companyCode, Tech: tech}))
 		ok("research "+tech, resp, err)
 		var id, action string
 		var finish time.Time
@@ -169,8 +169,8 @@ func TestProductGenerationsCivilian(t *testing.T) {
 			t.Fatalf("research %s did not start: %v", tech, err)
 		}
 		advance(finish.Sub(now()) + time.Second)
-		if _, err := prod.Researched(ctx, scheduler("company.researched"), handlers.CrimeScheduledRequest{ActionID: action,
-			ReferenceID: id}); err != nil {
+		if _, err := rr(prod.Researched(ctx, scheduler("company.researched"), handlers.CrimeScheduledRequest{ActionID: action,
+			ReferenceID: id})); err != nil {
 			t.Fatalf("researched %s: %v", tech, err)
 		}
 		if n := countRows(t, pool, `SELECT count(*) FROM company_technologies WHERE company_id = $1::uuid AND tech_code = $2`,
@@ -184,7 +184,7 @@ func TestProductGenerationsCivilian(t *testing.T) {
 	research("microchips_ii")
 
 	// --- 2. Design and finalise the phone (v1). ---------------------------
-	resp, err = prod.DesignNew(ctx, metaAs(owner, "company.dnew"), handlers.ProductionRequest{Company: companyCode, Item: "phone"})
+	resp, err = rr(prod.DesignNew(ctx, metaAs(owner, "company.dnew"), handlers.ProductionRequest{Company: companyCode, Item: "phone"}))
 	ok("new phone design", resp, err)
 	var designNo int64
 	var v1ID string
@@ -194,12 +194,12 @@ func TestProductGenerationsCivilian(t *testing.T) {
 	}
 	no := strconv.FormatInt(designNo, 10)
 	for slot, comp := range map[string]string{"board": "chipset", "power": "cell", "shell": "plastic_case"} {
-		resp, err = prod.DesignFill(ctx, metaAs(owner, "company.dfill"), handlers.ProductionRequest{No: no, Slot: slot, Component: comp})
+		resp, err = rr(prod.DesignFill(ctx, metaAs(owner, "company.dfill"), handlers.ProductionRequest{No: no, Slot: slot, Component: comp}))
 		ok("fill "+slot, resp, err)
 	}
-	resp, err = prod.DesignName(ctx, metaAs(owner, "company.dname"), handlers.ProductionRequest{No: no, Name: "Simorgh 5"})
+	resp, err = rr(prod.DesignName(ctx, metaAs(owner, "company.dname"), handlers.ProductionRequest{No: no, Name: "Simorgh 5"}))
 	ok("name the design", resp, err)
-	resp, err = prod.DesignFinal(ctx, metaAs(owner, "company.dfinal"), handlers.ProductionRequest{No: no})
+	resp, err = rr(prod.DesignFinal(ctx, metaAs(owner, "company.dfinal"), handlers.ProductionRequest{No: no}))
 	ok("finalise v1", resp, err)
 
 	// --- 3. Grant materials directly (the supply chain is proved
@@ -210,8 +210,8 @@ func TestProductGenerationsCivilian(t *testing.T) {
 		grantStock(t, pool, companyID, "plastic_case", 1)
 	}
 	grantMaterials()
-	resp, err = prod.Produce(ctx, metaAs(owner, "company.produce"), handlers.ProductionRequest{Company: companyCode,
-		Target: "d" + no, Qty: "1", Confirm: "yes"})
+	resp, err = rr(prod.Produce(ctx, metaAs(owner, "company.produce"), handlers.ProductionRequest{Company: companyCode,
+		Target: "d" + no, Qty: "1", Confirm: "yes"}))
 	ok("produce v1", resp, err)
 	var v1OrderID string
 	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM production_orders WHERE company_id = $1::uuid ORDER BY no DESC LIMIT 1`,
@@ -227,8 +227,8 @@ func TestProductGenerationsCivilian(t *testing.T) {
 			t.Fatal(err)
 		}
 		advance(finish.Sub(now()) + time.Second)
-		if _, err := prod.Produced(ctx, scheduler("company.produced"), handlers.CrimeScheduledRequest{ActionID: action,
-			ReferenceID: orderID}); err != nil {
+		if _, err := rr(prod.Produced(ctx, scheduler("company.produced"), handlers.CrimeScheduledRequest{ActionID: action,
+			ReferenceID: orderID})); err != nil {
 			t.Fatalf("produced: %v", err)
 		}
 	}
@@ -240,7 +240,7 @@ func TestProductGenerationsCivilian(t *testing.T) {
 	}
 
 	// --- 4. Revise the phone into v2 (same parts to start from). ----------
-	resp, err = prod.DesignRevise(ctx, metaAs(owner, "company.drevise"), handlers.ProductionRequest{No: no})
+	resp, err = rr(prod.DesignRevise(ctx, metaAs(owner, "company.drevise"), handlers.ProductionRequest{No: no}))
 	ok("revise to v2", resp, err)
 	var v2No int64
 	var v2ID string
@@ -249,7 +249,7 @@ func TestProductGenerationsCivilian(t *testing.T) {
 		t.Fatalf("v2 was not created: %v", err)
 	}
 	v2no := strconv.FormatInt(v2No, 10)
-	resp, err = prod.DesignFinal(ctx, metaAs(owner, "company.dfinal"), handlers.ProductionRequest{No: v2no})
+	resp, err = rr(prod.DesignFinal(ctx, metaAs(owner, "company.dfinal"), handlers.ProductionRequest{No: v2no}))
 	ok("finalise v2", resp, err)
 
 	// --- 5. v2's computed quality already reads higher than v1's, from
@@ -282,8 +282,8 @@ func TestProductGenerationsCivilian(t *testing.T) {
 
 	// --- 6. Build an upgrade kit for v2, and retrofit the v1 phone. --------
 	grantMaterials()
-	resp, err = prod.ProduceKit(ctx, metaAs(owner, "company.kit"), handlers.ProductionRequest{Company: companyCode,
-		Target: "d" + v2no, Qty: "1", Confirm: "yes"})
+	resp, err = rr(prod.ProduceKit(ctx, metaAs(owner, "company.kit"), handlers.ProductionRequest{Company: companyCode,
+		Target: "d" + v2no, Qty: "1", Confirm: "yes"}))
 	ok("build a kit for v2", resp, err)
 	var kitOrderID string
 	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM production_orders WHERE company_id = $1::uuid AND kind = 'upgrade_kit'
@@ -297,8 +297,8 @@ func TestProductGenerationsCivilian(t *testing.T) {
 		t.Fatal(err)
 	}
 	advance(kitFinish.Sub(now()) + time.Second)
-	if _, err := prod.KitProduced(ctx, scheduler("company.kit_produced"), handlers.CrimeScheduledRequest{ActionID: kitAction,
-		ReferenceID: kitOrderID}); err != nil {
+	if _, err := rr(prod.KitProduced(ctx, scheduler("company.kit_produced"), handlers.CrimeScheduledRequest{ActionID: kitAction,
+		ReferenceID: kitOrderID})); err != nil {
 		t.Fatalf("kit_produced: %v", err)
 	}
 	var kitSerial string
@@ -307,8 +307,8 @@ func TestProductGenerationsCivilian(t *testing.T) {
 		t.Fatalf("no kit in the warehouse: %v", err)
 	}
 
-	resp, err = prod.RetrofitStart(ctx, metaAs(owner, "company.retrofit"), handlers.ProductionRequest{Company: companyCode,
-		Item: kitSerial, Serial: v1Serial, Confirm: "yes"})
+	resp, err = rr(prod.RetrofitStart(ctx, metaAs(owner, "company.retrofit"), handlers.ProductionRequest{Company: companyCode,
+		Item: kitSerial, Serial: v1Serial, Confirm: "yes"}))
 	ok("start the retrofit", resp, err)
 	if n := countRows(t, pool, `SELECT count(*) FROM item_pieces WHERE serial = $1 AND holding = 'gone'`, kitSerial); n != 1 {
 		t.Fatal("the kit was not consumed when the retrofit started")
@@ -320,8 +320,8 @@ func TestProductGenerationsCivilian(t *testing.T) {
 		t.Fatalf("no retrofit job: %v", err)
 	}
 	advance(retrofitFinish.Sub(now()) + time.Second)
-	if _, err := prod.Retrofitted(ctx, scheduler("company.retrofitted"), handlers.CrimeScheduledRequest{ActionID: retrofitAction,
-		ReferenceID: retrofitID}); err != nil {
+	if _, err := rr(prod.Retrofitted(ctx, scheduler("company.retrofitted"), handlers.CrimeScheduledRequest{ActionID: retrofitAction,
+		ReferenceID: retrofitID})); err != nil {
 		t.Fatalf("retrofitted: %v", err)
 	}
 	var afterDesignID string

@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/bank"
@@ -18,8 +21,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/shared/playercode"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // RecruitRules is the tuning of specialist recruitment (config
@@ -106,43 +107,44 @@ type RecruitRequest struct {
 func (r RecruitRequest) code() string { return playercode.Normalize(r.Company) }
 
 func (r RecruitRequest) confirmed() bool {
-	return strings.TrimSpace(r.Confirm) == screens.RecruitConfirm
+	return strings.TrimSpace(r.Confirm) == companies.RecruitConfirm
 }
 
 // number reads the request's public number.
 func (r RecruitRequest) number() (int64, bool) { return number(r.No) }
 
-func (h *RecruitHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
-}
-
 // recruitRefusal carries a refused recruitment command out of a unit of
 // work.
-type recruitRefusal struct{ view screens.RecruitRefusalView }
+type recruitRefusal struct{ view companies.RecruitRefusalView }
 
 func (r *recruitRefusal) Error() string { return "handlers: recruitment refused: " + r.view.Kind }
 
 // refuseRecruit is a refusal about c (nil when none is known).
 func refuseRecruit(kind string, c *application.Company, snap *content.Snapshot) *recruitRefusal {
-	r := &recruitRefusal{view: screens.RecruitRefusalView{Kind: kind}}
+	r := &recruitRefusal{view: companies.RecruitRefusalView{Kind: kind}}
 	if c != nil {
 		r.view.Ref = companyRef(snap, *c)
 	}
 	return r
 }
 
+// backRef is the place an address names, as a ref the neutral screens carry.
+func backRef(addr ...string) presentation.Ref {
+	return presentation.RefOfAddress(strings.Join(addr, ":"))
+}
+
 // finish turns a refusal into its screen.
-func (h *RecruitHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *RecruitHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	if err == nil {
 		return nil, nil
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	var r *recruitRefusal
 	if stderrors.As(err, &r) {
-		return screens.RecruitRefusal(c, r.view), nil
+		return companies.RecruitRefusal(c, r.view), nil
 	}
 	if v, ok := asCompanyRefusal(err); ok {
-		return screens.CompanyRefusal(c, v), nil
+		return companies.CompanyRefusal(c, v), nil
 	}
 	return nil, err
 }
@@ -180,10 +182,10 @@ func (h *RecruitHandler) managed(ctx context.Context, tx application.Tx, snap *c
 			c, err = tx.Companies().Lock(ctx, c.ID)
 		}
 	default:
-		return nil, refuseCompany(screens.CompanyRefusedNotFound, nil, snap)
+		return nil, refuseCompany(companies.CompanyRefusedNotFound, nil, snap)
 	}
 	if isSentinel(err, application.ErrCompanyNotFound) {
-		return nil, refuseCompany(screens.CompanyRefusedNotFound, nil, snap)
+		return nil, refuseCompany(companies.CompanyRefusedNotFound, nil, snap)
 	}
 	if err != nil {
 		return nil, err
@@ -191,11 +193,11 @@ func (h *RecruitHandler) managed(ctx context.Context, tx application.Tx, snap *c
 	role := company.RoleOf(p.ID, c.OwnerID, c.ManagerID)
 	switch {
 	case role == company.RoleNone:
-		return nil, refuseCompany(screens.CompanyRefusedNotAllowed, c, snap)
+		return nil, refuseCompany(companies.CompanyRefusedNotAllowed, c, snap)
 	case !c.Active():
-		return nil, refuseCompany(screens.CompanyRefusedDissolved, c, snap)
+		return nil, refuseCompany(companies.CompanyRefusedDissolved, c, snap)
 	case role.Check(company.RightManageStaff) != nil:
-		return nil, refuseCompany(screens.CompanyRefusedNotAllowed, c, snap)
+		return nil, refuseCompany(companies.CompanyRefusedNotAllowed, c, snap)
 	}
 	return c, nil
 }
@@ -223,7 +225,7 @@ func spendFree(ctx context.Context, tx application.Tx, c application.Company, sn
 		return "", err
 	}
 	if b.Available().Minor() < amount {
-		r := refuseRecruit(screens.RecruitRefusedFunds, &c, snap)
+		r := refuseRecruit(companies.RecruitRefusedFunds, &c, snap)
 		r.view.Need, r.view.Have = amount, b.Available().Minor()
 		return "", r
 	}

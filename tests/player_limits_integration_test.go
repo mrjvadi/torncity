@@ -74,7 +74,7 @@ func TestPlayerLimitOverridesTheCompanyCap(t *testing.T) {
 	}
 	foundOK := func(t *testing.T, name string) {
 		t.Helper()
-		resp, err := companies.Found(ctx, meta(), *found(name))
+		resp, err := rr(companies.Found(ctx, meta(), *found(name)))
 		if err != nil {
 			t.Fatalf("Found(%q): %v", name, err)
 		}
@@ -84,7 +84,7 @@ func TestPlayerLimitOverridesTheCompanyCap(t *testing.T) {
 	}
 	foundRefusedAtLimit := func(t *testing.T, name string) {
 		t.Helper()
-		resp, err := companies.Found(ctx, meta(), *found(name))
+		resp, err := rr(companies.Found(ctx, meta(), *found(name)))
 		if err != nil || resp == nil || !strings.Contains(resp.Text, "company.refused.limit") {
 			t.Fatalf("Found(%q) = %v, %v; want the limit refusal", name, resp, err)
 		}

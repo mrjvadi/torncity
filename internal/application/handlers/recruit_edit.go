@@ -6,14 +6,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/recruit"
 	"github.com/mrjvadi/torncity/internal/domain/world"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // invalidRecruit is a malformed recruitment request: a forged or stale
@@ -21,7 +22,7 @@ import (
 func invalidRecruit(msg string) error { return errors.InvalidInput(msg) }
 
 // Set handles company.rset: one press of the campaign builder.
-func (h *RecruitHandler) Set(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presenter.Response, error) {
+func (h *RecruitHandler) Set(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presentation.Response, error) {
 	return h.edit(ctx, meta, req, func(ctx context.Context, tx application.Tx, m jobMarket, c application.Company,
 		camp *application.RecruitCampaign,
 	) (string, error) {
@@ -30,7 +31,7 @@ func (h *RecruitHandler) Set(ctx context.Context, meta envelope.Metadata, req Re
 }
 
 // Amount handles company.ramount: a typed amount for a field of the pay.
-func (h *RecruitHandler) Amount(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presenter.Response, error) {
+func (h *RecruitHandler) Amount(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presentation.Response, error) {
 	return h.edit(ctx, meta, req, func(_ context.Context, _ application.Tx, m jobMarket, c application.Company,
 		camp *application.RecruitCampaign,
 	) (string, error) {
@@ -39,28 +40,28 @@ func (h *RecruitHandler) Amount(ctx context.Context, meta envelope.Metadata, req
 			amount, ok = 0, true
 		}
 		if !ok || amount > h.rules.Limits.Max.Minor() || amount > recruit.MaxWage {
-			r := refuseRecruit(screens.RecruitRefusedAmount, &c, m.snap)
-			r.view.Back = []string{screens.AddrRecruitDraft, itoa64(camp.No), screens.RecruitSectionPay}
+			r := refuseRecruit(companies.RecruitRefusedAmount, &c, m.snap)
+			r.view.Back = backRef([]string{companies.AddrRecruitDraft, itoa64(camp.No), companies.RecruitSectionPay}...)
 			return "", r
 		}
 		switch strings.TrimSpace(req.Field) {
-		case screens.RecruitFieldSalary:
+		case companies.RecruitFieldSalary:
 			if amount < 1 {
-				r := refuseRecruit(screens.RecruitRefusedAmount, &c, m.snap)
-				r.view.Back = []string{screens.AddrRecruitDraft, itoa64(camp.No), screens.RecruitSectionPay}
+				r := refuseRecruit(companies.RecruitRefusedAmount, &c, m.snap)
+				r.view.Back = backRef([]string{companies.AddrRecruitDraft, itoa64(camp.No), companies.RecruitSectionPay}...)
 				return "", r
 			}
 			camp.Salary = amount
-		case screens.RecruitFieldHousing:
+		case companies.RecruitFieldHousing:
 			camp.Housing = amount
-		case screens.RecruitFieldSigning:
+		case companies.RecruitFieldSigning:
 			camp.Signing = amount
-		case screens.RecruitFieldRelocation:
+		case companies.RecruitFieldRelocation:
 			camp.Relocation = amount
 		default:
 			return "", invalidRecruit("no such field of the pay")
 		}
-		return screens.RecruitSectionPay, nil
+		return companies.RecruitSectionPay, nil
 	})
 }
 
@@ -68,7 +69,7 @@ func (h *RecruitHandler) Amount(ctx context.Context, meta envelope.Metadata, req
 func (h *RecruitHandler) edit(ctx context.Context, meta envelope.Metadata, req RecruitRequest,
 	change func(ctx context.Context, tx application.Tx, m jobMarket, c application.Company,
 		camp *application.RecruitCampaign) (string, error),
-) (*presenter.Response, error) {
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -78,7 +79,7 @@ func (h *RecruitHandler) edit(ctx context.Context, meta envelope.Metadata, req R
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.RecruitDraftView
+	var view companies.RecruitDraftView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -93,8 +94,8 @@ func (h *RecruitHandler) edit(ctx context.Context, meta envelope.Metadata, req R
 			return err
 		}
 		if camp.Status != application.CampaignDraft {
-			r := refuseRecruit(screens.RecruitRefusedPosted, c, snap)
-			r.view.Back = []string{screens.AddrRecruitCamp, itoa64(camp.No)}
+			r := refuseRecruit(companies.RecruitRefusedPosted, c, snap)
+			r.view.Back = backRef([]string{companies.AddrRecruitCamp, itoa64(camp.No)}...)
 			return r
 		}
 		fresh, err := h.reserve(ctx, tx, p.ID, meta)
@@ -127,7 +128,7 @@ func (h *RecruitHandler) edit(ctx context.Context, meta envelope.Metadata, req R
 	if err != nil {
 		return h.finish(meta, lang, err)
 	}
-	return screens.RecruitDraft(h.screen(meta, lang), view), nil
+	return companies.RecruitDraft(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // apply sets one field of a draft from a press; it returns the builder's
@@ -145,28 +146,28 @@ func (h *RecruitHandler) apply(ctx context.Context, tx application.Tx, m jobMark
 	}
 	pr := m.def.Presets
 	switch strings.TrimSpace(req.Field) {
-	case screens.RecruitFieldSkill:
+	case companies.RecruitFieldSkill:
 		if _, ok := m.def.Skill(value); !ok {
 			return "", invalidRecruit("no specialists of that skill")
 		}
 		camp.Skill = value
-		return screens.RecruitSectionSkill, nil
-	case screens.RecruitFieldLevel:
+		return companies.RecruitSectionSkill, nil
+	case companies.RecruitFieldLevel:
 		l, err := strconv.Atoi(value)
 		if err != nil || l < 1 || l > m.def.MaxLevel() {
 			return "", invalidRecruit("no such level")
 		}
 		camp.MinLevel = l
-		return screens.RecruitSectionSkill, nil
-	case screens.RecruitFieldCity:
+		return companies.RecruitSectionSkill, nil
+	case companies.RecruitFieldCity:
 		if _, ok := m.snap.City(value); !ok {
 			return "", invalidRecruit("no such city")
 		}
 		camp.Cities = toggleCity(camp.Cities, value, strings.TrimSpace(req.Extra) == "1")
-		return screens.RecruitSectionCities, nil
-	case screens.RecruitFieldScope:
-		return screens.RecruitSectionCities, h.scope(ctx, tx, m, c, camp, value)
-	case screens.RecruitFieldSalary:
+		return companies.RecruitSectionCities, nil
+	case companies.RecruitFieldScope:
+		return companies.RecruitSectionCities, h.scope(ctx, tx, m, c, camp, value)
+	case companies.RecruitFieldSalary:
 		i, err := index(len(pr.SalaryBPS))
 		if err != nil {
 			return "", err
@@ -177,37 +178,37 @@ func (h *RecruitHandler) apply(ctx context.Context, tx application.Tx, m jobMark
 			return "", err
 		}
 		camp.Salary = max(recruit.Scale(market, pr.SalaryBPS[i]), 1)
-		return screens.RecruitSectionPay, nil
-	case screens.RecruitFieldHousing:
+		return companies.RecruitSectionPay, nil
+	case companies.RecruitFieldHousing:
 		i, err := index(len(pr.HousingBPS))
 		camp.Housing = recruit.Scale(camp.Salary, pr.HousingBPS[min(i, len(pr.HousingBPS)-1)])
-		return screens.RecruitSectionPay, err
-	case screens.RecruitFieldSigning:
+		return companies.RecruitSectionPay, err
+	case companies.RecruitFieldSigning:
 		i, err := index(len(pr.SigningBPS))
 		camp.Signing = recruit.Scale(camp.Salary, pr.SigningBPS[min(i, len(pr.SigningBPS)-1)])
-		return screens.RecruitSectionPay, err
-	case screens.RecruitFieldRelocation:
+		return companies.RecruitSectionPay, err
+	case companies.RecruitFieldRelocation:
 		i, err := index(len(pr.Relocation))
 		camp.Relocation = pr.Relocation[min(i, len(pr.Relocation)-1)]
-		return screens.RecruitSectionPay, err
-	case screens.RecruitFieldTerm:
+		return companies.RecruitSectionPay, err
+	case companies.RecruitFieldTerm:
 		i, err := index(len(pr.Terms))
 		camp.TermPeriods = pr.Terms[min(i, len(pr.Terms)-1)]
-		return screens.RecruitSectionTerms, err
-	case screens.RecruitFieldShares:
+		return companies.RecruitSectionTerms, err
+	case companies.RecruitFieldShares:
 		i, err := index(len(pr.Shares))
 		camp.Shares = pr.Shares[min(i, len(pr.Shares)-1)]
-		return screens.RecruitSectionTerms, err
-	case screens.RecruitFieldPositions:
+		return companies.RecruitSectionTerms, err
+	case companies.RecruitFieldPositions:
 		n, err := strconv.Atoi(value)
 		if err != nil || n < 1 || n > h.rules.MaxPositions {
 			return "", invalidRecruit("no such number of positions")
 		}
 		camp.Positions = n
-		return screens.RecruitSectionTerms, nil
-	case screens.RecruitFieldAuto:
+		return companies.RecruitSectionTerms, nil
+	case companies.RecruitFieldAuto:
 		camp.AutoAccept = value == "1"
-		return screens.RecruitSectionTerms, nil
+		return companies.RecruitSectionTerms, nil
 	}
 	return "", invalidRecruit("no such field")
 }
@@ -236,9 +237,9 @@ func (h *RecruitHandler) scope(ctx context.Context, tx application.Tx, m jobMark
 		return invalidRecruit("the company's city is not in the content")
 	}
 	switch scope {
-	case screens.RecruitScopeOwn:
+	case companies.RecruitScopeOwn:
 		camp.Cities = []string{own.Code}
-	case screens.RecruitScopeNation:
+	case companies.RecruitScopeNation:
 		camp.Cities = []string{own.Code}
 		country, err := tx.Diplomacy().CountryOfCity(ctx, own.ID)
 		if err != nil || country == "" {
@@ -254,7 +255,7 @@ func (h *RecruitHandler) scope(ctx context.Context, tx application.Tx, m jobMark
 				camp.Cities = append(camp.Cities, ci.Code)
 			}
 		}
-	case screens.RecruitScopeAll:
+	case companies.RecruitScopeAll:
 		camp.Cities = nil
 		for _, ci := range m.snap.Cities() {
 			camp.Cities = append(camp.Cities, ci.Code)
@@ -268,7 +269,7 @@ func (h *RecruitHandler) scope(ctx context.Context, tx application.Tx, m jobMark
 // Post handles company.rpost: without confirmation, what posting costs;
 // with it, the advertising fee paid to each city's treasury and the
 // campaign's first check scheduled.
-func (h *RecruitHandler) Post(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presenter.Response, error) {
+func (h *RecruitHandler) Post(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presentation.Response, error) {
 	if !req.confirmed() {
 		return h.draftWith(ctx, meta, req, true)
 	}
@@ -281,7 +282,7 @@ func (h *RecruitHandler) Post(ctx context.Context, meta envelope.Metadata, req R
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.RecruitCampaignView
+	var view companies.RecruitCampaignView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -313,7 +314,7 @@ func (h *RecruitHandler) Post(ctx context.Context, meta envelope.Metadata, req R
 	if err != nil {
 		return h.finish(meta, lang, err)
 	}
-	return screens.RecruitCampaign(h.screen(meta, lang), view), nil
+	return companies.RecruitCampaign(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // post pays a draft's advertising and sets it running.
@@ -321,10 +322,10 @@ func (h *RecruitHandler) post(ctx context.Context, tx application.Tx, meta envel
 	def content.RecruitmentDef, c application.Company, camp *application.RecruitCampaign,
 ) error {
 	cities := sortedCities(snap, camp.Cities)
-	back := []string{screens.AddrRecruitDraft, itoa64(camp.No)}
+	back := []string{companies.AddrRecruitDraft, itoa64(camp.No)}
 	if len(cities) == 0 {
-		r := refuseRecruit(screens.RecruitRefusedNoCities, &c, snap)
-		r.view.Back = append(back, screens.RecruitSectionCities)
+		r := refuseRecruit(companies.RecruitRefusedNoCities, &c, snap)
+		r.view.Back = backRef(append(back, companies.RecruitSectionCities)...)
 		return r
 	}
 	running, err := tx.Recruitment().Running(ctx, c.ID)
@@ -332,8 +333,8 @@ func (h *RecruitHandler) post(ctx context.Context, tx application.Tx, meta envel
 		return err
 	}
 	if running >= h.rules.MaxCampaigns {
-		r := refuseRecruit(screens.RecruitRefusedCampaigns, &c, snap)
-		r.view.Max, r.view.Back = h.rules.MaxCampaigns, back
+		r := refuseRecruit(companies.RecruitRefusedCampaigns, &c, snap)
+		r.view.Max, r.view.Back = h.rules.MaxCampaigns, backRef(back...)
 		return r
 	}
 	m := h.market(snap, def)
@@ -344,8 +345,8 @@ func (h *RecruitHandler) post(ctx context.Context, tx application.Tx, meta envel
 		}
 	}
 	if anybody == 0 {
-		r := refuseRecruit(screens.RecruitRefusedNoSkill, &c, snap)
-		r.view.Back = append(back, screens.RecruitSectionSkill)
+		r := refuseRecruit(companies.RecruitRefusedNoSkill, &c, snap)
+		r.view.Back = backRef(append(back, companies.RecruitSectionSkill)...)
 		return r
 	}
 	now := m.now
@@ -355,8 +356,8 @@ func (h *RecruitHandler) post(ctx context.Context, tx application.Tx, meta envel
 		return err
 	}
 	if b.Available().Minor() < total {
-		r := refuseRecruit(screens.RecruitRefusedFunds, &c, snap)
-		r.view.Need, r.view.Have, r.view.Back = total, b.Available().Minor(), back
+		r := refuseRecruit(companies.RecruitRefusedFunds, &c, snap)
+		r.view.Need, r.view.Have, r.view.Back = total, b.Available().Minor(), backRef(back...)
 		return r
 	}
 	for _, ci := range cities {

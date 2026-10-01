@@ -178,15 +178,15 @@ type healthCo struct{ id, code string }
 func (w *healthWorld) found(p *application.Player, kind, name string) healthCo {
 	w.t.Helper()
 	ctx := testCtx(w.t)
-	resp, err := w.companies.Found(ctx, w.meta(p, "company.found"), handlers.CompanyRequest{Type: kind, Method: "cash", Name: name})
+	resp, err := rr(w.companies.Found(ctx, w.meta(p, "company.found"), handlers.CompanyRequest{Type: kind, Method: "cash", Name: name}))
 	w.ok("found "+name, resp, err)
 	var c healthCo
 	if err := w.pool.Raw().QueryRow(ctx, `SELECT id::text, code FROM companies WHERE owner_player_id = $1::uuid AND name = $2`,
 		p.ID, name).Scan(&c.id, &c.code); err != nil {
 		w.t.Fatalf("company %s was not founded: %v (%s)", name, err, resp.Text)
 	}
-	resp, err = w.companies.Deposit(ctx, w.meta(p, "company.deposit"), handlers.CompanyRequest{Company: c.code, Method: "cash",
-		Amount: "200000"})
+	resp, err = rr(w.companies.Deposit(ctx, w.meta(p, "company.deposit"), handlers.CompanyRequest{Company: c.code, Method: "cash",
+		Amount: "200000"}))
 	w.ok("deposit into "+name, resp, err)
 	return c
 }
@@ -211,11 +211,11 @@ func (w *healthWorld) medicineLab(owner *application.Player, qty int64, price st
 	w.skill(owner, "medicine", 10)
 	lab := w.found(owner, "pharma", "Shafa Labs")
 	for _, comp := range []string{"herb_extract", "starch"} {
-		resp, err := w.prod.Supply(ctx, w.meta(owner, "company.supply"), handlers.ProductionRequest{Company: lab.code,
-			Component: comp, Qty: "400"})
+		resp, err := rr(w.prod.Supply(ctx, w.meta(owner, "company.supply"), handlers.ProductionRequest{Company: lab.code,
+			Component: comp, Qty: "400"}))
 		w.ok("buy "+comp, resp, err, "production.supply_bought")
 	}
-	resp, err := w.prod.DesignNew(ctx, w.meta(owner, "company.dnew"), handlers.ProductionRequest{Company: lab.code, Item: "bandage"})
+	resp, err := rr(w.prod.DesignNew(ctx, w.meta(owner, "company.dnew"), handlers.ProductionRequest{Company: lab.code, Item: "bandage"}))
 	w.ok("new bandage design", resp, err)
 	var designNo int64
 	if err := w.pool.Raw().QueryRow(ctx, `SELECT no FROM product_designs WHERE company_id = $1::uuid`, lab.id).Scan(&designNo); err != nil {
@@ -223,16 +223,16 @@ func (w *healthWorld) medicineLab(owner *application.Player, qty int64, price st
 	}
 	no := strconv.FormatInt(designNo, 10)
 	for slot, comp := range map[string]string{"active": "herb_extract", "carrier": "starch"} {
-		resp, err = w.prod.DesignFill(ctx, w.meta(owner, "company.dfill"), handlers.ProductionRequest{No: no, Slot: slot, Component: comp})
+		resp, err = rr(w.prod.DesignFill(ctx, w.meta(owner, "company.dfill"), handlers.ProductionRequest{No: no, Slot: slot, Component: comp}))
 		w.ok("fill "+slot, resp, err)
 	}
-	resp, err = w.prod.DesignName(ctx, w.meta(owner, "company.dname"), handlers.ProductionRequest{No: no, Name: "Shafa Band"})
+	resp, err = rr(w.prod.DesignName(ctx, w.meta(owner, "company.dname"), handlers.ProductionRequest{No: no, Name: "Shafa Band"}))
 	w.ok("name the design", resp, err)
-	resp, err = w.prod.DesignFinal(ctx, w.meta(owner, "company.dfinal"), handlers.ProductionRequest{No: no})
+	resp, err = rr(w.prod.DesignFinal(ctx, w.meta(owner, "company.dfinal"), handlers.ProductionRequest{No: no}))
 	w.ok("finalise the design", resp, err, "production.design_state.final")
 	for w.stock(lab.id, "bandage") < qty {
-		resp, err = w.prod.Produce(ctx, w.meta(owner, "company.produce"), handlers.ProductionRequest{Company: lab.code,
-			Target: "d" + no, Qty: "5", Confirm: "yes"})
+		resp, err = rr(w.prod.Produce(ctx, w.meta(owner, "company.produce"), handlers.ProductionRequest{Company: lab.code,
+			Target: "d" + no, Qty: "5", Confirm: "yes"}))
 		w.ok("make bandages", resp, err, "production.placed")
 		var (
 			id, action string
@@ -244,14 +244,14 @@ func (w *healthWorld) medicineLab(owner *application.Player, qty int64, price st
 		}
 		w.advance(finish.Sub(w.now()) + time.Second)
 		for range 2 {
-			if _, err := w.prod.Produced(ctx, w.scheduler("company.produced"), handlers.CrimeScheduledRequest{ActionID: action,
-				ReferenceID: id}); err != nil {
+			if _, err := rr(w.prod.Produced(ctx, w.scheduler("company.produced"), handlers.CrimeScheduledRequest{ActionID: action,
+				ReferenceID: id})); err != nil {
 				w.t.Fatalf("produced: %v", err)
 			}
 		}
 	}
-	resp, err = w.prod.Sell(ctx, w.meta(owner, "company.sell"), handlers.ProductionRequest{Company: lab.code, Target: "d" + no,
-		Qty: strconv.FormatInt(qty, 10), Price: price})
+	resp, err = rr(w.prod.Sell(ctx, w.meta(owner, "company.sell"), handlers.ProductionRequest{Company: lab.code, Target: "d" + no,
+		Qty: strconv.FormatInt(qty, 10), Price: price}))
 	w.ok("list bandages", resp, err, "production.listing_notice.listed")
 	return lab
 }
@@ -281,8 +281,8 @@ func TestMedicineFromLabThroughPharmacyToPlayer(t *testing.T) {
 	before := w.balance(application.AccountCompanyTreasury, pharmacy.id)
 	press := w.meta(pharmacist, "company.buy")
 	for range 2 {
-		resp, err := w.prod.Buy(ctx, press, handlers.ProductionRequest{No: w.listingNo(lab.id, "bandage"), Qty: "4",
-			Method: pharmacy.code})
+		resp, err := rr(w.prod.Buy(ctx, press, handlers.ProductionRequest{No: w.listingNo(lab.id, "bandage"), Qty: "4",
+			Method: pharmacy.code}))
 		w.ok("the pharmacy buys bandages", resp, err)
 	}
 	if got := w.stock(pharmacy.id, "bandage"); got != 4 {
@@ -293,12 +293,12 @@ func TestMedicineFromLabThroughPharmacyToPlayer(t *testing.T) {
 	}
 
 	// It lists them to players; a player buys one with cash.
-	resp, err := w.prod.Sell(ctx, w.meta(pharmacist, "company.sell"), handlers.ProductionRequest{Company: pharmacy.code,
-		Target: "bandage", Qty: "4", Price: "150"})
+	resp, err := rr(w.prod.Sell(ctx, w.meta(pharmacist, "company.sell"), handlers.ProductionRequest{Company: pharmacy.code,
+		Target: "bandage", Qty: "4", Price: "150"}))
 	w.ok("the pharmacy lists bandages", resp, err, "production.listing_notice.listed")
 	cash := w.balance(application.AccountPlayerCash, buyer.ID)
-	resp, err = w.prod.Buy(ctx, w.meta(buyer, "company.buy"), handlers.ProductionRequest{No: w.listingNo(pharmacy.id, "bandage"),
-		Qty: "1", Method: "cash"})
+	resp, err = rr(w.prod.Buy(ctx, w.meta(buyer, "company.buy"), handlers.ProductionRequest{No: w.listingNo(pharmacy.id, "bandage"),
+		Qty: "1", Method: "cash"}))
 	w.ok("a player buys a bandage", resp, err)
 	if got := cash - w.balance(application.AccountPlayerCash, buyer.ID); got != 150 {
 		t.Fatalf("the player paid %d, want 150", got)
@@ -353,8 +353,8 @@ func TestInjuryTreatedAtClinicAndRecovered(t *testing.T) {
 	lab := w.medicineLab(chemist, 5, "90")
 	w.skill(doctor, "medicine", 10)
 	clinic := w.found(doctor, "clinic", "Darman Clinic")
-	resp, err := w.prod.Buy(ctx, w.meta(doctor, "company.buy"), handlers.ProductionRequest{No: w.listingNo(lab.id, "bandage"),
-		Qty: "3", Method: clinic.code})
+	resp, err := rr(w.prod.Buy(ctx, w.meta(doctor, "company.buy"), handlers.ProductionRequest{No: w.listingNo(lab.id, "bandage"),
+		Qty: "3", Method: clinic.code}))
 	w.ok("the clinic buys bandages", resp, err)
 	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
 	if err != nil {

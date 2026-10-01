@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
 	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"github.com/mrjvadi/torncity/internal/presentation/society"
@@ -236,11 +237,11 @@ const (
 
 	// Specialist recruitment (recruit.go, recruit_campaign.go,
 	// recruit_draft.go, recruit_staff.go).
-	ScreenRecruitCampaign = "recruit_campaign"
-	ScreenRecruitDraft    = "recruit_draft"
-	ScreenRecruitHub      = "recruit_hub"
-	ScreenSpecialists     = "specialists"
-	ScreenRecruitRefusal  = "recruit_refusal"
+	ScreenRecruitCampaign = companies.ScreenRecruitCampaign
+	ScreenRecruitDraft    = companies.ScreenRecruitDraft
+	ScreenRecruitHub      = companies.ScreenRecruitHub
+	ScreenSpecialists     = companies.ScreenSpecialists
+	ScreenRecruitRefusal  = companies.ScreenRecruitRefusal
 	ScreenRecruitNotice   = "recruit_notice"
 
 	// The settings screen (settings.go).

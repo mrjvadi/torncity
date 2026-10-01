@@ -1520,7 +1520,10 @@
     "title": "Recruitment refusal · funds",
     "screen": "recruit_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "have": 1200,
       "kind": "funds",
       "max": 0,
@@ -1540,7 +1543,10 @@
     "title": "Recruitment refusal · campaigns",
     "screen": "recruit_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "have": 0,
       "kind": "campaigns",
       "max": 2,
@@ -1560,7 +1566,10 @@
     "title": "Recruitment refusal · staff",
     "screen": "recruit_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "have": 0,
       "kind": "staff",
       "max": 10,
@@ -1580,7 +1589,10 @@
     "title": "Recruitment refusal · no_cities",
     "screen": "recruit_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "have": 0,
       "kind": "no_cities",
       "max": 0,
@@ -1600,7 +1612,10 @@
     "title": "Recruitment refusal · no_skill",
     "screen": "recruit_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "have": 0,
       "kind": "no_skill",
       "max": 0,
@@ -1620,7 +1635,10 @@
     "title": "Recruitment refusal · finished",
     "screen": "recruit_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "have": 0,
       "kind": "finished",
       "max": 0,
@@ -1640,7 +1658,10 @@
     "title": "Recruitment refusal · gone",
     "screen": "recruit_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "have": 0,
       "kind": "gone",
       "max": 0,
@@ -1660,7 +1681,10 @@
     "title": "Recruitment refusal · posted",
     "screen": "recruit_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "have": 0,
       "kind": "posted",
       "max": 0,
@@ -1680,7 +1704,10 @@
     "title": "Recruitment refusal · amount",
     "screen": "recruit_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "have": 0,
       "kind": "amount",
       "max": 0,
@@ -1700,7 +1727,10 @@
     "title": "Recruitment refusal · filled",
     "screen": "recruit_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "have": 0,
       "kind": "filled",
       "max": 0,
@@ -1720,7 +1750,10 @@
     "title": "Recruitment refusal · not_now",
     "screen": "recruit_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "have": 0,
       "kind": "not_now",
       "max": 0,
@@ -1740,7 +1773,10 @@
     "title": "Recruitment refusal · not_found",
     "screen": "recruit_refusal",
     "view": {
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "have": 0,
       "kind": "not_found",
       "max": 0,
