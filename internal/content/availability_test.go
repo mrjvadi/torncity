@@ -24,6 +24,16 @@ func TestShippedAvailabilityIsComplete(t *testing.T) {
 	if len(problems) != 0 {
 		t.Fatalf("availability lint: %v", errors.Join(problems...))
 	}
+	universe := pack.availabilityUniverse()
+	for _, a := range pack.Availability {
+		found := false
+		for _, c := range universe[a.Kind] {
+			found = found || c == a.Code
+		}
+		if !found {
+			t.Errorf("stale tag %s/%s: no such entry in the content", a.Kind, a.Code)
+		}
+	}
 	undecided := 0
 	for _, a := range pack.Availability {
 		if a.Stage == StageUndecided {

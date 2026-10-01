@@ -285,7 +285,8 @@ func (p *Pack) validateAvailability(problems *[]error) {
 			continue // the pack has none of this content (a trimmed pack): nothing to tag
 		}
 		if !exists[t.Kind][t.Code] {
-			bad("%s: no such %s in the content", key, t.Kind)
+			// A tag for something the pack no longer has is harmless here (a
+			// trimmed pack); the shipped-content test refuses a stale tag.
 			continue
 		}
 		if _, dup := tags[key]; dup {
@@ -344,15 +345,15 @@ func (p *Pack) validateAvailability(problems *[]error) {
 			switch ps.Kind {
 			case PersonalLiteracy:
 			case PersonalCertificate:
-				if !certifying[ps.Code] {
+				if len(p.Courses) > 0 && !certifying[ps.Code] {
 					bad("%s: certificate %q is not a course that certifies", where, ps.Code)
 				}
 			case PersonalSkill:
-				if !exists["skill"][ps.Code] || ps.Min < 1 {
+				if (len(p.Skills) > 0 && !exists["skill"][ps.Code]) || ps.Min < 1 {
 					bad("%s: skill %q needs an existing skill code and min >= 1", where, ps.Code)
 				}
 			case PersonalRank:
-				if !exists["rank"][ps.Code] {
+				if len(exists["rank"]) > 0 && !exists["rank"][ps.Code] {
 					bad("%s: rank %q does not exist", where, ps.Code)
 				}
 			case PersonalLevel:
@@ -369,18 +370,18 @@ func (p *Pack) validateAvailability(problems *[]error) {
 			return
 		}
 		for _, k := range n.Knowledge {
-			if !know[k] {
+			if len(know) > 0 && !know[k] {
 				bad("%s: knowledge %q does not exist", where, k)
 			}
 		}
 		for _, b := range n.Buildings {
 			switch {
 			case b.Code != "":
-				if _, ok := bcode[b.Code]; !ok {
+				if _, ok := bcode[b.Code]; !ok && len(bcode) > 0 {
 					bad("%s: building %q does not exist", where, b.Code)
 				}
 			case b.Role != "" && b.Tier >= 1:
-				if !roleSeen[b.Role] {
+				if !roleSeen[b.Role] && len(bcode) > 0 {
 					bad("%s: no building has role %q", where, b.Role)
 				}
 			default:
@@ -448,6 +449,9 @@ func stageOfTier(tier int) string {
 // staff from the founding state (VillageReachability). An entry nobody can
 // ever get is a dead end (CLAUDE.md section 2).
 func (p *Pack) availabilityReachability(tags map[string]AvailabilityDef, staff map[string]StaffRoleDef, bad func(string, ...any)) {
+	if len(p.SettlementBuildings) == 0 {
+		return // a pack with no village catalogue has no founding state to reach from
+	}
 	vr := p.VillageReachability()
 	bcode := map[string]SettlementBuildingDef{}
 	for _, b := range p.SettlementBuildings {
