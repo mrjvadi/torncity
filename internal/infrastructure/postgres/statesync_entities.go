@@ -448,7 +448,8 @@ func (s *StateSync) readNotices(ctx context.Context, q querier, playerID string,
 		missing = append(missing, h.id)
 	}
 	if len(missing) > 0 {
-		rows, err := q.Query(ctx, `SELECT id::text, kind, category, screen, view, created_at, read_at IS NOT NULL
+		rows, err := q.Query(ctx, `SELECT id::text, kind, category, screen, view, created_at, read_at IS NOT NULL,
+       read_at IS NOT NULL AND read_at = created_at
   FROM player_notifications WHERE id = ANY($1::uuid[])`, missing)
 		if err != nil {
 			return fmt.Errorf("postgres: statesync: reading notices of %s: %w", playerID, err)
@@ -459,7 +460,7 @@ func (s *StateSync) readNotices(ctx context.Context, q querier, playerID string,
 				d    statesync.NoticeData
 				view []byte
 			)
-			if err := rows.Scan(&id, &d.Kind, &d.Category, &d.Screen, &view, &d.CreatedAt, &d.Read); err != nil {
+			if err := rows.Scan(&id, &d.Kind, &d.Category, &d.Screen, &view, &d.CreatedAt, &d.Read, &d.Instant); err != nil {
 				rows.Close()
 				return err
 			}

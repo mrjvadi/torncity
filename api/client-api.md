@@ -1266,7 +1266,7 @@ is neutral (codes, numbers, ids, RFC 3339 instants): the client words it.
 | `timed_action` | action id | `kind` (`travel`, `education`, `work_shift`, `settlement_work`, `place_move`…), `ref_type`, `ref_id`, `state`, `started_at`, `finish_at` |
 | `location` | `self` | `city` (code), `place`, `settlement` (id, when the city is a founded settlement), `travel` (`{from, to, mode, departed_at, arrives_at}` or null), `walk` (`{from, to, started_at, arrives_at}` or null) |
 | `inbox` | `self` | `unread`, `latest` (ids of the newest notices, newest first) |
-| `notice` | notice id | `kind`, `category`, `screen`, `view`, `created_at`, `read` (the newest `state_sync.notices_kept`, 50; older ones through `inbox.show`) |
+| `notice` | notice id | `kind`, `category`, `screen`, `view`, `created_at`, `read`, `instant` (told at once; the others wait in the inbox) — the newest `state_sync.notices_kept` (50); older ones through `inbox.show` |
 | `residence` | `self` | `settlement`, `code`, `name`, `tier`, `is_head`, `resident` (absent: the player belongs to no settlement) |
 | `settlement` | settlement id | `id`, `code`, `name`, `tier`, `viewer` (`head`, `member` or `public`), `grid_lots`, `layout_version` (the version `GET /settlements/{id}/layout` answers **this** viewer), and for members `treasury` (`{currency, balance}`), `knowledge` (count), `research` (`{code, finish_at}` or null) |
 | `relations` | `self` | `friends` (player ids), `faction` (`{id, rank}` or null), `presence` (`everyone`, `contacts`, `nobody`) |
@@ -1372,9 +1372,10 @@ when the wait ran out: the push brings them.
    `online`), pull `since` even if the socket says it is connected.
 5. **Reset:** discard the copy (keep pending optimistic changes) and read
    `GET /state`.
-6. **Notices:** show a toast once per notice id, and only for a notice that
-   arrived live (a record with a pts beyond what the copy held when the
-   session started), never for a snapshot or a catch-up of history.
+6. **Notices:** show a toast once per notice id, only for an `instant`
+   notice, and only for one that arrived live (a record with a pts beyond
+   what the copy held when the session started), never for a snapshot or a
+   catch-up of history. The others raise the inbox count.
 7. **Fallback:** with no socket, pull `since` every 20 s while visible.
 
 ---

@@ -142,6 +142,10 @@ type NoticeData struct {
 	View      json.RawMessage `json:"view"`
 	CreatedAt time.Time       `json:"created_at"`
 	Read      bool            `json:"read"`
+	// Instant marks a notice told at once (an instant kind of
+	// configs/notifications/delivery.yml, archived already read); the
+	// others wait in the inbox. A client toasts the instant ones.
+	Instant bool `json:"instant"`
 }
 
 // ResidenceData is KindResidence.
