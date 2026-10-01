@@ -25,7 +25,7 @@ func (r *CitizenRepository) Lots(ctx context.Context, settlementID string) ([]ap
 	rows, err := r.q.Query(ctx, `
 		SELECT id::text, settlement_id::text, lot_x, lot_y, tenure, owner_id::text, price,
 		       ledger_transaction_id::text, acquired_at
-		  FROM settlement_lots WHERE settlement_id = $1::uuid ORDER BY lot_y, lot_x`, settlementID)
+		  FROM settlement_lots WHERE settlement_id = $1::uuid AND released_at IS NULL ORDER BY lot_y, lot_x`, settlementID)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: listing settlement lots: %w", err)
 	}

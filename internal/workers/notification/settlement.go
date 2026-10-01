@@ -76,6 +76,7 @@ type SettlementEvents func(ctx context.Context, deps Deps, env *envelope.Envelop
 const (
 	SettlementBuildStarted      = "build_started"
 	SettlementLotBought         = "lot_bought"
+	SettlementLotRepaired       = "lot_repaired"
 	SettlementBuildBatchStarted = "build_batch_started"
 	SettlementGridGrown         = "grid_grown"
 	SettlementBuildFinished     = "build_finished"
@@ -229,7 +230,33 @@ func villageLotBought(_ context.Context, _ Deps, env *envelope.Envelope) ([]Sett
 	if err != nil {
 		return nil, err
 	}
-	return one(ev.SettlementID, SettlementLotBought, withLayout(map[string]any{"lot_x": ev.LotX, "lot_y": ev.LotY}, ev)), nil
+	f := map[string]any{"lot_x": ev.LotX, "lot_y": ev.LotY}
+	// The road the sale laid to the lot (docs/adr/0043), finished at once.
+	var laid struct {
+		AutoRoads json.RawMessage `json:"auto_roads"`
+	}
+	if json.Unmarshal(env.Payload, &laid) == nil && len(laid.AutoRoads) > 0 && string(laid.AutoRoads) != "null" {
+		f["auto_roads"] = laid.AutoRoads
+	}
+	return one(ev.SettlementID, SettlementLotBought, withLayout(f, ev)), nil
+}
+
+// villageLotRepaired: a resident put right a lot no road reached: a road laid,
+// cut through their own land, or the sale rescinded. The layout changed (roads,
+// owners), so the publication carries its version.
+func villageLotRepaired(_ context.Context, _ Deps, env *envelope.Envelope) ([]SettlementPublication, error) {
+	ev, err := decodeVillage(env, "lot_repaired")
+	if err != nil {
+		return nil, err
+	}
+	f := map[string]any{"lot_x": ev.LotX, "lot_y": ev.LotY}
+	var laid struct {
+		AutoRoads json.RawMessage `json:"auto_roads"`
+	}
+	if json.Unmarshal(env.Payload, &laid) == nil && len(laid.AutoRoads) > 0 && string(laid.AutoRoads) != "null" {
+		f["auto_roads"] = laid.AutoRoads
+	}
+	return one(ev.SettlementID, SettlementLotRepaired, withLayout(f, ev)), nil
 }
 
 // villageBatchStarted: several buildings (a run of roads) were placed by one

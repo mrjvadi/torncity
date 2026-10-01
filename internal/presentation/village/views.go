@@ -486,7 +486,56 @@ const (
 	CitizenNoDebt      = "citizen_no_debt"
 	CitizenOff         = "citizen_off"
 	CitizenNoLots      = "citizen_no_lots"
+	// Lot access (docs/adr/0043): the lot is road right-of-way, no road can
+	// reach it, the option asked for is not on offer, the treasury cannot pay a
+	// refund now.
+	CitizenLotReserved    = "citizen_lot_reserved"
+	CitizenNoAccess       = "citizen_no_access"
+	CitizenNoOption       = "citizen_no_option"
+	CitizenRefundTreasury = "citizen_refund_treasury"
+	// VillageRoadReserved: a building on right-of-way cannot be torn down.
+	VillageRoadReserved = "road_reserved"
+	// VillageReserved: right-of-way takes only a road.
+	VillageReserved = "reserved"
 )
+
+// How a lot is served by road (docs/adr/0043).
+const (
+	AccessRoad        = "road"
+	AccessNeedsRoad   = "needs_road"
+	AccessNeedsBridge = "needs_bridge"
+	AccessNone        = "none"
+)
+
+// The ways to put right a lot that has no road.
+const (
+	RepairConnect = "connect"
+	RepairCarve   = "carve"
+	RepairRefund  = "refund"
+)
+
+// LotRef is one lot's place on the grid.
+type LotRef struct{ X, Y int }
+
+// LotAccess is how a lot is, or can be, reached by road: Kind, and for a road
+// still to be laid the lots of road and of culvert or footbridge over water
+// (Crossings) and their price (Cost). Path draws the road, from the lot
+// outwards; Carved are the viewer's own lots the road would turn into road.
+type LotAccess struct {
+	Kind      string
+	Roads     int
+	Crossings int
+	Cost      int64
+	Carved    []LotRef
+	Path      []LotRef
+}
+
+// LotNearby is a free lot offered instead of one that cannot be served.
+type LotNearby struct {
+	X, Y     int
+	Distance int
+	Access   LotAccess
+}
 
 // Cell states of the land grid.
 const (
@@ -495,6 +544,9 @@ const (
 	LandTaken    = "taken"
 	LandBuilding = "building"
 	LandRoad     = "road"
+	// LandReserved is right-of-way: a street platted ahead or the road of a
+	// sold lot, never sold.
+	LandReserved = "reserved"
 	LandWater    = "water"
 	LandSteep    = "steep"
 )
@@ -506,6 +558,13 @@ type LandCell struct {
 	State    string
 	Owner    string `json:"owner,omitempty"`
 	Building string `json:"building,omitempty"`
+	// Access is how a free lot, or one of the viewer's bare lots, is served by
+	// road (the Access kinds); empty for every other cell, and on a grid too big
+	// to price cell by cell. Roads, Crossings and Cost are the road still to lay.
+	Access    string `json:"access,omitempty"`
+	Roads     int    `json:"roads,omitempty"`
+	Crossings int    `json:"crossings,omitempty"`
+	Cost      int64  `json:"cost,omitempty"`
 }
 
 // LandView is the village's land as a resident sees it.
@@ -520,8 +579,10 @@ type LandView struct {
 	Owned, Max int
 	// CanBuy is whether the viewer may buy another lot now.
 	CanBuy bool
-	// FreeLots counts the lots on offer.
-	FreeLots int
+	// FreeLots counts the lots on offer; ServedLots those among them a road can
+	// reach (the lots that can really be bought).
+	FreeLots   int
+	ServedLots int
 }
 
 // LotBuyView is the confirm of a purchase and its result.
@@ -533,6 +594,53 @@ type LotBuyView struct {
 	// Cash is the buyer's money now (after the purchase, on the result).
 	Cash     int64
 	Treasury int64
+	// Access is how the lot is served: the road the sale includes when it needs
+	// one (Access.Cost, paid with the price). Carve is the way in through the
+	// buyer's own lots, offered when no public road can reach the lot; Nearby the
+	// lots that can be served, offered when this one cannot. Road is the choice
+	// of this answer ("" the public road, "carve" the buyer's own land).
+	Access LotAccess
+	Carve  *LotAccess
+	Nearby []LotNearby
+	Road   string
+	// Total is what the buyer pays now: the price and the road.
+	Total int64
+}
+
+// LotAccessView is the lot's road access and the ways to put it right: the
+// answer of settlement.lot.access, and of a building refused for want of a road.
+type LotAccessView struct {
+	Village      string
+	SettlementID string
+	X, Y         int
+	// Own says the viewer holds the lot; Price is what they paid, Refund what
+	// a rescission returns (the price), Cash their money.
+	Own    bool
+	Price  int64
+	Refund int64
+	Cash   int64
+	Access LotAccess
+	Carve  *LotAccess
+	Nearby []LotNearby
+	// Building is the private building that was refused for want of a road, if
+	// that is how the viewer got here.
+	Building presentation.Named
+}
+
+// LotRepairView is the result of putting a lot right: what was done and paid.
+type LotRepairView struct {
+	Village      string
+	SettlementID string
+	X, Y         int
+	Option       string
+	// Paid is what the road cost; Refund what came back; Cash the viewer's money now.
+	Paid   int64
+	Refund int64
+	Cash   int64
+	// Roads, Crossings, Carved count what was laid.
+	Roads     int
+	Crossings int
+	Carved    int
 }
 
 // PrivateMaterial is one material a private building needs, and how it is met.
@@ -600,6 +708,10 @@ type PrivateConfirmView struct {
 // MineLot is one of the viewer's lots.
 type MineLot struct {
 	X, Y int
+	// Access is how the bare lot is served by road (the Access kinds), Cost the
+	// road still to lay; empty when a building stands on it.
+	Access string
+	Cost   int64
 	// Building is the code standing on it, empty for a bare lot; State is
 	// the building's state (under_construction, built), empty for a bare lot.
 	Building string

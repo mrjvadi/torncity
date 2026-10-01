@@ -165,6 +165,10 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(c.PermitLedger == c.PermitRows && c.ConstructionLedger == c.ConstructionRows && c.MaterialsLedger == c.MaterialsRows && c.BuildingMismatched == 0, fmt.Sprintf("private buildings' permits, costs and bought materials in the ledger match their rows (%d = %d, %d = %d, %d = %d; %d mismatched)", c.PermitLedger, c.PermitRows, c.ConstructionLedger, c.ConstructionRows, c.MaterialsLedger, c.MaterialsRows, c.BuildingMismatched))
 		out.add(c.TaxLedger == c.TaxRows && c.TaxMismatched == 0, fmt.Sprintf("property tax in the ledger matches the paid tax rows (%d = %d), each the transaction its row names (%d mismatched)", c.TaxLedger, c.TaxRows, c.TaxMismatched))
 		out.add(c.CitizenPaidToPlayer == 0, fmt.Sprintf("no citizen-loop reason ever credits a player (%d entries)", c.CitizenPaidToPlayer))
+		if c.AccessChecked {
+			out.add(c.RoadLedger == c.RoadRows && c.RoadMismatched == 0, fmt.Sprintf("roads paid to reach a lot in the ledger match the connection rows (%d = %d), each leaving the payer's cash for its fee (%d mismatched)", c.RoadLedger, c.RoadRows, c.RoadMismatched))
+			out.add(c.RefundLedger == c.RefundRows && c.RefundMismatched == 0, fmt.Sprintf("lot refunds in the ledger match the released lots (%d = %d), each one treasury-to-owner transaction of at most the price paid (%d mismatched)", c.RefundLedger, c.RefundRows, c.RefundMismatched))
+		}
 	}
 
 	if v.Village {

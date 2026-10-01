@@ -547,6 +547,10 @@ settlement:
   grid_lot_price: 51
   grid_price_step_bps: 501
   auto_road_cost: 11
+  lot_access_crossing_cost: 61
+  lot_access_max_crossing: 3
+  street_pitch: 6
+  street_plan_min_grid: 13
   founding_draft_ttl: 31m
   founding_name_min: 4
   founding_name_max: 25
@@ -914,6 +918,10 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_GRID_LOT_PRICE":                "52",
 	"TORN_SETTLEMENT_GRID_PRICE_STEP_BPS":           "502",
 	"TORN_SETTLEMENT_AUTO_ROAD_COST":                "12",
+	"TORN_SETTLEMENT_LOT_ACCESS_CROSSING_COST":      "62",
+	"TORN_SETTLEMENT_LOT_ACCESS_MAX_CROSSING":       "4",
+	"TORN_SETTLEMENT_STREET_PITCH":                  "7",
+	"TORN_SETTLEMENT_STREET_PLAN_MIN_GRID":          "14",
 	"TORN_SETTLEMENT_FOUNDING_DRAFT_TTL":            "32m",
 	"TORN_SETTLEMENT_FOUNDING_NAME_MIN":             "5",
 	"TORN_SETTLEMENT_FOUNDING_NAME_MAX":             "26",

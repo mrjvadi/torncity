@@ -24,6 +24,8 @@ const (
 	ScreenPrivateMenu          = "settlement_private_menu"
 	ScreenPrivateLots          = "settlement_private_lots"
 	ScreenPrivateConfirm       = "settlement_private_confirm"
+	ScreenLotAccess            = "settlement_lot_access"
+	ScreenLotRepairDone        = "settlement_lot_repair_done"
 	ScreenMine                 = "settlement_mine"
 	ScreenTerms                = "settlement_terms"
 	ScreenLaborBoard           = "labor_board"

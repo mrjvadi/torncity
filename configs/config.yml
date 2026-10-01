@@ -1106,6 +1106,16 @@ settlement:
   # What the treasury pays for each lot of road the game lays by itself to
   # connect a new building (a road laid by hand costs 50).
   auto_road_cost: 10
+  # Lot access (docs/adr/0043): a lot is sold only when a road can reach it.
+  # A lot of culvert or footbridge over water costs lot_access_crossing_cost
+  # (a road lot costs auto_road_cost); one route crosses at most
+  # lot_access_max_crossing water lots. A village whose grid side reaches
+  # street_plan_min_grid platts its streets ahead, one every street_pitch lots,
+  # as reserved right-of-way that is never sold.
+  lot_access_crossing_cost: 60
+  lot_access_max_crossing: 2
+  street_pitch: 5
+  street_plan_min_grid: 12
   # The founding form (docs/adr/0028 section 3): «ساخت روستا» opens a draft
   # that the founder completes in the game client - name, national currency,
   # emblem - and only its submission founds the village. An open draft waits

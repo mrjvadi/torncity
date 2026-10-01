@@ -61,7 +61,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 		VillageDonateRange, VillageDonateNoCash, VillageBatch, VillageNoRoad, VillageGridMax, VillagePromotionTop,
 		VillageStorageFull, VillageAlreadyWorking, VillageWorkplaceFull, VillageNotWorkplace,
 		LaborNoJob, LaborNotHere, LaborFullyStaffed, LaborBudgetSpent, LaborNotEmployer, LaborNoNPC, LaborWageTooLow,
-		LaborEmployerBroke, LaborNoSite:
+		LaborEmployerBroke, LaborNoSite, village.VillageRoadReserved, village.VillageReserved:
 	default:
 		if isCitizenRefusal(kind) {
 			return renderCitizenRefusal(c, v)

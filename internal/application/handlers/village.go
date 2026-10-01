@@ -236,6 +236,9 @@ type villageRefusal struct {
 	action  string
 	subject presentation.Named
 	needs   []village.VillageNeed
+	// access is the lot's road access and the ways to put it right, shown
+	// instead of a bare refusal when a private building has no road.
+	access *village.LotAccessView
 }
 
 func (e *villageRefusal) Error() string { return "handlers: village refusal: " + e.kind }
@@ -257,6 +260,9 @@ func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err 
 	c := h.screen(meta, lang)
 	var r *villageRefusal
 	if stderrors.As(err, &r) {
+		if r.access != nil {
+			return village.LotAccessScreen(c, *r.access), nil
+		}
 		return village.VillageRefusal(c, village.VillageRefusalView{Kind: r.kind, Back: presentation.RefOfAddress(r.back), Remaining: r.remaining, Min: r.min, Max: r.max, Lots: r.lots,
 			Action: r.action, Subject: r.subject, Needs: r.needs}), nil
 	}
@@ -353,6 +359,16 @@ func (h *VillageHandler) grid(ctx context.Context, tx application.Tx, w *worldge
 					g[y][x].Occupied = true
 				}
 			}
+		}
+	}
+	// Right-of-way (docs/adr/0043): only a road may stand on a reserved lot.
+	reserves, err := tx.Citizens().RoadReserves(ctx, s.CityID)
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, r := range reserves {
+		if r.Y >= 0 && r.Y < gridLots && r.X >= 0 && r.X < gridLots {
+			g[r.Y][r.X].Reserved = true
 		}
 	}
 	return g, existing, nil

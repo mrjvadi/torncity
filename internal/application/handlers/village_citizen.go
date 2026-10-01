@@ -58,6 +58,13 @@ type CitizenRules struct {
 	HomeRestCooldown  time.Duration
 	HomeRestHealth    int
 	HomeRestHappiness int
+	// Lot access (docs/adr/0043): the price of a lot of culvert or footbridge,
+	// the most water lots one road crosses, and the street plan of a big village
+	// (a street every StreetPitch lots once the grid side reaches StreetPlanMinGrid).
+	CrossingLotCost   int64
+	MaxCrossing       int
+	StreetPitch       int
+	StreetPlanMinGrid int
 }
 
 func (r CitizenRules) enabled() bool { return r.LotPrice > 0 && r.TaxPeriod > 0 }
@@ -92,6 +99,9 @@ type VillageLotRequest struct {
 	// Lot is "{x}-{y}" (village.LotToken); a client sends x and y.
 	Lot     string `json:"lot,omitempty"`
 	Confirm string `json:"confirm,omitempty"`
+	// Road is "carve" when the buyer consents to turning their own lots into the
+	// road to the lot (docs/adr/0043).
+	Road string `json:"road,omitempty"`
 }
 
 // VillagePrivateRequest is the payload of the private building commands.
@@ -127,6 +137,15 @@ type citizenScope struct {
 func (h *VillageHandler) citizenScope(ctx context.Context, tx application.Tx, meta envelope.Metadata, lang *string,
 	residentOnly bool,
 ) (*citizenScope, error) {
+	return h.citizenScopeWith(ctx, tx, meta, lang, residentOnly, false)
+}
+
+// citizenScopeWith is citizenScope; lockLand takes the settlement's land lock
+// before the lots are read, for a command that writes lots, roads or
+// right-of-way.
+func (h *VillageHandler) citizenScopeWith(ctx context.Context, tx application.Tx, meta envelope.Metadata, lang *string,
+	residentOnly, lockLand bool,
+) (*citizenScope, error) {
 	if !h.citizen.enabled() {
 		return nil, refuseVillage(village.CitizenOff)
 	}
@@ -146,6 +165,11 @@ func (h *VillageHandler) citizenScope(ctx context.Context, tx application.Tx, me
 		}
 		if home != s.CityID {
 			return nil, refuseVillage(village.VillageNotResident)
+		}
+	}
+	if lockLand {
+		if err := tx.Citizens().LockLots(ctx, s.CityID); err != nil {
+			return nil, err
 		}
 	}
 	lots, err := tx.Citizens().Lots(ctx, s.CityID)
@@ -279,6 +303,11 @@ func (h *VillageHandler) landView(ctx context.Context, tx application.Tx, sc *ci
 			}
 		}
 	}
+	la, err := h.landAccess(ctx, tx, sc, false, h.now())
+	if err != nil {
+		return village.LandView{}, err
+	}
+	priced := len(grid) > 0 && len(grid)*len(grid[0]) <= lotAccessScanMax
 	owned := sc.ownedBy(sc.p.ID)
 	v := village.LandView{
 		Village: sc.s.Name, SettlementID: sc.s.CityID, GridLots: len(grid),
@@ -293,26 +322,38 @@ func (h *VillageHandler) landView(ctx context.Context, tx application.Tx, sc *ci
 			switch {
 			case isOwned && owner.OwnerID == sc.p.ID:
 				cell.State = village.LandMine
+				if priced && cell.Building == "" {
+					setCellAccess(&cell, la.amap.Plan([2]int{x, y}, sc.p.ID, false, la.rules))
+				}
 			case isOwned:
 				cell.State = village.LandTaken
 				cell.Owner = names[owner.OwnerID]
+			case cell.Building == "road":
+				cell.State = village.LandRoad
 			case !lot.Buildable && lotState(lot, false) == village.LotSteep:
 				cell.State = village.LandSteep
 			case !lot.Buildable:
 				cell.State = village.LandWater
-			case lot.Occupied && cell.Building == "road":
-				cell.State = village.LandRoad
 			case lot.Occupied:
 				cell.State = village.LandBuilding
+			case lot.Reserved:
+				cell.State = village.LandReserved
 			default:
 				cell.State = village.LandFree
 				v.FreeLots++
+				if priced {
+					a := la.amap.Plan([2]int{x, y}, sc.p.ID, false, la.rules)
+					setCellAccess(&cell, a)
+					if a.Feasible() {
+						v.ServedLots++
+					}
+				}
 			}
 			row = append(row, cell)
 		}
 		v.Rows = append(v.Rows, row)
 	}
-	v.CanBuy = v.FreeLots > 0 && owned < h.citizen.MaxLotsPerPlayer && cash >= sc.price && h.zoningAllows(grid, len(sc.lots))
+	v.CanBuy = v.FreeLots > 0 && (!priced || v.ServedLots > 0) && owned < h.citizen.MaxLotsPerPlayer && cash >= sc.price && h.zoningAllows(grid, len(sc.lots))
 	return v, nil
 }
 
@@ -333,122 +374,6 @@ func (h *VillageHandler) Land(ctx context.Context, meta envelope.Metadata) (*pre
 		return resp, err
 	}
 	return village.LandGrid(h.screen(meta, lang), view), nil
-}
-
-// BuyLot handles settlement.lot.buy: a resident buys a free, buildable lot
-// at the village's price, which goes to the village treasury. The first
-// press shows the price and changes nothing; the confirmed press buys.
-func (h *VillageHandler) BuyLot(ctx context.Context, meta envelope.Metadata, req VillageLotRequest) (*presentation.Response, error) {
-	lang := meta.Language
-	var (
-		view village.LotBuyView
-		done bool
-	)
-	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
-		sc, err := h.citizenScope(ctx, tx, meta, &lang, true)
-		if err != nil {
-			return err
-		}
-		x, y, _, ok := village.ParseLotToken(req.Lot)
-		if !ok {
-			return refuseVillage(village.VillageNotFound, village.AddrLand)
-		}
-		w, err := h.world(ctx)
-		if err != nil {
-			return err
-		}
-		grid, _, err := h.grid(ctx, tx, w, sc.s)
-		if err != nil {
-			return err
-		}
-		if y >= len(grid) || x >= len(grid[y]) {
-			return refuseVillage(village.VillageOutOfBounds, village.AddrLand)
-		}
-		lot := grid[y][x]
-		if _, taken := sc.lotAt(x, y); taken {
-			return refuseVillage(village.CitizenLotTaken, village.AddrLand)
-		}
-		switch {
-		case !lot.Buildable:
-			return refuseVillage(village.VillageUnbuildable, village.AddrLand)
-		case lot.Occupied:
-			return refuseVillage(village.VillageOccupied, village.AddrLand)
-		}
-		if sc.ownedBy(sc.p.ID) >= h.citizen.MaxLotsPerPlayer {
-			return refuseVillage(village.CitizenLotLimit, village.AddrLand)
-		}
-		if !h.zoningAllows(grid, len(sc.lots)) {
-			return refuseVillage(village.CitizenZoning, village.AddrLand)
-		}
-		cashAcct, cash, err := playerCash(ctx, tx, sc.p.ID)
-		if err != nil {
-			return err
-		}
-		treasury, err := treasuryBalance(ctx, tx, sc.s.CityID)
-		if err != nil {
-			return err
-		}
-		view = village.LotBuyView{Village: sc.s.Name, SettlementID: sc.s.CityID, X: x, Y: y, Price: sc.price, Cash: cash, Treasury: treasury}
-		if cash < sc.price {
-			return refuseVillage(village.CitizenNoCash, village.AddrLand)
-		}
-		if strings.TrimSpace(req.Confirm) != village.ResidenceConfirm {
-			return nil
-		}
-
-		fresh, err := h.reserve(ctx, tx, sc.p.ID, meta)
-		if err != nil {
-			return err
-		}
-		done = true
-		if !fresh {
-			return nil
-		}
-		now := h.now()
-		lotID, txID := h.ids.NewID(), h.ids.NewID()
-		if err := tx.Citizens().InsertLot(ctx, application.SettlementLot{
-			ID: lotID, SettlementID: sc.s.CityID, X: x, Y: y, Tenure: application.TenureFreehold, OwnerID: sc.p.ID,
-			Price: sc.price, LedgerTransactionID: txID, AcquiredAt: now,
-		}); err != nil {
-			if stderrors.Is(err, application.ErrLotTaken) {
-				return refuseVillage(village.CitizenLotTaken, village.AddrLand)
-			}
-			return err
-		}
-		treasuryAcct, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, sc.s.CityID)
-		if err != nil {
-			return err
-		}
-		if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
-			ID: txID, Reason: application.ReasonSettlementLotSale, CreatedAt: now,
-			ReferenceType: application.SettlementLotReference, ReferenceID: lotID,
-			Entries: []application.LedgerEntry{
-				{AccountID: cashAcct.ID, Amount: money.FromMinor(-sc.price)},
-				{AccountID: treasuryAcct.ID, Amount: money.FromMinor(sc.price)},
-			},
-		}); err != nil {
-			if stderrors.Is(err, application.ErrInsufficientFunds) {
-				return refuseVillage(village.CitizenNoCash, village.AddrLand)
-			}
-			return err
-		}
-		view.Cash, view.Treasury = cash-sc.price, treasury+sc.price
-		lots := append(append([]application.SettlementLot(nil), sc.lots...), application.SettlementLot{
-			ID: lotID, SettlementID: sc.s.CityID, X: x, Y: y, Tenure: application.TenureFreehold, OwnerID: sc.p.ID, Price: sc.price,
-		})
-		return h.appendTenureEvent(ctx, tx, meta, sc.s, "lot_bought", lots, map[string]any{
-			"settlement_id": sc.s.CityID, "player_id": sc.p.ID, "player_name": sc.p.DisplayName, "lot_x": x, "lot_y": y,
-			"price": sc.price, "lot_id": lotID,
-		})
-	})
-	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
-		return resp, err
-	}
-	c := h.screen(meta, lang)
-	if done {
-		return village.LotBuyDone(c, view), nil
-	}
-	return village.LotBuyConfirm(c, view), nil
 }
 
 // appendTenureEvent writes an event that changes who owns what: like
@@ -791,6 +716,10 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 		// residents are never paved over.
 		autoRoads, perr := h.planAutoRoads(ctx, tx, sc.s, d.Code, def, grid, x, y)
 		if perr != nil {
+			var r *villageRefusal
+			if stderrors.As(perr, &r) && r.kind == village.VillageNoRoad {
+				return h.noRoadAccess(ctx, tx, sc, def, x, y, named(d.Code, d.Name))
+			}
 			return perr
 		}
 		roadFee := int64(len(autoRoads)) * h.autoRoadCost
@@ -1090,6 +1019,10 @@ func (h *VillageHandler) mineView(ctx context.Context, tx application.Tx, meta e
 		byID[b.ID] = b
 	}
 	view := village.MineView{Village: sc.s.Name, SettlementID: sc.s.CityID, Cash: cash, TaxBPS: sc.tax, Notice: notice}
+	la, err := h.landAccess(ctx, tx, sc, false, now)
+	if err != nil {
+		return view, err
+	}
 	standing := map[[2]int]application.SettlementBuildingInstance{}
 	for _, pb := range priv {
 		if pb.OwnerID != sc.p.ID {
@@ -1118,6 +1051,10 @@ func (h *VillageHandler) mineView(ctx context.Context, tx application.Tx, meta e
 			continue
 		}
 		ml := village.MineLot{X: l.X, Y: l.Y}
+		if _, built := standing[[2]int{l.X, l.Y}]; !built && la != nil {
+			a := la.amap.Plan([2]int{l.X, l.Y}, sc.p.ID, false, la.rules)
+			ml.Access, ml.Cost = string(a.Kind), a.Cost
+		}
 		if b, ok := standing[[2]int{l.X, l.Y}]; ok {
 			ml.Building, ml.State = b.TypeCode, application.ViewState(b)
 			if b.FinishAt != nil {

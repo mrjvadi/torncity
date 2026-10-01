@@ -33,6 +33,8 @@ func init() {
 	Register(village.ScreenPrivateMenu, screens.PrivateMenu)
 	Register(village.ScreenPrivateLots, screens.PrivateLots)
 	Register(village.ScreenPrivateConfirm, screens.PrivateConfirm)
+	Register(village.ScreenLotAccess, screens.LotAccessScreen)
+	Register(village.ScreenLotRepairDone, screens.LotRepairDone)
 	Register(village.ScreenMine, screens.Mine)
 	Register(village.ScreenTerms, screens.Terms)
 	Register(village.ScreenLaborBoard, screens.LaborBoard)

@@ -65,7 +65,7 @@ func renderLand(c Context, v LandView) *presenter.Response {
 	for _, row := range v.Rows {
 		var buttons []presenter.Button
 		for _, cell := range row {
-			label := landEmoji(cell.State)
+			label := landCellEmoji(cell)
 			var b presenter.Button
 			var ok bool
 			switch {
@@ -105,12 +105,32 @@ func lotArgs(c Context, v LotBuyView) map[string]any {
 
 func renderLotBuyConfirm(c Context, v LotBuyView) *presenter.Response {
 	args := lotArgs(c, v)
+	args["total"] = FormatMoney(c, v.Total)
+	args["left"] = FormatMoney(c, v.Cash-v.Total)
 	kb := keyboards.New()
-	if b, ok := keyboards.Button(c.T("citizen.buy.button_yes", args), AddrLotBuy, LotToken(v.X, v.Y, false), ResidenceConfirm); ok {
-		kb.Row(b)
+	switch {
+	case v.Access.Kind != village.AccessNone && v.Road == "":
+		if b, ok := keyboards.Button(c.T("citizen.buy.button_yes", map[string]any{"price": FormatMoney(c, v.Total)}), AddrLotBuy, LotToken(v.X, v.Y, false), ResidenceConfirm); ok {
+			kb.Row(b)
+		}
+	case v.Road == village.RepairCarve:
+		if b, ok := keyboards.Button(c.T("citizen.buy.button_yes", map[string]any{"price": FormatMoney(c, v.Total)}), AddrLotBuy, LotToken(v.X, v.Y, false), ResidenceConfirm, village.RepairCarve); ok {
+			kb.Row(b)
+		}
+	}
+	if v.Access.Kind == village.AccessNone && v.Carve != nil && v.Road == "" {
+		cargs := map[string]any{"carved": FormatNumber(c, int64(len(v.Carve.Carved))), "cost": FormatMoney(c, v.Carve.Cost)}
+		if b, ok := keyboards.Button(c.T("citizen.access.button_carve", cargs), AddrLotBuy, LotToken(v.X, v.Y, false), village.RepairCarve); ok {
+			kb.Row(b)
+		}
+	}
+	if v.Access.Kind == village.AccessNone || v.Access.Kind == village.AccessNeedsBridge {
+		nearbyButtons(c, kb, v.Nearby)
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrLand}))
-	return c.respond(paragraphs(c.T("citizen.buy.ask_title", args), c.T(sharedKey(c, "citizen.buy.ask_body"), args)), kb.Build())
+	blocks := []string{c.T("citizen.buy.ask_title", args), c.T(sharedKey(c, "citizen.buy.ask_body"), args)}
+	blocks = append(blocks, renderLotBuyAccess(c, v)...)
+	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
 // LotBuyDone renders the result of a purchase.
@@ -259,10 +279,16 @@ func renderMine(c Context, v MineView) *presenter.Response {
 	}
 	blocks = append(blocks, home)
 	var lines []string
+	var roadRows []presenter.Button
 	for _, l := range v.Lots {
 		args := map[string]any{"row": FormatNumber(c, int64(l.Y+1)), "col": FormatNumber(c, int64(l.X+1)),
 			"time": FormatDuration(c, l.Left)}
 		switch {
+		case l.Building == "" && l.Access != "" && l.Access != village.AccessRoad:
+			lines = append(lines, c.T("citizen.mine.lot_no_road", args))
+			if b, ok := keyboards.Button(c.T("citizen.mine.button_road", args), AddrLotAccess, LotToken(l.X, l.Y, false)); ok {
+				roadRows = append(roadRows, b)
+			}
 		case l.Building == "":
 			lines = append(lines, c.T("citizen.mine.lot_bare", args))
 		case l.State == "under_construction" || l.State == "planned":
@@ -292,6 +318,9 @@ func renderMine(c Context, v MineView) *presenter.Response {
 
 	kb := keyboards.New()
 	kb.Row(citizenButtons(c, "citizen.button.buy_land", AddrLand, "citizen.button.build_house", AddrPrivateMenu)...)
+	for _, b := range roadRows {
+		kb.Row(b)
+	}
 	var row []presenter.Button
 	if v.Home != nil {
 		key := "citizen.button.rest"

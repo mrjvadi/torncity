@@ -469,6 +469,8 @@ var all = []Subscription{
 	// house, one's own property, the head's terms and the page behind work.
 	{Domain: "settlement", Action: "land", Origin: FromPlayer},
 	{Domain: "settlement", Action: "lot.buy", Origin: FromPlayer},
+	{Domain: "settlement", Action: "lot.access", Origin: FromPlayer},
+	{Domain: "settlement", Action: "lot.repair", Origin: FromPlayer},
 	{Domain: "settlement", Action: "private", Origin: FromPlayer},
 	{Domain: "settlement", Action: "private.lots", Origin: FromPlayer},
 	{Domain: "settlement", Action: "private.place", Origin: FromPlayer},

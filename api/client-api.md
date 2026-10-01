@@ -1162,7 +1162,8 @@ pictures:
 | `type` | fields | when |
 |---|---|---|
 | `build_started` | `building_id`, `type_code`, `lot_x`, `lot_y`, `rotated`, `finish_at`, `layout_version` | the head, or (1.4) a resident on their own lot, placed a building and paid for it |
-| `lot_bought` | `lot_x`, `lot_y`, `layout_version` | a resident bought a lot (1.4); the versions include who owns what, so refetch the layout when yours differs |
+| `lot_bought` | `lot_x`, `lot_y`, `auto_roads`? (`[{building_id, lot_x, lot_y}]`, the road the sale laid to the lot, docs/adr/0043), `layout_version` | a resident bought a lot (1.4); the versions include who owns what, so refetch the layout when yours differs |
+| `lot_repaired` | `lot_x`, `lot_y`, `auto_roads`?, `layout_version` | a resident put right a lot no road reached (docs/adr/0043): the road laid, cut through their own land, or the sale rescinded; refetch the layout when yours differs |
 | `build_started` | `building_id`, `type_code`, `lot_x`, `lot_y`, `rotated`, `finish_at`, `auto_roads`? (1.5: `[{building_id, lot_x, lot_y}]`, roads the game laid with it, already finished), `layout_version` | the head placed a building and paid for it |
 | `build_batch_started` | `type_code`, `count`, `buildings` (`[{building_id, lot_x, lot_y}]`), `finish_at`, `layout_version` | (1.5) the head placed several buildings with one command |
 | `grid_grown` | `grid_lots`, `layout_version` | (1.5) the village bought land: the grid is bigger, fetch the layout |

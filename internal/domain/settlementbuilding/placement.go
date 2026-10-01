@@ -20,6 +20,8 @@ type Lot struct {
 	// Occupied is true once any building (queued, building or complete)
 	// claims this lot.
 	Occupied bool
+	// Reserved is right-of-way (docs/adr/0043): only a road may be placed on it.
+	Reserved bool
 	// TerrainTags are this lot's own terrain flags (coastal_lot, river_lot,
 	// sloped_lot, a biome code, or a synthetic tag such as ore_deposit —
 	// the identical open vocabulary settlementknowledge.Tech.TerrainTags
@@ -102,6 +104,9 @@ func CanPlace(def Def, grid Grid, x, y int, s Standing) error {
 		}
 		if lot.Occupied {
 			return ErrLotOccupied
+		}
+		if lot.Reserved && def.Code != "road" {
+			return ErrReservedLot
 		}
 		if !terrainOK {
 			for _, tag := range def.TerrainTags {

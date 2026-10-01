@@ -44,6 +44,8 @@ var (
 	screenPrivateMenu    = presentation.Define[PrivateMenuView](ScreenPrivateMenu, "village")
 	screenPrivateLots    = presentation.Define[PrivateLotsView](ScreenPrivateLots, "village")
 	screenPrivateConfirm = presentation.Define[PrivateConfirmView](ScreenPrivateConfirm, "village")
+	screenLotAccess      = presentation.Define[LotAccessView](ScreenLotAccess, "village")
+	screenLotRepairDone  = presentation.Define[LotRepairView](ScreenLotRepairDone, "village")
 	screenMine           = presentation.Define[MineView](ScreenMine, "village")
 	screenTerms          = presentation.Define[TermsView](ScreenTerms, "village")
 	screenLaborBoard     = presentation.Define[LaborBoardView](ScreenLaborBoard, "village")
@@ -407,10 +409,64 @@ func LandGrid(c presentation.Ctx, v LandView) *presentation.Response {
 	return screenLand.Response(c.Lang, v, a...)
 }
 
-// LotBuyConfirm asks the buyer to confirm.
+// LotBuyConfirm asks the buyer to confirm. A lot that can be served offers the
+// purchase with its road; one that cannot offers the way in through the buyer's
+// own land, when there is one, and the nearest lots that can be served.
 func LotBuyConfirm(c presentation.Ctx, v LotBuyView) *presentation.Response {
-	return screenLotBuyConfirm.Response(c.Lang, v,
-		confirm(AddrLotBuy, LotToken(v.X, v.Y, false), ResidenceConfirm), back(AddrLand))
+	tok := LotToken(v.X, v.Y, false)
+	var a []presentation.Action
+	switch {
+	case v.Access.Kind != AccessNone && v.Road == "":
+		a = append(a, confirm(AddrLotBuy, tok, ResidenceConfirm))
+	case v.Road == RepairCarve:
+		a = append(a, confirm(AddrLotBuy, tok, ResidenceConfirm, RepairCarve))
+	}
+	if v.Access.Kind == AccessNone && v.Carve != nil && v.Road == "" {
+		a = append(a, act(AddrLotBuy, tok, RepairCarve).Named("lot.carve"))
+	}
+	if v.Access.Kind == AccessNone || v.Access.Kind == AccessNeedsBridge {
+		for _, n := range v.Nearby {
+			a = append(a, act(AddrLotBuy, LotToken(n.X, n.Y, false)).Named("lot.nearby").With("x", strconv.Itoa(n.X)).With("y", strconv.Itoa(n.Y)))
+		}
+	}
+	a = append(a, back(AddrLand))
+	return screenLotBuyConfirm.Response(c.Lang, v, a...)
+}
+
+// LotAccessScreen is a lot's road access and the ways to put it right. For a
+// lot of the viewer's own that no road reaches the options are the road at its
+// price (connect), the road through their own land (carve) and the money back
+// (refund); each is one press, the cost on the screen is the confirmation.
+func LotAccessScreen(c presentation.Ctx, v LotAccessView) *presentation.Response {
+	tok := LotToken(v.X, v.Y, false)
+	var a []presentation.Action
+	if v.Own && v.Access.Kind != AccessRoad {
+		if v.Access.Kind == AccessNeedsRoad || v.Access.Kind == AccessNeedsBridge {
+			a = append(a, confirm(AddrLotRepair, tok, RepairConnect, ResidenceConfirm).Named("lot.connect"))
+		}
+		if v.Carve != nil {
+			a = append(a, confirm(AddrLotRepair, tok, RepairCarve, ResidenceConfirm).Named("lot.carve"))
+		}
+		if v.Refund > 0 {
+			a = append(a, confirm(AddrLotRepair, tok, RepairRefund, ResidenceConfirm).Named("lot.refund").As(presentation.RoleDanger))
+		}
+	}
+	if !v.Own {
+		for _, n := range v.Nearby {
+			a = append(a, act(AddrLotBuy, LotToken(n.X, n.Y, false)).Named("lot.nearby").With("x", strconv.Itoa(n.X)).With("y", strconv.Itoa(n.Y)))
+		}
+	}
+	if v.Own {
+		a = append(a, act(AddrMine).Named("citizen.mine"))
+	}
+	a = append(a, back(AddrLand), refresh(AddrLotAccess, tok))
+	return screenLotAccess.Response(c.Lang, v, a...)
+}
+
+// LotRepairDone is the result of putting a lot right.
+func LotRepairDone(c presentation.Ctx, v LotRepairView) *presentation.Response {
+	return screenLotRepairDone.Response(c.Lang, v,
+		act(AddrPrivateMenu).Named("citizen.build_house"), act(AddrMine).Named("citizen.mine"), back(AddrLand))
 }
 
 // LotBuyDone is the result of a purchase.

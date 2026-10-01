@@ -560,7 +560,7 @@ Any free lot can be yours: the price goes to the village treasury and the lot is
 💵 Price per lot: 400 SUP
 📌 Your lots: 1 of 6
 
-🟩 free to buy - 🏡 yours - 🔒 someone else's - 🏠 building - 🛣 road - 💧 water - ⛰ steep
+🟩 free, on the road - 🟨 free, road to lay - 🟦 free, road crosses water - 🟥 free, no road possible - 🏡 yours - 🔒 someone else's - 🏠 building - 🛣 road - 🚧 road reserve, not for sale - 💧 water - ⛰ steep
   ───
   [🟩] → settlement:lot.buy:0-0   │   [🛣] → settlement:land   │   [🟩] → settlement:lot.buy:2-0   │   [🟩] → settlement:lot.buy:3-0   │   [💧] → settlement:land
   [🟩] → settlement:lot.buy:0-1   │   [🏠] → settlement:land   │   [🏠] → settlement:land   │   [🔒] → settlement:land   │   [🟩] → settlement:lot.buy:4-1
@@ -577,6 +577,8 @@ Row 4, column 3
 Price: 400 SUP
 
 The money goes to the village treasury.
+
+🛣 This lot is on the road; no road is needed.
   ───
   [✅ Buy - 400 SUP] → settlement:lot.buy:2-3:confirm
   [🔙 Back] → settlement:land
@@ -589,6 +591,88 @@ Row 4, column 3 is registered in your name and 400 SUP went to the village treas
 You can build a house on it now.
   ───
   [🏠 Build a house] → settlement:private   │   [🏡 More land] → settlement:land
+  [🔙 Back] → settlement:land
+
+━━━ Land purchase · confirm, road included ━━━
+(edits message 42)
+🏡 Buy a lot
+
+Row 4, column 3
+Price: 400 SUP
+
+The money goes to the village treasury.
+
+🛣 No road reaches this lot yet. 3 lots of road are laid over public land for 30 SUP. The road stays public for good.
+
+You pay in all: 430 SUP
+  ───
+  [✅ Buy - 430 SUP] → settlement:lot.buy:2-3:confirm
+  [🔙 Back] → settlement:land
+
+━━━ Land purchase · confirm, culvert needed ━━━
+(edits message 42)
+🏡 Buy a lot
+
+Row 4, column 3
+Price: 400 SUP
+
+The money goes to the village treasury.
+
+🌉 Reaching this lot takes 2 lots of road and a crossing over water (1 lots of culvert or footbridge). Whole road: 160 SUP. The road stays public for good.
+
+You pay in all: 560 SUP
+  ───
+  [✅ Buy - 560 SUP] → settlement:lot.buy:2-3:confirm
+  [🔙 Back] → settlement:land
+
+━━━ Land purchase · confirm, no possible access ━━━
+(edits message 42)
+🏡 Buy a lot
+
+Row 4, column 3
+Price: 400 SUP
+
+The money goes to the village treasury.
+
+⛔ No road can reach this lot: other people's lots, buildings, slopes or wide water close it in. That is why it is not for sale.
+
+🛣 No road reaches this lot yet. 2 lots of road are laid, 1 of them on your own lots, for 20 SUP.
+
+These lots are close and have a road:
+  ───
+  [🪓 Cut the road through my own land (1 lots, 20 SUP)] → settlement:lot.buy:2-3:carve
+  [🏡 Row 4, column 1 (0 SUP)] → settlement:lot.buy:0-3
+  [🏡 Row 2, column 2 (10 SUP)] → settlement:lot.buy:1-1
+  [🔙 Back] → settlement:land
+
+━━━ Lot road · the fixes for a lot no road reaches ━━━
+(edits message 42)
+🛣 Road to the lot at row 4, column 3
+
+No road reaches this lot, so "Private cottage" cannot be built on it. Here is what you can do:
+
+🌉 Reaching this lot takes 2 lots of road and a crossing over water (1 lots of culvert or footbridge). Whole road: 160 SUP. The road stays public for good.
+
+🛣 No road reaches this lot yet. 2 lots of road are laid, 1 of them on your own lots, for 20 SUP.
+
+If you do not want a road, the sale is cancelled, 400 SUP comes back to you from the village treasury and the lot returns to the village.
+  ───
+  [🛣 Lay the road - 160 SUP] → settlement:lot.repair:2-3:connect:confirm
+  [🪓 Cut the road through my own land (1 lots, 20 SUP)] → settlement:lot.repair:2-3:carve:confirm
+  [💸 Cancel the sale and give me my money back - 400 SUP] → settlement:lot.repair:2-3:refund:confirm
+  [🔙 Back] → settlement:land   │   [🔄 Refresh] → settlement:lot.access
+
+━━━ Lot road · connected ━━━
+(edits message 42)
+✅ The road to the lot at row 4, column 3 is laid for 160 SUP. Your money: 4,840 SUP
+  ───
+  [🏠 Build a house] → settlement:private
+  [🔙 Back] → settlement:land
+
+━━━ Lot road · refunded ━━━
+(edits message 42)
+✅ The sale is cancelled and 400 SUP came back to you. Your money: 5,400 SUP
+  ───
   [🔙 Back] → settlement:land
 
 ━━━ Citizen catalogue · only what can be built now ━━━
