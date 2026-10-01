@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/domain/company"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
@@ -19,26 +18,6 @@ import (
 // or the manager's, in their private chat. A company is named by its name
 // and its public code; a kind of business by company_type.<code>.
 
-// Callback addresses of the company screens.
-const (
-	AddrCompanies       = "company:list"
-	AddrCompany         = "company:view"
-	AddrCompanyRegister = "company:register"
-	AddrCompanyType     = "company:type"
-	AddrCompanyMine     = "company:mine"
-	AddrCompanyManage   = "company:manage"
-	AddrCompanyPrice    = "company:price"
-	AddrCompanyOpenings = "company:openings"
-	AddrCompanySlots    = "company:slots"
-	AddrCompanyStaff    = "company:staff"
-	AddrCompanyDecide   = "company:decide"
-	AddrCompanyFire     = "company:fire"
-	AddrCompanyAuto     = "company:auto"
-	AddrCompanyClose    = "company:close"
-	AddrCompanyOpening  = "company:opening"
-	AddrCompanyApply    = "company:apply"
-)
-
 // The commands a «✏️» button of the company screens asks a typed value for
 // (configs/commands.yml, section input).
 const (
@@ -47,20 +26,6 @@ const (
 	commandCompanyWithdraw = "company.withdraw"
 	commandCompanyPost     = "company.post"
 	commandCompanyManager  = "company.manager"
-)
-
-// Arguments a company button carries.
-const (
-	// CompanyConfirm confirms a firing or a closing.
-	CompanyConfirm = "yes"
-	// CompanyAccept and CompanyReject decide an application.
-	CompanyAccept = "yes"
-	CompanyReject = "no"
-	// CompanyAutoOn and CompanyAutoOff switch automatic hiring.
-	CompanyAutoOn  = "on"
-	CompanyAutoOff = "off"
-	// CompanyNoManager removes the manager.
-	CompanyNoManager = "none"
 )
 
 // CompanyTypeName is a kind of business's display name.
@@ -78,28 +43,6 @@ func (c Context) companyRating(stars int, rated bool) string {
 // command, carrying args.
 func askButton(label, command string, args ...string) (presenter.Button, bool) {
 	return keyboards.Button(label, append([]string{AddrAsk, command}, args...)...)
-}
-
-// CompanyLine is one company of a list.
-type CompanyLine struct {
-	Ref   CompanyRef
-	Stars int
-	Rated bool
-	Staff int
-	// Openings is how many positions it is hiring for.
-	Openings int
-	// Mine is a company the viewer owns or manages.
-	Mine bool
-}
-
-// CompanyRegistryView is the companies of the player's city.
-type CompanyRegistryView struct {
-	NoCity    bool
-	CityCode  string
-	City      string
-	Companies []CompanyLine
-	// Mine is how many companies the player owns or manages.
-	Mine int
 }
 
 // CompanyRegistry renders a city's companies.
@@ -146,42 +89,6 @@ func CompanyRegistry(c Context, v CompanyRegistryView) *presenter.Response {
 	), kb.Build())
 }
 
-// CompanyOpeningLine is one opening of a company.
-type CompanyOpeningLine struct {
-	No        int64
-	Job       JobRef
-	Wage      int64
-	Positions int
-	Filled    int
-}
-
-func (o CompanyOpeningLine) free() int { return max(o.Positions-o.Filled, 0) }
-
-// CompanyPageView is a company's public page.
-type CompanyPageView struct {
-	Ref      CompanyRef
-	CityCode string
-	City     string
-	Place    Named
-	Owner    GovPlayer
-	Manager  *GovPlayer
-	Staff    int
-	MaxStaff int
-	Stars    int
-	Rated    bool
-	// Dissolved is a company that has closed.
-	Dissolved bool
-	// Openings are its openings with a free position.
-	Openings []CompanyOpeningLine
-	// CanManage is the owner or the manager looking at it.
-	CanManage bool
-	// Products are its final designs, by name and kind: what it makes,
-	// never what it is made of. Published are the technologies it gave
-	// everyone.
-	Products  []Good
-	Published []Named
-}
-
 // CompanyPage renders a company's public page.
 func CompanyPage(c Context, v CompanyPageView) *presenter.Response {
 	facts := []string{
@@ -218,7 +125,7 @@ func CompanyPage(c Context, v CompanyPageView) *presenter.Response {
 		for _, o := range v.Openings {
 			lines = append(lines, c.T("company.hiring_line", map[string]any{
 				"title": c.jobTitle(o.Job), "career": c.jobCareer(o.Job), "wage": FormatMoney(c, o.Wage),
-				"free": FormatNumber(c, int64(o.free())),
+				"free": FormatNumber(c, int64(o.Free())),
 			}))
 			if btn, ok := keyboards.Button(c.T("company.button.opening", map[string]any{"title": c.jobTitle(o.Job)}),
 				AddrCompanyOpening, strconv.FormatInt(o.No, 10)); ok {
@@ -247,27 +154,6 @@ func CompanyPage(c Context, v CompanyPageView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrCompanies, RefreshData: keyboards.Data(AddrCompany, v.Ref.Code)}))
 	title := htmlBold(htmlEscape(c.T("company.title", map[string]any{"name": v.Ref.Name})))
 	return c.respond(paragraphs(title, htmlEscape(body(facts...)), htmlEscape(makes), hiring), kb.Build()).AsHTML()
-}
-
-// CompanyTypeLine is one kind of business a player may found.
-type CompanyTypeLine struct {
-	Type Named
-	// Fee is the registration fee in the city now; Upkeep one period's.
-	Fee, Upkeep int64
-	// Licensed is a kind of the defence sector: founding one needs a
-	// defence licence (docs/adr/0022, section 2.14).
-	Licensed bool
-}
-
-// CompanyTypesView is the kinds of business a player may found in their
-// city.
-type CompanyTypesView struct {
-	NoCity   bool
-	CityCode string
-	City     string
-	Types    []CompanyTypeLine
-	// Owned and Max are the player's companies and how many they may own.
-	Owned, Max int
 }
 
 // CompanyTypes renders the kinds of business to found.
@@ -307,43 +193,6 @@ func CompanyTypes(c Context, v CompanyTypesView) *presenter.Response {
 		c.T("company.register_title", map[string]any{"city": c.CityName(v.CityCode, v.City)}),
 		c.T("company.register_intro", nil), list, limit,
 	), kb.Build())
-}
-
-// Why a kind of business cannot be founded here and now.
-const (
-	CompanyBlockedLimit   = "limit"
-	CompanyBlockedNoPlace = "no_place"
-	CompanyBlockedNoCity  = "no_city"
-	// CompanyBlockedDefence is a kind of the defence sector the player
-	// holds no defence licence for (docs/adr/0022, section 2.14).
-	CompanyBlockedDefence = "defence"
-)
-
-// CompanyTypeView is one kind of business in detail, with the way to found
-// one.
-type CompanyTypeView struct {
-	Type     Named
-	CityCode string
-	City     string
-	Place    Named
-	Careers  []JobRef
-	Fee      int64
-	Upkeep   int64
-	MaxStaff int
-	// Period is how long one period lasts, the real wait.
-	Period time.Duration
-	// NameMin and NameMax bound the name the founder types.
-	NameMin, NameMax int
-	// Payment is how the fee may be paid, nil when founding is not open.
-	Payment *PaymentChoice
-	// Way is the walk to city hall when the player is elsewhere.
-	Way *Way
-	// Blocked says why founding is not open.
-	Blocked string
-	Max     int
-	// Rank is the lowest rank of the armed forces that may found a kind of
-	// the defence sector, for the defence block.
-	Rank JobRef
 }
 
 // CompanyTypeDetail renders one kind of business.
@@ -401,15 +250,6 @@ func CompanyTypeDetail(c Context, v CompanyTypeView) *presenter.Response {
 	), kb.Build())
 }
 
-// CompanyFoundedView is a company just founded.
-type CompanyFoundedView struct {
-	Ref      CompanyRef
-	CityCode string
-	City     string
-	Fee      int64
-	Method   string
-}
-
 // CompanyFounded renders a new company.
 func CompanyFounded(c Context, v CompanyFoundedView) *presenter.Response {
 	paid := ""
@@ -436,40 +276,6 @@ func methodKey(m string) string {
 	return MethodCash
 }
 
-// CompanyPeriodSummary is a company's last settled period.
-type CompanyPeriodSummary struct {
-	Revenue, SalesTax, Wages, Upkeep, UpkeepPaid, Debt int64
-	Shifts                                             int
-	QualityBPS                                         int
-	Sold, Wanted, Capacity                             int64
-	Balance                                            int64
-	// CitizenWorkers citizens worked CitizenShifts shifts on the company's
-	// untaken openings for CitizenWages; zero when none did.
-	CitizenWorkers, CitizenShifts int
-	CitizenWages                  int64
-}
-
-// Management notices: what the press just did, shown above the books.
-const (
-	CompanyNoticeDeposited      = "deposited"
-	CompanyNoticeWithdrawn      = "withdrawn"
-	CompanyNoticePrice          = "price"
-	CompanyNoticeAutoOn         = "auto_on"
-	CompanyNoticeAutoOff        = "auto_off"
-	CompanyNoticeManagerSet     = "manager_set"
-	CompanyNoticeManagerRemoved = "manager_removed"
-)
-
-// CompanyNotice is the one line saying what a press just did.
-type CompanyNotice struct {
-	Kind     string
-	Amount   int64
-	Tax      int64
-	Net      int64
-	PriceBPS int
-	Player   GovPlayer
-}
-
 func (c Context) companyNotice(n *CompanyNotice) string {
 	if n == nil || n.Kind == "" {
 		return ""
@@ -478,59 +284,6 @@ func (c Context) companyNotice(n *CompanyNotice) string {
 		"amount": FormatMoney(c, n.Amount), "tax": FormatMoney(c, n.Tax), "net": FormatMoney(c, n.Net),
 		"percent": PercentFromBPS(c, n.PriceBPS), "player": c.govPlayer(&n.Player),
 	})
-}
-
-// CompanyManageView is the owner's or the manager's screen of a company.
-type CompanyManageView struct {
-	Ref CompanyRef
-	// Clinic says it treats hospital patients: its desk is one press away.
-	Clinic   bool
-	CityCode string
-	City     string
-	// Owner is the viewer's role: the owner, else the manager.
-	Owner   bool
-	Manager *GovPlayer
-	// The books.
-	Balance, Reserved, Available, Debt, Upkeep int64
-	Arrears, Grace                             int
-	// The price level and its bounds, and the step of one press.
-	PriceBPS, PriceMin, PriceMax, PriceStep int
-	Staff, MaxStaff, Openings, Pending      int
-	AutoAccept                              bool
-	// Citizens is who works the untaken openings this period.
-	Citizens CompanyCitizens
-	// TaxBPS is the city's corporate tax on profits taken out.
-	TaxBPS int
-	Last   *CompanyPeriodSummary
-	// NextAt and NextIn are the next settlement; zero when none is
-	// scheduled.
-	NextAt time.Time
-	NextIn time.Duration
-	Notice *CompanyNotice
-	// Step is the one step its floor should take next, for a company that
-	// designs or makes goods (docs/adr/0021, section 14).
-	Step *NextStep
-	// Defence is where it stands on a defence licence, nil when licences
-	// do not concern it (docs/adr/0022, section 2.14).
-	Defence *DefenceBadge
-	// Specialists are the NPC specialists it employs, and Recruiting its
-	// campaigns running (docs/adr/0027).
-	Specialists, Recruiting int
-}
-
-// DefenceBadge is a company's defence licence as its management screen shows
-// it: its status, or that it may apply for a contractor licence.
-type DefenceBadge struct {
-	// Status is the licence's (pending, active, revoking, revoked,
-	// rejected), "" for none.
-	Status string
-	// Contractor is a civilian company's contractor licence.
-	Contractor bool
-	// Eligible is a civilian company whose standing in technology lets it
-	// apply now.
-	Eligible bool
-	// EffectiveAt is when a revocation takes effect.
-	EffectiveAt time.Time
 }
 
 // defenceLine is the licence's line on the management screen.
@@ -700,11 +453,6 @@ func (c Context) companyPeriodLines(p CompanyPeriodSummary, heading bool) string
 	return body(lines...)
 }
 
-// CompanyMineView is the companies the player owns or manages.
-type CompanyMineView struct {
-	Companies []CompanyLine
-}
-
 // CompanyMine renders the player's companies.
 func CompanyMine(c Context, v CompanyMineView) *presenter.Response {
 	kb := keyboards.New()
@@ -725,19 +473,6 @@ func CompanyMine(c Context, v CompanyMineView) *presenter.Response {
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrCompanies}))
 	return c.respond(paragraphs(c.T("company.mine_title", nil), body(lines...)), kb.Build())
-}
-
-// CompanyOpeningsView is a company's openings, for its owner or manager.
-type CompanyOpeningsView struct {
-	Ref      CompanyRef
-	Openings []CompanyOpeningLine
-	// Careers are the positions the company may advertise.
-	Careers     []JobRef
-	MinimumWage int64
-	// Room is how many more positions the company may offer; MaxOpenings
-	// how many openings at once, and AtMax that it has them.
-	Room  int
-	AtMax bool
 }
 
 // CompanyOpenings renders a company's openings.
@@ -800,44 +535,6 @@ func CompanyOpenings(c Context, v CompanyOpeningsView) *presenter.Response {
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrCompanyManage, v.Ref.Code), RefreshData: keyboards.Data(AddrCompanyOpenings, v.Ref.Code)}))
 	return c.respond(paragraphs(c.T("company.openings_title", map[string]any{"name": v.Ref.Name}), list, post), kb.Build()).MarkPrivate()
-}
-
-// CompanyEmployeeLine is one employee of a company.
-type CompanyEmployeeLine struct {
-	Player  GovPlayer
-	Job     JobRef
-	Wage    int64
-	Shifts  int
-	Working bool
-}
-
-// CompanyApplicationLine is one pending application.
-type CompanyApplicationLine struct {
-	No     int64
-	Player GovPlayer
-	Job    JobRef
-	Level  int
-}
-
-// CompanyStaffView is a company's staff and the applications waiting.
-type CompanyStaffView struct {
-	Ref          CompanyRef
-	Employees    []CompanyEmployeeLine
-	Citizens     CompanyCitizens
-	Applications []CompanyApplicationLine
-	// Firing is the employee a firing is being confirmed for.
-	Firing *CompanyEmployeeLine
-	// Decided is the application just decided, and whether it was taken.
-	Decided *CompanyApplicationLine
-	Hired   bool
-}
-
-// CompanyCitizens is the citizen labour on a company's untaken openings:
-// Vacant free positions, of which Workers are worked this period for Wages a
-// full period.
-type CompanyCitizens struct {
-	Vacant, Workers int
-	Wages           int64
 }
 
 // citizensLine says who works the untaken openings, or why nobody does;
@@ -918,26 +615,6 @@ func CompanyStaff(c Context, v CompanyStaffView) *presenter.Response {
 	return c.respond(paragraphs(decided, c.T("company.staff_title", map[string]any{"name": v.Ref.Name}), employees, body(apps...)), kb.Build()).MarkPrivate()
 }
 
-// CompanyOpeningView is one opening as a player looking for work sees it.
-type CompanyOpeningView struct {
-	No           int64
-	Company      CompanyRef
-	Job          JobRef
-	CityCode     string
-	City         string
-	Place        Named
-	Wage         int64
-	EnergyCost   int
-	ShiftLength  time.Duration
-	Free         int
-	Requirements []Requirement
-	CanApply     bool
-	Applied      bool
-	Employed     bool
-	AutoAccept   bool
-	Closed       bool
-}
-
 // CompanyOpening renders an opening for an applicant.
 func CompanyOpening(c Context, v CompanyOpeningView) *presenter.Response {
 	reqs := c.T("job.requirements_none", nil)
@@ -977,12 +654,6 @@ func CompanyOpening(c Context, v CompanyOpeningView) *presenter.Response {
 	), kb.Build())
 }
 
-// CompanyAppliedView is an application sent.
-type CompanyAppliedView struct {
-	Company CompanyRef
-	Job     JobRef
-}
-
 // CompanyApplied renders an application sent.
 func CompanyApplied(c Context, v CompanyAppliedView) *presenter.Response {
 	kb := keyboards.New()
@@ -991,16 +662,6 @@ func CompanyApplied(c Context, v CompanyAppliedView) *presenter.Response {
 	kb.Row(openings, page)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
 	return c.respond(c.T("company.applied", map[string]any{"title": c.jobTitle(v.Job), "company": v.Company.Name}), kb.Build())
-}
-
-// CompanyCloseView is closing a company: the confirmation, or what it did.
-type CompanyCloseView struct {
-	Ref CompanyRef
-	// Done is the company closed; otherwise this is the confirmation.
-	Done bool
-	// DebtPaid, Tax and Net are what closing does (or did) with the money.
-	DebtPaid, Tax, Net int64
-	Staff              int
 }
 
 // CompanyClose renders closing a company.
@@ -1025,51 +686,6 @@ func CompanyClose(c Context, v CompanyCloseView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrCompanyManage, v.Ref.Code)}))
 	return c.respond(paragraphs(c.T("company.close_confirm", map[string]any{"name": v.Ref.Name}), money, staff,
 		c.T("company.close_final", nil)), kb.Build()).MarkPrivate()
-}
-
-// Company refusals: why a company command did nothing.
-const (
-	CompanyRefusedNotFound       = "not_found"
-	CompanyRefusedNotAllowed     = "not_allowed"
-	CompanyRefusedDissolved      = "dissolved"
-	CompanyRefusedNameLength     = "name_length"
-	CompanyRefusedNameCharset    = "name_charset"
-	CompanyRefusedNameReserved   = "name_reserved"
-	CompanyRefusedNameTaken      = "name_taken"
-	CompanyRefusedLimit          = "limit"
-	CompanyRefusedNoPlace        = "no_place"
-	CompanyRefusedCannotPay      = "cannot_pay"
-	CompanyRefusedInDebt         = "in_debt"
-	CompanyRefusedNotEnough      = "not_enough"
-	CompanyRefusedPrice          = "price"
-	CompanyRefusedStaffFull      = "staff_full"
-	CompanyRefusedCareer         = "career"
-	CompanyRefusedBelowMinimum   = "below_minimum"
-	CompanyRefusedOpeningsMax    = "openings_max"
-	CompanyRefusedOpeningClosed  = "opening_closed"
-	CompanyRefusedOpeningFull    = "opening_full"
-	CompanyRefusedApplied        = "applied"
-	CompanyRefusedEmployed       = "employed"
-	CompanyRefusedShiftsRunning  = "shifts_running"
-	CompanyRefusedWorking        = "working"
-	CompanyRefusedSelf           = "self"
-	CompanyRefusedNoPlayer       = "no_player"
-	CompanyRefusedNotEmployee    = "not_employee"
-	CompanyRefusedApplicationOld = "application_gone"
-	CompanyRefusedAway           = "away"
-	CompanyRefusedCashAway       = "cash_away"
-	CompanyRefusedInvalidAmount  = "invalid_amount"
-)
-
-// CompanyRefusalView is a refused company command.
-type CompanyRefusalView struct {
-	Kind string
-	Ref  CompanyRef
-	// Need and Have are the money a refusal is about; Min and Max bounds.
-	Need, Have int64
-	Min, Max   int64
-	CityCode   string
-	City       string
 }
 
 // CompanyRefusal renders a refused company command, with the way back to
@@ -1099,15 +715,6 @@ func CompanyRefusal(c Context, v CompanyRefusalView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-// CompanyApplicationNoticeView tells an owner or a manager of an application.
-type CompanyApplicationNoticeView struct {
-	No      int64
-	Company CompanyRef
-	Player  GovPlayer
-	Job     JobRef
-	Level   int
-}
-
 // CompanyApplicationNotice renders the notice of an application.
 func CompanyApplicationNotice(c Context, v CompanyApplicationNoticeView) *presenter.Response {
 	no := strconv.FormatInt(v.No, 10)
@@ -1122,24 +729,6 @@ func CompanyApplicationNotice(c Context, v CompanyApplicationNoticeView) *presen
 		"player": c.govPlayer(&v.Player), "title": c.jobTitle(v.Job), "company": v.Company.Name,
 		"level": FormatNumber(c, int64(v.Level)),
 	}), kb.Build()).MarkPrivate()
-}
-
-// Employee notices: what a company did to an applicant or an employee.
-const (
-	CompanyEmployeeHired    = "hired"
-	CompanyEmployeeRejected = "rejected"
-	CompanyEmployeeFired    = "fired"
-	CompanyEmployeeClosed   = "closed"
-	CompanyEmployeeManager  = "manager"
-)
-
-// CompanyEmployeeNoticeView is one of those notices.
-type CompanyEmployeeNoticeView struct {
-	Kind    string
-	Company CompanyRef
-	Job     JobRef
-	Wage    int64
-	Owner   GovPlayer
 }
 
 // CompanyEmployeeNotice renders a notice to an applicant, an employee or a
@@ -1163,16 +752,6 @@ func CompanyEmployeeNotice(c Context, v CompanyEmployeeNoticeView) *presenter.Re
 		"company": v.Company.Name, "title": c.jobTitle(v.Job), "wage": FormatMoney(c, v.Wage),
 		"owner": c.govPlayer(&v.Owner),
 	}), kb.Build())
-}
-
-// CompanyPeriodNoticeView is a company's period report to its owner.
-type CompanyPeriodNoticeView struct {
-	Company CompanyRef
-	Period  CompanyPeriodSummary
-	// Arrears and Grace say how close an indebted company is to
-	// dissolution; Dissolved that it was dissolved.
-	Arrears, Grace int
-	Dissolved      bool
 }
 
 // CompanyPeriodNotice renders a period report.

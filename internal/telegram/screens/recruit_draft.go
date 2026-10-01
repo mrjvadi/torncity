@@ -2,83 +2,14 @@ package screens
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
-// RecruitCityChoice is one city the campaign builder offers.
-type RecruitCityChoice struct {
-	Code, Name string
-	On         bool
-	// Abroad is a city of another country.
-	Abroad bool
-}
-
-// RecruitPresets are the builder's one-press choices, worked out: amounts
-// of money, contract lengths, share counts.
-type RecruitPresets struct {
-	Salary, Housing, Signing, Relocation []int64
-	Terms                                []int
-	Shares                               []int64
-}
-
-// RecruitDraftView is a campaign being built.
-type RecruitDraftView struct {
-	Ref     CompanyRef
-	No      int64
-	Section string
-	// What the campaign seeks.
-	Skill           string
-	Level, MaxLevel int
-	// Skills are those cities have specialists of.
-	Skills []string
-	Cities []RecruitCityChoice
-	// CityCode and City are the company's city, where the market is quoted.
-	CityCode, City          string
-	Positions, MaxPositions int
-	// The package.
-	Salary, Housing, Signing, Relocation int64
-	Term                                 int
-	Shares                               int64
-	// ShareValue is what the phantom shares are worth today.
-	ShareValue int64
-	Auto       bool
-	// Market is what a specialist of the level expects in the company's
-	// city; Reach how many of the skill at or above the level are free in
-	// the chosen cities; ChanceBPS a candidate of the company's city's
-	// chance of applying, before preferences.
-	Market    int64
-	Reach     int64
-	ChanceBPS int
-	// AdFee is one city's fee; Available the company's free money.
-	AdFee, Available int64
-	Presets          RecruitPresets
-	// Checks and Every are how the campaign runs once posted: its checks
-	// and the wall-clock time between two.
-	Checks int
-	Every  time.Duration
-	// Confirm asks before posting.
-	Confirm bool
-	// Notice is a notice kind (recruit.draft_notice.<kind>), "" for none.
-	Notice string
-}
-
-// chosen counts the cities on.
-func (v RecruitDraftView) chosen() (n int, names []Named) {
-	for _, ci := range v.Cities {
-		if ci.On {
-			n++
-			names = append(names, Named{Code: ci.Code, Name: ci.Name})
-		}
-	}
-	return n, names
-}
-
 // draftSummary is the campaign as it stands.
 func (c Context) draftSummary(v RecruitDraftView) string {
-	n, names := v.chosen()
+	n, names := v.Chosen()
 	cities := c.T("recruit.draft.no_cities", nil)
 	if n > 0 {
 		list := make([]string, 0, len(names))
@@ -145,7 +76,7 @@ func renderRecruitDraft(c Context, v RecruitDraftView) *presenter.Response {
 	var extra string
 	switch {
 	case v.Confirm:
-		n, _ := v.chosen()
+		n, _ := v.Chosen()
 		extra = c.T("recruit.draft.confirm", map[string]any{"cities": FormatNumber(c, int64(n)),
 			"amount": FormatMoney(c, v.AdFee*int64(n)), "checks": FormatNumber(c, int64(v.Checks)),
 			"every": FormatDuration(c, v.Every)})
@@ -167,7 +98,7 @@ func renderRecruitDraft(c Context, v RecruitDraftView) *presenter.Response {
 		pay, _ := keyboards.Button(c.T("recruit.button.section_pay", nil), AddrRecruitDraft, no, RecruitSectionPay)
 		te, _ := keyboards.Button(c.T("recruit.button.section_terms", nil), AddrRecruitDraft, no, RecruitSectionTerms)
 		kb.Row(pay, te)
-		if n, _ := v.chosen(); n > 0 {
+		if n, _ := v.Chosen(); n > 0 {
 			kb.Add(c.T("recruit.button.post", map[string]any{"amount": FormatMoney(c, v.AdFee*int64(n))}), AddrRecruitPost, no)
 		}
 	}

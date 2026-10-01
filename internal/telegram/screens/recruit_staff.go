@@ -7,41 +7,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
-// SpecialistLine is one specialist of a company.
-type SpecialistLine struct {
-	No       int64
-	NameSeed int
-	Skill    string
-	Level    int
-	Home     Named
-	// Salary and Housing are paid every period.
-	Salary, Housing int64
-	Served, Term    int
-	// Expiring is a completed contract waiting to be renewed.
-	Expiring bool
-	// Underpaid is paid below the market now; UnderpaidLeft and UnpaidLeft
-	// are the periods before they leave for it (0 when not so).
-	Underpaid                 bool
-	UnderpaidLeft, UnpaidLeft int
-	// MarketDue is what matching the market would pay per period.
-	MarketDue int64
-	Shares    int64
-}
-
-// SpecialistsView is a company's specialists.
-type SpecialistsView struct {
-	Ref   CompanyRef
-	Lines []SpecialistLine
-	Max   int
-	// Confirm is the specialist and the act ("dismiss") asked about.
-	Confirm    *SpecialistLine
-	ConfirmAct string
-	// Notice is a notice kind (recruit.staff_notice.<kind>) about
-	// NoticeSeed, "" for none.
-	Notice     string
-	NoticeSeed int
-}
-
 func (c Context) specialistLine(l SpecialistLine) string {
 	args := map[string]any{"name": c.SpecialistName(l.NameSeed), "what": c.skillLevel(l.Skill, l.Level),
 		"city": c.CityName(l.Home.Code, l.Home.Name), "salary": FormatMoney(c, l.Salary),
@@ -119,34 +84,6 @@ func renderSpecialists(c Context, v SpecialistsView) *presenter.Response {
 	return c.respond(paragraphs(append([]string{notice, head}, blocks...)...), kb.Build()).MarkPrivate()
 }
 
-// Recruitment refusal kinds.
-const (
-	RecruitRefusedNotFound  = "not_found"
-	RecruitRefusedFunds     = "funds"
-	RecruitRefusedCampaigns = "campaigns"
-	RecruitRefusedStaff     = "staff"
-	RecruitRefusedNoCities  = "no_cities"
-	RecruitRefusedNoSkill   = "no_skill"
-	RecruitRefusedFinished  = "finished"
-	RecruitRefusedGone      = "gone"
-	RecruitRefusedPosted    = "posted"
-	RecruitRefusedAmount    = "amount"
-	RecruitRefusedFilled    = "filled"
-	RecruitRefusedNotNow    = "not_now"
-)
-
-// RecruitRefusalView is a refused recruitment command.
-type RecruitRefusalView struct {
-	Kind string
-	Ref  CompanyRef
-	// Back is where the back button leads.
-	Back []string
-	// Need and Have for money; Max for a bound.
-	Need, Have int64
-	Max        int
-	NameSeed   int
-}
-
 // RecruitRefusal renders a refused recruitment command.
 func RecruitRefusal(c Context, v RecruitRefusalView) *presenter.Response {
 	return c.withView(renderRecruitRefusal(c, v), ScreenRecruitRefusal, v)
@@ -165,34 +102,6 @@ func renderRecruitRefusal(c Context, v RecruitRefusalView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(back...)}))
 	return c.respond(text, kb.Build()).MarkPrivate()
-}
-
-// Recruitment notice kinds.
-const (
-	RecruitNoticeApplied   = "applied"
-	RecruitNoticeHired     = "hired"
-	RecruitNoticeEnded     = "ended"
-	RecruitNoticeFilled    = "filled"
-	RecruitNoticeCompleted = "completed"
-	RecruitNoticeLeft      = "left"
-	RecruitNoticeUnpaid    = "unpaid"
-)
-
-// RecruitNoticeView is a private notice to a company's owner about a
-// campaign or a specialist.
-type RecruitNoticeView struct {
-	Kind       string
-	Company    CompanyRef
-	CampaignNo int64
-	// Count is how many candidates applied.
-	Count    int
-	NameSeed int
-	Skill    string
-	Level    int
-	// Reason is why a specialist left (recruit.leave.<reason>).
-	Reason string
-	// Amount is the equity paid at a completed contract.
-	Amount int64
 }
 
 // RecruitNotice renders a recruitment notice.
