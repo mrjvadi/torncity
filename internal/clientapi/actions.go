@@ -133,6 +133,13 @@ func NeutralActions(list []presentation.Action, meta *ActionMetadata) []Action {
 			Args: routing.PayloadOf(in.Command, in.Args),
 			Kind: kind, Icon: am.Icon, Group: am.Group,
 		}
+		if len(in.Params) > 0 {
+			// named by the screen: the positional order would misname them
+			a.Args = make(map[string]any, len(in.Params))
+			for k, v := range in.Params {
+				a.Args[k] = v
+			}
+		}
 		if a.ID == a.Command {
 			a.ID = ""
 		}

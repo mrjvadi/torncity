@@ -722,6 +722,9 @@ func (h *VillageHandler) PrivateLots(ctx context.Context, meta envelope.Metadata
 					}
 				}
 				cell := village.LotCell{X: x, Y: y, State: lotState(lot, lot.Occupied && road)}
+				if l, ok := sc.lotAt(x, y); ok && l.OwnerID == sc.p.ID {
+					cell.Own = true
+				}
 				cell.Fits = settlementbuilding.CanPlace(def, grid, x, y, st) == nil && footprintFitsOwn(sc, def, x, y)
 				row = append(row, cell)
 			}

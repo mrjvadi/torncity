@@ -127,7 +127,7 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 	}
 	if life, ok := snap.Life(); ok {
 		for _, r := range life.Ranks.Ladder {
-			add("rank", CatalogueEntry{Code: r.Code,
+			add("life_rank", CatalogueEntry{Code: r.Code,
 				Name: names(func(c screens.Context) string { return c.RankName(screens.RankRef{Code: r.Code, Name: r.Name}) })}, false)
 		}
 		for _, sp := range life.Sleep.Spots {
@@ -135,7 +135,7 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 				Name: names(func(c screens.Context) string { return c.SleepSpotName(screens.Named{Code: sp.Code, Name: sp.Name}) })}, false)
 		}
 		for _, st := range life.Age.Stages {
-			add("age_stage", CatalogueEntry{Code: st.Code,
+			add("life_stage", CatalogueEntry{Code: st.Code,
 				Name: names(func(c screens.Context) string { return c.StageName(screens.Named{Code: st.Code, Name: st.Name}) })}, false)
 		}
 	}

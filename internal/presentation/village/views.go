@@ -256,6 +256,8 @@ type LotCell struct {
 	// State is the lot's own terrain/occupancy, independent of which
 	// building is being placed.
 	State string
+	// Own says the lot is the viewer's (the private lot grid).
+	Own bool
 	// Fits says whether the building currently being placed could go here
 	// — settlementbuilding.CanPlace's own answer, precomputed by the use
 	// case so this package never re-derives a placement rule (skills.go's
@@ -990,8 +992,11 @@ const ResidenceConfirm = "confirm"
 type ResidenceView struct {
 	// Leaving is true for settlement.leave.
 	Leaving bool
-	// Village is the village joined or left; Home the city returned to.
+	// Village is the village joined or left; Home the name of the city
+	// returned to and HomeCode its content code, which a client words from the
+	// catalogue.
 	Village, Home string
+	HomeCode      string
 	// Cooldown is how long the player cannot move again.
 	Cooldown time.Duration
 	// Population is the village's residents after the move.

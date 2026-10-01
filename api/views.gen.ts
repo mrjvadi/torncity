@@ -310,6 +310,7 @@ export interface LotCell {
   x: number
   y: number
   state: string
+  own: boolean
   fits: boolean
 }
 
@@ -495,6 +496,7 @@ export interface ResidenceView {
   leaving: boolean
   village: string
   home: string
+  home_code: string
   cooldown_seconds: number
   population: number
   settlement_id: string

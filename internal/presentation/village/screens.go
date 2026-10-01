@@ -468,13 +468,13 @@ func Mine(c presentation.Ctx, v MineView) *presentation.Response {
 func Terms(c presentation.Ctx, v TermsView) *presentation.Response {
 	var a []presentation.Action
 	for _, p := range v.LotPresets {
-		a = append(a, act(AddrVillageTerms, "lot_price", strconv.FormatInt(p, 10)).Named("terms.lot_price"))
+		a = append(a, act(AddrVillageTerms, "lot_price", strconv.FormatInt(p, 10)).Named("terms.lot_price").With("lot_price", strconv.FormatInt(p, 10)))
 	}
 	for _, p := range v.PermitPresets {
-		a = append(a, act(AddrVillageTerms, "permit_fee", strconv.FormatInt(p, 10)).Named("terms.permit_fee"))
+		a = append(a, act(AddrVillageTerms, "permit_fee", strconv.FormatInt(p, 10)).Named("terms.permit_fee").With("permit_fee", strconv.FormatInt(p, 10)))
 	}
 	for _, p := range v.TaxPresets {
-		a = append(a, act(AddrVillageTerms, "tax_bps", strconv.Itoa(p)).Named("terms.tax_bps"))
+		a = append(a, act(AddrVillageTerms, "tax_bps", strconv.Itoa(p)).Named("terms.tax_bps").With("tax_bps", strconv.Itoa(p)))
 	}
 	a = append(a, back(AddrVillageOverview), refresh(AddrVillageTerms))
 	return screenTerms.Response(c.Lang, v, a...)

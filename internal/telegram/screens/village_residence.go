@@ -40,7 +40,7 @@ func ResidenceAsk(c Context, v ResidenceView) *presenter.Response {
 
 func renderResidenceAsk(c Context, v ResidenceView) *presenter.Response {
 	k := residenceKey(v)
-	args := map[string]any{"village": v.Village, "home": v.Home, "cooldown": FormatDuration(c, v.Cooldown)}
+	args := map[string]any{"village": v.Village, "home": c.CityName(v.HomeCode, v.Home), "cooldown": FormatDuration(c, v.Cooldown)}
 	text := paragraphs(c.T("village.residence."+k+".ask_title", args), c.T("village.residence."+k+".ask_body", args))
 	kb := keyboards.New()
 	if btn, ok := keyboards.Button(c.T("village.residence."+k+".button_yes", nil), residenceAddr(v), ResidenceConfirm); ok {
@@ -58,7 +58,7 @@ func ResidenceDone(c Context, v ResidenceView) *presenter.Response {
 func renderResidenceDone(c Context, v ResidenceView) *presenter.Response {
 	k := residenceKey(v)
 	args := map[string]any{
-		"village": v.Village, "home": v.Home, "cooldown": FormatDuration(c, v.Cooldown),
+		"village": v.Village, "home": c.CityName(v.HomeCode, v.Home), "cooldown": FormatDuration(c, v.Cooldown),
 		"population": FormatNumber(c, v.Population),
 	}
 	text := paragraphs(c.T("village.residence."+k+".done_title", args), c.T("village.residence."+k+".done_body", args))

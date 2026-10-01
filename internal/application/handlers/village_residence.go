@@ -205,7 +205,7 @@ func (h *VillageHandler) Leave(ctx context.Context, meta envelope.Metadata, req 
 			}
 			return err
 		}
-		view = village.ResidenceView{Leaving: true, Village: s.Name, Home: dest.Name, Cooldown: h.residenceCooldown, SettlementID: s.CityID}
+		view = village.ResidenceView{Leaving: true, Village: s.Name, Home: dest.Name, HomeCode: dest.Code, Cooldown: h.residenceCooldown, SettlementID: s.CityID}
 		now := h.now()
 		if !req.confirmed() {
 			confirm = true

@@ -38,6 +38,10 @@ type Action struct {
 	// Subject is the game entity the action is about, as a content code, when
 	// the edge needs it to word the action ("research <knowledge>").
 	Subject string `json:"subject,omitempty"`
+	// Params names the arguments when the command's positional order would
+	// not name them (a setting and its value: lot_price, 250). The web edge
+	// sends them as they are; Telegram uses Args.
+	Params map[string]string `json:"params,omitempty"`
 }
 
 // Do builds an action that runs command with args.
@@ -50,6 +54,18 @@ func (a Action) Named(id string) Action { a.ID = id; return a }
 
 // As sets the action's role.
 func (a Action) As(role string) Action { a.Role = role; return a }
+
+// With names an argument as the command takes it by name, beside the
+// positional Args.
+func (a Action) With(name, value string) Action {
+	p := make(map[string]string, len(a.Params)+1)
+	for k, v := range a.Params {
+		p[k] = v
+	}
+	p[name] = value
+	a.Params = p
+	return a
+}
 
 // Asking marks the action as one that asks the player for a value.
 func (a Action) Asking() Action { a.Ask = true; return a }
