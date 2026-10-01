@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strings"
 	"time"
 
@@ -17,7 +19,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -91,20 +92,20 @@ func (h *ShopsHandler) screen(meta envelope.Metadata, lang string) screens.Conte
 }
 
 // shopRefusal carries a refused shop request out of a unit of work.
-type shopRefusal struct{ view screens.ShopRefusalView }
+type shopRefusal struct{ view economy.ShopRefusalView }
 
 func (r *shopRefusal) Error() string { return "handlers: shop refused: " + r.view.Kind }
 
-func (h *ShopsHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *ShopsHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	var r *shopRefusal
 	if stderrors.As(err, &r) {
-		return screens.ShopRefusal(h.screen(meta, lang), r.view), nil
+		return economy.ShopRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(h.screen(meta, lang), v), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
 	}
 	return nil, err
 }
@@ -135,16 +136,16 @@ func (h *ShopsHandler) where(ctx context.Context, tx application.Tx, snap *conte
 // demand-moved price, and what the shop would pay to buy one back.
 func (h *ShopsHandler) quote(ctx context.Context, tx application.Tx, def content.ShopDef, sh content.ShelfDef,
 	item content.ItemDef, cityID string, now time.Time,
-) (screens.ShelfLine, shop.Shelf, error) {
+) (economy.ShelfLine, shop.Shelf, error) {
 	stored, err := tx.Shops().Shelf(ctx, cityID, def.Code, sh.Item)
 	if err != nil {
-		return screens.ShelfLine{}, shop.Shelf{}, err
+		return economy.ShelfLine{}, shop.Shelf{}, err
 	}
 	shelf := sh.RestockRule().Refill(shop.Shelf{Stock: stored.Stock, RestockedAt: stored.RestockedAt}, now, h.scale)
 	demand := def.Demand.Demand()
 	recent, err := tx.Shops().RecentSales(ctx, cityID, def.Code, sh.Item, now.Add(-demand.Window))
 	if err != nil {
-		return screens.ShelfLine{}, shop.Shelf{}, err
+		return economy.ShelfLine{}, shop.Shelf{}, err
 	}
 	base := sh.Price
 	if base == 0 {
@@ -152,9 +153,9 @@ func (h *ShopsHandler) quote(ctx context.Context, tx application.Tx, def content
 	}
 	price, err := shop.Price(money.FromMinor(base), demand, recent)
 	if err != nil {
-		return screens.ShelfLine{}, shop.Shelf{}, errors.Internal(err)
+		return economy.ShelfLine{}, shop.Shelf{}, errors.Internal(err)
 	}
-	line := screens.ShelfLine{
+	line := economy.ShelfLine{
 		Item: named(item.Code, item.Name), Price: price.Minor(), Stock: shelf.Stock,
 		Busy: demand.Multiplier(recent) > shop.BPS, NextRestock: sh.RestockRule().NextRestock(shelf, h.scale),
 	}
@@ -169,13 +170,13 @@ func (h *ShopsHandler) quote(ctx context.Context, tx application.Tx, def content
 }
 
 // List handles shop.list: the shops of the player's city.
-func (h *ShopsHandler) List(ctx context.Context, meta envelope.Metadata, req ShopRequest) (*presenter.Response, error) {
+func (h *ShopsHandler) List(ctx context.Context, meta envelope.Metadata, req ShopRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ShopsView
+	var view economy.ShopsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -195,7 +196,7 @@ func (h *ShopsHandler) List(ctx context.Context, meta envelope.Metadata, req Sho
 			if view.Place != nil && s.Place != view.Place.Code {
 				continue
 			}
-			view.Shops = append(view.Shops, screens.ShopLine{
+			view.Shops = append(view.Shops, economy.ShopLine{
 				Shop: named(s.Code, s.Name), Place: placeNamed(snap, s.Place),
 				Here: w.walk == nil && s.Place == w.here.Code,
 			})
@@ -205,17 +206,17 @@ func (h *ShopsHandler) List(ctx context.Context, meta envelope.Metadata, req Sho
 	if err != nil {
 		return nil, err
 	}
-	return screens.Shops(h.screen(meta, lang), view), nil
+	return economy.Shops(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // View handles shop.view: one shop's shelves, priced now.
-func (h *ShopsHandler) View(ctx context.Context, meta envelope.Metadata, req ShopRequest) (*presenter.Response, error) {
+func (h *ShopsHandler) View(ctx context.Context, meta envelope.Metadata, req ShopRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ShopView
+	var view economy.ShopView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -228,10 +229,10 @@ func (h *ShopsHandler) View(ctx context.Context, meta envelope.Metadata, req Sho
 		}
 		def, ok := h.shopIn(snap, w, req.Shop)
 		if !ok {
-			return &shopRefusal{view: screens.ShopRefusalView{Kind: screens.ShopRefusedNoShop}}
+			return &shopRefusal{view: economy.ShopRefusalView{Kind: economy.ShopRefusedNoShop}}
 		}
 		now := h.now()
-		view = screens.ShopView{Shop: named(def.Code, def.Name), Place: placeNamed(snap, def.Place),
+		view = economy.ShopView{Shop: named(def.Code, def.Name), Place: placeNamed(snap, def.Place),
 			Here: w.walk == nil && def.Place == w.here.Code}
 		if pl, ok := w.cmap.Find(def.Place); ok && !view.Here && w.walk == nil {
 			view.Walk = h.scale.RealWait(pl.MoveTime)
@@ -254,7 +255,7 @@ func (h *ShopsHandler) View(ctx context.Context, meta envelope.Metadata, req Sho
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
 		return resp, ferr
 	}
-	return screens.ShopDetail(h.screen(meta, lang), view), nil
+	return economy.ShopDetail(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // shopIn finds a shop the player's city has.
@@ -271,7 +272,7 @@ func (h *ShopsHandler) shopIn(snap *content.Snapshot, w whereabouts, code string
 func (h *ShopsHandler) atCounter(w whereabouts, snap *content.Snapshot, def content.ShopDef, now time.Time) error {
 	target, ok := w.cmap.Find(def.Place)
 	if !ok {
-		return &shopRefusal{view: screens.ShopRefusalView{Kind: screens.ShopRefusedNoShop}}
+		return &shopRefusal{view: economy.ShopRefusalView{Kind: economy.ShopRefusedNoShop}}
 	}
 	err := needAt(w, snap, target, "place.need.shop", nil, h.scale, now)
 	if n, ok := err.(*notHere); ok {
@@ -282,7 +283,7 @@ func (h *ShopsHandler) atCounter(w whereabouts, snap *content.Snapshot, def cont
 
 // Buy handles shop.buy: a checkout without a way to pay, the purchase with
 // one.
-func (h *ShopsHandler) Buy(ctx context.Context, meta envelope.Metadata, req ShopRequest) (*presenter.Response, error) {
+func (h *ShopsHandler) Buy(ctx context.Context, meta envelope.Metadata, req ShopRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -294,8 +295,8 @@ func (h *ShopsHandler) Buy(ctx context.Context, meta envelope.Metadata, req Shop
 	lang := meta.Language
 	qty := parseQty(req.Qty)
 	var (
-		checkout *screens.ShopCheckoutView
-		bought   screens.ShopBoughtView
+		checkout *economy.ShopCheckoutView
+		bought   economy.ShopBoughtView
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -325,12 +326,12 @@ func (h *ShopsHandler) Buy(ctx context.Context, meta envelope.Metadata, req Shop
 		}
 		def, ok := h.shopIn(snap, w, req.Shop)
 		if !ok {
-			return &shopRefusal{view: screens.ShopRefusalView{Kind: screens.ShopRefusedNoShop}}
+			return &shopRefusal{view: economy.ShopRefusalView{Kind: economy.ShopRefusedNoShop}}
 		}
 		sh, ok := def.Shelf(req.Item)
 		item, ok2 := snap.ItemDef(req.Item)
 		if !ok || !ok2 {
-			return &shopRefusal{view: screens.ShopRefusalView{Kind: screens.ShopRefusedNotSold, Shop: named(def.Code, def.Name)}}
+			return &shopRefusal{view: economy.ShopRefusalView{Kind: economy.ShopRefusedNotSold, Shop: named(def.Code, def.Name)}}
 		}
 		if err := h.atCounter(w, snap, def, now); err != nil {
 			return err
@@ -343,7 +344,7 @@ func (h *ShopsHandler) Buy(ctx context.Context, meta envelope.Metadata, req Shop
 			return err
 		}
 		if shelf.Stock < qty {
-			return &shopRefusal{view: screens.ShopRefusalView{Kind: screens.ShopRefusedSoldOut, Shop: named(def.Code, def.Name),
+			return &shopRefusal{view: economy.ShopRefusalView{Kind: economy.ShopRefusedSoldOut, Shop: named(def.Code, def.Name),
 				Item: named(item.Code, item.Name), Stock: shelf.Stock, NextRestock: line.NextRestock}}
 		}
 		unit := money.FromMinor(line.Price)
@@ -369,14 +370,14 @@ func (h *ShopsHandler) Buy(ctx context.Context, meta envelope.Metadata, req Shop
 		}
 		plan := wallet.Plan(due, snap.ShopAccepts(def.Code))
 		if !chosen {
-			checkout = &screens.ShopCheckoutView{
+			checkout = &economy.ShopCheckoutView{
 				Shop: named(def.Code, def.Name), Item: named(item.Code, item.Name), Qty: qty, Unit: line.Price,
 				Total: total.Minor(), Tax: tax.Minor(), TaxBPS: int(taxLever.Value), Stock: shelf.Stock,
 				Payment: paymentChoice(plan, wallet), Nonce: h.nonce(),
 			}
 			return nil
 		}
-		back := []string{screens.AddrShop, def.Code}
+		back := []string{economy.AddrShop, def.Code}
 		if err := checkMethod(plan, method, wallet, "shop.button.back_to_shop", back...); err != nil {
 			return err
 		}
@@ -386,7 +387,7 @@ func (h *ShopsHandler) Buy(ctx context.Context, meta envelope.Metadata, req Shop
 		// unit meet at.
 		taken, err := shelf.Take(qty)
 		if err != nil {
-			return &shopRefusal{view: screens.ShopRefusalView{Kind: screens.ShopRefusedSoldOut, Shop: named(def.Code, def.Name),
+			return &shopRefusal{view: economy.ShopRefusalView{Kind: economy.ShopRefusedSoldOut, Shop: named(def.Code, def.Name),
 				Item: named(item.Code, item.Name), Stock: shelf.Stock}}
 		}
 		if err := tx.Shops().SaveShelf(ctx, application.ShopShelf{CityID: w.city.ID, Shop: def.Code, Item: item.Code,
@@ -436,7 +437,7 @@ func (h *ShopsHandler) Buy(ctx context.Context, meta envelope.Metadata, req Shop
 			origin{kind: application.OriginSupply, reason: application.ItemShopPurchase, refType: "shop_sales", refID: saleID}, now); err != nil {
 			return err
 		}
-		bought = screens.ShopBoughtView{Shop: named(def.Code, def.Name), Item: named(item.Code, item.Name), Qty: qty,
+		bought = economy.ShopBoughtView{Shop: named(def.Code, def.Name), Item: named(item.Code, item.Name), Qty: qty,
 			Total: total.Minor(), Tax: tax.Minor(), Method: string(method)}
 		return appendItemEvent(ctx, tx, meta, "bought", p.ID, map[string]any{
 			"player_id": p.ID, "shop": def.Code, "item": item.Code, "qty": qty, "total": total.Minor(),
@@ -451,20 +452,20 @@ func (h *ShopsHandler) Buy(ctx context.Context, meta envelope.Metadata, req Shop
 	case replayed:
 		return h.View(ctx, meta, ShopRequest{Shop: req.Shop})
 	case checkout != nil:
-		return screens.ShopCheckout(h.screen(meta, lang), *checkout), nil
+		return economy.ShopCheckout(presentation.Ctx{Lang: lang}, *checkout), nil
 	}
-	return screens.ShopBought(h.screen(meta, lang), bought), nil
+	return economy.ShopBought(presentation.Ctx{Lang: lang}, bought), nil
 }
 
 // Offers handles shop.offers: the shops of the city that buy a good the
 // player carries, and what each pays.
-func (h *ShopsHandler) Offers(ctx context.Context, meta envelope.Metadata, req ShopRequest) (*presenter.Response, error) {
+func (h *ShopsHandler) Offers(ctx context.Context, meta envelope.Metadata, req ShopRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.SellOffersView
+	var view economy.SellOffersView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -480,10 +481,10 @@ func (h *ShopsHandler) Offers(ctx context.Context, meta envelope.Metadata, req S
 			return err
 		}
 		if qty == 0 {
-			return &shopRefusal{view: screens.ShopRefusalView{Kind: screens.ShopRefusedNotHeld, Item: itemNamed(snap, req.Item)}}
+			return &shopRefusal{view: economy.ShopRefusalView{Kind: economy.ShopRefusedNotHeld, Item: itemNamed(snap, req.Item)}}
 		}
 		item, _ := snap.ItemDef(code)
-		view = screens.SellOffersView{Item: named(item.Code, item.Name), Ref: req.Item}
+		view = economy.SellOffersView{Item: named(item.Code, item.Name), Ref: req.Item}
 		now := h.now()
 		for _, def := range snap.CityShops(w.city.Code) {
 			sh, ok := def.Shelf(code)
@@ -494,7 +495,7 @@ func (h *ShopsHandler) Offers(ctx context.Context, meta envelope.Metadata, req S
 			if err != nil {
 				return err
 			}
-			view.Offers = append(view.Offers, screens.SellOffer{Shop: named(def.Code, def.Name),
+			view.Offers = append(view.Offers, economy.SellOffer{Shop: named(def.Code, def.Name),
 				Place: placeNamed(snap, def.Place), Price: line.Buyback})
 		}
 		return nil
@@ -502,18 +503,18 @@ func (h *ShopsHandler) Offers(ctx context.Context, meta envelope.Metadata, req S
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
 		return resp, ferr
 	}
-	return screens.SellOffers(h.screen(meta, lang), view), nil
+	return economy.SellOffers(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Sell handles shop.sell: one unit or piece sold back to a shop, at its
 // counter, for cash.
-func (h *ShopsHandler) Sell(ctx context.Context, meta envelope.Metadata, req ShopRequest) (*presenter.Response, error) {
+func (h *ShopsHandler) Sell(ctx context.Context, meta envelope.Metadata, req ShopRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ShopSoldView
+	var view economy.ShopSoldView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -532,7 +533,7 @@ func (h *ShopsHandler) Sell(ctx context.Context, meta envelope.Metadata, req Sho
 		}
 		def, ok := h.shopIn(snap, w, req.Shop)
 		if !ok {
-			return &shopRefusal{view: screens.ShopRefusalView{Kind: screens.ShopRefusedNoShop}}
+			return &shopRefusal{view: economy.ShopRefusalView{Kind: economy.ShopRefusedNoShop}}
 		}
 		if err := h.atCounter(w, snap, def, now); err != nil {
 			return err
@@ -545,12 +546,12 @@ func (h *ShopsHandler) Sell(ctx context.Context, meta envelope.Metadata, req Sho
 			return err
 		}
 		if qty == 0 {
-			return &shopRefusal{view: screens.ShopRefusalView{Kind: screens.ShopRefusedNotHeld, Item: itemNamed(snap, req.Item)}}
+			return &shopRefusal{view: economy.ShopRefusalView{Kind: economy.ShopRefusedNotHeld, Item: itemNamed(snap, req.Item)}}
 		}
 		sh, ok := def.Shelf(code)
 		item, _ := snap.ItemDef(code)
 		if !ok || sh.BuybackBPS == 0 {
-			return &shopRefusal{view: screens.ShopRefusalView{Kind: screens.ShopRefusedNoBuyback, Shop: named(def.Code, def.Name),
+			return &shopRefusal{view: economy.ShopRefusalView{Kind: economy.ShopRefusedNoBuyback, Shop: named(def.Code, def.Name),
 				Item: named(item.Code, item.Name)}}
 		}
 		line, _, err := h.quote(ctx, tx, def, sh, item, w.city.ID, now)
@@ -589,7 +590,7 @@ func (h *ShopsHandler) Sell(ctx context.Context, meta envelope.Metadata, req Sho
 		}); err != nil {
 			return err
 		}
-		view = screens.ShopSoldView{Shop: named(def.Code, def.Name), Item: named(item.Code, item.Name), Price: line.Buyback,
+		view = economy.ShopSoldView{Shop: named(def.Code, def.Name), Item: named(item.Code, item.Name), Price: line.Buyback,
 			Left: qty - 1}
 		return appendItemEvent(ctx, tx, meta, "sold", p.ID, map[string]any{
 			"player_id": p.ID, "shop": def.Code, "item": code, "qty": 1, "total": line.Buyback, "sale_id": saleID,
@@ -601,7 +602,7 @@ func (h *ShopsHandler) Sell(ctx context.Context, meta envelope.Metadata, req Sho
 	if view.Item.Code == "" {
 		return h.List(ctx, meta, ShopRequest{})
 	}
-	return screens.ShopSold(h.screen(meta, lang), view), nil
+	return economy.ShopSold(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // isUniqueForm reports whether a good is held as pieces.

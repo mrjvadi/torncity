@@ -1,0 +1,65 @@
+━━━ Not here, bank counters · loans in a village ━━━
+(edits message 42)
+🚫 Bank loans is not available here
+Bank loans starts at the city stage; this is still a village.
+Building needed: Bank.
+Nearest place: Brennhaven.
+  ───
+  [🧭 Brennhaven] → travel:options:brennhaven
+  [🔙 Back] → bank:show
+
+━━━ Not here, bank counters · savings in a village ━━━
+(edits message 42)
+🚫 Savings is not available here
+Savings starts at the city stage; this is still a village.
+Building needed: Bank.
+Nearest place: Brennhaven.
+  ───
+  [🧭 Brennhaven] → travel:options:brennhaven
+  [🔙 Back] → bank:show
+
+━━━ Not here, bank counters · insurance in a town ━━━
+(edits message 42)
+🚫 Insurance is not available here
+Insurance starts at the city stage; this is still a town.
+Building needed: Bank.
+Nearest place: Brennhaven.
+  ───
+  [🧭 Brennhaven] → travel:options:brennhaven
+  [🔙 Back] → bank:show
+
+━━━ Not here, markets of money · the exchange in a village ━━━
+(edits message 42)
+🚫 The stock exchange is not available here
+The stock exchange starts at the city stage; this is still a village.
+Building needed: Bank.
+Nearest place: Brennhaven.
+  ───
+  [🧭 Brennhaven] → travel:options:brennhaven
+  [🔙 Back] → player:profile.get
+
+━━━ Not here, markets of money · gold in a village ━━━
+(edits message 42)
+🚫 The gold dealer is not available here
+The gold dealer starts at the city stage; this is still a village.
+Building needed: Bank.
+Nearest place: Brennhaven.
+  ───
+  [🧭 Brennhaven] → travel:options:brennhaven
+  [🔙 Back] → player:profile.get
+
+━━━ Not here, the auction house · auctions, only in the central city ━━━
+(edits message 42)
+🚫 The auction house is not available here
+The auction house is only in Brennhaven.
+Nearest place: Brennhaven.
+  ───
+  [🧭 Brennhaven] → travel:options:brennhaven
+  [🔙 Back] → market:list
+
+━━━ Not here, markets of money · nowhere known to go ━━━
+(edits message 42)
+🚫 The gold dealer is not available here
+The gold dealer starts at the city stage; this is still a village.
+  ───
+  [🔙 Back] → player:profile.get

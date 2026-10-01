@@ -109,7 +109,8 @@
         }
       ],
       "savings": 15000,
-      "savings_bps": 900
+      "savings_bps": 900,
+      "unavailable": null
     }
   },
   {
@@ -163,7 +164,8 @@
         }
       ],
       "savings": 0,
-      "savings_bps": 0
+      "savings_bps": 0,
+      "unavailable": null
     }
   },
   {
@@ -217,7 +219,8 @@
         }
       ],
       "savings": 0,
-      "savings_bps": 0
+      "savings_bps": 0,
+      "unavailable": null
     }
   },
   {
@@ -256,7 +259,8 @@
         7,
         14,
         28
-      ]
+      ],
+      "unavailable": null
     }
   },
   {
@@ -291,7 +295,8 @@
         "name": "Mortgage"
       },
       "rate_bps": 2100,
-      "terms": null
+      "terms": null,
+      "unavailable": null
     }
   },
   {
@@ -346,7 +351,8 @@
         "name": "Mortgage"
       },
       "rate_bps": 2100,
-      "terms": null
+      "terms": null,
+      "unavailable": null
     }
   },
   {
@@ -365,7 +371,8 @@
         "name": "Personal loan"
       },
       "rate_bps": 2600,
-      "terms": null
+      "terms": null,
+      "unavailable": null
     }
   },
   {
@@ -574,6 +581,7 @@
       "notice": "",
       "notice_args": null,
       "rate_bps": 900,
+      "unavailable": null,
       "withdrawals": [
         3750,
         7500,
@@ -600,6 +608,7 @@
         "amount": 5000
       },
       "rate_bps": 900,
+      "unavailable": null,
       "withdrawals": [
         5000,
         10000,
@@ -612,7 +621,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "no_bank",
       "score": 0,
@@ -624,7 +636,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "too_many",
       "score": 0,
@@ -636,7 +651,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "bank_dry",
       "score": 0,
@@ -648,7 +666,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "amount",
       "score": 0,
@@ -660,7 +681,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "pledge",
       "score": 0,
@@ -672,7 +696,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "not_owner",
       "score": 0,
@@ -684,7 +711,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "short",
       "score": 0,
@@ -696,7 +726,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "savings_cap",
       "score": 0,
@@ -708,7 +741,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "no_product",
       "score": 0,
@@ -720,7 +756,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "held",
       "score": 0,
@@ -732,7 +771,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "pledged",
       "score": 0,
@@ -744,7 +786,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "not_listed",
       "score": 0,
@@ -756,7 +801,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "listed",
       "score": 0,
@@ -768,7 +816,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "too_young",
       "score": 0,
@@ -780,7 +831,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "too_small",
       "score": 0,
@@ -792,7 +846,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "in_debt",
       "score": 0,
@@ -804,7 +861,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "bad_float",
       "score": 0,
@@ -816,7 +876,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "no_shares",
       "score": 0,
@@ -828,7 +891,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "no_money",
       "score": 0,
@@ -840,7 +906,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "too_many_orders",
       "score": 0,
@@ -852,7 +921,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "order",
       "score": 0,
@@ -864,7 +936,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "gold_stock",
       "score": 0,
@@ -876,7 +951,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "gold_held",
       "score": 0,
@@ -888,7 +966,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "not_yours",
       "score": 0,
@@ -900,7 +981,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "own_company",
       "score": 0,
@@ -912,7 +996,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "fund_closed",
       "score": 0,
@@ -924,7 +1011,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 40000,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 2,
       "kind": "no_player",
       "score": 0,
@@ -936,7 +1026,10 @@
     "screen": "finance_refusal",
     "view": {
       "amount": 0,
-      "back": null,
+      "back": {
+        "args": null,
+        "command": ""
+      },
       "count": 0,
       "kind": "score",
       "score": 600,
@@ -1084,7 +1177,8 @@
           ],
           "waiting_seconds": 2880
         }
-      ]
+      ],
+      "unavailable": null
     }
   },
   {
@@ -1193,7 +1287,8 @@
           "targets": null,
           "waiting_seconds": 2880
         }
-      ]
+      ],
+      "unavailable": null
     }
   },
   {
@@ -1317,7 +1412,8 @@
           "targets": null,
           "waiting_seconds": 2880
         }
-      ]
+      ],
+      "unavailable": null
     }
   },
   {
@@ -1485,14 +1581,16 @@
           },
           "volume": 0
         }
-      ]
+      ],
+      "unavailable": null
     }
   },
   {
     "title": "Exchange · nothing listed yet",
     "screen": "exchange",
     "view": {
-      "lines": null
+      "lines": null,
+      "unavailable": null
     }
   },
   {
@@ -1590,7 +1688,8 @@
       "type": {
         "code": "grocery",
         "name": "Grocery store"
-      }
+      },
+      "unavailable": null
     }
   },
   {
@@ -1629,7 +1728,8 @@
       "type": {
         "code": "grocery",
         "name": "Grocery store"
-      }
+      },
+      "unavailable": null
     }
   },
   {
@@ -1788,6 +1888,7 @@
         }
       ],
       "savings": 15000,
+      "unavailable": null,
       "value": 54420
     }
   },
@@ -1805,6 +1906,7 @@
       },
       "orders": null,
       "savings": 0,
+      "unavailable": null,
       "value": 7200
     }
   },
@@ -2238,7 +2340,8 @@
       ],
       "prev": 780,
       "sell": 776,
-      "stock": 498750
+      "stock": 498750,
+      "unavailable": null
     }
   },
   {
@@ -2277,7 +2380,8 @@
       ],
       "prev": 780,
       "sell": 776,
-      "stock": 498750
+      "stock": 498750,
+      "unavailable": null
     }
   },
   {

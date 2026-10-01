@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -16,38 +17,13 @@ import (
 // group the gateway sends it to the player's chat and leaves a neutral line.
 // A shared screen never shows a balance.
 
-// Payment methods, as the core spells them (internal/domain/payment). They
-// travel in a button's address as its last argument.
-const (
-	MethodCash = "cash"
-	MethodCard = "card"
-)
+// PaymentChoice is what a price screen needs to offer the ways to pay; the
+// type is the core's (internal/presentation).
+type PaymentChoice = presentation.PaymentChoice
 
-// PaymentChoice is what a price screen needs to offer the ways to pay.
-type PaymentChoice struct {
-	// Amount is the price, in minor units.
-	Amount int64
-	// Accepted are the methods the service takes, in display order.
-	Accepted []string
-	// Usable are the accepted methods that cover Amount.
-	Usable []string
-	// Cash and Bank are the player's balances. Shown only on a screen
-	// that is not shared.
-	Cash, Bank int64
-}
+func accepts(p PaymentChoice, m string) bool { return p.Accepts(m) }
 
-func (p PaymentChoice) accepts(m string) bool { return hasMethod(p.Accepted, m) }
-
-func (p PaymentChoice) usable(m string) bool { return hasMethod(p.Usable, m) }
-
-func hasMethod(list []string, s string) bool {
-	for _, x := range list {
-		if x == s {
-			return true
-		}
-	}
-	return false
-}
+func usable(p PaymentChoice, m string) bool { return p.UsableBy(m) }
 
 // paymentButtons adds one row with a button per usable method. addr builds
 // each button's address from the method; the method is its last part, so a
@@ -71,13 +47,13 @@ func (c Context) paymentButtons(kb *keyboards.Builder, p PaymentChoice, addr fun
 func (c Context) paymentNote(p PaymentChoice) string {
 	var lines []string
 	switch {
-	case len(p.Accepted) == 1 && p.accepts(MethodCash):
+	case len(p.Accepted) == 1 && accepts(p, MethodCash):
 		lines = append(lines, c.T("payment.cash_only", nil))
-	case len(p.Accepted) == 1 && p.accepts(MethodCard):
+	case len(p.Accepted) == 1 && accepts(p, MethodCard):
 		lines = append(lines, c.T("payment.card_only", nil))
-	case p.accepts(MethodCash) && p.accepts(MethodCard) && len(p.Usable) == 1 && p.usable(MethodCard):
+	case accepts(p, MethodCash) && accepts(p, MethodCard) && len(p.Usable) == 1 && usable(p, MethodCard):
 		lines = append(lines, c.T("payment.only_card", nil))
-	case p.accepts(MethodCash) && p.accepts(MethodCard) && len(p.Usable) == 1 && p.usable(MethodCash):
+	case accepts(p, MethodCash) && accepts(p, MethodCard) && len(p.Usable) == 1 && usable(p, MethodCash):
 		lines = append(lines, c.T("payment.only_cash", nil))
 	}
 	if !c.Shared {
@@ -86,19 +62,6 @@ func (c Context) paymentNote(p PaymentChoice) string {
 		}))
 	}
 	return body(lines...)
-}
-
-// PaymentDeclinedView is a charge nothing the player holds can pay.
-type PaymentDeclinedView struct {
-	Amount     int64
-	Cash, Bank int64
-	// Accepted are the methods the service takes; a service taking one
-	// method says so, since money in the other purse cannot help.
-	Accepted []string
-	// BackLabel is the catalogue key of the way back and BackAddr its
-	// address: the screen the price was on.
-	BackLabel string
-	BackAddr  []string
 }
 
 // PaymentDeclined renders a refused charge: what it costs, both balances and
@@ -123,8 +86,8 @@ func renderPaymentDeclined(c Context, v PaymentDeclinedView) *presenter.Response
 	}
 	kb := keyboards.New()
 	var row []presenter.Button
-	if v.BackLabel != "" && len(v.BackAddr) > 0 {
-		if btn, ok := keyboards.Button(c.T(v.BackLabel, nil), v.BackAddr...); ok {
+	if v.BackLabel != "" && v.Back.Command != "" {
+		if btn, ok := keyboards.Button(c.T(v.BackLabel, nil), v.Back.Address()); ok {
 			row = append(row, btn)
 		}
 	}

@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strconv"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -10,8 +12,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/finance"
 	"github.com/mrjvadi/torncity/internal/domain/market"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // owned reads a company its owner acts for, locked when lock is set.
@@ -21,7 +21,7 @@ func (h *FinanceHandler) owned(ctx context.Context, tx application.Tx, p *applic
 		return nil, err
 	}
 	if c.OwnerID != p.ID {
-		return nil, refuseFinance(screens.FinanceRefusedNotOwner, screens.AddrStock, c.Code)
+		return nil, refuseFinance(economy.FinanceRefusedNotOwner, economy.AddrStock, c.Code)
 	}
 	return c, nil
 }
@@ -29,9 +29,9 @@ func (h *FinanceHandler) owned(ctx context.Context, tx application.Tx, p *applic
 // listingView is what a company's owner may list it at.
 func (h *FinanceHandler) listingView(ctx context.Context, tx application.Tx, def content.FinanceDef, c application.Company,
 	p *application.Player,
-) (screens.ListingView, error) {
+) (economy.ListingView, error) {
 	rules := def.ListingRules()
-	v := screens.ListingView{Company: named(c.Code, c.Name), MinAge: h.scale.RealWait(rules.MinAge),
+	v := economy.ListingView{Company: named(c.Code, c.Name), MinAge: h.scale.RealWait(rules.MinAge),
 		MinRevenue: rules.MinRevenue, Total: c.TotalShares, Fee: def.Stocks.ListingFee}
 	book, err := tx.Stocks().Book(ctx, c.ID)
 	if err != nil {
@@ -49,11 +49,11 @@ func (h *FinanceHandler) listingView(ctx context.Context, tx application.Tx, def
 	}
 	for _, bps := range def.Stocks.FloatOptions {
 		if n := finance.FloatShares(c.TotalShares, bps); n <= hold.Free() {
-			v.Floats = append(v.Floats, screens.PriceOption{Qty: n, Price: bps})
+			v.Floats = append(v.Floats, economy.PriceOption{Qty: n, Price: bps})
 		}
 	}
 	for _, bps := range def.Stocks.PriceOptions {
-		v.Prices = append(v.Prices, screens.PriceOption{Qty: bps, Price: max(finance.OfBPS(v.Book, bps), 1)})
+		v.Prices = append(v.Prices, economy.PriceOption{Qty: bps, Price: max(finance.OfBPS(v.Book, bps), 1)})
 	}
 	v.Refused = rules.Eligible(age, v.Revenue, c.Debt, def.Stocks.FloatOptions[0])
 	if v.Refused == "" && len(v.Floats) == 0 {
@@ -66,7 +66,7 @@ func (h *FinanceHandler) listingView(ctx context.Context, tx application.Tx, def
 // whether it may list and the choices; with one, its confirmation; with a
 // nonce, the listing — its fee paid from the company to its city, and the
 // shares offered on its new book.
-func (h *FinanceHandler) IPO(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) IPO(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (h *FinanceHandler) IPO(ctx context.Context, meta envelope.Metadata, req Fi
 	confirmed := isNonce(req.Nonce)
 	lang := meta.Language
 	var (
-		view     screens.ListingView
+		view     economy.ListingView
 		listed   bool
 		code     = req.Code
 		replayed bool
@@ -109,12 +109,12 @@ func (h *FinanceHandler) IPO(ctx context.Context, meta envelope.Metadata, req Fi
 			if err != nil {
 				return err
 			}
-			return refuseFinance(screens.FinanceRefusedListed, screens.AddrStock, c.Code)
+			return refuseFinance(economy.FinanceRefusedListed, economy.AddrStock, c.Code)
 		}
 		if view, err = h.listingView(ctx, tx, def, *c, p); err != nil || view.Refused != "" || qty == 0 {
 			return err
 		}
-		var float, at *screens.PriceOption
+		var float, at *economy.PriceOption
 		for i := range view.Floats {
 			if view.Floats[i].Qty == qty {
 				float = &view.Floats[i]
@@ -126,10 +126,10 @@ func (h *FinanceHandler) IPO(ctx context.Context, meta envelope.Metadata, req Fi
 			}
 		}
 		if float == nil || at == nil {
-			return refuseFinance(screens.FinanceRefusedFloat, screens.AddrStockIPO, c.Code)
+			return refuseFinance(economy.FinanceRefusedFloat, economy.AddrStockIPO, c.Code)
 		}
 		if !confirmed {
-			view.Chosen, view.Nonce = &screens.PriceOption{Qty: qty, Price: price}, h.nonce()
+			view.Chosen, view.Nonce = &economy.PriceOption{Qty: qty, Price: price}, h.nonce()
 			return nil
 		}
 		now := h.now()
@@ -142,7 +142,7 @@ func (h *FinanceHandler) IPO(ctx context.Context, meta envelope.Metadata, req Fi
 			return err
 		}
 		if pu.total() < def.Stocks.ListingFee {
-			r := refuseFinance(screens.FinanceRefusedNoMoney, screens.AddrStock, c.Code)
+			r := refuseFinance(economy.FinanceRefusedNoMoney, economy.AddrStock, c.Code)
 			r.view.Amount = def.Stocks.ListingFee
 			return r
 		}
@@ -167,18 +167,18 @@ func (h *FinanceHandler) IPO(ctx context.Context, meta envelope.Metadata, req Fi
 	if listed || replayed {
 		return h.stock(ctx, meta, code, "listed", nil)
 	}
-	return screens.Listing(h.screen(meta, lang), view), nil
+	return economy.Listing(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // dividendOptions are the dividends a company may pay: shares of its free
 // money, with what each share receives after the corporate tax.
-func dividendOptions(def content.FinanceDef, free, taxBPS, total int64) []screens.PriceOption {
-	var out []screens.PriceOption
+func dividendOptions(def content.FinanceDef, free, taxBPS, total int64) []economy.PriceOption {
+	var out []economy.PriceOption
 	for _, bps := range def.Stocks.DividendOptions {
 		amount := finance.OfBPS(free, bps)
 		per := (amount - finance.OfBPS(amount, taxBPS)) / max(total, 1)
 		if per >= 1 {
-			out = append(out, screens.PriceOption{Qty: per, Price: amount})
+			out = append(out, economy.PriceOption{Qty: per, Price: amount})
 		}
 	}
 	return out
@@ -187,7 +187,7 @@ func dividendOptions(def content.FinanceDef, free, taxBPS, total int64) []screen
 // Dividend handles stock.dividend: the owner pays a share of the company's
 // free money to every holder — the corporate tax to the city first, the rest
 // the same to every share, exactly once.
-func (h *FinanceHandler) Dividend(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) Dividend(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (h *FinanceHandler) Dividend(ctx context.Context, meta envelope.Metadata, r
 	confirmed := isNonce(req.Nonce)
 	lang := meta.Language
 	var (
-		view     screens.DividendView
+		view     economy.DividendView
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -230,7 +230,7 @@ func (h *FinanceHandler) Dividend(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
-		view = screens.DividendView{Company: named(c.Code, c.Name), Free: books.Available().Minor(), TaxBPS: tax,
+		view = economy.DividendView{Company: named(c.Code, c.Name), Free: books.Available().Minor(), TaxBPS: tax,
 			Total: c.TotalShares}
 		if c.Debt > 0 {
 			view.Refused = "in_debt"
@@ -240,14 +240,14 @@ func (h *FinanceHandler) Dividend(ctx context.Context, meta envelope.Metadata, r
 		if amount == 0 {
 			return nil
 		}
-		var chosen *screens.PriceOption
+		var chosen *economy.PriceOption
 		for i := range view.Options {
 			if view.Options[i].Price == amount {
 				chosen = &view.Options[i]
 			}
 		}
 		if chosen == nil {
-			return refuseFinance(screens.FinanceRefusedAmount, screens.AddrStockDividend, c.Code)
+			return refuseFinance(economy.FinanceRefusedAmount, economy.AddrStockDividend, c.Code)
 		}
 		if !confirmed {
 			view.Chosen, view.Nonce = chosen, h.nonce()
@@ -261,7 +261,7 @@ func (h *FinanceHandler) Dividend(ctx context.Context, meta envelope.Metadata, r
 	if replayed {
 		return h.stock(ctx, meta, req.Code, "", nil)
 	}
-	return screens.Dividend(h.screen(meta, lang), view), nil
+	return economy.Dividend(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // cityLever reads a lever of a company's city.
@@ -279,7 +279,7 @@ func (h *FinanceHandler) cityLever(ctx context.Context, c application.Company, c
 
 // payDividend pays a dividend, the company locked.
 func (h *FinanceHandler) payDividend(ctx context.Context, tx application.Tx, meta envelope.Metadata, c application.Company,
-	p *application.Player, amount, taxBPS int64, view *screens.DividendView,
+	p *application.Player, amount, taxBPS int64, view *economy.DividendView,
 ) error {
 	now := h.now()
 	holdings, err := tx.Stocks().Holdings(ctx, c.ID)
@@ -311,7 +311,7 @@ func (h *FinanceHandler) payDividend(ctx context.Context, tx application.Tx, met
 	if _, err := move(ctx, tx, treasury.ID, city.ID, tax, application.ReasonCorporateTax, application.DividendReference,
 		d.ID, d.TaxTx, now); err != nil {
 		if stderrors.Is(err, application.ErrInsufficientFunds) {
-			return refuseFinance(screens.FinanceRefusedNoMoney, screens.AddrStock, c.Code)
+			return refuseFinance(economy.FinanceRefusedNoMoney, economy.AddrStock, c.Code)
 		}
 		return err
 	}

@@ -2,31 +2,36 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/finance"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Portfolio handles stock.mine: the player's shares, gold and savings, what
 // they are worth and what they made, and their open orders.
-func (h *FinanceHandler) Portfolio(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *FinanceHandler) Portfolio(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.portfolio(ctx, meta, "", nil)
 }
 
-func (h *FinanceHandler) portfolio(ctx context.Context, meta envelope.Metadata, notice string, args map[string]any) (*presenter.Response, error) {
+func (h *FinanceHandler) portfolio(ctx context.Context, meta envelope.Metadata, notice string, args map[string]any) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
+	if resp, err := h.gate(ctx, meta, snap, "stocks", func(lang string, un *economy.Unavailable) *presentation.Response {
+		return economy.Portfolio(presentation.Ctx{Lang: lang}, economy.PortfolioView{Unavailable: un})
+	}); resp != nil || err != nil {
+		return resp, err
+	}
 	def, err := h.def(snap)
 	if err != nil {
 		return nil, err
 	}
 	lang := meta.Language
-	view := screens.PortfolioView{Notice: notice, NoticeArgs: args}
+	view := economy.PortfolioView{Notice: notice, NoticeArgs: args}
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -46,7 +51,7 @@ func (h *FinanceHandler) portfolio(ctx context.Context, meta envelope.Metadata, 
 					}
 				}
 			}
-			view.Holdings = append(view.Holdings, screens.HoldingLine{Company: named(l.Company.Code, l.Company.Name),
+			view.Holdings = append(view.Holdings, economy.HoldingLine{Company: named(l.Company.Code, l.Company.Name),
 				Shares: l.Holding.Shares, Locked: l.Holding.Locked, Price: price, Value: price * l.Holding.Shares,
 				Cost: l.Holding.Cost, Listed: l.Listed})
 		}
@@ -59,7 +64,7 @@ func (h *FinanceHandler) portfolio(ctx context.Context, meta envelope.Metadata, 
 			if err != nil {
 				return err
 			}
-			view.Orders = append(view.Orders, screens.OpenOrderLine{No: o.No, Company: named(c.Code, c.Name), Side: o.Side,
+			view.Orders = append(view.Orders, economy.OpenOrderLine{No: o.No, Company: named(c.Code, c.Name), Side: o.Side,
 				Qty: o.Qty, Filled: o.Filled, Price: o.Price})
 		}
 		gold, err := tx.Finance().GoldHolding(ctx, p.ID)
@@ -84,5 +89,5 @@ func (h *FinanceHandler) portfolio(ctx context.Context, meta envelope.Metadata, 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Portfolio(h.screen(meta, lang), view), nil
+	return economy.Portfolio(presentation.Ctx{Lang: lang}, view), nil
 }

@@ -123,7 +123,9 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 	// never has to be written into a client.
 	for _, k := range snap.SettlementKnowledgeDefs() {
 		add("settlement_knowledge", CatalogueEntry{Code: k.Code,
-			Name: names(func(c screens.Context) string { return c.SettlementKnowledgeName(screens.Named{Code: k.Code, Name: k.Name}) })}, false)
+			Name: names(func(c screens.Context) string {
+				return c.SettlementKnowledgeName(screens.Named{Code: k.Code, Name: k.Name})
+			})}, false)
 	}
 	if life, ok := snap.Life(); ok {
 		for _, r := range life.Ranks.Ladder {
@@ -138,6 +140,32 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 			add("life_stage", CatalogueEntry{Code: st.Code,
 				Name: names(func(c screens.Context) string { return c.StageName(screens.Named{Code: st.Code, Name: st.Name}) })}, false)
 		}
+	}
+	// The economy's names: the city shops, the national bank's loan and
+	// insurance products, the city budget's lines and the kinds of property a
+	// loan or a policy is secured by.
+	for _, sh := range snap.Shops() {
+		add("shop", CatalogueEntry{Code: sh.Code,
+			Name: names(func(c screens.Context) string { return c.ShopName(screens.Named{Code: sh.Code, Name: sh.Name}) })}, false)
+	}
+	if fin, ok := snap.Finance(); ok {
+		for _, l := range fin.Loans {
+			add("loan_product", CatalogueEntry{Code: l.Code,
+				Name: names(func(c screens.Context) string { return c.LoanProductName(screens.Named{Code: l.Code, Name: l.Name}) })}, false)
+		}
+		for _, in := range fin.Insurance {
+			add("insurance_product", CatalogueEntry{Code: in.Code,
+				Name: names(func(c screens.Context) string { return c.InsuranceProductName(screens.Named{Code: in.Code, Name: in.Name}) })}, false)
+		}
+	}
+	if b, ok := snap.Budget(); ok {
+		for _, l := range b.Lines {
+			add("budget_line", CatalogueEntry{Code: l.Code, Name: names(func(c screens.Context) string { return c.BudgetLineName(l.Code) })}, false)
+		}
+	}
+	for _, pt := range snap.PropertyTypes() {
+		add("property_type", CatalogueEntry{Code: pt.Code, Kind: pt.Kind,
+			Name: names(func(c screens.Context) string { return c.PropertyTypeName(screens.Named{Code: pt.Code, Name: pt.Name}) })}, false)
 	}
 	for _, sb := range snap.SettlementBuildingDefs() {
 		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, Footprint: []int{sb.Footprint[0], sb.Footprint[1]}, CapExempt: sb.CapExempt,

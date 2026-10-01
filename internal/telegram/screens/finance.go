@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strconv"
 	"time"
 
@@ -12,30 +13,6 @@ import (
 // credit score, the loans it offers and the ones they run, savings — and
 // insurance. The stock exchange is stocks.go, the gold dealer gold.go.
 
-// Addresses of the bank, savings and insurance screens.
-const (
-	AddrLoanHub         = "loan:hub"
-	AddrLoanOffer       = "loan:offer"
-	AddrLoanTake        = "loan:take"
-	AddrLoanView        = "loan:view"
-	AddrLoanRepay       = "loan:repay"
-	AddrSavings         = "save:show"
-	AddrSavingsDeposit  = "save:deposit"
-	AddrSavingsWithdraw = "save:withdraw"
-	AddrInsurance       = "insure:list"
-	AddrInsureBuy       = "insure:buy"
-	AddrInsureCancel    = "insure:cancel"
-)
-
-// Commands a typed amount fills (configs/commands.yml, input).
-const (
-	CommandSavingsDeposit  = "save.deposit"
-	CommandSavingsWithdraw = "save.withdraw"
-)
-
-// FinanceYes confirms a cancellation.
-const FinanceYes = "yes"
-
 // LoanProductName names a loan product.
 func (c Context) LoanProductName(n Named) string { return c.named("loan_product."+n.Code, n.Name) }
 
@@ -44,36 +21,10 @@ func (c Context) InsuranceProductName(n Named) string {
 	return c.named("insurance_product."+n.Code, n.Name)
 }
 
-// CreditView is a credit score and what it is made of.
-type CreditView struct {
-	Score, Min, Max int64
-	// Factors, 0..10000 each.
-	PaymentBPS, DebtBPS, HistoryBPS, IncomeBPS, WorthBPS, NewCreditBPS int64
-	// Missed and Defaults are what the record remembers.
-	Missed, Defaults int64
-}
-
-// band is the word for a score: poor, fair, good, very good, excellent.
-func (v CreditView) band() string {
-	span := max(v.Max-v.Min, 1)
-	switch at := (v.Score - v.Min) * 100 / span; {
-	case at < 30:
-		return "poor"
-	case at < 50:
-		return "fair"
-	case at < 70:
-		return "good"
-	case at < 85:
-		return "very_good"
-	default:
-		return "excellent"
-	}
-}
-
 // creditLines are the score, its band and its factors.
 func creditLines(c Context, v CreditView, factors bool) string {
 	lines := []string{c.T("finance.credit.score", map[string]any{"score": FormatNumber(c, v.Score),
-		"max": FormatNumber(c, v.Max), "band": c.T("finance.credit.band."+v.band(), nil)})}
+		"max": FormatNumber(c, v.Max), "band": c.T("finance.credit.band."+v.Band(), nil)})}
 	if factors {
 		pct := func(bps int64) string { return PercentFromBPS(c, int(bps)) }
 		lines = append(lines, c.T("finance.credit.factors", map[string]any{"payment": pct(v.PaymentBPS),
@@ -86,54 +37,15 @@ func creditLines(c Context, v CreditView, factors bool) string {
 	return body(lines...)
 }
 
-// LoanProductLine is a loan product as the bank offers it to this player.
-type LoanProductLine struct {
-	Product Named
-	// Kind is player, mortgage or company: who borrows and against what.
-	Kind string
-	// RateBPS is the yearly rate this player would pay; Limit the most
-	// they may borrow (0: not now); MinScore what it asks.
-	RateBPS  int64
-	Limit    int64
-	MinScore int64
-}
-
-// LoanLine is one of the player's loans.
-type LoanLine struct {
-	No      int64
-	Product Named
-	// Company names the company that borrowed, for a business loan.
-	Company Named
-	Status  string
-	// Next is the next instalment, Left the instalments still to pay,
-	// Owed everything still owed, Arrears the instalments overdue.
-	Next, Owed    int64
-	Left, Arrears int64
-}
-
-// FinanceHubView is the national bank.
-type FinanceHubView struct {
-	Country    GovPlace
-	Credit     CreditView
-	PolicyBPS  int64
-	Products   []LoanProductLine
-	Loans      []LoanLine
-	Savings    int64
-	SavingsBPS int64
-	// Lendable is what the bank may still lend, all borrowers together.
-	Lendable int64
-	// NextAt is when the next instalments fall due.
-	NextAt time.Time
-	Notice string
-	Args   map[string]any
-}
-
 // FinanceHub renders the national bank.
 func FinanceHub(c Context, v FinanceHubView) *presenter.Response {
 	return c.withView(renderFinanceHub(c, v), ScreenFinanceHub, v)
 }
 
 func renderFinanceHub(c Context, v FinanceHubView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrBank)
+	}
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("finance.notice."+v.Notice, moneyArgs(c, v.Args))
@@ -215,55 +127,6 @@ func loanLine(c Context, l LoanLine) string {
 	return c.T("finance.loan.line", args)
 }
 
-// LoanOption is one amount and term the bank would lend, with what it
-// costs.
-type LoanOption struct {
-	Amount     int64
-	Term       int64
-	Instalment int64
-}
-
-// PledgeLine is a property that may secure a mortgage, or a company that
-// may borrow.
-type PledgeLine struct {
-	No    int64
-	Code  string
-	Type  Named
-	City  GovPlace
-	Value int64
-	// Limit is the most it secures.
-	Limit int64
-}
-
-// LoanOfferView is one product: the amounts and terms offered.
-type LoanOfferView struct {
-	Product Named
-	Kind    string
-	RateBPS int64
-	Limit   int64
-	Terms   []int64
-	Options []LoanOption
-	// Pledges are the properties (mortgage) or companies (business loan)
-	// to choose from; Pledge the one chosen.
-	Pledges []PledgeLine
-	Pledge  *PledgeLine
-	// LateFeeBPS and DefaultAfter are what missing instalments costs.
-	LateFeeBPS   int64
-	DefaultAfter int64
-}
-
-// pledgeArg is the argument a pledge travels as: a property's number, a
-// company's code.
-func pledgeArg(p *PledgeLine) string {
-	if p == nil {
-		return "0"
-	}
-	if p.Code != "" {
-		return p.Code
-	}
-	return strconv.FormatInt(p.No, 10)
-}
-
 // pledgeName is a pledge as a line names it.
 func (c Context) pledgeName(p PledgeLine) string {
 	if p.Code != "" {
@@ -279,6 +142,9 @@ func LoanOffer(c Context, v LoanOfferView) *presenter.Response {
 }
 
 func renderLoanOffer(c Context, v LoanOfferView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrBank)
+	}
 	lines := []string{
 		c.T("finance.offer.title", map[string]any{"product": c.LoanProductName(v.Product)}),
 		c.T("finance.offer.kind."+v.Kind, nil),
@@ -293,7 +159,7 @@ func renderLoanOffer(c Context, v LoanOfferView) *presenter.Response {
 		for _, p := range v.Pledges {
 			lines = append(lines, "▫️ "+c.pledgeName(p))
 			kb.Add(c.T("finance.button.pledge", map[string]any{"pledge": c.pledgeName(p)}), AddrLoanOffer,
-				v.Product.Code, pledgeArg(&p))
+				v.Product.Code, economy.PledgeArg(&p))
 		}
 	case len(v.Options) == 0:
 		lines = append(lines, c.T("finance.offer.nothing", nil))
@@ -307,7 +173,7 @@ func renderLoanOffer(c Context, v LoanOfferView) *presenter.Response {
 			label := c.T("finance.button.option", map[string]any{"amount": FormatMoney(c, o.Amount),
 				"term": FormatNumber(c, o.Term), "instalment": FormatMoney(c, o.Instalment)})
 			if btn, ok := keyboards.Button(label, AddrLoanTake, v.Product.Code, strconv.FormatInt(o.Amount, 10),
-				strconv.FormatInt(o.Term, 10), pledgeArg(v.Pledge)); ok {
+				strconv.FormatInt(o.Term, 10), economy.PledgeArg(v.Pledge)); ok {
 				buttons = append(buttons, btn)
 			}
 		}
@@ -315,21 +181,6 @@ func renderLoanOffer(c Context, v LoanOfferView) *presenter.Response {
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrLoanHub}))
 	return c.respond(body(lines...), kb.Build()).MarkPrivate()
-}
-
-// LoanConfirmView is a loan about to be taken.
-type LoanConfirmView struct {
-	Product    Named
-	Amount     int64
-	Term       int64
-	RateBPS    int64
-	Interest   int64
-	Instalment int64
-	Total      int64
-	// FirstAt is when the first instalment falls due.
-	FirstAt time.Time
-	Pledge  *PledgeLine
-	Nonce   string
 }
 
 // LoanConfirm renders the terms of a loan with the button that takes it.
@@ -352,31 +203,9 @@ func renderLoanConfirm(c Context, v LoanConfirmView) *presenter.Response {
 	lines = append(lines, c.T("finance.confirm.warning", nil))
 	kb := keyboards.New()
 	kb.Add(c.T("finance.button.take", map[string]any{"amount": FormatMoney(c, v.Amount)}), AddrLoanTake, v.Product.Code,
-		strconv.FormatInt(v.Amount, 10), strconv.FormatInt(v.Term, 10), pledgeArg(v.Pledge), v.Nonce)
+		strconv.FormatInt(v.Amount, 10), strconv.FormatInt(v.Term, 10), economy.PledgeArg(v.Pledge), v.Nonce)
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrLoanOffer, v.Product.Code)}))
 	return c.respond(body(lines...), kb.Build()).MarkPrivate()
-}
-
-// LoanDetailView is one loan.
-type LoanDetailView struct {
-	Loan        LoanLine
-	Principal   int64
-	Interest    int64
-	RateBPS     int64
-	Periods     int64
-	Paid        int64
-	FeesDue     int64
-	Payoff      int64
-	Pledge      *PledgeLine
-	OpenedAt    time.Time
-	NextAt      time.Time
-	Missed      int64
-	Recovered   int64
-	WrittenOff  int64
-	Nonce       string
-	Notice      string
-	NoticeArgs  map[string]any
-	ConfirmOpen bool
 }
 
 // LoanDetail renders one loan: its terms, what is paid and owed, and the
@@ -435,27 +264,15 @@ func renderLoanDetail(c Context, v LoanDetailView) *presenter.Response {
 	return c.respond(paragraphs(notice, body(lines...)), kb.Build()).MarkPrivate()
 }
 
-// SavingsView is a savings account.
-type SavingsView struct {
-	Balance int64
-	RateBPS int64
-	// Earned is all the interest it earned; Next what the next period
-	// pays on what it holds now (counted from the last period's balance).
-	Earned, Next int64
-	Bank         int64
-	// Deposits and Withdrawals are the amounts offered.
-	Deposits, Withdrawals []int64
-	NextAt                time.Time
-	Notice                string
-	NoticeArgs            map[string]any
-}
-
 // Savings renders a savings account.
 func Savings(c Context, v SavingsView) *presenter.Response {
 	return c.withView(renderSavings(c, v), ScreenSavings, v)
 }
 
 func renderSavings(c Context, v SavingsView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrBank)
+	}
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("finance.notice."+v.Notice, moneyArgs(c, v.NoticeArgs))
@@ -494,50 +311,6 @@ func renderSavings(c Context, v SavingsView) *presenter.Response {
 	return c.respond(paragraphs(notice, body(lines...)), kb.Build()).MarkPrivate()
 }
 
-// InsuranceProductLine is an insurance product as it is offered.
-type InsuranceProductLine struct {
-	Product  Named
-	Covers   string
-	Premium  int64
-	PremBPS  int64
-	CoverBPS int64
-	MaxClaim int64
-	// Waiting is the real time before it pays a claim.
-	Waiting time.Duration
-	// Targets are the properties it may insure (a property's policy); a
-	// product with none to insure offers nothing.
-	Targets []PledgeLine
-	// Held says the player holds it already (a health policy).
-	Held bool
-}
-
-// PolicyLine is one of the player's policies.
-type PolicyLine struct {
-	No        int64
-	Product   Named
-	Covers    string
-	Property  *PledgeLine
-	Status    string
-	Reason    string
-	Premium   int64
-	Paid      int64
-	From      time.Time
-	Started   time.Time
-	Claimable bool
-}
-
-// InsuranceView is the insurance fund's counter.
-type InsuranceView struct {
-	Country    GovPlace
-	Fund       int64
-	Products   []InsuranceProductLine
-	Policies   []PolicyLine
-	Notice     string
-	NoticeArgs map[string]any
-	// Cancel is the policy a cancellation asks about.
-	Cancel *PolicyLine
-}
-
 // Insurance renders the insurance counter: products and the player's
 // policies.
 func Insurance(c Context, v InsuranceView) *presenter.Response {
@@ -545,6 +318,9 @@ func Insurance(c Context, v InsuranceView) *presenter.Response {
 }
 
 func renderInsurance(c Context, v InsuranceView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrBank)
+	}
 	var notice string
 	if v.Notice != "" {
 		notice = c.T("finance.notice."+v.Notice, moneyArgs(c, v.NoticeArgs))
@@ -614,18 +390,6 @@ func policyLine(c Context, p PolicyLine) string {
 	return c.T("finance.insurance.policy", args)
 }
 
-// InsureConfirmView is a policy about to be bought: its first premium.
-type InsureConfirmView struct {
-	Product  Named
-	Covers   string
-	Property *PledgeLine
-	Premium  int64
-	CoverBPS int64
-	MaxClaim int64
-	Waiting  time.Duration
-	Payment  PaymentChoice
-}
-
 // InsureConfirm renders a policy's price with the ways to pay it.
 func InsureConfirm(c Context, v InsureConfirmView) *presenter.Response {
 	return c.withView(renderInsureConfirm(c, v), ScreenInsureConfirm, v)
@@ -652,49 +416,6 @@ func renderInsureConfirm(c Context, v InsureConfirmView) *presenter.Response {
 	return c.respond(paragraphs(body(lines...), c.paymentNote(v.Payment)), kb.Build()).MarkPrivate()
 }
 
-// Refusals of finance.
-const (
-	FinanceRefusedNoBank      = "no_bank"
-	FinanceRefusedScore       = "score"
-	FinanceRefusedTooMany     = "too_many"
-	FinanceRefusedBankDry     = "bank_dry"
-	FinanceRefusedAmount      = "amount"
-	FinanceRefusedPledge      = "pledge"
-	FinanceRefusedNotOwner    = "not_owner"
-	FinanceRefusedShort       = "short"
-	FinanceRefusedSavingsCap  = "savings_cap"
-	FinanceRefusedNoProduct   = "no_product"
-	FinanceRefusedHeld        = "held"
-	FinanceRefusedPledged     = "pledged"
-	FinanceRefusedNotListed   = "not_listed"
-	FinanceRefusedListed      = "listed"
-	FinanceRefusedTooYoung    = "too_young"
-	FinanceRefusedTooSmall    = "too_small"
-	FinanceRefusedInDebt      = "in_debt"
-	FinanceRefusedFloat       = "bad_float"
-	FinanceRefusedNoShares    = "no_shares"
-	FinanceRefusedNoMoney     = "no_money"
-	FinanceRefusedTooManyOrd  = "too_many_orders"
-	FinanceRefusedOrder       = "order"
-	FinanceRefusedGoldStock   = "gold_stock"
-	FinanceRefusedGoldHeld    = "gold_held"
-	FinanceRefusedNotYours    = "not_yours"
-	FinanceRefusedOwnCompany  = "own_company"
-	FinanceRefusedFundClosed  = "fund_closed"
-	FinanceRefusedNoPlayerFor = "no_player"
-)
-
-// FinanceRefusalView is a refused finance request.
-type FinanceRefusalView struct {
-	Kind   string
-	Amount int64
-	Score  int64
-	Count  int64
-	Wait   time.Duration
-	// Back is where the way back leads.
-	Back []string
-}
-
 // FinanceRefusal renders a refusal.
 func FinanceRefusal(c Context, v FinanceRefusalView) *presenter.Response {
 	return c.withView(renderFinanceRefusal(c, v), ScreenFinanceRefusal, v)
@@ -705,8 +426,8 @@ func renderFinanceRefusal(c Context, v FinanceRefusalView) *presenter.Response {
 		"score": FormatNumber(c, v.Score), "count": FormatNumber(c, v.Count), "wait": FormatDuration(c, v.Wait)})
 	kb := keyboards.New()
 	back := AddrLoanHub
-	if len(v.Back) > 0 {
-		back = keyboards.Data(v.Back...)
+	if v.Back.Command != "" {
+		back = keyboards.Data(v.Back.Address())
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(text, kb.Build()).MarkPrivate()
@@ -765,8 +486,13 @@ func renderFinanceNotice(c Context, v FinanceNoticeView) *presenter.Response {
 func moneyArgs(c Context, args map[string]any) map[string]any {
 	out := make(map[string]any, len(args))
 	for k, v := range args {
+		// A number that crossed the wire is a float64; the sums and counts
+		// the core sends are whole.
+		if f, ok := v.(float64); ok && f == float64(int64(f)) {
+			v = int64(f)
+		}
 		switch k {
-		case "amount", "total", "price":
+		case "amount", "total", "price", "fee", "available", "needed", "min", "max":
 			if n, ok := v.(int64); ok {
 				out[k] = FormatMoney(c, n)
 				continue

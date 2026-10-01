@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/domain/budget"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -118,8 +120,8 @@ func (h *EducationHandler) finish(meta envelope.Metadata, lang string, err error
 	if r, ok := asRefusal(err); ok {
 		return screens.Refusal(h.screen(meta, lang), r.view), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
 	}
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(h.screen(meta, lang), v), nil

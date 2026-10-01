@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -71,13 +72,8 @@ type GovPlayer struct {
 	Code string
 }
 
-// GovPlace is one jurisdiction: a city or a country.
-type GovPlace struct {
-	Kind string
-	Code string
-	// Name is the authored name, the fallback for an untranslated code.
-	Name string
-}
+// GovPlace is one jurisdiction: a city or a country (the core's type).
+type GovPlace = presentation.GovPlace
 
 // GovOffice is one office of a place and who sits in it.
 type GovOffice struct {

@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strconv"
 	"strings"
 	"time"
@@ -126,8 +128,8 @@ func (h *PropertyHandler) finish(meta envelope.Metadata, lang string, err error)
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(h.screen(meta, lang), v), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
 	}
 	switch {
 	case isSentinel(err, application.ErrPropertyNotFound):

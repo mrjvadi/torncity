@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"github.com/mrjvadi/torncity/internal/domain/budget"
 	"github.com/mrjvadi/torncity/internal/domain/vehicle"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"strconv"
 	"strings"
@@ -606,7 +608,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 	var (
 		started  screens.TravelStartedView
 		options  screens.TravelOptionsView
-		declined screens.PaymentDeclinedView
+		declined economy.PaymentDeclinedView
 		replayed bool
 		lang     = meta.Language
 	)
@@ -691,7 +693,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 
 		ledgerTxID, err := h.chargeFare(ctx, tx, p.ID, t.from.ID, t.to.Code, travelID, q, chosen.accepts, method,
 			chosen.own != nil, now)
-		if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
+		if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
 			declined = v
 			return errPaymentDeclined
 		}
@@ -808,7 +810,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 	case err == errRequote:
 		return screens.TravelOptions(h.screen(meta, lang), options), nil
 	case err == errPaymentDeclined:
-		return screens.PaymentDeclined(h.screen(meta, lang), declined), nil
+		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, declined), nil
 	}
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(h.screen(meta, lang), v), nil

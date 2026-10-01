@@ -2,12 +2,12 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/finance"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // A player's credit score (docs/adr/0026 section 3) is worked out whenever
@@ -23,9 +23,9 @@ type credit struct {
 }
 
 // view is the score as screens show it.
-func (c credit) view() screens.CreditView {
+func (c credit) view() economy.CreditView {
 	s := c.score
-	return screens.CreditView{Score: s.Score, Min: c.rules.Min, Max: c.rules.Max, PaymentBPS: s.PaymentBPS,
+	return economy.CreditView{Score: s.Score, Min: c.rules.Min, Max: c.rules.Max, PaymentBPS: s.PaymentBPS,
 		DebtBPS: s.DebtBPS, HistoryBPS: s.HistoryBPS, IncomeBPS: s.IncomeBPS, WorthBPS: s.WorthBPS,
 		NewCreditBPS: s.NewCreditBPS, Missed: c.history.Missed, Defaults: c.history.Defaults}
 }

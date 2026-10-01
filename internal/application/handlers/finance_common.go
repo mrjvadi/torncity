@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strings"
 	"time"
 
@@ -13,8 +15,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The finance levers (configs/content/governance.yml), read only through
@@ -52,6 +52,10 @@ type FinanceHandler struct {
 
 	// watch is the watch's tuning (docs/adr/0023); nil checks nothing.
 	watch *watch.Thresholds
+
+	// gates says whether a service is offered where the player stands; nil
+	// offers every service everywhere.
+	gates *ServiceGate
 }
 
 // NewFinanceHandler builds the handler.
@@ -82,6 +86,46 @@ func (h *FinanceHandler) WithWatch(th watch.Thresholds) *FinanceHandler {
 	return h
 }
 
+// WithServiceGate has every finance screen say so when its service is not
+// offered in the settlement the player stands in (service_gate.go).
+func (h *FinanceHandler) WithServiceGate(g *ServiceGate) *FinanceHandler {
+	h.gates = g
+	return h
+}
+
+// gate answers a finance screen with its "not available here" state when the
+// service is not offered where the player stands, and nil when it is. draw
+// builds the screen's response from the player's language and the state.
+func (h *FinanceHandler) gate(ctx context.Context, meta envelope.Metadata, snap *content.Snapshot, service string,
+	draw func(lang string, un *economy.Unavailable) *presentation.Response,
+) (*presentation.Response, error) {
+	if h.gates == nil {
+		return nil, nil
+	}
+	lang := meta.Language
+	var city string
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, err := h.player(ctx, tx, meta, &lang)
+		if err != nil {
+			return err
+		}
+		facts, err := tx.Presence().Facts(ctx, []string{p.ID})
+		if err != nil {
+			return err
+		}
+		city = facts[p.ID].CityID
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	un, err := h.gates.Check(ctx, snap, city, service)
+	if err != nil || un == nil {
+		return nil, err
+	}
+	return draw(lang, un), nil
+}
+
 // FinanceRequest is every finance command's payload.
 type FinanceRequest struct {
 	Product  string `json:"product,omitempty"`
@@ -100,26 +144,22 @@ type FinanceRequest struct {
 }
 
 // financeRefusal carries a refusal out of a unit of work.
-type financeRefusal struct{ view screens.FinanceRefusalView }
+type financeRefusal struct{ view economy.FinanceRefusalView }
 
 func (r *financeRefusal) Error() string { return "handlers: finance refused: " + r.view.Kind }
 
 func refuseFinance(kind string, back ...string) *financeRefusal {
-	return &financeRefusal{view: screens.FinanceRefusalView{Kind: kind, Back: back}}
-}
-
-func (h *FinanceHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
+	return &financeRefusal{view: economy.FinanceRefusalView{Kind: kind, Back: refOf(back)}}
 }
 
 // finish turns what a unit of work ended with into a screen.
-func (h *FinanceHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *FinanceHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	var r *financeRefusal
 	if stderrors.As(err, &r) {
-		return screens.FinanceRefusal(h.screen(meta, lang), r.view), nil
+		return economy.FinanceRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
 	}
 	return nil, err
 }
@@ -195,7 +235,7 @@ func (h *FinanceHandler) countryOf(ctx context.Context, tx application.Tx, p *ap
 		return application.Jurisdiction{}, err
 	}
 	if j == nil {
-		return application.Jurisdiction{}, refuseFinance(screens.FinanceRefusedNoBank, screens.AddrHome)
+		return application.Jurisdiction{}, refuseFinance(economy.FinanceRefusedNoBank, economy.AddrHome)
 	}
 	return *j, nil
 }

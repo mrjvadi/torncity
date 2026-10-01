@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	stderrors "errors"
 	"fmt"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strings"
 	"time"
 
@@ -238,8 +240,8 @@ func (h *CrimeHandler) finish(meta envelope.Metadata, lang string, err error) (*
 	if stderrors.As(err, &r) {
 		return screens.CrimeRefusal(h.screen(meta, lang), r.view), nil
 	}
-	if v, ok := asDeclined(err, screens.PaymentDeclinedView{}); ok {
-		return screens.PaymentDeclined(h.screen(meta, lang), v), nil
+	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
+		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
 	}
 	return nil, err
 }

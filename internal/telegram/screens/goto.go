@@ -1,8 +1,7 @@
 package screens
 
 import (
-	"time"
-
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 )
 
@@ -11,12 +10,8 @@ import (
 // and opens the screen again on arrival, instead of sending the player to
 // the map.
 
-// Way is the walk to the place a screen's service is at.
-type Way struct {
-	Place Named
-	// Walk is the real time the walk takes.
-	Walk time.Duration
-}
+// Way is the walk to the place a screen's service is at (the core's type).
+type Way = presentation.Way
 
 // wayButton adds «🚶 رفتن به {place} ({walk})», which walks to the way's
 // place and then runs then with its arguments. Nothing is added without a

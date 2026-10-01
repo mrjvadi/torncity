@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"encoding/json"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -48,7 +49,7 @@ func renderFinanceNotice(_ context.Context, _ Deps, env *envelope.Envelope) (*Dr
 	view := screens.FinanceNoticeView{Kind: ev.Kind, No: ev.No, Product: screens.Named{Code: ev.Product, Name: ev.ProductName},
 		Amount: ev.Amount, Other: ev.Other, Count: ev.Count, At: ev.At}
 	if ev.PropertyNo > 0 {
-		view.Pledge = &screens.PledgeLine{No: ev.PropertyNo, Type: screens.Named{Code: ev.TypeCode, Name: ev.TypeName},
+		view.Pledge = &economy.PledgeLine{No: ev.PropertyNo, Type: screens.Named{Code: ev.TypeCode, Name: ev.TypeName},
 			City: screens.GovPlace{Kind: "city", Code: ev.CityCode, Name: ev.CityName}, Value: ev.Value}
 	}
 	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {

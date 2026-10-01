@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strconv"
 	"strings"
 	"time"
@@ -12,8 +14,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/finance"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // parseCount reads a positive whole number a button carried.
@@ -27,7 +27,7 @@ func parseCount(raw string) (int64, error) {
 
 // Take handles loan.take: without a nonce, the loan's terms and the button
 // that takes it; with one, the loan — lent from the national bank, once.
-func (h *FinanceHandler) Take(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) Take(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (h *FinanceHandler) Take(ctx context.Context, meta envelope.Metadata, req F
 	}
 	lang := meta.Language
 	var (
-		confirm  *screens.LoanConfirmView
+		confirm  *economy.LoanConfirmView
 		taken    int64
 		replayed bool
 	)
@@ -71,10 +71,10 @@ func (h *FinanceHandler) Take(ctx context.Context, meta envelope.Metadata, req F
 			return err
 		}
 		if productKind(o.product) != "player" && o.pledge == nil {
-			return refuseFinance(screens.FinanceRefusedPledge, screens.AddrLoanOffer, o.product.Code)
+			return refuseFinance(economy.FinanceRefusedPledge, economy.AddrLoanOffer, o.product.Code)
 		}
 		if !o.allows(def, amount, term) {
-			r := refuseFinance(screens.FinanceRefusedAmount, screens.AddrLoanOffer, o.product.Code)
+			r := refuseFinance(economy.FinanceRefusedAmount, economy.AddrLoanOffer, o.product.Code)
 			r.view.Amount = o.most
 			return r
 		}
@@ -84,7 +84,7 @@ func (h *FinanceHandler) Take(ctx context.Context, meta envelope.Metadata, req F
 			return errors.Internal(err)
 		}
 		if !isNonce(req.Nonce) {
-			confirm = &screens.LoanConfirmView{Product: named(o.product.Code, o.product.Name), Amount: amount, Term: term,
+			confirm = &economy.LoanConfirmView{Product: named(o.product.Code, o.product.Name), Amount: amount, Term: term,
 				RateBPS: o.rate, Interest: s.Interest, Instalment: s.Amount(1), Total: s.Total(),
 				FirstAt: firstDue(nextAt(ctx, tx), h.periodWait(def), now), Pledge: o.pledge, Nonce: h.nonce()}
 			return nil
@@ -103,7 +103,7 @@ func (h *FinanceHandler) Take(ctx context.Context, meta envelope.Metadata, req F
 	case replayed:
 		return h.Hub(ctx, meta)
 	case confirm != nil:
-		return screens.LoanConfirm(h.screen(meta, lang), *confirm), nil
+		return economy.LoanConfirm(presentation.Ctx{Lang: lang}, *confirm), nil
 	}
 	return h.view(ctx, meta, taken, false, "taken")
 }
@@ -123,7 +123,7 @@ func (h *FinanceHandler) lend(ctx context.Context, tx application.Tx, snap *cont
 		return application.Loan{}, err
 	}
 	if running >= def.Bank.MaxActiveLoans {
-		r := refuseFinance(screens.FinanceRefusedTooMany)
+		r := refuseFinance(economy.FinanceRefusedTooMany)
 		r.view.Count = int64(def.Bank.MaxActiveLoans)
 		return application.Loan{}, r
 	}
@@ -142,7 +142,7 @@ func (h *FinanceHandler) lend(ctx context.Context, tx application.Tx, snap *cont
 			return loan, err
 		}
 		if pr.OwnerID != p.ID || pr.Status != application.PropertyOwned {
-			return loan, refuseFinance(screens.FinanceRefusedPledge)
+			return loan, refuseFinance(economy.FinanceRefusedPledge)
 		}
 		loan.PropertyID = pr.ID
 	case "company":
@@ -154,7 +154,7 @@ func (h *FinanceHandler) lend(ctx context.Context, tx application.Tx, snap *cont
 			return loan, err
 		}
 		if c.OwnerID != p.ID || !c.Active() {
-			return loan, refuseFinance(screens.FinanceRefusedNotOwner)
+			return loan, refuseFinance(economy.FinanceRefusedNotOwner)
 		}
 		loan.BorrowerKind, loan.CompanyID = application.BorrowerCompany, c.ID
 		if to, err = tx.Ledger().AccountFor(ctx, application.AccountCompanyTreasury, c.ID); err != nil {
@@ -169,7 +169,7 @@ func (h *FinanceHandler) lend(ctx context.Context, tx application.Tx, snap *cont
 	txID, err := move(ctx, tx, o.bank.account.ID, to.ID, s.Principal, application.ReasonLoanDisbursement,
 		application.LoanReference, loan.ID, "", now)
 	if stderrors.Is(err, application.ErrInsufficientFunds) {
-		return loan, refuseFinance(screens.FinanceRefusedBankDry)
+		return loan, refuseFinance(economy.FinanceRefusedBankDry)
 	}
 	if err != nil {
 		return loan, err
@@ -184,7 +184,7 @@ func (h *FinanceHandler) lend(ctx context.Context, tx application.Tx, snap *cont
 }
 
 // pledgeArgOf is a pledge's argument.
-func pledgeArgOf(p *screens.PledgeLine) string {
+func pledgeArgOf(p *economy.PledgeLine) string {
 	if p == nil {
 		return ""
 	}

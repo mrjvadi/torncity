@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strconv"
 	"strings"
 
@@ -10,13 +12,11 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Insurance handles insure.list: the country's insurance fund, what it
 // sells and the player's policies.
-func (h *FinanceHandler) Insurance(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *FinanceHandler) Insurance(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.insurance(ctx, meta, "", nil, 0)
 }
 
@@ -24,17 +24,22 @@ func (h *FinanceHandler) Insurance(ctx context.Context, meta envelope.Metadata) 
 // cancelling policy cancel.
 func (h *FinanceHandler) insurance(ctx context.Context, meta envelope.Metadata, notice string, args map[string]any,
 	cancel int64,
-) (*presenter.Response, error) {
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
+	if resp, err := h.gate(ctx, meta, snap, "insurance", func(lang string, un *economy.Unavailable) *presentation.Response {
+		return economy.Insurance(presentation.Ctx{Lang: lang}, economy.InsuranceView{Unavailable: un})
+	}); resp != nil || err != nil {
+		return resp, err
+	}
 	def, err := h.def(snap)
 	if err != nil {
 		return nil, err
 	}
 	lang := meta.Language
-	view := screens.InsuranceView{Notice: notice, NoticeArgs: args}
+	view := economy.InsuranceView{Notice: notice, NoticeArgs: args}
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -56,7 +61,7 @@ func (h *FinanceHandler) insurance(ctx context.Context, meta envelope.Metadata, 
 		insured := map[string]bool{}
 		now := h.now()
 		for _, pol := range policies {
-			line := screens.PolicyLine{No: pol.No, Product: named(pol.Product, pol.Product), Covers: pol.Covers,
+			line := economy.PolicyLine{No: pol.No, Product: named(pol.Product, pol.Product), Covers: pol.Covers,
 				Status: pol.Status, Reason: pol.EndReason, From: pol.ClaimsFrom, Started: pol.StartedAt,
 				Claimable: !now.Before(pol.ClaimsFrom)}
 			product, ok := def.InsuranceProduct(pol.Product)
@@ -94,7 +99,7 @@ func (h *FinanceHandler) insurance(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		for _, d := range def.Insurance {
-			line := screens.InsuranceProductLine{Product: named(d.Code, d.Name), Covers: d.Covers, Premium: d.Premium,
+			line := economy.InsuranceProductLine{Product: named(d.Code, d.Name), Covers: d.Covers, Premium: d.Premium,
 				PremBPS: d.PremiumBPS, CoverBPS: d.CoverBPS, MaxClaim: d.MaxClaim,
 				Waiting: h.scale.RealWait(d.WaitingDuration()), Held: insured[d.Code+"/"]}
 			if d.Covers == content.CoverWarDamage {
@@ -116,13 +121,13 @@ func (h *FinanceHandler) insurance(ctx context.Context, meta envelope.Metadata, 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Insurance(h.screen(meta, lang), view), nil
+	return economy.Insurance(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Buy handles insure.buy: without a method, the policy's first premium and
 // the ways to pay it; with one, the policy — its first premium paid for
 // this period, its claims waiting on the game clock.
-func (h *FinanceHandler) Buy(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) Buy(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -133,13 +138,13 @@ func (h *FinanceHandler) Buy(ctx context.Context, meta envelope.Metadata, req Fi
 	}
 	product, ok := def.InsuranceProduct(req.Product)
 	if !ok {
-		return h.finish(meta, meta.Language, refuseFinance(screens.FinanceRefusedNoProduct, screens.AddrInsurance))
+		return h.finish(meta, meta.Language, refuseFinance(economy.FinanceRefusedNoProduct, economy.AddrInsurance))
 	}
 	method := payment.Method(strings.TrimSpace(req.Method))
 	chosen := method != ""
 	lang := meta.Language
 	var (
-		confirm  *screens.InsureConfirmView
+		confirm  *economy.InsureConfirmView
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -164,15 +169,15 @@ func (h *FinanceHandler) Buy(ctx context.Context, meta envelope.Metadata, req Fi
 		}
 		pol := application.InsurancePolicy{ID: h.ids.NewID(), PlayerID: p.ID, Product: product.Code, Covers: product.Covers,
 			CountryID: country.ID, StartedAt: now, ClaimsFrom: now.Add(h.scale.RealWait(product.WaitingDuration()))}
-		var target *screens.PledgeLine
+		var target *economy.PledgeLine
 		if product.Covers == content.CoverWarDamage {
 			no, err := parseCount(req.Property)
 			if err != nil {
-				return refuseFinance(screens.FinanceRefusedPledge, screens.AddrInsurance)
+				return refuseFinance(economy.FinanceRefusedPledge, economy.AddrInsurance)
 			}
 			pr, err := tx.Property().ByNo(ctx, no, false)
 			if err != nil || pr.OwnerID != p.ID || pr.Status != application.PropertyOwned {
-				return refuseFinance(screens.FinanceRefusedNotYours, screens.AddrInsurance)
+				return refuseFinance(economy.FinanceRefusedNotYours, economy.AddrInsurance)
 			}
 			pol.PropertyID = pr.ID
 			pl, err := h.propertyLine(ctx, snap, *pr)
@@ -191,17 +196,17 @@ func (h *FinanceHandler) Buy(ctx context.Context, meta envelope.Metadata, req Fi
 		}
 		plan := wallet.Plan(moneyOf(amount), snap.Accepts(content.ServiceInsurance))
 		if !chosen {
-			confirm = &screens.InsureConfirmView{Product: named(product.Code, product.Name), Covers: product.Covers,
+			confirm = &economy.InsureConfirmView{Product: named(product.Code, product.Name), Covers: product.Covers,
 				Property: target, Premium: amount, CoverBPS: product.CoverBPS, MaxClaim: product.MaxClaim,
 				Waiting: h.scale.RealWait(product.WaitingDuration()), Payment: paymentChoice(plan, wallet)}
 			return nil
 		}
-		if err := checkMethod(plan, method, wallet, "finance.button.insurance", screens.AddrInsurance); err != nil {
+		if err := checkMethod(plan, method, wallet, "finance.button.insurance", economy.AddrInsurance); err != nil {
 			return err
 		}
 		if pol, err = tx.Finance().CreatePolicy(ctx, pol); err != nil {
 			if isSentinel(err, application.ErrPolicyExists) {
-				return refuseFinance(screens.FinanceRefusedHeld, screens.AddrInsurance)
+				return refuseFinance(economy.FinanceRefusedHeld, economy.AddrInsurance)
 			}
 			return err
 		}
@@ -222,7 +227,7 @@ func (h *FinanceHandler) Buy(ctx context.Context, meta envelope.Metadata, req Fi
 			ReferenceID: pol.ID, To: []application.LedgerEntry{{AccountID: fund.ID, Amount: moneyOf(amount)}},
 			CreatedAt: now, ID: txID}); err != nil {
 			if stderrors.Is(err, application.ErrPaymentDeclined) {
-				return declined(plan, wallet, "finance.button.insurance", screens.AddrInsurance)
+				return declined(plan, wallet, "finance.button.insurance", economy.AddrInsurance)
 			}
 			return err
 		}
@@ -233,7 +238,7 @@ func (h *FinanceHandler) Buy(ctx context.Context, meta envelope.Metadata, req Fi
 	}
 	switch {
 	case confirm != nil:
-		return screens.InsureConfirm(h.screen(meta, lang), *confirm), nil
+		return economy.InsureConfirm(presentation.Ctx{Lang: lang}, *confirm), nil
 	case replayed:
 		return h.Insurance(ctx, meta)
 	}
@@ -242,7 +247,7 @@ func (h *FinanceHandler) Buy(ctx context.Context, meta envelope.Metadata, req Fi
 
 // Cancel handles insure.cancel: without "yes", the question; with it, the
 // policy ends. Premiums paid are not returned.
-func (h *FinanceHandler) Cancel(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presenter.Response, error) {
+func (h *FinanceHandler) Cancel(ctx context.Context, meta envelope.Metadata, req FinanceRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -250,7 +255,7 @@ func (h *FinanceHandler) Cancel(ctx context.Context, meta envelope.Metadata, req
 	if err != nil || no < 1 {
 		return nil, err
 	}
-	if req.Confirm != screens.FinanceYes {
+	if req.Confirm != economy.FinanceYes {
 		return h.insurance(ctx, meta, "", nil, no)
 	}
 	lang := meta.Language
@@ -261,7 +266,7 @@ func (h *FinanceHandler) Cancel(ctx context.Context, meta envelope.Metadata, req
 		}
 		pol, err := tx.Finance().PolicyByNo(ctx, no)
 		if isSentinel(err, application.ErrPolicyNotFound) || (err == nil && pol.PlayerID != p.ID) {
-			return refuseFinance(screens.FinanceRefusedNotYours, screens.AddrInsurance)
+			return refuseFinance(economy.FinanceRefusedNotYours, economy.AddrInsurance)
 		}
 		if err != nil || pol.Status != application.PolicyActive {
 			return err

@@ -11,8 +11,9 @@ import (
 	"fmt"
 
 	"github.com/mrjvadi/torncity/internal/presentation"
-	_ "github.com/mrjvadi/torncity/internal/presentation/village"
 	"github.com/mrjvadi/torncity/internal/presentation/tsgen"
+	_ "github.com/mrjvadi/torncity/internal/presentation/economy"
+	_ "github.com/mrjvadi/torncity/internal/presentation/village"
 )
 
 func main() {

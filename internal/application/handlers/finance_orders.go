@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -10,7 +11,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The stock exchange's book (docs/adr/0026 section 5): one book per listed
@@ -58,14 +58,14 @@ func (h *FinanceHandler) feeOf(ctx context.Context, c application.Company) (int6
 // is locked by the caller.
 func (h *FinanceHandler) placeShares(ctx context.Context, tx application.Tx, meta envelope.Metadata, c application.Company,
 	p *application.Player, side market.Side, qty, price int64, now time.Time,
-) (screens.StockOrderView, error) {
-	view := screens.StockOrderView{Company: named(c.Code, c.Name), Side: string(side), Qty: qty, Price: price, Placed: true}
+) (economy.StockOrderView, error) {
+	view := economy.StockOrderView{Company: named(c.Code, c.Name), Side: string(side), Qty: qty, Price: price, Placed: true}
 	open, err := tx.Stocks().CountOpen(ctx, p.ID)
 	if err != nil {
 		return view, err
 	}
 	if open >= h.limits.MaxOpen {
-		r := refuseFinance(screens.FinanceRefusedTooManyOrd, screens.AddrStock, c.Code)
+		r := refuseFinance(economy.FinanceRefusedTooManyOrd, economy.AddrStock, c.Code)
 		r.view.Count = int64(h.limits.MaxOpen)
 		return view, r
 	}
@@ -83,7 +83,7 @@ func (h *FinanceHandler) placeShares(ctx context.Context, tx application.Tx, met
 		if _, err := move(ctx, tx, bank.ID, escrow.ID, qty*price, application.ReasonShareEscrow,
 			application.ShareOrderReference, order.ID, "", now); err != nil {
 			if stderrors.Is(err, application.ErrInsufficientFunds) {
-				r := refuseFinance(screens.FinanceRefusedShort, screens.AddrStock, c.Code)
+				r := refuseFinance(economy.FinanceRefusedShort, economy.AddrStock, c.Code)
 				r.view.Amount = qty * price
 				return view, r
 			}
@@ -95,7 +95,7 @@ func (h *FinanceHandler) placeShares(ctx context.Context, tx application.Tx, met
 			return view, err
 		}
 		if hold.Free() < qty {
-			r := refuseFinance(screens.FinanceRefusedNoShares, screens.AddrStock, c.Code)
+			r := refuseFinance(economy.FinanceRefusedNoShares, economy.AddrStock, c.Code)
 			r.view.Count = hold.Free()
 			return view, r
 		}

@@ -1,0 +1,65 @@
+━━━ Not here, bank counters · loans in a village ━━━
+(edits message 42)
+🚫 وام بانکی اینجا نیست
+وام بانکی از «شهر» به بالا هست؛ اینجا هنوز روستا است.
+ساختمان لازم: بانک.
+نزدیک‌ترین جا: برنهاون.
+  ───
+  [🧭 برنهاون] → travel:options:brennhaven
+  [🔙 بازگشت] → bank:show
+
+━━━ Not here, bank counters · savings in a village ━━━
+(edits message 42)
+🚫 پس‌انداز اینجا نیست
+پس‌انداز از «شهر» به بالا هست؛ اینجا هنوز روستا است.
+ساختمان لازم: بانک.
+نزدیک‌ترین جا: برنهاون.
+  ───
+  [🧭 برنهاون] → travel:options:brennhaven
+  [🔙 بازگشت] → bank:show
+
+━━━ Not here, bank counters · insurance in a town ━━━
+(edits message 42)
+🚫 بیمه اینجا نیست
+بیمه از «شهر» به بالا هست؛ اینجا هنوز شهرک است.
+ساختمان لازم: بانک.
+نزدیک‌ترین جا: برنهاون.
+  ───
+  [🧭 برنهاون] → travel:options:brennhaven
+  [🔙 بازگشت] → bank:show
+
+━━━ Not here, markets of money · the exchange in a village ━━━
+(edits message 42)
+🚫 بورس اینجا نیست
+بورس از «شهر» به بالا هست؛ اینجا هنوز روستا است.
+ساختمان لازم: بانک.
+نزدیک‌ترین جا: برنهاون.
+  ───
+  [🧭 برنهاون] → travel:options:brennhaven
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Not here, markets of money · gold in a village ━━━
+(edits message 42)
+🚫 خرید و فروش طلا اینجا نیست
+خرید و فروش طلا از «شهر» به بالا هست؛ اینجا هنوز روستا است.
+ساختمان لازم: بانک.
+نزدیک‌ترین جا: برنهاون.
+  ───
+  [🧭 برنهاون] → travel:options:brennhaven
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Not here, the auction house · auctions, only in the central city ━━━
+(edits message 42)
+🚫 حراج اینجا نیست
+حراج فقط در برنهاون هست.
+نزدیک‌ترین جا: برنهاون.
+  ───
+  [🧭 برنهاون] → travel:options:brennhaven
+  [🔙 بازگشت] → market:list
+
+━━━ Not here, markets of money · nowhere known to go ━━━
+(edits message 42)
+🚫 خرید و فروش طلا اینجا نیست
+خرید و فروش طلا از «شهر» به بالا هست؛ اینجا هنوز روستا است.
+  ───
+  [🔙 بازگشت] → player:profile.get

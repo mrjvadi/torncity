@@ -101,6 +101,10 @@ type Snapshot struct {
 	// settlementTiers is settlement_tiers.yml's ladder, by the tier a step
 	// leaves; see settlementtier.go.
 	settlementTiers map[string]SettlementTierDef
+
+	// availability is availability.yml's tags by kind and code; see
+	// availability_lookup.go.
+	availability map[string]AvailabilityDef
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -206,6 +210,7 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	snap.buildSettlementKnowledge(p)
 	snap.buildSettlementBuildings(p)
 	snap.buildSettlementTiers(p)
+	snap.buildAvailabilityIndex(p)
 
 	return snap, nil
 }

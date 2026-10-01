@@ -195,6 +195,7 @@ func TestInsufficientFundsWritesNothing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("a player who cannot pay is answered, not failed: %v", err)
 	}
+	resp = edge(t, resp)
 	assertResolved(t, resp.Text)
 	if !hasExactButton(resp, "travel:options:berlin") {
 		t.Errorf("the refusal offers no way back to the choice of transport: %v", buttons(resp))
