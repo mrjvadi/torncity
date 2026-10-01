@@ -116,7 +116,7 @@ func TestPresenceVisibilityAndActivity(t *testing.T) {
 		m := validMeta(t)
 		m.TelegramUserID, m.TelegramChatID = p.TelegramUserID, p.TelegramUserID
 		m.Command, m.Action = "player.presence.set", "presence.set"
-		resp, err := settings.SetPresence(ctx, m, handlers.PresenceRequest{Visibility: v})
+		resp, err := rr(settings.SetPresence(ctx, m, handlers.PresenceRequest{Visibility: v}))
 		if err != nil {
 			t.Fatalf("SetPresence(%s): %v", v, err)
 		}
