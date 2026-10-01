@@ -22,6 +22,10 @@ type ContentCatalogue struct {
 	// Langs are the languages every name below carries.
 	Langs   []string                    `json:"langs,omitempty"`
 	Entries map[string][]CatalogueEntry `json:"entries,omitempty"`
+	// Availability is the stage and the prerequisites of what a client may
+	// show (configs/content/availability.yml), so a client lists a feature only
+	// where the data says it exists and never hardcodes a tier.
+	Availability []content.AvailabilityDef `json:"availability,omitempty"`
 }
 
 // CatalogueEntry is one content entry.
@@ -79,6 +83,7 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 		out.Entries[table] = append(out.Entries[table], e)
 	}
 	out.Entries = map[string][]CatalogueEntry{}
+	out.Availability = snap.AvailabilityTags("faction", "government_action", "office", "treaty_type")
 
 	for _, city := range snap.Cities() {
 		add("city", CatalogueEntry{Code: city.Code, Name: names(func(c screens.Context) string { return c.CityName(city.Code, city.Name) })}, false)

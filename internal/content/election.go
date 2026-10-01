@@ -109,6 +109,7 @@ func (s *Snapshot) buildElections(p *Pack) {
 		s.leverCodes = append(s.leverCodes, l.Code)
 	}
 	s.jurisdictions = append([]JurisdictionDef(nil), p.Jurisdictions...)
+	s.availability = append([]AvailabilityDef(nil), p.Availability...)
 	s.elections = make(map[string]ElectionDef, len(p.Elections))
 	for _, e := range p.Elections {
 		s.elections[e.Office] = e
@@ -147,4 +148,21 @@ func (s *Snapshot) LeverCodes() []string { return append([]string(nil), s.leverC
 // among them), in file order.
 func (s *Snapshot) JurisdictionDefs() []JurisdictionDef {
 	return append([]JurisdictionDef(nil), s.jurisdictions...)
+}
+
+// AvailabilityTags lists the availability tags (availability.yml) of the given
+// kinds, in file order: which stage each piece of content becomes available at
+// and what it needs. A client shows a thing only where the data says it exists.
+func (s *Snapshot) AvailabilityTags(kinds ...string) []AvailabilityDef {
+	want := make(map[string]bool, len(kinds))
+	for _, k := range kinds {
+		want[k] = true
+	}
+	var out []AvailabilityDef
+	for _, a := range s.availability {
+		if want[a.Kind] {
+			out = append(out, a)
+		}
+	}
+	return out
 }

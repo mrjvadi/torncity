@@ -58,6 +58,7 @@ type Snapshot struct {
 	// The names a client words by code: offices, levers, jurisdictions above
 	// the city; see election.go.
 	officeCodes, leverCodes []string
+	availability            []AvailabilityDef
 	jurisdictions           []JurisdictionDef
 
 	// Companies; see company.go.

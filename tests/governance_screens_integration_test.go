@@ -20,6 +20,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
+	"github.com/mrjvadi/torncity/internal/telegram/render"
 )
 
 func TestGovernanceScreensAgainstPostgres(t *testing.T) {
@@ -103,6 +104,7 @@ func TestGovernanceScreensAgainstPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+		resp = renderedWith(t, catalog, render.Delivery{}, resp)
 		var b strings.Builder
 		b.WriteString(resp.Text)
 		if resp.Keyboard != nil {

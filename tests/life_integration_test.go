@@ -452,7 +452,7 @@ func TestLeaderboardsAreRefreshedOncePerPeriod(t *testing.T) {
 		AND status = 'scheduled'`); n < 1 {
 		t.Fatal("the next period was not scheduled")
 	}
-	board := w.ok(t, "life.top")(w.life.Top(ctx, w.meta(t, p, "life.top"), handlers.LifeRequest{Board: "richest"}))
+	board := rendered(t, w.ok(t, "life.top")(w.life.Top(ctx, w.meta(t, p, "life.top"), handlers.LifeRequest{Board: "richest"})))
 	if !strings.Contains(board.Text, "life.board.mine") {
 		t.Fatalf("the player does not find themselves on the board:\n%s", board.Text)
 	}
