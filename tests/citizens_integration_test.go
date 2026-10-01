@@ -67,8 +67,8 @@ func TestCitizensFillUntakenOpenings(t *testing.T) {
 		return m
 	}
 
-	if _, err := companies.Found(ctx, metaAs(owner, "company.found"), handlers.CompanyRequest{
-		Type: "grocery", Method: "cash", Name: "Citizen Grocers"}); err != nil {
+	if _, err := rr(companies.Found(ctx, metaAs(owner, "company.found"), handlers.CompanyRequest{
+		Type: "grocery", Method: "cash", Name: "Citizen Grocers"})); err != nil {
 		t.Fatalf("Found: %v", err)
 	}
 	var companyID, code string
@@ -77,8 +77,8 @@ func TestCitizensFillUntakenOpenings(t *testing.T) {
 		t.Fatalf("no company: %v", err)
 	}
 	// Two positions at 150 a shift, and money to pay them; no player applies.
-	if _, err := companies.Post(ctx, metaAs(owner, "company.post"), handlers.CompanyRequest{
-		Company: code, Career: "retail", Wage: "150"}); err != nil {
+	if _, err := rr(companies.Post(ctx, metaAs(owner, "company.post"), handlers.CompanyRequest{
+		Company: code, Career: "retail", Wage: "150"})); err != nil {
 		t.Fatalf("Post: %v", err)
 	}
 	var openingNo int64
@@ -86,8 +86,8 @@ func TestCitizensFillUntakenOpenings(t *testing.T) {
 		companyID).Scan(&openingNo); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := companies.Deposit(ctx, metaAs(owner, "company.deposit"), handlers.CompanyRequest{
-		Company: code, Method: "cash", Amount: "20000"}); err != nil {
+	if _, err := rr(companies.Deposit(ctx, metaAs(owner, "company.deposit"), handlers.CompanyRequest{
+		Company: code, Method: "cash", Amount: "20000"})); err != nil {
 		t.Fatalf("Deposit: %v", err)
 	}
 
@@ -119,7 +119,7 @@ func TestCitizensFillUntakenOpenings(t *testing.T) {
 		for range 2 { // delivered twice, settled once
 			m := validMeta(t)
 			m.TelegramUserID, m.Command = 0, "company.settle"
-			if _, err := companies.Settle(context.Background(), m, req); err != nil {
+			if _, err := rr(companies.Settle(context.Background(), m, req)); err != nil {
 				t.Fatalf("Settle: %v", err)
 			}
 		}
@@ -140,7 +140,7 @@ func TestCitizensFillUntakenOpenings(t *testing.T) {
 	}
 
 	// A player takes one position: period 2 has one citizen left.
-	if _, err := companies.Apply(ctx, metaAs(worker, "company.apply"), handlers.CompanyRequest{No: strconvI(openingNo)}); err != nil {
+	if _, err := rr(companies.Apply(ctx, metaAs(worker, "company.apply"), handlers.CompanyRequest{No: strconvI(openingNo)})); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 	var appNo int64
@@ -148,7 +148,7 @@ func TestCitizensFillUntakenOpenings(t *testing.T) {
 		worker.ID).Scan(&appNo); err != nil {
 		t.Fatalf("no application: %v", err)
 	}
-	if _, err := companies.Decide(ctx, metaAs(owner, "company.decide"), handlers.CompanyRequest{No: strconvI(appNo), Verdict: "yes"}); err != nil {
+	if _, err := rr(companies.Decide(ctx, metaAs(owner, "company.decide"), handlers.CompanyRequest{No: strconvI(appNo), Verdict: "yes"})); err != nil {
 		t.Fatalf("Decide: %v", err)
 	}
 	settle()

@@ -342,8 +342,8 @@ func TestSupportMergeRehearsal(t *testing.T) {
 		// A company in every city; two of them are called the same.
 		owner := r.player(code, 2_000_000, "city_hall")
 		name := []string{"Acme Foods", "Acme Foods", "Grocers Beta", "Grocers Gamma", "Grocers Delta", "Grocers Zeta", "Grocers Eta"}[i]
-		resp, err := r.companies.Found(ctx, r.meta(owner, "company.found"),
-			handlers.CompanyRequest{Type: "grocery", Method: "cash", Name: name})
+		resp, err := rr(r.companies.Found(ctx, r.meta(owner, "company.found"),
+			handlers.CompanyRequest{Type: "grocery", Method: "cash", Name: name}))
 		if err != nil {
 			t.Fatalf("founding in %s: %v", code, err)
 		}
@@ -571,8 +571,8 @@ func (r *rehearsal) admit(p *application.Player, city string) {
 func (r *rehearsal) campaign(owner *application.Player) {
 	r.t.Helper()
 	ctx := testCtx(r.t)
-	if _, err := r.companies.Found(ctx, r.meta(owner, "company.found"), handlers.CompanyRequest{
-		Type: "tech_studio", Method: "cash", Name: "Labs " + randomToken(r.t, 6)}); err != nil {
+	if _, err := rr(r.companies.Found(ctx, r.meta(owner, "company.found"), handlers.CompanyRequest{
+		Type: "tech_studio", Method: "cash", Name: "Labs " + randomToken(r.t, 6)})); err != nil {
 		r.t.Fatalf("founding a studio: %v", err)
 	}
 	var id, code string
@@ -580,10 +580,10 @@ func (r *rehearsal) campaign(owner *application.Player) {
 		owner.ID).Scan(&id, &code); err != nil {
 		r.t.Fatal(err)
 	}
-	if _, err := r.companies.Deposit(ctx, r.meta(owner, "company.deposit"), handlers.CompanyRequest{Company: code, Method: "cash", Amount: "900000"}); err != nil {
+	if _, err := rr(r.companies.Deposit(ctx, r.meta(owner, "company.deposit"), handlers.CompanyRequest{Company: code, Method: "cash", Amount: "900000"})); err != nil {
 		r.t.Fatal(err)
 	}
-	if _, err := r.recruit.New(ctx, r.meta(owner, "company.rnew"), handlers.RecruitRequest{Company: code, Skill: "engineering", Level: "3"}); err != nil {
+	if _, err := rr(r.recruit.New(ctx, r.meta(owner, "company.rnew"), handlers.RecruitRequest{Company: code, Skill: "engineering", Level: "3"})); err != nil {
 		r.t.Fatal(err)
 	}
 	var no int64
@@ -597,11 +597,11 @@ func (r *rehearsal) campaign(owner *application.Player) {
 		{No: fmt.Sprint(no), Field: "signing", Value: "1"},
 		{No: fmt.Sprint(no), Field: "relocation", Value: "2"},
 	} {
-		if _, err := r.recruit.Set(ctx, r.meta(owner, "company.rset"), set); err != nil {
+		if _, err := rr(r.recruit.Set(ctx, r.meta(owner, "company.rset"), set)); err != nil {
 			r.t.Fatal(err)
 		}
 	}
-	if _, err := r.recruit.Post(ctx, r.meta(owner, "company.rpost"), handlers.RecruitRequest{No: fmt.Sprint(no), Confirm: "yes"}); err != nil {
+	if _, err := rr(r.recruit.Post(ctx, r.meta(owner, "company.rpost"), handlers.RecruitRequest{No: fmt.Sprint(no), Confirm: "yes"})); err != nil {
 		r.t.Fatal(err)
 	}
 	// One check: candidates apply, specialist pools draw down.
@@ -616,8 +616,8 @@ func (r *rehearsal) campaign(owner *application.Player) {
 		r.advance(wait + time.Second)
 	}
 	payload, _ := json.Marshal(handlers.RecruitCheckPayload{CampaignID: campaignID, CheckNo: done + 1})
-	if _, err := r.recruit.Check(ctx, r.scheduler("company.rcheck"), handlers.CrimeScheduledRequest{ActionID: action,
-		ReferenceType: application.RecruitCampaignReference, ReferenceID: campaignID, Payload: payload}); err != nil {
+	if _, err := rr(r.recruit.Check(ctx, r.scheduler("company.rcheck"), handlers.CrimeScheduledRequest{ActionID: action,
+		ReferenceType: application.RecruitCampaignReference, ReferenceID: campaignID, Payload: payload})); err != nil {
 		r.t.Fatal(err)
 	}
 }
@@ -639,8 +639,8 @@ func (r *rehearsal) settleCompanyMarket(city string) {
 		r.advance(wait + time.Second)
 	}
 	payload, _ := json.Marshal(handlers.CompanyPeriodPayload{CityID: id, PeriodNo: periodNo})
-	if _, err := r.companies.Settle(ctx, r.scheduler("company.settle"), handlers.CrimeScheduledRequest{ActionID: action,
-		ReferenceType: application.CompanyMarketReference, ReferenceID: id, Payload: payload}); err != nil {
+	if _, err := rr(r.companies.Settle(ctx, r.scheduler("company.settle"), handlers.CrimeScheduledRequest{ActionID: action,
+		ReferenceType: application.CompanyMarketReference, ReferenceID: id, Payload: payload})); err != nil {
 		r.t.Fatalf("settling companies in %s: %v", city, err)
 	}
 }

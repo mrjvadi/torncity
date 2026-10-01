@@ -153,8 +153,8 @@ func TestSpecialistRecruitmentEndToEnd(t *testing.T) {
 	}
 
 	// A technology studio in Brennhaven, with money in its account.
-	if _, err := companies.Found(ctx, press("company.found"), handlers.CompanyRequest{Type: "tech_studio", Method: "cash",
-		Name: "Brenn Labs"}); err != nil {
+	if _, err := rr(companies.Found(ctx, press("company.found"), handlers.CompanyRequest{Type: "tech_studio", Method: "cash",
+		Name: "Brenn Labs"})); err != nil {
 		t.Fatalf("Found: %v", err)
 	}
 	companyID := companyIDOf(t, pool, owner.ID)
@@ -162,8 +162,8 @@ func TestSpecialistRecruitmentEndToEnd(t *testing.T) {
 	if err := pool.Raw().QueryRow(ctx, `SELECT code FROM companies WHERE id = $1::uuid`, companyID).Scan(&code); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := companies.Deposit(ctx, press("company.deposit"), handlers.CompanyRequest{Company: code, Method: "cash",
-		Amount: "900000"}); err != nil {
+	if _, err := rr(companies.Deposit(ctx, press("company.deposit"), handlers.CompanyRequest{Company: code, Method: "cash",
+		Amount: "900000"})); err != nil {
 		t.Fatalf("Deposit: %v", err)
 	}
 	researching := func() int {
@@ -171,8 +171,8 @@ func TestSpecialistRecruitmentEndToEnd(t *testing.T) {
 	}
 
 	// --- 1. Nobody in the company is an engineer: the lab refuses. -------
-	if _, err := prod.Research(ctx, press("company.research"), handlers.ProductionRequest{Company: code,
-		Tech: "semiconductors"}); err != nil {
+	if _, err := rr(prod.Research(ctx, press("company.research"), handlers.ProductionRequest{Company: code,
+		Tech: "semiconductors"})); err != nil {
 		t.Fatalf("Research: %v", err)
 	}
 	if researching() != 0 {
@@ -180,8 +180,8 @@ func TestSpecialistRecruitmentEndToEnd(t *testing.T) {
 	}
 
 	// --- 2. A campaign for engineering 3, nationwide, with a package. ----
-	if _, err := recruit.New(ctx, press("company.rnew"), handlers.RecruitRequest{Company: code, Skill: "engineering",
-		Level: "3"}); err != nil {
+	if _, err := rr(recruit.New(ctx, press("company.rnew"), handlers.RecruitRequest{Company: code, Skill: "engineering",
+		Level: "3"})); err != nil {
 		t.Fatalf("New: %v", err)
 	}
 	var campaignNo int64
@@ -197,7 +197,7 @@ func TestSpecialistRecruitmentEndToEnd(t *testing.T) {
 		{No: no, Field: "signing", Value: "1"},
 		{No: no, Field: "relocation", Value: "2"},
 	} {
-		if _, err := recruit.Set(ctx, press("company.rset"), set); err != nil {
+		if _, err := rr(recruit.Set(ctx, press("company.rset"), set)); err != nil {
 			t.Fatalf("Set %s: %v", set.Field, err)
 		}
 	}
@@ -213,7 +213,7 @@ func TestSpecialistRecruitmentEndToEnd(t *testing.T) {
 	// Posted twice by one press: the advertising is paid once, per city.
 	post := press("company.rpost")
 	for range 2 {
-		if _, err := recruit.Post(ctx, post, handlers.RecruitRequest{No: no, Confirm: "yes"}); err != nil {
+		if _, err := rr(recruit.Post(ctx, post, handlers.RecruitRequest{No: no, Confirm: "yes"})); err != nil {
 			t.Fatalf("Post: %v", err)
 		}
 	}
@@ -241,7 +241,7 @@ func TestSpecialistRecruitmentEndToEnd(t *testing.T) {
 		req := handlers.CrimeScheduledRequest{ActionID: action, ReferenceType: application.RecruitCampaignReference,
 			ReferenceID: campaignID, Payload: payload}
 		for range 2 {
-			if _, err := recruit.Check(context.Background(), scheduler("company.rcheck"), req); err != nil {
+			if _, err := rr(recruit.Check(context.Background(), scheduler("company.rcheck"), req)); err != nil {
 				t.Fatalf("Check: %v", err)
 			}
 		}
@@ -282,12 +282,12 @@ func TestSpecialistRecruitmentEndToEnd(t *testing.T) {
 	}
 	hire := press("company.rdecide")
 	for range 2 {
-		if _, err := recruit.Decide(ctx, hire, handlers.RecruitRequest{No: strconvI(candNo), Verdict: "yes"}); err != nil {
+		if _, err := rr(recruit.Decide(ctx, hire, handlers.RecruitRequest{No: strconvI(candNo), Verdict: "yes"})); err != nil {
 			t.Fatalf("Decide: %v", err)
 		}
 	}
 	// A second press of the same button finds them hired already.
-	if _, err := recruit.Decide(ctx, press("company.rdecide"), handlers.RecruitRequest{No: strconvI(candNo), Verdict: "yes"}); err != nil {
+	if _, err := rr(recruit.Decide(ctx, press("company.rdecide"), handlers.RecruitRequest{No: strconvI(candNo), Verdict: "yes"})); err != nil {
 		t.Fatalf("Decide again: %v", err)
 	}
 	if n := countRows(t, pool, `SELECT count(*) FROM npc_staff WHERE company_id = $1::uuid`, companyID); n != 1 {
@@ -309,8 +309,8 @@ func TestSpecialistRecruitmentEndToEnd(t *testing.T) {
 	}
 
 	// --- 5. The lab's skill gate now passes. ----------------------------
-	if _, err := prod.Research(ctx, press("company.research"), handlers.ProductionRequest{Company: code,
-		Tech: "semiconductors"}); err != nil {
+	if _, err := rr(prod.Research(ctx, press("company.research"), handlers.ProductionRequest{Company: code,
+		Tech: "semiconductors"})); err != nil {
 		t.Fatalf("Research: %v", err)
 	}
 	if researching() != 1 {
@@ -336,7 +336,7 @@ func TestSpecialistRecruitmentEndToEnd(t *testing.T) {
 		req := handlers.CrimeScheduledRequest{ActionID: actionID, ReferenceType: application.CompanyMarketReference,
 			ReferenceID: city.ID, Payload: payload}
 		for range 2 {
-			if _, err := companies.Settle(context.Background(), scheduler("company.settle"), req); err != nil {
+			if _, err := rr(companies.Settle(context.Background(), scheduler("company.settle"), req)); err != nil {
 				t.Fatalf("Settle: %v", err)
 			}
 		}

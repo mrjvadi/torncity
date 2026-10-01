@@ -827,8 +827,12 @@ func (c Context) typeLocked(t CompanyTypeLine) string {
 	}
 	var needs []string
 	for _, b := range u.Requires {
-		if b.Code != "" {
+		switch {
+		case b.Code != "":
 			needs = append(needs, c.SettlementBuildingName(Named{Code: b.Code, Name: b.Code}))
+		case b.Role != "":
+			needs = append(needs, c.T("company.need_role", map[string]any{
+				"role": c.coded("building_role.", b.Role, "company.need_role_unknown"), "tier": FormatNumber(c, int64(b.Tier))}))
 		}
 	}
 	if len(needs) > 0 {

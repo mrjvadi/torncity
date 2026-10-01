@@ -21,7 +21,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/shared/playercode"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // RecruitRules is the tuning of specialist recruitment (config
@@ -113,10 +112,6 @@ func (r RecruitRequest) confirmed() bool {
 
 // number reads the request's public number.
 func (r RecruitRequest) number() (int64, bool) { return number(r.No) }
-
-func (h *RecruitHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
-}
 
 // recruitRefusal carries a refused recruitment command out of a unit of
 // work.
