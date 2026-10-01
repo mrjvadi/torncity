@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -26,25 +27,14 @@ const (
 const MaxWhoLines = 20
 
 // ScreenSettlementWho is the client name of the settlement roster view.
-const ScreenSettlementWho = "settlement_who"
+const ScreenSettlementWho = village.ScreenSettlementWho
 
-// WhoLine is one player on the settlement screen.
-type WhoLine struct {
-	Name string
-	// Activity is the presence activity code (idle, working, ...).
-	Activity string
-	// Place is the venue code the player stands at, "" for the centre.
-	Place string
-}
-
-// SettlementWhoView is the group screen of who is around in a settlement.
-type SettlementWhoView struct {
-	Name string
-	// Online are the players online now, the ones worth naming; Offline
-	// counts everyone else, only counted.
-	Online  []WhoLine
-	Offline int
-}
+// WhoLine and SettlementWhoView are defined with the village area's other
+// views (internal/presentation/village).
+type (
+	WhoLine           = village.WhoLine
+	SettlementWhoView = village.SettlementWhoView
+)
 
 // SettlementWho renders the group screen.
 func SettlementWho(c Context, v SettlementWhoView) *presenter.Response {

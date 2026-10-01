@@ -45,12 +45,12 @@ func TestActionsTranslateTheKeyboard(t *testing.T) {
 	}}
 	got := Actions(kb, loadPolicy(t), loadActionMeta(t))
 	want := []Action{
-		{Label: "Map", Command: "map.list", Row: 0, Kind: KindNavigation, Icon: "action:map"},
-		{Label: "Bazaar", Command: "place.go", Args: map[string]any{"place": "bazaar"}, Row: 0, Kind: KindPrimary, Icon: "action:travel"},
-		{Label: "Deposit…", Command: "bank.deposit", Args: map[string]any{}, Input: &ActionInput{Field: "amount"}, Row: 1, Kind: KindPrimary, Icon: "action:deposit"},
-		{Label: "Pay…", Command: "bank.pay", Args: map[string]any{"to": "K7Q2M9A", "method": "card"}, Input: &ActionInput{Field: "amount"}, Row: 1, Kind: KindPrimary, Icon: "action:pay", Group: "bank_pay"},
-		{Label: "Mine", Command: "bank.show", Row: 2, Kind: KindNavigation, Icon: "action:bank"},
-		{Label: "Site", URL: "https://example.com", Row: 2},
+		{Label: "Map", Command: "map.list", Row: rowPtr(0), Kind: KindNavigation, Icon: "action:map"},
+		{Label: "Bazaar", Command: "place.go", Args: map[string]any{"place": "bazaar"}, Row: rowPtr(0), Kind: KindPrimary, Icon: "action:travel"},
+		{Label: "Deposit…", Command: "bank.deposit", Args: map[string]any{}, Input: &ActionInput{Field: "amount"}, Row: rowPtr(1), Kind: KindPrimary, Icon: "action:deposit"},
+		{Label: "Pay…", Command: "bank.pay", Args: map[string]any{"to": "K7Q2M9A", "method": "card"}, Input: &ActionInput{Field: "amount"}, Row: rowPtr(1), Kind: KindPrimary, Icon: "action:pay", Group: "bank_pay"},
+		{Label: "Mine", Command: "bank.show", Row: rowPtr(2), Kind: KindNavigation, Icon: "action:bank"},
+		{Label: "Site", URL: "https://example.com", Row: rowPtr(2)},
 	}
 	gb, _ := json.Marshal(got)
 	wb, _ := json.Marshal(want)
@@ -372,3 +372,5 @@ func TestClientLogTakesAReport(t *testing.T) {
 		t.Fatalf("status %d", resp.StatusCode)
 	}
 }
+
+func rowPtr(n int) *int { return &n }

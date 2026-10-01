@@ -5,6 +5,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/gateway/groups"
 	"github.com/mrjvadi/torncity/internal/gateway/input"
 	"github.com/mrjvadi/torncity/internal/gateway/routing"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
@@ -19,7 +20,15 @@ import (
 // Command. A URL button (Command empty) carries none of the three — it is
 // not a game command, and a client renders it as a plain link.
 type Action struct {
-	Label   string         `json:"label"`
+	// Label is the button's text. A neutral response (docs/adr/0037) has none:
+	// the client words the action itself, by ID; only the compatibility
+	// rendering for a client deployed before that fills it in.
+	Label string `json:"label,omitempty"`
+	// ID names what the action is ("settlement.labor.site", "support.bank"):
+	// the key a client words and draws it by. Neutral responses only.
+	ID string `json:"id,omitempty"`
+	// Subject is the content code the action is about, when it is about one.
+	Subject string         `json:"subject,omitempty"`
 	Command string         `json:"command,omitempty"`
 	Args    map[string]any `json:"args,omitempty"`
 	// Input, when set, means the button asks the player to type a value:
@@ -29,8 +38,9 @@ type Action struct {
 	// URL is a link button's address; it has no command.
 	URL string `json:"url,omitempty"`
 	// Row is the keyboard row the button is on, from 0, for a client that
-	// lays buttons out as Telegram does.
-	Row int `json:"row"`
+	// lays buttons out as Telegram does. A neutral response has none: the
+	// client lays its own actions out.
+	Row *int `json:"row,omitempty"`
 	// Kind says how to draw the button: primary, secondary, danger,
 	// navigation, back or confirm (internal/clientapi's Kind* constants).
 	Kind string `json:"kind,omitempty"`
@@ -61,7 +71,8 @@ func Actions(kb *presenter.Keyboard, policy *groups.Policy, meta *ActionMetadata
 	for row, buttons := range kb.Rows {
 		for _, b := range buttons {
 			if a, ok := action(b, policy, meta); ok {
-				a.Row = row
+				r := row
+				a.Row = &r
 				out = append(out, a)
 			}
 		}
@@ -98,4 +109,34 @@ func action(b presenter.Button, policy *groups.Policy, meta *ActionMetadata) (Ac
 	am := meta.Of(command)
 	return Action{Label: b.Text, Command: command, Args: payload,
 		Kind: am.Kind, Icon: am.Icon, Group: am.Group}, true
+}
+
+// NeutralActions translates a neutral response's actions for a client: the
+// positional arguments are named the way a command takes them, and the
+// kind, icon and group come from configs/actions.yml (an action's own role,
+// when it has one, wins over the command's default). An action that names a
+// command the game does not serve to players is left out. There is no label
+// and no row: the client words and lays out its own UI.
+func NeutralActions(list []presentation.Action, meta *ActionMetadata) []Action {
+	out := []Action{}
+	for _, in := range list {
+		if in.Command == "" || !commands.FromPlayerCommand(in.Command) {
+			continue
+		}
+		am := meta.Of(in.Command)
+		kind := am.Kind
+		if in.Role != "" {
+			kind = in.Role
+		}
+		a := Action{
+			ID: in.ID, Subject: in.Subject, Command: in.Command,
+			Args: routing.PayloadOf(in.Command, in.Args),
+			Kind: kind, Icon: am.Icon, Group: am.Group,
+		}
+		if a.ID == a.Command {
+			a.ID = ""
+		}
+		out = append(out, a)
+	}
+	return out
 }

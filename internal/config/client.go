@@ -46,6 +46,11 @@ type Client struct {
 	// MiniAppURL is the address of the Telegram Mini App build of the
 	// client, empty until it is published.
 	MiniAppURL string // client.mini_app_url
+	// LegacyTextScreens are the neutral screens (docs/adr/0037) an answer
+	// still carries a Telegram-rendered `text` for, so a web client deployed
+	// before it draws them from the view keeps working; "*" is every one.
+	// Empty when no deployed client needs it: the migration's end state.
+	LegacyTextScreens []string // client.legacy_text_screens
 	// ChunkCacheEntries bounds how many encoded world chunks one replica
 	// keeps (about 10 KB each, raw and gzip together).
 	ChunkCacheEntries int // client.chunk_cache_entries
@@ -93,6 +98,7 @@ type clientSettings struct {
 	RealtimeTokenTTL   *string  `yaml:"realtime_token_ttl"`
 	GroupCommands      *string  `yaml:"group_commands"`
 	MiniAppURL         *string  `yaml:"mini_app_url"`
+	LegacyTextScreens  []string `yaml:"legacy_text_screens"`
 	ChunkCacheEntries  *int     `yaml:"chunk_cache_entries"`
 	ChunksPerMinute    *int     `yaml:"chunks_per_minute"`
 	LayoutsPerMinute   *int     `yaml:"layouts_per_minute"`
@@ -131,6 +137,7 @@ func defaultClient() Client {
 		RealtimeTokenTTL:     15 * time.Minute,
 		GroupCommands:        GroupCommandsRefuse,
 		MiniAppURL:           "",
+		LegacyTextScreens:    []string{"*"},
 		ChunkCacheEntries:    4096,
 		ChunksPerMinute:      1200,
 		LayoutsPerMinute:     120,
@@ -235,6 +242,9 @@ func clientSettingsTable() []setting {
 		optional(stringSetting("client", "mini_app_url",
 			func(c *Config) *string { return &c.Client.MiniAppURL },
 			func(f *fileConfig) *string { return f.Client.MiniAppURL })),
+		optional(stringListSetting("client", "legacy_text_screens",
+			func(c *Config) *[]string { return &c.Client.LegacyTextScreens },
+			func(f *fileConfig) []string { return f.Client.LegacyTextScreens })),
 		limitSetting("client", "chunk_cache_entries",
 			func(c *Config) *int { return &c.Client.ChunkCacheEntries },
 			func(f *fileConfig) *int { return f.Client.ChunkCacheEntries }),

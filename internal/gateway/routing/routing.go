@@ -943,6 +943,19 @@ func finish(command string, args []string) (string, map[string]any, error) {
 	return command, buildPayload(command, args), nil
 }
 
+// PayloadOf names the positional arguments of a command the way a command's
+// payload carries them: what ParseCallbackData makes of "domain:action:arg..."
+// for the arguments after the command. A client edge uses it to turn an
+// action's positional arguments into named ones.
+func PayloadOf(command string, args []string) map[string]any {
+	return buildPayload(command, args)
+}
+
+// ArgNames lists the names a command's positional arguments carry, in order.
+func ArgNames(command string) []string {
+	return append([]string(nil), argNames[command]...)
+}
+
 // buildPayload maps positional arguments onto the names in argNames, putting
 // whatever is left over under "args".
 func buildPayload(command string, args []string) map[string]any {

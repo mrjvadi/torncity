@@ -1,8 +1,8 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"sort"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -17,133 +17,14 @@ import (
 // only after "upgrade" is pressed (mode "up"), and demolition is a small,
 // last, confirmed action (mode "dm"), never the panel's face.
 
-// Addresses.
-const (
-	AddrBuildingView   = "settlement:building.view"
-	AddrBuildPlaceMany = "settlement:build.place_many"
-	AddrBuildCancel    = "settlement:build.cancel"
-)
-
 // Screens.
 const (
-	ScreenBuildingView    = "settlement_building_view"
-	ScreenLotBatchConfirm = "settlement_build_batch_confirm"
+	ScreenBuildingView    = village.ScreenBuildingView
+	ScreenLotBatchConfirm = village.ScreenLotBatchConfirm
 )
-
-// The panel's modes: the plain panel, the upgrade disclosure, and the two
-// confirmations of the destructive actions.
-const (
-	BuildingModeUpgrade  = "up"
-	BuildingModeDemolish = "dm"
-	BuildingModeCancel   = "cx"
-)
-
-// The kinds of panel a client draws. A kind a client does not know is drawn
-// as "generic" (name, description, effects, upkeep).
-const (
-	BuildingKindRoad      = "road"
-	BuildingKindCivicHall = "civic_hall"
-	BuildingKindStorage   = "storage"
-	BuildingKindSchool    = "school"
-	BuildingKindSecurity  = "security"
-	BuildingKindGeneric   = "generic"
-)
-
-// Where a placed building stands.
-const (
-	BuildingStateBuilding = "building"
-	BuildingStateComplete = "complete"
-)
-
-// BuildingEffectLine is one number the building adds to the village, in the
-// content's own unit (basis points, except housing_capacity).
-type BuildingEffectLine struct {
-	Target string
-	Value  int64
-}
-
-// BuildingStockLine is one good the village store holds.
-type BuildingStockLine struct {
-	Item Named
-	// Kind is "component" or "item".
-	Kind string
-	Qty  int64
-}
-
-// BuildingResearchLine is the research running now.
-type BuildingResearchLine struct {
-	Knowledge Named
-	FinishAt  time.Time
-	Left      time.Duration
-}
-
-// BuildingUpgradeLine is one building of the next tier of the role.
-type BuildingUpgradeLine struct {
-	Building  Named
-	Tier      int
-	CostMoney int64
-	BuildTime time.Duration
-	// Available is false while a prerequisite is missing; Missing names the
-	// knowledge items that are.
-	Available bool
-	Missing   []Named
-	// NeedsTier is the settlement tier ("town", "city") this building opens
-	// at, when the settlement has not reached it yet; empty otherwise.
-	NeedsTier string
-}
-
-// BuildingView is one placed building's own panel.
-type BuildingView struct {
-	ID       string
-	Building Named
-	Role     string
-	Tier     int
-	// Kind picks the panel a client draws (the BuildingKind constants).
-	Kind       string
-	State      string
-	Mode       string
-	X, Y, W, H int
-	Rotated    bool
-	Upkeep     int64
-	Effects    []BuildingEffectLine
-	// CanManage is true for the head: only the head cancels, demolishes and
-	// upgrades.
-	CanManage bool
-
-	// Under construction.
-	StartedAt time.Time
-	FinishAt  time.Time
-	Left      time.Duration
-	// ProgressPercent is 0..100, already computed.
-	ProgressPercent int
-
-	// Storage: what the village store holds. The store has no capacity in
-	// the content yet; none is invented here.
-	Stock []BuildingStockLine
-	// StockUsed and StockCapacity are the store's use and its room, in units.
-	StockUsed, StockCapacity int64
-
-	// School: the village's literacy, and whether diffusion is running.
-	LiteracyPercent int
-	Teaching        bool
-
-	// Civic hall.
-	Treasury   int64
-	Population int
-	Research   *BuildingResearchLine
-
-	// Description is what the building is and does, in the viewer's language.
-	Description string
-
-	// Upgrades is set only in mode "up"; HasUpgrade tells the plain panel
-	// whether the button is worth showing.
-	HasUpgrade bool
-	Upgrades   []BuildingUpgradeLine
-}
 
 // BuildingPanel renders one building's panel.
 func BuildingPanel(c Context, v BuildingView) *presenter.Response {
-	v.Description = c.T(buildingDescKey(v), nil)
 	return c.withGroupView(renderBuildingPanel(c, v), ScreenBuildingView, v)
 }
 
@@ -324,21 +205,6 @@ func renderBuildingUpgrade(c Context, v BuildingView, name string, blocks []stri
 // Batch placement: several 1x1 lots in one command
 // ---------------------------------------------------------------------
 
-// LotBatchLot is one lot of a batch.
-type LotBatchLot struct{ X, Y int }
-
-// LotBatchConfirmView is the total cost and time of a batch, between choosing
-// the lots and starting them all.
-type LotBatchConfirmView struct {
-	SettlementName string
-	Building       Named
-	Lots           []LotBatchLot
-	Count          int
-	CostMoney      int64
-	Materials      []MaterialLine
-	BuildTime      time.Duration
-}
-
 // LotBatchConfirm renders the batch confirmation.
 func LotBatchConfirm(c Context, v LotBatchConfirmView) *presenter.Response {
 	return c.withGroupView(renderLotBatchConfirm(c, v), ScreenLotBatchConfirm, v)
@@ -370,33 +236,15 @@ func renderLotBatchConfirm(c Context, v LotBatchConfirmView) *presenter.Response
 	return c.respond(text, kb.Build())
 }
 
-// BatchLotFailure is one lot of a batch that could not be built, and why
-// (a village refusal kind, the same set a single placement uses).
-type BatchLotFailure struct {
-	X, Y int
-	Kind string
-}
-
 // ---------------------------------------------------------------------
 // Land: buying more grid
 // ---------------------------------------------------------------------
 
 // AddrGridGrow and ScreenGridGrow are the land purchase's address and screen.
 const (
-	AddrGridGrow   = "settlement:grid.grow"
-	ScreenGridGrow = "settlement_grid_grow"
+	AddrGridGrow   = village.AddrGridGrow
+	ScreenGridGrow = village.ScreenGridGrow
 )
-
-// GridGrowView is the price and yield of the next expansion.
-type GridGrowView struct {
-	SettlementName string
-	Side, NewSide  int
-	LotsGained     int
-	// BuildableGained is how many of the new lots are dry buildable ground.
-	BuildableGained int
-	Price           int64
-	Treasury        int64
-}
 
 // GridGrowConfirm renders the land purchase confirmation.
 func GridGrowConfirm(c Context, v GridGrowView) *presenter.Response {

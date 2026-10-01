@@ -250,7 +250,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 	finish := func(id string) {
 		t.Helper()
 		clk.Advance(3 * time.Hour)
-		if _, err := village.Built(testCtx(t), headMeta("settlement.built", "built"), handlers.CrimeScheduledRequest{ReferenceID: id}); err != nil {
+		if _, err := rrcm(headMeta("settlement.built", "built"))(village.Built(testCtx(t), headMeta("settlement.built", "built"), handlers.CrimeScheduledRequest{ReferenceID: id})); err != nil {
 			t.Fatalf("Built: %v", err)
 		}
 	}
@@ -260,7 +260,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 		if confirm {
 			req.Confirm = screens.VillageBuildConfirm
 		}
-		r, err := village.Place(testCtx(t), headMeta("settlement.build.place", "build.place"), req)
+		r, err := rrcm(headMeta("settlement.build.place", "build.place"))(village.Place(testCtx(t), headMeta("settlement.build.place", "build.place"), req))
 		if err != nil {
 			t.Fatalf("Place %s at (%d,%d): %v", code, x, y, err)
 		}
@@ -345,7 +345,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 		if confirm {
 			req.Confirm = screens.VillageBuildConfirm
 		}
-		r, err := village.PlaceMany(testCtx(t), headMeta("settlement.build.place_many", "build.place_many"), req)
+		r, err := rrcm(headMeta("settlement.build.place_many", "build.place_many"))(village.PlaceMany(testCtx(t), headMeta("settlement.build.place_many", "build.place_many"), req))
 		if err != nil {
 			t.Fatalf("PlaceMany: %v", err)
 		}
@@ -386,8 +386,8 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 	// 3. All or nothing: one bad lot refuses the whole batch and names it.
 	// ---------------------------------------------------------------
 	before, roadsBefore = treasury(), func() int { n, _ := rowsOf("road"); return n }()
-	bad, err := village.PlaceMany(testCtx(t), headMeta("settlement.build.place_many", "build.place_many"),
-		handlers.VillageBuildManyRequest{Code: "road", Lots: []string{"3-1", "2-0", "9-9"}, Confirm: screens.VillageBuildConfirm})
+	bad, err := rrcm(headMeta("settlement.build.place_many", "build.place_many"))(village.PlaceMany(testCtx(t), headMeta("settlement.build.place_many", "build.place_many"),
+		handlers.VillageBuildManyRequest{Code: "road", Lots: []string{"3-1", "2-0", "9-9"}, Confirm: screens.VillageBuildConfirm}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -419,8 +419,8 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 	assertNoBuildingAt(t, pool, cityID, 3, 1) // the good lot of the bad batch was not built either
 
 	// A batch of anything but a cap-exempt type is refused.
-	notRoad, err := village.PlaceMany(testCtx(t), headMeta("settlement.build.place_many", "build.place_many"),
-		handlers.VillageBuildManyRequest{Code: "cottage", Lots: []string{"3-1", "4-1"}, Confirm: screens.VillageBuildConfirm})
+	notRoad, err := rrcm(headMeta("settlement.build.place_many", "build.place_many"))(village.PlaceMany(testCtx(t), headMeta("settlement.build.place_many", "build.place_many"),
+		handlers.VillageBuildManyRequest{Code: "cottage", Lots: []string{"3-1", "4-1"}, Confirm: screens.VillageBuildConfirm}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -433,8 +433,8 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 	// ---------------------------------------------------------------
 	view := func(p *application.Player, id, mode string) *presenter.Response {
 		t.Helper()
-		r, err := village.BuildingView(testCtx(t), asPlayer(p, "settlement.building.view", "building.view"),
-			handlers.VillageBuildingViewRequest{BuildingID: id, Mode: mode})
+		r, err := rrcm(asPlayer(p, "settlement.building.view", "building.view"))(village.BuildingView(testCtx(t), asPlayer(p, "settlement.building.view", "building.view"),
+			handlers.VillageBuildingViewRequest{BuildingID: id, Mode: mode}))
 		if err != nil {
 			t.Fatalf("BuildingView: %v", err)
 		}
@@ -572,7 +572,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 	// ---------------------------------------------------------------
 	growReq := func(p *application.Player, confirm string) *presenter.Response {
 		t.Helper()
-		r, err := village.GrowGrid(testCtx(t), asPlayer(p, "settlement.grid.grow", "grid.grow"), handlers.VillageGrowRequest{Confirm: confirm})
+		r, err := rrcm(asPlayer(p, "settlement.grid.grow", "grid.grow"))(village.GrowGrid(testCtx(t), asPlayer(p, "settlement.grid.grow", "grid.grow"), handlers.VillageGrowRequest{Confirm: confirm}))
 		if err != nil {
 			t.Fatalf("GrowGrid: %v", err)
 		}
@@ -619,7 +619,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 
 	// The lot picker now spans 6x6 and the walled lot is reachable again is not
 	// promised; what is promised: the new strip is offered and old lots unchanged.
-	lotsResp, err := village.Lots(testCtx(t), headMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "cottage"})
+	lotsResp, err := rrcm(headMeta("settlement.build.lots", "build.lots"))(village.Lots(testCtx(t), headMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "cottage"}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -655,7 +655,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 	}
 
 	// A house on the new land: connected by its own street, at the strip's edge.
-	lotsResp, _ = village.Lots(testCtx(t), headMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "cottage"})
+	lotsResp, _ = rrcm(headMeta("settlement.build.lots", "build.lots"))(village.Lots(testCtx(t), headMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "cottage"}))
 	g = parseLotGrid(t, lotsResp.View)
 	if len(g.Rows) != 7 {
 		t.Fatalf("the grid is %d rows after two expansions, want 7", len(g.Rows))

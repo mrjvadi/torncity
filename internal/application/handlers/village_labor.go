@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"strconv"
 	"strings"
 	"time"
@@ -13,8 +15,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/labor"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // This file is the village labour market (docs/adr/0037-labor-market.md,
@@ -57,7 +57,7 @@ func (h *VillageHandler) WithLabor(rules labor.Rules, hirePresets, wagePresets [
 
 // laborMarket is the state of a settlement's labour market.
 type laborMarket struct {
-	line screens.LaborMarketLine
+	line village.LaborMarketLine
 	pool int64
 }
 
@@ -118,23 +118,23 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 	pool := h.labor.PoolSize(housing, residents)
 	force := pool + residents
 	tight := h.labor.Tightness(all+vacancies, force)
-	level := screens.MarketBalanced
+	level := village.MarketBalanced
 	switch {
 	case tight < h.labor.Curve[1].TightnessBPS:
-		level = screens.MarketSlack
+		level = village.MarketSlack
 		if tight >= h.labor.Curve[1].TightnessBPS*4/5 {
-			level = screens.MarketBalanced
+			level = village.MarketBalanced
 		}
 	case tight >= h.labor.Curve[len(h.labor.Curve)-1].TightnessBPS:
-		level = screens.MarketShort
+		level = village.MarketShort
 	case tight >= h.labor.Curve[2].TightnessBPS:
-		level = screens.MarketTight
+		level = village.MarketTight
 	}
 	available := pool - npc
 	if available < 0 {
 		available = 0
 	}
-	return laborMarket{pool: pool, line: screens.LaborMarketLine{
+	return laborMarket{pool: pool, line: village.LaborMarketLine{
 		Housing: housing, Pool: pool, Available: available, Working: all, Vacancies: vacancies,
 		TightnessBPS: tight, Level: level, NPCWage: h.labor.NPCWage(s.Tier, tight), MinWage: h.labor.MinWage[s.Tier],
 	}}, nil
@@ -226,20 +226,20 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 	repo := tx.SettlementTreasury()
 	job, err := repo.LockJob(ctx, jobID)
 	if stderrors.Is(err, application.ErrJobNotFound) {
-		return refuseVillage(screens.LaborNoJob, screens.AddrLaborBoard)
+		return refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
 	}
 	if err != nil {
 		return err
 	}
 	if job.SettlementID != s.CityID || job.Status != application.LaborJobOpen {
-		return refuseVillage(screens.LaborNoJob, screens.AddrLaborBoard)
+		return refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
 	}
 	if job.Left() <= 0 {
-		return refuseVillage(screens.LaborBudgetSpent, screens.AddrLaborBoard)
+		return refuseVillage(village.LaborBudgetSpent, village.AddrLaborBoard)
 	}
 	b, err := tx.SettlementBuildings().Get(ctx, job.BuildingID)
 	if stderrors.Is(err, application.ErrBuildingNotFound) {
-		return refuseVillage(screens.LaborNoSite, screens.AddrLaborBoard)
+		return refuseVillage(village.LaborNoSite, village.AddrLaborBoard)
 	}
 	if err != nil {
 		return err
@@ -247,7 +247,7 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 	wage := wageOf(*job)
 	now := h.now()
 	shiftID := h.ids.NewID()
-	back := screens.AddrLaborSite + ":" + b.ID
+	back := village.AddrLaborSite + ":" + b.ID
 	sh := application.SettlementShift{
 		ID: shiftID, SettlementID: s.CityID, BuildingID: b.ID, Wage: wage, JobID: job.ID, WorkerKind: application.LaborWorkerNPC,
 		PayerKind: job.EmployerKind, PayerID: job.EmployerID, StartedAt: now,
@@ -259,7 +259,7 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 	switch job.Kind {
 	case application.LaborKindConstruction:
 		if b.Status != "building" || !b.ByWork() {
-			return refuseVillage(screens.LaborNoSite, screens.AddrLaborBoard)
+			return refuseVillage(village.LaborNoSite, village.AddrLaborBoard)
 		}
 		inflight, err := repo.SiteShifts(ctx, b.ID)
 		if err != nil {
@@ -270,12 +270,12 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 			pending += x.WorkPoints
 		}
 		if b.WorkRequired-b.WorkDone-pending <= 0 {
-			return refuseVillage(screens.LaborFullyStaffed, back)
+			return refuseVillage(village.LaborFullyStaffed, back)
 		}
 		sh.Kind = application.LaborKindConstruction
 		sh.WorkPoints = h.labor.Points(w.bps)
 	default:
-		return refuseVillage(screens.LaborNoJob, screens.AddrLaborBoard)
+		return refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
 	}
 
 	// The employer must be able to pay: the treasury's balance, or the citizen's
@@ -286,7 +286,7 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 			return err
 		}
 		if bal < wage {
-			return refuseVillage(screens.LaborEmployerBroke, back)
+			return refuseVillage(village.LaborEmployerBroke, back)
 		}
 	} else if wage > 0 {
 		cash, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerCash, job.EmployerID)
@@ -302,7 +302,7 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 			return err
 		}
 		if bal.Minor() < wage {
-			return refuseVillage(screens.LaborEmployerBroke, back)
+			return refuseVillage(village.LaborEmployerBroke, back)
 		}
 		if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
 			ID: h.ids.NewID(), Reason: application.ReasonLaborEscrow, CreatedAt: now,
@@ -324,7 +324,7 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 	sh.GameActionID = actionID
 	if err := repo.StartLaborShift(ctx, sh); err != nil {
 		if stderrors.Is(err, application.ErrAlreadyWorking) {
-			return refuseVillage(screens.VillageAlreadyWorking, back)
+			return refuseVillage(village.VillageAlreadyWorking, back)
 		}
 		return err
 	}
@@ -371,7 +371,7 @@ func (h *VillageHandler) fillCrew(ctx context.Context, tx application.Tx, meta e
 			return started, err
 		}
 		if m.line.Available <= 0 {
-			return started, firstErr(first, refuseVillage(screens.LaborNoNPC, screens.AddrLaborSite+":"+job.BuildingID))
+			return started, firstErr(first, refuseVillage(village.LaborNoNPC, village.AddrLaborSite+":"+job.BuildingID))
 		}
 		wage := m.line.NPCWage
 		// A savepoint keeps a refusal from poisoning the transaction: nothing has
@@ -400,9 +400,9 @@ func firstErr(first, err error) error {
 
 func (h *VillageHandler) shiftLine(ctx context.Context, tx application.Tx, snap *content.Snapshot, sh application.SettlementShift,
 	buildingType string, now time.Time,
-) screens.LaborShiftLine {
+) village.LaborShiftLine {
 	d, _ := snap.SettlementBuildingDef(buildingType)
-	line := screens.LaborShiftLine{
+	line := village.LaborShiftLine{
 		ID: sh.ID, Building: named(d.Code, d.Name), Kind: sh.Kind, WorkerNPC: sh.WorkerKind == application.LaborWorkerNPC,
 		FinishAt: sh.FinishAt, Left: countdownTo(sh.FinishAt, now), Wage: sh.Wage, Points: sh.WorkPoints,
 	}
@@ -417,9 +417,9 @@ func (h *VillageHandler) shiftLine(ctx context.Context, tx application.Tx, snap 
 
 func (h *VillageHandler) jobLine(ctx context.Context, tx application.Tx, snap *content.Snapshot, viewer *application.Player, here bool,
 	j application.LaborJob, b application.SettlementBuildingInstance, m laborMarket, shifts []application.SettlementShift, myPoints int64,
-) (screens.LaborJobLine, error) {
+) (village.LaborJobLine, error) {
 	d, _ := snap.SettlementBuildingDef(b.TypeCode)
-	line := screens.LaborJobLine{
+	line := village.LaborJobLine{
 		ID: j.ID, BuildingID: b.ID, Building: named(d.Code, d.Name), Kind: j.Kind, EmployerKind: j.EmployerKind, Wage: j.Wage,
 		Left: j.Left(), Total: j.ShiftsTotal, NPCCrew: j.NPCCrew, Workers: len(shifts), Points: myPoints,
 		ProgressBPS: labor.ProgressBPS(b.WorkDone, b.WorkRequired), LeftMinutes: b.WorkRequired - b.WorkDone,
@@ -442,7 +442,7 @@ func (h *VillageHandler) jobLine(ctx context.Context, tx application.Tx, snap *c
 
 func (h *VillageHandler) mineShift(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement,
 	p *application.Player, buildings []application.SettlementBuildingInstance,
-) (*screens.LaborShiftLine, error) {
+) (*village.LaborShiftLine, error) {
 	mine, err := tx.SettlementTreasury().PlayerShift(ctx, p.ID)
 	if err != nil || mine == nil || mine.SettlementID != s.CityID {
 		return nil, err
@@ -460,29 +460,29 @@ func (h *VillageHandler) myPoints(ctx context.Context, tx application.Tx, p *app
 }
 
 // boardView builds the hiring board for a viewer.
-func (h *VillageHandler) boardView(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement) (screens.LaborBoardView, error) {
+func (h *VillageHandler) boardView(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement) (village.LaborBoardView, error) {
 	snap := h.content.Current()
 	buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
 	if err != nil {
-		return screens.LaborBoardView{}, err
+		return village.LaborBoardView{}, err
 	}
 	m, err := h.laborMarket(ctx, tx, snap, s, buildings)
 	if err != nil {
-		return screens.LaborBoardView{}, err
+		return village.LaborBoardView{}, err
 	}
 	here, err := h.presentHere(ctx, tx, p, s)
 	if err != nil {
-		return screens.LaborBoardView{}, err
+		return village.LaborBoardView{}, err
 	}
 	resident, err := h.resident(ctx, tx, p.ID, s.CityID)
 	if err != nil {
-		return screens.LaborBoardView{}, err
+		return village.LaborBoardView{}, err
 	}
 	pts, err := h.myPoints(ctx, tx, p)
 	if err != nil {
-		return screens.LaborBoardView{}, err
+		return village.LaborBoardView{}, err
 	}
-	view := screens.LaborBoardView{Village: s.Name, Market: m.line, Resident: resident}
+	view := village.LaborBoardView{Village: s.Name, Market: m.line, Resident: resident}
 	if view.Working, err = h.mineShift(ctx, tx, snap, s, p, buildings); err != nil {
 		return view, err
 	}
@@ -518,7 +518,7 @@ func (h *VillageHandler) boardView(ctx context.Context, tx application.Tx, p *ap
 		}
 		if b.EmployerPlayerID == p.ID || (b.EmployerPlayerID == "" && head) {
 			d, _ := snap.SettlementBuildingDef(b.TypeCode)
-			view.Sites = append(view.Sites, screens.LaborSiteRef{ID: b.ID, Building: named(d.Code, d.Name),
+			view.Sites = append(view.Sites, village.LaborSiteRef{ID: b.ID, Building: named(d.Code, d.Name),
 				ProgressBPS: labor.ProgressBPS(b.WorkDone, b.WorkRequired)})
 		}
 	}
@@ -527,26 +527,26 @@ func (h *VillageHandler) boardView(ctx context.Context, tx application.Tx, p *ap
 
 // siteView builds the panel of one building for a viewer.
 func (h *VillageHandler) siteView(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement, buildingID, just string,
-) (screens.LaborSiteView, error) {
+) (village.LaborSiteView, error) {
 	snap := h.content.Current()
 	b, err := tx.SettlementBuildings().Get(ctx, buildingID)
 	if stderrors.Is(err, application.ErrBuildingNotFound) || (err == nil && b.SettlementID != s.CityID) {
-		return screens.LaborSiteView{}, refuseVillage(screens.LaborNoSite, screens.AddrLaborBoard)
+		return village.LaborSiteView{}, refuseVillage(village.LaborNoSite, village.AddrLaborBoard)
 	}
 	if err != nil {
-		return screens.LaborSiteView{}, err
+		return village.LaborSiteView{}, err
 	}
 	buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
 	if err != nil {
-		return screens.LaborSiteView{}, err
+		return village.LaborSiteView{}, err
 	}
 	m, err := h.laborMarket(ctx, tx, snap, s, buildings)
 	if err != nil {
-		return screens.LaborSiteView{}, err
+		return village.LaborSiteView{}, err
 	}
 	d, _ := snap.SettlementBuildingDef(b.TypeCode)
 	repo := tx.SettlementTreasury()
-	view := screens.LaborSiteView{
+	view := village.LaborSiteView{
 		Village: s.Name, Building: named(d.Code, d.Name), ID: b.ID, Status: b.Status, Market: m.line, Just: just,
 		ProgressBPS: labor.ProgressBPS(b.WorkDone, b.WorkRequired), RequiredMinutes: b.WorkRequired, DoneMinutes: b.WorkDone,
 		LeftMinutes: b.WorkRequired - b.WorkDone,
@@ -601,7 +601,7 @@ func (h *VillageHandler) siteView(ctx context.Context, tx application.Tx, p *app
 			view.HirePresets = append(view.HirePresets, int(n))
 		}
 		for _, pct := range h.laborWage {
-			view.WagePresets = append(view.WagePresets, screens.LaborPreset{Percent: int(pct), Wage: m.line.NPCWage * pct / 100})
+			view.WagePresets = append(view.WagePresets, village.LaborPreset{Percent: int(pct), Wage: m.line.NPCWage * pct / 100})
 		}
 		view.NPCAvailable, view.NPCWage = m.line.Available, m.line.NPCWage
 	}
@@ -611,9 +611,9 @@ func (h *VillageHandler) siteView(ctx context.Context, tx application.Tx, p *app
 // --- commands ------------------------------------------------------------------------
 
 // LaborBoard handles settlement.labor.board: the hiring board.
-func (h *VillageHandler) LaborBoard(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *VillageHandler) LaborBoard(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	lang := meta.Language
-	var view screens.LaborBoardView
+	var view village.LaborBoardView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -630,16 +630,16 @@ func (h *VillageHandler) LaborBoard(ctx context.Context, meta envelope.Metadata)
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.LaborBoard(h.screen(meta, lang), view), nil
+	return village.LaborBoard(h.screen(meta, lang), view), nil
 }
 
 // laborSite runs an action on a job or a site inside one transaction and
 // shows the site panel afterwards. act may be nil (just look).
 func (h *VillageHandler) laborSite(ctx context.Context, meta envelope.Metadata, siteOf func(ctx context.Context, tx application.Tx, s application.FoundedSettlement) (string, error),
 	act func(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement) (site, just string, err error),
-) (*presenter.Response, error) {
+) (*presentation.Response, error) {
 	lang := meta.Language
-	var view screens.LaborSiteView
+	var view village.LaborSiteView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -667,23 +667,23 @@ func (h *VillageHandler) laborSite(ctx context.Context, meta envelope.Metadata, 
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.LaborSite(h.screen(meta, lang), view), nil
+	return village.LaborSite(h.screen(meta, lang), view), nil
 }
 
 // LaborSite handles settlement.labor.site: the panel of a construction site.
-func (h *VillageHandler) LaborSite(ctx context.Context, meta envelope.Metadata, req VillageLaborRequest) (*presenter.Response, error) {
+func (h *VillageHandler) LaborSite(ctx context.Context, meta envelope.Metadata, req VillageLaborRequest) (*presentation.Response, error) {
 	id := strings.TrimSpace(req.ID)
 	return h.laborSite(ctx, meta, func(context.Context, application.Tx, application.FoundedSettlement) (string, error) { return id, nil }, nil)
 }
 
 // LaborTake handles settlement.labor.take: a player takes a job and works a
 // shift on it.
-func (h *VillageHandler) LaborTake(ctx context.Context, meta envelope.Metadata, req VillageLaborRequest) (*presenter.Response, error) {
+func (h *VillageHandler) LaborTake(ctx context.Context, meta envelope.Metadata, req VillageLaborRequest) (*presentation.Response, error) {
 	jobID := strings.TrimSpace(req.ID)
 	return h.laborSite(ctx, meta, nil, func(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement) (string, string, error) {
 		job, err := tx.SettlementTreasury().Job(ctx, jobID)
 		if stderrors.Is(err, application.ErrJobNotFound) || (err == nil && job.SettlementID != s.CityID) {
-			return "", "", refuseVillage(screens.LaborNoJob, screens.AddrLaborBoard)
+			return "", "", refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
 		}
 		if err != nil {
 			return "", "", err
@@ -691,12 +691,12 @@ func (h *VillageHandler) LaborTake(ctx context.Context, meta envelope.Metadata, 
 		if here, err := h.presentHere(ctx, tx, p, s); err != nil {
 			return "", "", err
 		} else if !here {
-			return "", "", refuseVillage(screens.LaborNotHere, screens.AddrLaborBoard)
+			return "", "", refuseVillage(village.LaborNotHere, village.AddrLaborBoard)
 		}
 		if mine, err := tx.SettlementTreasury().PlayerShift(ctx, p.ID); err != nil {
 			return "", "", err
 		} else if mine != nil {
-			return "", "", refuseVillage(screens.VillageAlreadyWorking, screens.AddrLaborSite+":"+job.BuildingID)
+			return "", "", refuseVillage(village.VillageAlreadyWorking, village.AddrLaborSite+":"+job.BuildingID)
 		}
 		snap := h.content.Current()
 		if job.Kind == application.LaborKindProduction {
@@ -705,10 +705,10 @@ func (h *VillageHandler) LaborTake(ctx context.Context, meta envelope.Metadata, 
 				return "", "", err
 			}
 			if locked.Status != application.LaborJobOpen {
-				return "", "", refuseVillage(screens.LaborNoJob, screens.AddrLaborBoard)
+				return "", "", refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
 			}
 			if locked.Left() <= 0 {
-				return "", "", refuseVillage(screens.LaborBudgetSpent, screens.AddrLaborBoard)
+				return "", "", refuseVillage(village.LaborBudgetSpent, village.AddrLaborBoard)
 			}
 			if err := h.startShiftAt(ctx, tx, meta, snap, p, s, locked.BuildingID, locked.Wage, locked.ID); err != nil {
 				return "", "", err
@@ -725,7 +725,7 @@ func (h *VillageHandler) LaborTake(ctx context.Context, meta envelope.Metadata, 
 		if mine, err := tx.SettlementTreasury().PlayerShift(ctx, p.ID); err != nil {
 			return "", "", err
 		} else if mine != nil {
-			return "", "", refuseVillage(screens.VillageAlreadyWorking, screens.AddrLaborSite+":"+job.BuildingID)
+			return "", "", refuseVillage(village.VillageAlreadyWorking, village.AddrLaborSite+":"+job.BuildingID)
 		}
 		w, err := tx.SettlementTreasury().Worker(ctx, p.ID)
 		if err != nil {
@@ -744,7 +744,7 @@ func (h *VillageHandler) employerJob(ctx context.Context, tx application.Tx, p *
 ) (*application.LaborJob, error) {
 	job, err := tx.SettlementTreasury().LockJob(ctx, strings.TrimSpace(id))
 	if stderrors.Is(err, application.ErrJobNotFound) || (err == nil && (job.SettlementID != s.CityID || job.Status != application.LaborJobOpen)) {
-		return nil, refuseVillage(screens.LaborNoJob, screens.AddrLaborBoard)
+		return nil, refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
 	}
 	if err != nil {
 		return nil, err
@@ -754,7 +754,7 @@ func (h *VillageHandler) employerJob(ctx context.Context, tx application.Tx, p *
 		return nil, err
 	}
 	if !ok {
-		return nil, refuseVillage(screens.LaborNotEmployer, screens.AddrLaborSite+":"+job.BuildingID)
+		return nil, refuseVillage(village.LaborNotEmployer, village.AddrLaborSite+":"+job.BuildingID)
 	}
 	return job, nil
 }
@@ -763,7 +763,7 @@ func (h *VillageHandler) employerJob(ctx context.Context, tx application.Tx, p *
 // labourers work the site (0 sends them home when their shifts end) and the
 // ones that are free start now. They are paid the market wage, a shift at a
 // time, by the employer; the crew is kept up until the work is done.
-func (h *VillageHandler) LaborHire(ctx context.Context, meta envelope.Metadata, req VillageLaborRequest) (*presenter.Response, error) {
+func (h *VillageHandler) LaborHire(ctx context.Context, meta envelope.Metadata, req VillageLaborRequest) (*presentation.Response, error) {
 	return h.laborSite(ctx, meta, nil, func(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement) (string, string, error) {
 		job, err := h.employerJob(ctx, tx, p, s, req.ID)
 		if err != nil {
@@ -771,7 +771,7 @@ func (h *VillageHandler) LaborHire(ctx context.Context, meta envelope.Metadata, 
 		}
 		n, perr := strconv.Atoi(strings.TrimSpace(req.N))
 		if perr != nil || n < 0 || n > 100 {
-			return "", "", refuseVillage(screens.VillageNotAvailable, screens.AddrLaborSite+":"+job.BuildingID)
+			return "", "", refuseVillage(village.VillageNotAvailable, village.AddrLaborSite+":"+job.BuildingID)
 		}
 		fresh, err := h.reserve(ctx, tx, p.ID, meta)
 		if err != nil {
@@ -793,7 +793,7 @@ func (h *VillageHandler) LaborHire(ctx context.Context, meta envelope.Metadata, 
 
 // LaborWage handles settlement.labor.wage: the employer sets the wage a player
 // gets for a shift, as a share of the market's wage for an NPC labourer.
-func (h *VillageHandler) LaborWage(ctx context.Context, meta envelope.Metadata, req VillageLaborRequest) (*presenter.Response, error) {
+func (h *VillageHandler) LaborWage(ctx context.Context, meta envelope.Metadata, req VillageLaborRequest) (*presentation.Response, error) {
 	return h.laborSite(ctx, meta, nil, func(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement) (string, string, error) {
 		job, err := h.employerJob(ctx, tx, p, s, req.ID)
 		if err != nil {
@@ -801,7 +801,7 @@ func (h *VillageHandler) LaborWage(ctx context.Context, meta envelope.Metadata, 
 		}
 		pct, perr := strconv.ParseInt(strings.TrimSpace(req.N), 10, 64)
 		if perr != nil || pct < 1 || pct > 1000 {
-			return "", "", refuseVillage(screens.VillageNotAvailable, screens.AddrLaborSite+":"+job.BuildingID)
+			return "", "", refuseVillage(village.VillageNotAvailable, village.AddrLaborSite+":"+job.BuildingID)
 		}
 		buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
 		if err != nil {
@@ -813,7 +813,7 @@ func (h *VillageHandler) LaborWage(ctx context.Context, meta envelope.Metadata, 
 		}
 		wage := m.line.NPCWage * pct / 100
 		if wage < h.labor.MinWage[s.Tier] {
-			return "", "", refuseVillage(screens.LaborWageTooLow, screens.AddrLaborSite+":"+job.BuildingID)
+			return "", "", refuseVillage(village.LaborWageTooLow, village.AddrLaborSite+":"+job.BuildingID)
 		}
 		fresh, err := h.reserve(ctx, tx, p.ID, meta)
 		if err != nil {
@@ -830,7 +830,7 @@ func (h *VillageHandler) LaborWage(ctx context.Context, meta envelope.Metadata, 
 
 // LaborClose handles settlement.labor.close: the employer takes the job off the
 // board. Shifts already started still end and are paid.
-func (h *VillageHandler) LaborClose(ctx context.Context, meta envelope.Metadata, req VillageLaborRequest) (*presenter.Response, error) {
+func (h *VillageHandler) LaborClose(ctx context.Context, meta envelope.Metadata, req VillageLaborRequest) (*presentation.Response, error) {
 	return h.laborSite(ctx, meta, nil, func(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement) (string, string, error) {
 		job, err := h.employerJob(ctx, tx, p, s, req.ID)
 		if err != nil {
@@ -893,11 +893,11 @@ func (h *VillageHandler) postable(ctx context.Context, tx application.Tx, s appl
 // LaborPost handles settlement.labor.post: the employer posts the job of a
 // building under construction that has none (its budget ran out or it was
 // closed), or of a standing workplace, at the market wage.
-func (h *VillageHandler) LaborPost(ctx context.Context, meta envelope.Metadata, req VillageLaborRequest) (*presenter.Response, error) {
+func (h *VillageHandler) LaborPost(ctx context.Context, meta envelope.Metadata, req VillageLaborRequest) (*presentation.Response, error) {
 	return h.laborSite(ctx, meta, nil, func(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement) (string, string, error) {
 		b, err := tx.SettlementBuildings().Get(ctx, strings.TrimSpace(req.ID))
 		if stderrors.Is(err, application.ErrBuildingNotFound) || (err == nil && b.SettlementID != s.CityID) {
-			return "", "", refuseVillage(screens.LaborNoSite, screens.AddrLaborBoard)
+			return "", "", refuseVillage(village.LaborNoSite, village.AddrLaborBoard)
 		}
 		if err != nil {
 			return "", "", err
@@ -907,10 +907,10 @@ func (h *VillageHandler) LaborPost(ctx context.Context, meta envelope.Metadata, 
 			return "", "", err
 		}
 		if jobKind == "" {
-			return "", "", refuseVillage(screens.LaborNoSite, screens.AddrLaborBoard)
+			return "", "", refuseVillage(village.LaborNoSite, village.AddrLaborBoard)
 		}
 		if !ok {
-			return "", "", refuseVillage(screens.LaborNotEmployer, screens.AddrLaborBoard)
+			return "", "", refuseVillage(village.LaborNotEmployer, village.AddrLaborBoard)
 		}
 		fresh, err := h.reserve(ctx, tx, p.ID, meta)
 		if err != nil {
@@ -939,9 +939,9 @@ func (h *VillageHandler) LaborPost(ctx context.Context, meta envelope.Metadata, 
 }
 
 // LaborMine handles settlement.labor.mine: the viewer's own work status.
-func (h *VillageHandler) LaborMine(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *VillageHandler) LaborMine(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	lang := meta.Language
-	var view screens.LaborMineView
+	var view village.LaborMineView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -966,7 +966,7 @@ func (h *VillageHandler) LaborMine(ctx context.Context, meta envelope.Metadata) 
 			return err
 		}
 		lv := h.labor.LevelOf(w.Shifts)
-		view = screens.LaborMineView{Village: s.Name, Shifts: w.Shifts, Earned: w.Earned, Level: lv.Code, ProductivityBPS: lv.ProductivityBPS, Market: m.line}
+		view = village.LaborMineView{Village: s.Name, Shifts: w.Shifts, Earned: w.Earned, Level: lv.Code, ProductivityBPS: lv.ProductivityBPS, Market: m.line}
 		for _, next := range h.labor.Levels {
 			if next.MinShifts > w.Shifts {
 				view.NextLevel, view.NextShifts = next.Code, next.MinShifts-w.Shifts
@@ -979,7 +979,7 @@ func (h *VillageHandler) LaborMine(ctx context.Context, meta envelope.Metadata) 
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.LaborMine(h.screen(meta, lang), view), nil
+	return village.LaborMine(h.screen(meta, lang), view), nil
 }
 
 // --- a construction shift ends ------------------------------------------------------

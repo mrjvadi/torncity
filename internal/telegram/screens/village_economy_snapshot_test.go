@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -78,34 +79,34 @@ func villageEconomySnapshots(c Context, who people, add func(string, *presenter.
 
 	// The attempt views: what is missing, and where it comes from.
 	add("Refusal · civic hall needs timber that a camp makes and Support sells", VillageRefusal(g, VillageRefusalView{
-		Kind: VillageMaterials, Back: AddrBuildMenu, Action: NeedsForBuild, Subject: housing,
+		Kind: VillageMaterials, Back: presentation.RefOfAddress(AddrBuildMenu), Action: NeedsForBuild, Subject: housing,
 		Needs: []VillageNeed{{Kind: NeedMaterial, Item: timber, Need: 10, Have: 2, Price: 18,
 			Makers: []VillageMaker{{Building: camp}}}},
 	}))
 	add("Refusal · the camp is already standing, work there", VillageRefusal(g, VillageRefusalView{
-		Kind: VillageMaterials, Back: AddrBuildMenu, Action: NeedsForBuild, Subject: civicHall,
+		Kind: VillageMaterials, Back: presentation.RefOfAddress(AddrBuildMenu), Action: NeedsForBuild, Subject: civicHall,
 		Needs: []VillageNeed{{Kind: NeedMaterial, Item: timber, Need: 5, Have: 0, Price: 18,
 			Makers: []VillageMaker{{Building: camp, Built: true}}}},
 	}))
 	add("Refusal · a material only a workshop makes and Support does not sell", VillageRefusal(g, VillageRefusalView{
-		Kind: VillageMaterials, Back: AddrWork, Action: NeedsForWork, Subject: joinery,
+		Kind: VillageMaterials, Back: presentation.RefOfAddress(AddrWork), Action: NeedsForWork, Subject: joinery,
 		Needs: []VillageNeed{{Kind: NeedMaterial, Item: wheat, Need: 3, Have: 1,
 			Makers: []VillageMaker{{Building: sampleNamed(c.Lang, "farm_canal", "مزرعهٔ نهری", "Canal farm")}}}},
 	}))
 	add("Refusal · a school needs a circle first and timber", VillageRefusal(g, VillageRefusalView{
-		Kind: VillagePrerequisite, Back: AddrBuildMenu, Action: NeedsForBuild, Subject: school,
+		Kind: VillagePrerequisite, Back: presentation.RefOfAddress(AddrBuildMenu), Action: NeedsForBuild, Subject: school,
 		Needs: []VillageNeed{
 			{Kind: NeedBuilding, Options: []Named{sampleNamed(c.Lang, "teaching_circle", "حلقهٔ آموزش", "Teaching circle")}},
 			{Kind: NeedMaterial, Item: timber, Need: 10, Have: 0, Price: 18, Makers: []VillageMaker{{Building: camp}}},
 		},
 	}))
 	add("Refusal · research needs knowledge first", VillageRefusal(g, VillageRefusalView{
-		Kind: VillagePrerequisite, Back: AddrKnowledgeList, Action: NeedsForResearch, Subject: carpentry,
+		Kind: VillagePrerequisite, Back: presentation.RefOfAddress(AddrKnowledgeList), Action: NeedsForResearch, Subject: carpentry,
 		Needs: []VillageNeed{{Kind: NeedKnowledge, Item: sampleNamed(c.Lang, "basic_literacy", "سوادآموزی پایه", "Basic literacy")}},
 	}))
-	add("Refusal · the stock is full", VillageRefusal(g, VillageRefusalView{Kind: VillageStorageFull, Back: AddrMaterials}))
-	add("Refusal · already working", VillageRefusal(g, VillageRefusalView{Kind: VillageAlreadyWorking, Back: AddrWork}))
-	add("Refusal · workplace full", VillageRefusal(g, VillageRefusalView{Kind: VillageWorkplaceFull, Back: AddrWork}))
+	add("Refusal · the stock is full", VillageRefusal(g, VillageRefusalView{Kind: VillageStorageFull, Back: presentation.RefOfAddress(AddrMaterials)}))
+	add("Refusal · already working", VillageRefusal(g, VillageRefusalView{Kind: VillageAlreadyWorking, Back: presentation.RefOfAddress(AddrWork)}))
+	add("Refusal · workplace full", VillageRefusal(g, VillageRefusalView{Kind: VillageWorkplaceFull, Back: presentation.RefOfAddress(AddrWork)}))
 
 	add("Build menu · listed by tier, materials short, roles missing", BuildMenu(g, BuildMenuView{
 		Name: villageNameFor(c), Treasury: 58_000, RunningBuilds: 0, ConcurrentCap: 1,

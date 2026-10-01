@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"strconv"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
@@ -14,33 +15,12 @@ import (
 // a confirm, the result. The group is told through the batched village news
 // (village_news.go), not by the result screen.
 
-// AddrVillageDonate addresses the donate command; the arguments are the
-// amount and, on the second press, the confirm.
-const AddrVillageDonate = "settlement:donate"
-
 // Structured screens of the donate command (clients).
 const (
-	ScreenVillageDonateMenu    = "village_donate_menu"
-	ScreenVillageDonateConfirm = "village_donate_confirm"
-	ScreenVillageDonateDone    = "village_donate_done"
+	ScreenVillageDonateMenu    = village.ScreenVillageDonateMenu
+	ScreenVillageDonateConfirm = village.ScreenVillageDonateConfirm
+	ScreenVillageDonateDone    = village.ScreenVillageDonateDone
 )
-
-// DonateView is the amounts screen, the confirm and the result.
-type DonateView struct {
-	Village string
-	// Amount is what is being (or was) given; zero on the amounts screen.
-	Amount int64
-	// Presets are the amounts the buttons offer; Min and Max the bounds of
-	// any gift (a client types its own).
-	Presets  []int64
-	Min, Max int64
-	// Treasury is the village treasury (after the gift, on the result).
-	Treasury int64
-	// Cash is the donor's own cash (after the gift, on the result).
-	Cash int64
-	// SettlementID addresses the village for a client.
-	SettlementID string
-}
 
 // VillageDonateMenu renders the amounts to choose from.
 func VillageDonateMenu(c Context, v DonateView) *presenter.Response {

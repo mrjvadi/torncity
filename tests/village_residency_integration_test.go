@@ -188,7 +188,7 @@ func TestVillageResidency(t *testing.T) {
 	// 2. A member who lives in Support sees the join button; the head, who
 	// is a resident, does not.
 	overview := func(p *application.Player) *presenterView {
-		resp, err := village.Overview(ctx, metaOf(p, "settlement.overview"))
+		resp, err := rrm(metaOf(p, "settlement.overview"))(village.Overview(ctx, metaOf(p, "settlement.overview")))
 		if err != nil {
 			t.Fatalf("overview: %v", err)
 		}
@@ -203,7 +203,7 @@ func TestVillageResidency(t *testing.T) {
 
 	// 3. Joining asks first and changes nothing; the outside of a group has no
 	// village to join.
-	ask, err := village.Join(ctx, metaOf(member, "settlement.join"), handlers.VillageJoinRequest{})
+	ask, err := rrm(metaOf(member, "settlement.join"))(village.Join(ctx, metaOf(member, "settlement.join"), handlers.VillageJoinRequest{}))
 	if err != nil || !strings.Contains(ask.Text, "village.residence.join.ask_title") {
 		t.Fatalf("join (ask): %v %+v", err, ask)
 	}
@@ -212,13 +212,13 @@ func TestVillageResidency(t *testing.T) {
 	}
 	private := metaOf(member, "settlement.join")
 	private.ChatType, private.TelegramChatID = "private", member.TelegramUserID
-	if r, err := village.Join(ctx, private, handlers.VillageJoinRequest{}); err != nil || !strings.Contains(r.Text, "village.refusal.no_settlement") {
+	if r, err := rrm(private)(village.Join(ctx, private, handlers.VillageJoinRequest{})); err != nil || !strings.Contains(r.Text, "village.refusal.no_settlement") {
 		t.Errorf("join outside a group: %v %+v", err, r)
 	}
 
 	// 4. Confirming moves the home, stamps the cool-down clock and announces
 	// the move.
-	done, err := village.Join(ctx, metaOf(member, "settlement.join"), handlers.VillageJoinRequest{Confirm: screens.ResidenceConfirm})
+	done, err := rrm(metaOf(member, "settlement.join"))(village.Join(ctx, metaOf(member, "settlement.join"), handlers.VillageJoinRequest{Confirm: screens.ResidenceConfirm}))
 	if err != nil || !strings.Contains(done.Text, "village.residence.join.done_title") {
 		t.Fatalf("join (confirm): %v %+v", err, done)
 	}
@@ -253,19 +253,19 @@ func TestVillageResidency(t *testing.T) {
 
 	// 5. Refusals: already a resident; the cool-down; the head cannot leave;
 	// someone who is not a resident cannot leave.
-	if r, err := village.Join(ctx, metaOf(member, "settlement.join"), handlers.VillageJoinRequest{}); err != nil || !strings.Contains(r.Text, "village.refusal.already_resident") {
+	if r, err := rrm(metaOf(member, "settlement.join"))(village.Join(ctx, metaOf(member, "settlement.join"), handlers.VillageJoinRequest{})); err != nil || !strings.Contains(r.Text, "village.refusal.already_resident") {
 		t.Errorf("join twice: %v %+v", err, r)
 	}
-	if r, err := village.Leave(ctx, metaOf(member, "settlement.leave"), handlers.VillageJoinRequest{}); err != nil || !strings.Contains(r.Text, "village.refusal.residence_cooldown") {
+	if r, err := rrm(metaOf(member, "settlement.leave"))(village.Leave(ctx, metaOf(member, "settlement.leave"), handlers.VillageJoinRequest{})); err != nil || !strings.Contains(r.Text, "village.refusal.residence_cooldown") {
 		t.Errorf("leave during the cool-down: %v %+v", err, r)
 	}
-	if r, err := village.Leave(ctx, metaOf(other, "settlement.leave"), handlers.VillageJoinRequest{}); err != nil || !strings.Contains(r.Text, "village.refusal.not_resident") {
+	if r, err := rrm(metaOf(other, "settlement.leave"))(village.Leave(ctx, metaOf(other, "settlement.leave"), handlers.VillageJoinRequest{})); err != nil || !strings.Contains(r.Text, "village.refusal.not_resident") {
 		t.Errorf("a non-resident leaving: %v %+v", err, r)
 	}
 	// The cool-down bites the other direction too: a player who just moved
 	// (here: the founder, whose founding stamped it) cannot be moved by join.
 	clk.Advance(cooldown + time.Minute)
-	if r, err := village.Leave(ctx, metaOf(founder, "settlement.leave"), handlers.VillageJoinRequest{}); err != nil || !strings.Contains(r.Text, "village.refusal.holds_office") {
+	if r, err := rrm(metaOf(founder, "settlement.leave"))(village.Leave(ctx, metaOf(founder, "settlement.leave"), handlers.VillageJoinRequest{})); err != nil || !strings.Contains(r.Text, "village.refusal.holds_office") {
 		t.Errorf("the head leaving: %v %+v", err, r)
 	}
 	if residenceOf(founder) != cityID {
@@ -332,14 +332,14 @@ func TestVillageResidency(t *testing.T) {
 
 	// 7. Once the cool-down has run, leaving asks, then sends the player back
 	// to Support; the village loses a resident and the outbox says so.
-	askLeave, err := village.Leave(ctx, metaOf(member, "settlement.leave"), handlers.VillageJoinRequest{})
+	askLeave, err := rrm(metaOf(member, "settlement.leave"))(village.Leave(ctx, metaOf(member, "settlement.leave"), handlers.VillageJoinRequest{}))
 	if err != nil || !strings.Contains(askLeave.Text, "village.residence.leave.ask_title") {
 		t.Fatalf("leave (ask): %v %+v", err, askLeave)
 	}
 	if residenceOf(member) != cityID {
 		t.Fatal("asking to leave moved the player")
 	}
-	left, err := village.Leave(ctx, metaOf(member, "settlement.leave"), handlers.VillageJoinRequest{Confirm: screens.ResidenceConfirm})
+	left, err := rrm(metaOf(member, "settlement.leave"))(village.Leave(ctx, metaOf(member, "settlement.leave"), handlers.VillageJoinRequest{Confirm: screens.ResidenceConfirm}))
 	if err != nil || !strings.Contains(left.Text, "village.residence.leave.done_title") {
 		t.Fatalf("leave (confirm): %v %+v", err, left)
 	}
@@ -350,7 +350,7 @@ func TestVillageResidency(t *testing.T) {
 		t.Errorf("residents after leaving = %d, want 1", count())
 	}
 	// Moving again straight away is the cool-down's job.
-	if r, err := village.Join(ctx, metaOf(member, "settlement.join"), handlers.VillageJoinRequest{Confirm: screens.ResidenceConfirm}); err != nil || !strings.Contains(r.Text, "village.refusal.residence_cooldown") {
+	if r, err := rrm(metaOf(member, "settlement.join"))(village.Join(ctx, metaOf(member, "settlement.join"), handlers.VillageJoinRequest{Confirm: screens.ResidenceConfirm})); err != nil || !strings.Contains(r.Text, "village.refusal.residence_cooldown") {
 		t.Errorf("rejoining straight away: %v %+v", err, r)
 	}
 	if residenceOf(member) != support {

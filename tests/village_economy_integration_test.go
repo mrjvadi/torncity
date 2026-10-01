@@ -117,7 +117,7 @@ func TestVillageEconomyLoop(t *testing.T) {
 
 	// 1. The catalogue lists what a village can start: the camp, no city-tier
 	// building, and what needs timber says so.
-	menu, err := village.BuildMenu(ctx, mk("settlement.build", "build"))
+	menu, err := rrcm(mk("settlement.build", "build"))(village.BuildMenu(ctx, mk("settlement.build", "build")))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,13 +130,13 @@ func TestVillageEconomyLoop(t *testing.T) {
 		t.Errorf("the build menu does not offer the woodcutter's camp:\n%s\n%s", menu.Text, econButtonData(menu))
 	}
 	// Asking for a city building by code is refused, neutrally.
-	if r, err := village.Lots(ctx, mk("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "airport"}); err != nil ||
+	if r, err := rrcm(mk("settlement.build.lots", "build.lots"))(village.Lots(ctx, mk("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "airport"})); err != nil ||
 		!strings.Contains(r.Text, "قابل") {
 		t.Errorf("Lots(airport) = %+v %v, want a neutral refusal", r, err)
 	}
 
 	// 2. The housing block needs 10 timber: the refusal names where it comes from.
-	r, err := village.Lots(ctx, mk("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "housing_block"})
+	r, err := rrcm(mk("settlement.build.lots", "build.lots"))(village.Lots(ctx, mk("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "housing_block"}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,8 +153,8 @@ func TestVillageEconomyLoop(t *testing.T) {
 	// 3. Buy timber from Support with the treasury: a confirm first, nothing moves.
 	treasury0 := treasuryOf(t, pool, cityID)
 	buy := func(qty, confirm string) *presenter.Response {
-		resp, err := village.MaterialsBuy(ctx, mk("settlement.materials.buy", "materials.buy"),
-			handlers.VillageMaterialRequest{Item: "timber", Qty: qty, Confirm: confirm})
+		resp, err := rrcm(mk("settlement.materials.buy", "materials.buy"))(village.MaterialsBuy(ctx, mk("settlement.materials.buy", "materials.buy"),
+			handlers.VillageMaterialRequest{Item: "timber", Qty: qty, Confirm: confirm}))
 		if err != nil {
 			t.Fatalf("MaterialsBuy(%s, %q): %v", qty, confirm, err)
 		}
@@ -185,7 +185,7 @@ func TestVillageEconomyLoop(t *testing.T) {
 	om := asPlayer(meta, other)
 	om.Command, om.Action = "settlement.materials.buy", "materials.buy"
 	om.IdempotencyKey = "it-" + randomToken(t, 16)
-	if r, err := village.MaterialsBuy(ctx, om, handlers.VillageMaterialRequest{Item: "timber", Qty: "5", Confirm: screens.MaterialsConfirm}); err != nil ||
+	if r, err := rrcm(om)(village.MaterialsBuy(ctx, om, handlers.VillageMaterialRequest{Item: "timber", Qty: "5", Confirm: screens.MaterialsConfirm})); err != nil ||
 		!strings.Contains(r.Text, "دهیار") {
 		t.Errorf("a non-head bought timber: %+v %v", r, err)
 	}
@@ -193,15 +193,15 @@ func TestVillageEconomyLoop(t *testing.T) {
 		t.Fatalf("refusals changed the stock: %d", got)
 	}
 	// A material the village may not buy is refused.
-	if r, err := village.MaterialsBuy(ctx, mk("settlement.materials.buy", "materials.buy"),
-		handlers.VillageMaterialRequest{Item: "gemstone", Qty: "1", Confirm: screens.MaterialsConfirm}); err != nil || strings.Contains(r.Text, "خریداری") {
+	if r, err := rrcm(mk("settlement.materials.buy", "materials.buy"))(village.MaterialsBuy(ctx, mk("settlement.materials.buy", "materials.buy"),
+		handlers.VillageMaterialRequest{Item: "gemstone", Qty: "1", Confirm: screens.MaterialsConfirm})); err != nil || strings.Contains(r.Text, "خریداری") {
 		t.Errorf("gemstone was bought: %+v %v", r, err)
 	}
 
 	// 4. A camp needs no timber: build it (the head's own lot choice), finish it.
 	place := func(code string) string {
 		t.Helper()
-		lots, err := village.Lots(ctx, mk("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: code})
+		lots, err := rrcm(mk("settlement.build.lots", "build.lots"))(village.Lots(ctx, mk("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: code}))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -209,8 +209,8 @@ func TestVillageEconomyLoop(t *testing.T) {
 		if !ok {
 			t.Fatalf("no lot fits %s:\n%s", code, lots.Text)
 		}
-		resp, err := village.Place(ctx, mk("settlement.build.place", "build.place"),
-			handlers.VillageBuildRequest{Code: code, Lot: screens.LotToken(x, y, false), Confirm: screens.VillageBuildConfirm})
+		resp, err := rrcm(mk("settlement.build.place", "build.place"))(village.Place(ctx, mk("settlement.build.place", "build.place"),
+			handlers.VillageBuildRequest{Code: code, Lot: screens.LotToken(x, y, false), Confirm: screens.VillageBuildConfirm}))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -222,7 +222,7 @@ func TestVillageEconomyLoop(t *testing.T) {
 			t.Fatalf("%s was not placed: %v\n%s", code, err, resp.Text)
 		}
 		e.clock.Advance(finishAt.Sub(e.clock.Now()) + time.Second)
-		if _, err := village.Built(ctx, mk("settlement.built", "built"), handlers.CrimeScheduledRequest{ReferenceID: id}); err != nil {
+		if _, err := rrcm(mk("settlement.built", "built"))(village.Built(ctx, mk("settlement.built", "built"), handlers.CrimeScheduledRequest{ReferenceID: id})); err != nil {
 			t.Fatal(err)
 		}
 		return id
@@ -239,7 +239,7 @@ func TestVillageEconomyLoop(t *testing.T) {
 	start := func(id string, m envelope.Metadata) *presenter.Response {
 		m.Command, m.Action = "settlement.work", "work"
 		m.IdempotencyKey = "it-" + randomToken(t, 16)
-		resp, err := village.Work(ctx, m, handlers.VillageWorkRequest{ID: id})
+		resp, err := rrcm(m)(village.Work(ctx, m, handlers.VillageWorkRequest{ID: id}))
 		if err != nil {
 			t.Fatalf("Work(%s): %v", id, err)
 		}
@@ -267,12 +267,12 @@ func TestVillageEconomyLoop(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Not before its time.
-	if _, err := village.Worked(ctx, mk("settlement.worked", "worked"), handlers.CrimeScheduledRequest{ReferenceID: shiftID, ActionID: actionID}); err == nil {
+	if _, err := rrcm(mk("settlement.worked", "worked"))(village.Worked(ctx, mk("settlement.worked", "worked"), handlers.CrimeScheduledRequest{ReferenceID: shiftID, ActionID: actionID})); err == nil {
 		t.Error("a shift ended before its time")
 	}
 	e.clock.Advance(time.Hour + time.Second)
 	for i := 0; i < 2; i++ { // twice: redelivery changes nothing
-		if _, err := village.Worked(ctx, mk("settlement.worked", "worked"), handlers.CrimeScheduledRequest{ReferenceID: shiftID, ActionID: actionID}); err != nil {
+		if _, err := rrcm(mk("settlement.worked", "worked"))(village.Worked(ctx, mk("settlement.worked", "worked"), handlers.CrimeScheduledRequest{ReferenceID: shiftID, ActionID: actionID})); err != nil {
 			t.Fatalf("Worked #%d: %v", i+1, err)
 		}
 	}
@@ -291,11 +291,11 @@ func TestVillageEconomyLoop(t *testing.T) {
 	}
 
 	// 7. The screens read the same numbers.
-	stock, err := village.Materials(ctx, mk("settlement.materials", "materials"))
+	stock, err := rrcm(mk("settlement.materials", "materials"))(village.Materials(ctx, mk("settlement.materials", "materials")))
 	if err != nil || !strings.Contains(stock.Text, "الوار") {
 		t.Errorf("the stock screen: %+v %v", stock, err)
 	}
-	work, err := village.Work(ctx, mk("settlement.work", "work"), handlers.VillageWorkRequest{})
+	work, err := rrcm(mk("settlement.work", "work"))(village.Work(ctx, mk("settlement.work", "work"), handlers.VillageWorkRequest{}))
 	if err != nil || !strings.Contains(work.Text, "هیزم‌شکنی") {
 		t.Errorf("the work screen: %+v %v", work, err)
 	}

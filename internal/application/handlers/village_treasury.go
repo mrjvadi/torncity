@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"strconv"
 	"strings"
 	"time"
@@ -10,8 +12,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The village treasury's two faucets: the founding grant (WithFoundingGrant,
@@ -41,14 +41,14 @@ type VillageDonateRequest struct {
 	// Amount is the gift in minor units, as text like every button argument;
 	// empty asks for the amounts to choose from.
 	Amount string `json:"amount,omitempty"`
-	// Confirm is screens.ResidenceConfirm on the second press.
+	// Confirm is village.ResidenceConfirm on the second press.
 	Confirm string `json:"confirm,omitempty"`
 	// Settlement names the village for a game client; in a group it is
 	// ignored (the group's own village is used).
 	Settlement string `json:"settlement,omitempty"`
 }
 
-func (r VillageDonateRequest) confirmed() bool { return r.Confirm == screens.ResidenceConfirm }
+func (r VillageDonateRequest) confirmed() bool { return r.Confirm == village.ResidenceConfirm }
 
 // WithDonationRules sets the donation window and the amounts the buttons
 // offer (config settlement.donation_*).
@@ -64,10 +64,10 @@ func (h *VillageHandler) WithDonationRules(min, max int64, presets []int64) *Vil
 // to the village treasury, reason settlement_donation) recorded in
 // settlement_donations, and one settlement.donated event for the village
 // news; a redelivered confirm repeats none of it.
-func (h *VillageHandler) Donate(ctx context.Context, meta envelope.Metadata, req VillageDonateRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Donate(ctx context.Context, meta envelope.Metadata, req VillageDonateRequest) (*presentation.Response, error) {
 	lang := meta.Language
 	var (
-		view screens.DonateView
+		view village.DonateView
 		step string // "menu", "ask" or "done"
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -89,14 +89,14 @@ func (h *VillageHandler) Donate(ctx context.Context, meta envelope.Metadata, req
 		}
 		if err != nil {
 			if meta.FromClient() && stderrors.Is(err, application.ErrCityNotFound) {
-				return refuseVillage(screens.VillageNotResident)
+				return refuseVillage(village.VillageNotResident)
 			}
 			return err
 		}
 		if home != s.CityID {
-			return refuseVillage(screens.VillageNotResident)
+			return refuseVillage(village.VillageNotResident)
 		}
-		view = screens.DonateView{
+		view = village.DonateView{
 			Village: s.Name, Presets: h.donationPresets, Min: h.donationMin, Max: h.donationMax, SettlementID: s.CityID,
 		}
 		cash, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerCash, p.ID)
@@ -127,7 +127,7 @@ func (h *VillageHandler) Donate(ctx context.Context, meta envelope.Metadata, req
 		}
 		amount, perr := strconv.ParseInt(text, 10, 64)
 		if perr != nil || amount < h.donationMin || amount > h.donationMax {
-			r := refuseVillage(screens.VillageDonateRange)
+			r := refuseVillage(village.VillageDonateRange)
 			r.min, r.max = h.donationMin, h.donationMax
 			return r
 		}
@@ -138,7 +138,7 @@ func (h *VillageHandler) Donate(ctx context.Context, meta envelope.Metadata, req
 		if !req.confirmed() {
 			step = "ask"
 			if view.Cash < amount {
-				return refuseVillage(screens.VillageDonateNoCash)
+				return refuseVillage(village.VillageDonateNoCash)
 			}
 			return nil
 		}
@@ -152,7 +152,7 @@ func (h *VillageHandler) Donate(ctx context.Context, meta envelope.Metadata, req
 			return nil // a redelivered confirm: already given
 		}
 		if view.Cash < amount {
-			return refuseVillage(screens.VillageDonateNoCash)
+			return refuseVillage(village.VillageDonateNoCash)
 		}
 		now := h.now()
 		donationID, txID := h.ids.NewID(), h.ids.NewID()
@@ -170,7 +170,7 @@ func (h *VillageHandler) Donate(ctx context.Context, meta envelope.Metadata, req
 			},
 		}); err != nil {
 			if stderrors.Is(err, application.ErrInsufficientFunds) {
-				return refuseVillage(screens.VillageDonateNoCash)
+				return refuseVillage(village.VillageDonateNoCash)
 			}
 			return err
 		}
@@ -187,9 +187,9 @@ func (h *VillageHandler) Donate(ctx context.Context, meta envelope.Metadata, req
 	c := h.screen(meta, lang)
 	switch step {
 	case "menu":
-		return screens.VillageDonateMenu(c, view), nil
+		return village.VillageDonateMenu(c, view), nil
 	case "ask":
-		return screens.VillageDonateConfirm(c, view), nil
+		return village.VillageDonateConfirm(c, view), nil
 	}
-	return screens.VillageDonateDone(c, view), nil
+	return village.VillageDonateDone(c, view), nil
 }

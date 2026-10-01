@@ -292,6 +292,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			Bus: clientapi.NewNATSBus(conn.Raw(), infranats.NewPublisher(conn)), Policy: policy,
 			ActionMeta:         actionMeta,
 			AllowGroupCommands: cfg.Client.GroupCommands == config.GroupCommandsAllow,
+			LegacyText:         legacyText(catalog), LegacyScreens: cfg.Client.LegacyTextScreens,
 			Timeout:            cfg.Client.CommandTimeout, InstanceID: e.instanceID, NewID: clientapi.NewID, Now: time.Now,
 			Moderation: &moderation.Checker{Source: moderationSource{postgres.NewModerationReader(pool)},
 				Cache: infraredis.NewModerationCache(rdb), TTL: cfg.Panel.ModerationCacheTTL},

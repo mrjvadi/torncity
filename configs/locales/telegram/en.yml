@@ -1,0 +1,563 @@
+# Telegram wording (en), layered over configs/locales/en.yml by the catalogue loader.
+# Wording moves here area by area with its screens (docs/adr/0039-presentation-split.md).
+# Natural everyday speech; a key is defined once across the layers.
+
+# ---- village ----
+# The citizen loop (docs/adr/0033 sections 4.4 and 4.5): a resident buys land
+# from the village, builds a house on it and lives there.
+citizen:
+  hub:
+    hint: "🌱 This is your home: buy land, build a house and help the village grow."
+  button:
+    buy_land: "🏡 Buy land"
+    build_house: "🏠 Build a house"
+    more_land: "🏡 More land"
+    work: "🛠 Work"
+    mine: "🧾 My property"
+    terms: "⚖️ Land terms"
+    rest: "🛋 Rest at home"
+    rest_wait: "🛋 Rest ({time} left)"
+    pay_tax: "💳 Pay tax ({debt})"
+  land:
+    title: "🏡 Land in {village}"
+    body: |-
+      Any free lot can be yours: the price goes to the village treasury and the lot is yours for good.
+      💵 Price per lot: {price}
+      👛 Your money: {cash}
+      📌 Your lots: {owned} of {max}
+    body_shared: |-
+      Any free lot can be yours: the price goes to the village treasury and the lot is yours for good.
+      💵 Price per lot: {price}
+      📌 Your lots: {owned} of {max}
+    legend: "🟩 free to buy - 🏡 yours - 🔒 someone else's - 🏠 building - 🛣 road - 💧 water - ⛰ steep"
+    cannot_buy: "To buy more land you must be under the personal lot limit and have enough money."
+  buy:
+    ask_title: "🏡 Buy a lot"
+    ask_body: |-
+      Row {row}, column {col}
+      Price: {price}
+      Your money after buying: {left}
+
+      The money goes to the village treasury.
+    ask_body_shared: |-
+      Row {row}, column {col}
+      Price: {price}
+
+      The money goes to the village treasury.
+    done_body_shared: |-
+      Row {row}, column {col} is registered in your name and {price} went to the village treasury.
+      You can build a house on it now.
+    button_yes: "✅ Buy - {price}"
+    done_title: "✅ This lot is yours now"
+    done_body: |-
+      Row {row}, column {col} is registered in your name and {price} went to the village treasury.
+      Money left: {cash}
+      You can build a house on it now.
+  private:
+    title: "🏠 Private building in {village}"
+    no_land: "To build a house you need a lot first. Buy a free lot and come back."
+    intro: |-
+      On your own lot you can build a house or a small business. You pay from your own pocket; missing timber is bought for you at the reference price.
+      👛 Your money: {cash}
+      📌 Free lots of yours: {free}
+    intro_shared: |-
+      On your own lot you can build a house or a small business. You pay from your own pocket; missing timber is bought for you at the reference price.
+      📌 Free lots of yours: {free}
+    line: |-
+      🔨 {name} ({w}×{h})
+      Cost: {cost} - Permit: {permit} - Time: {time}
+      Cash total: {total}
+    material: "   • {name}: {need} (you have {have}, buy {buy} for {cost})"
+    short: "⚠️ You cannot afford this building."
+    button: "🔨 {name} - {total}"
+    none: "The village cannot build any private building yet; more open up as its knowledge grows."
+    no_free_lot: "All your lots are taken; buy another lot to build again."
+    total: "Cash total: {total}"
+  lots:
+    title: "📍 Where to build in {village}"
+    building: "Building: {building}"
+    legend: "✅ build here (your own free lot) - 🏠 taken - 🛣 road - 💧 water - ⛰ steep - ⬜ not your lot"
+  confirm:
+    title: "🏗 Build {name}"
+    lines: |-
+      Place: row {row}, column {col}
+      Building cost: {cost}
+      Building permit (to the treasury): {permit}
+      Materials bought: {materials}
+      Build time: {time}
+    total: |-
+      Cash total: {total}
+      Your money after building: {left}
+    total_shared: "Cash total: {total}"
+    button_yes: "✅ Confirm and build - {total}"
+  mine:
+    title: "🧾 My property in {village}"
+    no_home: "🏚 You have no house yet; build one on your lot to live in it."
+    home: "🏠 Your home: {name}"
+    lot_bare: "🟩 Row {row}, column {col}: empty lot"
+    lot_building: "🏗 Row {row}, column {col}: {name} under construction - {time} left"
+    lot_built: "🏡 Row {row}, column {col}: {name}"
+    no_lots: "You own no lots."
+    tax: "📊 Property tax: {percent}% of the value {assessed} each period, that is {per}"
+    debt: "⚠️ Tax debt: {debt} ({periods} periods)"
+    cash: "👛 Your money: {cash}"
+    notice:
+      rested: "🛋 You rested at home and feel better."
+      tax_paid: "✅ Tax paid."
+      tax_none: "There is no debt to pay, or you cannot afford it."
+  terms:
+    title: "⚖️ Land and building terms in {village}"
+    body: |-
+      💵 Lot price: {price} (between {pmin} and {pmax})
+      📜 Building permit: {permit} (up to {fmax})
+      📊 Property tax each period: {tax}% (up to {tmax}%)
+
+      All of it goes to the village treasury.
+    button_price: "💵 Lot {amount}"
+    button_permit: "📜 Permit {amount}"
+    button_tax: "📊 Tax {percent}%"
+  work:
+    title: "🛠 Work in {village}"
+    body: |-
+      The village's workshops and farms open as they are built, and their work will be here.
+      Until then, jobs are in {city}.
+    button_support: "💼 Work in {city} - travel"
+  refusal:
+    citizen_lot_taken: "Someone bought this lot just now. Pick another one."
+    citizen_lot_limit: "You have reached the personal lot limit; build on your lots first."
+    citizen_zoning: "The share of private lots in this village is full, to keep public space."
+    citizen_not_owner: "This lot is not yours; you can only build on your own lot."
+    citizen_no_cash: "You do not have enough money for this."
+    citizen_private_only: "This is a private building: residents build it on their own lot, not the village head."
+    citizen_lot_private: "This lot is private and belongs to a resident."
+    citizen_rest_wait: "You are still rested; you can rest again in {time}."
+    citizen_no_house: "You need a finished house to rest at home."
+    citizen_terms_range: "That number is outside the allowed range."
+    citizen_no_debt: "You have no tax debt."
+    citizen_off: "Buying land is not open in this village yet."
+    citizen_no_lots: "You own no lots; buy one first."
+
+# Village-level knowledge and construction (docs/adr/0031-knowledge-and-
+# village-progression.md; internal/telegram/screens/village.go). Group
+# screens, never private.
+village:
+  title:
+    village: "🏘 the village of {name}"
+    town: "🏘 the town of {name}"
+    city: "🏙 the city of {name}"
+  population: "👥 Population: {population} of {cap}"
+  treasury: "🏦 Village treasury: {amount}"
+  coverage:
+    food: "🌾 Food coverage: {percent}%"
+    job: "💼 Job coverage: {percent}%"
+    service: "🏥 Service coverage: {percent}%"
+    happiness: "🙂 Happiness: {percent}%"
+    security: "🛡 Local security: {percent}%"
+    literacy: "📖 Literacy: {percent}%"
+  building_line: "• {building}"
+  no_buildings: "No buildings stand here yet."
+  private_hint: "🏘 Building, research and donations are done in the village group; here you see how your village stands."
+  home:
+    call_title: "🏡 This group has no village yet."
+    call_body: "A village is your group's home: it has a shared treasury, buildings and knowledge, and everyone who lives there shares in it. Open the founding form with the button below; nothing is built until it is complete."
+    found_button: "🏗 Found the village"
+    none_title: "🏡 You do not live in a village yet."
+    none_body: "Go to a village group and press «Live in this village», or send «Found a village» in your own group."
+    profile_button: "🏡 My village"
+  support:
+    title: "🧭 Services in {city} - travel there for them:"
+    service:
+      bank: "🏦 Bank - travel to {city}"
+      market: "🛒 Market - travel to {city}"
+      jobs: "💼 Jobs - travel to {city}"
+      knowledge: "📚 Knowledge - travel to {city}"
+      hospital: "🏥 Hospital - travel to {city}"
+      jail: "⛓ Jail - travel to {city}"
+  button:
+    overview: "🏘 Village"
+    who: "👥 People"
+    knowledge: "📚 Village knowledge"
+    build: "🏗 Construction"
+    progress: "⏳ Build progress"
+    join: "🏡 Become a resident"
+    leave: "🚪 Leave the village"
+    donate: "💰 Give to the treasury"
+    materials: "🧱 Stock and market"
+    work: "⚒ Work in the village"
+  tier_name:
+    village: "village"
+    town: "town"
+    city: "city"
+  office:
+    village: "village head"
+    town: "town head"
+    city: "mayor"
+  promotion:
+    block_title: "🧭 The way to becoming a {tier}:"
+    title: "🧭 The way to becoming a {tier} - {village}"
+    intro: "{village} grows into a {tier} by developing, not by taking more land: people, literacy, buildings, knowledge and a healthy treasury. These are the steps ahead:"
+    goal:
+      residents: "{mark} Residents: {current} of {required}"
+      literacy: "{mark} Literacy: {current}% of {required}%"
+      buildings: "{mark} Finished buildings (roads not counted): {current} of {required}"
+      knowledge: "{mark} Things the village learned itself (researched or bought): {current} of {required}"
+      treasury: "{mark} Treasury: {current} of {required}"
+      role: "{mark} {role}"
+    role:
+      food:
+        t1: "A food building (a farm or a pasture)"
+      education:
+        t1: "A teaching building (a teaching circle)"
+        t2: "A school"
+      health:
+        t1: "A health building (a health house)"
+        t2: "A clinic"
+      market:
+        t2: "A market"
+      security:
+        t1: "A security building (a watch hut or a post)"
+    ready_head: "🎉 Every step is taken. You can now promote {village} to a {tier}."
+    ready_member: "🎉 Every step is taken. Promoting is up to the head."
+    not_ready: "Every step taken turns ✅ here. When all are ✅ the head gets the promotion button."
+    button_view: "🧭 The way to a {tier}"
+    button_promote: "🚀 Promote to {tier}"
+    button_yes: "✅ Yes, promote"
+    ask_title: "🚀 Promote {village} to a {tier}?"
+    ask_body:
+      town: "The village head becomes the town head and keeps leading; building opens up and new buildings and knowledge appear. Promotion is free and cannot be undone; the group is told."
+      city: "The town head becomes the mayor and keeps leading; the city government with taxes, a council and elections starts. Promotion is free and cannot be undone; the group is told."
+    done_title: "🎉 {village} is now a {tier}!"
+    done_body:
+      town: "The village head is now the town head. The town's new buildings and knowledge show in the build and knowledge lists, and the group has been told."
+      city: "The town head is now the mayor. City affairs are open, and the group has been told."
+  refusal:
+    no_settlement: "🏡 This group has not founded a village yet. Send \"found village\" to start."
+    not_office_holder: "🔒 Only the village head may do this."
+    insufficient_funds: "🏦 The village treasury cannot cover this."
+    busy: "⏳ The village is already busy with something else. Wait for it to finish."
+    already_owned: "✅ You already know this."
+    not_available: "🔒 This is not available to research or buy right now."
+    terrain: "🔒 This village's terrain does not permit it."
+    prerequisite: "🔒 The prerequisites for this are not met yet."
+    literacy: "📖 The village's literacy has not reached what this needs yet."
+    not_found: "That was not found."
+    occupied: "🔒 That spot is already taken."
+    unbuildable: "💧 Nothing can be built there (water or too steep)."
+    out_of_bounds: "🔒 That spot is outside the village's own grid."
+    concurrent_cap: "🏗 The village's build queue is full. Wait for one to finish."
+    not_demolishable: "🔒 That building cannot be demolished right now."
+    not_cancellable: "🔒 That building is not under construction any more, so it cannot be cancelled."
+    materials: "🧱 The village does not have enough of the materials this build needs."
+    already_resident: "🏡 You already live in this village."
+    not_resident: "🏡 You do not live in this village."
+    residence_cooldown: "⏳ You moved home recently. You can move again in {time}."
+    holds_office: "🔒 You cannot leave the village while you are its head."
+    no_home: "🏙 The city to return to has not been set."
+    donate_range: "💰 A gift must be between {min} and {max}."
+    donate_no_cash: "💰 You do not have enough cash for that gift."
+    no_road: "🛣 No road can reach this building; there is no free buildable ground around it to lay one. Try another lot."
+    grid_max: "🗺 The village's land has reached the technical limit of the map size and cannot grow further."
+    batch: |-
+      🚧 The batch was not built and nothing was paid. These lots have a problem:
+      {lots}
+    promotion_top: "🏙 This settlement has reached the highest tier; there is no step beyond."
+    storage_full: "📦 The village stock has no room. A granary adds room."
+    already_working: "⚒ You are already working a shift. Wait for it to end."
+    workplace_full: "⚒ Every place at this workplace is taken. Try again later or work somewhere else."
+    not_workplace: "🔒 Nobody works in this building."
+    labor_no_job: "📋 That job is no longer on the hiring board."
+    labor_not_here: "🚶 To work here you must live in this village or be in it."
+    labor_fully_staffed: "👷 Enough workers are already on this site; their shifts in progress will finish the work. Check back when they end."
+    labor_budget_spent: "📋 The employer has set aside no more pay for this job."
+    labor_not_employer: "🔒 Only the employer of this job (the village head, or the building's owner) can do that."
+    labor_no_npc: "👷 No free labourer is left in the village today. More homes mean more residents and more workers."
+    labor_wage_too_low: "💸 That wage is below the village's minimum wage."
+    labor_employer_broke: "🏦 The employer cannot afford the wage of this shift."
+    labor_no_site: "🏗 No such site."
+  batch_lot: "• row {y}, column {x}: {reason}"
+  batch_reason:
+    occupied: "already taken"
+    unbuildable: "water or too steep"
+    out_of_bounds: "outside the village"
+    terrain: "the ground is not suitable"
+    prerequisite: "a prerequisite is missing"
+    literacy: "literacy is too low"
+    concurrent_cap: "the build queue is full"
+    not_available: "this building cannot be built in a batch"
+    not_found: "not a valid lot"
+  needs:
+    title:
+      build: "🧱 To build {subject} you are still missing something:"
+      research: "🔬 To research {subject} you are still missing something:"
+      work: "⚒ To work at {subject} you are still missing something:"
+    material: "• {need} {name} needed (in the village stock: {have}) - {source}"
+    knowledge: "• The knowledge {name} - research it under Village knowledge or buy it from Support"
+    knowledge_any: "• One of these: {names} - research it under Village knowledge or buy it from Support"
+    building: "• One of these buildings: {names} - build it first"
+    or: " or "
+    source:
+      made_built: "made at your {building}, work a shift there"
+      made_unbuilt: "build a {building} to make it"
+      buy: "buy it from Support's market ({price} each)"
+    button:
+      build: "🏗 Build {building}"
+      work: "⚒ Work at {building}"
+      buy: "🛒 Buy {quantity} {name}"
+      knowledge: "📚 Village knowledge"
+      materials: "🧱 Stock and market"
+  materials:
+    title: "🧱 Stock and market of {village}"
+    treasury: "🏦 Treasury: {amount}"
+    capacity: "📦 Stock room: {used} of {capacity} units"
+    stock_title: "📥 In the stock:"
+    stock_line: "• {name}: {qty}"
+    stock_empty: "The stock is empty."
+    market_title: "🛒 Support's market (paid in SUP from the treasury):"
+    market_line: "• {name}: {price} each"
+    hint: "What the village's own workplaces make comes cheaper than the market; to get going you can buy here."
+    bought: "✅ {qty} {name} bought and brought to the village stock ({total} from the treasury)."
+    ask_title: "🛒 Buy {qty} {name} for {village}?"
+    ask_body: "{unit} each; {total} in all is paid from the treasury (now {treasury}) and the goods go to the village stock."
+    button:
+      buy: "🛒 {name} x{quantity}"
+      yes: "✅ Yes, buy ({total})"
+  work:
+    title: "⚒ Work in {village}"
+    material: "{qty} {name}"
+    place: "• {building}: per shift ({shift}) {produces} - wage {wage} - places taken: {busy} of {workers}"
+    place_inputs: "• {building}: per shift ({shift}) turns {consumes} into {produces} - wage {wage} - places taken: {busy} of {workers}"
+    none: "There is no workplace yet. To start, build one of these: {names}"
+    mine: "⏳ Your shift at {building} - ends at {time} ({duration} left) - makes {produces}, wage {wage}"
+    not_resident: "🏡 Only residents work here; press \"Become a resident\" first."
+    capacity: "📦 Stock room: {used} of {capacity} units"
+    hint: "A resident works each shift; nothing is made without a worker and the wage is paid from the village treasury."
+    button:
+      start: "⚒ Start a shift at {building}"
+  labor:
+    level:
+      apprentice: "Apprentice"
+      journeyman: "Journeyman"
+      master: "Master"
+    work_left: "{hours} worker-hours"
+    employer:
+      village: "the village"
+      player: "{name}"
+    npc_worker: "Day labourer"
+    worker: "• {name} - shift until {time} ({duration} left)"
+    not_resident: "ℹ️ You do not live in this village, but you can work here by the day while you are in it."
+    market:
+      slack: "📉 Labour market: workers are plentiful ({available} of {pool} labourers free) - a day labourer asks {wage} a shift (minimum {min})."
+      balanced: "⚖️ Labour market: supply and demand are balanced ({available} of {pool} labourers free) - a day labourer asks {wage} a shift."
+      tight: "📈 Labour market: workers are getting scarce ({available} of {pool} labourers free) - a day labourer asks {wage} a shift."
+      short: "🔥 Labour market: a labour shortage! ({available} of {pool} labourers free) - a day labourer asks {wage} a shift. More homes mean more residents and workers."
+    job:
+      construction: "• {building} - {percent}% built, {left} to go - {wage} a shift from {employer} - {workers} working"
+      production: "• Work at {building} - {wage} a shift from {employer} - {shifts} shifts left"
+    board:
+      title: "📋 Hiring board of {village}"
+      empty: "No jobs are posted right now. Every building going up posts one."
+      working: "⏳ You are working at {building} - the shift ends at {time} ({duration} left) - pay {wage}"
+      sites: "🏗 Sites with no job posted: {names}"
+      site_item: "{building} ({percent}%)"
+      hint: "Tap a job to open its site and press Work. Buildings are built only by the work of workers; no timer finishes them by itself."
+    site:
+      title: "🏗 {building} - construction in {village}"
+      done: "✅ {building} is built."
+      progress: "📊 Progress: {percent}% - {done} of {total} worker-hours done, {left} to go."
+      no_workers: "😴 Nobody is working on this site right now; a building does not advance without workers."
+      workers: |-
+        👷 {count} workers on site:
+        {list}
+      no_job: "📋 There is no job posted for this site."
+      crew: "👷 Crew: {crew} day labourers are kept on the site."
+      hire: "👷 Free labourers: {available} - {wage} a shift. A day labourer works more slowly than a journeyman."
+    just:
+      worked: "✅ Your shift has started; when it ends the work is added to the building and you are paid."
+      hired: "✅ Workers hired."
+      wage: "✅ Wage changed."
+      posted: "✅ The job is on the board."
+      closed: "🚫 The job is closed; shifts in progress still end and are paid."
+    mine:
+      title: "📊 My work in {village}"
+      idle: "😴 You have no shift now. Pick up a job from the hiring board."
+      stats: "🎖 Level: {level} (output {percent}%) - {shifts} shifts worked - {earned} earned in all"
+      next: "⬆️ {shifts} more shifts to {level}."
+    button:
+      job: "🏗 {building} (+{wage})"
+      post: "📋 Post a job for {building}"
+      work: "⚒ Work (+{wage})"
+      hire: "👷 Hire {count} labourers"
+      wage: "💰 Wage {wage}"
+      close: "🚫 Close the job"
+      mine: "📊 My work"
+      board: "📋 Hiring board"
+      site: "🏗 Site of {building}"
+  donate:
+    title: "💰 Give to the treasury of {village}"
+    body: |-
+      🏦 Village treasury: {treasury}
+      👛 Your cash: {cash}
+      A gift is between {min} and {max}. Choose an amount:
+    ask_title: "💰 Give {amount} to the treasury of {village}?"
+    ask_body: "The amount leaves your cash and joins the village treasury, which pays for its buildings and research. A gift cannot be taken back."
+    button_yes: "✅ Yes, give {amount}"
+    done_title: "💰 Thank you! {amount} reached the treasury of {village}."
+    done_body: "🏦 The village treasury now holds {treasury} and your cash is {cash}."
+  residence:
+    join:
+      ask_title: "🏡 Become a resident of {village}?"
+      ask_body: |-
+        Your home moves to this village. Your properties, companies and job stay where they are, but from now on your income tax goes to the village treasury and you need a work permit to work in other cities.
+        You cannot move home again for {cooldown}.
+      button_yes: "✅ Yes, I will live here"
+      done_title: "🏡 Welcome to {village}!"
+      done_body: "Your home is now here, and you are one of {population} residents. You cannot move again for {cooldown}."
+    leave:
+      ask_title: "🚪 Leave {village}?"
+      ask_body: |-
+        Your home returns to {home}. Your properties, companies and job stay where they are.
+        You cannot move home again for {cooldown}.
+      button_yes: "✅ Yes, I am leaving"
+      done_title: "🚪 You left {village}."
+      done_body: "Your home is now {home}. You cannot move again for {cooldown}."
+
+knowledge:
+  title: "📚 Knowledge of {name}"
+  treasury: "🏦 Treasury: {amount}"
+  literacy: "📖 Literacy: {percent}%"
+  running: "⏳ Researching {knowledge} - finishes at {time} - {duration} left"
+  empty: "No knowledge to show."
+  hidden: "🔭 {count} more items unlock beyond these."
+  line:
+    held: "✅ {knowledge} - already known"
+    researching: "⏳ {knowledge} - research running"
+    available: "🔬 {knowledge} - research cost {cost} ({time}) - ready-made price: {buy_price}"
+    locked: "🔒 {knowledge} - needs {missing} first"
+    locked_terrain: "🔒 {knowledge} - this village's terrain does not permit it"
+  button:
+    research: "🔬 Research {knowledge}"
+    buy: "💰 Buy {knowledge}"
+
+build:
+  title: "🏗 Construction in {name}"
+  treasury: "🏦 Treasury: {amount}"
+  queue: "📋 Build queue: {running} of {cap}"
+  empty: "Nothing available to build."
+  line:
+    available: "🏗 {building} - cost {cost} - build time {time}"
+    locked: "🔒 {building} - needs {missing} first"
+    locked_building: "🔒 {building} - build one of {missing} first"
+    locked_role: "🔒 {building} - its prerequisites are not met yet"
+    short: "🧱 {building} - cost {cost} - materials: {materials} - you lack: {short}"
+  button:
+    place: "🏗 Build {building}"
+    grow: "🗺 Expand the land"
+  confirm:
+    title: "🏗 Build {building}"
+    body: "Cost: {cost}\nBuild time: {time}\nLocation: row {y}, column {x}"
+    material_line: "• {component}: {quantity} units"
+    button: "✅ Confirm and build"
+    auto_roads: "🛣 To connect this building, {count} lots of road are laid with it, free and ready at once."
+  batch:
+    title: "🛣 Build {count} x {building}"
+    body: "Total cost: {cost}\nBuild time: {time} (all start together)"
+    button: "✅ Confirm and build all"
+
+lots:
+  title: "🗺 Choose where to build in {name}"
+  building: "Building: {building}"
+  legend: "✅ free and fits - ⬜ free but does not fit - 🏠 occupied - 🛣 road - 💧 water - ⛰ steep"
+  button:
+    rotate: "🔄 Rotate building"
+    reset_rotation: "🔄 Reset rotation"
+    line: "📏 Build a run of lots"
+  window: "🗺 Showing rows {y0} to {y1} and columns {x0} to {x1} of the {n}x{n} land; move with the arrows."
+  line_start: "📏 Tap the first lot of the run."
+  line_end: "📏 The run starts at row {y}, column {x}. Now tap the last lot; the run goes along the row, then down the column."
+
+construction:
+  title: "⏳ Construction queue of {name}"
+  empty: "Nothing is queued."
+  line:
+    queued: "📋 {building} - queued - not yet started"
+    building: "🏗 {building} - under construction - finishes at {time} - {duration} left"
+    work: "🏗 {building} - {percent}% built, {left} to go (it advances only by workers)"
+  button:
+    open: "🏗 {building}"
+  standing_hint: "Tap a finished building to see it."
+
+# Buying more land: the grid grows by a column east and a row north.
+grow:
+  title: "🗺 Expand the land of {name}"
+  body: |-
+    The land grows from {side}x{side} to {new_side}x{new_side}: {lots} new lots, {buildable} of them dry buildable ground.
+    Price: {price}
+    Treasury: {treasury}
+  note: "Standing buildings stay where they are. Water and steep ground stay unbuildable. Each expansion costs more than the last."
+  button: "✅ Confirm and expand"
+
+# The panel of one placed building (internal/telegram/screens/village_building.go):
+# what it is and what it does; demolishing is the last, quiet button.
+building:
+  view:
+    title: "🏛 {building}"
+    state_complete: "✅ Built and working."
+    under_construction: "🏗 Under construction: {percent}% - finishes at {time} ({duration} left)."
+    upkeep: "🧾 Upkeep: {amount} per period"
+    demolish_ask: "🗑 This building is removed for good and its lot is free again; only part of its cost returns to the treasury. Are you sure?"
+    demolish_yes: "🗑 Yes, demolish it"
+    cancel_ask: "🛑 Construction stops and what was paid is not returned. Are you sure?"
+    cancel_yes: "🛑 Yes, cancel the build"
+  button:
+    upgrade: "⬆️ Upgrade"
+    demolish: "🗑 Demolish"
+    cancel: "🛑 Cancel the build"
+  desc:
+    road: "A village road; it joins the lots and is the way the villagers walk. It does nothing else."
+    civic_hall: "The village's seat of office, where the head runs the village. The treasury, knowledge and construction are reached from here."
+    role:
+      security: "Watches over the village and raises local security."
+      craft: "A workshop, the base of making goods in the village."
+      extraction: "Takes raw materials out of the ground."
+      water_infra: "Brings and holds water for the village's life and farming."
+      food: "Grows the village's food and raises its food coverage."
+      health: "Looks after the villagers' health."
+      education: "Teaches the villagers; while it stands, literacy slowly spreads."
+      market: "Where the villagers trade and goods change hands."
+      storage: "The village store: the shared materials and goods are kept here, and construction draws from this stock."
+      housing: "Homes for the villagers; raises the population capacity."
+    code:
+      housing_block: "New homes for the villagers; raises the population capacity."
+      park: "Green space that lifts the villagers' mood."
+      bank: "A building of larger towns; its use opens as the village grows."
+      barracks: "A building of larger towns; its use opens as the village grows."
+      port: "A building of larger towns; its use opens as the village grows."
+      airport: "A building of larger towns; its use opens as the village grows."
+  effect:
+    local_security_bps: "🛡 Local security: +{value}%"
+    food_coverage_bps: "🌾 Food coverage: +{value}%"
+    job_coverage_bps: "💼 Job coverage: +{value}%"
+    service_coverage_bps: "🏥 Service coverage: +{value}%"
+    happiness_bps: "🙂 Happiness: +{value}%"
+    housing_capacity: "🏠 Population capacity: +{value}"
+  storage:
+    title: "📦 In store:"
+    line: "• {item}: {qty}"
+    capacity: "📦 Store room: {used} of {capacity} units"
+    empty: "📦 The store is empty for now."
+  school:
+    literacy: "📖 Village literacy: {percent}%"
+    teaching: "🧑‍🏫 Teaching is under way and literacy is slowly rising."
+    idle: "🧑‍🏫 Nothing is being taught."
+  civic:
+    population: "👥 Population: {population}"
+    research: "🔬 Research under way: {knowledge} - {duration} left"
+    no_research: "🔬 No research is running."
+  upgrade:
+    intro: "⬆️ The next step after {building}:"
+    line: "✅ {building} - cost {cost} - build time {time}"
+    locked: "🔒 {building} - you need {missing} first"
+    locked_other: "🔒 {building} - its prerequisites are not met yet"
+    needs_tier: "🔒 {building} - opens when the settlement becomes a {tier}"
+    none: "There is no next step."
+

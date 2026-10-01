@@ -54,18 +54,20 @@ func TestVillagePromotion(t *testing.T) {
 		return string(b)
 	}
 	overview := func(p *application.Player) *presenter.Response {
-		r, err := village.Overview(ctx, as(p, "settlement.overview", "overview"))
+		m := as(p, "settlement.overview", "overview")
+		r, err := village.Overview(ctx, m)
 		if err != nil {
 			t.Fatalf("overview: %v", err)
 		}
-		return r
+		return renderedIn(t, m, r)
 	}
 	promote := func(p *application.Player, confirm string) *presenter.Response {
-		r, err := village.Promote(ctx, as(p, "settlement.promote", "promote"), handlers.VillagePromoteRequest{Confirm: confirm})
+		m := as(p, "settlement.promote", "promote")
+		r, err := village.Promote(ctx, m, handlers.VillagePromoteRequest{Confirm: confirm})
 		if err != nil {
 			t.Fatalf("promote: %v", err)
 		}
-		return r
+		return renderedIn(t, m, r)
 	}
 	tierOf := func() (tier, kind string) {
 		if err := pool.Raw().QueryRow(ctx,

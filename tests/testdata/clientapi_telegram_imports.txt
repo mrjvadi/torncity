@@ -1,0 +1,9 @@
+# Files that still import a Telegram presentation package. This list may only shrink:
+# a file leaves it when its area is migrated (docs/adr/0039-presentation-split.md).
+internal/clientapi/actions.go
+internal/clientapi/bootstrap.go
+internal/clientapi/bridge.go
+internal/clientapi/catalogue.go
+internal/clientapi/presence.go
+internal/clientapi/server.go
+internal/clientapi/worldmap.go

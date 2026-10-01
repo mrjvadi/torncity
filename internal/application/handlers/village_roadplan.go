@@ -3,11 +3,11 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Automatic roads (docs: internal/domain/settlementbuilding/roads.go for the
@@ -80,7 +80,7 @@ func (h *VillageHandler) planAutoRoads(ctx context.Context, tx application.Tx, s
 	}
 	path, err := settlementbuilding.PlanRoads(grid, fp, roads, hall)
 	if stderrors.Is(err, settlementbuilding.ErrNoRoadAccess) {
-		return nil, refuseVillage(screens.VillageNoRoad)
+		return nil, refuseVillage(village.VillageNoRoad)
 	}
 	return path, err
 }
@@ -98,7 +98,7 @@ func (h *VillageHandler) layAutoRoads(ctx context.Context, tx application.Tx, se
 			Status: "complete", QueuedAt: now, CompletedAt: &done,
 		}); err != nil {
 			if stderrors.Is(err, application.ErrLotOccupied) {
-				return nil, refuseVillage(screens.VillageOccupied)
+				return nil, refuseVillage(village.VillageOccupied)
 			}
 			return nil, err
 		}

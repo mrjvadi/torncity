@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -20,8 +22,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // VillageHandler serves K2 (docs/adr/0031-knowledge-and-village-
@@ -33,7 +33,7 @@ import (
 //
 // GROUP-ONLY, LIKE FOUNDING ITSELF. Every command here answers where it was
 // sent, and every one of them refuses outside the group that founded the
-// settlement in question (screens.VillageRefusal, VillageNoSettlement) —
+// settlement in question (village.VillageRefusal, VillageNoSettlement) —
 // the same "a village's growth is the group's own decision" rule
 // SettlementsHandler already follows for founding.
 //
@@ -200,8 +200,8 @@ const villageHeadOffice = "village_head"
 
 func officeFor(tier string) string { return wsettle.HeadOffice(tier) }
 
-func (h *VillageHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
+func (h *VillageHandler) screen(meta envelope.Metadata, lang string) presentation.Ctx {
+	return presentation.Ctx{Lang: lang}
 }
 
 // viewer reads the player behind a command and the language to answer in,
@@ -219,7 +219,7 @@ func (h *VillageHandler) viewer(ctx context.Context, tx application.Tx, meta env
 }
 
 // villageRefusal is a sentinel-carrying error a handler raises for a
-// refusal screens.VillageRefusal renders, mirroring productionRefusal's own
+// refusal village.VillageRefusal renders, mirroring productionRefusal's own
 // shape (production.go) at a fraction of its size: K2/W5 needs no
 // per-kind extra fields today.
 type villageRefusal struct {
@@ -229,13 +229,13 @@ type villageRefusal struct {
 	// min and max are a donation's bounds, for donate_range.
 	min, max int64
 	// lots are the lots a refused batch names.
-	lots []screens.BatchLotFailure
+	lots []village.BatchLotFailure
 	// action, subject and needs are the attempt view of a refused build,
 	// research or shift: exactly what is missing and where it comes from
 	// (village_economy.go).
 	action  string
-	subject screens.Named
-	needs   []screens.VillageNeed
+	subject presentation.Named
+	needs   []village.VillageNeed
 }
 
 func (e *villageRefusal) Error() string { return "handlers: village refusal: " + e.kind }
@@ -250,24 +250,24 @@ func refuseVillage(kind string, back ...string) *villageRefusal {
 
 // villageFinish turns a refusal (or any other error) into the response a
 // player sees, exactly production.go's own finish pattern.
-func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	if err == nil {
 		return nil, nil
 	}
 	c := h.screen(meta, lang)
 	var r *villageRefusal
 	if stderrors.As(err, &r) {
-		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: r.kind, Back: r.back, Remaining: r.remaining, Min: r.min, Max: r.max, Lots: r.lots,
+		return village.VillageRefusal(c, village.VillageRefusalView{Kind: r.kind, Back: presentation.RefOfAddress(r.back), Remaining: r.remaining, Min: r.min, Max: r.max, Lots: r.lots,
 			Action: r.action, Subject: r.subject, Needs: r.needs}), nil
 	}
 	if stderrors.Is(err, application.ErrCityNotFound) {
-		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: screens.VillageNoSettlement}), nil
+		return village.VillageRefusal(c, village.VillageRefusalView{Kind: village.VillageNoSettlement}), nil
 	}
 	if stderrors.Is(err, application.ErrNotOfficeHolder) {
-		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: screens.VillageNotOfficeHolder}), nil
+		return village.VillageRefusal(c, village.VillageRefusalView{Kind: village.VillageNotOfficeHolder}), nil
 	}
 	if stderrors.Is(err, application.ErrInsufficientFunds) {
-		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: screens.VillageInsufficient}), nil
+		return village.VillageRefusal(c, village.VillageRefusalView{Kind: village.VillageInsufficient}), nil
 	}
 	return nil, err
 }
@@ -412,14 +412,14 @@ func (h *VillageHandler) knowledgeStanding(ctx context.Context, tx application.T
 // ---------------------------------------------------------------------
 
 // Overview handles settlement.overview.
-func (h *VillageHandler) Overview(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *VillageHandler) Overview(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.overview(ctx, meta, false)
 }
 
-func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, home bool) (*presenter.Response, error) {
+func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, home bool) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.VillageOverviewView
+	var view village.VillageOverviewView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		viewer, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -453,7 +453,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 
 		var cap int64
 		coverage := map[string]int64{}
-		byRole := map[string]screens.VillageRoleLine{}
+		byRole := map[string]village.VillageRoleLine{}
 		for _, b := range buildings {
 			if !b.Complete() || b.Status == "demolished" {
 				continue
@@ -464,18 +464,20 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			}
 			for _, e := range def.BuildingEffects() {
 				if e.Target == "housing_capacity" {
-					cap += e.Value
 					continue
 				}
 				coverage[e.Target] += e.Value
 			}
 			if def.Role != "" {
 				if cur, ok := byRole[def.Role]; !ok || def.Tier > cur.Tier {
-					byRole[def.Role] = screens.VillageRoleLine{Role: def.Role, Building: screens.Named{Code: def.Code, Name: def.Name}, Tier: def.Tier}
+					byRole[def.Role] = village.VillageRoleLine{Role: def.Role, Building: presentation.Named{Code: def.Code, Name: def.Name}, Tier: def.Tier}
 				}
 			}
 		}
-		var roleLines []screens.VillageRoleLine
+		// The homes the village has: the households it starts with plus what its
+		// standing buildings add, the same number the labour market reads.
+		cap = h.labor.BaseHousing + housingOf(snap, buildings)
+		var roleLines []village.VillageRoleLine
 		for _, role := range []string{"security", "craft", "forestry", "extraction", "water_infra", "food", "housing", "health", "education", "market", "storage", "recreation"} {
 			if l, ok := byRole[role]; ok {
 				roleLines = append(roleLines, l)
@@ -483,7 +485,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 		}
 
 		isHead := authorizeVillage(ctx, tx, s, viewer.ID) == nil
-		view = screens.VillageOverviewView{
+		view = village.VillageOverviewView{
 			IsHead: isHead,
 			Name:   s.Name, Tier: s.Tier, Population: residents, PopulationCap: cap,
 			Resident: home == s.CityID, SettlementID: s.CityID,
@@ -501,7 +503,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 		}
 		if h.homeCityCode != "" {
 			if support, err := h.cities.ByCode(ctx, h.homeCityCode); err == nil {
-				view.Support = &screens.VillageSupport{Code: support.Code, Name: support.Name}
+				view.Support = &village.VillageSupport{Code: support.Code, Name: support.Name}
 			}
 		}
 		return nil
@@ -509,14 +511,14 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 	if home && stderrors.Is(err, application.ErrCityNotFound) {
 		// The village is the home: without one, home is the call to found it.
 		if meta.InGroup() {
-			return screens.VillageHomeCall(h.screen(meta, lang)), nil
+			return village.VillageHomeCall(h.screen(meta, lang)), nil
 		}
-		return screens.VillageHomeNone(h.screen(meta, lang)), nil
+		return village.VillageHomeNone(h.screen(meta, lang)), nil
 	}
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.VillageOverview(h.screen(meta, lang), view), nil
+	return village.VillageOverview(h.screen(meta, lang), view), nil
 }
 
 // treasuryBalance reads a settlement's own city_treasury balance, opening
@@ -644,14 +646,14 @@ func appendVillageEvent(ctx context.Context, tx application.Tx, meta envelope.Me
 // treasury and donation, and the services that are a journey away in
 // Support); in a group without one, the call to found it; in a private chat,
 // the village the player lives in.
-func (h *VillageHandler) Home(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *VillageHandler) Home(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.overview(ctx, meta, true)
 }
 
 // HomeIfVillage is Home for a group that has a village, and reports false for
 // a group that has none, so a caller with its own screen (the city hall) can
 // let the village take the place of the city only where there is a village.
-func (h *VillageHandler) HomeIfVillage(ctx context.Context, meta envelope.Metadata) (*presenter.Response, bool, error) {
+func (h *VillageHandler) HomeIfVillage(ctx context.Context, meta envelope.Metadata) (*presentation.Response, bool, error) {
 	if !meta.InGroup() {
 		return nil, false, nil
 	}

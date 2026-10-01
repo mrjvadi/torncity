@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -52,7 +53,7 @@ func villageLaborSnapshots(c Context, who people, add func(string, *presenter.Re
 	head := site
 	head.CanWork, head.CanEmploy = false, true
 	head.HirePresets = []int{1, 2, 4}
-	head.WagePresets = []LaborPreset{{100, 46}, {125, 57}, {150, 69}, {200, 92}}
+	head.WagePresets = []LaborPreset{{Percent: 100, Wage: 46}, {Percent: 125, Wage: 57}, {Percent: 150, Wage: 69}, {Percent: 200, Wage: 92}}
 	head.NPCAvailable, head.NPCWage = 2, 46
 	add("Site · the head, hiring labourers", LaborSite(g, head))
 	hired := head
@@ -79,7 +80,7 @@ func villageLaborSnapshots(c Context, who people, add func(string, *presenter.Re
 	}))
 
 	for _, kind := range []string{LaborNoJob, LaborNotHere, LaborFullyStaffed, LaborBudgetSpent, LaborNotEmployer, LaborNoNPC, LaborWageTooLow, LaborEmployerBroke, LaborNoSite} {
-		add("Refusal · "+kind, VillageRefusal(g, VillageRefusalView{Kind: kind, Back: AddrLaborBoard}))
+		add("Refusal · "+kind, VillageRefusal(g, VillageRefusalView{Kind: kind, Back: presentation.RefOfAddress(AddrLaborBoard)}))
 	}
 	add("Construction progress · by work", ConstructionProgress(g, ConstructionProgressView{Name: villageNameFor(c), Lines: []ConstructionLine{
 		{Building: camp, State: ConstructionBuilding, ID: "b1", ByWork: true, ProgressBPS: 3500, LeftMinutes: 78},

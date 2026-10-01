@@ -155,7 +155,7 @@ func TestClientVillageCommandsAndLayout(t *testing.T) {
 	}
 
 	// ---- Lots, from a client, is the grid placement will use --------------
-	lots, err := village.Lots(ctx, clientMeta(head, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "militia_camp"})
+	lots, err := rrcm(clientMeta(head, "settlement.build.lots", "build.lots"))(village.Lots(ctx, clientMeta(head, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "militia_camp"}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,8 +170,8 @@ func TestClientVillageCommandsAndLayout(t *testing.T) {
 
 	// ---- a stranger is refused, structurally -----------------------------
 	// (a stranger belongs to no settlement, so the command finds none)
-	resp, err := village.Place(ctx, clientMeta(stranger, "settlement.build.place", "build.place"),
-		handlers.VillageBuildRequest{Code: "road", Lot: screens.LotToken(0, 0, false), Confirm: screens.VillageBuildConfirm})
+	resp, err := rrcm(clientMeta(stranger, "settlement.build.place", "build.place"))(village.Place(ctx, clientMeta(stranger, "settlement.build.place", "build.place"),
+		handlers.VillageBuildRequest{Code: "road", Lot: screens.LotToken(0, 0, false), Confirm: screens.VillageBuildConfirm}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,8 +180,8 @@ func TestClientVillageCommandsAndLayout(t *testing.T) {
 	}
 
 	// ---- water refused, with its own code --------------------------------
-	resp, err = village.Place(ctx, clientMeta(head, "settlement.build.place", "build.place"),
-		handlers.VillageBuildRequest{Code: "road", Lot: screens.LotToken(waterX, waterY, false), Confirm: screens.VillageBuildConfirm})
+	resp, err = rrcm(clientMeta(head, "settlement.build.place", "build.place"))(village.Place(ctx, clientMeta(head, "settlement.build.place", "build.place"),
+		handlers.VillageBuildRequest{Code: "road", Lot: screens.LotToken(waterX, waterY, false), Confirm: screens.VillageBuildConfirm}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -192,8 +192,8 @@ func TestClientVillageCommandsAndLayout(t *testing.T) {
 
 	// ---- place a turned militia camp -------------------------------------
 	// A 2x1 camp turned is 1x2: find a free lot where the turned footprint fits.
-	turned, err := village.Lots(ctx, clientMeta(head, "settlement.build.lots", "build.lots"),
-		handlers.VillageLotsRequest{Code: "militia_camp", Rotate: "1"})
+	turned, err := rrcm(clientMeta(head, "settlement.build.lots", "build.lots"))(village.Lots(ctx, clientMeta(head, "settlement.build.lots", "build.lots"),
+		handlers.VillageLotsRequest{Code: "militia_camp", Rotate: "1"}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,7 +203,7 @@ func TestClientVillageCommandsAndLayout(t *testing.T) {
 	}
 	place := func(p *application.Player, code string, x, y int, rotated bool) *clientPlaceResult {
 		m := clientMeta(p, "settlement.build.place", "build.place")
-		r, err := village.Place(ctx, m, handlers.VillageBuildRequest{Code: code, Lot: screens.LotToken(x, y, rotated), Confirm: screens.VillageBuildConfirm})
+		r, err := rrcm(m)(village.Place(ctx, m, handlers.VillageBuildRequest{Code: code, Lot: screens.LotToken(x, y, rotated), Confirm: screens.VillageBuildConfirm}))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -254,13 +254,13 @@ func TestClientVillageCommandsAndLayout(t *testing.T) {
 	}
 
 	// ---- the head cancels it; the lot is free and can be built on again ----
-	if _, err := village.Cancel(ctx, clientMeta(head, "settlement.build.cancel", "build.cancel"), handlers.VillageBuildingRequest{ID: campID}); err != nil {
+	if _, err := rrcm(clientMeta(head, "settlement.build.cancel", "build.cancel"))(village.Cancel(ctx, clientMeta(head, "settlement.build.cancel", "build.cancel"), handlers.VillageBuildingRequest{ID: campID})); err != nil {
 		t.Fatal(err)
 	}
 	if err := pool.Raw().QueryRow(ctx, `SELECT status FROM settlement_buildings WHERE id = $1::uuid`, campID).Scan(&status); err != nil || status != "cancelled" {
 		t.Fatalf("after cancel: %q %v", status, err)
 	}
-	resp, err = village.Cancel(ctx, clientMeta(head, "settlement.build.cancel", "build.cancel"), handlers.VillageBuildingRequest{ID: campID})
+	resp, err = rrcm(clientMeta(head, "settlement.build.cancel", "build.cancel"))(village.Cancel(ctx, clientMeta(head, "settlement.build.cancel", "build.cancel"), handlers.VillageBuildingRequest{ID: campID}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -268,7 +268,7 @@ func TestClientVillageCommandsAndLayout(t *testing.T) {
 		t.Errorf("cancelling twice: %q %s", resp.Screen, resp.View)
 	}
 	// The scheduled completion of a cancelled build does nothing.
-	if _, err := village.Built(ctx, clientMeta(head, "settlement.built", "built"), handlers.CrimeScheduledRequest{ReferenceID: campID}); err != nil {
+	if _, err := rrcm(clientMeta(head, "settlement.built", "built"))(village.Built(ctx, clientMeta(head, "settlement.built", "built"), handlers.CrimeScheduledRequest{ReferenceID: campID})); err != nil {
 		t.Fatal(err)
 	}
 	if err := pool.Raw().QueryRow(ctx, `SELECT status FROM settlement_buildings WHERE id = $1::uuid`, campID).Scan(&status); err != nil || status != "cancelled" {
@@ -293,8 +293,8 @@ func TestClientVillageCommandsAndLayout(t *testing.T) {
 	if err != nil || res.Detail != clientapi.DetailFull || res.Viewer.CanPlace {
 		t.Fatalf("resident layout: %+v %v", res.Viewer, err)
 	}
-	resp, err = village.Place(ctx, clientMeta(stranger, "settlement.build.place", "build.place"),
-		handlers.VillageBuildRequest{Code: "road", Lot: screens.LotToken(0, 0, false), Confirm: screens.VillageBuildConfirm})
+	resp, err = rrcm(clientMeta(stranger, "settlement.build.place", "build.place"))(village.Place(ctx, clientMeta(stranger, "settlement.build.place", "build.place"),
+		handlers.VillageBuildRequest{Code: "road", Lot: screens.LotToken(0, 0, false), Confirm: screens.VillageBuildConfirm}))
 	if err != nil {
 		t.Fatal(err)
 	}

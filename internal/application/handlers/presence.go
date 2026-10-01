@@ -6,8 +6,8 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 )
 
 // PresenceHandler serves the settlement's «who is around» group screen
@@ -36,7 +36,7 @@ func NewPresenceHandler(uow application.UnitOfWork, msgs Translator, svc *applic
 // The unit of work only resolves who is asking and which settlement the group
 // belongs to; the roster is read after it closes, from the pool and Redis,
 // never inside the transaction.
-func (h *PresenceHandler) Who(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *PresenceHandler) Who(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validPlayerRequest(meta); err != nil {
 		return nil, err
 	}
@@ -59,12 +59,12 @@ func (h *PresenceHandler) Who(ctx context.Context, meta envelope.Metadata) (*pre
 			return nil
 		}
 		if !meta.InGroup() {
-			return refuseVillage(screens.VillageNoSettlement)
+			return refuseVillage(village.VillageNoSettlement)
 		}
 		s, err = tx.Settlements().ByFoundingGroup(ctx, meta.TelegramChatID)
 		return err
 	})
-	c := screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
+	c := presentation.Ctx{Lang: lang}
 	if err != nil {
 		if resp := refusalFor(c, err); resp != nil {
 			return resp, nil
@@ -76,26 +76,26 @@ func (h *PresenceHandler) Who(ctx context.Context, meta envelope.Metadata) (*pre
 	if err != nil {
 		return nil, err
 	}
-	view := screens.SettlementWhoView{Name: s.Name}
+	view := village.SettlementWhoView{Name: s.Name}
 	for _, p := range roster.Players {
 		if p.Online {
-			view.Online = append(view.Online, screens.WhoLine{Name: p.DisplayName, Activity: string(p.Activity), Place: p.Place})
+			view.Online = append(view.Online, village.WhoLine{Name: p.DisplayName, Activity: string(p.Activity), Place: p.Place})
 		} else {
 			view.Offline++
 		}
 	}
-	return screens.SettlementWho(c, view), nil
+	return village.SettlementWho(c, view), nil
 }
 
 // refusalFor renders the two refusals a village screen can hit before it has
 // a settlement: the group has none, or the command was not sent in a group.
-func refusalFor(c screens.Context, err error) *presenter.Response {
+func refusalFor(c presentation.Ctx, err error) *presentation.Response {
 	var r *villageRefusal
 	if stderrors.As(err, &r) {
-		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: r.kind, Back: r.back})
+		return village.VillageRefusal(c, village.VillageRefusalView{Kind: r.kind, Back: presentation.RefOfAddress(r.back)})
 	}
 	if isSentinel(err, application.ErrCityNotFound) {
-		return screens.VillageRefusal(c, screens.VillageRefusalView{Kind: screens.VillageNoSettlement})
+		return village.VillageRefusal(c, village.VillageRefusalView{Kind: village.VillageNoSettlement})
 	}
 	return nil
 }

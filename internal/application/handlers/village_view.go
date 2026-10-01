@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"sort"
 	"strings"
 	"time"
@@ -10,8 +12,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // This file holds settlement.building.view: the panel of one placed
@@ -37,7 +37,7 @@ import (
 //   - every other role: description, effects and upkeep from the content.
 
 // VillageBuildingViewRequest names a placed building, and optionally the
-// panel's mode (screens.BuildingMode*).
+// panel's mode (village.BuildingMode*).
 type VillageBuildingViewRequest struct {
 	BuildingID string `json:"building_id"`
 	Mode       string `json:"mode,omitempty"`
@@ -47,25 +47,25 @@ type VillageBuildingViewRequest struct {
 func buildingKind(d content.SettlementBuildingDef) string {
 	switch {
 	case d.Code == "road":
-		return screens.BuildingKindRoad
+		return village.BuildingKindRoad
 	case d.Code == "civic_hall":
-		return screens.BuildingKindCivicHall
+		return village.BuildingKindCivicHall
 	case d.Role == "storage":
-		return screens.BuildingKindStorage
+		return village.BuildingKindStorage
 	case d.Role == "education":
-		return screens.BuildingKindSchool
+		return village.BuildingKindSchool
 	case d.Role == "security":
-		return screens.BuildingKindSecurity
+		return village.BuildingKindSecurity
 	default:
-		return screens.BuildingKindGeneric
+		return village.BuildingKindGeneric
 	}
 }
 
 // BuildingView handles settlement.building.view.
-func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadata, req VillageBuildingViewRequest) (*presenter.Response, error) {
+func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadata, req VillageBuildingViewRequest) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.BuildingView
+	var view village.BuildingView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -78,13 +78,13 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 		}
 		b, err := tx.SettlementBuildings().Get(ctx, strings.TrimSpace(req.BuildingID))
 		if isSentinel(err, application.ErrBuildingNotFound) {
-			return refuseVillage(screens.VillageNotFound)
+			return refuseVillage(village.VillageNotFound)
 		}
 		if err != nil {
 			return err
 		}
 		if b.SettlementID != s.CityID || !b.Holds() {
-			return refuseVillage(screens.VillageNotFound)
+			return refuseVillage(village.VillageNotFound)
 		}
 		head := true
 		if aerr := authorizeVillage(ctx, tx, s, p.ID); aerr != nil {
@@ -108,19 +108,19 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 		if b.Rotated {
 			def = def.Rotate()
 		}
-		view = screens.BuildingView{
+		view = village.BuildingView{
 			ID: b.ID, Building: named(d.Code, d.Name), Role: d.Role, Tier: d.Tier, Kind: buildingKind(d),
-			State: screens.BuildingStateComplete, X: b.LotX, Y: b.LotY, W: def.FootprintW, H: def.FootprintH,
+			State: village.BuildingStateComplete, X: b.LotX, Y: b.LotY, W: def.FootprintW, H: def.FootprintH,
 			Rotated: b.Rotated, Upkeep: d.Upkeep, CanManage: head,
 		}
 		for _, e := range d.BuildingEffects() {
-			view.Effects = append(view.Effects, screens.BuildingEffectLine{Target: e.Target, Value: e.Value})
+			view.Effects = append(view.Effects, village.BuildingEffectLine{Target: e.Target, Value: e.Value})
 		}
 
 		mode := strings.TrimSpace(req.Mode)
 		if head {
 			switch mode {
-			case screens.BuildingModeUpgrade, screens.BuildingModeDemolish, screens.BuildingModeCancel:
+			case village.BuildingModeUpgrade, village.BuildingModeDemolish, village.BuildingModeCancel:
 				view.Mode = mode
 			}
 		}
@@ -131,20 +131,20 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 			if b.FinishAt != nil {
 				finish = *b.FinishAt
 			}
-			view.State = screens.BuildingStateBuilding
+			view.State = village.BuildingStateBuilding
 			view.StartedAt, view.FinishAt, view.Left = b.QueuedAt, finish, countdownTo(finish, now)
 			view.ProgressPercent = progressPercent(b.QueuedAt, finish, now)
-			if view.Mode == screens.BuildingModeDemolish || view.Mode == screens.BuildingModeUpgrade {
+			if view.Mode == village.BuildingModeDemolish || view.Mode == village.BuildingModeUpgrade {
 				view.Mode = ""
 			}
 			return nil
 		}
-		if view.Mode == screens.BuildingModeCancel {
+		if view.Mode == village.BuildingModeCancel {
 			view.Mode = ""
 		}
 
 		switch view.Kind {
-		case screens.BuildingKindStorage:
+		case village.BuildingKindStorage:
 			rows, err := tx.SettlementBuildings().List(ctx, s.CityID)
 			if err != nil {
 				return err
@@ -164,7 +164,7 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 				if qty <= 0 {
 					continue
 				}
-				line := screens.BuildingStockLine{Item: named(code, code), Kind: "item", Qty: qty}
+				line := village.BuildingStockLine{Item: named(code, code), Kind: "item", Qty: qty}
 				if cd, ok := snap.ComponentDef(code); ok {
 					line.Item, line.Kind = named(cd.Code, cd.Name), "component"
 				} else if id, ok := snap.ItemDef(code); ok {
@@ -172,7 +172,7 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 				}
 				view.Stock = append(view.Stock, line)
 			}
-		case screens.BuildingKindSchool:
+		case village.BuildingKindSchool:
 			literacyBPS, _, err := tx.SettlementKnowledge().Literacy(ctx, s.CityID)
 			if err != nil {
 				return err
@@ -180,7 +180,7 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 			// Teaching runs on its own tick for as long as a complete
 			// education building stands, and this one does.
 			view.LiteracyPercent, view.Teaching = literacyBPS/100, true
-		case screens.BuildingKindCivicHall:
+		case village.BuildingKindCivicHall:
 			residents, err := tx.Settlements().ResidentCount(ctx, s.CityID)
 			if err != nil {
 				return err
@@ -196,7 +196,7 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 			}
 			if running != nil {
 				kd, _ := snap.SettlementKnowledgeDef(running.Code)
-				view.Research = &screens.BuildingResearchLine{
+				view.Research = &village.BuildingResearchLine{
 					Knowledge: named(kd.Code, kd.Name), FinishAt: running.FinishAt, Left: countdownTo(running.FinishAt, h.now()),
 				}
 			}
@@ -208,7 +208,7 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 				return err
 			}
 			view.HasUpgrade = len(ups) > 0
-			if view.Mode == screens.BuildingModeUpgrade {
+			if view.Mode == village.BuildingModeUpgrade {
 				view.Upgrades = ups
 			}
 		}
@@ -217,7 +217,7 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.BuildingPanel(h.screen(meta, lang), view), nil
+	return village.BuildingPanel(h.screen(meta, lang), view), nil
 }
 
 // upgradeLines are the buildings of the next tier of d's role, each with
@@ -225,7 +225,7 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 // building requires a tier-1 one of its role), revealed only on request.
 func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 	s application.FoundedSettlement, d content.SettlementBuildingDef,
-) ([]screens.BuildingUpgradeLine, error) {
+) ([]village.BuildingUpgradeLine, error) {
 	next := 0
 	for _, code := range sortedBuildingCodes(snap) {
 		o, _ := snap.SettlementBuildingDef(code)
@@ -244,14 +244,14 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 	if err != nil {
 		return nil, err
 	}
-	var out []screens.BuildingUpgradeLine
+	var out []village.BuildingUpgradeLine
 	for _, code := range sortedBuildingCodes(snap) {
 		o, _ := snap.SettlementBuildingDef(code)
 		def := o.Def()
 		if o.Role != d.Role || o.Tier != next {
 			continue
 		}
-		line := screens.BuildingUpgradeLine{
+		line := village.BuildingUpgradeLine{
 			Building: named(o.Code, o.Name), Tier: o.Tier, CostMoney: o.CostMoney,
 			BuildTime: h.scale.RealWait(def.BuildTime), Available: true,
 		}

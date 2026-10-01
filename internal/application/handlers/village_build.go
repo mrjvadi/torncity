@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"sort"
 	"strings"
 	"time"
@@ -13,8 +15,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // This file holds W5's placement, demolition and construction completion
@@ -32,7 +32,7 @@ import (
 type VillageBuildRequest struct {
 	Code string `json:"code"`
 	// Lot is "{x}-{y}" or "{x}-{y}-r" (rotated), the token
-	// screens.LotToken/ParseLotToken both read and write, so a screen and
+	// village.LotToken/ParseLotToken both read and write, so a screen and
 	// a handler can never spell a coordinate two different ways.
 	Lot     string `json:"lot,omitempty"`
 	Confirm string `json:"confirm,omitempty"`
@@ -41,14 +41,14 @@ type VillageBuildRequest struct {
 func (r VillageBuildRequest) code() string { return strings.TrimSpace(r.Code) }
 
 func (r VillageBuildRequest) confirmed() bool {
-	return strings.TrimSpace(r.Confirm) == screens.VillageBuildConfirm
+	return strings.TrimSpace(r.Confirm) == village.VillageBuildConfirm
 }
 
 // lot parses r.Lot, or reports ok=false for a missing or malformed one — a
 // forged or stale button, refused the same way any other malformed
 // callback argument is, never trusted as a coordinate on its own.
 func (r VillageBuildRequest) lot() (x, y int, rotated, ok bool) {
-	return screens.ParseLotToken(r.Lot)
+	return village.ParseLotToken(r.Lot)
 }
 
 // VillageLotsRequest names the building code the grid is being shown for,
@@ -76,21 +76,21 @@ type VillageBuildingRequest struct {
 func buildingRefusal(err error) *villageRefusal {
 	switch {
 	case stderrors.Is(err, settlementbuilding.ErrOutOfBounds):
-		return refuseVillage(screens.VillageOutOfBounds)
+		return refuseVillage(village.VillageOutOfBounds)
 	case stderrors.Is(err, settlementbuilding.ErrUnbuildableLot):
-		return refuseVillage(screens.VillageUnbuildable)
+		return refuseVillage(village.VillageUnbuildable)
 	case stderrors.Is(err, settlementbuilding.ErrLotOccupied):
-		return refuseVillage(screens.VillageOccupied)
+		return refuseVillage(village.VillageOccupied)
 	case stderrors.Is(err, settlementbuilding.ErrTerrainRequired):
-		return refuseVillage(screens.VillageTerrain)
+		return refuseVillage(village.VillageTerrain)
 	case stderrors.Is(err, settlementbuilding.ErrKnowledgeMissing), stderrors.Is(err, settlementbuilding.ErrRoleMissing):
-		return refuseVillage(screens.VillagePrerequisite)
+		return refuseVillage(village.VillagePrerequisite)
 	case stderrors.Is(err, settlementbuilding.ErrLiteracyTooLow):
-		return refuseVillage(screens.VillageLiteracy)
+		return refuseVillage(village.VillageLiteracy)
 	case stderrors.Is(err, settlementbuilding.ErrConcurrentBuildCap):
-		return refuseVillage(screens.VillageConcurrentCap)
+		return refuseVillage(village.VillageConcurrentCap)
 	default:
-		return refuseVillage(screens.VillageNotAvailable)
+		return refuseVillage(village.VillageNotAvailable)
 	}
 }
 
@@ -111,7 +111,7 @@ func (h *VillageHandler) buildPlacementContext(ctx context.Context, tx applicati
 	var ok bool
 	d, ok = snap.SettlementBuildingDef(code)
 	if !ok {
-		err = refuseVillage(screens.VillageNotFound)
+		err = refuseVillage(village.VillageNotFound)
 		return
 	}
 	def = d.Def()
@@ -155,21 +155,21 @@ func (h *VillageHandler) buildPlacementContext(ctx context.Context, tx applicati
 func lotState(lot settlementbuilding.Lot, occupiedRoad bool) string {
 	switch {
 	case !lot.Buildable:
-		return screens.LotWater
+		return village.LotWater
 	case lot.Occupied && occupiedRoad:
-		return screens.LotRoad
+		return village.LotRoad
 	case lot.Occupied:
-		return screens.LotOccupied
+		return village.LotOccupied
 	case hasAny(lot.TerrainTags, []string{"sloped_lot"}):
-		return screens.LotSteep
+		return village.LotSteep
 	default:
-		return screens.LotFree
+		return village.LotFree
 	}
 }
 
 // materialLines is a building's own CostMaterials, named and ordered, for
 // the confirm screen.
-func materialLines(snap *content.Snapshot, def settlementbuilding.Def) []screens.MaterialLine {
+func materialLines(snap *content.Snapshot, def settlementbuilding.Def) []village.MaterialLine {
 	if len(def.CostMaterials) == 0 {
 		return nil
 	}
@@ -178,10 +178,10 @@ func materialLines(snap *content.Snapshot, def settlementbuilding.Def) []screens
 		codes = append(codes, code)
 	}
 	sort.Strings(codes)
-	out := make([]screens.MaterialLine, 0, len(codes))
+	out := make([]village.MaterialLine, 0, len(codes))
 	for _, code := range codes {
 		cd, _ := snap.ComponentDef(code)
-		out = append(out, screens.MaterialLine{Component: named(cd.Code, cd.Name), Quantity: def.CostMaterials[code]})
+		out = append(out, village.MaterialLine{Component: named(cd.Code, cd.Name), Quantity: def.CostMaterials[code]})
 	}
 	return out
 }
@@ -190,9 +190,9 @@ func materialLines(snap *content.Snapshot, def settlementbuilding.Def) []screens
 // building's own lot from (ADR 0028 section 6 — the leader places a
 // building on the settlement's own placement grid; nothing here guesses a
 // lot for them).
-func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req VillageLotsRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req VillageLotsRequest) (*presentation.Response, error) {
 	lang := meta.Language
-	var view screens.LotGridView
+	var view village.LotGridView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		_, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -206,7 +206,7 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 			return err
 		}
 		if !def.ListedAt(s.Tier) {
-			return refuseVillage(screens.VillageNotAvailable)
+			return refuseVillage(village.VillageNotAvailable)
 		}
 		// The prerequisites first: a building the village cannot start yet shows
 		// what is missing and where it comes from, not a grid to choose a lot on.
@@ -215,23 +215,23 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 		} else if rf != nil {
 			return rf
 		}
-		view = screens.LotGridView{
+		view = village.LotGridView{
 			SettlementName: s.Name, Building: named(d.Code, d.Name),
 			CanRotate: d.Def().CanRotate(), Rotated: rotated && d.Def().CanRotate(),
 			GridLots: grid.Height(),
 			Multi:    d.Footprint == [2]int{1, 1} && d.CapExempt,
 		}
-		if wx, wy, _, ok := screens.ParseLotToken(strings.TrimSpace(req.Win)); ok {
+		if wx, wy, _, ok := village.ParseLotToken(strings.TrimSpace(req.Win)); ok {
 			view.WinX, view.WinY = wx, wy
 		}
 		if view.Multi {
 			switch from := strings.TrimSpace(req.From); {
 			case from == "" || from == "-":
-			case from == screens.LineStart:
-				view.Line = screens.LineStart
+			case from == village.LineStart:
+				view.Line = village.LineStart
 			case from != "":
-				if fx, fy, _, ok := screens.ParseLotToken(from); ok {
-					view.Line, view.From = screens.LineEnd, screens.LotBatchLot{X: fx, Y: fy}
+				if fx, fy, _, ok := village.ParseLotToken(from); ok {
+					view.Line, view.From = village.LineEnd, village.LotBatchLot{X: fx, Y: fy}
 				}
 			}
 		}
@@ -240,11 +240,11 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 			return oerr
 		}
 		for y := 0; y < grid.Height(); y++ {
-			row := make([]screens.LotCell, 0, grid.Width())
+			row := make([]village.LotCell, 0, grid.Width())
 			for x := 0; x < grid.Width(); x++ {
 				lot := grid[y][x]
 				road := lot.Occupied && isRoadLot(ctx, tx, s.CityID, x, y)
-				cell := screens.LotCell{X: x, Y: y, State: lotState(lot, road)}
+				cell := village.LotCell{X: x, Y: y, State: lotState(lot, road)}
 				cell.Fits = !d.Private() && settlementbuilding.CanPlace(def, grid, x, y, standing) == nil &&
 					!footprintTouches(owned, def, x, y)
 				row = append(row, cell)
@@ -256,7 +256,7 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.LotGrid(h.screen(meta, lang), view), nil
+	return village.LotGrid(h.screen(meta, lang), view), nil
 }
 
 // isRoadLot reports whether the standing building at (x,y) is a road, for
@@ -282,9 +282,9 @@ func isRoadLot(ctx context.Context, tx application.Tx, settlementID string, x, y
 // paid, materials drawn from the settlement's own public stock, and
 // construction starts in the same command (see
 // application.SettlementBuildingInstance.Status's own doc).
-func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req VillageBuildRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req VillageBuildRequest) (*presentation.Response, error) {
 	lang := meta.Language
-	var confirmView *screens.LotConfirmView
+	var confirmView *village.LotConfirmView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -294,7 +294,7 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		code := req.code()
 		x, y, rotated, ok := req.lot()
 		if !ok {
-			return refuseVillage(screens.VillageNotFound)
+			return refuseVillage(village.VillageNotFound)
 		}
 
 		s, d, def, grid, standing, err := h.buildPlacementContext(ctx, tx, meta, code, rotated)
@@ -305,10 +305,10 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		if d.Private() {
-			return refuseVillage(screens.CitizenPrivateOnly)
+			return refuseVillage(village.CitizenPrivateOnly)
 		}
 		if !def.ListedAt(s.Tier) {
-			return refuseVillage(screens.VillageNotAvailable)
+			return refuseVillage(village.VillageNotAvailable)
 		}
 		if rf, err := h.placementRefusal(ctx, tx, h.content.Current(), s, d, def); err != nil {
 			return err
@@ -323,7 +323,7 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 			return oerr
 		}
 		if footprintTouches(owned, def, x, y) {
-			return refuseVillage(screens.CitizenLotPrivate)
+			return refuseVillage(village.CitizenLotPrivate)
 		}
 		// The game lays the road that connects the building (roadplan.go);
 		// a building no road could ever reach is refused before anything
@@ -335,7 +335,7 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		roadFee := int64(len(autoRoads)) * h.autoRoadCost
 
 		if !req.confirmed() {
-			confirmView = &screens.LotConfirmView{
+			confirmView = &village.LotConfirmView{
 				SettlementName: s.Name, Building: named(d.Code, d.Name), X: x, Y: y, Rotated: rotated,
 				CostMoney: d.CostMoney + roadFee, BuildTime: h.scale.RealWait(def.BuildTime),
 				Materials: materialLines(h.content.Current(), def), AutoRoads: len(autoRoads),
@@ -361,7 +361,7 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 					if rf, rerr := h.placementRefusal(ctx, tx, h.content.Current(), s, d, def); rerr == nil && rf != nil {
 						return rf
 					}
-					return refuseVillage(screens.VillageMaterials)
+					return refuseVillage(village.VillageMaterials)
 				}
 				return err
 			}
@@ -388,7 +388,7 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		}
 		if err := tx.SettlementBuildings().Place(ctx, inst); err != nil {
 			if stderrors.Is(err, application.ErrLotOccupied) {
-				return refuseVillage(screens.VillageOccupied)
+				return refuseVillage(village.VillageOccupied)
 			}
 			return err
 		}
@@ -420,7 +420,7 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		return resp, err
 	}
 	if confirmView != nil {
-		return screens.LotConfirm(h.screen(meta, lang), *confirmView), nil
+		return village.LotConfirm(h.screen(meta, lang), *confirmView), nil
 	}
 	return h.Progress(ctx, meta)
 }
@@ -438,7 +438,7 @@ func sortedMaterialCodes(def settlementbuilding.Def) []string {
 // demolished, never comes back (ADR 0028 section 6.2) — the lot is simply
 // free again for something else. Its own money cost's
 // demolition_salvage_bps share is credited back to the treasury.
-func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, req VillageBuildingRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, req VillageBuildingRequest) (*presentation.Response, error) {
 	lang := meta.Language
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
@@ -456,13 +456,13 @@ func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, r
 		}
 		b, err := tx.SettlementBuildings().Get(ctx, strings.TrimSpace(req.ID))
 		if isSentinel(err, application.ErrBuildingNotFound) {
-			return refuseVillage(screens.VillageNotFound)
+			return refuseVillage(village.VillageNotFound)
 		}
 		if err != nil {
 			return err
 		}
 		if b.SettlementID != s.CityID {
-			return refuseVillage(screens.VillageNotFound)
+			return refuseVillage(village.VillageNotFound)
 		}
 		// The head changes the village's own buildings; a resident's is theirs.
 		if err := h.mayChangeBuilding(ctx, tx, s, p.ID, b.ID); err != nil {
@@ -471,7 +471,7 @@ func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, r
 		now := h.now()
 		if err := tx.SettlementBuildings().Demolish(ctx, b.ID, now); err != nil {
 			if stderrors.Is(err, application.ErrBuildingNotDemolishable) {
-				return refuseVillage(screens.VillageNotDemolishable)
+				return refuseVillage(village.VillageNotDemolishable)
 			}
 			return err
 		}
@@ -493,7 +493,7 @@ func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, r
 // building has started, cancelling forfeits the spend and only frees the
 // lot); the scheduled completion finds the row no longer "building" and does
 // nothing. A finished building is demolished, not cancelled.
-func (h *VillageHandler) Cancel(ctx context.Context, meta envelope.Metadata, req VillageBuildingRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Cancel(ctx context.Context, meta envelope.Metadata, req VillageBuildingRequest) (*presentation.Response, error) {
 	lang := meta.Language
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
@@ -511,13 +511,13 @@ func (h *VillageHandler) Cancel(ctx context.Context, meta envelope.Metadata, req
 		}
 		b, err := tx.SettlementBuildings().Get(ctx, strings.TrimSpace(req.ID))
 		if isSentinel(err, application.ErrBuildingNotFound) {
-			return refuseVillage(screens.VillageNotFound)
+			return refuseVillage(village.VillageNotFound)
 		}
 		if err != nil {
 			return err
 		}
 		if b.SettlementID != s.CityID {
-			return refuseVillage(screens.VillageNotFound)
+			return refuseVillage(village.VillageNotFound)
 		}
 		// The head changes the village's own buildings; a resident's is theirs.
 		if err := h.mayChangeBuilding(ctx, tx, s, p.ID, b.ID); err != nil {
@@ -525,7 +525,7 @@ func (h *VillageHandler) Cancel(ctx context.Context, meta envelope.Metadata, req
 		}
 		if err := tx.SettlementBuildings().Cancel(ctx, b.ID, h.now()); err != nil {
 			if stderrors.Is(err, application.ErrBuildingNotCancellable) {
-				return refuseVillage(screens.VillageNotCancellable)
+				return refuseVillage(village.VillageNotCancellable)
 			}
 			return err
 		}
@@ -580,7 +580,7 @@ func (h *VillageHandler) creditSalvage(ctx context.Context, tx application.Tx, s
 // Built handles settlement.built from the SCHEDULER: a building finishing
 // construction. Idempotent: Complete only ever transitions "building" ->
 // "complete", so a redelivered completion is a no-op the second time.
-func (h *VillageHandler) Built(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Built(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	in, err := villagePayload(meta, req)
 	if err != nil {
 		return nil, err

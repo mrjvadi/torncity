@@ -924,6 +924,13 @@ client:
   group_commands: refuse
   # The Mini App build's https address; empty until it is published.
   mini_app_url: ""
+  # The move to a presentation-neutral core (docs/adr/0037): a screen the
+  # core sends as data (a view and actions, no wording) is answered to a
+  # client WITHOUT its Telegram-rendered `text`, unless it is listed here. A
+  # web client deployed before it draws a screen from the view still reads
+  # `text`, so this lists those screens ("*" is all of them). Empty it once
+  # every deployed client draws the migrated screens itself.
+  legacy_text_screens: ["*"]
   # World chunks (GET /api/v1/world/chunks/...): how many encoded chunks one
   # replica keeps in memory (about 10 KB each, raw and gzip together), and how
   # many one player may fetch per minute. A village layout samples the

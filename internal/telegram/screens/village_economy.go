@@ -1,8 +1,8 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -15,71 +15,13 @@ import (
 // where to get it - the flow is always "get the prerequisite first", and the
 // game shows the path to it.
 
-// Addresses.
-const (
-	AddrMaterials    = "settlement:materials"
-	AddrMaterialsBuy = "settlement:materials.buy"
-	AddrWork         = "settlement:work"
-)
-
 // Structured screens (clients).
 const (
-	ScreenVillageMaterials   = "village_materials"
-	ScreenVillageBuyConfirm  = "village_materials_buy_confirm"
-	ScreenVillageWork        = "village_work"
-	ScreenVillageWorkStarted = "village_work_started"
+	ScreenVillageMaterials   = village.ScreenVillageMaterials
+	ScreenVillageBuyConfirm  = village.ScreenVillageBuyConfirm
+	ScreenVillageWork        = village.ScreenVillageWork
+	ScreenVillageWorkStarted = village.ScreenVillageWorkStarted
 )
-
-// Village refusal kinds of the loop.
-const (
-	// VillageStorageFull: the stock has no room for what was asked (a granary
-	// adds room).
-	VillageStorageFull = "storage_full"
-	// VillageAlreadyWorking: the resident already works a shift.
-	VillageAlreadyWorking = "already_working"
-	// VillageWorkplaceFull: every place at the workplace is taken.
-	VillageWorkplaceFull = "workplace_full"
-	// VillageNotWorkplace: the building cannot be worked in (yet).
-	VillageNotWorkplace = "not_workplace"
-)
-
-// What a refusal's need is.
-const (
-	NeedMaterial  = "material"
-	NeedKnowledge = "knowledge"
-	NeedBuilding  = "building"
-)
-
-// What the refused command was about, for the refusal's title.
-const (
-	NeedsForBuild    = "build"
-	NeedsForResearch = "research"
-	NeedsForWork     = "work"
-)
-
-// VillageMaker is a building that makes a material: where to get it.
-type VillageMaker struct {
-	Building Named
-	// Built reports that the village already has one standing.
-	Built bool
-}
-
-// VillageNeed is one thing a refused command is missing and where it comes
-// from (ADR 0033 section 5): named exactly, one hop only.
-type VillageNeed struct {
-	Kind string
-	// Item is the material or the knowledge; Options are the alternatives when
-	// any of several would do (the knowledge that provides a capability, the
-	// buildings of a role).
-	Item    Named
-	Options []Named
-	// Have and Need are the stock and the quantity of a material.
-	Have, Need int64
-	// Makers are the workplaces that make the material; Price is what Support
-	// asks per unit, zero when the village cannot buy it.
-	Makers []VillageMaker
-	Price  int64
-}
 
 // villageNeeds renders a refusal that carries needs.
 func renderVillageNeeds(c Context, v VillageRefusalView) *presenter.Response {
@@ -169,7 +111,7 @@ func renderVillageNeeds(c Context, v VillageRefusalView) *presenter.Response {
 			}
 		}
 	}
-	back := v.Back
+	back := v.Back.Address()
 	if back == "" {
 		back = AddrVillageOverview
 	}
@@ -194,42 +136,6 @@ func joinOr(c Context, parts []string) string {
 // ---------------------------------------------------------------------
 // The stock and Support's market
 // ---------------------------------------------------------------------
-
-// MaterialStockLine is one good the village holds.
-type MaterialStockLine struct {
-	Item Named
-	Qty  int64
-}
-
-// MaterialMarketLine is one material Support sells the village.
-type MaterialMarketLine struct {
-	Item  Named
-	Price int64
-}
-
-// MaterialBought is what a purchase that was just made came to.
-type MaterialBought struct {
-	Item  Named
-	Qty   int64
-	Total int64
-}
-
-// MaterialsView is the village stock and Support's market.
-type MaterialsView struct {
-	Village  string
-	Treasury int64
-	Stock    []MaterialStockLine
-	// Used and Capacity are the units held and the room there is (the base
-	// capacity plus every standing building's storage).
-	Used, Capacity int64
-	Market         []MaterialMarketLine
-	// CanBuy reports that the viewer may spend the treasury (the village head);
-	// Presets are the quantities the buy buttons offer.
-	CanBuy  bool
-	Presets []int64
-	// Bought is set on the screen shown right after a purchase.
-	Bought *MaterialBought `json:"bought,omitempty"`
-}
 
 // VillageStock renders the stock and the market.
 func VillageStock(c Context, v MaterialsView) *presenter.Response {
@@ -285,25 +191,10 @@ func renderVillageMaterials(c Context, v MaterialsView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-// MaterialBuyView is the confirm before a purchase.
-type MaterialBuyView struct {
-	Village  string
-	Item     Named
-	Qty      int64
-	Unit     int64
-	Total    int64
-	Treasury int64
-	// Free is the room left in the stock.
-	Free int64
-}
-
 // VillageMaterialBuyConfirm renders the purchase confirm.
 func VillageMaterialBuyConfirm(c Context, v MaterialBuyView) *presenter.Response {
 	return c.withView(renderMaterialBuyConfirm(c, v), ScreenVillageBuyConfirm, v)
 }
-
-// MaterialsConfirm is the second press's argument.
-const MaterialsConfirm = "confirm"
 
 func renderMaterialBuyConfirm(c Context, v MaterialBuyView) *presenter.Response {
 	args := map[string]any{
@@ -323,43 +214,6 @@ func renderMaterialBuyConfirm(c Context, v MaterialBuyView) *presenter.Response 
 // ---------------------------------------------------------------------
 // Workplaces
 // ---------------------------------------------------------------------
-
-// WorkplaceLine is one standing building a resident can work in.
-type WorkplaceLine struct {
-	ID       string
-	Building Named
-	// Produces and Consumes are what one shift makes and uses.
-	Produces, Consumes []MaterialLine
-	Wage               int64
-	Shift              time.Duration
-	// Workers is how many shifts may run at once and Busy how many run now.
-	Workers, Busy int
-	// Ready reports that the stock holds the inputs of one shift.
-	Ready bool
-}
-
-// WorkShiftLine is a shift in progress.
-type WorkShiftLine struct {
-	Building Named
-	FinishAt time.Time
-	Left     time.Duration
-	Wage     int64
-	Produces []MaterialLine
-}
-
-// WorkView is the workplaces of the village and the viewer's own shift.
-type WorkView struct {
-	Village  string
-	Resident bool
-	Places   []WorkplaceLine
-	Mine     *WorkShiftLine
-	// Suggest are the workplaces the village could build now, when it has none.
-	Suggest []Named
-	// Started is set on the screen shown right after a shift began.
-	Started bool
-	// Used and Capacity are the stock's units and room.
-	Used, Capacity int64
-}
 
 // VillageWork renders the workplaces.
 func VillageWork(c Context, v WorkView) *presenter.Response {

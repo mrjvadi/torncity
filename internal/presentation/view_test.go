@@ -1,4 +1,4 @@
-package presenter
+package presentation
 
 import (
 	"encoding/json"
@@ -93,11 +93,50 @@ func TestSnakeCase(t *testing.T) {
 }
 
 func TestWithViewKeepsTheScreen(t *testing.T) {
-	r := WithView(Message("hi", nil), "profile", struct{ A int }{1})
+	r := WithView(&Response{Text: "hi"}, "profile", struct{ A int }{1})
 	if r.Screen != "profile" || string(r.View) != `{"a":1}` || r.Text != "hi" {
 		t.Errorf("got %+v", r)
 	}
 	if WithView(nil, "x", nil) != nil {
 		t.Error("nil response must stay nil")
+	}
+}
+
+func TestDecodeViewIsTheInverseOfEncodeView(t *testing.T) {
+	in := sampleView{
+		Name: "Sara", CityCode: "tehran", NextLevelXP: 100, XPBPS: 9000,
+		EnergyFullIn: 90 * time.Second,
+		EndsAt:       time.Date(2026, 9, 26, 10, 0, 0, 0, time.UTC),
+		Place:        named{Code: "bazaar", Name: "Bazaar"},
+		Walk:         &named{Code: "w", Name: "Walk"},
+		Tags:         []string{"a", "b"},
+		Tagged:       7,
+		inner:        inner{Deep: 3},
+	}
+	raw, err := EncodeView(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out sampleView
+	if err := DecodeView(raw, &out); err != nil {
+		t.Fatal(err)
+	}
+	if out.Name != in.Name || out.CityCode != in.CityCode || out.NextLevelXP != in.NextLevelXP || out.XPBPS != in.XPBPS ||
+		out.EnergyFullIn != in.EnergyFullIn || !out.EndsAt.Equal(in.EndsAt) || !out.Never.IsZero() ||
+		out.Place != in.Place || out.Walk == nil || *out.Walk != *in.Walk || len(out.Tags) != 2 || out.Tagged != 7 || out.Deep != 3 {
+		t.Errorf("round trip lost something: %+v", out)
+	}
+	// durations keep whole seconds, rounded up
+	in.EnergyFullIn = 1500 * time.Millisecond
+	raw, _ = EncodeView(in)
+	_ = DecodeView(raw, &out)
+	if out.EnergyFullIn != 2*time.Second {
+		t.Errorf("a duration must come back as whole seconds rounded up, got %s", out.EnergyFullIn)
+	}
+}
+
+func TestDecodeViewNeedsAPointer(t *testing.T) {
+	if err := DecodeView([]byte(`{}`), sampleView{}); err == nil {
+		t.Error("decoding into a non-pointer must fail")
 	}
 }

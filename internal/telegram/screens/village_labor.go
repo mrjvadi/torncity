@@ -1,8 +1,8 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -12,178 +12,12 @@ import (
 // board, a construction site, and a worker's own status. Group screens like
 // the rest of the village; the numbers are computed by the use case.
 
-// Addresses.
-const (
-	AddrLaborBoard = "settlement:labor.board"
-	AddrLaborSite  = "settlement:labor.site"
-	AddrLaborTake  = "settlement:labor.take"
-	AddrLaborHire  = "settlement:labor.hire"
-	AddrLaborWage  = "settlement:labor.wage"
-	AddrLaborClose = "settlement:labor.close"
-	AddrLaborPost  = "settlement:labor.post"
-	AddrLaborMine  = "settlement:labor.mine"
-)
-
 // Structured screens (clients).
 const (
-	ScreenLaborBoard = "labor_board"
-	ScreenLaborSite  = "labor_site"
-	ScreenLaborMine  = "labor_mine"
+	ScreenLaborBoard = village.ScreenLaborBoard
+	ScreenLaborSite  = village.ScreenLaborSite
+	ScreenLaborMine  = village.ScreenLaborMine
 )
-
-// Labour refusal kinds (village.refusal.<kind>).
-const (
-	LaborNoJob         = "labor_no_job"
-	LaborNotHere       = "labor_not_here"
-	LaborFullyStaffed  = "labor_fully_staffed"
-	LaborBudgetSpent   = "labor_budget_spent"
-	LaborNotEmployer   = "labor_not_employer"
-	LaborNoNPC         = "labor_no_npc"
-	LaborWageTooLow    = "labor_wage_too_low"
-	LaborEmployerBroke = "labor_employer_broke"
-	LaborNoSite        = "labor_no_site"
-)
-
-// Market levels.
-const (
-	MarketSlack    = "slack"
-	MarketBalanced = "balanced"
-	MarketTight    = "tight"
-	MarketShort    = "short"
-)
-
-// LaborMarketLine is the village's labour market at a glance.
-type LaborMarketLine struct {
-	// Housing is the homes' capacity (base plus buildings); Pool the NPC
-	// labourers who live here, Available those not on a shift now.
-	Housing, Pool, Available int64
-	// Working is every shift in progress; Vacancies the shifts open jobs still
-	// pay for.
-	Working, Vacancies int64
-	// TightnessBPS is demand over the labour force; Level names the band.
-	TightnessBPS int64
-	Level        string
-	// NPCWage is what an NPC labourer asks for a shift now; MinWage the
-	// statutory floor of the village's tier.
-	NPCWage, MinWage int64
-}
-
-// LaborJobLine is one job on the board.
-type LaborJobLine struct {
-	ID         string
-	BuildingID string
-	Building   Named
-	Kind       string
-	// EmployerKind is "settlement" or "player"; Employer the player's name
-	// (empty for the village).
-	EmployerKind string
-	Employer     string
-	Wage         int64
-	Left         int
-	Total        int
-	// ProgressBPS and LeftMinutes are the site's progress and the work left,
-	// worker-minutes; zero for a production job.
-	ProgressBPS int64
-	LeftMinutes int64
-	Workers     int
-	NPCCrew     int
-	// CanTake reports that the viewer may take this job now; Mine that the
-	// viewer is the employer.
-	CanTake bool
-	Mine    bool
-	// Points is the work one shift of the viewer adds.
-	Points int64
-}
-
-// LaborBoardView is the hiring board.
-type LaborBoardView struct {
-	Village string
-	Jobs    []LaborJobLine
-	Market  LaborMarketLine
-	// Working is the viewer's shift in progress, or nil.
-	Working *LaborShiftLine
-	// Resident reports that the viewer lives here.
-	Resident bool
-	// Sites are the buildings under construction with no open job, which the
-	// employer can post one for.
-	Sites []LaborSiteRef
-}
-
-// LaborSiteRef is a building under construction.
-type LaborSiteRef struct {
-	ID          string
-	Building    Named
-	ProgressBPS int64
-}
-
-// LaborShiftLine is a shift in progress.
-type LaborShiftLine struct {
-	ID        string
-	Building  Named
-	Kind      string
-	Worker    string
-	WorkerNPC bool
-	Level     string
-	FinishAt  time.Time
-	Left      time.Duration
-	Wage      int64
-	Points    int64
-}
-
-// LaborPreset is a wage the employer may set: a share of the market wage.
-type LaborPreset struct {
-	Percent int
-	Wage    int64
-}
-
-// LaborSiteView is the panel of one construction site.
-type LaborSiteView struct {
-	Village  string
-	Building Named
-	ID       string
-	// Status is "building" or "complete".
-	Status      string
-	ProgressBPS int64
-	// RequiredMinutes, DoneMinutes and LeftMinutes are worker-minutes.
-	RequiredMinutes, DoneMinutes, LeftMinutes int64
-	// Job is the open job of the site, nil when it has none.
-	Job     *LaborJobLine
-	Workers []LaborShiftLine
-	Market  LaborMarketLine
-	// CanWork: the viewer may work a shift here now (the wage they get and the
-	// work it adds are WorkWage and WorkPoints); Working the viewer's shift.
-	CanWork    bool
-	WorkWage   int64
-	WorkPoints int64
-	Working    *LaborShiftLine
-	// CanEmploy: the viewer is the employer. HirePresets are the crew sizes
-	// offered, WagePresets the wages; NPCAvailable how many labourers are free.
-	CanEmploy bool
-	// CanPost: the site has no open job and the viewer may post one.
-	CanPost      bool
-	HirePresets  []int
-	WagePresets  []LaborPreset
-	NPCAvailable int64
-	NPCWage      int64
-	// Just says what the last press did: "worked", "hired", "wage", "posted".
-	Just string
-}
-
-// LaborMineView is the viewer's own labour status.
-type LaborMineView struct {
-	Village string
-	Shifts  int64
-	Earned  int64
-	// Level names the skill level, ProductivityBPS its productivity; NextLevel
-	// and NextShifts the next rung and the shifts still needed for it (empty and
-	// zero at the top).
-	Level           string
-	ProductivityBPS int64
-	NextLevel       string
-	NextShifts      int64
-	Working         *LaborShiftLine
-	Market          LaborMarketLine
-}
 
 // LaborBoard renders the hiring board.
 func LaborBoard(c Context, v LaborBoardView) *presenter.Response {

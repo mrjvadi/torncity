@@ -3,14 +3,14 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"strings"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // This file holds settlement.build.place_many: the head lays several
@@ -45,7 +45,7 @@ type VillageBuildManyRequest struct {
 }
 
 func (r VillageBuildManyRequest) confirmed() bool {
-	return strings.TrimSpace(r.Confirm) == screens.VillageBuildConfirm
+	return strings.TrimSpace(r.Confirm) == village.VillageBuildConfirm
 }
 
 // lots parses the request into distinct lots, in order. ok is false for a
@@ -60,15 +60,15 @@ func (r VillageBuildManyRequest) lots() (out [][2]int, ok bool) {
 		}
 	}
 	for _, tok := range r.Lots {
-		x, y, _, tokOK := screens.ParseLotToken(strings.TrimSpace(tok))
+		x, y, _, tokOK := village.ParseLotToken(strings.TrimSpace(tok))
 		if !tokOK {
 			return nil, false
 		}
 		add(x, y)
 	}
 	if r.From != "" || r.To != "" {
-		fx, fy, _, okFrom := screens.ParseLotToken(strings.TrimSpace(r.From))
-		tx, ty, _, okTo := screens.ParseLotToken(strings.TrimSpace(r.To))
+		fx, fy, _, okFrom := village.ParseLotToken(strings.TrimSpace(r.From))
+		tx, ty, _, okTo := village.ParseLotToken(strings.TrimSpace(r.To))
 		if !okFrom || !okTo {
 			return nil, false
 		}
@@ -105,9 +105,9 @@ func lineLots(fx, fy, tx, ty int) [][2]int {
 }
 
 // PlaceMany handles settlement.build.place_many.
-func (h *VillageHandler) PlaceMany(ctx context.Context, meta envelope.Metadata, req VillageBuildManyRequest) (*presenter.Response, error) {
+func (h *VillageHandler) PlaceMany(ctx context.Context, meta envelope.Metadata, req VillageBuildManyRequest) (*presentation.Response, error) {
 	lang := meta.Language
-	var confirmView *screens.LotBatchConfirmView
+	var confirmView *village.LotBatchConfirmView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -116,7 +116,7 @@ func (h *VillageHandler) PlaceMany(ctx context.Context, meta envelope.Metadata, 
 		lang = l
 		lots, ok := req.lots()
 		if !ok {
-			return refuseVillage(screens.VillageNotFound)
+			return refuseVillage(village.VillageNotFound)
 		}
 		code := strings.TrimSpace(req.Code)
 		s, d, def, grid, standing, err := h.buildPlacementContext(ctx, tx, meta, code, false)
@@ -127,18 +127,18 @@ func (h *VillageHandler) PlaceMany(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		if def.FootprintW != 1 || def.FootprintH != 1 || !def.CapExempt || len(lots) > len(grid)*len(grid) {
-			return refuseVillage(screens.VillageNotAvailable)
+			return refuseVillage(village.VillageNotAvailable)
 		}
 
 		// Judge every lot; a placed lot occupies its cell for the next one
 		// (a batch never collides with itself) and, unless the type is
 		// cap_exempt, holds a slot of the cap.
-		var failures []screens.BatchLotFailure
+		var failures []village.BatchLotFailure
 		for _, lot := range lots {
 			x, y := lot[0], lot[1]
 			if cerr := settlementbuilding.CanPlace(def, grid, x, y, standing); cerr != nil {
 				kind := buildingRefusal(cerr).kind
-				failures = append(failures, screens.BatchLotFailure{X: x, Y: y, Kind: kind})
+				failures = append(failures, village.BatchLotFailure{X: x, Y: y, Kind: kind})
 				continue
 			}
 			grid[y][x].Occupied = true
@@ -147,7 +147,7 @@ func (h *VillageHandler) PlaceMany(ctx context.Context, meta envelope.Metadata, 
 			}
 		}
 		if len(failures) > 0 {
-			return &villageRefusal{kind: screens.VillageBatch, lots: failures}
+			return &villageRefusal{kind: village.VillageBatch, lots: failures}
 		}
 
 		n := int64(len(lots))
@@ -159,12 +159,12 @@ func (h *VillageHandler) PlaceMany(ctx context.Context, meta envelope.Metadata, 
 			total.CostMaterials[material] = qty * n
 		}
 		if !req.confirmed() {
-			view := screens.LotBatchConfirmView{
+			view := village.LotBatchConfirmView{
 				SettlementName: s.Name, Building: named(d.Code, d.Name), Count: len(lots),
 				CostMoney: total.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime), Materials: materialLines(snap, total),
 			}
 			for _, lot := range lots {
-				view.Lots = append(view.Lots, screens.LotBatchLot{X: lot[0], Y: lot[1]})
+				view.Lots = append(view.Lots, village.LotBatchLot{X: lot[0], Y: lot[1]})
 			}
 			confirmView = &view
 			return nil
@@ -187,7 +187,7 @@ func (h *VillageHandler) PlaceMany(ctx context.Context, meta envelope.Metadata, 
 				Reason: application.ItemSettlementConstruction, ReferenceType: "settlement_building", ReferenceID: ids[0], At: now,
 			}); err != nil {
 				if stderrors.Is(err, application.ErrNotEnoughItems) {
-					return refuseVillage(screens.VillageMaterials)
+					return refuseVillage(village.VillageMaterials)
 				}
 				return err
 			}
@@ -210,7 +210,7 @@ func (h *VillageHandler) PlaceMany(ctx context.Context, meta envelope.Metadata, 
 			}
 			if err := tx.SettlementBuildings().Place(ctx, inst); err != nil {
 				if stderrors.Is(err, application.ErrLotOccupied) {
-					return &villageRefusal{kind: screens.VillageBatch, lots: []screens.BatchLotFailure{{X: lot[0], Y: lot[1], Kind: screens.VillageOccupied}}}
+					return &villageRefusal{kind: village.VillageBatch, lots: []village.BatchLotFailure{{X: lot[0], Y: lot[1], Kind: village.VillageOccupied}}}
 				}
 				return err
 			}
@@ -232,7 +232,7 @@ func (h *VillageHandler) PlaceMany(ctx context.Context, meta envelope.Metadata, 
 		return resp, err
 	}
 	if confirmView != nil {
-		return screens.LotBatchConfirm(h.screen(meta, lang), *confirmView), nil
+		return village.LotBatchConfirm(h.screen(meta, lang), *confirmView), nil
 	}
 	return h.Progress(ctx, meta)
 }

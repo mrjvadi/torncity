@@ -142,7 +142,7 @@ func TestVillageTreasury(t *testing.T) {
 		m := asPlayer(metaA, founderA)
 		m.Command, m.Action = "settlement.donate", "donate"
 		m.IdempotencyKey = "it-" + randomToken(t, 16)
-		return village.Donate(ctx, m, handlers.VillageDonateRequest{Amount: amount, Confirm: confirm})
+		return rrm(m)(village.Donate(ctx, m, handlers.VillageDonateRequest{Amount: amount, Confirm: confirm}))
 	}
 	before := treasuryOf(t, pool, cityA)
 	if r, err := dm("", ""); err != nil || !strings.Contains(r.Text, "village.donate.body") {
@@ -175,7 +175,7 @@ func TestVillageTreasury(t *testing.T) {
 	other := asPlayer(metaA, founderB)
 	other.Command, other.Action = "settlement.donate", "donate"
 	other.IdempotencyKey = "it-" + randomToken(t, 16)
-	if r, err := village.Donate(ctx, other, handlers.VillageDonateRequest{Amount: "500", Confirm: screens.ResidenceConfirm}); err != nil || strings.Contains(r.Text, "village.donate.done_title") {
+	if r, err := rrm(other)(village.Donate(ctx, other, handlers.VillageDonateRequest{Amount: "500", Confirm: screens.ResidenceConfirm})); err != nil || strings.Contains(r.Text, "village.donate.done_title") {
 		t.Errorf("a non-resident donated: %+v %v", r, err)
 	}
 	if got := treasuryOf(t, pool, cityA); got != before+1000 {
@@ -207,7 +207,7 @@ func TestVillageTreasury(t *testing.T) {
 	}
 	hm := asPlayer(metaA, founderA)
 	hm.Command, hm.Action = "settlement.home", "home"
-	home, err := village.Home(ctx, hm)
+	home, err := rrm(hm)(village.Home(ctx, hm))
 	if err != nil || !strings.Contains(home.Text, "village.support.title") || !strings.Contains(home.Text, "village.treasury") {
 		t.Errorf("the group's home is not the village: %+v %v", home, err)
 	}
@@ -219,13 +219,13 @@ func TestVillageTreasury(t *testing.T) {
 	if resp, ok, err := village.HomeIfVillage(ctx, empty); err != nil || ok || resp != nil {
 		t.Errorf("a group with no village was offered a village: %v %v", ok, err)
 	}
-	if call, err := village.Home(ctx, empty); err != nil || !strings.Contains(call.Text, "village.home.call_title") {
+	if call, err := rrm(empty)(village.Home(ctx, empty)); err != nil || !strings.Contains(call.Text, "village.home.call_title") {
 		t.Errorf("a group with no village is not offered founding: %+v %v", call, err)
 	}
 	pm := asPlayer(metaA, founderA)
 	pm.ChatType, pm.TelegramChatID = "private", founderA.TelegramUserID
 	pm.Command, pm.Action = "settlement.home", "home"
-	if r, err := village.Home(ctx, pm); err != nil || !strings.Contains(r.Text, "village.private_hint") {
+	if r, err := rrm(pm)(village.Home(ctx, pm)); err != nil || !strings.Contains(r.Text, "village.private_hint") {
 		t.Errorf("a resident's private home is not the village: %+v %v", r, err)
 	}
 }

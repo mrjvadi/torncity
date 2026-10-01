@@ -2,12 +2,12 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
 // This file holds ADR 0031 section 4.4's literacy diffusion: a settlement's
@@ -76,7 +76,7 @@ func ensureSettlementTeaching(ctx context.Context, tx application.Tx, ids IDGene
 
 // Taught handles settlement.taught from the SCHEDULER: one literacy
 // diffusion step, then its own successor tick.
-func (h *VillageHandler) Taught(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Taught(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	in, err := villagePayload(meta, req)
 	if err != nil {
 		return nil, err

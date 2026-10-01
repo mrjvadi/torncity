@@ -8,7 +8,6 @@
         "name": "انبار غله"
       },
       "can_manage": true,
-      "description": "انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد.",
       "effects": null,
       "finish_at": null,
       "h": 1,
@@ -64,7 +63,6 @@
         "name": "انبار غله"
       },
       "can_manage": false,
-      "description": "انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد.",
       "effects": null,
       "finish_at": null,
       "h": 1,
@@ -103,7 +101,6 @@
         "name": "حلقهٔ آموزش"
       },
       "can_manage": true,
-      "description": "آموزش اهالی؛ تا وقتی این بنا سر پاست، سواد میان اهالی کم‌کم پخش می‌شود.",
       "effects": null,
       "finish_at": null,
       "h": 1,
@@ -142,7 +139,6 @@
         "name": "حلقهٔ آموزش"
       },
       "can_manage": true,
-      "description": "آموزش اهالی؛ تا وقتی این بنا سر پاست، سواد میان اهالی کم‌کم پخش می‌شود.",
       "effects": null,
       "finish_at": null,
       "h": 1,
@@ -199,7 +195,6 @@
         "name": "خانهٔ دهیاری"
       },
       "can_manage": true,
-      "description": "دل اداریِ روستا؛ دهیار از اینجا روستا را اداره می‌کند. خزانه، دانش و ساخت‌وساز روستا از همین‌جا در دسترس است.",
       "effects": null,
       "finish_at": null,
       "h": 2,
@@ -245,7 +240,6 @@
         "name": "دیده‌بانی محله"
       },
       "can_manage": false,
-      "description": "پاسداری از روستا؛ امنیت محلی را بالا می‌برد.",
       "effects": [
         {
           "target": "local_security_bps",
@@ -289,7 +283,6 @@
         "name": "جاده"
       },
       "can_manage": true,
-      "description": "جادهٔ روستا؛ قطعه‌ها را به هم می‌رساند و راه رفت‌وآمد اهالی است. کار دیگری ندارد.",
       "effects": null,
       "finish_at": null,
       "h": 1,
@@ -328,7 +321,6 @@
         "name": "کارگاه نجاری"
       },
       "can_manage": true,
-      "description": "کارگاه ساخت‌وساز و صنعت؛ پایهٔ تولید کالا در روستاست.",
       "effects": null,
       "finish_at": "2026-09-23T12:35:00Z",
       "h": 2,
@@ -367,7 +359,6 @@
         "name": "انبار غله"
       },
       "can_manage": true,
-      "description": "انبار روستا؛ مواد و کالای مشترک روستا اینجا نگهداری می‌شود و ساخت‌وساز از همین موجودی برمی‌دارد.",
       "effects": null,
       "finish_at": null,
       "h": 1,
@@ -406,7 +397,6 @@
         "name": "کارگاه نجاری"
       },
       "can_manage": true,
-      "description": "building.desc.code.carpentry_workshop",
       "effects": null,
       "finish_at": null,
       "h": 2,

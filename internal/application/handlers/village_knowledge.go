@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"strings"
 	"time"
 
@@ -11,8 +13,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // This file holds K2's two player-triggered acquisitions (ADR 0031 sections
@@ -32,21 +32,21 @@ type VillageKnowledgeRequest struct {
 func knowledgeRefusal(err error) *villageRefusal {
 	switch {
 	case stderrors.Is(err, settlementknowledge.ErrAlreadyOwned):
-		return refuseVillage(screens.VillageAlreadyOwned)
+		return refuseVillage(village.VillageAlreadyOwned)
 	case stderrors.Is(err, settlementknowledge.ErrNotModeEligible):
-		return refuseVillage(screens.VillageNotAvailable)
+		return refuseVillage(village.VillageNotAvailable)
 	case stderrors.Is(err, settlementknowledge.ErrTerrainRequired):
-		return refuseVillage(screens.VillageTerrain)
+		return refuseVillage(village.VillageTerrain)
 	case stderrors.Is(err, settlementknowledge.ErrLiteracyTooLow):
-		return refuseVillage(screens.VillageLiteracy)
+		return refuseVillage(village.VillageLiteracy)
 	case stderrors.Is(err, settlementknowledge.ErrSkillTooLow):
-		return refuseVillage(screens.VillagePrerequisite)
+		return refuseVillage(village.VillagePrerequisite)
 	case stderrors.Is(err, settlementknowledge.ErrBusy):
-		return refuseVillage(screens.VillageBusy)
+		return refuseVillage(village.VillageBusy)
 	case stderrors.Is(err, settlementknowledge.ErrPrerequisiteMissing):
-		return refuseVillage(screens.VillagePrerequisite)
+		return refuseVillage(village.VillagePrerequisite)
 	default:
-		return refuseVillage(screens.VillageNotAvailable)
+		return refuseVillage(village.VillageNotAvailable)
 	}
 }
 
@@ -54,7 +54,7 @@ func knowledgeRefusal(err error) *villageRefusal {
 // knowledge item. Its cost leaves the settlement's own treasury (a drain,
 // ReasonResearch — the identical shape a company's own research already
 // uses); the item is the settlement's once its scheduled action runs.
-func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, req VillageKnowledgeRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, req VillageKnowledgeRequest) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -77,7 +77,7 @@ func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, r
 		code := strings.TrimSpace(req.Code)
 		d, ok := snap.SettlementKnowledgeDef(code)
 		if !ok {
-			return refuseVillage(screens.VillageNotFound)
+			return refuseVillage(village.VillageNotFound)
 		}
 		w, err := h.world(ctx)
 		if err != nil {
@@ -95,7 +95,7 @@ func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, r
 		tree := snap.SettlementKnowledgeTree()
 		t := tree[code]
 		if cerr := settlementknowledge.CanAcquire(t, tree, st, true); cerr != nil {
-			return h.knowledgeAttempt(snap, st, tree, t, d, cerr, screens.AddrKnowledgeList)
+			return h.knowledgeAttempt(snap, st, tree, t, d, cerr, village.AddrKnowledgeList)
 		}
 
 		now := h.now()
@@ -118,9 +118,9 @@ func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, r
 		}); err != nil {
 			switch {
 			case stderrors.Is(err, application.ErrSettlementResearchBusy):
-				return refuseVillage(screens.VillageBusy)
+				return refuseVillage(village.VillageBusy)
 			case stderrors.Is(err, application.ErrSettlementAlreadyResearched):
-				return refuseVillage(screens.VillageAlreadyOwned)
+				return refuseVillage(village.VillageAlreadyOwned)
 			}
 			return err
 		}
@@ -151,7 +151,7 @@ func (h *VillageHandler) knowledgeName(code string) string {
 // uses). Support sells every non-restricted, mode-eligible item (the
 // owner's own decision, section 10 point 2); a restricted item is never
 // offered here.
-func (h *VillageHandler) Buy(ctx context.Context, meta envelope.Metadata, req VillageKnowledgeRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Buy(ctx context.Context, meta envelope.Metadata, req VillageKnowledgeRequest) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -174,10 +174,10 @@ func (h *VillageHandler) Buy(ctx context.Context, meta envelope.Metadata, req Vi
 		code := strings.TrimSpace(req.Code)
 		d, ok := snap.SettlementKnowledgeDef(code)
 		if !ok {
-			return refuseVillage(screens.VillageNotFound)
+			return refuseVillage(village.VillageNotFound)
 		}
 		if d.Restricted {
-			return refuseVillage(screens.VillageNotAvailable)
+			return refuseVillage(village.VillageNotAvailable)
 		}
 		w, err := h.world(ctx)
 		if err != nil {
@@ -191,7 +191,7 @@ func (h *VillageHandler) Buy(ctx context.Context, meta envelope.Metadata, req Vi
 		tree := snap.SettlementKnowledgeTree()
 		t := tree[code]
 		if cerr := settlementknowledge.CanAcquire(t, tree, st, false); cerr != nil {
-			return h.knowledgeAttempt(snap, st, tree, t, d, cerr, screens.AddrKnowledgeList)
+			return h.knowledgeAttempt(snap, st, tree, t, d, cerr, village.AddrKnowledgeList)
 		}
 		price, err := h.scarcityPrice(ctx, tx, d.Cost, code)
 		if err != nil {
@@ -222,7 +222,7 @@ func (h *VillageHandler) Buy(ctx context.Context, meta envelope.Metadata, req Vi
 // Researched handles settlement.researched from the SCHEDULER: a research
 // finishing. Exactly once: the research row, locked by id, must still be
 // running under the action that finishes it.
-func (h *VillageHandler) Researched(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Researched(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	in, err := villagePayload(meta, req)
 	if err != nil {
 		return nil, err
@@ -270,5 +270,5 @@ func (h *VillageHandler) knowledgeAttempt(snap *content.Snapshot, st settlementk
 		return knowledgeRefusal(cerr)
 	}
 	pc := pathContext{snap: snap}
-	return needsRefusal(screens.VillagePrerequisite, screens.NeedsForResearch, named(d.Code, d.Name), pc.knowledgeNeeds(missing), back)
+	return needsRefusal(village.VillagePrerequisite, village.NeedsForResearch, named(d.Code, d.Name), pc.knowledgeNeeds(missing), back)
 }

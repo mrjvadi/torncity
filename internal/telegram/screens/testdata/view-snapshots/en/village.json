@@ -8,7 +8,6 @@
         "name": "Granary"
       },
       "can_manage": true,
-      "description": "The village store: the shared materials and goods are kept here, and construction draws from this stock.",
       "effects": null,
       "finish_at": null,
       "h": 1,
@@ -64,7 +63,6 @@
         "name": "Granary"
       },
       "can_manage": false,
-      "description": "The village store: the shared materials and goods are kept here, and construction draws from this stock.",
       "effects": null,
       "finish_at": null,
       "h": 1,
@@ -103,7 +101,6 @@
         "name": "Teaching circle"
       },
       "can_manage": true,
-      "description": "Teaches the villagers; while it stands, literacy slowly spreads.",
       "effects": null,
       "finish_at": null,
       "h": 1,
@@ -142,7 +139,6 @@
         "name": "Teaching circle"
       },
       "can_manage": true,
-      "description": "Teaches the villagers; while it stands, literacy slowly spreads.",
       "effects": null,
       "finish_at": null,
       "h": 1,
@@ -199,7 +195,6 @@
         "name": "Civic hall"
       },
       "can_manage": true,
-      "description": "The village's seat of office, where the head runs the village. The treasury, knowledge and construction are reached from here.",
       "effects": null,
       "finish_at": null,
       "h": 2,
@@ -245,7 +240,6 @@
         "name": "Watch hut"
       },
       "can_manage": false,
-      "description": "Watches over the village and raises local security.",
       "effects": [
         {
           "target": "local_security_bps",
@@ -289,7 +283,6 @@
         "name": "Road"
       },
       "can_manage": true,
-      "description": "A village road; it joins the lots and is the way the villagers walk. It does nothing else.",
       "effects": null,
       "finish_at": null,
       "h": 1,
@@ -328,7 +321,6 @@
         "name": "Carpentry workshop"
       },
       "can_manage": true,
-      "description": "A workshop, the base of making goods in the village.",
       "effects": null,
       "finish_at": "2026-09-23T12:35:00Z",
       "h": 2,
@@ -367,7 +359,6 @@
         "name": "Granary"
       },
       "can_manage": true,
-      "description": "The village store: the shared materials and goods are kept here, and construction draws from this stock.",
       "effects": null,
       "finish_at": null,
       "h": 1,
@@ -406,7 +397,6 @@
         "name": "Carpentry workshop"
       },
       "can_manage": true,
-      "description": "building.desc.code.carpentry_workshop",
       "effects": null,
       "finish_at": null,
       "h": 2,

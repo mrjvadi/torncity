@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"strings"
 	"time"
 
@@ -47,10 +48,7 @@ const (
 const ReportConfirmation = "yes"
 
 // Named is a content entry for a screen: its code and its authored name.
-type Named struct {
-	Code string
-	Name string
-}
+type Named = presentation.Named
 
 // CrimeName is a crime's display name in this context's language.
 func (c Context) CrimeName(n Named) string { return c.named("crime_name."+n.Code, n.Name) }

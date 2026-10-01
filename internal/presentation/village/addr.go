@@ -1,0 +1,91 @@
+package village
+
+// Village overview, knowledge list, build menu and construction progress
+// addresses.
+const (
+	AddrVillageHome          = "settlement:home"
+	AddrVillageOverview      = "settlement:overview"
+	AddrKnowledgeList        = "settlement:knowledge"
+	AddrKnowledgeResearch    = "settlement:knowledge.research"
+	AddrKnowledgeBuy         = "settlement:knowledge.buy"
+	AddrBuildMenu            = "settlement:build"
+	AddrBuildLots            = "settlement:build.lots"
+	AddrBuildPlace           = "settlement:build.place"
+	AddrConstructionProgress = "settlement:build.progress"
+	AddrBuildDemolish        = "settlement:build.demolish"
+)
+
+// AddrSettlementFound is the press that opens the founding draft, the same
+// command as sending «ساخت روستا».
+const AddrSettlementFound = "settlement:found"
+
+// Addresses.
+const (
+	AddrBuildingView   = "settlement:building.view"
+	AddrBuildPlaceMany = "settlement:build.place_many"
+	AddrBuildCancel    = "settlement:build.cancel"
+)
+
+// Addresses.
+const (
+	AddrLand            = "settlement:land"
+	AddrLotBuy          = "settlement:lot.buy"
+	AddrPrivateMenu     = "settlement:private"
+	AddrPrivateLots     = "settlement:private.lots"
+	AddrPrivatePlace    = "settlement:private.place"
+	AddrMine            = "settlement:mine"
+	AddrHomeRest        = "settlement:home.rest"
+	AddrTaxPay          = "settlement:tax.pay"
+	AddrVillageTerms    = "settlement:terms"
+	AddrVillageResident = AddrSettlementWho
+)
+
+// AddrVillageDonate addresses the donate command; the arguments are the
+// amount and, on the second press, the confirm.
+const AddrVillageDonate = "settlement:donate"
+
+// Addresses.
+const (
+	AddrMaterials    = "settlement:materials"
+	AddrMaterialsBuy = "settlement:materials.buy"
+	AddrWork         = "settlement:work"
+)
+
+// Addresses.
+const (
+	AddrLaborBoard = "settlement:labor.board"
+	AddrLaborSite  = "settlement:labor.site"
+	AddrLaborTake  = "settlement:labor.take"
+	AddrLaborHire  = "settlement:labor.hire"
+	AddrLaborWage  = "settlement:labor.wage"
+	AddrLaborClose = "settlement:labor.close"
+	AddrLaborPost  = "settlement:labor.post"
+	AddrLaborMine  = "settlement:labor.mine"
+)
+
+// Promotion addresses.
+const (
+	// AddrVillagePromotion shows the goals; AddrVillagePromote is the act
+	// (its argument is the confirm on the second press).
+	AddrVillagePromotion = "settlement:promotion.view"
+	AddrVillagePromote   = "settlement:promote"
+)
+
+// Where the residence commands are addressed.
+const (
+	AddrVillageJoin  = "settlement:join"
+	AddrVillageLeave = "settlement:leave"
+)
+
+// Addresses of commands other screens own, which the village screens point to.
+const (
+	// AddrSettlementWho is the screen listing who is around.
+	AddrSettlementWho = "settlement:who"
+	// AddrHome is the player's profile.
+	AddrHome = "player:profile.get"
+	// AddrTravelOptions is the choice of transport to one city.
+	AddrTravelOptions = "travel:options"
+)
+
+// AddrGridGrow addresses the land purchase.
+const AddrGridGrow = "settlement:grid.grow"

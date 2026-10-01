@@ -52,6 +52,7 @@ var (
 	ErrEmptyLocale         = errors.New("i18n: locale file defines no messages")
 	ErrMissingKey          = errors.New("i18n: key missing from a locale")
 	ErrPlaceholderMismatch = errors.New("i18n: placeholders differ between locales")
+	ErrDuplicateKey        = errors.New("i18n: key defined in two locale layers")
 )
 
 // Catalog holds every message for every language.
@@ -103,6 +104,44 @@ func LoadWithDefault(dir, defaultLang string) (*Catalog, error) {
 			return nil, fmt.Errorf("%w: %s", ErrEmptyLocale, name)
 		}
 		messages[lang] = msgs
+	}
+
+	// Layers: every subdirectory of dir (configs/locales/telegram) adds its
+	// own files over the top-level ones, one file per language, and a key
+	// defined in two layers is refused, so moving wording between layers
+	// never leaves two answers.
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		layer, err := os.ReadDir(filepath.Join(dir, e.Name()))
+		if err != nil {
+			return nil, fmt.Errorf("i18n: read locale layer %s: %w", e.Name(), err)
+		}
+		for _, f := range layer {
+			name := f.Name()
+			if f.IsDir() || filepath.Ext(name) != localeExt {
+				continue
+			}
+			lang := strings.TrimSuffix(name, localeExt)
+			data, err := os.ReadFile(filepath.Join(dir, e.Name(), name))
+			if err != nil {
+				return nil, fmt.Errorf("i18n: read %s/%s: %w", e.Name(), name, err)
+			}
+			msgs, err := parseLocale(e.Name()+"/"+name, data)
+			if err != nil {
+				return nil, err
+			}
+			if messages[lang] == nil {
+				messages[lang] = map[string]string{}
+			}
+			for key, text := range msgs {
+				if _, dup := messages[lang][key]; dup {
+					return nil, fmt.Errorf("%w: %s in %s/%s", ErrDuplicateKey, key, e.Name(), name)
+				}
+				messages[lang][key] = text
+			}
+		}
 	}
 
 	if len(messages) == 0 {

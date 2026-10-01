@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"sort"
 	"strconv"
 	"strings"
@@ -15,8 +17,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // This file is the village economy's first loop (docs/adr/0033-village-first-
@@ -44,7 +44,7 @@ type VillageMaterialRequest struct {
 }
 
 func (r VillageMaterialRequest) confirmed() bool {
-	return strings.TrimSpace(r.Confirm) == screens.MaterialsConfirm
+	return strings.TrimSpace(r.Confirm) == village.MaterialsConfirm
 }
 
 // VillageWorkRequest names the workplace to start a shift at; empty lists them.
@@ -141,15 +141,15 @@ func (pc pathContext) listed(d content.SettlementBuildingDef) bool {
 // materialNeed is one material the village lacks, with where it comes from: the
 // workplaces on offer that make it, standing ones first, and Support's price
 // when the village may buy it.
-func (pc pathContext) materialNeed(code string, need int64) screens.VillageNeed {
+func (pc pathContext) materialNeed(code string, need int64) village.VillageNeed {
 	cd, _ := pc.snap.ComponentDef(code)
-	n := screens.VillageNeed{Kind: screens.NeedMaterial, Item: named(cd.Code, cd.Name), Have: pc.stock[code], Need: need}
+	n := village.VillageNeed{Kind: village.NeedMaterial, Item: named(cd.Code, cd.Name), Have: pc.stock[code], Need: need}
 	if n.Item.Code == "" {
 		n.Item = named(code, code)
 	}
 	for _, d := range pc.snap.SettlementProducers(code) {
 		if pc.standing[d.Code] || pc.listed(d) {
-			n.Makers = append(n.Makers, screens.VillageMaker{Building: named(d.Code, d.Name), Built: pc.standing[d.Code]})
+			n.Makers = append(n.Makers, village.VillageMaker{Building: named(d.Code, d.Name), Built: pc.standing[d.Code]})
 		}
 	}
 	sort.SliceStable(n.Makers, func(i, j int) bool { return n.Makers[i].Built && !n.Makers[j].Built })
@@ -160,13 +160,13 @@ func (pc pathContext) materialNeed(code string, need int64) screens.VillageNeed 
 }
 
 // materialNeeds lists the materials of want the stock lacks, sorted by code.
-func (pc pathContext) materialNeeds(want map[string]int64) []screens.VillageNeed {
+func (pc pathContext) materialNeeds(want map[string]int64) []village.VillageNeed {
 	codes := make([]string, 0, len(want))
 	for c := range want {
 		codes = append(codes, c)
 	}
 	sort.Strings(codes)
-	var out []screens.VillageNeed
+	var out []village.VillageNeed
 	for _, c := range codes {
 		if pc.stock[c] < want[c] {
 			out = append(out, pc.materialNeed(c, want[c]))
@@ -177,14 +177,14 @@ func (pc pathContext) materialNeeds(want map[string]int64) []screens.VillageNeed
 
 // knowledgeNeeds names the knowledge a settlement lacks: an item by name, or
 // - for a capability - the items that provide it.
-func (pc pathContext) knowledgeNeeds(missing []string) []screens.VillageNeed {
-	var out []screens.VillageNeed
+func (pc pathContext) knowledgeNeeds(missing []string) []village.VillageNeed {
+	var out []village.VillageNeed
 	for _, code := range missing {
 		if d, ok := pc.snap.SettlementKnowledgeDef(code); ok {
-			out = append(out, screens.VillageNeed{Kind: screens.NeedKnowledge, Item: named(d.Code, d.Name)})
+			out = append(out, village.VillageNeed{Kind: village.NeedKnowledge, Item: named(d.Code, d.Name)})
 			continue
 		}
-		n := screens.VillageNeed{Kind: screens.NeedKnowledge, Item: named(code, code)}
+		n := village.VillageNeed{Kind: village.NeedKnowledge, Item: named(code, code)}
 		for _, k := range pc.snap.SettlementKnowledgeDefs() {
 			provides := k.Provides
 			if len(provides) == 0 {
@@ -203,8 +203,8 @@ func (pc pathContext) knowledgeNeeds(missing []string) []screens.VillageNeed {
 }
 
 // buildingsOfRole names the buildings of a role/tier that the village lists.
-func (pc pathContext) buildingsOfRole(rt settlementbuilding.RoleTier) []screens.Named {
-	var out []screens.Named
+func (pc pathContext) buildingsOfRole(rt settlementbuilding.RoleTier) []presentation.Named {
+	var out []presentation.Named
 	for _, d := range pc.snap.SettlementBuildingsByRole(rt.Role) {
 		if d.Tier == rt.Tier && pc.listed(d) {
 			out = append(out, named(d.Code, d.Name))
@@ -215,8 +215,8 @@ func (pc pathContext) buildingsOfRole(rt settlementbuilding.RoleTier) []screens.
 
 // placementNeeds is everything the village lacks to start a building, one hop
 // away: knowledge, the standing building a promotion needs, and materials.
-func (pc pathContext) placementNeeds(def settlementbuilding.Def) []screens.VillageNeed {
-	var out []screens.VillageNeed
+func (pc pathContext) placementNeeds(def settlementbuilding.Def) []village.VillageNeed {
+	var out []village.VillageNeed
 	var missingKnowledge []string
 	for _, k := range def.RequiresKnowledge {
 		if !pc.owned.Has(k) {
@@ -237,7 +237,7 @@ func (pc pathContext) placementNeeds(def settlementbuilding.Def) []screens.Villa
 			}
 		}
 		if !have {
-			out = append(out, screens.VillageNeed{Kind: screens.NeedBuilding, Options: pc.buildingsOfRole(*rt)})
+			out = append(out, village.VillageNeed{Kind: village.NeedBuilding, Options: pc.buildingsOfRole(*rt)})
 		}
 	}
 	return append(out, pc.materialNeeds(def.CostMaterials)...)
@@ -245,7 +245,7 @@ func (pc pathContext) placementNeeds(def settlementbuilding.Def) []screens.Villa
 
 // needsRefusal is the refusal that names what is missing and where it comes
 // from; kind is the plain refusal a client also gets its code from.
-func needsRefusal(kind, action string, subject screens.Named, needs []screens.VillageNeed, back string) *villageRefusal {
+func needsRefusal(kind, action string, subject presentation.Named, needs []village.VillageNeed, back string) *villageRefusal {
 	r := refuseVillage(kind, back)
 	r.action, r.subject, r.needs = action, subject, needs
 	return r
@@ -286,32 +286,32 @@ func (h *VillageHandler) placementRefusal(ctx context.Context, tx application.Tx
 	if len(needs) == 0 {
 		return nil, nil
 	}
-	kind := screens.VillageMaterials
+	kind := village.VillageMaterials
 	for _, n := range needs {
-		if n.Kind != screens.NeedMaterial {
-			kind = screens.VillagePrerequisite
+		if n.Kind != village.NeedMaterial {
+			kind = village.VillagePrerequisite
 		}
 	}
-	return needsRefusal(kind, screens.NeedsForBuild, named(d.Code, d.Name), needs, screens.AddrBuildMenu), nil
+	return needsRefusal(kind, village.NeedsForBuild, named(d.Code, d.Name), needs, village.AddrBuildMenu), nil
 }
 
 // --- the stock and the market screens ---------------------------------------
 
-func materialLineOf(snap *content.Snapshot, code string, qty int64) screens.MaterialLine {
+func materialLineOf(snap *content.Snapshot, code string, qty int64) village.MaterialLine {
 	cd, _ := snap.ComponentDef(code)
 	if cd.Code == "" {
-		return screens.MaterialLine{Component: named(code, code), Quantity: qty}
+		return village.MaterialLine{Component: named(code, code), Quantity: qty}
 	}
-	return screens.MaterialLine{Component: named(cd.Code, cd.Name), Quantity: qty}
+	return village.MaterialLine{Component: named(cd.Code, cd.Name), Quantity: qty}
 }
 
-func materialLinesOf(snap *content.Snapshot, m map[string]int64) []screens.MaterialLine {
+func materialLinesOf(snap *content.Snapshot, m map[string]int64) []village.MaterialLine {
 	codes := make([]string, 0, len(m))
 	for c := range m {
 		codes = append(codes, c)
 	}
 	sort.Strings(codes)
-	out := make([]screens.MaterialLine, 0, len(codes))
+	out := make([]village.MaterialLine, 0, len(codes))
 	for _, c := range codes {
 		out = append(out, materialLineOf(snap, c, m[c]))
 	}
@@ -329,21 +329,21 @@ func (h *VillageHandler) resident(ctx context.Context, tx application.Tx, player
 
 func (h *VillageHandler) materialsView(ctx context.Context, tx application.Tx, meta envelope.Metadata, p *application.Player,
 	s application.FoundedSettlement,
-) (screens.MaterialsView, error) {
+) (village.MaterialsView, error) {
 	snap := h.content.Current()
 	buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
 	if err != nil {
-		return screens.MaterialsView{}, err
+		return village.MaterialsView{}, err
 	}
 	stock, err := h.stockOf(ctx, tx, snap, s.CityID, buildings)
 	if err != nil {
-		return screens.MaterialsView{}, err
+		return village.MaterialsView{}, err
 	}
 	treasury, err := treasuryBalance(ctx, tx, s.CityID)
 	if err != nil {
-		return screens.MaterialsView{}, err
+		return village.MaterialsView{}, err
 	}
-	view := screens.MaterialsView{
+	view := village.MaterialsView{
 		Village: s.Name, Treasury: treasury, Used: stock.Used, Capacity: stock.Capacity, Presets: h.materialBuyPresets,
 	}
 	codes := make([]string, 0, len(stock.Units))
@@ -353,25 +353,25 @@ func (h *VillageHandler) materialsView(ctx context.Context, tx application.Tx, m
 	sort.Strings(codes)
 	for _, c := range codes {
 		l := materialLineOf(snap, c, stock.Units[c])
-		view.Stock = append(view.Stock, screens.MaterialStockLine{Item: l.Component, Qty: l.Quantity})
+		view.Stock = append(view.Stock, village.MaterialStockLine{Item: l.Component, Qty: l.Quantity})
 	}
 	for _, c := range snap.VillageMaterials() {
 		price, _ := snap.VillageMaterialPrice(c, h.materialMarkupBPS)
 		l := materialLineOf(snap, c, 0)
-		view.Market = append(view.Market, screens.MaterialMarketLine{Item: l.Component, Price: price})
+		view.Market = append(view.Market, village.MaterialMarketLine{Item: l.Component, Price: price})
 	}
 	view.CanBuy = authorizeVillage(ctx, tx, s, p.ID) == nil
 	return view, nil
 }
 
 // Materials handles settlement.materials: the stock and Support's market.
-func (h *VillageHandler) Materials(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *VillageHandler) Materials(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.materialsScreen(ctx, meta, nil)
 }
 
-func (h *VillageHandler) materialsScreen(ctx context.Context, meta envelope.Metadata, bought *screens.MaterialBought) (*presenter.Response, error) {
+func (h *VillageHandler) materialsScreen(ctx context.Context, meta envelope.Metadata, bought *village.MaterialBought) (*presentation.Response, error) {
 	lang := meta.Language
-	var view screens.MaterialsView
+	var view village.MaterialsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -389,19 +389,19 @@ func (h *VillageHandler) materialsScreen(ctx context.Context, meta envelope.Meta
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.VillageStock(h.screen(meta, lang), view), nil
+	return village.VillageStock(h.screen(meta, lang), view), nil
 }
 
 // MaterialsBuy handles settlement.materials.buy: the head buys materials from
 // Support's market with SUP from the treasury. The first press shows the price
 // and changes nothing; the confirmed one pays and brings the goods into the
 // village stock, each in the same transaction.
-func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadata, req VillageMaterialRequest) (*presenter.Response, error) {
+func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadata, req VillageMaterialRequest) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		confirmView *screens.MaterialBuyView
-		bought      *screens.MaterialBought
+		confirmView *village.MaterialBuyView
+		bought      *village.MaterialBought
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
@@ -419,11 +419,11 @@ func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadat
 		code := strings.TrimSpace(req.Item)
 		unit, ok := snap.VillageMaterialPrice(code, h.materialMarkupBPS)
 		if !ok {
-			return refuseVillage(screens.VillageNotAvailable, screens.AddrMaterials)
+			return refuseVillage(village.VillageNotAvailable, village.AddrMaterials)
 		}
 		qty, perr := strconv.ParseInt(strings.TrimSpace(req.Qty), 10, 64)
 		if perr != nil || qty < 1 || qty > h.materialBuyMax {
-			return refuseVillage(screens.VillageNotAvailable, screens.AddrMaterials)
+			return refuseVillage(village.VillageNotAvailable, village.AddrMaterials)
 		}
 		total := unit * qty
 		cd, _ := snap.ComponentDef(code)
@@ -450,17 +450,17 @@ func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadat
 			return err
 		}
 		if qty > stock.free() {
-			return refuseVillage(screens.VillageStorageFull, screens.AddrMaterials)
+			return refuseVillage(village.VillageStorageFull, village.AddrMaterials)
 		}
 		treasury, err := treasuryBalance(ctx, tx, s.CityID)
 		if err != nil {
 			return err
 		}
 		if treasury < total {
-			return refuseVillage(screens.VillageInsufficient, screens.AddrMaterials)
+			return refuseVillage(village.VillageInsufficient, village.AddrMaterials)
 		}
 		if !req.confirmed() {
-			confirmView = &screens.MaterialBuyView{
+			confirmView = &village.MaterialBuyView{
 				Village: s.Name, Item: named(cd.Code, cd.Name), Qty: qty, Unit: unit, Total: total, Treasury: treasury, Free: stock.free(),
 			}
 			return nil
@@ -494,7 +494,7 @@ func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadat
 		}); err != nil {
 			return err
 		}
-		bought = &screens.MaterialBought{Item: named(cd.Code, cd.Name), Qty: qty, Total: total}
+		bought = &village.MaterialBought{Item: named(cd.Code, cd.Name), Qty: qty, Total: total}
 		return appendVillageEvent(ctx, tx, meta, "materials_bought", s.CityID, map[string]any{
 			"settlement_id": s.CityID, "item": code, "quantity": qty, "total": total, "bought_by": p.ID, "purchase_id": purchaseID,
 		})
@@ -503,7 +503,7 @@ func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadat
 		return resp, err
 	}
 	if confirmView != nil {
-		return screens.VillageMaterialBuyConfirm(h.screen(meta, lang), *confirmView), nil
+		return village.VillageMaterialBuyConfirm(h.screen(meta, lang), *confirmView), nil
 	}
 	return h.materialsScreen(ctx, meta, bought)
 }
@@ -511,29 +511,29 @@ func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadat
 // --- work --------------------------------------------------------------------
 
 func (h *VillageHandler) workView(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement,
-) (screens.WorkView, error) {
+) (village.WorkView, error) {
 	snap := h.content.Current()
 	buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
 	if err != nil {
-		return screens.WorkView{}, err
+		return village.WorkView{}, err
 	}
 	stock, err := h.stockOf(ctx, tx, snap, s.CityID, buildings)
 	if err != nil {
-		return screens.WorkView{}, err
+		return village.WorkView{}, err
 	}
 	resident, err := h.resident(ctx, tx, p.ID, s.CityID)
 	if err != nil {
-		return screens.WorkView{}, err
+		return village.WorkView{}, err
 	}
 	shifts, err := tx.SettlementTreasury().WorkingShifts(ctx, s.CityID)
 	if err != nil {
-		return screens.WorkView{}, err
+		return village.WorkView{}, err
 	}
 	busy := map[string]int{}
 	for _, sh := range shifts {
 		busy[sh.BuildingID]++
 	}
-	view := screens.WorkView{Village: s.Name, Resident: resident, Used: stock.Used, Capacity: stock.Capacity}
+	view := village.WorkView{Village: s.Name, Resident: resident, Used: stock.Used, Capacity: stock.Capacity}
 	for _, b := range buildings {
 		if b.Status != "complete" {
 			continue
@@ -548,17 +548,17 @@ func (h *VillageHandler) workView(ctx context.Context, tx application.Tx, p *app
 				ready = false
 			}
 		}
-		view.Places = append(view.Places, screens.WorkplaceLine{
+		view.Places = append(view.Places, village.WorkplaceLine{
 			ID: b.ID, Building: named(d.Code, d.Name),
 			Produces: materialLinesOf(snap, d.Produces), Consumes: materialLinesOf(snap, d.Consumes),
 			Wage: d.Wage, Shift: h.scale.RealWait(d.Def().Work.Shift), Workers: d.Workers, Busy: busy[b.ID], Ready: ready,
 		})
 	}
 	if mine, err := tx.SettlementTreasury().PlayerShift(ctx, p.ID); err != nil {
-		return screens.WorkView{}, err
+		return village.WorkView{}, err
 	} else if mine != nil && mine.SettlementID == s.CityID {
 		bd, _ := snap.SettlementBuildingDef(buildingType(buildings, mine.BuildingID))
-		view.Mine = &screens.WorkShiftLine{
+		view.Mine = &village.WorkShiftLine{
 			Building: named(bd.Code, bd.Name), FinishAt: mine.FinishAt, Left: countdownTo(mine.FinishAt, h.now()),
 			Wage: mine.Wage, Produces: materialLinesOf(snap, mine.Produced),
 		}
@@ -566,7 +566,7 @@ func (h *VillageHandler) workView(ctx context.Context, tx application.Tx, p *app
 	if len(view.Places) == 0 {
 		pc, err := h.pathFor(ctx, tx, snap, s, buildings, stock)
 		if err != nil {
-			return screens.WorkView{}, err
+			return village.WorkView{}, err
 		}
 		for _, d := range snap.SettlementWorkplaces() {
 			if pc.listed(d) && len(pc.placementNeeds(d.Def())) == 0 {
@@ -591,11 +591,11 @@ func buildingType(buildings []application.SettlementBuildingInstance, id string)
 // its inputs out of the stock at once, ends after its game time (a scheduled
 // action, settlement.worked) and only then puts its goods into the stock and is
 // paid from the treasury.
-func (h *VillageHandler) Work(ctx context.Context, meta envelope.Metadata, req VillageWorkRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Work(ctx context.Context, meta envelope.Metadata, req VillageWorkRequest) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view    screens.WorkView
+		view    village.WorkView
 		started bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -622,7 +622,7 @@ func (h *VillageHandler) Work(ctx context.Context, meta envelope.Metadata, req V
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.VillageWork(h.screen(meta, lang), view), nil
+	return village.VillageWork(h.screen(meta, lang), view), nil
 }
 
 func (h *VillageHandler) startShift(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
@@ -639,21 +639,21 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 	if ok, err := h.resident(ctx, tx, p.ID, s.CityID); err != nil {
 		return err
 	} else if !ok {
-		return refuseVillage(screens.VillageNotResident, screens.AddrWork)
+		return refuseVillage(village.VillageNotResident, village.AddrWork)
 	}
 	b, err := tx.SettlementBuildings().Get(ctx, buildingID)
 	if isSentinel(err, application.ErrBuildingNotFound) {
-		return refuseVillage(screens.VillageNotFound, screens.AddrWork)
+		return refuseVillage(village.VillageNotFound, village.AddrWork)
 	}
 	if err != nil {
 		return err
 	}
 	if b.SettlementID != s.CityID {
-		return refuseVillage(screens.VillageNotFound, screens.AddrWork)
+		return refuseVillage(village.VillageNotFound, village.AddrWork)
 	}
 	d, ok := snap.SettlementBuildingDef(b.TypeCode)
 	if !ok || b.Status != "complete" || len(d.Produces) == 0 {
-		return refuseVillage(screens.VillageNotWorkplace, screens.AddrWork)
+		return refuseVillage(village.VillageNotWorkplace, village.AddrWork)
 	}
 	fresh, err := h.reserve(ctx, tx, p.ID, meta)
 	if err != nil || !fresh {
@@ -662,7 +662,7 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 	if mine, err := tx.SettlementTreasury().PlayerShift(ctx, p.ID); err != nil {
 		return err
 	} else if mine != nil {
-		return refuseVillage(screens.VillageAlreadyWorking, screens.AddrWork)
+		return refuseVillage(village.VillageAlreadyWorking, village.AddrWork)
 	}
 	if jobID != "" {
 		if err := tx.SettlementTreasury().CountStarted(ctx, jobID); err != nil {
@@ -686,7 +686,7 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 		return err
 	}
 	if needs := pc.materialNeeds(d.Consumes); len(needs) > 0 {
-		return needsRefusal(screens.VillageMaterials, screens.NeedsForWork, named(d.Code, d.Name), needs, screens.AddrWork)
+		return needsRefusal(village.VillageMaterials, village.NeedsForWork, named(d.Code, d.Name), needs, village.AddrWork)
 	}
 	var in int64
 	for _, q := range d.Consumes {
@@ -694,7 +694,7 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 	}
 	if stock.free()+in <= 0 {
 		// Not even the room the inputs free up: the shift's goods would all be lost.
-		return refuseVillage(screens.VillageStorageFull, screens.AddrWork)
+		return refuseVillage(village.VillageStorageFull, village.AddrWork)
 	}
 	wage := d.Wage
 	if wageOverride >= 0 {
@@ -705,7 +705,7 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 		return err
 	}
 	if treasury < wage {
-		return refuseVillage(screens.VillageInsufficient, screens.AddrWork)
+		return refuseVillage(village.VillageInsufficient, village.AddrWork)
 	}
 
 	now := h.now()
@@ -717,8 +717,8 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 			Reason: application.ItemProductionInput, ReferenceType: application.SettlementShiftItemReference, ReferenceID: shiftID, At: now,
 		}); err != nil {
 			if stderrors.Is(err, application.ErrNotEnoughItems) {
-				return needsRefusal(screens.VillageMaterials, screens.NeedsForWork, named(d.Code, d.Name),
-					pc.materialNeeds(d.Consumes), screens.AddrWork)
+				return needsRefusal(village.VillageMaterials, village.NeedsForWork, named(d.Code, d.Name),
+					pc.materialNeeds(d.Consumes), village.AddrWork)
 			}
 			return err
 		}
@@ -734,9 +734,9 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 	}, d.Workers); err != nil {
 		switch {
 		case stderrors.Is(err, application.ErrWorkplaceFull):
-			return refuseVillage(screens.VillageWorkplaceFull, screens.AddrWork)
+			return refuseVillage(village.VillageWorkplaceFull, village.AddrWork)
 		case stderrors.Is(err, application.ErrAlreadyWorking):
-			return refuseVillage(screens.VillageAlreadyWorking, screens.AddrWork)
+			return refuseVillage(village.VillageAlreadyWorking, village.AddrWork)
 		}
 		return err
 	}
@@ -768,7 +768,7 @@ func copyQty(in map[string]int64) map[string]int64 {
 // that did it puts the goods into the stock and pays the wage. The stock takes
 // what it has room for; the treasury pays what it holds, never more than the
 // wage the shift was worth.
-func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	in, err := villagePayload(meta, req)
 	if err != nil {
 		return nil, err

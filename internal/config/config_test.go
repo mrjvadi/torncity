@@ -494,6 +494,7 @@ client:
   realtime_token_ttl: 16m
   group_commands: allow
   mini_app_url: https://play.example.test
+  legacy_text_screens: [village_overview]
   chunk_cache_entries: 4097
   chunks_per_minute: 1201
   layouts_per_minute: 121
@@ -863,6 +864,7 @@ var envOverrides = map[string]string{
 	"TORN_CLIENT_REALTIME_TOKEN_TTL":          "17m",
 	"TORN_CLIENT_GROUP_COMMANDS":              "allow",
 	"TORN_CLIENT_MINI_APP_URL":                "https://play2.example.test",
+	"TORN_CLIENT_LEGACY_TEXT_SCREENS":         "village_overview,labor_board",
 	"TORN_CLIENT_CHUNK_CACHE_ENTRIES":         "4098",
 	"TORN_CLIENT_CHUNKS_PER_MINUTE":           "1202",
 	"TORN_CLIENT_LAYOUTS_PER_MINUTE":          "122",

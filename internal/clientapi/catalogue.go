@@ -118,6 +118,27 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 		add("military_unit", CatalogueEntry{Code: fc.Code, Category: fc.Branch,
 			Name: names(func(c screens.Context) string { return c.ForceClassName(screens.Named{Code: fc.Code, Name: fc.Name}) })}, true)
 	}
+	// Knowledge of a settlement, and the names of life: ranks, sleeping spots
+	// and stages of age. A client words these by code from here, so a name
+	// never has to be written into a client.
+	for _, k := range snap.SettlementKnowledgeDefs() {
+		add("settlement_knowledge", CatalogueEntry{Code: k.Code,
+			Name: names(func(c screens.Context) string { return c.SettlementKnowledgeName(screens.Named{Code: k.Code, Name: k.Name}) })}, false)
+	}
+	if life, ok := snap.Life(); ok {
+		for _, r := range life.Ranks.Ladder {
+			add("rank", CatalogueEntry{Code: r.Code,
+				Name: names(func(c screens.Context) string { return c.RankName(screens.RankRef{Code: r.Code, Name: r.Name}) })}, false)
+		}
+		for _, sp := range life.Sleep.Spots {
+			add("sleep_spot", CatalogueEntry{Code: sp.Code,
+				Name: names(func(c screens.Context) string { return c.SleepSpotName(screens.Named{Code: sp.Code, Name: sp.Name}) })}, false)
+		}
+		for _, st := range life.Age.Stages {
+			add("age_stage", CatalogueEntry{Code: st.Code,
+				Name: names(func(c screens.Context) string { return c.StageName(screens.Named{Code: st.Code, Name: st.Name}) })}, false)
+		}
+	}
 	for _, sb := range snap.SettlementBuildingDefs() {
 		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, Footprint: []int{sb.Footprint[0], sb.Footprint[1]}, CapExempt: sb.CapExempt,
 			Name: names(func(c screens.Context) string {

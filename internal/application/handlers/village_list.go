@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"sort"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -10,18 +12,16 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // This file holds K2/W5's three read-only list screens: the knowledge
 // list, the build menu and the construction progress queue.
 
 // KnowledgeList handles settlement.knowledge.
-func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.KnowledgeListView
+	var view village.KnowledgeListView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		_, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -53,10 +53,10 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 		}
 
 		tree := snap.SettlementKnowledgeTree()
-		view = screens.KnowledgeListView{Name: s.Name, Treasury: treasury, LiteracyPercent: st.LiteracyShareBPS / 100}
+		view = village.KnowledgeListView{Name: s.Name, Treasury: treasury, LiteracyPercent: st.LiteracyShareBPS / 100}
 		if running != nil {
 			d, _ := snap.SettlementKnowledgeDef(running.Code)
-			view.Running = &screens.KnowledgeResearchLine{Knowledge: named(d.Code, d.Name), FinishAt: running.FinishAt,
+			view.Running = &village.KnowledgeResearchLine{Knowledge: named(d.Code, d.Name), FinishAt: running.FinishAt,
 				Left: countdownTo(running.FinishAt, h.now())}
 		}
 		for _, code := range sortedKnowledgeCodes(snap) {
@@ -65,12 +65,12 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 				continue // never offered for research, purchase or a license (ADR 0031 section 4.3)
 			}
 			t := tree[code]
-			line := screens.KnowledgeLine{Knowledge: named(d.Code, d.Name)}
+			line := village.KnowledgeLine{Knowledge: named(d.Code, d.Name)}
 			switch {
 			case st.Owned.Has(code):
-				line.State = screens.KnowledgeHeld
+				line.State = village.KnowledgeHeld
 			case running != nil && running.Code == code:
-				line.State = screens.KnowledgeResearching
+				line.State = village.KnowledgeResearching
 			default:
 				line.ResearchCost, line.ResearchTime = d.Cost, h.scale.RealWait(t.Time)
 				if !d.Restricted {
@@ -83,13 +83,13 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 				err := settlementknowledge.CanAcquire(t, tree, st, true)
 				line.TerrainOK = t.TerrainMode != settlementknowledge.TerrainRequired || st.Discounted(t) || hasAny(terrain, t.TerrainTags)
 				if err == nil {
-					line.State = screens.KnowledgeAvailable
+					line.State = village.KnowledgeAvailable
 				} else {
-					line.State = screens.KnowledgeLocked
+					line.State = village.KnowledgeLocked
 					line.Missing = missingNamed(snap, st.Missing(t, tree))
 				}
 			}
-			if line.State == screens.KnowledgeLocked && len(line.Missing) > 0 {
+			if line.State == village.KnowledgeLocked && len(line.Missing) > 0 {
 				continue // one step away only (ADR 0033 section 5): what needs unowned knowledge is not listed
 			}
 			view.Lines = append(view.Lines, line)
@@ -100,14 +100,14 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.KnowledgeList(h.screen(meta, lang), view), nil
+	return village.KnowledgeList(h.screen(meta, lang), view), nil
 }
 
 // BuildMenu handles settlement.build.
-func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.BuildMenuView
+	var view village.BuildMenuView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		_, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -145,7 +145,7 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 		}
 		pc := pathContext{snap: snap, tier: s.Tier, owned: st.Owned, caps: capabilities, standing: standingCodes(buildings), stock: stock.Units, markup: h.materialMarkupBPS}
 
-		view = screens.BuildMenuView{Name: s.Name, Treasury: treasury, RunningBuilds: running,
+		view = village.BuildMenuView{Name: s.Name, Treasury: treasury, RunningBuilds: running,
 			ConcurrentCap: h.concurrentBuildCap[s.Tier]}
 		for _, code := range sortedBuildingCodes(snap) {
 			d, _ := snap.SettlementBuildingDef(code)
@@ -160,7 +160,7 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 			if !pc.listed(d) {
 				continue
 			}
-			line := screens.BuildLine{Building: named(d.Code, d.Name), Role: d.Role, CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime),
+			line := village.BuildLine{Building: named(d.Code, d.Name), Role: d.Role, CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime),
 				Materials: materialLinesOf(snap, def.CostMaterials)}
 			ok := true
 			if def.RequiresBuildingRole != nil && built[*def.RequiresBuildingRole] < 1 {
@@ -171,12 +171,12 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 				ok = false
 			}
 			if ok {
-				line.State = screens.BuildAvailable
+				line.State = village.BuildAvailable
 				for _, n := range pc.materialNeeds(def.CostMaterials) {
-					line.Short = append(line.Short, screens.MaterialLine{Component: n.Item, Quantity: n.Need - n.Have})
+					line.Short = append(line.Short, village.MaterialLine{Component: n.Item, Quantity: n.Need - n.Have})
 				}
 			} else {
-				line.State = screens.BuildLocked
+				line.State = village.BuildLocked
 			}
 			view.Lines = append(view.Lines, line)
 		}
@@ -185,14 +185,14 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.BuildMenu(h.screen(meta, lang), view), nil
+	return village.BuildMenu(h.screen(meta, lang), view), nil
 }
 
 // Progress handles settlement.build.progress.
-func (h *VillageHandler) Progress(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *VillageHandler) Progress(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ConstructionProgressView
+	var view village.ConstructionProgressView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		_, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -207,12 +207,12 @@ func (h *VillageHandler) Progress(ctx context.Context, meta envelope.Metadata) (
 		if err != nil {
 			return err
 		}
-		view = screens.ConstructionProgressView{Name: s.Name}
+		view = village.ConstructionProgressView{Name: s.Name}
 		now := h.now()
 		for _, b := range buildings {
 			if b.Status == "complete" && b.TypeCode != "road" {
 				d, _ := snap.SettlementBuildingDef(b.TypeCode)
-				view.Standing = append(view.Standing, screens.StandingLine{ID: b.ID, Building: named(d.Code, d.Name), LotX: b.LotX, LotY: b.LotY})
+				view.Standing = append(view.Standing, village.StandingLine{ID: b.ID, Building: named(d.Code, d.Name), LotX: b.LotX, LotY: b.LotY})
 			}
 			if b.Status != "building" {
 				continue
@@ -223,29 +223,29 @@ func (h *VillageHandler) Progress(ctx context.Context, meta envelope.Metadata) (
 			// the content's own build time counted from queued_at, which
 			// is exactly what the action was scheduled for.
 			if b.ByWork() {
-				view.Lines = append(view.Lines, screens.ConstructionLine{Building: named(d.Code, d.Name), LotX: b.LotX, LotY: b.LotY,
-					State: screens.ConstructionBuilding, ID: b.ID, ByWork: true, ProgressBPS: labor.ProgressBPS(b.WorkDone, b.WorkRequired),
-					LeftMinutes: b.WorkRequired - b.WorkDone})
+				view.Lines = append(view.Lines, village.ConstructionLine{Building: named(d.Code, d.Name), LotX: b.LotX, LotY: b.LotY,
+					State: village.ConstructionBuilding, ID: b.ID, ByWork: true, ProgressBPS: labor.ProgressBPS(b.WorkDone, b.WorkRequired),
+					DoneMinutes: b.WorkDone, RequiredMinutes: b.WorkRequired, LeftMinutes: b.WorkRequired - b.WorkDone})
 				continue
 			}
 			finish := b.QueuedAt.Add(h.scale.RealWait(d.Def().BuildTime))
-			view.Lines = append(view.Lines, screens.ConstructionLine{ID: b.ID, Building: named(d.Code, d.Name), LotX: b.LotX, LotY: b.LotY,
-				State: screens.ConstructionBuilding, FinishAt: finish, Left: countdownTo(finish, now)})
+			view.Lines = append(view.Lines, village.ConstructionLine{ID: b.ID, Building: named(d.Code, d.Name), LotX: b.LotX, LotY: b.LotY,
+				State: village.ConstructionBuilding, FinishAt: finish, Left: countdownTo(finish, now)})
 		}
 		return nil
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.ConstructionProgress(h.screen(meta, lang), view), nil
+	return village.ConstructionProgress(h.screen(meta, lang), view), nil
 }
 
 // --- shared small helpers -------------------------------------------------
-// named (crime.go) already builds a screens.Named from a code and an
+// named (crime.go) already builds a presentation.Named from a code and an
 // authored name; K2/W5 reuses it verbatim.
 
-func missingNamed(snap *content.Snapshot, codes []string) []screens.Named {
-	out := make([]screens.Named, 0, len(codes))
+func missingNamed(snap *content.Snapshot, codes []string) []presentation.Named {
+	out := make([]presentation.Named, 0, len(codes))
 	for _, c := range codes {
 		d, ok := snap.SettlementKnowledgeDef(c)
 		if ok {

@@ -122,7 +122,7 @@ func (l *laborEnv) resident() *application.Player {
 func (l *laborEnv) place(code string) string {
 	l.t.Helper()
 	ctx := testCtx(l.t)
-	lots, err := l.village.Lots(ctx, l.as(l.head, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: code})
+	lots, err := rrc(l.village.Lots(ctx, l.as(l.head, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: code}))
 	if err != nil {
 		l.t.Fatal(err)
 	}
@@ -130,8 +130,8 @@ func (l *laborEnv) place(code string) string {
 	if !ok {
 		l.t.Fatalf("no lot fits %s:\n%s", code, lots.Text)
 	}
-	resp, err := l.village.Place(ctx, l.as(l.head, "settlement.build.place", "build.place"),
-		handlers.VillageBuildRequest{Code: code, Lot: screens.LotToken(x, y, false), Confirm: screens.VillageBuildConfirm})
+	resp, err := rrc(l.village.Place(ctx, l.as(l.head, "settlement.build.place", "build.place"),
+		handlers.VillageBuildRequest{Code: code, Lot: screens.LotToken(x, y, false), Confirm: screens.VillageBuildConfirm}))
 	if err != nil {
 		l.t.Fatal(err)
 	}
@@ -166,7 +166,7 @@ type siteJSON struct {
 
 func (l *laborEnv) site(p *application.Player, id string) (siteJSON, *presenter.Response) {
 	l.t.Helper()
-	resp, err := l.village.LaborSite(testCtx(l.t), l.as(p, "settlement.labor.site", "labor.site"), handlers.VillageLaborRequest{ID: id})
+	resp, err := rrc(l.village.LaborSite(testCtx(l.t), l.as(p, "settlement.labor.site", "labor.site"), handlers.VillageLaborRequest{ID: id}))
 	if err != nil {
 		l.t.Fatal(err)
 	}
@@ -205,7 +205,7 @@ func (l *laborEnv) end(s shiftRow) {
 	l.t.Helper()
 	m := l.as(l.head, "settlement.worked", "worked")
 	for i := 0; i < 2; i++ { // twice: a redelivery changes nothing
-		if _, err := l.village.Worked(testCtx(l.t), m, handlers.CrimeScheduledRequest{ReferenceID: s.id, ActionID: s.action}); err != nil {
+		if _, err := rrc(l.village.Worked(testCtx(l.t), m, handlers.CrimeScheduledRequest{ReferenceID: s.id, ActionID: s.action})); err != nil {
 			l.t.Fatalf("Worked #%d: %v", i+1, err)
 		}
 	}
@@ -248,7 +248,7 @@ func TestLaborConstructionOnlyThroughShifts(t *testing.T) {
 		t.Fatalf("a timer was scheduled to finish the building: %d actions", got)
 	}
 	l.clock.Advance(1000 * time.Hour)
-	if _, err := l.village.Built(ctx, l.as(l.head, "settlement.built", "built"), handlers.CrimeScheduledRequest{ReferenceID: camp}); err != nil {
+	if _, err := rrc(l.village.Built(ctx, l.as(l.head, "settlement.built", "built"), handlers.CrimeScheduledRequest{ReferenceID: camp})); err != nil {
 		t.Fatal(err)
 	}
 	site, _ := l.site(l.head, camp)
@@ -259,14 +259,14 @@ func TestLaborConstructionOnlyThroughShifts(t *testing.T) {
 		t.Fatalf("the site's job on the board: %+v", site.Job)
 	}
 	jobWage := site.Job.Wage
-	board, err := l.village.LaborBoard(ctx, l.as(worker, "settlement.labor.board", "labor.board"))
+	board, err := rrc(l.village.LaborBoard(ctx, l.as(worker, "settlement.labor.board", "labor.board")))
 	if err != nil || !strings.Contains(board.Text, "تابلوی استخدام") || !strings.Contains(econButtonData(board), "settlement:labor.site:"+camp) {
 		t.Fatalf("the hiring board: %v\n%s\n%s", err, board.Text, econButtonData(board))
 	}
 
 	// 2. A player takes the job: paid what the employer offered, when the shift
 	// ends. A stranger who is not in the village cannot; nobody works two shifts.
-	if _, err := l.village.LaborTake(ctx, l.as(stranger, "settlement.labor.take", "labor.take"), handlers.VillageLaborRequest{ID: site.Job.ID}); err != nil {
+	if _, err := rrc(l.village.LaborTake(ctx, l.as(stranger, "settlement.labor.take", "labor.take"), handlers.VillageLaborRequest{ID: site.Job.ID})); err != nil {
 		t.Errorf("a stranger's take: %v", err)
 	}
 	if got := l.scalar(`SELECT count(*) FROM settlement_shifts WHERE building_id = $1::uuid`, camp); got != 0 {
@@ -275,11 +275,11 @@ func TestLaborConstructionOnlyThroughShifts(t *testing.T) {
 	cash0 := cashBalance(t, l.pool, application.AccountPlayerCash, worker.ID)
 	treasury0 := treasuryOf(t, l.pool, l.cityID)
 	take := l.as(worker, "settlement.labor.take", "labor.take")
-	resp, err := l.village.LaborTake(ctx, take, handlers.VillageLaborRequest{ID: site.Job.ID})
+	resp, err := rrc(l.village.LaborTake(ctx, take, handlers.VillageLaborRequest{ID: site.Job.ID}))
 	if err != nil || !strings.Contains(resp.Text, "شیفت شما شروع شد") {
 		t.Fatalf("taking the job: %v\n%s", err, resp.Text)
 	}
-	if r, err := l.village.LaborTake(ctx, l.as(worker, "settlement.labor.take", "labor.take"), handlers.VillageLaborRequest{ID: site.Job.ID}); err != nil ||
+	if r, err := rrc(l.village.LaborTake(ctx, l.as(worker, "settlement.labor.take", "labor.take"), handlers.VillageLaborRequest{ID: site.Job.ID})); err != nil ||
 		!strings.Contains(r.Text, "همین حالا") {
 		t.Errorf("a second shift of the same worker was not refused: %+v %v", r, err)
 	}
@@ -287,7 +287,7 @@ func TestLaborConstructionOnlyThroughShifts(t *testing.T) {
 	if len(shifts) != 1 {
 		t.Fatalf("%d shifts on the site, want 1", len(shifts))
 	}
-	if _, err := l.village.Worked(ctx, l.as(l.head, "settlement.worked", "worked"), handlers.CrimeScheduledRequest{ReferenceID: shifts[0].id, ActionID: shifts[0].action}); err == nil {
+	if _, err := rrc(l.village.Worked(ctx, l.as(l.head, "settlement.worked", "worked"), handlers.CrimeScheduledRequest{ReferenceID: shifts[0].id, ActionID: shifts[0].action})); err == nil {
 		t.Error("a shift ended before its time")
 	}
 	l.clock.Advance(time.Hour + time.Minute)
@@ -306,7 +306,7 @@ func TestLaborConstructionOnlyThroughShifts(t *testing.T) {
 	if got := l.scalar(`SELECT shifts FROM labor_workers WHERE player_id = $1::uuid`, worker.ID); got != 1 {
 		t.Fatalf("the worker's experience is %d shifts, want 1", got)
 	}
-	mine, err := l.village.LaborMine(ctx, l.as(worker, "settlement.labor.mine", "labor.mine"))
+	mine, err := rrc(l.village.LaborMine(ctx, l.as(worker, "settlement.labor.mine", "labor.mine")))
 	if err != nil || !strings.Contains(mine.Text, "شاگرد") {
 		t.Errorf("my work: %v\n%s", err, mine.Text)
 	}
@@ -314,13 +314,13 @@ func TestLaborConstructionOnlyThroughShifts(t *testing.T) {
 	// 3. Only the employer hires labourers; the head's two NPC labourers work
 	// the rest, paid the market wage to the sink, and the last shift completes the
 	// building.
-	if r, err := l.village.LaborHire(ctx, l.as(worker, "settlement.labor.hire", "labor.hire"), handlers.VillageLaborRequest{ID: site.Job.ID, N: "2"}); err != nil ||
+	if r, err := rrc(l.village.LaborHire(ctx, l.as(worker, "settlement.labor.hire", "labor.hire"), handlers.VillageLaborRequest{ID: site.Job.ID, N: "2"})); err != nil ||
 		!strings.Contains(r.Text, "کارفرمای همین کار") {
 		t.Errorf("a worker hired labourers: %+v %v", r, err)
 	}
 	sink0 := l.sink()
 	treasury1 := treasuryOf(t, l.pool, l.cityID)
-	hired, err := l.village.LaborHire(ctx, l.as(l.head, "settlement.labor.hire", "labor.hire"), handlers.VillageLaborRequest{ID: site.Job.ID, N: "2"})
+	hired, err := rrc(l.village.LaborHire(ctx, l.as(l.head, "settlement.labor.hire", "labor.hire"), handlers.VillageLaborRequest{ID: site.Job.ID, N: "2"}))
 	if err != nil || !strings.Contains(hired.Text, "کارگرها استخدام شدند") {
 		t.Fatalf("hiring: %v\n%s", err, hired.Text)
 	}
@@ -362,7 +362,7 @@ func TestLaborConstructionOnlyThroughShifts(t *testing.T) {
 
 	// 4. A finished workplace is worked through the same board: the head posts
 	// a production job and the worker takes it.
-	post, err := l.village.LaborPost(ctx, l.as(l.head, "settlement.labor.post", "labor.post"), handlers.VillageLaborRequest{ID: camp})
+	post, err := rrc(l.village.LaborPost(ctx, l.as(l.head, "settlement.labor.post", "labor.post"), handlers.VillageLaborRequest{ID: camp}))
 	if err != nil || !strings.Contains(post.Text, "آگهی روی تابلو رفت") {
 		t.Fatalf("posting a production job: %v\n%s", err, post.Text)
 	}
@@ -370,7 +370,7 @@ func TestLaborConstructionOnlyThroughShifts(t *testing.T) {
 	if prodSite.Job == nil {
 		t.Fatal("no production job on the board")
 	}
-	if r, err := l.village.LaborTake(ctx, l.as(worker, "settlement.labor.take", "labor.take"), handlers.VillageLaborRequest{ID: prodSite.Job.ID}); err != nil {
+	if r, err := rrc(l.village.LaborTake(ctx, l.as(worker, "settlement.labor.take", "labor.take"), handlers.VillageLaborRequest{ID: prodSite.Job.ID})); err != nil {
 		t.Fatal(err)
 	} else if !strings.Contains(r.Text, "شیفت شما شروع شد") {
 		t.Fatalf("taking the production job:\n%s", r.Text)
@@ -430,11 +430,11 @@ func TestLaborCitizenEmployerPaysAndTheVillageTakesItsLevy(t *testing.T) {
 	if site.Job == nil || site.Job.Wage != 100 || !site.CanWork {
 		t.Fatalf("the citizen's job is not on offer: %+v", site)
 	}
-	if r, err := l.village.LaborClose(ctx, l.as(l.head, "settlement.labor.close", "labor.close"), handlers.VillageLaborRequest{ID: site.Job.ID}); err != nil ||
+	if r, err := rrc(l.village.LaborClose(ctx, l.as(l.head, "settlement.labor.close", "labor.close"), handlers.VillageLaborRequest{ID: site.Job.ID})); err != nil ||
 		!strings.Contains(r.Text, "کارفرمای همین کار") {
 		t.Errorf("the village head closed a citizen's job: %+v %v", r, err)
 	}
-	if _, err := l.village.LaborTake(ctx, l.as(worker, "settlement.labor.take", "labor.take"), handlers.VillageLaborRequest{ID: site.Job.ID}); err != nil {
+	if _, err := rrc(l.village.LaborTake(ctx, l.as(worker, "settlement.labor.take", "labor.take"), handlers.VillageLaborRequest{ID: site.Job.ID})); err != nil {
 		t.Fatal(err)
 	}
 	if got := cashBalance(t, l.pool, application.AccountPlayerCash, owner.ID); got != ownerCash-100 {

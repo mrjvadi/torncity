@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"strconv"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
@@ -14,25 +15,11 @@ import (
 // the city beyond (progressive disclosure, ADR 0033 section 5). Group
 // screens, like every civic act of the village.
 
-// Promotion addresses.
-const (
-	// AddrVillagePromotion shows the goals; AddrVillagePromote is the act
-	// (its argument is the confirm on the second press).
-	AddrVillagePromotion = "settlement:promotion.view"
-	AddrVillagePromote   = "settlement:promote"
-)
-
-// VillagePromoteConfirm is the "confirm" argument's value of the second press.
-const VillagePromoteConfirm = ResidenceConfirm
-
-// VillagePromotionTop is the refusal kind for a settlement with no tier above.
-const VillagePromotionTop = "promotion_top"
-
 // Structured screens of the promotion commands (clients).
 const (
-	ScreenVillagePromotion  = "village_promotion"
-	ScreenVillagePromoteAsk = "village_promote_confirm"
-	ScreenVillagePromoted   = "village_promoted"
+	ScreenVillagePromotion  = village.ScreenVillagePromotion
+	ScreenVillagePromoteAsk = village.ScreenVillagePromoteAsk
+	ScreenVillagePromoted   = village.ScreenVillagePromoted
 )
 
 // The kinds of goal, as the rules name them (internal/domain/settlement).
@@ -44,35 +31,6 @@ const (
 	promoKnowledge = "knowledge"
 	promoTreasury  = "treasury"
 )
-
-// PromotionCriterionView is one goal and the settlement's progress on it.
-// Current and Required are in the goal's own unit: people, basis points of
-// literacy, buildings, things learned, minor units of money, or a tier for a
-// role.
-type PromotionCriterionView struct {
-	Kind     string `json:"kind"`
-	Role     string `json:"role,omitempty"`
-	Current  int64  `json:"current"`
-	Required int64  `json:"required"`
-	Met      bool   `json:"met"`
-}
-
-// PromotionView is the way forward from a settlement's tier.
-type PromotionView struct {
-	Village string `json:"village"`
-	// From and To are the tiers the step joins.
-	From string `json:"from"`
-	To   string `json:"to"`
-	// Criteria are every goal with its progress; Met when all are.
-	Criteria []PromotionCriterionView `json:"criteria"`
-	Met      bool                     `json:"met"`
-	// CanPromote is set when the viewer holds the settlement's head office;
-	// only the head takes the step.
-	CanPromote bool `json:"can_promote"`
-	// Office is the office code the head holds once the step is taken.
-	Office       string `json:"office,omitempty"`
-	SettlementID string `json:"settlement_id,omitempty"`
-}
 
 // promotionLines is the goals as lines: a check or an empty box, the goal, and
 // how far along the settlement is.

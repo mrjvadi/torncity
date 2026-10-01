@@ -1,7 +1,7 @@
 package screens
 
 import (
-	"time"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -12,35 +12,11 @@ import (
 // two-step act (a confirm screen, then the move) and is followed by a
 // cool-down (config settlement.residence_cooldown).
 
-// Where the residence commands are addressed.
-const (
-	AddrVillageJoin  = "settlement:join"
-	AddrVillageLeave = "settlement:leave"
-)
-
-// ResidenceConfirm is the "confirm" argument's value the second press carries.
-const ResidenceConfirm = "confirm"
-
 // Structured screens of the residence commands (clients).
 const (
-	ScreenResidenceConfirm = "village_residence_confirm"
-	ScreenResidenceDone    = "village_residence_done"
+	ScreenResidenceConfirm = village.ScreenResidenceConfirm
+	ScreenResidenceDone    = village.ScreenResidenceDone
 )
-
-// ResidenceView is the confirm screen and the result of moving home.
-type ResidenceView struct {
-	// Leaving is true for settlement.leave.
-	Leaving bool
-	// Village is the village joined or left; Home the city returned to.
-	Village, Home string
-	// Cooldown is how long the player cannot move again.
-	Cooldown time.Duration
-	// Population is the village's residents after the move.
-	Population int64
-	// SettlementID addresses the village for a client (a group's own is
-	// resolved from the chat).
-	SettlementID string
-}
 
 func residenceKey(v ResidenceView) string {
 	if v.Leaving {

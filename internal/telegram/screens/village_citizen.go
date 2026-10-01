@@ -1,9 +1,9 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -14,87 +14,20 @@ import (
 // resident's own property page, and the head's terms. Texts are the
 // `citizen.*` section of the locales.
 
-// Addresses.
-const (
-	AddrLand            = "settlement:land"
-	AddrLotBuy          = "settlement:lot.buy"
-	AddrPrivateMenu     = "settlement:private"
-	AddrPrivateLots     = "settlement:private.lots"
-	AddrPrivatePlace    = "settlement:private.place"
-	AddrMine            = "settlement:mine"
-	AddrHomeRest        = "settlement:home.rest"
-	AddrTaxPay          = "settlement:tax.pay"
-	AddrVillageTerms    = "settlement:terms"
-	AddrVillageResident = AddrSettlementWho
-)
-
 // Structured screens (clients).
 const (
-	ScreenLand           = "settlement_land"
-	ScreenLotBuyConfirm  = "settlement_lot_buy_confirm"
-	ScreenLotBuyDone     = "settlement_lot_buy_done"
-	ScreenPrivateMenu    = "settlement_private_menu"
-	ScreenPrivateLots    = "settlement_private_lots"
-	ScreenPrivateConfirm = "settlement_private_confirm"
-	ScreenMine           = "settlement_mine"
-	ScreenTerms          = "settlement_terms"
-)
-
-// Refusals of the citizen loop; their text is citizen.refusal.<kind>.
-const (
-	CitizenLotTaken    = "citizen_lot_taken"
-	CitizenLotLimit    = "citizen_lot_limit"
-	CitizenZoning      = "citizen_zoning"
-	CitizenNotOwner    = "citizen_not_owner"
-	CitizenNoCash      = "citizen_no_cash"
-	CitizenPrivateOnly = "citizen_private_only"
-	CitizenLotPrivate  = "citizen_lot_private"
-	CitizenRestWait    = "citizen_rest_wait"
-	CitizenNoHouse     = "citizen_no_house"
-	CitizenTermsRange  = "citizen_terms_range"
-	CitizenNoDebt      = "citizen_no_debt"
-	CitizenOff         = "citizen_off"
-	CitizenNoLots      = "citizen_no_lots"
+	ScreenLand           = village.ScreenLand
+	ScreenLotBuyConfirm  = village.ScreenLotBuyConfirm
+	ScreenLotBuyDone     = village.ScreenLotBuyDone
+	ScreenPrivateMenu    = village.ScreenPrivateMenu
+	ScreenPrivateLots    = village.ScreenPrivateLots
+	ScreenPrivateConfirm = village.ScreenPrivateConfirm
+	ScreenMine           = village.ScreenMine
+	ScreenTerms          = village.ScreenTerms
 )
 
 // isCitizenRefusal tells a refusal kind of this file from the older ones.
 func isCitizenRefusal(kind string) bool { return strings.HasPrefix(kind, "citizen_") }
-
-// Cell states of the land grid.
-const (
-	LandFree     = "free"
-	LandMine     = "mine"
-	LandTaken    = "taken"
-	LandBuilding = "building"
-	LandRoad     = "road"
-	LandWater    = "water"
-	LandSteep    = "steep"
-)
-
-// LandCell is one lot of the land grid. Owner is who holds a lot that is not
-// the viewer's, for a member to read; Building is the code standing on it.
-type LandCell struct {
-	X, Y     int
-	State    string
-	Owner    string `json:"owner,omitempty"`
-	Building string `json:"building,omitempty"`
-}
-
-// LandView is the village's land as a resident sees it.
-type LandView struct {
-	Village      string
-	SettlementID string
-	GridLots     int
-	Rows         [][]LandCell
-	// Price is what a free lot costs; Cash the viewer's own money.
-	Price, Cash int64
-	// Owned is how many lots the viewer holds, Max the most one may hold.
-	Owned, Max int
-	// CanBuy is whether the viewer may buy another lot now.
-	CanBuy bool
-	// FreeLots counts the lots on offer.
-	FreeLots int
-}
 
 // LandGrid renders the land grid: every free lot is a button that starts a
 // purchase.
@@ -157,17 +90,6 @@ func renderLand(c Context, v LandView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-// LotBuyView is the confirm of a purchase and its result.
-type LotBuyView struct {
-	Village      string
-	SettlementID string
-	X, Y         int
-	Price        int64
-	// Cash is the buyer's money now (after the purchase, on the result).
-	Cash     int64
-	Treasury int64
-}
-
 // LotBuyConfirm asks the buyer to confirm.
 func LotBuyConfirm(c Context, v LotBuyView) *presenter.Response {
 	return c.withView(renderLotBuyConfirm(c, v), ScreenLotBuyConfirm, v)
@@ -202,42 +124,6 @@ func renderLotBuyDone(c Context, v LotBuyView) *presenter.Response {
 	kb.Row(citizenButtons(c, "citizen.button.build_house", AddrPrivateMenu, "citizen.button.more_land", AddrLand)...)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrLand}))
 	return c.respond(paragraphs(c.T("citizen.buy.done_title", args), c.T(sharedKey(c, "citizen.buy.done_body"), args)), kb.Build())
-}
-
-// PrivateMaterial is one material a private building needs, and how it is met.
-type PrivateMaterial struct {
-	Component Named
-	Need      int64
-	// Have is what the builder carries; Buy is how many units are bought at
-	// the reference price, BuyCost what they cost.
-	Have, Buy, BuyCost int64
-}
-
-// PrivateLine is one building of the citizen catalogue the village can build now.
-type PrivateLine struct {
-	Building   Named
-	Home       bool
-	Class      string
-	CostMoney  int64
-	PermitFee  int64
-	Materials  []PrivateMaterial
-	BuildTime  time.Duration
-	FootprintW int
-	FootprintH int
-	// Total is everything the builder pays in cash: cost, permit and bought
-	// materials.
-	Total      int64
-	Affordable bool
-}
-
-// PrivateMenuView is the citizen catalogue.
-type PrivateMenuView struct {
-	Village      string
-	SettlementID string
-	Cash         int64
-	OwnedLots    int
-	FreeLots     int
-	Lines        []PrivateLine
 }
 
 // PrivateMenu renders the citizen catalogue: only what can be built now.
@@ -296,17 +182,6 @@ func renderPrivateMenu(c Context, v PrivateMenuView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-// PrivateLotsView is the grid a private building's lot is chosen from: a cell
-// fits only where every lot of the footprint is the builder's own and free.
-type PrivateLotsView struct {
-	Village   string
-	Building  Named
-	CanRotate bool
-	Rotated   bool
-	GridLots  int
-	Rows      [][]LotCell
-}
-
 // PrivateLots renders the lot choice.
 func PrivateLots(c Context, v PrivateLotsView) *presenter.Response {
 	return c.withView(renderPrivateLots(c, v), ScreenPrivateLots, v)
@@ -342,21 +217,6 @@ func renderPrivateLots(c Context, v PrivateLotsView) *presenter.Response {
 	return c.respond(paragraphs(head, c.T("citizen.lots.legend", nil)), kb.Build())
 }
 
-// PrivateConfirmView is the bill of a private building before it is built.
-type PrivateConfirmView struct {
-	Village       string
-	Building      Named
-	X, Y          int
-	Rotated       bool
-	CostMoney     int64
-	PermitFee     int64
-	Materials     []PrivateMaterial
-	MaterialsCost int64
-	Total         int64
-	Cash          int64
-	BuildTime     time.Duration
-}
-
 // PrivateConfirm renders the bill.
 func PrivateConfirm(c Context, v PrivateConfirmView) *presenter.Response {
 	return c.withView(renderPrivateConfirm(c, v), ScreenPrivateConfirm, v)
@@ -380,40 +240,6 @@ func renderPrivateConfirm(c Context, v PrivateConfirmView) *presenter.Response {
 		body(c.T("citizen.confirm.lines", args), privateMaterialsText(c, v.Materials)),
 		c.T(sharedKey(c, "citizen.confirm.total"), args),
 	), kb.Build())
-}
-
-// MineLot is one of the viewer's lots.
-type MineLot struct {
-	X, Y int
-	// Building is the code standing on it, empty for a bare lot; State is
-	// the building's state (under_construction, built), empty for a bare lot.
-	Building string
-	State    string
-	FinishAt time.Time
-	Left     time.Duration
-}
-
-// MineView is a resident's own property page.
-type MineView struct {
-	Village      string
-	SettlementID string
-	Cash         int64
-	Lots         []MineLot
-	// Home is the building the viewer lives in, nil before a house stands.
-	Home *Named
-	// CanRest says the viewer may rest at home now; RestWait is what is left
-	// of the cool-down otherwise.
-	CanRest  bool
-	RestWait time.Duration
-	// Assessed is the value the property tax is charged on, TaxBPS the rate
-	// and TaxPerPeriod the tax one period charges.
-	Assessed, TaxPerPeriod int64
-	TaxBPS                 int
-	// Debt is the unpaid tax and DebtPeriods the periods it covers.
-	Debt        int64
-	DebtPeriods int
-	// Notice is a line about what just happened (rested, tax paid).
-	Notice string
 }
 
 // Mine renders the resident's property.
@@ -488,20 +314,6 @@ func renderMine(c Context, v MineView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-// TermsView is the head's levers over land and permits.
-type TermsView struct {
-	Village                        string
-	SettlementID                   string
-	LotPrice, LotPriceMin          int64
-	LotPriceMax                    int64
-	PermitFee, PermitFeeMax        int64
-	TaxBPS, TaxBPSMax              int
-	LotPresets, PermitPresets      []int64
-	TaxPresets                     []int
-	DefaultLotPrice, DefaultPermit int64
-	DefaultTaxBPS                  int
-}
-
 // Terms renders the head's terms screen.
 func Terms(c Context, v TermsView) *presenter.Response {
 	return c.withView(renderTerms(c, v), ScreenTerms, v)
@@ -549,7 +361,7 @@ func citizenButtons(c Context, labelA, addrA, labelB, addrB string) []presenter.
 // renderCitizenRefusal renders a refusal of the citizen loop: its own text, and
 // a button toward what fixes it (more land, or land at all).
 func renderCitizenRefusal(c Context, v VillageRefusalView) *presenter.Response {
-	back := v.Back
+	back := v.Back.Address()
 	if back == "" {
 		back = AddrVillageOverview
 	}

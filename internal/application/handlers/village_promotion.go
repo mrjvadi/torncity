@@ -3,13 +3,13 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Tier promotion (docs/adr/0028-world-and-settlements.md section 4.1): a
@@ -41,11 +41,11 @@ import (
 
 // VillagePromoteRequest is the payload of settlement.promote.
 type VillagePromoteRequest struct {
-	// Confirm is screens.VillagePromoteConfirm on the second press.
+	// Confirm is village.VillagePromoteConfirm on the second press.
 	Confirm string `json:"confirm,omitempty"`
 }
 
-func (r VillagePromoteRequest) confirmed() bool { return r.Confirm == screens.VillagePromoteConfirm }
+func (r VillagePromoteRequest) confirmed() bool { return r.Confirm == village.VillagePromoteConfirm }
 
 // tierStanding counts what a settlement has, the input the ladder's rules
 // judge. Roads and demolished or unfinished buildings do not count as
@@ -125,7 +125,7 @@ func isHead(ctx context.Context, tx application.Tx, s application.FoundedSettlem
 // or nil at the top of the ladder.
 func (h *VillageHandler) promotionOf(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 	s application.FoundedSettlement, viewerID string,
-) (*screens.PromotionView, error) {
+) (*village.PromotionView, error) {
 	rule, ok := tierRule(snap, s.Tier)
 	if !ok {
 		return nil, nil
@@ -141,13 +141,13 @@ func (h *VillageHandler) promotionOf(ctx context.Context, tx application.Tx, sna
 	return promotionView(s, rule.Evaluate(standing), head), nil
 }
 
-func promotionView(s application.FoundedSettlement, p wsettle.Progress, head bool) *screens.PromotionView {
-	v := &screens.PromotionView{
+func promotionView(s application.FoundedSettlement, p wsettle.Progress, head bool) *village.PromotionView {
+	v := &village.PromotionView{
 		Village: s.Name, From: p.From, To: p.To, Met: p.Met, CanPromote: head,
 		Office: wsettle.HeadOffice(p.To), SettlementID: s.CityID,
 	}
 	for _, k := range p.Criteria {
-		v.Criteria = append(v.Criteria, screens.PromotionCriterionView{
+		v.Criteria = append(v.Criteria, village.PromotionCriterionView{
 			Kind: k.Kind, Role: k.Role, Current: k.Current, Required: k.Required, Met: k.Met,
 		})
 	}
@@ -156,10 +156,10 @@ func promotionView(s application.FoundedSettlement, p wsettle.Progress, head boo
 
 // PromotionView handles settlement.promotion.view: the goals of the next tier
 // and the progress on each.
-func (h *VillageHandler) PromotionView(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *VillageHandler) PromotionView(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
-	var view *screens.PromotionView
+	var view *village.PromotionView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -174,25 +174,25 @@ func (h *VillageHandler) PromotionView(ctx context.Context, meta envelope.Metada
 			return err
 		}
 		if view == nil {
-			return refuseVillage(screens.VillagePromotionTop)
+			return refuseVillage(village.VillagePromotionTop)
 		}
 		return nil
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.VillagePromotion(h.screen(meta, lang), *view), nil
+	return village.VillagePromotion(h.screen(meta, lang), *view), nil
 }
 
 // Promote handles settlement.promote: the head takes the settlement one tier
 // up. Two steps, like every act of the village: the confirm, then the step.
 // Unmet goals show the way forward instead (never a bare error); a redelivered
 // confirm, or one that lost the race to another, changes nothing.
-func (h *VillageHandler) Promote(ctx context.Context, meta envelope.Metadata, req VillagePromoteRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Promote(ctx context.Context, meta envelope.Metadata, req VillagePromoteRequest) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view *screens.PromotionView
+		view *village.PromotionView
 		step string // "view", "ask" or "done"
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -210,7 +210,7 @@ func (h *VillageHandler) Promote(ctx context.Context, meta envelope.Metadata, re
 		}
 		rule, ok := tierRule(snap, s.Tier)
 		if !ok {
-			return refuseVillage(screens.VillagePromotionTop)
+			return refuseVillage(village.VillagePromotionTop)
 		}
 		standing, err := tierStanding(ctx, tx, snap, s)
 		if err != nil {
@@ -280,9 +280,9 @@ func (h *VillageHandler) Promote(ctx context.Context, meta envelope.Metadata, re
 	c := h.screen(meta, lang)
 	switch step {
 	case "view":
-		return screens.VillagePromotion(c, *view), nil
+		return village.VillagePromotion(c, *view), nil
 	case "ask":
-		return screens.VillagePromoteAsk(c, *view), nil
+		return village.VillagePromoteAsk(c, *view), nil
 	}
-	return screens.VillagePromoted(c, *view), nil
+	return village.VillagePromoted(c, *view), nil
 }

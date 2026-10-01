@@ -81,7 +81,7 @@ func TestCitizenLoop(t *testing.T) {
 		return m
 	}
 	for _, p := range []*application.Player{resident, neighbour} {
-		if _, err := village.Join(ctx, group(p, "settlement.join"), handlers.VillageJoinRequest{Confirm: screens.ResidenceConfirm}); err != nil {
+		if _, err := rrm(group(p, "settlement.join"))(village.Join(ctx, group(p, "settlement.join"), handlers.VillageJoinRequest{Confirm: screens.ResidenceConfirm})); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -106,7 +106,7 @@ func TestCitizenLoop(t *testing.T) {
 	countRows := func(query string, args ...any) int { return e.count(t, query, args...) }
 
 	// ---- the land: free lots are on offer ---------------------------------
-	land, err := village.Land(ctx, client(resident, "settlement.land"))
+	land, err := rrm(client(resident, "settlement.land"))(village.Land(ctx, client(resident, "settlement.land")))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +125,7 @@ func TestCitizenLoop(t *testing.T) {
 	lotA, lotB, lotC, lotD := free[0], free[1], free[2], free[3]
 
 	// ---- a non-resident cannot buy ----------------------------------------
-	if r, err := village.BuyLot(ctx, client(stranger, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotA, Confirm: screens.ResidenceConfirm}); err != nil ||
+	if r, err := rrm(client(stranger, "settlement.lot.buy"))(village.BuyLot(ctx, client(stranger, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotA, Confirm: screens.ResidenceConfirm})); err != nil ||
 		!strings.Contains(r.Text, "village.refusal.not_resident") && !strings.Contains(r.Text, "village.refusal.no_settlement") {
 		t.Fatalf("a stranger bought a lot: %+v %v", r, err)
 	}
@@ -135,14 +135,14 @@ func TestCitizenLoop(t *testing.T) {
 
 	// ---- buy a lot: the price goes to the treasury ------------------------
 	treasury0, cash0 := treasuryOf(t, pool, cityID), cashOfPlayer(resident)
-	ask, err := village.BuyLot(ctx, client(resident, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotA})
+	ask, err := rrm(client(resident, "settlement.lot.buy"))(village.BuyLot(ctx, client(resident, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotA}))
 	if err != nil || !strings.Contains(ask.Text, "citizen.buy.ask_title") {
 		t.Fatalf("asking to buy: %+v %v", ask, err)
 	}
 	if treasuryOf(t, pool, cityID) != treasury0 || cashOfPlayer(resident) != cash0 {
 		t.Fatal("asking to buy moved money")
 	}
-	done, err := village.BuyLot(ctx, client(resident, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotA, Confirm: screens.ResidenceConfirm})
+	done, err := rrm(client(resident, "settlement.lot.buy"))(village.BuyLot(ctx, client(resident, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotA, Confirm: screens.ResidenceConfirm}))
 	if err != nil || !strings.Contains(done.Text, "citizen.buy.done_title") {
 		t.Fatalf("buying: %+v %v", done, err)
 	}
@@ -156,18 +156,18 @@ func TestCitizenLoop(t *testing.T) {
 		t.Fatalf("%d lots recorded for the buyer", n)
 	}
 	// The same lot again, by anyone: taken. A repeated confirm changes nothing.
-	if r, err := village.BuyLot(ctx, client(neighbour, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotA, Confirm: screens.ResidenceConfirm}); err != nil ||
+	if r, err := rrm(client(neighbour, "settlement.lot.buy"))(village.BuyLot(ctx, client(neighbour, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotA, Confirm: screens.ResidenceConfirm})); err != nil ||
 		!strings.Contains(r.Text, "citizen.refusal.citizen_lot_taken") {
 		t.Fatalf("a taken lot was sold twice: %+v %v", r, err)
 	}
 	// The per-player limit (3 in this test).
 	for _, lot := range []string{lotB, lotC} {
-		if r, err := village.BuyLot(ctx, client(resident, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lot, Confirm: screens.ResidenceConfirm}); err != nil ||
+		if r, err := rrm(client(resident, "settlement.lot.buy"))(village.BuyLot(ctx, client(resident, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lot, Confirm: screens.ResidenceConfirm})); err != nil ||
 			!strings.Contains(r.Text, "citizen.buy.done_title") {
 			t.Fatalf("buying %s: %+v %v", lot, r, err)
 		}
 	}
-	if r, err := village.BuyLot(ctx, client(resident, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotD, Confirm: screens.ResidenceConfirm}); err != nil ||
+	if r, err := rrm(client(resident, "settlement.lot.buy"))(village.BuyLot(ctx, client(resident, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotD, Confirm: screens.ResidenceConfirm})); err != nil ||
 		!strings.Contains(r.Text, "citizen.refusal.citizen_lot_limit") {
 		t.Fatalf("the lot limit was not kept: %+v %v", r, err)
 	}
@@ -179,17 +179,17 @@ func TestCitizenLoop(t *testing.T) {
 		m.IdempotencyKey = "it-" + randomToken(t, 16)
 		return m
 	}
-	if r, err := village.Place(ctx, headMeta("settlement.build.place"), handlers.VillageBuildRequest{Code: "road", Lot: lotB, Confirm: screens.VillageBuildConfirm}); err != nil ||
+	if r, err := rrm(headMeta("settlement.build.place"))(village.Place(ctx, headMeta("settlement.build.place"), handlers.VillageBuildRequest{Code: "road", Lot: lotB, Confirm: screens.VillageBuildConfirm})); err != nil ||
 		!strings.Contains(r.Text, "citizen.refusal.citizen_lot_private") {
 		t.Fatalf("the head built on a resident's lot: %+v %v", r, err)
 	}
-	if r, err := village.Place(ctx, headMeta("settlement.build.place"), handlers.VillageBuildRequest{Code: "private_cottage", Lot: lotD, Confirm: screens.VillageBuildConfirm}); err != nil ||
+	if r, err := rrm(headMeta("settlement.build.place"))(village.Place(ctx, headMeta("settlement.build.place"), handlers.VillageBuildRequest{Code: "private_cottage", Lot: lotD, Confirm: screens.VillageBuildConfirm})); err != nil ||
 		!strings.Contains(r.Text, "citizen.refusal.citizen_private_only") {
 		t.Fatalf("the head placed a private building: %+v %v", r, err)
 	}
 
 	// ---- the citizen catalogue shows only what can be built now -----------
-	menu, err := village.PrivateMenu(ctx, client(resident, "settlement.private"))
+	menu, err := rrm(client(resident, "settlement.private"))(village.PrivateMenu(ctx, client(resident, "settlement.private")))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,7 +203,7 @@ func TestCitizenLoop(t *testing.T) {
 
 	// ---- cannot build on another's lot ------------------------------------
 	place := func(p *application.Player, code, lot, confirm string) (*presenter.Response, error) {
-		return village.PrivatePlace(ctx, client(p, "settlement.private.place"), handlers.VillagePrivateRequest{Code: code, Lot: lot, Confirm: confirm})
+		return rrm(client(p, "settlement.private.place"))(village.PrivatePlace(ctx, client(p, "settlement.private.place"), handlers.VillagePrivateRequest{Code: code, Lot: lot, Confirm: confirm}))
 	}
 	if r, err := place(neighbour, "private_cottage", lotA, screens.VillageBuildConfirm); err != nil || !strings.Contains(r.Text, "citizen.refusal.citizen_not_owner") {
 		t.Fatalf("a neighbour built on another's lot: %+v %v", r, err)
@@ -250,20 +250,20 @@ func TestCitizenLoop(t *testing.T) {
 		t.Fatalf("built twice on one lot: %+v %v", r, err)
 	}
 	// The head can neither cancel nor demolish a resident's building.
-	if r, err := village.Cancel(ctx, headMeta("settlement.build.cancel"), handlers.VillageBuildingRequest{ID: buildingID}); err != nil ||
+	if r, err := rrm(headMeta("settlement.build.cancel"))(village.Cancel(ctx, headMeta("settlement.build.cancel"), handlers.VillageBuildingRequest{ID: buildingID})); err != nil ||
 		!strings.Contains(r.Text, "citizen.refusal.citizen_lot_private") {
 		t.Fatalf("the head cancelled a resident's building: %+v %v", r, err)
 	}
 
 	// ---- live in it ---------------------------------------------------------
-	if r, err := village.HomeRest(ctx, group(resident, "settlement.home.rest")); err != nil || !strings.Contains(r.Text, "citizen.refusal.citizen_no_house") {
+	if r, err := rrm(group(resident, "settlement.home.rest"))(village.HomeRest(ctx, group(resident, "settlement.home.rest"))); err != nil || !strings.Contains(r.Text, "citizen.refusal.citizen_no_house") {
 		t.Fatalf("rested before the house stood: %+v %v", r, err)
 	}
 	e.clock.Advance(cottage.Def().BuildTime + time.Second)
-	if _, err := village.Built(ctx, group(resident, "settlement.built"), handlers.CrimeScheduledRequest{ReferenceID: buildingID}); err != nil {
+	if _, err := rrm(group(resident, "settlement.built"))(village.Built(ctx, group(resident, "settlement.built"), handlers.CrimeScheduledRequest{ReferenceID: buildingID})); err != nil {
 		t.Fatal(err)
 	}
-	mine, err := village.Mine(ctx, client(resident, "settlement.mine"))
+	mine, err := rrm(client(resident, "settlement.mine"))(village.Mine(ctx, client(resident, "settlement.mine")))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -271,19 +271,19 @@ func TestCitizenLoop(t *testing.T) {
 		t.Fatalf("a finished house is not the resident's home: %v", mv)
 	}
 	cashBeforeRest := cashOfPlayer(resident)
-	if r, err := village.HomeRest(ctx, group(resident, "settlement.home.rest")); err != nil || !strings.Contains(r.Text, "citizen.mine.notice.rested") {
+	if r, err := rrm(group(resident, "settlement.home.rest"))(village.HomeRest(ctx, group(resident, "settlement.home.rest"))); err != nil || !strings.Contains(r.Text, "citizen.mine.notice.rested") {
 		t.Fatalf("resting at home: %+v %v", r, err)
 	}
 	if cashOfPlayer(resident) != cashBeforeRest {
 		t.Fatal("living at home paid money: residency is not a faucet")
 	}
-	if r, err := village.HomeRest(ctx, group(resident, "settlement.home.rest")); err != nil || !strings.Contains(r.Text, "citizen.refusal.citizen_rest_wait") {
+	if r, err := rrm(group(resident, "settlement.home.rest"))(village.HomeRest(ctx, group(resident, "settlement.home.rest"))); err != nil || !strings.Contains(r.Text, "citizen.refusal.citizen_rest_wait") {
 		t.Fatalf("rested twice inside the cooldown: %+v %v", r, err)
 	}
 
 	// ---- the head's terms, inside their bounds ----------------------------
 	terms := func(p *application.Player, req handlers.VillageTermsRequest) *presenter.Response {
-		r, err := village.Terms(ctx, group(p, "settlement.terms"), req)
+		r, err := rrm(group(p, "settlement.terms"))(village.Terms(ctx, group(p, "settlement.terms"), req))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -299,7 +299,7 @@ func TestCitizenLoop(t *testing.T) {
 		t.Fatalf("the head's terms: %+v", r)
 	}
 	tr0, nc0 := treasuryOf(t, pool, cityID), cashOfPlayer(neighbour)
-	if r, err := village.BuyLot(ctx, client(neighbour, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotD, Confirm: screens.ResidenceConfirm}); err != nil ||
+	if r, err := rrm(client(neighbour, "settlement.lot.buy"))(village.BuyLot(ctx, client(neighbour, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotD, Confirm: screens.ResidenceConfirm})); err != nil ||
 		!strings.Contains(r.Text, "citizen.buy.done_title") {
 		t.Fatalf("buying at the head's price: %+v %v", r, err)
 	}
@@ -337,11 +337,11 @@ func TestCitizenLoop(t *testing.T) {
 	// A resident with nothing left owes it: a debt that a later payment clears.
 	pauper := insertPlayer(t, pool)
 	placePlayer(t, pool, pauper.ID, support, "")
-	if _, err := village.Join(ctx, group(pauper, "settlement.join"), handlers.VillageJoinRequest{Confirm: screens.ResidenceConfirm}); err != nil {
+	if _, err := rrm(group(pauper, "settlement.join"))(village.Join(ctx, group(pauper, "settlement.join"), handlers.VillageJoinRequest{Confirm: screens.ResidenceConfirm})); err != nil {
 		t.Fatal(err)
 	}
 	grantCash(t, pool, pauper.ID, 400)
-	if r, err := village.BuyLot(ctx, client(pauper, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: free[4%len(free)], Confirm: screens.ResidenceConfirm}); err != nil ||
+	if r, err := rrm(client(pauper, "settlement.lot.buy"))(village.BuyLot(ctx, client(pauper, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: free[4%len(free)], Confirm: screens.ResidenceConfirm})); err != nil ||
 		!strings.Contains(r.Text, "citizen.buy.done_title") {
 		t.Fatalf("the pauper's lot: %+v %v", r, err)
 	}
@@ -351,14 +351,14 @@ func TestCitizenLoop(t *testing.T) {
 	if debt != 1 {
 		t.Fatalf("a resident with no cash should owe exactly this period's tax, owes %d rows", debt)
 	}
-	if r, err := village.PayTax(ctx, client(pauper, "settlement.tax.pay")); err != nil || !strings.Contains(r.Text, "citizen.mine.title") {
+	if r, err := rrm(client(pauper, "settlement.tax.pay"))(village.PayTax(ctx, client(pauper, "settlement.tax.pay"))); err != nil || !strings.Contains(r.Text, "citizen.mine.title") {
 		t.Fatalf("paying with no cash: %+v %v", r, err)
 	}
 	if n := countRows(`SELECT count(*) FROM settlement_property_tax WHERE settlement_id = $1::uuid AND player_id = $2::uuid AND paid_at IS NULL`, cityID, pauper.ID); n != 1 {
 		t.Fatal("the debt vanished without being paid")
 	}
 	grantCash(t, pool, pauper.ID, 100)
-	if _, err := village.PayTax(ctx, client(pauper, "settlement.tax.pay")); err != nil {
+	if _, err := rrm(client(pauper, "settlement.tax.pay"))(village.PayTax(ctx, client(pauper, "settlement.tax.pay"))); err != nil {
 		t.Fatal(err)
 	}
 	if n := countRows(`SELECT count(*) FROM settlement_property_tax WHERE settlement_id = $1::uuid AND player_id = $2::uuid AND paid_at IS NULL`, cityID, pauper.ID); n != 0 {

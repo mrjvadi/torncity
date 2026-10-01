@@ -336,7 +336,7 @@ func TestVillageBuildPlacement(t *testing.T) {
 	t.Cleanup(func() { cleanupPlacementSettlement(t, pool, cityID) })
 	seedTreasury(t, pool, cityID, 50_000)
 
-	lotsResp0, err := village.Lots(testCtx(t), newMetaFor(groupChatID, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "road"})
+	lotsResp0, err := rrcm(newMetaFor(groupChatID, "settlement.build.lots", "build.lots"))(village.Lots(testCtx(t), newMetaFor(groupChatID, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "road"}))
 	if err != nil {
 		t.Fatalf("Lots(road): %v", err)
 	}
@@ -350,8 +350,8 @@ func TestVillageBuildPlacement(t *testing.T) {
 	// its own distinct Persian reason, never "already occupied" (a real
 	// occupied lot's own text) — nothing is placed.
 	// ------------------------------------------------------------------
-	waterResp, err := village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
-		handlers.VillageBuildRequest{Code: "road", Lot: screens.LotToken(waterX, waterY, false)})
+	waterResp, err := rrcm(newMetaFor(groupChatID, "settlement.build.place", "build.place"))(village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
+		handlers.VillageBuildRequest{Code: "road", Lot: screens.LotToken(waterX, waterY, false)}))
 	if err != nil {
 		t.Fatalf("Place on a water lot: %v", err)
 	}
@@ -372,11 +372,11 @@ func TestVillageBuildPlacement(t *testing.T) {
 	// The grid of a building the village cannot afford in materials is not
 	// offered (the attempt view names what is missing instead), so a 2x2 that
 	// needs none - the park - is what the lot is picked on.
-	lotsResp, err := village.Lots(testCtx(t), newMetaFor(groupChatID, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "park"})
+	lotsResp, err := rrcm(newMetaFor(groupChatID, "settlement.build.lots", "build.lots"))(village.Lots(testCtx(t), newMetaFor(groupChatID, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "park"}))
 	if err != nil {
 		t.Fatalf("Lots(park): %v", err)
 	}
-	if noGrid, err := village.Lots(testCtx(t), newMetaFor(groupChatID, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "civic_hall"}); err != nil ||
+	if noGrid, err := rrcm(newMetaFor(groupChatID, "settlement.build.lots", "build.lots"))(village.Lots(testCtx(t), newMetaFor(groupChatID, "settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "civic_hall"})); err != nil ||
 		!strings.Contains(noGrid.Text, "الوار") {
 		t.Errorf("Lots(civic_hall) with no timber should name the timber it lacks: %+v %v", noGrid, err)
 	}
@@ -389,8 +389,8 @@ func TestVillageBuildPlacement(t *testing.T) {
 
 	// Without the timber even the preview is the attempt view: what is missing
 	// and where it comes from, never a cost screen for something unaffordable.
-	previewResp, err := village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
-		handlers.VillageBuildRequest{Code: "civic_hall", Lot: hallLot})
+	previewResp, err := rrcm(newMetaFor(groupChatID, "settlement.build.place", "build.place"))(village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
+		handlers.VillageBuildRequest{Code: "civic_hall", Lot: hallLot}))
 	if err != nil {
 		t.Fatalf("Place preview: %v", err)
 	}
@@ -399,8 +399,8 @@ func TestVillageBuildPlacement(t *testing.T) {
 	}
 	assertNoBuildingAt(t, pool, cityID, hallX, hallY)
 
-	shortResp, err := village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
-		handlers.VillageBuildRequest{Code: "civic_hall", Lot: hallLot, Confirm: screens.VillageBuildConfirm})
+	shortResp, err := rrcm(newMetaFor(groupChatID, "settlement.build.place", "build.place"))(village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
+		handlers.VillageBuildRequest{Code: "civic_hall", Lot: hallLot, Confirm: screens.VillageBuildConfirm}))
 	if err != nil {
 		t.Fatalf("Place confirmed with no timber: %v", err)
 	}
@@ -418,14 +418,14 @@ func TestVillageBuildPlacement(t *testing.T) {
 	treasuryBefore := cashBalance(t, pool, application.AccountCityTreasury, cityID)
 
 	// With the timber in stock the preview shows cost and time and changes nothing.
-	if preview, err := village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
-		handlers.VillageBuildRequest{Code: "civic_hall", Lot: hallLot}); err != nil || preview.Screen != screens.ScreenLotConfirm {
+	if preview, err := rrcm(newMetaFor(groupChatID, "settlement.build.place", "build.place"))(village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
+		handlers.VillageBuildRequest{Code: "civic_hall", Lot: hallLot})); err != nil || preview.Screen != screens.ScreenLotConfirm {
 		t.Errorf("an unconfirmed Place's own screen = %+v %v, want %q", preview, err, screens.ScreenLotConfirm)
 	}
 	assertNoBuildingAt(t, pool, cityID, hallX, hallY)
 
-	if _, err := village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
-		handlers.VillageBuildRequest{Code: "civic_hall", Lot: hallLot, Confirm: screens.VillageBuildConfirm}); err != nil {
+	if _, err := rrcm(newMetaFor(groupChatID, "settlement.build.place", "build.place"))(village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
+		handlers.VillageBuildRequest{Code: "civic_hall", Lot: hallLot, Confirm: screens.VillageBuildConfirm})); err != nil {
 		t.Fatalf("Place confirmed with timber in stock: %v", err)
 	}
 
@@ -460,8 +460,8 @@ func TestVillageBuildPlacement(t *testing.T) {
 
 	// A second attempt at the same lot, now occupied, is refused as
 	// occupied (not unbuildable) — the two reasons really are distinct.
-	occupiedResp, err := village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
-		handlers.VillageBuildRequest{Code: "road", Lot: hallLot, Confirm: screens.VillageBuildConfirm})
+	occupiedResp, err := rrcm(newMetaFor(groupChatID, "settlement.build.place", "build.place"))(village.Place(testCtx(t), newMetaFor(groupChatID, "settlement.build.place", "build.place"),
+		handlers.VillageBuildRequest{Code: "road", Lot: hallLot, Confirm: screens.VillageBuildConfirm}))
 	if err != nil {
 		t.Fatalf("Place on an occupied lot: %v", err)
 	}
@@ -479,14 +479,14 @@ func TestVillageBuildPlacement(t *testing.T) {
 		t.Fatal("shipped content has no civic_hall")
 	}
 	clk.Advance(queuedAt.Add(def.Def().BuildTime).Sub(clk.Now()) + time.Second)
-	if _, err := village.Built(testCtx(t), newMetaFor(groupChatID, "settlement.built", "built"),
-		handlers.CrimeScheduledRequest{ReferenceID: buildingID}); err != nil {
+	if _, err := rrcm(newMetaFor(groupChatID, "settlement.built", "built"))(village.Built(testCtx(t), newMetaFor(groupChatID, "settlement.built", "built"),
+		handlers.CrimeScheduledRequest{ReferenceID: buildingID})); err != nil {
 		t.Fatalf("Built: %v", err)
 	}
 
 	treasuryBeforeDemolish := cashBalance(t, pool, application.AccountCityTreasury, cityID)
-	if _, err := village.Demolish(testCtx(t), newMetaFor(groupChatID, "settlement.build.demolish", "build.demolish"),
-		handlers.VillageBuildingRequest{ID: buildingID}); err != nil {
+	if _, err := rrcm(newMetaFor(groupChatID, "settlement.build.demolish", "build.demolish"))(village.Demolish(testCtx(t), newMetaFor(groupChatID, "settlement.build.demolish", "build.demolish"),
+		handlers.VillageBuildingRequest{ID: buildingID})); err != nil {
 		t.Fatalf("Demolish: %v", err)
 	}
 	if got := cashBalance(t, pool, application.AccountCityTreasury, cityID) - treasuryBeforeDemolish; got != 200 {

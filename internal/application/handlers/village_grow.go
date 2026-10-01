@@ -3,13 +3,13 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"strings"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // This file holds settlement.grid.grow: the head buys more land.
@@ -37,9 +37,9 @@ type VillageGrowRequest struct {
 }
 
 // GrowGrid handles settlement.grid.grow.
-func (h *VillageHandler) GrowGrid(ctx context.Context, meta envelope.Metadata, req VillageGrowRequest) (*presenter.Response, error) {
+func (h *VillageHandler) GrowGrid(ctx context.Context, meta envelope.Metadata, req VillageGrowRequest) (*presentation.Response, error) {
 	lang := meta.Language
-	var confirmView *screens.GridGrowView
+	var confirmView *village.GridGrowView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -55,11 +55,11 @@ func (h *VillageHandler) GrowGrid(ctx context.Context, meta envelope.Metadata, r
 		}
 		side := h.gridSide(s)
 		if h.gridMaxLots <= 0 || side+1 > h.gridMaxLots {
-			return refuseVillage(screens.VillageGridMax)
+			return refuseVillage(village.VillageGridMax)
 		}
 		price := wsettle.GrowthPrice(side, s.GridGrowth, h.gridLotPrice, h.gridPriceStepBPS)
 
-		if strings.TrimSpace(req.Confirm) != screens.VillageBuildConfirm {
+		if strings.TrimSpace(req.Confirm) != village.VillageBuildConfirm {
 			// What the strip holds: sampled on the grid as it would be.
 			w, err := h.world(ctx)
 			if err != nil {
@@ -83,7 +83,7 @@ func (h *VillageHandler) GrowGrid(ctx context.Context, meta envelope.Metadata, r
 			if err != nil {
 				return err
 			}
-			confirmView = &screens.GridGrowView{
+			confirmView = &village.GridGrowView{
 				SettlementName: s.Name, Side: side, NewSide: side + 1, LotsGained: wsettle.GrowthLots(side),
 				BuildableGained: buildable, Price: price, Treasury: treasury,
 			}
@@ -102,7 +102,7 @@ func (h *VillageHandler) GrowGrid(ctx context.Context, meta envelope.Metadata, r
 		}
 		if err := tx.Settlements().GrowGrid(ctx, s.CityID, s.GridGrowth, s.GridGrowth+1); err != nil {
 			if stderrors.Is(err, application.ErrGridGrowthConflict) {
-				return refuseVillage(screens.VillageBusy)
+				return refuseVillage(village.VillageBusy)
 			}
 			return err
 		}
@@ -115,7 +115,7 @@ func (h *VillageHandler) GrowGrid(ctx context.Context, meta envelope.Metadata, r
 		return resp, err
 	}
 	if confirmView != nil {
-		return screens.GridGrowConfirm(h.screen(meta, lang), *confirmView), nil
+		return village.GridGrowConfirm(h.screen(meta, lang), *confirmView), nil
 	}
 	return h.BuildMenu(ctx, meta)
 }

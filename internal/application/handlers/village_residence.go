@@ -3,12 +3,12 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Residence: settlement.join and settlement.leave.
@@ -21,8 +21,8 @@ import (
 //
 // Rules, the same set for both directions:
 //
-//   - a two-step act: the command asks (screens.ResidenceAsk), the confirm
-//     button moves (screens.ResidenceDone);
+//   - a two-step act: the command asks (village.ResidenceAsk), the confirm
+//     button moves (village.ResidenceDone);
 //   - refused while the player is travelling, at work on a shift, in jail,
 //     in hospital or in the middle of a timed crime (the rules travel
 //     already applies: a home is not moved from under a wage, a sentence or
@@ -44,26 +44,26 @@ import (
 
 // VillageJoinRequest is the payload of settlement.join and settlement.leave.
 type VillageJoinRequest struct {
-	// Confirm is screens.ResidenceConfirm on the second press.
+	// Confirm is village.ResidenceConfirm on the second press.
 	Confirm string `json:"confirm,omitempty"`
 	// Settlement names the village for a game client; in a group it is
 	// ignored (the group's own village is used).
 	Settlement string `json:"settlement,omitempty"`
 }
 
-func (r VillageJoinRequest) confirmed() bool { return r.Confirm == screens.ResidenceConfirm }
+func (r VillageJoinRequest) confirmed() bool { return r.Confirm == village.ResidenceConfirm }
 
 // residenceTarget is the village a join is about.
 func (h *VillageHandler) residenceTarget(ctx context.Context, tx application.Tx, meta envelope.Metadata, req VillageJoinRequest,
 ) (application.FoundedSettlement, error) {
 	if meta.FromClient() {
 		if req.Settlement == "" {
-			return application.FoundedSettlement{}, refuseVillage(screens.VillageNoSettlement)
+			return application.FoundedSettlement{}, refuseVillage(village.VillageNoSettlement)
 		}
 		return tx.Settlements().ByID(ctx, req.Settlement)
 	}
 	if !meta.InGroup() {
-		return application.FoundedSettlement{}, refuseVillage(screens.VillageNoSettlement)
+		return application.FoundedSettlement{}, refuseVillage(village.VillageNoSettlement)
 	}
 	return tx.Settlements().ByFoundingGroup(ctx, meta.TelegramChatID)
 }
@@ -88,7 +88,7 @@ func (h *VillageHandler) residenceGate(ctx context.Context, tx application.Tx, p
 		}
 		if since != nil {
 			if left := since.Add(h.residenceCooldown).Sub(now); left > 0 {
-				r := refuseVillage(screens.VillageResidenceWait)
+				r := refuseVillage(village.VillageResidenceWait)
 				r.remaining = left
 				return r
 			}
@@ -98,10 +98,10 @@ func (h *VillageHandler) residenceGate(ctx context.Context, tx application.Tx, p
 }
 
 // Join handles settlement.join.
-func (h *VillageHandler) Join(ctx context.Context, meta envelope.Metadata, req VillageJoinRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Join(ctx context.Context, meta envelope.Metadata, req VillageJoinRequest) (*presentation.Response, error) {
 	lang := meta.Language
 	var (
-		view    screens.ResidenceView
+		view    village.ResidenceView
 		confirm bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -114,13 +114,13 @@ func (h *VillageHandler) Join(ctx context.Context, meta envelope.Metadata, req V
 		if err != nil {
 			return err
 		}
-		view = screens.ResidenceView{Village: s.Name, Cooldown: h.residenceCooldown, SettlementID: s.CityID}
+		view = village.ResidenceView{Village: s.Name, Cooldown: h.residenceCooldown, SettlementID: s.CityID}
 		home, err := tx.Employment().ResidenceCityID(ctx, p.ID)
 		if err != nil {
 			return err
 		}
 		if home == s.CityID {
-			return refuseVillage(screens.VillageAlreadyResident)
+			return refuseVillage(village.VillageAlreadyResident)
 		}
 		now := h.now()
 		if !req.confirmed() {
@@ -150,17 +150,17 @@ func (h *VillageHandler) Join(ctx context.Context, meta envelope.Metadata, req V
 	}
 	c := h.screen(meta, lang)
 	if confirm {
-		return screens.ResidenceAsk(c, view), nil
+		return village.ResidenceAsk(c, view), nil
 	}
-	return screens.ResidenceDone(c, view), nil
+	return village.ResidenceDone(c, view), nil
 }
 
 // Leave handles settlement.leave: the player goes back to the neutral home
 // city.
-func (h *VillageHandler) Leave(ctx context.Context, meta envelope.Metadata, req VillageJoinRequest) (*presenter.Response, error) {
+func (h *VillageHandler) Leave(ctx context.Context, meta envelope.Metadata, req VillageJoinRequest) (*presentation.Response, error) {
 	lang := meta.Language
 	var (
-		view    screens.ResidenceView
+		view    village.ResidenceView
 		confirm bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -181,31 +181,31 @@ func (h *VillageHandler) Leave(ctx context.Context, meta envelope.Metadata, req 
 		}
 		if err != nil {
 			if meta.FromClient() && stderrors.Is(err, application.ErrCityNotFound) {
-				return refuseVillage(screens.VillageNotResident)
+				return refuseVillage(village.VillageNotResident)
 			}
 			return err
 		}
 		if home != s.CityID {
-			return refuseVillage(screens.VillageNotResident)
+			return refuseVillage(village.VillageNotResident)
 		}
 		ps, err := tx.Settlements().ByPlayer(ctx, p.ID)
 		if err != nil && !stderrors.Is(err, application.ErrCityNotFound) {
 			return err
 		}
 		if ps.CityID == s.CityID && len(ps.Offices) > 0 {
-			return refuseVillage(screens.VillageHoldsOffice)
+			return refuseVillage(village.VillageHoldsOffice)
 		}
 		if h.homeCityCode == "" {
-			return refuseVillage(screens.VillageNoHome)
+			return refuseVillage(village.VillageNoHome)
 		}
 		dest, err := h.cities.ByCode(ctx, h.homeCityCode)
 		if err != nil || dest == nil {
 			if err == nil || stderrors.Is(err, application.ErrCityNotFound) {
-				return refuseVillage(screens.VillageNoHome)
+				return refuseVillage(village.VillageNoHome)
 			}
 			return err
 		}
-		view = screens.ResidenceView{Leaving: true, Village: s.Name, Home: dest.Name, Cooldown: h.residenceCooldown, SettlementID: s.CityID}
+		view = village.ResidenceView{Leaving: true, Village: s.Name, Home: dest.Name, Cooldown: h.residenceCooldown, SettlementID: s.CityID}
 		now := h.now()
 		if !req.confirmed() {
 			confirm = true
@@ -232,7 +232,7 @@ func (h *VillageHandler) Leave(ctx context.Context, meta envelope.Metadata, req 
 	}
 	c := h.screen(meta, lang)
 	if confirm {
-		return screens.ResidenceAsk(c, view), nil
+		return village.ResidenceAsk(c, view), nil
 	}
-	return screens.ResidenceDone(c, view), nil
+	return village.ResidenceDone(c, view), nil
 }

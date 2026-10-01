@@ -62,6 +62,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/switches"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
+	telegramrender "github.com/mrjvadi/torncity/internal/telegram/render"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -987,6 +988,16 @@ func (g *gateway) onResponse(msg *natsgo.Msg) {
 	if err := env.Decode(&resp); err != nil {
 		log.Error("response payload is not a presentation model", slog.String("error", err.Error()))
 		return
+	}
+	// A neutral response is data; Telegram's own presentation layer writes
+	// the text and the keyboard here, at the edge (docs/adr/0037).
+	if resp.Neutral() {
+		rendered, err := telegramrender.Render(g.messages, telegramrender.DeliveryOf(meta), &resp)
+		if err != nil {
+			log.Error("cannot render the response for telegram", slog.String("screen", resp.Screen), slog.String("error", err.Error()))
+			return
+		}
+		resp = *rendered
 	}
 
 	botKey, ok := g.botKeyByID[meta.BotID]

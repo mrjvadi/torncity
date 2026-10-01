@@ -1,0 +1,43 @@
+package village
+
+// The screens of the village area, by name on the wire.
+const (
+	ScreenVillageOverview      = "village_overview"
+	ScreenKnowledgeList        = "settlement_knowledge_list"
+	ScreenBuildMenu            = "settlement_build_menu"
+	ScreenConstructionProgress = "settlement_construction_progress"
+	ScreenVillageRefusal       = "village_refusal"
+	ScreenLotGrid              = "settlement_build_lots"
+	ScreenLotConfirm           = "settlement_build_confirm"
+	ScreenVillageHomeCall      = "village_home_call"
+	ScreenVillageDonateMenu    = "village_donate_menu"
+	ScreenVillageDonateConfirm = "village_donate_confirm"
+	ScreenVillageDonateDone    = "village_donate_done"
+	ScreenVillagePromotion     = "village_promotion"
+	ScreenVillagePromoteAsk    = "village_promote_confirm"
+	ScreenVillagePromoted      = "village_promoted"
+	ScreenResidenceConfirm     = "village_residence_confirm"
+	ScreenResidenceDone        = "village_residence_done"
+	ScreenLand                 = "settlement_land"
+	ScreenLotBuyConfirm        = "settlement_lot_buy_confirm"
+	ScreenLotBuyDone           = "settlement_lot_buy_done"
+	ScreenPrivateMenu          = "settlement_private_menu"
+	ScreenPrivateLots          = "settlement_private_lots"
+	ScreenPrivateConfirm       = "settlement_private_confirm"
+	ScreenMine                 = "settlement_mine"
+	ScreenTerms                = "settlement_terms"
+	ScreenLaborBoard           = "labor_board"
+	ScreenLaborSite            = "labor_site"
+	ScreenLaborMine            = "labor_mine"
+	ScreenVillageMaterials     = "village_materials"
+	ScreenVillageBuyConfirm    = "village_materials_buy_confirm"
+	ScreenVillageWork          = "village_work"
+	ScreenVillageWorkStarted   = "village_work_started"
+	ScreenBuildingView         = "settlement_building_view"
+	ScreenLotBatchConfirm      = "settlement_build_batch_confirm"
+	ScreenGridGrow             = "settlement_grid_grow"
+	// ScreenVillageHomeNone is what a player who lives in no village sees when asking for their village.
+	// ScreenSettlementWho is the roster of who is around in a settlement.
+	ScreenSettlementWho   = "settlement_who"
+	ScreenVillageHomeNone = "village_home_none"
+)

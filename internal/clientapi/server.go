@@ -20,8 +20,11 @@ import (
 
 // APIError is the error half of every answer.
 type APIError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	Code string `json:"code"`
+	// Message is the sentence for a person. A neutral refusal
+	// (docs/adr/0037) has none: the client words the code from Args.
+	Message string         `json:"message"`
+	Args    map[string]any `json:"args,omitempty"`
 }
 
 // Limiter bounds how often a key may do something.

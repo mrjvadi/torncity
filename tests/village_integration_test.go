@@ -249,7 +249,7 @@ func TestVillageLifecycle(t *testing.T) {
 		if err := presenceSvc.Beat(ctx, founder.ID, time.Now()); err != nil {
 			t.Fatal(err)
 		}
-		who, err := handlers.NewPresenceHandler(uow, catalog, presenceSvc).Who(ctx, newMeta("settlement.who", "who"))
+		who, err := rrcm(newMeta("settlement.who", "who"))(handlers.NewPresenceHandler(uow, catalog, presenceSvc).Who(ctx, newMeta("settlement.who", "who")))
 		if err != nil {
 			t.Fatalf("settlement.who: %v", err)
 		}
@@ -298,8 +298,8 @@ func TestVillageLifecycle(t *testing.T) {
 	// 3. Research completes: record_keeping (requires only the
 	// literacy_spread capability, which oral_tradition already provides).
 	// ------------------------------------------------------------------
-	if _, err := village.Research(ctx, newMeta("settlement.knowledge.research", "knowledge.research"),
-		handlers.VillageKnowledgeRequest{Code: "record_keeping"}); err != nil {
+	if _, err := rrm(newMeta("settlement.knowledge.research", "knowledge.research"))(village.Research(ctx, newMeta("settlement.knowledge.research", "knowledge.research"),
+		handlers.VillageKnowledgeRequest{Code: "record_keeping"})); err != nil {
 		t.Fatalf("Research: %v", err)
 	}
 	var researchID, researchActionID string
@@ -310,8 +310,8 @@ func TestVillageLifecycle(t *testing.T) {
 		t.Fatalf("reading the running research: %v", err)
 	}
 	clk.Advance(researchFinish.Sub(clk.Now()) + time.Second)
-	if _, err := village.Researched(ctx, newMeta("settlement.researched", "researched"),
-		handlers.CrimeScheduledRequest{ActionID: researchActionID, ReferenceID: researchID}); err != nil {
+	if _, err := rrm(newMeta("settlement.researched", "researched"))(village.Researched(ctx, newMeta("settlement.researched", "researched"),
+		handlers.CrimeScheduledRequest{ActionID: researchActionID, ReferenceID: researchID})); err != nil {
 		t.Fatalf("Researched: %v", err)
 	}
 	owned = ownedKnowledge(t, pool, cityID)
@@ -320,16 +320,16 @@ func TestVillageLifecycle(t *testing.T) {
 	}
 	// Idempotency: a redelivered completion changes nothing and errors on
 	// neither call.
-	if _, err := village.Researched(ctx, newMeta("settlement.researched", "researched"),
-		handlers.CrimeScheduledRequest{ActionID: researchActionID, ReferenceID: researchID}); err != nil {
+	if _, err := rrm(newMeta("settlement.researched", "researched"))(village.Researched(ctx, newMeta("settlement.researched", "researched"),
+		handlers.CrimeScheduledRequest{ActionID: researchActionID, ReferenceID: researchID})); err != nil {
 		t.Errorf("a redelivered Researched should be a no-op, got: %v", err)
 	}
 
 	// ------------------------------------------------------------------
 	// 4. Buy from Support at the scarcity price.
 	// ------------------------------------------------------------------
-	if _, err := village.Buy(ctx, newMeta("settlement.knowledge.buy", "knowledge.buy"),
-		handlers.VillageKnowledgeRequest{Code: "basic_literacy"}); err != nil {
+	if _, err := rrm(newMeta("settlement.knowledge.buy", "knowledge.buy"))(village.Buy(ctx, newMeta("settlement.knowledge.buy", "knowledge.buy"),
+		handlers.VillageKnowledgeRequest{Code: "basic_literacy"})); err != nil {
 		t.Fatalf("Buy: %v", err)
 	}
 	owned = ownedKnowledge(t, pool, cityID)
@@ -343,7 +343,7 @@ func TestVillageLifecycle(t *testing.T) {
 	// ------------------------------------------------------------------
 	buildAndComplete := func(code string) {
 		t.Helper()
-		lotsResp, err := village.Lots(ctx, newMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: code})
+		lotsResp, err := rrm(newMeta("settlement.build.lots", "build.lots"))(village.Lots(ctx, newMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: code}))
 		if err != nil {
 			t.Fatalf("Lots(%s): %v", code, err)
 		}
@@ -351,8 +351,8 @@ func TestVillageLifecycle(t *testing.T) {
 		if !ok {
 			t.Fatalf("no free lot on %s's own grid fits %s's own footprint", cityID, code)
 		}
-		if _, err := village.Place(ctx, newMeta("settlement.build.place", "build.place"),
-			handlers.VillageBuildRequest{Code: code, Lot: screens.LotToken(x, y, false), Confirm: screens.VillageBuildConfirm}); err != nil {
+		if _, err := rrm(newMeta("settlement.build.place", "build.place"))(village.Place(ctx, newMeta("settlement.build.place", "build.place"),
+			handlers.VillageBuildRequest{Code: code, Lot: screens.LotToken(x, y, false), Confirm: screens.VillageBuildConfirm})); err != nil {
 			t.Fatalf("Place(%s): %v", code, err)
 		}
 		var buildingID string
@@ -367,8 +367,8 @@ func TestVillageLifecycle(t *testing.T) {
 			t.Fatalf("shipped content has no building %q", code)
 		}
 		clk.Advance(queuedAt.Add(def.Def().BuildTime).Sub(clk.Now()) + time.Second)
-		if _, err := village.Built(ctx, newMeta("settlement.built", "built"),
-			handlers.CrimeScheduledRequest{ReferenceID: buildingID}); err != nil {
+		if _, err := rrm(newMeta("settlement.built", "built"))(village.Built(ctx, newMeta("settlement.built", "built"),
+			handlers.CrimeScheduledRequest{ReferenceID: buildingID})); err != nil {
 			t.Fatalf("Built(%s): %v", code, err)
 		}
 		var status string
@@ -394,8 +394,8 @@ func TestVillageLifecycle(t *testing.T) {
 	if clk.Now().Before(teachFinish) {
 		clk.Advance(teachFinish.Sub(clk.Now()) + time.Second)
 	}
-	if _, err := village.Taught(ctx, newMeta("settlement.taught", "taught"),
-		handlers.CrimeScheduledRequest{ActionID: *pendingTeachAction, ReferenceID: cityID}); err != nil {
+	if _, err := rrm(newMeta("settlement.taught", "taught"))(village.Taught(ctx, newMeta("settlement.taught", "taught"),
+		handlers.CrimeScheduledRequest{ActionID: *pendingTeachAction, ReferenceID: cityID})); err != nil {
 		t.Fatalf("Taught: %v", err)
 	}
 	var newLiteracyBPS int

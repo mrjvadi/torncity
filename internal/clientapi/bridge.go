@@ -19,6 +19,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/gateway/routing"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
@@ -123,6 +124,15 @@ type Bridge struct {
 	// Moderation refuses a banned player's commands, as the gateway does.
 	// Nil lets every command through; so does a failure to read it.
 	Moderation *moderation.Checker
+	// LegacyText, when set, gives a neutral answer the Telegram-rendered
+	// `text` (and the button labels) a client deployed before it draws the
+	// screen from the view still reads, for the screens
+	// client.legacy_text_screens lists. It is the one place the client API
+	// reaches for Telegram's wording, it is wired by cmd/clientapi alone, and
+	// it goes away with the compatibility period (docs/adr/0037).
+	LegacyText LegacyText
+	// LegacyScreens are client.legacy_text_screens: "*" is every screen.
+	LegacyScreens []string
 	Timeout    time.Duration
 	InstanceID string
 	NewID      func() string
@@ -142,10 +152,35 @@ type Screen struct {
 }
 
 // Notice is a short message that does not replace the screen (what
-// Telegram shows as a toast on a pressed button).
+// Telegram shows as a toast on a pressed button). A neutral notice is a code
+// and its arguments; the client words it. Text is the legacy sentence.
 type Notice struct {
-	Text  string `json:"text"`
-	Alert bool   `json:"alert,omitempty"`
+	Code  string         `json:"code,omitempty"`
+	Args  map[string]any `json:"args,omitempty"`
+	Text  string         `json:"text,omitempty"`
+	Alert bool           `json:"alert,omitempty"`
+}
+
+// LegacyRendering is what the compatibility hook returns: the screen's text,
+// and the labels of its buttons by the address each opens.
+type LegacyRendering struct {
+	Text   string
+	Labels map[string]string
+}
+
+// LegacyText renders a neutral response the way Telegram shows it.
+type LegacyText func(ctx context.Context, resp *presentation.Response) (LegacyRendering, error)
+
+func (b *Bridge) legacyFor(screen string) bool {
+	if b.LegacyText == nil {
+		return false
+	}
+	for _, s := range b.LegacyScreens {
+		if s == "*" || s == screen {
+			return true
+		}
+	}
+	return false
 }
 
 // Run runs one command for the principal.
@@ -217,12 +252,47 @@ func (b *Bridge) Run(ctx context.Context, pr Principal, req CommandRequest) (Scr
 		return Screen{}, fmt.Errorf("clientapi: the response is not a screen: %w", err)
 	}
 	out := ScreenOf(&resp, command, b.Policy, b.ActionMeta)
+	if resp.Neutral() && b.legacyFor(out.Screen) {
+		if lr, err := b.LegacyText(ctx, &resp); err == nil {
+			out.Text = lr.Text
+			if out.Error != nil && out.Error.Message == "" {
+				out.Error.Message = lr.Text
+			}
+			if out.Notice != nil && out.Notice.Text == "" {
+				out.Notice.Text = lr.Text
+			}
+			for i := range out.Actions {
+				a := &out.Actions[i]
+				if a.Label == "" {
+					a.Label = lr.Labels[presentation.Action{Command: a.Command, Args: positional(a)}.Address()]
+				}
+			}
+		}
+	}
 	out.RequestID = requestID
 	return out, nil
 }
 
+// positional is an action's arguments back in the positional order the game
+// parses, for looking up its legacy label by address.
+func positional(a *Action) []string {
+	names := routing.ArgNames(a.Command)
+	out := make([]string, 0, len(names))
+	for _, n := range names {
+		v, ok := a.Args[n]
+		if !ok {
+			break
+		}
+		out = append(out, fmt.Sprint(v))
+	}
+	return out
+}
+
 // ScreenOf is what the client is shown for a response.
 func ScreenOf(resp *presenter.Response, command string, policy *groups.Policy, meta *ActionMetadata) Screen {
+	if resp.Neutral() {
+		return neutralScreenOf(resp, command, meta)
+	}
 	if resp.Type == presenter.ActionAnswerCallback {
 		return Screen{OK: true, Screen: "notice", Actions: []Action{},
 			Notice: &Notice{Text: resp.Text, Alert: resp.Alert}}
@@ -401,5 +471,24 @@ func placeManyArgs(args map[string]json.RawMessage) map[string]json.RawMessage {
 		out[k] = v
 	}
 	out["lots"], _ = json.Marshal(tokens)
+	return out
+}
+
+// neutralScreenOf is what the client is shown for a neutral response
+// (docs/adr/0037): the screen, its view, the actions by meaning, and a
+// refusal or a notice as a code with its arguments. There is no text.
+func neutralScreenOf(resp *presentation.Response, command string, meta *ActionMetadata) Screen {
+	out := Screen{OK: true, Screen: resp.Screen, View: resp.View, Actions: NeutralActions(resp.Actions, meta)}
+	if out.Screen == "" {
+		out.Screen = command
+	}
+	if n := resp.Notice; n != nil {
+		out.Screen = "notice"
+		out.Notice = &Notice{Code: n.Code, Args: n.Args, Alert: n.Alert || resp.Alert}
+	}
+	if r := resp.Refusal; r != nil {
+		out.OK = false
+		out.Error = &APIError{Code: r.Code, Args: r.Args}
+	}
 	return out
 }

@@ -1,6 +1,9 @@
 package screens
 
-import "github.com/mrjvadi/torncity/internal/telegram/presenter"
+import (
+	"github.com/mrjvadi/torncity/internal/presentation/village"
+	"github.com/mrjvadi/torncity/internal/telegram/presenter"
+)
 
 // The screens a game client draws from structured data (cmd/clientapi): each
 // attaches the view it was rendered from, under one of these names, and the
@@ -40,13 +43,13 @@ const (
 	ScreenSettlementRefusal = "settlement_refusal"
 
 	// Village-level knowledge and construction (village.go).
-	ScreenVillageOverview      = "village_overview"
-	ScreenKnowledgeList        = "settlement_knowledge_list"
-	ScreenBuildMenu            = "settlement_build_menu"
-	ScreenConstructionProgress = "settlement_construction_progress"
-	ScreenVillageRefusal       = "village_refusal"
-	ScreenLotGrid              = "settlement_build_lots"
-	ScreenLotConfirm           = "settlement_build_confirm"
+	ScreenVillageOverview      = village.ScreenVillageOverview
+	ScreenKnowledgeList        = village.ScreenKnowledgeList
+	ScreenBuildMenu            = village.ScreenBuildMenu
+	ScreenConstructionProgress = village.ScreenConstructionProgress
+	ScreenVillageRefusal       = village.ScreenVillageRefusal
+	ScreenLotGrid              = village.ScreenLotGrid
+	ScreenLotConfirm           = village.ScreenLotConfirm
 
 	// Auctions (auctions.go).
 	ScreenAuctions       = "auctions"

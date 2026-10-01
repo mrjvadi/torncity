@@ -1,9 +1,7 @@
 package screens
 
 import (
-	"strconv"
-	"strings"
-	"time"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -41,86 +39,9 @@ func (c Context) SettlementBuildingName(n Named) string {
 	return c.named("settlement_building."+n.Code, n.Name)
 }
 
-// Village overview, knowledge list, build menu and construction progress
-// addresses.
-const (
-	AddrVillageHome          = "settlement:home"
-	AddrVillageOverview      = "settlement:overview"
-	AddrKnowledgeList        = "settlement:knowledge"
-	AddrKnowledgeResearch    = "settlement:knowledge.research"
-	AddrKnowledgeBuy         = "settlement:knowledge.buy"
-	AddrBuildMenu            = "settlement:build"
-	AddrBuildLots            = "settlement:build.lots"
-	AddrBuildPlace           = "settlement:build.place"
-	AddrConstructionProgress = "settlement:build.progress"
-	AddrBuildDemolish        = "settlement:build.demolish"
-)
-
-// VillageBuildConfirm is the "confirm" argument's value a placement's
-// second press carries, exactly ProductionConfirm's own role for a
-// technology's publish confirmation.
-const VillageBuildConfirm = "confirm"
-
 // ---------------------------------------------------------------------
 // Refusals (K2/W5 command handlers)
 // ---------------------------------------------------------------------
-
-// Village refusal kinds.
-const (
-	VillageNoSettlement    = "no_settlement"
-	VillageNotOfficeHolder = "not_office_holder"
-	VillageInsufficient    = "insufficient_funds"
-	VillageBusy            = "busy"
-	VillageAlreadyOwned    = "already_owned"
-	VillageNotAvailable    = "not_available"
-	VillageTerrain         = "terrain"
-	VillagePrerequisite    = "prerequisite"
-	VillageLiteracy        = "literacy"
-	VillageNotFound        = "not_found"
-	VillageOccupied        = "occupied"
-	VillageUnbuildable     = "unbuildable"
-	VillageOutOfBounds     = "out_of_bounds"
-	VillageConcurrentCap   = "concurrent_cap"
-	VillageNotDemolishable = "not_demolishable"
-	VillageMaterials       = "materials"
-	VillageNotCancellable  = "not_cancellable"
-	// VillageBatch is a batch placement refused: Lots names every lot that
-	// stopped it, each with its own kind.
-	VillageBatch = "batch"
-	// VillageNoRoad is a building no road could ever reach.
-	VillageNoRoad = "no_road"
-	// VillageGridMax is the technical bound on a grid's side.
-	VillageGridMax = "grid_max"
-	// Residence (village_residence.go).
-	VillageAlreadyResident = "already_resident"
-	VillageNotResident     = "not_resident"
-	VillageResidenceWait   = "residence_cooldown"
-	VillageHoldsOffice     = "holds_office"
-	VillageNoHome          = "no_home"
-	// Donating (village_donate.go).
-	VillageDonateRange  = "donate_range"
-	VillageDonateNoCash = "donate_no_cash"
-)
-
-// VillageRefusalView is a K2/W5 command refused before it changed anything.
-type VillageRefusalView struct {
-	Kind string
-	// Back is where the refusal's own button leads; empty means the
-	// village overview.
-	Back string
-	// Remaining is how long a residence cool-down still runs.
-	Remaining time.Duration
-	// Min and Max are the bounds of a donation the amount fell outside.
-	Min, Max int64
-	// Lots are the lots of a refused batch, with their reasons.
-	Lots []BatchLotFailure
-	// Action, Subject and Needs name what the refused command was about and
-	// exactly what it is missing, each with where it comes from
-	// (village_economy.go); empty for a refusal that has nothing to fetch.
-	Action  string        `json:"action,omitempty"`
-	Subject Named         `json:"subject,omitempty"`
-	Needs   []VillageNeed `json:"needs,omitempty"`
-}
 
 // VillageRefusal renders a refused village command.
 func VillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
@@ -147,7 +68,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 		}
 		kind = VillageNotFound
 	}
-	back := v.Back
+	back := v.Back.Address()
 	if back == "" {
 		back = AddrVillageOverview
 	}
@@ -162,57 +83,6 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 // ---------------------------------------------------------------------
 // Village overview
 // ---------------------------------------------------------------------
-
-// VillageRoleLine is one role's own standing building(s), for the
-// overview's short summary (the full catalogue is the build menu's job).
-type VillageRoleLine struct {
-	Role     string
-	Building Named
-	// Tier is the highest tier standing at this role.
-	Tier int
-}
-
-// VillageOverviewView is a settlement's own status screen (ADR 0028 section
-// 8.1's coverage numbers, ADR 0031 section 4.4's literacy).
-type VillageOverviewView struct {
-	Name string
-	// Tier is "village", "town" or "city" (ADR 0028 section 4).
-	Tier                      string
-	Population, PopulationCap int64
-	// FoodPercent .. SecurityPercent are ADR 0028 section 8.1's coverage
-	// terms, 0-100 (or above, an over-provisioned settlement is not
-	// clamped for display).
-	FoodPercent, JobPercent, ServicePercent, HappinessPercent, SecurityPercent int
-	// LiteracyPercent is ADR 0031 section 4.4's literacy_share, 0-100.
-	LiteracyPercent int
-	// Resident reports that the viewer lives here (their home is this
-	// village); a non-resident is offered the join button. SettlementID
-	// addresses the village for a client.
-	Resident     bool
-	SettlementID string
-	Treasury     int64
-	Buildings    []VillageRoleLine
-	// IsHead is set when the viewer holds the village's top office: only
-	// they place civic buildings and set the land terms. A resident who is
-	// not the head is offered the citizen actions instead (docs/adr/0033
-	// section 4.4): buy land, build a house, work, help the treasury.
-	IsHead bool
-	// Support is where the services the village does not have yet are:
-	// the starter city. The village is home; its bank, market, jobs,
-	// knowledge shop, hospital and jail are a journey away. Nil when no
-	// such city is configured.
-	Support *VillageSupport `json:"support,omitempty"`
-	// Promotion is the way forward: the goals of the next tier and the
-	// settlement's progress on each. Nil at the top of the ladder.
-	Promotion *PromotionView `json:"promotion,omitempty"`
-}
-
-// VillageSupport names the city a village's residents travel to for the
-// services the village cannot offer yet.
-type VillageSupport struct {
-	Code string `json:"code"`
-	Name string `json:"name"`
-}
 
 // villageSupportServices are the services a village's home screen lists as
 // «در Support - سفر کنید», each a journey to the same city through the
@@ -291,7 +161,7 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 		blocks = append(blocks, c.T("village.private_hint", nil))
 	}
 	if v.Support != nil {
-		args := map[string]any{"city": v.Support.Name}
+		args := map[string]any{"city": c.CityName(v.Support.Code, v.Support.Name)}
 		blocks = append(blocks, c.T("village.support.title", args))
 		var row []presenter.Button
 		for _, code := range villageSupportServices {
@@ -336,51 +206,6 @@ func tierOr(tier string) string {
 // ---------------------------------------------------------------------
 // Knowledge list: research and buy (ADR 0031 sections 4.1, 4.2)
 // ---------------------------------------------------------------------
-
-// Where the settlement stands on a knowledge item.
-const (
-	KnowledgeHeld        = "held"
-	KnowledgeResearching = "researching"
-	KnowledgeAvailable   = "available"
-	KnowledgeLocked      = "locked"
-)
-
-// KnowledgeLine is one item of the knowledge list.
-type KnowledgeLine struct {
-	Knowledge Named
-	State     string
-	// ResearchCost/ResearchTime: what starting research now would take.
-	ResearchCost int64
-	ResearchTime time.Duration
-	// BuyPrice is Support's own scarcity price for it (ADR 0031 section
-	// 10 point 3); zero when Support does not sell it (restricted, or not
-	// mode-eligible).
-	BuyPrice int64
-	// Missing are the prerequisites (exact codes or capabilities) it has
-	// not unlocked, and TerrainOK whether its own terrain gate is met.
-	Missing   []Named
-	TerrainOK bool
-}
-
-// KnowledgeResearchLine is the research running now, if any.
-type KnowledgeResearchLine struct {
-	Knowledge Named
-	FinishAt  time.Time
-	Left      time.Duration
-}
-
-// KnowledgeListView is a settlement's own knowledge list.
-type KnowledgeListView struct {
-	Name            string
-	Treasury        int64
-	LiteracyPercent int
-	Running         *KnowledgeResearchLine
-	Lines           []KnowledgeLine
-	// Hidden is how many items further away are kept out of sight until
-	// the settlement comes closer (mirrors production.yml's own lab_later
-	// shape, ADR 0021 section 14).
-	Hidden int
-}
 
 // KnowledgeList renders the settlement's knowledge list.
 func KnowledgeList(c Context, v KnowledgeListView) *presenter.Response {
@@ -465,38 +290,6 @@ func knowledgeStateOr(state string) string {
 // Build menu (ADR 0028 section 6, ADR 0031 section 3.2)
 // ---------------------------------------------------------------------
 
-// Where a building type stands for placement.
-const (
-	BuildAvailable = "available"
-	BuildLocked    = "locked"
-)
-
-// BuildLine is one building type of the menu.
-type BuildLine struct {
-	Building  Named
-	Role      string
-	State     string
-	CostMoney int64
-	BuildTime time.Duration
-	// Missing are unmet knowledge or role/tier prerequisites.
-	Missing []Named
-	// MissingBuildings are the buildings of the role a promotion still needs.
-	MissingBuildings []Named `json:"missing_buildings,omitempty"`
-	// Materials is what the building's construction takes from the stock and
-	// Short the part of it the stock lacks (the attempt view names where to get
-	// it).
-	Materials []MaterialLine `json:"materials,omitempty"`
-	Short     []MaterialLine `json:"short,omitempty"`
-}
-
-// BuildMenuView is a settlement's own construction menu.
-type BuildMenuView struct {
-	Name                         string
-	Treasury                     int64
-	RunningBuilds, ConcurrentCap int
-	Lines                        []BuildLine
-}
-
 // BuildMenu renders the settlement's build menu.
 func BuildMenu(c Context, v BuildMenuView) *presenter.Response {
 	return c.withView(renderBuildMenu(c, v), ScreenBuildMenu, v)
@@ -571,44 +364,6 @@ func renderBuildMenu(c Context, v BuildMenuView) *presenter.Response {
 // Construction progress (ADR 0028 section 6.3)
 // ---------------------------------------------------------------------
 
-// Where a queued placement stands.
-const (
-	ConstructionQueued   = "queued"
-	ConstructionBuilding = "building"
-)
-
-// ConstructionLine is one placement in the settlement's own queue.
-type ConstructionLine struct {
-	// ID is the placed building's id: the button under the line opens its panel.
-	ID         string
-	Building   Named
-	LotX, LotY int
-	State      string
-	FinishAt   time.Time
-	Left       time.Duration
-	// ProgressBPS and LeftMinutes describe a building raised by work (ADR
-	// 0037): ByWork is set and FinishAt/Left are empty.
-	ByWork     bool
-	ProgressBPS int64
-	LeftMinutes int64
-}
-
-// ConstructionProgressView is the settlement's own construction queue.
-type ConstructionProgressView struct {
-	Name  string
-	Lines []ConstructionLine
-	// Standing are the finished buildings (roads left out) whose panels the
-	// screen opens.
-	Standing []StandingLine
-}
-
-// StandingLine is one finished building, for a button that opens its panel.
-type StandingLine struct {
-	ID         string
-	Building   Named
-	LotX, LotY int
-}
-
 // ConstructionProgress renders the settlement's construction queue.
 func ConstructionProgress(c Context, v ConstructionProgressView) *presenter.Response {
 	return c.withView(renderConstructionProgress(c, v), ScreenConstructionProgress, v)
@@ -667,97 +422,12 @@ func renderConstructionProgress(c Context, v ConstructionProgressView) *presente
 // words — so this screen exists specifically to let a real choice be made.
 // ---------------------------------------------------------------------
 
-// LotToken is one lot's own compact callback argument: its coordinates,
-// and whether the building being placed there is rotated — one token
-// instead of three separate callback segments, so a 5x5 grid of buttons
-// still fits Telegram's 64-byte callback_data budget with room to spare.
-func LotToken(x, y int, rotated bool) string {
-	t := strconv.Itoa(x) + "-" + strconv.Itoa(y)
-	if rotated {
-		t += "-r"
-	}
-	return t
-}
+// LotToken and ParseLotToken are the lot argument a button carries
+// (internal/presentation/village).
+func LotToken(x, y int, rotated bool) string { return village.LotToken(x, y, rotated) }
 
-// ParseLotToken reads a LotToken back. ok is false for anything malformed
-// or negative — a forged or stale button, refused as firmly as any other
-// tampered callback argument, never trusted as a coordinate on its own.
-func ParseLotToken(s string) (x, y int, rotated, ok bool) {
-	s = strings.TrimSpace(s)
-	if s == "" {
-		return 0, 0, false, false
-	}
-	if strings.HasSuffix(s, "-r") {
-		rotated = true
-		s = strings.TrimSuffix(s, "-r")
-	}
-	parts := strings.SplitN(s, "-", 2)
-	if len(parts) != 2 {
-		return 0, 0, false, false
-	}
-	xi, err1 := strconv.Atoi(parts[0])
-	yi, err2 := strconv.Atoi(parts[1])
-	if err1 != nil || err2 != nil || xi < 0 || yi < 0 {
-		return 0, 0, false, false
-	}
-	return xi, yi, rotated, true
-}
-
-// Lot states, for the grid's own emoji per cell.
-const (
-	LotFree     = "free"
-	LotOccupied = "occupied"
-	LotRoad     = "road"
-	LotWater    = "water"
-	LotSteep    = "steep"
-)
-
-// LotCell is one lot of the grid, as the leader sees it choosing where a
-// specific building goes.
-type LotCell struct {
-	X, Y int
-	// State is the lot's own terrain/occupancy, independent of which
-	// building is being placed.
-	State string
-	// Fits says whether the building currently being placed could go here
-	// — settlementbuilding.CanPlace's own answer, precomputed by the use
-	// case so this package never re-derives a placement rule (skills.go's
-	// own convention, applied here).
-	Fits bool
-}
-
-// LotGridView is a settlement's own placement grid for one building type.
-type LotGridView struct {
-	SettlementName string
-	Building       Named
-	// CanRotate says the building's footprint is not square, so a rotate
-	// button makes sense; Rotated is whether THIS render is showing it
-	// turned 90 degrees.
-	CanRotate bool
-	Rotated   bool
-	// GridLots is the grid's own side length (ADR 0028 section 4: 5 for a
-	// village). Rows is the full grid, row-major, Rows[y][x] — the
-	// complete state, so a game client (cmd/clientapi) can draw its own
-	// map from the identical facts this screen's buttons come from.
-	GridLots int
-	Rows     [][]LotCell
-	// Multi says the building is one lot, so a run of them can be laid from
-	// one lot to another; Line is where that picking stands: "" (one lot at
-	// a time), LineStart (choose the first lot) or LineEnd (choose the last,
-	// From being the first).
-	Multi bool
-	Line  string
-	From  LotBatchLot
-	// WinX and WinY are the north-west lot of the window a Telegram keyboard
-	// shows when the grid is wider than a keyboard row can hold
-	// (MaxLotButtons); a client draws the whole grid from Rows and ignores them.
-	WinX, WinY int
-}
-
-// MaxLotButtons is how many lots a Telegram keyboard shows in a row and in a
-// column (a row holds 8 buttons at most): a bigger grid - land can be bought
-// without a tier's limit - is shown as a window that slides over it.
-const MaxLotButtons = 8
+// ParseLotToken reads a LotToken back.
+func ParseLotToken(s string) (x, y int, rotated, ok bool) { return village.ParseLotToken(s) }
 
 // lotWindow is the window the keyboard shows: the whole grid when it fits,
 // else MaxLotButtons lots square with its corner clamped inside the grid.
@@ -777,12 +447,6 @@ func lotWindow(n, wx, wy int) (x0, y0, x1, y1 int) {
 	x0, y0 = clamp(wx), clamp(wy)
 	return x0, y0, x0 + MaxLotButtons, y0 + MaxLotButtons
 }
-
-// The line-picking steps of a run of one-lot buildings on the grid.
-const (
-	LineStart = "line"
-	LineEnd   = "end"
-)
 
 // LotGrid renders the settlement's placement grid for one building type.
 // Its view travels even in a group (withGroupView, not withView): a lot's
@@ -906,27 +570,6 @@ func renderLotGrid(c Context, v LotGridView) *presenter.Response {
 	return c.respond(paragraphs(head, legend), kb.Build())
 }
 
-// MaterialLine is one component a building's own construction cost needs.
-type MaterialLine struct {
-	Component Named
-	Quantity  int64
-}
-
-// LotConfirmView is the cost-and-time confirmation between choosing a lot
-// and actually placing a building there.
-type LotConfirmView struct {
-	SettlementName string
-	Building       Named
-	X, Y           int
-	Rotated        bool
-	CostMoney      int64
-	Materials      []MaterialLine
-	BuildTime      time.Duration
-	// AutoRoads is how many lots of road the game lays with the building to
-	// connect it (0: it already touches the network).
-	AutoRoads int
-}
-
 // LotConfirm renders the placement confirmation.
 func LotConfirm(c Context, v LotConfirmView) *presenter.Response {
 	return c.withGroupView(renderLotConfirm(c, v), ScreenLotConfirm, v)
@@ -963,13 +606,9 @@ func renderLotConfirm(c Context, v LotConfirmView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-// AddrSettlementFound is the press that opens the founding draft, the same
-// command as sending «ساخت روستا».
-const AddrSettlementFound = "settlement:found"
-
 // ScreenVillageHomeCall is the home screen of a group that has no village
 // yet: the call to found one.
-const ScreenVillageHomeCall = "village_home_call"
+const ScreenVillageHomeCall = village.ScreenVillageHomeCall
 
 // VillageHomeCall is what a group without a village sees as its home: the
 // village is the home of a group, so the first thing offered is founding it.
