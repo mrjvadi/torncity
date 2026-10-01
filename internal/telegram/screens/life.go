@@ -22,6 +22,9 @@ func (c Context) rankLine(r RankRef) string {
 	return c.T("life.rank_line", map[string]any{"emoji": r.Emoji, "rank": c.RankName(r)})
 }
 
+// AvatarName is an avatar's display name.
+func (c Context) AvatarName(n Named) string { return c.named("life.avatar."+n.Code, n.Name) }
+
 // StageName is a stage of life's display name.
 func (c Context) StageName(n Named) string { return c.named("life.stage."+n.Code, n.Name) }
 
@@ -72,7 +75,12 @@ func Life(c Context, v LifeView) *presenter.Response {
 func renderLife(c Context, v LifeView) *presenter.Response {
 	var notice string
 	if v.Notice != "" {
-		notice = c.T("life.notice."+v.Notice, v.NoticeArgs)
+		args := v.NoticeArgs
+		if spot, ok := args["spot"].(string); ok && v.Notice == LifeNoticeSlept {
+			// the view carries the spot's code; its name is the edge's
+			args = map[string]any{"spot": c.SleepSpotName(Named{Code: spot}), "rest": args["rest"]}
+		}
+		notice = c.T("life.notice."+v.Notice, args)
 	}
 	iq := map[string]any{"iq": FormatNumber(c, int64(v.Intelligence)), "max": FormatNumber(c, int64(v.IntelligenceMax)),
 		"course": PercentFromBPS(c, v.CourseBPS), "skill": PercentFromBPS(c, v.SkillBPS)}
@@ -331,7 +339,7 @@ func renderAvatars(c Context, v AvatarsView) *presenter.Response {
 	var row []presenter.Button
 	for _, a := range v.Avatars {
 		btn, ok := keyboards.Button(c.T("life.button.avatar_choice", map[string]any{"emoji": a.Emoji,
-			"name": c.named("life.avatar."+a.Code, a.Name)}), AddrLifeAvatar, a.Code)
+			"name": c.AvatarName(Named{Code: a.Code, Name: a.Name})}), AddrLifeAvatar, a.Code)
 		if ok {
 			row = append(row, btn)
 		}

@@ -210,7 +210,7 @@ func TestWorkAndStudyEndToEnd(t *testing.T) {
 			t.Fatalf("concurrent Work: %v", err)
 		}
 	}
-	resp, err := jobs.Work(ctx, metaFor("job.work"))
+	resp, err := rr(jobs.Work(ctx, metaFor("job.work")))
 	if err != nil || resp == nil || !strings.Contains(resp.Text, "job.at_work") {
 		t.Fatalf("a start while working = %v, %v; want the at-work refusal", resp, err)
 	}

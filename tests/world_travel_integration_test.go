@@ -201,7 +201,7 @@ func TestWorldTravelSupportAndVillages(t *testing.T) {
 	}
 
 	// Support -> village A: the choice of transport, then a departure.
-	resp, err = travelH.Options(ctx, travelMeta(rider, "opts"), handlers.TravelOptionsRequest{City: codeA})
+	resp, err = rr(travelH.Options(ctx, travelMeta(rider, "opts"), handlers.TravelOptionsRequest{City: codeA}))
 	if err != nil {
 		t.Fatalf("options: %v", err)
 	}
@@ -277,7 +277,7 @@ func TestWorldTravelSupportAndVillages(t *testing.T) {
 		m.Command = "travel.here"
 		return m
 	}
-	resp, err = travelH.Here(ctx, inGroup(groupB, "here-b"))
+	resp, err = rr(travelH.Here(ctx, inGroup(groupB, "here-b")))
 	if err != nil {
 		t.Fatalf("here: %v", err)
 	}
@@ -285,27 +285,27 @@ func TestWorldTravelSupportAndVillages(t *testing.T) {
 		t.Errorf("the direct trip to village B is not a private choice of transport: %+v", resp)
 	}
 	// In the village's own group while standing in it: already there.
-	resp, err = travelH.Here(ctx, inGroup(groupA, "here-a"))
+	resp, err = rr(travelH.Here(ctx, inGroup(groupA, "here-a")))
 	if err != nil || resp == nil || !strings.Contains(resp.Text, "travel.here.already_there") {
 		t.Errorf("standing in village A and asking in its group: %+v, %v", resp, err)
 	}
 	// A group with no village: a polite refusal.
 	stranger := groupB
 	stranger.TelegramChatID = -newTelegramUserID(t)
-	resp, err = travelH.Here(ctx, inGroup(stranger, "here-none"))
+	resp, err = rr(travelH.Here(ctx, inGroup(stranger, "here-none")))
 	if err != nil || resp == nil || !strings.Contains(resp.Text, "travel.here.no_village") {
 		t.Errorf("a group with no village: %+v, %v", resp, err)
 	}
 	// Not in a group at all.
 	pv := travelMeta(rider, "here-pv")
 	pv.Command = "travel.here"
-	resp, err = travelH.Here(ctx, pv)
+	resp, err = rr(travelH.Here(ctx, pv))
 	if err != nil || resp == nil || !strings.Contains(resp.Text, "travel.here.group_only") {
 		t.Errorf("the words sent in private: %+v, %v", resp, err)
 	}
 
 	// Village A -> village B by the group alias, then back to Support.
-	resp, err = travelH.Here(ctx, inGroup(groupB, "here-b2"))
+	resp, err = rr(travelH.Here(ctx, inGroup(groupB, "here-b2")))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -321,7 +321,7 @@ func TestWorldTravelSupportAndVillages(t *testing.T) {
 	if got := location(); got != villageB {
 		t.Errorf("the player is in %q, want village B %q", got, villageB)
 	}
-	resp, err = travelH.Options(ctx, travelMeta(rider, "opts-s"), handlers.TravelOptionsRequest{City: "support"})
+	resp, err = rr(travelH.Options(ctx, travelMeta(rider, "opts-s"), handlers.TravelOptionsRequest{City: "support"}))
 	if err != nil {
 		t.Fatalf("options to Support: %v", err)
 	}
@@ -349,7 +349,7 @@ func TestWorldTravelSupportAndVillages(t *testing.T) {
 		t.Errorf("bootstrap location in Support = %+v", loc)
 	}
 	// Back in Support the villages are offered again.
-	resp, err = travelH.Options(ctx, travelMeta(rider, "o1"), handlers.TravelOptionsRequest{City: codeA})
+	resp, err = rr(travelH.Options(ctx, travelMeta(rider, "o1"), handlers.TravelOptionsRequest{City: codeA}))
 	if err != nil || len(startButtons(resp, codeA)) == 0 {
 		t.Errorf("no options to village A from Support after coming back: %v, %v", resp, err)
 	}

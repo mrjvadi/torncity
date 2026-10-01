@@ -114,10 +114,11 @@ func action(b presenter.Button, policy *groups.Policy, meta *ActionMetadata) (Ac
 // NeutralActions translates a neutral response's actions for a client: the
 // positional arguments are named the way a command takes them, and the
 // kind, icon and group come from configs/actions.yml (an action's own role,
-// when it has one, wins over the command's default). An action that names a
+// when it has one, wins over the command's default). An action the player
+// types a value for (Ask) carries the input field commands.yml names. An action that names a
 // command the game does not serve to players is left out. There is no label
 // and no row: the client words and lays out its own UI.
-func NeutralActions(list []presentation.Action, meta *ActionMetadata) []Action {
+func NeutralActions(list []presentation.Action, meta *ActionMetadata, policy *groups.Policy) []Action {
 	out := []Action{}
 	for _, in := range list {
 		if in.Command == "" || !commands.FromPlayerCommand(in.Command) {
@@ -138,6 +139,12 @@ func NeutralActions(list []presentation.Action, meta *ActionMetadata) []Action {
 			a.Args = make(map[string]any, len(in.Params))
 			for k, v := range in.Params {
 				a.Args[k] = v
+			}
+		}
+		if in.Ask {
+			// the player types the last value: the command's input spec says which field it is
+			if spec, ok := policy.Input(in.Command); ok {
+				a.Input = &ActionInput{Field: spec.Field, Text: spec.Text}
 			}
 		}
 		if a.ID == a.Command {

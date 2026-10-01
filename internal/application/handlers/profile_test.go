@@ -335,7 +335,7 @@ func meta(botID string, telegramUserID int64, requestID string) envelope.Metadat
 func TestFirstContactCreatesPlayerAndEvent(t *testing.T) {
 	h, uow := newHarness(t)
 
-	resp, err := h.Handle(context.Background(), meta("bot01", 123, "req-1"))
+	resp, err := shown(t, messages(t))(h.Handle(context.Background(), meta("bot01", 123, "req-1")))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -475,7 +475,7 @@ func TestProfileTextComesFromTheCatalogue(t *testing.T) {
 			m := meta("bot01", 4242, "req-"+tt.name)
 			m.Language = tt.lang
 
-			resp, err := h.Handle(context.Background(), m)
+			resp, err := shown(t, messages(t))(h.Handle(context.Background(), m))
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -533,94 +533,5 @@ func TestProfileTextComesFromTheCatalogue(t *testing.T) {
 				}
 			}
 		})
-	}
-}
-
-// recordingTranslator proves the catalogue is injected rather than reached
-// for: a handler built with this one must use it and nothing else.
-type recordingTranslator struct{ keys []string }
-
-func (r *recordingTranslator) T(_, key string, _ map[string]any) string {
-	r.keys = append(r.keys, key)
-	return "<" + key + ">"
-}
-
-func TestCatalogueIsInjectedNotGlobal(t *testing.T) {
-	spy := &recordingTranslator{}
-	h := NewProfileHandler(&fakeUOW{tx: newFakeTx()}, &seqIDs{}, spy, newFakeCities(),
-		testDefaultLanguage, testIdempotencyTTL, nil)
-
-	resp, err := h.Handle(context.Background(), meta("bot01", 7, "req-spy"))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !strings.Contains(resp.Text, "<profile.body>") {
-		t.Errorf("handler ignored the injected catalogue, got %q", resp.Text)
-	}
-	// The full sequence the profile screen looks up, in order. The player
-	// this test creates is brand new, has no city and only the placeholder
-	// name, so the screen asks for the welcome, then level, energy and
-	// health, then cash and bank balance, and no name or city line. With no
-	// city there is nowhere to travel and no city hall, so the keyboard
-	// offers, in the hub's own section order: the job; study and the bank;
-	// the player's property and the shops; friends and the faction, then
-	// missions; skills and life, achievements and the leaderboard; settings
-	// and refresh.
-	want := []string{
-		"profile.body",
-		"profile.level",
-		"profile.energy",
-		"profile.health",
-		"format.money",
-		"profile.cash",
-		"format.money",
-		"profile.bank",
-		"job.button.my_job",
-		"education.button.open",
-		"button.bank",
-		"property.button.mine",
-		"shop.button.shops",
-		"button.social",
-		"faction.button.mine",
-		"mission.button.mine",
-		"button.skills",
-		"life.button.open",
-		"achievement.button.list",
-		"life.button.top",
-		"button.settings",
-		"button.refresh",
-	}
-	// How the language writes its numbers is looked up for every number
-	// on the screen; it is data about the language, not a line of the
-	// screen, so the sequence below leaves it out.
-	var lines []string
-	for _, key := range spy.keys {
-		if !strings.HasPrefix(key, "format.digits") && !strings.HasSuffix(key, "_separator") && key != "format.direction" {
-			lines = append(lines, key)
-		}
-	}
-	if len(lines) != len(want) {
-		t.Fatalf("looked up %v, want %v", lines, want)
-	}
-	for i, key := range want {
-		if lines[i] != key {
-			t.Errorf("lookup %d was %q, want %q", i, lines[i], key)
-		}
-	}
-}
-
-// A handler wired without a catalogue must show keys, not panic. A missing
-// catalogue is a deployment mistake; taking down every request for it would
-// turn a wrong word into an outage.
-func TestNilCatalogueRendersKeys(t *testing.T) {
-	h := NewProfileHandler(&fakeUOW{tx: newFakeTx()}, &seqIDs{}, nil, newFakeCities(),
-		testDefaultLanguage, testIdempotencyTTL, nil)
-
-	resp, err := h.Handle(context.Background(), meta("bot01", 8, "req-nil"))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !strings.Contains(resp.Text, "profile.body") {
-		t.Errorf("got %q, want the key", resp.Text)
 	}
 }

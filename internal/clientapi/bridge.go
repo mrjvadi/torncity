@@ -291,7 +291,7 @@ func positional(a *Action) []string {
 // ScreenOf is what the client is shown for a response.
 func ScreenOf(resp *presenter.Response, command string, policy *groups.Policy, meta *ActionMetadata) Screen {
 	if resp.Neutral() {
-		return neutralScreenOf(resp, command, meta)
+		return neutralScreenOf(resp, command, policy, meta)
 	}
 	if resp.Type == presenter.ActionAnswerCallback {
 		return Screen{OK: true, Screen: "notice", Actions: []Action{},
@@ -477,8 +477,8 @@ func placeManyArgs(args map[string]json.RawMessage) map[string]json.RawMessage {
 // neutralScreenOf is what the client is shown for a neutral response
 // (docs/adr/0037): the screen, its view, the actions by meaning, and a
 // refusal or a notice as a code with its arguments. There is no text.
-func neutralScreenOf(resp *presentation.Response, command string, meta *ActionMetadata) Screen {
-	out := Screen{OK: true, Screen: resp.Screen, View: resp.View, Actions: NeutralActions(resp.Actions, meta)}
+func neutralScreenOf(resp *presentation.Response, command string, policy *groups.Policy, meta *ActionMetadata) Screen {
+	out := Screen{OK: true, Screen: resp.Screen, View: resp.View, Actions: NeutralActions(resp.Actions, meta, policy)}
 	if out.Screen == "" {
 		out.Screen = command
 	}

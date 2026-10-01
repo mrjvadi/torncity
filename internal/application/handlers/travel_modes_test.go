@@ -59,7 +59,7 @@ func TestTravelOptionsListEveryModeWithItsPriceAndWriteNothing(t *testing.T) {
 	h.player(300, "p-1", tehranID)
 	handler := h.travelHandler(t)
 
-	resp, err := handler.Options(context.Background(), command("travel.options", 300, "req-1"), TravelOptionsRequest{City: "berlin"})
+	resp, err := shown(t, messages(t))(handler.Options(context.Background(), command("travel.options", 300, "req-1"), TravelOptionsRequest{City: "berlin"}))
 	if err != nil {
 		t.Fatalf("options: %v", err)
 	}
@@ -104,7 +104,7 @@ func TestTravelStartWithoutAChoiceShowsTheChoice(t *testing.T) {
 		{City: "berlin", Mode: "train", Max: "cheap"},
 		{City: "berlin", Mode: "train", Max: "-1"},
 	} {
-		resp, err := handler.Start(context.Background(), command("travel.start", 301, "req-"+req.Mode+req.Max), req)
+		resp, err := shown(t, messages(t))(handler.Start(context.Background(), command("travel.start", 301, "req-"+req.Mode+req.Max), req))
 		if err != nil {
 			t.Fatalf("%+v: %v", req, err)
 		}
@@ -123,7 +123,7 @@ func TestPublicFareIsPaidToTheOriginCityInTheSameTransaction(t *testing.T) {
 	h.uow.tx.ledger.give(t, application.AccountPlayerCash, p.ID, 1000)
 	handler := h.travelHandler(t)
 
-	resp, err := handler.Start(context.Background(), command("travel.start", 302, "req-1"), by("berlin", "train", trainFare))
+	resp, err := shown(t, messages(t))(handler.Start(context.Background(), command("travel.start", 302, "req-1"), by("berlin", "train", trainFare)))
 	if err != nil {
 		t.Fatalf("departure: %v", err)
 	}
@@ -238,7 +238,7 @@ func TestDemandRaisesTheFareAndAHigherPriceIsRequoted(t *testing.T) {
 	busy := int64(trainFare * 11000 / 10000)
 	late := h.player(320, "p-late", tehranID)
 	h.uow.tx.ledger.give(t, application.AccountPlayerCash, late.ID, 10_000)
-	resp, err := handler.Start(ctx, command("travel.start", 320, "req"), by("berlin", "train", trainFare))
+	resp, err := shown(t, messages(t))(handler.Start(ctx, command("travel.start", 320, "req"), by("berlin", "train", trainFare)))
 	if err != nil {
 		t.Fatalf("requote: %v", err)
 	}
@@ -280,7 +280,7 @@ func TestCityPolicyScalesPublicFaresOnly(t *testing.T) {
 	h.player(330, "p-1", tehranID)
 	handler := h.travelHandler(t)
 
-	resp, err := handler.Options(context.Background(), command("travel.options", 330, "req"), TravelOptionsRequest{City: "berlin"})
+	resp, err := shown(t, messages(t))(handler.Options(context.Background(), command("travel.options", 330, "req"), TravelOptionsRequest{City: "berlin"}))
 	if err != nil {
 		t.Fatal(err)
 	}

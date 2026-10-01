@@ -31,6 +31,7 @@ func init() {
 	Register(life.ScreenSleepPay, screens.SleepPay)
 	Register(life.ScreenLifeRefusal, screens.LifeRefusal)
 	Register(life.ScreenRefusal, screens.Refusal)
+	Register(life.ScreenError, screens.ErrorFrom)
 
 	Register(life.ScreenSettings, screens.Settings)
 	Register(life.ScreenDevices, screens.Devices)

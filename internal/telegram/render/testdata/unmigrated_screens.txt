@@ -120,7 +120,6 @@ crime_result
 crime_started
 education
 enrolled
-error
 health_refusal
 hospital
 jail

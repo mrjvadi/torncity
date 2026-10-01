@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -891,11 +893,7 @@ func (s *service) handle(ctx context.Context, sub commands.Subscription, run com
 		log.Info("command refused", slog.String("command", meta.Command), slog.String("error", err.Error()))
 		resp = nil
 		if sub.Origin == commands.FromPlayer {
-			resp = screens.Error(screens.Context{
-				Msgs:      s.messages,
-				Lang:      s.refusalLanguage(ctx, meta),
-				MessageID: editableMessageID(meta),
-			}, err)
+			resp = life.Error(presentation.Ctx{Lang: s.refusalLanguage(ctx, meta)}, life.ErrorOf(err))
 		}
 	}
 
@@ -973,17 +971,6 @@ func (s *service) reply(meta envelope.Metadata, resp *presenter.Response, log *s
 		return err
 	}
 	return nil
-}
-
-// editableMessageID is the message an error screen may replace: the one an
-// inline button sits on, which the bot sent. A typed command's message
-// belongs to the player and no bot may edit it, so it is only ever a callback
-// that yields a non-zero id.
-func editableMessageID(meta envelope.Metadata) int64 {
-	if meta.CallbackQueryID == nil || *meta.CallbackQueryID == "" {
-		return 0
-	}
-	return meta.TelegramMessageID
 }
 
 // uuidGenerator supplies identifiers to the handler.

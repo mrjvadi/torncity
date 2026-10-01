@@ -374,9 +374,7 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 	if replayed || slept == nil {
 		return h.Me(ctx, meta)
 	}
-	c := h.screen(meta, lang)
-	return h.me(ctx, meta, plife.LifeNoticeSlept, map[string]any{
-		"spot": c.SleepSpotName(named(slept["spot"].(string), "")), "rest": slept["rest"]})
+	return h.me(ctx, meta, plife.LifeNoticeSlept, map[string]any{"spot": slept["spot"], "rest": slept["rest"]})
 }
 
 // Card handles life.card: a player's card — the player's own without a

@@ -119,6 +119,13 @@ func lifeCases() []lifeCase {
 			func(v any) { v.(*life.RefusalView).Kind = life.RefusalNotAtWorkplace },
 			func(v any) { v.(*life.RefusalView).Kind = life.RefusalCannotAfford },
 		}},
+		{life.ScreenError, func(c presentation.Ctx, v any) *presentation.Response { return life.Error(c, v.(life.ErrorView)) }, []func(any){
+			func(v any) { v.(*life.ErrorView).Code = "error.at_work" },
+			func(v any) { v.(*life.ErrorView).Code = "bank.error.insufficient" },
+			func(v any) { v.(*life.ErrorView).Code = "travel.same_city" },
+			func(v any) { v.(*life.ErrorView).Code = "crime.error.in_jail" },
+			func(v any) { v.(*life.ErrorView).Code = "error.internal" },
+		}},
 		{life.ScreenInventory, func(c presentation.Ctx, v any) *presentation.Response {
 			return life.Inventory(c, v.(life.InventoryView))
 		}, []func(any){

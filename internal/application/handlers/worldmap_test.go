@@ -17,7 +17,7 @@ func TestMapListsReachableDestinationsNearestFirst(t *testing.T) {
 	handler := h.mapHandler(t)
 
 	// From Berlin: Tehran at 400 km and Tokyo at 900 km. Lima has no route.
-	resp, err := handler.List(context.Background(), command("map.list", 400, "req-1"), PageRequest{Page: "1"})
+	resp, err := shown(t, messages(t))(handler.List(context.Background(), command("map.list", 400, "req-1"), PageRequest{Page: "1"}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -52,7 +52,7 @@ func TestMapMarksWhatIsReachableFromHere(t *testing.T) {
 	h.player(401, "p-1", tehranID)
 	handler := h.mapHandler(t)
 
-	resp, err := handler.List(context.Background(), command("map.list", 401, "req-1"), PageRequest{Page: "1"})
+	resp, err := shown(t, messages(t))(handler.List(context.Background(), command("map.list", 401, "req-1"), PageRequest{Page: "1"}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -87,7 +87,7 @@ func TestMapOffersNoJourneyToTheCityYouAreIn(t *testing.T) {
 	h.player(402, "p-1", tehranID)
 	handler := h.mapHandler(t)
 
-	resp, err := handler.List(context.Background(), command("map.list", 402, "req-1"), PageRequest{Page: "2"})
+	resp, err := shown(t, messages(t))(handler.List(context.Background(), command("map.list", 402, "req-1"), PageRequest{Page: "2"}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -109,7 +109,7 @@ func TestMapOffersNoJourneyWhileTravelling(t *testing.T) {
 		t.Fatalf("departure: %v", err)
 	}
 
-	resp, err := h.mapHandler(t).List(ctx, command("map.list", 403, "req-2"), PageRequest{Page: "1"})
+	resp, err := shown(t, messages(t))(h.mapHandler(t).List(ctx, command("map.list", 403, "req-2"), PageRequest{Page: "1"}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -128,7 +128,7 @@ func TestMapWorksForAPlayerWithNoCity(t *testing.T) {
 	h.player(404, "p-1", "")
 	handler := h.mapHandler(t)
 
-	resp, err := handler.List(context.Background(), command("map.list", 404, "req-1"), PageRequest{Page: "1"})
+	resp, err := shown(t, messages(t))(handler.List(context.Background(), command("map.list", 404, "req-1"), PageRequest{Page: "1"}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -157,7 +157,8 @@ func TestMapEditsWhenPressed(t *testing.T) {
 	h.player(405, "p-1", tehranID)
 	handler := h.mapHandler(t)
 
-	resp, err := handler.List(context.Background(), pressed(command("map.list", 405, "req-1"), 12), PageRequest{})
+	pm := pressed(command("map.list", 405, "req-1"), 12)
+	resp, err := shownIn(t, messages(t), pm)(handler.List(context.Background(), pm, PageRequest{}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -173,7 +174,7 @@ func TestMapCallbackDataFitsTheBudget(t *testing.T) {
 	h.player(406, "p-1", tehranID)
 	handler := h.mapHandler(t)
 
-	resp, err := handler.List(context.Background(), command("map.list", 406, "req-1"), PageRequest{})
+	resp, err := shown(t, messages(t))(handler.List(context.Background(), command("map.list", 406, "req-1"), PageRequest{}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

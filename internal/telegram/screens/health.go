@@ -422,18 +422,6 @@ func renderHealthRefusal(c Context, v HealthRefusalView) *presenter.Response {
 	return c.respond(c.T("health.refused."+v.Kind, nil), kb.Build()).MarkPrivate()
 }
 
-// healthError names the refusal other features raise for a patient.
-func healthError(c Context, err error) (string, map[string]any, bool) {
-	if !identical(err, application.ErrHospitalised) {
-		return "", nil, false
-	}
-	secs := detailInt(err, "remaining_seconds")
-	if secs <= 0 {
-		return "health.error.hospitalised_later", nil, true
-	}
-	return "health.error.hospitalised", map[string]any{"remaining": FormatDuration(c, time.Duration(secs)*time.Second)}, true
-}
-
 func init() {
 	errorNextStep["health.error.hospitalised"] = struct{ label, addr string }{"health.button.hospital", AddrHospital}
 	errorNextStep["health.error.hospitalised_later"] = struct{ label, addr string }{"health.button.hospital", AddrHospital}

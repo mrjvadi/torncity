@@ -278,7 +278,7 @@ const (
 
 	// ScreenError is a refusal or a failure: its text says what went
 	// wrong. It carries no view.
-	ScreenError = "error"
+	ScreenError = life.ScreenError
 )
 
 // withView attaches the view to a screen shown to the player alone. A screen

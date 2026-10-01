@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/telegram/render"
 	"strings"
 	"testing"
 	"time"
@@ -132,14 +133,16 @@ var flowLevers = []application.LeverDefinition{
 
 // flowGame is every handler over one world, for one language.
 type flowGame struct {
-	t     *testing.T
-	lang  string
-	now   time.Time
-	w     *flowWorld
-	msgs  *i18n.Catalog
-	seq   int
-	snap  *content.Snapshot
-	names [2]string
+	// lastMeta is the command the flow sent last: how its answer is delivered.
+	lastMeta envelope.Metadata
+	t        *testing.T
+	lang     string
+	now      time.Time
+	w        *flowWorld
+	msgs     *i18n.Catalog
+	seq      int
+	snap     *content.Snapshot
+	names    [2]string
 
 	profile   *ProfileHandler
 	travel    *TravelHandler
@@ -234,12 +237,15 @@ func (g *flowGame) typed(tg int64, command string) envelope.Metadata {
 	m.Command = command
 	m.Language = g.lang
 	m.IdempotencyKey = "update-" + id
+	g.lastMeta = m
 	return m
 }
 
 // press is a button press on the message the flow is looking at.
 func (g *flowGame) press(tg int64, command string) envelope.Metadata {
-	return pressed(g.typed(tg, command), 42)
+	m := pressed(g.typed(tg, command), 42)
+	g.lastMeta = m
+	return m
 }
 
 // flowBook is one flow's golden file.
@@ -276,6 +282,14 @@ func (b *flowBook) record(title string, wantError bool) func(*presenter.Response
 			if !wantError {
 				b.g.t.Errorf("[%s] %s: handler error: %v", b.g.lang, title, err)
 			}
+		}
+		if resp != nil && resp.Neutral() {
+			// the Telegram edge words a neutral answer just before delivery
+			out, rerr := render.Render(b.g.msgs, render.DeliveryOf(b.g.lastMeta), resp)
+			if rerr != nil {
+				b.g.t.Fatalf("[%s] %s: the edge cannot render %q: %v", b.g.lang, title, resp.Screen, rerr)
+			}
+			resp = out
 		}
 		if resp == nil {
 			b.book.AddText(title, "(nothing is shown)")

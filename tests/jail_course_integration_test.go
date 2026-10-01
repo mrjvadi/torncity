@@ -170,7 +170,7 @@ func TestJailPausesTheCourse(t *testing.T) {
 	// The home screen says jail, and the course is paused.
 	pm := metaFor("player.profile.get")
 	pm.BotID = botID
-	resp, err := profile.Handle(ctx, pm)
+	resp, err := rr(profile.Handle(ctx, pm))
 	if err != nil {
 		t.Fatal(err)
 	}

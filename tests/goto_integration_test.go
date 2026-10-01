@@ -117,7 +117,7 @@ func TestAShiftFromAnotherPlaceWalksThereAndStartsOnce(t *testing.T) {
 	if _, err := jobs.Apply(ctx, metaFor("job.apply"), handlers.JobRequest{Role: "retail"}); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
-	walk, err := jobs.Work(ctx, metaFor("job.work"))
+	walk, err := rr(jobs.Work(ctx, metaFor("job.work")))
 	if err != nil {
 		t.Fatalf("Work: %v", err)
 	}

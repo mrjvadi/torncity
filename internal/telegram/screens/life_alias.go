@@ -3,6 +3,7 @@ package screens
 import "github.com/mrjvadi/torncity/internal/presentation/life"
 
 type (
+	ErrorView = life.ErrorView
 	AchievementLine     = life.AchievementLine
 	AchievementsView    = life.AchievementsView
 	AvatarChoice        = life.AvatarChoice

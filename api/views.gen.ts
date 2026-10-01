@@ -230,6 +230,11 @@ export interface EffectLine {
 export interface EmptyView {
 }
 
+export interface ErrorView {
+  code: string
+  args: Record<string, unknown> | null
+}
+
 export interface GearLine {
   categories: Named[] | null
   crimes: Named[] | null
@@ -1314,6 +1319,7 @@ export interface ScreenViews {
   device_link: DeviceLinkView
   devices: DevicesView
   drop_confirm: ItemDroppedView
+  error: ErrorView
   history: HistoryView
   inventory: InventoryView
   item_detail: ItemDetailView

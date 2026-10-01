@@ -167,6 +167,7 @@ func (c *testClock) Advance(d time.Duration) {
 // said fails the test unless the response says every want.
 func said(t *testing.T, what string, resp *presenter.Response, err error, want ...string) *presenter.Response {
 	t.Helper()
+	resp, err = rr(resp, err)
 	if err != nil {
 		t.Fatalf("%s: %v", what, err)
 	}
@@ -682,7 +683,7 @@ func TestSanctionsBlockTradePaymentAndTravelUntilLifted(t *testing.T) {
 	resp, err = payments.PaySend(ctx, metaAs(buyer, "bank.pay.send"), handlers.PayRequest{To: seller.PublicCode, Amount: "100",
 		Method: "card", Nonce: "s1"})
 	said(t, "a card payment across", resp, err, "diplomacy.blocked.financial")
-	resp, err = travel.Options(ctx, metaAs(traveller, "travel.options"), handlers.TravelOptionsRequest{City: "calderis"})
+	resp, err = rr(travel.Options(ctx, metaAs(traveller, "travel.options"), handlers.TravelOptionsRequest{City: "calderis"}))
 	said(t, "a journey across", resp, err, "diplomacy.blocked.travel")
 	// Lifting before its least duration is refused.
 	resp, err = diplomacy.Lift(ctx, metaAs(president, "diplomacy.lift"), handlers.DiplomacyRequest{No: itoa(sanctionNo), Confirm: "yes"})
@@ -711,7 +712,7 @@ func TestSanctionsBlockTradePaymentAndTravelUntilLifted(t *testing.T) {
 	if got := cashBalance(t, pool, application.AccountPlayerBank, seller.ID) - sellerBank; got != 100 {
 		t.Fatalf("the payee received %d by card, want 100", got)
 	}
-	resp, err = travel.Options(ctx, metaAs(traveller, "travel.options"), handlers.TravelOptionsRequest{City: "calderis"})
+	resp, err = rr(travel.Options(ctx, metaAs(traveller, "travel.options"), handlers.TravelOptionsRequest{City: "calderis"}))
 	said(t, "a journey after", resp, err)
 	if strings.Contains(resp.Text, "diplomacy.blocked") {
 		t.Fatalf("the route is still closed: %s", resp.Text)

@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"strings"
 	"testing"
 
@@ -104,8 +105,8 @@ func TestBankRefusalsHaveSentences(t *testing.T) {
 		application.ErrInsufficientFunds,
 		application.ErrBankPolicyUnavailable,
 	} {
-		key, _, ok := bankRefusal(c, err)
-		if !ok || !strings.HasPrefix(key, "bank.error.") {
+		key := life.ErrorOf(err).Code
+		if !strings.HasPrefix(key, "bank.error.") {
 			t.Errorf("%v has no bank sentence (key %q)", err, key)
 			continue
 		}

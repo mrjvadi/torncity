@@ -405,7 +405,7 @@ func LifeRefusal(c presentation.Ctx, v LifeRefusalView) *presentation.Response {
 	}
 	a = append(a, back(backTo))
 	return screenLifeRefusal.Response(c.Lang, v, a...).Refused(LifeRefusalCode(v.Kind), map[string]any{
-		"wait_seconds": int64(v.Wait.Seconds()), "min": v.Min, "max": v.Max})
+		"wait_seconds": int64(v.Wait.Seconds()), "min_chars": v.Min, "max_chars": v.Max})
 }
 
 // PresenceOptions are the «last seen» settings, in the order offered.
@@ -613,7 +613,7 @@ func Property(c presentation.Ctx, v PropertyView) *presentation.Response {
 		a = append(a, act(AddrPropertyCancel, no).Named("property.cancel"))
 	case p.Debt > 0:
 	default:
-		a = append(a, act(AddrPropertySell, no).Named("property.sell"), act(AddrPropertyLet, no).Named("property.let"))
+		a = append(a, act(AddrPropertySell, no).Named("property.sell").Asking(), act(AddrPropertyLet, no).Named("property.let").Asking())
 	}
 	a = append(a, back(AddrPropertyMine), refresh(AddrProperty, no))
 	return screenProperty.Response(c.Lang, v, a...)

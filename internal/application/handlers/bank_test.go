@@ -251,6 +251,7 @@ func text(t *testing.T) func(*presenter.Response, error) string {
 		if resp == nil {
 			t.Fatal("nil response")
 		}
+		resp, _ = shown(t, messages(t))(resp, nil)
 		return resp.Text
 	}
 }

@@ -134,9 +134,36 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 			add("sleep_spot", CatalogueEntry{Code: sp.Code,
 				Name: names(func(c screens.Context) string { return c.SleepSpotName(screens.Named{Code: sp.Code, Name: sp.Name}) })}, false)
 		}
+		for _, av := range life.Avatars {
+			add("avatar", CatalogueEntry{Code: av.Code,
+				Name: names(func(c screens.Context) string { return c.AvatarName(screens.Named{Code: av.Code, Name: av.Name}) })}, false)
+		}
 		for _, st := range life.Age.Stages {
 			add("life_stage", CatalogueEntry{Code: st.Code,
 				Name: names(func(c screens.Context) string { return c.StageName(screens.Named{Code: st.Code, Name: st.Name}) })}, false)
+		}
+	}
+	// What a player owns, earns and shops at: the names of property kinds,
+	// achievements and shops.
+	for _, pt := range snap.PropertyTypes() {
+		add("property_type", CatalogueEntry{Code: pt.Code,
+			Name: names(func(c screens.Context) string { return c.PropertyTypeName(screens.Named{Code: pt.Code, Name: pt.Name}) })}, false)
+	}
+	for _, a := range snap.Achievements() {
+		add("achievement", CatalogueEntry{Code: a.Code,
+			Name: names(func(c screens.Context) string { return c.AchievementName(screens.Named{Code: a.Code, Name: a.Name}) })}, false)
+	}
+	for _, sh := range snap.Shops() {
+		add("shop", CatalogueEntry{Code: sh.Code,
+			Name: names(func(c screens.Context) string { return c.ShopName(screens.Named{Code: sh.Code, Name: sh.Name}) })}, false)
+	}
+	// A career, and each position in it (code "<career>.<rank>"): what a job is called.
+	for _, cr := range snap.Careers() {
+		add("career", CatalogueEntry{Code: cr.Code, Category: cr.Category,
+			Name: names(func(c screens.Context) string { return c.CareerName(cr.Code, cr.Name) })}, false)
+		for _, tier := range cr.Tiers {
+			add("career_tier", CatalogueEntry{Code: cr.Code + "." + tier.Rank, Category: cr.Code,
+				Name: names(func(c screens.Context) string { return c.TierTitle(cr.Code, tier.Rank, tier.Title) })}, false)
 		}
 	}
 	for _, sb := range snap.SettlementBuildingDefs() {

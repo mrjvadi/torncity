@@ -25,7 +25,7 @@ func TestTravelStartWritesTheJourneyAndItsSchedule(t *testing.T) {
 	p := h.player(100, "p-1", tehranID)
 	handler := h.travelHandler(t)
 
-	resp, err := handler.Start(context.Background(), command("travel.start", 100, "req-1"), depart("berlin"))
+	resp, err := shown(t, messages(t))(handler.Start(context.Background(), command("travel.start", 100, "req-1"), depart("berlin")))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -178,7 +178,7 @@ func TestTravelStartReplayDepartsOnce(t *testing.T) {
 	}
 	energyAfterFirst := h.stats.rows[p.ID].Energy
 
-	resp, err := handler.Start(ctx, m, depart("berlin"))
+	resp, err := shown(t, messages(t))(handler.Start(ctx, m, depart("berlin")))
 	if err != nil {
 		t.Fatalf("redelivery: %v", err)
 	}
@@ -210,7 +210,7 @@ func TestTravelStatusShowsTheJourney(t *testing.T) {
 	}
 
 	h.now = fixedNow.Add(2 * time.Hour)
-	resp, err := handler.Status(ctx, command("travel.status", 106, "req-2"))
+	resp, err := shown(t, messages(t))(handler.Status(ctx, command("travel.status", 106, "req-2")))
 	if err != nil {
 		t.Fatalf("status: %v", err)
 	}
@@ -244,7 +244,7 @@ func TestTravelCompleteLandsThePlayer(t *testing.T) {
 	journey := h.travels.started[0]
 
 	h.now = journey.ArrivesAt
-	resp, err := handler.Complete(ctx, scheduled("travel.arrive", "dispatch-1"), arrival(p.ID, journey.ID))
+	resp, err := shown(t, messages(t))(handler.Complete(ctx, scheduled("travel.arrive", "dispatch-1"), arrival(p.ID, journey.ID)))
 	if err != nil {
 		t.Fatalf("arrival: %v", err)
 	}
@@ -483,7 +483,7 @@ func TestTravelStatusEditsWhenPressed(t *testing.T) {
 		t.Fatalf("departure: %v", err)
 	}
 
-	typed, err := handler.Status(ctx, command("travel.status", 112, "req-2"))
+	typed, err := shown(t, messages(t))(handler.Status(ctx, command("travel.status", 112, "req-2")))
 	if err != nil {
 		t.Fatalf("typed status: %v", err)
 	}
@@ -491,7 +491,8 @@ func TestTravelStatusEditsWhenPressed(t *testing.T) {
 		t.Errorf("a typed command produced %q, want send_message", typed.Type)
 	}
 
-	press, err := handler.Status(ctx, pressed(command("travel.status", 112, "req-3"), 4242))
+	pm := pressed(command("travel.status", 112, "req-3"), 4242)
+	press, err := shownIn(t, messages(t), pm)(handler.Status(ctx, pm))
 	if err != nil {
 		t.Fatalf("pressed status: %v", err)
 	}

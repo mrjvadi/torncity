@@ -40,7 +40,7 @@ func lifeSnapshots(c Context, who people, add func(string, *presenter.Response))
 	add("Life · hungry, tired and stressed, with a home", Life(c, pressed))
 
 	slept := base
-	slept.Notice, slept.NoticeArgs = LifeNoticeSlept, map[string]any{"spot": c.SleepSpotName(bench), "rest": 30}
+	slept.Notice, slept.NoticeArgs = LifeNoticeSlept, map[string]any{"spot": bench.Code, "rest": 30}
 	slept.SleepIn = 7 * time.Minute
 	slept.Needs.Sleep = 5
 	add("Life · just slept on a bench", Life(c, slept))

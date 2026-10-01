@@ -77,7 +77,7 @@ func TestOwnCarPaysFuelNotFare(t *testing.T) {
 	start := travelMeta(driver, "req-drive")
 	req := handlers.StartTravelRequest{City: "fenwick_span", Mode: "car", Max: fmt.Sprint(fuel), Method: "cash"}
 	for range 2 {
-		w.do("drive", func() (*presenter.Response, error) { return travel.Start(ctx, start, req) })
+		w.do("drive", func() (*presenter.Response, error) { return rr(travel.Start(ctx, start, req)) })
 	}
 	if got := cash - cashBalance(t, w.pool, application.AccountPlayerCash, driver.ID); got != fuel {
 		t.Fatalf("the journey cost %d, want the fuel %d once", got, fuel)
@@ -104,7 +104,7 @@ func TestOwnCarPaysFuelNotFare(t *testing.T) {
 // modeFare reads one mode's fare off the options screen's departure button.
 func modeFare(t *testing.T, travel *handlers.TravelHandler, p *application.Player, to, mode string) int64 {
 	t.Helper()
-	resp, err := travel.Options(testCtx(t), travelMeta(p, "req-options-"+randomToken(t, 6)), handlers.TravelOptionsRequest{City: to})
+	resp, err := rr(travel.Options(testCtx(t), travelMeta(p, "req-options-"+randomToken(t, 6)), handlers.TravelOptionsRequest{City: to}))
 	if err != nil {
 		t.Fatalf("options: %v", err)
 	}
