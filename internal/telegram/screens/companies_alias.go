@@ -363,3 +363,9 @@ const RecruitNoticeLeft = companies.RecruitNoticeLeft
 const RecruitNoticeUnpaid = companies.RecruitNoticeUnpaid
 
 type RecruitNoticeView = companies.RecruitNoticeView
+
+type ListingNotice = companies.ListingNotice
+type ReverseStarted = companies.ReverseStarted
+
+const CompanyBlockedStage = companies.CompanyBlockedStage
+const CompanyRefusedNotReached = companies.CompanyRefusedNotReached

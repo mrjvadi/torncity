@@ -32,14 +32,9 @@ mission
 mission_board
 mission_refusal
 missions_mine
-recruit_campaign
-recruit_draft
-recruit_hub
-recruit_refusal
 report_confirm
 shift_started
 shift_worked
 skills
-specialists
 treat_confirm
 treated

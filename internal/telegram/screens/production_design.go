@@ -228,7 +228,7 @@ func Design(c Context, v DesignView) *presenter.Response {
 		refresh = append(refresh, v.Choosing)
 	}
 	c.productionNav(kb, back, refresh...)
-	return c.respond(paragraphs(v.Notice, head, body(slots...), choosing, numbers, status), kb.Build())
+	return c.respond(paragraphs(head, body(slots...), choosing, numbers, status), kb.Build())
 }
 
 // quantity renders an amount in its unit, when the unit has a name.

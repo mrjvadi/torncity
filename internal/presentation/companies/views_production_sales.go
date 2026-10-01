@@ -28,8 +28,15 @@ type ListingsView struct {
 	CityCode string
 	City     string
 	Listings []ListingLine
-	// Notice is what just happened: listed, withdrawn.
-	Notice string
+	// Notice is what just happened to a listing: listed, withdrawn.
+	Notice *ListingNotice
+}
+
+// ListingNotice is what just happened to a listing of the company.
+type ListingNotice struct {
+	// Kind is ListingNoticeListed or ListingNoticeWithdrawn.
+	Kind    string
+	Listing ListingLine
 }
 
 // Listing notice kinds.

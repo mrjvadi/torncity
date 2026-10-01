@@ -47,9 +47,13 @@ func Sell(c Context, v SellView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-// ListingNotice renders what just happened to a listing.
-func ListingNotice(c Context, kind string, l ListingLine) string {
-	return c.T("production.listing_notice."+kind, map[string]any{"good": c.GoodName(l.Good), "qty": FormatNumber(c, l.Left),
+// listingNotice words what just happened to a listing.
+func (c Context) listingNotice(n *ListingNotice) string {
+	if n == nil {
+		return ""
+	}
+	l := n.Listing
+	return c.T("production.listing_notice."+n.Kind, map[string]any{"good": c.GoodName(l.Good), "qty": FormatNumber(c, l.Left),
 		"price": FormatMoney(c, l.Price)})
 }
 
@@ -73,7 +77,7 @@ func Listings(c Context, v ListingsView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Grid(1, buttons...)
 	c.productionNav(kb, []string{AddrWarehouse, v.Ref.Code}, AddrListings, v.Ref.Code)
-	return c.respond(paragraphs(v.Notice, head, list, c.T("production.listings_hint", nil)), kb.Build())
+	return c.respond(paragraphs(c.listingNotice(v.Notice), head, list, c.T("production.listings_hint", nil)), kb.Build())
 }
 
 // CompanyGoods renders the city's company goods.

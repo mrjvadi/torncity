@@ -6,13 +6,14 @@ import (
 	stderrors "errors"
 	"sort"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/recruit"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // A campaign's check, from the SCHEDULER (game_actions 'recruit_check'):
@@ -26,7 +27,7 @@ import (
 // the check's number, so a replay would roll the same.
 
 // Check handles company.rcheck.
-func (h *RecruitHandler) Check(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *RecruitHandler) Check(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -106,13 +107,13 @@ func (h *RecruitHandler) Check(ctx context.Context, meta envelope.Metadata, req 
 			if err != nil {
 				return err
 			}
-			if err := appendCompanyEvent(ctx, tx, meta, "recruit", c.ID, recruitEvent(*c, screens.RecruitNoticeHired,
+			if err := appendCompanyEvent(ctx, tx, meta, "recruit", c.ID, recruitEvent(*c, companies.RecruitNoticeHired,
 				map[string]any{"campaign_no": camp.No, "name_seed": s.NameSeed, "skill": s.Skill, "level": s.Level})); err != nil {
 				return err
 			}
 		}
 		if waiting > 0 {
-			if err := appendCompanyEvent(ctx, tx, meta, "recruit", c.ID, recruitEvent(*c, screens.RecruitNoticeApplied,
+			if err := appendCompanyEvent(ctx, tx, meta, "recruit", c.ID, recruitEvent(*c, companies.RecruitNoticeApplied,
 				map[string]any{"campaign_no": camp.No, "count": waiting})); err != nil {
 				return err
 			}
@@ -120,7 +121,7 @@ func (h *RecruitHandler) Check(ctx context.Context, meta envelope.Metadata, req 
 		if camp.Open() {
 			if camp.ChecksDone >= camp.ChecksTotal {
 				camp.Status, camp.EndedAt, camp.ActionID, camp.NextCheckAt = application.CampaignEnded, &now, "", nil
-				if err := appendCompanyEvent(ctx, tx, meta, "recruit", c.ID, recruitEvent(*c, screens.RecruitNoticeEnded,
+				if err := appendCompanyEvent(ctx, tx, meta, "recruit", c.ID, recruitEvent(*c, companies.RecruitNoticeEnded,
 					map[string]any{"campaign_no": camp.No})); err != nil {
 					return err
 				}

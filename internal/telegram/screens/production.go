@@ -2,6 +2,7 @@ package screens
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -131,7 +132,7 @@ func Warehouse(c Context, v WarehouseView) *presenter.Response {
 	add("production.button.listings", AddrListings, v.Ref.Code)
 	kb.Grid(2, hub...)
 	c.productionNav(kb, []string{AddrCompanyManage, v.Ref.Code}, AddrWarehouse, v.Ref.Code)
-	return c.respond(paragraphs(v.Notice, head, next, stock), kb.Build())
+	return c.respond(paragraphs(head, next, stock), kb.Build())
 }
 
 // ---------------------------------------------------------------------------
@@ -206,8 +207,8 @@ func ProductionRefusal(c Context, v ProductionRefusalView) *presenter.Response {
 		text = body(lines...)
 	}
 	kb := keyboards.New()
-	back := v.Back
-	if len(back) == 0 {
+	back := strings.Split(v.Back.Address(), ":")
+	if v.Back.Command == "" {
 		back = []string{AddrCompanyMine}
 		if v.Ref.Code != "" {
 			back = []string{AddrWarehouse, v.Ref.Code}

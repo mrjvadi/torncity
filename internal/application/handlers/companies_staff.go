@@ -7,6 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/bank"
@@ -16,7 +20,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/shared/playercode"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -34,13 +37,13 @@ import (
 
 // Openings handles company.openings: a company's openings, and the careers
 // it may advertise.
-func (h *CompaniesHandler) Openings(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Openings(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CompanyOpeningsView
+	var view companies.CompanyOpeningsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -57,7 +60,7 @@ func (h *CompaniesHandler) Openings(ctx context.Context, meta envelope.Metadata,
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CompanyOpenings(h.screen(meta, lang), view), nil
+	return companies.CompanyOpenings(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // taken is how many staff places a company has used: its employees and the
@@ -80,24 +83,24 @@ func taken(ctx context.Context, tx application.Tx, companyID, skip string) (int,
 	return n, openings, nil
 }
 
-func (h *CompaniesHandler) openingsView(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company) (screens.CompanyOpeningsView, error) {
+func (h *CompaniesHandler) openingsView(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company) (companies.CompanyOpeningsView, error) {
 	def, ty, err := companyType(snap, c)
 	if err != nil {
-		return screens.CompanyOpeningsView{}, err
+		return companies.CompanyOpeningsView{}, err
 	}
 	city, err := h.cities.ByID(ctx, c.CityID)
 	if err != nil {
-		return screens.CompanyOpeningsView{}, err
+		return companies.CompanyOpeningsView{}, err
 	}
 	minWage, err := h.lever(ctx, *city, leverMinimumWage)
 	if err != nil {
-		return screens.CompanyOpeningsView{}, err
+		return companies.CompanyOpeningsView{}, err
 	}
 	used, openings, err := taken(ctx, tx, c.ID, "")
 	if err != nil {
-		return screens.CompanyOpeningsView{}, err
+		return companies.CompanyOpeningsView{}, err
 	}
-	v := screens.CompanyOpeningsView{Ref: companyRef(snap, c), MinimumWage: minWage, Room: ty.MaxStaff - used,
+	v := companies.CompanyOpeningsView{Ref: companyRef(snap, c), MinimumWage: minWage, Room: ty.MaxStaff - used,
 		AtMax: len(openings) >= h.rules.MaxOpenings}
 	for _, o := range openings {
 		v.Openings = append(v.Openings, openingLine(snap, o))
@@ -112,14 +115,14 @@ func (h *CompaniesHandler) openingsView(ctx context.Context, tx application.Tx, 
 
 // Post handles company.post: a new opening of one position for a career,
 // at the wage typed.
-func (h *CompaniesHandler) Post(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Post(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view     screens.CompanyOpeningsView
+		view     companies.CompanyOpeningsView
 		replayed bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -147,7 +150,7 @@ func (h *CompaniesHandler) Post(ctx context.Context, meta envelope.Metadata, req
 		}
 		wage, err := bank.ParseAmount(raw)
 		if err != nil || wage.Minor() > h.rules.Limits.Max.Minor() {
-			return refuseCompany(screens.CompanyRefusedInvalidAmount, c, snap)
+			return refuseCompany(companies.CompanyRefusedInvalidAmount, c, snap)
 		}
 		_, ty, err := companyType(snap, *c)
 		if err != nil {
@@ -166,7 +169,7 @@ func (h *CompaniesHandler) Post(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		if len(openings) >= h.rules.MaxOpenings {
-			r := refuseCompany(screens.CompanyRefusedOpeningsMax, c, snap)
+			r := refuseCompany(companies.CompanyRefusedOpeningsMax, c, snap)
 			r.view.Max = int64(h.rules.MaxOpenings)
 			return r
 		}
@@ -176,7 +179,7 @@ func (h *CompaniesHandler) Post(ctx context.Context, meta envelope.Metadata, req
 			return openingRefusal(err, c, snap, minWage)
 		}
 		if _, ok := snap.CareerDef(career); !ok {
-			return refuseCompany(screens.CompanyRefusedCareer, c, snap)
+			return refuseCompany(companies.CompanyRefusedCareer, c, snap)
 		}
 		now := h.now()
 		o, err := tx.Companies().PostOpening(ctx, application.CompanyOpening{
@@ -197,22 +200,22 @@ func (h *CompaniesHandler) Post(ctx context.Context, meta envelope.Metadata, req
 		return resp, err
 	}
 	_ = replayed
-	return screens.CompanyOpenings(h.screen(meta, lang), view), nil
+	return companies.CompanyOpenings(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // openingRefusal is the refusal of an opening the rules turned down.
 func openingRefusal(err error, c *application.Company, snap *content.Snapshot, minWage int64) error {
 	switch {
 	case stderrors.Is(err, company.ErrBelowMinimumWage):
-		r := refuseCompany(screens.CompanyRefusedBelowMinimum, c, snap)
+		r := refuseCompany(companies.CompanyRefusedBelowMinimum, c, snap)
 		r.view.Min = minWage
 		return r
 	case stderrors.Is(err, company.ErrCareerNotHired):
-		return refuseCompany(screens.CompanyRefusedCareer, c, snap)
+		return refuseCompany(companies.CompanyRefusedCareer, c, snap)
 	case stderrors.Is(err, company.ErrStaffFull):
-		return refuseCompany(screens.CompanyRefusedStaffFull, c, snap)
+		return refuseCompany(companies.CompanyRefusedStaffFull, c, snap)
 	case stderrors.Is(err, company.ErrInvalidAmount):
-		return refuseCompany(screens.CompanyRefusedInvalidAmount, c, snap)
+		return refuseCompany(companies.CompanyRefusedInvalidAmount, c, snap)
 	}
 	return errors.Internal(err)
 }
@@ -221,7 +224,7 @@ func openingRefusal(err error, c *application.Company, snap *content.Snapshot, m
 // button carries — one more, one fewer, or none, which closes it. The
 // button names the number, not the step, so a second press of it changes
 // nothing more. Positions already filled stay filled.
-func (h *CompaniesHandler) Slots(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Slots(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -235,7 +238,7 @@ func (h *CompaniesHandler) Slots(ctx context.Context, meta envelope.Metadata, re
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CompanyOpeningsView
+	var view companies.CompanyOpeningsView
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -244,7 +247,7 @@ func (h *CompaniesHandler) Slots(ctx context.Context, meta envelope.Metadata, re
 		lang = RenderLanguage(meta, p)
 		o, err := tx.Companies().Opening(ctx, no, false)
 		if isSentinel(err, application.ErrOpeningNotFound) {
-			return refuseCompany(screens.CompanyRefusedOpeningClosed, nil, snap)
+			return refuseCompany(companies.CompanyRefusedOpeningClosed, nil, snap)
 		}
 		if err != nil {
 			return err
@@ -286,7 +289,7 @@ func (h *CompaniesHandler) Slots(ctx context.Context, meta envelope.Metadata, re
 			// The opening's own filled places are the company's staff,
 			// already in used.
 			if used+target-o.Filled > ty.MaxStaff {
-				return refuseCompany(screens.CompanyRefusedStaffFull, c, snap)
+				return refuseCompany(companies.CompanyRefusedStaffFull, c, snap)
 			}
 			o.Positions = target
 		default:
@@ -302,18 +305,18 @@ func (h *CompaniesHandler) Slots(ctx context.Context, meta envelope.Metadata, re
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CompanyOpenings(h.screen(meta, lang), view), nil
+	return companies.CompanyOpenings(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Staff handles company.staff: the company's employees and the
 // applications waiting.
-func (h *CompaniesHandler) Staff(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Staff(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CompanyStaffView
+	var view companies.CompanyStaffView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -330,11 +333,11 @@ func (h *CompaniesHandler) Staff(ctx context.Context, meta envelope.Metadata, re
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CompanyStaff(h.screen(meta, lang), view), nil
+	return companies.CompanyStaff(presentation.Ctx{Lang: lang}, view), nil
 }
 
-func (h *CompaniesHandler) staffView(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company) (screens.CompanyStaffView, error) {
-	v := screens.CompanyStaffView{Ref: companyRef(snap, c)}
+func (h *CompaniesHandler) staffView(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company) (companies.CompanyStaffView, error) {
+	v := companies.CompanyStaffView{Ref: companyRef(snap, c)}
 	staff, err := tx.Companies().Staff(ctx, c.ID)
 	if err != nil {
 		return v, err
@@ -351,7 +354,7 @@ func (h *CompaniesHandler) staffView(ctx context.Context, tx application.Tx, sna
 		if err != nil {
 			return v, err
 		}
-		v.Employees = append(v.Employees, screens.CompanyEmployeeLine{Player: who, Job: careerRef(snap, e.CareerCode, e.Tier),
+		v.Employees = append(v.Employees, companies.CompanyEmployeeLine{Player: who, Job: careerRef(snap, e.CareerCode, e.Tier),
 			Wage: e.Rate, Shifts: e.TotalShifts, Working: e.Working})
 	}
 	apps, err := tx.Companies().Pending(ctx, c.ID)
@@ -370,15 +373,15 @@ func (h *CompaniesHandler) staffView(ctx context.Context, tx application.Tx, sna
 
 // careerRef names tier of a career for a screen, the code when the content
 // no longer has it.
-func careerRef(snap *content.Snapshot, career string, tier int) screens.JobRef {
+func careerRef(snap *content.Snapshot, career string, tier int) presentation.JobRef {
 	if def, ok := snap.CareerDef(career); ok {
 		return jobRef(def, tier)
 	}
-	return screens.JobRef{CareerCode: career, CareerName: career}
+	return presentation.JobRef{CareerCode: career, CareerName: career}
 }
 
-func (h *CompaniesHandler) applicationLine(ctx context.Context, tx application.Tx, snap *content.Snapshot, a application.CompanyApplication) (screens.CompanyApplicationLine, error) {
-	line := screens.CompanyApplicationLine{No: a.No}
+func (h *CompaniesHandler) applicationLine(ctx context.Context, tx application.Tx, snap *content.Snapshot, a application.CompanyApplication) (companies.CompanyApplicationLine, error) {
+	line := companies.CompanyApplicationLine{No: a.No}
 	who, err := tx.Players().GetByID(ctx, a.PlayerID)
 	if err != nil && !isSentinel(err, application.ErrPlayerNotFound) {
 		return line, err
@@ -400,7 +403,7 @@ func (h *CompaniesHandler) applicationLine(ctx context.Context, tx application.T
 // Decide handles company.decide: accepting or rejecting one application.
 // Accepting hires the applicant, if they still qualify, have no job and a
 // position is still free; they are told either way.
-func (h *CompaniesHandler) Decide(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Decide(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -408,13 +411,13 @@ func (h *CompaniesHandler) Decide(ctx context.Context, meta envelope.Metadata, r
 	if err != nil || no <= 0 {
 		return nil, errors.InvalidInput("an application is named by its number")
 	}
-	accept := req.Verdict == screens.CompanyAccept
-	if !accept && req.Verdict != screens.CompanyReject {
+	accept := req.Verdict == companies.CompanyAccept
+	if !accept && req.Verdict != companies.CompanyReject {
 		return nil, errors.InvalidInput("an application is accepted or rejected")
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CompanyStaffView
+	var view companies.CompanyStaffView
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -423,7 +426,7 @@ func (h *CompaniesHandler) Decide(ctx context.Context, meta envelope.Metadata, r
 		lang = RenderLanguage(meta, p)
 		a, err := tx.Companies().Application(ctx, no)
 		if isSentinel(err, application.ErrApplicationNotFound) {
-			return refuseCompany(screens.CompanyRefusedApplicationOld, nil, snap)
+			return refuseCompany(companies.CompanyRefusedApplicationOld, nil, snap)
 		}
 		if err != nil {
 			return err
@@ -478,7 +481,7 @@ func (h *CompaniesHandler) Decide(ctx context.Context, meta envelope.Metadata, r
 				return err
 			}
 			if err := h.employeeEvent(ctx, tx, meta, snap, *c, a.PlayerID, o.CareerCode, 0, o.Wage,
-				screens.CompanyEmployeeRejected); err != nil {
+				companies.CompanyEmployeeRejected); err != nil {
 				return err
 			}
 		}
@@ -491,14 +494,14 @@ func (h *CompaniesHandler) Decide(ctx context.Context, meta envelope.Metadata, r
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CompanyStaff(h.screen(meta, lang), view), nil
+	return companies.CompanyStaff(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // applicantUnfit reports whether hiring failed on the applicant — a job
 // already, or a requirement no longer met — rather than on the opening.
 func applicantUnfit(err error) bool {
 	if v, ok := asCompanyRefusal(err); ok {
-		return v.Kind == screens.CompanyRefusedEmployed
+		return v.Kind == companies.CompanyRefusedEmployed
 	}
 	_, ok := asRefusal(err)
 	return ok
@@ -521,19 +524,19 @@ func (h *CompaniesHandler) hire(ctx context.Context, tx application.Tx, meta env
 	c *application.Company, o *application.CompanyOpening, applicant *application.Player, now time.Time,
 ) error {
 	if o.Status != application.OpeningOpen {
-		return refuseCompany(screens.CompanyRefusedOpeningClosed, c, snap)
+		return refuseCompany(companies.CompanyRefusedOpeningClosed, c, snap)
 	}
 	if o.Free() == 0 {
-		return refuseCompany(screens.CompanyRefusedOpeningFull, c, snap)
+		return refuseCompany(companies.CompanyRefusedOpeningFull, c, snap)
 	}
 	if _, err := tx.Employment().Current(ctx, applicant.ID); err == nil {
-		return refuseCompany(screens.CompanyRefusedEmployed, c, snap)
+		return refuseCompany(companies.CompanyRefusedEmployed, c, snap)
 	} else if !isSentinel(err, application.ErrNotEmployed) {
 		return err
 	}
 	career, ok := snap.Career(o.CareerCode)
 	if !ok {
-		return refuseCompany(screens.CompanyRefusedCareer, c, snap)
+		return refuseCompany(companies.CompanyRefusedCareer, c, snap)
 	}
 	city, err := h.cities.ByID(ctx, c.CityID)
 	if err != nil {
@@ -550,7 +553,7 @@ func (h *CompaniesHandler) hire(ctx context.Context, tx application.Tx, meta env
 	hired, err := job.Hire(career, 0, s.candidate(city.ID), money.FromMinor(o.Wage), pol.Policy, now)
 	if err != nil {
 		if missing, ok := shortfalls(snap, err, *city); ok {
-			return refuse(screens.RefusalJobRequirements, missing)
+			return refuse(plife.RefusalJobRequirements, missing)
 		}
 		if stderrors.Is(err, job.ErrBelowMinimumWage) {
 			// The minimum wage rose above the opening's wage: it is hired at
@@ -568,7 +571,7 @@ func (h *CompaniesHandler) hire(ctx context.Context, tx application.Tx, meta env
 		CompanyID: c.ID, OpeningID: o.ID,
 	}); err != nil {
 		if isSentinel(err, application.ErrAlreadyEmployed) {
-			return refuseCompany(screens.CompanyRefusedEmployed, c, snap)
+			return refuseCompany(companies.CompanyRefusedEmployed, c, snap)
 		}
 		return err
 	}
@@ -582,20 +585,20 @@ func (h *CompaniesHandler) hire(ctx context.Context, tx application.Tx, meta env
 		return err
 	}
 	return h.employeeEvent(ctx, tx, meta, snap, *c, applicant.ID, hired.CareerCode, 0, hired.Rate.Minor(),
-		screens.CompanyEmployeeHired)
+		companies.CompanyEmployeeHired)
 }
 
 // Fire handles company.fire: without confirmation it asks; with it, the
 // employee's job ends and they are told. An employee on a shift finishes it
 // first: its wage is promised.
-func (h *CompaniesHandler) Fire(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Fire(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	confirmed := req.Confirm == screens.CompanyConfirm
-	var view screens.CompanyStaffView
+	confirmed := req.Confirm == companies.CompanyConfirm
+	var view companies.CompanyStaffView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -640,7 +643,7 @@ func (h *CompaniesHandler) Fire(ctx context.Context, meta envelope.Metadata, req
 		}
 		code := playercode.Normalize(req.Player)
 		var target *application.CompanyEmployee
-		var who screens.GovPlayer
+		var who presentation.GovPlayer
 		for i := range staff {
 			g, err := playerNamed(ctx, tx, staff[i].PlayerID)
 			if err != nil {
@@ -656,14 +659,14 @@ func (h *CompaniesHandler) Fire(ctx context.Context, meta envelope.Metadata, req
 				view, err = h.staffView(ctx, tx, snap, *c)
 				return err
 			}
-			return refuseCompany(screens.CompanyRefusedNotEmployee, c, snap)
+			return refuseCompany(companies.CompanyRefusedNotEmployee, c, snap)
 		}
 		if target.Working {
-			return refuseCompany(screens.CompanyRefusedWorking, c, snap)
+			return refuseCompany(companies.CompanyRefusedWorking, c, snap)
 		}
-		line := screens.CompanyEmployeeLine{Player: who, Job: careerRef(snap, target.CareerCode, target.Tier), Wage: target.Rate}
+		line := companies.CompanyEmployeeLine{Player: who, Job: careerRef(snap, target.CareerCode, target.Tier), Wage: target.Rate}
 		if !confirmed {
-			view = screens.CompanyStaffView{Ref: companyRef(snap, *c), Firing: &line}
+			view = companies.CompanyStaffView{Ref: companyRef(snap, *c), Firing: &line}
 			return nil
 		}
 		// The job row first, as every shift command takes it.
@@ -674,13 +677,13 @@ func (h *CompaniesHandler) Fire(ctx context.Context, meta envelope.Metadata, req
 		if shift, err := activeShift(ctx, tx, target.PlayerID); err != nil {
 			return err
 		} else if shift != nil {
-			return refuseCompany(screens.CompanyRefusedWorking, c, snap)
+			return refuseCompany(companies.CompanyRefusedWorking, c, snap)
 		}
 		if err := tx.Employment().End(ctx, emp.ID, application.EndFired, h.now()); err != nil {
 			return err
 		}
 		if err := h.employeeEvent(ctx, tx, meta, snap, *c, target.PlayerID, target.CareerCode, target.Tier, target.Rate,
-			screens.CompanyEmployeeFired); err != nil {
+			companies.CompanyEmployeeFired); err != nil {
 			return err
 		}
 		view, err = h.staffView(ctx, tx, snap, *c)
@@ -689,12 +692,18 @@ func (h *CompaniesHandler) Fire(ctx context.Context, meta envelope.Metadata, req
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CompanyStaff(h.screen(meta, lang), view), nil
+	return companies.CompanyStaff(presentation.Ctx{Lang: lang}, view), nil
+}
+
+// screen is the Telegram layer's context for the screens of the jobs area that
+// are not migrated yet (the new job after an automatic hire).
+func (h *CompaniesHandler) screen(meta envelope.Metadata, lang string) screens.Context {
+	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
 }
 
 // Opening handles company.opening: one opening as a player looking for work
 // sees it, with the apply button when they may.
-func (h *CompaniesHandler) Opening(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Opening(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -704,7 +713,7 @@ func (h *CompaniesHandler) Opening(ctx context.Context, meta envelope.Metadata, 
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CompanyOpeningView
+	var view companies.CompanyOpeningView
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -717,26 +726,26 @@ func (h *CompaniesHandler) Opening(ctx context.Context, meta envelope.Metadata, 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CompanyOpening(h.screen(meta, lang), view), nil
+	return companies.CompanyOpening(presentation.Ctx{Lang: lang}, view), nil
 }
 
-func (h *CompaniesHandler) openingView(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, no int64) (screens.CompanyOpeningView, error) {
+func (h *CompaniesHandler) openingView(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, no int64) (companies.CompanyOpeningView, error) {
 	o, err := tx.Companies().Opening(ctx, no, false)
 	if isSentinel(err, application.ErrOpeningNotFound) {
-		return screens.CompanyOpeningView{}, refuseCompany(screens.CompanyRefusedOpeningClosed, nil, snap)
+		return companies.CompanyOpeningView{}, refuseCompany(companies.CompanyRefusedOpeningClosed, nil, snap)
 	}
 	if err != nil {
-		return screens.CompanyOpeningView{}, err
+		return companies.CompanyOpeningView{}, err
 	}
 	c, err := tx.Companies().ByID(ctx, o.CompanyID)
 	if err != nil {
-		return screens.CompanyOpeningView{}, err
+		return companies.CompanyOpeningView{}, err
 	}
 	city, err := h.cities.ByID(ctx, c.CityID)
 	if err != nil {
-		return screens.CompanyOpeningView{}, err
+		return companies.CompanyOpeningView{}, err
 	}
-	v := screens.CompanyOpeningView{No: o.No, Company: companyRef(snap, *c), Job: careerRef(snap, o.CareerCode, 0),
+	v := companies.CompanyOpeningView{No: o.No, Company: companyRef(snap, *c), Job: careerRef(snap, o.CareerCode, 0),
 		CityCode: city.Code, City: city.Name, Wage: o.Wage, Free: o.Free(), AutoAccept: c.AutoAccept,
 		Closed: o.Status != application.OpeningOpen || !c.Active()}
 	if def, _, ok := snap.CompanyType(c.TypeCode); ok {
@@ -780,7 +789,7 @@ func (h *CompaniesHandler) openingView(ctx context.Context, tx application.Tx, s
 
 // Apply handles company.apply: an application to an opening, or — at a
 // company that hires automatically — the job itself.
-func (h *CompaniesHandler) Apply(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Apply(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -791,7 +800,7 @@ func (h *CompaniesHandler) Apply(ctx context.Context, meta envelope.Metadata, re
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		applied  *screens.CompanyAppliedView
+		applied  *companies.CompanyAppliedView
 		hired    *screens.JobHiredView
 		replayed bool
 	)
@@ -811,13 +820,13 @@ func (h *CompaniesHandler) Apply(ctx context.Context, meta envelope.Metadata, re
 		}
 		// The job row first, as every job command takes it.
 		if _, err := tx.Employment().Current(ctx, p.ID); err == nil {
-			return refuseCompany(screens.CompanyRefusedEmployed, nil, snap)
+			return refuseCompany(companies.CompanyRefusedEmployed, nil, snap)
 		} else if !isSentinel(err, application.ErrNotEmployed) {
 			return err
 		}
 		o, err := tx.Companies().Opening(ctx, no, false)
 		if isSentinel(err, application.ErrOpeningNotFound) {
-			return refuseCompany(screens.CompanyRefusedOpeningClosed, nil, snap)
+			return refuseCompany(companies.CompanyRefusedOpeningClosed, nil, snap)
 		}
 		if err != nil {
 			return err
@@ -831,10 +840,10 @@ func (h *CompaniesHandler) Apply(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		if !c.Active() || o.Status != application.OpeningOpen {
-			return refuseCompany(screens.CompanyRefusedOpeningClosed, c, snap)
+			return refuseCompany(companies.CompanyRefusedOpeningClosed, c, snap)
 		}
 		if o.Free() == 0 {
-			return refuseCompany(screens.CompanyRefusedOpeningFull, c, snap)
+			return refuseCompany(companies.CompanyRefusedOpeningFull, c, snap)
 		}
 		city, err := h.cities.ByID(ctx, c.CityID)
 		if err != nil {
@@ -846,17 +855,17 @@ func (h *CompaniesHandler) Apply(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		if s.travelling || s.here() != c.CityID {
-			r := refuseCompany(screens.CompanyRefusedAway, c, snap)
+			r := refuseCompany(companies.CompanyRefusedAway, c, snap)
 			r.view.CityCode, r.view.City = city.Code, city.Name
 			return r
 		}
 		career, ok := snap.Career(o.CareerCode)
 		if !ok {
-			return refuseCompany(screens.CompanyRefusedOpeningClosed, c, snap)
+			return refuseCompany(companies.CompanyRefusedOpeningClosed, c, snap)
 		}
 		if err := job.Eligibility(career, 0, s.candidate(city.ID)); err != nil {
 			if missing, ok := shortfalls(snap, err, *city); ok {
-				return refuse(screens.RefusalJobRequirements, missing)
+				return refuse(plife.RefusalJobRequirements, missing)
 			}
 			return errors.Internal(err)
 		}
@@ -877,12 +886,12 @@ func (h *CompaniesHandler) Apply(ctx context.Context, meta envelope.Metadata, re
 			ID: h.ids.NewID(), OpeningID: o.ID, CompanyID: c.ID, PlayerID: p.ID, AppliedAt: now,
 		})
 		if isSentinel(err, application.ErrAlreadyApplied) {
-			return refuseCompany(screens.CompanyRefusedApplied, c, snap)
+			return refuseCompany(companies.CompanyRefusedApplied, c, snap)
 		}
 		if err != nil {
 			return err
 		}
-		applied = &screens.CompanyAppliedView{Company: companyRef(snap, *c), Job: ref}
+		applied = &companies.CompanyAppliedView{Company: companyRef(snap, *c), Job: ref}
 		for _, to := range []string{c.OwnerID, c.ManagerID} {
 			if to == "" {
 				continue
@@ -904,7 +913,9 @@ func (h *CompaniesHandler) Apply(ctx context.Context, meta envelope.Metadata, re
 	case replayed:
 		return h.Opening(ctx, meta, req)
 	case hired != nil:
+		// The new job is a jobs screen, still drawn by the Telegram layer
+		// until the jobs area is migrated.
 		return screens.JobHired(h.screen(meta, lang), *hired), nil
 	}
-	return screens.CompanyApplied(h.screen(meta, lang), *applied), nil
+	return companies.CompanyApplied(presentation.Ctx{Lang: lang}, *applied), nil
 }

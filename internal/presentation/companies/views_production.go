@@ -1,5 +1,7 @@
 package companies
 
+import "github.com/mrjvadi/torncity/internal/presentation"
+
 // Callback addresses of the production screens.
 const (
 	AddrWarehouse   = "company:warehouse"
@@ -75,7 +77,6 @@ type WarehouseView struct {
 	Listings    int
 	// CanResearch is the owner, who alone runs the lab.
 	CanResearch bool
-	Notice      string
 	// Next is the one step the floor should take next.
 	Next *NextStep
 }
@@ -179,8 +180,9 @@ const (
 type ProductionRefusalView struct {
 	Kind string
 	Ref  CompanyRef
-	// Back is where the screen's back button leads.
-	Back []string
+	// Back is where the screen's back button leads; the zero Ref leads to
+	// the company's warehouse, else to the player's companies.
+	Back presentation.Ref
 	// Skill and Level (and Have) for a skill refusal.
 	Skill string
 	Level int

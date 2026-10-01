@@ -102,5 +102,4 @@ type DesignView struct {
 	// shows next to each number.
 	Version        int64
 	PrevAttributes map[string]int64
-	Notice         string
 }

@@ -166,6 +166,12 @@ func CompanyTypes(c Context, v CompanyTypesView) *presenter.Response {
 	lines := make([]string, 0, len(v.Types))
 	buttons := make([]presenter.Button, 0, len(v.Types))
 	for _, t := range v.Types {
+		if t.Unavailable != nil {
+			// Not reached by this settlement: said, with where it starts, and
+			// no button to found it.
+			lines = append(lines, c.typeLocked(t))
+			continue
+		}
 		line := c.T("company.type_line", map[string]any{
 			"type": c.CompanyTypeName(t.Type), "fee": FormatMoney(c, t.Fee), "upkeep": FormatMoney(c, t.Upkeep),
 		})
@@ -220,6 +226,14 @@ func CompanyTypeDetail(c Context, v CompanyTypeView) *presenter.Response {
 		how = c.T("company.type_no_place", map[string]any{"place": c.SpotName(v.Place), "city": c.CityName(v.CityCode, v.City)})
 	case v.Blocked == CompanyBlockedNoCity:
 		how = c.T("company.no_city", nil)
+	case v.Blocked == CompanyBlockedStage && v.Unavailable != nil:
+		how = c.typeLocked(CompanyTypeLine{Type: v.Type, Unavailable: v.Unavailable})
+		if u := v.Unavailable; u.Nearest != nil && u.Nearest.Code != "" {
+			if btn, ok := keyboards.Button(c.T("button.travel_to", map[string]any{"city": c.CityName(u.Nearest.Code, u.Nearest.Name)}),
+				AddrTravelOptions, u.Nearest.Code); ok {
+				kb.Row(btn)
+			}
+		}
 	case v.Blocked == CompanyBlockedDefence:
 		how = body(c.T("company.type_defence", map[string]any{"type": c.CompanyTypeName(v.Type)}),
 			c.T("company.type_defence_rank", map[string]any{"rank": c.jobTitle(v.Rank), "career": c.jobCareer(v.Rank)}),
@@ -795,4 +809,30 @@ func CompanyClosedAnnouncement(c Context, ref CompanyRef, cityCode, city string,
 		key = "announce.company_dissolved"
 	}
 	return c.T(key, map[string]any{"company": ref.Name, "city": c.CityName(cityCode, city)})
+}
+
+// typeLocked is the line of a kind of business the settlement the player
+// stands in does not reach: the stage it starts at, and what a settlement
+// needs to run it (availability.yml).
+func (c Context) typeLocked(t CompanyTypeLine) string {
+	u := t.Unavailable
+	name := c.CompanyTypeName(t.Type)
+	var line string
+	if u.Stage == "support" && u.Nearest != nil {
+		line = c.T("company.type_line_support", map[string]any{"type": name, "place": c.CityName(u.Nearest.Code, u.Nearest.Name)})
+	} else {
+		line = c.T("company.type_line_locked", map[string]any{"type": name,
+			"stage": c.coded("unavailable.stage.", u.Stage, "unavailable.stage_unknown"),
+			"here":  c.coded("unavailable.stage.", u.Here, "unavailable.stage_unknown")})
+	}
+	var needs []string
+	for _, b := range u.Requires {
+		if b.Code != "" {
+			needs = append(needs, c.SettlementBuildingName(Named{Code: b.Code, Name: b.Code}))
+		}
+	}
+	if len(needs) > 0 {
+		line += c.T("company.type_line_needs", map[string]any{"buildings": joinWith(c, needs)})
+	}
+	return line
 }

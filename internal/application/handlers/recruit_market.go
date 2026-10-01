@@ -5,6 +5,9 @@ import (
 	"sort"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/budget"
@@ -14,7 +17,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/recruit"
 	"github.com/mrjvadi/torncity/internal/domain/war"
 	"github.com/mrjvadi/torncity/internal/domain/world"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The job market of specialists as one command reads it: each city's pools
@@ -275,17 +277,17 @@ func cityOfCompany(snap *content.Snapshot, c application.Company) (world.City, b
 // skillGapOf is how a company closes a gap in a skill
 // (docs/adr/0027-specialist-recruitment.md): a campaign for a specialist of
 // the level, and the courses that train it, the most first — at most two.
-func skillGapOf(snap *content.Snapshot, companyCode, skill string, level int) *screens.SkillGap {
-	g := &screens.SkillGap{Company: companyCode, Skill: skill, Level: level}
+func skillGapOf(snap *content.Snapshot, companyCode, skill string, level int) *companies.SkillGap {
+	g := &companies.SkillGap{Company: companyCode, Skill: skill, Level: level}
 	type course struct {
-		ref screens.CourseRef
+		ref presentation.CourseRef
 		xp  int64
 	}
 	var found []course
 	for _, co := range snap.Courses() {
 		for _, r := range co.SkillRewards {
 			if r.Skill == skill && r.XP > 0 {
-				found = append(found, course{ref: screens.CourseRef{Code: co.Code, Name: co.Name}, xp: r.XP})
+				found = append(found, course{ref: presentation.CourseRef{Code: co.Code, Name: co.Name}, xp: r.XP})
 			}
 		}
 	}

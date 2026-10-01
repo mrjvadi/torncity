@@ -100,6 +100,12 @@ type CompanyTypeLine struct {
 	// Licensed is a kind of the defence sector: founding one needs a
 	// defence licence (docs/adr/0022, section 2.14).
 	Licensed bool
+	// Unavailable is set when the settlement the player stands in does not
+	// reach this kind of business: the stage it starts at, what a settlement
+	// needs to run it and the nearest place that has it (availability.yml).
+	// Such a line has no fee to pay; it is listed so nobody wonders where it
+	// went.
+	Unavailable *Unavailable
 }
 
 // CompanyTypesView is the kinds of business a player may found in their
@@ -118,6 +124,9 @@ const (
 	CompanyBlockedLimit   = "limit"
 	CompanyBlockedNoPlace = "no_place"
 	CompanyBlockedNoCity  = "no_city"
+	// CompanyBlockedStage is a kind the settlement the player stands in does
+	// not reach: the view's Unavailable says where it starts.
+	CompanyBlockedStage = "stage"
 	// CompanyBlockedDefence is a kind of the defence sector the player
 	// holds no defence licence for (docs/adr/0022, section 2.14).
 	CompanyBlockedDefence = "defence"
@@ -148,6 +157,10 @@ type CompanyTypeView struct {
 	// Rank is the lowest rank of the armed forces that may found a kind of
 	// the defence sector, for the defence block.
 	Rank JobRef
+	// Unavailable is set with Blocked == CompanyBlockedStage: the stage the
+	// kind starts at, what a settlement needs to run it and the nearest place
+	// that has it.
+	Unavailable *Unavailable
 }
 
 // CompanyFoundedView is a company just founded.
@@ -370,6 +383,10 @@ const (
 	CompanyRefusedAway           = "away"
 	CompanyRefusedCashAway       = "cash_away"
 	CompanyRefusedInvalidAmount  = "invalid_amount"
+	CompanyRefusedDefence        = "defence"
+	// CompanyRefusedNotReached is a kind of business the settlement does not
+	// reach (availability.yml).
+	CompanyRefusedNotReached = "not_reached"
 )
 
 // CompanyRefusalView is a refused company command.

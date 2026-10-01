@@ -199,7 +199,7 @@ func productionSnapshots(c Context, _ people, add func(string, *presenter.Respon
 	add("Sell · the price", Sell(c, SellView{Ref: maker, Good: phoneGood, Have: 4, Qty: 2, Reference: 590}))
 	listings := []ListingLine{{No: 7, Good: phoneGood, Left: 2, Price: 1500}, {No: 8, Good: Good{Component: true, Item: chipset}, Left: 10, Price: 420}}
 	add("Listings · just listed", Listings(c, ListingsView{Ref: maker, CityCode: "ostmarch", City: "Ostmarch", Listings: listings,
-		Notice: ListingNotice(c, ListingNoticeListed, listings[0])}))
+		Notice: &ListingNotice{Kind: ListingNoticeListed, Listing: listings[0]}}))
 	add("Listings · none", Listings(c, ListingsView{Ref: maker, CityCode: "ostmarch", City: "Ostmarch"}))
 	line := GoodsLine{No: 7, Company: maker, Good: phoneGood, Left: 2, Price: 1500,
 		Attributes: []AttributeLine{{Name: "battery_life", Value: 3000, Observable: true}, {Name: "quality", Value: 50, Observable: true}}}

@@ -7,6 +7,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/company"
@@ -19,8 +22,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/shared/playercode"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // A company's goods for sale (docs/adr/0021-production-economy.md): a line of
@@ -37,7 +38,7 @@ const listingReference = "company_listings"
 
 // lineOf is what a sale target names in a company's warehouse.
 type lineOf struct {
-	good   screens.Good
+	good   presentation.Good
 	code   string
 	design *application.Design
 	// pieces is true for unique goods, sold piece by piece.
@@ -52,15 +53,15 @@ func (h *ProductionHandler) saleLine(ctx context.Context, tx application.Tx, sna
 	raw string,
 ) (lineOf, error) {
 	raw = strings.TrimSpace(raw)
-	back := []string{screens.AddrWarehouse, c.Code}
-	if no, ok := strings.CutPrefix(raw, screens.DesignTargetPrefix); ok {
+	back := []string{companies.AddrWarehouse, c.Code}
+	if no, ok := strings.CutPrefix(raw, presentation.DesignTargetPrefix); ok {
 		n, ok := number(no)
 		if !ok {
-			return lineOf{}, refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(back...)
+			return lineOf{}, refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(back...)
 		}
 		d, err := tx.Production().Design(ctx, n, false)
 		if isSentinel(err, application.ErrDesignNotFound) {
-			return lineOf{}, refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(back...)
+			return lineOf{}, refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(back...)
 		}
 		if err != nil {
 			return lineOf{}, err
@@ -76,13 +77,13 @@ func (h *ProductionHandler) saleLine(ctx context.Context, tx application.Tx, sna
 			reference: max(ref, 1)}, nil
 	}
 	if comp, ok := snap.ComponentDef(raw); ok {
-		return lineOf{good: screens.Good{Component: true, Item: named(comp.Code, comp.Name)}, code: raw, reference: comp.BasePrice}, nil
+		return lineOf{good: presentation.Good{Component: true, Item: named(comp.Code, comp.Name)}, code: raw, reference: comp.BasePrice}, nil
 	}
 	def, ok := snap.ItemDef(raw)
 	if !ok || !def.Item().Tradeable {
-		return lineOf{}, refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(back...)
+		return lineOf{}, refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(back...)
 	}
-	return lineOf{good: screens.Good{Item: named(def.Code, def.Name)}, code: raw, pieces: def.Form == string(inventory.Unique),
+	return lineOf{good: presentation.Good{Item: named(def.Code, def.Name)}, code: raw, pieces: def.Form == string(inventory.Unique),
 		reference: def.BasePrice}, nil
 }
 
@@ -141,7 +142,7 @@ func (h *ProductionHandler) moveLine(ctx context.Context, tx application.Tx, l l
 // Sell handles company.sell: putting a line of the warehouse up for sale —
 // the quantity, then a typed price — as an open listing in the company's
 // city.
-func (h *ProductionHandler) Sell(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Sell(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -150,8 +151,8 @@ func (h *ProductionHandler) Sell(ctx context.Context, meta envelope.Metadata, re
 	qty, _ := quantityArg(req.Qty)
 	price, priced := quantityArg(req.Price)
 	var (
-		view   screens.SellView
-		listed *screens.ListingLine
+		view   companies.SellView
+		listed *companies.ListingLine
 		seller *application.Company
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -188,13 +189,13 @@ func (h *ProductionHandler) Sell(ctx context.Context, meta envelope.Metadata, re
 		if err != nil {
 			return err
 		}
-		view = screens.SellView{Ref: companyRef(snap, *c), Good: l.good, Have: have, Qty: min(qty, have), Reference: l.reference}
-		back := []string{screens.AddrWarehouse, c.Code}
+		view = companies.SellView{Ref: companyRef(snap, *c), Good: l.good, Have: have, Qty: min(qty, have), Reference: l.reference}
+		back := []string{companies.AddrWarehouse, c.Code}
 		if have == 0 {
-			return refuseProduction(screens.ProductionRefusedStock, c, snap).back(back...)
+			return refuseProduction(companies.ProductionRefusedStock, c, snap).back(back...)
 		}
 		if qty > have {
-			r := refuseProduction(screens.ProductionRefusedStock, c, snap).back(back...)
+			r := refuseProduction(companies.ProductionRefusedStock, c, snap).back(back...)
 			r.view.Max = int(have)
 			return r
 		}
@@ -202,7 +203,7 @@ func (h *ProductionHandler) Sell(ctx context.Context, meta envelope.Metadata, re
 			return nil
 		}
 		if !priced || price > shop.MaxPrice {
-			return refuseProduction(screens.ProductionRefusedAmount, c, snap).back(screens.AddrSell, c.Code, l.good.TargetArg(),
+			return refuseProduction(companies.ProductionRefusedAmount, c, snap).back(companies.AddrSell, c.Code, l.good.TargetArg(),
 				strconv.FormatInt(qty, 10))
 		}
 		open, err := tx.Production().CompanyListings(ctx, c.ID)
@@ -210,7 +211,7 @@ func (h *ProductionHandler) Sell(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		if len(open) >= h.rules.MaxListings {
-			r := refuseProduction(screens.ProductionRefusedMaxListings, c, snap).back(screens.AddrListings, c.Code)
+			r := refuseProduction(companies.ProductionRefusedMaxListings, c, snap).back(companies.AddrListings, c.Code)
 			r.view.Max = h.rules.MaxListings
 			return r
 		}
@@ -222,7 +223,7 @@ func (h *ProductionHandler) Sell(ctx context.Context, meta envelope.Metadata, re
 		}
 		if listing, err = tx.Production().OpenListing(ctx, listing); err != nil {
 			if isSentinel(err, application.ErrListingOpen) {
-				return refuseProduction(screens.ProductionRefusedListed, c, snap).back(screens.AddrListings, c.Code)
+				return refuseProduction(companies.ProductionRefusedListed, c, snap).back(companies.AddrListings, c.Code)
 			}
 			return err
 		}
@@ -231,32 +232,31 @@ func (h *ProductionHandler) Sell(ctx context.Context, meta envelope.Metadata, re
 			ReferenceType: listingReference, ReferenceID: listing.ID, At: now}); err != nil {
 			return err
 		}
-		listed = &screens.ListingLine{No: listing.No, Good: l.good, Left: qty, Price: price}
+		listed = &companies.ListingLine{No: listing.No, Good: l.good, Left: qty, Price: price}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
 	if listed != nil {
-		c := h.screen(meta, lang)
 		return h.listingsWith(ctx, meta, ProductionRequest{Company: seller.Code},
-			screens.ListingNotice(c, screens.ListingNoticeListed, *listed))
+			&companies.ListingNotice{Kind: companies.ListingNoticeListed, Listing: *listed})
 	}
-	return screens.Sell(h.screen(meta, lang), view), nil
+	return companies.Sell(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Listings handles company.listings: the company's open listings.
-func (h *ProductionHandler) Listings(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
-	return h.listingsWith(ctx, meta, req, "")
+func (h *ProductionHandler) Listings(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
+	return h.listingsWith(ctx, meta, req, nil)
 }
 
-func (h *ProductionHandler) listingsWith(ctx context.Context, meta envelope.Metadata, req ProductionRequest, notice string) (*presenter.Response, error) {
+func (h *ProductionHandler) listingsWith(ctx context.Context, meta envelope.Metadata, req ProductionRequest, notice *companies.ListingNotice) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ListingsView
+	var view companies.ListingsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -270,7 +270,7 @@ func (h *ProductionHandler) listingsWith(ctx context.Context, meta envelope.Meta
 		if err != nil {
 			return err
 		}
-		view = screens.ListingsView{Ref: companyRef(snap, *c), CityCode: city.Code, City: city.Name, Notice: notice}
+		view = companies.ListingsView{Ref: companyRef(snap, *c), CityCode: city.Code, City: city.Name, Notice: notice}
 		open, err := tx.Production().CompanyListings(ctx, c.ID)
 		if err != nil {
 			return err
@@ -280,24 +280,24 @@ func (h *ProductionHandler) listingsWith(ctx context.Context, meta envelope.Meta
 			if err != nil {
 				return err
 			}
-			view.Listings = append(view.Listings, screens.ListingLine{No: l.No, Good: good, Left: l.Left(), Price: l.UnitPrice})
+			view.Listings = append(view.Listings, companies.ListingLine{No: l.No, Good: good, Left: l.Left(), Price: l.UnitPrice})
 		}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Listings(h.screen(meta, lang), view), nil
+	return companies.Listings(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // listingGood names a listing's good.
-func (h *ProductionHandler) listingGood(ctx context.Context, tx application.Tx, snap *content.Snapshot, l application.Listing) (screens.Good, error) {
+func (h *ProductionHandler) listingGood(ctx context.Context, tx application.Tx, snap *content.Snapshot, l application.Listing) (presentation.Good, error) {
 	if l.DesignID == "" {
 		return goodOf(snap, l.Item), nil
 	}
 	d, err := tx.Production().DesignByID(ctx, l.DesignID)
 	if err != nil {
-		return screens.Good{}, err
+		return presentation.Good{}, err
 	}
 	return designGood(snap, *d), nil
 }
@@ -322,7 +322,7 @@ func (h *ProductionHandler) listingLine(ctx context.Context, tx application.Tx, 
 
 // Unlist handles company.unlist: an open listing withdrawn, what is left of
 // its goods back in the warehouse.
-func (h *ProductionHandler) Unlist(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Unlist(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -330,7 +330,7 @@ func (h *ProductionHandler) Unlist(ctx context.Context, meta envelope.Metadata, 
 	lang := meta.Language
 	var (
 		code   string
-		notice *screens.ListingLine
+		notice *companies.ListingLine
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
@@ -339,11 +339,11 @@ func (h *ProductionHandler) Unlist(ctx context.Context, meta envelope.Metadata, 
 		}
 		no, ok := number(req.No)
 		if !ok {
-			return refuseProduction(screens.ProductionRefusedNotFound, nil, snap)
+			return refuseProduction(companies.ProductionRefusedNotFound, nil, snap)
 		}
 		l, err := tx.Production().Listing(ctx, no, false)
 		if isSentinel(err, application.ErrListingNotFound) {
-			return refuseProduction(screens.ProductionRefusedNotFound, nil, snap)
+			return refuseProduction(companies.ProductionRefusedNotFound, nil, snap)
 		}
 		if err != nil {
 			return err
@@ -388,26 +388,26 @@ func (h *ProductionHandler) Unlist(ctx context.Context, meta envelope.Metadata, 
 		if err := tx.Production().SaveListing(ctx, *l); err != nil {
 			return err
 		}
-		notice = &screens.ListingLine{No: l.No, Good: line.good, Left: left, Price: l.UnitPrice}
+		notice = &companies.ListingLine{No: l.No, Good: line.good, Left: left, Price: l.UnitPrice}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	text := ""
+	var shown *companies.ListingNotice
 	if notice != nil {
-		text = screens.ListingNotice(h.screen(meta, lang), screens.ListingNoticeWithdrawn, *notice)
+		shown = &companies.ListingNotice{Kind: companies.ListingNoticeWithdrawn, Listing: *notice}
 	}
-	return h.listingsWith(ctx, meta, ProductionRequest{Company: code}, text)
+	return h.listingsWith(ctx, meta, ProductionRequest{Company: code}, shown)
 }
 
 // goodsLine is a listing as the city's buyers see it.
-func (h *ProductionHandler) goodsLine(ctx context.Context, tx application.Tx, snap *content.Snapshot, l application.Listing) (screens.GoodsLine, error) {
+func (h *ProductionHandler) goodsLine(ctx context.Context, tx application.Tx, snap *content.Snapshot, l application.Listing) (companies.GoodsLine, error) {
 	seller, err := tx.Companies().ByID(ctx, l.CompanyID)
 	if err != nil {
-		return screens.GoodsLine{}, err
+		return companies.GoodsLine{}, err
 	}
-	line := screens.GoodsLine{No: l.No, Company: companyRef(snap, *seller), Left: l.Left(), Price: l.UnitPrice}
+	line := companies.GoodsLine{No: l.No, Company: companyRef(snap, *seller), Left: l.Left(), Price: l.UnitPrice}
 	if line.Good, err = h.listingGood(ctx, tx, snap, l); err != nil {
 		return line, err
 	}
@@ -422,7 +422,7 @@ func (h *ProductionHandler) goodsLine(ctx context.Context, tx application.Tx, sn
 			if attrs, err := item.ObservableAttributes(a, domainDesign(*d), snap.Components()); err == nil {
 				for _, at := range a.Attributes {
 					if v, ok := attrs[at.Name]; ok {
-						line.Attributes = append(line.Attributes, screens.AttributeLine{Name: at.Name, Value: v, Observable: true})
+						line.Attributes = append(line.Attributes, companies.AttributeLine{Name: at.Name, Value: v, Observable: true})
 					}
 				}
 			}
@@ -433,13 +433,13 @@ func (h *ProductionHandler) goodsLine(ctx context.Context, tx application.Tx, sn
 
 // Goods handles company.goods: what the companies of the player's city
 // sell.
-func (h *ProductionHandler) Goods(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *ProductionHandler) Goods(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.GoodsView
+	var view companies.GoodsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -474,7 +474,7 @@ func (h *ProductionHandler) Goods(ctx context.Context, meta envelope.Metadata) (
 	if err != nil {
 		return nil, err
 	}
-	return screens.CompanyGoods(h.screen(meta, lang), view), nil
+	return companies.CompanyGoods(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // hereCity is the city a player stands in, nil while travelling or nowhere.
@@ -511,7 +511,7 @@ func (h *ProductionHandler) buyers(ctx context.Context, tx application.Tx, snap 
 // Buy handles company.buy: buying from a company's listing — for the player,
 // paid by cash or card, or for a company the player runs, paid from its free
 // money. Without a way to pay, it shows the listing and the ways.
-func (h *ProductionHandler) Buy(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Buy(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -525,7 +525,7 @@ func (h *ProductionHandler) Buy(ctx context.Context, meta envelope.Metadata, req
 		}
 	}
 	way := strings.TrimSpace(req.Method)
-	var view screens.BuyView
+	var view companies.BuyView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -541,11 +541,11 @@ func (h *ProductionHandler) Buy(ctx context.Context, meta envelope.Metadata, req
 		}
 		no, ok := number(req.No)
 		if !ok {
-			return refuseProduction(screens.ProductionRefusedNotFound, nil, snap).back(screens.AddrCompanyGoods)
+			return refuseProduction(companies.ProductionRefusedNotFound, nil, snap).back(companies.AddrCompanyGoods)
 		}
 		l, err := tx.Production().Listing(ctx, no, false)
 		if isSentinel(err, application.ErrListingNotFound) || (err == nil && l.Status != application.ListingOpen) {
-			return refuseProduction(screens.ProductionRefusedNotFound, nil, snap).back(screens.AddrCompanyGoods)
+			return refuseProduction(companies.ProductionRefusedNotFound, nil, snap).back(companies.AddrCompanyGoods)
 		}
 		if err != nil {
 			return err
@@ -554,14 +554,14 @@ func (h *ProductionHandler) Buy(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		view = screens.BuyView{Line: line, Qty: min(qty, max(l.Left(), 1))}
-		companies, err := h.buyers(ctx, tx, snap, p, l.CompanyID)
+		view = companies.BuyView{Line: line, Qty: min(qty, max(l.Left(), 1))}
+		buyFor, err := h.buyers(ctx, tx, snap, p, l.CompanyID)
 		if err != nil {
 			return err
 		}
 		_, component := snap.ComponentDef(l.Item)
 		if !buy {
-			for _, c := range companies {
+			for _, c := range buyFor {
 				view.Companies = append(view.Companies, companyRef(snap, c))
 			}
 			if !component {
@@ -574,36 +574,36 @@ func (h *ProductionHandler) Buy(ctx context.Context, meta envelope.Metadata, req
 			}
 			return nil
 		}
-		return h.buy(ctx, tx, snap, meta, p, l, qty, way, companies, component, &view)
+		return h.buy(ctx, tx, snap, meta, p, l, qty, way, buyFor, component, &view)
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CompanyBuy(h.screen(meta, lang), view), nil
+	return companies.CompanyBuy(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // buy makes one purchase from a listing, everything under the locks: the
 // companies in id order, then the seller's goods, then the listing.
 func (h *ProductionHandler) buy(ctx context.Context, tx application.Tx, snap *content.Snapshot, meta envelope.Metadata,
-	p *application.Player, l *application.Listing, qty int64, way string, companies []application.Company, component bool,
-	view *screens.BuyView,
+	p *application.Player, l *application.Listing, qty int64, way string, buyFor []application.Company, component bool,
+	view *companies.BuyView,
 ) error {
-	back := []string{screens.AddrCompanyBuy, strconv.FormatInt(l.No, 10)}
+	back := []string{companies.AddrCompanyBuy, strconv.FormatInt(l.No, 10)}
 	var buyer *application.Company
 	method, isMethod, _ := chosenMethod(way)
 	if !isMethod {
 		code := playercode.Normalize(way)
-		for i := range companies {
-			if companies[i].Code == code {
-				buyer = &companies[i]
+		for i := range buyFor {
+			if buyFor[i].Code == code {
+				buyer = &buyFor[i]
 			}
 		}
 		if buyer == nil {
-			return refuseCompany(screens.CompanyRefusedNotAllowed, nil, snap)
+			return refuseCompany(companies.CompanyRefusedNotAllowed, nil, snap)
 		}
 	}
 	if component && buyer == nil {
-		return refuseProduction(screens.ProductionRefusedNotCleared, nil, snap).back(back...)
+		return refuseProduction(companies.ProductionRefusedNotCleared, nil, snap).back(back...)
 	}
 	// Lock the companies in id order, so two companies buying from each
 	// other cannot deadlock.
@@ -624,7 +624,7 @@ func (h *ProductionHandler) buy(ctx context.Context, tx application.Tx, snap *co
 	if buyer != nil {
 		buyer = locked[buyer.ID]
 		if !buyer.Active() {
-			return refuseCompany(screens.CompanyRefusedDissolved, buyer, snap)
+			return refuseCompany(companies.CompanyRefusedDissolved, buyer, snap)
 		}
 	}
 	sellerOrg := application.CompanyOrg(seller.ID)
@@ -641,15 +641,15 @@ func (h *ProductionHandler) buy(ctx context.Context, tx application.Tx, snap *co
 		return err
 	}
 	if l.Status != application.ListingOpen || !seller.Active() {
-		return refuseProduction(screens.ProductionRefusedNotFound, nil, snap).back(screens.AddrCompanyGoods)
+		return refuseProduction(companies.ProductionRefusedNotFound, nil, snap).back(companies.AddrCompanyGoods)
 	}
 	if qty < 1 || qty > l.Left() {
-		r := refuseProduction(screens.ProductionRefusedStock, nil, snap).back(back...)
+		r := refuseProduction(companies.ProductionRefusedStock, nil, snap).back(back...)
 		r.view.Max = int(l.Left())
 		return r
 	}
 	if buyer == nil && p.ID == seller.OwnerID {
-		return refuseProduction(screens.ProductionRefusedOwnListing, nil, snap).back(back...)
+		return refuseProduction(companies.ProductionRefusedOwnListing, nil, snap).back(back...)
 	}
 	// Export control: the one place a sale of goods is cleared.
 	control := technology.Control{}
@@ -669,7 +669,7 @@ func (h *ProductionHandler) buy(ctx context.Context, tx application.Tx, snap *co
 		who = technology.Buyer{Kind: application.OrgCompany, Sector: sector}
 	}
 	if err := technology.Cleared(control, who); err != nil {
-		return refuseProduction(screens.ProductionRefusedNotCleared, nil, snap).back(back...)
+		return refuseProduction(companies.ProductionRefusedNotCleared, nil, snap).back(back...)
 	}
 	now := h.now()
 	// A trade embargo between the buyer's country and the seller's
@@ -719,7 +719,7 @@ func (h *ProductionHandler) buy(ctx context.Context, tx application.Tx, snap *co
 			if err != nil {
 				return err
 			}
-			r := refuseProduction(screens.ProductionRefusedAway, nil, snap).back(back...)
+			r := refuseProduction(companies.ProductionRefusedAway, nil, snap).back(back...)
 			r.view.CityCode, r.view.City = listingCity.Code, listingCity.Name
 			return r
 		}
@@ -728,14 +728,14 @@ func (h *ProductionHandler) buy(ctx context.Context, tx application.Tx, snap *co
 			return err
 		}
 		plan := wallet.Plan(total, snap.Accepts(content.ServiceShop))
-		if err := checkMethod(plan, method, wallet, "production.button.goods", screens.AddrCompanyGoods); err != nil {
+		if err := checkMethod(plan, method, wallet, "production.button.goods", companies.AddrCompanyGoods); err != nil {
 			return err
 		}
 		if txID, err = wallet.Pay(ctx, tx.Ledger(), application.Charge{Method: method, Accepted: plan.Accepted,
 			Reason: application.ReasonCompanySale, ReferenceType: listingReference, ReferenceID: l.ID,
 			To: []application.LedgerEntry{{AccountID: sellerAcct.ID, Amount: total}}, CreatedAt: now}); err != nil {
 			if stderrors.Is(err, application.ErrPaymentDeclined) {
-				return declined(plan, wallet, "production.button.goods", screens.AddrCompanyGoods)
+				return declined(plan, wallet, "production.button.goods", companies.AddrCompanyGoods)
 			}
 			return err
 		}
@@ -807,7 +807,7 @@ func (h *ProductionHandler) buy(ctx context.Context, tx application.Tx, snap *co
 	if err := tx.Production().RecordSale(ctx, sale); err != nil {
 		return err
 	}
-	view.Bought = &screens.BoughtView{Qty: qty, Total: total.Minor()}
+	view.Bought = &companies.BoughtView{Qty: qty, Total: total.Minor()}
 	buyerName := shownName(p)
 	if buyer != nil {
 		view.Bought.For, view.Bought.ForCode, buyerName = buyer.Name, buyer.Code, buyer.Name

@@ -51,12 +51,11 @@ var ProducePresets = []int64{1, 5, 10}
 // ProduceView is the plan of an order of one target.
 type ProduceView struct {
 	Ref CompanyRef
-	// Addr is the command a size or confirm button calls; empty means
-	// AddrProduce. An upgrade-kit order (AddrProduceKit) reuses this same
-	// screen — a kit's plan reads exactly like an order's, because it is
-	// one: the design's own recipe, refitted onto an existing unit instead
-	// of sold as a new one.
-	Addr   string
+	// Kit says it is an upgrade-kit order, which reuses this same screen — a
+	// kit's plan reads exactly like an order's, because it is one: the
+	// design's own recipe, refitted onto an existing unit instead of sold as
+	// a new one.
+	Kit    bool
 	Target ProduceTarget
 	// Qty is the order size planned; zero before one is chosen.
 	Qty    int64
@@ -114,5 +113,14 @@ type ReverseLabView struct {
 	Skill   string
 	Level   int
 	Time    time.Duration
-	Notice  string
+	// Started is the reverse engineering just begun.
+	Started *ReverseStarted
+}
+
+// ReverseStarted is a reverse engineering just begun: the good whose sample
+// was opened, and when the result comes.
+type ReverseStarted struct {
+	Good     Good
+	FinishAt time.Time
+	Left     time.Duration
 }

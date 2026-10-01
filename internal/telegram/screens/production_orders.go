@@ -66,9 +66,9 @@ func Orders(c Context, v OrdersView) *presenter.Response {
 func Produce(c Context, v ProduceView) *presenter.Response {
 	good := c.GoodName(v.Target.Good)
 	target := v.Target.Good.TargetArg()
-	addr := v.Addr
-	if addr == "" {
-		addr = AddrProduce
+	addr := AddrProduce
+	if v.Kit {
+		addr = AddrProduceKit
 	}
 	if p := v.Placed; p != nil {
 		text := paragraphs(c.T("production.placed", map[string]any{"no": FormatNumber(c, p.No), "good": good,
@@ -200,7 +200,12 @@ func ReverseLab(c Context, v ReverseLabView) *presenter.Response {
 	}
 	kb.Grid(2, buttons...)
 	c.productionNav(kb, []string{AddrWarehouse, v.Ref.Code}, AddrReverseLab, v.Ref.Code)
-	return c.respond(paragraphs(v.Notice, head, sampleBlock, jobBlock, c.T("production.relab_hint", nil)), kb.Build())
+	started := ""
+	if v.Started != nil {
+		started = c.T("production.reverse_started", map[string]any{"good": c.GoodName(v.Started.Good),
+			"time": FormatClock(c, v.Started.FinishAt), "duration": FormatDuration(c, v.Started.Left)})
+	}
+	return c.respond(paragraphs(started, head, sampleBlock, jobBlock, c.T("production.relab_hint", nil)), kb.Build())
 }
 
 // shortageButton is the one way forward from a short order: buy it all from

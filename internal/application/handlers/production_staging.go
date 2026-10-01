@@ -5,12 +5,14 @@ import (
 	"sort"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/military"
 	"github.com/mrjvadi/torncity/internal/domain/technology"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Staging (docs/adr/0021-production-economy.md section 14). The owner asked
@@ -142,11 +144,11 @@ func (s *stage) assess(missing []string) (technology.Reach, []technology.Step, e
 }
 
 // techSteps names steps for a screen.
-func techSteps(snap *content.Snapshot, steps []technology.Step) []screens.TechStep {
-	out := make([]screens.TechStep, 0, len(steps))
+func techSteps(snap *content.Snapshot, steps []technology.Step) []companies.TechStep {
+	out := make([]companies.TechStep, 0, len(steps))
 	for _, st := range steps {
 		td, _ := snap.Technology(st.Tech)
-		out = append(out, screens.TechStep{Tech: named(td.Code, td.Name), Research: st.Research})
+		out = append(out, companies.TechStep{Tech: named(td.Code, td.Name), Research: st.Research})
 	}
 	return out
 }
@@ -155,7 +157,7 @@ func techSteps(snap *content.Snapshot, steps []technology.Step) []screens.TechSt
 // design now and those one step away; the rest are hidden. hidden reports
 // whether any are.
 func (h *ProductionHandler) studioKinds(snap *content.Snapshot, f *floor, s *stage,
-) (ready []screens.Named, next []screens.StudioKind, hidden bool, err error) {
+) (ready []presentation.Named, next []companies.StudioKind, hidden bool, err error) {
 	comps := snap.Components()
 	for _, d := range snap.DesignableItems(f.c.TypeCode) {
 		a, ok := snap.Archetype(d.Archetype)
@@ -174,7 +176,7 @@ func (h *ProductionHandler) studioKinds(snap *content.Snapshot, f *floor, s *sta
 		case technology.Ready:
 			ready = append(ready, named(d.Code, d.Name))
 		case technology.Next:
-			next = append(next, screens.StudioKind{Item: named(d.Code, d.Name), Steps: techSteps(snap, steps)})
+			next = append(next, companies.StudioKind{Item: named(d.Code, d.Name), Steps: techSteps(snap, steps)})
 		default:
 			hidden = true
 		}
@@ -187,12 +189,12 @@ func (h *ProductionHandler) studioKinds(snap *content.Snapshot, f *floor, s *sta
 func (h *ProductionHandler) designGate(snap *content.Snapshot, f *floor, def content.ItemDef, a item.Archetype) error {
 	missing, possible := item.DesignGaps(a, def.RequiresTechnology, snap.Components(), f.access)
 	if !possible {
-		return refuseProduction(screens.ProductionRefusedWrongType, f.c, snap).back(screens.AddrStudio, f.c.Code)
+		return refuseProduction(companies.ProductionRefusedWrongType, f.c, snap).back(companies.AddrStudio, f.c.Code)
 	}
 	if len(missing) == 0 {
 		return nil
 	}
-	r := refuseProduction(screens.ProductionRefusedTechLocked, f.c, snap).back(screens.AddrStudio, f.c.Code)
+	r := refuseProduction(companies.ProductionRefusedTechLocked, f.c, snap).back(companies.AddrStudio, f.c.Code)
 	for _, t := range sortedTechs(snap, missing) {
 		td, _ := snap.Technology(t)
 		r.view.Techs = append(r.view.Techs, named(td.Code, td.Name))
@@ -226,8 +228,8 @@ func (s *stage) labShown(t technology.Tech, usable bool) bool {
 
 // lockedComponents lists the components a company's kind makes that are one
 // step away.
-func (h *ProductionHandler) lockedComponents(snap *content.Snapshot, f *floor, s *stage) ([]screens.LockedTarget, error) {
-	var out []screens.LockedTarget
+func (h *ProductionHandler) lockedComponents(snap *content.Snapshot, f *floor, s *stage) ([]companies.LockedTarget, error) {
+	var out []companies.LockedTarget
 	for _, comp := range snap.MadeBy(f.c.TypeCode) {
 		var missing []string
 		for _, t := range comp.RequiresTechnology {
@@ -243,7 +245,7 @@ func (h *ProductionHandler) lockedComponents(snap *content.Snapshot, f *floor, s
 			return nil, err
 		}
 		if r == technology.Next {
-			out = append(out, screens.LockedTarget{Good: screens.Good{Component: true, Item: named(comp.Code, comp.Name)},
+			out = append(out, companies.LockedTarget{Good: presentation.Good{Component: true, Item: named(comp.Code, comp.Name)},
 				Steps: techSteps(snap, steps)})
 		}
 	}

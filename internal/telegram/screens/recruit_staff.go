@@ -2,6 +2,7 @@ package screens
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -92,8 +93,8 @@ func RecruitRefusal(c Context, v RecruitRefusalView) *presenter.Response {
 func renderRecruitRefusal(c Context, v RecruitRefusalView) *presenter.Response {
 	text := c.T("recruit.refused."+v.Kind, map[string]any{"name": v.Ref.Name, "need": FormatMoney(c, v.Need),
 		"money": FormatMoney(c, v.Have), "max": FormatNumber(c, int64(v.Max)), "person": c.SpecialistName(v.NameSeed)})
-	back := v.Back
-	if len(back) == 0 {
+	back := strings.Split(v.Back.Address(), ":")
+	if v.Back.Command == "" {
 		back = []string{AddrCompanyMine}
 		if v.Ref.Code != "" {
 			back = []string{AddrRecruit, v.Ref.Code}

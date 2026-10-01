@@ -6,12 +6,17 @@
 // neutral response. It imports no edge and holds no wording.
 package companies
 
-import "github.com/mrjvadi/torncity/internal/presentation"
+import (
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
+)
 
 // The shared pieces of a view, as the core names them.
 type (
 	// Named is a content entry: its code and its authored name.
 	Named = presentation.Named
+	// Ref names a place to go back to.
+	Ref = presentation.Ref
 	// JobRef names a position: a career and one of its tiers.
 	JobRef = presentation.JobRef
 	// CourseRef names a course.
@@ -28,6 +33,13 @@ type (
 	CompanyRef = presentation.CompanyRef
 	// Good names a component, a good or a good of a design.
 	Good = presentation.Good
+	// Unavailable is the data of a "not available here" state: the stage a
+	// thing starts at, what it needs and the nearest place that has it. It
+	// is the economy area's type, the one the service gate fills.
+	Unavailable = economy.Unavailable
+	// NeedBuilding is a building a settlement must have standing for a thing
+	// to run.
+	NeedBuilding = economy.NeedBuilding
 )
 
 // Payment methods, as the core spells them.

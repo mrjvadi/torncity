@@ -5,13 +5,14 @@ import (
 	stderrors "errors"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/recruit"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // A company's specialists at the settlement of its city
@@ -78,7 +79,7 @@ func (h *CompaniesHandler) paySpecialists(ctx context.Context, tx application.Tx
 		event := map[string]any{"name_seed": s.NameSeed, "skill": s.Skill, "level": s.Level, "staff_no": s.No}
 		if !out.Pay && out.Leave == "" {
 			if err := appendCompanyEvent(ctx, tx, meta, "recruit", c.ID,
-				recruitEvent(c, screens.RecruitNoticeUnpaid, event)); err != nil {
+				recruitEvent(c, companies.RecruitNoticeUnpaid, event)); err != nil {
 				return spent, err
 			}
 		}
@@ -100,7 +101,7 @@ func (h *CompaniesHandler) paySpecialists(ctx context.Context, tx application.Tx
 				event["amount"] = value
 			}
 			if err := appendCompanyEvent(ctx, tx, meta, "recruit", c.ID,
-				recruitEvent(c, screens.RecruitNoticeCompleted, event)); err != nil {
+				recruitEvent(c, companies.RecruitNoticeCompleted, event)); err != nil {
 				return spent, err
 			}
 		}
@@ -108,7 +109,7 @@ func (h *CompaniesHandler) paySpecialists(ctx context.Context, tx application.Tx
 			s.Status, s.LeaveReason, s.LeftAt = application.StaffLeft, out.Leave, &now
 			event["reason"] = out.Leave
 			if err := appendCompanyEvent(ctx, tx, meta, "recruit", c.ID,
-				recruitEvent(c, screens.RecruitNoticeLeft, event)); err != nil {
+				recruitEvent(c, companies.RecruitNoticeLeft, event)); err != nil {
 				return spent, err
 			}
 		}

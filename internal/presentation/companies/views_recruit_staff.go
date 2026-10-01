@@ -1,5 +1,7 @@
 package companies
 
+import "github.com/mrjvadi/torncity/internal/presentation"
+
 // SpecialistLine is one specialist of a company.
 type SpecialistLine struct {
 	No       int64
@@ -55,8 +57,9 @@ const (
 type RecruitRefusalView struct {
 	Kind string
 	Ref  CompanyRef
-	// Back is where the back button leads.
-	Back []string
+	// Back is where the back button leads; the zero Ref leads to the
+	// company's recruitment, else to the player's companies.
+	Back presentation.Ref
 	// Need and Have for money; Max for a bound.
 	Need, Have int64
 	Max        int
