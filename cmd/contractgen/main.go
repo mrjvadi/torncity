@@ -17,6 +17,7 @@ import (
 	_ "github.com/mrjvadi/torncity/internal/presentation/village"
 	"github.com/mrjvadi/torncity/internal/presentation/tsgen"
 	_ "github.com/mrjvadi/torncity/internal/presentation/economy"
+	_ "github.com/mrjvadi/torncity/internal/presentation/companies"
 	_ "github.com/mrjvadi/torncity/internal/presentation/village"
 )
 

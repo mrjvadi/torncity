@@ -75,6 +75,12 @@ export interface AppointView {
   player: GovPlayer
 }
 
+export interface AttributeLine {
+  name: string
+  value: number
+  observable: boolean
+}
+
 export interface AuctionDetailView {
   line: AuctionLine
   min_next: number
@@ -293,6 +299,13 @@ export interface BookView {
   nonce: string
 }
 
+export interface BoughtView {
+  qty: number
+  total: number
+  for: string
+  for_code: string
+}
+
 export interface BudgetLineView {
   code: string
   effect: string
@@ -401,6 +414,21 @@ export interface BuildingView {
   upgrades: BuildingUpgradeLine[] | null
 }
 
+export interface BuyView {
+  line: GoodsLine
+  qty: number
+  payment: PaymentChoice | null
+  companies: CompanyRef[] | null
+  bought: BoughtView | null
+}
+
+export interface Candidate {
+  component: Named
+  price: number
+  locked: boolean
+  quality: number
+}
+
 export interface CandidateLine {
   player: GovPlayer
   mine: boolean
@@ -472,10 +500,272 @@ export interface ClinicTreatedView {
   saved_seconds: number
 }
 
+export interface CompanyApplicationLine {
+  no: number
+  player: GovPlayer
+  job: JobRef
+  level: number
+}
+
+export interface CompanyApplicationNoticeView {
+  no: number
+  company: CompanyRef
+  player: GovPlayer
+  job: JobRef
+  level: number
+}
+
+export interface CompanyAppliedView {
+  company: CompanyRef
+  job: JobRef
+}
+
+export interface CompanyCitizens {
+  vacant: number
+  workers: number
+  wages: number
+}
+
+export interface CompanyCloseView {
+  ref: CompanyRef
+  done: boolean
+  debt_paid: number
+  tax: number
+  net: number
+  staff: number
+}
+
+export interface CompanyEmployeeLine {
+  player: GovPlayer
+  job: JobRef
+  wage: number
+  shifts: number
+  working: boolean
+}
+
+export interface CompanyEmployeeNoticeView {
+  kind: string
+  company: CompanyRef
+  job: JobRef
+  wage: number
+  owner: GovPlayer
+}
+
+export interface CompanyFoundedView {
+  ref: CompanyRef
+  city_code: string
+  city: string
+  fee: number
+  method: string
+}
+
+export interface CompanyLine {
+  ref: CompanyRef
+  stars: number
+  rated: boolean
+  staff: number
+  openings: number
+  mine: boolean
+}
+
+export interface CompanyManageView {
+  ref: CompanyRef
+  clinic: boolean
+  city_code: string
+  city: string
+  owner: boolean
+  manager: GovPlayer | null
+  balance: number
+  reserved: number
+  available: number
+  debt: number
+  upkeep: number
+  arrears: number
+  grace: number
+  price_bps: number
+  price_min: number
+  price_max: number
+  price_step: number
+  staff: number
+  max_staff: number
+  openings: number
+  pending: number
+  auto_accept: boolean
+  citizens: CompanyCitizens
+  tax_bps: number
+  last: CompanyPeriodSummary | null
+  next_at: string | null
+  next_in_seconds: number
+  notice: CompanyNotice | null
+  step: NextStep | null
+  defence: DefenceBadge | null
+  specialists: number
+  recruiting: number
+}
+
+export interface CompanyMineView {
+  companies: CompanyLine[] | null
+}
+
+export interface CompanyNotice {
+  kind: string
+  amount: number
+  tax: number
+  net: number
+  price_bps: number
+  player: GovPlayer
+}
+
+export interface CompanyOpeningLine {
+  no: number
+  job: JobRef
+  wage: number
+  positions: number
+  filled: number
+}
+
+export interface CompanyOpeningView {
+  no: number
+  company: CompanyRef
+  job: JobRef
+  city_code: string
+  city: string
+  place: Named
+  wage: number
+  energy_cost: number
+  shift_length_seconds: number
+  free: number
+  requirements: Requirement[] | null
+  can_apply: boolean
+  applied: boolean
+  employed: boolean
+  auto_accept: boolean
+  closed: boolean
+}
+
+export interface CompanyOpeningsView {
+  ref: CompanyRef
+  openings: CompanyOpeningLine[] | null
+  careers: JobRef[] | null
+  minimum_wage: number
+  room: number
+  at_max: boolean
+}
+
+export interface CompanyPageView {
+  ref: CompanyRef
+  city_code: string
+  city: string
+  place: Named
+  owner: GovPlayer
+  manager: GovPlayer | null
+  staff: number
+  max_staff: number
+  stars: number
+  rated: boolean
+  dissolved: boolean
+  openings: CompanyOpeningLine[] | null
+  can_manage: boolean
+  products: Good[] | null
+  published: Named[] | null
+}
+
+export interface CompanyPeriodNoticeView {
+  company: CompanyRef
+  period: CompanyPeriodSummary
+  arrears: number
+  grace: number
+  dissolved: boolean
+}
+
+export interface CompanyPeriodSummary {
+  revenue: number
+  sales_tax: number
+  wages: number
+  upkeep: number
+  upkeep_paid: number
+  debt: number
+  shifts: number
+  quality_bps: number
+  sold: number
+  wanted: number
+  capacity: number
+  balance: number
+  citizen_workers: number
+  citizen_shifts: number
+  citizen_wages: number
+}
+
 export interface CompanyRef {
   code: string
   name: string
   type: Named
+}
+
+export interface CompanyRefusalView {
+  kind: string
+  ref: CompanyRef
+  need: number
+  have: number
+  min: number
+  max: number
+  city_code: string
+  city: string
+}
+
+export interface CompanyRegistryView {
+  no_city: boolean
+  city_code: string
+  city: string
+  companies: CompanyLine[] | null
+  mine: number
+}
+
+export interface CompanyStaffView {
+  ref: CompanyRef
+  employees: CompanyEmployeeLine[] | null
+  citizens: CompanyCitizens
+  applications: CompanyApplicationLine[] | null
+  firing: CompanyEmployeeLine | null
+  decided: CompanyApplicationLine | null
+  hired: boolean
+}
+
+export interface CompanyTypeLine {
+  type: Named
+  fee: number
+  upkeep: number
+  licensed: boolean
+  unavailable: Unavailable | null
+}
+
+export interface CompanyTypeView {
+  type: Named
+  city_code: string
+  city: string
+  place: Named
+  careers: JobRef[] | null
+  fee: number
+  upkeep: number
+  max_staff: number
+  period_seconds: number
+  name_min: number
+  name_max: number
+  payment: PaymentChoice | null
+  way: Way | null
+  blocked: string
+  max: number
+  rank: JobRef
+  unavailable: Unavailable | null
+}
+
+export interface CompanyTypesView {
+  no_city: boolean
+  city_code: string
+  city: string
+  types: CompanyTypeLine[] | null
+  owned: number
+  max: number
 }
 
 export interface ConstructionLine {
@@ -531,6 +821,42 @@ export interface DashboardView {
   cash: number
   bank: number
   jail: ProfileJail | null
+}
+
+export interface DefenceBadge {
+  status: string
+  contractor: boolean
+  eligible: boolean
+  effective_at: string | null
+}
+
+export interface DesignLine {
+  no: number
+  name: string
+  item: Named
+  status: string
+  origin: string
+}
+
+export interface DesignView {
+  ref: CompanyRef
+  no: number
+  name: string
+  item: Named
+  status: string
+  origin: string
+  source: string
+  slots: SlotLine[] | null
+  choosing: string
+  candidates: Candidate[] | null
+  attributes: AttributeLine[] | null
+  cost_floor: number
+  quality_loss_bps: number
+  overhead_bps: number
+  complete: boolean
+  locked: Named[] | null
+  version: number
+  prev_attributes: Record<string, number> | null
 }
 
 export interface DeviceLine {
@@ -1077,6 +1403,30 @@ export interface GoldView {
   unavailable: Unavailable | null
 }
 
+export interface Good {
+  component: boolean
+  item: Named
+  design: string
+  design_no: number
+}
+
+export interface GoodsLine {
+  no: number
+  company: CompanyRef
+  good: Good
+  left: number
+  price: number
+  attributes: AttributeLine[] | null
+  quality: number
+}
+
+export interface GoodsView {
+  no_city: boolean
+  city_code: string
+  city: string
+  lines: GoodsLine[] | null
+}
+
 export interface GovAppointee {
   office: string
   place: GovPlace
@@ -1240,6 +1590,18 @@ export interface ImposeView {
   min_duration_seconds: number
 }
 
+export interface ImprovementView {
+  ref: CompanyRef
+  no: number
+  design: Good
+  attribute: Named
+  gain_bps: number
+  cost: number
+  duration_seconds: number
+  finish_at: string | null
+  started: boolean
+}
+
 export interface InboxBadgeView {
   unread: number
   categories: InboxCategoryCount[] | null
@@ -1394,6 +1756,12 @@ export interface JobRef {
   title: string
 }
 
+export interface KitPurchaseView {
+  bought: boolean
+  seller: string
+  country: string
+}
+
 export interface KnowledgeLine {
   knowledge: Named
   state: string
@@ -1417,6 +1785,14 @@ export interface KnowledgeResearchLine {
   knowledge: Named
   finish_at: string | null
   left_seconds: number
+}
+
+export interface LabView {
+  ref: CompanyRef
+  available: number
+  running: ResearchLine | null
+  techs: TechLine[] | null
+  hidden: number
 }
 
 export interface LaborBoardView {
@@ -1591,6 +1967,18 @@ export interface ListedLine {
   cap: number
 }
 
+export interface ListingLine {
+  no: number
+  good: Good
+  left: number
+  price: number
+}
+
+export interface ListingNotice {
+  kind: string
+  listing: ListingLine
+}
+
 export interface ListingView {
   company: Named
   refused: string
@@ -1605,6 +1993,14 @@ export interface ListingView {
   prices: PriceOption[] | null
   chosen: PriceOption | null
   nonce: string
+}
+
+export interface ListingsView {
+  ref: CompanyRef
+  city_code: string
+  city: string
+  listings: ListingLine[] | null
+  notice: ListingNotice | null
 }
 
 export interface LoanConfirmView {
@@ -1678,6 +2074,11 @@ export interface LoanProductLine {
   rate_bps: number
   limit: number
   min_score: number
+}
+
+export interface LockedTarget {
+  good: Good
+  steps: TechStep[] | null
 }
 
 export interface Loot {
@@ -1918,6 +2319,22 @@ export interface NeedsView {
   pressing: string[] | null
 }
 
+export interface NextStep {
+  kind: string
+  good: Good
+  qty: number
+  batch: number
+  total: number
+  component: Named
+  item: Named
+  tech: Named
+  design_no: number
+  design_name: string
+  finish_at: string | null
+  left_seconds: number
+  can_research: boolean
+}
+
 export interface NotHereView {
   need: string
   need_args: Record<string, unknown> | null
@@ -1985,6 +2402,16 @@ export interface OrderPlacedView {
   expires_at: string | null
   method: string
   embargoed: number
+}
+
+export interface OrdersView {
+  ref: CompanyRef
+  targets: ProduceTarget[] | null
+  locked: LockedTarget[] | null
+  orders: ProductionLine[] | null
+  max: number
+  running: number
+  crew: number
 }
 
 export interface PayConfirmView {
@@ -2208,6 +2635,68 @@ export interface PrivateMenuView {
   owned_lots: number
   free_lots: number
   lines: PrivateLine[] | null
+}
+
+export interface ProduceTarget {
+  good: Good
+  batch: number
+}
+
+export interface ProduceView {
+  ref: CompanyRef
+  kit: boolean
+  target: ProduceTarget
+  qty: number
+  output: number
+  recipe: RecipeLine[] | null
+  duration_seconds: number
+  finish_at: string | null
+  crew: number
+  max_qty: number
+  short: Shortage[] | null
+  stock_up: number
+  bought: number
+  placed: ProductionLine | null
+}
+
+export interface ProductionLine {
+  no: number
+  good: Good
+  output: number
+  done: boolean
+  quality: number
+  finish_at: string | null
+  left_seconds: number
+}
+
+export interface ProductionNoticeView {
+  kind: string
+  company: CompanyRef
+  tech: Named
+  good: Good
+  qty: number
+  quality: number
+  design: string
+  design_no: number
+  buyer: string
+  price: number
+}
+
+export interface ProductionRefusalView {
+  kind: string
+  ref: CompanyRef
+  back: Ref
+  skill: string
+  level: number
+  have: number
+  techs: Named[] | null
+  shortages: Shortage[] | null
+  need: number
+  have_money: number
+  max: number
+  city_code: string
+  city: string
+  gap: SkillGap | null
 }
 
 export interface ProfileCourse {
@@ -2439,6 +2928,130 @@ export interface RankView {
   worth: number
 }
 
+export interface RecipeLine {
+  component: Named
+  per: number
+  need: number
+  have: number
+}
+
+export interface RecruitCampaignLine {
+  no: number
+  status: string
+  skill: string
+  level: number
+  cities: number
+  positions: number
+  hired: number
+  pending: number
+  next_at: string | null
+}
+
+export interface RecruitCampaignView {
+  ref: CompanyRef
+  line: RecruitCampaignLine
+  checks_left: number
+  offer: RecruitOffer
+  cities: Named[] | null
+  ad_fee: number
+  auto: boolean
+  candidates: RecruitCandidateLine[] | null
+  available: number
+  confirm_cancel: boolean
+  notice: string
+  notice_seed: number
+}
+
+export interface RecruitCandidateLine {
+  no: number
+  name_seed: number
+  skill: string
+  level: number
+  home: Named
+  abroad: boolean
+  expected: number
+  cost: number
+  status: string
+  expires_at: string | null
+}
+
+export interface RecruitCityChoice {
+  code: string
+  name: string
+  on: boolean
+  abroad: boolean
+}
+
+export interface RecruitDraftView {
+  ref: CompanyRef
+  no: number
+  section: string
+  skill: string
+  level: number
+  max_level: number
+  skills: string[] | null
+  cities: RecruitCityChoice[] | null
+  city_code: string
+  city: string
+  positions: number
+  max_positions: number
+  salary: number
+  housing: number
+  signing: number
+  relocation: number
+  term: number
+  shares: number
+  share_value: number
+  auto: boolean
+  market: number
+  reach: number
+  chance_bps: number
+  ad_fee: number
+  available: number
+  presets: RecruitPresets
+  checks: number
+  every_seconds: number
+  confirm: boolean
+  notice: string
+}
+
+export interface RecruitHubView {
+  ref: CompanyRef
+  staff: number
+  max_staff: number
+  running: number
+  max_campaign: number
+  campaigns: RecruitCampaignLine[] | null
+}
+
+export interface RecruitOffer {
+  salary: number
+  housing: number
+  signing: number
+  relocation: number
+  term: number
+  shares: number
+}
+
+export interface RecruitPresets {
+  salary: number[] | null
+  housing: number[] | null
+  signing: number[] | null
+  relocation: number[] | null
+  terms: number[] | null
+  shares: number[] | null
+}
+
+export interface RecruitRefusalView {
+  kind: string
+  ref: CompanyRef
+  back: Ref
+  need: number
+  have: number
+  max: number
+  name_seed: number
+}
+
 export interface RecruitView {
   kind: string
   company: CompanyRef
@@ -2488,6 +3101,12 @@ export interface Requirement {
   wait_seconds: number
 }
 
+export interface ResearchLine {
+  tech: Named
+  finish_at: string | null
+  left_seconds: number
+}
+
 export interface ResidenceView {
   leaving: boolean
   village: string
@@ -2496,6 +3115,52 @@ export interface ResidenceView {
   cooldown_seconds: number
   population: number
   settlement_id: string
+}
+
+export interface RetrofitView {
+  ref: CompanyRef
+  kit_no: number
+  good: Good
+  from_ver: number
+  to_ver: number
+  duration_seconds: number
+  finish_at: string | null
+  started: boolean
+}
+
+export interface ReverseLabView {
+  ref: CompanyRef
+  samples: SampleLine[] | null
+  jobs: ReverseLine[] | null
+  confirm: SampleLine | null
+  skill: string
+  level: number
+  time_seconds: number
+  started: ReverseStarted | null
+}
+
+export interface ReverseLine {
+  no: number
+  good: Good
+  status: string
+  finish_at: string | null
+  left_seconds: number
+  result: string
+  result_no: number
+}
+
+export interface ReverseStarted {
+  good: Good
+  finish_at: string | null
+  left_seconds: number
+}
+
+export interface SampleLine {
+  serial: string
+  good: Good
+  maker: string
+  quality: number
+  chance_bps: number
 }
 
 export interface SanctionBlockedView {
@@ -2565,6 +3230,14 @@ export interface SellOffersView {
   item: Named
   ref: string
   offers: SellOffer[] | null
+}
+
+export interface SellView {
+  ref: CompanyRef
+  good: Good
+  have: number
+  qty: number
+  reference: number
 }
 
 export interface Sentence {
@@ -2675,6 +3348,20 @@ export interface ShopsView {
   place: Named | null
 }
 
+export interface Shortage {
+  component: Named
+  need: number
+  have: number
+  source: string
+}
+
+export interface SkillGap {
+  company: string
+  skill: string
+  level: number
+  courses: CourseRef[] | null
+}
+
 export interface SleepPayView {
   spot: Named
   rest: number
@@ -2689,6 +3376,44 @@ export interface SleepSpotLine {
   rest: number
   relief: number
   way: Way | null
+}
+
+export interface SlotLine {
+  slot: string
+  optional: boolean
+  min: number
+  max: number
+  unit: string
+  component: Named
+  qty: number
+}
+
+export interface SpecialistLine {
+  no: number
+  name_seed: number
+  skill: string
+  level: number
+  home: Named
+  salary: number
+  housing: number
+  served: number
+  term: number
+  expiring: boolean
+  underpaid: boolean
+  underpaid_left: number
+  unpaid_left: number
+  market_due: number
+  shares: number
+}
+
+export interface SpecialistsView {
+  ref: CompanyRef
+  lines: SpecialistLine[] | null
+  max: number
+  confirm: SpecialistLine | null
+  confirm_act: string
+  notice: string
+  notice_seed: number
 }
 
 export interface StandingLine {
@@ -2767,6 +3492,100 @@ export interface StoredNotice {
   screen: string
   view: unknown
   text: string
+}
+
+export interface StudioKind {
+  item: Named
+  steps: TechStep[] | null
+}
+
+export interface StudioView {
+  ref: CompanyRef
+  designs: DesignLine[] | null
+  kinds: Named[] | null
+  next: StudioKind[] | null
+  hidden: boolean
+  can_research: boolean
+  need: number
+  can_design: boolean
+  max: number
+}
+
+export interface SuppliersView {
+  ref: CompanyRef
+  city_code: string
+  city: string
+  offers: SupplyOffer[] | null
+  available: number
+  bought: SupplyNotice | null
+}
+
+export interface SupplyNotice {
+  component: Named
+  qty: number
+  total: number
+}
+
+export interface SupplyOffer {
+  supplier: Named
+  component: Named
+  price: number
+  stock: number
+}
+
+export interface TechLine {
+  tech: Named
+  state: string
+  mode: string
+  price: number
+  cost: number
+  missing: Named[] | null
+  offers: number
+}
+
+export interface TechNotice {
+  kind: string
+  price: number
+  company: CompanyRef
+}
+
+export interface TechOffer {
+  company: CompanyRef
+  price: number
+}
+
+export interface TechRequirement {
+  tech: Named
+  met: boolean
+}
+
+export interface TechStep {
+  tech: Named
+  research: boolean
+}
+
+export interface TechView {
+  ref: CompanyRef
+  tech: Named
+  state: string
+  cost: number
+  time_seconds: number
+  requires: TechRequirement[] | null
+  skill: string
+  level: number
+  best: number
+  unlocks: Named[] | null
+  mode: string
+  price: number
+  sold: number
+  blocked: string
+  available: number
+  running: ResearchLine | null
+  offers: TechOffer[] | null
+  confirm_publish: boolean
+  confirm_license: TechOffer | null
+  notice: TechNotice | null
+  gap: SkillGap | null
 }
 
 export interface TermsView {
@@ -3016,6 +3835,24 @@ export interface WalkView {
   arrives_at: string | null
 }
 
+export interface WarehouseLine {
+  good: Good
+  qty: number
+  quality: number
+  listed: number
+  sellable: boolean
+}
+
+export interface WarehouseView {
+  ref: CompanyRef
+  lines: WarehouseLine[] | null
+  running: number
+  researching: boolean
+  listings: number
+  can_research: boolean
+  next: NextStep | null
+}
+
 export interface Way {
   place: Named
   walk_seconds: number
@@ -3102,8 +3939,27 @@ export interface ScreenViews {
   city_governance: CityGovView
   city_map: CityMapView
   clinic_treated_notice: ClinicTreatedView
+  company_application_notice: CompanyApplicationNoticeView
+  company_applied: CompanyAppliedView
+  company_buy: BuyView
+  company_close: CompanyCloseView
+  company_employee_notice: CompanyEmployeeNoticeView
+  company_founded: CompanyFoundedView
+  company_goods: GoodsView
+  company_manage: CompanyManageView
+  company_mine: CompanyMineView
+  company_opening: CompanyOpeningView
+  company_openings: CompanyOpeningsView
+  company_page: CompanyPageView
+  company_period_notice: CompanyPeriodNoticeView
+  company_refusal: CompanyRefusalView
+  company_registry: CompanyRegistryView
+  company_staff: CompanyStaffView
+  company_type_detail: CompanyTypeView
+  company_types: CompanyTypesView
   convicted_notice: CaseOutcomeView
   dashboard: DashboardView
+  design: DesignView
   device_link: DeviceLinkView
   devices: DevicesView
   diplomacy_history: DiplomacyHistoryView
@@ -3152,6 +4008,7 @@ export interface ScreenViews {
   hospitalised_notice: HospitalisedView
   hunger_notice: EmptyView
   impose: ImposeView
+  improvement: ImprovementView
   inbox_badge: InboxBadgeView
   inbox_category: InboxCategoryView
   inbox_hub: InboxHubView
@@ -3164,6 +4021,8 @@ export interface ScreenViews {
   item_given: ItemGivenView
   item_refusal: ItemRefusalView
   item_used: ItemUsedView
+  kit_purchase: KitPurchaseView
+  lab: LabView
   labor_board: LaborBoardView
   labor_mine: LaborMineView
   labor_site: LaborSiteView
@@ -3173,6 +4032,7 @@ export interface ScreenViews {
   life_refusal: LifeRefusalView
   lift: LiftView
   listing: ListingView
+  listings: ListingsView
   loan_confirm: LoanConfirmView
   loan_detail: LoanDetailView
   loan_offer: LoanOfferView
@@ -3188,6 +4048,7 @@ export interface ScreenViews {
   office_notice: OfficeView
   order_cancelled: OrderCancelledView
   order_placed: OrderPlacedView
+  orders: OrdersView
   pay: PayView
   pay_confirm: PayConfirmView
   pay_help: PayHelpView
@@ -3198,6 +4059,9 @@ export interface ScreenViews {
   policy_confirm: PolicyConfirmView
   policy_refused: PolicyRefusalView
   portfolio: PortfolioView
+  produce: ProduceView
+  production_notice: ProductionNoticeView
+  production_refusal: ProductionRefusalView
   profile: ProfileView
   property: PropertyDetailView
   property_leave: PropertyLeaveView
@@ -3209,12 +4073,19 @@ export interface ScreenViews {
   property_type: PropertyTypeView
   propose: ProposeView
   rank_notice: RankView
+  recruit_campaign: RecruitCampaignView
+  recruit_draft: RecruitDraftView
+  recruit_hub: RecruitHubView
   recruit_notice: RecruitView
+  recruit_refusal: RecruitRefusalView
   refusal: RefusalView
+  retrofit: RetrofitView
+  reverse_lab: ReverseLabView
   sanction_blocked: SanctionBlockedView
   sanctions: SanctionsView
   savings: SavingsView
   search: SearchView
+  sell: SellView
   sell_offers: SellOffersView
   settings: SettingsView
   settlement_build_batch_confirm: LotBatchConfirmView
@@ -3244,10 +4115,14 @@ export interface ScreenViews {
   shop_sold: ShopSoldView
   shops: ShopsView
   sleep_pay: SleepPayView
+  specialists: SpecialistsView
   stock: StockPageView
   stock_notice: StockView
   stock_order: StockOrderView
   stood: StoodView
+  studio: StudioView
+  suppliers: SuppliersView
+  tech: TechView
   travel_arrived: TravelArrivedView
   travel_checkout: TravelCheckoutView
   travel_here: TravelHereView
@@ -3276,7 +4151,8 @@ export interface ScreenViews {
   village_work_started: WorkView
   voted: VotedView
   walk_started: WalkStartedView
+  warehouse: WarehouseView
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */
-export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'policy_refused', 'property_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal'] as const
+export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal'] as const

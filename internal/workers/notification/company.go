@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -93,8 +94,8 @@ func renderCompanyApplied(_ context.Context, _ Deps, env *envelope.Envelope) (*D
 	}
 	view := screens.CompanyApplicationNoticeView{No: ev.No, Company: ev.ref(), Job: ev.job(), Level: ev.Level,
 		Player: screens.GovPlayer{Name: ev.PlayerName, Code: ev.PlayerCode}}
-	return &Draft{PlayerID: ev.RecipientID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.CompanyApplicationNotice(c, view)
+	return &Draft{PlayerID: ev.RecipientID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return companies.CompanyApplicationNotice(c, view)
 	}}, nil
 }
 
@@ -109,8 +110,8 @@ func renderCompanyEmployee(_ context.Context, _ Deps, env *envelope.Envelope) (*
 		return nil, apperrors.InvalidInput("company.employee names no player or no kind")
 	}
 	view := screens.CompanyEmployeeNoticeView{Kind: ev.Kind, Company: ev.ref(), Job: ev.job(), Wage: ev.Wage}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.CompanyEmployeeNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return companies.CompanyEmployeeNotice(c, view)
 	}}, nil
 }
 
@@ -125,8 +126,8 @@ func renderCompanyManager(_ context.Context, _ Deps, env *envelope.Envelope) (*D
 	}
 	view := screens.CompanyEmployeeNoticeView{Kind: screens.CompanyEmployeeManager, Company: ev.ref(),
 		Owner: screens.GovPlayer{Name: ev.OwnerName, Code: ev.OwnerCode}}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.CompanyEmployeeNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return companies.CompanyEmployeeNotice(c, view)
 	}}, nil
 }
 
@@ -144,8 +145,8 @@ func renderCompanyPeriod(_ context.Context, _ Deps, env *envelope.Envelope) (*Dr
 			Upkeep: ev.UpkeepDue, UpkeepPaid: ev.UpkeepPaid, Debt: ev.Debt, Shifts: ev.Shifts, QualityBPS: ev.QualityBPS,
 			Sold: ev.Sold, Wanted: ev.Wanted, Capacity: ev.Capacity, Balance: ev.Balance,
 			CitizenWorkers: ev.CitizenWorkers, CitizenShifts: ev.CitizenShifts, CitizenWages: ev.CitizenWages}}
-	return &Draft{PlayerID: ev.OwnerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.CompanyPeriodNotice(c, view)
+	return &Draft{PlayerID: ev.OwnerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return companies.CompanyPeriodNotice(c, view)
 	}}, nil
 }
 
