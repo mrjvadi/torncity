@@ -127,7 +127,7 @@ availability:
 
   # ---- courses and education (ADR 0038 section 5 and owner decisions 4 and 6): a course needs the knowledge, the building and a teacher; Support teaches every one
   - {kind: course, code: first_aid, stage: village, requires: {knowledge: [basic_medicine], buildings: [{role: health, tier: 1}]}, elsewhere: [{where: support}], note: "taught by the health worker, who is trained in Support (no teacher role needed: avoids a circle)"}
-  - {kind: course, code: driving_licence, stage: undecided, requires: {}, elsewhere: [{where: support}], question: "گواهینامهٔ رانندگی کجا آموزش داده می‌شود: آموزشگاه در شهرک یا فقط در شهر مرکزی؟ (روستا گاری دارد نه خودرو)"}
+  - {kind: course, code: driving_licence, stage: town, requires: {}, elsewhere: [{where: support}], note: "owner decision 2026-10-01: from town"}
   - {kind: course, code: bookkeeping, stage: town, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
   - {kind: course, code: programming_fundamentals, stage: city, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
   - {kind: course, code: retail_management, stage: town, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
@@ -151,9 +151,9 @@ availability:
   # ---- crimes (ADR 0038 4.4): village petty crime, town burglary and scams, city counterfeit and smuggling; Support refuses crime by policy
   - {kind: crime, code: pickpocketing, stage: village, requires: {buildings: [{role: market, tier: 1}], personal: [{kind: level, min: 1}]}}
   - {kind: crime, code: shoplifting, stage: village, requires: {buildings: [{role: market, tier: 1}], personal: [{kind: level, min: 1}]}}
-  - {kind: crime, code: bag_snatching, stage: undecided, requires: {personal: [{kind: level, min: 2}]}, question: کیف‌قاپی و سرقت از خودرو در فهرستِ جرم‌های روستا و شهرک ADR 38 نیستند؛ از کدام سطح شروع شوند؟}
+  - {kind: crime, code: bag_snatching, stage: town, requires: {personal: [{kind: level, min: 2}]}, note: "owner decision 2026-10-01: from town"}
   - {kind: crime, code: street_scam, stage: town, requires: {buildings: [{role: market, tier: 2}], personal: [{kind: level, min: 2}]}}
-  - {kind: crime, code: car_break_in, stage: undecided, requires: {buildings: [{role: housing, tier: 1}], personal: [{kind: level, min: 3}]}, question: کیف‌قاپی و سرقت از خودرو در فهرستِ جرم‌های روستا و شهرک ADR 38 نیستند؛ از کدام سطح شروع شوند؟}
+  - {kind: crime, code: car_break_in, stage: town, requires: {buildings: [{role: housing, tier: 1}], personal: [{kind: level, min: 3}]}, note: "owner decision 2026-10-01: from town"}
   - {kind: crime, code: home_burglary, stage: town, requires: {buildings: [{role: housing, tier: 1}], personal: [{kind: level, min: 5}]}}
   - {kind: crime, code: counterfeit_selling, stage: city, requires: {buildings: [{role: market, tier: 2}], personal: [{kind: level, min: 4}]}}
   - {kind: crime, code: goods_smuggling, stage: city, requires: {buildings: [{role: transport, tier: 3}], personal: [{kind: level, min: 6}]}}
