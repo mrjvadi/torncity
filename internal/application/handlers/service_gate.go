@@ -51,6 +51,30 @@ func (g *ServiceGate) Check(ctx context.Context, snap *content.Snapshot, cityID,
 	if !ok {
 		return nil, nil
 	}
+	return g.evaluate(ctx, tag, cityID, service, false)
+}
+
+// CheckTag is Check for a tag that is not a service: a government action or an
+// office (kind "government_action", code "country.war"), named service in the
+// answer. The national level is around any city: a country-stage tag is
+// reached by a player who stands in a city, which belongs to a country or
+// does not (that is the command's own question), so only a village or a town
+// is told it is not offered.
+func (g *ServiceGate) CheckTag(ctx context.Context, snap *content.Snapshot, cityID, kind, code, service string) (*economy.Unavailable, error) {
+	if g == nil || g.cities == nil || cityID == "" || snap == nil {
+		return nil, nil
+	}
+	tag, ok := snap.AvailabilityTag(kind, code)
+	if !ok {
+		return nil, nil
+	}
+	return g.evaluate(ctx, tag, cityID, service, true)
+}
+
+// evaluate decides one tag for the settlement of cityID. cityIsNational says a
+// city already has the national level around it.
+func (g *ServiceGate) evaluate(ctx context.Context, tag content.AvailabilityDef, cityID, service string, cityIsNational bool,
+) (*economy.Unavailable, error) {
 	here, err := g.cities.ByID(ctx, cityID)
 	if err != nil {
 		return nil, err
@@ -65,6 +89,8 @@ func (g *ServiceGate) Check(ctx context.Context, snap *content.Snapshot, cityID,
 		// undecided, or a stage nothing here can judge: nothing is guessed.
 		return nil, nil
 	case content.StageRank(stage) >= content.StageRank(tag.Stage):
+		return nil, nil
+	case cityIsNational && tag.Stage == content.StageCountry && content.StageRank(stage) >= content.StageRank(content.StageCity):
 		return nil, nil
 	}
 	out := &economy.Unavailable{Service: service, Stage: tag.Stage, Here: stage}

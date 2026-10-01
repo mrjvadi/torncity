@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -21,18 +20,9 @@ import (
 // military.branch.<code>, a class military.class.<code>, a band
 // military.band.<code>.
 
-// Callback addresses of the military screens.
-const (
-	AddrMinistry = "military:ministry"
-	AddrForces   = "military:forces"
-	AddrBranch   = "military:branch"
-	AddrStation  = "military:station"
-	AddrProcure  = "military:procure"
-	AddrArmsBuy  = "military:buy"
-)
 
-// MilitaryConfirm confirms a purchase or a move.
-const MilitaryConfirm = "yes"
+
+
 
 // BranchName names a branch of the forces.
 func (c Context) BranchName(n Named) string { return c.named("military.branch_name."+n.Code, n.Name) }
@@ -45,59 +35,13 @@ func (c Context) ForceClassName(n Named) string {
 // BandName says how many a band covers, in words.
 func (c Context) BandName(code string) string { return c.named("military.band."+code, code) }
 
-// ForceClassLine is one class of a country's equipment: how many, told in a
-// band to everyone and exactly to the cleared.
-type ForceClassLine struct {
-	Class Named
-	Band  string
-	// Count is exact; zero unless the viewer is cleared.
-	Count int64
-}
 
-// BranchForces is one branch and its classes.
-type BranchForces struct {
-	Branch  Named
-	Classes []ForceClassLine
-}
 
-// PeriodLine is a settled defence period, as the ministry reports it.
-type PeriodLine struct {
-	Levy          int64
-	Appropriation int64
-	UpkeepDue     int64
-	UpkeepPaid    int64
-}
 
-// MinistryView is a country's ministry of defence.
-type MinistryView struct {
-	Country GovPlace
-	// Offices are the defence offices and who holds or acts for each.
-	Offices []GovOffice
-	// Treasury and Fund are the national treasury's and the defence fund's
-	// balances: a state's budget is public.
-	Treasury, Fund int64
-	// The levers in force: the cities' share of their revenue, the defence
-	// share of it, the arms export policy.
-	RevenueShareBPS, DefenceBudgetBPS, ArmsExports int64
-	// Last is the last settled period, nil before the first; NextIn and
-	// NextAt when the next ends, NextIn zero when unknown.
-	Last   *PeriodLine
-	NextIn time.Duration
-	NextAt time.Time
-	// Forces is the summary by branch.
-	Forces []BranchForces
-	// Cleared is a viewer who sees the forces in full; Readiness and
-	// Upkeep are theirs to read.
-	Cleared   bool
-	Readiness int64
-	Upkeep    int64
-	// CanProcure is the viewer who buys arms for the state.
-	CanProcure bool
-	Notice     string
-	// PendingLicences is how many defence licence applications wait for
-	// the minister (docs/adr/0022, section 2.14).
-	PendingLicences int
-}
+
+
+
+
 
 // armsExportsKey words the arms export policy.
 func armsExportsKey(v int64) string {
@@ -112,10 +56,13 @@ func armsExportsKey(v int64) string {
 
 // Ministry renders a country's ministry of defence.
 func Ministry(c Context, v MinistryView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	country := c.PlaceName(v.Country)
 	head := []string{c.T("military.ministry.title", map[string]any{"country": country})}
-	if v.Notice != "" {
-		head = append([]string{v.Notice, ""}, head...)
+	if v.Notice != nil {
+		head = append([]string{c.militaryNotice(*v.Notice), ""}, head...)
 	}
 	offices := []string{c.T("military.ministry.offices", nil)}
 	for _, o := range v.Offices {
@@ -221,21 +168,13 @@ func forceLines(c Context, branches []BranchForces, cleared bool) []string {
 	return lines
 }
 
-// ForcesView is a country's forces by branch.
-type ForcesView struct {
-	Country  GovPlace
-	Branches []BranchForces
-	// Cleared viewers see counts, readiness and upkeep, and a button per
-	// branch.
-	Cleared   bool
-	Readiness int64
-	Upkeep    int64
-	// Moving is how many pieces are on their way to a garrison.
-	Moving int64
-}
+
 
 // Forces renders a country's forces by branch.
 func Forces(c Context, v ForcesView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	lines := []string{c.T("military.forces.title", map[string]any{"country": c.PlaceName(v.Country)})}
 	lines = append(lines, forceLines(c, v.Branches, v.Cleared && !c.Shared)...)
 	kb := keyboards.New()
@@ -263,59 +202,13 @@ func Forces(c Context, v ForcesView) *presenter.Response {
 	return c.respond(paragraphs(body(lines...), footer), kb.Build())
 }
 
-// GarrisonLine is how many pieces of a group stand in one city.
-type GarrisonLine struct {
-	CityCode, City string
-	Count          int64
-}
 
-// AssetGroup is one good (and design) of a branch's equipment.
-type AssetGroup struct {
-	Good  Good
-	Class Named
-	Count int64
-	// Quality is the pieces' average.
-	Quality int
-	// Garrisons are where its pieces stand; Depot how many are stationed
-	// nowhere yet (delivered, not deployed); Moving how many are on the
-	// way.
-	Garrisons []GarrisonLine
-	Depot     int64
-	Moving    int64
-	// Committed are in an operation under way; Damaged out of action until
-	// a defence period repairs them.
-	Committed int64
-	Damaged   int64
-	// Attributes are the design's, in full: the cleared see the signature.
-	Attributes []AttributeLine
-	// SeenAt is how far a reference radar (a 1 m² target at
-	// ReferenceRadarKM) sees it, for equipment with a radar cross-section;
-	// zero when it has none.
-	SeenAt int64
-}
 
-// MoveLine is equipment on its way to a garrison.
-type MoveLine struct {
-	Good           Good
-	Qty            int64
-	CityCode, City string
-	Left           time.Duration
-	At             time.Time
-}
 
-// BranchView is one branch's equipment, for a cleared viewer.
-type BranchView struct {
-	Country GovPlace
-	Branch  Named
-	Groups  []AssetGroup
-	Moves   []MoveLine
-	// CanStation is the viewer who commands the branch (or acts for its
-	// commander).
-	CanStation bool
-	// ReferenceRadarKM is the reference radar SeenAt is measured against.
-	ReferenceRadarKM int64
-	Notice           string
-}
+
+
+
+
 
 // attributeValue renders a military attribute in its unit.
 func attributeValue(c Context, name string, v int64) string {
@@ -360,8 +253,8 @@ func formatRatio(c Context, bps int64) string {
 // Branch renders one branch's equipment and where it stands.
 func Branch(c Context, v BranchView) *presenter.Response {
 	blocks := []string{}
-	if v.Notice != "" {
-		blocks = append(blocks, v.Notice)
+	if v.Notice != nil {
+		blocks = append(blocks, c.militaryNotice(*v.Notice))
 	}
 	blocks = append(blocks, c.T("military.equipment.title", map[string]any{"branch": c.BranchName(v.Branch),
 		"country": c.PlaceName(v.Country)}))
@@ -416,25 +309,7 @@ func Branch(c Context, v BranchView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-// StationView is ordering equipment to a garrison: choose the city, then how
-// many, then confirm.
-type StationView struct {
-	Country GovPlace
-	Branch  Named
-	Good    Good
-	// Available is how many may be ordered: the group's pieces not moving
-	// and not already in the chosen city.
-	Available int64
-	// Cities are the country's cities to choose from; CityCode and City the
-	// chosen one.
-	Cities         []GovPlace
-	CityCode, City string
-	Qty            int64
-	// Time is how long the move takes, real time on the game clock.
-	Time time.Duration
-	// Confirm asks for the confirmation of Qty.
-	Confirm bool
-}
+
 
 // Station renders the stationing flow.
 func Station(c Context, v StationView) *presenter.Response {
@@ -459,7 +334,7 @@ func Station(c Context, v StationView) *presenter.Response {
 			"available": FormatNumber(c, v.Available), "time": FormatDuration(c, v.Time)}))
 		var buttons []presenter.Button
 		seen := map[int64]bool{}
-		for _, n := range []int64{1, 5, 10, v.Available} {
+		for _, n := range append(append([]int64(nil), StationQtyChoices...), v.Available) {
 			if n < 1 || n > v.Available || seen[n] {
 				continue
 			}
@@ -482,40 +357,20 @@ func Station(c Context, v StationView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-// ProcureOffer is one listing of military goods, as a state's buyer sees it.
-type ProcureOffer struct {
-	No             int64
-	Good           Good
-	Company        CompanyRef
-	CityCode, City string
-	Country        GovPlace
-	Left           int64
-	Price          int64
-	// Blocked says why the state may not buy it: "" when it may,
-	// ProcureBlockedExport or ProcureBlockedEmbargo.
-	Blocked string
-}
 
-// Why a listing is not for a state.
-const (
-	ProcureBlockedExport  = "export"
-	ProcureBlockedEmbargo = "embargo"
-)
 
-// ProcureView is procurement: the military goods for sale that the state
-// may buy.
-type ProcureView struct {
-	Country GovPlace
-	Fund    int64
-	Offers  []ProcureOffer
-	Notice  string
-}
+
+
+
 
 // Procure renders procurement.
 func Procure(c Context, v ProcureView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	blocks := []string{}
-	if v.Notice != "" {
-		blocks = append(blocks, v.Notice)
+	if v.Notice != nil {
+		blocks = append(blocks, c.militaryNotice(*v.Notice))
 	}
 	blocks = append(blocks, body(c.T("military.procure.title", map[string]any{"country": c.PlaceName(v.Country)}),
 		c.T("military.procure.fund", map[string]any{"amount": FormatMoney(c, v.Fund)})))
@@ -548,17 +403,7 @@ func Procure(c Context, v ProcureView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-// ArmsBuyView is one listing a state may buy from: how many, then confirm.
-type ArmsBuyView struct {
-	Country    GovPlace
-	Offer      ProcureOffer
-	Attributes []AttributeLine
-	Fund       int64
-	Qty        int64
-	// Confirm asks for the confirmation of Qty at Total.
-	Confirm bool
-	Total   int64
-}
+
 
 // ArmsBuy renders a purchase of arms.
 func ArmsBuy(c Context, v ArmsBuyView) *presenter.Response {
@@ -585,7 +430,7 @@ func ArmsBuy(c Context, v ArmsBuyView) *presenter.Response {
 		lines = append(lines, "", c.T("military.buy.choose", nil))
 		var buttons []presenter.Button
 		seen := map[int64]bool{}
-		for _, n := range []int64{1, 2, 5, 10, o.Left} {
+		for _, n := range append(append([]int64(nil), BuyQtyChoices...), o.Left) {
 			if n < 1 || n > o.Left || seen[n] || n*o.Price > v.Fund {
 				continue
 			}
@@ -604,32 +449,9 @@ func ArmsBuy(c Context, v ArmsBuyView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-// Military refusals.
-const (
-	MilitaryRefusedNotFound  = "not_found"
-	MilitaryRefusedNotHolder = "not_holder"
-	MilitaryRefusedNotArms   = "not_arms"
-	MilitaryRefusedExport    = "export"
-	MilitaryRefusedFunds     = "funds"
-	MilitaryRefusedStock     = "stock"
-	MilitaryRefusedCity      = "city"
-	MilitaryRefusedNoCountry = "no_country"
-	// MilitaryRefusedLicenceState is a verdict on a licence that is not
-	// in a state for it: decided already, or revoked already.
-	MilitaryRefusedLicenceState = "licence_state"
-)
 
-// MilitaryRefusalView is a refused military command.
-type MilitaryRefusalView struct {
-	Kind    string
-	Country GovPlace
-	// Office is the office whose holder may do it (not_holder).
-	Office string
-	// Need and Have are money (funds); Max a count (stock).
-	Need, Have int64
-	Max        int64
-	Back       []string
-}
+
+
 
 // MilitaryRefusal renders a refused military command.
 func MilitaryRefusal(c Context, v MilitaryRefusalView) *presenter.Response {
@@ -640,21 +462,14 @@ func MilitaryRefusal(c Context, v MilitaryRefusalView) *presenter.Response {
 	if v.Country.Code != "" {
 		back = keyboards.Data(AddrMinistry, v.Country.Code)
 	}
-	if len(v.Back) > 0 {
-		back = keyboards.Data(v.Back...)
+	if v.Back.Command != "" {
+		back = v.Back.Address()
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(c.T("military.refused."+v.Kind, args), kb.Build())
 }
 
-// MilitaryNoticeView is a private notice of the armed forces.
-type MilitaryNoticeView struct {
-	Country        GovPlace
-	Good           Good
-	Qty            int64
-	CityCode, City string
-	Branch         Named
-}
+
 
 // MoveArrivedNotice tells the commander equipment reached its garrison.
 func MoveArrivedNotice(c Context, v MilitaryNoticeView) *presenter.Response {

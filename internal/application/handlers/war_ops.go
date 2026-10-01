@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	mview "github.com/mrjvadi/torncity/internal/presentation/military"
 	"sort"
 	"strings"
 	"time"
@@ -14,8 +16,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/war"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // ---------------------------------------------------------------------------
@@ -34,7 +34,7 @@ func (h *WarHandler) commander(ctx context.Context, tx application.Tx, snap *con
 		return nil, err
 	}
 	if !ok {
-		return nil, refuseWar("not_cleared", country, screens.AddrWarBoard, country.Code)
+		return nil, refuseWar("not_cleared", country, mview.AddrWarBoard, country.Code)
 	}
 	return country, nil
 }
@@ -78,16 +78,16 @@ func (h *WarHandler) enemyCities(ctx context.Context, tx application.Tx, country
 // road distance from the nearest garrison of ours.
 func (h *WarHandler) roomTarget(ctx context.Context, tx application.Tx, snap *content.Snapshot, city application.City,
 	w application.War, garrisons []string, now time.Time,
-) (screens.RoomTarget, error) {
+) (mview.RoomTarget, error) {
 	owner, err := tx.Diplomacy().CountryOfCity(ctx, city.ID)
 	if err != nil {
-		return screens.RoomTarget{}, err
+		return mview.RoomTarget{}, err
 	}
 	place, err := placeOf(ctx, tx, owner)
 	if err != nil {
-		return screens.RoomTarget{}, err
+		return mview.RoomTarget{}, err
 	}
-	t := screens.RoomTarget{CityCode: city.Code, City: city.Name, Country: place, WarNo: w.No, DistanceKM: -1}
+	t := mview.RoomTarget{CityCode: city.Code, City: city.Name, Country: place, WarNo: w.No, DistanceKM: -1}
 	for _, g := range garrisons {
 		if km, err := snap.Routes().DistanceBetween(g, city.Code); err == nil && (t.DistanceKM < 0 || int64(km) < t.DistanceKM) {
 			t.DistanceKM = int64(km)
@@ -128,17 +128,25 @@ func (h *WarHandler) garrisonCodes(ctx context.Context, tx application.Tx, count
 
 // Room handles war.room: the enemy's cities, how far each is from our
 // nearest garrison, and our operations under way.
-func (h *WarHandler) Room(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presenter.Response, error) {
-	return h.roomWith(ctx, meta, "")
+func (h *WarHandler) Room(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presentation.Response, error) {
+	if err := validatePlayerMeta(meta); err != nil {
+		return nil, err
+	}
+	if un, lang, err := h.warGate(ctx, meta, h.content.Current()); err != nil {
+		return nil, err
+	} else if un != nil {
+		return mview.WarRoom(presentation.Ctx{Lang: lang}, mview.WarRoomView{Unavailable: un}), nil
+	}
+	return h.roomWith(ctx, meta, nil)
 }
 
-func (h *WarHandler) roomWith(ctx context.Context, meta envelope.Metadata, notice string) (*presenter.Response, error) {
+func (h *WarHandler) roomWith(ctx context.Context, meta envelope.Metadata, notice *mview.Notice) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.WarRoomView
+	var view mview.WarRoomView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -149,7 +157,7 @@ func (h *WarHandler) roomWith(ctx context.Context, meta envelope.Metadata, notic
 			return err
 		}
 		now := h.now()
-		view = screens.WarRoomView{Country: countryPlace(*country), Notice: notice}
+		view = mview.WarRoomView{Country: countryPlace(*country), Notice: notice}
 		if view.Readiness, err = tx.War().Readiness(ctx, country.ID); err != nil {
 			return err
 		}
@@ -202,7 +210,7 @@ func (h *WarHandler) roomWith(ctx context.Context, meta envelope.Metadata, notic
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.WarRoom(h.screen(meta, lang), view), nil
+	return mview.WarRoom(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // targetFor resolves an enemy city: the city, the war it is fought in, and
@@ -223,21 +231,21 @@ func (h *WarHandler) targetFor(ctx context.Context, tx application.Tx, country *
 		return nil, nil, err
 	}
 	if w == nil {
-		return nil, nil, refuseWar(screens.WarRefusedNotEnemy, country, screens.AddrWarRoom)
+		return nil, nil, refuseWar(mview.WarRefusedNotEnemy, country, mview.AddrWarRoom)
 	}
 	return city, w, nil
 }
 
 // Target handles war.target: an enemy city and the operations our forces
 // in reach of it could mount.
-func (h *WarHandler) Target(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presenter.Response, error) {
+func (h *WarHandler) Target(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	def, ok := snap.War()
 	lang := meta.Language
-	var view screens.WarTargetView
+	var view mview.WarTargetView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -248,7 +256,7 @@ func (h *WarHandler) Target(ctx context.Context, meta envelope.Metadata, req War
 			return err
 		}
 		if !ok {
-			return refuseWar(screens.WarRefusedState, country)
+			return refuseWar(mview.WarRefusedState, country)
 		}
 		now := h.now()
 		city, w, err := h.targetFor(ctx, tx, country, req.City, now)
@@ -259,7 +267,7 @@ func (h *WarHandler) Target(ctx context.Context, meta envelope.Metadata, req War
 		if err != nil {
 			return err
 		}
-		view = screens.WarTargetView{Country: countryPlace(*country)}
+		view = mview.WarTargetView{Country: countryPlace(*country)}
 		near := []string{}
 		for _, o := range opts {
 			near = append(near, o.from.Code)
@@ -282,14 +290,14 @@ func (h *WarHandler) Target(ctx context.Context, meta envelope.Metadata, req War
 			if err != nil {
 				return err
 			}
-			view.Occupied = &screens.OccupationLine{DeJure: deJure}
+			view.Occupied = &mview.OccupationLine{DeJure: deJure}
 		}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.WarTarget(h.screen(meta, lang), view), nil
+	return mview.WarTarget(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // WarOperationPayload is the jsonb an operation's scheduled action carries.
@@ -301,7 +309,7 @@ type WarOperationPayload struct {
 // confirm; on confirm, once, the pieces (and an air strike's munitions) are
 // committed and the operation strikes after its preparation, on the game
 // clock.
-func (h *WarHandler) Launch(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presenter.Response, error) {
+func (h *WarHandler) Launch(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -309,7 +317,7 @@ func (h *WarHandler) Launch(ctx context.Context, meta envelope.Metadata, req War
 	def, hasWar := snap.War()
 	lang := meta.Language
 	var (
-		view screens.LaunchView
+		view mview.LaunchView
 		done bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -326,7 +334,7 @@ func (h *WarHandler) Launch(ctx context.Context, meta envelope.Metadata, req War
 			return err
 		}
 		if !hasWar {
-			return refuseWar(screens.WarRefusedState, country)
+			return refuseWar(mview.WarRefusedState, country)
 		}
 		now := h.now()
 		city, w, err := h.targetFor(ctx, tx, country, req.City, now)
@@ -344,17 +352,17 @@ func (h *WarHandler) Launch(ctx context.Context, meta envelope.Metadata, req War
 				opt = &opts[i]
 			}
 		}
-		back := []string{screens.AddrWarTarget, city.Code}
+		back := []string{mview.AddrWarTarget, city.Code}
 		if opt == nil {
-			return refuseWar(screens.WarRefusedNoForces, country, back...)
+			return refuseWar(mview.WarRefusedNoForces, country, back...)
 		}
 		if !opt.view.CanLaunch {
-			r := refuseWar(screens.WarRefusedNotHolder, country, back...)
+			r := refuseWar(mview.WarRefusedNotHolder, country, back...)
 			r.view.Office = opt.view.Office
 			return r
 		}
 		opDef, _ := def.Operation(kind)
-		view = screens.LaunchView{Country: countryPlace(*country), Option: opt.view, Prepare: h.scale.RealWait(opDef.PrepareTime())}
+		view = mview.LaunchView{Country: countryPlace(*country), Option: opt.view, Prepare: h.scale.RealWait(opDef.PrepareTime())}
 		if view.Target, err = h.roomTarget(ctx, tx, snap, *city, *w, []string{opt.from.Code}, now); err != nil {
 			return err
 		}
@@ -382,7 +390,7 @@ func (h *WarHandler) Launch(ctx context.Context, meta envelope.Metadata, req War
 			return nil
 		}
 		if qty > ready {
-			r := refuseWar(screens.WarRefusedStock, country, back...)
+			r := refuseWar(mview.WarRefusedStock, country, back...)
 			r.view.Max = ready
 			return r
 		}
@@ -397,7 +405,7 @@ func (h *WarHandler) Launch(ctx context.Context, meta envelope.Metadata, req War
 			bombs = opt.bombs[:min(int64(len(opt.bombs)), load)]
 			view.Munitions = int64(len(bombs))
 			if len(bombs) == 0 {
-				return refuseWar(screens.WarRefusedNoMunition, country, back...)
+				return refuseWar(mview.WarRefusedNoMunition, country, back...)
 			}
 		}
 		// The estimate: the defence as it stands, over the content's dice.
@@ -427,11 +435,11 @@ func (h *WarHandler) Launch(ctx context.Context, meta envelope.Metadata, req War
 			return nil
 		}
 		if s := w.Rule().StatusAt(now); s != war.Active {
-			r := refuseWar(screens.WarRefusedNotYet, country, back...)
+			r := refuseWar(mview.WarRefusedNotYet, country, back...)
 			if s == war.Declared {
 				r.view.In = w.ActiveAt.Sub(now)
 			} else {
-				r.view.Kind = screens.WarRefusedState
+				r.view.Kind = mview.WarRefusedState
 			}
 			return r
 		}
@@ -470,7 +478,7 @@ func (h *WarHandler) Launch(ctx context.Context, meta envelope.Metadata, req War
 		}
 		if n != int64(len(ids)) {
 			// Some went elsewhere meanwhile: nothing is launched.
-			return refuseWar(screens.WarRefusedStock, country, back...)
+			return refuseWar(mview.WarRefusedStock, country, back...)
 		}
 		done = true
 		return nil
@@ -479,12 +487,11 @@ func (h *WarHandler) Launch(ctx context.Context, meta envelope.Metadata, req War
 		return resp, err
 	}
 	if done {
-		c := h.screen(meta, lang)
-		notice := c.T("war.launch.done", map[string]any{"op": c.OperationName(view.Option.Kind),
-			"city": c.CityName(view.Target.CityCode, view.Target.City), "time": screens.FormatDuration(c, view.Prepare)})
+		notice := &mview.Notice{Code: mview.NoticeLaunchDone, Kind: view.Option.Kind,
+			CityCode: view.Target.CityCode, City: view.Target.City, Time: view.Prepare}
 		return h.roomWith(ctx, meta, notice)
 	}
-	return screens.WarLaunch(h.screen(meta, lang), view), nil
+	return mview.WarLaunch(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // defendersOf reads the pieces of the side hostile to attacker stationed in
@@ -518,7 +525,7 @@ type operationReport struct {
 // must still be launched under this action. An operation whose war is no
 // longer fought (a ceasefire, a peace) or whose target changed hands is
 // called off: its forces stand down, nothing is spent.
-func (h *WarHandler) Resolve(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *WarHandler) Resolve(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -992,22 +999,22 @@ func (h *WarHandler) conquer(ctx context.Context, tx application.Tx, snap *conte
 // reportView reads an operation's exact report.
 func (h *WarHandler) reportView(ctx context.Context, tx application.Tx, snap *content.Snapshot, op *application.WarOperation,
 	ours bool,
-) (screens.StrikeReportView, error) {
+) (mview.StrikeReportView, error) {
 	country, err := placeOf(ctx, tx, op.CountryID)
 	if err != nil {
-		return screens.StrikeReportView{}, err
+		return mview.StrikeReportView{}, err
 	}
 	target, err := placeOf(ctx, tx, op.TargetCountryID)
 	if err != nil {
-		return screens.StrikeReportView{}, err
+		return mview.StrikeReportView{}, err
 	}
 	city, err := h.cities.ByID(ctx, op.TargetCityID)
 	if err != nil {
-		return screens.StrikeReportView{}, err
+		return mview.StrikeReportView{}, err
 	}
 	var rep operationReport
 	_ = json.Unmarshal(op.Report, &rep)
-	v := screens.StrikeReportView{No: op.No, Kind: op.Kind, Objective: op.Objective, Country: country, Target: target,
+	v := mview.StrikeReportView{No: op.No, Kind: op.Kind, Objective: op.Objective, Country: country, Target: target,
 		CityCode: city.Code, City: city.Name, Class: named(op.ClassCode, op.ClassCode), Ours: ours,
 		CalledOff: op.Status == application.OperationCalledOff, Committed: int64(op.Committed),
 		Lost: int64(op.AttackerLost), Damaged: int64(op.AttackerDamaged), EnemyLost: int64(op.DefenderLost),

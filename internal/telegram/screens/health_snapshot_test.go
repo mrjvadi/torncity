@@ -90,7 +90,7 @@ func healthSnapshots(c Context, who people, add func(string, *presenter.Response
 	add("Shift · an accident at work", ShiftWorked(sent(c), ShiftWorkedView{Gross: 180, Net: 162, Tax: 18, XP: 12,
 		Performance: 64, PerformanceDelta: 2, Energy: 60, MaxEnergy: 100, Injury: admitted}))
 	add("War · a strike on the city hurt you", WarNotice(sent(c), WarNoticeView{Kind: "struck", Country: homeCountry,
-		Other: otherCountry, CityCode: "kessmoor", City: "Kessmoor", Band: "moderate", Injury: admitted}))
+		Other: otherCountry, CityCode: "kessmoor", City: "Kessmoor", Band: "moderate", Injury: (*InjuryLine)(admitted)}))
 	add("Profile · in hospital", Profile(c, ProfileView{Name: who.me, Code: myCode, CityCode: "ostmarch", City: "Ostmarch",
 		Level: 4, XP: 520, NextLevelXP: 750, Energy: 70, MaxEnergy: 100, Health: 34, MaxHealth: 100, Cash: 2400, Bank: 18000,
 		Hospital: &ProfileJail{CityCode: "ostmarch", City: "Ostmarch", Remaining: 4 * time.Minute, EndsAt: snapshotNow.Add(4 * time.Minute)},

@@ -509,7 +509,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// period runs on the game clock, every diplomatic promise on real time.
 	h.military = handlers.NewMilitaryHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), militaryRules(cfg.Military, cfg.Company.RetrofitTime),
-		cfg.Game.IdempotencyTTL, nil)
+		cfg.Game.IdempotencyTTL, nil).WithServiceGate(serviceGate)
 	h.diplomacy = handlers.NewDiplomacyHandler(uow, uuidGenerator{}, messages, registry, diplomacyRules(cfg.Diplomacy),
 		cfg.Game.IdempotencyTTL, nil)
 	h.appointments = handlers.NewAppointmentHandler(uow, uuidGenerator{}, messages,
@@ -518,7 +518,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// dice; who declares and who launches are offices.
 	h.war = handlers.NewWarHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), warRules(cfg.War),
-		cfg.Game.IdempotencyTTL, nil)
+		cfg.Game.IdempotencyTTL, nil).WithServiceGate(serviceGate)
 	// Stage E (docs/adr/0023): health and hospitals on the game clock; what
 	// a hospital charges and how well it treats are content.
 	h.stageE.health = handlers.NewHealthHandler(uow, uuidGenerator{}, messages, registry, cities,

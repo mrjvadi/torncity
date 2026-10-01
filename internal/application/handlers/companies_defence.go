@@ -2,6 +2,9 @@ package handlers
 
 import (
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	mview "github.com/mrjvadi/torncity/internal/presentation/military"
+	"github.com/mrjvadi/torncity/internal/telegram/screens"
 	"strings"
 	"time"
 
@@ -11,8 +14,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/military"
 	"github.com/mrjvadi/torncity/internal/domain/technology"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Defence licences on the company side (docs/adr/0022-military-and-diplomacy.md
@@ -45,8 +46,8 @@ func techStanding(ctx context.Context, tx application.Tx, snap *content.Snapshot
 }
 
 // licenceEntry is a licence for a screen, its status settled as of now.
-func licenceEntry(snap *content.Snapshot, l application.DefenceLicence, c application.Company, now time.Time) screens.LicenceEntry {
-	e := screens.LicenceEntry{No: l.No, Company: companyRef(snap, c), Kind: l.Kind, Basis: l.Basis,
+func licenceEntry(snap *content.Snapshot, l application.DefenceLicence, c application.Company, now time.Time) mview.LicenceEntry {
+	e := mview.LicenceEntry{No: l.No, Company: companyRef(snap, c), Kind: l.Kind, Basis: l.Basis,
 		Status: string(licenceRule(l).Settled(now))}
 	if l.EffectiveAt != nil {
 		e.EffectiveAt = *l.EffectiveAt
@@ -171,14 +172,14 @@ func (h *CompaniesHandler) recordFoundingLicence(ctx context.Context, tx applica
 // status, and for a civilian company its standing in technology against
 // what a contractor licence asks — and, confirmed by the owner, the
 // application for one, which goes to the defence minister.
-func (h *CompaniesHandler) Defence(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Defence(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	apply := strings.TrimSpace(req.Confirm) == screens.ProductionConfirm
-	var view screens.CompanyDefenceView
+	var view mview.CompanyDefenceView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -208,7 +209,7 @@ func (h *CompaniesHandler) Defence(ctx context.Context, meta envelope.Metadata, 
 		if err != nil {
 			return err
 		}
-		view = screens.CompanyDefenceView{Ref: companyRef(snap, *c), Manufacturer: def.SectorCode() == d.Sector,
+		view = mview.CompanyDefenceView{Ref: companyRef(snap, *c), Manufacturer: def.SectorCode() == d.Sector,
 			MinTechs: d.Contractor.MinTechnologies, MinTier: d.Contractor.MinTier}
 		if view.Owned, view.Tier, err = techStanding(ctx, tx, snap, c.ID); err != nil {
 			return err
@@ -249,7 +250,7 @@ func (h *CompaniesHandler) Defence(ctx context.Context, meta envelope.Metadata, 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CompanyDefence(h.screen(meta, lang), view), nil
+	return mview.CompanyDefence(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // tellMinister tells whoever decides for the defence minister of the
