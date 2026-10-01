@@ -48,7 +48,7 @@ type MinistryView struct {
 	// Unavailable, when set, is the whole answer: the service is not offered in
 	// the settlement the viewer stands in, and no other fact is carried.
 	Unavailable *economy.Unavailable
-	Country GovPlace
+	Country     GovPlace
 	// Offices are the defence offices and who holds or acts for each.
 	Offices []GovOffice
 	// Treasury and Fund are the national treasury's and the defence fund's
@@ -82,8 +82,8 @@ type ForcesView struct {
 	// Unavailable, when set, is the whole answer: the service is not offered in
 	// the settlement the viewer stands in, and no other fact is carried.
 	Unavailable *economy.Unavailable
-	Country  GovPlace
-	Branches []BranchForces
+	Country     GovPlace
+	Branches    []BranchForces
 	// Cleared viewers see counts, readiness and upkeep, and a button per
 	// branch.
 	Cleared   bool
@@ -193,10 +193,10 @@ type ProcureView struct {
 	// Unavailable, when set, is the whole answer: the service is not offered in
 	// the settlement the viewer stands in, and no other fact is carried.
 	Unavailable *economy.Unavailable
-	Country GovPlace
-	Fund    int64
-	Offers  []ProcureOffer
-	Notice  *Notice
+	Country     GovPlace
+	Fund        int64
+	Offers      []ProcureOffer
+	Notice      *Notice
 }
 
 // ArmsBuyView is one listing a state may buy from: how many, then confirm.
@@ -246,4 +246,3 @@ type MilitaryNoticeView struct {
 	CityCode, City string
 	Branch         Named
 }
-

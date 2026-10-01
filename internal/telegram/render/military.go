@@ -2,7 +2,6 @@ package render
 
 import (
 	"github.com/mrjvadi/torncity/internal/presentation/military"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -32,12 +31,7 @@ func init() {
 	Register(military.ScreenCompanyDefence, screens.CompanyDefence)
 	Register(military.ScreenLicences, screens.Licences)
 	Register(military.ScreenKitPurchase, screens.KitPurchase)
-	// A state's retrofit is worded by the retrofit screen the production
-	// economy has: it has no company behind it.
-	Register(military.ScreenStateRetrofit, func(c screens.Context, v military.StateRetrofitView) *presenter.Response {
-		return screens.Retrofit(c, screens.RetrofitView{Good: v.Good, FromVer: v.FromVer, ToVer: v.ToVer,
-			Duration: v.Duration, FinishAt: v.FinishAt, Started: v.Started})
-	})
+	Register(military.ScreenStateRetrofit, screens.StateRetrofit)
 	Register(military.ScreenMoveArrivedNotice, screens.MoveArrivedNotice)
 	Register(military.ScreenLicenceNotice, screens.LicenceNotice)
 	Register(military.ScreenWarNotice, screens.WarNotice)

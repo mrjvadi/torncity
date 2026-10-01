@@ -353,7 +353,7 @@ func TestWarDeclaredFoughtTakenAndSuspended(t *testing.T) {
 		var text string
 		for range 2 {
 			resp, err := wars.Launch(ctx, m, req)
-			said(t, "launch "+req.Kind, resp, err)
+			resp = said(t, "launch "+req.Kind, resp, err)
 			if text == "" {
 				text = resp.Text
 			}
@@ -474,7 +474,7 @@ func TestWarDeclaredFoughtTakenAndSuspended(t *testing.T) {
 	}
 	board := func(p *application.Player, country string) string {
 		resp, err := wars.Board(ctx, metaAs(p, "war.board"), handlers.WarRequest{Country: country})
-		said(t, "the war board", resp, err)
+		resp = said(t, "the war board", resp, err)
 		return resp.Text
 	}
 	if text := board(farPresident, farCountryCode); !contains(text, "war.board.damaged_line") {

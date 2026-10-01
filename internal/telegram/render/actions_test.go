@@ -60,7 +60,7 @@ func fixtures() []fixture {
 		{"residence", village.ResidenceAsk(c, res), func(x screens.Context) *presenter.Response { return screens.ResidenceAsk(x, res) }},
 		{"promotion", village.VillagePromotion(c, promoV), func(x screens.Context) *presenter.Response { return screens.VillagePromotion(x, promoV) }},
 	}
-	return append(village, economyFixtures()...)
+	return append(append(village, economyFixtures()...), militaryFixtures()...)
 }
 
 // TestNeutralActionsAreServedCommands: every action the core lists names a

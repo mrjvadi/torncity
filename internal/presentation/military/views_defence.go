@@ -65,10 +65,10 @@ type LicencesView struct {
 	// Unavailable, when set, is the whole answer: the service is not offered in
 	// the settlement the viewer stands in, and no other fact is carried.
 	Unavailable *economy.Unavailable
-	Country GovPlace
-	Pending []LicenceEntry
-	InForce []LicenceEntry
-	Ended   []LicenceEntry
+	Country     GovPlace
+	Pending     []LicenceEntry
+	InForce     []LicenceEntry
+	Ended       []LicenceEntry
 	// CanDecide is the viewer who decides for the defence minister, in
 	// their private chat.
 	CanDecide bool
@@ -92,4 +92,3 @@ type LicenceNoticeView struct {
 	// EffectiveAt is when a revocation takes effect.
 	EffectiveAt time.Time
 }
-

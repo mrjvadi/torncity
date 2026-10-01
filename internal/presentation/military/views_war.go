@@ -106,12 +106,12 @@ type WarBoardView struct {
 	// Unavailable, when set, is the whole answer: the service is not offered in
 	// the settlement the viewer stands in, and no other fact is carried.
 	Unavailable *economy.Unavailable
-	Country    GovPlace
-	Wars       []WarLine
-	Joinable   []JoinLine
-	Occupied   []OccupationLine
-	Damaged    []DamageLine
-	Operations []OperationLine
+	Country     GovPlace
+	Wars        []WarLine
+	Joinable    []JoinLine
+	Occupied    []OccupationLine
+	Damaged     []DamageLine
+	Operations  []OperationLine
 	// CanDeclare is the head of state (or acting for one); CanCommand an
 	// office holder who opens the war room.
 	CanDeclare, CanCommand bool
@@ -124,11 +124,11 @@ type DeclareView struct {
 	// Unavailable, when set, is the whole answer: the service is not offered in
 	// the settlement the viewer stands in, and no other fact is carried.
 	Unavailable *economy.Unavailable
-	Country GovPlace
-	Targets []GovPlace
-	Target  *GovPlace
-	Grounds []string
-	Ground  string
+	Country     GovPlace
+	Targets     []GovPlace
+	Target      *GovPlace
+	Grounds     []string
+	Ground      string
 	// Notice is how long until the war may be fought (real time).
 	Notice time.Duration
 	// Breaks are the treaties with the target the declaration ends; Allies
@@ -166,9 +166,9 @@ type WarRoomView struct {
 	// Unavailable, when set, is the whole answer: the service is not offered in
 	// the settlement the viewer stands in, and no other fact is carried.
 	Unavailable *economy.Unavailable
-	Country GovPlace
-	Targets []RoomTarget
-	Running []OperationLine
+	Country     GovPlace
+	Targets     []RoomTarget
+	Running     []OperationLine
 	// Readiness is ours, in bps.
 	Readiness int64
 	Notice    *Notice
@@ -320,4 +320,3 @@ func (o ForceOption) TargetArg() string {
 	}
 	return o.Class.Code
 }
-
