@@ -333,6 +333,7 @@ func TestAGroupPaymentHandsOffWithItsPayee(t *testing.T) {
 	}
 	// The handler runs without a catalogue here, so the screen reads as its
 	// keys: the payment screen, not the form asking whom to pay.
+	screen = rendered(t, screen)
 	if !strings.Contains(screen.Text, "pay.title") || strings.Contains(screen.Text, "pay.help") {
 		t.Fatalf("the private chat opened on %q, want the payment to %s", screen.Text, payee.PublicCode)
 	}

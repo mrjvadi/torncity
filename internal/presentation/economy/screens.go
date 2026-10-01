@@ -397,7 +397,7 @@ func FinanceRefusal(c presentation.Ctx, v FinanceRefusalView) *presentation.Resp
 		args["count"] = v.Count
 	}
 	if v.Wait > 0 {
-		args["wait_seconds"] = int64((v.Wait + 999999999) / 1e9)
+		args["remaining_seconds"] = int64((v.Wait + 999999999) / 1e9)
 	}
 	if len(args) == 0 {
 		args = nil
