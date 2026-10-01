@@ -31,6 +31,16 @@ type Bootstrap struct {
 	// village, which is not always their own settlement (a traveller stands
 	// in another group's village). Absent for a player who is nowhere.
 	Location *BootstrapLocation `json:"location,omitempty"`
+	// Features are the optional parts of the contract this server serves.
+	Features BootstrapFeatures `json:"features"`
+}
+
+// BootstrapFeatures says which optional parts of the contract are on.
+type BootstrapFeatures struct {
+	// Updates: client state sync (GET /state, GET /updates, the "updates"
+	// publication and a command's "updates"; contract 1.4, docs/adr/0034).
+	// A client keeps its store from these instead of polling.
+	Updates bool `json:"updates"`
 }
 
 // Kinds of BootstrapLocation.

@@ -505,6 +505,27 @@ realtime:
   presence_ttl: 31s
   roster_limit: 201
   settlement_event_ttl: 25h
+state_sync:
+  enabled: false
+  epoch: "2"
+  reset_threshold: 2001
+  pull_limit: 501
+  pulls_per_minute: 241
+  command_wait: 301ms
+  push_max_records: 101
+  push_max_bytes: 32769
+  max_event_age: 11m
+  player_keys: [payee_id]
+  fanout_limit: 501
+  cause_window: 201
+  notices_kept: 51
+  lock_timeout: 3s
+  retention_age: 169h
+  retention_records: 5001
+  retention_min: 501
+  trim_interval: 61m
+  trim_batch: 201
+  metrics_interval: 6m
 worldgen:
   cell_count: 41000
   neighbor_k: 7
@@ -874,6 +895,27 @@ var envOverrides = map[string]string{
 	"TORN_REALTIME_PRESENCE_TTL":              "32s",
 	"TORN_REALTIME_ROSTER_LIMIT":              "202",
 	"TORN_REALTIME_SETTLEMENT_EVENT_TTL":      "26h",
+
+	"TORN_STATE_SYNC_ENABLED":           "false",
+	"TORN_STATE_SYNC_EPOCH":             "3",
+	"TORN_STATE_SYNC_RESET_THRESHOLD":   "2002",
+	"TORN_STATE_SYNC_PULL_LIMIT":        "502",
+	"TORN_STATE_SYNC_PULLS_PER_MINUTE":  "242",
+	"TORN_STATE_SYNC_COMMAND_WAIT":      "302ms",
+	"TORN_STATE_SYNC_PUSH_MAX_RECORDS":  "102",
+	"TORN_STATE_SYNC_PUSH_MAX_BYTES":    "32770",
+	"TORN_STATE_SYNC_MAX_EVENT_AGE":     "12m",
+	"TORN_STATE_SYNC_PLAYER_KEYS":       "payer_id",
+	"TORN_STATE_SYNC_FANOUT_LIMIT":      "502",
+	"TORN_STATE_SYNC_CAUSE_WINDOW":      "202",
+	"TORN_STATE_SYNC_NOTICES_KEPT":      "52",
+	"TORN_STATE_SYNC_LOCK_TIMEOUT":      "4s",
+	"TORN_STATE_SYNC_RETENTION_AGE":     "170h",
+	"TORN_STATE_SYNC_RETENTION_RECORDS": "5002",
+	"TORN_STATE_SYNC_RETENTION_MIN":     "502",
+	"TORN_STATE_SYNC_TRIM_INTERVAL":     "62m",
+	"TORN_STATE_SYNC_TRIM_BATCH":        "202",
+	"TORN_STATE_SYNC_METRICS_INTERVAL":  "7m",
 
 	"TORN_WORLDGEN_CELL_COUNT":                      "42000",
 	"TORN_WORLDGEN_NEIGHBOR_K":                      "8",

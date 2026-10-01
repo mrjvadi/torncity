@@ -64,6 +64,9 @@ func (w *Worker) storeInboxItem(ctx context.Context, route Route, meta envelope.
 		log.Error("cannot record an inbox notification", slog.String("error", err.Error()))
 		return err
 	}
+	if w.cfg.Recorded != nil {
+		w.cfg.Recorded(ctx, player.ID, meta)
+	}
 
 	summary, err := w.cfg.PlayerInbox.Summary(ctx, player.ID, badgeTeaserItems)
 	if err != nil {
@@ -83,6 +86,10 @@ func (w *Worker) archiveInstant(ctx context.Context, route Route, meta envelope.
 	item := w.inboxRecord(route, meta, draft, player, category)
 	if err := w.cfg.PlayerInbox.Record(ctx, item, true, w.cfg.Now()); err != nil {
 		log.Warn("cannot archive an instant notification", slog.String("error", err.Error()))
+		return
+	}
+	if w.cfg.Recorded != nil {
+		w.cfg.Recorded(ctx, player.ID, meta)
 	}
 }
 
