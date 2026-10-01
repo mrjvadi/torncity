@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"strconv"
 	"time"
 
@@ -72,9 +73,6 @@ const (
 
 // Arguments production buttons carry.
 const (
-	// DesignTargetPrefix marks a production target or a listing that is a
-	// design («d12»), not a component or a good.
-	DesignTargetPrefix = "d"
 	// ProductionConfirm confirms an order, a publication, a license
 	// purchase or the destruction of a sample.
 	ProductionConfirm = "yes"
@@ -87,7 +85,7 @@ const (
 )
 
 // DesignTarget is the argument that names a design as a target.
-func DesignTarget(no int64) string { return DesignTargetPrefix + strconv.FormatInt(no, 10) }
+func DesignTarget(no int64) string { return presentation.DesignTarget(no) }
 
 // ComponentName is a component's display name.
 func (c Context) ComponentName(n Named) string { return c.named("component."+n.Code, n.Name) }
@@ -104,17 +102,6 @@ func (c Context) SlotName(slot string) string { return c.named("design_slot."+sl
 // AttributeName is a product attribute's display name.
 func (c Context) AttributeName(name string) string { return c.named("attribute."+name, name) }
 
-// Good names what a warehouse line, an order or a listing is: a component,
-// a good of the catalogue, or a good of a design.
-type Good struct {
-	// Component is true for a component or material.
-	Component bool
-	Item      Named
-	// Design is the design's name and number when it is a good of one.
-	Design   string
-	DesignNo int64
-}
-
 // GoodName renders a good: a design's name with its kind, or the plain name.
 func (c Context) GoodName(g Good) string {
 	if g.Component {
@@ -124,18 +111,6 @@ func (c Context) GoodName(g Good) string {
 		return c.T("production.good_designed", map[string]any{"design": g.Design, "item": c.ItemName(g.Item)})
 	}
 	return c.ItemName(g.Item)
-}
-
-// TargetArg is the argument that names a good as a production or sale
-// target: «d12» for a design, else its code.
-func (g Good) TargetArg() string { return g.target() }
-
-// target is the argument that names a good as a production or sale target.
-func (g Good) target() string {
-	if g.DesignNo > 0 {
-		return DesignTarget(g.DesignNo)
-	}
-	return g.Item.Code
 }
 
 // productionBack is the navigation back to a company's warehouse.
@@ -203,7 +178,7 @@ func Warehouse(c Context, v WarehouseView) *presenter.Response {
 		lines = append(lines, line)
 		if l.Sellable {
 			if btn, ok := keyboards.Button(c.T("production.button.sell", map[string]any{"good": c.GoodName(l.Good)}),
-				AddrSell, v.Ref.Code, l.Good.target()); ok {
+				AddrSell, v.Ref.Code, l.Good.TargetArg()); ok {
 				sell = append(sell, btn)
 			}
 		}

@@ -75,7 +75,7 @@ func Orders(c Context, v OrdersView) *presenter.Response {
 	var buttons []presenter.Button
 	for _, t := range v.Targets {
 		if btn, ok := keyboards.Button(c.T("production.button.produce", map[string]any{"good": c.GoodName(t.Good)}),
-			AddrProduce, v.Ref.Code, t.Good.target()); ok {
+			AddrProduce, v.Ref.Code, t.Good.TargetArg()); ok {
 			buttons = append(buttons, btn)
 		}
 	}
@@ -145,7 +145,7 @@ type ProduceView struct {
 // Produce renders the plan of an order.
 func Produce(c Context, v ProduceView) *presenter.Response {
 	good := c.GoodName(v.Target.Good)
-	target := v.Target.Good.target()
+	target := v.Target.Good.TargetArg()
 	addr := v.Addr
 	if addr == "" {
 		addr = AddrProduce

@@ -66,13 +66,6 @@ const (
 // CompanyTypeName is a kind of business's display name.
 func (c Context) CompanyTypeName(n Named) string { return c.named("company_type."+n.Code, n.Name) }
 
-// CompanyRef names a company: its name, public code and kind.
-type CompanyRef struct {
-	Code string
-	Name string
-	Type Named
-}
-
 // stars renders a rating, or that there is none yet.
 func (c Context) companyRating(stars int, rated bool) string {
 	if !rated {

@@ -28,7 +28,7 @@ type SellView struct {
 // Sell renders putting a line up for sale: the quantity, then a typed price.
 func Sell(c Context, v SellView) *presenter.Response {
 	good := c.GoodName(v.Good)
-	target := v.Good.target()
+	target := v.Good.TargetArg()
 	kb := keyboards.New()
 	text := c.T("production.sell_title", map[string]any{"good": good, "have": FormatNumber(c, v.Have),
 		"reference": FormatMoney(c, v.Reference)})

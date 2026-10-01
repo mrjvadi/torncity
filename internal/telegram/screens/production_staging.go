@@ -123,14 +123,14 @@ func (c Context) nextStep(kb *keyboards.Builder, company string, s *NextStep) st
 	case StepDesignDraft:
 		btn, ok = keyboards.Button(c.T("production.step_button.design_draft", args), AddrDesign, strconv.FormatInt(s.DesignNo, 10))
 	case StepSell:
-		btn, ok = keyboards.Button(c.T("production.step_button.sell", args), AddrSell, company, s.Good.target())
+		btn, ok = keyboards.Button(c.T("production.step_button.sell", args), AddrSell, company, s.Good.TargetArg())
 	case StepProduce:
-		btn, ok = keyboards.Button(c.T("production.step_button.produce", args), AddrProduce, company, s.Good.target(),
+		btn, ok = keyboards.Button(c.T("production.step_button.produce", args), AddrProduce, company, s.Good.TargetArg(),
 			strconv.FormatInt(s.Qty, 10), ProductionConfirm)
 	case StepProducing:
 		btn, ok = keyboards.Button(c.T("production.button.orders", nil), AddrOrders, company)
 	case StepSupply:
-		btn, ok = keyboards.Button(c.T("production.step_button.supply", args), AddrStockUp, company, s.Good.target(),
+		btn, ok = keyboards.Button(c.T("production.step_button.supply", args), AddrStockUp, company, s.Good.TargetArg(),
 			strconv.FormatInt(s.Qty, 10))
 	case StepBuyGoods:
 		btn, ok = keyboards.Button(c.T("production.button.goods", nil), AddrCompanyGoods)

@@ -399,7 +399,7 @@ func Branch(c Context, v BranchView) *presenter.Response {
 		blocks = append(blocks, body(lines...))
 		if v.CanStation && g.Count > g.Moving {
 			kb.Add(c.T("military.button.station", map[string]any{"good": c.GoodName(g.Good)}),
-				AddrStation, v.Country.Code, g.Good.target())
+				AddrStation, v.Country.Code, g.Good.TargetArg())
 		}
 	}
 	if len(v.Moves) > 0 {
@@ -447,7 +447,7 @@ func Station(c Context, v StationView) *presenter.Response {
 		lines = append(lines, c.T("military.station.choose_city", nil))
 		var buttons []presenter.Button
 		for _, city := range v.Cities {
-			if b, ok := keyboards.Button(c.CityName(city.Code, city.Name), AddrStation, v.Country.Code, v.Good.target(),
+			if b, ok := keyboards.Button(c.CityName(city.Code, city.Name), AddrStation, v.Country.Code, v.Good.TargetArg(),
 				city.Code); ok {
 				buttons = append(buttons, b)
 			}
@@ -465,18 +465,18 @@ func Station(c Context, v StationView) *presenter.Response {
 			}
 			seen[n] = true
 			if b, ok := keyboards.Button(c.T("military.button.qty", map[string]any{"count": FormatNumber(c, n)}), AddrStation,
-				v.Country.Code, v.Good.target(), v.CityCode, strconv.FormatInt(n, 10)); ok {
+				v.Country.Code, v.Good.TargetArg(), v.CityCode, strconv.FormatInt(n, 10)); ok {
 				buttons = append(buttons, b)
 			}
 		}
 		kb.Grid(4, buttons...)
-		back = keyboards.Data(AddrStation, v.Country.Code, v.Good.target())
+		back = keyboards.Data(AddrStation, v.Country.Code, v.Good.TargetArg())
 	default:
 		lines = append(lines, c.T("military.station.confirm", map[string]any{"count": FormatNumber(c, v.Qty),
 			"city": c.CityName(v.CityCode, v.City), "time": FormatDuration(c, v.Time)}))
-		kb.Add(c.T("military.button.confirm_station", nil), AddrStation, v.Country.Code, v.Good.target(), v.CityCode,
+		kb.Add(c.T("military.button.confirm_station", nil), AddrStation, v.Country.Code, v.Good.TargetArg(), v.CityCode,
 			strconv.FormatInt(v.Qty, 10), MilitaryConfirm)
-		back = keyboards.Data(AddrStation, v.Country.Code, v.Good.target(), v.CityCode)
+		back = keyboards.Data(AddrStation, v.Country.Code, v.Good.TargetArg(), v.CityCode)
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(body(lines...), kb.Build())
