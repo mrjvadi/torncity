@@ -56,6 +56,9 @@ type WalletData struct {
 	Bank     int64  `json:"bank"`
 	// Premium marks the premium currency (Nil).
 	Premium bool `json:"premium"`
+	// Primary marks the game's money (the currency prices are in): the
+	// wallet a HUD shows first.
+	Primary bool `json:"primary"`
 }
 
 // PieceData is one unique item piece.

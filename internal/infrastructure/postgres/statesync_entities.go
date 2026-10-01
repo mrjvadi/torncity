@@ -194,7 +194,7 @@ SELECT a.currency, a.kind, SUM(a.balance), COALESCE(bool_or(c.is_premium), false
 		}
 		w := wallets[cur]
 		if w == nil {
-			w = &statesync.WalletData{Currency: cur, Premium: premium}
+			w = &statesync.WalletData{Currency: cur, Premium: premium, Primary: cur == application.DefaultCurrency}
 			wallets[cur] = w
 		}
 		if kind == string(application.AccountPlayerCash) {

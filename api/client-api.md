@@ -1260,7 +1260,7 @@ is neutral (codes, numbers, ids, RFC 3339 instants): the client words it.
 |---|---|---|
 | `player` | player id | `name`, `code`, `lang`, `status`, `level`, `xp`, `next_level_xp`, `rank` (code of the catalogue table `life_rank`) |
 | `vitals` | player id | `energy`, `nerve`, `health`, each `{value, max, as_of, regen?: {amount, every_seconds, bps}}` |
-| `wallet` | currency code | `currency`, `cash`, `bank`, `premium` (the premium currency, Nil) |
+| `wallet` | currency code | `currency`, `cash`, `bank`, `premium` (the premium currency, Nil), `primary` (the game's money, the one prices are in) |
 | `inventory` | item code | `item`, `qty`, `holdings` (`{carried: n, escrow: n}`), `pieces` (`[{id, holding, quality, uses_left}]`) |
 | `skill` | skill code | `skill`, `level`, `xp` |
 | `timed_action` | action id | `kind` (`travel`, `education`, `work_shift`, `settlement_work`, `place_move`…), `ref_type`, `ref_id`, `state`, `started_at`, `finish_at` |
@@ -1283,7 +1283,7 @@ shows `value`.
 ```json
 {"pts": 18234, "epoch": "1", "server_time": "2026-10-02T10:00:00Z",
  "entities": {
-   "wallet": {"SUP": {"v": 55, "d": {"currency": "SUP", "cash": 125000, "bank": 480000, "premium": false}}},
+   "wallet": {"SUP": {"v": 55, "d": {"currency": "SUP", "cash": 125000, "bank": 480000, "premium": false, "primary": true}}},
    "vitals": {"8a4e…": {"v": 4402, "d": {"energy": {"value": 80, "max": 100, "as_of": "2026-10-02T09:58:12Z",
                                                     "regen": {"amount": 5, "every_seconds": 900, "bps": 10000}}, "…": "…"}}},
    "notice": {}, "…": {}},
@@ -1320,7 +1320,7 @@ keep their own. `400 bad_request` for a `since` that is not a whole number
 
 ```json
 {"pts": 18235, "type": "wallet.set", "entity": "wallet", "id": "SUP", "v": 56, "op": "set",
- "data": {"currency": "SUP", "cash": 125000, "bank": 480000, "premium": false},
+ "data": {"currency": "SUP", "cash": 125000, "bank": 480000, "premium": false, "primary": true},
  "at": "2026-10-02T10:00:00Z", "cause": "0b9f…"}
 ```
 
