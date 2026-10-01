@@ -40,8 +40,8 @@ type AuctionsView struct {
 	Unavailable *Unavailable
 }
 
-// AuctionView is one auction in detail, with the bid the viewer may make.
-type AuctionView struct {
+// AuctionDetailView is one auction in detail, with the bid the viewer may make.
+type AuctionDetailView struct {
 	Line AuctionLine
 	// MinNext is the least a new bid must be; Bids how many were made.
 	MinNext int64

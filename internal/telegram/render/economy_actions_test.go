@@ -55,7 +55,7 @@ func economyFixtures() []fixture {
 	finRefusal := economy.FinanceRefusalView{Kind: economy.FinanceRefusedScore, Score: 500, Back: presentation.RefOfAddress(economy.AddrLoanHub)}
 
 	exchange := economy.ExchangeView{Lines: []economy.ListedLine{{Company: named("acme"), Type: named("farm"), City: place, Price: 10, Prev: 9, Volume: 5, Cap: 100}}}
-	stock := economy.StockView{Company: named("acme"), Type: named("farm"), City: place, Listed: true, Price: 10, Prev: 9, IPO: 8, Book: 7, Total: 100,
+	stock := economy.StockPageView{Company: named("acme"), Type: named("farm"), City: place, Listed: true, Price: 10, Prev: 9, IPO: 8, Book: 7, Total: 100,
 		Bids: book, Asks: book, Holding: 3, Owner: true, Buys: []economy.PriceOption{{Qty: 1, Price: 10}}, Sells: []economy.PriceOption{{Qty: 1, Price: 10}}}
 	stockOrder := economy.StockOrderView{Company: named("acme"), Side: "buy", Qty: 2, Price: 10, Reserve: 20, Bank: 100, FeeBPS: 25, Nonce: "n6"}
 	stockPlaced := economy.StockOrderView{Company: named("acme"), Side: "sell", Qty: 2, Price: 10, Placed: true, No: 5, Rests: true, ExpiresAt: at}
@@ -89,7 +89,7 @@ func economyFixtures() []fixture {
 	shopNo := economy.ShopRefusalView{Kind: economy.ShopRefusedSoldOut, Shop: named("grocery"), Item: named("bread"), NextRestock: at}
 
 	auctions := economy.AuctionsView{CityCode: "ostmarch", City: "Ostmarch", Auctions: []economy.AuctionLine{auction}, Way: way}
-	auctionV := economy.AuctionView{Line: auction, MinNext: 55, Bids: 2, Payment: &pay, Nonce: "n10", Seller: "Ali"}
+	auctionV := economy.AuctionDetailView{Line: auction, MinNext: 55, Bids: 2, Payment: &pay, Nonce: "n10", Seller: "Ali"}
 	auctionNew := economy.AuctionNewView{Item: named("sword"), Ref: "ab12", Quality: 2, Reserves: []int64{40, 80}, Durations: []time.Duration{time.Hour}, Nonce: "n11"}
 	opened := economy.AuctionOpenedView{No: 9, Item: named("sword"), Reserve: 40, Duration: time.Hour, EndsAt: at}
 	bid := economy.BidPlacedView{No: 9, Item: named("sword"), Amount: 55, Method: "cash", EndsAt: at}

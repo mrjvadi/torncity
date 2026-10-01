@@ -16,6 +16,15 @@ export interface AmountOption {
   all: boolean
 }
 
+export interface AuctionDetailView {
+  line: AuctionLine
+  min_next: number
+  bids: number
+  payment: PaymentChoice | null
+  nonce: string
+  seller: string
+}
+
 export interface AuctionLine {
   no: number
   item: Named
@@ -54,12 +63,11 @@ export interface AuctionRefusalView {
 }
 
 export interface AuctionView {
-  line: AuctionLine
-  min_next: number
-  bids: number
-  payment: PaymentChoice | null
-  nonce: string
-  seller: string
+  kind: string
+  no: number
+  item: Named
+  amount: number
+  fee: number
 }
 
 export interface AuctionsView {
@@ -1541,7 +1549,7 @@ export interface StockOrderView {
   expires_at: string | null
 }
 
-export interface StockView {
+export interface StockPageView {
   company: Named
   type: Named
   city: GovPlace
@@ -1566,6 +1574,16 @@ export interface StockView {
   notice: string
   notice_args: Record<string, unknown> | null
   unavailable: Unavailable | null
+}
+
+export interface StockView {
+  kind: string
+  company: Named
+  side: string
+  qty: number
+  price: number
+  amount: number
+  player: string
 }
 
 export interface StoredNotice {
@@ -1746,7 +1764,7 @@ export interface WorkplaceLine {
 /** The screens of the migrated areas: the screen name on the wire, and its view. */
 export interface ScreenViews {
   achievement_notice: AchievementView
-  auction_detail: AuctionView
+  auction_detail: AuctionDetailView
   auction_new: AuctionNewView
   auction_notice: AuctionView
   auction_opened: AuctionOpenedView
@@ -1837,7 +1855,7 @@ export interface ScreenViews {
   shop_refusal: ShopRefusalView
   shop_sold: ShopSoldView
   shops: ShopsView
-  stock: StockView
+  stock: StockPageView
   stock_notice: StockView
   stock_order: StockOrderView
   treaty_proposed_notice: TreatyView

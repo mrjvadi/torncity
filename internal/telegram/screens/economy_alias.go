@@ -160,7 +160,7 @@ const AddrStockDividend = economy.AddrStockDividend
 type ListedLine = economy.ListedLine
 type ExchangeView = economy.ExchangeView
 type PriceOption = economy.PriceOption
-type StockView = economy.StockView
+type StockView = economy.StockPageView
 type StockOrderView = economy.StockOrderView
 type HoldingLine = economy.HoldingLine
 type OpenOrderLine = economy.OpenOrderLine
@@ -176,7 +176,7 @@ const AddrAuctionMine = economy.AddrAuctionMine
 
 type AuctionLine = economy.AuctionLine
 type AuctionsView = economy.AuctionsView
-type AuctionView = economy.AuctionView
+type AuctionView = economy.AuctionDetailView
 type AuctionNewView = economy.AuctionNewView
 type AuctionOpenedView = economy.AuctionOpenedView
 type BidPlacedView = economy.BidPlacedView

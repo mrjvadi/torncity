@@ -88,7 +88,7 @@ func (h *FinanceHandler) stock(ctx context.Context, meta envelope.Metadata, code
 	}
 	snap := h.content.Current()
 	if resp, err := h.gate(ctx, meta, snap, "stocks", func(lang string, un *economy.Unavailable) *presentation.Response {
-		return economy.Stock(presentation.Ctx{Lang: lang}, economy.StockView{Unavailable: un})
+		return economy.Stock(presentation.Ctx{Lang: lang}, economy.StockPageView{Unavailable: un})
 	}); resp != nil || err != nil {
 		return resp, err
 	}
@@ -97,7 +97,7 @@ func (h *FinanceHandler) stock(ctx context.Context, meta envelope.Metadata, code
 		return nil, err
 	}
 	lang := meta.Language
-	var view economy.StockView
+	var view economy.StockPageView
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -144,8 +144,8 @@ func refPrice(last int64, listing *application.StockListing, book, total int64) 
 // stockView is a company as its page shows it to p.
 func (h *FinanceHandler) stockView(ctx context.Context, tx application.Tx, snap *content.Snapshot, def content.FinanceDef,
 	c application.Company, p *application.Player,
-) (economy.StockView, error) {
-	v := economy.StockView{Company: named(c.Code, c.Name), Type: named(c.TypeCode, c.TypeCode), Total: c.TotalShares,
+) (economy.StockPageView, error) {
+	v := economy.StockPageView{Company: named(c.Code, c.Name), Type: named(c.TypeCode, c.TypeCode), Total: c.TotalShares,
 		Owner: c.OwnerID == p.ID, FeeBPS: 0}
 	if t, _, ok := snap.CompanyType(c.TypeCode); ok {
 		v.Type.Name = t.Name

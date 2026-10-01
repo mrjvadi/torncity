@@ -40,8 +40,8 @@ type PriceOption struct {
 	Qty, Price int64
 }
 
-// StockView is one company on the exchange.
-type StockView struct {
+// StockPageView is one company on the exchange.
+type StockPageView struct {
 	Company Named
 	Type    Named
 	City    GovPlace

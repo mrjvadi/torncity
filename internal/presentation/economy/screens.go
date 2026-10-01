@@ -36,7 +36,7 @@ var (
 	screenInsureAsk   = presentation.Define[InsureConfirmView](ScreenInsureConfirm, "economy", presentation.Private())
 	screenFinanceNo   = presentation.Define[FinanceRefusalView](ScreenFinanceRefusal, "economy", presentation.Private(), presentation.Refusal())
 	screenExchange    = presentation.Define[ExchangeView](ScreenExchange, "economy")
-	screenStock       = presentation.Define[StockView](ScreenStock, "economy")
+	screenStock       = presentation.Define[StockPageView](ScreenStock, "economy")
 	screenStockOrder  = presentation.Define[StockOrderView](ScreenStockOrder, "economy", presentation.Private())
 	screenPortfolio   = presentation.Define[PortfolioView](ScreenPortfolio, "economy", presentation.Private())
 	screenListing     = presentation.Define[ListingView](ScreenListing, "economy", presentation.Private())
@@ -56,7 +56,7 @@ var (
 	screenShopSold    = presentation.Define[ShopSoldView](ScreenShopSold, "economy")
 	screenShopNo      = presentation.Define[ShopRefusalView](ScreenShopRefusal, "economy", presentation.Refusal())
 	screenAuctions    = presentation.Define[AuctionsView](ScreenAuctions, "economy")
-	screenAuction     = presentation.Define[AuctionView](ScreenAuctionDetail, "economy")
+	screenAuction     = presentation.Define[AuctionDetailView](ScreenAuctionDetail, "economy")
 	screenAuctionNew  = presentation.Define[AuctionNewView](ScreenAuctionNew, "economy")
 	screenAuctionOpen = presentation.Define[AuctionOpenedView](ScreenAuctionOpened, "economy")
 	screenBidPlaced   = presentation.Define[BidPlacedView](ScreenBidPlaced, "economy")
@@ -422,7 +422,7 @@ func Exchange(c presentation.Ctx, v ExchangeView) *presentation.Response {
 }
 
 // Stock is one company on the exchange.
-func Stock(c presentation.Ctx, v StockView) *presentation.Response {
+func Stock(c presentation.Ctx, v StockPageView) *presentation.Response {
 	if v.Unavailable != nil {
 		return screenStock.Response(c.Lang, v, v.Unavailable.actions(AddrHome)...)
 	}
@@ -728,7 +728,7 @@ func Auctions(c presentation.Ctx, v AuctionsView) *presentation.Response {
 }
 
 // AuctionDetail is one auction, with the bid the viewer may make.
-func AuctionDetail(c presentation.Ctx, v AuctionView) *presentation.Response {
+func AuctionDetail(c presentation.Ctx, v AuctionDetailView) *presentation.Response {
 	var a []presentation.Action
 	l := v.Line
 	switch {

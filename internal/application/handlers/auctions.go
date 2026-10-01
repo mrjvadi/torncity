@@ -269,7 +269,7 @@ func (h *AuctionsHandler) View(ctx context.Context, meta envelope.Metadata, req 
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view economy.AuctionView
+	var view economy.AuctionDetailView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -288,7 +288,7 @@ func (h *AuctionsHandler) View(ctx context.Context, meta envelope.Metadata, req 
 		if err != nil {
 			return err
 		}
-		view = economy.AuctionView{Line: l, MinNext: h.terms(*a).MinNext(highBid(*a)).Minor(), Nonce: h.nonce()}
+		view = economy.AuctionDetailView{Line: l, MinNext: h.terms(*a).MinNext(highBid(*a)).Minor(), Nonce: h.nonce()}
 		if seller, err := tx.Players().GetByID(ctx, a.SellerID); err == nil {
 			view.Seller = seller.DisplayName
 		} else if !isSentinel(err, application.ErrPlayerNotFound) {
