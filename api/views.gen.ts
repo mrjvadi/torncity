@@ -1179,6 +1179,16 @@ export interface PromotionView {
   settlement_id: string
 }
 
+export interface PropertyDetailView {
+  property: PropertyLine
+  place: Named
+  upkeep: number
+  tax_bps: number
+  max_price: number
+  max_rent: number
+  notice: string
+}
+
 export interface PropertyLeaveView {
   lease_no: number
   type: Named
@@ -1283,13 +1293,12 @@ export interface PropertyTypeView {
 }
 
 export interface PropertyView {
-  property: PropertyLine
-  place: Named
-  upkeep: number
-  tax_bps: number
-  max_price: number
-  max_rent: number
-  notice: string
+  kind: string
+  type: Named
+  no: number
+  city: Place
+  player: Person
+  amount: number
 }
 
 export interface Rank {
@@ -1762,7 +1771,7 @@ export interface ScreenViews {
   office_notice: OfficeView
   payment_notice: PaymentView
   profile: ProfileView
-  property: PropertyView
+  property: PropertyDetailView
   property_leave: PropertyLeaveView
   property_market: PropertyMarketView
   property_mine: PropertyMineView

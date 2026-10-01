@@ -47,7 +47,7 @@ type (
 	PropertyRefusalView = life.PropertyRefusalView
 	PropertyTypeLine    = life.PropertyTypeLine
 	PropertyTypeView    = life.PropertyTypeView
-	PropertyView        = life.PropertyView
+	PropertyView        = life.PropertyDetailView
 	RankRef             = life.RankRef
 	RentedHomeLine      = life.RentedHomeLine
 	SettingsView        = life.SettingsView

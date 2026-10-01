@@ -171,11 +171,11 @@ func lifeCases() []lifeCase {
 		{life.ScreenPropertyMine, func(c presentation.Ctx, v any) *presentation.Response {
 			return life.PropertyMine(c, v.(life.PropertyMineView))
 		}, []func(any){func(v any) { v.(*life.PropertyMineView).RestIn = 0 }}},
-		{life.ScreenProperty, func(c presentation.Ctx, v any) *presentation.Response { return life.Property(c, v.(life.PropertyView)) }, []func(any){
-			func(v any) { x := v.(*life.PropertyView); x.Property.Tenant = nil },
-			func(v any) { x := v.(*life.PropertyView); x.Property.Tenant, x.Property.Offer = nil, nil },
+		{life.ScreenProperty, func(c presentation.Ctx, v any) *presentation.Response { return life.Property(c, v.(life.PropertyDetailView)) }, []func(any){
+			func(v any) { x := v.(*life.PropertyDetailView); x.Property.Tenant = nil },
+			func(v any) { x := v.(*life.PropertyDetailView); x.Property.Tenant, x.Property.Offer = nil, nil },
 			func(v any) {
-				x := v.(*life.PropertyView)
+				x := v.(*life.PropertyDetailView)
 				x.Property.Tenant, x.Property.Offer, x.Property.Debt = nil, nil, 0
 			},
 		}},

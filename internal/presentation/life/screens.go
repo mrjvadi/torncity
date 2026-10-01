@@ -54,7 +54,7 @@ var (
 	screenPropertyType    = presentation.Define[PropertyTypeView](ScreenPropertyType, "life")
 	screenPropertyOffer   = presentation.Define[PropertyOfferView](ScreenPropertyOffer, "life")
 	screenPropertyMine    = presentation.Define[PropertyMineView](ScreenPropertyMine, "life", presentation.Private())
-	screenProperty        = presentation.Define[PropertyView](ScreenProperty, "life", presentation.Private())
+	screenProperty        = presentation.Define[PropertyDetailView](ScreenProperty, "life", presentation.Private())
 	screenPropertyLeave   = presentation.Define[PropertyLeaveView](ScreenPropertyLeave, "life", presentation.Private())
 	screenPropertyRefusal = presentation.Define[PropertyRefusalView](ScreenPropertyRefusal, "life", presentation.Refusal())
 )
@@ -603,7 +603,7 @@ func PropertyMine(c presentation.Ctx, v PropertyMineView) *presentation.Response
 }
 
 // Property is one of the viewer's properties and what they can do with it.
-func Property(c presentation.Ctx, v PropertyView) *presentation.Response {
+func Property(c presentation.Ctx, v PropertyDetailView) *presentation.Response {
 	p := v.Property
 	no := itoa(p.No)
 	var a []presentation.Action

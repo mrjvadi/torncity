@@ -842,9 +842,9 @@ const (
 	PropertyNoticeBought    = "bought_offer"
 )
 
-// PropertyView is one of the viewer's properties, and what they can do with
+// PropertyDetailView is one of the viewer's properties, and what they can do with
 // it.
-type PropertyView struct {
+type PropertyDetailView struct {
 	Property PropertyLine
 	Place    Named
 	Upkeep   int64

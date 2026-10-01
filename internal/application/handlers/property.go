@@ -708,7 +708,7 @@ func (h *PropertyHandler) view(ctx context.Context, meta envelope.Metadata, req 
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view plife.PropertyView
+	var view plife.PropertyDetailView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -734,7 +734,7 @@ func (h *PropertyHandler) view(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		t, _ := snap.PropertyType(pr.TypeCode)
-		view = plife.PropertyView{Property: line, Place: placeNamed(snap, t.Place), Upkeep: t.Upkeep, TaxBPS: rate,
+		view = plife.PropertyDetailView{Property: line, Place: placeNamed(snap, t.Place), Upkeep: t.Upkeep, TaxBPS: rate,
 			MaxPrice: h.rules.MaxPrice, MaxRent: h.rules.MaxRent, Notice: notice}
 		return nil
 	})

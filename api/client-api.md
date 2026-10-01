@@ -364,6 +364,18 @@ counts as the player's private chat (section 2).
 
 ---
 
+### 3.2 The life area's neutral screens (presentation split)
+
+The screens of the player's own place, journeys, life, devices, bag and property carry a typed `view` and `actions` by meaning
+(`id`, `command`, named `args`, `kind`, `subject`) and no `text`, `label` or `row`: `profile`, `dashboard`, `city_map`, `cities`, `travel_*`,
+`walk_started`, `not_here`, `life`, `card`, `history`, `avatars`, `sleep_pay`, `settings`, `devices`, `device_link`, `achievements`, `inventory`,
+`item_*`, `drop_confirm`, `property*`, `refusal` and `error`. The generated types are `api/views.gen.ts`. A refused request is `ok: false` with
+`error.code` (`life_<kind>`, `item_<kind>`, `property_<kind>`, `refusal_<kind>`) and its data in `error.args` (`wait_seconds`, `max`, `min_chars`...);
+the `error` screen is an `ok: true` screen whose view says why (`code`, `args`). An action that asks for a value (`property.sell`, `property.let`,
+`life.bio`) carries `input {field, text}`. The village overview's `support.services` lists the services of the central city the village lacks
+(`bank`, `market`, `knowledge`, `hospital`). The content catalogue adds the tables `property_type`, `achievement`, `shop`, `avatar`, `career` and
+`career_tier` (code `<career>.<rank>`).
+
 ## 4. Bootstrap
 
 ### `GET /api/v1/bootstrap`
