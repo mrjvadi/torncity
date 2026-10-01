@@ -619,7 +619,7 @@ settlement_building:
   clinic: Clinic
   teaching_circle: Village classroom
   school: School
-  barter_post: Small market
+  barter_post: Village market
   market: Market
   bank: Bank
   barracks: Barracks

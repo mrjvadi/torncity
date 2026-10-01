@@ -87,7 +87,11 @@ func TestSettlementRelocate(t *testing.T) {
 	var buildingID string
 	if err := e.pool.Raw().QueryRow(ctx,
 		`INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
-		 VALUES (gen_random_uuid(), $1::uuid, 'watch_hut', 0, 0, 'complete', now(), now()) RETURNING id::text`, id).Scan(&buildingID); err != nil {
+		 SELECT gen_random_uuid(), $1::uuid, 'watch_hut', g.x, gy.y, 'complete', now(), now()
+		   FROM generate_series(0, 4) AS g(x) CROSS JOIN LATERAL (SELECT generate_series(0, 4) AS y) AS gy(y)
+		  WHERE NOT EXISTS (SELECT 1 FROM settlement_buildings b WHERE b.settlement_id = $1::uuid AND b.lot_x = g.x AND b.lot_y = gy.y)
+		  ORDER BY g.x, gy.y LIMIT 1
+		 RETURNING id::text`, id).Scan(&buildingID); err != nil {
 		t.Fatalf("placing a player's building: %v", err)
 	}
 	_, err = relocate()

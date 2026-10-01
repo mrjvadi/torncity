@@ -32,7 +32,7 @@ import (
 
 // villageFoundingKit is the founding kit's building codes
 // (internal/domain/settlement.FoundingKitBuildings; a test keeps them equal).
-var villageFoundingKit = []string{"civic_hall", "road"}
+var villageFoundingKit = []string{"civic_hall", "road", "barter_post", "granary"}
 
 // VillageReach is what the closure found: every reachable code, each with the
 // step that first made it reachable, and the codes left over.

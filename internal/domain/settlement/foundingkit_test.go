@@ -43,12 +43,12 @@ func TestPlaceFoundingKit_HasRoadAndCivicHall(t *testing.T) {
 		for _, b := range kit {
 			got = append(got, b.TypeCode)
 		}
-		if len(kit) == 2 {
+		if len(kit) == len(FoundingKitBuildings) {
 			placedBoth++
 		}
 	}
 	if placedBoth == 0 {
-		t.Fatalf("no founding kit placed both buildings across 15 spawn sites; last result: %v", got)
+		t.Fatalf("no founding kit placed every building across 15 spawn sites; last result: %v", got)
 	}
 }
 

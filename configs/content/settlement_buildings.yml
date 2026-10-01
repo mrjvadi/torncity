@@ -539,7 +539,7 @@ settlement_buildings:
   # market — ring -> market.
   # ---------------------------------------------------------------------
   - code: barter_post
-    name: بازارچه
+    name: "بازارچه"
     role: market
     tier: 1
     footprint: [1, 1]
