@@ -53,7 +53,7 @@ type FoundDraftView struct {
 type FoundingChoiceView struct {
 	Code string `json:"code"`
 	// Hex is a palette colour's #rrggbb.
-	Hex string `json:"hex,omitempty"`
+	Hex string `json:"hex"`
 }
 
 // FoundingEmblemView is an emblem as its four codes.
