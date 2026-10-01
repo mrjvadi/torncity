@@ -1,4 +1,4 @@
--- 0060_notification_neutral — the inbox keeps a notice as data, not as text.
+-- 0078_notification_neutral — the inbox keeps a notice as data, not as text.
 --
 -- A notice the notifier pushes is now a neutral screen and its view
 -- (docs/adr/0039-presentation-split.md, section 8): each edge words it in the
