@@ -79,7 +79,7 @@ func foundVillage(t *testing.T, pool *postgres.Pool, h *handlers.SettlementsHand
 		t.Fatalf("Found: %v", err)
 	}
 	req := validFoundingRequest(t, openDraftID(t, pool, meta.TelegramChatID))
-	resp, err := h.Submit(ctx, clientMeta(meta, "settlement.found.submit", "found.submit"), req)
+	resp, err := rr(h.Submit(ctx, clientMeta(meta, "settlement.found.submit", "found.submit"), req))
 	if err != nil {
 		t.Fatalf("Submit: %v", err)
 	}

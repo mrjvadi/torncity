@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -101,11 +103,11 @@ func renderTreatyProposed(_ context.Context, _ Deps, env *envelope.Envelope) (*D
 	if err != nil || ev.PlayerID == "" {
 		return nil, err
 	}
-	view := screens.TreatyNoticeView{Country: country(ev.CountryCode, ev.CountryName),
-		Other: country(ev.OtherCode, ev.OtherName), Kind: screens.Named{Code: ev.Kind, Name: ev.KindName}, No: ev.No,
+	view := notices.TreatyView{Country: notices.Place(country(ev.CountryCode, ev.CountryName)),
+		Other: notices.Place(country(ev.OtherCode, ev.OtherName)), Kind: notices.Named{Code: ev.Kind, Name: ev.KindName}, No: ev.No,
 		TTL: time.Duration(ev.TTLSeconds) * time.Second}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.TreatyProposedNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.TreatyProposedNotice(c, view)
 	}}, nil
 }
 
@@ -116,11 +118,11 @@ func renderOffice(dismissed bool) Renderer {
 		if err != nil || ev.PlayerID == "" {
 			return nil, err
 		}
-		view := screens.OfficeNoticeView{Office: ev.Office,
-			Place: screens.GovPlace{Kind: ev.PlaceKind, Code: ev.PlaceCode, Name: ev.PlaceName},
-			By:    screens.GovPlayer{Name: ev.ByName, Code: ev.ByCode}, ByOffice: ev.ByOffice, Dismissed: dismissed}
-		return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-			return screens.OfficeNotice(c, view)
+		view := notices.OfficeView{Office: ev.Office,
+			Place: notices.Place{Kind: ev.PlaceKind, Code: ev.PlaceCode, Name: ev.PlaceName},
+			By:    notices.Person{Name: ev.ByName, Code: ev.ByCode}, ByOffice: ev.ByOffice, Dismissed: dismissed}
+		return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+			return notices.OfficeNotice(c, view)
 		}}, nil
 	}
 }

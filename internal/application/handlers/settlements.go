@@ -9,7 +9,6 @@ import (
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // SettlementsHandler serves group founding (docs/adr/0028-world-and-
@@ -96,9 +95,6 @@ func tierWeight(tier string) float64 {
 	}
 }
 
-func (h *SettlementsHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
-}
 
 // viewer reads the player who sent the command, the same short read-only
 // unit of work every other handler's own viewer helper uses.

@@ -8,8 +8,11 @@
 #   palette   code, hex, emoji (the coloured dot Telegram shows)
 #   icons     code, emoji   the symbol in the middle
 #
-# The display names are in the locales: founding.shape.<code>,
-# founding.color.<code>, founding.icon.<code>.
+# The core sends the codes only. Each edge words them itself: the web by name
+# from its own table (founding.shape.<code>, founding.color.<code>,
+# founding.icon.<code> in its ui.src.txt), Telegram as the emoji of its own
+# locale layer (founding.emoji.<kind>.<code>, kept equal to the emoji here by
+# internal/telegram/render's tests).
 #
 # banned_words are refused in a village's name, motto and currency (whole
 # words; a word of five letters or more anywhere inside). reserved_names are

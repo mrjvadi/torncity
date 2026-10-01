@@ -13,6 +13,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -74,6 +75,10 @@ type Announcement struct {
 	// Line writes the line in a group's language. name is the player's
 	// display name, empty for one with none worth showing.
 	Line func(c screens.Context, name string) string
+	// Notice, instead of Line, is the announcement carried as data: a
+	// neutral response the gateway words for the group and the web words for
+	// itself. A line held back by the throttle is not folded into it.
+	Notice func(c presentation.Ctx, name string) *presentation.Response
 }
 
 // CityGroups is the read an announcement needs: which groups a city is
@@ -181,9 +186,14 @@ func (w *Worker) announce(ctx context.Context, route Route, env *envelope.Envelo
 			}
 			continue
 		}
-		c := screens.Context{Msgs: w.cfg.Msgs, Lang: g.Language}
-		text := screens.Announcement(c, a.Line(c, name), held)
-		if err := w.sendAnnouncement(ctx, now, env.Metadata, g, text, log); err != nil {
+		var resp *presenter.Response
+		if a.Notice != nil {
+			resp = a.Notice(presentation.Ctx{Lang: g.Language}, name)
+		} else {
+			c := screens.Context{Msgs: w.cfg.Msgs, Lang: g.Language}
+			resp = presenter.Message(screens.Announcement(c, a.Line(c, name), held), nil)
+		}
+		if err := w.sendAnnouncement(ctx, now, env.Metadata, g, resp, log); err != nil {
 			return err
 		}
 		if _, err := w.cfg.Inbox.MarkProcessed(ctx, env.Metadata.MessageID(), key); err != nil {
@@ -247,7 +257,7 @@ var errAnnouncementFailed = errors.New("notification: announcement not delivered
 // sendAnnouncement hands one line to the gateway for one group and waits for
 // its receipt. A group the bot cannot post in any more is logged and skipped:
 // retrying will not change that.
-func (w *Worker) sendAnnouncement(ctx context.Context, start time.Time, event envelope.Metadata, g application.CityGroup, text string, log *slog.Logger) error {
+func (w *Worker) sendAnnouncement(ctx context.Context, start time.Time, event envelope.Metadata, g application.CityGroup, resp *presenter.Response, log *slog.Logger) error {
 	ctx, cancel := context.WithDeadline(ctx, start.Add(w.cfg.SendBudget))
 	defer cancel()
 	meta := event
@@ -263,7 +273,7 @@ func (w *Worker) sendAnnouncement(ctx context.Context, start time.Time, event en
 
 	env, err := envelope.New(meta, Notice{
 		DeliverBy:    start.Add(w.cfg.SendBudget - w.cfg.ReceiptMargin),
-		Response:     *presenter.Message(text, nil),
+		Response:     *resp,
 		Announcement: true,
 	})
 	if err != nil {

@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -80,6 +82,14 @@ func (p *injuryPayload) view() *screens.InjuryView {
 		return nil
 	}
 	return &screens.InjuryView{Damage: p.Damage, Health: p.Health, Max: p.MaxHealth, Hospital: p.Hospital, EndsAt: p.EndsAt}
+}
+
+// notice is the injury as a notice carries it; nil for none.
+func (p *injuryPayload) notice() *notices.Injury {
+	if p == nil || p.Damage <= 0 {
+		return nil
+	}
+	return &notices.Injury{Damage: p.Damage, Health: p.Health, Max: p.MaxHealth, Hospital: p.Hospital, EndsAt: p.EndsAt}
 }
 
 // renderCrimeResult tells a thief how an attempt ended: the take of a
@@ -157,18 +167,18 @@ func renderVictimised(_ context.Context, _ Deps, env *envelope.Envelope) (*Draft
 	if ev.VictimID == "" || ev.AttemptID == "" || (ev.Amount <= 0 && ev.Item == "") {
 		return nil, apperrors.InvalidInput("crime.victimised names no victim, no theft or nothing taken")
 	}
-	view := screens.VictimNoticeView{
-		Crime: screens.Named{Code: ev.Crime, Name: ev.CrimeName}, Venue: screens.Named{Code: ev.Venue, Name: ev.VenueName},
+	view := notices.VictimView{
+		Crime: notices.Named{Code: ev.Crime, Name: ev.CrimeName}, Venue: notices.Named{Code: ev.Venue, Name: ev.VenueName},
 		CityCode: ev.CityCode, City: ev.CityName, Amount: ev.Amount, ThiefName: ev.ThiefName, ThiefCode: ev.ThiefCode,
 		CrimeID: ev.AttemptID, ReportFee: ev.ReportFee,
 		ReportWithin: time.Duration(ev.ReportWindowSeconds) * time.Second,
 	}
 	if ev.Item != "" {
-		view.Item = &screens.Named{Code: ev.Item, Name: ev.ItemName}
+		view.Item = &notices.Named{Code: ev.Item, Name: ev.ItemName}
 	}
 	return &Draft{
 		PlayerID: ev.VictimID,
-		Screen:   func(c screens.Context) *presenter.Response { return screens.VictimNotice(c, view) },
+		Notice:   func(c presentation.Ctx) *presentation.Response { return notices.VictimNotice(c, view) },
 	}, nil
 }
 
@@ -217,9 +227,9 @@ type caseOutcome struct {
 	ItemReturnedName string `json:"item_returned_name"`
 }
 
-func (e caseOutcome) view(solved bool) screens.CaseOutcomeView {
-	return screens.CaseOutcomeView{
-		Crime: screens.Named{Code: e.Crime, Name: e.CrimeName}, CityCode: e.CityCode, City: e.CityName,
+func (e caseOutcome) view(solved bool) notices.CaseOutcomeView {
+	return notices.CaseOutcomeView{
+		Crime: notices.Named{Code: e.Crime, Name: e.CrimeName}, CityCode: e.CityCode, City: e.CityName,
 		Solved: solved, Thief: e.ThiefName, ThiefCode: e.ThiefCode, Stolen: e.Stolen, Restored: e.Restored,
 		Shortfall: e.Shortfall, Fine: e.Fine, FinePaid: e.FinePaid, Term: time.Duration(e.TermSeconds) * time.Second,
 		Returned: returned(e.ItemReturned, e.ItemReturnedName),
@@ -227,11 +237,11 @@ func (e caseOutcome) view(solved bool) screens.CaseOutcomeView {
 }
 
 // returned is a stolen good given back, nil for none.
-func returned(code, name string) *screens.Named {
+func returned(code, name string) *notices.Named {
 	if code == "" {
 		return nil
 	}
-	return &screens.Named{Code: code, Name: name}
+	return &notices.Named{Code: code, Name: name}
 }
 
 func decodeCase(env *envelope.Envelope, name string) (caseOutcome, error) {
@@ -254,7 +264,7 @@ func renderCaseSolved(_ context.Context, _ Deps, env *envelope.Envelope) (*Draft
 	view := ev.view(true)
 	return &Draft{
 		PlayerID: ev.VictimID,
-		Screen:   func(c screens.Context) *presenter.Response { return screens.CaseSolvedNotice(c, view) },
+		Notice:   func(c presentation.Ctx) *presentation.Response { return notices.CaseSolvedNotice(c, view) },
 	}, nil
 }
 
@@ -270,7 +280,7 @@ func renderCaseClosed(_ context.Context, _ Deps, env *envelope.Envelope) (*Draft
 	view := ev.view(false)
 	return &Draft{
 		PlayerID: ev.VictimID,
-		Screen:   func(c screens.Context) *presenter.Response { return screens.CaseSolvedNotice(c, view) },
+		Notice:   func(c presentation.Ctx) *presentation.Response { return notices.CaseSolvedNotice(c, view) },
 	}, nil
 }
 
@@ -286,6 +296,6 @@ func renderConvicted(_ context.Context, _ Deps, env *envelope.Envelope) (*Draft,
 	view := ev.view(true)
 	return &Draft{
 		PlayerID: ev.ThiefID,
-		Screen:   func(c screens.Context) *presenter.Response { return screens.ConvictedNotice(c, view) },
+		Notice:   func(c presentation.Ctx) *presentation.Response { return notices.ConvictedNotice(c, view) },
 	}, nil
 }

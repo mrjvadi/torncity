@@ -282,7 +282,7 @@ func (w *Worker) Handle(ctx context.Context, route Route, env *envelope.Envelope
 	w.publishVitals(ctx, now, player.ID, log)
 
 	lang := handlers.RenderLanguage(meta, player)
-	resp := draft.Screen(screens.Context{Msgs: w.cfg.Msgs, Lang: lang})
+	resp := draft.response(w.cfg.Msgs, lang)
 
 	if w.cfg.PlayerInbox != nil {
 		if mode, category := w.classify(route); mode == ModeInbox {

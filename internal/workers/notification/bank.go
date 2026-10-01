@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // paymentReceived is the payload BankHandler.PaySend writes. Only the fields
@@ -34,7 +34,7 @@ func renderPaymentReceived(_ context.Context, _ Deps, env *envelope.Envelope) (*
 	if ev.PayeeID == "" || ev.Amount <= 0 {
 		return nil, apperrors.InvalidInput("bank.payment_received names no payee or no amount")
 	}
-	view := screens.PaymentNoticeView{
+	view := notices.PaymentView{
 		PayerName: ev.PayerName,
 		PayerCode: ev.PayerCode,
 		Method:    ev.Method,
@@ -42,6 +42,6 @@ func renderPaymentReceived(_ context.Context, _ Deps, env *envelope.Envelope) (*
 	}
 	return &Draft{
 		PlayerID: ev.PayeeID,
-		Screen:   func(c screens.Context) *presenter.Response { return screens.PaymentNotice(c, view) },
+		Notice:   func(c presentation.Ctx) *presentation.Response { return notices.PaymentNotice(c, view) },
 	}, nil
 }

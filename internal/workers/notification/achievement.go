@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Achievements (docs/adr/0024-property-and-politics.md): a player hears,
@@ -28,9 +28,9 @@ func renderAchievement(_ context.Context, _ Deps, env *envelope.Envelope) (*Draf
 	if ev.PlayerID == "" || ev.Code == "" {
 		return nil, apperrors.InvalidInput("achievement.awarded names nobody")
 	}
-	view := screens.AchievementNoticeView{Achievement: screens.Named{Code: ev.Code, Name: ev.Name}, Cash: ev.Cash,
+	view := notices.AchievementView{Achievement: notices.Named{Code: ev.Code, Name: ev.Name}, Cash: ev.Cash,
 		Withheld: ev.Withheld}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.AchievementNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return notices.AchievementNotice(c, view)
 	}}, nil
 }
