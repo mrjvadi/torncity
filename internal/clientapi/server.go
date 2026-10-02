@@ -73,6 +73,13 @@ type ServerConfig struct {
 	Sync           StateSync
 	PullsPerMinute int
 
+	// Photos serves GET /api/me/photo (photo.go); nil answers 404, so the
+	// client shows initials. PhotosPerMinute bounds the Bot API fetches per
+	// player; PhotoMaxAge is the browser's cache lifetime for the bytes.
+	Photos          *PhotoService
+	PhotosPerMinute int
+	PhotoMaxAge     time.Duration
+
 	SignInsPerMinute  int
 	CommandsPerMinute int
 	// ChunksPerMinute and LayoutsPerMinute bound the world endpoints per
@@ -121,6 +128,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/v1/world", s.authed(s.worldInfo))
 	mux.HandleFunc("GET /api/v1/world/chunks/{face}/{lod}/{x}/{y}", s.authed(s.chunk))
 	mux.HandleFunc("GET /api/v1/settlements/{id}/layout", s.authed(s.settlementLayout))
+	mux.HandleFunc("GET /api/me/photo", s.authed(s.mePhoto))
+	mux.HandleFunc("GET /api/v1/me/photo", s.authed(s.mePhoto))
 	mux.HandleFunc("GET /api/v1/realtime/token", s.authed(s.realtimeToken))
 	mux.HandleFunc("GET /api/v1/realtime/subscribe", s.authed(s.realtimeSubscribe))
 	mux.HandleFunc("POST /api/v1/realtime/heartbeat", s.authed(s.heartbeat))

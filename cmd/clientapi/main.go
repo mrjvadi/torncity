@@ -256,6 +256,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		Buildings: postgres.NewSettlementBuildingReader(pool), World: worldSvc, Content: registry,
 		VillageGridLots: cfg.Settlement.VillageGridLots, Now: time.Now,
 		Citizens: postgres.NewCitizenReader(pool),
+		Overlay: postgres.NewVillageFacts(pool), StockBaseCapacity: cfg.Settlement.StockBaseCapacity,
 		CitizenTerms: application.CitizenBounds{
 			LotPrice: cfg.Settlement.CitizenLotPrice, LotPriceMin: cfg.Settlement.CitizenLotPriceMin, LotPriceMax: cfg.Settlement.CitizenLotPriceMax,
 			PermitFee: cfg.Settlement.CitizenPermitFee, PermitFeeMax: cfg.Settlement.CitizenPermitFeeMax,
@@ -301,6 +302,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			NerveRegenInterval: cfg.Crime.NerveRegenInterval, NoticesKept: cfg.StateSync.NoticesKept,
 		})
 		store.Layouts = villages
+		store.Overlays = villages
 		store.LockTimeout = cfg.StateSync.LockTimeout
 		svc := &statesync.Service{Store: store, Pub: pub, Cfg: statesync.FromConfig(cfg.StateSync),
 			Metrics: statesync.NewMetrics(), Log: logger.With(slog.String("component", "state_sync"))}
@@ -326,6 +328,9 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			CityCodes: postgres.NewCityRepository(pool), Companies: postgres.NewCompanyRepository(pool), Content: registry,
 			Villages: villages, CitySpots: citySpots, Msgs: catalog, Realtime: tokens.Enabled(), Now: time.Now},
 		WorldSvc: worldSvc, Villages: villages,
+		Photos: &clientapi.PhotoService{Bots: bots.get, Store: infraredis.NewBlobCache(rdb),
+			TTL: cfg.Client.PhotoTTL, MissingTTL: cfg.Client.PhotoMissingTTL},
+		PhotosPerMinute: cfg.Client.PhotosPerMinute, PhotoMaxAge: cfg.Client.PhotoTTL,
 		Limits: limits, Realtime: tokens, Msgs: catalog,
 		Sync: syncAPI, PullsPerMinute: cfg.StateSync.PullsPerMinute,
 		ChunksPerMinute: cfg.Client.ChunksPerMinute, LayoutsPerMinute: cfg.Client.LayoutsPerMinute,

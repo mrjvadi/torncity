@@ -171,7 +171,7 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 	return &VillageHandler{
 		uow: uow, ids: ids, msgs: msgs, content: source, worlds: worlds, cities: cities, scale: scale,
 		villageGridLots:       rules.VillageGridLots,
-		concurrentBuildCap:    map[string]int{"village": 1, "town": 2, "city": 4},
+		concurrentBuildCap:    map[string]int{"village": settlementbuilding.ConcurrentCap("village"), "town": settlementbuilding.ConcurrentCap("town"), "city": settlementbuilding.ConcurrentCap("city")},
 		gridLotsByTier:        map[string]int{"village": rules.VillageGridLots, "town": 9, "city": 15},
 		teachPeriod:           rules.TeachPeriod,
 		teachRateBPS:          rules.TeachRateBPS,

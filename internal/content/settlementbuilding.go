@@ -379,3 +379,25 @@ func (s *Snapshot) VillageMaterials() []string {
 	sort.Strings(out)
 	return out
 }
+
+// NextRoleTier lists the buildings of the lowest tier of role above tier: the
+// steps an upgrade of a building of that role and tier may take. Empty when
+// the role has nothing above.
+func (s *Snapshot) NextRoleTier(role string, tier int) []SettlementBuildingDef {
+	next := 0
+	for _, d := range s.settlementBuildings.defs {
+		if d.Role == role && d.Tier > tier && (next == 0 || d.Tier < next) {
+			next = d.Tier
+		}
+	}
+	if next == 0 {
+		return nil
+	}
+	var out []SettlementBuildingDef
+	for _, d := range s.settlementBuildings.defs {
+		if d.Role == role && d.Tier == next {
+			out = append(out, d)
+		}
+	}
+	return out
+}

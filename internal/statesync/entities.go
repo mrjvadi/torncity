@@ -192,6 +192,117 @@ type SettlementData struct {
 	Treasury  *TreasuryData `json:"treasury"`
 	Knowledge int           `json:"knowledge"`
 	Research  *ResearchData `json:"research"`
+	// Election is the election open in the settlement now, for members:
+	// the end times the events column counts down to. Nil when none is open.
+	Election *ElectionData `json:"election"`
+	// Buildings is what this viewer may do with each building and how it
+	// stands (see BuildingOverlay). It is cut for the viewer: a visitor gets
+	// the tier and "info" only.
+	Buildings []BuildingOverlay `json:"buildings"`
+}
+
+// ElectionData is an open election's calendar. The phase is not stored: a
+// client takes the candidacy while now is before CandidacyEndsAt and the
+// vote until VotingEndsAt, so the record changes only when the election does.
+type ElectionData struct {
+	Office          string    `json:"office"`
+	OpensAt         time.Time `json:"opens_at"`
+	CandidacyEndsAt time.Time `json:"candidacy_ends_at"`
+	VotingEndsAt    time.Time `json:"voting_ends_at"`
+}
+
+// The statuses of a building (BuildingOverlay.Status).
+const (
+	BuildingWorking = "working"
+	BuildingIdle    = "idle"
+	// BuildingRaising is a building still under construction.
+	BuildingRaising = "building"
+)
+
+// The reasons a building is idle (BuildingOverlay.Reasons).
+const (
+	ReasonNoRoad      = "no_road"
+	ReasonNoStaff     = "no_staff"
+	ReasonStorageFull = "storage_full"
+	ReasonNoInput     = "no_input"
+	ReasonDamaged     = "damaged"
+)
+
+// The verbs a viewer may perform on a building (BuildingOverlay.Actions).
+// A client draws a ring button per verb and maps each to its own screen; it
+// keeps no per-kind table of who may do what.
+const (
+	ActionInfo      = "info"
+	ActionUpgrade   = "upgrade"
+	ActionDemolish  = "demolish"
+	ActionCancel    = "cancel"
+	ActionWorkers   = "workers"
+	ActionTakeShift = "take_shift"
+	ActionHelpBuild = "help_build"
+	ActionTreasury  = "treasury"
+	ActionResearch  = "research"
+	ActionElections = "elections"
+	ActionRoad      = "road"
+)
+
+// StaffData is how many work at a building and how many it takes.
+type StaffData struct {
+	Have int `json:"have"`
+	Need int `json:"need"`
+}
+
+// OutputReady is goods a building has ready to collect. Reserved: no
+// building holds its own output today (shifts put goods straight into the
+// village stock), so it is never set yet.
+type OutputReady struct {
+	Good   string `json:"good"`
+	Amount int64  `json:"amount"`
+}
+
+// BuildingOverlay is one building as THIS viewer sees it, keyed by the id of
+// the layout's building. Everything is a code or a number.
+type BuildingOverlay struct {
+	ID string `json:"id"`
+	// Tier is the building's level in its role's ladder (ADR 0041); 0 for a
+	// building outside a ladder (road, civic hall).
+	Tier int    `json:"tier"`
+	Role string `json:"role,omitempty"`
+	// Status is working, idle or building. Reasons say why a standing
+	// building is idle (or damaged): see the Reason constants.
+	Status  string   `json:"status"`
+	Reasons []string `json:"reasons"`
+	// CanUpgrade is true only when the viewer may upgrade the building now:
+	// the right office, a next step whose requirements are met, the money and
+	// materials in hand and a free builder.
+	CanUpgrade bool `json:"can_upgrade"`
+	// Actions are the verbs this viewer may perform, "info" first.
+	Actions []string `json:"actions"`
+	// Staff is set for a workplace.
+	Staff       *StaffData   `json:"staff,omitempty"`
+	OutputReady *OutputReady `json:"output_ready,omitempty"`
+}
+
+// The sources of a goal (the part of GoalData.Code before the dot).
+const (
+	GoalSourcePromotion = "promotion"
+	GoalSourceMission   = "mission"
+)
+
+// GoalData is KindGoal: the next thing worth doing, for the quest strip. It
+// has a source (a mission the player took, then the settlement's next
+// promotion goal; ADR 0044 will feed it too), a progress against a target in
+// the goal's own unit, and a neutral address to go to.
+type GoalData struct {
+	// Code is "<source>.<kind>", for example "promotion.residents",
+	// "promotion.role", "mission.work_shift"; a client words it from its own
+	// locales with Args.
+	Code string `json:"code"`
+	// Args name what the code is about (a role, a mission, a target).
+	Args     map[string]string `json:"args"`
+	Progress int64             `json:"progress"`
+	Target   int64             `json:"target"`
+	// GoTo is the screen address to open.
+	GoTo string `json:"go_to"`
 }
 
 // FactionData is the player's faction.
