@@ -689,7 +689,8 @@
           "value": 212000
         }
       ],
-      "ranks": null
+      "ranks": null,
+      "village": null
     }
   },
   {
@@ -730,7 +731,8 @@
           "value": 61200
         }
       ],
-      "ranks": null
+      "ranks": null,
+      "village": null
     }
   },
   {
@@ -771,7 +773,8 @@
           "value": 64
         }
       ],
-      "ranks": null
+      "ranks": null,
+      "village": null
     }
   },
   {
@@ -781,7 +784,8 @@
       "at": null,
       "board": "investors",
       "lines": null,
-      "ranks": null
+      "ranks": null,
+      "village": null
     }
   },
   {

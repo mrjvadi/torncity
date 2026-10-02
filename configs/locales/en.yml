@@ -1334,6 +1334,7 @@ career_category:
 mission_board:
   city_hall: Civic noticeboard
   police: Police board
+  village_works: Village works board
 
 # Missions (docs/adr/0023): jobs a city posts on its boards.
 mission:
@@ -1358,6 +1359,15 @@ mission:
   first_aid_course:
     name: "First aid training"
     brief: "The police want volunteers who know how to use medicine."
+  village_first_lesson:
+    name: "First lesson"
+    brief: "The village needs people who can read and write: finish a course."
+  village_bread_run:
+    name: "Bread for the store"
+    brief: "The village store is short of bread; bring three loaves to the board."
+  village_bandage_run:
+    name: "Bandages for the health house"
+    brief: "The health house is short of bandages; hand in three."
   objective:
     travel: "Travel to {target}"
     travel_any: "Travel to another city"
@@ -1382,6 +1392,7 @@ mission:
   reward_item: "{qty} {item}"
   boards_title: "📋 Mission boards of {city}"
   board_line: "• {board} - at the {place}"
+  board_line_here: "• {board}"
   boards_none: "This city has no mission board yet."
   board_title: "📋 {board} - {city}"
   board_elsewhere: "You take a mission at the {place}."
@@ -1495,6 +1506,9 @@ life:
     richest_line: "{pos}. {name} - {tag} - {value}"
     richest_tab: "💎 Richest"
     richest_hint: "Net worth: cash, bank, savings, shares, gold, property and goods, less debts and loans."
+    village_title: "🏡 The richest in {village}"
+    village_tab: "🏡 Village"
+    village_hint: "Your neighbours by net worth."
     companies_title: "🏢 The biggest companies"
     companies_line: "{pos}. {name} - {tag} in {city} - {value}"
     companies_tab: "🏢 Companies"

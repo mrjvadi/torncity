@@ -178,6 +178,10 @@ availability:
   # ---- missions: the two boards and seven missions exist only at Support as written (city objectives, SUP rewards); the village works board is ADR 0038 4.5
   - {kind: mission_board, code: city_hall, stage: support, requires: {}, note: "city-era board; the village works board and citizens' request board replace it in villages (ADR 0038 4.5)"}
   - {kind: mission_board, code: police, stage: support, requires: {}, note: "city-era board; the village works board and citizens' request board replace it in villages (ADR 0038 4.5)"}
+  - {kind: mission_board, code: village_works, stage: village, requires: {}, note: "the village's own board, posted from content; the citizens' request board arrives with mission.post (ADR 0038 4.5)"}
+  - {kind: mission, code: village_first_lesson, stage: village, requires: {}}
+  - {kind: mission, code: village_bread_run, stage: village, requires: {}}
+  - {kind: mission, code: village_bandage_run, stage: village, requires: {}}
   - {kind: mission, code: first_steps, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
   - {kind: mission, code: study_up, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
   - {kind: mission, code: city_courier, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}

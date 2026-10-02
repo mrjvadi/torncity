@@ -114,24 +114,7 @@ func (r ActivityRules) crimeListing(ctx context.Context, tx application.Tx, snap
 	if err != nil {
 		return crimeVerdict{}, err
 	}
-	stands := func(b content.AvailabilityBuilding) bool {
-		for _, row := range rows {
-			if row.Status != "complete" {
-				continue
-			}
-			d, ok := snap.SettlementBuildingDef(row.TypeCode)
-			if !ok {
-				continue
-			}
-			if b.Code != "" && d.Code == b.Code {
-				return true
-			}
-			if b.Role != "" && d.Def().Role == b.Role && d.Def().Tier >= b.Tier {
-				return true
-			}
-		}
-		return false
-	}
+	stands := standsIn(snap, rows)
 	var tags []content.AvailabilityDef
 	var untagged []string
 	for _, def := range snap.Crimes() {
@@ -150,4 +133,27 @@ func (r ActivityRules) crimeListing(ctx context.Context, tx application.Tx, snap
 		v.Empty = ""
 	}
 	return v, nil
+}
+
+// standsIn tells whether a building an availability tag asks for stands among a settlement's buildings: a finished one
+// of that code, or of that role at that tier or better.
+func standsIn(snap *content.Snapshot, rows []application.SettlementBuildingInstance) func(content.AvailabilityBuilding) bool {
+	return func(b content.AvailabilityBuilding) bool {
+		for _, row := range rows {
+			if row.Status != "complete" {
+				continue
+			}
+			d, ok := snap.SettlementBuildingDef(row.TypeCode)
+			if !ok {
+				continue
+			}
+			if b.Code != "" && d.Code == b.Code {
+				return true
+			}
+			if b.Role != "" && d.Def().Role == b.Role && d.Def().Tier >= b.Tier {
+				return true
+			}
+		}
+		return false
+	}
 }

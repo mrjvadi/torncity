@@ -70,7 +70,11 @@
 # leaderboards — refreshed once a period (GAME time) on the game clock:
 #   size lines a board, keep periods kept; city_score: per_resident,
 #   per_company and treasury_bps (a share of the treasury) points, cut by
-#   the city's war damage.
+#   the city's war damage. hidden_names: accounts that are the game's own
+#   (the operator's agents, the neutral bank's account) and never stand on a
+#   board, matched without regard to case; a Telegram @handle inside a
+#   display name is cut out of it. village_size: lines of the village board
+#   (the residents of the viewer's own settlement by what they are worth).
 #
 # Loaded and versioned with the rest of the content (`admin content load`).
 
@@ -182,4 +186,6 @@ life:
     period: 24h
     size: 10
     keep: 7
+    village_size: 20
+    hidden_names: [Nil, NIL Guard Agent]
     city_score: {per_resident: 1000, per_company: 5000, treasury_bps: 100}

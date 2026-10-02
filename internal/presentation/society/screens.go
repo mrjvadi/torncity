@@ -837,7 +837,11 @@ var Boards = []string{"richest", "companies", "cities", "workers", "investors"}
 // Leaderboard is one board, and the way to the others.
 func Leaderboard(c presentation.Ctx, v BoardView) *presentation.Response {
 	var a []presentation.Action
-	for _, b := range Boards {
+	boards := Boards
+	if v.Village != nil {
+		boards = append([]string{"village"}, Boards...)
+	}
+	for _, b := range boards {
 		if b != v.Board {
 			a = append(a, act(addrLifeTop, b).Named("board.tab").About(b))
 		}

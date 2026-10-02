@@ -3,6 +3,7 @@
     "title": "Education · courses on offer (page 1 of 2)",
     "screen": "education",
     "view": {
+      "build": null,
       "certificates": null,
       "courses": [
         {
@@ -36,15 +37,25 @@
           "min_level": 4
         }
       ],
+      "currency": null,
       "current": null,
+      "elsewhere": null,
+      "empty": "",
+      "literacy": null,
       "page": 1,
-      "pages": 2
+      "pages": 2,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "tier": ""
     }
   },
   {
     "title": "Education · studying, with certificates",
     "screen": "education",
     "view": {
+      "build": null,
       "certificates": [
         {
           "code": "first_aid",
@@ -67,6 +78,7 @@
           "min_level": 4
         }
       ],
+      "currency": null,
       "current": {
         "course": {
           "code": "bookkeeping",
@@ -77,14 +89,23 @@
         "percent": 60,
         "remaining_seconds": 5700
       },
+      "elsewhere": null,
+      "empty": "",
+      "literacy": null,
       "page": 1,
-      "pages": 1
+      "pages": 1,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "tier": ""
     }
   },
   {
     "title": "Education · the course paused in jail",
     "screen": "education",
     "view": {
+      "build": null,
       "certificates": null,
       "courses": [
         {
@@ -98,6 +119,7 @@
           "min_level": 4
         }
       ],
+      "currency": null,
       "current": {
         "course": {
           "code": "bookkeeping",
@@ -108,16 +130,26 @@
         "percent": 60,
         "remaining_seconds": 2400
       },
+      "elsewhere": null,
+      "empty": "",
+      "literacy": null,
       "page": 1,
-      "pages": 1
+      "pages": 1,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "tier": ""
     }
   },
   {
     "title": "Education · course finishing",
     "screen": "education",
     "view": {
+      "build": null,
       "certificates": null,
       "courses": null,
+      "currency": null,
       "current": {
         "course": {
           "code": "bookkeeping",
@@ -128,19 +160,37 @@
         "percent": 99,
         "remaining_seconds": 30
       },
+      "elsewhere": null,
+      "empty": "",
+      "literacy": null,
       "page": 1,
-      "pages": 1
+      "pages": 1,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "tier": ""
     }
   },
   {
     "title": "Education · nothing new here",
     "screen": "education",
     "view": {
+      "build": null,
       "certificates": null,
       "courses": null,
+      "currency": null,
       "current": null,
+      "elsewhere": null,
+      "empty": "",
+      "literacy": null,
       "page": 1,
-      "pages": 1
+      "pages": 1,
+      "place": {
+        "code": "",
+        "name": ""
+      },
+      "tier": ""
     }
   },
   {

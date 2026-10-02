@@ -230,6 +230,7 @@ var netWorthQuery = `
 WITH p AS (
     SELECT id, public_code, display_name, telegram_user_id, created_at FROM players
      WHERE status = 'active' AND ($1 = '' OR id = NULLIF($1, '')::uuid)
+       AND ($8 = '' OR residence_city_id = NULLIF($8, '')::uuid)
 ), acct AS (
     SELECT owner_id,
            SUM(balance) FILTER (WHERE kind = 'player_cash')   AS cash,
@@ -293,7 +294,23 @@ SELECT p.id::text, p.public_code, p.display_name, p.telegram_user_id, p.created_
 func (r *LifeRepository) NetWorth(ctx context.Context, prices application.NetWorthPrices, playerID string) (
 	[]application.NetWorth, error,
 ) {
-	if playerID != "" && !validUUID(playerID) {
+	return r.netWorth(ctx, prices, playerID, "")
+}
+
+// ResidentWorth values every active player whose home is the settlement.
+func (r *LifeRepository) ResidentWorth(ctx context.Context, prices application.NetWorthPrices, settlementID string) (
+	[]application.NetWorth, error,
+) {
+	if settlementID == "" {
+		return nil, nil
+	}
+	return r.netWorth(ctx, prices, "", settlementID)
+}
+
+func (r *LifeRepository) netWorth(ctx context.Context, prices application.NetWorthPrices, playerID, settlementID string) (
+	[]application.NetWorth, error,
+) {
+	if (playerID != "" && !validUUID(playerID)) || (settlementID != "" && !validUUID(settlementID)) {
 		return nil, nil
 	}
 	cities, types, pprices := []string{}, []string{}, []int64{}
@@ -306,7 +323,7 @@ func (r *LifeRepository) NetWorth(ctx context.Context, prices application.NetWor
 	for k, v := range prices.Items {
 		codes, iprices = append(codes, k), append(iprices, v)
 	}
-	rows, err := r.q.Query(ctx, netWorthQuery, playerID, cities, types, pprices, codes, iprices, prices.GoldBid)
+	rows, err := r.q.Query(ctx, netWorthQuery, playerID, cities, types, pprices, codes, iprices, prices.GoldBid, settlementID)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: valuing players: %w", err)
 	}

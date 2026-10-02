@@ -23,8 +23,9 @@ type MissionBoardDef struct {
 	// Name is the fallback for mission_board.<code>.
 	Name string `yaml:"name" json:"name"`
 	// Place is where the board stands (places.yml): a mission is taken, and
-	// goods are handed in, there.
-	Place string `yaml:"place" json:"place"`
+	// goods are handed in, there. A settlement's own board (the village works
+	// board) has none: it stands wherever the settlement is.
+	Place string `yaml:"place,omitempty" json:"place,omitempty"`
 }
 
 // ObjectiveDef is one objective (mission.Objective).
@@ -154,7 +155,7 @@ func (p *Pack) validateMissions(problems *[]error) {
 			bad("mission_boards[%d] %q is not a code or repeated", i, b.Code)
 		}
 		boards[b.Code] = true
-		if !places[b.Place] {
+		if b.Place != "" && !places[b.Place] {
 			bad("mission_boards[%d] %q: place %q is not a place of places.yml", i, b.Code, b.Place)
 		}
 		if b.Name == "" {

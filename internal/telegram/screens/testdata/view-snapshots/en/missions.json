@@ -8,6 +8,7 @@
         {
           "code": "city_hall",
           "name": "Civic noticeboard",
+          "open": 0,
           "place": {
             "code": "city_hall",
             "name": "Civic centre"
@@ -16,6 +17,7 @@
         {
           "code": "police",
           "name": "Police board",
+          "open": 0,
           "place": {
             "code": "police_station",
             "name": "Police station"
@@ -24,8 +26,10 @@
       ],
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "currency": null,
       "here": false,
-      "missions": null
+      "missions": null,
+      "tier": ""
     }
   },
   {
@@ -35,6 +39,7 @@
       "board": {
         "code": "city_hall",
         "name": "Civic noticeboard",
+        "open": 0,
         "place": {
           "code": "city_hall",
           "name": "Civic centre"
@@ -43,6 +48,7 @@
       "boards": null,
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "currency": null,
       "here": true,
       "missions": [
         {
@@ -51,6 +57,7 @@
             "code": "first_steps",
             "name": "First steps"
           },
+          "objectives": null,
           "repeatable": false,
           "reward": {
             "cash": 300,
@@ -73,6 +80,7 @@
             "code": "study_up",
             "name": "Back to school"
           },
+          "objectives": null,
           "repeatable": false,
           "reward": {
             "cash": 500,
@@ -87,6 +95,7 @@
             "code": "city_courier",
             "name": "City courier"
           },
+          "objectives": null,
           "repeatable": true,
           "reward": {
             "cash": 250,
@@ -101,6 +110,7 @@
             "code": "medicine_drive",
             "name": "Medicine drive"
           },
+          "objectives": null,
           "repeatable": true,
           "reward": {
             "cash": 450,
@@ -109,7 +119,8 @@
           },
           "wait_seconds": 0
         }
-      ]
+      ],
+      "tier": ""
     }
   },
   {
@@ -121,6 +132,7 @@
       "board": {
         "code": "city_hall",
         "name": "Civic noticeboard",
+        "open": 0,
         "place": {
           "code": "city_hall",
           "name": "Civic centre"
@@ -184,6 +196,7 @@
       "board": {
         "code": "city_hall",
         "name": "Civic noticeboard",
+        "open": 0,
         "place": {
           "code": "city_hall",
           "name": "Civic centre"
@@ -229,6 +242,7 @@
       "board": {
         "code": "city_hall",
         "name": "Civic noticeboard",
+        "open": 0,
         "place": {
           "code": "city_hall",
           "name": "Civic centre"
@@ -279,6 +293,7 @@
       "board": {
         "code": "city_hall",
         "name": "Civic noticeboard",
+        "open": 0,
         "place": {
           "code": "city_hall",
           "name": "Civic centre"
@@ -324,6 +339,7 @@
       "board": {
         "code": "",
         "name": "",
+        "open": 0,
         "place": {
           "code": "",
           "name": ""

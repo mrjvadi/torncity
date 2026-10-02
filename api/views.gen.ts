@@ -313,6 +313,7 @@ export interface BoardView {
   lines: BoardLine[] | null
   at: string | null
   ranks: Record<string, Named> | null
+  village: Named | null
 }
 
 export interface BookLevel {
@@ -876,6 +877,12 @@ export interface CreditView {
   new_credit_bps: number
   missed: number
   defaults: number
+}
+
+export interface Currency {
+  code: string
+  name: string
+  symbol: string
 }
 
 export interface DamageLine {
@@ -1940,6 +1947,7 @@ export interface KitPurchaseView {
 export interface KnowledgeLine {
   knowledge: Named
   state: string
+  unlocks: KnowledgeUnlock[] | null
   research_cost: number
   research_time_seconds: number
   buy_price: number
@@ -1949,6 +1957,7 @@ export interface KnowledgeLine {
 
 export interface KnowledgeListView {
   name: string
+  currency: Currency | null
   treasury: number
   literacy_percent: number
   running: KnowledgeResearchLine | null
@@ -1960,6 +1969,11 @@ export interface KnowledgeResearchLine {
   knowledge: Named
   finish_at: string | null
   left_seconds: number
+}
+
+export interface KnowledgeUnlock {
+  kind: string
+  item: Named
 }
 
 export interface LabView {

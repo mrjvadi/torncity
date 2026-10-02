@@ -125,6 +125,15 @@ type Named struct {
 	Name string
 }
 
+// Currency is the money a place prices things in: its code, its authored name and
+// its symbol. A place with none of its own (the neutral city) sends none and the edge
+// uses the neutral money's name.
+type Currency struct {
+	Code   string
+	Name   string
+	Symbol string
+}
+
 // Ctx is what the core tells a screen constructor about who is reading: the
 // language the player reads, which the edge writes in. It says nothing about
 // the medium.

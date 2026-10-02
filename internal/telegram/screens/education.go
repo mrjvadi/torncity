@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -37,14 +38,43 @@ type CourseLine struct {
 	Eligible bool
 }
 
+// The study hub's neutral types live in presentation (the core builds them too).
+type (
+	CourseNeed        = presentation.CourseNeed
+	CourseGap         = presentation.CourseGap
+	EducationLiteracy = presentation.EducationLiteracy
+)
+
+const (
+	CourseNeedStage        = presentation.CourseNeedStage
+	CourseNeedKnowledge    = presentation.CourseNeedKnowledge
+	CourseNeedBuilding     = presentation.CourseNeedBuilding
+	CourseNeedTeacher      = presentation.CourseNeedTeacher
+	EducationNoClass       = presentation.EducationNoClass
+	EducationNothingTaught = presentation.EducationNothingTaught
+)
+
 // EducationView is the study hub: the course in progress, the certificates
 // held, and one page of the courses on offer here.
 type EducationView struct {
 	Current      *CurrentCourseView
 	Certificates []CourseRef
-	Courses      []CourseLine
-	Page         int
-	Pages        int
+	// Place is where the player stands and Tier its stage (village, town or city).
+	Place presentation.Named
+	Tier  string
+	// Currency is the money the fees are in; nil when the place has none of its own.
+	Currency *presentation.Currency
+	// Literacy is shown in a settlement that has a class standing.
+	Literacy *EducationLiteracy
+	Courses  []CourseLine
+	// Elsewhere are the courses not taught here, each with where it is and what this place lacks.
+	Elsewhere []CourseGap
+	// Empty is why nothing is on offer here ("" when something is); Build the class
+	// building that would change it.
+	Empty string
+	Build *presentation.Named
+	Page  int
+	Pages int
 }
 
 // Education renders the study hub.

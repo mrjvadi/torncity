@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -85,7 +86,12 @@ type MissionBoardRef struct {
 	Code  string
 	Name  string
 	Place Named
+	// Open is how many missions the board posts to this player, set on the list of boards.
+	Open int
 }
+
+// MissionBoardName is a board's name in the player's language.
+func (c Context) MissionBoardName(n Named) string { return c.named("mission_board."+n.Code, n.Name) }
 
 func (c Context) boardName(b MissionBoardRef) string { return c.named("mission_board."+b.Code, b.Name) }
 
@@ -141,6 +147,8 @@ type MissionLine struct {
 	Blocked    string
 	Wait       time.Duration
 	Repeatable bool
+	// Objectives are what the mission asks, with no progress yet: a board shows what is wanted.
+	Objectives []MissionObjective
 }
 
 // blockedLine says why a mission cannot be taken now, empty when it can.
@@ -155,7 +163,12 @@ func (c Context) blockedLine(why string, wait time.Duration, level, max int) str
 // MissionBoardView is a city's boards, or one board and its missions.
 type MissionBoardView struct {
 	CityCode, City string
-	Boards         []MissionBoardRef
+	// Tier is the stage of the place the player stands in (village, town or city).
+	Tier string
+	// Currency is the money the cash rewards are paid in where the player stands; nil when
+	// the place has none of its own.
+	Currency *presentation.Currency
+	Boards   []MissionBoardRef
 	Board          *MissionBoardRef
 	// Here says the player stands at the board: they may take a mission.
 	Here     bool
@@ -173,7 +186,11 @@ func renderMissionBoard(c Context, v MissionBoardView) *presenter.Response {
 	if v.Board == nil {
 		lines := []string{c.T("mission.boards_title", map[string]any{"city": city})}
 		for _, b := range v.Boards {
-			lines = append(lines, c.T("mission.board_line", map[string]any{"board": c.boardName(b), "place": c.SpotName(b.Place)}))
+			key := "mission.board_line"
+			if b.Place.Code == "" {
+				key = "mission.board_line_here" // a settlement's own board stands in the settlement itself
+			}
+			lines = append(lines, c.T(key, map[string]any{"board": c.boardName(b), "place": c.SpotName(b.Place)}))
 			kb.Add(c.T("mission.button.board", map[string]any{"board": c.boardName(b)}), AddrMissionBoard, b.Code)
 		}
 		if len(v.Boards) == 0 {
@@ -185,7 +202,7 @@ func renderMissionBoard(c Context, v MissionBoardView) *presenter.Response {
 	}
 	b := *v.Board
 	lines := []string{c.T("mission.board_title", map[string]any{"board": c.boardName(b), "city": city})}
-	if !v.Here {
+	if !v.Here && b.Place.Code != "" {
 		lines = append(lines, c.T("mission.board_elsewhere", map[string]any{"place": c.SpotName(b.Place)}))
 	}
 	var list []string

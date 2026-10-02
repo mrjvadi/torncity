@@ -218,7 +218,7 @@ func (t *fakeTx) Governance() application.GovernanceRepository { return nil }
 // Worlds and Settlements are never reached by a handler test yet; nil
 // repositories make any accidental use fail loudly, the same as Governance.
 func (t *fakeTx) Worlds() application.WorldRepository                            { return nil }
-func (t *fakeTx) Settlements() application.SettlementRepository                  { return nil }
+func (t *fakeTx) Settlements() application.SettlementRepository                  { return noSettlements{} }
 func (t *fakeTx) SettlementTreasury() application.SettlementTreasuryRepository   { return nil }
 func (t *fakeTx) Citizens() application.CitizenRepository                        { return nil }
 func (t *fakeTx) SettlementKnowledge() application.SettlementKnowledgeRepository { return nil }
@@ -534,4 +534,11 @@ func TestProfileTextComesFromTheCatalogue(t *testing.T) {
 			}
 		})
 	}
+}
+
+// noSettlements is the settlement port of a world made only of content cities: no city is a founded settlement.
+type noSettlements struct{ application.SettlementRepository }
+
+func (noSettlements) ByID(context.Context, string) (application.FoundedSettlement, error) {
+	return application.FoundedSettlement{}, application.ErrCityNotFound
 }

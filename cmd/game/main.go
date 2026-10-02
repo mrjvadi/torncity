@@ -465,6 +465,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// city's labour law only through the resolver (ADR 0015).
 	h.jobs, h.education = newWorkHandlers(uow, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL)
+	h.education.WithHomeCity(cfg.Settlement.HomeCityCode)
 
 	// Crime reads crimes from the live registry and a city's justice levers
 	// only through the resolver (ADR 0015), on the game clock.

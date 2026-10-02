@@ -111,6 +111,7 @@ type Snapshot struct {
 	// availability is availability.yml's tags by kind and code; see
 	// availability_lookup.go.
 	availability map[string]AvailabilityDef
+	staffRoles   map[string]StaffRoleDef
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.

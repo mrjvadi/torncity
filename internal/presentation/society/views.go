@@ -1076,6 +1076,9 @@ type BoardView struct {
 	At time.Time
 	// Ranks names the ranks the richest board tags players with.
 	Ranks map[string]presentation.Named
+	// Village is the settlement the viewer lives in, nil when they live in
+	// none: it is what the "village" board lists the residents of.
+	Village *presentation.Named
 }
 
 

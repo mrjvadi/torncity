@@ -418,6 +418,9 @@ func (c Context) boardLine(board string, l BoardLine) string {
 			args["tag"] = c.T("life.board.no_job", nil)
 		}
 	}
+	if board == "village" {
+		board = "richest" // the same line: neighbours by what each is worth
+	}
 	line := c.T("life.board."+board+"_line", args)
 	if l.Mine {
 		line = c.T("life.board.mine", map[string]any{"line": line})
@@ -431,10 +434,14 @@ func Leaderboard(c Context, v BoardView) *presenter.Response {
 }
 
 func renderLeaderboard(c Context, v BoardView) *presenter.Response {
-	title := c.T("life.board."+v.Board+"_title", nil)
+	var village string
+	if v.Village != nil {
+		village = v.Village.Name
+	}
+	title := c.T("life.board."+v.Board+"_title", map[string]any{"village": village})
 	var lines []string
 	for _, l := range v.Lines {
-		if v.Board == "richest" {
+		if v.Board == "richest" || v.Board == "village" {
 			if r, ok := v.Ranks[l.Tag]; ok {
 				l.TagName = c.RankName(RankRef{Code: r.Code, Name: r.Name})
 			}
@@ -450,7 +457,11 @@ func renderLeaderboard(c Context, v BoardView) *presenter.Response {
 	}
 	kb := keyboards.New()
 	var tabs []presenter.Button
-	for _, b := range []string{"richest", "companies", "cities", "workers", "investors"} {
+	boards := []string{"richest", "companies", "cities", "workers", "investors"}
+	if v.Village != nil {
+		boards = append([]string{"village"}, boards...)
+	}
+	for _, b := range boards {
 		if b == v.Board {
 			continue
 		}

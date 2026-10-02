@@ -275,6 +275,10 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 		add("mission", CatalogueEntry{Code: m.Code,
 			Name: names(func(c screens.Context) string { return c.MissionName(screens.Named{Code: m.Code, Name: m.Name}) })}, false)
 	}
+	for _, b := range snap.MissionBoards() {
+		add("mission_board", CatalogueEntry{Code: b.Code,
+			Name: names(func(c screens.Context) string { return c.MissionBoardName(screens.Named{Code: b.Code, Name: b.Name}) })}, false)
+	}
 	for _, p := range snap.PropertyTypes() {
 		add("property_type", CatalogueEntry{Code: p.Code, Kind: p.Kind,
 			Name: names(func(c screens.Context) string { return c.PropertyTypeName(screens.Named{Code: p.Code, Name: p.Name}) })}, false)
