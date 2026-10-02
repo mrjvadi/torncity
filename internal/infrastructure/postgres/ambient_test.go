@@ -28,6 +28,11 @@ var rawPoolAllowed = map[string]bool{
 	// run on requests of their own, never inside a command.
 	"panel_accounts.go": true,
 	"panel_lists.go":    true,
+	// Client state sync's projection opens its own transaction after a
+	// command committed and refuses to run inside one
+	// (ErrProjectInTransaction); every read of a projection, its own and
+	// other repositories', runs on that one transaction.
+	"statesync.go": true,
 }
 
 // TestRepositoriesDoNotTakeTheRawPool is the guard against the freeze of the

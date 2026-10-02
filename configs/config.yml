@@ -965,6 +965,61 @@ realtime:
   # redelivered event is stamped the same and published once.
   settlement_event_ttl: 24h
 
+# Client state sync (docs/adr/0034-client-state-sync.md, api/client-api.md
+# "State sync"): every player has an ordered log of the changes to what
+# their client holds (wallet, vitals, items, notices, their settlement...),
+# numbered pts 1, 2, 3... with no holes. GET /state is the snapshot, GET
+# /updates?since= what was missed, the player's realtime channel pushes new
+# records, and a command's answer carries its own. The projector runs in
+# cmd/notifier; the endpoints in cmd/clientapi.
+state_sync:
+  # The whole feature, and bootstrap.features.updates (what tells a client
+  # to keep a store instead of polling). Off: no log is written and
+  # clients poll as before.
+  enabled: true
+  # Changing the epoch voids every client's cursor: each one resets to a
+  # fresh snapshot (after a bulk data repair, say).
+  epoch: "1"
+  # A client further behind than this many records resets instead of
+  # replaying (Telegram's differenceTooLong); the most records one GET
+  # /updates answers; how often one player may pull.
+  reset_threshold: 2000
+  pull_limit: 500
+  pulls_per_minute: 240
+  # How long a command's answer waits for its own records; without them in
+  # time it answers anyway and the push brings them.
+  command_wait: 300ms
+  # A batch bigger than either is not pushed; a short "too long" poke is,
+  # and the client pulls.
+  push_max_records: 100
+  push_max_bytes: 32768
+  # An older domain event is acknowledged without projecting (a new
+  # projector consumer reads the event stream from its start).
+  max_event_age: 10m
+  # Payload keys, besides any containing "player", that name a player an
+  # event concerns.
+  player_keys: [payee_id, payer_id, victim_id, target_id, buyer_id, seller_id, winner_id, member_id, holder_id,
+    recipient_id, sender_id, attacker_id, defender_id, candidate_id, voter_id]
+  # The most residents and visitors one settlement event re-projects.
+  fanout_limit: 500
+  # How many recent records are searched for a command's own.
+  cause_window: 200
+  # How many of the newest notices a client holds (older ones are paged).
+  notices_kept: 50
+  # The longest a projection waits for the player's lock.
+  lock_timeout: 2s
+  # Retention: a record is kept while younger than retention_age OR among
+  # the player's last retention_records, whichever keeps more, never fewer
+  # than retention_min. One replica trims at a time, every trim_interval,
+  # trim_batch players per run.
+  retention_age: 168h
+  retention_records: 5000
+  retention_min: 500
+  trim_interval: 1h
+  trim_batch: 200
+  # How often each process logs its state sync counters.
+  metrics_interval: 5m
+
 # The world generator (internal/domain/worldgen; the project report at
 # docs/adr proposes the schema for what gets stored). What biomes and
 # resources exist, and the geology that places them, is CONTENT

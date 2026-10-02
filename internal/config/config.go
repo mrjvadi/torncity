@@ -221,6 +221,8 @@ type Config struct {
 	// the notifier publish through; see client.go.
 	Client   Client
 	Realtime Realtime
+	// StateSync is client state sync (docs/adr/0034).
+	StateSync StateSync
 
 	// Notifications is the inbox badge (migrations/0037_notification_
 	// inbox): which of cmd/notifier's own tuning is not content (delivery
@@ -1554,6 +1556,7 @@ func Defaults() *Config {
 		Panel:        defaultPanel(),
 		Client:       defaultClient(),
 		Realtime:     defaultRealtime(),
+		StateSync:    defaultStateSync(),
 		Crime: Crime{
 			NerveMax:                     20,
 			NerveRegenAmount:             1,
@@ -1704,6 +1707,9 @@ func (c *Config) Validate() error {
 		return err
 	}
 	if err := c.Realtime.validate(); err != nil {
+		return err
+	}
+	if err := c.StateSync.validate(); err != nil {
 		return err
 	}
 
