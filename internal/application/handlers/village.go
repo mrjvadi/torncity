@@ -520,6 +520,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 		if view.Promotion, err = h.promotionOf(ctx, tx, snap, s, viewer.ID); err != nil {
 			return err
 		}
+		view.Development = currentGrowth() != nil // ADR 0044 phase G1: the readout is listed only while the flag is on
 		if h.homeCityCode != "" {
 			if support, err := h.cities.ByCode(ctx, h.homeCityCode); err == nil {
 				view.Support = &village.VillageSupport{Code: support.Code, Name: support.Name}

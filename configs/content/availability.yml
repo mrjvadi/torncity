@@ -25,6 +25,32 @@ version: 1
 # building's stage equals its tier's, and every prerequisite is reachable from
 # Support or from a village's founding state. A dead end fails the load.
 
+# ADR 0044 PHASE G0, THE GROWTH LINT. A settlement stage is not a gate. A tag may
+# carry no `stage`, if it says what the settlement must have (`requires`, or an
+# own requirement of the building or knowledge item) or carries a `growth` block:
+#   growth: {open: true}            nothing is needed (open from founding, earned by
+#                                   doing the thing, or carried by the shop or recipe)
+#   growth: {open: true, founding: true}
+#                                   Appendix A class A, open from founding: the ONLY
+#                                   kind of row that may drop its `stage` with nothing
+#                                   else gating it. A bare open row keeps its stage,
+#                                   and so does a deferral: dropping the stage of a row
+#                                   with an empty `requires` would open it to everyone.
+#   growth: {requires: {...}}       the new gate of ADR 0044 Appendix A class D; read
+#                                   only while growth.capabilities is on (phase G1)
+#   growth: {deferred: charter|building_missing|finance}
+#                                   the real gate is built by a later phase (see note)
+# `row` is the Appendix A row. A tag gated ONLY by a stage label is refused by the
+# lint, except the entries below: grandfathered buildings whose only gate is their
+# tier (the ADR's "the building itself is the gate"), kept readable until their own
+# prerequisites are written. The list may only shrink: gating an entry makes the
+# lint demand its removal, and the shipped-content test pins its size.
+legacy_stage_only:
+  - building/bank
+  - building/barracks
+  - building/port
+  - building/airport
+
 # People who make a service run. Support always has an NPC for the role.
 staff_roles:
   - {code: teacher, building: {role: education, tier: 1}, personal: [{kind: literacy}], support_npc: true, note: "a qualified citizen or the building's staff; ADR 0038 owner decision 6 point 3"}
@@ -38,16 +64,16 @@ personal_sources:
 
 availability:
   # ---- buildings: stage is the tier (1 village, 2 town, 3+ city); prerequisites are the building's own requires_* fields
-  - {kind: building, code: road, stage: village}
-  - {kind: building, code: civic_hall, stage: village}
-  - {kind: building, code: housing_block, stage: undecided, question: بلوک مسکونی در سطح روستا تعریف شده است، اما در واقعیت آپارتمان‌سازی از شهرک به بالا است. آیا باید به سطح دو (شهرک) برود؟}
-  - {kind: building, code: cottage, stage: village}
-  - {kind: building, code: park, stage: village}
+  - {kind: building, code: road, stage: village, growth: {open: true, founding: true, row: 1}}
+  - {kind: building, code: civic_hall, stage: village, growth: {open: true, founding: true, row: 2}}
+  - {kind: building, code: housing_block, stage: undecided, growth: {requires: {knowledge: [masonry_ii], buildings: [{role: housing, tier: 1}]}, row: 3}, question: بلوک مسکونی در سطح روستا تعریف شده است، اما در واقعیت آپارتمان‌سازی از شهرک به بالا است. آیا باید به سطح دو (شهرک) برود؟}
+  - {kind: building, code: cottage, stage: village, growth: {open: true, founding: true, row: 4}}
+  - {kind: building, code: park, stage: village, growth: {open: true, founding: true, row: 5}}
   - {kind: building, code: bank, stage: city, elsewhere: [{where: support}]}
   - {kind: building, code: barracks, stage: town, elsewhere: [{where: support}]}
   - {kind: building, code: port, stage: city, elsewhere: [{where: support}]}
   - {kind: building, code: airport, stage: city, elsewhere: [{where: support}]}
-  - {kind: building, code: woodcutter_camp, stage: village}
+  - {kind: building, code: woodcutter_camp, stage: village, growth: {open: true, founding: true, row: 10}}
   - {kind: building, code: watch_hut, stage: village}
   - {kind: building, code: militia_camp, stage: village}
   - {kind: building, code: retainer_hall, stage: village}
@@ -60,7 +86,7 @@ availability:
   - {kind: building, code: pottery_kiln, stage: village}
   - {kind: building, code: manufactory, stage: city}
   - {kind: building, code: factory, stage: city}
-  - {kind: building, code: small_pit, stage: village}
+  - {kind: building, code: small_pit, stage: village, growth: {open: true, founding: true, row: 23}}
   - {kind: building, code: mine, stage: town}
   - {kind: building, code: canal_channel, stage: village}
   - {kind: building, code: shaft_well, stage: village}
@@ -71,55 +97,55 @@ availability:
   - {kind: building, code: farm_terrace, stage: village}
   - {kind: building, code: farm_paddy, stage: village}
   - {kind: building, code: pasture_range, stage: village}
-  - {kind: building, code: health_house, stage: village, elsewhere: [{where: support}]}
+  - {kind: building, code: health_house, stage: village, growth: {open: true, founding: true, row: 34}, elsewhere: [{where: support}]}
   - {kind: building, code: clinic, stage: town, elsewhere: [{where: support}]}
-  - {kind: building, code: teaching_circle, stage: village, elsewhere: [{where: support}]}
+  - {kind: building, code: teaching_circle, stage: village, growth: {open: true, founding: true, row: 36}, elsewhere: [{where: support}]}
   - {kind: building, code: school, stage: town, elsewhere: [{where: support}], note: "gated by min_literacy_share_bps 5000 in the building itself; it names no teacher knowledge (state_school) yet, see audit M-09"}
-  - {kind: building, code: barter_post, stage: village, elsewhere: [{where: support}]}
+  - {kind: building, code: barter_post, stage: village, growth: {open: true, founding: true, row: 38}, elsewhere: [{where: support}]}
   - {kind: building, code: market, stage: town, elsewhere: [{where: support}]}
-  - {kind: building, code: granary, stage: village}
-  - {kind: building, code: private_cottage, stage: village}
+  - {kind: building, code: granary, stage: village, growth: {open: true, founding: true, row: 40}}
+  - {kind: building, code: private_cottage, stage: village, growth: {open: true, founding: true, row: 41}}
   - {kind: building, code: private_house, stage: village}
   - {kind: building, code: home_workshop, stage: village}
-  - {kind: building, code: market_stall, stage: village, elsewhere: [{where: support}]}
+  - {kind: building, code: market_stall, stage: village, growth: {open: true, founding: true, row: 44}, elsewhere: [{where: support}]}
 
   # ---- knowledge: generation 1 and the founding grants are a village's; generation 2 a town's (ADR 0031 tier table); generation 3+ and formal institutions as noted
-  - {kind: knowledge, code: oral_tradition, stage: village, note: "founding grant, every settlement has it"}
-  - {kind: knowledge, code: communal_watch, stage: village, note: "founding grant, every settlement has it"}
-  - {kind: knowledge, code: kin_apprenticeship, stage: village, note: "founding grant, every settlement has it"}
-  - {kind: knowledge, code: barter_ring, stage: village, note: "founding grant, every settlement has it"}
-  - {kind: knowledge, code: basic_literacy, stage: village, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: record_keeping, stage: village, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: basic_medicine, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: oral_tradition, stage: village, growth: {open: true, founding: true, row: 45}, note: "founding grant, every settlement has it"}
+  - {kind: knowledge, code: communal_watch, stage: village, growth: {open: true, founding: true, row: 46}, note: "founding grant, every settlement has it"}
+  - {kind: knowledge, code: kin_apprenticeship, stage: village, growth: {open: true, founding: true, row: 47}, note: "founding grant, every settlement has it"}
+  - {kind: knowledge, code: barter_ring, stage: village, growth: {open: true, founding: true, row: 48}, note: "founding grant, every settlement has it"}
+  - {kind: knowledge, code: basic_literacy, stage: village, growth: {open: true, founding: true, row: 49}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: record_keeping, stage: village, growth: {open: true, founding: true, row: 50}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: basic_medicine, stage: village, growth: {open: true, founding: true, row: 51}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: basic_medicine_ii, stage: town, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: carpentry, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: carpentry, stage: village, growth: {open: true, founding: true, row: 53}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry_ii, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry_iii, stage: city, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry_iv, stage: city, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: masonry, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: masonry, stage: village, growth: {open: true, founding: true, row: 57}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: masonry_ii, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: masonry_iii, stage: town, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: smithing, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: smithing, stage: village, growth: {open: true, founding: true, row: 60}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: smithing_ii, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: smithing_iii, stage: town, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: weaving, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: weaving, stage: village, growth: {open: true, founding: true, row: 63}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: weaving_ii, stage: town, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: pottery, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: pottery, stage: village, growth: {open: true, founding: true, row: 65}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: pottery_ii, stage: town, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: milling, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: milling, stage: village, growth: {open: true, founding: true, row: 67}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: milling_ii, stage: town, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: canal_irrigation, stage: village, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: shaft_irrigation, stage: village, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: terrace_irrigation, stage: village, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: paddy_cultivation, stage: village, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: open_range_herding, stage: village, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: coastal_fishing, stage: village, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: pondfield_aquaculture, stage: village, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: mounted_militia, stage: village, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: sworn_retainers, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: canal_irrigation, stage: village, growth: {open: true, founding: true, row: 69}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: shaft_irrigation, stage: village, growth: {open: true, founding: true, row: 70}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: terrace_irrigation, stage: village, growth: {open: true, founding: true, row: 71}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: paddy_cultivation, stage: village, growth: {open: true, founding: true, row: 72}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: open_range_herding, stage: village, growth: {open: true, founding: true, row: 73}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: coastal_fishing, stage: village, growth: {open: true, founding: true, row: 74}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: pondfield_aquaculture, stage: village, growth: {open: true, founding: true, row: 75}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: mounted_militia, stage: village, growth: {open: true, founding: true, row: 76}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: sworn_retainers, stage: village, growth: {open: true, founding: true, row: 77}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: formal_constabulary, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: craft_guild_charter, stage: town, elsewhere: [{where: support}]}
-  - {kind: knowledge, code: temple_school, stage: village, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: temple_school, stage: village, growth: {open: true, founding: true, row: 80}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: state_school, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: periodic_market, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: endowed_market_hall, stage: town, elsewhere: [{where: support}]}
@@ -127,7 +153,7 @@ availability:
 
   # ---- courses and education (ADR 0038 section 5 and owner decisions 4 and 6): a course needs the knowledge, the building and a teacher; Support teaches every one
   - {kind: course, code: first_aid, stage: village, requires: {knowledge: [basic_medicine], buildings: [{role: health, tier: 1}]}, elsewhere: [{where: support}], note: "taught by the health worker, who is trained in Support (no teacher role needed: avoids a circle)"}
-  - {kind: course, code: driving_licence, stage: town, requires: {}, elsewhere: [{where: support}], note: "owner decision 2026-10-01: from town"}
+  - {kind: course, code: driving_licence, stage: town, growth: {requires: {buildings: [{role: education, tier: 1}, {code: road}]}, row: 86, note: "App. A row 86: the driving-skill teacher is not a staff role yet"}, elsewhere: [{where: support}], note: "owner decision 2026-10-01: from town"}
   - {kind: course, code: bookkeeping, stage: town, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
   - {kind: course, code: programming_fundamentals, stage: city, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
   - {kind: course, code: retail_management, stage: town, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
@@ -140,7 +166,7 @@ availability:
 
   # ---- careers (jobs.yml): village work is the labour board (ADR 0037); these ladders start at town; certificates come from the career's own required_certifications
   - {kind: career, code: retail, stage: town, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
-  - {kind: career, code: hospitality, stage: undecided, requires: {}, elsewhere: [{where: support}], question: آیا مسافرخانه/چایخانه ساختمانِ تازه‌ای است؟ بدون آن این شغل جایگاهی ندارد و ساختمانی در فهرست نیست.}
+  - {kind: career, code: hospitality, stage: undecided, growth: {deferred: building_missing, row: 97, note: "App. A: an inn building (housing role); the catalogue has none"}, requires: {}, elsewhere: [{where: support}], question: آیا مسافرخانه/چایخانه ساختمانِ تازه‌ای است؟ بدون آن این شغل جایگاهی ندارد و ساختمانی در فهرست نیست.}
   - {kind: career, code: logistics, stage: city, requires: {buildings: [{role: transport, tier: 3}]}, elsewhere: [{where: support}]}
   - {kind: career, code: workshop, stage: town, requires: {buildings: [{role: craft, tier: 1}]}, elsewhere: [{where: support}]}
   - {kind: career, code: technology, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
@@ -159,14 +185,14 @@ availability:
   - {kind: crime, code: goods_smuggling, stage: city, requires: {buildings: [{role: transport, tier: 3}], personal: [{kind: level, min: 6}]}}
 
   # ---- places: the venues crimes and shops name (places.yml); derived village places (ADR 0033 3.2) are not built yet
-  - {kind: place, code: city_centre, stage: city, requires: {}, elsewhere: [{where: support}]}
+  - {kind: place, code: city_centre, stage: city, growth: {requires: {buildings: [{role: market, tier: 2}, {code: civic_hall}]}, row: 112}, elsewhere: [{where: support}]}
   - {kind: place, code: bazaar, stage: village, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
   - {kind: place, code: business_district, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
   - {kind: place, code: university, stage: city, requires: {buildings: [{role: education, tier: 2}]}, elsewhere: [{where: support}]}
   - {kind: place, code: city_hall, stage: village, requires: {buildings: [{code: civic_hall}]}, elsewhere: [{where: support}]}
   - {kind: place, code: police_station, stage: town, requires: {buildings: [{role: security, tier: 2}]}, elsewhere: [{where: support}]}
-  - {kind: place, code: bus_terminal, stage: town, requires: {}, elsewhere: [{where: support}]}
-  - {kind: place, code: train_station, stage: city, requires: {}, elsewhere: [{where: support}]}
+  - {kind: place, code: bus_terminal, stage: town, growth: {deferred: building_missing, row: 118, note: "App. A: a transport L1 bus terminal building; the catalogue has none (ADR 0045)"}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: place, code: train_station, stage: city, growth: {deferred: building_missing, row: 119, note: "App. A: rail station and laid route, ADR 0045 rail"}, requires: {}, elsewhere: [{where: support}]}
   - {kind: place, code: airport, stage: city, requires: {buildings: [{code: airport}]}, elsewhere: [{where: support}]}
   - {kind: place, code: industrial_zone, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
   - {kind: place, code: farmland, stage: village, requires: {buildings: [{role: food, tier: 1}]}}
@@ -178,10 +204,10 @@ availability:
   # ---- missions: the two boards and seven missions exist only at Support as written (city objectives, SUP rewards); the village works board is ADR 0038 4.5
   - {kind: mission_board, code: city_hall, stage: support, requires: {}, note: "city-era board; the village works board and citizens' request board replace it in villages (ADR 0038 4.5)"}
   - {kind: mission_board, code: police, stage: support, requires: {}, note: "city-era board; the village works board and citizens' request board replace it in villages (ADR 0038 4.5)"}
-  - {kind: mission_board, code: village_works, stage: village, requires: {}, note: "the village's own board, posted from content; the citizens' request board arrives with mission.post (ADR 0038 4.5)"}
-  - {kind: mission, code: village_first_lesson, stage: village, requires: {}}
-  - {kind: mission, code: village_bread_run, stage: village, requires: {}}
-  - {kind: mission, code: village_bandage_run, stage: village, requires: {}}
+  - {kind: mission_board, code: village_works, stage: village, growth: {open: true, founding: true, row: 129}, requires: {}, note: "the village's own board, posted from content; the citizens' request board arrives with mission.post (ADR 0038 4.5)"}
+  - {kind: mission, code: village_first_lesson, stage: village, growth: {open: true, founding: true, row: 130}, requires: {}}
+  - {kind: mission, code: village_bread_run, stage: village, growth: {open: true, founding: true, row: 131}, requires: {}}
+  - {kind: mission, code: village_bandage_run, stage: village, growth: {open: true, founding: true, row: 132}, requires: {}}
   - {kind: mission, code: first_steps, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
   - {kind: mission, code: study_up, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
   - {kind: mission, code: city_courier, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
@@ -191,30 +217,30 @@ availability:
   - {kind: mission, code: first_aid_course, stage: support, requires: {}, note: objective is city-shaped; rewrite for the village board before showing it there}
 
   # ---- items: where a good first becomes available; shops and workshops decide where it is sold and made
-  - {kind: item, code: bread, stage: village, requires: {}, elsewhere: [{where: support}]}
-  - {kind: item, code: sandwich, stage: town, requires: {}, elsewhere: [{where: support}]}
-  - {kind: item, code: hot_meal, stage: village, requires: {}, elsewhere: [{where: support}]}
-  - {kind: item, code: water_bottle, stage: village, requires: {}, elsewhere: [{where: support}]}
-  - {kind: item, code: coffee, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: bread, stage: village, growth: {open: true, founding: true, row: 140}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: sandwich, stage: town, growth: {open: true, row: 141}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: hot_meal, stage: village, growth: {open: true, founding: true, row: 142}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: water_bottle, stage: village, growth: {open: true, founding: true, row: 143}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: coffee, stage: town, growth: {open: true, row: 144}, requires: {}, elsewhere: [{where: support}]}
   - {kind: item, code: energy_drink, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
-  - {kind: item, code: bandage, stage: village, requires: {}, elsewhere: [{where: support}]}
-  - {kind: item, code: painkillers, stage: town, requires: {}, elsewhere: [{where: support}]}
-  - {kind: item, code: first_aid_kit, stage: town, requires: {}, elsewhere: [{where: support}]}
-  - {kind: item, code: lockpick_set, stage: town, requires: {}, elsewhere: [{where: support}], note: "underworld gear, ADR 0035"}
-  - {kind: item, code: crowbar, stage: village, requires: {}, elsewhere: [{where: support}]}
-  - {kind: item, code: gloves, stage: village, requires: {}, elsewhere: [{where: support}]}
-  - {kind: item, code: ski_mask, stage: town, requires: {}, elsewhere: [{where: support}], note: "underworld gear, ADR 0035"}
-  - {kind: item, code: running_shoes, stage: town, requires: {}, elsewhere: [{where: support}]}
-  - {kind: item, code: fake_documents, stage: city, requires: {}, note: "no legal source; black market not built (ADR 0035), behind the operator 18+ switch"}
-  - {kind: item, code: card_skimmer, stage: city, requires: {}, note: "no legal source; black market not built (ADR 0035), behind the operator 18+ switch"}
+  - {kind: item, code: bandage, stage: village, growth: {open: true, founding: true, row: 146}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: painkillers, stage: town, growth: {open: true, row: 147}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: first_aid_kit, stage: town, growth: {open: true, row: 148}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: lockpick_set, stage: town, growth: {open: true, row: 149}, requires: {}, elsewhere: [{where: support}], note: "underworld gear, ADR 0035"}
+  - {kind: item, code: crowbar, stage: village, growth: {open: true, founding: true, row: 150}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: gloves, stage: village, growth: {open: true, founding: true, row: 151}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: ski_mask, stage: town, growth: {open: true, row: 152}, requires: {}, elsewhere: [{where: support}], note: "underworld gear, ADR 0035"}
+  - {kind: item, code: running_shoes, stage: town, growth: {open: true, row: 153}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: fake_documents, stage: city, growth: {open: true, row: 154}, requires: {}, note: "no legal source; black market not built (ADR 0035), behind the operator 18+ switch"}
+  - {kind: item, code: card_skimmer, stage: city, growth: {open: true, row: 155}, requires: {}, note: "no legal source; black market not built (ADR 0035), behind the operator 18+ switch"}
   - {kind: item, code: phone, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
-  - {kind: item, code: watch, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: watch, stage: town, growth: {open: true, row: 157}, requires: {}, elsewhere: [{where: support}]}
   - {kind: item, code: car_stereo, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
-  - {kind: item, code: jewellery, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: jewellery, stage: town, growth: {open: true, row: 159}, requires: {}, elsewhere: [{where: support}]}
   - {kind: item, code: led_torch, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, note: no shop sells it}
   - {kind: item, code: pocket_radio, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, note: no shop sells it}
   - {kind: item, code: car, stage: city, requires: {buildings: [{role: craft, tier: 4}]}, elsewhere: [{where: support}]}
-  - {kind: item, code: motorbike, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: item, code: motorbike, stage: town, growth: {open: true, row: 163}, requires: {}, elsewhere: [{where: support}]}
 
   # ---- defence goods (defence_industry.yml): a factory-class building, export-controlled, never on sale in Support
   - {kind: item, code: fighter_jet, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}
@@ -238,29 +264,29 @@ availability:
 
   # ---- components (materials): raw materials are a village's; smelted and machined ones a town's and city's
   - {kind: component, code: diesel, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
-  - {kind: component, code: seed_grain, stage: village, requires: {}}
+  - {kind: component, code: seed_grain, stage: village, growth: {open: true, founding: true, row: 183}, requires: {}}
   - {kind: component, code: lithium_salt, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
-  - {kind: component, code: spring_water, stage: village, requires: {}}
-  - {kind: component, code: yeast, stage: village, requires: {}}
-  - {kind: component, code: coffee_bean, stage: town, requires: {}}
-  - {kind: component, code: herb_extract, stage: village, requires: {}}
-  - {kind: component, code: starch, stage: village, requires: {}}
+  - {kind: component, code: spring_water, stage: village, growth: {open: true, founding: true, row: 185}, requires: {}}
+  - {kind: component, code: yeast, stage: village, growth: {open: true, founding: true, row: 186}, requires: {}}
+  - {kind: component, code: coffee_bean, stage: town, growth: {requires: {buildings: [{role: food, tier: 1}]}, row: 187, note: "App. A row 187 also asks for the farming research; no single farming research exists (needs research)"}, requires: {}}
+  - {kind: component, code: herb_extract, stage: village, growth: {open: true, founding: true, row: 188}, requires: {}}
+  - {kind: component, code: starch, stage: village, growth: {open: true, founding: true, row: 189}, requires: {}}
   - {kind: component, code: gemstone, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
   - {kind: component, code: silver, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
   - {kind: component, code: copper_wire, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
-  - {kind: component, code: resin, stage: village, requires: {}}
-  - {kind: component, code: silica, stage: village, requires: {}}
+  - {kind: component, code: resin, stage: village, growth: {open: true, founding: true, row: 193}, requires: {}}
+  - {kind: component, code: silica, stage: village, growth: {open: true, founding: true, row: 194}, requires: {}}
   - {kind: component, code: iron_ore, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
   - {kind: component, code: crude_oil, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
-  - {kind: component, code: wheat, stage: village, requires: {}}
-  - {kind: component, code: cotton, stage: village, requires: {}}
-  - {kind: component, code: timber, stage: village, requires: {}, elsewhere: [{where: support}], note: bought from Support by a village (village_buy)}
-  - {kind: component, code: stone, stage: village, requires: {}, elsewhere: [{where: support}], note: bought from Support by a village (village_buy)}
-  - {kind: component, code: wool, stage: village, requires: {}, elsewhere: [{where: support}], note: bought from Support by a village (village_buy)}
-  - {kind: component, code: plank, stage: village, requires: {}}
-  - {kind: component, code: brick, stage: village, requires: {}}
-  - {kind: component, code: cloth, stage: village, requires: {}}
-  - {kind: component, code: flour, stage: village, requires: {}}
+  - {kind: component, code: wheat, stage: village, growth: {open: true, founding: true, row: 197}, requires: {}}
+  - {kind: component, code: cotton, stage: village, growth: {open: true, founding: true, row: 198}, requires: {}}
+  - {kind: component, code: timber, stage: village, growth: {open: true, founding: true, row: 199}, requires: {}, elsewhere: [{where: support}], note: bought from Support by a village (village_buy)}
+  - {kind: component, code: stone, stage: village, growth: {open: true, founding: true, row: 200}, requires: {}, elsewhere: [{where: support}], note: bought from Support by a village (village_buy)}
+  - {kind: component, code: wool, stage: village, growth: {open: true, founding: true, row: 201}, requires: {}, elsewhere: [{where: support}], note: bought from Support by a village (village_buy)}
+  - {kind: component, code: plank, stage: village, growth: {open: true, founding: true, row: 202}, requires: {}}
+  - {kind: component, code: brick, stage: village, growth: {open: true, founding: true, row: 203}, requires: {}}
+  - {kind: component, code: cloth, stage: village, growth: {open: true, founding: true, row: 204}, requires: {}}
+  - {kind: component, code: flour, stage: village, growth: {open: true, founding: true, row: 205}, requires: {}}
   - {kind: component, code: tool_steel, stage: town, requires: {knowledge: [smithing], buildings: [{code: smithy}]}}
   - {kind: component, code: plastic_case, stage: city, requires: {buildings: [{role: craft, tier: 3}]}}
   - {kind: component, code: circuit_board, stage: city, requires: {buildings: [{role: craft, tier: 3}]}}
@@ -322,31 +348,31 @@ availability:
   - {kind: supplier, code: strategic_materials, stage: support, requires: {}, note: NPC wholesaler of Support; a village buys its materials from Support (village_buy)}
 
   # ---- vehicles and transport
-  - {kind: transport_mode, code: walk, stage: village, requires: {}}
+  - {kind: transport_mode, code: walk, stage: village, growth: {open: true, founding: true, row: 263}, requires: {}}
   - {kind: transport_mode, code: cart, stage: village, requires: {buildings: [{code: road}]}}
-  - {kind: transport_mode, code: bus, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: transport_mode, code: bus, stage: town, growth: {deferred: building_missing, row: 265, note: "App. A: a transport L1 bus terminal building; the catalogue has none (ADR 0045)"}, requires: {}, elsewhere: [{where: support}]}
   - {kind: transport_mode, code: car, stage: town, requires: {personal: [{kind: certificate, code: driving_licence}]}, elsewhere: [{where: support}]}
-  - {kind: transport_mode, code: train, stage: city, requires: {}, elsewhere: [{where: support}]}
+  - {kind: transport_mode, code: train, stage: city, growth: {deferred: building_missing, row: 267, note: "App. A: rail station and laid route, ADR 0045 rail"}, requires: {}, elsewhere: [{where: support}]}
   - {kind: transport_mode, code: flight, stage: city, requires: {buildings: [{code: airport}]}, elsewhere: [{where: support}]}
-  - {kind: transport_facility, code: bus_terminal, stage: town, requires: {}, elsewhere: [{where: support}]}
-  - {kind: transport_facility, code: rail_station, stage: city, requires: {}, elsewhere: [{where: support}]}
+  - {kind: transport_facility, code: bus_terminal, stage: town, growth: {deferred: building_missing, row: 269, note: "App. A: a transport L1 bus terminal building; the catalogue has none (ADR 0045)"}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: transport_facility, code: rail_station, stage: city, growth: {deferred: building_missing, row: 270, note: "App. A: rail station and laid route, ADR 0045 rail"}, requires: {}, elsewhere: [{where: support}]}
   - {kind: transport_facility, code: airport, stage: city, requires: {buildings: [{code: airport}]}, elsewhere: [{where: support}]}
   - {kind: transport_facility, code: village_road, stage: village, requires: {buildings: [{code: road}]}}
 
   # ---- skills: the village skills (farming, carpentry...) do not exist yet (audit M-04); these are the city-era ones
-  - {kind: skill, code: programming, stage: city, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: engineering, stage: city, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: mechanics, stage: town, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: cooking, stage: village, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: logistics, stage: village, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: driving, stage: town, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: medicine, stage: village, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: management, stage: town, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: finance, stage: town, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: stealth, stage: village, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: lockpicking, stage: village, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: deception, stage: village, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: streetwise, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: programming, stage: city, growth: {open: true, row: 273}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: engineering, stage: city, growth: {open: true, row: 274}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: mechanics, stage: town, growth: {open: true, row: 275}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: cooking, stage: village, growth: {open: true, founding: true, row: 276}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: logistics, stage: village, growth: {open: true, founding: true, row: 277}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: driving, stage: town, growth: {open: true, row: 278}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: medicine, stage: village, growth: {open: true, founding: true, row: 279}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: management, stage: town, growth: {open: true, row: 280}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: finance, stage: town, growth: {open: true, row: 281}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: stealth, stage: village, growth: {open: true, founding: true, row: 282}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: lockpicking, stage: village, growth: {open: true, founding: true, row: 283}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: deception, stage: village, growth: {open: true, founding: true, row: 284}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: streetwise, stage: village, growth: {open: true, founding: true, row: 285}, requires: {}, elsewhere: [{where: support}]}
 
   # ---- company types (player businesses)
   - {kind: company_type, code: grocery, stage: village, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
@@ -355,7 +381,7 @@ availability:
   - {kind: company_type, code: clinic, stage: town, requires: {buildings: [{role: health, tier: 2}]}, elsewhere: [{where: support}]}
   - {kind: company_type, code: pharma, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
   - {kind: company_type, code: pharmacy, stage: town, requires: {buildings: [{role: health, tier: 1}]}, elsewhere: [{where: support}]}
-  - {kind: company_type, code: courier, stage: town, requires: {}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: courier, stage: town, growth: {requires: {buildings: [{code: road}, {role: market, tier: 1}]}, row: 292}, elsewhere: [{where: support}]}
   - {kind: company_type, code: tech_studio, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
   - {kind: company_type, code: factory, stage: city, requires: {buildings: [{code: factory}]}, elsewhere: [{where: support}]}
   - {kind: company_type, code: mine, stage: town, requires: {buildings: [{code: mine}]}, elsewhere: [{where: support}]}
@@ -372,45 +398,45 @@ availability:
   - {kind: property_type, code: family_house, stage: village, requires: {buildings: [{role: housing, tier: 1}]}, elsewhere: [{where: support}]}
   - {kind: property_type, code: villa, stage: town, requires: {buildings: [{role: housing, tier: 1}]}, elsewhere: [{where: support}]}
   - {kind: property_type, code: shop_unit, stage: town, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
-  - {kind: property_type, code: plot, stage: village, requires: {}, elsewhere: [{where: support}]}
+  - {kind: property_type, code: plot, stage: village, growth: {open: true, founding: true, row: 307}, requires: {}, elsewhere: [{where: support}]}
 
   # ---- offices (governance.yml): the stage is the jurisdiction the office belongs to
-  - {kind: office, code: mayor, stage: city, requires: {}}
-  - {kind: office, code: deputy_mayor, stage: city, requires: {}}
-  - {kind: office, code: city_council, stage: city, requires: {}}
+  - {kind: office, code: mayor, stage: city, growth: {deferred: charter, row: 308, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: deputy_mayor, stage: city, growth: {deferred: charter, row: 309, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: city_council, stage: city, growth: {deferred: charter, row: 310, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
   - {kind: office, code: police_chief, stage: city, requires: {buildings: [{role: security, tier: 2}]}}
   - {kind: office, code: deputy_police_chief, stage: city, requires: {buildings: [{role: security, tier: 2}]}}
-  - {kind: office, code: military_governor, stage: city, requires: {}}
+  - {kind: office, code: military_governor, stage: city, growth: {deferred: charter, row: 313, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
   - {kind: office, code: village_head, stage: village, requires: {buildings: [{code: civic_hall}]}}
-  - {kind: office, code: town_head, stage: town, requires: {}}
-  - {kind: office, code: governor, stage: country, requires: {}}
-  - {kind: office, code: president, stage: country, requires: {}}
-  - {kind: office, code: parliament, stage: country, requires: {}}
-  - {kind: office, code: defence_minister, stage: country, requires: {}}
-  - {kind: office, code: chief_of_general_staff, stage: country, requires: {}}
-  - {kind: office, code: ground_forces_commander, stage: country, requires: {}}
-  - {kind: office, code: air_force_commander, stage: country, requires: {}}
-  - {kind: office, code: navy_commander, stage: country, requires: {}}
-  - {kind: office, code: air_defence_commander, stage: country, requires: {}}
-  - {kind: office, code: central_banker, stage: country, requires: {}}
-  - {kind: office, code: foreign_minister, stage: country, requires: {}}
+  - {kind: office, code: town_head, stage: town, growth: {deferred: charter, row: 315, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: governor, stage: country, growth: {deferred: charter, row: 316, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: president, stage: country, growth: {deferred: charter, row: 317, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: parliament, stage: country, growth: {deferred: charter, row: 318, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: defence_minister, stage: country, growth: {deferred: charter, row: 319, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: chief_of_general_staff, stage: country, growth: {deferred: charter, row: 320, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: ground_forces_commander, stage: country, growth: {deferred: charter, row: 321, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: air_force_commander, stage: country, growth: {deferred: charter, row: 322, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: navy_commander, stage: country, growth: {deferred: charter, row: 323, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: air_defence_commander, stage: country, growth: {deferred: charter, row: 324, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: central_banker, stage: country, growth: {deferred: charter, row: 325, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: foreign_minister, stage: country, growth: {deferred: charter, row: 326, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
 
   # ---- government actions (country-level: war, treaties, sanctions, procurement)
-  - {kind: government_action, code: country.procure, stage: country, requires: {}}
-  - {kind: government_action, code: country.defence_licence, stage: country, requires: {}}
-  - {kind: government_action, code: country.command_ground, stage: country, requires: {}}
-  - {kind: government_action, code: country.command_air, stage: country, requires: {}}
-  - {kind: government_action, code: country.command_navy, stage: country, requires: {}}
-  - {kind: government_action, code: country.command_air_defence, stage: country, requires: {}}
-  - {kind: government_action, code: country.sanction, stage: country, requires: {}}
-  - {kind: government_action, code: country.treaty, stage: country, requires: {}}
-  - {kind: government_action, code: country.war, stage: country, requires: {}}
+  - {kind: government_action, code: country.procure, stage: country, growth: {deferred: charter, row: 327, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: government_action, code: country.defence_licence, stage: country, growth: {deferred: charter, row: 328, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: government_action, code: country.command_ground, stage: country, growth: {deferred: charter, row: 329, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: government_action, code: country.command_air, stage: country, growth: {deferred: charter, row: 330, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: government_action, code: country.command_navy, stage: country, growth: {deferred: charter, row: 331, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: government_action, code: country.command_air_defence, stage: country, growth: {deferred: charter, row: 332, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: government_action, code: country.sanction, stage: country, growth: {deferred: charter, row: 333, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: government_action, code: country.treaty, stage: country, growth: {deferred: charter, row: 334, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: government_action, code: country.war, stage: country, growth: {deferred: charter, row: 335, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
 
   # ---- military and diplomacy
-  - {kind: branch, code: ground, stage: country, requires: {}}
-  - {kind: branch, code: air, stage: country, requires: {}}
-  - {kind: branch, code: navy, stage: country, requires: {}}
-  - {kind: branch, code: air_defence, stage: country, requires: {}}
+  - {kind: branch, code: ground, stage: country, growth: {requires: {buildings: [{code: barracks}]}, row: 336, note: "App. A: also the military research; none exists yet (needs research)"}, requires: {}}
+  - {kind: branch, code: air, stage: country, growth: {requires: {buildings: [{code: barracks}]}, row: 337, note: "App. A: also the military research; none exists yet (needs research)"}, requires: {}}
+  - {kind: branch, code: navy, stage: country, growth: {requires: {buildings: [{code: barracks}]}, row: 338, note: "App. A: also the military research; none exists yet (needs research)"}, requires: {}}
+  - {kind: branch, code: air_defence, stage: country, growth: {requires: {buildings: [{code: barracks}]}, row: 339, note: "App. A: also the military research; none exists yet (needs research)"}, requires: {}}
   - {kind: force_class, code: fighter, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
   - {kind: force_class, code: stealth_fighter, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
   - {kind: force_class, code: bomber, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
@@ -429,35 +455,35 @@ availability:
   - {kind: force_class, code: sam_short, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
   - {kind: force_class, code: sam_medium, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
   - {kind: force_class, code: sam_long, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
-  - {kind: treaty_type, code: alliance, stage: country, requires: {}}
-  - {kind: treaty_type, code: non_aggression, stage: country, requires: {}}
-  - {kind: treaty_type, code: trade_agreement, stage: country, requires: {}}
+  - {kind: treaty_type, code: alliance, stage: country, growth: {deferred: charter, row: 358, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: treaty_type, code: non_aggression, stage: country, growth: {deferred: charter, row: 359, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: treaty_type, code: trade_agreement, stage: country, growth: {deferred: charter, row: 360, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
 
   # ---- achievements (personal; unlocked by doing the thing, so the stage is the stage of that thing)
-  - {kind: achievement, code: first_shift, stage: village, requires: {}}
-  - {kind: achievement, code: hard_worker, stage: village, requires: {}}
-  - {kind: achievement, code: first_journey, stage: village, requires: {}}
-  - {kind: achievement, code: graduate, stage: village, requires: {}}
-  - {kind: achievement, code: entrepreneur, stage: town, requires: {}}
-  - {kind: achievement, code: homeowner, stage: village, requires: {}}
-  - {kind: achievement, code: ten_crimes, stage: village, requires: {}}
-  - {kind: achievement, code: elected, stage: village, requires: {}}
-  - {kind: achievement, code: lawmaker, stage: country, requires: {}}
+  - {kind: achievement, code: first_shift, stage: village, growth: {open: true, founding: true, row: 361}, requires: {}}
+  - {kind: achievement, code: hard_worker, stage: village, growth: {open: true, founding: true, row: 362}, requires: {}}
+  - {kind: achievement, code: first_journey, stage: village, growth: {open: true, founding: true, row: 363}, requires: {}}
+  - {kind: achievement, code: graduate, stage: village, growth: {open: true, founding: true, row: 364}, requires: {}}
+  - {kind: achievement, code: entrepreneur, stage: town, growth: {open: true, row: 365}, requires: {}}
+  - {kind: achievement, code: homeowner, stage: village, growth: {open: true, founding: true, row: 366}, requires: {}}
+  - {kind: achievement, code: ten_crimes, stage: village, growth: {open: true, founding: true, row: 367}, requires: {}}
+  - {kind: achievement, code: elected, stage: village, growth: {open: true, founding: true, row: 368}, requires: {}}
+  - {kind: achievement, code: lawmaker, stage: country, growth: {open: true, row: 369}, requires: {}}
 
   # ---- wealth ranks (personal, by net worth, any stage)
-  - {kind: rank, code: newcomer, stage: village, requires: {}}
-  - {kind: rank, code: breadwinner, stage: village, requires: {}}
-  - {kind: rank, code: trader, stage: village, requires: {}}
-  - {kind: rank, code: comfortable, stage: village, requires: {}}
-  - {kind: rank, code: wealthy, stage: village, requires: {}}
-  - {kind: rank, code: capitalist, stage: village, requires: {}}
-  - {kind: rank, code: tycoon, stage: village, requires: {}}
-  - {kind: rank, code: mogul, stage: village, requires: {}}
+  - {kind: rank, code: newcomer, stage: village, growth: {open: true, founding: true, row: 370}, requires: {}}
+  - {kind: rank, code: breadwinner, stage: village, growth: {open: true, founding: true, row: 371}, requires: {}}
+  - {kind: rank, code: trader, stage: village, growth: {open: true, founding: true, row: 372}, requires: {}}
+  - {kind: rank, code: comfortable, stage: village, growth: {open: true, founding: true, row: 373}, requires: {}}
+  - {kind: rank, code: wealthy, stage: village, growth: {open: true, founding: true, row: 374}, requires: {}}
+  - {kind: rank, code: capitalist, stage: village, growth: {open: true, founding: true, row: 375}, requires: {}}
+  - {kind: rank, code: tycoon, stage: village, growth: {open: true, founding: true, row: 376}, requires: {}}
+  - {kind: rank, code: mogul, stage: village, growth: {open: true, founding: true, row: 377}, requires: {}}
 
   # ---- sleep spots
   - {kind: sleep_spot, code: home, stage: village, requires: {buildings: [{role: housing, tier: 1}]}}
   - {kind: sleep_spot, code: bench, stage: village, requires: {buildings: [{code: park}]}}
-  - {kind: sleep_spot, code: hostel, stage: undecided, requires: {}, question: مسافرخانه ساختمانی در فهرست ساختمان‌ها ندارد؛ آیا ساختمان «مسافرخانه» (نقش اقامت) اضافه شود و از چه سطحی؟}
+  - {kind: sleep_spot, code: hostel, stage: undecided, growth: {deferred: building_missing, row: 380, note: "App. A: an inn building (housing role); the catalogue has none"}, requires: {}, question: مسافرخانه ساختمانی در فهرست ساختمان‌ها ندارد؛ آیا ساختمان «مسافرخانه» (نقش اقامت) اضافه شود و از چه سطحی؟}
 
   # ---- health services (health.yml)
   - {kind: health_service, code: home_rest, stage: village, requires: {buildings: [{role: housing, tier: 1}]}}
@@ -471,7 +497,7 @@ availability:
   - {kind: finance_service, code: insurance, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
   - {kind: finance_service, code: stocks, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
   - {kind: finance_service, code: gold, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
-  - {kind: finance_service, code: ton_exchange, stage: undecided, requires: {}, question: صرافی تون (ارز ویژه) فقط در شهر مرکزی باشد یا در هر جایی که بانک هست؟}
+  - {kind: finance_service, code: ton_exchange, stage: undecided, growth: {deferred: finance, row: 390, note: "stays disabled, ADR 0026 section 8"}, requires: {}, question: صرافی تون (ارز ویژه) فقط در شهر مرکزی باشد یا در هر جایی که بانک هست؟}
 
   # ---- factions (gangs and guilds)
   - {kind: faction, code: faction, stage: town, requires: {buildings: [{role: market, tier: 1}]}, note: "ADR 0033 3.5: guilds and clans at town with a market; organised crime at city"}

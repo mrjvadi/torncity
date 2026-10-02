@@ -1,0 +1,57 @@
+━━━ Development · a grown place with goals ahead ━━━
+(edits message 42)
+📈 Growth of "Korendal"
+
+👥 Residents: 14 of 24 places
+🏗 Finished buildings (not roads): 9
+📚 Things known: 7
+
+🏛 Service buildings:
+• Education: level 2
+• Health: level 1
+• Market: level 1
+
+🧭 Steps ahead:
+▫️ Residents: 14 of 40
+▫️ A clinic
+▫️ Treasury: 7,400 SUP of 20,000 SUP
+  ───
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:development.view
+
+━━━ Development · a fresh place, nothing built, no goals ━━━
+(edits message 42)
+📈 Growth of "Korendal"
+
+👥 Residents: 2
+🏗 Finished buildings (not roads): 2
+📚 Things known: 4
+
+No service building has been built yet.
+
+No step is ahead.
+  ───
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:development.view
+
+━━━ Village overview · the readout button (flag on) ━━━
+(edits message 42)
+🏘 the village of Korendal
+
+👥 Population: 6 of 12
+
+🏦 Village treasury: 7,400 SUP
+
+🌾 Food coverage: 40%
+💼 Job coverage: 0%
+🏥 Service coverage: 0%
+🙂 Happiness: 0%
+🛡 Local security: 0%
+📖 Literacy: 12%
+
+No buildings stand here yet.
+  ───
+  [🏡 Become a resident] → settlement:join
+  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [🧱 Stock and market] → settlement:materials
+  [👥 People] → settlement:who
+  [📈 Growth] → settlement:development.view
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview

@@ -207,7 +207,11 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 		if err != nil {
 			return err
 		}
-		if !def.ListedAt(s.Tier) {
+		listed, lerr := ListedInTx(ctx, tx, h.content.Current(), "build_lots", s.CityID, def.Code, def.ListedAt(s.Tier))
+		if lerr != nil {
+			return lerr
+		}
+		if !listed {
 			return refuseVillage(village.VillageNotAvailable)
 		}
 		// The prerequisites first: a building the village cannot start yet shows
@@ -309,7 +313,11 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if d.Private() {
 			return refuseVillage(village.CitizenPrivateOnly)
 		}
-		if !def.ListedAt(s.Tier) {
+		listed, lerr := ListedInTx(ctx, tx, h.content.Current(), "build_place", s.CityID, def.Code, def.ListedAt(s.Tier))
+		if lerr != nil {
+			return lerr
+		}
+		if !listed {
 			return refuseVillage(village.VillageNotAvailable)
 		}
 		if rf, err := h.placementRefusal(ctx, tx, h.content.Current(), s, d, def); err != nil {

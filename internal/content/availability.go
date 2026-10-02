@@ -96,12 +96,55 @@ type AvailabilityElsewhere struct {
 	Needs *AvailabilityNeeds `yaml:"needs,omitempty" json:"needs,omitempty"`
 }
 
-// AvailabilityDef is one tag.
+// Growth gate deferrals (ADR 0044 Appendix A): a row whose real gate is built
+// by a later phase or another ADR. Nothing can be compared for it yet.
+const (
+	// GrowthDeferredCharter: a charter office or permission (ADR 0044
+	// section 6, phase G2).
+	GrowthDeferredCharter = "charter"
+	// GrowthDeferredBuilding: the building the gate names does not exist in
+	// the catalogue yet (inn, bus terminal, rail: ADR 0045); the note says which.
+	GrowthDeferredBuilding = "building_missing"
+	// GrowthDeferredFinance: stays disabled (ADR 0026 section 8).
+	GrowthDeferredFinance = "finance"
+)
+
+var growthDeferrals = map[string]bool{GrowthDeferredCharter: true, GrowthDeferredBuilding: true, GrowthDeferredFinance: true}
+
+// AvailabilityGrowth is the gate an entry has once nothing unlocks by a
+// settlement tier label (ADR 0044 section 5, Appendix A). Exactly one of
+// Open, Requires and Deferred is set. It is read only while
+// growth.capabilities is on (phase G1, dual read); the tier answer stays
+// authoritative until phase G4.
+type AvailabilityGrowth struct {
+	// Open: nothing is needed; the entry is open from founding, or earned by
+	// doing the thing, or carried by the shop or recipe that offers it.
+	Open bool `yaml:"open,omitempty" json:"open,omitempty"`
+	// Founding marks an open row of Appendix A class A, "open from founding":
+	// the only kind of row that may drop its stage while nothing else gates it.
+	// Every other open row (an item the shop carries, a skill, an achievement)
+	// keeps its stage until a real gate exists, so dropping a stage can never
+	// open a row to everyone.
+	Founding bool `yaml:"founding,omitempty" json:"founding,omitempty"`
+	// Requires is the new real gate (Appendix A class D): research, buildings
+	// and staff, merged with the tag's own requires.
+	Requires *AvailabilityNeeds `yaml:"requires,omitempty" json:"requires,omitempty"`
+	// Deferred names the later work that owns this gate (growthDeferrals).
+	Deferred string `yaml:"deferred,omitempty" json:"deferred,omitempty"`
+	// Row is the Appendix A row number, for the audit.
+	Row  int    `yaml:"row,omitempty" json:"row,omitempty"`
+	Note string `yaml:"note,omitempty" json:"note,omitempty"`
+}
+
+// AvailabilityDef is one tag. Stage is optional from phase G0 (ADR 0044
+// section 11): an entry may be gated by what its settlement has instead of by
+// a stage label, and every new one must be.
 type AvailabilityDef struct {
 	Kind      string                  `yaml:"kind" json:"kind"`
 	Code      string                  `yaml:"code" json:"code"`
-	Stage     string                  `yaml:"stage" json:"stage"`
+	Stage     string                  `yaml:"stage,omitempty" json:"stage,omitempty"`
 	Requires  *AvailabilityNeeds      `yaml:"requires,omitempty" json:"requires,omitempty"`
+	Growth    *AvailabilityGrowth     `yaml:"growth,omitempty" json:"growth,omitempty"`
 	Elsewhere []AvailabilityElsewhere `yaml:"elsewhere,omitempty" json:"elsewhere,omitempty"`
 	// Question is the owner question that makes a stage undecided.
 	Question string `yaml:"question,omitempty" json:"question,omitempty"`
@@ -293,14 +336,20 @@ func (p *Pack) validateAvailability(problems *[]error) {
 			bad("%s: tagged twice", key)
 			continue
 		}
-		if !availabilityStages[t.Stage] {
+		if t.Stage != "" && !availabilityStages[t.Stage] {
 			bad("%s: stage %q is not one of village, town, city, country, support, undecided", key, t.Stage)
 			continue
 		}
+		if t.Stage == "" && !p.hasRealGate(t) {
+			bad("%s: no stage and no real gate: say what the settlement must have (requires, growth.requires), or keep the stage "+
+				"(only an open-from-founding row, growth.founding, may drop it with nothing else gating it)", key)
+		}
+		p.validateGrowth(key, t, bad)
+		p.lintStageOnly(key, t, bad)
 		if t.Stage == StageUndecided && strings.TrimSpace(t.Question) == "" {
 			bad("%s: an undecided stage needs a question for the owner", key)
 		}
-		if t.Requires == nil && !selfDescribedKinds[t.Kind] {
+		if t.Requires == nil && t.Growth == nil && !selfDescribedKinds[t.Kind] {
 			bad("%s: no prerequisites declared (write requires: {} when nothing is needed)", key)
 		}
 		tags[key] = t
@@ -395,8 +444,12 @@ func (p *Pack) validateAvailability(problems *[]error) {
 		}
 		checkPersonal(where, n.Personal)
 	}
+	p.lintLegacyList(tags, bad)
 	for key, t := range tags {
 		checkNeeds(key, t.Requires)
+		if t.Growth != nil {
+			checkNeeds(key+" growth", t.Growth.Requires)
+		}
 		for i, e := range t.Elsewhere {
 			w := fmt.Sprintf("%s elsewhere[%d]", key, i)
 			if e.Where != "support" && !availabilityStages[e.Where] {
@@ -404,7 +457,7 @@ func (p *Pack) validateAvailability(problems *[]error) {
 			}
 			checkNeeds(w, e.Needs)
 		}
-		if t.Kind == "building" && t.Stage != StageUndecided {
+		if t.Kind == "building" && t.Stage != StageUndecided && t.Stage != "" {
 			if want := stageOfTier(bcode[t.Code].Tier); want != t.Stage {
 				bad("%s: stage %s contradicts tier %d (a tier %d building is a %s building)",
 					key, t.Stage, bcode[t.Code].Tier, bcode[t.Code].Tier, want)
@@ -621,6 +674,10 @@ func (p *Pack) availabilityReachability(tags map[string]AvailabilityDef, staff m
 	for _, k := range keys {
 		if !reach(k) {
 			bad("%s: a prerequisite can never be met anywhere (no Support source, no reachable settlement route): a dead end", k)
+		}
+		// the Appendix A gate (ADR 0044) must be reachable from a founding state too
+		if g := tags[k].Growth; g != nil && g.Requires != nil && !needsOK(g.Requires) {
+			bad("%s: growth.requires can never be met by any settlement: a dead end", k)
 		}
 	}
 	for _, s := range p.StaffRoles {

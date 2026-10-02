@@ -51,7 +51,7 @@ func (g *ServiceGate) Check(ctx context.Context, snap *content.Snapshot, cityID,
 	if !ok {
 		return nil, nil
 	}
-	return g.evaluate(ctx, tag, cityID, service, false)
+	return g.evaluate(ctx, snap, tag, cityID, service, false)
 }
 
 // CheckEntry is Check for an entry that availability.yml tags itself, by kind
@@ -76,29 +76,39 @@ func (g *ServiceGate) CheckTag(ctx context.Context, snap *content.Snapshot, city
 	if !ok {
 		return nil, nil
 	}
-	return g.evaluate(ctx, tag, cityID, service, true)
+	return g.evaluate(ctx, snap, tag, cityID, service, true)
 }
 
 // evaluate decides one tag for the settlement of cityID. cityIsNational says a
 // city already has the national level around it.
-func (g *ServiceGate) evaluate(ctx context.Context, tag content.AvailabilityDef, cityID, service string, cityIsNational bool,
+func (g *ServiceGate) evaluate(ctx context.Context, snap *content.Snapshot, tag content.AvailabilityDef, cityID, service string, cityIsNational bool,
 ) (*economy.Unavailable, error) {
 	here, err := g.cities.ByID(ctx, cityID)
 	if err != nil {
 		return nil, err
 	}
 	stage := tierStage(here.Tier)
+	offered := false
 	switch {
 	case tag.Stage == content.StageSupport:
-		if here.Code == g.home {
-			return nil, nil
-		}
+		offered = here.Code == g.home
 	case content.StageRank(tag.Stage) == 0:
 		// undecided, or a stage nothing here can judge: nothing is guessed.
-		return nil, nil
+		offered = true
 	case content.StageRank(stage) >= content.StageRank(tag.Stage):
-		return nil, nil
+		offered = true
 	case cityIsNational && tag.Stage == content.StageCountry && content.StageRank(stage) >= content.StageRank(content.StageCity):
+		offered = true
+	}
+	// ADR 0044 phase G1: the same question asked of what the settlement has.
+	if gg := currentGrowth(); gg != nil && here.Tier != "" {
+		caps, found, cerr := gg.OutsideTx(ctx, snap, cityID)
+		if cerr != nil {
+			return nil, cerr
+		}
+		offered = gg.Decide("service_gate", cityID, snap, caps, found, tag, offered)
+	}
+	if offered {
 		return nil, nil
 	}
 	out := &economy.Unavailable{Service: service, Stage: tag.Stage, Here: stage}

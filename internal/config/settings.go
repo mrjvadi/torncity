@@ -56,6 +56,7 @@ type fileConfig struct {
 	Notifications notificationsSettings `yaml:"notifications"`
 	WorldGen      worldgenSettings      `yaml:"worldgen"`
 	Settlement    settlementSettings    `yaml:"settlement"`
+	Growth        growthSettings        `yaml:"growth"`
 
 	Legislature  legislatureSettings  `yaml:"legislature"`
 	Labor        laborSettings        `yaml:"labor"`
@@ -287,6 +288,13 @@ type worldgenSettings struct {
 	ChunkStreamFrequency        *float64 `yaml:"chunk_stream_frequency"`
 	ChunkStreamAmplitude        *int     `yaml:"chunk_stream_amplitude"`
 	ChunkDepositTilesPerDeposit *int     `yaml:"chunk_deposit_tiles_per_deposit"`
+}
+
+type growthSettings struct {
+	Capabilities  *string `yaml:"capabilities"`
+	CacheTTL      *string `yaml:"cache_ttl"`
+	RuinedBPS     *int    `yaml:"ruined_bps"`
+	FlushInterval *string `yaml:"flush_interval"`
 }
 
 type settlementSettings struct {
@@ -1063,6 +1071,18 @@ var coreSettings = []setting{
 		func(c *Config) *int { return &c.WorldGen.ChunkDepositTilesPerDeposit },
 		func(f *fileConfig) *int { return f.WorldGen.ChunkDepositTilesPerDeposit }),
 
+	stringSetting("growth", "capabilities",
+		func(c *Config) *string { return &c.Growth.Capabilities },
+		func(f *fileConfig) *string { return f.Growth.Capabilities }),
+	durationSetting("growth", "cache_ttl",
+		func(c *Config) *time.Duration { return &c.Growth.CacheTTL },
+		func(f *fileConfig) *string { return f.Growth.CacheTTL }),
+	limitSetting("growth", "ruined_bps",
+		func(c *Config) *int { return &c.Growth.RuinedBPS },
+		func(f *fileConfig) *int { return f.Growth.RuinedBPS }),
+	durationSetting("growth", "flush_interval",
+		func(c *Config) *time.Duration { return &c.Growth.FlushInterval },
+		func(f *fileConfig) *string { return f.Growth.FlushInterval }),
 	durationSetting("settlement", "protection_window",
 		func(c *Config) *time.Duration { return &c.Settlement.ProtectionWindow },
 		func(f *fileConfig) *string { return f.Settlement.ProtectionWindow }),

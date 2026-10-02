@@ -34,6 +34,7 @@ var (
 	screenDonateConfirm  = presentation.Define[DonateView](ScreenVillageDonateConfirm, "village")
 	screenDonateDone     = presentation.Define[DonateView](ScreenVillageDonateDone, "village")
 	screenPromotion      = presentation.Define[PromotionView](ScreenVillagePromotion, "village")
+	screenDevelopment    = presentation.Define[DevelopmentView](ScreenVillageDevelopment, "village")
 	screenPromoteAsk     = presentation.Define[PromotionView](ScreenVillagePromoteAsk, "village")
 	screenPromoted       = presentation.Define[PromotionView](ScreenVillagePromoted, "village")
 	screenResidenceAsk   = presentation.Define[ResidenceView](ScreenResidenceConfirm, "village")
@@ -122,6 +123,9 @@ func VillageOverview(c presentation.Ctx, v VillageOverviewView) *presentation.Re
 		} else {
 			a = append(a, act(AddrVillagePromotion).Named("village.promotion"))
 		}
+	}
+	if v.Development {
+		a = append(a, act(AddrVillageDevelopment).Named("village.development"))
 	}
 	if v.Resident {
 		a = append(a, act(AddrVillageLeave).Named("village.leave").As(presentation.RoleDanger))
@@ -368,6 +372,11 @@ func VillagePromotion(c presentation.Ctx, v PromotionView) *presentation.Respons
 	}
 	a = append(a, back(AddrVillageOverview), refresh(AddrVillagePromotion))
 	return screenPromotion.Response(c.Lang, v, a...)
+}
+
+// VillageDevelopment is the development readout: a view with no act.
+func VillageDevelopment(c presentation.Ctx, v DevelopmentView) *presentation.Response {
+	return screenDevelopment.Response(c.Lang, v, back(AddrVillageOverview), refresh(AddrVillageDevelopment))
 }
 
 // VillagePromoteAsk is the confirm step of a promotion.

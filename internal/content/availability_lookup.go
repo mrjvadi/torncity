@@ -25,6 +25,16 @@ func (s *Snapshot) StaffRole(code string) (StaffRoleDef, bool) {
 	return r, ok
 }
 
+// StaffRoles lists every staff role (availability.yml staff_roles), by code.
+func (s *Snapshot) StaffRoles() []StaffRoleDef {
+	out := make([]StaffRoleDef, 0, len(s.staffRoles))
+	for _, r := range s.staffRoles {
+		out = append(out, r)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Code < out[j].Code })
+	return out
+}
+
 // AvailabilityTag is the tag of one entry, by kind ("finance_service",
 // "place", "building"...) and code.
 func (s *Snapshot) AvailabilityTag(kind, code string) (AvailabilityDef, bool) {

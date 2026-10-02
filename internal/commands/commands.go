@@ -487,6 +487,8 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "terms", Origin: FromPlayer},
 	// Growing into the next tier (ADR 0028 section 4.1).
 	{Domain: "settlement", Action: "promotion.view", Origin: FromPlayer},
+	// The capacity readout beside it (ADR 0044 section 4.5, phase G1).
+	{Domain: "settlement", Action: "development.view", Origin: FromPlayer},
 	{Domain: "settlement", Action: "promote", Origin: FromPlayer},
 	{Domain: "settlement", Action: "researched", Origin: FromScheduler},
 	{Domain: "settlement", Action: "taught", Origin: FromScheduler},

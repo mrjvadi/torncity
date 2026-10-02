@@ -138,6 +138,8 @@ type file struct {
 	Availability    []AvailabilityDef   `yaml:"availability"`
 	StaffRoles      []StaffRoleDef      `yaml:"staff_roles"`
 	PersonalSources []PersonalSourceDef `yaml:"personal_sources"`
+	// LegacyStageOnly: see Pack.LegacyStageOnly.
+	LegacyStageOnly []string `yaml:"legacy_stage_only"`
 
 	// World generation (world.yml): the biomes, resource-geology rules and
 	// naming material worldgen.Generate reads. See worldgen.go. These are
@@ -296,6 +298,10 @@ func Load(dir string) (*Pack, error) {
 		pack.Availability = append(pack.Availability, doc.Availability...)
 		pack.StaffRoles = append(pack.StaffRoles, doc.StaffRoles...)
 		pack.PersonalSources = append(pack.PersonalSources, doc.PersonalSources...)
+		if doc.LegacyStageOnly != nil {
+			pack.GrowthLint = true
+			pack.LegacyStageOnly = append(pack.LegacyStageOnly, doc.LegacyStageOnly...)
+		}
 		pack.Biomes = append(pack.Biomes, doc.Biomes...)
 		pack.Resources = append(pack.Resources, doc.Resources...)
 		pack.NameSyllables = append(pack.NameSyllables, doc.NameSyllables...)

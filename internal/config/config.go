@@ -245,6 +245,41 @@ type Config struct {
 	// phase); these are the coefficients the founding algorithm itself
 	// runs on.
 	Settlement Settlement
+
+	// Growth is the switch and tuning of organic settlement growth (docs/adr/
+	// 0044-organic-growth-alliances-countries.md, phases G0 and G1): the
+	// capability computation that replaces the tier label, run beside it.
+	Growth Growth
+}
+
+// The values of growth.capabilities (ADR 0044 section 11, flag
+// growth.capabilities).
+const (
+	// GrowthOff computes nothing: the tier is the only answer. The default.
+	GrowthOff = "off"
+	// GrowthShadow computes the capability answer beside every tier gate and
+	// meters each disagreement; the tier stays authoritative.
+	GrowthShadow = "shadow"
+	// GrowthAuthoritative lets the capability answer decide. Reserved for
+	// phase G4; G1 ships the value so the switch-over is a config change.
+	GrowthAuthoritative = "authoritative"
+)
+
+// Growth is organic settlement growth's tuning.
+type Growth struct {
+	// Capabilities is growth.capabilities: off, shadow or authoritative.
+	Capabilities string
+	// CacheTTL is how long, REAL time, a settlement's computed capabilities
+	// are reused by the gates that read them outside a transaction
+	// (growth.cache_ttl; ADR 0044 section 5.1 "pure, cached").
+	CacheTTL time.Duration
+	// RuinedBPS is the damage, basis points, from which a building no longer
+	// stands for the capability computation (growth.ruined_bps; ADR 0044
+	// section 5.1 "condition"). 10000 is a ruin.
+	RuinedBPS int
+	// FlushInterval is how often each process writes the disagreements it
+	// metered to growth_disagreements (growth.flush_interval).
+	FlushInterval time.Duration
 }
 
 // Postgres bounds every service's connection pool.
@@ -1472,6 +1507,12 @@ func Defaults() *Config {
 			ChunkStreamAmplitude:        60,
 			ChunkDepositTilesPerDeposit: 5,
 		},
+		Growth: Growth{
+			Capabilities:  GrowthOff,
+			CacheTTL:      5 * time.Second,
+			RuinedBPS:     10000,
+			FlushInterval: 30 * time.Second,
+		},
 		Settlement: Settlement{
 			ProtectionWindow:    168 * time.Hour,
 			ResidenceCooldown:   72 * time.Hour,
@@ -1723,6 +1764,14 @@ func (c *Config) Validate() error {
 	}
 	if err := c.StateSync.validate(); err != nil {
 		return err
+	}
+	switch c.Growth.Capabilities {
+	case GrowthOff, GrowthShadow, GrowthAuthoritative:
+	default:
+		return fmt.Errorf("%w: growth.capabilities is %q (off, shadow or authoritative)", ErrInvalidValue, c.Growth.Capabilities)
+	}
+	if c.Growth.RuinedBPS < 1 || c.Growth.RuinedBPS > 10000 {
+		return fmt.Errorf("%w: growth.ruined_bps is %d (1..10000)", ErrInvalidValue, c.Growth.RuinedBPS)
 	}
 
 	// Renewing at or after the TTL is not renewing. A divisor of one renews

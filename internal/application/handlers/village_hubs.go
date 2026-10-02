@@ -6,6 +6,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	plife "github.com/mrjvadi/torncity/internal/presentation/life"
@@ -28,6 +29,12 @@ type hubSettlement struct {
 	// tier would have is taken as standing.
 	content bool
 	stands  func(content.AvailabilityBuilding) bool
+	// growth, cityID, caps and capsFound are the dual read of ADR 0044 phase
+	// G1: nil growth (growth.capabilities off) leaves the tier the only answer.
+	growth    *GrowthGate
+	cityID    string
+	caps      wsettle.Capabilities
+	capsFound bool
 }
 
 // offered says whether the tagged thing exists in this settlement: the stage is
@@ -39,19 +46,31 @@ func (s hubSettlement) offered(snap *content.Snapshot, kind, code string) bool {
 	if !ok {
 		return true
 	}
+	byTier := s.offeredByTier(tag)
+	if s.growth != nil && !s.content && s.capsFound {
+		return s.growth.Decide("hubs", s.cityID, snap, s.caps, true, tag, byTier)
+	}
+	return byTier
+}
+
+// offeredByTier is offered by the stage and the standing buildings alone. A tag
+// with no stage (ADR 0044 phase G0) has no stage to reach.
+func (s hubSettlement) offeredByTier(tag content.AvailabilityDef) bool {
 	if tag.Stage == content.StageSupport {
 		return s.neutral
 	}
-	need := content.StageRank(tag.Stage)
-	if need == 0 {
-		return false
-	}
-	have := s.stageRank
-	if have >= content.StageRank(content.StageCity) {
-		have = content.StageRank(content.StageCountry)
-	}
-	if have < need {
-		return false
+	if tag.Stage != "" {
+		need := content.StageRank(tag.Stage)
+		if need == 0 {
+			return false
+		}
+		have := s.stageRank
+		if have >= content.StageRank(content.StageCity) {
+			have = content.StageRank(content.StageCountry)
+		}
+		if have < need {
+			return false
+		}
 	}
 	if s.content || tag.Requires == nil {
 		return true
@@ -90,6 +109,14 @@ func judgeSettlementOf(ctx context.Context, tx application.Tx, snap *content.Sna
 	rows, err := tx.SettlementBuildings().List(ctx, city.ID)
 	if err != nil {
 		return s, err
+	}
+	if gg := currentGrowth(); gg != nil {
+		owned, err := tx.SettlementKnowledge().Owned(ctx, city.ID)
+		if err != nil {
+			return s, err
+		}
+		s.growth, s.cityID, s.capsFound = gg, city.ID, true
+		s.caps = gg.FromRows(snap, application.SettlementStanding{Buildings: rows, Knowledge: owned})
 	}
 	s.stands = func(b content.AvailabilityBuilding) bool {
 		for _, row := range rows {

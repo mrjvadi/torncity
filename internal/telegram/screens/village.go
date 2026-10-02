@@ -148,6 +148,9 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 		if v.Promotion != nil {
 			promotionButton(c, kb, *v.Promotion)
 		}
+		if v.Development {
+			developmentButton(c, kb)
+		}
 		if v.Resident {
 			kb.Add(c.T("village.button.leave", nil), AddrVillageLeave)
 		}

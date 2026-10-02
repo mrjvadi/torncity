@@ -502,6 +502,7 @@ var argNames = map[string][]string{
 	"settlement.tax.pay":            {},
 	"settlement.terms":              {"lot_price", "permit_fee", "tax_bps"},
 	"settlement.promotion.view":     {},
+	"settlement.development.view":   {},
 	"settlement.promote":            {"confirm"},
 
 	"job.status":       {},

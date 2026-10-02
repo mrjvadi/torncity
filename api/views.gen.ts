@@ -1208,6 +1208,25 @@ export interface DesignView {
   prev_attributes: Record<string, number> | null
 }
 
+export interface DevelopmentDimension {
+  code: string
+  load: number
+  capacity: number
+}
+
+export interface DevelopmentRole {
+  role: string
+  level: number
+}
+
+export interface DevelopmentView {
+  village: string
+  settlement_id: string
+  dimensions: DevelopmentDimension[] | null
+  roles: DevelopmentRole[] | null
+  next: PromotionCriterionView[] | null
+}
+
 export interface DeviceLine {
   id: string
   name: string
@@ -4888,6 +4907,7 @@ export interface VillageOverviewView {
   is_head: boolean
   support: VillageSupport | null
   promotion: PromotionView | null
+  development: boolean
 }
 
 export interface VillageRefusalView {
@@ -5406,6 +5426,7 @@ export interface ScreenViews {
   treaties: TreatiesView
   treaty_proposed_notice: TreatyView
   victim_notice: VictimView
+  village_development: DevelopmentView
   village_donate_confirm: DonateView
   village_donate_done: DonateView
   village_donate_menu: DonateView

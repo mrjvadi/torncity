@@ -1,0 +1,57 @@
+━━━ Development · a grown place with goals ahead ━━━
+(edits message 42)
+📈 رشد «کورندال»
+
+👥 اهالی: ⁨14⁩ از ⁨24⁩ جا
+🏗 ساختمان‌های ساخته‌شده (بدون جاده): ⁨9⁩
+📚 دانشی که دارید: ⁨7⁩
+
+🏛 ساختمان‌های خدماتی:
+• آموزش: سطح ⁨2⁩
+• بهداشت و درمان: سطح ⁨1⁩
+• بازار: سطح ⁨1⁩
+
+🧭 گام‌های پیش رو:
+▫️ ساکنان: ⁨14⁩ از ⁨40⁩
+▫️ درمانگاه
+▫️ خزانه: ⁨⁨7,400⁩ ساپ⁩ از ⁨⁨20,000⁩ ساپ⁩
+  ───
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:development.view
+
+━━━ Development · a fresh place, nothing built, no goals ━━━
+(edits message 42)
+📈 رشد «کورندال»
+
+👥 اهالی: ⁨2⁩
+🏗 ساختمان‌های ساخته‌شده (بدون جاده): ⁨2⁩
+📚 دانشی که دارید: ⁨4⁩
+
+هنوز ساختمان خدماتی ساخته نشده است.
+
+گام دیگری پیش رو نیست.
+  ───
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:development.view
+
+━━━ Village overview · the readout button (flag on) ━━━
+(edits message 42)
+🏘 روستای کورندال
+
+👥 جمعیت: ⁨6⁩ از ⁨12⁩
+
+🏦 خزانهٔ روستا: ⁨⁨7,400⁩ ساپ⁩
+
+🌾 پوشش خوراک: 40٪
+💼 پوشش شغل: 0٪
+🏥 پوشش خدمات: 0٪
+🙂 شادی: 0٪
+🛡 امنیت محلی: 0٪
+📖 سوادآموزی: 12٪
+
+هنوز بنایی ساخته نشده است.
+  ───
+  [🏡 ساکن این روستا شو] → settlement:join
+  [📚 دانش روستا] → settlement:knowledge   │   [⏳ پیشرفت ساخت] → settlement:build.progress
+  [🧱 انبار و بازار] → settlement:materials
+  [👥 اهالی] → settlement:who
+  [📈 رشد] → settlement:development.view
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
