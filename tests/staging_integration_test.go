@@ -208,7 +208,7 @@ type stagingCo struct{ id, code string }
 func (w *stagingWorld) found(p *application.Player, kind, name string, deposit string) stagingCo {
 	t := w.t
 	t.Helper()
-	resp, err := w.companies.Found(testCtx(t), w.meta(p, "company.found"), handlers.CompanyRequest{Type: kind, Method: "cash", Name: name})
+	resp, err := rr(w.companies.Found(testCtx(t), w.meta(p, "company.found"), handlers.CompanyRequest{Type: kind, Method: "cash", Name: name}))
 	said(t, "found "+name, resp, err)
 	var c stagingCo
 	if err := w.pool.Raw().QueryRow(testCtx(t), `SELECT id::text, code FROM companies WHERE owner_player_id = $1::uuid AND name = $2`,
@@ -216,8 +216,8 @@ func (w *stagingWorld) found(p *application.Player, kind, name string, deposit s
 		t.Fatalf("company %s was not founded: %v (%s)", name, err, resp.Text)
 	}
 	if deposit != "" {
-		resp, err = w.companies.Deposit(testCtx(t), w.meta(p, "company.deposit"), handlers.CompanyRequest{Company: c.code,
-			Method: "cash", Amount: deposit})
+		resp, err = rr(w.companies.Deposit(testCtx(t), w.meta(p, "company.deposit"), handlers.CompanyRequest{Company: c.code,
+			Method: "cash", Amount: deposit}))
 		said(t, "deposit into "+name, resp, err)
 	}
 	return c
@@ -227,7 +227,7 @@ func (w *stagingWorld) found(p *application.Player, kind, name string, deposit s
 func (w *stagingWorld) research(p *application.Player, c stagingCo, tech string) {
 	t := w.t
 	t.Helper()
-	resp, err := w.prod.Research(testCtx(t), w.meta(p, "company.research"), handlers.ProductionRequest{Company: c.code, Tech: tech})
+	resp, err := rr(w.prod.Research(testCtx(t), w.meta(p, "company.research"), handlers.ProductionRequest{Company: c.code, Tech: tech}))
 	said(t, "research "+tech, resp, err)
 	var id, action string
 	var finish time.Time
@@ -236,8 +236,8 @@ func (w *stagingWorld) research(p *application.Player, c stagingCo, tech string)
 		t.Fatalf("research %s did not start: %v (%s)", tech, err, resp.Text)
 	}
 	w.clock.Advance(finish.Sub(w.clock.Now()) + time.Second)
-	if _, err := w.prod.Researched(testCtx(t), w.scheduler("company.researched"), handlers.CrimeScheduledRequest{ActionID: action,
-		ReferenceID: id}); err != nil {
+	if _, err := rr(w.prod.Researched(testCtx(t), w.scheduler("company.researched"), handlers.CrimeScheduledRequest{ActionID: action,
+		ReferenceID: id})); err != nil {
 		t.Fatalf("researched %s: %v", tech, err)
 	}
 }
@@ -246,8 +246,8 @@ func (w *stagingWorld) research(p *application.Player, c stagingCo, tech string)
 func (w *stagingWorld) produce(p *application.Player, c stagingCo, target string, qty int) {
 	t := w.t
 	t.Helper()
-	resp, err := w.prod.Produce(testCtx(t), w.meta(p, "company.produce"), handlers.ProductionRequest{Company: c.code, Target: target,
-		Qty: strconv.Itoa(qty), Confirm: "yes"})
+	resp, err := rr(w.prod.Produce(testCtx(t), w.meta(p, "company.produce"), handlers.ProductionRequest{Company: c.code, Target: target,
+		Qty: strconv.Itoa(qty), Confirm: "yes"}))
 	said(t, "produce "+target, resp, err, "production.placed")
 	var id, action string
 	var finish time.Time
@@ -258,8 +258,8 @@ func (w *stagingWorld) produce(p *application.Player, c stagingCo, target string
 	if finish.After(w.clock.Now()) {
 		w.clock.Advance(finish.Sub(w.clock.Now()) + time.Second)
 	}
-	if _, err := w.prod.Produced(testCtx(t), w.scheduler("company.produced"), handlers.CrimeScheduledRequest{ActionID: action,
-		ReferenceID: id}); err != nil {
+	if _, err := rr(w.prod.Produced(testCtx(t), w.scheduler("company.produced"), handlers.CrimeScheduledRequest{ActionID: action,
+		ReferenceID: id})); err != nil {
 		t.Fatalf("produced: %v", err)
 	}
 }
@@ -289,7 +289,7 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 	studio := w.found(owner, "tech_studio", "Aria Tech", "600000")
 
 	// --- 1. A new tech studio sees only basic designs: no phone. ----------
-	resp, err := w.prod.Studio(ctx, w.meta(owner, "company.studio"), handlers.ProductionRequest{Company: studio.code})
+	resp, err := rr(w.prod.Studio(ctx, w.meta(owner, "company.studio"), handlers.ProductionRequest{Company: studio.code}))
 	said(t, "a new studio", resp, err, "production.studio_later")
 	if !hasButton(resp, "company:dnew:"+studio.code+":led_torch") || !hasButton(resp, "company:dnew:"+studio.code+":pocket_radio") {
 		t.Fatalf("a new studio does not offer its basic goods: %v", buttons(resp))
@@ -297,22 +297,22 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 	if anyButton(resp, "phone") || strings.Contains(resp.Text, "production.studio_next") {
 		t.Fatalf("a new studio already shows the phone: %q %v", resp.Text, buttons(resp))
 	}
-	resp, err = w.prod.DesignNew(ctx, w.meta(owner, "company.dnew"), handlers.ProductionRequest{Company: studio.code, Item: "phone"})
+	resp, err = rr(w.prod.DesignNew(ctx, w.meta(owner, "company.dnew"), handlers.ProductionRequest{Company: studio.code, Item: "phone"}))
 	said(t, "a phone on the first day", resp, err, "production.refused.tech_locked")
 	// Nor does its lab show military technology, and it cannot research
 	// one.
-	resp, err = w.prod.Lab(ctx, w.meta(owner, "company.lab"), handlers.ProductionRequest{Company: studio.code})
+	resp, err = rr(w.prod.Lab(ctx, w.meta(owner, "company.lab"), handlers.ProductionRequest{Company: studio.code}))
 	said(t, "a new studio's lab", resp, err)
 	if anyButton(resp, "radar_systems") || !anyButton(resp, "semiconductors") || !anyButton(resp, "batteries") {
 		t.Fatalf("a new studio's lab: %v", buttons(resp))
 	}
-	resp, err = w.prod.Research(ctx, w.meta(owner, "company.research"), handlers.ProductionRequest{Company: studio.code, Tech: "radar_systems"})
+	resp, err = rr(w.prod.Research(ctx, w.meta(owner, "company.research"), handlers.ProductionRequest{Company: studio.code, Tech: "radar_systems"}))
 	said(t, "radar without a licence", resp, err, "production.refused.not_cleared")
 
 	// --- 2. A basic product, step by step. --------------------------------
-	resp, err = w.companies.Manage(ctx, w.meta(owner, "company.manage"), handlers.CompanyRequest{Company: studio.code})
+	resp, err = rr(w.companies.Manage(ctx, w.meta(owner, "company.manage"), handlers.CompanyRequest{Company: studio.code}))
 	said(t, "the first next step", resp, err, "production.step.design_first")
-	resp, err = w.prod.DesignNew(ctx, w.meta(owner, "company.dnew"), handlers.ProductionRequest{Company: studio.code, Item: "led_torch"})
+	resp, err = rr(w.prod.DesignNew(ctx, w.meta(owner, "company.dnew"), handlers.ProductionRequest{Company: studio.code, Item: "led_torch"}))
 	said(t, "a torch", resp, err)
 	var torchNo int64
 	if err := w.pool.Raw().QueryRow(ctx, `SELECT no FROM product_designs WHERE company_id = $1::uuid AND item_code = 'led_torch'`,
@@ -322,13 +322,13 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 	no := strconv.FormatInt(torchNo, 10)
 	for _, step := range []func() (*presenter.Response, error){
 		func() (*presenter.Response, error) {
-			return w.prod.DesignFill(ctx, w.meta(owner, "company.dfill"), handlers.ProductionRequest{No: no, Slot: "board", Component: "circuit_board"})
+			return rr(w.prod.DesignFill(ctx, w.meta(owner, "company.dfill"), handlers.ProductionRequest{No: no, Slot: "board", Component: "circuit_board"}))
 		},
 		func() (*presenter.Response, error) {
-			return w.prod.DesignName(ctx, w.meta(owner, "company.dname"), handlers.ProductionRequest{No: no, Name: "Beacon"})
+			return rr(w.prod.DesignName(ctx, w.meta(owner, "company.dname"), handlers.ProductionRequest{No: no, Name: "Beacon"}))
 		},
 		func() (*presenter.Response, error) {
-			return w.prod.DesignFinal(ctx, w.meta(owner, "company.dfinal"), handlers.ProductionRequest{No: no})
+			return rr(w.prod.DesignFinal(ctx, w.meta(owner, "company.dfinal"), handlers.ProductionRequest{No: no}))
 		},
 	} {
 		resp, err := step()
@@ -337,15 +337,15 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 	torch := "d" + no
 	// Its next step: the torch needs circuit boards the studio makes, and
 	// the boards wire and resin the wholesaler sells — buy them in one tap.
-	resp, err = w.prod.Warehouse(ctx, w.meta(owner, "company.warehouse"), handlers.ProductionRequest{Company: studio.code})
+	resp, err = rr(w.prod.Warehouse(ctx, w.meta(owner, "company.warehouse"), handlers.ProductionRequest{Company: studio.code}))
 	said(t, "the warehouse's next step", resp, err, "production.step.supply")
 	stockUp := "company:stockup:" + studio.code + ":circuit_board:3"
 	if !hasButton(resp, stockUp) {
 		t.Fatalf("the next step is not the one-tap purchase %s: %v", stockUp, buttons(resp))
 	}
 	// A quick order opens at the quick size, short, with the one tap.
-	resp, err = w.prod.Produce(ctx, w.meta(owner, "company.produce"), handlers.ProductionRequest{Company: studio.code,
-		Target: "circuit_board"})
+	resp, err = rr(w.prod.Produce(ctx, w.meta(owner, "company.produce"), handlers.ProductionRequest{Company: studio.code,
+		Target: "circuit_board"}))
 	said(t, "a quick order of boards", resp, err, "production.plan_short")
 	if !hasButton(resp, "company:stockup:"+studio.code+":circuit_board:5") {
 		t.Fatalf("the short plan offers no one-tap purchase: %v", buttons(resp))
@@ -353,7 +353,7 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 	sinkBefore := countRows(t, w.pool, `SELECT count(*) FROM supply_purchases WHERE company_id = $1::uuid`, studio.id)
 	tap := w.meta(owner, "company.stockup")
 	for range 2 {
-		resp, err = w.prod.StockUp(ctx, tap, handlers.ProductionRequest{Company: studio.code, Target: "circuit_board", Qty: "3"})
+		resp, err = rr(w.prod.StockUp(ctx, tap, handlers.ProductionRequest{Company: studio.code, Target: "circuit_board", Qty: "3"}))
 		said(t, "the one-tap purchase", resp, err)
 	}
 	if n := countRows(t, w.pool, `SELECT count(*) FROM supply_purchases WHERE company_id = $1::uuid`, studio.id) - sinkBefore; n != 2 {
@@ -369,7 +369,7 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 	if got := w.stock(studio.id, "circuit_board"); got != 6 {
 		t.Fatalf("three batches made %d boards, want 6", got)
 	}
-	resp, err = w.prod.Warehouse(ctx, w.meta(owner, "company.warehouse"), handlers.ProductionRequest{Company: studio.code})
+	resp, err = rr(w.prod.Warehouse(ctx, w.meta(owner, "company.warehouse"), handlers.ProductionRequest{Company: studio.code}))
 	said(t, "the next step: make torches", resp, err, "production.step.produce")
 	if !hasButton(resp, "company:produce:"+studio.code+":"+torch+":5:yes") {
 		t.Fatalf("the quick order of torches is not one tap: %v", buttons(resp))
@@ -379,24 +379,24 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 	  AND holding = 'warehouse'`, studio.id); n != 5 {
 		t.Fatalf("five torches ordered, %d made", n)
 	}
-	resp, err = w.prod.Warehouse(ctx, w.meta(owner, "company.warehouse"), handlers.ProductionRequest{Company: studio.code})
+	resp, err = rr(w.prod.Warehouse(ctx, w.meta(owner, "company.warehouse"), handlers.ProductionRequest{Company: studio.code}))
 	said(t, "the next step: sell them", resp, err, "production.step.sell")
 
 	// --- 3. The electronics chain opens the phone. ------------------------
 	w.research(owner, studio, "semiconductors")
-	resp, err = w.prod.Studio(ctx, w.meta(owner, "company.studio"), handlers.ProductionRequest{Company: studio.code})
+	resp, err = rr(w.prod.Studio(ctx, w.meta(owner, "company.studio"), handlers.ProductionRequest{Company: studio.code}))
 	said(t, "a studio one step from a phone", resp, err, "production.studio_next")
 	if anyButton(resp, ":phone") {
 		t.Fatalf("the phone opened before its technologies: %v", buttons(resp))
 	}
 	w.research(owner, studio, "microchips")
 	w.research(owner, studio, "batteries")
-	resp, err = w.prod.Studio(ctx, w.meta(owner, "company.studio"), handlers.ProductionRequest{Company: studio.code})
+	resp, err = rr(w.prod.Studio(ctx, w.meta(owner, "company.studio"), handlers.ProductionRequest{Company: studio.code}))
 	said(t, "a studio with the chain", resp, err)
 	if !hasButton(resp, "company:dnew:"+studio.code+":phone") {
 		t.Fatalf("the phone did not open: %v", buttons(resp))
 	}
-	resp, err = w.prod.DesignNew(ctx, w.meta(owner, "company.dnew"), handlers.ProductionRequest{Company: studio.code, Item: "phone"})
+	resp, err = rr(w.prod.DesignNew(ctx, w.meta(owner, "company.dnew"), handlers.ProductionRequest{Company: studio.code, Item: "phone"}))
 	said(t, "a phone at last", resp, err)
 	if n := countRows(t, w.pool, `SELECT count(*) FROM product_designs WHERE company_id = $1::uuid AND item_code = 'phone'`, studio.id); n != 1 {
 		t.Fatalf("phone designs = %d, want 1", n)
@@ -404,11 +404,11 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 
 	// --- 4. A contractor licence, approved once. --------------------------
 	seatAs(t, w.uow, "defence_minister", w.home, minister, w.clock.Now())
-	resp, err = w.companies.Defence(ctx, w.meta(owner, "company.defence"), handlers.CompanyRequest{Company: studio.code})
+	resp, err = rr(w.companies.Defence(ctx, w.meta(owner, "company.defence"), handlers.CompanyRequest{Company: studio.code}))
 	said(t, "the defence screen", resp, err, "defence.apply_how")
 	apply := w.meta(owner, "company.defence")
 	for range 2 {
-		resp, err = w.companies.Defence(ctx, apply, handlers.CompanyRequest{Company: studio.code, Confirm: "yes"})
+		resp, err = rr(w.companies.Defence(ctx, apply, handlers.CompanyRequest{Company: studio.code, Confirm: "yes"}))
 		said(t, "apply", resp, err)
 	}
 	if n := countRows(t, w.pool, `SELECT count(*) FROM defence_licences WHERE company_id = $1::uuid AND status = 'pending'
@@ -424,7 +424,7 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 		t.Fatal(err)
 	}
 	ln := strconv.FormatInt(licenceNo, 10)
-	resp, err = w.forces.Licence(ctx, w.meta(civilian, "military.licence"), handlers.MilitaryRequest{No: ln, Verdict: "approve"})
+	resp, err = rr(w.forces.Licence(ctx, w.meta(civilian, "military.licence"), handlers.MilitaryRequest{No: ln, Verdict: "approve"}))
 	said(t, "a civilian approving", resp, err, "military.refused.not_holder")
 	var wg sync.WaitGroup
 	texts := make(chan string, 2)
@@ -432,8 +432,8 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			resp, err := w.forces.Licence(context.Background(), w.meta(minister, "military.licence"),
-				handlers.MilitaryRequest{No: ln, Verdict: "approve"})
+			resp, err := rr(w.forces.Licence(context.Background(), w.meta(minister, "military.licence"),
+				handlers.MilitaryRequest{No: ln, Verdict: "approve"}))
 			if err != nil {
 				t.Errorf("approve: %v", err)
 				return
@@ -462,20 +462,20 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 	}
 
 	// --- 5. What the licence opens. ---------------------------------------
-	resp, err = w.prod.Research(ctx, w.meta(owner, "company.research"), handlers.ProductionRequest{Company: studio.code, Tech: "radar_systems"})
+	resp, err = rr(w.prod.Research(ctx, w.meta(owner, "company.research"), handlers.ProductionRequest{Company: studio.code, Tech: "radar_systems"}))
 	said(t, "radar under a licence", resp, err)
 	if n := countRows(t, w.pool, `SELECT count(*) FROM company_research WHERE company_id = $1::uuid AND tech_code = 'radar_systems'
 	  AND status = 'running'`, studio.id); n != 1 {
 		t.Fatalf("the licensed contractor could not research radar: %s", resp.Text)
 	}
 	// Its owner founds a defence company on it; a civilian cannot.
-	resp, err = w.companies.Found(ctx, w.meta(civilian, "company.found"), handlers.CompanyRequest{Type: "aerospace", Method: "cash",
-		Name: "Nobody Aero"})
+	resp, err = rr(w.companies.Found(ctx, w.meta(civilian, "company.found"), handlers.CompanyRequest{Type: "aerospace", Method: "cash",
+		Name: "Nobody Aero"}))
 	said(t, "a civilian founding arms", resp, err, "company.refused.defence")
 	if n := countRows(t, w.pool, `SELECT count(*) FROM companies WHERE owner_player_id = $1::uuid`, civilian.ID); n != 0 {
 		t.Fatal("an unlicensed player founded a defence company")
 	}
-	resp, err = w.companies.Type(ctx, w.meta(civilian, "company.type"), handlers.CompanyRequest{Type: "aerospace"})
+	resp, err = rr(w.companies.Type(ctx, w.meta(civilian, "company.type"), handlers.CompanyRequest{Type: "aerospace"}))
 	said(t, "the defence company's page, unlicensed", resp, err, "company.type_defence")
 	aero := w.found(owner, "aerospace", "Aria Aerospace", "")
 	if n := countRows(t, w.pool, `SELECT count(*) FROM defence_licences WHERE company_id = $1::uuid AND kind = 'manufacturer'
@@ -484,10 +484,10 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 	}
 
 	// --- 6. Revoked with notice. ------------------------------------------
-	resp, err = w.forces.Licence(ctx, w.meta(minister, "military.licence"), handlers.MilitaryRequest{No: ln, Verdict: "revoke"})
+	resp, err = rr(w.forces.Licence(ctx, w.meta(minister, "military.licence"), handlers.MilitaryRequest{No: ln, Verdict: "revoke"}))
 	said(t, "revoke, unconfirmed", resp, err, "defence.revoke_confirm")
-	resp, err = w.forces.Licence(ctx, w.meta(minister, "military.licence"), handlers.MilitaryRequest{No: ln, Verdict: "revoke",
-		Confirm: "yes"})
+	resp, err = rr(w.forces.Licence(ctx, w.meta(minister, "military.licence"), handlers.MilitaryRequest{No: ln, Verdict: "revoke",
+		Confirm: "yes"}))
 	said(t, "revoke", resp, err, "defence.verdict.revoke")
 	if n := countRows(t, w.pool, `SELECT count(*) FROM defence_licences WHERE no = $1 AND status = 'revoking'
 	  AND effective_at > revoked_at`, licenceNo); n != 1 {
@@ -498,8 +498,8 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 		t.Errorf("revocation announcements = %d, want 1", n)
 	}
 	w.clock.Advance(25 * time.Hour)
-	resp, err = w.prod.Research(ctx, w.meta(owner, "company.research"), handlers.ProductionRequest{Company: studio.code,
-		Tech: "missile_guidance"})
+	resp, err = rr(w.prod.Research(ctx, w.meta(owner, "company.research"), handlers.ProductionRequest{Company: studio.code,
+		Tech: "missile_guidance"}))
 	said(t, "guidance after the notice", resp, err, "production.refused.not_cleared")
 
 	w.verify()
@@ -509,8 +509,8 @@ func TestSoldierRisesAndFoundsADefenceCompany(t *testing.T) {
 	w := newStagingWorld(t)
 	ctx := testCtx(t)
 	soldier := w.player(300_000)
-	resp, err := w.companies.Found(ctx, w.meta(soldier, "company.found"), handlers.CompanyRequest{Type: "aerospace", Method: "cash",
-		Name: "Simorgh Works"})
+	resp, err := rr(w.companies.Found(ctx, w.meta(soldier, "company.found"), handlers.CompanyRequest{Type: "aerospace", Method: "cash",
+		Name: "Simorgh Works"}))
 	said(t, "a civilian founding arms", resp, err, "company.refused.defence")
 
 	// --- 1. Enlist. --------------------------------------------------------

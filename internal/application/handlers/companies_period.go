@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
-	"github.com/mrjvadi/torncity/internal/domain/budget"
 	"time"
+
+	"github.com/mrjvadi/torncity/internal/domain/budget"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
@@ -15,8 +18,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The settlement of a city's companies.
@@ -92,7 +93,7 @@ func (h *CompaniesHandler) schedule(ctx context.Context, tx application.Tx, cloc
 
 // Settle handles company.settle from the SCHEDULER: one period of one
 // city's companies. See the file comment.
-func (h *CompaniesHandler) Settle(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Settle(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -503,12 +504,12 @@ func (h *CompaniesHandler) citizenPlan(ctx context.Context, tx application.Tx, c
 // moment an opening is posted rather than only in the period's report.
 func (h *CompaniesHandler) citizensNow(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 	c application.Company, cityCode string,
-) (screens.CompanyCitizens, error) {
+) (companies.CompanyCitizens, error) {
 	vacancies, err := citizenVacancies(ctx, tx, c.ID)
 	if err != nil || len(vacancies) == 0 {
-		return screens.CompanyCitizens{}, err
+		return companies.CompanyCitizens{}, err
 	}
-	out := screens.CompanyCitizens{}
+	out := companies.CompanyCitizens{}
 	for _, v := range vacancies {
 		out.Vacant += v.Positions
 	}

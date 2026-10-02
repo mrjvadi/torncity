@@ -1,0 +1,80 @@
+━━━ Company types · a village: what a larger settlement has is listed, not hidden ━━━
+(edits message 42)
+🏢 Register a company in Ostmarch
+
+The registration fee goes to the city's treasury, and each period the company's upkeep is taken from its account. Choose the kind of business.
+
+🏷 Grocery store - registration 1,000 SUP - upkeep 50 SUP per period
+🔒 Restaurant - starts at a town; this is still a village. Needs: Market (level 1).
+🔒 Factory - starts at a city; this is still a village. Needs: Factory.
+🔒 Aerospace manufacturer - starts at a country; this is still a village. Needs: Workshop (level 4).
+  ───
+  [🏷 Grocery store] → company:type:grocery
+  [🔙 Back] → company:list
+
+━━━ Company type · not reached, a stage and a building role ━━━
+(edits message 42)
+🏷 Restaurant in Ostmarch
+
+📍 Workplace: civic centre
+💼 Hires into Retail
+👥 Staff at most: 8
+💰 Registration fee: 2,000 SUP
+🔧 Upkeep: 80 SUP per period - a period lasts 1h
+
+A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
+
+🔒 Restaurant - starts at a town; this is still a village. Needs: Market (level 1).
+  ───
+  [🧭 Brennhaven] → travel:options:brennhaven
+  [🔙 Back] → company:register
+
+━━━ Company type · not reached, a building ━━━
+(edits message 42)
+🏷 Factory in Ostmarch
+
+📍 Workplace: civic centre
+💼 Hires into Retail
+👥 Staff at most: 8
+💰 Registration fee: 2,000 SUP
+🔧 Upkeep: 80 SUP per period - a period lasts 1h
+
+A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
+
+🔒 Factory - starts at a city; this is still a village. Needs: Factory.
+  ───
+  [🧭 Brennhaven] → travel:options:brennhaven
+  [🔙 Back] → company:register
+
+━━━ Company type · only in the central city ━━━
+(edits message 42)
+🏷 Medicine factory in Ostmarch
+
+📍 Workplace: civic centre
+💼 Hires into Retail
+👥 Staff at most: 8
+💰 Registration fee: 2,000 SUP
+🔧 Upkeep: 80 SUP per period - a period lasts 1h
+
+A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
+
+🔒 Medicine factory - can only be founded in Brennhaven.
+  ───
+  [🧭 Brennhaven] → travel:options:brennhaven
+  [🔙 Back] → company:register
+
+━━━ Company type · nowhere known to go ━━━
+(edits message 42)
+🏷 Aerospace manufacturer in Ostmarch
+
+📍 Workplace: civic centre
+💼 Hires into Retail
+👥 Staff at most: 8
+💰 Registration fee: 2,000 SUP
+🔧 Upkeep: 80 SUP per period - a period lasts 1h
+
+A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
+
+🔒 Aerospace manufacturer - starts at a country; this is still a village. Needs: Workshop (level 4).
+  ───
+  [🔙 Back] → company:register

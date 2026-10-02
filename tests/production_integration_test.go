@@ -230,15 +230,15 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 	type co struct{ id, code string }
 	foundCo := func(p *application.Player, kind, name string) co {
 		t.Helper()
-		resp, err := companies.Found(ctx, metaAs(p, "company.found"), handlers.CompanyRequest{Type: kind, Method: "cash", Name: name})
+		resp, err := rr(companies.Found(ctx, metaAs(p, "company.found"), handlers.CompanyRequest{Type: kind, Method: "cash", Name: name}))
 		ok("found "+name, resp, err)
 		var c co
 		if err := pool.Raw().QueryRow(ctx, `SELECT id::text, code FROM companies WHERE owner_player_id = $1::uuid AND name = $2`,
 			p.ID, name).Scan(&c.id, &c.code); err != nil {
 			t.Fatalf("company %s was not founded: %v (%s)", name, err, resp.Text)
 		}
-		resp, err = companies.Deposit(ctx, metaAs(p, "company.deposit"), handlers.CompanyRequest{Company: c.code, Method: "cash",
-			Amount: "300000"})
+		resp, err = rr(companies.Deposit(ctx, metaAs(p, "company.deposit"), handlers.CompanyRequest{Company: c.code, Method: "cash",
+			Amount: "300000"}))
 		ok("deposit into "+name, resp, err)
 		return c
 	}
@@ -258,7 +258,7 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				_, err := prod.Research(context.Background(), press, handlers.ProductionRequest{Company: co.code, Tech: tech})
+				_, err := rr(prod.Research(context.Background(), press, handlers.ProductionRequest{Company: co.code, Tech: tech}))
 				errs <- err
 			}()
 		}
@@ -283,8 +283,8 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 		}
 		advance(finish.Sub(now()) + time.Second)
 		for range 2 {
-			if _, err := prod.Researched(ctx, scheduler("company.researched"), handlers.CrimeScheduledRequest{ActionID: action,
-				ReferenceID: id}); err != nil {
+			if _, err := rr(prod.Researched(ctx, scheduler("company.researched"), handlers.CrimeScheduledRequest{ActionID: action,
+				ReferenceID: id})); err != nil {
 				t.Fatalf("researched %s: %v", tech, err)
 			}
 		}
@@ -294,27 +294,27 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 		}
 	}
 	// Microchips need semiconductors first.
-	resp, err := prod.Research(ctx, metaAs(ownerA, "company.research"), handlers.ProductionRequest{Company: a.code, Tech: "microchips"})
+	resp, err := rr(prod.Research(ctx, metaAs(ownerA, "company.research"), handlers.ProductionRequest{Company: a.code, Tech: "microchips"}))
 	ok("microchips before semiconductors", resp, err, "production.refused.prerequisite")
 	research(ownerA, a, "semiconductors")
 	research(ownerA, a, "microchips")
 	research(ownerA, a, "batteries")
 	// Researched once: a second research of the same technology is refused.
-	resp, err = prod.Research(ctx, metaAs(ownerA, "company.research"), handlers.ProductionRequest{Company: a.code, Tech: "batteries"})
+	resp, err = rr(prod.Research(ctx, metaAs(ownerA, "company.research"), handlers.ProductionRequest{Company: a.code, Tech: "batteries"}))
 	ok("batteries again", resp, err, "production.refused.owned")
 
 	// --- 2. Sharing: license microchips, publish battery chemistry. --------
-	resp, err = prod.TechMode(ctx, metaAs(ownerA, "company.techmode"), handlers.ProductionRequest{Company: a.code,
-		Tech: "microchips", Mode: "license", Price: "5000"})
+	resp, err = rr(prod.TechMode(ctx, metaAs(ownerA, "company.techmode"), handlers.ProductionRequest{Company: a.code,
+		Tech: "microchips", Mode: "license", Price: "5000"}))
 	ok("license microchips", resp, err)
-	resp, err = prod.TechMode(ctx, metaAs(ownerA, "company.techmode"), handlers.ProductionRequest{Company: a.code,
-		Tech: "batteries", Mode: "published"})
+	resp, err = rr(prod.TechMode(ctx, metaAs(ownerA, "company.techmode"), handlers.ProductionRequest{Company: a.code,
+		Tech: "batteries", Mode: "published"}))
 	ok("publish batteries, unconfirmed", resp, err, "production.tech_publish_confirm")
-	resp, err = prod.TechMode(ctx, metaAs(ownerA, "company.techmode"), handlers.ProductionRequest{Company: a.code,
-		Tech: "batteries", Mode: "published", Confirm: "yes"})
+	resp, err = rr(prod.TechMode(ctx, metaAs(ownerA, "company.techmode"), handlers.ProductionRequest{Company: a.code,
+		Tech: "batteries", Mode: "published", Confirm: "yes"}))
 	ok("publish batteries", resp, err, "production.tech_notice.published")
-	resp, err = prod.TechMode(ctx, metaAs(ownerA, "company.techmode"), handlers.ProductionRequest{Company: a.code,
-		Tech: "batteries", Mode: "private"})
+	resp, err = rr(prod.TechMode(ctx, metaAs(ownerA, "company.techmode"), handlers.ProductionRequest{Company: a.code,
+		Tech: "batteries", Mode: "private"}))
 	ok("unpublish batteries", resp, err, "production.refused.published")
 	if n := countRows(t, pool, `SELECT count(*) FROM outbox WHERE payload->>'company_id' = $1 AND subject LIKE '%tech_published%'`, a.id); n != 1 {
 		t.Errorf("tech_published events = %d, want 1 for the group line", n)
@@ -324,9 +324,9 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 	// Staged (docs/adr/0021, section 14): the studio shows the phone one
 	// step away — the license on offer — and a new design of it is refused,
 	// naming what it lacks.
-	resp, err = prod.Studio(ctx, metaAs(ownerB, "company.studio"), handlers.ProductionRequest{Company: b.code})
+	resp, err = rr(prod.Studio(ctx, metaAs(ownerB, "company.studio"), handlers.ProductionRequest{Company: b.code}))
 	ok("B's studio", resp, err, "production.studio_next")
-	resp, err = prod.DesignNew(ctx, metaAs(ownerB, "company.dnew"), handlers.ProductionRequest{Company: b.code, Item: "phone"})
+	resp, err = rr(prod.DesignNew(ctx, metaAs(ownerB, "company.dnew"), handlers.ProductionRequest{Company: b.code, Item: "phone"}))
 	ok("a phone without the technology", resp, err, "production.refused.tech_locked")
 	if n := countRows(t, pool, `SELECT count(*) FROM product_designs WHERE company_id = $1::uuid`, b.id); n != 0 {
 		t.Fatalf("a refused design left %d drafts", n)
@@ -334,12 +334,12 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 	aBefore, bBefore := treasury(a.id), treasury(b.id)
 	licensePress := metaAs(ownerB, "company.license")
 	for range 2 {
-		resp, err = prod.License(ctx, licensePress, handlers.ProductionRequest{Company: b.code, Tech: "microchips", From: a.code,
-			Confirm: "yes"})
+		resp, err = rr(prod.License(ctx, licensePress, handlers.ProductionRequest{Company: b.code, Tech: "microchips", From: a.code,
+			Confirm: "yes"}))
 		ok("buy the license", resp, err)
 	}
-	resp, err = prod.License(ctx, metaAs(ownerB, "company.license"), handlers.ProductionRequest{Company: b.code, Tech: "microchips",
-		From: a.code, Confirm: "yes"})
+	resp, err = rr(prod.License(ctx, metaAs(ownerB, "company.license"), handlers.ProductionRequest{Company: b.code, Tech: "microchips",
+		From: a.code, Confirm: "yes"}))
 	ok("buy the license again", resp, err, "production.refused.licensed")
 	if got := treasury(a.id) - aBefore; got != 5000 {
 		t.Fatalf("A received %d for the license, want 5000 once", got)
@@ -349,7 +349,7 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 	}
 
 	// --- 4. B designs the phone. ------------------------------------------
-	resp, err = prod.DesignNew(ctx, metaAs(ownerB, "company.dnew"), handlers.ProductionRequest{Company: b.code, Item: "phone"})
+	resp, err = rr(prod.DesignNew(ctx, metaAs(ownerB, "company.dnew"), handlers.ProductionRequest{Company: b.code, Item: "phone"}))
 	ok("new phone design", resp, err)
 	var designNo int64
 	var designID string
@@ -358,18 +358,18 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 	}
 	no := strconv.FormatInt(designNo, 10)
 	for slot, comp := range map[string]string{"board": "chipset", "power": "cell", "shell": "plastic_case"} {
-		resp, err = prod.DesignFill(ctx, metaAs(ownerB, "company.dfill"), handlers.ProductionRequest{No: no, Slot: slot, Component: comp})
+		resp, err = rr(prod.DesignFill(ctx, metaAs(ownerB, "company.dfill"), handlers.ProductionRequest{No: no, Slot: slot, Component: comp}))
 		ok("fill "+slot, resp, err)
 	}
-	resp, err = prod.DesignFinal(ctx, metaAs(ownerB, "company.dfinal"), handlers.ProductionRequest{No: no})
+	resp, err = rr(prod.DesignFinal(ctx, metaAs(ownerB, "company.dfinal"), handlers.ProductionRequest{No: no}))
 	ok("finalise without a name", resp, err, "production.refused.no_name")
-	resp, err = prod.DesignName(ctx, metaAs(ownerB, "company.dname"), handlers.ProductionRequest{No: no, Name: "Nil Mobile X"})
+	resp, err = rr(prod.DesignName(ctx, metaAs(ownerB, "company.dname"), handlers.ProductionRequest{No: no, Name: "Nil Mobile X"}))
 	ok("name the design", resp, err)
-	resp, err = prod.DesignFinal(ctx, metaAs(ownerB, "company.dfinal"), handlers.ProductionRequest{No: no})
+	resp, err = rr(prod.DesignFinal(ctx, metaAs(ownerB, "company.dfinal"), handlers.ProductionRequest{No: no}))
 	ok("finalise the design", resp, err, "production.design_state.final")
 
 	// --- 5. The mine: fuel from the supplier, raw materials extracted. -----
-	resp, err = prod.Supply(ctx, metaAs(ownerB, "company.supply"), handlers.ProductionRequest{Company: m.code, Component: "diesel", Qty: "10"})
+	resp, err = rr(prod.Supply(ctx, metaAs(ownerB, "company.supply"), handlers.ProductionRequest{Company: m.code, Component: "diesel", Qty: "10"}))
 	ok("buy diesel", resp, err, "production.supply_bought")
 	if got := stock(m.id, "diesel"); got != 10 {
 		t.Fatalf("the mine holds %d diesel, want 10", got)
@@ -388,16 +388,16 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 			advance(finish.Sub(now()) + time.Second)
 		}
 		for range 2 {
-			if _, err := prod.Produced(ctx, scheduler("company.produced"), handlers.CrimeScheduledRequest{ActionID: action,
-				ReferenceID: orderID}); err != nil {
+			if _, err := rr(prod.Produced(ctx, scheduler("company.produced"), handlers.CrimeScheduledRequest{ActionID: action,
+				ReferenceID: orderID})); err != nil {
 				t.Fatalf("produced: %v", err)
 			}
 		}
 	}
 	produce := func(p *application.Player, co co, target string, qty int) string {
 		t.Helper()
-		resp, err := prod.Produce(ctx, metaAs(p, "company.produce"), handlers.ProductionRequest{Company: co.code, Target: target,
-			Qty: strconv.Itoa(qty), Confirm: "yes"})
+		resp, err := rr(prod.Produce(ctx, metaAs(p, "company.produce"), handlers.ProductionRequest{Company: co.code, Target: target,
+			Qty: strconv.Itoa(qty), Confirm: "yes"}))
 		ok("produce "+target, resp, err, "production.placed")
 		var id string
 		if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM production_orders WHERE company_id = $1::uuid
@@ -431,23 +431,23 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 		return strconv.FormatInt(n, 10)
 	}
 	for code, qty := range map[string]string{"silica": "9", "iron_ore": "3", "crude_oil": "6"} {
-		resp, err = prod.Sell(ctx, metaAs(ownerB, "company.sell"), handlers.ProductionRequest{Company: m.code, Target: code,
-			Qty: qty, Price: "7"})
+		resp, err = rr(prod.Sell(ctx, metaAs(ownerB, "company.sell"), handlers.ProductionRequest{Company: m.code, Target: code,
+			Qty: qty, Price: "7"}))
 		ok("list "+code, resp, err, "production.listing_notice.listed")
-		resp, err = prod.Buy(ctx, metaAs(ownerB, "company.buy"), handlers.ProductionRequest{No: listingNo(m.id, code), Qty: qty,
-			Method: b.code})
+		resp, err = rr(prod.Buy(ctx, metaAs(ownerB, "company.buy"), handlers.ProductionRequest{No: listingNo(m.id, code), Qty: qty,
+			Method: b.code}))
 		ok("B buys "+code, resp, err, "production.bought_company")
 	}
 	// Materials are sold to companies only.
-	resp, err = prod.Sell(ctx, metaAs(ownerB, "company.sell"), handlers.ProductionRequest{Company: m.code, Target: "silica",
-		Qty: "1", Price: "7"})
+	resp, err = rr(prod.Sell(ctx, metaAs(ownerB, "company.sell"), handlers.ProductionRequest{Company: m.code, Target: "silica",
+		Qty: "1", Price: "7"}))
 	ok("list one more silica", resp, err)
-	resp, err = prod.Buy(ctx, metaAs(ownerC, "company.buy"), handlers.ProductionRequest{No: listingNo(m.id, "silica"), Qty: "1",
-		Method: "cash"})
+	resp, err = rr(prod.Buy(ctx, metaAs(ownerC, "company.buy"), handlers.ProductionRequest{No: listingNo(m.id, "silica"), Qty: "1",
+		Method: "cash"}))
 	ok("a player buys silica", resp, err, "production.refused.not_cleared")
-	resp, err = prod.Supply(ctx, metaAs(ownerB, "company.supply"), handlers.ProductionRequest{Company: b.code, Component: "diesel", Qty: "3"})
+	resp, err = rr(prod.Supply(ctx, metaAs(ownerB, "company.supply"), handlers.ProductionRequest{Company: b.code, Component: "diesel", Qty: "3"}))
 	ok("B buys diesel", resp, err)
-	resp, err = prod.Supply(ctx, metaAs(ownerB, "company.supply"), handlers.ProductionRequest{Company: b.code, Component: "lithium_salt", Qty: "6"})
+	resp, err = rr(prod.Supply(ctx, metaAs(ownerB, "company.supply"), handlers.ProductionRequest{Company: b.code, Component: "lithium_salt", Qty: "6"}))
 	ok("B buys lithium", resp, err)
 
 	// --- 7. B makes the parts, is refused a short order, makes phones. ----
@@ -459,8 +459,8 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 			stock(b.id, "chipset"), stock(b.id, "cell"), stock(b.id, "plastic_case"))
 	}
 	target := "d" + no
-	resp, err = prod.Produce(ctx, metaAs(ownerB, "company.produce"), handlers.ProductionRequest{Company: b.code, Target: target,
-		Qty: "4", Confirm: "yes"})
+	resp, err = rr(prod.Produce(ctx, metaAs(ownerB, "company.produce"), handlers.ProductionRequest{Company: b.code, Target: target,
+		Qty: "4", Confirm: "yes"}))
 	ok("four phones from three chipsets", resp, err, "production.refused.shortage", "production.shortage_line")
 	if stock(b.id, "chipset") != 3 || stock(b.id, "cell") != 3 || stock(b.id, "plastic_case") != 4 {
 		t.Fatal("a refused order took inputs: all or nothing")
@@ -480,14 +480,14 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 	}
 
 	// --- 8. B lists phones; C buys one for the company and takes it apart.
-	resp, err = prod.Sell(ctx, metaAs(ownerB, "company.sell"), handlers.ProductionRequest{Company: b.code, Target: target,
-		Qty: "3", Price: "1500"})
+	resp, err = rr(prod.Sell(ctx, metaAs(ownerB, "company.sell"), handlers.ProductionRequest{Company: b.code, Target: target,
+		Qty: "3", Price: "1500"}))
 	ok("list phones", resp, err)
 	phones := listingNo(b.id, "phone")
 	var copyID string
 	for attempt := 0; attempt < 3 && copyID == ""; attempt++ {
 		bBefore, cBefore := treasury(b.id), treasury(c.id)
-		resp, err = prod.Buy(ctx, metaAs(ownerC, "company.buy"), handlers.ProductionRequest{No: phones, Qty: "1", Method: c.code})
+		resp, err = rr(prod.Buy(ctx, metaAs(ownerC, "company.buy"), handlers.ProductionRequest{No: phones, Qty: "1", Method: c.code}))
 		ok("C buys a phone", resp, err, "production.bought_company")
 		if got := cBefore - treasury(c.id); got != 1500 {
 			t.Fatalf("C paid %d for a phone, want 1500", got)
@@ -500,10 +500,10 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 		  ORDER BY serial LIMIT 1`, c.id).Scan(&serial); err != nil {
 			t.Fatalf("C holds no phone: %v", err)
 		}
-		resp, err = prod.Reverse(ctx, metaAs(ownerC, "company.reverse"), handlers.ProductionRequest{Company: c.code, Serial: serial})
+		resp, err = rr(prod.Reverse(ctx, metaAs(ownerC, "company.reverse"), handlers.ProductionRequest{Company: c.code, Serial: serial}))
 		ok("take apart, unconfirmed", resp, err, "production.reverse_confirm")
-		resp, err = prod.Reverse(ctx, metaAs(ownerC, "company.reverse"), handlers.ProductionRequest{Company: c.code, Serial: serial,
-			Confirm: "yes"})
+		resp, err = rr(prod.Reverse(ctx, metaAs(ownerC, "company.reverse"), handlers.ProductionRequest{Company: c.code, Serial: serial,
+			Confirm: "yes"}))
 		ok("take apart", resp, err)
 		var (
 			jobID, action string
@@ -518,8 +518,8 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 		}
 		advance(finish.Sub(now()) + time.Second)
 		for range 2 {
-			if _, err := prod.Reversed(ctx, scheduler("company.reversed"), handlers.CrimeScheduledRequest{ActionID: action,
-				ReferenceID: jobID}); err != nil {
+			if _, err := rr(prod.Reversed(ctx, scheduler("company.reversed"), handlers.CrimeScheduledRequest{ActionID: action,
+				ReferenceID: jobID})); err != nil {
 				t.Fatalf("reversed: %v", err)
 			}
 		}
@@ -548,11 +548,11 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 	if n := countRows(t, pool, `SELECT count(*) FROM technology_licenses WHERE licensee_company_id = $1::uuid`, c.id); n != 0 {
 		t.Fatal("reverse engineering gave C a license")
 	}
-	resp, err = prod.Produce(ctx, metaAs(ownerC, "company.produce"), handlers.ProductionRequest{Company: c.code, Target: "chipset",
-		Qty: "1", Confirm: "yes"})
+	resp, err = rr(prod.Produce(ctx, metaAs(ownerC, "company.produce"), handlers.ProductionRequest{Company: c.code, Target: "chipset",
+		Qty: "1", Confirm: "yes"}))
 	ok("C makes a chipset", resp, err, "production.refused.tech_locked")
-	resp, err = prod.Produce(ctx, metaAs(ownerC, "company.produce"), handlers.ProductionRequest{Company: c.code,
-		Target: "d" + strconv.FormatInt(copyNo, 10), Qty: "1", Confirm: "yes"})
+	resp, err = rr(prod.Produce(ctx, metaAs(ownerC, "company.produce"), handlers.ProductionRequest{Company: c.code,
+		Target: "d" + strconv.FormatInt(copyNo, 10), Qty: "1", Confirm: "yes"}))
 	ok("C makes the copy without parts", resp, err, "production.refused.shortage")
 
 	// --- 9. The city's period: the mine sells the population what it holds.
@@ -570,8 +570,8 @@ func TestPhoneScenarioEndToEnd(t *testing.T) {
 		advance(nextAt.Sub(now()) + time.Second)
 	}
 	payload, _ := json.Marshal(handlers.CompanyPeriodPayload{CityID: city.ID, PeriodNo: periodNo})
-	if _, err := companies.Settle(ctx, scheduler("company.settle"), handlers.CrimeScheduledRequest{ActionID: settleID,
-		ReferenceType: application.CompanyMarketReference, ReferenceID: city.ID, Payload: payload}); err != nil {
+	if _, err := rr(companies.Settle(ctx, scheduler("company.settle"), handlers.CrimeScheduledRequest{ActionID: settleID,
+		ReferenceType: application.CompanyMarketReference, ReferenceID: city.ID, Payload: payload})); err != nil {
 		t.Fatalf("settle: %v", err)
 	}
 	var sold, stockUnits int64

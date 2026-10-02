@@ -76,12 +76,12 @@ func militarySnapshots(c Context, who people, add func(string, *presenter.Respon
 		Groups: []AssetGroup{
 			{Good: stealth, Class: Named{Code: "stealth_fighter", Name: "Stealth fighters"}, Count: 3, Quality: 71,
 				Garrisons: []GarrisonLine{{CityCode: "brennhaven", City: "Brennhaven", Count: 2}}, Moving: 1,
-				Attributes: []AttributeLine{{Name: "rcs", Value: 5}, {Name: "speed", Value: 2100}, {Name: "range", Value: 1400},
+				Attributes: []MilitaryAttributeLine{{Name: "rcs", Value: 5}, {Name: "speed", Value: 2100}, {Name: "range", Value: 1400},
 					{Name: "payload", Value: 4000}, {Name: "detection_range", Value: 110}},
 				SeenAt: 39},
 			{Good: fighter, Class: Named{Code: "fighter", Name: "Fighters"}, Count: 12, Quality: 58,
 				Garrisons: []GarrisonLine{{CityCode: "ostmarch", City: "Ostmarch", Count: 8}}, Depot: 4,
-				Attributes: []AttributeLine{{Name: "rcs", Value: 5000}, {Name: "speed", Value: 2100}}, SeenAt: 224},
+				Attributes: []MilitaryAttributeLine{{Name: "rcs", Value: 5000}, {Name: "speed", Value: 2100}}, SeenAt: 224},
 		},
 		Moves: []MoveLine{{Good: stealth, Qty: 1, CityCode: "brennhaven", City: "Brennhaven", Left: 2 * time.Minute,
 			At: snapshotNow.Add(2 * time.Minute)}}}
@@ -113,7 +113,7 @@ func militarySnapshots(c Context, who people, add func(string, *presenter.Respon
 	add("Procurement · the minister's list", Procure(c, ProcureView{Country: homeCountry, Fund: 96_300, Offers: offers}))
 	add("Procurement · nothing for sale", Procure(c, ProcureView{Country: homeCountry, Fund: 96_300}))
 	buy := ArmsBuyView{Country: homeCountry, Offer: offers[0], Fund: 96_300,
-		Attributes: []AttributeLine{{Name: "speed", Value: 2100}, {Name: "range", Value: 1400}, {Name: "payload", Value: 4000}}}
+		Attributes: []MilitaryAttributeLine{{Name: "speed", Value: 2100}, {Name: "range", Value: 1400}, {Name: "payload", Value: 4000}}}
 	add("Procurement · how many", ArmsBuy(c, buy))
 	buy.Qty, buy.Confirm, buy.Total = 2, true, 84_000
 	add("Procurement · confirm", ArmsBuy(c, buy))

@@ -3,12 +3,14 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
-	"github.com/mrjvadi/torncity/internal/presentation"
-	plife "github.com/mrjvadi/torncity/internal/presentation/life"
-	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
@@ -25,8 +27,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/shared/playercode"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The company levers (configs/content/governance.yml), read only through
@@ -98,6 +98,17 @@ type CompaniesHandler struct {
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
+
+	// gates says which kinds of business the settlement a player stands in
+	// reaches (availability.yml); nil offers every kind.
+	gates *ServiceGate
+}
+
+// WithServiceGate has the registry say which kinds of business the settlement
+// does not reach (service_gate.go), and founding one there refused.
+func (h *CompaniesHandler) WithServiceGate(g *ServiceGate) *CompaniesHandler {
+	h.gates = g
+	return h
 }
 
 // NewCompaniesHandler wires the handler.
@@ -154,49 +165,45 @@ func (r CompanyRequest) code() string {
 	return playercode.Normalize(r.Code)
 }
 
-func (h *CompaniesHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
-}
-
 // companyRefusal carries a refused company command out of a unit of work.
-type companyRefusal struct{ view screens.CompanyRefusalView }
+type companyRefusal struct{ view companies.CompanyRefusalView }
 
 func (r *companyRefusal) Error() string { return "handlers: company refused: " + r.view.Kind }
 
 // refuseCompany is a refusal about c (nil when there is none yet).
 func refuseCompany(kind string, c *application.Company, snap *content.Snapshot) *companyRefusal {
-	r := &companyRefusal{view: screens.CompanyRefusalView{Kind: kind}}
+	r := &companyRefusal{view: companies.CompanyRefusalView{Kind: kind}}
 	if c != nil {
 		r.view.Ref = companyRef(snap, *c)
 	}
 	return r
 }
 
-func asCompanyRefusal(err error) (screens.CompanyRefusalView, bool) {
+func asCompanyRefusal(err error) (companies.CompanyRefusalView, bool) {
 	var r *companyRefusal
 	if stderrors.As(err, &r) {
 		return r.view, true
 	}
-	return screens.CompanyRefusalView{}, false
+	return companies.CompanyRefusalView{}, false
 }
 
 // finish turns a refusal into its screen.
-func (h *CompaniesHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *CompaniesHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	if err == nil {
 		return nil, nil
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	if v, ok := asCompanyRefusal(err); ok {
-		return screens.CompanyRefusal(c, v), nil
+		return companies.CompanyRefusal(c, v), nil
 	}
 	if v, ok := asNotHere(err); ok {
-		return screens.NotHere(c, v), nil
+		return plife.NotHere(c, v), nil
 	}
 	if r, ok := asRefusal(err); ok {
-		return plife.Refusal(presentation.Ctx{Lang: c.Lang}, r.view), nil
+		return plife.Refusal(c, r.view), nil
 	}
 	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
-		return economy.PaymentDeclined(presentation.Ctx{Lang: c.Lang}, v), nil
+		return economy.PaymentDeclined(c, v), nil
 	}
 	return nil, err
 }
@@ -209,8 +216,8 @@ func (h *CompaniesHandler) reserve(ctx context.Context, tx application.Tx, playe
 }
 
 // companyRef names a company for a screen.
-func companyRef(snap *content.Snapshot, c application.Company) screens.CompanyRef {
-	ref := screens.CompanyRef{Code: c.Code, Name: c.Name, Type: screens.Named{Code: c.TypeCode, Name: c.TypeCode}}
+func companyRef(snap *content.Snapshot, c application.Company) presentation.CompanyRef {
+	ref := presentation.CompanyRef{Code: c.Code, Name: c.Name, Type: presentation.Named{Code: c.TypeCode, Name: c.TypeCode}}
 	if def, _, ok := snap.CompanyType(c.TypeCode); ok {
 		ref.Type.Name = def.Name
 	}
@@ -218,24 +225,24 @@ func companyRef(snap *content.Snapshot, c application.Company) screens.CompanyRe
 }
 
 // govPlayerOf names a player for a screen.
-func govPlayerOf(p *application.Player) screens.GovPlayer {
+func govPlayerOf(p *application.Player) presentation.GovPlayer {
 	if p == nil {
-		return screens.GovPlayer{}
+		return presentation.GovPlayer{}
 	}
-	return screens.GovPlayer{Name: shownName(p), Code: p.PublicCode}
+	return presentation.GovPlayer{Name: shownName(p), Code: p.PublicCode}
 }
 
 // playerNamed reads a player to name on a screen; an unknown one is blank.
-func playerNamed(ctx context.Context, tx application.Tx, id string) (screens.GovPlayer, error) {
+func playerNamed(ctx context.Context, tx application.Tx, id string) (presentation.GovPlayer, error) {
 	if id == "" {
-		return screens.GovPlayer{}, nil
+		return presentation.GovPlayer{}, nil
 	}
 	p, err := tx.Players().GetByID(ctx, id)
 	if isSentinel(err, application.ErrPlayerNotFound) {
-		return screens.GovPlayer{}, nil
+		return presentation.GovPlayer{}, nil
 	}
 	if err != nil {
-		return screens.GovPlayer{}, err
+		return presentation.GovPlayer{}, err
 	}
 	return govPlayerOf(p), nil
 }
@@ -255,11 +262,11 @@ func (h *CompaniesHandler) periodWait() time.Duration { return h.scale.RealWait(
 // byCode reads a company by its public code; lock takes its row lock.
 func (h *CompaniesHandler) byCode(ctx context.Context, tx application.Tx, snap *content.Snapshot, code string, lock bool) (*application.Company, error) {
 	if !playercode.Valid(code) {
-		return nil, refuseCompany(screens.CompanyRefusedNotFound, nil, snap)
+		return nil, refuseCompany(companies.CompanyRefusedNotFound, nil, snap)
 	}
 	c, err := tx.Companies().ByCode(ctx, code)
 	if isSentinel(err, application.ErrCompanyNotFound) {
-		return nil, refuseCompany(screens.CompanyRefusedNotFound, nil, snap)
+		return nil, refuseCompany(companies.CompanyRefusedNotFound, nil, snap)
 	}
 	if err != nil || !lock {
 		return c, err
@@ -277,13 +284,13 @@ func (h *CompaniesHandler) managed(ctx context.Context, tx application.Tx, snap 
 	}
 	role := company.RoleOf(p.ID, c.OwnerID, c.ManagerID)
 	if role == company.RoleNone {
-		return nil, role, refuseCompany(screens.CompanyRefusedNotAllowed, c, snap)
+		return nil, role, refuseCompany(companies.CompanyRefusedNotAllowed, c, snap)
 	}
 	if !c.Active() {
-		return nil, role, refuseCompany(screens.CompanyRefusedDissolved, c, snap)
+		return nil, role, refuseCompany(companies.CompanyRefusedDissolved, c, snap)
 	}
 	if err := role.Check(right); err != nil {
-		return nil, role, refuseCompany(screens.CompanyRefusedNotAllowed, c, snap)
+		return nil, role, refuseCompany(companies.CompanyRefusedNotAllowed, c, snap)
 	}
 	return c, role, nil
 }
@@ -339,13 +346,13 @@ func (h *CompaniesHandler) cityOf(ctx context.Context, tx application.Tx, p *app
 }
 
 // List handles company.list: the companies of the player's city.
-func (h *CompaniesHandler) List(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *CompaniesHandler) List(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CompanyRegistryView
+	var view companies.CompanyRegistryView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -382,18 +389,18 @@ func (h *CompaniesHandler) List(ctx context.Context, meta envelope.Metadata) (*p
 	if err != nil {
 		return nil, err
 	}
-	return screens.CompanyRegistry(h.screen(meta, lang), view), nil
+	return companies.CompanyRegistry(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // line is one company of a list.
-func (h *CompaniesHandler) line(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company, viewer string) (screens.CompanyLine, error) {
+func (h *CompaniesHandler) line(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company, viewer string) (companies.CompanyLine, error) {
 	staff, err := tx.Companies().Staff(ctx, c.ID)
 	if err != nil {
-		return screens.CompanyLine{}, err
+		return companies.CompanyLine{}, err
 	}
 	openings, err := tx.Companies().Openings(ctx, c.ID)
 	if err != nil {
-		return screens.CompanyLine{}, err
+		return companies.CompanyLine{}, err
 	}
 	free := 0
 	for _, o := range openings {
@@ -402,22 +409,22 @@ func (h *CompaniesHandler) line(ctx context.Context, tx application.Tx, snap *co
 	_, lastErr := tx.Companies().LastPeriod(ctx, c.ID)
 	rated := lastErr == nil
 	if lastErr != nil && !isSentinel(lastErr, application.ErrNoCompanyPeriod) {
-		return screens.CompanyLine{}, lastErr
+		return companies.CompanyLine{}, lastErr
 	}
-	return screens.CompanyLine{
+	return companies.CompanyLine{
 		Ref: companyRef(snap, c), Stars: company.Stars(c.RatingBPS), Rated: rated, Staff: len(staff), Openings: free,
 		Mine: company.RoleOf(viewer, c.OwnerID, c.ManagerID) != company.RoleNone,
 	}, nil
 }
 
 // View handles company.view: a company's public page.
-func (h *CompaniesHandler) View(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) View(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CompanyPageView
+	var view companies.CompanyPageView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -434,16 +441,16 @@ func (h *CompaniesHandler) View(ctx context.Context, meta envelope.Metadata, req
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CompanyPage(h.screen(meta, lang), view), nil
+	return companies.CompanyPage(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // page builds a company's public page.
-func (h *CompaniesHandler) page(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company, viewer string) (screens.CompanyPageView, error) {
+func (h *CompaniesHandler) page(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company, viewer string) (companies.CompanyPageView, error) {
 	city, err := h.cities.ByID(ctx, c.CityID)
 	if err != nil {
-		return screens.CompanyPageView{}, err
+		return companies.CompanyPageView{}, err
 	}
-	v := screens.CompanyPageView{Ref: companyRef(snap, c), CityCode: city.Code, City: city.Name,
+	v := companies.CompanyPageView{Ref: companyRef(snap, c), CityCode: city.Code, City: city.Name,
 		Stars: company.Stars(c.RatingBPS), Dissolved: !c.Active(),
 		CanManage: company.RoleOf(viewer, c.OwnerID, c.ManagerID) != company.RoleNone}
 	if def, t, ok := snap.CompanyType(c.TypeCode); ok {
@@ -488,9 +495,9 @@ func (h *CompaniesHandler) page(ctx context.Context, tx application.Tx, snap *co
 }
 
 // openingLine is an opening for a screen.
-func openingLine(snap *content.Snapshot, o application.CompanyOpening) screens.CompanyOpeningLine {
-	line := screens.CompanyOpeningLine{No: o.No, Wage: o.Wage, Positions: o.Positions, Filled: o.Filled,
-		Job: screens.JobRef{CareerCode: o.CareerCode, CareerName: o.CareerCode}}
+func openingLine(snap *content.Snapshot, o application.CompanyOpening) companies.CompanyOpeningLine {
+	line := companies.CompanyOpeningLine{No: o.No, Wage: o.Wage, Positions: o.Positions, Filled: o.Filled,
+		Job: presentation.JobRef{CareerCode: o.CareerCode, CareerName: o.CareerCode}}
 	if def, ok := snap.CareerDef(o.CareerCode); ok {
 		line.Job = jobRef(def, 0)
 	}
@@ -499,13 +506,13 @@ func openingLine(snap *content.Snapshot, o application.CompanyOpening) screens.C
 
 // Register handles company.register: the kinds of business a player may
 // found in their city, with what each costs there.
-func (h *CompaniesHandler) Register(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *CompaniesHandler) Register(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CompanyTypesView
+	var view companies.CompanyTypesView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -539,7 +546,13 @@ func (h *CompaniesHandler) Register(ctx context.Context, meta envelope.Metadata)
 		}
 		cmap := snap.CityMap(city.Code)
 		for _, def := range snap.CompanyTypes() {
-			if len(cmap.Places) > 0 {
+			// A kind the settlement does not reach is listed as such, with
+			// the stage it starts at, never left out (availability.yml).
+			gone, err := h.gates.CheckEntry(ctx, snap, city.ID, "company_type", def.Code)
+			if err != nil {
+				return err
+			}
+			if gone == nil && len(cmap.Places) > 0 {
 				if _, ok := cmap.Find(def.Place); !ok {
 					continue
 				}
@@ -548,9 +561,9 @@ func (h *CompaniesHandler) Register(ctx context.Context, meta envelope.Metadata)
 			if err != nil {
 				return errors.Internal(err)
 			}
-			view.Types = append(view.Types, screens.CompanyTypeLine{
-				Type: screens.Named{Code: def.Code, Name: def.Name}, Fee: fee.Minor(), Upkeep: def.Upkeep,
-				Licensed: snap.LicensedSector(def),
+			view.Types = append(view.Types, companies.CompanyTypeLine{
+				Type: presentation.Named{Code: def.Code, Name: def.Name}, Fee: fee.Minor(), Upkeep: def.Upkeep,
+				Licensed: snap.LicensedSector(def), Unavailable: gone,
 			})
 		}
 		return nil
@@ -558,7 +571,7 @@ func (h *CompaniesHandler) Register(ctx context.Context, meta envelope.Metadata)
 	if err != nil {
 		return nil, err
 	}
-	return screens.CompanyTypes(h.screen(meta, lang), view), nil
+	return companies.CompanyTypes(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // foundable is what founding a kind of business in the player's city needs,
@@ -579,7 +592,10 @@ type foundable struct {
 	// rank of the armed forces that may found one, for the block
 	// (docs/adr/0022, section 2.14).
 	basis military.Basis
-	rank  screens.JobRef
+	rank  presentation.JobRef
+	// gone is set when the settlement does not reach the kind: the stage it
+	// starts at, what it needs and the nearest place that has it.
+	gone *companies.Unavailable
 }
 
 // effectiveMaxCompanies is how many active companies a player may own: an
@@ -610,7 +626,7 @@ func (h *CompaniesHandler) foundability(ctx context.Context, tx application.Tx, 
 	var f foundable
 	def, ty, ok := snap.CompanyType(strings.ToLower(strings.TrimSpace(code)))
 	if !ok {
-		return f, refuseCompany(screens.CompanyRefusedNoPlace, nil, snap)
+		return f, refuseCompany(companies.CompanyRefusedNoPlace, nil, snap)
 	}
 	f.def, f.ty = def, ty
 	city, err := h.cityOf(ctx, tx, p)
@@ -618,16 +634,23 @@ func (h *CompaniesHandler) foundability(ctx context.Context, tx application.Tx, 
 		return f, err
 	}
 	if city == nil {
-		f.blocked = screens.CompanyBlockedNoCity
+		f.blocked = companies.CompanyBlockedNoCity
 		return f, nil
 	}
 	f.city = city
+	if f.gone, err = h.gates.CheckEntry(ctx, snap, city.ID, "company_type", def.Code); err != nil {
+		return f, err
+	}
+	if f.gone != nil {
+		f.blocked = companies.CompanyBlockedStage
+		return f, nil
+	}
 	if f.where, err = locate(ctx, tx, h.cities, snap, p); err != nil {
 		return f, err
 	}
 	if f.where.placed() {
 		if _, ok := f.where.cmap.Find(def.Place); !ok {
-			f.blocked = screens.CompanyBlockedNoPlace
+			f.blocked = companies.CompanyBlockedNoPlace
 			return f, nil
 		}
 	}
@@ -640,7 +663,7 @@ func (h *CompaniesHandler) foundability(ctx context.Context, tx application.Tx, 
 		return f, err
 	}
 	if !f.unlimited && owned >= f.max {
-		f.blocked = screens.CompanyBlockedLimit
+		f.blocked = companies.CompanyBlockedLimit
 	}
 	if err := h.defenceGate(ctx, tx, snap, def, p, &f); err != nil {
 		return f, err
@@ -658,13 +681,13 @@ func (h *CompaniesHandler) foundability(ctx context.Context, tx application.Tx, 
 // Type handles company.type: one kind of business, what it costs in the
 // player's city, and — at city hall — the buttons that found one; away from
 // it, the walk there.
-func (h *CompaniesHandler) Type(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Type(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CompanyTypeView
+	var view companies.CompanyTypeView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -677,19 +700,19 @@ func (h *CompaniesHandler) Type(ctx context.Context, meta envelope.Metadata, req
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CompanyTypeDetail(h.screen(meta, lang), view), nil
+	return companies.CompanyTypeDetail(presentation.Ctx{Lang: lang}, view), nil
 }
 
-func (h *CompaniesHandler) typeView(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, code string) (screens.CompanyTypeView, error) {
+func (h *CompaniesHandler) typeView(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, code string) (companies.CompanyTypeView, error) {
 	f, err := h.foundability(ctx, tx, snap, p, code)
 	if err != nil {
-		return screens.CompanyTypeView{}, err
+		return companies.CompanyTypeView{}, err
 	}
-	v := screens.CompanyTypeView{
-		Type: screens.Named{Code: f.def.Code, Name: f.def.Name}, Place: placeNamed(snap, f.def.Place),
+	v := companies.CompanyTypeView{
+		Type: presentation.Named{Code: f.def.Code, Name: f.def.Name}, Place: placeNamed(snap, f.def.Place),
 		Fee: f.fee.Minor(), Upkeep: f.def.Upkeep, MaxStaff: f.def.MaxStaff, Period: h.periodWait(),
 		NameMin: h.rules.NameMin, NameMax: h.rules.NameMax, Blocked: f.blocked, Max: f.max,
-		Rank: f.rank,
+		Rank: f.rank, Unavailable: f.gone,
 	}
 	for _, c := range f.def.Careers {
 		if def, ok := snap.CareerDef(c); ok {
@@ -724,7 +747,7 @@ func (h *CompaniesHandler) typeView(ctx context.Context, tx application.Tx, snap
 // delivery of the same update is a replay; two names typed in a row found
 // one company each only while the player may own more, and a name taken in
 // the city is refused by the database whatever raced for it.
-func (h *CompaniesHandler) Found(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Found(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -741,7 +764,7 @@ func (h *CompaniesHandler) Found(ctx context.Context, meta envelope.Metadata, re
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		founded  screens.CompanyFoundedView
+		founded  companies.CompanyFoundedView
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -767,16 +790,18 @@ func (h *CompaniesHandler) Found(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		switch f.blocked {
-		case screens.CompanyBlockedLimit:
-			r := refuseCompany(screens.CompanyRefusedLimit, nil, snap)
+		case companies.CompanyBlockedLimit:
+			r := refuseCompany(companies.CompanyRefusedLimit, nil, snap)
 			r.view.Max = int64(f.max)
 			return r
-		case screens.CompanyBlockedNoPlace:
-			return refuseCompany(screens.CompanyRefusedNoPlace, nil, snap)
-		case screens.CompanyBlockedNoCity:
+		case companies.CompanyBlockedStage:
+			return refuseCompany(companies.CompanyRefusedNotReached, nil, snap)
+		case companies.CompanyBlockedNoPlace:
+			return refuseCompany(companies.CompanyRefusedNoPlace, nil, snap)
+		case companies.CompanyBlockedNoCity:
 			return application.ErrCityNotFound
-		case screens.CompanyBlockedDefence:
-			return refuseCompany(screens.CompanyRefusedDefence, nil, snap)
+		case companies.CompanyBlockedDefence:
+			return refuseCompany(companies.CompanyRefusedDefence, nil, snap)
 		}
 		if err := needService(f.where, snap, place.ServiceCityHall, h.scale, now); err != nil {
 			return thenFor(err, "company.type", f.def.Code)
@@ -801,7 +826,7 @@ func (h *CompaniesHandler) Found(ctx context.Context, meta envelope.Metadata, re
 			CompanyID: c.ID, PlayerID: p.ID, Shares: h.rules.FoundingShares, AcquiredAt: now,
 		}); err != nil {
 			if isSentinel(err, application.ErrCompanyNameTaken) {
-				return refuseCompany(screens.CompanyRefusedNameTaken, nil, snap)
+				return refuseCompany(companies.CompanyRefusedNameTaken, nil, snap)
 			}
 			return err
 		}
@@ -811,7 +836,7 @@ func (h *CompaniesHandler) Found(ctx context.Context, meta envelope.Metadata, re
 				return err
 			}
 			plan := wallet.Plan(f.fee, snap.Accepts(content.ServiceCompany))
-			back := []string{screens.AddrCompanyType, f.def.Code}
+			back := []string{companies.AddrCompanyType, f.def.Code}
 			if err := checkMethod(plan, method, wallet, "company.button.type_back", back...); err != nil {
 				return err
 			}
@@ -846,7 +871,7 @@ func (h *CompaniesHandler) Found(ctx context.Context, meta envelope.Metadata, re
 		if err := h.startClock(ctx, tx, f.city.ID, now); err != nil {
 			return err
 		}
-		founded = screens.CompanyFoundedView{Ref: companyRef(snap, c), CityCode: f.city.Code, City: f.city.Name,
+		founded = companies.CompanyFoundedView{Ref: companyRef(snap, c), CityCode: f.city.Code, City: f.city.Name,
 			Fee: f.fee.Minor(), Method: string(method)}
 		return appendCompanyEvent(ctx, tx, meta, "founded", c.ID, map[string]any{
 			"company_id": c.ID, "code": c.Code, "name": c.Name, "type": c.TypeCode, "type_name": f.def.Name,
@@ -860,20 +885,20 @@ func (h *CompaniesHandler) Found(ctx context.Context, meta envelope.Metadata, re
 	if replayed {
 		return h.Mine(ctx, meta)
 	}
-	return screens.CompanyFounded(h.screen(meta, lang), founded), nil
+	return companies.CompanyFounded(presentation.Ctx{Lang: lang}, founded), nil
 }
 
 // nameRefusal is the refusal of a name the rules turned down.
 func nameRefusal(err error, rules CompanyRules, snap *content.Snapshot) error {
 	switch {
 	case stderrors.Is(err, company.ErrNameLength):
-		r := refuseCompany(screens.CompanyRefusedNameLength, nil, snap)
+		r := refuseCompany(companies.CompanyRefusedNameLength, nil, snap)
 		r.view.Min, r.view.Max = int64(rules.NameMin), int64(rules.NameMax)
 		return r
 	case stderrors.Is(err, company.ErrNameReserved):
-		return refuseCompany(screens.CompanyRefusedNameReserved, nil, snap)
+		return refuseCompany(companies.CompanyRefusedNameReserved, nil, snap)
 	case stderrors.Is(err, company.ErrNameCharset):
-		return refuseCompany(screens.CompanyRefusedNameCharset, nil, snap)
+		return refuseCompany(companies.CompanyRefusedNameCharset, nil, snap)
 	}
 	return errors.Internal(err)
 }
@@ -896,14 +921,14 @@ func (h *CompaniesHandler) freeCode(ctx context.Context, tx application.Tx) (str
 
 // Mine handles company.mine: the player's companies — straight to the one
 // they run when there is only one.
-func (h *CompaniesHandler) Mine(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *CompaniesHandler) Mine(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view screens.CompanyMineView
+		view companies.CompanyMineView
 		only string
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -935,23 +960,23 @@ func (h *CompaniesHandler) Mine(ctx context.Context, meta envelope.Metadata) (*p
 	if only != "" {
 		return h.Manage(ctx, meta, CompanyRequest{Company: only})
 	}
-	return screens.CompanyMine(h.screen(meta, lang), view), nil
+	return companies.CompanyMine(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Manage handles company.manage: the owner's or the manager's screen.
-func (h *CompaniesHandler) Manage(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Manage(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	return h.manageWith(ctx, meta, req.code(), nil)
 }
 
 // manageWith renders the management screen with a line about what was just
 // done.
-func (h *CompaniesHandler) manageWith(ctx context.Context, meta envelope.Metadata, code string, notice *screens.CompanyNotice) (*presenter.Response, error) {
+func (h *CompaniesHandler) manageWith(ctx context.Context, meta envelope.Metadata, code string, notice *companies.CompanyNotice) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CompanyManageView
+	var view companies.CompanyManageView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -969,27 +994,27 @@ func (h *CompaniesHandler) manageWith(ctx context.Context, meta envelope.Metadat
 		return resp, err
 	}
 	view.Notice = notice
-	return screens.CompanyManage(h.screen(meta, lang), view), nil
+	return companies.CompanyManage(presentation.Ctx{Lang: lang}, view), nil
 }
 
-func (h *CompaniesHandler) manageView(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company, role company.Role) (screens.CompanyManageView, error) {
+func (h *CompaniesHandler) manageView(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company, role company.Role) (companies.CompanyManageView, error) {
 	city, err := h.cities.ByID(ctx, c.CityID)
 	if err != nil {
-		return screens.CompanyManageView{}, err
+		return companies.CompanyManageView{}, err
 	}
 	tdef, ty, err := companyType(snap, c)
 	if err != nil {
-		return screens.CompanyManageView{}, err
+		return companies.CompanyManageView{}, err
 	}
 	books, _, err := companyBooks(ctx, tx, c)
 	if err != nil {
-		return screens.CompanyManageView{}, err
+		return companies.CompanyManageView{}, err
 	}
 	tax, err := h.lever(ctx, *city, LeverCorporateTax)
 	if err != nil {
-		return screens.CompanyManageView{}, err
+		return companies.CompanyManageView{}, err
 	}
-	v := screens.CompanyManageView{
+	v := companies.CompanyManageView{
 		Ref: companyRef(snap, c), CityCode: city.Code, City: city.Name, Owner: role == company.RoleOwner,
 		Balance: books.Balance.Minor(), Reserved: books.Reserved.Minor(), Available: books.Available().Minor(),
 		Debt: c.Debt, Upkeep: ty.Upkeep.Minor(), Arrears: c.Arrears, Grace: h.rules.InsolvencyPeriods,
@@ -1050,8 +1075,8 @@ func (h *CompaniesHandler) manageView(ctx context.Context, tx application.Tx, sn
 }
 
 // periodSummary is a settled period for a screen.
-func periodSummary(p application.CompanyPeriod) *screens.CompanyPeriodSummary {
-	return &screens.CompanyPeriodSummary{
+func periodSummary(p application.CompanyPeriod) *companies.CompanyPeriodSummary {
+	return &companies.CompanyPeriodSummary{
 		Revenue: p.Revenue, SalesTax: p.SalesTax, Wages: p.Wages, Upkeep: p.UpkeepDue, UpkeepPaid: p.UpkeepPaid,
 		Debt: p.Debt, Shifts: p.Shifts, QualityBPS: p.QualityBPS, Sold: p.SoldUnits, Wanted: p.WantedUnits,
 		Capacity: p.CapacityUnits, Balance: p.BalanceAfter,
@@ -1062,7 +1087,7 @@ func periodSummary(p application.CompanyPeriod) *screens.CompanyPeriodSummary {
 func (h *CompaniesHandler) parseAmount(raw string, snap *content.Snapshot, c *application.Company) (money.Amount, error) {
 	amount, err := bank.ParseAmount(raw)
 	if err != nil {
-		r := refuseCompany(screens.CompanyRefusedInvalidAmount, c, snap)
+		r := refuseCompany(companies.CompanyRefusedInvalidAmount, c, snap)
 		return money.Amount{}, r
 	}
 	switch err := h.rules.Limits.Check(amount); {
@@ -1071,7 +1096,7 @@ func (h *CompaniesHandler) parseAmount(raw string, snap *content.Snapshot, c *ap
 	case stderrors.Is(err, bank.ErrAboveMaximum):
 		return money.Amount{}, application.ErrAmountAboveMaximum.WithDetail("max", h.rules.Limits.Max.Minor())
 	case err != nil:
-		return money.Amount{}, refuseCompany(screens.CompanyRefusedInvalidAmount, c, snap)
+		return money.Amount{}, refuseCompany(companies.CompanyRefusedInvalidAmount, c, snap)
 	}
 	return amount, nil
 }
@@ -1079,7 +1104,7 @@ func (h *CompaniesHandler) parseAmount(raw string, snap *content.Snapshot, c *ap
 // Deposit handles company.deposit: money from the owner's or the manager's
 // cash or card into the company's account. Cash is handed over in the
 // company's city; a card works from anywhere.
-func (h *CompaniesHandler) Deposit(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Deposit(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -1093,7 +1118,7 @@ func (h *CompaniesHandler) Deposit(ctx context.Context, meta envelope.Metadata, 
 		method = payment.Card
 	}
 	var (
-		notice   *screens.CompanyNotice
+		notice   *companies.CompanyNotice
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -1130,7 +1155,7 @@ func (h *CompaniesHandler) Deposit(ctx context.Context, meta envelope.Metadata, 
 				if err != nil {
 					return err
 				}
-				r := refuseCompany(screens.CompanyRefusedCashAway, c, snap)
+				r := refuseCompany(companies.CompanyRefusedCashAway, c, snap)
 				r.view.CityCode, r.view.City = city.Code, city.Name
 				return r
 			}
@@ -1140,7 +1165,7 @@ func (h *CompaniesHandler) Deposit(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		plan := wallet.Plan(amount, accepted)
-		back := []string{screens.AddrCompanyManage, c.Code}
+		back := []string{companies.AddrCompanyManage, c.Code}
 		if err := checkMethod(plan, method, wallet, "company.button.manage", back...); err != nil {
 			return err
 		}
@@ -1160,7 +1185,7 @@ func (h *CompaniesHandler) Deposit(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		req.Company = c.Code
-		notice = &screens.CompanyNotice{Kind: screens.CompanyNoticeDeposited, Amount: amount.Minor()}
+		notice = &companies.CompanyNotice{Kind: companies.CompanyNoticeDeposited, Amount: amount.Minor()}
 		return appendCompanyEvent(ctx, tx, meta, "deposited", c.ID, map[string]any{
 			"company_id": c.ID, "player_id": p.ID, "amount": amount.Minor(), "method": string(method), "transaction_id": txID,
 		})
@@ -1178,14 +1203,14 @@ func (h *CompaniesHandler) Deposit(ctx context.Context, meta envelope.Metadata, 
 // owner's bank account, the city's corporate tax taken from it. Only the
 // owner, only from the money not promised to running shifts, and only while
 // the company owes no upkeep.
-func (h *CompaniesHandler) Withdraw(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Withdraw(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		notice   *screens.CompanyNotice
+		notice   *companies.CompanyNotice
 		replayed bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -1225,9 +1250,9 @@ func (h *CompaniesHandler) Withdraw(ctx context.Context, meta envelope.Metadata,
 		w, err := company.Withdraw(books, amount, int(taxBPS))
 		switch {
 		case stderrors.Is(err, company.ErrInDebt):
-			return refuseCompany(screens.CompanyRefusedInDebt, c, snap)
+			return refuseCompany(companies.CompanyRefusedInDebt, c, snap)
 		case stderrors.Is(err, company.ErrNotEnoughAvailable):
-			r := refuseCompany(screens.CompanyRefusedNotEnough, c, snap)
+			r := refuseCompany(companies.CompanyRefusedNotEnough, c, snap)
 			r.view.Need, r.view.Have = amount.Minor(), books.Available().Minor()
 			return r
 		case err != nil:
@@ -1239,7 +1264,7 @@ func (h *CompaniesHandler) Withdraw(ctx context.Context, meta envelope.Metadata,
 			return err
 		}
 		req.Company = c.Code
-		notice = &screens.CompanyNotice{Kind: screens.CompanyNoticeWithdrawn, Amount: w.Gross.Minor(), Tax: w.Tax.Minor(), Net: w.Net.Minor()}
+		notice = &companies.CompanyNotice{Kind: companies.CompanyNoticeWithdrawn, Amount: w.Gross.Minor(), Tax: w.Tax.Minor(), Net: w.Net.Minor()}
 		return appendCompanyEvent(ctx, tx, meta, "withdrawn", c.ID, map[string]any{
 			"company_id": c.ID, "player_id": p.ID, "gross": w.Gross.Minor(), "tax": w.Tax.Minor(), "net": w.Net.Minor(),
 			"transaction_id": txID,
@@ -1298,51 +1323,51 @@ func post(ctx context.Context, ledger application.LedgerRepository, reason appli
 
 // Price handles company.price: the company's price level, within its kind's
 // bounds.
-func (h *CompaniesHandler) Price(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Price(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	bps, err := strconv.Atoi(strings.TrimSpace(req.Price))
 	if err != nil {
 		return nil, errors.InvalidInput("a price level is a whole number of basis points")
 	}
-	return h.change(ctx, meta, req, company.RightSetPrice, func(snap *content.Snapshot, c *application.Company) (*screens.CompanyNotice, error) {
+	return h.change(ctx, meta, req, company.RightSetPrice, func(snap *content.Snapshot, c *application.Company) (*companies.CompanyNotice, error) {
 		_, ty, err := companyType(snap, *c)
 		if err != nil {
 			return nil, err
 		}
 		if err := ty.CheckPrice(bps); err != nil {
-			return nil, refuseCompany(screens.CompanyRefusedPrice, c, snap)
+			return nil, refuseCompany(companies.CompanyRefusedPrice, c, snap)
 		}
 		c.PriceBPS = bps
-		return &screens.CompanyNotice{Kind: screens.CompanyNoticePrice, PriceBPS: bps}, nil
+		return &companies.CompanyNotice{Kind: companies.CompanyNoticePrice, PriceBPS: bps}, nil
 	})
 }
 
 // Auto handles company.auto: hiring qualified applicants as they apply, or
 // not.
-func (h *CompaniesHandler) Auto(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
-	on := req.On == screens.CompanyAutoOn
-	if !on && req.On != screens.CompanyAutoOff {
+func (h *CompaniesHandler) Auto(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
+	on := req.On == companies.CompanyAutoOn
+	if !on && req.On != companies.CompanyAutoOff {
 		return nil, errors.InvalidInput("automatic hiring is on or off")
 	}
-	return h.change(ctx, meta, req, company.RightManageStaff, func(_ *content.Snapshot, c *application.Company) (*screens.CompanyNotice, error) {
+	return h.change(ctx, meta, req, company.RightManageStaff, func(_ *content.Snapshot, c *application.Company) (*companies.CompanyNotice, error) {
 		c.AutoAccept = on
 		if on {
-			return &screens.CompanyNotice{Kind: screens.CompanyNoticeAutoOn}, nil
+			return &companies.CompanyNotice{Kind: companies.CompanyNoticeAutoOn}, nil
 		}
-		return &screens.CompanyNotice{Kind: screens.CompanyNoticeAutoOff}, nil
+		return &companies.CompanyNotice{Kind: companies.CompanyNoticeAutoOff}, nil
 	})
 }
 
 // change applies one setting of a company under its lock and shows the
 // management screen with what changed.
 func (h *CompaniesHandler) change(ctx context.Context, meta envelope.Metadata, req CompanyRequest, right company.Right,
-	apply func(snap *content.Snapshot, c *application.Company) (*screens.CompanyNotice, error),
-) (*presenter.Response, error) {
+	apply func(snap *content.Snapshot, c *application.Company) (*companies.CompanyNotice, error),
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var notice *screens.CompanyNotice
+	var notice *companies.CompanyNotice
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -1367,7 +1392,7 @@ func (h *CompaniesHandler) change(ctx context.Context, meta envelope.Metadata, r
 
 // Manager handles company.manager: the owner names a manager — anybody the
 // player search finds — or, with "none", removes the one there is.
-func (h *CompaniesHandler) Manager(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Manager(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -1385,19 +1410,19 @@ func (h *CompaniesHandler) Manager(ctx context.Context, meta envelope.Metadata, 
 	}
 	snap := h.content.Current()
 	var appointed *application.Player
-	resp, err := h.change(ctx, meta, req, company.RightAppoint, func(snap *content.Snapshot, c *application.Company) (*screens.CompanyNotice, error) {
+	resp, err := h.change(ctx, meta, req, company.RightAppoint, func(snap *content.Snapshot, c *application.Company) (*companies.CompanyNotice, error) {
 		if remove {
 			c.ManagerID = ""
-			return &screens.CompanyNotice{Kind: screens.CompanyNoticeManagerRemoved}, nil
+			return &companies.CompanyNotice{Kind: companies.CompanyNoticeManagerRemoved}, nil
 		}
 		if target == nil || target.Status != playerActive {
-			return nil, refuseCompany(screens.CompanyRefusedNoPlayer, c, snap)
+			return nil, refuseCompany(companies.CompanyRefusedNoPlayer, c, snap)
 		}
 		if target.ID == c.OwnerID {
-			return nil, refuseCompany(screens.CompanyRefusedSelf, c, snap)
+			return nil, refuseCompany(companies.CompanyRefusedSelf, c, snap)
 		}
 		c.ManagerID, appointed = target.ID, target
-		return &screens.CompanyNotice{Kind: screens.CompanyNoticeManagerSet, Player: govPlayerOf(target)}, nil
+		return &companies.CompanyNotice{Kind: companies.CompanyNoticeManagerSet, Player: govPlayerOf(target)}, nil
 	})
 	if err != nil || appointed == nil {
 		return resp, err
@@ -1426,7 +1451,7 @@ func (h *CompaniesHandler) Manager(ctx context.Context, meta envelope.Metadata, 
 // (company.none_words in the locales, alternatives separated by «|»).
 func (h *CompaniesHandler) noManager(lang, typed string) bool {
 	typed = strings.TrimSpace(typed)
-	if strings.EqualFold(typed, screens.CompanyNoManager) {
+	if strings.EqualFold(typed, companies.CompanyNoManager) {
 		return true
 	}
 	for _, w := range strings.Split(h.msgs.T(lang, "company.none_words", nil), "|") {
@@ -1441,15 +1466,15 @@ func (h *CompaniesHandler) noManager(lang, typed string) bool {
 // would do; with it, the company closes — its debt paid as far as it goes,
 // the rest to its owner taxed, its staff let go and told, its openings
 // closed — unless shifts are being worked for it.
-func (h *CompaniesHandler) Close(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presenter.Response, error) {
+func (h *CompaniesHandler) Close(ctx context.Context, meta envelope.Metadata, req CompanyRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	confirmed := req.Confirm == screens.CompanyConfirm
+	confirmed := req.Confirm == companies.CompanyConfirm
 	var (
-		view     screens.CompanyCloseView
+		view     companies.CompanyCloseView
 		replayed bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -1502,7 +1527,7 @@ func (h *CompaniesHandler) Close(ctx context.Context, meta envelope.Metadata, re
 		}
 		closing, err := company.Close(books, int(taxBPS))
 		if stderrors.Is(err, company.ErrShiftsRunning) {
-			return refuseCompany(screens.CompanyRefusedShiftsRunning, c, snap)
+			return refuseCompany(companies.CompanyRefusedShiftsRunning, c, snap)
 		}
 		if err != nil {
 			return errors.Internal(err)
@@ -1511,7 +1536,7 @@ func (h *CompaniesHandler) Close(ctx context.Context, meta envelope.Metadata, re
 		if err != nil {
 			return err
 		}
-		view = screens.CompanyCloseView{Ref: companyRef(snap, *c), DebtPaid: closing.DebtPaid.Minor(),
+		view = companies.CompanyCloseView{Ref: companyRef(snap, *c), DebtPaid: closing.DebtPaid.Minor(),
 			Tax: closing.Payout.Tax.Minor(), Net: closing.Payout.Net.Minor(), Staff: len(staff), Done: confirmed}
 		if !confirmed {
 			return nil
@@ -1524,7 +1549,7 @@ func (h *CompaniesHandler) Close(ctx context.Context, meta envelope.Metadata, re
 	if replayed {
 		return h.List(ctx, meta)
 	}
-	return screens.CompanyClose(h.screen(meta, lang), view), nil
+	return companies.CompanyClose(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // dissolve closes a company: the debt paid as closing says, the payout
@@ -1553,7 +1578,7 @@ func (h *CompaniesHandler) dissolve(ctx context.Context, tx application.Tx, meta
 			return err
 		}
 		if err := h.employeeEvent(ctx, tx, meta, snap, *c, e.PlayerID, e.CareerCode, e.Tier, e.Rate,
-			screens.CompanyEmployeeClosed); err != nil {
+			companies.CompanyEmployeeClosed); err != nil {
 			return err
 		}
 	}
@@ -1582,7 +1607,7 @@ func (h *CompaniesHandler) dissolve(ctx context.Context, tx application.Tx, meta
 func (h *CompaniesHandler) employeeEvent(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
 	c application.Company, playerID, career string, tier int, wage int64, kind string,
 ) error {
-	ref := screens.JobRef{CareerCode: career, CareerName: career}
+	ref := presentation.JobRef{CareerCode: career, CareerName: career}
 	if def, ok := snap.CareerDef(career); ok {
 		ref = jobRef(def, tier)
 	}
@@ -1594,7 +1619,7 @@ func (h *CompaniesHandler) employeeEvent(ctx context.Context, tx application.Tx,
 
 // publicProducts adds to a company's public page what it makes — its own
 // final designs, by name and kind — and the technologies it published.
-func publicProducts(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company, v *screens.CompanyPageView) error {
+func publicProducts(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company, v *companies.CompanyPageView) error {
 	designs, err := tx.Production().Designs(ctx, c.ID)
 	if err != nil {
 		return err

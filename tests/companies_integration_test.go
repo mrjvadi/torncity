@@ -187,8 +187,8 @@ func TestCompanyEndToEnd(t *testing.T) {
 	treasuryBefore := balance(application.AccountCityTreasury, city.ID)
 
 	// A name that impersonates the city is refused, and nothing is paid.
-	resp, err := companies.Found(ctx, metaAs(owner, "company.found"), handlers.CompanyRequest{
-		Type: "grocery", Method: "cash", Name: "City Hall Foods"})
+	resp, err := rr(companies.Found(ctx, metaAs(owner, "company.found"), handlers.CompanyRequest{
+		Type: "grocery", Method: "cash", Name: "City Hall Foods"}))
 	if err != nil || resp == nil || !strings.Contains(resp.Text, "company.refused.name_reserved") {
 		t.Fatalf("a reserved name = %v, %v; want the refusal", resp, err)
 	}
@@ -203,7 +203,7 @@ func TestCompanyEndToEnd(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			_, err := companies.Found(context.Background(), found, req)
+			_, err := rr(companies.Found(context.Background(), found, req))
 			errs <- err
 		}()
 	}
@@ -252,15 +252,15 @@ func TestCompanyEndToEnd(t *testing.T) {
 		t.Errorf("founded events = %d, want 1 for the group line", n)
 	}
 	// The same name again in the city is taken.
-	resp, err = companies.Found(ctx, metaAs(owner, "company.found"), handlers.CompanyRequest{
-		Type: "restaurant", Method: "cash", Name: "kaveh bakery."})
+	resp, err = rr(companies.Found(ctx, metaAs(owner, "company.found"), handlers.CompanyRequest{
+		Type: "restaurant", Method: "cash", Name: "kaveh bakery."}))
 	if err != nil || resp == nil || !strings.Contains(resp.Text, "company.refused.name_taken") {
 		t.Fatalf("a taken name = %v, %v; want the refusal", resp, err)
 	}
 
 	// An opening, and the worker applies to it and is accepted.
-	if _, err := companies.Post(ctx, metaAs(owner, "company.post"), handlers.CompanyRequest{
-		Company: code, Career: "retail", Wage: "150"}); err != nil {
+	if _, err := rr(companies.Post(ctx, metaAs(owner, "company.post"), handlers.CompanyRequest{
+		Company: code, Career: "retail", Wage: "150"})); err != nil {
 		t.Fatalf("Post: %v", err)
 	}
 	var openingNo int64
@@ -272,7 +272,7 @@ func TestCompanyEndToEnd(t *testing.T) {
 		t.Fatalf("job openings = %v, %v; want the company's opening beside the base employer's", list, err)
 	}
 	no := strconvI(openingNo)
-	if _, err := companies.Apply(ctx, metaAs(worker, "company.apply"), handlers.CompanyRequest{No: no}); err != nil {
+	if _, err := rr(companies.Apply(ctx, metaAs(worker, "company.apply"), handlers.CompanyRequest{No: no})); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 	var appNo int64
@@ -282,7 +282,7 @@ func TestCompanyEndToEnd(t *testing.T) {
 	}
 	decide := metaAs(owner, "company.decide")
 	for range 2 { // a second press of the same button decides nothing more
-		if _, err := companies.Decide(ctx, decide, handlers.CompanyRequest{No: strconvI(appNo), Verdict: "yes"}); err != nil {
+		if _, err := rr(companies.Decide(ctx, decide, handlers.CompanyRequest{No: strconvI(appNo), Verdict: "yes"})); err != nil {
 			t.Fatalf("Decide: %v", err)
 		}
 	}
@@ -304,8 +304,8 @@ func TestCompanyEndToEnd(t *testing.T) {
 	}
 
 	// The owner puts money in; now the shift starts and sets its wage aside.
-	if _, err := companies.Deposit(ctx, metaAs(owner, "company.deposit"), handlers.CompanyRequest{
-		Company: code, Method: "cash", Amount: "20000"}); err != nil {
+	if _, err := rr(companies.Deposit(ctx, metaAs(owner, "company.deposit"), handlers.CompanyRequest{
+		Company: code, Method: "cash", Amount: "20000"})); err != nil {
 		t.Fatalf("Deposit: %v", err)
 	}
 	companyBalance := func() int64 { return balance(application.AccountCompanyTreasury, companyID) }
@@ -329,7 +329,7 @@ func TestCompanyEndToEnd(t *testing.T) {
 		t.Fatalf("reserved = %d, want the wage 150", reserved)
 	}
 	// The reserved wage is out of reach of a withdrawal.
-	resp, err = companies.Withdraw(ctx, metaAs(owner, "company.withdraw"), handlers.CompanyRequest{Company: code, Amount: "19900"})
+	resp, err = rr(companies.Withdraw(ctx, metaAs(owner, "company.withdraw"), handlers.CompanyRequest{Company: code, Amount: "19900"}))
 	if err != nil || resp == nil || !strings.Contains(resp.Text, "company.refused.not_enough") {
 		t.Fatalf("withdrawing promised wages = %v, %v; want the refusal", resp, err)
 	}
@@ -369,7 +369,7 @@ func TestCompanyEndToEnd(t *testing.T) {
 			defer wg.Done()
 			m := validMeta(t)
 			m.TelegramUserID, m.Command = 0, "company.settle"
-			_, err := companies.Settle(context.Background(), m, settle)
+			_, err := rr(companies.Settle(context.Background(), m, settle))
 			serrs <- err
 		}()
 	}
@@ -429,7 +429,7 @@ func TestCompanyEndToEnd(t *testing.T) {
 	}
 	before := companyBalance()
 	treasuryBefore = balance(application.AccountCityTreasury, city.ID)
-	if _, err := companies.Withdraw(ctx, metaAs(owner, "company.withdraw"), handlers.CompanyRequest{Company: code, Amount: "1000"}); err != nil {
+	if _, err := rr(companies.Withdraw(ctx, metaAs(owner, "company.withdraw"), handlers.CompanyRequest{Company: code, Amount: "1000"})); err != nil {
 		t.Fatalf("Withdraw: %v", err)
 	}
 	tax := 1000 * taxLever.Value / 10_000
@@ -510,8 +510,8 @@ func TestCompanyInsolvencyAndClosing(t *testing.T) {
 		return m
 	}
 	found := func(name string) (id, code string) {
-		if _, err := companies.Found(ctx, metaFor("company.found"), handlers.CompanyRequest{
-			Type: "grocery", Method: "cash", Name: name}); err != nil {
+		if _, err := rr(companies.Found(ctx, metaFor("company.found"), handlers.CompanyRequest{
+			Type: "grocery", Method: "cash", Name: name})); err != nil {
 			t.Fatalf("Found: %v", err)
 		}
 		if err := pool.Raw().QueryRow(ctx, `SELECT id::text, code FROM companies WHERE owner_player_id = $1::uuid AND name = $2`,
@@ -534,8 +534,8 @@ func TestCompanyInsolvencyAndClosing(t *testing.T) {
 		payload, _ := json.Marshal(handlers.CompanyPeriodPayload{CityID: city.ID, PeriodNo: no})
 		m := validMeta(t)
 		m.TelegramUserID, m.Command = 0, "company.settle"
-		if _, err := companies.Settle(ctx, m, handlers.CrimeScheduledRequest{ActionID: actionID,
-			ReferenceType: application.CompanyMarketReference, ReferenceID: city.ID, Payload: payload}); err != nil {
+		if _, err := rr(companies.Settle(ctx, m, handlers.CrimeScheduledRequest{ActionID: actionID,
+			ReferenceType: application.CompanyMarketReference, ReferenceID: city.ID, Payload: payload})); err != nil {
 			t.Fatalf("Settle: %v", err)
 		}
 	}
@@ -575,8 +575,8 @@ func TestCompanyInsolvencyAndClosing(t *testing.T) {
 
 	// A company its owner closes: its money comes out, the tax to the city.
 	closing, code := found("Closing Grocers")
-	if _, err := companies.Deposit(ctx, metaFor("company.deposit"), handlers.CompanyRequest{
-		Company: code, Method: "cash", Amount: "5000"}); err != nil {
+	if _, err := rr(companies.Deposit(ctx, metaFor("company.deposit"), handlers.CompanyRequest{
+		Company: code, Method: "cash", Amount: "5000"})); err != nil {
 		t.Fatalf("Deposit: %v", err)
 	}
 	taxLever, err := policy.Get(ctx, city.JurisdictionID, handlers.LeverCorporateTax)
@@ -586,7 +586,7 @@ func TestCompanyInsolvencyAndClosing(t *testing.T) {
 	bankBefore := balance(application.AccountPlayerBank, owner.ID)
 	confirm := metaFor("company.close")
 	for range 2 { // the confirming press twice closes once
-		if _, err := companies.Close(ctx, confirm, handlers.CompanyRequest{Company: code, Confirm: "yes"}); err != nil {
+		if _, err := rr(companies.Close(ctx, confirm, handlers.CompanyRequest{Company: code, Confirm: "yes"})); err != nil {
 			t.Fatalf("Close: %v", err)
 		}
 	}

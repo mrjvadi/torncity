@@ -3,7 +3,11 @@ package handlers
 import (
 	"context"
 	"maps"
+	"strconv"
 	"strings"
+
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
@@ -13,9 +17,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/i18n"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // improvementReference is the journal and ledger reference_type of an
@@ -39,10 +40,10 @@ func lineageBaseName(ctx context.Context, tx application.Tx, d application.Desig
 	return root.Name
 }
 
-// revisionName is a lineage's base name with the current version appended,
-// in the player's language (configs/locales production.revision_name).
-func revisionName(c screens.Context, base string, version int64) string {
-	return c.T("production.revision_name", map[string]any{"base": base, "version": screens.FormatNumber(c, version)})
+// revisionName is a lineage's base name with the current version appended
+// ("Sparrow v2"). It is data the core stores, so it carries no language.
+func revisionName(base string, version int64) string {
+	return base + " v" + strconv.FormatInt(version, 10)
 }
 
 // Product generations (the owner's 2026 request, on top of ADR
@@ -90,7 +91,7 @@ func currentAttributes(a item.Archetype, d item.Design, components item.Componen
 // previous version's current attributes for the screen's ▲▼ deltas.
 func (h *ProductionHandler) designViewWithHistory(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 	c *application.Company, d application.Design,
-) (screens.DesignView, error) {
+) (companies.DesignView, error) {
 	v, err := h.designView(ctx, tx, snap, c, d, "")
 	if err != nil {
 		return v, err
@@ -128,13 +129,13 @@ func (h *ProductionHandler) designViewWithHistory(ctx context.Context, tx applic
 // revising always starts a fresh baseline: any improvement projects the
 // version being revised gained are not carried into the new one (that is
 // what an improvement project itself is for — see ImprovementStart).
-func (h *ProductionHandler) DesignRevise(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) DesignRevise(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.DesignView
+	var view companies.DesignView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -152,14 +153,14 @@ func (h *ProductionHandler) DesignRevise(ctx context.Context, meta envelope.Meta
 			return err
 		}
 		if d.Status != application.DesignFinal {
-			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrStudio, c.Code)
+			return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(companies.AddrStudio, c.Code)
 		}
 		designs, err := tx.Production().Designs(ctx, c.ID)
 		if err != nil {
 			return err
 		}
 		if len(designs) >= h.rules.MaxDesigns {
-			r := refuseProduction(screens.ProductionRefusedMaxDesigns, c, snap).back(screens.AddrStudio, c.Code)
+			r := refuseProduction(companies.ProductionRefusedMaxDesigns, c, snap).back(companies.AddrStudio, c.Code)
 			r.view.Max = h.rules.MaxDesigns
 			return r
 		}
@@ -168,7 +169,7 @@ func (h *ProductionHandler) DesignRevise(ctx context.Context, meta envelope.Meta
 			version = 1
 		}
 		version++
-		name := revisionName(h.screen(meta, lang), lineageBaseName(ctx, tx, *d), version)
+		name := revisionName(lineageBaseName(ctx, tx, *d), version)
 		next := application.Design{ID: h.ids.NewID(), CompanyID: c.ID, Item: d.Item, Archetype: d.Archetype,
 			Name: name, NameKey: company.NameKey(name), Origin: d.Origin, Status: application.DesignDraft,
 			Fills: maps.Clone(d.Fills), QualityLossBPS: d.QualityLossBPS, OverheadBPS: d.OverheadBPS,
@@ -183,20 +184,20 @@ func (h *ProductionHandler) DesignRevise(ctx context.Context, meta envelope.Meta
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Design(h.screen(meta, lang), view), nil
+	return companies.Design(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // DesignRetire handles company.dretire: a company marks a version obsolete.
 // Existing production orders already running and existing instances are
 // unaffected; production.PlanOrder refuses only a NEW order against it. A
 // retired version may still be revised further and reverse engineered.
-func (h *ProductionHandler) DesignRetire(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) DesignRetire(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.DesignView
+	var view companies.DesignView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -217,7 +218,7 @@ func (h *ProductionHandler) DesignRetire(ctx context.Context, meta envelope.Meta
 			return err
 		}
 		if d.Status != application.DesignFinal {
-			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrStudio, c.Code)
+			return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(companies.AddrStudio, c.Code)
 		}
 		if place {
 			d.Status = application.DesignRetired
@@ -232,7 +233,7 @@ func (h *ProductionHandler) DesignRetire(ctx context.Context, meta envelope.Meta
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Design(h.screen(meta, lang), view), nil
+	return companies.Design(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // ImprovementStart handles company.improve: the plan of an improvement
@@ -241,13 +242,13 @@ func (h *ProductionHandler) DesignRetire(ctx context.Context, meta envelope.Meta
 // confirmed, starting it. One project runs at a time per company, like
 // research; it completes from the scheduler (Improved) producing the next
 // version of the design's lineage.
-func (h *ProductionHandler) ImprovementStart(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) ImprovementStart(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ImprovementView
+	var view companies.ImprovementView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -268,7 +269,7 @@ func (h *ProductionHandler) ImprovementStart(ctx context.Context, meta envelope.
 			return err
 		}
 		if d.Status != application.DesignFinal {
-			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrStudio, c.Code)
+			return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(companies.AddrStudio, c.Code)
 		}
 		attribute := strings.TrimSpace(req.Slot)
 		a, ok := snap.Archetype(d.Archetype)
@@ -280,13 +281,13 @@ func (h *ProductionHandler) ImprovementStart(ctx context.Context, meta envelope.
 			}
 		}
 		if !ok || attribute == "" || !found {
-			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrDesign, req.No)
+			return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(companies.AddrDesign, req.No)
 		}
 		gained, err := item.NextImprovementBPS(domainDesign(*d).Improvements[attribute])
 		if err != nil {
-			return refuseProduction(screens.ProductionRefusedImprovementCapped, c, snap).back(screens.AddrDesign, req.No)
+			return refuseProduction(companies.ProductionRefusedImprovementCapped, c, snap).back(companies.AddrDesign, req.No)
 		}
-		view = screens.ImprovementView{Ref: companyRef(snap, *c), No: d.No, Design: designGood(snap, *d),
+		view = companies.ImprovementView{Ref: companyRef(snap, *c), No: d.No, Design: designGood(snap, *d),
 			Attribute: named(attribute, attribute), GainBPS: gained, Cost: h.rules.ImprovementCost,
 			Duration: h.scale.RealWait(h.rules.ImprovementTime)}
 		if !place {
@@ -297,7 +298,7 @@ func (h *ProductionHandler) ImprovementStart(ctx context.Context, meta envelope.
 			return err
 		}
 		if running != nil {
-			return refuseProduction(screens.ProductionRefusedImprovementBusy, c, snap).back(screens.AddrDesign, req.No)
+			return refuseProduction(companies.ProductionRefusedImprovementBusy, c, snap).back(companies.AddrDesign, req.No)
 		}
 		f, err := readFloor(ctx, tx, snap, c)
 		if err != nil {
@@ -326,7 +327,7 @@ func (h *ProductionHandler) ImprovementStart(ctx context.Context, meta envelope.
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Improvement(h.screen(meta, lang), view), nil
+	return companies.Improvement(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Improved handles company.improved from the SCHEDULER: an improvement
@@ -335,7 +336,7 @@ func (h *ProductionHandler) ImprovementStart(ctx context.Context, meta envelope.
 // already-known gain (item.ApplyImprovement) — deterministic, so a replayed
 // completion (blocked by the row's own status check below) would compute the
 // identical result anyway.
-func (h *ProductionHandler) Improved(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Improved(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	in, err := productionPayload(meta, req)
 	if err != nil {
 		return nil, err
@@ -370,7 +371,7 @@ func (h *ProductionHandler) Improved(ctx context.Context, meta envelope.Metadata
 		if err != nil {
 			return errors.Internal(err)
 		}
-		name := revisionName(h.screen(meta, i18n.DefaultLanguage), lineageBaseName(ctx, tx, *parent), int64(next.Version))
+		name := revisionName(lineageBaseName(ctx, tx, *parent), int64(next.Version))
 		result := application.Design{ID: h.ids.NewID(), CompanyID: c.ID, Item: parent.Item, Archetype: parent.Archetype,
 			Name: name, NameKey: company.NameKey(name), Origin: string(item.OriginAuthored), Status: application.DesignFinal,
 			Fills: storedFills(next.Fills), QualityLossBPS: next.QualityLossBPS, OverheadBPS: next.OverheadBPS,
@@ -405,7 +406,7 @@ func domainInstance(p application.Piece) item.Instance {
 type retrofitPlan struct {
 	kit, target       *application.Piece
 	current, toDesign *application.Design
-	good              screens.Good
+	good              presentation.Good
 }
 
 // planRetrofit resolves and checks a kit and a target piece an org holds: the
@@ -417,17 +418,17 @@ func planRetrofit(ctx context.Context, tx application.Tx, snap *content.Snapshot
 	var plan retrofitPlan
 	kit, err := tx.Items().PieceBySerial(ctx, kitSerial)
 	if isSentinel(err, application.ErrPieceNotFound) {
-		return plan, refuseProduction(screens.ProductionRefusedNotFound, nil, snap)
+		return plan, refuseProduction(companies.ProductionRefusedNotFound, nil, snap)
 	}
 	if err != nil {
 		return plan, err
 	}
 	if kit.Org != org || kit.Holding != application.HoldWarehouse {
-		return plan, refuseProduction(screens.ProductionRefusedNotFound, nil, snap)
+		return plan, refuseProduction(companies.ProductionRefusedNotFound, nil, snap)
 	}
 	order, err := tx.Production().Order(ctx, kit.OriginRef)
 	if isSentinel(err, application.ErrProductionOrderNotFound) || (err == nil && order.Kind != application.OrderKindUpgradeKit) {
-		return plan, refuseProduction(screens.ProductionRefusedNotSameLineage, nil, snap)
+		return plan, refuseProduction(companies.ProductionRefusedNotSameLineage, nil, snap)
 	}
 	if err != nil {
 		return plan, err
@@ -438,20 +439,20 @@ func planRetrofit(ctx context.Context, tx application.Tx, snap *content.Snapshot
 	}
 	target, err := tx.Items().PieceBySerial(ctx, targetSerial)
 	if isSentinel(err, application.ErrPieceNotFound) {
-		return plan, refuseProduction(screens.ProductionRefusedNotFound, nil, snap)
+		return plan, refuseProduction(companies.ProductionRefusedNotFound, nil, snap)
 	}
 	if err != nil {
 		return plan, err
 	}
 	if target.Org != org || target.Holding != application.HoldWarehouse {
-		return plan, refuseProduction(screens.ProductionRefusedNotFound, nil, snap)
+		return plan, refuseProduction(companies.ProductionRefusedNotFound, nil, snap)
 	}
 	current, err := tx.Production().DesignByID(ctx, target.DesignID)
 	if err != nil {
 		return plan, err
 	}
 	if _, err := item.Retrofit(domainInstance(*target), domainDesign(*current), domainDesign(*toDesign)); err != nil {
-		return plan, refuseProduction(screens.ProductionRefusedNotSameLineage, nil, snap)
+		return plan, refuseProduction(companies.ProductionRefusedNotSameLineage, nil, snap)
 	}
 	plan.kit, plan.target, plan.current, plan.toDesign = kit, target, current, toDesign
 	plan.good = designGood(snap, *toDesign)
@@ -464,13 +465,13 @@ func planRetrofit(ctx context.Context, tx application.Tx, snap *content.Snapshot
 // consumed the moment the job starts (like a reverse-engineering sample),
 // whether or not anything else about the unit changes yet — the retrofit
 // itself finishes from the scheduler (Retrofitted).
-func (h *ProductionHandler) RetrofitStart(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) RetrofitStart(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.RetrofitView
+	var view companies.RetrofitView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -498,7 +499,7 @@ func (h *ProductionHandler) RetrofitStart(ctx context.Context, meta envelope.Met
 		if err != nil {
 			return err
 		}
-		view = screens.RetrofitView{Ref: companyRef(snap, *c), Good: plan.good, FromVer: max(plan.current.Version, 1),
+		view = companies.RetrofitView{Ref: companyRef(snap, *c), Good: plan.good, FromVer: max(plan.current.Version, 1),
 			ToVer: plan.toDesign.Version, Duration: h.scale.RealWait(h.rules.RetrofitTime)}
 		if !place {
 			return nil
@@ -514,7 +515,7 @@ func (h *ProductionHandler) RetrofitStart(ctx context.Context, meta envelope.Met
 			PieceID: plan.target.ID, KitPieceID: plan.kit.ID, FromDesignID: plan.current.ID, ToDesignID: plan.toDesign.ID,
 			GameActionID: actionID, StartedBy: p.ID, StartedAt: now, FinishAt: finish}); err != nil {
 			if isSentinel(err, application.ErrRetrofitBusy) {
-				return refuseProduction(screens.ProductionRefusedRetrofitBusy, c, snap)
+				return refuseProduction(companies.ProductionRefusedRetrofitBusy, c, snap)
 			}
 			return err
 		}
@@ -530,7 +531,7 @@ func (h *ProductionHandler) RetrofitStart(ctx context.Context, meta envelope.Met
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Retrofit(h.screen(meta, lang), view), nil
+	return companies.Retrofit(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Retrofitted handles company.retrofitted from the SCHEDULER: a retrofit job
@@ -538,7 +539,7 @@ func (h *ProductionHandler) RetrofitStart(ctx context.Context, meta envelope.Met
 // unit's attributes, market value and — for a military asset — a war
 // strike's inputs are all read fresh off it from this moment on, with
 // nothing else to update anywhere.
-func (h *ProductionHandler) Retrofitted(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Retrofitted(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	in, err := productionPayload(meta, req)
 	if err != nil {
 		return nil, err

@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	mview "github.com/mrjvadi/torncity/internal/presentation/military"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 	"sort"
 	"strconv"
 	"strings"
@@ -19,8 +22,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // MilitaryRules is the tuning of the armed forces (config military).
@@ -66,6 +67,7 @@ type MilitaryHandler struct {
 	policy  application.PolicyReader
 	scale   gametime.Scale
 	rules   MilitaryRules
+	gates   *ServiceGate
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -108,20 +110,16 @@ type MilitaryRequest struct {
 }
 
 func (r MilitaryRequest) confirmed() bool {
-	return strings.TrimSpace(r.Confirm) == screens.MilitaryConfirm
-}
-
-func (h *MilitaryHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
+	return strings.TrimSpace(r.Confirm) == mview.MilitaryConfirm
 }
 
 // militaryRefusal carries a refused military command out of a unit of work.
-type militaryRefusal struct{ view screens.MilitaryRefusalView }
+type militaryRefusal struct{ view mview.MilitaryRefusalView }
 
 func (r *militaryRefusal) Error() string { return "handlers: military refused: " + r.view.Kind }
 
 func refuseMilitary(kind string, country *application.Jurisdiction) *militaryRefusal {
-	r := &militaryRefusal{view: screens.MilitaryRefusalView{Kind: kind}}
+	r := &militaryRefusal{view: mview.MilitaryRefusalView{Kind: kind}}
 	if country != nil {
 		r.view.Country = countryPlace(*country)
 	}
@@ -129,25 +127,25 @@ func refuseMilitary(kind string, country *application.Jurisdiction) *militaryRef
 }
 
 func (r *militaryRefusal) back(addr ...string) *militaryRefusal {
-	r.view.Back = addr
+	r.view.Back = presentation.RefOfAddress(strings.Join(addr, ":"))
 	return r
 }
 
 // finish turns a refusal into its screen.
-func (h *MilitaryHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *MilitaryHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	if err == nil {
 		return nil, nil
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	var r *militaryRefusal
 	if stderrors.As(err, &r) {
-		return screens.MilitaryRefusal(c, r.view), nil
+		return mview.MilitaryRefusal(c, r.view), nil
 	}
 	if v, ok := asBlocked(err); ok {
-		return screens.SanctionBlocked(c, v), nil
+		return society.SanctionBlocked(c, v), nil
 	}
 	if isSentinel(err, application.ErrJurisdictionNotFound) {
-		return screens.MilitaryRefusal(c, screens.MilitaryRefusalView{Kind: screens.MilitaryRefusedNoCountry}), nil
+		return mview.MilitaryRefusal(c, mview.MilitaryRefusalView{Kind: mview.MilitaryRefusedNoCountry}), nil
 	}
 	return nil, err
 }
@@ -176,7 +174,7 @@ func (h *MilitaryHandler) country(ctx context.Context, tx application.Tx, p *app
 		return nil, err
 	}
 	if j == nil {
-		return nil, refuseMilitary(screens.MilitaryRefusedNoCountry, nil)
+		return nil, refuseMilitary(mview.MilitaryRefusedNoCountry, nil)
 	}
 	return j, nil
 }
@@ -250,7 +248,7 @@ func (h *MilitaryHandler) StartClocks(ctx context.Context) error {
 // one country (ADR 0022 §2.4), exactly once — the clock row is locked first
 // and must name this action and period, and the period's record has the
 // country and the period as its primary key.
-func (h *MilitaryHandler) Settle(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *MilitaryHandler) Settle(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}
@@ -453,16 +451,16 @@ func postRef(ctx context.Context, ledger application.LedgerRepository, reason ap
 
 // forceSummary is a country's classes by branch, in the content's order,
 // with bands and counts.
-func forceSummary(snap *content.Snapshot, counts map[string]int64) []screens.BranchForces {
-	var out []screens.BranchForces
+func forceSummary(snap *content.Snapshot, counts map[string]int64) []mview.BranchForces {
+	var out []mview.BranchForces
 	bands := snap.StrengthBands()
 	for _, b := range snap.Branches() {
-		bf := screens.BranchForces{Branch: named(b.Code, b.Name)}
+		bf := mview.BranchForces{Branch: named(b.Code, b.Name)}
 		for _, cl := range snap.ForceClasses() {
 			if cl.Branch != b.Code || counts[cl.Code] == 0 {
 				continue
 			}
-			bf.Classes = append(bf.Classes, screens.ForceClassLine{Class: named(cl.Code, cl.Name),
+			bf.Classes = append(bf.Classes, mview.ForceClassLine{Class: named(cl.Code, cl.Name),
 				Band: military.BandOf(bands, counts[cl.Code]), Count: counts[cl.Code]})
 		}
 		out = append(out, bf)
@@ -483,13 +481,18 @@ func ministryOffices(snap *content.Snapshot) []string {
 }
 
 // Ministry handles military.ministry: a country's ministry of defence.
-func (h *MilitaryHandler) Ministry(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presenter.Response, error) {
+func (h *MilitaryHandler) Ministry(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
+	if un, lang, err := h.forcesGate(ctx, meta, snap); err != nil {
+		return nil, err
+	} else if un != nil {
+		return mview.Ministry(presentation.Ctx{Lang: lang}, mview.MinistryView{Unavailable: un}), nil
+	}
 	lang := meta.Language
-	var view screens.MinistryView
+	var view mview.MinistryView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -500,7 +503,7 @@ func (h *MilitaryHandler) Ministry(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		now := h.now()
-		view = screens.MinistryView{Country: countryPlace(*country)}
+		view = mview.MinistryView{Country: countryPlace(*country)}
 		for _, code := range ministryOffices(snap) {
 			line, err := officeLine(ctx, tx, code, country.ID)
 			if err != nil {
@@ -531,7 +534,7 @@ func (h *MilitaryHandler) Ministry(ctx context.Context, meta envelope.Metadata, 
 		}
 		if len(periods) > 0 {
 			last := periods[0]
-			view.Last = &screens.PeriodLine{Levy: last.Levy, Appropriation: last.Appropriation, UpkeepDue: last.UpkeepDue,
+			view.Last = &mview.PeriodLine{Levy: last.Levy, Appropriation: last.Appropriation, UpkeepDue: last.UpkeepDue,
 				UpkeepPaid: last.UpkeepPaid}
 		}
 		clock, err := h.ensureClock(ctx, tx, country.ID, now)
@@ -574,18 +577,23 @@ func (h *MilitaryHandler) Ministry(ctx context.Context, meta envelope.Metadata, 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Ministry(h.screen(meta, lang), view), nil
+	return mview.Ministry(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Forces handles military.forces: a country's forces by branch — the public
 // summary, or the full count for a cleared viewer in private.
-func (h *MilitaryHandler) Forces(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presenter.Response, error) {
+func (h *MilitaryHandler) Forces(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
+	if un, lang, err := h.forcesGate(ctx, meta, snap); err != nil {
+		return nil, err
+	} else if un != nil {
+		return mview.Forces(presentation.Ctx{Lang: lang}, mview.ForcesView{Unavailable: un}), nil
+	}
 	lang := meta.Language
-	var view screens.ForcesView
+	var view mview.ForcesView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -599,7 +607,7 @@ func (h *MilitaryHandler) Forces(ctx context.Context, meta envelope.Metadata, re
 		if err != nil {
 			return err
 		}
-		view = screens.ForcesView{Country: countryPlace(*country), Branches: forceSummary(snap, counts)}
+		view = mview.ForcesView{Country: countryPlace(*country), Branches: forceSummary(snap, counts)}
 		if !meta.InGroup() {
 			if view.Cleared, err = cleared(ctx, tx, snap, country.ID, p); err != nil {
 				return err
@@ -633,7 +641,7 @@ func (h *MilitaryHandler) Forces(ctx context.Context, meta envelope.Metadata, re
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Forces(h.screen(meta, lang), view), nil
+	return mview.Forces(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // assetGroup keys a piece's group: its good and design.
@@ -642,15 +650,15 @@ func assetGroup(a application.MilitaryAsset) string { return a.Item + "|" + a.De
 // groupGood names a group's good, with its design when it has one.
 func groupGood(ctx context.Context, tx application.Tx, snap *content.Snapshot, itemCode, designID string,
 	designs map[string]*application.Design,
-) (screens.Good, *application.Design, error) {
+) (presentation.Good, *application.Design, error) {
 	if designID == "" {
-		return screens.Good{Item: itemNamed(snap, itemCode)}, nil, nil
+		return presentation.Good{Item: itemNamed(snap, itemCode)}, nil, nil
 	}
 	d, ok := designs[designID]
 	if !ok {
 		var err error
 		if d, err = tx.Production().DesignByID(ctx, designID); err != nil {
-			return screens.Good{}, nil, err
+			return presentation.Good{}, nil, err
 		}
 		designs[designID] = d
 	}
@@ -659,7 +667,7 @@ func groupGood(ctx context.Context, tx application.Tx, snap *content.Snapshot, i
 
 // designAttributes are a design's attributes in the archetype's order, all
 // of them: the cleared see the signature.
-func designAttributes(snap *content.Snapshot, d *application.Design) []screens.AttributeLine {
+func designAttributes(snap *content.Snapshot, d *application.Design) []mview.AttributeLine {
 	if d == nil {
 		return nil
 	}
@@ -671,31 +679,31 @@ func designAttributes(snap *content.Snapshot, d *application.Design) []screens.A
 	if err != nil {
 		return nil
 	}
-	var out []screens.AttributeLine
+	var out []mview.AttributeLine
 	for _, at := range a.Attributes {
 		// Quality is the piece's own; a band that enlarges nothing is not
 		// worth a line.
 		if at.Name == "quality" || (at.Name == "rcs_gain" && attrs[at.Name] == military.BPSWhole) {
 			continue
 		}
-		out = append(out, screens.AttributeLine{Name: at.Name, Value: attrs[at.Name], Observable: at.Observable})
+		out = append(out, mview.AttributeLine{Name: at.Name, Value: attrs[at.Name], Observable: at.Observable})
 	}
 	return out
 }
 
 // Branch handles military.branch: one branch's equipment, in full, for a
 // cleared viewer.
-func (h *MilitaryHandler) Branch(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presenter.Response, error) {
-	return h.branchWith(ctx, meta, req, "")
+func (h *MilitaryHandler) Branch(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presentation.Response, error) {
+	return h.branchWith(ctx, meta, req, nil)
 }
 
-func (h *MilitaryHandler) branchWith(ctx context.Context, meta envelope.Metadata, req MilitaryRequest, notice string) (*presenter.Response, error) {
+func (h *MilitaryHandler) branchWith(ctx context.Context, meta envelope.Metadata, req MilitaryRequest, notice *mview.Notice) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.BranchView
+	var view mview.BranchView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -707,18 +715,18 @@ func (h *MilitaryHandler) branchWith(ctx context.Context, meta envelope.Metadata
 		}
 		branch, ok := snap.Branch(strings.TrimSpace(req.Branch))
 		if !ok {
-			return refuseMilitary(screens.MilitaryRefusedNotFound, country)
+			return refuseMilitary(mview.MilitaryRefusedNotFound, country)
 		}
 		ok, err = cleared(ctx, tx, snap, country.ID, p)
 		if err != nil {
 			return err
 		}
 		if !ok {
-			r := refuseMilitary(screens.MilitaryRefusedNotHolder, country)
+			r := refuseMilitary(mview.MilitaryRefusedNotHolder, country)
 			r.view.Office = actionOffice(snap, branch.Command)
 			return r
 		}
-		view = screens.BranchView{Country: countryPlace(*country), Branch: named(branch.Code, branch.Name),
+		view = mview.BranchView{Country: countryPlace(*country), Branch: named(branch.Code, branch.Name),
 			ReferenceRadarKM: h.rules.ReferenceRadarKM, Notice: notice}
 		if _, view.CanStation, err = mayAct(ctx, tx, snap, country.ID, branch.Command, p); err != nil {
 			return err
@@ -728,13 +736,13 @@ func (h *MilitaryHandler) branchWith(ctx context.Context, meta envelope.Metadata
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Branch(h.screen(meta, lang), view), nil
+	return mview.Branch(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // fillBranch groups a branch's pieces by good and design, with where they
 // stand and what is on the move.
 func (h *MilitaryHandler) fillBranch(ctx context.Context, tx application.Tx, snap *content.Snapshot, countryID string,
-	branch content.BranchDef, view *screens.BranchView,
+	branch content.BranchDef, view *mview.BranchView,
 ) error {
 	assets, err := tx.Military().Assets(ctx, countryID)
 	if err != nil {
@@ -754,7 +762,7 @@ func (h *MilitaryHandler) fillBranch(ctx context.Context, tx application.Tx, sna
 	}
 	designs := map[string]*application.Design{}
 	type group struct {
-		view      screens.AssetGroup
+		view      mview.AssetGroup
 		quality   int
 		garrisons map[string]int64
 	}
@@ -772,7 +780,7 @@ func (h *MilitaryHandler) fillBranch(ctx context.Context, tx application.Tx, sna
 				return err
 			}
 			cl, _ := snap.ForceClass(a.ClassCode)
-			g = &group{view: screens.AssetGroup{Good: good, Class: named(a.ClassCode, cl.Name),
+			g = &group{view: mview.AssetGroup{Good: good, Class: named(a.ClassCode, cl.Name),
 				Attributes: designAttributes(snap, d)}, garrisons: map[string]int64{}}
 			for _, at := range g.view.Attributes {
 				if at.Name == "rcs" && at.Value > 0 {
@@ -811,7 +819,7 @@ func (h *MilitaryHandler) fillBranch(ctx context.Context, tx application.Tx, sna
 			if err != nil {
 				return err
 			}
-			g.view.Garrisons = append(g.view.Garrisons, screens.GarrisonLine{CityCode: city.Code, City: city.Name, Count: g.garrisons[id]})
+			g.view.Garrisons = append(g.view.Garrisons, mview.GarrisonLine{CityCode: city.Code, City: city.Name, Count: g.garrisons[id]})
 		}
 		view.Groups = append(view.Groups, g.view)
 	}
@@ -832,7 +840,7 @@ func (h *MilitaryHandler) fillBranch(ctx context.Context, tx application.Tx, sna
 		if err != nil {
 			return err
 		}
-		view.Moves = append(view.Moves, screens.MoveLine{Good: good, Qty: m.Qty, CityCode: city.Code, City: city.Name,
+		view.Moves = append(view.Moves, mview.MoveLine{Good: good, Qty: m.Qty, CityCode: city.Code, City: city.Name,
 			Left: max(m.ArrivesAt.Sub(now), time.Second), At: m.ArrivesAt})
 	}
 	return nil
@@ -845,7 +853,7 @@ func (h *MilitaryHandler) fillBranch(ctx context.Context, tx application.Tx, sna
 // good's code — to the good's code and design id.
 func groupTarget(ctx context.Context, tx application.Tx, raw string) (string, string, error) {
 	raw = strings.TrimSpace(raw)
-	if no, ok := strings.CutPrefix(raw, screens.DesignTargetPrefix); ok {
+	if no, ok := strings.CutPrefix(raw, presentation.DesignTargetPrefix); ok {
 		n, ok := number(no)
 		if !ok {
 			return "", "", application.ErrDesignNotFound
@@ -863,14 +871,14 @@ func groupTarget(ctx context.Context, tx application.Tx, raw string) (string, st
 // design) to a garrison in a city of the country — the city, then how many,
 // then confirm. The move runs on the game clock; one scheduled action lands
 // it (Arrive).
-func (h *MilitaryHandler) Station(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presenter.Response, error) {
+func (h *MilitaryHandler) Station(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view     screens.StationView
+		view     mview.StationView
 		done     bool
 		country  *application.Jurisdiction
 		branchCo string
@@ -893,14 +901,14 @@ func (h *MilitaryHandler) Station(ctx context.Context, meta envelope.Metadata, r
 		}
 		itemCode, designID, err := groupTarget(ctx, tx, req.Target)
 		if isSentinel(err, application.ErrDesignNotFound) {
-			return refuseMilitary(screens.MilitaryRefusedNotFound, country)
+			return refuseMilitary(mview.MilitaryRefusedNotFound, country)
 		}
 		if err != nil {
 			return err
 		}
 		class, ok := snap.ClassOfItem(itemCode)
 		if !ok {
-			return refuseMilitary(screens.MilitaryRefusedNotArms, country)
+			return refuseMilitary(mview.MilitaryRefusedNotArms, country)
 		}
 		branch, _ := snap.Branch(class.Branch)
 		branchCo = branch.Code
@@ -909,7 +917,7 @@ func (h *MilitaryHandler) Station(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		if !ok {
-			r := refuseMilitary(screens.MilitaryRefusedNotHolder, country).back(screens.AddrForces, country.Code)
+			r := refuseMilitary(mview.MilitaryRefusedNotHolder, country).back(mview.AddrForces, country.Code)
 			r.view.Office = actionOffice(snap, branch.Command)
 			return r
 		}
@@ -922,7 +930,7 @@ func (h *MilitaryHandler) Station(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
-		view = screens.StationView{Country: countryPlace(*country), Branch: named(branch.Code, branch.Name), Good: good,
+		view = mview.StationView{Country: countryPlace(*country), Branch: named(branch.Code, branch.Name), Good: good,
 			Time: h.scale.RealWait(branch.RedeployTime())}
 		cities, err := tx.Diplomacy().CitiesOf(ctx, country.ID)
 		if err != nil {
@@ -942,7 +950,7 @@ func (h *MilitaryHandler) Station(ctx context.Context, meta envelope.Metadata, r
 			}
 		}
 		if city == nil {
-			return refuseMilitary(screens.MilitaryRefusedCity, country).back(screens.AddrStation, country.Code, good.TargetArg())
+			return refuseMilitary(mview.MilitaryRefusedCity, country).back(mview.AddrStation, country.Code, good.TargetArg())
 		}
 		view.CityCode, view.City = city.Code, city.Name
 		var movable []string
@@ -953,7 +961,7 @@ func (h *MilitaryHandler) Station(ctx context.Context, meta envelope.Metadata, r
 		}
 		view.Available = int64(len(movable))
 		if view.Available == 0 {
-			r := refuseMilitary(screens.MilitaryRefusedStock, country).back(screens.AddrBranch, country.Code, branch.Code)
+			r := refuseMilitary(mview.MilitaryRefusedStock, country).back(mview.AddrBranch, country.Code, branch.Code)
 			return r
 		}
 		qty, ok := quantityArg(req.Qty)
@@ -961,7 +969,7 @@ func (h *MilitaryHandler) Station(ctx context.Context, meta envelope.Metadata, r
 			return nil
 		}
 		if qty > view.Available {
-			r := refuseMilitary(screens.MilitaryRefusedStock, country).back(screens.AddrStation, country.Code,
+			r := refuseMilitary(mview.MilitaryRefusedStock, country).back(mview.AddrStation, country.Code,
 				good.TargetArg(), city.Code)
 			r.view.Max = view.Available
 			return r
@@ -998,13 +1006,11 @@ func (h *MilitaryHandler) Station(ctx context.Context, meta envelope.Metadata, r
 		return resp, err
 	}
 	if done {
-		c := h.screen(meta, lang)
-		notice := c.T("military.station.started", map[string]any{"count": screens.FormatNumber(c, view.Qty),
-			"good": c.GoodName(view.Good), "city": c.CityName(view.CityCode, view.City),
-			"time": screens.FormatDuration(c, view.Time)})
+		notice := &mview.Notice{Code: mview.NoticeStationStarted, Count: view.Qty, Good: view.Good,
+			CityCode: view.CityCode, City: view.City, Time: view.Time}
 		return h.branchWith(ctx, meta, MilitaryRequest{Country: country.Code, Branch: branchCo}, notice)
 	}
-	return screens.Station(h.screen(meta, lang), view), nil
+	return mview.Station(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // MilitaryMovePayload is the jsonb a move's scheduled action carries.
@@ -1016,7 +1022,7 @@ type MilitaryMovePayload struct {
 // Arrive handles military.arrive from the SCHEDULER: a move reaching its
 // garrison, once — the move row is locked and must still be moving under
 // this action.
-func (h *MilitaryHandler) Arrive(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *MilitaryHandler) Arrive(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	if err := meta.Validate(); err != nil {
 		return nil, errors.InvalidInput("malformed request context").WithCause(err)
 	}

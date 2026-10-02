@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/company"
@@ -16,8 +19,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The research lab: researching a technology (paid when it starts, owned
@@ -54,15 +55,15 @@ func (h *ProductionHandler) schedule(ctx context.Context, tx application.Tx, act
 func techState(f *floor, running *application.Research, code string) string {
 	switch {
 	case f.ownSet.Has(code):
-		return screens.TechOwned
+		return companies.TechOwned
 	case running != nil && running.Tech == code:
-		return screens.TechRunning
+		return companies.TechRunning
 	case f.pubSet.Has(code):
-		return screens.TechPublic
+		return companies.TechPublic
 	case f.access.Licensed.Has(code):
-		return screens.TechLicense
+		return companies.TechLicense
 	}
-	return screens.TechAvailable
+	return companies.TechAvailable
 }
 
 // researchStanding is the rules' view of a company for research.
@@ -97,22 +98,22 @@ func blockedKind(err error) string {
 	case err == nil:
 		return ""
 	case stderrors.Is(err, technology.ErrBusy):
-		return screens.ProductionRefusedBusy
+		return companies.ProductionRefusedBusy
 	case stderrors.Is(err, technology.ErrWrongCompanyType):
-		return screens.ProductionRefusedWrongType
+		return companies.ProductionRefusedWrongType
 	case stderrors.Is(err, technology.ErrSkillTooLow):
-		return screens.ProductionRefusedSkill
+		return companies.ProductionRefusedSkill
 	case stderrors.Is(err, technology.ErrAlreadyOwned):
-		return screens.ProductionRefusedOwned
+		return companies.ProductionRefusedOwned
 	case stderrors.Is(err, technology.ErrNotCleared):
-		return screens.ProductionRefusedNotCleared
+		return companies.ProductionRefusedNotCleared
 	}
-	return screens.ProductionRefusedPrerequisite
+	return companies.ProductionRefusedPrerequisite
 }
 
 // Lab handles company.lab: the technology tree as the company stands on it,
 // or one technology when the request names one.
-func (h *ProductionHandler) Lab(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Lab(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if strings.TrimSpace(req.Tech) != "" {
 		return h.techWith(ctx, meta, req, nil, false, nil)
 	}
@@ -121,7 +122,7 @@ func (h *ProductionHandler) Lab(ctx context.Context, meta envelope.Metadata, req
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.LabView
+	var view companies.LabView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -143,11 +144,11 @@ func (h *ProductionHandler) Lab(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		view = screens.LabView{Ref: companyRef(snap, *c), Available: b.Available().Minor()}
+		view = companies.LabView{Ref: companyRef(snap, *c), Available: b.Available().Minor()}
 		now := h.now()
 		if running != nil {
 			def, _ := snap.Technology(running.Tech)
-			view.Running = &screens.ResearchLine{Tech: named(def.Code, def.Name), FinishAt: running.FinishAt,
+			view.Running = &companies.ResearchLine{Tech: named(def.Code, def.Name), FinishAt: running.FinishAt,
 				Left: countdownTo(running.FinishAt, now)}
 		}
 		owned := map[string]application.CompanyTech{}
@@ -182,20 +183,20 @@ func (h *ProductionHandler) Lab(ctx context.Context, meta envelope.Metadata, req
 			if err := *stg.err; err != nil {
 				return err
 			}
-			line := screens.TechLine{Tech: named(def.Code, def.Name), State: techState(f, running, def.Code), Cost: def.Cost}
+			line := companies.TechLine{Tech: named(def.Code, def.Name), State: techState(f, running, def.Code), Cost: def.Cost}
 			if t, ok := owned[def.Code]; ok {
 				line.Mode, line.Price = t.Mode, t.LicensePrice
 			}
-			if line.State == screens.TechAvailable {
+			if line.State == companies.TechAvailable {
 				for _, m := range st.Missing(def.Tech()) {
 					md, _ := snap.Technology(m)
 					line.Missing = append(line.Missing, named(md.Code, md.Name))
 				}
 				if len(line.Missing) > 0 {
-					line.State = screens.TechLocked
+					line.State = companies.TechLocked
 				}
 			}
-			if line.State == screens.TechAvailable || line.State == screens.TechLocked {
+			if line.State == companies.TechAvailable || line.State == companies.TechLocked {
 				offers, err := tx.Production().Offers(ctx, def.Code)
 				if err != nil {
 					return err
@@ -213,7 +214,7 @@ func (h *ProductionHandler) Lab(ctx context.Context, meta envelope.Metadata, req
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Lab(h.screen(meta, lang), view), nil
+	return companies.Lab(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // countdownTo is how long until at, never below a second.
@@ -227,24 +228,24 @@ func countdownTo(at, now time.Time) time.Duration {
 // techView builds one technology's screen for a company.
 func (h *ProductionHandler) techView(ctx context.Context, tx application.Tx, snap *content.Snapshot, c *application.Company,
 	code string,
-) (screens.TechView, *floor, error) {
+) (companies.TechView, *floor, error) {
 	def, ok := snap.Technology(strings.TrimSpace(code))
 	if !ok {
-		return screens.TechView{}, nil, refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrLab, c.Code)
+		return companies.TechView{}, nil, refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(companies.AddrLab, c.Code)
 	}
 	f, err := readFloor(ctx, tx, snap, c)
 	if err != nil {
-		return screens.TechView{}, nil, err
+		return companies.TechView{}, nil, err
 	}
 	running, err := tx.Production().RunningResearch(ctx, c.ID)
 	if err != nil {
-		return screens.TechView{}, nil, err
+		return companies.TechView{}, nil, err
 	}
 	b, _, err := f.books(ctx, tx)
 	if err != nil {
-		return screens.TechView{}, nil, err
+		return companies.TechView{}, nil, err
 	}
-	v := screens.TechView{Ref: companyRef(snap, *c), Tech: named(def.Code, def.Name), State: techState(f, running, def.Code),
+	v := companies.TechView{Ref: companyRef(snap, *c), Tech: named(def.Code, def.Name), State: techState(f, running, def.Code),
 		Cost: def.Cost, Time: h.scale.RealWait(def.ResearchTime()), Skill: def.Skill, Level: def.Level,
 		Available: b.Available().Minor()}
 	if def.Skill != "" {
@@ -254,7 +255,7 @@ func (h *ProductionHandler) techView(ctx context.Context, tx application.Tx, sna
 	}
 	for _, r := range def.Requires {
 		rd, _ := snap.Technology(r)
-		v.Requires = append(v.Requires, screens.TechRequirement{Tech: named(rd.Code, rd.Name),
+		v.Requires = append(v.Requires, companies.TechRequirement{Tech: named(rd.Code, rd.Name),
 			Met: f.ownSet.Has(r) || f.pubSet.Has(r)})
 	}
 	for _, comp := range snap.ComponentDefs() {
@@ -263,10 +264,10 @@ func (h *ProductionHandler) techView(ctx context.Context, tx application.Tx, sna
 		}
 	}
 	if running != nil && running.Tech == def.Code {
-		v.Running = &screens.ResearchLine{Tech: v.Tech, FinishAt: running.FinishAt, Left: countdownTo(running.FinishAt, h.now())}
+		v.Running = &companies.ResearchLine{Tech: v.Tech, FinishAt: running.FinishAt, Left: countdownTo(running.FinishAt, h.now())}
 	}
 	switch v.State {
-	case screens.TechOwned:
+	case companies.TechOwned:
 		t, err := tx.Production().Technology(ctx, c.ID, def.Code)
 		if err != nil {
 			return v, f, err
@@ -275,7 +276,7 @@ func (h *ProductionHandler) techView(ctx context.Context, tx application.Tx, sna
 		if v.Sold, err = tx.Production().LicensesSold(ctx, c.ID, def.Code); err != nil {
 			return v, f, err
 		}
-	case screens.TechAvailable:
+	case companies.TechAvailable:
 		st, err := h.researchStanding(ctx, tx, snap, f, running)
 		if err != nil {
 			return v, f, err
@@ -283,16 +284,16 @@ func (h *ProductionHandler) techView(ctx context.Context, tx application.Tx, sna
 		cerr := technology.CanResearch(def.Tech(), st)
 		v.Blocked = blockedKind(cerr)
 		if stderrors.Is(cerr, technology.ErrPrerequisiteMissing) {
-			v.State = screens.TechLocked
+			v.State = companies.TechLocked
 		}
-		if v.Blocked == screens.ProductionRefusedSkill {
+		if v.Blocked == companies.ProductionRefusedSkill {
 			v.Gap = skillGapOf(snap, c.Code, def.Skill, def.Level)
 		}
 		if v.Blocked == "" && b.Available().Minor() < def.Cost {
-			v.Blocked = screens.ProductionRefusedFunds
+			v.Blocked = companies.ProductionRefusedFunds
 		}
 	}
-	if v.State != screens.TechOwned {
+	if v.State != companies.TechOwned {
 		offers, err := tx.Production().Offers(ctx, def.Code)
 		if err != nil {
 			return v, f, err
@@ -305,22 +306,22 @@ func (h *ProductionHandler) techView(ctx context.Context, tx application.Tx, sna
 			if o.Tech.Mode == technology.Licensed.String() {
 				price = o.Tech.LicensePrice
 			}
-			v.Offers = append(v.Offers, screens.TechOffer{Company: companyRef(snap, o.Company), Price: price})
+			v.Offers = append(v.Offers, companies.TechOffer{Company: companyRef(snap, o.Company), Price: price})
 		}
 	}
 	return v, f, nil
 }
 
 // techWith renders one technology after an optional change.
-func (h *ProductionHandler) techWith(ctx context.Context, meta envelope.Metadata, req ProductionRequest, notice *screens.TechNotice,
-	confirmPublish bool, confirmLicense *screens.TechOffer,
-) (*presenter.Response, error) {
+func (h *ProductionHandler) techWith(ctx context.Context, meta envelope.Metadata, req ProductionRequest, notice *companies.TechNotice,
+	confirmPublish bool, confirmLicense *companies.TechOffer,
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.TechView
+	var view companies.TechView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -337,19 +338,19 @@ func (h *ProductionHandler) techWith(ctx context.Context, meta envelope.Metadata
 		return resp, err
 	}
 	view.Notice, view.ConfirmPublish, view.ConfirmLicense = notice, confirmPublish, confirmLicense
-	return screens.Tech(h.screen(meta, lang), view), nil
+	return companies.Tech(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Research handles company.research: starting to research a technology. Its
 // cost leaves the company's free money (research, a drain); the technology
 // is the company's once, when its scheduled action runs.
-func (h *ProductionHandler) Research(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Research(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var notice *screens.TechNotice
+	var notice *companies.TechNotice
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -365,7 +366,7 @@ func (h *ProductionHandler) Research(ctx context.Context, meta envelope.Metadata
 		}
 		def, ok := snap.Technology(strings.TrimSpace(req.Tech))
 		if !ok {
-			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrLab, c.Code)
+			return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(companies.AddrLab, c.Code)
 		}
 		f, err := readFloor(ctx, tx, snap, c)
 		if err != nil {
@@ -380,7 +381,7 @@ func (h *ProductionHandler) Research(ctx context.Context, meta envelope.Metadata
 			return err
 		}
 		if cerr := technology.CanResearch(def.Tech(), st); cerr != nil {
-			r := refuseProduction(blockedKind(cerr), c, snap).back(screens.AddrLab, c.Code, def.Code)
+			r := refuseProduction(blockedKind(cerr), c, snap).back(companies.AddrLab, c.Code, def.Code)
 			r.view.Skill, r.view.Level = def.Skill, def.Level
 			for _, m := range st.Missing(def.Tech()) {
 				md, _ := snap.Technology(m)
@@ -388,7 +389,7 @@ func (h *ProductionHandler) Research(ctx context.Context, meta envelope.Metadata
 			}
 			if running != nil {
 				rd, _ := snap.Technology(running.Tech)
-				r.view.Techs = []screens.Named{named(rd.Code, rd.Name)}
+				r.view.Techs = []presentation.Named{named(rd.Code, rd.Name)}
 			}
 			return r
 		}
@@ -399,7 +400,7 @@ func (h *ProductionHandler) Research(ctx context.Context, meta envelope.Metadata
 		if err != nil {
 			var r *productionRefusal
 			if stderrors.As(err, &r) {
-				r.back(screens.AddrLab, c.Code, def.Code)
+				r.back(companies.AddrLab, c.Code, def.Code)
 			}
 			return err
 		}
@@ -413,13 +414,13 @@ func (h *ProductionHandler) Research(ctx context.Context, meta envelope.Metadata
 			FinishAt: finish}); err != nil {
 			switch {
 			case isSentinel(err, application.ErrResearchBusy):
-				return refuseProduction(screens.ProductionRefusedBusy, c, snap).back(screens.AddrLab, c.Code)
+				return refuseProduction(companies.ProductionRefusedBusy, c, snap).back(companies.AddrLab, c.Code)
 			case isSentinel(err, application.ErrAlreadyResearched):
-				return refuseProduction(screens.ProductionRefusedOwned, c, snap).back(screens.AddrLab, c.Code)
+				return refuseProduction(companies.ProductionRefusedOwned, c, snap).back(companies.AddrLab, c.Code)
 			}
 			return err
 		}
-		notice = &screens.TechNotice{Kind: screens.TechNoticeStarted}
+		notice = &companies.TechNotice{Kind: companies.TechNoticeStarted}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
@@ -432,7 +433,7 @@ func (h *ProductionHandler) Research(ctx context.Context, meta envelope.Metadata
 // finishing. Exactly once: the research row, locked, must still be running
 // under the action that finishes it; the technology row's key is the
 // backstop.
-func (h *ProductionHandler) Researched(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Researched(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	in, err := productionPayload(meta, req)
 	if err != nil {
 		return nil, err
@@ -498,7 +499,7 @@ func productionPayload(meta envelope.Metadata, req CrimeScheduledRequest) (Produ
 
 // TechMode handles company.techmode: how an owned technology is shared.
 // Publishing is confirmed first, since it is for good.
-func (h *ProductionHandler) TechMode(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) TechMode(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -509,7 +510,7 @@ func (h *ProductionHandler) TechMode(ctx context.Context, meta envelope.Metadata
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		notice    *screens.TechNotice
+		notice    *companies.TechNotice
 		published bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -525,10 +526,10 @@ func (h *ProductionHandler) TechMode(ctx context.Context, meta envelope.Metadata
 		if err != nil {
 			return err
 		}
-		back := []string{screens.AddrLab, c.Code, strings.TrimSpace(req.Tech)}
+		back := []string{companies.AddrLab, c.Code, strings.TrimSpace(req.Tech)}
 		t, err := tx.Production().Technology(ctx, c.ID, strings.TrimSpace(req.Tech))
 		if isSentinel(err, application.ErrTechnologyNotOwned) {
-			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(back...)
+			return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(back...)
 		}
 		if err != nil {
 			return err
@@ -537,15 +538,15 @@ func (h *ProductionHandler) TechMode(ctx context.Context, meta envelope.Metadata
 		if mode == technology.Licensed {
 			var ok bool
 			if price, ok = quantityArg(req.Price); !ok {
-				return refuseProduction(screens.ProductionRefusedAmount, c, snap).back(back...)
+				return refuseProduction(companies.ProductionRefusedAmount, c, snap).back(back...)
 			}
 		}
 		if err := technology.ChangeMode(technology.Mode(t.Mode), mode, price, h.rules.Limits.Max.Minor()); err != nil {
 			switch {
 			case stderrors.Is(err, technology.ErrPublishedForever):
-				return refuseProduction(screens.ProductionRefusedPublished, c, snap).back(back...)
+				return refuseProduction(companies.ProductionRefusedPublished, c, snap).back(back...)
 			case stderrors.Is(err, technology.ErrInvalidPrice):
-				return refuseProduction(screens.ProductionRefusedAmount, c, snap).back(back...)
+				return refuseProduction(companies.ProductionRefusedAmount, c, snap).back(back...)
 			}
 			return errors.InvalidInput("unknown sharing mode").WithCause(err)
 		}
@@ -558,7 +559,7 @@ func (h *ProductionHandler) TechMode(ctx context.Context, meta envelope.Metadata
 		if err := tx.Production().SaveTechnology(ctx, *t); err != nil {
 			return err
 		}
-		notice = &screens.TechNotice{Kind: string(mode), Price: price}
+		notice = &companies.TechNotice{Kind: string(mode), Price: price}
 		if !published {
 			return nil
 		}
@@ -578,15 +579,15 @@ func (h *ProductionHandler) TechMode(ctx context.Context, meta envelope.Metadata
 // the company that owns it, at its price, once. The money moves from the
 // buyer's free money to the owner's treasury (technology_license); export
 // control is checked first.
-func (h *ProductionHandler) License(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) License(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		notice  *screens.TechNotice
-		confirm *screens.TechOffer
+		notice  *companies.TechNotice
+		confirm *companies.TechOffer
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
@@ -605,9 +606,9 @@ func (h *ProductionHandler) License(ctx context.Context, meta envelope.Metadata,
 		}
 		def, ok := snap.Technology(strings.TrimSpace(req.Tech))
 		if !ok {
-			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrLab, c.Code)
+			return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(companies.AddrLab, c.Code)
 		}
-		back := []string{screens.AddrLab, c.Code, def.Code}
+		back := []string{companies.AddrLab, c.Code, def.Code}
 		f, err := readFloor(ctx, tx, snap, c)
 		if err != nil {
 			return err
@@ -623,15 +624,15 @@ func (h *ProductionHandler) License(ctx context.Context, meta envelope.Metadata,
 			}
 		}
 		if offer == nil {
-			return refuseProduction(screens.ProductionRefusedNotForSale, c, snap).back(back...)
+			return refuseProduction(companies.ProductionRefusedNotForSale, c, snap).back(back...)
 		}
 		lerr := technology.CheckLicense(c.ID, technology.Offer{OwnerID: offer.Company.ID,
 			Mode: technology.Mode(offer.Tech.Mode), Price: offer.Tech.LicensePrice}, f.access, def.Code)
 		switch {
 		case stderrors.Is(lerr, technology.ErrNoNeed):
-			return refuseProduction(screens.ProductionRefusedLicensed, c, snap).back(back...)
+			return refuseProduction(companies.ProductionRefusedLicensed, c, snap).back(back...)
 		case lerr != nil:
-			return refuseProduction(screens.ProductionRefusedNotForSale, c, snap).back(back...)
+			return refuseProduction(companies.ProductionRefusedNotForSale, c, snap).back(back...)
 		}
 		// Export control: the one place a license sale is cleared.
 		buyer, err := f.buyer(ctx, tx, snap, h.now())
@@ -639,7 +640,7 @@ func (h *ProductionHandler) License(ctx context.Context, meta envelope.Metadata,
 			return err
 		}
 		if err := technology.Cleared(def.Tech().Control, buyer); err != nil {
-			return refuseProduction(screens.ProductionRefusedNotCleared, c, snap).back(back...)
+			return refuseProduction(companies.ProductionRefusedNotCleared, c, snap).back(back...)
 		}
 		// Across a border (docs/adr/0022): a technology ban between the two
 		// companies' countries — the one sanctions check — and, for a
@@ -662,11 +663,11 @@ func (h *ProductionHandler) License(ctx context.Context, meta envelope.Metadata,
 				return err
 			}
 			if denied {
-				return refuseProduction(screens.ProductionRefusedNotCleared, c, snap).back(back...)
+				return refuseProduction(companies.ProductionRefusedNotCleared, c, snap).back(back...)
 			}
 		}
 		if !req.confirmed() {
-			confirm = &screens.TechOffer{Company: companyRef(snap, offer.Company), Price: offer.Tech.LicensePrice}
+			confirm = &companies.TechOffer{Company: companyRef(snap, offer.Company), Price: offer.Tech.LicensePrice}
 			return nil
 		}
 		now := h.now()
@@ -687,11 +688,11 @@ func (h *ProductionHandler) License(ctx context.Context, meta envelope.Metadata,
 			LicensorID: offer.Company.ID, LicenseeID: c.ID, Price: offer.Tech.LicensePrice, LedgerTransactionID: txID,
 			BoughtBy: p.ID, GrantedAt: now}); err != nil {
 			if isSentinel(err, application.ErrAlreadyLicensed) {
-				return refuseProduction(screens.ProductionRefusedLicensed, c, snap).back(back...)
+				return refuseProduction(companies.ProductionRefusedLicensed, c, snap).back(back...)
 			}
 			return err
 		}
-		notice = &screens.TechNotice{Kind: screens.TechNoticeBought, Price: offer.Tech.LicensePrice,
+		notice = &companies.TechNotice{Kind: companies.TechNoticeBought, Price: offer.Tech.LicensePrice,
 			Company: companyRef(snap, offer.Company)}
 		return appendCompanyEvent(ctx, tx, meta, "license_sold", offer.Company.ID, map[string]any{
 			"company_id": offer.Company.ID, "code": offer.Company.Code, "name": offer.Company.Name,

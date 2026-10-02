@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	mview "github.com/mrjvadi/torncity/internal/presentation/military"
 	"strings"
 	"time"
 
@@ -10,8 +12,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/military"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Defence licences on the minister's side (docs/adr/0022-military-and-diplomacy.md
@@ -53,9 +53,9 @@ func countryLicences(ctx context.Context, tx application.Tx, countryID string, e
 // registry builds the registry of a country for a viewer.
 func (h *MilitaryHandler) registry(ctx context.Context, tx application.Tx, snap *content.Snapshot, meta envelope.Metadata,
 	country *application.Jurisdiction, p *application.Player,
-) (screens.LicencesView, error) {
+) (mview.LicencesView, error) {
 	now := h.now()
-	v := screens.LicencesView{Country: countryPlace(*country), RevokeNotice: h.rules.LicenceRevokeNotice}
+	v := mview.LicencesView{Country: countryPlace(*country), RevokeNotice: h.rules.LicenceRevokeNotice}
 	lines, err := countryLicences(ctx, tx, country.ID, h.rules.EndedLicencesShown)
 	if err != nil {
 		return v, err
@@ -84,19 +84,27 @@ func (h *MilitaryHandler) registry(ctx context.Context, tx application.Tx, snap 
 // Licences handles military.licences: a country's public registry of
 // defence licences; in private, to whoever decides for the defence
 // minister, with the buttons that decide.
-func (h *MilitaryHandler) Licences(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presenter.Response, error) {
+func (h *MilitaryHandler) Licences(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presentation.Response, error) {
+	if err := validatePlayerMeta(meta); err != nil {
+		return nil, err
+	}
+	if un, lang, err := h.licenceGate(ctx, meta, h.content.Current()); err != nil {
+		return nil, err
+	} else if un != nil {
+		return mview.Licences(presentation.Ctx{Lang: lang}, mview.LicencesView{Unavailable: un}), nil
+	}
 	return h.licencesWith(ctx, meta, req.Country, "", "", nil)
 }
 
 func (h *MilitaryHandler) licencesWith(ctx context.Context, meta envelope.Metadata, code, notice, company string,
-	confirm *screens.LicenceEntry,
-) (*presenter.Response, error) {
+	confirm *mview.LicenceEntry,
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.LicencesView
+	var view mview.LicencesView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -113,7 +121,7 @@ func (h *MilitaryHandler) licencesWith(ctx context.Context, meta envelope.Metada
 		return resp, err
 	}
 	view.Notice, view.NoticeCompany, view.Confirm = notice, company, confirm
-	return screens.Licences(h.screen(meta, lang), view), nil
+	return mview.Licences(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Licence handles military.licence: the defence minister's verdict on a
@@ -121,13 +129,13 @@ func (h *MilitaryHandler) licencesWith(ctx context.Context, meta envelope.Metada
 // force, confirmed, with notice. Everything else about it is public: the
 // owner is told, and a grant or a revocation is announced in the groups of
 // every city of the country.
-func (h *MilitaryHandler) Licence(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presenter.Response, error) {
+func (h *MilitaryHandler) Licence(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	no, ok := number(req.No)
 	verdict := strings.TrimSpace(req.Verdict)
-	if !ok || (verdict != screens.LicenceApprove && verdict != screens.LicenceReject && verdict != screens.LicenceRevoke) {
+	if !ok || (verdict != mview.LicenceApprove && verdict != mview.LicenceReject && verdict != mview.LicenceRevoke) {
 		return h.Licences(ctx, meta, req)
 	}
 	snap := h.content.Current()
@@ -136,14 +144,14 @@ func (h *MilitaryHandler) Licence(ctx context.Context, meta envelope.Metadata, r
 		countryCode string
 		notice      string
 		company     string
-		confirm     *screens.LicenceEntry
+		confirm     *mview.LicenceEntry
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
 			return err
 		}
-		write := verdict != screens.LicenceRevoke || req.confirmed()
+		write := verdict != mview.LicenceRevoke || req.confirmed()
 		fresh := false
 		if write {
 			if fresh, err = h.reserve(ctx, tx, p.ID, meta); err != nil {
@@ -152,7 +160,7 @@ func (h *MilitaryHandler) Licence(ctx context.Context, meta envelope.Metadata, r
 		}
 		l, err := tx.Military().LicenceByNo(ctx, no, false)
 		if isSentinel(err, application.ErrDefenceLicenceNotFound) {
-			return refuseMilitary(screens.MilitaryRefusedNotFound, nil)
+			return refuseMilitary(mview.MilitaryRefusedNotFound, nil)
 		}
 		if err != nil {
 			return err
@@ -171,20 +179,20 @@ func (h *MilitaryHandler) Licence(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		if countryID == "" {
-			return refuseMilitary(screens.MilitaryRefusedNoCountry, nil)
+			return refuseMilitary(mview.MilitaryRefusedNoCountry, nil)
 		}
 		country, err := tx.Governance().Jurisdiction(ctx, countryID)
 		if err != nil {
 			return err
 		}
 		countryCode = country.Code
-		back := []string{screens.AddrLicences, country.Code}
+		back := []string{mview.AddrLicences, country.Code}
 		seat, may, err := mayAct(ctx, tx, snap, countryID, content.ActionDefenceLicence, p)
 		if err != nil {
 			return err
 		}
 		if !may {
-			r := refuseMilitary(screens.MilitaryRefusedNotHolder, &country).back(back...)
+			r := refuseMilitary(mview.MilitaryRefusedNotHolder, &country).back(back...)
 			r.view.Office = actionOffice(snap, content.ActionDefenceLicence)
 			return r
 		}
@@ -201,11 +209,11 @@ func (h *MilitaryHandler) Licence(ctx context.Context, meta envelope.Metadata, r
 		payload := map[string]any{"player_id": c.OwnerID, "company_code": c.Code, "company_name": c.Name, "type": c.TypeCode,
 			"country_code": country.Code, "country_name": country.Name, "no": l.No}
 		switch verdict {
-		case screens.LicenceApprove, screens.LicenceReject:
-			approve := verdict == screens.LicenceApprove && c.Active()
+		case mview.LicenceApprove, mview.LicenceReject:
+			approve := verdict == mview.LicenceApprove && c.Active()
 			next, err := military.Decide(rule, approve)
 			if stderrors.Is(err, military.ErrLicenceState) {
-				return refuseMilitary(screens.MilitaryRefusedLicenceState, &country).back(back...)
+				return refuseMilitary(mview.MilitaryRefusedLicenceState, &country).back(back...)
 			}
 			if err != nil {
 				return err
@@ -230,7 +238,7 @@ func (h *MilitaryHandler) Licence(ctx context.Context, meta envelope.Metadata, r
 		default:
 			next, err := military.Revoke(rule, now, h.rules.LicenceRevokeNotice)
 			if stderrors.Is(err, military.ErrLicenceState) {
-				return refuseMilitary(screens.MilitaryRefusedLicenceState, &country).back(back...)
+				return refuseMilitary(mview.MilitaryRefusedLicenceState, &country).back(back...)
 			}
 			if err != nil {
 				return err

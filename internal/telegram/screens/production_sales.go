@@ -11,24 +11,10 @@ import (
 // its open listings, and the city's company goods a player — or a company —
 // buys from.
 
-// SellPresets are the quantities the sell screen offers for a line.
-var SellPresets = []int64{1, 10}
-
-// SellView is putting one line of the warehouse up for sale.
-type SellView struct {
-	Ref  CompanyRef
-	Good Good
-	Have int64
-	// Qty is the quantity chosen; zero before.
-	Qty int64
-	// Reference is the good's reference price.
-	Reference int64
-}
-
 // Sell renders putting a line up for sale: the quantity, then a typed price.
 func Sell(c Context, v SellView) *presenter.Response {
 	good := c.GoodName(v.Good)
-	target := v.Good.target()
+	target := v.Good.TargetArg()
 	kb := keyboards.New()
 	text := c.T("production.sell_title", map[string]any{"good": good, "have": FormatNumber(c, v.Have),
 		"reference": FormatMoney(c, v.Reference)})
@@ -61,33 +47,13 @@ func Sell(c Context, v SellView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-// ListingLine is one open listing of a company.
-type ListingLine struct {
-	No    int64
-	Good  Good
-	Left  int64
-	Price int64
-}
-
-// ListingsView is a company's open listings.
-type ListingsView struct {
-	Ref      CompanyRef
-	CityCode string
-	City     string
-	Listings []ListingLine
-	// Notice is what just happened: listed, withdrawn.
-	Notice string
-}
-
-// Listing notice kinds.
-const (
-	ListingNoticeListed    = "listed"
-	ListingNoticeWithdrawn = "withdrawn"
-)
-
-// ListingNotice renders what just happened to a listing.
-func ListingNotice(c Context, kind string, l ListingLine) string {
-	return c.T("production.listing_notice."+kind, map[string]any{"good": c.GoodName(l.Good), "qty": FormatNumber(c, l.Left),
+// listingNotice words what just happened to a listing.
+func (c Context) listingNotice(n *ListingNotice) string {
+	if n == nil {
+		return ""
+	}
+	l := n.Listing
+	return c.T("production.listing_notice."+n.Kind, map[string]any{"good": c.GoodName(l.Good), "qty": FormatNumber(c, l.Left),
 		"price": FormatMoney(c, l.Price)})
 }
 
@@ -111,27 +77,7 @@ func Listings(c Context, v ListingsView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Grid(1, buttons...)
 	c.productionNav(kb, []string{AddrWarehouse, v.Ref.Code}, AddrListings, v.Ref.Code)
-	return c.respond(paragraphs(v.Notice, head, list, c.T("production.listings_hint", nil)), kb.Build())
-}
-
-// GoodsLine is one listing of the city's company goods.
-type GoodsLine struct {
-	No      int64
-	Company CompanyRef
-	Good    Good
-	Left    int64
-	Price   int64
-	// Attributes are the design's observable attributes.
-	Attributes []AttributeLine
-	Quality    int
-}
-
-// GoodsView is the goods the companies of the player's city sell.
-type GoodsView struct {
-	NoCity   bool
-	CityCode string
-	City     string
-	Lines    []GoodsLine
+	return c.respond(paragraphs(c.listingNotice(v.Notice), head, list, c.T("production.listings_hint", nil)), kb.Build())
 }
 
 // CompanyGoods renders the city's company goods.
@@ -173,27 +119,6 @@ func (c Context) goodsLine(l GoodsLine) string {
 		line = body(line, c.T("production.goods_attributes", map[string]any{"attributes": c.list(attrs)}))
 	}
 	return line
-}
-
-// BuyView is buying from one listing.
-type BuyView struct {
-	Line GoodsLine
-	Qty  int64
-	// Payment is the player's own purses; Companies those they may buy for.
-	Payment   *PaymentChoice
-	Companies []CompanyRef
-	// Bought is set once the purchase is made.
-	Bought *BoughtView
-}
-
-// BoughtView is a purchase made.
-type BoughtView struct {
-	Qty   int64
-	Total int64
-	// For and ForCode are the company it was bought for, empty for the
-	// player.
-	For     string
-	ForCode string
 }
 
 // CompanyBuy renders buying from a listing.
@@ -248,34 +173,6 @@ func CompanyBuy(c Context, v BuyView) *presenter.Response {
 
 // ---------------------------------------------------------------------------
 // Notices and group lines.
-
-// ProductionNoticeView is a private notice to a company's owner: research
-// done, an order done, a reverse engineering done, a license sold.
-type ProductionNoticeView struct {
-	// Kind is researched, produced, reversed_ok, reversed_failed or
-	// license_sold.
-	Kind    string
-	Company CompanyRef
-	Tech    Named
-	Good    Good
-	Qty     int64
-	Quality int
-	// Design is a copy's name; Buyer a licensee's name; Price its price.
-	Design   string
-	DesignNo int64
-	Buyer    string
-	Price    int64
-}
-
-// Production notice kinds.
-const (
-	ProductionNoticeResearched  = "researched"
-	ProductionNoticeProduced    = "produced"
-	ProductionNoticeReversedOK  = "reversed_ok"
-	ProductionNoticeReversedBad = "reversed_failed"
-	ProductionNoticeLicenseSold = "license_sold"
-	ProductionNoticeSold        = "sold"
-)
 
 // ProductionNotice renders a private notice of the production economy.
 func ProductionNotice(c Context, v ProductionNoticeView) *presenter.Response {

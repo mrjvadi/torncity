@@ -3,6 +3,9 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	mview "github.com/mrjvadi/torncity/internal/presentation/military"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,8 +20,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // WarRules is the tuning of war (config war). The notice and the proposal's
@@ -52,6 +53,7 @@ type WarHandler struct {
 	policy  application.PolicyReader
 	scale   gametime.Scale
 	rules   WarRules
+	gates   *ServiceGate
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -106,37 +108,33 @@ type WarRequest struct {
 	Confirm   string `json:"confirm,omitempty"`
 }
 
-func (r WarRequest) confirmed() bool { return strings.TrimSpace(r.Confirm) == screens.WarConfirm }
-
-func (h *WarHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
-}
+func (r WarRequest) confirmed() bool { return strings.TrimSpace(r.Confirm) == mview.WarConfirm }
 
 // warRefusal carries a refused decision of war out of a unit of work.
-type warRefusal struct{ view screens.WarRefusalView }
+type warRefusal struct{ view mview.WarRefusalView }
 
 func (r *warRefusal) Error() string { return "handlers: war refused: " + r.view.Kind }
 
 func refuseWar(kind string, country *application.Jurisdiction, back ...string) *warRefusal {
-	r := &warRefusal{view: screens.WarRefusalView{Kind: kind, Back: back}}
+	r := &warRefusal{view: mview.WarRefusalView{Kind: kind, Back: presentation.RefOfAddress(strings.Join(back, ":"))}}
 	if country != nil {
 		r.view.Country = countryPlace(*country)
 	}
 	return r
 }
 
-func (h *WarHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *WarHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	if err == nil {
 		return nil, nil
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	var r *warRefusal
 	if stderrors.As(err, &r) {
-		return screens.WarRefusal(c, r.view), nil
+		return mview.WarRefusal(c, r.view), nil
 	}
 	if isSentinel(err, application.ErrJurisdictionNotFound) || isSentinel(err, application.ErrWarNotFound) ||
 		isSentinel(err, application.ErrProposalNotFound) || isSentinel(err, application.ErrCityNotFound) {
-		return screens.WarRefusal(c, screens.WarRefusalView{Kind: screens.WarRefusedNotFound}), nil
+		return mview.WarRefusal(c, mview.WarRefusalView{Kind: mview.WarRefusedNotFound}), nil
 	}
 	return nil, err
 }
@@ -172,7 +170,7 @@ func (h *WarHandler) country(ctx context.Context, tx application.Tx, p *applicat
 		return nil, err
 	}
 	if j == nil {
-		return nil, refuseWar(screens.WarRefusedNoCountry, nil)
+		return nil, refuseWar(mview.WarRefusedNoCountry, nil)
 	}
 	return j, nil
 }
@@ -222,7 +220,7 @@ func (h *WarHandler) headOf(ctx context.Context, tx application.Tx, snap *conten
 	if err != nil {
 		return nil, seat, err
 	}
-	r := refuseWar(screens.WarRefusedNotHolder, home)
+	r := refuseWar(mview.WarRefusedNotHolder, home)
 	r.view.Office = actionOffice(snap, content.ActionWar)
 	return nil, seat, r
 }
@@ -260,8 +258,8 @@ func warBetween(ctx context.Context, tx application.Tx, a, b string, now time.Ti
 }
 
 // warPlaces names a war's principals and allies.
-func warPlaces(ctx context.Context, tx application.Tx, w application.War) (att, def screens.GovPlace, attAllies,
-	defAllies []screens.GovPlace, err error,
+func warPlaces(ctx context.Context, tx application.Tx, w application.War) (att, def presentation.GovPlace, attAllies,
+	defAllies []presentation.GovPlace, err error,
 ) {
 	if att, err = placeOf(ctx, tx, w.AttackerID); err != nil {
 		return
@@ -309,17 +307,25 @@ func (h *WarHandler) damageNow(snap *content.Snapshot, d *application.CityDamage
 
 // Board handles war.board: a country's wars, what is on the table, the
 // cities occupied and damaged, and the latest operations in bands.
-func (h *WarHandler) Board(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presenter.Response, error) {
-	return h.boardWith(ctx, meta, req, "")
+func (h *WarHandler) Board(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presentation.Response, error) {
+	if err := validatePlayerMeta(meta); err != nil {
+		return nil, err
+	}
+	if un, lang, err := h.warGate(ctx, meta, h.content.Current()); err != nil {
+		return nil, err
+	} else if un != nil {
+		return mview.WarBoard(presentation.Ctx{Lang: lang}, mview.WarBoardView{Unavailable: un}), nil
+	}
+	return h.boardWith(ctx, meta, req, nil)
 }
 
-func (h *WarHandler) boardWith(ctx context.Context, meta envelope.Metadata, req WarRequest, notice string) (*presenter.Response, error) {
+func (h *WarHandler) boardWith(ctx context.Context, meta envelope.Metadata, req WarRequest, notice *mview.Notice) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.WarBoardView
+	var view mview.WarBoardView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -330,7 +336,7 @@ func (h *WarHandler) boardWith(ctx context.Context, meta envelope.Metadata, req 
 			return err
 		}
 		now := h.now()
-		view = screens.WarBoardView{Country: countryPlace(*country), Notice: notice}
+		view = mview.WarBoardView{Country: countryPlace(*country), Notice: notice}
 		canWar := false
 		if !meta.InGroup() {
 			if _, canWar, err = mayAct(ctx, tx, snap, country.ID, content.ActionWar, p); err != nil {
@@ -376,20 +382,20 @@ func (h *WarHandler) boardWith(ctx context.Context, meta envelope.Metadata, req 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.WarBoard(h.screen(meta, lang), view), nil
+	return mview.WarBoard(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // warLine reads a war for the board, from the country's side.
 func (h *WarHandler) warLine(ctx context.Context, tx application.Tx, w application.War, countryID string, canWar bool,
 	now time.Time,
-) (screens.WarLine, error) {
+) (mview.WarLine, error) {
 	att, def, attAllies, defAllies, err := warPlaces(ctx, tx, w)
 	if err != nil {
-		return screens.WarLine{}, err
+		return mview.WarLine{}, err
 	}
 	r := w.Rule()
 	status := r.StatusAt(now)
-	line := screens.WarLine{No: w.No, Attacker: att, Defender: def, AttackerAllies: attAllies, DefenderAllies: defAllies,
+	line := mview.WarLine{No: w.No, Attacker: att, Defender: def, AttackerAllies: attAllies, DefenderAllies: defAllies,
 		Ground: w.Ground, Status: string(status), Broke: len(w.BrokeTreaties) > 0,
 		Since: max(now.Sub(w.DeclaredAt), time.Second)}
 	switch status {
@@ -420,7 +426,7 @@ func (h *WarHandler) warLine(ctx context.Context, tx application.Tx, w applicati
 			if err != nil {
 				return line, err
 			}
-			line.Proposals = append(line.Proposals, screens.ProposalLine{No: pr.No, Kind: string(pr.Kind), Other: place,
+			line.Proposals = append(line.Proposals, mview.ProposalLine{No: pr.No, Kind: string(pr.Kind), Other: place,
 				Incoming: pr.PartnerID == countryID, ExpiresIn: pr.ExpiresAt.Sub(now)})
 		}
 	}
@@ -430,7 +436,7 @@ func (h *WarHandler) warLine(ctx context.Context, tx application.Tx, w applicati
 // joinable lists the wars the country may join: an ally of a principal by a
 // treaty of mutual defence, not a party yet.
 func (h *WarHandler) joinable(ctx context.Context, tx application.Tx, snap *content.Snapshot, country *application.Jurisdiction,
-	view *screens.WarBoardView, now time.Time,
+	view *mview.WarBoardView, now time.Time,
 ) error {
 	all, err := tx.War().Wars(ctx, "", now)
 	if err != nil {
@@ -459,7 +465,7 @@ func (h *WarHandler) joinable(ctx context.Context, tx application.Tx, snap *cont
 		if err != nil {
 			return err
 		}
-		view.Joinable = append(view.Joinable, screens.JoinLine{WarNo: w.No, Ally: ally, Enemy: enemy})
+		view.Joinable = append(view.Joinable, mview.JoinLine{WarNo: w.No, Ally: ally, Enemy: enemy})
 	}
 	return nil
 }
@@ -495,7 +501,7 @@ func allySide(ctx context.Context, tx application.Tx, snap *content.Snapshot, w 
 // cityLines fills the occupied and damaged cities the country is concerned
 // with: its own, and those it holds or lost.
 func (h *WarHandler) cityLines(ctx context.Context, tx application.Tx, snap *content.Snapshot, countryID string,
-	view *screens.WarBoardView, now time.Time,
+	view *mview.WarBoardView, now time.Time,
 ) error {
 	controls, err := tx.War().Controls(ctx)
 	if err != nil {
@@ -517,7 +523,7 @@ func (h *WarHandler) cityLines(ctx context.Context, tx application.Tx, snap *con
 		if err != nil {
 			return err
 		}
-		view.Occupied = append(view.Occupied, screens.OccupationLine{CityCode: city.Code, City: city.Name,
+		view.Occupied = append(view.Occupied, mview.OccupationLine{CityCode: city.Code, City: city.Name,
 			Controller: controller, DeJure: deJure, Since: max(now.Sub(c.Since), time.Second)})
 	}
 	def, ok := snap.War()
@@ -545,7 +551,7 @@ func (h *WarHandler) cityLines(ctx context.Context, tx application.Tx, snap *con
 		if err != nil {
 			return err
 		}
-		line := screens.DamageLine{CityCode: city.Code, City: city.Name, Band: band}
+		line := mview.DamageLine{CityCode: city.Code, City: city.Name, Band: band}
 		if d.ClosedUntil.After(now) {
 			line.ClosedIn = d.ClosedUntil.Sub(now)
 		}
@@ -557,20 +563,20 @@ func (h *WarHandler) cityLines(ctx context.Context, tx application.Tx, snap *con
 // operationLine reads an operation for the board, in bands.
 func (h *WarHandler) operationLine(ctx context.Context, tx application.Tx, snap *content.Snapshot, o application.WarOperation,
 	now time.Time,
-) (screens.OperationLine, error) {
+) (mview.OperationLine, error) {
 	country, err := placeOf(ctx, tx, o.CountryID)
 	if err != nil {
-		return screens.OperationLine{}, err
+		return mview.OperationLine{}, err
 	}
 	target, err := placeOf(ctx, tx, o.TargetCountryID)
 	if err != nil {
-		return screens.OperationLine{}, err
+		return mview.OperationLine{}, err
 	}
 	city, err := h.cities.ByID(ctx, o.TargetCityID)
 	if err != nil {
-		return screens.OperationLine{}, err
+		return mview.OperationLine{}, err
 	}
-	line := screens.OperationLine{No: o.No, Kind: o.Kind, Objective: o.Objective, Country: country, CityCode: city.Code,
+	line := mview.OperationLine{No: o.No, Kind: o.Kind, Objective: o.Objective, Country: country, CityCode: city.Code,
 		City: city.Name, Target: target, Captured: o.Captured}
 	switch o.Status {
 	case application.OperationLaunched:
@@ -597,15 +603,20 @@ func (h *WarHandler) operationLine(ctx context.Context, tx application.Tx, snap 
 // confirm, once, the war is recorded, the treaties between the two ended,
 // both countries' groups told, and the target's allies called. It may be
 // fought after the notice (Hague Convention III, 1907).
-func (h *WarHandler) Declare(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presenter.Response, error) {
+func (h *WarHandler) Declare(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
+	if un, lang, err := h.warGate(ctx, meta, snap); err != nil {
+		return nil, err
+	} else if un != nil {
+		return mview.Declare(presentation.Ctx{Lang: lang}, mview.DeclareView{Unavailable: un}), nil
+	}
 	def, hasWar := snap.War()
 	lang := meta.Language
 	var (
-		view    screens.DeclareView
+		view    mview.DeclareView
 		done    bool
 		country *application.Jurisdiction
 		bill    *application.Proposal
@@ -624,9 +635,9 @@ func (h *WarHandler) Declare(ctx context.Context, meta envelope.Metadata, req Wa
 			return err
 		}
 		if !hasWar {
-			return refuseWar(screens.WarRefusedState, country)
+			return refuseWar(mview.WarRefusedState, country)
 		}
-		view = screens.DeclareView{Country: countryPlace(*country), Notice: h.rules.DeclarationNotice}
+		view = mview.DeclareView{Country: countryPlace(*country), Notice: h.rules.DeclarationNotice}
 		now := h.now()
 		targetCode := strings.ToLower(strings.TrimSpace(req.Target))
 		if targetCode == "" {
@@ -651,7 +662,7 @@ func (h *WarHandler) Declare(ctx context.Context, meta envelope.Metadata, req Wa
 			return err
 		}
 		if target.ID == country.ID {
-			return refuseWar(screens.WarRefusedSelf, country, screens.AddrWarDeclare)
+			return refuseWar(mview.WarRefusedSelf, country, mview.AddrWarDeclare)
 		}
 		place := countryPlace(target)
 		view.Target = &place
@@ -712,22 +723,20 @@ func (h *WarHandler) Declare(ctx context.Context, meta envelope.Metadata, req Wa
 	})
 	var refused *billRefusal
 	if stderrors.As(err, &refused) {
-		return screens.BillRefusal(h.screen(meta, lang), refused.view), nil
+		return society.BillRefusal(presentation.Ctx{Lang: lang}, refused.view), nil
 	}
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
 	if bill != nil && h.legislature != nil {
 		return h.legislature.view(ctx, meta, LegislatureRequest{No: strconv.FormatInt(bill.No, 10)},
-			screens.BillNoticeSubmitted)
+			society.BillNoticeSubmitted)
 	}
 	if done {
-		c := h.screen(meta, lang)
-		notice := c.T("war.declare.done", map[string]any{"target": c.PlaceName(*view.Target),
-			"in": screens.FormatSpan(c, h.rules.DeclarationNotice)})
+		notice := &mview.Notice{Code: mview.NoticeDeclareDone, Target: *view.Target, Time: h.rules.DeclarationNotice}
 		return h.boardWith(ctx, meta, WarRequest{Country: country.Code}, notice)
 	}
-	return screens.Declare(h.screen(meta, lang), view), nil
+	return mview.Declare(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // declareNow declares a war, once: the countries locked, a second war
@@ -751,7 +760,7 @@ func (h *WarHandler) declareNow(ctx context.Context, tx application.Tx, snap *co
 		rules[i] = w.Rule()
 	}
 	if err := war.CheckDeclare(country.ID, target.ID, rules); err != nil {
-		return refuseWar(screens.WarRefusedAtWar, country, screens.AddrWarBoard, country.Code)
+		return refuseWar(mview.WarRefusedAtWar, country, mview.AddrWarBoard, country.Code)
 	}
 	w := application.War{ID: h.ids.NewID(), AttackerID: country.ID, DefenderID: target.ID, Ground: ground,
 		DeclaredBy: playerID, DeclaredOffice: officeCode, DeclaredAt: now, ActiveAt: now.Add(h.rules.DeclarationNotice),
@@ -780,7 +789,7 @@ func (h *WarHandler) declareNow(ctx context.Context, tx application.Tx, snap *co
 	}
 	w, err = tx.War().DeclareWar(ctx, w)
 	if isSentinel(err, application.ErrAtWar) {
-		return refuseWar(screens.WarRefusedAtWar, country, screens.AddrWarBoard, country.Code)
+		return refuseWar(mview.WarRefusedAtWar, country, mview.AddrWarBoard, country.Code)
 	}
 	if err != nil {
 		return err
@@ -887,14 +896,14 @@ func (h *WarHandler) tellHead(ctx context.Context, tx application.Tx, snap *cont
 
 // Join handles war.join: an ally by mutual defence joins a war on its
 // ally's side, once.
-func (h *WarHandler) Join(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presenter.Response, error) {
+func (h *WarHandler) Join(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view    screens.WarDecisionView
+		view    mview.WarDecisionView
 		done    bool
 		country *application.Jurisdiction
 	)
@@ -913,7 +922,7 @@ func (h *WarHandler) Join(ctx context.Context, meta envelope.Metadata, req WarRe
 		}
 		no, ok := number(req.No)
 		if !ok {
-			return refuseWar(screens.WarRefusedNotFound, country)
+			return refuseWar(mview.WarRefusedNotFound, country)
 		}
 		w, err := tx.War().WarByNo(ctx, no, false)
 		if err != nil {
@@ -925,7 +934,7 @@ func (h *WarHandler) Join(ctx context.Context, meta envelope.Metadata, req WarRe
 			return err
 		}
 		if !ok {
-			return refuseWar(screens.WarRefusedNoAlly, country, screens.AddrWarBoard, country.Code)
+			return refuseWar(mview.WarRefusedNoAlly, country, mview.AddrWarBoard, country.Code)
 		}
 		r := w.Rule()
 		ally, err := placeOf(ctx, tx, r.Principal(side))
@@ -936,9 +945,9 @@ func (h *WarHandler) Join(ctx context.Context, meta envelope.Metadata, req WarRe
 		if err != nil {
 			return err
 		}
-		view = screens.WarDecisionView{Kind: "join", Country: countryPlace(*country), WarNo: w.No, Ally: ally, Other: other}
+		view = mview.WarDecisionView{Kind: "join", Country: countryPlace(*country), WarNo: w.No, Ally: ally, Other: other}
 		if err := war.CheckJoin(r, country.ID, side, now); err != nil {
-			return refuseWar(screens.WarRefusedState, country, screens.AddrWarBoard, country.Code)
+			return refuseWar(mview.WarRefusedState, country, mview.AddrWarBoard, country.Code)
 		}
 		if !confirm {
 			return nil
@@ -950,12 +959,12 @@ func (h *WarHandler) Join(ctx context.Context, meta envelope.Metadata, req WarRe
 			return err
 		}
 		if err := war.CheckJoin(w.Rule(), country.ID, side, now); err != nil {
-			return refuseWar(screens.WarRefusedState, country, screens.AddrWarBoard, country.Code)
+			return refuseWar(mview.WarRefusedState, country, mview.AddrWarBoard, country.Code)
 		}
 		if err := tx.War().AddParty(ctx, application.WarParty{WarID: w.ID, CountryID: country.ID, Side: side, JoinedBy: p.ID,
 			OfficeCode: seat.OfficeCode, JoinedAt: now}); err != nil {
 			if isSentinel(err, application.ErrAtWar) {
-				return refuseWar(screens.WarRefusedState, country, screens.AddrWarBoard, country.Code)
+				return refuseWar(mview.WarRefusedState, country, mview.AddrWarBoard, country.Code)
 			}
 			return err
 		}
@@ -978,11 +987,10 @@ func (h *WarHandler) Join(ctx context.Context, meta envelope.Metadata, req WarRe
 		return resp, err
 	}
 	if done {
-		c := h.screen(meta, lang)
-		return h.boardWith(ctx, meta, WarRequest{Country: country.Code}, c.T("war.join.done", map[string]any{
-			"ally": c.PlaceName(view.Ally)}))
+		return h.boardWith(ctx, meta, WarRequest{Country: country.Code},
+			&mview.Notice{Code: mview.NoticeJoinDone, Target: view.Ally})
 	}
-	return screens.WarDecision(h.screen(meta, lang), view), nil
+	return mview.WarDecision(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // principalFor reads a war by number and refuses a player who does not
@@ -992,7 +1000,7 @@ func (h *WarHandler) principalFor(ctx context.Context, tx application.Tx, snap *
 ) (*application.War, *application.Jurisdiction, application.Office, error) {
 	no, ok := number(rawNo)
 	if !ok {
-		return nil, nil, application.Office{}, refuseWar(screens.WarRefusedNotFound, nil)
+		return nil, nil, application.Office{}, refuseWar(mview.WarRefusedNotFound, nil)
 	}
 	w, err := tx.War().WarByNo(ctx, no, false)
 	if err != nil {
@@ -1015,14 +1023,14 @@ func (h *WarHandler) principalFor(ctx context.Context, tx application.Tx, snap *
 			return w, &j, seat, nil
 		}
 	}
-	r := refuseWar(screens.WarRefusedNotHolder, first)
+	r := refuseWar(mview.WarRefusedNotHolder, first)
 	r.view.Office = actionOffice(snap, content.ActionWar)
 	return nil, nil, application.Office{}, r
 }
 
 // Propose handles war.propose: a principal offers the other a ceasefire or
 // a peace, once; the other's head of state is told.
-func (h *WarHandler) Propose(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presenter.Response, error) {
+func (h *WarHandler) Propose(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -1033,7 +1041,7 @@ func (h *WarHandler) Propose(ctx context.Context, meta envelope.Metadata, req Wa
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view    screens.WarDecisionView
+		view    mview.WarDecisionView
 		done    bool
 		country *application.Jurisdiction
 	)
@@ -1058,7 +1066,7 @@ func (h *WarHandler) Propose(ctx context.Context, meta envelope.Metadata, req Wa
 		if err != nil {
 			return err
 		}
-		view = screens.WarDecisionView{Kind: string(kind), Country: countryPlace(*c), WarNo: w.No, Other: other,
+		view = mview.WarDecisionView{Kind: string(kind), Country: countryPlace(*c), WarNo: w.No, Other: other,
 			TTL: h.rules.ProposalTTL}
 		props, err := tx.War().Proposals(ctx, w.ID)
 		if err != nil {
@@ -1070,9 +1078,9 @@ func (h *WarHandler) Propose(ctx context.Context, meta envelope.Metadata, req Wa
 		}
 		if err := war.CheckPropose(r, c.ID, kind, rules, now); err != nil {
 			if stderrors.Is(err, war.ErrProposalOpen) {
-				return refuseWar(screens.WarRefusedOpen, c, screens.AddrWarBoard, c.Code)
+				return refuseWar(mview.WarRefusedOpen, c, mview.AddrWarBoard, c.Code)
 			}
-			return refuseWar(screens.WarRefusedState, c, screens.AddrWarBoard, c.Code)
+			return refuseWar(mview.WarRefusedState, c, mview.AddrWarBoard, c.Code)
 		}
 		if !confirm {
 			return nil
@@ -1087,7 +1095,7 @@ func (h *WarHandler) Propose(ctx context.Context, meta envelope.Metadata, req Wa
 			PartnerID: otherID, ProposedBy: p.ID, ProposedOffice: seat.OfficeCode, ProposedAt: now,
 			ExpiresAt: now.Add(h.rules.ProposalTTL)})
 		if isSentinel(err, application.ErrProposalOpen) {
-			return refuseWar(screens.WarRefusedOpen, c, screens.AddrWarBoard, c.Code)
+			return refuseWar(mview.WarRefusedOpen, c, mview.AddrWarBoard, c.Code)
 		}
 		if err != nil {
 			return err
@@ -1111,23 +1119,22 @@ func (h *WarHandler) Propose(ctx context.Context, meta envelope.Metadata, req Wa
 		return resp, err
 	}
 	if done {
-		c := h.screen(meta, lang)
-		return h.boardWith(ctx, meta, WarRequest{Country: country.Code}, c.T("war.propose.done", map[string]any{
-			"kind": c.T("war.proposal."+string(kind), nil), "other": c.PlaceName(view.Other)}))
+		return h.boardWith(ctx, meta, WarRequest{Country: country.Code},
+			&mview.Notice{Code: mview.NoticeProposeDone, Kind: string(kind), Target: view.Other})
 	}
-	return screens.WarDecision(h.screen(meta, lang), view), nil
+	return mview.WarDecision(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Answer handles war.answer: the other principal accepts or declines a
 // ceasefire or a peace, once. An accepted ceasefire suspends the war — the
 // operations under way are called off when they arrive — and a peace ends
 // it; both are announced in every party's groups.
-func (h *WarHandler) Answer(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presenter.Response, error) {
+func (h *WarHandler) Answer(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
-	accept := strings.TrimSpace(req.Verdict) == screens.AnswerAccept
-	if !accept && strings.TrimSpace(req.Verdict) != screens.AnswerDecline {
+	accept := strings.TrimSpace(req.Verdict) == society.AnswerAccept
+	if !accept && strings.TrimSpace(req.Verdict) != society.AnswerDecline {
 		return nil, errors.InvalidInput("an answer is accept or decline")
 	}
 	snap := h.content.Current()
@@ -1147,7 +1154,7 @@ func (h *WarHandler) Answer(ctx context.Context, meta envelope.Metadata, req War
 		}
 		no, ok := number(req.No)
 		if !ok {
-			return refuseWar(screens.WarRefusedNotFound, nil)
+			return refuseWar(mview.WarRefusedNotFound, nil)
 		}
 		pr, err := tx.War().ProposalByNo(ctx, no, false)
 		if err != nil {
@@ -1163,7 +1170,7 @@ func (h *WarHandler) Answer(ctx context.Context, meta envelope.Metadata, req War
 			return err
 		}
 		if !ok {
-			r := refuseWar(screens.WarRefusedNotHolder, &partner)
+			r := refuseWar(mview.WarRefusedNotHolder, &partner)
 			r.view.Office = actionOffice(snap, content.ActionWar)
 			return r
 		}
@@ -1183,7 +1190,7 @@ func (h *WarHandler) Answer(ctx context.Context, meta envelope.Metadata, req War
 		now := h.now()
 		ps, ws, err := war.Answer(w.Rule(), pr.Rule(), partner.ID, accept, now)
 		if err != nil {
-			return refuseWar(screens.WarRefusedState, &partner, screens.AddrWarBoard, partner.Code)
+			return refuseWar(mview.WarRefusedState, &partner, mview.AddrWarBoard, partner.Code)
 		}
 		pr.Status, pr.DecidedBy, pr.DecidedOffice, pr.DecidedAt = ps, p.ID, seat.OfficeCode, &now
 		if err := tx.War().SaveProposal(ctx, *pr); err != nil {
@@ -1231,9 +1238,9 @@ func (h *WarHandler) Answer(ctx context.Context, meta envelope.Metadata, req War
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	notice := ""
+	var notice *mview.Notice
 	if answer != "" {
-		notice = h.screen(meta, lang).T("war.answer."+answer, nil)
+		notice = &mview.Notice{Code: "answer_" + answer}
 	}
 	code := ""
 	if country != nil {
@@ -1245,14 +1252,14 @@ func (h *WarHandler) Answer(ctx context.Context, meta envelope.Metadata, req War
 // Resume handles war.resume: a principal ends a ceasefire; the war may be
 // fought again after the same notice as a declaration (Hague Regulations
 // art. 36: the enemy is warned).
-func (h *WarHandler) Resume(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presenter.Response, error) {
+func (h *WarHandler) Resume(ctx context.Context, meta envelope.Metadata, req WarRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view    screens.WarDecisionView
+		view    mview.WarDecisionView
 		done    bool
 		country *application.Jurisdiction
 	)
@@ -1274,10 +1281,10 @@ func (h *WarHandler) Resume(ctx context.Context, meta envelope.Metadata, req War
 		if err != nil {
 			return err
 		}
-		view = screens.WarDecisionView{Kind: "resume", Country: countryPlace(*c), WarNo: w.No, Other: other,
+		view = mview.WarDecisionView{Kind: "resume", Country: countryPlace(*c), WarNo: w.No, Other: other,
 			Notice: h.rules.DeclarationNotice}
 		if err := war.CheckResume(w.Rule(), c.ID); err != nil {
-			return refuseWar(screens.WarRefusedState, c, screens.AddrWarBoard, c.Code)
+			return refuseWar(mview.WarRefusedState, c, mview.AddrWarBoard, c.Code)
 		}
 		if !confirm {
 			return nil
@@ -1289,7 +1296,7 @@ func (h *WarHandler) Resume(ctx context.Context, meta envelope.Metadata, req War
 			return err
 		}
 		if err := war.CheckResume(w.Rule(), c.ID); err != nil {
-			return refuseWar(screens.WarRefusedState, c, screens.AddrWarBoard, c.Code)
+			return refuseWar(mview.WarRefusedState, c, mview.AddrWarBoard, c.Code)
 		}
 		now := h.now()
 		w.Status, w.ActiveAt, w.UpdatedAt = war.Declared, now.Add(h.rules.DeclarationNotice), now
@@ -1314,11 +1321,10 @@ func (h *WarHandler) Resume(ctx context.Context, meta envelope.Metadata, req War
 		return resp, err
 	}
 	if done {
-		c := h.screen(meta, lang)
-		return h.boardWith(ctx, meta, WarRequest{Country: country.Code}, c.T("war.resume.done", map[string]any{
-			"in": screens.FormatSpan(c, h.rules.DeclarationNotice)}))
+		return h.boardWith(ctx, meta, WarRequest{Country: country.Code},
+			&mview.Notice{Code: mview.NoticeResumeDone, Time: h.rules.DeclarationNotice})
 	}
-	return screens.WarDecision(h.screen(meta, lang), view), nil
+	return mview.WarDecision(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // ExecuteProposal declares a war a body approved

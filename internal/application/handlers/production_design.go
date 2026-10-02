@@ -7,14 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/company"
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The design studio: a draft for a kind of good, its slots filled one by one
@@ -73,12 +74,12 @@ func prices(snap *content.Snapshot) map[string]money.Amount {
 // designView builds a design's screen.
 func (h *ProductionHandler) designView(ctx context.Context, tx application.Tx, snap *content.Snapshot, c *application.Company,
 	d application.Design, choosing string,
-) (screens.DesignView, error) {
+) (companies.DesignView, error) {
 	a, ok := snap.Archetype(d.Archetype)
 	if !ok {
-		return screens.DesignView{}, internalf("a design of an archetype the content does not have: " + d.Archetype)
+		return companies.DesignView{}, internalf("a design of an archetype the content does not have: " + d.Archetype)
 	}
-	v := screens.DesignView{Ref: companyRef(snap, *c), No: d.No, Name: d.Name, Item: itemNamed(snap, d.Item),
+	v := companies.DesignView{Ref: companyRef(snap, *c), No: d.No, Name: d.Name, Item: itemNamed(snap, d.Item),
 		Status: d.Status, Origin: d.Origin, QualityLossBPS: d.QualityLossBPS, OverheadBPS: d.OverheadBPS}
 	if d.SourceDesignID != "" {
 		if src, err := tx.Production().DesignByID(ctx, d.SourceDesignID); err == nil {
@@ -93,7 +94,7 @@ func (h *ProductionHandler) designView(ctx context.Context, tx application.Tx, s
 	complete := true
 	locked := map[string]bool{}
 	for _, s := range a.Slots {
-		line := screens.SlotLine{Slot: s.Name, Optional: s.Optional, Min: s.Quantity.Min, Max: s.Quantity.Max, Unit: s.Quantity.Unit}
+		line := companies.SlotLine{Slot: s.Name, Optional: s.Optional, Min: s.Quantity.Min, Max: s.Quantity.Max, Unit: s.Quantity.Unit}
 		if fill, ok := d.Fills[s.Name]; ok {
 			comp, _ := snap.ComponentDef(fill.Component)
 			line.Component, line.Qty = named(comp.Code, comp.Name), fill.Quantity
@@ -117,7 +118,7 @@ func (h *ProductionHandler) designView(ctx context.Context, tx application.Tx, s
 	dd := domainDesign(d)
 	if attrs, err := item.ComputeAttributes(partial(a), dd, components); err == nil {
 		for _, at := range a.Attributes {
-			v.Attributes = append(v.Attributes, screens.AttributeLine{Name: at.Name, Value: attrs[at.Name], Observable: at.Observable})
+			v.Attributes = append(v.Attributes, companies.AttributeLine{Name: at.Name, Value: attrs[at.Name], Observable: at.Observable})
 		}
 	}
 	if recipe, err := item.DeriveRecipe(dd); err == nil {
@@ -129,7 +130,7 @@ func (h *ProductionHandler) designView(ctx context.Context, tx application.Tx, s
 		if _, ok := a.Slot(choosing); ok {
 			v.Choosing = choosing
 			for _, cd := range snap.SlotCandidates(a, choosing) {
-				v.Candidates = append(v.Candidates, screens.Candidate{Component: named(cd.Code, cd.Name), Price: cd.BasePrice,
+				v.Candidates = append(v.Candidates, companies.Candidate{Component: named(cd.Code, cd.Name), Price: cd.BasePrice,
 					Quality: cd.Quality(), Locked: item.CanManufacture(cd.Component(), f.access) != nil})
 			}
 		}
@@ -152,11 +153,11 @@ func (h *ProductionHandler) designOf(ctx context.Context, tx application.Tx, sna
 ) (*application.Design, *application.Company, error) {
 	no, ok := number(raw)
 	if !ok {
-		return nil, nil, refuseProduction(screens.ProductionRefusedNotFound, nil, snap)
+		return nil, nil, refuseProduction(companies.ProductionRefusedNotFound, nil, snap)
 	}
 	d, err := tx.Production().Design(ctx, no, false)
 	if isSentinel(err, application.ErrDesignNotFound) {
-		return nil, nil, refuseProduction(screens.ProductionRefusedNotFound, nil, snap)
+		return nil, nil, refuseProduction(companies.ProductionRefusedNotFound, nil, snap)
 	}
 	if err != nil {
 		return nil, nil, err
@@ -179,13 +180,13 @@ func (h *ProductionHandler) designOf(ctx context.Context, tx application.Tx, sna
 
 // Studio handles company.studio: the company's designs, and the goods it
 // may start a design of.
-func (h *ProductionHandler) Studio(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Studio(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.StudioView
+	var view companies.StudioView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -199,10 +200,10 @@ func (h *ProductionHandler) Studio(ctx context.Context, meta envelope.Metadata, 
 		if err != nil {
 			return err
 		}
-		view = screens.StudioView{Ref: companyRef(snap, *c), CanDesign: len(designs) < h.rules.MaxDesigns,
+		view = companies.StudioView{Ref: companyRef(snap, *c), CanDesign: len(designs) < h.rules.MaxDesigns,
 			Max: h.rules.MaxDesigns, Need: h.rules.DesignMinSkill}
 		for _, d := range designs {
-			view.Designs = append(view.Designs, screens.DesignLine{No: d.No, Name: d.Name, Item: itemNamed(snap, d.Item),
+			view.Designs = append(view.Designs, companies.DesignLine{No: d.No, Name: d.Name, Item: itemNamed(snap, d.Item),
 				Status: d.Status, Origin: d.Origin})
 		}
 		// Staged: what the company may design now, and what is one step
@@ -222,7 +223,7 @@ func (h *ProductionHandler) Studio(ctx context.Context, meta envelope.Metadata, 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Studio(h.screen(meta, lang), view), nil
+	return companies.Studio(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // checkEngineer refuses a design of archetype a when nobody in the company
@@ -233,7 +234,7 @@ func (h *ProductionHandler) checkEngineer(ctx context.Context, tx application.Tx
 		return err
 	}
 	if level < h.rules.DesignMinSkill {
-		r := refuseProduction(screens.ProductionRefusedSkill, f.c, snap).back(screens.AddrStudio, f.c.Code)
+		r := refuseProduction(companies.ProductionRefusedSkill, f.c, snap).back(companies.AddrStudio, f.c.Code)
 		r.view.Skill, r.view.Level, r.view.Have = a.ReverseSkill, h.rules.DesignMinSkill, level
 		r.view.Gap = skillGapOf(snap, f.c.Code, a.ReverseSkill, h.rules.DesignMinSkill)
 		return r
@@ -242,13 +243,13 @@ func (h *ProductionHandler) checkEngineer(ctx context.Context, tx application.Tx
 }
 
 // DesignNew handles company.dnew: a new draft design of a good.
-func (h *ProductionHandler) DesignNew(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) DesignNew(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.DesignView
+	var view companies.DesignView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -269,7 +270,7 @@ func (h *ProductionHandler) DesignNew(ctx context.Context, meta envelope.Metadat
 			}
 		}
 		if def.Code == "" {
-			return refuseProduction(screens.ProductionRefusedWrongType, c, snap).back(screens.AddrStudio, c.Code)
+			return refuseProduction(companies.ProductionRefusedWrongType, c, snap).back(companies.AddrStudio, c.Code)
 		}
 		a, _ := snap.Archetype(def.Archetype)
 		designs, err := tx.Production().Designs(ctx, c.ID)
@@ -286,7 +287,7 @@ func (h *ProductionHandler) DesignNew(ctx context.Context, meta envelope.Metadat
 			}
 		}
 		if len(designs) >= h.rules.MaxDesigns {
-			r := refuseProduction(screens.ProductionRefusedMaxDesigns, c, snap).back(screens.AddrStudio, c.Code)
+			r := refuseProduction(companies.ProductionRefusedMaxDesigns, c, snap).back(companies.AddrStudio, c.Code)
 			r.view.Max = h.rules.MaxDesigns
 			return r
 		}
@@ -317,22 +318,22 @@ func (h *ProductionHandler) DesignNew(ctx context.Context, meta envelope.Metadat
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Design(h.screen(meta, lang), view), nil
+	return companies.Design(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Design handles company.design: one design, with a slot's candidates when
 // the request names a slot.
-func (h *ProductionHandler) Design(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
-	return h.designWith(ctx, meta, req, strings.TrimSpace(req.Slot), "")
+func (h *ProductionHandler) Design(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
+	return h.designWith(ctx, meta, req, strings.TrimSpace(req.Slot))
 }
 
-func (h *ProductionHandler) designWith(ctx context.Context, meta envelope.Metadata, req ProductionRequest, choosing, notice string) (*presenter.Response, error) {
+func (h *ProductionHandler) designWith(ctx context.Context, meta envelope.Metadata, req ProductionRequest, choosing string) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.DesignView
+	var view companies.DesignView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -348,20 +349,19 @@ func (h *ProductionHandler) designWith(ctx context.Context, meta envelope.Metada
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	view.Notice = notice
-	return screens.Design(h.screen(meta, lang), view), nil
+	return companies.Design(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // editDraft runs change on a draft design under its lock and saves it.
 func (h *ProductionHandler) editDraft(ctx context.Context, meta envelope.Metadata, req ProductionRequest, choosing string,
 	change func(ctx context.Context, tx application.Tx, snap *content.Snapshot, c *application.Company, a item.Archetype, d *application.Design) error,
-) (*presenter.Response, error) {
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.DesignView
+	var view companies.DesignView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -372,7 +372,7 @@ func (h *ProductionHandler) editDraft(ctx context.Context, meta envelope.Metadat
 			return err
 		}
 		if d.Status != application.DesignDraft {
-			return refuseProduction(screens.ProductionRefusedFinal, c, snap).back(screens.AddrDesign, req.No)
+			return refuseProduction(companies.ProductionRefusedFinal, c, snap).back(companies.AddrDesign, req.No)
 		}
 		a, ok := snap.Archetype(d.Archetype)
 		if !ok {
@@ -384,7 +384,7 @@ func (h *ProductionHandler) editDraft(ctx context.Context, meta envelope.Metadat
 		d.UpdatedAt = h.now()
 		if err := tx.Production().SaveDesign(ctx, *d); err != nil {
 			if isSentinel(err, application.ErrDesignNameTaken) {
-				return refuseProduction(screens.ProductionRefusedNameTaken, c, snap).back(screens.AddrDesign, req.No)
+				return refuseProduction(companies.ProductionRefusedNameTaken, c, snap).back(companies.AddrDesign, req.No)
 			}
 			return err
 		}
@@ -394,14 +394,14 @@ func (h *ProductionHandler) editDraft(ctx context.Context, meta envelope.Metadat
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Design(h.screen(meta, lang), view), nil
+	return companies.Design(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // DesignFill handles company.dfill: a component in a slot of a draft. A slot
 // with a fixed quantity takes it; one with a range starts at its least, for
 // the designer to change (company.dqty). An optional slot may be emptied.
 // Only a component the company may design with fits.
-func (h *ProductionHandler) DesignFill(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) DesignFill(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	slot := strings.TrimSpace(req.Slot)
 	var reopen string
 	resp, err := h.editDraft(ctx, meta, req, "", func(ctx context.Context, tx application.Tx, snap *content.Snapshot, c *application.Company,
@@ -409,16 +409,16 @@ func (h *ProductionHandler) DesignFill(ctx context.Context, meta envelope.Metada
 	) error {
 		s, ok := a.Slot(slot)
 		if !ok {
-			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrDesign, req.No)
+			return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(companies.AddrDesign, req.No)
 		}
 		code := strings.TrimSpace(req.Component)
 		fills := maps.Clone(d.Fills)
 		if fills == nil {
 			fills = map[string]application.DesignFill{}
 		}
-		if code == screens.SlotEmpty {
+		if code == companies.SlotEmpty {
 			if !s.Optional {
-				return refuseProduction(screens.ProductionRefusedIncomplete, c, snap).back(screens.AddrDesign, req.No)
+				return refuseProduction(companies.ProductionRefusedIncomplete, c, snap).back(companies.AddrDesign, req.No)
 			}
 			delete(fills, slot)
 			d.Fills = fills
@@ -426,14 +426,14 @@ func (h *ProductionHandler) DesignFill(ctx context.Context, meta envelope.Metada
 		}
 		comp, ok := snap.ComponentDef(code)
 		if !ok || comp.Category != s.Accepts {
-			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrDesign, req.No, slot)
+			return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(companies.AddrDesign, req.No, slot)
 		}
 		f, err := readFloor(ctx, tx, snap, c)
 		if err != nil {
 			return err
 		}
 		if err := item.CanManufacture(comp.Component(), f.access); err != nil {
-			r := refuseProduction(screens.ProductionRefusedTechLocked, c, snap).back(screens.AddrDesign, req.No, slot)
+			r := refuseProduction(companies.ProductionRefusedTechLocked, c, snap).back(companies.AddrDesign, req.No, slot)
 			for _, t := range comp.RequiresTechnology {
 				if !f.access.Allows(t) {
 					td, _ := snap.Technology(t)
@@ -456,12 +456,12 @@ func (h *ProductionHandler) DesignFill(ctx context.Context, meta envelope.Metada
 	if err != nil || resp == nil || reopen == "" {
 		return resp, err
 	}
-	return h.designWith(ctx, meta, req, reopen, "")
+	return h.designWith(ctx, meta, req, reopen)
 }
 
 // DesignQty handles company.dqty: the typed quantity of a slot that takes a
 // range.
-func (h *ProductionHandler) DesignQty(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) DesignQty(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	slot := strings.TrimSpace(req.Slot)
 	return h.editDraft(ctx, meta, req, slot, func(ctx context.Context, tx application.Tx, snap *content.Snapshot, c *application.Company,
 		a item.Archetype, d *application.Design,
@@ -469,11 +469,11 @@ func (h *ProductionHandler) DesignQty(ctx context.Context, meta envelope.Metadat
 		s, ok := a.Slot(slot)
 		fill, filled := d.Fills[slot]
 		if !ok || !filled {
-			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrDesign, req.No)
+			return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(companies.AddrDesign, req.No)
 		}
 		qty, ok := quantityArg(req.Qty)
 		if !ok || !s.Quantity.Contains(qty) {
-			return refuseProduction(screens.ProductionRefusedAmount, c, snap).back(screens.AddrDesign, req.No, slot)
+			return refuseProduction(companies.ProductionRefusedAmount, c, snap).back(companies.AddrDesign, req.No, slot)
 		}
 		fills := maps.Clone(d.Fills)
 		fills[slot] = application.DesignFill{Component: fill.Component, Quantity: qty}
@@ -488,18 +488,18 @@ func (h *ProductionHandler) designNameRules(snap *content.Snapshot) company.Name
 }
 
 // DesignName handles company.dname: the typed name of a draft.
-func (h *ProductionHandler) DesignName(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) DesignName(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	return h.editDraft(ctx, meta, req, "", func(ctx context.Context, tx application.Tx, snap *content.Snapshot, c *application.Company,
 		a item.Archetype, d *application.Design,
 	) error {
 		name, err := company.CheckName(req.Name, h.designNameRules(snap))
 		if err != nil {
-			kind := screens.ProductionRefusedNameCharset
+			kind := companies.ProductionRefusedNameCharset
 			var length company.NameLength
 			if stderrors.As(err, &length) {
-				kind = screens.ProductionRefusedNameLength
+				kind = companies.ProductionRefusedNameLength
 			}
-			r := refuseProduction(kind, c, snap).back(screens.AddrDesign, req.No)
+			r := refuseProduction(kind, c, snap).back(companies.AddrDesign, req.No)
 			r.view.Level, r.view.Max = h.rules.NameMin, h.rules.NameMax
 			return r
 		}
@@ -511,13 +511,13 @@ func (h *ProductionHandler) DesignName(ctx context.Context, meta envelope.Metada
 // DesignFinal handles company.dfinal: a named, complete draft whose parts
 // the company may all design with becomes a final design. From now on it is
 // produced, never edited.
-func (h *ProductionHandler) DesignFinal(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) DesignFinal(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	resp, err := h.editDraft(ctx, meta, req, "", func(ctx context.Context, tx application.Tx, snap *content.Snapshot, c *application.Company,
 		a item.Archetype, d *application.Design,
 	) error {
-		back := []string{screens.AddrDesign, req.No}
+		back := []string{companies.AddrDesign, req.No}
 		if d.Name == "" {
-			return refuseProduction(screens.ProductionRefusedNoName, c, snap).back(back...)
+			return refuseProduction(companies.ProductionRefusedNoName, c, snap).back(back...)
 		}
 		f, err := readFloor(ctx, tx, snap, c)
 		if err != nil {
@@ -538,7 +538,7 @@ func (h *ProductionHandler) DesignFinal(ctx context.Context, meta envelope.Metad
 		err = item.ValidateDesign(a, domainDesign(*d), snap.Components(), f.access)
 		switch {
 		case stderrors.Is(err, item.ErrTechnologyLocked):
-			r := refuseProduction(screens.ProductionRefusedTechLocked, c, snap).back(back...)
+			r := refuseProduction(companies.ProductionRefusedTechLocked, c, snap).back(back...)
 			locked := map[string]bool{}
 			for _, fill := range d.Fills {
 				comp, _ := snap.ComponentDef(fill.Component)
@@ -554,7 +554,7 @@ func (h *ProductionHandler) DesignFinal(ctx context.Context, meta envelope.Metad
 			}
 			return r
 		case err != nil:
-			return refuseProduction(screens.ProductionRefusedIncomplete, c, snap).back(back...)
+			return refuseProduction(companies.ProductionRefusedIncomplete, c, snap).back(back...)
 		}
 		now := h.now()
 		d.Status, d.FinalizedAt = application.DesignFinal, &now

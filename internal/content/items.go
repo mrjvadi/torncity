@@ -538,6 +538,17 @@ func (s *Snapshot) Archetype(code string) (item.Archetype, bool) {
 	return a, ok
 }
 
+// Archetypes lists every archetype of the content, by code: what a design is
+// made of (its slots) and what it computes (its attributes).
+func (s *Snapshot) Archetypes() []item.Archetype {
+	out := make([]item.Archetype, 0, len(s.items.archetypes))
+	for _, a := range s.items.archetypes {
+		out = append(out, a)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Code < out[j].Code })
+	return out
+}
+
 // Shops returns every shop kind in file order. The slice is a copy.
 func (s *Snapshot) Shops() []ShopDef { return append([]ShopDef(nil), s.items.shops...) }
 

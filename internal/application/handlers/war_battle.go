@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	mview "github.com/mrjvadi/torncity/internal/presentation/military"
 	"hash/fnv"
 	"sort"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/military"
 	"github.com/mrjvadi/torncity/internal/domain/war"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // What a battle is built from: every piece's attributes, from its design
@@ -96,7 +96,7 @@ func kindOfRole(role string) string {
 // forceOption is one operation the country's forces could mount at a
 // target, with the pieces that would go.
 type forceOption struct {
-	view   screens.ForceOption
+	view   mview.ForceOption
 	branch content.BranchDef
 	from   application.City
 	pieces []combatPiece
@@ -160,7 +160,7 @@ func (h *WarHandler) forceOptions(ctx context.Context, tx application.Tx, snap *
 			if km > def.Ground.ReachKM {
 				continue
 			}
-			groups[key{kind, screens.WarAllUnits, city}] = append(groups[key{kind, screens.WarAllUnits, city}], pc)
+			groups[key{kind, mview.WarAllUnits, city}] = append(groups[key{kind, mview.WarAllUnits, city}], pc)
 		default:
 			if !war.InReach(km, pc.attr("range"), roundTrip(role)) {
 				continue
@@ -182,11 +182,11 @@ func (h *WarHandler) forceOptions(ctx context.Context, tx application.Tx, snap *
 		g := groups[k]
 		cl := g[0].class
 		branch, _ := snap.Branch(cl.Branch)
-		view := screens.ForceOption{Kind: id[0], Class: named(cl.Code, cl.Name), Ready: int64(len(g)),
+		view := mview.ForceOption{Kind: id[0], Class: named(cl.Code, cl.Name), Ready: int64(len(g)),
 			FromCode: cities[k.city].Code, From: cities[k.city].Name, DistanceKM: distances[k.city],
 			Office: actionOffice(snap, branch.Command)}
 		if id[0] == content.OperationGround {
-			view.Class = named(screens.WarAllUnits, "")
+			view.Class = named(mview.WarAllUnits, "")
 		}
 		opt := forceOption{view: view, branch: branch, from: *cities[k.city], pieces: g}
 		if id[0] == content.OperationAir {
@@ -402,7 +402,7 @@ func chanceBand(successes, samples int) string {
 // intelligence estimate.
 func (h *WarHandler) estimate(snap *content.Snapshot, def content.WarDef, kind, objective string, attackers,
 	bombs []combatPiece, d defence, damageBPS, attReady, defReady int64,
-) *screens.Estimate {
+) *mview.Estimate {
 	n := def.PreviewSamples
 	var lost, points, success int64
 	for i := range n {
@@ -436,7 +436,7 @@ func (h *WarHandler) estimate(snap *content.Snapshot, def content.WarDef, kind, 
 			success++
 		}
 	}
-	e := &screens.Estimate{Chance: chanceBand(int(success), n),
+	e := &mview.Estimate{Chance: chanceBand(int(success), n),
 		LossBand: military.BandOf(snap.StrengthBands(), (lost+int64(n)/2)/int64(n))}
 	if kind != content.OperationGround {
 		avg := points / int64(n)

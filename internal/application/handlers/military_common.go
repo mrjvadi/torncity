@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	mview "github.com/mrjvadi/torncity/internal/presentation/military"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 	"strings"
 	"time"
 
@@ -11,9 +13,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
-	"github.com/mrjvadi/torncity/internal/shared/events"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/shared/events"
 )
 
 // What the military and diplomacy handlers share
@@ -33,13 +34,13 @@ const (
 )
 
 // countryPlace names a country for a screen.
-func countryPlace(j application.Jurisdiction) screens.GovPlace {
-	return screens.GovPlace{Kind: j.Kind, Code: j.Code, Name: j.Name}
+func countryPlace(j application.Jurisdiction) presentation.GovPlace {
+	return presentation.GovPlace{Kind: j.Kind, Code: j.Code, Name: j.Name}
 }
 
 // cityPlace names a city for a screen.
-func cityPlace(c application.City) screens.GovPlace {
-	return screens.GovPlace{Kind: "city", Code: c.Code, Name: c.Name}
+func cityPlace(c application.City) presentation.GovPlace {
+	return presentation.GovPlace{Kind: "city", Code: c.Code, Name: c.Name}
 }
 
 // nationality is the country a player belongs to: the country of the city
@@ -129,12 +130,12 @@ func cleared(ctx context.Context, tx application.Tx, snap *content.Snapshot, cou
 
 // officeLine is one office of a country and who holds it or acts for it, as
 // the city hall screen shows it.
-func officeLine(ctx context.Context, tx application.Tx, code, countryID string) (screens.GovOffice, error) {
+func officeLine(ctx context.Context, tx application.Tx, code, countryID string) (society.GovOffice, error) {
 	chain, err := tx.Governance().ActingChain(ctx, code, countryID)
 	if err != nil {
-		return screens.GovOffice{}, err
+		return society.GovOffice{}, err
 	}
-	view := screens.GovOffice{Code: code, Seats: 1}
+	view := society.GovOffice{Code: code, Seats: 1}
 	if len(chain) > 0 {
 		view.Seats = max(len(chain[0].Seats), 1)
 	}
@@ -142,7 +143,7 @@ func officeLine(ctx context.Context, tx application.Tx, code, countryID string) 
 	if acting == nil {
 		return view, nil
 	}
-	var players []screens.GovPlayer
+	var players []presentation.GovPlayer
 	for _, s := range acting.Holders {
 		named, err := playerNamed(ctx, tx, s.HolderPlayerID)
 		if err != nil {
@@ -159,38 +160,38 @@ func officeLine(ctx context.Context, tx application.Tx, code, countryID string) 
 }
 
 // placeOf names a country by id for a screen; an unknown one is blank.
-func placeOf(ctx context.Context, tx application.Tx, id string) (screens.GovPlace, error) {
+func placeOf(ctx context.Context, tx application.Tx, id string) (presentation.GovPlace, error) {
 	if id == "" {
-		return screens.GovPlace{}, nil
+		return presentation.GovPlace{}, nil
 	}
 	j, err := tx.Governance().Jurisdiction(ctx, id)
 	if err != nil {
-		return screens.GovPlace{}, err
+		return presentation.GovPlace{}, err
 	}
 	return countryPlace(j), nil
 }
 
 // sanctionBlocked turns a *SanctionedError into its screen's view, naming
 // both countries; ok is false for any other error.
-func sanctionBlocked(ctx context.Context, tx application.Tx, err error, back ...string) (screens.SanctionBlockedView, bool, error) {
+func sanctionBlocked(ctx context.Context, tx application.Tx, err error, back ...string) (society.SanctionBlockedView, bool, error) {
 	var s *application.SanctionedError
 	if !stderrors.As(err, &s) {
-		return screens.SanctionBlockedView{}, false, nil
+		return society.SanctionBlockedView{}, false, nil
 	}
 	imposer, ierr := placeOf(ctx, tx, s.Sanction.ImposerID)
 	if ierr != nil {
-		return screens.SanctionBlockedView{}, true, ierr
+		return society.SanctionBlockedView{}, true, ierr
 	}
 	target, terr := placeOf(ctx, tx, s.Sanction.TargetID)
 	if terr != nil {
-		return screens.SanctionBlockedView{}, true, terr
+		return society.SanctionBlockedView{}, true, terr
 	}
-	return screens.SanctionBlockedView{Measure: string(s.Measure), Imposer: imposer, Target: target, Back: presentation.RefOfAddress(strings.Join(back, ":"))}, true, nil
+	return society.SanctionBlockedView{Measure: string(s.Measure), Imposer: imposer, Target: target, Back: presentation.RefOfAddress(strings.Join(back, ":"))}, true, nil
 }
 
 // sanctionRefusal carries a blocked cross-border action out of a unit of
 // work, with the screen already named.
-type sanctionRefusal struct{ view screens.SanctionBlockedView }
+type sanctionRefusal struct{ view society.SanctionBlockedView }
 
 func (r *sanctionRefusal) Error() string { return "handlers: blocked by a sanction: " + r.view.Measure }
 
@@ -211,12 +212,12 @@ func checkSanctions(ctx context.Context, tx application.Tx, err error, back ...s
 }
 
 // asBlocked finds a blocked action's screen in err.
-func asBlocked(err error) (screens.SanctionBlockedView, bool) {
+func asBlocked(err error) (society.SanctionBlockedView, bool) {
 	var r *sanctionRefusal
 	if stderrors.As(err, &r) {
 		return r.view, true
 	}
-	return screens.SanctionBlockedView{}, false
+	return society.SanctionBlockedView{}, false
 }
 
 // appendDomainEvent writes an event of a domain to the outbox, in the
@@ -271,7 +272,7 @@ func playersSanctioned(ctx context.Context, tx application.Tx, m diplomacy.Measu
 
 // warTravelRefusal carries a journey the war closes out of a unit of work,
 // with the screen already named.
-type warTravelRefusal struct{ view screens.WarBlockedView }
+type warTravelRefusal struct{ view mview.WarBlockedView }
 
 func (r *warTravelRefusal) Error() string { return "handlers: the journey is closed by war" }
 
@@ -284,7 +285,7 @@ func checkWarTravel(ctx context.Context, tx application.Tx, cities application.C
 	if !stderrors.As(err, &b) {
 		return err
 	}
-	view := screens.WarBlockedView{Border: b.Border, Back: back}
+	view := mview.WarBlockedView{Border: b.Border, Back: presentation.RefOfAddress(strings.Join(back, ":"))}
 	if b.Border {
 		from, ferr := placeOf(ctx, tx, b.From)
 		if ferr != nil {
@@ -306,10 +307,10 @@ func checkWarTravel(ctx context.Context, tx application.Tx, cities application.C
 }
 
 // asWarBlocked finds a journey the war closed in err.
-func asWarBlocked(err error) (screens.WarBlockedView, bool) {
+func asWarBlocked(err error) (mview.WarBlockedView, bool) {
 	var r *warTravelRefusal
 	if stderrors.As(err, &r) {
 		return r.view, true
 	}
-	return screens.WarBlockedView{}, false
+	return mview.WarBlockedView{}, false
 }
