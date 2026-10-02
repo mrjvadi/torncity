@@ -1,0 +1,757 @@
+version: 1
+# The building function schema (roadmap step 0.5; ADR 0041 phase W0, ADR 0045
+# phase B0, internal/content/buildingschema.go).
+#
+# ONE CONCEPT. A building's function IS what ADR 0035 and ADR 0040 called its
+# "use" (use_code = function code; the "_let" variants are a lease on the
+# function, not functions): the table `building_uses` is never created. See ADR
+# 0045 "as built". The 40 settlement buildings and the citizen buildings are
+# taken over through `replaces`; none is lost, and nothing is migrated yet.
+#
+# THE GATE IS `requires` (what the settlement has, what the player has), never a
+# stage. `requires: {}` means nothing is needed. `planned_knowledge` names a
+# research line an ADR gives the row that settlement_knowledge.yml does not have
+# yet (needs research for the knowledge catalogue; the lint refuses a name once
+# it has been added). `needs_research` lists the fields no ADR fixes: they are
+# flagged, not invented. Every row cites its ADR section in `source`.
+#
+# WORKING MECHANIC, NEVER DECORATION (CLAUDE.md 1c). Each function lists who
+# works there (`staff`, and `if_unstaffed` for what stands idle), what a shift
+# consumes, what it produces and into which storage class, the room it provides
+# or needs, its upkeep as decay and repair in kind, and the chain it links to.
+# Shift hours are game time; wages are basis points of the market wage.
+
+terrain_tags:
+  # The vocabulary a function's terrain_tags may use besides the biome codes of
+  # world.yml (ADR 0031 3.1, ADR 0028 6.1). Built: the application layer already sets
+  # it. Planned: named by the accepted research of 2026-10-03; the derivation rule
+  # from worldgen is open (a T0 tile query will compute it once the owner fixes it).
+  - {code: river_lot,   source: "ADR 0028 6.1", evidence: adr, requires: {}, origin: lot_flag, status: built}
+  - {code: sloped_lot,  source: "ADR 0028 6.1", evidence: adr, requires: {}, origin: lot_flag, status: built}
+  - {code: coastal_lot, source: "ADR 0028 6.1", evidence: adr, requires: {}, origin: lot_flag, status: built}
+  - {code: ore_deposit, source: "ADR 0028 5.3", evidence: adr, requires: {}, origin: deposit, status: built}
+  - {code: harbour_water, source: "RESEARCH 2026-10-03 7.2, 7.5", evidence: I, requires: {}, origin: worldgen, status: planned, needs_research: [derivation_rule], note: "sheltered water deep enough for the ships: a port needs shelter from swell, depth for the ships and flat land around the harbour (E, read, S38); the depth figure is not in the source, so none is written. The tag is finer than coastal_lot"}
+  - {code: flat_lot, source: "RESEARCH 2026-10-03 8.2, 14", evidence: I, requires: {}, origin: worldgen, status: planned, needs_research: [derivation_rule], note: "a lot flat enough for an airstrip, from the tile slope (roads.Plan and worldgen.TileSlopeBPS give the slope); the limit is open"}
+  - {code: highland_tropics, source: "RESEARCH 2026-10-03 10.1, 10.5", evidence: I, requires: {}, origin: worldgen, status: planned, needs_research: [derivation_rule], note: "tropical band at altitude for coffee: arabica often hilly, plantations between 600 and 2,000 m and 18 to 25 C (E, read in part, S59, S60); the cut-offs are not fixed"}
+
+storage_classes:
+  # ADR 0041 6.4: the room goods occupy. Base room is the room with no building.
+  - {code: bulk,  source: "ADR 0041 6.4", evidence: adr, requires: {}, base_room: 60, name: "حیاط و انبار روباز"}
+  - {code: food,  source: "ADR 0041 6.4", evidence: adr, requires: {}, base_room: 20, name: "انبار غله"}
+  - {code: goods, source: "ADR 0041 6.4", evidence: adr, requires: {}, base_room: 20, name: "انبار سرپوشیده"}
+  - {code: ore,   source: "ADR 0045 8.3", evidence: adr, requires: {}, base_room: 0,  name: "صندوق سنگ معدن", needs_research: [base_room, bulk_per_ore_unit], note: "the minehead's ore bin; no ADR gives its size"}
+
+item_storage:
+  # ADR 0041 phase W0 item fields: storage_class, bulk, food_points. Existing
+  # items first (table 6.4 and 6.5), then the new village goods the ADRs introduce
+  # (planned: true; they become items.yml components in a later phase).
+  - {code: timber,   source: "ADR 0041 6.4", evidence: adr, requires: {}, class: bulk,  bulk: 2}
+  - {code: stone,    source: "ADR 0041 6.4", evidence: adr, requires: {}, class: bulk,  bulk: 2}
+  - {code: iron_ore, source: "ADR 0041 6.4", evidence: adr, requires: {}, class: bulk,  bulk: 2}
+  - {code: wheat,    source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 2}
+  - {code: flour,    source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 0, note: "the company flour counts grams; the village sack is flour_sack (ADR 0041 12)"}
+  - {code: bread,    source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 4}
+  - {code: plank,    source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 2}
+  - {code: cloth,    source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 1}
+  - {code: wool,     source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 1}
+  - {code: tools,    planned: true, source: "ADR 0041 6.4, 8.12", evidence: adr, requires: {}, class: goods, bulk: 1, note: "the village tool kit; the existing `tool` is an archetype of company goods, not a component"}
+  - {code: bandage,  source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 1}
+  - {code: brick,    source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 2, needs_research: [class, bulk], note: "ADR 0041 6.4 does not list bricks; stone's bulk is used as a stand-in until the owner sets it"}
+  # planned: new village goods
+  - {code: firewood,    planned: true, source: "ADR 0041 6.4, 6.6", evidence: adr, requires: {}, class: bulk, bulk: 1}
+  - {code: cut_stone,   planned: true, source: "ADR 0041 6.4, 8.11", evidence: adr, requires: {}, class: bulk, bulk: 2}
+  - {code: clay,        planned: true, raw: true, source: "ADR 0041 6.4", evidence: adr, requires: {}, class: bulk, bulk: 1}
+  - {code: cheese,      planned: true, raw: true, source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 4}
+  - {code: fish,        planned: true, raw: true, source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 4}
+  - {code: tea,         planned: true, raw: true, source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 0}
+  - {code: pots,        planned: true, source: "ADR 0041 6.4, 8.14", evidence: adr, requires: {}, class: goods, bulk: 1}
+  - {code: flour_sack,  planned: true, source: "ADR 0041 12", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 0}
+  - {code: charcoal,    planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 1, needs_research: [bulk]}
+  - {code: limestone,   planned: true, raw: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 2, needs_research: [bulk]}
+  - {code: lime,        planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 1, needs_research: [bulk]}
+  - {code: fleece,      planned: true, raw: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
+  - {code: roving,      planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
+  - {code: yarn,        planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
+  - {code: fullers_clay, planned: true, raw: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 1, needs_research: [bulk]}
+  - {code: fulled_cloth, planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
+  - {code: flax,        planned: true, raw: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
+  - {code: linen,       planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
+  - {code: hide,        planned: true, raw: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 2, needs_research: [bulk]}
+  - {code: bark,        planned: true, raw: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 1, needs_research: [bulk]}
+  - {code: leather,     planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
+  - {code: bloom,       planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 2, needs_research: [bulk]}
+  - {code: bar_iron,    planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
+  - {code: paper,       planned: true, raw: true, source: "RESEARCH 2026-10-03 5.3, 6.3", evidence: I, requires: {}, class: goods, bulk: 1, needs_research: [class, bulk, source_of_paper], note: "paper and ink for the register and the bank; the research says to check it against items.yml, which has no paper"}
+  - {code: fibre,       planned: true, raw: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
+  - {code: rope,        planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
+
+planned_skills:
+  # ADR 0041 5.1 (audit M-04): skills the role catalogue trains. The skill set is
+  # a rule in code (player.SkillCodes), so adding them is an owner decision.
+  - {code: forestry,    source: "ADR 0041 5.1", evidence: adr}
+  - {code: masonry,     source: "ADR 0041 5.1", evidence: adr}
+  - {code: carpentry,   source: "ADR 0041 5.1", evidence: adr}
+  - {code: smithing,    source: "ADR 0041 5.1", evidence: adr}
+  - {code: weaving,     source: "ADR 0041 5.1", evidence: adr}
+  - {code: pottery,     source: "ADR 0041 5.1", evidence: adr}
+  - {code: milling,     source: "ADR 0041 5.1", evidence: adr}
+  - {code: baking,      source: "ADR 0041 5.1", evidence: adr}
+  - {code: farming,     source: "ADR 0041 5.1", evidence: adr}
+  - {code: herding,     source: "ADR 0041 5.1", evidence: adr}
+  - {code: fishing,     source: "ADR 0041 5.1", evidence: adr}
+  - {code: trade,       source: "ADR 0041 5.1", evidence: adr}
+  - {code: bookkeeping, source: "ADR 0041 5.1", evidence: adr}
+  - {code: vigilance,   source: "ADR 0041 5.1", evidence: adr}
+  - {code: teaching,    source: "ADR 0041 5.1", evidence: adr}
+  - {code: hospitality, source: "ADR 0041 5.1", evidence: adr}
+
+module_kinds:
+  # ADR 0045 3.2: what the owner puts inside a lot. Each has a material list, a
+  # work amount in builder shifts and an upkeep decay, and an effect that is a
+  # real mechanic. The ADR fixes none of those numbers: flagged, not invented.
+  - {code: bedroom,   source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: housing_capacity, provides: {housing_capacity: 2}, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "the legacy private_cottage gives capacity 2, private_house 4 (citizen_buildings.yml)"}
+  - {code: hearth,    source: "ADR 0045 3.2, 0041 8.3", evidence: adr, requires: {}, effect: warmth_shelter, consumes: {firewood: 1}, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "firewood 1 per house per game day (0041 8.3)"}
+  - {code: kitchen,   source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: cooking, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: storeroom, source: "ADR 0045 3.2, 0040 6", evidence: adr, requires: {}, effect: personal_storage, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day], note: "personal storage +40 / +100 / +60 by building in ADR 0040 6.2"}
+  - {code: water_barrel, source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: water_supply, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: cellar,    source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: storeroom, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: workbench, source: "ADR 0045 3.2, 4.1", evidence: adr, requires: {}, effect: workbench, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: shelves,   source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: shelves, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: staff_post, source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: staff_post, needs_research: [cost_materials, build_shifts]}
+  - {code: forge,     source: "ADR 0045 3.2, 4.2", evidence: adr, requires: {knowledge: [smithing]}, effect: forge, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: loom,      source: "ADR 0045 3.2, 5.3", evidence: adr, requires: {knowledge: [weaving]}, effect: loom, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: kiln,      source: "ADR 0045 3.2", evidence: adr, requires: {knowledge: [pottery]}, effect: kiln, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: oven,      source: "ADR 0045 3.2, 4.3", evidence: adr, requires: {knowledge: [milling]}, effect: oven, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: millstone, source: "ADR 0045 4.3, 0041 8.15", evidence: adr, requires: {knowledge: [milling]}, effect: millstone, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: foundation, source: "ADR 0045 3.2", evidence: adr, requires: {knowledge: [masonry]}, effect: foundation, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "required on a slope steeper than the lot's limit"}
+  - {code: field_plot, source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: field_plot, needs_research: [cost_materials, build_shifts]}
+  - {code: barn,      source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: barn, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: signal_fire, source: "ADR 0042 8.3", evidence: adr, requires: {knowledge: [communal_watch]}, planned_knowledge: [signal_fires], effect: signal_fire, consumes: {firewood: 1}, needs_research: [cost_materials, build_shifts], note: "the beacon's ready stack is 10 firewood"}
+  - {code: lookout_platform, source: "ADR 0042 8.1", evidence: adr, requires: {knowledge: [communal_watch]}, effect: lookout_platform, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: shaft_level, source: "ADR 0045 8.3", evidence: adr, requires: {}, planned_knowledge: [prospecting, timbering], effect: shaft_level, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "depth bands: surface pit to 3 m, timbered shaft to 30 m, ventilated and pumped to 60 m"}
+  - {code: hoist,     source: "ADR 0045 8.3", evidence: adr, requires: {}, planned_knowledge: [timbering], effect: hoist, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: guest_bed, source: "RESEARCH 2026-10-03 2.3, 2.5", evidence: I, requires: {}, effect: transient_bed, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day], note: "a bed for a traveller (sleep spot hostel); it counts as a transient bed and never as a resident's housing capacity"}
+  - {code: record_vault, source: "RESEARCH 2026-10-03 5.2, 5.3", evidence: I, requires: {knowledge: [masonry]}, effect: record_vault, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "the register's stone room: documents, not goods"}
+  - {code: vault, source: "RESEARCH 2026-10-03 6.3, 6.5", evidence: I, requires: {knowledge: [masonry_ii, smithing_ii]}, effect: vault, needs_research: [vault_rating_scale, cost_materials, build_shifts, decay_bps_per_day], note: "holds cash and valuables; its vault_rating sets the theft difficulty; the door and locks need smithing_ii (E, read, S31: strongrooms in bank basements)"}
+  - {code: ore_bin,   source: "ADR 0045 8.3", evidence: adr, requires: {}, effect: ore_bin, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
+
+building_functions:
+  # ---- homes and private trades (ADR 0035 3, ADR 0040 Part B, ADR 0045 3.2) ----
+  - code: dwelling
+    source: "ADR 0045 3.2, 0041 8.3, 8.33, 0040 15"
+    evidence: adr
+    name: "خانه"
+    requires: {}
+    kind: housing
+    family: home
+    permit: residential
+    zones: [core, residential]
+    footprint: [1, 1, 1, 1]
+    owners: [treasury, player, npc_household]
+    slots: [{module: bedroom, max: 2}, {module: hearth, max: 1}, {module: kitchen, max: 1}, {module: storeroom, max: 1}, {module: water_barrel, max: 1}, {module: workbench, max: 1}, {module: cellar, max: 1}]
+    levels:
+      - {level: 1, adds: [bedroom, hearth, storeroom], requires: {}, cost_money: 800, cost_materials: {timber: 3}, build_hours: 2}
+      - {level: 2, adds: [bedroom, kitchen, workbench], requires: {knowledge: [carpentry]}, cost_money: 1800, cost_materials: {timber: 8}, build_hours: 4}
+    produces: {service: housing, outputs: {}}
+    ledger_reasons: [household_fuel, property_tax, permit_fee]
+    links: {to: [woodcutter_yard]}
+    replaces: [cottage, private_cottage, private_house]
+    needs_research: [footprint_max, slot_limits, decay_bps_per_day, fitout]
+    note: "level 1 is the legacy private_cottage (capacity 2), level 2 the private_house (capacity 4, carpentry); the treasury cottage is capacity 4 (0041 8.3). Supplies workers, burns firewood at the day tick; no staff."
+  - code: stall
+    source: "ADR 0040 15, 16, 0041 8.33"
+    evidence: adr
+    name: "دکهٔ بازار"
+    requires: {buildings: [{code: barter_post}]}
+    kind: service
+    family: commerce
+    permit: commerce
+    zones: [core]
+    footprint: [1, 1, 1, 1]
+    owners: [player]
+    slots: [{module: shelves, max: 1}]
+    levels:
+      - {level: 1, adds: [shelves], requires: {buildings: [{code: barter_post}]}, cost_money: 500, cost_materials: {timber: 2}, build_hours: 1}
+    staff: [{role: stall_keeper, slots: 1, shift_hours: 4}]
+    if_unstaffed: idle
+    produces: {service: stall_sales}
+    ledger_reasons: [stall_rent, stall_rent_levy, npc_customer_sale]
+    replaces: [market_stall]
+    needs_research: [wage_bps, food_points, slot_limits, decay_bps_per_day]
+    note: "the owner tends it himself or hires a stall_keeper (ADR 0040 16.4); open only while a village market stands (market_access capability, legacy requires_knowledge_capability). A leased stall is a lease on this function (commercial_leases), not another function."
+  - code: home_workshop
+    source: "ADR 0040 15, 17, 0045 4.1, 3.2"
+    evidence: adr
+    name: "کارگاه خانگی"
+    requires: {knowledge: [carpentry]}
+    kind: production
+    family: craft
+    permit: craft
+    zones: [core, residential, industry]
+    footprint: [2, 1, 2, 1]
+    owners: [player]
+    slots: [{module: workbench, max: 2}, {module: shelves, max: 1}]
+    levels:
+      - {level: 1, adds: [workbench, shelves], requires: {knowledge: [carpentry]}, cost_money: 1500, cost_materials: {timber: 6}, build_hours: 3}
+    staff: [{role: labourer, slots: 1, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {food_points: 2}
+    produces: {service: home_batch, store: goods}
+    storage: {needs: {goods: 2}}
+    ledger_reasons: [home_production_input, home_production_output]
+    replaces: [home_workshop]
+    needs_research: [wage_bps, tool_wear_bps, yield_note]
+    note: "the small private form: runs the home recipes at 90 percent yield (ADR 0040 17); the owner or a hired worker works it. Recipes list only when their research is known."
+
+  # ---- wood, stone, charcoal, iron (ADR 0041 8.4, 8.10, 8.11, 8.12, 0045 4.3) ----
+  - code: woodcutter_yard
+    source: "ADR 0041 8.4, 7.2"
+    evidence: adr
+    name: "کارگاه هیزم‌شکنی"
+    requires: {}
+    kind: extraction
+    family: forestry
+    permit: craft
+    zones: [farm, industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {}, cost_money: 300, build_hours: 1}
+    staff: [{role: woodcutter, slots: 3, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {}, food_points: 2, tool_wear_bps: 100}
+    produces: {outputs: {timber: 8, firewood: 4}, store: bulk}
+    storage: {needs: {bulk: 20}}
+    ledger_reasons: [stumpage_fee, wages]
+    links: {to: [carpentry_workshop, charcoal_clamp, bakery, smithy, kiln, storehouse]}
+    replaces: [woodcutter_camp]
+    needs_research: [decay_bps_per_day]
+    note: "fells a tree within radius 4 per cycle: timber 8 and firewood 4 into the owner's bulk store, a camp with no worker cuts nothing; trees in reach are the land model of ADR 0041 7. The legacy row makes timber 4 per 1 h shift; this is the revised ADR spec."
+  - code: charcoal_clamp
+    source: "ADR 0045 4.3 recipe 2, S70, S72"
+    evidence: adr
+    name: "کورهٔ زغال"
+    requires: {}
+    planned_knowledge: [charcoal_burning]
+    kind: production
+    family: craft
+    permit: craft
+    zones: [industry, farm]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {}, planned_knowledge: [charcoal_burning]}
+    staff: [{role: labourer, slots: 1, shift_hours: 8}]
+    if_unstaffed: idle
+    consumes: {inputs: {firewood: 6}, food_points: 8}
+    produces: {outputs: {charcoal: 2}, store: bulk}
+    storage: {needs: {bulk: 2}}
+    links: {from: [woodcutter_yard], to: [bloomery, smithy]}
+    needs_research: [staff_role, wage_bps, cost_money, cost_materials, build_hours, decay_bps_per_day]
+    note: "an 8 game hour burn of 6 firewood into 2 charcoal (coppice cycle); the ADR names no role for the collier, labourer is a stand-in"
+  - code: carpentry_workshop
+    source: "ADR 0041 8.10, 0045 4.3 recipes 3, 24"
+    evidence: adr
+    name: "کارگاه نجاری"
+    requires: {knowledge: [carpentry]}
+    kind: production
+    family: craft
+    permit: craft
+    zones: [core, industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    slots: [{module: workbench, max: 2}]
+    levels:
+      - {level: 1, adds: [workbench], requires: {knowledge: [carpentry]}}
+    staff: [{role: carpenter, slots: 2, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {timber: 3}, food_points: 2, tool_wear_bps: 80}
+    produces: {outputs: {plank: 2}, store: goods}
+    storage: {needs: {goods: 4}}
+    links: {from: [woodcutter_yard], to: [storehouse]}
+    replaces: [carpentry_workshop]
+    needs_research: [cost_money, build_hours, decay_bps_per_day]
+    note: "ADR 0041 8.10 gives timber 3 to plank 2 per 1 h 30 shift; ADR 0045 4.3 (first draft) says 1 log to 3 planks. The building spec is kept here and the recipe row carries the 0045 figure: to be settled by the owner"
+  - code: masonry_workshop
+    source: "ADR 0041 8.11"
+    evidence: adr
+    name: "کارگاه بنایی"
+    requires: {knowledge: [masonry]}
+    kind: production
+    family: craft
+    permit: craft
+    zones: [core, industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {knowledge: [masonry]}}
+    staff: [{role: mason, slots: 2, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {stone: 3}, food_points: 2, tool_wear_bps: 120}
+    produces: {outputs: {cut_stone: 2}, store: bulk}
+    storage: {needs: {bulk: 4}}
+    links: {to: [storehouse]}
+    replaces: [masonry_workshop]
+    needs_research: [cost_money, build_hours, decay_bps_per_day]
+    note: "the target is cut stone 2 per 1 h 30 shift; today the legacy row makes brick 2, the change waits for phase W5 (ADR 0041 8.11)"
+  - code: kiln
+    source: "ADR 0041 8.14, 0045 4.3 recipes 4, 5"
+    evidence: adr
+    name: "کورهٔ سفال‌گری"
+    requires: {knowledge: [pottery]}
+    kind: production
+    family: craft
+    permit: craft
+    zones: [core, industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    slots: [{module: kiln, max: 1}]
+    levels:
+      - {level: 1, adds: [kiln], requires: {knowledge: [pottery]}}
+    staff: [{role: potter, slots: 2, shift_hours: 3}]
+    if_unstaffed: idle
+    consumes: {fuel: {firewood: 2}, food_points: 3}
+    produces: {outputs: {pots: 4}, store: goods}
+    storage: {needs: {goods: 4}}
+    links: {from: [woodcutter_yard], to: [granary]}
+    replaces: [pottery_kiln]
+    needs_research: [cost_money, build_hours, decay_bps_per_day, river_lot_clay_pit]
+    note: "pots 4 per 3 h shift from clay dug in the shift; needs a river or riverbank lot within radius 4 (the clay pit), a terrain rule the schema does not carry yet. Bricks are an alternative recipe (recipes.yml)."
+  - code: smithy
+    source: "ADR 0041 8.12, 0045 4.3 recipe 16"
+    evidence: adr
+    name: "آهنگری"
+    requires: {knowledge: [smithing]}
+    kind: production
+    family: craft
+    permit: craft
+    zones: [core, industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    slots: [{module: forge, max: 1}]
+    levels:
+      - {level: 1, adds: [forge], requires: {knowledge: [smithing]}, cost_money: 1800, build_hours: 4}
+    staff: [{role: smith, slots: 1, shift_hours: 2, wage_bps: 14000}, {role: labourer, slots: 1, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {iron_ore: 2}, fuel: {firewood: 2}, food_points: 2}
+    produces: {outputs: {tools: 1}, store: goods}
+    storage: {needs: {goods: 1}}
+    links: {from: [woodcutter_yard, minehead], to: [carpentry_workshop, minehead]}
+    replaces: [smithy]
+    needs_research: [decay_bps_per_day]
+    note: "tools are also bought from the central city, so a village without ore is not stuck (ADR 0041 8.12)"
+  - code: bloomery
+    source: "ADR 0045 4.3 recipe 15, S68"
+    evidence: adr
+    name: "کورهٔ آهن"
+    requires: {}
+    planned_knowledge: [bloomery]
+    kind: production
+    family: craft
+    permit: craft
+    zones: [industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {}, planned_knowledge: [bloomery]}
+    staff: [{role: smith, slots: 1, shift_hours: 4}]
+    if_unstaffed: idle
+    consumes: {inputs: {iron_ore: 3, charcoal: 4}, food_points: 4}
+    produces: {outputs: {bloom: 1}, store: bulk}
+    storage: {needs: {bulk: 2}}
+    links: {from: [minehead, charcoal_clamp], to: [smithy]}
+    needs_research: [staff_slots, shift_hours, wage_bps, cost_money, cost_materials, build_hours, decay_bps_per_day]
+    note: "3 iron ore and 4 charcoal make a bloom; the ADR gives the recipe but no staffing"
+  - code: weaving_shed
+    source: "ADR 0041 8.13, 0045 4.3 recipes 8 to 10, 12, 5.3"
+    evidence: adr
+    name: "کارگاه بافندگی"
+    requires: {knowledge: [weaving]}
+    kind: production
+    family: craft
+    permit: craft
+    zones: [core, industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    slots: [{module: loom, max: 2}]
+    levels:
+      - {level: 1, adds: [loom], requires: {knowledge: [weaving]}}
+      - {level: 2, requires: {knowledge: [weaving_ii]}}
+    staff: [{role: weaver, slots: 2, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {wool: 3}, food_points: 2, tool_wear_bps: 50}
+    produces: {outputs: {cloth: 2}, store: goods}
+    storage: {needs: {goods: 2}}
+    links: {to: [fulling_place, storehouse]}
+    replaces: [weaving_shed]
+    needs_research: [cost_money, build_hours, decay_bps_per_day]
+    note: "ADR 0041 8.13 cloth 2 from wool 3 (spinning included) per 1 h 30 shift; ADR 0045 splits it into roving, yarn and cloth recipes (recipes.yml). Settle which the shed runs."
+  - code: fulling_place
+    source: "ADR 0045 4.3 recipe 11, 5.3"
+    evidence: adr
+    name: "کارگاه نمدمالی"
+    requires: {knowledge: [weaving_ii]}
+    kind: production
+    family: craft
+    permit: craft
+    zones: [industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {knowledge: [weaving_ii]}}
+    staff: [{role: labourer, slots: 1, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {cloth: 1, fullers_clay: 1}, water: true, food_points: 2}
+    produces: {outputs: {fulled_cloth: 1}, store: goods}
+    storage: {needs: {goods: 1}}
+    links: {from: [weaving_shed, well], to: [storehouse]}
+    needs_research: [staff_role, shift_hours, wage_bps, cost_money, cost_materials, build_hours, decay_bps_per_day]
+    note: "needs water; a fuller (later a water-mill hammer) works it; the ADR names no fuller role"
+  - code: tannery
+    source: "ADR 0045 4.3 recipe 13"
+    evidence: adr
+    name: "دباغ‌خانه"
+    requires: {}
+    planned_knowledge: [tanning]
+    kind: production
+    family: craft
+    permit: craft
+    zones: [industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {}, planned_knowledge: [tanning]}
+    staff: [{role: labourer, slots: 1, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {hide: 1, bark: 1}, water: true, food_points: 2}
+    produces: {outputs: {leather: 1}, store: goods}
+    storage: {needs: {goods: 1}}
+    links: {to: [storehouse]}
+    needs_research: [staff_role, shift_hours, wage_bps, cost_money, cost_materials, build_hours, decay_bps_per_day]
+    note: "the ADR gives the recipe only"
+
+  # ---- food and water (ADR 0041 8.15, 8.16, 8.21, 8.22, 8.23) ----
+  - code: mill
+    source: "ADR 0041 8.15, 0045 4.3 recipe 6"
+    evidence: adr
+    name: "آسیاب"
+    requires: {knowledge: [milling]}
+    kind: production
+    family: food
+    permit: food
+    zones: [farm]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    slots: [{module: millstone, max: 1}]
+    levels:
+      - {level: 1, adds: [millstone], requires: {knowledge: [milling]}, cost_money: 800, cost_materials: {timber: 4, stone: 4}, build_hours: 2}
+      - {level: 2, requires: {knowledge: [milling_ii]}}
+    staff: [{role: miller, slots: 1, shift_hours: 1, wage_bps: 11000}]
+    if_unstaffed: idle
+    consumes: {inputs: {wheat: 8}, food_points: 1}
+    produces: {outputs: {flour_sack: 8}, store: food}
+    links: {from: [farm_canal, farm_shaft, farm_terrace], to: [bakery]}
+    ledger_reasons: [toll_in_kind]
+    needs_research: [decay_bps_per_day, level_2_river_lot]
+    note: "level 2 (water mill, wheat 24 and flour 24 per shift, one more labourer, on a river lot) is an upgrade; the toll is a policy between 1/24 and 1/10 (625 = 1/16)"
+  - code: bakery
+    source: "ADR 0041 8.16, 0045 4.3 recipe 7"
+    evidence: adr
+    name: "نانوایی"
+    requires: {knowledge: [milling]}
+    kind: production
+    family: food
+    permit: food
+    zones: [core, farm]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    slots: [{module: oven, max: 1}]
+    levels:
+      - {level: 1, adds: [oven], requires: {knowledge: [milling], buildings: [{code: well}]}, cost_money: 900, cost_materials: {timber: 6, stone: 6}, build_hours: 2}
+    staff: [{role: baker, slots: 2, shift_hours: 2, wage_bps: 11000}]
+    if_unstaffed: idle
+    consumes: {inputs: {flour_sack: 8}, fuel: {firewood: 1}, food_points: 2, water: true}
+    produces: {outputs: {bread: 8}, store: food}
+    links: {from: [mill, well, woodcutter_yard], to: [granary]}
+    ledger_reasons: [bakery_fee_in_kind]
+    needs_research: [decay_bps_per_day]
+    note: "needs a well within 4 lots or a river lot; ADR 0045 4.3 names the research `baking`, ADR 0041 8.16 says `milling`: the building spec is kept"
+  - code: well
+    source: "ADR 0041 8.21, 0045 5.1"
+    evidence: adr
+    name: "چاه آب"
+    requires: {}
+    kind: infrastructure
+    family: water
+    zones: [core, residential, farm]
+    footprint: [1, 1, 1, 1]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {}, cost_money: 300, cost_materials: {stone: 4, timber: 1}, build_hours: 1}
+    staff: [{role: labourer, slots: 2, shift_hours: 1}]
+    if_unstaffed: decays
+    consumes: {food_points: 1}
+    produces: {service: drinking_water}
+    maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 2}
+    links: {to: [bakery, health_house, dwelling]}
+    ledger_reasons: [wages]
+    note: "no permanent staff: repair jobs (two labourers) when condition falls under 70 percent; water within 4 lots for the bakery, teahouse, health house and houses"
+  - code: granary
+    source: "ADR 0041 8.22"
+    evidence: adr
+    name: "انبار غله"
+    requires: {}
+    kind: storage
+    family: storage
+    zones: [core, farm]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {}}
+    staff: [{role: storekeeper, slots: 1, shift_hours: 4, wage_bps: 11000}]
+    if_unstaffed: base_room
+    consumes: {food_points: 1}
+    storage: {provides: {food: 300}}
+    produces: {service: food_keeping, store: food}
+    links: {from: [farm_canal, farm_shaft, farm_terrace, mill, bakery], to: [bakery]}
+    ledger_reasons: [storage_rent]
+    replaces: [granary]
+    needs_research: [decay_bps_per_day]
+    note: "kept 4 h a day the food spoils at 5 bps a day, unkept 30; without it the village holds 20 spaces of food"
+  - code: storehouse
+    source: "ADR 0041 8.23"
+    evidence: adr
+    name: "انبار"
+    requires: {}
+    kind: storage
+    family: storage
+    zones: [core, residential, farm, industry, military, port]
+    footprint: [2, 1, 2, 1]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {}, cost_money: 400, cost_materials: {timber: 6}, build_hours: 1}
+    staff: [{role: storekeeper, slots: 1, shift_hours: 4}]
+    if_unstaffed: base_room
+    consumes: {food_points: 1}
+    storage: {provides: {bulk: 200, goods: 150}}
+    produces: {service: goods_keeping}
+    links: {from: [woodcutter_yard, masonry_workshop, carpentry_workshop, weaving_shed, smithy], to: [carpentry_workshop]}
+    ledger_reasons: [storage_rent]
+    needs_research: [decay_bps_per_day]
+    note: "kept, goods and timber do not spoil; the bulk class is the 60-space open yard without it"
+
+  # ---- watch, warning and defence (ADR 0041 8.6, ADR 0042 8.1 to 8.3, ADR 0045 7) ----
+  - code: watch_post
+    source: "ADR 0041 8.6"
+    evidence: adr
+    name: "نگهبانی محله"
+    requires: {knowledge: [communal_watch]}
+    kind: service
+    family: security
+    zones: [core, residential]
+    footprint: [1, 1, 1, 1]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [communal_watch]}, cost_money: 300, build_hours: 1}
+    staff: [{role: watchman, slots: 2, shift_hours: 4}]
+    if_unstaffed: idle
+    consumes: {fuel: {firewood: 1}, food_points: 4}
+    produces: {service: local_security}
+    links: {from: [woodcutter_yard, granary], to: [granary]}
+    ledger_reasons: [wages, fine_to_treasury]
+    replaces: [watch_hut]
+    needs_research: [decay_bps_per_day]
+    note: "security +150 bps per post while a watchman is on duty (ADR 0041 8.6); no meal or firewood and an NPC watch does not start"
+  - code: lookout_post
+    source: "ADR 0042 8.1, 4.4"
+    evidence: adr
+    name: "دیده‌بانی"
+    requires: {knowledge: [communal_watch]}
+    kind: service
+    family: signal
+    zones: [site]
+    footprint: [3, 3, 3, 3]
+    owners: [treasury]
+    slots: [{module: lookout_platform, max: 1}]
+    levels:
+      - {level: 1, adds: [lookout_platform], requires: {knowledge: [communal_watch]}, cost_money: 200, cost_materials: {timber: 4}}
+    staff: [{role: watchman, slots: 2, shift_hours: 4}]
+    if_unstaffed: unheld
+    consumes: {fuel: {firewood: 1}, food_points: 4}
+    produces: {service: claim_and_sight}
+    coverage: {bins: 256, observer_height_m: 6, claim_base_m: 1000, claim_cap_m: 3000, sight_m: 3000}
+    links: {from: [woodcutter_yard, granary], to: [beacon_tower]}
+    needs_research: [observer_height_m, build_hours, decay_bps_per_day]
+    note: "claim base 1 km, cap 3 km (times prominence), sight 3 km (ADR 0042 8.1); the 6 m observer height is not given by the ADR. Unstaffed after the grace period its land erodes."
+  - code: watchtower
+    source: "ADR 0042 8.2, 4.4"
+    evidence: adr
+    name: "برج دیده‌بانی"
+    requires: {knowledge: [masonry]}
+    kind: service
+    family: signal
+    zones: [site]
+    footprint: [3, 3, 3, 3]
+    owners: [treasury]
+    slots: [{module: lookout_platform, max: 1}]
+    levels:
+      - {level: 1, adds: [lookout_platform], requires: {knowledge: [masonry]}, cost_money: 600, cost_materials: {stone: 12, timber: 4}}
+    staff: [{role: watchman, slots: 3, shift_hours: 4}]
+    if_unstaffed: unheld
+    consumes: {fuel: {firewood: 1}, food_points: 4}
+    produces: {service: claim_and_sight}
+    coverage: {bins: 256, observer_height_m: 12, claim_base_m: 1500, claim_cap_m: 5000, sight_m: 8000}
+    links: {from: [woodcutter_yard, granary, masonry_workshop], to: [beacon_tower]}
+    needs_research: [observer_height_m, build_hours, decay_bps_per_day]
+    note: "Limes towers 10 to 12 m tall (ADR 0042 R21), so 12 m is used as the observer height; claim base 1.5 km, cap 5 km (up to 10 km on a ridge), sight 8 km"
+  - code: beacon_tower
+    source: "ADR 0042 8.3, ADR 0045 7.2"
+    evidence: adr
+    name: "برج آتش"
+    requires: {knowledge: [communal_watch]}
+    planned_knowledge: [signal_fires]
+    kind: service
+    family: signal
+    zones: [site]
+    footprint: [3, 3, 3, 3]
+    owners: [treasury]
+    slots: [{module: signal_fire, max: 1}]
+    levels:
+      - {level: 1, adds: [signal_fire], requires: {knowledge: [communal_watch]}, planned_knowledge: [signal_fires], cost_money: 300, cost_materials: {stone: 6, timber: 6}}
+    staff: [{role: beacon_keeper, slots: 1, shift_hours: 8}]
+    if_unstaffed: unheld
+    consumes: {fuel: {firewood: 1}, food_points: 8}
+    produces: {service: relay}
+    storage: {provides: {bulk: 10}}
+    coverage: {bins: 256, observer_height_m: 12, claim_base_m: 500, claim_cap_m: 1000, sight_m: 8000}
+    links: {from: [woodcutter_yard], to: [lookout_post, watchtower]}
+    needs_research: [observer_height_m, sight_m, build_hours, decay_bps_per_day]
+    note: "claim 0.5 to 1 km; relays every claiming building in its line of sight up to 60 km; the ready stack of 10 firewood must be full for it to count as held; 3 shifts a day so someone is always on duty. Its own sight is not fixed by the ADR; the watchtower's 8 km is a stand-in."
+
+  # ---- mining (ADR 0045 8.3). Rail (8.5) is phase B7: defined in the schema, no rows (owner, 2026-10-03). ----
+  - code: minehead
+    source: "ADR 0045 8.3, 0041 8.29"
+    evidence: adr
+    name: "دهانهٔ معدن"
+    requires: {}
+    planned_knowledge: [prospecting, timbering]
+    kind: extraction
+    family: extraction
+    permit: craft
+    zones: [industry]
+    footprint: [2, 2, 4, 4]
+    owners: [treasury, player, union]
+    slots: [{module: shaft_level, max: 3}, {module: hoist, max: 1}, {module: ore_bin, max: 1}]
+    levels:
+      - {level: 1, adds: [shaft_level, ore_bin], requires: {}, planned_knowledge: [prospecting]}
+      - {level: 2, adds: [shaft_level, hoist], requires: {}, planned_knowledge: [timbering, drainage]}
+      - {level: 3, adds: [shaft_level], requires: {}, planned_knowledge: [ventilation]}
+    staff: [{role: miner, slots: 2, shift_hours: 2}, {role: mine_hauler, slots: 1, shift_hours: 2}, {role: timberman, slots: 1, shift_hours: 2}, {role: banksman, slots: 1, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {}, food_points: 2, tool_wear_bps: 100}
+    produces: {outputs: {iron_ore: 4}, store: ore}
+    links: {to: [smithy, bloomery]}
+    needs_research: [wage_bps, staff_slots, shift_hours, output_per_shift, ore_bin_size, lamp_oil_item, props_per_metre, cost_money, cost_materials, build_hours, decay_bps_per_day]
+    note: "a mine whose props, drainage or ventilation fall below the minimum closes (needs_repair), never destroyed. Output = miners x pace x tool tier x deposit grade (finite deposits, ADR 0045 8.2); the numbers shown are placeholders flagged for research: slots by level and output per shift are not in the ADR"
+
+  # ---- first stage of the accepted missing-prerequisites research (2026-10-03): inn, land registry, exchange house and bank ----
+  # Numbers carry evidence D (draft, to be proven by `admin economy verify`) except
+  # where the note says E_read. Thresholds (growth.thresholds.<service>: inn by traffic,
+  # land_registry 60, exchange_house 40, bank 120) are config, never content.
+  - code: teahouse_inn
+    source: "RESEARCH 2026-10-03 2.3, 2.5; ADR 0041 8.27"
+    evidence: D
+    name: "چایخانه و مسافرخانه"
+    requires: {buildings: [{code: road}]}
+    kind: service
+    family: hospitality
+    permit: lodging
+    zones: [core, residential]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    slots: [{module: guest_bed, max: 4}, {module: hearth, max: 1}]
+    levels:
+      - {level: 1, adds: [guest_bed, hearth], requires: {buildings: [{code: road}]}, cost_money: 1200, cost_materials: {timber: 6, stone: 4}, build_hours: 3}
+      - {level: 2, adds: [guest_bed], requires: {knowledge: [masonry_ii, record_keeping]}, cost_money: 9000}
+    staff:
+      - {role: innkeeper, slots: 1, shift_hours: 4, wage_bps: 12500}
+      - {role: tea_server, slots: 1, shift_hours: 4, wage_bps: 10000}
+      - {role: housekeeper, slots: 2, min_level: 2}
+      - {role: hotel_manager, slots: 1, min_level: 2}
+    if_unstaffed: idle
+    consumes: {inputs: {tea: 1}, fuel: {firewood: 1}, food_points: 4, water: true}
+    produces: {service: lodging_and_tea}
+    links: {from: [woodcutter_yard, well, bakery]}
+    ledger_reasons: [service_fee, service_levy, wages]
+    needs_research: [slot_limits, upkeep, wage_bps, housekeeper_shift, bread_per_guest_night, inner_store_size, well_within_4_lots_rule, level_2_cost_materials, level_2_build_hours]
+    note: "an inn is a function of a road and of travellers, not of population (E, read, S2, S4); the village inn needed no research (I), a hotel needs masonry_ii and record_keeping (I). Role is hospitality, never housing, so housing gates are not satisfied by an inn (research 0.4). ADR 0041 5.1 asks level 2 of the innkeeper; the accepted research says no personal prerequisite: the research wins. Beds are transient (sleep spot hostel). Cost 1200, timber 6, stone 4, build 3 h are ADR 0041 8.27 drafts; level 2 cost 9000 is (D)."
+  - code: land_registry
+    source: "RESEARCH 2026-10-03 5.3, 5.5"
+    evidence: D
+    name: "دفتر ثبت املاک"
+    requires: {knowledge: [land_survey, record_keeping], buildings: [{code: civic_hall}]}
+    kind: service
+    family: governance
+    zones: [core]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    slots: [{module: record_vault, max: 1}]
+    levels:
+      - {level: 1, adds: [record_vault], requires: {knowledge: [land_survey, record_keeping], buildings: [{code: civic_hall}]}, cost_money: 4000, cost_materials: {brick: 8}, build_hours: 4}
+    staff:
+      - {role: registrar, slots: 1}
+      - {role: surveyor, slots: 1}
+    if_unstaffed: idle
+    consumes: {inputs: {paper: 1}}
+    produces: {service: title_records}
+    links: {from: [civic_hall]}
+    ledger_reasons: [registry_fee, survey_fee, property_tax]
+    needs_research: [shift_hours, food_points, wage_bps, upkeep, paper_quantity, vault_upkeep, ledger_reasons_against_adr_0009]
+    note: "records titles, survey plans and certified extracts; every sale and lease listing in the property hub needs the title record (owning and living in a lot does not). Real basis: cadastres were among the first systems for collecting land tax (E, read, S22); deed registration and title registration (S22); Iran's registry combines cadastre, land registry and deeds (S24). Notary merged into the registrar at level 2 (I). Cost 4000, brick 8, build 4 h, upkeep 60 are (D). Without it the property hub says not available here with the nearest registry; a lot's own ledger (ADR 0043) still works."
+  - code: exchange_house
+    source: "RESEARCH 2026-10-03 6.2, 6.5"
+    evidence: D
+    name: "صرافی"
+    requires: {knowledge: [record_keeping, periodic_market]}
+    kind: service
+    family: finance
+    permit: commerce
+    zones: [core]
+    footprint: [1, 1, 1, 1]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {knowledge: [record_keeping, periodic_market]}, cost_money: 2500}
+    staff:
+      - {role: moneychanger, slots: 1}
+    if_unstaffed: idle
+    produces: {service: currency_exchange}
+    ledger_reasons: [wages]
+    needs_research: [footprint, shift_hours, food_points, wage_bps, upkeep, cost_materials, build_hours, fx_fee_ledger_reason, owners]
+    note: "the money-changer's bench: changes currencies (FX, ADR 0033) and tests and weighs gold; the first rung of the bank ramp (E, read, S129, S133: banca, moneychangers; I for the ramp). Cost 2500 and upkeep 50 are (D). Threshold exchange_house 40 is config."
+  - code: bank
+    source: "RESEARCH 2026-10-03 6.3, 6.5; ADR 0026"
+    evidence: D
+    name: "بانک"
+    requires: {knowledge: [double_entry_bookkeeping, masonry_ii, smithing_ii], buildings: [{role: market, tier: 2}, {code: civic_hall}]}
+    deferred: charter
+    kind: service
+    family: finance
+    zones: [core]
+    footprint: [3, 3, 3, 3]
+    owners: [treasury, player]
+    slots: [{module: vault, max: 1}]
+    levels:
+      - {level: 1, adds: [vault], requires: {knowledge: [double_entry_bookkeeping, masonry_ii, smithing_ii], buildings: [{role: market, tier: 2}, {code: civic_hall}]}, cost_money: 50000, build_hours: 10}
+    staff:
+      - {role: teller, slots: 2}
+      - {role: loan_officer, slots: 1}
+      - {role: bank_manager, slots: 1}
+      - {role: watchman, slots: 1}
+    if_unstaffed: idle
+    consumes: {inputs: {paper: 1}, fuel: {firewood: 1}}
+    produces: {service: deposits_and_loans}
+    links: {from: [civic_hall, market]}
+    ledger_reasons: [bank_licence_fee, insurance_premium, insurance_claim]
+    replaces: [bank]
+    needs_research: [shift_hours, food_points, wage_bps, upkeep_in_kind, paper_quantity, min_paid_in_capital_check, vault_rating_scale, owners]
+    note: "no teller, no deposits; no loan officer, no loans; the vault guard is the watchman role. The licence is the charter permission bank.licence (ADR 0044 G2, not built): deferred, and the minimum paid-in capital config finance.min_paid_in_bps_of_building_cost is (D) 4000. Stays at building level 3 until the owner decides (research question 2). Real basis: medici-style double entry, strongrooms, banking licence by the regulator (E, read, S29, S31, S34); staff duties are common knowledge (I, S36 and S37 blocked). Cost 50000, build 10 h are the legacy row; upkeep 300 becomes upkeep in kind. Replaces the legacy bank row, which stays until the owner flips the gate (it is on legacy_stage_only today)."

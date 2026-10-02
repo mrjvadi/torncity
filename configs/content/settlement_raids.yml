@@ -1,0 +1,46 @@
+version: 1
+# Settlement raids and detection (roadmap step 0.5; ADR 0045 7). Everything here
+# is named `settlement_raid*` because ADR 0035's migration 0066 already owns the
+# table `raids` (police raids on a building).
+#
+# Values are the ADR's draft numbers, all config (`raid.*`). There is no fixed
+# notice and no offline protection (owner decision 2026-10-02): the defender is
+# warned only if a staffed detector sees the raid coming. Never write real
+# operational method here: stealth is an abstract research level.
+#
+# Needs research (the ADR names the knob but gives no number): raid.target_ratio_max
+# (proportionality: loot is cut to zero when the attacker's wealth is more than
+# this many times the defender's), raid.grace_ratio (the founding grace blocks
+# raiders more than this many times a settlement's size), raid.min_target_value,
+# the stealth floor, the night-approach penalty, the infamy gain, raiders' speed
+# per transport (foot, cart, horse, rail) and the lead-time relay factor.
+settlement_raid:
+  source: "ADR 0045 7.2, 7.3, 7.5"
+  evidence: adr
+  requires: {}
+  deferred: charter
+  max_lead_hours: 48
+  loot_treasury_bps: 300
+  loot_storehouse_stack_bps: 1000
+  loot_personal_storage_bps: 500
+  damage_max_bps: 2000
+  cooldown_hours: 72
+  max_per_week: 3
+  after_loss_shield_hours: 48
+  shield_loot_cut_bps: 5000
+  grace_days: 7
+  stealth_bps_per_level: 1500
+  stealth_levels: 3
+  needs_research: [target_ratio_max, grace_ratio, min_target_value, stealth_floor, night_approach_penalty, infamy_gain, raider_speed_by_transport, relay_factor]
+  note: "filing needs the charter permission raid.declare (ADR 0044 phase G2, not built): deferred. The concealment research line is abstract."
+
+settlement_raid_detectors:
+  # range_m and detect_chance_bps are the ADR's draft values (7.2). A detector
+  # counts only when staffed on duty and in condition; night and weather lower
+  # the chance; several combine as 1 minus the product of misses.
+  - {code: lookout,   source: "ADR 0045 7.2", evidence: adr, requires: {knowledge: [communal_watch]}, function: lookout_post, range_m: 3000, detect_chance_bps: 6000}
+  - {code: watchtower, source: "ADR 0045 7.2", evidence: adr, requires: {knowledge: [masonry]}, function: watchtower, range_m: 8000, detect_chance_bps: 8000}
+  - {code: border_post, source: "ADR 0045 7.2", evidence: adr, requires: {}, deferred: building_missing, planned_function: border_post, range_m: 12000, detect_chance_bps: 8500, note: "ADR 0042 T4 (town and city); no function row yet"}
+  - {code: patrol, source: "ADR 0045 7.2", evidence: adr, requires: {}, deferred: building_missing, planned_function: patrol_route, range_m: 6000, detect_chance_bps: 7000, along_route: true, note: "a staffed route covering the approach roads; no function row yet"}
+  - {code: beacon_chain, source: "ADR 0045 7.2, ADR 0042 8.3", evidence: adr, requires: {knowledge: [communal_watch]}, planned_knowledge: [signal_fires], function: beacon_tower, range_m: 60000, detect_chance_bps: 9500, relays: true, note: "relays a sighting; range is the beacon relay distance (60 km, beacon.relay_m)"}
+  - {code: radar, source: "ADR 0045 7.2, ADR 0042 8.6", evidence: adr, requires: {}, deferred: building_missing, planned_function: radar_station, range_m: 120000, detect_chance_bps: 9800, note: "later research; needs power and operators (country stage, ADR 0042 T5)"}

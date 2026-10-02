@@ -144,6 +144,22 @@ knowledge:
     cost: 1200
     time: 14h
     effects: [{target: masonry_output_bps, op: add, value: 450}]
+  # RESEARCH 2026-10-03 5.5 and 6.5, accepted by the owner. The cost and time numbers
+  # are (D) drafts: to be proven by a balance run before they ship.
+  - code: land_survey
+    name: "نقشه‌برداری و ثبت زمین"
+    requires: [record_keeping, masonry]
+    provides: [cadastre]
+    cost: 5000
+    time: 40h
+
+  - code: double_entry_bookkeeping
+    name: "دفترداری دوطرفه"
+    requires: [record_keeping, periodic_market]
+    provides: [banking_ledger]
+    cost: 7000
+    time: 60h
+
   - code: masonry_ii
     name: "بنایی درجه دو"
     requires: [masonry]

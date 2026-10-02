@@ -142,7 +142,7 @@ func capabilitiesOf(snap *content.Snapshot, st application.SettlementStanding, r
 	}
 	probe := wsettle.Compute(in)
 	for _, r := range snap.StaffRoles() {
-		if r.Building == nil || probe.Stands(wsettle.BuildingNeed{Role: r.Building.Role, Level: r.Building.Tier}) {
+		if r.Building == nil || probe.Stands(wsettle.BuildingNeed{Code: r.Building.Code, Role: r.Building.Role, Level: r.Building.Tier}) {
 			in.StaffRoles = append(in.StaffRoles, r.Code)
 		}
 	}

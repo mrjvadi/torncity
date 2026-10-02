@@ -1,0 +1,19 @@
+version: 1
+# Rail and hauling (roadmap step 0.5; ADR 0045 8.4, 8.5, phase B7). DEFINED IN THE
+# SCHEMA, NO ROWS (owner, 2026-10-03: rail items belong to ADR 0045 B6 and B7).
+# The Go types and the lint exist (internal/content/buildingschema.go:
+# RailClassDef, HaulModeDef, RailDef); the rows are written when the rail phase
+# starts, so nothing here can gate or unlock anything before then.
+#
+# What the rows will need (needs research, none of it is invented here):
+#   haul modes: capacity per carrier (ADR 0045 8.4: porter 30 kg, horse cart on dirt
+#     1 t, on gravel 1.5 t, on macadam 2.5 t, wooden wagonway 8 t, iron rail with a
+#     horse 15 t, steam train 30 t and more);
+#   rail classes: wagonway (rail_i), iron rail (rail_ii), steam rail (steam_power), each
+#     with its grade limit ("a gentler slope limit", no number in the ADR), materials
+#     per km, bridge span, and the charter permission rail.draw (ADR 0044 G2);
+#   rail rules: stop kinds (station, siding, passing loop), freight per tonne-kilometre,
+#     train speed, schedule length and trains-per-route caps, who may own a line
+#     (open question 6), stationmaster, signalman, train driver and fireman roles and
+#     the knowledge railway_operations and block_signalling (research 2026-10-03 12).
+#   rail items: rail, sleeper (recipes 23 and 24 of ADR 0045 4.3), the minehead's rail siding module.

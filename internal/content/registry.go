@@ -112,6 +112,8 @@ type Snapshot struct {
 	// availability_lookup.go.
 	availability map[string]AvailabilityDef
 	staffRoles   map[string]StaffRoleDef
+	// schema is the building schema's lookups; see buildingschema_snapshot.go.
+	schema *buildingSchemaIndex
 }
 
 // BuildSnapshot turns a pack into a snapshot, or explains why it cannot.
@@ -218,6 +220,7 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	snap.buildSettlementBuildings(p)
 	snap.buildSettlementTiers(p)
 	snap.buildAvailabilityIndex(p)
+	snap.buildBuildingSchema(p)
 
 	return snap, nil
 }

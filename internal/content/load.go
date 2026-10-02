@@ -141,6 +141,23 @@ type file struct {
 	// LegacyStageOnly: see Pack.LegacyStageOnly.
 	LegacyStageOnly []string `yaml:"legacy_stage_only"`
 
+	// The building schema (buildingschema.go).
+	TerrainTags             []TerrainTagDef             `yaml:"terrain_tags"`
+	StorageClasses          []StorageClassDef           `yaml:"storage_classes"`
+	ItemStorage             []ItemStorageDef            `yaml:"item_storage"`
+	ModuleKinds             []ModuleKindDef             `yaml:"module_kinds"`
+	BuildingFunctions       []BuildingFunctionDef       `yaml:"building_functions"`
+	PlannedSkills           []PlannedSkillDef           `yaml:"planned_skills"`
+	Recipes                 []RecipeDef                 `yaml:"recipes"`
+	Climate                 *ClimateDef                 `yaml:"climate"`
+	SettlementRaid          *SettlementRaidDef          `yaml:"settlement_raid"`
+	SettlementRaidDetectors []SettlementRaidDetectorDef `yaml:"settlement_raid_detectors"`
+	RoadClasses             []RoadClassDef              `yaml:"road_classes"`
+	RoadPlanner             *RoadPlannerDef             `yaml:"road_planner"`
+	RailClasses             []RailClassDef              `yaml:"rail_classes"`
+	HaulModes               []HaulModeDef               `yaml:"haul_modes"`
+	Rail                    *RailDef                    `yaml:"rail"`
+
 	// World generation (world.yml): the biomes, resource-geology rules and
 	// naming material worldgen.Generate reads. See worldgen.go. These are
 	// declared here — alongside every other content type — only so the
@@ -301,6 +318,29 @@ func Load(dir string) (*Pack, error) {
 		if doc.LegacyStageOnly != nil {
 			pack.GrowthLint = true
 			pack.LegacyStageOnly = append(pack.LegacyStageOnly, doc.LegacyStageOnly...)
+		}
+		pack.TerrainTags = append(pack.TerrainTags, doc.TerrainTags...)
+		pack.StorageClasses = append(pack.StorageClasses, doc.StorageClasses...)
+		pack.ItemStorage = append(pack.ItemStorage, doc.ItemStorage...)
+		pack.ModuleKinds = append(pack.ModuleKinds, doc.ModuleKinds...)
+		pack.BuildingFunctions = append(pack.BuildingFunctions, doc.BuildingFunctions...)
+		pack.PlannedSkills = append(pack.PlannedSkills, doc.PlannedSkills...)
+		pack.Recipes = append(pack.Recipes, doc.Recipes...)
+		if doc.Climate != nil {
+			pack.Climate = append(pack.Climate, *doc.Climate)
+		}
+		if doc.SettlementRaid != nil {
+			pack.SettlementRaids = append(pack.SettlementRaids, *doc.SettlementRaid)
+		}
+		pack.SettlementRaidDetectors = append(pack.SettlementRaidDetectors, doc.SettlementRaidDetectors...)
+		pack.RoadClasses = append(pack.RoadClasses, doc.RoadClasses...)
+		if doc.RoadPlanner != nil {
+			pack.RoadPlanner = append(pack.RoadPlanner, *doc.RoadPlanner)
+		}
+		pack.RailClasses = append(pack.RailClasses, doc.RailClasses...)
+		pack.HaulModes = append(pack.HaulModes, doc.HaulModes...)
+		if doc.Rail != nil {
+			pack.Rail = append(pack.Rail, *doc.Rail)
 		}
 		pack.Biomes = append(pack.Biomes, doc.Biomes...)
 		pack.Resources = append(pack.Resources, doc.Resources...)
