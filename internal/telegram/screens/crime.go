@@ -2,6 +2,7 @@ package screens
 
 import (
 	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"strings"
 	"time"
 
@@ -214,16 +215,12 @@ type CrimeHubView struct {
 	MinLevel int
 }
 
-// Why the crime hub has nothing to offer (ADR 0038 section 4.4).
+// Why the crime hub has nothing to offer (ADR 0038 section 4.4); the codes are
+// the life area's.
 const (
-	// CrimeEmptyLevelTooLow: the player is below crime.min_level.
-	CrimeEmptyLevelTooLow = "level_too_low"
-	// CrimeEmptyNoVenue: the settlement they stand in has no place crime
-	// can happen at (a village, the neutral city, the road).
-	CrimeEmptyNoVenue = "no_venue"
-	// CrimeEmptyNoTargets: there is a venue, but no crime here can be
-	// attempted by this player now.
-	CrimeEmptyNoTargets = "no_targets"
+	CrimeEmptyLevelTooLow = life.CrimeEmptyLevelTooLow
+	CrimeEmptyNoVenue     = life.CrimeEmptyNoVenue
+	CrimeEmptyNoTargets   = life.CrimeEmptyNoTargets
 )
 
 // CrimeHub renders the hub: where the player is, their nerve, heat and

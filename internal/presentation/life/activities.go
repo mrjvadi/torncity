@@ -37,6 +37,18 @@ const (
 	ActivityRankings = "rankings"
 )
 
+// Why the crime hub has nothing to offer (ADR 0038 section 4.4).
+const (
+	// CrimeEmptyLevelTooLow: the player is below crime.min_level.
+	CrimeEmptyLevelTooLow = "level_too_low"
+	// CrimeEmptyNoVenue: the settlement they stand in has no place crime can
+	// happen at (a village, the neutral city, the road).
+	CrimeEmptyNoVenue = "no_venue"
+	// CrimeEmptyNoTargets: there is a venue, but no crime here can be
+	// attempted by this player now.
+	CrimeEmptyNoTargets = "no_targets"
+)
+
 // ActivityPlace is the settlement the player stands in. Tier is "village",
 // "town" or "city" (a content city, the neutral one included, is a city);
 // Neutral says it is the neutral city.
