@@ -106,6 +106,29 @@ type BankHandler struct {
 
 	// watch is the watch's tuning (docs/adr/0023); nil checks nothing.
 	watch *watch.Thresholds
+
+	// gates says whether the bank is offered where the player stands; nil
+	// offers it everywhere. source is the content the tags are read from.
+	gates  *ServiceGate
+	source ContentSource
+}
+
+// WithServiceGate has the bank say so, with the way to the nearest one, where
+// the settlement the player stands in keeps none (a village or a town: the
+// finance_service tags of availability.yml). Their wallet is still shown; they
+// cannot deposit or withdraw there.
+func (h *BankHandler) WithServiceGate(g *ServiceGate, source ContentSource) *BankHandler {
+	h.gates, h.source = g, source
+	return h
+}
+
+// notHere says the bank is not offered in the city; nil when it is, or when
+// nothing can be said.
+func (h *BankHandler) notHere(ctx context.Context, cityID string) (*economy.Unavailable, error) {
+	if h.gates == nil || h.source == nil || cityID == "" {
+		return nil, nil
+	}
+	return h.gates.Check(ctx, h.source.Current(), cityID, "bank")
 }
 
 // WithWatch has every payment checked by the watch, and one above its
@@ -221,6 +244,7 @@ func (h *BankHandler) render(ctx context.Context, meta envelope.Metadata,
 ) (*presentation.Response, error) {
 	var view economy.BankView
 	lang := meta.Language
+	var cityID string
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -258,6 +282,7 @@ func (h *BankHandler) render(ctx context.Context, meta envelope.Metadata,
 			return err
 		}
 		view.CityCode, view.City = city.Code, city.Name
+		cityID = city.ID
 
 		feeBPS, _, err := h.fee(ctx, city, application.LeverBankWithdrawalFee)
 		if err != nil {
@@ -277,6 +302,17 @@ func (h *BankHandler) render(ctx context.Context, meta envelope.Metadata,
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	// A place that keeps no bank shows the wallet and the way to one, and no
+	// button to move money (the gate reads the city outside the unit of work).
+	un, err := h.notHere(ctx, cityID)
+	if err != nil {
+		return nil, err
+	}
+	if un != nil {
+		view.Unavailable = un
+		view.Deposits, view.Withdrawals, view.CanDeposit, view.CanWithdraw = nil, nil, false, false
 	}
 
 	view.Notice, view.NoticeArgs = notice.code, notice.args
@@ -341,6 +377,11 @@ func (h *BankHandler) move(ctx context.Context, meta envelope.Metadata, req Bank
 	amount, err := h.parseAmount(req.Amount)
 	if err != nil {
 		return nil, err
+	}
+	if un, err := h.bankHere(ctx, meta); err != nil {
+		return nil, err
+	} else if un != nil {
+		return h.render(ctx, meta, bankNotice{})
 	}
 
 	var (
@@ -437,6 +478,30 @@ func (h *BankHandler) move(ctx context.Context, meta envelope.Metadata, req Bank
 		notice = movedNotice(deposit, amount.Minor(), fee.Minor())
 	}
 	return h.render(ctx, meta, notice)
+}
+
+// bankHere reads the city the player is in and says whether its bank is not
+// offered (nil when it is, or when they are on the road).
+func (h *BankHandler) bankHere(ctx context.Context, meta envelope.Metadata) (*economy.Unavailable, error) {
+	if h.gates == nil {
+		return nil, nil
+	}
+	var cityID string
+	if err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
+		if err != nil {
+			return err
+		}
+		facts, err := tx.Presence().Facts(ctx, []string{p.ID})
+		if err != nil {
+			return err
+		}
+		cityID = facts[p.ID].CityID
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return h.notHere(ctx, cityID)
 }
 
 // Pay handles bank.pay: the screen for paying one player — which methods are

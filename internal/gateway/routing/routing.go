@@ -693,6 +693,8 @@ var argNames = map[string][]string{
 	"health.hospital": {},
 	"health.home":     {},
 	"activities.hub":  {},
+	"economy.hub":     {},
+	"society.hub":     {},
 	"work.home":       {},
 	"health.treat":    {"provider", "method"},
 	"health.clinic":   {"company"},

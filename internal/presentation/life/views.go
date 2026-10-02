@@ -322,9 +322,20 @@ type LifeView struct {
 	Spots   []SleepSpotLine
 	SleepIn time.Duration
 	Home    bool
+	// VillageHome is the player's own house in the village they stand in: in
+	// a village sleeping happens there, not at a hostel or a bench.
+	VillageHome *VillageHomeBed
 	// Notice, with NoticeArgs, is what just happened.
 	Notice     string
 	NoticeArgs map[string]any
+}
+
+// VillageHomeBed is the player's own finished house in the village they stand
+// in, and whether they may rest in it now.
+type VillageHomeBed struct {
+	Building Named
+	CanRest  bool
+	RestIn   time.Duration
 }
 
 // AvatarRef is how a player is shown: an avatar's emoji, or their photo.
@@ -816,10 +827,41 @@ type RentedHomeLine struct {
 	Arrears  int
 }
 
+// VillageHeldLine is one thing the viewer holds in a village or town: a private
+// building (a house, a stall) standing on their lot.
+type VillageHeldLine struct {
+	Building Named
+	// State is the building's own: "building" or "complete".
+	State string
+	// Home says it is a house the owner lives in and rests at.
+	Home  bool
+	Value int64
+}
+
+// VillageHoldingLine is what the viewer holds in one village or town: the lots
+// they own and the buildings on them, with what they are all assessed at (the
+// figure the village's tax and the net worth both count). The home's rest is the
+// village's own (settlement.home.rest), so the timer is the same one the village
+// screen shows.
+type VillageHoldingLine struct {
+	Settlement Named
+	// Lots counts the lots they own, empty ones included.
+	Lots      int
+	Buildings []VillageHeldLine
+	Value     int64
+	// CanRest and RestIn: the owner of a finished house may rest in it, once
+	// every cool-down; RestIn is what is left of it.
+	CanRest bool
+	RestIn  time.Duration
+}
+
 // PropertyMineView is the viewer's property.
 type PropertyMineView struct {
 	Owned  []PropertyLine
 	Rented *RentedHomeLine
+	// Village is what they hold in villages and towns: lots and private
+	// buildings, which are property too (ADR 0033 3.2).
+	Village []VillageHoldingLine
 	// Residence is the city they live in; Grace how many periods of debt a
 	// property may run before the city takes it back.
 	Residence GovPlace

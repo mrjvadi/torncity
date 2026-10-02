@@ -1109,6 +1109,9 @@ settlement:
   residence_cooldown: 72h
   # The content city a player returns to when they leave a village.
   home_city_code: support
+  # The smallest stage (village, town, city) from which the Economy hub lists
+  # the property market «ملک». Below it, lots and houses are in the village menu.
+  property_hub_min_stage: town
   # The least great-circle distance (km) a candidate spot must keep from
   # every existing settlement's centre: more than twice a village's
   # automatic territory radius, so a spawn can never land inside another

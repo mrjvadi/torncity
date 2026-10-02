@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/content"
 	"context"
 	stderrors "errors"
 	"sort"
@@ -173,6 +174,7 @@ func (h *GovernanceHandler) City(ctx context.Context, meta envelope.Metadata, re
 
 	view, err := h.cityView(ctx, city)
 	view.Tier = city.Tier
+	view.Sections = sectionsAtStage(view.Sections, city.Tier)
 	if err != nil {
 		if g, ok := govRefusalOf(err, h.now()); ok {
 			return society.PolicyRefused(c, society.PolicyRefusalView{Refusal: g}), nil
@@ -185,6 +187,35 @@ func (h *GovernanceHandler) City(ctx context.Context, meta envelope.Metadata, re
 	}
 	view.HoldsOffice = len(held) > 0
 	return society.CityGovernance(c, view), nil
+}
+
+// kindStage is the settlement stage a level of government belongs to. A
+// province sits between a city and its country, so a city reaches it; the
+// overlays (a port authority, a free zone) follow the city that hosts them.
+var kindStage = map[string]string{
+	"village": content.StageVillage, "town": content.StageTown, "city": content.StageCity,
+	"province": content.StageCity, "port_authority": content.StageCity, "free_zone": content.StageCity,
+	"country": content.StageCountry, "union": content.StageCountry,
+}
+
+// sectionsAtStage keeps the sections of the levels a settlement of this tier
+// has: a village has its own head and levy and nothing above them, a town its
+// own level, and a city (which belongs to a country) the national level too
+// (CLAUDE.md section 2: nothing exists in a village by default; the audit's
+// F45). The offices and levers of a level the settlement has not reached are
+// not mentioned.
+func sectionsAtStage(sections []society.GovSection, tier string) []society.GovSection {
+	have := content.StageRank(tierStage(tier))
+	if have >= content.StageRank(content.StageCity) {
+		have = content.StageRank(content.StageCountry)
+	}
+	out := make([]society.GovSection, 0, len(sections))
+	for _, s := range sections {
+		if need := content.StageRank(kindStage[s.Place.Kind]); need == 0 || need <= have {
+			out = append(out, s)
+		}
+	}
+	return out
 }
 
 // cityOf is the city a request names, or the player's own; nil when the

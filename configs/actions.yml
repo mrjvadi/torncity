@@ -200,6 +200,8 @@ commands:
   health.home: {kind: navigation, icon: "action:health"}
   work.home: {kind: navigation, icon: "action:work"}
   activities.hub: {kind: navigation, icon: "action:player"}
+  economy.hub: {kind: navigation, icon: "action:player"}
+  society.hub: {kind: navigation, icon: "action:player"}
   health.treat: {kind: primary, icon: "action:treat"}
   health.clinic: {kind: navigation, icon: "action:health"}
   health.price: {kind: primary, icon: "action:price"}

@@ -366,7 +366,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			bankLimits,
 			cfg.Game.IdempotencyTTL,
 			nil,
-		).WithQuickAmounts(cfg.Economy.BankQuickAmounts).WithWatch(watchThresholds(cfg.AntiCheat)).WithBankCity(cfg.Settlement.HomeCityCode),
+		).WithQuickAmounts(cfg.Economy.BankQuickAmounts).WithWatch(watchThresholds(cfg.AntiCheat)).WithBankCity(cfg.Settlement.HomeCityCode).WithServiceGate(handlers.NewServiceGate(cities, cfg.Settlement.HomeCityCode), registry),
 		// Policy values are read only through the resolver and changed only
 		// through SetPolicy; the directory reads the seats, names and public
 		// record around them (ADR 0015).
@@ -555,7 +555,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			ForeclosurePeriods: cfg.Property.ForeclosurePeriods, EvictionPeriods: cfg.Property.EvictionPeriods,
 			MaxOwned: cfg.Property.MaxOwned, MaxPrice: cfg.Property.MaxPrice, MaxRent: cfg.Property.MaxRent,
 			RestCooldown: cfg.Property.RestCooldown, ListSize: handlers.DefaultPageSize},
-		cfg.Game.IdempotencyTTL, nil).WithHungerAlert(cfg.Notifications.HungerAlertCooldown)
+		cfg.Game.IdempotencyTTL, nil).WithHungerAlert(cfg.Notifications.HungerAlertCooldown).
+		WithVillageHomeRest(cfg.Settlement.CitizenHomeRestCooldown)
 	h.stageF.city = handlers.NewCityHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.City.Period,
 		cfg.Game.IdempotencyTTL, nil).WithProperty(h.stageF.property)
@@ -565,7 +566,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// the game clock.
 	h.stageG1.life = handlers.NewLifeHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPlayerSearchRepository(pool), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL, nil).
-		WithHungerAlert(cfg.Notifications.HungerAlertCooldown)
+		WithHungerAlert(cfg.Notifications.HungerAlertCooldown).
+		WithVillageHomeRest(cfg.Settlement.CitizenHomeRestCooldown)
 	// The notification inbox (docs: /inbox, migrations/0037): what
 	// cmd/notifier stored instead of flooding a player with messages.
 	h.inbox.inbox = handlers.NewInboxHandler(uow, messages,

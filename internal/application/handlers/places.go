@@ -113,7 +113,12 @@ func locate(ctx context.Context, tx application.Tx, cities application.CityRepos
 		return w, err
 	}
 	w.city = city
-	w.cmap = snap.CityMap(city.Code)
+	// A village or a town has none of the city's places (the centre, the
+	// bazaar, the hospital quarter): its own buildings are its places, drawn
+	// from the settlement's layout. With no map every place check passes.
+	if city.IsCityTier() {
+		w.cmap = snap.CityMap(city.Code)
+	}
 	code, err := tx.Places().Where(ctx, p.ID)
 	if err != nil {
 		return w, err

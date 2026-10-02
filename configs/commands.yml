@@ -338,6 +338,8 @@ commands:
   health.home: {channel: private, client: true}
   work.home: {channel: private, client: true}
   activities.hub: {channel: private, client: true}
+  economy.hub: {channel: private, client: true}
+  society.hub: {channel: private, client: true}
   health.treat: {channel: private}
   health.clinic: {channel: private}
   health.price: {channel: private}

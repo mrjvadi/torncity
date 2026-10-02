@@ -113,6 +113,10 @@ func payWith(a []presentation.Action, p PaymentChoice, addr string, build func(m
 // Bank is the bank: balances, the city's terms and the amounts to move.
 func Bank(c presentation.Ctx, v BankView) *presentation.Response {
 	var a []presentation.Action
+	if v.Unavailable != nil {
+		a = v.Unavailable.actions(AddrHome)
+		return screenBank.Response(c.Lang, v, append([]presentation.Action{act(AddrPay).Named("bank.pay")}, a...)...)
+	}
 	if !v.Travelling && !v.NoCity {
 		if v.CanDeposit {
 			for _, o := range v.Deposits {

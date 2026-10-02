@@ -79,3 +79,27 @@ func renderHealthHome(c Context, v life.HealthHomeView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: life.AddrActivitiesHub, RefreshData: life.AddrHealthHome}))
 	return c.respond(paragraphs(c.T("activities.health.title", nil), body(lines...)), kb.Build())
 }
+
+// EconomyHub renders the Economy hub: the entries that exist where the
+// player stands, as buttons.
+func EconomyHub(c Context, v life.HubView) *presenter.Response {
+	return c.withView(renderHub(c, v, "economy", life.AddrEconomyHub), life.ScreenEconomyHub, v)
+}
+
+// SocietyHub renders the Society hub.
+func SocietyHub(c Context, v life.HubView) *presenter.Response {
+	return c.withView(renderHub(c, v, "society", life.AddrSocietyHub), life.ScreenSocietyHub, v)
+}
+
+func renderHub(c Context, v life.HubView, area, refresh string) *presenter.Response {
+	kb := keyboards.New()
+	buttons := make([]presenter.Button, 0, len(v.Entries))
+	for _, e := range v.Entries {
+		if b, ok := keyboards.Button(c.T("hubs."+area+".entry."+e.Code, nil), presentation.Do(e.Command).Address()); ok {
+			buttons = append(buttons, b)
+		}
+	}
+	kb.Grid(2, buttons...)
+	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: refresh}))
+	return c.respond(c.T("hubs."+area+".title", nil), kb.Build())
+}

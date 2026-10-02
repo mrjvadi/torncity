@@ -360,6 +360,8 @@ var all = []Subscription{
 	// The Activities hub, the work home and the health home (docs/adr/0038,
 	// sections 3, 4.1 and 4.3): what a player is offered where they stand.
 	{Domain: "activities", Action: "hub", Origin: FromPlayer},
+	{Domain: "economy", Action: "hub", Origin: FromPlayer},
+	{Domain: "society", Action: "hub", Origin: FromPlayer},
 	{Domain: "work", Action: "home", Origin: FromPlayer},
 	{Domain: "health", Action: "home", Origin: FromPlayer},
 	{Domain: "health", Action: "treat", Origin: FromPlayer},

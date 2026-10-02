@@ -30,6 +30,8 @@ const (
 	AddrShopOffers  = "shop:offers"
 	AddrGovCity     = "gov:city"
 	AddrVillageHome = "settlement:home"
+	AddrVillageMine = "settlement:mine"
+	AddrVillageHomeRest = "settlement:home.rest"
 	AddrCompanies   = "company:list"
 	AddrFactionMine = "faction:mine"
 	AddrMissions    = "mission:mine"

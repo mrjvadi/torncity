@@ -32,6 +32,11 @@ func renderBank(c Context, v BankView) *presenter.Response {
 	title := c.T("bank.title", nil)
 	var terms, hint string
 	switch {
+	case v.Unavailable != nil:
+		// no bank in this place: the wallet and the way to one
+		resp := renderUnavailable(c, v.Unavailable, AddrHome)
+		resp.Text = body(balances, resp.Text)
+		return resp
 	case v.Travelling:
 		terms = c.T("bank.closed_travelling", nil)
 	case v.NoCity:

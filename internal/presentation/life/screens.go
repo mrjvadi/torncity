@@ -327,6 +327,9 @@ func Life(c presentation.Ctx, v LifeView) *presentation.Response {
 	if v.Home {
 		a = append(a, act(AddrPropertyRest).Named("life.home_rest"))
 	}
+	if b := v.VillageHome; b != nil && b.CanRest {
+		a = append(a, act(AddrVillageHomeRest).Named("life.village_rest"))
+	}
 	a = append(a,
 		act(AddrLifeHistory).Named("life.history"),
 		act(AddrLifeCard).Named("life.card"),
@@ -597,6 +600,10 @@ func PropertyMine(c presentation.Ctx, v PropertyMineView) *presentation.Response
 	}
 	if v.CanRest && v.RestIn <= 0 {
 		a = append(a, act(AddrPropertyRest).Named("property.rest"))
+	}
+	for _, h := range v.Village {
+		a = append(a, act(AddrVillageMine).Named("property.village").About(h.Settlement.Code))
+		break // one door: the village screen lists every holding of the player's own village
 	}
 	a = append(a, act(AddrPropertyMarket).Named("property.market"), back(AddrHome), refresh(AddrPropertyMine))
 	return screenPropertyMine.Response(c.Lang, v, a...)

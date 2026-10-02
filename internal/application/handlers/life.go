@@ -44,6 +44,16 @@ type LifeHandler struct {
 	// WithHungerAlert; zero (never set) still notices a hunger crossing,
 	// just with no cooldown between repeats.
 	hungerAlertCooldown time.Duration
+	// homeRestCooldown is settlement.citizen_home_rest_cooldown, the village
+	// house's rest timer.
+	homeRestCooldown time.Duration
+}
+
+// WithVillageHomeRest sets the cool-down between two rests in a village house
+// (settlement.citizen_home_rest_cooldown).
+func (h *LifeHandler) WithVillageHomeRest(cooldown time.Duration) *LifeHandler {
+	h.homeRestCooldown = cooldown
+	return h
 }
 
 // WithHungerAlert sets the real-time cooldown between two "you are hungry"
@@ -233,7 +243,22 @@ func (h *LifeHandler) spots(ctx context.Context, tx application.Tx, snap *conten
 	} else if !isSentinel(err, application.ErrNoActiveTravel) {
 		return err
 	}
+	here, err := judgeSettlementOf(ctx, tx, snap, w.city, "")
+	if err != nil {
+		return err
+	}
+	if !here.content && !w.city.IsCityTier() {
+		if view.VillageHome, err = h.villageHome(ctx, tx, snap, p.ID, w.city.ID, now); err != nil {
+			return err
+		}
+	}
 	for _, s := range def.Sleep.Spots {
+		// In a village or a town a place to sleep exists only if the settlement
+		// has it (a bench needs a park); a hostel bed is the city's. A content
+		// city offers its own.
+		if !here.content && !here.offered(snap, "sleep_spot", s.Code) {
+			continue
+		}
 		line := plife.SleepSpotLine{Spot: named(s.Code, s.Name), Place: placeNamed(snap, s.Place), Price: s.Price,
 			Rest: s.Rest, Relief: s.Relief}
 		if w.placed() {
@@ -248,6 +273,29 @@ func (h *LifeHandler) spots(ctx context.Context, tx application.Tx, snap *conten
 		view.Spots = append(view.Spots, line)
 	}
 	return nil
+}
+
+// villageHome is the player's own finished house in this village, nil when they
+// have none: their bed there, with the same rest timer as the village's screen.
+func (h *LifeHandler) villageHome(ctx context.Context, tx application.Tx, snap *content.Snapshot, playerID, settlementID string,
+	now time.Time,
+) (*plife.VillageHomeBed, error) {
+	held, err := tx.Citizens().HeldBy(ctx, playerID)
+	if err != nil {
+		return nil, err
+	}
+	for _, s := range held {
+		if s.SettlementID != settlementID {
+			continue
+		}
+		for _, b := range s.Buildings {
+			if def, ok := snap.SettlementBuildingDef(b.TypeCode); ok && def.Home && b.Status == "complete" {
+				can, wait := houseRest(b.LastRestAt, h.homeRestCooldown, now)
+				return &plife.VillageHomeBed{Building: named(b.TypeCode, def.Name), CanRest: can, RestIn: wait}, nil
+			}
+		}
+	}
+	return nil, nil
 }
 
 // Sleep handles life.sleep: a night at a hostel or on a bench, where the
@@ -300,6 +348,11 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 		}
 		if w.city == nil {
 			return refuseLife(plife.LifeRefusedNoCity)
+		}
+		if here, err := judgeSettlementOf(ctx, tx, snap, w.city, ""); err != nil {
+			return err
+		} else if !here.content && !here.offered(snap, "sleep_spot", spot.Code) {
+			return refuseLife(plife.LifeRefusedNoSpot)
 		}
 		if w.placed() {
 			target, ok := w.cmap.Find(spot.Place)

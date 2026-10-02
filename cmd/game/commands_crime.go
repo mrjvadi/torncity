@@ -144,7 +144,8 @@ func newCrimeHandler(
 // activityRules is the Activities hub's rules: the neutral city's code.
 func activityRules(cfg *config.Config) handlers.ActivityRules {
 	return handlers.ActivityRules{
-		NeutralCity: cfg.Settlement.HomeCityCode,
+		NeutralCity:      cfg.Settlement.HomeCityCode,
+		PropertyMinStage: cfg.Settlement.PropertyHubMinStage,
 	}
 }
 

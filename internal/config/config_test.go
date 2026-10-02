@@ -554,6 +554,7 @@ settlement:
   protection_window: 169h
   residence_cooldown: 73h
   home_city_code: hearth
+  property_hub_min_stage: city
   min_spawn_distance_km: 31
   threat_radius_km: 151
   search_max_cells: 2001
@@ -975,6 +976,7 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_TEACH_PERIOD":                  "26h",
 	"TORN_SETTLEMENT_RESIDENCE_COOLDOWN":            "74h",
 	"TORN_SETTLEMENT_HOME_CITY_CODE":                "hearth2",
+	"TORN_SETTLEMENT_PROPERTY_HUB_MIN_STAGE":        "city",
 	"TORN_SETTLEMENT_TEACH_RATE_BPS":                "1502",
 	"TORN_SETTLEMENT_BASE_SCHOOL_CAPACITY_BPS":      "8002",
 	"TORN_SETTLEMENT_SCARCITY_K_BPS":                "10002",

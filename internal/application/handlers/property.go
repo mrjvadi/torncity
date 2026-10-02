@@ -53,6 +53,17 @@ type PropertyHandler struct {
 	// notifications.hunger_alert_cooldown; zero still notices a hunger
 	// crossing, just with no cooldown between repeats.
 	hungerAlertCooldown time.Duration
+	// homeRestCooldown is settlement.citizen_home_rest_cooldown: the village
+	// house's rest timer, the same one the village's own screen counts.
+	homeRestCooldown time.Duration
+}
+
+// WithVillageHomeRest sets the cool-down between two rests in a village house
+// (settlement.citizen_home_rest_cooldown), so the property list and the
+// village screen count one timer.
+func (h *PropertyHandler) WithVillageHomeRest(cooldown time.Duration) *PropertyHandler {
+	h.homeRestCooldown = cooldown
+	return h
 }
 
 // WithHungerAlert sets the real-time cooldown between two "you are hungry"
@@ -588,6 +599,9 @@ func (h *PropertyHandler) mine(ctx context.Context, meta envelope.Metadata, noti
 			}
 		}
 		now := h.now()
+		if view.Village, err = h.villageHoldings(ctx, tx, snap, p.ID, now); err != nil {
+			return err
+		}
 		t, _, ok, err := h.homeHere(ctx, tx, snap, p)
 		if err != nil || !ok {
 			return err
@@ -601,6 +615,45 @@ func (h *PropertyHandler) mine(ctx context.Context, meta envelope.Metadata, noti
 		return resp, err
 	}
 	return plife.PropertyMine(presentation.Ctx{Lang: lang}, view), nil
+}
+
+// houseRest says whether the owner of a finished village house may rest in it
+// now, and if not, what is left of the cool-down since the last rest. The
+// village's own screen counts the same timer (settlement.home.rest).
+func houseRest(lastRestAt *time.Time, cooldown time.Duration, now time.Time) (bool, time.Duration) {
+	if lastRestAt != nil {
+		if ready := lastRestAt.Add(cooldown); ready.After(now) {
+			return false, ready.Sub(now)
+		}
+	}
+	return true, 0
+}
+
+// villageHoldings is what the player holds in villages and towns, for the
+// property list: their lots and private buildings (the same rows the village's
+// «دارایی من» and the net worth count), with the house's rest timer.
+func (h *PropertyHandler) villageHoldings(ctx context.Context, tx application.Tx, snap *content.Snapshot, playerID string,
+	now time.Time,
+) ([]plife.VillageHoldingLine, error) {
+	held, err := tx.Citizens().HeldBy(ctx, playerID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]plife.VillageHoldingLine, 0, len(held))
+	for _, s := range held {
+		line := plife.VillageHoldingLine{Settlement: named(s.SettlementID, s.Name), Lots: s.Lots, Value: s.LotValue}
+		for _, b := range s.Buildings {
+			def, _ := snap.SettlementBuildingDef(b.TypeCode)
+			l := plife.VillageHeldLine{Building: named(b.TypeCode, def.Name), State: b.Status, Home: def.Home, Value: b.AssessedValue}
+			line.Buildings = append(line.Buildings, l)
+			line.Value += b.AssessedValue
+			if l.Home && b.Status == "complete" && !line.CanRest && line.RestIn == 0 {
+				line.CanRest, line.RestIn = houseRest(b.LastRestAt, h.homeRestCooldown, now)
+			}
+		}
+		out = append(out, line)
+	}
+	return out, nil
 }
 
 // propertyLine is one owned property for a screen.

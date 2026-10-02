@@ -43,6 +43,11 @@ type BankView struct {
 	Cash int64
 	Bank int64
 
+	// Unavailable is set when the city the player stands in keeps no bank (a
+	// village or a town): they still see their wallet, with no amounts to
+	// move and the way to the nearest bank.
+	Unavailable *Unavailable
+
 	// WithdrawalFeeBPS is the city's withdrawal fee, in basis points.
 	WithdrawalFeeBPS int64
 

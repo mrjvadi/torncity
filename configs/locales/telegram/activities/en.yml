@@ -28,3 +28,24 @@ activities:
     empty:
       no_facility: "There is no place of care here. Rest, or go to the central city."
     refer: "For serious treatment, go to {city}."
+
+# The Economy and Society hubs: the entries that exist where the player stands.
+hubs:
+  economy:
+    title: "💰 Economy"
+    entry:
+      inventory: "🎒 Backpack"
+      market: "🛒 Market"
+      bank: "🏦 Bank"
+      companies: "💼 My companies"
+      property: "🏠 Property"
+      stocks: "📈 Exchange"
+  society:
+    title: "👥 Society"
+    entry:
+      inbox: "✉️ Messages"
+      faction: "🛡 Faction"
+      friends: "🤝 Friends"
+      elections: "🗳 Elections"
+      government: "🏛 Government"
+      war: "⚔️ Army and war"

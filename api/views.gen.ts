@@ -210,6 +210,7 @@ export interface BankView {
   jailed: boolean
   cash: number
   bank: number
+  unavailable: Unavailable | null
   withdrawal_fee_bps: number
   deposits: AmountOption[] | null
   withdrawals: AmountOption[] | null
@@ -1732,6 +1733,11 @@ export interface HospitalisedView {
   remaining_seconds: number
 }
 
+export interface HubView {
+  place: ActivityPlace
+  entries: ActivityEntry[] | null
+}
+
 export interface ImposeView {
   country: GovPlace
   targets: GovPlace[] | null
@@ -2165,6 +2171,7 @@ export interface LifeView {
   spots: SleepSpotLine[] | null
   sleep_in_seconds: number
   home: boolean
+  village_home: VillageHomeBed | null
   notice: string
   notice_args: Record<string, unknown> | null
 }
@@ -3209,6 +3216,7 @@ export interface PropertyMarketView {
 export interface PropertyMineView {
   owned: PropertyLine[] | null
   rented: RentedHomeLine | null
+  village: VillageHoldingLine[] | null
   residence: GovPlace
   grace: number
   can_rest: boolean
@@ -4186,6 +4194,28 @@ export interface VictimView {
   item: Named | null
 }
 
+export interface VillageHeldLine {
+  building: Named
+  state: string
+  home: boolean
+  value: number
+}
+
+export interface VillageHoldingLine {
+  settlement: Named
+  lots: number
+  buildings: VillageHeldLine[] | null
+  value: number
+  can_rest: boolean
+  rest_in_seconds: number
+}
+
+export interface VillageHomeBed {
+  building: Named
+  can_rest: boolean
+  rest_in_seconds: number
+}
+
 export interface VillageMaker {
   building: Named
   built: boolean
@@ -4537,6 +4567,7 @@ export interface ScreenViews {
   dismiss_confirm: DismissView
   dividend: DividendView
   drop_confirm: ItemDroppedView
+  economy_hub: HubView
   election: ElectionView
   election_refusal: ElectionRefusalView
   election_result_notice: ElectionResultView
@@ -4695,6 +4726,7 @@ export interface ScreenViews {
   shop_sold: ShopSoldView
   shops: ShopsView
   sleep_pay: SleepPayView
+  society_hub: HubView
   specialists: SpecialistsView
   state_retrofit: StateRetrofitView
   station: StationView

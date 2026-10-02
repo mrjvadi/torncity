@@ -671,6 +671,12 @@ type Settlement struct {
 	// a village (settlement.leave): the neutral city, "support".
 	HomeCityCode string // settlement.home_city_code
 
+	// PropertyHubMinStage is the smallest settlement stage (village, town,
+	// city) from which the Economy hub lists «ملک»: below it lots and houses
+	// live in the village's own menu (web-structure 5.3), not the property
+	// market (settlement.property_hub_min_stage).
+	PropertyHubMinStage string // settlement.property_hub_min_stage
+
 	// MinSpawnDistanceKm is the least great-circle distance a candidate
 	// spot must keep from every existing settlement's centre — more than
 	// twice a village's territory radius, so a spawn can never land inside
@@ -896,7 +902,6 @@ type Crime struct {
 
 	ProtectMinLevel int           // crime.protect_min_level
 	ProtectMinAge   time.Duration // crime.protect_min_age
-
 
 	ActiveWindow  time.Duration // crime.active_window
 	ArrivalLinger time.Duration // crime.arrival_linger
@@ -1468,17 +1473,18 @@ func Defaults() *Config {
 			ChunkDepositTilesPerDeposit: 5,
 		},
 		Settlement: Settlement{
-			ProtectionWindow:   168 * time.Hour,
-			ResidenceCooldown:  72 * time.Hour,
-			HomeCityCode:       "support",
-			MinSpawnDistanceKm: 30,
-			ThreatRadiusKm:     150,
-			SearchMaxCells:     2000,
-			SearchMaxAttempts:  200,
-			ExcludedBiomes:     []string{"polar_ice"},
-			MaxAbsLatitudeDeg:  70,
-			BiomePenalties:     []string{"desert=4", "tundra=6", "boreal_forest=1"},
-			VillageGridLots:    5,
+			ProtectionWindow:    168 * time.Hour,
+			ResidenceCooldown:   72 * time.Hour,
+			HomeCityCode:        "support",
+			PropertyHubMinStage: "town",
+			MinSpawnDistanceKm:  30,
+			ThreatRadiusKm:      150,
+			SearchMaxCells:      2000,
+			SearchMaxAttempts:   200,
+			ExcludedBiomes:      []string{"polar_ice"},
+			MaxAbsLatitudeDeg:   70,
+			BiomePenalties:      []string{"desert=4", "tundra=6", "boreal_forest=1"},
+			VillageGridLots:     5,
 
 			MinBuildableLotShareBps: 7000,
 			GridShiftMaxLots:        3,

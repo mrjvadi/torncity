@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -40,6 +41,69 @@ func (r *CitizenRepository) Lots(ctx context.Context, settlementID string) ([]ap
 		out = append(out, l)
 	}
 	return out, rows.Err()
+}
+
+// HeldBy lists what a player holds in every settlement.
+func (r *CitizenRepository) HeldBy(ctx context.Context, playerID string) ([]application.VillageHolding, error) {
+	index := map[string]int{}
+	var out []application.VillageHolding
+	at := func(id, name string) *application.VillageHolding {
+		i, ok := index[id]
+		if !ok {
+			i = len(out)
+			index[id] = i
+			out = append(out, application.VillageHolding{SettlementID: id, Name: name})
+		}
+		return &out[i]
+	}
+	lots, err := r.q.Query(ctx, `
+		SELECT l.settlement_id::text, c.name, count(*), COALESCE(SUM(l.price), 0)::bigint
+		  FROM settlement_lots l JOIN cities c ON c.id = l.settlement_id
+		 WHERE l.owner_id = $1::uuid AND l.released_at IS NULL
+		 GROUP BY l.settlement_id, c.name ORDER BY c.name, l.settlement_id`, playerID)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: listing a player's lots: %w", err)
+	}
+	for lots.Next() {
+		var id, name string
+		var n int
+		var value int64
+		if err := lots.Scan(&id, &name, &n, &value); err != nil {
+			lots.Close()
+			return nil, fmt.Errorf("postgres: scanning a player's lots: %w", err)
+		}
+		h := at(id, name)
+		h.Lots, h.LotValue = n, value
+	}
+	lots.Close()
+	if err := lots.Err(); err != nil {
+		return nil, fmt.Errorf("postgres: listing a player's lots: %w", err)
+	}
+	blds, err := r.q.Query(ctx, `
+		SELECT pb.settlement_id::text, c.name, pb.building_id::text, sb.type_code, sb.status, pb.assessed_value, pb.last_rest_at
+		  FROM settlement_private_buildings pb
+		  JOIN settlement_buildings sb ON sb.id = pb.building_id
+		  JOIN cities c ON c.id = pb.settlement_id
+		 WHERE pb.owner_id = $1::uuid AND sb.status NOT IN ('demolished', 'cancelled')
+		 ORDER BY c.name, pb.created_at, pb.building_id`, playerID)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: listing a player's private buildings: %w", err)
+	}
+	defer blds.Close()
+	for blds.Next() {
+		var id, name string
+		var b application.HeldBuilding
+		if err := blds.Scan(&id, &name, &b.BuildingID, &b.TypeCode, &b.Status, &b.AssessedValue, &b.LastRestAt); err != nil {
+			return nil, fmt.Errorf("postgres: scanning a player's private building: %w", err)
+		}
+		h := at(id, name)
+		h.Buildings = append(h.Buildings, b)
+	}
+	if err := blds.Err(); err != nil {
+		return nil, fmt.Errorf("postgres: listing a player's private buildings: %w", err)
+	}
+	sort.SliceStable(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out, nil
 }
 
 // InsertLot records a bought lot.

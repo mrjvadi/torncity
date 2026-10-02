@@ -219,7 +219,7 @@ func (r *LifeRepository) CountHistory(ctx context.Context, playerID, kind string
 	return n, nil
 }
 
-// netWorthQuery values what players hold. $1 one player or ” for everyone;
+// netWorthQuery values what players hold (property: cities' and villages'). $1 one player or ” for everyone;
 // $2..$4 the property prices by city and kind, $5..$6 the goods' reference
 // prices, $7 what the gold dealer pays for a gram. Shares are valued at
 // their company's last trade price (its listing price before a first trade,
@@ -254,6 +254,18 @@ WITH p AS (
              ON pp.city_id = pr.city_id AND pp.type_code = pr.type_code
      WHERE pr.status = 'owned' AND pr.owner_player_id IN (SELECT id FROM p)
      GROUP BY pr.owner_player_id
+), vil AS (
+    -- what a player holds in villages and towns: the lots they own at the price
+    -- paid and the private buildings that still stand at their assessed value
+    -- (the same figures the village's own property screen assesses the tax on)
+    SELECT pid, SUM(value) AS value FROM (
+        SELECT l.owner_id AS pid, l.price::numeric AS value FROM settlement_lots l
+         WHERE l.released_at IS NULL AND l.owner_id IN (SELECT id FROM p)
+        UNION ALL
+        SELECT pb.owner_id, pb.assessed_value::numeric FROM settlement_private_buildings pb
+          JOIN settlement_buildings sb ON sb.id = pb.building_id
+         WHERE sb.status NOT IN ('demolished', 'cancelled') AND pb.owner_id IN (SELECT id FROM p)
+    ) v GROUP BY pid
 ), held AS (
     SELECT player_id AS pid, item_code, quantity AS qty FROM item_stacks WHERE player_id IN (SELECT id FROM p)
     UNION ALL
@@ -265,7 +277,7 @@ WITH p AS (
 )
 SELECT p.id::text, p.public_code, p.display_name, p.telegram_user_id, p.created_at,
        COALESCE(acct.cash, 0)::bigint, COALESCE(acct.bank, 0)::bigint, COALESCE(acct.escrow, 0)::bigint,
-       COALESCE(eq.value, 0)::bigint, COALESCE(prop.value, 0)::bigint, COALESCE(goods.value, 0)::bigint,
+       COALESCE(eq.value, 0)::bigint, (COALESCE(prop.value, 0) + COALESCE(vil.value, 0))::bigint, COALESCE(goods.value, 0)::bigint,
        COALESCE(prop.debt, 0)::bigint, COALESCE(acct.savings, 0)::bigint,
        (COALESCE(gold.grams, 0) * $7::bigint)::bigint, COALESCE(owed.amount, 0)::bigint
   FROM p
@@ -274,6 +286,7 @@ SELECT p.id::text, p.public_code, p.display_name, p.telegram_user_id, p.created_
   LEFT JOIN gold ON gold.player_id = p.id
   LEFT JOIN owed ON owed.player_id = p.id
   LEFT JOIN prop ON prop.pid = p.id
+  LEFT JOIN vil ON vil.pid = p.id
   LEFT JOIN goods ON goods.pid = p.id`
 
 // NetWorth values one player, or every active player.

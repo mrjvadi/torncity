@@ -17,6 +17,9 @@ import (
 type ActivityRules struct {
 	// NeutralCity is the code of the neutral city (settlement.home_city_code).
 	NeutralCity string
+	// PropertyMinStage is the smallest stage from which the Economy hub lists
+	// the property market (settlement.property_hub_min_stage).
+	PropertyMinStage string
 }
 
 // crimeStanding is what decides which crimes a player may attempt where they

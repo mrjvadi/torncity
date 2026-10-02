@@ -293,6 +293,7 @@ type settlementSettings struct {
 	ProtectionWindow        *string  `yaml:"protection_window"`
 	ResidenceCooldown       *string  `yaml:"residence_cooldown"`
 	HomeCityCode            *string  `yaml:"home_city_code"`
+	PropertyHubMinStage     *string  `yaml:"property_hub_min_stage"`
 	MinSpawnDistanceKm      *float64 `yaml:"min_spawn_distance_km"`
 	ThreatRadiusKm          *float64 `yaml:"threat_radius_km"`
 	SearchMaxCells          *int     `yaml:"search_max_cells"`
@@ -1071,6 +1072,9 @@ var coreSettings = []setting{
 	stringSetting("settlement", "home_city_code",
 		func(c *Config) *string { return &c.Settlement.HomeCityCode },
 		func(f *fileConfig) *string { return f.Settlement.HomeCityCode }),
+	stringSetting("settlement", "property_hub_min_stage",
+		func(c *Config) *string { return &c.Settlement.PropertyHubMinStage },
+		func(f *fileConfig) *string { return f.Settlement.PropertyHubMinStage }),
 	floatSetting("settlement", "min_spawn_distance_km",
 		func(c *Config) *float64 { return &c.Settlement.MinSpawnDistanceKm },
 		func(f *fileConfig) *float64 { return f.Settlement.MinSpawnDistanceKm }),

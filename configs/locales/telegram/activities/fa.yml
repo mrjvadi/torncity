@@ -30,3 +30,24 @@ activities:
     empty:
       no_facility: "اینجا جای درمانی نیست. استراحت کن یا به شهر مرکزی برو."
     refer: "برای درمان جدی به {city} برو."
+
+# The Economy and Society hubs: the entries that exist where the player stands.
+hubs:
+  economy:
+    title: "💰 اقتصاد"
+    entry:
+      inventory: "🎒 کوله‌پشتی"
+      market: "🛒 بازار"
+      bank: "🏦 بانک"
+      companies: "💼 شرکت‌های من"
+      property: "🏠 ملک"
+      stocks: "📈 بورس"
+  society:
+    title: "👥 جامعه"
+    entry:
+      inbox: "✉️ پیام‌ها"
+      faction: "🛡 جناح"
+      friends: "🤝 دوستان"
+      elections: "🗳 انتخابات"
+      government: "🏛 دولت"
+      war: "⚔️ ارتش و جنگ"

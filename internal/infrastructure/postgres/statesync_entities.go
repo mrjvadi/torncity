@@ -344,11 +344,12 @@ func (s *StateSync) readLocation(ctx context.Context, q querier, playerID string
 		origin *string
 		cityID *string
 		place  *string
+		tier   *string
 	)
 	err := q.QueryRow(ctx, `
-SELECT c.code, c.origin, c.id::text, p.place_code
+SELECT c.code, c.origin, c.id::text, p.place_code, c.tier
   FROM players p LEFT JOIN cities c ON c.id = p.city_id
- WHERE p.id = $1::uuid`, playerID).Scan(&city, &origin, &cityID, &place)
+ WHERE p.id = $1::uuid`, playerID).Scan(&city, &origin, &cityID, &place, &tier)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil
 	}
@@ -361,7 +362,9 @@ SELECT c.code, c.origin, c.id::text, p.place_code
 			d.Settlement = *cityID
 		}
 	}
-	if place != nil {
+	// A village or a town has none of the city's places: a place code left from
+	// a city is not where the player is.
+	if place != nil && (tier == nil || *tier == "" || *tier == "city") {
 		d.Place = *place
 	}
 	var t statesync.TravelData

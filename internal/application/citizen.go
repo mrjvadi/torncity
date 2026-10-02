@@ -175,8 +175,34 @@ type PropertyTax struct {
 // Paid reports whether the period's tax has been paid.
 func (t PropertyTax) Paid() bool { return t.PaidAt != nil }
 
+// HeldBuilding is a private building a player owns that still holds its lot.
+type HeldBuilding struct {
+	BuildingID string
+	TypeCode   string
+	// Status is the building's own: "building" or "complete" (a demolished or
+	// cancelled one is not held).
+	Status        string
+	AssessedValue int64
+	LastRestAt    *time.Time
+}
+
+// VillageHolding is what a player holds in one settlement: the lots they own
+// and the private buildings standing on them.
+type VillageHolding struct {
+	SettlementID string
+	Name         string
+	Lots         int
+	// LotValue is what the lots were bought for.
+	LotValue  int64
+	Buildings []HeldBuilding
+}
+
 // CitizenRepository is the transactional port of the citizen loop.
 type CitizenRepository interface {
+	// HeldBy lists what a player holds in every settlement: their lots and
+	// their private buildings that still hold their lot, settlement by
+	// settlement in name order.
+	HeldBy(ctx context.Context, playerID string) ([]VillageHolding, error)
 	// Lots lists every owned lot of a settlement (released lots are not owned).
 	Lots(ctx context.Context, settlementID string) ([]SettlementLot, error)
 	// LockLots takes a transaction-scoped lock on a settlement's land: every
