@@ -11,6 +11,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -44,7 +45,12 @@ func TestLotAccess(t *testing.T) {
 	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE founded_by_group_id = $1`, metaA.TelegramChatID).Scan(&cityID); err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { purgeLotAccessFootprint(t, pool, cityID) })
+	// LOTACCESS_KEEP=1 stops after the lot is cut off and leaves the rows, so the operator report
+	// (`admin settlement landlocked`) can be run against a real landlocked lot.
+	keep := os.Getenv("LOTACCESS_KEEP") != ""
+	if !keep {
+		t.Cleanup(func() { purgeLotAccessFootprint(t, pool, cityID) })
+	}
 
 	rules := handlers.CitizenRules{
 		LotPrice: 400, LotPriceMin: 100, LotPriceMax: 5000, PermitFee: 100, PermitFeeMax: 1000,
@@ -328,6 +334,9 @@ func TestLotAccess(t *testing.T) {
 	}
 	if _, err := pool.Raw().Exec(ctx, `DELETE FROM settlement_road_reserve WHERE settlement_id = $1::uuid AND abs(lot_x - $2) + abs(lot_y - $3) = 1`, cityID, lost.x, lost.y); err != nil {
 		t.Fatal(err)
+	}
+	if keep {
+		return
 	}
 	am := client(resident, "settlement.lot.access")
 	access, err := rrm(am)(village.LotAccess(ctx, am, handlers.VillageAccessRequest{Lot: lostTok}))
