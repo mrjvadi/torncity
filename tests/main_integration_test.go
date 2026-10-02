@@ -39,7 +39,34 @@ func TestMain(m *testing.M) {
 			os.Exit(1)
 		}
 	}
-	os.Exit(m.Run())
+	// INTEGRATION_GROWTH=shadow runs the whole suite with the capability dual
+	// read on (ADR 0044 phase G1): every gate computes the capability answer
+	// beside the tier's and meters the disagreements; the tier stays the
+	// answer, so every test must pass exactly as with the flag off.
+	suiteGrowth = os.Getenv("INTEGRATION_GROWTH")
+	if dsn := os.Getenv(envDSN); dsn != "" && suiteGrowth != "" {
+		ctx := context.Background()
+		pool, err := postgres.New(ctx, dsn)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "tests: growth pool: %v\n", err)
+			os.Exit(1)
+		}
+		suiteGrowthPool = pool
+		restoreSuiteGrowth()
+	}
+	code := m.Run()
+	if g := suiteGate; g != nil && suiteGrowthPool != nil {
+		if err := g.Flush(context.Background()); err != nil {
+			fmt.Fprintf(os.Stderr, "tests: growth flush: %v\n", err)
+		}
+		if rows, err := postgres.NewGrowthRepository(suiteGrowthPool).List(context.Background(), 20); err == nil {
+			fmt.Fprintf(os.Stderr, "tests: growth shadow metered %d distinct disagreements (top 20 listed)\n", len(rows))
+			for _, r := range rows {
+				fmt.Fprintf(os.Stderr, "  seen %d  %-14s %s/%s tier=%v capabilities=%v missing=%s\n", r.Count, r.Site, r.Kind, r.Code, r.TierAnswer, r.CapabilityAnswer, r.Missing)
+			}
+		}
+	}
+	os.Exit(code)
 }
 
 func ensureTestWorld(dsn string) error {

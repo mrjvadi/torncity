@@ -29,6 +29,10 @@ type crimeStanding struct {
 	level     int
 	stageRank int
 	stands    func(content.AvailabilityBuilding) bool
+	// decide is the dual read of ADR 0044 phase G1: given a tag and the tier's
+	// answer (stage reached and every building standing) it answers what the
+	// gate must say. Nil, the default (growth.capabilities off), keeps the tier.
+	decide func(tag content.AvailabilityDef, tierOffered bool) bool
 }
 
 // crimeVerdict is how crime stands for one player in one settlement.
@@ -57,7 +61,8 @@ func judgeCrimes(tags []content.AvailabilityDef, s crimeStanding) crimeVerdict {
 	v := crimeVerdict{Allowed: map[string]bool{}}
 	for _, tag := range tags {
 		need := content.StageRank(tag.Stage)
-		if need == 0 || s.stageRank < need {
+		stageOK := need != 0 && s.stageRank >= need
+		if !stageOK && s.decide == nil {
 			continue // not offered at this stage, or the stage is undecided
 		}
 		var missing *content.AvailabilityBuilding
@@ -75,6 +80,16 @@ func judgeCrimes(tags []content.AvailabilityDef, s crimeStanding) crimeVerdict {
 					minLevel = p.Min
 				}
 			}
+		}
+		if s.decide != nil {
+			// ADR 0044 phase G1: the capability answer beside the tier's
+			tierOffered := stageOK && missing == nil
+			if offered := s.decide(tag, tierOffered); offered != tierOffered {
+				stageOK, missing = offered, nil
+			}
+		}
+		if !stageOK {
+			continue
 		}
 		switch {
 		case missing == nil && minLevel == 0:
@@ -124,7 +139,17 @@ func (r ActivityRules) crimeListing(ctx context.Context, tx application.Tx, snap
 			untagged = append(untagged, def.Code)
 		}
 	}
-	v := judgeCrimes(tags, crimeStanding{level: level, stageRank: content.StageRank(tierStage(city.Tier)), stands: stands})
+	standing := crimeStanding{level: level, stageRank: content.StageRank(tierStage(city.Tier)), stands: stands}
+	if gg := currentGrowth(); gg != nil {
+		caps, found, err := gg.InTx(ctx, tx, snap, city.ID)
+		if err != nil {
+			return crimeVerdict{}, err
+		}
+		standing.decide = func(tag content.AvailabilityDef, tierOffered bool) bool {
+			return gg.Decide("crimes", city.ID, snap, caps, found, tag, tierOffered)
+		}
+	}
+	v := judgeCrimes(tags, standing)
 	for _, code := range untagged {
 		v.Allowed[code] = true
 		v.Available++

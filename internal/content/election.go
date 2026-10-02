@@ -150,6 +150,11 @@ func (s *Snapshot) JurisdictionDefs() []JurisdictionDef {
 	return append([]JurisdictionDef(nil), s.jurisdictions...)
 }
 
+// AllAvailabilityTags lists every availability tag, in file order.
+func (s *Snapshot) AllAvailabilityTags() []AvailabilityDef {
+	return append([]AvailabilityDef(nil), s.availabilityTags...)
+}
+
 // AvailabilityTags lists the availability tags (availability.yml) of the given
 // kinds, in file order: which stage each piece of content becomes available at
 // and what it needs. A client shows a thing only where the data says it exists.

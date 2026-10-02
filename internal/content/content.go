@@ -280,6 +280,11 @@ type Pack struct {
 	Availability    []AvailabilityDef
 	StaffRoles      []StaffRoleDef
 	PersonalSources []PersonalSourceDef
+	// LegacyStageOnly lists the tags (kind/code) grandfathered while gated only by
+	// a settlement stage (ADR 0044 phase G0). GrowthLint is set when availability.yml
+	// declares the list: that pack is held to the no-stage-only rule.
+	LegacyStageOnly []string
+	GrowthLint      bool
 	// finance.yml: the finance section, at most one (finance.go;
 	// docs/adr/0026-finance.md).
 	Finance []FinanceDef

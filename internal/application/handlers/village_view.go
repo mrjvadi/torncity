@@ -257,7 +257,11 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 		}
 		// The step above the settlement's own tier is still revealed on
 		// request (the owner's disclosure rule), with the tier it opens at.
-		if !def.ListedAt(s.Tier) {
+		listed, lerr := ListedInTx(ctx, tx, snap, "upgrade_list", s.CityID, o.Code, def.ListedAt(s.Tier))
+		if lerr != nil {
+			return nil, lerr
+		}
+		if !listed {
 			line.Available = false
 			for _, t := range []string{"village", "town", "city"} {
 				if def.ListedAt(t) {

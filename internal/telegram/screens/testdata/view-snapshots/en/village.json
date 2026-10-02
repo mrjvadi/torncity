@@ -2332,6 +2332,7 @@
     "screen": "village_overview",
     "view": {
       "buildings": null,
+      "development": false,
       "food_percent": 20,
       "happiness_percent": 30,
       "is_head": false,

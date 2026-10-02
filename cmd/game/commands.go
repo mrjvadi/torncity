@@ -298,6 +298,9 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		"settlement.promotion.view": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.PromotionView(ctx, env.Metadata)
 		},
+		"settlement.development.view": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.DevelopmentView(ctx, env.Metadata)
+		},
 		"settlement.promote": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillagePromoteRequest
 			if err := decode(env, &req); err != nil {

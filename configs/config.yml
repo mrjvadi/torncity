@@ -1092,6 +1092,23 @@ worldgen:
   # whichever base chunk it falls in.
   chunk_deposit_tiles_per_deposit: 5
 
+# Organic settlement growth (docs/adr/0044-organic-growth-alliances-countries.md,
+# phases G0 and G1): what a settlement HAS (buildings, research, staff) replaces
+# its tier label as the thing every gate asks.
+growth:
+  # off: the tier is the only answer (default). shadow: the capability answer is
+  # computed beside every tier gate and each disagreement is metered
+  # (growth_disagreements, `admin growth report`), the tier stays authoritative.
+  # authoritative: the capability answer decides (phase G4, not before).
+  capabilities: off
+  # How long, REAL time, computed capabilities are reused by the gates that read
+  # them outside a transaction (ADR 0044 section 5.1: pure, cached).
+  cache_ttl: 5s
+  # Damage, basis points, from which a building no longer stands (10000 = a ruin).
+  ruined_bps: 10000
+  # How often a process writes the disagreements it metered.
+  flush_interval: 30s
+
 # Group founding (docs/adr/0028-world-and-settlements.md section 3.2): the
 # starting-spot algorithm's search bounds and the beginner-protection
 # window. A founded settlement's buildings, tiers and levies are CONTENT

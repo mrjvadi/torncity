@@ -6,6 +6,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/presentation"
 )
 
@@ -36,6 +37,11 @@ type courseHere struct {
 	settlement application.FoundedSettlement
 	// hasClass says a building of the education role stands.
 	hasClass bool
+	// growth, caps and capsFound are the dual read of ADR 0044 phase G1: nil
+	// growth (growth.capabilities off) leaves the tier the only answer.
+	growth    *GrowthGate
+	caps      wsettle.Capabilities
+	capsFound bool
 }
 
 // courseHereOf reads the standing of the settlement of cityID.
@@ -69,6 +75,11 @@ func (h *EducationHandler) courseHereOf(ctx context.Context, tx application.Tx, 
 		c.owned[o.Code] = true
 	}
 	c.hasClass = c.stands(content.AvailabilityBuilding{Role: "education", Tier: 1})
+	if gg := currentGrowth(); gg != nil {
+		c.growth = gg
+		c.caps = gg.FromRows(snap, application.SettlementStanding{Buildings: rows, Knowledge: owned})
+		c.capsFound = true
+	}
 	return c, nil
 }
 
@@ -79,13 +90,31 @@ func (c courseHere) judge(snap *content.Snapshot, tag content.AvailabilityDef, t
 	if c.all || !tagged || tag.Stage == content.StageUndecided {
 		return true, true, nil
 	}
-	need := content.StageRank(tag.Stage)
-	if need == 0 {
-		// support: only the neutral city teaches it
-		return false, false, []presentation.CourseNeed{{Kind: presentation.CourseNeedStage, Code: tag.Stage}}
+	taught, reachable, needs = c.judgeTier(snap, tag)
+	if c.growth != nil {
+		// ADR 0044 phase G1: the capability answer beside the tier's
+		if d := c.growth.Decide("courses", c.settlement.CityID, snap, c.caps, c.capsFound, tag, taught); d != taught {
+			taught = d
+			if d {
+				reachable, needs = true, nil
+			}
+		}
 	}
-	if c.stage < need {
-		return false, false, []presentation.CourseNeed{{Kind: presentation.CourseNeedStage, Code: tag.Stage}}
+	return taught, reachable, needs
+}
+
+// judgeTier is judge by the tier alone: the stage reached, the knowledge, the buildings and the
+// class's teacher. A tag with no stage (ADR 0044 phase G0) has no stage to reach.
+func (c courseHere) judgeTier(snap *content.Snapshot, tag content.AvailabilityDef) (taught, reachable bool, needs []presentation.CourseNeed) {
+	if tag.Stage != "" {
+		need := content.StageRank(tag.Stage)
+		if need == 0 {
+			// support: only the neutral city teaches it
+			return false, false, []presentation.CourseNeed{{Kind: presentation.CourseNeedStage, Code: tag.Stage}}
+		}
+		if c.stage < need {
+			return false, false, []presentation.CourseNeed{{Kind: presentation.CourseNeedStage, Code: tag.Stage}}
+		}
 	}
 	if tag.Requires == nil {
 		return true, true, nil

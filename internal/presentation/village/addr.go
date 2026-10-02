@@ -71,6 +71,10 @@ const (
 	// (its argument is the confirm on the second press).
 	AddrVillagePromotion = "settlement:promotion.view"
 	AddrVillagePromote   = "settlement:promote"
+	// AddrVillageDevelopment is the development readout (ADR 0044 section 4.5):
+	// what the settlement carries and what it could add next. Listed only while
+	// growth.capabilities is on.
+	AddrVillageDevelopment = "settlement:development.view"
 )
 
 // Where the residence commands are addressed.

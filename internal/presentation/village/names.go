@@ -14,6 +14,8 @@ const (
 	ScreenVillageDonateConfirm = "village_donate_confirm"
 	ScreenVillageDonateDone    = "village_donate_done"
 	ScreenVillagePromotion     = "village_promotion"
+	// ScreenVillageDevelopment is the readout of ADR 0044 (what a settlement has and carries).
+	ScreenVillageDevelopment = "village_development"
 	ScreenVillagePromoteAsk    = "village_promote_confirm"
 	ScreenVillagePromoted      = "village_promoted"
 	ScreenResidenceConfirm     = "village_residence_confirm"

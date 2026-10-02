@@ -113,6 +113,9 @@ type VillageOverviewView struct {
 	// Promotion is the way forward: the goals of the next tier and the
 	// settlement's progress on each. Nil at the top of the ladder.
 	Promotion *PromotionView `json:"promotion,omitempty"`
+	// Development says the development readout (settlement.development.view)
+	// is on offer: set only while growth.capabilities is on (ADR 0044 phase G1).
+	Development bool `json:"development,omitempty"`
 }
 
 // VillageSupport names the city a village's residents travel to for the
@@ -1119,6 +1122,48 @@ type PromotionView struct {
 	// Office is the office code the head holds once the step is taken.
 	Office       string `json:"office,omitempty"`
 	SettlementID string `json:"settlement_id,omitempty"`
+}
+
+// The dimensions of the development readout (ADR 0044 section 4.1), by code.
+// A dimension with a capacity shows load over capacity; one without shows only
+// what the settlement has.
+const (
+	// DevelopmentPeople is residents over the homes' capacity of the standing houses.
+	DevelopmentPeople = "people"
+	// DevelopmentBuildings is the finished buildings that are not roads.
+	DevelopmentBuildings = "buildings"
+	// DevelopmentKnowledge is the things the settlement knows.
+	DevelopmentKnowledge = "knowledge"
+)
+
+// DevelopmentDimension is one line of the readout: Load of Capacity. Capacity 0
+// means the dimension has no ceiling, only a count.
+type DevelopmentDimension struct {
+	Code     string `json:"code"`
+	Load     int64  `json:"load"`
+	Capacity int64  `json:"capacity"`
+}
+
+// DevelopmentRole is a service role standing in the settlement at its highest
+// level: health 2, market 1. The level is the building's upgrade level, never a
+// label of the settlement.
+type DevelopmentRole struct {
+	Role  string `json:"role"`
+	Level int    `json:"level"`
+}
+
+// DevelopmentView is the readout that replaces the promotion screen (ADR 0044
+// section 4.5): what the settlement carries against what it can carry, the
+// service buildings it has, and what could be added next, derived from its own
+// missing prerequisites. It names no stage and has no act.
+type DevelopmentView struct {
+	Village      string                 `json:"village"`
+	SettlementID string                 `json:"settlement_id,omitempty"`
+	Dimensions   []DevelopmentDimension `json:"dimensions"`
+	Roles        []DevelopmentRole      `json:"roles,omitempty"`
+	// Next are the goals still ahead, with the settlement's progress on each
+	// (the same goal rules the promotion screen reads); empty when there are none.
+	Next []PromotionCriterionView `json:"next,omitempty"`
 }
 
 // ResidenceConfirm is the "confirm" argument's value the second press carries.

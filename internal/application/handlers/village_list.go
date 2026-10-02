@@ -9,6 +9,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/labor"
+	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -151,6 +152,14 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 
 		view = village.BuildMenuView{Name: s.Name, Treasury: treasury, RunningBuilds: running,
 			ConcurrentCap: h.concurrentBuildCap[s.Tier]}
+		gg := currentGrowth() // ADR 0044 phase G1: the capability answer beside the tier's
+		var gcaps wsettle.Capabilities
+		var gfound bool
+		if gg != nil {
+			if gcaps, gfound, err = gg.InTx(ctx, tx, snap, s.CityID); err != nil {
+				return err
+			}
+		}
 		for _, code := range sortedBuildingCodes(snap) {
 			d, _ := snap.SettlementBuildingDef(code)
 			if d.Private() {
@@ -161,7 +170,11 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 			// settlement, or one whose knowledge the village does not hold, is not
 			// listed at all; what is listed is what the village can start or is one
 			// step from.
-			if !pc.listed(d) {
+			listed := pc.listed(d)
+			if gg != nil {
+				listed = gg.DecideBuilding("build_menu", s.CityID, snap, gcaps, gfound, d.Code, listed)
+			}
+			if !listed {
 				continue
 			}
 			line := village.BuildLine{Building: named(d.Code, d.Name), Role: d.Role, CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime),

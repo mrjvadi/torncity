@@ -74,6 +74,8 @@ func main() {
 		err = lifeCommand(ctx, os.Args[2:])
 	case "panel":
 		err = panelCommand(ctx, os.Args[2:])
+	case "growth":
+		err = growthCommand(ctx, os.Args[2:])
 	case "switch":
 		err = switchCommand(ctx, os.Args[2:])
 	default:
@@ -109,6 +111,7 @@ func usage() {
   life          backfill players' life histories from older records (audited)
   panel         the web panel's operator accounts (see: admin panel user)
   switch        runtime switches: telegram_play, telegram_notices (see: admin switch)
+  growth        where capabilities and tiers disagree: report, sweep (see: admin growth)
 
 DATABASE_URL must be set, except for `+"`admin content validate`"+`, which
 reads files only.

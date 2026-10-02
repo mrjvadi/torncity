@@ -550,6 +550,11 @@ worldgen:
   chunk_stream_frequency: 61
   chunk_stream_amplitude: 61
   chunk_deposit_tiles_per_deposit: 6
+growth:
+  capabilities: authoritative
+  cache_ttl: 6s
+  ruined_bps: 9001
+  flush_interval: 31s
 settlement:
   protection_window: 169h
   residence_cooldown: 73h
@@ -945,6 +950,11 @@ var envOverrides = map[string]string{
 	"TORN_WORLDGEN_CHUNK_STREAM_FREQUENCY":          "62",
 	"TORN_WORLDGEN_CHUNK_STREAM_AMPLITUDE":          "62",
 	"TORN_WORLDGEN_CHUNK_DEPOSIT_TILES_PER_DEPOSIT": "7",
+
+	"TORN_GROWTH_CAPABILITIES":                      "shadow",
+	"TORN_GROWTH_CACHE_TTL":                         "6s",
+	"TORN_GROWTH_RUINED_BPS":                        "9000",
+	"TORN_GROWTH_FLUSH_INTERVAL":                    "31s",
 
 	"TORN_SETTLEMENT_PROTECTION_WINDOW":             "170h",
 	"TORN_SETTLEMENT_MIN_SPAWN_DISTANCE_KM":         "32",

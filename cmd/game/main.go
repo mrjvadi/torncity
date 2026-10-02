@@ -275,6 +275,19 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// A later content load reaches this process without a restart.
 	go watchContent(ctx, postgres.NewContentStore(pool), registry, cfg.Game.ContentReloadInterval, logger)
 
+	// ADR 0044 phase G1: the capability computation beside every tier gate.
+	// "off" (the default) leaves a nil gate and every gate exactly as it was; in
+	// "shadow" each place the two answers differ is metered and flushed to
+	// growth_disagreements by this process.
+	growthRepo := postgres.NewGrowthRepository(pool)
+	if gg := handlers.ConfigureGrowth(handlers.GrowthConfig{
+		Mode: cfg.Growth.Capabilities, CacheTTL: cfg.Growth.CacheTTL, RuinedBPS: cfg.Growth.RuinedBPS,
+		FlushInterval: cfg.Growth.FlushInterval,
+	}, growthRepo, growthRepo, logger); gg != nil {
+		logger.Info("growth: capability gates run beside the tier gates", slog.String("mode", cfg.Growth.Capabilities))
+		go gg.Run(ctx)
+	}
+
 	uow := postgres.NewUnitOfWork(pool, cfg.Player.DefaultLanguage)
 	// Only the read-only repositories are built over the pool. Everything a
 	// handler writes — stats, journeys, the schedule, friendships — is reached
