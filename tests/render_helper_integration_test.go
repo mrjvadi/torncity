@@ -94,3 +94,37 @@ func renderLooseIn(msgs screens.Translator, d render.Delivery, r *presentation.R
 	out.Screen, out.View, out.Actions, out.Refusal, out.Notice = r.Screen, r.View, r.Actions, r.Refusal, r.Notice
 	return out, nil
 }
+
+// rd wraps a handler call: rd(t)(h.Commit(...)) is the answer as Telegram shows it (a neutral answer rendered
+// from the shipped catalogue's keys), with the neutral data beside it.
+func rd(t testing.TB) func(*presentation.Response, error) (*presentation.Response, error) {
+	return func(r *presentation.Response, err error) (*presentation.Response, error) {
+		t.Helper()
+		if err != nil {
+			return r, err
+		}
+		return rendered(t, r), nil
+	}
+}
+
+// rdIn is rd for a command sent in the chat meta describes.
+func rdIn(t testing.TB, meta envelope.Metadata) func(*presentation.Response, error) (*presentation.Response, error) {
+	return func(r *presentation.Response, err error) (*presentation.Response, error) {
+		t.Helper()
+		if err != nil {
+			return r, err
+		}
+		return renderedIn(t, meta, r), nil
+	}
+}
+
+// rdWith is rd with the catalogue a world's handlers speak.
+func rdWith(t testing.TB, msgs screens.Translator) func(*presentation.Response, error) (*presentation.Response, error) {
+	return func(r *presentation.Response, err error) (*presentation.Response, error) {
+		t.Helper()
+		if err != nil {
+			return r, err
+		}
+		return renderedWith(t, msgs, render.Delivery{}, r), nil
+	}
+}

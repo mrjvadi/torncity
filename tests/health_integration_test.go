@@ -363,9 +363,9 @@ func TestInjuryTreatedAtClinicAndRecovered(t *testing.T) {
 	limits, _ := bank.NewLimits(1, 1_000_000_000)
 	cities := postgres.NewCityRepository(w.pool)
 	hosp := handlers.NewHealthHandler(w.uow, workIDs{t}, catalog, w.registry, cities, gameScale, limits, time.Hour, w.now)
-	resp, err = hosp.Price(ctx, w.meta(doctor, "health.price"), handlers.HealthRequest{Company: clinic.code, Price: "2000"})
+	resp, err = rdWith(t, catalog)(hosp.Price(ctx, w.meta(doctor, "health.price"), handlers.HealthRequest{Company: clinic.code, Price: "2000"}))
 	w.ok("price a treatment", resp, err)
-	resp, err = hosp.Open(ctx, w.meta(doctor, "health.open"), handlers.HealthRequest{Company: clinic.code, On: "on"})
+	resp, err = rdWith(t, catalog)(hosp.Open(ctx, w.meta(doctor, "health.open"), handlers.HealthRequest{Company: clinic.code, On: "on"}))
 	w.ok("open the clinic", resp, err)
 
 	// The thief, weak already, fails a pickpocketing and is hurt: every
@@ -381,7 +381,7 @@ func TestInjuryTreatedAtClinicAndRecovered(t *testing.T) {
 	crimes := handlers.NewCrimeHandler(w.uow, hurtingIDs{t, pick.Failure.Injury.Injury()}, catalog, w.registry, cities,
 		postgres.NewPolicyReader(w.pool, nil), gameScale, dice, crimeRules(), time.Hour, w.now)
 	dice.script(9999, 9999, 9999, 9999, 9999, 9999, 9999, 9999, 9999, 9999, 9999, 9999)
-	resp, err = crimes.Commit(ctx, w.meta(patient, "crime.commit"), handlers.CrimeCommitRequest{Crime: "pickpocketing"})
+	resp, err = rdWith(t, catalog)(crimes.Commit(ctx, w.meta(patient, "crime.commit"), handlers.CrimeCommitRequest{Crime: "pickpocketing"}))
 	w.ok("a failed pickpocketing", resp, err)
 	var (
 		stayID, action, place string
@@ -404,11 +404,11 @@ func TestInjuryTreatedAtClinicAndRecovered(t *testing.T) {
 		t.Errorf("health.hospitalised events = %d, want 1", n)
 	}
 	// In hospital, crime waits.
-	resp, err = crimes.Commit(ctx, w.meta(patient, "crime.commit"), handlers.CrimeCommitRequest{Crime: "pickpocketing"})
+	resp, err = rdWith(t, catalog)(crimes.Commit(ctx, w.meta(patient, "crime.commit"), handlers.CrimeCommitRequest{Crime: "pickpocketing"}))
 	if !errors.Is(err, application.ErrHospitalised) && (resp == nil || !strings.Contains(resp.Text, "hospital")) {
 		t.Errorf("a crime from a hospital bed = %v, %v; want it refused", resp, err)
 	}
-	resp, err = hosp.Hospital(ctx, w.meta(patient, "health.hospital"))
+	resp, err = rdWith(t, catalog)(hosp.Hospital(ctx, w.meta(patient, "health.hospital")))
 	w.ok("the hospital screen", resp, err, "You are in hospital", "Darman Clinic")
 
 	// Treated at the clinic: a double press pays once and uses one bandage.
@@ -416,7 +416,7 @@ func TestInjuryTreatedAtClinicAndRecovered(t *testing.T) {
 	till := w.balance(application.AccountCompanyTreasury, clinic.id)
 	press := w.meta(patient, "health.treat")
 	for range 2 {
-		resp, err = hosp.Treat(ctx, press, handlers.HealthRequest{Provider: clinic.code, Method: "cash"})
+		resp, err = rdWith(t, catalog)(hosp.Treat(ctx, press, handlers.HealthRequest{Provider: clinic.code, Method: "cash"}))
 		w.ok("treated at the clinic", resp, err)
 	}
 	if got := cash - w.balance(application.AccountPlayerCash, patient.ID); got != 2000 {
@@ -443,7 +443,7 @@ func TestInjuryTreatedAtClinicAndRecovered(t *testing.T) {
 	  AND medicine_units = 1 AND price = 2000`, stayID); n != 1 {
 		t.Fatalf("treatments = %d, want one at the clinic", n)
 	}
-	resp, err = hosp.Treat(ctx, w.meta(patient, "health.treat"), handlers.HealthRequest{Provider: "city", Method: "cash"})
+	resp, err = rdWith(t, catalog)(hosp.Treat(ctx, w.meta(patient, "health.treat"), handlers.HealthRequest{Provider: "city", Method: "cash"}))
 	w.ok("a second treatment", resp, err, "already treated")
 
 	// The discharge the treatment replaced does nothing; the new one
@@ -462,12 +462,12 @@ func TestInjuryTreatedAtClinicAndRecovered(t *testing.T) {
 		subjects.Event("health", "discharged"), stayID); n != 1 {
 		t.Errorf("health.discharged events = %d, want 1", n)
 	}
-	resp, err = hosp.Hospital(ctx, w.meta(patient, "health.hospital"))
+	resp, err = rdWith(t, catalog)(hosp.Hospital(ctx, w.meta(patient, "health.hospital")))
 	w.ok("health at discharge", resp, err, "Health: 60 of 100", "not in hospital")
 
 	// At rest the game clock gives health back: five game hours, 4 an hour.
 	w.advance(5 * time.Hour / gameScale)
-	resp, err = hosp.Hospital(ctx, w.meta(patient, "health.hospital"))
+	resp, err = rdWith(t, catalog)(hosp.Hospital(ctx, w.meta(patient, "health.hospital")))
 	w.ok("health after rest", resp, err, "Health: 80 of 100")
 	verifyLedger(t, w.pool)
 }

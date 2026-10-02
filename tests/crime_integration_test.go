@@ -266,7 +266,7 @@ func TestCrimeTheftReportConvictionAndBail(t *testing.T) {
 	// 1. The thief picks a pocket in a group. The dice: a player is the
 	//    victim (0 < 1500), the first of one, a success, seen by a witness.
 	dice.script(0, 0, 0, 0)
-	resp, err := h.Commit(ctx, metaFor(thief, "crime.commit", true), handlers.CrimeCommitRequest{Crime: "pickpocketing", Nonce: "0123456789ab"})
+	resp, err := rdIn(t, metaFor(thief, "crime.commit", true))(h.Commit(ctx, metaFor(thief, "crime.commit", true), handlers.CrimeCommitRequest{Crime: "pickpocketing", Nonce: "0123456789ab"}))
 	if err != nil || resp == nil {
 		t.Fatalf("Commit = %v, %v", resp, err)
 	}
@@ -312,16 +312,16 @@ func TestCrimeTheftReportConvictionAndBail(t *testing.T) {
 	}
 
 	// 2. The victim reports it: the confirmation, then the report itself.
-	resp, err = h.Report(ctx, metaFor(victim, "crime.report", false), handlers.CrimeReportRequest{Crime: attemptID})
+	resp, err = rd(t)(h.Report(ctx, metaFor(victim, "crime.report", false), handlers.CrimeReportRequest{Crime: attemptID}))
 	if err != nil || resp == nil || !resp.Private || !strings.Contains(resp.Text, "crime.report.confirm") {
 		t.Fatalf("Report (ask) = %+v, %v", resp, err)
 	}
-	resp, err = h.Report(ctx, metaFor(victim, "crime.report", false), handlers.CrimeReportRequest{Crime: attemptID, Confirm: "cash"})
+	resp, err = rd(t)(h.Report(ctx, metaFor(victim, "crime.report", false), handlers.CrimeReportRequest{Crime: attemptID, Confirm: "cash"}))
 	if err != nil || resp == nil || !strings.Contains(resp.Text, "crime.report.filed") {
 		t.Fatalf("Report (file) = %+v, %v", resp, err)
 	}
 	// Somebody else cannot report the victim's theft.
-	resp, err = h.Report(ctx, metaFor(thief, "crime.report", false), handlers.CrimeReportRequest{Crime: attemptID, Confirm: "yes"})
+	resp, err = rd(t)(h.Report(ctx, metaFor(thief, "crime.report", false), handlers.CrimeReportRequest{Crime: attemptID, Confirm: "yes"}))
 	if err != nil || !strings.Contains(resp.Text, "crime.refused.not_yours") {
 		t.Errorf("a report by another player = %+v, %v", resp, err)
 	}
@@ -396,7 +396,7 @@ func TestCrimeTheftReportConvictionAndBail(t *testing.T) {
 		Scan(&sentenceID, &endsAt); err != nil {
 		t.Fatalf("the thief is not in jail: %v", err)
 	}
-	resp, err = h.Commit(ctx, metaFor(thief, "crime.commit", false), handlers.CrimeCommitRequest{Crime: "shoplifting"})
+	resp, err = rd(t)(h.Commit(ctx, metaFor(thief, "crime.commit", false), handlers.CrimeCommitRequest{Crime: "shoplifting"}))
 	if err != nil || !strings.Contains(resp.Text, "crime.refused.jail") {
 		t.Errorf("a crime from jail = %+v, %v", resp, err)
 	}
@@ -405,7 +405,7 @@ func TestCrimeTheftReportConvictionAndBail(t *testing.T) {
 	}
 
 	// 5. Bail: refused without the money, paid with it.
-	resp, err = h.Bail(ctx, metaFor(thief, "crime.bail", false), handlers.BailRequest{Nonce: "b1b1b1b1b1b1", Method: "cash"})
+	resp, err = rd(t)(h.Bail(ctx, metaFor(thief, "crime.bail", false), handlers.BailRequest{Nonce: "b1b1b1b1b1b1", Method: "cash"}))
 	resp = rendered(t, resp)
 	if err != nil || !strings.Contains(resp.Text, "payment.declined") || !resp.Private {
 		t.Fatalf("bail without money = %+v, %v", resp, err)
@@ -415,7 +415,7 @@ func TestCrimeTheftReportConvictionAndBail(t *testing.T) {
 	treasuryBefore = balance(application.AccountCityTreasury, city.ID)
 	cashBefore := balance(application.AccountPlayerCash, thief.ID)
 	bankBefore := balance(application.AccountPlayerBank, thief.ID)
-	resp, err = h.Bail(ctx, metaFor(thief, "crime.bail", false), handlers.BailRequest{Nonce: "b2b2b2b2b2b2", Method: "card"})
+	resp, err = rd(t)(h.Bail(ctx, metaFor(thief, "crime.bail", false), handlers.BailRequest{Nonce: "b2b2b2b2b2b2", Method: "card"}))
 	if err != nil || !strings.Contains(resp.Text, "crime.bailed") {
 		t.Fatalf("Bail = %+v, %v", resp, err)
 	}
@@ -515,7 +515,7 @@ func TestCrimeTimedAttemptThroughTheSchedule(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			resp, err := h.Commit(context.Background(), metaFor("crime.commit"), handlers.CrimeCommitRequest{Crime: "street_scam"})
+			resp, err := rd(t)(h.Commit(context.Background(), metaFor("crime.commit"), handlers.CrimeCommitRequest{Crime: "street_scam"}))
 			if err != nil {
 				t.Errorf("concurrent Commit: %v", err)
 				return
@@ -551,7 +551,7 @@ func TestCrimeTimedAttemptThroughTheSchedule(t *testing.T) {
 	if _, err := travel.Start(ctx, metaFor("travel.start"), handlers.StartTravelRequest{City: "brennhaven", Mode: "bus", Max: "1000000"}); !errors.Is(err, application.ErrCrimeInProgress) {
 		t.Errorf("a journey during a crime = %v, want ErrCrimeInProgress", err)
 	}
-	resp, err := h.Commit(ctx, metaFor("crime.commit"), handlers.CrimeCommitRequest{Crime: "shoplifting"})
+	resp, err := rd(t)(h.Commit(ctx, metaFor("crime.commit"), handlers.CrimeCommitRequest{Crime: "shoplifting"}))
 	if err != nil || !strings.Contains(resp.Text, "crime.refused.busy") {
 		t.Errorf("a second crime during one = %+v, %v", resp, err)
 	}

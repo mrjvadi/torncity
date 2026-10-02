@@ -267,7 +267,7 @@ func TestCompanyEndToEnd(t *testing.T) {
 	if err := pool.Raw().QueryRow(ctx, `SELECT no FROM company_openings WHERE company_id = $1::uuid`, companyID).Scan(&openingNo); err != nil {
 		t.Fatalf("no opening: %v", err)
 	}
-	list, err := jobs.List(ctx, metaAs(worker, "job.list"), handlers.PageRequest{})
+	list, err := rd(t)(jobs.List(ctx, metaAs(worker, "job.list"), handlers.PageRequest{}))
 	if err != nil || !strings.Contains(list.Text, "company.job_line") {
 		t.Fatalf("job openings = %v, %v; want the company's opening beside the base employer's", list, err)
 	}
@@ -295,7 +295,7 @@ func TestCompanyEndToEnd(t *testing.T) {
 	}
 
 	// The company holds nothing: the shift cannot start, and costs nothing.
-	resp, err = jobs.Work(ctx, metaAs(worker, "job.work"))
+	resp, err = rd(t)(jobs.Work(ctx, metaAs(worker, "job.work")))
 	if err != nil || resp == nil || !strings.Contains(resp.Text, "company.refused.cannot_pay") {
 		t.Fatalf("a shift at a company that cannot pay = %v, %v; want the refusal", resp, err)
 	}
