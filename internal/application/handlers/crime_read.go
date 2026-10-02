@@ -280,7 +280,13 @@ func (h *CrimeHandler) Hub(ctx context.Context, meta envelope.Metadata) (*presen
 			view.NeedCode, view.NeedRole, view.NeedTier = verdict.Need.Code, verdict.Need.Role, verdict.Need.Tier
 		}
 		for _, c := range snap.CrimeCategories() {
-			view.Categories = append(view.Categories, named(c.Code, c.Name))
+			// a category is listed only when a crime in it is available to this player here
+			for _, def := range snap.Crimes() {
+				if def.Category == c.Code && verdict.allows(def.Code) {
+					view.Categories = append(view.Categories, named(c.Code, c.Name))
+					break
+				}
+			}
 		}
 		if view.Empty == "" && !h.anythingToTry(snap, s) {
 			view.Empty = screens.CrimeEmptyNoTargets
@@ -335,9 +341,13 @@ func (h *CrimeHandler) List(ctx context.Context, meta envelope.Metadata, req Cri
 			return err
 		}
 		view.Category = named(cat.Code, cat.Name)
+		verdict, err := h.rules.Listing.crimeListing(ctx, tx, snap, s.stand.stats.Level, s.city)
+		if err != nil {
+			return err
+		}
 		var all []screens.CrimeLine
 		for _, def := range snap.Crimes() {
-			if def.Category != cat.Code {
+			if def.Category != cat.Code || !verdict.allows(def.Code) {
 				continue
 			}
 			cr, ok := snap.Crime(def.Code)

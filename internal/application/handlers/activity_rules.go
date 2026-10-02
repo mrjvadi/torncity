@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	stderrors "errors"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
@@ -37,14 +38,20 @@ type crimeVerdict struct {
 	Empty    string
 	MinLevel int
 	Need     *content.AvailabilityBuilding
+	// Allowed holds the codes of the crimes available here; nil means every
+	// crime is (a content city has no settlement buildings to judge by).
+	Allowed map[string]bool
 }
+
+// allows reports whether a crime is available here.
+func (v crimeVerdict) allows(code string) bool { return v.Allowed == nil || v.Allowed[code] }
 
 // judgeCrimes weighs the tags of the crimes against a standing. A crime is
 // available when the settlement has reached its stage, every building it
 // requires stands and the player has its level. When none is, the nearest
 // unlock is named: the lowest level that would open one, else the building.
 func judgeCrimes(tags []content.AvailabilityDef, s crimeStanding) crimeVerdict {
-	var v crimeVerdict
+	v := crimeVerdict{Allowed: map[string]bool{}}
 	for _, tag := range tags {
 		need := content.StageRank(tag.Stage)
 		if need == 0 || s.stageRank < need {
@@ -69,6 +76,7 @@ func judgeCrimes(tags []content.AvailabilityDef, s crimeStanding) crimeVerdict {
 		switch {
 		case missing == nil && minLevel == 0:
 			v.Available++
+			v.Allowed[tag.Code] = true
 		case missing == nil:
 			if v.MinLevel == 0 || minLevel < v.MinLevel {
 				v.MinLevel = minLevel
@@ -91,7 +99,13 @@ func judgeCrimes(tags []content.AvailabilityDef, s crimeStanding) crimeVerdict {
 // The neutral city and the road never offer it.
 func (r ActivityRules) crimeListing(ctx context.Context, tx application.Tx, snap *content.Snapshot, level int, city *application.City) (crimeVerdict, error) {
 	if city == nil || (r.NeutralCity != "" && city.Code == r.NeutralCity) {
-		return crimeVerdict{Empty: plife.CrimeEmptyNoVenue}, nil
+		return crimeVerdict{Empty: plife.CrimeEmptyNoVenue, Allowed: map[string]bool{}}, nil
+	}
+	if _, err := tx.Settlements().ByID(ctx, city.ID); stderrors.Is(err, application.ErrCityNotFound) {
+		// a content city: no settlement buildings to judge by, every crime is its own
+		return crimeVerdict{Available: len(snap.Crimes())}, nil
+	} else if err != nil {
+		return crimeVerdict{}, err
 	}
 	rows, err := tx.SettlementBuildings().List(ctx, city.ID)
 	if err != nil {
@@ -116,10 +130,21 @@ func (r ActivityRules) crimeListing(ctx context.Context, tx application.Tx, snap
 		return false
 	}
 	var tags []content.AvailabilityDef
+	var untagged []string
 	for _, def := range snap.Crimes() {
 		if tag, ok := snap.AvailabilityTag("crime", def.Code); ok {
 			tags = append(tags, tag)
+		} else {
+			untagged = append(untagged, def.Code)
 		}
 	}
-	return judgeCrimes(tags, crimeStanding{level: level, stageRank: content.StageRank(tierStage(city.Tier)), stands: stands}), nil
+	v := judgeCrimes(tags, crimeStanding{level: level, stageRank: content.StageRank(tierStage(city.Tier)), stands: stands})
+	for _, code := range untagged {
+		v.Allowed[code] = true
+		v.Available++
+	}
+	if v.Available > 0 {
+		v.Empty = ""
+	}
+	return v, nil
 }

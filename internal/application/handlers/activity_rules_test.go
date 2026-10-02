@@ -57,3 +57,18 @@ func TestTheCentralCityNeverOffersCrime(t *testing.T) {
 		t.Errorf("got %+v %v, want no_venue", v, err)
 	}
 }
+
+func TestAVillageCrimeListHoldsOnlyVillageTaggedCrimesWhoseRequirementsAreMet(t *testing.T) {
+	tags := append([]content.AvailabilityDef{}, crimeTags...)
+	tags = append(tags, content.AvailabilityDef{Kind: "crime", Code: "street_scam", Stage: "town", Requires: &content.AvailabilityNeeds{
+		Buildings: []content.AvailabilityBuilding{{Role: "market", Tier: 2}},
+		Personal:  []content.AvailabilityPersonal{{Kind: content.PersonalLevel, Min: 2}}}})
+	market := content.AvailabilityBuilding{Role: "market", Tier: 2}
+	v := judgeCrimes(tags, crimeAt(5, content.StageRank("village"), market))
+	if !v.allows("pickpocketing") || v.allows("street_scam") || v.allows("bag_snatching") {
+		t.Errorf("a village offers only its village-tagged crimes: %+v", v.Allowed)
+	}
+	if bare := judgeCrimes(tags, crimeAt(5, content.StageRank("village"))); bare.allows("pickpocketing") {
+		t.Errorf("a village without a market must not offer pickpocketing: %+v", bare.Allowed)
+	}
+}
