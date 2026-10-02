@@ -18,7 +18,7 @@ func TestSkillsShowsANewPlayerHowToGainSkills(t *testing.T) {
 	h.player(200, "p-1", tehranID)
 	handler := h.skillsHandler(t)
 
-	resp, err := handler.List(context.Background(), command("skills.list", 200, "req-1"))
+	resp, err := shown(t, messages(t))(handler.List(context.Background(), command("skills.list", 200, "req-1")))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -49,7 +49,7 @@ func TestSkillsShowsLevelAndProgress(t *testing.T) {
 	}
 	handler := h.skillsHandler(t)
 
-	resp, err := handler.List(context.Background(), command("skills.list", 201, "req-1"))
+	resp, err := shown(t, messages(t))(handler.List(context.Background(), command("skills.list", 201, "req-1")))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -103,7 +103,7 @@ func TestSkillsIgnoresAnUnknownStoredCode(t *testing.T) {
 	}
 	handler := h.skillsHandler(t)
 
-	resp, err := handler.List(context.Background(), command("skills.list", 202, "req-1"))
+	resp, err := shown(t, messages(t))(handler.List(context.Background(), command("skills.list", 202, "req-1")))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -127,7 +127,8 @@ func TestSkillsEditsWhenPressed(t *testing.T) {
 	h.player(203, "p-1", tehranID)
 	handler := h.skillsHandler(t)
 
-	resp, err := handler.List(context.Background(), pressed(command("skills.list", 203, "req-1"), 77))
+	meta := pressed(command("skills.list", 203, "req-1"), 77)
+	resp, err := shownIn(t, messages(t), meta)(handler.List(context.Background(), meta))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

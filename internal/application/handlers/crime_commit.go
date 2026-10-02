@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"context"
 	stderrors "errors"
 	"sort"
@@ -17,7 +19,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Commit handles crime.commit: committing a crime where the player stands.
@@ -46,8 +47,8 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 	lang := meta.Language
 	var (
 		replayed bool
-		result   *screens.CrimeResultView
-		started  *screens.CrimeStartedView
+		result   *plife.CrimeResultView
+		started  *plife.CrimeStartedView
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -66,7 +67,7 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 		def, ok := snap.CrimeDef(req.Crime)
 		cr, ok2 := snap.Crime(req.Crime)
 		if !ok || !ok2 {
-			return refuseCrime(screens.CrimeRefusedNotFound)
+			return refuseCrime(plife.CrimeRefusedNotFound)
 		}
 
 		now := h.now()
@@ -90,7 +91,7 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 			return r
 		}
 		if missing := h.missing(snap, cr, s); len(missing) > 0 {
-			r := refuseCrime(screens.CrimeRefusedRequirements)
+			r := refuseCrime(plife.CrimeRefusedRequirements)
 			r.view.Crime, r.view.Missing = crimeNamed(def), missing
 			return r
 		}
@@ -99,7 +100,7 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 			return err
 		}
 		if left > 0 {
-			r := refuseCrime(screens.CrimeRefusedCooldown)
+			r := refuseCrime(plife.CrimeRefusedCooldown)
 			r.view.Crime, r.view.Wait = crimeNamed(def), left
 			return r
 		}
@@ -107,7 +108,7 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 		if err != nil {
 			var short crime.NerveShortfall
 			if stderrors.As(err, &short) {
-				r := refuseCrime(screens.CrimeRefusedNerve)
+				r := refuseCrime(plife.CrimeRefusedNerve)
 				r.view.Crime, r.view.Need, r.view.Have = crimeNamed(def), short.Need, short.Have
 				return r
 			}
@@ -163,7 +164,7 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 			}
 			if err := tx.Crime().RecordAttempt(ctx, attempt); err != nil {
 				if isSentinel(err, application.ErrCrimeInProgress) {
-					return refuseCrime(screens.CrimeRefusedBusy)
+					return refuseCrime(plife.CrimeRefusedBusy)
 				}
 				return err
 			}
@@ -179,7 +180,7 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 			if err := tx.Crime().SaveProfile(ctx, *s.profile); err != nil {
 				return err
 			}
-			started = &screens.CrimeStartedView{
+			started = &plife.CrimeStartedView{
 				Player: shownName(p), Crime: crimeNamed(def), Venue: venueNamed(s.venue),
 				Duration: attempt.ResolvesAt.Sub(now), EndsAt: attempt.ResolvesAt,
 				Nerve: h.nerveView(s.profile, now),
@@ -196,7 +197,7 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 		attempt.Status = application.CrimeInProgress
 		if err := tx.Crime().RecordAttempt(ctx, attempt); err != nil {
 			if isSentinel(err, application.ErrCrimeInProgress) {
-				return refuseCrime(screens.CrimeRefusedBusy)
+				return refuseCrime(plife.CrimeRefusedBusy)
 			}
 			return err
 		}
@@ -209,7 +210,7 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 			return err
 		}
 		result = &view
-		if meta.InGroup() && view.Result == screens.CrimeOutcomeSucceeded {
+		if meta.InGroup() && view.Result == plife.CrimeOutcomeSucceeded {
 			// The group read that it happened; the take is told privately.
 			return appendCrimeEvent(ctx, tx, meta, "take", attempt.ID, resultPayload(p.ID, view))
 		}
@@ -222,23 +223,23 @@ func (h *CrimeHandler) Commit(ctx context.Context, meta envelope.Metadata, req C
 	case replayed:
 		return h.Hub(ctx, meta)
 	case started != nil:
-		return screens.CrimeStarted(h.screen(meta, lang), *started), nil
+		return plife.CrimeStarted(presentation.Ctx{Lang: lang}, *started), nil
 	case result != nil:
-		return screens.CrimeResult(h.screen(meta, lang), *result), nil
+		return plife.CrimeResult(presentation.Ctx{Lang: lang}, *result), nil
 	}
 	return nil, errors.Internal(stderrors.New("handlers: crime commit produced nothing"))
 }
 
 // blockedRefusal maps why a crime is blocked to its refusal.
 var blockedRefusal = map[string]string{
-	screens.CrimeBlockedJail:       screens.CrimeRefusedJail,
-	screens.CrimeBlockedHospital:   screens.CrimeRefusedHospital,
-	screens.CrimeBlockedBusy:       screens.CrimeRefusedBusy,
-	screens.CrimeBlockedWork:       screens.CrimeRefusedWork,
-	screens.CrimeBlockedTravelling: screens.CrimeRefusedTravelling,
-	screens.CrimeBlockedWalking:    screens.CrimeRefusedWalking,
-	screens.CrimeBlockedNowhere:    screens.CrimeRefusedNowhere,
-	screens.CrimeBlockedNerve:      screens.CrimeRefusedNerve,
+	plife.CrimeBlockedJail:       plife.CrimeRefusedJail,
+	plife.CrimeBlockedHospital:   plife.CrimeRefusedHospital,
+	plife.CrimeBlockedBusy:       plife.CrimeRefusedBusy,
+	plife.CrimeBlockedWork:       plife.CrimeRefusedWork,
+	plife.CrimeBlockedTravelling: plife.CrimeRefusedTravelling,
+	plife.CrimeBlockedWalking:    plife.CrimeRefusedWalking,
+	plife.CrimeBlockedNowhere:    plife.CrimeRefusedNowhere,
+	plife.CrimeBlockedNerve:      plife.CrimeRefusedNerve,
 }
 
 // victimChoice is who an attempt landed on.
@@ -287,7 +288,7 @@ func (h *CrimeHandler) chooseVictim(ctx context.Context, tx application.Tx, snap
 	kind, i, err := crime.ChooseVictim(cr, len(eligible), s.venue.OpportunityBPS, h.dice)
 	switch {
 	case stderrors.Is(err, crime.ErrNoVictim):
-		return victimChoice{}, refuseCrime(screens.CrimeRefusedNoVictim)
+		return victimChoice{}, refuseCrime(plife.CrimeRefusedNoVictim)
 	case err != nil:
 		return victimChoice{}, errors.Internal(err)
 	case kind != crime.TargetPlayer:
@@ -312,7 +313,7 @@ func (h *CrimeHandler) chooseVictim(ctx context.Context, tx application.Tx, snap
 		if cr.Hits(crime.TargetNPC) {
 			return victimChoice{kind: crime.TargetNPC}, nil
 		}
-		return victimChoice{}, refuseCrime(screens.CrimeRefusedNoVictim)
+		return victimChoice{}, refuseCrime(plife.CrimeRefusedNoVictim)
 	}
 	victim, err := tx.Players().GetByID(ctx, b.PlayerID)
 	if err != nil {
@@ -404,10 +405,10 @@ func lockGoods(ctx context.Context, tx application.Tx, ids ...string) error {
 // daily cap, or theft from the victim's cash), an arrest's sentence and fine,
 // the XP, criminal XP and skill XP, heat, the profile's counts, the attempt
 // row and the victim's notice. It returns the outcome as the thief's screen.
-func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envelope.Metadata, in settlement) (screens.CrimeResultView, error) {
+func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envelope.Metadata, in settlement) (plife.CrimeResultView, error) {
 	pol, err := h.readJusticePolicy(ctx, *in.city)
 	if err != nil {
-		return screens.CrimeResultView{}, err
+		return plife.CrimeResultView{}, err
 	}
 	victimKind := crime.TargetKind(in.attempt.VictimKind)
 	a := crime.Attempt{Crime: in.cr, Victim: victimKind, Chance: in.attempt.ChanceBPS, Policy: pol.JusticePolicy, Gear: in.gear}
@@ -419,16 +420,16 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 		victimID = in.victim.ID
 	}
 	if err := lockGoods(ctx, tx, in.thief.ID, victimID); err != nil {
-		return screens.CrimeResultView{}, err
+		return plife.CrimeResultView{}, err
 	}
 	if err := wearOut(ctx, tx, h.ids, in.thief.ID, in.wear, in.attempt.ID, in.now); err != nil {
-		return screens.CrimeResultView{}, err
+		return plife.CrimeResultView{}, err
 	}
 	var takeable []inventory.Holding
 	if victimKind == crime.TargetPlayer && in.cr.Reward.StealItemBPS > 0 {
 		_, _, held, err := carried(ctx, tx, victimID)
 		if err != nil {
-			return screens.CrimeResultView{}, err
+			return plife.CrimeResultView{}, err
 		}
 		takeable = inventory.Stealable(in.snap.ItemRules(), held)
 		a.VictimItems = len(takeable)
@@ -437,26 +438,26 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 	ledger := tx.Ledger()
 	thiefCash, thiefBank, err := playerAccounts(ctx, ledger, in.thief.ID)
 	if err != nil {
-		return screens.CrimeResultView{}, err
+		return plife.CrimeResultView{}, err
 	}
 	var victimCash application.Account
 	switch victimKind {
 	case crime.TargetNPC:
 		paid, err := tx.Crime().LockNPCProceeds(ctx, in.now, in.now)
 		if err != nil {
-			return screens.CrimeResultView{}, err
+			return plife.CrimeResultView{}, err
 		}
 		a.NPCAllowance = money.FromMinor(max(h.rules.NPCDailyCap.Minor()-paid, 0))
 	case crime.TargetPlayer:
 		if victimCash, err = ledger.AccountFor(ctx, application.AccountPlayerCash, in.victim.ID); err != nil {
-			return screens.CrimeResultView{}, err
+			return plife.CrimeResultView{}, err
 		}
 		a.VictimCash = victimCash.Balance
 	}
 
 	out, err := crime.Resolve(a, h.dice)
 	if err != nil {
-		return screens.CrimeResultView{}, errors.Internal(err)
+		return plife.CrimeResultView{}, errors.Internal(err)
 	}
 	// A low mood learns slower (docs/adr/0025).
 	out.XP = moodXP(in.snap, in.stand.stats.Happiness, out.XP)
@@ -472,7 +473,7 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 	prof.Heat, prof.HeatUpdatedAt = heat.Level, heat.UpdatedAt
 	prof.CriminalXP += out.CriminalXP
 
-	view := screens.CrimeResultView{
+	view := plife.CrimeResultView{
 		Player: shownName(in.thief), Crime: crimeNamed(in.def), Venue: venueNamed(in.venue),
 		CityCode: in.city.Code, City: in.city.Name, Result: string(out.Result),
 		VictimPlayer: victimKind == crime.TargetPlayer, CriminalXP: out.CriminalXP, XP: out.XP,
@@ -513,7 +514,7 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 			if _, err := bring(ctx, tx, in.snap, h.ids, nil, in.thief.ID, d.Item, d.Qty, d.Quality, loot, in.now); err != nil {
 				return view, err
 			}
-			view.Loot = append(view.Loot, screens.LootLine{Item: itemNamed(in.snap, d.Item), Qty: d.Qty})
+			view.Loot = append(view.Loot, plife.LootLine{Item: itemNamed(in.snap, d.Item), Qty: d.Qty})
 		}
 		if out.StolenItem >= 0 && out.StolenItem < len(takeable) {
 			got := takeable[out.StolenItem]
@@ -535,7 +536,7 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 			return view, err
 		}
 		row.JailSentenceID = sentence.ID
-		view.Jail = &screens.CrimeProgress{Remaining: sentence.EndsAt.Sub(in.now), EndsAt: sentence.EndsAt}
+		view.Jail = &plife.CrimeProgress{Remaining: sentence.EndsAt.Sub(in.now), EndsAt: sentence.EndsAt}
 		// A fine is paid on the spot from cash, then the bank; what cannot
 		// be paid stays on the record (docs/adr/0019).
 		if out.Fine.Minor() > 0 {
@@ -639,7 +640,7 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 
 // resultPayload is an attempt's outcome as an event carries it to the
 // notifier, which renders it as the thief's private notice.
-func resultPayload(playerID string, v screens.CrimeResultView) map[string]any {
+func resultPayload(playerID string, v plife.CrimeResultView) map[string]any {
 	skills := make([]map[string]any, 0, len(v.Skills))
 	for _, s := range v.Skills {
 		skills = append(skills, map[string]any{"skill": s.Skill, "xp": s.XP, "level": s.Level})

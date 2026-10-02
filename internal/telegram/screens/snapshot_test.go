@@ -445,8 +445,8 @@ func jobScreens(c Context, _ people, add func(string, *presenter.Response)) {
 	add("Shift done · tired, performance fell", ShiftWorked(c, ShiftWorkedView{Gross: 84, Tax: 4, Net: 80, XP: 10,
 		Performance: 50, PerformanceDelta: -2, FatigueBPS: 7000, Energy: 10, MaxEnergy: 100}))
 	add("Promoted", JobPromoted(c, JobPromotedView{Job: retail("skilled", "Sales Associate"), Pay: 190}))
-	add("Quit · are you sure", JobQuitConfirm(c, retail("entry", "Sales Trainee")))
-	add("Quit · done", JobQuit(c, retail("entry", "Sales Trainee")))
+	add("Quit · are you sure", JobQuitConfirm(c, JobQuitView{Job: retail("entry", "Sales Trainee")}))
+	add("Quit · done", JobQuit(c, JobQuitView{Job: retail("entry", "Sales Trainee")}))
 
 	for _, r := range []struct {
 		title string

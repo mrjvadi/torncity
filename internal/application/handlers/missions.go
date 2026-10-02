@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"context"
 	"encoding/json"
 	stderrors "errors"
@@ -90,12 +92,12 @@ func (h *MissionsHandler) screen(meta envelope.Metadata, lang string) screens.Co
 }
 
 // missionRefusal carries a refused mission command out of a unit of work.
-type missionRefusal struct{ view screens.MissionRefusalView }
+type missionRefusal struct{ view plife.MissionRefusalView }
 
 func (r *missionRefusal) Error() string { return "handlers: mission refused: " + r.view.Kind }
 
 func refuseMission(kind string) *missionRefusal {
-	return &missionRefusal{view: screens.MissionRefusalView{Kind: kind}}
+	return &missionRefusal{view: plife.MissionRefusalView{Kind: kind}}
 }
 
 func (h *MissionsHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
@@ -105,7 +107,7 @@ func (h *MissionsHandler) finish(meta envelope.Metadata, lang string, err error)
 	c := h.screen(meta, lang)
 	var r *missionRefusal
 	if stderrors.As(err, &r) {
-		return screens.MissionRefusal(c, r.view), nil
+		return plife.MissionRefusal(presentation.Ctx{Lang: c.Lang}, r.view), nil
 	}
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(c, v), nil
@@ -117,44 +119,44 @@ func (h *MissionsHandler) finish(meta envelope.Metadata, lang string, err error)
 func (h *MissionsHandler) wait(d time.Duration) time.Duration { return h.scale.RealWait(d) }
 
 // target names what an objective's target is, for a screen.
-func missionTarget(snap *content.Snapshot, o content.ObjectiveDef) screens.MissionTarget {
-	t := screens.MissionTarget{Code: o.Target}
+func missionTarget(snap *content.Snapshot, o content.ObjectiveDef) plife.MissionTarget {
+	t := plife.MissionTarget{Code: o.Target}
 	if o.Target == "" {
 		return t
 	}
 	switch mission.Kind(o.Kind) {
 	case mission.Travel:
-		t.Kind = screens.TargetCity
+		t.Kind = plife.TargetCity
 		if c, ok := snap.City(o.Target); ok {
 			t.Name = c.Name
 		}
 	case mission.Work:
 		if def, ok := snap.CareerDef(o.Target); ok {
-			t.Kind, t.Name = screens.TargetCareer, def.Name
+			t.Kind, t.Name = plife.TargetCareer, def.Name
 		} else {
-			t.Kind = screens.TargetCareerCategory
+			t.Kind = plife.TargetCareerCategory
 		}
 	case mission.Course:
-		t.Kind = screens.TargetCourse
+		t.Kind = plife.TargetCourse
 		if c, ok := snap.CourseDef(o.Target); ok {
 			t.Name = c.Name
 		}
 	case mission.Buy, mission.Sell, mission.Deliver:
-		t.Kind = screens.TargetItem
+		t.Kind = plife.TargetItem
 		if d, ok := snap.ItemDef(o.Target); ok {
 			t.Name = d.Name
 		}
 	case mission.Use:
 		if d, ok := snap.ItemDef(o.Target); ok {
-			t.Kind, t.Name = screens.TargetItem, d.Name
+			t.Kind, t.Name = plife.TargetItem, d.Name
 		} else {
-			t.Kind = screens.TargetItemCategory
+			t.Kind = plife.TargetItemCategory
 		}
 	case mission.Crime:
 		if d, ok := snap.CrimeDef(o.Target); ok {
-			t.Kind, t.Name = screens.TargetCrime, d.Name
+			t.Kind, t.Name = plife.TargetCrime, d.Name
 		} else {
-			t.Kind = screens.TargetCrimeCategory
+			t.Kind = plife.TargetCrimeCategory
 			for _, c := range snap.CrimeCategories() {
 				if c.Code == o.Target {
 					t.Name = c.Name
@@ -166,23 +168,23 @@ func missionTarget(snap *content.Snapshot, o content.ObjectiveDef) screens.Missi
 }
 
 // objectives lays a mission's objectives out with their progress.
-func missionObjectives(snap *content.Snapshot, def content.MissionDef, progress []int64) []screens.MissionObjective {
-	out := make([]screens.MissionObjective, 0, len(def.Objectives))
+func missionObjectives(snap *content.Snapshot, def content.MissionDef, progress []int64) []plife.MissionObjective {
+	out := make([]plife.MissionObjective, 0, len(def.Objectives))
 	for i, o := range def.Objectives {
 		var done int64
 		if i < len(progress) {
 			done = progress[i]
 		}
-		out = append(out, screens.MissionObjective{Kind: o.Kind, Target: missionTarget(snap, o), Count: o.Count, Done: done})
+		out = append(out, plife.MissionObjective{Kind: o.Kind, Target: missionTarget(snap, o), Count: o.Count, Done: done})
 	}
 	return out
 }
 
 // reward lays a mission's reward out.
-func missionReward(snap *content.Snapshot, def content.MissionDef) screens.MissionReward {
-	r := screens.MissionReward{Cash: def.Reward.Cash, XP: def.Reward.XP}
+func missionReward(snap *content.Snapshot, def content.MissionDef) plife.MissionReward {
+	r := plife.MissionReward{Cash: def.Reward.Cash, XP: def.Reward.XP}
 	for _, it := range def.Reward.Items {
-		r.Items = append(r.Items, screens.LootLine{Item: itemNamed(snap, it.Item), Qty: it.Qty})
+		r.Items = append(r.Items, plife.LootLine{Item: itemNamed(snap, it.Item), Qty: it.Qty})
 	}
 	return r
 }
@@ -227,7 +229,7 @@ func (h *MissionsHandler) Board(ctx context.Context, meta envelope.Metadata, req
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.MissionBoardView
+	var view plife.MissionBoardView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -268,13 +270,13 @@ func (h *MissionsHandler) Board(ctx context.Context, meta envelope.Metadata, req
 			if _, ok := w.cmap.Find(b.Place); !ok && w.placed() {
 				continue
 			}
-			view.Boards = append(view.Boards, screens.MissionBoardRef{Code: b.Code, Name: b.Name, Place: placeNamed(snap, b.Place), Open: open})
+			view.Boards = append(view.Boards, plife.MissionBoardRef{Code: b.Code, Name: b.Name, Place: placeNamed(snap, b.Place), Open: open})
 		}
 		board, ok := snap.MissionBoard(strings.TrimSpace(req.Board))
 		if !ok || !reaches("mission_board", board.Code) {
 			return nil
 		}
-		view.Board = &screens.MissionBoardRef{Code: board.Code, Name: board.Name, Place: placeNamed(snap, board.Place)}
+		view.Board = &plife.MissionBoardRef{Code: board.Code, Name: board.Name, Place: placeNamed(snap, board.Place)}
 		view.Here = !w.placed() || w.here.Code == board.Place
 		now := h.now()
 		hs, active, err := h.history(ctx, tx, p, now)
@@ -283,7 +285,7 @@ func (h *MissionsHandler) Board(ctx context.Context, meta envelope.Metadata, req
 		}
 		for _, def := range posted(board.Code) {
 			why, left := h.availability(def, hs, active, now)
-			view.Missions = append(view.Missions, screens.MissionLine{Mission: named(def.Code, def.Name),
+			view.Missions = append(view.Missions, plife.MissionLine{Mission: named(def.Code, def.Name),
 				Reward: missionReward(snap, def), Blocked: why, Wait: left, Repeatable: def.Repeat == content.RepeatAgain,
 				Objectives: missionObjectives(snap, def, nil)})
 		}
@@ -292,7 +294,7 @@ func (h *MissionsHandler) Board(ctx context.Context, meta envelope.Metadata, req
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.MissionBoard(h.screen(meta, lang), view), nil
+	return plife.MissionBoard(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // View handles mission.view: one mission — what it asks, gives and needs.
@@ -302,7 +304,7 @@ func (h *MissionsHandler) View(ctx context.Context, meta envelope.Metadata, req 
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.MissionView
+	var view plife.MissionView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -311,7 +313,7 @@ func (h *MissionsHandler) View(ctx context.Context, meta envelope.Metadata, req 
 		lang = RenderLanguage(meta, p)
 		def, ok := snap.MissionDef(strings.TrimSpace(req.Mission))
 		if !ok {
-			return refuseMission(screens.MissionRefusedNotFound)
+			return refuseMission(plife.MissionRefusedNotFound)
 		}
 		now := h.now()
 		hs, active, err := h.history(ctx, tx, p, now)
@@ -320,7 +322,7 @@ func (h *MissionsHandler) View(ctx context.Context, meta envelope.Metadata, req 
 		}
 		why, left := h.availability(def, hs, active, now)
 		board, _ := snap.MissionBoard(def.Board)
-		view = screens.MissionView{Mission: named(def.Code, def.Name), Board: screens.MissionBoardRef{Code: board.Code,
+		view = plife.MissionView{Mission: named(def.Code, def.Name), Board: plife.MissionBoardRef{Code: board.Code,
 			Name: board.Name, Place: placeNamed(snap, board.Place)}, Objectives: missionObjectives(snap, def, nil),
 			Reward: missionReward(snap, def), MinLevel: def.MinLevel, Blocked: why, Wait: left,
 			Repeatable: def.Repeat == content.RepeatAgain, Max: h.rules.MaxActive}
@@ -341,7 +343,7 @@ func (h *MissionsHandler) View(ctx context.Context, meta envelope.Metadata, req 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Mission(h.screen(meta, lang), view), nil
+	return plife.Mission(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Accept handles mission.accept: taking a mission, at its board. Only what
@@ -364,7 +366,7 @@ func (h *MissionsHandler) Accept(ctx context.Context, meta envelope.Metadata, re
 		lang = RenderLanguage(meta, p)
 		def, ok := snap.MissionDef(strings.TrimSpace(req.Mission))
 		if !ok {
-			return refuseMission(screens.MissionRefusedNotFound)
+			return refuseMission(plife.MissionRefusedNotFound)
 		}
 		fresh, err := tx.Idempotency().Reserve(ctx, string(idempotency.Derive(p.ID, meta.RequestID, meta.IdempotencyKey)),
 			p.ID, meta.RequestID, meta.Command, h.idempotencyTTL)
@@ -387,13 +389,13 @@ func (h *MissionsHandler) Accept(ctx context.Context, meta envelope.Metadata, re
 			return application.ErrCityNotFound
 		}
 		if len(def.Cities) > 0 && !containsString(def.Cities, w.city.Code) {
-			return refuseMission(screens.MissionRefusedNotHere)
+			return refuseMission(plife.MissionRefusedNotHere)
 		}
 		board, _ := snap.MissionBoard(def.Board)
 		if _, err := tx.Settlements().ByID(ctx, w.city.ID); err == nil {
 			// a settlement takes only the missions its stage reaches
 			if !stageReaches(snap, "mission", def.Code, w.city.Tier) || !stageReaches(snap, "mission_board", board.Code, w.city.Tier) {
-				return refuseMission(screens.MissionRefusedNotHere)
+				return refuseMission(plife.MissionRefusedNotHere)
 			}
 		} else if !isSentinel(err, application.ErrCityNotFound) {
 			return err
@@ -401,7 +403,7 @@ func (h *MissionsHandler) Accept(ctx context.Context, meta envelope.Metadata, re
 		if w.placed() {
 			target, ok := w.cmap.Find(board.Place)
 			if !ok {
-				return refuseMission(screens.MissionRefusedNotHere)
+				return refuseMission(plife.MissionRefusedNotHere)
 			}
 			if err := needAt(w, snap, target, "place.need.board", map[string]any{"board": board.Name}, h.scale, now); err != nil {
 				return thenFor(err, "mission.board", board.Code)
@@ -412,7 +414,7 @@ func (h *MissionsHandler) Accept(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		if why, left := h.availability(def, hs, active, now); why != mission.BlockedNone {
-			r := refuseMission(screens.MissionRefusedBlocked)
+			r := refuseMission(plife.MissionRefusedBlocked)
 			r.view.Blocked, r.view.Wait, r.view.Level, r.view.Max = why, left, def.MinLevel, h.rules.MaxActive
 			return r
 		}
@@ -423,7 +425,7 @@ func (h *MissionsHandler) Accept(ctx context.Context, meta envelope.Metadata, re
 		}
 		a, err = tx.Missions().Accept(ctx, a)
 		if isSentinel(err, application.ErrMissionActive) {
-			r := refuseMission(screens.MissionRefusedBlocked)
+			r := refuseMission(plife.MissionRefusedBlocked)
 			r.view.Blocked = mission.BlockedActive
 			return r
 		}
@@ -440,7 +442,7 @@ func (h *MissionsHandler) Accept(ctx context.Context, meta envelope.Metadata, re
 	if replayed || taken == nil {
 		return h.Mine(ctx, meta)
 	}
-	return h.mineWith(ctx, meta, &screens.MissionNotice{Kind: screens.MissionNoticeAccepted,
+	return h.mineWith(ctx, meta, &plife.MissionNotice{Kind: plife.MissionNoticeAccepted,
 		Mission: named(taken.Mission, missionName(snap, taken.Mission))})
 }
 
@@ -465,13 +467,13 @@ func (h *MissionsHandler) Mine(ctx context.Context, meta envelope.Metadata) (*pr
 	return h.mineWith(ctx, meta, nil)
 }
 
-func (h *MissionsHandler) mineWith(ctx context.Context, meta envelope.Metadata, notice *screens.MissionNotice) (*presenter.Response, error) {
+func (h *MissionsHandler) mineWith(ctx context.Context, meta envelope.Metadata, notice *plife.MissionNotice) (*presenter.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	view := screens.MissionsMineView{Notice: notice, Max: h.rules.MaxActive}
+	view := plife.MissionsMineView{Notice: notice, Max: h.rules.MaxActive}
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -488,7 +490,7 @@ func (h *MissionsHandler) mineWith(ctx context.Context, meta envelope.Metadata, 
 			if !ok {
 				continue
 			}
-			line := screens.MissionProgressLine{No: a.No, Mission: named(def.Code, def.Name), Status: a.Status,
+			line := plife.MissionProgressLine{No: a.No, Mission: named(def.Code, def.Name), Status: a.Status,
 				Objectives: missionObjectives(snap, def, a.Progress), Cash: a.RewardCash, Withheld: a.RewardWithheld}
 			if a.Status == application.MissionActive {
 				if mission.Expired(a.ExpiresAt, now) {
@@ -511,7 +513,7 @@ func (h *MissionsHandler) mineWith(ctx context.Context, meta envelope.Metadata, 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.MissionsMine(h.screen(meta, lang), view), nil
+	return plife.MissionsMine(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // assignment reads one of the player's missions by the number a press
@@ -519,14 +521,14 @@ func (h *MissionsHandler) mineWith(ctx context.Context, meta envelope.Metadata, 
 func (h *MissionsHandler) assignment(ctx context.Context, tx application.Tx, playerID, raw string) (*application.MissionAssignment, error) {
 	no, err := strconv.ParseInt(strings.TrimSpace(raw), 10, 64)
 	if err != nil || no <= 0 {
-		return nil, refuseMission(screens.MissionRefusedNotFound)
+		return nil, refuseMission(plife.MissionRefusedNotFound)
 	}
 	if err := tx.Missions().Lock(ctx, playerID); err != nil {
 		return nil, err
 	}
 	a, err := tx.Missions().ByNo(ctx, playerID, no)
 	if isSentinel(err, application.ErrMissionNotFound) {
-		return nil, refuseMission(screens.MissionRefusedNotFound)
+		return nil, refuseMission(plife.MissionRefusedNotFound)
 	}
 	return a, err
 }
@@ -540,7 +542,7 @@ func (h *MissionsHandler) Deliver(ctx context.Context, meta envelope.Metadata, r
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var notice *screens.MissionNotice
+	var notice *plife.MissionNotice
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -559,7 +561,7 @@ func (h *MissionsHandler) Deliver(ctx context.Context, meta envelope.Metadata, r
 		now := h.now()
 		def, ok := snap.MissionDef(a.Mission)
 		if !ok || a.Status != application.MissionActive {
-			return refuseMission(screens.MissionRefusedNotActive)
+			return refuseMission(plife.MissionRefusedNotActive)
 		}
 		if mission.Expired(a.ExpiresAt, now) {
 			return h.expire(ctx, tx, a, now)
@@ -570,7 +572,7 @@ func (h *MissionsHandler) Deliver(ctx context.Context, meta envelope.Metadata, r
 		}
 		board, _ := snap.MissionBoard(a.Board)
 		if w.city == nil || w.city.ID != a.CityID {
-			return refuseMission(screens.MissionRefusedNotHere)
+			return refuseMission(plife.MissionRefusedNotHere)
 		}
 		if w.placed() {
 			if target, ok := w.cmap.Find(board.Place); ok {
@@ -615,7 +617,7 @@ func (h *MissionsHandler) Deliver(ctx context.Context, meta envelope.Metadata, r
 				From: p.ID, FromHolding: application.HoldCarried, Reason: application.ItemMissionDelivery,
 				ReferenceType: application.MissionReference, ReferenceID: a.ID, At: now}); err != nil {
 				if isSentinel(err, application.ErrNotEnoughItems) {
-					return refuseMission(screens.MissionRefusedNothingToDeliver)
+					return refuseMission(plife.MissionRefusedNothingToDeliver)
 				}
 				return err
 			}
@@ -627,18 +629,18 @@ func (h *MissionsHandler) Deliver(ctx context.Context, meta envelope.Metadata, r
 			}
 		}
 		if delivered == 0 {
-			return refuseMission(screens.MissionRefusedNothingToDeliver)
+			return refuseMission(plife.MissionRefusedNothingToDeliver)
 		}
 		a.Progress = progress
 		if !mission.Done(m.Objectives, progress) {
-			notice = &screens.MissionNotice{Kind: screens.MissionNoticeDelivered, Mission: named(def.Code, def.Name), Qty: delivered}
+			notice = &plife.MissionNotice{Kind: plife.MissionNoticeDelivered, Mission: named(def.Code, def.Name), Qty: delivered}
 			return tx.Missions().SaveProgress(ctx, a.ID, progress)
 		}
 		done, err := h.complete(ctx, tx, snap, meta, a, def, now)
 		if err != nil {
 			return err
 		}
-		notice = &screens.MissionNotice{Kind: screens.MissionNoticeCompleted, Mission: named(def.Code, def.Name),
+		notice = &plife.MissionNotice{Kind: plife.MissionNoticeCompleted, Mission: named(def.Code, def.Name),
 			Cash: done.RewardCash, Withheld: done.RewardWithheld, XP: done.RewardXP}
 		return nil
 	})
@@ -663,8 +665,8 @@ func (h *MissionsHandler) Abandon(ctx context.Context, meta envelope.Metadata, r
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		confirm *screens.MissionView
-		notice  *screens.MissionNotice
+		confirm *plife.MissionView
+		notice  *plife.MissionNotice
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -672,7 +674,7 @@ func (h *MissionsHandler) Abandon(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		lang = RenderLanguage(meta, p)
-		yes := strings.TrimSpace(req.Confirm) == screens.MissionYes
+		yes := strings.TrimSpace(req.Confirm) == plife.MissionYes
 		if yes {
 			fresh, err := tx.Idempotency().Reserve(ctx, string(idempotency.Derive(p.ID, meta.RequestID, meta.IdempotencyKey)),
 				p.ID, meta.RequestID, meta.Command, h.idempotencyTTL)
@@ -685,23 +687,23 @@ func (h *MissionsHandler) Abandon(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		if a.Status != application.MissionActive {
-			return refuseMission(screens.MissionRefusedNotActive)
+			return refuseMission(plife.MissionRefusedNotActive)
 		}
 		def, _ := snap.MissionDef(a.Mission)
 		if !yes {
-			confirm = &screens.MissionView{Mission: named(a.Mission, def.Name), No: a.No, Abandoning: true}
+			confirm = &plife.MissionView{Mission: named(a.Mission, def.Name), No: a.No, Abandoning: true}
 			return nil
 		}
 		now := h.now()
 		a.Status, a.EndedAt = application.MissionAbandoned, &now
-		notice = &screens.MissionNotice{Kind: screens.MissionNoticeAbandoned, Mission: named(a.Mission, def.Name)}
+		notice = &plife.MissionNotice{Kind: plife.MissionNoticeAbandoned, Mission: named(a.Mission, def.Name)}
 		return tx.Missions().End(ctx, *a)
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
 	if confirm != nil {
-		return screens.Mission(h.screen(meta, lang), *confirm), nil
+		return plife.Mission(presentation.Ctx{Lang: lang}, *confirm), nil
 	}
 	return h.mineWith(ctx, meta, notice)
 }
@@ -712,7 +714,7 @@ func (h *MissionsHandler) expire(ctx context.Context, tx application.Tx, a *appl
 	if err := tx.Missions().End(ctx, *a); err != nil && !isSentinel(err, application.ErrMissionNotFound) {
 		return err
 	}
-	return refuseMission(screens.MissionRefusedExpired)
+	return refuseMission(plife.MissionRefusedExpired)
 }
 
 // dayStart is the start of the UTC day at now: the caps' day.

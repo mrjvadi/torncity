@@ -279,8 +279,29 @@ func (b *Bridge) Run(ctx context.Context, pr Principal, req CommandRequest) (Scr
 			}
 		}
 	}
+	if b.LegacyText != nil && !b.legacyFor(out.Screen) {
+		// The compatibility period is over for this screen: whatever Telegram
+		// wording a handler still produced stays at the Telegram edge.
+		stripTelegramText(&out)
+	}
 	out.RequestID = requestID
 	return out, nil
+}
+
+// stripTelegramText removes the Telegram-rendered text and labels from a
+// screen: the client words every screen from its view and its actions.
+func stripTelegramText(s *Screen) {
+	s.Text = ""
+	for i := range s.Actions {
+		s.Actions[i].Label = ""
+		s.Actions[i].Row = nil
+	}
+	if s.Error != nil {
+		s.Error.Message = ""
+	}
+	if s.Notice != nil {
+		s.Notice.Text = ""
+	}
 }
 
 // askAddress is the callback data of the Telegram button an input action

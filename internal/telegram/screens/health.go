@@ -26,14 +26,6 @@ const (
 // TreatCity names the city hospital in a treatment's address.
 const TreatCity = application.ProviderCity
 
-// InjuryView is an injury as a screen reports it: what it took, where it
-// left the player, and whether it put them in hospital.
-type InjuryView struct {
-	Damage, Health, Max int
-	Hospital            bool
-	EndsAt              time.Time
-}
-
 // injuryLines are an injury's lines on another screen: a crime's result, a
 // shift's end, a strike's notice.
 func (c Context) injuryLines(v *InjuryView) string {
@@ -48,24 +40,7 @@ func (c Context) injuryLines(v *InjuryView) string {
 	return body(c.T("health.injury.hospital", args), clockLine(c, "health.discharge_at", v.EndsAt))
 }
 
-// TreatOption is one way to be treated: the city hospital or a clinic.
-type TreatOption struct {
-	// Provider is application.ProviderCity or ProviderClinic; Clinic names
-	// the clinic.
-	Provider string
-	Clinic   CompanyRef
-	Price    int64
-	// Saves is the real time a treatment would take off the stay.
-	Saves time.Duration
-	// Doctor is the clinic's best medicine skill; Stock its units of
-	// medicine; Open whether it takes patients.
-	Doctor   int
-	Stock    int64
-	Open     bool
-	CanTreat bool
-}
-
-func (o TreatOption) address() string {
+func treatAddress(o TreatOption) string {
 	if o.Provider == application.ProviderClinic {
 		return o.Clinic.Code
 	}
@@ -78,26 +53,6 @@ func (c Context) providerName(o TreatOption) string {
 		return c.T("health.clinic_name", map[string]any{"name": o.Clinic.Name, "code": o.Clinic.Code})
 	}
 	return c.T("health.city_hospital", nil)
-}
-
-// HospitalView is the hospital screen.
-type HospitalView struct {
-	Health, Max int
-	// FullIn is how long rest takes to bring health back in full, out of
-	// hospital; zero when it is full or nothing comes back at rest.
-	FullIn         time.Duration
-	CityCode, City string
-	InHospital     bool
-	Cause          string
-	Remaining      time.Duration
-	EndsAt         time.Time
-	// Treated says the stay was treated, by TreatedBy.
-	Treated   bool
-	TreatedBy TreatOption
-	// CityHospital is the city hospital's offer, nil when there is none to
-	// make (not in hospital, or treated).
-	CityHospital *TreatOption
-	Clinics      []TreatOption
 }
 
 // Hospital renders the hospital screen.
@@ -142,7 +97,7 @@ func renderHospital(c Context, v HospitalView) *presenter.Response {
 			}
 			label := c.T("health.button.treat", map[string]any{"provider": c.providerName(o),
 				"price": FormatMoney(c, o.Price), "saves": FormatDuration(c, o.Saves)})
-			if btn, ok := keyboards.Button(label, AddrTreat, o.address()); ok {
+			if btn, ok := keyboards.Button(label, AddrTreat, treatAddress(o)); ok {
 				kb.Row(btn)
 			}
 		}
@@ -185,17 +140,6 @@ func (c Context) clinicLine(o TreatOption) string {
 	return c.T("health.clinic_line", args)
 }
 
-// TreatConfirmView is a treatment's price, before it is paid.
-type TreatConfirmView struct {
-	Option TreatOption
-	// Remaining is the stay left now; EndsAt when it would end after.
-	Remaining time.Duration
-	EndsAt    time.Time
-	// Payment is how it can be paid; nil for a free treatment, which has a
-	// plain confirm button.
-	Payment *PaymentChoice
-}
-
 // TreatConfirm renders a treatment's price and the ways to pay it.
 func TreatConfirm(c Context, v TreatConfirmView) *presenter.Response {
 	return c.withView(renderTreatConfirm(c, v), ScreenTreatConfirm, v)
@@ -211,12 +155,12 @@ func renderTreatConfirm(c Context, v TreatConfirmView) *presenter.Response {
 	var pay string
 	switch {
 	case v.Payment == nil:
-		if btn, ok := keyboards.Button(c.T("health.button.confirm_free", nil), AddrTreat, v.Option.address(), MethodFree); ok {
+		if btn, ok := keyboards.Button(c.T("health.button.confirm_free", nil), AddrTreat, treatAddress(v.Option), MethodFree); ok {
 			kb.Row(btn)
 		}
 	case len(v.Payment.Usable) > 0:
 		pay = body(c.T("health.pay_how", nil), c.paymentNote(*v.Payment))
-		c.paymentButtons(kb, *v.Payment, func(m string) []string { return []string{AddrTreat, v.Option.address(), m} })
+		c.paymentButtons(kb, *v.Payment, func(m string) []string { return []string{AddrTreat, treatAddress(v.Option), m} })
 	default:
 		pay = body(c.T("payment.cannot_afford", nil), c.paymentNote(*v.Payment))
 		if btn, ok := keyboards.Button(c.T("button.bank", nil), AddrBank); ok {
@@ -225,21 +169,6 @@ func renderTreatConfirm(c Context, v TreatConfirmView) *presenter.Response {
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHospital}))
 	return c.respond(paragraphs(text, pay), kb.Build()).MarkPrivate()
-}
-
-// MethodFree is the method a free treatment is confirmed with.
-const MethodFree = "free"
-
-// TreatedView is a treatment given.
-type TreatedView struct {
-	Option TreatOption
-	Paid   int64
-	Method string
-	// Saved is what it took off the stay; Remaining and EndsAt the stay
-	// left.
-	Saved     time.Duration
-	Remaining time.Duration
-	EndsAt    time.Time
 }
 
 // Treated renders a treatment given.
@@ -258,24 +187,6 @@ func renderTreated(c Context, v TreatedView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrHospital}))
 	return c.respond(body(lines...), kb.Build()).MarkPrivate()
-}
-
-// ClinicDeskView is a clinic's desk, for its owner and manager.
-type ClinicDeskView struct {
-	Ref   CompanyRef
-	Price int64
-	Open  bool
-	// Stock is its units of medicine; Stocked whether it has enough for a
-	// treatment, which takes Units.
-	Stock   int64
-	Stocked bool
-	Units   int
-	// Doctor is its best medicine skill; ReductionBPS what a treatment
-	// takes off a stay with that doctor.
-	Doctor       int
-	ReductionBPS int
-	Treated      int
-	Earned       int64
 }
 
 // ClinicDesk renders a clinic's desk.
@@ -392,21 +303,6 @@ func renderClinicTreatedNotice(c Context, v ClinicTreatedNoticeView) *presenter.
 func HospitalisedLine(c Context, player, cityCode, city string) string {
 	return c.T("health.announce.hospitalised", map[string]any{"player": player, "city": c.CityName(cityCode, city)})
 }
-
-// Health refusal kinds.
-const (
-	HealthRefusedNoHospitals     = "no_hospitals"
-	HealthRefusedNotHospitalised = "not_hospitalised"
-	HealthRefusedTreated         = "treated"
-	HealthRefusedNoClinic        = "no_clinic"
-	HealthRefusedElsewhere       = "elsewhere"
-	HealthRefusedClosed          = "closed"
-	HealthRefusedNoMedicine      = "no_medicine"
-	HealthRefusedNotYours        = "not_yours"
-)
-
-// HealthRefusalView is a refused health request.
-type HealthRefusalView struct{ Kind string }
 
 // HealthRefusal renders a refused health request, with the way back.
 func HealthRefusal(c Context, v HealthRefusalView) *presenter.Response {

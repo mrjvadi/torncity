@@ -33,7 +33,7 @@ type JobRequest struct {
 }
 
 // QuitRequest is job.quit's payload: empty asks for confirmation, and
-// screens.QuitConfirmation confirms.
+// plife.QuitConfirmation confirms.
 type QuitRequest struct {
 	Confirm string `json:"confirm,omitempty"`
 }
@@ -159,7 +159,7 @@ func (h *JobsHandler) Status(ctx context.Context, meta envelope.Metadata) (*pres
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.JobStatusView
+	var view plife.JobStatusView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -173,52 +173,52 @@ func (h *JobsHandler) Status(ctx context.Context, meta envelope.Metadata) (*pres
 	if err != nil || resp != nil {
 		return resp, err
 	}
-	return screens.JobStatus(h.screen(meta, lang), view), nil
+	return plife.JobStatus(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // statusView builds the job screen inside a transaction.
-func (h *JobsHandler) statusView(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player) (screens.JobStatusView, error) {
+func (h *JobsHandler) statusView(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player) (plife.JobStatusView, error) {
 	emp, err := tx.Employment().Current(ctx, p.ID)
 	if isSentinel(err, application.ErrNotEmployed) {
 		// No job, but the player still has energy: a client that patches its
 		// status bar from this screen must not read it as 0 of 0.
 		row, err := tx.Stats().EnsureDefaults(ctx, p.ID, defaultStats(p.ID, h.now()))
 		if err != nil {
-			return screens.JobStatusView{}, err
+			return plife.JobStatusView{}, err
 		}
 		st, _ := regenerateEnergy(*row, h.now())
-		return screens.JobStatusView{Energy: st.Energy, MaxEnergy: st.MaxEnergy}, nil
+		return plife.JobStatusView{Energy: st.Energy, MaxEnergy: st.MaxEnergy}, nil
 	}
 	if err != nil {
-		return screens.JobStatusView{}, err
+		return plife.JobStatusView{}, err
 	}
 	def, career, err := careerOf(snap, emp.CareerCode)
 	if err != nil {
-		return screens.JobStatusView{}, err
+		return plife.JobStatusView{}, err
 	}
 	city, err := h.cities.ByID(ctx, emp.CityID)
 	if err != nil {
-		return screens.JobStatusView{}, err
+		return plife.JobStatusView{}, err
 	}
 	pol, err := readLabourPolicy(ctx, h.policy, *city)
 	if err != nil {
-		return screens.JobStatusView{}, err
+		return plife.JobStatusView{}, err
 	}
 	now := h.now()
 	s, err := loadStanding(ctx, tx, p, now)
 	if err != nil {
-		return screens.JobStatusView{}, err
+		return plife.JobStatusView{}, err
 	}
 	shift, err := activeShift(ctx, tx, p.ID)
 	if err != nil {
-		return screens.JobStatusView{}, err
+		return plife.JobStatusView{}, err
 	}
 	tier := career.Tiers[emp.Tier]
 	employer, err := employerOf(ctx, tx, *emp)
 	if err != nil {
-		return screens.JobStatusView{}, err
+		return plife.JobStatusView{}, err
 	}
-	view := screens.JobStatusView{
+	view := plife.JobStatusView{
 		Employed:     true,
 		Employer:     employer.name(),
 		Job:          jobRef(def, emp.Tier),
@@ -236,7 +236,7 @@ func (h *JobsHandler) statusView(ctx context.Context, tx application.Tx, snap *c
 		ShiftLength:  h.scale.RealWait(tier.ShiftDuration),
 	}
 	if shift != nil {
-		view.Shift = &screens.ShiftProgress{
+		view.Shift = &plife.ShiftProgress{
 			Remaining: domainActivity(*shift).Remaining(now),
 			EndsAt:    shift.EndsAt,
 		}
@@ -246,7 +246,7 @@ func (h *JobsHandler) statusView(ctx context.Context, tx application.Tx, snap *c
 	if view.AtWorkplace && shift == nil {
 		w, err := locate(ctx, tx, h.cities, snap, p)
 		if err != nil {
-			return screens.JobStatusView{}, err
+			return plife.JobStatusView{}, err
 		}
 		if w.placed() && w.city.ID == emp.CityID && w.walk == nil {
 			if wp, ok := employer.workplace(snap, w.cmap, def.Category); ok {
@@ -266,7 +266,7 @@ func (h *JobsHandler) statusView(ctx context.Context, tx application.Tx, snap *c
 		default:
 			missing, known := shortfalls(snap, reason, *city)
 			if !known {
-				return screens.JobStatusView{}, errors.Internal(reason)
+				return plife.JobStatusView{}, errors.Internal(reason)
 			}
 			view.Missing = missing
 		}
@@ -283,7 +283,7 @@ func (h *JobsHandler) List(ctx context.Context, meta envelope.Metadata, req Page
 	snap := h.content.Current()
 	lang := meta.Language
 	page := parsePage(req.Page)
-	var view screens.JobOpeningsView
+	var view plife.JobOpeningsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -295,7 +295,7 @@ func (h *JobsHandler) List(ctx context.Context, meta envelope.Metadata, req Page
 			return err
 		}
 		if s.travelling || s.here() == "" {
-			view = screens.JobOpeningsView{Travelling: true}
+			view = plife.JobOpeningsView{Travelling: true}
 			return nil
 		}
 		city, err := h.cities.ByID(ctx, s.here())
@@ -306,7 +306,7 @@ func (h *JobsHandler) List(ctx context.Context, meta envelope.Metadata, req Page
 		if err != nil {
 			return err
 		}
-		view = screens.JobOpeningsView{CityCode: city.Code, City: city.Name}
+		view = plife.JobOpeningsView{CityCode: city.Code, City: city.Name}
 		if emp, err := tx.Employment().Current(ctx, p.ID); err == nil {
 			view.Employed = true
 			if def, ok := snap.CareerDef(emp.CareerCode); ok {
@@ -316,7 +316,7 @@ func (h *JobsHandler) List(ctx context.Context, meta envelope.Metadata, req Page
 			return err
 		}
 
-		var all []screens.JobOpening
+		var all []plife.JobOpening
 		for _, def := range snap.Careers() {
 			if !def.OfferedIn(city.Code) {
 				continue
@@ -325,7 +325,7 @@ func (h *JobsHandler) List(ctx context.Context, meta envelope.Metadata, req Page
 			if !ok {
 				continue
 			}
-			all = append(all, screens.JobOpening{
+			all = append(all, plife.JobOpening{
 				Job:      jobRef(def, 0),
 				Pay:      entryRate(career, pol.Policy).Minor(),
 				Eligible: job.Eligibility(career, 0, s.candidate(city.ID)) == nil,
@@ -344,7 +344,7 @@ func (h *JobsHandler) List(ctx context.Context, meta envelope.Metadata, req Page
 				if !ok || !ok2 {
 					continue
 				}
-				view.Companies = append(view.Companies, screens.CompanyJobOpening{
+				view.Companies = append(view.Companies, plife.CompanyJobOpening{
 					No: o.Opening.No, Company: o.Company.Name, Job: jobRef(def, 0),
 					Pay:      max(o.Opening.Wage, pol.MinimumWage.Minor()),
 					Eligible: job.Eligibility(career, 0, s.candidate(city.ID)) == nil,
@@ -359,7 +359,7 @@ func (h *JobsHandler) List(ctx context.Context, meta envelope.Metadata, req Page
 	if err != nil {
 		return nil, err
 	}
-	return screens.JobOpenings(h.screen(meta, lang), view), nil
+	return plife.JobOpenings(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // View handles job.view: one opening, its requirements, and the apply
@@ -370,7 +370,7 @@ func (h *JobsHandler) View(ctx context.Context, meta envelope.Metadata, req JobR
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.JobDetailView
+	var view plife.JobDetailView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -394,7 +394,7 @@ func (h *JobsHandler) View(ctx context.Context, meta envelope.Metadata, req JobR
 		if empErr != nil && !isSentinel(empErr, application.ErrNotEmployed) {
 			return empErr
 		}
-		view = screens.JobDetailView{
+		view = plife.JobDetailView{
 			Job:          jobRef(def, 0),
 			CityCode:     city.Code,
 			City:         city.Name,
@@ -410,13 +410,13 @@ func (h *JobsHandler) View(ctx context.Context, meta envelope.Metadata, req JobR
 	if err != nil || resp != nil {
 		return resp, err
 	}
-	return screens.JobDetail(h.screen(meta, lang), view), nil
+	return plife.JobDetail(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // opening finds a career the base employer of the player's city hires into.
 func (h *JobsHandler) opening(ctx context.Context, snap *content.Snapshot, s standing, code string) (*application.City, content.CareerDef, job.Career, error) {
 	if s.travelling || s.here() == "" {
-		return nil, content.CareerDef{}, job.Career{}, refuse(screens.RefusalJobNotOffered, nil)
+		return nil, content.CareerDef{}, job.Career{}, refuse(plife.RefusalJobNotOffered, nil)
 	}
 	city, err := h.cities.ByID(ctx, s.here())
 	if err != nil {
@@ -424,11 +424,11 @@ func (h *JobsHandler) opening(ctx context.Context, snap *content.Snapshot, s sta
 	}
 	def, ok := snap.CareerDef(code)
 	if !ok || !def.OfferedIn(city.Code) {
-		return nil, content.CareerDef{}, job.Career{}, refuse(screens.RefusalJobNotOffered, nil)
+		return nil, content.CareerDef{}, job.Career{}, refuse(plife.RefusalJobNotOffered, nil)
 	}
 	career, ok := snap.Career(code)
 	if !ok {
-		return nil, content.CareerDef{}, job.Career{}, refuse(screens.RefusalJobNotOffered, nil)
+		return nil, content.CareerDef{}, job.Career{}, refuse(plife.RefusalJobNotOffered, nil)
 	}
 	return city, def, career, nil
 }
@@ -453,7 +453,7 @@ func (h *JobsHandler) Apply(ctx context.Context, meta envelope.Metadata, req Job
 	snap := h.content.Current()
 	lang := meta.Language
 	replayed := false
-	var view screens.JobHiredView
+	var view plife.JobHiredView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -471,7 +471,7 @@ func (h *JobsHandler) Apply(ctx context.Context, meta envelope.Metadata, req Job
 		}
 
 		if _, err := tx.Employment().Current(ctx, p.ID); err == nil {
-			return refuse(screens.RefusalAlreadyEmployed, nil)
+			return refuse(plife.RefusalAlreadyEmployed, nil)
 		} else if !isSentinel(err, application.ErrNotEmployed) {
 			return err
 		}
@@ -491,7 +491,7 @@ func (h *JobsHandler) Apply(ctx context.Context, meta envelope.Metadata, req Job
 		hired, err := job.Hire(career, 0, s.candidate(city.ID), rate, pol.Policy, h.now())
 		if err != nil {
 			if missing, ok := shortfalls(snap, err, *city); ok {
-				return refuse(screens.RefusalJobRequirements, missing)
+				return refuse(plife.RefusalJobRequirements, missing)
 			}
 			return errors.Internal(err)
 		}
@@ -511,7 +511,7 @@ func (h *JobsHandler) Apply(ctx context.Context, meta envelope.Metadata, req Job
 			UpdatedAt:   now,
 		}); err != nil {
 			if isSentinel(err, application.ErrAlreadyEmployed) {
-				return refuse(screens.RefusalAlreadyEmployed, nil)
+				return refuse(plife.RefusalAlreadyEmployed, nil)
 			}
 			return err
 		}
@@ -530,7 +530,7 @@ func (h *JobsHandler) Apply(ctx context.Context, meta envelope.Metadata, req Job
 		}); err != nil {
 			return err
 		}
-		view = screens.JobHiredView{Job: jobRef(def, 0), CityCode: city.Code, City: city.Name, Pay: hired.Rate.Minor()}
+		view = plife.JobHiredView{Job: jobRef(def, 0), CityCode: city.Code, City: city.Name, Pay: hired.Rate.Minor()}
 		return nil
 	})
 	resp, err := h.finish(meta, lang, nil, err)
@@ -540,7 +540,7 @@ func (h *JobsHandler) Apply(ctx context.Context, meta envelope.Metadata, req Job
 	if replayed {
 		return h.Status(ctx, meta)
 	}
-	return screens.JobHired(h.screen(meta, lang), view), nil
+	return plife.JobHired(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Work handles job.work: STARTING one shift.
@@ -565,10 +565,10 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 	lang := meta.Language
 	replayed := false
 	var (
-		view screens.ShiftStartedView
+		view plife.ShiftStartedView
 		// walk is set when the player was elsewhere in the city: they walk
 		// to the workplace, and the shift starts on arrival.
-		walk *screens.WalkStartedView
+		walk *plife.WalkStartedView
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
@@ -590,7 +590,7 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 		// sees the shift the first one began.
 		emp, err := tx.Employment().Current(ctx, p.ID)
 		if isSentinel(err, application.ErrNotEmployed) {
-			return refuse(screens.RefusalNotEmployed, nil)
+			return refuse(plife.RefusalNotEmployed, nil)
 		}
 		if err != nil {
 			return err
@@ -630,7 +630,7 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 			return err
 		}
 		if s.travelling || s.here() != emp.CityID {
-			r := refuse(screens.RefusalNotAtWorkplace, nil).(*refusal)
+			r := refuse(plife.RefusalNotAtWorkplace, nil).(*refusal)
 			r.view.CityCode, r.view.City = city.Code, city.Name
 			return r
 		}
@@ -701,7 +701,7 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 				return err
 			}
 			if fund == nil || fund.Balance.Minor() < reserve {
-				return refuse(screens.RefusalArmyCannotPay, nil)
+				return refuse(plife.RefusalArmyCannotPay, nil)
 			}
 		}
 		// A shift is worked at the workplace: the place of the company's
@@ -769,7 +769,7 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 			WageReserved: reserve,
 		}); err != nil {
 			if isSentinel(err, application.ErrShiftInProgress) {
-				return refuse(screens.RefusalShiftInProgress, nil)
+				return refuse(plife.RefusalShiftInProgress, nil)
 			}
 			return err
 		}
@@ -786,7 +786,7 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 		}); err != nil {
 			return err
 		}
-		view = screens.ShiftStartedView{
+		view = plife.ShiftStartedView{
 			Job:        jobRef(def, emp.Tier),
 			Duration:   a.EndsAt.Sub(a.StartedAt),
 			EndsAt:     a.EndsAt,
@@ -806,7 +806,7 @@ func (h *JobsHandler) Work(ctx context.Context, meta envelope.Metadata) (*presen
 	if walk != nil {
 		return screens.WalkStarted(h.screen(meta, lang), *walk), nil
 	}
-	return screens.ShiftStarted(h.screen(meta, lang), view), nil
+	return plife.ShiftStarted(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // workplaceAway returns the workplace of a career category in the player's
@@ -921,7 +921,7 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 
 	snap := h.content.Current()
 	var (
-		view     screens.ShiftWorkedView
+		view     plife.ShiftWorkedView
 		done     bool
 		language = meta.Language
 	)
@@ -1118,7 +1118,7 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 		}
 
 		done = true
-		view = screens.ShiftWorkedView{
+		view = plife.ShiftWorkedView{
 			Gross:            pay.Gross.Minor(),
 			Tax:              pay.Tax.Minor(),
 			Net:              pay.Net.Minor(),
@@ -1137,7 +1137,7 @@ func (h *JobsHandler) FinishShift(ctx context.Context, meta envelope.Metadata, r
 	if err != nil || !done {
 		return nil, err
 	}
-	return screens.ShiftWorked(screens.Context{Msgs: h.msgs, Lang: language}, view), nil
+	return plife.ShiftWorked(presentation.Ctx{Lang: language}, view), nil
 }
 
 // activeShift returns the shift the player is working, or nil.
@@ -1156,7 +1156,7 @@ func domainActivity(s application.ShiftSession) job.Activity {
 
 // shiftRefusal is "you are at work", with the time the shift has left.
 func shiftRefusal(s application.ShiftSession, now time.Time) error {
-	r := refuse(screens.RefusalShiftInProgress, nil).(*refusal)
+	r := refuse(plife.RefusalShiftInProgress, nil).(*refusal)
 	r.view.Wait = domainActivity(s).Remaining(now)
 	r.view.EndsAt = s.EndsAt
 	return r
@@ -1326,7 +1326,7 @@ func (h *JobsHandler) Promote(ctx context.Context, meta envelope.Metadata) (*pre
 	snap := h.content.Current()
 	lang := meta.Language
 	replayed := false
-	var view screens.JobPromotedView
+	var view plife.JobPromotedView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -1344,7 +1344,7 @@ func (h *JobsHandler) Promote(ctx context.Context, meta envelope.Metadata) (*pre
 		}
 		emp, err := tx.Employment().Current(ctx, p.ID)
 		if isSentinel(err, application.ErrNotEmployed) {
-			return refuse(screens.RefusalNotEmployed, nil)
+			return refuse(plife.RefusalNotEmployed, nil)
 		}
 		if err != nil {
 			return err
@@ -1372,7 +1372,7 @@ func (h *JobsHandler) Promote(ctx context.Context, meta envelope.Metadata) (*pre
 		promoted, err := job.Promote(career, domainEmployment(*emp), s.candidate(emp.CityID), now, h.scale)
 		if err != nil {
 			if missing, ok := shortfalls(snap, err, *city); ok {
-				return refuse(screens.RefusalPromotion, missing)
+				return refuse(plife.RefusalPromotion, missing)
 			}
 			return errors.Internal(err)
 		}
@@ -1404,7 +1404,7 @@ func (h *JobsHandler) Promote(ctx context.Context, meta envelope.Metadata) (*pre
 		}); err != nil {
 			return err
 		}
-		view = screens.JobPromotedView{
+		view = plife.JobPromotedView{
 			Job: jobRef(def, promoted.Tier),
 			Pay: max(next.Rate, pol.MinimumWage.Minor()),
 		}
@@ -1417,7 +1417,7 @@ func (h *JobsHandler) Promote(ctx context.Context, meta envelope.Metadata) (*pre
 	if replayed {
 		return h.Status(ctx, meta)
 	}
-	return screens.JobPromoted(h.screen(meta, lang), view), nil
+	return plife.JobPromoted(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Quit handles job.quit. Without confirmation it only asks; with it, the
@@ -1428,9 +1428,9 @@ func (h *JobsHandler) Quit(ctx context.Context, meta envelope.Metadata, req Quit
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	confirmed := req.Confirm == screens.QuitConfirmation
+	confirmed := req.Confirm == plife.QuitConfirmation
 	replayed := false
-	var ref screens.JobRef
+	var ref plife.JobRef
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -1450,7 +1450,7 @@ func (h *JobsHandler) Quit(ctx context.Context, meta envelope.Metadata, req Quit
 		}
 		emp, err := tx.Employment().Current(ctx, p.ID)
 		if isSentinel(err, application.ErrNotEmployed) {
-			return refuse(screens.RefusalNotEmployed, nil)
+			return refuse(plife.RefusalNotEmployed, nil)
 		}
 		if err != nil {
 			return err
@@ -1490,9 +1490,9 @@ func (h *JobsHandler) Quit(ctx context.Context, meta envelope.Metadata, req Quit
 	case replayed:
 		return h.Status(ctx, meta)
 	case !confirmed:
-		return screens.JobQuitConfirm(h.screen(meta, lang), ref), nil
+		return plife.JobQuitConfirm(presentation.Ctx{Lang: lang}, plife.JobQuitView{Job: ref}), nil
 	}
-	return screens.JobQuit(h.screen(meta, lang), ref), nil
+	return plife.JobQuitDone(presentation.Ctx{Lang: lang}, plife.JobQuitView{Job: ref}), nil
 }
 
 // careerOf returns a career's definition and domain value. A stored job
@@ -1546,12 +1546,12 @@ type skillAward struct {
 // nil leaves the awards as they are.
 func awardSkillXP(ctx context.Context, tx application.Tx, snap *content.Snapshot, playerID string, current []application.Skill,
 	awards []skillAward, now time.Time,
-) ([]screens.SkillGain, error) {
+) ([]plife.SkillGain, error) {
 	awards, err := smarterSkillXP(ctx, tx, snap, playerID, awards)
 	if err != nil {
 		return nil, err
 	}
-	var gains []screens.SkillGain
+	var gains []plife.SkillGain
 	for _, a := range awards {
 		if a.XP <= 0 {
 			continue
@@ -1571,7 +1571,7 @@ func awardSkillXP(ctx context.Context, tx application.Tx, snap *content.Snapshot
 		}); err != nil {
 			return nil, err
 		}
-		gain := screens.SkillGain{Skill: string(a.Skill), XP: a.XP}
+		gain := plife.SkillGain{Skill: string(a.Skill), XP: a.XP}
 		for _, up := range ups {
 			gain.Level = max(gain.Level, up.Level)
 		}

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
-	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -13,38 +12,6 @@ import (
 // Missions (docs/adr/0023-health-missions-factions.md): a city's boards and
 // their missions, one mission, the player's missions and their progress, and
 // the notice of a mission completed.
-
-// Addresses of the mission screens.
-const (
-	AddrMissionBoard   = "mission:board"
-	AddrMission        = "mission:view"
-	AddrMissionAccept  = "mission:accept"
-	AddrMissions       = "mission:mine"
-	AddrMissionDeliver = "mission:deliver"
-	AddrMissionAbandon = "mission:abandon"
-)
-
-// MissionYes confirms giving a mission up.
-const MissionYes = "yes"
-
-// What an objective's target names.
-const (
-	TargetCity           = "city"
-	TargetCareer         = "career"
-	TargetCareerCategory = "career_category"
-	TargetCourse         = "course"
-	TargetItem           = "item"
-	TargetItemCategory   = "item_category"
-	TargetCrime          = "crime"
-	TargetCrimeCategory  = "crime_category"
-)
-
-// MissionTarget is what an objective's target names.
-type MissionTarget struct {
-	Kind string
-	Code string
-	Name string
-}
 
 // targetName names a target in this context's language.
 func (c Context) targetName(t MissionTarget) string {
@@ -81,26 +48,10 @@ func (c Context) missionBrief(n Named) string {
 	return ""
 }
 
-// MissionBoardRef names a board and where it stands.
-type MissionBoardRef struct {
-	Code  string
-	Name  string
-	Place Named
-	// Open is how many missions the board posts to this player, set on the list of boards.
-	Open int
-}
-
 // MissionBoardName is a board's name in the player's language.
 func (c Context) MissionBoardName(n Named) string { return c.named("mission_board."+n.Code, n.Name) }
 
 func (c Context) boardName(b MissionBoardRef) string { return c.named("mission_board."+b.Code, b.Name) }
-
-// MissionObjective is one objective, with its progress.
-type MissionObjective struct {
-	Kind        string
-	Target      MissionTarget
-	Count, Done int64
-}
 
 // objectiveLine is one objective as a line.
 func (c Context) objectiveLine(o MissionObjective, progress bool) string {
@@ -119,13 +70,6 @@ func (c Context) objectiveLine(o MissionObjective, progress bool) string {
 		"count": FormatNumber(c, o.Count)})
 }
 
-// MissionReward is what completing a mission gives.
-type MissionReward struct {
-	Cash  int64
-	XP    int64
-	Items []LootLine
-}
-
 func (c Context) rewardLine(r MissionReward) string {
 	var parts []string
 	if r.Cash > 0 {
@@ -140,17 +84,6 @@ func (c Context) rewardLine(r MissionReward) string {
 	return c.T("mission.reward", map[string]any{"reward": joinWith(c, parts)})
 }
 
-// MissionLine is one mission on a board.
-type MissionLine struct {
-	Mission    Named
-	Reward     MissionReward
-	Blocked    string
-	Wait       time.Duration
-	Repeatable bool
-	// Objectives are what the mission asks, with no progress yet: a board shows what is wanted.
-	Objectives []MissionObjective
-}
-
 // blockedLine says why a mission cannot be taken now, empty when it can.
 func (c Context) blockedLine(why string, wait time.Duration, level, max int) string {
 	if why == "" {
@@ -158,21 +91,6 @@ func (c Context) blockedLine(why string, wait time.Duration, level, max int) str
 	}
 	return c.T("mission.blocked."+why, map[string]any{"wait": FormatDuration(c, wait),
 		"level": FormatNumber(c, int64(level)), "max": FormatNumber(c, int64(max))})
-}
-
-// MissionBoardView is a city's boards, or one board and its missions.
-type MissionBoardView struct {
-	CityCode, City string
-	// Tier is the stage of the place the player stands in (village, town or city).
-	Tier string
-	// Currency is the money the cash rewards are paid in where the player stands; nil when
-	// the place has none of its own.
-	Currency *presentation.Currency
-	Boards   []MissionBoardRef
-	Board          *MissionBoardRef
-	// Here says the player stands at the board: they may take a mission.
-	Here     bool
-	Missions []MissionLine
 }
 
 // MissionBoard renders a city's boards, or one board.
@@ -226,27 +144,6 @@ func renderMissionBoard(c Context, v MissionBoardView) *presenter.Response {
 	return c.respond(paragraphs(body(boldFirst(lines)...), body(escapedList...)), kb.Build()).AsHTML()
 }
 
-// MissionView is one mission, or the question of giving it up.
-type MissionView struct {
-	Mission    Named
-	No         int64
-	Board      MissionBoardRef
-	Objectives []MissionObjective
-	Reward     MissionReward
-	MinLevel   int
-	Requires   []Named
-	Blocked    string
-	Wait       time.Duration
-	Repeatable bool
-	// Cooldown and TimeLimit are real waits; zero for none.
-	Cooldown  time.Duration
-	TimeLimit time.Duration
-	// Abandoning asks to confirm giving it up.
-	Abandoning bool
-	// Max is how many missions may run at once.
-	Max int
-}
-
 // Mission renders one mission.
 func Mission(c Context, v MissionView) *presenter.Response {
 	return c.withView(renderMission(c, v), ScreenMission, v)
@@ -289,44 +186,6 @@ func renderMission(c Context, v MissionView) *presenter.Response {
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrMissionBoard, v.Board.Code)}))
 	return c.respond(paragraphs(title, body(lines...), body(facts...), why), kb.Build())
-}
-
-// MissionProgressLine is one of the player's missions.
-type MissionProgressLine struct {
-	No         int64
-	Mission    Named
-	Status     string
-	Objectives []MissionObjective
-	// Cash and Withheld are what a completion paid and what the caps kept.
-	Cash, Withheld int64
-	// Left is the time left of a time-limited mission.
-	Left time.Duration
-	// Deliver says goods are handed in for it, at its board.
-	Deliver bool
-}
-
-// Mission notices on the player's missions screen.
-const (
-	MissionNoticeAccepted  = "accepted"
-	MissionNoticeDelivered = "delivered"
-	MissionNoticeCompleted = "completed"
-	MissionNoticeAbandoned = "abandoned"
-)
-
-// MissionNotice is what just happened, above the player's missions.
-type MissionNotice struct {
-	Kind               string
-	Mission            Named
-	Qty                int64
-	Cash, Withheld, XP int64
-}
-
-// MissionsMineView is the player's missions.
-type MissionsMineView struct {
-	Notice *MissionNotice
-	Max    int
-	Active []MissionProgressLine
-	Recent []MissionProgressLine
 }
 
 // MissionsMine renders the player's missions.
@@ -419,25 +278,6 @@ func renderMissionCompletedNotice(c Context, v MissionCompletedView) *presenter.
 	kb := keyboards.New()
 	kb.Add(c.T("mission.button.mine", nil), AddrMissions)
 	return c.respond(body(lines...), kb.Build()).MarkPrivate()
-}
-
-// Mission refusal kinds.
-const (
-	MissionRefusedNotFound         = "not_found"
-	MissionRefusedNotHere          = "not_here"
-	MissionRefusedBlocked          = "blocked"
-	MissionRefusedNotActive        = "not_active"
-	MissionRefusedExpired          = "expired"
-	MissionRefusedNothingToDeliver = "nothing_to_deliver"
-)
-
-// MissionRefusalView is a refused mission request.
-type MissionRefusalView struct {
-	Kind    string
-	Blocked string
-	Wait    time.Duration
-	Level   int
-	Max     int
 }
 
 // MissionRefusal renders a refused mission request.

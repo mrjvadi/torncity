@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/domain/budget"
@@ -95,12 +96,12 @@ func (h *HealthHandler) screen(meta envelope.Metadata, lang string) screens.Cont
 }
 
 // healthRefusal carries a refused health command out of a unit of work.
-type healthRefusal struct{ view screens.HealthRefusalView }
+type healthRefusal struct{ view plife.HealthRefusalView }
 
 func (r *healthRefusal) Error() string { return "handlers: health refused: " + r.view.Kind }
 
 func refuseHealth(kind string) *healthRefusal {
-	return &healthRefusal{view: screens.HealthRefusalView{Kind: kind}}
+	return &healthRefusal{view: plife.HealthRefusalView{Kind: kind}}
 }
 
 // finish turns a refusal into its screen.
@@ -111,7 +112,7 @@ func (h *HealthHandler) finish(meta envelope.Metadata, lang string, err error) (
 	c := h.screen(meta, lang)
 	var r *healthRefusal
 	if stderrors.As(err, &r) {
-		return screens.HealthRefusal(c, r.view), nil
+		return plife.HealthRefusal(presentation.Ctx{Lang: c.Lang}, r.view), nil
 	}
 	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
 		return economy.PaymentDeclined(presentation.Ctx{Lang: c.Lang}, v), nil
@@ -123,7 +124,7 @@ func (h *HealthHandler) finish(meta envelope.Metadata, lang string, err error) (
 func healthDef(snap *content.Snapshot) (content.HealthDef, error) {
 	def, ok := snap.Health()
 	if !ok {
-		return def, refuseHealth(screens.HealthRefusedNoHospitals)
+		return def, refuseHealth(plife.HealthRefusedNoHospitals)
 	}
 	return def, nil
 }
@@ -255,8 +256,8 @@ func (h *HealthHandler) clinicOption(ctx context.Context, tx application.Tx, sna
 	return o, nil
 }
 
-func (o option) view(snap *content.Snapshot) screens.TreatOption {
-	v := screens.TreatOption{Provider: o.provider, Price: o.price, Saves: o.saves, Doctor: o.doctor,
+func (o option) view(snap *content.Snapshot) plife.TreatOption {
+	v := plife.TreatOption{Provider: o.provider, Price: o.price, Saves: o.saves, Doctor: o.doctor,
 		Stock: o.stock, Open: o.open, CanTreat: o.treatsHere}
 	if o.clinic != nil {
 		v.Clinic = companyRef(snap, *o.clinic)
@@ -272,7 +273,7 @@ func (h *HealthHandler) Hospital(ctx context.Context, meta envelope.Metadata) (*
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.HospitalView
+	var view plife.HospitalView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -289,14 +290,14 @@ func (h *HealthHandler) Hospital(ctx context.Context, meta envelope.Metadata) (*
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Hospital(h.screen(meta, lang), view), nil
+	return plife.Hospital(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // hospitalView reads everything the hospital screen shows.
 func (h *HealthHandler) hospitalView(ctx context.Context, tx application.Tx, snap *content.Snapshot, def content.HealthDef,
 	p *application.Player, now time.Time,
-) (screens.HospitalView, error) {
-	var view screens.HospitalView
+) (plife.HospitalView, error) {
+	var view plife.HospitalView
 	row, err := tx.Stats().EnsureDefaults(ctx, p.ID, defaultStats(p.ID, now))
 	if err != nil {
 		return view, err
@@ -338,7 +339,7 @@ func (h *HealthHandler) hospitalView(ctx context.Context, tx application.Tx, sna
 		switch {
 		case err == nil:
 			view.Treated = true
-			view.TreatedBy = screens.TreatOption{Provider: t.Provider}
+			view.TreatedBy = plife.TreatOption{Provider: t.Provider}
 			if t.CompanyID != "" {
 				if c, err := tx.Companies().ByID(ctx, t.CompanyID); err == nil {
 					view.TreatedBy.Clinic = companyRef(snap, *c)
@@ -384,7 +385,7 @@ func (h *HealthHandler) Treat(ctx context.Context, meta envelope.Metadata, req H
 	if provider == "" {
 		return h.Hospital(ctx, meta)
 	}
-	free := strings.TrimSpace(req.Method) == screens.MethodFree
+	free := strings.TrimSpace(req.Method) == plife.MethodFree
 	var (
 		method payment.Method
 		chosen bool
@@ -398,8 +399,8 @@ func (h *HealthHandler) Treat(ctx context.Context, meta envelope.Metadata, req H
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		confirm  *screens.TreatConfirmView
-		done     *screens.TreatedView
+		confirm  *plife.TreatConfirmView
+		done     *plife.TreatedView
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -434,14 +435,14 @@ func (h *HealthHandler) Treat(ctx context.Context, meta envelope.Metadata, req H
 			return err
 		}
 		if active == nil {
-			return refuseHealth(screens.HealthRefusedNotHospitalised)
+			return refuseHealth(plife.HealthRefusedNotHospitalised)
 		}
 		stay, err := tx.Health().Stay(ctx, active.ID)
 		if err != nil {
 			return err
 		}
 		if _, err := tx.Health().TreatmentOf(ctx, stay.ID); err == nil {
-			return refuseHealth(screens.HealthRefusedTreated)
+			return refuseHealth(plife.HealthRefusedTreated)
 		} else if !isSentinel(err, application.ErrTreatmentNotFound) {
 			return err
 		}
@@ -461,20 +462,20 @@ func (h *HealthHandler) Treat(ctx context.Context, meta envelope.Metadata, req H
 		}
 		if !chosen && o.price > 0 {
 			choice := paymentChoice(plan, wallet)
-			confirm = &screens.TreatConfirmView{Option: o.view(snap), Remaining: remaining,
+			confirm = &plife.TreatConfirmView{Option: o.view(snap), Remaining: remaining,
 				EndsAt: now.Add(remaining - o.saves), Payment: &choice}
 			return nil
 		}
 		if !chosen {
 			// A free treatment is confirmed with its own button.
-			confirm = &screens.TreatConfirmView{Option: o.view(snap), Remaining: remaining, EndsAt: now.Add(remaining - o.saves)}
+			confirm = &plife.TreatConfirmView{Option: o.view(snap), Remaining: remaining, EndsAt: now.Add(remaining - o.saves)}
 			return nil
 		}
 		t := application.Treatment{ID: h.ids.NewID(), StayID: stay.ID, PlayerID: p.ID, CityID: stay.CityID,
 			Provider: o.provider, Price: o.price, Method: "free", DoctorLevel: o.doctor, ReductionBPS: o.reduction,
 			CreatedAt: now}
 		if o.price > 0 {
-			if err := checkMethod(plan, method, wallet, "health.button.hospital", screens.AddrHospital); err != nil {
+			if err := checkMethod(plan, method, wallet, "health.button.hospital", plife.AddrHospital); err != nil {
 				return err
 			}
 			var to application.Account
@@ -495,7 +496,7 @@ func (h *HealthHandler) Treat(ctx context.Context, meta envelope.Metadata, req H
 			})
 			if err != nil {
 				if stderrors.Is(err, application.ErrPaymentDeclined) {
-					return declined(plan, wallet, "health.button.hospital", screens.AddrHospital)
+					return declined(plan, wallet, "health.button.hospital", plife.AddrHospital)
 				}
 				return err
 			}
@@ -508,7 +509,7 @@ func (h *HealthHandler) Treat(ctx context.Context, meta envelope.Metadata, req H
 				Reason: application.ItemTreatment, ReferenceType: application.HospitalReference, ReferenceID: stay.ID, At: now,
 			}); err != nil {
 				if isSentinel(err, application.ErrNotEnoughItems) {
-					return refuseHealth(screens.HealthRefusedNoMedicine)
+					return refuseHealth(plife.HealthRefusedNoMedicine)
 				}
 				return err
 			}
@@ -528,7 +529,7 @@ func (h *HealthHandler) Treat(ctx context.Context, meta envelope.Metadata, req H
 		}
 		if err := tx.Health().RecordTreatment(ctx, t); err != nil {
 			if isSentinel(err, application.ErrAlreadyTreated) {
-				return refuseHealth(screens.HealthRefusedTreated)
+				return refuseHealth(plife.HealthRefusedTreated)
 			}
 			return err
 		}
@@ -539,7 +540,7 @@ func (h *HealthHandler) Treat(ctx context.Context, meta envelope.Metadata, req H
 				return err
 			}
 		}
-		done = &screens.TreatedView{Option: o.view(snap), Paid: t.Price, Method: t.Method, Saved: t.Saved,
+		done = &plife.TreatedView{Option: o.view(snap), Paid: t.Price, Method: t.Method, Saved: t.Saved,
 			Remaining: ends.Sub(now), EndsAt: ends}
 		if o.clinic != nil {
 			return appendDomainEvent(ctx, tx, meta, "health", "clinic_treated", t.ID, map[string]any{
@@ -557,9 +558,9 @@ func (h *HealthHandler) Treat(ctx context.Context, meta envelope.Metadata, req H
 	case replayed:
 		return h.Hospital(ctx, meta)
 	case confirm != nil:
-		return screens.TreatConfirm(h.screen(meta, lang), *confirm), nil
+		return plife.TreatConfirm(presentation.Ctx{Lang: lang}, *confirm), nil
 	case done != nil:
-		return screens.Treated(h.screen(meta, lang), *done), nil
+		return plife.Treated(presentation.Ctx{Lang: lang}, *done), nil
 	}
 	return nil, errors.Internal(stderrors.New("handlers: a treatment produced nothing"))
 }
@@ -578,11 +579,11 @@ func (h *HealthHandler) provider(ctx context.Context, tx application.Tx, snap *c
 	}
 	code := playercode.Normalize(provider)
 	if !playercode.Valid(code) {
-		return option{}, refuseHealth(screens.HealthRefusedNoClinic)
+		return option{}, refuseHealth(plife.HealthRefusedNoClinic)
 	}
 	c, err := tx.Companies().ByCode(ctx, code)
 	if isSentinel(err, application.ErrCompanyNotFound) {
-		return option{}, refuseHealth(screens.HealthRefusedNoClinic)
+		return option{}, refuseHealth(plife.HealthRefusedNoClinic)
 	}
 	if err != nil {
 		return option{}, err
@@ -592,10 +593,10 @@ func (h *HealthHandler) provider(ctx context.Context, tx application.Tx, snap *c
 	}
 	tdef, _, ok := snap.CompanyType(c.TypeCode)
 	if !ok || tdef.Care == nil || !c.Active() {
-		return option{}, refuseHealth(screens.HealthRefusedNoClinic)
+		return option{}, refuseHealth(plife.HealthRefusedNoClinic)
 	}
 	if c.CityID != stay.CityID {
-		return option{}, refuseHealth(screens.HealthRefusedElsewhere)
+		return option{}, refuseHealth(plife.HealthRefusedElsewhere)
 	}
 	if err := tx.Items().LockOrg(ctx, application.Org{Kind: application.OrgCompany, ID: c.ID}); err != nil {
 		return option{}, err
@@ -610,9 +611,9 @@ func (h *HealthHandler) provider(ctx context.Context, tx application.Tx, snap *c
 	}
 	switch {
 	case !o.open:
-		return option{}, refuseHealth(screens.HealthRefusedClosed)
+		return option{}, refuseHealth(plife.HealthRefusedClosed)
 	case o.medicine == "":
-		return option{}, refuseHealth(screens.HealthRefusedNoMedicine)
+		return option{}, refuseHealth(plife.HealthRefusedNoMedicine)
 	}
 	return o, nil
 }
@@ -690,11 +691,11 @@ func (h *HealthHandler) clinicOf(ctx context.Context, tx application.Tx, snap *c
 ) (*application.Company, content.CompanyTypeDef, error) {
 	code = playercode.Normalize(code)
 	if !playercode.Valid(code) {
-		return nil, content.CompanyTypeDef{}, refuseHealth(screens.HealthRefusedNoClinic)
+		return nil, content.CompanyTypeDef{}, refuseHealth(plife.HealthRefusedNoClinic)
 	}
 	c, err := tx.Companies().ByCode(ctx, code)
 	if isSentinel(err, application.ErrCompanyNotFound) {
-		return nil, content.CompanyTypeDef{}, refuseHealth(screens.HealthRefusedNoClinic)
+		return nil, content.CompanyTypeDef{}, refuseHealth(plife.HealthRefusedNoClinic)
 	}
 	if err != nil {
 		return nil, content.CompanyTypeDef{}, err
@@ -704,11 +705,11 @@ func (h *HealthHandler) clinicOf(ctx context.Context, tx application.Tx, snap *c
 	}
 	tdef, _, ok := snap.CompanyType(c.TypeCode)
 	if !ok || tdef.Care == nil || !c.Active() {
-		return nil, tdef, refuseHealth(screens.HealthRefusedNoClinic)
+		return nil, tdef, refuseHealth(plife.HealthRefusedNoClinic)
 	}
 	role := company.RoleOf(p.ID, c.OwnerID, c.ManagerID)
 	if role == company.RoleNone || role.Check(right) != nil {
-		return nil, tdef, refuseHealth(screens.HealthRefusedNotYours)
+		return nil, tdef, refuseHealth(plife.HealthRefusedNotYours)
 	}
 	return c, tdef, nil
 }
@@ -753,7 +754,7 @@ func (h *HealthHandler) clinicChange(ctx context.Context, meta envelope.Metadata
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ClinicDeskView
+	var view plife.ClinicDeskView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -791,7 +792,7 @@ func (h *HealthHandler) clinicChange(ctx context.Context, meta envelope.Metadata
 		if err != nil {
 			return err
 		}
-		view = screens.ClinicDeskView{Ref: companyRef(snap, *c), Price: svc.Price, Open: svc.Open, Stock: stock,
+		view = plife.ClinicDeskView{Ref: companyRef(snap, *c), Price: svc.Price, Open: svc.Open, Stock: stock,
 			Stocked: use != "", Units: def.MedicineUnits, Doctor: level, ReductionBPS: tdef.Care.Care().Reduction(level),
 			Treated: treated, Earned: paid}
 		return nil
@@ -799,5 +800,5 @@ func (h *HealthHandler) clinicChange(ctx context.Context, meta envelope.Metadata
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.ClinicDesk(h.screen(meta, lang), view), nil
+	return plife.ClinicDesk(presentation.Ctx{Lang: lang}, view), nil
 }

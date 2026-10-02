@@ -280,7 +280,7 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 	snap := h.content.Current()
 	lang := meta.Language
 	page := parsePage(req.Page)
-	var view screens.EducationView
+	var view plife.EducationView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -302,7 +302,7 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 		}
 		if current != nil {
 			d := domainEnrollment(*current)
-			view.Current = &screens.CurrentCourseView{
+			view.Current = &plife.CurrentCourseView{
 				Course:    courseRef(snap, current.CourseCode),
 				Percent:   d.Progress(now) / 100,
 				Remaining: d.Remaining(now),
@@ -324,7 +324,7 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 			view.Tier = hereC.tier
 			view.Currency = villageCurrency(hereC.settlement)
 		}
-		var lines []screens.CourseLine
+		var lines []plife.CourseLine
 		for _, def := range snap.Courses() {
 			if !visible(def, s, here) {
 				continue
@@ -350,13 +350,13 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 						return err
 					}
 					view.Elsewhere = append(view.Elsewhere, screens.CourseGap{
-						Course: screens.CourseRef{Code: def.Code, Name: def.Name}, Fee: course.Cost.Minor(),
+						Course: plife.CourseRef{Code: def.Code, Name: def.Name}, Fee: course.Cost.Minor(),
 						Duration: h.scale.RealWait(course.Duration), Nearest: near, Needs: needs})
 				}
 				continue
 			}
-			lines = append(lines, screens.CourseLine{
-				Course:   screens.CourseRef{Code: def.Code, Name: def.Name},
+			lines = append(lines, plife.CourseLine{
+				Course:   plife.CourseRef{Code: def.Code, Name: def.Name},
 				Fee:      course.Cost.Minor(),
 				Duration: h.scale.RealWait(course.Duration),
 				MinLevel: course.MinLevel,
@@ -379,7 +379,7 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 	if err != nil {
 		return nil, err
 	}
-	return screens.Education(h.screen(meta, lang), view), nil
+	return plife.Education(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // course finds a course on offer to this player here, or refuses. A course
@@ -395,33 +395,33 @@ func (h *EducationHandler) course(ctx context.Context, snap *content.Snapshot, c
 	if visible(def, s, here) {
 		return def, course, nil
 	}
-	var missing []screens.Requirement
+	var missing []plife.Requirement
 	if req, ok, err := h.taughtElsewhere(ctx, def, s, here); err != nil {
 		return def, course, err
 	} else if ok {
 		missing = append(missing, req)
 	}
 	if def.Certifies && s.holds(def.Code) {
-		missing = append(missing, screens.Requirement{Kind: screens.ReqAlreadyCertified})
+		missing = append(missing, plife.Requirement{Kind: screens.ReqAlreadyCertified})
 	}
 	for _, pre := range def.Prerequisites {
 		if !s.holds(pre) {
 			ref := courseRef(snap, pre)
-			missing = append(missing, screens.Requirement{Kind: screens.ReqCertificate, CourseCode: ref.Code, CourseName: ref.Name})
+			missing = append(missing, plife.Requirement{Kind: screens.ReqCertificate, CourseCode: ref.Code, CourseName: ref.Name})
 		}
 	}
-	return def, course, refuse(screens.RefusalCourseRequirements, missing)
+	return def, course, refuse(plife.RefusalCourseRequirements, missing)
 }
 
 // taughtElsewhere is the requirement of a course taught in another city than
 // the one the player stands in (or taught in one while they travel), naming
 // that city.
 func (h *EducationHandler) taughtElsewhere(ctx context.Context, def content.CourseDef, s standing, here string,
-) (screens.Requirement, bool, error) {
+) (plife.Requirement, bool, error) {
 	if def.City == "" || (def.City == here && !s.travelling) {
-		return screens.Requirement{}, false, nil
+		return plife.Requirement{}, false, nil
 	}
-	req := screens.Requirement{Kind: screens.ReqCourseCity, CityCode: def.City}
+	req := plife.Requirement{Kind: screens.ReqCourseCity, CityCode: def.City}
 	city, err := h.cities.ByCode(ctx, def.City)
 	switch {
 	case err == nil:
@@ -437,7 +437,7 @@ func (h *EducationHandler) viewable(snap *content.Snapshot, code string) (conten
 	def, ok := snap.CourseDef(code)
 	course, ok2 := snap.Course(code)
 	if !ok || !ok2 {
-		return content.CourseDef{}, education.Course{}, refuse(screens.RefusalCourseNotFound, nil)
+		return content.CourseDef{}, education.Course{}, refuse(plife.RefusalCourseNotFound, nil)
 	}
 	return def, course, nil
 }
@@ -450,7 +450,7 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CourseDetailView
+	var view plife.CourseDetailView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -487,8 +487,8 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 
-		view = screens.CourseDetailView{
-			Course:      screens.CourseRef{Code: def.Code, Name: def.Name},
+		view = plife.CourseDetailView{
+			Course:      plife.CourseRef{Code: def.Code, Name: def.Name},
 			Institution: string(course.Institution),
 			Fee:         course.Cost.Minor(),
 			Duration:    h.scale.RealWait(course.Duration),
@@ -505,7 +505,7 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 			}
 		}
 		for _, r := range course.SkillRewards {
-			view.Skills = append(view.Skills, screens.SkillGain{Skill: string(r.Skill), XP: r.XP})
+			view.Skills = append(view.Skills, plife.SkillGain{Skill: string(r.Skill), XP: r.XP})
 		}
 		if req, ok, err := h.taughtElsewhere(ctx, def, s, here); err != nil {
 			return err
@@ -520,28 +520,28 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 			view.Requirements = append(view.Requirements, *notHere)
 		}
 		if def.Certifies && s.holds(def.Code) {
-			view.Requirements = append(view.Requirements, screens.Requirement{Kind: screens.ReqAlreadyCertified})
+			view.Requirements = append(view.Requirements, plife.Requirement{Kind: screens.ReqAlreadyCertified})
 		}
 		if course.MinLevel > 1 {
-			view.Requirements = append(view.Requirements, screens.Requirement{
+			view.Requirements = append(view.Requirements, plife.Requirement{
 				Kind: screens.ReqLevel, Met: s.stats.Level >= course.MinLevel,
 				Need: int64(course.MinLevel), Have: int64(s.stats.Level),
 			})
 		}
 		for _, pre := range course.Prerequisites {
 			ref := courseRef(snap, pre)
-			view.Requirements = append(view.Requirements, screens.Requirement{
+			view.Requirements = append(view.Requirements, plife.Requirement{
 				Kind: screens.ReqCertificate, Met: s.holds(pre), CourseCode: ref.Code, CourseName: ref.Name,
 			})
 		}
 		if current != nil {
 			ref := courseRef(snap, current.CourseCode)
-			view.Requirements = append(view.Requirements, screens.Requirement{
+			view.Requirements = append(view.Requirements, plife.Requirement{
 				Kind: screens.ReqAlreadyEnrolled, CourseCode: ref.Code, CourseName: ref.Name,
 			})
 		}
 		if course.Capacity > 0 && seats >= course.Capacity {
-			view.Requirements = append(view.Requirements, screens.Requirement{Kind: screens.ReqCourseFull})
+			view.Requirements = append(view.Requirements, plife.Requirement{Kind: screens.ReqCourseFull})
 		}
 		view.CanEnrol = notHere == nil && visible(def, s, here) && education.CanEnroll(course, s.applicant(here, current), seats) == nil
 		if view.CanEnrol && course.Cost.Minor() > 0 {
@@ -557,7 +557,7 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
 		return resp, ferr
 	}
-	return screens.CourseDetail(h.screen(meta, lang), view), nil
+	return plife.CourseDetail(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // enrollPlan is what enrollPlan computes: the course a player is eligible to
@@ -595,7 +595,7 @@ func (h *EducationHandler) enrollPlan(ctx context.Context, tx application.Tx, sn
 	if req, err := h.taughtHere(ctx, tx, snap, code, s.here()); err != nil {
 		return plan, err
 	} else if req != nil {
-		return plan, refuse(screens.RefusalCourseRequirements, []screens.Requirement{*req})
+		return plan, refuse(plife.RefusalCourseRequirements, []plife.Requirement{*req})
 	}
 	if course, err = h.subsidised(ctx, tx, p, course); err != nil {
 		return plan, err
@@ -634,7 +634,7 @@ func (h *EducationHandler) enrollPlan(ctx context.Context, tx application.Tx, sn
 					missing[i].CourseCode, missing[i].CourseName = ref.Code, ref.Name
 				}
 			}
-			return plan, refuse(screens.RefusalCourseRequirements, missing)
+			return plan, refuse(plife.RefusalCourseRequirements, missing)
 		}
 		return plan, errors.Internal(err)
 	}
@@ -660,7 +660,7 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 	}
 	lang := meta.Language
 	replayed := false
-	var view screens.EnrolledView
+	var view plife.EnrolledView
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -720,7 +720,7 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 			CompletesAt:  plan.enrolment.CompletesAt,
 		}); err != nil {
 			if isSentinel(err, application.ErrAlreadyEnrolled) {
-				return refuse(screens.RefusalCourseRequirements, []screens.Requirement{{Kind: screens.ReqAlreadyEnrolled}})
+				return refuse(plife.RefusalCourseRequirements, []plife.Requirement{{Kind: screens.ReqAlreadyEnrolled}})
 			}
 			return err
 		}
@@ -734,8 +734,8 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 		}); err != nil {
 			return err
 		}
-		view = screens.EnrolledView{
-			Course:   screens.CourseRef{Code: plan.def.Code, Name: plan.def.Name},
+		view = plife.EnrolledView{
+			Course:   plife.CourseRef{Code: plan.def.Code, Name: plan.def.Name},
 			Duration: plan.enrolment.CompletesAt.Sub(plan.enrolment.StartedAt),
 			EndsAt:   plan.enrolment.CompletesAt,
 			Fee:      plan.fee.Minor(),
@@ -749,7 +749,7 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 	if replayed {
 		return h.List(ctx, meta, PageRequest{})
 	}
-	return screens.Enrolled(h.screen(meta, lang), view), nil
+	return plife.Enrolled(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // chargeFee takes a course fee from the purse the player chose — their cash
@@ -770,7 +770,7 @@ func (h *EducationHandler) chargeFee(ctx context.Context, tx application.Tx, sna
 		return err
 	}
 	plan := w.Plan(fee, snap.CourseAccepts(courseCode))
-	back := []string{screens.AddrCourseView, courseCode}
+	back := []string{plife.AddrCourseView, courseCode}
 	if err := checkMethod(plan, method, w, "education.button.back_to_course", back...); err != nil {
 		return err
 	}
@@ -820,7 +820,7 @@ func (h *EducationHandler) Complete(ctx context.Context, meta envelope.Metadata,
 
 	snap := h.content.Current()
 	var (
-		view     screens.CourseCompletedView
+		view     plife.CourseCompletedView
 		done     bool
 		language = meta.Language
 	)
@@ -908,8 +908,8 @@ func (h *EducationHandler) Complete(ctx context.Context, meta envelope.Metadata,
 			return err
 		}
 		done = true
-		view = screens.CourseCompletedView{
-			Course:    screens.CourseRef{Code: def.Code, Name: def.Name},
+		view = plife.CourseCompletedView{
+			Course:    plife.CourseRef{Code: def.Code, Name: def.Name},
 			Certified: certified,
 			Skills:    gains,
 		}
@@ -918,7 +918,7 @@ func (h *EducationHandler) Complete(ctx context.Context, meta envelope.Metadata,
 	if err != nil || !done {
 		return nil, err
 	}
-	return screens.CourseCompleted(screens.Context{Msgs: h.msgs, Lang: language}, view), nil
+	return plife.CourseCompleted(presentation.Ctx{Lang: language}, view), nil
 }
 
 // CourseSkillGain is one skill a finished course trained, as the

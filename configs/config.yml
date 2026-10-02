@@ -930,7 +930,7 @@ client:
   # web client deployed before it draws a screen from the view still reads
   # `text`, so this lists those screens ("*" is all of them). Empty it once
   # every deployed client draws the migrated screens itself.
-  legacy_text_screens: ["*"]
+  legacy_text_screens: []
   # World chunks (GET /api/v1/world/chunks/...): how many encoded chunks one
   # replica keeps in memory (about 10 KB each, raw and gzip together), and how
   # many one player may fetch per minute. A village layout samples the

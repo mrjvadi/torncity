@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"context"
 	"time"
 
@@ -9,7 +11,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // SkillsHandler serves skills.list.
@@ -55,7 +56,7 @@ func (h *SkillsHandler) List(ctx context.Context, meta envelope.Metadata) (*pres
 		return nil, errors.InvalidInput("request carries no telegram user")
 	}
 
-	var view screens.SkillsView
+	var view plife.SkillsView
 	lang := meta.Language
 
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -75,11 +76,11 @@ func (h *SkillsHandler) List(ctx context.Context, meta envelope.Metadata) (*pres
 		}
 
 		codes := player.SkillCodes()
-		lines := make([]screens.SkillLine, 0, len(codes))
+		lines := make([]plife.SkillLine, 0, len(codes))
 		for _, code := range codes {
 			row := stored[string(code)]
 			next, percent := skillProgress(row.Level, row.XP)
-			lines = append(lines, screens.SkillLine{
+			lines = append(lines, plife.SkillLine{
 				Code:    string(code),
 				Level:   row.Level,
 				XP:      row.XP,
@@ -87,16 +88,12 @@ func (h *SkillsHandler) List(ctx context.Context, meta envelope.Metadata) (*pres
 				Percent: percent,
 			})
 		}
-		view = screens.SkillsView{Lines: lines}
+		view = plife.SkillsView{Lines: lines}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return screens.Skills(screens.Context{
-		Msgs:      h.msgs,
-		Lang:      lang,
-		MessageID: editableMessageID(meta),
-	}, view), nil
+	return plife.Skills(presentation.Ctx{Lang: lang}, view), nil
 }

@@ -1,40 +1,4 @@
 # Screens the core still answers with a Telegram-rendered response (contract 0).
-# One name per line under its migration area (docs/adr/0039-presentation-split.md, the playbook).
-# Migrating a screen means defining it in internal/presentation/<area>, registering its renderer in
-# internal/telegram/render and DELETING its line here; tests fail if a migrated screen is still listed
-# or a legacy screen is missing from the list.
-
-
-[life]
-bailed
-cases
-clinic_desk
-course_completed
-course_detail
-crime_detail
-crime_hub
-crime_list
-crime_record
-crime_refusal
-crime_result
-crime_started
-education
-enrolled
-health_refusal
-hospital
-jail
-job_detail
-job_hired
-job_openings
-job_promoted
-job_status
-mission
-mission_board
-mission_refusal
-missions_mine
-report_confirm
-shift_started
-shift_worked
-skills
-treat_confirm
-treated
+# The migration is finished: this list is EMPTY and must stay empty. A new screen is defined in
+# internal/presentation/<area> with presentation.Define and registered in internal/telegram/render.
+# TestUnmigratedListStaysEmpty fails if anything is added here.

@@ -29,6 +29,8 @@ type (
 	CourseRef = presentation.CourseRef
 	// Requirement is one condition of a position or a course, met or not.
 	Requirement = presentation.Requirement
+	// CompanyRef names a company.
+	CompanyRef = presentation.CompanyRef
 	// Photo is a Telegram profile photo to show, set by the edge.
 	Photo = presentation.Photo
 )

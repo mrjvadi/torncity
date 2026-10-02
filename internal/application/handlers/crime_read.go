@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"context"
 	"slices"
 	"time"
@@ -106,58 +108,58 @@ func (s situation) candidate(snap *content.Snapshot) crime.Candidate {
 func (h *CrimeHandler) blocked(s situation, nerve int, now time.Time) (kind string, need, have int, wait time.Duration) {
 	switch {
 	case s.hold.sentence != nil:
-		return screens.CrimeBlockedJail, 0, 0, 0
+		return plife.CrimeBlockedJail, 0, 0, 0
 	case s.hold.stay != nil:
-		return screens.CrimeBlockedHospital, 0, 0, 0
+		return plife.CrimeBlockedHospital, 0, 0, 0
 	case s.hold.attempt != nil:
-		return screens.CrimeBlockedBusy, 0, 0, 0
+		return plife.CrimeBlockedBusy, 0, 0, 0
 	case s.atWork:
-		return screens.CrimeBlockedWork, 0, 0, 0
+		return plife.CrimeBlockedWork, 0, 0, 0
 	case s.stand.travelling:
-		return screens.CrimeBlockedTravelling, 0, 0, 0
+		return plife.CrimeBlockedTravelling, 0, 0, 0
 	case s.walking:
-		return screens.CrimeBlockedWalking, 0, 0, 0
+		return plife.CrimeBlockedWalking, 0, 0, 0
 	case s.city == nil:
-		return screens.CrimeBlockedNowhere, 0, 0, 0
+		return plife.CrimeBlockedNowhere, 0, 0, 0
 	case s.profile.Nerve < nerve:
 		n := crime.Nerve{Current: s.profile.Nerve, UpdatedAt: s.profile.NerveUpdatedAt}
 		missing := crime.NerveRules{Max: nerve, RegenAmount: h.rules.Nerve.RegenAmount, RegenInterval: h.rules.Nerve.RegenInterval}
-		return screens.CrimeBlockedNerve, nerve, s.profile.Nerve, missing.FullIn(n, now)
+		return plife.CrimeBlockedNerve, nerve, s.profile.Nerve, missing.FullIn(n, now)
 	}
 	return "", 0, 0, 0
 }
 
 // requirements lists every requirement of a crime, met or not.
-func (h *CrimeHandler) requirements(snap *content.Snapshot, cr crime.Crime, s situation) []screens.CrimeRequirement {
+func (h *CrimeHandler) requirements(snap *content.Snapshot, cr crime.Crime, s situation) []plife.CrimeRequirement {
 	cand := s.candidate(snap)
 	tiers := snap.CrimeTiers()
-	var out []screens.CrimeRequirement
+	var out []plife.CrimeRequirement
 	r := cr.Requirements
 	if r.MinLevel > 1 {
-		out = append(out, screens.CrimeRequirement{Requirement: screens.Requirement{
+		out = append(out, plife.CrimeRequirement{Requirement: plife.Requirement{
 			Kind: screens.ReqLevel, Met: cand.Level >= r.MinLevel, Need: int64(r.MinLevel), Have: int64(cand.Level)}})
 	}
 	if r.MinTier > 0 && r.MinTier < len(tiers) {
 		have := tiers[min(max(cand.Tier, 0), len(tiers)-1)]
-		out = append(out, screens.CrimeRequirement{
-			Requirement: screens.Requirement{Kind: screens.ReqCrimeTier, Met: cand.Tier >= r.MinTier},
+		out = append(out, plife.CrimeRequirement{
+			Requirement: plife.Requirement{Kind: plife.ReqCrimeTier, Met: cand.Tier >= r.MinTier},
 			Tier:        named(tiers[r.MinTier].Code, tiers[r.MinTier].Name),
 			HaveTier:    named(have.Code, have.Name),
 		})
 	}
 	for _, sk := range r.Skills {
 		have := cand.SkillLevel(sk.Skill)
-		out = append(out, screens.CrimeRequirement{Requirement: screens.Requirement{
+		out = append(out, plife.CrimeRequirement{Requirement: plife.Requirement{
 			Kind: screens.ReqSkill, Met: have >= sk.Level, Skill: string(sk.Skill), Need: int64(sk.Level), Have: int64(have)}})
 	}
 	for _, code := range r.Certifications {
 		ref := courseRef(snap, code)
-		out = append(out, screens.CrimeRequirement{Requirement: screens.Requirement{
+		out = append(out, plife.CrimeRequirement{Requirement: plife.Requirement{
 			Kind: screens.ReqCertificate, Met: s.stand.holds(code), CourseCode: ref.Code, CourseName: ref.Name}})
 	}
 	for _, code := range r.Tools {
-		out = append(out, screens.CrimeRequirement{
-			Requirement: screens.Requirement{Kind: screens.ReqTool, Met: slices.Contains(cand.Tools, code)},
+		out = append(out, plife.CrimeRequirement{
+			Requirement: plife.Requirement{Kind: plife.ReqTool, Met: slices.Contains(cand.Tools, code)},
 			Tool:        itemNamed(snap, code),
 		})
 	}
@@ -166,11 +168,11 @@ func (h *CrimeHandler) requirements(snap *content.Snapshot, cr crime.Crime, s si
 		for _, have := range cand.Facilities {
 			met = met || have == f
 		}
-		out = append(out, screens.CrimeRequirement{Requirement: screens.Requirement{Kind: screens.ReqFacility, Met: met}, Facility: f})
+		out = append(out, plife.CrimeRequirement{Requirement: plife.Requirement{Kind: plife.ReqFacility, Met: met}, Facility: f})
 	}
 	if len(r.Venues) > 0 {
-		req := screens.CrimeRequirement{
-			Requirement: screens.Requirement{Kind: screens.ReqVenue, Met: s.hasVenue && cr.CommittableAt(s.venue.Code)},
+		req := plife.CrimeRequirement{
+			Requirement: plife.Requirement{Kind: plife.ReqVenue, Met: s.hasVenue && cr.CommittableAt(s.venue.Code)},
 			Here:        venueNamed(s.venue),
 		}
 		for _, code := range r.Venues {
@@ -217,8 +219,8 @@ func (h *CrimeHandler) eligible(snap *content.Snapshot, cr crime.Crime, s situat
 }
 
 // missing lists the unmet requirements only.
-func (h *CrimeHandler) missing(snap *content.Snapshot, cr crime.Crime, s situation) []screens.CrimeRequirement {
-	var out []screens.CrimeRequirement
+func (h *CrimeHandler) missing(snap *content.Snapshot, cr crime.Crime, s situation) []plife.CrimeRequirement {
+	var out []plife.CrimeRequirement
 	for _, r := range h.requirements(snap, cr, s) {
 		if !r.Met {
 			out = append(out, r)
@@ -227,8 +229,8 @@ func (h *CrimeHandler) missing(snap *content.Snapshot, cr crime.Crime, s situati
 	return out
 }
 
-func progressOf(snap *content.Snapshot, a *application.CrimeAttempt, now time.Time) *screens.CrimeProgress {
-	p := &screens.CrimeProgress{Crime: named(a.CrimeCode, a.CrimeCode), Remaining: max(a.ResolvesAt.Sub(now), 0), EndsAt: a.ResolvesAt}
+func progressOf(snap *content.Snapshot, a *application.CrimeAttempt, now time.Time) *plife.CrimeProgress {
+	p := &plife.CrimeProgress{Crime: named(a.CrimeCode, a.CrimeCode), Remaining: max(a.ResolvesAt.Sub(now), 0), EndsAt: a.ResolvesAt}
 	if def, ok := snap.CrimeDef(a.CrimeCode); ok {
 		p.Crime = crimeNamed(def)
 	}
@@ -243,7 +245,7 @@ func (h *CrimeHandler) Hub(ctx context.Context, meta envelope.Metadata) (*presen
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CrimeHubView
+	var view plife.CrimeHubView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -255,7 +257,7 @@ func (h *CrimeHandler) Hub(ctx context.Context, meta envelope.Metadata) (*presen
 		if err != nil {
 			return err
 		}
-		view = screens.CrimeHubView{
+		view = plife.CrimeHubView{
 			Venue:      venueNamed(s.venue),
 			Nerve:      h.nerveView(s.profile, now),
 			Heat:       h.heatView(s.profile.Heat),
@@ -266,7 +268,7 @@ func (h *CrimeHandler) Hub(ctx context.Context, meta envelope.Metadata) (*presen
 			view.CityCode, view.City = s.city.Code, s.city.Name
 		}
 		if s.hold.sentence != nil {
-			view.Jail = &screens.CrimeProgress{Remaining: s.hold.sentence.EndsAt.Sub(now), EndsAt: s.hold.sentence.EndsAt}
+			view.Jail = &plife.CrimeProgress{Remaining: s.hold.sentence.EndsAt.Sub(now), EndsAt: s.hold.sentence.EndsAt}
 		}
 		if s.hold.attempt != nil {
 			view.Busy = progressOf(snap, s.hold.attempt, now)
@@ -289,14 +291,14 @@ func (h *CrimeHandler) Hub(ctx context.Context, meta envelope.Metadata) (*presen
 			}
 		}
 		if view.Empty == "" && !h.anythingToTry(snap, s) {
-			view.Empty = screens.CrimeEmptyNoTargets
+			view.Empty = plife.CrimeEmptyNoTargets
 		}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CrimeHub(h.screen(meta, lang), view), nil
+	return plife.CrimeHub(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // anythingToTry reports whether any crime of the content could be attempted
@@ -318,7 +320,7 @@ func (h *CrimeHandler) List(ctx context.Context, meta envelope.Metadata, req Cri
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CrimeListView
+	var view plife.CrimeListView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -333,7 +335,7 @@ func (h *CrimeHandler) List(ctx context.Context, meta envelope.Metadata, req Cri
 			}
 		}
 		if cat == nil {
-			return refuseCrime(screens.CrimeRefusedNotFound)
+			return refuseCrime(plife.CrimeRefusedNotFound)
 		}
 		now := h.now()
 		s, err := h.situate(ctx, tx, snap, p, now)
@@ -345,7 +347,7 @@ func (h *CrimeHandler) List(ctx context.Context, meta envelope.Metadata, req Cri
 		if err != nil {
 			return err
 		}
-		var all []screens.CrimeLine
+		var all []plife.CrimeLine
 		for _, def := range snap.Crimes() {
 			if def.Category != cat.Code || !verdict.allows(def.Code) {
 				continue
@@ -354,7 +356,7 @@ func (h *CrimeHandler) List(ctx context.Context, meta envelope.Metadata, req Cri
 			if !ok {
 				continue
 			}
-			all = append(all, screens.CrimeLine{
+			all = append(all, plife.CrimeLine{
 				Crime:    crimeNamed(def),
 				Nerve:    cr.NerveCost,
 				Duration: h.scale.RealWait(cr.Duration),
@@ -370,7 +372,7 @@ func (h *CrimeHandler) List(ctx context.Context, meta envelope.Metadata, req Cri
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CrimeList(h.screen(meta, lang), view), nil
+	return plife.CrimeList(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // View handles crime.view: one crime, its odds and risks here, every
@@ -381,7 +383,7 @@ func (h *CrimeHandler) View(ctx context.Context, meta envelope.Metadata, req Cri
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CrimeDetailView
+	var view plife.CrimeDetailView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -391,7 +393,7 @@ func (h *CrimeHandler) View(ctx context.Context, meta envelope.Metadata, req Cri
 		def, ok := snap.CrimeDef(req.Crime)
 		cr, ok2 := snap.Crime(req.Crime)
 		if !ok || !ok2 {
-			return refuseCrime(screens.CrimeRefusedNotFound)
+			return refuseCrime(plife.CrimeRefusedNotFound)
 		}
 		now := h.now()
 		s, err := h.situate(ctx, tx, snap, p, now)
@@ -406,7 +408,7 @@ func (h *CrimeHandler) View(ctx context.Context, meta envelope.Metadata, req Cri
 		odds := cr.OddsOf(crime.Situation{
 			Skills: domainSkills(s.stand.skills), Heat: s.profile.Heat, Victim: victim, VenueSecurity: s.venue.Security, Gear: g,
 		})
-		view = screens.CrimeDetailView{
+		view = plife.CrimeDetailView{
 			Crime:        crimeNamed(def),
 			Nerve:        g.NerveCost(cr.NerveCost),
 			Duration:     h.scale.RealWait(cr.Duration),
@@ -415,7 +417,7 @@ func (h *CrimeHandler) View(ctx context.Context, meta envelope.Metadata, req Cri
 			MinTake:      cr.Reward.MinCash.Minor(),
 			MaxTake:      cr.Reward.MaxCash.Minor(),
 			ChanceBPS:    odds.Chance,
-			Odds:         screens.OddsView{Base: odds.Base, Skill: odds.Skill, Awareness: odds.Awareness, Heat: odds.Heat, Gear: odds.Gear},
+			Odds:         plife.OddsView{Base: odds.Base, Skill: odds.Skill, Awareness: odds.Awareness, Heat: odds.Heat, Gear: odds.Gear},
 			Requirements: h.requirements(snap, cr, s),
 			GearCatchBPS: g.CatchBPS, GearWitnessBPS: g.WitnessBPS, GearSolveBPS: g.SolveBPS, GearRewardBPS: g.RewardBPS,
 		}
@@ -443,7 +445,7 @@ func (h *CrimeHandler) View(ctx context.Context, meta envelope.Metadata, req Cri
 		view.FineMax = cr.Failure.FineMax.Minor() * int64(pct.FinePct) / 100
 		view.Blocked, view.Need, view.Have, view.Wait = h.blocked(s, g.NerveCost(cr.NerveCost), now)
 		if view.Blocked == "" && left > 0 {
-			view.Blocked, view.Wait = screens.CrimeBlockedCooldown, left
+			view.Blocked, view.Wait = plife.CrimeBlockedCooldown, left
 		}
 		view.CanCommit = view.Blocked == "" && h.eligible(snap, cr, s)
 		if view.CanCommit {
@@ -454,7 +456,7 @@ func (h *CrimeHandler) View(ctx context.Context, meta envelope.Metadata, req Cri
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CrimeDetail(h.screen(meta, lang), view), nil
+	return plife.CrimeDetail(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Record handles crime.record: rank, heat, nerve, the counts of the record
@@ -465,7 +467,7 @@ func (h *CrimeHandler) Record(ctx context.Context, meta envelope.Metadata) (*pre
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CrimeRecordView
+	var view plife.CrimeRecordView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -477,7 +479,7 @@ func (h *CrimeHandler) Record(ctx context.Context, meta envelope.Metadata) (*pre
 		if err != nil {
 			return err
 		}
-		view = screens.CrimeRecordView{
+		view = plife.CrimeRecordView{
 			Nerve: h.nerveView(prof, now), Heat: h.heatView(prof.Heat), Tier: tierView(snap, prof.CriminalXP),
 			Attempts: prof.Attempts, Successes: prof.Successes, Arrests: prof.Arrests, Convictions: prof.Convictions,
 			UnpaidRestitution: prof.UnpaidRestitution, UnpaidFines: prof.UnpaidFines,
@@ -487,7 +489,7 @@ func (h *CrimeHandler) Record(ctx context.Context, meta envelope.Metadata) (*pre
 			return err
 		}
 		for _, a := range recent {
-			line := screens.CrimeRecordLine{Crime: named(a.CrimeCode, a.CrimeCode), Result: a.Status, At: a.StartedAt}
+			line := plife.CrimeRecordLine{Crime: named(a.CrimeCode, a.CrimeCode), Result: a.Status, At: a.StartedAt}
 			if def, ok := snap.CrimeDef(a.CrimeCode); ok {
 				line.Crime = crimeNamed(def)
 			}
@@ -498,7 +500,7 @@ func (h *CrimeHandler) Record(ctx context.Context, meta envelope.Metadata) (*pre
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.CrimeRecord(h.screen(meta, lang), view), nil
+	return plife.CrimeRecord(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Jail handles crime.jail: the sentence being served and what bail costs.
@@ -508,7 +510,7 @@ func (h *CrimeHandler) Jail(ctx context.Context, meta envelope.Metadata) (*prese
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.JailView
+	var view plife.JailView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -531,7 +533,7 @@ func (h *CrimeHandler) Jail(ctx context.Context, meta envelope.Metadata) (*prese
 		if err != nil {
 			return err
 		}
-		view = screens.JailView{
+		view = plife.JailView{
 			InJail: true, CityCode: city.Code, City: city.Name, Reason: s.Reason,
 			Remaining: s.EndsAt.Sub(now), EndsAt: s.EndsAt, Bail: bail.Minor(), Nonce: h.nonce(),
 		}
@@ -548,7 +550,7 @@ func (h *CrimeHandler) Jail(ctx context.Context, meta envelope.Metadata) (*prese
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Jail(h.screen(meta, lang), view), nil
+	return plife.Jail(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Cases handles crime.cases: the reports the player filed and where each
@@ -559,7 +561,7 @@ func (h *CrimeHandler) Cases(ctx context.Context, meta envelope.Metadata) (*pres
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.CasesView
+	var view plife.CasesView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -583,13 +585,13 @@ func (h *CrimeHandler) Cases(ctx context.Context, meta envelope.Metadata) (*pres
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Cases(h.screen(meta, lang), view), nil
+	return plife.Cases(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // caseLine builds one report's line. The thief is named only once the case
 // is solved.
-func (h *CrimeHandler) caseLine(ctx context.Context, tx application.Tx, snap *content.Snapshot, r application.CrimeReport, now time.Time) (screens.CaseLine, error) {
-	line := screens.CaseLine{
+func (h *CrimeHandler) caseLine(ctx context.Context, tx application.Tx, snap *content.Snapshot, r application.CrimeReport, now time.Time) (plife.CaseLine, error) {
+	line := plife.CaseLine{
 		Crime: named(r.CrimeCode, r.CrimeCode), Amount: r.Stolen, Status: r.Status,
 		Remaining: max(r.ConcludesAt.Sub(now), 0), Restored: r.RestitutionPaid,
 	}

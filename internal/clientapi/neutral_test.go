@@ -84,3 +84,29 @@ func TestLegacyTextOnlyForListedScreens(t *testing.T) {
 		}
 	}
 }
+
+// With the compatibility switch off, a screen a handler still answers in
+// Telegram's words reaches the client without them.
+func TestTelegramTextNeverReachesTheClientOnceTheSwitchIsOff(t *testing.T) {
+	s := Screen{OK: true, Screen: "x", Text: "<b>سلام</b>\n💰 پول", Actions: []Action{{ID: "a", Label: "دکمهٔ زیر"}},
+		Notice: &Notice{Text: "🔔 خبر"}, Error: &APIError{Message: "⚠ خطا"}}
+	if len(ScreenLeftovers(s)) == 0 {
+		t.Fatal("the detector found nothing in a Telegram screen")
+	}
+	stripTelegramText(&s)
+	if l := ScreenLeftovers(s); len(l) != 0 {
+		t.Errorf("still carries Telegram text: %v", l)
+	}
+}
+
+func TestTelegramLeftoverDetector(t *testing.T) {
+	for in, want := range map[string]string{
+		"<b>x</b>": "html", "a <a href=\"u\">l</a>": "html", "💰 موجودی": "emoji-line", "x\n⏳ مانده": "emoji-line",
+		"با دکمهٔ زیر ادامه دهید": "button-below", "use the button below": "button-below",
+		"سلام": "", "a < b and c > d": "", "کار کردن": "",
+	} {
+		if got := TelegramLeftover(in); got != want {
+			t.Errorf("TelegramLeftover(%q) = %q, want %q", in, got, want)
+		}
+	}
+}

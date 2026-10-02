@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"context"
 	"encoding/json"
 	stderrors "errors"
@@ -225,12 +226,12 @@ func (r CrimeScheduledRequest) ids() (playerID, refID string, err error) {
 // crimeRefusal carries a refused crime request out of a unit of work, so the
 // transaction rolls back with its idempotency key, and the handler answers
 // with the refusal screen instead of an error.
-type crimeRefusal struct{ view screens.CrimeRefusalView }
+type crimeRefusal struct{ view plife.CrimeRefusalView }
 
 func (r *crimeRefusal) Error() string { return "handlers: crime refused: " + r.view.Kind }
 
 func refuseCrime(kind string) *crimeRefusal {
-	return &crimeRefusal{view: screens.CrimeRefusalView{Kind: kind}}
+	return &crimeRefusal{view: plife.CrimeRefusalView{Kind: kind}}
 }
 
 func (h *CrimeHandler) screen(meta envelope.Metadata, lang string) screens.Context {
@@ -241,7 +242,7 @@ func (h *CrimeHandler) screen(meta envelope.Metadata, lang string) screens.Conte
 func (h *CrimeHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
 	var r *crimeRefusal
 	if stderrors.As(err, &r) {
-		return screens.CrimeRefusal(h.screen(meta, lang), r.view), nil
+		return plife.CrimeRefusal(presentation.Ctx{Lang: lang}, r.view), nil
 	}
 	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
 		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
@@ -361,25 +362,25 @@ func (h *CrimeHandler) profileAt(ctx context.Context, tx application.Tx, playerI
 	return p, nil
 }
 
-func (h *CrimeHandler) nerveView(p *application.CriminalProfile, now time.Time) screens.NerveView {
+func (h *CrimeHandler) nerveView(p *application.CriminalProfile, now time.Time) plife.NerveView {
 	n := crime.Nerve{Current: p.Nerve, UpdatedAt: p.NerveUpdatedAt}
-	return screens.NerveView{Nerve: p.Nerve, Max: h.rules.Nerve.Max, FullIn: h.rules.Nerve.FullIn(n, now)}
+	return plife.NerveView{Nerve: p.Nerve, Max: h.rules.Nerve.Max, FullIn: h.rules.Nerve.FullIn(n, now)}
 }
 
-func (h *CrimeHandler) heatView(heat int) screens.HeatView {
-	return screens.HeatView{Heat: heat, Max: h.rules.Heat.Max, Wanted: h.rules.Heat.WantedLevel(heat), Stars: crime.WantedStars}
+func (h *CrimeHandler) heatView(heat int) plife.HeatView {
+	return plife.HeatView{Heat: heat, Max: h.rules.Heat.Max, Wanted: h.rules.Heat.WantedLevel(heat), Stars: crime.WantedStars}
 }
 
 // tierView names a player's criminal tier and the next one.
-func tierView(snap *content.Snapshot, xp int64) screens.TierView {
+func tierView(snap *content.Snapshot, xp int64) plife.TierView {
 	defs := snap.CrimeTiers()
 	if len(defs) == 0 {
-		return screens.TierView{XP: xp}
+		return plife.TierView{XP: xp}
 	}
 	i := crime.TierOf(snap.CrimeTierLadder(), xp)
-	v := screens.TierView{Tier: screens.Named{Code: defs[i].Code, Name: defs[i].Name}, XP: xp}
+	v := plife.TierView{Tier: plife.Named{Code: defs[i].Code, Name: defs[i].Name}, XP: xp}
 	if i+1 < len(defs) {
-		v.Next = screens.Named{Code: defs[i+1].Code, Name: defs[i+1].Name}
+		v.Next = plife.Named{Code: defs[i+1].Code, Name: defs[i+1].Name}
 		v.NextXP = defs[i+1].MinXP
 	}
 	return v
@@ -413,11 +414,11 @@ func (h *CrimeHandler) venueOf(ctx context.Context, tx application.Tx, snap *con
 	return defs[i], i, true, nil
 }
 
-func named(code, name string) screens.Named { return screens.Named{Code: code, Name: name} }
+func named(code, name string) plife.Named { return plife.Named{Code: code, Name: name} }
 
-func venueNamed(v content.VenueDef) screens.Named { return named(v.Code, v.Name) }
+func venueNamed(v content.VenueDef) plife.Named { return named(v.Code, v.Name) }
 
-func crimeNamed(def content.CrimeDef) screens.Named { return named(def.Code, def.Name) }
+func crimeNamed(def content.CrimeDef) plife.Named { return named(def.Code, def.Name) }
 
 // crimeOf returns a crime's definition and domain value. A stored attempt or
 // case naming a crime the content lacks is a load that should have been

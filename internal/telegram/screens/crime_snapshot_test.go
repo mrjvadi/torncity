@@ -222,7 +222,7 @@ func crimeSnapshots(c Context, who people, add func(string, *presenter.Response)
 		CrimeID: someID, Crime: pick, CityCode: "ostmarch", City: "Ostmarch", Amount: 1500,
 		Investigation: 6 * time.Minute, ReportWithin: 23*time.Hour + 40*time.Minute,
 	}))
-	add("Report · filed", CaseFiled(c, 6*time.Minute, snapshotNow.Add(6*time.Minute)))
+	add("Report · filed", CaseFiled(c, CaseFiledView{Investigation: 6 * time.Minute, EndsAt: snapshotNow.Add(6 * time.Minute)}))
 	add("Cases", Cases(c, CasesView{Cases: []CaseLine{
 		{Crime: pick, CityCode: "ostmarch", City: "Ostmarch", Amount: 1500, Status: application.ReportInvestigating, Remaining: 4 * time.Minute},
 		{Crime: pick, CityCode: "brennhaven", City: "Brennhaven", Amount: 300, Status: application.ReportInvestigating, Remaining: 10 * time.Second},

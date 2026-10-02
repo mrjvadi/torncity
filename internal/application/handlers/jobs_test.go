@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/telegram/render"
+	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"context"
 	"encoding/json"
 	stderrors "errors"
@@ -457,9 +459,29 @@ func (h *workHarness) outboxSubjects() []string {
 	return out
 }
 
+// showText is the Telegram text of an answer, rendering a neutral one first.
+func showText(resp *presenter.Response) string {
+	if resp == nil {
+		return ""
+	}
+	if resp.Neutral() {
+		shippedOnce.Do(func() { shipped, shippedErr = i18n.Load(localesDir) })
+		if out, err := render.Render(shipped, render.Delivery{}, resp); err == nil {
+			return out.Text
+		}
+	}
+	return resp.Text
+}
+
 func workText(resp *presenter.Response) string {
 	if resp == nil {
 		return ""
+	}
+	if resp.Neutral() {
+		shippedOnce.Do(func() { shipped, shippedErr = i18n.Load(localesDir) })
+		if out, err := render.Render(shipped, render.Delivery{}, resp); err == nil {
+			resp = out
+		}
 	}
 	var b strings.Builder
 	b.WriteString(resp.Text)
@@ -506,8 +528,8 @@ func TestApplyThenWorkPaysWageAndWithholdsTax(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
-	if !strings.Contains(resp.Text, "Sales Trainee") {
-		t.Errorf("hired screen = %q, want the position's title", resp.Text)
+	if !strings.Contains(showText(resp), "Sales Trainee") {
+		t.Errorf("hired screen = %q, want the position's title", showText(resp))
 	}
 	emp, ok := h.uow.w.jobs.current[h.player.ID]
 	if !ok || emp.CareerCode != "retail" || emp.Tier != 0 || emp.Rate != 120 || emp.CityID != tehranID {
@@ -519,8 +541,8 @@ func TestApplyThenWorkPaysWageAndWithholdsTax(t *testing.T) {
 		t.Fatalf("Work: %v", err)
 	}
 	// The retail entry shift is 4 game hours: 4 real minutes at 60.
-	if !strings.Contains(resp.Text, "4m") {
-		t.Errorf("shift started screen = %q, want the real 4-minute wait", resp.Text)
+	if !strings.Contains(showText(resp), "4m") {
+		t.Errorf("shift started screen = %q, want the real 4-minute wait", showText(resp))
 	}
 	stats := h.uow.tx.stats.rows[h.player.ID]
 	if stats.Energy != player.DefaultMaxEnergy-15 || stats.XP != 0 {
@@ -600,7 +622,7 @@ func TestApplyThenWorkPaysWageAndWithholdsTax(t *testing.T) {
 			t.Errorf("policy asked of %s, want only tehran's jurisdiction", asked)
 		}
 	}
-	if resp == nil || !strings.Contains(resp.Text, "114") {
+	if resp == nil || !strings.Contains(showText(resp), "114") {
 		t.Errorf("shift notice = %q, want the net pay", workText(resp))
 	}
 }
@@ -619,7 +641,7 @@ func TestASecondShiftWhileWorkingIsRefused(t *testing.T) {
 	energy := h.uow.tx.stats.rows[h.player.ID].Energy
 	for i, req := range []string{"req-work-2", "req-work-3"} {
 		resp, err := shown(t, messages(t))(h.work(ctx, h.meta(req, "job.work")))
-		if err != nil || !strings.Contains(resp.Text, "at work") {
+		if err != nil || !strings.Contains(showText(resp), "at work") {
 			t.Fatalf("Work #%d while working = %q, %v; want the at-work refusal", i+2, workText(resp), err)
 		}
 	}
@@ -637,7 +659,7 @@ func TestASecondShiftWhileWorkingIsRefused(t *testing.T) {
 		},
 	} {
 		resp, err := shown(t, messages(t))(call())
-		if err != nil || !strings.Contains(resp.Text, "at work") {
+		if err != nil || !strings.Contains(showText(resp), "at work") {
 			t.Errorf("while working = %q, %v; want the at-work refusal", workText(resp), err)
 		}
 	}
@@ -765,8 +787,8 @@ func TestNonResidentIsRefusedWithTheReason(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Apply = %v, want a refusal screen", err)
 	}
-	if !strings.Contains(resp.Text, "Tehran") || !strings.Contains(resp.Text, "❌") {
-		t.Errorf("refusal = %q, want the residence requirement", resp.Text)
+	if !strings.Contains(showText(resp), "Tehran") || !strings.Contains(showText(resp), "❌") {
+		t.Errorf("refusal = %q, want the residence requirement", showText(resp))
 	}
 	if len(h.uow.w.jobs.current) != 0 || len(h.uow.tx.outbox.records) != 0 {
 		t.Error("a refused application left a job or an event behind")
@@ -789,11 +811,11 @@ func TestApplyRefusalsNameWhatIsMissing(t *testing.T) {
 	ctx := context.Background()
 	// technology is not offered in tehran (the test city is not in its list).
 	resp, err := shown(t, messages(t))(h.jobs.Apply(ctx, h.meta("req-1", "job.apply"), JobRequest{Role: "technology"}))
-	if err != nil || !strings.Contains(resp.Text, "not offered") {
+	if err != nil || !strings.Contains(showText(resp), "not offered") {
 		t.Fatalf("Apply(technology) = %q, %v; want not offered", workText(resp), err)
 	}
 	resp, err = shown(t, messages(t))(h.jobs.Apply(ctx, h.meta("req-2", "job.apply"), JobRequest{Role: "nonexistent"}))
-	if err != nil || !strings.Contains(resp.Text, "not offered") {
+	if err != nil || !strings.Contains(showText(resp), "not offered") {
 		t.Fatalf("Apply(nonexistent) = %q, %v; want not offered", workText(resp), err)
 	}
 }
@@ -830,7 +852,7 @@ func TestWorkAwayFromTheJobIsRefused(t *testing.T) {
 	elsewhere := berlinID
 	h.player.CityID = &elsewhere
 	resp, err := shown(t, messages(t))(h.work(ctx, h.meta("req-work", "job.work")))
-	if err != nil || !strings.Contains(resp.Text, "Tehran") {
+	if err != nil || !strings.Contains(showText(resp), "Tehran") {
 		t.Fatalf("Work away = %q, %v; want the job's city named", workText(resp), err)
 	}
 	if len(h.uow.w.jobs.sessions) != 0 {
@@ -851,8 +873,8 @@ func TestPromotion(t *testing.T) {
 		t.Fatalf("Promote: %v", err)
 	}
 	for _, want := range []string{"Performance 55", "Level 3", "Management"} {
-		if !strings.Contains(resp.Text, want) {
-			t.Errorf("promotion refusal = %q, want it to mention %q", resp.Text, want)
+		if !strings.Contains(showText(resp), want) {
+			t.Errorf("promotion refusal = %q, want it to mention %q", showText(resp), want)
 		}
 	}
 
@@ -870,7 +892,7 @@ func TestPromotion(t *testing.T) {
 		t.Fatalf("status = %q, %v; want the promotion button", workText(status), err)
 	}
 	resp, err = h.jobs.Promote(ctx, h.meta("req-p2", "job.promote"))
-	if err != nil || !strings.Contains(resp.Text, "Sales Associate") {
+	if err != nil || !strings.Contains(showText(resp), "Sales Associate") {
 		t.Fatalf("Promote = %q, %v", workText(resp), err)
 	}
 	emp = h.uow.w.jobs.current[h.player.ID]
@@ -912,8 +934,8 @@ func TestOpeningsListTheCitysCareersByName(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(resp.Text, "Retail") || strings.Contains(resp.Text, "retail") {
-		t.Errorf("openings = %q, want career names and no codes", resp.Text)
+	if !strings.Contains(showText(resp), "Retail") || strings.Contains(showText(resp), "retail") {
+		t.Errorf("openings = %q, want career names and no codes", showText(resp))
 	}
 	if strings.Contains(workText(resp), "Technology") {
 		t.Errorf("openings = %q, list a career not offered here", workText(resp))
@@ -930,7 +952,7 @@ func TestEnrollThenComplete(t *testing.T) {
 	h.uow.w.ledger.balances[accountID(application.AccountPlayerCash, h.player.ID)] = 1000
 
 	resp, err := h.edu.Enroll(ctx, h.meta("req-e", "education.enroll"), CourseRequest{Course: "first_aid", Method: "cash"})
-	if err != nil || !strings.Contains(resp.Text, "First Aid") {
+	if err != nil || !strings.Contains(showText(resp), "First Aid") {
 		t.Fatalf("Enroll = %q, %v", workText(resp), err)
 	}
 	if got := h.cash(); got != 400 {
@@ -951,7 +973,7 @@ func TestEnrollThenComplete(t *testing.T) {
 
 	// A second course while one runs is refused, and costs nothing.
 	resp, err = shown(t, messages(t))(h.edu.Enroll(ctx, h.meta("req-e2", "education.enroll"), CourseRequest{Course: "driving_licence", Method: "cash"}))
-	if err != nil || !strings.Contains(resp.Text, "already studying") {
+	if err != nil || !strings.Contains(showText(resp), "already studying") {
 		t.Fatalf("second Enroll = %q, %v; want already enrolled", workText(resp), err)
 	}
 	if got := h.cash(); got != 400 {
@@ -963,7 +985,7 @@ func TestEnrollThenComplete(t *testing.T) {
 	sched := h.meta("dispatch-1", "education.complete")
 	sched.TelegramUserID = 0
 	resp, err = h.edu.Complete(ctx, sched, req)
-	if err != nil || resp == nil || !strings.Contains(resp.Text, "First Aid") {
+	if err != nil || resp == nil || !strings.Contains(showText(resp), "First Aid") {
 		t.Fatalf("Complete = %q, %v", workText(resp), err)
 	}
 	certs := h.uow.w.edu.certs[h.player.ID]
@@ -1010,8 +1032,8 @@ func TestEnrollWithoutTheFee(t *testing.T) {
 	h.uow.w.ledger.balances[accountID(application.AccountPlayerBank, h.player.ID)] = 250
 	resp, err := h.edu.Enroll(context.Background(), h.meta("req-e", "education.enroll"), CourseRequest{Course: "first_aid", Method: "cash"})
 	resp = edge(t, resp)
-	if err != nil || !strings.Contains(resp.Text, "600") || !strings.Contains(resp.Text, "100") ||
-		!strings.Contains(resp.Text, "250") || !resp.Private {
+	if err != nil || !strings.Contains(showText(resp), "600") || !strings.Contains(showText(resp), "100") ||
+		!strings.Contains(showText(resp), "250") || !resp.Private {
 		t.Fatalf("Enroll = %q, %v; want the fee and both balances, privately", workText(resp), err)
 	}
 	if len(h.uow.w.edu.active) != 0 || len(h.uow.tx.actions.scheduled) != 0 {
@@ -1050,7 +1072,7 @@ func TestEnrollByCardWhenCashIsShort(t *testing.T) {
 	}
 
 	resp, err = h.edu.Enroll(ctx, h.meta("req-e", "education.enroll"), CourseRequest{Course: "first_aid", Method: "card"})
-	if err != nil || !strings.Contains(resp.Text, "First Aid") {
+	if err != nil || !strings.Contains(showText(resp), "First Aid") {
 		t.Fatalf("Enroll by card = %q, %v", workText(resp), err)
 	}
 	if h.cash() != 105 {
@@ -1091,12 +1113,12 @@ func TestCoursesTaughtElsewhereSayWhere(t *testing.T) {
 	ctx := context.Background()
 	for code, city := range map[string]string{"nursing": "Fenwick Span", "culinary_arts": "Brennhaven"} {
 		resp, err := h.edu.View(ctx, h.meta("req-"+code, "education.view"), CourseRequest{Course: code})
-		if err != nil || !strings.Contains(resp.Text, city) || strings.Contains(workText(resp), "education:enroll") {
+		if err != nil || !strings.Contains(showText(resp), city) || strings.Contains(workText(resp), "education:enroll") {
 			t.Errorf("View(%s) = %q, %v; want where it is taught and no enrolment", code, workText(resp), err)
 		}
 	}
 	resp, err := shown(t, messages(t))(h.edu.View(ctx, h.meta("req-x", "education.view"), CourseRequest{Course: "alchemy"}))
-	if err != nil || !strings.Contains(resp.Text, "not on offer") {
+	if err != nil || !strings.Contains(showText(resp), "not on offer") {
 		t.Errorf("View(alchemy) = %q, %v; want not on offer", workText(resp), err)
 	}
 }

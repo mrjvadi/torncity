@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"context"
 	"encoding/json"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/health"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // This file is what hurts a player, shared by everything that can: a failed
@@ -43,11 +43,11 @@ type injured struct {
 }
 
 // View is the injury as a screen shows it.
-func (i *injured) View() *screens.InjuryView {
+func (i *injured) View() *plife.InjuryView {
 	if i == nil {
 		return nil
 	}
-	v := &screens.InjuryView{Damage: i.Damage, Health: i.Health, Max: i.Max}
+	v := &plife.InjuryView{Damage: i.Damage, Health: i.Health, Max: i.Max}
 	if i.Stay != nil {
 		v.Hospital = true
 		v.EndsAt = i.Stay.EndsAt

@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strings"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
@@ -13,30 +12,6 @@ import (
 // enrolment, and the notice a finished course sends.
 
 func (c Context) course(r CourseRef) string { return c.CourseName(r.Code, r.Name) }
-
-// CurrentCourseView is the course a player is on.
-type CurrentCourseView struct {
-	Course CourseRef
-	// Percent is progress from 0 to 100, worked out by the domain.
-	Percent   int
-	Remaining time.Duration
-	// EndsAt is when the course finishes; zero shows no clock line.
-	EndsAt time.Time
-	// Paused says the course stands still because the player is in jail:
-	// Percent and Remaining are as they were at the jailing, and there is
-	// no end time until release.
-	Paused bool
-}
-
-// CourseLine is one course on offer.
-type CourseLine struct {
-	Course   CourseRef
-	Fee      int64
-	Duration time.Duration
-	// MinLevel is shown when the player has not reached it yet.
-	MinLevel int
-	Eligible bool
-}
 
 // The study hub's neutral types live in presentation (the core builds them too).
 type (
@@ -53,29 +28,6 @@ const (
 	EducationNoClass       = presentation.EducationNoClass
 	EducationNothingTaught = presentation.EducationNothingTaught
 )
-
-// EducationView is the study hub: the course in progress, the certificates
-// held, and one page of the courses on offer here.
-type EducationView struct {
-	Current      *CurrentCourseView
-	Certificates []CourseRef
-	// Place is where the player stands and Tier its stage (village, town or city).
-	Place presentation.Named
-	Tier  string
-	// Currency is the money the fees are in; nil when the place has none of its own.
-	Currency *presentation.Currency
-	// Literacy is shown in a settlement that has a class standing.
-	Literacy *EducationLiteracy
-	Courses  []CourseLine
-	// Elsewhere are the courses not taught here, each with where it is and what this place lacks.
-	Elsewhere []CourseGap
-	// Empty is why nothing is on offer here ("" when something is); Build the class
-	// building that would change it.
-	Empty string
-	Build *presentation.Named
-	Page  int
-	Pages int
-}
 
 // Education renders the study hub.
 func Education(c Context, v EducationView) *presenter.Response {
@@ -158,27 +110,6 @@ func renderEducation(c Context, v EducationView) *presenter.Response {
 		htmlEscape(indicator)), kb.Build()).AsHTML()
 }
 
-// CourseDetailView is one course in detail.
-type CourseDetailView struct {
-	Course      CourseRef
-	Institution string
-	// CityCode and City are where it is taught, empty for anywhere.
-	CityCode  string
-	City      string
-	Fee       int64
-	Duration  time.Duration
-	SeatsLeft int
-	// Limited says the course has a seat limit, so SeatsLeft means something.
-	Limited      bool
-	Skills       []SkillGain
-	Certifies    bool
-	Requirements []Requirement
-	CanEnrol     bool
-	// Payment is how the fee can be paid, set when the course can be
-	// enrolled in and costs something: a button per way the player can pay.
-	Payment *PaymentChoice
-}
-
 // CourseDetail renders a course: what it costs and takes, what it gives, what
 // it asks for, and — only when the enrolment would be accepted — the button.
 func CourseDetail(c Context, v CourseDetailView) *presenter.Response {
@@ -244,19 +175,6 @@ func renderCourseDetail(c Context, v CourseDetailView) *presenter.Response {
 	), kb.Build())
 }
 
-// EnrolledView is a successful enrolment.
-type EnrolledView struct {
-	Course CourseRef
-	// Duration is the real wait until the course finishes.
-	Duration time.Duration
-	// EndsAt is when it finishes; zero shows no clock line.
-	EndsAt time.Time
-	Fee    int64
-	// Method is how the fee was paid: cash or card; empty for a free
-	// course.
-	Method string
-}
-
 // paidLine says which purse a charge came from, or nothing when none did.
 func (c Context) paidLine(method string) string {
 	if method == "" {
@@ -280,13 +198,6 @@ func renderEnrolled(c Context, v EnrolledView) *presenter.Response {
 		"duration": FormatDuration(c, v.Duration),
 		"fee":      FormatMoney(c, v.Fee),
 	}), c.paidLine(v.Method), clockLine(c, "education.ends_at", v.EndsAt)), kb.Build())
-}
-
-// CourseCompletedView is what a finished course tells the player.
-type CourseCompletedView struct {
-	Course    CourseRef
-	Certified bool
-	Skills    []SkillGain
 }
 
 // CourseCompleted renders the notice a finished course sends. Like the

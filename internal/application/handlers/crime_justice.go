@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/domain/budget"
@@ -15,7 +17,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // This file holds justice: jail and bail, a victim's report, the
@@ -132,7 +133,7 @@ func (h *CrimeHandler) Bail(ctx context.Context, meta envelope.Metadata, req Bai
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view     screens.BailedView
+		view     plife.BailedView
 		replayed bool
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -156,7 +157,7 @@ func (h *CrimeHandler) Bail(ctx context.Context, meta envelope.Metadata, req Bai
 		}
 		active, err := tx.Crime().ActiveSentence(ctx, p.ID)
 		if isSentinel(err, application.ErrNotJailed) || (err == nil && !active.Serving(now)) {
-			return refuseCrime(screens.CrimeRefusedNotJailed)
+			return refuseCrime(plife.CrimeRefusedNotJailed)
 		}
 		if err != nil {
 			return err
@@ -180,7 +181,7 @@ func (h *CrimeHandler) Bail(ctx context.Context, meta envelope.Metadata, req Bai
 		txID, err := h.pay(ctx, tx, p.ID, snap.Accepts(content.ServiceBail), method, application.Charge{
 			Reason: application.ReasonBail, ReferenceType: application.CrimeReferenceSentence, ReferenceID: s.ID,
 			To: []application.LedgerEntry{{AccountID: treasury.ID, Amount: bail}},
-		}, "crime.button.jail", screens.AddrCrimeJail)
+		}, "crime.button.jail", plife.AddrCrimeJail)
 		if err != nil {
 			return err
 		}
@@ -190,7 +191,7 @@ func (h *CrimeHandler) Bail(ctx context.Context, meta envelope.Metadata, req Bai
 		if err := resumeStudies(ctx, tx, h.ids, p.ID, now); err != nil {
 			return err
 		}
-		view = screens.BailedView{Player: shownName(p), Bail: bail.Minor(), Method: string(method)}
+		view = plife.BailedView{Player: shownName(p), Bail: bail.Minor(), Method: string(method)}
 		return appendCrimeEvent(ctx, tx, meta, "bailed", s.ID, map[string]any{
 			"sentence_id": s.ID, "player_id": p.ID, "city_id": city.ID, "bail": bail.Minor(),
 		})
@@ -201,7 +202,7 @@ func (h *CrimeHandler) Bail(ctx context.Context, meta envelope.Metadata, req Bai
 	if replayed {
 		return h.Jail(ctx, meta)
 	}
-	return screens.Bailed(h.screen(meta, lang), view), nil
+	return plife.Bailed(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // errShowConfirm rolls back a report confirmed without a way to pay its fee,
@@ -303,15 +304,15 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 	snap := h.content.Current()
 	lang := meta.Language
 	method, paid, err := chosenMethod(req.Confirm)
-	if req.Confirm == screens.ReportConfirmation {
+	if req.Confirm == plife.ReportConfirmation {
 		method, paid, err = "", false, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	confirmed := req.Confirm == screens.ReportConfirmation || paid
+	confirmed := req.Confirm == plife.ReportConfirmation || paid
 	var (
-		confirm  *screens.ReportConfirmView
+		confirm  *plife.ReportConfirmView
 		filed    bool
 		endsAt   time.Time
 		replayed bool
@@ -335,16 +336,16 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 		}
 		a, err := tx.Crime().Attempt(ctx, req.Crime)
 		if isSentinel(err, application.ErrCrimeNotFound) {
-			return refuseCrime(screens.CrimeRefusedNotYours)
+			return refuseCrime(plife.CrimeRefusedNotYours)
 		}
 		if err != nil {
 			return err
 		}
 		if a.VictimPlayerID != p.ID {
-			return refuseCrime(screens.CrimeRefusedNotYours)
+			return refuseCrime(plife.CrimeRefusedNotYours)
 		}
 		if a.Status != application.CrimeSucceeded || (a.Reward <= 0 && a.StolenItem == "") || a.ResolvedAt == nil {
-			return refuseCrime(screens.CrimeRefusedNothingStolen)
+			return refuseCrime(plife.CrimeRefusedNothingStolen)
 		}
 		if _, err := tx.Crime().ReportForCrime(ctx, a.ID); err == nil {
 			existing = true
@@ -355,7 +356,7 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 		now := h.now()
 		deadline := a.ResolvedAt.Add(h.rules.ReportWindow)
 		if now.After(deadline) {
-			return refuseCrime(screens.CrimeRefusedExpired)
+			return refuseCrime(plife.CrimeRefusedExpired)
 		}
 		city, err := h.cities.ByID(ctx, a.CityID)
 		if err != nil {
@@ -371,7 +372,7 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 		// confirmation: the confirmation screen.
 		if !confirmed || (pol.ReportFee.Minor() > 0 && !paid) {
 			def, _ := snap.CrimeDef(a.CrimeCode)
-			confirm = &screens.ReportConfirmView{
+			confirm = &plife.ReportConfirmView{
 				CrimeID: a.ID, Crime: named(a.CrimeCode, def.Name), CityCode: city.Code, City: city.Name,
 				Amount: a.Reward, Fee: pol.ReportFee.Minor(), Investigation: investigation, ReportWithin: deadline.Sub(now),
 			}
@@ -404,7 +405,7 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 			if report.FeeTransactionID, err = h.pay(ctx, tx, p.ID, accepts, method, application.Charge{
 				Reason: application.ReasonReportFee, ReferenceType: application.CrimeReferenceReport, ReferenceID: report.ID,
 				To: []application.LedgerEntry{{AccountID: treasury.ID, Amount: pol.ReportFee}},
-			}, "crime.button.cases", screens.AddrCrimeCases); err != nil {
+			}, "crime.button.cases", plife.AddrCrimeCases); err != nil {
 				return err
 			}
 		}
@@ -450,9 +451,9 @@ func (h *CrimeHandler) Report(ctx context.Context, meta envelope.Metadata, req C
 	case replayed, existing:
 		return h.Cases(ctx, meta)
 	case confirm != nil:
-		return screens.ReportConfirm(h.screen(meta, lang), *confirm), nil
+		return plife.ReportConfirm(presentation.Ctx{Lang: lang}, *confirm), nil
 	case filed:
-		return screens.CaseFiled(h.screen(meta, lang), h.scale.RealWait(h.rules.InvestigationDuration), endsAt), nil
+		return plife.CaseFiled(presentation.Ctx{Lang: lang}, plife.CaseFiledView{Investigation: h.scale.RealWait(h.rules.InvestigationDuration), EndsAt: endsAt}), nil
 	}
 	return nil, errors.Internal(stderrors.New("handlers: crime report produced nothing"))
 }

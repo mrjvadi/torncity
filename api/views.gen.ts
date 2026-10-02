@@ -202,6 +202,12 @@ export interface AvatarsView {
   avatars: AvatarChoice[] | null
 }
 
+export interface BailedView {
+  player: string
+  bail: number
+  method: string
+}
+
 export interface BankView {
   city_code: string
   city: string
@@ -512,6 +518,22 @@ export interface CardView {
   notice: string
 }
 
+export interface CaseFiledView {
+  investigation_seconds: number
+  ends_at: string | null
+}
+
+export interface CaseLine {
+  crime: Named
+  city_code: string
+  city: string
+  amount: number
+  status: string
+  remaining_seconds: number
+  thief: string
+  restored: number
+}
+
 export interface CaseOutcomeView {
   crime: Named
   city_code: string
@@ -526,6 +548,10 @@ export interface CaseOutcomeView {
   fine_paid: number
   term_seconds: number
   returned: Named | null
+}
+
+export interface CasesView {
+  cases: CaseLine[] | null
 }
 
 export interface CityGovView {
@@ -547,6 +573,19 @@ export interface CityMapView {
   walking: WalkView | null
   others: number
   places: PlaceLine[] | null
+}
+
+export interface ClinicDeskView {
+  ref: CompanyRef
+  price: number
+  open: boolean
+  stock: number
+  stocked: boolean
+  units: number
+  doctor: number
+  reduction_bps: number
+  treated: number
+  earned: number
 }
 
 export interface ClinicTreatedView {
@@ -628,6 +667,14 @@ export interface CompanyFoundedView {
   city: string
   fee: number
   method: string
+}
+
+export interface CompanyJobOpening {
+  no: number
+  company: string
+  job: JobRef
+  pay: number
+  eligible: boolean
 }
 
 export interface CompanyLine {
@@ -860,6 +907,51 @@ export interface ConstructionProgressView {
   standing: StandingLine[] | null
 }
 
+export interface CourseCompletedView {
+  course: CourseRef
+  certified: boolean
+  skills: SkillGain[] | null
+}
+
+export interface CourseDetailView {
+  course: CourseRef
+  institution: string
+  city_code: string
+  city: string
+  fee: number
+  duration_seconds: number
+  seats_left: number
+  limited: boolean
+  skills: SkillGain[] | null
+  certifies: boolean
+  requirements: Requirement[] | null
+  can_enrol: boolean
+  payment: PaymentChoice | null
+}
+
+export interface CourseGap {
+  course: CourseRef
+  fee: number
+  duration_seconds: number
+  nearest: Named | null
+  needs: CourseNeed[] | null
+}
+
+export interface CourseLine {
+  course: CourseRef
+  fee: number
+  duration_seconds: number
+  min_level: number
+  eligible: boolean
+}
+
+export interface CourseNeed {
+  kind: string
+  code: string
+  role: string
+  tier: number
+}
+
 export interface CourseRef {
   code: string
   name: string
@@ -879,10 +971,171 @@ export interface CreditView {
   defaults: number
 }
 
+export interface CrimeDetailView {
+  crime: Named
+  category: Named
+  nerve: number
+  duration_seconds: number
+  chance_bps: number
+  hits_players: boolean
+  hits_np_cs: boolean
+  min_take: number
+  max_take: number
+  jail_min_seconds: number
+  jail_max_seconds: number
+  fine_min: number
+  fine_max: number
+  requirements: CrimeRequirement[] | null
+  blocked: string
+  need: number
+  have: number
+  wait_seconds: number
+  can_commit: boolean
+  nonce: string
+  odds: OddsView
+  gear_catch_bps: number
+  gear_witness_bps: number
+  gear_solve_bps: number
+  gear_reward_bps: number
+  cooldown_seconds: number
+  cooldown_left_seconds: number
+}
+
+export interface CrimeHubView {
+  city_code: string
+  city: string
+  venue: Named
+  nerve: NerveView
+  heat: HeatView
+  tier: TierView
+  travelling: boolean
+  jail: CrimeProgress | null
+  busy: CrimeProgress | null
+  categories: Named[] | null
+  empty: string
+  min_level: number
+  need_code: string
+  need_role: string
+  need_tier: number
+}
+
+export interface CrimeLine {
+  crime: Named
+  nerve: number
+  duration_seconds: number
+  eligible: boolean
+}
+
+export interface CrimeListView {
+  category: Named
+  crimes: CrimeLine[] | null
+  page: number
+  pages: number
+}
+
+export interface CrimeProgress {
+  crime: Named
+  remaining_seconds: number
+  ends_at: string | null
+}
+
+export interface CrimeRecordLine {
+  crime: Named
+  result: string
+  at: string | null
+}
+
+export interface CrimeRecordView {
+  nerve: NerveView
+  heat: HeatView
+  tier: TierView
+  attempts: number
+  successes: number
+  arrests: number
+  convictions: number
+  unpaid_restitution: number
+  unpaid_fines: number
+  recent: CrimeRecordLine[] | null
+}
+
+export interface CrimeRefusalView {
+  kind: string
+  crime: Named
+  missing: CrimeRequirement[] | null
+  need: number
+  have: number
+  wait_seconds: number
+  amount: number
+  cash: number
+  remaining_seconds: number
+}
+
+export interface CrimeRequirement {
+  kind: string
+  met: boolean
+  skill: string
+  need: number
+  have: number
+  course_code: string
+  course_name: string
+  city_code: string
+  city: string
+  wait_seconds: number
+  tier: Named
+  have_tier: Named
+  venues: Named[] | null
+  here: Named
+  facility: string
+  tool: Named
+}
+
+export interface CrimeResultView {
+  player: string
+  crime: Named
+  venue: Named
+  city_code: string
+  city: string
+  result: string
+  victim_player: boolean
+  take: number
+  dry_spell: boolean
+  xp: number
+  criminal_xp: number
+  skills: SkillGain[] | null
+  level: number
+  heat: HeatView
+  nerve: NerveView
+  jail: CrimeProgress | null
+  fine: number
+  fine_paid: number
+  notice: boolean
+  loot: LootLine[] | null
+  stolen: Named | null
+  confiscated: Named[] | null
+  injury: InjuryView | null
+}
+
+export interface CrimeStartedView {
+  player: string
+  crime: Named
+  venue: Named
+  duration_seconds: number
+  ends_at: string | null
+  nerve: NerveView
+}
+
 export interface Currency {
   code: string
   name: string
   symbol: string
+}
+
+export interface CurrentCourseView {
+  course: CourseRef
+  percent: number
+  remaining_seconds: number
+  ends_at: string | null
+  paused: boolean
 }
 
 export interface DamageLine {
@@ -1042,6 +1295,27 @@ export interface DonateView {
   settlement_id: string
 }
 
+export interface EducationLiteracy {
+  share_bps: number
+  next_bps: number
+  next_stage: string
+}
+
+export interface EducationView {
+  current: CurrentCourseView | null
+  certificates: CourseRef[] | null
+  place: Named
+  tier: string
+  currency: Currency | null
+  literacy: EducationLiteracy | null
+  courses: CourseLine[] | null
+  elsewhere: CourseGap[] | null
+  empty: string
+  build: Named | null
+  page: number
+  pages: number
+}
+
 export interface EffectLine {
   target: string
   op: string
@@ -1114,6 +1388,14 @@ export interface EmptyView {
 export interface EndTreatyView {
   country: GovPlace
   treaty: TreatyLine
+}
+
+export interface EnrolledView {
+  course: CourseRef
+  duration_seconds: number
+  ends_at: string | null
+  fee: number
+  method: string
 }
 
 export interface ErrorView {
@@ -1683,6 +1965,10 @@ export interface HealthHomeView {
   empty: string
 }
 
+export interface HealthRefusalView {
+  kind: string
+}
+
 export interface HealthRest {
   has: boolean
   can_rest: boolean
@@ -1692,6 +1978,13 @@ export interface HealthRest {
 export interface HealthStay {
   remaining_seconds: number
   ends_at: string | null
+}
+
+export interface HeatView {
+  heat: number
+  max: number
+  wanted: number
+  stars: number
 }
 
 export interface HistoryLine {
@@ -1727,6 +2020,22 @@ export interface HoldingLine {
   value: number
   cost: number
   listed: boolean
+}
+
+export interface HospitalView {
+  health: number
+  max: number
+  full_in_seconds: number
+  city_code: string
+  city: string
+  in_hospital: boolean
+  cause: string
+  remaining_seconds: number
+  ends_at: string | null
+  treated: boolean
+  treated_by: TreatOption
+  city_hospital: TreatOption | null
+  clinics: TreatOption[] | null
 }
 
 export interface HospitalisedView {
@@ -1818,6 +2127,14 @@ export interface Injury {
 }
 
 export interface InjuryLine {
+  damage: number
+  health: number
+  max: number
+  hospital: boolean
+  ends_at: string | null
+}
+
+export interface InjuryView {
   damage: number
   health: number
   max: number
@@ -1925,11 +2242,93 @@ export interface ItemUsedView {
   ready_at: string | null
 }
 
+export interface JailView {
+  in_jail: boolean
+  city_code: string
+  city: string
+  reason: string
+  remaining_seconds: number
+  ends_at: string | null
+  bail: number
+  nonce: string
+  payment: PaymentChoice | null
+}
+
+export interface JobDetailView {
+  job: JobRef
+  city_code: string
+  city: string
+  pay: number
+  energy_cost: number
+  requirements: Requirement[] | null
+  can_apply: boolean
+  employed: boolean
+}
+
+export interface JobHiredView {
+  job: JobRef
+  employer: string
+  city_code: string
+  city: string
+  pay: number
+}
+
+export interface JobOpening {
+  job: JobRef
+  pay: number
+  eligible: boolean
+}
+
+export interface JobOpeningsView {
+  companies: CompanyJobOpening[] | null
+  city_code: string
+  city: string
+  travelling: boolean
+  employed: boolean
+  current: JobRef
+  openings: JobOpening[] | null
+  page: number
+  pages: number
+}
+
+export interface JobPromotedView {
+  job: JobRef
+  pay: number
+}
+
+export interface JobQuitView {
+  job: JobRef
+}
+
 export interface JobRef {
   career_code: string
   career_name: string
   rank: string
   title: string
+}
+
+export interface JobStatusView {
+  employed: boolean
+  job: JobRef
+  employer: string
+  city_code: string
+  city: string
+  pay: number
+  energy_cost: number
+  energy: number
+  max_energy: number
+  performance: number
+  shifts_in_tier: number
+  total_earned: number
+  at_workplace: boolean
+  top_tier: boolean
+  shift_length_seconds: number
+  workplace: Named
+  walk_to_work_seconds: number
+  shift: ShiftProgress | null
+  next: JobRef
+  promotion_ready: boolean
+  missing: Requirement[] | null
 }
 
 export interface JoinLine {
@@ -2324,6 +2723,11 @@ export interface Loot {
   qty: number
 }
 
+export interface LootLine {
+  item: Named
+  qty: number
+}
+
 export interface LotAccess {
   kind: string
   roads: number
@@ -2613,12 +3017,110 @@ export interface MinistryView {
   pending_licences: number
 }
 
+export interface MissionBoardRef {
+  code: string
+  name: string
+  place: Named
+  open: number
+}
+
+export interface MissionBoardView {
+  city_code: string
+  city: string
+  tier: string
+  currency: Currency | null
+  boards: MissionBoardRef[] | null
+  board: MissionBoardRef | null
+  here: boolean
+  missions: MissionLine[] | null
+}
+
 export interface MissionCompletedView {
   mission: Named
   cash: number
   withheld: number
   xp: number
   items: Loot[] | null
+}
+
+export interface MissionLine {
+  mission: Named
+  reward: MissionReward
+  blocked: string
+  wait_seconds: number
+  repeatable: boolean
+  objectives: MissionObjective[] | null
+}
+
+export interface MissionNotice {
+  kind: string
+  mission: Named
+  qty: number
+  cash: number
+  withheld: number
+  xp: number
+}
+
+export interface MissionObjective {
+  kind: string
+  target: MissionTarget
+  count: number
+  done: number
+}
+
+export interface MissionProgressLine {
+  no: number
+  mission: Named
+  status: string
+  objectives: MissionObjective[] | null
+  cash: number
+  withheld: number
+  left_seconds: number
+  deliver: boolean
+}
+
+export interface MissionRefusalView {
+  kind: string
+  blocked: string
+  wait_seconds: number
+  level: number
+  max: number
+}
+
+export interface MissionReward {
+  cash: number
+  xp: number
+  items: LootLine[] | null
+}
+
+export interface MissionTarget {
+  kind: string
+  code: string
+  name: string
+}
+
+export interface MissionView {
+  mission: Named
+  no: number
+  board: MissionBoardRef
+  objectives: MissionObjective[] | null
+  reward: MissionReward
+  min_level: number
+  requires: Named[] | null
+  blocked: string
+  wait_seconds: number
+  repeatable: boolean
+  cooldown_seconds: number
+  time_limit_seconds: number
+  abandoning: boolean
+  max: number
+}
+
+export interface MissionsMineView {
+  notice: MissionNotice | null
+  max: number
+  active: MissionProgressLine[] | null
+  recent: MissionProgressLine[] | null
 }
 
 export interface MoveLine {
@@ -2661,6 +3163,12 @@ export interface NeedsView {
   body_bps: number
   xpbps: number
   pressing: string[] | null
+}
+
+export interface NerveView {
+  nerve: number
+  max: number
+  full_in_seconds: number
 }
 
 export interface NextStep {
@@ -2713,6 +3221,14 @@ export interface OccupationLine {
   controller: GovPlace
   de_jure: GovPlace
   since_seconds: number
+}
+
+export interface OddsView {
+  base: number
+  skill: number
+  awareness: number
+  heat: number
+  gear: number
 }
 
 export interface OfficeView {
@@ -3506,6 +4022,18 @@ export interface RentedHomeLine {
   arrears: number
 }
 
+export interface ReportConfirmView {
+  crime_id: string
+  crime: Named
+  city_code: string
+  city: string
+  amount: number
+  fee: number
+  investigation_seconds: number
+  report_within_seconds: number
+  payment: PaymentChoice | null
+}
+
 export interface Requirement {
   kind: string
   met: boolean
@@ -3716,6 +4244,35 @@ export interface ShelfLine {
   next_restock: string | null
 }
 
+export interface ShiftProgress {
+  remaining_seconds: number
+  ends_at: string | null
+}
+
+export interface ShiftStartedView {
+  job: JobRef
+  duration_seconds: number
+  ends_at: string | null
+  fatigue_bps: number
+  energy: number
+  max_energy: number
+}
+
+export interface ShiftWorkedView {
+  gross: number
+  tax: number
+  net: number
+  xp: number
+  skills: SkillGain[] | null
+  performance: number
+  performance_delta: number
+  fatigue_bps: number
+  level: number
+  energy: number
+  max_energy: number
+  injury: InjuryView | null
+}
+
 export interface ShopBoughtView {
   shop: Named
   item: Named
@@ -3782,11 +4339,30 @@ export interface Shortage {
   source: string
 }
 
+export interface SkillGain {
+  skill: string
+  xp: number
+  level: number
+}
+
 export interface SkillGap {
   company: string
   skill: string
   level: number
   courses: CourseRef[] | null
+}
+
+export interface SkillLine {
+  code: string
+  level: number
+  xp: number
+  next: number
+  percent: number
+  max: boolean
+}
+
+export interface SkillsView {
+  lines: SkillLine[] | null
 }
 
 export interface SleepPayView {
@@ -4084,6 +4660,13 @@ export interface TermsView {
   default_tax_bps: number
 }
 
+export interface TierView {
+  tier: Named
+  xp: number
+  next: Named
+  next_xp: number
+}
+
 export interface TradeLine {
   qty: number
   price: number
@@ -4159,6 +4742,33 @@ export interface TravelStatusView {
   mode_name: string
   remaining_seconds: number
   arrives_at: string | null
+}
+
+export interface TreatConfirmView {
+  option: TreatOption
+  remaining_seconds: number
+  ends_at: string | null
+  payment: PaymentChoice | null
+}
+
+export interface TreatOption {
+  provider: string
+  clinic: CompanyRef
+  price: number
+  saves_seconds: number
+  doctor: number
+  stock: number
+  open: boolean
+  can_treat: boolean
+}
+
+export interface TreatedView {
+  option: TreatOption
+  paid: number
+  method: string
+  saved_seconds: number
+  remaining_seconds: number
+  ends_at: string | null
 }
 
 export interface TreatiesView {
@@ -4537,6 +5147,7 @@ export interface ScreenViews {
   auction_refusal: AuctionRefusalView
   auctions: AuctionsView
   avatars: AvatarsView
+  bailed: BailedView
   bank: BankView
   bid_placed: BidPlacedView
   bill: BillView
@@ -4547,10 +5158,13 @@ export interface ScreenViews {
   branch: BranchView
   budget: BudgetView
   card: CardView
+  case_filed: CaseFiledView
   case_solved_notice: CaseOutcomeView
+  cases: CasesView
   cities: MapView
   city_governance: CityGovView
   city_map: CityMapView
+  clinic_desk: ClinicDeskView
   clinic_treated_notice: ClinicTreatedView
   company_application_notice: CompanyApplicationNoticeView
   company_applied: CompanyAppliedView
@@ -4572,6 +5186,15 @@ export interface ScreenViews {
   company_type_detail: CompanyTypeView
   company_types: CompanyTypesView
   convicted_notice: CaseOutcomeView
+  course_completed: CourseCompletedView
+  course_detail: CourseDetailView
+  crime_detail: CrimeDetailView
+  crime_hub: CrimeHubView
+  crime_list: CrimeListView
+  crime_record: CrimeRecordView
+  crime_refusal: CrimeRefusalView
+  crime_result: CrimeResultView
+  crime_started: CrimeStartedView
   dashboard: DashboardView
   design: DesignView
   device_link: DeviceLinkView
@@ -4582,11 +5205,13 @@ export interface ScreenViews {
   dividend: DividendView
   drop_confirm: ItemDroppedView
   economy_hub: HubView
+  education: EducationView
   election: ElectionView
   election_refusal: ElectionRefusalView
   election_result_notice: ElectionResultView
   elections: ElectionsView
   end_treaty: EndTreatyView
+  enrolled: EnrolledView
   error: ErrorView
   exchange: ExchangeView
   faction_answer_notice: FactionAnswerView
@@ -4621,7 +5246,9 @@ export interface ScreenViews {
   gold_trade: GoldTradeView
   gov_history: GovHistoryView
   health_home: HealthHomeView
+  health_refusal: HealthRefusalView
   history: HistoryView
+  hospital: HospitalView
   hospitalised_notice: HospitalisedView
   hunger_notice: EmptyView
   impose: ImposeView
@@ -4638,6 +5265,14 @@ export interface ScreenViews {
   item_given: ItemGivenView
   item_refusal: ItemRefusalView
   item_used: ItemUsedView
+  jail: JailView
+  job_detail: JobDetailView
+  job_hired: JobHiredView
+  job_openings: JobOpeningsView
+  job_promoted: JobPromotedView
+  job_quit: JobQuitView
+  job_quit_confirm: JobQuitView
+  job_status: JobStatusView
   kit_purchase: KitPurchaseView
   lab: LabView
   labor_board: LaborBoardView
@@ -4661,7 +5296,11 @@ export interface ScreenViews {
   market_refusal: MarketRefusalView
   military_refusal: MilitaryRefusalView
   ministry: MinistryView
+  mission: MissionView
+  mission_board: MissionBoardView
   mission_completed_notice: MissionCompletedView
+  mission_refusal: MissionRefusalView
+  missions_mine: MissionsMineView
   move_arrived_notice: MilitaryNoticeView
   my_auctions: MyAuctionsView
   my_office: MyOfficeView
@@ -4702,6 +5341,7 @@ export interface ScreenViews {
   recruit_notice: RecruitView
   recruit_refusal: RecruitRefusalView
   refusal: RefusalView
+  report_confirm: ReportConfirmView
   retrofit: RetrofitView
   reverse_lab: ReverseLabView
   sanction_blocked: SanctionBlockedView
@@ -4733,12 +5373,15 @@ export interface ScreenViews {
   settlement_refusal: SettlementRefusalView
   settlement_terms: TermsView
   settlement_who: SettlementWhoView
+  shift_started: ShiftStartedView
+  shift_worked: ShiftWorkedView
   shop_bought: ShopBoughtView
   shop_checkout: ShopCheckoutView
   shop_detail: ShopView
   shop_refusal: ShopRefusalView
   shop_sold: ShopSoldView
   shops: ShopsView
+  skills: SkillsView
   sleep_pay: SleepPayView
   society_hub: HubView
   specialists: SpecialistsView
@@ -4758,6 +5401,8 @@ export interface ScreenViews {
   travel_options: TravelOptionsView
   travel_started: TravelStartedView
   travel_status: TravelStatusView
+  treat_confirm: TreatConfirmView
+  treated: TreatedView
   treaties: TreatiesView
   treaty_proposed_notice: TreatyView
   victim_notice: VictimView
@@ -4794,4 +5439,4 @@ export interface ScreenViews {
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */
-export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'war_blocked', 'war_refusal'] as const
+export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'crime_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'health_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'mission_refusal', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'war_blocked', 'war_refusal'] as const

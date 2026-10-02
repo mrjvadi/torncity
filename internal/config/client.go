@@ -137,7 +137,7 @@ func defaultClient() Client {
 		RealtimeTokenTTL:     15 * time.Minute,
 		GroupCommands:        GroupCommandsRefuse,
 		MiniAppURL:           "",
-		LegacyTextScreens:    []string{"*"},
+		LegacyTextScreens:    nil,
 		ChunkCacheEntries:    4096,
 		ChunksPerMinute:      1200,
 		LayoutsPerMinute:     120,

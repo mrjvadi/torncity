@@ -1,6 +1,7 @@
 package notification
 
 import (
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"context"
 	"encoding/json"
 	"time"
@@ -77,11 +78,11 @@ type injuryPayload struct {
 }
 
 // view is the injury as a screen shows it; nil for none.
-func (p *injuryPayload) view() *screens.InjuryView {
+func (p *injuryPayload) view() *plife.InjuryView {
 	if p == nil || p.Damage <= 0 {
 		return nil
 	}
-	return &screens.InjuryView{Damage: p.Damage, Health: p.Health, Max: p.MaxHealth, Hospital: p.Hospital, EndsAt: p.EndsAt}
+	return &plife.InjuryView{Damage: p.Damage, Health: p.Health, Max: p.MaxHealth, Hospital: p.Hospital, EndsAt: p.EndsAt}
 }
 
 // notice is the injury as a notice carries it; nil for none.
@@ -102,35 +103,34 @@ func renderCrimeResult(_ context.Context, _ Deps, env *envelope.Envelope) (*Draf
 	if ev.PlayerID == "" || ev.Crime == "" {
 		return nil, apperrors.InvalidInput("crime result names no player or no crime")
 	}
-	view := screens.CrimeResultView{
-		Player: ev.Player, Crime: screens.Named{Code: ev.Crime, Name: ev.CrimeName},
-		Venue: screens.Named{Code: ev.Venue, Name: ev.VenueName}, CityCode: ev.CityCode, City: ev.CityName,
+	view := plife.CrimeResultView{
+		Player: ev.Player, Crime: plife.Named{Code: ev.Crime, Name: ev.CrimeName},
+		Venue: plife.Named{Code: ev.Venue, Name: ev.VenueName}, CityCode: ev.CityCode, City: ev.CityName,
 		Result: ev.Result, VictimPlayer: ev.VictimPlayer, Take: ev.Take, DrySpell: ev.Dry,
 		XP: ev.XP, CriminalXP: ev.CriminalXP, Level: ev.Level,
-		Heat:  screens.HeatView{Heat: ev.Heat, Max: ev.HeatMax, Wanted: ev.Wanted, Stars: ev.Stars},
-		Nerve: screens.NerveView{Nerve: ev.Nerve, Max: ev.NerveMax, FullIn: time.Duration(ev.NerveFullInSec) * time.Second},
+		Heat:  plife.HeatView{Heat: ev.Heat, Max: ev.HeatMax, Wanted: ev.Wanted, Stars: ev.Stars},
+		Nerve: plife.NerveView{Nerve: ev.Nerve, Max: ev.NerveMax, FullIn: time.Duration(ev.NerveFullInSec) * time.Second},
 		Fine:  ev.Fine, FinePaid: ev.FinePaid, Notice: true, Injury: ev.Injury.view(),
 	}
 	for _, s := range ev.Skills {
-		view.Skills = append(view.Skills, screens.SkillGain{Skill: s.Skill, XP: s.XP, Level: s.Level})
+		view.Skills = append(view.Skills, plife.SkillGain{Skill: s.Skill, XP: s.XP, Level: s.Level})
 	}
 	if ev.JailSeconds > 0 {
-		view.Jail = &screens.CrimeProgress{Remaining: time.Duration(ev.JailSeconds) * time.Second, EndsAt: ev.JailEndsAt}
+		view.Jail = &plife.CrimeProgress{Remaining: time.Duration(ev.JailSeconds) * time.Second, EndsAt: ev.JailEndsAt}
 	}
 	for _, l := range ev.Loot {
-		view.Loot = append(view.Loot, screens.LootLine{Item: screens.Named{Code: l.Item, Name: l.ItemName}, Qty: l.Qty})
+		view.Loot = append(view.Loot, plife.LootLine{Item: plife.Named{Code: l.Item, Name: l.ItemName}, Qty: l.Qty})
 	}
 	if ev.StolenItem != "" {
-		view.Stolen = &screens.Named{Code: ev.StolenItem, Name: ev.StolenItemName}
+		view.Stolen = &plife.Named{Code: ev.StolenItem, Name: ev.StolenItemName}
 	}
 	for _, c := range ev.Confiscated {
-		view.Confiscated = append(view.Confiscated, screens.Named{Code: c.Item, Name: c.ItemName})
+		view.Confiscated = append(view.Confiscated, plife.Named{Code: c.Item, Name: c.ItemName})
 	}
 	return &Draft{
 		PlayerID: ev.PlayerID,
-		Screen: func(c screens.Context) *presenter.Response {
-			c.Shared = false
-			return screens.CrimeResult(c, view).MarkPrivate()
+		Notice: func(c presentation.Ctx) *presentation.Response {
+			return plife.CrimeResult(c, view).MarkPrivate()
 		},
 	}, nil
 }
@@ -198,7 +198,7 @@ func renderReleased(_ context.Context, _ Deps, env *envelope.Envelope) (*Draft, 
 	if ev.PlayerID == "" {
 		return nil, apperrors.InvalidInput("crime.released names no player")
 	}
-	city := screens.Named{Code: ev.CityCode, Name: ev.CityName}
+	city := plife.Named{Code: ev.CityCode, Name: ev.CityName}
 	return &Draft{
 		PlayerID: ev.PlayerID,
 		Screen:   func(c screens.Context) *presenter.Response { return screens.ReleasedNotice(c, city) },

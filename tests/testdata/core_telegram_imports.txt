@@ -12,7 +12,6 @@ internal/application/handlers/elections.go
 internal/application/handlers/factions.go
 internal/application/handlers/goods.go
 internal/application/handlers/health.go
-internal/application/handlers/health_common.go
 internal/application/handlers/jobs.go
 internal/application/handlers/life.go
 internal/application/handlers/life_common.go
@@ -26,12 +25,10 @@ internal/application/handlers/work_common.go
 internal/workers/notification/announce.go
 internal/workers/notification/company.go
 internal/workers/notification/crime.go
-internal/workers/notification/education.go
 internal/workers/notification/election.go
 internal/workers/notification/faction.go
 internal/workers/notification/goods.go
 internal/workers/notification/health.go
-internal/workers/notification/job.go
 internal/workers/notification/legislature.go
 internal/workers/notification/military.go
 internal/workers/notification/notice.go

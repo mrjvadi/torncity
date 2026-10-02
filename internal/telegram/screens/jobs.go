@@ -17,24 +17,6 @@ import (
 // course.<code> — and fall back to the name the content file was authored
 // with, exactly as a city does (CityName). A code or a rank is never shown.
 
-// Callback addresses of the work and study screens.
-const (
-	AddrJobStatus   = "job:status"
-	AddrJobList     = "job:list"
-	AddrJobView     = "job:view"
-	AddrJobApply    = "job:apply"
-	AddrJobWork     = "job:work"
-	AddrJobPromote  = "job:promote"
-	AddrJobQuit     = "job:quit"
-	AddrEducation   = "education:list"
-	AddrCourseView  = "education:view"
-	AddrCourseEnrol = "education:enroll"
-)
-
-// QuitConfirmation is the argument that turns job.quit from "are you sure"
-// into the resignation itself.
-const QuitConfirmation = "yes"
-
 // named resolves a catalogue key, falling back to an authored name when the
 // catalogue has no entry for it. See CityName for why the key itself is the
 // signal of a missing entry.
@@ -123,56 +105,6 @@ func (c Context) requirementLines(rs []Requirement) []string {
 		}
 	}
 	return out
-}
-
-// JobStatusView is the player's job.
-type JobStatusView struct {
-	// Employed is false for a player with no job; nothing else is set then.
-	Employed bool
-	Job      JobRef
-	// Employer is the company the job is at; empty at the city's base
-	// employer.
-	Employer string
-	// CityCode and City are where the job is.
-	CityCode string
-	City     string
-	// Pay is what a full-output shift pays now, minimum wage applied.
-	Pay        int64
-	EnergyCost int
-	Energy     int
-	MaxEnergy  int
-	// Performance is on the 0..100 scale.
-	Performance  int
-	ShiftsInTier int
-	TotalEarned  int64
-	// AtWorkplace is whether the player stands in the job's city and is not
-	// travelling, so a shift can be worked from here.
-	AtWorkplace bool
-	// TopTier means there is no next position.
-	TopTier bool
-	// ShiftLength is how long one shift of this position takes, the real
-	// wait on the game clock.
-	ShiftLength time.Duration
-	// Workplace is the place of the city the job is worked at, when the
-	// city has places; WalkToWork the walk there from where the player
-	// stands, zero when they are there. The start button walks first.
-	Workplace  Named
-	WalkToWork time.Duration
-	// Shift is the shift in progress, nil when the player is not working.
-	Shift *ShiftProgress
-	// Next is the next position; PromotionReady says it has been earned and
-	// Missing lists what is still needed otherwise.
-	Next           JobRef
-	PromotionReady bool
-	Missing        []Requirement
-}
-
-// ShiftProgress is a shift the player is working.
-type ShiftProgress struct {
-	// Remaining is the real time until it ends.
-	Remaining time.Duration
-	// EndsAt is when it ends.
-	EndsAt time.Time
 }
 
 // shiftProgressLines renders a shift in progress: the time left and the
@@ -289,41 +221,6 @@ func renderJobStatus(c Context, v JobStatusView) *presenter.Response {
 	return c.respond(paragraphs(title, htmlEscape(details), htmlEscape(where), promotion), kb.Build()).AsHTML()
 }
 
-// JobOpening is one position offered in the city.
-type JobOpening struct {
-	Job JobRef
-	// Pay is what a shift of it pays.
-	Pay int64
-	// Eligible is whether the player meets every requirement now.
-	Eligible bool
-}
-
-// CompanyJobOpening is an opening of a player company in the city.
-type CompanyJobOpening struct {
-	No       int64
-	Company  string
-	Job      JobRef
-	Pay      int64
-	Eligible bool
-}
-
-// JobOpeningsView is the openings in the player's city, one page of them.
-type JobOpeningsView struct {
-	// Companies are the openings of the city's player companies, shown
-	// beside the base employer's on the first page.
-	Companies []CompanyJobOpening
-	CityCode  string
-	City      string
-	// Travelling means the player is between cities; nothing is listed.
-	Travelling bool
-	// Employed means the player already works; Current is their position.
-	Employed bool
-	Current  JobRef
-	Openings []JobOpening
-	Page     int
-	Pages    int
-}
-
 // JobOpenings renders the openings. Each opening is a button leading to its
 // details, where the requirements are spelled out and the application made.
 func JobOpenings(c Context, v JobOpeningsView) *presenter.Response {
@@ -418,21 +315,6 @@ func renderJobOpenings(c Context, v JobOpeningsView) *presenter.Response {
 	return c.respond(paragraphs(title, employed, list, body(companyLines...), indicator, hint), kb.Build())
 }
 
-// JobDetailView is one opening in detail.
-type JobDetailView struct {
-	Job          JobRef
-	CityCode     string
-	City         string
-	Pay          int64
-	EnergyCost   int
-	Requirements []Requirement
-	// CanApply is whether the application would be accepted now.
-	CanApply bool
-	// Employed means the player already has a job, which is why they
-	// cannot apply even when they qualify.
-	Employed bool
-}
-
 // JobDetail renders one opening: what it pays and costs, what it asks for,
 // and — only when every requirement is met — the button that applies.
 func JobDetail(c Context, v JobDetailView) *presenter.Response {
@@ -468,16 +350,6 @@ func renderJobDetail(c Context, v JobDetailView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-// JobHiredView is a successful application.
-type JobHiredView struct {
-	Job JobRef
-	// Employer is the company hired at; empty at the base employer.
-	Employer string
-	CityCode string
-	City     string
-	Pay      int64
-}
-
 // JobHired renders the new job.
 func JobHired(c Context, v JobHiredView) *presenter.Response {
 	return c.withView(renderJobHired(c, v), ScreenJobHired, v)
@@ -502,33 +374,12 @@ func renderJobHired(c Context, v JobHiredView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-// SkillGain is XP a skill received, and the level it reached if it rose.
-type SkillGain struct {
-	Skill string
-	XP    int64
-	// Level is the new level when the skill levelled up, else 0.
-	Level int
-}
-
 // shiftLengthLine says how long a shift takes, or nothing when unknown.
 func shiftLengthLine(c Context, d time.Duration) string {
 	if d <= 0 {
 		return ""
 	}
 	return c.T("job.shift_length", map[string]any{"duration": FormatDuration(c, d)})
-}
-
-// ShiftStartedView is a shift that has just begun.
-type ShiftStartedView struct {
-	Job JobRef
-	// Duration is the real wait until the shift ends; EndsAt is when.
-	Duration time.Duration
-	EndsAt   time.Time
-	// FatigueBPS is the output the shift runs at; below 10000 it is tired.
-	FatigueBPS int
-	// Energy and MaxEnergy are what is left after paying for it.
-	Energy    int
-	MaxEnergy int
 }
 
 // ShiftStarted renders the start of a shift. Nothing is paid yet: the pay,
@@ -555,23 +406,6 @@ func renderShiftStarted(c Context, v ShiftStartedView) *presenter.Response {
 	kb := keyboards.New()
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome, RefreshData: AddrJobStatus}))
 	return c.respond(paragraphs(body(lines...), c.T("job.shift_paid_at_end", nil), tired), kb.Build())
-}
-
-// ShiftWorkedView is the outcome of one shift.
-type ShiftWorkedView struct {
-	Gross, Tax, Net  int64
-	XP               int64
-	Skills           []SkillGain
-	Performance      int
-	PerformanceDelta int
-	// FatigueBPS is the output the shift ran at; below 10000 it was tired.
-	FatigueBPS int
-	// Level is the highest level reached through this shift's XP, else 0.
-	Level     int
-	Energy    int
-	MaxEnergy int
-	// Injury is an accident at work, nil for none (docs/adr/0023).
-	Injury *InjuryView
 }
 
 // ShiftWorked renders a shift's outcome.
@@ -650,12 +484,6 @@ func renderShiftWorked(c Context, v ShiftWorkedView) *presenter.Response {
 	return c.respond(paragraphs(c.T("job.shift_done", nil), body(lines...), tired, accident), kb.Build())
 }
 
-// JobPromotedView is a promotion.
-type JobPromotedView struct {
-	Job JobRef
-	Pay int64
-}
-
 // JobPromoted renders a promotion.
 func JobPromoted(c Context, v JobPromotedView) *presenter.Response {
 	return c.withView(renderJobPromoted(c, v), ScreenJobPromoted, v)
@@ -673,7 +501,8 @@ func renderJobPromoted(c Context, v JobPromotedView) *presenter.Response {
 
 // JobQuitConfirm asks before a resignation, because it cannot be undone:
 // performance and progress in the position are lost.
-func JobQuitConfirm(c Context, job JobRef) *presenter.Response {
+func JobQuitConfirm(c Context, v JobQuitView) *presenter.Response {
+	job := v.Job
 	kb := keyboards.New()
 	yes, _ := keyboards.Button(c.T("job.button.quit_confirm", nil), AddrJobQuit, QuitConfirmation)
 	kb.Row(yes)
@@ -682,7 +511,8 @@ func JobQuitConfirm(c Context, job JobRef) *presenter.Response {
 }
 
 // JobQuit renders a resignation.
-func JobQuit(c Context, job JobRef) *presenter.Response {
+func JobQuit(c Context, v JobQuitView) *presenter.Response {
+	job := v.Job
 	kb := keyboards.New()
 	openings, _ := keyboards.Button(c.T("job.button.openings", nil), AddrJobList)
 	kb.Row(openings)

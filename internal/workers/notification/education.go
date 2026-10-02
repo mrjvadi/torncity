@@ -1,13 +1,13 @@
 package notification
 
 import (
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"context"
 	"encoding/json"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // courseCompleted is the payload EducationHandler.Complete writes. The course
@@ -37,15 +37,15 @@ func renderCourseCompleted(_ context.Context, _ Deps, env *envelope.Envelope) (*
 	if ev.PlayerID == "" || ev.Course == "" {
 		return nil, apperrors.InvalidInput("education.completed names no player or no course")
 	}
-	view := screens.CourseCompletedView{
-		Course:    screens.CourseRef{Code: ev.Course, Name: ev.CourseName},
+	view := plife.CourseCompletedView{
+		Course:    plife.CourseRef{Code: ev.Course, Name: ev.CourseName},
 		Certified: ev.Certified,
 	}
 	for _, s := range ev.Skills {
-		view.Skills = append(view.Skills, screens.SkillGain{Skill: s.Skill, XP: s.XP, Level: s.Level})
+		view.Skills = append(view.Skills, plife.SkillGain{Skill: s.Skill, XP: s.XP, Level: s.Level})
 	}
 	return &Draft{
 		PlayerID: ev.PlayerID,
-		Screen:   func(c screens.Context) *presenter.Response { return screens.CourseCompleted(c, view) },
+		Notice:   func(c presentation.Ctx) *presentation.Response { return plife.CourseCompleted(c, view) },
 	}, nil
 }

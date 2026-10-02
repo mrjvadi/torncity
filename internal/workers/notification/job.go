@@ -1,13 +1,13 @@
 package notification
 
 import (
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"context"
 	"encoding/json"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // shiftWorked is the payload JobsHandler.FinishShift writes when a shift
@@ -43,7 +43,7 @@ func renderShiftWorked(_ context.Context, _ Deps, env *envelope.Envelope) (*Draf
 	if ev.PlayerID == "" {
 		return nil, apperrors.InvalidInput("job.shift_worked names no player")
 	}
-	view := screens.ShiftWorkedView{
+	view := plife.ShiftWorkedView{
 		Gross:            ev.Gross,
 		Tax:              ev.Tax,
 		Net:              ev.Net,
@@ -57,10 +57,10 @@ func renderShiftWorked(_ context.Context, _ Deps, env *envelope.Envelope) (*Draf
 		Injury:           ev.Injury.view(),
 	}
 	for _, s := range ev.Skills {
-		view.Skills = append(view.Skills, screens.SkillGain{Skill: s.Skill, XP: s.XP, Level: s.Level})
+		view.Skills = append(view.Skills, plife.SkillGain{Skill: s.Skill, XP: s.XP, Level: s.Level})
 	}
 	return &Draft{
 		PlayerID: ev.PlayerID,
-		Screen:   func(c screens.Context) *presenter.Response { return screens.ShiftWorked(c, view) },
+		Notice:   func(c presentation.Ctx) *presentation.Response { return plife.ShiftWorked(c, view) },
 	}, nil
 }

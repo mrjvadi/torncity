@@ -915,7 +915,7 @@ func (h *CompaniesHandler) Apply(ctx context.Context, meta envelope.Metadata, re
 	case hired != nil:
 		// The new job is a jobs screen, still drawn by the Telegram layer
 		// until the jobs area is migrated.
-		return screens.JobHired(h.screen(meta, lang), *hired), nil
+		return plife.JobHired(presentation.Ctx{Lang: lang}, *hired), nil
 	}
 	return companies.CompanyApplied(presentation.Ctx{Lang: lang}, *applied), nil
 }
