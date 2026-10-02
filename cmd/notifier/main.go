@@ -39,6 +39,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	infraredis "github.com/mrjvadi/torncity/internal/infrastructure/redis"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/statesync"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 	"github.com/mrjvadi/torncity/internal/workers/notification"
@@ -252,6 +253,14 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		logger.Info("REDIS_URL is not set; no settlement channel versions and no village news")
 	}
 
+	// Client state sync (docs/adr/0034): the projector, its publications on
+	// the same realtime server, and the hook that projects a stored notice.
+	var syncPub statesync.Publisher
+	if realtime != nil {
+		syncPub = realtime
+	}
+	stateSync := newStateSync(ctx, cfg, pool, syncPub, logger)
+
 	worker, err := notification.New(notification.Config{
 		Logger:  logger,
 		Msgs:    i18n.NewStore(catalog),
@@ -284,6 +293,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		PlayerInbox:   playerInbox,
 		DeliveryModes: deliveryModes,
 		EditThrottle:  cfg.Notifications.EditThrottle,
+		Recorded:      recordedHook(stateSync, cfg.StateSync.LockTimeout+cfg.Realtime.PublishTimeout),
 	})
 	if err != nil {
 		return err
@@ -307,6 +317,12 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			return err
 		}
 		logger.Info("consuming", slog.String("subject", route.Subject()), slog.String("consumer", route.Durable()))
+	}
+
+	if stateSync != nil {
+		if err := runStateSync(ctx, cfg, stateSync, consumer, conn.Raw(), logger); err != nil {
+			return err
+		}
 	}
 
 	// The inbox badge's own timers: nothing arriving is what a 24h-unread

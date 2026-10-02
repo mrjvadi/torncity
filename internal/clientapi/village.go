@@ -474,3 +474,44 @@ func layoutVersion(l VillageLayout, tenure ...string) string {
 	}
 	return application.LayoutVersionOf(l.Settlement.ID, l.Settlement.Tier, l.Settlement.Name, l.Grid.Lots, l.Viewer.CanPlace, bs, tenure...)
 }
+
+// LayoutVersions is the settlement's layout version for each kind of viewer
+// (head, member, public) and its grid's side, as Layout would answer them:
+// the same buildings, footprints and tenure mark, without sampling the
+// terrain (which no version depends on). Client state sync puts the
+// viewer's own version in the player's settlement summary (docs/adr/0034).
+func (v *VillageService) LayoutVersions(ctx context.Context, settlementID string) (application.LayoutVersions, int, error) {
+	s, err := v.Settlements.ByID(ctx, settlementID)
+	if err != nil {
+		return application.LayoutVersions{}, 0, err
+	}
+	rows, err := v.Buildings.List(ctx, s.CityID)
+	if err != nil {
+		return application.LayoutVersions{}, 0, err
+	}
+	snap := v.Content.Current()
+	footprint := func(code string, rotated bool) (int, int) {
+		if d, ok := snap.SettlementBuildingDef(code); ok {
+			def := d.Def()
+			if rotated {
+				def = def.Rotate()
+			}
+			return def.FootprintW, def.FootprintH
+		}
+		return 1, 1
+	}
+	mark := ""
+	if v.Citizens != nil {
+		lots, err := v.Citizens.Lots(ctx, s.CityID)
+		if err != nil {
+			return application.LayoutVersions{}, 0, err
+		}
+		priv, err := v.Citizens.PrivateBuildings(ctx, s.CityID)
+		if err != nil {
+			return application.LayoutVersions{}, 0, err
+		}
+		mark = application.TenureMark(lots, priv)
+	}
+	lots := v.gridLots(s.Tier, s.GridGrowth)
+	return application.LayoutVersionsWithTenure(s.CityID, s.Tier, s.Name, lots, rows, footprint, mark), lots, nil
+}
