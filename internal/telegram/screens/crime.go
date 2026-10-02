@@ -213,6 +213,10 @@ type CrimeHubView struct {
 	// level_too_low reason asks for.
 	Empty    string
 	MinLevel int
+	// NeedCode, or NeedRole at NeedTier, is the building that would open a
+	// crime here, when one is missing.
+	NeedCode, NeedRole string
+	NeedTier           int
 }
 
 // Why the crime hub has nothing to offer (ADR 0038 section 4.4); the codes are

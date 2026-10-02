@@ -20,8 +20,7 @@ import (
 // are the commands that already exist (settlement.work, settlement.labor.take,
 // settlement.home.rest, life.sleep).
 
-// WithActivities sets where the Activities hub lists crime (config
-// crime.min_level, crime.min_stage); without it crime is listed everywhere.
+// WithActivities sets the Activities hub's rules (the neutral city).
 func (h *VillageHandler) WithActivities(r ActivityRules) *VillageHandler {
 	h.activity = r
 	return h
@@ -88,7 +87,11 @@ func (h *VillageHandler) ActivitiesHub(ctx context.Context, meta envelope.Metada
 		}
 		rules := h.activity
 		rules.NeutralCity = h.homeCityCode
-		if rules.crimeEmpty(row.Level, city) == "" {
+		verdict, err := rules.crimeListing(ctx, tx, h.content.Current(), row.Level, city)
+		if err != nil {
+			return err
+		}
+		if verdict.Empty == "" {
 			view.Entries = append(view.Entries, plife.ActivityEntry{Code: plife.ActivityCrime, Command: "crime.hub"})
 		}
 		view.Entries = append(view.Entries,

@@ -271,8 +271,14 @@ func (h *CrimeHandler) Hub(ctx context.Context, meta envelope.Metadata) (*presen
 		if s.hold.attempt != nil {
 			view.Busy = progressOf(snap, s.hold.attempt, now)
 		}
-		view.MinLevel = h.rules.Listing.CrimeMinLevel
-		view.Empty = h.rules.Listing.crimeEmpty(s.stand.stats.Level, s.city)
+		verdict, err := h.rules.Listing.crimeListing(ctx, tx, snap, s.stand.stats.Level, s.city)
+		if err != nil {
+			return err
+		}
+		view.Empty, view.MinLevel = verdict.Empty, verdict.MinLevel
+		if verdict.Need != nil {
+			view.NeedCode, view.NeedRole, view.NeedTier = verdict.Need.Code, verdict.Need.Role, verdict.Need.Tier
+		}
 		for _, c := range snap.CrimeCategories() {
 			view.Categories = append(view.Categories, named(c.Code, c.Name))
 		}

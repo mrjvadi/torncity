@@ -141,11 +141,10 @@ func newCrimeHandler(
 		cryptoDice{}, rules, idempotencyTTL, nil)
 }
 
-// activityRules is where the Activities hub lists crime (config crime.min_level,
-// crime.min_stage and the neutral city's code).
+// activityRules is the Activities hub's rules: the neutral city's code.
 func activityRules(cfg *config.Config) handlers.ActivityRules {
 	return handlers.ActivityRules{
-		CrimeMinLevel: cfg.Crime.MinLevel, CrimeMinStage: cfg.Crime.MinStage, NeutralCity: cfg.Settlement.HomeCityCode,
+		NeutralCity: cfg.Settlement.HomeCityCode,
 	}
 }
 

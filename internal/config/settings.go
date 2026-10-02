@@ -359,8 +359,6 @@ type crimeSettings struct {
 	HeatDecayPerHour             *int    `yaml:"heat_decay_per_hour"`
 	ProtectMinLevel              *int    `yaml:"protect_min_level"`
 	ProtectMinAge                *string `yaml:"protect_min_age"`
-	MinLevel                     *int    `yaml:"min_level"`
-	MinStage                     *string `yaml:"min_stage"`
 	ActiveWindow                 *string `yaml:"active_window"`
 	ArrivalLinger                *string `yaml:"arrival_linger"`
 	VictimCooldown               *string `yaml:"victim_cooldown"`
@@ -1366,12 +1364,6 @@ var coreSettings = []setting{
 	durationSetting("crime", "protect_min_age",
 		func(c *Config) *time.Duration { return &c.Crime.ProtectMinAge },
 		func(f *fileConfig) *string { return f.Crime.ProtectMinAge }),
-	limitSetting("crime", "min_level",
-		func(c *Config) *int { return &c.Crime.MinLevel },
-		func(f *fileConfig) *int { return f.Crime.MinLevel }),
-	stringSetting("crime", "min_stage",
-		func(c *Config) *string { return &c.Crime.MinStage },
-		func(f *fileConfig) *string { return f.Crime.MinStage }),
 	durationSetting("crime", "active_window",
 		func(c *Config) *time.Duration { return &c.Crime.ActiveWindow },
 		func(f *fileConfig) *string { return f.Crime.ActiveWindow }),
