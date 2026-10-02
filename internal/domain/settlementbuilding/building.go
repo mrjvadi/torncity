@@ -222,6 +222,20 @@ const (
 
 var settlementTierRank = map[string]int{SettlementVillage: 1, SettlementTown: 2, SettlementCity: 3}
 
+// concurrentCaps is how many buildings a settlement of a tier may raise at
+// once (ADR 0028 section 4). The placement and the client's view of "a
+// builder is free" read the same numbers.
+var concurrentCaps = map[string]int{SettlementVillage: 1, SettlementTown: 2, SettlementCity: 4}
+
+// ConcurrentCap is how many buildings a settlement of the tier may raise at
+// once; a tier it does not know raises one.
+func ConcurrentCap(tier string) int {
+	if n, ok := concurrentCaps[tier]; ok {
+		return n
+	}
+	return 1
+}
+
 // MinSettlementTier is the smallest settlement that may list and build this
 // building (ADR 0033 section 3): a role tier 1 is a village's, tier 2 a town's,
 // tier 3 and up a city's. A row with no role tier (a legacy row) is a

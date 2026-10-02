@@ -51,6 +51,7 @@ func (s *StateSync) read(ctx context.Context, q querier, playerID string, kinds 
 		{statesync.KindTimedAction, s.readTimedActions},
 		{statesync.KindLocation, s.readLocation},
 		{statesync.KindRelations, s.readRelations},
+		{statesync.KindGoal, s.readGoal},
 	}
 	for _, st := range steps {
 		if !kinds.Has(st.kind) {
@@ -527,7 +528,7 @@ func (s *StateSync) readSettlements(ctx context.Context, q querier, playerID str
 		if isHead {
 			viewer = statesync.ViewerHead
 		}
-		if err := s.addSettlement(ctx, q, mine.CityID, viewer, add); err != nil {
+		if err := s.addSettlement(ctx, q, playerID, mine.CityID, viewer, mine.Resident, add); err != nil {
 			return err
 		}
 	}
@@ -537,12 +538,12 @@ func (s *StateSync) readSettlements(ctx context.Context, q querier, playerID str
 		return fmt.Errorf("postgres: statesync: reading where %s stands: %w", playerID, err)
 	}
 	if here != nil && *here != mine.CityID {
-		return s.addSettlement(ctx, q, *here, statesync.ViewerPublic, add)
+		return s.addSettlement(ctx, q, playerID, *here, statesync.ViewerPublic, false, add)
 	}
 	return nil
 }
 
-func (s *StateSync) addSettlement(ctx context.Context, q querier, id, viewer string, add func(string, string, any) error) error {
+func (s *StateSync) addSettlement(ctx context.Context, q querier, playerID, id, viewer string, resident bool, add func(string, string, any) error) error {
 	d := statesync.SettlementData{ID: id, Viewer: viewer}
 	var growth int
 	err := q.QueryRow(ctx, `SELECT code, name, COALESCE(tier, ''), grid_growth FROM cities WHERE id = $1::uuid`, id).
@@ -597,7 +598,38 @@ func (s *StateSync) addSettlement(ctx context.Context, q querier, id, viewer str
 			return fmt.Errorf("postgres: statesync: reading the research of %s: %w", id, err)
 		}
 	}
+	if s.Overlays != nil {
+		b, election, err := s.Overlays.SettlementOverlay(ctx, id, playerID, viewer, resident)
+		if err != nil {
+			return fmt.Errorf("postgres: statesync: the building overlay of %s: %w", id, err)
+		}
+		if b == nil {
+			b = []statesync.BuildingOverlay{}
+		}
+		d.Buildings = b
+		if viewer != statesync.ViewerPublic {
+			d.Election = election
+		}
+	}
 	return add(statesync.KindSettlement, id, d)
+}
+
+// readGoal projects the player's next goal; no goal, no entity.
+func (s *StateSync) readGoal(ctx context.Context, _ querier, playerID string, add func(string, string, any) error) error {
+	if s.Overlays == nil {
+		return nil
+	}
+	g, err := s.Overlays.Goal(ctx, playerID)
+	if err != nil {
+		return fmt.Errorf("postgres: statesync: the goal of %s: %w", playerID, err)
+	}
+	if g == nil {
+		return nil
+	}
+	if g.Args == nil {
+		g.Args = map[string]string{}
+	}
+	return add(statesync.KindGoal, statesync.SelfID, g)
 }
 
 func (s *StateSync) readRelations(ctx context.Context, q querier, playerID string, add func(string, string, any) error) error {

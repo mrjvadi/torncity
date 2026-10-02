@@ -79,6 +79,10 @@ type VillageService struct {
 	CitizenTerms func(application.LotTerms) (lotPrice, permitFee int64, taxBPS int)
 	World        *WorldService
 	Content      *content.Registry
+	// Overlay reads what the per-viewer overlay and the goal need (overlay.go);
+	// nil leaves them out. StockBaseCapacity is settlement.stock_base_capacity.
+	Overlay           OverlayReader
+	StockBaseCapacity int64
 	// VillageGridLots is settlement.village_grid_lots.
 	VillageGridLots int
 	Now             func() time.Time

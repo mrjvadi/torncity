@@ -941,6 +941,13 @@ client:
   # How long the active world's registry row is trusted before the database
   # is asked which world is active again.
   world_recheck_interval: 30s
+  # GET /api/me/photo: the player's Telegram profile photo is fetched through
+  # the Bot API once, kept in Redis for photo_ttl, and the absence of a photo
+  # for photo_missing_ttl (the client then shows initials). photos_per_minute
+  # bounds the Bot API fetches one player may cause.
+  photo_ttl: 6h
+  photo_missing_ttl: 30m
+  photos_per_minute: 6
 
 # The realtime server (Centrifugo, deployments/centrifugo). The client API
 # issues its tokens and the notifier publishes notices to it; its API key

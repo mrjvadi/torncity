@@ -63,6 +63,12 @@ type Client struct {
 	// LayoutsPerMinute is how many village layouts one player may fetch per
 	// minute (each samples the settlement's terrain).
 	LayoutsPerMinute int // client.layouts_per_minute
+	// PhotoTTL is how long a player's fetched Telegram profile photo is kept
+	// (GET /api/me/photo); PhotoMissingTTL how long "no photo" is remembered;
+	// PhotosPerMinute bounds the Bot API fetches one player may cause.
+	PhotoTTL        time.Duration // client.photo_ttl
+	PhotoMissingTTL time.Duration // client.photo_missing_ttl
+	PhotosPerMinute int           // client.photos_per_minute
 }
 
 // Realtime is the realtime server (Centrifugo) the client API and the
@@ -103,6 +109,9 @@ type clientSettings struct {
 	ChunksPerMinute    *int     `yaml:"chunks_per_minute"`
 	LayoutsPerMinute   *int     `yaml:"layouts_per_minute"`
 	WorldRecheck       *string  `yaml:"world_recheck_interval"`
+	PhotoTTL           *string  `yaml:"photo_ttl"`
+	PhotoMissingTTL    *string  `yaml:"photo_missing_ttl"`
+	PhotosPerMinute    *int     `yaml:"photos_per_minute"`
 }
 
 type realtimeSettings struct {
@@ -142,6 +151,9 @@ func defaultClient() Client {
 		ChunksPerMinute:      1200,
 		LayoutsPerMinute:     120,
 		WorldRecheckInterval: 30 * time.Second,
+		PhotoTTL:             6 * time.Hour,
+		PhotoMissingTTL:      30 * time.Minute,
+		PhotosPerMinute:      6,
 	}
 }
 
@@ -257,6 +269,15 @@ func clientSettingsTable() []setting {
 		durationSetting("client", "world_recheck_interval",
 			func(c *Config) *time.Duration { return &c.Client.WorldRecheckInterval },
 			func(f *fileConfig) *string { return f.Client.WorldRecheck }),
+		durationSetting("client", "photo_ttl",
+			func(c *Config) *time.Duration { return &c.Client.PhotoTTL },
+			func(f *fileConfig) *string { return f.Client.PhotoTTL }),
+		durationSetting("client", "photo_missing_ttl",
+			func(c *Config) *time.Duration { return &c.Client.PhotoMissingTTL },
+			func(f *fileConfig) *string { return f.Client.PhotoMissingTTL }),
+		limitSetting("client", "photos_per_minute",
+			func(c *Config) *int { return &c.Client.PhotosPerMinute },
+			func(f *fileConfig) *int { return f.Client.PhotosPerMinute }),
 		stringSetting("realtime", "api_url",
 			func(c *Config) *string { return &c.Realtime.APIURL },
 			func(f *fileConfig) *string { return f.Realtime.APIURL }),

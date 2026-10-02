@@ -82,11 +82,20 @@ func TestStateSyncSettlementSummary(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// a standing hall and a watch hut: the overlay has something to say
+	for i, code := range []string{"civic_hall", "watch_hut"} {
+		if _, err := pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+			VALUES (gen_random_uuid(), $1::uuid, $2, $3, 0, 'complete', now(), now())`, cityID, code, i*3); err != nil {
+			t.Fatal(err)
+		}
+	}
 	villages := &clientapi.VillageService{Settlements: postgres.NewSettlementReader(pool), Buildings: postgres.NewSettlementBuildingReader(pool),
-		Content: registryOf(loadTestContent(t)), VillageGridLots: 5, Citizens: postgres.NewCitizenReader(pool)}
+		Content: registryOf(loadTestContent(t)), VillageGridLots: 5, Citizens: postgres.NewCitizenReader(pool),
+		Overlay: postgres.NewVillageFacts(pool), StockBaseCapacity: 60}
 	store := postgres.NewStateSync(pool, postgres.StateRules{EnergyRegenAmount: player.EnergyRegenAmount,
 		EnergyRegenInterval: player.EnergyRegenInterval, NerveMax: 20, NerveRegenAmount: 1, NerveRegenInterval: time.Minute})
 	store.Layouts = villages
+	store.Overlays = villages
 	svc := &statesync.Service{Store: store, Cfg: statesync.Config{Enabled: true, Epoch: "1", FanoutLimit: 50}}
 
 	summary := func(p *application.Player) (statesync.ResidenceData, statesync.SettlementData, bool) {
@@ -119,7 +128,42 @@ func TestStateSyncSettlementSummary(t *testing.T) {
 	if s.LayoutVersion == "" || s.LayoutVersion != headLayout() {
 		t.Fatalf("the head's summary says layout %q, the layout is %q", s.LayoutVersion, headLayout())
 	}
+	// the per-viewer overlay: the head acts on the hall, the visitor only looks
+	var hall *statesync.BuildingOverlay
+	for i := range s.Buildings {
+		if s.Buildings[i].Role == "governance" {
+			hall = &s.Buildings[i]
+		}
+	}
+	if hall == nil || len(hall.Actions) < 3 || hall.Actions[0] != statesync.ActionInfo {
+		t.Fatalf("the head's overlay of the hall: %+v (all %+v)", hall, s.Buildings)
+	}
+	hasAct := func(o statesync.BuildingOverlay, a string) bool {
+		for _, x := range o.Actions {
+			if x == a {
+				return true
+			}
+		}
+		return false
+	}
+	if !hasAct(*hall, statesync.ActionTreasury) || !hasAct(*hall, statesync.ActionResearch) {
+		t.Fatalf("the head should treasure and research at the hall: %v", hall.Actions)
+	}
+	if snap, err := svc.State(ctx, head.ID, nil); err != nil {
+		t.Fatal(err)
+	} else if g, ok := snap.Entities[statesync.KindGoal][statesync.SelfID]; ok {
+		var goal statesync.GoalData
+		_ = json.Unmarshal(g.D, &goal)
+		if goal.Code == "" || goal.GoTo == "" || goal.Target <= 0 {
+			t.Fatalf("the goal entity %+v", goal)
+		}
+	}
 	_, vs, vres := summary(visitor)
+	for _, o := range vs.Buildings {
+		if len(o.Actions) != 1 || o.Actions[0] != statesync.ActionInfo || o.CanUpgrade {
+			t.Fatalf("a visitor's overlay must be info only: %+v", o)
+		}
+	}
 	if vres || vs.Viewer != statesync.ViewerPublic || vs.Treasury != nil {
 		t.Fatalf("a visitor's summary %+v (residence %v)", vs, vres)
 	}

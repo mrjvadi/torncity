@@ -56,6 +56,9 @@ type StateSync struct {
 	// Layouts gives a settlement's layout versions per kind of viewer; nil
 	// leaves layout_version out of the settlement summary.
 	Layouts LayoutVersioner
+	// Overlays adds the per-viewer building overlay and the open election to
+	// the settlement summary, and the player's next goal; nil leaves them out.
+	Overlays SettlementOverlayer
 	// LockTimeout bounds the wait for the player's lock (and every other
 	// lock) inside a projection; zero waits for the context alone.
 	LockTimeout time.Duration
@@ -79,6 +82,16 @@ type StateRules struct {
 // pool, which run on the projection's transaction (ambient.go).
 type LayoutVersioner interface {
 	LayoutVersions(ctx context.Context, settlementID string) (application.LayoutVersions, int, error)
+}
+
+// SettlementOverlayer is what a viewer may do with each building of a
+// settlement and the player's next goal, computed by the code the client API
+// owns (clientapi.VillageService). Like LayoutVersioner it reads through
+// repositories built over the pool, which run on the projection's
+// transaction (ambient.go). viewer is a statesync.Viewer* kind.
+type SettlementOverlayer interface {
+	SettlementOverlay(ctx context.Context, settlementID, playerID, viewer string, resident bool) ([]statesync.BuildingOverlay, *statesync.ElectionData, error)
+	Goal(ctx context.Context, playerID string) (*statesync.GoalData, error)
 }
 
 var _ statesync.Store = (*StateSync)(nil)

@@ -62,6 +62,9 @@ const (
 	KindSettlement = "settlement"
 	// KindRelations is friends, faction and the presence setting. Id: "self".
 	KindRelations = "relations"
+	// KindGoal is the next goal for the quest strip. Id: "self". Absent
+	// when the player has nothing to aim at.
+	KindGoal = "goal"
 )
 
 // SelfID is the id of a kind that exists once per player.
@@ -75,7 +78,7 @@ var CoreKinds = []string{KindPlayer, KindVitals, KindWallet, KindInventory, Kind
 var VillageKinds = []string{KindResidence, KindSettlement, KindRelations}
 
 // AllKinds are every kind, core first.
-var AllKinds = append(append([]string{}, CoreKinds...), VillageKinds...)
+var AllKinds = append(append(append([]string{}, CoreKinds...), VillageKinds...), KindGoal)
 
 // KnownKind reports whether k is a kind this build projects.
 func KnownKind(k string) bool {

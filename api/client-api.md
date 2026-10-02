@@ -1275,8 +1275,14 @@ is neutral (codes, numbers, ids, RFC 3339 instants): the client words it.
 | `inbox` | `self` | `unread`, `latest` (ids of the newest notices, newest first) |
 | `notice` | notice id | `kind`, `category`, `screen`, `view`, `created_at`, `read`, `instant` (told at once; the others wait in the inbox) — the newest `state_sync.notices_kept` (50); older ones through `inbox.show` |
 | `residence` | `self` | `settlement`, `code`, `name`, `tier`, `is_head`, `resident` (absent: the player belongs to no settlement) |
-| `settlement` | settlement id | `id`, `code`, `name`, `tier`, `viewer` (`head`, `member` or `public`), `grid_lots`, `layout_version` (the version `GET /settlements/{id}/layout` answers **this** viewer), and for members `treasury` (`{currency, balance}`), `knowledge` (count), `research` (`{code, finish_at}` or null) |
+| `settlement` | settlement id | `id`, `code`, `name`, `tier`, `viewer` (`head`, `member` or `public`), `grid_lots`, `layout_version` (the version `GET /settlements/{id}/layout` answers **this** viewer), and for members `treasury` (`{currency, balance}`), `knowledge` (count), `research` (`{code, finish_at}` or null), `election` (`{office, opens_at, candidacy_ends_at, voting_ends_at}` or null: the open election; the client takes the candidacy until `candidacy_ends_at`, then the vote until `voting_ends_at`), and for everyone `buildings` (per-viewer overlay, below). Market-day end times do not exist in the game yet and are not sent |
+| `goal` | `self` | the next goal for the quest strip: `code` (`<source>.<kind>`: `mission.work_shift`, `promotion.residents`, `promotion.role`, `promotion.ready`…), `args` (strings: `mission`, `target`, `role`, `from`, `to`), `progress`, `target` (in the goal's own unit), `go_to` (screen address). Source order: the oldest mission the player has under way, then the settlement's next unmet promotion goal (the head gets `promotion.ready` when all are met). Absent when there is nothing to aim at; ADR 0044 goals will feed the same entity |
 | `relations` | `self` | `friends` (player ids), `faction` (`{id, rank}` or null), `presence` (`everyone`, `contacts`, `nobody`) |
+
+**The building overlay** (`settlement.buildings[]`, keyed by the layout's building `id`) is cut for the viewer and re-projected on every settlement event, so a client fetches no panel per building:
+`tier` (the level in the role's ladder, 0 outside one), `role`, `status` (`working`, `idle`, `building`), `reasons[]` (why a standing building is idle: `no_road`, `no_staff`, `storage_full`, `no_input`, `damaged`), `can_upgrade` (true only when the viewer may upgrade it now: the office or ownership, a next step whose requirements are met, treasury and stock cover it, a builder is free; never true for a private building, whose cash the summary does not read), `actions[]` (the verbs this viewer may perform, `info` first: `upgrade`, `demolish`, `cancel`, `workers`, `take_shift`, `help_build`, `treasury`, `research`, `elections`, `road`), `staff` (`{have, need}` for a workplace: shifts working now against its `workers`), `output_ready` (`{good, amount}`; reserved, never sent yet: no building holds its own output). A visitor (`viewer: public`) gets `tier` and `["info"]` for the standing buildings only. Standing roads have no entry (a building with no entry is "info" only); roads going up do.
+
+**Your photo — `GET /api/me/photo`** (also `/api/v1/me/photo`; bearer token). The player's Telegram profile photo, proxied from the Bot API (`getUserProfilePhotos`, `getFile`, then the file download; the bot token never leaves the server), cached in Redis (`client.photo_ttl`, absence `client.photo_missing_ttl`) and answered with `Content-Type`, `ETag` and `Cache-Control: private, max-age=<photo_ttl>`; `If-None-Match` gets 304. `404` when there is no photo (show initials), `502` when Telegram could not be reached (try again later), `429` past `client.photos_per_minute`. The client fetches it with its bearer header and shows a blob URL.
 
 **Regen is counted by the client.** No record is written as energy or
 nerve comes back. Shown value =
@@ -1439,7 +1445,7 @@ link_codes_per_hour, sign_ins_per_minute, max_devices, command_timeout,
 commands_per_minute, max_body_bytes, telegram_auth_max_age,
 realtime_token_ttl, group_commands, mini_app_url, and from 1.1
 chunk_cache_entries, chunks_per_minute, layouts_per_minute,
-world_recheck_interval) and `realtime.*` (api_url, publish_timeout). The
+world_recheck_interval, photo_ttl, photo_missing_ttl, photos_per_minute) and `realtime.*` (api_url, publish_timeout). The
 world endpoints regenerate the planet from the active world's seed, so
 `clientapi` reads `worldgen.*` and `configs/content` (`TORN_CONTENT_DIR`)
 like the game.

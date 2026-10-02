@@ -499,6 +499,9 @@ client:
   chunks_per_minute: 1201
   layouts_per_minute: 121
   world_recheck_interval: 31s
+  photo_ttl: 7h
+  photo_missing_ttl: 31m
+  photos_per_minute: 7
 realtime:
   api_url: http://realtime.example.test:8000/api
   publish_timeout: 3s
@@ -900,6 +903,9 @@ var envOverrides = map[string]string{
 	"TORN_CLIENT_CHUNKS_PER_MINUTE":           "1202",
 	"TORN_CLIENT_LAYOUTS_PER_MINUTE":          "122",
 	"TORN_CLIENT_WORLD_RECHECK_INTERVAL":      "32s",
+	"TORN_CLIENT_PHOTO_TTL":                   "8h",
+	"TORN_CLIENT_PHOTO_MISSING_TTL":           "32m",
+	"TORN_CLIENT_PHOTOS_PER_MINUTE":           "8",
 	"TORN_REALTIME_API_URL":                   "http://realtime2.example.test:8000/api",
 	"TORN_REALTIME_PUBLISH_TIMEOUT":           "4s",
 	"TORN_REALTIME_PRESENCE_TTL":              "32s",
