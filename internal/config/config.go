@@ -885,6 +885,13 @@ type Crime struct {
 	ProtectMinLevel int           // crime.protect_min_level
 	ProtectMinAge   time.Duration // crime.protect_min_age
 
+	// MinLevel and MinStage say where the Activities hub lists «جرم»
+	// (ADR 0038 section 4.4): from this player level, and in a settlement
+	// that has reached this stage (village, town or city). The neutral city
+	// never lists it.
+	MinLevel int    // crime.min_level
+	MinStage string // crime.min_stage
+
 	ActiveWindow  time.Duration // crime.active_window
 	ArrivalLinger time.Duration // crime.arrival_linger
 
@@ -1555,6 +1562,8 @@ func Defaults() *Config {
 			HeatDecayPerHour:             4,
 			ProtectMinLevel:              3,
 			ProtectMinAge:                72 * time.Hour,
+			MinLevel:                     2,
+			MinStage:                     "town",
 			ActiveWindow:                 30 * time.Minute,
 			ArrivalLinger:                20 * time.Minute,
 			VictimCooldown:               6 * time.Hour,

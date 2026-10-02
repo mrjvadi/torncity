@@ -440,6 +440,14 @@ crime:
   protect_min_level: 3
   protect_min_age: 72h
 
+  # Where the Activities hub lists «جرم» (ADR 0038 section 4.4): from this
+  # player level, and only in a settlement that has reached min_stage
+  # (village, town or city), because crime needs a place of its own to
+  # happen at (a venue) and a village has none yet. The neutral city never
+  # lists it.
+  min_level: 2
+  min_stage: town
+
   # Who is "nearby". A crime that can hit a player lands on one standing in
   # the same city and venue who has done something in the game within
   # active_window — a mark must be someone playing, who can notice and

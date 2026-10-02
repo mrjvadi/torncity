@@ -344,6 +344,15 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		"settlement.mine": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.Mine(ctx, env.Metadata)
 		},
+		"activities.hub": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.ActivitiesHub(ctx, env.Metadata)
+		},
+		"work.home": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.WorkHome(ctx, env.Metadata)
+		},
+		"health.home": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.HealthHome(ctx, env.Metadata)
+		},
 		"settlement.home.rest": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.HomeRest(ctx, env.Metadata)
 		},

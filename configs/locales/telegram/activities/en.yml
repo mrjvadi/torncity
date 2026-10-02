@@ -1,0 +1,30 @@
+# English wording of the Activities hub, the work home and the health home.
+
+activities:
+  hub:
+    title: "🎯 Activities"
+  entry:
+    work: "⚒ Work"
+    learn: "📚 Learning"
+    health: "🩺 Health"
+    crime: "🕶 Crime"
+    missions: "📜 Missions"
+    rankings: "🏆 Rankings"
+  work:
+    title: "⚒ Work"
+    counts: "{village}: {jobs} jobs posted, {places} workplaces"
+    working: "Working at {building} - {duration} left - pay: {wage}"
+    empty:
+      no_settlement: "Here, work means the careers of the city."
+      not_resident: "You have to live in this village to work here."
+      no_jobs: "No work for now. When the village head builds a workplace or posts a job, it shows up here."
+  health:
+    title: "🩺 Health"
+    health: "❤️ {health} of {max}"
+    admitted: "🏥 You are admitted - {duration} until discharge"
+    facility:
+      health_house: "🏠 {name}"
+      clinic: "🏥 {name}"
+    empty:
+      no_facility: "There is no place of care here. Rest, or go to the central city."
+    refer: "For serious treatment, go to {city}."

@@ -232,7 +232,7 @@ func TestCommandRefusals(t *testing.T) {
 		status int
 		code   string
 	}{
-		{map[string]any{"command": "crime.list"}, token, http.StatusForbidden, "group_only"},
+		{map[string]any{"command": "faction.link"}, token, http.StatusForbidden, "group_only"},
 		{map[string]any{"command": "travel.arrive"}, token, http.StatusBadRequest, "unknown_command"},
 		{map[string]any{"command": "nope.nope"}, token, http.StatusBadRequest, "unknown_command"},
 		{map[string]any{"command": "bank.show", "args": map[string]any{"x": map[string]int{"a": 1}}}, token, http.StatusBadRequest, "bad_request"},

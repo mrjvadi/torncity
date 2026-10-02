@@ -357,6 +357,11 @@ var all = []Subscription{
 	// it takes patients. Only the scheduler sends health.discharge, when a
 	// stay ends.
 	{Domain: "health", Action: "hospital", Origin: FromPlayer},
+	// The Activities hub, the work home and the health home (docs/adr/0038,
+	// sections 3, 4.1 and 4.3): what a player is offered where they stand.
+	{Domain: "activities", Action: "hub", Origin: FromPlayer},
+	{Domain: "work", Action: "home", Origin: FromPlayer},
+	{Domain: "health", Action: "home", Origin: FromPlayer},
 	{Domain: "health", Action: "treat", Origin: FromPlayer},
 	{Domain: "health", Action: "clinic", Origin: FromPlayer},
 	{Domain: "health", Action: "price", Origin: FromPlayer},

@@ -689,6 +689,9 @@ var argNames = map[string][]string{
 	// Health (docs/adr/0023). A provider is «city» or a clinic's public
 	// code; a price is typed.
 	"health.hospital": {},
+	"health.home":     {},
+	"activities.hub":  {},
+	"work.home":       {},
 	"health.treat":    {"provider", "method"},
 	"health.clinic":   {"company"},
 	"health.price":    {"company", "price"},

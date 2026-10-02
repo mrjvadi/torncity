@@ -28,6 +28,7 @@
       ],
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "empty": "",
       "heat": {
         "heat": 23,
         "max": 100,
@@ -35,6 +36,7 @@
         "wanted": 2
       },
       "jail": null,
+      "min_level": 0,
       "nerve": {
         "full_in_seconds": 1800,
         "max": 20,
@@ -88,6 +90,7 @@
       ],
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "empty": "",
       "heat": {
         "heat": 0,
         "max": 100,
@@ -95,6 +98,7 @@
         "wanted": 0
       },
       "jail": null,
+      "min_level": 0,
       "nerve": {
         "full_in_seconds": 0,
         "max": 20,
@@ -148,6 +152,7 @@
       ],
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "empty": "",
       "heat": {
         "heat": 23,
         "max": 100,
@@ -162,6 +167,7 @@
         "ends_at": "2026-09-23T12:40:00Z",
         "remaining_seconds": 5700
       },
+      "min_level": 0,
       "nerve": {
         "full_in_seconds": 1800,
         "max": 20,
@@ -222,6 +228,7 @@
       ],
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "empty": "",
       "heat": {
         "heat": 23,
         "max": 100,
@@ -229,6 +236,7 @@
         "wanted": 2
       },
       "jail": null,
+      "min_level": 0,
       "nerve": {
         "full_in_seconds": 1800,
         "max": 20,
@@ -261,6 +269,7 @@
       "categories": null,
       "city": "",
       "city_code": "",
+      "empty": "",
       "heat": {
         "heat": 23,
         "max": 100,
@@ -268,6 +277,7 @@
         "wanted": 2
       },
       "jail": null,
+      "min_level": 0,
       "nerve": {
         "full_in_seconds": 1800,
         "max": 20,

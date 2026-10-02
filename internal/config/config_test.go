@@ -314,6 +314,8 @@ crime:
   heat_decay_per_hour: 5
   protect_min_level: 4
   protect_min_age: 73h
+  min_level: 4
+  min_stage: city
   active_window: 31m
   arrival_linger: 21m
   victim_cooldown: 7h
@@ -719,6 +721,8 @@ var envOverrides = map[string]string{
 	"TORN_CRIME_HEAT_DECAY_PER_HOUR":             "6",
 	"TORN_CRIME_PROTECT_MIN_LEVEL":               "5",
 	"TORN_CRIME_PROTECT_MIN_AGE":                 "74h",
+	"TORN_CRIME_MIN_LEVEL":                       "5",
+	"TORN_CRIME_MIN_STAGE":                       "village",
 	"TORN_CRIME_ACTIVE_WINDOW":                   "32m",
 	"TORN_CRIME_ARRIVAL_LINGER":                  "22m",
 	"TORN_CRIME_VICTIM_COOLDOWN":                 "8h",

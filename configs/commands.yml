@@ -158,15 +158,18 @@ commands:
 
   # Crime happens in the city's group, where the victims are. The jail is
   # public knowledge; bail, the record and a victim's reports are private.
-  crime.hub: {channel: group}
-  crime.list: {channel: group}
-  crime.view: {channel: group}
-  crime.commit: {channel: group}
-  crime.jail: {channel: both}
-  crime.bail: {channel: private}
-  crime.record: {channel: private}
-  crime.report: {channel: private}
-  crime.cases: {channel: private}
+  # The web client has no group to play them in, so it runs them with
+  # client: true (without it the bridge refused them and the screen stayed
+  # blank); Telegram keeps its rules.
+  crime.hub: {channel: group, client: true}
+  crime.list: {channel: group, client: true}
+  crime.view: {channel: group, client: true}
+  crime.commit: {channel: group, client: true}
+  crime.jail: {channel: both, client: true}
+  crime.bail: {channel: private, client: true}
+  crime.record: {channel: private, client: true}
+  crime.report: {channel: private, client: true}
+  crime.cases: {channel: private, client: true}
 
   # What a player carries, and buying, selling and trading it, show their
   # goods and their money: PV only.
@@ -329,6 +332,12 @@ commands:
   # patient's health and move their money; a clinic's desk is its owner's.
   # All in PV. That someone was taken to hospital is read in the city's group.
   health.hospital: {channel: private}
+  # The health home, the work home and the Activities hub (docs/adr/0038):
+  # what the player is offered where they stand. Web screens; Telegram opens
+  # the same places through its own menus.
+  health.home: {channel: private, client: true}
+  work.home: {channel: private, client: true}
+  activities.hub: {channel: private, client: true}
   health.treat: {channel: private}
   health.clinic: {channel: private}
   health.price: {channel: private}

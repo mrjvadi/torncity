@@ -180,7 +180,14 @@ func (h *JobsHandler) Status(ctx context.Context, meta envelope.Metadata) (*pres
 func (h *JobsHandler) statusView(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player) (screens.JobStatusView, error) {
 	emp, err := tx.Employment().Current(ctx, p.ID)
 	if isSentinel(err, application.ErrNotEmployed) {
-		return screens.JobStatusView{}, nil
+		// No job, but the player still has energy: a client that patches its
+		// status bar from this screen must not read it as 0 of 0.
+		row, err := tx.Stats().EnsureDefaults(ctx, p.ID, defaultStats(p.ID, h.now()))
+		if err != nil {
+			return screens.JobStatusView{}, err
+		}
+		st, _ := regenerateEnergy(*row, h.now())
+		return screens.JobStatusView{Energy: st.Energy, MaxEnergy: st.MaxEnergy}, nil
 	}
 	if err != nil {
 		return screens.JobStatusView{}, err

@@ -99,6 +99,9 @@ type VillageHandler struct {
 	// citizen is the citizen loop's tuning (village_citizen.go).
 	citizen CitizenRules
 
+	// activity is where the Activities hub lists crime (WithActivities).
+	activity ActivityRules
+
 	// labor are the labour market's rules (ADR 0037); zero keeps the timer.
 	labor     labor.Rules
 	laborHire []int64

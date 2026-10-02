@@ -455,7 +455,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				PrivateShareMaxBPS: cfg.Settlement.CitizenPrivateShareMaxBPS, HomeRestCooldown: cfg.Settlement.CitizenHomeRestCooldown,
 				HomeRestHealth: cfg.Settlement.CitizenHomeRestHealth, HomeRestHappiness: cfg.Settlement.CitizenHomeRestHappiness,
 			}).
-			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets),
+			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets).
+			WithActivities(activityRules(cfg)),
 	}
 
 	// Work and study read careers and courses from the live registry and a
@@ -466,7 +467,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// Crime reads crimes from the live registry and a city's justice levers
 	// only through the resolver (ADR 0015), on the game clock.
 	h.crime = newCrimeHandler(uow, messages, registry, cities,
-		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.Crime, cfg.Game.IdempotencyTTL)
+		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.Crime, activityRules(cfg), cfg.Game.IdempotencyTTL)
 
 	// The map of the player's own city and the walks between its places,
 	// on the game clock.

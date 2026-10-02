@@ -23,6 +23,23 @@ export interface AchievementsView {
   lines: AchievementLine[] | null
 }
 
+export interface ActivitiesHubView {
+  place: ActivityPlace
+  entries: ActivityEntry[] | null
+}
+
+export interface ActivityEntry {
+  code: string
+  command: string
+}
+
+export interface ActivityPlace {
+  code: string
+  name: string
+  tier: string
+  neutral: boolean
+}
+
 export interface AllocationConfirmView {
   place: GovPlace
   lever: GovLever
@@ -1179,6 +1196,33 @@ export interface GridGrowView {
   buildable_gained: number
   price: number
   treasury: number
+}
+
+export interface HealthFacility {
+  kind: string
+  building: Named
+}
+
+export interface HealthHomeView {
+  place: ActivityPlace
+  health: number
+  max_health: number
+  admitted: HealthStay | null
+  rest: HealthRest
+  facilities: HealthFacility[] | null
+  refer: Named | null
+  empty: string
+}
+
+export interface HealthRest {
+  has: boolean
+  can_rest: boolean
+  wait_seconds: number
+}
+
+export interface HealthStay {
+  remaining_seconds: number
+  ends_at: string | null
 }
 
 export interface HistoryLine {
@@ -3027,6 +3071,26 @@ export interface WhoLine {
   place: string
 }
 
+export interface WorkHomePlace {
+  code: string
+  name: string
+  tier: string
+}
+
+export interface WorkHomeView {
+  place: WorkHomePlace
+  resident: boolean
+  energy: number
+  max_energy: number
+  working: LaborShiftLine | null
+  jobs: LaborJobLine[] | null
+  workplaces: WorkplaceLine[] | null
+  market: LaborMarketLine
+  is_head: boolean
+  empty: string
+  next: string
+}
+
 export interface WorkShiftLine {
   building: Named
   finish_at: string | null
@@ -3076,6 +3140,7 @@ export interface WorthView {
 export interface ScreenViews {
   achievement_notice: AchievementView
   achievements: AchievementsView
+  activities_hub: ActivitiesHubView
   allocation_confirm: AllocationConfirmView
   allocation_edit: AllocationEditView
   appoint_confirm: AppointView
@@ -3148,6 +3213,7 @@ export interface ScreenViews {
   gold: GoldView
   gold_trade: GoldTradeView
   gov_history: GovHistoryView
+  health_home: HealthHomeView
   history: HistoryView
   hospitalised_notice: HospitalisedView
   hunger_notice: EmptyView
@@ -3276,6 +3342,7 @@ export interface ScreenViews {
   village_work_started: WorkView
   voted: VotedView
   walk_started: WalkStartedView
+  work_home: WorkHomeView
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */

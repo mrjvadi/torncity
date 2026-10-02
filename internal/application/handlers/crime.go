@@ -46,6 +46,9 @@ type CrimeRules struct {
 	// GearCaps bound what every carried tool together adds to one attempt
 	// (config crime.gear_*).
 	GearCaps crime.GearCaps
+	// Listing says where the hub lists crime at all (config crime.min_level,
+	// crime.min_stage); the hub's empty reason reads it.
+	Listing ActivityRules
 }
 
 // Validate reports whether the rules are usable.

@@ -271,8 +271,13 @@ func (h *CrimeHandler) Hub(ctx context.Context, meta envelope.Metadata) (*presen
 		if s.hold.attempt != nil {
 			view.Busy = progressOf(snap, s.hold.attempt, now)
 		}
+		view.MinLevel = h.rules.Listing.CrimeMinLevel
+		view.Empty = h.rules.Listing.crimeEmpty(s.stand.stats.Level, s.city)
 		for _, c := range snap.CrimeCategories() {
 			view.Categories = append(view.Categories, named(c.Code, c.Name))
+		}
+		if view.Empty == "" && !h.anythingToTry(snap, s) {
+			view.Empty = screens.CrimeEmptyNoTargets
 		}
 		return nil
 	})
@@ -280,6 +285,17 @@ func (h *CrimeHandler) Hub(ctx context.Context, meta envelope.Metadata) (*presen
 		return resp, err
 	}
 	return screens.CrimeHub(h.screen(meta, lang), view), nil
+}
+
+// anythingToTry reports whether any crime of the content could be attempted
+// by the player where they stand now.
+func (h *CrimeHandler) anythingToTry(snap *content.Snapshot, s situation) bool {
+	for _, def := range snap.Crimes() {
+		if cr, ok := snap.Crime(def.Code); ok && h.eligible(snap, cr, s) {
+			return true
+		}
+	}
+	return false
 }
 
 // List handles crime.list: one category's crimes, each marked eligible or

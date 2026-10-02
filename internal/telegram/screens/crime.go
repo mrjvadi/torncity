@@ -206,7 +206,25 @@ type CrimeHubView struct {
 	// Busy is the timed crime under way, nil when none.
 	Busy       *CrimeProgress
 	Categories []Named
+	// Empty is why crime has nothing to offer here now, one of the
+	// CrimeEmpty* codes, empty when there is something to do. The client
+	// words it and offers one next step; MinLevel is the level the
+	// level_too_low reason asks for.
+	Empty    string
+	MinLevel int
 }
+
+// Why the crime hub has nothing to offer (ADR 0038 section 4.4).
+const (
+	// CrimeEmptyLevelTooLow: the player is below crime.min_level.
+	CrimeEmptyLevelTooLow = "level_too_low"
+	// CrimeEmptyNoVenue: the settlement they stand in has no place crime
+	// can happen at (a village, the neutral city, the road).
+	CrimeEmptyNoVenue = "no_venue"
+	// CrimeEmptyNoTargets: there is a venue, but no crime here can be
+	// attempted by this player now.
+	CrimeEmptyNoTargets = "no_targets"
+)
 
 // CrimeHub renders the hub: where the player is, their nerve, heat and
 // criminal rank, what holds them back, and the categories of crime.

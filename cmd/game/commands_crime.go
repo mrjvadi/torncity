@@ -132,10 +132,21 @@ func newCrimeHandler(
 	policy application.PolicyReader,
 	scale gametime.Scale,
 	cfg config.Crime,
+	listing handlers.ActivityRules,
 	idempotencyTTL time.Duration,
 ) *handlers.CrimeHandler {
+	rules := crimeRules(cfg)
+	rules.Listing = listing
 	return handlers.NewCrimeHandler(uow, uuidGenerator{}, msgs, registry, cities, policy, scale,
-		cryptoDice{}, crimeRules(cfg), idempotencyTTL, nil)
+		cryptoDice{}, rules, idempotencyTTL, nil)
+}
+
+// activityRules is where the Activities hub lists crime (config crime.min_level,
+// crime.min_stage and the neutral city's code).
+func activityRules(cfg *config.Config) handlers.ActivityRules {
+	return handlers.ActivityRules{
+		CrimeMinLevel: cfg.Crime.MinLevel, CrimeMinStage: cfg.Crime.MinStage, NeutralCity: cfg.Settlement.HomeCityCode,
+	}
 }
 
 // cryptoDice rolls with crypto/rand. A thief who could predict math/rand's
