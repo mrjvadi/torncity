@@ -424,7 +424,7 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 		t.Fatal(err)
 	}
 	ln := strconv.FormatInt(licenceNo, 10)
-	resp, err = w.forces.Licence(ctx, w.meta(civilian, "military.licence"), handlers.MilitaryRequest{No: ln, Verdict: "approve"})
+	resp, err = rr(w.forces.Licence(ctx, w.meta(civilian, "military.licence"), handlers.MilitaryRequest{No: ln, Verdict: "approve"}))
 	said(t, "a civilian approving", resp, err, "military.refused.not_holder")
 	var wg sync.WaitGroup
 	texts := make(chan string, 2)
@@ -432,8 +432,8 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			resp, err := w.forces.Licence(context.Background(), w.meta(minister, "military.licence"),
-				handlers.MilitaryRequest{No: ln, Verdict: "approve"})
+			resp, err := rr(w.forces.Licence(context.Background(), w.meta(minister, "military.licence"),
+				handlers.MilitaryRequest{No: ln, Verdict: "approve"}))
 			if err != nil {
 				t.Errorf("approve: %v", err)
 				return
@@ -484,10 +484,10 @@ func TestStagedProductionAndDefenceContractor(t *testing.T) {
 	}
 
 	// --- 6. Revoked with notice. ------------------------------------------
-	resp, err = w.forces.Licence(ctx, w.meta(minister, "military.licence"), handlers.MilitaryRequest{No: ln, Verdict: "revoke"})
+	resp, err = rr(w.forces.Licence(ctx, w.meta(minister, "military.licence"), handlers.MilitaryRequest{No: ln, Verdict: "revoke"}))
 	said(t, "revoke, unconfirmed", resp, err, "defence.revoke_confirm")
-	resp, err = w.forces.Licence(ctx, w.meta(minister, "military.licence"), handlers.MilitaryRequest{No: ln, Verdict: "revoke",
-		Confirm: "yes"})
+	resp, err = rr(w.forces.Licence(ctx, w.meta(minister, "military.licence"), handlers.MilitaryRequest{No: ln, Verdict: "revoke",
+		Confirm: "yes"}))
 	said(t, "revoke", resp, err, "defence.verdict.revoke")
 	if n := countRows(t, w.pool, `SELECT count(*) FROM defence_licences WHERE no = $1 AND status = 'revoking'
 	  AND effective_at > revoked_at`, licenceNo); n != 1 {
