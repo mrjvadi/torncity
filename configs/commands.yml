@@ -451,6 +451,8 @@ commands:
   # a private chat as well as in the village's group.
   settlement.land: {channel: both, client: true}
   settlement.lot.buy: {channel: both, client: true}
+  settlement.lot.access: {channel: both, client: true}
+  settlement.lot.repair: {channel: both, client: true}
   settlement.private: {channel: both, client: true}
   settlement.private.lots: {channel: both, client: true}
   settlement.private.place: {channel: both, client: true}

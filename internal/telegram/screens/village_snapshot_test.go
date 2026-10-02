@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -255,10 +256,28 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		},
 	}
 	add("Land grid · free lots on offer", LandGrid(g, land))
-	buy := LotBuyView{Village: villageNameFor(c), X: 2, Y: 3, Price: 400, Cash: 5_000, Treasury: 10_900}
+	buy := LotBuyView{Village: villageNameFor(c), X: 2, Y: 3, Price: 400, Cash: 5_000, Treasury: 10_900, Total: 400, Access: LotAccess{Kind: "road"}}
 	add("Land purchase · confirm", LotBuyConfirm(g, buy))
 	buy.Cash, buy.Treasury = 4_600, 11_300
 	add("Land purchase · done", LotBuyDone(g, buy))
+	// a lot that needs a road, one over water, and one no road can reach
+	needsRoad := LotBuyView{Village: villageNameFor(c), X: 2, Y: 3, Price: 400, Cash: 5_000, Treasury: 10_900, Total: 430,
+		Access: LotAccess{Kind: "needs_road", Roads: 3, Cost: 30}}
+	add("Land purchase · confirm, road included", LotBuyConfirm(g, needsRoad))
+	needsBridge := LotBuyView{Village: villageNameFor(c), X: 2, Y: 3, Price: 400, Cash: 5_000, Treasury: 10_900, Total: 560,
+		Access: LotAccess{Kind: "needs_bridge", Roads: 2, Crossings: 1, Cost: 160}}
+	add("Land purchase · confirm, culvert needed", LotBuyConfirm(g, needsBridge))
+	landlocked := LotBuyView{Village: villageNameFor(c), X: 2, Y: 3, Price: 400, Cash: 5_000, Treasury: 10_900, Total: 400,
+		Access: LotAccess{Kind: "none"}, Carve: &LotAccess{Kind: "needs_road", Roads: 2, Cost: 20, Carved: []village.LotRef{{X: 1, Y: 3}}},
+		Nearby: []village.LotNearby{{X: 0, Y: 3, Distance: 2, Access: LotAccess{Kind: "road"}}, {X: 1, Y: 1, Distance: 3, Access: LotAccess{Kind: "needs_road", Roads: 1, Cost: 10}}}}
+	add("Land purchase · confirm, no possible access", LotBuyConfirm(g, landlocked))
+	repair := LotAccessView{Village: villageNameFor(c), X: 2, Y: 3, Own: true, Price: 400, Refund: 400, Cash: 5_000,
+		Access: LotAccess{Kind: "needs_bridge", Roads: 2, Crossings: 1, Cost: 160},
+		Carve:  &LotAccess{Kind: "needs_road", Roads: 2, Cost: 20, Carved: []village.LotRef{{X: 1, Y: 3}}},
+		Building: sampleNamed(c.Lang, "private_cottage", "کلبهٔ شخصی", "Private cottage")}
+	add("Lot road · the fixes for a lot no road reaches", LotAccessScreen(g, repair))
+	add("Lot road · connected", LotRepairDone(g, LotRepairView{Village: villageNameFor(c), X: 2, Y: 3, Option: "connect", Paid: 160, Cash: 4_840}))
+	add("Lot road · refunded", LotRepairDone(g, LotRepairView{Village: villageNameFor(c), X: 2, Y: 3, Option: "refund", Refund: 400, Cash: 5_400}))
 
 	timberMat := PrivateMaterial{Component: sampleNamed(c.Lang, "timber", "الوار", "Timber"), Need: 3, Have: 0, Buy: 3, BuyCost: 54}
 	add("Citizen catalogue · only what can be built now", PrivateMenu(g, PrivateMenuView{

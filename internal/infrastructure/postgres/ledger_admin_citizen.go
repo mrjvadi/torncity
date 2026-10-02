@@ -33,13 +33,27 @@ type CitizenInvariants struct {
 	// CitizenPaidToPlayer counts ledger entries of these five reasons that
 	// credit a player's cash: it must be zero, the loop is never a faucet.
 	CitizenPaidToPlayer int64
+	// Lot access (migration 0100_lot_access, docs/adr/0043). AccessChecked says
+	// the tables exist. RoadLedger is the settlement_lot_road that ended in the
+	// system sink, RoadRows the fee the connection rows record, RoadMismatched the
+	// rows whose ledger transaction does not move exactly that fee out of the
+	// payer's cash. RefundLedger is the settlement_lot_refund credited to players,
+	// RefundRows the refund the released lots record, RefundMismatched the
+	// refunds that are not exactly one treasury-to-owner transaction of the
+	// recorded amount, or exceed the price paid.
+	AccessChecked                        bool
+	RoadLedger, RoadRows, RoadMismatched int64
+	RefundLedger, RefundRows             int64
+	RefundMismatched                     int64
 }
 
 func (v CitizenInvariants) ok() bool {
 	return v.LotSaleLedger == v.LotSaleRows && v.LotSaleMismatched == 0 &&
 		v.PermitLedger == v.PermitRows && v.ConstructionLedger == v.ConstructionRows &&
 		v.MaterialsLedger == v.MaterialsRows && v.BuildingMismatched == 0 &&
-		v.TaxLedger == v.TaxRows && v.TaxMismatched == 0 && v.CitizenPaidToPlayer == 0
+		v.TaxLedger == v.TaxRows && v.TaxMismatched == 0 && v.CitizenPaidToPlayer == 0 &&
+		v.RoadLedger == v.RoadRows && v.RoadMismatched == 0 &&
+		v.RefundLedger == v.RefundRows && v.RefundMismatched == 0
 }
 
 // verifyCitizen runs the citizen loop's invariants.
@@ -89,8 +103,40 @@ func (a *EconomyAdmin) verifyCitizen(ctx context.Context, v *LedgerVerification)
 		{&s.CitizenPaidToPlayer, "citizen reasons paying a player", `
 			SELECT count(*) FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
 			 WHERE e.reason IN ('settlement_lot_sale', 'settlement_permit_fee', 'citizen_construction',
-			                    'citizen_materials', 'settlement_property_tax')
+			                    'citizen_materials', 'settlement_property_tax', 'settlement_lot_road')
 			   AND e.amount > 0 AND a.kind = 'player_cash'`, nil},
+	}
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.settlement_lot_connections') IS NOT NULL`).Scan(&s.AccessChecked); err != nil {
+		return fmt.Errorf("postgres: checking for the lot access tables: %w", err)
+	}
+	if s.AccessChecked {
+		checks = append(checks,
+			check{&s.RoadLedger, "lot road fees", credited, []any{"settlement_lot_road"}},
+			check{&s.RoadRows, "lot road rows", `SELECT COALESCE(SUM(fee), 0)::bigint FROM settlement_lot_connections`, nil},
+			check{&s.RoadMismatched, "lot road transactions", `
+				SELECT count(*) FROM settlement_lot_connections c
+				 WHERE (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e
+				         WHERE e.reason = 'settlement_lot_road' AND e.reference_type = 'settlement_lot_connections'
+				           AND e.reference_id = c.id AND e.amount > 0) <> c.fee
+				    OR (c.fee > 0 AND (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e
+				         JOIN accounts a ON a.id = e.account_id
+				         WHERE e.transaction_id = c.ledger_transaction_id AND e.amount < 0 AND a.kind = 'player_cash'
+				           AND a.owner_id = c.player_id) <> -c.fee)`, nil},
+			check{&s.RefundLedger, "lot refunds", credited, []any{"settlement_lot_refund"}},
+			check{&s.RefundRows, "lot refund rows", `SELECT COALESCE(SUM(refund_amount), 0)::bigint FROM settlement_lots WHERE release_kind = 'refund'`, nil},
+			check{&s.RefundMismatched, "lot refund transactions", `
+				SELECT count(*) FROM settlement_lots l
+				 WHERE l.release_kind = 'refund'
+				   AND ((SELECT count(*) FROM ledger_entries e
+				          WHERE e.transaction_id = l.refund_ledger_transaction_id AND e.reason = 'settlement_lot_refund'
+				            AND e.reference_type = 'settlement_lots' AND e.reference_id = l.id) <> 2
+				     OR (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e
+				          WHERE e.transaction_id = l.refund_ledger_transaction_id AND e.amount > 0) <> l.refund_amount
+				     OR (SELECT count(*) FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
+				          WHERE e.transaction_id = l.refund_ledger_transaction_id AND e.amount > 0
+				            AND a.kind = 'player_cash' AND a.owner_id = l.owner_id) <> 1
+				     OR l.refund_amount > l.price)`, nil},
+		)
 	}
 	for _, c := range checks {
 		if err := a.q.QueryRow(ctx, c.sql, c.args...).Scan(c.into); err != nil {

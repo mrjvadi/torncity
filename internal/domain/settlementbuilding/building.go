@@ -49,6 +49,9 @@ var (
 	// ErrUnbuildableLot means some lot of the footprint is not buildable
 	// terrain (water, a river/stream channel, too steep).
 	ErrUnbuildableLot = errors.New("settlementbuilding: a lot in the footprint is not buildable")
+	// ErrReservedLot means a lot of the footprint is road right-of-way: only a
+	// road may stand on it (docs/adr/0043).
+	ErrReservedLot = errors.New("settlementbuilding: a lot in the footprint is reserved for a road")
 	// ErrLotOccupied means some lot of the footprint already holds a
 	// building.
 	ErrLotOccupied = errors.New("settlementbuilding: a lot in the footprint is already occupied")

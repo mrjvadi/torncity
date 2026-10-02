@@ -31,11 +31,40 @@ const (
 	ReasonSettlementPropertyTax Reason = "settlement_property_tax"
 )
 
+// The ledger reasons of lot access (docs/adr/0043, migration 0100_lot_access).
+// The road a buyer pays to reach a lot ends money into the system sink like
+// any construction cost; a refund (rescission of a lot the village sold
+// without access) returns the price from the treasury to the owner, the exact
+// reverse of settlement_lot_sale.
+const (
+	ReasonSettlementLotRoad   Reason = "settlement_lot_road"
+	ReasonSettlementLotRefund Reason = "settlement_lot_refund"
+)
+
+// Road reserve kinds (settlement_road_reserve.kind).
+const (
+	ReservePlan     = "plan"
+	ReserveCorridor = "corridor"
+)
+
+// Lot release kinds (settlement_lots.release_kind).
+const (
+	ReleaseRefund    = "refund"
+	ReleaseDedicated = "dedicated"
+)
+
+// Where a connection was paid (settlement_lot_connections.origin).
+const (
+	ConnectionBuy    = "buy"
+	ConnectionRepair = "repair"
+)
+
 // The references the citizen loop's ledger legs point at.
 const (
 	SettlementLotReference     = "settlement_lots"
 	PrivateBuildingReference   = "settlement_private_buildings"
 	SettlementPropertyTaxTable = "settlement_property_tax"
+	LotConnectionReference     = "settlement_lot_connections"
 )
 
 // Lot tenures.
@@ -65,6 +94,43 @@ type SettlementLot struct {
 	Price               int64
 	LedgerTransactionID string
 	AcquiredAt          time.Time
+}
+
+// RoadReserve is one lot of road right-of-way (settlement_road_reserve): never
+// sold, never built on except by a road. A corridor serves the lot at
+// ServesX, ServesY.
+type RoadReserve struct {
+	SettlementID     string
+	X, Y             int
+	Kind             string
+	ServesX, ServesY int
+	CreatedAt        time.Time
+}
+
+// LotConnection is one settlement_lot_connections row: the road paid for to
+// reach a lot.
+type LotConnection struct {
+	ID                  string
+	SettlementID        string
+	PlayerID            string
+	X, Y                int
+	Origin              string
+	RoadLots            int
+	CrossingLots        int
+	CarvedLots          int
+	Fee                 int64
+	LedgerTransactionID string
+	CreatedAt           time.Time
+}
+
+// LotRelease is how a lot is given back to the village.
+type LotRelease struct {
+	LotID string
+	Kind  string
+	At    time.Time
+	// RefundAmount and RefundLedgerTransactionID are set for a refund.
+	RefundAmount              int64
+	RefundLedgerTransactionID string
 }
 
 // LotTerms are the head's levers. A Has flag says the lever was set (so a
@@ -111,8 +177,21 @@ func (t PropertyTax) Paid() bool { return t.PaidAt != nil }
 
 // CitizenRepository is the transactional port of the citizen loop.
 type CitizenRepository interface {
-	// Lots lists every owned lot of a settlement.
+	// Lots lists every owned lot of a settlement (released lots are not owned).
 	Lots(ctx context.Context, settlementID string) ([]SettlementLot, error)
+	// LockLots takes a transaction-scoped lock on a settlement's land: every
+	// writer of lots, roads and right-of-way takes it first, so a corridor and a
+	// sale of the same lot cannot cross each other on two replicas.
+	LockLots(ctx context.Context, settlementID string) error
+	// ReleaseLot gives a lot back to the village: a refund or a dedication to
+	// the road. False when it was already released (the fence).
+	ReleaseLot(ctx context.Context, r LotRelease) (bool, error)
+	// RoadReserves lists a settlement's reserved right-of-way.
+	RoadReserves(ctx context.Context, settlementID string) ([]RoadReserve, error)
+	// ReserveRoad records right-of-way lots; a lot already reserved is kept.
+	ReserveRoad(ctx context.Context, rows []RoadReserve) error
+	// RecordConnection writes the journal row of a paid road.
+	RecordConnection(ctx context.Context, c LotConnection) error
 	// InsertLot records a bought lot; ErrLotTaken if it has an owner.
 	InsertLot(ctx context.Context, l SettlementLot) error
 

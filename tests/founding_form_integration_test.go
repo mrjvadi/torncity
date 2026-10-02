@@ -11,6 +11,7 @@ package tests
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -87,13 +88,16 @@ func newFoundingEnv(t *testing.T) *foundingEnv {
 		t.Fatalf("creating the test world: %v", err)
 	}
 	e := &foundingEnv{pool: pool, bot: insertBot(t, pool), clock: &testClock{now: time.Now().UTC().Truncate(time.Second)}}
-	t.Cleanup(func() {
-		c, cancel := context.WithTimeout(context.Background(), testTimeout)
-		defer cancel()
-		if _, err := pool.Raw().Exec(c, `DELETE FROM worlds WHERE id = $1::uuid`, w.ID); err != nil {
-			t.Errorf("cleaning up the test world: %v", err)
-		}
-	})
+	// LOTACCESS_KEEP=1 leaves the world and the village for an operator report (lot_access_integration_test.go)
+	if os.Getenv("LOTACCESS_KEEP") == "" {
+		t.Cleanup(func() {
+			c, cancel := context.WithTimeout(context.Background(), testTimeout)
+			defer cancel()
+			if _, err := pool.Raw().Exec(c, `DELETE FROM worlds WHERE id = $1::uuid`, w.ID); err != nil {
+				t.Errorf("cleaning up the test world: %v", err)
+			}
+		})
+	}
 
 	e.cache = application.NewWorldCache(worlds, params, wgContent)
 	e.h = handlers.NewSettlementsHandler(postgres.NewUnitOfWork(pool, testDefaultLanguage), workIDs{t}, nil,

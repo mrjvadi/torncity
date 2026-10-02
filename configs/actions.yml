@@ -322,6 +322,8 @@ commands:
   settlement.donate: {kind: primary, icon: "action:donate"}
   settlement.land: {kind: navigation, icon: "action:lots"}
   settlement.lot.buy: {kind: primary, icon: "action:buy"}
+  settlement.lot.access: {kind: navigation, icon: "action:lots"}
+  settlement.lot.repair: {kind: primary, icon: "action:build"}
   settlement.private: {kind: navigation, icon: "action:build"}
   settlement.private.lots: {kind: navigation, icon: "action:lots"}
   settlement.private.place: {kind: primary, icon: "action:place"}

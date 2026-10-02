@@ -122,7 +122,26 @@ func TestCitizenLoop(t *testing.T) {
 	if len(free) < 5 {
 		t.Skipf("the test village has only %d free lots", len(free))
 	}
-	lotA, lotB, lotC, lotD := free[0], free[1], free[2], free[3]
+	// A lot bought lays the road that serves it as right-of-way (docs/adr/0043),
+	// so the lots on offer shift with every sale: each later lot is read from the
+	// land as it stands, and only a lot a road can reach is picked.
+	freeNow := func(p *application.Player) string {
+		land, err := rrm(client(p, "settlement.land"))(village.Land(ctx, client(p, "settlement.land")))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, row := range viewOf(t, land)["rows"].([]any) {
+			for _, c := range row.([]any) {
+				if cell := c.(map[string]any); cell["state"] == screens.LandFree && cell["access"] != "none" {
+					return screens.LotToken(int(cell["x"].(float64)), int(cell["y"].(float64)), false)
+				}
+			}
+		}
+		t.Fatal("no free lot left")
+		return ""
+	}
+	lotA := freeNow(resident)
+	var lotB, lotD string
 
 	// ---- a non-resident cannot buy ----------------------------------------
 	if r, err := rrm(client(stranger, "settlement.lot.buy"))(village.BuyLot(ctx, client(stranger, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotA, Confirm: screens.ResidenceConfirm})); err != nil ||
@@ -161,12 +180,17 @@ func TestCitizenLoop(t *testing.T) {
 		t.Fatalf("a taken lot was sold twice: %+v %v", r, err)
 	}
 	// The per-player limit (3 in this test).
-	for _, lot := range []string{lotB, lotC} {
+	for i := 0; i < 2; i++ {
+		lot := freeNow(resident)
+		if i == 0 {
+			lotB = lot
+		}
 		if r, err := rrm(client(resident, "settlement.lot.buy"))(village.BuyLot(ctx, client(resident, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lot, Confirm: screens.ResidenceConfirm})); err != nil ||
 			!strings.Contains(r.Text, "citizen.buy.done_title") {
 			t.Fatalf("buying %s: %+v %v", lot, r, err)
 		}
 	}
+	lotD = freeNow(resident)
 	if r, err := rrm(client(resident, "settlement.lot.buy"))(village.BuyLot(ctx, client(resident, "settlement.lot.buy"), handlers.VillageLotRequest{Lot: lotD, Confirm: screens.ResidenceConfirm})); err != nil ||
 		!strings.Contains(r.Text, "citizen.refusal.citizen_lot_limit") {
 		t.Fatalf("the lot limit was not kept: %+v %v", r, err)

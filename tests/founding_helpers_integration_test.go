@@ -5,6 +5,7 @@ package tests
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"testing"
 	"time"
 
@@ -103,6 +104,9 @@ func viewOf(t *testing.T, resp *presenter.Response) map[string]any {
 // chats wrote, so a test leaves the database as it found it.
 func cleanupFounding(t *testing.T, pool *postgres.Pool, chats func() []int64) {
 	t.Helper()
+	if os.Getenv("LOTACCESS_KEEP") != "" {
+		return // the operator report of lot access runs against what this test leaves
+	}
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 		defer cancel()

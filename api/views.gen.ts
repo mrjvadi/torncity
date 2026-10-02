@@ -1570,6 +1570,10 @@ export interface LandCell {
   state: string
   owner: string
   building: string
+  access: string
+  roads: number
+  crossings: number
+  cost: number
 }
 
 export interface LandView {
@@ -1583,6 +1587,7 @@ export interface LandView {
   max: number
   can_buy: boolean
   free_lots: number
+  served_lots: number
 }
 
 export interface LeverEditView {
@@ -1729,6 +1734,30 @@ export interface Loot {
   qty: number
 }
 
+export interface LotAccess {
+  kind: string
+  roads: number
+  crossings: number
+  cost: number
+  carved: LotRef[] | null
+  path: LotRef[] | null
+}
+
+export interface LotAccessView {
+  village: string
+  settlement_id: string
+  x: number
+  y: number
+  own: boolean
+  price: number
+  refund: number
+  cash: number
+  access: LotAccess
+  carve: LotAccess | null
+  nearby: LotNearby[] | null
+  building: Named
+}
+
 export interface LotBatchConfirmView {
   settlement_name: string
   building: Named
@@ -1752,6 +1781,11 @@ export interface LotBuyView {
   price: number
   cash: number
   treasury: number
+  access: LotAccess
+  carve: LotAccess | null
+  nearby: LotNearby[] | null
+  road: string
+  total: number
 }
 
 export interface LotCell {
@@ -1786,6 +1820,32 @@ export interface LotGridView {
   from: LotBatchLot
   win_x: number
   win_y: number
+}
+
+export interface LotNearby {
+  x: number
+  y: number
+  distance: number
+  access: LotAccess
+}
+
+export interface LotRef {
+  x: number
+  y: number
+}
+
+export interface LotRepairView {
+  village: string
+  settlement_id: string
+  x: number
+  y: number
+  option: string
+  paid: number
+  refund: number
+  cash: number
+  roads: number
+  crossings: number
+  carved: number
 }
 
 export interface MapCity {
@@ -1899,6 +1959,8 @@ export interface MeasureToggle {
 export interface MineLot {
   x: number
   y: number
+  access: string
+  cost: number
   building: string
   state: string
   finish_at: string | null
@@ -3294,8 +3356,10 @@ export interface ScreenViews {
   settlement_grid_grow: GridGrowView
   settlement_knowledge_list: KnowledgeListView
   settlement_land: LandView
+  settlement_lot_access: LotAccessView
   settlement_lot_buy_confirm: LotBuyView
   settlement_lot_buy_done: LotBuyView
+  settlement_lot_repair_done: LotRepairView
   settlement_mine: MineView
   settlement_private_confirm: PrivateConfirmView
   settlement_private_lots: PrivateLotsView

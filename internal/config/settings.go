@@ -307,6 +307,10 @@ type settlementSettings struct {
 	GridLotPrice            *int64   `yaml:"grid_lot_price"`
 	GridPriceStepBPS        *int64   `yaml:"grid_price_step_bps"`
 	AutoRoadCost            *int64   `yaml:"auto_road_cost"`
+	LotAccessCrossingCost   *int64   `yaml:"lot_access_crossing_cost"`
+	LotAccessMaxCrossing    *int     `yaml:"lot_access_max_crossing"`
+	StreetPitch             *int     `yaml:"street_pitch"`
+	StreetPlanMinGrid       *int     `yaml:"street_plan_min_grid"`
 
 	FoundingDraftTTL          *string `yaml:"founding_draft_ttl"`
 	FoundingNameMin           *int    `yaml:"founding_name_min"`
@@ -1109,6 +1113,18 @@ var coreSettings = []setting{
 	moneySetting("settlement", "auto_road_cost",
 		func(c *Config) *int64 { return &c.Settlement.AutoRoadCost },
 		func(f *fileConfig) *int64 { return f.Settlement.AutoRoadCost }),
+	moneySetting("settlement", "lot_access_crossing_cost",
+		func(c *Config) *int64 { return &c.Settlement.LotAccessCrossingCost },
+		func(f *fileConfig) *int64 { return f.Settlement.LotAccessCrossingCost }),
+	limitSetting("settlement", "lot_access_max_crossing",
+		func(c *Config) *int { return &c.Settlement.LotAccessMaxCrossing },
+		func(f *fileConfig) *int { return f.Settlement.LotAccessMaxCrossing }),
+	limitSetting("settlement", "street_pitch",
+		func(c *Config) *int { return &c.Settlement.StreetPitch },
+		func(f *fileConfig) *int { return f.Settlement.StreetPitch }),
+	limitSetting("settlement", "street_plan_min_grid",
+		func(c *Config) *int { return &c.Settlement.StreetPlanMinGrid },
+		func(f *fileConfig) *int { return f.Settlement.StreetPlanMinGrid }),
 	durationSetting("settlement", "founding_draft_ttl",
 		func(c *Config) *time.Duration { return &c.Settlement.FoundingDraftTTL },
 		func(f *fileConfig) *string { return f.Settlement.FoundingDraftTTL }),

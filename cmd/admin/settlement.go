@@ -32,6 +32,11 @@ func settlementUsage() {
   check-sites             read-only: every founded settlement's cell, grid
                           slide, buildable-lot share and founding kit, and
                           whether it meets settlement.min_buildable_lot_share_bps
+  landlocked              read-only: every private bare lot no road touches, how a
+                          road could reach it and at what price (docs/adr/0043).
+                          Changes nothing: each owner chooses in the game between
+                          the connection, a road through their own land and a
+                          refund (the world is regenerated, about 15 seconds)
   relocate --id UUID --reason "why" [--by NAME]
                           move a settlement to a valid site nearby and lay its
                           founding kit on buildable lots, in one transaction,
@@ -60,6 +65,8 @@ func settlementCommand(ctx context.Context, args []string) error {
 		return settlementCheckSites(ctx)
 	case "relocate":
 		return settlementRelocate(ctx, args[1:])
+	case "landlocked":
+		return settlementLandlocked(ctx)
 	}
 	settlementUsage()
 	os.Exit(2)

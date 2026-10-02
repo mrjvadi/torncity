@@ -29,7 +29,7 @@ citizen:
       Any free lot can be yours: the price goes to the village treasury and the lot is yours for good.
       💵 Price per lot: {price}
       📌 Your lots: {owned} of {max}
-    legend: "🟩 free to buy - 🏡 yours - 🔒 someone else's - 🏠 building - 🛣 road - 💧 water - ⛰ steep"
+    legend: "🟩 free, on the road - 🟨 free, road to lay - 🟦 free, road crosses water - 🟥 free, no road possible - 🏡 yours - 🔒 someone else's - 🏠 building - 🛣 road - 🚧 road reserve, not for sale - 💧 water - ⛰ steep"
     cannot_buy: "To buy more land you must be under the personal lot limit and have enough money."
   buy:
     ask_title: "🏡 Buy a lot"
@@ -53,6 +53,28 @@ citizen:
       Row {row}, column {col} is registered in your name and {price} went to the village treasury.
       Money left: {cash}
       You can build a house on it now.
+  access:
+    title: "🛣 Road to the lot at row {row}, column {col}"
+    refused: "No road reaches this lot, so \"{building}\" cannot be built on it. Here is what you can do:"
+    road: "🛣 This lot is on the road; no road is needed."
+    needs_road: "🛣 No road reaches this lot yet. {roads} lots of road are laid over public land for {cost}. The road stays public for good."
+    needs_road_carve: "🛣 No road reaches this lot yet. {roads} lots of road are laid, {carved} of them on your own lots, for {cost}."
+    needs_bridge: "🌉 Reaching this lot takes {roads} lots of road and a crossing over water ({crossings} lots of culvert or footbridge). Whole road: {cost}. The road stays public for good."
+    needs_bridge_carve: "🌉 The road to this lot crosses water ({crossings} lots of culvert or footbridge) and {carved} lots of it are your own. Whole road: {cost}."
+    none: "⛔ No road can reach this lot: other people's lots, buildings, slopes or wide water close it in. That is why it is not for sale."
+    none_carve: "⛔ There is no way in over public land."
+    total: "You pay in all: {total}"
+    nearby: "These lots are close and have a road:"
+    no_nearby: "No free lot with a road was found for now."
+    button_nearby: "🏡 Row {row}, column {col} ({cost})"
+    button_connect: "🛣 Lay the road - {cost}"
+    button_carve: "🪓 Cut the road through my own land ({carved} lots, {cost})"
+    button_refund: "💸 Cancel the sale and give me my money back - {refund}"
+    refund_note: "If you do not want a road, the sale is cancelled, {refund} comes back to you from the village treasury and the lot returns to the village."
+    done:
+      connect: "✅ The road to the lot at row {row}, column {col} is laid for {paid}. Your money: {cash}"
+      carve: "✅ The road was cut through your own land: {carved} of your lots became road and it cost {paid}. Your money: {cash}"
+      refund: "✅ The sale is cancelled and {refund} came back to you. Your money: {cash}"
   private:
     title: "🏠 Private building in {village}"
     no_land: "To build a house you need a lot first. Buy a free lot and come back."
@@ -95,6 +117,8 @@ citizen:
     no_home: "🏚 You have no house yet; build one on your lot to live in it."
     home: "🏠 Your home: {name}"
     lot_bare: "🟩 Row {row}, column {col}: empty lot"
+    lot_no_road: "🟥 Row {row}, column {col}: empty lot, no road"
+    button_road: "🛣 Road to row {row}, column {col}"
     lot_building: "🏗 Row {row}, column {col}: {name} under construction - {time} left"
     lot_built: "🏡 Row {row}, column {col}: {name}"
     no_lots: "You own no lots."
@@ -135,6 +159,10 @@ citizen:
     citizen_terms_range: "That number is outside the allowed range."
     citizen_no_debt: "You have no tax debt."
     citizen_off: "Buying land is not open in this village yet."
+    citizen_lot_reserved: "This lot is road reserve and not for sale. Pick another one."
+    citizen_no_access: "No road can reach this lot, so it is not sold. Pick another one."
+    citizen_no_option: "That cannot be done for this lot."
+    citizen_refund_treasury: "The village treasury cannot cover the refund right now. You can lay the road, or try again later."
     citizen_no_lots: "You own no lots; buy one first."
 
 # Village-level knowledge and construction (docs/adr/0031-knowledge-and-
@@ -256,6 +284,8 @@ village:
     donate_range: "💰 A gift must be between {min} and {max}."
     donate_no_cash: "💰 You do not have enough cash for that gift."
     no_road: "🛣 No road can reach this building; there is no free buildable ground around it to lay one. Try another lot."
+    road_reserved: "🛣 This road is someone's way in and stays road reserve; it cannot be torn down."
+    reserved: "🚧 This lot is road reserve; only a road can be built on it."
     grid_max: "🗺 The village's land has reached the technical limit of the map size and cannot grow further."
     batch: |-
       🚧 The batch was not built and nothing was paid. These lots have a problem:

@@ -81,6 +81,8 @@ func buildingRefusal(err error) *villageRefusal {
 		return refuseVillage(village.VillageUnbuildable)
 	case stderrors.Is(err, settlementbuilding.ErrLotOccupied):
 		return refuseVillage(village.VillageOccupied)
+	case stderrors.Is(err, settlementbuilding.ErrReservedLot):
+		return refuseVillage(village.VillageReserved)
 	case stderrors.Is(err, settlementbuilding.ErrTerrainRequired):
 		return refuseVillage(village.VillageTerrain)
 	case stderrors.Is(err, settlementbuilding.ErrKnowledgeMissing), stderrors.Is(err, settlementbuilding.ErrRoleMissing):
@@ -467,6 +469,16 @@ func (h *VillageHandler) Demolish(ctx context.Context, meta envelope.Metadata, r
 		// The head changes the village's own buildings; a resident's is theirs.
 		if err := h.mayChangeBuilding(ctx, tx, s, p.ID, b.ID); err != nil {
 			return err
+		}
+		// A road that is someone's way in is right-of-way: it stays (docs/adr/0043).
+		reserves, err := tx.Citizens().RoadReserves(ctx, s.CityID)
+		if err != nil {
+			return err
+		}
+		for _, r := range reserves {
+			if r.X == b.LotX && r.Y == b.LotY {
+				return refuseVillage(village.VillageRoadReserved)
+			}
 		}
 		now := h.now()
 		if err := tx.SettlementBuildings().Demolish(ctx, b.ID, now); err != nil {

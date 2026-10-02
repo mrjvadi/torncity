@@ -454,6 +454,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				MaterialMarkupBPS: cfg.Settlement.CitizenMaterialMarkupBPS, MaxLotsPerPlayer: cfg.Settlement.CitizenMaxLotsPerPlayer,
 				PrivateShareMaxBPS: cfg.Settlement.CitizenPrivateShareMaxBPS, HomeRestCooldown: cfg.Settlement.CitizenHomeRestCooldown,
 				HomeRestHealth: cfg.Settlement.CitizenHomeRestHealth, HomeRestHappiness: cfg.Settlement.CitizenHomeRestHappiness,
+				CrossingLotCost: cfg.Settlement.LotAccessCrossingCost, MaxCrossing: cfg.Settlement.LotAccessMaxCrossing,
+				StreetPitch: cfg.Settlement.StreetPitch, StreetPlanMinGrid: cfg.Settlement.StreetPlanMinGrid,
 			}).
 			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets).
 			WithActivities(activityRules(cfg)),

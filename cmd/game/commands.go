@@ -324,6 +324,20 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.BuyLot(ctx, env.Metadata, req)
 		},
+		"settlement.lot.access": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageAccessRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.LotAccess(ctx, env.Metadata, req)
+		},
+		"settlement.lot.repair": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageRepairRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.RepairLot(ctx, env.Metadata, req)
+		},
 		"settlement.private": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.PrivateMenu(ctx, env.Metadata)
 		},

@@ -738,6 +738,16 @@ type Settlement struct {
 	// hand costs 50), so the game never lays roads for nothing yet a road is
 	// far cheaper than the building it serves.
 	AutoRoadCost int64 // settlement.auto_road_cost
+	// Lot access (docs/adr/0043): a lot is only sold when a road can reach it.
+	// LotAccessCrossingCost is the price of one lot of culvert or footbridge
+	// over water (a road lot costs AutoRoadCost); LotAccessMaxCrossing is the
+	// most water lots one route may cross. A village whose grid side is at least
+	// StreetPlanMinGrid keeps a street plan, a street every StreetPitch lots,
+	// as reserved right-of-way.
+	LotAccessCrossingCost int64 // settlement.lot_access_crossing_cost
+	LotAccessMaxCrossing  int   // settlement.lot_access_max_crossing
+	StreetPitch           int   // settlement.street_pitch
+	StreetPlanMinGrid     int   // settlement.street_plan_min_grid
 
 	// The founding form: a group's «ساخت روستا» opens a draft the founder
 	// completes in the game client (name, currency, emblem) before the
@@ -1476,6 +1486,10 @@ func Defaults() *Config {
 			GridLotPrice:            50,
 			GridPriceStepBPS:        500,
 			AutoRoadCost:            10,
+			LotAccessCrossingCost:   60,
+			LotAccessMaxCrossing:    2,
+			StreetPitch:             5,
+			StreetPlanMinGrid:       12,
 
 			FoundingDraftTTL:          30 * time.Minute,
 			FoundingNameMin:           3,

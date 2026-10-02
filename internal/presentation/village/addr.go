@@ -30,6 +30,8 @@ const (
 const (
 	AddrLand            = "settlement:land"
 	AddrLotBuy          = "settlement:lot.buy"
+	AddrLotAccess       = "settlement:lot.access"
+	AddrLotRepair       = "settlement:lot.repair"
 	AddrPrivateMenu     = "settlement:private"
 	AddrPrivateLots     = "settlement:private.lots"
 	AddrPrivatePlace    = "settlement:private.place"
